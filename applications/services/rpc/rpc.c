@@ -16,9 +16,7 @@ DICT_DEF2(RpcHandlerDict, pb_size_t, M_DEFAULT_OPLIST, RpcHandler, M_POD_OPLIST)
 
 struct RpcSession {
     Rpc* rpc;
-
     FuriThread* thread;
-
     RpcHandlerDict_t handlers;
     FuriStreamBuffer* stream;
     PB_Main* decoded_message;
