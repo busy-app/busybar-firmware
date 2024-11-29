@@ -13,6 +13,7 @@ App(
         "led_display",
         "httpd_test",
         "bsb_services_common",
+        "power_srv",
     ],
     targets=["f20"],
 )
