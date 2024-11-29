@@ -8,7 +8,6 @@ for libname in [
     "lwip",
     "network",
     "mongoose",
-    "rpc_handlers_f20",
     "fw_updater_opts",
     "lib_base",
     "microtar",
@@ -27,7 +26,6 @@ for libname in [
     "sl_glue",
     "simplicity_sdk",
     "wiseconnect",
-    "rpc_handlers_f64",
     "si917_toolbox",
     "si917_applications",
 ]:

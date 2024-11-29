@@ -1,8 +1,0 @@
-App(
-    appid="rpc_intercom_start",
-    apptype=FlipperAppType.STARTUP,
-    entry_point="rpc_intercom_on_system_start",
-    cdefines=["SRV_INTERCOM_RPC"],
-    targets=["f20", "f64"],
-    order=20,
-)

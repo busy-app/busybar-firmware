@@ -105,7 +105,6 @@
         "flipper_application",
         "nanopb",
         "bsb_protobuf",
-        "rpc_handlers_f20",
         "heatshrink",
         "bit_lib",
         "datetime",

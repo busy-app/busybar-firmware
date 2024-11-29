@@ -12,7 +12,21 @@ App(
         "oled_screen",
         "led_display",
         "httpd_test",
-        "bsb_services_common",
+        "intercom",
+        "rpc_start",
     ],
     targets=["f20"],
+)
+
+App(
+    appid="basic_services",
+    name="Basic services",
+    apptype=FlipperAppType.METAPACKAGE,
+    provides=[
+        "input",
+        "intercom",
+        "demo_notification_f64",
+        "rpc_start",
+    ],
+    targets=["f64"],
 )

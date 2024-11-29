@@ -1,9 +1,9 @@
-#include "rpc_intercom.h"
+#include "intercom_rpc.h"
 
 #include <furi.h>
-#include <rpc_handlers.h>
+#include <rpc/rpc_handlers.h>
 
-#include <intercom/intercom.h>
+#include "intercom.h"
 
 static void
     intercom_session_send_bytes_callback(void* context, const uint8_t* data, size_t data_len) {
@@ -16,7 +16,7 @@ static void intercom_rx_callback(const void* data, size_t data_size, void* conte
     rpc_session_feed(intercom_session, data, data_size, FuriWaitForever);
 }
 
-void rpc_intercom_on_system_start(void* p) {
+void intercom_on_system_start(void* p) {
     UNUSED(p);
 
     Rpc* rpc = furi_record_open(RECORD_RPC);

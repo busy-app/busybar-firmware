@@ -1,6 +1,6 @@
 #pragma once
 
-#include <rpc_common/rpc_i.h>
+#include "rpc_i.h"
 
 extern const RpcSystem rpc_systems[];
 

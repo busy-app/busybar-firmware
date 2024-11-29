@@ -4,8 +4,8 @@
 #include <furi_hal_qei.h>
 #include <furi_hal_resources.h>
 
-#include <rpc_common/rpc_i.h>
-#include <rpc_intercom/rpc_intercom.h>
+#include <rpc/rpc_i.h>
+#include <intercom/intercom_rpc.h>
 
 #include <main.pb.h>
 

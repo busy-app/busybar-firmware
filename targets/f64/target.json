@@ -81,7 +81,6 @@
         "furi",
         "nanopb",
         "bsb_protobuf",
-        "rpc_handlers_f64",
         "si917_toolbox",
         "si917_applications"
     ],
