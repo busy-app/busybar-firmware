@@ -112,7 +112,7 @@
         "furi",
         "version",
         "ext_applications",
-        "firmware_applications"
+        "firmware_applications_f20"
     ],
     "fw_modules": [
         "fw_elf",

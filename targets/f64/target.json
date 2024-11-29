@@ -81,8 +81,8 @@
         "furi",
         "nanopb",
         "bsb_protobuf",
-        "si917_toolbox",
-        "si917_applications"
+        "toolbox_f64",
+        "firmware_applications_f64"
     ],
     "fw_modules": [
         "fw_elf",

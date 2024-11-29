@@ -19,15 +19,15 @@ for libname in [
     "nanopb",
     "heatshrink",
     "ext_applications",
-    "firmware_applications",
+    "firmware_applications_f20",
     ## BSB
     "bsb_protobuf",
     ## SI917
     "sl_glue",
     "simplicity_sdk",
     "wiseconnect",
-    "si917_toolbox",
-    "si917_applications",
+    "toolbox_f64",
+    "firmware_applications_f64",
 ]:
     # print(f"In {env.Real(Dir('.'))}, registering {libname}")
     env.RegisterComponent(f"fwlib_{libname}", env.FindComponentSconscript(libname))
