@@ -56,7 +56,8 @@ bool furi_hal_cortex_timer_is_expired(FuriHalCortexTimer cortex_timer) {
 }
 
 void furi_hal_cortex_timer_wait(FuriHalCortexTimer cortex_timer) {
-    while(!furi_hal_cortex_timer_is_expired(cortex_timer));
+    while(!furi_hal_cortex_timer_is_expired(cortex_timer))
+        ;
 }
 
 // // Duck ST

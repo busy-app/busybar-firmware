@@ -124,6 +124,7 @@
     "dist_modules": [
         "elf_flash",
         "debug",
+        "lint",
         "vscode_project",
         "subl_project",
         "cli"

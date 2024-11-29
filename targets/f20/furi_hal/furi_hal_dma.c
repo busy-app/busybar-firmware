@@ -4,9 +4,9 @@
 #include <furi_hal_interrupt.h>
 #include "stm32u5xx_ll_dma.h"
 
-#define FURI_HAL_GPDMA_CHANNEL_COUNT 16
+#define FURI_HAL_GPDMA_CHANNEL_COUNT    16
 #define FURI_HAL_GPDMA_2D_CHANNEL_COUNT 4
-#define FURI_HAL_LPDMA_CHANNEL_COUNT 4
+#define FURI_HAL_LPDMA_CHANNEL_COUNT    4
 
 static uint32_t furi_hal_dma_invalid_argument_crash() {
     furi_crash("Invalid argument");

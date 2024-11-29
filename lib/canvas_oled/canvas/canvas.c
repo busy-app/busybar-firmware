@@ -5,7 +5,7 @@
 
 static Canvas* instance = NULL;
 
-#define FB_WIDTH 160
+#define FB_WIDTH  160
 #define FB_HEIGHT 80
 
 static const uint8_t* fonts[] = {

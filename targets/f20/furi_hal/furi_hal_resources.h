@@ -5,7 +5,7 @@
 
 #ifdef __cplusplus
 extern "C" {
-#endif 
+#endif
 
 typedef enum {
     InputKeyUp,
@@ -14,11 +14,11 @@ typedef enum {
     InputKeyLeft,
     InputKeyOk,
     InputKeyBack,
-    // InputKeyMenu, 
+    // InputKeyMenu,
     // InputEncoder,
     // InputSwitch,
     InputKeyMAX, /**< Special value, don't use it */
-} InputKey;  
+} InputKey;
 
 typedef struct {
     const GpioPin* pin;

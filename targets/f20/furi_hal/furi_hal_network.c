@@ -150,8 +150,10 @@ static int32_t network_thread(void* ctx) {
 #endif
     netif_set_default(netif);
 
-    while(!netif_is_up(&netif_data));
-    while(dhserv_init(&dhcp_config) != ERR_OK);
+    while(!netif_is_up(&netif_data))
+        ;
+    while(dhserv_init(&dhcp_config) != ERR_OK)
+        ;
 
     mdns_resp_init();
     mdns_resp_add_netif(netif_default, "lwip");

@@ -97,17 +97,17 @@ int32_t keypad_test_app(void* p) {
         //     if(event.type == InputTypeEncoderTurn) {
         //         state.encoder += event.click_count;
         //     }
-        // } else 
+        // } else
         if(event.key == InputKeyOk) {
             if(event.type == InputTypeShort) {
                 ++state.ok;
             }
-        // } else if(event.key == InputKeyMenu) {
-        //     if(event.type == InputTypeShort) {
-        //         ++state.menu;
-        //     }
-        // } else if(event.key == InputSwitch) {
-        //     state.sw_pos = event.switch_position;
+            // } else if(event.key == InputKeyMenu) {
+            //     if(event.type == InputTypeShort) {
+            //         ++state.menu;
+            //     }
+            // } else if(event.key == InputSwitch) {
+            //     state.sw_pos = event.switch_position;
         } else if(event.key == InputKeyBack) {
             if(event.type == InputTypeLong) {
                 furi_mutex_release(state.mutex);

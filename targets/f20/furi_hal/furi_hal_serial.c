@@ -355,9 +355,7 @@ static void furi_hal_serial_dma_tx_deinit(FuriHalSerialHandle* handle) {
     LL_DMA_DisableChannel(GPDMA1, serial->dma_tx_channel);
 
     furi_hal_interrupt_set_isr(
-        furi_hal_dma_get_gpdma_interrupt_id(serial->dma_rx_channel),
-        NULL,
-        NULL);
+        furi_hal_dma_get_gpdma_interrupt_id(serial->dma_rx_channel), NULL, NULL);
 
     furi_hal_dma_free_gpdma_channel(serial->dma_tx_channel);
 }
@@ -371,9 +369,7 @@ static void furi_hal_serial_dma_rx_deinit(FuriHalSerialHandle* handle) {
     LL_DMA_DisableChannel(GPDMA1, serial->dma_rx_channel);
 
     furi_hal_interrupt_set_isr(
-        furi_hal_dma_get_gpdma_interrupt_id(serial->dma_rx_channel),
-        NULL,
-        NULL);
+        furi_hal_dma_get_gpdma_interrupt_id(serial->dma_rx_channel), NULL, NULL);
 
     furi_hal_dma_free_gpdma_channel(serial->dma_rx_channel);
 }
@@ -502,7 +498,9 @@ void furi_hal_serial_set_baudrate(FuriHalSerialHandle* handle, uint32_t baud_rat
     LL_USART_SetBaudRate(periph, SystemCoreClock, prescaler, over_sampling, baud_rate);
 }
 
-void furi_hal_serial_set_hw_flow_control(FuriHalSerialHandle* handle, FuriHalSerialHwFlowControl flow_control) {
+void furi_hal_serial_set_hw_flow_control(
+    FuriHalSerialHandle* handle,
+    FuriHalSerialHwFlowControl flow_control) {
     furi_check(handle);
 
     const FuriHalSerialResources* resources = &furi_hal_serial_resources[handle->id];
@@ -520,7 +518,8 @@ void furi_hal_serial_set_hw_flow_control(FuriHalSerialHandle* handle, FuriHalSer
 
     } else if(flow_control == FuriHalSerialHwFlowControlRts) {
         hw_flow_reg_value = LL_USART_HWCONTROL_RTS;
-        furi_hal_gpio_init_ex(gpio_rts, GpioModeAltFunctionPushPull, GpioPullNo, GpioSpeedVeryHigh, alt_fn);
+        furi_hal_gpio_init_ex(
+            gpio_rts, GpioModeAltFunctionPushPull, GpioPullNo, GpioSpeedVeryHigh, alt_fn);
         furi_hal_gpio_init_simple(gpio_cts, GpioModeAnalog);
 
     } else if(flow_control == FuriHalSerialHwFlowControlCts) {
@@ -530,7 +529,8 @@ void furi_hal_serial_set_hw_flow_control(FuriHalSerialHandle* handle, FuriHalSer
 
     } else if(flow_control == FuriHalSerialHwFlowControlRtsCts) {
         hw_flow_reg_value = LL_USART_HWCONTROL_RTS_CTS;
-        furi_hal_gpio_init_ex(gpio_rts, GpioModeAltFunctionPushPull, GpioPullNo, GpioSpeedVeryHigh, alt_fn);
+        furi_hal_gpio_init_ex(
+            gpio_rts, GpioModeAltFunctionPushPull, GpioPullNo, GpioSpeedVeryHigh, alt_fn);
         furi_hal_gpio_init_ex(gpio_cts, GpioModeInput, GpioPullUp, GpioSpeedVeryHigh, alt_fn);
 
     } else {

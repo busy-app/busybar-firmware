@@ -63,7 +63,9 @@ void furi_hal_serial_set_br(FuriHalSerialHandle* handle, uint32_t baud);
  * @param handle Pointer to the serial handle.
  * @param flow_control Flow control mode.
  */
-void furi_hal_serial_set_hw_flow_control(FuriHalSerialHandle* handle, FuriHalSerialHwFlowControl flow_control);
+void furi_hal_serial_set_hw_flow_control(
+    FuriHalSerialHandle* handle,
+    FuriHalSerialHwFlowControl flow_control);
 
 void furi_hal_serial_set_callback(
     FuriHalSerialHandle* handle,

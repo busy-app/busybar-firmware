@@ -18,7 +18,7 @@ extern "C" {
 
 #define U8G2_FONT_HEADER_SIZE 23
 
-#define U8G2FontRender_OK 0x01
+#define U8G2FontRender_OK  0x01
 #define U8G2FontRender_ERR 0x02
 
 #define pgm_read(adr) (*(const uint8_t*)(adr))
@@ -26,34 +26,34 @@ extern "C" {
 typedef void (*U8G2DrawPixelCb)(int32_t x, int32_t y, void* context);
 
 typedef struct {
-    uint8_t number_of_glyphs : 8;
-    uint8_t bounding_box_mode : 8;
-    uint8_t zero_bit_width : 8;
-    uint8_t one_bit_width : 8;
+    uint8_t number_of_glyphs     : 8;
+    uint8_t bounding_box_mode    : 8;
+    uint8_t zero_bit_width       : 8;
+    uint8_t one_bit_width        : 8;
 
-    uint8_t glyph_width : 8;
-    uint8_t glyph_height : 8;
-    uint8_t glyph_x_offset : 8;
-    uint8_t glyph_y_offset : 8;
-    uint8_t glyph_pitch : 8;
+    uint8_t glyph_width          : 8;
+    uint8_t glyph_height         : 8;
+    uint8_t glyph_x_offset       : 8;
+    uint8_t glyph_y_offset       : 8;
+    uint8_t glyph_pitch          : 8;
 
-    int8_t bounding_box_width : 8;
-    int8_t bounding_box_height : 8;
+    int8_t bounding_box_width    : 8;
+    int8_t bounding_box_height   : 8;
     int8_t bounding_box_x_offset : 8;
     int8_t bounding_box_y_offset : 8;
 
-    int8_t ascent_A : 8;
-    int8_t descent_g : 8;
-    int8_t ascent_parentheses : 8;
-    int8_t descent_parentheses : 8;
+    int8_t ascent_A              : 8;
+    int8_t descent_g             : 8;
+    int8_t ascent_parentheses    : 8;
+    int8_t descent_parentheses   : 8;
 
-    uint16_t offset_A : 16;
-    uint16_t offset_a : 16;
-    uint16_t offset_0x100 : 16;
+    uint16_t offset_A            : 16;
+    uint16_t offset_a            : 16;
+    uint16_t offset_0x100        : 16;
 } U8G2FontHeader;
 
 typedef struct {
-    uint8_t character : 8;
+    uint8_t character   : 8;
     uint8_t next_glypth : 8;
 
     uint8_t width;

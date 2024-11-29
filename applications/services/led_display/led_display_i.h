@@ -17,8 +17,8 @@
 #define DISPLAY_GAMMA (0.35f) // Default gamma value
 
 #define LED_DRIVER_CHAIN (3)
-#define PIXEL_BUF_LEN (3 * 2 * 2) // Tx buffer len for 1 pixel (RGB * uint16_t * 2(Dual SPI))
-#define DISPLAY_BLOCKS (8 * 3) // Scan blocks number (24)
+#define PIXEL_BUF_LEN    (3 * 2 * 2) // Tx buffer len for 1 pixel (RGB * uint16_t * 2(Dual SPI))
+#define DISPLAY_BLOCKS   (8 * 3) // Scan blocks number (24)
 
 typedef struct LedDisplayDriver LedDisplayDriver;
 typedef struct LedDisplayScan LedDisplayScan;
