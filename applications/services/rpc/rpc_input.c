@@ -1,10 +1,7 @@
-#include "rpc_input.h"
-
-#include <main.pb.h>
-#include <input/input.h>
-#include <furi.h>
-
 #include "rpc_i.h"
+
+#include <furi.h>
+#include <input/input.h>
 
 #define TAG "RpcInput"
 

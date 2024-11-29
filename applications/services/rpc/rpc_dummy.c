@@ -1,5 +1,3 @@
-#include "rpc_dummy.h"
-
 #include "rpc_i.h"
 
 typedef struct {

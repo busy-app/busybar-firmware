@@ -6,7 +6,7 @@ App(
     sources=[
         "rpc.c",
         "rpc_input.c",
-        "rpc_handlers_f20.c",
+        "rpc_systems_f20.c",
     ],
     targets=["f20"],
     order=10,
@@ -20,7 +20,7 @@ App(
     sources=[
         "rpc.c",
         "rpc_dummy.c",
-        "rpc_handlers_f64.c",
+        "rpc_systems_f64.c",
     ],
     targets=["f64"],
     order=10,

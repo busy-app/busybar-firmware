@@ -1,7 +1,7 @@
 #include "intercom_rpc.h"
 
 #include <furi.h>
-#include <rpc/rpc_handlers.h>
+#include <rpc/rpc.h>
 
 #include "intercom.h"
 
@@ -22,8 +22,7 @@ void intercom_on_system_start(void* p) {
     Rpc* rpc = furi_record_open(RECORD_RPC);
     Intercom* intercom = furi_record_open(RECORD_INTERCOM);
 
-    RpcSession* intercom_session =
-        rpc_session_open(rpc, RpcOwnerIntercom, rpc_systems, rpc_system_count);
+    RpcSession* intercom_session = rpc_session_open(rpc, RpcOwnerIntercom);
     rpc_session_set_context(intercom_session, intercom);
     rpc_session_set_send_bytes_callback(intercom_session, intercom_session_send_bytes_callback);
     intercom_set_rx_callback(intercom, intercom_rx_callback, intercom_session);

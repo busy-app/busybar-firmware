@@ -24,11 +24,7 @@ struct RpcSession {
     PB_Main* decoded_message;
     bool terminate;
     bool decode_error;
-
-    const RpcSystem* systems;
     void** system_contexts;
-    uint32_t system_count;
-
     FuriMutex* callbacks_mutex;
     RpcSendBytesCallback send_bytes_callback;
     RpcBufferIsEmptyCallback buffer_is_empty_callback;
@@ -41,6 +37,10 @@ struct RpcSession {
 struct Rpc {
     FuriMutex* busy_mutex;
 };
+
+// Target-specific set of systems
+extern const RpcSystem rpc_systems[];
+extern const uint32_t rpc_system_count;
 
 RpcOwner rpc_session_get_owner(RpcSession* session) {
     furi_check(session);
@@ -296,9 +296,9 @@ static void rpc_session_thread_pending_callback(void* context, uint32_t arg) {
     UNUSED(arg);
     RpcSession* session = (RpcSession*)context;
 
-    for(size_t i = 0; i < session->system_count; ++i) {
-        if(session->systems[i].free) {
-            (session->systems[i].free)(session->system_contexts[i]);
+    for(size_t i = 0; i < rpc_system_count; ++i) {
+        if(rpc_systems[i].free) {
+            (rpc_systems[i].free)(session->system_contexts[i]);
         }
     }
 
@@ -331,11 +331,8 @@ static void
     }
 }
 
-RpcSession*
-    rpc_session_open(Rpc* rpc, RpcOwner owner, const RpcSystem* systems, uint32_t system_count) {
+RpcSession* rpc_session_open(Rpc* rpc, RpcOwner owner) {
     furi_check(rpc);
-    furi_check(systems);
-    furi_check(system_count);
 
     RpcSession* session = malloc(sizeof(RpcSession));
 
@@ -352,12 +349,10 @@ RpcSession*
     session->decoded_message->cb_content.funcs.decode = rpc_pb_content_callback;
     session->decoded_message->cb_content.arg = session;
 
-    session->systems = systems;
-    session->system_count = system_count;
-    session->system_contexts = malloc(system_count * sizeof(void*));
+    session->system_contexts = malloc(rpc_system_count * sizeof(void*));
 
-    for(size_t i = 0; i < system_count; ++i) {
-        session->system_contexts[i] = systems[i].alloc(session);
+    for(size_t i = 0; i < rpc_system_count; ++i) {
+        session->system_contexts[i] = rpc_systems[i].alloc(session);
     }
 
 #if 0

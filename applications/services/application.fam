@@ -25,7 +25,7 @@ App(
     provides=[
         "input",
         "intercom",
-        "demo_notification_f64",
+        "notification",
         "rpc_start",
     ],
     targets=["f64"],
