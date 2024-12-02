@@ -71,12 +71,12 @@ static void rpc_system_input_process_encoder_event(const PB_Main* request, void*
     // TODO: Come up with a better solution
     if(delta > 0) {
         input_key_press(InputKeyUp);
-        furi_delay_ms(5);
         input_key_release(InputKeyUp);
-    } else {
+    } else if(delta < 0) {
         input_key_press(InputKeyDown);
-        furi_delay_ms(5);
         input_key_release(InputKeyDown);
+    } else {
+        furi_crash();
     }
 
     RPC_INPUT_LOG_D(TAG, "Encoder event: delta %d", delta);

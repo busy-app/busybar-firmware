@@ -110,7 +110,10 @@ static void input_debounce_timer_callback(void* context) {
 
         if(!is_changing && state->level != current_level) {
             state->level = current_level;
-            input_send(instance, state->pin, current_level ? InputButtonActionPress : InputButtonActionRelease);
+            input_send(
+                instance,
+                state->pin,
+                current_level ? InputButtonActionPress : InputButtonActionRelease);
         }
     }
 
