@@ -12,7 +12,6 @@ App(
         "oled_screen",
         "led_display",
         "httpd_test",
-        "bsb_services_common",
         "power_srv",
         "intercom",
         "rpc_start",
