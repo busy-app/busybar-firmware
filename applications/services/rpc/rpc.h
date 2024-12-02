@@ -12,8 +12,6 @@ extern "C" {
 
 /** Rpc interface. Used for opening session only. */
 typedef struct Rpc Rpc;
-/** Rpc system interface */
-typedef struct RpcSystem RpcSystem;
 /** Rpc session interface */
 typedef struct RpcSession RpcSession;
 
@@ -61,8 +59,7 @@ RpcOwner rpc_session_get_owner(RpcSession* session);
  * @return          pointer to RpcSession descriptor, or
  *                  NULL if RPC is busy and can't open session now
  */
-RpcSession*
-    rpc_session_open(Rpc* rpc, RpcOwner owner, const RpcSystem* systems, uint32_t system_count);
+RpcSession* rpc_session_open(Rpc* rpc, RpcOwner owner);
 
 /** Close RPC session
  * It is guaranteed that no callbacks will be called

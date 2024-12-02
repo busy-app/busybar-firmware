@@ -54,8 +54,7 @@ void wifi_rf_test_system_start(void) {
 #ifdef SRV_CLI
     Cli* cli = furi_record_open(RECORD_CLI);
 
-    cli_add_command(
-        cli, "wifi_rf_test", CliCommandFlagParallelSafe, wifi_rf_test_command, NULL);
+    cli_add_command(cli, "wifi_rf_test", CliCommandFlagParallelSafe, wifi_rf_test_command, NULL);
 
     furi_record_close(RECORD_CLI);
 #else

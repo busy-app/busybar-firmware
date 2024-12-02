@@ -92,8 +92,10 @@ static FURI_ALWAYS_INLINE void intercom_send_data_frame(Intercom* instance) {
         instance->serial, (uint8_t*)&instance->rx_frame, INTERCOM_S_FRAME_SIZE);
 }
 
-static FURI_ALWAYS_INLINE void
-    intercom_send_service_frame(Intercom* instance, IntercomFrameError error, uint16_t expected_size) {
+static FURI_ALWAYS_INLINE void intercom_send_service_frame(
+    Intercom* instance,
+    IntercomFrameError error,
+    uint16_t expected_size) {
     IntercomFrame* tx_frame = &instance->tx_frame;
 
     tx_frame->header.id = 0;
@@ -103,8 +105,7 @@ static FURI_ALWAYS_INLINE void
 
     // Send confirmation
     furi_hal_serial_dma_tx(instance->serial, (uint8_t*)tx_frame, INTERCOM_S_FRAME_SIZE);
-    furi_hal_serial_dma_rx_start(
-        instance->serial, (uint8_t*)&instance->rx_frame, expected_size);
+    furi_hal_serial_dma_rx_start(instance->serial, (uint8_t*)&instance->rx_frame, expected_size);
 }
 
 static FURI_ALWAYS_INLINE void intercom_process_tx_data_event(Intercom* instance) {
@@ -147,7 +148,8 @@ static FURI_ALWAYS_INLINE void intercom_process_rx_frame_event(Intercom* instanc
             // Frame valid, but unexpected
             // TODO: send the frame after a random delay
             FURI_LOG_E(TAG, "[Idle] Unexpected frame");
-            intercom_send_service_frame(instance, IntercomFrameErrorWrongType, INTERCOM_D_FRAME_SIZE);
+            intercom_send_service_frame(
+                instance, IntercomFrameErrorWrongType, INTERCOM_D_FRAME_SIZE);
         }
 
     } else if(instance->state == IntercomStateWaitingConfirmation) {
@@ -179,7 +181,8 @@ static FURI_ALWAYS_INLINE void intercom_process_rx_frame_event(Intercom* instanc
             // Frame valid, but unexpected
             // TODO: send the frame after a random delay
             FURI_LOG_E(TAG, "[Waiting] Unexpected frame");
-            intercom_send_service_frame(instance, IntercomFrameErrorWrongType, INTERCOM_S_FRAME_SIZE);
+            intercom_send_service_frame(
+                instance, IntercomFrameErrorWrongType, INTERCOM_S_FRAME_SIZE);
         }
     }
 }

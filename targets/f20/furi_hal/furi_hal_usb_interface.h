@@ -4,7 +4,7 @@
 #include "furi_hal_usb.h"
 
 #define CDC_MAX_PACKET_LEN (TUD_OPT_HIGH_SPEED ? 512 : 64)
-#define USB_ETH_MTU 1514
+#define USB_ETH_MTU        1514
 
 typedef struct FURI_PACKED {
     uint32_t bit_rate;

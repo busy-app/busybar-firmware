@@ -16,10 +16,10 @@ typedef void* (*RpcSystemAlloc)(RpcSession* session);
 typedef void (*RpcSystemFree)(void* context);
 typedef void (*PBMessageHandler)(const PB_Main* msg_request, void* context);
 
-struct RpcSystem {
+typedef struct {
     RpcSystemAlloc alloc;
     RpcSystemFree free;
-};
+} RpcSystem;
 
 typedef struct {
     bool (*decode_submessage)(pb_istream_t* stream, const pb_field_t* field, void** arg);

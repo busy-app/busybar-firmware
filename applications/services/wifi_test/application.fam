@@ -1,0 +1,19 @@
+App(
+    appid="wifi_test_ap",
+    name="WifiTestApSrv",
+    apptype=FlipperAppType.SERVICE,
+    entry_point="demo_wifi_test_ap",
+    stack_size=4 * 1024,
+    order=100,
+    targets=["f64"],
+)
+
+App(
+    appid="wifi_test",
+    name="WifiTestSrv",
+    apptype=FlipperAppType.SERVICE,
+    entry_point="demo_wifi_test",
+    stack_size=4 * 1024,
+    order=100,
+    targets=["f64"],
+)

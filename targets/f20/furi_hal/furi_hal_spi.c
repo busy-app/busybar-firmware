@@ -78,7 +78,8 @@ void furi_hal_spi_release(FuriHalSpiBusHandle* handle) {
 
 static void furi_hal_spi_bus_end_txrx(FuriHalSpiBusHandle* handle, uint32_t timeout) {
     UNUSED(timeout); // FIXME
-    while(LL_SPI_IsActiveFlag_TXC(handle->bus->spi) == 0);
+    while(LL_SPI_IsActiveFlag_TXC(handle->bus->spi) == 0)
+        ;
     // while(LL_SPI_GetRxFIFOLevel(handle->bus->spi) != LL_SPI_RX_FIFO_EMPTY) {
     //     LL_SPI_ReceiveData8(handle->bus->spi);
     // } // TODO: check in rx mode

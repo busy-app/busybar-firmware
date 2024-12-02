@@ -6,10 +6,10 @@
 
 #define TAG "ALS Test"
 
-#define ALS_I2C_ADDR 0x52
+#define ALS_I2C_ADDR    0x52
 #define ALS_I2C_TIMEOUT 50
-#define ALS_TIMING_VAL 0xDA // TIMING reg value, 100~150 ms
-#define ALS_T_INT_US 2.8f //uS, typical, from datasheet
+#define ALS_TIMING_VAL  0xDA // TIMING reg value, 100~150 ms
+#define ALS_T_INT_US    2.8f //uS, typical, from datasheet
 
 typedef struct {
     FuriMutex* mutex;

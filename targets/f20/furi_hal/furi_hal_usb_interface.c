@@ -11,7 +11,7 @@
 #define CDC_TX_BUF_SIZE 1024
 #define CDC_RX_BUF_SIZE 2048
 
-#define STR_INDEX_ETH_MAC 4
+#define STR_INDEX_ETH_MAC  4
 #define STR_INDEX_ETH_NAME 5
 
 enum {
@@ -48,12 +48,12 @@ static tusb_desc_device_t const desc_device = {
     (TUD_CONFIG_DESC_LEN + TUD_CDC_DESC_LEN + TUD_HID_DESC_LEN + TUD_CDC_ECM_DESC_LEN)
 
 #define EPNUM_CDC_NOTIF 0x81
-#define EPNUM_CDC_OUT 0x02
-#define EPNUM_CDC_IN 0x82
-#define EPNUM_HID 0x83
+#define EPNUM_CDC_OUT   0x02
+#define EPNUM_CDC_IN    0x82
+#define EPNUM_HID       0x83
 #define EPNUM_ETH_NOTIF 0x84
-#define EPNUM_ETH_OUT 0x05
-#define EPNUM_ETH_IN 0x85
+#define EPNUM_ETH_OUT   0x05
+#define EPNUM_ETH_IN    0x85
 
 enum {
     REPORT_ID_KEYBOARD = 1,

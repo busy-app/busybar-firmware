@@ -10,22 +10,20 @@
 #include <stm32u5xx_ll_lptim.h>
 #include <stm32u5xx_ll_dma.h>
 
-
-static inline void *memset16(void *m, uint16_t val, size_t count)
-{
-    uint16_t *buf = m;
-    while(count--) *buf++ = val;
+static inline void* memset16(void* m, uint16_t val, size_t count) {
+    uint16_t* buf = m;
+    while(count--)
+        *buf++ = val;
     return m;
 }
 
-
-#define FURI_HAL_DAC_TIMER LPTIM3
-#define FURI_HAL_DAC_TIMER_BUS FuriHalBusLPTIM3
+#define FURI_HAL_DAC_TIMER              LPTIM3
+#define FURI_HAL_DAC_TIMER_BUS          FuriHalBusLPTIM3
 #define FURI_HAL_DAC_TIMER_CLOCK_SOURCE LL_RCC_LPTIM34_CLKSOURCE_MSIK
 
-#define FURI_HAL_DAC_DMA GPDMA1
-#define FURI_HAL_DAC_DMA_REQUEST LL_GPDMA1_REQUEST_DAC1_CH1
-#define FURI_HAL_DAC_DMA_PRIORITY LL_DMA_HIGH_PRIORITY
+#define FURI_HAL_DAC_DMA             GPDMA1
+#define FURI_HAL_DAC_DMA_REQUEST     LL_GPDMA1_REQUEST_DAC1_CH1
+#define FURI_HAL_DAC_DMA_PRIORITY    LL_DMA_HIGH_PRIORITY
 #define FURI_HAL_DAC_DMA_BUFFER_SIZE (256u)
 
 typedef struct {
@@ -43,19 +41,21 @@ static FuriHalDac furi_hal_dac = {};
 
 static inline void furi_hal_dac_refill(uint8_t* buffer, size_t buffer_size) {
     size_t ret = furi_hal_dac.callback(buffer, buffer_size, furi_hal_dac.callback_context);
-    if (ret < buffer_size) {
-        memset16(buffer + ret, 0xfff/2, (buffer_size - ret)/2);
+    if(ret < buffer_size) {
+        memset16(buffer + ret, 0xfff / 2, (buffer_size - ret) / 2);
     }
 }
 
 static void furi_hal_dac_isr(void*) {
     if(LL_DMA_IsActiveFlag_TC(GPDMA1, furi_hal_dac.dma_channel)) {
         LL_DMA_ClearFlag_TC(GPDMA1, furi_hal_dac.dma_channel);
-        furi_hal_dac_refill(furi_hal_dac.data + FURI_HAL_DAC_DMA_BUFFER_SIZE/2, FURI_HAL_DAC_DMA_BUFFER_SIZE/2);
+        furi_hal_dac_refill(
+            furi_hal_dac.data + FURI_HAL_DAC_DMA_BUFFER_SIZE / 2,
+            FURI_HAL_DAC_DMA_BUFFER_SIZE / 2);
     }
     if(LL_DMA_IsActiveFlag_HT(GPDMA1, furi_hal_dac.dma_channel)) {
         LL_DMA_ClearFlag_HT(GPDMA1, furi_hal_dac.dma_channel);
-        furi_hal_dac_refill(furi_hal_dac.data, FURI_HAL_DAC_DMA_BUFFER_SIZE/2);
+        furi_hal_dac_refill(furi_hal_dac.data, FURI_HAL_DAC_DMA_BUFFER_SIZE / 2);
     }
 }
 
@@ -66,10 +66,11 @@ static void furi_hal_dac_setup_dma() {
 
     furi_hal_dac.data_ptr = (uint32_t)furi_hal_dac.data;
     furi_hal_dac.data_size = sizeof(furi_hal_dac.data);
-    memset16(furi_hal_dac.data, 0xfff/2, furi_hal_dac.data_size/2);
+    memset16(furi_hal_dac.data, 0xfff / 2, furi_hal_dac.data_size / 2);
 
     dma_init_strust.SrcAddress = furi_hal_dac.data_ptr;
-    dma_init_strust.DestAddress = LL_DAC_DMA_GetRegAddr(DAC1, LL_DAC_CHANNEL_1, LL_DAC_DMA_REG_DATA_12BITS_RIGHT_ALIGNED);
+    dma_init_strust.DestAddress =
+        LL_DAC_DMA_GetRegAddr(DAC1, LL_DAC_CHANNEL_1, LL_DAC_DMA_REG_DATA_12BITS_RIGHT_ALIGNED);
     dma_init_strust.BlkDataLength = furi_hal_dac.data_size;
 
     dma_init_strust.Request = FURI_HAL_DAC_DMA_REQUEST;
@@ -91,12 +92,13 @@ static void furi_hal_dac_setup_dma() {
     dma_init_strust.LinkedListAddrOffset = (uint32_t)&furi_hal_dac.data_ptr;
 
     LL_DMA_Init(GPDMA1, furi_hal_dac.dma_channel, &dma_init_strust);
-    LL_DMA_EnableCSARUpdate(GPDMA1,furi_hal_dac.dma_channel);
+    LL_DMA_EnableCSARUpdate(GPDMA1, furi_hal_dac.dma_channel);
 
     LL_DMA_EnableIT_TC(GPDMA1, furi_hal_dac.dma_channel);
     LL_DMA_EnableIT_HT(GPDMA1, furi_hal_dac.dma_channel);
 
-    furi_hal_interrupt_set_isr(furi_hal_dma_get_gpdma_interrupt_id(furi_hal_dac.dma_channel), furi_hal_dac_isr, NULL);
+    furi_hal_interrupt_set_isr(
+        furi_hal_dma_get_gpdma_interrupt_id(furi_hal_dac.dma_channel), furi_hal_dac_isr, NULL);
 
     //Start DMA Channel
     LL_DMA_EnableChannel(GPDMA1, furi_hal_dac.dma_channel);
@@ -128,7 +130,6 @@ static void furi_hal_dac_setup_dac() {
     furi_delay_us(15);
 }
 
-
 static void furi_hal_dac_setup_timer() {
     // furi_hal_gpio_init_ex(
     //     &gpio_led_le_ospi_d1,
@@ -144,12 +145,14 @@ static void furi_hal_dac_setup_timer() {
     LL_LPTIM_SetPrescaler(FURI_HAL_DAC_TIMER, LL_LPTIM_PRESCALER_DIV1);
 
     LL_LPTIM_OC_SetCompareCH1(FURI_HAL_DAC_TIMER, 0);
-    LL_LPTIM_OC_SetPolarity(FURI_HAL_DAC_TIMER, LL_LPTIM_CHANNEL_CH1, LL_LPTIM_OUTPUT_POLARITY_INVERSE);
+    LL_LPTIM_OC_SetPolarity(
+        FURI_HAL_DAC_TIMER, LL_LPTIM_CHANNEL_CH1, LL_LPTIM_OUTPUT_POLARITY_INVERSE);
     LL_LPTIM_SetCounterMode(FURI_HAL_DAC_TIMER, LL_LPTIM_COUNTER_MODE_INTERNAL);
-    LL_LPTIM_CC_SetChannelMode(FURI_HAL_DAC_TIMER, LL_LPTIM_CHANNEL_CH1, LL_LPTIM_CCMODE_OUTPUT_PWM);
+    LL_LPTIM_CC_SetChannelMode(
+        FURI_HAL_DAC_TIMER, LL_LPTIM_CHANNEL_CH1, LL_LPTIM_CCMODE_OUTPUT_PWM);
 
     LL_LPTIM_Enable(FURI_HAL_DAC_TIMER);
-    furi_delay_us(1000000/133000*4);
+    furi_delay_us(1000000 / 133000 * 4);
 
     LL_LPTIM_CC_EnableChannel(FURI_HAL_DAC_TIMER, LL_LPTIM_CHANNEL_CH1);
 

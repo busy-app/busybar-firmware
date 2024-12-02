@@ -252,7 +252,9 @@ void furi_hal_serial_set_br(FuriHalSerialHandle* handle, uint32_t baud) {
     periph->LCR = LCR_DLS_8BIT;
 }
 
-void furi_hal_serial_set_hw_flow_control(FuriHalSerialHandle* handle, FuriHalSerialHwFlowControl flow_control) {
+void furi_hal_serial_set_hw_flow_control(
+    FuriHalSerialHandle* handle,
+    FuriHalSerialHwFlowControl flow_control) {
     furi_check(handle);
 
     const FuriHalSerialId serial_id = handle->id;
@@ -262,10 +264,8 @@ void furi_hal_serial_set_hw_flow_control(FuriHalSerialHandle* handle, FuriHalSer
         periph->MCR = MCR_RTS_CLR | MCR_AFCE_CLR;
 
         if(serial_id == FuriHalSerialIdUsart0) {
-            furi_hal_gpio_init_simple(
-                &gpio_usart0_cts, GpioModeInput);
-            furi_hal_gpio_init_simple(
-                &gpio_usart0_rts, GpioModeInput);
+            furi_hal_gpio_init_simple(&gpio_usart0_cts, GpioModeInput);
+            furi_hal_gpio_init_simple(&gpio_usart0_rts, GpioModeInput);
 
         } else if(serial_id == FuriHalSerialIdUart1) {
             // No pins defined for hardware flow control

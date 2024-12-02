@@ -5,9 +5,9 @@
 
 #define TAG "USB"
 
-#define USB_RECONNECT_DELAY 500
+#define USB_RECONNECT_DELAY     500
 #define USB_DESC_STRING_LEN_MAX (32)
-#define USB_LANGID_EN ((const char[]){0x09, 0x04})
+#define USB_LANGID_EN           ((const char[]){0x09, 0x04})
 
 typedef enum {
     UsbApiEventTypeSetConfig,

@@ -1,6 +1,6 @@
 #pragma once
 
-#include <rpc_common/rpc.h>
+#include "rpc.h"
 
 void* rpc_system_input_alloc(RpcSession* session);
 

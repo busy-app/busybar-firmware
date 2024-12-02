@@ -105,7 +105,6 @@
         "flipper_application",
         "nanopb",
         "bsb_protobuf",
-        "rpc_handlers_f20",
         "heatshrink",
         "bit_lib",
         "datetime",
@@ -113,7 +112,7 @@
         "furi",
         "version",
         "ext_applications",
-        "firmware_applications"
+        "firmware_applications_f20"
     ],
     "fw_modules": [
         "fw_elf",
@@ -125,6 +124,7 @@
     "dist_modules": [
         "elf_flash",
         "debug",
+        "lint",
         "vscode_project",
         "subl_project",
         "cli"

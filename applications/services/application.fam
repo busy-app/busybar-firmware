@@ -14,6 +14,21 @@ App(
         "httpd_test",
         "bsb_services_common",
         "power_srv",
+        "intercom",
+        "rpc_start",
     ],
     targets=["f20"],
+)
+
+App(
+    appid="basic_services",
+    name="Basic services",
+    apptype=FlipperAppType.METAPACKAGE,
+    provides=[
+        "input",
+        "intercom",
+        "notification",
+        "rpc_start",
+    ],
+    targets=["f64"],
 )
