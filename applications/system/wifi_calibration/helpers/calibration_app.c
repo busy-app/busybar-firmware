@@ -15,6 +15,9 @@
 
 #define BURST_MODE      0
 #define CONTINUOUS_MODE 1
+#define CW_MODE         2 // CW/DC unmodulated Carrier mode is defined here
+#define TX_TEST_MODE    CW_MODE // Test mode is changed here
+#define CHANNEL         1
 
 #define MAX_CALIB_COMMAND_LENGTH 32
 #define NO_OF_CALIB_COMMANDS     7
@@ -59,14 +62,23 @@ typedef struct {
 
 } CalibrationApp;
 
-static const sl_wifi_data_rate_t rate = SL_WIFI_DATA_RATE_1;
-static sl_si91x_request_tx_test_info_t tx_test_info = {
+const sl_wifi_data_rate_t rate = SL_WIFI_DATA_RATE_1;
+/*
+https://www.silabs.com/documents/public/application-notes/an1436-siwx917-qms-crystal-calibration-application-note.pdf
+ Note:
+ • Tx burst mode can only be used if test instrument supports Modulation analysis measurement, where the Freq error can be reported
+ by the instrument.
+ • Tx CW mode is not implemented in this example. To access CW mode, modify the app.c file based as mentioned in the following
+ section.
+*/
+sl_si91x_request_tx_test_info_t tx_test_info = {
     .enable = 1,
-    .power = 18,
+    .power = 18, // Sets TX power in dBm. The valid values are from (2 to 18)dBm and 127.
     .rate = rate,
-    .length = 30,
-    .mode = BURST_MODE,
-    .channel = 1,
+    .length =
+        30, // Configures length of the TX packet. Valid values are in the range of 24 to 1500 bytes in the burst mode.
+    .mode = CONTINUOUS_MODE,
+    .channel = CHANNEL,
     .aggr_enable = 0,
 #ifdef SLI_SI917
     .enable_11ax = 0,
@@ -257,10 +269,12 @@ sl_status_t calibration_app(CalibrationApp* instance, uint8_t cmd_index, FuriStr
                 strint_to_int8(args_cstr, &args_cstr, &instance->calib_pkt.gain_offset[1], 10);
             parse_err |=
                 strint_to_int8(args_cstr, &args_cstr, &instance->calib_pkt.gain_offset[2], 10);
-            parse_err |= strint_to_int8(args_cstr, &args_cstr, &instance->calib_pkt.xo_ctune, 10);
-            parse_err |=
-                strint_to_int8(args_cstr, NULL, &instance->calib_pkt.gain_offset_ch14, 10);
-
+            if(*args_cstr != 0x00) {
+                parse_err |=
+                    strint_to_int8(args_cstr, &args_cstr, &instance->calib_pkt.xo_ctune, 10);
+                parse_err |=
+                    strint_to_int8(args_cstr, NULL, &instance->calib_pkt.gain_offset_ch14, 10);
+            }
             if(parse_err == StrintParseNoError) {
                 status = sl_si91x_calibration_write(instance->calib_pkt);
                 if(status != SL_STATUS_OK) {
@@ -450,6 +464,22 @@ void* calibration_app_start(CliWorker* worker) {
 
         status = sl_si91x_transmit_test_start(&tx_test_info);
         if(status != SL_STATUS_OK) {
+            furi_string_printf(instance->msg, "Transmit test start failed: 0x%lx\r\n", status);
+            calibration_app_send_msg(instance);
+            break;
+        }
+
+        status = sl_si91x_transmit_test_stop();
+        if(status != SL_STATUS_OK) {
+            furi_string_printf(instance->msg, "Transmit test stop failed: 0x%lx\r\n", status);
+            calibration_app_send_msg(instance);
+            break;
+        }
+
+        tx_test_info.mode = TX_TEST_MODE;
+
+        status = sl_si91x_transmit_test_start(&tx_test_info);
+        if(status != SL_STATUS_OK) {
             ;
             furi_string_printf(instance->msg, "Transmit test start failed: 0x%lx\r\n", status);
             calibration_app_send_msg(instance);
@@ -530,6 +560,9 @@ void calibrate_app_cmd_usage(CalibrationApp* instance) {
     furi_string_cat_printf(
         instance->msg,
         "Read the manual: https://www.silabs.com/documents/public/application-notes/an1440-siwx917-gain-offset-calibration.pdf\r\n");
+    furi_string_cat_printf(
+        instance->msg,
+        "Read the manual: https://www.silabs.com/documents/public/application-notes/an1436-siwx917-qms-crystal-calibration-application-note.pdf\r\n");
     furi_string_cat_printf(
         instance->msg,
         "Read the manual: https://github.com/SiliconLabs/wiseconnect/tree/master/examples/snippets/wlan/calibration_app\r\n");
