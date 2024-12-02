@@ -19,7 +19,7 @@ extern "C" {
 typedef enum {
     InputKeyOk,
     InputKeyBack,
-    InputKeyStartPause,
+    InputKeyStart,
     InputKeySwitch,
     InputKeyEncoder,
     InputKeyMAX, /**< Special value, don't use it */

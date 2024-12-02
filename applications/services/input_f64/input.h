@@ -14,18 +14,16 @@ extern "C" {
 typedef enum {
     InputTypePress, /**< Press event, emitted after debounce */
     InputTypeRelease, /**< Release event, emitted after debounce */
-    InputTypeTurn, /**< Encoder turn event */
-    InputTypeSwitch, /**< Switch position change event */
     InputTypeMAX, /**< Special value for exceptional */
 } InputType;
 
 /** Input Event*/
 typedef struct {
     InputKey key;
-    InputType type;
     union {
-        int16_t delta;
+        InputType type;
         InputSwitchPosition position;
+        int16_t delta;
     };
 } InputEvent;
 

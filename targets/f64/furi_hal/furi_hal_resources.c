@@ -4,7 +4,7 @@
 #include <sl_si91x_gpio_common.h>
 
 #define PADSELECTION_ALL_M4  (0x3FFDFEUL) // GPIO 6...15, 46...57
-#define PADSELECTION1_ALL_M4 (0x000FCEUL) // ULP GPIO 1..3, 6...11
+#define PADSELECTION1_ALL_M4 (0x000FCEUL) // ULP GPIO 1...3, 6...11
 
 #define TAG "FuriHalResources"
 
@@ -83,7 +83,7 @@ const InputPin input_pins[] = {
     },
     {
         .gpio = &gpio_sw_start_pause,
-        .key = InputKeyStartPause,
+        .key = InputKeyStart,
         .inverted = true,
         .name = "Start/Pause",
         .condition = GpioConditionRiseFall,
@@ -129,17 +129,17 @@ const InputPin input_pins[] = {
         .condition = GpioConditionFall,
     },
 };
+
 const size_t input_pins_count = COUNT_OF(input_pins);
 
 static void furi_hal_resources_init_input_pins(GpioMode mode) {
     for(size_t i = 0; i < input_pins_count; i++) {
-        furi_hal_gpio_init(
-            input_pins[i].gpio,
-            mode,
-            (input_pins[i].gpio->type == GpioTypeUulp) ? GpioPullNo :
-            (input_pins[i].inverted)                   ? GpioPullUp :
-                                                         GpioPullDown,
-            GpioSpeedLow);
+        const InputPin* pin = &input_pins[i];
+        const GpioPin* gpio = pin->gpio;
+        const GpioPull pull = gpio->type == GpioTypeUulp ? GpioPullNo :
+                              pin->inverted              ? GpioPullUp :
+                                                           GpioPullDown;
+        furi_hal_gpio_init(gpio, mode, pull, GpioSpeedLow);
     }
 }
 
