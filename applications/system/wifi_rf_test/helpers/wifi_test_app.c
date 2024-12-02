@@ -9,8 +9,6 @@
 
 #include <args.h>
 #include <strint.h>
-// #include <stdlib.h>
-// #include <string.h>
 
 #define TAG "WifiTestApp"
 
