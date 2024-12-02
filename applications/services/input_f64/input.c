@@ -1,6 +1,5 @@
-#include "input.h"
-
 #include <furi.h>
+
 #include <furi_hal_qei.h>
 #include <furi_hal_resources.h>
 
@@ -11,8 +10,8 @@
 
 #define TAG "Input"
 
-#define INPUT_DEBOUNCE_TIMER_TICKS 1 //ms
-#define INPUT_QUEUE_SIZE           15
+#define INPUT_DEBOUNCE_TIMEOUT 1
+#define INPUT_QUEUE_SIZE       15
 
 #ifdef INPUT_DEBUG
 #define INPUT_LOG(...) FURI_LOG_D(TAG, __VA_ARGS__)
@@ -21,51 +20,65 @@
 #endif
 
 typedef enum {
-    InputSrvKeyEvent = 1 << 0,
-} InputSrvEvent;
+    InputButtonActionPress,
+    InputButtonActionRelease,
+} InputButtonAction;
+
+typedef struct {
+    InputKey key;
+    union {
+        InputButtonAction button_action;
+        InputSwitchPosition switch_position;
+        int16_t encoder_delta;
+    };
+} InputEvent;
+
+typedef enum {
+    InputEventFlagActivity = 1 << 0,
+} InputEventFlag;
 
 typedef struct {
     const InputPin* pin;
     uint16_t debounce_count;
     bool level;
-} InputSrvKeyState;
+} InputKeyState;
 
 typedef struct {
     FuriEventLoop* event_loop;
     FuriMessageQueue* input_queue;
     FuriEventLoopTimer* debounce_timer;
-    InputSrvKeyState* key_states;
+    InputKeyState* key_states;
     RpcSession* intercom_session;
 } InputSrv;
 
 static void input_isr_key(void* context) {
     InputSrv* instance = context;
-    furi_event_loop_set_custom_event(instance->event_loop, InputSrvKeyEvent);
+    furi_event_loop_set_custom_event(instance->event_loop, InputEventFlagActivity);
 }
 
 static void input_custom_event_callback(uint32_t events, void* context) {
     furi_assert(context);
     InputSrv* instance = context;
 
-    if(events & InputSrvKeyEvent) {
+    if(events & InputEventFlagActivity) {
         if(!furi_event_loop_timer_is_running(instance->debounce_timer)) {
-            furi_event_loop_timer_start(instance->debounce_timer, INPUT_DEBOUNCE_TIMER_TICKS);
+            furi_event_loop_timer_start(instance->debounce_timer, INPUT_DEBOUNCE_TIMEOUT);
         }
     }
 }
 
-static void input_send(InputSrv* instance, const InputPin* pin, InputType input_type) {
+static void input_send(InputSrv* instance, const InputPin* pin, InputButtonAction input_type) {
     InputEvent event;
     event.key = pin->key;
 
     if(pin->key == InputKeySwitch) {
-        if(input_type == InputTypePress) {
-            event.position = pin->switch_position;
+        if(input_type == InputButtonActionPress) {
+            event.switch_position = pin->switch_position;
             furi_check(furi_message_queue_put(instance->input_queue, &event, 0) == FuriStatusOk);
         }
 
     } else {
-        event.type = input_type;
+        event.button_action = input_type;
         furi_check(furi_message_queue_put(instance->input_queue, &event, 0) == FuriStatusOk);
     }
 }
@@ -81,7 +94,7 @@ static void input_debounce_timer_callback(void* context) {
     bool is_changing = false;
 
     for(size_t i = 0; i < input_pins_count; i++) {
-        InputSrvKeyState* state = &instance->key_states[i];
+        InputKeyState* state = &instance->key_states[i];
         const bool current_level = input_get_pin_level(state->pin);
 
         if(current_level) {
@@ -97,7 +110,7 @@ static void input_debounce_timer_callback(void* context) {
 
         if(!is_changing && state->level != current_level) {
             state->level = current_level;
-            input_send(instance, state->pin, current_level ? InputTypePress : InputTypeRelease);
+            input_send(instance, state->pin, current_level ? InputButtonActionPress : InputButtonActionRelease);
         }
     }
 
@@ -111,7 +124,7 @@ static void input_qei_callback(int16_t delta_pos, void* context) {
 
     InputEvent event = {
         .key = InputKeyEncoder,
-        .delta = delta_pos,
+        .encoder_delta = delta_pos,
     };
 
     furi_check(furi_message_queue_put(instance->input_queue, &event, 0) == FuriStatusOk);
@@ -130,7 +143,7 @@ static void input_queue_callback(FuriEventLoopObject* object, void* context) {
     if(event.key < InputKeySwitch) {
         msg.which_content = PB_Main_button_event_tag;
         msg.content.button_event.button = (PB_Input_Button)event.key;
-        msg.content.button_event.action = (PB_Input_ButtonAction)event.type;
+        msg.content.button_event.action = (PB_Input_ButtonAction)event.button_action;
 
         INPUT_LOG(
             "Key %s, event %s",
@@ -139,13 +152,13 @@ static void input_queue_callback(FuriEventLoopObject* object, void* context) {
 
     } else if(event.key == InputKeyEncoder) {
         msg.which_content = PB_Main_encoder_event_tag;
-        msg.content.encoder_event.delta = event.delta;
+        msg.content.encoder_event.delta = event.encoder_delta;
 
         INPUT_LOG("Encoder turn %d", event.delta);
 
     } else if(event.key == InputKeySwitch) {
         msg.which_content = PB_Main_switch_event_tag;
-        msg.content.switch_event.position = (PB_Input_SwitchPosition)event.position;
+        msg.content.switch_event.position = (PB_Input_SwitchPosition)event.switch_position;
 
         INPUT_LOG(
             "Switch %s %d, event %s",
@@ -175,12 +188,12 @@ int32_t input_srv(void* p) {
         FuriEventLoopTimerTypePeriodic,
         instance);
 
-    instance->key_states = malloc(sizeof(InputSrvKeyState) * input_pins_count);
+    instance->key_states = malloc(sizeof(InputKeyState) * input_pins_count);
     instance->intercom_session = furi_record_open(RECORD_INTERCOM_RPC);
 
     for(size_t i = 0; i < input_pins_count; i++) {
         const InputPin* pin = &input_pins[i];
-        InputSrvKeyState* state = &instance->key_states[i];
+        InputKeyState* state = &instance->key_states[i];
 
         state->pin = pin;
         state->level = input_get_pin_level(pin);
