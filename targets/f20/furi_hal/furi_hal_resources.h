@@ -15,6 +15,11 @@ typedef enum {
     InputKeyOk,
     InputKeyBack,
     InputKeyStart,
+    InputKeyBusy,
+    InputKeyStatus,
+    InputKeyOff,
+    InputKeyApps,
+    InputKeySettings,
     InputKeyMAX, /**< Special value, don't use it */
 } InputKey;
 

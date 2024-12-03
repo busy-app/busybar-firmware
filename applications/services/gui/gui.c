@@ -276,7 +276,7 @@ static void gui_input(Gui* gui, InputEvent* input_event) {
     furi_assert(input_event);
 
     // Check input complementarity
-    uint8_t key_bit = (1 << input_event->key);
+    uint32_t key_bit = (1UL << input_event->key);
     if(input_event->type == InputTypeRelease) {
         gui->ongoing_input &= ~key_bit;
     } else if(input_event->type == InputTypePress) {

@@ -14,7 +14,7 @@ _Static_assert(
     (ViewPortOrientationHorizontal == 0 && ViewPortOrientationHorizontalFlip == 1 &&
      ViewPortOrientationVertical == 2 && ViewPortOrientationVerticalFlip == 3),
     "Incorrect ViewPortOrientation order");
-_Static_assert(InputKeyMAX == 7, "Incorrect InputKey count");
+_Static_assert(InputKeyMAX == 12, "Incorrect InputKey count");
 _Static_assert(
     (InputKeyUp == 0 && InputKeyDown == 1 && InputKeyRight == 2 && InputKeyLeft == 3 &&
      InputKeyOk == 4 && InputKeyBack == 5),
@@ -32,6 +32,12 @@ static const InputKey view_port_input_mapping[ViewPortOrientationMAX][InputKeyMA
             InputKeyLeft,
             InputKeyOk,
             InputKeyBack,
+            InputKeyStart,
+            InputKeyBusy,
+            InputKeyStatus,
+            InputKeyOff,
+            InputKeyApps,
+            InputKeySettings,
         },
     [ViewPortOrientationHorizontalFlip] =
         {
@@ -41,6 +47,12 @@ static const InputKey view_port_input_mapping[ViewPortOrientationMAX][InputKeyMA
             InputKeyRight,
             InputKeyOk,
             InputKeyBack,
+            InputKeyStart,
+            InputKeyBusy,
+            InputKeyStatus,
+            InputKeyOff,
+            InputKeyApps,
+            InputKeySettings,
         },
     [ViewPortOrientationVertical] =
         {
@@ -50,6 +62,12 @@ static const InputKey view_port_input_mapping[ViewPortOrientationMAX][InputKeyMA
             InputKeyUp,
             InputKeyOk,
             InputKeyBack,
+            InputKeyStart,
+            InputKeyBusy,
+            InputKeyStatus,
+            InputKeyOff,
+            InputKeyApps,
+            InputKeySettings,
         },
     [ViewPortOrientationVerticalFlip] =
         {
@@ -59,6 +77,12 @@ static const InputKey view_port_input_mapping[ViewPortOrientationMAX][InputKeyMA
             InputKeyDown,
             InputKeyOk,
             InputKeyBack,
+            InputKeyStart,
+            InputKeyBusy,
+            InputKeyStatus,
+            InputKeyOff,
+            InputKeyApps,
+            InputKeySettings,
         },
 };
 

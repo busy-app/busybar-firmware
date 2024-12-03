@@ -251,7 +251,7 @@ void view_dispatcher_input_callback(InputEvent* event, void* context) {
 
 void view_dispatcher_handle_input(ViewDispatcher* view_dispatcher, InputEvent* event) {
     // Check input complementarity
-    uint8_t key_bit = (1 << event->key);
+    uint32_t key_bit = (1UL << event->key);
     if(event->type == InputTypePress) {
         view_dispatcher->ongoing_input |= key_bit;
     } else if(event->type == InputTypeRelease) {

@@ -53,9 +53,10 @@ static void rpc_system_input_process_switch_event(const PB_Main* request, void* 
     RpcSession* session = instance->session;
     furi_assert(session);
 
-    // TODO: Handle switch change
+    const PB_Input_SwitchPosition position = request->content.switch_event.position;
+    input_key_toggle(InputKeyBusy + position);
 
-    RPC_INPUT_LOG_D(TAG, "Switch event: position %d", request->content.switch_event.position);
+    RPC_INPUT_LOG_D(TAG, "Switch event: position %d", position);
 }
 
 static void rpc_system_input_process_encoder_event(const PB_Main* request, void* context) {

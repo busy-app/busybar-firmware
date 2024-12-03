@@ -26,7 +26,7 @@ struct ViewDispatcher {
     View* current_view;
 
     View* ongoing_input_view;
-    uint8_t ongoing_input;
+    uint32_t ongoing_input;
 
     ViewDispatcherCustomEventCallback custom_event_callback;
     ViewDispatcherNavigationEventCallback navigation_event_callback;

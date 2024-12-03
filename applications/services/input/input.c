@@ -40,6 +40,16 @@ const char* input_get_key_name(InputKey key) {
         return "InputKeyBack";
     case InputKeyStart:
         return "InputKeyStart";
+    case InputKeyBusy:
+        return "InputKeyBusy";
+    case InputKeyStatus:
+        return "InputKeyStatus";
+    case InputKeyOff:
+        return "InputKeyOff";
+    case InputKeyApps:
+        return "InputKeyApps";
+    case InputKeySettings:
+        return "InputKeySettings";
     default:
         furi_crash();
     }
@@ -111,6 +121,7 @@ static void input_custom_event_callback(uint32_t events, void* context) {
 
         if(events & INPUT_KEY_PRESS(i)) {
             input->sequence++;
+
             state->sequence = input->sequence;
 
             event.sequence_counter = state->sequence;
