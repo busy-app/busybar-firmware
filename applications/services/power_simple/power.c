@@ -32,7 +32,7 @@ static void power_on_interrupt(FuriEventLoopObject* object, void* context) {
     bq25798_get_irq_flags(POWER_I2C, &irq_flags);
     FURI_LOG_I(TAG, "Charger Interrupt flags: %08lX", irq_flags);
 
-    if (irq_flags & Bq25987IrqFlagVbusPresent) {
+    if(irq_flags & Bq25987IrqFlagVbusPresent) {
         bq25798_set_input_current_limit(POWER_I2C, 1.f); // TODO: update limit after PD negotiation
     }
 
@@ -51,12 +51,6 @@ Power* power_alloc(void) {
     instance->event_loop = furi_event_loop_alloc();
     instance->gpio_semaphore = furi_semaphore_alloc(1, 0);
     return instance;
-}
-
-void power_free(Power* instance) {
-    furi_assert(instance);
-    furi_event_loop_free(instance->event_loop);
-    free(instance);
 }
 
 void power_run(Power* instance) {
@@ -86,8 +80,4 @@ void power_run(Power* instance) {
 
     FURI_LOG_I(TAG, "Running event loop");
     furi_event_loop_run(instance->event_loop);
-
-    FURI_LOG_I(TAG, "Releasing GPIO");
-    furi_hal_gpio_init(POWER_GPIO, GpioModeAnalog, GpioPullNo, GpioSpeedLow);
-    furi_hal_gpio_remove_int_callback(POWER_GPIO);
 }

@@ -6,7 +6,6 @@ int32_t power_srv_app(void* p) {
 
     Power* instance = power_alloc();
     power_run(instance);
-    power_free(instance);
 
     return 0;
 }
