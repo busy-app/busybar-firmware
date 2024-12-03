@@ -1,4 +1,5 @@
 #include "wifi_ap_test_app.h"
+#include "wifi_ap_test_app_scan.h"
 #include <furi.h>
 
 #include <sl_status.h>
@@ -29,51 +30,52 @@
 //! E.g: 0x0A0AA8C0 == 192.168.10.10
 #define DEFAULT_WIFI_GATEWAY_ADDRESS 0x0A0AA8C0
 
-static const sl_net_wifi_ap_profile_t wifi_ap_profile = {
-    .config =
-        {
-            .ssid.value = WIFI_AP_PROFILE_SSID,
-            .ssid.length = sizeof(WIFI_AP_PROFILE_SSID) - 1,
-            .channel.channel = CHANNEL_NUMBER, //SL_WIFI_AUTO_CHANNEL,
-            .channel.band = SL_WIFI_AUTO_BAND,
-            .channel.bandwidth = SL_WIFI_AUTO_BANDWIDTH,
-            .security = SL_WIFI_WPA2,
-            .encryption = SL_WIFI_CCMP_ENCRYPTION,
-            .rate_protocol = SL_WIFI_RATE_PROTOCOL_AUTO,
-            .options = 0,
-            .credential_id = SL_NET_DEFAULT_WIFI_AP_CREDENTIAL_ID,
-            .keepalive_type = SL_SI91X_AP_NULL_BASED_KEEP_ALIVE,
-            .beacon_interval = 100,
-            .client_idle_timeout = 0xFF,
-            .dtim_beacon_count = 3,
-            .maximum_clients = 3,
-            .beacon_stop = 0,
-            .is_11n_enabled = 0,
-        },
+// static const sl_net_wifi_ap_profile_t wifi_ap_profile = {
+//     .config =
+//         {
+//             .ssid.value = WIFI_AP_PROFILE_SSID,
+//             .ssid.length = sizeof(WIFI_AP_PROFILE_SSID) - 1,
+//             .channel.channel = CHANNEL_NUMBER, //SL_WIFI_AUTO_CHANNEL,
+//             .channel.band = SL_WIFI_AUTO_BAND,
+//             .channel.bandwidth = SL_WIFI_AUTO_BANDWIDTH,
+//             .security = SL_WIFI_WPA2,
+//             .encryption = SL_WIFI_CCMP_ENCRYPTION,
+//             .rate_protocol = SL_WIFI_RATE_PROTOCOL_AUTO,
+//             .options = 0,
+//             .credential_id = SL_NET_DEFAULT_WIFI_AP_CREDENTIAL_ID,
+//             .keepalive_type = SL_SI91X_AP_NULL_BASED_KEEP_ALIVE,
+//             .beacon_interval = 100,
+//             .client_idle_timeout = 0xFF,
+//             .dtim_beacon_count = 3,
+//             .maximum_clients = 3,
+//             .beacon_stop = 0,
+//             .is_11n_enabled = 0,
+//         },
 
-    .ip =
-        {
-            .mode = SL_IP_MANAGEMENT_STATIC_IP,
-            .type = SL_IPV4,
-            .host_name = NULL,
-            .ip =
-                {
-                    .v4.ip_address.value = DEFAULT_WIFI_MODULE_IP_ADDRESS,
-                    .v4.gateway.value = DEFAULT_WIFI_GATEWAY_ADDRESS,
-                    .v4.netmask.value = DEFAULT_WIFI_SN_MASK_ADDRESS,
-                },
-        },
-};
+//     .ip =
+//         {
+//             .mode = SL_IP_MANAGEMENT_STATIC_IP,
+//             .type = SL_IPV4,
+//             .host_name = NULL,
+//             .ip =
+//                 {
+//                     .v4.ip_address.value = DEFAULT_WIFI_MODULE_IP_ADDRESS,
+//                     .v4.gateway.value = DEFAULT_WIFI_GATEWAY_ADDRESS,
+//                     .v4.netmask.value = DEFAULT_WIFI_SN_MASK_ADDRESS,
+//                 },
+//         },
+// };
 
-static const sl_net_wifi_psk_credential_entry_t wifi_ap_credential = {
-    .type = SL_NET_WIFI_PSK,
-    .data_length = sizeof(WIFI_AP_CREDENTIAL) - 1,
-    .data = WIFI_AP_CREDENTIAL,
-};
+// static const sl_net_wifi_psk_credential_entry_t wifi_ap_credential = {
+//     .type = SL_NET_WIFI_PSK,
+//     .data_length = sizeof(WIFI_AP_CREDENTIAL) - 1,
+//     .data = WIFI_AP_CREDENTIAL,
+// };
 
 typedef enum {
     HELP,
     HELP_HELP,
+    SCAN,
 
     WIFI_AP_TEST_COMMANDS_MAX,
 } WifiApTestCmdType;
@@ -91,6 +93,7 @@ typedef struct {
 const WifiApTestCmd wifi_ap_test_cmd[WIFI_AP_TEST_COMMANDS_MAX] = {
     {"?"},
     {"help"},
+    {"scan"},
 };
 
 struct WifiApTestApp {
@@ -117,54 +120,54 @@ static void wifi_ap_test_app_send_msg_invalid_arg(WifiApTestApp* instance) {
     wifi_ap_test_app_send_msg(instance);
 }
 
-static sl_status_t wifi_ap_test_app_connected_event_handler(
-    sl_wifi_event_t event,
-    void* data,
-    uint32_t data_length,
-    void* arg) {
-    UNUSED_PARAMETER(data_length);
-    UNUSED_PARAMETER(event);
-    UNUSED_PARAMETER(data);
+// static sl_status_t wifi_ap_test_app_connected_event_handler(
+//     sl_wifi_event_t event,
+//     void* data,
+//     uint32_t data_length,
+//     void* arg) {
+//     UNUSED_PARAMETER(data_length);
+//     UNUSED_PARAMETER(event);
+//     UNUSED_PARAMETER(data);
 
-    WifiApTestApp* instance = (WifiApTestApp*)arg;
-    sl_mac_address_t* mac = (sl_mac_address_t*)data;
-    furi_string_printf(
-        instance->msg,
-        "Remote Client connected:  %2X:%2X:%2X:%2X:%2X:%2X\r\n",
-        mac->octet[0],
-        mac->octet[1],
-        mac->octet[2],
-        mac->octet[3],
-        mac->octet[4],
-        mac->octet[5]);
-    wifi_ap_test_app_send_msg(instance);
-    return SL_STATUS_OK;
-}
+//     WifiApTestApp* instance = (WifiApTestApp*)arg;
+//     sl_mac_address_t* mac = (sl_mac_address_t*)data;
+//     furi_string_printf(
+//         instance->msg,
+//         "Remote Client connected:  %2X:%2X:%2X:%2X:%2X:%2X\r\n",
+//         mac->octet[0],
+//         mac->octet[1],
+//         mac->octet[2],
+//         mac->octet[3],
+//         mac->octet[4],
+//         mac->octet[5]);
+//     wifi_ap_test_app_send_msg(instance);
+//     return SL_STATUS_OK;
+// }
 
-static sl_status_t wifi_ap_test_app_disconnected_event_handler(
-    sl_wifi_event_t event,
-    void* data,
-    uint32_t data_length,
-    void* arg) {
-    UNUSED_PARAMETER(data_length);
-    UNUSED_PARAMETER(event);
-    UNUSED_PARAMETER(data);
+// static sl_status_t wifi_ap_test_app_disconnected_event_handler(
+//     sl_wifi_event_t event,
+//     void* data,
+//     uint32_t data_length,
+//     void* arg) {
+//     UNUSED_PARAMETER(data_length);
+//     UNUSED_PARAMETER(event);
+//     UNUSED_PARAMETER(data);
 
-    WifiApTestApp* instance = (WifiApTestApp*)arg;
-    sl_mac_address_t* mac = (sl_mac_address_t*)data;
-        furi_string_printf(
-        instance->msg,
-        "Remote Client disconnect:  %2X:%2X:%2X:%2X:%2X:%2X\r\n",
-        mac->octet[0],
-        mac->octet[1],
-        mac->octet[2],
-        mac->octet[3],
-        mac->octet[4],
-        mac->octet[5]);
-    wifi_ap_test_app_send_msg(instance);
+//     WifiApTestApp* instance = (WifiApTestApp*)arg;
+//     sl_mac_address_t* mac = (sl_mac_address_t*)data;
+//         furi_string_printf(
+//         instance->msg,
+//         "Remote Client disconnect:  %2X:%2X:%2X:%2X:%2X:%2X\r\n",
+//         mac->octet[0],
+//         mac->octet[1],
+//         mac->octet[2],
+//         mac->octet[3],
+//         mac->octet[4],
+//         mac->octet[5]);
+//     wifi_ap_test_app_send_msg(instance);
 
-    return SL_STATUS_OK;
-}
+//     return SL_STATUS_OK;
+// }
 
 void* wifi_ap_test_app_start(CliWorker* worker) {
     FURI_LOG_I(TAG, "Starting");
@@ -194,50 +197,50 @@ void* wifi_ap_test_app_start(CliWorker* worker) {
         furi_string_printf(instance->msg, "Wi-Fi AP interface init\r\n");
         wifi_ap_test_app_send_msg(instance);
 
-        // Set Wi-Fi callbacks
-        sl_wifi_set_callback(
-            SL_WIFI_CLIENT_CONNECTED_EVENTS, wifi_ap_test_app_connected_event_handler, instance);
-        sl_wifi_set_callback(
-            SL_WIFI_CLIENT_DISCONNECTED_EVENTS,
-            wifi_ap_test_app_disconnected_event_handler,
-            instance);
+        // // Set Wi-Fi callbacks
+        // sl_wifi_set_callback(
+        //     SL_WIFI_CLIENT_CONNECTED_EVENTS, wifi_ap_test_app_connected_event_handler, instance);
+        // sl_wifi_set_callback(
+        //     SL_WIFI_CLIENT_DISCONNECTED_EVENTS,
+        //     wifi_ap_test_app_disconnected_event_handler,
+        //     instance);
 
-        // Set Wi-Fi AP profile
-        status =
-            sl_net_set_profile(SL_NET_WIFI_AP_INTERFACE, SL_NET_PROFILE_ID_1, &wifi_ap_profile);
-        if(status != SL_STATUS_OK) {
-            furi_string_printf(instance->msg, "Failed to set AP profile: 0x%lx\r\n", status);
-            wifi_ap_test_app_send_msg(instance);
-            break;
-        }
-        furi_string_printf(instance->msg, "Success to set AP profile\r\n");
-        wifi_ap_test_app_send_msg(instance);
+        // // Set Wi-Fi AP profile
+        // status =
+        //     sl_net_set_profile(SL_NET_WIFI_AP_INTERFACE, SL_NET_PROFILE_ID_1, &wifi_ap_profile);
+        // if(status != SL_STATUS_OK) {
+        //     furi_string_printf(instance->msg, "Failed to set AP profile: 0x%lx\r\n", status);
+        //     wifi_ap_test_app_send_msg(instance);
+        //     break;
+        // }
+        // furi_string_printf(instance->msg, "Success to set AP profile\r\n");
+        // wifi_ap_test_app_send_msg(instance);
 
-        // Set Wi-Fi AP credential
-        status = sl_net_set_credential(
-            SL_NET_DEFAULT_WIFI_AP_CREDENTIAL_ID,
-            wifi_ap_credential.type,
-            &wifi_ap_credential.data,
-            wifi_ap_credential.data_length);
-        if(status != SL_STATUS_OK) {
-            furi_string_printf(instance->msg, "Failed to set credentials: 0x%lx\r\n", status);
-            wifi_ap_test_app_send_msg(instance);
-            break;
-        }
-        furi_string_printf(instance->msg, "Wi-Fi set credential success\r\n");
-        wifi_ap_test_app_send_msg(instance);
+        // // Set Wi-Fi AP credential
+        // status = sl_net_set_credential(
+        //     SL_NET_DEFAULT_WIFI_AP_CREDENTIAL_ID,
+        //     wifi_ap_credential.type,
+        //     &wifi_ap_credential.data,
+        //     wifi_ap_credential.data_length);
+        // if(status != SL_STATUS_OK) {
+        //     furi_string_printf(instance->msg, "Failed to set credentials: 0x%lx\r\n", status);
+        //     wifi_ap_test_app_send_msg(instance);
+        //     break;
+        // }
+        // furi_string_printf(instance->msg, "Wi-Fi set credential success\r\n");
+        // wifi_ap_test_app_send_msg(instance);
 
-        // Bring Wi-Fi AP interface up
-        status = sl_net_up(SL_NET_WIFI_AP_INTERFACE, SL_NET_PROFILE_ID_1);
-        if(status != SL_STATUS_OK) {
-            furi_string_printf(
-                instance->msg, "Failed to bring Wi-Fi AP interface up: 0x%lx\r\n", status);
-            wifi_ap_test_app_send_msg(instance);
-            break;
-        }
-        furi_string_printf(instance->msg, "AP started\r\n");
-        wifi_ap_test_app_send_msg(instance);
-        instance->state = WifiApTestStateApUp;
+        // // Bring Wi-Fi AP interface up
+        // status = sl_net_up(SL_NET_WIFI_AP_INTERFACE, SL_NET_PROFILE_ID_1);
+        // if(status != SL_STATUS_OK) {
+        //     furi_string_printf(
+        //         instance->msg, "Failed to bring Wi-Fi AP interface up: 0x%lx\r\n", status);
+        //     wifi_ap_test_app_send_msg(instance);
+        //     break;
+        // }
+        // furi_string_printf(instance->msg, "AP started\r\n");
+        // wifi_ap_test_app_send_msg(instance);
+        // instance->state = WifiApTestStateApUp;
 
         wifi_ap_test_app_cmd_usage(instance);
     } while(0);
@@ -281,6 +284,10 @@ static sl_status_t wifi_ap_test_app(WifiApTestApp* instance, uint8_t cmd_index, 
     case HELP:
     case HELP_HELP:
         wifi_ap_test_app_cmd_usage(instance);
+        break;
+    case SCAN:
+        wifi_ap_test_app_scan(instance->msg);
+        wifi_ap_test_app_send_msg(instance);
         break;
 
     default:
