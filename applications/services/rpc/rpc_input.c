@@ -68,13 +68,10 @@ static void rpc_system_input_process_encoder_event(const PB_Main* request, void*
 
     const int16_t delta = request->content.encoder_event.delta;
 
-    // TODO: Come up with a better solution
     if(delta > 0) {
-        input_key_press(InputKeyUp);
-        input_key_release(InputKeyUp);
+        input_key_toggle(InputKeyUp);
     } else if(delta < 0) {
-        input_key_press(InputKeyDown);
-        input_key_release(InputKeyDown);
+        input_key_toggle(InputKeyDown);
     } else {
         furi_crash();
     }

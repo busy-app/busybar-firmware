@@ -5,12 +5,14 @@
 #define INPUT_PRESS_TICKS       150
 #define INPUT_LONG_PRESS_COUNTS 2
 
+#define INPUT_KEY_PRESS(key)   (1UL << key)
+#define INPUT_KEY_RELEASE(key) (1UL << (key + InputKeyMAX))
+
 /** Input pin state */
 typedef struct {
     FuriEventLoopTimer* press_timer;
-    volatile uint32_t counter;
+    volatile uint32_t sequence;
     InputKey key;
-    volatile bool level;
     volatile uint8_t press_counter;
 } InputPinState;
 
@@ -19,12 +21,8 @@ typedef struct {
     FuriPubSub* event_pubsub;
     FuriEventLoop* event_loop;
     InputPinState* pin_states;
-    volatile uint32_t counter;
+    volatile uint32_t sequence;
 } Input;
-
-typedef enum {
-    InputEventFlagActivity = 1UL << 0,
-} InputEventFlag;
 
 const char* input_get_key_name(InputKey key) {
     switch(key) {
@@ -66,30 +64,17 @@ const char* input_get_type_name(InputType type) {
 
 static Input* input = NULL;
 
-static uint8_t key_state = 0;
-
-static bool input_get_key_level(InputKey key) {
-    return key_state & (1 << key);
-}
-
 void input_key_press(InputKey key) {
-    uint8_t tmp_state = key_state;
-    tmp_state |= 1 << key;
-
-    if(tmp_state != key_state) {
-        key_state = tmp_state;
-        furi_event_loop_set_custom_event(input->event_loop, InputEventFlagActivity);
-    }
+    furi_event_loop_set_custom_event(input->event_loop, INPUT_KEY_PRESS(key));
 }
 
 void input_key_release(InputKey key) {
-    uint8_t tmp_state = key_state;
-    tmp_state &= ~(1 << key);
+    furi_event_loop_set_custom_event(input->event_loop, INPUT_KEY_RELEASE(key));
+}
 
-    if(tmp_state != key_state) {
-        key_state = tmp_state;
-        furi_event_loop_set_custom_event(input->event_loop, InputEventFlagActivity);
-    }
+void input_key_toggle(InputKey key) {
+    furi_event_loop_set_custom_event(
+        input->event_loop, INPUT_KEY_PRESS(key) | INPUT_KEY_RELEASE(key));
 }
 
 static void input_press_timer_callback(void* context) {
@@ -98,7 +83,7 @@ static void input_press_timer_callback(void* context) {
     InputEvent event;
 
     event.sequence_source = INPUT_SEQUENCE_SOURCE_HARDWARE;
-    event.sequence_counter = state->counter;
+    event.sequence_counter = state->sequence;
     event.key = state->key;
 
     state->press_counter++;
@@ -115,41 +100,40 @@ static void input_press_timer_callback(void* context) {
 }
 
 static void input_custom_event_callback(uint32_t events, void* context) {
-    furi_assert(events == InputEventFlagActivity);
-
     Input* input = context;
 
     for(size_t i = 0; i < InputKeyMAX; i++) {
-        const bool level = input_get_key_level(i);
         InputPinState* state = &input->pin_states[i];
 
-        if(state->level != level) {
-            state->level = level;
+        InputEvent event;
+        event.sequence_source = INPUT_SEQUENCE_SOURCE_HARDWARE;
+        event.key = i;
 
-            InputEvent event;
-            event.sequence_source = INPUT_SEQUENCE_SOURCE_HARDWARE;
-            event.key = i;
+        if(events & INPUT_KEY_PRESS(i)) {
+            input->sequence++;
+            state->sequence = input->sequence;
 
-            if(level) {
-                input->counter++;
+            event.sequence_counter = state->sequence;
+            event.type = InputTypePress;
 
-                state->counter = input->counter;
-                event.sequence_counter = state->counter;
+            furi_event_loop_timer_start(state->press_timer, INPUT_PRESS_TICKS);
 
-                furi_event_loop_timer_start(state->press_timer, INPUT_PRESS_TICKS);
-            } else {
-                event.sequence_counter = state->counter;
-                furi_event_loop_timer_stop(state->press_timer);
+            furi_pubsub_publish(input->event_pubsub, &event);
+        }
 
-                if(state->press_counter < INPUT_LONG_PRESS_COUNTS) {
-                    event.type = InputTypeShort;
-                    furi_pubsub_publish(input->event_pubsub, &event);
-                }
+        if(events & INPUT_KEY_RELEASE(i)) {
+            event.sequence_counter = state->sequence;
 
-                state->press_counter = 0;
+            furi_event_loop_timer_stop(state->press_timer);
+
+            if(state->press_counter < INPUT_LONG_PRESS_COUNTS) {
+                event.type = InputTypeShort;
+                furi_pubsub_publish(input->event_pubsub, &event);
             }
 
-            event.type = state->level ? InputTypePress : InputTypeRelease;
+            state->press_counter = 0;
+            event.type = InputTypeRelease;
+
             furi_pubsub_publish(input->event_pubsub, &event);
         }
     }
@@ -177,7 +161,6 @@ int32_t input_srv(void* p) {
         InputPinState* state = &input->pin_states[i];
 
         state->key = i;
-        state->level = input_get_key_level(i);
         state->press_timer = furi_event_loop_timer_alloc(
             input->event_loop, input_press_timer_callback, FuriEventLoopTimerTypePeriodic, state);
         state->press_counter = 0;
@@ -185,9 +168,6 @@ int32_t input_srv(void* p) {
 
     furi_event_loop_set_custom_event_callback(
         input->event_loop, input_custom_event_callback, input);
-
-    // TODO: Must work w/ normal priority
-    furi_thread_set_current_priority(FuriThreadPriorityHigh);
 
     furi_event_loop_run(input->event_loop);
 

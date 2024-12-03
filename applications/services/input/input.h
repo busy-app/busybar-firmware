@@ -2,10 +2,8 @@
  * @file input.h
  * Input: main API
  */
-
 #pragma once
 
-#include <stdint.h>
 #include <furi_hal_resources.h>
 
 #ifdef __cplusplus
@@ -66,6 +64,15 @@ void input_key_press(InputKey key);
  * @param key 
  */
 void input_key_release(InputKey key);
+
+/**
+ * @brief Toggle the state of a key
+ *
+ * Set the pressed and the released state of a key in a quick succession
+ *
+ * @param key
+ */
+void input_key_toggle(InputKey key);
 
 #ifdef __cplusplus
 }
