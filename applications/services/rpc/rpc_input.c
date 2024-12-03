@@ -17,6 +17,12 @@ typedef struct {
 
 typedef void (*RpcSystemInputKeyFunc)(InputKey);
 
+static const InputKey rpc_system_input_button_map[] = {
+    [PB_Input_Button_OK] = InputKeyOk,
+    [PB_Input_Button_BACK] = InputKeyBack,
+    [PB_Input_Button_START] = InputKeyStart,
+};
+
 static void rpc_system_input_process_button_event(const PB_Main* request, void* context) {
     furi_assert(request);
     furi_assert(context);
@@ -28,18 +34,12 @@ static void rpc_system_input_process_button_event(const PB_Main* request, void* 
     const PB_Input_Button button = request->content.button_event.button;
     const PB_Input_ButtonAction action = request->content.button_event.action;
 
-    if(button == PB_Input_Button_OK) {
-        if(action == PB_Input_ButtonAction_PRESS) {
-            input_key_press(InputKeyOk);
-        } else {
-            input_key_release(InputKeyOk);
-        }
-    } else if(button == PB_Input_Button_BACK) {
-        if(action == PB_Input_ButtonAction_PRESS) {
-            input_key_press(InputKeyBack);
-        } else {
-            input_key_release(InputKeyBack);
-        }
+    const InputKey key = rpc_system_input_button_map[button];
+
+    if(action == PB_Input_ButtonAction_PRESS) {
+        input_key_press(key);
+    } else {
+        input_key_release(key);
     }
 
     RPC_INPUT_LOG_D(TAG, "Button event: button %d, action %d", button, action);
