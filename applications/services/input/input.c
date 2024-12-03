@@ -93,7 +93,7 @@ static void input_press_timer_callback(void* context) {
     InputEvent event;
 
     event.sequence_source = INPUT_SEQUENCE_SOURCE_HARDWARE;
-    event.sequence_counter = state->sequence;
+    event.sequence_number = state->sequence;
     event.key = state->key;
 
     state->press_counter++;
@@ -124,7 +124,7 @@ static void input_custom_event_callback(uint32_t events, void* context) {
 
             state->sequence = input->sequence;
 
-            event.sequence_counter = state->sequence;
+            event.sequence_number = state->sequence;
             event.type = InputTypePress;
 
             furi_event_loop_timer_start(state->press_timer, INPUT_PRESS_TICKS);
@@ -133,7 +133,7 @@ static void input_custom_event_callback(uint32_t events, void* context) {
         }
 
         if(events & INPUT_KEY_RELEASE(i)) {
-            event.sequence_counter = state->sequence;
+            event.sequence_number = state->sequence;
 
             furi_event_loop_timer_stop(state->press_timer);
 
