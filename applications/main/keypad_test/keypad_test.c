@@ -37,7 +37,7 @@ static void keypad_test_app_handle_short_press(InputKey key, KeypadTestViewModel
     } else if(key == InputKeyStart) {
         model->start++;
     } else if(key >= InputKeyBusy && key < InputKeyMAX) {
-        model->switch_pos = key - InputKeyBusy;
+        model->switch_pos = key;
     }
 }
 
@@ -97,14 +97,18 @@ static void keypad_test_app_view_draw_callback(Canvas* canvas, void* _model) {
     snprintf(str_temp, 40, "Encoder: %ld", model->encoder);
     canvas_draw_str(canvas, 4, 44, str_temp);
 
-#if 0
-    if(model->switch_pos >= 0) {
-        snprintf(str_temp, 40, "Switch: %ld", model->switch_pos);
-        canvas_draw_str(canvas, 4, 58, str_temp);
-    }
-#endif
+    const char* switch_name;
 
-    canvas_draw_str(canvas, 10, canvas_height(canvas) - 1, "[back] - reset, hold to exit");
+    if(model->switch_pos >= 0) {
+        switch_name = input_get_key_name(model->switch_pos) + strlen("InputKey");
+    } else {
+        switch_name = "--";
+    }
+
+    snprintf(str_temp, 40, "Switch: %s", switch_name);
+    canvas_draw_str(canvas, 4, 58, str_temp);
+
+    canvas_draw_str(canvas, 46, canvas_height(canvas) - 1, "[back] - reset, hold to exit");
 }
 
 static KeypadTestApp* keypad_test_app_alloc(void) {
