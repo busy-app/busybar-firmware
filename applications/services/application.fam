@@ -12,6 +12,7 @@ App(
         "oled_screen",
         "led_display",
         "httpd_test",
+        "power_srv",
         "intercom",
         "rpc_start",
     ],
