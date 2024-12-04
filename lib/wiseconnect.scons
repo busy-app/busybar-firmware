@@ -69,6 +69,7 @@ sources = [
     f"{WISECONNECT_DIR}/common/src/sl_utility.c",
     f"{WISECONNECT_DIR}/protocol/wifi/si91x/sl_wifi.c",
     f"{WISECONNECT_DIR}/protocol/wifi/src/sl_wifi_callback_framework.c",
+    f"{WISECONNECT_DIR}/service/bsd_socket/si91x_socket/sl_si91x_bsd_socket.c",
     f"{WISECONNECT_DIR}/service/network_manager/src/sl_net.c",
     f"{WISECONNECT_DIR}/service/network_manager/src/sl_net_basic_profiles.c",
     f"{WISECONNECT_DIR}/service/network_manager/src/sl_net_basic_credentials.c",
