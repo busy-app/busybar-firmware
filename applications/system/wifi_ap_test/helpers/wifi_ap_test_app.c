@@ -1,5 +1,7 @@
 #include "wifi_ap_test_app.h"
-#include "wifi_ap_test_app_scan.h"
+#include "wifi_scan.h"
+#include "wifi_async_socket.h"
+
 #include <furi.h>
 
 #include <sl_status.h>
@@ -101,6 +103,7 @@ struct WifiApTestApp {
     WifiApTestState state;
 
     bool exit;
+    bool ap_client_connected;
 };
 
 static void wifi_ap_test_app_cmd_usage(WifiApTestApp* instance);
@@ -138,6 +141,8 @@ static sl_status_t wifi_ap_test_app_connected_event_handler(
         mac->octet[4],
         mac->octet[5]);
     wifi_ap_test_app_send_msg(instance);
+
+    instance->ap_client_connected = true;
     return SL_STATUS_OK;
 }
 
@@ -162,7 +167,7 @@ static sl_status_t wifi_ap_test_app_disconnected_event_handler(
         mac->octet[4],
         mac->octet[5]);
     wifi_ap_test_app_send_msg(instance);
-
+    instance->ap_client_connected = false;
     return SL_STATUS_OK;
 }
 
@@ -175,6 +180,7 @@ void* wifi_ap_test_app_start(CliWorker* worker) {
     instance->state = WifiApTestStateIdle;
 
     instance->exit = false;
+    instance->ap_client_connected = false;
 
     sl_status_t status = SL_STATUS_FAIL;
     do {
@@ -236,7 +242,7 @@ static sl_status_t wifi_ap_test_app(WifiApTestApp* instance, uint8_t cmd_index, 
         break;
     case SCAN:
         if(instance->state != WifiApTestStateApUp) {
-            status = wifi_ap_test_app_scan(instance->msg);
+            status = wifi_scan(instance->msg);
             if(status != SL_STATUS_OK) {
                 furi_string_printf(instance->msg, "Scan failed\r\n");
                 wifi_ap_test_app_send_msg(instance);
@@ -293,6 +299,13 @@ static sl_status_t wifi_ap_test_app(WifiApTestApp* instance, uint8_t cmd_index, 
         furi_string_printf(instance->msg, "AP started\r\n");
         wifi_ap_test_app_send_msg(instance);
         instance->state = WifiApTestStateApUp;
+
+        // Wait for client to get connect to AP
+        while(instance->ap_client_connected != true) {
+            printf("waiting for client to connect with APUT : %d\r\n", instance->ap_client_connected);
+            furi_delay_ms(1000);
+        }
+        wifi_async_socket_server_init();
         break;
     case AP_DOWN:
         if(instance->state == WifiApTestStateApUp) {
@@ -368,7 +381,9 @@ static void wifi_ap_test_app_cmd_usage(WifiApTestApp* instance) {
         "***********************************************\r\n");
     furi_string_cat_printf(instance->msg, "?\r\n");
     furi_string_cat_printf(instance->msg, "help\r\n");
-    furi_string_cat_printf(instance->msg, "scan WiFi scan ap. Scanning is possible when the access point is not running\r\n");
+    furi_string_cat_printf(
+        instance->msg,
+        "scan WiFi scan ap. Scanning is possible when the access point is not running\r\n");
     furi_string_cat_printf(instance->msg, "ap_up Start AP.\r\n");
     furi_string_cat_printf(instance->msg, "ap_down Stop AP.\r\n");
 

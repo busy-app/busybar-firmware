@@ -27,6 +27,7 @@ env.Append(
         Dir(f"{WIRELESS_INCDIR}/inc").rdir(),
         Dir(f"{WIRELESS_INCDIR}/ahb_interface/inc").rdir(),
         Dir(f"{WIRELESS_INCDIR}/socket/inc").rdir(),
+        Dir(f"{WIRELESS_INCDIR}/asynchronous_socket/inc").rdir(),
     ],
     CPPDEFINES=[
         "SI917",
@@ -85,6 +86,7 @@ sources = [
     f"{WIRELESS_DIR}/host_mcu/si91x/siwx917_soc_ncp_host.c",
     f"{WIRELESS_DIR}/threading/sli_si91x_multithreaded.c",
     f"{WIRELESS_DIR}/socket/src/sl_si91x_socket_utility.c",
+    f"{WIRELESS_DIR}/asynchronous_socket/src/sl_si91x_socket.c",
     f"{WIRELESS_DIR}/sl_net/src/sl_net_si91x_integration_handler.c",
     f"{WIRELESS_DIR}/sl_net/src/sl_net_rsi_utility.c",
     f"{WIRELESS_DIR}/sl_net/src/sl_si91x_net_credentials.c",

@@ -1,10 +1,10 @@
-#include "wifi_ap_test_app_scan.h"
+#include "wifi_scan.h"
 
 #include <sl_wifi.h>
 #include <sl_si91x_driver.h>
 #include <sl_wifi_callback_framework.h>
 
-#define TAG "WifiApTestAppScan"
+#define TAG "WifiScan"
 
 #define WIFI_SCAN_TIMEOUT 10000
 #define MAX_SCANNED_AP    20
@@ -15,9 +15,9 @@ typedef struct {
     sl_status_t callback_status;
     uint16_t scan_count;
     FuriSemaphore* scan_complete;
-} WifiApTestAppScan;
+} WifiScan;
 
-static sl_status_t show_extended_scan_results(WifiApTestAppScan* instance, FuriString* msg) {
+static sl_status_t wifi_scan_show_extended_results(WifiScan* instance, FuriString* msg) {
     furi_string_printf(msg, "%u Scan results:\r\n", *instance->extended_scan_result.result_count);
 
     if(*instance->extended_scan_result.result_count) {
@@ -49,14 +49,14 @@ static sl_status_t show_extended_scan_results(WifiApTestAppScan* instance, FuriS
     return SL_STATUS_OK;
 }
 
-sl_status_t wlan_app_scan_callback_handler(
+sl_status_t wifi_scan_callback_handler(
     sl_wifi_event_t event,
     sl_wifi_scan_result_t* result,
     uint32_t result_length,
     void* arg) {
     UNUSED_PARAMETER(result_length);
 
-    WifiApTestAppScan* instance = (WifiApTestAppScan*)arg;
+    WifiScan* instance = (WifiScan*)arg;
 
     if(SL_WIFI_CHECK_IF_EVENT_FAILED(event)) {
         instance->callback_status = *(sl_status_t*)result;
@@ -69,8 +69,8 @@ sl_status_t wlan_app_scan_callback_handler(
     return SL_STATUS_OK;
 }
 
-sl_status_t wifi_ap_test_app_scan(FuriString* msg) {
-    WifiApTestAppScan* instance = (WifiApTestAppScan*)malloc(sizeof(WifiApTestAppScan));
+sl_status_t wifi_scan(FuriString* msg) {
+    WifiScan* instance = (WifiScan*)malloc(sizeof(WifiScan));
     instance->scan_complete = furi_semaphore_alloc(1, 0);
     instance->extended_scan_result.scan_results = instance->extended_scan_result_info;
     instance->extended_scan_result.array_length =
@@ -86,7 +86,7 @@ sl_status_t wifi_ap_test_app_scan(FuriString* msg) {
     // //if set timeout scan doesn't work
     // sl_si91x_configure_timeout(SL_SI91X_CHANNEL_ACTIVE_SCAN_TIMEOUT, 2000);
 
-    sl_wifi_set_scan_callback(wlan_app_scan_callback_handler, instance);
+    sl_wifi_set_scan_callback(wifi_scan_callback_handler, instance);
     status = sl_wifi_start_scan(SL_WIFI_CLIENT_2_4GHZ_INTERFACE, NULL, &wifi_scan_configuration);
     if(SL_STATUS_IN_PROGRESS == status) {
         FuriStatus satus_semaphore =
@@ -96,7 +96,7 @@ sl_status_t wifi_ap_test_app_scan(FuriString* msg) {
             if(instance->callback_status == SL_STATUS_OK) {
                 status = sl_wifi_get_stored_scan_results(
                     SL_WIFI_CLIENT_2_4GHZ_INTERFACE, &instance->extended_scan_result);
-                show_extended_scan_results(instance, msg);
+                wifi_scan_show_extended_results(instance, msg);
 
                 //Todo: if you need to add processing of scan results
 

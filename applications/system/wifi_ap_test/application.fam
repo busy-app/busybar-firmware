@@ -6,7 +6,8 @@ App(
     sources=[
         "wifi_ap_test.c",
         "helpers/wifi_ap_test_app.c",
-        "helpers/wifi_ap_test_app_scan.c",
+        "helpers/wifi_scan.c",
+        "helpers/wifi_async_socket.c",
     ],
     order=40,
 )
