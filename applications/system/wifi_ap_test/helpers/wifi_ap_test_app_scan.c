@@ -1,58 +1,37 @@
 #include "wifi_ap_test_app_scan.h"
 
-#include <sl_status.h>
 #include <sl_wifi.h>
-#include <sl_net_wifi_types.h>
-#include <sl_net.h>
 #include <sl_si91x_driver.h>
 #include <sl_wifi_callback_framework.h>
 
-#include <args.h>
-#include <strint.h>
-
 #define TAG "WifiApTestAppScan"
 
-#define WIFI_SCAN_TIMEOUT 1000000
+#define WIFI_SCAN_TIMEOUT 10000
+#define MAX_SCANNED_AP    20
 
-static volatile bool scan_complete = false;
-sl_wifi_scan_result_t* scan_result = NULL;
-uint16_t scanbuf_size =
-    (sizeof(sl_wifi_scan_result_t) + (SL_WIFI_MAX_SCANNED_AP * sizeof(scan_result->scan_info[0])));
-static volatile sl_status_t callback_status = SL_STATUS_OK;
+typedef struct {
+    sl_wifi_extended_scan_result_parameters_t extended_scan_result;
+    sl_wifi_extended_scan_result_t extended_scan_result_info[MAX_SCANNED_AP];
+    sl_status_t callback_status;
+    uint16_t scan_count;
+    FuriSemaphore* scan_complete;
+} WifiApTestAppScan;
 
-static sl_status_t show_scan_results(FuriString* msg) {
-    //printf("%lu Scan results:\n", scan_result->scan_count);
-    furi_string_printf(msg, "%lu Scan results:\r\n", scan_result->scan_count);
+static sl_status_t show_extended_scan_results(WifiApTestAppScan* instance, FuriString* msg) {
+    furi_string_printf(msg, "%u Scan results:\r\n", *instance->extended_scan_result.result_count);
 
-    if(scan_result->scan_count) {
-        // printf("\n   %s %24s %s", "SSID", "SECURITY", "NETWORK");
+    if(*instance->extended_scan_result.result_count) {
         furi_string_cat_printf(msg, "\r\n   %s %24s %s", "SSID", "SECURITY", "NETWORK");
-        // printf("%12s %12s %s\n", "BSSID", "CHANNEL", "RSSI");
         furi_string_cat_printf(msg, "%12s %12s %s\r\n", "BSSID", "CHANNEL", "RSSI");
 
-        for(int a = 0; a < (int)scan_result->scan_count; ++a) {
-            uint8_t* bssid = (uint8_t*)&scan_result->scan_info[a].bssid;
-            // printf(
-            //     "%-24s %4u,  %4u, ",
-            //     scan_result->scan_info[a].ssid,
-            //     scan_result->scan_info[a].security_mode,
-            //     scan_result->scan_info[a].network_type);
+        for(int a = 0; a < (int)*instance->extended_scan_result.result_count; ++a) {
+            uint8_t* bssid = (uint8_t*)&instance->extended_scan_result.scan_results[a].bssid;
             furi_string_cat_printf(
                 msg,
                 "%-24s %4u,  %4u, ",
-                scan_result->scan_info[a].ssid,
-                scan_result->scan_info[a].security_mode,
-                scan_result->scan_info[a].network_type);
-            // printf(
-            //     "  %02x:%02x:%02x:%02x:%02x:%02x, %4u,  -%u\n",
-            //     bssid[0],
-            //     bssid[1],
-            //     bssid[2],
-            //     bssid[3],
-            //     bssid[4],
-            //     bssid[5],
-            //     scan_result->scan_info[a].rf_channel,
-            //     scan_result->scan_info[a].rssi_val);
+                instance->extended_scan_result.scan_results[a].ssid,
+                instance->extended_scan_result.scan_results[a].security_mode,
+                instance->extended_scan_result.scan_results[a].network_type);
             furi_string_cat_printf(
                 msg,
                 "  %02x:%02x:%02x:%02x:%02x:%02x, %4u,  -%u\r\n",
@@ -62,8 +41,8 @@ static sl_status_t show_scan_results(FuriString* msg) {
                 bssid[3],
                 bssid[4],
                 bssid[5],
-                scan_result->scan_info[a].rf_channel,
-                scan_result->scan_info[a].rssi_val);
+                instance->extended_scan_result.scan_results[a].rf_channel,
+                instance->extended_scan_result.scan_results[a].rssi);
         }
     }
 
@@ -76,58 +55,64 @@ sl_status_t wlan_app_scan_callback_handler(
     uint32_t result_length,
     void* arg) {
     UNUSED_PARAMETER(result_length);
-    UNUSED_PARAMETER(arg);
 
-    scan_complete = true;
+    WifiApTestAppScan* instance = (WifiApTestAppScan*)arg;
 
     if(SL_WIFI_CHECK_IF_EVENT_FAILED(event)) {
-        callback_status = *(sl_status_t*)result;
+        instance->callback_status = *(sl_status_t*)result;
         return SL_STATUS_FAIL;
     }
 
-    memset(scan_result, 0, scanbuf_size);
-    memcpy(scan_result, result, scanbuf_size);
-
-    // if(result_length != 0) {
-    //     callback_status = show_scan_results();
-    // }
+    instance->callback_status = SL_STATUS_OK;
+    furi_semaphore_release(instance->scan_complete);
 
     return SL_STATUS_OK;
 }
 
-void wifi_ap_test_app_scan(FuriString* msg) {
-    scan_result = (sl_wifi_scan_result_t*)malloc(scanbuf_size);
+sl_status_t wifi_ap_test_app_scan(FuriString* msg) {
+    WifiApTestAppScan* instance = (WifiApTestAppScan*)malloc(sizeof(WifiApTestAppScan));
+    instance->scan_complete = furi_semaphore_alloc(1, 0);
+    instance->extended_scan_result.scan_results = instance->extended_scan_result_info;
+    instance->extended_scan_result.array_length =
+        MAX_SCANNED_AP * sizeof(sl_wifi_extended_scan_result_t);
+    instance->extended_scan_result.result_count = &instance->scan_count;
+    instance->callback_status = SL_STATUS_FAIL;
+
     sl_status_t status = SL_STATUS_FAIL;
     sl_wifi_scan_configuration_t wifi_scan_configuration = {0};
     wifi_scan_configuration = default_wifi_scan_configuration;
+    wifi_scan_configuration.type = SL_WIFI_SCAN_TYPE_EXTENDED;
 
-    // uint8_t channel = 2;
-    // wifi_scan_configuration.channel_bitmap_2g4 = (1 << (channel - 1));
+    // //if set timeout scan doesn't work
+    // sl_si91x_configure_timeout(SL_SI91X_CHANNEL_ACTIVE_SCAN_TIMEOUT, 2000);
 
-    sl_wifi_set_scan_callback(wlan_app_scan_callback_handler, NULL);
-
+    sl_wifi_set_scan_callback(wlan_app_scan_callback_handler, instance);
     status = sl_wifi_start_scan(SL_WIFI_CLIENT_2_4GHZ_INTERFACE, NULL, &wifi_scan_configuration);
     if(SL_STATUS_IN_PROGRESS == status) {
-        const uint32_t start = furi_get_tick();
+        FuriStatus satus_semaphore =
+            furi_semaphore_acquire(instance->scan_complete, WIFI_SCAN_TIMEOUT);
 
-        while(!scan_complete && (furi_get_tick() - start) <= WIFI_SCAN_TIMEOUT) {
-            furi_thread_yield();
-        }
-        status = scan_complete ? callback_status : SL_STATUS_TIMEOUT;
+        if(satus_semaphore == FuriStatusOk) {
+            if(instance->callback_status == SL_STATUS_OK) {
+                status = sl_wifi_get_stored_scan_results(
+                    SL_WIFI_CLIENT_2_4GHZ_INTERFACE, &instance->extended_scan_result);
+                show_extended_scan_results(instance, msg);
 
-        if(scan_complete) {
-            callback_status = show_scan_results(msg);
+                //Todo: if you need to add processing of scan results
+
+            } else {
+                status = instance->callback_status;
+                furi_string_printf(msg, "WLAN Scan Failed, Error Code : 0x%lX\r\n", status);
+            }
+        } else {
+            status = SL_STATUS_TIMEOUT;
+            furi_string_printf(msg, "WLAN Scan Wait Failed, Error Code : 0x%lX\r\n", status);
         }
     }
-    if(status != SL_STATUS_OK) {
-        furi_string_printf(msg, "WLAN Scan Wait Failed, Error Code : 0x%lX\r\n", status);
-        furi_delay_ms(1000);
-    } else {
-        // // Update WLAN application state
-        // wifi_app_send_to_ble(WIFI_APP_SCAN_RESP, (uint8_t*)scan_result, scanbuf_size);
-    }
-    if(scan_result != NULL) {
-        free(scan_result);
-    }
-    scan_complete = false;
+    //Todo: delete the database of scanned points so that it does not take up space in the RAM
+    sli_wifi_flush_scan_results_database();
+    furi_semaphore_free(instance->scan_complete);
+    free(instance);
+
+    return status;
 }
