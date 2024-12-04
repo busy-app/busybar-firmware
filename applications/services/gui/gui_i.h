@@ -18,8 +18,8 @@
 #include "view_port.h"
 #include "view_port_i.h"
 
-#define GUI_DISPLAY_WIDTH  128
-#define GUI_DISPLAY_HEIGHT 64
+#define GUI_DISPLAY_WIDTH  160
+#define GUI_DISPLAY_HEIGHT 80
 
 #define GUI_STATUS_BAR_X               0
 #define GUI_STATUS_BAR_Y               0

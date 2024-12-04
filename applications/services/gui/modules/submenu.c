@@ -79,7 +79,7 @@ static void submenu_view_draw_callback(Canvas* canvas, void* _model) {
     for(SubmenuItemArray_it(it, model->items); !SubmenuItemArray_end_p(it);
         SubmenuItemArray_next(it)) {
         const size_t item_position = position - model->window_position;
-        const size_t items_on_screen = furi_string_empty(model->header) ? 4 : 3;
+        const size_t items_on_screen = furi_string_empty(model->header) ? 5 : 4;
         uint8_t y_offset = furi_string_empty(model->header) ? 0 : 16;
 
         if(item_position < items_on_screen) {
@@ -298,7 +298,7 @@ void submenu_set_selected_item(Submenu* submenu, uint32_t index) {
                 model->window_position -= 1;
             }
 
-            const size_t items_on_screen = furi_string_empty(model->header) ? 4 : 3;
+            const size_t items_on_screen = furi_string_empty(model->header) ? 5 : 4;
 
             if(items_size <= items_on_screen) {
                 model->window_position = 0;
@@ -317,7 +317,7 @@ void submenu_process_up(Submenu* submenu) {
         submenu->view,
         SubmenuModel * model,
         {
-            const size_t items_on_screen = furi_string_empty(model->header) ? 4 : 3;
+            const size_t items_on_screen = furi_string_empty(model->header) ? 5 : 4;
             const size_t items_size = SubmenuItemArray_size(model->items);
 
             if(model->position > 0) {
@@ -340,7 +340,7 @@ void submenu_process_down(Submenu* submenu) {
         submenu->view,
         SubmenuModel * model,
         {
-            const size_t items_on_screen = furi_string_empty(model->header) ? 4 : 3;
+            const size_t items_on_screen = furi_string_empty(model->header) ? 5 : 4;
             const size_t items_size = SubmenuItemArray_size(model->items);
 
             if(model->position < items_size - 1) {
