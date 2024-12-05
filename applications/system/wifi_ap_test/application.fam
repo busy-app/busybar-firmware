@@ -7,7 +7,7 @@ App(
         "wifi_ap_test.c",
         "helpers/wifi_ap_test_app.c",
         "helpers/wifi_scan.c",
-        "helpers/wifi_async_socket.c",
+        "helpers/wifi_async_socket_server_tcp_rx.c",
         "helpers/wifi_async_socket_client_tcp_tx.c",
     ],
     order=40,

@@ -1,6 +1,6 @@
 #include "wifi_ap_test_app.h"
 #include "wifi_scan.h"
-#include "wifi_async_socket.h"
+#include "wifi_async_socket_server_tcp_rx.h"
 #include "wifi_async_socket_client_tcp_tx.h"
 
 #include <furi.h>
@@ -15,7 +15,8 @@
 #include <args.h>
 #include <strint.h>
 
-#define TAG "WifiApTestApp"
+#define TAG                 "WifiApTestApp"
+#define WIFI_TEST_SERVER_IP "192.168.10.2"
 
 #define CHANNEL_NUMBER 6
 
@@ -117,6 +118,8 @@ typedef enum {
     AP_DOWN,
     STA_UP,
     STA_DOWN,
+    TEST_TCP_RX,
+    TEST_TCP_TX,
 
     WIFI_AP_TEST_COMMANDS_MAX,
 } WifiApTestCmdType;
@@ -132,8 +135,16 @@ typedef struct {
     char* cmd;
 } WifiApTestCmd;
 
-const WifiApTestCmd wifi_ap_test_cmd[WIFI_AP_TEST_COMMANDS_MAX] =
-    {{"?"}, {"help"}, {"scan"}, {"ap_up"}, {"ap_down"}, {"sta_up"}, {"sta_down"}};
+const WifiApTestCmd wifi_ap_test_cmd[WIFI_AP_TEST_COMMANDS_MAX] = {
+    {"?"},
+    {"help"},
+    {"scan"},
+    {"ap_up"},
+    {"ap_down"},
+    {"sta_up"},
+    {"sta_down"},
+    {"test_tcp_rx"},
+    {"test_tcp_tx"}};
 
 struct WifiApTestApp {
     FuriString* msg;
@@ -269,7 +280,7 @@ static sl_status_t wifi_ap_test_app(WifiApTestApp* instance, uint8_t cmd_index, 
 
     char* args_cstr = (char*)furi_string_get_cstr(args);
     UNUSED(args_cstr);
-    // FuriString* arg = furi_string_alloc();
+    FuriString* arg = furi_string_alloc();
     //StrintParseError parse_err = StrintParseNoError;
     //uint8_t i = 0;
 
@@ -347,7 +358,7 @@ static sl_status_t wifi_ap_test_app(WifiApTestApp* instance, uint8_t cmd_index, 
             //         "waiting for client to connect with APUT : %d\r\n", instance->ap_client_connected);
             //     furi_delay_ms(1000);
             // }
-            //wifi_async_socket_server_init();
+            //wifi_async_socket_server_tcp_rx_init();
         } else {
             furi_string_printf(instance->msg, "AP or STA is already up\r\n");
             wifi_ap_test_app_send_msg(instance);
@@ -454,8 +465,6 @@ static sl_status_t wifi_ap_test_app(WifiApTestApp* instance, uint8_t cmd_index, 
             }
             instance->state = WifiApTestStateStaUp;
 
-            wifi_async_socket_client_tcp_tx_init(instance->msg, "192.168.10.2", 5000);
-            wifi_ap_test_app_send_msg(instance);
         } else {
             furi_string_printf(instance->msg, "AP or STA is already up\r\n");
             wifi_ap_test_app_send_msg(instance);
@@ -480,12 +489,35 @@ static sl_status_t wifi_ap_test_app(WifiApTestApp* instance, uint8_t cmd_index, 
             wifi_ap_test_app_send_msg(instance);
         }
         break;
+    case TEST_TCP_RX:
+        if(instance->state == WifiApTestStateStaUp || instance->state == WifiApTestStateApUp) {
+            wifi_async_socket_server_tcp_rx_init(instance->msg, 5005);
+            wifi_ap_test_app_send_msg(instance);
+        } else {
+            furi_string_printf(instance->msg, "AP or STA is not up\r\n");
+            wifi_ap_test_app_send_msg(instance);
+        }
+        break;
+    case TEST_TCP_TX:
+        if(instance->state == WifiApTestStateStaUp || instance->state == WifiApTestStateApUp) {
+            if(!args_read_string_and_trim(args, arg)) {
+                wifi_async_socket_client_tcp_tx_init(instance->msg, WIFI_TEST_SERVER_IP, 5000);
+            } else {
+                wifi_async_socket_client_tcp_tx_init(
+                    instance->msg, (char*)furi_string_get_cstr(arg), 5000);
+            }
+            wifi_ap_test_app_send_msg(instance);
+        } else {
+            furi_string_printf(instance->msg, "AP or STA is not up\r\n");
+            wifi_ap_test_app_send_msg(instance);
+        }
+        break;
     default:
         wifi_ap_test_app_send_msg_invalid_arg(instance);
         break;
     }
 
-    //furi_string_free(arg);
+    furi_string_free(arg);
     return SL_STATUS_OK;
 }
 
@@ -543,7 +575,12 @@ static void wifi_ap_test_app_cmd_usage(WifiApTestApp* instance) {
     furi_string_cat_printf(instance->msg, "ap_down Stop AP.\r\n");
     furi_string_cat_printf(instance->msg, "sta_up Start STA.\r\n");
     furi_string_cat_printf(instance->msg, "sta_down Stop STA.\r\n");
-
+    furi_string_cat_printf(
+        instance->msg,
+        "test_tcp_tx <ip> Start TCP TX iPref test \"iperf.exe -s -u -p 5000 -i 1\".\r\n");
+    furi_string_cat_printf(
+        instance->msg,
+        "test_tcp_rx Start TCP RX iPref test \"iperf.exe -c 192.168.11.10 -u -p 5005 -i 1 -b70M -t 30\".\r\n");
     furi_string_cat_printf(
         instance->msg,
         "*************************************************************************************************************"
