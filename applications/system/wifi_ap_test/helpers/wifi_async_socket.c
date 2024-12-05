@@ -1,3 +1,4 @@
+#if 0
 #include "wifi_async_socket.h"
 
 // #include <sl_wifi.h>
@@ -37,18 +38,18 @@
 #define TCP_RX_WINDOW_SIZE_CAP          44 //@ TCP RX Window size
 #define TCP_RX_WINDOW_DIV_FACTOR        44 //@ TCP RX Window division factor
 
-static sl_si91x_socket_config_t socket_config = {
-  TOTAL_SOCKETS,                   // Total sockets
-  TOTAL_TCP_SOCKETS,               // Total TCP sockets
-  TOTAL_UDP_SOCKETS,               // Total UDP sockets
-  TCP_TX_ONLY_SOCKETS,             // TCP TX only sockets
-  TCP_RX_ONLY_SOCKETS,             // TCP RX only sockets
-  UDP_TX_ONLY_SOCKETS,             // UDP TX only sockets
-  UDP_RX_ONLY_SOCKETS,             // UDP RX only sockets
-  TCP_RX_HIGH_PERFORMANCE_SOCKETS, // TCP RX high performance sockets
-  TCP_RX_WINDOW_SIZE_CAP,          // TCP RX window size
-  TCP_RX_WINDOW_DIV_FACTOR         // TCP RX window division factor
-};
+// static sl_si91x_socket_config_t socket_config = {
+//   TOTAL_SOCKETS,                   // Total sockets
+//   TOTAL_TCP_SOCKETS,               // Total TCP sockets
+//   TOTAL_UDP_SOCKETS,               // Total UDP sockets
+//   TCP_TX_ONLY_SOCKETS,             // TCP TX only sockets
+//   TCP_RX_ONLY_SOCKETS,             // TCP RX only sockets
+//   UDP_TX_ONLY_SOCKETS,             // UDP TX only sockets
+//   UDP_RX_ONLY_SOCKETS,             // UDP RX only sockets
+//   TCP_RX_HIGH_PERFORMANCE_SOCKETS, // TCP RX high performance sockets
+//   TCP_RX_WINDOW_SIZE_CAP,          // TCP RX window size
+//   TCP_RX_WINDOW_DIV_FACTOR         // TCP RX window division factor
+// };
 
 void data_callback(uint32_t sock_no,
                    uint8_t *buffer,
@@ -85,41 +86,105 @@ printf ("\r\n");
 //     has_data_received = 1;
 //   }
 }
+//Server IP
+#define SERVER_IP "192.168.10.2"
+#define SERVER_PORT 5000
+#define TCP_BUFFER_SIZE 1460
+#define BUFFER_SIZE TCP_BUFFER_SIZE
+#define BYTES_TO_SEND    (1 << 29) //512MB
+#define TEST_TIMEOUT     (30000)   //30sec
+uint32_t now                        = 0;
+uint32_t start                      = 0;
+uint8_t data_buffer[BUFFER_SIZE];
 
 void wifi_async_socket_server_init(void) {
 
-   int server_socket                 = -1;
-   int client_socket                 = -1;
-   int socket_return_value           = 0;
-   //struct sockaddr_in server_address = { 0 };
-   //socklen_t socket_length           = sizeof(struct sockaddr_in);
-   uint8_t high_performance_socket   = SL_HIGH_PERFORMANCE_SOCKET;
 
-  sl_status_t status = sl_si91x_config_socket(socket_config);
-  if (status != SL_STATUS_OK) {
-    printf("Socket config failed: %ld\r\n", status);
-  }
-  printf("\r\nSocket config Done\r\n");
+  int client_socket                 = -1;
+  uint32_t total_bytes_sent         = 0;
+  int socket_return_value           = 0;
+  int sent_bytes                    = 1;
+  struct sockaddr_in server_address = { 0 };
+  socklen_t socket_length           = sizeof(struct sockaddr_in);
+  server_address.sin_family         = AF_INET;
+  server_address.sin_port           = SERVER_PORT;
+  sl_net_inet_addr(SERVER_IP, &server_address.sin_addr.s_addr);
 
-  // Create Server socket
-  server_socket = sl_si91x_socket_async(AF_INET, SOCK_STREAM, IPPROTO_TCP, &data_callback);
-  if (server_socket < 0) {
-    printf("\r\nSocket creation failed with BSD error: %d\r\n", errno);
+  // Create client socket
+  client_socket = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
+  if (client_socket < 0) {
+    printf("\r\nSocket create failed with BSD error: %d\r\n", errno);
     return;
   }
-  printf("\r\nServer Socket ID : %d\r\n", server_socket);
+  printf("\r\nSocket ID : %d\r\n", client_socket);
 
-  //Set socket
-  socket_return_value = sl_si91x_setsockopt_async(server_socket,
-                                                  SOL_SOCKET,
-                                                  SL_SI91X_SO_HIGH_PERFORMANCE_SOCKET,
-                                                  &high_performance_socket,
-                                                  sizeof(high_performance_socket));
+  // Connect socket
+  socket_return_value = connect(client_socket, (struct sockaddr *)&server_address, socket_length);
   if (socket_return_value < 0) {
-    printf("\r\nSet Socket option failed with BSD error: %d\r\n", errno);
+    printf("\r\nSocket Connect failed with BSD error: %d\r\n", errno);
     close(client_socket);
     return;
   }
+  printf("\r\nSocket connected to TCP server\r\n");
+
+  // Send data
+  printf("\r\nTCP_TX Throughput test start\r\n");
+  start = osKernelGetTickCount();
+  while (total_bytes_sent < BYTES_TO_SEND) {
+    sent_bytes = send(client_socket, data_buffer, TCP_BUFFER_SIZE, 0);
+    now        = osKernelGetTickCount();
+    if (sent_bytes < 0) {
+      printf("\r\nSocket send failed with bsd error: %d\r\n", errno);
+      close(client_socket);
+      break;
+    }
+    total_bytes_sent = total_bytes_sent + sent_bytes;
+
+    if ((now - start) > TEST_TIMEOUT) {
+      printf("\r\nTime Out: %ld\r\n", (now - start));
+      break;
+    }
+  }
+  printf("\r\nTCP_TX Throughput test finished\r\n");
+  printf("\r\nTotal bytes sent : %ld\r\n", total_bytes_sent);
+
+  //measure_and_print_throughput(total_bytes_sent, (now - start));
+
+  // Close socket
+  close(client_socket);
+
+//    int server_socket                 = -1;
+//    int client_socket                 = -1;
+//    int socket_return_value           = 0;
+//    struct sockaddr_in server_address = { 0 };
+//    socklen_t socket_length           = sizeof(struct sockaddr_in);
+//    uint8_t high_performance_socket   = SL_HIGH_PERFORMANCE_SOCKET;
+
+//   sl_status_t status = sl_si91x_config_socket(socket_config);
+//   if (status != SL_STATUS_OK) {
+//     printf("Socket config failed: %ld\r\n", status);
+//   }
+//   printf("\r\nSocket config Done\r\n");
+
+//   // Create Server socket
+//   server_socket = sl_si91x_socket_async(AF_INET, SOCK_STREAM, IPPROTO_TCP, &data_callback);
+//   if (server_socket < 0) {
+//     printf("\r\nSocket creation failed with BSD error: %d\r\n", errno);
+//     return;
+//   }
+//   printf("\r\nServer Socket ID : %d\r\n", server_socket);
+
+//   //Set socket
+//   socket_return_value = sl_si91x_setsockopt_async(server_socket,
+//                                                   SOL_SOCKET,
+//                                                   SL_SI91X_SO_HIGH_PERFORMANCE_SOCKET,
+//                                                   &high_performance_socket,
+//                                                   sizeof(high_performance_socket));
+//   if (socket_return_value < 0) {
+//     printf("\r\nSet Socket option failed with BSD error: %d\r\n", errno);
+//     close(client_socket);
+//     return;
+//   }
 //   server_address.sin_family = AF_INET;
 //   server_address.sin_port   = LISTENING_PORT;
 
@@ -163,3 +228,5 @@ void wifi_async_socket_server_init(void) {
 
 //   //measure_and_print_throughput(bytes_read, (now - start));
 }
+
+#endif
