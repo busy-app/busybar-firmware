@@ -9,7 +9,7 @@
 
 #include "errno.h"
 
-#define TAG                        "WifiAsyncSocket"
+#define TAG                        "WifiAsyncSocketServerTcpRx"
 #define SL_HIGH_PERFORMANCE_SOCKET BIT(7)
 #define BACK_LOG                   1
 
