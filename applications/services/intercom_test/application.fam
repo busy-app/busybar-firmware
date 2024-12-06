@@ -1,0 +1,21 @@
+App(
+    appid="intercom_test",
+    name="IntercomTestSrv",
+    apptype=FlipperAppType.SERVICE,
+    entry_point="intercom_test_srv",
+    stack_size=1 * 1024,
+    order=80,
+    targets=["f20"],
+    sources=["intercom_test_client.c"],
+)
+
+App(
+    appid="intercom_test",
+    name="IntercomTestSrv",
+    apptype=FlipperAppType.SERVICE,
+    entry_point="intercom_test_srv",
+    stack_size=1 * 1024,
+    order=80,
+    targets=["f64"],
+    sources=["intercom_test_server.c"],
+)
