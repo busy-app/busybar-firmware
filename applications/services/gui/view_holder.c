@@ -14,7 +14,7 @@ struct ViewHolder {
     BackCallback back_callback;
     void* back_context;
 
-    uint8_t ongoing_input;
+    uint32_t ongoing_input;
 };
 
 static void view_holder_draw_callback(Canvas* canvas, void* context);
@@ -146,7 +146,7 @@ static void view_holder_draw_callback(Canvas* canvas, void* context) {
 static void view_holder_input_callback(InputEvent* event, void* context) {
     ViewHolder* view_holder = context;
 
-    uint8_t key_bit = (1 << event->key);
+    uint32_t key_bit = (1 << event->key);
     if(event->type == InputTypePress) {
         view_holder->ongoing_input |= key_bit;
     } else if(event->type == InputTypeRelease) {

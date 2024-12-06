@@ -251,7 +251,7 @@ void view_dispatcher_input_callback(InputEvent* event, void* context) {
 
 void view_dispatcher_handle_input(ViewDispatcher* view_dispatcher, InputEvent* event) {
     // Check input complementarity
-    uint8_t key_bit = (1 << event->key);
+    uint32_t key_bit = (1UL << event->key);
     if(event->type == InputTypePress) {
         view_dispatcher->ongoing_input |= key_bit;
     } else if(event->type == InputTypeRelease) {
@@ -262,7 +262,7 @@ void view_dispatcher_handle_input(ViewDispatcher* view_dispatcher, InputEvent* e
             "non-complementary input, discarding key: %s, type: %s, sequence: %p",
             input_get_key_name(event->key),
             input_get_type_name(event->type),
-            (void*)event->sequence);
+            (void*)event->sequence_number);
         return;
     }
 
@@ -301,7 +301,7 @@ void view_dispatcher_handle_input(ViewDispatcher* view_dispatcher, InputEvent* e
             view_dispatcher->current_view,
             input_get_key_name(event->key),
             input_get_type_name(event->type),
-            (void*)event->sequence);
+            (void*)event->sequence_number);
         view_input(view_dispatcher->ongoing_input_view, event);
     }
 }

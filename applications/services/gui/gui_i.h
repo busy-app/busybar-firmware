@@ -18,8 +18,8 @@
 #include "view_port.h"
 #include "view_port_i.h"
 
-#define GUI_DISPLAY_WIDTH  128
-#define GUI_DISPLAY_HEIGHT 64
+#define GUI_DISPLAY_WIDTH  160
+#define GUI_DISPLAY_HEIGHT 80
 
 #define GUI_STATUS_BAR_X               0
 #define GUI_STATUS_BAR_Y               0
@@ -59,7 +59,7 @@ struct Gui {
     // Input
     FuriMessageQueue* input_queue;
     FuriPubSub* input_events;
-    uint8_t ongoing_input;
+    uint32_t ongoing_input;
     ViewPort* ongoing_input_view_port;
 };
 

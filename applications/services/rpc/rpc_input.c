@@ -17,6 +17,12 @@ typedef struct {
 
 typedef void (*RpcSystemInputKeyFunc)(InputKey);
 
+static const InputKey rpc_system_input_button_map[] = {
+    [PB_Input_Button_OK] = InputKeyOk,
+    [PB_Input_Button_BACK] = InputKeyBack,
+    [PB_Input_Button_START] = InputKeyStart,
+};
+
 static void rpc_system_input_process_button_event(const PB_Main* request, void* context) {
     furi_assert(request);
     furi_assert(context);
@@ -28,18 +34,12 @@ static void rpc_system_input_process_button_event(const PB_Main* request, void* 
     const PB_Input_Button button = request->content.button_event.button;
     const PB_Input_ButtonAction action = request->content.button_event.action;
 
-    if(button == PB_Input_Button_OK) {
-        if(action == PB_Input_ButtonAction_PRESS) {
-            input_key_press(InputKeyOk);
-        } else {
-            input_key_release(InputKeyOk);
-        }
-    } else if(button == PB_Input_Button_BACK) {
-        if(action == PB_Input_ButtonAction_PRESS) {
-            input_key_press(InputKeyBack);
-        } else {
-            input_key_release(InputKeyBack);
-        }
+    const InputKey key = rpc_system_input_button_map[button];
+
+    if(action == PB_Input_ButtonAction_PRESS) {
+        input_key_press(key);
+    } else {
+        input_key_release(key);
     }
 
     RPC_INPUT_LOG_D(TAG, "Button event: button %d, action %d", button, action);
@@ -53,9 +53,10 @@ static void rpc_system_input_process_switch_event(const PB_Main* request, void* 
     RpcSession* session = instance->session;
     furi_assert(session);
 
-    // TODO: Handle switch change
+    const PB_Input_SwitchPosition position = request->content.switch_event.position;
+    input_key_toggle(InputKeyBusy + position);
 
-    RPC_INPUT_LOG_D(TAG, "Switch event: position %d", request->content.switch_event.position);
+    RPC_INPUT_LOG_D(TAG, "Switch event: position %d", position);
 }
 
 static void rpc_system_input_process_encoder_event(const PB_Main* request, void* context) {
@@ -68,15 +69,12 @@ static void rpc_system_input_process_encoder_event(const PB_Main* request, void*
 
     const int16_t delta = request->content.encoder_event.delta;
 
-    // TODO: Come up with a better solution
     if(delta > 0) {
-        input_key_press(InputKeyUp);
-        furi_delay_ms(5);
-        input_key_release(InputKeyUp);
+        input_key_toggle(InputKeyUp);
+    } else if(delta < 0) {
+        input_key_toggle(InputKeyDown);
     } else {
-        input_key_press(InputKeyDown);
-        furi_delay_ms(5);
-        input_key_release(InputKeyDown);
+        furi_crash();
     }
 
     RPC_INPUT_LOG_D(TAG, "Encoder event: delta %d", delta);

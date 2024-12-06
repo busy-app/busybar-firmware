@@ -14,7 +14,7 @@ _Static_assert(
     (ViewPortOrientationHorizontal == 0 && ViewPortOrientationHorizontalFlip == 1 &&
      ViewPortOrientationVertical == 2 && ViewPortOrientationVerticalFlip == 3),
     "Incorrect ViewPortOrientation order");
-_Static_assert(InputKeyMAX == 6, "Incorrect InputKey count");
+_Static_assert(InputKeyMAX == 12, "Incorrect InputKey count");
 _Static_assert(
     (InputKeyUp == 0 && InputKeyDown == 1 && InputKeyRight == 2 && InputKeyLeft == 3 &&
      InputKeyOk == 4 && InputKeyBack == 5),
@@ -24,30 +24,66 @@ _Static_assert(
 * 
 */
 static const InputKey view_port_input_mapping[ViewPortOrientationMAX][InputKeyMAX] = {
-    {InputKeyUp,
-     InputKeyDown,
-     InputKeyRight,
-     InputKeyLeft,
-     InputKeyOk,
-     InputKeyBack}, //ViewPortOrientationHorizontal
-    {InputKeyDown,
-     InputKeyUp,
-     InputKeyLeft,
-     InputKeyRight,
-     InputKeyOk,
-     InputKeyBack}, //ViewPortOrientationHorizontalFlip
-    {InputKeyRight,
-     InputKeyLeft,
-     InputKeyDown,
-     InputKeyUp,
-     InputKeyOk,
-     InputKeyBack}, //ViewPortOrientationVertical
-    {InputKeyLeft,
-     InputKeyRight,
-     InputKeyUp,
-     InputKeyDown,
-     InputKeyOk,
-     InputKeyBack}, //ViewPortOrientationVerticalFlip
+    [ViewPortOrientationHorizontal] =
+        {
+            InputKeyUp,
+            InputKeyDown,
+            InputKeyRight,
+            InputKeyLeft,
+            InputKeyOk,
+            InputKeyBack,
+            InputKeyStart,
+            InputKeyBusy,
+            InputKeyStatus,
+            InputKeyOff,
+            InputKeyApps,
+            InputKeySettings,
+        },
+    [ViewPortOrientationHorizontalFlip] =
+        {
+            InputKeyDown,
+            InputKeyUp,
+            InputKeyLeft,
+            InputKeyRight,
+            InputKeyOk,
+            InputKeyBack,
+            InputKeyStart,
+            InputKeyBusy,
+            InputKeyStatus,
+            InputKeyOff,
+            InputKeyApps,
+            InputKeySettings,
+        },
+    [ViewPortOrientationVertical] =
+        {
+            InputKeyRight,
+            InputKeyLeft,
+            InputKeyDown,
+            InputKeyUp,
+            InputKeyOk,
+            InputKeyBack,
+            InputKeyStart,
+            InputKeyBusy,
+            InputKeyStatus,
+            InputKeyOff,
+            InputKeyApps,
+            InputKeySettings,
+        },
+    [ViewPortOrientationVerticalFlip] =
+        {
+            InputKeyLeft,
+            InputKeyRight,
+            InputKeyUp,
+            InputKeyDown,
+            InputKeyOk,
+            InputKeyBack,
+            InputKeyStart,
+            InputKeyBusy,
+            InputKeyStatus,
+            InputKeyOff,
+            InputKeyApps,
+            InputKeySettings,
+        },
 };
 
 static const InputKey view_port_left_hand_input_mapping[InputKeyMAX] =

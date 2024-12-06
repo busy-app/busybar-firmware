@@ -1,5 +1,5 @@
 entry,status,name,type,params
-Version,+,1.17,,
+Version,+,1.18,,
 Header,-,applications/services/cli/cli.h,,
 Header,-,applications/services/cli/cli_vcp.h,,
 Header,-,applications/services/gui/elements.h,,
@@ -1025,6 +1025,7 @@ Function,-,input_get_key_name,const char*,InputKey
 Function,-,input_get_type_name,const char*,InputType
 Function,-,input_key_press,void,InputKey
 Function,-,input_key_release,void,InputKey
+Function,-,input_key_toggle,void,InputKey
 Function,-,iprintf,int,"const char*, ..."
 Function,-,isalnum,int,int
 Function,-,isalnum_l,int,"int, locale_t"
