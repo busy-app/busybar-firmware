@@ -1,4 +1,4 @@
-#include "wifi_test_app.h"
+#include "wifi_rf_test_app.h"
 #include <furi.h>
 
 #include <sl_status.h>
@@ -10,13 +10,13 @@
 #include <args.h>
 #include <strint.h>
 
-#define TAG "WifiTestApp"
+#define TAG "WifiRfTestApp"
 
-#define WIFI_TEST_RECEIVE_STATS_COUNT_DEFAULT 10
-#define WIFI_TEST_CHANNEL_DEFAULT             1
-#define WIFI_TEST_POWER_DEFAULT               127
-#define WIFI_TEST_RATE_DEFAULT                SL_WIFI_DATA_RATE_6
-#define WIFI_TEST_MODE_DEFAULT                SL_WIFI_TEST_BURST_MODE
+#define WIFI_RF_TEST_RECEIVE_STATS_COUNT_DEFAULT 10
+#define WIFI_RF_TEST_CHANNEL_DEFAULT             1
+#define WIFI_RF_TEST_POWER_DEFAULT               127
+#define WIFI_RF_TEST_RATE_DEFAULT                SL_WIFI_DATA_RATE_6
+#define WIFI_RF_TEST_MODE_DEFAULT                SL_WIFI_TEST_BURST_MODE
 
 typedef enum {
     HELP,
@@ -29,7 +29,7 @@ typedef enum {
     SET_CHANNEL,
     SET_MODE,
 
-    WIFI_TEST_COMMANDS_MAX,
+    WIFI_RF_TEST_COMMANDS_MAX,
 } WifiTestCmdType;
 
 typedef enum {
@@ -42,7 +42,7 @@ typedef struct {
     char* cmd;
 } WifiTestCmd;
 
-const WifiTestCmd wifi_test_cmd[WIFI_TEST_COMMANDS_MAX] = {
+const WifiTestCmd wifi_rf_test_cmd[WIFI_RF_TEST_COMMANDS_MAX] = {
     {"?"},
     {"help"},
     {"rx"},
@@ -59,8 +59,8 @@ typedef struct {
     char* rate_cmd;
     uint16_t rate_value;
 } WifiTestRateCmd;
-#define WIFI_TEST_RATE_CMD_MAX 21
-const WifiTestRateCmd wifi_test_rate_cmd[WIFI_TEST_RATE_CMD_MAX] = {
+#define WIFI_RF_TEST_RATE_CMD_MAX 21
+const WifiTestRateCmd wifi_rf_test_rate_cmd[WIFI_RF_TEST_RATE_CMD_MAX] = {
     {"1", 0},      {"2", 2},      {"5.5", 4},       {"11", 6},     {"6", 139},    {"9", 143},
     {"12", 138},   {"18", 142},   {"24", 137},      {"36", 141},   {"48", 136},   {"54", 140},
     {"MCS0", 256}, {"MCS1", 257}, {"MCS2", 258},    {"MCS3", 259}, {"MCS4", 260}, {"MCS5", 261},
@@ -71,8 +71,8 @@ typedef struct {
     char* mode_cmd;
     uint16_t mode_value;
 } WifiTestModeCmd;
-#define WIFI_TEST_MODE_CMD_MAX 5
-const WifiTestModeCmd wifi_test_mode_cmd[WIFI_TEST_MODE_CMD_MAX] = {
+#define WIFI_RF_TEST_MODE_CMD_MAX 5
+const WifiTestModeCmd wifi_rf_test_mode_cmd[WIFI_RF_TEST_MODE_CMD_MAX] = {
     {"burst", 0},
     {"continuous", 1},
     {"cw", 2},
@@ -84,8 +84,8 @@ typedef struct {
     char* channel_cmd;
     uint16_t channel_value;
 } WifiTestChannelCmd;
-#define WIFI_TEST_CHANNEL_CMD_MAX 14
-const WifiTestChannelCmd wifi_test_channel_cmd[WIFI_TEST_CHANNEL_CMD_MAX] = {
+#define WIFI_RF_TEST_CHANNEL_CMD_MAX 14
+const WifiTestChannelCmd wifi_rf_test_channel_cmd[WIFI_RF_TEST_CHANNEL_CMD_MAX] = {
     {"1", 2412},
     {"2", 2417},
     {"3", 2422},
@@ -102,7 +102,7 @@ const WifiTestChannelCmd wifi_test_channel_cmd[WIFI_TEST_CHANNEL_CMD_MAX] = {
     {"14", 2484},
 };
 
-static const sl_wifi_device_configuration_t wifi_test_configuration = {
+static const sl_wifi_device_configuration_t wifi_rf_test_configuration = {
     .boot_option = LOAD_NWP_FW,
     .mac_address = NULL,
     .band = SL_SI91X_WIFI_BAND_2_4GHZ,
@@ -133,11 +133,11 @@ static const sl_wifi_device_configuration_t wifi_test_configuration = {
 
 static const sl_si91x_request_tx_test_info_t tx_test_info_default = {
     .enable = 1,
-    .power = WIFI_TEST_POWER_DEFAULT,
-    .rate = WIFI_TEST_RATE_DEFAULT,
+    .power = WIFI_RF_TEST_POWER_DEFAULT,
+    .rate = WIFI_RF_TEST_RATE_DEFAULT,
     .length = 100,
-    .mode = WIFI_TEST_MODE_DEFAULT,
-    .channel = WIFI_TEST_CHANNEL_DEFAULT,
+    .mode = WIFI_RF_TEST_MODE_DEFAULT,
+    .channel = WIFI_RF_TEST_CHANNEL_DEFAULT,
     .aggr_enable = 0,
     .no_of_pkts = 0,
 #ifdef SLI_SI917
@@ -166,7 +166,7 @@ static const sl_si91x_request_tx_test_info_t tx_test_info_default = {
 #endif
 };
 
-struct WifiTestApp {
+struct WifiRfTestApp {
     FuriString* msg;
     CliWorker* worker;
     WifiTestState state;
@@ -185,29 +185,29 @@ struct WifiTestApp {
     sl_si91x_request_tx_test_info_t tx_test_info;
 };
 
-static void wifi_test_app_cmd_usage(WifiTestApp* instance);
-static sl_status_t wifi_test_stats_receive_handler(
+static void wifi_rf_test_app_cmd_usage(WifiRfTestApp* instance);
+static sl_status_t wifi_rf_test_stats_receive_handler(
     sl_wifi_event_t event,
     void* reponse,
     uint32_t result_length,
     void* arg);
 
-static void wifi_test_app_send_msg(WifiTestApp* instance) {
+static void wifi_rf_test_app_send_msg(WifiRfTestApp* instance) {
     cli_worker_add_rx_data(
         instance->worker,
         (uint8_t*)furi_string_get_cstr(instance->msg),
         furi_string_utf8_length(instance->msg));
 }
 
-static void wifi_test_app_send_msg_invalid_arg(WifiTestApp* instance) {
+static void wifi_rf_test_app_send_msg_invalid_arg(WifiRfTestApp* instance) {
     furi_string_printf(instance->msg, "Invalid argument\r\n");
-    wifi_test_app_send_msg(instance);
+    wifi_rf_test_app_send_msg(instance);
 }
 
-void* wifi_test_app_start(CliWorker* worker) {
+void* wifi_rf_test_app_start(CliWorker* worker) {
     FURI_LOG_I(TAG, "Starting");
 
-    WifiTestApp* instance = malloc(sizeof(WifiTestApp));
+    WifiRfTestApp* instance = malloc(sizeof(WifiRfTestApp));
     instance->msg = furi_string_alloc();
     instance->worker = worker;
     instance->state = WifiTestStateIdle;
@@ -215,8 +215,8 @@ void* wifi_test_app_start(CliWorker* worker) {
     instance->pass_avg = 0;
     instance->fail_avg = 0;
     instance->stats_count = 0;
-    instance->channel = WIFI_TEST_CHANNEL_DEFAULT;
-    instance->max_receive_stats_count = WIFI_TEST_RECEIVE_STATS_COUNT_DEFAULT;
+    instance->channel = WIFI_RF_TEST_CHANNEL_DEFAULT;
+    instance->max_receive_stats_count = WIFI_RF_TEST_RECEIVE_STATS_COUNT_DEFAULT;
     instance->exit = false;
 
     memcpy(
@@ -224,44 +224,45 @@ void* wifi_test_app_start(CliWorker* worker) {
 
     sl_status_t status = SL_STATUS_FAIL;
     do {
-        status = sl_net_init(SL_NET_WIFI_CLIENT_INTERFACE, &wifi_test_configuration, NULL, NULL);
+        status =
+            sl_net_init(SL_NET_WIFI_CLIENT_INTERFACE, &wifi_rf_test_configuration, NULL, NULL);
         if(status != SL_STATUS_OK) {
             furi_string_printf(
                 instance->msg, "Failed to start Wi-Fi client interface: 0x%lx\r\n", status);
-            wifi_test_app_send_msg(instance);
+            wifi_rf_test_app_send_msg(instance);
             break;
         } else {
             furi_string_printf(instance->msg, "Wi-Fi initialization successful\r\n");
-            wifi_test_app_send_msg(instance);
+            wifi_rf_test_app_send_msg(instance);
         }
         // Register WLAN receive stats call back handler
-        status = sl_wifi_set_stats_callback(wifi_test_stats_receive_handler, instance);
+        status = sl_wifi_set_stats_callback(wifi_rf_test_stats_receive_handler, instance);
         if(status != SL_STATUS_OK) {
             furi_string_printf(instance->msg, "Failed to set stats callback: 0x%lx\r\n", status);
-            wifi_test_app_send_msg(instance);
+            wifi_rf_test_app_send_msg(instance);
             break;
         }
         status = sl_wifi_set_antenna(SL_WIFI_CLIENT_2_4GHZ_INTERFACE, SL_WIFI_ANTENNA_INTERNAL);
         if(status != SL_STATUS_OK) {
             furi_string_printf(instance->msg, "Failed to start set Antenna: 0x%lx\r\n", status);
-            wifi_test_app_send_msg(instance);
+            wifi_rf_test_app_send_msg(instance);
             break;
         }
 
-        wifi_test_app_cmd_usage(instance);
+        wifi_rf_test_app_cmd_usage(instance);
     } while(0);
 
     if(status != SL_STATUS_OK) {
-        wifi_test_app_stop(instance);
+        wifi_rf_test_app_stop(instance);
         return NULL;
     }
     return (void*)instance;
 }
 
-void wifi_test_app_stop(void* app_handle) {
+void wifi_rf_test_app_stop(void* app_handle) {
     furi_check(app_handle);
     FURI_LOG_I(TAG, "Stopping");
-    WifiTestApp* instance = (WifiTestApp*)app_handle;
+    WifiRfTestApp* instance = (WifiRfTestApp*)app_handle;
 
     if(instance) {
         instance->exit = true;
@@ -280,14 +281,14 @@ void wifi_test_app_stop(void* app_handle) {
     sl_net_deinit(SL_NET_WIFI_CLIENT_INTERFACE);
 }
 
-static sl_status_t wifi_test_stats_receive_handler(
+static sl_status_t wifi_rf_test_stats_receive_handler(
     sl_wifi_event_t event,
     void* reponse,
     uint32_t result_length,
     void* arg) {
     UNUSED_PARAMETER(result_length);
 
-    WifiTestApp* instance = (WifiTestApp*)arg;
+    WifiRfTestApp* instance = (WifiRfTestApp*)arg;
 
     if(SL_WIFI_CHECK_IF_EVENT_FAILED(event)) {
         instance->callback_status = *(sl_status_t*)reponse;
@@ -306,7 +307,7 @@ static sl_status_t wifi_test_stats_receive_handler(
             result->crc_pass,
             result->crc_fail,
             result->cal_rssi);
-        wifi_test_app_send_msg(instance);
+        wifi_rf_test_app_send_msg(instance);
 
         float p = result->crc_pass;
         float f = result->crc_fail;
@@ -333,7 +334,7 @@ static sl_status_t wifi_test_stats_receive_handler(
                 "Total : total_crc_pass %d, total_crc_fail %d\r\n",
                 instance->total_crc_pass,
                 instance->total_crc_fail);
-            wifi_test_app_send_msg(instance);
+            wifi_rf_test_app_send_msg(instance);
 
             instance->pass_avg = 0;
             instance->fail_avg = 0;
@@ -344,7 +345,7 @@ static sl_status_t wifi_test_stats_receive_handler(
     return SL_STATUS_OK;
 }
 
-sl_status_t wifi_test_app(WifiTestApp* instance, uint8_t cmd_index, FuriString* args) {
+sl_status_t wifi_rf_test_app(WifiRfTestApp* instance, uint8_t cmd_index, FuriString* args) {
     sl_status_t status = SL_STATUS_FAIL;
 
     char* args_cstr = (char*)furi_string_get_cstr(args);
@@ -355,14 +356,14 @@ sl_status_t wifi_test_app(WifiTestApp* instance, uint8_t cmd_index, FuriString* 
     switch(cmd_index) {
     case HELP:
     case HELP_HELP:
-        wifi_test_app_cmd_usage(instance);
+        wifi_rf_test_app_cmd_usage(instance);
         break;
 
     case RECEIVE:
         if(instance->state == WifiTestStateTransmit) {
             sl_si91x_transmit_test_stop();
             furi_string_printf(instance->msg, "Transmit test stop Success\r\n");
-            wifi_test_app_send_msg(instance);
+            wifi_rf_test_app_send_msg(instance);
             instance->state = WifiTestStateIdle;
         }
 
@@ -372,10 +373,10 @@ sl_status_t wifi_test_app(WifiTestApp* instance, uint8_t cmd_index, FuriString* 
             parse_err |=
                 strint_to_uint16(args_cstr, &args_cstr, &instance->max_receive_stats_count, 10);
             if(parse_err != StrintParseNoError) {
-                wifi_test_app_send_msg_invalid_arg(instance);
+                wifi_rf_test_app_send_msg_invalid_arg(instance);
             }
         } else {
-            instance->max_receive_stats_count = WIFI_TEST_RECEIVE_STATS_COUNT_DEFAULT;
+            instance->max_receive_stats_count = WIFI_RF_TEST_RECEIVE_STATS_COUNT_DEFAULT;
         }
 
         if(parse_err == StrintParseNoError) {
@@ -392,7 +393,7 @@ sl_status_t wifi_test_app(WifiTestApp* instance, uint8_t cmd_index, FuriString* 
                 instance->callback_status = SL_STATUS_IN_PROGRESS;
 
                 furi_string_printf(instance->msg, "Receive Statistics...\r\n");
-                wifi_test_app_send_msg(instance);
+                wifi_rf_test_app_send_msg(instance);
 
                 do {
                     while(instance->stats_count <= instance->max_receive_stats_count &&
@@ -401,13 +402,13 @@ sl_status_t wifi_test_app(WifiTestApp* instance, uint8_t cmd_index, FuriString* 
                         if(instance->stats_count == instance->max_receive_stats_count &&
                            instance->callback_status != SL_STATUS_IN_PROGRESS) {
                             furi_string_printf(instance->msg, "Stop Statistics Report\r\n");
-                            wifi_test_app_send_msg(instance);
+                            wifi_rf_test_app_send_msg(instance);
 
                             sl_wifi_stop_statistic_report(SL_WIFI_CLIENT_INTERFACE);
 
                             furi_string_printf(
                                 instance->msg, "Start Statistic Report Success\r\n");
-                            wifi_test_app_send_msg(instance);
+                            wifi_rf_test_app_send_msg(instance);
                             instance->state = WifiTestStateIdle;
                             break;
                         }
@@ -420,7 +421,7 @@ sl_status_t wifi_test_app(WifiTestApp* instance, uint8_t cmd_index, FuriString* 
                     instance->msg,
                     "Start Statistic Report Failed, Error Code : 0x%lX\r\n",
                     status);
-                wifi_test_app_send_msg(instance);
+                wifi_rf_test_app_send_msg(instance);
             }
             instance->stats_count = 0;
             instance->callback_status = SL_STATUS_OK;
@@ -445,14 +446,14 @@ sl_status_t wifi_test_app(WifiTestApp* instance, uint8_t cmd_index, FuriString* 
                 if(status != SL_STATUS_OK) {
                     furi_string_printf(
                         instance->msg, "Transmit test start failed 0x%lX\r\n", status);
-                    wifi_test_app_send_msg(instance);
+                    wifi_rf_test_app_send_msg(instance);
                     instance->tx_test_info.mode = mode_temp;
                     break;
                 }
                 status = sl_si91x_transmit_test_stop();
                 if(status != SL_STATUS_OK) {
                     furi_string_printf(instance->msg, "Transmit failed to stop %lx\r\n", status);
-                    wifi_test_app_send_msg(instance);
+                    wifi_rf_test_app_send_msg(instance);
                     instance->tx_test_info.mode = mode_temp;
                     break;
                 }
@@ -462,11 +463,11 @@ sl_status_t wifi_test_app(WifiTestApp* instance, uint8_t cmd_index, FuriString* 
             status = sl_si91x_transmit_test_start(&instance->tx_test_info);
             if(status != SL_STATUS_OK) {
                 furi_string_printf(instance->msg, "Transmit test start failed 0x%lX\r\n", status);
-                wifi_test_app_send_msg(instance);
+                wifi_rf_test_app_send_msg(instance);
                 break;
             } else {
                 furi_string_printf(instance->msg, "Transmit test start Success\r\n");
-                wifi_test_app_send_msg(instance);
+                wifi_rf_test_app_send_msg(instance);
             }
         } while(0);
         break;
@@ -475,15 +476,15 @@ sl_status_t wifi_test_app(WifiTestApp* instance, uint8_t cmd_index, FuriString* 
             status = sl_si91x_transmit_test_stop();
             if(status != SL_STATUS_OK) {
                 furi_string_printf(instance->msg, "Transmit test stop failed 0x%lX\r\n", status);
-                wifi_test_app_send_msg(instance);
+                wifi_rf_test_app_send_msg(instance);
             } else {
                 furi_string_printf(instance->msg, "Transmit test stop Success\r\n");
-                wifi_test_app_send_msg(instance);
+                wifi_rf_test_app_send_msg(instance);
             }
             instance->state = WifiTestStateIdle;
         } else {
             furi_string_printf(instance->msg, "Transmit test not started\r\n");
-            wifi_test_app_send_msg(instance);
+            wifi_rf_test_app_send_msg(instance);
         }
         break;
     case SET_POWER:
@@ -495,110 +496,114 @@ sl_status_t wifi_test_app(WifiTestApp* instance, uint8_t cmd_index, FuriString* 
                 if(parse_err == StrintParseNoError) {
                     if((power_temp >= 2 && power_temp <= 18) || (power_temp == 127)) {
                         furi_string_printf(instance->msg, "Power set to %d\r\n", power_temp);
-                        wifi_test_app_send_msg(instance);
+                        wifi_rf_test_app_send_msg(instance);
                         instance->tx_test_info.power = power_temp;
                     } else {
-                        wifi_test_app_send_msg_invalid_arg(instance);
+                        wifi_rf_test_app_send_msg_invalid_arg(instance);
                     }
                 } else {
-                    wifi_test_app_send_msg_invalid_arg(instance);
+                    wifi_rf_test_app_send_msg_invalid_arg(instance);
                 }
             }
         } else {
             furi_string_printf(instance->msg, "Transmit test is running, stop it first\r\n");
-            wifi_test_app_send_msg(instance);
+            wifi_rf_test_app_send_msg(instance);
         }
         break;
     case SET_RATE:
         if(instance->state == WifiTestStateIdle) {
             do {
                 if(!args_read_string_and_trim(args, arg)) {
-                    wifi_test_app_send_msg_invalid_arg(instance);
+                    wifi_rf_test_app_send_msg_invalid_arg(instance);
                     break;
                 }
 
-                for(i = 0; i < WIFI_TEST_RATE_CMD_MAX; i++) {
-                    if(furi_string_cmp_str(arg, (char*)wifi_test_rate_cmd[i].rate_cmd) == 0) {
-                        instance->tx_test_info.rate = wifi_test_rate_cmd[i].rate_value;
+                for(i = 0; i < WIFI_RF_TEST_RATE_CMD_MAX; i++) {
+                    if(furi_string_cmp_str(arg, (char*)wifi_rf_test_rate_cmd[i].rate_cmd) == 0) {
+                        instance->tx_test_info.rate = wifi_rf_test_rate_cmd[i].rate_value;
                         furi_string_printf(
-                            instance->msg, "Rate set to %s\r\n", wifi_test_rate_cmd[i].rate_cmd);
-                        wifi_test_app_send_msg(instance);
+                            instance->msg,
+                            "Rate set to %s\r\n",
+                            wifi_rf_test_rate_cmd[i].rate_cmd);
+                        wifi_rf_test_app_send_msg(instance);
                         break;
                     }
                 }
 
-                if(i == WIFI_TEST_RATE_CMD_MAX) {
+                if(i == WIFI_RF_TEST_RATE_CMD_MAX) {
                     furi_string_printf(instance->msg, "Unknown rate\r\n");
-                    wifi_test_app_send_msg(instance);
+                    wifi_rf_test_app_send_msg(instance);
                 }
             } while(false);
         } else {
             furi_string_printf(instance->msg, "Transmit test is running, stop it first\r\n");
-            wifi_test_app_send_msg(instance);
+            wifi_rf_test_app_send_msg(instance);
         }
         break;
     case SET_CHANNEL:
         if(instance->state == WifiTestStateIdle) {
             do {
                 if(!args_read_string_and_trim(args, arg)) {
-                    wifi_test_app_send_msg_invalid_arg(instance);
+                    wifi_rf_test_app_send_msg_invalid_arg(instance);
                     break;
                 }
 
-                for(i = 0; i < WIFI_TEST_CHANNEL_CMD_MAX; i++) {
-                    if(furi_string_cmp_str(arg, (char*)wifi_test_channel_cmd[i].channel_cmd) ==
+                for(i = 0; i < WIFI_RF_TEST_CHANNEL_CMD_MAX; i++) {
+                    if(furi_string_cmp_str(arg, (char*)wifi_rf_test_channel_cmd[i].channel_cmd) ==
                        0) {
                         instance->tx_test_info.channel = i + 1;
                         furi_string_printf(
                             instance->msg,
                             "Channel set to %d frequency %d Mhz\r\n",
                             instance->tx_test_info.channel,
-                            wifi_test_channel_cmd[i].channel_value);
-                        wifi_test_app_send_msg(instance);
+                            wifi_rf_test_channel_cmd[i].channel_value);
+                        wifi_rf_test_app_send_msg(instance);
                         break;
                     }
                 }
 
-                if(i == WIFI_TEST_CHANNEL_CMD_MAX) {
+                if(i == WIFI_RF_TEST_CHANNEL_CMD_MAX) {
                     furi_string_printf(instance->msg, "Unknown channel\r\n");
-                    wifi_test_app_send_msg(instance);
+                    wifi_rf_test_app_send_msg(instance);
                 }
             } while(false);
         } else {
             furi_string_printf(instance->msg, "Transmit test is running, stop it first\r\n");
-            wifi_test_app_send_msg(instance);
+            wifi_rf_test_app_send_msg(instance);
         }
         break;
     case SET_MODE:
         if(instance->state == WifiTestStateIdle) {
             do {
                 if(!args_read_string_and_trim(args, arg)) {
-                    wifi_test_app_send_msg_invalid_arg(instance);
+                    wifi_rf_test_app_send_msg_invalid_arg(instance);
                     break;
                 }
 
-                for(i = 0; i < WIFI_TEST_MODE_CMD_MAX; i++) {
-                    if(furi_string_cmp_str(arg, (char*)wifi_test_mode_cmd[i].mode_cmd) == 0) {
-                        instance->tx_test_info.mode = wifi_test_mode_cmd[i].mode_value;
+                for(i = 0; i < WIFI_RF_TEST_MODE_CMD_MAX; i++) {
+                    if(furi_string_cmp_str(arg, (char*)wifi_rf_test_mode_cmd[i].mode_cmd) == 0) {
+                        instance->tx_test_info.mode = wifi_rf_test_mode_cmd[i].mode_value;
                         furi_string_printf(
-                            instance->msg, "Mode set to %s\r\n", wifi_test_mode_cmd[i].mode_cmd);
-                        wifi_test_app_send_msg(instance);
+                            instance->msg,
+                            "Mode set to %s\r\n",
+                            wifi_rf_test_mode_cmd[i].mode_cmd);
+                        wifi_rf_test_app_send_msg(instance);
                         break;
                     }
                 }
 
-                if(i == WIFI_TEST_MODE_CMD_MAX) {
+                if(i == WIFI_RF_TEST_MODE_CMD_MAX) {
                     furi_string_printf(instance->msg, "Unknown mode\r\n");
-                    wifi_test_app_send_msg(instance);
+                    wifi_rf_test_app_send_msg(instance);
                 }
             } while(false);
         } else {
             furi_string_printf(instance->msg, "Transmit test is running, stop it first\r\n");
-            wifi_test_app_send_msg(instance);
+            wifi_rf_test_app_send_msg(instance);
         }
         break;
     default:
-        wifi_test_app_send_msg_invalid_arg(instance);
+        wifi_rf_test_app_send_msg_invalid_arg(instance);
         break;
     }
 
@@ -606,8 +611,8 @@ sl_status_t wifi_test_app(WifiTestApp* instance, uint8_t cmd_index, FuriString* 
     return SL_STATUS_OK;
 }
 
-void wifi_test_app_parse_msg(void* app_handle, uint8_t* data, size_t size) {
-    WifiTestApp* instance = (WifiTestApp*)app_handle;
+void wifi_rf_test_app_parse_msg(void* app_handle, uint8_t* data, size_t size) {
+    WifiRfTestApp* instance = (WifiRfTestApp*)app_handle;
     uint8_t i = 0;
     uint8_t cmd_index = 0;
     bool cmd_valid = false;
@@ -623,21 +628,21 @@ void wifi_test_app_parse_msg(void* app_handle, uint8_t* data, size_t size) {
             break;
         }
 
-        for(i = 0; i < WIFI_TEST_COMMANDS_MAX; i++) {
-            if(furi_string_cmp_str(cmd, (char*)wifi_test_cmd[i].cmd) == 0) {
+        for(i = 0; i < WIFI_RF_TEST_COMMANDS_MAX; i++) {
+            if(furi_string_cmp_str(cmd, (char*)wifi_rf_test_cmd[i].cmd) == 0) {
                 cmd_index = i;
                 cmd_valid = true;
                 break;
             }
         }
         if(cmd_valid) {
-            if(wifi_test_app(instance, cmd_index, args) != SL_STATUS_OK) {
+            if(wifi_rf_test_app(instance, cmd_index, args) != SL_STATUS_OK) {
                 furi_string_printf(instance->msg, "Command failed\r\n");
-                wifi_test_app_send_msg(instance);
+                wifi_rf_test_app_send_msg(instance);
             }
         } else {
             furi_string_printf(instance->msg, "Invalid command\r\n");
-            wifi_test_app_send_msg(instance);
+            wifi_rf_test_app_send_msg(instance);
         }
     } while(false);
 
@@ -645,7 +650,7 @@ void wifi_test_app_parse_msg(void* app_handle, uint8_t* data, size_t size) {
     furi_string_free(cmd);
 }
 
-static void wifi_test_app_cmd_usage(WifiTestApp* instance) {
+static void wifi_rf_test_app_cmd_usage(WifiRfTestApp* instance) {
     furi_string_printf(instance->msg, "Calibration commands usage:\r\n");
     furi_string_cat_printf(
         instance->msg,
@@ -676,5 +681,5 @@ static void wifi_test_app_cmd_usage(WifiTestApp* instance) {
         instance->msg,
         "*************************************************************************************************************"
         "***********************************************\r\n");
-    wifi_test_app_send_msg(instance);
+    wifi_rf_test_app_send_msg(instance);
 }

@@ -1,5 +1,5 @@
 
-#include "wifi_async_socket_server_tcp_rx.h"
+#include "wifi_async_socket_server_echo.h"
 
 #include <sl_net.h>
 
@@ -9,11 +9,11 @@
 
 #include "errno.h"
 
-#define TAG                        "WifiAsyncSocketServerTcpRx"
+#define TAG                        "WifiAsyncSocketServerEcho"
 #define SL_HIGH_PERFORMANCE_SOCKET BIT(7)
 #define BACK_LOG                   1
 
-#define TEST_TIMEOUT     (30000) //30sec
+#define TEST_TIMEOUT     (90000) //90sec
 #define BYTES_TO_RECEIVE (1 << 28) //256MB
 
 #define TOTAL_SOCKETS                   1 //@ Total number of sockets. TCP TX + TCP RX + UDP TX + UDP RX
@@ -41,18 +41,18 @@ static const sl_si91x_socket_config_t socket_config = {
 };
 
 typedef struct {
-    uint8_t has_data_received;
+    uint8_t exit;
     uint8_t first_data_frame;
     uint32_t start;
     uint32_t now;
     uint32_t bytes_read;
     FuriString* msg;
     WifiTestApp* app;
-} WifiAsyncSocketServerTcpRx;
+} WifiAsyncSocketServerEcho;
 
-WifiAsyncSocketServerTcpRx* wifi_async_socket_header = NULL;
+WifiAsyncSocketServerEcho* wifi_async_socket_echo_header = NULL;
 
-void wifi_async_socket_server_tcp_rx_data_callback(
+void wifi_async_socket_server_echo_data_callback(
     uint32_t sock_no,
     uint8_t* buffer,
     uint32_t length,
@@ -60,34 +60,39 @@ void wifi_async_socket_server_tcp_rx_data_callback(
     UNUSED_PARAMETER(buffer);
     UNUSED_PARAMETER(firmware_socket_response);
 
-    if(wifi_async_socket_header->first_data_frame) {
-        wifi_async_socket_header->start = furi_get_tick();
-        furi_string_printf(wifi_async_socket_header->msg, "Client Socket ID : %ld\r\n", sock_no);
-        wifi_test_app_send_text(wifi_async_socket_header->app, wifi_async_socket_header->msg);
-        furi_string_printf(wifi_async_socket_header->msg, "TCP_RX Throughput test start\r\n");
-        wifi_test_app_send_text(wifi_async_socket_header->app, wifi_async_socket_header->msg);
-        wifi_async_socket_header->first_data_frame = 0;
-    }
+    furi_string_printf(wifi_async_socket_echo_header->msg, "Client Socket ID : %ld\r\n", sock_no);
+    wifi_test_app_send_text(
+        wifi_async_socket_echo_header->app, wifi_async_socket_echo_header->msg);
+    furi_string_printf(wifi_async_socket_echo_header->msg, "Data received : %ld\r\n", length);
+    wifi_test_app_send_text(
+        wifi_async_socket_echo_header->app, wifi_async_socket_echo_header->msg);
+    furi_string_printf(wifi_async_socket_echo_header->msg, "Data : %s\r\n", buffer);
+    wifi_test_app_send_text(
+        wifi_async_socket_echo_header->app, wifi_async_socket_echo_header->msg);
 
-    wifi_async_socket_header->bytes_read += length;
-    wifi_async_socket_header->now = furi_get_tick();
-    if((wifi_async_socket_header->bytes_read > BYTES_TO_RECEIVE) ||
-       ((wifi_async_socket_header->now - wifi_async_socket_header->start) > TEST_TIMEOUT)) {
-        wifi_async_socket_header->has_data_received = 1;
+    int16_t sent_bytes = send(sock_no, buffer, length, 0);
+    if(sent_bytes < 0) {
+        furi_string_printf(
+            wifi_async_socket_echo_header->msg, "Send failed with BSD error:%d\r\n", errno);
+        wifi_test_app_send_text(
+            wifi_async_socket_echo_header->app, wifi_async_socket_echo_header->msg);
+        wifi_async_socket_echo_header->exit = 1;
+    } else {
+        wifi_async_socket_echo_header->bytes_read += length;
     }
 }
 
-void wifi_async_socket_server_tcp_rx_init(WifiTestApp* app, FuriString* msg, uint16_t port) {
-    wifi_async_socket_header =
-        (WifiAsyncSocketServerTcpRx*)malloc(sizeof(WifiAsyncSocketServerTcpRx));
+void wifi_async_socket_server_echo_init(WifiTestApp* app, FuriString* msg, uint16_t port) {
+    wifi_async_socket_echo_header =
+        (WifiAsyncSocketServerEcho*)malloc(sizeof(WifiAsyncSocketServerEcho));
 
-    wifi_async_socket_header->has_data_received = 0;
-    wifi_async_socket_header->first_data_frame = 1;
-    wifi_async_socket_header->start = 0;
-    wifi_async_socket_header->now = furi_get_tick();
-    wifi_async_socket_header->bytes_read = 0;
-    wifi_async_socket_header->msg = msg;
-    wifi_async_socket_header->app = app;
+    wifi_async_socket_echo_header->exit = 0;
+    wifi_async_socket_echo_header->first_data_frame = 1;
+    wifi_async_socket_echo_header->start = 0;
+    wifi_async_socket_echo_header->now = furi_get_tick();
+    wifi_async_socket_echo_header->bytes_read = 0;
+    wifi_async_socket_echo_header->msg = msg;
+    wifi_async_socket_echo_header->app = app;
 
     int server_socket = -1;
     int client_socket = -1;
@@ -108,7 +113,7 @@ void wifi_async_socket_server_tcp_rx_init(WifiTestApp* app, FuriString* msg, uin
 
         // Create Server socket
         server_socket = sl_si91x_socket_async(
-            AF_INET, SOCK_STREAM, IPPROTO_TCP, &wifi_async_socket_server_tcp_rx_data_callback);
+            AF_INET, SOCK_STREAM, IPPROTO_TCP, &wifi_async_socket_server_echo_data_callback);
         if(server_socket < 0) {
             furi_string_printf(msg, "Socket create failed with BSD error: %d\r\n", errno);
             wifi_test_app_send_text(app, msg);
@@ -161,19 +166,33 @@ void wifi_async_socket_server_tcp_rx_init(WifiTestApp* app, FuriString* msg, uin
             break;
         }
 
-        while(!wifi_async_socket_header->has_data_received) {
+        // Todo example async socket accept
+        //     socket_return_value = sl_si91x_accept_async(server_socket, client_accept_callback);
+        // if (socket_return_value != SI91X_NO_ERROR) {
+        //   SL_DEBUG_LOG("\r\nSocket accept failed with bsd error: %d\r\n", errno);
+        // }
+        // static void client_accept_callback(
+        //     int32_t sock_id, struct sockaddr * addr, uint8_t ip_version) {
+        //     UNUSED_PARAMETER(addr);
+        //     UNUSED_PARAMETER(ip_version);
+        //     SL_DEBUG_LOG("\r\nAccepted socket ID : %ld\r\n", sock_id);
+        //     client_socket = sock_id;
+        //     osEventFlagsSet(server_handle->http_server_id, HTTP_SERVER_CONNECT_SUCCESS);
+        // }
+        uint32_t start = furi_get_tick();
+        while(!wifi_async_socket_echo_header->exit && (furi_get_tick() - start) < TEST_TIMEOUT) {
             osThreadYield();
         }
 
         furi_string_printf(msg, "TCP_RX Throughput test finished\r\n");
         wifi_test_app_send_text(app, msg);
         furi_string_printf(
-            msg, "Total bytes received : %ld\r\n", wifi_async_socket_header->bytes_read);
+            msg, "Total bytes received : %ld\r\n", wifi_async_socket_echo_header->bytes_read);
         wifi_test_app_send_text(app, msg);
         // Close socket
         close(server_socket);
         close(client_socket);
     } while(0);
 
-    free(wifi_async_socket_header);
+    free(wifi_async_socket_echo_header);
 }

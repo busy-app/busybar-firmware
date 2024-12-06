@@ -1,7 +1,8 @@
-#include "wifi_ap_test_app.h"
+#include "wifi_test_app.h"
 #include "wifi_scan.h"
 #include "wifi_async_socket_server_tcp_rx.h"
 #include "wifi_async_socket_client_tcp_tx.h"
+#include "wifi_async_socket_server_echo.h"
 
 #include <furi.h>
 
@@ -15,7 +16,7 @@
 #include <args.h>
 #include <strint.h>
 
-#define TAG                 "WifiApTestApp"
+#define TAG                 "WifiTestApp"
 #define WIFI_TEST_SERVER_IP "192.168.10.2"
 
 #define CHANNEL_NUMBER 6
@@ -120,22 +121,23 @@ typedef enum {
     STA_DOWN,
     TEST_TCP_RX,
     TEST_TCP_TX,
+    TEST_ECHO,
 
-    WIFI_AP_TEST_COMMANDS_MAX,
-} WifiApTestCmdType;
+    WIFI_TEST_COMMANDS_MAX,
+} WifiTestCmdType;
 
 typedef enum {
-    WifiApTestStateIdle,
-    //WifiApTestStateDriverInit,
-    WifiApTestStateApUp,
-    WifiApTestStateStaUp,
-} WifiApTestState;
+    WifiTestStateIdle,
+    //WifiTestStateDriverInit,
+    WifiTestStateApUp,
+    WifiTestStateStaUp,
+} WifiTestState;
 
 typedef struct {
     char* cmd;
-} WifiApTestCmd;
+} WifiTestCmd;
 
-const WifiApTestCmd wifi_ap_test_cmd[WIFI_AP_TEST_COMMANDS_MAX] = {
+const WifiTestCmd wifi_test_cmd[WIFI_TEST_COMMANDS_MAX] = {
     {"?"},
     {"help"},
     {"scan"},
@@ -144,37 +146,38 @@ const WifiApTestCmd wifi_ap_test_cmd[WIFI_AP_TEST_COMMANDS_MAX] = {
     {"sta_up"},
     {"sta_down"},
     {"test_tcp_rx"},
-    {"test_tcp_tx"}};
+    {"test_tcp_tx"},
+    {"test_echo"}};
 
-struct WifiApTestApp {
+struct WifiTestApp {
     FuriString* msg;
     CliWorker* worker;
-    WifiApTestState state;
+    WifiTestState state;
 
     bool exit;
     bool ap_client_connected;
 };
 
-static void wifi_ap_test_app_cmd_usage(WifiApTestApp* instance);
+static void wifi_test_app_cmd_usage(WifiTestApp* instance);
 
-static void wifi_ap_test_app_send_msg(WifiApTestApp* instance) {
+static void wifi_test_app_send_msg(WifiTestApp* instance) {
     cli_worker_add_rx_data(
         instance->worker,
         (uint8_t*)furi_string_get_cstr(instance->msg),
         furi_string_utf8_length(instance->msg));
 }
 
-void wifi_ap_test_app_send_text(WifiApTestApp* instance, FuriString* text) {
+void wifi_test_app_send_text(WifiTestApp* instance, FuriString* text) {
     cli_worker_add_rx_data(
         instance->worker, (uint8_t*)furi_string_get_cstr(text), furi_string_utf8_length(text));
 }
 
-static void wifi_ap_test_app_send_msg_invalid_arg(WifiApTestApp* instance) {
+static void wifi_test_app_send_msg_invalid_arg(WifiTestApp* instance) {
     furi_string_printf(instance->msg, "Invalid argument\r\n");
-    wifi_ap_test_app_send_msg(instance);
+    wifi_test_app_send_msg(instance);
 }
 
-static sl_status_t wifi_ap_test_app_connected_event_handler(
+static sl_status_t wifi_test_app_connected_event_handler(
     sl_wifi_event_t event,
     void* data,
     uint32_t data_length,
@@ -183,7 +186,7 @@ static sl_status_t wifi_ap_test_app_connected_event_handler(
     UNUSED_PARAMETER(event);
     UNUSED_PARAMETER(data);
 
-    WifiApTestApp* instance = (WifiApTestApp*)arg;
+    WifiTestApp* instance = (WifiTestApp*)arg;
     sl_mac_address_t* mac = (sl_mac_address_t*)data;
     furi_string_printf(
         instance->msg,
@@ -194,13 +197,13 @@ static sl_status_t wifi_ap_test_app_connected_event_handler(
         mac->octet[3],
         mac->octet[4],
         mac->octet[5]);
-    wifi_ap_test_app_send_msg(instance);
+    wifi_test_app_send_msg(instance);
 
     instance->ap_client_connected = true;
     return SL_STATUS_OK;
 }
 
-static sl_status_t wifi_ap_test_app_disconnected_event_handler(
+static sl_status_t wifi_test_app_disconnected_event_handler(
     sl_wifi_event_t event,
     void* data,
     uint32_t data_length,
@@ -209,7 +212,7 @@ static sl_status_t wifi_ap_test_app_disconnected_event_handler(
     UNUSED_PARAMETER(event);
     UNUSED_PARAMETER(data);
 
-    WifiApTestApp* instance = (WifiApTestApp*)arg;
+    WifiTestApp* instance = (WifiTestApp*)arg;
     sl_mac_address_t* mac = (sl_mac_address_t*)data;
     furi_string_printf(
         instance->msg,
@@ -220,18 +223,18 @@ static sl_status_t wifi_ap_test_app_disconnected_event_handler(
         mac->octet[3],
         mac->octet[4],
         mac->octet[5]);
-    wifi_ap_test_app_send_msg(instance);
+    wifi_test_app_send_msg(instance);
     instance->ap_client_connected = false;
     return SL_STATUS_OK;
 }
 
-void* wifi_ap_test_app_start(CliWorker* worker) {
+void* wifi_test_app_start(CliWorker* worker) {
     FURI_LOG_I(TAG, "Starting");
 
-    WifiApTestApp* instance = malloc(sizeof(WifiApTestApp));
+    WifiTestApp* instance = malloc(sizeof(WifiTestApp));
     instance->msg = furi_string_alloc();
     instance->worker = worker;
-    instance->state = WifiApTestStateIdle;
+    instance->state = WifiTestStateIdle;
 
     instance->exit = false;
     instance->ap_client_connected = false;
@@ -244,34 +247,37 @@ void* wifi_ap_test_app_start(CliWorker* worker) {
         if(status != SL_STATUS_OK) {
             furi_string_printf(
                 instance->msg, "Failed to start Wi-Fi APSTA interface: 0x%lx\r\n", status);
-            wifi_ap_test_app_send_msg(instance);
+            wifi_test_app_send_msg(instance);
             break;
         }
 
         furi_string_printf(instance->msg, "Wi-Fi APSTA interface init\r\n");
-        wifi_ap_test_app_send_msg(instance);
+        wifi_test_app_send_msg(instance);
 
-        wifi_ap_test_app_cmd_usage(instance);
+        wifi_test_app_cmd_usage(instance);
     } while(0);
 
     if(status != SL_STATUS_OK) {
-        wifi_ap_test_app_stop(instance);
+        wifi_test_app_stop(instance);
         return NULL;
     }
     return (void*)instance;
 }
 
-void wifi_ap_test_app_stop(void* app_handle) {
+void wifi_test_app_stop(void* app_handle) {
     furi_check(app_handle);
     FURI_LOG_I(TAG, "Stopping");
-    WifiApTestApp* instance = (WifiApTestApp*)app_handle;
+    WifiTestApp* instance = (WifiTestApp*)app_handle;
 
     if(instance) {
         instance->exit = true;
         furi_delay_ms(100);
-        if(instance->state != WifiApTestStateIdle) {
+        if(instance->state == WifiTestStateApUp) {
             sl_net_down(SL_NET_WIFI_AP_INTERFACE);
+        } else if(instance->state == WifiTestStateStaUp) {
+            sl_net_down(SL_NET_WIFI_CLIENT_INTERFACE);
         }
+
         furi_string_free(instance->msg);
         free(instance);
         instance = NULL;
@@ -280,44 +286,40 @@ void wifi_ap_test_app_stop(void* app_handle) {
     sl_net_deinit(SL_NET_WIFI_CLIENT_INTERFACE);
 }
 
-static sl_status_t wifi_ap_test_app(WifiApTestApp* instance, uint8_t cmd_index, FuriString* args) {
+static sl_status_t wifi_test_app(WifiTestApp* instance, uint8_t cmd_index, FuriString* args) {
     sl_status_t status = SL_STATUS_FAIL;
 
     char* args_cstr = (char*)furi_string_get_cstr(args);
     UNUSED(args_cstr);
     FuriString* arg = furi_string_alloc();
-    //StrintParseError parse_err = StrintParseNoError;
-    //uint8_t i = 0;
 
     switch(cmd_index) {
     case HELP:
     case HELP_HELP:
-        wifi_ap_test_app_cmd_usage(instance);
+        wifi_test_app_cmd_usage(instance);
         break;
     case SCAN:
-        if(instance->state == WifiApTestStateIdle) {
+        if(instance->state == WifiTestStateIdle) {
             status = wifi_scan(instance->msg);
             if(status != SL_STATUS_OK) {
                 furi_string_printf(instance->msg, "Scan failed\r\n");
-                wifi_ap_test_app_send_msg(instance);
+                wifi_test_app_send_msg(instance);
             } else {
-                wifi_ap_test_app_send_msg(instance);
+                wifi_test_app_send_msg(instance);
             }
         } else {
             furi_string_printf(instance->msg, "AP is up, scan not allowed\r\n");
-            wifi_ap_test_app_send_msg(instance);
+            wifi_test_app_send_msg(instance);
         }
         break;
     case AP_UP:
-        if(instance->state == WifiApTestStateIdle) {
+        if(instance->state == WifiTestStateIdle) {
             // Set Wi-Fi callbacks
             sl_wifi_set_callback(
-                SL_WIFI_CLIENT_CONNECTED_EVENTS,
-                wifi_ap_test_app_connected_event_handler,
-                instance);
+                SL_WIFI_CLIENT_CONNECTED_EVENTS, wifi_test_app_connected_event_handler, instance);
             sl_wifi_set_callback(
                 SL_WIFI_CLIENT_DISCONNECTED_EVENTS,
-                wifi_ap_test_app_disconnected_event_handler,
+                wifi_test_app_disconnected_event_handler,
                 instance);
 
             // Set Wi-Fi AP profile
@@ -325,11 +327,11 @@ static sl_status_t wifi_ap_test_app(WifiApTestApp* instance, uint8_t cmd_index, 
                 SL_NET_WIFI_AP_INTERFACE, SL_NET_PROFILE_ID_1, &wifi_ap_profile);
             if(status != SL_STATUS_OK) {
                 furi_string_printf(instance->msg, "Failed to set AP profile: 0x%lx\r\n", status);
-                wifi_ap_test_app_send_msg(instance);
+                wifi_test_app_send_msg(instance);
                 break;
             }
             furi_string_printf(instance->msg, "Success to set AP profile\r\n");
-            wifi_ap_test_app_send_msg(instance);
+            wifi_test_app_send_msg(instance);
 
             // Set Wi-Fi AP credential
             status = sl_net_set_credential(
@@ -339,55 +341,47 @@ static sl_status_t wifi_ap_test_app(WifiApTestApp* instance, uint8_t cmd_index, 
                 wifi_ap_credential.data_length);
             if(status != SL_STATUS_OK) {
                 furi_string_printf(instance->msg, "Failed to set credentials: 0x%lx\r\n", status);
-                wifi_ap_test_app_send_msg(instance);
+                wifi_test_app_send_msg(instance);
                 break;
             }
             furi_string_printf(instance->msg, "Wi-Fi set credential success\r\n");
-            wifi_ap_test_app_send_msg(instance);
+            wifi_test_app_send_msg(instance);
 
             // Bring Wi-Fi AP interface up
             status = sl_net_up(SL_NET_WIFI_AP_INTERFACE, SL_NET_PROFILE_ID_1);
             if(status != SL_STATUS_OK) {
                 furi_string_printf(
                     instance->msg, "Failed to bring Wi-Fi AP interface up: 0x%lx\r\n", status);
-                wifi_ap_test_app_send_msg(instance);
+                wifi_test_app_send_msg(instance);
                 break;
             }
             furi_string_printf(instance->msg, "AP started\r\n");
-            wifi_ap_test_app_send_msg(instance);
-            instance->state = WifiApTestStateApUp;
-
-            // // Wait for client to get connect to AP
-            // while(instance->ap_client_connected != true) {
-            //     printf(
-            //         "waiting for client to connect with APUT : %d\r\n", instance->ap_client_connected);
-            //     furi_delay_ms(1000);
-            // }
-            //wifi_async_socket_server_tcp_rx_init();
+            wifi_test_app_send_msg(instance);
+            instance->state = WifiTestStateApUp;
         } else {
             furi_string_printf(instance->msg, "AP or STA is already up\r\n");
-            wifi_ap_test_app_send_msg(instance);
+            wifi_test_app_send_msg(instance);
         }
         break;
     case AP_DOWN:
-        if(instance->state == WifiApTestStateApUp) {
+        if(instance->state == WifiTestStateApUp) {
             status = sl_net_down(SL_NET_WIFI_AP_INTERFACE);
             if(status != SL_STATUS_OK) {
                 furi_string_printf(
                     instance->msg, "Failed to bring Wi-Fi AP interface down: 0x%lx\r\n", status);
-                wifi_ap_test_app_send_msg(instance);
+                wifi_test_app_send_msg(instance);
                 break;
             }
             furi_string_printf(instance->msg, "AP stopped\r\n");
-            wifi_ap_test_app_send_msg(instance);
-            instance->state = WifiApTestStateIdle;
+            wifi_test_app_send_msg(instance);
+            instance->state = WifiTestStateIdle;
         } else {
             furi_string_printf(instance->msg, "AP is not up\r\n");
-            wifi_ap_test_app_send_msg(instance);
+            wifi_test_app_send_msg(instance);
         }
         break;
     case STA_UP:
-        if(instance->state == WifiApTestStateIdle) {
+        if(instance->state == WifiTestStateIdle) {
             sl_net_wifi_client_profile_t client_profile = {0};
             sl_ip_address_t ip_address = {0};
             //! Set Wi-Fi client profile
@@ -398,13 +392,13 @@ static sl_status_t wifi_ap_test_app(WifiApTestApp* instance, uint8_t cmd_index, 
                     instance->msg,
                     "Failed to store the Wi-Fi client network profile: 0x%lx\r\n",
                     status);
-                wifi_ap_test_app_send_msg(instance);
+                wifi_test_app_send_msg(instance);
                 break;
             }
 
             furi_string_printf(
                 instance->msg, "Successfully stored the Wi-Fi client network profile\r\n");
-            wifi_ap_test_app_send_msg(instance);
+            wifi_test_app_send_msg(instance);
 
             //! Set network credentials
             status = sl_net_set_credential(
@@ -417,13 +411,13 @@ static sl_status_t wifi_ap_test_app(WifiApTestApp* instance, uint8_t cmd_index, 
                     instance->msg,
                     "Failed to configure Wi-Fi client credentials: 0x%lx\r\n",
                     status);
-                wifi_ap_test_app_send_msg(instance);
+                wifi_test_app_send_msg(instance);
                 break;
             }
 
             furi_string_printf(
                 instance->msg, "Configuring Wi-Fi client credentials is successful\r\n");
-            wifi_ap_test_app_send_msg(instance);
+            wifi_test_app_send_msg(instance);
 
             //! Bring up Wi-Fi client interface
             status = sl_net_up(SL_NET_WIFI_CLIENT_INTERFACE, SL_NET_PROFILE_ID_1);
@@ -432,12 +426,12 @@ static sl_status_t wifi_ap_test_app(WifiApTestApp* instance, uint8_t cmd_index, 
                     instance->msg,
                     "Failed to bring up Wi-Fi client interface up: 0x%lx\r\n",
                     status);
-                wifi_ap_test_app_send_msg(instance);
+                wifi_test_app_send_msg(instance);
                 break;
             }
 
             furi_string_printf(instance->msg, "Wi-Fi client interface up\r\n");
-            wifi_ap_test_app_send_msg(instance);
+            wifi_test_app_send_msg(instance);
 
             //! Get profile
             status = sl_net_get_profile(
@@ -445,12 +439,12 @@ static sl_status_t wifi_ap_test_app(WifiApTestApp* instance, uint8_t cmd_index, 
             if(status != SL_STATUS_OK) {
                 furi_string_printf(
                     instance->msg, "Failed to get client profile: 0x%lx\r\n", status);
-                wifi_ap_test_app_send_msg(instance);
+                wifi_test_app_send_msg(instance);
                 break;
             }
 
             furi_string_printf(instance->msg, "Get client profile is successful\r\n");
-            wifi_ap_test_app_send_msg(instance);
+            wifi_test_app_send_msg(instance);
 
             ip_address.type = SL_IPV4;
             memcpy(
@@ -466,44 +460,44 @@ static sl_status_t wifi_ap_test_app(WifiApTestApp* instance, uint8_t cmd_index, 
                     ip_address.ip.v4.bytes[1],
                     ip_address.ip.v4.bytes[2],
                     ip_address.ip.v4.bytes[3]);
-                wifi_ap_test_app_send_msg(instance);
+                wifi_test_app_send_msg(instance);
             }
-            instance->state = WifiApTestStateStaUp;
+            instance->state = WifiTestStateStaUp;
 
         } else {
             furi_string_printf(instance->msg, "AP or STA is already up\r\n");
-            wifi_ap_test_app_send_msg(instance);
+            wifi_test_app_send_msg(instance);
         }
         break;
     case STA_DOWN:
-        if(instance->state == WifiApTestStateStaUp) {
+        if(instance->state == WifiTestStateStaUp) {
             status = sl_net_down(SL_NET_WIFI_CLIENT_INTERFACE);
             if(status != SL_STATUS_OK) {
                 furi_string_printf(
                     instance->msg,
                     "Failed to bring Wi-Fi client interface down: 0x%lx\r\n",
                     status);
-                wifi_ap_test_app_send_msg(instance);
+                wifi_test_app_send_msg(instance);
                 break;
             }
             furi_string_printf(instance->msg, "Wi-Fi client interface down\r\n");
-            wifi_ap_test_app_send_msg(instance);
-            instance->state = WifiApTestStateIdle;
+            wifi_test_app_send_msg(instance);
+            instance->state = WifiTestStateIdle;
         } else {
             furi_string_printf(instance->msg, "STA is not up\r\n");
-            wifi_ap_test_app_send_msg(instance);
+            wifi_test_app_send_msg(instance);
         }
         break;
     case TEST_TCP_RX:
-        if(instance->state == WifiApTestStateStaUp || instance->state == WifiApTestStateApUp) {
+        if(instance->state == WifiTestStateStaUp || instance->state == WifiTestStateApUp) {
             wifi_async_socket_server_tcp_rx_init(instance, instance->msg, 5005);
         } else {
             furi_string_printf(instance->msg, "AP or STA is not up\r\n");
-            wifi_ap_test_app_send_msg(instance);
+            wifi_test_app_send_msg(instance);
         }
         break;
     case TEST_TCP_TX:
-        if(instance->state == WifiApTestStateStaUp || instance->state == WifiApTestStateApUp) {
+        if(instance->state == WifiTestStateStaUp || instance->state == WifiTestStateApUp) {
             if(!args_read_string_and_trim(args, arg)) {
                 wifi_async_socket_client_tcp_tx_init(
                     instance, instance->msg, WIFI_TEST_SERVER_IP, 5000);
@@ -511,14 +505,22 @@ static sl_status_t wifi_ap_test_app(WifiApTestApp* instance, uint8_t cmd_index, 
                 wifi_async_socket_client_tcp_tx_init(
                     instance, instance->msg, (char*)furi_string_get_cstr(arg), 5000);
             }
-            wifi_ap_test_app_send_msg(instance);
+            wifi_test_app_send_msg(instance);
         } else {
             furi_string_printf(instance->msg, "AP or STA is not up\r\n");
-            wifi_ap_test_app_send_msg(instance);
+            wifi_test_app_send_msg(instance);
+        }
+        break;
+    case TEST_ECHO:
+        if(instance->state == WifiTestStateStaUp || instance->state == WifiTestStateApUp) {
+            wifi_async_socket_server_echo_init(instance, instance->msg, 5005);
+        } else {
+            furi_string_printf(instance->msg, "AP or STA is not up\r\n");
+            wifi_test_app_send_msg(instance);
         }
         break;
     default:
-        wifi_ap_test_app_send_msg_invalid_arg(instance);
+        wifi_test_app_send_msg_invalid_arg(instance);
         break;
     }
 
@@ -526,8 +528,8 @@ static sl_status_t wifi_ap_test_app(WifiApTestApp* instance, uint8_t cmd_index, 
     return SL_STATUS_OK;
 }
 
-void wifi_ap_test_app_parse_msg(void* app_handle, uint8_t* data, size_t size) {
-    WifiApTestApp* instance = (WifiApTestApp*)app_handle;
+void wifi_test_app_parse_msg(void* app_handle, uint8_t* data, size_t size) {
+    WifiTestApp* instance = (WifiTestApp*)app_handle;
     uint8_t i = 0;
     uint8_t cmd_index = 0;
     bool cmd_valid = false;
@@ -543,21 +545,21 @@ void wifi_ap_test_app_parse_msg(void* app_handle, uint8_t* data, size_t size) {
             break;
         }
 
-        for(i = 0; i < WIFI_AP_TEST_COMMANDS_MAX; i++) {
-            if(furi_string_cmp_str(cmd, (char*)wifi_ap_test_cmd[i].cmd) == 0) {
+        for(i = 0; i < WIFI_TEST_COMMANDS_MAX; i++) {
+            if(furi_string_cmp_str(cmd, (char*)wifi_test_cmd[i].cmd) == 0) {
                 cmd_index = i;
                 cmd_valid = true;
                 break;
             }
         }
         if(cmd_valid) {
-            if(wifi_ap_test_app(instance, cmd_index, args) != SL_STATUS_OK) {
+            if(wifi_test_app(instance, cmd_index, args) != SL_STATUS_OK) {
                 furi_string_printf(instance->msg, "Command failed\r\n");
-                wifi_ap_test_app_send_msg(instance);
+                wifi_test_app_send_msg(instance);
             }
         } else {
             furi_string_printf(instance->msg, "Invalid command\r\n");
-            wifi_ap_test_app_send_msg(instance);
+            wifi_test_app_send_msg(instance);
         }
     } while(false);
 
@@ -565,7 +567,7 @@ void wifi_ap_test_app_parse_msg(void* app_handle, uint8_t* data, size_t size) {
     furi_string_free(cmd);
 }
 
-static void wifi_ap_test_app_cmd_usage(WifiApTestApp* instance) {
+static void wifi_test_app_cmd_usage(WifiTestApp* instance) {
     furi_string_printf(instance->msg, "Calibration commands usage:\r\n");
     furi_string_cat_printf(
         instance->msg,
@@ -578,17 +580,24 @@ static void wifi_ap_test_app_cmd_usage(WifiApTestApp* instance) {
         "scan WiFi scan ap. Scanning is possible when the access point is not running\r\n");
     furi_string_cat_printf(instance->msg, "ap_up Start AP.\r\n");
     furi_string_cat_printf(instance->msg, "ap_down Stop AP.\r\n");
-    furi_string_cat_printf(instance->msg, "sta_up Start STA.\r\n");
+    furi_string_cat_printf(
+        instance->msg,
+        "sta_up Start STA. SSID:%s PASS:%s\r\n",
+        WIFI_CLIENT_PROFILE_SSID,
+        WIFI_CLIENT_CREDENTIAL);
     furi_string_cat_printf(instance->msg, "sta_down Stop STA.\r\n");
     furi_string_cat_printf(
         instance->msg,
-        "test_tcp_tx <ip> Start TCP TX iPref test \"iperf.exe -s -u -p 5000 -i 1\".\r\n");
+        "test_tcp_tx [ip] Start TCP TX iPref test \"iperf.exe -s -u -p 5000 -i 1\". Default IP:%s\r\n",
+        WIFI_TEST_SERVER_IP);
     furi_string_cat_printf(
         instance->msg,
         "test_tcp_rx Start TCP RX iPref test \"iperf.exe -c 192.168.11.10 -u -p 5005 -i 1 -b70M -t 30\".\r\n");
     furi_string_cat_printf(
+        instance->msg, "test_echo Start TCP echo test port 5005. Work time 90 sec\r\n");
+    furi_string_cat_printf(
         instance->msg,
         "*************************************************************************************************************"
         "***********************************************\r\n");
-    wifi_ap_test_app_send_msg(instance);
+    wifi_test_app_send_msg(instance);
 }

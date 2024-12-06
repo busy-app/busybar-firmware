@@ -2,7 +2,7 @@
 #include <furi.h>
 #include <args.h>
 #include <cli_worker.h>
-#include "helpers/wifi_test_app.h"
+#include "helpers/wifi_rf_test_app.h"
 
 void wifi_rf_test_command_start(Cli* cli, FuriString* args, void* context) {
     UNUSED(context);
@@ -10,7 +10,7 @@ void wifi_rf_test_command_start(Cli* cli, FuriString* args, void* context) {
 
     CliWorker* worker = cli_worker_alloc("WiFi rf test", cli);
     cli_worker_set_callback(
-        worker, wifi_test_app_start, wifi_test_app_parse_msg, wifi_test_app_stop);
+        worker, wifi_rf_test_app_start, wifi_rf_test_app_parse_msg, wifi_rf_test_app_stop);
     if(!cli_worker_start(worker)) {
         printf("Failed to start WiFi rf test worker\r\n");
         if(cli_worker_is_running(worker)) {
