@@ -10,7 +10,14 @@
 
 #define TAG "IntercomTestSrv"
 
+typedef enum {
+    IntercomTestFlagResponse = 1UL << 0,
+} IntercomTestFlag;
+
+#define INTERCOM_TEST_FLAG_ALL (IntercomTestFlagResponse)
+
 typedef struct {
+    FuriThreadId thread_id;
     RpcSession* session;
     PB_Main tx_message;
 } IntercomTest;
@@ -23,6 +30,8 @@ static void intercom_test_transfer_handler(const PB_Main* message, void* context
     const pb_bytes_array_t* tx_buffer = instance->tx_message.content.transfer_request.buffer;
 
     furi_check(memcmp(tx_buffer, rx_buffer, PB_BYTES_ARRAY_T_ALLOCSIZE(BUFFER_SIZE)) == 0);
+
+    furi_thread_flags_set(instance->thread_id, IntercomTestFlagResponse);
 }
 
 static void intercom_test_empty_handler(const PB_Main* message, void* context) {
@@ -46,6 +55,7 @@ static void intercom_fill_tx_message(PB_Main* message) {
 static IntercomTest* intercom_test_alloc(void) {
     IntercomTest* instance = malloc(sizeof(IntercomTest));
 
+    instance->thread_id = furi_thread_get_current_id();
     instance->session = furi_record_open(RECORD_INTERCOM_RPC);
 
     RpcHandler handler = {
@@ -71,11 +81,16 @@ int32_t intercom_test_srv(void* arg) {
     uint32_t total_time_us = 0;
     uint32_t iteration_count = 0;
 
-    uint32_t start = DWT->CYCCNT;
+    uint32_t start;
 
     for(;;) {
+        start = DWT->CYCCNT;
+
         rpc_send(instance->session, &instance->tx_message);
-        furi_delay_ms(500);
+
+        const uint32_t flags =
+            furi_thread_flags_wait(INTERCOM_TEST_FLAG_ALL, FuriFlagWaitAny, FuriWaitForever);
+        furi_check((flags & FuriFlagError) == 0);
 
         const uint32_t now = DWT->CYCCNT;
         const uint32_t time_elapsed_us = (now - start) / (SystemCoreClock / 1000000UL);
@@ -91,6 +106,8 @@ int32_t intercom_test_srv(void* arg) {
         }
 
         start = now;
+
+        furi_delay_ms(10);
     }
 
     return 0;

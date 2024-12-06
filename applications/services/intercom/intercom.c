@@ -72,6 +72,19 @@ static void intercom_serial_rx_callback(
     }
 }
 
+static void intercom_dump_frame(const IntercomFrame* frame) {
+    FuriString* tmp = furi_string_alloc();
+
+    for(uint32_t i = 0; i < sizeof(IntercomFrame); ++i) {
+        if(i && i % 32 == 0) furi_string_cat(tmp, "\r\n");
+        furi_string_cat_printf(tmp, "%02X ", ((const uint8_t*)frame)[i]);
+    }
+
+    furi_log_puts(furi_string_get_cstr(tmp));
+
+    furi_string_free(tmp);
+}
+
 static FURI_ALWAYS_INLINE void intercom_send_tx_frame(Intercom* instance) {
     IntercomFrame* tx_frame = &instance->tx_frame;
 
@@ -89,7 +102,13 @@ static FURI_ALWAYS_INLINE void intercom_process_rx_frame_event(Intercom* instanc
     INTERCOM_LOG_D("Frame received");
 
     const IntercomFrame* rx_frame = &instance->rx_frame;
-    furi_check(intercom_frame_is_valid(rx_frame), "Corrupted frame received");
+
+    if(!intercom_frame_is_valid(rx_frame)) {
+        intercom_dump_frame(rx_frame);
+        furi_delay_ms(10);
+        furi_crash("Corrupted frame received");
+    }
+
     furi_check(rx_frame->header.error == IntercomFrameErrorNone, "Corrupted frame reported");
 
     const IntercomFramePayload* payload = &rx_frame->payload;
