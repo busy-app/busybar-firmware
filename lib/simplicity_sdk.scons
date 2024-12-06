@@ -28,7 +28,7 @@ env.Append(
         "SI917",
         "SLI_SI917",
         "SLI_SI917B0",
-        #"PRINT_DEBUG_LOG",
+        "PRINT_DEBUG_LOG",
         "SIWG917M111MGTBA",
         "SL_CODE_COMPONENT_CORE=core",
         "SL_COMPONENT_CATALOG_PRESENT=1",
