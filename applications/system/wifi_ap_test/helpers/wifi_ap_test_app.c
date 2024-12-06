@@ -164,6 +164,11 @@ static void wifi_ap_test_app_send_msg(WifiApTestApp* instance) {
         furi_string_utf8_length(instance->msg));
 }
 
+void wifi_ap_test_app_send_text(WifiApTestApp* instance, FuriString* text) {
+    cli_worker_add_rx_data(
+        instance->worker, (uint8_t*)furi_string_get_cstr(text), furi_string_utf8_length(text));
+}
+
 static void wifi_ap_test_app_send_msg_invalid_arg(WifiApTestApp* instance) {
     furi_string_printf(instance->msg, "Invalid argument\r\n");
     wifi_ap_test_app_send_msg(instance);
@@ -491,8 +496,7 @@ static sl_status_t wifi_ap_test_app(WifiApTestApp* instance, uint8_t cmd_index, 
         break;
     case TEST_TCP_RX:
         if(instance->state == WifiApTestStateStaUp || instance->state == WifiApTestStateApUp) {
-            wifi_async_socket_server_tcp_rx_init(instance->msg, 5005);
-            wifi_ap_test_app_send_msg(instance);
+            wifi_async_socket_server_tcp_rx_init(instance, instance->msg, 5005);
         } else {
             furi_string_printf(instance->msg, "AP or STA is not up\r\n");
             wifi_ap_test_app_send_msg(instance);
@@ -501,10 +505,11 @@ static sl_status_t wifi_ap_test_app(WifiApTestApp* instance, uint8_t cmd_index, 
     case TEST_TCP_TX:
         if(instance->state == WifiApTestStateStaUp || instance->state == WifiApTestStateApUp) {
             if(!args_read_string_and_trim(args, arg)) {
-                wifi_async_socket_client_tcp_tx_init(instance->msg, WIFI_TEST_SERVER_IP, 5000);
+                wifi_async_socket_client_tcp_tx_init(
+                    instance, instance->msg, WIFI_TEST_SERVER_IP, 5000);
             } else {
                 wifi_async_socket_client_tcp_tx_init(
-                    instance->msg, (char*)furi_string_get_cstr(arg), 5000);
+                    instance, instance->msg, (char*)furi_string_get_cstr(arg), 5000);
             }
             wifi_ap_test_app_send_msg(instance);
         } else {
