@@ -17,4 +17,5 @@
 #include <furi_hal_spi.h>
 #include <furi_hal_i2c.h>
 #include <furi_hal_dac.h>
+#include <furi_hal_sai.h>
 #include <furi_hal_network.h>
