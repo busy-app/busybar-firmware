@@ -355,7 +355,7 @@ static void furi_hal_serial_dma_tx_deinit(FuriHalSerialHandle* handle) {
     LL_DMA_DisableChannel(GPDMA1, serial->dma_tx_channel);
 
     furi_hal_interrupt_set_isr(
-        furi_hal_dma_get_gpdma_interrupt_id(serial->dma_rx_channel), NULL, NULL);
+        furi_hal_dma_get_gpdma_interrupt_id(serial->dma_tx_channel), NULL, NULL);
 
     furi_hal_dma_free_gpdma_channel(serial->dma_tx_channel);
 }
