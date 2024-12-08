@@ -505,7 +505,6 @@ static sl_status_t wifi_test_app(WifiTestApp* instance, uint8_t cmd_index, FuriS
                 wifi_async_socket_client_tcp_tx_init(
                     instance, instance->msg, (char*)furi_string_get_cstr(arg), 5000);
             }
-            wifi_test_app_send_msg(instance);
         } else {
             furi_string_printf(instance->msg, "AP or STA is not up\r\n");
             wifi_test_app_send_msg(instance);
