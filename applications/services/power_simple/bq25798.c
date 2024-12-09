@@ -90,11 +90,7 @@ bool bq25798_set_cfg(FuriHalI2cBusHandle* handle) {
 
     // Disable Dp/Dm detection
     furi_hal_i2c_write_reg_8(
-        handle,
-        BQ25798_I2C_ADDRESS,
-        BQ25798_REG11_CHARGER_CONTROL_2,
-        (1 << 1),
-        BQ25798_I2C_TIMEOUT);
+        handle, BQ25798_I2C_ADDRESS, BQ25798_REG11_CHARGER_CONTROL_2, 0, BQ25798_I2C_TIMEOUT);
 
     // Disable ILIM_HIZ
     furi_hal_i2c_read_reg_8(
