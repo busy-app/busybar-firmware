@@ -101,6 +101,13 @@ typedef enum {
     Bq25987IrqFlagVbatOtgLow = (1UL << 28),
 } Bq25987IrqFlags;
 
+typedef enum {
+    Bq25987PowerIdle = 0, /** Normal mode, power is On */
+    Bq25987PowerShutdown = 1, /** Total shutdown (wake up by USB cable only) */
+    Bq25987PowerOff = 2, /** Power OFF (Ship mode) */
+    Bq25987PowerReset = 3, /** System Power Reset */
+} Bq25987PowerSwitch;
+
 typedef struct {
     uint8_t ITERM : 5; /** RW:5h: Termination current */
     uint8_t

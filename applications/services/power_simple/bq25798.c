@@ -36,43 +36,6 @@ bool bq25798_reset(FuriHalI2cBusHandle* handle) {
         BQ25798_I2C_TIMEOUT);
 }
 
-void bq25798_dump_status(FuriHalI2cBusHandle* handle) {
-    uint8_t status_regs[5];
-    furi_hal_i2c_read_mem(handle, BQ25798_I2C_ADDRESS, 0x1B, status_regs, 5, BQ25798_I2C_TIMEOUT);
-    FURI_LOG_I(
-        TAG,
-        "st %02X %02X %02X %02X %02X",
-        status_regs[0],
-        status_regs[1],
-        status_regs[2],
-        status_regs[3],
-        status_regs[4]);
-
-    furi_hal_i2c_read_mem(
-        handle, BQ25798_I2C_ADDRESS, 0x20, &status_regs[0], 2, BQ25798_I2C_TIMEOUT);
-    furi_hal_i2c_read_mem(
-        handle, BQ25798_I2C_ADDRESS, 0x26, &status_regs[2], 2, BQ25798_I2C_TIMEOUT);
-    FURI_LOG_I(
-        TAG,
-        "FAULT st %02X %02X fl %02X %02X",
-        status_regs[0],
-        status_regs[1],
-        status_regs[2],
-        status_regs[3]);
-
-    uint16_t ibus = 0;
-    furi_hal_i2c_read_reg_16(handle, BQ25798_I2C_ADDRESS, 0x31, &ibus, BQ25798_I2C_TIMEOUT);
-
-    uint16_t ibat = 0;
-    furi_hal_i2c_read_reg_16(handle, BQ25798_I2C_ADDRESS, 0x33, &ibat, BQ25798_I2C_TIMEOUT);
-
-    furi_hal_i2c_write_reg_16(handle, BQ25798_I2C_ADDRESS, 0x06, 0x64, BQ25798_I2C_TIMEOUT);
-
-    uint8_t ilim = 0;
-    furi_hal_i2c_read_reg_8(handle, BQ25798_I2C_ADDRESS, 0x7, &ilim, BQ25798_I2C_TIMEOUT);
-    FURI_LOG_I(TAG, "ibus %u ibat %u ilim %u", ibus, ibat, ilim * 10);
-}
-
 bool bq25798_set_cfg(FuriHalI2cBusHandle* handle) {
     furi_assert(handle);
 
@@ -95,7 +58,7 @@ bool bq25798_set_cfg(FuriHalI2cBusHandle* handle) {
         BQ25798_I2C_TIMEOUT);
 
     // Mask unused irqs
-    uint32_t irq_mask = ~(Bq25987IrqFlagVbusPresent);// | Bq25987IrqFlagChargeStatus);
+    uint32_t irq_mask = ~(Bq25987IrqFlagVbusPresent); // | Bq25987IrqFlagChargeStatus);
     furi_hal_i2c_write_reg_8(
         handle,
         BQ25798_I2C_ADDRESS,
@@ -127,7 +90,11 @@ bool bq25798_set_cfg(FuriHalI2cBusHandle* handle) {
 
     // Disable Dp/Dm detection
     furi_hal_i2c_write_reg_8(
-        handle, BQ25798_I2C_ADDRESS, BQ25798_REG11_CHARGER_CONTROL_2, 0, BQ25798_I2C_TIMEOUT);
+        handle,
+        BQ25798_I2C_ADDRESS,
+        BQ25798_REG11_CHARGER_CONTROL_2,
+        (1 << 1),
+        BQ25798_I2C_TIMEOUT);
 
     // Disable ILIM_HIZ
     furi_hal_i2c_read_reg_8(
@@ -137,6 +104,7 @@ bool bq25798_set_cfg(FuriHalI2cBusHandle* handle) {
         &cfg_temp,
         BQ25798_I2C_TIMEOUT);
     cfg_temp &= ~(1 << 1); // EN_EXTILIM: 0
+    cfg_temp |= (1 << 7); // Ship FET populated
     furi_hal_i2c_write_reg_8(
         handle,
         BQ25798_I2C_ADDRESS,
@@ -200,4 +168,25 @@ bool bq25798_set_input_current_limit(FuriHalI2cBusHandle* handle, float value) {
         BQ25798_I2C_TIMEOUT);
 
     return true;
+}
+
+void bq25798_power_switch(FuriHalI2cBusHandle* handle, Bq25987PowerSwitch mode) {
+    furi_assert(handle);
+    furi_assert(mode <= Bq25987PowerReset);
+
+    uint8_t reg_temp = 0;
+
+    furi_hal_i2c_read_reg_8(
+        handle,
+        BQ25798_I2C_ADDRESS,
+        BQ25798_REG11_CHARGER_CONTROL_2,
+        &reg_temp,
+        BQ25798_I2C_TIMEOUT);
+    reg_temp |= (mode << 1) | (1 << 0);
+    furi_hal_i2c_write_reg_8(
+        handle,
+        BQ25798_I2C_ADDRESS,
+        BQ25798_REG11_CHARGER_CONTROL_2,
+        reg_temp,
+        BQ25798_I2C_TIMEOUT);
 }
