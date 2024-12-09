@@ -103,11 +103,11 @@ static void oled_sleep_mode(bool sleep) {
 }
 
 static void oled_init(void) {
-    furi_hal_gpio_init_simple(&gpio_oled_vcc_en, GpioModeOutputPushPull);
+    furi_hal_gpio_init(&gpio_oled_vcc_en, GpioModeOutputPushPull, GpioPullNo, GpioSpeedMedium);
     furi_hal_gpio_write(&gpio_oled_vcc_en, false);
 
     furi_hal_gpio_write(&gpio_oled_dc, true);
-    furi_hal_gpio_init(&gpio_oled_dc, GpioModeOutputPushPull, GpioPullUp, GpioSpeedVeryHigh);
+    furi_hal_gpio_init(&gpio_oled_dc, GpioModeOutputPushPull, GpioPullUp, GpioSpeedMedium);
 
     furi_delay_ms(1);
 

@@ -104,20 +104,12 @@ inline static void furi_hal_spi_bus_1_handle_event_callback(
     const FuriHalSpiBusCfg* preset) {
     if(event == FuriHalSpiBusHandleEventInit) {
         furi_hal_gpio_write(handle->cs, true);
-        furi_hal_gpio_init(handle->cs, GpioModeOutputPushPull, GpioPullUp, GpioSpeedVeryHigh);
+        furi_hal_gpio_init(handle->cs, GpioModeOutputPushPull, GpioPullUp, GpioSpeedMedium);
 
         furi_hal_gpio_init_ex(
-            handle->mosi,
-            GpioModeAltFunctionPushPull,
-            GpioPullNo,
-            GpioSpeedVeryHigh,
-            GpioAltFn5SPI1);
+            handle->mosi, GpioModeAltFunctionPushPull, GpioPullNo, GpioSpeedMedium, GpioAltFn5SPI1);
         furi_hal_gpio_init_ex(
-            handle->sck,
-            GpioModeAltFunctionPushPull,
-            GpioPullNo,
-            GpioSpeedVeryHigh,
-            GpioAltFn5SPI1);
+            handle->sck, GpioModeAltFunctionPushPull, GpioPullNo, GpioSpeedMedium, GpioAltFn5SPI1);
 
     } else if(event == FuriHalSpiBusHandleEventDeinit) {
         furi_hal_gpio_write(handle->cs, true);

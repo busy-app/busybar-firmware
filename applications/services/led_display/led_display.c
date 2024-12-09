@@ -243,6 +243,7 @@ int32_t led_display_init(void* p) {
     led_display_send_frame(led_driver, frame_buf_test);
     furi_delay_ms(5);
     led_display_send_frame(led_driver, frame_buf_test);
+    furi_delay_ms(5);
 
     memcpy(frame_buf_test, test_data, sizeof(test_data));
 
@@ -257,12 +258,13 @@ int32_t led_display_init(void* p) {
     }
 
     led_display_send_frame(led_driver, frame_buf_test);
-    // furi_delay_ms(1000);
+    furi_delay_ms(5);
 
     // TODO: autorefresh
 
     // uint8_t offset = 1;
     while(1) {
+        // memset(frame_buf_test, 0, sizeof(test_data));
         // for(uint8_t x = offset; x < 72; x += 16) {
         //     for(uint8_t y = 0; y < 16; y++) {
         //         uint32_t pixel_offset = y * 72 + x;
