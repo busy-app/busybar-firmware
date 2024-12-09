@@ -99,7 +99,9 @@ int32_t intercom_test_srv(void* arg) {
         total_time_us += time_elapsed_us;
 
         if(total_time_us >= 500000UL) {
-            FURI_LOG_I(TAG, "Avg. roundtrip time: %lu us", total_time_us / iteration_count);
+            const uint32_t roundrip_time_us = total_time_us / iteration_count;
+            const uint32_t bit_s = (BUFFER_SIZE * 8UL * 1000000UL) / (roundrip_time_us / 2UL);
+            FURI_LOG_I(TAG, "Avg. roundtrip time: %lu us (%lu bit/s)", roundrip_time_us, bit_s);
 
             total_time_us = 0;
             iteration_count = 0;
@@ -107,7 +109,7 @@ int32_t intercom_test_srv(void* arg) {
 
         start = now;
 
-        furi_delay_ms(10);
+        // furi_delay_ms(10);
     }
 
     return 0;

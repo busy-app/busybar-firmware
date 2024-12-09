@@ -344,6 +344,12 @@ void furi_hal_serial_init(FuriHalSerialHandle* handle, uint32_t baud_rate) {
 
     while(!LL_USART_IsActiveFlag_TEACK(periph) || !LL_USART_IsActiveFlag_REACK(periph))
         ;
+
+    LL_USART_RequestTxDataFlush(periph);
+    LL_USART_RequestRxDataFlush(periph);
+
+    while(!LL_USART_IsActiveFlag_TXFE(periph)) ;
+    while(LL_USART_IsActiveFlag_RXNE_RXFNE(periph)) ;
 }
 
 static void furi_hal_serial_dma_tx_deinit(FuriHalSerialHandle* handle) {
@@ -628,7 +634,6 @@ void furi_hal_serial_dma_tx(FuriHalSerialHandle* handle, const uint8_t* buffer, 
 
     FURI_CRITICAL_ENTER();
     LL_USART_DisableDMAReq_TX(periph);
-    LL_USART_RequestTxDataFlush(periph);
 
     LL_DMA_DisableChannel(GPDMA1, dma_channel);
     LL_DMA_SetBlkDataLength(GPDMA1, dma_channel, buffer_size);
@@ -652,7 +657,6 @@ void furi_hal_serial_dma_rx_start(FuriHalSerialHandle* handle, uint8_t* buffer, 
 
     FURI_CRITICAL_ENTER();
     LL_USART_DisableDMAReq_RX(periph);
-    LL_USART_RequestRxDataFlush(periph);
 
     LL_DMA_DisableChannel(GPDMA1, dma_channel);
     LL_DMA_SetBlkDataLength(GPDMA1, dma_channel, buffer_size);

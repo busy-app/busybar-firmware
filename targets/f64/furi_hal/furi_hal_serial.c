@@ -101,8 +101,11 @@ static const FuriHalSerialResources furi_hal_serial_resources[FuriHalSerialIdMax
 static FuriHalSerial furi_hal_serial[FuriHalSerialIdMax];
 
 static void furi_hal_serial_enable_fifo(FuriHalSerialHandle* handle) {
-    furi_hal_serial_resources[handle->id].periph->FCR =
-        FCR_RT_ONE_CHAR | FCR_DMAM_SET | FCR_XFIFOR_SET | FCR_RFIFOR_SET | FCR_FIFOE_SET;
+    USART0_Type* periph = furi_hal_serial_resources[handle->id].periph;
+    periph->FCR = FCR_RT_ONE_CHAR | FCR_DMAM_SET | FCR_XFIFOR_SET | FCR_RFIFOR_SET | FCR_FIFOE_SET;
+
+    while(periph->USR_b.RFNE) ;
+    while(!periph->USR_b.TFE) ;
 }
 
 void furi_hal_serial_init(FuriHalSerialHandle* handle, uint32_t baud) {
@@ -210,6 +213,7 @@ void furi_hal_serial_init(FuriHalSerialHandle* handle, uint32_t baud) {
     furi_hal_serial_set_br(handle, baud);
     furi_hal_serial_enable_fifo(handle);
     furi_hal_serial_set_hw_flow_control(handle, FuriHalSerialHwFlowControlNone);
+
 }
 
 void furi_hal_serial_deinit(FuriHalSerialHandle* handle) {
@@ -399,7 +403,6 @@ void furi_hal_serial_dma_tx(FuriHalSerialHandle* handle, const uint8_t* buffer, 
     furi_check(buffer_size <= FURI_HAL_DMA_MAX_TRANSFER_COUNT);
 
     const FuriHalSerialResources* resources = &furi_hal_serial_resources[handle->id];
-    resources->periph->FCR |= FCR_XFIFOR_SET;
 
     furi_hal_dma_set_callback(
         resources->dma_tx_channel, furi_hal_serial_dma_tx_irq_callback, handle);
@@ -434,7 +437,6 @@ void furi_hal_serial_dma_rx_start(FuriHalSerialHandle* handle, uint8_t* buffer, 
     furi_check(buffer_size <= FURI_HAL_DMA_MAX_TRANSFER_COUNT);
 
     const FuriHalSerialResources* resources = &furi_hal_serial_resources[handle->id];
-    resources->periph->FCR |= FCR_RFIFOR_SET;
 
     furi_hal_dma_set_callback(
         resources->dma_rx_channel, furi_hal_serial_dma_rx_irq_callback, handle);
