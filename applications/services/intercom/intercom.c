@@ -161,6 +161,32 @@ static void intercom_tx_timer_callback(void* context) {
     furi_crash("Other side has died");
 }
 
+static bool intercom_wait_for_serial_sync(FuriHalSerialHandle* serial) {
+    bool success = false;
+
+    const uint8_t leader = 0xAA;
+
+    // TODO: Wait timeout
+    while(true) {
+        // Listen for leader first, then transmit ourselves
+        if(furi_hal_serial_rx_available(serial)) {
+            if(furi_hal_serial_rx(serial) == leader) {
+                success = true;
+            }
+        }
+        // Ensure that the other side receives at least one
+        // leader character when configured properly
+        furi_hal_serial_tx(serial, &leader, 1);
+        furi_hal_serial_tx_wait_complete(serial);
+
+        if(success) break;
+
+        furi_delay_ms(10);
+    }
+
+    return success;
+}
+
 static Intercom* intercom_alloc(void) {
     Intercom* instance = malloc(sizeof(Intercom));
 
@@ -173,12 +199,15 @@ static Intercom* intercom_alloc(void) {
     furi_hal_serial_set_hw_flow_control(instance->serial, FuriHalSerialHwFlowControlRtsCts);
     furi_hal_serial_set_callback(
         instance->serial, intercom_serial_tx_callback, intercom_serial_rx_callback, instance);
-    // Start listening for frames right away
-    furi_hal_serial_dma_rx_start(
-        instance->serial, (void*)&instance->rx_frame, sizeof(IntercomFrame));
-
     furi_event_loop_set_custom_event_callback(
         instance->event_loop, intercom_custom_event_callback, instance);
+
+    intercom_wait_for_serial_sync(instance->serial);
+
+    furi_hal_serial_clear(instance->serial, FuriHalSerialDirectionTxRx);
+
+    furi_hal_serial_dma_rx_start(
+        instance->serial, (void*)&instance->rx_frame, sizeof(IntercomFrame));
 
     furi_record_create(RECORD_INTERCOM, instance);
     return instance;

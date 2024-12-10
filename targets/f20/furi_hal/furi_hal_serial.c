@@ -124,9 +124,8 @@ static const FuriHalSerialResources furi_hal_serial_resources[FuriHalSerialIdMax
 
 static FuriHalSerial* furi_hal_serial[FuriHalSerialIdMax];
 
-static void furi_hal_serial_set_transfer_direction(
-    FuriHalSerialHandle* handle,
-    FuriHalSerialTransferDirection dir);
+static void
+    furi_hal_serial_set_transfer_direction(FuriHalSerialHandle* handle, FuriHalSerialDirection dir);
 
 static bool furi_hal_serial_is_enabled(FuriHalSerialHandle* handle);
 
@@ -325,7 +324,7 @@ void furi_hal_serial_init(FuriHalSerialHandle* handle, uint32_t baud_rate) {
         break;
     }
 
-    furi_hal_serial_set_transfer_direction(handle, FuriHalSerialTransferDirectionTxRx);
+    furi_hal_serial_set_transfer_direction(handle, FuriHalSerialDirectionTxRx);
 
     furi_hal_serial_set_config(
         handle,
@@ -345,13 +344,7 @@ void furi_hal_serial_init(FuriHalSerialHandle* handle, uint32_t baud_rate) {
     while(!LL_USART_IsActiveFlag_TEACK(periph) || !LL_USART_IsActiveFlag_REACK(periph))
         ;
 
-    LL_USART_RequestTxDataFlush(periph);
-    LL_USART_RequestRxDataFlush(periph);
-
-    while(!LL_USART_IsActiveFlag_TXFE(periph))
-        ;
-    while(LL_USART_IsActiveFlag_RXNE_RXFNE(periph))
-        ;
+    furi_hal_serial_clear(handle, FuriHalSerialDirectionTxRx);
 }
 
 static void furi_hal_serial_dma_tx_deinit(FuriHalSerialHandle* handle) {
@@ -395,7 +388,7 @@ void furi_hal_serial_deinit(FuriHalSerialHandle* handle) {
     furi_hal_serial_dma_rx_deinit(handle);
     furi_hal_serial_dma_tx_deinit(handle);
 
-    furi_hal_serial_set_transfer_direction(handle, FuriHalSerialTransferDirectionNone);
+    furi_hal_serial_set_transfer_direction(handle, FuriHalSerialDirectionNone);
 
     switch(handle->id) {
     case FuriHalSerialIdUsart1:
@@ -573,38 +566,35 @@ void furi_hal_serial_set_callback(
 }
 
 void furi_hal_serial_tx(FuriHalSerialHandle* handle, const uint8_t* buffer, size_t buffer_size) {
-    furi_check(
-        LL_USART_IsEnabled(furi_hal_serial[handle->id]->periph_ptr), "Serial: is not enabled");
+    furi_check(handle);
+
+    USART_TypeDef* periph = furi_hal_serial_resources[handle->id].periph;
 
     while(buffer_size > 0) {
-        while(!LL_USART_IsActiveFlag_TXE_TXFNF(furi_hal_serial[handle->id]->periph_ptr))
+        while(!LL_USART_IsActiveFlag_TXE_TXFNF(periph))
             ;
 
-        LL_USART_TransmitData8(furi_hal_serial[handle->id]->periph_ptr, *buffer);
+        LL_USART_TransmitData8(periph, *buffer);
 
         buffer++;
         buffer_size--;
     }
-    // Wait Tx Complete
-    while(!LL_USART_IsActiveFlag_TC(furi_hal_serial[handle->id]->periph_ptr))
-        ;
-    // Clear TC flag
-    if(LL_USART_IsActiveFlag_TC(furi_hal_serial[handle->id]->periph_ptr)) {
-        LL_USART_ClearFlag_TC(furi_hal_serial[handle->id]->periph_ptr);
-    }
 }
 
 void furi_hal_serial_tx_wait_complete(FuriHalSerialHandle* handle) {
-    furi_hal_serial_check(handle);
-
-    // Wait Tx Complete if dma transmission is not enabled
-    while(LL_USART_IsEnabledIT_TC(furi_hal_serial[handle->id]->periph_ptr)) {
-        furi_delay_us(200);
-    }
-    // Wait Tx Complete if simple transfer
-    while(!LL_USART_IsActiveFlag_TC(furi_hal_serial[handle->id]->periph_ptr))
+    furi_check(handle);
+    while(!LL_USART_IsActiveFlag_TXFE(furi_hal_serial_resources[handle->id].periph))
         ;
-    LL_USART_ClearFlag_TC(furi_hal_serial[handle->id]->periph_ptr);
+}
+
+bool furi_hal_serial_rx_available(FuriHalSerialHandle* handle) {
+    furi_check(handle);
+    return LL_USART_IsActiveFlag_RXNE_RXFNE(furi_hal_serial_resources[handle->id].periph);
+}
+
+uint8_t furi_hal_serial_rx(FuriHalSerialHandle* handle) {
+    furi_check(handle);
+    return LL_USART_ReceiveData8(furi_hal_serial_resources[handle->id].periph);
 }
 
 void furi_hal_serial_async_rx_start(FuriHalSerialHandle* handle, bool report_errors) {
@@ -615,13 +605,6 @@ void furi_hal_serial_async_rx_start(FuriHalSerialHandle* handle, bool report_err
 
 void furi_hal_serial_async_rx_stop(FuriHalSerialHandle* handle) {
     furi_check(handle);
-    furi_crash("NYI");
-}
-
-size_t furi_hal_serial_async_rx(FuriHalSerialHandle* handle, uint8_t* buffer, size_t buffer_size) {
-    furi_check(handle);
-    furi_check(buffer);
-    furi_check(buffer_size);
     furi_crash("NYI");
 }
 
@@ -671,11 +654,30 @@ void furi_hal_serial_dma_rx_start(FuriHalSerialHandle* handle, uint8_t* buffer, 
 
 void furi_hal_serial_dma_rx_stop(FuriHalSerialHandle* handle) {
     furi_check(handle);
+    // TODO: Implement
+}
+
+void furi_hal_serial_clear(FuriHalSerialHandle* handle, FuriHalSerialDirection dir) {
+    furi_check(handle);
+
+    USART_TypeDef* periph = furi_hal_serial_resources[handle->id].periph;
+
+    if(dir & FuriHalSerialDirectionTx) {
+        LL_USART_RequestTxDataFlush(periph);
+        while(!LL_USART_IsActiveFlag_TXFE(periph))
+            ;
+    }
+
+    if(dir & FuriHalSerialDirectionRx) {
+        LL_USART_RequestRxDataFlush(periph);
+        while(LL_USART_IsActiveFlag_RXNE_RXFNE(periph))
+            ;
+    }
 }
 
 void furi_hal_serial_set_transfer_direction(
     FuriHalSerialHandle* handle,
-    FuriHalSerialTransferDirection dir) {
+    FuriHalSerialDirection dir) {
     furi_hal_serial_check(handle);
 
     const FuriHalSerialResources* resources = &furi_hal_serial_resources[handle->id];
@@ -687,27 +689,27 @@ void furi_hal_serial_set_transfer_direction(
     uint32_t direction;
 
     switch(dir) {
-    case FuriHalSerialTransferDirectionNone:
+    case FuriHalSerialDirectionNone:
         direction = LL_USART_DIRECTION_NONE;
         furi_hal_gpio_init(gpio_tx, GpioModeAnalog, GpioPullNo, GpioSpeedLow);
         furi_hal_gpio_init(gpio_rx, GpioModeAnalog, GpioPullNo, GpioSpeedLow);
         break;
 
-    case FuriHalSerialTransferDirectionTx:
+    case FuriHalSerialDirectionTx:
         direction = LL_USART_DIRECTION_TX;
         furi_hal_gpio_init_ex(
             gpio_tx, GpioModeAltFunctionPushPull, GpioPullNo, GpioSpeedHigh, alt_fn);
         furi_hal_gpio_init(gpio_rx, GpioModeAnalog, GpioPullNo, GpioSpeedLow);
         break;
 
-    case FuriHalSerialTransferDirectionRx:
+    case FuriHalSerialDirectionRx:
         direction = LL_USART_DIRECTION_RX;
         furi_hal_gpio_init(gpio_tx, GpioModeAnalog, GpioPullNo, GpioSpeedLow);
         furi_hal_gpio_init_ex(
             gpio_rx, GpioModeAltFunctionPushPull, GpioPullNo, GpioSpeedHigh, alt_fn);
         break;
 
-    case FuriHalSerialTransferDirectionTxRx:
+    case FuriHalSerialDirectionTxRx:
         direction = LL_USART_DIRECTION_TX_RX;
         furi_hal_gpio_init_ex(
             gpio_tx, GpioModeAltFunctionPushPull, GpioPullNo, GpioSpeedHigh, alt_fn);

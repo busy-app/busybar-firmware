@@ -17,6 +17,13 @@ typedef enum {
 } FuriHalSerialId;
 
 typedef enum {
+    FuriHalSerialDirectionNone = 0,
+    FuriHalSerialDirectionTx = 1 << 0,
+    FuriHalSerialDirectionRx = 1 << 1,
+    FuriHalSerialDirectionTxRx = FuriHalSerialDirectionTx | FuriHalSerialDirectionRx,
+} FuriHalSerialDirection;
+
+typedef enum {
     FuriHalSerialPinTx,
     FuriHalSerialPinRx,
     FuriHalSerialPinRts,
@@ -24,13 +31,6 @@ typedef enum {
 
     FuriHalSerialPinMax,
 } FuriHalSerialPin;
-
-typedef enum {
-    FuriHalSerialTransferDirectionNone,
-    FuriHalSerialTransferDirectionTx,
-    FuriHalSerialTransferDirectionRx,
-    FuriHalSerialTransferDirectionTxRx,
-} FuriHalSerialTransferDirection;
 
 typedef enum {
     FuriHalSerialConfigDataBits7,

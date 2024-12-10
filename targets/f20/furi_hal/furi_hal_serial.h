@@ -126,13 +126,15 @@ void furi_hal_serial_tx(FuriHalSerialHandle* handle, const uint8_t* buffer, size
  */
 void furi_hal_serial_tx_wait_complete(FuriHalSerialHandle* handle);
 
+bool furi_hal_serial_rx_available(FuriHalSerialHandle* handle);
+
+uint8_t furi_hal_serial_rx(FuriHalSerialHandle* handle);
+
 /* Interrupt-based asynchronous API */
 
 void furi_hal_serial_async_rx_start(FuriHalSerialHandle* handle, bool report_errors);
 
 void furi_hal_serial_async_rx_stop(FuriHalSerialHandle* handle);
-
-size_t furi_hal_serial_async_rx(FuriHalSerialHandle* handle, uint8_t* buffer, size_t buffer_size);
 
 /* DMA-based asynchronous API */
 
@@ -148,3 +150,7 @@ void furi_hal_serial_dma_tx(FuriHalSerialHandle* handle, const uint8_t* buffer, 
 void furi_hal_serial_dma_rx_start(FuriHalSerialHandle* handle, uint8_t* buffer, size_t buffer_size);
 
 void furi_hal_serial_dma_rx_stop(FuriHalSerialHandle* handle);
+
+/* Misc functions */
+
+void furi_hal_serial_clear(FuriHalSerialHandle* handle, FuriHalSerialDirection dir);
