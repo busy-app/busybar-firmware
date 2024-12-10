@@ -162,29 +162,39 @@ static void intercom_tx_timer_callback(void* context) {
 }
 
 static bool intercom_wait_for_serial_sync(FuriHalSerialHandle* serial) {
-    bool success = false;
+    const uint8_t leader_1 = 0x55;
+    const uint8_t leader_2 = 0xAA;
 
-    const uint8_t leader = 0xAA;
-
-    // TODO: Wait timeout
+    // Stage 1 - ensure that the target is responding
     while(true) {
-        // Listen for leader first, then transmit ourselves
-        if(furi_hal_serial_rx_available(serial)) {
-            if(furi_hal_serial_rx(serial) == leader) {
-                success = true;
-            }
-        }
-        // Ensure that the other side receives at least one
-        // leader character when configured properly
-        furi_hal_serial_tx(serial, &leader, 1);
+        furi_hal_serial_tx(serial, &leader_1, 1);
         furi_hal_serial_tx_wait_complete(serial);
 
-        if(success) break;
+        if(furi_hal_serial_rx_available(serial)) {
+            if(furi_hal_serial_rx(serial) == leader_1) {
+                break;
+            }
+        }
 
-        furi_delay_ms(10);
+        furi_delay_ms(5);
     }
 
-    return success;
+    // Stage 2 - ensure that data streams are in sync
+    furi_hal_serial_tx(serial, &leader_2, 1);
+    furi_hal_serial_tx_wait_complete(serial);
+
+    while(true) {
+        if(furi_hal_serial_rx_available(serial)) {
+            if(furi_hal_serial_rx(serial) == leader_2) {
+                break;
+            }
+        }
+
+        furi_delay_ms(1);
+    }
+
+    // TODO: Timeout error
+    return true;
 }
 
 static Intercom* intercom_alloc(void) {
