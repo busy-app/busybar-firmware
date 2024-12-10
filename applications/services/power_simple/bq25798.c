@@ -95,7 +95,7 @@ bool bq25798_set_cfg(FuriHalI2cBusHandle* handle) {
         BQ25798_I2C_TIMEOUT);
 
     // Mask unused irqs
-    uint32_t irq_mask = ~(Bq25987IrqFlagVbusPresent);// | Bq25987IrqFlagChargeStatus);
+    uint32_t irq_mask = ~(Bq25987IrqFlagVbusPresent); // | Bq25987IrqFlagChargeStatus);
     furi_hal_i2c_write_reg_8(
         handle,
         BQ25798_I2C_ADDRESS,

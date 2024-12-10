@@ -3,10 +3,7 @@
 #include <furi_hal_qei.h>
 #include <furi_hal_resources.h>
 
-#include <rpc/rpc_i.h>
-#include <intercom/intercom_rpc.h>
-
-#include <main.pb.h>
+#include <intercom/intercom.h>
 
 #define TAG "Input"
 
@@ -48,7 +45,7 @@ typedef struct {
     FuriMessageQueue* input_queue;
     FuriEventLoopTimer* debounce_timer;
     InputKeyState* key_states;
-    RpcSession* intercom_session;
+    Intercom* intercom;
 } InputSrv;
 
 static void input_isr_key(void* context) {
@@ -141,28 +138,17 @@ static void input_queue_callback(FuriEventLoopObject* object, void* context) {
     InputEvent event;
     furi_check(furi_message_queue_get(instance->input_queue, &event, 0) == FuriStatusOk);
 
-    PB_Main msg = {0};
-
+#ifdef INPUT_DEBUG
     if(event.key < InputKeySwitch) {
-        msg.which_content = PB_Main_button_event_tag;
-        msg.content.button_event.button = (PB_Input_Button)event.key;
-        msg.content.button_event.action = (PB_Input_ButtonAction)event.button_action;
-
         INPUT_LOG(
             "Key %s, event %s",
             input_pins[event.key].name,
             event.type == InputTypePress ? "press" : "release");
 
     } else if(event.key == InputKeyEncoder) {
-        msg.which_content = PB_Main_encoder_event_tag;
-        msg.content.encoder_event.delta = event.encoder_delta;
-
         INPUT_LOG("Encoder turn %d", event.delta);
 
     } else if(event.key == InputKeySwitch) {
-        msg.which_content = PB_Main_switch_event_tag;
-        msg.content.switch_event.position = (PB_Input_SwitchPosition)event.switch_position;
-
         INPUT_LOG(
             "Switch %s %d, event %s",
             input_pins[event.position + InputKeySwitch].name,
@@ -172,8 +158,9 @@ static void input_queue_callback(FuriEventLoopObject* object, void* context) {
     } else {
         furi_crash();
     }
+#endif
 
-    rpc_send_and_release(instance->intercom_session, &msg);
+    intercom_tx(instance->intercom, IntercomChannelInput, &event, sizeof(event), FuriWaitForever);
 }
 
 int32_t input_srv(void* p) {
@@ -192,7 +179,7 @@ int32_t input_srv(void* p) {
         instance);
 
     instance->key_states = malloc(sizeof(InputKeyState) * input_pins_count);
-    instance->intercom_session = furi_record_open(RECORD_INTERCOM_RPC);
+    instance->intercom = furi_record_open(RECORD_INTERCOM);
 
     for(size_t i = 0; i < input_pins_count; i++) {
         const InputPin* pin = &input_pins[i];

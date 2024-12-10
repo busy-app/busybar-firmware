@@ -104,8 +104,10 @@ static void furi_hal_serial_enable_fifo(FuriHalSerialHandle* handle) {
     USART0_Type* periph = furi_hal_serial_resources[handle->id].periph;
     periph->FCR = FCR_RT_ONE_CHAR | FCR_DMAM_SET | FCR_XFIFOR_SET | FCR_RFIFOR_SET | FCR_FIFOE_SET;
 
-    while(periph->USR_b.RFNE) ;
-    while(!periph->USR_b.TFE) ;
+    while(periph->USR_b.RFNE)
+        ;
+    while(!periph->USR_b.TFE)
+        ;
 }
 
 void furi_hal_serial_init(FuriHalSerialHandle* handle, uint32_t baud) {
@@ -213,7 +215,6 @@ void furi_hal_serial_init(FuriHalSerialHandle* handle, uint32_t baud) {
     furi_hal_serial_set_br(handle, baud);
     furi_hal_serial_enable_fifo(handle);
     furi_hal_serial_set_hw_flow_control(handle, FuriHalSerialHwFlowControlNone);
-
 }
 
 void furi_hal_serial_deinit(FuriHalSerialHandle* handle) {

@@ -1,9 +1,7 @@
 #include <furi.h>
 
-#include <rpc/rpc_i.h>
-#include <intercom/intercom_rpc.h>
+#include <intercom/intercom.h>
 
-#include <main.pb.h>
 #include <stm32u5xx.h>
 
 #include "intercom_test.h"
@@ -18,57 +16,33 @@ typedef enum {
 
 typedef struct {
     FuriThreadId thread_id;
-    RpcSession* session;
-    PB_Main tx_message;
+    Intercom* intercom;
+    uint8_t buffer[BUFFER_SIZE];
 } IntercomTest;
 
-static void intercom_test_transfer_handler(const PB_Main* message, void* context) {
+static void intercom_test_rx_callback(const void* data, size_t data_size, void* context) {
     furi_assert(context);
+    furi_assert(data_size == BUFFER_SIZE);
+
     IntercomTest* instance = context;
 
-    const pb_bytes_array_t* rx_buffer = message->content.transfer_request.buffer;
-    const pb_bytes_array_t* tx_buffer = instance->tx_message.content.transfer_request.buffer;
-
-    furi_check(memcmp(tx_buffer, rx_buffer, PB_BYTES_ARRAY_T_ALLOCSIZE(BUFFER_SIZE)) == 0);
+    furi_check(memcmp(instance->buffer, data, BUFFER_SIZE) == 0);
 
     furi_thread_flags_set(instance->thread_id, IntercomTestFlagResponse);
-}
-
-static void intercom_test_empty_handler(const PB_Main* message, void* context) {
-    UNUSED(message);
-    UNUSED(context);
-    furi_crash("Empty received");
-}
-
-static void intercom_fill_tx_message(PB_Main* message) {
-    message->which_content = PB_Main_transfer_request_tag;
-    PB_Debug_TransferRequest* content = &message->content.transfer_request;
-
-    content->buffer = malloc(PB_BYTES_ARRAY_T_ALLOCSIZE(BUFFER_SIZE));
-    content->buffer->size = BUFFER_SIZE;
-
-    for(uint32_t i = 0; i < BUFFER_SIZE; ++i) {
-        content->buffer->bytes[i] = i % 0xff;
-    }
 }
 
 static IntercomTest* intercom_test_alloc(void) {
     IntercomTest* instance = malloc(sizeof(IntercomTest));
 
     instance->thread_id = furi_thread_get_current_id();
-    instance->session = furi_record_open(RECORD_INTERCOM_RPC);
+    instance->intercom = furi_record_open(RECORD_INTERCOM);
 
-    RpcHandler handler = {
-        .context = instance,
-    };
+    for(uint32_t i = 0; i < BUFFER_SIZE; ++i) {
+        instance->buffer[i] = (uint8_t)i;
+    }
 
-    handler.message_handler = intercom_test_transfer_handler,
-    rpc_add_handler(instance->session, PB_Main_transfer_request_tag, &handler);
-
-    handler.message_handler = intercom_test_empty_handler;
-    rpc_add_handler(instance->session, PB_Main_empty_tag, &handler);
-
-    intercom_fill_tx_message(&instance->tx_message);
+    intercom_set_rx_callback(
+        instance->intercom, IntercomChannelDebug, intercom_test_rx_callback, instance);
 
     return instance;
 }
@@ -86,7 +60,14 @@ int32_t intercom_test_srv(void* arg) {
     for(;;) {
         start = DWT->CYCCNT;
 
-        rpc_send(instance->session, &instance->tx_message);
+        const size_t tx_size = intercom_tx(
+            instance->intercom,
+            IntercomChannelDebug,
+            instance->buffer,
+            BUFFER_SIZE,
+            FuriWaitForever);
+
+        furi_check(tx_size == BUFFER_SIZE);
 
         const uint32_t flags =
             furi_thread_flags_wait(INTERCOM_TEST_FLAG_ALL, FuriFlagWaitAny, FuriWaitForever);
@@ -100,7 +81,7 @@ int32_t intercom_test_srv(void* arg) {
 
         if(total_time_us >= 500000UL) {
             const uint32_t roundrip_time_us = total_time_us / iteration_count;
-            const uint32_t bit_s = (BUFFER_SIZE * 8UL * 1000000UL) / (roundrip_time_us / 2UL);
+            const uint32_t bit_s = ((uint64_t)BUFFER_SIZE * 160000000UL) / roundrip_time_us;
             FURI_LOG_I(TAG, "Avg. roundtrip time: %lu us (%lu bit/s)", roundrip_time_us, bit_s);
 
             total_time_us = 0;
@@ -109,7 +90,7 @@ int32_t intercom_test_srv(void* arg) {
 
         start = now;
 
-        // furi_delay_ms(10);
+        furi_delay_ms(10);
     }
 
     return 0;

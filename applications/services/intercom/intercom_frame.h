@@ -25,7 +25,8 @@ typedef enum {
 
 typedef struct {
     uint8_t id;
-    uint8_t error;
+    uint8_t error : 4;
+    uint8_t port  : 4;
 } IntercomFrameHeader;
 
 typedef struct {

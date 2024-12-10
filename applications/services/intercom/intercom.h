@@ -15,11 +15,27 @@ extern "C" {
 
 typedef struct Intercom Intercom;
 
+typedef enum {
+    IntercomChannelInput,
+    /* Add more channels here as needed */
+    IntercomChannelDebug = 15,
+    IntercomChannelMax,
+} IntercomChannel;
+
 typedef void (*IntercomRxCallback)(const void* data, size_t data_size, void* context);
 
-void intercom_set_rx_callback(Intercom* instance, IntercomRxCallback callback, void* context);
+void intercom_set_rx_callback(
+    Intercom* instance,
+    IntercomChannel channel,
+    IntercomRxCallback callback,
+    void* context);
 
-size_t intercom_tx(Intercom* instance, const void* data, size_t data_size, uint32_t timeout);
+size_t intercom_tx(
+    Intercom* instance,
+    IntercomChannel channel,
+    const void* data,
+    size_t data_size,
+    uint32_t timeout);
 
 #ifdef __cplusplus
 }

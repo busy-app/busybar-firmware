@@ -1,6 +1,8 @@
 #include "input.h"
+#include "input_i.h"
 
 #include <furi.h>
+#include <intercom/intercom.h>
 
 #define INPUT_PRESS_TICKS       150
 #define INPUT_LONG_PRESS_COUNTS 2
@@ -150,21 +152,37 @@ static void input_custom_event_callback(uint32_t events, void* context) {
     }
 }
 
+static void input_intercom_rx_callback(const void* data, size_t data_size, void* context) {
+    furi_assert(context);
+    furi_assert(data_size == sizeof(InputRawEvent));
+
+    const InputRawEvent* raw_event = data;
+
+    if(raw_event->key < InputRawKeySwitch) {
+        const InputKey key = raw_event->key + InputKeyOk;
+
+        if(raw_event->button_action == InputButtonActionPress) {
+            input_key_press(key);
+        } else {
+            input_key_release(key);
+        }
+
+    } else if(raw_event->key == InputRawKeySwitch) {
+        const InputKey key = raw_event->switch_position + InputKeyBusy;
+        input_key_toggle(key);
+
+    } else if(raw_event->key == InputRawKeyEncoder) {
+        input_key_toggle(raw_event->encoder_delta > 0 ? InputKeyUp : InputKeyDown);
+    }
+}
+
 int32_t input_srv(void* p) {
     UNUSED(p);
-
     input = malloc(sizeof(Input));
     input->event_pubsub = furi_pubsub_alloc();
     input->event_loop = furi_event_loop_alloc();
 
     furi_record_create(RECORD_INPUT_EVENTS, input->event_pubsub);
-
-#ifdef SRV_CLI
-#if 0
-    input->cli = furi_record_open(RECORD_CLI);
-    cli_add_command(input->cli, "input", CliCommandFlagParallelSafe, input_cli, input);
-#endif
-#endif
 
     input->pin_states = malloc(sizeof(InputPinState) * InputKeyMAX);
 
@@ -179,6 +197,9 @@ int32_t input_srv(void* p) {
 
     furi_event_loop_set_custom_event_callback(
         input->event_loop, input_custom_event_callback, input);
+
+    Intercom* intercom = furi_record_open(RECORD_INTERCOM);
+    intercom_set_rx_callback(intercom, IntercomChannelInput, input_intercom_rx_callback, input);
 
     furi_event_loop_run(input->event_loop);
 

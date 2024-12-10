@@ -348,8 +348,10 @@ void furi_hal_serial_init(FuriHalSerialHandle* handle, uint32_t baud_rate) {
     LL_USART_RequestTxDataFlush(periph);
     LL_USART_RequestRxDataFlush(periph);
 
-    while(!LL_USART_IsActiveFlag_TXFE(periph)) ;
-    while(LL_USART_IsActiveFlag_RXNE_RXFNE(periph)) ;
+    while(!LL_USART_IsActiveFlag_TXFE(periph))
+        ;
+    while(LL_USART_IsActiveFlag_RXNE_RXFNE(periph))
+        ;
 }
 
 static void furi_hal_serial_dma_tx_deinit(FuriHalSerialHandle* handle) {

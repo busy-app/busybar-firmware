@@ -16,9 +16,6 @@
 [submodule "lib/wiseconnect"]
 	path = lib/wiseconnect
 	url = https://github.com/flipperdevices/wiseconnect.git
-[submodule "lib/bsb-protobuf"]
-	path = lib/bsb_protobuf
-	url = https://github.com/flipperdevices/bsb-protobuf.git
 [submodule "lib/microtar"]
 	path = lib/microtar
 	url = https://github.com/amachronic/microtar.git

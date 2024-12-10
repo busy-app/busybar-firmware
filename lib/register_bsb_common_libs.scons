@@ -20,8 +20,6 @@ for libname in [
     "heatshrink",
     "ext_applications",
     "firmware_applications_f20",
-    ## BSB
-    "bsb_protobuf",
     ## SI917
     "sl_glue",
     "simplicity_sdk",

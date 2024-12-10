@@ -27,22 +27,26 @@
 #define INTERCOM_SERIAL FuriHalSerialIdUsart0
 #endif
 
-typedef enum {
-    IntercomEventData = 1UL << 0,
-    IntercomEventFrameSent = 1UL << 1,
-    IntercomEventFrameReceived = 1UL << 2,
-} IntercomEvent;
+typedef struct {
+    IntercomRxCallback rx_callback;
+    void* callback_context;
+} IntercomChannelData;
 
 struct Intercom {
     FuriEventLoop* event_loop;
     FuriSemaphore* tx_semaphore;
     FuriEventLoopTimer* tx_timer;
     FuriHalSerialHandle* serial;
-    IntercomRxCallback rx_callback;
-    void* callback_context;
+    IntercomChannelData channels[IntercomChannelMax];
     IntercomFrame tx_frame;
     IntercomFrame rx_frame;
 };
+
+typedef enum {
+    IntercomEventData = 1UL << 0,
+    IntercomEventFrameSent = 1UL << 1,
+    IntercomEventFrameReceived = 1UL << 2,
+} IntercomEvent;
 
 // Called in ISR context
 static void intercom_serial_tx_callback(
@@ -75,10 +79,24 @@ static void intercom_serial_rx_callback(
 static void intercom_dump_frame(const IntercomFrame* frame) {
     FuriString* tmp = furi_string_alloc();
 
-    for(uint32_t i = 0; i < sizeof(IntercomFrame); ++i) {
+    furi_string_printf(
+        tmp,
+        "id   : %hhu\r\n"
+        "error: %hhu\r\n"
+        "port : %hhu\r\n"
+        "size : %hu\r\n"
+        "data : \r\n",
+        frame->header.id,
+        frame->header.error,
+        frame->header.port,
+        frame->payload.size);
+
+    for(uint32_t i = 0; i < sizeof(frame->payload.data); ++i) {
         if(i && i % 32 == 0) furi_string_cat(tmp, "\r\n");
-        furi_string_cat_printf(tmp, "%02X ", ((const uint8_t*)frame)[i]);
+        furi_string_cat_printf(tmp, "%02X ", frame->payload.data[i]);
     }
+
+    furi_string_cat_printf(tmp, "\r\ncheck: 0x%04X", frame->trailer.check);
 
     furi_log_puts(furi_string_get_cstr(tmp));
 
@@ -92,6 +110,7 @@ static FURI_ALWAYS_INLINE void intercom_send_tx_frame(Intercom* instance) {
     tx_frame->trailer.check = intercom_frame_calculate_checksum(tx_frame);
 
     furi_hal_serial_dma_tx(instance->serial, (void*)tx_frame, sizeof(IntercomFrame));
+    furi_event_loop_timer_start(instance->tx_timer, INTERCOM_TX_TIMEOUT_MS);
 }
 
 static FURI_ALWAYS_INLINE void intercom_process_tx_data_event(Intercom* instance) {
@@ -111,14 +130,14 @@ static FURI_ALWAYS_INLINE void intercom_process_rx_frame_event(Intercom* instanc
 
     furi_check(rx_frame->header.error == IntercomFrameErrorNone, "Corrupted frame reported");
 
-    const IntercomFramePayload* payload = &rx_frame->payload;
+    const IntercomChannelData* port_data = &instance->channels[rx_frame->header.port];
 
-    if(instance->rx_callback) {
-        instance->rx_callback(payload->data, payload->size, instance->callback_context);
+    if(port_data->rx_callback) {
+        const IntercomFramePayload* payload = &rx_frame->payload;
+        port_data->rx_callback(payload->data, payload->size, port_data->callback_context);
     }
 
     furi_hal_serial_dma_rx_start(instance->serial, (void*)rx_frame, sizeof(IntercomFrame));
-    furi_event_loop_timer_start(instance->tx_timer, INTERCOM_TX_TIMEOUT_MS);
 }
 
 static FURI_ALWAYS_INLINE void intercom_process_tx_frame_event(Intercom* instance) {
@@ -174,7 +193,12 @@ static Intercom* intercom_alloc(void) {
     return instance;
 }
 
-size_t intercom_tx(Intercom* instance, const void* data, size_t data_size, uint32_t timeout) {
+size_t intercom_tx(
+    Intercom* instance,
+    IntercomChannel channel,
+    const void* data,
+    size_t data_size,
+    uint32_t timeout) {
     furi_check(instance);
     furi_check(data);
     furi_check(data_size > 0);
@@ -185,7 +209,10 @@ size_t intercom_tx(Intercom* instance, const void* data, size_t data_size, uint3
     uint32_t remaining_time = timeout;
 
     while(furi_semaphore_acquire(instance->tx_semaphore, remaining_time) == FuriStatusOk) {
-        IntercomFramePayload* payload = &instance->tx_frame.payload;
+        IntercomFrame* frame = &instance->tx_frame;
+        frame->header.port = channel;
+
+        IntercomFramePayload* payload = &frame->payload;
         const size_t payload_size = MIN(data_size - sent_data_size, sizeof(payload->data));
 
         memcpy(payload->data, data + sent_data_size, payload_size);
@@ -206,13 +233,20 @@ size_t intercom_tx(Intercom* instance, const void* data, size_t data_size, uint3
     return sent_data_size;
 }
 
-void intercom_set_rx_callback(Intercom* instance, IntercomRxCallback callback, void* context) {
+void intercom_set_rx_callback(
+    Intercom* instance,
+    IntercomChannel channel,
+    IntercomRxCallback callback,
+    void* context) {
     furi_check(instance);
     furi_check(callback);
-    furi_check(instance->rx_callback == NULL);
+    furi_check(channel < COUNT_OF(instance->channels));
 
-    instance->callback_context = context;
-    instance->rx_callback = callback;
+    IntercomChannelData* port_data = &instance->channels[channel];
+    furi_check(port_data->rx_callback == NULL);
+
+    port_data->rx_callback = callback;
+    port_data->callback_context = context;
 }
 
 int32_t intercom_srv(void* arg) {

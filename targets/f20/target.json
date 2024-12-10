@@ -103,8 +103,6 @@
         "canvas_oled",
         "flipper_format",
         "flipper_application",
-        "nanopb",
-        "bsb_protobuf",
         "heatshrink",
         "bit_lib",
         "datetime",
