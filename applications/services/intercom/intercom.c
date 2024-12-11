@@ -9,6 +9,10 @@
 
 #define TAG "IntercomSrv"
 
+#define INTERCOM_SYNC_TIMEOUT_MS    (10000UL)
+#define INTERCOM_SYNC_INTERVAL_1_MS (5UL)
+#define INTERCOM_SYNC_INTERVAL_2_MS (1UL)
+
 #define INTERCOM_TX_TIMEOUT_MS (1000UL)
 
 #ifdef INTERCOM_DEBUG
@@ -161,40 +165,58 @@ static void intercom_tx_timer_callback(void* context) {
     furi_crash("Other side has died");
 }
 
-static bool intercom_wait_for_serial_sync(FuriHalSerialHandle* serial) {
+static bool intercom_sync_serial(FuriHalSerialHandle* serial) {
+    bool success = true;
+
     const uint8_t leader_1 = 0x55;
     const uint8_t leader_2 = 0xAA;
 
-    // Stage 1 - ensure that the target is responding
-    while(true) {
-        furi_hal_serial_tx(serial, &leader_1, 1);
+    do {
+        const uint32_t start_time = furi_get_tick();
+
+        // Stage 1 - ensure that the target is responding
+        while(true) {
+            furi_hal_serial_tx(serial, &leader_1, 1);
+            furi_hal_serial_tx_wait_complete(serial);
+
+            if(furi_hal_serial_rx_available(serial)) {
+                if(furi_hal_serial_rx(serial) == leader_1) {
+                    break;
+                }
+
+            } else if(furi_get_tick() - start_time < INTERCOM_SYNC_TIMEOUT_MS) {
+                furi_delay_ms(INTERCOM_SYNC_INTERVAL_1_MS);
+
+            } else {
+                success = false;
+                break;
+            }
+        }
+
+        if(!success) break;
+
+        // Stage 2 - ensure that data streams are in sync
+        furi_hal_serial_tx(serial, &leader_2, 1);
         furi_hal_serial_tx_wait_complete(serial);
 
-        if(furi_hal_serial_rx_available(serial)) {
-            if(furi_hal_serial_rx(serial) == leader_1) {
+        while(true) {
+            if(furi_hal_serial_rx_available(serial)) {
+                if(furi_hal_serial_rx(serial) == leader_2) {
+                    break;
+                }
+
+            } else if(furi_get_tick() - start_time < INTERCOM_SYNC_TIMEOUT_MS) {
+                furi_delay_ms(INTERCOM_SYNC_INTERVAL_2_MS);
+
+            } else {
+                success = false;
                 break;
             }
         }
 
-        furi_delay_ms(5);
-    }
+    } while(false);
 
-    // Stage 2 - ensure that data streams are in sync
-    furi_hal_serial_tx(serial, &leader_2, 1);
-    furi_hal_serial_tx_wait_complete(serial);
-
-    while(true) {
-        if(furi_hal_serial_rx_available(serial)) {
-            if(furi_hal_serial_rx(serial) == leader_2) {
-                break;
-            }
-        }
-
-        furi_delay_ms(1);
-    }
-
-    // TODO: Timeout error
-    return true;
+    return success;
 }
 
 static Intercom* intercom_alloc(void) {
@@ -212,10 +234,9 @@ static Intercom* intercom_alloc(void) {
     furi_event_loop_set_custom_event_callback(
         instance->event_loop, intercom_custom_event_callback, instance);
 
-    intercom_wait_for_serial_sync(instance->serial);
+    furi_check(intercom_sync_serial(instance->serial), "Failed to synchronise");
 
     furi_hal_serial_clear(instance->serial, FuriHalSerialDirectionTxRx);
-
     furi_hal_serial_dma_rx_start(
         instance->serial, (void*)&instance->rx_frame, sizeof(IntercomFrame));
 
