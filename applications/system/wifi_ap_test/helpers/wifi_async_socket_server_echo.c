@@ -181,7 +181,7 @@ void wifi_async_socket_server_echo_init(WifiTestApp* app, FuriString* msg, uint1
         // }
         uint32_t start = furi_get_tick();
         while(!wifi_async_socket_echo_header->exit && (furi_get_tick() - start) < TEST_TIMEOUT) {
-            osThreadYield();
+            furi_thread_yield();
         }
 
         furi_string_printf(msg, "TCP_RX Throughput test finished\r\n");
