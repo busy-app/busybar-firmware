@@ -89,8 +89,6 @@ int32_t intercom_test_srv(void* arg) {
         }
 
         start = now;
-
-        furi_delay_ms(10);
     }
 
     return 0;
