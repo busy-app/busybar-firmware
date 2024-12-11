@@ -12,13 +12,15 @@
 #define GCLK_PRESCALER  10
 #define SCAN_PRESCALLER 16
 #define SCAN_PERIOD     180
-#define VSYNC_DELAY     20
+#define VSYNC_DELAY     10
 #define LATCH_DELAY     4
 
-#define LOAD_DELAY 100
+#define LOAD_DELAY 50
+
+#define SCAN_DISABLED (1 << 5)
 
 // Display block select look-up table
-static const uint8_t display_sel_table[DISPLAY_BLOCKS] = {
+static const uint8_t display_scan_table[DISPLAY_BLOCKS] = {
     (1 << 0) | (4 << 2), (1 << 0) | (2 << 2), (1 << 0) | (6 << 2), (1 << 0) | (1 << 2),
     (1 << 0) | (5 << 2), (1 << 0) | (3 << 2), (1 << 0) | (7 << 2),
 
@@ -34,6 +36,7 @@ static const uint8_t display_sel_table[DISPLAY_BLOCKS] = {
 struct LedDisplayScan {
     LL_DMA_LinkNodeTypeDef dma_link_node;
     uint32_t dma_channel;
+    uint8_t scan_order_table[DISPLAY_BLOCKS];
 };
 
 static LedDisplayScan* led_scan;
@@ -72,7 +75,7 @@ static void gclk_tim_init(void) {
     LL_TIM_CC_EnableChannel(TIM8, LL_TIM_CHANNEL_CH4N);
 
     furi_hal_gpio_init_ex(
-        &gpio_led_gclk, GpioModeAltFunctionPushPull, GpioPullNo, GpioSpeedVeryHigh, GpioAltFn3TIM8);
+        &gpio_led_gclk, GpioModeAltFunctionPushPull, GpioPullNo, GpioSpeedMedium, GpioAltFn3TIM8);
 }
 
 static void scan_tim_init(void) {
@@ -128,7 +131,7 @@ static void scan_tim_init(void) {
         &gpio_led_scan_latch,
         GpioModeAltFunctionPushPull,
         GpioPullNo,
-        GpioSpeedVeryHigh,
+        GpioSpeedMedium,
         GpioAltFn2TIM5);
 }
 
@@ -177,9 +180,9 @@ static void spi_dma_init(void) {
         (LL_DMA_UPDATE_CTR1 | LL_DMA_UPDATE_CTR2 | LL_DMA_UPDATE_CBR1 | LL_DMA_UPDATE_CSAR |
          LL_DMA_UPDATE_CDAR | LL_DMA_UPDATE_CLLR);
 
-    dma_node_cfg.SrcAddress = (uint32_t)display_sel_table;
+    dma_node_cfg.SrcAddress = (uint32_t)led_scan->scan_order_table;
     dma_node_cfg.DestAddress = LL_SPI_DMA_GetTxRegAddr(SPI2);
-    dma_node_cfg.BlkDataLength = sizeof(display_sel_table);
+    dma_node_cfg.BlkDataLength = sizeof(led_scan->scan_order_table);
 
     dma_node_cfg.Request = LL_GPDMA1_REQUEST_SPI2_TX;
 
@@ -243,14 +246,16 @@ static void spi_595_init(void) {
         &gpio_led_scan_clk,
         GpioModeAltFunctionPushPull,
         GpioPullNo,
-        GpioSpeedVeryHigh,
+        GpioSpeedMedium,
         GpioAltFn5SPI2);
     furi_hal_gpio_init_ex(
         &gpio_led_scan_sdi,
         GpioModeAltFunctionPushPull,
         GpioPullNo,
-        GpioSpeedVeryHigh,
+        GpioSpeedMedium,
         GpioAltFn3SPI2);
+
+    LL_SPI_TransmitData8(SPI2, SCAN_DISABLED);
 }
 
 static void scan_dma_tc_irq(void* context) {
@@ -294,6 +299,8 @@ inline void led_display_scan_data_sync_enable(void) {
 
 void led_display_scan_init(void) {
     led_scan = malloc(sizeof(LedDisplayScan));
+    memset(led_scan->scan_order_table, SCAN_DISABLED, DISPLAY_BLOCKS);
+
     scan_tim_init();
     gclk_tim_init();
     spi_595_init();
@@ -302,4 +309,12 @@ void led_display_scan_init(void) {
 
 void led_display_scan_start(void) {
     LL_TIM_EnableCounter(TIM5);
+}
+
+void led_display_output_enable(bool enable) {
+    if(enable) {
+        memcpy(led_scan->scan_order_table, display_scan_table, DISPLAY_BLOCKS);
+    } else {
+        memset(led_scan->scan_order_table, SCAN_DISABLED, DISPLAY_BLOCKS);
+    }
 }
