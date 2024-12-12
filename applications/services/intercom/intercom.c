@@ -47,9 +47,9 @@ struct Intercom {
 };
 
 typedef enum {
-    IntercomEventData = 1UL << 0,
-    IntercomEventFrameSent = 1UL << 1,
-    IntercomEventFrameReceived = 1UL << 2,
+    IntercomEventFrameSent = 1UL << 0,
+    IntercomEventFrameReceived = 1UL << 1,
+    IntercomEventDataAvailable = 1UL << 2,
 } IntercomEvent;
 
 // Called in ISR context
@@ -106,8 +106,8 @@ static void intercom_dump_frame(const IntercomFrame* frame) {
 static FURI_ALWAYS_INLINE void intercom_send_tx_frame(Intercom* instance) {
     IntercomFrame* tx_frame = &instance->tx_frame;
 
-    furi_hal_serial_dma_tx(instance->serial, (void*)tx_frame, sizeof(IntercomFrame));
     furi_event_loop_timer_start(instance->tx_timer, INTERCOM_TX_TIMEOUT_MS);
+    furi_hal_serial_dma_tx(instance->serial, (void*)tx_frame, sizeof(IntercomFrame));
 }
 
 static FURI_ALWAYS_INLINE void intercom_process_tx_data_event(Intercom* instance) {
@@ -117,11 +117,10 @@ static FURI_ALWAYS_INLINE void intercom_process_tx_data_event(Intercom* instance
 static FURI_ALWAYS_INLINE void intercom_process_rx_frame_event(Intercom* instance) {
     INTERCOM_LOG_D("Frame received");
 
-    const IntercomFrame* rx_frame = &instance->rx_frame;
+    IntercomFrame* rx_frame = &instance->rx_frame;
 
     if(!intercom_frame_is_valid(rx_frame)) {
         intercom_dump_frame(rx_frame);
-        furi_delay_ms(10);
         furi_crash("Corrupted frame received");
     }
 
@@ -132,7 +131,8 @@ static FURI_ALWAYS_INLINE void intercom_process_rx_frame_event(Intercom* instanc
             rx_frame->data, rx_frame->data_size, channel_data->callback_context);
     }
 
-    furi_hal_serial_dma_rx_start(instance->serial, (void*)rx_frame, sizeof(IntercomFrame));
+    furi_hal_serial_dma_rx_start(
+        instance->serial, (void*)&instance->rx_frame, sizeof(IntercomFrame));
 }
 
 static FURI_ALWAYS_INLINE void intercom_process_tx_frame_event(Intercom* instance) {
@@ -144,17 +144,17 @@ static FURI_ALWAYS_INLINE void intercom_process_tx_frame_event(Intercom* instanc
 
 static void intercom_custom_event_callback(uint32_t events, void* context) {
     Intercom* instance = context;
-    if(events & IntercomEventData) {
-        INTERCOM_LOG_D("IntercomEventData");
-        intercom_process_tx_data_event(instance);
+    if(events & IntercomEventFrameSent) {
+        INTERCOM_LOG_D("IntercomEventFrameSent");
+        intercom_process_tx_frame_event(instance);
     }
     if(events & IntercomEventFrameReceived) {
         INTERCOM_LOG_D("IntercomEventFrameReceived");
         intercom_process_rx_frame_event(instance);
     }
-    if(events & IntercomEventFrameSent) {
-        INTERCOM_LOG_D("IntercomEventFrameSent");
-        intercom_process_tx_frame_event(instance);
+    if(events & IntercomEventDataAvailable) {
+        INTERCOM_LOG_D("IntercomEventData");
+        intercom_process_tx_data_event(instance);
     }
 }
 
@@ -271,7 +271,7 @@ size_t intercom_tx(
         frame->check = intercom_frame_get_checksum(frame);
 
         INTERCOM_LOG_D("TX payload size: %zu byte(s)", payload_size);
-        furi_event_loop_set_custom_event(instance->event_loop, IntercomEventData);
+        furi_event_loop_set_custom_event(instance->event_loop, IntercomEventDataAvailable);
 
         sent_data_size += chunk_size;
         if(sent_data_size == data_size) break;

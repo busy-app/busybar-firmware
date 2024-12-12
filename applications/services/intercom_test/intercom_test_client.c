@@ -20,13 +20,34 @@ typedef struct {
     uint8_t buffer[BUFFER_SIZE];
 } IntercomTest;
 
+static void intercom_test_dump_data(const uint8_t* data) {
+    FuriString* str = furi_string_alloc_set("Data:\r\n");
+
+    for(uint32_t i = 0; i < BUFFER_SIZE; ++i) {
+        if(i && i % 32 == 0) {
+            furi_string_cat(str, "\r\n");
+        }
+        furi_string_cat_printf(str, "%02X", data[i]);
+    }
+
+    furi_string_cat(str, "\r\n");
+
+    furi_log_puts(furi_string_get_cstr(str));
+    furi_string_free(str);
+}
+
 static void intercom_test_rx_callback(const void* data, size_t data_size, void* context) {
     furi_assert(context);
     furi_assert(data_size == BUFFER_SIZE);
 
     IntercomTest* instance = context;
 
-    furi_check(memcmp(instance->buffer, data, BUFFER_SIZE) == 0);
+    if(memcmp(instance->buffer, data, BUFFER_SIZE) != 0) {
+        intercom_test_dump_data(instance->buffer);
+        intercom_test_dump_data(data);
+        furi_delay_ms(10);
+        furi_crash("Received data does not match");
+    }
 
     furi_thread_flags_set(instance->thread_id, IntercomTestFlagResponse);
 }
@@ -36,10 +57,6 @@ static IntercomTest* intercom_test_alloc(void) {
 
     instance->thread_id = furi_thread_get_current_id();
     instance->intercom = furi_record_open(RECORD_INTERCOM);
-
-    for(uint32_t i = 0; i < BUFFER_SIZE; ++i) {
-        instance->buffer[i] = (uint8_t)i;
-    }
 
     intercom_set_rx_callback(
         instance->intercom, IntercomChannelDebug, intercom_test_rx_callback, instance);
@@ -57,7 +74,11 @@ int32_t intercom_test_srv(void* arg) {
 
     uint32_t start;
 
-    for(;;) {
+    for(uint8_t paint = 0;; paint++) {
+        for(uint32_t i = 0; i < BUFFER_SIZE; ++i) {
+            instance->buffer[i] = paint;
+        }
+
         start = DWT->CYCCNT;
 
         const size_t tx_size = intercom_tx(
@@ -67,7 +88,7 @@ int32_t intercom_test_srv(void* arg) {
             BUFFER_SIZE,
             FuriWaitForever);
 
-        furi_check(tx_size == BUFFER_SIZE);
+        furi_check(tx_size == BUFFER_SIZE, "Failed to send data");
 
         const uint32_t flags =
             furi_thread_flags_wait(INTERCOM_TEST_FLAG_ALL, FuriFlagWaitAny, FuriWaitForever);

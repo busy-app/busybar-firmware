@@ -19,7 +19,7 @@ static void intercom_test_semaphore_callback(FuriEventLoopObject* object, void* 
     const size_t tx_size = intercom_tx(
         instance->intercom, IntercomChannelDebug, instance->buffer, BUFFER_SIZE, FuriWaitForever);
 
-    furi_check(tx_size == BUFFER_SIZE);
+    furi_check(tx_size == BUFFER_SIZE, "Failed to send data");
 }
 
 static void intercom_test_rx_callback(const void* data, size_t data_size, void* context) {
