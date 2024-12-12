@@ -8,6 +8,7 @@
 #define TAG "Input"
 
 #define INPUT_DEBOUNCE_TIMEOUT 1
+#define INPUT_DEBOUNCE_TICKS   4
 #define INPUT_QUEUE_SIZE       15
 
 #ifdef INPUT_DEBUG
