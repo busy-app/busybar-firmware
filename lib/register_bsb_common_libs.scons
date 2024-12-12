@@ -18,6 +18,7 @@ for libname in [
     "flipper_application",
     "nanopb",
     "heatshrink",
+    "input_common",
     "ext_applications",
     "firmware_applications_f20",
     ## SI917

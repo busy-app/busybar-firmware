@@ -80,6 +80,7 @@
         "targets",
         "furi",
         "toolbox_f64",
+        "input_common",
         "firmware_applications_f64"
     ],
     "fw_modules": [

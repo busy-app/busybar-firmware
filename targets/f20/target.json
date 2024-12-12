@@ -109,6 +109,7 @@
         "targets",
         "furi",
         "version",
+        "input_common",
         "ext_applications",
         "firmware_applications_f20"
     ],

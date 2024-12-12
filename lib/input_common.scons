@@ -1,0 +1,7 @@
+Import("env")
+
+env.AppendUnique(
+    CPPPATH=[
+        Dir("input_common").srcnode(),
+    ],
+)
