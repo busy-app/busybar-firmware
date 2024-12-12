@@ -30,13 +30,13 @@ bool bq25798_set_cfg(FuriHalI2cBusHandle* handle);
 
 bool bq25798_get_irq_flags(FuriHalI2cBusHandle* handle, uint32_t* flags);
 
-void bq25798_dump_status(FuriHalI2cBusHandle* handle);
-
 bool bq25798_get_battery_voltage(FuriHalI2cBusHandle* handle, float* value);
 
 bool bq25798_get_vbus_voltage(FuriHalI2cBusHandle* handle, float* value);
 
 bool bq25798_set_input_current_limit(FuriHalI2cBusHandle* handle, float value);
+
+void bq25798_power_switch(FuriHalI2cBusHandle* handle, Bq25987PowerSwitch mode);
 
 #ifdef __cplusplus
 }
