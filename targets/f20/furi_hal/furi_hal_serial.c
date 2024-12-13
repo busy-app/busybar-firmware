@@ -332,7 +332,7 @@ void furi_hal_serial_init(FuriHalSerialHandle* handle, uint32_t baud_rate) {
         FuriHalSerialConfigParityNone,
         FuriHalSerialConfigStopBits_1);
 
-    furi_hal_serial_set_baudrate(handle, baud_rate);
+    furi_hal_serial_set_baud_rate(handle, baud_rate);
     furi_hal_serial_set_hw_flow_control(handle, FuriHalSerialHwFlowControlNone);
 
     LL_USART_SetTXFIFOThreshold(periph, LL_USART_FIFOTHRESHOLD_1_8);
@@ -447,7 +447,7 @@ bool furi_hal_serial_is_baud_rate_supported(FuriHalSerialHandle* handle, uint32_
     return baud_rate >= 10 && baud_rate <= 20000000;
 }
 
-void furi_hal_serial_set_baudrate(FuriHalSerialHandle* handle, uint32_t baud_rate) {
+void furi_hal_serial_set_baud_rate(FuriHalSerialHandle* handle, uint32_t baud_rate) {
     furi_check(handle);
     furi_check(furi_hal_serial_is_baud_rate_supported(handle, baud_rate));
 

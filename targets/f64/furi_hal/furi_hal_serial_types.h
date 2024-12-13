@@ -1,7 +1,5 @@
 #pragma once
 
-#include <furi.h>
-
 /**
  * UART channels
  */
