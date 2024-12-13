@@ -2,11 +2,6 @@
 
 #include <furi.h>
 
-// #include <sl_net_wifi_types.h>
-// #include <sl_net.h>
-// #include <sl_si91x_driver.h>
-#include "sl_utility.h"
-
 #include <sl_status.h>
 #include <sl_wifi.h>
 #include <sl_wifi_callback_framework.h>
@@ -15,214 +10,108 @@
 #include "rsi_ble_apis.h"
 #include "rsi_ble_common_config.h"
 #include "rsi_bt_common_apis.h"
-// #include "rsi_bt_common.h"
-// #include "rsi_ble.h"
-//#include "rsi_common_apis.h"
-#include "rsi_wisemcu_hardware_setup.h"
-
 
 #include <args.h>
 #include <strint.h>
 
 #define TAG "BLETestApp"
 
-// #define RSI_SEL_ANTENNA    RSI_SEL_INTERNAL_ANTENNA //RSI_SEL_EXTERNAL_ANTENNA
-// #define RSI_BLE_TX_CHANNEL 0x10
-// #define RSI_BLE_RX_CHANNEL 0x10
+#define RSI_BLE_1MBPS   0x1
+#define RSI_BLE_2MBPS   0x2
+#define RSI_BLE_125KBPS 0x3
+#define RSI_BLE_500KBPS 0x4
 
-// #define RSI_BLE_1MBPS   0x1
-// #define RSI_BLE_2MBPS   0x2
-// #define RSI_BLE_125KBPS 0x3
-// #define RSI_BLE_500KBPS 0x4
-// #define RSI_BLE_TX_PHY  RSI_BLE_1MBPS
-// #define RSI_BLE_RX_PHY  RSI_BLE_1MBPS
+#define PRBS9_SEQ            0x0 //PRBS9 sequence '11111111100000111101...' \n
+#define FOUR_ONES_FOUR_ZEROS 0x1 //Repeated '11110000' \n
+#define ALT_ONES_AND_ZEROS   0x2 //Repeated '10101010' \n
+#define PRBS15_SEQ           0x3 //PRBS15 \n
+#define ALL_ONES             0x4 //Repeated '11111111' \n
+#define ALL_ZEROS            0x5 //Repeated '00000000' \n
+#define FOUR_ZEROS_FOUR_ONES 0x6 //Repeated '00001111' \n
+#define ALT_ZERO_ALT_ONE     0x7 //Repeated '01010101' \n
 
-// #define RSI_BLE_TX_PAYLOAD_LEN 0x20
+#define RSI_SEL_ANTENNA               RSI_SEL_INTERNAL_ANTENNA
+#define BLE_TEST_CHANNEL_DEFAULT      0x10 //0..39 BLE channels 2402MHz to 2480MHz with 2MHz spacing
+#define BLE_TESET_PHY_DEFAULT         RSI_BLE_1MBPS
+#define BLE_TEST_PAYLOAD_LEN_DEFAULT  0x20
+#define LOCAL_DEV_ADDR_LEN            18 // Length of the local device address
+#define BLE_TEST_PAYLOAD_TYPE_DEFAULT PRBS9_SEQ
 
-// #define PRBS9_SEQ            0x0
-// #define FOUR_ONES_FOUR_ZEROS 0x1
-// #define ALT_ONES_AND_ZEROS   0x2
-// #define PRBS15_SEQ           0x3
-// #define ALL_ONES             0x4
-// #define ALL_ZEROS            0x5
-// #define FOUR_ZEROS_FOUR_ONES 0x6
-// #define ALT_ZERO_ALT_ONE     0x7
-
-// #define LOCAL_DEV_ADDR_LEN 18 // Length of the local device address
-
-// #define RSI_BLE_TX_PAYLOAD_TYPE PRBS9_SEQ
-
-// #define RSI_BLE_TESTMODE_TRANSMIT 1
-// #define RSI_BLE_TESTMODE_RECEIVE  2
-// #define RSI_CONFIG_TEST_MODE      RSI_BLE_TESTMODE_TRANSMIT
-
-// const sl_wifi_device_configuration_t config = {
-//     .boot_option = LOAD_NWP_FW,
-//     .mac_address = NULL,
-//     .band = SL_SI91X_WIFI_BAND_2_4GHZ,
-//     .region_code = US,
-//     .boot_config = {
-//         .oper_mode = SL_SI91X_CLIENT_MODE,
-//         .coex_mode = SL_SI91X_BLE_MODE,
-//         .feature_bit_map =
-//             (SL_SI91X_FEAT_WPS_DISABLE | SL_SI91X_FEAT_ULP_GPIO_BASED_HANDSHAKE |
-//              SL_SI91X_FEAT_DEV_TO_HOST_ULP_GPIO_1),
-//         .tcp_ip_feature_bit_map =
-//             (SL_SI91X_TCP_IP_FEAT_DHCPV4_CLIENT | SL_SI91X_TCP_IP_FEAT_EXTENSION_VALID),
-//         .custom_feature_bit_map = (SL_SI91X_CUSTOM_FEAT_EXTENTION_VALID),
-//         .ext_custom_feature_bit_map =
-//             (SL_SI91X_EXT_FEAT_LOW_POWER_MODE | SL_SI91X_EXT_FEAT_XTAL_CLK | MEMORY_CONFIG
-// #ifdef SLI_SI917
-//              | SL_SI91X_EXT_FEAT_FRONT_END_SWITCH_PINS_ULP_GPIO_4_5_0
-// #endif
-//              | (SL_SI91X_EXT_FEAT_BT_CUSTOM_FEAT_ENABLE)),
-//         .bt_feature_bit_map = (SL_SI91X_BT_RF_TYPE | SL_SI91X_ENABLE_BLE_PROTOCOL),
-//         .ext_tcp_ip_feature_bit_map = (SL_SI91X_CONFIG_FEAT_EXTENTION_VALID),
-//         //!ENABLE_BLE_PROTOCOL in bt_feature_bit_map
-//         .ble_feature_bit_map =
-//             ((SL_SI91X_BLE_MAX_NBR_PERIPHERALS(RSI_BLE_MAX_NBR_PERIPHERALS) |
-//               SL_SI91X_BLE_MAX_NBR_CENTRALS(RSI_BLE_MAX_NBR_CENTRALS) |
-//               SL_SI91X_BLE_MAX_NBR_ATT_SERV(RSI_BLE_MAX_NBR_ATT_SERV) |
-//               SL_SI91X_BLE_MAX_NBR_ATT_REC(RSI_BLE_MAX_NBR_ATT_REC)) |
-//              SL_SI91X_FEAT_BLE_CUSTOM_FEAT_EXTENTION_VALID |
-//              SL_SI91X_BLE_PWR_INX(RSI_BLE_PWR_INX) |
-//              SL_SI91X_BLE_PWR_SAVE_OPTIONS(RSI_BLE_PWR_SAVE_OPTIONS) |
-//              SL_SI91X_916_BLE_COMPATIBLE_FEAT_ENABLE
-// #if RSI_BLE_GATT_ASYNC_ENABLE
-//              | SL_SI91X_BLE_GATT_ASYNC_ENABLE
-// #endif
-//              ),
-//         .ble_ext_feature_bit_map =
-//             ((SL_SI91X_BLE_NUM_CONN_EVENTS(RSI_BLE_NUM_CONN_EVENTS) |
-//               SL_SI91X_BLE_NUM_REC_BYTES(RSI_BLE_NUM_REC_BYTES))
-// #if RSI_BLE_INDICATE_CONFIRMATION_FROM_HOST
-//              | SL_SI91X_BLE_INDICATE_CONFIRMATION_FROM_HOST //indication response from app
-// #endif
-// #if RSI_BLE_MTU_EXCHANGE_FROM_HOST
-//              | SL_SI91X_BLE_MTU_EXCHANGE_FROM_HOST //MTU Exchange request initiation from app
-// #endif
-// #if RSI_BLE_SET_SCAN_RESP_DATA_FROM_HOST
-//              | (SL_SI91X_BLE_SET_SCAN_RESP_DATA_FROM_HOST) //Set SCAN Resp Data from app
-// #endif
-// #if RSI_BLE_DISABLE_CODED_PHY_FROM_HOST
-//              | (SL_SI91X_BLE_DISABLE_CODED_PHY_FROM_HOST) //Disable Coded PHY from app
-// #endif
-// #if BLE_SIMPLE_GATT
-//              | SL_SI91X_BLE_GATT_INIT
-// #endif
-//              ),
-//         .config_feature_bit_map = (SL_SI91X_FEAT_SLEEP_GPIO_SEL_BITMAP)}};
-
-
-
-
-
-
-
-
-
-
-
-// #define RSI_BLE_LOCAL_NAME "iBeacon"
-// //! application events list
-// #define RSI_APP_EVENT_CONNECTED    1
-// #define RSI_APP_EVENT_DISCONNECTED 2
-
-// #define LOCAL_DEV_ADDR_LEN 18 // Length of the local device address
-
-// //! Application global parameters.
-// static rsi_bt_resp_get_local_name_t rsi_app_resp_get_local_name = {0};
-// static uint8_t rsi_app_resp_get_dev_addr[RSI_DEV_ADDR_LEN] = {0};
-// static uint8_t rsi_app_resp_device_state = 0;
-// static int8_t rsi_app_resp_rssi = 0;
-// static rsi_ble_event_conn_status_t rsi_app_connected_device = {0};
-// static rsi_ble_event_disconnect_t rsi_app_disconnected_device = {0};
-// uint8_t str_remote_address[18] = {'\0'};
-
-// osSemaphoreId_t ble_main_task_sem;
-// static volatile uint32_t ble_app_event_map;
-// static volatile uint32_t ble_app_event_map1;
-// /*=======================================================================*/
-// //!    Powersave configurations
-// /*=======================================================================*/
-// #define ENABLE_POWER_SAVE 0 //! Set to 1 for powersave mode
-
-// #if ENABLE_POWER_SAVE
-// //! Power Save Profile Mode
-// #define PSP_MODE RSI_SLEEP_MODE_2
-// //! Power Save Profile type
-// #define PSP_TYPE RSI_MAX_PSP
-
-// sl_wifi_performance_profile_t wifi_profile = {.profile = ASSOCIATED_POWER_SAVE_LOW_LATENCY};
-// #endif
-
-// static const sl_wifi_device_configuration_t config = {
-//     .boot_option = LOAD_NWP_FW,
-//     .mac_address = NULL,
-//     .band = SL_SI91X_WIFI_BAND_2_4GHZ,
-//     .region_code = US,
-//     .boot_config = {
-//         .oper_mode = SL_SI91X_CLIENT_MODE,
-//         .coex_mode = SL_SI91X_WLAN_BLE_MODE,
-//         .feature_bit_map =
-//             (SL_SI91X_FEAT_WPS_DISABLE | SL_SI91X_FEAT_ULP_GPIO_BASED_HANDSHAKE |
-//              SL_SI91X_FEAT_DEV_TO_HOST_ULP_GPIO_1),
-//         .tcp_ip_feature_bit_map =
-//             (SL_SI91X_TCP_IP_FEAT_DHCPV4_CLIENT | SL_SI91X_TCP_IP_FEAT_EXTENSION_VALID),
-//         .custom_feature_bit_map = (SL_SI91X_CUSTOM_FEAT_EXTENTION_VALID),
-//         .ext_custom_feature_bit_map =
-//             (SL_SI91X_EXT_FEAT_LOW_POWER_MODE | SL_SI91X_EXT_FEAT_XTAL_CLK | MEMORY_CONFIG
-// #ifdef SLI_SI917
-//              | SL_SI91X_EXT_FEAT_FRONT_END_SWITCH_PINS_ULP_GPIO_4_5_0
-// #endif
-//              | SL_SI91X_EXT_FEAT_BT_CUSTOM_FEAT_ENABLE),
-//         .bt_feature_bit_map = (SL_SI91X_BT_RF_TYPE | SL_SI91X_ENABLE_BLE_PROTOCOL),
-//         .ext_tcp_ip_feature_bit_map = (SL_SI91X_CONFIG_FEAT_EXTENTION_VALID),
-//         //!ENABLE_BLE_PROTOCOL in bt_feature_bit_map
-//         .ble_feature_bit_map =
-//             ((SL_SI91X_BLE_MAX_NBR_PERIPHERALS(RSI_BLE_MAX_NBR_PERIPHERALS) |
-//               SL_SI91X_BLE_MAX_NBR_CENTRALS(RSI_BLE_MAX_NBR_CENTRALS) |
-//               SL_SI91X_BLE_MAX_NBR_ATT_SERV(RSI_BLE_MAX_NBR_ATT_SERV) |
-//               SL_SI91X_BLE_MAX_NBR_ATT_REC(RSI_BLE_MAX_NBR_ATT_REC)) |
-//              SL_SI91X_FEAT_BLE_CUSTOM_FEAT_EXTENTION_VALID |
-//              SL_SI91X_BLE_PWR_INX(RSI_BLE_PWR_INX) |
-//              SL_SI91X_BLE_PWR_SAVE_OPTIONS(RSI_BLE_PWR_SAVE_OPTIONS) |
-//              SL_SI91X_916_BLE_COMPATIBLE_FEAT_ENABLE
-// #if RSI_BLE_GATT_ASYNC_ENABLE
-//              | SL_SI91X_BLE_GATT_ASYNC_ENABLE
-// #endif
-//              ),
-//         .ble_ext_feature_bit_map =
-//             ((SL_SI91X_BLE_NUM_CONN_EVENTS(RSI_BLE_NUM_CONN_EVENTS) |
-//               SL_SI91X_BLE_NUM_REC_BYTES(RSI_BLE_NUM_REC_BYTES))
-// #if RSI_BLE_INDICATE_CONFIRMATION_FROM_HOST
-//              | SL_SI91X_BLE_INDICATE_CONFIRMATION_FROM_HOST //indication response from app
-// #endif
-// #if RSI_BLE_MTU_EXCHANGE_FROM_HOST
-//              | SL_SI91X_BLE_MTU_EXCHANGE_FROM_HOST //MTU Exchange request initiation from app
-// #endif
-// #if RSI_BLE_SET_SCAN_RESP_DATA_FROM_HOST
-//              | (SL_SI91X_BLE_SET_SCAN_RESP_DATA_FROM_HOST) //Set SCAN Resp Data from app
-// #endif
-// #if RSI_BLE_DISABLE_CODED_PHY_FROM_HOST
-//              | (SL_SI91X_BLE_DISABLE_CODED_PHY_FROM_HOST) //Disable Coded PHY from app
-// #endif
-// #if BLE_SIMPLE_GATT
-//              | SL_SI91X_BLE_GATT_INIT
-// #endif
-//              ),
-//         .config_feature_bit_map =
-//             (SL_SI91X_FEAT_SLEEP_GPIO_SEL_BITMAP | SL_SI91X_ENABLE_ENHANCED_MAX_PSP)}};
+static const sl_wifi_device_configuration_t config = {
+    .boot_option = LOAD_NWP_FW,
+    .mac_address = NULL,
+    .band = SL_SI91X_WIFI_BAND_2_4GHZ,
+    .region_code = US,
+    .boot_config = {
+        .oper_mode = SL_SI91X_CLIENT_MODE,
+        .coex_mode = SL_SI91X_BLE_MODE,
+        .feature_bit_map =
+            (SL_SI91X_FEAT_WPS_DISABLE | SL_SI91X_FEAT_ULP_GPIO_BASED_HANDSHAKE |
+             SL_SI91X_FEAT_DEV_TO_HOST_ULP_GPIO_1),
+        .tcp_ip_feature_bit_map =
+            (SL_SI91X_TCP_IP_FEAT_DHCPV4_CLIENT | SL_SI91X_TCP_IP_FEAT_EXTENSION_VALID),
+        .custom_feature_bit_map = (SL_SI91X_CUSTOM_FEAT_EXTENTION_VALID),
+        .ext_custom_feature_bit_map =
+            (SL_SI91X_EXT_FEAT_LOW_POWER_MODE | SL_SI91X_EXT_FEAT_XTAL_CLK | MEMORY_CONFIG
+#ifdef SLI_SI917
+             | SL_SI91X_EXT_FEAT_FRONT_END_SWITCH_PINS_ULP_GPIO_4_5_0
+#endif
+             | (SL_SI91X_EXT_FEAT_BT_CUSTOM_FEAT_ENABLE)),
+        .bt_feature_bit_map = (SL_SI91X_BT_RF_TYPE | SL_SI91X_ENABLE_BLE_PROTOCOL),
+        .ext_tcp_ip_feature_bit_map = (SL_SI91X_CONFIG_FEAT_EXTENTION_VALID),
+        //!ENABLE_BLE_PROTOCOL in bt_feature_bit_map
+        .ble_feature_bit_map =
+            ((SL_SI91X_BLE_MAX_NBR_PERIPHERALS(RSI_BLE_MAX_NBR_PERIPHERALS) |
+              SL_SI91X_BLE_MAX_NBR_CENTRALS(RSI_BLE_MAX_NBR_CENTRALS) |
+              SL_SI91X_BLE_MAX_NBR_ATT_SERV(RSI_BLE_MAX_NBR_ATT_SERV) |
+              SL_SI91X_BLE_MAX_NBR_ATT_REC(RSI_BLE_MAX_NBR_ATT_REC)) |
+             SL_SI91X_FEAT_BLE_CUSTOM_FEAT_EXTENTION_VALID |
+             SL_SI91X_BLE_PWR_INX(RSI_BLE_PWR_INX) |
+             SL_SI91X_BLE_PWR_SAVE_OPTIONS(RSI_BLE_PWR_SAVE_OPTIONS) |
+             SL_SI91X_916_BLE_COMPATIBLE_FEAT_ENABLE
+#if RSI_BLE_GATT_ASYNC_ENABLE
+             | SL_SI91X_BLE_GATT_ASYNC_ENABLE
+#endif
+             ),
+        .ble_ext_feature_bit_map =
+            ((SL_SI91X_BLE_NUM_CONN_EVENTS(RSI_BLE_NUM_CONN_EVENTS) |
+              SL_SI91X_BLE_NUM_REC_BYTES(RSI_BLE_NUM_REC_BYTES))
+#if RSI_BLE_INDICATE_CONFIRMATION_FROM_HOST
+             | SL_SI91X_BLE_INDICATE_CONFIRMATION_FROM_HOST //indication response from app
+#endif
+#if RSI_BLE_MTU_EXCHANGE_FROM_HOST
+             | SL_SI91X_BLE_MTU_EXCHANGE_FROM_HOST //MTU Exchange request initiation from app
+#endif
+#if RSI_BLE_SET_SCAN_RESP_DATA_FROM_HOST
+             | (SL_SI91X_BLE_SET_SCAN_RESP_DATA_FROM_HOST) //Set SCAN Resp Data from app
+#endif
+#if RSI_BLE_DISABLE_CODED_PHY_FROM_HOST
+             | (SL_SI91X_BLE_DISABLE_CODED_PHY_FROM_HOST) //Disable Coded PHY from app
+#endif
+#if BLE_SIMPLE_GATT
+             | SL_SI91X_BLE_GATT_INIT
+#endif
+             ),
+        .config_feature_bit_map = (SL_SI91X_FEAT_SLEEP_GPIO_SEL_BITMAP)}};
 
 typedef enum {
     HELP,
     HELP_HELP,
+    BLE_MODE_TX,
+    BLE_MODE_RX,
+    BLE_MODE_TX_RX_STOP,
+    BLE_SET_CHANNEL,
+    BLE_SET_PHY,
+    BLE_SET_PAYLOAD_LEN,
+    BLE_SET_PAYLOAD_TYPE,
 
     BLE_TEST_COMMANDS_MAX,
 } BLETestCmdType;
 
 typedef enum {
     BLETestStateIdle,
+    BLETestStateTx,
+    BLETestStateRx,
 } BLETestState;
 
 typedef struct {
@@ -232,6 +121,42 @@ typedef struct {
 const BLETestCmd ble_test_cmd[BLE_TEST_COMMANDS_MAX] = {
     {"?"},
     {"help"},
+    {"tx"},
+    {"rx"},
+    {"stop"},
+    {"channel"},
+    {"phy"},
+    {"payload_len"},
+    {"payload_type"},
+
+};
+
+typedef struct {
+    char* rate_name;
+    uint8_t rate_value;
+} BLETestPhy;
+#define WIFI_RF_TEST_PHY_MAX 4
+const BLETestPhy ble_test_phy[WIFI_RF_TEST_PHY_MAX] = {
+    {"1Mbps", RSI_BLE_1MBPS},
+    {"2Mbps", RSI_BLE_2MBPS},
+    {"125Kbps", RSI_BLE_125KBPS},
+    {"500Kbps", RSI_BLE_500KBPS},
+};
+
+typedef struct {
+    char* payload_type_name;
+    uint8_t payload_type_value;
+} BLETestPayloadType;
+#define BLE_TEST_PAYLOAD_TYPE_MAX 8
+const BLETestPayloadType ble_test_payload_type[BLE_TEST_PAYLOAD_TYPE_MAX] = {
+    {"PRBS9", PRBS9_SEQ},
+    {"Four Ones Four Zeros", FOUR_ONES_FOUR_ZEROS},
+    {"Alt Ones and Zeros", ALT_ONES_AND_ZEROS},
+    {"PRBS15", PRBS15_SEQ},
+    {"All Ones", ALL_ONES},
+    {"All Zeros", ALL_ZEROS},
+    {"Four Zeros Four Ones", FOUR_ZEROS_FOUR_ONES},
+    {"Alt Zero Alt One", ALT_ZERO_ALT_ONE},
 };
 
 struct BLETestApp {
@@ -239,8 +164,15 @@ struct BLETestApp {
     CliWorker* worker;
     BLETestState state;
 
+    sl_wifi_firmware_version_t fw_version;
+    uint8_t rsi_app_resp_get_dev_addr[RSI_DEV_ADDR_LEN];
+    uint8_t local_dev_addr[LOCAL_DEV_ADDR_LEN];
+
+    uint8_t channel;
+    uint8_t phy;
+    uint8_t payload_len;
+    uint8_t payload_type;
     bool exit;
-    bool ap_client_connected;
 };
 
 static void ble_test_app_cmd_usage(BLETestApp* instance);
@@ -262,403 +194,6 @@ static void ble_test_app_send_msg_invalid_arg(BLETestApp* instance) {
     ble_test_app_send_msg(instance);
 }
 
-// /*==============================================*/
-// /**
-//  * @fn         rsi_ble_app_init_events
-//  * @brief      initializes the event parameter.
-//  * @param[in]  none.
-//  * @return     none.
-//  * @section description
-//  * This function is used during BLE initialization.
-//  */
-// static void rsi_ble_app_init_events() {
-//     ble_app_event_map = 0;
-//     ble_app_event_map1 = 0;
-//     return;
-// }
-
-// /*==============================================*/
-// /**
-//  * @fn         rsi_ble_app_set_event
-//  * @brief      set the specific event.
-//  * @param[in]  event_num, specific event number.
-//  * @return     none.
-//  * @section description
-//  * This function is used to set/raise the specific event.
-//  */
-// void rsi_ble_app_set_event(uint32_t event_num) {
-//     if(event_num < 32) {
-//         ble_app_event_map |= BIT(event_num);
-//     } else {
-//         ble_app_event_map1 |= BIT((event_num - 32));
-//     }
-
-//     osSemaphoreRelease(ble_main_task_sem);
-
-//     return;
-// }
-
-// /*==============================================*/
-// /**
-//  * @fn         rsi_ble_app_clear_event
-//  * @brief      clears the specific event.
-//  * @param[in]  event_num, specific event number.
-//  * @return     none.
-//  * @section description
-//  * This function is used to clear the specific event.
-//  */
-// static void rsi_ble_app_clear_event(uint32_t event_num) {
-//     if(event_num < 32) {
-//         ble_app_event_map &= ~BIT(event_num);
-//     } else {
-//         ble_app_event_map1 &= ~BIT((event_num - 32));
-//     }
-
-//     return;
-// }
-
-// /*==============================================*/
-// /**
-//  * @fn         rsi_ble_app_get_event
-//  * @brief      returns the first set event based on priority
-//  * @param[in]  none.
-//  * @return     int32_t
-//  *             > 0  = event number
-//  *             -1   = not received any event
-//  * @section description
-//  * This function returns the highest priority event among all the set events
-//  */
-// static int32_t rsi_ble_app_get_event(void) {
-//     uint32_t ix;
-
-//     for(ix = 0; ix < 64; ix++) {
-//         if(ix < 32) {
-//             if(ble_app_event_map & (1 << ix)) {
-//                 return ix;
-//             }
-//         } else {
-//             if(ble_app_event_map1 & (1 << (ix - 32))) {
-//                 return ix;
-//             }
-//         }
-//     }
-
-//     return (-1);
-// }
-
-// /*==============================================*/
-// /**
-//  * @fn         rsi_ble_simple_peripheral_on_conn_status_event
-//  * @brief      invoked when connection complete event is received
-//  * @param[out] resp_conn, connected remote device information
-//  * @return     none.
-//  * @section description
-//  * This callback function indicates the status of the connection
-//  */
-// void rsi_ble_simple_peripheral_on_conn_status_event(rsi_ble_event_conn_status_t* resp_conn) {
-//     memcpy(&rsi_app_connected_device, resp_conn, sizeof(rsi_ble_event_conn_status_t));
-//     rsi_ble_app_set_event(RSI_APP_EVENT_CONNECTED);
-// }
-
-// /*==============================================*/
-// /**
-//  * @fn         rsi_ble_simple_peripheral_on_disconnect_event
-//  * @brief      invoked when disconnection event is received
-//  * @param[in]  resp_disconnect, disconnected remote device information
-//  * @param[in]  reason, reason for disconnection.
-//  * @return     none.
-//  * @section description
-//  * This callback function indicates disconnected device information and status
-//  */
-// void rsi_ble_simple_peripheral_on_disconnect_event(
-//     rsi_ble_event_disconnect_t* resp_disconnect,
-//     uint16_t reason) {
-//     UNUSED(
-//         reason); //This statement is added only to resolve compilation warning, value is unchanged
-//     memcpy(&rsi_app_disconnected_device, resp_disconnect, sizeof(rsi_ble_event_disconnect_t));
-//     rsi_ble_app_set_event(RSI_APP_EVENT_DISCONNECTED);
-// }
-
-// /*==============================================*/
-// /**
-//  * @fn         rsi_ble_simple_peripheral_on_enhance_conn_status_event
-//  * @brief      invoked when enhanced connection complete event is received
-//  * @param[out] resp_conn, connected remote device information
-//  * @return     none.
-//  * @section description
-//  * This callback function indicates the status of the connection
-//  */
-// void rsi_ble_simple_peripheral_on_enhance_conn_status_event(
-//     rsi_ble_event_enhance_conn_status_t* resp_enh_conn) {
-//     rsi_app_connected_device.dev_addr_type = resp_enh_conn->dev_addr_type;
-//     memcpy(rsi_app_connected_device.dev_addr, resp_enh_conn->dev_addr, RSI_DEV_ADDR_LEN);
-//     rsi_app_connected_device.status = resp_enh_conn->status;
-//     rsi_ble_app_set_event(RSI_APP_EVENT_CONNECTED);
-// }
-
-// /*==============================================*/
-// /**
-//  * @fn         ble_ibeacon
-//  * @brief      Tests the BLE GAP peripheral role.
-//  * @param[in]  none
-//   * @return    none.
-//  * @section description
-//  * ibeacon header:
-//  * ------------------------------------------------------------------------------------------------
-//  *| pre header: 9bytes | uuid: 16 bytes | major_num: 2bytes | minor_num: 2bytes | tx_power:  1byte |
-//  * ------------------------------------------------------------------------------------------------
-//  * This function is used to test the BLE peripheral role and simple GAP API's.
-//  */
-// void ble_ibeacon(void* argument) {
-//     UNUSED(argument);
-
-//     int32_t temp_event_map = 0;
-//     uint8_t scan_data[31] = {2, 1, 6};
-//     uint8_t adv[31] = {0x02, 0x01, 0x02, 0x1A, 0xFF, 0x4C, 0x00, 0x02, 0x15}; //prefix(9bytes)
-//     uint8_t uuid[16] = {
-//         0xFB,
-//         0x0B,
-//         0x57,
-//         0xA2,
-//         0x82,
-//         0x28,
-//         0x44,
-//         0xCD,
-//         0x91,
-//         0x3A,
-//         0x94,
-//         0xA1,
-//         0x22,
-//         0xBA,
-//         0x12,
-//         0x06};
-//     uint8_t major_num[2] = {0x11, 0x22};
-//     uint8_t minor_num[2] = {0x33, 0x44};
-//     uint8_t tx_power = 0x33;
-//     sl_status_t status;
-//     sl_wifi_firmware_version_t version = {0};
-//     uint8_t local_dev_addr[LOCAL_DEV_ADDR_LEN] = {0};
-
-// #ifdef SLI_SI91X_MCU_INTERFACE
-//    // sl_si91x_hardware_setup();
-// #endif /* SLI_SI91X_MCU_INTERFACE */
-//     //! Wi-Fi initialization
-//     status = sl_wifi_init(&config, NULL, sl_wifi_default_event_handler);
-//     if(status != SL_STATUS_OK) {
-//         printf("\r\n Wi-Fi Initialization Failed, Error Code : 0x%lX\r\n", status);
-//         return;
-//     }
-//     printf("\r\n Wi-Fi coex mode initialization is successful\n");
-
-//     //! Firmware version Prints
-//     status = sl_wifi_get_firmware_version(&version);
-//     if(status != SL_STATUS_OK) {
-//         printf("\r\nFirmware version Failed, Error Code : 0x%lX\r\n", status);
-//     } else {
-//         print_firmware_version(&version);
-//     }
-
-//     //! BLE register GAP callbacks
-//     rsi_ble_gap_register_callbacks(
-//         NULL,
-//         rsi_ble_simple_peripheral_on_conn_status_event,
-//         rsi_ble_simple_peripheral_on_disconnect_event,
-//         NULL,
-//         NULL,
-//         NULL,
-//         rsi_ble_simple_peripheral_on_enhance_conn_status_event,
-//         NULL,
-//         NULL,
-//         NULL);
-//     //! create ble main task if ble protocol is selected
-//     ble_main_task_sem = osSemaphoreNew(1, 0, NULL);
-//     if(ble_main_task_sem == NULL) {
-//         printf("Failed to create ble_main_task_sem semaphore\r\n");
-//     }
-//     //! initialize the event map
-//     rsi_ble_app_init_events();
-
-//     // UNUSED(local_dev_addr);
-//     // UNUSED(rsi_app_resp_get_dev_addr);
-//     //! get the local device MAC address.
-//     status = rsi_bt_get_local_device_address(rsi_app_resp_get_dev_addr);
-//     if(status != RSI_SUCCESS) {
-//         printf("\r\n Get local device address failed = %lx\r\n", status);
-//         return;
-//     } else {
-//         rsi_6byte_dev_address_to_ascii(local_dev_addr, rsi_app_resp_get_dev_addr);
-//         printf("\r\n Local device address %s \r\n", local_dev_addr);
-//     }
-
-//     //! set the local device name
-//     status = rsi_bt_set_local_name((uint8_t*)RSI_BLE_LOCAL_NAME);
-//     if(status != RSI_SUCCESS) {
-//         printf("\r\n ble set local name cmd failed with reason code : %lX \n", status);
-//         return;
-//     }
-
-//     //! get the local device name
-//     status = rsi_bt_get_local_name(&rsi_app_resp_get_local_name);
-//     if(status != RSI_SUCCESS) {
-//         printf("\r\n ble get local name cmd failed with reason code : %lX \n", status);
-//         return;
-//     }
-//     printf(" Local name set to: %s\n", rsi_app_resp_get_local_name.name);
-
-//     //! memcpy the uuid value
-//     memcpy(&adv[9], uuid, 16);
-//     //! memcpy the major_number value
-//     memcpy(&adv[9 + 16], major_num, 2);
-//     //! memcpy the minor_number value
-//     memcpy(&adv[9 + 16 + 2], minor_num, 2);
-//     //! memcpy the minor_number value
-//     adv[9 + 16 + 2 + 2] = tx_power;
-
-//     printf("\n Start advertising ...\n");
-//     //! set advertise data
-//     rsi_ble_set_advertise_data(adv, 30);
-//     if(status != RSI_SUCCESS) {
-//         printf("\r\nSet Advertise Data Failed, Error Code : 0x%lX\r\n", status);
-//         return;
-//     } else {
-//         printf("\r\nSet Advertise Data Success\r\n");
-//     }
-//     scan_data[3] = strlen(RSI_BLE_LOCAL_NAME) + 1;
-//     scan_data[4] = 9;
-//     strcpy((char*)&scan_data[5], RSI_BLE_LOCAL_NAME);
-//     status = rsi_ble_set_scan_response_data(scan_data, 31);
-//     if(status != RSI_SUCCESS) {
-//         printf("\r\nSet Scan Response Data Failed, Error Code : 0x%lX\r\n", status);
-//         return;
-//     } else {
-//         printf("\r\nSet Scan Response Data Success\r\n");
-//     }
-
-//     //! start the advertising
-//     status = rsi_ble_start_advertising();
-//     if(status != RSI_SUCCESS) {
-//         printf("\r\nStart Advertising Failed, Error Code : 0x%lX\r\n", status);
-//         return;
-//     } else {
-//         printf("\r\nStart Advertising Success\r\n");
-//     }
-// #if ENABLE_POWER_SAVE
-//     printf("\r\n keep module in to power save \r\n");
-//     //! initiating power save in BLE mode
-//     status = rsi_bt_power_save_profile(PSP_MODE, PSP_TYPE);
-//     if(status != RSI_SUCCESS) {
-//         printf("\r\n Failed to initiate power save in BLE mode \r\n");
-//         return;
-//     }
-
-//     //! initiating power save in wlan mode
-//     status = sl_wifi_set_performance_profile(&wifi_profile);
-//     if(status != SL_STATUS_OK) {
-//         printf("\r\n Failed to initiate power save in Wi-Fi mode :%lx\r\n", status);
-//         return;
-//     }
-
-//     printf("\r\n Module is in power save \r\n");
-// #endif
-//     while(1) {
-//         //! checking for received events
-//         temp_event_map = rsi_ble_app_get_event();
-//         if(temp_event_map == RSI_FAILURE) {
-//             //! if events are not received loop will be continued.
-// #if((SL_SI91X_TICKLESS_MODE == 0) && SLI_SI91X_MCU_INTERFACE && ENABLE_POWER_SAVE)
-//             //! if events are not received loop will be continued.
-//             if((!(P2P_STATUS_REG & TA_wakeup_M4))) {
-//                 P2P_STATUS_REG &= ~M4_wakeup_TA;
-//                 sl_si91x_m4_sleep_wakeup();
-//             }
-// #else
-//             osSemaphoreAcquire(ble_main_task_sem, osWaitForever);
-// #endif
-//             continue;
-//         }
-
-//         //! if any event is received, it will be served.
-//         switch(temp_event_map) {
-//         case RSI_APP_EVENT_CONNECTED: {
-//             //! remote device connected event
-
-//             //! clear the connected event.
-//             rsi_ble_app_clear_event(RSI_APP_EVENT_CONNECTED);
-//             rsi_6byte_dev_address_to_ascii(str_remote_address, rsi_app_connected_device.dev_addr);
-//             printf("\r\n Module connected to address : %s \r\n", str_remote_address);
-//             //! get the RSSI value with connected remote device
-//             status =
-//                 rsi_bt_get_rssi((uint8_t*)rsi_app_connected_device.dev_addr, &rsi_app_resp_rssi);
-//             if(status != RSI_SUCCESS) {
-//                 return;
-//             }
-
-//             //! get the local device state.
-//             status = rsi_ble_get_device_state(&rsi_app_resp_device_state);
-//             if(status != RSI_SUCCESS) {
-//                 return;
-//             }
-//         } break;
-
-//         case RSI_APP_EVENT_DISCONNECTED: {
-//             //! remote device connected event
-
-//             //! clear the disconnected event.
-//             rsi_ble_app_clear_event(RSI_APP_EVENT_DISCONNECTED);
-//             printf("\r\n Module got disconnected\r\n");
-//             //! get the local device state.
-//             status = rsi_ble_get_device_state(&rsi_app_resp_device_state);
-//             if(status != RSI_SUCCESS) {
-//                 return;
-//             }
-// #if ENABLE_POWER_SAVE
-//             printf("\r\n keep module in to active state \r\n");
-//             //! initiating Active mode in BT mode
-//             status = rsi_bt_power_save_profile(RSI_ACTIVE, PSP_TYPE);
-//             if(status != RSI_SUCCESS) {
-//                 printf("\r\n Failed to keep Module in ACTIVE mode \r\n");
-//                 return;
-//             }
-
-//             //! initiating power save in wlan mode
-//             wifi_profile.profile = HIGH_PERFORMANCE;
-//             status = sl_wifi_set_performance_profile(&wifi_profile);
-//             if(status != SL_STATUS_OK) {
-//                 printf("\r\n Failed to keep module in HIGH_PERFORMANCE mode \r\n");
-//                 return;
-//             }
-// #endif
-//             //! set device in advertising mode.
-//         adv:
-//             status = rsi_ble_start_advertising();
-//             if(status != RSI_SUCCESS) {
-//                 printf("\n Failed to start advertising, error code : %lx\n", status);
-//                 goto adv;
-//             }
-//             printf("\n Start advertising ...\n");
-// #if ENABLE_POWER_SAVE
-//             printf("\r\n keep module in to power save \r\n");
-//             status = rsi_bt_power_save_profile(PSP_MODE, PSP_TYPE);
-//             if(status != RSI_SUCCESS) {
-//                 return;
-//             }
-
-//             //! initiating power save in wlan mode
-//             wifi_profile.profile = ASSOCIATED_POWER_SAVE;
-//             status = sl_wifi_set_performance_profile(&wifi_profile);
-//             if(status != SL_STATUS_OK) {
-//                 printf("\r\n Failed to keep module in power save \r\n");
-//                 return;
-//             }
-//             printf("\r\n Module is in power save \r\n");
-// #endif
-//         } break;
-//         default: {
-//         }
-//         }
-//     }
-// }
-
 void* ble_test_app_start(CliWorker* worker) {
     FURI_LOG_I(TAG, "Starting");
 
@@ -667,80 +202,66 @@ void* ble_test_app_start(CliWorker* worker) {
     instance->worker = worker;
     instance->state = BLETestStateIdle;
 
+    instance->channel = BLE_TEST_CHANNEL_DEFAULT;
+    instance->phy = BLE_TESET_PHY_DEFAULT;
+    instance->payload_len = BLE_TEST_PAYLOAD_LEN_DEFAULT;
+    instance->payload_type = BLE_TEST_PAYLOAD_TYPE_DEFAULT;
+
     instance->exit = false;
 
-    //ble_ibeacon(NULL);
+    //ble_testmodes();
+    sl_status_t status = SL_STATUS_FAIL;
+    do {
+        status = sl_wifi_init(&config, NULL, sl_wifi_default_event_handler);
+        if(status != SL_STATUS_OK) {
+            furi_string_printf(
+                instance->msg, "Wi-Fi Initialization Failed, Error Code : 0x%lX\r\n", status);
+            ble_test_app_send_msg(instance);
+            break;
+        }
+        furi_string_printf(instance->msg, "Wi-Fi initialization is successful\n");
+        ble_test_app_send_msg(instance);
 
-    // int32_t status = 0;
-    // sl_wifi_firmware_version_t fw_version = {0};
-    // static uint8_t rsi_app_resp_get_dev_addr[RSI_DEV_ADDR_LEN] = {0};
-    // uint8_t local_dev_addr[LOCAL_DEV_ADDR_LEN] = {0};
+        //! Firmware version Prints
+        status = sl_wifi_get_firmware_version(&instance->fw_version);
+        if(status != SL_STATUS_OK) {
+            furi_string_printf(
+                instance->msg, "Firmware version Failed, Error Code : 0x%lX\r\n", status);
+            ble_test_app_send_msg(instance);
+        } else {
+            furi_string_printf(
+                instance->msg,
+                "Firmware version is: %x%x.%d.%d.%d.%d.%d.%d\r\n",
+                instance->fw_version.chip_id,
+                instance->fw_version.rom_id,
+                instance->fw_version.major,
+                instance->fw_version.minor,
+                instance->fw_version.security_version,
+                instance->fw_version.patch_num,
+                instance->fw_version.customer_id,
+                instance->fw_version.build_num);
+            ble_test_app_send_msg(instance);
+        }
 
-    // //! Wi-Fi initialization
-    // status = sl_wifi_init(&config, NULL, sl_wifi_default_event_handler);
-    // if(status != SL_STATUS_OK) {
-    //     printf("\r\n Wi-Fi Initialization Failed, Error Code : 0x%lX\r\n", status);
-    //     return NULL;
-    // }
-    // printf("\r\n Wi-Fi initialization is successful\n");
+        //! get the local device MAC address.
+        status = rsi_bt_get_local_device_address(instance->rsi_app_resp_get_dev_addr);
+        if(status != RSI_SUCCESS) {
+            furi_string_printf(instance->msg, "Get local device address failed = %lx\r\n", status);
+            ble_test_app_send_msg(instance);
+            break;
+        } else {
+            furi_string_printf(
+                instance->msg, "Local device address %s \r\n", instance->local_dev_addr);
+            ble_test_app_send_msg(instance);
+        }
+        ble_test_app_cmd_usage(instance);
+    } while(0);
 
-    // //! Firmware version Prints
-    // status = sl_wifi_get_firmware_version(&fw_version);
-    // if(status != SL_STATUS_OK) {
-    //     printf("\r\nFirmware version Failed, Error Code : 0x%lX\r\n", status);
-    // } else {
-    //     print_firmware_version(&fw_version);
-    // }
+    if(status != SL_STATUS_OK) {
+        ble_test_app_stop(instance);
+        return NULL;
+    }
 
-    // //! get the local device MAC address.
-    // status = rsi_bt_get_local_device_address(rsi_app_resp_get_dev_addr);
-    // if(status != RSI_SUCCESS) {
-    //     printf("\r\n Get local device address failed = %lx\r\n", status);
-    //     return  NULL;
-    // } else {
-    //     rsi_6byte_dev_address_to_ascii(local_dev_addr, rsi_app_resp_get_dev_addr);
-    //     printf("\r\n Local device address %s \r\n", local_dev_addr);
-    // }
-
-    // if(RSI_CONFIG_TEST_MODE == RSI_BLE_TESTMODE_TRANSMIT) {
-    //     //! start the tx test mode in controller
-    //     rsi_ble_tx_test_mode(
-    //         RSI_BLE_TX_CHANNEL, /* channel number*/
-    //         RSI_BLE_TX_PHY, /* phy - 1Mbps selected */
-    //         RSI_BLE_TX_PAYLOAD_LEN, //255,  /* data_length */
-    //         RSI_BLE_TX_PAYLOAD_TYPE); /* packet payload sequence */
-
-    // } else if(RSI_CONFIG_TEST_MODE == RSI_BLE_TESTMODE_RECEIVE) {
-    //     rsi_ble_rx_test_mode(
-    //         RSI_BLE_RX_CHANNEL, /* channel number*/
-    //         RSI_BLE_RX_PHY, /* phy - 1Mbps selected */
-    //         0x00); /* standard modulation */
-    // }
-
-    // instance->ap_client_connected = false;
-
-    // sl_status_t status = SL_STATUS_FAIL;
-    // do {
-    //     // Initialize Wi-Fi APSTA interface
-    //     status = sl_net_init(
-    //         SL_NET_WIFI_AP_INTERFACE, &sl_wifi_default_concurrent_configuration, NULL, NULL);
-    //     if(status != SL_STATUS_OK) {
-    //         furi_string_printf(
-    //             instance->msg, "Failed to start Wi-Fi APSTA interface: 0x%lx\r\n", status);
-    //         ble_test_app_send_msg(instance);
-    //         break;
-    //     }
-
-    //     furi_string_printf(instance->msg, "Wi-Fi APSTA interface init\r\n");
-    //     ble_test_app_send_msg(instance);
-
-    //     ble_test_app_cmd_usage(instance);
-    // } while(0);
-
-    // if(status != SL_STATUS_OK) {
-    //     ble_test_app_stop(instance);
-    //     return NULL;
-    // }
     return (void*)instance;
 }
 
@@ -751,32 +272,168 @@ void ble_test_app_stop(void* app_handle) {
 
     if(instance) {
         instance->exit = true;
-        furi_delay_ms(100);
-        // if(instance->state == BLETestStateApUp) {
-        //     sl_net_down(SL_NET_WIFI_AP_INTERFACE);
-        // } else if(instance->state == BLETestStateStaUp) {
-        //     sl_net_down(SL_NET_WIFI_CLIENT_INTERFACE);
-        // }
-
         furi_string_free(instance->msg);
         free(instance);
         instance = NULL;
     }
-
-    //sl_net_deinit(SL_NET_WIFI_CLIENT_INTERFACE);
+    sl_wifi_deinit();
 }
 
 static sl_status_t ble_test_app(BLETestApp* instance, uint8_t cmd_index, FuriString* args) {
-    //sl_status_t status = SL_STATUS_FAIL;
+    sl_status_t status = SL_STATUS_FAIL;
 
     char* args_cstr = (char*)furi_string_get_cstr(args);
-    UNUSED(args_cstr);
     FuriString* arg = furi_string_alloc();
+    uint8_t arg_uint8 = 0;
+    StrintParseError parse_err = StrintParseNoError;
 
     switch(cmd_index) {
     case HELP:
     case HELP_HELP:
         ble_test_app_cmd_usage(instance);
+        break;
+    case BLE_MODE_TX:
+        if(instance->state == BLETestStateIdle) {
+            instance->state = BLETestStateTx;
+            status = rsi_ble_tx_test_mode(
+                instance->channel, /* channel number*/
+                instance->phy, /* phy - 1Mbps selected */
+                instance->payload_len, //255,  /* data_length */
+                instance->payload_type); /* packet payload sequence */
+            if(status != SL_STATUS_OK) {
+                furi_string_printf(instance->msg, "Failed to start Tx test mode\r\n");
+                ble_test_app_send_msg(instance);
+            } else {
+                furi_string_printf(
+                    instance->msg,
+                    "Tx test mode started. Channel:%dMhz, Phy:%s, Payload_len:%d, Payload_type:%s\r\n",
+                    (2402 + (2 * instance->channel)),
+                    ble_test_phy[instance->phy].rate_name,
+                    instance->payload_len,
+                    ble_test_payload_type[instance->payload_type].payload_type_name);
+                ble_test_app_send_msg(instance);
+            }
+        } else {
+            furi_string_printf(instance->msg, "Invalid state\r\n");
+            ble_test_app_send_msg(instance);
+        }
+        break;
+    case BLE_MODE_RX:
+        if(instance->state == BLETestStateIdle) {
+            instance->state = BLETestStateRx;
+            status = rsi_ble_rx_test_mode(
+                instance->channel, /* channel number*/
+                instance->phy, /* phy - 1Mbps selected */
+                0x00); /* standard modulation */
+            if(status != SL_STATUS_OK) {
+                furi_string_printf(instance->msg, "Failed to start Rx test mode\r\n");
+                ble_test_app_send_msg(instance);
+            } else {
+                furi_string_printf(
+                    instance->msg,
+                    "Rx test mode started. Channel:%dMhz, Phy:%s\r\n",
+                    (2402 + (2 * instance->channel)),
+                    ble_test_phy[instance->phy].rate_name);
+                ble_test_app_send_msg(instance);
+            }
+        } else {
+            furi_string_printf(instance->msg, "Invalid state\r\n");
+            ble_test_app_send_msg(instance);
+        }
+        break;
+    case BLE_MODE_TX_RX_STOP:
+        if(instance->state == BLETestStateTx || instance->state == BLETestStateRx) {
+            uint16_t num_of_pkts = 0;
+            status = rsi_ble_end_test_mode(&num_of_pkts);
+            if(status != SL_STATUS_OK) {
+                furi_string_printf(instance->msg, "Failed to stop test mode\r\n");
+                ble_test_app_send_msg(instance);
+            } else {
+                if(instance->state == BLETestStateTx) {
+                    furi_string_printf(instance->msg, "Tx mode stopped\r\n");
+                } else if(instance->state == BLETestStateRx) {
+                    furi_string_printf(
+                        instance->msg, "Rx mode stopped, number of packets: %d\r\n", num_of_pkts);
+                }
+                ble_test_app_send_msg(instance);
+            }
+            instance->state = BLETestStateIdle;
+        } else {
+            furi_string_printf(instance->msg, "Invalid state\r\n");
+            ble_test_app_send_msg(instance);
+        }
+        break;
+    case BLE_SET_CHANNEL:
+        if(instance->state == BLETestStateIdle && furi_string_size(args)) {
+            parse_err |= strint_to_uint8(args_cstr, &args_cstr, &arg_uint8, 10);
+
+            if(parse_err == StrintParseNoError) {
+                if(arg_uint8 <= 39) {
+                    instance->channel = arg_uint8;
+                } else {
+                    furi_string_printf(instance->msg, "Invalid channel\r\n");
+                    ble_test_app_send_msg(instance);
+                }
+            }
+
+        } else {
+            furi_string_printf(instance->msg, "Invalid argument or state != IDLE \r\n");
+            ble_test_app_send_msg(instance);
+        }
+        break;
+    case BLE_SET_PHY:
+        if(instance->state == BLETestStateIdle && furi_string_size(args)) {
+            parse_err |= strint_to_uint8(args_cstr, &args_cstr, &arg_uint8, 10);
+
+            if(parse_err == StrintParseNoError) {
+                if((arg_uint8 >= 1) && (arg_uint8 <= 4)) {
+                    instance->phy = arg_uint8;
+                } else {
+                    furi_string_printf(instance->msg, "Invalid PHY\r\n");
+                    ble_test_app_send_msg(instance);
+                }
+            }
+
+        } else {
+            furi_string_printf(instance->msg, "Invalid argument or state != IDLE \r\n");
+            ble_test_app_send_msg(instance);
+        }
+        break;
+    case BLE_SET_PAYLOAD_LEN:
+        if(instance->state == BLETestStateIdle && furi_string_size(args)) {
+            parse_err |= strint_to_uint8(args_cstr, &args_cstr, &arg_uint8, 10);
+
+            if(parse_err == StrintParseNoError) {
+                if((arg_uint8 >= 1) && (arg_uint8 <= 251)) {
+                    instance->payload_len = arg_uint8;
+                } else {
+                    furi_string_printf(instance->msg, "Invalid payload length\r\n");
+                    ble_test_app_send_msg(instance);
+                }
+            }
+
+        } else {
+            furi_string_printf(instance->msg, "Invalid argument or state != IDLE \r\n");
+            ble_test_app_send_msg(instance);
+        }
+        break;
+    case BLE_SET_PAYLOAD_TYPE:
+        if(instance->state == BLETestStateIdle && furi_string_size(args)) {
+            parse_err |= strint_to_uint8(args_cstr, &args_cstr, &arg_uint8, 10);
+
+            if(parse_err == StrintParseNoError) {
+                if(arg_uint8 <= 7) {
+                    instance->payload_type = arg_uint8;
+                } else {
+                    furi_string_printf(instance->msg, "Invalid payload type\r\n");
+                    ble_test_app_send_msg(instance);
+                }
+            }
+
+        } else {
+            furi_string_printf(instance->msg, "Invalid argument or state != IDLE \r\n");
+            ble_test_app_send_msg(instance);
+        }
         break;
 
     default:
@@ -828,17 +485,29 @@ void ble_test_app_parse_msg(void* app_handle, uint8_t* data, size_t size) {
 }
 
 static void ble_test_app_cmd_usage(BLETestApp* instance) {
-    furi_string_printf(instance->msg, "Calibration commands usage:\r\n");
+    furi_string_printf(instance->msg, "%s commands usage:\r\n", TAG);
     furi_string_cat_printf(
         instance->msg,
         "*************************************************************************************************************"
-        "***********************************************\r\n");
+        "*********\r\n");
+    furi_string_cat_printf(instance->msg, "Tests the BLE GAP peripheral role.\r\n");
+
     furi_string_cat_printf(instance->msg, "?\r\n");
     furi_string_cat_printf(instance->msg, "help\r\n");
-
+    furi_string_cat_printf(instance->msg, "tx Tx Start\r\n");
+    furi_string_cat_printf(instance->msg, "rx Rx Start\r\n");
+    furi_string_cat_printf(instance->msg, "stop Tx/Rx Stop\r\n");
+    furi_string_cat_printf(
+        instance->msg, "channel <0..39> BLE channels 2402MHz to 2480MHz with 2MHz spacing\r\n");
+    furi_string_cat_printf(
+        instance->msg, "phy <1..4> PHY 1: 1Mbps, 2: 2Mbps, 3: 125Kbps, 4: 500Kbps\r\n");
+    furi_string_cat_printf(instance->msg, "payload_len <1..251> Payload length\r\n");
+    furi_string_cat_printf(
+        instance->msg,
+        "payload_type <0..7> Payload type 0: PRBS9, 1: 11110000, 2: 10101010, 3: PRBS15, 4: 11111111, 5: 00000000, 6: 00001111, 7: 01010101\r\n");
     furi_string_cat_printf(
         instance->msg,
         "*************************************************************************************************************"
-        "***********************************************\r\n");
+        "*********\r\n");
     ble_test_app_send_msg(instance);
 }
