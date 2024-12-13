@@ -14,7 +14,6 @@ App(
         "httpd_test",
         "power_srv",
         "intercom",
-        "intercom_test",
     ],
     targets=["f20"],
 )
@@ -26,7 +25,6 @@ App(
     provides=[
         "input",
         "intercom",
-        "intercom_test",
         "notification",
     ],
     targets=["f64"],
