@@ -11,24 +11,38 @@
 extern "C" {
 #endif
 
+/** Total frame size */
 #define INTERCOM_FRAME_SIZE      (1024U)
+/** Maximum data (payload) size */
 #define INTERCOM_FRAME_DATA_SIZE (INTERCOM_FRAME_SIZE - 5U)
 
 #pragma pack(push, 1)
 
+/**
+ * @brief Intercom frame structure.
+ *
+ * All Intercom frames have a fixed size of 1024 bytes.
+ */
 typedef struct {
-    uint8_t channel;
-    uint16_t data_size;
-    uint8_t data[INTERCOM_FRAME_DATA_SIZE];
-    uint16_t check;
+    uint8_t channel; /**< Channel identifier */
+    uint16_t data_size; /**< Size of the data (payload) contained in this frame */
+    uint8_t data[INTERCOM_FRAME_DATA_SIZE]; /**< Data (payload) to transmit with the frame */
+    uint16_t check; /**< 16-bit checksum for transmission error detection */
 } IntercomFrame;
 
 #pragma pack(pop)
 
 static_assert(sizeof(IntercomFrame) == INTERCOM_FRAME_SIZE);
 
-/*
- * G.D. Nguyen, "Fast CRCs", IEEE Transactions on Computers, vol. 58, no. 10, pp. 1321-1331, Oct. 2009.
+/**
+ * @brief Calculate the checksum of a given frame.
+ *
+ * @param[in] frame Pointer to a frame to calculate the checksum for.
+ * @returns 16-bit checksum value
+ *
+ * @warning The data_size field MUST be between 0 and INTERCOM_FRAME_DATA_SIZE.
+ *
+ * Source: G.D. Nguyen, "Fast CRCs", IEEE Transactions on Computers, vol. 58, no. 10, pp. 1321-1331, Oct. 2009.
  */
 static inline uint16_t intercom_frame_get_checksum(const IntercomFrame* frame) {
     uint16_t cksum = 0;
@@ -44,6 +58,12 @@ static inline uint16_t intercom_frame_get_checksum(const IntercomFrame* frame) {
     return cksum;
 }
 
+/**
+ * @brief Check if the received frame is valid.
+ *
+ * @param[in] frame Pointer to a frame to check for validity.
+ * @returns true if the frame is valid, false otherwise
+ */
 static inline bool intercom_frame_is_valid(const IntercomFrame* frame) {
     bool is_valid = false;
 

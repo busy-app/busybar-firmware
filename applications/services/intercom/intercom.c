@@ -44,6 +44,8 @@ struct Intercom {
     IntercomChannelData channels[IntercomChannelMax];
     IntercomFrame tx_frame;
     IntercomFrame rx_frame;
+    IntercomErrorCallback error_callback;
+    void* error_callback_context;
 };
 
 typedef enum {
@@ -103,6 +105,26 @@ static void intercom_dump_frame(const IntercomFrame* frame) {
     furi_string_free(tmp);
 }
 
+static void intercom_default_error_callback(IntercomError error, void* context) {
+    furi_assert(context);
+
+    Intercom* instance = context;
+
+    if(error == IntercomErrorSync) {
+        furi_crash("Other side not in sync");
+
+    } else if(error == IntercomErrorFraming) {
+        intercom_dump_frame(&instance->rx_frame);
+        furi_crash("Corrupted frame received");
+
+    } else if(error == IntercomErrorTransmit) {
+        furi_crash("Other side has died");
+
+    } else {
+        furi_crash();
+    }
+}
+
 static FURI_ALWAYS_INLINE void intercom_send_tx_frame(Intercom* instance) {
     IntercomFrame* tx_frame = &instance->tx_frame;
 
@@ -119,16 +141,15 @@ static FURI_ALWAYS_INLINE void intercom_process_rx_frame_event(Intercom* instanc
 
     IntercomFrame* rx_frame = &instance->rx_frame;
 
-    if(!intercom_frame_is_valid(rx_frame)) {
-        intercom_dump_frame(rx_frame);
-        furi_crash("Corrupted frame received");
-    }
+    if(intercom_frame_is_valid(rx_frame)) {
+        const IntercomChannelData* channel_data = &instance->channels[rx_frame->channel];
 
-    const IntercomChannelData* channel_data = &instance->channels[rx_frame->channel];
-
-    if(channel_data->rx_callback) {
-        channel_data->rx_callback(
-            rx_frame->data, rx_frame->data_size, channel_data->callback_context);
+        if(channel_data->rx_callback) {
+            channel_data->rx_callback(
+                rx_frame->data, rx_frame->data_size, channel_data->callback_context);
+        }
+    } else {
+        instance->error_callback(IntercomErrorFraming, instance->error_callback_context);
     }
 
     furi_hal_serial_dma_rx_start(
@@ -159,10 +180,10 @@ static void intercom_custom_event_callback(uint32_t events, void* context) {
 }
 
 static void intercom_tx_timer_callback(void* context) {
+    furi_assert(context);
+
     Intercom* instance = context;
-    UNUSED(instance);
-    // TODO: This is an unrecoverable situation, reboot both sides
-    furi_crash("Other side has died");
+    instance->error_callback(IntercomErrorTransmit, instance->error_callback_context);
 }
 
 static bool intercom_sync_serial(FuriHalSerialHandle* serial) {
@@ -227,6 +248,9 @@ static Intercom* intercom_alloc(void) {
     instance->tx_timer = furi_event_loop_timer_alloc(
         instance->event_loop, intercom_tx_timer_callback, FuriEventLoopTimerTypeOnce, instance);
     instance->serial = furi_hal_serial_control_acquire(INTERCOM_SERIAL);
+    instance->error_callback = intercom_default_error_callback;
+    instance->error_callback_context = instance;
+
     furi_hal_serial_init(instance->serial, INTERCOM_BAUD_RATE);
     furi_hal_serial_set_hw_flow_control(instance->serial, FuriHalSerialHwFlowControlRtsCts);
     furi_hal_serial_set_callback(
@@ -234,7 +258,9 @@ static Intercom* intercom_alloc(void) {
     furi_event_loop_set_custom_event_callback(
         instance->event_loop, intercom_custom_event_callback, instance);
 
-    furi_check(intercom_sync_serial(instance->serial), "Failed to synchronise");
+    if(!intercom_sync_serial(instance->serial)) {
+        instance->error_callback(IntercomErrorSync, instance->error_callback_context);
+    }
 
     furi_hal_serial_clear(instance->serial, FuriHalSerialDirectionTxRx);
     furi_hal_serial_dma_rx_start(
@@ -299,6 +325,18 @@ void intercom_set_rx_callback(
 
     port_data->rx_callback = callback;
     port_data->callback_context = context;
+}
+
+void intercom_set_error_callback(Intercom* instance, IntercomErrorCallback callback, void* context) {
+    furi_check(instance);
+
+    if(callback) {
+        instance->error_callback = callback;
+        instance->error_callback_context = context;
+    } else {
+        instance->error_callback = intercom_default_error_callback;
+        instance->error_callback_context = instance;
+    }
 }
 
 int32_t intercom_srv(void* arg) {
