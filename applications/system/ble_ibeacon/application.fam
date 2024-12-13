@@ -1,0 +1,11 @@
+App(
+    appid="ble_ibeacon_start",
+    targets=["f64"],
+    apptype=FlipperAppType.STARTUP,
+    entry_point="ble_ibeacon_system_start",
+    sources=[
+        "ble_ibeacon.c",
+        "helpers/ble_ibeacon_app.c",
+    ],
+    order=40,
+)

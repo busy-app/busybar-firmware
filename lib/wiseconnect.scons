@@ -25,6 +25,7 @@ env.Append(
         Dir(f"{WISECONNECT_INCDIR}/service/bsd_socket/inc").rdir(),
         Dir(f"{WIRELESS_INCDIR}/sl_net/inc").rdir(),
         Dir(f"{WIRELESS_INCDIR}/inc").rdir(),
+        Dir(f"{WIRELESS_INCDIR}/ble/inc").rdir(),
         Dir(f"{WIRELESS_INCDIR}/ahb_interface/inc").rdir(),
         Dir(f"{WIRELESS_INCDIR}/socket/inc").rdir(),
         Dir(f"{WIRELESS_INCDIR}/asynchronous_socket/inc").rdir(),
@@ -48,6 +49,9 @@ env.Append(
         "ENABLE_DEBUG_MODULE",  # This is for debug power down mode
         "SLI_SI91X_OFFLOAD_NETWORK_STACK",
         "SLI_SI91X_SOCKETS",
+        # SDK BLE Silabs
+        "SLI_SI91X_ENABLE_BLE",
+        "SL_SI91X_ENABLE_LITTLE_ENDIAN=1",
     ],
 )
 
@@ -92,6 +96,13 @@ sources = [
     f"{WIRELESS_DIR}/sl_net/src/sl_net_rsi_utility.c",
     f"{WIRELESS_DIR}/sl_net/src/sl_si91x_net_credentials.c",
     f"{WIRELESS_DIR}/sl_net/src/sl_si91x_net_internal_stack.c",
+    #
+    f"{WIRELESS_DIR}/ble/src/rsi_common_apis.c",
+    f"{WIRELESS_DIR}/ble/src/rsi_bt_ble.c",
+    f"{WIRELESS_DIR}/ble/src/rsi_utils.c",
+    f"{WIRELESS_DIR}/ble/src/rsi_bt_common_apis.c",
+    f"{WIRELESS_DIR}/ble/src/rsi_ble_gap_apis.c",
+    f"{WIRELESS_DIR}/ble/src/rsi_ble_gatt_apis.c",
 ]
 
 lib = libenv.StaticLibrary("${FW_LIB_NAME}", sources)

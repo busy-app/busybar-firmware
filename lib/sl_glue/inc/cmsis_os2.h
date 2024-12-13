@@ -237,7 +237,7 @@ typedef void* osEventFlagsId_t;
 typedef void* osMutexId_t;
 
 // /// \details Semaphore ID identifies the semaphore.
-// typedef void *osSemaphoreId_t;
+typedef void *osSemaphoreId_t;
 
 // /// \details Memory Pool ID identifies the memory pool.
 // typedef void *osMemoryPoolId_t;
@@ -300,13 +300,13 @@ typedef struct {
     uint32_t cb_size; ///< size of provided memory for control block
 } osMutexAttr_t;
 
-// /// Attributes structure for semaphore.
-// typedef struct {
-//   const char                   *name;   ///< name of the semaphore
-//   uint32_t                 attr_bits;   ///< attribute bits
-//   void                      *cb_mem;    ///< memory for control block
-//   uint32_t                   cb_size;   ///< size of provided memory for control block
-// } osSemaphoreAttr_t;
+/// Attributes structure for semaphore.
+typedef struct {
+  const char                   *name;   ///< name of the semaphore
+  uint32_t                 attr_bits;   ///< attribute bits
+  void                      *cb_mem;    ///< memory for control block
+  uint32_t                   cb_size;   ///< size of provided memory for control block
+} osSemaphoreAttr_t;
 
 // /// Attributes structure for memory pool.
 // typedef struct {
@@ -715,6 +715,17 @@ static FURI_ALWAYS_INLINE osStatus_t osMutexDelete(osMutexId_t mutex_id) {
 // /// \param[in]     attr          semaphore attributes; NULL: default values.
 // /// \return semaphore ID for reference by other functions or NULL in case of error.
 // osSemaphoreId_t osSemaphoreNew (uint32_t max_count, uint32_t initial_count, const osSemaphoreAttr_t *attr);
+static FURI_ALWAYS_INLINE osSemaphoreId_t
+    osSemaphoreNew(uint32_t max_count, uint32_t initial_count, const osSemaphoreAttr_t* attr) {
+    UNUSED(attr);
+    furi_check((attr == NULL), "osSemaphoreNew: attr != NULL Check");
+
+    if(attr == NULL) {
+        return (osSemaphoreId_t)furi_semaphore_alloc(max_count, initial_count);
+    }
+    furi_crash("osSemaphoreNew: attr != NULL Check");
+    return NULL;
+}
 
 // /// Get name of a Semaphore object.
 // /// \param[in]     semaphore_id  semaphore ID obtained by \ref osSemaphoreNew.
@@ -726,11 +737,18 @@ static FURI_ALWAYS_INLINE osStatus_t osMutexDelete(osMutexId_t mutex_id) {
 // /// \param[in]     timeout       \ref CMSIS_RTOS_TimeOutValue or 0 in case of no time-out.
 // /// \return status code that indicates the execution status of the function.
 // osStatus_t osSemaphoreAcquire (osSemaphoreId_t semaphore_id, uint32_t timeout);
+static FURI_ALWAYS_INLINE osStatus_t
+    osSemaphoreAcquire(osSemaphoreId_t semaphore_id, uint32_t timeout) {
+    return (osStatus_t)furi_semaphore_acquire((FuriSemaphore*)semaphore_id, timeout);
+}
 
 // /// Release a Semaphore token up to the initial maximum count.
 // /// \param[in]     semaphore_id  semaphore ID obtained by \ref osSemaphoreNew.
 // /// \return status code that indicates the execution status of the function.
 // osStatus_t osSemaphoreRelease (osSemaphoreId_t semaphore_id);
+static FURI_ALWAYS_INLINE osStatus_t osSemaphoreRelease(osSemaphoreId_t semaphore_id) {
+    return (osStatus_t)furi_semaphore_release((FuriSemaphore*)semaphore_id);
+}
 
 // /// Get current Semaphore token count.
 // /// \param[in]     semaphore_id  semaphore ID obtained by \ref osSemaphoreNew.
@@ -741,6 +759,10 @@ static FURI_ALWAYS_INLINE osStatus_t osMutexDelete(osMutexId_t mutex_id) {
 // /// \param[in]     semaphore_id  semaphore ID obtained by \ref osSemaphoreNew.
 // /// \return status code that indicates the execution status of the function.
 // osStatus_t osSemaphoreDelete (osSemaphoreId_t semaphore_id);
+static FURI_ALWAYS_INLINE osStatus_t osSemaphoreDelete(osSemaphoreId_t semaphore_id) {
+    furi_semaphore_free((FuriSemaphore*)semaphore_id);
+    return osOK;
+}
 
 // //  ==== Memory Pool Management Functions ====
 
