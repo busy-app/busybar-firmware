@@ -1,6 +1,6 @@
 /*******************************************************************************
 * @file  ble_config.h
-* @brief  
+* @brief 
 *******************************************************************************
 * # License
 * <b>Copyright 2023 Silicon Laboratories Inc. www.silabs.com</b>
@@ -21,7 +21,6 @@
 /******************************************************
  * *                      Macros
  * ******************************************************/
-
 #define RSI_BLE_SET_RAND_ADDR "00:23:A7:12:34:56"
 
 #define CLEAR_ACCEPTLIST              0x00
@@ -32,21 +31,25 @@
 
 #define RSI_BLE_DEV_ADDR_RESOLUTION_ENABLE 0
 
+#define RSI_OPERMODE_WLAN_BLE 13
+
 #ifdef SLI_SI91X_MCU_INTERFACE
 #define RSI_BLE_MAX_NBR_ATT_REC 20
 /* Number of BLE notifications */
-#define RSI_BLE_NUM_CONN_EVENTS 4
-#else
-#define RSI_BLE_MAX_NBR_ATT_REC 80
-/* Number of BLE notifications */
-#define RSI_BLE_NUM_CONN_EVENTS 20
-#endif
-#define RSI_BLE_MAX_NBR_ATT_SERV 10
-
+#define RSI_BLE_NUM_CONN_EVENTS     2 //ToDo: Need to check
 #define RSI_BLE_MAX_NBR_PERIPHERALS 1
 #define RSI_BLE_MAX_NBR_CENTRALS    1
-#define RSI_BLE_GATT_ASYNC_ENABLE   0
-#define RSI_BLE_GATT_INIT           0
+#else
+#define RSI_BLE_MAX_NBR_ATT_REC     80
+#define RSI_BLE_MAX_NBR_ATT_SERV    10
+/* Number of BLE notifications */
+#define RSI_BLE_NUM_CONN_EVENTS     20
+#define RSI_BLE_MAX_NBR_PERIPHERALS 3
+#define RSI_BLE_MAX_NBR_CENTRALS    1
+#endif
+
+#define RSI_BLE_GATT_ASYNC_ENABLE 0
+#define RSI_BLE_GATT_INIT         0
 
 /* Number of BLE GATT RECORD SIZE IN (n*16 BYTES), eg:(0x40*16)=1024 bytes */
 #define RSI_BLE_NUM_REC_BYTES 0x40
@@ -166,4 +169,5 @@
 
 #define RSI_SEL_INTERNAL_ANTENNA 0x00
 #define RSI_SEL_EXTERNAL_ANTENNA 0x01
+
 #endif
