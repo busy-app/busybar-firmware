@@ -34,7 +34,7 @@
 #define RSI_OPERMODE_WLAN_BLE 13
 
 #ifdef SLI_SI91X_MCU_INTERFACE
-#define RSI_BLE_MAX_NBR_ATT_REC 20
+#define RSI_BLE_MAX_NBR_ATT_REC     20
 /* Number of BLE notifications */
 #define RSI_BLE_NUM_CONN_EVENTS     2 //ToDo: Need to check
 #define RSI_BLE_MAX_NBR_PERIPHERALS 1
@@ -73,7 +73,7 @@
 //! Start the advertising process
 #define RSI_BLE_START_ADV 0x01
 //! Stop the advertising process
-#define RSI_BLE_STOP_ADV 0x00
+#define RSI_BLE_STOP_ADV  0x00
 
 //! BLE Tx Power Index On Air
 #define RSI_BLE_PWR_INX 30

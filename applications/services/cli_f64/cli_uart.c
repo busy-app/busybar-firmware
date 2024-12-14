@@ -57,8 +57,8 @@ static void cli_uart_serial_rx_callback(
     CliUart* context = ctx;
 
     if(event & (FuriHalSerialRxEventData | FuriHalSerialRxEventIdle)) {
-        while(furi_hal_serial_async_rx_available(handle)) {
-            const uint8_t c = furi_hal_serial_async_rx(handle);
+        while(furi_hal_serial_rx_available(handle)) {
+            const uint8_t c = furi_hal_serial_rx(handle);
             furi_check(furi_stream_buffer_send(context->rx_stream, &c, sizeof(c), 0) == sizeof(c));
         }
         furi_thread_flags_set(furi_thread_get_id(context->thread), UartEvtRx);
