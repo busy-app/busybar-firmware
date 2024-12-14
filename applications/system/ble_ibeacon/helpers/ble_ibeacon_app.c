@@ -89,10 +89,10 @@ static const sl_wifi_device_configuration_t config = {
             (SL_SI91X_FEAT_SLEEP_GPIO_SEL_BITMAP | SL_SI91X_ENABLE_ENHANCED_MAX_PSP)}};
 
 typedef enum {
-    HELP,
-    HELP_HELP,
+    BLETestCmdTypeHelp,
+    BLETestCmdTypeHelpHelp,
 
-    ble_ibeacon_COMMANDS_MAX,
+    BLETestCmdTypeMax,
 } BLETestCmdType;
 
 typedef enum {
@@ -103,7 +103,7 @@ typedef struct {
     char* cmd;
 } BLETestCmd;
 
-const BLETestCmd ble_ibeacon_cmd[ble_ibeacon_COMMANDS_MAX] = {
+const BLETestCmd ble_ibeacon_cmd[BLETestCmdTypeMax] = {
     {"?"},
     {"help"},
 };
@@ -476,8 +476,8 @@ static sl_status_t ble_ibeacon_app(BLETiBeaconApp* instance, uint8_t cmd_index, 
     FuriString* arg = furi_string_alloc();
 
     switch(cmd_index) {
-    case HELP:
-    case HELP_HELP:
+    case BLETestCmdTypeHelp:
+    case BLETestCmdTypeHelpHelp:
         ble_ibeacon_app_cmd_usage(instance);
         break;
 
@@ -507,7 +507,7 @@ void ble_ibeacon_app_parse_msg(void* app_handle, uint8_t* data, size_t size) {
             break;
         }
 
-        for(i = 0; i < ble_ibeacon_COMMANDS_MAX; i++) {
+        for(i = 0; i < BLETestCmdTypeMax; i++) {
             if(furi_string_cmp_str(cmd, (char*)ble_ibeacon_cmd[i].cmd) == 0) {
                 cmd_index = i;
                 cmd_valid = true;

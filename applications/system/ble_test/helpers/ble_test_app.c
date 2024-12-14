@@ -95,17 +95,17 @@ static const sl_wifi_device_configuration_t config = {
         .config_feature_bit_map = (SL_SI91X_FEAT_SLEEP_GPIO_SEL_BITMAP)}};
 
 typedef enum {
-    HELP,
-    HELP_HELP,
-    BLE_MODE_TX,
-    BLE_MODE_RX,
-    BLE_MODE_TX_RX_STOP,
-    BLE_SET_CHANNEL,
-    BLE_SET_PHY,
-    BLE_SET_PAYLOAD_LEN,
-    BLE_SET_PAYLOAD_TYPE,
+    BLETestCmdTypeHelp,
+    BLETestCmdTypeHelpHelp,
+    BLETestCmdTypeModeTx,
+    BLETestCmdTypeModeRx,
+    BLETestCmdTypeModeTxRxStop,
+    BLETestCmdTypeSetChannel,
+    BLETestCmdTypeSetPhy,
+    BLETestCmdTypeSetPayloadLen,
+    BLETestCmdTypeSetPayloadType,
 
-    BLE_TEST_COMMANDS_MAX,
+    BLETestCmdMax,
 } BLETestCmdType;
 
 typedef enum {
@@ -118,7 +118,7 @@ typedef struct {
     char* cmd;
 } BLETestCmd;
 
-const BLETestCmd ble_test_cmd[BLE_TEST_COMMANDS_MAX] = {
+const BLETestCmd ble_test_cmd[BLETestCmdMax] = {
     {"?"},
     {"help"},
     {"tx"},
@@ -288,11 +288,11 @@ static sl_status_t ble_test_app(BLETestApp* instance, uint8_t cmd_index, FuriStr
     StrintParseError parse_err = StrintParseNoError;
 
     switch(cmd_index) {
-    case HELP:
-    case HELP_HELP:
+    case BLETestCmdTypeHelp:
+    case BLETestCmdTypeHelpHelp:
         ble_test_app_cmd_usage(instance);
         break;
-    case BLE_MODE_TX:
+    case BLETestCmdTypeModeTx:
         if(instance->state == BLETestStateIdle) {
             instance->state = BLETestStateTx;
             status = rsi_ble_tx_test_mode(
@@ -318,7 +318,7 @@ static sl_status_t ble_test_app(BLETestApp* instance, uint8_t cmd_index, FuriStr
             ble_test_app_send_msg(instance);
         }
         break;
-    case BLE_MODE_RX:
+    case BLETestCmdTypeModeRx:
         if(instance->state == BLETestStateIdle) {
             instance->state = BLETestStateRx;
             status = rsi_ble_rx_test_mode(
@@ -341,7 +341,7 @@ static sl_status_t ble_test_app(BLETestApp* instance, uint8_t cmd_index, FuriStr
             ble_test_app_send_msg(instance);
         }
         break;
-    case BLE_MODE_TX_RX_STOP:
+    case BLETestCmdTypeModeTxRxStop:
         if(instance->state == BLETestStateTx || instance->state == BLETestStateRx) {
             uint16_t num_of_pkts = 0;
             status = rsi_ble_end_test_mode(&num_of_pkts);
@@ -363,7 +363,7 @@ static sl_status_t ble_test_app(BLETestApp* instance, uint8_t cmd_index, FuriStr
             ble_test_app_send_msg(instance);
         }
         break;
-    case BLE_SET_CHANNEL:
+    case BLETestCmdTypeSetChannel:
         if(instance->state == BLETestStateIdle && furi_string_size(args)) {
             parse_err |= strint_to_uint8(args_cstr, &args_cstr, &arg_uint8, 10);
 
@@ -381,7 +381,7 @@ static sl_status_t ble_test_app(BLETestApp* instance, uint8_t cmd_index, FuriStr
             ble_test_app_send_msg(instance);
         }
         break;
-    case BLE_SET_PHY:
+    case BLETestCmdTypeSetPhy:
         if(instance->state == BLETestStateIdle && furi_string_size(args)) {
             parse_err |= strint_to_uint8(args_cstr, &args_cstr, &arg_uint8, 10);
 
@@ -399,7 +399,7 @@ static sl_status_t ble_test_app(BLETestApp* instance, uint8_t cmd_index, FuriStr
             ble_test_app_send_msg(instance);
         }
         break;
-    case BLE_SET_PAYLOAD_LEN:
+    case BLETestCmdTypeSetPayloadLen:
         if(instance->state == BLETestStateIdle && furi_string_size(args)) {
             parse_err |= strint_to_uint8(args_cstr, &args_cstr, &arg_uint8, 10);
 
@@ -417,7 +417,7 @@ static sl_status_t ble_test_app(BLETestApp* instance, uint8_t cmd_index, FuriStr
             ble_test_app_send_msg(instance);
         }
         break;
-    case BLE_SET_PAYLOAD_TYPE:
+    case BLETestCmdTypeSetPayloadType:
         if(instance->state == BLETestStateIdle && furi_string_size(args)) {
             parse_err |= strint_to_uint8(args_cstr, &args_cstr, &arg_uint8, 10);
 
@@ -462,7 +462,7 @@ void ble_test_app_parse_msg(void* app_handle, uint8_t* data, size_t size) {
             break;
         }
 
-        for(i = 0; i < BLE_TEST_COMMANDS_MAX; i++) {
+        for(i = 0; i < BLETestCmdMax; i++) {
             if(furi_string_cmp_str(cmd, (char*)ble_test_cmd[i].cmd) == 0) {
                 cmd_index = i;
                 cmd_valid = true;
