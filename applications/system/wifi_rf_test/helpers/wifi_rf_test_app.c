@@ -19,17 +19,17 @@
 #define WIFI_RF_TEST_MODE_DEFAULT                SL_WIFI_TEST_BURST_MODE
 
 typedef enum {
-    HELP,
-    HELP_HELP,
-    RECEIVE,
-    TRANSMIT_START,
-    TRANSMIT_STOP,
-    SET_POWER,
-    SET_RATE,
-    SET_CHANNEL,
-    SET_MODE,
+    WifiTestCmdTypeHelp,
+    WifiTestCmdTypeHelpHelp,
+    WifiTestCmdTypeReceive,
+    WifiTestCmdTypeTransmitStart,
+    WifiTestCmdTypeTransmitStop,
+    WifiTestCmdTypeSetPower,
+    WifiTestCmdTypeSetRate,
+    WifiTestCmdTypeSetChannel,
+    WifiTestCmdTypeSetMode,
 
-    WIFI_RF_TEST_COMMANDS_MAX,
+    WifiTestCmdTypeMax,
 } WifiTestCmdType;
 
 typedef enum {
@@ -42,7 +42,7 @@ typedef struct {
     char* cmd;
 } WifiTestCmd;
 
-const WifiTestCmd wifi_rf_test_cmd[WIFI_RF_TEST_COMMANDS_MAX] = {
+const WifiTestCmd wifi_rf_test_cmd[WifiTestCmdTypeMax] = {
     {"?"},
     {"help"},
     {"rx"},
@@ -354,12 +354,12 @@ sl_status_t wifi_rf_test_app(WifiRfTestApp* instance, uint8_t cmd_index, FuriStr
     uint8_t i = 0;
 
     switch(cmd_index) {
-    case HELP:
-    case HELP_HELP:
+    case WifiTestCmdTypeHelp:
+    case WifiTestCmdTypeHelpHelp:
         wifi_rf_test_app_cmd_usage(instance);
         break;
 
-    case RECEIVE:
+    case WifiTestCmdTypeReceive:
         if(instance->state == WifiTestStateTransmit) {
             sl_si91x_transmit_test_stop();
             furi_string_printf(instance->msg, "Transmit test stop Success\r\n");
@@ -431,7 +431,7 @@ sl_status_t wifi_rf_test_app(WifiRfTestApp* instance, uint8_t cmd_index, FuriStr
             instance->fail_avg = 0;
         }
         break;
-    case TRANSMIT_START:
+    case WifiTestCmdTypeTransmitStart:
         if(instance->state == WifiTestStateReceive) {
             sl_wifi_stop_statistic_report(SL_WIFI_CLIENT_INTERFACE);
             instance->state = WifiTestStateIdle;
@@ -471,7 +471,7 @@ sl_status_t wifi_rf_test_app(WifiRfTestApp* instance, uint8_t cmd_index, FuriStr
             }
         } while(0);
         break;
-    case TRANSMIT_STOP:
+    case WifiTestCmdTypeTransmitStop:
         if(instance->state == WifiTestStateTransmit) {
             status = sl_si91x_transmit_test_stop();
             if(status != SL_STATUS_OK) {
@@ -487,7 +487,7 @@ sl_status_t wifi_rf_test_app(WifiRfTestApp* instance, uint8_t cmd_index, FuriStr
             wifi_rf_test_app_send_msg(instance);
         }
         break;
-    case SET_POWER:
+    case WifiTestCmdTypeSetPower:
         if(instance->state == WifiTestStateIdle) {
             if(furi_string_size(args)) {
                 uint16_t power_temp = 0;
@@ -510,7 +510,7 @@ sl_status_t wifi_rf_test_app(WifiRfTestApp* instance, uint8_t cmd_index, FuriStr
             wifi_rf_test_app_send_msg(instance);
         }
         break;
-    case SET_RATE:
+    case WifiTestCmdTypeSetRate:
         if(instance->state == WifiTestStateIdle) {
             do {
                 if(!args_read_string_and_trim(args, arg)) {
@@ -540,7 +540,7 @@ sl_status_t wifi_rf_test_app(WifiRfTestApp* instance, uint8_t cmd_index, FuriStr
             wifi_rf_test_app_send_msg(instance);
         }
         break;
-    case SET_CHANNEL:
+    case WifiTestCmdTypeSetChannel:
         if(instance->state == WifiTestStateIdle) {
             do {
                 if(!args_read_string_and_trim(args, arg)) {
@@ -572,7 +572,7 @@ sl_status_t wifi_rf_test_app(WifiRfTestApp* instance, uint8_t cmd_index, FuriStr
             wifi_rf_test_app_send_msg(instance);
         }
         break;
-    case SET_MODE:
+    case WifiTestCmdTypeSetMode:
         if(instance->state == WifiTestStateIdle) {
             do {
                 if(!args_read_string_and_trim(args, arg)) {
@@ -628,7 +628,7 @@ void wifi_rf_test_app_parse_msg(void* app_handle, uint8_t* data, size_t size) {
             break;
         }
 
-        for(i = 0; i < WIFI_RF_TEST_COMMANDS_MAX; i++) {
+        for(i = 0; i < WifiTestCmdTypeMax; i++) {
             if(furi_string_cmp_str(cmd, (char*)wifi_rf_test_cmd[i].cmd) == 0) {
                 cmd_index = i;
                 cmd_valid = true;

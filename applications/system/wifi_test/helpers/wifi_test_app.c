@@ -112,18 +112,18 @@ static const sl_net_wifi_psk_credential_entry_t wifi_client_credential = {
     .data = WIFI_CLIENT_CREDENTIAL};
 
 typedef enum {
-    HELP,
-    HELP_HELP,
-    SCAN,
-    AP_UP,
-    AP_DOWN,
-    STA_UP,
-    STA_DOWN,
-    TEST_TCP_RX,
-    TEST_TCP_TX,
-    TEST_ECHO,
+    WifiTestCmdTypeHelp,
+    WifiTestCmdTypeHelpHelp,
+    WifiTestCmdTypeScan,
+    WifiTestCmdTypeApUp,
+    WifiTestCmdTypeApDown,
+    WifiTestCmdTypeStaUp,
+    WifiTestCmdTypeStaDown,
+    WifiTestCmdTypeTestTcpRx,
+    WifiTestCmdTypeTestTcpTx,
+    WifiTestCmdTypeTestEcho,
 
-    WIFI_TEST_COMMANDS_MAX,
+    WifiTestCmdTypeMax,
 } WifiTestCmdType;
 
 typedef enum {
@@ -137,7 +137,7 @@ typedef struct {
     char* cmd;
 } WifiTestCmd;
 
-const WifiTestCmd wifi_test_cmd[WIFI_TEST_COMMANDS_MAX] = {
+const WifiTestCmd wifi_test_cmd[WifiTestCmdTypeMax] = {
     {"?"},
     {"help"},
     {"scan"},
@@ -294,11 +294,11 @@ static sl_status_t wifi_test_app(WifiTestApp* instance, uint8_t cmd_index, FuriS
     FuriString* arg = furi_string_alloc();
 
     switch(cmd_index) {
-    case HELP:
-    case HELP_HELP:
+    case WifiTestCmdTypeHelp:
+    case WifiTestCmdTypeHelpHelp:
         wifi_test_app_cmd_usage(instance);
         break;
-    case SCAN:
+    case WifiTestCmdTypeScan:
         if(instance->state == WifiTestStateIdle) {
             status = wifi_scan(instance->msg);
             if(status != SL_STATUS_OK) {
@@ -312,7 +312,7 @@ static sl_status_t wifi_test_app(WifiTestApp* instance, uint8_t cmd_index, FuriS
             wifi_test_app_send_msg(instance);
         }
         break;
-    case AP_UP:
+    case WifiTestCmdTypeApUp:
         if(instance->state == WifiTestStateIdle) {
             // Set Wi-Fi callbacks
             sl_wifi_set_callback(
@@ -363,7 +363,7 @@ static sl_status_t wifi_test_app(WifiTestApp* instance, uint8_t cmd_index, FuriS
             wifi_test_app_send_msg(instance);
         }
         break;
-    case AP_DOWN:
+    case WifiTestCmdTypeApDown:
         if(instance->state == WifiTestStateApUp) {
             status = sl_net_down(SL_NET_WIFI_AP_INTERFACE);
             if(status != SL_STATUS_OK) {
@@ -380,7 +380,7 @@ static sl_status_t wifi_test_app(WifiTestApp* instance, uint8_t cmd_index, FuriS
             wifi_test_app_send_msg(instance);
         }
         break;
-    case STA_UP:
+    case WifiTestCmdTypeStaUp:
         if(instance->state == WifiTestStateIdle) {
             sl_net_wifi_client_profile_t client_profile = {0};
             sl_ip_address_t ip_address = {0};
@@ -469,7 +469,7 @@ static sl_status_t wifi_test_app(WifiTestApp* instance, uint8_t cmd_index, FuriS
             wifi_test_app_send_msg(instance);
         }
         break;
-    case STA_DOWN:
+    case WifiTestCmdTypeStaDown:
         if(instance->state == WifiTestStateStaUp) {
             status = sl_net_down(SL_NET_WIFI_CLIENT_INTERFACE);
             if(status != SL_STATUS_OK) {
@@ -488,7 +488,7 @@ static sl_status_t wifi_test_app(WifiTestApp* instance, uint8_t cmd_index, FuriS
             wifi_test_app_send_msg(instance);
         }
         break;
-    case TEST_TCP_RX:
+    case WifiTestCmdTypeTestTcpRx:
         if(instance->state == WifiTestStateStaUp || instance->state == WifiTestStateApUp) {
             wifi_async_socket_server_tcp_rx_init(instance, instance->msg, 5005);
         } else {
@@ -496,7 +496,7 @@ static sl_status_t wifi_test_app(WifiTestApp* instance, uint8_t cmd_index, FuriS
             wifi_test_app_send_msg(instance);
         }
         break;
-    case TEST_TCP_TX:
+    case WifiTestCmdTypeTestTcpTx:
         if(instance->state == WifiTestStateStaUp || instance->state == WifiTestStateApUp) {
             if(!args_read_string_and_trim(args, arg)) {
                 wifi_async_socket_client_tcp_tx_init(
@@ -510,7 +510,7 @@ static sl_status_t wifi_test_app(WifiTestApp* instance, uint8_t cmd_index, FuriS
             wifi_test_app_send_msg(instance);
         }
         break;
-    case TEST_ECHO:
+    case WifiTestCmdTypeTestEcho:
         if(instance->state == WifiTestStateStaUp || instance->state == WifiTestStateApUp) {
             wifi_async_socket_server_echo_init(instance, instance->msg, 5005);
         } else {
@@ -544,7 +544,7 @@ void wifi_test_app_parse_msg(void* app_handle, uint8_t* data, size_t size) {
             break;
         }
 
-        for(i = 0; i < WIFI_TEST_COMMANDS_MAX; i++) {
+        for(i = 0; i < WifiTestCmdTypeMax; i++) {
             if(furi_string_cmp_str(cmd, (char*)wifi_test_cmd[i].cmd) == 0) {
                 cmd_index = i;
                 cmd_valid = true;
