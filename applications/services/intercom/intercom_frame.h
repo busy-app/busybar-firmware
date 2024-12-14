@@ -11,95 +11,65 @@
 extern "C" {
 #endif
 
-#define INTERCOM_MIN_FRAME_SIZE (sizeof(IntercomFrameHeader) + sizeof(IntercomFrameTrailer))
-
-#define INTERCOM_S_FRAME_SIZE         (INTERCOM_MIN_FRAME_SIZE)
-#define INTERCOM_D_FRAME_SIZE         (1024U)
-#define INTERCOM_D_FRAME_PAYLOAD_SIZE (INTERCOM_D_FRAME_SIZE - INTERCOM_MIN_FRAME_SIZE)
-#define INTERCOM_D_FRAME_DATA_SIZE    (INTERCOM_D_FRAME_PAYLOAD_SIZE - sizeof(uint16_t))
-
-typedef enum {
-    IntercomFrameTypeData,
-    IntercomFrameTypeService,
-    IntercomFrameTypeMax,
-} IntercomFrameType;
-
-typedef enum {
-    IntercomFrameErrorNone,
-    IntercomFrameErrorFormat,
-    IntercomFrameErrorWrongType,
-    IntercomFrameErrorMax,
-} IntercomFrameError;
+/** Total frame size */
+#define INTERCOM_FRAME_SIZE      (1024U)
+/** Maximum data (payload) size */
+#define INTERCOM_FRAME_DATA_SIZE (INTERCOM_FRAME_SIZE - 5U)
 
 #pragma pack(push, 1)
 
+/**
+ * @brief Intercom frame structure.
+ *
+ * All Intercom frames have a fixed size of 1024 bytes.
+ */
 typedef struct {
-    uint8_t id;
-    uint8_t type  : 4;
-    uint8_t error : 4;
-} IntercomFrameHeader;
-
-typedef struct {
-    uint16_t check;
-} IntercomFrameTrailer;
-
-typedef struct {
-    uint16_t size;
-    uint8_t data[INTERCOM_D_FRAME_DATA_SIZE];
-} IntercomFramePayload;
-
-typedef struct {
-    IntercomFrameHeader header;
-    union {
-        struct {
-            IntercomFramePayload payload;
-            IntercomFrameTrailer trailer;
-        } d;
-        struct {
-            IntercomFrameTrailer trailer;
-        } s;
-    };
+    uint8_t channel; /**< Channel identifier */
+    uint16_t data_size; /**< Size of the data (payload) contained in this frame */
+    uint8_t data[INTERCOM_FRAME_DATA_SIZE]; /**< Data (payload) to transmit with the frame */
+    uint16_t check; /**< 16-bit checksum for transmission error detection */
 } IntercomFrame;
 
 #pragma pack(pop)
 
-static_assert(sizeof(IntercomFrame) == INTERCOM_D_FRAME_SIZE);
+static_assert(sizeof(IntercomFrame) == INTERCOM_FRAME_SIZE);
 
-static inline uint16_t intercom_frame_calculate_checksum(const IntercomFrame* frame) {
-    (void)frame;
-    // TODO: Decide on the algorithm
-    return 0xa1a1;
+/**
+ * @brief Calculate the checksum of a given frame.
+ *
+ * @param[in] frame Pointer to a frame to calculate the checksum for.
+ * @returns 16-bit checksum value
+ *
+ * @warning The data_size field MUST be between 0 and INTERCOM_FRAME_DATA_SIZE.
+ *
+ * Source: G.D. Nguyen, "Fast CRCs", IEEE Transactions on Computers, vol. 58, no. 10, pp. 1321-1331, Oct. 2009.
+ */
+static inline uint16_t intercom_frame_get_checksum(const IntercomFrame* frame) {
+    uint16_t cksum = 0;
+
+    const uint8_t* p = (const uint8_t*)frame;
+    const size_t p_len = offsetof(IntercomFrame, data) + frame->data_size;
+
+    for(uint32_t i = 0; i < p_len; ++i) {
+        const uint16_t tmp = (cksum >> 8) ^ p[i];
+        cksum = (tmp << 2) ^ (tmp << 1) ^ (tmp) ^ (cksum << 8);
+    }
+
+    return cksum;
 }
 
+/**
+ * @brief Check if the received frame is valid.
+ *
+ * @param[in] frame Pointer to a frame to check for validity.
+ * @returns true if the frame is valid, false otherwise
+ */
 static inline bool intercom_frame_is_valid(const IntercomFrame* frame) {
     bool is_valid = false;
 
     do {
-        const IntercomFrameType type = frame->header.type;
-        uint16_t checksum;
-
-        if(type == IntercomFrameTypeData) {
-            const uint16_t payload_size = frame->d.payload.size;
-            if(payload_size > INTERCOM_D_FRAME_PAYLOAD_SIZE) {
-                break;
-            }
-
-            checksum = frame->d.trailer.check;
-
-        } else if(type == IntercomFrameTypeService) {
-            if(frame->header.error >= IntercomFrameErrorMax) {
-                break;
-            }
-
-            checksum = frame->s.trailer.check;
-
-        } else {
-            break;
-        }
-
-        if(intercom_frame_calculate_checksum(frame) != checksum) {
-            break;
-        }
+        if(frame->data_size > INTERCOM_FRAME_DATA_SIZE) break;
+        if(intercom_frame_get_checksum(frame) != frame->check) break;
 
         is_valid = true;
     } while(false);

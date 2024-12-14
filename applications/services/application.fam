@@ -14,7 +14,6 @@ App(
         "httpd_test",
         "power_srv",
         "intercom",
-        "rpc_start",
     ],
     targets=["f20"],
 )
@@ -27,7 +26,6 @@ App(
         "input",
         "intercom",
         "notification",
-        "rpc_start",
     ],
     targets=["f64"],
 )

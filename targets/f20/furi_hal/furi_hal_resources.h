@@ -1,3 +1,7 @@
+/**
+ * @file furi_hal_resources.h
+ * @brief Hardware resources API
+ */
 #pragma once
 
 #include <furi.h>

@@ -1,31 +1,9 @@
 App(
     appid="intercom",
-    name="Intercom",
-    apptype=FlipperAppType.METAPACKAGE,
-    provides=[
-        "intercom_srv",
-        "intercom_start",
-    ],
-    targets=["f20", "f64"],
-)
-
-App(
-    appid="intercom_srv",
     name="IntercomSrv",
     apptype=FlipperAppType.SERVICE,
     entry_point="intercom_srv",
-    cdefines=["SRV_INTERCOM"],
     stack_size=2 * 1024,
     targets=["f20", "f64"],
     order=60,
-)
-
-App(
-    appid="intercom_start",
-    name="IntercomStartupHook",
-    apptype=FlipperAppType.STARTUP,
-    entry_point="intercom_on_system_start",
-    cdefines=["SRV_INTERCOM_RPC"],
-    targets=["f20", "f64"],
-    order=20,
 )
