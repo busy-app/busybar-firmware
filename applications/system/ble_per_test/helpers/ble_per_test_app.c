@@ -15,7 +15,7 @@
 #include <args.h>
 #include <strint.h>
 
-#define TAG "BLETestApp"
+#define TAG "BLEPerTestApp"
 
 #define RSI_BLE_LOCAL_NAME (void*)"BLE_PERIPHERAL"
 
@@ -28,26 +28,26 @@
 
 #define RSI_CONFIG_PER_MODE RSI_BLE_PER_TRANSMIT_MODE
 
-#define LE_ONE_MBPS       1
-#define LE_TWO_MBPS       2
-#define LE_125_KBPS_CODED 4
-#define LE_500_KBPS_CODED 8
+#define RSI_BLE_1MBPS   1
+#define RSI_BLE_2MBPS   2
+#define RSI_BLE_125KBPS 4
+#define RSI_BLE_500KBPS 8
 
-#define DATA_PRBS9                 0x00
-#define DATA_FOUR_ONES_FOUR_ZEROES 0x01
-#define DATA_ALT_ONES_AND_ZEROES   0x02
-#define DATA_PRSB15                0x03
-#define DATA_ALL_ONES              0x04
-#define DATA_ALL_ZEROES            0x05
-#define DATA_FOUR_ZEROES_FOUR_ONES 0x06
-#define DATA_ALT_ZEROES_AND_ONES   0x07
+#define PRBS9_SEQ            0x0 //PRBS9 sequence '11111111100000111101...' \n
+#define FOUR_ONES_FOUR_ZEROS 0x1 //Repeated '11110000' \n
+#define ALT_ONES_AND_ZEROS   0x2 //Repeated '10101010' \n
+#define PRBS15_SEQ           0x3 //PRBS15 \n
+#define ALL_ONES             0x4 //Repeated '11111111' \n
+#define ALL_ZEROS            0x5 //Repeated '00000000' \n
+#define FOUR_ZEROS_FOUR_ONES 0x6 //Repeated '00001111' \n
+#define ALT_ZERO_ALT_ONE     0x7 //Repeated '01010101' \n
 
 #define LE_ADV_CHNL_TYPE  0
 #define LE_DATA_CHNL_TYPE 1
 
 #define BURST_MODE     0
 #define CONTIUOUS_MODE 1
-#define CW_MODE 2
+#define CW_MODE        2
 
 #define NO_HOPPING     0
 #define FIXED_HOPPING  1
@@ -59,9 +59,9 @@
 
 #define BLE_ACCESS_ADDR    0x71764129
 #define BLE_TX_PKT_LEN     32
-#define BLE_PHY_RATE       LE_ONE_MBPS
-#define BLE_RX_CHNL_NUM    9
-#define BLE_TX_CHNL_NUM    9
+#define BLE_PHY_RATE       RSI_BLE_2MBPS
+#define BLE_RX_CHNL_NUM    24
+#define BLE_TX_CHNL_NUM    24
 #define BLE_TX_POWER_INDEX 8
 #define SCRAMBLER_SEED     0
 #define NUM_PKTS           0
@@ -89,7 +89,6 @@
 
 #define DUTY_CYCLING_DISABLE 0
 #define DUTY_CYCLING_ENABLE  1
-#define ENABLE_POWER_SAVE    0 //! Set to 1 for powersave mode
 #define LOCAL_DEV_ADDR_LEN   18 // Length of the local device address
 
 #define GAIN_TABLE_AND_MAX_POWER_UPDATE_ENABLE \
@@ -230,20 +229,15 @@ uint8_t Si917_BLE_REGION_BASED_LP_CHAIN_10DBM_OFFSET_XX[128] = {//{{{
 // clang-format on
 #endif
 
-//! Application global parameters.
-static rsi_bt_resp_get_local_name_t rsi_app_resp_get_local_name = {0};
-static uint8_t rsi_app_resp_get_dev_addr[RSI_DEV_ADDR_LEN] = {0};
-static rsi_ble_per_transmit_t rsi_ble_per_tx;
-static rsi_ble_per_receive_t rsi_ble_per_rx;
-static rsi_bt_per_stats_t per_stats;
-
-#define RSI_FEATURE_BIT_MAP \
-  (SL_SI91X_FEAT_ULP_GPIO_BASED_HANDSHAKE | SL_SI91X_FEAT_DEV_TO_HOST_ULP_GPIO_1) //! To set wlan feature select bit map
-#define RSI_TCP_IP_FEATURE_BIT_MAP   0 //! TCP/IP feature select bitmap for selecting TCP/IP features
-#define RSI_CUSTOM_FEATURE_BIT_MAP SL_SI91X_CUSTOM_FEAT_EXTENTION_VALID //! To set custom feature select bit map
+#define RSI_FEATURE_BIT_MAP                   \
+    (SL_SI91X_FEAT_ULP_GPIO_BASED_HANDSHAKE | \
+     SL_SI91X_FEAT_DEV_TO_HOST_ULP_GPIO_1) //! To set wlan feature select bit map
+#define RSI_TCP_IP_FEATURE_BIT_MAP 0 //! TCP/IP feature select bitmap for selecting TCP/IP features
+#define RSI_CUSTOM_FEATURE_BIT_MAP \
+    SL_SI91X_CUSTOM_FEAT_EXTENTION_VALID //! To set custom feature select bit map
 #define RSI_EXT_TCPIP_FEATURE_BITMAP 0
-#define RSI_BT_FEATURE_BITMAP     (SL_SI91X_BT_RF_TYPE | SL_SI91X_ENABLE_BLE_PROTOCOL)
-#define RSI_CONFIG_FEATURE_BITMAP 0
+#define RSI_BT_FEATURE_BITMAP        (SL_SI91X_BT_RF_TYPE | SL_SI91X_ENABLE_BLE_PROTOCOL)
+#define RSI_CONFIG_FEATURE_BITMAP    0
 
 static const sl_wifi_device_configuration_t config = {
     .boot_option = LOAD_NWP_FW,
@@ -254,8 +248,7 @@ static const sl_wifi_device_configuration_t config = {
         .oper_mode = SL_SI91X_CLIENT_MODE,
         .coex_mode = SL_SI91X_WLAN_BLE_MODE,
 #ifdef SLI_SI91X_MCU_INTERFACE
-        .feature_bit_map =
-            (SL_SI91X_FEAT_WPS_DISABLE | RSI_FEATURE_BIT_MAP),
+        .feature_bit_map = (SL_SI91X_FEAT_WPS_DISABLE | RSI_FEATURE_BIT_MAP),
 #else
         .feature_bit_map = RSI_FEATURE_BIT_MAP,
 #endif
@@ -320,30 +313,30 @@ static const sl_wifi_device_configuration_t config = {
             (SL_SI91X_FEAT_SLEEP_GPIO_SEL_BITMAP | RSI_CONFIG_FEATURE_BITMAP)}};
 
 typedef enum {
-    HELP,
-    HELP_HELP,
-    BLE_MODE_TX,
-    BLE_MODE_RX,
-    BLE_MODE_TX_RX_STOP,
-    BLE_SET_CHANNEL,
-    BLE_SET_PHY,
-    BLE_SET_PAYLOAD_LEN,
-    BLE_SET_PAYLOAD_TYPE,
+    BLEPerTestCmdTypeHelp,
+    BLEPerTestCmdTypeHelpHelp,
+    BLEPerTestCmdTypeModeTx,
+    BLEPerTestCmdTypeModeRx,
+    BLEPerTestCmdTypeModeTxRxStop,
+    BLEPerTestCmdTypeSetChannel,
+    BLEPerTestCmdTypeSetPhy,
+    BLEPerTestCmdTypeSetPayloadLen,
+    BLEPerTestCmdTypeSetPayloadType,
 
-    ble_per_test_COMMANDS_MAX,
-} BLETestCmdType;
+    BLEPerTestCmdTypeMax,
+} BLEPerTestCmdType;
 
 typedef enum {
-    BLETestStateIdle,
-    BLETestStateTx,
-    BLETestStateRx,
-} BLETestState;
+    BLEPerTestStateIdle,
+    BLEPerTestStateTx,
+    BLEPerTestStateRx,
+} BLEPerTestState;
 
 typedef struct {
     char* cmd;
-} BLETestCmd;
+} BLEPerTestCmd;
 
-const BLETestCmd ble_per_test_cmd[ble_per_test_COMMANDS_MAX] = {
+const BLEPerTestCmd ble_per_test_cmd[BLEPerTestCmdTypeMax] = {
     {"?"},
     {"help"},
     {"tx"},
@@ -356,57 +349,91 @@ const BLETestCmd ble_per_test_cmd[ble_per_test_COMMANDS_MAX] = {
 
 };
 
-// typedef struct {
-//     char* rate_name;
-//     uint8_t rate_value;
-// } BLETestPhy;
-// #define WIFI_RF_TEST_PHY_MAX 4
-// const BLETestPhy ble_per_test_phy[WIFI_RF_TEST_PHY_MAX] = {
-//     {"1Mbps", RSI_BLE_1MBPS},
-//     {"2Mbps", RSI_BLE_2MBPS},
-//     {"125Kbps", RSI_BLE_125KBPS},
-//     {"500Kbps", RSI_BLE_500KBPS},
-// };
+typedef struct {
+    char* rate_name;
+    uint8_t rate_value;
+} BLEPerTestPhy;
+#define BLE_PER_TEST_PHY_MAX 4
+const BLEPerTestPhy ble_per_test_phy[BLE_PER_TEST_PHY_MAX] = {
+    {"1Mbps", RSI_BLE_1MBPS},
+    {"2Mbps", RSI_BLE_2MBPS},
+    {"125Kbps", RSI_BLE_125KBPS},
+    {"500Kbps", RSI_BLE_500KBPS},
+};
 
-// typedef struct {
-//     char* payload_type_name;
-//     uint8_t payload_type_value;
-// } BLETestPayloadType;
-// #define ble_per_test_PAYLOAD_TYPE_MAX 8
-// const BLETestPayloadType ble_per_test_payload_type[ble_per_test_PAYLOAD_TYPE_MAX] = {
-//     {"PRBS9", PRBS9_SEQ},
-//     {"Four Ones Four Zeros", FOUR_ONES_FOUR_ZEROS},
-//     {"Alt Ones and Zeros", ALT_ONES_AND_ZEROS},
-//     {"PRBS15", PRBS15_SEQ},
-//     {"All Ones", ALL_ONES},
-//     {"All Zeros", ALL_ZEROS},
-//     {"Four Zeros Four Ones", FOUR_ZEROS_FOUR_ONES},
-//     {"Alt Zero Alt One", ALT_ZERO_ALT_ONE},
-// };
+typedef struct {
+    char* payload_type_name;
+    uint8_t payload_type_value;
+} BLEPerTestPayloadType;
+#define BLE_PER_TEST_PAYLOAD_TYPE_MAX 8
+const BLEPerTestPayloadType ble_per_test_payload_type[BLE_PER_TEST_PAYLOAD_TYPE_MAX] = {
+    {"PRBS9", PRBS9_SEQ},
+    {"Four Ones Four Zeros", FOUR_ONES_FOUR_ZEROS},
+    {"Alt Ones and Zeros", ALT_ONES_AND_ZEROS},
+    {"PRBS15", PRBS15_SEQ},
+    {"All Ones", ALL_ONES},
+    {"All Zeros", ALL_ZEROS},
+    {"Four Zeros Four Ones", FOUR_ZEROS_FOUR_ONES},
+    {"Alt Zero Alt One", ALT_ZERO_ALT_ONE},
+};
 
-struct BLETestApp {
+typedef struct {
+    char* mode_name;
+    uint8_t mode_value;
+} BLEPerTestTransmitMode;
+
+const BLEPerTestTransmitMode ble_per_test_transmit_mode[3] = {
+    {"burst", BURST_MODE},
+    {"continuous", CONTIUOUS_MODE},
+    {"cw", CW_MODE},
+};
+
+typedef struct {
+    char* hopping_name;
+    uint8_t hopping_value;
+} BLEPerTestHoppingMode;
+const BLEPerTestHoppingMode ble_per_test_hopping_mode[3] = {
+    {"no_hopping", NO_HOPPING},
+    {"fixed_hopping", FIXED_HOPPING},
+    {"random_hopping", RANDOM_HOPPING},
+};
+
+//! Application global parameters.
+static rsi_bt_resp_get_local_name_t rsi_app_resp_get_local_name = {0};
+static uint8_t rsi_app_resp_get_dev_addr[RSI_DEV_ADDR_LEN] = {0};
+static rsi_ble_per_transmit_t rsi_ble_per_tx;
+static rsi_ble_per_receive_t rsi_ble_per_rx;
+static rsi_bt_per_stats_t per_stats;
+
+struct BLEPerTestApp {
     FuriString* msg;
     CliWorker* worker;
-    BLETestState state;
+    BLEPerTestState state;
+
+    rsi_bt_resp_get_local_name_t rsi_app_resp_get_local_name;
+    uint8_t rsi_app_resp_get_dev_addr[RSI_DEV_ADDR_LEN];
+    rsi_ble_per_transmit_t rsi_ble_per_tx;
+    rsi_ble_per_receive_t rsi_ble_per_rx;
+    rsi_bt_per_stats_t per_stats;
 
     bool exit;
 };
 
-static void ble_per_test_app_cmd_usage(BLETestApp* instance);
+static void ble_per_test_app_cmd_usage(BLEPerTestApp* instance);
 
-static void ble_per_test_app_send_msg(BLETestApp* instance) {
+static void ble_per_test_app_send_msg(BLEPerTestApp* instance) {
     cli_worker_add_rx_data(
         instance->worker,
         (uint8_t*)furi_string_get_cstr(instance->msg),
         furi_string_utf8_length(instance->msg));
 }
 
-void ble_per_test_app_send_text(BLETestApp* instance, FuriString* text) {
+void ble_per_test_app_send_text(BLEPerTestApp* instance, FuriString* text) {
     cli_worker_add_rx_data(
         instance->worker, (uint8_t*)furi_string_get_cstr(text), furi_string_utf8_length(text));
 }
 
-static void ble_per_test_app_send_msg_invalid_arg(BLETestApp* instance) {
+static void ble_per_test_app_send_msg_invalid_arg(BLEPerTestApp* instance) {
     furi_string_printf(instance->msg, "Invalid argument\r\n");
     ble_per_test_app_send_msg(instance);
 }
@@ -417,9 +444,9 @@ void ble_per(void* unused) {
     sl_wifi_firmware_version_t version = {0};
     uint8_t local_dev_addr[LOCAL_DEV_ADDR_LEN] = {0};
 
-// #ifdef SLI_SI91X_MCU_INTERFACE
-//     sl_si91x_hardware_setup();
-// #endif
+    // #ifdef SLI_SI91X_MCU_INTERFACE
+    //     sl_si91x_hardware_setup();
+    // #endif
     //! Wi-Fi initialization
     status = sl_wifi_init(&config, NULL, sl_wifi_default_event_handler);
     if(status != SL_STATUS_OK) {
@@ -540,10 +567,10 @@ void ble_per(void* unused) {
         rsi_ble_per_tx.rx_chnl_num = BLE_RX_CHNL_NUM;
         rsi_ble_per_tx.tx_chnl_num = BLE_TX_CHNL_NUM;
         rsi_ble_per_tx.scrambler_seed = SCRAMBLER_SEED;
-        rsi_ble_per_tx.payload_type = DATA_FOUR_ZEROES_FOUR_ONES;
+        rsi_ble_per_tx.payload_type = PRBS9_SEQ;
         rsi_ble_per_tx.le_chnl_type = LE_DATA_CHNL_TYPE;
-        rsi_ble_per_tx.tx_power = BLE_TX_POWER_INDEX;
-        rsi_ble_per_tx.transmit_mode = CW_MODE;
+        rsi_ble_per_tx.tx_power = BLE_TX_POWER_INDEX; //1..10
+        rsi_ble_per_tx.transmit_mode = CONTIUOUS_MODE;
         rsi_ble_per_tx.freq_hop_en = NO_HOPPING;
         rsi_ble_per_tx.ant_sel = ONBOARD_ANT_SEL;
         rsi_ble_per_tx.inter_pkt_gap = RSI_INTER_PKT_GAP;
@@ -665,7 +692,7 @@ void ble_per(void* unused) {
                 "tx_dones: %d \n"
                 "rssi: %d \n"
                 "id_pkts_rcvd :%d \n"
-                
+
                 "tx_abort_cnt : %d \n"
                 "rx_drop_cnt: %d \n"
                 "rx_cca_idle_cnt: %d \n"
@@ -681,19 +708,10 @@ void ble_per(void* unused) {
                 per_stats.rx_cca_idle_cnt,
                 per_stats.rx_start_idle_cnt,
                 per_stats.rx_abrt_cnt);
-                
         }
-#if((SL_SI91X_TICKLESS_MODE == 0) && SLI_SI91X_MCU_INTERFACE && ENABLE_POWER_SAVE)
-        if(!(P2P_STATUS_REG & TA_wakeup_M4)) {
-            P2P_STATUS_REG &= ~M4_wakeup_TA;
-            printf("\r\n M4 sleep");
-            sl_si91x_m4_sleep_wakeup();
-        }
-#else
         //To get tx_done logs properly and to avoid application hang issue due to continuous stats added 1sec delay.
         //It is applicable for both sdk 2.9 and 3.0
-        osDelay(1000);
-#endif
+        furi_delay_ms(1000);
     }
     return;
 }
@@ -701,14 +719,243 @@ void ble_per(void* unused) {
 void* ble_per_test_app_start(CliWorker* worker) {
     FURI_LOG_I(TAG, "Starting");
 
-    BLETestApp* instance = malloc(sizeof(BLETestApp));
+    BLEPerTestApp* instance = malloc(sizeof(BLEPerTestApp));
     instance->msg = furi_string_alloc();
     instance->worker = worker;
-    instance->state = BLETestStateIdle;
+    instance->state = BLEPerTestStateIdle;
+
+    memset(&instance->rsi_app_resp_get_local_name, 0, sizeof(rsi_bt_resp_get_local_name_t));
+    memset(instance->rsi_app_resp_get_dev_addr, 0, RSI_DEV_ADDR_LEN);
+
+    //! set the default values for the transmit parameters
+    instance->rsi_ble_per_tx.cmd_ix = BLE_TRANSMIT_CMD_ID;
+    instance->rsi_ble_per_tx.transmit_enable = ENABLE;
+    *(uint32_t*)&instance->rsi_ble_per_tx.access_addr[0] = BLE_ACCESS_ADDR;
+    *(uint16_t*)&instance->rsi_ble_per_tx.pkt_len[0] = BLE_TX_PKT_LEN;
+    instance->rsi_ble_per_tx.phy_rate = BLE_PHY_RATE;
+    instance->rsi_ble_per_tx.rx_chnl_num = BLE_RX_CHNL_NUM;
+    instance->rsi_ble_per_tx.tx_chnl_num = BLE_TX_CHNL_NUM;
+    instance->rsi_ble_per_tx.scrambler_seed = SCRAMBLER_SEED;
+    instance->rsi_ble_per_tx.payload_type = PRBS9_SEQ;
+    instance->rsi_ble_per_tx.le_chnl_type = LE_DATA_CHNL_TYPE;
+    instance->rsi_ble_per_tx.tx_power = BLE_TX_POWER_INDEX; //1..10
+    instance->rsi_ble_per_tx.transmit_mode = CONTIUOUS_MODE;
+    instance->rsi_ble_per_tx.freq_hop_en = NO_HOPPING;
+    instance->rsi_ble_per_tx.ant_sel = ONBOARD_ANT_SEL;
+    instance->rsi_ble_per_tx.inter_pkt_gap = RSI_INTER_PKT_GAP;
+    instance->rsi_ble_per_tx.pll_mode = PLL_MODE_0;
+    instance->rsi_ble_per_tx.rf_type = BLE_INTERNAL_RF;
+    instance->rsi_ble_per_tx.rf_chain = BT_HP_CHAIN_BIT;
+
+    //! set the default values for the receive parameters
+    instance->rsi_ble_per_rx.cmd_ix = BLE_RECEIVE_CMD_ID;
+    instance->rsi_ble_per_rx.receive_enable = ENABLE;
+    *(uint32_t*)&instance->rsi_ble_per_rx.access_addr[0] = BLE_ACCESS_ADDR;
+    instance->rsi_ble_per_rx.ext_data_len_indication = EXT_DATA_LEN_IND;
+    instance->rsi_ble_per_rx.phy_rate = BLE_PHY_RATE;
+    instance->rsi_ble_per_rx.rx_chnl_num = BLE_RX_CHNL_NUM;
+    instance->rsi_ble_per_rx.tx_chnl_num = BLE_TX_CHNL_NUM;
+    instance->rsi_ble_per_rx.scrambler_seed = SCRAMBLER_SEED;
+    instance->rsi_ble_per_rx.le_chnl_type = LE_DATA_CHNL_TYPE;
+    instance->rsi_ble_per_rx.loop_back_mode = LOOP_BACK_MODE_DISABLE;
+    instance->rsi_ble_per_rx.freq_hop_en = NO_HOPPING;
+    instance->rsi_ble_per_rx.ant_sel = ONBOARD_ANT_SEL;
+    instance->rsi_ble_per_rx.duty_cycling_en = DUTY_CYCLING_DISABLE;
+    instance->rsi_ble_per_rx.pll_mode = PLL_MODE_0;
+    instance->rsi_ble_per_rx.rf_type = BLE_INTERNAL_RF;
+    instance->rsi_ble_per_rx.rf_chain = BT_HP_CHAIN_BIT;
 
     instance->exit = false;
 
-    ble_per(NULL);
+    sl_status_t status;
+    sl_wifi_firmware_version_t version = {0};
+    uint8_t local_dev_addr[LOCAL_DEV_ADDR_LEN] = {0};
+    do {
+        status = sl_wifi_init(&config, NULL, sl_wifi_default_event_handler);
+        if(status != SL_STATUS_OK) {
+            furi_string_printf(
+                instance->msg, "Wireless initialization failed, error code: 0x%08lX\r\n", status);
+            ble_per_test_app_send_msg(instance);
+            break;
+        }
+        furi_string_printf(instance->msg, "Wireless Initialization Success\r\n");
+        ble_per_test_app_send_msg(instance);
+
+        //! set region support
+        status = sl_si91x_set_device_region(
+            config.boot_config.oper_mode, config.band, config.region_code);
+        if(status != SL_STATUS_OK) {
+            furi_string_printf(
+                instance->msg, "Failed to set region, error code: 0x%08lX\r\n", status);
+            ble_per_test_app_send_msg(instance);
+            break;
+        } else {
+            furi_string_printf(instance->msg, "Set Region Success\r\n");
+            ble_per_test_app_send_msg(instance);
+        }
+
+        //!  WLAN radio deinit
+        status = sl_si91x_disable_radio();
+        if(status != SL_STATUS_OK) {
+            furi_string_printf(
+                instance->msg, "Failed to disable WLAN radio, error code: 0x%08lX\r\n", status);
+            ble_per_test_app_send_msg(instance);
+            break;
+        } else {
+            furi_string_printf(instance->msg, "Disable WLAN radio success\r\n");
+            ble_per_test_app_send_msg(instance);
+        }
+
+        //! Firmware version Prints
+        status = sl_wifi_get_firmware_version(&version);
+        if(status != SL_STATUS_OK) {
+            furi_string_printf(
+                instance->msg,
+                "Failed to fetch firmware version, error code: 0x%08lX\r\n",
+                status);
+            ble_per_test_app_send_msg(instance);
+            break;
+        } else {
+            print_firmware_version(&version);
+            furi_string_printf(
+                instance->msg,
+                "Firmware version is: %x%x.%d.%d.%d.%d.%d.%d\r\n",
+                version.chip_id,
+                version.rom_id,
+                version.major,
+                version.minor,
+                version.security_version,
+                version.patch_num,
+                version.customer_id,
+                version.build_num);
+            ble_per_test_app_send_msg(instance);
+        }
+
+        //! get the local device MAC address.
+        status = rsi_bt_get_local_device_address(rsi_app_resp_get_dev_addr);
+        if(status != RSI_SUCCESS) {
+            furi_string_printf(
+                instance->msg,
+                "Failed to get local device address, error code: 0x%08lX\r\n",
+                status);
+            ble_per_test_app_send_msg(instance);
+            break;
+        } else {
+            rsi_6byte_dev_address_to_ascii(local_dev_addr, rsi_app_resp_get_dev_addr);
+            furi_string_printf(instance->msg, "Local device address : %s\r\n", local_dev_addr);
+            ble_per_test_app_send_msg(instance);
+        }
+
+        //! set the local device name
+        status = rsi_bt_set_local_name(RSI_BLE_LOCAL_NAME);
+        if(status != RSI_SUCCESS) {
+            furi_string_printf(
+                instance->msg, "Failed to set local name, error code: 0x%08lX\r\n", status);
+            ble_per_test_app_send_msg(instance);
+            break;
+        }
+
+        //! get the local device name
+        status = rsi_bt_get_local_name(&rsi_app_resp_get_local_name);
+        if(status != RSI_SUCCESS) {
+            furi_string_printf(
+                instance->msg, "Failed to get local name, error code: 0x%08lX\r\n", status);
+            ble_per_test_app_send_msg(instance);
+            break;
+        }
+        furi_string_printf(
+            instance->msg, "Local name set to: %s\r\n", rsi_app_resp_get_local_name.name);
+        ble_per_test_app_send_msg(instance);
+
+#if GAIN_TABLE_AND_MAX_POWER_UPDATE_ENABLE
+
+        //! structure update for the MAXPOWER
+        status = rsi_bt_cmd_update_gain_table_offset_or_max_pwr(
+            0,
+            sizeof(Si917_BLE_REGION_BASED_MAXPOWER_XX),
+            Si917_BLE_REGION_BASED_MAXPOWER_XX,
+            BLE_GAIN_TABLE_MAXPOWER_UPDATE);
+        if(status != RSI_SUCCESS) {
+            furi_string_printf(
+                instance->msg,
+                "Failed to update gain table for max power, error code: 0x%08lX\r\n",
+                status);
+            ble_per_test_app_send_msg(instance);
+            break;
+        } else {
+            furi_string_printf(
+                instance->msg, "Updation of gain table max tx power command is successful\r\n");
+            ble_per_test_app_send_msg(instance);
+        }
+
+        //! structure update for the MAXPOWER OFFSET
+        status = rsi_bt_cmd_update_gain_table_offset_or_max_pwr(
+            0,
+            sizeof(Si917_BLE_REGION_BASED_MAXPOWER_VS_OFFSET_XX),
+            Si917_BLE_REGION_BASED_MAXPOWER_VS_OFFSET_XX,
+            BLE_GAIN_TABLE_OFFSET_UPDATE);
+        if(status != RSI_SUCCESS) {
+            furi_string_printf(
+                instance->msg,
+                "Failed to update gain table offset, error code: 0x%08lX\r\n",
+                status);
+            ble_per_test_app_send_msg(instance);
+            break;
+        } else {
+            furi_string_printf(
+                instance->msg, "Updation of gain table offset command is successful\r\n");
+        }
+
+        //! structure update for the LP_CHAIN 0dBm OFFSET
+        status = rsi_bt_cmd_update_gain_table_offset_or_max_pwr(
+            0,
+            sizeof(Si917_BLE_REGION_BASED_LP_CHAIN_0DBM_OFFSET_XX),
+            Si917_BLE_REGION_BASED_LP_CHAIN_0DBM_OFFSET_XX,
+            BLE_GAIN_TABLE_LP_CHAIN_0DBM_OFFSET_UPDATE);
+        if(status != RSI_SUCCESS) {
+            furi_string_printf(
+                instance->msg,
+                "Failed to update gain table LP-Chain 0dBm offset, error code: 0x%08lX\r\n",
+                status);
+            ble_per_test_app_send_msg(instance);
+            break;
+        } else {
+            printf("\r\n Updation of gain table LP-Chain 0dBm offset command is successful \r\n");
+            furi_string_printf(
+                instance->msg,
+                "Updation of gain table LP-Chain 0dBm offset command is successful\r\n");
+            ble_per_test_app_send_msg(instance);
+        }
+
+        //! structure update for the LP_CHAIN 10dBm OFFSET
+        status = rsi_bt_cmd_update_gain_table_offset_or_max_pwr(
+            0,
+            sizeof(Si917_BLE_REGION_BASED_LP_CHAIN_10DBM_OFFSET_XX),
+            Si917_BLE_REGION_BASED_LP_CHAIN_10DBM_OFFSET_XX,
+            BLE_GAIN_TABLE_LP_CHAIN_10DBM_OFFSET_UPDATE);
+        if(status != RSI_SUCCESS) {
+            furi_string_printf(
+                instance->msg,
+                "Failed to update gain table LP-Chain 10dBm offset, error code: 0x%08lX\r\n",
+                status);
+            ble_per_test_app_send_msg(instance);
+            break;
+        } else {
+            furi_string_printf(
+                instance->msg,
+                "Updation of gain table LP-Chain 10dBm offset command is successful\r\n");
+            ble_per_test_app_send_msg(instance);
+        }
+
+#endif
+    } while(false);
+
+    if(status != SL_STATUS_OK) {
+        furi_string_printf(instance->msg, "Failed to start BLE PER test\r\n");
+        ble_per_test_app_send_msg(instance);
+        ble_per_test_app_stop(instance);
+        return NULL;
+    }
 
     return (void*)instance;
 }
@@ -716,7 +963,7 @@ void* ble_per_test_app_start(CliWorker* worker) {
 void ble_per_test_app_stop(void* app_handle) {
     furi_check(app_handle);
     FURI_LOG_I(TAG, "Stopping");
-    BLETestApp* instance = (BLETestApp*)app_handle;
+    BLEPerTestApp* instance = (BLEPerTestApp*)app_handle;
 
     if(instance) {
         instance->exit = true;
@@ -727,8 +974,8 @@ void ble_per_test_app_stop(void* app_handle) {
     sl_wifi_deinit();
 }
 
-static sl_status_t ble_per_test_app(BLETestApp* instance, uint8_t cmd_index, FuriString* args) {
-    // sl_status_t status = SL_STATUS_FAIL;
+static sl_status_t ble_per_test_app(BLEPerTestApp* instance, uint8_t cmd_index, FuriString* args) {
+    sl_status_t status = SL_STATUS_FAIL;
 
     char* args_cstr = (char*)furi_string_get_cstr(args);
     UNUSED(args_cstr);
@@ -737,9 +984,157 @@ static sl_status_t ble_per_test_app(BLETestApp* instance, uint8_t cmd_index, Fur
     //StrintParseError parse_err = StrintParseNoError;
 
     switch(cmd_index) {
-    case HELP:
-    case HELP_HELP:
+    case BLEPerTestCmdTypeHelp:
+    case BLEPerTestCmdTypeHelpHelp:
         ble_per_test_app_cmd_usage(instance);
+        break;
+    case BLEPerTestCmdTypeModeTx:
+        if(instance->state == BLEPerTestStateIdle) {
+            instance->rsi_ble_per_tx.transmit_enable = ENABLE;
+            status = rsi_ble_per_transmit(&instance->rsi_ble_per_tx);
+            if(status != RSI_SUCCESS) {
+                furi_string_printf(
+                    instance->msg,
+                    "Failed to start BLE PER TX test, error code: 0x%08lX\r\n",
+                    status);
+                ble_per_test_app_send_msg(instance);
+            } else {
+                instance->state = BLEPerTestStateTx;
+                furi_string_printf(
+                    instance->msg,
+                    "BLE PER test Tx started\r\n"
+                    "cmd id: 0x%X\r\n"
+                    "enable: %d\r\n"
+                    "access_addr: 0x%lX\r\n"
+                    "pkt_len: %d\r\n"
+                    "phy_rate: %d\r\n"
+                    "rx_chnl_num: %d\r\n"
+                    "tx_chnl_num: %d\r\n"
+                    "scrambler_seed: %d\r\n"
+                    "payload_type: %d\r\n"
+                    "le_chnl_type: %d\r\n"
+                    "tx_power: %d\r\n"
+                    "transmit_mode: %d\r\n"
+                    "freq_hop_en: %d\r\n"
+                    "ant_sel: %d\r\n"
+                    "inter_pkt_gap: %d\r\n"
+                    "pll_mode: %d\r\n"
+                    "rf_type: %d\r\n"
+                    "rf_chain: %d\r\n",
+                    instance->rsi_ble_per_tx.cmd_ix,
+                    instance->rsi_ble_per_tx.transmit_enable,
+                    *(uint32_t*)&instance->rsi_ble_per_tx.access_addr[0],
+                    (*(uint16_t*)&instance->rsi_ble_per_tx.pkt_len[0]),
+                    instance->rsi_ble_per_tx.phy_rate,
+                    instance->rsi_ble_per_tx.rx_chnl_num,
+                    instance->rsi_ble_per_tx.tx_chnl_num,
+                    instance->rsi_ble_per_tx.scrambler_seed,
+                    instance->rsi_ble_per_tx.payload_type,
+                    instance->rsi_ble_per_tx.le_chnl_type,
+                    instance->rsi_ble_per_tx.tx_power,
+                    instance->rsi_ble_per_tx.transmit_mode,
+                    instance->rsi_ble_per_tx.freq_hop_en,
+                    instance->rsi_ble_per_tx.ant_sel,
+                    instance->rsi_ble_per_tx.inter_pkt_gap,
+                    instance->rsi_ble_per_tx.pll_mode,
+                    instance->rsi_ble_per_tx.rf_type,
+                    instance->rsi_ble_per_tx.rf_chain);
+                ble_per_test_app_send_msg(instance);
+            }
+
+        } else {
+            furi_string_printf(instance->msg, "Invalid state\r\n");
+            ble_per_test_app_send_msg(instance);
+        }
+
+        break;
+    case BLEPerTestCmdTypeModeRx:
+        if(instance->state == BLEPerTestStateIdle) {
+            instance->rsi_ble_per_rx.receive_enable = ENABLE;
+            status = rsi_ble_per_receive(&instance->rsi_ble_per_rx);
+            if(status != RSI_SUCCESS) {
+                furi_string_printf(
+                    instance->msg,
+                    "Failed to start BLE PER RX test, error code: 0x%08lX\r\n",
+                    status);
+                ble_per_test_app_send_msg(instance);
+            } else {
+                instance->state = BLEPerTestStateRx;
+                furi_string_printf(
+                    instance->msg,
+                    "BLE PER test Rx started\r\n"
+                    "cmd id: 0x%X\r\n"
+                    "enable: %d\r\n"
+                    "access_addr: 0x%lX\r\n"
+                    "ext_data_len_indication: %d\r\n"
+                    "phy_rate: %d\r\n"
+                    "rx_chnl_num: %d\r\n"
+                    "tx_chnl_num: %d\r\n"
+                    "scrambler_seed: %d\r\n"
+                    "le_chnl_type: %d\r\n"
+                    "loop_back_mode: %d\r\n"
+                    "freq_hop_en: %d\r\n"
+                    "ant_sel: %d\r\n"
+                    "duty_cycling_en: %d\r\n"
+                    "pll_mode: %d\r\n"
+                    "rf_type: %d\r\n"
+                    "rf_chain: %d\r\n",
+                    instance->rsi_ble_per_rx.cmd_ix,
+                    instance->rsi_ble_per_rx.receive_enable,
+                    *(uint32_t*)&instance->rsi_ble_per_rx.access_addr[0],
+                    instance->rsi_ble_per_rx.ext_data_len_indication,
+                    instance->rsi_ble_per_rx.phy_rate,
+                    instance->rsi_ble_per_rx.rx_chnl_num,
+                    instance->rsi_ble_per_rx.tx_chnl_num,
+                    instance->rsi_ble_per_rx.scrambler_seed,
+                    instance->rsi_ble_per_rx.le_chnl_type,
+                    instance->rsi_ble_per_rx.loop_back_mode,
+                    instance->rsi_ble_per_rx.freq_hop_en,
+                    instance->rsi_ble_per_rx.ant_sel,
+                    instance->rsi_ble_per_rx.duty_cycling_en,
+                    instance->rsi_ble_per_rx.pll_mode,
+                    instance->rsi_ble_per_rx.rf_type,
+                    instance->rsi_ble_per_rx.rf_chain);
+                ble_per_test_app_send_msg(instance);
+            }
+
+        } else {
+            furi_string_printf(instance->msg, "Invalid state\r\n");
+            ble_per_test_app_send_msg(instance);
+        }
+        break;
+    case BLEPerTestCmdTypeModeTxRxStop:
+        if(instance->state == BLEPerTestStateTx || instance->state == BLEPerTestStateRx) {
+            instance->rsi_ble_per_tx.transmit_enable = DISABLE;
+            instance->rsi_ble_per_rx.receive_enable = DISABLE;
+             status = rsi_ble_per_transmit(&instance->rsi_ble_per_tx);
+            if(status != RSI_SUCCESS) {
+                furi_string_printf(
+                    instance->msg,
+                    "Failed to stop BLE PER TX test, error code: 0x%08lX\r\n",
+                    status);
+                ble_per_test_app_send_msg(instance);
+            } else {
+                furi_string_printf(instance->msg, "BLE PER test Tx stopped\r\n");
+                ble_per_test_app_send_msg(instance);
+            }
+            instance->state = BLEPerTestStateIdle;
+        } else {
+            furi_string_printf(instance->msg, "Invalid state\r\n");
+            ble_per_test_app_send_msg(instance);
+        }
+        break;
+    case BLEPerTestCmdTypeSetChannel:
+
+        break;
+    case BLEPerTestCmdTypeSetPhy:
+
+        break;
+    case BLEPerTestCmdTypeSetPayloadLen:
+
+        break;
+    case BLEPerTestCmdTypeSetPayloadType:
+
         break;
 
     default:
@@ -752,7 +1147,7 @@ static sl_status_t ble_per_test_app(BLETestApp* instance, uint8_t cmd_index, Fur
 }
 
 void ble_per_test_app_parse_msg(void* app_handle, uint8_t* data, size_t size) {
-    BLETestApp* instance = (BLETestApp*)app_handle;
+    BLEPerTestApp* instance = (BLEPerTestApp*)app_handle;
     uint8_t i = 0;
     uint8_t cmd_index = 0;
     bool cmd_valid = false;
@@ -768,7 +1163,7 @@ void ble_per_test_app_parse_msg(void* app_handle, uint8_t* data, size_t size) {
             break;
         }
 
-        for(i = 0; i < ble_per_test_COMMANDS_MAX; i++) {
+        for(i = 0; i < BLEPerTestCmdTypeMax; i++) {
             if(furi_string_cmp_str(cmd, (char*)ble_per_test_cmd[i].cmd) == 0) {
                 cmd_index = i;
                 cmd_valid = true;
@@ -790,7 +1185,7 @@ void ble_per_test_app_parse_msg(void* app_handle, uint8_t* data, size_t size) {
     furi_string_free(cmd);
 }
 
-static void ble_per_test_app_cmd_usage(BLETestApp* instance) {
+static void ble_per_test_app_cmd_usage(BLEPerTestApp* instance) {
     furi_string_printf(instance->msg, "%s commands usage:\r\n", TAG);
     furi_string_cat_printf(
         instance->msg,
