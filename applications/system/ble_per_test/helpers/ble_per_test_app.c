@@ -60,9 +60,9 @@
 #define BLE_ACCESS_ADDR    0x71764129
 #define BLE_TX_PKT_LEN     32
 #define BLE_PHY_RATE       RSI_BLE_2MBPS
-#define BLE_RX_CHNL_NUM    24
-#define BLE_TX_CHNL_NUM    24
-#define BLE_TX_POWER_INDEX 8
+#define BLE_RX_CHNL_NUM    10
+#define BLE_TX_CHNL_NUM    10
+#define BLE_TX_POWER_INDEX 127
 #define SCRAMBLER_SEED     0
 #define NUM_PKTS           0
 #define RSI_INTER_PKT_GAP  0
@@ -319,9 +319,12 @@ typedef enum {
     BLEPerTestCmdTypeModeRx,
     BLEPerTestCmdTypeModeTxRxStop,
     BLEPerTestCmdTypeSetChannel,
-    BLEPerTestCmdTypeSetPhy,
+    BLEPerTestCmdTypeSetPhyRate,
     BLEPerTestCmdTypeSetPayloadLen,
     BLEPerTestCmdTypeSetPayloadType,
+    BLEPerTestCmdTypeSetMode,
+    BLEPerTestCmdTypeSetHopping,
+    BLEPerTestCmdTypeSetTxPower,
 
     BLEPerTestCmdTypeMax,
 } BLEPerTestCmdType;
@@ -343,9 +346,12 @@ const BLEPerTestCmd ble_per_test_cmd[BLEPerTestCmdTypeMax] = {
     {"rx"},
     {"stop"},
     {"channel"},
-    {"phy"},
+    {"phy_rate"},
     {"payload_len"},
     {"payload_type"},
+    {"mode"},
+    {"hopping"},
+    {"tx_power"},
 
 };
 
@@ -353,8 +359,8 @@ typedef struct {
     char* rate_name;
     uint8_t rate_value;
 } BLEPerTestPhy;
-#define BLE_PER_TEST_PHY_MAX 4
-const BLEPerTestPhy ble_per_test_phy[BLE_PER_TEST_PHY_MAX] = {
+#define BLE_PER_TEST_PHY_RATE_MAX 4
+const BLEPerTestPhy ble_per_test_phy_rate[BLE_PER_TEST_PHY_RATE_MAX] = {
     {"1Mbps", RSI_BLE_1MBPS},
     {"2Mbps", RSI_BLE_2MBPS},
     {"125Kbps", RSI_BLE_125KBPS},
@@ -381,8 +387,8 @@ typedef struct {
     char* mode_name;
     uint8_t mode_value;
 } BLEPerTestTransmitMode;
-
-const BLEPerTestTransmitMode ble_per_test_transmit_mode[3] = {
+#define BLE_PER_TEST_TRANSMIT_MODE_MAX 3
+const BLEPerTestTransmitMode ble_per_test_transmit_mode[BLE_PER_TEST_TRANSMIT_MODE_MAX] = {
     {"burst", BURST_MODE},
     {"continuous", CONTIUOUS_MODE},
     {"cw", CW_MODE},
@@ -392,7 +398,8 @@ typedef struct {
     char* hopping_name;
     uint8_t hopping_value;
 } BLEPerTestHoppingMode;
-const BLEPerTestHoppingMode ble_per_test_hopping_mode[3] = {
+#define BLE_PER_TEST_HOPPING_MODE_MAX 3
+const BLEPerTestHoppingMode ble_per_test_hopping_mode[BLE_PER_TEST_HOPPING_MODE_MAX] = {
     {"no_hopping", NO_HOPPING},
     {"fixed_hopping", FIXED_HOPPING},
     {"random_hopping", RANDOM_HOPPING},
@@ -739,7 +746,7 @@ void* ble_per_test_app_start(CliWorker* worker) {
     instance->rsi_ble_per_tx.payload_type = PRBS9_SEQ;
     instance->rsi_ble_per_tx.le_chnl_type = LE_DATA_CHNL_TYPE;
     instance->rsi_ble_per_tx.tx_power = BLE_TX_POWER_INDEX; //1..10
-    instance->rsi_ble_per_tx.transmit_mode = CONTIUOUS_MODE;
+    instance->rsi_ble_per_tx.transmit_mode = BURST_MODE;
     instance->rsi_ble_per_tx.freq_hop_en = NO_HOPPING;
     instance->rsi_ble_per_tx.ant_sel = ONBOARD_ANT_SEL;
     instance->rsi_ble_per_tx.inter_pkt_gap = RSI_INTER_PKT_GAP;
@@ -980,8 +987,8 @@ static sl_status_t ble_per_test_app(BLEPerTestApp* instance, uint8_t cmd_index, 
     char* args_cstr = (char*)furi_string_get_cstr(args);
     UNUSED(args_cstr);
     FuriString* arg = furi_string_alloc();
-    //uint8_t arg_uint8 = 0;
-    //StrintParseError parse_err = StrintParseNoError;
+    uint8_t arg_uint8 = 0;
+    StrintParseError parse_err = StrintParseNoError;
 
     switch(cmd_index) {
     case BLEPerTestCmdTypeHelp:
@@ -1104,10 +1111,9 @@ static sl_status_t ble_per_test_app(BLEPerTestApp* instance, uint8_t cmd_index, 
         }
         break;
     case BLEPerTestCmdTypeModeTxRxStop:
-        if(instance->state == BLEPerTestStateTx || instance->state == BLEPerTestStateRx) {
+        if(instance->state == BLEPerTestStateTx) {
             instance->rsi_ble_per_tx.transmit_enable = DISABLE;
-            instance->rsi_ble_per_rx.receive_enable = DISABLE;
-             status = rsi_ble_per_transmit(&instance->rsi_ble_per_tx);
+            status = rsi_ble_per_transmit(&instance->rsi_ble_per_tx);
             if(status != RSI_SUCCESS) {
                 furi_string_printf(
                     instance->msg,
@@ -1119,24 +1125,182 @@ static sl_status_t ble_per_test_app(BLEPerTestApp* instance, uint8_t cmd_index, 
                 ble_per_test_app_send_msg(instance);
             }
             instance->state = BLEPerTestStateIdle;
+        } else if(instance->state == BLEPerTestStateRx) {
+            instance->rsi_ble_per_rx.receive_enable = DISABLE;
+            status = rsi_ble_per_receive(&instance->rsi_ble_per_rx);
+            if(status != RSI_SUCCESS) {
+                furi_string_printf(
+                    instance->msg,
+                    "Failed to stop BLE PER RX test, error code: 0x%08lX\r\n",
+                    status);
+                ble_per_test_app_send_msg(instance);
+            } else {
+                furi_string_printf(instance->msg, "BLE PER test Rx stopped\r\n");
+                ble_per_test_app_send_msg(instance);
+            }
+            instance->state = BLEPerTestStateIdle;
         } else {
             furi_string_printf(instance->msg, "Invalid state\r\n");
             ble_per_test_app_send_msg(instance);
         }
         break;
     case BLEPerTestCmdTypeSetChannel:
+        if(instance->state == BLEPerTestStateIdle && furi_string_size(args)) {
+            parse_err |= strint_to_uint8(args_cstr, &args_cstr, &arg_uint8, 10);
 
+            if(parse_err == StrintParseNoError) {
+                if(arg_uint8 <= 39) {
+                    instance->rsi_ble_per_tx.tx_chnl_num = arg_uint8;
+                    instance->rsi_ble_per_tx.rx_chnl_num = arg_uint8;
+                    instance->rsi_ble_per_rx.tx_chnl_num = arg_uint8;
+                    instance->rsi_ble_per_rx.rx_chnl_num = arg_uint8;
+                    furi_string_printf(instance->msg, "BLE channel set to %d\r\n", arg_uint8);
+                    ble_per_test_app_send_msg(instance);
+                } else {
+                    furi_string_printf(instance->msg, "Invalid channel\r\n");
+                    ble_per_test_app_send_msg(instance);
+                }
+            } else {
+                furi_string_printf(instance->msg, "Invalid argument\r\n");
+                ble_per_test_app_send_msg(instance);
+            }
+        } else {
+            furi_string_printf(instance->msg, "Invalid argument or state != IDLE\r\n");
+            ble_per_test_app_send_msg(instance);
+        }
         break;
-    case BLEPerTestCmdTypeSetPhy:
-
+    case BLEPerTestCmdTypeSetPhyRate:
+        if(instance->state == BLEPerTestStateIdle && furi_string_size(args)) {
+            parse_err |= strint_to_uint8(args_cstr, &args_cstr, &arg_uint8, 10);
+            if(parse_err == StrintParseNoError) {
+                if(arg_uint8 <= BLE_PER_TEST_PHY_RATE_MAX - 1) {
+                    instance->rsi_ble_per_tx.phy_rate =
+                        ble_per_test_phy_rate[arg_uint8].rate_value;
+                    instance->rsi_ble_per_rx.phy_rate =
+                        ble_per_test_phy_rate[arg_uint8].rate_value;
+                    furi_string_printf(instance->msg, "PHY rate set to %d\r\n", arg_uint8);
+                    ble_per_test_app_send_msg(instance);
+                } else {
+                    furi_string_printf(instance->msg, "Invalid PHY rate\r\n");
+                    ble_per_test_app_send_msg(instance);
+                }
+            } else {
+                furi_string_printf(instance->msg, "Invalid argument\r\n");
+                ble_per_test_app_send_msg(instance);
+            }
+        } else {
+            furi_string_printf(instance->msg, "Invalid argument or state != IDLE\r\n");
+            ble_per_test_app_send_msg(instance);
+        }
         break;
     case BLEPerTestCmdTypeSetPayloadLen:
-
+        if(instance->state == BLEPerTestStateIdle && furi_string_size(args)) {
+            parse_err |= strint_to_uint8(args_cstr, &args_cstr, &arg_uint8, 10);
+            if(parse_err == StrintParseNoError) {
+                if(arg_uint8 >= 1) {
+                    instance->rsi_ble_per_tx.pkt_len[0] = arg_uint8;
+                    furi_string_printf(instance->msg, "Payload length set to %d\r\n", arg_uint8);
+                    ble_per_test_app_send_msg(instance);
+                } else {
+                    furi_string_printf(instance->msg, "Invalid payload length\r\n");
+                    ble_per_test_app_send_msg(instance);
+                }
+            } else {
+                furi_string_printf(instance->msg, "Invalid argument\r\n");
+                ble_per_test_app_send_msg(instance);
+            }
+        } else {
+            furi_string_printf(instance->msg, "Invalid argument or state != IDLE\r\n");
+            ble_per_test_app_send_msg(instance);
+        }
         break;
     case BLEPerTestCmdTypeSetPayloadType:
-
+        if(instance->state == BLEPerTestStateIdle && furi_string_size(args)) {
+            parse_err |= strint_to_uint8(args_cstr, &args_cstr, &arg_uint8, 10);
+            if(parse_err == StrintParseNoError) {
+                if(arg_uint8 <= BLE_PER_TEST_PAYLOAD_TYPE_MAX - 1) {
+                    instance->rsi_ble_per_tx.payload_type =
+                        ble_per_test_payload_type[arg_uint8].payload_type_value;
+                    furi_string_printf(instance->msg, "Payload type set to %d\r\n", arg_uint8);
+                    ble_per_test_app_send_msg(instance);
+                } else {
+                    furi_string_printf(instance->msg, "Invalid payload type\r\n");
+                    ble_per_test_app_send_msg(instance);
+                }
+            } else {
+                furi_string_printf(instance->msg, "Invalid argument\r\n");
+                ble_per_test_app_send_msg(instance);
+            }
+        } else {
+            furi_string_printf(instance->msg, "Invalid argument or state != IDLE\r\n");
+            ble_per_test_app_send_msg(instance);
+        }
         break;
-
+    case BLEPerTestCmdTypeSetMode:
+        if(instance->state == BLEPerTestStateIdle && furi_string_size(args)) {
+            parse_err |= strint_to_uint8(args_cstr, &args_cstr, &arg_uint8, 10);
+            if(parse_err == StrintParseNoError) {
+                if(arg_uint8 <= BLE_PER_TEST_TRANSMIT_MODE_MAX - 1) {
+                    instance->rsi_ble_per_tx.transmit_mode =
+                        ble_per_test_transmit_mode[arg_uint8].mode_value;
+                    furi_string_printf(instance->msg, "Transmit mode set to %d\r\n", arg_uint8);
+                    ble_per_test_app_send_msg(instance);
+                } else {
+                    furi_string_printf(instance->msg, "Invalid transmit mode\r\n");
+                    ble_per_test_app_send_msg(instance);
+                }
+            } else {
+                furi_string_printf(instance->msg, "Invalid argument\r\n");
+                ble_per_test_app_send_msg(instance);
+            }
+        } else {
+            furi_string_printf(instance->msg, "Invalid argument or state != IDLE\r\n");
+            ble_per_test_app_send_msg(instance);
+        }
+        break;
+    case BLEPerTestCmdTypeSetTxPower:
+        if(instance->state == BLEPerTestStateIdle && furi_string_size(args)) {
+            parse_err |= strint_to_uint8(args_cstr, &args_cstr, &arg_uint8, 10);
+            if(parse_err == StrintParseNoError) {
+                if((arg_uint8 >= 1 && arg_uint8 <= 10) || arg_uint8 == 127) {
+                    instance->rsi_ble_per_tx.tx_power = arg_uint8;
+                    furi_string_printf(instance->msg, "Tx power set to %d\r\n", arg_uint8);
+                    ble_per_test_app_send_msg(instance);
+                } else {
+                    furi_string_printf(instance->msg, "Invalid Tx power\r\n");
+                    ble_per_test_app_send_msg(instance);
+                }
+            } else {
+                furi_string_printf(instance->msg, "Invalid argument\r\n");
+                ble_per_test_app_send_msg(instance);
+            }
+        } else {
+            furi_string_printf(instance->msg, "Invalid argument or state != IDLE\r\n");
+            ble_per_test_app_send_msg(instance);
+        }
+        break;
+    case BLEPerTestCmdTypeSetHopping:
+        if(instance->state == BLEPerTestStateIdle && furi_string_size(args)) {
+            parse_err |= strint_to_uint8(args_cstr, &args_cstr, &arg_uint8, 10);
+            if(parse_err == StrintParseNoError) {
+                if(arg_uint8 <= BLE_PER_TEST_HOPPING_MODE_MAX - 1) {
+                    instance->rsi_ble_per_tx.freq_hop_en =
+                        ble_per_test_hopping_mode[arg_uint8].hopping_value;
+                    furi_string_printf(instance->msg, "Hopping set to %d\r\n", arg_uint8);
+                    ble_per_test_app_send_msg(instance);
+                } else {
+                    furi_string_printf(instance->msg, "Invalid hopping\r\n");
+                    ble_per_test_app_send_msg(instance);
+                }
+            } else {
+                furi_string_printf(instance->msg, "Invalid argument\r\n");
+                ble_per_test_app_send_msg(instance);
+            }
+        } else {
+            furi_string_printf(instance->msg, "Invalid argument or state != IDLE\r\n");
+            ble_per_test_app_send_msg(instance);
+        }
+        break;
     default:
         ble_per_test_app_send_msg_invalid_arg(instance);
         break;
@@ -1204,11 +1368,20 @@ static void ble_per_test_app_cmd_usage(BLEPerTestApp* instance) {
     furi_string_cat_printf(
         instance->msg, "channel <0..39> BLE channels 2402MHz to 2480MHz with 2MHz spacing\r\n");
     furi_string_cat_printf(
-        instance->msg, "phy <1..4> PHY 1: 1Mbps, 2: 2Mbps, 3: 125Kbps, 4: 500Kbps\r\n");
-    furi_string_cat_printf(instance->msg, "payload_len <1..251> Payload length\r\n");
+        instance->msg, "phy_rate <0..4> PHY 0: 1Mbps, 1: 2Mbps, 2: 125Kbps, 3: 500Kbps\r\n");
+    furi_string_cat_printf(instance->msg, "payload_len <1..255> Payload length\r\n");
     furi_string_cat_printf(
         instance->msg,
         "payload_type <0..7> Payload type 0: PRBS9, 1: 11110000, 2: 10101010, 3: PRBS15, 4: 11111111, 5: 00000000, 6: 00001111, 7: 01010101\r\n");
+    furi_string_cat_printf(
+        instance->msg, "mode <0..3> Transmit mode 0: Burst, 1: Continuous 2: Cw\r\n");
+    furi_string_cat_printf(
+        instance->msg,
+        "hopping <0..2> Frequency hopping 0: No hopping, 1: Fixed Hopping, 2: Random Hopping\r\n");
+    furi_string_cat_printf(
+        instance->msg,
+        "tx_power <1..10 | 127> Transmit power 1..10: 1dBm..10dBm, 127: Max Power Supported by Country regio\r\n");
+
     furi_string_cat_printf(
         instance->msg,
         "*************************************************************************************************************"
