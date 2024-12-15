@@ -23,6 +23,7 @@ App(
     name="Basic services",
     apptype=FlipperAppType.METAPACKAGE,
     provides=[
+        "cli",
         "input",
         "intercom",
         "notification",

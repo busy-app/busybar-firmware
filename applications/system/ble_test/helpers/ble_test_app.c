@@ -209,7 +209,6 @@ void* ble_test_app_start(CliWorker* worker) {
 
     instance->exit = false;
 
-    //ble_testmodes();
     sl_status_t status = SL_STATUS_FAIL;
     do {
         status = sl_wifi_init(&config, NULL, sl_wifi_default_event_handler);
