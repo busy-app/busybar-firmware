@@ -405,13 +405,6 @@ const BLEPerTestHoppingMode ble_per_test_hopping_mode[BLE_PER_TEST_HOPPING_MODE_
     {"random_hopping", RANDOM_HOPPING},
 };
 
-//! Application global parameters.
-static rsi_bt_resp_get_local_name_t rsi_app_resp_get_local_name = {0};
-static uint8_t rsi_app_resp_get_dev_addr[RSI_DEV_ADDR_LEN] = {0};
-static rsi_ble_per_transmit_t rsi_ble_per_tx;
-static rsi_ble_per_receive_t rsi_ble_per_rx;
-static rsi_bt_per_stats_t per_stats;
-
 struct BLEPerTestApp {
     FuriString* msg;
     CliWorker* worker;
@@ -423,10 +416,14 @@ struct BLEPerTestApp {
     rsi_ble_per_receive_t rsi_ble_per_rx;
     rsi_bt_per_stats_t per_stats;
 
+    FuriThread* thread;
+
     bool exit;
 };
 
 static void ble_per_test_app_cmd_usage(BLEPerTestApp* instance);
+void ble_per_test_app_show_status_start(void* app_handle);
+void ble_per_test_app_show_status_stop(void* app_handle);
 
 static void ble_per_test_app_send_msg(BLEPerTestApp* instance) {
     cli_worker_add_rx_data(
@@ -443,284 +440,6 @@ void ble_per_test_app_send_text(BLEPerTestApp* instance, FuriString* text) {
 static void ble_per_test_app_send_msg_invalid_arg(BLEPerTestApp* instance) {
     furi_string_printf(instance->msg, "Invalid argument\r\n");
     ble_per_test_app_send_msg(instance);
-}
-
-void ble_per(void* unused) {
-    UNUSED(unused);
-    sl_status_t status;
-    sl_wifi_firmware_version_t version = {0};
-    uint8_t local_dev_addr[LOCAL_DEV_ADDR_LEN] = {0};
-
-    // #ifdef SLI_SI91X_MCU_INTERFACE
-    //     sl_si91x_hardware_setup();
-    // #endif
-    //! Wi-Fi initialization
-    status = sl_wifi_init(&config, NULL, sl_wifi_default_event_handler);
-    if(status != SL_STATUS_OK) {
-        printf("\r\nWireless Initialization Failed, Error Code : 0x%lX\r\n", status);
-        return;
-    }
-    printf("\r\nWireless Initialization Success\n");
-
-    //! set region support
-    status =
-        sl_si91x_set_device_region(config.boot_config.oper_mode, config.band, config.region_code);
-    if(status != SL_STATUS_OK) {
-        printf("\r\nSet Region Failed, Error Code : %ld\r\n", status);
-    } else {
-        printf("\r\nSet Region Success\r\n");
-    }
-
-    //!  WLAN radio deinit
-    status = sl_si91x_disable_radio();
-    if(status != SL_STATUS_OK) {
-        printf("\r\n  Failed to disable WLAN radio, Error Code : %ld\r\n", status);
-    } else {
-        printf("\r\n Disable WLAN radio success\r\n");
-    }
-
-    //! Firmware version Prints
-    status = sl_wifi_get_firmware_version(&version);
-    if(status != SL_STATUS_OK) {
-        printf("\r\nFailed to fetch firmware version: 0x%lx\r\n", status);
-    } else {
-        print_firmware_version(&version);
-    }
-
-    //! get the local device MAC address.
-    status = rsi_bt_get_local_device_address(rsi_app_resp_get_dev_addr);
-    if(status != RSI_SUCCESS) {
-        printf("\r\n Get local device address failed = %lx\r\n", status);
-        return;
-    } else {
-        rsi_6byte_dev_address_to_ascii(local_dev_addr, rsi_app_resp_get_dev_addr);
-        printf("\r\n Local device address : %s \r\n ", local_dev_addr);
-    }
-
-    //! set the local device name
-    status = rsi_bt_set_local_name(RSI_BLE_LOCAL_NAME);
-    if(status != RSI_SUCCESS) {
-        printf("\r\n Set Local Name Failed = %lx\r\n", status);
-    }
-
-    //! get the local device name
-    status = rsi_bt_get_local_name(&rsi_app_resp_get_local_name);
-    if(status != RSI_SUCCESS) {
-        printf("\r\n Get Local Name Failed = %lx\r\n", status);
-    }
-    printf("Local name set to: %s\n", rsi_app_resp_get_local_name.name);
-
-#if GAIN_TABLE_AND_MAX_POWER_UPDATE_ENABLE
-
-    //! structure update for the MAXPOWER
-    status = rsi_bt_cmd_update_gain_table_offset_or_max_pwr(
-        0,
-        sizeof(Si917_BLE_REGION_BASED_MAXPOWER_XX),
-        Si917_BLE_REGION_BASED_MAXPOWER_XX,
-        BLE_GAIN_TABLE_MAXPOWER_UPDATE);
-    if(status != RSI_SUCCESS) {
-        printf("\r\n Failed to update gain table for max power with status = %lx\r\n", status);
-    } else {
-        printf("\r\n Updation of gain table max tx power command is successful \r\n");
-    }
-
-    //! structure update for the MAXPOWER OFFSET
-    status = rsi_bt_cmd_update_gain_table_offset_or_max_pwr(
-        0,
-        sizeof(Si917_BLE_REGION_BASED_MAXPOWER_VS_OFFSET_XX),
-        Si917_BLE_REGION_BASED_MAXPOWER_VS_OFFSET_XX,
-        BLE_GAIN_TABLE_OFFSET_UPDATE);
-    if(status != RSI_SUCCESS) {
-        printf("\r\n Failed to update gain table offset with status = %lx\r\n", status);
-    } else {
-        printf("\r\n Updation of gain table offset command is successful \r\n");
-    }
-
-    //! structure update for the LP_CHAIN 0dBm OFFSET
-    status = rsi_bt_cmd_update_gain_table_offset_or_max_pwr(
-        0,
-        sizeof(Si917_BLE_REGION_BASED_LP_CHAIN_0DBM_OFFSET_XX),
-        Si917_BLE_REGION_BASED_LP_CHAIN_0DBM_OFFSET_XX,
-        BLE_GAIN_TABLE_LP_CHAIN_0DBM_OFFSET_UPDATE);
-    if(status != RSI_SUCCESS) {
-        printf(
-            "\r\n Failed to update gain table LP-Chain 0dBm offset with status = %lx\r\n", status);
-    } else {
-        printf("\r\n Updation of gain table LP-Chain 0dBm offset command is successful \r\n");
-    }
-
-    //! structure update for the LP_CHAIN 10dBm OFFSET
-    status = rsi_bt_cmd_update_gain_table_offset_or_max_pwr(
-        0,
-        sizeof(Si917_BLE_REGION_BASED_LP_CHAIN_10DBM_OFFSET_XX),
-        Si917_BLE_REGION_BASED_LP_CHAIN_10DBM_OFFSET_XX,
-        BLE_GAIN_TABLE_LP_CHAIN_10DBM_OFFSET_UPDATE);
-    if(status != RSI_SUCCESS) {
-        printf(
-            "\r\n Failed to update gain table LP-Chain 10dBm offset with status = %lx\r\n",
-            status);
-    } else {
-        printf("\r\n Updation of gain table LP-Chain 10dBm offset command is successful \r\n");
-    }
-
-#endif
-
-    if(RSI_CONFIG_PER_MODE == RSI_BLE_PER_TRANSMIT_MODE) {
-        rsi_ble_per_tx.cmd_ix = BLE_TRANSMIT_CMD_ID;
-        rsi_ble_per_tx.transmit_enable = ENABLE;
-        *(uint32_t*)&rsi_ble_per_tx.access_addr[0] = BLE_ACCESS_ADDR;
-        *(uint16_t*)&rsi_ble_per_tx.pkt_len[0] = BLE_TX_PKT_LEN;
-        rsi_ble_per_tx.phy_rate = BLE_PHY_RATE;
-        rsi_ble_per_tx.rx_chnl_num = BLE_RX_CHNL_NUM;
-        rsi_ble_per_tx.tx_chnl_num = BLE_TX_CHNL_NUM;
-        rsi_ble_per_tx.scrambler_seed = SCRAMBLER_SEED;
-        rsi_ble_per_tx.payload_type = PRBS9_SEQ;
-        rsi_ble_per_tx.le_chnl_type = LE_DATA_CHNL_TYPE;
-        rsi_ble_per_tx.tx_power = BLE_TX_POWER_INDEX; //1..10
-        rsi_ble_per_tx.transmit_mode = CONTIUOUS_MODE;
-        rsi_ble_per_tx.freq_hop_en = NO_HOPPING;
-        rsi_ble_per_tx.ant_sel = ONBOARD_ANT_SEL;
-        rsi_ble_per_tx.inter_pkt_gap = RSI_INTER_PKT_GAP;
-        rsi_ble_per_tx.pll_mode = PLL_MODE_0;
-        rsi_ble_per_tx.rf_type = BLE_INTERNAL_RF;
-        rsi_ble_per_tx.rf_chain = BT_HP_CHAIN_BIT;
-        //! start the Transmit PER functionality
-        status = rsi_ble_per_transmit(&rsi_ble_per_tx);
-        if(status != RSI_SUCCESS) {
-            printf("\n per transmit cmd failed : 0x%lX \n", status);
-        } else {
-            printf(
-                "\nRSI_BLE_PER_TRANSMIT_MODE \n"
-                "cmd id: 0x%X \n"
-                "enable: %d \n"
-                "access_addr: 0x%lX \n"
-                "pkt_len: %d \n"
-                "phy_rate: %d \n"
-                "rx_chnl_num: %d \n"
-                "tx_chnl_num: %d \n"
-                "scrambler_seed: %d \n"
-                "payload_type: %d \n"
-                "le_chnl_type: %d \n"
-                "tx_power: %d \n"
-                "transmit_mode: %d \n"
-                "freq_hop_en: %d \n"
-                "ant_sel: %d \n"
-                "inter_pkt_gap: %d \n"
-                "pll_mode: %d \n"
-                "rf_type: %d \n"
-                "rf_chain: %d \n",
-                rsi_ble_per_tx.cmd_ix,
-                rsi_ble_per_tx.transmit_enable,
-                *(uint32_t*)&rsi_ble_per_tx.access_addr[0],
-                (*(uint16_t*)&rsi_ble_per_tx.pkt_len[0]),
-                rsi_ble_per_tx.phy_rate,
-                rsi_ble_per_tx.rx_chnl_num,
-                rsi_ble_per_tx.tx_chnl_num,
-                rsi_ble_per_tx.scrambler_seed,
-                rsi_ble_per_tx.payload_type,
-                rsi_ble_per_tx.le_chnl_type,
-                rsi_ble_per_tx.tx_power,
-                rsi_ble_per_tx.transmit_mode,
-                rsi_ble_per_tx.freq_hop_en,
-                rsi_ble_per_tx.ant_sel,
-                rsi_ble_per_tx.inter_pkt_gap,
-                rsi_ble_per_tx.pll_mode,
-                rsi_ble_per_tx.rf_type,
-                rsi_ble_per_tx.rf_chain);
-        }
-    } else if(RSI_CONFIG_PER_MODE == RSI_BLE_PER_RECEIVE_MODE) {
-        rsi_ble_per_rx.cmd_ix = BLE_RECEIVE_CMD_ID;
-        rsi_ble_per_rx.receive_enable = ENABLE;
-        *(uint32_t*)&rsi_ble_per_rx.access_addr[0] = BLE_ACCESS_ADDR;
-        rsi_ble_per_rx.ext_data_len_indication = EXT_DATA_LEN_IND;
-        rsi_ble_per_rx.phy_rate = BLE_PHY_RATE;
-        rsi_ble_per_rx.rx_chnl_num = BLE_RX_CHNL_NUM;
-        rsi_ble_per_rx.tx_chnl_num = BLE_TX_CHNL_NUM;
-        rsi_ble_per_rx.scrambler_seed = SCRAMBLER_SEED;
-        rsi_ble_per_rx.le_chnl_type = LE_DATA_CHNL_TYPE;
-        rsi_ble_per_rx.loop_back_mode = LOOP_BACK_MODE_DISABLE;
-        rsi_ble_per_rx.freq_hop_en = NO_HOPPING;
-        rsi_ble_per_rx.ant_sel = ONBOARD_ANT_SEL;
-        rsi_ble_per_rx.duty_cycling_en = DUTY_CYCLING_DISABLE;
-        rsi_ble_per_rx.pll_mode = PLL_MODE_0;
-        rsi_ble_per_rx.rf_type = BLE_INTERNAL_RF;
-        rsi_ble_per_rx.rf_chain = BT_HP_CHAIN_BIT;
-        //! start the Receive PER functionality
-        rsi_ble_per_receive(&rsi_ble_per_rx);
-        if(status != RSI_SUCCESS) {
-            printf("\n per receive cmd failed : %lx \n", status);
-        } else {
-            printf(
-                "\nRSI_BLE_PER_RECEIVE_MODE \n"
-                "cmd id: 0x%X \n"
-                "enable: %d \n"
-                "access_addr: 0x%lX \n"
-                "ext_data_len_indication: %d \n"
-                "phy_rate: %d \n"
-                "rx_chnl_num: %d \n"
-                "tx_chnl_num: %d \n"
-                "scrambler_seed: %d \n"
-                "le_chnl_type: %d \n"
-                "loop_back_mode: %d \n"
-                "freq_hop_en: %d \n"
-                "ant_sel: %d \n"
-                "duty_cycling_en: %d \n"
-                "pll_mode: %d \n"
-                "rf_type: %d \n"
-                "rf_chain: %d \n",
-                rsi_ble_per_rx.cmd_ix,
-                rsi_ble_per_rx.receive_enable,
-                *(uint32_t*)&rsi_ble_per_rx.access_addr[0],
-                rsi_ble_per_rx.ext_data_len_indication,
-                rsi_ble_per_rx.phy_rate,
-                rsi_ble_per_rx.rx_chnl_num,
-                rsi_ble_per_rx.tx_chnl_num,
-                rsi_ble_per_rx.scrambler_seed,
-                rsi_ble_per_rx.le_chnl_type,
-                rsi_ble_per_rx.loop_back_mode,
-                rsi_ble_per_rx.freq_hop_en,
-                rsi_ble_per_rx.ant_sel,
-                rsi_ble_per_rx.duty_cycling_en,
-                rsi_ble_per_rx.pll_mode,
-                rsi_ble_per_rx.rf_type,
-                rsi_ble_per_rx.rf_chain);
-        }
-    }
-
-    while(1) {
-        status = rsi_bt_per_stats(BT_PER_STATS_CMD_ID, &per_stats);
-        if(status != RSI_SUCCESS) {
-            printf("\n per stats cmd failed : %lx \n", status);
-        } else {
-            printf(
-                "\nPER Stats \n"
-                "crc_fail_cnt : %d \n"
-                "crc_pass_cnt: %d \n"
-                "tx_dones: %d \n"
-                "rssi: %d \n"
-                "id_pkts_rcvd :%d \n"
-
-                "tx_abort_cnt : %d \n"
-                "rx_drop_cnt: %d \n"
-                "rx_cca_idle_cnt: %d \n"
-                "rx_start_idle_cnt : %d \n"
-                "rx_abrt_cnt : %d \n",
-                per_stats.crc_fail_cnt,
-                per_stats.crc_pass_cnt,
-                per_stats.tx_dones,
-                per_stats.rssi,
-                per_stats.id_pkts_rcvd,
-                per_stats.tx_abort_cnt,
-                per_stats.rx_drop_cnt,
-                per_stats.rx_cca_idle_cnt,
-                per_stats.rx_start_idle_cnt,
-                per_stats.rx_abrt_cnt);
-        }
-        //To get tx_done logs properly and to avoid application hang issue due to continuous stats added 1sec delay.
-        //It is applicable for both sdk 2.9 and 3.0
-        furi_delay_ms(1000);
-    }
-    return;
 }
 
 void* ble_per_test_app_start(CliWorker* worker) {
@@ -839,7 +558,7 @@ void* ble_per_test_app_start(CliWorker* worker) {
         }
 
         //! get the local device MAC address.
-        status = rsi_bt_get_local_device_address(rsi_app_resp_get_dev_addr);
+        status = rsi_bt_get_local_device_address(instance->rsi_app_resp_get_dev_addr);
         if(status != RSI_SUCCESS) {
             furi_string_printf(
                 instance->msg,
@@ -848,7 +567,7 @@ void* ble_per_test_app_start(CliWorker* worker) {
             ble_per_test_app_send_msg(instance);
             break;
         } else {
-            rsi_6byte_dev_address_to_ascii(local_dev_addr, rsi_app_resp_get_dev_addr);
+            rsi_6byte_dev_address_to_ascii(local_dev_addr, instance->rsi_app_resp_get_dev_addr);
             furi_string_printf(instance->msg, "Local device address : %s\r\n", local_dev_addr);
             ble_per_test_app_send_msg(instance);
         }
@@ -863,7 +582,7 @@ void* ble_per_test_app_start(CliWorker* worker) {
         }
 
         //! get the local device name
-        status = rsi_bt_get_local_name(&rsi_app_resp_get_local_name);
+        status = rsi_bt_get_local_name(&instance->rsi_app_resp_get_local_name);
         if(status != RSI_SUCCESS) {
             furi_string_printf(
                 instance->msg, "Failed to get local name, error code: 0x%08lX\r\n", status);
@@ -871,7 +590,9 @@ void* ble_per_test_app_start(CliWorker* worker) {
             break;
         }
         furi_string_printf(
-            instance->msg, "Local name set to: %s\r\n", rsi_app_resp_get_local_name.name);
+            instance->msg,
+            "Local name set to: %s\r\n",
+            instance->rsi_app_resp_get_local_name.name);
         ble_per_test_app_send_msg(instance);
 
 #if GAIN_TABLE_AND_MAX_POWER_UPDATE_ENABLE
@@ -955,6 +676,7 @@ void* ble_per_test_app_start(CliWorker* worker) {
         }
 
 #endif
+        ble_per_test_app_cmd_usage(instance);
     } while(false);
 
     if(status != SL_STATUS_OK) {
@@ -973,7 +695,9 @@ void ble_per_test_app_stop(void* app_handle) {
     BLEPerTestApp* instance = (BLEPerTestApp*)app_handle;
 
     if(instance) {
-        instance->exit = true;
+        if(instance->thread) {
+            ble_per_test_app_show_status_stop(instance);
+        }
         furi_string_free(instance->msg);
         free(instance);
         instance = NULL;
@@ -1007,6 +731,10 @@ static sl_status_t ble_per_test_app(BLEPerTestApp* instance, uint8_t cmd_index, 
                 ble_per_test_app_send_msg(instance);
             } else {
                 instance->state = BLEPerTestStateTx;
+                if(instance->rsi_ble_per_tx.transmit_mode == BURST_MODE) {
+                    ble_per_test_app_show_status_start(instance);
+                }
+
                 furi_string_printf(
                     instance->msg,
                     "BLE PER test Tx started\r\n"
@@ -1067,6 +795,7 @@ static sl_status_t ble_per_test_app(BLEPerTestApp* instance, uint8_t cmd_index, 
                 ble_per_test_app_send_msg(instance);
             } else {
                 instance->state = BLEPerTestStateRx;
+                ble_per_test_app_show_status_start(instance);
                 furi_string_printf(
                     instance->msg,
                     "BLE PER test Rx started\r\n"
@@ -1112,6 +841,7 @@ static sl_status_t ble_per_test_app(BLEPerTestApp* instance, uint8_t cmd_index, 
         break;
     case BLEPerTestCmdTypeModeTxRxStop:
         if(instance->state == BLEPerTestStateTx) {
+            ble_per_test_app_show_status_stop(instance);
             instance->rsi_ble_per_tx.transmit_enable = DISABLE;
             status = rsi_ble_per_transmit(&instance->rsi_ble_per_tx);
             if(status != RSI_SUCCESS) {
@@ -1126,6 +856,7 @@ static sl_status_t ble_per_test_app(BLEPerTestApp* instance, uint8_t cmd_index, 
             }
             instance->state = BLEPerTestStateIdle;
         } else if(instance->state == BLEPerTestStateRx) {
+            ble_per_test_app_show_status_stop(instance);
             instance->rsi_ble_per_rx.receive_enable = DISABLE;
             status = rsi_ble_per_receive(&instance->rsi_ble_per_rx);
             if(status != RSI_SUCCESS) {
@@ -1387,4 +1118,55 @@ static void ble_per_test_app_cmd_usage(BLEPerTestApp* instance) {
         "*************************************************************************************************************"
         "*********\r\n");
     ble_per_test_app_send_msg(instance);
+}
+
+//############ BLE PER Test App Show status #############################
+
+static int32_t ble_per_test_app_thread_callback(void* context) {
+    BLEPerTestApp* instance = (BLEPerTestApp*)context;
+    FuriString* msg = furi_string_alloc();
+    while(!instance->exit) {
+        rsi_bt_per_stats(BT_PER_STATS_CMD_ID, &instance->per_stats);
+        if(instance->state == BLEPerTestStateTx) {
+            furi_string_printf(
+                msg,
+                "\r\nTx Stats\r\n"
+                "tx_dones: %d\r\n",
+                instance->per_stats.tx_dones);
+            ble_per_test_app_send_text(instance, msg);
+        } else if(instance->state == BLEPerTestStateRx) {
+            furi_string_printf(
+                msg,
+                "\r\nRx Stats\r\n"
+                "crc_fail_cnt: %d\r\n"
+                "crc_pass_cnt: %d\r\n"
+                "rssi: %d\r\n",
+                instance->per_stats.crc_fail_cnt,
+                instance->per_stats.crc_pass_cnt,
+                instance->per_stats.rssi);
+
+            ble_per_test_app_send_text(instance, msg);
+        }
+        furi_delay_ms(500);
+    }
+    furi_string_free(msg);
+    return 0;
+}
+
+void ble_per_test_app_show_status_start(void* app_handle) {
+    BLEPerTestApp* instance = (BLEPerTestApp*)app_handle;
+    instance->thread = furi_thread_alloc_ex(
+        "BLEPerTestShowStatus", 2048, ble_per_test_app_thread_callback, instance);
+    instance->exit = false;
+    furi_thread_start(instance->thread);
+}
+
+void ble_per_test_app_show_status_stop(void* app_handle) {
+    BLEPerTestApp* instance = (BLEPerTestApp*)app_handle;
+    if(instance->thread) {
+        instance->exit = true;
+        furi_thread_join(instance->thread);
+        furi_thread_free(instance->thread);
+        instance->thread = NULL;
+    }
 }
