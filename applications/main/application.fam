@@ -8,6 +8,7 @@ App(
         "crash_test",
         "lightsensor_test",
         "led_indicator",
+        "power_test",
     ],
     targets=["f20"],
 )

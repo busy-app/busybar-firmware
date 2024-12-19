@@ -9,37 +9,21 @@
 #include <furi.h>
 #include <furi_hal_gpio.h>
 
+#include <input_common/input_common.h>
+
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-/* Input Related Constants */
-#define INPUT_DEBOUNCE_TICKS 4
-/* Input Keys */
-typedef enum {
-    InputKeyOk,
-    InputKeyBack,
-    InputKeyStartPause,
-    InputKeySwitch,
-    InputKeyEncoder,
-    InputKeyMAX, /**< Special value, don't use it */
-} InputKey;
-
-typedef enum {
-    InputSwitchPositionBusy,
-    InputSwitchPositionStatus,
-    InputSwitchPositionOff,
-    InputSwitchPositionApps,
-    InputSwitchPositionSettings,
-} InputSwitchPosition;
-
 typedef struct {
     const GpioPin* gpio;
-    const InputKey key;
-    const bool inverted;
     const char* name;
-    const GpioCondition condition;
-    const InputSwitchPosition switch_position;
+    const GpioCondition cond;
+    const InputDevice device;
+    union {
+        const InputButton button;
+        const InputSwitchPosition pos;
+    };
 } InputPin;
 
 /* HP GPIO pins */

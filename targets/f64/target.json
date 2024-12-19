@@ -79,9 +79,8 @@
         "print",
         "targets",
         "furi",
-        "nanopb",
-        "bsb_protobuf",
         "toolbox_f64",
+        "input_common",
         "firmware_applications_f64"
     ],
     "fw_modules": [

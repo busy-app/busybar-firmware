@@ -1,3 +1,7 @@
+/**
+ * @file furi_hal_resources.h
+ * @brief Hardware resources API
+ */
 #pragma once
 
 #include <furi.h>
@@ -14,16 +18,18 @@ typedef enum {
     InputKeyLeft,
     InputKeyOk,
     InputKeyBack,
-    // InputKeyMenu,
-    // InputEncoder,
-    // InputSwitch,
+    InputKeyStart,
+    InputKeyBusy,
+    InputKeyStatus,
+    InputKeyOff,
+    InputKeyApps,
+    InputKeySettings,
     InputKeyMAX, /**< Special value, don't use it */
 } InputKey;
 
 typedef struct {
     const GpioPin* pin;
     const char* name;
-    //const FuriHalAdcChannel channel;
     const uint8_t number;
     const bool debug;
 } GpioPinRecord;

@@ -7,6 +7,7 @@
 
 #include <stddef.h>
 #include <stdint.h>
+#include <stdbool.h>
 
 #include <furi_hal_serial_types.h>
 
@@ -35,27 +36,73 @@ typedef enum {
     FuriHalSerialTxEventComplete = (1 << 0), /**< Transmission complete */
 } FuriHalSerialTxEvent;
 
+/**
+ * Receive callback function type.
+ *
+ * @param handle Pointer to the serial handle.
+ * @param event Bitmask of occurred events.
+ * @param context Pointer to the context object.
+ */
 typedef void (*FuriHalSerialTxCallback)(
     FuriHalSerialHandle* handle,
     FuriHalSerialTxEvent event,
     void* context);
 
+/**
+ * Transmit callback function type.
+ *
+ * @param handle Pointer to the serial handle.
+ * @param event Bitmask of occurred events.
+ * @param context Pointer to the context object.
+ */
 typedef void (*FuriHalSerialRxCallback)(
     FuriHalSerialHandle* handle,
     FuriHalSerialRxEvent event,
     void* context);
 
-void furi_hal_serial_init(FuriHalSerialHandle* handle, uint32_t baud);
+/**
+ * Initialize the serial interface.
+ *
+ * @param handle Pointer to the serial handle.
+ * @param baud_rate Baud rate.
+ */
+void furi_hal_serial_init(FuriHalSerialHandle* handle, uint32_t baud_rate);
 
+/**
+ * Deinitialize the serial interface.
+ *
+ * @param handle Pointer to the serial handle.
+ */
 void furi_hal_serial_deinit(FuriHalSerialHandle* handle);
 
+/**
+ * Suspend the serial interface.
+ * @param handle Pointer to the serial handle.
+ */
 void furi_hal_serial_suspend(FuriHalSerialHandle* handle);
 
+/**
+ * Resume the serial interface.
+ * @param handle Pointer to the serial handle.
+ */
 void furi_hal_serial_resume(FuriHalSerialHandle* handle);
 
-bool furi_hal_serial_is_baud_rate_supported(FuriHalSerialHandle* handle, uint32_t baud);
+/**
+ * @brief Determine whether a certain baud rate is supported
+ *
+ * @param      handle  Serial handle
+ * @param      baud_rate Baud rate to be checked
+ * @returns    true if baud rate is supported, false otherwise.
+ */
+bool furi_hal_serial_is_baud_rate_supported(FuriHalSerialHandle* handle, uint32_t baud_rate);
 
-void furi_hal_serial_set_br(FuriHalSerialHandle* handle, uint32_t baud);
+/**
+ * Set the baud rate for the serial interface.
+ *
+ * @param handle Pointer to the serial handle.
+ * @param baud_rate Baud rate.
+ */
+void furi_hal_serial_set_baud_rate(FuriHalSerialHandle* handle, uint32_t baud_rate);
 
 /**
  * Set the hardware flow control mode for the serial interface.
@@ -67,6 +114,14 @@ void furi_hal_serial_set_hw_flow_control(
     FuriHalSerialHandle* handle,
     FuriHalSerialHwFlowControl flow_control);
 
+/**
+ * Set the callback functions for the serial interface.
+ *
+ * @param handle Pointer to the serial handle.
+ * @param tx_callback Pointer to the transmit callback function.
+ * @param rx_callback Pointer to the receive callback function.
+ * @param context Pointer to the context object.
+ */
 void furi_hal_serial_set_callback(
     FuriHalSerialHandle* handle,
     FuriHalSerialTxCallback tx_callback,
@@ -75,27 +130,93 @@ void furi_hal_serial_set_callback(
 
 /* Blocking API */
 
+/**
+ * Transmit data over the serial interface.
+ *
+ * @param handle Pointer to the serial handle.
+ * @param buffer Pointer to the data buffer.
+ * @param buffer_size Size of the data buffer.
+ */
 void furi_hal_serial_tx(FuriHalSerialHandle* handle, const uint8_t* buffer, size_t buffer_size);
 
+/**
+ * Wait for the transmission to complete.
+ *
+ * @param handle Pointer to the serial handle.
+ */
 void furi_hal_serial_tx_wait_complete(FuriHalSerialHandle* handle);
+
+/**
+ * Determine whether there is received data ready for reading.
+ *
+ * @param handle Pointer to the serial handle.
+ * @returns true if there is data ready to be read, false otherwise.
+ */
+bool furi_hal_serial_rx_available(FuriHalSerialHandle* handle);
+
+/**
+ * Read the next received data character.
+ *
+ * @param handle Pointer to the serial handle.
+ * @returns the value of the first available received character.
+ */
+uint8_t furi_hal_serial_rx(FuriHalSerialHandle* handle);
 
 /* Interrupt-based asynchronous API */
 
+/**
+ * Start receiving in interrupt-driven mode.
+ *
+ * @param handle Pointer to the serial handle.
+ * @param report_errors Enable error events if set to true, do not enable otherwise.
+ */
 void furi_hal_serial_async_rx_start(FuriHalSerialHandle* handle, bool report_errors);
 
+/**
+ * Stop receiving in interrupt-driven mode.
+ *
+ * @param handle Pointer to the serial handle.
+ */
 void furi_hal_serial_async_rx_stop(FuriHalSerialHandle* handle);
-
-bool furi_hal_serial_async_rx_available(FuriHalSerialHandle* handle);
-
-uint8_t furi_hal_serial_async_rx(FuriHalSerialHandle* handle);
 
 /* DMA-based asynchronous API */
 
+/**
+ * Transmit data over the serial interface using DMA.
+ *
+ * @param handle Pointer to the serial handle.
+ * @param buffer Pointer to the data buffer.
+ * @param buffer_size Size of the data buffer.
+ */
 void furi_hal_serial_dma_tx(FuriHalSerialHandle* handle, const uint8_t* buffer, size_t buffer_size);
 
+/**
+ * Start receiving in DMA mode.
+ *
+ * @note In this mode, the receive event will only be generated once the whole buffer has been filled.
+ *
+ * @param handle Pointer to the serial handle.
+ * @param buffer Pointer to the receive buffer (must be allocated and of appropriate size).
+ * @param buffer_size Size of the receive buffer.
+ */
 void furi_hal_serial_dma_rx_start(FuriHalSerialHandle* handle, uint8_t* buffer, size_t buffer_size);
 
+/**
+ * Stop receiving in DMA mode.
+ *
+ * @param handle Pointer to the serial handle.
+ */
 void furi_hal_serial_dma_rx_stop(FuriHalSerialHandle* handle);
+
+/* Misc functions */
+
+/**
+ * Clear pending characters in (a) specified direction(s).
+ *
+ * @param handle Pointer to the serial handle.
+ * @param direction Direction (transmit, receive or both) to clear.
+ */
+void furi_hal_serial_clear(FuriHalSerialHandle* handle, FuriHalSerialDirection direction);
 
 #ifdef __cplusplus
 }

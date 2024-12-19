@@ -2,19 +2,18 @@
  * @file input.h
  * Input: main API
  */
-
 #pragma once
 
-#include <stdint.h>
 #include <furi_hal_resources.h>
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-#define RECORD_INPUT_EVENTS            "input_events"
-#define INPUT_SEQUENCE_SOURCE_HARDWARE (0u)
-#define INPUT_SEQUENCE_SOURCE_SOFTWARE (1u)
+#define RECORD_INPUT_EVENTS "input_events"
+
+#define INPUT_SEQUENCE_SOURCE_HARDWARE (0U)
+#define INPUT_SEQUENCE_SOURCE_SOFTWARE (1U)
 
 /** Input Types
  * Some of them are physical events and some logical
@@ -25,20 +24,15 @@ typedef enum {
     InputTypeShort, /**< Short event, emitted after InputTypeRelease done within INPUT_LONG_PRESS interval */
     InputTypeLong, /**< Long event, emitted after INPUT_LONG_PRESS_COUNTS interval, asynchronous to InputTypeRelease  */
     InputTypeRepeat, /**< Repeat event, emitted with INPUT_LONG_PRESS_COUNTS period after InputTypeLong event */
-    InputTypeMAX, /**< Special value for exceptional */
+    InputTypeMAX, /**< Special value, internal use */
 } InputType;
 
 /** Input Event, dispatches with FuriPubSub */
 typedef struct {
-    union {
-        uint32_t sequence;
-        struct {
-            uint8_t sequence_source   : 2;
-            uint32_t sequence_counter : 30;
-        };
-    };
     InputKey key;
     InputType type;
+    uint8_t sequence_source;
+    uint32_t sequence_number;
 } InputEvent;
 
 /** Get human readable input key name
@@ -66,6 +60,15 @@ void input_key_press(InputKey key);
  * @param key 
  */
 void input_key_release(InputKey key);
+
+/**
+ * @brief Toggle the state of a key
+ *
+ * Set the pressed and the released state of a key in a quick succession
+ *
+ * @param key
+ */
+void input_key_toggle(InputKey key);
 
 #ifdef __cplusplus
 }

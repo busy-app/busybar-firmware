@@ -1,5 +1,8 @@
 #pragma once
 
+#include <stdint.h>
+#include <stdbool.h>
+
 #include <furi_hal_serial_types.h>
 
 #ifdef __cplusplus

@@ -1,5 +1,5 @@
 entry,status,name,type,params
-Version,+,1.17,,
+Version,+,1.18,,
 Header,-,applications/services/cli/cli.h,,
 Header,-,applications/services/cli/cli_vcp.h,,
 Header,-,applications/services/gui/elements.h,,
@@ -55,9 +55,6 @@ Header,-,lib/mlib/m-list.h,,
 Header,-,lib/mlib/m-rbtree.h,,
 Header,-,lib/mlib/m-tuple.h,,
 Header,-,lib/mlib/m-variant.h,,
-Header,-,lib/nanopb/pb.h,,
-Header,-,lib/nanopb/pb_decode.h,,
-Header,-,lib/nanopb/pb_encode.h,,
 Header,-,lib/print/wrappers.h,,
 Header,-,lib/toolbox/api_lock.h,,
 Header,-,lib/toolbox/args.h,,
@@ -1025,6 +1022,7 @@ Function,-,input_get_key_name,const char*,InputKey
 Function,-,input_get_type_name,const char*,InputType
 Function,-,input_key_press,void,InputKey
 Function,-,input_key_release,void,InputKey
+Function,-,input_key_toggle,void,InputKey
 Function,-,iprintf,int,"const char*, ..."
 Function,-,isalnum,int,int
 Function,-,isalnum_l,int,"int, locale_t"
@@ -1369,35 +1367,6 @@ Function,-,path_extract_dirname,void,"const char*, FuriString*"
 Function,-,path_extract_extension,void,"FuriString*, char*, size_t"
 Function,-,path_extract_filename,void,"FuriString*, FuriString*, _Bool"
 Function,-,path_extract_filename_no_ext,void,"const char*, FuriString*"
-Function,-,pb_close_string_substream,_Bool,"pb_istream_t*, pb_istream_t*"
-Function,-,pb_decode,_Bool,"pb_istream_t*, const pb_msgdesc_t*, void*"
-Function,-,pb_decode_bool,_Bool,"pb_istream_t*, _Bool*"
-Function,-,pb_decode_ex,_Bool,"pb_istream_t*, const pb_msgdesc_t*, void*, unsigned int"
-Function,-,pb_decode_fixed32,_Bool,"pb_istream_t*, void*"
-Function,-,pb_decode_fixed64,_Bool,"pb_istream_t*, void*"
-Function,-,pb_decode_svarint,_Bool,"pb_istream_t*, int64_t*"
-Function,-,pb_decode_tag,_Bool,"pb_istream_t*, pb_wire_type_t*, uint32_t*, _Bool*"
-Function,-,pb_decode_varint,_Bool,"pb_istream_t*, uint64_t*"
-Function,-,pb_decode_varint32,_Bool,"pb_istream_t*, uint32_t*"
-Function,-,pb_default_field_callback,_Bool,"pb_istream_t*, pb_ostream_t*, const pb_field_t*"
-Function,-,pb_encode,_Bool,"pb_ostream_t*, const pb_msgdesc_t*, const void*"
-Function,-,pb_encode_ex,_Bool,"pb_ostream_t*, const pb_msgdesc_t*, const void*, unsigned int"
-Function,-,pb_encode_fixed32,_Bool,"pb_ostream_t*, const void*"
-Function,-,pb_encode_fixed64,_Bool,"pb_ostream_t*, const void*"
-Function,-,pb_encode_string,_Bool,"pb_ostream_t*, const pb_byte_t*, size_t"
-Function,-,pb_encode_submessage,_Bool,"pb_ostream_t*, const pb_msgdesc_t*, const void*"
-Function,-,pb_encode_svarint,_Bool,"pb_ostream_t*, int64_t"
-Function,-,pb_encode_tag,_Bool,"pb_ostream_t*, pb_wire_type_t, uint32_t"
-Function,-,pb_encode_tag_for_field,_Bool,"pb_ostream_t*, const pb_field_iter_t*"
-Function,-,pb_encode_varint,_Bool,"pb_ostream_t*, uint64_t"
-Function,-,pb_get_encoded_size,_Bool,"size_t*, const pb_msgdesc_t*, const void*"
-Function,-,pb_istream_from_buffer,pb_istream_t,"const pb_byte_t*, size_t"
-Function,-,pb_make_string_substream,_Bool,"pb_istream_t*, pb_istream_t*"
-Function,-,pb_ostream_from_buffer,pb_ostream_t,"pb_byte_t*, size_t"
-Function,-,pb_read,_Bool,"pb_istream_t*, pb_byte_t*, size_t"
-Function,-,pb_release,void,"const pb_msgdesc_t*, void*"
-Function,-,pb_skip_field,_Bool,"pb_istream_t*, pb_wire_type_t"
-Function,-,pb_write,_Bool,"pb_ostream_t*, const pb_byte_t*, size_t"
 Function,-,pclose,int,FILE*
 Function,-,perror,void,const char*
 Function,-,plugin_manager_alloc,PluginManager*,"const char*, uint32_t, const ElfApiInterface*"

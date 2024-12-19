@@ -1,6 +1,4 @@
 #include <furi.h>
-#include "notification_app.h"
-
 #include <furi_hal_pwm.h>
 
 #define TAG "NotificationSrv"

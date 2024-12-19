@@ -25,6 +25,7 @@ typedef struct LedDisplayScan LedDisplayScan;
 
 void led_display_scan_init(void);
 void led_display_scan_start(void);
+void led_display_output_enable(bool enable);
 void led_display_scan_vsync_enable(void);
 void led_display_scan_data_sync_enable(void);
 
