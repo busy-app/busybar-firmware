@@ -5,6 +5,7 @@ typedef enum {
     LedDisplayTestPatternLinesHorizontal,
     LedDisplayTestPatternLinesVertical,
     LedDisplayTestPatternFullFill,
+    LedDisplayTestPatternRectangulars,
     LedDisplayTestPatternCross,
     LedDisplayTestPatternFrame,
 
@@ -24,3 +25,7 @@ typedef enum {
 } LedDisplayTestColor;
 
 void led_display_test_set(LedDisplayTestPattern pattern, LedDisplayTestColor color);
+
+const char* led_display_get_pattern_str(LedDisplayTestPattern pattern);
+
+const char* led_display_get_color_str(LedDisplayTestColor color);
