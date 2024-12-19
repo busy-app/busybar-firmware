@@ -3,6 +3,7 @@ App(
     name="IntercomSrv",
     apptype=FlipperAppType.SERVICE,
     entry_point="intercom_srv",
+    cdefines=["SRV_INTERCOM"],
     stack_size=2 * 1024,
     targets=["f20", "f64"],
     order=60,

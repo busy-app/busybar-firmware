@@ -3,7 +3,9 @@
 #include <furi_hal_qei.h>
 #include <furi_hal_resources.h>
 
+#ifdef SRV_INTERCOM
 #include <intercom/intercom.h>
+#endif
 
 #define TAG "Input"
 
@@ -32,7 +34,9 @@ typedef struct {
     FuriMessageQueue* input_queue;
     FuriEventLoopTimer* debounce_timer;
     InputKeyState* key_states;
+#ifdef SRV_INTERCOM
     Intercom* intercom;
+#endif
 } InputSrv;
 
 static void input_isr_key(void* context) {
@@ -150,6 +154,7 @@ static void input_queue_callback(FuriEventLoopObject* object, void* context) {
 
 #endif
 
+#ifdef SRV_INTERCOM
     furi_check(
         intercom_tx(
             instance->intercom,
@@ -157,6 +162,7 @@ static void input_queue_callback(FuriEventLoopObject* object, void* context) {
             &event,
             sizeof(InputCommonEvent),
             FuriWaitForever) == sizeof(InputCommonEvent));
+#endif
 }
 
 int32_t input_srv(void* p) {
@@ -175,7 +181,9 @@ int32_t input_srv(void* p) {
         instance);
 
     instance->key_states = malloc(sizeof(InputKeyState) * input_pins_count);
+#ifdef SRV_INTERCOM
     instance->intercom = furi_record_open(RECORD_INTERCOM);
+#endif
 
     for(size_t i = 0; i < input_pins_count; i++) {
         const InputPin* pin = &input_pins[i];

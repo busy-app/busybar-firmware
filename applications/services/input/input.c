@@ -3,7 +3,9 @@
 #include <furi.h>
 #include <input_common.h>
 
+#ifdef SRV_INTERCOM
 #include <intercom/intercom.h>
+#endif
 
 #define INPUT_PRESS_TICKS       150
 #define INPUT_LONG_PRESS_COUNTS 2
@@ -153,6 +155,7 @@ static void input_custom_event_callback(uint32_t events, void* context) {
     }
 }
 
+#ifdef SRV_INTERCOM
 static void input_intercom_rx_callback(const void* data, size_t data_size, void* context) {
     furi_assert(context);
     furi_assert(data_size == sizeof(InputCommonEvent));
@@ -177,6 +180,7 @@ static void input_intercom_rx_callback(const void* data, size_t data_size, void*
         input_key_toggle(key);
     }
 }
+#endif
 
 int32_t input_srv(void* p) {
     UNUSED(p);
@@ -201,8 +205,10 @@ int32_t input_srv(void* p) {
     furi_event_loop_set_custom_event_callback(
         input->event_loop, input_custom_event_callback, input);
 
+#ifdef SRV_INTERCOM
     Intercom* intercom = furi_record_open(RECORD_INTERCOM);
     intercom_set_rx_callback(intercom, IntercomChannelInput, input_intercom_rx_callback, input);
+#endif
 
     furi_event_loop_run(input->event_loop);
 
