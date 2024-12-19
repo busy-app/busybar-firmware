@@ -98,6 +98,10 @@ void furi_hal_clock_init(void) {
     // while(LL_RCC_LSI_IsReady() != 1) {
     // }
 
+    LL_RCC_HSI_Enable();
+    while(LL_RCC_HSI_IsReady() != 1) {
+    }
+
     LL_RCC_MSI_EnableRangeSelection();
     LL_RCC_MSI_SetCalibTrimming(16, LL_RCC_MSI_OSCILLATOR_0);
     LL_RCC_MSIK_SetRange(LL_RCC_MSIKRANGE_15);

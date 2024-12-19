@@ -67,6 +67,9 @@ const IRQn_Type furi_hal_interrupt_irqn[FuriHalInterruptIdMax] = {
 
     // RCC
     [FuriHalInterruptIdRcc] = RCC_IRQn,
+
+    // USB PD
+    [FuriHalInterruptIdUCPD1] = UCPD1_IRQn,
 };
 
 __attribute__((always_inline)) static inline void
@@ -288,6 +291,10 @@ void TAMP_IRQHandler(void) {
             LL_RCC_LSE_EnableCSS(); // TODO: we really can recover from this?
         }
     }
+}
+
+void UCPD1_IRQHandler(void) {
+    furi_hal_interrupt_call(FuriHalInterruptIdUCPD1);
 }
 
 void RCC_IRQHandler() {

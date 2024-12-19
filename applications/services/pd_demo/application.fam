@@ -1,0 +1,9 @@
+App(
+    appid="pd_demo",
+    name="PD Demo",
+    apptype=FlipperAppType.SERVICE,
+    entry_point="pd_demo",
+    stack_size=1024,
+    order=70,
+    targets=["f20"],
+)

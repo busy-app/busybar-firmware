@@ -11,6 +11,7 @@
 #include <furi_hal_resources.h>
 #include <furi_hal_mpu.h>
 #include <furi_hal_usb.h>
+#include <furi_hal_usb_pd.h>
 #include <furi_hal_serial_control.h>
 #include <furi_hal_serial.h>
 #include <furi_hal_serial_types.h>
