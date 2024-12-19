@@ -159,6 +159,9 @@ SECTIONS {
         *malloc_buffers.o(.text*)
         *sl_rsi_utility.o(.text*)
 
+        /* ipmu calibration data */
+		*(.common_ipmu_ram*)
+        
         . = ALIGN(4);
         /* preinit data */
         PROVIDE_HIDDEN (__preinit_array_start = .);

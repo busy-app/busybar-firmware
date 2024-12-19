@@ -10,25 +10,39 @@ MCU_INCDIR = f"#/lib/{MCU_DIR}"
 
 env.Append(
     CPPPATH=[
-        Dir(f"{MCU_INCDIR}/core/config").rdir(),
-        Dir(f"{MCU_INCDIR}/core/chip/inc").rdir(),
-        Dir(f"{MCU_INCDIR}/drivers/rom_driver/inc").rdir(),
-        Dir(f"{MCU_INCDIR}/drivers/systemlevel/inc").rdir(),
-        Dir(f"{MCU_INCDIR}/drivers/peripheral_drivers/inc").rdir(),
-        Dir(f"{MCU_INCDIR}/drivers/unified_peripheral_drivers/inc").rdir(),
-        Dir(f"{MCU_INCDIR}/drivers/cmsis_driver").rdir(),
-        Dir(f"{MCU_INCDIR}/drivers/cmsis_driver/CMSIS/Driver/Include").rdir(),
-        Dir(f"{MCU_INCDIR}/drivers/service/clock_manager/inc").rdir(),
-        Dir(f"{WISECONNECT_INCDIR}/common/inc").rdir(),
+        
         Dir(f"{WISECONNECT_INCDIR}/protocol/wifi/inc").rdir(),
-        Dir(f"{WISECONNECT_INCDIR}/service/network_manager/inc").rdir(),
         Dir(f"{WISECONNECT_INCDIR}/service/bsd_socket/inc").rdir(),
+        Dir(f"{WIRELESS_INCDIR}/asynchronous_socket/inc").rdir(),
+        
+        Dir(f"{MCU_INCDIR}/drivers/cmsis_driver/CMSIS/Driver/Include").rdir(),
+        Dir(f"{MCU_INCDIR}/drivers/cmsis_driver").rdir(),
+        Dir(f"{WISECONNECT_INCDIR}/service/network_manager/inc").rdir(),
+        Dir(f"{MCU_INCDIR}/drivers/rom_driver/inc").rdir(),
+        Dir(f"{MCU_INCDIR}/core/chip/inc").rdir(),
+        Dir(f"{MCU_INCDIR}/drivers/peripheral_drivers/inc").rdir(),
+        Dir(f"{MCU_INCDIR}/core/config").rdir(),
+
+        #Dir(f"{MCU_INCDIR}/core/common/inc").rdir(),
+
+        Dir(f"{MCU_INCDIR}/drivers/unified_api/inc").rdir(),
+        Dir(f"{MCU_INCDIR}/drivers/service/clock_manager/inc").rdir(),
+
+
+        #Dir(f"{MCU_INCDIR}/drivers/unified_api/config").rdir(),
+        
+        Dir(f"{MCU_INCDIR}/drivers/unified_peripheral_drivers/inc").rdir(),
+        
+        
         Dir(f"{WIRELESS_INCDIR}/sl_net/inc").rdir(),
         Dir(f"{WIRELESS_INCDIR}/inc").rdir(),
         Dir(f"{WIRELESS_INCDIR}/ble/inc").rdir(),
-        Dir(f"{WIRELESS_INCDIR}/ahb_interface/inc").rdir(),
         Dir(f"{WIRELESS_INCDIR}/socket/inc").rdir(),
-        Dir(f"{WIRELESS_INCDIR}/asynchronous_socket/inc").rdir(),
+        Dir(f"{WIRELESS_INCDIR}/ahb_interface/inc").rdir(),
+        Dir(f"{MCU_INCDIR}/drivers/systemlevel/inc").rdir(),
+
+        Dir(f"wiseconnect/resources/defaults").rdir(),
+        Dir(f"{WISECONNECT_INCDIR}/common/inc").rdir(),
     ],
     CPPDEFINES=[
         "SI917",
@@ -52,6 +66,8 @@ env.Append(
         # SDK BLE Silabs
         "SLI_SI91X_ENABLE_BLE",
         "SL_SI91X_ENABLE_LITTLE_ENDIAN=1",
+        #"PLL_ROMDRIVER_PRESENT=1",
+        #"UDMA_ROMDRIVER_PRESENT=1"
     ],
 )
 
@@ -62,23 +78,37 @@ sources = [
     f"{MCU_DIR}/core/chip/src/system_si91x.c",
     f"{MCU_DIR}/core/chip/src/startup_si91x.c",
     f"{MCU_DIR}/core/chip/src/rsi_ps_ram_func.c",
-    f"{MCU_DIR}/core/chip/src/rsi_deepsleep_soc.c",
     f"{MCU_DIR}/core/chip/src/rsi_system_config.c",
+    f"{MCU_DIR}/core/chip/src/rsi_deepsleep_soc.c",
     f"{MCU_DIR}/drivers/peripheral_drivers/src/rsi_pwm.c",
     f"{MCU_DIR}/drivers/systemlevel/src/rsi_pll.c",
     f"{MCU_DIR}/drivers/systemlevel/src/rsi_ipmu.c",
     f"{MCU_DIR}/drivers/systemlevel/src/rsi_ulpss_clk.c",
     f"{MCU_DIR}/drivers/service/clock_manager/src/sl_si91x_clock_manager.c",
+    
+    # SDK 3.4.0
+    #f"{MCU_DIR}/drivers/peripheral_drivers/src/aux_reference_volt_config.c",
+    #f"{MCU_DIR}/drivers/peripheral_drivers/src/rsi_opamp.c",
+    #f"{MCU_DIR}/drivers/peripheral_drivers/src/rsi_adc.c",
+    #f"{MCU_DIR}/drivers/peripheral_drivers/src/rsi_udma_wrapper.c",
+    #f"{MCU_DIR}/drivers/unified_api/src/sl_si91x_adc.c",
+    #f"{MCU_DIR}/drivers/unified_api/src/sl_si91x_dma.c",
+    #f"{MCU_DIR}/drivers/unified_api/src/sl_si91x_bjt_temperature_sensor.c",
+    #f"{MCU_DIR}/drivers/systemlevel/src/rsi_bod.c",
     # SDK Wifi Silabs
+    
     f"{WISECONNECT_DIR}/common/src/sl_utility.c",
     f"{WISECONNECT_DIR}/protocol/wifi/si91x/sl_wifi.c",
     f"{WISECONNECT_DIR}/protocol/wifi/src/sl_wifi_callback_framework.c",
+    f"{WISECONNECT_DIR}/protocol/wifi/src/sl_wifi_basic_credentials.c",
     f"{WISECONNECT_DIR}/service/bsd_socket/si91x_socket/sl_si91x_bsd_socket.c",
     f"{WISECONNECT_DIR}/service/network_manager/src/sl_net.c",
     f"{WISECONNECT_DIR}/service/network_manager/src/sl_net_basic_profiles.c",
-    f"{WISECONNECT_DIR}/service/network_manager/src/sl_net_basic_credentials.c",
+    #f"{WISECONNECT_DIR}/service/network_manager/src/sl_net_basic_credentials.c",
+    f"{WISECONNECT_DIR}/service/network_manager/src/sl_net_credentials.c",
     f"{WISECONNECT_DIR}/service/network_manager/si91x/sl_net_si91x.c",
-    f"{WIRELESS_DIR}/src/sl_si91x_callback_framework.c",
+    #f"{WIRELESS_DIR}/src/sl_si91x_callback_framework.c",
+
     f"{WIRELESS_DIR}/src/sl_si91x_driver.c",
     f"{WIRELESS_DIR}/src/sl_rsi_utility.c",
     f"{WIRELESS_DIR}/ahb_interface/src/rsi_hal_mcu_m4_rom.c",
@@ -96,6 +126,7 @@ sources = [
     f"{WIRELESS_DIR}/sl_net/src/sl_net_rsi_utility.c",
     f"{WIRELESS_DIR}/sl_net/src/sl_si91x_net_credentials.c",
     f"{WIRELESS_DIR}/sl_net/src/sl_si91x_net_internal_stack.c",
+    f"{WIRELESS_DIR}/sl_net/src/sl_net_si91x_callback_framework.c",
     #
     f"{WIRELESS_DIR}/ble/src/rsi_common_apis.c",
     f"{WIRELESS_DIR}/ble/src/rsi_bt_ble.c",
