@@ -14,7 +14,6 @@ env.Append(
         Dir(f"{WISECONNECT_INCDIR}/protocol/wifi/inc").rdir(),
         Dir(f"{WISECONNECT_INCDIR}/service/bsd_socket/inc").rdir(),
         Dir(f"{WIRELESS_INCDIR}/asynchronous_socket/inc").rdir(),
-        
         Dir(f"{MCU_INCDIR}/drivers/cmsis_driver/CMSIS/Driver/Include").rdir(),
         Dir(f"{MCU_INCDIR}/drivers/cmsis_driver").rdir(),
         Dir(f"{WISECONNECT_INCDIR}/service/network_manager/inc").rdir(),
@@ -22,25 +21,15 @@ env.Append(
         Dir(f"{MCU_INCDIR}/core/chip/inc").rdir(),
         Dir(f"{MCU_INCDIR}/drivers/peripheral_drivers/inc").rdir(),
         Dir(f"{MCU_INCDIR}/core/config").rdir(),
-
-        #Dir(f"{MCU_INCDIR}/core/common/inc").rdir(),
-
         Dir(f"{MCU_INCDIR}/drivers/unified_api/inc").rdir(),
-        Dir(f"{MCU_INCDIR}/drivers/service/clock_manager/inc").rdir(),
-
-
-        #Dir(f"{MCU_INCDIR}/drivers/unified_api/config").rdir(),
-        
+        Dir(f"{MCU_INCDIR}/drivers/service/clock_manager/inc").rdir(),      
         Dir(f"{MCU_INCDIR}/drivers/unified_peripheral_drivers/inc").rdir(),
-        
-        
         Dir(f"{WIRELESS_INCDIR}/sl_net/inc").rdir(),
         Dir(f"{WIRELESS_INCDIR}/inc").rdir(),
         Dir(f"{WIRELESS_INCDIR}/ble/inc").rdir(),
         Dir(f"{WIRELESS_INCDIR}/socket/inc").rdir(),
         Dir(f"{WIRELESS_INCDIR}/ahb_interface/inc").rdir(),
         Dir(f"{MCU_INCDIR}/drivers/systemlevel/inc").rdir(),
-
         Dir(f"wiseconnect/resources/defaults").rdir(),
         Dir(f"{WISECONNECT_INCDIR}/common/inc").rdir(),
     ],
@@ -66,8 +55,6 @@ env.Append(
         # SDK BLE Silabs
         "SLI_SI91X_ENABLE_BLE",
         "SL_SI91X_ENABLE_LITTLE_ENDIAN=1",
-        #"PLL_ROMDRIVER_PRESENT=1",
-        #"UDMA_ROMDRIVER_PRESENT=1"
     ],
 )
 
@@ -104,10 +91,8 @@ sources = [
     f"{WISECONNECT_DIR}/service/bsd_socket/si91x_socket/sl_si91x_bsd_socket.c",
     f"{WISECONNECT_DIR}/service/network_manager/src/sl_net.c",
     f"{WISECONNECT_DIR}/service/network_manager/src/sl_net_basic_profiles.c",
-    #f"{WISECONNECT_DIR}/service/network_manager/src/sl_net_basic_credentials.c",
     f"{WISECONNECT_DIR}/service/network_manager/src/sl_net_credentials.c",
     f"{WISECONNECT_DIR}/service/network_manager/si91x/sl_net_si91x.c",
-    #f"{WIRELESS_DIR}/src/sl_si91x_callback_framework.c",
 
     f"{WIRELESS_DIR}/src/sl_si91x_driver.c",
     f"{WIRELESS_DIR}/src/sl_rsi_utility.c",
