@@ -10,6 +10,7 @@ App(
         "led_display_test",
         "led_indicator",
         "power_test",
+        "wifi_setup",
     ],
     targets=["f20"],
 )

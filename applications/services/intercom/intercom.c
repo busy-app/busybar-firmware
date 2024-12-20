@@ -296,7 +296,7 @@ size_t intercom_tx(
         frame->channel = channel;
         frame->check = intercom_frame_get_checksum(frame);
 
-        INTERCOM_LOG_D("TX payload size: %zu byte(s)", payload_size);
+        INTERCOM_LOG_D("TX payload size: %zu byte(s)", data_size);
         furi_event_loop_set_custom_event(instance->event_loop, IntercomEventDataAvailable);
 
         sent_data_size += chunk_size;

@@ -41,13 +41,14 @@
 #define RSI_BLE_MAX_NBR_CENTRALS    1
 #else
 #define RSI_BLE_MAX_NBR_ATT_REC     80
-#define RSI_BLE_MAX_NBR_ATT_SERV    10
 /* Number of BLE notifications */
 #define RSI_BLE_NUM_CONN_EVENTS     20
 #define RSI_BLE_MAX_NBR_PERIPHERALS 3
 #define RSI_BLE_MAX_NBR_CENTRALS    1
 #endif
 
+#define RSI_BLE_MAX_NBR_ATT_SERV  10
+#define RSI_BLE_MAX_NBR_CENTRALS  1
 #define RSI_BLE_GATT_ASYNC_ENABLE 0
 #define RSI_BLE_GATT_INIT         0
 

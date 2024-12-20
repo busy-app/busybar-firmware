@@ -14,6 +14,7 @@ App(
         "httpd_test",
         "power_srv",
         "intercom",
+        "wifi",
     ],
     targets=["f20"],
 )
@@ -26,6 +27,7 @@ App(
         "input",
         "intercom",
         "notification",
+        "wifi",
     ],
     targets=["f64"],
 )
