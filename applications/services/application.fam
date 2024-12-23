@@ -13,7 +13,6 @@ App(
         "led_display",
         "httpd_test",
         "power_srv",
-        "pd_demo",
         "intercom",
     ],
     targets=["f20"],
