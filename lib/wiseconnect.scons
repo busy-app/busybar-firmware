@@ -72,18 +72,8 @@ sources = [
     f"{MCU_DIR}/drivers/systemlevel/src/rsi_ipmu.c",
     f"{MCU_DIR}/drivers/systemlevel/src/rsi_ulpss_clk.c",
     f"{MCU_DIR}/drivers/service/clock_manager/src/sl_si91x_clock_manager.c",
-    
-    # SDK 3.4.0
-    #f"{MCU_DIR}/drivers/peripheral_drivers/src/aux_reference_volt_config.c",
-    #f"{MCU_DIR}/drivers/peripheral_drivers/src/rsi_opamp.c",
-    #f"{MCU_DIR}/drivers/peripheral_drivers/src/rsi_adc.c",
-    #f"{MCU_DIR}/drivers/peripheral_drivers/src/rsi_udma_wrapper.c",
-    #f"{MCU_DIR}/drivers/unified_api/src/sl_si91x_adc.c",
-    #f"{MCU_DIR}/drivers/unified_api/src/sl_si91x_dma.c",
-    #f"{MCU_DIR}/drivers/unified_api/src/sl_si91x_bjt_temperature_sensor.c",
-    #f"{MCU_DIR}/drivers/systemlevel/src/rsi_bod.c",
+
     # SDK Wifi Silabs
-    
     f"{WISECONNECT_DIR}/common/src/sl_utility.c",
     f"{WISECONNECT_DIR}/protocol/wifi/si91x/sl_wifi.c",
     f"{WISECONNECT_DIR}/protocol/wifi/src/sl_wifi_callback_framework.c",
@@ -112,7 +102,7 @@ sources = [
     f"{WIRELESS_DIR}/sl_net/src/sl_si91x_net_credentials.c",
     f"{WIRELESS_DIR}/sl_net/src/sl_si91x_net_internal_stack.c",
     f"{WIRELESS_DIR}/sl_net/src/sl_net_si91x_callback_framework.c",
-    #
+    # SDK BLE Silabs
     f"{WIRELESS_DIR}/ble/src/rsi_common_apis.c",
     f"{WIRELESS_DIR}/ble/src/rsi_bt_ble.c",
     f"{WIRELESS_DIR}/ble/src/rsi_utils.c",
