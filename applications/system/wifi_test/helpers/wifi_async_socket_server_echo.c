@@ -122,7 +122,7 @@ void wifi_async_socket_server_echo_init(WifiTestApp* app, FuriString* msg, uint1
         furi_string_printf(msg, "Server Socket ID : %d\r\n", server_socket);
         wifi_test_app_send_text(app, msg);
         //Set socket
-        socket_return_value = sl_si91x_setsockopt_async(
+        socket_return_value = sl_si91x_setsockopt(
             server_socket,
             SOL_SOCKET,
             SL_SI91X_SO_HIGH_PERFORMANCE_SOCKET,

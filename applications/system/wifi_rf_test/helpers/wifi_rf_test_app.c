@@ -295,7 +295,7 @@ static sl_status_t wifi_rf_test_stats_receive_handler(
         return SL_STATUS_FAIL;
     }
 
-    if(event == SL_WIFI_STATS_AYSNC_EVENT) {
+    if(event == SL_WIFI_STATS_ASYNC_EVENT) {
         sl_si91x_async_stats_response_t* result = (sl_si91x_async_stats_response_t*)reponse;
 
         furi_string_printf(
