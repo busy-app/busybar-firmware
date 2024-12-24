@@ -1,5 +1,6 @@
-#include <sl_wifi.h>
-#include <ble_config.h>
+#include "wifi_config.h"
+
+#include "ble_config.h"
 
 #ifndef TX_POOL_RATIO
 #define TX_POOL_RATIO 1
@@ -13,7 +14,7 @@
 #define GLOBAL_POOL_RATIO 1
 #endif
 
-const sl_wifi_device_configuration_t wifi_config = {
+const sl_wifi_device_configuration_t wifi_config_client = {
     .boot_option = LOAD_NWP_FW,
     .mac_address = NULL,
     .band = SL_SI91X_WIFI_BAND_2_4GHZ,

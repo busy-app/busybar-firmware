@@ -8,6 +8,8 @@
 #include <sl_si91x_driver.h>
 #include <sl_wifi_callback_framework.h>
 
+#include "wifi_config.h"
+
 #define TAG "Wifi"
 
 typedef enum {
@@ -23,8 +25,6 @@ struct Wifi {
 };
 
 typedef void (*WifiRequestHandler)(Wifi* instance);
-
-extern const sl_wifi_device_configuration_t wifi_config;
 
 static const WifiRequestHandler wifi_request_handlers[WifiRequestTypeMax];
 
@@ -55,7 +55,7 @@ static void wifi_init_request_handler(Wifi* instance) {
     FURI_LOG_D(TAG, "Init");
 
     sl_status_t status;
-    status = sl_net_init(SL_NET_WIFI_CLIENT_INTERFACE, &wifi_config, NULL, NULL);
+    status = sl_net_init(SL_NET_WIFI_CLIENT_INTERFACE, &wifi_config_client, NULL, NULL);
 
     FURI_LOG_D(TAG, "Init %s", status == SL_STATUS_OK ? "OK" : "FAIL");
 
