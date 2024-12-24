@@ -18,7 +18,8 @@ typedef struct {
             const FuriString* passphrase;
         } credentials;
         struct {
-            FuriString** ssids;
+            WifiScanResult* data;
+            uint8_t* count;
             uint8_t max_count;
         } scan_results;
     };
@@ -71,16 +72,18 @@ WifiStatus wifi_deinit(Wifi* instance) {
     return msg.status;
 }
 
-WifiStatus wifi_scan(Wifi* instance, FuriString** ssids, uint8_t max_count) {
+WifiStatus wifi_scan(Wifi* instance, WifiScanResult* results, uint8_t* count, uint8_t max_count) {
     furi_check(instance);
-    furi_check(ssids);
+    furi_check(results);
+    furi_check(count);
     furi_check(max_count);
 
     WifiMessage msg = {
         .request_type = WifiRequestTypeScan,
         .scan_results =
             {
-                .ssids = ssids,
+                .data = results,
+                .count = count,
                 .max_count = max_count,
             },
     };
@@ -150,12 +153,14 @@ static void wifi_process_response(const WifiResponse* response, WifiMessage* mes
 
     if(status == WifiStatusOk) {
         if(request_type == WifiRequestTypeScan) {
-            const uint8_t result_count = MIN(message->scan_results.max_count, SCAN_MAX_RESULTS);
+            const uint8_t results_count =
+                MIN(message->scan_results.max_count, response->scan_results.count);
 
-            for(uint8_t i = 0; i < result_count; ++i) {
-                const char* ssid = response->scan_results[i].ssid;
-                furi_string_set(message->scan_results.ssids[i], ssid);
-            }
+            const WifiScanResult* results_in = response->scan_results.data;
+            WifiScanResult* results_out = message->scan_results.data;
+
+            memcpy(results_out, results_in, results_count * sizeof(WifiScanResult));
+            *message->scan_results.count = results_count;
         }
     }
 

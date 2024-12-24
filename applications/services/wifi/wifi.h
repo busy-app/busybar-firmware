@@ -18,7 +18,11 @@ WifiStatus wifi_init(Wifi* instance);
 
 WifiStatus wifi_deinit(Wifi* instance);
 
-WifiStatus wifi_scan(Wifi* instance, FuriString** ssids, uint8_t max_count);
+WifiStatus wifi_scan(
+    Wifi* instance,
+    WifiScanResult* results,
+    uint8_t* result_count,
+    uint8_t max_result_count);
 
 WifiStatus wifi_connect(Wifi* instance, const FuriString* ssid, const FuriString* passphrase);
 

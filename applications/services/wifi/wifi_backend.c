@@ -129,6 +129,42 @@ static void wifi_intercom_rx_callback(const void* data, size_t data_size, void* 
     furi_event_loop_set_custom_event(instance->event_loop, WifiEventRequest);
 }
 
+static void wifi_prepare_scan_response(WifiResponse* response) {
+    uint16_t results_count = 0;
+
+    const size_t results_size = sizeof(sl_wifi_extended_scan_result_t) * SCAN_MAX_RESULTS;
+    sl_wifi_extended_scan_result_t* scan_results = malloc(results_size);
+
+    sl_wifi_extended_scan_result_parameters_t params = {
+        .scan_results = scan_results,
+        .array_length = results_size,
+        .result_count = &results_count,
+    };
+
+    sl_status_t status = sl_wifi_get_stored_scan_results(SL_WIFI_CLIENT_2_4GHZ_INTERFACE, &params);
+
+    if(status == SL_STATUS_OK) {
+        results_count = MIN(results_count, SCAN_MAX_RESULTS);
+
+        for(uint16_t i = 0; i < results_count; ++i) {
+            const sl_wifi_extended_scan_result_t* result_in = &scan_results[i];
+            WifiScanResult* result_out = &response->scan_results.data[i];
+
+            strncpy(result_out->ssid, (const char*)result_in->ssid, SSID_MAX_LEN);
+            result_out->security_mode = result_in->security_mode;
+            result_out->rssi = result_in->rssi;
+        }
+
+    } else {
+        response->status = wifi_convert_sl_status(status);
+    }
+
+    response->scan_results.count = results_count;
+
+    sli_wifi_flush_scan_results_database();
+    free(scan_results);
+}
+
 static void wifi_custom_event_callback(uint32_t events, void* context) {
     furi_assert(context);
 
@@ -143,34 +179,7 @@ static void wifi_custom_event_callback(uint32_t events, void* context) {
         wifi_request_handlers[request_type](instance);
 
     } else if(events == WifiEventScanComplete) {
-        uint16_t result_count = 0;
-
-        const size_t results_size = sizeof(sl_wifi_extended_scan_result_t) * SCAN_MAX_RESULTS;
-        sl_wifi_extended_scan_result_t* results = malloc(results_size);
-
-        sl_wifi_extended_scan_result_parameters_t params = {
-            .scan_results = results,
-            .array_length = results_size,
-            .result_count = &result_count,
-        };
-
-        sl_status_t status =
-            sl_wifi_get_stored_scan_results(SL_WIFI_CLIENT_2_4GHZ_INTERFACE, &params);
-        UNUSED(status);
-
-        result_count = MIN(result_count, (uint16_t)SCAN_MAX_RESULTS);
-
-        for(uint16_t i = 0; i < result_count; ++i) {
-            // TODO: Add other network params
-            strncpy(
-                response->scan_results[i].ssid,
-                (const char*)results[i].ssid,
-                sizeof(response->scan_results[0].ssid));
-        }
-
-        sli_wifi_flush_scan_results_database();
-        free(results);
-
+        wifi_prepare_scan_response(response);
         wifi_send_response(instance);
 
     } else {
@@ -183,26 +192,26 @@ static sl_status_t wifi_scan_callback(
     sl_wifi_scan_result_t* result,
     uint32_t result_length,
     void* context) {
-    UNUSED(result);
     UNUSED(result_length);
 
     furi_assert(context);
     Wifi* instance = context;
     WifiResponse* response = &instance->response;
 
-    sl_status_t status;
+    sl_status_t ret, status;
 
     if(event & SL_WIFI_EVENT_FAIL_INDICATION) {
-        // TODO: Get actual status from result cast
-        status = SL_STATUS_FAIL;
+        status = (sl_status_t)result;
+        ret = SL_STATUS_FAIL;
+
     } else {
-        status = SL_STATUS_OK;
+        ret = status = SL_STATUS_OK;
     }
 
     response->status = wifi_convert_sl_status(status);
     furi_event_loop_set_custom_event(instance->event_loop, WifiEventScanComplete);
 
-    return status;
+    return ret;
 }
 
 static Wifi* wifi_alloc(void) {

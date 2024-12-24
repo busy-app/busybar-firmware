@@ -14,26 +14,19 @@ typedef enum {
 } WifiRequestType;
 
 typedef struct {
-    // TODO: Add more network params
-    char ssid[SSID_MAX_LEN + 1];
-    char passphrase[PASSPHRASE_MAX_LEN + 1];
-} WifiCredentials;
-
-typedef struct {
-    WifiRequestType type;
+    uint8_t type;
     union {
         WifiCredentials credentials;
     };
 } WifiRequest;
 
 typedef struct {
-    char ssid[SSID_MAX_LEN + 1];
-} WifiScanResult;
-
-typedef struct {
-    WifiRequestType type;
-    WifiStatus status;
+    uint8_t type;
+    uint8_t status;
     union {
-        WifiScanResult scan_results[SCAN_MAX_RESULTS];
+        struct {
+            WifiScanResult data[SCAN_MAX_RESULTS];
+            uint8_t count;
+        } scan_results;
     };
 } WifiResponse;
