@@ -6,6 +6,7 @@
 #include <sl_net.h>
 #include <sl_wifi.h>
 #include <sl_si91x_driver.h>
+#include <sl_net_wifi_types.h>
 #include <sl_wifi_callback_framework.h>
 
 #include "wifi_config.h"
@@ -55,9 +56,16 @@ static void wifi_init_request_handler(Wifi* instance) {
     FURI_LOG_D(TAG, "Init");
 
     sl_status_t status;
-    status = sl_net_init(SL_NET_WIFI_CLIENT_INTERFACE, &wifi_config_client, NULL, NULL);
 
-    FURI_LOG_D(TAG, "Init %s", status == SL_STATUS_OK ? "OK" : "FAIL");
+    do {
+        status = sl_net_init(SL_NET_WIFI_CLIENT_INTERFACE, &wifi_config_client, NULL, NULL);
+
+        if(status != SL_STATUS_OK) {
+            FURI_LOG_E(TAG, "Failed to initialise Wifi: %lX", status);
+            break;
+        }
+
+    } while(false);
 
     WifiResponse* response = &instance->response;
     response->status = wifi_convert_sl_status(status);
@@ -71,9 +79,13 @@ static void wifi_deinit_request_handler(Wifi* instance) {
     sl_status_t status;
 
     do {
-        // TODO: only call this if the interface was up
-        sl_net_down(SL_NET_WIFI_CLIENT_INTERFACE);
         status = sl_net_deinit(SL_NET_WIFI_CLIENT_INTERFACE);
+
+        if(status != SL_STATUS_OK) {
+            FURI_LOG_E(TAG, "Failed to deinitialise Wifi: %lX", status);
+            break;
+        }
+
     } while(false);
 
     WifiResponse* response = &instance->response;
@@ -96,17 +108,67 @@ static void wifi_scan_request_handler(Wifi* instance) {
         response->status = wifi_convert_sl_status(status);
 
         wifi_send_response(instance);
-
-    } else {
-        // TODO: Scan timeout
     }
 }
 
 static void wifi_connect_request_handler(Wifi* instance) {
     FURI_LOG_D(TAG, "Connect");
 
+    sl_status_t status;
+
+    do {
+        const WifiCredentials* credentials = &instance->request.credentials;
+
+        sl_wifi_ssid_t ssid;
+        strncpy((char*)ssid.value, credentials->ssid, sizeof(ssid.value));
+        ssid.length = strlen(credentials->ssid);
+
+        const sl_net_wifi_client_profile_t wifi_client_profile = {
+            .config =
+                {
+                    .ssid = ssid,
+                    .security = credentials->security_mode,
+                    .credential_id = SL_NET_DEFAULT_WIFI_CLIENT_CREDENTIAL_ID,
+                },
+            .ip =
+                {
+                    .mode = SL_IP_MANAGEMENT_DHCP,
+                    .type = SL_IPV4,
+                },
+        };
+
+        status = sl_net_set_profile(
+            SL_NET_WIFI_CLIENT_INTERFACE,
+            SL_NET_DEFAULT_WIFI_CLIENT_PROFILE_ID,
+            &wifi_client_profile);
+
+        if(status != SL_STATUS_OK) {
+            FURI_LOG_E(TAG, "Failed to set Wifi profile: %lX", status);
+            break;
+        }
+
+        status = sl_net_set_credential(
+            SL_NET_DEFAULT_WIFI_CLIENT_CREDENTIAL_ID,
+            SL_NET_WIFI_PSK,
+            credentials->passphrase,
+            strlen(credentials->passphrase));
+
+        if(status != SL_STATUS_OK) {
+            FURI_LOG_E(TAG, "Failed to set Wifi passphrase: %lX", status);
+            break;
+        }
+
+        status = sl_net_up(SL_NET_WIFI_CLIENT_INTERFACE, SL_NET_DEFAULT_WIFI_CLIENT_PROFILE_ID);
+
+        if(status != SL_STATUS_OK) {
+            FURI_LOG_E(TAG, "Failed to bring Wifi interface UP: %lX", status);
+            break;
+        }
+
+    } while(false);
+
     WifiResponse* response = &instance->response;
-    response->status = WifiStatusError;
+    response->status = wifi_convert_sl_status(status);
 
     wifi_send_response(instance);
 }
@@ -114,8 +176,20 @@ static void wifi_connect_request_handler(Wifi* instance) {
 static void wifi_disconnect_request_handler(Wifi* instance) {
     FURI_LOG_D(TAG, "Disconnect");
 
+    sl_status_t status;
+
+    do {
+        status = sl_net_down(SL_NET_WIFI_CLIENT_INTERFACE);
+
+        if(status != SL_STATUS_OK && status != SL_STATUS_WIFI_INTERFACE_NOT_UP) {
+            FURI_LOG_E(TAG, "Failed to bring Wifi interface DOWN: %lX", status);
+            break;
+        }
+
+    } while(false);
+
     WifiResponse* response = &instance->response;
-    response->status = WifiStatusError;
+    response->status = wifi_convert_sl_status(status);
 
     wifi_send_response(instance);
 }

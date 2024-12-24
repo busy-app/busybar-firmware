@@ -13,10 +13,7 @@ typedef struct {
     WifiRequestType request_type;
     WifiStatus status;
     union {
-        struct {
-            const FuriString* ssid;
-            const FuriString* passphrase;
-        } credentials;
+        const WifiCredentials* credentials;
         struct {
             WifiScanResult* data;
             uint8_t* count;
@@ -44,7 +41,7 @@ static void wifi_send_message(Wifi* instance, WifiMessage* message) {
     instance->message = message;
     furi_event_loop_set_custom_event(instance->event_loop, WifiEventRequest);
 
-    // Wait until the response is received
+    // Wait until a response is received
     flags = furi_event_flag_wait(
         instance->event_flag, WifiEventResponse, FuriFlagWaitAll, FuriWaitForever);
     furi_check(flags & WifiEventResponse);
@@ -92,18 +89,13 @@ WifiStatus wifi_scan(Wifi* instance, WifiScanResult* results, uint8_t* count, ui
     return msg.status;
 }
 
-WifiStatus wifi_connect(Wifi* instance, const FuriString* ssid, const FuriString* passphrase) {
+WifiStatus wifi_connect(Wifi* instance, const WifiCredentials* credentials) {
     furi_check(instance);
-    furi_check(ssid);
-    furi_check(passphrase);
+    furi_check(credentials);
 
     WifiMessage msg = {
-        .request_type = WifiRequestTypeDeinit,
-        .credentials =
-            {
-                .ssid = ssid,
-                .passphrase = passphrase,
-            },
+        .request_type = WifiRequestTypeConnect,
+        .credentials = credentials,
     };
 
     wifi_send_message(instance, &msg);
@@ -136,14 +128,7 @@ static void wifi_process_request(WifiRequest* request, const WifiMessage* messag
     request->type = request_type;
 
     if(request_type == WifiRequestTypeConnect) {
-        strncpy(
-            request->credentials.ssid,
-            furi_string_get_cstr(message->credentials.ssid),
-            sizeof(request->credentials.ssid));
-        strncpy(
-            request->credentials.passphrase,
-            furi_string_get_cstr(message->credentials.passphrase),
-            sizeof(request->credentials.passphrase));
+        request->credentials = *message->credentials;
     }
 }
 
