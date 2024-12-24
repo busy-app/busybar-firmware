@@ -201,7 +201,7 @@ static sl_status_t wifi_scan_callback(
     sl_status_t ret, status;
 
     if(event & SL_WIFI_EVENT_FAIL_INDICATION) {
-        status = (sl_status_t)result;
+        status = *((sl_status_t*)result);
         ret = SL_STATUS_FAIL;
 
     } else {
