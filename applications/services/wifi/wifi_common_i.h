@@ -10,6 +10,7 @@ typedef enum {
     WifiRequestTypeScan,
     WifiRequestTypeConnect,
     WifiRequestTypeDisconnect,
+    WifiRequestTypeGetInfo,
     WifiRequestTypeMax,
 } WifiRequestType;
 
@@ -21,12 +22,15 @@ typedef struct {
 } WifiRequest;
 
 typedef struct {
+    WifiScanResult data[SCAN_MAX_RESULTS];
+    uint8_t count;
+} WifiScanResults;
+
+typedef struct {
     uint8_t type;
     uint8_t status;
     union {
-        struct {
-            WifiScanResult data[SCAN_MAX_RESULTS];
-            uint8_t count;
-        } scan_results;
+        WifiScanResults scan_results;
+        WifiInfo info;
     };
 } WifiResponse;

@@ -6,6 +6,10 @@
 
 #define SCAN_ITERATIONS (3)
 
+#define WIFI_SSID "Your SSID"
+#define WIFI_PASS "Your passphrase"
+#define WIFI_MODE (WifiSecurityModeWpa2)
+
 typedef struct {
     Wifi* wifi;
     WifiScanResult results[SCAN_MAX_RESULTS];
@@ -18,7 +22,7 @@ static const char* wifi_security_str[] = {
     "WEP",
     "WPA Enterprise",
     "WPA2 Enterprise",
-    "Mixed WPA,WPA2",
+    "WPA WPA2 Mixed",
     "WPA3",
     "WPA3 Transition",
     "WPA3 Enterprise",
@@ -86,6 +90,35 @@ int32_t wifi_setup_app(void* arg) {
             FURI_LOG_E(TAG, "Failed to scan for networks");
             break;
         }
+
+        const WifiCredentials credentials = {
+            .ssid = WIFI_SSID,
+            .passphrase = WIFI_PASS,
+            .security_mode = WIFI_MODE,
+        };
+
+        status = wifi_connect(instance->wifi, &credentials);
+
+        if(status != WifiStatusOk) {
+            FURI_LOG_E(TAG, "Failed to connect to Wifi network");
+            break;
+        }
+
+        WifiInfo info;
+        status = wifi_get_info(instance->wifi, &info);
+
+        if(status != WifiStatusOk) {
+            FURI_LOG_E(TAG, "Failed to get Wifi info");
+            break;
+        }
+
+        FURI_LOG_I(
+            TAG,
+            "Connected with IP address: %hhu.%hhu.%hhu.%hhu",
+            info.ip.value.v4[0],
+            info.ip.value.v4[1],
+            info.ip.value.v4[2],
+            info.ip.value.v4[3]);
 
     } while(false);
 

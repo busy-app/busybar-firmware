@@ -4,8 +4,6 @@
  */
 #pragma once
 
-#include <core/string.h>
-
 #include "wifi_common.h"
 
 #ifdef __cplusplus
@@ -27,6 +25,8 @@ WifiStatus wifi_scan(
 WifiStatus wifi_connect(Wifi* instance, const WifiCredentials* credentials);
 
 WifiStatus wifi_disconnect(Wifi* instance);
+
+WifiStatus wifi_get_info(Wifi* instance, WifiInfo* info);
 
 #ifdef __cplusplus
 }

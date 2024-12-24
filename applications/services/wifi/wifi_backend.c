@@ -127,7 +127,7 @@ static void wifi_connect_request_handler(Wifi* instance) {
             .config =
                 {
                     .ssid = ssid,
-                    .security = credentials->security_mode,
+                    .security = (sl_wifi_security_t)credentials->security_mode,
                     .credential_id = SL_NET_DEFAULT_WIFI_CLIENT_CREDENTIAL_ID,
                 },
             .ip =
@@ -185,6 +185,41 @@ static void wifi_disconnect_request_handler(Wifi* instance) {
             FURI_LOG_E(TAG, "Failed to bring Wifi interface DOWN: %lX", status);
             break;
         }
+
+    } while(false);
+
+    WifiResponse* response = &instance->response;
+    response->status = wifi_convert_sl_status(status);
+
+    wifi_send_response(instance);
+}
+
+static void wifi_get_info_request_handler(Wifi* instance) {
+    FURI_LOG_D(TAG, "GetInfo");
+
+    sl_status_t status;
+
+    do {
+        sl_net_wifi_client_profile_t wifi_client_profile = {0};
+
+        status = sl_net_get_profile(
+            SL_NET_WIFI_CLIENT_INTERFACE,
+            SL_NET_DEFAULT_WIFI_CLIENT_PROFILE_ID,
+            &wifi_client_profile);
+
+        if(status != SL_STATUS_OK) {
+            FURI_LOG_E(TAG, "Failed to get Wifi profile: %lX", status);
+            break;
+        }
+
+        WifiInfo* info = &instance->response.info;
+
+        // TODO: Proper values and everything
+        info->state = WifiStateUp;
+        info->ip.mgmt = WifiIpAddressMgmtDhcp;
+        info->ip.type = WifiIpAddressTypeV4;
+
+        memcpy(info->ip.value.v4, wifi_client_profile.ip.ip.v4.ip_address.bytes, 4);
 
     } while(false);
 
@@ -318,4 +353,5 @@ static const WifiRequestHandler wifi_request_handlers[WifiRequestTypeMax] = {
     [WifiRequestTypeScan] = wifi_scan_request_handler,
     [WifiRequestTypeConnect] = wifi_connect_request_handler,
     [WifiRequestTypeDisconnect] = wifi_disconnect_request_handler,
+    [WifiRequestTypeGetInfo] = wifi_get_info_request_handler,
 };

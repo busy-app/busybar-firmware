@@ -10,15 +10,18 @@ typedef enum {
 } WifiEvent;
 
 typedef struct {
+    WifiScanResult* data;
+    uint8_t* count;
+    uint8_t max_count;
+} WifiScanResultsMessage;
+
+typedef struct {
     WifiRequestType request_type;
     WifiStatus status;
     union {
         const WifiCredentials* credentials;
-        struct {
-            WifiScanResult* data;
-            uint8_t* count;
-            uint8_t max_count;
-        } scan_results;
+        WifiScanResultsMessage scan_results;
+        WifiInfo* info;
     };
 } WifiMessage;
 
@@ -107,6 +110,19 @@ WifiStatus wifi_disconnect(Wifi* instance) {
 
     WifiMessage msg = {
         .request_type = WifiRequestTypeDisconnect,
+    };
+
+    wifi_send_message(instance, &msg);
+    return msg.status;
+}
+
+WifiStatus wifi_get_info(Wifi* instance, WifiInfo* info) {
+    furi_check(instance);
+    furi_check(info);
+
+    WifiMessage msg = {
+        .request_type = WifiRequestTypeGetInfo,
+        .info = info,
     };
 
     wifi_send_message(instance, &msg);

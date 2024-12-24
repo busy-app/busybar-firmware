@@ -19,7 +19,14 @@ typedef struct Wifi Wifi;
 typedef enum {
     WifiStatusOk,
     WifiStatusError,
+    // TODO: Add more status entries
 } WifiStatus;
+
+typedef enum {
+    WifiStateDeinit,
+    WifiStateDown,
+    WifiStateUp,
+} WifiState;
 
 typedef enum {
     WifiSecurityModeOpen,
@@ -38,14 +45,37 @@ typedef enum {
 typedef struct {
     char ssid[SSID_MAX_LEN];
     char passphrase[PASSPHRASE_MAX_LEN];
-    uint8_t security_mode;
+    WifiSecurityMode security_mode;
 } WifiCredentials;
 
 typedef struct {
     char ssid[SSID_MAX_LEN];
-    uint8_t security_mode;
+    WifiSecurityMode security_mode;
     uint8_t rssi;
 } WifiScanResult;
+
+typedef enum {
+    WifiIpAddressMgmtStatic,
+    WifiIpAddressMgmtDhcp,
+    WifiIpAddressMgmtLinkLocal,
+} WifiIpAddressMgmt;
+
+typedef enum {
+    WifiIpAddressTypeV4,
+    WifiIpAddressTypeV6,
+} WifiIpAddressType;
+
+typedef struct {
+    WifiState state;
+    struct {
+        WifiIpAddressMgmt mgmt;
+        WifiIpAddressType type;
+        union {
+            uint8_t v4[4];
+            uint8_t v6[16];
+        } value;
+    } ip;
+} WifiInfo;
 
 #ifdef __cplusplus
 }
