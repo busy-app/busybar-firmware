@@ -341,6 +341,7 @@ static bool pd_send_request(PowerUsbPd* pd, uint32_t voltage, uint32_t current) 
         furi_mutex_release(pd->cap_mutex);
         pd->req_voltage = voltage;
         pd->req_current = current;
+        pd->pps_keep_alive = false;
         if(is_fixed) {
             FURI_LOG_D(TAG, "Request fixed cap %u", cap_id);
             pd_send_request_fixed(pd, cap_id, current);
@@ -724,6 +725,8 @@ void power_usb_pd_msg_handler(FuriEventLoopObject* object, void* context) {
         pd->cc_line = pd->cc_line_last;
         pd->cc_line_level = pd->cc_line_level_last;
         FURI_LOG_D(TAG, "CC change line:%u level:%u", pd->cc_line, pd->cc_line_level);
+        pd->pps_keep_alive = false;
+        pd->hrst_count = 0;
         furi_timer_stop(pd->pps_keep_alive_timer);
         pd_cc_line_change(pd);
         if(pd->cc_line > 0) {
@@ -738,6 +741,7 @@ void power_usb_pd_msg_handler(FuriEventLoopObject* object, void* context) {
     } else if(msg.event == PdEventIdRxError) {
         FURI_LOG_W(TAG, "Rx error");
     } else if(msg.event == PdEventIdHrst) {
+        pd->pps_keep_alive = false;
         furi_timer_stop(pd->pps_keep_alive_timer);
         pd->hrst_count++;
         if(pd->hrst_count >= RX_IGNORE_HRST_COUNT) {
