@@ -53,6 +53,8 @@ static void wifi_init_request_handler(Wifi* instance) {
             break;
         }
 
+        instance->state = WifiStateDown;
+
     } while(false);
 
     WifiResponse* response = &instance->response;
@@ -73,6 +75,8 @@ static void wifi_deinit_request_handler(Wifi* instance) {
             FURI_LOG_E(TAG, "Failed to deinitialise Wifi: %lX", status);
             break;
         }
+
+        instance->state = WifiStateDeinit;
 
     } while(false);
 
@@ -156,6 +160,8 @@ static void wifi_connect_request_handler(Wifi* instance) {
             break;
         }
 
+        instance->state = WifiStateUp;
+
     } while(false);
 
     WifiResponse* response = &instance->response;
@@ -172,10 +178,12 @@ static void wifi_disconnect_request_handler(Wifi* instance) {
     do {
         status = sl_net_down(SL_NET_WIFI_CLIENT_INTERFACE);
 
-        if(status != SL_STATUS_OK && status != SL_STATUS_WIFI_INTERFACE_NOT_UP) {
+        if(status != SL_STATUS_OK) {
             FURI_LOG_E(TAG, "Failed to bring Wifi interface DOWN: %lX", status);
             break;
         }
+
+        instance->state = WifiStateDown;
 
     } while(false);
 
@@ -192,9 +200,10 @@ static void wifi_get_info_request_handler(Wifi* instance) {
 
     do {
         WifiInfo* info = &instance->response.info;
-
+        // Set the result state value right away
         info->state = instance->state;
 
+        // Do not try to get the profile if interface is not up
         if(instance->state != WifiStateUp) {
             status = SL_STATUS_OK;
             break;

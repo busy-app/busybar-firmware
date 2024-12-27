@@ -40,20 +40,55 @@ void wifi_setup_free(WifiSetupApp* instance) {
     free(instance);
 }
 
-static void wifi_setup_print_results(const WifiScanResult* results, uint8_t results_count) {
-    FURI_LOG_I(TAG, "#  SSID                             SECURITY         RSSI");
+static void wifi_setup_print_scan_results(const WifiScanResult* results, uint8_t results_count) {
+    FuriString* str =
+        furi_string_alloc_set("#  SSID                             SECURITY         RSSI\r\n");
 
     for(uint8_t i = 0; i < results_count; ++i) {
         const WifiScanResult* result = &results[i];
 
-        FURI_LOG_I(
-            TAG,
-            "%-2u %-32s %-16s %2u",
+        furi_string_cat_printf(
+            str,
+            "%-2u %-32s %-16s %2u\r\n",
             i + 1,
             result->ssid,
             wifi_security_str[result->security_mode],
             result->rssi);
     }
+
+    furi_log_puts(furi_string_get_cstr(str));
+    furi_string_free(str);
+}
+
+static void wifi_setup_print_info(const WifiInfo* info) {
+    FuriString* str = furi_string_alloc_set(
+        "SSID                             IP              VER MGMT    SECURITY         \r\n");
+
+    furi_string_cat_printf(str, "%-32s ", info->ssid);
+
+    if(info->ip.type == WifiIpAddressTypeV4) {
+        furi_string_cat_printf(
+            str,
+            "%hhu.%hhu.%hhu.%hhu 4 ",
+            info->ip.v4[0],
+            info->ip.v4[1],
+            info->ip.v4[2],
+            info->ip.v4[3]);
+    } else {
+        FURI_LOG_E(TAG, "Something's wrong: %d", info->ip.type);
+        // TODO: v6 representation
+    }
+
+    if(info->ip.mgmt == WifiIpAddressMgmtStatic) {
+        furi_string_cat(str, "STATIC  ");
+    } else {
+        furi_string_cat(str, "DYNAMIC ");
+    }
+
+    furi_string_cat_printf(str, "%-16s\r\n", wifi_security_str[info->securiy_mode]);
+
+    furi_log_puts(furi_string_get_cstr(str));
+    furi_string_free(str);
 }
 
 int32_t wifi_setup_app(void* arg) {
@@ -83,7 +118,7 @@ int32_t wifi_setup_app(void* arg) {
                 break;
             }
 
-            wifi_setup_print_results(instance->results, results_count);
+            wifi_setup_print_scan_results(instance->results, results_count);
         }
 
         if(status != WifiStatusOk) {
@@ -98,7 +133,7 @@ int32_t wifi_setup_app(void* arg) {
         };
 
         const WifiIpAddress ip_config = {
-            .mgmt = WifiIpAddressMgmtDhcp,
+            .mgmt = WifiIpAddressMgmtDynamic,
             .type = WifiIpAddressTypeV4,
         };
 
@@ -117,15 +152,9 @@ int32_t wifi_setup_app(void* arg) {
             break;
         }
 
-        FURI_LOG_I(
-            TAG,
-            "Connected to SSID '%s' with IP address: %hhu.%hhu.%hhu.%hhu and '%s' security",
-            info.ssid,
-            info.ip.v4[0],
-            info.ip.v4[1],
-            info.ip.v4[2],
-            info.ip.v4[3],
-            wifi_security_str[info.securiy_mode]);
+        FURI_LOG_I(TAG, "Connection successful");
+
+        wifi_setup_print_info(&info);
 
     } while(false);
 

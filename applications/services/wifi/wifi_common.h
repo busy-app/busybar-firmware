@@ -57,7 +57,7 @@ typedef struct {
 
 typedef enum {
     WifiIpAddressMgmtStatic,
-    WifiIpAddressMgmtDhcp,
+    WifiIpAddressMgmtDynamic,
 } WifiIpAddressMgmt;
 
 typedef enum {
