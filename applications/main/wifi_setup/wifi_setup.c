@@ -62,24 +62,35 @@ static void wifi_setup_print_scan_results(const WifiScanResult* results, uint8_t
 
 static void wifi_setup_print_info(const WifiInfo* info) {
     FuriString* str = furi_string_alloc_set(
-        "SSID                             IP              VER MGMT    SECURITY         \r\n");
+        "SSID                             ADDRESS         IP MGMT    SECURITY         \r\n");
 
     furi_string_cat_printf(str, "%-32s ", info->ssid);
 
-    if(info->ip.type == WifiIpAddressTypeV4) {
+    if(info->ip_config.type == WifiIpTypeV4) {
+        const uint8_t* ip_address_v4 = info->ip_config.address.v4;
         furi_string_cat_printf(
             str,
             "%hhu.%hhu.%hhu.%hhu 4 ",
-            info->ip.v4[0],
-            info->ip.v4[1],
-            info->ip.v4[2],
-            info->ip.v4[3]);
+            ip_address_v4[0],
+            ip_address_v4[1],
+            ip_address_v4[2],
+            ip_address_v4[3]);
     } else {
-        FURI_LOG_E(TAG, "Something's wrong: %d", info->ip.type);
-        // TODO: v6 representation
+        const uint16_t* ip_address_v6 = (const uint16_t*)info->ip_config.address.v6;
+        furi_string_cat_printf(
+            str,
+            "%hx:%hx:%hx:%hx:%hx:%hx:%hx:%hx 6 ",
+            ip_address_v6[0],
+            ip_address_v6[1],
+            ip_address_v6[2],
+            ip_address_v6[3],
+            ip_address_v6[4],
+            ip_address_v6[5],
+            ip_address_v6[6],
+            ip_address_v6[7]);
     }
 
-    if(info->ip.mgmt == WifiIpAddressMgmtStatic) {
+    if(info->ip_config.mgmt == WifiIpManagementStatic) {
         furi_string_cat(str, "STATIC  ");
     } else {
         furi_string_cat(str, "DYNAMIC ");
@@ -132,9 +143,9 @@ int32_t wifi_setup_app(void* arg) {
             .security_mode = WIFI_MODE,
         };
 
-        const WifiIpAddress ip_config = {
-            .mgmt = WifiIpAddressMgmtDynamic,
-            .type = WifiIpAddressTypeV4,
+        const WifiIpConfig ip_config = {
+            .mgmt = WifiIpManagementDynamic,
+            .type = WifiIpTypeV4,
         };
 
         status = wifi_connect(instance->wifi, &credentials, &ip_config);

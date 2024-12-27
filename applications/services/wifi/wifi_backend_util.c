@@ -15,12 +15,12 @@ WifiStatus wifi_decode_sl_status(sl_status_t sl_status) {
     return status;
 }
 
-sl_ip_management_t wifi_encode_ip_management(WifiIpAddressMgmt mgmt) {
+sl_ip_management_t wifi_encode_ip_management(WifiIpManagement mgmt) {
     sl_ip_management_t ret;
 
-    if(mgmt == WifiIpAddressMgmtStatic) {
+    if(mgmt == WifiIpManagementStatic) {
         ret = SL_IP_MANAGEMENT_STATIC_IP;
-    } else if(mgmt == WifiIpAddressMgmtDynamic) {
+    } else if(mgmt == WifiIpManagementDynamic) {
         ret = SL_IP_MANAGEMENT_DHCP;
     } else {
         furi_crash("Invalid WifiIpAddressMgmt value");
@@ -41,12 +41,12 @@ sl_wifi_security_t wifi_encode_security_mode(WifiSecurityMode security_mode) {
     return ret;
 }
 
-sl_ip_address_type_t wifi_encode_ip_type(WifiIpAddressType type) {
+sl_ip_address_type_t wifi_encode_ip_version(WifiIpType type) {
     sl_ip_address_type_t ret;
 
-    if(type == WifiIpAddressTypeV4) {
+    if(type == WifiIpTypeV4) {
         ret = SL_IPV4;
-    } else if(type == WifiIpAddressTypeV6) {
+    } else if(type == WifiIpTypeV6) {
         ret = SL_IPV6;
     } else {
         furi_crash("Invalid WifiIpAddressType value");
@@ -75,13 +75,18 @@ WifiSecurityMode wifi_decode_security_mode(sl_wifi_security_t sl_security) {
     return ret;
 }
 
-WifiIpAddressMgmt wifi_decode_ip_management(sl_ip_management_t sl_mgmt) {
-    WifiIpAddressMgmt ret;
+void wifi_decode_ssid(char* ssid, const sl_wifi_ssid_t* sl_ssid) {
+    strncpy(ssid, (char*)sl_ssid->value, sl_ssid->length);
+    ssid[sl_ssid->length] = '\0';
+}
+
+static WifiIpManagement wifi_decode_ip_management(sl_ip_management_t sl_mgmt) {
+    WifiIpManagement ret;
 
     if(sl_mgmt == SL_IP_MANAGEMENT_STATIC_IP) {
-        ret = WifiIpAddressMgmtStatic;
+        ret = WifiIpManagementStatic;
     } else if(sl_mgmt == SL_IP_MANAGEMENT_DHCP) {
-        ret = WifiIpAddressMgmtDynamic;
+        ret = WifiIpManagementDynamic;
     } else {
         furi_crash("Invalid sl_ip_management_t value");
     }
@@ -89,13 +94,13 @@ WifiIpAddressMgmt wifi_decode_ip_management(sl_ip_management_t sl_mgmt) {
     return ret;
 }
 
-WifiIpAddressType wifi_decode_ip_type(sl_ip_address_type_t sl_type) {
-    WifiIpAddressType ret;
+static WifiIpType wifi_decode_ip_version(sl_ip_address_type_t sl_type) {
+    WifiIpType ret;
 
     if(sl_type == SL_IPV4) {
-        ret = WifiIpAddressTypeV4;
+        ret = WifiIpTypeV4;
     } else if(sl_type == SL_IPV6) {
-        ret = WifiIpAddressTypeV6;
+        ret = WifiIpTypeV6;
     } else {
         furi_crash("Invalid sl_ip_address_type_t value");
     }
@@ -103,29 +108,24 @@ WifiIpAddressType wifi_decode_ip_type(sl_ip_address_type_t sl_type) {
     return ret;
 }
 
-void wifi_decode_ssid(char* ssid, const sl_wifi_ssid_t* sl_ssid) {
-    strncpy(ssid, (char*)sl_ssid->value, sl_ssid->length);
-    ssid[sl_ssid->length] = '\0';
-}
+void wifi_decode_ip_config(WifiIpConfig* config, const sl_net_ip_configuration_t* sl_config) {
+    config->mgmt = wifi_decode_ip_management(sl_config->mode);
+    config->type = wifi_decode_ip_version(sl_config->type);
 
-void wifi_decode_ip_config(WifiIpAddress* dst, const sl_net_ip_configuration_t* src) {
-    dst->mgmt = wifi_decode_ip_management(src->mode);
-    dst->type = wifi_decode_ip_type(src->type);
-
-    uint8_t* ip_dst;
-    const uint8_t* ip_src;
+    const uint8_t* ip_ptr;
     size_t ip_length;
 
-    if(dst->type == WifiIpAddressTypeV4) {
-        ip_dst = dst->v4;
-        ip_src = src->ip.v4.ip_address.bytes;
-        ip_length = sizeof(src->ip.v4.ip_address.bytes);
+    if(config->type == WifiIpTypeV4) {
+        ip_ptr = sl_config->ip.v4.ip_address.bytes;
+        ip_length = sizeof(sl_config->ip.v4.ip_address.bytes);
+
+    } else if(config->type == WifiIpTypeV6) {
+        ip_ptr = sl_config->ip.v6.global_address.bytes;
+        ip_length = sizeof(sl_config->ip.v6.global_address.bytes);
 
     } else {
-        ip_dst = dst->v6;
-        ip_src = src->ip.v6.global_address.bytes;
-        ip_length = sizeof(src->ip.v6.global_address.bytes);
+        furi_crash("Invalid WifiIpType value");
     }
 
-    memcpy(ip_dst, ip_src, ip_length);
+    memcpy(&config->address, ip_ptr, ip_length);
 }

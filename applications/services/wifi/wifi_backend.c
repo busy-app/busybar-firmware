@@ -111,7 +111,7 @@ static void wifi_connect_request_handler(Wifi* instance) {
     do {
         const WifiConnectRequest* request = &instance->request.connect_request;
         const WifiCredentials* credentials = &request->credentials;
-        const WifiIpAddress* ip = &request->ip;
+        const WifiIpConfig* ip = &request->ip;
 
         // Initialise client profile
         sl_net_wifi_client_profile_t profile = {
@@ -123,7 +123,7 @@ static void wifi_connect_request_handler(Wifi* instance) {
             .ip =
                 {
                     .mode = wifi_encode_ip_management(ip->mgmt),
-                    .type = wifi_encode_ip_type(ip->type),
+                    .type = wifi_encode_ip_version(ip->type),
                 },
         };
 
@@ -222,7 +222,7 @@ static void wifi_get_info_request_handler(Wifi* instance) {
         const sl_wifi_client_configuration_t* config = &profile.config;
 
         wifi_decode_ssid(info->ssid, &config->ssid);
-        wifi_decode_ip_config(&info->ip, &profile.ip);
+        wifi_decode_ip_config(&info->ip_config, &profile.ip);
 
         info->securiy_mode = wifi_decode_security_mode(config->security);
 

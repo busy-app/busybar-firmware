@@ -56,28 +56,28 @@ typedef struct {
 } WifiScanResult;
 
 typedef enum {
-    WifiIpAddressMgmtStatic,
-    WifiIpAddressMgmtDynamic,
-} WifiIpAddressMgmt;
+    WifiIpManagementStatic,
+    WifiIpManagementDynamic,
+} WifiIpManagement;
 
 typedef enum {
-    WifiIpAddressTypeV4,
-    WifiIpAddressTypeV6,
-} WifiIpAddressType;
+    WifiIpTypeV4,
+    WifiIpTypeV6,
+} WifiIpType;
 
 typedef struct {
-    WifiIpAddressMgmt mgmt;
-    WifiIpAddressType type;
+    WifiIpManagement mgmt;
+    WifiIpType type;
     union {
         uint8_t v4[4];
         uint8_t v6[16];
-    };
-} WifiIpAddress;
+    } address;
+} WifiIpConfig;
 
 typedef struct {
     char ssid[SSID_MAX_LEN];
     WifiSecurityMode securiy_mode;
-    WifiIpAddress ip;
+    WifiIpConfig ip_config;
     WifiState state;
 } WifiInfo;
 

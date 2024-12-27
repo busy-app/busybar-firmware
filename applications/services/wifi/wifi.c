@@ -11,7 +11,7 @@ typedef enum {
 
 typedef struct {
     const WifiCredentials* credentials;
-    const WifiIpAddress* ip;
+    const WifiIpConfig* ip_config;
 } WifiConnectMessage;
 
 typedef struct {
@@ -101,8 +101,10 @@ WifiStatus wifi_scan(Wifi* instance, WifiScanResult* results, uint8_t* count, ui
     return msg.status;
 }
 
-WifiStatus
-    wifi_connect(Wifi* instance, const WifiCredentials* credentials, const WifiIpAddress* ip) {
+WifiStatus wifi_connect(
+    Wifi* instance,
+    const WifiCredentials* credentials,
+    const WifiIpConfig* ip_config) {
     furi_check(instance);
     furi_check(credentials);
 
@@ -111,7 +113,7 @@ WifiStatus
         .connect_message =
             {
                 .credentials = credentials,
-                .ip = ip,
+                .ip_config = ip_config,
             },
     };
 
@@ -165,7 +167,7 @@ static void wifi_process_request(WifiRequest* request, const WifiMessage* messag
         WifiConnectRequest* connect_request = &request->connect_request;
 
         connect_request->credentials = *connect_message->credentials;
-        connect_request->ip = *connect_message->ip;
+        connect_request->ip = *connect_message->ip_config;
     }
 }
 

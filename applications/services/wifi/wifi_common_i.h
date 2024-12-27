@@ -20,7 +20,7 @@ typedef enum {
 
 typedef struct {
     WifiCredentials credentials;
-    WifiIpAddress ip;
+    WifiIpConfig ip;
 } WifiConnectRequest;
 
 typedef struct {

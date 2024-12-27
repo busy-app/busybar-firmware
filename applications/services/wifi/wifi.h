@@ -23,7 +23,7 @@ WifiStatus wifi_scan(
     uint8_t max_result_count);
 
 WifiStatus
-    wifi_connect(Wifi* instance, const WifiCredentials* credentials, const WifiIpAddress* ip);
+    wifi_connect(Wifi* instance, const WifiCredentials* credentials, const WifiIpConfig* ip_config);
 
 WifiStatus wifi_disconnect(Wifi* instance);
 
