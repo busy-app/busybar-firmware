@@ -10,18 +10,27 @@ typedef enum {
 } WifiEvent;
 
 typedef struct {
+    const WifiCredentials* credentials;
+    const WifiIpAddress* ip;
+} WifiConnectMessage;
+
+typedef struct {
     WifiScanResult* data;
     uint8_t* count;
     uint8_t max_count;
-} WifiScanResultsMessage;
+} WifiScanMessage;
+
+typedef struct {
+    WifiInfo* info;
+} WifiGetInfoMessage;
 
 typedef struct {
     WifiRequestType request_type;
     WifiStatus status;
     union {
-        const WifiCredentials* credentials;
-        WifiScanResultsMessage scan_results;
-        WifiInfo* info;
+        WifiConnectMessage connect_message;
+        WifiScanMessage scan_message;
+        WifiGetInfoMessage get_info_message;
     };
 } WifiMessage;
 
@@ -80,7 +89,7 @@ WifiStatus wifi_scan(Wifi* instance, WifiScanResult* results, uint8_t* count, ui
 
     WifiMessage msg = {
         .request_type = WifiRequestTypeScan,
-        .scan_results =
+        .scan_message =
             {
                 .data = results,
                 .count = count,
@@ -92,13 +101,18 @@ WifiStatus wifi_scan(Wifi* instance, WifiScanResult* results, uint8_t* count, ui
     return msg.status;
 }
 
-WifiStatus wifi_connect(Wifi* instance, const WifiCredentials* credentials) {
+WifiStatus
+    wifi_connect(Wifi* instance, const WifiCredentials* credentials, const WifiIpAddress* ip) {
     furi_check(instance);
     furi_check(credentials);
 
     WifiMessage msg = {
         .request_type = WifiRequestTypeConnect,
-        .credentials = credentials,
+        .connect_message =
+            {
+                .credentials = credentials,
+                .ip = ip,
+            },
     };
 
     wifi_send_message(instance, &msg);
@@ -122,7 +136,10 @@ WifiStatus wifi_get_info(Wifi* instance, WifiInfo* info) {
 
     WifiMessage msg = {
         .request_type = WifiRequestTypeGetInfo,
-        .info = info,
+        .get_info_message =
+            {
+                .info = info,
+            },
     };
 
     wifi_send_message(instance, &msg);
@@ -144,7 +161,11 @@ static void wifi_process_request(WifiRequest* request, const WifiMessage* messag
     request->type = request_type;
 
     if(request_type == WifiRequestTypeConnect) {
-        request->credentials = *message->credentials;
+        const WifiConnectMessage* connect_message = &message->connect_message;
+        WifiConnectRequest* connect_request = &request->connect_request;
+
+        connect_request->credentials = *connect_message->credentials;
+        connect_request->ip = *connect_message->ip;
     }
 }
 
@@ -155,13 +176,16 @@ static void wifi_process_response(const WifiResponse* response, WifiMessage* mes
     if(status == WifiStatusOk) {
         if(request_type == WifiRequestTypeScan) {
             const uint8_t results_count =
-                MIN(message->scan_results.max_count, response->scan_results.count);
+                MIN(message->scan_message.max_count, response->scan_results.count);
 
             const WifiScanResult* results_in = response->scan_results.data;
-            WifiScanResult* results_out = message->scan_results.data;
+            WifiScanResult* results_out = message->scan_message.data;
 
             memcpy(results_out, results_in, results_count * sizeof(WifiScanResult));
-            *message->scan_results.count = results_count;
+            *message->scan_message.count = results_count;
+
+        } else if(request_type == WifiRequestTypeGetInfo) {
+            *message->get_info_message.info = response->info;
         }
     }
 

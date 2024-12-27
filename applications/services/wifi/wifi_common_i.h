@@ -1,3 +1,7 @@
+/**
+ * @file wifi_common.h
+ * @brief Common types and declarations for WiFi API - private
+ */
 #pragma once
 
 #include <stdint.h>
@@ -15,9 +19,14 @@ typedef enum {
 } WifiRequestType;
 
 typedef struct {
+    WifiCredentials credentials;
+    WifiIpAddress ip;
+} WifiConnectRequest;
+
+typedef struct {
     uint8_t type;
     union {
-        WifiCredentials credentials;
+        WifiConnectRequest connect_request;
     };
 } WifiRequest;
 

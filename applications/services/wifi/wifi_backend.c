@@ -6,10 +6,10 @@
 #include <sl_net.h>
 #include <sl_wifi.h>
 #include <sl_si91x_driver.h>
-#include <sl_net_wifi_types.h>
 #include <sl_wifi_callback_framework.h>
 
 #include "wifi_config.h"
+#include "wifi_backend_util.h"
 
 #define TAG "Wifi"
 
@@ -23,24 +23,12 @@ struct Wifi {
     Intercom* intercom;
     WifiRequest request;
     WifiResponse response;
+    WifiState state;
 };
 
 typedef void (*WifiRequestHandler)(Wifi* instance);
 
 static const WifiRequestHandler wifi_request_handlers[WifiRequestTypeMax];
-
-static WifiStatus wifi_convert_sl_status(sl_status_t sl_status) {
-    WifiStatus status;
-
-    if(sl_status == SL_STATUS_OK) {
-        status = WifiStatusOk;
-    } else {
-        // TODO: More error cases
-        status = WifiStatusError;
-    }
-
-    return status;
-}
 
 static inline void wifi_send_response(Wifi* instance) {
     const size_t tx_size = intercom_tx(
@@ -68,7 +56,7 @@ static void wifi_init_request_handler(Wifi* instance) {
     } while(false);
 
     WifiResponse* response = &instance->response;
-    response->status = wifi_convert_sl_status(status);
+    response->status = wifi_decode_sl_status(status);
 
     wifi_send_response(instance);
 }
@@ -89,7 +77,7 @@ static void wifi_deinit_request_handler(Wifi* instance) {
     } while(false);
 
     WifiResponse* response = &instance->response;
-    response->status = wifi_convert_sl_status(status);
+    response->status = wifi_decode_sl_status(status);
 
     wifi_send_response(instance);
 }
@@ -105,7 +93,7 @@ static void wifi_scan_request_handler(Wifi* instance) {
 
     if(status != SL_STATUS_IN_PROGRESS) {
         WifiResponse* response = &instance->response;
-        response->status = wifi_convert_sl_status(status);
+        response->status = wifi_decode_sl_status(status);
 
         wifi_send_response(instance);
     }
@@ -117,47 +105,50 @@ static void wifi_connect_request_handler(Wifi* instance) {
     sl_status_t status;
 
     do {
-        const WifiCredentials* credentials = &instance->request.credentials;
+        const WifiConnectRequest* request = &instance->request.connect_request;
+        const WifiCredentials* credentials = &request->credentials;
+        const WifiIpAddress* ip = &request->ip;
 
-        sl_wifi_ssid_t ssid;
-        strncpy((char*)ssid.value, credentials->ssid, sizeof(ssid.value));
-        ssid.length = strlen(credentials->ssid);
-
-        const sl_net_wifi_client_profile_t wifi_client_profile = {
+        // Initialise client profile
+        sl_net_wifi_client_profile_t profile = {
             .config =
                 {
-                    .ssid = ssid,
-                    .security = (sl_wifi_security_t)credentials->security_mode,
+                    .security = wifi_encode_security_mode(credentials->security_mode),
                     .credential_id = SL_NET_DEFAULT_WIFI_CLIENT_CREDENTIAL_ID,
                 },
             .ip =
                 {
-                    .mode = SL_IP_MANAGEMENT_DHCP,
-                    .type = SL_IPV4,
+                    .mode = wifi_encode_ip_management(ip->mgmt),
+                    .type = wifi_encode_ip_type(ip->type),
                 },
         };
 
+        wifi_encode_ssid(&profile.config.ssid, credentials->ssid);
+
+        // Set profile
         status = sl_net_set_profile(
-            SL_NET_WIFI_CLIENT_INTERFACE,
-            SL_NET_DEFAULT_WIFI_CLIENT_PROFILE_ID,
-            &wifi_client_profile);
+            SL_NET_WIFI_CLIENT_INTERFACE, SL_NET_DEFAULT_WIFI_CLIENT_PROFILE_ID, &profile);
 
         if(status != SL_STATUS_OK) {
             FURI_LOG_E(TAG, "Failed to set Wifi profile: %lX", status);
             break;
         }
 
-        status = sl_net_set_credential(
-            SL_NET_DEFAULT_WIFI_CLIENT_CREDENTIAL_ID,
-            SL_NET_WIFI_PSK,
-            credentials->passphrase,
-            strlen(credentials->passphrase));
+        if(credentials->security_mode != WifiSecurityModeOpen) {
+            status = sl_net_set_credential(
+                SL_NET_DEFAULT_WIFI_CLIENT_CREDENTIAL_ID,
+                // TODO: Other passphrase types than PSK?
+                SL_NET_WIFI_PSK,
+                credentials->passphrase,
+                strlen(credentials->passphrase));
 
-        if(status != SL_STATUS_OK) {
-            FURI_LOG_E(TAG, "Failed to set Wifi passphrase: %lX", status);
-            break;
+            if(status != SL_STATUS_OK) {
+                FURI_LOG_E(TAG, "Failed to set Wifi passphrase: %lX", status);
+                break;
+            }
         }
 
+        // Connect to the network
         status = sl_net_up(SL_NET_WIFI_CLIENT_INTERFACE, SL_NET_DEFAULT_WIFI_CLIENT_PROFILE_ID);
 
         if(status != SL_STATUS_OK) {
@@ -168,7 +159,7 @@ static void wifi_connect_request_handler(Wifi* instance) {
     } while(false);
 
     WifiResponse* response = &instance->response;
-    response->status = wifi_convert_sl_status(status);
+    response->status = wifi_decode_sl_status(status);
 
     wifi_send_response(instance);
 }
@@ -189,7 +180,7 @@ static void wifi_disconnect_request_handler(Wifi* instance) {
     } while(false);
 
     WifiResponse* response = &instance->response;
-    response->status = wifi_convert_sl_status(status);
+    response->status = wifi_decode_sl_status(status);
 
     wifi_send_response(instance);
 }
@@ -200,31 +191,36 @@ static void wifi_get_info_request_handler(Wifi* instance) {
     sl_status_t status;
 
     do {
-        sl_net_wifi_client_profile_t wifi_client_profile = {0};
+        WifiInfo* info = &instance->response.info;
+
+        info->state = instance->state;
+
+        if(instance->state != WifiStateUp) {
+            status = SL_STATUS_OK;
+            break;
+        }
+
+        sl_net_wifi_client_profile_t profile = {0};
 
         status = sl_net_get_profile(
-            SL_NET_WIFI_CLIENT_INTERFACE,
-            SL_NET_DEFAULT_WIFI_CLIENT_PROFILE_ID,
-            &wifi_client_profile);
+            SL_NET_WIFI_CLIENT_INTERFACE, SL_NET_DEFAULT_WIFI_CLIENT_PROFILE_ID, &profile);
 
         if(status != SL_STATUS_OK) {
             FURI_LOG_E(TAG, "Failed to get Wifi profile: %lX", status);
             break;
         }
 
-        WifiInfo* info = &instance->response.info;
+        const sl_wifi_client_configuration_t* config = &profile.config;
 
-        // TODO: Proper values and everything
-        info->state = WifiStateUp;
-        info->ip.mgmt = WifiIpAddressMgmtDhcp;
-        info->ip.type = WifiIpAddressTypeV4;
+        wifi_decode_ssid(info->ssid, &config->ssid);
+        wifi_decode_ip_config(&info->ip, &profile.ip);
 
-        memcpy(info->ip.value.v4, wifi_client_profile.ip.ip.v4.ip_address.bytes, 4);
+        info->securiy_mode = wifi_decode_security_mode(config->security);
 
     } while(false);
 
     WifiResponse* response = &instance->response;
-    response->status = wifi_convert_sl_status(status);
+    response->status = wifi_decode_sl_status(status);
 
     wifi_send_response(instance);
 }
@@ -265,7 +261,7 @@ static void wifi_prepare_scan_response(WifiResponse* response) {
         }
 
     } else {
-        response->status = wifi_convert_sl_status(status);
+        response->status = wifi_decode_sl_status(status);
     }
 
     response->scan_results.count = results_count;
@@ -317,7 +313,7 @@ static sl_status_t wifi_scan_callback(
         ret = status = SL_STATUS_OK;
     }
 
-    response->status = wifi_convert_sl_status(status);
+    response->status = wifi_decode_sl_status(status);
     furi_event_loop_set_custom_event(instance->event_loop, WifiEventScanComplete);
 
     return ret;

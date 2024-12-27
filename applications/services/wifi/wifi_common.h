@@ -40,6 +40,7 @@ typedef enum {
     WifiSecurityModeWpa3Transition,
     WifiSecurityModeWpa3Enterprise,
     WifiSecurityModeWpa3TransitionEnterprise,
+    WifiSecurityModeMax,
 } WifiSecurityMode;
 
 typedef struct {
@@ -57,7 +58,6 @@ typedef struct {
 typedef enum {
     WifiIpAddressMgmtStatic,
     WifiIpAddressMgmtDhcp,
-    WifiIpAddressMgmtLinkLocal,
 } WifiIpAddressMgmt;
 
 typedef enum {
@@ -66,15 +66,19 @@ typedef enum {
 } WifiIpAddressType;
 
 typedef struct {
+    WifiIpAddressMgmt mgmt;
+    WifiIpAddressType type;
+    union {
+        uint8_t v4[4];
+        uint8_t v6[16];
+    };
+} WifiIpAddress;
+
+typedef struct {
+    char ssid[SSID_MAX_LEN];
+    WifiSecurityMode securiy_mode;
+    WifiIpAddress ip;
     WifiState state;
-    struct {
-        WifiIpAddressMgmt mgmt;
-        WifiIpAddressType type;
-        union {
-            uint8_t v4[4];
-            uint8_t v6[16];
-        } value;
-    } ip;
 } WifiInfo;
 
 #ifdef __cplusplus

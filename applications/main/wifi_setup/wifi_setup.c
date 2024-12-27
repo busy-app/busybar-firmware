@@ -97,7 +97,12 @@ int32_t wifi_setup_app(void* arg) {
             .security_mode = WIFI_MODE,
         };
 
-        status = wifi_connect(instance->wifi, &credentials);
+        const WifiIpAddress ip_config = {
+            .mgmt = WifiIpAddressMgmtDhcp,
+            .type = WifiIpAddressTypeV4,
+        };
+
+        status = wifi_connect(instance->wifi, &credentials, &ip_config);
 
         if(status != WifiStatusOk) {
             FURI_LOG_E(TAG, "Failed to connect to Wifi network");
@@ -114,11 +119,13 @@ int32_t wifi_setup_app(void* arg) {
 
         FURI_LOG_I(
             TAG,
-            "Connected with IP address: %hhu.%hhu.%hhu.%hhu",
-            info.ip.value.v4[0],
-            info.ip.value.v4[1],
-            info.ip.value.v4[2],
-            info.ip.value.v4[3]);
+            "Connected to SSID '%s' with IP address: %hhu.%hhu.%hhu.%hhu and '%s' security",
+            info.ssid,
+            info.ip.v4[0],
+            info.ip.v4[1],
+            info.ip.v4[2],
+            info.ip.v4[3],
+            wifi_security_str[info.securiy_mode]);
 
     } while(false);
 
