@@ -587,11 +587,11 @@ static void wifi_test_app_cmd_usage(WifiTestApp* instance) {
     furi_string_cat_printf(instance->msg, "sta_down Stop STA.\r\n");
     furi_string_cat_printf(
         instance->msg,
-        "test_tcp_tx [ip] Start TCP TX iPref test \"iperf.exe -s -u -p 5000 -i 1\". Default IP:%s\r\n",
+        "test_tcp_tx [ip] Start TCP TX iPref test \"iperf.exe -s -p 5000 -i 1\". Default IP:%s\r\n",
         WIFI_TEST_SERVER_IP);
     furi_string_cat_printf(
         instance->msg,
-        "test_tcp_rx Start TCP RX iPref test \"iperf.exe -c 192.168.11.10 -u -p 5005 -i 1 -b70M -t 30\".\r\n");
+        "test_tcp_rx Start TCP RX iPref test \"iperf.exe -c 192.168.11.10 -p 5005 -i 1 -b70M -t 30\".\r\n");
     furi_string_cat_printf(
         instance->msg, "test_echo Start TCP echo test port 5005. Work time 90 sec\r\n");
     furi_string_cat_printf(

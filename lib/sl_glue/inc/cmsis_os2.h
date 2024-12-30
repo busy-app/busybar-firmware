@@ -424,12 +424,12 @@ static FURI_ALWAYS_INLINE const char* osThreadGetName(osThreadId_t thread_id) {
     return furi_thread_get_name((FuriThreadId)adapter->thread);
 }
 
-// /// Return the thread ID of the current running thread.
-// /// \return thread ID for reference by other functions or NULL in case of error.
-// //osThreadId_t osThreadGetId (void);
-// static FURI_ALWAYS_INLINE osThreadId_t osThreadGetId(void) {
-//     return (osThreadId_t)furi_thread_get_current();
-// }
+/// Return the thread ID of the current running thread.
+/// \return thread ID for reference by other functions or NULL in case of error.
+//osThreadId_t osThreadGetId (void);
+static FURI_ALWAYS_INLINE osThreadId_t osThreadGetId(void) {
+    return (osThreadId_t)furi_thread_get_current_id();
+}
 
 /// Get current thread state of a thread.
 /// \param[in]     thread_id     thread ID obtained by \ref osThreadNew or \ref osThreadGetId.
