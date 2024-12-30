@@ -112,11 +112,11 @@ int32_t wifi_setup_app(void* arg) {
         status = wifi_init(instance->wifi);
 
         if(status != WifiStatusOk) {
-            FURI_LOG_E(TAG, "Failed to initialise Wifi");
+            FURI_LOG_E(TAG, "Init failed");
             break;
         }
 
-        FURI_LOG_I(TAG, "Wifi Init OK");
+        FURI_LOG_I(TAG, "Init OK");
 
         for(uint32_t iter = 0; iter < SCAN_ITERATIONS; ++iter) {
             FURI_LOG_I(TAG, "Scan iteration %lu", iter + 1);
@@ -151,7 +151,7 @@ int32_t wifi_setup_app(void* arg) {
         status = wifi_connect(instance->wifi, &credentials, &ip_config);
 
         if(status != WifiStatusOk) {
-            FURI_LOG_E(TAG, "Failed to connect to Wifi network");
+            FURI_LOG_E(TAG, "Failed to connect to access point");
             break;
         }
 
@@ -159,13 +159,38 @@ int32_t wifi_setup_app(void* arg) {
         status = wifi_get_info(instance->wifi, &info);
 
         if(status != WifiStatusOk) {
-            FURI_LOG_E(TAG, "Failed to get Wifi info");
+            FURI_LOG_E(TAG, "Failed to get info");
             break;
         }
 
         FURI_LOG_I(TAG, "Connection successful");
 
         wifi_setup_print_info(&info);
+
+        FURI_LOG_I(TAG, "Waiting 5 seconds before disconnecting");
+
+        for(uint32_t i = 0; i < 5; ++i) {
+            FURI_LOG_I(TAG, "%lu ...", 5 - i);
+            furi_delay_ms(1000);
+        }
+
+        status = wifi_disconnect(instance->wifi);
+
+        if(status != WifiStatusOk) {
+            FURI_LOG_E(TAG, "Failed to disconnect");
+            break;
+        }
+
+        FURI_LOG_I(TAG, "Disconnected successfully");
+
+        status = wifi_deinit(instance->wifi);
+
+        if(status != WifiStatusOk) {
+            FURI_LOG_E(TAG, "Deinit failed");
+            break;
+        }
+
+        FURI_LOG_I(TAG, "Deinit OK");
 
     } while(false);
 
