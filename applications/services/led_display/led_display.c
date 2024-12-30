@@ -273,6 +273,8 @@ int32_t led_display_init(void* p) {
     led_display_scan_start();
 
     led_display_set_default_img();
+    // TODO delete
+    memset(frame_buffer, 0x3F, sizeof(test_data));
 
     led_display_send_frame(led_driver, frame_buffer);
     furi_delay_ms(5);
