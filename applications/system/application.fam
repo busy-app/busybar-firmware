@@ -19,6 +19,7 @@ App(
         "wifi_test_start",
         "ble_test_start",
         "ble_ibeacon_start",
+        "ble_per_test_start",
     ],
     targets=["f64"],
 )

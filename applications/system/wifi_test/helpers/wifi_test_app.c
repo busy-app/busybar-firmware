@@ -567,7 +567,7 @@ void wifi_test_app_parse_msg(void* app_handle, uint8_t* data, size_t size) {
 }
 
 static void wifi_test_app_cmd_usage(WifiTestApp* instance) {
-    furi_string_printf(instance->msg, "Calibration commands usage:\r\n");
+    furi_string_printf(instance->msg, "%s commands usage:\r\n", TAG);
     furi_string_cat_printf(
         instance->msg,
         "*************************************************************************************************************"

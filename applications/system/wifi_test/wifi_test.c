@@ -12,7 +12,7 @@ void wifi_test_command_start(Cli* cli, FuriString* args, void* context) {
     cli_worker_set_callback(
         worker, wifi_test_app_start, wifi_test_app_parse_msg, wifi_test_app_stop);
     if(!cli_worker_start(worker)) {
-        printf("Failed to start WiFi rf test worker\r\n");
+        printf("Failed to start WiFi test worker\r\n");
         if(cli_worker_is_running(worker)) {
             cli_worker_stop(worker);
             cli_worker_free(worker);
