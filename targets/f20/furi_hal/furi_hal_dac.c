@@ -161,7 +161,7 @@ static void furi_hal_dac_setup_timer() {
 }
 
 void furi_hal_dac_init(void) {
-    furi_hal_gpio_init(&gpio_audio_dac, GpioModeAnalog, GpioPullNo, GpioSpeedLow);
+    // furi_hal_gpio_init(&gpio_audio_dac, GpioModeAnalog, GpioPullNo, GpioSpeedLow);
 }
 
 void furi_hal_dac_pa_enable(void) {
