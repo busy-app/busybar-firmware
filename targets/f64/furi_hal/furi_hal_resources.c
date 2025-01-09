@@ -62,9 +62,9 @@ const GpioPin gpio_encoder_b = {.type = GpioTypeUlp, .pin = 10};
 const GpioPin gpio_uart1_tx = {.type = GpioTypeUlp, .pin = 11};
 
 const GpioPin gpio_sw_off = {.type = GpioTypeUulp, .pin = 0};
-const GpioPin gpio_sw_back = {.type = GpioTypeUulp, .pin = 1};
+const GpioPin gpio_sw_back = {.type = GpioTypeUulp, .pin = 3};
 const GpioPin gpio_sw_start_pause = {.type = GpioTypeUulp, .pin = 2};
-const GpioPin gpio_sw_ok = {.type = GpioTypeUulp, .pin = 3};
+const GpioPin gpio_sw_ok = {.type = GpioTypeUulp, .pin = 1};
 
 const InputPin input_pins[] = {
     {
