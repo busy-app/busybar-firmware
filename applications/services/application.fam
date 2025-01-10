@@ -15,6 +15,7 @@ App(
         "power_srv",
         "intercom",
         "wifi",
+        "sockets",
     ],
     targets=["f20"],
 )
@@ -29,6 +30,7 @@ App(
         "intercom",
         "notification",
         "wifi",
+        "sockets",
     ],
     targets=["f64"],
 )

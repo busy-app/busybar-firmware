@@ -1,0 +1,23 @@
+App(
+    appid="sockets",
+    name="SocketsSrv",
+    apptype=FlipperAppType.SERVICE,
+    entry_point="sockets_srv",
+    stack_size=4 * 1024,
+    order=100,
+    targets=["f20"],
+    requires=["intercom"],
+    sources=["sockets.c"],
+)
+
+App(
+    appid="sockets",
+    name="SocketsSrv",
+    apptype=FlipperAppType.SERVICE,
+    entry_point="sockets_srv",
+    stack_size=4 * 1024,
+    order=100,
+    targets=["f64"],
+    requires=["intercom"],
+    sources=["sockets_backend.c"],
+)
