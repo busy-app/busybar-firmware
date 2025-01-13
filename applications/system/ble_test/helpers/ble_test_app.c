@@ -125,7 +125,7 @@ const BLETestCmd ble_test_cmd[BLETestCmdMax] = {
     {"rx"},
     {"stop"},
     {"channel"},
-    {"phy"},
+    {"phy_rate"},
     {"payload_len"},
     {"payload_type"},
 
@@ -135,8 +135,8 @@ typedef struct {
     char* rate_name;
     uint8_t rate_value;
 } BLETestPhy;
-#define WIFI_RF_TEST_PHY_MAX 4
-const BLETestPhy ble_test_phy[WIFI_RF_TEST_PHY_MAX] = {
+#define BLE_TEST_PHY_RATE_MAX 4
+const BLETestPhy ble_test_phy_rate[BLE_TEST_PHY_RATE_MAX] = {
     {"1Mbps", RSI_BLE_1MBPS},
     {"2Mbps", RSI_BLE_2MBPS},
     {"125Kbps", RSI_BLE_125KBPS},
@@ -209,7 +209,6 @@ void* ble_test_app_start(CliWorker* worker) {
 
     instance->exit = false;
 
-    //ble_testmodes();
     sl_status_t status = SL_STATUS_FAIL;
     do {
         status = sl_wifi_init(&config, NULL, sl_wifi_default_event_handler);
@@ -308,7 +307,7 @@ static sl_status_t ble_test_app(BLETestApp* instance, uint8_t cmd_index, FuriStr
                     instance->msg,
                     "Tx test mode started. Channel:%dMhz, Phy:%s, Payload_len:%d, Payload_type:%s\r\n",
                     (2402 + (2 * instance->channel)),
-                    ble_test_phy[instance->phy].rate_name,
+                    ble_test_phy_rate[instance->phy].rate_name,
                     instance->payload_len,
                     ble_test_payload_type[instance->payload_type].payload_type_name);
                 ble_test_app_send_msg(instance);
@@ -333,7 +332,7 @@ static sl_status_t ble_test_app(BLETestApp* instance, uint8_t cmd_index, FuriStr
                     instance->msg,
                     "Rx test mode started. Channel:%dMhz, Phy:%s\r\n",
                     (2402 + (2 * instance->channel)),
-                    ble_test_phy[instance->phy].rate_name);
+                    ble_test_phy_rate[instance->phy].rate_name);
                 ble_test_app_send_msg(instance);
             }
         } else {
@@ -386,10 +385,10 @@ static sl_status_t ble_test_app(BLETestApp* instance, uint8_t cmd_index, FuriStr
             parse_err |= strint_to_uint8(args_cstr, &args_cstr, &arg_uint8, 10);
 
             if(parse_err == StrintParseNoError) {
-                if((arg_uint8 >= 1) && (arg_uint8 <= 4)) {
-                    instance->phy = arg_uint8;
+                if((arg_uint8 <= BLE_TEST_PHY_RATE_MAX-1)) {
+                    instance->phy = ble_test_phy_rate[arg_uint8].rate_value;
                 } else {
-                    furi_string_printf(instance->msg, "Invalid PHY\r\n");
+                    furi_string_printf(instance->msg, "Invalid PHY Rate\r\n");
                     ble_test_app_send_msg(instance);
                 }
             }
@@ -500,7 +499,7 @@ static void ble_test_app_cmd_usage(BLETestApp* instance) {
     furi_string_cat_printf(
         instance->msg, "channel <0..39> BLE channels 2402MHz to 2480MHz with 2MHz spacing\r\n");
     furi_string_cat_printf(
-        instance->msg, "phy <1..4> PHY 1: 1Mbps, 2: 2Mbps, 3: 125Kbps, 4: 500Kbps\r\n");
+        instance->msg, "phy_rate <0..3> PHY 0: 1Mbps, 1: 2Mbps, 2: 125Kbps, 3: 500Kbps\r\n");
     furi_string_cat_printf(instance->msg, "payload_len <1..251> Payload length\r\n");
     furi_string_cat_printf(
         instance->msg,

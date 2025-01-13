@@ -1,0 +1,101 @@
+/**
+ * @file wifi.h
+ * @brief API for controlling WiFi networks.
+ *
+ * All of the below functions are synchronous (will block the calling thread until completion).
+ * Additionally, the Wifi system only serves one thread at a time, so attempting to access it from
+ * multiple threads will put them in a blocked state until the previous thread is done with it.
+ */
+#pragma once
+
+#include "wifi_common.h"
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+/**
+ * @brief The string key for Wifi instance access
+ *
+ * Get the instance pointer by calling `furi_record_open(RECORD_WIFI)`
+ */
+#define RECORD_WIFI "wifi"
+
+/**
+ * @brief Initialise the Wifi system.
+ *
+ * @note The Wifi system MUST NOT be initialised when calling this function.
+ *
+ * @param[in,out] instance pointer to the Wifi instance
+ * @returns WifiStatusOk on success, error code otherwise
+ */
+WifiStatus wifi_init(Wifi* instance);
+
+/**
+ * @brief Deinitialise the Wifi system.
+ *
+ * @note The Wifi system MUST be initialised before calling this function.
+ *
+ * @param[in,out] instance pointer to the Wifi instance
+ * @returns WifiStatusOk on success, error code otherwise
+ */
+WifiStatus wifi_deinit(Wifi* instance);
+
+/**
+ * @brief Scan for available Wifi access points nearby.
+ *
+ * The array pointed to by the results parameter MUST be allocated by the user code.
+ * Naturally, it is also responsibe for freeing the array when it is no longer needed.
+ *
+ * @note The Wifi system MUST be initialised before calling this function.
+ *
+ * @param[in,out] instance pointer to the Wifi instance
+ * @param[out] results pointer to the array to contain the scan results
+ * @param[out] result_count pointer to the variable to contain the result count
+ * @param[in] max_result_count maximum capacity of the scan results array
+ * @returns WifiStatusOk on success, error code otherwise
+ */
+WifiStatus wifi_scan(
+    Wifi* instance,
+    WifiScanResult* results,
+    uint8_t* result_count,
+    uint8_t max_result_count);
+
+/**
+ * @brief Connect to an access point using the specified configuration.
+ *
+ * @note The Wifi system MUST be initialised before calling this function.
+ *
+ * @param[in,out] instance pointer to the Wifi instance
+ * @param[in] credentials pointer to the structure containing the connection credentials
+ * @param[in] ip_config pointer to the structure containing the connection configuration
+ * @returns WifiStatusOk on success, error code otherwise
+ */
+WifiStatus
+    wifi_connect(Wifi* instance, const WifiCredentials* credentials, const WifiIpConfig* ip_config);
+
+/**
+ * @brief Disconnect from the access point.
+ *
+ * @note The Wifi interface MUST be UP when calling this function.
+ *
+ * @param[in,out] instance pointer to the Wifi instance
+ * @returns WifiStatusOk on success, error code otherwise
+ */
+WifiStatus wifi_disconnect(Wifi* instance);
+
+/**
+ * @brief Get the information about current state of the Wifi system.
+ *
+ * This function can be called at any time. However, if the state value is NOT WifiStateUp,
+ * then the values of all other fields are invalid.
+ *
+ * @param[in,out] instance pointer to the Wifi instance
+ * @param[out] info pointer to the structure to contain the information
+ * @returns WifiStatusOk on success, error code otherwise
+ */
+WifiStatus wifi_get_info(Wifi* instance, WifiInfo* info);
+
+#ifdef __cplusplus
+}
+#endif

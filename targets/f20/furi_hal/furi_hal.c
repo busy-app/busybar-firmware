@@ -59,7 +59,7 @@ void furi_hal_init(void) {
     // furi_hal_rfid_init();
     // furi_hal_gpu_init();
     // furi_hal_button_init();
-    furi_hal_dac_init();
+    // furi_hal_dac_init();
 }
 
 void furi_hal_switch(void* address) {

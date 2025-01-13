@@ -4,23 +4,23 @@
 
 const GpioPin gpio_swdio = {.port = GPIOA, .pin = LL_GPIO_PIN_13};
 const GpioPin gpio_swclk = {.port = GPIOA, .pin = LL_GPIO_PIN_14};
+
 const GpioPin gpio_log_usart_tx = {.port = GPIOC, .pin = LL_GPIO_PIN_3};
 const GpioPin gpio_log_usart_rx = {.port = GPIOC, .pin = LL_GPIO_PIN_2};
 
-const GpioPin gpio_usart1_tx = {.port = GPIOA, .pin = LL_GPIO_PIN_9};
-const GpioPin gpio_usart1_rx = {.port = GPIOA, .pin = LL_GPIO_PIN_10};
+const GpioPin gpio_usart1_tx = {.port = GPIOB, .pin = LL_GPIO_PIN_6};
+const GpioPin gpio_usart1_rx = {.port = GPIOB, .pin = LL_GPIO_PIN_7};
 const GpioPin gpio_usart1_rts = {.port = GPIOB, .pin = LL_GPIO_PIN_3};
 const GpioPin gpio_usart1_cts = {.port = GPIOB, .pin = LL_GPIO_PIN_4};
+
 const GpioPin gpio_lpuart1_tx = {.port = GPIOA, .pin = LL_GPIO_PIN_2};
 const GpioPin gpio_lpuart1_rx = {.port = GPIOA, .pin = LL_GPIO_PIN_3};
 
-const GpioPin gpio_917_pwr_en = {.port = GPIOC, .pin = LL_GPIO_PIN_6};
-const GpioPin gpio_917_rst = {.port = GPIOC, .pin = LL_GPIO_PIN_7};
-const GpioPin gpio_917_swo = {.port = GPIOC, .pin = LL_GPIO_PIN_0};
-const GpioPin gpio_917_irq = {.port = GPIOB, .pin = LL_GPIO_PIN_6};
+const GpioPin gpio_917_rst = {.port = GPIOA, .pin = LL_GPIO_PIN_4};
+const GpioPin gpio_917_irq = {.port = GPIOC, .pin = LL_GPIO_PIN_6};
 
 const GpioPin gpio_bq25798_qon = {.port = GPIOC, .pin = LL_GPIO_PIN_13};
-const GpioPin gpio_bq25798_irq = {.port = GPIOB, .pin = LL_GPIO_PIN_7};
+const GpioPin gpio_bq25798_irq = {.port = GPIOC, .pin = LL_GPIO_PIN_0};
 
 const GpioPin gpio_sd_card_d0 = {.port = GPIOC, .pin = LL_GPIO_PIN_8};
 const GpioPin gpio_sd_card_d1 = {.port = GPIOC, .pin = LL_GPIO_PIN_9};
@@ -31,7 +31,6 @@ const GpioPin gpio_sd_card_cmd = {.port = GPIOD, .pin = LL_GPIO_PIN_2};
 
 const GpioPin gpio_usb_dm = {.port = GPIOA, .pin = LL_GPIO_PIN_11};
 const GpioPin gpio_usb_dp = {.port = GPIOA, .pin = LL_GPIO_PIN_12};
-
 const GpioPin gpio_ucpd_cc1 = {.port = GPIOA, .pin = LL_GPIO_PIN_15};
 const GpioPin gpio_ucpd_cc2 = {.port = GPIOB, .pin = LL_GPIO_PIN_15};
 
@@ -54,8 +53,11 @@ const GpioPin gpio_led_sdi_ospi_d0 = {.port = GPIOB, .pin = LL_GPIO_PIN_1};
 const GpioPin gpio_led_le_ospi_d1 = {.port = GPIOB, .pin = LL_GPIO_PIN_0};
 const GpioPin gpio_led_dclk_ospi_clk = {.port = GPIOB, .pin = LL_GPIO_PIN_10};
 
-const GpioPin gpio_audio_dac = {.port = GPIOA, .pin = LL_GPIO_PIN_4};
-const GpioPin gpio_pa8 = {.port = GPIOA, .pin = LL_GPIO_PIN_8};
+const GpioPin gpio_i2s_fs = {.port = GPIOA, .pin = LL_GPIO_PIN_9};
+const GpioPin gpio_i2s_sck = {.port = GPIOA, .pin = LL_GPIO_PIN_8};
+const GpioPin gpio_i2s_sd = {.port = GPIOA, .pin = LL_GPIO_PIN_10};
+
+const GpioPin gpio_audio_en_and_917_swo = {.port = GPIOC, .pin = LL_GPIO_PIN_7};
 
 const GpioPinRecord gpio_pins[] = {};
 

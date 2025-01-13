@@ -1,0 +1,45 @@
+/**
+ * @file wifi_common.h
+ * @brief Common types and declarations for WiFi API - private
+ */
+#pragma once
+
+#include <stdint.h>
+
+#include "wifi_common.h"
+
+typedef enum {
+    WifiRequestTypeInit,
+    WifiRequestTypeDeinit,
+    WifiRequestTypeScan,
+    WifiRequestTypeConnect,
+    WifiRequestTypeDisconnect,
+    WifiRequestTypeGetInfo,
+    WifiRequestTypeMax,
+} WifiRequestType;
+
+typedef struct {
+    WifiCredentials credentials;
+    WifiIpConfig ip;
+} WifiConnectRequest;
+
+typedef struct {
+    uint8_t type;
+    union {
+        WifiConnectRequest connect_request;
+    };
+} WifiRequest;
+
+typedef struct {
+    WifiScanResult data[SCAN_MAX_RESULTS];
+    uint8_t count;
+} WifiScanResults;
+
+typedef struct {
+    uint8_t type;
+    uint8_t status;
+    union {
+        WifiScanResults scan_results;
+        WifiInfo info;
+    };
+} WifiResponse;
