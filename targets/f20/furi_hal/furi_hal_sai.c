@@ -15,10 +15,6 @@
 
 #define SAI_DEFAULT_TIMEOUT 4U
 
-const GpioPin gpio_sai_sd = {.port = GPIOA, .pin = LL_GPIO_PIN_10};
-const GpioPin gpio_sai_fs = {.port = GPIOA, .pin = LL_GPIO_PIN_9};
-const GpioPin gpio_sai_ck = {.port = GPIOA, .pin = LL_GPIO_PIN_8};
-
 #define FURI_HAL_SAI_DMA              GPDMA1
 #define FURI_HAL_SAI_DMA_REQUEST      LL_GPDMA1_REQUEST_SAI1_A
 #define FURI_HAL_SAI_DMA_PRIORITY     LL_DMA_HIGH_PRIORITY
@@ -178,11 +174,15 @@ bool furi_hal_sai_init() {
     furi_hal_bus_enable(FuriHalBusSAI1);
 
     furi_hal_gpio_init_ex(
-        &gpio_sai_sd, GpioModeAltFunctionPushPull, GpioPullNo, GpioSpeedLow, GpioAltFn13SAI1);
+        &gpio_i2s_sd, GpioModeAltFunctionPushPull, GpioPullNo, GpioSpeedLow, GpioAltFn13SAI1);
     furi_hal_gpio_init_ex(
-        &gpio_sai_fs, GpioModeAltFunctionPushPull, GpioPullNo, GpioSpeedLow, GpioAltFn13SAI1);
+        &gpio_i2s_fs, GpioModeAltFunctionPushPull, GpioPullNo, GpioSpeedLow, GpioAltFn13SAI1);
     furi_hal_gpio_init_ex(
-        &gpio_sai_ck, GpioModeAltFunctionPushPull, GpioPullNo, GpioSpeedLow, GpioAltFn13SAI1);
+        &gpio_i2s_sck, GpioModeAltFunctionPushPull, GpioPullNo, GpioSpeedLow, GpioAltFn13SAI1);
+    furi_hal_gpio_init(
+        &gpio_audio_en_and_917_swo, GpioModeOutputPushPull, GpioPullNo, GpioSpeedLow);
+
+    furi_hal_gpio_write(&gpio_audio_en_and_917_swo, true);
 
     // Disable the selected SAI peripheral
     if(!furi_hal_sai_disable()) {

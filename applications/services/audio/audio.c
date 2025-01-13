@@ -3,20 +3,20 @@
 #include <furi.h>
 #include <furi_hal_sai.h>
 
-static const uint16_t audio_click_1[] = {
+static const int16_t audio_click_1[] = {
 #include "click_1.inc"
 };
 
-static const uint16_t audio_click_2[] = {
+static const int16_t audio_click_2[] = {
 #include "click_2.inc"
 };
 
-static const uint16_t audio_busy_end[] = {
+static const int16_t audio_busy_end[] = {
 #include "busy_end.inc"
 };
 
 typedef struct {
-    uint16_t* data;
+    int16_t* data;
     size_t size;
     size_t position;
     bool loop;
@@ -33,10 +33,6 @@ static int16_t audio_callback(void* context) {
     if(audio_current) {
         if(audio_current->data) {
             sample = audio_current->data[audio_current->position];
-
-            // uint12 to int16 conversion
-            sample -= 2048;
-            sample <<= 4;
         }
 
         audio_current->position++;
@@ -65,15 +61,15 @@ static void audio_process_message(AudioCommand command) {
         furi_hal_sai_stop();
         break;
     case AudioCommandPlayClick1:
-        audio.data = (uint16_t*)audio_click_1;
+        audio.data = (int16_t*)audio_click_1;
         audio.size = sizeof(audio_click_1) / sizeof(audio_click_1[0]);
         break;
     case AudioCommandPlayClick2:
-        audio.data = (uint16_t*)audio_click_2;
+        audio.data = (int16_t*)audio_click_2;
         audio.size = sizeof(audio_click_2) / sizeof(audio_click_2[0]);
         break;
     case AudioCommandPlayBusyEnd:
-        audio.data = (uint16_t*)audio_busy_end;
+        audio.data = (int16_t*)audio_busy_end;
         audio.size = sizeof(audio_busy_end) / sizeof(audio_busy_end[0]);
         break;
     default:
