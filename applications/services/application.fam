@@ -14,8 +14,8 @@ App(
         "led_display",
         "httpd_test",
         "power_srv",
-        # "intercom",
-        "rpc_start",
+        "intercom",
+        "wifi",
     ],
     targets=["f20"],
 )
@@ -25,10 +25,11 @@ App(
     name="Basic services",
     apptype=FlipperAppType.METAPACKAGE,
     provides=[
+        # "cli",
         "input",
         "intercom",
         "notification",
-        "rpc_start",
+        "wifi",
     ],
     targets=["f64"],
 )

@@ -4,7 +4,8 @@
 
 #define TAG "LED display"
 
-#define OCTOSPI_PRESCALLER 20
+#define OCTOSPI_PRESCALLER  8
+#define START_REFRESH_COUNT 2
 
 typedef enum {
     LedDriverCmdNone = 0,
@@ -102,6 +103,7 @@ struct LedDisplayDriver {
     uint8_t spi_buf[DISPLAY_W * DISPLAY_H * PIXEL_BUF_LEN];
     uint16_t gamma_lut[256];
     uint32_t dma_channel;
+    uint32_t refresh_count;
 };
 
 static LedDisplayDriver* led_driver;
@@ -138,6 +140,12 @@ static void octospi_dma_tc_irq(void* context) {
         LL_DMA_DisableIT_TC(GPDMA1, driver->dma_channel);
         // Start vsync sequence after full frame load
         led_display_scan_vsync_enable();
+        if(driver->refresh_count < START_REFRESH_COUNT) {
+            driver->refresh_count++;
+        } else if(driver->refresh_count == START_REFRESH_COUNT) {
+            led_display_output_enable(true);
+            driver->refresh_count++;
+        }
     }
 }
 
@@ -211,19 +219,19 @@ static void octospi_init(void) {
         &gpio_led_sdi_ospi_d0,
         GpioModeAltFunctionPushPull,
         GpioPullNo,
-        GpioSpeedVeryHigh,
+        GpioSpeedMedium,
         GpioAltFn10OCTOSPI1);
     furi_hal_gpio_init_ex(
         &gpio_led_le_ospi_d1,
         GpioModeAltFunctionPushPull,
         GpioPullNo,
-        GpioSpeedVeryHigh,
+        GpioSpeedMedium,
         GpioAltFn10OCTOSPI1);
     furi_hal_gpio_init_ex(
         &gpio_led_dclk_ospi_clk,
         GpioModeAltFunctionPushPull,
         GpioPullNo,
-        GpioSpeedVeryHigh,
+        GpioSpeedMedium,
         GpioAltFn10OCTOSPI1);
 }
 
@@ -314,9 +322,9 @@ static void led_display_led_driver_send_init(LedDisplayDriver* driver) {
     led_driver_write_reg(
         driver, LedDriverCmdWriteCfg1, (uint16_t[]){cfg_data, cfg_data, cfg_data});
 
-    uint16_t cfg_data_r = (31 << 10) | (1 << 9) | (200 << 1);
+    uint16_t cfg_data_r = (31 << 10) | (1 << 9) | (255 << 1);
     uint16_t cfg_data_g = (28 << 10) | (1 << 9) | (255 << 1);
-    uint16_t cfg_data_b = (23 << 10) | (1 << 9) | (110 << 1);
+    uint16_t cfg_data_b = (23 << 10) | (1 << 9) | (255 << 1);
     led_driver_write_reg(
         driver, LedDriverCmdWriteCfg2, (uint16_t[]){cfg_data_r, cfg_data_g, cfg_data_b});
 

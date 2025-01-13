@@ -16,6 +16,10 @@ App(
         "wifi_cli_test_start",
         "wifi_calibration_start",
         "wifi_rf_test_start",
+        "wifi_test_start",
+        "ble_test_start",
+        "ble_ibeacon_start",
+        "ble_per_test_start",
     ],
     targets=["f64"],
 )

@@ -5,6 +5,8 @@
 
 #define FRAME_BUF_SIZE (DISPLAY_W * DISPLAY_H * 3)
 
+static uint8_t* frame_buffer;
+
 const uint8_t test_data[] = {
     0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
     0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
@@ -224,9 +226,39 @@ const uint8_t test_data[] = {
     0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
 };
 
+void led_display_reset() {
+    furi_check(frame_buffer);
+
+    memset(frame_buffer, 0, FRAME_BUF_SIZE);
+}
+
+void led_display_set_default_img() {
+    furi_check(frame_buffer);
+
+    memcpy(frame_buffer, test_data, FRAME_BUF_SIZE);
+    for(uint8_t x = 0; x < 72; x++) {
+        uint32_t value = x * 256 / 72;
+        for(uint8_t y = 0; y < 2; y++) {
+            uint32_t pixel_offset = y * 72 + x;
+            frame_buffer[pixel_offset * 3 + 0] = value;
+            frame_buffer[pixel_offset * 3 + 1] = value;
+            frame_buffer[pixel_offset * 3 + 2] = value;
+        }
+    }
+}
+
+void led_display_set_pixel(uint8_t x, uint8_t y, uint8_t r, uint8_t g, uint8_t b) {
+    furi_check(frame_buffer);
+
+    uint32_t pixel_offset = y * 72 + x;
+    frame_buffer[pixel_offset * 3 + 0] = r;
+    frame_buffer[pixel_offset * 3 + 1] = g;
+    frame_buffer[pixel_offset * 3 + 2] = b;
+}
+
 int32_t led_display_init(void* p) {
     UNUSED(p);
-    uint8_t* frame_buf_test = malloc(FRAME_BUF_SIZE);
+    frame_buffer = malloc(FRAME_BUF_SIZE);
 
     FURI_LOG_I(TAG, "Started");
 
@@ -240,45 +272,22 @@ int32_t led_display_init(void* p) {
 
     led_display_scan_start();
 
-    led_display_send_frame(led_driver, frame_buf_test);
+    led_display_set_default_img();
+
+    led_display_send_frame(led_driver, frame_buffer);
     furi_delay_ms(5);
-    led_display_send_frame(led_driver, frame_buf_test);
-
-    memcpy(frame_buf_test, test_data, sizeof(test_data));
-
-    for(uint8_t x = 0; x < 72; x++) {
-        uint32_t value = x * 256 / 72;
-        for(uint8_t y = 0; y < 2; y++) {
-            uint32_t pixel_offset = y * 72 + x;
-            frame_buf_test[pixel_offset * 3 + 0] = value;
-            frame_buf_test[pixel_offset * 3 + 1] = value;
-            frame_buf_test[pixel_offset * 3 + 2] = value;
-        }
-    }
-
-    led_display_send_frame(led_driver, frame_buf_test);
-    // furi_delay_ms(1000);
+    led_display_send_frame(led_driver, frame_buffer);
+    furi_delay_ms(5);
 
     // TODO: autorefresh
-
-    // uint8_t offset = 1;
     while(1) {
-        // for(uint8_t x = offset; x < 72; x += 16) {
-        //     for(uint8_t y = 0; y < 16; y++) {
-        //         uint32_t pixel_offset = y * 72 + x;
-        //         frame_buf_test[pixel_offset * 3 + 0] = 0xFF;
-        //         frame_buf_test[pixel_offset * 3 + 1] = 0xFF;
-        //         frame_buf_test[pixel_offset * 3 + 2] = 0xFF;
-        //     }
-        // }
-        // offset = (offset + 1) % 16;
-
-        led_display_send_frame(led_driver, frame_buf_test);
+        led_display_send_frame(led_driver, frame_buffer);
 
         furi_delay_ms(50);
     }
 
-    free(frame_buf_test);
+    free(frame_buffer);
+    frame_buffer = NULL;
 
     return 0;
 }

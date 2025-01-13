@@ -1,13 +1,12 @@
 #pragma once
-#include <stdint.h>
+
+#include "led_display.h"
+
 #include <furi_hal_interrupt.h>
 #include <furi_hal_resources.h>
 #include <furi_hal_bus.h>
 #include <furi_hal_gpio.h>
 #include <furi_hal_dma.h>
-
-#define DISPLAY_W 72
-#define DISPLAY_H 16
 
 // LED current per color channel (HC | Gain)
 // #define CUR_GAIN_R (0x20 | 5)
@@ -25,6 +24,7 @@ typedef struct LedDisplayScan LedDisplayScan;
 
 void led_display_scan_init(void);
 void led_display_scan_start(void);
+void led_display_output_enable(bool enable);
 void led_display_scan_vsync_enable(void);
 void led_display_scan_data_sync_enable(void);
 

@@ -5,7 +5,7 @@ App(
     entry_point="wifi_rf_test_system_start",
     sources=[
         "wifi_rf_test.c",
-        "helpers/wifi_test_app.c",
+        "helpers/wifi_rf_test_app.c",
     ],
     order=40,
 )
