@@ -13,6 +13,7 @@ typedef struct {
         uint32_t voltage_min;
         uint32_t voltage_max;
         uint32_t current_max;
+        uint8_t pdo_id;
         bool is_fixed;
     } cap[PDO_NUMBER_MAX];
 } PowerUsbPdCapability;

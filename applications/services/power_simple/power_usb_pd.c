@@ -311,7 +311,7 @@ static bool pd_send_request(PowerUsbPd* pd, uint32_t voltage, uint32_t current) 
             continue;
         }
         if((voltage == pd->caps.cap[i].voltage_max) && (current <= pd->caps.cap[i].current_max)) {
-            cap_id = i + 1;
+            cap_id = pd->caps.cap[i].pdo_id;
             is_fixed = true;
         }
     }
@@ -325,7 +325,7 @@ static bool pd_send_request(PowerUsbPd* pd, uint32_t voltage, uint32_t current) 
             if((voltage >= pd->caps.cap[i].voltage_min) &&
                (voltage <= pd->caps.cap[i].voltage_max) &&
                (current <= pd->caps.cap[i].current_max)) {
-                cap_id = i + 1;
+                cap_id = pd->caps.cap[i].pdo_id;
                 is_fixed = false;
             }
         }
@@ -377,6 +377,7 @@ static bool pd_msg_parse_capabilities(PowerUsbPd* pd, uint8_t* buf, size_t nb_ob
             pd->caps.cap[pdo_num].voltage_min = voltage;
             pd->caps.cap[pdo_num].voltage_max = voltage;
             pd->caps.cap[pdo_num].current_max = current;
+            pd->caps.cap[pdo_num].pdo_id = i + 1;
             pdo_num++;
         } else if(type == 3) { // APDO
             uint8_t spr_epr = (obj >> 28) & 0x03;
@@ -391,10 +392,13 @@ static bool pd_msg_parse_capabilities(PowerUsbPd* pd, uint8_t* buf, size_t nb_ob
                 pd->caps.cap[pdo_num].voltage_min = vmin;
                 pd->caps.cap[pdo_num].voltage_max = vmax;
                 pd->caps.cap[pdo_num].current_max = current;
+                pd->caps.cap[pdo_num].pdo_id = i + 1;
                 pdo_num++;
             } else {
                 // SPR/EPR AVS
             }
+        } else {
+            // Battery/variable
         }
     }
     pd->caps.cap_number = pdo_num;

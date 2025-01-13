@@ -105,14 +105,14 @@ static void power_dump_pd_capabilities(Power* power) {
             FURI_LOG_I(
                 TAG,
                 "[%u] fixed %.3fV %.3fA",
-                i + 1,
+                power->pd_capabilities.cap[i].pdo_id,
                 power->pd_capabilities.cap[i].voltage_max / 1000.f,
                 power->pd_capabilities.cap[i].current_max / 1000.f);
         } else {
             FURI_LOG_I(
                 TAG,
                 "[%u] PPS %.3f-%.3fV %.3fA",
-                i + 1,
+                power->pd_capabilities.cap[i].pdo_id,
                 power->pd_capabilities.cap[i].voltage_min / 1000.f,
                 power->pd_capabilities.cap[i].voltage_max / 1000.f,
                 power->pd_capabilities.cap[i].current_max / 1000.f);
