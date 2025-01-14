@@ -17,8 +17,8 @@
 #define FURI_CLOCK_PLL1_N 10
 // PLL1R is used for system clock
 #define FURI_CLOCK_PLL1_R 1
-// PLL1P is used for SDMMC block
-#define FURI_CLOCK_PLL1_P 4
+// PLL1P is used for SDMMC12 and SAI1 blocks
+#define FURI_CLOCK_PLL1_P 1
 
 void furi_hal_clock_init_early(void) {
     LL_SetSystemCoreClock(CPU_CLOCK_EARLY_HZ);
