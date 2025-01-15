@@ -8,12 +8,12 @@
 #include <sl_si91x_socket_utility.h>
 
 #define TOTAL_SOCKETS                   (TOTAL_TCP_SOCKETS + TOTAL_UDP_SOCKETS)
-#define TOTAL_TCP_SOCKETS               2
-#define TOTAL_UDP_SOCKETS               2
-#define TCP_TX_ONLY_SOCKETS             1
-#define TCP_RX_ONLY_SOCKETS             1
-#define UDP_TX_ONLY_SOCKETS             1
-#define UDP_RX_ONLY_SOCKETS             1
+#define TOTAL_TCP_SOCKETS               1
+#define TOTAL_UDP_SOCKETS               0
+#define TCP_TX_ONLY_SOCKETS             0
+#define TCP_RX_ONLY_SOCKETS             0
+#define UDP_TX_ONLY_SOCKETS             0
+#define UDP_RX_ONLY_SOCKETS             0
 #define TCP_RX_HIGH_PERFORMANCE_SOCKETS 0
 #define TCP_RX_WINDOW_SIZE_CAP          44
 #define TCP_RX_WINDOW_DIV_FACTOR        44
@@ -81,6 +81,22 @@ static inline void sockets_send_response(Sockets* instance) {
 }
 
 static void sockets_closed_callback(int socket, uint16_t port, uint32_t bytes_sent) {
+    UNUSED(socket);
+    UNUSED(port);
+    UNUSED(bytes_sent);
+
+    /**
+     * TODO: The `socket` parameter is in fact socket ID,
+     * which does not correspond to the regular socket index.
+     *
+     * Possible solutions:
+     * 1. Modify the Wiseconnect code,
+     * 2. Find the right socket by port number.
+     */
+
+    FURI_LOG_D(TAG, "Socket with id: %d was closed", socket);
+
+#if 0
     sockets_wait_for_response_slot(sockets_instance);
 
     SocketResponse* response = &sockets_instance->response;
@@ -95,6 +111,7 @@ static void sockets_closed_callback(int socket, uint16_t port, uint32_t bytes_se
     close_async_response->sent_size = bytes_sent;
 
     sockets_send_response(sockets_instance);
+#endif
 }
 
 static void sockets_receive_callback(
