@@ -103,6 +103,7 @@ static void sockets_intercom_rx_callback(const void* data, size_t data_size, voi
         } else if(response_type == SocketResponseTypeAsyncReceive) {
             const SocketReceiveAsyncResponse* receive_async_response =
                 &async_response->receive_async_response;
+
             const size_t data_size = furi_stream_buffer_send(
                 socket->rx_buffer,
                 receive_async_response->data,
@@ -110,7 +111,7 @@ static void sockets_intercom_rx_callback(const void* data, size_t data_size, voi
                 FuriWaitForever);
             furi_check(data_size == receive_async_response->data_size);
 
-            event.type = SocketEventTypeDataReceived;
+            event.type = SocketEventTypeReceiveReady;
             event.data_size = data_size;
 
         } else if(response_type == SocketResponseTypeAsyncClose) {
@@ -356,7 +357,10 @@ static void sockets_process_response(Sockets* instance) {
         } else if(response_type == SocketResponseTypeSend) {
             SocketsSendMessage* send_message = &message->send_message;
             const SocketSendResponse* send_response = &response->send_response;
-            *send_message->sent_size = send_response->sent_size;
+
+            if(send_message->sent_size) {
+                *send_message->sent_size = send_response->sent_size;
+            }
         }
     }
 

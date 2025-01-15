@@ -17,7 +17,7 @@ typedef struct Socket Socket;
 
 typedef enum {
     SocketEventTypeSendComplete,
-    SocketEventTypeDataReceived,
+    SocketEventTypeReceiveReady,
     SocketEventTypeClosed,
 } SocketEventType;
 
