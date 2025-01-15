@@ -15,23 +15,33 @@ extern "C" {
 
 typedef struct Socket Socket;
 
-typedef void (*SocketTxCallback)(Socket* socket, void* context);
-typedef void (*SocketRxCallback)(Socket* socket, const void* data, size_t data_size, void* context);
-// TODO: Close callback, error callback, etc
+typedef enum {
+    SocketEventTypeSendComplete,
+    SocketEventTypeDataReceived,
+    SocketEventTypeClosed,
+} SocketEventType;
 
-Socket* socket_alloc(Sockets* instance, const SocketInfo* info);
+typedef struct {
+    SocketEventType type;
+    union {
+        uint16_t data_size;
+    };
+} SocketEvent;
+
+typedef void (*SocketEventCallback)(Socket* socket, const SocketEvent* event, void* context);
+
+Socket* socket_alloc(Sockets* instance, const SocketInfo* socket_info);
 
 SocketStatus socket_free(Socket* socket);
 
-SocketStatus socket_set_callback(
-    Socket* socket,
-    SocketTxCallback tx_callback,
-    SocketRxCallback rx_callback,
-    void* context);
+SocketStatus
+    socket_set_event_callback(Socket* socket, SocketEventCallback callback, void* context);
 
-SocketStatus socket_connect(Socket* socket, const SocketConnectionInfo* info);
+SocketStatus socket_connect(Socket* socket, const SocketConnectionInfo* connection_info);
 
-SocketStatus socket_send(Socket* socket, const void* data, size_t max_size, size_t* size);
+SocketStatus socket_send(Socket* socket, const void* data, size_t data_size, size_t* sent_size);
+
+SocketStatus socket_receive(Socket* socket, void* data, size_t data_size, size_t* received_size);
 
 #ifdef __cplusplus
 }

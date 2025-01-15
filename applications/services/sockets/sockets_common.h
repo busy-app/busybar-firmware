@@ -21,16 +21,20 @@ typedef enum {
     // TODO: Add more errors
 } SocketStatus;
 
+#pragma pack(push, 1)
+
 typedef struct {
-    SocketIpType ip_type;
-    SocketProtocol protocol;
+    uint8_t ip_type;
+    uint8_t protocol;
 } SocketInfo;
 
 typedef struct {
     uint16_t port;
-    SocketIpType ip_type;
+    uint8_t ip_type;
     union {
         uint8_t v4[4];
         uint8_t v6[16];
     } address;
 } SocketConnectionInfo;
+
+#pragma pack(pop)

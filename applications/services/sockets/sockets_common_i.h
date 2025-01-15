@@ -2,37 +2,54 @@
 
 #include "sockets_common.h"
 
-typedef uint16_t SocketId;
+#define SOCKET_REQUEST_SIZE_MAX  (1019UL) /* See intercom/intercom_frame.h */
+#define SOCKET_RESPONSE_SIZE_MAX (SOCKET_REQUEST_SIZE_MAX)
+
+#define SOCKET_SEND_DATA_SIZE (SOCKET_REQUEST_SIZE_MAX - 4UL)
+#define SOCKET_RECV_DATA_SIZE (SOCKET_RESPONSE_SIZE_MAX - 5UL)
+
+#pragma pack(push, 1)
 
 typedef enum {
     SocketRequestTypeAlloc,
     SocketRequestTypeFree,
     SocketRequestTypeConnect,
     SocketRequestTypeSend,
-    SocketRequestTypeReceive,
     SocketRequestTypeMax,
 } SocketRequestType;
 
+typedef enum {
+    SocketResponseTypeAlloc,
+    SocketResponseTypeFree,
+    SocketResponseTypeConnect,
+    SocketResponseTypeSend,
+    SocketResponseTypeAsyncSend,
+    SocketResponseTypeAsyncReceive,
+    SocketResponseTypeAsyncClose,
+    SocketResponseTypeMax,
+} SocketResponseType;
+
 typedef struct {
-    SocketInfo info;
+    SocketInfo socket_info;
 } SocketAllocRequest;
 
 typedef struct {
-    SocketId socket_id;
+    uint8_t socket_id;
 } SocketFreeRequest;
 
 typedef struct {
-    SocketId socket_id;
-    SocketConnectionInfo info;
+    uint8_t socket_id;
+    SocketConnectionInfo connection_info;
 } SocketConnectRequest;
 
 typedef struct {
-    SocketId id;
-    // TODO: other fields
+    uint8_t socket_id;
+    uint16_t data_size;
+    uint8_t data[SOCKET_SEND_DATA_SIZE];
 } SocketSendRequest;
 
 typedef struct {
-    SocketRequestType type;
+    uint8_t type;
     union {
         SocketAllocRequest alloc_request;
         SocketFreeRequest free_request;
@@ -42,24 +59,47 @@ typedef struct {
 } SocketRequest;
 
 typedef struct {
-    SocketId socket_id;
+    uint8_t socket_id;
 } SocketAllocResponse;
 
 typedef struct {
-    SocketId socket_id;
-    // TODO: other fields
+    uint16_t sent_size;
 } SocketSendResponse;
 
 typedef struct {
-    SocketId socket_id;
-    // TODO: other fields
-} SocketReceiveResponse;
+    uint16_t sent_size;
+} SocketSendAsyncResponse;
 
 typedef struct {
-    SocketRequestType type;
-    SocketStatus status;
+    uint16_t data_size;
+    uint8_t data[SOCKET_RECV_DATA_SIZE];
+} SocketReceiveAsyncResponse;
+
+typedef struct {
+    uint16_t port;
+    uint16_t sent_size;
+} SocketCloseAsyncResponse;
+
+typedef struct {
+    uint8_t socket_id;
+    union {
+        SocketSendAsyncResponse send_async_response;
+        SocketReceiveAsyncResponse receive_async_response;
+        SocketCloseAsyncResponse close_async_response;
+    };
+} SocketAsyncResponse;
+
+typedef struct {
+    uint8_t type;
+    uint8_t status;
     union {
         SocketAllocResponse alloc_response;
-        SocketReceiveResponse receinve_response;
+        SocketSendResponse send_response;
+        SocketAsyncResponse async_response;
     };
 } SocketResponse;
+
+_Static_assert(sizeof(SocketRequest) <= SOCKET_REQUEST_SIZE_MAX);
+_Static_assert(sizeof(SocketResponse) <= SOCKET_RESPONSE_SIZE_MAX);
+
+#pragma pack(pop)
