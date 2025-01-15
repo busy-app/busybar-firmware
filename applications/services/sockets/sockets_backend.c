@@ -81,22 +81,6 @@ static inline void sockets_send_response(Sockets* instance) {
 }
 
 static void sockets_closed_callback(int socket, uint16_t port, uint32_t bytes_sent) {
-    UNUSED(socket);
-    UNUSED(port);
-    UNUSED(bytes_sent);
-
-    /**
-     * TODO: The `socket` parameter is in fact socket ID,
-     * which does not correspond to the regular socket index.
-     *
-     * Possible solutions:
-     * 1. Modify the Wiseconnect code,
-     * 2. Find the right socket by port number.
-     */
-
-    FURI_LOG_D(TAG, "Socket with id: %d was closed", socket);
-
-#if 0
     sockets_wait_for_response_slot(sockets_instance);
 
     SocketResponse* response = &sockets_instance->response;
@@ -111,7 +95,6 @@ static void sockets_closed_callback(int socket, uint16_t port, uint32_t bytes_se
     close_async_response->sent_size = bytes_sent;
 
     sockets_send_response(sockets_instance);
-#endif
 }
 
 static void sockets_receive_callback(
@@ -242,7 +225,7 @@ static void sockets_connect_request_handler(Sockets* instance) {
     if(connection_info->ip_type == SocketIpTypeV4) {
         FURI_LOG_D(
             TAG,
-            "Connecting to %hhu.%hhu.%hhu.%hhu:%hu...",
+            "Connecting to %hhu.%hhu.%hhu.%hhu:%hu ...",
             connection_info->address.v4[0],
             connection_info->address.v4[1],
             connection_info->address.v4[2],
