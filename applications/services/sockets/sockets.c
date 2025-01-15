@@ -88,8 +88,9 @@ static void sockets_intercom_rx_callback(const void* data, size_t data_size, voi
         const SocketAsyncResponse* async_response = &response->async_response;
         const uint8_t socket_id = async_response->socket_id;
         furi_assert(socket_id < SOCKET_COUNT);
-
         Socket* socket = instance->sockets[socket_id];
+        furi_assert(socket);
+
         SocketEvent event = {0};
 
         if(response_type == SocketResponseTypeAsyncSend) {

@@ -1,6 +1,7 @@
 #include "sockets_common_i.h"
 
 #include <furi.h>
+#include <wifi/wifi_common.h>
 #include <intercom/intercom.h>
 
 #include <sl_si91x_socket.h>
@@ -34,6 +35,9 @@ static const sl_si91x_socket_config_t sockets_backend_config = {
 
 typedef enum {
     SocketsEventRequest = 1UL << 0,
+    SocketsEventWifiDeinit = 1UL << 1,
+    SocketsEventWifiDown = 1UL << 2,
+    SocketsEventWifiUp = 1UL << 3,
 } SocketsEvent;
 
 typedef enum {
@@ -139,6 +143,8 @@ static void sockets_send_callback(int32_t socket, uint16_t length) {
 }
 
 static void sockets_alloc_request_handler(Sockets* instance) {
+    FURI_LOG_D(TAG, "Alloc");
+
     const SocketAllocRequest* alloc_request = &instance->request.alloc_request;
     const SocketInfo* socket_info = &alloc_request->socket_info;
 
@@ -175,14 +181,19 @@ static void sockets_alloc_request_handler(Sockets* instance) {
     SocketAllocResponse* alloc_response = &response->alloc_response;
 
     if(socket_id < 0) {
+        FURI_LOG_E(TAG, "Failed to allocate socket: %s", strerror(errno));
         response->status = SocketStatusError;
+
     } else {
+        FURI_LOG_D(TAG, "Allocated socket with id: %d", socket_id);
         response->status = SocketStatusOk;
         alloc_response->socket_id = socket_id;
     }
 }
 
 static void sockets_free_request_handler(Sockets* instance) {
+    FURI_LOG_D(TAG, "Free");
+
     const SocketFreeRequest* request = &instance->request.free_request;
 
     const int status = sl_si91x_shutdown(request->socket_id, SHUTDOWN_BY_ID);
@@ -193,13 +204,18 @@ static void sockets_free_request_handler(Sockets* instance) {
     response->type = SocketResponseTypeFree;
 
     if(status < 0) {
+        FURI_LOG_E(TAG, "Failed to free socket: %s", strerror(errno));
         response->status = SocketStatusError;
+
     } else {
+        FURI_LOG_D(TAG, "Free'd socket with id: %hhu", request->socket_id);
         response->status = SocketStatusOk;
     }
 }
 
 static void sockets_connect_request_handler(Sockets* instance) {
+    FURI_LOG_D(TAG, "Connect");
+
     const SocketConnectRequest* request = &instance->request.connect_request;
     const SocketConnectionInfo* connection_info = &request->connection_info;
 
@@ -207,6 +223,15 @@ static void sockets_connect_request_handler(Sockets* instance) {
     socklen_t sock_addr_len;
 
     if(connection_info->ip_type == SocketIpTypeV4) {
+        FURI_LOG_D(
+            TAG,
+            "Connecting to %hhu.%hhu.%hhu.%hhu:%hu...",
+            connection_info->address.v4[0],
+            connection_info->address.v4[1],
+            connection_info->address.v4[2],
+            connection_info->address.v4[3],
+            connection_info->port);
+
         struct sockaddr_in sock_addr_v4 = {0};
 
         sock_addr_v4.sin_family = AF_INET;
@@ -239,13 +264,18 @@ static void sockets_connect_request_handler(Sockets* instance) {
     response->type = SocketResponseTypeConnect;
 
     if(status < 0) {
+        FURI_LOG_E(TAG, "Failed to connect: %s", strerror(errno));
         response->status = SocketStatusError;
+
     } else {
+        FURI_LOG_D(TAG, "Connection successful");
         response->status = SocketStatusOk;
     }
 }
 
 static void sockets_send_request_handler(Sockets* instance) {
+    FURI_LOG_D(TAG, "Send");
+
     const SocketSendRequest* send_request = &instance->request.send_request;
 
     const int bytes_sent = sl_si91x_send_async(
@@ -263,9 +293,12 @@ static void sockets_send_request_handler(Sockets* instance) {
     SocketSendResponse* send_response = &response->send_response;
 
     if(bytes_sent < 0) {
+        FURI_LOG_E(TAG, "Failed to send: %s", strerror(errno));
         response->status = SocketStatusError;
         send_response->sent_size = 0;
+
     } else {
+        FURI_LOG_D(TAG, "Successfully sent %d bytes", bytes_sent);
         response->status = SocketStatusOk;
         send_response->sent_size = bytes_sent;
     }
@@ -292,7 +325,37 @@ static void sockets_custom_event_callback(uint32_t events, void* context) {
 
         sockets_request_handlers[request_type](instance);
         sockets_send_response(instance);
+
+    } else if(events == SocketsEventWifiDeinit) {
+        // Wifi has been deinitialised
+    } else if(events == SocketsEventWifiDown) {
+        // Wifi has been initialised or disconnected
+    } else if(events == SocketsEventWifiUp) {
+        const sl_status_t status = sl_si91x_config_socket(sockets_backend_config);
+        furi_check(status == SL_STATUS_OK);
     }
+}
+
+static void sockets_wifi_state_callback(const void* message, void* context) {
+    furi_assert(message);
+    furi_assert(context);
+
+    const WifiState state = *(WifiState*)message;
+    Sockets* instance = context;
+
+    uint32_t event;
+
+    if(state == WifiStateDeinit) {
+        event = SocketsEventWifiDeinit;
+    } else if(state == WifiStateDown) {
+        event = SocketsEventWifiDown;
+    } else if(state == WifiStateUp) {
+        event = SocketsEventWifiUp;
+    } else {
+        furi_crash("Invalid Wifi state");
+    }
+
+    furi_event_loop_set_custom_event(instance->event_loop, event);
 }
 
 Sockets* sockets_alloc(void) {
@@ -302,8 +365,10 @@ Sockets* sockets_alloc(void) {
     instance->event_flag = furi_event_flag_alloc();
     instance->intercom = furi_record_open(RECORD_INTERCOM);
 
-    const sl_status_t status = sl_si91x_config_socket(sockets_backend_config);
-    furi_check(status == SL_STATUS_OK);
+    FuriPubSub* wifi_pubsub = furi_record_open(RECORD_WIFI);
+    FuriPubSubSubscription* sub =
+        furi_pubsub_subscribe(wifi_pubsub, sockets_wifi_state_callback, instance);
+    UNUSED(sub);
 
     sl_si91x_set_remote_termination_callback(sockets_closed_callback);
 
