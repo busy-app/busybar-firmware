@@ -93,16 +93,25 @@ int32_t led_display_test_app(void* p) {
     led_display_test_set(instance->pattern, instance->color);
 
     LedDisplayTestEvent event;
+    size_t frame_time = led_display_get_pattern_frame_time(instance->pattern);
+
     while(true) {
-        furi_message_queue_get(instance->event_queue, &event, FuriWaitForever);
+        FuriStatus status = furi_message_queue_get(instance->event_queue, &event, frame_time);
+
         furi_mutex_acquire(instance->mutex, FuriWaitForever);
 
-        if(event.type == LedDisplayTestEventExit) {
-            furi_mutex_release(instance->mutex);
-            led_display_set_default_img();
-            break;
-        } else if(event.type == LedDisplayTestEventUpdateDisplay) {
+        if(status == FuriStatusErrorTimeout) {
+            led_display_test_advance_frame(instance->pattern);
             led_display_test_set(instance->pattern, instance->color);
+        } else {
+            if(event.type == LedDisplayTestEventExit) {
+                furi_mutex_release(instance->mutex);
+                led_display_set_default_img();
+                break;
+            } else if(event.type == LedDisplayTestEventUpdateDisplay) {
+                frame_time = led_display_get_pattern_frame_time(instance->pattern);
+                led_display_test_set(instance->pattern, instance->color);
+            }
         }
 
         furi_mutex_release(instance->mutex);
