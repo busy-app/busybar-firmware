@@ -19,10 +19,11 @@ typedef enum {
 } SocketRequestType;
 
 typedef enum {
-    SocketResponseTypeAlloc,
-    SocketResponseTypeFree,
-    SocketResponseTypeConnect,
-    SocketResponseTypeSend,
+    SocketResponseTypeAlloc = SocketRequestTypeAlloc,
+    SocketResponseTypeFree = SocketRequestTypeFree,
+    SocketResponseTypeConnect = SocketRequestTypeConnect,
+    SocketResponseTypeSend = SocketRequestTypeSend,
+    /* Async responses */
     SocketResponseTypeAsyncSend,
     SocketResponseTypeAsyncReceive,
     SocketResponseTypeAsyncClose,
