@@ -275,9 +275,11 @@ static void sockets_process_request(Sockets* instance) {
         SocketSendRequest* send_request = &request->send_request;
         const SocketsSendMessage* send_message = &message->send_message;
 
+        const size_t chunk_size = MIN(send_message->data_size, SOCKET_SEND_DATA_SIZE);
+
         send_request->socket_id = send_message->socket_id;
-        send_request->data_size = send_message->data_size;
-        memcpy(send_request->data, send_message->data, send_message->data_size);
+        send_request->data_size = chunk_size;
+        memcpy(send_request->data, send_message->data, chunk_size);
 
     } else if(request_type >= SocketRequestTypeMax) {
         furi_crash("Invalid request type");

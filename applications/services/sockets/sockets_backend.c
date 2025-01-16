@@ -81,6 +81,8 @@ static inline void sockets_send_response(Sockets* instance) {
 }
 
 static void sockets_closed_callback(int socket, uint16_t port, uint32_t bytes_sent) {
+    FURI_LOG_D(TAG, "Close: %lu byte(s) on socket %d, port %hu", bytes_sent, socket, port);
+
     sockets_wait_for_response_slot(sockets_instance);
 
     SocketResponse* response = &sockets_instance->response;
@@ -104,13 +106,14 @@ static void sockets_receive_callback(
     const sl_si91x_socket_metadata_t* metadata) {
     UNUSED(metadata);
 
+    FURI_LOG_D(TAG, "Rx: %lu byte(s) on socket %lu", length, socket);
+
     SocketResponse* response = &sockets_instance->response;
     SocketAsyncResponse* async_response = &response->async_response;
     SocketReceiveAsyncResponse* receive_async_response = &async_response->receive_async_response;
 
-    for(size_t total_size = length; total_size > 0;) {
-        const size_t chunk_size = MIN(length, SOCKET_RECV_DATA_SIZE);
-        total_size -= chunk_size;
+    for(size_t total_size = 0; total_size < length;) {
+        const size_t chunk_size = MIN(length - total_size, SOCKET_RECV_DATA_SIZE);
 
         sockets_wait_for_response_slot(sockets_instance);
 
@@ -120,13 +123,16 @@ static void sockets_receive_callback(
         async_response->socket_id = socket;
 
         receive_async_response->data_size = chunk_size;
-        memcpy(receive_async_response->data, buffer, chunk_size);
+        memcpy(receive_async_response->data, buffer + total_size, chunk_size);
+        total_size += chunk_size;
 
         sockets_send_response(sockets_instance);
     }
 }
 
 static void sockets_send_callback(int32_t socket, uint16_t length) {
+    FURI_LOG_D(TAG, "Tx: %hu byte(s) on socket %ld", length, socket);
+
     sockets_wait_for_response_slot(sockets_instance);
 
     SocketResponse* response = &sockets_instance->response;

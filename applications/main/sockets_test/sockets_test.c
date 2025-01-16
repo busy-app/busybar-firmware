@@ -147,6 +147,26 @@ static void sockets_test_app_deinit_client(SocketsTestApp* instance) {
     furi_record_close(RECORD_SOCKETS);
 }
 
+static bool sockets_test_app_send_buffer(SocketsTestApp* instance, size_t data_size) {
+    size_t total_size;
+
+    for(total_size = 0; total_size < data_size;) {
+        const void* tx_ptr = instance->buf + total_size;
+        const size_t tx_size = data_size - total_size;
+
+        size_t tx_size_actual;
+
+        if(socket_send(instance->socket, tx_ptr, tx_size, &tx_size_actual) != SocketStatusOk) {
+            FURI_LOG_E(TAG, "Failed to send %zu bytes", tx_size_actual);
+            break;
+        }
+
+        total_size += tx_size_actual;
+    }
+
+    return total_size == data_size;
+}
+
 static void sockets_test_app_custom_event_callback(uint32_t events, void* context) {
     SocketsTestApp* instance = context;
 
@@ -160,18 +180,23 @@ static void sockets_test_app_custom_event_callback(uint32_t events, void* contex
     if(events & SocketsTestAppEventReceiveReady) {
         FURI_LOG_I(TAG, "Data received!");
 
-        size_t rx_size;
+        for(;;) {
+            size_t rx_size;
 
-        do {
-            socket_receive(instance->socket, instance->buf, sizeof(instance->buf), &rx_size);
-            if(socket_send(instance->socket, instance->buf, rx_size, NULL) != SocketStatusOk) {
-                FURI_LOG_E(TAG, "Failed to send %zu bytes", rx_size);
-
+            if(socket_receive(instance->socket, instance->buf, sizeof(instance->buf), &rx_size) !=
+               SocketStatusOk) {
+                FURI_LOG_E(TAG, "Failed to get received data");
                 furi_event_loop_stop(instance->event_loop);
                 return;
             }
 
-        } while(rx_size > 0);
+            if(rx_size == 0) break;
+
+            if(!sockets_test_app_send_buffer(instance, rx_size)) {
+                furi_event_loop_stop(instance->event_loop);
+                return;
+            }
+        }
     }
 
     if(events & SocketsTestAppEventSendComplete) {
