@@ -5,6 +5,8 @@
 
 #define TAG "SocketsTestApp"
 
+#define RX_BUFFER_SIZE (2048UL)
+
 #define WIFI_SSID "Your SSID"
 #define WIFI_PASS "Your passphrase"
 #define WIFI_MODE WifiSecurityModeWpa2
@@ -30,7 +32,7 @@ typedef struct {
     FuriEventLoop* event_loop;
     Socket* sockets[SocketsTestAppIndexMax];
     SocketConnectionInfo bind_info;
-    uint8_t buf[2048];
+    uint8_t buf[RX_BUFFER_SIZE];
 } SocketsTestApp;
 
 static void socket_event_callback(Socket* socket, const SocketEvent* event, void* context) {
@@ -220,7 +222,7 @@ static bool sockets_test_app_init_server(SocketsTestApp* instance) {
     return success;
 }
 
-static void sockets_test_app_free_sockets(SocketsTestApp* instance) {
+static void sockets_test_app_deinit_sockets(SocketsTestApp* instance) {
     for(uint32_t i = 0; i < SocketsTestAppIndexMax; ++i) {
         Socket* socket = instance->sockets[i];
         if(socket) {
@@ -229,6 +231,20 @@ static void sockets_test_app_free_sockets(SocketsTestApp* instance) {
             }
         }
     }
+
+    furi_record_close(RECORD_SOCKETS);
+}
+
+static void sockets_test_app_deinit_wifi(SocketsTestApp* instance) {
+    if(wifi_disconnect(instance->wifi) != WifiStatusOk) {
+        FURI_LOG_E(TAG, "Failed to disconnect Wifi");
+    }
+
+    if(wifi_deinit(instance->wifi) != WifiStatusOk) {
+        FURI_LOG_E(TAG, "Failed to deinit Wifi");
+    }
+
+    furi_record_close(RECORD_WIFI);
 }
 
 static bool sockets_test_app_send_buffer(Socket* socket, const uint8_t* data, size_t data_size) {
@@ -251,27 +267,29 @@ static bool sockets_test_app_send_buffer(Socket* socket, const uint8_t* data, si
     return total_size == data_size;
 }
 
-static bool sockets_test_app_echo(SocketsTestApp* instance, SocketsTestAppIndex socket_index) {
-    Socket* socket = instance->sockets[socket_index];
+static bool sockets_test_app_echo(uint8_t* buf, size_t buffer_size, Socket* socket) {
+    bool success = false;
 
     for(;;) {
         size_t rx_size;
 
-        if(socket_receive(socket, instance->buf, sizeof(instance->buf), &rx_size) !=
-           SocketStatusOk) {
+        if(socket_receive(socket, buf, buffer_size, &rx_size) != SocketStatusOk) {
             FURI_LOG_E(TAG, "Failed to get received data");
-            return false;
+            break;
         }
 
-        if(rx_size == 0) break;
+        if(rx_size == 0) {
+            success = true;
+            break;
+        }
 
-        if(!sockets_test_app_send_buffer(socket, instance->buf, rx_size)) {
+        if(!sockets_test_app_send_buffer(socket, buf, rx_size)) {
             FURI_LOG_E(TAG, "Failed to echo received data");
-            return false;
+            break;
         }
     }
 
-    return true;
+    return success;
 }
 
 static void sockets_test_app_custom_event_callback(uint32_t events, void* context) {
@@ -281,7 +299,9 @@ static void sockets_test_app_custom_event_callback(uint32_t events, void* contex
         FURI_LOG_I(TAG, "Data received!");
 
         for(uint32_t i = 0; i < SocketsTestAppIndexMax; ++i) {
-            if(!sockets_test_app_echo(instance, i)) {
+            Socket* socket = instance->sockets[i];
+            if(!socket) continue;
+            if(!sockets_test_app_echo(instance->buf, RX_BUFFER_SIZE, socket)) {
                 furi_event_loop_stop(instance->event_loop);
                 return;
             }
@@ -302,9 +322,6 @@ static SocketsTestApp* sockets_test_app_alloc(void) {
 }
 
 static void sockets_test_app_free(SocketsTestApp* instance) {
-    furi_record_close(RECORD_SOCKETS);
-    furi_record_close(RECORD_WIFI);
-
     furi_event_loop_free(instance->event_loop);
     free(instance);
 }
@@ -323,7 +340,8 @@ int32_t sockets_test_app(void* arg) {
 
     } while(false);
 
-    sockets_test_app_free_sockets(instance);
+    sockets_test_app_deinit_sockets(instance);
+    sockets_test_app_deinit_wifi(instance);
     sockets_test_app_free(instance);
 
     return 0;
