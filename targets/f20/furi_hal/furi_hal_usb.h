@@ -25,6 +25,7 @@ struct FuriHalUsbInterface {
 
     uint8_t* cfg_fs_descr;
     uint8_t* cfg_hs_descr;
+    uint8_t* bos_descr;
 };
 
 void furi_hal_usb_init(void);

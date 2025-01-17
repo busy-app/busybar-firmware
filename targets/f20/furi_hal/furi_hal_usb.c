@@ -78,6 +78,10 @@ static uint8_t const desc_cfg_dummy[] = {
     TUD_CONFIG_DESCRIPTOR(1, 0, 0, TUD_CONFIG_DESC_LEN, 0x00, 100),
 };
 
+static uint8_t const desc_bos_dummy[] = {
+    TUD_BOS_DESCRIPTOR(TUD_BOS_DESC_LEN, 0),
+};
+
 static void tud_drv_dummy_init(void);
 static void tud_drv_dummy_reset(uint8_t rhport);
 static uint16_t
@@ -107,6 +111,7 @@ static FuriHalUsbInterface cfg_dummy = {
     .str_serial_descr = NULL,
     .cfg_fs_descr = (uint8_t*)desc_cfg_dummy,
     .cfg_hs_descr = (uint8_t*)desc_cfg_dummy,
+    .bos_descr = (uint8_t*)desc_bos_dummy,
 };
 
 usbd_class_driver_t const* usbd_app_driver_get_cb(uint8_t* driver_count) {
@@ -136,6 +141,14 @@ uint8_t const* tud_descriptor_configuration_cb(uint8_t index) {
     // Although we are highspeed, host may be fullspeed.
     return (tud_speed_get() == TUSB_SPEED_HIGH) ? usb_service.cfg->cfg_hs_descr :
                                                   usb_service.cfg->cfg_fs_descr;
+}
+
+uint8_t const* tud_descriptor_bos_cb(void) {
+    if(usb_service.cfg->bos_descr == NULL) {
+        return (uint8_t const*)(desc_bos_dummy);
+    } else {
+        return (uint8_t const*)(usb_service.cfg->bos_descr);
+    }
 }
 
 void tud_mount_cb(void) {
@@ -234,6 +247,13 @@ static bool tud_drv_dummy_control_xfer_cb(
     UNUSED(stage);
     UNUSED(request);
     return false;
+}
+
+bool tud_vendor_control_xfer_cb(
+    uint8_t rhport,
+    uint8_t stage,
+    tusb_control_request_t const* request) {
+    return usb_service.cfg->control_xfer_cb(rhport, stage, request);
 }
 
 static bool tud_drv_dummy_xfer_cb(
