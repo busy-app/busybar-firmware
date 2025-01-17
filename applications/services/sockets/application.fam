@@ -19,5 +19,8 @@ App(
     order=100,
     targets=["f64"],
     requires=["wifi"],
-    sources=["sockets_backend.c"],
+    sources=[
+        "sockets_backend.c",
+        "sockets_backend_util.c",
+    ],
 )

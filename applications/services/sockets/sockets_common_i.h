@@ -13,6 +13,7 @@
 typedef enum {
     SocketRequestTypeAlloc,
     SocketRequestTypeFree,
+    SocketRequestTypeAccept,
     SocketRequestTypeConnect,
     SocketRequestTypeSend,
     SocketRequestTypeMax,
@@ -21,11 +22,13 @@ typedef enum {
 typedef enum {
     SocketResponseTypeAlloc = SocketRequestTypeAlloc,
     SocketResponseTypeFree = SocketRequestTypeFree,
+    SocketResponseTypeAccept = SocketRequestTypeAccept,
     SocketResponseTypeConnect = SocketRequestTypeConnect,
     SocketResponseTypeSend = SocketRequestTypeSend,
     /* Async responses */
     SocketResponseTypeAsyncSend,
     SocketResponseTypeAsyncReceive,
+    SocketResponseTypeAsyncAccept,
     SocketResponseTypeAsyncClose,
     SocketResponseTypeMax,
 } SocketResponseType;
@@ -37,6 +40,11 @@ typedef struct {
 typedef struct {
     uint8_t socket_id;
 } SocketFreeRequest;
+
+typedef struct {
+    uint8_t socket_id;
+    SocketConnectionInfo bind_info;
+} SocketAcceptRequest;
 
 typedef struct {
     uint8_t socket_id;
@@ -54,6 +62,7 @@ typedef struct {
     union {
         SocketAllocRequest alloc_request;
         SocketFreeRequest free_request;
+        SocketAcceptRequest accept_request;
         SocketConnectRequest connect_request;
         SocketSendRequest send_request;
     };
@@ -77,6 +86,11 @@ typedef struct {
 } SocketReceiveAsyncResponse;
 
 typedef struct {
+    uint8_t client_socket_id;
+    SocketConnectionInfo connection_info;
+} SocketAcceptAsyncResponse;
+
+typedef struct {
     uint16_t port;
     uint16_t sent_size;
 } SocketCloseAsyncResponse;
@@ -86,6 +100,7 @@ typedef struct {
     union {
         SocketSendAsyncResponse send_async_response;
         SocketReceiveAsyncResponse receive_async_response;
+        SocketAcceptAsyncResponse accept_async_response;
         SocketCloseAsyncResponse close_async_response;
     };
 } SocketAsyncResponse;

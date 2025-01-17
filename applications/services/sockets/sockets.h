@@ -16,15 +16,20 @@ extern "C" {
 typedef struct Socket Socket;
 
 typedef enum {
-    SocketEventTypeSendComplete,
-    SocketEventTypeReceiveReady,
-    SocketEventTypeClosed,
+    SocketEventTypeSend,
+    SocketEventTypeReceive,
+    SocketEventTypeAccept,
+    SocketEventTypeClose,
 } SocketEventType;
 
 typedef struct {
     SocketEventType type;
     union {
         uint16_t data_size;
+        struct {
+            Socket* client_socket;
+            SocketConnectionInfo connection_info;
+        } accept;
     };
 } SocketEvent;
 
@@ -36,6 +41,8 @@ SocketStatus socket_free(Socket* socket);
 
 SocketStatus
     socket_set_event_callback(Socket* socket, SocketEventCallback callback, void* context);
+
+SocketStatus socket_accept(Socket* socket, const SocketConnectionInfo* bind_info);
 
 SocketStatus socket_connect(Socket* socket, const SocketConnectionInfo* connection_info);
 

@@ -7,10 +7,12 @@
 #include <sl_si91x_socket.h>
 #include <sl_si91x_socket_utility.h>
 
+#include "sockets_backend_util.h"
+
 #define TAG "Sockets"
 
 #define TOTAL_SOCKETS                   (TOTAL_TCP_SOCKETS + TOTAL_UDP_SOCKETS)
-#define TOTAL_TCP_SOCKETS               1
+#define TOTAL_TCP_SOCKETS               3
 #define TOTAL_UDP_SOCKETS               0
 #define TCP_TX_ONLY_SOCKETS             0
 #define TCP_RX_ONLY_SOCKETS             0
@@ -19,6 +21,8 @@
 #define TCP_RX_HIGH_PERFORMANCE_SOCKETS 0
 #define TCP_RX_WINDOW_SIZE_CAP          44
 #define TCP_RX_WINDOW_DIV_FACTOR        44
+
+#define NUM_CLIENTS_PER_SOCKET 1
 
 static const sl_si91x_socket_config_t sockets_backend_config = {
     .total_sockets = TOTAL_SOCKETS,
@@ -136,6 +140,31 @@ static void sockets_send_callback(int32_t socket, uint16_t length) {
     sockets_send_response(sockets_instance, response);
 }
 
+// BUG: params `addr` and `ip_version` do not contain correct data
+static void sockets_accept_callback(int32_t socket, struct sockaddr* addr, uint8_t ip_version) {
+    UNUSED(addr);
+    UNUSED(ip_version);
+    FURI_LOG_D(TAG, "Ac: client socket %ld", socket);
+
+    SocketResponse* response = &sockets_instance->response[SocketResponseIndexAsync];
+    response->type = SocketResponseTypeAsyncAccept;
+    response->status = SocketStatusOk;
+
+    SocketAsyncResponse* async_response = &response->async_response;
+    async_response->socket_id = sockets_get_parent(socket);
+    furi_check(async_response->socket_id >= 0);
+
+    const sli_si91x_socket_t* client_socket = sli_si91x_sockets[socket];
+
+    SocketAcceptAsyncResponse* accept_async_response = &async_response->accept_async_response;
+    accept_async_response->client_socket_id = socket;
+    sockets_sockaddr_to_connection_info(
+        (const struct sockaddr*)&client_socket->remote_address,
+        &accept_async_response->connection_info);
+
+    sockets_send_response(sockets_instance, response);
+}
+
 static void sockets_alloc_request_handler(const SocketRequest* request, SocketResponse* response) {
     FURI_LOG_D(TAG, "Alloc");
 
@@ -196,50 +225,65 @@ static void sockets_free_request_handler(const SocketRequest* request, SocketRes
 }
 
 static void
+    sockets_accept_request_handler(const SocketRequest* request, SocketResponse* response) {
+    FURI_LOG_D(TAG, "Accept");
+
+    const SocketAcceptRequest* accept_request = &request->accept_request;
+    const SocketConnectionInfo* bind_info = &accept_request->bind_info;
+    const uint8_t socket_id = accept_request->socket_id;
+
+    int status;
+
+    do {
+        SocketSlAddress sl_address = {0};
+        sockets_connection_info_to_sl_address(bind_info, &sl_address);
+
+        status = sl_si91x_bind(socket_id, &sl_address.address, sl_address.length);
+
+        if(status < 0) {
+            FURI_LOG_E(TAG, "Failed to bind socket %hhu: %s", socket_id, strerror(errno));
+            break;
+        }
+
+        status = sl_si91x_listen(socket_id, NUM_CLIENTS_PER_SOCKET);
+
+        if(status < 0) {
+            FURI_LOG_E(TAG, "Failed to listen on socket %hhu: %s", socket_id, strerror(errno));
+            break;
+        }
+
+        status = sl_si91x_accept_async(socket_id, sockets_accept_callback);
+
+        if(status < 0) {
+            FURI_LOG_E(TAG, "Failed to accept on socket %hhu: %s", socket_id, strerror(errno));
+            break;
+        }
+
+    } while(false);
+
+    if(status < 0) {
+        response->status = SocketStatusError;
+
+    } else {
+        FURI_LOG_D(TAG, "Accepting client connections on socket %hhu", socket_id);
+        response->status = SocketStatusOk;
+    }
+}
+
+static void
     sockets_connect_request_handler(const SocketRequest* request, SocketResponse* response) {
     FURI_LOG_D(TAG, "Connect");
 
     const SocketConnectRequest* connect_request = &request->connect_request;
     const SocketConnectionInfo* connection_info = &connect_request->connection_info;
 
-    const struct sockaddr* sock_addr;
-    socklen_t sock_addr_len;
+    SocketSlAddress sl_address = {0};
+    sockets_connection_info_to_sl_address(connection_info, &sl_address);
 
-    if(connection_info->ip_type == SocketIpTypeV4) {
-        FURI_LOG_D(
-            TAG,
-            "Connecting to %hhu.%hhu.%hhu.%hhu:%hu ...",
-            connection_info->address.v4[0],
-            connection_info->address.v4[1],
-            connection_info->address.v4[2],
-            connection_info->address.v4[3],
-            connection_info->port);
+    // TODO: print IP address
 
-        struct sockaddr_in sock_addr_v4 = {0};
-
-        sock_addr_v4.sin_family = AF_INET;
-        sock_addr_v4.sin_port = connection_info->port;
-        memcpy(&sock_addr_v4.sin_addr, connection_info->address.v4, sizeof(sock_addr_v4.sin_addr));
-
-        sock_addr = (const struct sockaddr*)&sock_addr_v4;
-        sock_addr_len = sizeof(sock_addr_v4);
-
-    } else if(connection_info->ip_type == SocketIpTypeV6) {
-        struct sockaddr_in6 sock_addr_v6 = {0};
-
-        sock_addr_v6.sin6_family = AF_INET6;
-        sock_addr_v6.sin6_port = connection_info->port;
-        memcpy(
-            &sock_addr_v6.sin6_addr, connection_info->address.v6, sizeof(sock_addr_v6.sin6_addr));
-
-        sock_addr = (const struct sockaddr*)&sock_addr_v6;
-        sock_addr_len = sizeof(sock_addr_v6);
-
-    } else {
-        furi_crash("Invalid IP version");
-    }
-
-    const int status = sl_si91x_connect(connect_request->socket_id, sock_addr, sock_addr_len);
+    const int status =
+        sl_si91x_connect(connect_request->socket_id, &sl_address.address, sl_address.length);
 
     if(status < 0) {
         FURI_LOG_E(TAG, "Failed to connect: %s", strerror(errno));
@@ -368,6 +412,7 @@ int32_t sockets_srv(void* arg) {
 static const SocketsRequestHandler sockets_request_handlers[SocketRequestTypeMax] = {
     [SocketRequestTypeAlloc] = sockets_alloc_request_handler,
     [SocketRequestTypeFree] = sockets_free_request_handler,
+    [SocketRequestTypeAccept] = sockets_accept_request_handler,
     [SocketRequestTypeConnect] = sockets_connect_request_handler,
     [SocketRequestTypeSend] = sockets_send_request_handler,
 };
