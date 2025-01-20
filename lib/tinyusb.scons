@@ -16,6 +16,7 @@ libenv.ApplyLibFlags()
 
 sources = [
     "tinyusb/src/tusb.c",
+    "tinyusb/src/portable/synopsys/dwc2/dwc2_common.c",
     "tinyusb/src/portable/synopsys/dwc2/dcd_dwc2.c",
 ]
 sources += libenv.Glob("tinyusb/src/common/*.c", source=True)

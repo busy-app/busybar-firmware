@@ -4,6 +4,7 @@
 #include "furi_hal_usb_interface_i.h"
 #include "class/cdc/cdc.h"
 #include "class/hid/hid_device.h"
+#include "class/net/net_device.h"
 #include "class/net/ncm.h"
 
 #define TAG "USB IF"

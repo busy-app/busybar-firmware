@@ -92,6 +92,8 @@ extern "C" {
 #define CFG_TUD_ENDPOINT0_SIZE 64
 #endif
 
+#define CFG_TUD_DWC2_DMA_ENABLE 1
+
 //------------- CLASS -------------//
 // Built-in classed are not used
 #define CFG_TUD_CDC    0

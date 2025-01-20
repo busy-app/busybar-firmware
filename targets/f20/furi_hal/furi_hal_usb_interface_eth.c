@@ -5,6 +5,7 @@
 #include "class/net/net_device.h"
 #include "device/usbd.h"
 #include "device/usbd_pvt.h"
+#include "class/net/ncm.h"
 
 #define TAG "USB ETH"
 
