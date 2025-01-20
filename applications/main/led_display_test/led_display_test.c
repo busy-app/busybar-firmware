@@ -144,6 +144,72 @@ static void led_display_test_set_pattern_rectangulars(LedDisplayTestColorCode co
     }
 }
 
+static size_t animation_frame = 0;
+
+static void
+    led_display_test_set_pattern_animated_rectangulars(LedDisplayTestColorCode color_code) {
+    size_t frame = animation_frame % 24;
+
+    for(size_t x = 0; x < DISPLAY_W; x++) {
+        for(size_t y = 0; y < DISPLAY_H; y++) {
+            if((x % 24) < frame) {
+                led_display_set_pixel(x, y, color_code.red, color_code.green, color_code.blue);
+            }
+        }
+    }
+}
+
+static void
+    led_display_test_set_pattern_animated_rectangulars_half(LedDisplayTestColorCode color_code) {
+    size_t frame = animation_frame % 12;
+
+    for(size_t x = 0; x < DISPLAY_W; x++) {
+        for(size_t y = 0; y < DISPLAY_H; y++) {
+            if((x % 24) < frame) {
+                led_display_set_pixel(x, y, color_code.red, color_code.green, color_code.blue);
+            }
+        }
+    }
+}
+
+static void
+    led_display_test_set_pattern_animated_fill_10_noise(LedDisplayTestColorCode color_code) {
+    for(size_t x = 0; x < DISPLAY_W; x++) {
+        for(size_t y = 0; y < DISPLAY_H; y++) {
+            bool pixel_set = rand() % 10 == 0;
+
+            if(pixel_set) {
+                led_display_set_pixel(x, y, color_code.red, color_code.green, color_code.blue);
+            }
+        }
+    }
+}
+
+static void
+    led_display_test_set_pattern_animated_fill_25_noise(LedDisplayTestColorCode color_code) {
+    for(size_t x = 0; x < DISPLAY_W; x++) {
+        for(size_t y = 0; y < DISPLAY_H; y++) {
+            bool pixel_set = rand() % 4 == 0;
+
+            if(pixel_set) {
+                led_display_set_pixel(x, y, color_code.red, color_code.green, color_code.blue);
+            }
+        }
+    }
+}
+static void
+    led_display_test_set_pattern_animated_fill_50_noise(LedDisplayTestColorCode color_code) {
+    for(size_t x = 0; x < DISPLAY_W; x++) {
+        for(size_t y = 0; y < DISPLAY_H; y++) {
+            bool pixel_set = rand() % 2 == 0;
+
+            if(pixel_set) {
+                led_display_set_pixel(x, y, color_code.red, color_code.green, color_code.blue);
+            }
+        }
+    }
+}
+
 static void led_display_test_set_pattern_cross(LedDisplayTestColorCode color_code) {
     for(size_t x = 0; x < DISPLAY_W; x++) {
         for(size_t y = 0; y < DISPLAY_H; y++) {
@@ -201,7 +267,57 @@ static const LedDisplayTestPatternData led_display_test_pattern[LedDisplayTestPa
             .set = led_display_test_set_pattern_frame,
             .name = "Frame",
         },
+    [LedDisplayTestPatternAnimFill] =
+        {
+            .set = led_display_test_set_pattern_animated_rectangulars,
+            .name = "Animated Rectangulars Fill",
+        },
+    [LedDisplayTestPatternAnimHalfFill] =
+        {
+            .set = led_display_test_set_pattern_animated_rectangulars_half,
+            .name = "Animated Rectangulars Half Fill",
+        },
+    [LedDisplayTestPatternAnimFill10Noise] =
+        {
+            .set = led_display_test_set_pattern_animated_fill_10_noise,
+            .name = "Animated Fill 10% Noise",
+        },
+    [LedDisplayTestPatternAnimFill25Noise] =
+        {
+            .set = led_display_test_set_pattern_animated_fill_25_noise,
+            .name = "Animated Fill 25% Noise",
+        },
+    [LedDisplayTestPatternAnimFill50Noise] =
+        {
+            .set = led_display_test_set_pattern_animated_fill_50_noise,
+            .name = "Animated Fill 50% Noise",
+        },
 };
+
+size_t led_display_get_pattern_frame_time(LedDisplayTestPattern pattern) {
+    switch(pattern) {
+    case LedDisplayTestPatternChess ... LedDisplayTestPatternFrame:
+        return FuriWaitForever;
+    case LedDisplayTestPatternAnimFill ... LedDisplayTestPatternAnimFill50Noise:
+        return 1000 / 60;
+    case LedDisplayTestPatternNum:
+        break;
+    }
+
+    furi_crash();
+}
+
+void led_display_test_advance_frame(LedDisplayTestPattern pattern) {
+    switch(pattern) {
+    case LedDisplayTestPatternChess ... LedDisplayTestPatternFrame:
+        return;
+    case LedDisplayTestPatternAnimFill ... LedDisplayTestPatternAnimFill50Noise:
+        animation_frame++;
+        return;
+    case LedDisplayTestPatternNum:
+        furi_crash();
+    }
+}
 
 void led_display_test_set(LedDisplayTestPattern pattern, LedDisplayTestColor color) {
     furi_check(pattern < LedDisplayTestPatternNum);
