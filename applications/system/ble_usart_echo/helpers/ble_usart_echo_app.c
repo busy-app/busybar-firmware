@@ -31,27 +31,6 @@
 #define RSI_BLE_ATT_CONFIG_BITMAP (RSI_BLE_ATT_MAINTAIN_IN_HOST)
 
 //! application events list
-
-// #define RSI_BLE_ADV_REPORT_EVENT          0x01
-// #define RSI_BLE_CONN_EVENT                0x02
-// #define RSI_BLE_DISCONN_EVENT             0x03
-// #define RSI_BLE_SMP_REQ_EVENT             0x04
-// #define RSI_BLE_SMP_RESP_EVENT            0x05
-// #define RSI_BLE_SMP_PASSKEY_EVENT         0x06
-// #define RSI_BLE_SMP_FAILED_EVENT          0x07
-// #define RSI_BLE_ENCRYPT_STARTED_EVENT     0x08
-// #define RSI_BLE_SMP_PASSKEY_DISPLAY_EVENT 0x09
-// #define RSI_BLE_SC_PASSKEY_EVENT          0x0A
-// #define RSI_BLE_LTK_REQ_EVENT             0x0B
-// #define RSI_BLE_RECEIVE_REMOTE_FEATURES   0x0C
-// #define RSI_APP_EVENT_DATA_LENGTH_CHANGE  0x0D
-// #define RSI_APP_EVENT_PHY_UPDATE_COMPLETE 0x0E
-// #define RSI_BLE_CONN_UPDATE_EVENT         0x0F
-// #define RSI_BLE_MTU_EVENT                 0x10
-// #define RSI_BLE_GATT_WRITE_EVENT          0x11
-// #define RSI_BLE_MORE_DATA_REQ_EVENT       0x12
-// #define RSI_DATA_TRANSMIT_EVENT           0x13
-
 typedef enum {
     BLEUsartEchoEvtExit = (1 << 0),
     BLEUsartEchoEvtAdvReport = (1 << 1),
@@ -209,7 +188,7 @@ static void ble_usart_echo_app_send_msg_invalid_arg(BLEUsartEchoApp* instance) {
 /*==============================================*/
 
 /**
- * @fn         rsi_ble_add_char_serv_att
+ * @fn         ble_usart_echo_app_add_char_serv_att
  * @brief      this function is used to add characteristic service attribute..
  * @param[in]  serv_handler, service handler.
  * @param[in]  handle, characteristic service attribute handle.
@@ -220,7 +199,7 @@ static void ble_usart_echo_app_send_msg_invalid_arg(BLEUsartEchoApp* instance) {
  * @section description
  * This function is used at application to add characteristic attribute
  */
-static void rsi_ble_add_char_serv_att(
+static void ble_usart_echo_app_add_char_serv_att(
     void* serv_handler,
     uint16_t handle,
     uint8_t val_prop,
@@ -247,7 +226,7 @@ static void rsi_ble_add_char_serv_att(
     return;
 }
 
-static void rsi_ble_add_char_val_att(
+static void ble_usart_echo_app_add_char_val_att(
     void* serv_handler,
     uint16_t handle,
     uuid_t att_type_uuid,
@@ -271,28 +250,6 @@ static void rsi_ble_add_char_val_att(
     //! add attribute to the service
     rsi_ble_add_attribute(&new_att);
 
-    //  //! check the attribute property with notification
-    //  if (val_prop & RSI_BLE_ATT_PROPERTY_NOTIFY) {
-    //    //! if notification property supports then we need to add client characteristic service.
-    //
-    //    //! preparing the client characteristic attribute & values
-    //    memset(&new_att, 0, sizeof(rsi_ble_req_add_att_t));
-    //    new_att.serv_handler       = serv_handler;
-    //    new_att.handle             = handle + 1;
-    //    new_att.att_uuid.size      = 2;
-    //    new_att.att_uuid.val.val16 = RSI_BLE_CLIENT_CHAR_UUID;
-    //    new_att.property           = RSI_BLE_ATT_PROPERTY_READ | RSI_BLE_ATT_PROPERTY_WRITE;
-    //    new_att.data_len           = 2;
-    //
-    //    //! add attribute to the service
-    //    rsi_ble_add_attribute(&new_att);
-    //  }
-
-    //   if (((auth_read & RSI_BLE_ATT_MAINTAIN_IN_HOST) == 1) || (data_len > 20)) {
-    //     if (data != NULL)
-    //       rsi_gatt_add_attribute_to_list(&att_list, handle, data_len, data, att_type_uuid, val_prop);
-    //   }
-
     //! check the attribute property with notification/Indication
     if((val_prop & RSI_BLE_ATT_PROPERTY_NOTIFY) || (val_prop & RSI_BLE_ATT_PROPERTY_INDICATE)) {
         //! if notification/indication property supports then we need to add client characteristic service.
@@ -314,7 +271,7 @@ static void rsi_ble_add_char_val_att(
 }
 
 /**
- * @fn         rsi_ble_fill_128bit_uuid
+ * @fn         ble_usart_echo_app_fill_128bit_uuid
  * @brief      this function is used to form 128bit uuid of apple device from 32 bit uuid.
  * @param[in]  none.
  * @return     int32_t
@@ -323,7 +280,7 @@ static void rsi_ble_add_char_val_att(
  * @section description
  * This function is used at application to create new service.
  */
-static void rsi_ble_fill_128bit_uuid(uint32_t uuid_32bit, uuid_t* serv_uuid) {
+static void ble_usart_echo_app_fill_128bit_uuid(uint32_t uuid_32bit, uuid_t* serv_uuid) {
     uint8_t ix;
     serv_uuid->size = 16;
     rsi_uint32_to_4bytes((uint8_t*)&serv_uuid->val.val128.data1, uuid_32bit);
@@ -343,7 +300,7 @@ static void rsi_ble_fill_128bit_uuid(uint32_t uuid_32bit, uuid_t* serv_uuid) {
 }
 
 /**
- * @fn         rsi_ble_add_simple_chat_serv
+ * @fn         ble_usart_echo_app_add_simple_chat_serv
  * @brief      this function is used to add new servcie i.e.., simple chat service.
  * @param[in]  none.
  * @return     int32_t
@@ -352,23 +309,23 @@ static void rsi_ble_fill_128bit_uuid(uint32_t uuid_32bit, uuid_t* serv_uuid) {
  * @section description
  * This function is used at application to create new service.
  */
-static uint32_t rsi_ble_add_simple_chat_serv(BLEUsartEchoApp* instance) {
+static uint32_t ble_usart_echo_app_add_simple_chat_serv(BLEUsartEchoApp* instance) {
     uuid_t new_uuid = {0};
     rsi_ble_resp_add_serv_t new_serv_resp = {0};
-    uint8_t data[RSI_BLE_MAX_DATA_LEN] = {"silabs_sampletest"};
+    uint8_t data[RSI_BLE_MAX_DATA_LEN] = {"bsb_ble_sampletest"};
 
     //! adding new service
     new_uuid.size = 16;
     new_uuid.val.val32 = RSI_BLE_NEW_SERVICE_UUID;
-    rsi_ble_fill_128bit_uuid(RSI_BLE_NEW_SERVICE_UUID, &new_uuid);
+    ble_usart_echo_app_fill_128bit_uuid(RSI_BLE_NEW_SERVICE_UUID, &new_uuid);
 
     rsi_ble_add_service(new_uuid, &new_serv_resp);
 
     //! adding characteristic service attribute to the service
     new_uuid.size = 16;
     new_uuid.val.val32 = RSI_BLE_ATTRIBUTE_1_UUID;
-    rsi_ble_fill_128bit_uuid(RSI_BLE_ATTRIBUTE_1_UUID, &new_uuid);
-    rsi_ble_add_char_serv_att(
+    ble_usart_echo_app_fill_128bit_uuid(RSI_BLE_ATTRIBUTE_1_UUID, &new_uuid);
+    ble_usart_echo_app_add_char_serv_att(
         new_serv_resp.serv_handler,
         new_serv_resp.start_handle + 1,
         RSI_BLE_ATT_PROPERTY_READ | RSI_BLE_ATT_PROPERTY_WRITE,
@@ -379,8 +336,8 @@ static uint32_t rsi_ble_add_simple_chat_serv(BLEUsartEchoApp* instance) {
     instance->rsi_ble_att1_val_hndl = new_serv_resp.start_handle + 2;
     new_uuid.size = 16;
     new_uuid.val.val32 = RSI_BLE_ATTRIBUTE_1_UUID;
-    rsi_ble_fill_128bit_uuid(RSI_BLE_ATTRIBUTE_1_UUID, &new_uuid);
-    rsi_ble_add_char_val_att(
+    ble_usart_echo_app_fill_128bit_uuid(RSI_BLE_ATTRIBUTE_1_UUID, &new_uuid);
+    ble_usart_echo_app_add_char_val_att(
         new_serv_resp.serv_handler,
         new_serv_resp.start_handle + 2,
         new_uuid,
@@ -392,11 +349,10 @@ static uint32_t rsi_ble_add_simple_chat_serv(BLEUsartEchoApp* instance) {
     //! adding characteristic service attribute to the service
     new_uuid.size = 2;
     new_uuid.val.val16 = RSI_BLE_ATTRIBUTE_2_UUID;
-    rsi_ble_add_char_serv_att(
+    ble_usart_echo_app_add_char_serv_att(
         new_serv_resp.serv_handler,
         new_serv_resp.start_handle + 3,
-        RSI_BLE_ATT_PROPERTY_READ |
-            RSI_BLE_ATT_PROPERTY_NOTIFY, //RSI_BLE_ATT_PROPERTY_INDICATE, //
+        RSI_BLE_ATT_PROPERTY_READ | RSI_BLE_ATT_PROPERTY_NOTIFY,
         new_serv_resp.start_handle + 4,
         new_uuid);
 
@@ -404,12 +360,11 @@ static uint32_t rsi_ble_add_simple_chat_serv(BLEUsartEchoApp* instance) {
     instance->rsi_ble_att2_val_hndl = new_serv_resp.start_handle + 4;
     new_uuid.size = 2;
     new_uuid.val.val16 = RSI_BLE_ATTRIBUTE_2_UUID;
-    rsi_ble_add_char_val_att(
+    ble_usart_echo_app_add_char_val_att(
         new_serv_resp.serv_handler,
         new_serv_resp.start_handle + 4,
         new_uuid,
-        RSI_BLE_ATT_PROPERTY_READ |
-            RSI_BLE_ATT_PROPERTY_NOTIFY, //RSI_BLE_ATT_PROPERTY_INDICATE, //|
+        RSI_BLE_ATT_PROPERTY_READ | RSI_BLE_ATT_PROPERTY_NOTIFY,
         data,
         sizeof(data),
         0);
@@ -418,14 +373,14 @@ static uint32_t rsi_ble_add_simple_chat_serv(BLEUsartEchoApp* instance) {
 
 /*==============================================*/
 /**
- * @fn         rsi_ble_on_adv_report_event
+ * @fn         ble_usart_echo_app_on_adv_report_event
  * @brief      invoked when advertise report event is received
  * @param[in]  adv_report, pointer to the received advertising report
  * @return     none.
  * @section description
  * This callback function updates the scanned remote devices list
  */
-void rsi_ble_on_adv_report_event(rsi_ble_event_adv_report_t* adv_report) {
+void ble_usart_echo_app_on_adv_report_event(rsi_ble_event_adv_report_t* adv_report) {
     if(ble_usart_echo_app_instance->device_found == 1) {
         return;
     }
@@ -469,14 +424,14 @@ void rsi_ble_on_adv_report_event(rsi_ble_event_adv_report_t* adv_report) {
 
 /*==============================================*/
 /**
- * @fn         rsi_ble_on_connect_event
+ * @fn         ble_usart_echo_app_on_connect_event
  * @brief      invoked when connection complete event is received
  * @param[out] resp_conn, connected remote device information
  * @return     none.
  * @section description
  * This callback function indicates the status of the connection
  */
-static void rsi_ble_on_connect_event(rsi_ble_event_conn_status_t* resp_conn) {
+static void ble_usart_echo_app_on_connect_event(rsi_ble_event_conn_status_t* resp_conn) {
     memcpy(ble_usart_echo_app_instance->remote_dev_address, resp_conn->dev_addr, 6);
     rsi_6byte_dev_address_to_ascii(
         ble_usart_echo_app_instance->str_remote_address, resp_conn->dev_addr);
@@ -485,7 +440,7 @@ static void rsi_ble_on_connect_event(rsi_ble_event_conn_status_t* resp_conn) {
 }
 
 /**
- * @fn         rsi_ble_on_disconnect_event
+ * @fn         ble_usart_echo_app_on_disconnect_event
  * @brief      invoked when disconnection event is received
  * @param[in]  resp_disconnect, disconnected remote device information
  * @param[in]  reason, reason for disconnection.
@@ -493,8 +448,9 @@ static void rsi_ble_on_connect_event(rsi_ble_event_conn_status_t* resp_conn) {
  * @section description
  * This callback function indicates disconnected device information and status
  */
-static void
-    rsi_ble_on_disconnect_event(rsi_ble_event_disconnect_t* resp_disconnect, uint16_t reason) {
+static void ble_usart_echo_app_on_disconnect_event(
+    rsi_ble_event_disconnect_t* resp_disconnect,
+    uint16_t reason) {
     UNUSED(
         reason); //This statement is added only to resolve compilation warning, value is unchanged
     memcpy(ble_usart_echo_app_instance->remote_dev_address, resp_disconnect->dev_addr, 6);
@@ -506,7 +462,7 @@ static void
 }
 
 /**
- * @fn         rsi_ble_phy_update_complete_event
+ * @fn         ble_usart_echo_app_phy_update_complete_event
  * @brief      invoked when disconnection event is received
  * @param[in]  resp_disconnect, disconnected remote device information
  * @param[in]  reason, reason for disconnection.
@@ -514,7 +470,7 @@ static void
  * @section description
  * This Callback function indicates disconnected device information and status
  */
-void rsi_ble_phy_update_complete_event(
+void ble_usart_echo_app_phy_update_complete_event(
     rsi_ble_event_phy_update_t* rsi_ble_event_phy_update_complete) {
     memcpy(
         &ble_usart_echo_app_instance->rsi_app_phy_update_complete,
@@ -525,12 +481,12 @@ void rsi_ble_phy_update_complete_event(
 }
 
 /**
- * @fn         rsi_ble_data_length_change_event
+ * @fn         ble_usart_echo_app_data_length_change_event
  * @brief      invoked when data length is set
  * @section description
  * This Callback function indicates data length is set
  */
-void rsi_ble_data_length_change_event(
+void ble_usart_echo_app_data_length_change_event(
     rsi_ble_event_data_length_update_t* rsi_ble_data_length_update) {
     memcpy(
         &ble_usart_echo_app_instance->data_length_update,
@@ -542,14 +498,15 @@ void rsi_ble_data_length_change_event(
 }
 
 /**
- * @fn         rsi_ble_on_enhance_conn_status_event
+ * @fn         ble_usart_echo_app_on_enhance_conn_status_event
  * @brief      invoked when enhanced connection complete event is received
  * @param[out] resp_conn, connected remote device information
  * @return     none.
  * @section description
  * This callback function indicates the status of the connection
  */
-void rsi_ble_on_enhance_conn_status_event(rsi_ble_event_enhance_conn_status_t* resp_enh_conn) {
+void ble_usart_echo_app_on_enhance_conn_status_event(
+    rsi_ble_event_enhance_conn_status_t* resp_enh_conn) {
     memcpy(ble_usart_echo_app_instance->remote_dev_address, resp_enh_conn->dev_addr, 6);
     rsi_6byte_dev_address_to_ascii(
         ble_usart_echo_app_instance->str_remote_address, resp_enh_conn->dev_addr);
@@ -557,7 +514,7 @@ void rsi_ble_on_enhance_conn_status_event(rsi_ble_event_enhance_conn_status_t* r
         furi_thread_get_id(ble_usart_echo_app_instance->thread), BLEUsartEchoEvtConnected);
 }
 
-void rsi_ble_on_conn_update_complete_event(
+void ble_usart_echo_app_on_conn_update_complete_event(
     rsi_ble_event_conn_update_t* rsi_ble_event_conn_update_complete,
     uint16_t resp_status) {
     UNUSED(resp_status);
@@ -575,14 +532,14 @@ void rsi_ble_on_conn_update_complete_event(
 }
 /*==============================================*/
 /**
- * @fn         rsi_ble_simple_peripheral_on_remote_features_event
+ * @fn         ble_usart_echo_app_simple_peripheral_on_remote_features_event
  * @brief      invoked when LE remote features event is received.
  * @param[in] resp_conn, connected remote device information
  * @return     none.
  * @section description
  * This callback function indicates the status of the connection
  */
-void rsi_ble_simple_peripheral_on_remote_features_event(
+void ble_usart_echo_app_simple_peripheral_on_remote_features_event(
     rsi_ble_event_remote_features_t* rsi_ble_event_remote_features) {
     memcpy(
         &ble_usart_echo_app_instance->remote_dev_feature,
@@ -593,7 +550,8 @@ void rsi_ble_simple_peripheral_on_remote_features_event(
         BLEUsartEchoEvtReceveRemoteFeatures);
 }
 
-static void rsi_ble_more_data_req_event(rsi_ble_event_le_dev_buf_ind_t* rsi_ble_more_data_evt) {
+static void
+    ble_usart_echo_app_more_data_req_event(rsi_ble_event_le_dev_buf_ind_t* rsi_ble_more_data_evt) {
     UNUSED(rsi_ble_more_data_evt);
 
     //! set conn specific event
@@ -605,7 +563,7 @@ static void rsi_ble_more_data_req_event(rsi_ble_event_le_dev_buf_ind_t* rsi_ble_
 
 /*==============================================*/
 /**
- * @fn         rsi_ble_on_gatt_write_event
+ * @fn         ble_usart_echo_app_on_gatt_write_event
  * @brief      its invoked when write/notify/indication events are received.
  * @param[in]  event_id, it indicates write/notification event id.
  * @param[in]  rsi_ble_write, write event parameters.
@@ -613,7 +571,9 @@ static void rsi_ble_more_data_req_event(rsi_ble_event_le_dev_buf_ind_t* rsi_ble_
  * @section description
  * This callback function is invoked when write/notify/indication events are received
  */
-static void rsi_ble_on_gatt_write_event(uint16_t event_id, rsi_ble_event_write_t* rsi_ble_write) {
+static void ble_usart_echo_app_on_gatt_write_event(
+    uint16_t event_id,
+    rsi_ble_event_write_t* rsi_ble_write) {
     UNUSED(event_id);
 
     memcpy(
@@ -625,7 +585,7 @@ static void rsi_ble_on_gatt_write_event(uint16_t event_id, rsi_ble_event_write_t
 }
 
 /**
- * @fn         rsi_ble_on_mtu_event
+ * @fn         ble_usart_echo_app_on_mtu_event
  * @brief      its invoked when write/notify/indication events are received.
  * @param[in]  event_id, it indicates write/notification event id.
  * @param[in]  rsi_ble_write, write event parameters.
@@ -633,7 +593,7 @@ static void rsi_ble_on_gatt_write_event(uint16_t event_id, rsi_ble_event_write_t
  * @section description
  * This callback function is invoked when write/notify/indication events are received
  */
-static void rsi_ble_on_mtu_event(rsi_ble_event_mtu_t* rsi_ble_mtu) {
+static void ble_usart_echo_app_on_mtu_event(rsi_ble_event_mtu_t* rsi_ble_mtu) {
     memcpy(
         &ble_usart_echo_app_instance->app_ble_mtu_event, rsi_ble_mtu, sizeof(rsi_ble_event_mtu_t));
     rsi_6byte_dev_address_to_ascii(
@@ -650,24 +610,10 @@ static int32_t ble_usart_echo_app_thread_callback(void* context) {
     BLEUsartEchoApp* instance = (BLEUsartEchoApp*)context;
 
     int32_t status = 0;
-    //int32_t event_id;
     uint8_t adv[31] = {2, 1, 6};
     sl_wifi_firmware_version_t version = {0};
     static uint8_t rsi_app_resp_get_dev_addr[RSI_DEV_ADDR_LEN] = {0};
     uint8_t local_dev_addr[LOCAL_DEV_ADDR_LEN] = {0};
-    //int counter =0;
-    // uint8_t send_buf[MAX_SEND_DATA_LEN] = {
-    //     0,  1,  2,  3,  4,  5,  6,  7,  8,  9,  10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21,
-    //     22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43,
-    //     44, 45, 46, 47, 48, 49, 50, 51, 52, 53, 54, 55, 56, 57, 58, 59, 60, 61, 62, 63, 64, 65,
-    //     66, 67, 68, 69, 70, 71, 72, 72, 74, 75, 76, 77, 78, 79, 80, 81, 82, 83, 84, 85, 86, 87,
-    //     88, 89, 90, 91, 92, 93, 94, 95, 96, 97, 98, 99, 0,  1,  2,  3,  4,  5,  6,  7,  8,  9,
-    //     10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31,
-    //     32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51, 52, 53,
-    //     54, 55, 56, 57, 58, 59, 60, 61, 62, 63, 64, 65, 66, 67, 68, 69, 70, 71, 72, 72, 74, 75,
-    //     76, 77, 78, 79, 80, 81, 82, 83, 84, 85, 86, 87, 88, 89, 90, 91, 92, 93, 94, 95, 96, 97,
-    //     98, 99, 00, 1,  2,  3,  4,  5,  6,  7,  8,  9,  10, 11, 12, 13, 14, 15, 16, 17, 18, 19,
-    //     20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31};
 
     //! Wi-Fi initialization
     status = sl_wifi_init(&config, NULL, sl_wifi_default_event_handler);
@@ -715,19 +661,20 @@ static int32_t ble_usart_echo_app_thread_callback(void* context) {
 
     //! registering the GAP callback functions
     rsi_ble_gap_register_callbacks(
-        rsi_ble_on_adv_report_event,
-        rsi_ble_on_connect_event,
-        rsi_ble_on_disconnect_event,
+        ble_usart_echo_app_on_adv_report_event,
+        ble_usart_echo_app_on_connect_event,
+        ble_usart_echo_app_on_disconnect_event,
         NULL,
-        rsi_ble_phy_update_complete_event,
-        rsi_ble_data_length_change_event,
-        rsi_ble_on_enhance_conn_status_event,
+        ble_usart_echo_app_phy_update_complete_event,
+        ble_usart_echo_app_data_length_change_event,
+        ble_usart_echo_app_on_enhance_conn_status_event,
         NULL,
-        rsi_ble_on_conn_update_complete_event,
+        ble_usart_echo_app_on_conn_update_complete_event,
         NULL);
 
     rsi_ble_gap_extended_register_callbacks(
-        rsi_ble_simple_peripheral_on_remote_features_event, rsi_ble_more_data_req_event);
+        ble_usart_echo_app_simple_peripheral_on_remote_features_event,
+        ble_usart_echo_app_more_data_req_event);
 
     rsi_ble_gatt_register_callbacks(
         NULL,
@@ -737,11 +684,11 @@ static int32_t ble_usart_echo_app_thread_callback(void* context) {
         NULL,
         NULL,
         NULL,
-        rsi_ble_on_gatt_write_event,
+        ble_usart_echo_app_on_gatt_write_event,
         NULL,
         NULL,
         NULL,
-        rsi_ble_on_mtu_event,
+        ble_usart_echo_app_on_mtu_event,
         NULL,
         NULL,
         NULL,
@@ -754,7 +701,7 @@ static int32_t ble_usart_echo_app_thread_callback(void* context) {
         NULL,
         NULL);
 
-    rsi_ble_add_simple_chat_serv(instance);
+    ble_usart_echo_app_add_simple_chat_serv(instance);
 
     //! Set local name
     status = rsi_bt_set_local_name((uint8_t*)BLE_USART_ECHO_APP_LOCAL_NAME);
@@ -963,8 +910,6 @@ static int32_t ble_usart_echo_app_thread_callback(void* context) {
                     "Failed to set the buffer configuration mode, error:0x%lx \r\n",
                     status);
                 ble_usart_echo_app_send_msg(instance);
-                //furi_crash();
-                //break;
             } else {
                 furi_string_printf(
                     instance->msg,
@@ -1060,8 +1005,6 @@ void ble_usart_echo_app_stop(void* app_handle) {
 
 static sl_status_t
     ble_usart_echo_app(BLEUsartEchoApp* instance, uint8_t cmd_index, FuriString* args) {
-    //sl_status_t status = SL_STATUS_FAIL;
-
     char* args_cstr = (char*)furi_string_get_cstr(args);
     UNUSED(args_cstr);
     FuriString* arg = furi_string_alloc();
