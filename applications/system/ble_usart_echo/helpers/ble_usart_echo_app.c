@@ -19,8 +19,51 @@
 #define BLE_USART_ECHO_APP_LOCAL_NAME "BSB_Usart_Echo"
 #define MAX_MTU_SIZE                  240
 #define MAX_SEND_DATA_LEN             232
+#define UUID_SIZE                     16
+
+#define UUID_TYPE 2
+
+#if(UUID_TYPE == 1)
+// Silabs Bluetooth UUIDs
+// UART_SERVICE_UUID = "0000aabb-0000-1000-8000-0026bb765291"
+// UART_TX_CHAR_UUID = "00001bb1-0000-1000-8000-00805f9b34fb"
+// UART_RX_CHAR_UUID = "00001aa1-0000-1000-8000-00805f9b34fb"
+#define UART_SERVICE_UUID \
+    {0x00, 0x00, 0xAA, 0xBB, 0x00, 0x00, 0x10, 0x00, 0x80, 0x00, 0x00, 0x26, 0xBB, 0x76, 0x52, 0x91}
+#define UART_TX_CHAR_UUID \
+    {0x00, 0x00, 0x1B, 0xB1, 0x00, 0x00, 0x10, 0x00, 0x80, 0x00, 0x00, 0x80, 0x5F, 0x9B, 0x34, 0xFB}
+#define UART_RX_CHAR_UUID \
+    {0x00, 0x00, 0x1A, 0xA1, 0x00, 0x00, 0x10, 0x00, 0x80, 0x00, 0x00, 0x80, 0x5F, 0x9B, 0x34, 0xFB}
+
+#elif(UUID_TYPE == 2)
+// Nordic UART Service UUIDs
+// UART_SERVICE_UUID = "6E400001-B5A3-F393-E0A9-E50E24DCCA9E"
+// UART_RX_CHAR_UUID = "6E400002-B5A3-F393-E0A9-E50E24DCCA9E"
+// UART_TX_CHAR_UUID = "6E400003-B5A3-F393-E0A9-E50E24DCCA9E"
+#define UART_SERVICE_UUID \
+    {0x6E, 0x40, 0x00, 0x01, 0xB5, 0xA3, 0xF3, 0x93, 0xE0, 0xA9, 0xE5, 0x0E, 0x24, 0xDC, 0xCA, 0x9E}
+#define UART_RX_CHAR_UUID \
+    {0x6E, 0x40, 0x00, 0x02, 0xB5, 0xA3, 0xF3, 0x93, 0xE0, 0xA9, 0xE5, 0x0E, 0x24, 0xDC, 0xCA, 0x9E}
+#define UART_TX_CHAR_UUID \
+    {0x6E, 0x40, 0x00, 0x03, 0xB5, 0xA3, 0xF3, 0x93, 0xE0, 0xA9, 0xE5, 0x0E, 0x24, 0xDC, 0xCA, 0x9E}
+
+#elif(UUID_TYPE == 3)
+// HM-10 Bluetooth UUIDs
+// UART_SERVICE_UUID = "0000ffe0-0000-1000-8000-00805f9b34fb"
+// UART_TX_CHAR_UUID = "0000ffe1-0000-1000-8000-00805f9b34fb"
+// UART_RX_CHAR_UUID = "0000ffe1-0000-1000-8000-00805f9b34fb"
+#define UART_SERVICE_UUID \
+    {0x00, 0x00, 0xFF, 0xE0, 0x00, 0x00, 0x10, 0x00, 0x80, 0x00, 0x00, 0x80, 0x5F, 0x9B, 0x34, 0xFB}
+#define UART_TX_CHAR_UUID \
+    {0x00, 0x00, 0xFF, 0xE1, 0x00, 0x00, 0x10, 0x00, 0x80, 0x00, 0x00, 0x80, 0x5F, 0x9B, 0x34, 0xFB}
+#define UART_RX_CHAR_UUID \
+    {0x00, 0x00, 0xFF, 0xE1, 0x00, 0x00, 0x10, 0x00, 0x80, 0x00, 0x00, 0x80, 0x5F, 0x9B, 0x34, 0xFB}
+#else
+#error "Invalid UUID_TYPE"
+#endif
+
 //! error code
-#define BT_HCI_COMMAND_DISALLOWED     0x4E0C
+#define BT_HCI_COMMAND_DISALLOWED 0x4E0C
 
 #define LOCAL_DEV_ADDR_LEN 18 // Length of the local device address
 
@@ -215,10 +258,17 @@ static void ble_usart_echo_app_add_char_serv_att(
     new_att.property = RSI_BLE_ATT_PROPERTY_READ;
 
     //! preparing the characteristic attribute value
-    new_att.data_len = 6;
-    new_att.data[0] = val_prop;
-    rsi_uint16_to_2bytes(&new_att.data[2], att_val_handle);
-    rsi_uint16_to_2bytes(&new_att.data[4], att_val_uuid.val.val16);
+    if(att_val_uuid.size == UUID_SIZE) {
+        new_att.data_len = 4 + att_val_uuid.size;
+        new_att.data[0] = val_prop;
+        rsi_uint16_to_2bytes(&new_att.data[2], att_val_handle);
+        memcpy(&new_att.data[4], &att_val_uuid.val.val128, sizeof(att_val_uuid.val.val128));
+    } else {
+        new_att.data_len = 6;
+        new_att.data[0] = val_prop;
+        rsi_uint16_to_2bytes(&new_att.data[2], att_val_handle);
+        rsi_uint16_to_2bytes(&new_att.data[4], att_val_uuid.val.val16);
+    }
 
     //! Add attribute to the service
     rsi_ble_add_attribute(&new_att);
@@ -244,8 +294,9 @@ static void ble_usart_echo_app_add_char_val_att(
     new_att.property = val_prop;
 
     //! preparing the attribute value
+    if(data != NULL) memcpy(new_att.data, data, sizeof(new_att.data));
+
     new_att.data_len = RSI_MIN(sizeof(new_att.data), data_len);
-    memcpy(new_att.data, data, new_att.data_len);
 
     //! add attribute to the service
     rsi_ble_add_attribute(&new_att);
@@ -271,32 +322,29 @@ static void ble_usart_echo_app_add_char_val_att(
 }
 
 /**
- * @fn         ble_usart_echo_app_fill_128bit_uuid
- * @brief      this function is used to form 128bit uuid of apple device from 32 bit uuid.
- * @param[in]  none.
- * @return     int32_t
- *             0  =  success
- *             !0 = failure
+ * @fn         ble_usart_echo_app_prepare_128bit_uuid
+ * @brief      this function is used to prepare the 128bit UUID
+ * @param[in]  temp_service,received 128-bit service.
+ * @param[out] temp_uuid,formed 128-bit service structure.
+ * @return     none.
  * @section description
- * This function is used at application to create new service.
+ * This function prepares the 128bit UUID
  */
-static void ble_usart_echo_app_fill_128bit_uuid(uint32_t uuid_32bit, uuid_t* serv_uuid) {
-    uint8_t ix;
-    serv_uuid->size = 16;
-    rsi_uint32_to_4bytes((uint8_t*)&serv_uuid->val.val128.data1, uuid_32bit);
-    rsi_uint16_to_2bytes((uint8_t*)&serv_uuid->val.val128.data2, 0x00);
-    rsi_uint16_to_2bytes((uint8_t*)&serv_uuid->val.val128.data3, 0x1000);
-    rsi_uint16_to_2bytes(&serv_uuid->val.val128.data4[0], 0x8000);
-    for(ix = 0; ix < 6; ix++) {
-        serv_uuid->val.val128.data4[2] = 0x26;
-        serv_uuid->val.val128.data4[3] = 0x00;
-        serv_uuid->val.val128.data4[4] = 0x91;
-        serv_uuid->val.val128.data4[5] = 0x52;
-        serv_uuid->val.val128.data4[6] = 0x76;
-        serv_uuid->val.val128.data4[7] = 0xBB;
-    }
-
-    return;
+static void
+    ble_usart_echo_app_prepare_128bit_uuid(uint8_t temp_service[UUID_SIZE], uuid_t* temp_uuid) {
+    temp_uuid->val.val128.data1 =
+        ((temp_service[0] << 24) | (temp_service[1] << 16) | (temp_service[2] << 8) |
+         (temp_service[3]));
+    temp_uuid->val.val128.data2 = ((temp_service[5]) | (temp_service[4] << 8));
+    temp_uuid->val.val128.data3 = ((temp_service[7]) | (temp_service[6] << 8));
+    temp_uuid->val.val128.data4[0] = temp_service[9];
+    temp_uuid->val.val128.data4[1] = temp_service[8];
+    temp_uuid->val.val128.data4[2] = temp_service[11];
+    temp_uuid->val.val128.data4[3] = temp_service[10];
+    temp_uuid->val.val128.data4[4] = temp_service[15];
+    temp_uuid->val.val128.data4[5] = temp_service[14];
+    temp_uuid->val.val128.data4[6] = temp_service[13];
+    temp_uuid->val.val128.data4[7] = temp_service[12];
 }
 
 /**
@@ -315,16 +363,15 @@ static uint32_t ble_usart_echo_app_add_simple_chat_serv(BLEUsartEchoApp* instanc
     uint8_t data[RSI_BLE_MAX_DATA_LEN] = {"bsb_ble_sampletest"};
 
     //! adding new service
-    new_uuid.size = 16;
-    new_uuid.val.val32 = RSI_BLE_NEW_SERVICE_UUID;
-    ble_usart_echo_app_fill_128bit_uuid(RSI_BLE_NEW_SERVICE_UUID, &new_uuid);
-
+    uint8_t ble_serv[UUID_SIZE] = UART_SERVICE_UUID;
+    new_uuid.size = UUID_SIZE;
+    ble_usart_echo_app_prepare_128bit_uuid(ble_serv, &new_uuid);
     rsi_ble_add_service(new_uuid, &new_serv_resp);
 
     //! adding characteristic service attribute to the service
-    new_uuid.size = 16;
-    new_uuid.val.val32 = RSI_BLE_ATTRIBUTE_1_UUID;
-    ble_usart_echo_app_fill_128bit_uuid(RSI_BLE_ATTRIBUTE_1_UUID, &new_uuid);
+    uint8_t ble_rx_att[UUID_SIZE] = UART_RX_CHAR_UUID;
+    new_uuid.size = UUID_SIZE;
+    ble_usart_echo_app_prepare_128bit_uuid(ble_rx_att, &new_uuid);
     ble_usart_echo_app_add_char_serv_att(
         new_serv_resp.serv_handler,
         new_serv_resp.start_handle + 1,
@@ -333,10 +380,6 @@ static uint32_t ble_usart_echo_app_add_simple_chat_serv(BLEUsartEchoApp* instanc
         new_uuid);
 
     //! adding characteristic value attribute to the service
-    instance->rsi_ble_att1_val_hndl = new_serv_resp.start_handle + 2;
-    new_uuid.size = 16;
-    new_uuid.val.val32 = RSI_BLE_ATTRIBUTE_1_UUID;
-    ble_usart_echo_app_fill_128bit_uuid(RSI_BLE_ATTRIBUTE_1_UUID, &new_uuid);
     ble_usart_echo_app_add_char_val_att(
         new_serv_resp.serv_handler,
         new_serv_resp.start_handle + 2,
@@ -346,9 +389,12 @@ static uint32_t ble_usart_echo_app_add_simple_chat_serv(BLEUsartEchoApp* instanc
         sizeof(data),
         RSI_BLE_ATT_CONFIG_BITMAP);
 
+    instance->rsi_ble_att1_val_hndl = new_serv_resp.start_handle + 2;
+
     //! adding characteristic service attribute to the service
-    new_uuid.size = 2;
-    new_uuid.val.val16 = RSI_BLE_ATTRIBUTE_2_UUID;
+    uint8_t ble_tx_att[UUID_SIZE] = UART_TX_CHAR_UUID;
+    new_uuid.size = UUID_SIZE;
+    ble_usart_echo_app_prepare_128bit_uuid(ble_tx_att, &new_uuid);
     ble_usart_echo_app_add_char_serv_att(
         new_serv_resp.serv_handler,
         new_serv_resp.start_handle + 3,
@@ -357,9 +403,6 @@ static uint32_t ble_usart_echo_app_add_simple_chat_serv(BLEUsartEchoApp* instanc
         new_uuid);
 
     //! adding characteristic value attribute to the service
-    instance->rsi_ble_att2_val_hndl = new_serv_resp.start_handle + 4;
-    new_uuid.size = 2;
-    new_uuid.val.val16 = RSI_BLE_ATTRIBUTE_2_UUID;
     ble_usart_echo_app_add_char_val_att(
         new_serv_resp.serv_handler,
         new_serv_resp.start_handle + 4,
@@ -368,6 +411,8 @@ static uint32_t ble_usart_echo_app_add_simple_chat_serv(BLEUsartEchoApp* instanc
         data,
         sizeof(data),
         0);
+
+    instance->rsi_ble_att2_val_hndl = new_serv_resp.start_handle + 4;
     return 0;
 }
 
