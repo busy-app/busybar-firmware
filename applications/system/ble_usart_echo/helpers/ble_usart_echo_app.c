@@ -619,7 +619,7 @@ static int32_t ble_usart_echo_app_thread_callback(void* context) {
     status = sl_wifi_init(&config, NULL, sl_wifi_default_event_handler);
     if(status != SL_STATUS_OK) {
         furi_string_printf(
-            instance->msg, "Wi-Fi Initialization Failed, Error Code : 0x%lX\r\n", status);
+            instance->msg, "Wi-Fi Initialization Failed, Error Code : 0x0x%08lx\r\n", status);
         ble_usart_echo_app_send_msg(instance);
         furi_crash();
     }
@@ -630,7 +630,7 @@ static int32_t ble_usart_echo_app_thread_callback(void* context) {
     status = sl_wifi_get_firmware_version(&version);
     if(status != SL_STATUS_OK) {
         furi_string_printf(
-            instance->msg, "Firmware version Failed, Error Code : 0x%lX\r\n", status);
+            instance->msg, "Firmware version Failed, Error Code : 0x0x%08lx\r\n", status);
         ble_usart_echo_app_send_msg(instance);
     } else {
         furi_string_printf(
@@ -650,7 +650,7 @@ static int32_t ble_usart_echo_app_thread_callback(void* context) {
     //! get the local device MAC address.
     status = rsi_bt_get_local_device_address(rsi_app_resp_get_dev_addr);
     if(status != RSI_SUCCESS) {
-        furi_string_printf(instance->msg, "Get local device address failed = %lx\r\n", status);
+        furi_string_printf(instance->msg, "Get local device address failed = 0x%08lx\r\n", status);
         ble_usart_echo_app_send_msg(instance);
         furi_crash();
     } else {
@@ -707,7 +707,7 @@ static int32_t ble_usart_echo_app_thread_callback(void* context) {
     status = rsi_bt_set_local_name((uint8_t*)BLE_USART_ECHO_APP_LOCAL_NAME);
     if(status != RSI_SUCCESS) {
         furi_string_printf(
-            instance->msg, "Failed to set local name, error code : %lx\r\n", status);
+            instance->msg, "Failed to set local name, error code : 0x%08lx\r\n", status);
         ble_usart_echo_app_send_msg(instance);
         furi_crash();
     }
@@ -724,7 +724,7 @@ static int32_t ble_usart_echo_app_thread_callback(void* context) {
     status = rsi_ble_start_advertising();
     if(status != RSI_SUCCESS) {
         furi_string_printf(
-            instance->msg, "Failed to start advertising, error code : %lx\r\n", status);
+            instance->msg, "Failed to start advertising, error code : 0x%08lx\r\n", status);
         ble_usart_echo_app_send_msg(instance);
     } else {
         furi_string_printf(
@@ -751,7 +751,9 @@ static int32_t ble_usart_echo_app_thread_callback(void* context) {
             status = rsi_ble_mtu_exchange_event(instance->remote_dev_address, MAX_MTU_SIZE);
             if(status != RSI_SUCCESS) {
                 furi_string_printf(
-                    instance->msg, "MTU request cmd failed with error code = %lx \r\n", status);
+                    instance->msg,
+                    "MTU request cmd failed with error code = 0x%08lx \r\n",
+                    status);
                 ble_usart_echo_app_send_msg(instance);
             }
 
@@ -765,7 +767,7 @@ static int32_t ble_usart_echo_app_thread_callback(void* context) {
                 if(status != RSI_SUCCESS) {
                     furi_string_printf(
                         instance->msg,
-                        "Failed to update connection parameters, error code : %lx\r\n",
+                        "Failed to update connection parameters, error code : 0x%08lx\r\n",
                         status);
                     ble_usart_echo_app_send_msg(instance);
                     furi_crash();
@@ -788,7 +790,9 @@ static int32_t ble_usart_echo_app_thread_callback(void* context) {
             status = rsi_ble_start_advertising();
             if(status != RSI_SUCCESS) {
                 furi_string_printf(
-                    instance->msg, "Failed to start advertising, error code : %lx\r\n", status);
+                    instance->msg,
+                    "Failed to start advertising, error code : 0x%08lx\r\n",
+                    status);
                 ble_usart_echo_app_send_msg(instance);
             } else {
                 furi_string_printf(
@@ -803,7 +807,7 @@ static int32_t ble_usart_echo_app_thread_callback(void* context) {
             //! event invokes when remote features were received
             furi_string_printf(
                 instance->msg,
-                "Feature received is %x \r\n",
+                "Feature received is 0x%x \r\n",
                 *(uint8_t*)instance->remote_dev_feature.remote_features);
             ble_usart_echo_app_send_msg(instance);
 
@@ -811,7 +815,9 @@ static int32_t ble_usart_echo_app_thread_callback(void* context) {
                 status = rsi_ble_set_data_len(instance->remote_dev_address, TX_LEN, TX_TIME);
                 if(status != RSI_SUCCESS) {
                     furi_string_printf(
-                        instance->msg, "Failed to set data length, error code : %lx\r\n", status);
+                        instance->msg,
+                        "Failed to set data length, error code : 0x%08lx\r\n",
+                        status);
                     ble_usart_echo_app_send_msg(instance);
 
                     furi_thread_flags_set(
@@ -833,7 +839,7 @@ static int32_t ble_usart_echo_app_thread_callback(void* context) {
                             BLEUsartEchoEvtDataLengthChange);
                     } else {
                         furi_string_printf(
-                            instance->msg, "Failed to set phy, error code : %lx\r\n", status);
+                            instance->msg, "Failed to set phy, error code : 0x%08lx\r\n", status);
                         ble_usart_echo_app_send_msg(instance);
                     }
                 }
@@ -866,7 +872,7 @@ static int32_t ble_usart_echo_app_thread_callback(void* context) {
                             BLEUsartEchoEvtDataLengthChange);
                     } else {
                         furi_string_printf(
-                            instance->msg, "Failed to set phy, error code : %lx\r\n", status);
+                            instance->msg, "Failed to set phy, error code : 0x%08lx\r\n", status);
                         ble_usart_echo_app_send_msg(instance);
                     }
                 }
@@ -877,7 +883,7 @@ static int32_t ble_usart_echo_app_thread_callback(void* context) {
             //! phy update complete event
             furi_string_printf(
                 instance->msg,
-                "Tx Phy rate = %x  and Rx Phy rate = %x \r\n",
+                "Tx Phy rate = 0x%x  and Rx Phy rate = 0x%x \r\n",
                 instance->rsi_app_phy_update_complete.TxPhy,
                 instance->rsi_app_phy_update_complete.RxPhy);
             ble_usart_echo_app_send_msg(instance);
@@ -907,7 +913,7 @@ static int32_t ble_usart_echo_app_thread_callback(void* context) {
             if(status != RSI_SUCCESS) {
                 furi_string_printf(
                     instance->msg,
-                    "Failed to set the buffer configuration mode, error:0x%lx \r\n",
+                    "Failed to set the buffer configuration mode, error: 0x%08lx \r\n",
                     status);
                 ble_usart_echo_app_send_msg(instance);
             } else {
