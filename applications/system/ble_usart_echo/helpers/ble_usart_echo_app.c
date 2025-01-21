@@ -16,14 +16,12 @@
 
 #define TAG "BLE_USART_Echo_App"
 
-#define BLE_USART_ECHO_APP_LOCAL_NAME "BSB_Usart_Echo"
-#define MAX_MTU_SIZE                  240
-#define MAX_SEND_DATA_LEN             232
-#define UUID_SIZE                     16
+#define BLE_USART_ECHO_APP_LOCAL_NAME        "BSB_Usart_Echo"
+#define BLE_USART_ECHO_APP_MAX_MTU_SIZE      240
+#define BLE_USART_ECHO_APP_MAX_SEND_DATA_LEN 232
 
-#define UUID_TYPE 2
-
-#if(UUID_TYPE == 1)
+#define BLE_USART_ECHO_APP_UUID_TYPE 2
+#if(BLE_USART_ECHO_APP_UUID_TYPE == 1)
 // Silabs Bluetooth UUIDs
 // UART_SERVICE_UUID = "0000aabb-0000-1000-8000-0026bb765291"
 // UART_TX_CHAR_UUID = "00001bb1-0000-1000-8000-00805f9b34fb"
@@ -35,7 +33,7 @@
 #define UART_RX_CHAR_UUID \
     {0x00, 0x00, 0x1A, 0xA1, 0x00, 0x00, 0x10, 0x00, 0x80, 0x00, 0x00, 0x80, 0x5F, 0x9B, 0x34, 0xFB}
 
-#elif(UUID_TYPE == 2)
+#elif(BLE_USART_ECHO_APP_UUID_TYPE == 2)
 // Nordic UART Service UUIDs
 // UART_SERVICE_UUID = "6E400001-B5A3-F393-E0A9-E50E24DCCA9E"
 // UART_RX_CHAR_UUID = "6E400002-B5A3-F393-E0A9-E50E24DCCA9E"
@@ -47,7 +45,7 @@
 #define UART_TX_CHAR_UUID \
     {0x6E, 0x40, 0x00, 0x03, 0xB5, 0xA3, 0xF3, 0x93, 0xE0, 0xA9, 0xE5, 0x0E, 0x24, 0xDC, 0xCA, 0x9E}
 
-#elif(UUID_TYPE == 3)
+#elif(BLE_USART_ECHO_APP_UUID_TYPE == 3)
 // HM-10 Bluetooth UUIDs
 // UART_SERVICE_UUID = "0000ffe0-0000-1000-8000-00805f9b34fb"
 // UART_TX_CHAR_UUID = "0000ffe1-0000-1000-8000-00805f9b34fb"
@@ -59,13 +57,13 @@
 #define UART_RX_CHAR_UUID \
     {0x00, 0x00, 0xFF, 0xE1, 0x00, 0x00, 0x10, 0x00, 0x80, 0x00, 0x00, 0x80, 0x5F, 0x9B, 0x34, 0xFB}
 #else
-#error "Invalid UUID_TYPE"
+#error "Invalid BLE_USART_ECHO_APP_UUID_TYPE"
 #endif
 
+#define UUID_SIZE                                    16
 //! error code
-#define BT_HCI_COMMAND_DISALLOWED 0x4E0C
-
-#define LOCAL_DEV_ADDR_LEN 18 // Length of the local device address
+#define BLE_USART_ECHO_APP_BT_HCI_COMMAND_DISALLOWED 0x4E0C
+#define BLE_USART_ECHO_APP_LOCAL_DEV_ADDR_LEN        18 // Length of the local device address
 
 //! Configuration bitmap for attributes
 #define RSI_BLE_ATT_MAINTAIN_IN_HOST BIT(0)
@@ -156,21 +154,21 @@ static const sl_wifi_device_configuration_t config = {
         .config_feature_bit_map = (SL_SI91X_FEAT_SLEEP_GPIO_SEL_BITMAP)}};
 
 typedef enum {
-    BLETestCmdTypeHelp,
-    BLETestCmdTypeHelpHelp,
+    BLEUsartEchoCmdTypeHelp,
+    BLEUsartEchoCmdTypeHelpHelp,
 
-    BLETestCmdTypeMax,
-} BLETestCmdType;
+    BLEUsartEchoCmdTypeMax,
+} BLEUsartEchoCmdType;
 
 typedef enum {
-    BLETestStateIdle,
-} BLETestState;
+    BLEUsartEchoStateIdle,
+} BLEUsartEchoState;
 
 typedef struct {
     char* cmd;
-} BLETestCmd;
+} BLEUsartEchoCmd;
 
-const BLETestCmd ble_usart_echo_cmd[BLETestCmdTypeMax] = {
+const BLEUsartEchoCmd ble_usart_echo_cmd[BLEUsartEchoCmdTypeMax] = {
     {"?"},
     {"help"},
 };
@@ -178,12 +176,12 @@ const BLETestCmd ble_usart_echo_cmd[BLETestCmdTypeMax] = {
 struct BLEUsartEchoApp {
     FuriString* msg;
     CliWorker* worker;
-    BLETestState state;
+    BLEUsartEchoState state;
 
     FuriThread* thread;
 
-    uint16_t rsi_ble_att1_val_hndl;
-    uint16_t rsi_ble_att2_val_hndl;
+    uint16_t ble_att1_val_hndl;
+    uint16_t ble_att2_val_hndl;
 
     uint8_t device_found;
     uint8_t conn_params_updated;
@@ -195,7 +193,7 @@ struct BLEUsartEchoApp {
     uint8_t str_remote_address[18];
     uint8_t remote_dev_address[6];
 
-    rsi_ble_event_phy_update_t rsi_app_phy_update_complete;
+    rsi_ble_event_phy_update_t app_phy_update_complete;
     rsi_ble_event_data_length_update_t data_length_update;
     rsi_ble_event_conn_update_t event_conn_update_complete;
 
@@ -389,7 +387,7 @@ static uint32_t ble_usart_echo_app_add_simple_chat_serv(BLEUsartEchoApp* instanc
         sizeof(data),
         RSI_BLE_ATT_CONFIG_BITMAP);
 
-    instance->rsi_ble_att1_val_hndl = new_serv_resp.start_handle + 2;
+    instance->ble_att1_val_hndl = new_serv_resp.start_handle + 2;
 
     //! adding characteristic service attribute to the service
     uint8_t ble_tx_att[UUID_SIZE] = UART_TX_CHAR_UUID;
@@ -412,7 +410,7 @@ static uint32_t ble_usart_echo_app_add_simple_chat_serv(BLEUsartEchoApp* instanc
         sizeof(data),
         0);
 
-    instance->rsi_ble_att2_val_hndl = new_serv_resp.start_handle + 4;
+    instance->ble_att2_val_hndl = new_serv_resp.start_handle + 4;
     return 0;
 }
 
@@ -518,7 +516,7 @@ static void ble_usart_echo_app_on_disconnect_event(
 void ble_usart_echo_app_phy_update_complete_event(
     rsi_ble_event_phy_update_t* rsi_ble_event_phy_update_complete) {
     memcpy(
-        &ble_usart_echo_app_instance->rsi_app_phy_update_complete,
+        &ble_usart_echo_app_instance->app_phy_update_complete,
         rsi_ble_event_phy_update_complete,
         sizeof(rsi_ble_event_phy_update_t));
     furi_thread_flags_set(
@@ -658,7 +656,7 @@ static int32_t ble_usart_echo_app_thread_callback(void* context) {
     uint8_t adv[31] = {2, 1, 6};
     sl_wifi_firmware_version_t version = {0};
     static uint8_t rsi_app_resp_get_dev_addr[RSI_DEV_ADDR_LEN] = {0};
-    uint8_t local_dev_addr[LOCAL_DEV_ADDR_LEN] = {0};
+    uint8_t local_dev_addr[BLE_USART_ECHO_APP_LOCAL_DEV_ADDR_LEN] = {0};
 
     //! Wi-Fi initialization
     status = sl_wifi_init(&config, NULL, sl_wifi_default_event_handler);
@@ -793,7 +791,8 @@ static int32_t ble_usart_echo_app_thread_callback(void* context) {
             ble_usart_echo_app_send_msg(instance);
 
             //! Setting MTU Exchange event
-            status = rsi_ble_mtu_exchange_event(instance->remote_dev_address, MAX_MTU_SIZE);
+            status = rsi_ble_mtu_exchange_event(
+                instance->remote_dev_address, BLE_USART_ECHO_APP_MAX_MTU_SIZE);
             if(status != RSI_SUCCESS) {
                 furi_string_printf(
                     instance->msg,
@@ -877,7 +876,7 @@ static int32_t ble_usart_echo_app_thread_callback(void* context) {
                     RX_PHY_RATE,
                     CODDED_PHY_RATE);
                 if(status != RSI_SUCCESS) {
-                    if(status != BT_HCI_COMMAND_DISALLOWED) {
+                    if(status != BLE_USART_ECHO_APP_BT_HCI_COMMAND_DISALLOWED) {
                         //retry the same command
                         furi_thread_flags_set(
                             furi_thread_get_id(ble_usart_echo_app_instance->thread),
@@ -910,7 +909,7 @@ static int32_t ble_usart_echo_app_thread_callback(void* context) {
                     RX_PHY_RATE,
                     CODDED_PHY_RATE);
                 if(status != RSI_SUCCESS) {
-                    if(status != BT_HCI_COMMAND_DISALLOWED) {
+                    if(status != BLE_USART_ECHO_APP_BT_HCI_COMMAND_DISALLOWED) {
                         //retry the same command
                         furi_thread_flags_set(
                             furi_thread_get_id(ble_usart_echo_app_instance->thread),
@@ -929,8 +928,8 @@ static int32_t ble_usart_echo_app_thread_callback(void* context) {
             furi_string_printf(
                 instance->msg,
                 "Tx Phy rate = 0x%x  and Rx Phy rate = 0x%x \r\n",
-                instance->rsi_app_phy_update_complete.TxPhy,
-                instance->rsi_app_phy_update_complete.RxPhy);
+                instance->app_phy_update_complete.TxPhy,
+                instance->app_phy_update_complete.RxPhy);
             ble_usart_echo_app_send_msg(instance);
         }
 
@@ -980,8 +979,7 @@ static int32_t ble_usart_echo_app_thread_callback(void* context) {
             ble_usart_echo_app_send_msg(instance);
 
             //TO DO: send ERR or write response
-            if((*(uint16_t*)instance->app_ble_write_event.handle) ==
-               instance->rsi_ble_att1_val_hndl) {
+            if((*(uint16_t*)instance->app_ble_write_event.handle) == instance->ble_att1_val_hndl) {
                 furi_string_printf(
                     instance->msg,
                     "Received data: %s\r\n",
@@ -999,7 +997,7 @@ static int32_t ble_usart_echo_app_thread_callback(void* context) {
                 // Send notification to remote device
                 rsi_ble_notify_value(
                     instance->remote_dev_address,
-                    instance->rsi_ble_att2_val_hndl,
+                    instance->ble_att2_val_hndl,
                     instance->app_ble_write_event.length,
                     instance->app_ble_write_event.att_value);
             } else {
@@ -1031,7 +1029,7 @@ void* ble_usart_echo_app_start(CliWorker* worker) {
         ble_usart_echo_app_instance);
     furi_thread_start(ble_usart_echo_app_instance->thread);
 
-    ble_usart_echo_app_instance->state = BLETestStateIdle;
+    ble_usart_echo_app_instance->state = BLEUsartEchoStateIdle;
 
     ble_usart_echo_app_cmd_usage(ble_usart_echo_app_instance);
     return (void*)ble_usart_echo_app_instance;
@@ -1061,8 +1059,8 @@ static sl_status_t
     FuriString* arg = furi_string_alloc();
 
     switch(cmd_index) {
-    case BLETestCmdTypeHelp:
-    case BLETestCmdTypeHelpHelp:
+    case BLEUsartEchoCmdTypeHelp:
+    case BLEUsartEchoCmdTypeHelpHelp:
         ble_usart_echo_app_cmd_usage(instance);
         break;
 
@@ -1092,7 +1090,7 @@ void ble_usart_echo_app_parse_msg(void* app_handle, uint8_t* data, size_t size) 
             break;
         }
 
-        for(i = 0; i < BLETestCmdTypeMax; i++) {
+        for(i = 0; i < BLEUsartEchoCmdTypeMax; i++) {
             if(furi_string_cmp_str(cmd, (char*)ble_usart_echo_cmd[i].cmd) == 0) {
                 cmd_index = i;
                 cmd_valid = true;
