@@ -1,6 +1,6 @@
 App(
     appid="sockets",
-    name="SocketsSrv",
+    name="SocketSrv",
     apptype=FlipperAppType.SERVICE,
     entry_point="sockets_srv",
     stack_size=2 * 1024,
@@ -15,7 +15,7 @@ App(
 
 App(
     appid="sockets",
-    name="SocketsSrv",
+    name="SocketSrv",
     apptype=FlipperAppType.SERVICE,
     entry_point="sockets_srv",
     stack_size=2 * 1024,

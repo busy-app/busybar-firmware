@@ -11,72 +11,72 @@
 typedef struct {
     const SocketInfo* socket_info;
     Socket* socket;
-} SocketsAllocMessage;
+} SocketSrvAllocMessage;
 
 typedef struct {
     const uint8_t socket_id;
-} SocketsFreeMessage;
+} SocketSrvFreeMessage;
 
 typedef struct {
     const uint8_t socket_id;
     const SocketConnectionInfo* bind_info;
-} SocketsAcceptMessage;
+} SocketSrvAcceptMessage;
 
 typedef struct {
     const uint8_t socket_id;
     const SocketConnectionInfo* connection_info;
-} SocketsConnectMessage;
+} SocketSrvConnectMessage;
 
 typedef struct {
     const uint8_t socket_id;
     const void* data;
     const size_t data_size;
     size_t* sent_size;
-} SocketsSendMessage;
+} SocketSrvSendMessage;
 
 typedef struct {
     SocketRequestType request_type;
     SocketStatus status;
     union {
-        SocketsAllocMessage alloc_message;
-        SocketsFreeMessage free_message;
-        SocketsAcceptMessage accept_message;
-        SocketsConnectMessage connect_message;
-        SocketsSendMessage send_message;
+        SocketSrvAllocMessage alloc_message;
+        SocketSrvFreeMessage free_message;
+        SocketSrvAcceptMessage accept_message;
+        SocketSrvConnectMessage connect_message;
+        SocketSrvSendMessage send_message;
     };
-} SocketsMessage;
+} SocketSrvMessage;
 
 typedef enum {
-    SocketsCustomEventRequest = 1UL << 0,
-    SocketsCustomEventResponse = 1UL << 1,
-    SocketsCustomEventAsyncResponse = 1UL << 2,
-} SocketsCustomEvent;
+    SocketSrvEventRequest = 1UL << 0,
+    SocketSrvEventResponse = 1UL << 1,
+    SocketSrvEventAsyncResponse = 1UL << 2,
+} SocketSrvEvent;
 
 typedef enum {
-    SocketsEventFlagReady = 1UL << 0,
-    SocketsEventFlagDone = 1UL << 1,
-} SocketsEventFlag;
+    SocketSrvFlagReady = 1UL << 0,
+    SocketSrvFlagDone = 1UL << 1,
+} SocketSrvFlag;
 
 struct Socket {
     uint8_t id;
-    Sockets* owner;
+    SocketSrv* owner;
     SocketEventCallback event_callback;
     void* callback_context;
 };
 
-struct Sockets {
+struct SocketSrv {
     FuriEventLoop* event_loop;
     FuriEventFlag* event_flag;
     Intercom* intercom;
-    SocketsMessage* message;
+    SocketSrvMessage* message;
     SocketRequest request;
-    SocketResponse response[SocketResponseIndexMax];
+    SocketResponse response[SocketChannelMax];
     Socket* sockets[SOCKET_COUNT];
 };
 
 static void sockets_intercom_rx_callback(const void* data, size_t data_size, void* context) {
     furi_assert(context);
-    Sockets* instance = context;
+    SocketSrv* instance = context;
 
     const SocketResponse* response = data;
     furi_assert(data_size == sockets_get_response_size(response));
@@ -86,11 +86,11 @@ static void sockets_intercom_rx_callback(const void* data, size_t data_size, voi
     uint32_t event;
 
     if(response_type < SocketResponseTypeAsyncSend) {
-        dest_response = &instance->response[SocketResponseIndexSync];
-        event = SocketsCustomEventResponse;
+        dest_response = &instance->response[SocketChannelSync];
+        event = SocketSrvEventResponse;
     } else if(response_type < SocketResponseTypeMax) {
-        dest_response = &instance->response[SocketResponseIndexAsync];
-        event = SocketsCustomEventAsyncResponse;
+        dest_response = &instance->response[SocketChannelAsync];
+        event = SocketSrvEventAsyncResponse;
     } else {
         furi_crash("Invalid response type");
     }
@@ -99,27 +99,27 @@ static void sockets_intercom_rx_callback(const void* data, size_t data_size, voi
     furi_event_loop_set_custom_event(instance->event_loop, event);
 }
 
-static void sockets_send_message(Sockets* instance, SocketsMessage* message) {
+static void sockets_send_message(SocketSrv* instance, SocketSrvMessage* message) {
     uint32_t flags;
     // Wait until the Sockets system becomes ready for the next request
     flags = furi_event_flag_wait(
-        instance->event_flag, SocketsEventFlagReady, FuriFlagWaitAll, FuriWaitForever);
-    furi_check(flags & SocketsEventFlagReady);
+        instance->event_flag, SocketSrvFlagReady, FuriFlagWaitAll, FuriWaitForever);
+    furi_check(flags & SocketSrvFlagReady);
 
     instance->message = message;
-    furi_event_loop_set_custom_event(instance->event_loop, SocketsCustomEventRequest);
+    furi_event_loop_set_custom_event(instance->event_loop, SocketSrvEventRequest);
 
     // Wait until a response is received
     flags = furi_event_flag_wait(
-        instance->event_flag, SocketsEventFlagDone, FuriFlagWaitAll, FuriWaitForever);
-    furi_check(flags & SocketsEventFlagDone);
+        instance->event_flag, SocketSrvFlagDone, FuriFlagWaitAll, FuriWaitForever);
+    furi_check(flags & SocketSrvFlagDone);
 }
 
-Socket* socket_alloc(Sockets* instance, const SocketInfo* socket_info) {
+Socket* socket_alloc(SocketSrv* instance, const SocketInfo* socket_info) {
     furi_check(instance);
     furi_check(socket_info);
 
-    SocketsMessage msg = {
+    SocketSrvMessage msg = {
         .request_type = SocketRequestTypeAlloc,
         .alloc_message =
             {
@@ -134,10 +134,10 @@ Socket* socket_alloc(Sockets* instance, const SocketInfo* socket_info) {
 SocketStatus socket_free(Socket* socket) {
     furi_check(socket);
 
-    Sockets* instance = socket->owner;
+    SocketSrv* instance = socket->owner;
     furi_assert(instance);
 
-    SocketsMessage msg = {
+    SocketSrvMessage msg = {
         .request_type = SocketRequestTypeFree,
         .free_message =
             {
@@ -164,10 +164,10 @@ SocketStatus socket_accept(Socket* socket, const SocketConnectionInfo* bind_info
     furi_check(socket);
     furi_check(bind_info);
 
-    Sockets* instance = socket->owner;
+    SocketSrv* instance = socket->owner;
     furi_assert(instance);
 
-    SocketsMessage msg = {
+    SocketSrvMessage msg = {
         .request_type = SocketRequestTypeAccept,
         .accept_message =
             {
@@ -184,10 +184,10 @@ SocketStatus socket_connect(Socket* socket, const SocketConnectionInfo* connecti
     furi_check(socket);
     furi_check(connection_info);
 
-    Sockets* instance = socket->owner;
+    SocketSrv* instance = socket->owner;
     furi_assert(instance);
 
-    SocketsMessage msg = {
+    SocketSrvMessage msg = {
         .request_type = SocketRequestTypeConnect,
         .connect_message =
             {
@@ -204,10 +204,10 @@ SocketStatus socket_send(Socket* socket, const void* data, size_t data_size, siz
     furi_check(socket);
     furi_check(data);
 
-    Sockets* instance = socket->owner;
+    SocketSrv* instance = socket->owner;
     furi_assert(instance);
 
-    SocketsMessage msg = {
+    SocketSrvMessage msg = {
         .request_type = SocketRequestTypeSend,
         .send_message =
             {
@@ -222,15 +222,15 @@ SocketStatus socket_send(Socket* socket, const void* data, size_t data_size, siz
     return msg.status;
 }
 
-static inline void sockets_send_request(Sockets* instance, const SocketRequest* request) {
+static inline void sockets_send_request(SocketSrv* instance, const SocketRequest* request) {
     const size_t request_size = sockets_get_request_size(request);
     const size_t tx_size = intercom_tx(
         instance->intercom, IntercomChannelSockets, request, request_size, FuriWaitForever);
     furi_check(tx_size == request_size);
 }
 
-static void sockets_process_request(Sockets* instance) {
-    const SocketsMessage* message = instance->message;
+static void sockets_process_request(SocketSrv* instance) {
+    const SocketSrvMessage* message = instance->message;
     const SocketRequestType request_type = message->request_type;
 
     SocketRequest* request = &instance->request;
@@ -238,33 +238,33 @@ static void sockets_process_request(Sockets* instance) {
 
     if(request_type == SocketRequestTypeAlloc) {
         SocketAllocRequest* alloc_request = &request->alloc_request;
-        const SocketsAllocMessage* alloc_message = &message->alloc_message;
+        const SocketSrvAllocMessage* alloc_message = &message->alloc_message;
 
         alloc_request->socket_info = *alloc_message->socket_info;
 
     } else if(request_type == SocketRequestTypeFree) {
         SocketFreeRequest* free_request = &request->free_request;
-        const SocketsFreeMessage* free_message = &message->free_message;
+        const SocketSrvFreeMessage* free_message = &message->free_message;
 
         free_request->socket_id = free_message->socket_id;
 
     } else if(request_type == SocketRequestTypeAccept) {
         SocketAcceptRequest* accept_request = &request->accept_request;
-        const SocketsAcceptMessage* accept_message = &message->accept_message;
+        const SocketSrvAcceptMessage* accept_message = &message->accept_message;
 
         accept_request->socket_id = accept_message->socket_id;
         accept_request->bind_info = *accept_message->bind_info;
 
     } else if(request_type == SocketRequestTypeConnect) {
         SocketConnectRequest* connect_request = &request->connect_request;
-        const SocketsConnectMessage* connect_message = &message->connect_message;
+        const SocketSrvConnectMessage* connect_message = &message->connect_message;
 
         connect_request->socket_id = connect_message->socket_id;
         connect_request->connection_info = *connect_message->connection_info;
 
     } else if(request_type == SocketRequestTypeSend) {
         SocketSendRequest* send_request = &request->send_request;
-        const SocketsSendMessage* send_message = &message->send_message;
+        const SocketSrvSendMessage* send_message = &message->send_message;
 
         const size_t chunk_size = MIN(send_message->data_size, SOCKET_SEND_DATA_SIZE);
 
@@ -279,7 +279,7 @@ static void sockets_process_request(Sockets* instance) {
     sockets_send_request(instance, request);
 }
 
-static Socket* sockets_alloc_socket(Sockets* instance, uint8_t socket_id) {
+static Socket* sockets_alloc_socket(SocketSrv* instance, uint8_t socket_id) {
     furi_assert(socket_id < SOCKET_COUNT);
 
     Socket** socket_slot = &instance->sockets[socket_id];
@@ -293,7 +293,7 @@ static Socket* sockets_alloc_socket(Sockets* instance, uint8_t socket_id) {
     return socket;
 }
 
-static void sockets_free_socket(Sockets* instance, uint8_t socket_id) {
+static void sockets_free_socket(SocketSrv* instance, uint8_t socket_id) {
     furi_assert(socket_id < SOCKET_COUNT);
 
     Socket** socket_slot = &instance->sockets[socket_id];
@@ -304,25 +304,25 @@ static void sockets_free_socket(Sockets* instance, uint8_t socket_id) {
     *socket_slot = NULL;
 }
 
-static void sockets_process_response(Sockets* instance) {
-    SocketsMessage* message = instance->message;
-    const SocketResponse* response = &instance->response[SocketResponseIndexSync];
+static void sockets_process_response(SocketSrv* instance) {
+    SocketSrvMessage* message = instance->message;
+    const SocketResponse* response = &instance->response[SocketChannelSync];
 
     const SocketResponseType response_type = response->type;
     message->status = response->status;
 
     if(message->status == SocketStatusOk) {
         if(response_type == SocketResponseTypeAlloc) {
-            SocketsAllocMessage* alloc_message = &message->alloc_message;
+            SocketSrvAllocMessage* alloc_message = &message->alloc_message;
             const SocketAllocResponse* alloc_response = &response->alloc_response;
             alloc_message->socket = sockets_alloc_socket(instance, alloc_response->socket_id);
 
         } else if(response_type == SocketResponseTypeFree) {
-            SocketsFreeMessage* free_message = &message->free_message;
+            SocketSrvFreeMessage* free_message = &message->free_message;
             sockets_free_socket(instance, free_message->socket_id);
 
         } else if(response_type == SocketResponseTypeSend) {
-            SocketsSendMessage* send_message = &message->send_message;
+            SocketSrvSendMessage* send_message = &message->send_message;
             const SocketSendResponse* send_response = &response->send_response;
 
             if(send_message->sent_size) {
@@ -331,11 +331,11 @@ static void sockets_process_response(Sockets* instance) {
         }
     }
 
-    furi_event_flag_set(instance->event_flag, SocketsEventFlagReady | SocketsEventFlagDone);
+    furi_event_flag_set(instance->event_flag, SocketSrvFlagReady | SocketSrvFlagDone);
 }
 
-static void sockets_process_async_response(Sockets* instance) {
-    const SocketResponse* response = &instance->response[SocketResponseIndexAsync];
+static void sockets_process_async_response(SocketSrv* instance) {
+    const SocketResponse* response = &instance->response[SocketChannelAsync];
     const SocketResponseType response_type = response->type;
 
     const SocketAsyncResponse* async_response = &response->async_response;
@@ -390,21 +390,21 @@ static void sockets_process_async_response(Sockets* instance) {
 
 static void sockets_custom_event_callback(uint32_t events, void* context) {
     furi_assert(context);
-    Sockets* instance = context;
+    SocketSrv* instance = context;
 
-    if(events & SocketsCustomEventRequest) {
+    if(events & SocketSrvEventRequest) {
         sockets_process_request(instance);
     }
-    if(events & SocketsCustomEventResponse) {
+    if(events & SocketSrvEventResponse) {
         sockets_process_response(instance);
     }
-    if(events & SocketsCustomEventAsyncResponse) {
+    if(events & SocketSrvEventAsyncResponse) {
         sockets_process_async_response(instance);
     }
 }
 
-Sockets* sockets_alloc(void) {
-    Sockets* instance = malloc(sizeof(Sockets));
+SocketSrv* sockets_alloc(void) {
+    SocketSrv* instance = malloc(sizeof(SocketSrv));
 
     instance->event_loop = furi_event_loop_alloc();
     instance->event_flag = furi_event_flag_alloc();
@@ -417,7 +417,7 @@ Sockets* sockets_alloc(void) {
         instance->intercom, IntercomChannelSockets, sockets_intercom_rx_callback, instance);
 
     // Start receiving requests
-    furi_event_flag_set(instance->event_flag, SocketsEventFlagReady);
+    furi_event_flag_set(instance->event_flag, SocketSrvFlagReady);
     furi_record_create(RECORD_SOCKETS, instance);
 
     return instance;
@@ -426,7 +426,7 @@ Sockets* sockets_alloc(void) {
 int32_t sockets_srv(void* arg) {
     UNUSED(arg);
 
-    Sockets* instance = sockets_alloc();
+    SocketSrv* instance = sockets_alloc();
     furi_event_loop_run(instance->event_loop);
 
     return 0;

@@ -40,10 +40,10 @@ typedef enum {
 } SocketResponseType;
 
 typedef enum {
-    SocketResponseIndexSync,
-    SocketResponseIndexAsync,
-    SocketResponseIndexMax,
-} SocketResponseIndex;
+    SocketChannelSync,
+    SocketChannelAsync,
+    SocketChannelMax,
+} SocketChannel;
 
 typedef struct {
     SocketInfo socket_info;

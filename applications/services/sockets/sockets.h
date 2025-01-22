@@ -11,7 +11,7 @@ extern "C" {
 #endif
 
 /**
- * @brief The string key for Sockets instance access
+ * @brief The string key for SocketSrv instance access
  *
  * Get the instance pointer by calling `furi_record_open(RECORD_SOCKETS)`
  */
@@ -62,12 +62,12 @@ typedef void (*SocketEventCallback)(Socket* socket, const SocketEvent* event, vo
 /**
  * @brief Create a new socket.
  *
- * @param[in,out] instance Pointer to the Sockets service instance
+ * @param[in,out] instance Pointer to the SocketSrv service instance
  * @param[in] socket_info Pointer to a structure containing the socket description
  *
  * @returns Pointer to the allocated socket on success, NULL otherwise
  */
-Socket* socket_alloc(Sockets* instance, const SocketInfo* socket_info);
+Socket* socket_alloc(SocketSrv* instance, const SocketInfo* socket_info);
 
 /**
  * @brief Close and delete an existing socket.

@@ -3,7 +3,7 @@
 #include <stdint.h>
 #include <stddef.h>
 
-typedef struct Sockets Sockets;
+typedef struct SocketSrv SocketSrv;
 
 typedef enum {
     SocketIpTypeV4,

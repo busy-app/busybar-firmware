@@ -25,7 +25,7 @@ typedef enum {
 
 typedef struct {
     Wifi* wifi;
-    Sockets* sockets_srv;
+    SocketSrv* sockets_srv;
     FuriEventLoop* event_loop;
     FuriMessageQueue* event_queue;
     FuriStreamBuffer* buffers[SocketIndexMax];
