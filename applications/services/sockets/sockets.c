@@ -6,7 +6,7 @@
 
 #define SOCKET_COUNT (20)
 
-#define TAG "Sockets"
+#define TAG "SocketSrv"
 
 typedef struct {
     const SocketInfo* socket_info;

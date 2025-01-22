@@ -9,7 +9,7 @@
 
 #include "sockets_backend_util.h"
 
-#define TAG "Sockets"
+#define TAG "SocketSrv"
 
 #define TOTAL_SOCKETS                   (TOTAL_TCP_SOCKETS + TOTAL_UDP_SOCKETS)
 #define TOTAL_TCP_SOCKETS               3
