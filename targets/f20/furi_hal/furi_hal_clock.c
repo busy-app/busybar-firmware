@@ -17,8 +17,8 @@
 #define FURI_CLOCK_PLL1_N 10
 // PLL1R is used for system clock
 #define FURI_CLOCK_PLL1_R 1
-// PLL1P is used for SDMMC block
-#define FURI_CLOCK_PLL1_Q 4
+// PLL1P is used for SDMMC12 and SAI1 blocks
+#define FURI_CLOCK_PLL1_P 1
 
 void furi_hal_clock_init_early(void) {
     LL_SetSystemCoreClock(CPU_CLOCK_EARLY_HZ);
@@ -58,7 +58,7 @@ void furi_hal_clock_init(void) {
     // PLL1P used for SDMMC block
     // ST has very weird naming conventions for the PLLs
     LL_RCC_PLL1_ConfigDomain_SAI(
-        LL_RCC_PLL1SOURCE_HSE, FURI_CLOCK_PLL1_M, FURI_CLOCK_PLL1_N, FURI_CLOCK_PLL1_Q);
+        LL_RCC_PLL1SOURCE_HSE, FURI_CLOCK_PLL1_M, FURI_CLOCK_PLL1_N, FURI_CLOCK_PLL1_P);
 
     LL_RCC_PLL1_EnableDomain_SYS();
     LL_RCC_PLL1_EnableDomain_SAI();
@@ -117,8 +117,16 @@ uint32_t furi_hal_clock_get_freq(FuriHalClockHW hw) {
         furi_check(LL_RCC_PLL1_GetMainSource() == LL_RCC_PLL1SOURCE_HSE);
         furi_check(LL_RCC_PLL1_GetDivider() == FURI_CLOCK_PLL1_M);
         furi_check(LL_RCC_PLL1_GetN() == FURI_CLOCK_PLL1_N);
-        furi_check(LL_RCC_PLL1_GetP() == FURI_CLOCK_PLL1_Q);
-        return (HSE_VALUE / FURI_CLOCK_PLL1_M * FURI_CLOCK_PLL1_N / FURI_CLOCK_PLL1_Q);
+        furi_check(LL_RCC_PLL1_GetP() == FURI_CLOCK_PLL1_P);
+        return (HSE_VALUE / FURI_CLOCK_PLL1_M * FURI_CLOCK_PLL1_N / FURI_CLOCK_PLL1_P);
+    case FuriHalClockHwSAI1:
+        furi_check(LL_RCC_GetSAIClockSource(LL_RCC_SAI1_CLKSOURCE) == LL_RCC_SAI1_CLKSOURCE_PLL1);
+        furi_check(LL_RCC_PLL1_GetMainSource() == LL_RCC_PLL1SOURCE_HSE);
+        furi_check(LL_RCC_PLL1_GetDivider() == FURI_CLOCK_PLL1_M);
+        furi_check(LL_RCC_PLL1_GetN() == FURI_CLOCK_PLL1_N);
+        furi_check(LL_RCC_PLL1_GetP() == FURI_CLOCK_PLL1_P);
+        return (HSE_VALUE / FURI_CLOCK_PLL1_M * FURI_CLOCK_PLL1_N / FURI_CLOCK_PLL1_P);
+
     default:
         furi_crash("Unknown hardware");
         break;

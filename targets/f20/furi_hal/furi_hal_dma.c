@@ -65,6 +65,7 @@ void furi_hal_dma_deinit_early(void) {
 }
 
 bool furi_hal_dma_allocate_gpdma_channel(uint32_t* gpdma_channel) {
+    FURI_CRITICAL_ENTER();
     for(int i = FURI_HAL_GPDMA_CHANNEL_COUNT - 1 - FURI_HAL_GPDMA_2D_CHANNEL_COUNT; i >= 0; i--) {
         if(!furi_hal_gpdma_channel[i].allocated) {
             furi_hal_gpdma_channel[i].allocated = true;
@@ -73,14 +74,17 @@ bool furi_hal_dma_allocate_gpdma_channel(uint32_t* gpdma_channel) {
             furi_hal_interrupt_set_isr(furi_hal_gpdma_channel[i].interrupt_id, NULL, NULL);
             LL_DMA_DeInit(GPDMA1, i);
             *gpdma_channel = i;
+            
+            FURI_CRITICAL_EXIT();
             return true;
         }
     }
-
+    FURI_CRITICAL_EXIT();
     return false;
 }
 
 bool furi_hal_dma_allocate_gpdma_2d_channel(uint32_t* gpdma_channel) {
+    FURI_CRITICAL_ENTER();
     for(int i = FURI_HAL_GPDMA_CHANNEL_COUNT - 1;
         i >= FURI_HAL_GPDMA_CHANNEL_COUNT - FURI_HAL_GPDMA_2D_CHANNEL_COUNT;
         i--) {
@@ -91,10 +95,13 @@ bool furi_hal_dma_allocate_gpdma_2d_channel(uint32_t* gpdma_channel) {
             furi_hal_interrupt_set_isr(furi_hal_gpdma_channel[i].interrupt_id, NULL, NULL);
             LL_DMA_DeInit(GPDMA1, i);
             *gpdma_channel = i;
+
+            FURI_CRITICAL_EXIT();
             return true;
         }
     }
 
+    FURI_CRITICAL_EXIT();
     return false;
 }
 
