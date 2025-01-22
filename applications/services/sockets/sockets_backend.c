@@ -221,7 +221,7 @@ static void sockets_free_request_handler(const SocketRequest* request, SocketRes
     const SocketFreeRequest* free_request = &request->free_request;
     const int status = sl_si91x_shutdown(free_request->socket_id, SHUTDOWN_BY_ID);
 
-    if(status < 0) {
+    if(status < 0 && errno != EBADF) {
         FURI_LOG_E(TAG, "Failed to free socket: %s", strerror(errno));
         response->status = SocketStatusError;
 
