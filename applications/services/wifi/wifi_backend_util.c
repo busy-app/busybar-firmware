@@ -1,0 +1,131 @@
+#include "wifi_backend_util.h"
+
+#include <furi.h>
+
+WifiStatus wifi_decode_sl_status(sl_status_t sl_status) {
+    WifiStatus status;
+
+    if(sl_status == SL_STATUS_OK) {
+        status = WifiStatusOk;
+    } else {
+        // TODO: More error cases
+        status = WifiStatusError;
+    }
+
+    return status;
+}
+
+sl_ip_management_t wifi_encode_ip_management(WifiIpManagement mgmt) {
+    sl_ip_management_t ret;
+
+    if(mgmt == WifiIpManagementStatic) {
+        ret = SL_IP_MANAGEMENT_STATIC_IP;
+    } else if(mgmt == WifiIpManagementDynamic) {
+        ret = SL_IP_MANAGEMENT_DHCP;
+    } else {
+        furi_crash("Invalid WifiIpAddressMgmt value");
+    }
+
+    return ret;
+}
+
+sl_wifi_security_t wifi_encode_security_mode(WifiSecurityMode security_mode) {
+    sl_wifi_security_t ret;
+
+    if(security_mode < WifiSecurityModeMax) {
+        ret = (sl_wifi_security_t)security_mode;
+    } else {
+        furi_crash("Invalid WifiSecurityMode value");
+    }
+
+    return ret;
+}
+
+sl_ip_address_type_t wifi_encode_ip_version(WifiIpType type) {
+    sl_ip_address_type_t ret;
+
+    if(type == WifiIpTypeV4) {
+        ret = SL_IPV4;
+    } else if(type == WifiIpTypeV6) {
+        ret = SL_IPV6;
+    } else {
+        furi_crash("Invalid WifiIpAddressType value");
+    }
+
+    return ret;
+}
+
+void wifi_encode_ssid(sl_wifi_ssid_t* sl_ssid, const char* ssid) {
+    char* sl_ssid_str = (char*)sl_ssid->value;
+    const size_t sl_ssid_capacity = sizeof(sl_ssid->value);
+
+    strncpy(sl_ssid_str, ssid, sl_ssid_capacity);
+    sl_ssid->length = strlen(sl_ssid_str);
+}
+
+WifiSecurityMode wifi_decode_security_mode(sl_wifi_security_t sl_security) {
+    WifiSecurityMode ret;
+
+    if(sl_security <= SL_WIFI_WPA3_TRANSITION_ENTERPRISE) {
+        ret = (WifiSecurityMode)sl_security;
+    } else {
+        furi_crash("Invalid sl_wifi_security_t value");
+    }
+
+    return ret;
+}
+
+void wifi_decode_ssid(char* ssid, const sl_wifi_ssid_t* sl_ssid) {
+    strncpy(ssid, (char*)sl_ssid->value, sl_ssid->length);
+    ssid[sl_ssid->length] = '\0';
+}
+
+static WifiIpManagement wifi_decode_ip_management(sl_ip_management_t sl_mgmt) {
+    WifiIpManagement ret;
+
+    if(sl_mgmt == SL_IP_MANAGEMENT_STATIC_IP) {
+        ret = WifiIpManagementStatic;
+    } else if(sl_mgmt == SL_IP_MANAGEMENT_DHCP) {
+        ret = WifiIpManagementDynamic;
+    } else {
+        furi_crash("Invalid sl_ip_management_t value");
+    }
+
+    return ret;
+}
+
+static WifiIpType wifi_decode_ip_version(sl_ip_address_type_t sl_type) {
+    WifiIpType ret;
+
+    if(sl_type == SL_IPV4) {
+        ret = WifiIpTypeV4;
+    } else if(sl_type == SL_IPV6) {
+        ret = WifiIpTypeV6;
+    } else {
+        furi_crash("Invalid sl_ip_address_type_t value");
+    }
+
+    return ret;
+}
+
+void wifi_decode_ip_config(WifiIpConfig* config, const sl_net_ip_configuration_t* sl_config) {
+    config->mgmt = wifi_decode_ip_management(sl_config->mode);
+    config->type = wifi_decode_ip_version(sl_config->type);
+
+    const uint8_t* ip_ptr;
+    size_t ip_length;
+
+    if(config->type == WifiIpTypeV4) {
+        ip_ptr = sl_config->ip.v4.ip_address.bytes;
+        ip_length = sizeof(sl_config->ip.v4.ip_address.bytes);
+
+    } else if(config->type == WifiIpTypeV6) {
+        ip_ptr = sl_config->ip.v6.global_address.bytes;
+        ip_length = sizeof(sl_config->ip.v6.global_address.bytes);
+
+    } else {
+        furi_crash("Invalid WifiIpType value");
+    }
+
+    memcpy(&config->address, ip_ptr, ip_length);
+}

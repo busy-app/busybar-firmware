@@ -1,0 +1,11 @@
+App(
+    appid="ble_per_test_start",
+    targets=["f64"],
+    apptype=FlipperAppType.STARTUP,
+    entry_point="ble_per_test_system_start",
+    sources=[
+        "ble_per_test.c",
+        "helpers/ble_per_test_app.c",
+    ],
+    order=40,
+)

@@ -34,7 +34,7 @@ _stack_size = 0x200; /* Required amount of stack */
 MEMORY {
     FLASH (rx)  : ORIGIN = 0x8202000, LENGTH = 0x1fe000
     RAM   (rwx) : ORIGIN = 0x000000c, LENGTH = 0x3fbf4
-    UDMA0 (rwx) : ORIGIN = 0x004fc00, LENGTH = 0x400
+    UDMA0 (rwx) : ORIGIN = 0x003fc00, LENGTH = 0x400
 }
 
 SECTIONS {
@@ -163,6 +163,9 @@ SECTIONS {
         *malloc_buffers.o(.text*)
         *sl_rsi_utility.o(.text*)
 
+        /* ipmu calibration data */
+		*(.common_ipmu_ram*)
+        
         . = ALIGN(4);
         /* preinit data */
         PROVIDE_HIDDEN (__preinit_array_start = .);

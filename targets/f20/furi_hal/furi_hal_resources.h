@@ -86,8 +86,11 @@ extern const GpioPin gpio_led_sdi_ospi_d0;
 extern const GpioPin gpio_led_le_ospi_d1;
 extern const GpioPin gpio_led_dclk_ospi_clk;
 
-extern const GpioPin gpio_audio_dac;
-extern const GpioPin gpio_pa8;
+extern const GpioPin gpio_i2s_fs;
+extern const GpioPin gpio_i2s_sck;
+extern const GpioPin gpio_i2s_sd;
+
+extern const GpioPin gpio_audio_en_and_917_swo;
 
 extern const GpioPinRecord gpio_pins[];
 extern const size_t gpio_pins_count;

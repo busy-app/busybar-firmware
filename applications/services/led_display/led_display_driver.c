@@ -322,9 +322,9 @@ static void led_display_led_driver_send_init(LedDisplayDriver* driver) {
     led_driver_write_reg(
         driver, LedDriverCmdWriteCfg1, (uint16_t[]){cfg_data, cfg_data, cfg_data});
 
-    uint16_t cfg_data_r = (31 << 10) | (1 << 9) | (200 << 1);
+    uint16_t cfg_data_r = (31 << 10) | (1 << 9) | (255 << 1);
     uint16_t cfg_data_g = (28 << 10) | (1 << 9) | (255 << 1);
-    uint16_t cfg_data_b = (23 << 10) | (1 << 9) | (110 << 1);
+    uint16_t cfg_data_b = (23 << 10) | (1 << 9) | (255 << 1);
     led_driver_write_reg(
         driver, LedDriverCmdWriteCfg2, (uint16_t[]){cfg_data_r, cfg_data_g, cfg_data_b});
 
