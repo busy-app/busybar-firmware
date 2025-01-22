@@ -74,6 +74,7 @@ SECTIONS {
             *sl_si91x_bus.o
             *sl_sleeptimer.o
             *sl_sleeptimer_hal_si91x_sysrtc.o
+            *sl_utility.o
             *rsi_sysrtc.o
             *sl_si91x_low_power_tickless_mode.o
             *sli_si91x_multithreaded.o
@@ -155,6 +156,7 @@ SECTIONS {
         *sl_si91x_bus.o(.text*)
         *sl_sleeptimer.o(.text*)
         *sl_sleeptimer_hal_si91x_sysrtc.o(.text*)
+        *sl_utility.o(.text*)
         *rsi_sysrtc.o(.text*)
         *sl_si91x_low_power_tickless_mode.o(.text*)
         *sli_si91x_multithreaded.o(.text*)

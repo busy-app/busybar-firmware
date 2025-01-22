@@ -277,6 +277,7 @@ sl_status_t calibration_app(CalibrationApp* instance, uint8_t cmd_index, FuriStr
             }
             if(parse_err == StrintParseNoError) {
                 status = sl_si91x_calibration_write(instance->calib_pkt);
+                //furi_delay_ms(500);
                 if(status != SL_STATUS_OK) {
                     furi_string_printf(
                         instance->msg, "Calibration data write failed: 0x%lx\r\n", status);
@@ -462,6 +463,7 @@ void* calibration_app_start(CliWorker* worker) {
             calibration_app_send_msg(instance);
         }
 
+        tx_test_info.mode = CONTINUOUS_MODE;
         status = sl_si91x_transmit_test_start(&tx_test_info);
         if(status != SL_STATUS_OK) {
             furi_string_printf(instance->msg, "Transmit test start failed: 0x%lx\r\n", status);
