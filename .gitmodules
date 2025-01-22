@@ -28,3 +28,6 @@
 [submodule "lib/heatshrink"]
 	path = lib/heatshrink
 	url = https://github.com/flipperdevices/heatshrink.git
+[submodule "fbt_layers/fbtng"]
+	path = fbt_layers/fbtng
+	url = https://github.com/flipperdevices/fbtng.git

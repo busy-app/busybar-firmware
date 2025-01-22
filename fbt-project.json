@@ -4,9 +4,8 @@
         {
             "name": "fbtng",
             "source": {
-                "type": "git",
-                "url": "https://github.com/flipperdevices/fbtng.git",
-                "ref": "hedger/ng-bootstrap"
+                "type": "submodule",
+                "path": "fbt_layers/fbtng"
             }
         }
     ]
