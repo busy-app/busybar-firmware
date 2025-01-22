@@ -3,6 +3,7 @@ App(
     name="Basic services",
     apptype=FlipperAppType.METAPACKAGE,
     provides=[
+        "audio",
         "storage",
         "cli",
         "gui",
