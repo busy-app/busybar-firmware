@@ -1,0 +1,8 @@
+#!/bin/sh
+
+set -eu
+
+SCRIPT_PATH="$(cd "$(dirname "$0")" && pwd -P)"
+
+. "$SCRIPT_PATH/scripts/toolchain/fbtenv.sh"
+exec python3 "$SCRIPT_PATH/scripts/toolchain/fbt_ep.py" "$@"

@@ -71,3 +71,5 @@ node_modules/
 
 .clang-format
 .clangd
+
+.fbt
