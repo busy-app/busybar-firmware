@@ -19,10 +19,11 @@
 #define UDP_TX_ONLY_SOCKETS             0
 #define UDP_RX_ONLY_SOCKETS             0
 #define TCP_RX_HIGH_PERFORMANCE_SOCKETS 0
-#define TCP_RX_WINDOW_SIZE_CAP          44
-#define TCP_RX_WINDOW_DIV_FACTOR        44
+#define TCP_RX_WINDOW_SIZE_CAP          1
+#define TCP_RX_WINDOW_DIV_FACTOR        1
 
 #define NUM_CLIENTS_PER_SOCKET 1
+#define NUM_REQUEST_HANDLERS   (SocketRequestTypeMax - 1)
 
 static const sl_si91x_socket_config_t sockets_backend_config = {
     .total_sockets = TOTAL_SOCKETS,
@@ -39,22 +40,16 @@ static const sl_si91x_socket_config_t sockets_backend_config = {
 
 typedef enum {
     SocketsEventRequest = 1UL << 0,
-    SocketsEventWifiDeinit = 1UL << 1,
-    SocketsEventWifiDown = 1UL << 2,
-    SocketsEventWifiUp = 1UL << 3,
+    SocketsEventAsyncRequest = 1UL << 1,
+    SocketsEventAsyncResponse = 1UL << 2,
+    SocketsEventWifiDeinit = 1UL << 3,
+    SocketsEventWifiDown = 1UL << 4,
+    SocketsEventWifiUp = 1UL << 5,
 } SocketsEvent;
-
-/* Assuming only 2 threads might want to send a response,
- * hence 2 response indexes (slots). Intercom will block
- * a particular thread until it is ready to send. */
-typedef enum {
-    SocketResponseIndexRequest,
-    SocketResponseIndexAsync,
-    SocketResponseIndexMax,
-} SocketResponseIndex;
 
 struct Sockets {
     FuriEventLoop* event_loop;
+    FuriSemaphore* async_semaphore;
     Intercom* intercom;
     SocketRequest request;
     SocketResponse response[SocketResponseIndexMax];
@@ -62,24 +57,24 @@ struct Sockets {
 
 typedef void (*SocketsRequestHandler)(const SocketRequest* request, SocketResponse* response);
 
-static const SocketsRequestHandler sockets_request_handlers[SocketRequestTypeMax];
+static const SocketsRequestHandler sockets_request_handlers[NUM_REQUEST_HANDLERS];
 
 /* Global sockets instance, needed for socket callbacks */
 static Sockets* sockets_instance;
 
 static inline void sockets_send_response(Sockets* instance, const SocketResponse* response) {
+    const size_t response_size = sockets_get_response_size(response);
     const size_t tx_size = intercom_tx(
-        instance->intercom,
-        IntercomChannelSockets,
-        response,
-        sizeof(SocketResponse),
-        FuriWaitForever);
-
-    furi_assert(tx_size == sizeof(SocketResponse));
+        instance->intercom, IntercomChannelSockets, response, response_size, FuriWaitForever);
+    furi_assert(tx_size == response_size);
 }
 
 static void sockets_closed_callback(int socket, uint16_t port, uint32_t bytes_sent) {
     FURI_LOG_D(TAG, "Close: %lu byte(s) on socket %d, port %hu", bytes_sent, socket, port);
+
+    furi_check(
+        furi_semaphore_acquire(sockets_instance->async_semaphore, FuriWaitForever) ==
+        FuriStatusOk);
 
     SocketResponse* response = &sockets_instance->response[SocketResponseIndexAsync];
     response->type = SocketResponseTypeAsyncClose;
@@ -92,7 +87,7 @@ static void sockets_closed_callback(int socket, uint16_t port, uint32_t bytes_se
     close_async_response->port = port;
     close_async_response->sent_size = bytes_sent;
 
-    sockets_send_response(sockets_instance, response);
+    furi_event_loop_set_custom_event(sockets_instance->event_loop, SocketsEventAsyncResponse);
 }
 
 static void sockets_receive_callback(
@@ -111,6 +106,10 @@ static void sockets_receive_callback(
     for(size_t total_size = 0; total_size < length;) {
         const size_t chunk_size = MIN(length - total_size, SOCKET_RECV_DATA_SIZE);
 
+        furi_check(
+            furi_semaphore_acquire(sockets_instance->async_semaphore, FuriWaitForever) ==
+            FuriStatusOk);
+
         response->type = SocketResponseTypeAsyncReceive;
         response->status = SocketStatusOk;
 
@@ -120,12 +119,16 @@ static void sockets_receive_callback(
         memcpy(receive_async_response->data, buffer + total_size, chunk_size);
         total_size += chunk_size;
 
-        sockets_send_response(sockets_instance, response);
+        furi_event_loop_set_custom_event(sockets_instance->event_loop, SocketsEventAsyncResponse);
     }
 }
 
 static void sockets_send_callback(int32_t socket, uint16_t length) {
     FURI_LOG_D(TAG, "Tx: %hu byte(s) on socket %ld", length, socket);
+
+    furi_check(
+        furi_semaphore_acquire(sockets_instance->async_semaphore, FuriWaitForever) ==
+        FuriStatusOk);
 
     SocketResponse* response = &sockets_instance->response[SocketResponseIndexAsync];
     response->type = SocketResponseTypeAsyncSend;
@@ -137,7 +140,7 @@ static void sockets_send_callback(int32_t socket, uint16_t length) {
     SocketSendAsyncResponse* send_async_response = &async_response->send_async_response;
     send_async_response->sent_size = length;
 
-    sockets_send_response(sockets_instance, response);
+    furi_event_loop_set_custom_event(sockets_instance->event_loop, SocketsEventAsyncResponse);
 }
 
 // BUG: params `addr` and `ip_version` do not contain correct data
@@ -145,6 +148,10 @@ static void sockets_accept_callback(int32_t socket, struct sockaddr* addr, uint8
     UNUSED(addr);
     UNUSED(ip_version);
     FURI_LOG_D(TAG, "Ac: client socket %ld", socket);
+
+    furi_check(
+        furi_semaphore_acquire(sockets_instance->async_semaphore, FuriWaitForever) ==
+        FuriStatusOk);
 
     SocketResponse* response = &sockets_instance->response[SocketResponseIndexAsync];
     response->type = SocketResponseTypeAsyncAccept;
@@ -162,7 +169,7 @@ static void sockets_accept_callback(int32_t socket, struct sockaddr* addr, uint8
         (const struct sockaddr*)&client_socket->remote_address,
         &accept_async_response->connection_info);
 
-    sockets_send_response(sockets_instance, response);
+    furi_event_loop_set_custom_event(sockets_instance->event_loop, SocketsEventAsyncResponse);
 }
 
 static void sockets_alloc_request_handler(const SocketRequest* request, SocketResponse* response) {
@@ -280,8 +287,6 @@ static void
     SocketSlAddress sl_address = {0};
     sockets_connection_info_to_sl_address(connection_info, &sl_address);
 
-    // TODO: print IP address
-
     const int status =
         sl_si91x_connect(connect_request->socket_id, &sl_address.address, sl_address.length);
 
@@ -322,12 +327,17 @@ static void sockets_send_request_handler(const SocketRequest* request, SocketRes
 
 static void sockets_intercom_rx_callback(const void* data, size_t data_size, void* context) {
     furi_assert(context);
-    furi_assert(data_size == sizeof(SocketRequest));
-
     Sockets* instance = context;
-    memcpy(&instance->request, data, data_size);
 
-    furi_event_loop_set_custom_event(instance->event_loop, SocketsEventRequest);
+    const SocketRequest* request = data;
+    furi_assert(data_size == sockets_get_request_size(request));
+
+    if(request->type < SocketRequestTypeAsyncConfirm) {
+        memcpy(&instance->request, data, data_size);
+        furi_event_loop_set_custom_event(instance->event_loop, SocketsEventRequest);
+    } else {
+        furi_event_loop_set_custom_event(instance->event_loop, SocketsEventAsyncRequest);
+    }
 }
 
 static void sockets_custom_event_callback(uint32_t events, void* context) {
@@ -335,22 +345,25 @@ static void sockets_custom_event_callback(uint32_t events, void* context) {
 
     Sockets* instance = context;
 
-    if(events == SocketsEventRequest) {
+    if(events & SocketsEventRequest) {
         const SocketRequest* request = &instance->request;
         const SocketRequestType request_type = request->type;
-        furi_assert(request_type < SocketRequestTypeMax);
+        furi_check(request_type < SocketRequestTypeAsyncConfirm);
 
-        SocketResponse* response = &instance->response[SocketResponseIndexRequest];
+        SocketResponse* response = &instance->response[SocketResponseIndexSync];
         response->type = (SocketResponseType)request->type;
 
         sockets_request_handlers[request_type](request, response);
         sockets_send_response(instance, response);
-
-    } else if(events == SocketsEventWifiDeinit) {
-        // Wifi has been deinitialised
-    } else if(events == SocketsEventWifiDown) {
-        // Wifi has been initialised or disconnected
-    } else if(events == SocketsEventWifiUp) {
+    }
+    if(events & SocketsEventAsyncRequest) {
+        furi_check(furi_semaphore_release(instance->async_semaphore) == FuriStatusOk);
+    }
+    if(events & SocketsEventAsyncResponse) {
+        SocketResponse* response = &instance->response[SocketResponseIndexAsync];
+        sockets_send_response(instance, response);
+    }
+    if(events & SocketsEventWifiUp) {
         const sl_status_t status = sl_si91x_config_socket(sockets_backend_config);
         furi_check(status == SL_STATUS_OK);
     }
@@ -382,6 +395,7 @@ Sockets* sockets_alloc(void) {
     Sockets* instance = malloc(sizeof(Sockets));
 
     instance->event_loop = furi_event_loop_alloc();
+    instance->async_semaphore = furi_semaphore_alloc(1, 1);
     instance->intercom = furi_record_open(RECORD_INTERCOM);
 
     FuriPubSub* wifi_pubsub = furi_record_open(RECORD_WIFI);
@@ -409,7 +423,7 @@ int32_t sockets_srv(void* arg) {
     return 0;
 }
 
-static const SocketsRequestHandler sockets_request_handlers[SocketRequestTypeMax] = {
+static const SocketsRequestHandler sockets_request_handlers[NUM_REQUEST_HANDLERS] = {
     [SocketRequestTypeAlloc] = sockets_alloc_request_handler,
     [SocketRequestTypeFree] = sockets_free_request_handler,
     [SocketRequestTypeAccept] = sockets_accept_request_handler,

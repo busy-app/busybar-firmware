@@ -2,6 +2,8 @@
 
 #include "sockets_common.h"
 
+#include <stddef.h>
+
 #define SOCKET_REQUEST_SIZE_MAX  (1019UL) /* See intercom/intercom_frame.h */
 #define SOCKET_RESPONSE_SIZE_MAX (SOCKET_REQUEST_SIZE_MAX)
 
@@ -16,6 +18,9 @@ typedef enum {
     SocketRequestTypeAccept,
     SocketRequestTypeConnect,
     SocketRequestTypeSend,
+    /* Async Requests */
+    SocketRequestTypeAsyncConfirm,
+    /* Special value */
     SocketRequestTypeMax,
 } SocketRequestType;
 
@@ -30,8 +35,15 @@ typedef enum {
     SocketResponseTypeAsyncReceive,
     SocketResponseTypeAsyncAccept,
     SocketResponseTypeAsyncClose,
+    /* Special value */
     SocketResponseTypeMax,
 } SocketResponseType;
+
+typedef enum {
+    SocketResponseIndexSync,
+    SocketResponseIndexAsync,
+    SocketResponseIndexMax,
+} SocketResponseIndex;
 
 typedef struct {
     SocketInfo socket_info;
@@ -119,3 +131,6 @@ _Static_assert(sizeof(SocketRequest) <= SOCKET_REQUEST_SIZE_MAX);
 _Static_assert(sizeof(SocketResponse) <= SOCKET_RESPONSE_SIZE_MAX);
 
 #pragma pack(pop)
+
+size_t sockets_get_request_size(const SocketRequest* request);
+size_t sockets_get_response_size(const SocketResponse* response);

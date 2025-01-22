@@ -6,8 +6,6 @@
 
 #include "sockets_common.h"
 
-#include <stddef.h>
-
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -34,12 +32,21 @@ typedef enum {
 typedef struct {
     SocketEventType type; /**< Type of the event that has occurred */
     union {
-        uint16_t data_size; /**< Data size for event types that support it */
+        struct {
+            uint16_t data_size; /**< Size of the data sent */
+        } send; /**< Send event, currently broken in SL firmware */
+        struct {
+            const void* data; /**< Pointer to the received data */
+            uint16_t data_size; /**< Size of the received data */
+        } receive; /**< Recevie event, emitted on received data */
         struct {
             Socket* client_socket; /**< Pointer to the created socket */
             SocketConnectionInfo
                 connection_info; /**< Information relevant to the remote connection */
         } accept; /**< Accept event, emitted on new client connection */
+        struct {
+            uint16_t data_size; /**< Size of the data sent before socket was closed */
+        } close; /**< Close event, emitted on remote connection termination */
     };
 } SocketEvent;
 
@@ -116,6 +123,8 @@ SocketStatus socket_connect(Socket* socket, const SocketConnectionInfo* connecti
  *
  * @note The number of bytes actually sent may be smaller that requested.
  *
+ * @warning The callback is currently broken due to a bug in Si917 firmware.
+ *
  * @param[in,out] socket Pointer to the socket in question
  * @param[in] data Pointer to the data for sending
  * @param[in] data_size Number of bytes to send
@@ -124,23 +133,6 @@ SocketStatus socket_connect(Socket* socket, const SocketConnectionInfo* connecti
  * @returns SocketStatusOk on success, a SocketStatus error code otherwise
  */
 SocketStatus socket_send(Socket* socket, const void* data, size_t data_size, size_t* sent_size);
-
-/**
- * @brief Read the data received by the socket.
- *
- * This function only reads the data that has been received by the socket and does never block.
- * The socket starts receiving automatically after it has been connect()ed or accept()ed, so there is
- * no need to call this function until a receive event has been emitted by the socket.
- *
- * @note The number of bytes actually read may be smaller than requested.
- *
- * @param[in,out] socket Pointer to the socket in question
- * @param[out] data Pointer to the buffer for receiving
- * @param[in] data_size Maximum number of bytes to receive (buffer capacity)
- * @param[out] received_size Pointer to the variable to hold the number of bytes actually received (may be NULL)
- *
- */
-SocketStatus socket_receive(Socket* socket, void* data, size_t data_size, size_t* received_size);
 
 #ifdef __cplusplus
 }

@@ -3,11 +3,14 @@ App(
     name="SocketsSrv",
     apptype=FlipperAppType.SERVICE,
     entry_point="sockets_srv",
-    stack_size=4 * 1024,
+    stack_size=2 * 1024,
     order=100,
     targets=["f20"],
     requires=["wifi"],
-    sources=["sockets.c"],
+    sources=[
+        "sockets.c",
+        "sockets_common.c",
+    ],
 )
 
 App(
@@ -15,12 +18,13 @@ App(
     name="SocketsSrv",
     apptype=FlipperAppType.SERVICE,
     entry_point="sockets_srv",
-    stack_size=4 * 1024,
+    stack_size=2 * 1024,
     order=100,
     targets=["f64"],
     requires=["wifi"],
     sources=[
         "sockets_backend.c",
         "sockets_backend_util.c",
+        "sockets_common.c",
     ],
 )
