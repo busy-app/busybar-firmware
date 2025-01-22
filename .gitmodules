@@ -31,3 +31,6 @@
 [submodule "fbt_layers/fbtng"]
 	path = fbt_layers/fbtng
 	url = https://github.com/flipperdevices/fbtng.git
+[submodule "scripts/toolchain"]
+	path = scripts/toolchain
+	url = https://github.com/flipperdevices/fbtng-bootstrap.git
