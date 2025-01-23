@@ -13,9 +13,11 @@
 
 #define TAG "Calibration"
 
-#define BURST_MODE      0
-#define CONTINUOUS_MODE 1
-#define CW_MODE         2 // CW/DC unmodulated Carrier mode is defined here
+#define BURST_MODE      0 // Burst Mode
+#define CONTINUOUS_MODE 1 // Continuous Mode
+#define CW_MODE         2 // Wave Mode (non modulation) in DC mode
+#define CW_MODE_25      3 // Wave Mode (non modulation) in single tone mode (center frequency -2.5 MHz)
+#define CW_MODE_50      4 // Wave Mode (non modulation) in single tone mode (center frequency +5.0 MHz)
 #define TX_TEST_MODE    CW_MODE // Test mode is changed here
 #define CHANNEL         1
 
@@ -48,6 +50,11 @@ calib_commands_t calib_commands[NO_OF_CALIB_COMMANDS] = {
     {"sl_process_dpd_calibration"},
 };
 
+typedef enum {
+    CalibrationStateIdle,
+    CalibrationStateTx,
+} CalibrationState;
+
 typedef struct {
     FuriString* msg;
     CliWorker* worker;
@@ -60,6 +67,7 @@ typedef struct {
     //sl_si91x_efuse_read_t efuse_read_pkt;
     sl_si91x_get_dpd_calib_data_t dpd_calib_pkt;
 
+    CalibrationState state;
 } CalibrationApp;
 
 const sl_wifi_data_rate_t rate = SL_WIFI_DATA_RATE_1;
@@ -159,6 +167,7 @@ sl_status_t sl_process_dpd_calibration(
     } else {
         furi_string_printf(instance->msg, "Transmit command stopped\n");
         calibration_app_send_msg(instance);
+        instance->state = CalibrationStateIdle;
     }
 
     for(i = 0; i < MAX_DPD_TRAINING_CHANNELS; i++) {
@@ -178,6 +187,7 @@ sl_status_t sl_process_dpd_calibration(
                     "Transmit command started with channel num %x\r\n",
                     channel_sel[i]);
                 calibration_app_send_msg(instance);
+                instance->state = CalibrationStateTx;
             }
             furi_delay_ms(1000);
 
@@ -189,6 +199,7 @@ sl_status_t sl_process_dpd_calibration(
             } else {
                 furi_string_printf(instance->msg, "Transmit command stopped\r\n");
                 calibration_app_send_msg(instance);
+                instance->state = CalibrationStateIdle;
             }
             furi_delay_ms(1000);
         }
@@ -330,6 +341,7 @@ sl_status_t calibration_app(CalibrationApp* instance, uint8_t cmd_index, FuriStr
                 } else {
                     furi_string_printf(instance->msg, "Transmit test stopped\r\n");
                     calibration_app_send_msg(instance);
+                    instance->state = CalibrationStateIdle;
                 }
 
                 status = sl_si91x_evm_offset(&instance->evm_offset_pkt);
@@ -352,6 +364,7 @@ sl_status_t calibration_app(CalibrationApp* instance, uint8_t cmd_index, FuriStr
                 } else {
                     furi_string_printf(instance->msg, "Transmit test started\r\n");
                     calibration_app_send_msg(instance);
+                    instance->state = CalibrationStateTx;
                 }
             }
         }
@@ -450,6 +463,8 @@ void* calibration_app_start(CliWorker* worker) {
 
     instance->dpd_calib_pkt.dpd_power_index = 127;
 
+    instance->state = CalibrationStateIdle;
+
     sl_status_t status = SL_STATUS_FAIL;
     do {
         status = sl_net_init(SL_NET_WIFI_CLIENT_INTERFACE, &calibration_configuration, NULL, NULL);
@@ -457,11 +472,13 @@ void* calibration_app_start(CliWorker* worker) {
             furi_string_printf(
                 instance->msg, "Failed to start Wi-Fi client interface: 0x%lx\r\n", status);
             calibration_app_send_msg(instance);
+            furi_delay_ms(200);
             break;
         } else {
             furi_string_printf(instance->msg, "Wi-Fi initialization successful\r\n");
             calibration_app_send_msg(instance);
         }
+        FURI_LOG_D(TAG, "Wi-Fi initialization successful");
 
         tx_test_info.mode = CONTINUOUS_MODE;
         status = sl_si91x_transmit_test_start(&tx_test_info);
@@ -470,19 +487,22 @@ void* calibration_app_start(CliWorker* worker) {
             calibration_app_send_msg(instance);
             break;
         }
-
+        FURI_LOG_D(TAG, "Wi-Fi transmit CONTINUOUS_MODE started");
+        instance->state = CalibrationStateTx;
+        furi_delay_ms(200);
         status = sl_si91x_transmit_test_stop();
         if(status != SL_STATUS_OK) {
             furi_string_printf(instance->msg, "Transmit test stop failed: 0x%lx\r\n", status);
             calibration_app_send_msg(instance);
             break;
         }
-
+        FURI_LOG_D(TAG, "Wi-Fi transmit CONTINUOUS_MODE stopped");
+        instance->state = CalibrationStateIdle;
+        furi_delay_ms(200);
         tx_test_info.mode = TX_TEST_MODE;
 
         status = sl_si91x_transmit_test_start(&tx_test_info);
         if(status != SL_STATUS_OK) {
-            ;
             furi_string_printf(instance->msg, "Transmit test start failed: 0x%lx\r\n", status);
             calibration_app_send_msg(instance);
             break;
@@ -490,6 +510,8 @@ void* calibration_app_start(CliWorker* worker) {
             furi_string_printf(instance->msg, "Transmit test started\r\n");
             calibration_app_send_msg(instance);
         }
+        instance->state = CalibrationStateTx;
+        FURI_LOG_D(TAG, "Wi-Fi transmit started");
 
         calibrate_app_cmd_usage(instance);
     } while(0);
@@ -504,13 +526,21 @@ void* calibration_app_start(CliWorker* worker) {
 
 void calibration_app_stop(void* app_handle) {
     CalibrationApp* instance = (CalibrationApp*)app_handle;
+    FURI_LOG_I(TAG, "Stopping");
+
     if(instance) {
+        if(instance->state == CalibrationStateTx) {
+            sl_si91x_transmit_test_stop();
+            FURI_LOG_D(TAG, "Wi-Fi transmit stopped");
+        }
+
         furi_string_free(instance->msg);
         free(instance);
         instance = NULL;
     }
-    sl_si91x_transmit_test_stop();
+
     sl_net_deinit(SL_NET_WIFI_CLIENT_INTERFACE);
+    FURI_LOG_D(TAG, "Wi-Fi deinitialization successful");
 }
 
 void calibration_app_parse_msg(void* app_handle, uint8_t* data, size_t size) {
@@ -582,6 +612,10 @@ void calibrate_app_cmd_usage(CalibrationApp* instance) {
         "11N_MCS0_MCS2> <evm_offset_11N_MCS0>,<evm_offset_11N_MCS7>\r\n");
     furi_string_cat_printf(
         instance->msg, "sl_process_dpd_calibration \033[0;31m Not used? \033[0m\r\n");
+
+    furi_string_cat_printf(
+        instance->msg,
+        "\r\n For calibration, you need to \"sl_freq_offset X\" set the carrier frequency to 2412 MHz +2 kHz, save the settings with the command \"sl_calib_write 1 2 0 0 0\"\r\n");
     furi_string_cat_printf(
         instance->msg,
         "*************************************************************************************************************"
