@@ -24,11 +24,11 @@ App(
     name="Basic services",
     apptype=FlipperAppType.METAPACKAGE,
     provides=[
-        "cli",
+        #"cli",
         "input",
-        #"intercom",
+        "intercom",
         "notification",
-        #"wifi",
+        "wifi",
     ],
     targets=["f64"],
 )
