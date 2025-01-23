@@ -22,6 +22,7 @@ sources += [
     "lwip/src/apps/mdns/mdns.c",
     "lwip/src/apps/mdns/mdns_domain.c",
     "lwip/src/apps/mdns/mdns_out.c",
+    "lwip/src/apps/lwiperf/lwiperf.c",
 ]
 
 lib = libenv.StaticLibrary("${FW_LIB_NAME}", sources)

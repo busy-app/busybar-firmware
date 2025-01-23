@@ -1,17 +1,19 @@
 #include <furi_hal.h>
 #include <furi_hal_usb_interface.h>
 
-#include "lwip/init.h"
-#include "lwip/timeouts.h"
-#include "lwip/ethip6.h"
-#include "lwip/err.h"
-#include "lwip/udp.h"
-#include "netif/etharp.h"
-#include "dhserver.h"
-#include "lwip/tcpip.h"
-#include "mdns.h"
+#include <lwip/init.h>
+#include <lwip/timeouts.h>
+#include <lwip/err.h>
+#include <lwip/udp.h>
+#include <lwip/tcpip.h>
+#include <lwip/apps/mdns.h>
+#include <lwip/apps/lwiperf.h>
+#include <netif/etharp.h>
+#include <dhserver.h>
 
 #define TAG "USB NET"
+
+#define USB_NET_IPERF
 
 #define INIT_IP4(a, b, c, d) {PP_HTONL(LWIP_MAKEU32(a, b, c, d))}
 
@@ -160,6 +162,11 @@ static int32_t network_thread(void* ctx) {
     mdns_resp_add_service(
         netif_default, "httpd", "_http", DNSSD_PROTO_TCP, 80, mdns_srv_txt, NULL);
     mdns_resp_announce(netif_default);
+
+#ifdef USB_NET_IPERF
+    // test with: iperf -c 192.168.7.1 -e -i 1 -M 5000 -l 8192 -r
+    lwiperf_start_tcp_server_default(NULL, NULL);
+#endif
 
     while(1) {
         furi_semaphore_acquire(frame_sem, 10);
