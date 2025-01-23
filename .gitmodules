@@ -34,3 +34,9 @@
 [submodule "scripts/toolchain"]
 	path = scripts/toolchain
 	url = https://github.com/flipperdevices/fbtng-bootstrap.git
+[submodule "fbt_layers/core_libs"]
+	path = fbt_layers/core_libs
+	url = https://github.com/flipperdevices/fbtng-corelibs.git
+[submodule "fbt_layers/freertos"]
+	path = fbt_layers/freertos
+	url = https://github.com/flipperdevices/fbtng-freertos.git

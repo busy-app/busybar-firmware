@@ -1,15 +1,5 @@
 Import("env")
 
-from pathlib import Path
-
-# Register all modules in env_modules as dist and fw env components
-# for dist_module in env.Glob("site_scons/bsb_env_modules/dist/*.scons"):
-#     module_basename = Path(dist_module.name).stem
-#     env.RegisterComponent(f"dist_{module_basename}", dist_module.srcnode())
-# for env_module in env.Glob("site_scons/bsb_env_modules/fwenv/*.scons"):
-#     module_basename = Path(env_module.name).stem
-#     env.RegisterComponent(f"fwenv_{module_basename}", env_module.srcnode())
-
 SConscript(
     "#/lib/register_bsb_common_libs.scons",
     exports={"env": env},
