@@ -1,4 +1,5 @@
 #pragma once
+#include <stddef.h>
 
 typedef enum {
     LedDisplayTestPatternChess,
@@ -8,6 +9,12 @@ typedef enum {
     LedDisplayTestPatternRectangulars,
     LedDisplayTestPatternCross,
     LedDisplayTestPatternFrame,
+
+    LedDisplayTestPatternAnimFill,
+    LedDisplayTestPatternAnimHalfFill,
+    LedDisplayTestPatternAnimFill10Noise,
+    LedDisplayTestPatternAnimFill25Noise,
+    LedDisplayTestPatternAnimFill50Noise,
 
     LedDisplayTestPatternNum,
 } LedDisplayTestPattern;
@@ -29,3 +36,7 @@ void led_display_test_set(LedDisplayTestPattern pattern, LedDisplayTestColor col
 const char* led_display_get_pattern_str(LedDisplayTestPattern pattern);
 
 const char* led_display_get_color_str(LedDisplayTestColor color);
+
+size_t led_display_get_pattern_frame_time(LedDisplayTestPattern pattern);
+
+void led_display_test_advance_frame(LedDisplayTestPattern pattern);
