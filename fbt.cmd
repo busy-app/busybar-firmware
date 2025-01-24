@@ -1,9 +1,6 @@
 @echo off
 setlocal
 
-REM Call the environment setup script
-call "%~dp0scripts\toolchain\fbtenv.cmd" env || goto :error
-
 REM Ensure that we're in a cloned repo and the submodules are up to date
 if "%FBT_NO_SYNC%" == "" (
     set "_FBT_CLONE_FLAGS=--jobs %NUMBER_OF_PROCESSORS%"
@@ -21,6 +18,9 @@ if "%FBT_NO_SYNC%" == "" (
         goto :error
     )
 )
+
+REM Call the environment setup script
+call "%~dp0scripts\toolchain\fbtenv.cmd" env || goto :error
 
 REM Run fbt's entry point script, passing all arguments
 python "%~dp0scripts\toolchain\fbt_ep.py" %*
