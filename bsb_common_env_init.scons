@@ -9,3 +9,6 @@ SConscript(
 env.AppendUnique(
     LINT_SOURCES=[Dir("applications").rdir()],
 )
+
+# Temporary workaround
+env.Replace(PROJECT_ROOT=Dir("../..").srcnode())
