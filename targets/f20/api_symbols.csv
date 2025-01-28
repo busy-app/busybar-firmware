@@ -127,11 +127,16 @@ Function,-,__utoa,char*,"unsigned, char*, int"
 Function,-,__wrap___assert,void,"const char*, int, const char*"
 Function,-,__wrap___assert_func,void,"const char*, int, const char*, const char*"
 Function,-,__wrap_fflush,int,FILE*
+Function,-,__wrap_fgetc,int,FILE*
+Function,-,__wrap_fgets,char*,"char*, size_t, FILE*"
+Function,-,__wrap_getc,int,FILE*
+Function,-,__wrap_getchar,int,
 Function,-,__wrap_printf,int,"const char*, ..."
 Function,-,__wrap_putc,int,"int, FILE*"
 Function,-,__wrap_putchar,int,int
 Function,-,__wrap_puts,int,const char*
 Function,-,__wrap_snprintf,int,"char*, size_t, const char*, ..."
+Function,-,__wrap_ungetc,int,"int, FILE*"
 Function,-,__wrap_vsnprintf,int,"char*, size_t, const char*, va_list"
 Function,-,_asiprintf_r,int,"_reent*, char**, const char*, ..."
 Function,-,_asniprintf_r,char*,"_reent*, char*, size_t*, const char*, ..."
@@ -850,6 +855,7 @@ Function,-,furi_stream_buffer_receive,size_t,"FuriStreamBuffer*, void*, size_t, 
 Function,-,furi_stream_buffer_reset,FuriStatus,FuriStreamBuffer*
 Function,-,furi_stream_buffer_send,size_t,"FuriStreamBuffer*, const void*, size_t, uint32_t"
 Function,-,furi_stream_buffer_spaces_available,size_t,FuriStreamBuffer*
+Function,-,furi_stream_get_trigger_level,size_t,FuriStreamBuffer*
 Function,-,furi_stream_set_trigger_level,_Bool,"FuriStreamBuffer*, size_t"
 Function,-,furi_string_alloc,FuriString*,
 Function,-,furi_string_alloc_move,FuriString*,FuriString*
@@ -930,6 +936,7 @@ Function,-,furi_thread_get_return_code,int32_t,FuriThread*
 Function,-,furi_thread_get_signal_callback,FuriThreadSignalCallback,const FuriThread*
 Function,-,furi_thread_get_stack_space,uint32_t,FuriThreadId
 Function,-,furi_thread_get_state,FuriThreadState,FuriThread*
+Function,-,furi_thread_get_stdin_callback,FuriThreadStdinReadCallback,
 Function,-,furi_thread_get_stdout_callback,FuriThreadStdoutWriteCallback,
 Function,-,furi_thread_is_suspended,_Bool,FuriThreadId
 Function,-,furi_thread_join,_Bool,FuriThread*
@@ -950,9 +957,12 @@ Function,-,furi_thread_set_signal_callback,void,"FuriThread*, FuriThreadSignalCa
 Function,-,furi_thread_set_stack_size,void,"FuriThread*, size_t"
 Function,-,furi_thread_set_state_callback,void,"FuriThread*, FuriThreadStateCallback"
 Function,-,furi_thread_set_state_context,void,"FuriThread*, void*"
-Function,-,furi_thread_set_stdout_callback,void,FuriThreadStdoutWriteCallback
+Function,-,furi_thread_set_stdin_callback,void,"FuriThreadStdinReadCallback, void*"
+Function,-,furi_thread_set_stdout_callback,void,"FuriThreadStdoutWriteCallback, void*"
 Function,-,furi_thread_signal,_Bool,"const FuriThread*, uint32_t, void*"
 Function,-,furi_thread_start,void,FuriThread*
+Function,-,furi_thread_stdin_read,size_t,"char*, size_t, FuriWait"
+Function,-,furi_thread_stdin_unread,void,"char*, size_t"
 Function,-,furi_thread_stdout_flush,int32_t,
 Function,-,furi_thread_stdout_write,size_t,"const char*, size_t"
 Function,-,furi_thread_suspend,void,FuriThreadId

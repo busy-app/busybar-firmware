@@ -532,7 +532,8 @@ void furi_hal_serial_set_hw_flow_control(
         hw_flow_reg_value = LL_USART_HWCONTROL_RTS_CTS;
         furi_hal_gpio_init_ex(
             gpio_rts, GpioModeAltFunctionPushPull, GpioPullNo, GpioSpeedVeryHigh, alt_fn);
-        furi_hal_gpio_init_ex(gpio_cts, GpioModeInput, GpioPullUp, GpioSpeedVeryHigh, alt_fn);
+        furi_hal_gpio_init_ex(
+            gpio_cts, GpioModeAltFunctionPushPull, GpioPullUp, GpioSpeedVeryHigh, alt_fn);
 
     } else {
         furi_crash();

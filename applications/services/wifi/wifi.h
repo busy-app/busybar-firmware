@@ -15,13 +15,6 @@ extern "C" {
 #endif
 
 /**
- * @brief The string key for Wifi instance access
- *
- * Get the instance pointer by calling `furi_record_open(RECORD_WIFI)`
- */
-#define RECORD_WIFI "wifi"
-
-/**
  * @brief Initialise the Wifi system.
  *
  * @note The Wifi system MUST NOT be initialised when calling this function.
