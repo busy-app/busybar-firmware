@@ -1,6 +1,6 @@
 App(
     appid="audio",
-    name="InputSrv",
+    name="AudioSrv",
     apptype=FlipperAppType.SERVICE,
     entry_point="audio_srv",
     cdefines=["SRV_AUDIO"],
