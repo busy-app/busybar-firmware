@@ -6,6 +6,7 @@ App(
         "audio",
         "storage",
         "cli",
+        "cli_socket",
         "gui",
         "input",
         "desktop_simple",
