@@ -13,8 +13,8 @@ for libname in [
     "microtar",
     "mbedtls",
     "icon_assets",
-    # "toolbox",
-    # "flipper_format",
+    "toolbox",
+    "flipper_format",
     "flipper_application",
     "nanopb",
     "heatshrink",
@@ -28,7 +28,11 @@ for libname in [
     "toolbox_f64",
     "firmware_applications_f64",
 ]:
-    # print(f"In {env.Real(Dir('.'))}, registering {libname}")
     env.RegisterComponent(f"fwlib_{libname}", env.FindComponentSconscript(libname))
 
-# Return("libs")
+
+env.Append(
+    CPPPATH=[
+        Dir(".").srcnode(),
+    ],
+)

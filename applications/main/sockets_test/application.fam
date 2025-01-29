@@ -1,0 +1,10 @@
+App(
+    appid="sockets_test",
+    name="Sockets Test",
+    apptype=FlipperAppType.APP,
+    entry_point="sockets_test_app",
+    requires=["gui"],
+    stack_size=2 * 1024,
+    fap_category="Debug",
+    targets=["f20"],
+)
