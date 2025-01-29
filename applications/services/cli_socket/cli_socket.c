@@ -15,7 +15,7 @@
 
 typedef struct {
     int32_t client_socket;
-    bool connected;
+    volatile bool connected;
     FuriEventFlag* evt_flags;
 } CliSocket;
 
@@ -77,9 +77,11 @@ int32_t cli_socket_srv(void* p) {
     return 0;
 }
 
-void cli_socket_init(void) {};
+void cli_socket_init(void) {
+}
 
-void cli_socket_deinit(void) {};
+void cli_socket_deinit(void) {
+}
 
 size_t cli_socket_rx(uint8_t* buffer, size_t size, uint32_t timeout) {
     UNUSED(timeout);
@@ -112,7 +114,8 @@ void cli_socket_tx(const uint8_t* buffer, size_t size) {
     }
 }
 
-void cli_socket_tx_stdout(const char* data, size_t size) {
+void cli_socket_tx_stdout(const char* data, size_t size, void* context) {
+    UNUSED(context);
     cli_socket_tx((const uint8_t*)data, size);
 }
 
