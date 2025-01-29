@@ -1,11 +1,14 @@
 #include <furi.h>
 #include <lwip/sockets.h>
 #include <cli/cli_i.h>
+#include <furi_hal_usb_interface.h>
 
 #define CLI_SOCKET_PORT 23
 #define TAG             "CliSocket"
 
-#ifdef CLI_SOCKET_DEBUG
+#define CLI_SOCKET_DEBUG_ENABLE
+
+#ifdef CLI_SOCKET_DEBUG_ENABLE
 #define CLI_SOCKET_DEBUG(...) FURI_LOG_D(TAG, __VA_ARGS__)
 #else
 #define CLI_SOCKET_DEBUG(...)
@@ -27,6 +30,8 @@ static CliSocket cli_socket = {
 
 int32_t cli_socket_srv(void* p) {
     UNUSED(p);
+
+    furi_hal_usb_set_config(&usb_default, NULL);
 
     cli_socket.evt_flags = furi_event_flag_alloc();
 
@@ -68,7 +73,7 @@ int32_t cli_socket_srv(void* p) {
         uint32_t flags = furi_event_flag_wait(
             cli_socket.evt_flags, FLAG_DISCONNECT, FuriFlagWaitAny, FuriWaitForever);
         furi_check(flags & FLAG_DISCONNECT);
-        furi_check(!(FuriStatusError & flags));
+        furi_check(!(flags & FuriFlagError));
 
         cli_socket.connected = false;
         close(cli_socket.client_socket);
@@ -86,8 +91,8 @@ void cli_socket_deinit(void) {
 size_t cli_socket_rx(uint8_t* buffer, size_t size, uint32_t timeout) {
     UNUSED(timeout);
 
-    if(cli_socket.connected == false) {
-        return 0;
+    while(cli_socket.connected == false) {
+        furi_delay_ms(100);
     }
 
     int32_t ret = recv(cli_socket.client_socket, buffer, size, 0);
@@ -102,8 +107,8 @@ size_t cli_socket_rx(uint8_t* buffer, size_t size, uint32_t timeout) {
 }
 
 void cli_socket_tx(const uint8_t* buffer, size_t size) {
-    if(cli_socket.connected == false) {
-        return;
+    while(cli_socket.connected == false) {
+        furi_delay_ms(100);
     }
 
     int32_t ret = send(cli_socket.client_socket, buffer, size, 0);
