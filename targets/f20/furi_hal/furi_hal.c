@@ -51,7 +51,6 @@ void furi_hal_init(void) {
     // furi_hal_bt_init();
     // furi_hal_memory_init();
     furi_hal_usb_init();
-    furi_hal_network_init();
     // furi_hal_vibro_init();
     // furi_hal_subghz_init();
     // furi_hal_nfc_init();

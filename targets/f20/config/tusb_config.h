@@ -53,11 +53,7 @@ extern "C" {
 #define CFG_TUSB_MCU OPT_MCU_STM32U5
 #endif
 
-#ifndef CFG_TUSB_OS
-#define CFG_TUSB_OS OPT_OS_FREERTOS
-#endif
-
-#define CFG_TUSB_RHPORT1_MODE (OPT_MODE_DEVICE | OPT_MODE_HIGH_SPEED)
+#define CFG_TUSB_OS OPT_OS_CUSTOM
 
 #ifndef CFG_TUSB_DEBUG
 #define CFG_TUSB_DEBUG 1
@@ -94,6 +90,9 @@ extern "C" {
 
 #define CFG_TUD_DWC2_DMA_ENABLE 1
 
+#define CFG_TUD_NCM_OUT_NTB_N 2
+#define CFG_TUD_NCM_IN_NTB_N  2
+
 //------------- CLASS -------------//
 // Built-in classed are not used
 #define CFG_TUD_CDC    0
@@ -101,6 +100,7 @@ extern "C" {
 #define CFG_TUD_HID    0
 #define CFG_TUD_MIDI   0
 #define CFG_TUD_VENDOR 0
+#define CFG_TUD_NCM    1
 
 #ifdef __cplusplus
 }

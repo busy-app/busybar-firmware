@@ -1,7 +1,10 @@
 #include <furi_hal.h>
+#include <furi_hal_interrupt.h>
 #include "furi_hal_usb_i.h"
 #include <toolbox/api_lock.h>
 #include <stm32u5xx_ll_pwr.h>
+#include <class/net/net_device.h>
+#include <class/net/ncm.h>
 
 #define TAG "USB"
 
@@ -43,6 +46,10 @@ static struct FuriHalUsbCfg {
     void* cfg_context;
     void* cfg_inst; //TODO: pass to all callbacks
 
+    FuriEventLoop* event_loop;
+    FuriSemaphore* usb_semaphore;
+    FuriSemaphore* net_semaphore;
+
     // TinyUsb driver struct
     usbd_class_driver_t tu_driver;
 
@@ -52,104 +59,6 @@ static struct FuriHalUsbCfg {
     bool enabled;
     bool connected;
 } usb_service = {0};
-
-static tusb_desc_device_t const desc_device_dummy = {
-    .bLength = sizeof(tusb_desc_device_t),
-    .bDescriptorType = TUSB_DESC_DEVICE,
-    .bcdUSB = VERSION_BCD(2, 0, 0),
-
-    .bDeviceClass = TUSB_CLASS_MISC,
-    .bDeviceSubClass = MISC_SUBCLASS_COMMON,
-    .bDeviceProtocol = MISC_PROTOCOL_IAD,
-    .bMaxPacketSize0 = CFG_TUD_ENDPOINT0_SIZE,
-
-    .idVendor = 0,
-    .idProduct = 0,
-    .bcdDevice = VERSION_BCD(1, 0, 0),
-
-    .iManufacturer = 0,
-    .iProduct = 0,
-    .iSerialNumber = 0,
-
-    .bNumConfigurations = 0x01,
-};
-
-static uint8_t const desc_cfg_dummy[] = {
-    TUD_CONFIG_DESCRIPTOR(1, 0, 0, TUD_CONFIG_DESC_LEN, 0x00, 100),
-};
-
-static uint8_t const desc_bos_dummy[] = {
-    TUD_BOS_DESCRIPTOR(TUD_BOS_DESC_LEN, 0),
-};
-
-static void tud_drv_dummy_init(void);
-static void tud_drv_dummy_reset(uint8_t rhport);
-static uint16_t
-    tud_drv_dummy_open(uint8_t rhport, tusb_desc_interface_t const* desc_intf, uint16_t max_len);
-static bool tud_drv_dummy_control_xfer_cb(
-    uint8_t rhport,
-    uint8_t stage,
-    tusb_control_request_t const* request);
-static bool tud_drv_dummy_xfer_cb(
-    uint8_t rhport,
-    uint8_t ep_addr,
-    xfer_result_t result,
-    uint32_t xferred_bytes);
-
-static FuriHalUsbInterface cfg_dummy = {
-    .init = NULL,
-    .deinit = NULL,
-    .reset = tud_drv_dummy_reset,
-    .open = tud_drv_dummy_open,
-    .control_xfer_cb = tud_drv_dummy_control_xfer_cb,
-    .xfer_cb = tud_drv_dummy_xfer_cb,
-    .sof = NULL,
-    .connect_state = NULL,
-    .dev_descr = (tusb_desc_device_t*)&desc_device_dummy,
-    .str_manuf_descr = NULL,
-    .str_prod_descr = NULL,
-    .str_serial_descr = NULL,
-    .cfg_fs_descr = (uint8_t*)desc_cfg_dummy,
-    .cfg_hs_descr = (uint8_t*)desc_cfg_dummy,
-    .bos_descr = (uint8_t*)desc_bos_dummy,
-};
-
-usbd_class_driver_t const* usbd_app_driver_get_cb(uint8_t* driver_count) {
-    *driver_count = 1;
-    return &usb_service.tu_driver;
-}
-
-uint8_t const* tud_descriptor_device_cb(void) {
-    return (uint8_t const*)(usb_service.cfg->dev_descr);
-}
-
-uint8_t const* tud_descriptor_device_qualifier_cb(void) {
-    return (uint8_t const*)&(usb_service.desc_qualifier);
-}
-
-uint8_t const* tud_descriptor_other_speed_configuration_cb(uint8_t index) {
-    UNUSED(index); // for multiple configurations
-
-    // if link speed is high return fullspeed config, and vice versa
-    return (tud_speed_get() == TUSB_SPEED_HIGH) ? usb_service.cfg->cfg_fs_descr :
-                                                  usb_service.cfg->cfg_hs_descr;
-}
-
-uint8_t const* tud_descriptor_configuration_cb(uint8_t index) {
-    UNUSED(index); // for multiple configurations
-
-    // Although we are highspeed, host may be fullspeed.
-    return (tud_speed_get() == TUSB_SPEED_HIGH) ? usb_service.cfg->cfg_hs_descr :
-                                                  usb_service.cfg->cfg_fs_descr;
-}
-
-uint8_t const* tud_descriptor_bos_cb(void) {
-    if(usb_service.cfg->bos_descr == NULL) {
-        return (uint8_t const*)(desc_bos_dummy);
-    } else {
-        return (uint8_t const*)(usb_service.cfg->bos_descr);
-    }
-}
 
 void tud_mount_cb(void) {
     usb_service.connected = true;
@@ -173,233 +82,81 @@ void tud_suspend_cb(bool remote_wakeup_en) {
     }
 }
 
-uint16_t const* tud_descriptor_string_cb(uint8_t index, uint16_t langid) {
-    UNUSED(langid);
-    size_t desc_len = 0;
-
-    if(index == UsbDevLang) {
-        memcpy(&usb_service.desc_string_temp[1], USB_LANGID_EN, 2);
-        desc_len = 2;
-
-    } else {
-        char* string_src = NULL;
-        if(index == UsbDevManuf) {
-            string_src = usb_service.cfg->str_manuf_descr;
-        } else if(index == UsbDevProduct) {
-            string_src = usb_service.cfg->str_prod_descr;
-        } else if(index == UsbDevSerial) {
-            string_src = usb_service.cfg->str_serial_descr;
-        }
-
-        if((string_src == NULL) && (usb_service.cfg->str_desc_custom)) {
-            string_src = usb_service.cfg->str_desc_custom(BOARD_TUD_RHPORT, index);
-        }
-
-        do {
-            if(string_src == NULL) break;
-
-            size_t string_len = strlen(string_src);
-            if(string_len == 0) break;
-
-            if(string_len > USB_DESC_STRING_LEN_MAX) {
-                string_len = USB_DESC_STRING_LEN_MAX;
-            }
-
-            // Convert ASCII string into UTF-16
-            for(size_t i = 0; i < string_len; i++) {
-                usb_service.desc_string_temp[1 + i] = string_src[i];
-            }
-
-            desc_len = string_len * 2;
-
-        } while(0);
-    }
-
-    if(desc_len > 0) {
-        usb_service.desc_string_temp[0] = (uint16_t)((TUSB_DESC_STRING << 8) | (desc_len + 2));
-        return usb_service.desc_string_temp;
-    } else {
-        return NULL;
-    }
-}
-
-static void tud_drv_dummy_init(void) {
-    // Not used
-}
-
-static void tud_drv_dummy_reset(uint8_t rhport) {
+void tud_event_hook_cb(uint8_t rhport, uint32_t eventid, bool in_isr) {
     UNUSED(rhport);
+    UNUSED(eventid);
+    UNUSED(in_isr);
+
+    furi_semaphore_release(usb_service.usb_semaphore);
 }
 
-static uint16_t
-    tud_drv_dummy_open(uint8_t rhport, tusb_desc_interface_t const* desc_intf, uint16_t max_len) {
-    UNUSED(rhport);
-    UNUSED(desc_intf);
-    UNUSED(max_len);
-    return 0;
+void furi_hal_usb_irq(void* ctx) {
+    UNUSED(ctx);
+    tusb_int_handler(BOARD_TUD_RHPORT, true);
 }
 
-static bool tud_drv_dummy_control_xfer_cb(
-    uint8_t rhport,
-    uint8_t stage,
-    tusb_control_request_t const* request) {
-    UNUSED(rhport);
-    UNUSED(stage);
-    UNUSED(request);
-    return false;
+static void furi_hal_usb_handler(FuriEventLoopObject* object, void* context) {
+    UNUSED(context);
+    // Power* instance = context;
+
+    // furi_assert(instance);
+    furi_assert(usb_service.usb_semaphore == object);
+    furi_check(furi_semaphore_acquire(object, 0) == FuriStatusOk);
+
+    do {
+        tud_task_ext(0, false);
+    } while(tud_task_event_ready());
 }
 
-bool tud_vendor_control_xfer_cb(
-    uint8_t rhport,
-    uint8_t stage,
-    tusb_control_request_t const* request) {
-    return usb_service.cfg->control_xfer_cb(rhport, stage, request);
-}
+void network_handle(void);
+void network_start(FuriSemaphore* usb_sem);
 
-static bool tud_drv_dummy_xfer_cb(
-    uint8_t rhport,
-    uint8_t ep_addr,
-    xfer_result_t result,
-    uint32_t xferred_bytes) {
-    UNUSED(rhport);
-    UNUSED(ep_addr);
-    UNUSED(result);
-    UNUSED(xferred_bytes);
-    return true;
-}
+static void furi_hal_usbnet_handler(FuriEventLoopObject* object, void* context) {
+    UNUSED(context);
+    // Power* instance = context;
 
-void OTG_HS_IRQHandler(void) {
-    tud_int_handler(BOARD_TUD_RHPORT); // TODO: move to furi_hal_interrupt
-}
+    // furi_assert(instance);
+    furi_assert(usb_service.net_semaphore == object);
+    furi_check(furi_semaphore_acquire(object, 0) == FuriStatusOk);
 
-static void usb_make_qualifier_desc(tusb_desc_device_t* dev) {
-    furi_check(dev);
-    usb_service.desc_qualifier.bLength = sizeof(tusb_desc_device_qualifier_t);
-    usb_service.desc_qualifier.bDescriptorType = TUSB_DESC_DEVICE_QUALIFIER;
-    usb_service.desc_qualifier.bcdUSB = dev->bcdUSB;
-    usb_service.desc_qualifier.bDeviceClass = dev->bDeviceClass;
-    usb_service.desc_qualifier.bDeviceSubClass = dev->bDeviceSubClass;
-    usb_service.desc_qualifier.bDeviceProtocol = dev->bDeviceProtocol;
-    usb_service.desc_qualifier.bMaxPacketSize0 = dev->bMaxPacketSize0;
-    usb_service.desc_qualifier.bNumConfigurations = dev->bNumConfigurations;
-    usb_service.desc_qualifier.bReserved = 0;
-}
-
-static void usb_process_set_config(FuriHalUsbInterface* cfg_new, void* context) {
-    furi_check(cfg_new);
-    furi_check(cfg_new->dev_descr);
-    furi_check(cfg_new->cfg_fs_descr);
-    furi_check(cfg_new->cfg_hs_descr);
-    furi_check(cfg_new->reset);
-    furi_check(cfg_new->open);
-    furi_check(cfg_new->control_xfer_cb);
-    furi_check(cfg_new->xfer_cb);
-
-    dcd_int_disable(BOARD_TUD_RHPORT);
-
-    if(usb_service.cfg) {
-        if(usb_service.cfg->deinit) {
-            usb_service.cfg->deinit(usb_service.cfg_inst);
-        }
-    }
-
-    usb_service.cfg = cfg_new;
-    usb_service.cfg_context = context;
-
-    // Fill Qualifier Descriptor from Device Descriptor
-    usb_make_qualifier_desc(usb_service.cfg->dev_descr);
-
-    // Fill TinyUsb driver struct
-    usb_service.tu_driver.reset = usb_service.cfg->reset;
-    usb_service.tu_driver.open = usb_service.cfg->open;
-    usb_service.tu_driver.control_xfer_cb = usb_service.cfg->control_xfer_cb;
-    usb_service.tu_driver.xfer_cb = usb_service.cfg->xfer_cb;
-    usb_service.tu_driver.sof = usb_service.cfg->sof;
-
-    if(usb_service.cfg->init) {
-        usb_service.cfg_inst = usb_service.cfg->init(context);
-    } else {
-        usb_service.cfg_inst = NULL;
-    }
-
-    dcd_int_enable(BOARD_TUD_RHPORT);
-}
-
-static bool usb_process_change_mode(FuriHalUsbInterface* cfg_new, void* context) {
-    if((cfg_new != usb_service.cfg) || (context != usb_service.cfg_context)) {
-        if(usb_service.enabled) {
-            tud_suspend_cb(false);
-            tud_disconnect();
-            usb_service.enabled = false;
-            furi_delay_ms(USB_RECONNECT_DELAY);
-        }
-        if(cfg_new) {
-            usb_process_set_config(cfg_new, context);
-            tud_connect();
-            usb_service.enabled = true;
-        } else {
-            usb_process_set_config(&cfg_dummy, NULL);
-        }
-    }
-    return true;
-}
-
-static void usb_process_enable(bool enable) {
-    if(enable) {
-        if((!usb_service.enabled) && (usb_service.cfg != NULL)) {
-            tud_connect();
-            usb_service.enabled = true;
-        }
-    } else {
-        if(usb_service.enabled) {
-            tud_suspend_cb(false);
-            tud_disconnect();
-            usb_service.enabled = false;
-        }
-    }
-}
-
-static void usb_process_message(UsbApiEventMessage* message) {
-    switch(message->type) {
-    case UsbApiEventTypeSetConfig:
-        message->return_data->bool_value = usb_process_change_mode(
-            message->data.interface.interface, message->data.interface.context);
-        break;
-    case UsbApiEventTypeDisable:
-        usb_process_enable(false);
-        break;
-    case UsbApiEventTypeEnable:
-        usb_process_enable(true);
-        break;
-    }
-
-    api_lock_unlock(message->lock);
-}
-
-static void furi_hal_usb_send_message(UsbApiEventMessage* message) {
-    furi_message_queue_put(usb_service.queue, message, FuriWaitForever);
-    api_lock_wait_unlock_and_free(message->lock);
+    network_handle();
 }
 
 static int32_t furi_hal_usb_thread(void* context) {
     UNUSED(context);
 
-    usb_service.tu_driver.init = tud_drv_dummy_init;
+    usb_service.event_loop = furi_event_loop_alloc();
+    usb_service.usb_semaphore = furi_semaphore_alloc(1, 1);
+    furi_event_loop_subscribe_semaphore(
+        usb_service.event_loop,
+        usb_service.usb_semaphore,
+        FuriEventLoopEventIn,
+        furi_hal_usb_handler,
+        &usb_service);
+
+    usb_service.net_semaphore = furi_semaphore_alloc(1, 0);
+    furi_event_loop_subscribe_semaphore(
+        usb_service.event_loop,
+        usb_service.net_semaphore,
+        FuriEventLoopEventIn,
+        furi_hal_usbnet_handler,
+        &usb_service);
+
+    network_start(usb_service.net_semaphore);
+
     usb_service.enabled = false;
     usb_service.connected = false;
 
-    tud_init(BOARD_TUD_RHPORT);
-    tud_disconnect();
-    usb_process_set_config(&cfg_dummy, NULL);
+    furi_delay_ms(1000);
 
-    while(1) {
-        tud_task_ext(10, false);
+    tusb_rhport_init_t dev_init = {
+        .role = TUSB_ROLE_DEVICE,
+        .speed = TUSB_SPEED_AUTO,
+    };
+    tusb_init(BOARD_TUD_RHPORT, &dev_init);
 
-        UsbApiEventMessage message;
-        if(furi_message_queue_get(usb_service.queue, &message, 0) == FuriStatusOk) {
-            usb_process_message(&message);
-        }
-    }
+    furi_event_loop_run(usb_service.event_loop);
+
     return 0;
 }
 
@@ -416,7 +173,8 @@ void furi_hal_usb_init(void) {
     furi_hal_gpio_init_ex(
         &gpio_usb_dp, GpioModeAltFunctionPushPull, GpioPullNo, GpioSpeedHigh, GpioAltFn10USB_HS);
 
-    NVIC_SetPriority(OTG_HS_IRQn, configLIBRARY_MAX_SYSCALL_INTERRUPT_PRIORITY);
+    furi_hal_interrupt_set_isr_ex(
+        FuriHalInterruptIdUSBHS, FuriHalInterruptPriorityHighest, furi_hal_usb_irq, NULL);
 
     furi_hal_bus_enable(FuriHalBusOTG_HS);
     furi_hal_bus_enable(FuriHalBusUSBPHY);
@@ -436,37 +194,162 @@ void furi_hal_usb_init(void) {
     USB_OTG_HS->GCCFG |= USB_OTG_GCCFG_VBVALOVAL;
 
     usb_service.queue = furi_message_queue_alloc(1, sizeof(UsbApiEventMessage));
-    usb_service.thread = furi_thread_alloc_service("UsbDriver", 1024, furi_hal_usb_thread, NULL);
+    usb_service.thread = furi_thread_alloc_service("UsbDriver", 4096, furi_hal_usb_thread, NULL);
     furi_thread_start(usb_service.thread);
 
     FURI_LOG_I(TAG, "Init OK");
 }
 
 bool furi_hal_usb_set_config(FuriHalUsbInterface* new_if, void* ctx) {
-    UsbApiEventReturnData return_data = {
-        .bool_value = false,
-    };
+    UNUSED(new_if);
+    UNUSED(ctx);
 
-    UsbApiEventMessage msg = {
-        .lock = api_lock_alloc_locked(),
-        .type = UsbApiEventTypeSetConfig,
-        .data.interface =
-            {
-                .interface = new_if,
-                .context = ctx,
-            },
-        .return_data = &return_data,
-    };
-
-    furi_hal_usb_send_message(&msg);
-    return return_data.bool_value;
+    return false;
 }
 
-void furi_hal_usb_enable(bool state) {
-    UsbApiEventMessage msg = {
-        .lock = api_lock_alloc_locked(),
-        .type = state ? UsbApiEventTypeEnable : UsbApiEventTypeDisable,
-    };
+enum {
+    STRID_LANGID = 0,
+    STRID_MANUFACTURER,
+    STRID_PRODUCT,
+    STRID_SERIAL,
+    STRID_INTERFACE,
+    STRID_MAC
+};
 
-    furi_hal_usb_send_message(&msg);
+enum {
+    ITF_NUM_CDC = 0,
+    ITF_NUM_CDC_DATA,
+    ITF_NUM_TOTAL
+};
+
+enum {
+    CONFIG_ID_NCM = 0,
+    CONFIG_ID_COUNT
+};
+
+//--------------------------------------------------------------------+
+// Device Descriptors
+//--------------------------------------------------------------------+
+tusb_desc_device_t const desc_device = {
+    .bLength = sizeof(tusb_desc_device_t),
+    .bDescriptorType = TUSB_DESC_DEVICE,
+    .bcdUSB = 0x0200,
+
+    // Use Interface Association Descriptor (IAD) device class
+    .bDeviceClass = TUSB_CLASS_MISC,
+    .bDeviceSubClass = MISC_SUBCLASS_COMMON,
+    .bDeviceProtocol = MISC_PROTOCOL_IAD,
+
+    .bMaxPacketSize0 = CFG_TUD_ENDPOINT0_SIZE,
+
+    .idVendor = 0x37C1,
+    .idProduct = 0x0001,
+    .bcdDevice = 0x0101,
+
+    .iManufacturer = STRID_MANUFACTURER,
+    .iProduct = STRID_PRODUCT,
+    .iSerialNumber = STRID_SERIAL,
+
+    .bNumConfigurations = CONFIG_ID_COUNT // multiple configurations
+};
+
+// Invoked when received GET DEVICE DESCRIPTOR
+// Application return pointer to descriptor
+uint8_t const* tud_descriptor_device_cb(void) {
+    return (uint8_t const*)&desc_device;
+}
+
+#define NCM_CONFIG_TOTAL_LEN (TUD_CONFIG_DESC_LEN + TUD_CDC_NCM_DESC_LEN)
+
+#define EPNUM_NET_NOTIF 0x81
+#define EPNUM_NET_OUT   0x02
+#define EPNUM_NET_IN    0x82
+
+static uint8_t const ncm_configuration[] = {
+    // Config number (index+1), interface count, string index, total length, attribute, power in mA
+    TUD_CONFIG_DESCRIPTOR(CONFIG_ID_NCM + 1, ITF_NUM_TOTAL, 0, NCM_CONFIG_TOTAL_LEN, 0, 100),
+
+    // Interface number, description string index, MAC address string index, EP notification address and size, EP data address (out, in), and size, max segment size.
+    TUD_CDC_NCM_DESCRIPTOR(
+        ITF_NUM_CDC,
+        STRID_INTERFACE,
+        STRID_MAC,
+        EPNUM_NET_NOTIF,
+        64,
+        EPNUM_NET_OUT,
+        EPNUM_NET_IN,
+        CFG_TUD_NET_ENDPOINT_SIZE,
+        CFG_TUD_NET_MTU),
+};
+
+static uint8_t const* const configuration_arr[] = {[CONFIG_ID_NCM] = ncm_configuration};
+
+// Invoked when received GET CONFIGURATION DESCRIPTOR
+// Application return pointer to descriptor
+// Descriptor contents must exist long enough for transfer to complete
+uint8_t const* tud_descriptor_configuration_cb(uint8_t index) {
+    return (index < CONFIG_ID_COUNT) ? configuration_arr[index] : NULL;
+}
+
+// array of pointer to string descriptors
+static char const* string_desc_arr[] = {
+    [STRID_LANGID] = (const char[]){0x09, 0x04}, // supported language is English (0x0409)
+    [STRID_MANUFACTURER] = "TinyUSB", // Manufacturer
+    [STRID_PRODUCT] = "TinyUSB Device", // Product
+    [STRID_SERIAL] = "0", // Serials will use unique ID if possible
+    [STRID_INTERFACE] = "TinyUSB Network Interface" // Interface Description
+
+};
+
+static uint16_t _desc_str[32 + 1];
+
+uint8_t tud_network_mac_address[6] = {0x0C, 0xFA, 0x22, 0x01, 0x23, 0x45};
+
+// Invoked when received GET STRING DESCRIPTOR request
+// Application return pointer to descriptor, whose contents must exist long enough for transfer to complete
+uint16_t const* tud_descriptor_string_cb(uint8_t index, uint16_t langid) {
+    (void)langid;
+    unsigned int chr_count = 0;
+
+    switch(index) {
+    case STRID_LANGID:
+        memcpy(&_desc_str[1], string_desc_arr[0], 2);
+        chr_count = 1;
+        break;
+
+    case STRID_MAC:
+        // Convert MAC address into UTF-16
+        for(unsigned i = 0; i < sizeof(tud_network_mac_address); i++) {
+            _desc_str[1 + chr_count++] =
+                "0123456789ABCDEF"[(tud_network_mac_address[i] >> 4) & 0xf];
+            _desc_str[1 + chr_count++] =
+                "0123456789ABCDEF"[(tud_network_mac_address[i] >> 0) & 0xf];
+        }
+        break;
+
+    default:
+        // Note: the 0xEE index string is a Microsoft OS 1.0 Descriptors.
+        // https://docs.microsoft.com/en-us/windows-hardware/drivers/usbcon/microsoft-defined-usb-descriptors
+
+        if(!(index < sizeof(string_desc_arr) / sizeof(string_desc_arr[0]))) return NULL;
+
+        const char* str = string_desc_arr[index];
+
+        // Cap at max char
+        chr_count = strlen(str);
+        size_t const max_count =
+            sizeof(_desc_str) / sizeof(_desc_str[0]) - 1; // -1 for string type
+        if(chr_count > max_count) chr_count = max_count;
+
+        // Convert ASCII string into UTF-16
+        for(size_t i = 0; i < chr_count; i++) {
+            _desc_str[1 + i] = str[i];
+        }
+        break;
+    }
+
+    // first byte is length (including header), second byte is string type
+    _desc_str[0] = (uint16_t)((TUSB_DESC_STRING << 8) | (2 * chr_count + 2));
+
+    return _desc_str;
 }

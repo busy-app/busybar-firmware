@@ -65,7 +65,8 @@
         "st/include",
         "driver",
         "st_abomination",
-        "lwip"
+        "lwip",
+        "usb"
     ],
     "env_setup_scripts": [
         "#/bsb_common_env_init.scons"

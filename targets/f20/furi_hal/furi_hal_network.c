@@ -1,5 +1,5 @@
 #include <furi_hal.h>
-#include <furi_hal_usb_interface.h>
+// #include <furi_hal_usb_interface.h>
 
 #include <lwip/init.h>
 #include <lwip/timeouts.h>
@@ -10,6 +10,7 @@
 #include <lwip/apps/lwiperf.h>
 #include <netif/etharp.h>
 #include <dhserver.h>
+#include <tusb.h>
 
 #define TAG "USB NET"
 
@@ -55,8 +56,8 @@ static err_t linkoutput_fn(struct netif* netif, struct pbuf* p) {
         if(!tud_ready()) return ERR_USE;
 
         /* if the network driver can accept another packet, we make it happen */
-        if(furi_hal_usb_eth_can_xmit(p->tot_len)) {
-            furi_hal_usb_eth_xmit(p, 0 /* unused for this example */);
+        if(tud_network_can_xmit(p->tot_len)) {
+            tud_network_xmit(p, 0 /* unused for this example */);
             return ERR_OK;
         }
     }
@@ -74,9 +75,9 @@ static err_t ip6_output_fn(struct netif* netif, struct pbuf* p, const ip6_addr_t
 
 static err_t netif_init_cb(struct netif* netif) {
     LWIP_ASSERT("netif != NULL", (netif != NULL));
-    netif->mtu = USB_ETH_MTU;
+    netif->mtu = CFG_TUD_NET_MTU;
     netif->flags = NETIF_FLAG_BROADCAST | NETIF_FLAG_ETHARP | NETIF_FLAG_IGMP |
-                   NETIF_FLAG_LINK_UP | NETIF_FLAG_UP;
+                   NETIF_FLAG_LINK_UP | NETIF_FLAG_UP; // NETIF_FLAG_ETHERNET
     netif->state = NULL;
     netif->name[0] = 'E';
     netif->name[1] = 'X';
@@ -130,13 +131,13 @@ void tud_network_init_cb(void) {
     }
 }
 
-static int32_t network_thread(void* ctx) {
-    UNUSED(ctx);
-    frame_sem = furi_semaphore_alloc(1, 0);
+static struct netif netif_data;
+static struct netif* netif = &netif_data;
+
+void network_start(FuriSemaphore* usb_sem) {
+    frame_sem = usb_sem; //furi_semaphore_alloc(1, 0);
 
     /* lwip context */
-    struct netif netif_data;
-    struct netif* netif = &netif_data;
 
     tcpip_init(NULL, NULL);
 
@@ -146,7 +147,7 @@ static int32_t network_thread(void* ctx) {
     memcpy(netif->hwaddr, network_mac_address, sizeof(network_mac_address));
     netif->hwaddr[5] ^= 0x01;
 
-    netif = netif_add(netif, &ipaddr, &netmask, &gateway, NULL, netif_init_cb, ip_input);
+    netif = netif_add(netif, &ipaddr, &netmask, &gateway, NULL, netif_init_cb, tcpip_input);
 #if LWIP_IPV6
     netif_create_ip6_linklocal_address(netif, 1);
 #endif
@@ -167,20 +168,12 @@ static int32_t network_thread(void* ctx) {
     // test with: iperf -c 192.168.7.1 -e -i 1 -M 5000 -l 8192 -r
     lwiperf_start_tcp_server_default(NULL, NULL);
 #endif
-
-    while(1) {
-        furi_semaphore_acquire(frame_sem, 10);
-        if(received_frame) {
-            ethernet_input(received_frame, &netif_data);
-            received_frame = NULL;
-            furi_hal_usb_eth_recv_renew();
-        }
-    }
-
-    return 0;
 }
 
-void furi_hal_network_init(void) {
-    FuriThread* thread = furi_thread_alloc_service("UsbNet", 4096, network_thread, NULL);
-    furi_thread_start(thread);
+void network_handle(void) {
+    if(received_frame) {
+        netif->input(received_frame, &netif_data);
+        received_frame = NULL;
+        tud_network_recv_renew();
+    }
 }
