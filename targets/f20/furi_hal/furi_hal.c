@@ -1,5 +1,4 @@
 #include <furi_hal.h>
-#include <furi_hal_todo.h>
 
 #define TAG "FuriHal"
 
@@ -29,7 +28,6 @@ void furi_hal_deinit_early(void) {
 void furi_hal_init(void) {
     furi_hal_mpu_init();
     furi_hal_clock_init();
-    furi_hal_todo_init();
     // furi_hal_psram_init();
     furi_hal_sdmmc_init();
     // furi_hal_random_init();
