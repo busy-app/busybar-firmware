@@ -1,6 +1,7 @@
 #include "cli_i.h"
 #include "cli_commands.h"
-#include "cli_vcp.h"
+// #include "cli_vcp.h"
+#include <cli_socket/cli_socket.h>
 #include <version/version.h>
 #include <loader/loader.h>
 
@@ -473,7 +474,7 @@ int32_t cli_srv(void* p) {
         furi_thread_set_stdout_callback(NULL, NULL);
     }
 
-    cli_session_open(cli, &cli_vcp);
+    cli_session_open(cli, &cli_session);
 
     //TODO: Implement furi_hal_rtc_get_boot_mode
     // if(furi_hal_rtc_get_boot_mode() == FuriHalRtcBootModeNormal) {

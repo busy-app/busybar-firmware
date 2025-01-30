@@ -1,8 +1,3 @@
-/**
- * @file cli_vcp.h
- * VCP HAL API
- */
-
 #pragma once
 
 #ifdef __cplusplus

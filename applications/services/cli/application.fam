@@ -8,5 +8,5 @@ App(
     order=30,
     sdk_headers=["cli.h", "cli_vcp.h"],
     targets=["f20"],
-    sources=["cli_u5.c", "cli_command_gpio.c", "cli_commands_u5.c", "cli_vcp_f20.c"],
+    sources=["cli_u5.c", "cli_command_gpio.c", "cli_commands_u5.c"],
 )
