@@ -107,4 +107,4 @@ if fwenv.get("IS_BASE_FIRMWARE", False):
     if appenv["FORCE"]:
         appenv.AlwaysBuild(sdk_source, sdk_header_tree, api_check, firmware_apitable)
 
-    fw_artifacts.append(extapps.sdk_tree)
+    # fw_artifacts.append(extapps.sdk_tree)

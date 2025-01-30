@@ -69,7 +69,9 @@
         "usb"
     ],
     "env_setup_scripts": [
-        "#/bsb_common_env_init.scons"
+        "#/bsb_common_env_init.scons",
+        "#/core_libs_env_init.scons",
+        "#/freertos_env_init.scons"
     ],
     "extra_tool_paths": [
         "../../scripts/fbt_tools"

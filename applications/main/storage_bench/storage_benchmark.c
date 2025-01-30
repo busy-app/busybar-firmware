@@ -87,11 +87,11 @@ static void storage_benchmark_file_write(Storage* storage, size_t blocks) {
         float speed_kb = (float)(buffer_size) / seconds / 1024;
         FURI_LOG_I(
             TAG,
-            "Write %zu bytes took %0.3f ms, speed %0.2f kb/s (%0.2f Mbit/s)",
+            "Write %zu bytes took %0.3f ms, speed %0.2f KiB/s (%0.2f MiB/s)",
             buffer_size,
             (double)seconds * 1000,
             (double)speed_kb,
-            (double)speed_kb * 8 / 1024);
+            (double)speed_kb / 1024);
     }
 
     storage_file_free(file);
@@ -134,11 +134,11 @@ static void storage_benchmark_file_read(Storage* storage, size_t blocks) {
         float speed_kb = (float)(buffer_size) / seconds / 1024;
         FURI_LOG_I(
             TAG,
-            "Read %zu bytes took %0.3f ms, speed %0.2f kb/s (%0.2f Mbit/s)",
+            "Read %zu bytes took %0.3f ms, speed %0.2f KiB/s (%0.2f MiB/s)",
             buffer_size,
             (double)seconds * 1000,
             (double)speed_kb,
-            (double)speed_kb * 8 / 1024);
+            (double)speed_kb / 1024);
 
         for(size_t i = 0; i < buffer_size; i++) {
             if(buffer[i] != i % 256) {
