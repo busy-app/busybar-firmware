@@ -1,0 +1,10 @@
+App(
+    appid="lvgl_test",
+    name="LvglTestSrv",
+    apptype=FlipperAppType.SERVICE,
+    entry_point="lvgl_test_srv",
+    cdefines=["SRV_LVGL_TEST"],
+    stack_size=4 * 1024,
+    targets=["f20"],
+    order=900,
+)

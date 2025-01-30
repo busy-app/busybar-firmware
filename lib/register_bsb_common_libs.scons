@@ -6,6 +6,7 @@ for libname in [
     "nema_gfx",
     "canvas_oled",
     "lwip",
+    "lvgl",
     "network",
     "mongoose",
     "fw_updater_opts",

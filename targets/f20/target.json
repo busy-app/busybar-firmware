@@ -100,6 +100,7 @@
         "print",
         "fatfs",
         "lwip",
+        "lvgl",
         "network",
         "mongoose",
         "canvas_oled",
