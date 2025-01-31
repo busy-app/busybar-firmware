@@ -10,7 +10,6 @@ App(
         "input",
         # "desktop_simple",
         # "loader_simple",
-        # "oled_screen",
         "led_display",
         "httpd_test",
         "power_srv",
