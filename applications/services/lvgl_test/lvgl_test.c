@@ -36,8 +36,11 @@ typedef struct {
 
 typedef struct {
     FuriEventLoop* event_loop;
+    FuriEventLoopTimer* timer;
     DotMatrixSrv* dot_matrix;
     DisplayData display_data[DisplayTypeMax];
+    lv_obj_t* front_label;
+    uint32_t counter;
 } LvglTestSrv;
 
 // TODO: Optimise conversion?
@@ -115,6 +118,11 @@ static void lvgl_test_srv_tick_callback(void* context) {
     lv_timer_periodic_handler();
 }
 
+static void lvgl_test_srv_timer_callback(void* context) {
+    LvglTestSrv* instance = context;
+    lv_label_set_text_fmt(instance->front_label, "Counter: %lu", instance->counter++);
+}
+
 static void lvgl_test_srv_init_front(LvglTestSrv* instance) {
     DisplayData* display_data = &instance->display_data[DisplayTypeFront];
     display_data->draw_buffer = malloc(FRONT_DRAW_BUFFER_SIZE);
@@ -137,8 +145,10 @@ static void lvgl_test_srv_init_front(LvglTestSrv* instance) {
     lv_obj_set_style_text_color(screen, lv_color_hex(0xFFFFFF), LV_PART_MAIN);
 
     lv_obj_t* label = lv_label_create(screen);
-    lv_label_set_text(label, "Hello there");
+    lv_label_set_text_fmt(label, "Counter: %lu", instance->counter);
     lv_obj_align(label, LV_ALIGN_CENTER, 0, 0);
+
+    instance->front_label = label;
 }
 
 static void lvgl_test_srv_init_back(LvglTestSrv* instance) {
@@ -172,8 +182,16 @@ static void lvgl_test_srv_init_back(LvglTestSrv* instance) {
 
 static LvglTestSrv* lvgl_test_srv_alloc(void) {
     LvglTestSrv* instance = malloc(sizeof(LvglTestSrv));
+
     instance->event_loop = furi_event_loop_alloc();
+    instance->timer = furi_event_loop_timer_alloc(
+        instance->event_loop,
+        lvgl_test_srv_timer_callback,
+        FuriEventLoopTimerTypePeriodic,
+        instance);
     instance->dot_matrix = furi_record_open(RECORD_DOT_MATRIX);
+
+    furi_event_loop_timer_start(instance->timer, 1000);
 
     furi_event_loop_tick_set(
         instance->event_loop, TICK_PERIOD_MS, lvgl_test_srv_tick_callback, NULL);
