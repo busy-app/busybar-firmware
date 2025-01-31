@@ -4,7 +4,7 @@
 
 #define TAG "DotMatrixSrv"
 
-#define REFRESH_PERIOD_MS (33)
+#define REFRESH_PERIOD_MS (100)
 
 typedef enum {
     DotMatrixSrvEventMessage = 1UL << 0,
