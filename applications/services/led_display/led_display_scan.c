@@ -1,12 +1,11 @@
-#include <furi.h>
+#include "led_display_i.h"
+
 #include <stm32u5xx_ll_tim.h>
 #include <stm32u5xx_ll_rcc.h>
 #include <stm32u5xx_ll_spi.h>
 #include <stm32u5xx_ll_dma.h>
 
-#include "led_display_i.h"
-
-#define TAG "LED display"
+#include <furi.h>
 
 #define GCLK_COUNT      138
 #define GCLK_PRESCALER  10
@@ -18,6 +17,8 @@
 #define LOAD_DELAY 50
 
 #define SCAN_DISABLED (1 << 5)
+// VSYNC command: LE high during 3x DCLK periods + 1 dummy clock
+#define VSYNC_CMD     ((1 << 3) | (1 << 5) | (1 << 7))
 
 // Display block select look-up table
 static const uint8_t display_scan_table[DISPLAY_BLOCKS] = {
@@ -37,6 +38,8 @@ struct LedDisplayScan {
     LL_DMA_LinkNodeTypeDef dma_link_node;
     uint32_t dma_channel;
     uint8_t scan_order_table[DISPLAY_BLOCKS];
+    LedDisplayCallback vsync_callback;
+    void* callback_context;
 };
 
 static LedDisplayScan* led_scan;
@@ -276,13 +279,21 @@ static void scan_dma_tc_irq(void* context) {
     }
 }
 
+// Send VSYNC the fastest possible way
+static inline void led_display_vsync_trig(void) {
+    *(uint8_t*)&OCTOSPI1->DR = (uint8_t)VSYNC_CMD;
+}
+
 void TIM5_IRQHandler(void) {
     if((LL_TIM_IsEnabledIT_CC1(TIM5)) && (LL_TIM_IsActiveFlag_CC1(TIM5))) {
         led_display_vsync_trig();
         LL_TIM_DisableIT_CC1(TIM5);
+        if(led_scan->vsync_callback) {
+            led_scan->vsync_callback(led_scan->callback_context);
+        }
     }
     if((LL_TIM_IsEnabledIT_CC3(TIM5)) && (LL_TIM_IsActiveFlag_CC3(TIM5))) {
-        led_display_send_buf_start();
+        led_display_driver_send_buf_start();
         LL_TIM_DisableIT_CC3(TIM5);
     }
 }
@@ -317,4 +328,9 @@ void led_display_output_enable(bool enable) {
     } else {
         memset(led_scan->scan_order_table, SCAN_DISABLED, DISPLAY_BLOCKS);
     }
+}
+
+void led_display_scan_set_vsync_callback(LedDisplayCallback callback, void* context) {
+    led_scan->vsync_callback = callback;
+    led_scan->callback_context = context;
 }

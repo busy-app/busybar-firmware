@@ -3,11 +3,15 @@
 #include <stdint.h>
 #include <stdbool.h>
 
-#define DISPLAY_W 72
-#define DISPLAY_H 16
+#define RECORD_DOT_MATRIX "dot_matrix"
 
-void led_display_reset(void);
+#define DOT_MATRIX_W        (72)
+#define DOT_MATRIX_H        (16)
+#define DOT_MATRIX_BPP      (24)
+#define DOT_MATRIX_BUF_SIZE (DOT_MATRIX_W * DOT_MATRIX_H * DOT_MATRIX_BPP / 8)
 
-void led_display_set_default_img(void);
+typedef struct DotMatrixSrv DotMatrixSrv;
 
-void led_display_set_pixel(uint8_t x, uint8_t y, uint8_t r, uint8_t g, uint8_t b);
+void dot_matrix_reset(DotMatrixSrv* instance);
+
+void dot_matrix_draw(DotMatrixSrv* instance, const uint8_t* buf);

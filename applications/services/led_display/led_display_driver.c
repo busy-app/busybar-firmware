@@ -1,8 +1,7 @@
-#include <furi.h>
-#include <stm32u5xx_ll_dma.h>
 #include "led_display_i.h"
 
-#define TAG "LED display"
+#include <furi.h>
+#include <stm32u5xx_ll_dma.h>
 
 #define OCTOSPI_PRESCALLER  8
 #define START_REFRESH_COUNT 2
@@ -19,9 +18,6 @@ typedef enum {
     LedDriverCmdEnOp = 12,
     LedDriverCmdPreactive = 14,
 } LedDriverCommand;
-
-// VSYNC command: LE high during 3x DCLK periods + 1 dummy clock
-static const uint8_t vsync_cmd = ((1 << 3) | (1 << 5) | (1 << 7));
 
 // Display data load order look-up table
 static const uint16_t tx_idx_lut[] = {
@@ -100,7 +96,7 @@ static const uint16_t tx_idx_lut[] = {
 };
 
 struct LedDisplayDriver {
-    uint8_t spi_buf[DISPLAY_W * DISPLAY_H * PIXEL_BUF_LEN];
+    uint8_t spi_buf[DOT_MATRIX_W * DOT_MATRIX_H * PIXEL_BUF_LEN];
     uint16_t gamma_lut[256];
     uint32_t dma_channel;
     uint32_t refresh_count;
@@ -108,13 +104,8 @@ struct LedDisplayDriver {
 
 static LedDisplayDriver* led_driver;
 
-// Send VSYNC the fastest possible way
-inline void led_display_vsync_trig(void) {
-    *(uint8_t*)&OCTOSPI1->DR = vsync_cmd;
-}
-
 // Start OCTOSPI transfer
-inline void led_display_send_buf_start(void) {
+inline void led_display_driver_send_buf_start(void) {
     LL_DMA_EnableChannel(GPDMA1, led_driver->dma_channel);
 }
 
@@ -135,6 +126,7 @@ static void octospi_wait_end(LedDisplayDriver* driver) {
 
 static void octospi_dma_tc_irq(void* context) {
     LedDisplayDriver* driver = context;
+
     if(LL_DMA_IsEnabledIT_TC(GPDMA1, driver->dma_channel) &&
        LL_DMA_IsActiveFlag_TC(GPDMA1, driver->dma_channel)) {
         LL_DMA_DisableIT_TC(GPDMA1, driver->dma_channel);
@@ -259,7 +251,8 @@ static inline void led_driver_encode_byte(uint8_t* tx_data, uint8_t data) {
     tx_data[1] = interleave_lut[data & 0x0f];
 }
 
-static void led_driver_encode_pixel(uint8_t* tx_data, uint8_t* pix_data, uint16_t* gamma) {
+static void
+    led_driver_encode_pixel(uint8_t* tx_data, const uint8_t* pix_data, const uint16_t* gamma) {
     uint16_t led_data = led_display_gamma_apply(gamma, pix_data[2]);
     led_driver_encode_byte(&tx_data[0], (led_data >> 8));
     led_driver_encode_byte(&tx_data[2], (led_data & 0xFF));
@@ -278,6 +271,35 @@ static void led_driver_encode_cmd_16(uint8_t* tx_buf, LedDriverCommand cmd, uint
     led_driver_encode_byte(&tx_buf[2], (data & 0xFF));
 
     led_driver_add_le_cmd(tx_buf, cmd);
+}
+
+static void led_driver_encode_buffer(LedDisplayDriver* driver, const uint8_t* frame_buf) {
+    size_t tx_idx_offset = 0;
+    size_t buf_offset = 0;
+
+    for(size_t transfer_n = 0; transfer_n < 16 * 24; transfer_n++) {
+        for(size_t pixel_n = 0; pixel_n < LED_DRIVER_CHAIN; pixel_n++) {
+            uint32_t fb_offset = tx_idx_lut[tx_idx_offset++];
+            led_driver_encode_pixel(
+                &(driver->spi_buf)[buf_offset], &frame_buf[fb_offset * 3], driver->gamma_lut);
+            buf_offset += PIXEL_BUF_LEN;
+        }
+
+        led_driver_add_le_cmd(&(driver->spi_buf)[buf_offset - 4], LedDriverCmdDataLatch);
+    }
+}
+
+static void led_driver_encode_empty_buffer(LedDisplayDriver* driver) {
+    const uint8_t empty_pixel[3] = {0};
+
+    for(size_t transfer_n = 0, buf_offset = 0; transfer_n < 16 * 24; transfer_n++) {
+        for(size_t pixel_n = 0; pixel_n < LED_DRIVER_CHAIN; pixel_n++) {
+            led_driver_encode_pixel(driver->spi_buf + buf_offset, empty_pixel, driver->gamma_lut);
+            buf_offset += PIXEL_BUF_LEN;
+        }
+
+        led_driver_add_le_cmd(&(driver->spi_buf)[buf_offset - 4], LedDriverCmdDataLatch);
+    }
 }
 
 static void led_driver_write_reg(LedDisplayDriver* driver, LedDriverCommand cmd, uint16_t data[]) {
@@ -313,7 +335,7 @@ static void led_driver_write_reg(LedDisplayDriver* driver, LedDriverCommand cmd,
     }
 
     octospi_send_buf_prepare(driver, driver->spi_buf, tx_len);
-    led_display_send_buf_start();
+    led_display_driver_send_buf_start();
     octospi_wait_end(driver);
 }
 
@@ -343,33 +365,35 @@ static void led_display_led_driver_send_init(LedDisplayDriver* driver) {
     led_driver_write_reg(driver, LedDriverCmdEnOp, (uint16_t[]){0, 0, 0});
 }
 
-void led_display_send_frame(LedDisplayDriver* driver, uint8_t* frame_buf) {
-    octospi_wait_end(driver);
-    size_t tx_idx_offset = 0;
-    size_t buf_offset = 0;
+void led_display_driver_send_frame(const uint8_t* frame_buf) {
+    octospi_wait_end(led_driver);
 
-    for(size_t transfer_n = 0; transfer_n < 16 * 24; transfer_n++) {
-        for(size_t pixel_n = 0; pixel_n < LED_DRIVER_CHAIN; pixel_n++) {
-            uint32_t fb_offset = tx_idx_lut[tx_idx_offset++];
-            led_driver_encode_pixel(
-                &(driver->spi_buf)[buf_offset], &frame_buf[fb_offset * 3], driver->gamma_lut);
-            buf_offset += PIXEL_BUF_LEN;
-        }
-        led_driver_add_le_cmd(&(driver->spi_buf)[buf_offset - 4], LedDriverCmdDataLatch);
-    }
-    LL_DMA_ClearFlag_TC(GPDMA1, driver->dma_channel);
-    LL_DMA_EnableIT_TC(GPDMA1, driver->dma_channel);
-    octospi_send_buf_prepare(driver, driver->spi_buf, sizeof(driver->spi_buf));
+    led_driver_encode_buffer(led_driver, frame_buf);
+
+    LL_DMA_ClearFlag_TC(GPDMA1, led_driver->dma_channel);
+    LL_DMA_EnableIT_TC(GPDMA1, led_driver->dma_channel);
+    octospi_send_buf_prepare(led_driver, led_driver->spi_buf, sizeof(led_driver->spi_buf));
     led_display_scan_data_sync_enable();
 }
 
-LedDisplayDriver* led_display_driver_init(void) {
+void led_display_driver_resend_frame(void) {
+    octospi_wait_end(led_driver);
+
+    LL_DMA_ClearFlag_TC(GPDMA1, led_driver->dma_channel);
+    LL_DMA_EnableIT_TC(GPDMA1, led_driver->dma_channel);
+    octospi_send_buf_prepare(led_driver, led_driver->spi_buf, sizeof(led_driver->spi_buf));
+    led_display_scan_data_sync_enable();
+}
+
+void led_display_driver_init(void) {
     led_driver = malloc(sizeof(LedDisplayDriver));
+
     led_display_gamma_lut_generate(led_driver->gamma_lut, DISPLAY_GAMMA, 100);
+
     octospi_init();
     octospi_dma_init(led_driver);
 
     led_display_led_driver_send_init(led_driver);
-
-    return led_driver;
+    led_driver_encode_empty_buffer(led_driver);
+    led_display_driver_resend_frame();
 }

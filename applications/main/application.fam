@@ -7,7 +7,7 @@ App(
         "keypad_test",
         "crash_test",
         "lightsensor_test",
-        "led_display_test",
+        # "led_display_test",
         "led_indicator",
         "power_test",
         "wifi_setup",
