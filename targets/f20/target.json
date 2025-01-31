@@ -101,6 +101,7 @@
         "fatfs",
         "lwip",
         "lvgl",
+        "lvgl_fonts",
         "network",
         "mongoose",
         "canvas_oled",

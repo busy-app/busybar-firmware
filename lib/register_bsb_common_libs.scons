@@ -7,6 +7,7 @@ for libname in [
     "canvas_oled",
     "lwip",
     "lvgl",
+    "lvgl_fonts",
     "network",
     "mongoose",
     "fw_updater_opts",
