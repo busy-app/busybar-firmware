@@ -395,5 +395,4 @@ void led_display_driver_init(void) {
 
     led_display_led_driver_send_init(led_driver);
     led_driver_encode_empty_buffer(led_driver);
-    led_display_driver_resend_frame();
 }
