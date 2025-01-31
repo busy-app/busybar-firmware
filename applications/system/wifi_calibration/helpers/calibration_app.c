@@ -19,7 +19,24 @@
 #define CW_MODE_25      3 // Wave Mode (non modulation) in single tone mode (center frequency -2.5 MHz)
 #define CW_MODE_50      4 // Wave Mode (non modulation) in single tone mode (center frequency +5.0 MHz)
 #define TX_TEST_MODE    CW_MODE // Test mode is changed here
-#define CHANNEL         1
+
+/* 
+ch  min     typ     max
+1	2.401   2.412	2.423
+2	2.406   2.417	2.428
+3	2.411   2.422	2.433
+4	2.416   2.427	2.438
+5	2.421   2.432	2.443
+6	2.426   2.437	2.448
+7	2.431   2.442	2.453
+8	2.436   2.447	2.458
+9	2.441   2.452	2.463
+10	2.446   2.457	2.468
+11	2.451   2.462	2.473
+12	2.456   2.467	2.478
+13	2.461   2.472	2.483
+*/
+#define CHANNEL         1 
 
 #define MAX_CALIB_COMMAND_LENGTH 32
 #define NO_OF_CALIB_COMMANDS     7
