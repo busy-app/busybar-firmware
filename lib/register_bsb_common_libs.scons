@@ -2,6 +2,7 @@ Import("env")
 
 for libname in [
     "canvas_nema",
+    "drivers",
     "tinyusb",
     "nema_gfx",
     "canvas_oled",

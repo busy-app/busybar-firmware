@@ -1,17 +1,14 @@
-#include "oled_driver.h"
+#include "ssd1320.h"
 
 #include <furi.h>
 #include <furi_hal_spi.h>
 #include <furi_hal_resources.h>
 
-#define TAG "OledDriver"
+#define TAG "SSD1320"
 
-#define TURN_180 0
-
-#define CMD_LEN_MAX 16
-
-#define CMD_DELAY 0xFE
-#define CMD_END   0xFF
+#define CMD_LEN_MAX (16)
+#define CMD_DELAY (0xFE)
+#define CMD_END   (0xFF)
 
 static const uint8_t oled_init_table_ssd1320[] = {
     /* clang-format off */
@@ -39,7 +36,7 @@ static const uint8_t oled_init_table_ssd1320[] = {
     /* clang-format on */
 };
 
-static void oled_send_command(FuriHalSpiBusHandle* handle, uint8_t* command, size_t len) {
+static void ssd1320_send_command(FuriHalSpiBusHandle* handle, uint8_t* command, size_t len) {
     furi_hal_gpio_write(&gpio_oled_dc, false);
 
     furi_hal_spi_acquire(handle);
@@ -47,24 +44,24 @@ static void oled_send_command(FuriHalSpiBusHandle* handle, uint8_t* command, siz
     furi_hal_spi_release(handle);
 }
 
-static void oled_clear(void) {
+static void ssd1320_clear(void) {
     furi_hal_spi_acquire(&furi_hal_spi_bus_handle_oled);
 
-    uint8_t addr_cmd[6] = {0x21, 0, 79, 0x22, 0, 159};
+    const uint8_t addr_cmd[6] = {0x21, 0, SSD1320_H - 1, 0x22, 0, SSD1320_W - 1};
     furi_hal_gpio_write(&gpio_oled_dc, false);
     furi_hal_spi_bus_tx(&furi_hal_spi_bus_handle_oled, addr_cmd, sizeof(addr_cmd), 100);
 
     furi_hal_gpio_write(&gpio_oled_dc, true);
 
     uint8_t tx_buf[32] = {0};
-    for(size_t i = 0; i < OLED_BUF_SIZE; i += sizeof(tx_buf)) {
+    for(size_t i = 0; i < SSD1320_BUF_SIZE; i += sizeof(tx_buf)) {
         furi_hal_spi_bus_tx(&furi_hal_spi_bus_handle_oled, tx_buf, sizeof(tx_buf), 100);
     }
 
     furi_hal_spi_release(&furi_hal_spi_bus_handle_oled);
 }
 
-static void oled_send_init_sequence(const uint8_t* init_table, size_t table_len) {
+static void ssd1320_send_init_sequence(const uint8_t* init_table, size_t table_len) {
     size_t cmd_offset = 0;
     uint8_t cmd_buf[CMD_LEN_MAX];
     while(1) {
@@ -78,45 +75,44 @@ static void oled_send_init_sequence(const uint8_t* init_table, size_t table_len)
         } else {
             furi_assert(len_byte < CMD_LEN_MAX);
             memcpy(cmd_buf, &init_table[cmd_offset + 1], len_byte + 1);
-            oled_send_command(&furi_hal_spi_bus_handle_oled, cmd_buf, len_byte + 1);
+            ssd1320_send_command(&furi_hal_spi_bus_handle_oled, cmd_buf, len_byte + 1);
             cmd_offset += len_byte + 2;
         }
     }
 }
 
-static void oled_sleep_mode(bool sleep) {
+static void ssd1320_sleep_mode(bool sleep) {
     uint8_t power_cmd = sleep ? 0xAE : 0xAF;
-    oled_send_command(&furi_hal_spi_bus_handle_oled, &power_cmd, 1);
+    ssd1320_send_command(&furi_hal_spi_bus_handle_oled, &power_cmd, 1);
 }
 
-void oled_driver_draw(const uint8_t* buf) {
+void ssd1320_draw(const uint8_t* buf) {
     furi_hal_spi_acquire(&furi_hal_spi_bus_handle_oled);
 
-    uint8_t addr_cmd[6] = {0x21, 0, OLED_H - 1, 0x22, 0, OLED_W - 1};
+    const uint8_t addr_cmd[6] = {0x21, 0, SSD1320_H - 1, 0x22, 0, SSD1320_W - 1};
     furi_hal_gpio_write(&gpio_oled_dc, false);
     furi_hal_spi_bus_tx(&furi_hal_spi_bus_handle_oled, addr_cmd, sizeof(addr_cmd), 100);
 
     furi_hal_gpio_write(&gpio_oled_dc, true);
-    furi_hal_spi_bus_tx(&furi_hal_spi_bus_handle_oled, buf, OLED_BUF_SIZE, 100);
+    furi_hal_spi_bus_tx(&furi_hal_spi_bus_handle_oled, buf, SSD1320_BUF_SIZE, 100);
 
     furi_hal_spi_release(&furi_hal_spi_bus_handle_oled);
 }
 
-void oled_driver_init(void) {
+void ssd1320_init(void) {
     furi_hal_gpio_init(&gpio_oled_vcc_en, GpioModeOutputPushPull, GpioPullNo, GpioSpeedMedium);
     furi_hal_gpio_write(&gpio_oled_vcc_en, false);
 
     furi_hal_gpio_write(&gpio_oled_dc, true);
     furi_hal_gpio_init(&gpio_oled_dc, GpioModeOutputPushPull, GpioPullUp, GpioSpeedMedium);
-
     furi_delay_ms(1);
 
-    oled_send_init_sequence(oled_init_table_ssd1320, sizeof(oled_init_table_ssd1320));
-
-    oled_clear();
+    ssd1320_send_init_sequence(oled_init_table_ssd1320, sizeof(oled_init_table_ssd1320));
+    ssd1320_clear();
 
     furi_hal_gpio_write(&gpio_oled_vcc_en, true);
+    furi_delay_ms(5);
+
+    ssd1320_sleep_mode(false);
     furi_delay_ms(10);
-    oled_sleep_mode(false);
-    furi_delay_ms(100);
 }

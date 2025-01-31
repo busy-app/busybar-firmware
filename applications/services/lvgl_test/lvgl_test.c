@@ -1,16 +1,16 @@
 #include <furi.h>
 
-#include <lvgl.h>
+#include <ssd1320.h>
 
-#include "oled_driver.h"
+#include <lvgl.h>
 
 #define TAG "LvglTestSrv"
 
 #define COLOR_FORMAT     (LV_COLOR_FORMAT_L8)
 #define BYTES_PER_PIXEL  (LV_COLOR_FORMAT_GET_SIZE(COLOR_FORMAT))
 // TODO: Use partial draw to reduce memory usage?
-#define DRAW_BUFFER_SIZE (OLED_W * OLED_H * BYTES_PER_PIXEL)
-#define DISP_BUFFER_SIZE (OLED_BUF_SIZE)
+#define DRAW_BUFFER_SIZE (SSD1320_W * SSD1320_H * BYTES_PER_PIXEL)
+#define DISP_BUFFER_SIZE (SSD1320_BUF_SIZE)
 
 #define TICK_PERIOD_MS (16)
 
@@ -35,7 +35,7 @@ static void lvgl_flush_callback(lv_display_t* display, const lv_area_t* area, ui
     LvglTestSrv* instance = lv_display_get_user_data(display);
 
     lvgl_test_l8_to_l4(px_map, instance->disp_buf);
-    oled_driver_draw(instance->disp_buf);
+    ssd1320_draw(instance->disp_buf);
     lv_display_flush_ready(display);
 }
 
@@ -86,7 +86,7 @@ static void lvgl_test_srv_init_lvgl(LvglTestSrv* instance) {
     lv_delay_set_cb(furi_delay_ms);
     lv_log_register_print_cb(lvgl_log_callback);
 
-    lv_display_t* oled = lv_display_create(OLED_W, OLED_H);
+    lv_display_t* oled = lv_display_create(SSD1320_W, SSD1320_H);
     lv_display_set_user_data(oled, instance);
     lv_display_set_flush_cb(oled, lvgl_flush_callback);
     lv_display_set_color_format(oled, COLOR_FORMAT);
@@ -109,7 +109,7 @@ static void lvgl_test_srv_init_lvgl(LvglTestSrv* instance) {
 int lvgl_test_srv(void* arg) {
     UNUSED(arg);
 
-    oled_driver_init();
+    ssd1320_init();
 
     LvglTestSrv* instance = lvgl_test_srv_alloc();
     lvgl_test_srv_init_lvgl(instance);
