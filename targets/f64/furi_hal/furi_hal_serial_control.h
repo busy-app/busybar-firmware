@@ -43,7 +43,7 @@ FuriHalSerialHandle* furi_hal_serial_control_acquire(FuriHalSerialId serial_id);
  */
 void furi_hal_serial_control_release(FuriHalSerialHandle* handle);
 
-/** Acquire Serial Interface Handler
+/** Check if the Serial Interface has been acquired
  *
  * @param[in]  serial_id  The serial transceiver identifier
  *
@@ -51,7 +51,7 @@ void furi_hal_serial_control_release(FuriHalSerialHandle* handle);
  */
 bool furi_hal_serial_control_is_busy(FuriHalSerialId serial_id);
 
-/** Acquire Serial Interface Handler
+/** Set which Serial Interface to use for logging
  *
  * @param[in]  serial_id  The serial transceiver identifier. Use FuriHalSerialIdMax to disable logging.
  * @param[in]  baud_rate  The baud rate

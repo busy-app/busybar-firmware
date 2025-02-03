@@ -9,16 +9,10 @@
 extern "C" {
 #endif
 
-/** Initialize Serial Control
- *
- * @note    this method should be called in the early initialization stage
- */
+/** Initialize Serial Control */
 void furi_hal_serial_control_init(void);
 
-/** Deinitialize Serial Control
- *
- * @note    this method should be called in the early de-initialization stage
- */
+/** De-Initialize Serial Control */
 void furi_hal_serial_control_deinit(void);
 
 /** Suspend All Serial Interfaces
@@ -49,13 +43,22 @@ FuriHalSerialHandle* furi_hal_serial_control_acquire(FuriHalSerialId serial_id);
  */
 void furi_hal_serial_control_release(FuriHalSerialHandle* handle);
 
-/** Acquire Serial Interface Handler
+/** Check if the Serial Interface has been acquired
  *
  * @param[in]  serial_id  The serial transceiver identifier
  *
  * @return     true if handle is acquired by someone
  */
 bool furi_hal_serial_control_is_busy(FuriHalSerialId serial_id);
+
+/** Set which Serial Interface to use for logging
+ *
+ * @param[in]  serial_id  The serial transceiver identifier. Use FuriHalSerialIdMax to disable logging.
+ * @param[in]  baud_rate  The baud rate
+ *
+ * @return     The Serial Interface Handle or null if interfaces is in use
+ */
+void furi_hal_serial_control_set_logging_config(FuriHalSerialId serial_id, uint32_t baud_rate);
 
 #ifdef __cplusplus
 }
