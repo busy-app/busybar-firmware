@@ -30,6 +30,7 @@ typedef enum {
 
 typedef struct {
     lv_display_t* display;
+    lv_obj_t* label;
     uint8_t* draw_buffer;
     uint8_t* frame_buffer;
 } DisplayData;
@@ -39,7 +40,6 @@ typedef struct {
     FuriEventLoopTimer* timer;
     DotMatrixSrv* dot_matrix;
     DisplayData display_data[DisplayTypeMax];
-    lv_obj_t* front_label;
     uint32_t counter;
 } LvglTestSrv;
 
@@ -120,7 +120,13 @@ static void lvgl_test_srv_tick_callback(void* context) {
 
 static void lvgl_test_srv_timer_callback(void* context) {
     LvglTestSrv* instance = context;
-    lv_label_set_text_fmt(instance->front_label, "Counter: %lu", instance->counter++);
+
+    lv_label_set_text_fmt(
+        instance->display_data[DisplayTypeFront].label, "Front Display: %lu", instance->counter);
+    lv_label_set_text_fmt(
+        instance->display_data[DisplayTypeBack].label, "Back Display: %lu", instance->counter);
+
+    ++instance->counter;
 }
 
 static void lvgl_test_srv_init_front(LvglTestSrv* instance) {
@@ -143,12 +149,12 @@ static void lvgl_test_srv_init_front(LvglTestSrv* instance) {
     lv_obj_t* screen = lv_display_get_screen_active(front);
     lv_obj_set_style_bg_color(screen, lv_color_hex(0x000000), LV_PART_MAIN);
     lv_obj_set_style_text_color(screen, lv_color_hex(0xFFFFFF), LV_PART_MAIN);
+    lv_obj_set_style_text_font(screen, &lv_font_tiny5_8, LV_STYLE_STATE_CMP_SAME);
 
     lv_obj_t* label = lv_label_create(screen);
-    lv_label_set_text_fmt(label, "Counter: %lu", instance->counter);
     lv_obj_align(label, LV_ALIGN_CENTER, 0, 0);
 
-    instance->front_label = label;
+    display_data->label = label;
 }
 
 static void lvgl_test_srv_init_back(LvglTestSrv* instance) {
@@ -176,8 +182,9 @@ static void lvgl_test_srv_init_back(LvglTestSrv* instance) {
     lv_obj_set_style_text_color(screen, lv_color_hex(0xFFFFFF), LV_PART_MAIN);
 
     lv_obj_t* label = lv_label_create(screen);
-    lv_label_set_text(label, "General Kenobi");
     lv_obj_align(label, LV_ALIGN_CENTER, 0, 0);
+
+    display_data->label = label;
 }
 
 static LvglTestSrv* lvgl_test_srv_alloc(void) {
@@ -207,6 +214,8 @@ static LvglTestSrv* lvgl_test_srv_alloc(void) {
     lv_indev_t* indev = lv_indev_create();
     lv_indev_set_type(indev, LV_INDEV_TYPE_ENCODER);
     lv_indev_set_read_cb(indev, lvgl_input_callback);
+
+    lvgl_test_srv_timer_callback(instance);
 
     return instance;
 }
