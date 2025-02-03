@@ -17,6 +17,13 @@ extern "C" {
 /** Maximum number of returned scan results. */
 #define SCAN_MAX_RESULTS   (28U)
 
+/**
+ * @brief The string key for Wifi instance access
+ *
+ * Get the instance pointer by calling `furi_record_open(RECORD_WIFI)`
+ */
+#define RECORD_WIFI "wifi"
+
 /** Opaque Wifi type declaration. */
 typedef struct Wifi Wifi;
 

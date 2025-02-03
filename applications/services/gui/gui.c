@@ -1,7 +1,9 @@
 #include "gui_i.h"
 #include <assets_icons.h>
 #include <furi_hal_nvm.h>
+#ifdef SRV_AUDIO
 #include <audio/audio.h>
+#endif
 
 #define TAG "GuiSrv"
 
@@ -276,6 +278,7 @@ static void gui_input(Gui* gui, InputEvent* input_event) {
     furi_assert(gui);
     furi_assert(input_event);
 
+#ifdef SRV_AUDIO
     if(input_event->type == InputTypePress) {
         if(input_event->key == InputKeyOk || input_event->key == InputKeyUp) {
             audio_play(AudioCommandPlayClick1);
@@ -283,6 +286,7 @@ static void gui_input(Gui* gui, InputEvent* input_event) {
             audio_play(AudioCommandPlayClick2);
         }
     }
+#endif
 
     // Check input complementarity
     uint32_t key_bit = (1UL << input_event->key);

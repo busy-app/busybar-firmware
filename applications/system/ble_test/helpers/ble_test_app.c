@@ -385,7 +385,7 @@ static sl_status_t ble_test_app(BLETestApp* instance, uint8_t cmd_index, FuriStr
             parse_err |= strint_to_uint8(args_cstr, &args_cstr, &arg_uint8, 10);
 
             if(parse_err == StrintParseNoError) {
-                if((arg_uint8 <= BLE_TEST_PHY_RATE_MAX-1)) {
+                if((arg_uint8 <= BLE_TEST_PHY_RATE_MAX - 1)) {
                     instance->phy = ble_test_phy_rate[arg_uint8].rate_value;
                 } else {
                     furi_string_printf(instance->msg, "Invalid PHY Rate\r\n");

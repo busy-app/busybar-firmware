@@ -1,0 +1,35 @@
+#!/bin/sh
+
+set -euo pipefail
+
+# Get the script path
+SCRIPT_PATH="$(cd "$(dirname "$0")" && pwd -P)"
+
+# Get the number of processor cores
+NUM_CORES="$(getconf _NPROCESSORS_ONLN)"
+NUM_GIT_THREADS="$((NUM_CORES * 2))"
+
+# Environment variables with default values
+FBT_GIT_SUBMODULE_SHALLOW="${FBT_GIT_SUBMODULE_SHALLOW:-""}"
+FBT_NO_SYNC="${FBT_NO_SYNC:-""}"
+
+# Ensure that we're in a cloned repo and the submodules are up to date
+if [ -z "$FBT_NO_SYNC" ]; then
+    if [ ! -e "$SCRIPT_PATH/.git" ]; then
+        echo "\".git\" directory not found, please clone repo via \"git clone\""
+        exit 1
+    fi
+
+    CLONE_FLAGS="--jobs $NUM_GIT_THREADS"
+    if [ -n "$FBT_GIT_SUBMODULE_SHALLOW" ]; then
+        CLONE_FLAGS="$CLONE_FLAGS --depth 1"
+    fi
+
+    git submodule update --init --recursive $CLONE_FLAGS
+fi
+
+# Source the environment setup script
+. "$SCRIPT_PATH/scripts/toolchain/fbtenv.sh"
+
+# Run fbt's entry point script, passing all arguments
+exec python3 "$SCRIPT_PATH/scripts/toolchain/fbt_ep.py" "$@"

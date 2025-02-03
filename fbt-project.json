@@ -1,0 +1,26 @@
+{
+    "version": 1,
+    "layers": [
+        {
+            "name": "fbtng",
+            "source": {
+                "type": "submodule",
+                "path": "fbt_layers/fbtng"
+            }
+        },
+        {
+            "name": "corelibs",
+            "source": {
+                "type": "submodule",
+                "path": "fbt_layers/core_libs"
+            }
+        },
+        {
+            "name": "freertos",
+            "source": {
+                "type": "submodule",
+                "path": "fbt_layers/freertos"
+            }
+        }
+    ]
+}

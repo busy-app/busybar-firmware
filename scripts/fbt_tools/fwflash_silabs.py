@@ -4,7 +4,7 @@ from SCons.Defaults import Touch
 
 def AddFwFlashTarget(env, targetenv, **kw):
     fwflash_target = env.FwFlash(
-        "#build/${TARGET_HW}_${FIRMWARE_BUILD_CFG}_flash.flag",
+        targetenv.File("${BUILD_DIR}/../${TARGET_HW}_${FIRMWARE_BUILD_CFG}_flash.flag"),
         targetenv["FW_RPS"],
         **kw,
     )

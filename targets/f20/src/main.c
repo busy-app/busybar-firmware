@@ -10,6 +10,9 @@ int32_t init_task(void* context) {
     // Flipper FURI HAL
     furi_hal_init();
 
+    // Set the UART for logging output
+    furi_hal_serial_control_set_logging_config(FuriHalSerialIdUsart6, 230400);
+
     // Init flipper
     flipper_init();
 
