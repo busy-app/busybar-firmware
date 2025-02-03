@@ -2,7 +2,7 @@ Import("env")
 
 env.Append(
     CPPPATH=[
-        "#/lib/network/dhserver",
+        Dir("dhserver").srcnode(),
     ],
 )
 

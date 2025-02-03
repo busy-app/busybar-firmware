@@ -20,6 +20,7 @@ typedef enum {
 
 struct Wifi {
     FuriEventLoop* event_loop;
+    FuriPubSub* event_pubsub;
     Intercom* intercom;
     WifiRequest request;
     WifiResponse response;
@@ -40,6 +41,13 @@ static inline void wifi_send_response(Wifi* instance) {
     furi_check(tx_size == sizeof(WifiResponse));
 }
 
+static inline void wifi_set_state(Wifi* instance, WifiState state) {
+    if(state != instance->state) {
+        instance->state = state;
+        furi_pubsub_publish(instance->event_pubsub, &instance->state);
+    }
+}
+
 static void wifi_init_request_handler(Wifi* instance) {
     FURI_LOG_D(TAG, "Init");
 
@@ -53,7 +61,7 @@ static void wifi_init_request_handler(Wifi* instance) {
             break;
         }
 
-        instance->state = WifiStateDown;
+        wifi_set_state(instance, WifiStateDown);
 
     } while(false);
 
@@ -76,7 +84,7 @@ static void wifi_deinit_request_handler(Wifi* instance) {
             break;
         }
 
-        instance->state = WifiStateDeinit;
+        wifi_set_state(instance, WifiStateDeinit);
 
     } while(false);
 
@@ -160,7 +168,7 @@ static void wifi_connect_request_handler(Wifi* instance) {
             break;
         }
 
-        instance->state = WifiStateUp;
+        wifi_set_state(instance, WifiStateUp);
 
     } while(false);
 
@@ -183,7 +191,7 @@ static void wifi_disconnect_request_handler(Wifi* instance) {
             break;
         }
 
-        instance->state = WifiStateDown;
+        wifi_set_state(instance, WifiStateDown);
 
     } while(false);
 
@@ -333,12 +341,15 @@ static Wifi* wifi_alloc(void) {
     sl_wifi_set_scan_callback(wifi_scan_callback, instance);
 
     instance->event_loop = furi_event_loop_alloc();
+    instance->event_pubsub = furi_pubsub_alloc();
     instance->intercom = furi_record_open(RECORD_INTERCOM);
 
     furi_event_loop_set_custom_event_callback(
         instance->event_loop, wifi_custom_event_callback, instance);
     intercom_set_rx_callback(
         instance->intercom, IntercomChannelWifi, wifi_intercom_rx_callback, instance);
+
+    furi_record_create(RECORD_WIFI, instance->event_pubsub);
 
     return instance;
 }

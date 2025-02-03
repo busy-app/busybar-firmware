@@ -46,7 +46,7 @@ static DSTATUS driver_status(BYTE pdrv) {
   */
 static DRESULT driver_read(BYTE pdrv, BYTE* buff, DWORD sector, UINT count) {
     UNUSED(pdrv);
-    bool status = furi_hal_sdmmc_read_blocks((uint8_t*)buff, (uint32_t)(sector), count, 1000);
+    bool status = furi_hal_sdmmc_read_blocks((uint8_t*)buff, (uint32_t)(sector), count, 10000);
     return status ? RES_OK : RES_ERROR;
 }
 
@@ -60,7 +60,7 @@ static DRESULT driver_read(BYTE pdrv, BYTE* buff, DWORD sector, UINT count) {
   */
 static DRESULT driver_write(BYTE pdrv, const BYTE* buff, DWORD sector, UINT count) {
     UNUSED(pdrv);
-    bool status = furi_hal_sdmmc_write_blocks((uint8_t*)buff, (uint32_t)(sector), count, 1000);
+    bool status = furi_hal_sdmmc_write_blocks((uint8_t*)buff, (uint32_t)(sector), count, 10000);
     return status ? RES_OK : RES_ERROR;
 }
 

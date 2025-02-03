@@ -111,8 +111,8 @@ static const FuriHalSerialResources furi_hal_serial_resources[FuriHalSerialIdMax
             .alt_fn = GpioAltFn7USART6,
             .gpio =
                 {
-                    [FuriHalSerialPinTx] = NULL,
-                    [FuriHalSerialPinRx] = NULL,
+                    [FuriHalSerialPinTx] = &gpio_log_usart_tx,
+                    [FuriHalSerialPinRx] = &gpio_log_usart_rx,
                     [FuriHalSerialPinRts] = NULL,
                     [FuriHalSerialPinCts] = NULL,
                 },
@@ -510,6 +510,11 @@ void furi_hal_serial_set_hw_flow_control(
     const GpioPin* gpio_cts = resources->gpio[FuriHalSerialPinCts];
     const GpioAltFn alt_fn = resources->alt_fn;
 
+    if(gpio_rts == NULL || gpio_cts == NULL) {
+        // Assuming that both pins must be defined
+        return;
+    }
+
     uint32_t hw_flow_reg_value;
 
     if(flow_control == FuriHalSerialHwFlowControlNone) {
@@ -520,19 +525,20 @@ void furi_hal_serial_set_hw_flow_control(
     } else if(flow_control == FuriHalSerialHwFlowControlRts) {
         hw_flow_reg_value = LL_USART_HWCONTROL_RTS;
         furi_hal_gpio_init_ex(
-            gpio_rts, GpioModeAltFunctionPushPull, GpioPullNo, GpioSpeedVeryHigh, alt_fn);
+            gpio_rts, GpioModeAltFunctionPushPull, GpioPullNo, GpioSpeedLow, alt_fn);
         furi_hal_gpio_init_simple(gpio_cts, GpioModeAnalog);
 
     } else if(flow_control == FuriHalSerialHwFlowControlCts) {
         hw_flow_reg_value = LL_USART_HWCONTROL_CTS;
         furi_hal_gpio_init_simple(gpio_rts, GpioModeAnalog);
-        furi_hal_gpio_init_ex(gpio_cts, GpioModeInput, GpioPullUp, GpioSpeedVeryHigh, alt_fn);
+        furi_hal_gpio_init_ex(gpio_cts, GpioModeInput, GpioPullUp, GpioSpeedLow, alt_fn);
 
     } else if(flow_control == FuriHalSerialHwFlowControlRtsCts) {
         hw_flow_reg_value = LL_USART_HWCONTROL_RTS_CTS;
         furi_hal_gpio_init_ex(
-            gpio_rts, GpioModeAltFunctionPushPull, GpioPullNo, GpioSpeedVeryHigh, alt_fn);
-        furi_hal_gpio_init_ex(gpio_cts, GpioModeInput, GpioPullUp, GpioSpeedVeryHigh, alt_fn);
+            gpio_rts, GpioModeAltFunctionPushPull, GpioPullNo, GpioSpeedLow, alt_fn);
+        furi_hal_gpio_init_ex(
+            gpio_cts, GpioModeAltFunctionPushPull, GpioPullUp, GpioSpeedLow, alt_fn);
 
     } else {
         furi_crash();
