@@ -9,7 +9,7 @@ App(
         # "gui",
         "input",
         # "desktop_simple",
-        # "loader_simple",
+        "loader",
         "led_display",
         "httpd_test",
         "power_srv",
