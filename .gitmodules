@@ -41,5 +41,5 @@
 	path = fbt_layers/freertos
 	url = https://github.com/flipperdevices/fbtng-freertos.git
 [submodule "lib/lvgl"]
-	path = lib/lvgl_gui
+	path = lib/lvgl
 	url = https://github.com/lvgl/lvgl.git
