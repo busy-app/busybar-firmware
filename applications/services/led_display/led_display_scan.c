@@ -14,11 +14,7 @@
 #define VSYNC_DELAY     10
 #define LATCH_DELAY     4
 
-#define LOAD_DELAY 50
-
 #define SCAN_DISABLED (1 << 5)
-// VSYNC command: LE high during 3x DCLK periods + 1 dummy clock
-#define VSYNC_CMD     ((1 << 3) | (1 << 5) | (1 << 7))
 
 // Display block select look-up table
 static const uint8_t display_scan_table[DISPLAY_BLOCKS] = {
@@ -38,8 +34,6 @@ struct LedDisplayScan {
     LL_DMA_LinkNodeTypeDef dma_link_node;
     uint32_t dma_channel;
     uint8_t scan_order_table[DISPLAY_BLOCKS];
-    LedDisplayCallback vsync_callback;
-    void* callback_context;
 };
 
 static LedDisplayScan* led_scan;
@@ -68,7 +62,7 @@ static void gclk_tim_init(void) {
     LL_TIM_CC_DisableChannel(TIM8, LL_TIM_CHANNEL_CH4N);
 
     LL_TIM_OC_SetMode(TIM8, LL_TIM_CHANNEL_CH4, LL_TIM_OCMODE_PWM1);
-    LL_TIM_OC_SetPolarity(TIM8, LL_TIM_CHANNEL_CH4N, LL_TIM_OCPOLARITY_HIGH);
+    LL_TIM_OC_SetPolarity(TIM8, LL_TIM_CHANNEL_CH4N, LL_TIM_OCPOLARITY_LOW);
     LL_TIM_OC_SetIdleState(TIM8, LL_TIM_CHANNEL_CH4N, LL_TIM_OCIDLESTATE_LOW);
     LL_TIM_OC_SetCompareCH4(TIM8, 1);
 
@@ -95,7 +89,7 @@ static void scan_tim_init(void) {
 
     LL_TIM_SetTriggerOutput(TIM5, LL_TIM_TRGO_UPDATE);
 
-    // CC1 - Vsync trig IRQ
+    // CC1 - VSYNC + Data load start
     LL_TIM_CC_DisableChannel(TIM5, LL_TIM_CHANNEL_CH1);
     LL_TIM_CC_DisableChannel(TIM5, LL_TIM_CHANNEL_CH1N);
     LL_TIM_OC_SetMode(TIM5, LL_TIM_CHANNEL_CH1, LL_TIM_OCMODE_TOGGLE);
@@ -111,21 +105,11 @@ static void scan_tim_init(void) {
     LL_TIM_OC_SetIdleState(TIM5, LL_TIM_CHANNEL_CH2, LL_TIM_OCIDLESTATE_LOW);
     LL_TIM_OC_SetCompareCH2(TIM5, SCAN_PERIOD - LATCH_DELAY);
 
-    // CC3 - Data load start
-    LL_TIM_CC_DisableChannel(TIM5, LL_TIM_CHANNEL_CH3);
-    LL_TIM_CC_DisableChannel(TIM5, LL_TIM_CHANNEL_CH3N);
-    LL_TIM_OC_SetMode(TIM5, LL_TIM_CHANNEL_CH3, LL_TIM_OCMODE_TOGGLE);
-    LL_TIM_OC_SetPolarity(TIM5, LL_TIM_CHANNEL_CH3, LL_TIM_OCPOLARITY_LOW);
-    LL_TIM_OC_SetIdleState(TIM5, LL_TIM_CHANNEL_CH3, LL_TIM_OCIDLESTATE_LOW);
-    LL_TIM_OC_SetCompareCH3(TIM5, LOAD_DELAY);
-
     LL_TIM_EnableAllOutputs(TIM5);
     LL_TIM_CC_EnableChannel(TIM5, LL_TIM_CHANNEL_CH1);
     LL_TIM_CC_EnableChannel(TIM5, LL_TIM_CHANNEL_CH2);
-    LL_TIM_CC_EnableChannel(TIM5, LL_TIM_CHANNEL_CH3);
 
     LL_TIM_ClearFlag_CC1(TIM5);
-    LL_TIM_ClearFlag_CC3(TIM5);
 
     NVIC_SetPriority(TIM5_IRQn, NVIC_EncodePriority(NVIC_GetPriorityGrouping(), 0, 0));
     NVIC_EnableIRQ(TIM5_IRQn);
@@ -270,42 +254,19 @@ static void scan_dma_tc_irq(void* context) {
         LL_TIM_ClearFlag_CC1(TIM5);
         LL_TIM_EnableIT_CC1(TIM5);
     }
-    if((LL_DMA_IsEnabledIT_HT(GPDMA1, led_scan->dma_channel)) &&
-       (LL_DMA_IsActiveFlag_HT(GPDMA1, led_scan->dma_channel))) {
-        LL_DMA_ClearFlag_HT(GPDMA1, led_scan->dma_channel);
-        LL_DMA_DisableIT_HT(GPDMA1, led_scan->dma_channel);
-        LL_TIM_ClearFlag_CC3(TIM5);
-        LL_TIM_EnableIT_CC3(TIM5);
-    }
-}
-
-// Send VSYNC the fastest possible way
-static inline void led_display_vsync_trig(void) {
-    *(uint8_t*)&OCTOSPI1->DR = (uint8_t)VSYNC_CMD;
 }
 
 void TIM5_IRQHandler(void) {
     if((LL_TIM_IsEnabledIT_CC1(TIM5)) && (LL_TIM_IsActiveFlag_CC1(TIM5))) {
         led_display_vsync_trig();
-        LL_TIM_DisableIT_CC1(TIM5);
-        if(led_scan->vsync_callback) {
-            led_scan->vsync_callback(led_scan->callback_context);
-        }
-    }
-    if((LL_TIM_IsEnabledIT_CC3(TIM5)) && (LL_TIM_IsActiveFlag_CC3(TIM5))) {
         led_display_driver_send_buf_start();
-        LL_TIM_DisableIT_CC3(TIM5);
+        LL_TIM_DisableIT_CC1(TIM5);
     }
-}
-
-inline void led_display_scan_vsync_enable(void) {
-    LL_DMA_ClearFlag_TC(GPDMA1, led_scan->dma_channel);
-    LL_DMA_EnableIT_TC(GPDMA1, led_scan->dma_channel);
 }
 
 inline void led_display_scan_data_sync_enable(void) {
-    LL_DMA_ClearFlag_HT(GPDMA1, led_scan->dma_channel);
-    LL_DMA_EnableIT_HT(GPDMA1, led_scan->dma_channel);
+    LL_DMA_ClearFlag_TC(GPDMA1, led_scan->dma_channel);
+    LL_DMA_EnableIT_TC(GPDMA1, led_scan->dma_channel);
 }
 
 void led_display_scan_init(void) {
@@ -328,9 +289,4 @@ void led_display_output_enable(bool enable) {
     } else {
         memset(led_scan->scan_order_table, SCAN_DISABLED, DISPLAY_BLOCKS);
     }
-}
-
-void led_display_scan_set_vsync_callback(LedDisplayCallback callback, void* context) {
-    led_scan->vsync_callback = callback;
-    led_scan->callback_context = context;
 }

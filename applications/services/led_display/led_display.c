@@ -8,7 +8,7 @@
 
 typedef enum {
     DotMatrixSrvEventMessage = 1UL << 0,
-    DotMatrixSrvEventVsync = 1UL << 1,
+    DotMatrixSrvEventUpdateDone = 1UL << 1,
 } DotMatrixSrvEvent;
 
 typedef enum {
@@ -66,9 +66,9 @@ void dot_matrix_draw(DotMatrixSrv* instance, const uint8_t* frame_buffer) {
     dot_matrix_send_message(instance, &message);
 }
 
-static void led_display_vsync_callback(void* context) {
+static void led_display_update_done_callback(void* context) {
     DotMatrixSrv* instance = context;
-    furi_event_loop_set_custom_event(instance->event_loop, DotMatrixSrvEventVsync);
+    furi_event_loop_set_custom_event(instance->event_loop, DotMatrixSrvEventUpdateDone);
 }
 
 static void led_display_srv_custom_event_callback(uint32_t events, void* context) {
@@ -84,7 +84,7 @@ static void led_display_srv_custom_event_callback(uint32_t events, void* context
             furi_event_flag_set(instance->event_flag, DotMatrixSrvEventFlagDone);
         }
 
-    } else if(events == DotMatrixSrvEventVsync) {
+    } else if(events == DotMatrixSrvEventUpdateDone) {
         furi_event_flag_set(instance->event_flag, DotMatrixSrvEventFlagReady);
 
     } else {
@@ -124,9 +124,8 @@ static DotMatrixSrv* led_display_srv_alloc(void) {
 
     led_display_scan_init();
     led_display_driver_init();
-    furi_delay_ms(1);
+    led_display_set_update_callback(led_display_update_done_callback, instance);
 
-    led_display_scan_set_vsync_callback(led_display_vsync_callback, instance);
     led_display_scan_start();
 
     furi_event_flag_set(instance->event_flag, DotMatrixSrvEventFlagReady);

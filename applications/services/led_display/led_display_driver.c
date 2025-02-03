@@ -19,6 +19,9 @@ typedef enum {
     LedDriverCmdPreactive = 14,
 } LedDriverCommand;
 
+// VSYNC command: LE high during 3x DCLK periods + 1 dummy clock
+#define VSYNC_CMD ((1 << 3) | (1 << 5) | (1 << 7))
+
 // Display data load order look-up table
 static const uint16_t tx_idx_lut[] = {
     1128, 1104, 1080, 1056, 1032, 1008, 984,  960, 936, 912, 888, 864, 840, 816, 792, 768,
@@ -100,9 +103,16 @@ struct LedDisplayDriver {
     uint16_t gamma_lut[256];
     uint32_t dma_channel;
     uint32_t refresh_count;
+    LedDisplayCallback load_done_callback;
+    void* callback_context;
 };
 
 static LedDisplayDriver* led_driver;
+
+// Send VSYNC command the fastest possible way
+inline void led_display_vsync_trig(void) {
+    *(uint8_t*)&OCTOSPI1->DR = (uint8_t)VSYNC_CMD;
+}
 
 // Start OCTOSPI transfer
 inline void led_display_driver_send_buf_start(void) {
@@ -130,13 +140,14 @@ static void octospi_dma_tc_irq(void* context) {
     if(LL_DMA_IsEnabledIT_TC(GPDMA1, driver->dma_channel) &&
        LL_DMA_IsActiveFlag_TC(GPDMA1, driver->dma_channel)) {
         LL_DMA_DisableIT_TC(GPDMA1, driver->dma_channel);
-        // Start vsync sequence after full frame load
-        led_display_scan_vsync_enable();
         if(driver->refresh_count < START_REFRESH_COUNT) {
             driver->refresh_count++;
         } else if(driver->refresh_count == START_REFRESH_COUNT) {
             led_display_output_enable(true);
             driver->refresh_count++;
+        }
+        if(driver->load_done_callback) {
+            driver->load_done_callback(driver->callback_context);
         }
     }
 }
@@ -366,8 +377,6 @@ static void led_display_led_driver_send_init(LedDisplayDriver* driver) {
 }
 
 void led_display_driver_send_frame(const uint8_t* frame_buf) {
-    octospi_wait_end(led_driver);
-
     led_driver_encode_buffer(led_driver, frame_buf);
 
     LL_DMA_ClearFlag_TC(GPDMA1, led_driver->dma_channel);
@@ -377,8 +386,6 @@ void led_display_driver_send_frame(const uint8_t* frame_buf) {
 }
 
 void led_display_driver_resend_frame(void) {
-    octospi_wait_end(led_driver);
-
     LL_DMA_ClearFlag_TC(GPDMA1, led_driver->dma_channel);
     LL_DMA_EnableIT_TC(GPDMA1, led_driver->dma_channel);
     octospi_send_buf_prepare(led_driver, led_driver->spi_buf, sizeof(led_driver->spi_buf));
@@ -395,4 +402,9 @@ void led_display_driver_init(void) {
 
     led_display_led_driver_send_init(led_driver);
     led_driver_encode_empty_buffer(led_driver);
+}
+
+void led_display_set_update_callback(LedDisplayCallback callback, void* context) {
+    led_driver->load_done_callback = callback;
+    led_driver->callback_context = context;
 }
