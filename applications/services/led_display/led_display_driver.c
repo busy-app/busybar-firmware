@@ -5,6 +5,7 @@
 
 #define OCTOSPI_PRESCALLER  8
 #define START_REFRESH_COUNT 2
+#define START_VSYNC_COUNT   10
 
 typedef enum {
     LedDriverCmdNone = 0,
@@ -103,6 +104,7 @@ struct LedDisplayDriver {
     uint16_t gamma_lut[256];
     uint32_t dma_channel;
     uint32_t refresh_count;
+    uint32_t vsync_count;
     LedDisplayCallback load_done_callback;
     void* callback_context;
 };
@@ -110,8 +112,11 @@ struct LedDisplayDriver {
 static LedDisplayDriver* led_driver;
 
 // Send VSYNC command the fastest possible way
-inline void led_display_vsync_trig(void) {
-    *(uint8_t*)&OCTOSPI1->DR = (uint8_t)VSYNC_CMD;
+void led_display_vsync_trig(void) {
+    if(led_driver->vsync_count < START_VSYNC_COUNT) {
+        *(uint8_t*)&OCTOSPI1->DR = (uint8_t)VSYNC_CMD;
+        led_driver->vsync_count++;
+    }
 }
 
 // Start OCTOSPI transfer
