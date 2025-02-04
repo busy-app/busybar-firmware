@@ -43,8 +43,8 @@ extern const GpioPin gpio_usart1_tx;
 extern const GpioPin gpio_usart1_rx;
 extern const GpioPin gpio_usart1_rts;
 extern const GpioPin gpio_usart1_cts;
-extern const GpioPin gpio_lpuart1_tx;
-extern const GpioPin gpio_lpuart1_rx;
+extern const GpioPin gpio_usart2_tx;
+extern const GpioPin gpio_usart2_rx;
 
 extern const GpioPin gpio_917_pwr_en;
 extern const GpioPin gpio_917_rst;
