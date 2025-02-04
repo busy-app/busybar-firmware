@@ -26,16 +26,15 @@ typedef void (*LedDisplayCallback)(void* context);
 
 void led_display_scan_init(void);
 void led_display_scan_start(void);
-void led_display_output_enable(bool enable);
+void led_display_scan_output_enable(bool enable);
 void led_display_scan_data_sync_enable(void);
-void led_display_scan_set_vsync_callback(LedDisplayCallback callback, void* context);
 
 uint16_t led_display_gamma_apply(const uint16_t* gamma_lut, uint8_t in_val);
 void led_display_gamma_lut_generate(uint16_t* gamma_lut, float gamma_val, uint8_t brightness);
 
 void led_display_driver_init(void);
-void led_display_set_update_callback(LedDisplayCallback callback, void* context);
+void led_display_driver_start(void);
+void led_display_driver_set_update_callback(LedDisplayCallback callback, void* context);
 void led_display_driver_send_buf_start(void);
 void led_display_driver_send_frame(const uint8_t* frame_buf);
-void led_display_driver_resend_frame(void);
-void led_display_vsync_trig(void);
+void led_display_driver_vsync_trig(void);

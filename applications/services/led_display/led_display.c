@@ -30,8 +30,6 @@ typedef struct {
 struct DotMatrixSrv {
     FuriEventLoop* event_loop;
     FuriEventFlag* event_flag;
-    FuriEventLoopTimer* refresh_timer;
-    LedDisplayDriver* driver;
     const DotMatrixSrvMessage* message;
 };
 
@@ -80,7 +78,6 @@ static void led_display_srv_custom_event_callback(uint32_t events, void* context
 
         if(message_type == DotMatrixSrvMessageTypeDraw) {
             led_display_driver_send_frame(message->frame_buffer);
-            furi_event_loop_timer_restart(instance->refresh_timer);
             furi_event_flag_set(instance->event_flag, DotMatrixSrvEventFlagDone);
         }
 
@@ -92,31 +89,14 @@ static void led_display_srv_custom_event_callback(uint32_t events, void* context
     }
 }
 
-static void led_display_srv_refresh_timer_callback(void* context) {
-    DotMatrixSrv* instance = context;
-
-    const uint32_t flags =
-        furi_event_flag_wait(instance->event_flag, DotMatrixSrvEventFlagReady, FuriFlagWaitAll, 0);
-
-    if(flags == DotMatrixSrvEventFlagReady) {
-        led_display_driver_resend_frame();
-    }
-}
-
 static DotMatrixSrv* led_display_srv_alloc(void) {
     DotMatrixSrv* instance = malloc(sizeof(DotMatrixSrv));
 
     instance->event_loop = furi_event_loop_alloc();
     instance->event_flag = furi_event_flag_alloc();
-    instance->refresh_timer = furi_event_loop_timer_alloc(
-        instance->event_loop,
-        led_display_srv_refresh_timer_callback,
-        FuriEventLoopTimerTypePeriodic,
-        instance);
 
     furi_event_loop_set_custom_event_callback(
         instance->event_loop, led_display_srv_custom_event_callback, instance);
-    furi_event_loop_timer_start(instance->refresh_timer, REFRESH_PERIOD_MS);
 
     furi_hal_gpio_init_simple(&gpio_led_power_en, GpioModeOutputPushPull);
     furi_hal_gpio_write(&gpio_led_power_en, true);
@@ -124,9 +104,10 @@ static DotMatrixSrv* led_display_srv_alloc(void) {
 
     led_display_scan_init();
     led_display_driver_init();
-    led_display_set_update_callback(led_display_update_done_callback, instance);
+    led_display_driver_set_update_callback(led_display_update_done_callback, instance);
 
     led_display_scan_start();
+    led_display_driver_start();
 
     furi_event_flag_set(instance->event_flag, DotMatrixSrvEventFlagReady);
 

@@ -258,7 +258,7 @@ static void scan_dma_tc_irq(void* context) {
 
 void TIM5_IRQHandler(void) {
     if((LL_TIM_IsEnabledIT_CC1(TIM5)) && (LL_TIM_IsActiveFlag_CC1(TIM5))) {
-        led_display_vsync_trig();
+        led_display_driver_vsync_trig();
         led_display_driver_send_buf_start();
         LL_TIM_DisableIT_CC1(TIM5);
     }
@@ -283,7 +283,7 @@ void led_display_scan_start(void) {
     LL_TIM_EnableCounter(TIM5);
 }
 
-void led_display_output_enable(bool enable) {
+void led_display_scan_output_enable(bool enable) {
     if(enable) {
         memcpy(led_scan->scan_order_table, display_scan_table, DISPLAY_BLOCKS);
     } else {
