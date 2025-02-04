@@ -12,6 +12,7 @@ App(
         "power_test",
         "wifi_setup",
         "sockets_test",
+        "sl_update_test",
     ],
     targets=["f20"],
 )
