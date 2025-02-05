@@ -94,7 +94,9 @@ bool tud_network_recv_cb(const uint8_t* src, uint16_t size) {
 
     if(size) {
         struct pbuf* p = pbuf_alloc(PBUF_RAW, size, PBUF_POOL);
-        furi_check(p);
+        if(p == NULL) {
+            return false;
+        }
 
         /* pbuf_alloc() has already initialized struct; all we need to do is copy the data */
         memcpy(p->payload, src, size);
