@@ -463,7 +463,7 @@ void cli_session_close(Cli* cli) {
         cli->session->deinit();
     }
     cli->session = NULL;
-    furi_thread_set_stdout_callback(NULL), NULL;
+    furi_thread_set_stdout_callback(NULL, NULL);
     furi_check(furi_mutex_release(cli->mutex) == FuriStatusOk);
 }
 

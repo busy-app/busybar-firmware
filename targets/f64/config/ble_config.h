@@ -171,4 +171,50 @@
 #define RSI_SEL_INTERNAL_ANTENNA 0x00
 #define RSI_SEL_EXTERNAL_ANTENNA 0x01
 
+/*=======================================================================*/
+
+//! Remote device bd address
+#define RSI_BLE_REMOTE_DEV_ADDR "00:12:45:AB:1D:32"
+//! Remote device name
+#define RSI_REMOTE_DEVICE_NAME "Note10"
+
+//! connection update params
+#define CONN_INTERVAL_MIN 0x08
+#define CONN_INTERVAL_MAX 0x08
+#define CONN_LATENCY      0
+
+//! enabling the security
+#define SMP_ENABLE 0
+
+//! Tx Data length parameters
+#define TX_LEN  0xFB
+#define TX_TIME 0x4290
+
+// DATA RATE
+//  0x02 - 2Mbps
+//  0x01 - 1Mbps
+//  0x04 - Coded PHY (set desired CODDED_PHY_RATE)
+//! Phy parameter
+#define TX_PHY_RATE 0x02
+#define RX_PHY_RATE 0x02
+// CODED_PHY_RATE: 0x01 - 500Kbps
+// CODED_PHY_RATE: 0x02 - 125Kbps
+#define CODDED_PHY_RATE 0x00
+
+//! Notify status
+#define NOTIFY_DISABLE 0x00
+#define NOTIFY_ENABLE  0x01
+
+#define DLE_ON 1
+
+#if DLE_ON
+#define DLE_BUFFER_MODE      1
+#define DLE_BUFFER_COUNT     25 // Should be less than RSI_BLE_NUM_CONN_EVENTS
+#define RSI_BLE_MAX_DATA_LEN 232
+#else
+#define DLE_BUFFER_MODE      0
+#define DLE_BUFFER_COUNT     2 // Should be less than RSI_BLE_NUM_CONN_EVENTS
+#define RSI_BLE_MAX_DATA_LEN 20
+#endif
+
 #endif
