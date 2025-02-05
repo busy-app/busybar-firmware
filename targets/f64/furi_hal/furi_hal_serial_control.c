@@ -169,9 +169,9 @@ void furi_hal_serial_control_init(void) {
     furi_check(furi_hal_serial_control == NULL);
     // Allocate resources
     furi_hal_serial_control = malloc(sizeof(FuriHalSerialControl));
-    furi_hal_serial_control->handles[FuriHalSerialIdUsart0].id = FuriHalSerialIdUsart0;
-    furi_hal_serial_control->handles[FuriHalSerialIdUart1].id = FuriHalSerialIdUart1;
-    furi_hal_serial_control->handles[FuriHalSerialIdUlpuart].id = FuriHalSerialIdUlpuart;
+    for(FuriHalSerialId id = 0; id < FuriHalSerialIdMax; ++id) {
+        furi_hal_serial_control->handles[id].id = id;
+    }
     furi_hal_serial_control->queue =
         furi_message_queue_alloc(8, sizeof(FuriHalSerialControlMessage));
     furi_hal_serial_control->thread = furi_thread_alloc_service(

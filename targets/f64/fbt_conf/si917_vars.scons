@@ -15,7 +15,13 @@ VARS.AddVariables(
 _fw_default_apps_config = {
     "default": [
         "basic_services",
+        "intercom_services",
         "system_apps",
+    ],
+    "hwtest": [
+        "basic_services",
+        "system_apps",
+        "cli",
     ],
 }
 

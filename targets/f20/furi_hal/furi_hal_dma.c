@@ -74,7 +74,7 @@ bool furi_hal_dma_allocate_gpdma_channel(uint32_t* gpdma_channel) {
             furi_hal_interrupt_set_isr(furi_hal_gpdma_channel[i].interrupt_id, NULL, NULL);
             LL_DMA_DeInit(GPDMA1, i);
             *gpdma_channel = i;
-            
+
             FURI_CRITICAL_EXIT();
             return true;
         }
