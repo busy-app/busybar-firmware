@@ -51,8 +51,8 @@ static const FuriHalSerialResources furi_hal_serial_resources[FuriHalSerialIdMax
             .alt_fn = GpioAltFn7USART2,
             .gpio =
                 {
-                    [FuriHalSerialPinTx] = NULL,
-                    [FuriHalSerialPinRx] = NULL,
+                    [FuriHalSerialPinTx] = &gpio_usart2_tx,
+                    [FuriHalSerialPinRx] = &gpio_usart2_rx,
                     [FuriHalSerialPinRts] = NULL,
                     [FuriHalSerialPinCts] = NULL,
                 },
@@ -138,6 +138,38 @@ static void furi_hal_serial_set_config(
 static inline void furi_hal_serial_check(FuriHalSerialHandle* handle) {
     furi_check(handle, "Serial: handle is NULL");
     furi_assert(furi_hal_serial[handle->id], "Serial: handle is not initialized");
+}
+
+static void furi_hal_serial_irq_callback(void* context) {
+    FuriHalSerialHandle* handle = context;
+
+    FuriHalSerial* serial = furi_hal_serial[handle->id];
+    USART_TypeDef* periph = furi_hal_serial_resources[handle->id].periph;
+
+    uint32_t events = 0;
+
+    if(LL_USART_IsActiveFlag_RXNE_RXFNE(periph)) {
+        events |= FuriHalSerialRxEventData;
+    }
+    if(LL_USART_IsActiveFlag_FE(periph)) {
+        LL_USART_ClearFlag_FE(periph);
+        events |= FuriHalSerialRxEventFrameError;
+    }
+    if(LL_USART_IsActiveFlag_NE(periph)) {
+        LL_USART_ClearFlag_NE(periph);
+        events |= FuriHalSerialRxEventFrameError;
+    }
+    if(LL_USART_IsActiveFlag_PE(periph)) {
+        LL_USART_ClearFlag_PE(periph);
+        events |= FuriHalSerialRxEventParityError;
+    }
+    if(LL_USART_IsActiveFlag_ORE(periph)) {
+        LL_USART_ClearFlag_ORE(periph);
+        events |= FuriHalSerialRxEventOverrunError;
+    }
+    if(serial->rx_callback) {
+        serial->rx_callback(handle, events, serial->callback_context);
+    }
 }
 
 static void furi_hal_serial_dma_irq_callback(void* context) {
@@ -605,13 +637,28 @@ uint8_t furi_hal_serial_rx(FuriHalSerialHandle* handle) {
 
 void furi_hal_serial_async_rx_start(FuriHalSerialHandle* handle, bool report_errors) {
     furi_check(handle);
-    UNUSED(report_errors);
-    furi_crash("NYI");
+    const FuriHalSerialResources* resources = &furi_hal_serial_resources[handle->id];
+    USART_TypeDef* periph = resources->periph;
+
+    FURI_CRITICAL_ENTER();
+    furi_hal_interrupt_set_isr(resources->irq, furi_hal_serial_irq_callback, handle);
+    LL_USART_EnableIT_RXNE_RXFNE(periph);
+    if(report_errors) {
+        LL_USART_EnableIT_ERROR(periph);
+    }
+    FURI_CRITICAL_EXIT();
 }
 
 void furi_hal_serial_async_rx_stop(FuriHalSerialHandle* handle) {
     furi_check(handle);
-    furi_crash("NYI");
+    const FuriHalSerialResources* resources = &furi_hal_serial_resources[handle->id];
+    USART_TypeDef* periph = resources->periph;
+
+    FURI_CRITICAL_ENTER();
+    LL_USART_DisableIT_RXNE_RXFNE(periph);
+    LL_USART_DisableIT_ERROR(resources->periph);
+    furi_hal_interrupt_set_isr(resources->irq, NULL, NULL);
+    FURI_CRITICAL_EXIT();
 }
 
 void furi_hal_serial_dma_tx(FuriHalSerialHandle* handle, const uint8_t* buffer, size_t buffer_size) {
