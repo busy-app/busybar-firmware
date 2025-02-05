@@ -495,6 +495,12 @@ void cli_command_free_blocks(Cli* cli, FuriString* args, void* context) {
 //     furi_hal_i2c_release(&furi_hal_i2c_handle_external);
 // }
 
+void cli_command_echo(Cli* cli, FuriString* args, void* context) {
+    UNUSED(cli);
+    UNUSED(context);
+    printf("%s\r\n", furi_string_get_cstr(args));
+}
+
 void cli_commands_init(Cli* cli) {
     //cli_add_command(cli, "!", CliCommandFlagParallelSafe, cli_command_info, (void*)true);
     //cli_add_command(cli, "info", CliCommandFlagParallelSafe, cli_command_info, NULL);
@@ -515,4 +521,6 @@ void cli_commands_init(Cli* cli) {
     // cli_add_command(cli, "led", CliCommandFlagDefault, cli_command_led, NULL);
     cli_add_command(cli, "gpio", CliCommandFlagDefault, cli_command_gpio, NULL);
     // cli_add_command(cli, "i2c", CliCommandFlagDefault, cli_command_i2c, NULL);
+
+    cli_add_command(cli, "echo", CliCommandFlagDefault, cli_command_echo, NULL);
 }
