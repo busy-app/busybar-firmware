@@ -8,6 +8,7 @@ App(
         # "cli",
         # "gui",
         "input",
+        "gui_lvgl",
         # "desktop_simple",
         "loader",
         "led_display",
@@ -16,7 +17,6 @@ App(
         "intercom",
         "wifi",
         "sockets",
-        "lvgl_test",
     ],
     targets=["f20"],
 )

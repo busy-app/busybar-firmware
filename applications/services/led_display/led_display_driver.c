@@ -268,7 +268,7 @@ static inline void led_driver_encode_byte(uint8_t* tx_data, uint8_t data) {
 
 static void
     led_driver_encode_pixel(uint8_t* tx_data, const uint8_t* pix_data, const uint16_t* gamma) {
-    uint16_t led_data = led_display_gamma_apply(gamma, pix_data[2]);
+    uint16_t led_data = led_display_gamma_apply(gamma, pix_data[0]);
     led_driver_encode_byte(&tx_data[0], (led_data >> 8));
     led_driver_encode_byte(&tx_data[2], (led_data & 0xFF));
 
@@ -276,7 +276,7 @@ static void
     led_driver_encode_byte(&tx_data[4], (led_data >> 8));
     led_driver_encode_byte(&tx_data[6], (led_data & 0xFF));
 
-    led_data = led_display_gamma_apply(gamma, pix_data[0]);
+    led_data = led_display_gamma_apply(gamma, pix_data[2]);
     led_driver_encode_byte(&tx_data[8], (led_data >> 8));
     led_driver_encode_byte(&tx_data[10], (led_data & 0xFF));
 }
