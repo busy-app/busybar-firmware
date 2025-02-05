@@ -1,7 +1,7 @@
 #include <furi.h>
 #include <lwip/sockets.h>
+#include <usb_network/usb_network.h>
 #include <cli/cli_i.h>
-#include <furi_hal_usb_interface.h>
 
 #define CLI_SOCKET_PORT 23
 #define TAG             "CliSocket"
@@ -31,12 +31,16 @@ static CliSocket cli_socket = {
 int32_t cli_socket_srv(void* p) {
     UNUSED(p);
 
-    furi_hal_usb_set_config(&usb_default, NULL);
+    UsbNetwork* usb_network = furi_record_open(RECORD_USB_NETWORK);
+    usb_network_thread_init(usb_network);
 
     cli_socket.evt_flags = furi_event_flag_alloc();
 
     int32_t listen_fd;
     struct sockaddr_in address;
+
+    furi_delay_ms(1000);
+    FURI_LOG_I(TAG, "Started");
 
     // Create a socket
     listen_fd = socket(AF_INET, SOCK_STREAM, 0);
@@ -79,20 +83,27 @@ int32_t cli_socket_srv(void* p) {
         close(cli_socket.client_socket);
     }
 
+    usb_network_thread_cleanup(usb_network);
+    furi_record_close(RECORD_USB_NETWORK);
+
     return 0;
 }
 
 void cli_socket_init(void) {
+    UsbNetwork* usb_network = furi_record_open(RECORD_USB_NETWORK);
+    usb_network_thread_init(usb_network);
 }
 
 void cli_socket_deinit(void) {
+    usb_network_thread_cleanup(NULL);
+    furi_record_close(RECORD_USB_NETWORK);
 }
 
 size_t cli_socket_rx(uint8_t* buffer, size_t size, uint32_t timeout) {
     UNUSED(timeout);
 
-    while(cli_socket.connected == false) {
-        furi_delay_ms(100);
+    if(cli_socket.connected == false) {
+        return 0;
     }
 
     int32_t ret = recv(cli_socket.client_socket, buffer, size, 0);
@@ -107,8 +118,8 @@ size_t cli_socket_rx(uint8_t* buffer, size_t size, uint32_t timeout) {
 }
 
 void cli_socket_tx(const uint8_t* buffer, size_t size) {
-    while(cli_socket.connected == false) {
-        furi_delay_ms(100);
+    if(cli_socket.connected == false) {
+        return;
     }
 
     int32_t ret = send(cli_socket.client_socket, buffer, size, 0);

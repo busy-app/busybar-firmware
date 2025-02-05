@@ -9,7 +9,7 @@
 
 #define TAG "CliSrv"
 
-#define CLI_INPUT_LEN_LIMIT 256
+#define CLI_INPUT_LEN_LIMIT 2560
 
 Cli* cli_alloc(void) {
     Cli* cli = malloc(sizeof(Cli));
