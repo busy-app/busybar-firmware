@@ -1,4 +1,5 @@
 #include <furi.h>
+#include <lwip/api.h>
 #include <lwip/init.h>
 #include <lwip/udp.h>
 #include <lwip/tcpip.h>
@@ -7,6 +8,7 @@
 #include <dhserver.h>
 #include <tusb.h>
 #include "usb_i.h"
+#include "usb_network.h"
 
 #define TAG "USB NET"
 
@@ -16,7 +18,7 @@
 
 #define INIT_IP4(a, b, c, d) {PP_HTONL(LWIP_MAKEU32(a, b, c, d))}
 
-typedef struct {
+struct UsbNetwork {
     struct pbuf* rx_frame;
     FuriSemaphore* rx_frame_sem;
 
@@ -25,7 +27,7 @@ typedef struct {
 
     dhcp_config_t dhcp_config;
     dhcp_entry_t dhcp_entries[DHCP_ENTRIES_MAX];
-} UsbNetwork;
+};
 
 static UsbNetwork* usb_network = NULL;
 
@@ -94,7 +96,11 @@ bool tud_network_recv_cb(const uint8_t* src, uint16_t size) {
 
     if(size) {
         struct pbuf* p = pbuf_alloc(PBUF_RAW, size, PBUF_POOL);
-        furi_check(p);
+
+        if(!p) {
+            FURI_LOG_E(TAG, "cannot receive frame, pbuf_alloc failed");
+            return false;
+        }
 
         /* pbuf_alloc() has already initialized struct; all we need to do is copy the data */
         memcpy(p->payload, src, size);
@@ -142,6 +148,16 @@ static void usb_network_lwip_start_callback(void* arg) {
     furi_semaphore_release(lwip_start_sem);
 }
 
+void usb_network_thread_init(UsbNetwork* usb_network) {
+    UNUSED(usb_network);
+    netconn_thread_init();
+}
+
+void usb_network_thread_cleanup(UsbNetwork* usb_network) {
+    UNUSED(usb_network);
+    netconn_thread_cleanup();
+}
+
 void usb_network_init(FuriEventLoop* usb_loop) {
     FuriSemaphore* lwip_start_sem = furi_semaphore_alloc(1, 0);
     tcpip_init(usb_network_lwip_start_callback, lwip_start_sem);
@@ -168,6 +184,8 @@ void usb_network_init(FuriEventLoop* usb_loop) {
     netif_create_ip6_linklocal_address(usb_network->netif, 1);
 #endif
     netif_set_default(usb_network->netif);
+
+    furi_record_create(RECORD_USB_NETWORK, usb_network);
 
     while(!netif_is_up(usb_network->netif))
         ;

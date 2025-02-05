@@ -149,9 +149,11 @@ uint32_t sys_arch_mbox_fetch(sys_mbox_t* mbox, void** msg, uint32_t timeout_ms) 
         furi_message_queue_get(mbox->mbx, &(*msg), FuriWaitForever);
     } else {
         FuriStatus ret = furi_message_queue_get(mbox->mbx, &(*msg), timeout_ms);
-        if(ret != FuriStatusOk) {
+        if(ret == FuriStatusErrorTimeout) {
             *msg = NULL;
             return SYS_ARCH_TIMEOUT;
+        } else if(ret != FuriStatusOk) {
+            furi_crash("sys_arch_mbox_fetch: unexpected error");
         }
     }
 
@@ -216,4 +218,45 @@ sys_thread_t
     sys_thread_t lwip_thread;
     lwip_thread.thread_handle = thread_wrapper;
     return lwip_thread;
+}
+
+// netconn per thread semaphores
+
+#define FURI_THREAD_LOCAL_SEM_INDEX 0
+
+static void* furi_thread_current_lwip_get_sem(void) {
+    return furi_thread_local_storage_pointer_get(NULL, FURI_THREAD_LOCAL_SEM_INDEX);
+}
+
+static void furi_thread_current_lwip_set_sem(void* sem) {
+    furi_thread_local_storage_pointer_set(NULL, FURI_THREAD_LOCAL_SEM_INDEX, sem);
+}
+
+sys_sem_t* sys_arch_netconn_sem_get(void) {
+    return furi_thread_current_lwip_get_sem();
+}
+
+void sys_arch_netconn_sem_alloc(void) {
+    void* ret = furi_thread_current_lwip_get_sem();
+    if(ret == NULL) {
+        sys_sem_t* sem;
+        err_t err;
+        /* need to allocate the memory for this semaphore */
+        sem = mem_malloc(sizeof(sys_sem_t));
+        LWIP_ASSERT("sem != NULL", sem != NULL);
+        err = sys_sem_new(sem, 0);
+        LWIP_ASSERT("err == ERR_OK", err == ERR_OK);
+        LWIP_ASSERT("sem invalid", sys_sem_valid(sem));
+        furi_thread_current_lwip_set_sem(sem);
+    }
+}
+
+void sys_arch_netconn_sem_free(void) {
+    void* ret = sys_arch_netconn_sem_get();
+    if(ret != NULL) {
+        sys_sem_t* sem = ret;
+        sys_sem_free(sem);
+        mem_free(sem);
+        furi_thread_current_lwip_set_sem(NULL);
+    }
 }
