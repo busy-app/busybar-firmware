@@ -2,7 +2,7 @@
 
 #include <furi.h>
 
-#define PDO_NUMBER_MAX 10
+#define PDO_NUMBER_MAX 7
 
 typedef struct PowerUsbPd PowerUsbPd;
 
