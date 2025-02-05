@@ -265,7 +265,8 @@ bool tud_vendor_control_xfer_cb(
             if(request->wIndex == 7) {
                 // Get Microsoft OS 2.0 compatible descriptor
                 uint16_t total_len = 0;
-                memcpy(&total_len, desc_ms_os_20 + 8, 2);
+                furi_assert(sizeof(desc_ms_os_20) > 10);
+                memcpy(&total_len, desc_ms_os_20 + 8, sizeof(total_len));
 
                 return tud_control_xfer(
                     rhport, request, (void*)(uintptr_t)desc_ms_os_20, total_len);
