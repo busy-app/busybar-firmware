@@ -1,64 +1,59 @@
-#include <furi.h>
+#include "busy_i.h"
 
-#include <gui_lvgl/gui_lvgl.h>
+#include "scenes/busy_scene_start.h"
+#include "scenes/busy_scene_busy.h"
 
-#define TAG "Busy"
+static const BusyAppScene* busy_scenes[BusyAppSceneIdMax] = {
+    [BusyAppSceneIdStart] = &busy_scene_start,
+    [BusyAppSceneIdBusy] = &busy_scene_busy,
+};
 
-extern const lv_image_dsc_t I_pending_39x16;
-extern const lv_image_dsc_t I_busy_39x14;
+void busy_switch_to_scene(BusyApp* instance, BusyAppSceneId scene_id) {
+    if(instance->current_scene) {
+        instance->current_scene->on_exit(instance);
+    }
 
-typedef struct {
-    FuriEventLoop* event_loop;
-    GuiLvgl* gui;
-} BusyApp;
-
-static void busy_button_event_callback(lv_event_t* event) {
-    lv_obj_t* button = lv_event_get_target_obj(event);
-    FURI_LOG_D(
-        TAG, "Button %p, event: %s", button, lv_event_code_get_name(lv_event_get_code(event)));
+    instance->current_scene = busy_scenes[scene_id];
+    instance->current_scene->on_enter(instance);
 }
 
-static void busy_list_event_callback(lv_event_t* event) {
-    lv_anim_t* anim = lv_event_get_scroll_anim(event);
-    if(anim) anim->duration = 16 * 4;
+void busy_send_custom_event(BusyApp* instance, uint32_t event) {
+    furi_check(
+        furi_message_queue_put(instance->event_queue, &event, FuriWaitForever) == FuriStatusOk);
 }
 
-BusyApp* busy_alloc(void) {
+static void busy_event_queue_callback(FuriEventLoopObject* object, void* context) {
+    BusyApp* instance = context;
+    furi_check(object == instance->event_queue);
+
+    uint32_t event;
+    furi_check(furi_message_queue_get(instance->event_queue, &event, 0) == FuriStatusOk);
+
+    if(instance->current_scene) {
+        instance->current_scene->on_event(event, instance);
+    }
+}
+
+static BusyApp* busy_alloc(void) {
     BusyApp* instance = malloc(sizeof(BusyApp));
 
     instance->event_loop = furi_event_loop_alloc();
+    instance->event_queue = furi_message_queue_alloc(16, sizeof(uint32_t));
     instance->gui = furi_record_open(RECORD_GUI_LVGL);
 
-    gui_lvgl_acquire(instance->gui);
+    furi_event_loop_subscribe_message_queue(
+        instance->event_loop,
+        instance->event_queue,
+        FuriEventLoopEventIn,
+        busy_event_queue_callback,
+        instance);
 
-    lv_obj_t* active = gui_lvgl_get_layer(instance->gui, GuiDisplayIdFront, GuiLayerIdActive);
-
-    lv_obj_t* image = lv_image_create(active);
-    lv_image_set_src(image, &I_pending_39x16);
-
-    lv_obj_t* list = lv_list_create(active);
-    lv_obj_set_pos(list, 39, 0);
-    lv_obj_set_size(list, 33, lv_obj_get_height(active));
-    lv_obj_set_style_text_font(list, &lv_font_tiny5_8, LV_PART_MAIN);
-    lv_obj_set_style_pad_left(list, 8, LV_PART_MAIN);
-    // TODO: Speed up animation the right way
-    lv_obj_add_event_cb(list, busy_list_event_callback, LV_EVENT_SCROLL_BEGIN, NULL);
-
-    lv_obj_t* start_button = lv_list_add_button(list, NULL, "START");
-    lv_obj_set_style_text_color(start_button, lv_color_hex(0x033013), LV_PART_MAIN);
-    lv_obj_set_style_text_color(
-        start_button, lv_color_hex(0x13F562), LV_PART_MAIN | LV_STATE_FOCUSED);
-    lv_obj_add_event_cb(start_button, busy_button_event_callback, LV_EVENT_CLICKED, instance);
-
-    lv_obj_t* setup_button = lv_list_add_button(list, NULL, "SETUP");
-    lv_obj_add_event_cb(setup_button, busy_button_event_callback, LV_EVENT_CLICKED, instance);
-
-    gui_lvgl_release(instance->gui);
+    busy_switch_to_scene(instance, BusyAppSceneIdStart);
 
     return instance;
 }
 
-void busy_free(BusyApp* instance) {
+static void busy_free(BusyApp* instance) {
     furi_record_close(RECORD_GUI_LVGL);
 
     furi_event_loop_free(instance->event_loop);
