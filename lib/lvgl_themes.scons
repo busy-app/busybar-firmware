@@ -1,0 +1,27 @@
+Import("env")
+
+LIB_FOLDER = "lvgl_themes"
+
+env.Append(
+    CPPPATH=[
+        Dir(LIB_FOLDER).srcnode(),
+    ],
+    LINT_SOURCES=[
+        Dir(LIB_FOLDER).srcnode(),
+    ],
+)
+
+libenv = env.Clone(FW_LIB_NAME=LIB_FOLDER)
+libenv.ApplyLibFlags()
+
+libenv.AppendUnique(
+    CPPDEFINES=[
+        "LV_LVGL_H_INCLUDE_SIMPLE",
+    ]
+)
+
+sources = libenv.Glob(LIB_FOLDER + "/*.c", source=True)
+
+lib = libenv.StaticLibrary("${FW_LIB_NAME}", sources)
+libenv.Install("${LIB_DIST_DIR}", lib)
+Return("lib")

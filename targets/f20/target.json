@@ -102,6 +102,7 @@
         "lwip",
         "lvgl",
         "lvgl_fonts",
+        "lvgl_themes",
         "network",
         "mongoose",
         "canvas_oled",

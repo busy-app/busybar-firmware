@@ -9,6 +9,7 @@ for libname in [
     "lwip",
     "lvgl",
     "lvgl_fonts",
+    "lvgl_themes",
     "network",
     "mongoose",
     "fw_updater_opts",
