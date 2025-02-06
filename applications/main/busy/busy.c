@@ -14,7 +14,13 @@ typedef struct {
 
 static void busy_button_event_callback(lv_event_t* event) {
     lv_obj_t* button = lv_event_get_target_obj(event);
-    FURI_LOG_D(TAG, "Button %p, event: %s", button, lv_event_code_get_name(lv_event_get_code(event)));
+    FURI_LOG_D(
+        TAG, "Button %p, event: %s", button, lv_event_code_get_name(lv_event_get_code(event)));
+}
+
+static void busy_list_event_callback(lv_event_t* event) {
+    lv_anim_t* anim = lv_event_get_scroll_anim(event);
+    if(anim) anim->duration = 16 * 4;
 }
 
 BusyApp* busy_alloc(void) {
@@ -35,21 +41,19 @@ BusyApp* busy_alloc(void) {
     lv_obj_set_size(list, 33, lv_obj_get_height(active));
     lv_obj_set_style_text_font(list, &lv_font_tiny5_8, LV_PART_MAIN);
     lv_obj_set_style_pad_left(list, 8, LV_PART_MAIN);
+    // TODO: Speed up animation the right way
+    lv_obj_add_event_cb(list, busy_list_event_callback, LV_EVENT_SCROLL_BEGIN, NULL);
 
     lv_obj_t* start_button = lv_list_add_button(list, NULL, "START");
     lv_obj_set_style_text_color(start_button, lv_color_hex(0x033013), LV_PART_MAIN);
-    lv_obj_set_style_text_color(start_button, lv_color_hex(0x13F562), LV_PART_MAIN | LV_STATE_FOCUSED);
+    lv_obj_set_style_text_color(
+        start_button, lv_color_hex(0x13F562), LV_PART_MAIN | LV_STATE_FOCUSED);
     lv_obj_add_event_cb(start_button, busy_button_event_callback, LV_EVENT_CLICKED, instance);
 
     lv_obj_t* setup_button = lv_list_add_button(list, NULL, "SETUP");
     lv_obj_add_event_cb(setup_button, busy_button_event_callback, LV_EVENT_CLICKED, instance);
 
-    lv_obj_t* test_button = lv_list_add_button(list, NULL, "TEST");
-    UNUSED(test_button);
-
     gui_lvgl_release(instance->gui);
-
-    FURI_LOG_I(TAG, "is running!");
 
     return instance;
 }
