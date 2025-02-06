@@ -12,6 +12,7 @@ App(
         # "desktop_simple",
         "loader",
         "led_display",
+        "usb_srv",
         "httpd_test",
         "power_srv",
         "intercom",

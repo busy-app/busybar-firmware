@@ -65,6 +65,9 @@ const IRQn_Type furi_hal_interrupt_irqn[FuriHalInterruptIdMax] = {
     [FuriHalInterruptIdLPTIM3] = LPTIM3_IRQn,
     [FuriHalInterruptIdLPTIM4] = LPTIM4_IRQn,
 
+    // USB
+    [FuriHalInterruptIdUSBHS] = OTG_HS_IRQn,
+
     // RCC
     [FuriHalInterruptIdRcc] = RCC_IRQn,
 };
@@ -316,6 +319,10 @@ void LPTIM3_IRQHandler(void) {
 
 void LPTIM4_IRQHandler(void) {
     furi_hal_interrupt_call(FuriHalInterruptIdLPTIM4);
+}
+
+void OTG_HS_IRQHandler(void) {
+    furi_hal_interrupt_call(FuriHalInterruptIdUSBHS);
 }
 
 void NMI_Handler() {
