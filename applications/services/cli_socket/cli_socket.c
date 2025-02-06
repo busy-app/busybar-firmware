@@ -20,6 +20,8 @@ typedef struct {
     int32_t client_socket;
     volatile bool connected;
     FuriEventFlag* evt_flags;
+
+    bool soh_sent;
 } CliSocket;
 
 static CliSocket cli_socket = {
@@ -72,6 +74,7 @@ int32_t cli_socket_srv(void* p) {
             furi_crash("accept() failed");
         }
 
+        cli_socket.soh_sent = false;
         cli_socket.connected = true;
 
         uint32_t flags = furi_event_flag_wait(
@@ -104,6 +107,13 @@ size_t cli_socket_rx(uint8_t* buffer, size_t size, uint32_t timeout) {
 
     if(cli_socket.connected == false) {
         return 0;
+    }
+
+    // Send SOH, since our cli is dumb
+    if(cli_socket.soh_sent == false) {
+        cli_socket.soh_sent = true;
+        buffer[0] = 0x01;
+        return 1;
     }
 
     int32_t ret = recv(cli_socket.client_socket, buffer, size, 0);
