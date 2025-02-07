@@ -87,8 +87,12 @@ static void busy_scene_start_on_event(const BusyEvent* event, void* context) {
         lv_obj_t* button = (lv_obj_t*)event->custom_value;
 
         if(button == data->start_button) {
-            busy_switch_to_scene(instance, BusyAppSceneIdBusy);
-            busy_timer_start(instance);
+            if(instance->busy_interval_s < UINT32_MAX) {
+                busy_switch_to_scene(instance, BusyAppSceneIdTimer);
+                busy_timer_start(instance);
+            } else {
+                // TODO: Timerless busy scene
+            }
 
         } else if(button == data->setup_button) {
             FURI_LOG_D(TAG, "Setup pressed!");

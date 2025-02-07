@@ -1,4 +1,4 @@
-#include "busy_scene_busy.h"
+#include "busy_scene_timer.h"
 
 extern const lv_image_dsc_t I_busy_39x14;
 extern const lv_image_dsc_t I_rest_39x14;
@@ -9,10 +9,10 @@ typedef struct {
     lv_obj_t* time_label;
     lv_obj_t* info_label;
     lv_obj_t* time_bar;
-} BusySceneBusy;
+} BusySceneTimer;
 
-static void busy_scene_busy_update(BusyApp* instance) {
-    BusySceneBusy* data = instance->scene_data[BusyAppSceneIdBusy];
+static void busy_scene_timer_update(BusyApp* instance) {
+    BusySceneTimer* data = instance->scene_data[BusyAppSceneIdTimer];
 
     gui_lvgl_acquire(instance->gui);
 
@@ -26,8 +26,8 @@ static void busy_scene_busy_update(BusyApp* instance) {
     gui_lvgl_release(instance->gui);
 }
 
-static void busy_scene_busy_set_state(BusyApp* instance, BusyTimerState new_state) {
-    BusySceneBusy* data = instance->scene_data[BusyAppSceneIdBusy];
+static void busy_scene_timer_set_state(BusyApp* instance, BusyTimerState new_state) {
+    BusySceneTimer* data = instance->scene_data[BusyAppSceneIdTimer];
 
     const lv_image_dsc_t* main_image_dsc;
     uint32_t bar_color_main;
@@ -61,16 +61,16 @@ static void busy_scene_busy_set_state(BusyApp* instance, BusyTimerState new_stat
 
     gui_lvgl_release(instance->gui);
 
-    busy_scene_busy_update(instance);
+    busy_scene_timer_update(instance);
 }
 
-static void busy_scene_busy_on_enter(void* context) {
+static void busy_scene_timer_on_enter(void* context) {
     BusyApp* instance = context;
 
-    void** data_slot = &instance->scene_data[BusyAppSceneIdBusy];
+    void** data_slot = &instance->scene_data[BusyAppSceneIdTimer];
     furi_check(*data_slot == NULL);
 
-    BusySceneBusy* data = malloc(sizeof(BusySceneBusy));
+    BusySceneTimer* data = malloc(sizeof(BusySceneTimer));
 
     gui_lvgl_acquire(instance->gui);
 
@@ -100,13 +100,13 @@ static void busy_scene_busy_on_enter(void* context) {
     *data_slot = data;
 }
 
-static void busy_scene_busy_on_exit(void* context) {
+static void busy_scene_timer_on_exit(void* context) {
     BusyApp* instance = context;
 
-    void** data_slot = &instance->scene_data[BusyAppSceneIdBusy];
+    void** data_slot = &instance->scene_data[BusyAppSceneIdTimer];
     furi_check(*data_slot != NULL);
 
-    BusySceneBusy* data = *data_slot;
+    BusySceneTimer* data = *data_slot;
 
     gui_lvgl_acquire(instance->gui);
 
@@ -121,7 +121,7 @@ static void busy_scene_busy_on_exit(void* context) {
     *data_slot = NULL;
 }
 
-static void busy_scene_busy_on_event(const BusyEvent* event, void* context) {
+static void busy_scene_timer_on_event(const BusyEvent* event, void* context) {
     BusyApp* instance = context;
     UNUSED(instance);
 
@@ -138,15 +138,15 @@ static void busy_scene_busy_on_event(const BusyEvent* event, void* context) {
 
     } else if(event->type == BusyEventTypeCustom) {
         if(event->custom_value > BusyTimerStateIdle && event->custom_value < BusyTimerStateMax) {
-            busy_scene_busy_set_state(instance, event->custom_value);
+            busy_scene_timer_set_state(instance, event->custom_value);
         } else if(event->custom_value == BusyCustomEventUpdate) {
-            busy_scene_busy_update(instance);
+            busy_scene_timer_update(instance);
         }
     }
 }
 
-const BusyAppScene busy_scene_busy = {
-    .on_enter = busy_scene_busy_on_enter,
-    .on_exit = busy_scene_busy_on_exit,
-    .on_event = busy_scene_busy_on_event,
+const BusyAppScene busy_scene_timer = {
+    .on_enter = busy_scene_timer_on_enter,
+    .on_exit = busy_scene_timer_on_exit,
+    .on_event = busy_scene_timer_on_event,
 };

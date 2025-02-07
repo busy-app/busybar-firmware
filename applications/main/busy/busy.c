@@ -3,7 +3,7 @@
 #include <input/input.h>
 
 #include "scenes/busy_scene_start.h"
-#include "scenes/busy_scene_busy.h"
+#include "scenes/busy_scene_timer.h"
 
 #define BUSY_INTERVAL_DEFAULT_S      (15 * 60)
 #define REST_INTERVAL_DEFAULT_S      (5 * 60)
@@ -13,7 +13,7 @@
 
 static const BusyAppScene* busy_scenes[BusyAppSceneIdMax] = {
     [BusyAppSceneIdStart] = &busy_scene_start,
-    [BusyAppSceneIdBusy] = &busy_scene_busy,
+    [BusyAppSceneIdTimer] = &busy_scene_timer,
 };
 
 static void busy_send_custom_event_direct(BusyApp* instance, uint32_t value) {
@@ -49,7 +49,7 @@ void busy_send_custom_event(BusyApp* instance, uint32_t value) {
 void busy_timer_start(BusyApp* instance) {
     instance->state = BusyTimerStateIdle;
     // TODO: Implement cycles
-    instance->cycles_left = 4;
+    instance->cycles_left = 3;
 
     busy_timer_next_state(instance);
 }
@@ -137,10 +137,9 @@ static void busy_event_queue_callback(FuriEventLoopObject* object, void* context
 static void busy_scene_busy_timer_callback(void* context) {
     BusyApp* instance = context;
 
-    if(instance->time_left == 0) {
+    if(--instance->time_left == 0) {
         busy_timer_next_state(instance);
     } else {
-        instance->time_left -= 1;
         busy_send_custom_event_direct(instance, BusyCustomEventUpdate);
     }
 }
