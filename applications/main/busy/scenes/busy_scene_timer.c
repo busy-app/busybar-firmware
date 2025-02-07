@@ -3,12 +3,15 @@
 extern const lv_image_dsc_t I_busy_39x14;
 extern const lv_image_dsc_t I_rest_39x14;
 extern const lv_image_dsc_t I_long_rest_39x14;
+extern const lv_image_dsc_t I_pause_5x5;
 
 typedef struct {
     lv_obj_t* main_image;
     lv_obj_t* time_label;
     lv_obj_t* info_label;
     lv_obj_t* time_bar;
+    lv_obj_t* overlay;
+    lv_obj_t* overlay_image;
 } BusySceneTimer;
 
 static void busy_scene_timer_update(BusyApp* instance) {
@@ -64,6 +67,33 @@ static void busy_scene_timer_set_state(BusyApp* instance, BusyTimerState new_sta
     busy_scene_timer_update(instance);
 }
 
+static void busy_scene_timer_toggle_pause_overlay(BusyApp* instance) {
+    BusySceneTimer* data = instance->scene_data[BusyAppSceneIdTimer];
+
+    gui_lvgl_acquire(instance->gui);
+
+    if(data->overlay == NULL) {
+        lv_obj_t* top = gui_lvgl_get_layer(instance->gui, GuiDisplayIdFront, GuiLayerIdTop);
+
+        data->overlay = lv_obj_create(top);
+        lv_obj_set_size(data->overlay, lv_obj_get_width(top), lv_obj_get_height(top));
+        lv_obj_set_style_opa(data->overlay, LV_OPA_70, LV_PART_MAIN);
+
+        data->overlay_image = lv_image_create(top);
+        lv_image_set_src(data->overlay_image, &I_pause_5x5);
+        lv_obj_set_pos(data->overlay_image, 33, 5);
+
+    } else {
+        lv_obj_delete(data->overlay);
+        lv_obj_delete(data->overlay_image);
+
+        data->overlay = NULL;
+        data->overlay_image = NULL;
+    }
+
+    gui_lvgl_release(instance->gui);
+}
+
 static void busy_scene_timer_on_enter(void* context) {
     BusyApp* instance = context;
 
@@ -115,6 +145,11 @@ static void busy_scene_timer_on_exit(void* context) {
     lv_obj_delete(data->info_label);
     lv_obj_delete(data->time_bar);
 
+    if(data->overlay) {
+        lv_obj_delete(data->overlay);
+        lv_obj_delete(data->overlay_image);
+    }
+
     gui_lvgl_release(instance->gui);
 
     free(data);
@@ -126,8 +161,9 @@ static void busy_scene_timer_on_event(const BusyEvent* event, void* context) {
     UNUSED(instance);
 
     if(event->type == BusyEventTypeStart) {
-        // TODO: Pause overlay
         busy_timer_pause_toggle(instance);
+        busy_scene_timer_toggle_pause_overlay(instance);
+
     } else if(event->type == BusyEventTypeBack) {
         // TODO: Confirmation screen
         busy_switch_to_scene(instance, BusyAppSceneIdStart);
