@@ -85,8 +85,12 @@ static void busy_scene_quit_on_event(const BusyEvent* event, void* context) {
             busy_timer_stop(instance);
 
         } else if(button == data->cancel_button) {
-            busy_switch_to_scene(instance, BusyAppSceneIdTimer);
-            busy_timer_resume(instance);
+            if(instance->busy_interval_s != BUSY_INTERVAL_INFINITE) {
+                busy_switch_to_scene(instance, BusyAppSceneIdTimer);
+                busy_timer_resume(instance);
+            } else {
+                busy_switch_to_scene(instance, BusyAppSceneIdStatic);
+            }
         }
     }
 }
