@@ -88,8 +88,8 @@ static void busy_scene_start_on_event(const BusyEvent* event, void* context) {
 
         if(button == data->start_button) {
             if(instance->busy_interval_s != BUSY_INTERVAL_INFINITE) {
-                busy_switch_to_scene(instance, BusyAppSceneIdTimer);
                 busy_timer_start(instance);
+                busy_switch_to_scene(instance, BusyAppSceneIdTimer);
             } else {
                 busy_switch_to_scene(instance, BusyAppSceneIdStatic);
             }

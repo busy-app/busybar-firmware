@@ -12,12 +12,48 @@ typedef struct {
     lv_obj_t* time_bar;
     lv_obj_t* overlay;
     lv_obj_t* overlay_image;
+    BusyTimerState timer_state;
 } BusySceneTimer;
+
+static void busy_scene_timer_state_update(BusySceneTimer* data) {
+    const lv_image_dsc_t* main_image_dsc;
+    uint32_t bar_color_main;
+    uint32_t bar_color_indicator;
+
+    if(data->timer_state == BusyTimerStateBusy) {
+        main_image_dsc = &I_busy_39x14;
+        bar_color_main = 0x4A0000;
+        bar_color_indicator = 0xFF0000;
+
+    } else if(data->timer_state == BusyTimerStateRest) {
+        main_image_dsc = &I_rest_39x14;
+        bar_color_main = 0x033013;
+        bar_color_indicator = 0x13F562;
+
+    } else if(data->timer_state == BusyTimerStateLongRest) {
+        main_image_dsc = &I_long_rest_39x14;
+        bar_color_main = 0x081631;
+        bar_color_indicator = 0x2C72FA;
+
+    } else {
+        furi_crash("Invalid state");
+    }
+
+    lv_image_set_src(data->main_image, main_image_dsc);
+    lv_obj_set_style_bg_color(data->time_bar, lv_color_hex(bar_color_main), LV_PART_MAIN);
+    lv_obj_set_style_bg_color(
+        data->time_bar, lv_color_hex(bar_color_indicator), LV_PART_INDICATOR);
+}
 
 static void busy_scene_timer_update(BusyApp* instance) {
     BusySceneTimer* data = instance->scene_data[BusyAppSceneIdTimer];
 
     gui_lvgl_acquire(instance->gui);
+
+    if(data->timer_state != instance->state) {
+        data->timer_state = instance->state;
+        busy_scene_timer_state_update(data);
+    }
 
     const uint32_t minutes = instance->time_left / 60;
     const uint32_t seconds = instance->time_left % 60;
@@ -27,44 +63,6 @@ static void busy_scene_timer_update(BusyApp* instance) {
     lv_bar_set_value(data->time_bar, percent, LV_ANIM_OFF);
 
     gui_lvgl_release(instance->gui);
-}
-
-static void busy_scene_timer_set_state(BusyApp* instance, BusyTimerState new_state) {
-    BusySceneTimer* data = instance->scene_data[BusyAppSceneIdTimer];
-
-    const lv_image_dsc_t* main_image_dsc;
-    uint32_t bar_color_main;
-    uint32_t bar_color_indicator;
-
-    if(new_state == BusyTimerStateBusy) {
-        main_image_dsc = &I_busy_39x14;
-        bar_color_main = 0x4A0000;
-        bar_color_indicator = 0xFF0000;
-
-    } else if(new_state == BusyTimerStateRest) {
-        main_image_dsc = &I_rest_39x14;
-        bar_color_main = 0x033013;
-        bar_color_indicator = 0x13F562;
-
-    } else if(new_state == BusyTimerStateLongRest) {
-        main_image_dsc = &I_long_rest_39x14;
-        bar_color_main = 0x081631;
-        bar_color_indicator = 0x2C72FA;
-
-    } else {
-        furi_crash("Invalid state");
-    }
-
-    gui_lvgl_acquire(instance->gui);
-
-    lv_image_set_src(data->main_image, main_image_dsc);
-    lv_obj_set_style_bg_color(data->time_bar, lv_color_hex(bar_color_main), LV_PART_MAIN);
-    lv_obj_set_style_bg_color(
-        data->time_bar, lv_color_hex(bar_color_indicator), LV_PART_INDICATOR);
-
-    gui_lvgl_release(instance->gui);
-
-    busy_scene_timer_update(instance);
 }
 
 static void busy_scene_timer_toggle_pause_overlay(BusyApp* instance) {
@@ -128,6 +126,8 @@ static void busy_scene_timer_on_enter(void* context) {
     gui_lvgl_release(instance->gui);
 
     *data_slot = data;
+
+    busy_scene_timer_update(instance);
 }
 
 static void busy_scene_timer_on_exit(void* context) {
@@ -174,9 +174,7 @@ static void busy_scene_timer_on_event(const BusyEvent* event, void* context) {
         }
 
     } else if(event->type == BusyEventTypeCustom) {
-        if(event->custom_value > BusyTimerStateIdle && event->custom_value < BusyTimerStateMax) {
-            busy_scene_timer_set_state(instance, event->custom_value);
-        } else if(event->custom_value == BusyCustomEventUpdate) {
+        if(event->custom_value == BusyCustomEventUpdate) {
             busy_scene_timer_update(instance);
         }
     }

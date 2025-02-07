@@ -120,7 +120,7 @@ void busy_timer_next_state(BusyApp* instance) {
 
     furi_event_loop_timer_start(instance->busy_timer, SECONDS_TO_MS(1));
 
-    busy_send_custom_event_direct(instance, new_state);
+    busy_send_custom_event_direct(instance, BusyCustomEventUpdate);
 }
 
 static void busy_input_callback(const void* message, void* context) {
@@ -168,10 +168,10 @@ static void busy_event_queue_callback(FuriEventLoopObject* object, void* context
 static void busy_scene_busy_timer_callback(void* context) {
     BusyApp* instance = context;
 
-    if(--instance->time_left == 0) {
-        busy_timer_next_state(instance);
-    } else {
+    if(--instance->time_left > 0) {
         busy_send_custom_event_direct(instance, BusyCustomEventUpdate);
+    } else {
+        busy_timer_next_state(instance);
     }
 }
 
