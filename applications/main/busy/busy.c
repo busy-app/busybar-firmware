@@ -5,10 +5,27 @@
 #include "scenes/busy_scene_start.h"
 #include "scenes/busy_scene_busy.h"
 
+#define BUSY_INTERVAL_DEFAULT_S      (15 * 60)
+#define REST_INTERVAL_DEFAULT_S      (5 * 60)
+#define LONG_REST_INTERVAL_DEFAULT_S (10 * 60)
+
+#define SECONDS_TO_MS(s) (s * 1000)
+
 static const BusyAppScene* busy_scenes[BusyAppSceneIdMax] = {
     [BusyAppSceneIdStart] = &busy_scene_start,
     [BusyAppSceneIdBusy] = &busy_scene_busy,
 };
+
+static void busy_send_custom_event_direct(BusyApp* instance, uint32_t value) {
+    if(instance->current_scene) {
+        const BusyEvent event = {
+            .type = BusyEventTypeCustom,
+            .custom_value = value,
+        };
+
+        instance->current_scene->on_event(&event, instance);
+    }
+}
 
 void busy_switch_to_scene(BusyApp* instance, BusyAppSceneId scene_id) {
     if(instance->current_scene) {
@@ -27,6 +44,52 @@ void busy_send_custom_event(BusyApp* instance, uint32_t value) {
 
     furi_check(
         furi_message_queue_put(instance->event_queue, &event, FuriWaitForever) == FuriStatusOk);
+}
+
+void busy_timer_start(BusyApp* instance) {
+    instance->state = BusyTimerStateIdle;
+    // TODO: Implement cycles
+    instance->cycles_left = 4;
+
+    busy_timer_next_state(instance);
+}
+
+void busy_timer_stop(BusyApp* instance) {
+    furi_event_loop_timer_stop(instance->busy_timer);
+    instance->state = BusyTimerStateIdle;
+}
+
+void busy_timer_pause_toggle(BusyApp* instance) {
+    if(furi_event_loop_timer_is_running(instance->busy_timer)) {
+        furi_event_loop_timer_stop(instance->busy_timer);
+    } else {
+        furi_event_loop_timer_start(instance->busy_timer, SECONDS_TO_MS(1));
+    }
+}
+
+void busy_timer_next_state(BusyApp* instance) {
+    furi_event_loop_timer_start(instance->busy_timer, SECONDS_TO_MS(1));
+
+    BusyTimerState new_state = instance->state + 1;
+
+    if(new_state >= BusyTimerStateMax) {
+        new_state = BusyTimerStateBusy;
+    }
+
+    if(new_state == BusyTimerStateBusy) {
+        instance->time_total = instance->busy_interval_s;
+    } else if(new_state == BusyTimerStateRest) {
+        instance->time_total = instance->rest_interval_s;
+    } else if(new_state == BusyTimerStateLongRest) {
+        instance->time_total = instance->long_rest_interval_s;
+    } else {
+        furi_crash("Impossibru!");
+    }
+
+    instance->state = new_state;
+    instance->time_left = instance->time_total;
+
+    busy_send_custom_event_direct(instance, new_state);
 }
 
 static void busy_input_callback(const void* message, void* context) {
@@ -71,11 +134,27 @@ static void busy_event_queue_callback(FuriEventLoopObject* object, void* context
     }
 }
 
+static void busy_scene_busy_timer_callback(void* context) {
+    BusyApp* instance = context;
+
+    if(instance->time_left == 0) {
+        busy_timer_next_state(instance);
+    } else {
+        instance->time_left -= 1;
+        busy_send_custom_event_direct(instance, BusyCustomEventUpdate);
+    }
+}
+
 static BusyApp* busy_alloc(void) {
     BusyApp* instance = malloc(sizeof(BusyApp));
 
     instance->event_loop = furi_event_loop_alloc();
     instance->event_queue = furi_message_queue_alloc(16, sizeof(BusyEvent));
+    instance->busy_timer = furi_event_loop_timer_alloc(
+        instance->event_loop,
+        busy_scene_busy_timer_callback,
+        FuriEventLoopTimerTypePeriodic,
+        instance);
     instance->gui = furi_record_open(RECORD_GUI_LVGL);
 
     FuriPubSub* input = furi_record_open(RECORD_INPUT_EVENTS);
@@ -106,6 +185,7 @@ static void busy_free(BusyApp* instance) {
     furi_record_close(RECORD_GUI_LVGL);
 
     furi_event_loop_unsubscribe(instance->event_loop, instance->event_queue);
+    furi_event_loop_timer_free(instance->busy_timer);
     furi_message_queue_free(instance->event_queue);
     furi_event_loop_free(instance->event_loop);
 

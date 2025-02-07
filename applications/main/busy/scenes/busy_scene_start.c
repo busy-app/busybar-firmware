@@ -88,6 +88,8 @@ static void busy_scene_start_on_event(const BusyEvent* event, void* context) {
 
         if(button == data->start_button) {
             busy_switch_to_scene(instance, BusyAppSceneIdBusy);
+            busy_timer_start(instance);
+
         } else if(button == data->setup_button) {
             FURI_LOG_D(TAG, "Setup pressed!");
         }

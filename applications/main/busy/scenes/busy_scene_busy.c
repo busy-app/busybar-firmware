@@ -4,24 +4,11 @@ extern const lv_image_dsc_t I_busy_39x14;
 extern const lv_image_dsc_t I_rest_39x14;
 extern const lv_image_dsc_t I_long_rest_39x14;
 
-typedef enum {
-    BusySceneBusyStateNone,
-    BusySceneBusyStateWork,
-    BusySceneBusyStateRest,
-    BusySceneBusyStateLongRest,
-    BusySceneBusyStateMax,
-} BusySceneBusyState;
-
 typedef struct {
     lv_obj_t* main_image;
     lv_obj_t* time_label;
     lv_obj_t* info_label;
     lv_obj_t* time_bar;
-    uint32_t time_total;
-    uint32_t time_left;
-    uint32_t cycles_left;
-    FuriEventLoopTimer* timer;
-    BusySceneBusyState state;
 } BusySceneBusy;
 
 static void busy_scene_busy_update(BusyApp* instance) {
@@ -29,58 +16,41 @@ static void busy_scene_busy_update(BusyApp* instance) {
 
     gui_lvgl_acquire(instance->gui);
 
-    const uint32_t minutes = data->time_left / 60;
-    const uint32_t seconds = data->time_left % 60;
-    const uint32_t percent = (data->time_left * 100) / data->time_total;
+    const uint32_t minutes = instance->time_left / 60;
+    const uint32_t seconds = instance->time_left % 60;
+    const uint32_t percent = (instance->time_left * 100) / instance->time_total;
 
     lv_label_set_text_fmt(data->time_label, "%02lu:%02lu", minutes, seconds);
     lv_bar_set_value(data->time_bar, percent, LV_ANIM_OFF);
 
     gui_lvgl_release(instance->gui);
-
-    if(data->time_left == 0) {
-        furi_event_loop_timer_stop(data->timer);
-        return;
-    }
-
-    data->time_left -= 1;
 }
 
-static void busy_scene_busy_set_state(BusyApp* instance, BusySceneBusyState new_state) {
+static void busy_scene_busy_set_state(BusyApp* instance, BusyTimerState new_state) {
     BusySceneBusy* data = instance->scene_data[BusyAppSceneIdBusy];
 
     const lv_image_dsc_t* main_image_dsc;
     uint32_t bar_color_main;
     uint32_t bar_color_indicator;
-    uint32_t time_total;
 
-    if(data->state == new_state) {
-        return;
-    } else if(new_state == BusySceneBusyStateWork) {
+    if(new_state == BusyTimerStateBusy) {
         main_image_dsc = &I_busy_39x14;
         bar_color_main = 0x4A0000;
         bar_color_indicator = 0xFF0000;
-        time_total = instance->busy_interval_s;
 
-    } else if(new_state == BusySceneBusyStateRest) {
+    } else if(new_state == BusyTimerStateRest) {
         main_image_dsc = &I_rest_39x14;
         bar_color_main = 0x033013;
         bar_color_indicator = 0x13F562;
-        time_total = instance->rest_interval_s;
 
-    } else if(new_state == BusySceneBusyStateLongRest) {
+    } else if(new_state == BusyTimerStateLongRest) {
         main_image_dsc = &I_long_rest_39x14;
         bar_color_main = 0x081631;
         bar_color_indicator = 0x2C72FA;
-        time_total = instance->long_rest_interval_s;
 
     } else {
         furi_crash("Invalid state");
     }
-
-    data->time_total = time_total;
-    data->time_left = time_total;
-    data->state = new_state;
 
     gui_lvgl_acquire(instance->gui);
 
@@ -91,11 +61,6 @@ static void busy_scene_busy_set_state(BusyApp* instance, BusySceneBusyState new_
 
     gui_lvgl_release(instance->gui);
 
-    furi_event_loop_timer_start(data->timer, 1000);
-}
-
-static void busy_scene_busy_timer_callback(void* context) {
-    BusyApp* instance = context;
     busy_scene_busy_update(instance);
 }
 
@@ -132,18 +97,7 @@ static void busy_scene_busy_on_enter(void* context) {
 
     gui_lvgl_release(instance->gui);
 
-    data->timer = furi_event_loop_timer_alloc(
-        instance->event_loop,
-        busy_scene_busy_timer_callback,
-        FuriEventLoopTimerTypePeriodic,
-        instance);
-
-    data->cycles_left = 4;
-
     *data_slot = data;
-
-    busy_scene_busy_set_state(instance, BusySceneBusyStateWork);
-    busy_scene_busy_update(instance);
 }
 
 static void busy_scene_busy_on_exit(void* context) {
@@ -153,8 +107,6 @@ static void busy_scene_busy_on_exit(void* context) {
     furi_check(*data_slot != NULL);
 
     BusySceneBusy* data = *data_slot;
-
-    furi_event_loop_timer_free(data->timer);
 
     gui_lvgl_acquire(instance->gui);
 
@@ -171,23 +123,25 @@ static void busy_scene_busy_on_exit(void* context) {
 
 static void busy_scene_busy_on_event(const BusyEvent* event, void* context) {
     BusyApp* instance = context;
-    BusySceneBusy* data = instance->scene_data[BusyAppSceneIdBusy];
+    UNUSED(instance);
 
     if(event->type == BusyEventTypeStart) {
-        // TODO: Pause
+        // TODO: Pause overlay
+        busy_timer_pause_toggle(instance);
     } else if(event->type == BusyEventTypeBack) {
         // TODO: Confirmation screen
         busy_switch_to_scene(instance, BusyAppSceneIdStart);
+        busy_timer_stop(instance);
 
     } else if(event->type == BusyEventTypeOk) {
-        BusySceneBusyState new_state = data->state + 1;
+        busy_timer_next_state(instance);
 
-        if(new_state >= BusySceneBusyStateMax) {
-            new_state = BusySceneBusyStateWork;
+    } else if(event->type == BusyEventTypeCustom) {
+        if(event->custom_value > BusyTimerStateIdle && event->custom_value < BusyTimerStateMax) {
+            busy_scene_busy_set_state(instance, event->custom_value);
+        } else if(event->custom_value == BusyCustomEventUpdate) {
+            busy_scene_busy_update(instance);
         }
-
-        busy_scene_busy_set_state(instance, new_state);
-        busy_scene_busy_update(instance);
     }
 }
 
