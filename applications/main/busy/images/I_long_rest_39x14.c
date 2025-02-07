@@ -16,12 +16,12 @@
 #define LV_ATTRIBUTE_MEM_ALIGN
 #endif
 
-#ifndef LV_ATTRIBUTE_IMAGE_I_LONG_REST
-#define LV_ATTRIBUTE_IMAGE_I_LONG_REST
+#ifndef LV_ATTRIBUTE_IMAGE_I_LONG_REST_39X14
+#define LV_ATTRIBUTE_IMAGE_I_LONG_REST_39X14
 #endif
 
-const LV_ATTRIBUTE_MEM_ALIGN LV_ATTRIBUTE_LARGE_CONST LV_ATTRIBUTE_IMAGE_I_LONG_REST uint8_t
-    I_long_rest_map[] = {
+const LV_ATTRIBUTE_MEM_ALIGN LV_ATTRIBUTE_LARGE_CONST LV_ATTRIBUTE_IMAGE_I_LONG_REST_39X14 uint8_t
+    I_long_rest_39x14_map[] = {
         0x00, 0x00, 0x00, 0xff, 0xb2, 0x6a, 0xfe, 0xb1, 0x6b, 0xfe, 0xb1, 0x6a, 0xff, 0xb1, 0x6b,
         0xff, 0xb0, 0x6b, 0xff, 0xb0, 0x6b, 0xff, 0xb0, 0x6b, 0xfe, 0xb1, 0x6b, 0xff, 0xaf, 0x6a,
         0xff, 0xae, 0x69, 0xff, 0xae, 0x68, 0xfd, 0xac, 0x65, 0xff, 0xaa, 0x66, 0xfe, 0xa9, 0x64,
@@ -134,11 +134,11 @@ const LV_ATTRIBUTE_MEM_ALIGN LV_ATTRIBUTE_LARGE_CONST LV_ATTRIBUTE_IMAGE_I_LONG_
         0x00, 0x00, 0x00,
 };
 
-const lv_image_dsc_t I_long_rest = {
+const lv_image_dsc_t I_long_rest_39x14 = {
     .header.cf = LV_COLOR_FORMAT_RGB888,
     .header.magic = LV_IMAGE_HEADER_MAGIC,
     .header.w = 39,
     .header.h = 14,
     .data_size = 546 * 3,
-    .data = I_long_rest_map,
+    .data = I_long_rest_39x14_map,
 };
