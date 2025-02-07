@@ -59,6 +59,7 @@ typedef struct {
     uint32_t busy_interval_s;
     uint32_t rest_interval_s;
     uint32_t long_rest_interval_s;
+    uint32_t cycles_count;
     uint32_t time_total;
     uint32_t time_left;
     uint32_t cycles_left;

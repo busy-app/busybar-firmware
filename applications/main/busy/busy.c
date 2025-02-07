@@ -9,6 +9,8 @@
 #define REST_INTERVAL_DEFAULT_S      (5 * 60)
 #define LONG_REST_INTERVAL_DEFAULT_S (10 * 60)
 
+#define CYCLE_COUNT_DEFAULT (3)
+
 #define SECONDS_TO_MS(s) (s * 1000)
 
 static const BusyAppScene* busy_scenes[BusyAppSceneIdMax] = {
@@ -48,9 +50,7 @@ void busy_send_custom_event(BusyApp* instance, uint32_t value) {
 
 void busy_timer_start(BusyApp* instance) {
     instance->state = BusyTimerStateIdle;
-    // TODO: Implement cycles
-    instance->cycles_left = 3;
-
+    instance->cycles_left = instance->cycles_count;
     busy_timer_next_state(instance);
 }
 
@@ -70,10 +70,20 @@ void busy_timer_pause_toggle(BusyApp* instance) {
 void busy_timer_next_state(BusyApp* instance) {
     furi_event_loop_timer_start(instance->busy_timer, SECONDS_TO_MS(1));
 
-    BusyTimerState new_state = instance->state + 1;
+    BusyTimerState new_state;
 
-    if(new_state >= BusyTimerStateMax) {
+    if(instance->state == BusyTimerStateIdle) {
         new_state = BusyTimerStateBusy;
+    } else if(instance->state == BusyTimerStateBusy) {
+        if(--instance->cycles_left == 0) {
+            new_state = BusyTimerStateLongRest;
+        } else {
+            new_state = BusyTimerStateRest;
+        }
+    } else if(instance->state == BusyTimerStateRest || instance->state == BusyTimerStateLongRest) {
+        new_state = BusyTimerStateBusy;
+    } else {
+        furi_crash("Impossibru!");
     }
 
     if(new_state == BusyTimerStateBusy) {
@@ -82,6 +92,7 @@ void busy_timer_next_state(BusyApp* instance) {
         instance->time_total = instance->rest_interval_s;
     } else if(new_state == BusyTimerStateLongRest) {
         instance->time_total = instance->long_rest_interval_s;
+        instance->cycles_left = instance->cycles_count;
     } else {
         furi_crash("Impossibru!");
     }
@@ -162,6 +173,7 @@ static BusyApp* busy_alloc(void) {
     instance->busy_interval_s = BUSY_INTERVAL_DEFAULT_S;
     instance->rest_interval_s = REST_INTERVAL_DEFAULT_S;
     instance->long_rest_interval_s = LONG_REST_INTERVAL_DEFAULT_S;
+    instance->cycles_count = CYCLE_COUNT_DEFAULT;
 
     furi_event_loop_subscribe_message_queue(
         instance->event_loop,
