@@ -14,11 +14,6 @@ static void busy_button_event_callback(lv_event_t* event) {
     busy_send_custom_event(instance, (uint32_t)lv_event_get_target_obj(event));
 }
 
-static void busy_list_event_callback(lv_event_t* event) {
-    lv_anim_t* anim = lv_event_get_scroll_anim(event);
-    if(anim) anim->duration = 16 * 4;
-}
-
 static void busy_scene_start_on_enter(void* context) {
     BusyApp* instance = context;
 
@@ -39,8 +34,6 @@ static void busy_scene_start_on_enter(void* context) {
     lv_obj_set_size(data->button_list, 33, lv_obj_get_height(active) - 2);
     lv_obj_set_style_text_font(data->button_list, &lv_font_tiny5_8, LV_PART_MAIN);
     lv_obj_set_style_pad_left(data->button_list, 8, LV_PART_MAIN);
-    // TODO: Speed up animation the right way
-    lv_obj_add_event_cb(data->button_list, busy_list_event_callback, LV_EVENT_SCROLL_BEGIN, NULL);
 
     data->start_button = lv_list_add_button(data->button_list, NULL, "START");
     lv_obj_set_style_text_color(data->start_button, lv_color_hex(0x033013), LV_PART_MAIN);
@@ -68,8 +61,6 @@ static void busy_scene_start_on_exit(void* context) {
 
     gui_lvgl_acquire(instance->gui);
 
-    lv_obj_delete(data->start_button);
-    lv_obj_delete(data->setup_button);
     lv_obj_delete(data->button_list);
     lv_obj_delete(data->main_image);
 
@@ -95,7 +86,7 @@ static void busy_scene_start_on_event(const BusyEvent* event, void* context) {
             }
 
         } else if(button == data->setup_button) {
-            FURI_LOG_D(TAG, "Setup pressed!");
+            busy_switch_to_scene(instance, BusyAppSceneIdSetup);
         }
     }
 }
