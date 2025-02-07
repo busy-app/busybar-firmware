@@ -35,8 +35,8 @@ static void busy_scene_start_on_enter(void* context) {
     lv_image_set_src(data->main_image, &I_pending_39x16);
 
     data->button_list = lv_list_create(active);
-    lv_obj_set_pos(data->button_list, 39, 0);
-    lv_obj_set_size(data->button_list, 33, lv_obj_get_height(active));
+    lv_obj_set_pos(data->button_list, 39, 1);
+    lv_obj_set_size(data->button_list, 33, lv_obj_get_height(active) - 2);
     lv_obj_set_style_text_font(data->button_list, &lv_font_tiny5_8, LV_PART_MAIN);
     lv_obj_set_style_pad_left(data->button_list, 8, LV_PART_MAIN);
     // TODO: Speed up animation the right way
