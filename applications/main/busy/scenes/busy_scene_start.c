@@ -19,15 +19,6 @@ static void busy_list_event_callback(lv_event_t* event) {
     if(anim) anim->duration = 16 * 4;
 }
 
-static void busy_scene_start_do_start(BusyApp* instance) {
-    if(instance->busy_interval_s != BUSY_INTERVAL_INFINITE) {
-        busy_switch_to_scene(instance, BusyAppSceneIdTimer);
-        busy_timer_start(instance);
-    } else {
-        busy_switch_to_scene(instance, BusyAppSceneIdStatic);
-    }
-}
-
 static void busy_scene_start_on_enter(void* context) {
     BusyApp* instance = context;
 
@@ -91,15 +82,18 @@ static void busy_scene_start_on_exit(void* context) {
 static void busy_scene_start_on_event(const BusyEvent* event, void* context) {
     BusyApp* instance = context;
 
-    if(event->type == BusyEventTypeStart) {
-        busy_scene_start_do_start(instance);
-
-    } else if(event->type == BusyEventTypeCustom) {
+    if(event->type == BusyEventTypeCustom) {
         const BusySceneStart* data = instance->scene_data[BusyAppSceneIdStart];
         const lv_obj_t* button = (const lv_obj_t*)event->custom_value;
 
         if(button == data->start_button) {
-            busy_scene_start_do_start(instance);
+            if(instance->busy_interval_s != BUSY_INTERVAL_INFINITE) {
+                busy_switch_to_scene(instance, BusyAppSceneIdTimer);
+                busy_timer_start(instance);
+            } else {
+                busy_switch_to_scene(instance, BusyAppSceneIdStatic);
+            }
+
         } else if(button == data->setup_button) {
             FURI_LOG_D(TAG, "Setup pressed!");
         }

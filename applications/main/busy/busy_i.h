@@ -12,6 +12,7 @@ typedef enum {
     BusyAppSceneIdStart,
     BusyAppSceneIdTimer,
     BusyAppSceneIdStatic,
+    BusyAppSceneIdQuit,
     BusyAppSceneIdMax,
 } BusyAppSceneId;
 
@@ -75,5 +76,7 @@ void busy_send_custom_event(BusyApp* instance, uint32_t value);
 void busy_timer_start(BusyApp* instance);
 void busy_timer_stop(BusyApp* instance);
 void busy_timer_next_state(BusyApp* instance);
-void busy_timer_pause_toggle(BusyApp* instance);
+void busy_timer_pause(BusyApp* instance);
+void busy_timer_resume(BusyApp* instance);
+void busy_timer_toggle(BusyApp* instance);
 bool busy_timer_is_running(BusyApp* instance);

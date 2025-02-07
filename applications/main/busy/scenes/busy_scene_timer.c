@@ -160,14 +160,12 @@ static void busy_scene_timer_on_event(const BusyEvent* event, void* context) {
     BusyApp* instance = context;
 
     if(event->type == BusyEventTypeStart) {
-        busy_timer_pause_toggle(instance);
         busy_scene_timer_toggle_pause_overlay(instance);
+        busy_timer_toggle(instance);
 
     } else if(event->type == BusyEventTypeBack) {
         if(busy_timer_is_running(instance)) {
-            // TODO: Confirmation screen
-            busy_switch_to_scene(instance, BusyAppSceneIdStart);
-            busy_timer_stop(instance);
+            busy_switch_to_scene(instance, BusyAppSceneIdQuit);
         }
 
     } else if(event->type == BusyEventTypeOk) {

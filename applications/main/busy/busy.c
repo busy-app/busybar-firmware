@@ -5,6 +5,7 @@
 #include "scenes/busy_scene_start.h"
 #include "scenes/busy_scene_timer.h"
 #include "scenes/busy_scene_static.h"
+#include "scenes/busy_scene_quit.h"
 
 #define BUSY_INTERVAL_DEFAULT_S      (15 * 60)
 // #define BUSY_INTERVAL_DEFAULT_S      (BUSY_INTERVAL_INFINITE)
@@ -19,6 +20,7 @@ static const BusyAppScene* busy_scenes[BusyAppSceneIdMax] = {
     [BusyAppSceneIdStart] = &busy_scene_start,
     [BusyAppSceneIdTimer] = &busy_scene_timer,
     [BusyAppSceneIdStatic] = &busy_scene_static,
+    [BusyAppSceneIdQuit] = &busy_scene_quit,
 };
 
 static void busy_send_custom_event_direct(BusyApp* instance, uint32_t value) {
@@ -62,11 +64,22 @@ void busy_timer_stop(BusyApp* instance) {
     instance->state = BusyTimerStateIdle;
 }
 
-void busy_timer_pause_toggle(BusyApp* instance) {
+void busy_timer_pause(BusyApp* instance) {
+    furi_assert(busy_timer_is_running(instance));
+    furi_event_loop_timer_stop(instance->busy_timer);
+}
+
+void busy_timer_resume(BusyApp* instance) {
+    furi_assert(!busy_timer_is_running(instance));
+    furi_event_loop_timer_start(instance->busy_timer, SECONDS_TO_MS(1));
+    busy_send_custom_event_direct(instance, instance->state);
+}
+
+void busy_timer_toggle(BusyApp* instance) {
     if(busy_timer_is_running(instance)) {
-        furi_event_loop_timer_stop(instance->busy_timer);
+        busy_timer_pause(instance);
     } else {
-        furi_event_loop_timer_start(instance->busy_timer, SECONDS_TO_MS(1));
+        busy_timer_resume(instance);
     }
 }
 
@@ -75,8 +88,6 @@ bool busy_timer_is_running(BusyApp* instance) {
 }
 
 void busy_timer_next_state(BusyApp* instance) {
-    furi_event_loop_timer_start(instance->busy_timer, SECONDS_TO_MS(1));
-
     BusyTimerState new_state;
 
     if(instance->state == BusyTimerStateIdle) {
@@ -106,6 +117,8 @@ void busy_timer_next_state(BusyApp* instance) {
 
     instance->state = new_state;
     instance->time_left = instance->time_total;
+
+    furi_event_loop_timer_start(instance->busy_timer, SECONDS_TO_MS(1));
 
     busy_send_custom_event_direct(instance, new_state);
 }
