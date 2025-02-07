@@ -63,11 +63,15 @@ void busy_timer_stop(BusyApp* instance) {
 }
 
 void busy_timer_pause_toggle(BusyApp* instance) {
-    if(furi_event_loop_timer_is_running(instance->busy_timer)) {
+    if(busy_timer_is_running(instance)) {
         furi_event_loop_timer_stop(instance->busy_timer);
     } else {
         furi_event_loop_timer_start(instance->busy_timer, SECONDS_TO_MS(1));
     }
+}
+
+bool busy_timer_is_running(BusyApp* instance) {
+    return furi_event_loop_timer_is_running(instance->busy_timer);
 }
 
 void busy_timer_next_state(BusyApp* instance) {

@@ -76,3 +76,4 @@ void busy_timer_start(BusyApp* instance);
 void busy_timer_stop(BusyApp* instance);
 void busy_timer_next_state(BusyApp* instance);
 void busy_timer_pause_toggle(BusyApp* instance);
+bool busy_timer_is_running(BusyApp* instance);

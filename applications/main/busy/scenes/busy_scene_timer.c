@@ -164,12 +164,16 @@ static void busy_scene_timer_on_event(const BusyEvent* event, void* context) {
         busy_scene_timer_toggle_pause_overlay(instance);
 
     } else if(event->type == BusyEventTypeBack) {
-        // TODO: Confirmation screen
-        busy_switch_to_scene(instance, BusyAppSceneIdStart);
-        busy_timer_stop(instance);
+        if(busy_timer_is_running(instance)) {
+            // TODO: Confirmation screen
+            busy_switch_to_scene(instance, BusyAppSceneIdStart);
+            busy_timer_stop(instance);
+        }
 
     } else if(event->type == BusyEventTypeOk) {
-        busy_timer_next_state(instance);
+        if(busy_timer_is_running(instance)) {
+            busy_timer_next_state(instance);
+        }
 
     } else if(event->type == BusyEventTypeCustom) {
         if(event->custom_value > BusyTimerStateIdle && event->custom_value < BusyTimerStateMax) {
