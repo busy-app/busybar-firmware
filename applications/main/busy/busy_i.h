@@ -6,9 +6,12 @@
 
 #define TAG "Busy"
 
+#define BUSY_INTERVAL_INFINITE (UINT32_MAX)
+
 typedef enum {
     BusyAppSceneIdStart,
     BusyAppSceneIdTimer,
+    BusyAppSceneIdStatic,
     BusyAppSceneIdMax,
 } BusyAppSceneId;
 

@@ -4,8 +4,10 @@
 
 #include "scenes/busy_scene_start.h"
 #include "scenes/busy_scene_timer.h"
+#include "scenes/busy_scene_static.h"
 
 #define BUSY_INTERVAL_DEFAULT_S      (15 * 60)
+// #define BUSY_INTERVAL_DEFAULT_S      (BUSY_INTERVAL_INFINITE)
 #define REST_INTERVAL_DEFAULT_S      (5 * 60)
 #define LONG_REST_INTERVAL_DEFAULT_S (10 * 60)
 
@@ -16,6 +18,7 @@
 static const BusyAppScene* busy_scenes[BusyAppSceneIdMax] = {
     [BusyAppSceneIdStart] = &busy_scene_start,
     [BusyAppSceneIdTimer] = &busy_scene_timer,
+    [BusyAppSceneIdStatic] = &busy_scene_static,
 };
 
 static void busy_send_custom_event_direct(BusyApp* instance, uint32_t value) {

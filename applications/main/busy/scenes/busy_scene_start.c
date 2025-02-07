@@ -20,12 +20,11 @@ static void busy_list_event_callback(lv_event_t* event) {
 }
 
 static void busy_scene_start_do_start(BusyApp* instance) {
-    if(instance->busy_interval_s < UINT32_MAX) {
+    if(instance->busy_interval_s != BUSY_INTERVAL_INFINITE) {
         busy_switch_to_scene(instance, BusyAppSceneIdTimer);
         busy_timer_start(instance);
-
     } else {
-        // TODO: Timerless busy scene
+        busy_switch_to_scene(instance, BusyAppSceneIdStatic);
     }
 }
 

@@ -158,7 +158,6 @@ static void busy_scene_timer_on_exit(void* context) {
 
 static void busy_scene_timer_on_event(const BusyEvent* event, void* context) {
     BusyApp* instance = context;
-    UNUSED(instance);
 
     if(event->type == BusyEventTypeStart) {
         busy_timer_pause_toggle(instance);
