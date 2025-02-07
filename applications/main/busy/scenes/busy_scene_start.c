@@ -79,16 +79,18 @@ static void busy_scene_start_on_exit(void* context) {
     *data_slot = NULL;
 }
 
-static void busy_scene_start_on_event(uint32_t event, void* context) {
-    BusyApp* instance = context;
+static void busy_scene_start_on_event(const BusyEvent* event, void* context) {
+    if(event->type == BusyEventTypeCustom) {
+        BusyApp* instance = context;
+        BusySceneStart* data = instance->scene_data[BusyAppSceneIdStart];
 
-    BusySceneStart* data = instance->scene_data[BusyAppSceneIdStart];
-    lv_obj_t* button = (lv_obj_t*)event;
+        lv_obj_t* button = (lv_obj_t*)event->custom_value;
 
-    if(button == data->start_button) {
-        busy_switch_to_scene(instance, BusyAppSceneIdBusy);
-    } else if(button == data->setup_button) {
-        FURI_LOG_D(TAG, "Setup pressed!");
+        if(button == data->start_button) {
+            busy_switch_to_scene(instance, BusyAppSceneIdBusy);
+        } else if(button == data->setup_button) {
+            FURI_LOG_D(TAG, "Setup pressed!");
+        }
     }
 }
 

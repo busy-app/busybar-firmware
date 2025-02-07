@@ -112,7 +112,7 @@ static void busy_scene_busy_on_exit(void* context) {
     *data_slot = NULL;
 }
 
-static void busy_scene_busy_on_event(uint32_t event, void* context) {
+static void busy_scene_busy_on_event(const BusyEvent* event, void* context) {
     UNUSED(event);
     UNUSED(context);
 }
