@@ -19,6 +19,16 @@ static void busy_list_event_callback(lv_event_t* event) {
     if(anim) anim->duration = 16 * 4;
 }
 
+static void busy_scene_start_do_start(BusyApp* instance) {
+    if(instance->busy_interval_s < UINT32_MAX) {
+        busy_switch_to_scene(instance, BusyAppSceneIdTimer);
+        busy_timer_start(instance);
+
+    } else {
+        // TODO: Timerless busy scene
+    }
+}
+
 static void busy_scene_start_on_enter(void* context) {
     BusyApp* instance = context;
 
@@ -80,20 +90,17 @@ static void busy_scene_start_on_exit(void* context) {
 }
 
 static void busy_scene_start_on_event(const BusyEvent* event, void* context) {
-    if(event->type == BusyEventTypeCustom) {
-        BusyApp* instance = context;
-        BusySceneStart* data = instance->scene_data[BusyAppSceneIdStart];
+    BusyApp* instance = context;
 
-        lv_obj_t* button = (lv_obj_t*)event->custom_value;
+    if(event->type == BusyEventTypeStart) {
+        busy_scene_start_do_start(instance);
+
+    } else if(event->type == BusyEventTypeCustom) {
+        const BusySceneStart* data = instance->scene_data[BusyAppSceneIdStart];
+        const lv_obj_t* button = (const lv_obj_t*)event->custom_value;
 
         if(button == data->start_button) {
-            if(instance->busy_interval_s < UINT32_MAX) {
-                busy_switch_to_scene(instance, BusyAppSceneIdTimer);
-                busy_timer_start(instance);
-            } else {
-                // TODO: Timerless busy scene
-            }
-
+            busy_scene_start_do_start(instance);
         } else if(button == data->setup_button) {
             FURI_LOG_D(TAG, "Setup pressed!");
         }
