@@ -8,6 +8,7 @@
 
 #define BUSY_INTERVAL_DEFAULT_S (15 * 60)
 #define REST_INTERVAL_DEFAULT_S (5 * 60)
+#define LONG_REST_INTERVAL_DEFAULT_S (10 * 60)
 
 typedef enum {
     BusyAppSceneIdStart,
@@ -35,6 +36,7 @@ typedef struct {
     const BusyAppScene* current_scene;
     uint32_t busy_interval_s;
     uint32_t rest_interval_s;
+    uint32_t long_rest_interval_s;
 } BusyApp;
 
 void busy_switch_to_scene(BusyApp* instance, BusyAppSceneId scene_id);

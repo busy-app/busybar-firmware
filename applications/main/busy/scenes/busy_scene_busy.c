@@ -1,6 +1,8 @@
 #include "busy_scene_busy.h"
 
 extern const lv_image_dsc_t I_busy_39x14;
+extern const lv_image_dsc_t I_rest_39x14;
+extern const lv_image_dsc_t I_long_rest_39x14;
 
 typedef struct {
     lv_obj_t* main_image;

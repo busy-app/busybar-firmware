@@ -42,6 +42,7 @@ static BusyApp* busy_alloc(void) {
     instance->gui = furi_record_open(RECORD_GUI_LVGL);
     instance->busy_interval_s = BUSY_INTERVAL_DEFAULT_S;
     instance->rest_interval_s = REST_INTERVAL_DEFAULT_S;
+    instance->long_rest_interval_s = LONG_REST_INTERVAL_DEFAULT_S;
 
     furi_event_loop_subscribe_message_queue(
         instance->event_loop,
