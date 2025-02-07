@@ -265,8 +265,8 @@ static void theme_apply(lv_theme_t* th, lv_obj_t* obj) {
 
 #if LV_USE_BAR
     else if(lv_obj_check_type(obj, &lv_bar_class)) {
-        lv_obj_add_style(obj, &theme->styles.light, 0);
-        lv_obj_add_style(obj, &theme->styles.dark, LV_PART_INDICATOR);
+        lv_obj_add_style(obj, &theme->styles.normal, LV_PART_MAIN);
+        lv_obj_add_style(obj, &theme->styles.focused, LV_PART_INDICATOR);
     }
 #endif
 
