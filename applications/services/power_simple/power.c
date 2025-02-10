@@ -1,5 +1,5 @@
 #include "power.h"
-
+#include "power_usb_pd_i.h"
 #include <furi.h>
 #include <furi_hal.h>
 #include <toolbox/api_lock.h>
@@ -14,6 +14,9 @@ typedef enum {
     PowerMessageTypeShutdown,
     PowerMessageTypeOff,
     PowerMessageTypeReboot,
+
+    // TODO: separate queue for internal messages?
+    PowerMessageTypeUsbPdUpdate,
 } PowerMessageType;
 
 typedef struct {
@@ -23,6 +26,12 @@ typedef struct {
 typedef struct {
     PowerMessageType type;
     FuriApiLock lock;
+    union {
+        struct {
+            uint32_t voltage;
+            uint32_t current;
+        } pd_mode;
+    };
 } PowerMessage;
 
 struct Power {
@@ -30,6 +39,9 @@ struct Power {
     FuriMessageQueue* message_queue;
     FuriSemaphore* gpio_semaphore;
     PowerState state;
+    PowerUsbPd* usb_pd;
+    PowerUsbPdCapability pd_capabilities;
+    float input_current_limit;
 };
 
 static void power_on_interrupt(FuriEventLoopObject* object, void* context) {
@@ -46,7 +58,7 @@ static void power_on_interrupt(FuriEventLoopObject* object, void* context) {
     FURI_LOG_I(TAG, "Charger Interrupt flags: %08lX", irq_flags);
 
     if(irq_flags & Bq25987IrqFlagVbusPresent) {
-        bq25798_set_input_current_limit(POWER_I2C, 1.f); // TODO: update limit after PD negotiation
+        bq25798_set_input_current_limit(POWER_I2C, instance->input_current_limit);
     }
 
     furi_hal_i2c_release(POWER_I2C);
@@ -82,6 +94,32 @@ static void power_handle_reboot(Power* power) {
     furi_hal_i2c_release(POWER_I2C);
 }
 
+static void power_dump_pd_capabilities(Power* power) {
+    FURI_LOG_I(
+        TAG,
+        "PD Capabilities: %u (default %.3fA)",
+        power->pd_capabilities.cap_number,
+        power->pd_capabilities.passive_mode_current / 1000.f);
+    for(size_t i = 0; i < power->pd_capabilities.cap_number; i++) {
+        if(power->pd_capabilities.cap[i].is_fixed) {
+            FURI_LOG_I(
+                TAG,
+                "[%u] fixed %.3fV %.3fA",
+                power->pd_capabilities.cap[i].pdo_id,
+                power->pd_capabilities.cap[i].voltage_max / 1000.f,
+                power->pd_capabilities.cap[i].current_max / 1000.f);
+        } else {
+            FURI_LOG_I(
+                TAG,
+                "[%u] PPS %.3f-%.3fV %.3fA",
+                power->pd_capabilities.cap[i].pdo_id,
+                power->pd_capabilities.cap[i].voltage_min / 1000.f,
+                power->pd_capabilities.cap[i].voltage_max / 1000.f,
+                power->pd_capabilities.cap[i].current_max / 1000.f);
+        }
+    }
+}
+
 static void power_message_callback(FuriEventLoopObject* object, void* context) {
     furi_assert(context);
     Power* power = context;
@@ -101,6 +139,27 @@ static void power_message_callback(FuriEventLoopObject* object, void* context) {
     case PowerMessageTypeReboot:
         power_handle_reboot(power);
         break;
+    case PowerMessageTypeUsbPdUpdate:
+        furi_hal_i2c_acquire(POWER_I2C);
+        power->input_current_limit = msg.pd_mode.current / 1000.f;
+        bq25798_set_input_current_limit(POWER_I2C, power->input_current_limit);
+        furi_hal_i2c_release(POWER_I2C);
+
+        FURI_LOG_I(
+            TAG,
+            "USB PD Mode: %.3fV %.3fA",
+            msg.pd_mode.voltage / 1000.f,
+            msg.pd_mode.current / 1000.f);
+
+        power_usb_pd_get_capabilities(power->usb_pd, &power->pd_capabilities);
+        power_dump_pd_capabilities(power);
+
+        // TODO: check capabilities before
+        if((msg.pd_mode.voltage == 5000) && (power->pd_capabilities.cap_number > 1)) {
+            power_usb_pd_request_power(power->usb_pd, 9000, 0); // Request 9v, max current
+            // power_usb_pd_request_power(power->usb_pd, 6666, 1234); //PPS
+        }
+        break;
     default:
         furi_crash();
     }
@@ -115,6 +174,7 @@ Power* power_alloc(void) {
     instance->event_loop = furi_event_loop_alloc();
     instance->gpio_semaphore = furi_semaphore_alloc(1, 0);
     instance->message_queue = furi_message_queue_alloc(4, sizeof(PowerMessage));
+    instance->input_current_limit = 0.5f;
 
     furi_event_loop_subscribe_message_queue(
         instance->event_loop,
@@ -122,6 +182,16 @@ Power* power_alloc(void) {
         FuriEventLoopEventIn,
         power_message_callback,
         instance);
+
+    FuriMessageQueue* pd_queue = NULL;
+    instance->usb_pd = power_usb_pd_alloc(&pd_queue);
+    furi_event_loop_subscribe_message_queue(
+        instance->event_loop,
+        pd_queue,
+        FuriEventLoopEventIn,
+        power_usb_pd_msg_handler,
+        instance->usb_pd);
+
     return instance;
 }
 
@@ -151,6 +221,10 @@ void power_run(Power* instance) {
     furi_hal_i2c_release(POWER_I2C);
 
     furi_record_create(RECORD_POWER, instance);
+
+    // TODO: don't start PD if battery is dead
+    power_usb_pd_start(instance->usb_pd);
+
     FURI_LOG_I(TAG, "Running event loop");
     furi_event_loop_run(instance->event_loop);
 }
@@ -180,6 +254,18 @@ void power_shutdown(Power* power) {
 void power_reboot(Power* power) {
     PowerMessage msg = {
         .type = PowerMessageTypeReboot,
+    };
+
+    furi_check(
+        furi_message_queue_put(power->message_queue, &msg, FuriWaitForever) == FuriStatusOk);
+}
+
+void power_on_usb_pd_update(Power* power, uint32_t voltage, uint32_t current) {
+    furi_check(power);
+
+    PowerMessage msg = {
+        .type = PowerMessageTypeUsbPdUpdate,
+        .pd_mode = {.voltage = voltage, .current = current},
     };
 
     furi_check(

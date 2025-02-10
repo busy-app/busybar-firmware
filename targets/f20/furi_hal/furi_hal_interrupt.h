@@ -61,7 +61,8 @@ typedef enum {
     FuriHalInterruptIdLPTIM3,
     FuriHalInterruptIdLPTIM4,
 
-    // USB
+    // USB + PD
+    FuriHalInterruptIdUCPD1,
     FuriHalInterruptIdUSBHS,
 
     // Service value
