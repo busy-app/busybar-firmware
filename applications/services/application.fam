@@ -28,11 +28,20 @@ App(
     name="Basic services",
     apptype=FlipperAppType.METAPACKAGE,
     provides=[
-        # "cli",
+        # "cli", # Enabled in "hwtest" fw config (FIRMWARE_APP_SET)
         "input",
-        "intercom",
         "notification",
-        "wifi",
+    ],
+    targets=["f64"],
+)
+
+App(
+    appid="intercom_services",
+    name="U5<>917 intercom services",
+    apptype=FlipperAppType.METAPACKAGE,
+    provides=[
+        "intercom",  # Enabled in default fw config
+        # "wifi",  # Enabled by "sockets"
         "sockets",
     ],
     targets=["f64"],
