@@ -74,22 +74,26 @@ static void storage_cli_format(Cli* cli, FuriString* path, FuriString* args) {
         storage_cli_print_error(FSE_NOT_IMPLEMENTED);
     } else if(furi_string_cmp_str(path, STORAGE_EXT_PATH_PREFIX) == 0) {
         printf("Formatting SD card, All data will be lost! Are you sure (y/n)?\r\n");
-        char answer = cli_getc(cli);
-        if(answer == 'y' || answer == 'Y') {
-            Storage* api = furi_record_open(RECORD_STORAGE);
-            printf("Formatting, please wait...\r\n");
+        while(true) {
+            char answer = cli_getc(cli);
+            if(answer == 'y' || answer == 'Y') {
+                Storage* api = furi_record_open(RECORD_STORAGE);
+                printf("Formatting, please wait...\r\n");
 
-            FS_Error error = storage_sd_format(api);
+                FS_Error error = storage_sd_format(api);
 
-            if(error != FSE_OK) {
-                storage_cli_print_error(error);
-            } else {
-                printf("SD card was successfully formatted.\r\n");
+                if(error != FSE_OK) {
+                    storage_cli_print_error(error);
+                } else {
+                    printf("SD card was successfully formatted.\r\n");
+                }
+                furi_record_close(RECORD_STORAGE);
+                break;
+            } else if(answer == 'n' || answer == 'N') {
+                printf("Cancelled.\r\n");
+                break;
             }
-            furi_record_close(RECORD_STORAGE);
-        } else {
-            printf("Cancelled.\r\n");
-        }
+        };
     } else {
         storage_cli_print_usage();
     }
