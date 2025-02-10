@@ -224,20 +224,12 @@ sys_thread_t
 
 #define FURI_THREAD_LOCAL_SEM_INDEX 0
 
-static void* furi_thread_current_lwip_get_sem(void) {
+sys_sem_t* sys_arch_netconn_sem_get(void) {
     return furi_thread_local_storage_pointer_get(NULL, FURI_THREAD_LOCAL_SEM_INDEX);
 }
 
-static void furi_thread_current_lwip_set_sem(void* sem) {
-    furi_thread_local_storage_pointer_set(NULL, FURI_THREAD_LOCAL_SEM_INDEX, sem);
-}
-
-sys_sem_t* sys_arch_netconn_sem_get(void) {
-    return furi_thread_current_lwip_get_sem();
-}
-
 void sys_arch_netconn_sem_alloc(void) {
-    void* ret = furi_thread_current_lwip_get_sem();
+    void* ret = furi_thread_local_storage_pointer_get(NULL, FURI_THREAD_LOCAL_SEM_INDEX);
     if(ret == NULL) {
         sys_sem_t* sem;
         err_t err;
@@ -247,7 +239,7 @@ void sys_arch_netconn_sem_alloc(void) {
         err = sys_sem_new(sem, 0);
         LWIP_ASSERT("err == ERR_OK", err == ERR_OK);
         LWIP_ASSERT("sem invalid", sys_sem_valid(sem));
-        furi_thread_current_lwip_set_sem(sem);
+        furi_thread_local_storage_pointer_set(NULL, FURI_THREAD_LOCAL_SEM_INDEX, sem);
     }
 }
 
@@ -257,6 +249,6 @@ void sys_arch_netconn_sem_free(void) {
         sys_sem_t* sem = ret;
         sys_sem_free(sem);
         mem_free(sem);
-        furi_thread_current_lwip_set_sem(NULL);
+        furi_thread_local_storage_pointer_set(NULL, FURI_THREAD_LOCAL_SEM_INDEX, sem);
     }
 }
