@@ -49,7 +49,7 @@
 #define ETH_PAD_SIZE               0
 #define LWIP_IP_ACCEPT_UDP_PORT(p) ((p) == PP_NTOHS(67))
 
-#define TCPIP_THREAD_STACKSIZE    2048
+#define TCPIP_THREAD_STACKSIZE    4096
 #define TCPIP_MBOX_SIZE           6
 #define DEFAULT_RAW_RECVMBOX_SIZE 6
 #define DEFAULT_UDP_RECVMBOX_SIZE 6
@@ -58,8 +58,8 @@
 #define MEMP_NUM_SYS_TIMEOUT      17
 
 #define TCP_MSS     (1500 /*mtu*/ - 20 /*iphdr*/ - 20 /*tcphhr*/)
-#define TCP_SND_BUF (2 * TCP_MSS)
-#define TCP_WND     (TCP_MSS)
+#define TCP_SND_BUF (4 * TCP_MSS)
+#define TCP_WND     (4 * TCP_MSS)
 
 #define ETHARP_SUPPORT_STATIC_ENTRIES 1
 
@@ -74,7 +74,7 @@
 
 #define LWIP_SINGLE_NETIF 1
 
-#define PBUF_POOL_SIZE 2
+#define PBUF_POOL_SIZE 8 // TODO:
 
 #define LWIP_NUM_NETIF_CLIENT_DATA 10
 

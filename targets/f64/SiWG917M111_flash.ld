@@ -65,6 +65,8 @@ SECTIONS {
             *string.o
             *thread*.o
             *timer.o
+            *furi_hal_interrupt.o
+            *furi_hal_os.o
             /* Wiseconnect */
             *rsi_hal_mcu_m4_ram.o
             *rsi_hal_mcu_m4_rom.o
@@ -72,6 +74,7 @@ SECTIONS {
             *sl_si91x_bus.o
             *sl_sleeptimer.o
             *sl_sleeptimer_hal_si91x_sysrtc.o
+            *sl_utility.o
             *rsi_sysrtc.o
             *sl_si91x_low_power_tickless_mode.o
             *sli_si91x_multithreaded.o
@@ -144,6 +147,8 @@ SECTIONS {
         *string.o(.text*)
         *thread*.o(.text*)
         *timer.o(.text*)
+        *furi_hal_interrupt.o(.text*)
+        *furi_hal_os.o(.text*)
         /* Wiseconnect */
         *rsi_hal_mcu_m4_ram.o(.text*)
         *rsi_hal_mcu_m4_rom.o(.text*)
@@ -151,6 +156,7 @@ SECTIONS {
         *sl_si91x_bus.o(.text*)
         *sl_sleeptimer.o(.text*)
         *sl_sleeptimer_hal_si91x_sysrtc.o(.text*)
+        *sl_utility.o(.text*)
         *rsi_sysrtc.o(.text*)
         *sl_si91x_low_power_tickless_mode.o(.text*)
         *sli_si91x_multithreaded.o(.text*)

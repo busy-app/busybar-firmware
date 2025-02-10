@@ -186,6 +186,11 @@ static size_t cli_uart_rx(uint8_t* buffer, size_t size, uint32_t timeout) {
     return rx_cnt;
 }
 
+static size_t cli_uart_rx_stdin(uint8_t* data, size_t size, uint32_t timeout, void* context) {
+    UNUSED(context);
+    return cli_uart_rx(data, size, timeout);
+}
+
 static void cli_uart_tx(const uint8_t* buffer, size_t size) {
     furi_assert(cli_uart_handle);
     furi_assert(buffer);
@@ -211,7 +216,8 @@ static void cli_uart_tx(const uint8_t* buffer, size_t size) {
     CLI_UART_DEBUG("tx %u end", size);
 }
 
-static void cli_uart_tx_stdout(const char* data, size_t size) {
+static void cli_uart_tx_stdout(const char* data, size_t size, void* context) {
+    UNUSED(context);
     cli_uart_tx((const uint8_t*)data, size);
 }
 
@@ -224,6 +230,7 @@ CliSession cli_uart = {
     cli_uart_init,
     cli_uart_deinit,
     cli_uart_rx,
+    cli_uart_rx_stdin,
     cli_uart_tx,
     cli_uart_tx_stdout,
     cli_uart_is_connected,

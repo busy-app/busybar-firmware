@@ -1,5 +1,5 @@
 entry,status,name,type,params
-Version,+,1.19,,
+Version,+,1.20,,
 Header,-,applications/services/cli/cli.h,,
 Header,-,applications/services/cli/cli_vcp.h,,
 Header,-,applications/services/gui/elements.h,,
@@ -448,18 +448,6 @@ Function,-,ceill,long double,long double
 Function,-,cfree,void,void*
 Function,-,clearerr,void,FILE*
 Function,-,clearerr_unlocked,void,FILE*
-Function,-,cli_add_command,void,"Cli*, const char*, CliCommandFlag, CliCallback, void*"
-Function,-,cli_cmd_interrupt_received,_Bool,Cli*
-Function,-,cli_delete_command,void,"Cli*, const char*"
-Function,-,cli_getc,char,Cli*
-Function,-,cli_is_connected,_Bool,Cli*
-Function,-,cli_nl,void,Cli*
-Function,-,cli_print_usage,void,"const char*, const char*, const char*"
-Function,-,cli_read,size_t,"Cli*, uint8_t*, size_t"
-Function,-,cli_read_timeout,size_t,"Cli*, uint8_t*, size_t, uint32_t"
-Function,-,cli_session_close,void,Cli*
-Function,-,cli_session_open,void,"Cli*, void*"
-Function,-,cli_write,void,"Cli*, const uint8_t*, size_t"
 Function,-,composite_api_resolver_add,void,"CompositeApiResolver*, const ElfApiInterface*"
 Function,-,composite_api_resolver_alloc,CompositeApiResolver*,
 Function,-,composite_api_resolver_free,void,CompositeApiResolver*
@@ -1903,7 +1891,6 @@ Variable,-,__stdio_exit_handler,void (*)(),
 Variable,-,_ctype_,const char[],
 Variable,-,_impure_data,_reent,
 Variable,-,_impure_ptr,_reent*,
-Variable,-,cli_vcp,CliSession,
 Variable,-,compress_config_heatshrink_default,const CompressConfigHeatshrink,
 Variable,-,gpio_917_irq,const GpioPin,
 Variable,-,gpio_917_pwr_en,const GpioPin,
@@ -1927,8 +1914,6 @@ Variable,-,gpio_led_scan_sdi,const GpioPin,
 Variable,-,gpio_led_sdi_ospi_d0,const GpioPin,
 Variable,-,gpio_log_usart_rx,const GpioPin,
 Variable,-,gpio_log_usart_tx,const GpioPin,
-Variable,-,gpio_lpuart1_rx,const GpioPin,
-Variable,-,gpio_lpuart1_tx,const GpioPin,
 Variable,-,gpio_oled_cs,const GpioPin,
 Variable,-,gpio_oled_dc,const GpioPin,
 Variable,-,gpio_oled_fr,const GpioPin,
@@ -1951,6 +1936,8 @@ Variable,-,gpio_usart1_cts,const GpioPin,
 Variable,-,gpio_usart1_rts,const GpioPin,
 Variable,-,gpio_usart1_rx,const GpioPin,
 Variable,-,gpio_usart1_tx,const GpioPin,
+Variable,-,gpio_usart2_rx,const GpioPin,
+Variable,-,gpio_usart2_tx,const GpioPin,
 Variable,-,gpio_usb_dm,const GpioPin,
 Variable,-,gpio_usb_dp,const GpioPin,
 Variable,-,simple_array_config_uint8_t,const SimpleArrayConfig,

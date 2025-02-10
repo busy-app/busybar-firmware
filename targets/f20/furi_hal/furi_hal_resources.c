@@ -13,8 +13,8 @@ const GpioPin gpio_usart1_rx = {.port = GPIOB, .pin = LL_GPIO_PIN_7};
 const GpioPin gpio_usart1_rts = {.port = GPIOB, .pin = LL_GPIO_PIN_3};
 const GpioPin gpio_usart1_cts = {.port = GPIOB, .pin = LL_GPIO_PIN_4};
 
-const GpioPin gpio_lpuart1_tx = {.port = GPIOA, .pin = LL_GPIO_PIN_2};
-const GpioPin gpio_lpuart1_rx = {.port = GPIOA, .pin = LL_GPIO_PIN_3};
+const GpioPin gpio_usart2_tx = {.port = GPIOA, .pin = LL_GPIO_PIN_2};
+const GpioPin gpio_usart2_rx = {.port = GPIOA, .pin = LL_GPIO_PIN_3};
 
 const GpioPin gpio_917_rst = {.port = GPIOA, .pin = LL_GPIO_PIN_4};
 const GpioPin gpio_917_irq = {.port = GPIOC, .pin = LL_GPIO_PIN_6};
