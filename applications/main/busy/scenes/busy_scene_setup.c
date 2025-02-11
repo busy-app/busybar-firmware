@@ -1,5 +1,7 @@
 #include "busy_scene_setup.h"
 
+#include "../helpers/variable_item.h"
+
 typedef struct {
     lv_obj_t* button_list;
 } BusySceneSetup;
@@ -28,15 +30,18 @@ static void busy_scene_setup_on_enter(void* context) {
     // TODO: Speed up animation the right way
     lv_obj_add_event_cb(data->button_list, busy_list_event_callback, LV_EVENT_SCROLL_BEGIN, NULL);
 
-    // TODO: Implement actual menu
-    lv_list_add_button(data->button_list, NULL, "Busy time");
-    lv_list_add_button(data->button_list, NULL, "Intervals");
+    lv_obj_t* item;
+    item = lv_variable_item_add(data->button_list, "Total time");
+    item = lv_variable_item_add(data->button_list, "Intervals");
+
     lv_list_add_button(data->button_list, NULL, "Work time");
     lv_list_add_button(data->button_list, NULL, "Short rest");
     lv_list_add_button(data->button_list, NULL, "Long rest");
     lv_list_add_button(data->button_list, NULL, "Autostart\nwork");
     lv_list_add_button(data->button_list, NULL, "Autostart\nrest");
     lv_list_add_button(data->button_list, NULL, "Sound");
+
+    UNUSED(item);
 
     gui_lvgl_release(instance->gui);
 

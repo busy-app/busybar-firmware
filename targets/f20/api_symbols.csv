@@ -1,5 +1,5 @@
 entry,status,name,type,params
-Version,+,1.20,,
+Version,+,1.21,,
 Header,-,applications/services/cli/cli.h,,
 Header,-,applications/services/cli/cli_vcp.h,,
 Header,-,applications/services/gui/elements.h,,
@@ -448,6 +448,18 @@ Function,-,ceill,long double,long double
 Function,-,cfree,void,void*
 Function,-,clearerr,void,FILE*
 Function,-,clearerr_unlocked,void,FILE*
+Function,-,cli_add_command,void,"Cli*, const char*, CliCommandFlag, CliCallback, void*"
+Function,-,cli_cmd_interrupt_received,_Bool,Cli*
+Function,-,cli_delete_command,void,"Cli*, const char*"
+Function,-,cli_getc,char,Cli*
+Function,-,cli_is_connected,_Bool,Cli*
+Function,-,cli_nl,void,Cli*
+Function,-,cli_print_usage,void,"const char*, const char*, const char*"
+Function,-,cli_read,size_t,"Cli*, uint8_t*, size_t"
+Function,-,cli_read_timeout,size_t,"Cli*, uint8_t*, size_t, uint32_t"
+Function,-,cli_session_close,void,Cli*
+Function,-,cli_session_open,void,"Cli*, void*"
+Function,-,cli_write,void,"Cli*, const uint8_t*, size_t"
 Function,-,composite_api_resolver_add,void,"CompositeApiResolver*, const ElfApiInterface*"
 Function,-,composite_api_resolver_alloc,CompositeApiResolver*,
 Function,-,composite_api_resolver_free,void,CompositeApiResolver*
@@ -934,6 +946,8 @@ Function,-,furi_thread_list_get_at,FuriThreadListItem*,"FuriThreadList*, size_t"
 Function,-,furi_thread_list_get_isr_time,float,FuriThreadList*
 Function,-,furi_thread_list_get_or_insert,FuriThreadListItem*,"FuriThreadList*, FuriThread*"
 Function,-,furi_thread_list_size,size_t,FuriThreadList*
+Function,-,furi_thread_local_storage_pointer_get,void*,"FuriThreadId, uint32_t"
+Function,-,furi_thread_local_storage_pointer_set,void,"FuriThreadId, uint32_t, void*"
 Function,-,furi_thread_resume,void,FuriThreadId
 Function,-,furi_thread_set_appid,void,"FuriThread*, const char*"
 Function,-,furi_thread_set_callback,void,"FuriThread*, FuriThreadCallback"
@@ -1891,6 +1905,7 @@ Variable,-,__stdio_exit_handler,void (*)(),
 Variable,-,_ctype_,const char[],
 Variable,-,_impure_data,_reent,
 Variable,-,_impure_ptr,_reent*,
+Variable,-,cli_session,CliSession,
 Variable,-,compress_config_heatshrink_default,const CompressConfigHeatshrink,
 Variable,-,gpio_917_irq,const GpioPin,
 Variable,-,gpio_917_pwr_en,const GpioPin,

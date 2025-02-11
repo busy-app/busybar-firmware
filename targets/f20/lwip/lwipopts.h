@@ -37,7 +37,7 @@
 #define MEM_ALIGNMENT              4
 #define LWIP_ETHERNET              1
 #define LWIP_RAW                   0
-#define LWIP_NETCONN               0
+#define LWIP_NETCONN               1
 #define LWIP_SOCKET                1
 #define LWIP_DHCP                  0
 #define LWIP_ICMP                  1
@@ -86,5 +86,9 @@
 #define LWIP_IPV6_SEND_ROUTER_SOLICIT 0
 
 #define LWIP_RAND() ((uint32_t)rand())
+
+#define LWIP_NETCONN_SEM_PER_THREAD 1
+#define LWIP_NETCONN_FULLDUPLEX     1
+#define MEM_LIBC_MALLOC             1
 
 #endif /* __LWIPOPTS_H__ */

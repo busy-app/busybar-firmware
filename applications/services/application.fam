@@ -7,6 +7,7 @@ App(
         "storage",
         # "cli",
         # "gui",
+        # "cli_socket",
         "input",
         "gui_lvgl",
         # "desktop_simple",
@@ -33,7 +34,6 @@ App(
     ],
     targets=["f64"],
 )
-
 
 App(
     appid="intercom_services",

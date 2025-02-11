@@ -4,6 +4,7 @@
 #include <version.h>
 #include "mongoose.h"
 #include "web_storage.h"
+#include <usb_network/usb_network.h>
 
 #define TAG "HTTPD"
 
@@ -128,6 +129,8 @@ static void httpd_handler(struct mg_connection* c, int ev, void* ev_data) {
 
 int32_t httpd_start(void* p) {
     UNUSED(p);
+    UsbNetwork* usb_network = furi_record_open(RECORD_USB_NETWORK);
+    usb_network_thread_init(usb_network);
 
     if(led_pin) {
         furi_hal_gpio_init_simple(led_pin, GpioModeOutputPushPull);
@@ -152,6 +155,9 @@ int32_t httpd_start(void* p) {
 
     // Cleanup
     mg_mgr_free(&mgr);
+
+    usb_network_thread_cleanup(usb_network);
+    furi_record_close(RECORD_USB_NETWORK);
 
     return 0;
 }
