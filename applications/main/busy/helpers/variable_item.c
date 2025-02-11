@@ -16,6 +16,8 @@ typedef struct {
     int32_t max;
     int32_t step;
     int32_t value;
+    bool binary;
+    bool min_as_inf;
 } lv_variable_item_spinbox_t;
 
 static void lv_variable_item_constructor(const lv_obj_class_t* class_p, lv_obj_t* obj);
@@ -92,6 +94,45 @@ void lv_variable_item_set_step(lv_obj_t* item, int32_t step) {
     lv_variable_item_spinbox_update(spinbox);
 }
 
+void lv_variable_item_set_value(lv_obj_t* item, int32_t value) {
+    lv_obj_t* obj = lv_obj_get_child(item, 1);
+    lv_variable_item_spinbox_t* spinbox = (lv_variable_item_spinbox_t*)obj;
+
+    if(spinbox->binary) {
+        spinbox->value = !!value;
+    } else {
+        spinbox->value = value;
+        spinbox->value = (spinbox->value / spinbox->step) * spinbox->step;
+    }
+
+    lv_variable_item_spinbox_update(spinbox);
+}
+
+void lv_variable_item_set_binary(lv_obj_t* item, bool set) {
+    lv_obj_t* obj = lv_obj_get_child(item, 1);
+    lv_variable_item_spinbox_t* spinbox = (lv_variable_item_spinbox_t*)obj;
+
+    spinbox->binary = set;
+
+    if(set) {
+        spinbox->value = !!spinbox->value;
+        spinbox->min = 0;
+        spinbox->max = 1;
+        spinbox->step = 1;
+    }
+
+    lv_variable_item_spinbox_update(spinbox);
+}
+
+void lv_variable_item_set_min_as_inf(lv_obj_t* item, bool set) {
+    lv_obj_t* obj = lv_obj_get_child(item, 1);
+    lv_variable_item_spinbox_t* spinbox = (lv_variable_item_spinbox_t*)obj;
+
+    spinbox->min_as_inf = set;
+
+    lv_variable_item_spinbox_update(spinbox);
+}
+
 static void lv_variable_item_constructor(const lv_obj_class_t* class_p, lv_obj_t* obj) {
     LV_UNUSED(class_p);
     lv_obj_remove_flag(obj, LV_OBJ_FLAG_SCROLLABLE);
@@ -113,16 +154,25 @@ static void lv_variable_item_spinbox_update(lv_variable_item_spinbox_t* spinbox)
 
     const int32_t value = spinbox->value;
 
-    if(value == spinbox->min) {
-        lv_label_set_text(label, "◃ ∞ ▹");
-    } else if(value < 60) {
-        lv_label_set_text_fmt(label, "◃ %ld m ▹", value);
-    } else if(value == 60) {
-        lv_label_set_text(label, "◃ 1h ▹");
+    if(spinbox->binary) {
+        if(value == spinbox->min) {
+            lv_label_set_text(label, "◃ OFF ▹");
+        } else {
+            lv_label_set_text(label, "◃ ON ▹");
+        }
+
     } else {
-        const int32_t hh = value / 60;
-        const int32_t mm = value % 60;
-        lv_label_set_text_fmt(label, "◃ %ld:%02ld ▹", hh, mm);
+        if(value == spinbox->min && spinbox->min_as_inf) {
+            lv_label_set_text(label, "◃ ∞ ▹");
+        } else if(value < 60) {
+            lv_label_set_text_fmt(label, "◃ %ld m ▹", value);
+        } else if(value == 60) {
+            lv_label_set_text(label, "◃ 1h ▹");
+        } else {
+            const int32_t hh = value / 60;
+            const int32_t mm = value % 60;
+            lv_label_set_text_fmt(label, "◃ %ld:%02ld ▹", hh, mm);
+        }
     }
 }
 
@@ -146,9 +196,9 @@ static void lv_variable_item_spinbox_constructor(const lv_obj_class_t* class_p, 
     lv_variable_item_spinbox_t* spinbox = (lv_variable_item_spinbox_t*)obj;
 
     spinbox->min = 0;
-    spinbox->max = 60 * 9;
-    spinbox->step = 5;
-    spinbox->value = 25;
+    spinbox->max = 99;
+    spinbox->step = 1;
+    spinbox->value = 0;
 
     lv_label_create(obj);
     // TODO: Set this in theme

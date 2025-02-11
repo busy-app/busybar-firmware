@@ -32,16 +32,36 @@ static void busy_scene_setup_on_enter(void* context) {
 
     lv_obj_t* item;
     item = lv_variable_item_add(data->button_list, "Total time");
-    item = lv_variable_item_add(data->button_list, "Intervals");
+    lv_variable_item_set_min_as_inf(item, true);
+    lv_variable_item_set_range(item, 15, 60 * 9);
+    lv_variable_item_set_step(item, 5);
 
-    lv_list_add_button(data->button_list, NULL, "Work time");
-    lv_list_add_button(data->button_list, NULL, "Short rest");
-    lv_list_add_button(data->button_list, NULL, "Long rest");
-    lv_list_add_button(data->button_list, NULL, "Autostart\nwork");
-    lv_list_add_button(data->button_list, NULL, "Autostart\nrest");
-    lv_list_add_button(data->button_list, NULL, "Sound");
+    item = lv_variable_item_add(data->button_list, "Intervals");
+    lv_variable_item_set_binary(item, true);
+
+    item = lv_variable_item_add(data->button_list, "Work time");
+    lv_variable_item_set_range(item, 15, 60);
+    lv_variable_item_set_step(item, 5);
+
+    item = lv_variable_item_add(data->button_list, "Short rest");
+    lv_variable_item_set_range(item, 5, 15);
+    lv_variable_item_set_step(item, 5);
+
+    item = lv_variable_item_add(data->button_list, "Long rest");
+    lv_variable_item_set_range(item, 15, 30);
+    lv_variable_item_set_step(item, 5);
+
+    item = lv_variable_item_add(data->button_list, "Autostart\nwork");
+    lv_variable_item_set_binary(item, true);
+
+    item = lv_variable_item_add(data->button_list, "Autostart\nrest");
+    lv_variable_item_set_binary(item, true);
+
+    item = lv_variable_item_add(data->button_list, "Sound");
+    lv_variable_item_set_binary(item, true);
 
     UNUSED(item);
+    lv_obj_scroll_to(data->button_list, 0, 0, LV_ANIM_OFF);
 
     gui_lvgl_release(instance->gui);
 
