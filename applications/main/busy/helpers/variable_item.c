@@ -183,7 +183,7 @@ static void lv_variable_item_spinbox_event(const lv_obj_class_t* class_p, lv_eve
         }
 
     } else if(event_code == LV_EVENT_DELETE) {
-        lv_group_t* group = lv_obj_get_group(obj);
-        lv_group_delete(group);
+        // lv_group_t* group = lv_obj_get_group(obj);
+        // lv_group_delete(group);
     }
 }
