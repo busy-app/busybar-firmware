@@ -13,6 +13,7 @@ typedef struct {
     lv_obj_t* overlay;
     lv_obj_t* overlay_image;
     BusyTimerState timer_state;
+    bool skip_state;
 } BusySceneTimer;
 
 static void busy_scene_timer_state_update(BusySceneTimer* data) {
@@ -93,6 +94,28 @@ static void busy_scene_timer_toggle_pause_overlay(BusyApp* instance) {
     gui_lvgl_release(instance->gui);
 }
 
+static bool busy_scene_timer_should_switch(BusyApp* instance) {
+    bool ret = false;
+
+    BusySceneTimer* data = instance->scene_data[BusyAppSceneIdTimer];
+
+    if(data->skip_state) {
+        data->skip_state = false;
+
+    } else {
+        const bool state_changed = instance->state != data->timer_state;
+        const bool ask_work = (instance->state == BusyTimerStateBusy) &&
+                              (!instance->enable_autostart_work);
+        const bool ask_rest =
+            (instance->state == BusyTimerStateRest || instance->state == BusyTimerStateLongRest) &&
+            (!instance->enable_autostart_rest);
+
+        ret = state_changed && (ask_work || ask_rest);
+    }
+
+    return ret;
+}
+
 static void busy_scene_timer_on_enter(void* context) {
     BusyApp* instance = context;
 
@@ -171,12 +194,20 @@ static void busy_scene_timer_on_event(const BusyEvent* event, void* context) {
 
     } else if(event->type == BusyEventTypeOk) {
         if(busy_timer_is_running(instance)) {
+            BusySceneTimer* data = instance->scene_data[BusyAppSceneIdTimer];
+            data->skip_state = true;
             busy_timer_next_state(instance);
         }
 
     } else if(event->type == BusyEventTypeCustom) {
         if(event->custom_value == BusyCustomEventUpdate) {
-            busy_scene_timer_update(instance);
+            if(busy_scene_timer_should_switch(instance)) {
+                busy_timer_pause(instance);
+                busy_switch_to_scene(instance, BusyAppSceneIdNext);
+
+            } else {
+                busy_scene_timer_update(instance);
+            }
         }
     }
 }

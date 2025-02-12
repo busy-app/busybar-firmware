@@ -10,13 +10,18 @@
 #include "scenes/busy_scene_setup.h"
 
 #define TOTAL_TIME_DEFAULT_MN      (HM_TO_M(1, 35))
-#define WORK_TIME_DEFAULT_MN       (45)
-#define SHORT_REST_TIME_DEFAULT_MN (10)
-#define LONG_REST_TIME_DEFAULT_MN  (20)
+// #define WORK_TIME_DEFAULT_MN       (45)
+// #define SHORT_REST_TIME_DEFAULT_MN (10)
+// #define LONG_REST_TIME_DEFAULT_MN  (20)
+#define WORK_TIME_DEFAULT_MN       (1)
+#define SHORT_REST_TIME_DEFAULT_MN (1)
+#define LONG_REST_TIME_DEFAULT_MN  (1)
 
 #define ENABLE_INTERVALS_DEFAULT      (true)
-#define ENABLE_AUTOSTART_WORK_DEFAULT (true)
-#define ENABLE_AUTOSTART_REST_DEFAULT (true)
+// #define ENABLE_AUTOSTART_WORK_DEFAULT (true)
+// #define ENABLE_AUTOSTART_REST_DEFAULT (true)
+#define ENABLE_AUTOSTART_WORK_DEFAULT (false)
+#define ENABLE_AUTOSTART_REST_DEFAULT (false)
 #define ENABLE_SOUND_DEFAULT          (false)
 
 #define CYCLE_COUNT_DEFAULT (3)
@@ -64,7 +69,7 @@ void busy_send_custom_event(BusyApp* instance, uint32_t value) {
 
 void busy_timer_start(BusyApp* instance) {
     instance->state = BusyTimerStateIdle;
-    instance->cycles_left = instance->cycles_count;
+    instance->cycles_done = 0;
     busy_timer_next_state(instance);
 }
 
@@ -99,23 +104,17 @@ bool busy_timer_is_running(BusyApp* instance) {
 void busy_timer_next_state(BusyApp* instance) {
     BusyTimerState new_state;
 
-    bool start_timer = true;
-
     if(instance->state == BusyTimerStateIdle) {
         new_state = BusyTimerStateBusy;
     } else if(instance->state == BusyTimerStateBusy) {
-        if(--instance->cycles_left == 0) {
+        if(++instance->cycles_done == instance->cycles_total) {
             new_state = BusyTimerStateLongRest;
         } else {
             new_state = BusyTimerStateRest;
         }
 
-        start_timer = instance->enable_autostart_rest;
-
     } else if(instance->state == BusyTimerStateRest || instance->state == BusyTimerStateLongRest) {
         new_state = BusyTimerStateBusy;
-        start_timer = instance->enable_autostart_work;
-
     } else {
         furi_crash("Impossibru!");
     }
@@ -126,7 +125,7 @@ void busy_timer_next_state(BusyApp* instance) {
         instance->total_time_mn = instance->short_rest_time_mn;
     } else if(new_state == BusyTimerStateLongRest) {
         instance->total_time_mn = instance->long_rest_time_mn;
-        instance->cycles_left = instance->cycles_count;
+        instance->cycles_done = 0;
     } else {
         furi_crash("Impossibru!");
     }
@@ -134,9 +133,7 @@ void busy_timer_next_state(BusyApp* instance) {
     instance->state = new_state;
     instance->time_left_s = M_TO_S(instance->total_time_mn);
 
-    if(start_timer) {
-        furi_event_loop_timer_start(instance->busy_timer, S_TO_MS(1));
-    }
+    furi_event_loop_timer_start(instance->busy_timer, S_TO_MS(1));
 
     busy_send_custom_event_direct(instance, BusyCustomEventUpdate);
 }
@@ -212,7 +209,7 @@ static BusyApp* busy_alloc(void) {
     instance->work_time_mn = WORK_TIME_DEFAULT_MN;
     instance->short_rest_time_mn = SHORT_REST_TIME_DEFAULT_MN;
     instance->long_rest_time_mn = LONG_REST_TIME_DEFAULT_MN;
-    instance->cycles_count = CYCLE_COUNT_DEFAULT;
+    instance->cycles_total = CYCLE_COUNT_DEFAULT;
     instance->enable_intervals = ENABLE_INTERVALS_DEFAULT;
     instance->enable_autostart_work = ENABLE_AUTOSTART_WORK_DEFAULT;
     instance->enable_autostart_rest = ENABLE_AUTOSTART_REST_DEFAULT;

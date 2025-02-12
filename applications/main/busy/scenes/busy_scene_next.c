@@ -10,6 +10,11 @@ static void busy_scene_next_button_event_callback(lv_event_t* event) {
     busy_send_custom_event(instance, BusyCustomEventNext);
 }
 
+static void busy_scene_next_switch_to_timer(BusyApp* instance) {
+    busy_timer_resume(instance);
+    busy_switch_to_scene(instance, BusyAppSceneIdTimer);
+}
+
 static void busy_scene_next_on_enter(void* context) {
     BusyApp* instance = context;
 
@@ -23,7 +28,16 @@ static void busy_scene_next_on_enter(void* context) {
     lv_obj_t* active = gui_lvgl_get_layer(instance->gui, GuiDisplayIdFront, GuiLayerIdActive);
 
     data->main_label = lv_label_create(active);
-    lv_label_set_text(data->main_label, "Rest");
+
+    if(instance->state == BusyTimerStateRest) {
+        lv_label_set_text(data->main_label, "Rest");
+    } else if(instance->state == BusyTimerStateLongRest) {
+        lv_label_set_text(data->main_label, "Long Rest");
+    } else {
+        lv_label_set_text_fmt(
+            data->main_label, "%lu/%lu BUSY", instance->cycles_done + 1, instance->cycles_total);
+    }
+
     lv_obj_set_pos(data->main_label, 0, 5);
     lv_obj_set_style_text_font(data->main_label, &lv_font_tiny5_8, LV_PART_MAIN);
     lv_obj_set_style_text_color(data->main_label, lv_color_white(), LV_PART_MAIN);
@@ -65,10 +79,11 @@ static void busy_scene_next_on_exit(void* context) {
 static void busy_scene_next_on_event(const BusyEvent* event, void* context) {
     BusyApp* instance = context;
 
-    if(event->type == BusyEventTypeCustom) {
+    if(event->type == BusyEventTypeStart) {
+        busy_scene_next_switch_to_timer(instance);
+    } else if(event->type == BusyEventTypeCustom) {
         if(event->custom_value == BusyCustomEventNext) {
-            // TODO: Start timer in next mode
-            busy_switch_to_scene(instance, BusyAppSceneIdTimer);
+            busy_scene_next_switch_to_timer(instance);
         }
     }
 }
