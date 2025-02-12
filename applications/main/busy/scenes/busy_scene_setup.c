@@ -11,6 +11,46 @@ static void busy_list_event_callback(lv_event_t* event) {
     if(anim) anim->duration = 16 * 4;
 }
 
+static void busy_scene_setup_total_time_callback(lv_event_t* event) {
+    BusyApp* instance = lv_event_get_user_data(event);
+    instance->total_time_mn = *(int32_t*)lv_event_get_param(event);
+}
+
+static void busy_scene_setup_work_time_callback(lv_event_t* event) {
+    BusyApp* instance = lv_event_get_user_data(event);
+    instance->work_time_mn = *(int32_t*)lv_event_get_param(event);
+}
+
+static void busy_scene_setup_enable_intervals_callback(lv_event_t* event) {
+    BusyApp* instance = lv_event_get_user_data(event);
+    instance->enable_intervals = *(bool*)lv_event_get_param(event);
+}
+
+static void busy_scene_setup_short_rest_time_callback(lv_event_t* event) {
+    BusyApp* instance = lv_event_get_user_data(event);
+    instance->short_rest_time_mn = *(int32_t*)lv_event_get_param(event);
+}
+
+static void busy_scene_setup_long_rest_time_callback(lv_event_t* event) {
+    BusyApp* instance = lv_event_get_user_data(event);
+    instance->long_rest_time_mn = *(int32_t*)lv_event_get_param(event);
+}
+
+static void busy_scene_setup_enable_autostart_work_callback(lv_event_t* event) {
+    BusyApp* instance = lv_event_get_user_data(event);
+    instance->enable_autostart_work = *(bool*)lv_event_get_param(event);
+}
+
+static void busy_scene_setup_enable_autostart_rest_callback(lv_event_t* event) {
+    BusyApp* instance = lv_event_get_user_data(event);
+    instance->enable_autostart_rest = *(bool*)lv_event_get_param(event);
+}
+
+static void busy_scene_setup_enable_sound_callback(lv_event_t* event) {
+    BusyApp* instance = lv_event_get_user_data(event);
+    instance->enable_sound = *(bool*)lv_event_get_param(event);
+}
+
 static void busy_scene_setup_on_enter(void* context) {
     BusyApp* instance = context;
 
@@ -33,32 +73,56 @@ static void busy_scene_setup_on_enter(void* context) {
     lv_obj_t* item;
     item = lv_variable_item_add(data->button_list, "Total time");
     lv_variable_item_set_min_as_inf(item, true);
-    lv_variable_item_set_range(item, 10, 60 * 9);
+    lv_variable_item_set_range(item, 10, H_TO_M(9));
     lv_variable_item_set_step(item, 5);
+    lv_variable_item_set_value(item, instance->total_time_mn);
+    lv_obj_add_event_cb(
+        item, busy_scene_setup_total_time_callback, LV_EVENT_VALUE_CHANGED, instance);
 
     item = lv_variable_item_add(data->button_list, "Intervals");
     lv_variable_item_set_binary(item, true);
+    lv_variable_item_set_value(item, instance->enable_intervals);
+    lv_obj_add_event_cb(
+        item, busy_scene_setup_enable_intervals_callback, LV_EVENT_VALUE_CHANGED, instance);
 
     item = lv_variable_item_add(data->button_list, "Work time");
     lv_variable_item_set_range(item, 15, 60);
     lv_variable_item_set_step(item, 5);
+    lv_variable_item_set_value(item, instance->work_time_mn);
+    lv_obj_add_event_cb(
+        item, busy_scene_setup_work_time_callback, LV_EVENT_VALUE_CHANGED, instance);
 
     item = lv_variable_item_add(data->button_list, "Short rest");
     lv_variable_item_set_range(item, 5, 15);
     lv_variable_item_set_step(item, 5);
+    lv_variable_item_set_value(item, instance->short_rest_time_mn);
+    lv_obj_add_event_cb(
+        item, busy_scene_setup_short_rest_time_callback, LV_EVENT_VALUE_CHANGED, instance);
 
     item = lv_variable_item_add(data->button_list, "Long rest");
     lv_variable_item_set_range(item, 15, 30);
     lv_variable_item_set_step(item, 5);
+    lv_variable_item_set_value(item, instance->long_rest_time_mn);
+    lv_obj_add_event_cb(
+        item, busy_scene_setup_long_rest_time_callback, LV_EVENT_VALUE_CHANGED, instance);
 
     item = lv_variable_item_add(data->button_list, "Autostart\nwork");
     lv_variable_item_set_binary(item, true);
+    lv_variable_item_set_value(item, instance->enable_autostart_work);
+    lv_obj_add_event_cb(
+        item, busy_scene_setup_enable_autostart_work_callback, LV_EVENT_VALUE_CHANGED, instance);
 
     item = lv_variable_item_add(data->button_list, "Autostart\nrest");
     lv_variable_item_set_binary(item, true);
+    lv_variable_item_set_value(item, instance->enable_autostart_rest);
+    lv_obj_add_event_cb(
+        item, busy_scene_setup_enable_autostart_rest_callback, LV_EVENT_VALUE_CHANGED, instance);
 
     item = lv_variable_item_add(data->button_list, "Sound");
     lv_variable_item_set_binary(item, true);
+    lv_variable_item_set_value(item, instance->enable_sound);
+    lv_obj_add_event_cb(
+        item, busy_scene_setup_enable_sound_callback, LV_EVENT_VALUE_CHANGED, instance);
 
     UNUSED(item);
     lv_obj_scroll_to(data->button_list, 0, 0, LV_ANIM_OFF);
@@ -92,7 +156,7 @@ static void busy_scene_setup_on_event(const BusyEvent* event, void* context) {
     if(event->type == BusyEventTypeBack) {
         busy_switch_to_scene(instance, BusyAppSceneIdStart);
     } else if(event->type == BusyEventTypeCustom) {
-        // TODO: React to menu actions
+        // TODO: React to menu actions in application thread
     }
 }
 

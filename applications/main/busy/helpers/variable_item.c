@@ -11,7 +11,14 @@
 #define SPECIAL_CHARS "▶▹◃∞"
 
 typedef struct {
+    lv_obj_t obj;
+    lv_obj_t* label;
+    lv_obj_t* spinbox;
+} lv_variable_item_t;
+
+typedef struct {
     lv_button_t button;
+    lv_obj_t* label;
     int32_t min;
     int32_t max;
     int32_t step;
@@ -31,6 +38,7 @@ const lv_obj_class_t lv_variable_item_class = {
     .width_def = LV_PCT(100),
     .height_def = LV_SIZE_CONTENT,
     .name = "variable-item",
+    .instance_size = sizeof(lv_variable_item_t),
 };
 
 const lv_obj_class_t lv_variable_item_spinbox_class = {
@@ -60,16 +68,18 @@ lv_obj_t* lv_variable_item_add(lv_obj_t* parent, const char* text) {
     return item;
 }
 
-void lv_variable_item_set_text(lv_obj_t* item, const char* text) {
-    lv_obj_t* button = lv_obj_get_child(item, 0);
-    lv_obj_t* label = lv_obj_get_child(button, 0);
+void lv_variable_item_set_text(lv_obj_t* obj, const char* text) {
+    LV_ASSERT_OBJ(MY_CLASS, obj);
 
-    lv_label_set_text(label, text);
+    lv_variable_item_t* item = (void*)obj;
+    lv_label_set_text(item->label, text);
 }
 
-void lv_variable_item_set_range(lv_obj_t* item, int32_t min, int32_t max) {
-    lv_obj_t* obj = lv_obj_get_child(item, 1);
-    lv_variable_item_spinbox_t* spinbox = (lv_variable_item_spinbox_t*)obj;
+void lv_variable_item_set_range(lv_obj_t* obj, int32_t min, int32_t max) {
+    LV_ASSERT_OBJ(MY_CLASS, obj);
+
+    lv_variable_item_t* item = (void*)obj;
+    lv_variable_item_spinbox_t* spinbox = (void*)item->spinbox;
 
     spinbox->min = min;
     spinbox->max = max;
@@ -84,33 +94,45 @@ void lv_variable_item_set_range(lv_obj_t* item, int32_t min, int32_t max) {
     lv_variable_item_spinbox_update(spinbox);
 }
 
-void lv_variable_item_set_step(lv_obj_t* item, int32_t step) {
-    lv_obj_t* obj = lv_obj_get_child(item, 1);
-    lv_variable_item_spinbox_t* spinbox = (lv_variable_item_spinbox_t*)obj;
+void lv_variable_item_set_step(lv_obj_t* obj, int32_t step) {
+    LV_ASSERT_OBJ(MY_CLASS, obj);
+
+    lv_variable_item_t* item = (void*)obj;
+    lv_variable_item_spinbox_t* spinbox = (void*)item->spinbox;
 
     spinbox->step = step;
-    spinbox->value = (spinbox->value / step) * step;
+    spinbox->value = spinbox->value - (spinbox->value % step);
 
     lv_variable_item_spinbox_update(spinbox);
 }
 
-void lv_variable_item_set_value(lv_obj_t* item, int32_t value) {
-    lv_obj_t* obj = lv_obj_get_child(item, 1);
-    lv_variable_item_spinbox_t* spinbox = (lv_variable_item_spinbox_t*)obj;
+void lv_variable_item_set_value(lv_obj_t* obj, int32_t value) {
+    LV_ASSERT_OBJ(MY_CLASS, obj);
 
-    if(spinbox->binary) {
-        spinbox->value = !!value;
-    } else {
-        spinbox->value = value;
-        spinbox->value = (spinbox->value / spinbox->step) * spinbox->step;
+    lv_variable_item_t* item = (void*)obj;
+    lv_variable_item_spinbox_t* spinbox = (void*)item->spinbox;
+
+    if(value < spinbox->min) {
+        value = spinbox->min;
+    }
+    if(value > spinbox->max) {
+        value = spinbox->max;
     }
 
+    spinbox->value = value - (value % spinbox->step);
+
     lv_variable_item_spinbox_update(spinbox);
 }
 
-void lv_variable_item_set_binary(lv_obj_t* item, bool set) {
-    lv_obj_t* obj = lv_obj_get_child(item, 1);
-    lv_variable_item_spinbox_t* spinbox = (lv_variable_item_spinbox_t*)obj;
+void lv_variable_item_set_binary(lv_obj_t* obj, bool set) {
+    LV_ASSERT_OBJ(MY_CLASS, obj);
+
+    lv_variable_item_t* item = (void*)obj;
+    lv_variable_item_spinbox_t* spinbox = (void*)item->spinbox;
+
+    if(spinbox->binary == set) {
+        return;
+    }
 
     spinbox->binary = set;
 
@@ -124,9 +146,15 @@ void lv_variable_item_set_binary(lv_obj_t* item, bool set) {
     lv_variable_item_spinbox_update(spinbox);
 }
 
-void lv_variable_item_set_min_as_inf(lv_obj_t* item, bool set) {
-    lv_obj_t* obj = lv_obj_get_child(item, 1);
-    lv_variable_item_spinbox_t* spinbox = (lv_variable_item_spinbox_t*)obj;
+void lv_variable_item_set_min_as_inf(lv_obj_t* obj, bool set) {
+    LV_ASSERT_OBJ(MY_CLASS, obj);
+
+    lv_variable_item_t* item = (void*)obj;
+    lv_variable_item_spinbox_t* spinbox = (void*)item->spinbox;
+
+    if(spinbox->min_as_inf == set) {
+        return;
+    }
 
     spinbox->min_as_inf = set;
 
@@ -137,21 +165,23 @@ static void lv_variable_item_constructor(const lv_obj_class_t* class_p, lv_obj_t
     LV_UNUSED(class_p);
     lv_obj_remove_flag(obj, LV_OBJ_FLAG_SCROLLABLE);
 
+    lv_variable_item_t* item = (lv_variable_item_t*)obj;
+
     lv_obj_t* button = lv_button_create(obj);
-    lv_label_create(button);
+    item->label = lv_label_create(button);
 
     lv_group_t* group = lv_group_create();
     lv_obj_add_event_cb(button, variable_item_event_callback, LV_EVENT_CLICKED, group);
 
-    lv_obj_t* spinbox = lv_obj_class_create_obj(MY_SPINBOX_CLASS, obj);
-    lv_obj_class_init_obj(spinbox);
-    lv_group_add_obj(group, spinbox);
-    lv_obj_set_pos(spinbox, 38, 0);
+    item->spinbox = lv_obj_class_create_obj(MY_SPINBOX_CLASS, obj);
+    lv_obj_class_init_obj(item->spinbox);
+    lv_obj_set_pos(item->spinbox, 38, 0);
+
+    lv_group_add_obj(group, item->spinbox);
 }
 
 static void lv_variable_item_spinbox_update(lv_variable_item_spinbox_t* spinbox) {
-    lv_obj_t* label = lv_obj_get_child((lv_obj_t*)spinbox, 0);
-
+    lv_obj_t* label = spinbox->label;
     const int32_t value = spinbox->value;
 
     if(spinbox->binary) {
@@ -195,17 +225,16 @@ static void lv_variable_item_spinbox_decrement(lv_variable_item_spinbox_t* spinb
 
 static void lv_variable_item_spinbox_constructor(const lv_obj_class_t* class_p, lv_obj_t* obj) {
     LV_UNUSED(class_p);
+    // TODO: Set this in theme
+    lv_obj_set_style_text_color(obj, lv_color_white(), LV_PART_MAIN | LV_STATE_EDITED);
 
     lv_variable_item_spinbox_t* spinbox = (lv_variable_item_spinbox_t*)obj;
 
+    spinbox->label = lv_label_create(obj);
     spinbox->min = 0;
     spinbox->max = 99;
     spinbox->step = 1;
     spinbox->value = 0;
-
-    lv_label_create(obj);
-    // TODO: Set this in theme
-    lv_obj_set_style_text_color(obj, lv_color_white(), LV_PART_MAIN | LV_STATE_EDITED);
 
     lv_variable_item_spinbox_update(spinbox);
 }
@@ -218,21 +247,27 @@ static void lv_variable_item_spinbox_event(const lv_obj_class_t* class_p, lv_eve
     if(res != LV_RESULT_OK) return;
 
     lv_obj_t* obj = lv_event_get_target(event);
+    lv_variable_item_spinbox_t* spinbox = (void*)obj;
+
     const lv_event_code_t event_code = lv_event_get_code(event);
 
     if(event_code == LV_EVENT_SHORT_CLICKED) {
         lv_indev_t* indev = lv_event_get_indev(event);
         lv_group_t* group = lv_indev_get_group(indev);
+
         lv_group_set_editing(group, false);
         lv_indev_set_group(indev, lv_group_get_default());
+
+        lv_obj_t* item = lv_obj_get_parent(obj);
+        lv_obj_send_event(item, LV_EVENT_VALUE_CHANGED, &spinbox->value);
 
     } else if(event_code == LV_EVENT_KEY) {
         const uint32_t key = *((uint32_t*)lv_event_get_param(event));
 
         if(key == LV_KEY_RIGHT) {
-            lv_variable_item_spinbox_increment((lv_variable_item_spinbox_t*)obj);
+            lv_variable_item_spinbox_increment(spinbox);
         } else if(key == LV_KEY_LEFT) {
-            lv_variable_item_spinbox_decrement((lv_variable_item_spinbox_t*)obj);
+            lv_variable_item_spinbox_decrement(spinbox);
         }
 
     } else if(event_code == LV_EVENT_DELETE) {

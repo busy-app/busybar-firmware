@@ -20,6 +20,7 @@ static void busy_scene_timer_state_update(BusySceneTimer* data) {
     uint32_t bar_color_main;
     uint32_t bar_color_indicator;
 
+    // TODO: Use colours from theme
     if(data->timer_state == BusyTimerStateBusy) {
         main_image_dsc = &I_busy_39x14;
         bar_color_main = 0x4A0000;
@@ -55,9 +56,9 @@ static void busy_scene_timer_update(BusyApp* instance) {
         busy_scene_timer_state_update(data);
     }
 
-    const uint32_t minutes = instance->time_left / 60;
-    const uint32_t seconds = instance->time_left % 60;
-    const uint32_t percent = (instance->time_left * 100) / instance->time_total;
+    const uint32_t minutes = S_TO_M(instance->time_left_s);
+    const uint32_t seconds = S_TO_R(instance->time_left_s);
+    const uint32_t percent = (instance->time_left_s * 100) / M_TO_S(instance->total_time_mn);
 
     lv_label_set_text_fmt(data->time_label, "%02lu:%02lu", minutes, seconds);
     lv_bar_set_value(data->time_bar, percent, LV_ANIM_OFF);

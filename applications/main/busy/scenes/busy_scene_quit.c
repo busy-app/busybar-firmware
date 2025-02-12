@@ -15,7 +15,9 @@ static void busy_button_event_callback(lv_event_t* event) {
 static void busy_scene_quit_on_enter(void* context) {
     BusyApp* instance = context;
 
-    busy_timer_pause(instance);
+    if(busy_timer_is_running(instance)) {
+        busy_timer_pause(instance);
+    }
 
     void** data_slot = &instance->scene_data[BusyAppSceneIdQuit];
     furi_check(*data_slot == NULL);
@@ -85,7 +87,7 @@ static void busy_scene_quit_on_event(const BusyEvent* event, void* context) {
             busy_timer_stop(instance);
 
         } else if(button == data->cancel_button) {
-            if(instance->busy_interval_s != BUSY_INTERVAL_INFINITE) {
+            if(instance->total_time_mn >= TOTAL_TIME_LOW_THR_MN) {
                 busy_switch_to_scene(instance, BusyAppSceneIdTimer);
                 busy_timer_resume(instance);
             } else {

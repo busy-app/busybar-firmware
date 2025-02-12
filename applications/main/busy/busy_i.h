@@ -6,7 +6,17 @@
 
 #define TAG "Busy"
 
-#define BUSY_INTERVAL_INFINITE (UINT32_MAX)
+#define M_TO_S(m)     (m * 60)
+#define H_TO_M(h)     (h * 60)
+#define H_TO_S(h)     (M_TO_S(H_TO_M(h)))
+#define HM_TO_M(h, m) (H_TO_M(h) + m)
+#define HM_TO_S(h, m) (M_TO_S(H_TO_M(h, m)))
+
+#define S_TO_M(s) (s / 60)
+#define S_TO_R(s) (s % 60)
+#define S_TO_H(h) (S_TO_M(s) / 60)
+
+#define TOTAL_TIME_LOW_THR_MN (15)
 
 typedef enum {
     BusyAppSceneIdStart,
@@ -61,14 +71,18 @@ typedef struct {
     FuriPubSubSubscription* input_events;
     BusyAppSceneData* scene_data[BusyAppSceneIdMax];
     const BusyAppScene* current_scene;
-    uint32_t busy_interval_s;
-    uint32_t rest_interval_s;
-    uint32_t long_rest_interval_s;
+    uint32_t total_time_mn;
+    uint32_t work_time_mn;
+    uint32_t short_rest_time_mn;
+    uint32_t long_rest_time_mn;
     uint32_t cycles_count;
-    uint32_t time_total;
-    uint32_t time_left;
+    uint32_t time_left_s;
     uint32_t cycles_left;
     BusyTimerState state;
+    bool enable_intervals;
+    bool enable_autostart_work;
+    bool enable_autostart_rest;
+    bool enable_sound;
 } BusyApp;
 
 void busy_switch_to_scene(BusyApp* instance, BusyAppSceneId scene_id);

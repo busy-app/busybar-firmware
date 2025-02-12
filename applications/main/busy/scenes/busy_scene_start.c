@@ -78,7 +78,7 @@ static void busy_scene_start_on_event(const BusyEvent* event, void* context) {
         const lv_obj_t* button = (const lv_obj_t*)event->custom_value;
 
         if(button == data->start_button) {
-            if(instance->busy_interval_s != BUSY_INTERVAL_INFINITE) {
+            if(instance->total_time_mn >= TOTAL_TIME_LOW_THR_MN) {
                 busy_timer_start(instance);
                 busy_switch_to_scene(instance, BusyAppSceneIdTimer);
             } else {
