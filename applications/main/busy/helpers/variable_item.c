@@ -8,8 +8,6 @@
 #define MY_CLASS         (&lv_variable_item_class)
 #define MY_SPINBOX_CLASS (&lv_variable_item_spinbox_class)
 
-#define SPECIAL_CHARS "▶▹◃∞"
-
 typedef struct {
     lv_obj_t obj;
     lv_obj_t* label;

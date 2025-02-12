@@ -6,6 +6,7 @@
 #include "scenes/busy_scene_timer.h"
 #include "scenes/busy_scene_static.h"
 #include "scenes/busy_scene_quit.h"
+#include "scenes/busy_scene_next.h"
 #include "scenes/busy_scene_setup.h"
 
 #define TOTAL_TIME_DEFAULT_MN      (HM_TO_M(1, 35))
@@ -27,6 +28,7 @@ static const BusyAppScene* busy_scenes[BusyAppSceneIdMax] = {
     [BusyAppSceneIdTimer] = &busy_scene_timer,
     [BusyAppSceneIdStatic] = &busy_scene_static,
     [BusyAppSceneIdQuit] = &busy_scene_quit,
+    [BusyAppSceneIdNext] = &busy_scene_next,
     [BusyAppSceneIdSetup] = &busy_scene_setup,
 };
 
@@ -97,6 +99,8 @@ bool busy_timer_is_running(BusyApp* instance) {
 void busy_timer_next_state(BusyApp* instance) {
     BusyTimerState new_state;
 
+    bool start_timer = true;
+
     if(instance->state == BusyTimerStateIdle) {
         new_state = BusyTimerStateBusy;
     } else if(instance->state == BusyTimerStateBusy) {
@@ -105,8 +109,13 @@ void busy_timer_next_state(BusyApp* instance) {
         } else {
             new_state = BusyTimerStateRest;
         }
+
+        start_timer = instance->enable_autostart_rest;
+
     } else if(instance->state == BusyTimerStateRest || instance->state == BusyTimerStateLongRest) {
         new_state = BusyTimerStateBusy;
+        start_timer = instance->enable_autostart_work;
+
     } else {
         furi_crash("Impossibru!");
     }
@@ -125,7 +134,9 @@ void busy_timer_next_state(BusyApp* instance) {
     instance->state = new_state;
     instance->time_left_s = M_TO_S(instance->total_time_mn);
 
-    furi_event_loop_timer_start(instance->busy_timer, S_TO_MS(1));
+    if(start_timer) {
+        furi_event_loop_timer_start(instance->busy_timer, S_TO_MS(1));
+    }
 
     busy_send_custom_event_direct(instance, BusyCustomEventUpdate);
 }

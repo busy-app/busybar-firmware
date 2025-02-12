@@ -23,6 +23,7 @@ typedef enum {
     BusyAppSceneIdTimer,
     BusyAppSceneIdStatic,
     BusyAppSceneIdQuit,
+    BusyAppSceneIdNext,
     BusyAppSceneIdSetup,
     BusyAppSceneIdMax,
 } BusyAppSceneId;
@@ -44,6 +45,7 @@ typedef enum {
 
 typedef enum {
     BusyCustomEventUpdate = 100,
+    BusyCustomEventNext,
 } BusyCustomEvent;
 
 typedef struct {
