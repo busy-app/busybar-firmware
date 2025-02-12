@@ -57,9 +57,9 @@ static void busy_scene_timer_update(BusyApp* instance) {
         busy_scene_timer_state_update(data);
     }
 
-    const uint32_t minutes = S_TO_M(instance->time_left_s);
-    const uint32_t seconds = S_TO_R(instance->time_left_s);
-    const uint32_t percent = (instance->time_left_s * 100) / M_TO_S(instance->total_time_mn);
+    const uint32_t minutes = S_TO_M(instance->cycle_time_left_s);
+    const uint32_t seconds = S_TO_R(instance->cycle_time_left_s);
+    const uint32_t percent = (instance->cycle_time_left_s * 100) / instance->cycle_time_s;
 
     lv_label_set_text_fmt(data->time_label, "%02lu:%02lu", minutes, seconds);
     lv_bar_set_value(data->time_bar, percent, LV_ANIM_OFF);

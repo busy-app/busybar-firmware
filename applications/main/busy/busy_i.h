@@ -80,7 +80,8 @@ typedef struct {
     uint32_t long_rest_time_mn;
     uint32_t cycles_total;
     uint32_t cycles_done;
-    uint32_t time_left_s;
+    uint32_t cycle_time_s;
+    uint32_t cycle_time_left_s;
     BusyTimerState state;
     bool enable_intervals;
     bool enable_autostart_work;

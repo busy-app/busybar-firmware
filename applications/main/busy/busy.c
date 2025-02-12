@@ -136,18 +136,18 @@ void busy_timer_next_state(BusyApp* instance) {
     }
 
     if(new_state == BusyTimerStateBusy) {
-        instance->total_time_mn = instance->work_time_mn;
+        instance->cycle_time_s = M_TO_S(instance->work_time_mn);
     } else if(new_state == BusyTimerStateRest) {
-        instance->total_time_mn = instance->short_rest_time_mn;
+        instance->cycle_time_s = M_TO_S(instance->short_rest_time_mn);
     } else if(new_state == BusyTimerStateLongRest) {
-        instance->total_time_mn = instance->long_rest_time_mn;
+        instance->cycle_time_s = M_TO_S(instance->long_rest_time_mn);
         instance->cycles_done = 0;
     } else {
         furi_crash("Impossibru!");
     }
 
     instance->state = new_state;
-    instance->time_left_s = M_TO_S(instance->total_time_mn);
+    instance->cycle_time_left_s = instance->cycle_time_s;
 
     furi_event_loop_timer_start(instance->busy_timer, S_TO_MS(1));
 
@@ -199,7 +199,7 @@ static void busy_event_queue_callback(FuriEventLoopObject* object, void* context
 static void busy_scene_busy_timer_callback(void* context) {
     BusyApp* instance = context;
 
-    if(--instance->time_left_s > 0) {
+    if(--instance->cycle_time_left_s > 0) {
         busy_send_custom_event_direct(instance, BusyCustomEventUpdate);
     } else {
         busy_timer_next_state(instance);
