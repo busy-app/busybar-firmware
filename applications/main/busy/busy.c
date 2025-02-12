@@ -8,7 +8,7 @@
 #include "scenes/busy_scene_quit.h"
 #include "scenes/busy_scene_setup.h"
 
-#define TOTAL_TIME_DEFAULT_MN      (HM_TO_M(2, 15))
+#define TOTAL_TIME_DEFAULT_MN      (HM_TO_M(1, 35))
 #define WORK_TIME_DEFAULT_MN       (45)
 #define SHORT_REST_TIME_DEFAULT_MN (10)
 #define LONG_REST_TIME_DEFAULT_MN  (20)
