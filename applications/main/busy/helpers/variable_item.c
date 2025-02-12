@@ -164,14 +164,17 @@ static void lv_variable_item_spinbox_update(lv_variable_item_spinbox_t* spinbox)
     } else {
         if(value == spinbox->min && spinbox->min_as_inf) {
             lv_label_set_text(label, "◃ ∞ ▹");
-        } else if(value < 60) {
-            lv_label_set_text_fmt(label, "◃ %ld m ▹", value);
-        } else if(value == 60) {
-            lv_label_set_text(label, "◃ 1h ▹");
         } else {
             const int32_t hh = value / 60;
             const int32_t mm = value % 60;
-            lv_label_set_text_fmt(label, "◃ %ld:%02ld ▹", hh, mm);
+
+            if(hh == 0) {
+                lv_label_set_text_fmt(label, "◃ %ld m ▹", mm);
+            } else if(mm == 0) {
+                lv_label_set_text_fmt(label, "◃ %ld h ▹", hh);
+            } else {
+                lv_label_set_text_fmt(label, "◃ %ld:%02ld ▹", hh, mm);
+            }
         }
     }
 }
