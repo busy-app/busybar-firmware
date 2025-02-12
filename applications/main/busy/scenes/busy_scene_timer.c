@@ -48,7 +48,7 @@ static void busy_scene_timer_state_update(BusySceneTimer* data) {
 }
 
 static void busy_scene_timer_update(BusyApp* instance) {
-    BusySceneTimer* data = instance->scene_data[BusyAppSceneIdTimer];
+    BusySceneTimer* data = busy_get_current_scene_data(instance);
 
     gui_lvgl_acquire(instance->gui);
 
@@ -68,7 +68,7 @@ static void busy_scene_timer_update(BusyApp* instance) {
 }
 
 static void busy_scene_timer_toggle_pause_overlay(BusyApp* instance) {
-    BusySceneTimer* data = instance->scene_data[BusyAppSceneIdTimer];
+    BusySceneTimer* data = busy_get_current_scene_data(instance);
 
     gui_lvgl_acquire(instance->gui);
 
@@ -97,7 +97,7 @@ static void busy_scene_timer_toggle_pause_overlay(BusyApp* instance) {
 static bool busy_scene_timer_should_switch(BusyApp* instance) {
     bool ret = false;
 
-    BusySceneTimer* data = instance->scene_data[BusyAppSceneIdTimer];
+    BusySceneTimer* data = busy_get_current_scene_data(instance);
 
     if(data->skip_state) {
         data->skip_state = false;
@@ -118,11 +118,7 @@ static bool busy_scene_timer_should_switch(BusyApp* instance) {
 
 static void busy_scene_timer_on_enter(void* context) {
     BusyApp* instance = context;
-
-    void** data_slot = &instance->scene_data[BusyAppSceneIdTimer];
-    furi_check(*data_slot == NULL);
-
-    BusySceneTimer* data = malloc(sizeof(BusySceneTimer));
+    BusySceneTimer* data = busy_get_current_scene_data(instance);
 
     gui_lvgl_acquire(instance->gui);
 
@@ -149,18 +145,12 @@ static void busy_scene_timer_on_enter(void* context) {
 
     gui_lvgl_release(instance->gui);
 
-    *data_slot = data;
-
     busy_scene_timer_update(instance);
 }
 
 static void busy_scene_timer_on_exit(void* context) {
     BusyApp* instance = context;
-
-    void** data_slot = &instance->scene_data[BusyAppSceneIdTimer];
-    furi_check(*data_slot != NULL);
-
-    BusySceneTimer* data = *data_slot;
+    BusySceneTimer* data = busy_get_current_scene_data(instance);
 
     gui_lvgl_acquire(instance->gui);
 
@@ -175,9 +165,6 @@ static void busy_scene_timer_on_exit(void* context) {
     }
 
     gui_lvgl_release(instance->gui);
-
-    free(data);
-    *data_slot = NULL;
 }
 
 static void busy_scene_timer_on_event(const BusyEvent* event, void* context) {
@@ -194,7 +181,7 @@ static void busy_scene_timer_on_event(const BusyEvent* event, void* context) {
 
     } else if(event->type == BusyEventTypeOk) {
         if(busy_timer_is_running(instance)) {
-            BusySceneTimer* data = instance->scene_data[BusyAppSceneIdTimer];
+            BusySceneTimer* data = busy_get_current_scene_data(instance);
             data->skip_state = true;
             busy_timer_next_state(instance);
         }
@@ -216,4 +203,5 @@ const BusyAppScene busy_scene_timer = {
     .on_enter = busy_scene_timer_on_enter,
     .on_exit = busy_scene_timer_on_exit,
     .on_event = busy_scene_timer_on_event,
+    .data_size = sizeof(BusySceneTimer),
 };

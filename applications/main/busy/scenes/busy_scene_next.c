@@ -17,11 +17,7 @@ static void busy_scene_next_switch_to_timer(BusyApp* instance) {
 
 static void busy_scene_next_on_enter(void* context) {
     BusyApp* instance = context;
-
-    void** data_slot = &instance->scene_data[BusyAppSceneIdNext];
-    furi_check(*data_slot == NULL);
-
-    BusySceneNext* data = malloc(sizeof(BusySceneNext));
+    BusySceneNext* data = busy_get_current_scene_data(instance);
 
     gui_lvgl_acquire(instance->gui);
 
@@ -53,17 +49,11 @@ static void busy_scene_next_on_enter(void* context) {
     lv_obj_set_style_text_color(label, lv_color_hex(0x13F562), LV_PART_MAIN);
 
     gui_lvgl_release(instance->gui);
-
-    *data_slot = data;
 }
 
 static void busy_scene_next_on_exit(void* context) {
     BusyApp* instance = context;
-
-    void** data_slot = &instance->scene_data[BusyAppSceneIdNext];
-    furi_check(*data_slot != NULL);
-
-    BusySceneNext* data = *data_slot;
+    BusySceneNext* data = busy_get_current_scene_data(instance);
 
     gui_lvgl_acquire(instance->gui);
 
@@ -71,9 +61,6 @@ static void busy_scene_next_on_exit(void* context) {
     lv_obj_delete(data->start_button);
 
     gui_lvgl_release(instance->gui);
-
-    free(data);
-    *data_slot = NULL;
 }
 
 static void busy_scene_next_on_event(const BusyEvent* event, void* context) {
@@ -92,4 +79,5 @@ const BusyAppScene busy_scene_next = {
     .on_enter = busy_scene_next_on_enter,
     .on_exit = busy_scene_next_on_exit,
     .on_event = busy_scene_next_on_event,
+    .data_size = sizeof(BusySceneNext),
 };

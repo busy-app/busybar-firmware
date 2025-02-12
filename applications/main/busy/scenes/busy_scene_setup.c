@@ -53,11 +53,7 @@ static void busy_scene_setup_enable_sound_callback(lv_event_t* event) {
 
 static void busy_scene_setup_on_enter(void* context) {
     BusyApp* instance = context;
-
-    void** data_slot = &instance->scene_data[BusyAppSceneIdSetup];
-    furi_check(*data_slot == NULL);
-
-    BusySceneSetup* data = malloc(sizeof(BusySceneSetup));
+    BusySceneSetup* data = busy_get_current_scene_data(instance);
 
     gui_lvgl_acquire(instance->gui);
 
@@ -128,26 +124,17 @@ static void busy_scene_setup_on_enter(void* context) {
     lv_obj_scroll_to(data->button_list, 0, 0, LV_ANIM_OFF);
 
     gui_lvgl_release(instance->gui);
-
-    *data_slot = data;
 }
 
 static void busy_scene_setup_on_exit(void* context) {
     BusyApp* instance = context;
-
-    void** data_slot = &instance->scene_data[BusyAppSceneIdSetup];
-    furi_check(*data_slot != NULL);
-
-    BusySceneSetup* data = *data_slot;
+    BusySceneSetup* data = busy_get_current_scene_data(instance);
 
     gui_lvgl_acquire(instance->gui);
 
     lv_obj_delete(data->button_list);
 
     gui_lvgl_release(instance->gui);
-
-    free(data);
-    *data_slot = NULL;
 }
 
 static void busy_scene_setup_on_event(const BusyEvent* event, void* context) {
@@ -164,4 +151,5 @@ const BusyAppScene busy_scene_setup = {
     .on_enter = busy_scene_setup_on_enter,
     .on_exit = busy_scene_setup_on_exit,
     .on_event = busy_scene_setup_on_event,
+    .data_size = sizeof(BusySceneSetup),
 };

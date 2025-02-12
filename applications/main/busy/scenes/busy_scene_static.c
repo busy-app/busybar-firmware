@@ -10,7 +10,7 @@ typedef struct {
 } BusySceneStatic;
 
 static void busy_scene_static_toggle_pause_overlay(BusyApp* instance) {
-    BusySceneStatic* data = instance->scene_data[BusyAppSceneIdStatic];
+    BusySceneStatic* data = busy_get_current_scene_data(instance);
 
     gui_lvgl_acquire(instance->gui);
 
@@ -38,11 +38,7 @@ static void busy_scene_static_toggle_pause_overlay(BusyApp* instance) {
 
 static void busy_scene_static_on_enter(void* context) {
     BusyApp* instance = context;
-
-    void** data_slot = &instance->scene_data[BusyAppSceneIdStatic];
-    furi_check(*data_slot == NULL);
-
-    BusySceneStatic* data = malloc(sizeof(BusySceneStatic));
+    BusySceneStatic* data = busy_get_current_scene_data(instance);
 
     gui_lvgl_acquire(instance->gui);
 
@@ -53,17 +49,11 @@ static void busy_scene_static_on_enter(void* context) {
     lv_obj_center(data->main_image);
 
     gui_lvgl_release(instance->gui);
-
-    *data_slot = data;
 }
 
 static void busy_scene_static_on_exit(void* context) {
     BusyApp* instance = context;
-
-    void** data_slot = &instance->scene_data[BusyAppSceneIdStatic];
-    furi_check(*data_slot != NULL);
-
-    BusySceneStatic* data = *data_slot;
+    BusySceneStatic* data = busy_get_current_scene_data(instance);
 
     gui_lvgl_acquire(instance->gui);
 
@@ -75,9 +65,6 @@ static void busy_scene_static_on_exit(void* context) {
     }
 
     gui_lvgl_release(instance->gui);
-
-    free(data);
-    *data_slot = NULL;
 }
 
 static void busy_scene_static_on_event(const BusyEvent* event, void* context) {
@@ -96,4 +83,5 @@ const BusyAppScene busy_scene_static = {
     .on_enter = busy_scene_static_on_enter,
     .on_exit = busy_scene_static_on_exit,
     .on_event = busy_scene_static_on_event,
+    .data_size = sizeof(BusySceneStatic),
 };

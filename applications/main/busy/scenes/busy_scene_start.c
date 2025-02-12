@@ -16,11 +16,7 @@ static void busy_button_event_callback(lv_event_t* event) {
 
 static void busy_scene_start_on_enter(void* context) {
     BusyApp* instance = context;
-
-    void** data_slot = &instance->scene_data[BusyAppSceneIdStart];
-    furi_check(*data_slot == NULL);
-
-    BusySceneStart* data = malloc(sizeof(BusySceneStart));
+    BusySceneStart* data = busy_get_current_scene_data(instance);
 
     gui_lvgl_acquire(instance->gui);
 
@@ -47,17 +43,11 @@ static void busy_scene_start_on_enter(void* context) {
         data->setup_button, busy_button_event_callback, LV_EVENT_CLICKED, instance);
 
     gui_lvgl_release(instance->gui);
-
-    *data_slot = data;
 }
 
 static void busy_scene_start_on_exit(void* context) {
     BusyApp* instance = context;
-
-    void** data_slot = &instance->scene_data[BusyAppSceneIdStart];
-    furi_check(*data_slot != NULL);
-
-    BusySceneStart* data = *data_slot;
+    BusySceneStart* data = busy_get_current_scene_data(instance);
 
     gui_lvgl_acquire(instance->gui);
 
@@ -65,16 +55,13 @@ static void busy_scene_start_on_exit(void* context) {
     lv_obj_delete(data->main_image);
 
     gui_lvgl_release(instance->gui);
-
-    free(data);
-    *data_slot = NULL;
 }
 
 static void busy_scene_start_on_event(const BusyEvent* event, void* context) {
     BusyApp* instance = context;
 
     if(event->type == BusyEventTypeCustom) {
-        const BusySceneStart* data = instance->scene_data[BusyAppSceneIdStart];
+        BusySceneStart* data = busy_get_current_scene_data(instance);
         const lv_obj_t* button = (const lv_obj_t*)event->custom_value;
 
         if(button == data->start_button) {
@@ -95,4 +82,5 @@ const BusyAppScene busy_scene_start = {
     .on_enter = busy_scene_start_on_enter,
     .on_exit = busy_scene_start_on_exit,
     .on_event = busy_scene_start_on_event,
+    .data_size = sizeof(BusySceneStart),
 };

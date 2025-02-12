@@ -61,6 +61,7 @@ typedef struct {
     BusyAppSceneOnEnter on_enter;
     BusyAppSceneOnExit on_exit;
     BusyAppSceneOnEvent on_event;
+    size_t data_size;
 } BusyAppScene;
 
 typedef void BusyAppSceneData;
@@ -72,7 +73,7 @@ typedef struct {
     GuiLvgl* gui;
     FuriPubSubSubscription* input_events;
     BusyAppSceneData* scene_data[BusyAppSceneIdMax];
-    const BusyAppScene* current_scene;
+    BusyAppSceneId current_scene_id;
     uint32_t total_time_mn;
     uint32_t work_time_mn;
     uint32_t short_rest_time_mn;
@@ -89,6 +90,7 @@ typedef struct {
 
 void busy_switch_to_scene(BusyApp* instance, BusyAppSceneId scene_id);
 void busy_send_custom_event(BusyApp* instance, uint32_t value);
+void* busy_get_current_scene_data(BusyApp* instance);
 
 void busy_timer_start(BusyApp* instance);
 void busy_timer_stop(BusyApp* instance);

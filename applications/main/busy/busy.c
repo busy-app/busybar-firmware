@@ -38,23 +38,34 @@ static const BusyAppScene* busy_scenes[BusyAppSceneIdMax] = {
 };
 
 static void busy_send_custom_event_direct(BusyApp* instance, uint32_t value) {
-    if(instance->current_scene) {
+    if(instance->current_scene_id < BusyAppSceneIdMax) {
         const BusyEvent event = {
             .type = BusyEventTypeCustom,
             .custom_value = value,
         };
 
-        instance->current_scene->on_event(&event, instance);
+        busy_scenes[instance->current_scene_id]->on_event(&event, instance);
     }
 }
 
 void busy_switch_to_scene(BusyApp* instance, BusyAppSceneId scene_id) {
-    if(instance->current_scene) {
-        instance->current_scene->on_exit(instance);
+    if(instance->current_scene_id < BusyAppSceneIdMax) {
+        busy_scenes[instance->current_scene_id]->on_exit(instance);
+
+        if(instance->scene_data[instance->current_scene_id]) {
+            free(instance->scene_data[instance->current_scene_id]);
+            instance->scene_data[instance->current_scene_id] = NULL;
+        }
     }
 
-    instance->current_scene = busy_scenes[scene_id];
-    instance->current_scene->on_enter(instance);
+    instance->current_scene_id = scene_id;
+
+    if(busy_scenes[instance->current_scene_id]->data_size) {
+        instance->scene_data[instance->current_scene_id] =
+            malloc(busy_scenes[instance->current_scene_id]->data_size);
+    }
+
+    busy_scenes[instance->current_scene_id]->on_enter(instance);
 }
 
 void busy_send_custom_event(BusyApp* instance, uint32_t value) {
@@ -65,6 +76,11 @@ void busy_send_custom_event(BusyApp* instance, uint32_t value) {
 
     furi_check(
         furi_message_queue_put(instance->event_queue, &event, FuriWaitForever) == FuriStatusOk);
+}
+
+void* busy_get_current_scene_data(BusyApp* instance) {
+    furi_assert(instance->current_scene_id < BusyAppSceneIdMax);
+    return instance->scene_data[instance->current_scene_id];
 }
 
 void busy_timer_start(BusyApp* instance) {
@@ -175,8 +191,8 @@ static void busy_event_queue_callback(FuriEventLoopObject* object, void* context
     BusyEvent event;
     furi_check(furi_message_queue_get(instance->event_queue, &event, 0) == FuriStatusOk);
 
-    if(instance->current_scene) {
-        instance->current_scene->on_event(&event, instance);
+    if(instance->current_scene_id < BusyAppSceneIdMax) {
+        busy_scenes[instance->current_scene_id]->on_event(&event, instance);
     }
 }
 
@@ -205,6 +221,8 @@ static BusyApp* busy_alloc(void) {
     FuriPubSub* input = furi_record_open(RECORD_INPUT_EVENTS);
     instance->input_events = furi_pubsub_subscribe(input, busy_input_callback, instance);
 
+    instance->current_scene_id = BusyAppSceneIdMax;
+
     instance->total_time_mn = TOTAL_TIME_DEFAULT_MN;
     instance->work_time_mn = WORK_TIME_DEFAULT_MN;
     instance->short_rest_time_mn = SHORT_REST_TIME_DEFAULT_MN;
@@ -228,9 +246,8 @@ static BusyApp* busy_alloc(void) {
 }
 
 static void busy_free(BusyApp* instance) {
-    if(instance->current_scene) {
-        instance->current_scene->on_exit(instance);
-        instance->current_scene = NULL;
+    if(instance->current_scene_id < BusyAppSceneIdMax) {
+        busy_scenes[instance->current_scene_id]->on_exit(instance);
     }
 
     furi_record_close(RECORD_GUI_LVGL);
