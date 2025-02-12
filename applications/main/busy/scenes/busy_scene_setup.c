@@ -33,7 +33,7 @@ static void busy_scene_setup_on_enter(void* context) {
     lv_obj_t* item;
     item = lv_variable_item_add(data->button_list, "Total time");
     lv_variable_item_set_min_as_inf(item, true);
-    lv_variable_item_set_range(item, 15, 60 * 9);
+    lv_variable_item_set_range(item, 10, 60 * 9);
     lv_variable_item_set_step(item, 5);
 
     item = lv_variable_item_add(data->button_list, "Intervals");
