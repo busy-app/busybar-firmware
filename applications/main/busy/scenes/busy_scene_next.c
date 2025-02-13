@@ -10,11 +10,6 @@ static void busy_scene_next_button_event_callback(lv_event_t* event) {
     busy_send_custom_event(instance, BusyCustomEventNext);
 }
 
-static void busy_scene_next_switch_to_timer(BusyApp* instance) {
-    busy_timer_resume(instance);
-    busy_switch_to_scene(instance, BusyAppSceneIdTimer);
-}
-
 static void busy_scene_next_on_enter(void* context) {
     BusyApp* instance = context;
     BusySceneNext* data = busy_get_current_scene_data(instance);
@@ -66,11 +61,10 @@ static void busy_scene_next_on_exit(void* context) {
 static void busy_scene_next_on_event(const BusyEvent* event, void* context) {
     BusyApp* instance = context;
 
-    if(event->type == BusyEventTypeStart) {
-        busy_scene_next_switch_to_timer(instance);
-    } else if(event->type == BusyEventTypeCustom) {
+    if(event->type == BusyEventTypeCustom) {
         if(event->custom_value == BusyCustomEventNext) {
-            busy_scene_next_switch_to_timer(instance);
+            busy_timer_resume(instance);
+            busy_switch_to_scene(instance, BusyAppSceneIdTimer);
         }
     }
 }

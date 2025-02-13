@@ -46,6 +46,7 @@ typedef enum {
 typedef enum {
     BusyCustomEventUpdate = 100,
     BusyCustomEventNext,
+    BusyCustomEventBack,
 } BusyCustomEvent;
 
 typedef struct {

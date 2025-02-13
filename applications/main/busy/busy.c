@@ -248,9 +248,14 @@ static BusyApp* busy_alloc(void) {
 static void busy_free(BusyApp* instance) {
     if(instance->current_scene_id < BusyAppSceneIdMax) {
         busy_scenes[instance->current_scene_id]->on_exit(instance);
+
+        if(instance->scene_data[instance->current_scene_id]) {
+            free(instance->scene_data[instance->current_scene_id]);
+        }
     }
 
     furi_record_close(RECORD_GUI_LVGL);
+    furi_record_close(RECORD_INPUT_EVENTS);
 
     furi_event_loop_unsubscribe(instance->event_loop, instance->event_queue);
     furi_event_loop_timer_free(instance->busy_timer);

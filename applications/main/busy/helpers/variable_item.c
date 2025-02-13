@@ -165,10 +165,13 @@ void lv_variable_item_set_min_as_inf(lv_obj_t* obj, bool set) {
 static void lv_variable_item_constructor(const lv_obj_class_t* class_p, lv_obj_t* obj) {
     LV_UNUSED(class_p);
     lv_obj_remove_flag(obj, LV_OBJ_FLAG_SCROLLABLE);
+    lv_obj_add_flag(obj, LV_OBJ_FLAG_EVENT_BUBBLE);
 
     lv_variable_item_t* item = (lv_variable_item_t*)obj;
 
     lv_obj_t* button = lv_button_create(obj);
+    lv_obj_add_flag(button, LV_OBJ_FLAG_EVENT_BUBBLE);
+
     item->label = lv_label_create(button);
 
     lv_group_t* group = lv_group_create();

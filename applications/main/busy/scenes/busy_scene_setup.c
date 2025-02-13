@@ -7,8 +7,18 @@ typedef struct {
 } BusySceneSetup;
 
 static void busy_list_event_callback(lv_event_t* event) {
-    lv_anim_t* anim = lv_event_get_scroll_anim(event);
-    if(anim) anim->duration = 16 * 4;
+    const lv_event_code_t code = lv_event_get_code(event);
+
+    if(code == LV_EVENT_SCROLL_BEGIN) {
+        lv_anim_t* anim = lv_event_get_scroll_anim(event);
+        if(anim) anim->duration = 16 * 4;
+
+    } else if(code == LV_EVENT_KEY) {
+        if(lv_event_get_key(event) == LV_KEY_ESC) {
+            BusyApp* instance = lv_event_get_user_data(event);
+            busy_send_custom_event(instance, BusyCustomEventBack);
+        }
+    }
 }
 
 static void busy_scene_setup_total_time_callback(lv_event_t* event) {
@@ -63,6 +73,7 @@ static void busy_scene_setup_on_enter(void* context) {
     lv_obj_set_style_pad_left(data->button_list, 6, LV_PART_MAIN);
     lv_obj_set_style_text_font(data->button_list, &lv_font_tiny5_8, LV_PART_MAIN);
     lv_obj_set_size(data->button_list, lv_obj_get_width(active), lv_obj_get_height(active));
+    lv_obj_add_event_cb(data->button_list, busy_list_event_callback, LV_EVENT_KEY, instance);
     // TODO: Speed up animation the right way
     lv_obj_add_event_cb(data->button_list, busy_list_event_callback, LV_EVENT_SCROLL_BEGIN, NULL);
 
@@ -120,7 +131,6 @@ static void busy_scene_setup_on_enter(void* context) {
     lv_obj_add_event_cb(
         item, busy_scene_setup_enable_sound_callback, LV_EVENT_VALUE_CHANGED, instance);
 
-    UNUSED(item);
     lv_obj_scroll_to(data->button_list, 0, 0, LV_ANIM_OFF);
 
     gui_lvgl_release(instance->gui);
@@ -140,10 +150,10 @@ static void busy_scene_setup_on_exit(void* context) {
 static void busy_scene_setup_on_event(const BusyEvent* event, void* context) {
     BusyApp* instance = context;
 
-    if(event->type == BusyEventTypeBack) {
-        busy_switch_to_scene(instance, BusyAppSceneIdStart);
-    } else if(event->type == BusyEventTypeCustom) {
-        // TODO: React to menu actions in application thread
+    if(event->type == BusyEventTypeCustom) {
+        if(event->custom_value == BusyCustomEventBack) {
+            busy_switch_to_scene(instance, BusyAppSceneIdStart);
+        }
     }
 }
 
