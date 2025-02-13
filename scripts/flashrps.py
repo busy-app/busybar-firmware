@@ -591,7 +591,7 @@ def main():
     parser.add_argument(
         "-d",
         type=int,
-        default=3,
+        default=0,
         metavar="LEVEL",
         help="debug level (0 - none, 3 - full)",
     )
