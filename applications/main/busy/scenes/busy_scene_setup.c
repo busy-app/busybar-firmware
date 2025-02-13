@@ -133,6 +133,8 @@ static void busy_scene_setup_on_enter(void* context) {
 
     lv_obj_scroll_to(data->button_list, 0, 0, LV_ANIM_OFF);
 
+    lv_label_set_text(instance->back_label, "Setup Menu");
+
     gui_lvgl_release(instance->gui);
 }
 

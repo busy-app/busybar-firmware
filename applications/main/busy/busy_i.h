@@ -72,6 +72,7 @@ typedef struct {
     FuriMessageQueue* event_queue;
     FuriEventLoopTimer* busy_timer;
     GuiLvgl* gui;
+    lv_obj_t* back_label;
     FuriPubSubSubscription* input_events;
     BusyAppSceneData* scene_data[BusyAppSceneIdMax];
     BusyAppSceneId current_scene_id;

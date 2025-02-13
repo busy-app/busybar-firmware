@@ -43,6 +43,8 @@ static void busy_scene_next_on_enter(void* context) {
     lv_obj_set_style_text_font(label, &lv_font_tiny5_8, LV_PART_MAIN);
     lv_obj_set_style_text_color(label, lv_color_hex(0x13F562), LV_PART_MAIN);
 
+    lv_label_set_text(instance->back_label, "Next Interval Menu");
+
     gui_lvgl_release(instance->gui);
 }
 

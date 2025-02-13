@@ -64,6 +64,14 @@ static void busy_scene_timer_update(BusyApp* instance) {
     lv_label_set_text_fmt(data->time_label, "%02lu:%02lu", minutes, seconds);
     lv_bar_set_value(data->time_bar, percent, LV_ANIM_OFF);
 
+    if(data->timer_state == BusyTimerStateBusy) {
+        lv_label_set_text_fmt(instance->back_label, "BUSY: %02lu:%02lu", minutes, seconds);
+    } else if(data->timer_state == BusyTimerStateRest) {
+        lv_label_set_text_fmt(instance->back_label, "REST: %02lu:%02lu", minutes, seconds);
+    } else if(data->timer_state == BusyTimerStateLongRest) {
+        lv_label_set_text_fmt(instance->back_label, "LONG REST: %02lu:%02lu", minutes, seconds);
+    }
+
     gui_lvgl_release(instance->gui);
 }
 

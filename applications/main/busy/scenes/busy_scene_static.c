@@ -48,6 +48,8 @@ static void busy_scene_static_on_enter(void* context) {
     lv_image_set_src(data->main_image, &I_busy_large_70x14);
     lv_obj_center(data->main_image);
 
+    lv_label_set_text(instance->back_label, "Static Timer");
+
     gui_lvgl_release(instance->gui);
 }
 

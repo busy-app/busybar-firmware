@@ -42,6 +42,8 @@ static void busy_scene_start_on_enter(void* context) {
     lv_obj_add_event_cb(
         data->setup_button, busy_button_event_callback, LV_EVENT_CLICKED, instance);
 
+    lv_label_set_text(instance->back_label, "Start Menu");
+
     gui_lvgl_release(instance->gui);
 }
 

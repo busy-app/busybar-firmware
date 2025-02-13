@@ -277,6 +277,10 @@ static void gui_lvgl_init_back(GuiLvgl* instance) {
         NULL,
         BACK_DRAW_BUFFER_SIZE,
         LV_DISPLAY_RENDER_MODE_DIRECT);
+
+    lv_theme_t* theme =
+        lv_theme_mono_init(display_data->lv_display, true, &lv_font_haxrcorp4089_16);
+    lv_display_set_theme(display_data->lv_display, theme);
 }
 
 static void gui_lvgl_init_input(GuiLvgl* instance) {

@@ -240,6 +240,16 @@ static BusyApp* busy_alloc(void) {
         busy_event_queue_callback,
         instance);
 
+    // Create a single label for the back display
+    gui_lvgl_acquire(instance->gui);
+
+    lv_obj_t* active = gui_lvgl_get_layer(instance->gui, GuiDisplayIdBack, GuiLayerIdActive);
+    instance->back_label = lv_label_create(active);
+    lv_obj_center(instance->back_label);
+    lv_obj_set_style_text_color(instance->back_label, lv_color_white(), LV_PART_MAIN);
+
+    gui_lvgl_release(instance->gui);
+
     busy_switch_to_scene(instance, BusyAppSceneIdStart);
 
     return instance;
@@ -253,6 +263,11 @@ static void busy_free(BusyApp* instance) {
             free(instance->scene_data[instance->current_scene_id]);
         }
     }
+
+    // Delete the back display label
+    gui_lvgl_acquire(instance->gui);
+    lv_obj_delete(instance->back_label);
+    gui_lvgl_release(instance->gui);
 
     furi_record_close(RECORD_GUI_LVGL);
     furi_record_close(RECORD_INPUT_EVENTS);

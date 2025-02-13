@@ -47,6 +47,8 @@ static void busy_scene_quit_on_enter(void* context) {
     lv_obj_add_event_cb(
         data->cancel_button, busy_button_event_callback, LV_EVENT_CLICKED, instance);
 
+    lv_label_set_text(instance->back_label, "Quit Menu");
+
     gui_lvgl_release(instance->gui);
 }
 
