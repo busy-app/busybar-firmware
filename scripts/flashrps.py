@@ -1,9 +1,11 @@
 #!/usr/bin/env python3
 
-import os
-import io
-import serial
 import argparse
+import io
+import os
+import time
+
+import serial
 
 """
 Purpose:
@@ -361,6 +363,8 @@ class Kermit:
 
 
 class RpsFlasher:
+    RESET_DELAY_SEC = 0.8
+
     def __init__(self, port_name: str, filename: str, image_type: str, debug=0):
         """
         Args:
@@ -441,6 +445,39 @@ class RpsFlasher:
 
         print("Firmware flashed successfully!")
 
+    # dtr: 15 pin on Flipper -> goes to reset pin
+    def __signal_reset(self, state):
+        """
+        Set the DTR signal connected to RESET pin to the specified state.
+        """
+        self.serial.dtr = state
+
+    # rts: 16 pin on Flipper -> goes to boot pin (SWO)
+    def __signal_boot(self, state):
+        """
+        Set the RTS signal connected to BOOT pin to the specified state.
+        """
+        self.serial.rts = state
+
+    def reset_device(self):
+        """
+        Reset the target device.
+        """
+        self.__signal_reset(1)
+        time.sleep(self.RESET_DELAY_SEC)
+        self.__signal_reset(0)
+
+    def __put_device_to_bootloader(self):
+        """
+        Put the target device into the bootloader mode.
+        """
+        self.__signal_boot(1)
+        self.__signal_reset(1)
+        time.sleep(self.RESET_DELAY_SEC)
+        self.__signal_reset(0)
+        time.sleep(self.RESET_DELAY_SEC)
+        self.__signal_boot(0)
+
     def __wait_for_device(self):
         """
         Wait until the bootloader reports readiness.
@@ -448,6 +485,7 @@ class RpsFlasher:
 
         while True:
             try:
+                self.__put_device_to_bootloader()
                 self.__wait_for_menu()
                 break
 
@@ -553,7 +591,7 @@ def main():
     parser.add_argument(
         "-d",
         type=int,
-        default=0,
+        default=3,
         metavar="LEVEL",
         help="debug level (0 - none, 3 - full)",
     )
@@ -582,6 +620,7 @@ def main():
     flasher.init_device()
     flasher.flash_firmware()
     flasher.check_firmware()
+    flasher.reset_device()
 
 
 if __name__ == "__main__":
