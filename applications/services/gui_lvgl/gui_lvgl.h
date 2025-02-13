@@ -15,6 +15,12 @@ typedef enum {
 } GuiDisplayId;
 
 typedef enum {
+    GuiInputIdEncoder,
+    GuiInputIdButtons,
+    GuiInputIdMax,
+} GuiInputId;
+
+typedef enum {
     GuiLayerIdBottom,
     GuiLayerIdActive,
     GuiLayerIdTop,

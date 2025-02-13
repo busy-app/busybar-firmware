@@ -29,23 +29,33 @@
 #define TICK_PERIOD_MS (8)
 
 typedef struct {
+    GuiInputId id;
+    union {
+        struct {
+            int8_t diff;
+            lv_indev_state_t btn_state;
+        } encoder;
+        struct {
+            uint32_t key;
+            lv_indev_state_t state;
+        } button;
+    };
+} GuiInputEvent;
+
+typedef struct {
     lv_display_t* lv_display;
+    lv_indev_t* lv_indevs[GuiInputIdMax];
     uint8_t* draw_buffer;
     uint8_t* frame_buffer;
 } GuiDisplayData;
 
-typedef struct {
-    int16_t encoder_diff;
-    bool button_pressed;
-} GuiInputState;
-
 struct GuiLvgl {
     FuriEventLoop* event_loop;
-    FuriMutex* access_mutex;
     FuriMessageQueue* input_queue;
+    FuriMutex* access_mutex;
     DotMatrixSrv* dot_matrix;
     GuiDisplayData display_data[GuiDisplayIdMax];
-    GuiInputState input_state[GuiDisplayIdMax];
+    GuiInputEvent input_event;
 };
 
 // TODO: Optimise conversion?
@@ -92,14 +102,29 @@ static void
     lv_display_flush_ready(display);
 }
 
-static void gui_lvgl_input_callback(lv_indev_t* indev, lv_indev_data_t* data) {
+static void gui_lvgl_input_read_callback(lv_indev_t* indev, lv_indev_data_t* data) {
     GuiLvgl* instance = lv_indev_get_user_data(indev);
-    GuiInputState* input_state = &instance->input_state[GuiDisplayIdFront];
 
-    data->enc_diff = input_state->encoder_diff;
-    data->state = input_state->button_pressed ? LV_INDEV_STATE_PRESSED : LV_INDEV_STATE_RELEASED;
+    const GuiInputEvent* event = &instance->input_event;
 
-    input_state->encoder_diff = 0;
+    if(event->id == GuiInputIdEncoder) {
+        furi_assert(lv_indev_get_type(indev) == LV_INDEV_TYPE_ENCODER);
+
+        if(event->encoder.diff != 0) {
+            data->enc_diff = event->encoder.diff;
+        } else {
+            data->state = event->encoder.btn_state;
+        }
+
+    } else if(event->id == GuiInputIdButtons) {
+        furi_assert(lv_indev_get_type(indev) == LV_INDEV_TYPE_KEYPAD);
+
+        data->key = event->button.key;
+        data->state = event->button.state;
+
+    } else {
+        furi_crash("Invalid input id");
+    }
 }
 
 static void gui_lvgl_log_callback(lv_log_level_t level, const char* buf) {
@@ -123,15 +148,62 @@ static void gui_lvgl_log_callback(lv_log_level_t level, const char* buf) {
     free(line);
 }
 
+static bool gui_lvgl_parse_encoder_event(const InputEvent* event, GuiInputEvent* gui_event) {
+    bool success = false;
+
+    if(event->key == InputKeyUp || event->key == InputKeyDown) {
+        if(event->type == InputTypeShort) {
+            gui_event->id = GuiInputIdEncoder;
+            gui_event->encoder.diff = (event->key == InputKeyUp) ? 1 : -1;
+            gui_event->encoder.btn_state = 0;
+
+            success = true;
+        }
+
+    } else if(event->key == InputKeyOk) {
+        if(event->type == InputTypePress || event->type == InputTypeRelease) {
+            gui_event->id = GuiInputIdEncoder;
+            gui_event->encoder.diff = 0;
+            gui_event->encoder.btn_state =
+                (event->type == InputTypePress) ? LV_INDEV_STATE_PRESSED : LV_INDEV_STATE_RELEASED;
+            success = true;
+        }
+    }
+
+    return success;
+}
+
+static bool gui_lvgl_parse_buttons_event(const InputEvent* event, GuiInputEvent* gui_event) {
+    bool success = false;
+
+    if(event->key == InputKeyBack || event->key == InputKeyStart) {
+        if(event->type == InputTypePress || event->type == InputTypeRelease) {
+            gui_event->id = GuiInputIdButtons;
+            gui_event->button.key = (event->key == InputKeyBack) ? LV_KEY_ESC : LV_KEY_ENTER;
+            gui_event->encoder.btn_state =
+                (event->type == InputTypePress) ? LV_INDEV_STATE_PRESSED : LV_INDEV_STATE_RELEASED;
+            success = true;
+        }
+    }
+
+    return success;
+}
+
 static void gui_lvgl_input_pubsub_callback(const void* message, void* context) {
     furi_assert(message);
     furi_assert(context);
 
-    GuiLvgl* intsance = context;
+    GuiLvgl* instance = context;
     const InputEvent* event = message;
 
-    furi_check(
-        furi_message_queue_put(intsance->input_queue, event, FuriWaitForever) == FuriStatusOk);
+    GuiInputEvent gui_event;
+    bool event_parsed = gui_lvgl_parse_encoder_event(event, &gui_event) ||
+                        gui_lvgl_parse_buttons_event(event, &gui_event);
+    if(event_parsed) {
+        furi_check(
+            furi_message_queue_put(instance->input_queue, &gui_event, FuriWaitForever) ==
+            FuriStatusOk);
+    }
 }
 
 static void gui_lvgl_tick_callback(void* context) {
@@ -148,28 +220,21 @@ static void gui_lvgl_tick_callback(void* context) {
 
 static void gui_lvgl_input_queue_callback(FuriEventLoopObject* object, void* context) {
     furi_assert(context);
+
     GuiLvgl* instance = context;
+    furi_assert(object == instance->input_queue);
 
-    furi_check(object == instance->input_queue);
+    furi_check(
+        furi_message_queue_get(instance->input_queue, &instance->input_event, 0) == FuriStatusOk);
 
-    InputEvent event;
-    furi_check(furi_message_queue_get(instance->input_queue, &event, 0) == FuriStatusOk);
+    const GuiInputId input_id = instance->input_event.id;
+    furi_assert(input_id < GuiInputIdMax);
 
-    GuiInputState* input_state = &instance->input_state[GuiDisplayIdFront];
+    for(uint32_t i = 0; i < GuiDisplayIdMax; ++i) {
+        lv_indev_t* indev = instance->display_data[i].lv_indevs[input_id];
 
-    if(event.key == InputKeyUp) {
-        if(event.type == InputTypeShort) {
-            input_state->encoder_diff++;
-        }
-    } else if(event.key == InputKeyDown) {
-        if(event.type == InputTypeShort) {
-            input_state->encoder_diff--;
-        }
-    } else if(event.key == InputKeyOk) {
-        if(event.type == InputTypePress) {
-            input_state->button_pressed = true;
-        } else if(event.type == InputTypeRelease) {
-            input_state->button_pressed = false;
+        if(indev != NULL) {
+            lv_indev_read(indev);
         }
     }
 }
@@ -215,18 +280,22 @@ static void gui_lvgl_init_back(GuiLvgl* instance) {
 }
 
 static void gui_lvgl_init_input(GuiLvgl* instance) {
+    GuiDisplayData* display_data = &instance->display_data[GuiDisplayIdFront];
     // Created input device gets associated with the default display
-    lv_display_t* front = instance->display_data[GuiDisplayIdFront].lv_display;
+    lv_display_t* front = display_data->lv_display;
     lv_display_set_default(front);
-
+    // Newly created LVGL objects will be automatically added to the default group
     lv_group_t* group = lv_group_create();
     lv_group_set_default(group);
 
     lv_indev_t* encoder = lv_indev_create();
     lv_indev_set_type(encoder, LV_INDEV_TYPE_ENCODER);
+    lv_indev_set_mode(encoder, LV_INDEV_MODE_EVENT);
     lv_indev_set_group(encoder, group);
     lv_indev_set_user_data(encoder, instance);
-    lv_indev_set_read_cb(encoder, gui_lvgl_input_callback);
+    lv_indev_set_read_cb(encoder, gui_lvgl_input_read_callback);
+
+    display_data->lv_indevs[GuiInputIdEncoder] = encoder;
 
     FuriPubSub* input_events = furi_record_open(RECORD_INPUT_EVENTS);
     furi_pubsub_subscribe(input_events, gui_lvgl_input_pubsub_callback, instance);
@@ -237,8 +306,8 @@ static GuiLvgl* gui_lvgl_alloc(void) {
 
     instance->event_loop = furi_event_loop_alloc();
     instance->access_mutex = furi_mutex_alloc(FuriMutexTypeNormal);
-    instance->input_queue = furi_message_queue_alloc(16, sizeof(InputEvent));
     instance->dot_matrix = furi_record_open(RECORD_DOT_MATRIX);
+    instance->input_queue = furi_message_queue_alloc(16, sizeof(GuiInputEvent));
 
     furi_event_loop_subscribe_message_queue(
         instance->event_loop,
