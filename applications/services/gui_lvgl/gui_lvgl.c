@@ -36,7 +36,7 @@ typedef struct {
             lv_indev_state_t btn_state;
         } encoder;
         struct {
-            uint32_t key;
+            uint8_t key;
             lv_indev_state_t state;
         } button;
     };
@@ -180,8 +180,8 @@ static bool gui_lvgl_parse_buttons_event(const InputEvent* event, GuiInputEvent*
         if(event->type == InputTypePress || event->type == InputTypeRelease) {
             gui_event->id = GuiInputIdButtons;
             gui_event->button.key = (event->key == InputKeyBack) ? LV_KEY_ESC : LV_KEY_ENTER;
-            gui_event->encoder.btn_state =
-                (event->type == InputTypePress) ? LV_INDEV_STATE_PRESSED : LV_INDEV_STATE_RELEASED;
+            gui_event->button.state = (event->type == InputTypePress) ? LV_INDEV_STATE_PRESSED :
+                                                                        LV_INDEV_STATE_RELEASED;
             success = true;
         }
     }
@@ -296,6 +296,15 @@ static void gui_lvgl_init_input(GuiLvgl* instance) {
     lv_indev_set_read_cb(encoder, gui_lvgl_input_read_callback);
 
     display_data->lv_indevs[GuiInputIdEncoder] = encoder;
+
+    lv_indev_t* buttons = lv_indev_create();
+    lv_indev_set_type(buttons, LV_INDEV_TYPE_KEYPAD);
+    lv_indev_set_mode(buttons, LV_INDEV_MODE_EVENT);
+    lv_indev_set_group(buttons, group);
+    lv_indev_set_user_data(buttons, instance);
+    lv_indev_set_read_cb(buttons, gui_lvgl_input_read_callback);
+
+    display_data->lv_indevs[GuiInputIdButtons] = buttons;
 
     FuriPubSub* input_events = furi_record_open(RECORD_INPUT_EVENTS);
     furi_pubsub_subscribe(input_events, gui_lvgl_input_pubsub_callback, instance);
