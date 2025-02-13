@@ -25,7 +25,7 @@ static void busy_scene_quit_on_enter(void* context) {
     lv_obj_t* active = gui_lvgl_get_layer(instance->gui, GuiDisplayIdFront, GuiLayerIdActive);
 
     data->main_label = lv_label_create(active);
-    lv_label_set_text(data->main_label, "Quit this session?");
+    lv_label_set_text(data->main_label, "Quit this BUSY?");
     lv_obj_set_pos(data->main_label, 0, 1);
     lv_obj_set_size(data->main_label, 35, 14);
     lv_obj_set_style_text_font(data->main_label, &lv_font_tiny5_8, LV_PART_MAIN);
