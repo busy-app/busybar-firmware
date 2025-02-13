@@ -52,9 +52,12 @@ const lv_obj_class_t lv_variable_item_spinbox_class = {
 
 static void variable_item_event_callback(lv_event_t* event) {
     lv_group_t* group = lv_event_get_user_data(event);
-    lv_indev_t* indev = lv_event_get_indev(event);
-    lv_indev_set_group(indev, group);
     lv_group_set_editing(group, true);
+
+    for(lv_indev_t* indev = lv_indev_get_next(NULL); indev != NULL;
+        indev = lv_indev_get_next(indev)) {
+        lv_indev_set_group(indev, group);
+    }
 }
 
 lv_obj_t* lv_variable_item_add(lv_obj_t* parent, const char* text) {
@@ -169,7 +172,7 @@ static void lv_variable_item_constructor(const lv_obj_class_t* class_p, lv_obj_t
     item->label = lv_label_create(button);
 
     lv_group_t* group = lv_group_create();
-    lv_obj_add_event_cb(button, variable_item_event_callback, LV_EVENT_CLICKED, group);
+    lv_obj_add_event_cb(button, variable_item_event_callback, LV_EVENT_SHORT_CLICKED, group);
 
     item->spinbox = lv_obj_class_create_obj(MY_SPINBOX_CLASS, obj);
     lv_obj_class_init_obj(item->spinbox);
@@ -237,6 +240,19 @@ static void lv_variable_item_spinbox_constructor(const lv_obj_class_t* class_p, 
     lv_variable_item_spinbox_update(spinbox);
 }
 
+static void lv_variable_item_spinbox_finish_editing(lv_variable_item_spinbox_t* spinbox) {
+    lv_group_t* group = lv_obj_get_group((lv_obj_t*)spinbox);
+    lv_group_set_editing(group, false);
+
+    for(lv_indev_t* indev = lv_indev_get_next(NULL); indev != NULL;
+        indev = lv_indev_get_next(indev)) {
+        lv_indev_set_group(indev, lv_group_get_default());
+    }
+
+    lv_obj_t* item = lv_obj_get_parent((lv_obj_t*)spinbox);
+    lv_obj_send_event(item, LV_EVENT_VALUE_CHANGED, &spinbox->value);
+}
+
 static void lv_variable_item_spinbox_event(const lv_obj_class_t* class_p, lv_event_t* event) {
     LV_UNUSED(class_p);
 
@@ -250,14 +266,7 @@ static void lv_variable_item_spinbox_event(const lv_obj_class_t* class_p, lv_eve
     const lv_event_code_t event_code = lv_event_get_code(event);
 
     if(event_code == LV_EVENT_SHORT_CLICKED) {
-        lv_indev_t* indev = lv_event_get_indev(event);
-        lv_group_t* group = lv_indev_get_group(indev);
-
-        lv_group_set_editing(group, false);
-        lv_indev_set_group(indev, lv_group_get_default());
-
-        lv_obj_t* item = lv_obj_get_parent(obj);
-        lv_obj_send_event(item, LV_EVENT_VALUE_CHANGED, &spinbox->value);
+        lv_variable_item_spinbox_finish_editing(spinbox);
 
     } else if(event_code == LV_EVENT_KEY) {
         const uint32_t key = *((uint32_t*)lv_event_get_param(event));
@@ -266,6 +275,8 @@ static void lv_variable_item_spinbox_event(const lv_obj_class_t* class_p, lv_eve
             lv_variable_item_spinbox_increment(spinbox);
         } else if(key == LV_KEY_LEFT) {
             lv_variable_item_spinbox_decrement(spinbox);
+        } else if(key == LV_KEY_ESC) {
+            lv_variable_item_spinbox_finish_editing(spinbox);
         }
 
     } else if(event_code == LV_EVENT_DELETE) {
