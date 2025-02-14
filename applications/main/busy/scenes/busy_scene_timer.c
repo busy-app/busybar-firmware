@@ -13,7 +13,6 @@ typedef struct {
     lv_obj_t* overlay;
     lv_obj_t* overlay_image;
     BusyTimerState timer_state;
-    bool skip_state;
 } BusySceneTimer;
 
 static void busy_scene_timer_state_update(BusySceneTimer* data) {
@@ -102,32 +101,6 @@ static void busy_scene_timer_toggle_pause_overlay(BusyApp* instance) {
     gui_lvgl_release(instance->gui);
 }
 
-static bool busy_scene_timer_should_switch(BusyApp* instance) {
-    bool ret = false;
-
-    BusySceneTimer* data = busy_get_current_scene_data(instance);
-
-    if(data->skip_state) {
-        data->skip_state = false;
-        instance->session_ended = false;
-
-    } else {
-        const bool state_changed = instance->state != data->timer_state;
-        const bool ask_work = (instance->state == BusyTimerStateBusy) &&
-                              (!instance->enable_autostart_work);
-        const bool ask_rest =
-            (instance->state == BusyTimerStateRest || instance->state == BusyTimerStateLongRest) &&
-            (!instance->enable_autostart_rest);
-
-        const bool ask_restart = (instance->state == BusyTimerStateBusy) &&
-                                 instance->session_ended;
-
-        ret = (state_changed && (ask_work || ask_rest)) || ask_restart;
-    }
-
-    return ret;
-}
-
 static void busy_scene_timer_on_enter(void* context) {
     BusyApp* instance = context;
     BusySceneTimer* data = busy_get_current_scene_data(instance);
@@ -193,27 +166,16 @@ static void busy_scene_timer_on_event(const BusyEvent* event, void* context) {
 
     } else if(event->type == BusyEventTypeOk) {
         if(busy_timer_is_running(instance)) {
-            BusySceneTimer* data = busy_get_current_scene_data(instance);
-            data->skip_state = true;
-
-            busy_timer_next_state(instance);
+            busy_timer_next_state(instance, true);
         }
 
     } else if(event->type == BusyEventTypeCustom) {
         if(event->custom_value == BusyCustomEventUpdate) {
-            if(busy_scene_timer_should_switch(instance)) {
-                busy_timer_pause(instance);
-
-                if(instance->session_ended) {
-                    instance->session_ended = false;
-                    busy_switch_to_scene(instance, BusyAppSceneIdRestart);
-                } else {
-                    busy_switch_to_scene(instance, BusyAppSceneIdNext);
-                }
-
-            } else {
-                busy_scene_timer_update(instance);
-            }
+            busy_scene_timer_update(instance);
+        } else if(event->custom_value == BusyCustomEventIntervalEnd) {
+            busy_switch_to_scene(instance, BusyAppSceneIdNext);
+        } else if(event->custom_value == BusyCustomEventSessionEnd) {
+            busy_switch_to_scene(instance, BusyAppSceneIdRestart);
         }
     }
 }

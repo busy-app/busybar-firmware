@@ -48,6 +48,8 @@ typedef enum {
     BusyCustomEventUpdate = 100,
     BusyCustomEventNext,
     BusyCustomEventBack,
+    BusyCustomEventIntervalEnd,
+    BusyCustomEventSessionEnd,
 } BusyCustomEvent;
 
 typedef struct {
@@ -87,7 +89,6 @@ typedef struct {
     uint32_t intervals_done;
     uint32_t interval_time_s;
     uint32_t interval_time_left_s;
-    bool session_ended;
     bool enable_intervals;
     bool enable_autostart_work;
     bool enable_autostart_rest;
@@ -102,7 +103,7 @@ void* busy_get_current_scene_data(BusyApp* instance);
 
 void busy_timer_start(BusyApp* instance);
 void busy_timer_stop(BusyApp* instance);
-void busy_timer_next_state(BusyApp* instance);
+void busy_timer_next_state(BusyApp* instance, bool skip_event);
 void busy_timer_pause(BusyApp* instance);
 void busy_timer_resume(BusyApp* instance);
 void busy_timer_toggle(BusyApp* instance);
