@@ -58,6 +58,11 @@ static void busy_scene_setup_enable_autostart_rest_callback(lv_event_t* event) {
     instance->enable_autostart_rest = *(bool*)lv_event_get_param(event);
 }
 
+static void busy_scene_setup_enable_autorestart_session_callback(lv_event_t* event) {
+    BusyApp* instance = lv_event_get_user_data(event);
+    instance->enable_autorestart_session = *(bool*)lv_event_get_param(event);
+}
+
 static void busy_scene_setup_enable_sound_callback(lv_event_t* event) {
     BusyApp* instance = lv_event_get_user_data(event);
     instance->enable_sound = *(bool*)lv_event_get_param(event);
@@ -137,6 +142,15 @@ static void busy_scene_setup_on_enter(void* context) {
     lv_variable_item_set_value(item, instance->enable_autostart_rest);
     lv_obj_add_event_cb(
         item, busy_scene_setup_enable_autostart_rest_callback, LV_EVENT_VALUE_CHANGED, instance);
+
+    item = lv_variable_item_add(data->button_list, "A.restart\nBUSY");
+    lv_variable_item_set_binary(item, true);
+    lv_variable_item_set_value(item, instance->enable_autorestart_session);
+    lv_obj_add_event_cb(
+        item,
+        busy_scene_setup_enable_autorestart_session_callback,
+        LV_EVENT_VALUE_CHANGED,
+        instance);
 
     item = lv_variable_item_add(data->button_list, "Sound");
     lv_variable_item_set_binary(item, true);

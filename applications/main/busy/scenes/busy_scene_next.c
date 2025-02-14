@@ -26,7 +26,10 @@ static void busy_scene_next_on_enter(void* context) {
         lv_label_set_text(data->main_label, "Long Rest");
     } else {
         lv_label_set_text_fmt(
-            data->main_label, "%lu/%lu BUSY", instance->cycles_done + 1, instance->cycles_total);
+            data->main_label,
+            "%lu/%lu BUSY",
+            instance->intervals_done + 1,
+            instance->intervals_total);
     }
 
     lv_obj_set_pos(data->main_label, 0, 5);
