@@ -120,7 +120,6 @@ static bool busy_scene_timer_should_switch(BusyApp* instance) {
             (!instance->enable_autostart_rest);
 
         const bool ask_restart = (instance->state == BusyTimerStateBusy) &&
-                                 (!instance->enable_autorestart_session) &&
                                  instance->session_ended;
 
         ret = (state_changed && (ask_work || ask_rest)) || ask_restart;

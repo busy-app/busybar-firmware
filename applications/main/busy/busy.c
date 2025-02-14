@@ -191,7 +191,7 @@ void busy_timer_next_state(BusyApp* instance) {
             next_state = BusyTimerStateBusy;
 
             busy_timer_reset_session(instance);
-            instance->session_ended = true;
+            instance->session_ended = !instance->enable_autorestart_session;
 
         } else {
             instance->interval_time_s = interval_time_s;
