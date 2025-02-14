@@ -68,6 +68,8 @@ class Stream:
         self.address = portname[0]
         self.port = portname[1]
         self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        self.transmitted = 0
+        self.received = 0
 
     def open(self):
         self.socket.connect((self.address, self.port))
@@ -76,10 +78,19 @@ class Stream:
         self.socket.close()
 
     def write(self, data: bytes):
+        self.transmitted += len(data)
         self.socket.sendall(data)
 
+    def try_read(self, size: int):
+        data = self.socket.recv(size)
+        self.received += len(data)
+        return data
+    
     def read(self, size: int):
-        return self.socket.recv(size)
+        data = self.try_read(size)
+        while len(data) < size:
+            data += self.try_read(size - len(data))
+        return data
     
     def reset_input_buffer(self):
         pass
@@ -115,7 +126,7 @@ class FlipperStorage:
     CLI_PROMPT = ">: "
     CLI_EOL = "\r\n"
 
-    def __init__(self, portname: tuple[str, int], chunk_size: int = 2048):
+    def __init__(self, portname: tuple[str, int], chunk_size: int = 1024):
         self.port = Stream(portname)
         self.read = BufferedRead(self.port)
         self.chunk_size = chunk_size
