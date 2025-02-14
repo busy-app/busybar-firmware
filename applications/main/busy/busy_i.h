@@ -89,6 +89,7 @@ typedef struct {
     bool enable_autostart_work;
     bool enable_autostart_rest;
     bool enable_sound;
+    bool enable_speed;
 } BusyApp;
 
 void busy_switch_to_scene(BusyApp* instance, BusyAppSceneId scene_id);

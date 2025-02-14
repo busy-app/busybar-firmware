@@ -10,12 +10,9 @@
 #include "scenes/busy_scene_setup.h"
 
 #define TOTAL_TIME_DEFAULT_MN      (HM_TO_M(1, 35))
-// #define WORK_TIME_DEFAULT_MN       (45)
-// #define SHORT_REST_TIME_DEFAULT_MN (10)
-// #define LONG_REST_TIME_DEFAULT_MN  (20)
-#define WORK_TIME_DEFAULT_MN       (1)
-#define SHORT_REST_TIME_DEFAULT_MN (1)
-#define LONG_REST_TIME_DEFAULT_MN  (1)
+#define WORK_TIME_DEFAULT_MN       (45)
+#define SHORT_REST_TIME_DEFAULT_MN (10)
+#define LONG_REST_TIME_DEFAULT_MN  (20)
 
 #define ENABLE_INTERVALS_DEFAULT      (true)
 // #define ENABLE_AUTOSTART_WORK_DEFAULT (true)
@@ -23,8 +20,10 @@
 #define ENABLE_AUTOSTART_WORK_DEFAULT (false)
 #define ENABLE_AUTOSTART_REST_DEFAULT (false)
 #define ENABLE_SOUND_DEFAULT          (false)
+#define ENABLE_SPEED_DEFAULT          (false)
 
 #define CYCLE_COUNT_DEFAULT (3)
+#define SPEED_MULTIPLIER    (50)
 
 #define S_TO_MS(s) (s * 1000)
 
@@ -101,7 +100,8 @@ void busy_timer_pause(BusyApp* instance) {
 
 void busy_timer_resume(BusyApp* instance) {
     furi_assert(!busy_timer_is_running(instance));
-    furi_event_loop_timer_start(instance->busy_timer, S_TO_MS(1));
+    const uint32_t timeout_ms = S_TO_MS(1) / (instance->enable_speed ? SPEED_MULTIPLIER : 1);
+    furi_event_loop_timer_start(instance->busy_timer, timeout_ms);
     busy_send_custom_event_direct(instance, instance->state);
 }
 
@@ -149,7 +149,8 @@ void busy_timer_next_state(BusyApp* instance) {
     instance->state = new_state;
     instance->cycle_time_left_s = instance->cycle_time_s;
 
-    furi_event_loop_timer_start(instance->busy_timer, S_TO_MS(1));
+    const uint32_t timeout_ms = S_TO_MS(1) / (instance->enable_speed ? SPEED_MULTIPLIER : 1);
+    furi_event_loop_timer_start(instance->busy_timer, timeout_ms);
 
     busy_send_custom_event_direct(instance, BusyCustomEventUpdate);
 }
@@ -232,6 +233,7 @@ static BusyApp* busy_alloc(void) {
     instance->enable_autostart_work = ENABLE_AUTOSTART_WORK_DEFAULT;
     instance->enable_autostart_rest = ENABLE_AUTOSTART_REST_DEFAULT;
     instance->enable_sound = ENABLE_SOUND_DEFAULT;
+    instance->enable_speed = ENABLE_SPEED_DEFAULT;
 
     furi_event_loop_subscribe_message_queue(
         instance->event_loop,
