@@ -85,7 +85,6 @@ void* busy_get_current_scene_data(BusyApp* instance) {
 
 void busy_timer_start(BusyApp* instance) {
     instance->state = BusyTimerStateIdle;
-    instance->intervals_done = 0;
     busy_timer_next_state(instance);
 }
 
@@ -101,7 +100,8 @@ void busy_timer_pause(BusyApp* instance) {
 
 void busy_timer_resume(BusyApp* instance) {
     furi_assert(!busy_timer_is_running(instance));
-    const uint32_t timeout_ms = S_TO_MS(1) / (instance->enable_speed ? SPEED_MULTIPLIER : 1);
+    const uint32_t timeout_ms = instance->enable_speed ? S_TO_MS(1) / SPEED_MULTIPLIER :
+                                                         S_TO_MS(1);
     furi_event_loop_timer_start(instance->busy_timer, timeout_ms);
     busy_send_custom_event_direct(instance, instance->state);
 }
@@ -119,38 +119,49 @@ bool busy_timer_is_running(BusyApp* instance) {
 }
 
 void busy_timer_next_state(BusyApp* instance) {
-    BusyTimerState new_state;
+    BusyTimerState next_state;
 
     if(instance->state == BusyTimerStateIdle) {
-        new_state = BusyTimerStateBusy;
-    } else if(instance->state == BusyTimerStateBusy) {
-        if(++instance->intervals_done == instance->intervals_total) {
-            new_state = BusyTimerStateLongRest;
-        } else {
-            new_state = BusyTimerStateRest;
-        }
-
-    } else if(instance->state == BusyTimerStateRest || instance->state == BusyTimerStateLongRest) {
-        new_state = BusyTimerStateBusy;
-    } else {
-        furi_crash("Impossibru!");
-    }
-
-    if(new_state == BusyTimerStateBusy) {
-        instance->interval_time_s = M_TO_S(instance->work_time_mn);
-    } else if(new_state == BusyTimerStateRest) {
-        instance->interval_time_s = M_TO_S(instance->short_rest_time_mn);
-    } else if(new_state == BusyTimerStateLongRest) {
-        instance->interval_time_s = M_TO_S(instance->long_rest_time_mn);
         instance->intervals_done = 0;
+        next_state = BusyTimerStateBusy;
+    } else if(instance->state == BusyTimerStateBusy) {
+        if(instance->enable_intervals) {
+            if(instance->intervals_done == instance->intervals_total - 1) {
+                next_state = BusyTimerStateLongRest;
+            } else {
+                next_state = BusyTimerStateRest;
+            }
+        } else {
+            next_state = BusyTimerStateBusy;
+        }
+    } else if(instance->state == BusyTimerStateRest || instance->state == BusyTimerStateLongRest) {
+        if(++instance->intervals_done == instance->intervals_total) {
+            instance->intervals_done = 0;
+        }
+        next_state = BusyTimerStateBusy;
     } else {
         furi_crash("Impossibru!");
     }
 
-    instance->state = new_state;
+    if(next_state == BusyTimerStateBusy) {
+        if(instance->enable_intervals) {
+            instance->interval_time_s = M_TO_S(instance->work_time_mn);
+        } else {
+            instance->interval_time_s = M_TO_S(instance->total_time_mn);
+        }
+    } else if(next_state == BusyTimerStateRest) {
+        instance->interval_time_s = M_TO_S(instance->short_rest_time_mn);
+    } else if(next_state == BusyTimerStateLongRest) {
+        instance->interval_time_s = M_TO_S(instance->long_rest_time_mn);
+    } else {
+        furi_crash("Impossibru!");
+    }
+
+    instance->state = next_state;
     instance->interval_time_left_s = instance->interval_time_s;
 
-    const uint32_t timeout_ms = S_TO_MS(1) / (instance->enable_speed ? SPEED_MULTIPLIER : 1);
+    const uint32_t timeout_ms = instance->enable_speed ? S_TO_MS(1) / SPEED_MULTIPLIER :
+                                                         S_TO_MS(1);
     furi_event_loop_timer_start(instance->busy_timer, timeout_ms);
 
     busy_send_custom_event_direct(instance, BusyCustomEventUpdate);
