@@ -132,11 +132,17 @@ void cli_socket_tx(const uint8_t* buffer, size_t size) {
         return;
     }
 
-    int32_t ret = send(cli_socket.client_socket, buffer, size, 0);
+    size_t sent = 0;
+    while(sent < size) {
+        int32_t ret = send(cli_socket.client_socket, buffer + sent, size - sent, 0);
 
-    if(ret < 0) {
-        CLI_SOCKET_DEBUG("disconnected while writing, errno: %d", errno);
-        furi_event_flag_set(cli_socket.evt_flags, FLAG_DISCONNECT);
+        if(ret < 0) {
+            CLI_SOCKET_DEBUG("disconnected while writing, errno: %d", errno);
+            furi_event_flag_set(cli_socket.evt_flags, FLAG_DISCONNECT);
+            return;
+        }
+
+        sent += ret;
     }
 }
 
