@@ -172,8 +172,8 @@ typedef struct {
     const uint8_t* tx_buffer;
     size_t tx_size;
 
-    uint32_t state;
-    FuriHalSdError error;
+    volatile uint32_t state;
+    volatile FuriHalSdError error;
     FuriEventFlag* event;
 } SdMmcDmaContext;
 
@@ -950,7 +950,7 @@ static bool sdmmc_read_blocks_dma(uint8_t* data, uint32_t address, uint32_t bloc
     sdmmc_dma_context.rx_buffer = data;
     sdmmc_dma_context.rx_size = SD_BLOCKSIZE * block_count;
 
-    if(sdmmc1.info.type != FuriHalSdTypeHCXC) {
+    if(sdmmc1.info.type != FuriHalSdTypeMMCHighCapacity) {
         address *= SD_BLOCKSIZE;
     }
 
@@ -1003,7 +1003,7 @@ static bool sdmmc_write_blocks_dma(const uint8_t* data, uint32_t address, uint32
     sdmmc_dma_context.tx_buffer = data;
     sdmmc_dma_context.tx_size = SD_BLOCKSIZE * block_count;
 
-    if(sdmmc1.info.type != FuriHalSdTypeHCXC) {
+    if(sdmmc1.info.type != FuriHalSdTypeMMCHighCapacity) {
         address *= SD_BLOCKSIZE;
     }
 
@@ -1076,6 +1076,7 @@ static void sdmmc_irq_handler(void* ctx) {
                 }
             }
 
+            sdmmc_clear_static_data_flags();
             furi_event_flag_set(sdmmc_dma_context.event, SdMmcDmaEventComplete);
         }
     } else if(sdmmc_get_flags(
