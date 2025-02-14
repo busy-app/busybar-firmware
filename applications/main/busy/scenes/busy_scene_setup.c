@@ -2,6 +2,8 @@
 
 #include "../helpers/variable_item.h"
 
+#include <power_simple/power.h>
+
 typedef struct {
     lv_obj_t* button_list;
 } BusySceneSetup;
@@ -59,6 +61,12 @@ static void busy_scene_setup_enable_autostart_rest_callback(lv_event_t* event) {
 static void busy_scene_setup_enable_sound_callback(lv_event_t* event) {
     BusyApp* instance = lv_event_get_user_data(event);
     instance->enable_sound = *(bool*)lv_event_get_param(event);
+}
+
+static void busy_scene_setup_power_off_callback(lv_event_t* event) {
+    UNUSED(event);
+    Power* power = furi_record_open(RECORD_POWER);
+    power_off(power);
 }
 
 static void busy_scene_setup_on_enter(void* context) {
@@ -130,6 +138,9 @@ static void busy_scene_setup_on_enter(void* context) {
     lv_variable_item_set_value(item, instance->enable_sound);
     lv_obj_add_event_cb(
         item, busy_scene_setup_enable_sound_callback, LV_EVENT_VALUE_CHANGED, instance);
+
+    item = lv_list_add_button(data->button_list, NULL, "Shutdown");
+    lv_obj_add_event_cb(item, busy_scene_setup_power_off_callback, LV_EVENT_SHORT_CLICKED, NULL);
 
     lv_obj_scroll_to(data->button_list, 0, 0, LV_ANIM_OFF);
 
