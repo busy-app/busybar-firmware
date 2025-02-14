@@ -109,6 +109,7 @@ static bool busy_scene_timer_should_switch(BusyApp* instance) {
 
     if(data->skip_state) {
         data->skip_state = false;
+        instance->session_ended = false;
 
     } else {
         const bool state_changed = instance->state != data->timer_state;
@@ -118,7 +119,11 @@ static bool busy_scene_timer_should_switch(BusyApp* instance) {
             (instance->state == BusyTimerStateRest || instance->state == BusyTimerStateLongRest) &&
             (!instance->enable_autostart_rest);
 
-        ret = state_changed && (ask_work || ask_rest);
+        const bool ask_restart = (instance->state == BusyTimerStateBusy) &&
+                                 (!instance->enable_autorestart_session) &&
+                                 instance->session_ended;
+
+        ret = (state_changed && (ask_work || ask_rest)) || ask_restart;
     }
 
     return ret;
@@ -191,6 +196,7 @@ static void busy_scene_timer_on_event(const BusyEvent* event, void* context) {
         if(busy_timer_is_running(instance)) {
             BusySceneTimer* data = busy_get_current_scene_data(instance);
             data->skip_state = true;
+
             busy_timer_next_state(instance);
         }
 
@@ -198,7 +204,13 @@ static void busy_scene_timer_on_event(const BusyEvent* event, void* context) {
         if(event->custom_value == BusyCustomEventUpdate) {
             if(busy_scene_timer_should_switch(instance)) {
                 busy_timer_pause(instance);
-                busy_switch_to_scene(instance, BusyAppSceneIdNext);
+
+                if(instance->session_ended) {
+                    instance->session_ended = false;
+                    busy_switch_to_scene(instance, BusyAppSceneIdRestart);
+                } else {
+                    busy_switch_to_scene(instance, BusyAppSceneIdNext);
+                }
 
             } else {
                 busy_scene_timer_update(instance);

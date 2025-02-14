@@ -24,6 +24,7 @@ typedef enum {
     BusyAppSceneIdStatic,
     BusyAppSceneIdQuit,
     BusyAppSceneIdNext,
+    BusyAppSceneIdRestart,
     BusyAppSceneIdSetup,
     BusyAppSceneIdMax,
 } BusyAppSceneId;
@@ -78,6 +79,7 @@ typedef struct {
     BusyAppSceneId current_scene_id;
     BusyTimerState state;
     uint32_t total_time_mn;
+    uint32_t total_time_left_s;
     uint32_t work_time_mn;
     uint32_t short_rest_time_mn;
     uint32_t long_rest_time_mn;
@@ -85,6 +87,7 @@ typedef struct {
     uint32_t intervals_done;
     uint32_t interval_time_s;
     uint32_t interval_time_left_s;
+    bool session_ended;
     bool enable_intervals;
     bool enable_autostart_work;
     bool enable_autostart_rest;

@@ -7,6 +7,7 @@
 #include "scenes/busy_scene_static.h"
 #include "scenes/busy_scene_quit.h"
 #include "scenes/busy_scene_next.h"
+#include "scenes/busy_scene_restart.h"
 #include "scenes/busy_scene_setup.h"
 
 #define TOTAL_TIME_DEFAULT_MN      (HM_TO_M(1, 35))
@@ -24,7 +25,7 @@
 #define ENABLE_SPEED_DEFAULT          (false)
 
 #define CYCLE_COUNT_DEFAULT (3)
-#define SPEED_MULTIPLIER    (50)
+#define SPEED_MULTIPLIER    (60)
 
 #define S_TO_MS(s) (s * 1000)
 
@@ -34,6 +35,7 @@ static const BusyAppScene* busy_scenes[BusyAppSceneIdMax] = {
     [BusyAppSceneIdStatic] = &busy_scene_static,
     [BusyAppSceneIdQuit] = &busy_scene_quit,
     [BusyAppSceneIdNext] = &busy_scene_next,
+    [BusyAppSceneIdRestart] = &busy_scene_restart,
     [BusyAppSceneIdSetup] = &busy_scene_setup,
 };
 
@@ -118,12 +120,19 @@ bool busy_timer_is_running(BusyApp* instance) {
     return furi_event_loop_timer_is_running(instance->busy_timer);
 }
 
-void busy_timer_next_state(BusyApp* instance) {
+static void busy_timer_reset_session(BusyApp* instance) {
+    instance->total_time_left_s = M_TO_S(instance->total_time_mn);
+    instance->intervals_done = 0;
+    instance->session_ended = false;
+}
+
+static BusyTimerState busy_timer_calc_next_state(BusyApp* instance) {
     BusyTimerState next_state;
 
     if(instance->state == BusyTimerStateIdle) {
-        instance->intervals_done = 0;
+        busy_timer_reset_session(instance);
         next_state = BusyTimerStateBusy;
+
     } else if(instance->state == BusyTimerStateBusy) {
         if(instance->enable_intervals) {
             if(instance->intervals_done == instance->intervals_total - 1) {
@@ -131,39 +140,73 @@ void busy_timer_next_state(BusyApp* instance) {
             } else {
                 next_state = BusyTimerStateRest;
             }
+
         } else {
             next_state = BusyTimerStateBusy;
         }
+
     } else if(instance->state == BusyTimerStateRest || instance->state == BusyTimerStateLongRest) {
         if(++instance->intervals_done == instance->intervals_total) {
             instance->intervals_done = 0;
         }
+
         next_state = BusyTimerStateBusy;
+
     } else {
         furi_crash("Impossibru!");
     }
 
+    return next_state;
+}
+
+static uint32_t busy_timer_calc_next_interval(BusyApp* instance, BusyTimerState next_state) {
+    uint32_t interval;
+
     if(next_state == BusyTimerStateBusy) {
         if(instance->enable_intervals) {
-            instance->interval_time_s = M_TO_S(instance->work_time_mn);
+            interval = MIN(M_TO_S(instance->work_time_mn), instance->total_time_left_s);
         } else {
-            instance->interval_time_s = M_TO_S(instance->total_time_mn);
+            interval = MIN(M_TO_S(instance->total_time_mn), instance->total_time_left_s);
         }
     } else if(next_state == BusyTimerStateRest) {
-        instance->interval_time_s = M_TO_S(instance->short_rest_time_mn);
+        interval = MIN(M_TO_S(instance->short_rest_time_mn), instance->total_time_left_s);
     } else if(next_state == BusyTimerStateLongRest) {
-        instance->interval_time_s = M_TO_S(instance->long_rest_time_mn);
+        interval = MIN(M_TO_S(instance->long_rest_time_mn), instance->total_time_left_s);
     } else {
         furi_crash("Impossibru!");
+    }
+
+    return interval;
+}
+
+void busy_timer_next_state(BusyApp* instance) {
+    BusyTimerState next_state;
+
+    next_state = busy_timer_calc_next_state(instance);
+
+    while(true) {
+        const uint32_t interval_time_s = busy_timer_calc_next_interval(instance, next_state);
+
+        if(interval_time_s == 0) {
+            next_state = BusyTimerStateBusy;
+
+            busy_timer_reset_session(instance);
+            instance->session_ended = true;
+
+        } else {
+            instance->interval_time_s = interval_time_s;
+            break;
+        }
     }
 
     instance->state = next_state;
     instance->interval_time_left_s = instance->interval_time_s;
+    instance->total_time_left_s -= instance->interval_time_s;
 
     const uint32_t timeout_ms = instance->enable_speed ? S_TO_MS(1) / SPEED_MULTIPLIER :
                                                          S_TO_MS(1);
-    furi_event_loop_timer_start(instance->busy_timer, timeout_ms);
 
+    furi_event_loop_timer_start(instance->busy_timer, timeout_ms);
     busy_send_custom_event_direct(instance, BusyCustomEventUpdate);
 }
 
@@ -244,6 +287,7 @@ static BusyApp* busy_alloc(void) {
     instance->enable_intervals = ENABLE_INTERVALS_DEFAULT;
     instance->enable_autostart_work = ENABLE_AUTOSTART_WORK_DEFAULT;
     instance->enable_autostart_rest = ENABLE_AUTOSTART_REST_DEFAULT;
+    instance->enable_autorestart_session = ENABLE_AUTORESTART_SESSION;
     instance->enable_sound = ENABLE_SOUND_DEFAULT;
     instance->enable_speed = ENABLE_SPEED_DEFAULT;
 
