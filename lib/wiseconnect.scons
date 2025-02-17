@@ -32,6 +32,11 @@ env.Append(
         Dir(f"{MCU_INCDIR}/drivers/systemlevel/inc").rdir(),
         Dir(f"wiseconnect/resources/defaults").rdir(),
         Dir(f"{WISECONNECT_INCDIR}/common/inc").rdir(),
+
+        # Crypto
+        Dir(f"{WIRELESS_INCDIR}/crypto/inc").rdir(),
+        Dir(f"{WIRELESS_INCDIR}/crypto/aes/inc").rdir(),
+
     ],
     CPPDEFINES=[
         "SI917",
@@ -55,6 +60,8 @@ env.Append(
         # SDK BLE Silabs
         "SLI_SI91X_ENABLE_BLE",
         "SL_SI91X_ENABLE_LITTLE_ENDIAN=1",
+        # Crypto
+        #"SL_SI91X_SIDE_BAND_CRYPTO",
     ],
 )
 
@@ -109,6 +116,9 @@ sources = [
     f"{WIRELESS_DIR}/ble/src/rsi_bt_common_apis.c",
     f"{WIRELESS_DIR}/ble/src/rsi_ble_gap_apis.c",
     f"{WIRELESS_DIR}/ble/src/rsi_ble_gatt_apis.c",
+
+    # Crypto
+    f"{WIRELESS_DIR}/crypto/aes/src/sl_si91x_aes.c",
 ]
 
 lib = libenv.StaticLibrary("${FW_LIB_NAME}", sources)

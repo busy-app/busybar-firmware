@@ -1,0 +1,12 @@
+App(
+    appid="crypto_test_start",
+    targets=["f64"],
+    apptype=FlipperAppType.STARTUP,
+    entry_point="crypto_test_system_start",
+    sources=[
+        "crypto_test.c",
+        "helpers/crypto_test_app.c",
+        "helpers/crypto_aes.c",
+    ],
+    order=40,
+)

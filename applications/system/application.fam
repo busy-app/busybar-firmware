@@ -21,6 +21,7 @@ App(
         "ble_ibeacon_start",
         "ble_per_test_start",
         "ble_usart_echo_start",
+        "crypto_test_start",
     ],
     targets=["f64"],
 )
