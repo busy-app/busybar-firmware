@@ -210,11 +210,11 @@ static void gui_lvgl_tick_callback(void* context) {
     furi_assert(context);
     GuiLvgl* instance = context;
 
-    if(furi_mutex_acquire(instance->access_mutex, 2) == FuriStatusOk) {
+    if(furi_mutex_acquire(instance->access_mutex, 0) == FuriStatusOk) {
         lv_timer_periodic_handler();
         furi_mutex_release(instance->access_mutex);
     } else {
-        FURI_LOG_W(TAG, "Gui lockup: tick skipped");
+        FURI_LOG_T(TAG, "Gui lockup: tick skipped");
     }
 }
 
@@ -224,18 +224,22 @@ static void gui_lvgl_input_queue_callback(FuriEventLoopObject* object, void* con
     GuiLvgl* instance = context;
     furi_assert(object == instance->input_queue);
 
-    furi_check(
-        furi_message_queue_get(instance->input_queue, &instance->input_event, 0) == FuriStatusOk);
+    if(furi_mutex_acquire(instance->access_mutex, 0) == FuriStatusOk) {
+        while(furi_message_queue_get(instance->input_queue, &instance->input_event, 0) ==
+              FuriStatusOk) {
+            const GuiInputId input_id = instance->input_event.id;
+            furi_assert(input_id < GuiInputIdMax);
 
-    const GuiInputId input_id = instance->input_event.id;
-    furi_assert(input_id < GuiInputIdMax);
+            for(uint32_t i = 0; i < GuiDisplayIdMax; ++i) {
+                lv_indev_t* indev = instance->display_data[i].lv_indevs[input_id];
 
-    for(uint32_t i = 0; i < GuiDisplayIdMax; ++i) {
-        lv_indev_t* indev = instance->display_data[i].lv_indevs[input_id];
-
-        if(indev != NULL) {
-            lv_indev_read(indev);
+                if(indev != NULL) {
+                    lv_indev_read(indev);
+                }
+            }
         }
+
+        furi_mutex_release(instance->access_mutex);
     }
 }
 
