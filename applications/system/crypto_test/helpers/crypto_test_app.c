@@ -8,6 +8,7 @@
 #include "sl_net.h"
 
 #include "crypto_aes.h"
+#include "crypto_sha.h"
 
 #include <args.h>
 #include <strint.h>
@@ -46,7 +47,7 @@ typedef enum {
     CryptoTestCmdTypeHelp,
     CryptoTestCmdTypeHelpHelp,
     CryptoTestCmdTypeAesTest,
-    // CryptoTestCmdTypeAesDecrypt,
+    CryptoTestCmdTypeShaTest,
 
     CryptoTestCmdTypeMax,
 } CryptoTestCmdType;
@@ -64,7 +65,7 @@ const CryptoTestCmd crypto_test_cmd[CryptoTestCmdTypeMax] = {
     {"?"},
     {"help"},
     {"aes_test"},
-    //{"aes_decrypt"},
+    {"sha_test"},
 };
 
 struct CryptoTestApp {
@@ -166,6 +167,9 @@ static sl_status_t crypto_test_app(CryptoTestApp* instance, uint8_t cmd_index, F
     case CryptoTestCmdTypeAesTest:
         crypto_aes_test(instance, instance->msg);
         break;
+    case CryptoTestCmdTypeShaTest:
+        crypto_sha_test(instance, instance->msg);
+        break;
 
     default:
         crypto_test_app_send_msg_invalid_arg(instance);
@@ -224,7 +228,7 @@ static void crypto_test_app_cmd_usage(CryptoTestApp* instance) {
     furi_string_cat_printf(instance->msg, "?\r\n");
     furi_string_cat_printf(instance->msg, "help\r\n");
     furi_string_cat_printf(instance->msg, "aes_test\r\n");
-    //furi_string_cat_printf(instance->msg, "aes_decrypt\r\n");
+    furi_string_cat_printf(instance->msg, "sha_test\r\n");
 
     furi_string_cat_printf(
         instance->msg,

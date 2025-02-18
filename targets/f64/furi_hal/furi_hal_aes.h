@@ -1,20 +1,13 @@
 #pragma once
 
-#include <sl_si91x_aes.h>
-
 typedef struct FuriHalAes FuriHalAes;
 
-#define FuriHalAesIvSize SL_SI91X_IV_SIZE
-typedef enum {
-    FuriHalAesKeySize128 = SL_SI91X_AES_KEY_SIZE_128,
-    FuriHalAesKeySize192 = SL_SI91X_AES_KEY_SIZE_192,
-    FuriHalAesKeySize256 = SL_SI91X_AES_KEY_SIZE_256,
-} FuriHalAesKeySize;
+#define FuriHalAesIvSize 16
 
 typedef enum {
-    FuriHalAesModeCBC = SL_SI91X_AES_CBC,
-    FuriHalAesModeECB = SL_SI91X_AES_ECB,
-    FuriHalAesModeCTR = SL_SI91X_AES_CTR,
+    FuriHalAesModeCBC,
+    FuriHalAesModeECB,
+    FuriHalAesModeCTR,
 } FuriHalAesMode;
 
 typedef enum {
@@ -29,16 +22,16 @@ extern "C" {
 /**
  * Initialize the AES module.
  * 
- * @param key_size Size of the key.
- * @param mode AES mode.
- * @param key Pointer to the key.
- * @param iv Pointer to the initialization vector.
- * @param wrapping_mode Wrapping mode.
+ * @param[in] mode AES mode.
+ * @param[in] key Pointer to the key.
+ * @param[in] key_size Size of the key.
+ * @param[in] iv Pointer to the initialization vector.
+ * @param[in] wrapping_mode Wrapping mode.
  */
 FuriHalAes* furi_hal_aes_init(
-    FuriHalAesKeySize key_size,
     FuriHalAesMode mode,
     uint8_t* key,
+    size_t key_size,
     uint8_t* iv,
     FuriHalAesWrappingMode wrapping_mode);
 
@@ -52,10 +45,10 @@ void furi_hal_aes_deinit(FuriHalAes* handle);
 /**
  * Encrypt data using AES.
  * 
- * @param handle Pointer to the AES handle.
- * @param input Pointer to the input data.
- * @param input_length Length of the input data.
- * @param output Pointer to the output buffer.
+ * @param[in] handle Pointer to the AES handle.
+ * @param[in] input Pointer to the input data.
+ * @param[in] input_length Length of the input data.
+ * @param[out] output Pointer to the output buffer.
  * @returns true if the operation was successful, false otherwise.
  */
 bool furi_hal_aes_encrypt(
@@ -67,10 +60,10 @@ bool furi_hal_aes_encrypt(
 /**
  * Decrypt data using AES.
  * 
- * @param handle Pointer to the AES handle.
- * @param input Pointer to the input data.
- * @param input_length Length of the input data.
- * @param output Pointer to the output buffer.
+ * @param[in] handle Pointer to the AES handle.
+ * @param[in] input Pointer to the input data.
+ * @param[in] input_length Length of the input data.
+ * @param[out] output Pointer to the output buffer.
  * @returns true if the operation was successful, false otherwise.
  */
 bool furi_hal_aes_decrypt(

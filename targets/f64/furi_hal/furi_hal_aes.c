@@ -2,6 +2,7 @@
 
 #include <furi.h>
 #include <furi_hal_aes.h>
+#include <sl_si91x_aes.h>
 
 #define TAG "AES"
 
@@ -9,10 +10,15 @@ struct FuriHalAes {
     sl_si91x_aes_config_t config;
 };
 
+const sl_si91x_aes_mode_t furi_hal_aes_mode[] = {
+    [FuriHalAesModeCBC] = SL_SI91X_AES_CBC,
+    [FuriHalAesModeECB] = SL_SI91X_AES_ECB,
+    [FuriHalAesModeCTR] = SL_SI91X_AES_CTR};
+
 FuriHalAes* furi_hal_aes_init(
-    FuriHalAesKeySize key_size,
     FuriHalAesMode mode,
     uint8_t* key,
+    size_t key_size,
     uint8_t* iv,
     FuriHalAesWrappingMode wrapping_mode) {
     if(mode != FuriHalAesModeECB) {
@@ -22,12 +28,26 @@ FuriHalAes* furi_hal_aes_init(
     FuriHalAes* handle = malloc(sizeof(FuriHalAes));
     furi_check(handle != NULL, "Failed to allocate memory for AES handle");
 
-    handle->config.aes_mode = (sl_si91x_aes_mode_t)mode;
+    handle->config.aes_mode = furi_hal_aes_mode[mode];
     handle->config.encrypt_decrypt = SL_SI91X_AES_ENCRYPT;
     handle->config.msg = NULL;
     handle->config.msg_length = 0;
     handle->config.iv = iv;
-    handle->config.key_config.b0.key_size = (sl_si91x_aes_key_size_t)key_size;
+    switch(key_size) {
+    case SL_SI91X_AES_KEY_SIZE_128:
+        handle->config.key_config.b0.key_size = SL_SI91X_AES_KEY_SIZE_128;
+        break;
+    case SL_SI91X_AES_KEY_SIZE_192:
+        handle->config.key_config.b0.key_size = SL_SI91X_AES_KEY_SIZE_192;
+        break;
+    case SL_SI91X_AES_KEY_SIZE_256:
+        handle->config.key_config.b0.key_size = SL_SI91X_AES_KEY_SIZE_256;
+        break;
+
+    default:
+        furi_crash("Invalid key size");
+        break;
+    }
     handle->config.key_config.b0.key_slot = 0;
     handle->config.key_config.b0.wrap_iv_mode = SL_SI91X_WRAP_IV_ECB_MODE;
     memcpy(handle->config.key_config.b0.key_buffer, key, handle->config.key_config.b0.key_size);
@@ -76,7 +96,6 @@ bool furi_hal_aes_encrypt(
         FURI_LOG_E(TAG, "AES encryption failed, Error Code : 0x%lX", status);
         return false;
     }
-
     return true;
 }
 
@@ -100,6 +119,5 @@ bool furi_hal_aes_decrypt(
         FURI_LOG_E(TAG, "AES decryption failed, Error Code : 0x%lX", status);
         return false;
     }
-
     return true;
 }

@@ -36,6 +36,7 @@ env.Append(
         Dir(f"{WIRELESS_INCDIR}/crypto/crypto_utility/inc").rdir(),
         Dir(f"{WIRELESS_INCDIR}/crypto/aes/inc").rdir(),
         Dir(f"{WIRELESS_INCDIR}/crypto/wrap/inc").rdir(),
+        Dir(f"{WIRELESS_INCDIR}/crypto/sha/inc").rdir(),
     ],
     CPPDEFINES=[
         "SI917",
@@ -59,8 +60,6 @@ env.Append(
         # SDK BLE Silabs
         "SLI_SI91X_ENABLE_BLE",
         "SL_SI91X_ENABLE_LITTLE_ENDIAN=1",
-        # Crypto
-        # "SL_SI91X_SIDE_BAND_CRYPTO",
     ],
 )
 
@@ -117,6 +116,7 @@ sources = [
     f"{WIRELESS_DIR}/crypto/crypto_utility/src/sl_si91x_crypto_utility.c",
     f"{WIRELESS_DIR}/crypto/aes/src/sl_si91x_aes.c",
     f"{WIRELESS_DIR}/crypto/wrap/src/sl_si91x_wrap.c",
+    f"{WIRELESS_DIR}/crypto/sha/src/sl_si91x_sha.c",
 ]
 
 lib = libenv.StaticLibrary("${FW_LIB_NAME}", sources)
