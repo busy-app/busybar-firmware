@@ -13,9 +13,7 @@ static void busy_scene_next_button_event_callback(lv_event_t* event) {
 static void busy_scene_next_on_enter(void* context) {
     BusyApp* instance = context;
 
-    if(busy_timer_is_running(instance)) {
-        busy_timer_pause(instance);
-    }
+    busy_timer_pause(instance);
 
     BusySceneNext* data = busy_get_current_scene_data(instance);
 

@@ -85,12 +85,10 @@ void busy_timer_stop(BusyApp* instance) {
 }
 
 void busy_timer_pause(BusyApp* instance) {
-    furi_assert(busy_timer_is_running(instance));
     furi_event_loop_timer_stop(instance->busy_timer);
 }
 
 void busy_timer_resume(BusyApp* instance) {
-    furi_assert(!busy_timer_is_running(instance));
     const uint32_t timeout_ms = instance->enable_speed ? S_TO_MS(1) / SPEED_MULTIPLIER :
                                                          S_TO_MS(1);
     furi_event_loop_timer_start(instance->busy_timer, timeout_ms);
