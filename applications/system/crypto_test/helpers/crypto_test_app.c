@@ -17,34 +17,36 @@
 static const sl_wifi_device_configuration_t client_configuration_use_crypto = {
     .boot_option = LOAD_NWP_FW,
     .mac_address = NULL,
-    .band        = SL_SI91X_WIFI_BAND_2_4GHZ,
+    .band = SL_SI91X_WIFI_BAND_2_4GHZ,
     .region_code = US,
-    .boot_config = { .oper_mode       = SL_SI91X_CLIENT_MODE,
-                     .coex_mode       = SL_SI91X_WLAN_ONLY_MODE,
-                     .feature_bit_map = (SL_SI91X_FEAT_SECURITY_PSK | SL_SI91X_FEAT_AGGREGATION
-  #ifdef SLI_SI91X_MCU_INTERFACE
-                                         | SL_SI91X_FEAT_WPS_DISABLE
-  #endif
-                                         ),
-                     .tcp_ip_feature_bit_map     = (SL_SI91X_TCP_IP_FEAT_DHCPV4_CLIENT),
-                     .custom_feature_bit_map     = (SL_SI91X_CUSTOM_FEAT_EXTENTION_VALID),
-                     .ext_custom_feature_bit_map = (MEMORY_CONFIG
-  #if defined(SLI_SI917) || defined(SLI_SI915)
-                                                    | SL_SI91X_EXT_FEAT_FRONT_END_SWITCH_PINS_ULP_GPIO_4_5_0
-  #endif
-                                                    ),
-                     .bt_feature_bit_map         = 0,
-                     .ext_tcp_ip_feature_bit_map = 0,
-                     .ble_feature_bit_map        = 0,
-                     .ble_ext_feature_bit_map    = 0,
-                     .config_feature_bit_map     = 0 }
-  };
+    .boot_config = {
+        .oper_mode = SL_SI91X_CLIENT_MODE,
+        .coex_mode = SL_SI91X_WLAN_ONLY_MODE,
+        .feature_bit_map =
+            (SL_SI91X_FEAT_SECURITY_PSK | SL_SI91X_FEAT_AGGREGATION
+#ifdef SLI_SI91X_MCU_INTERFACE
+             | SL_SI91X_FEAT_WPS_DISABLE
+#endif
+             ),
+        .tcp_ip_feature_bit_map = (SL_SI91X_TCP_IP_FEAT_DHCPV4_CLIENT),
+        .custom_feature_bit_map = (SL_SI91X_CUSTOM_FEAT_EXTENTION_VALID),
+        .ext_custom_feature_bit_map =
+            (MEMORY_CONFIG
+#if defined(SLI_SI917) || defined(SLI_SI915)
+             | SL_SI91X_EXT_FEAT_FRONT_END_SWITCH_PINS_ULP_GPIO_4_5_0
+#endif
+             ),
+        .bt_feature_bit_map = 0,
+        .ext_tcp_ip_feature_bit_map = 0,
+        .ble_feature_bit_map = 0,
+        .ble_ext_feature_bit_map = 0,
+        .config_feature_bit_map = 0}};
 
 typedef enum {
     CryptoTestCmdTypeHelp,
     CryptoTestCmdTypeHelpHelp,
-    CryptoTestCmdTypeAesEncrypt,
-    CryptoTestCmdTypeAesDecrypt,
+    CryptoTestCmdTypeAesTest,
+    // CryptoTestCmdTypeAesDecrypt,
 
     CryptoTestCmdTypeMax,
 } CryptoTestCmdType;
@@ -61,8 +63,8 @@ typedef struct {
 const CryptoTestCmd crypto_test_cmd[CryptoTestCmdTypeMax] = {
     {"?"},
     {"help"},
-    {"aes_encrypt"},
-    {"aes_decrypt"},
+    {"aes_test"},
+    //{"aes_decrypt"},
 };
 
 struct CryptoTestApp {
@@ -136,7 +138,7 @@ void crypto_test_app_stop(void* app_handle) {
     furi_check(app_handle);
     FURI_LOG_I(TAG, "Stopping");
     CryptoTestApp* instance = (CryptoTestApp*)app_handle;
-    
+
     if(crypto_test_app_instance->state == CryptoTestStateWifiInit) {
         sl_net_deinit(SL_NET_WIFI_CLIENT_INTERFACE);
         FURI_LOG_D(TAG, "Wi-Fi deinitialization successful");
@@ -161,8 +163,8 @@ static sl_status_t crypto_test_app(CryptoTestApp* instance, uint8_t cmd_index, F
     case CryptoTestCmdTypeHelpHelp:
         crypto_test_app_cmd_usage(instance);
         break;
-    case CryptoTestCmdTypeAesEncrypt:
-        crypto_aes_encryption(instance, instance->msg);
+    case CryptoTestCmdTypeAesTest:
+        crypto_aes_test(instance, instance->msg);
         break;
 
     default:
@@ -221,8 +223,8 @@ static void crypto_test_app_cmd_usage(CryptoTestApp* instance) {
         "******\r\n");
     furi_string_cat_printf(instance->msg, "?\r\n");
     furi_string_cat_printf(instance->msg, "help\r\n");
-    furi_string_cat_printf(instance->msg, "aes_encrypt\r\n");
-    furi_string_cat_printf(instance->msg, "aes_decrypt\r\n");
+    furi_string_cat_printf(instance->msg, "aes_test\r\n");
+    //furi_string_cat_printf(instance->msg, "aes_decrypt\r\n");
 
     furi_string_cat_printf(
         instance->msg,

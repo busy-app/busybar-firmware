@@ -3,8 +3,7 @@
 #include <furi.h>
 #include <furi_hal_aes.h>
 
-#define TAG_AES "AES"
-//#include <sl_si91x_aes.h>
+#define TAG "AES"
 
 struct FuriHalAes {
     sl_si91x_aes_config_t config;
@@ -22,6 +21,7 @@ FuriHalAes* furi_hal_aes_init(
 
     FuriHalAes* handle = malloc(sizeof(FuriHalAes));
     furi_check(handle != NULL, "Failed to allocate memory for AES handle");
+
     handle->config.aes_mode = (sl_si91x_aes_mode_t)mode;
     handle->config.encrypt_decrypt = SL_SI91X_AES_ENCRYPT;
     handle->config.msg = NULL;
@@ -30,16 +30,24 @@ FuriHalAes* furi_hal_aes_init(
     handle->config.key_config.b0.key_size = (sl_si91x_aes_key_size_t)key_size;
     handle->config.key_config.b0.key_slot = 0;
     handle->config.key_config.b0.wrap_iv_mode = SL_SI91X_WRAP_IV_ECB_MODE;
+    memcpy(handle->config.key_config.b0.key_buffer, key, handle->config.key_config.b0.key_size);
 
     if(wrapping_mode == FuriHalAesWrappingModeOff) {
         handle->config.key_config.b0.key_type = SL_SI91X_TRANSPARENT_KEY;
     } else {
         handle->config.key_config.b0.key_type = SL_SI91X_WRAPPED_KEY;
-        if(mode == 16) handle->config.key_config.b0.key_size = SL_SI91X_AES_KEY_SIZE_128;
-        if(mode == 24) handle->config.key_config.b0.key_size = SL_SI91X_AES_KEY_SIZE_192;
-        if(mode == 32) handle->config.key_config.b0.key_size = SL_SI91X_AES_KEY_SIZE_256;
+        //for 128 bits key, wrap key size is 128 bits,
+        //for 192 and 256 bits keys, wrap key size is 256 bits
+        if(handle->config.key_config.b0.key_size == SL_SI91X_AES_KEY_SIZE_128) {
+            memcpy(handle->config.key_config.b0.key_buffer, key, SL_SI91X_AES_KEY_SIZE_128);
+        } else if(
+            handle->config.key_config.b0.key_size == SL_SI91X_AES_KEY_SIZE_192 ||
+            handle->config.key_config.b0.key_size == SL_SI91X_AES_KEY_SIZE_256) {
+            memcpy(handle->config.key_config.b0.key_buffer, key, SL_SI91X_AES_KEY_SIZE_256);
+        } else {
+            furi_crash("Invalid key size");
+        }
     }
-    memcpy(handle->config.key_config.b0.key_buffer, key, handle->config.key_config.b0.key_size);
 
     return handle;
 }
@@ -56,6 +64,7 @@ bool furi_hal_aes_encrypt(
     furi_assert(handle);
     furi_assert(input);
     furi_assert(input_length % 16 == 0);
+    furi_assert(input_length <= SL_SI91X_MAX_DATA_SIZE_IN_BYTES);
 
     handle->config.encrypt_decrypt = SL_SI91X_AES_ENCRYPT;
     handle->config.msg = input;
@@ -64,7 +73,7 @@ bool furi_hal_aes_encrypt(
     sl_status_t status = sl_si91x_aes(&handle->config, output);
 
     if(status != SL_STATUS_OK) {
-        FURI_LOG_E(TAG_AES, "AES encryption failed, Error Code : 0x%lX", status);
+        FURI_LOG_E(TAG, "AES encryption failed, Error Code : 0x%lX", status);
         return false;
     }
 
@@ -79,6 +88,7 @@ bool furi_hal_aes_decrypt(
     furi_assert(handle);
     furi_assert(input);
     furi_assert(input_length % 16 == 0);
+    furi_assert(input_length <= SL_SI91X_MAX_DATA_SIZE_IN_BYTES);
 
     handle->config.encrypt_decrypt = SL_SI91X_AES_DECRYPT;
     handle->config.msg = input;
@@ -87,7 +97,7 @@ bool furi_hal_aes_decrypt(
     sl_status_t status = sl_si91x_aes(&handle->config, output);
 
     if(status != SL_STATUS_OK) {
-        FURI_LOG_E(TAG_AES, "AES decryption failed, Error Code : 0x%lX", status);
+        FURI_LOG_E(TAG, "AES decryption failed, Error Code : 0x%lX", status);
         return false;
     }
 

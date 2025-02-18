@@ -1,5 +1,3 @@
-
-
 #include <furi.h>
 #include <furi_hal_wrap_key.h>
 #include <sl_si91x_wrap.h>
@@ -7,6 +5,10 @@
 #define TAG "Wrap_Key"
 
 void furi_hal_wrap_key(uint32_t key_size, uint8_t* key, uint8_t* wrapped_key) {
+    furi_assert(key);
+    furi_assert(wrapped_key);
+    furi_check(key_size <= SL_SI91X_WRAP_KEY_BUFFER_SIZE);
+    //sl_si91x_wrap_config_t - size 1432 bytes
     sl_si91x_wrap_config_t wrap_config = {0};
     wrap_config.key_type = SL_SI91X_TRANSPARENT_KEY;
     wrap_config.key_size = key_size;

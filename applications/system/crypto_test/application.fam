@@ -9,4 +9,5 @@ App(
         "helpers/crypto_aes.c",
     ],
     order=40,
+    stack_size=1024 * 4,
 )
