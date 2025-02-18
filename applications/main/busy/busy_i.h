@@ -31,7 +31,7 @@ typedef enum {
 
 typedef enum {
     BusyTimerStateIdle,
-    BusyTimerStateBusy,
+    BusyTimerStateWork,
     BusyTimerStateRest,
     BusyTimerStateLongRest,
     BusyTimerStateMax,
