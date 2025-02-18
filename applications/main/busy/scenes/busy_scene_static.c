@@ -74,9 +74,7 @@ static void busy_scene_static_on_event(const BusyEvent* event, void* context) {
 
     if(event->type == BusyEventTypeStart) {
         busy_scene_static_toggle_pause_overlay(instance);
-
     } else if(event->type == BusyEventTypeBack) {
-        // TODO: Ignore if pause overlay on
         busy_switch_to_scene(instance, BusyAppSceneIdQuit);
     }
 }

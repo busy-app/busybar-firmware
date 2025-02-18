@@ -67,15 +67,19 @@ static void busy_scene_quit_on_exit(void* context) {
 static void busy_scene_quit_on_event(const BusyEvent* event, void* context) {
     BusyApp* instance = context;
 
-    if(event->type == BusyEventTypeCustom) {
-        BusySceneQuit* data = busy_get_current_scene_data(instance);
-        const lv_obj_t* button = (const lv_obj_t*)event->custom_value;
+    if(event->type == BusyEventTypeBack) {
+        busy_timer_stop(instance);
+        busy_switch_to_scene(instance, BusyAppSceneIdStart);
 
-        if(button == data->quit_button) {
+    } else if(event->type == BusyEventTypeCustom) {
+        BusySceneQuit* data = busy_get_current_scene_data(instance);
+        const uint32_t button_id = event->custom_value;
+
+        if(button_id == (uint32_t)data->quit_button) {
             busy_timer_stop(instance);
             busy_switch_to_scene(instance, BusyAppSceneIdStart);
 
-        } else if(button == data->cancel_button) {
+        } else if(button_id == (uint32_t)data->cancel_button) {
             if(instance->total_time_mn >= TOTAL_TIME_LOW_THR_MN) {
                 busy_timer_resume(instance);
                 busy_switch_to_scene(instance, BusyAppSceneIdTimer);

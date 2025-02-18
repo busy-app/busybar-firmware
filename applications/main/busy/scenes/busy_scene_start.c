@@ -64,9 +64,9 @@ static void busy_scene_start_on_event(const BusyEvent* event, void* context) {
 
     if(event->type == BusyEventTypeCustom) {
         BusySceneStart* data = busy_get_current_scene_data(instance);
-        const lv_obj_t* button = (const lv_obj_t*)event->custom_value;
+        const uint32_t button_id = event->custom_value;
 
-        if(button == data->start_button) {
+        if(button_id == (uint32_t)data->start_button) {
             if(instance->total_time_mn >= TOTAL_TIME_LOW_THR_MN) {
                 busy_timer_start(instance);
                 busy_switch_to_scene(instance, BusyAppSceneIdTimer);
@@ -74,7 +74,7 @@ static void busy_scene_start_on_event(const BusyEvent* event, void* context) {
                 busy_switch_to_scene(instance, BusyAppSceneIdStatic);
             }
 
-        } else if(button == data->setup_button) {
+        } else if(button_id == (uint32_t)data->setup_button) {
             busy_switch_to_scene(instance, BusyAppSceneIdSetup);
         }
     }
