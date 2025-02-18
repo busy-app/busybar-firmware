@@ -16,9 +16,12 @@ FuriHalAes* furi_hal_aes_init(
     uint8_t* key,
     uint8_t* iv,
     FuriHalAesWrappingMode wrapping_mode) {
+    if(mode != FuriHalAesModeECB) {
+        furi_check(iv);
+    }
+
     FuriHalAes* handle = malloc(sizeof(FuriHalAes));
     furi_check(handle != NULL, "Failed to allocate memory for AES handle");
-
     handle->config.aes_mode = (sl_si91x_aes_mode_t)mode;
     handle->config.encrypt_decrypt = SL_SI91X_AES_ENCRYPT;
     handle->config.msg = NULL;
@@ -61,7 +64,7 @@ bool furi_hal_aes_encrypt(
     sl_status_t status = sl_si91x_aes(&handle->config, output);
 
     if(status != SL_STATUS_OK) {
-        FURI_LOG_D(TAG_AES, "AES encryption failed, Error Code : 0x%lX", status);
+        FURI_LOG_E(TAG_AES, "AES encryption failed, Error Code : 0x%lX", status);
         return false;
     }
 
@@ -84,7 +87,7 @@ bool furi_hal_aes_decrypt(
     sl_status_t status = sl_si91x_aes(&handle->config, output);
 
     if(status != SL_STATUS_OK) {
-        FURI_LOG_D(TAG_AES, "AES decryption failed, Error Code : 0x%lX", status);
+        FURI_LOG_E(TAG_AES, "AES decryption failed, Error Code : 0x%lX", status);
         return false;
     }
 
