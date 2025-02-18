@@ -103,12 +103,16 @@ static void busy_scene_timer_toggle_pause_overlay(BusyApp* instance) {
 
 static void busy_scene_timer_start_pressed_callback(lv_event_t* event) {
     BusyApp* instance = lv_event_get_user_data(event);
-    const lv_event_code_t code = lv_event_get_code(event);
 
-    if(code == LV_EVENT_SINGLE_CLICKED) {
-        busy_send_custom_event(instance, BusyCustomEventStartSingle);
-    } else if(code == LV_EVENT_DOUBLE_CLICKED) {
-        busy_send_custom_event(instance, BusyCustomEventStartDouble);
+    const lv_event_code_t code = lv_event_get_code(event);
+    const lv_indev_t* indev = lv_event_get_param(event);
+
+    if(lv_indev_get_type(indev) == LV_INDEV_TYPE_KEYPAD) {
+        if(code == LV_EVENT_SINGLE_CLICKED) {
+            busy_send_custom_event(instance, BusyCustomEventStartSingle);
+        } else if(code == LV_EVENT_DOUBLE_CLICKED) {
+            busy_send_custom_event(instance, BusyCustomEventStartDouble);
+        }
     }
 }
 
@@ -162,6 +166,10 @@ static void busy_scene_timer_on_exit(void* context) {
     BusySceneTimer* data = busy_get_current_scene_data(instance);
 
     gui_lvgl_acquire(instance->gui);
+
+    // Stop sending input events to the label
+    // TODO: Why isn't it removed automatically?
+    lv_group_remove_obj(data->info_label);
 
     lv_obj_delete(data->main_image);
     lv_obj_delete(data->time_label);
