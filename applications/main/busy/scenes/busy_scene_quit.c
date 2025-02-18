@@ -72,13 +72,13 @@ static void busy_scene_quit_on_event(const BusyEvent* event, void* context) {
         const lv_obj_t* button = (const lv_obj_t*)event->custom_value;
 
         if(button == data->quit_button) {
-            busy_switch_to_scene(instance, BusyAppSceneIdStart);
             busy_timer_stop(instance);
+            busy_switch_to_scene(instance, BusyAppSceneIdStart);
 
         } else if(button == data->cancel_button) {
             if(instance->total_time_mn >= TOTAL_TIME_LOW_THR_MN) {
-                busy_switch_to_scene(instance, BusyAppSceneIdTimer);
                 busy_timer_resume(instance);
+                busy_switch_to_scene(instance, BusyAppSceneIdTimer);
             } else {
                 busy_switch_to_scene(instance, BusyAppSceneIdStatic);
             }

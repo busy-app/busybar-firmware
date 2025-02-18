@@ -39,17 +39,6 @@ static const BusyAppScene* busy_scenes[BusyAppSceneIdMax] = {
     [BusyAppSceneIdSetup] = &busy_scene_setup,
 };
 
-static void busy_send_custom_event_direct(BusyApp* instance, uint32_t value) {
-    if(instance->current_scene_id < BusyAppSceneIdMax) {
-        const BusyEvent event = {
-            .type = BusyEventTypeCustom,
-            .custom_value = value,
-        };
-
-        busy_scenes[instance->current_scene_id]->on_event(&event, instance);
-    }
-}
-
 void busy_switch_to_scene(BusyApp* instance, BusyAppSceneId scene_id) {
     if(instance->current_scene_id < BusyAppSceneIdMax) {
         busy_scenes[instance->current_scene_id]->on_exit(instance);
@@ -105,7 +94,7 @@ void busy_timer_resume(BusyApp* instance) {
     const uint32_t timeout_ms = instance->enable_speed ? S_TO_MS(1) / SPEED_MULTIPLIER :
                                                          S_TO_MS(1);
     furi_event_loop_timer_start(instance->busy_timer, timeout_ms);
-    busy_send_custom_event_direct(instance, instance->state);
+    busy_send_custom_event(instance, instance->state);
 }
 
 void busy_timer_toggle(BusyApp* instance) {
@@ -212,7 +201,7 @@ void busy_timer_next_state(BusyApp* instance, bool skip_event) {
                                                          S_TO_MS(1);
 
     furi_event_loop_timer_start(instance->busy_timer, timeout_ms);
-    busy_send_custom_event_direct(instance, event);
+    busy_send_custom_event(instance, event);
 }
 
 static void busy_input_callback(const void* message, void* context) {
@@ -261,7 +250,7 @@ static void busy_scene_busy_timer_callback(void* context) {
     BusyApp* instance = context;
 
     if(--instance->interval_time_left_s > 0) {
-        busy_send_custom_event_direct(instance, BusyCustomEventUpdate);
+        busy_send_custom_event(instance, BusyCustomEventUpdate);
     } else {
         busy_timer_next_state(instance, false);
     }
