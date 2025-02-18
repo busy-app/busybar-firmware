@@ -21,7 +21,7 @@ static void busy_scene_timer_state_update(BusySceneTimer* data) {
     uint32_t bar_color_indicator;
 
     // TODO: Use colours from theme
-    if(data->timer_state == BusyTimerStateBusy) {
+    if(data->timer_state == BusyTimerStateWork) {
         main_image_dsc = &I_busy_39x14;
         bar_color_main = 0x4A0000;
         bar_color_indicator = 0xFF0000;
@@ -63,7 +63,7 @@ static void busy_scene_timer_update(BusyApp* instance) {
     lv_label_set_text_fmt(data->time_label, "%02lu:%02lu", minutes, seconds);
     lv_bar_set_value(data->time_bar, percent, LV_ANIM_OFF);
 
-    if(data->timer_state == BusyTimerStateBusy) {
+    if(data->timer_state == BusyTimerStateWork) {
         lv_label_set_text_fmt(instance->back_label, "BUSY: %02lu:%02lu", minutes, seconds);
     } else if(data->timer_state == BusyTimerStateRest) {
         lv_label_set_text_fmt(instance->back_label, "REST: %02lu:%02lu", minutes, seconds);
