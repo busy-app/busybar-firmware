@@ -74,12 +74,16 @@ static void busy_scene_timer_update(BusyApp* instance) {
     gui_lvgl_release(instance->gui);
 }
 
-static void busy_scene_timer_toggle_pause_overlay(BusyApp* instance) {
+static void busy_scene_timer_show_pause_overlay(BusyApp* instance, bool show) {
     BusySceneTimer* data = busy_get_current_scene_data(instance);
+
+    if(show == !!data->overlay) {
+        return;
+    }
 
     gui_lvgl_acquire(instance->gui);
 
-    if(data->overlay == NULL) {
+    if(show) {
         lv_obj_t* top = gui_lvgl_get_layer(instance->gui, GuiDisplayIdFront, GuiLayerIdTop);
 
         data->overlay = lv_obj_create(top);
@@ -99,6 +103,11 @@ static void busy_scene_timer_toggle_pause_overlay(BusyApp* instance) {
     }
 
     gui_lvgl_release(instance->gui);
+}
+
+static void busy_scene_timer_toggle_pause_overlay(BusyApp* instance) {
+    BusySceneTimer* data = busy_get_current_scene_data(instance);
+    busy_scene_timer_show_pause_overlay(instance, data->overlay == NULL);
 }
 
 static void busy_scene_timer_start_pressed_callback(lv_event_t* event) {
@@ -192,6 +201,7 @@ static void busy_scene_timer_on_event(const BusyEvent* event, void* context) {
 
     } else if(event->type == BusyEventTypeOk) {
         busy_timer_next_state(instance, true);
+        busy_scene_timer_show_pause_overlay(instance, false);
 
     } else if(event->type == BusyEventTypeCustom) {
         if(event->custom_value == BusyCustomEventUpdate) {
@@ -204,8 +214,8 @@ static void busy_scene_timer_on_event(const BusyEvent* event, void* context) {
             busy_timer_toggle(instance);
             busy_scene_timer_toggle_pause_overlay(instance);
         } else if(event->custom_value == BusyCustomEventStartDouble) {
-            busy_timer_next_state(instance, false);
-            busy_scene_timer_toggle_pause_overlay(instance);
+            busy_timer_next_state(instance, true);
+            busy_scene_timer_show_pause_overlay(instance, false);
         }
     }
 }

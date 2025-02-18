@@ -12,6 +12,15 @@ static void busy_button_event_callback(lv_event_t* event) {
     busy_send_custom_event(instance, (uint32_t)lv_event_get_target_obj(event));
 }
 
+static void busy_scene_handle_cancel(BusyApp* instance) {
+    if(instance->total_time_mn >= TOTAL_TIME_LOW_THR_MN) {
+        busy_timer_resume(instance);
+        busy_switch_to_scene(instance, BusyAppSceneIdTimer);
+    } else {
+        busy_switch_to_scene(instance, BusyAppSceneIdStatic);
+    }
+}
+
 static void busy_scene_quit_on_enter(void* context) {
     BusyApp* instance = context;
     BusySceneQuit* data = busy_get_current_scene_data(instance);
@@ -68,8 +77,7 @@ static void busy_scene_quit_on_event(const BusyEvent* event, void* context) {
     BusyApp* instance = context;
 
     if(event->type == BusyEventTypeBack) {
-        busy_timer_stop(instance);
-        busy_switch_to_scene(instance, BusyAppSceneIdStart);
+        busy_scene_handle_cancel(instance);
 
     } else if(event->type == BusyEventTypeCustom) {
         BusySceneQuit* data = busy_get_current_scene_data(instance);
@@ -80,12 +88,7 @@ static void busy_scene_quit_on_event(const BusyEvent* event, void* context) {
             busy_switch_to_scene(instance, BusyAppSceneIdStart);
 
         } else if(button_id == (uint32_t)data->cancel_button) {
-            if(instance->total_time_mn >= TOTAL_TIME_LOW_THR_MN) {
-                busy_timer_resume(instance);
-                busy_switch_to_scene(instance, BusyAppSceneIdTimer);
-            } else {
-                busy_switch_to_scene(instance, BusyAppSceneIdStatic);
-            }
+            busy_scene_handle_cancel(instance);
         }
     }
 }
