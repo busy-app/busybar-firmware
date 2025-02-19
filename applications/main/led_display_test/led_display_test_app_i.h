@@ -2,6 +2,9 @@
 
 #include <furi.h>
 #include <gui_lvgl/gui_lvgl.h>
+#include "led_display_test.h"
+
+#define LED_DISPLAY_CANVAS_BUFFER_SIZE (72 * 16 * 3)
 
 typedef enum {
     LedDisplayTestAppEventTypeNextPattern,
@@ -15,13 +18,6 @@ typedef struct {
     uint8_t color_num;
 } LedDisplayTestAppEvent;
 
-typedef enum {
-    LedDisplayTestAppPatternCrossLines,
-    LedDisplayTestAppPatternFullFill,
-
-    LedDisplayTestAppPatternNum,
-} LedDisplayTestAppPattern;
-
 typedef struct {
     FuriEventLoop* event_loop;
     FuriMessageQueue* event_queue;
@@ -29,7 +25,6 @@ typedef struct {
     lv_obj_t* back_label;
     FuriPubSubSubscription* input_events;
 
-    LedDisplayTestAppPattern pattern;
     lv_obj_t* canvas;
-    lv_obj_t* lines[2];
+    uint8_t canvas_buffer[LED_DISPLAY_CANVAS_BUFFER_SIZE];
 } LedDisplayTestApp;
