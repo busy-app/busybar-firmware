@@ -10,7 +10,7 @@ struct FuriHalAes {
     sl_si91x_aes_config_t config;
 };
 
-const sl_si91x_aes_mode_t furi_hal_aes_mode[] = {
+static const sl_si91x_aes_mode_t furi_hal_aes_mode[] = {
     [FuriHalAesModeCBC] = SL_SI91X_AES_CBC,
     [FuriHalAesModeECB] = SL_SI91X_AES_ECB,
     [FuriHalAesModeCTR] = SL_SI91X_AES_CTR};

@@ -37,6 +37,7 @@ env.Append(
         Dir(f"{WIRELESS_INCDIR}/crypto/aes/inc").rdir(),
         Dir(f"{WIRELESS_INCDIR}/crypto/wrap/inc").rdir(),
         Dir(f"{WIRELESS_INCDIR}/crypto/sha/inc").rdir(),
+        Dir(f"{WIRELESS_INCDIR}/crypto/ecdsa/inc").rdir(),
     ],
     CPPDEFINES=[
         "SI917",
@@ -117,6 +118,7 @@ sources = [
     f"{WIRELESS_DIR}/crypto/aes/src/sl_si91x_aes.c",
     f"{WIRELESS_DIR}/crypto/wrap/src/sl_si91x_wrap.c",
     f"{WIRELESS_DIR}/crypto/sha/src/sl_si91x_sha.c",
+    f"{WIRELESS_DIR}/crypto/ecdsa/src/sl_si91x_ecdsa.c",
 ]
 
 lib = libenv.StaticLibrary("${FW_LIB_NAME}", sources)

@@ -2,7 +2,10 @@
 
 typedef struct FuriHalAes FuriHalAes;
 
-#define FuriHalAesIvSize 16
+#define FURI_HAL_AES_IV_SIZE 16
+#define FURI_HAL_AES_KEY_SIZE_128 16
+#define FURI_HAL_AES_KEY_SIZE_192 24
+#define FURI_HAL_AES_KEY_SIZE_256 32
 
 typedef enum {
     FuriHalAesModeCBC,

@@ -4,7 +4,7 @@
 
 #define TAG "SHA"
 
-const sl_si91x_crypto_sha_mode_t furi_hal_sha_mode[] = {
+static const sl_si91x_crypto_sha_mode_t furi_hal_sha_mode[] = {
     [FuriHalShaModeSha1] = SL_SI91X_SHA_1,
     [FuriHalShaModeSha256] = SL_SI91X_SHA_256,
     [FuriHalShaModeSha384] = SL_SI91X_SHA_384,
