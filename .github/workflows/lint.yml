@@ -16,14 +16,15 @@ jobs:
           fetch-depth: 2
           ref: ${{ github.sha }}
           submodules: recursive
-          ssh-key: ${{ secrets.GH_SSH_KEY }}
+          token: ${{ secrets.GITHUB_TOKEN }}
+          # ssh-key: ${{ secrets.GH_SSH_KEY }}
 
-      - name: 'Check C/C++ code formatting'
+      - name: 'Check C/C++ code formatting for f20'
         id: syntax_check_cpp
         if: always()
         run: |
           set +e;
-          ./fbt -s lint 2>&1 | tee lint-cpp.log;
+          ./fbt -s lint TARGET_HW=20 2>&1 | tee lint-cpp.log;
           if [ "${PIPESTATUS[0]}" -ne 0 ]; then
             # Save multiline output
             echo "errors=1" >> $GITHUB_OUTPUT;
