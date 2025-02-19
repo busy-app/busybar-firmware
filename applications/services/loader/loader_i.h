@@ -1,7 +1,7 @@
 #pragma once
-#include <furi.h>
-#include <toolbox/api_lock.h>
 #include "loader.h"
+
+#include <toolbox/api_lock.h>
 
 typedef struct {
     char* args;
@@ -10,8 +10,9 @@ typedef struct {
 } LoaderAppData;
 
 struct Loader {
-    FuriPubSub* pubsub;
+    FuriEventLoop* event_loop;
     FuriMessageQueue* queue;
+    FuriPubSub* pubsub;
     LoaderAppData app;
 };
 
@@ -21,6 +22,7 @@ typedef enum {
     LoaderMessageTypeLock,
     LoaderMessageTypeUnlock,
     LoaderMessageTypeIsLocked,
+    LoaderMessageTypeMax,
 } LoaderMessageType;
 
 typedef struct {
@@ -50,3 +52,5 @@ typedef struct {
         LoaderMessageBoolResult* bool_value;
     };
 } LoaderMessage;
+
+typedef void (*LoaderMessageHandler)(Loader* loader, const LoaderMessage* message);
