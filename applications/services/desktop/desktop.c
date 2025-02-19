@@ -6,6 +6,8 @@
 #include <loader/loader.h>
 #include <gui_lvgl/gui_lvgl.h>
 
+#include "desktop_overlay.h"
+
 #define TAG "Desktop"
 
 #define DEBOUNCE_DELAY_MS (300)
@@ -16,6 +18,7 @@ typedef struct {
     FuriMessageQueue* input_queue;
     FuriEventLoopTimer* debounce_timer;
     Loader* loader;
+    DesktopOverlay* overlay;
     InputSwitchPosition prev_pos;
     InputSwitchPosition current_pos;
 } Desktop;
@@ -83,9 +86,9 @@ static bool desktop_start_current_app(Desktop* instance) {
 }
 
 static void desktop_handle_switch_start(Desktop* instance) {
-    UNUSED(instance);
-
     FURI_LOG_D(TAG, "Switch interaction started");
+
+    desktop_overlay_show(instance->overlay);
 }
 
 static void desktop_handle_switch_update(Desktop* instance) {
@@ -95,9 +98,9 @@ static void desktop_handle_switch_update(Desktop* instance) {
 }
 
 static void desktop_handle_switch_finished(Desktop* instance) {
-    UNUSED(instance);
-
     FURI_LOG_D(TAG, "Switch interaction finished");
+
+    desktop_overlay_hide(instance->overlay);
 }
 
 static void desktop_input_queue_callback(FuriEventLoopObject* object, void* context) {
@@ -167,6 +170,9 @@ static Desktop* desktop_alloc(void) {
         FuriEventLoopTimerTypeOnce,
         instance);
     instance->loader = furi_record_open(RECORD_LOADER);
+
+    GuiLvgl* gui = furi_record_open(RECORD_GUI_LVGL);
+    instance->overlay = desktop_overlay_alloc(gui);
 
     furi_event_loop_subscribe_message_queue(
         instance->event_loop,
