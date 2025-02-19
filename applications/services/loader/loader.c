@@ -300,13 +300,11 @@ static void loader_stop_handler(Loader* loader, const LoaderMessage* message) {
 
     do {
         if(!loader_is_locked_internal(loader)) {
-            // TODO: Appropriate status
-            status = LoaderStatusErrorInternal;
+            status = LoaderStatusErrorAppNotRunning;
             break;
         }
 
         if(!furi_thread_signal(loader->app.thread, FuriSignalExit, NULL)) {
-            // TODO: Appropriate status
             status = LoaderStatusErrorInternal;
             break;
         }

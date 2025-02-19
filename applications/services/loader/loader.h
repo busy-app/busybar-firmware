@@ -13,6 +13,7 @@ typedef struct Loader Loader;
 typedef enum {
     LoaderStatusOk,
     LoaderStatusErrorAppStarted,
+    LoaderStatusErrorAppNotRunning,
     LoaderStatusErrorUnknownApp,
     LoaderStatusErrorInternal,
 } LoaderStatus;
