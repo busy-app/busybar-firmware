@@ -9,7 +9,7 @@ on:
   pull_request:
 
 env:
-  FBT_GIT_SUBMODULE_SHALLOW: 1
+  FBT_GIT_SUBMODULE_SHALLOW: 0
 
 jobs:
   main:
@@ -24,8 +24,7 @@ jobs:
 
       - name: 'Update submodules'
         run: |
-          git config list
-          git submodule update --init --recursive
+          git submodule update --init --recursive --jobs=$(nproc)
 
       - name: 'Get commit details'
         id: names
@@ -39,15 +38,19 @@ jobs:
           else
             TYPE="other"
           fi
-          python3 fbt_layers/fbtng/scripts/get_env.py "--event_file=${{ github.event_path }}" "--type=$TYPE" || cat "${{ github.event_path }}"
-          echo "event_type=$TYPE" >> $GITHUB_OUTPUT
-          echo "FBT_BUILD_TYPE=$BUILD_TYPE" >> $GITHUB_ENV
+          # python3 fbt_layers/fbtng/scripts/get_env.py "--event_file=${{ github.event_path }}" "--type=$TYPE" || cat "${{ github.event_path }}"
+          # echo "event_type=$TYPE" >> $GITHUB_OUTPUT
+          # echo "FBT_BUILD_TYPE=$BUILD_TYPE" >> $GITHUB_ENV
 
       - name: 'Build the firmware and apps'
         id: build-fw
         run: |
-          ./fbt TARGET_HW=20 $FBT_BUILD_TYPE
-          ./fbt TARGET_HW=64 $FBT_BUILD_TYPE
+          source ./scripts/toolchain/fbtenv.sh
+          echo Debug: PATH=$PATH
+          echo Toolchain: `which arm-none-eabi-gcc` `arm-none-eabi-gcc --version`
+          echo Toolchain: `ls -al toolchain/latest`
+          bash ./fbt TARGET_HW=20 $FBT_BUILD_TYPE
+          bash ./fbt TARGET_HW=64 $FBT_BUILD_TYPE
 
       - name: 'Check for uncommitted changes'
         run: |
