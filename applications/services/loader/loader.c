@@ -36,10 +36,25 @@ LoaderStatus
     LoaderMessageLoaderStatusResult result;
 
     const LoaderMessage message = {
-        .type = LoaderMessageTypeStartByName,
+        .type = LoaderMessageTypeStart,
         .start.name = name,
         .start.args = args,
         .start.error_message = error_message,
+        .api_lock = api_lock_alloc_locked(),
+        .status_value = &result,
+    };
+
+    loader_send_message(loader, &message);
+    return result.value;
+}
+
+LoaderStatus loader_stop(Loader* loader) {
+    furi_check(loader);
+
+    LoaderMessageLoaderStatusResult result;
+
+    const LoaderMessage message = {
+        .type = LoaderMessageTypeStop,
         .api_lock = api_lock_alloc_locked(),
         .status_value = &result,
     };
@@ -280,6 +295,29 @@ static void loader_start_handler(Loader* loader, const LoaderMessage* message) {
         loader_start_internal(loader, start->name, start->args, start->error_message);
 }
 
+static void loader_stop_handler(Loader* loader, const LoaderMessage* message) {
+    LoaderStatus status;
+
+    do {
+        if(!loader_is_locked_internal(loader)) {
+            // TODO: Appropriate status
+            status = LoaderStatusErrorInternal;
+            break;
+        }
+
+        if(!furi_thread_signal(loader->app.thread, FuriSignalExit, NULL)) {
+            // TODO: Appropriate status
+            status = LoaderStatusErrorInternal;
+            break;
+        }
+
+        status = LoaderStatusOk;
+
+    } while(false);
+
+    message->status_value->value = status;
+}
+
 static void loader_app_closed_handler(Loader* loader, const LoaderMessage* message) {
     UNUSED(message);
     furi_assert(loader->app.thread);
@@ -326,7 +364,7 @@ static void loader_unlock_handler(Loader* loader, const LoaderMessage* message) 
     loader->app.thread = NULL;
 }
 
-static void loader_do_is_handler(Loader* loader, const LoaderMessage* message) {
+static void loader_is_locked_handler(Loader* loader, const LoaderMessage* message) {
     message->bool_value->value = loader_is_locked_internal(loader);
 }
 
@@ -399,9 +437,10 @@ int32_t loader_srv(void* p) {
 }
 
 static const LoaderMessageHandler loader_handlers[LoaderMessageTypeMax] = {
-    [LoaderMessageTypeStartByName] = loader_start_handler,
+    [LoaderMessageTypeStart] = loader_start_handler,
+    [LoaderMessageTypeStop] = loader_stop_handler,
     [LoaderMessageTypeAppClosed] = loader_app_closed_handler,
     [LoaderMessageTypeLock] = loader_lock_handler,
     [LoaderMessageTypeUnlock] = loader_unlock_handler,
-    [LoaderMessageTypeIsLocked] = loader_do_is_handler,
+    [LoaderMessageTypeIsLocked] = loader_is_locked_handler,
 };
