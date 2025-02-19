@@ -7,6 +7,7 @@ typedef enum {
     LedDisplayTestAppEventTypeNextPattern,
     LedDisplayTestAppEventTypePrevPattern,
     LedDisplayTestAppEventTypeUpdateColor,
+    LedDisplayTestAppEventTypeExit,
 } LedDisplayTestAppEventType;
 
 typedef struct {
