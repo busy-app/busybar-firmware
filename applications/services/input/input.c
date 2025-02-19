@@ -1,7 +1,7 @@
 #include "input.h"
+#include "input_common.h"
 
 #include <furi.h>
-#include <input_common.h>
 
 #ifdef SRV_INTERCOM
 #include <intercom/intercom.h>
