@@ -21,6 +21,7 @@ jobs:
           ref: ${{ github.event.pull_request.head.sha }}
           fetch-depth: 2
           submodules: recursive
+          ssh-key: ${{ secrets.GH_SSH_KEY }}
 
       - name: 'Get commit details'
         id: names

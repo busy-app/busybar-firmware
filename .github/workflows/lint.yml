@@ -1,4 +1,4 @@
-name: 'Lint sources & check submodule integrity'
+name: 'Lint sources'
 
 on:
   pull_request:
@@ -16,6 +16,7 @@ jobs:
           fetch-depth: 2
           ref: ${{ github.sha }}
           submodules: recursive
+          ssh-key: ${{ secrets.GH_SSH_KEY }}
 
       - name: 'Check C/C++ code formatting'
         id: syntax_check_cpp
@@ -34,7 +35,7 @@ jobs:
             echo "C Lint: all good ✨" >> $GITHUB_STEP_SUMMARY;
           fi
 
-      - name: Report code formatting errors
+      - name: 'Report code formatting errors'
         if: ( steps.syntax_check_cpp.outputs.errors ) && github.event.pull_request
         run: |
           echo "Code formatting errors found";
