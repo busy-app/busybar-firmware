@@ -82,6 +82,24 @@ static bool desktop_start_current_app(Desktop* instance) {
     }
 }
 
+static void desktop_handle_switch_start(Desktop* instance) {
+    UNUSED(instance);
+
+    FURI_LOG_D(TAG, "Switch interaction started");
+}
+
+static void desktop_handle_switch_update(Desktop* instance) {
+    UNUSED(instance);
+
+    FURI_LOG_D(TAG, "Switch position updated");
+}
+
+static void desktop_handle_switch_finished(Desktop* instance) {
+    UNUSED(instance);
+
+    FURI_LOG_D(TAG, "Switch interaction finished");
+}
+
 static void desktop_input_queue_callback(FuriEventLoopObject* object, void* context) {
     furi_assert(context);
 
@@ -91,13 +109,12 @@ static void desktop_input_queue_callback(FuriEventLoopObject* object, void* cont
 
     if(!furi_event_loop_timer_is_running(instance->debounce_timer)) {
         instance->prev_pos = instance->current_pos;
-        // TODO: Hide current app, play animation on the top layer
-        FURI_LOG_D(TAG, "Switch interaction start");
+        desktop_handle_switch_start(instance);
     }
 
     while(furi_message_queue_get(instance->input_queue, &instance->current_pos, 0) ==
           FuriStatusOk) {
-        // TODO: Play some animation in response to user interactions
+        desktop_handle_switch_update(instance);
     }
 
     furi_event_loop_timer_start(instance->debounce_timer, DEBOUNCE_DELAY_MS);
@@ -113,6 +130,8 @@ static void desktop_exit_semaphore_callback(FuriEventLoopObject* object, void* c
         FURI_LOG_E(TAG, "Failed to start application");
     }
 
+    desktop_handle_switch_finished(instance);
+
     furi_semaphore_release(instance->exit_semaphore);
 }
 
@@ -126,16 +145,14 @@ static void desktop_debounce_timer_callback(void* context) {
         if(!desktop_start_current_app(instance)) {
             FURI_LOG_E(TAG, "Failed to start application");
         }
-
     } else if(status == LoaderStatusErrorInternal) {
         furi_crash("App doesn't support signals, fix it");
     } else {
-        // Load App asynchronously
-        // Do not hide the animation yet
+        // App will be loaded asynchronously when the previous one will have exited
         return;
     }
 
-    // TODO: Hide the animation overlay
+    desktop_handle_switch_finished(instance);
 }
 
 static Desktop* desktop_alloc(void) {
