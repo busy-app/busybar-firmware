@@ -15,10 +15,21 @@ typedef struct {
     uint8_t color_num;
 } LedDisplayTestAppEvent;
 
+typedef enum {
+    LedDisplayTestAppPatternCrossLines,
+    LedDisplayTestAppPatternFullFill,
+
+    LedDisplayTestAppPatternNum,
+} LedDisplayTestAppPattern;
+
 typedef struct {
     FuriEventLoop* event_loop;
     FuriMessageQueue* event_queue;
     GuiLvgl* gui;
     lv_obj_t* back_label;
     FuriPubSubSubscription* input_events;
+
+    LedDisplayTestAppPattern pattern;
+    lv_obj_t* canvas;
+    lv_obj_t* lines[2];
 } LedDisplayTestApp;
