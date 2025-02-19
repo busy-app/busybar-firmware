@@ -21,20 +21,11 @@ jobs:
           ref: ${{ github.event.pull_request.head.sha }}
           fetch-depth: 2
           token: ${{ secrets.GITHUB_TOKEN }}
-      
-      - name: 'Supply SSH key from secrets'
-        run: |
-          eval $(ssh-agent -s)
-          mkdir -p ~/.ssh
-          echo "${{ secrets.GH_SSH_KEY }}" > ~/.ssh/id_ed25519
-          chmod 400 ~/.ssh/id_ed25519
-          ssh-add ~/.ssh/id_ed25519 
-          git config --global url."git@github.com:".insteadOf "https://github.com/"
 
       - name: 'Update submodules'
         run: |
           git config list
-          git submodule update --init --recursive --depth=2
+          git submodule update --init --recursive
 
       - name: 'Get commit details'
         id: names
