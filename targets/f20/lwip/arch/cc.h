@@ -58,6 +58,9 @@
 #define PACK_STRUCT_END
 #define PACK_STRUCT_FIELD(x) x
 
+#define LWIP_TIMEVAL_PRIVATE 0
+#include <sys/time.h>
+
 #elif defined(__TASKING__)
 
 #define PACK_STRUCT_BEGIN
@@ -68,5 +71,11 @@
 #endif
 
 #define LWIP_PLATFORM_ASSERT(x) furi_crash(x)
+
+#define LWIP_DONT_PROVIDE_BYTEORDER_FUNCTIONS
+#define htons(x) __builtin_bswap16(x)
+#define ntohs(x) __builtin_bswap16(x)
+#define htonl(x) __builtin_bswap32(x)
+#define ntohl(x) __builtin_bswap32(x)
 
 #endif

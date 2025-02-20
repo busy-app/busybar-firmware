@@ -42,6 +42,10 @@ const uint8_t* usb_network_get_mac_address(void) {
 static err_t linkoutput_fn(struct netif* netif, struct pbuf* p) {
     (void)netif;
 
+#if (ETH_PAD_SIZE != 0)
+    pbuf_header(p, -ETH_PAD_SIZE); /* drop the padding word */
+#endif
+
     for(;;) {
         /* if TinyUSB isn't ready, we must signal back to lwip that there is nothing we can do */
         if(!tud_ready()) return ERR_USE;
@@ -52,6 +56,10 @@ static err_t linkoutput_fn(struct netif* netif, struct pbuf* p) {
             return ERR_OK;
         }
     }
+
+#if (ETH_PAD_SIZE != 0)
+    pbuf_header(p, ETH_PAD_SIZE); /* reclaim the padding word */
+#endif
 }
 
 static err_t ip4_output_fn(struct netif* netif, struct pbuf* p, const ip4_addr_t* addr) {
@@ -94,16 +102,33 @@ bool tud_network_recv_cb(const uint8_t* src, uint16_t size) {
         return false;
     }
 
-    if(size) {
+    if(size != 0) {
+#if (ETH_PAD_SIZE != 0)
+        size += ETH_PAD_SIZE; /* allow room for Ethernet padding */
+#endif
         struct pbuf* p = pbuf_alloc(PBUF_RAW, size, PBUF_POOL);
 
         if(!p) {
-            FURI_LOG_E(TAG, "cannot receive frame, pbuf_alloc failed");
-            return false;
+            FURI_LOG_T(TAG, "cannot receive frame, pbuf_alloc failed");
+            return true;
         }
 
-        /* pbuf_alloc() has already initialized struct; all we need to do is copy the data */
-        memcpy(p->payload, src, size);
+#if (ETH_PAD_SIZE != 0)
+        pbuf_header(p, -ETH_PAD_SIZE); /* drop the padding word */
+#endif
+
+        for(struct pbuf* q = p; q != NULL && size > 0; q = q->next) {
+            /* Read enough bytes to fill this pbuf in the chain. The
+     * available data in the pbuf is given by the q->len
+     * variable. */
+            memcpy(q->payload, src, size < q->len ? size : q->len);
+            src += q->len;
+            size -= q->len;
+        }
+
+#if (ETH_PAD_SIZE != 0)
+        pbuf_header(p, ETH_PAD_SIZE); /* reclaim the padding word */
+#endif
 
         /* store away the pointer for service_traffic() to later handle */
         usb_network->rx_frame = p;
