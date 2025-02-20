@@ -11,11 +11,11 @@ typedef enum {
     LedDisplayTestPatternCross,
     LedDisplayTestPatternFrame,
 
-    // LedDisplayTestPatternAnimFill,
-    // LedDisplayTestPatternAnimHalfFill,
-    // LedDisplayTestPatternAnimFill10Noise,
-    // LedDisplayTestPatternAnimFill25Noise,
-    // LedDisplayTestPatternAnimFill50Noise,
+    LedDisplayTestPatternAnimFill,
+    LedDisplayTestPatternAnimHalfFill,
+    LedDisplayTestPatternAnimFill10Noise,
+    LedDisplayTestPatternAnimFill25Noise,
+    LedDisplayTestPatternAnimFill50Noise,
 
     LedDisplayTestPatternNum,
 } LedDisplayTestPattern;

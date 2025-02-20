@@ -73,6 +73,11 @@ static void led_display_test_app_event_queue_callback(FuriEventLoopObject* objec
     led_display_test_app_draw(instance);
 }
 
+static void led_display_test_app_timer_callback(void* context) {
+    LedDisplayTestApp* instance = context;
+    led_display_test_app_draw(instance);
+}
+
 static LedDisplayTestApp* led_display_test_app_alloc(void) {
     LedDisplayTestApp* instance = malloc(sizeof(LedDisplayTestApp));
 
@@ -83,6 +88,11 @@ static LedDisplayTestApp* led_display_test_app_alloc(void) {
         instance->event_queue,
         FuriEventLoopEventIn,
         led_display_test_app_event_queue_callback,
+        instance);
+    instance->timer = furi_event_loop_timer_alloc(
+        instance->event_loop,
+        led_display_test_app_timer_callback,
+        FuriEventLoopTimerTypePeriodic,
         instance);
 
     // Create a single label for the back display
@@ -123,6 +133,7 @@ static LedDisplayTestApp* led_display_test_app_alloc(void) {
     instance->pattern = LedDisplayTestPatternChess;
     instance->color = LedDisplayTestColorRed;
     led_display_test_app_draw(instance);
+    furi_event_loop_timer_start(instance->timer, 1000 / 60);
 
     return instance;
 }

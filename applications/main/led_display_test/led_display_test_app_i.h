@@ -18,6 +18,7 @@ typedef enum {
 typedef struct {
     FuriEventLoop* event_loop;
     FuriMessageQueue* event_queue;
+    FuriEventLoopTimer* timer;
     GuiLvgl* gui;
 
     // Back screen

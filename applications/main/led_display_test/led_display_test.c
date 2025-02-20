@@ -166,81 +166,81 @@ static void
     }
 }
 
-// static size_t animation_frame = 0;
+static size_t animation_frame = 0;
 
-// static void led_display_test_set_pattern_animated_rectangulars(
-//     uint8_t* buff,
-//     LedDisplayTestColorCode color_code) {
-//     size_t frame = animation_frame % 24;
+static void led_display_test_set_pattern_animated_rectangulars(
+    uint8_t* buff,
+    LedDisplayTestColorCode color_code) {
+    size_t frame = animation_frame++ % 24;
 
-//     for(size_t x = 0; x < DOT_MATRIX_W; x++) {
-//         for(size_t y = 0; y < DOT_MATRIX_H; y++) {
-//             if((x % 24) < frame) {
-//                 led_display_set_pixel(
-//                     buff, x, y, color_code.red, color_code.green, color_code.blue);
-//             }
-//         }
-//     }
-// }
+    for(size_t x = 0; x < DOT_MATRIX_W; x++) {
+        for(size_t y = 0; y < DOT_MATRIX_H; y++) {
+            if((x % 24) < frame) {
+                led_display_set_pixel(
+                    buff, x, y, color_code.red, color_code.green, color_code.blue);
+            }
+        }
+    }
+}
 
-// static void led_display_test_set_pattern_animated_rectangulars_half(
-//     uint8_t* buff,
-//     LedDisplayTestColorCode color_code) {
-//     size_t frame = animation_frame % 12;
+static void led_display_test_set_pattern_animated_rectangulars_half(
+    uint8_t* buff,
+    LedDisplayTestColorCode color_code) {
+    size_t frame = animation_frame++ % 12;
 
-//     for(size_t x = 0; x < DOT_MATRIX_W; x++) {
-//         for(size_t y = 0; y < DOT_MATRIX_H; y++) {
-//             if((x % 24) < frame) {
-//                 led_display_set_pixel(
-//                     buff, x, y, color_code.red, color_code.green, color_code.blue);
-//             }
-//         }
-//     }
-// }
+    for(size_t x = 0; x < DOT_MATRIX_W; x++) {
+        for(size_t y = 0; y < DOT_MATRIX_H; y++) {
+            if((x % 24) < frame) {
+                led_display_set_pixel(
+                    buff, x, y, color_code.red, color_code.green, color_code.blue);
+            }
+        }
+    }
+}
 
-// static void led_display_test_set_pattern_animated_fill_10_noise(
-//     uint8_t* buff,
-//     LedDisplayTestColorCode color_code) {
-//     for(size_t x = 0; x < DOT_MATRIX_W; x++) {
-//         for(size_t y = 0; y < DOT_MATRIX_H; y++) {
-//             bool pixel_set = rand() % 10 == 0;
+static void led_display_test_set_pattern_animated_fill_10_noise(
+    uint8_t* buff,
+    LedDisplayTestColorCode color_code) {
+    for(size_t x = 0; x < DOT_MATRIX_W; x++) {
+        for(size_t y = 0; y < DOT_MATRIX_H; y++) {
+            bool pixel_set = rand() % 10 == 0;
 
-//             if(pixel_set) {
-//                 led_display_set_pixel(
-//                     buff, x, y, color_code.red, color_code.green, color_code.blue);
-//             }
-//         }
-//     }
-// }
+            if(pixel_set) {
+                led_display_set_pixel(
+                    buff, x, y, color_code.red, color_code.green, color_code.blue);
+            }
+        }
+    }
+}
 
-// static void led_display_test_set_pattern_animated_fill_25_noise(
-//     uint8_t* buff,
-//     LedDisplayTestColorCode color_code) {
-//     for(size_t x = 0; x < DOT_MATRIX_W; x++) {
-//         for(size_t y = 0; y < DOT_MATRIX_H; y++) {
-//             bool pixel_set = rand() % 4 == 0;
+static void led_display_test_set_pattern_animated_fill_25_noise(
+    uint8_t* buff,
+    LedDisplayTestColorCode color_code) {
+    for(size_t x = 0; x < DOT_MATRIX_W; x++) {
+        for(size_t y = 0; y < DOT_MATRIX_H; y++) {
+            bool pixel_set = rand() % 4 == 0;
 
-//             if(pixel_set) {
-//                 led_display_set_pixel(
-//                     buff, x, y, color_code.red, color_code.green, color_code.blue);
-//             }
-//         }
-//     }
-// }
-// static void led_display_test_set_pattern_animated_fill_50_noise(
-//     uint8_t* buff,
-//     LedDisplayTestColorCode color_code) {
-//     for(size_t x = 0; x < DOT_MATRIX_W; x++) {
-//         for(size_t y = 0; y < DOT_MATRIX_H; y++) {
-//             bool pixel_set = rand() % 2 == 0;
+            if(pixel_set) {
+                led_display_set_pixel(
+                    buff, x, y, color_code.red, color_code.green, color_code.blue);
+            }
+        }
+    }
+}
+static void led_display_test_set_pattern_animated_fill_50_noise(
+    uint8_t* buff,
+    LedDisplayTestColorCode color_code) {
+    for(size_t x = 0; x < DOT_MATRIX_W; x++) {
+        for(size_t y = 0; y < DOT_MATRIX_H; y++) {
+            bool pixel_set = rand() % 2 == 0;
 
-//             if(pixel_set) {
-//                 led_display_set_pixel(
-//                     buff, x, y, color_code.red, color_code.green, color_code.blue);
-//             }
-//         }
-//     }
-// }
+            if(pixel_set) {
+                led_display_set_pixel(
+                    buff, x, y, color_code.red, color_code.green, color_code.blue);
+            }
+        }
+    }
+}
 
 static void led_display_test_set_pattern_cross(uint8_t* buff, LedDisplayTestColorCode color_code) {
     for(size_t x = 0; x < DOT_MATRIX_W; x++) {
@@ -306,31 +306,31 @@ static const LedDisplayTestPatternData led_display_test_pattern[LedDisplayTestPa
             .set = led_display_test_set_pattern_frame,
             .name = "Frame",
         },
-    // [LedDisplayTestPatternAnimFill] =
-    //     {
-    //         .set = led_display_test_set_pattern_animated_rectangulars,
-    //         .name = "Animated Rectangulars Fill",
-    //     },
-    // [LedDisplayTestPatternAnimHalfFill] =
-    //     {
-    //         .set = led_display_test_set_pattern_animated_rectangulars_half,
-    //         .name = "Animated Rectangulars Half Fill",
-    //     },
-    // [LedDisplayTestPatternAnimFill10Noise] =
-    //     {
-    //         .set = led_display_test_set_pattern_animated_fill_10_noise,
-    //         .name = "Animated Fill 10% Noise",
-    //     },
-    // [LedDisplayTestPatternAnimFill25Noise] =
-    //     {
-    //         .set = led_display_test_set_pattern_animated_fill_25_noise,
-    //         .name = "Animated Fill 25% Noise",
-    //     },
-    // [LedDisplayTestPatternAnimFill50Noise] =
-    //     {
-    //         .set = led_display_test_set_pattern_animated_fill_50_noise,
-    //         .name = "Animated Fill 50% Noise",
-    //     },
+    [LedDisplayTestPatternAnimFill] =
+        {
+            .set = led_display_test_set_pattern_animated_rectangulars,
+            .name = "Animated Rectangulars Fill",
+        },
+    [LedDisplayTestPatternAnimHalfFill] =
+        {
+            .set = led_display_test_set_pattern_animated_rectangulars_half,
+            .name = "Animated Rectangulars Half Fill",
+        },
+    [LedDisplayTestPatternAnimFill10Noise] =
+        {
+            .set = led_display_test_set_pattern_animated_fill_10_noise,
+            .name = "Animated Fill 10% Noise",
+        },
+    [LedDisplayTestPatternAnimFill25Noise] =
+        {
+            .set = led_display_test_set_pattern_animated_fill_25_noise,
+            .name = "Animated Fill 25% Noise",
+        },
+    [LedDisplayTestPatternAnimFill50Noise] =
+        {
+            .set = led_display_test_set_pattern_animated_fill_50_noise,
+            .name = "Animated Fill 50% Noise",
+        },
 };
 
 // size_t led_display_get_pattern_frame_time(LedDisplayTestPattern pattern) {
