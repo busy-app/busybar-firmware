@@ -226,6 +226,6 @@ static const DesktopAppDesc desktop_apps[] = {
     [InputSwitchPositionBusy] = {"busy", NULL},
     [InputSwitchPositionStatus] = {"dummy", "Status"},
     [InputSwitchPositionOff] = {"dummy", "Off"},
-    [InputSwitchPositionApps] = {"dummy", "Apps"},
+    [InputSwitchPositionApps] = {"apps_menu", NULL},
     [InputSwitchPositionSettings] = {"dummy", "Settings"},
 };

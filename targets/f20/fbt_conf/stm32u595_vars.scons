@@ -1,0 +1,22 @@
+from fbt_extra.util import find_variable_config
+
+Import("FW_ENV", "VARS")
+
+# Inject default values for this target into global variables
+_fw_default_apps_config = {
+    "default": [
+        "basic_services",
+        "main_apps",
+        "system_apps",
+    ],
+}
+
+fw_apps_configs_option = find_variable_config(VARS, "FIRMWARE_APPS")
+assert isinstance(fw_apps_configs_option.default, dict)
+for key, value in _fw_default_apps_config.items():
+    fw_apps_configs_option.default[key] = value
+
+
+fw_appdirs_option = find_variable_config(VARS, "APPDIRS")
+assert isinstance(fw_appdirs_option.default, list)
+fw_appdirs_option.default.extend((("applications/system", False),))

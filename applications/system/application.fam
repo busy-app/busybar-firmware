@@ -1,5 +1,15 @@
 App(
     appid="system_apps",
+    name="Applications not shown in menus",
+    apptype=FlipperAppType.METAPACKAGE,
+    provides=[
+        "apps_menu",
+    ],
+    targets=["f20"],
+)
+
+App(
+    appid="system_apps",
     name="Basic applications for system menu",
     apptype=FlipperAppType.METAPACKAGE,
     provides=[

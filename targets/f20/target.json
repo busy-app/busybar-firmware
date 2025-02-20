@@ -85,6 +85,7 @@
     "linker_script_ram": "STM32U595xx_FLASH.ld",
     "linker_script_app": "application_ext.ld",
     "sdk_symbols": "api_symbols.csv",
+    "variables_sconscript": "fbt_conf/stm32u595_vars.scons",
     "platform_desc": "../../scripts/debug/platforms/stm32u595.json",
     "rtos_flavor": "freertos-cm33-ntz",
     "lib_modules": [
