@@ -13,20 +13,22 @@
 #define DEBOUNCE_DELAY_MS (300)
 
 typedef struct {
+    const char* name;
+    const char* args;
+} DesktopAppDesc;
+
+typedef struct {
     FuriEventLoop* event_loop;
     FuriSemaphore* exit_semaphore;
     FuriMessageQueue* input_queue;
     FuriEventLoopTimer* debounce_timer;
+    FuriString* error_message;
     Loader* loader;
+    const DesktopAppDesc* app_desc;
     DesktopOverlay* overlay;
     InputSwitchPosition prev_pos;
     InputSwitchPosition current_pos;
 } Desktop;
-
-typedef struct {
-    const char* name;
-    const char* args;
-} DesktopAppDesc;
 
 static const DesktopAppDesc desktop_apps[];
 
@@ -66,23 +68,30 @@ static void desktop_loader_pubsub_callback(const void* message, void* context) {
 }
 
 static bool desktop_start_current_app(Desktop* instance) {
-    furi_assert(instance->current_pos < InputSwitchPositionMAX);
+    furi_assert(instance->app_desc);
 
-    FURI_LOG_I(TAG, "Starting application with id: %d", instance->current_pos);
+    const char* app_name = instance->app_desc->name;
+    const char* app_args = instance->app_desc->args;
 
-    FuriString* error_message = furi_string_alloc();
+    FURI_LOG_I(
+        TAG, "Starting application '%s' with args '%s'", app_name, app_args ? app_args : "NULL");
 
-    const DesktopAppDesc* desc = &desktop_apps[instance->current_pos];
     const LoaderStatus status =
-        loader_start(instance->loader, desc->name, desc->args, error_message);
+        loader_start(instance->loader, app_name, app_args, instance->error_message);
 
-    if(status != LoaderStatusOk) {
-        FURI_LOG_E(
-            TAG, "Failed to load app %s: %s", desc->name, furi_string_get_cstr(error_message));
-        return false;
+    const bool success = (status == LoaderStatusOk);
+
+    if(success) {
+        FURI_LOG_I(TAG, "App %s started", app_name);
     } else {
-        return true;
+        FURI_LOG_E(
+            TAG,
+            "Failed to load app %s: %s",
+            app_name,
+            furi_string_get_cstr(instance->error_message));
     }
+
+    return success;
 }
 
 static void desktop_handle_switch_start(Desktop* instance) {
@@ -130,32 +139,38 @@ static void desktop_exit_semaphore_callback(FuriEventLoopObject* object, void* c
     furi_assert(instance->exit_semaphore == object);
 
     if(!desktop_start_current_app(instance)) {
-        FURI_LOG_E(TAG, "Failed to start application");
+        // TODO: Show error message on screen
     }
 
     desktop_handle_switch_finished(instance);
 
-    furi_semaphore_release(instance->exit_semaphore);
+    furi_check(furi_semaphore_release(instance->exit_semaphore) == FuriStatusOk);
 }
 
 static void desktop_debounce_timer_callback(void* context) {
     furi_assert(context);
     Desktop* instance = context;
 
+    furi_assert(instance->current_pos < InputSwitchPositionMAX);
+    instance->app_desc = &desktop_apps[instance->current_pos];
+
     const LoaderStatus status = loader_stop(instance->loader);
 
-    if(status == LoaderStatusErrorAppNotRunning) {
+    if(status == LoaderStatusOk) {
+        /* App will be started asynchronously after
+         * the currently running one will have stopped */
+    } else if(status == LoaderStatusErrorAppNotRunning) {
         if(!desktop_start_current_app(instance)) {
-            FURI_LOG_E(TAG, "Failed to start application");
+            // TODO: Show error message on screen
         }
-    } else if(status == LoaderStatusErrorInternal) {
-        furi_crash("App doesn't support signals, fix it");
-    } else {
-        // App will be loaded asynchronously when the previous one will have exited
-        return;
-    }
 
-    desktop_handle_switch_finished(instance);
+        desktop_handle_switch_finished(instance);
+
+    } else if(status == LoaderStatusErrorInternal) {
+        furi_crash("Update app to support signals");
+    } else {
+        furi_crash("Unexpected loader status");
+    }
 }
 
 static Desktop* desktop_alloc(void) {
@@ -169,6 +184,7 @@ static Desktop* desktop_alloc(void) {
         desktop_debounce_timer_callback,
         FuriEventLoopTimerTypeOnce,
         instance);
+    instance->error_message = furi_string_alloc();
     instance->loader = furi_record_open(RECORD_LOADER);
 
     GuiLvgl* gui = furi_record_open(RECORD_GUI_LVGL);
