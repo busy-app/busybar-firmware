@@ -33,6 +33,7 @@ static void led_display_test_app_draw(LedDisplayTestApp* instance) {
     memset(instance->canvas_buffer, 0, sizeof(instance->canvas_buffer));
     // Front screen
     led_display_test_set(instance->canvas_buffer, instance->pattern, instance->color);
+    lv_obj_invalidate(instance->canvas);
 
     // Back screen
     lv_label_set_text(instance->back_label, led_display_get_pattern_str(instance->pattern));

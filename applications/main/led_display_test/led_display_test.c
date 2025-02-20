@@ -102,9 +102,9 @@ static void led_display_set_pixel(
     uint8_t green,
     uint8_t blue) {
     uint32_t pixel_offset = y * 72 + x;
-    buff[pixel_offset * 3 + 0] = red;
+    buff[pixel_offset * 3 + 0] = blue;
     buff[pixel_offset * 3 + 1] = green;
-    buff[pixel_offset * 3 + 2] = blue;
+    buff[pixel_offset * 3 + 2] = red;
 }
 
 static void led_display_test_set_pattern_chess(uint8_t* buff, LedDisplayTestColorCode color_code) {
