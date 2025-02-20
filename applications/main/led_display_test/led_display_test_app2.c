@@ -16,7 +16,7 @@ static void led_display_test_app_keypad_callback(lv_event_t* event) {
     if(lv_indev_get_type(indev) == LV_INDEV_TYPE_KEYPAD) {
         if(code == LV_EVENT_SINGLE_CLICKED) {
             FURI_LOG_I(TAG, "SINGLE_CLICKED");
-            instance->pattern = (instance->pattern + 1) % LedDisplayTestAppPatternNum;
+            instance->pattern = (instance->pattern + 1) % LedDisplayTestPatternNum;
             LedDisplayTestAppEvent event = {
                 .type = LedDisplayTestAppEventTypeNextPattern,
             };
@@ -27,41 +27,17 @@ static void led_display_test_app_keypad_callback(lv_event_t* event) {
     }
 }
 
-static void full_fill_on_enter(LedDisplayTestApp* instance) {
+static void led_display_test_app_draw(LedDisplayTestApp* instance) {
     gui_lvgl_acquire(instance->gui);
 
+    memset(instance->canvas_buffer, 0, sizeof(instance->canvas_buffer));
     // Front screen
-    lv_obj_t* active = gui_lvgl_get_layer(instance->gui, GuiDisplayIdFront, GuiLayerIdActive);
-    instance->canvas = lv_canvas_create(active);
-
-    lv_obj_add_event_cb(
-        instance->canvas, led_display_test_app_keypad_callback, LV_EVENT_SINGLE_CLICKED, instance);
-    lv_group_add_obj(lv_group_get_default(), instance->canvas);
-
-    lv_canvas_set_buffer(
-        instance->canvas, instance->canvas_buffer, 72, 16, LV_COLOR_FORMAT_RGB888);
+    led_display_test_set(instance->canvas_buffer, instance->pattern, instance->color);
 
     // Back screen
-    lv_label_set_text(instance->back_label, "Rect");
+    lv_label_set_text(instance->back_label, led_display_get_pattern_str(instance->pattern));
 
     gui_lvgl_release(instance->gui);
-}
-
-static void led_display_test_app_draw(LedDisplayTestApp* instance) {
-    cross_lines_on_enter(instance);
-}
-
-static void
-    led_display_test_app_draw_on_event(LedDisplayTestAppEvent event, LedDisplayTestApp* instance) {
-    if(event.type == LedDisplayTestAppEventTypeNextPattern) {
-        if(instance->pattern == LedDisplayTestAppPatternFullFill) {
-            cross_lines_on_exit(instance);
-            full_fill_on_enter(instance);
-        } else if(instance->pattern == LedDisplayTestAppPatternCrossLines) {
-            full_fill_on_exit(instance);
-            cross_lines_on_enter(instance);
-        }
-    }
 }
 
 static void led_display_test_app_event_queue_callback(FuriEventLoopObject* object, void* context) {
@@ -71,7 +47,7 @@ static void led_display_test_app_event_queue_callback(FuriEventLoopObject* objec
     LedDisplayTestAppEvent event;
     furi_check(furi_message_queue_get(instance->event_queue, &event, 0) == FuriStatusOk);
 
-    led_display_test_app_draw_on_event(event, instance);
+    led_display_test_app_draw(instance);
 }
 
 static LedDisplayTestApp* led_display_test_app_alloc(void) {
@@ -95,13 +71,29 @@ static LedDisplayTestApp* led_display_test_app_alloc(void) {
     gui_lvgl_acquire(instance->gui);
 
     lv_obj_t* active = gui_lvgl_get_layer(instance->gui, GuiDisplayIdBack, GuiLayerIdActive);
+
+    // Back screen
     instance->back_label = lv_label_create(active);
     lv_obj_center(instance->back_label);
     lv_obj_set_style_text_color(instance->back_label, lv_color_white(), LV_PART_MAIN);
 
+    // Front screen
+    active = gui_lvgl_get_layer(instance->gui, GuiDisplayIdFront, GuiLayerIdActive);
+    instance->canvas = lv_canvas_create(active);
+    FURI_LOG_E(
+        TAG, "Color format pizel size: %d", lv_color_format_get_size(LV_COLOR_FORMAT_RGB888));
+    lv_canvas_set_buffer(
+        instance->canvas, instance->canvas_buffer, 72, 16, LV_COLOR_FORMAT_RGB888);
+
+    // Input events
+    lv_obj_add_event_cb(
+        instance->canvas, led_display_test_app_keypad_callback, LV_EVENT_SINGLE_CLICKED, instance);
+    lv_group_add_obj(lv_group_get_default(), instance->canvas);
+
     gui_lvgl_release(instance->gui);
 
-    instance->pattern = LedDisplayTestAppPatternFullFill;
+    instance->pattern = LedDisplayTestPatternChess;
+    instance->color = LedDisplayTestColorRed;
     led_display_test_app_draw(instance);
 
     return instance;

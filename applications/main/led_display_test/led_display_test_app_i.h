@@ -10,6 +10,7 @@ typedef enum {
     LedDisplayTestAppEventTypeNextPattern,
     LedDisplayTestAppEventTypePrevPattern,
     LedDisplayTestAppEventTypeUpdateColor,
+    LedDisplayTestAppEventTypeTick,
     LedDisplayTestAppEventTypeExit,
 } LedDisplayTestAppEventType;
 
@@ -27,4 +28,7 @@ typedef struct {
 
     lv_obj_t* canvas;
     uint8_t canvas_buffer[LED_DISPLAY_CANVAS_BUFFER_SIZE];
+
+    LedDisplayTestPattern pattern;
+    LedDisplayTestColor color;
 } LedDisplayTestApp;
