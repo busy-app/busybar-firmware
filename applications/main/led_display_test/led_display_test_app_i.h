@@ -3,8 +3,7 @@
 #include <furi.h>
 #include <gui_lvgl/gui_lvgl.h>
 #include "led_display_test.h"
-
-#define LED_DISPLAY_CANVAS_BUFFER_SIZE (72 * 16 * 3)
+#include <led_display/led_display.h>
 
 typedef enum {
     LedDisplayTestAppEventNextPattern,
@@ -28,7 +27,7 @@ typedef struct {
 
     // Front screen
     lv_obj_t* canvas;
-    uint8_t canvas_buffer[LED_DISPLAY_CANVAS_BUFFER_SIZE];
+    uint8_t canvas_buffer[DOT_MATRIX_BUF_SIZE];
 
     LedDisplayTestPattern pattern;
     LedDisplayTestColor color;

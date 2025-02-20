@@ -333,31 +333,6 @@ static const LedDisplayTestPatternData led_display_test_pattern[LedDisplayTestPa
         },
 };
 
-// size_t led_display_get_pattern_frame_time(LedDisplayTestPattern pattern) {
-//     switch(pattern) {
-//     case LedDisplayTestPatternChess ... LedDisplayTestPatternFrame:
-//         return FuriWaitForever;
-//     case LedDisplayTestPatternAnimFill ... LedDisplayTestPatternAnimFill50Noise:
-//         return 1000 / 60;
-//     case LedDisplayTestPatternNum:
-//         break;
-//     }
-
-//     furi_crash();
-// }
-
-// void led_display_test_advance_frame(LedDisplayTestPattern pattern) {
-//     switch(pattern) {
-//     case LedDisplayTestPatternChess ... LedDisplayTestPatternFrame:
-//         return;
-//     case LedDisplayTestPatternAnimFill ... LedDisplayTestPatternAnimFill50Noise:
-//         animation_frame++;
-//         return;
-//     case LedDisplayTestPatternNum:
-//         furi_crash();
-//     }
-// }
-
 void led_display_test_set(uint8_t* buff, LedDisplayTestPattern pattern, LedDisplayTestColor color) {
     furi_check(buff);
     furi_check(pattern < LedDisplayTestPatternNum);
