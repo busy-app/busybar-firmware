@@ -2,6 +2,7 @@
 #include "desktop_overlay.h"
 
 #include <furi.h>
+#include <api_lock.h>
 
 #include <input/input.h>
 #include <input/input_common.h>
@@ -13,20 +14,36 @@
 
 #define DEBOUNCE_DELAY_MS (300)
 
+typedef enum {
+    DesktopStateIdle,
+    DesktopStateTransition,
+    DesktopStateAppStopping,
+    DesktopStateAppRunning,
+    DesktopStateError,
+} DesktopState;
+
 typedef struct {
     const char* name;
     const char* args;
 } DesktopAppDesc;
 
+typedef struct {
+    DesktopAppDesc desc;
+    FuriApiLock lock;
+    bool* result;
+} DesktopMessage;
+
 struct Desktop {
     FuriEventLoop* event_loop;
     FuriSemaphore* exit_semaphore;
     FuriMessageQueue* input_queue;
+    FuriMessageQueue* message_queue;
     FuriEventLoopTimer* debounce_timer;
     FuriString* error_message;
     Loader* loader;
     const DesktopAppDesc* app_desc;
     DesktopOverlay* overlay;
+    DesktopState state;
     InputSwitchPosition prev_pos;
     InputSwitchPosition current_pos;
 };
@@ -118,11 +135,17 @@ static void desktop_input_queue_callback(FuriEventLoopObject* object, void* cont
 
     Desktop* instance = context;
     furi_assert(instance->input_queue == object);
-    furi_check(furi_message_queue_get_count(instance->input_queue) > 0);
 
-    if(!furi_event_loop_timer_is_running(instance->debounce_timer)) {
-        instance->prev_pos = instance->current_pos;
+    if(instance->state == DesktopStateAppStopping) {
+        // Defer the input until the desktop becomes ready
+        return;
+    }
+
+    if(instance->state != DesktopStateTransition) {
         desktop_handle_switch_start(instance);
+
+        instance->state = DesktopStateTransition;
+        instance->prev_pos = instance->current_pos;
     }
 
     while(furi_message_queue_get(instance->input_queue, &instance->current_pos, 0) ==
@@ -133,14 +156,40 @@ static void desktop_input_queue_callback(FuriEventLoopObject* object, void* cont
     furi_event_loop_timer_start(instance->debounce_timer, DEBOUNCE_DELAY_MS);
 }
 
+static void desktop_message_queue_callback(FuriEventLoopObject* object, void* context) {
+    furi_assert(context);
+
+    Desktop* instance = context;
+    furi_assert(instance->message_queue == object);
+
+    if(instance->state == DesktopStateTransition || instance->state == DesktopStateAppStopping) {
+        // Defer the request until the desktop becomes ready
+        return;
+    }
+
+    DesktopMessage msg;
+    furi_check(furi_message_queue_get(instance->message_queue, &msg, 0) == FuriStatusOk);
+
+    // TODO: Actually launch the app
+    FURI_LOG_D(TAG, "Launching app: %s", msg.desc.name);
+    instance->state = DesktopStateAppRunning;
+
+    *msg.result = false;
+    api_lock_unlock(msg.lock);
+}
+
 static void desktop_exit_semaphore_callback(FuriEventLoopObject* object, void* context) {
     furi_assert(context);
 
     Desktop* instance = context;
     furi_assert(instance->exit_semaphore == object);
+    furi_assert(instance->state == DesktopStateAppStopping);
 
     if(!desktop_start_current_app(instance)) {
         // TODO: Show error message on screen
+        instance->state = DesktopStateError;
+    } else {
+        instance->state = DesktopStateAppRunning;
     }
 
     desktop_handle_switch_finished(instance);
@@ -150,7 +199,9 @@ static void desktop_exit_semaphore_callback(FuriEventLoopObject* object, void* c
 
 static void desktop_debounce_timer_callback(void* context) {
     furi_assert(context);
+
     Desktop* instance = context;
+    furi_assert(instance->state == DesktopStateTransition);
 
     furi_assert(instance->current_pos < InputSwitchPositionMAX);
     instance->app_desc = &desktop_apps[instance->current_pos];
@@ -160,9 +211,14 @@ static void desktop_debounce_timer_callback(void* context) {
     if(status == LoaderStatusOk) {
         /* App will be started asynchronously after
          * the currently running one will have stopped */
+        instance->state = DesktopStateAppStopping;
+
     } else if(status == LoaderStatusErrorAppNotRunning) {
         if(!desktop_start_current_app(instance)) {
             // TODO: Show error message on screen
+            instance->state = DesktopStateError;
+        } else {
+            instance->state = DesktopStateAppRunning;
         }
 
         desktop_handle_switch_finished(instance);
@@ -180,6 +236,7 @@ static Desktop* desktop_alloc(void) {
     instance->event_loop = furi_event_loop_alloc();
     instance->exit_semaphore = furi_semaphore_alloc(1, 1);
     instance->input_queue = furi_message_queue_alloc(16, sizeof(InputSwitchPosition));
+    instance->message_queue = furi_message_queue_alloc(1, sizeof(DesktopMessage));
     instance->debounce_timer = furi_event_loop_timer_alloc(
         instance->event_loop,
         desktop_debounce_timer_callback,
@@ -196,6 +253,13 @@ static Desktop* desktop_alloc(void) {
         instance->input_queue,
         FuriEventLoopEventIn,
         desktop_input_queue_callback,
+        instance);
+
+    furi_event_loop_subscribe_message_queue(
+        instance->event_loop,
+        instance->message_queue,
+        FuriEventLoopEventIn,
+        desktop_message_queue_callback,
         instance);
 
     furi_event_loop_subscribe_semaphore(
@@ -218,11 +282,23 @@ static Desktop* desktop_alloc(void) {
 bool desktop_replace_current_app(Desktop* instance, const char* name, const void* arg) {
     furi_check(instance);
     furi_check(name);
-    UNUSED(arg);
 
-    FURI_LOG_D(TAG, "Launching app: %s", name);
+    bool result;
 
-    return false;
+    const DesktopMessage msg = {
+        .desc =
+            {
+                .name = name,
+                .args = arg,
+            },
+        .lock = api_lock_alloc_locked(),
+        .result = &result,
+    };
+
+    furi_check(
+        furi_message_queue_put(instance->message_queue, &msg, FuriWaitForever) == FuriStatusOk);
+    api_lock_wait_unlock_and_free(msg.lock);
+    return result;
 }
 
 int32_t desktop_srv(void* arg) {
