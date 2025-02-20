@@ -77,6 +77,7 @@ static AppsMenu* apps_menu_alloc(void) {
 
     with_gui_layer(instance->gui, GuiDisplayIdFront, GuiLayerIdActive, {
         instance->list = lv_list_create(layer);
+        lv_obj_set_style_pad_left(instance->list, 6, LV_PART_MAIN);
         lv_obj_set_style_text_font(instance->list, &lv_font_tiny5_8, LV_PART_MAIN);
         lv_obj_set_size(instance->list, lv_obj_get_width(layer), lv_obj_get_height(layer));
         lv_obj_add_event_cb(
