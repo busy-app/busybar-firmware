@@ -19,10 +19,13 @@ typedef struct {
     FuriEventLoop* event_loop;
     FuriMessageQueue* event_queue;
     GuiLvgl* gui;
+
+    // Back screen
+    lv_obj_t* static_label;
     lv_obj_t* pattern_label;
     lv_obj_t* color_label;
-    FuriPubSubSubscription* input_events;
 
+    // Front screen
     lv_obj_t* canvas;
     uint8_t canvas_buffer[LED_DISPLAY_CANVAS_BUFFER_SIZE];
 

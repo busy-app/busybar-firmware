@@ -42,8 +42,10 @@ static void led_display_test_app_draw(LedDisplayTestApp* instance) {
     lv_obj_invalidate(instance->canvas);
 
     // Back screen
-    lv_label_set_text(instance->pattern_label, led_display_get_pattern_str(instance->pattern));
-    lv_label_set_text(instance->color_label, led_display_get_color_str(instance->color));
+    lv_label_set_text_fmt(
+        instance->pattern_label, "Pattern: %s", led_display_get_pattern_str(instance->pattern));
+    lv_label_set_text_fmt(
+        instance->color_label, "Color: %s", led_display_get_color_str(instance->color));
 
     gui_lvgl_release(instance->gui);
 }
@@ -90,12 +92,18 @@ static LedDisplayTestApp* led_display_test_app_alloc(void) {
     lv_obj_t* active = gui_lvgl_get_layer(instance->gui, GuiDisplayIdBack, GuiLayerIdActive);
 
     // Back screen
+    instance->static_label = lv_label_create(active);
+    lv_obj_set_pos(instance->static_label, 10, 0);
+    lv_obj_set_style_text_color(instance->static_label, lv_color_white(), LV_PART_MAIN);
+    lv_label_set_text(
+        instance->static_label, "Start/Ok - change pattern.\nEncoder - change color");
+
     instance->pattern_label = lv_label_create(active);
-    lv_obj_set_pos(instance->pattern_label, 10, 20);
+    lv_obj_set_pos(instance->pattern_label, 10, 30);
     lv_obj_set_style_text_color(instance->pattern_label, lv_color_white(), LV_PART_MAIN);
 
     instance->color_label = lv_label_create(active);
-    lv_obj_set_pos(instance->color_label, 10, 30);
+    lv_obj_set_pos(instance->color_label, 10, 40);
     lv_obj_set_style_text_color(instance->color_label, lv_color_white(), LV_PART_MAIN);
 
     // Front screen
@@ -123,8 +131,14 @@ static void led_display_test_app_free(LedDisplayTestApp* instance) {
     furi_check(instance);
 
     gui_lvgl_acquire(instance->gui);
+
+    lv_obj_delete(instance->static_label);
+    lv_obj_delete(instance->color_label);
     lv_obj_delete(instance->pattern_label);
+    lv_obj_delete(instance->canvas);
+
     gui_lvgl_release(instance->gui);
+
     furi_record_close(RECORD_GUI_LVGL);
 
     furi_message_queue_free(instance->event_queue);
