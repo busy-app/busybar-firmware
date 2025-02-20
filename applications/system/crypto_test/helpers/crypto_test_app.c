@@ -10,6 +10,7 @@
 #include "crypto_aes.h"
 #include "crypto_sha.h"
 #include "crypto_ecdsa.h"
+#include "crypto_hmac.h"
 
 #include <args.h>
 #include <strint.h>
@@ -50,6 +51,7 @@ typedef enum {
     CryptoTestCmdTypeAesTest,
     CryptoTestCmdTypeShaTest,
     CryptoTestCmdTypeEcdsaTest,
+    CryptoTestCmdTypeHmacTest,
 
     CryptoTestCmdTypeMax,
 } CryptoTestCmdType;
@@ -69,6 +71,7 @@ const CryptoTestCmd crypto_test_cmd[CryptoTestCmdTypeMax] = {
     {"aes_test"},
     {"sha_test"},
     {"ecdsa_test"},
+    {"hmac_test"},
 };
 
 struct CryptoTestApp {
@@ -176,6 +179,9 @@ static sl_status_t crypto_test_app(CryptoTestApp* instance, uint8_t cmd_index, F
     case CryptoTestCmdTypeEcdsaTest:
         crypto_ecdsa_test(instance, instance->msg);
         break;
+    case CryptoTestCmdTypeHmacTest:
+        crypto_hmac_test(instance, instance->msg);
+        break;
 
     default:
         crypto_test_app_send_msg_invalid_arg(instance);
@@ -236,6 +242,7 @@ static void crypto_test_app_cmd_usage(CryptoTestApp* instance) {
     furi_string_cat_printf(instance->msg, "aes_test\r\n");
     furi_string_cat_printf(instance->msg, "sha_test\r\n");
     furi_string_cat_printf(instance->msg, "ecdsa_test\r\n");
+    furi_string_cat_printf(instance->msg, "hmac_test\r\n");
 
     furi_string_cat_printf(
         instance->msg,

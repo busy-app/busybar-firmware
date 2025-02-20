@@ -10,6 +10,7 @@ App(
         "helpers/crypto_aes.c",
         "helpers/crypto_sha.c",
         "helpers/crypto_ecdsa.c",
+        "helpers/crypto_hmac.c",
     ],
     order=40,
     stack_size=1024 * 4,
