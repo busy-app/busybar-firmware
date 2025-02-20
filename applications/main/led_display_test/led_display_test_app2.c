@@ -14,11 +14,25 @@ static void led_display_test_app_keypad_callback(lv_event_t* event) {
     const lv_indev_t* indev = lv_event_get_param(event);
 
     if(lv_indev_get_type(indev) == LV_INDEV_TYPE_KEYPAD) {
-        if(code == LV_EVENT_SINGLE_CLICKED) {
-            FURI_LOG_I(TAG, "SINGLE_CLICKED");
+        if(code == LV_EVENT_CLICKED) {
+            FURI_LOG_I(TAG, "LV_EVENT_CLICKED");
             instance->pattern = (instance->pattern + 1) % LedDisplayTestPatternNum;
             LedDisplayTestAppEvent event = {
                 .type = LedDisplayTestAppEventTypeNextPattern,
+            };
+            furi_check(
+                furi_message_queue_put(instance->event_queue, &event, FuriWaitForever) ==
+                FuriStatusOk);
+        }
+    } else if(lv_indev_get_type(indev) == LV_INDEV_TYPE_ENCODER) {
+        if(code == LV_EVENT_SCROLL_BEGIN) {
+            int32_t enc_diff = lv_event_get_rotary_diff(event);
+            FURI_LOG_I(TAG, "LV_EVENT_SCROLL_BEGIN diff: %ld", enc_diff);
+            int32_t new_color = instance->color + enc_diff;
+            instance->color = new_color > 0 ? new_color % LedDisplayTestColorNum :
+                                              (-new_color) % LedDisplayTestColorNum;
+            LedDisplayTestAppEvent event = {
+                .type = LedDisplayTestAppEventTypeUpdateColor,
             };
             furi_check(
                 furi_message_queue_put(instance->event_queue, &event, FuriWaitForever) ==
@@ -88,7 +102,9 @@ static LedDisplayTestApp* led_display_test_app_alloc(void) {
 
     // Input events
     lv_obj_add_event_cb(
-        instance->canvas, led_display_test_app_keypad_callback, LV_EVENT_SINGLE_CLICKED, instance);
+        instance->canvas, led_display_test_app_keypad_callback, LV_EVENT_CLICKED, instance);
+    lv_obj_add_event_cb(
+        instance->canvas, led_display_test_app_keypad_callback, LV_EVENT_SCROLL_BEGIN, instance);
     lv_group_add_obj(lv_group_get_default(), instance->canvas);
 
     gui_lvgl_release(instance->gui);
