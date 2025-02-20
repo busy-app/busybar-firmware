@@ -1,6 +1,7 @@
 #include <furi.h>
 #include <applications.h>
 
+#include <desktop/desktop.h>
 #include <gui_lvgl/gui_lvgl.h>
 
 #define TAG "AppsMenu"
@@ -23,6 +24,7 @@
 typedef struct {
     FuriEventLoop* event_loop;
     FuriMessageQueue* queue;
+    Desktop* desktop;
     GuiLvgl* gui;
     lv_obj_t* list;
 } AppsMenu;
@@ -57,8 +59,14 @@ static void apps_menu_queue_callback(FuriEventLoopObject* object, void* context)
     lv_obj_t* button;
     furi_check(furi_message_queue_get(instance->queue, &button, 0) == FuriStatusOk);
 
-    // TODO: Signal Desktop to launch this app
-    FURI_LOG_D(TAG, "App selected: %s", lv_list_get_button_text(instance->list, button));
+    const char* app_name = lv_list_get_button_text(instance->list, button);
+
+    if(desktop_replace_current_app(instance->desktop, app_name, NULL)) {
+        furi_event_loop_stop(instance->event_loop);
+        FURI_LOG_D(TAG, "Selected app %s", app_name);
+    } else {
+        FURI_LOG_E(TAG, "Failed to select app %s", app_name);
+    }
 }
 
 static AppsMenu* apps_menu_alloc(void) {
@@ -66,6 +74,7 @@ static AppsMenu* apps_menu_alloc(void) {
 
     instance->event_loop = furi_event_loop_alloc();
     instance->queue = furi_message_queue_alloc(1, sizeof(lv_obj_t*));
+    instance->desktop = furi_record_open(RECORD_DESKTOP);
     instance->gui = furi_record_open(RECORD_GUI_LVGL);
 
     furi_event_loop_subscribe_message_queue(
@@ -96,6 +105,9 @@ static AppsMenu* apps_menu_alloc(void) {
 
 static void apps_menu_free(AppsMenu* instance) {
     with_gui(instance->gui, { lv_obj_delete(instance->list); });
+
+    furi_record_close(RECORD_GUI_LVGL);
+    furi_record_close(RECORD_DESKTOP);
 
     furi_event_loop_unsubscribe(instance->event_loop, instance->queue);
     furi_message_queue_free(instance->queue);

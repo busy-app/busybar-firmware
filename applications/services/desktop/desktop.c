@@ -1,3 +1,6 @@
+#include "desktop.h"
+#include "desktop_overlay.h"
+
 #include <furi.h>
 
 #include <input/input.h>
@@ -5,8 +8,6 @@
 
 #include <loader/loader.h>
 #include <gui_lvgl/gui_lvgl.h>
-
-#include "desktop_overlay.h"
 
 #define TAG "Desktop"
 
@@ -17,7 +18,7 @@ typedef struct {
     const char* args;
 } DesktopAppDesc;
 
-typedef struct {
+struct Desktop {
     FuriEventLoop* event_loop;
     FuriSemaphore* exit_semaphore;
     FuriMessageQueue* input_queue;
@@ -28,7 +29,7 @@ typedef struct {
     DesktopOverlay* overlay;
     InputSwitchPosition prev_pos;
     InputSwitchPosition current_pos;
-} Desktop;
+};
 
 static const DesktopAppDesc desktop_apps[];
 
@@ -210,7 +211,18 @@ static Desktop* desktop_alloc(void) {
     FuriPubSub* input_events = furi_record_open(RECORD_INPUT_EVENTS);
     furi_pubsub_subscribe(input_events, desktop_input_pubsub_callback, instance);
 
+    furi_record_create(RECORD_DESKTOP, instance);
     return instance;
+}
+
+bool desktop_replace_current_app(Desktop* instance, const char* name, const void* arg) {
+    furi_check(instance);
+    furi_check(name);
+    UNUSED(arg);
+
+    FURI_LOG_D(TAG, "Launching app: %s", name);
+
+    return false;
 }
 
 int32_t desktop_srv(void* arg) {
