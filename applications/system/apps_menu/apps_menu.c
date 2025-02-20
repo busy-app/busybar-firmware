@@ -61,7 +61,7 @@ static void apps_menu_queue_callback(FuriEventLoopObject* object, void* context)
 
     const char* app_name = lv_list_get_button_text(instance->list, button);
 
-    if(desktop_replace_current_app(instance->desktop, app_name, NULL)) {
+    if(desktop_replace_current_app(instance->desktop, app_name)) {
         furi_event_loop_stop(instance->event_loop);
         FURI_LOG_D(TAG, "Selected app %s", app_name);
     } else {

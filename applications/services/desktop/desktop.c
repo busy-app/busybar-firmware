@@ -28,7 +28,7 @@ typedef struct {
 } DesktopAppDesc;
 
 typedef struct {
-    DesktopAppDesc desc;
+    const char* name;
     FuriApiLock lock;
     bool* result;
 } DesktopMessage;
@@ -39,10 +39,12 @@ struct Desktop {
     FuriMessageQueue* input_queue;
     FuriMessageQueue* message_queue;
     FuriEventLoopTimer* debounce_timer;
+    FuriString* app_name;
     FuriString* error_message;
     Loader* loader;
-    const DesktopAppDesc* app_desc;
     DesktopOverlay* overlay;
+    DesktopMessage current_msg;
+    DesktopAppDesc current_app_desc;
     DesktopState state;
     InputSwitchPosition prev_pos;
     InputSwitchPosition current_pos;
@@ -86,27 +88,27 @@ static void desktop_loader_pubsub_callback(const void* message, void* context) {
 }
 
 static bool desktop_start_current_app(Desktop* instance) {
-    furi_assert(instance->app_desc);
+    bool success = false;
 
-    const char* app_name = instance->app_desc->name;
-    const char* app_args = instance->app_desc->args;
+    const char* name = instance->current_app_desc.name;
+    furi_assert(name);
+    const void* arg = instance->current_app_desc.args;
 
-    FURI_LOG_I(
-        TAG, "Starting application '%s' with args '%s'", app_name, app_args ? app_args : "NULL");
+    FURI_LOG_I(TAG, "Starting application '%s' with arg 0x%p", name, arg);
 
-    const LoaderStatus status =
-        loader_start(instance->loader, app_name, app_args, instance->error_message);
+    const LoaderStatus status = loader_start(instance->loader, name, arg, instance->error_message);
 
-    const bool success = (status == LoaderStatusOk);
+    if(status == LoaderStatusOk) {
+        instance->state = DesktopStateAppRunning;
+        success = true;
 
-    if(success) {
-        FURI_LOG_I(TAG, "App %s started", app_name);
+        FURI_LOG_I(TAG, "App %s started", name);
+
     } else {
+        instance->state = DesktopStateError;
+
         FURI_LOG_E(
-            TAG,
-            "Failed to load app %s: %s",
-            app_name,
-            furi_string_get_cstr(instance->error_message));
+            TAG, "Failed to load app %s: %s", name, furi_string_get_cstr(instance->error_message));
     }
 
     return success;
@@ -128,6 +130,30 @@ static void desktop_handle_switch_finished(Desktop* instance) {
     FURI_LOG_D(TAG, "Switch interaction finished");
 
     desktop_overlay_hide(instance->overlay);
+}
+
+static bool desktop_replace_current_app_internal(Desktop* instance) {
+    bool success = false;
+
+    const LoaderStatus status = loader_stop(instance->loader);
+
+    if(status == LoaderStatusOk) {
+        /* App will be started asynchronously after
+         * the currently running one will have stopped */
+        instance->state = DesktopStateAppStopping;
+        success = true;
+
+    } else if(status == LoaderStatusErrorAppNotRunning) {
+        success = desktop_start_current_app(instance);
+        desktop_handle_switch_finished(instance);
+
+    } else if(status == LoaderStatusErrorInternal) {
+        furi_crash("Update app to support signals");
+    } else {
+        furi_crash("Unexpected loader status");
+    }
+
+    return success;
 }
 
 static void desktop_input_queue_callback(FuriEventLoopObject* object, void* context) {
@@ -167,14 +193,17 @@ static void desktop_message_queue_callback(FuriEventLoopObject* object, void* co
         return;
     }
 
+    desktop_handle_switch_start(instance);
+
     DesktopMessage msg;
     furi_check(furi_message_queue_get(instance->message_queue, &msg, 0) == FuriStatusOk);
 
-    // TODO: Actually launch the app
-    FURI_LOG_D(TAG, "Launching app: %s", msg.desc.name);
-    instance->state = DesktopStateAppRunning;
+    furi_string_set(instance->app_name, msg.name);
 
-    *msg.result = false;
+    instance->current_app_desc.name = furi_string_get_cstr(instance->app_name);
+    instance->current_app_desc.args = NULL;
+
+    *msg.result = desktop_replace_current_app_internal(instance);
     api_lock_unlock(msg.lock);
 }
 
@@ -183,18 +212,22 @@ static void desktop_exit_semaphore_callback(FuriEventLoopObject* object, void* c
 
     Desktop* instance = context;
     furi_assert(instance->exit_semaphore == object);
-    furi_assert(instance->state == DesktopStateAppStopping);
 
-    if(!desktop_start_current_app(instance)) {
-        // TODO: Show error message on screen
-        instance->state = DesktopStateError;
+    if(instance->state != DesktopStateTransition) {
+        if(instance->state == DesktopStateAppRunning) {
+            // The app stopped by itself via user interaction, reload the default one
+            instance->current_app_desc = desktop_apps[instance->current_pos];
+        }
+
+        desktop_start_current_app(instance);
+        desktop_handle_switch_finished(instance);
+
     } else {
-        instance->state = DesktopStateAppRunning;
+        // Somehow, the user started operating the switch before the app could exit.
+        // Don't do anything other than releasing the semaphore.
     }
 
-    desktop_handle_switch_finished(instance);
-
-    furi_check(furi_semaphore_release(instance->exit_semaphore) == FuriStatusOk);
+    furi_semaphore_release(instance->exit_semaphore);
 }
 
 static void desktop_debounce_timer_callback(void* context) {
@@ -204,30 +237,9 @@ static void desktop_debounce_timer_callback(void* context) {
     furi_assert(instance->state == DesktopStateTransition);
 
     furi_assert(instance->current_pos < InputSwitchPositionMAX);
-    instance->app_desc = &desktop_apps[instance->current_pos];
+    instance->current_app_desc = desktop_apps[instance->current_pos];
 
-    const LoaderStatus status = loader_stop(instance->loader);
-
-    if(status == LoaderStatusOk) {
-        /* App will be started asynchronously after
-         * the currently running one will have stopped */
-        instance->state = DesktopStateAppStopping;
-
-    } else if(status == LoaderStatusErrorAppNotRunning) {
-        if(!desktop_start_current_app(instance)) {
-            // TODO: Show error message on screen
-            instance->state = DesktopStateError;
-        } else {
-            instance->state = DesktopStateAppRunning;
-        }
-
-        desktop_handle_switch_finished(instance);
-
-    } else if(status == LoaderStatusErrorInternal) {
-        furi_crash("Update app to support signals");
-    } else {
-        furi_crash("Unexpected loader status");
-    }
+    desktop_replace_current_app_internal(instance);
 }
 
 static Desktop* desktop_alloc(void) {
@@ -242,6 +254,7 @@ static Desktop* desktop_alloc(void) {
         desktop_debounce_timer_callback,
         FuriEventLoopTimerTypeOnce,
         instance);
+    instance->app_name = furi_string_alloc();
     instance->error_message = furi_string_alloc();
     instance->loader = furi_record_open(RECORD_LOADER);
 
@@ -279,18 +292,14 @@ static Desktop* desktop_alloc(void) {
     return instance;
 }
 
-bool desktop_replace_current_app(Desktop* instance, const char* name, const void* arg) {
+bool desktop_replace_current_app(Desktop* instance, const char* name) {
     furi_check(instance);
     furi_check(name);
 
     bool result;
 
     const DesktopMessage msg = {
-        .desc =
-            {
-                .name = name,
-                .args = arg,
-            },
+        .name = name,
         .lock = api_lock_alloc_locked(),
         .result = &result,
     };

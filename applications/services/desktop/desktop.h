@@ -6,4 +6,4 @@
 
 typedef struct Desktop Desktop;
 
-bool desktop_replace_current_app(Desktop* instance, const char* name, const void* arg);
+bool desktop_replace_current_app(Desktop* instance, const char* name);

@@ -41,8 +41,6 @@ void dummy_free(Dummy* instance) {
 }
 
 int32_t dummy_app(void* arg) {
-    furi_assert(arg);
-
     Dummy* instance = dummy_alloc(arg);
     furi_event_loop_run(instance->event_loop);
     dummy_free(instance);
