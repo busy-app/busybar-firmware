@@ -18,7 +18,7 @@ Dummy* dummy_alloc(const char* message) {
     lv_obj_t* active = gui_lvgl_get_layer(instance->gui, GuiDisplayIdFront, GuiLayerIdActive);
 
     instance->label = lv_label_create(active);
-    lv_label_set_text(instance->label, message);
+    lv_label_set_text(instance->label, message ? message : "Hello There");
     lv_obj_set_style_text_color(instance->label, lv_color_white(), LV_PART_MAIN);
     lv_obj_center(instance->label);
 
