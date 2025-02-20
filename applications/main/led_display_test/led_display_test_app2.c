@@ -10,34 +10,26 @@
 static void led_display_test_app_keypad_callback(lv_event_t* event) {
     LedDisplayTestApp* instance = lv_event_get_user_data(event);
 
+    // TODO Fix focus and differ OK and START buttons
     const lv_event_code_t code = lv_event_get_code(event);
-    const lv_indev_t* indev = lv_event_get_param(event);
-
-    if(lv_indev_get_type(indev) == LV_INDEV_TYPE_KEYPAD) {
-        if(code == LV_EVENT_CLICKED) {
-            FURI_LOG_I(TAG, "LV_EVENT_CLICKED");
-            instance->pattern = (instance->pattern + 1) % LedDisplayTestPatternNum;
-            LedDisplayTestAppEvent event = {
-                .type = LedDisplayTestAppEventTypeNextPattern,
-            };
-            furi_check(
-                furi_message_queue_put(instance->event_queue, &event, FuriWaitForever) ==
-                FuriStatusOk);
+    if(code == LV_EVENT_KEY) {
+        LedDisplayTestAppEvent app_event;
+        const uint32_t key = *((uint32_t*)lv_event_get_param(event));
+        FURI_LOG_I(TAG, "Key event: %ld", key);
+        if(key == LV_KEY_LEFT) {
+            app_event = LedDisplayTestAppEventPrevColor;
+        } else if(key == LV_KEY_RIGHT) {
+            app_event = LedDisplayTestAppEventNextColor;
+        } else if(key == LV_KEY_ENTER) {
+            app_event = LedDisplayTestAppEventNextPattern;
+        } else if(key == LV_KEY_ESC) {
+            app_event = LedDisplayTestAppEventExit;
+        } else {
+            furi_crash("Unknown key");
         }
-    } else if(lv_indev_get_type(indev) == LV_INDEV_TYPE_ENCODER) {
-        if(code == LV_EVENT_SCROLL_BEGIN) {
-            int32_t enc_diff = lv_event_get_rotary_diff(event);
-            FURI_LOG_I(TAG, "LV_EVENT_SCROLL_BEGIN diff: %ld", enc_diff);
-            int32_t new_color = instance->color + enc_diff;
-            instance->color = new_color > 0 ? new_color % LedDisplayTestColorNum :
-                                              (-new_color) % LedDisplayTestColorNum;
-            LedDisplayTestAppEvent event = {
-                .type = LedDisplayTestAppEventTypeUpdateColor,
-            };
-            furi_check(
-                furi_message_queue_put(instance->event_queue, &event, FuriWaitForever) ==
-                FuriStatusOk);
-        }
+        furi_check(
+            furi_message_queue_put(instance->event_queue, &app_event, FuriWaitForever) ==
+            FuriStatusOk);
     }
 }
 
@@ -50,7 +42,8 @@ static void led_display_test_app_draw(LedDisplayTestApp* instance) {
     lv_obj_invalidate(instance->canvas);
 
     // Back screen
-    lv_label_set_text(instance->back_label, led_display_get_pattern_str(instance->pattern));
+    lv_label_set_text(instance->pattern_label, led_display_get_pattern_str(instance->pattern));
+    lv_label_set_text(instance->color_label, led_display_get_color_str(instance->color));
 
     gui_lvgl_release(instance->gui);
 }
@@ -62,6 +55,19 @@ static void led_display_test_app_event_queue_callback(FuriEventLoopObject* objec
     LedDisplayTestAppEvent event;
     furi_check(furi_message_queue_get(instance->event_queue, &event, 0) == FuriStatusOk);
 
+    if(event == LedDisplayTestAppEventNextPattern) {
+        instance->pattern = (instance->pattern + 1) % LedDisplayTestPatternNum;
+    } else if(event == LedDisplayTestAppEventPrevPattern) {
+        instance->pattern = (instance->pattern == 0) ? LedDisplayTestPatternNum - 1 :
+                                                       instance->pattern - 1;
+    } else if(event == LedDisplayTestAppEventNextColor) {
+        instance->color = (instance->color + 1) % LedDisplayTestColorNum;
+    } else if(event == LedDisplayTestAppEventPrevColor) {
+        instance->color = (instance->color == 0) ? LedDisplayTestColorNum - 1 :
+                                                   instance->color - 1;
+    } else if(event == LedDisplayTestAppEventExit) {
+        furi_event_loop_stop(instance->event_loop);
+    }
     led_display_test_app_draw(instance);
 }
 
@@ -77,10 +83,6 @@ static LedDisplayTestApp* led_display_test_app_alloc(void) {
         led_display_test_app_event_queue_callback,
         instance);
 
-    // FuriPubSub* input = furi_record_open(RECORD_INPUT_EVENTS);
-    // instance->input_events =
-    //     furi_pubsub_subscribe(input, led_display_test_app_input_callback, instance);
-
     // Create a single label for the back display
     instance->gui = furi_record_open(RECORD_GUI_LVGL);
     gui_lvgl_acquire(instance->gui);
@@ -88,24 +90,25 @@ static LedDisplayTestApp* led_display_test_app_alloc(void) {
     lv_obj_t* active = gui_lvgl_get_layer(instance->gui, GuiDisplayIdBack, GuiLayerIdActive);
 
     // Back screen
-    instance->back_label = lv_label_create(active);
-    lv_obj_center(instance->back_label);
-    lv_obj_set_style_text_color(instance->back_label, lv_color_white(), LV_PART_MAIN);
+    instance->pattern_label = lv_label_create(active);
+    lv_obj_set_pos(instance->pattern_label, 10, 20);
+    lv_obj_set_style_text_color(instance->pattern_label, lv_color_white(), LV_PART_MAIN);
+
+    instance->color_label = lv_label_create(active);
+    lv_obj_set_pos(instance->color_label, 10, 30);
+    lv_obj_set_style_text_color(instance->color_label, lv_color_white(), LV_PART_MAIN);
 
     // Front screen
     active = gui_lvgl_get_layer(instance->gui, GuiDisplayIdFront, GuiLayerIdActive);
     instance->canvas = lv_canvas_create(active);
-    FURI_LOG_E(
-        TAG, "Color format pizel size: %d", lv_color_format_get_size(LV_COLOR_FORMAT_RGB888));
     lv_canvas_set_buffer(
         instance->canvas, instance->canvas_buffer, 72, 16, LV_COLOR_FORMAT_RGB888);
 
+    lv_group_add_obj(lv_group_get_default(), instance->canvas);
+    lv_group_focus_obj(instance->canvas);
     // Input events
     lv_obj_add_event_cb(
-        instance->canvas, led_display_test_app_keypad_callback, LV_EVENT_CLICKED, instance);
-    lv_obj_add_event_cb(
-        instance->canvas, led_display_test_app_keypad_callback, LV_EVENT_SCROLL_BEGIN, instance);
-    lv_group_add_obj(lv_group_get_default(), instance->canvas);
+        instance->canvas, led_display_test_app_keypad_callback, LV_EVENT_KEY, instance);
 
     gui_lvgl_release(instance->gui);
 
@@ -120,7 +123,7 @@ static void led_display_test_app_free(LedDisplayTestApp* instance) {
     furi_check(instance);
 
     gui_lvgl_acquire(instance->gui);
-    lv_obj_delete(instance->back_label);
+    lv_obj_delete(instance->pattern_label);
     gui_lvgl_release(instance->gui);
     furi_record_close(RECORD_GUI_LVGL);
 

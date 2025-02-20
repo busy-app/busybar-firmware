@@ -7,23 +7,20 @@
 #define LED_DISPLAY_CANVAS_BUFFER_SIZE (72 * 16 * 3)
 
 typedef enum {
-    LedDisplayTestAppEventTypeNextPattern,
-    LedDisplayTestAppEventTypePrevPattern,
-    LedDisplayTestAppEventTypeUpdateColor,
-    LedDisplayTestAppEventTypeTick,
-    LedDisplayTestAppEventTypeExit,
-} LedDisplayTestAppEventType;
-
-typedef struct {
-    LedDisplayTestAppEventType type;
-    uint8_t color_num;
+    LedDisplayTestAppEventNextPattern,
+    LedDisplayTestAppEventPrevPattern,
+    LedDisplayTestAppEventNextColor,
+    LedDisplayTestAppEventPrevColor,
+    LedDisplayTestAppEventTick,
+    LedDisplayTestAppEventExit,
 } LedDisplayTestAppEvent;
 
 typedef struct {
     FuriEventLoop* event_loop;
     FuriMessageQueue* event_queue;
     GuiLvgl* gui;
-    lv_obj_t* back_label;
+    lv_obj_t* pattern_label;
+    lv_obj_t* color_label;
     FuriPubSubSubscription* input_events;
 
     lv_obj_t* canvas;
