@@ -9,7 +9,7 @@
 #define BUFFER_SIZE 128
 
 static const uint8_t message_const[] =
-    {'H', 'e', 'l', 'l', 'o', ' ', 'W', 'o', 'r', 'l', 'd', '!', '!', '!', '!', '!'};
+    {'H', 'e', 'l', 'l', 'o', ' ', 'W', 'o', 'r', 'l', 'd', '!', '!', '!', '!', '!' , 'H', 'e', 'l', 'l', 'o', ' ', 'W', 'o', 'r', 'l', 'd', '!', '!', '!', '1', '1'};
 
 static const uint8_t key_const[FURI_HAL_AES_KEY_SIZE_256] = {
     'H', 'e', 'l', 'l', 'o', ' ', 'W', 'o', 'r', 'l', 'd', '!', '!', '!', '!', '!',
