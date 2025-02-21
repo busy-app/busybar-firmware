@@ -6,21 +6,6 @@
 
 #define TAG "AppsMenu"
 
-#define with_gui(gui, code)    \
-    {                          \
-        gui_lvgl_acquire(gui); \
-        {code};                \
-        gui_lvgl_release(gui); \
-    }
-
-#define with_gui_layer(gui, display_id, layer_id, code)                  \
-    {                                                                    \
-        gui_lvgl_acquire(gui);                                           \
-        lv_obj_t* layer = gui_lvgl_get_layer(gui, display_id, layer_id); \
-        {code};                                                          \
-        gui_lvgl_release(gui);                                           \
-    }
-
 typedef struct {
     FuriEventLoop* event_loop;
     FuriMessageQueue* queue;
