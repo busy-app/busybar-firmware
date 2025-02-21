@@ -81,7 +81,9 @@ bool furi_hal_aes_encrypt(
     furi_assert(input);
     furi_assert(input_length % 16 == 0);
     furi_assert(input_length <= SL_SI91X_MAX_DATA_SIZE_IN_BYTES);
-    //furi_check((handle->config.aes_mode != SL_SI91X_AES_ECB) && iv);
+    if(handle->config.aes_mode != SL_SI91X_AES_ECB) {
+        furi_check(iv);
+    }
 
     handle->config.encrypt_decrypt = SL_SI91X_AES_ENCRYPT;
     handle->config.msg = input;
@@ -107,7 +109,9 @@ bool furi_hal_aes_decrypt(
     furi_assert(input);
     furi_assert(input_length % 16 == 0);
     furi_assert(input_length <= SL_SI91X_MAX_DATA_SIZE_IN_BYTES);
-    //furi_check((handle->config.aes_mode != SL_SI91X_AES_ECB) && iv);
+    if(handle->config.aes_mode != SL_SI91X_AES_ECB) {
+        furi_check(iv);
+    }
 
     handle->config.encrypt_decrypt = SL_SI91X_AES_DECRYPT;
     handle->config.msg = input;
