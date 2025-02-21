@@ -1,9 +1,0 @@
-App(
-    appid="oled_screen",
-    name="OLED Screen",
-    apptype=FlipperAppType.SERVICE,
-    entry_point="oled_screen",
-    stack_size=1024 * 10,
-    order=90,
-    targets=["f20"],
-)

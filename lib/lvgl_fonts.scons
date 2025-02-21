@@ -1,0 +1,16 @@
+Import("env")
+
+libenv = env.Clone(FW_LIB_NAME="lvgl_fonts")
+libenv.ApplyLibFlags()
+
+libenv.AppendUnique(
+    CPPDEFINES=[
+        "LV_LVGL_H_INCLUDE_SIMPLE",
+    ]
+)
+
+sources = libenv.Glob("lvgl_fonts/src/*.c", source=True)
+
+lib = libenv.StaticLibrary("${FW_LIB_NAME}", sources)
+libenv.Install("${LIB_DIST_DIR}", lib)
+Return("lib")

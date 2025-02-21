@@ -54,7 +54,8 @@ void ble_usart_echo_system_start(void) {
 #ifdef SRV_CLI
     Cli* cli = furi_record_open(RECORD_CLI);
 
-    cli_add_command(cli, "ble_usart_echo", CliCommandFlagParallelSafe, ble_usart_echo_command, NULL);
+    cli_add_command(
+        cli, "ble_usart_echo", CliCommandFlagParallelSafe, ble_usart_echo_command, NULL);
 
     furi_record_close(RECORD_CLI);
 #else

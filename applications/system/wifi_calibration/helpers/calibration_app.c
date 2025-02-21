@@ -36,7 +36,7 @@ ch  min     typ     max
 12	2.456   2.467	2.478
 13	2.461   2.472	2.483
 */
-#define CHANNEL         1 
+#define CHANNEL 1
 
 #define MAX_CALIB_COMMAND_LENGTH 32
 #define NO_OF_CALIB_COMMANDS     7

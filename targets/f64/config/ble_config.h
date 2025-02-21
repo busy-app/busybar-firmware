@@ -176,7 +176,7 @@
 //! Remote device bd address
 #define RSI_BLE_REMOTE_DEV_ADDR "00:12:45:AB:1D:32"
 //! Remote device name
-#define RSI_REMOTE_DEVICE_NAME "Note10"
+#define RSI_REMOTE_DEVICE_NAME  "Note10"
 
 //! connection update params
 #define CONN_INTERVAL_MIN 0x08
@@ -195,8 +195,8 @@
 //  0x01 - 1Mbps
 //  0x04 - Coded PHY (set desired CODDED_PHY_RATE)
 //! Phy parameter
-#define TX_PHY_RATE 0x02
-#define RX_PHY_RATE 0x02
+#define TX_PHY_RATE     0x02
+#define RX_PHY_RATE     0x02
 // CODED_PHY_RATE: 0x01 - 500Kbps
 // CODED_PHY_RATE: 0x02 - 125Kbps
 #define CODDED_PHY_RATE 0x00
