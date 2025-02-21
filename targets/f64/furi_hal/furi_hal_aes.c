@@ -19,12 +19,7 @@ FuriHalAes* furi_hal_aes_init(
     FuriHalAesMode mode,
     uint8_t* key,
     size_t key_size,
-    uint8_t* iv,
     FuriHalAesWrappingMode wrapping_mode) {
-    if(mode != FuriHalAesModeECB) {
-        furi_check(iv);
-    }
-
     FuriHalAes* handle = malloc(sizeof(FuriHalAes));
     furi_check(handle != NULL, "Failed to allocate memory for AES handle");
 
@@ -32,7 +27,7 @@ FuriHalAes* furi_hal_aes_init(
     handle->config.encrypt_decrypt = SL_SI91X_AES_ENCRYPT;
     handle->config.msg = NULL;
     handle->config.msg_length = 0;
-    handle->config.iv = iv;
+    handle->config.iv = NULL;
     switch(key_size) {
     case SL_SI91X_AES_KEY_SIZE_128:
         handle->config.key_config.b0.key_size = SL_SI91X_AES_KEY_SIZE_128;
@@ -78,6 +73,7 @@ void furi_hal_aes_deinit(FuriHalAes* handle) {
 
 bool furi_hal_aes_encrypt(
     FuriHalAes* handle,
+    uint8_t* iv,
     uint8_t* input,
     uint16_t input_length,
     uint8_t* output) {
@@ -85,10 +81,12 @@ bool furi_hal_aes_encrypt(
     furi_assert(input);
     furi_assert(input_length % 16 == 0);
     furi_assert(input_length <= SL_SI91X_MAX_DATA_SIZE_IN_BYTES);
+    //furi_check((handle->config.aes_mode != SL_SI91X_AES_ECB) && iv);
 
     handle->config.encrypt_decrypt = SL_SI91X_AES_ENCRYPT;
     handle->config.msg = input;
     handle->config.msg_length = input_length;
+    handle->config.iv = iv;
 
     sl_status_t status = sl_si91x_aes(&handle->config, output);
 
@@ -101,6 +99,7 @@ bool furi_hal_aes_encrypt(
 
 bool furi_hal_aes_decrypt(
     FuriHalAes* handle,
+    uint8_t* iv,
     uint8_t* input,
     uint16_t input_length,
     uint8_t* output) {
@@ -108,10 +107,12 @@ bool furi_hal_aes_decrypt(
     furi_assert(input);
     furi_assert(input_length % 16 == 0);
     furi_assert(input_length <= SL_SI91X_MAX_DATA_SIZE_IN_BYTES);
+    //furi_check((handle->config.aes_mode != SL_SI91X_AES_ECB) && iv);
 
     handle->config.encrypt_decrypt = SL_SI91X_AES_DECRYPT;
     handle->config.msg = input;
     handle->config.msg_length = input_length;
+    handle->config.iv = iv;
 
     sl_status_t status = sl_si91x_aes(&handle->config, output);
 

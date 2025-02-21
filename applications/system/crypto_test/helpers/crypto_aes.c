@@ -68,12 +68,10 @@ void crypto_aes_test_custom_size_key(CryptoTestApp* app, FuriString* msg, size_t
     furi_string_printf(msg, "Crypto AES FuriHalAesModeECB\r\n");
     crypto_test_app_send_text(app, msg);
     FuriHalAes* handle =
-        furi_hal_aes_init(FuriHalAesModeECB, key, key_size, NULL, FuriHalAesWrappingModeOff);
+        furi_hal_aes_init(FuriHalAesModeECB, key, key_size, FuriHalAesWrappingModeOff);
 
-    furi_hal_aes_encrypt(handle, message, sizeof(message), encrypted_buffer);
-    printf("\r\nAES encryption success\r\n");
-    furi_hal_aes_decrypt(handle, encrypted_buffer, sizeof(message), decrypted_buffer);
-    printf("\r\nAES decryption success\r\n");
+    furi_hal_aes_encrypt(handle, NULL, message, sizeof(message), encrypted_buffer);
+    furi_hal_aes_decrypt(handle, NULL, encrypted_buffer, sizeof(message), decrypted_buffer);
     furi_hal_aes_deinit(handle);
 
     crypto_aes_chek(app, msg, "FuriHalAesModeECB", encrypted_buffer, decrypted_buffer);
@@ -82,12 +80,10 @@ void crypto_aes_test_custom_size_key(CryptoTestApp* app, FuriString* msg, size_t
     furi_string_printf(msg, "Crypto AES FuriHalAesModeCTR\r\n");
     crypto_test_app_send_text(app, msg);
 
-    handle = furi_hal_aes_init(FuriHalAesModeCTR, key, key_size, iv, FuriHalAesWrappingModeOff);
+    handle = furi_hal_aes_init(FuriHalAesModeCTR, key, key_size, FuriHalAesWrappingModeOff);
 
-    furi_hal_aes_encrypt(handle, message, sizeof(message), encrypted_buffer);
-    printf("\r\nAES encryption success\r\n");
-    furi_hal_aes_decrypt(handle, encrypted_buffer, sizeof(message), decrypted_buffer);
-    printf("\r\nAES decryption success\r\n");
+    furi_hal_aes_encrypt(handle, iv, message, sizeof(message), encrypted_buffer);
+    furi_hal_aes_decrypt(handle, iv, encrypted_buffer, sizeof(message), decrypted_buffer);
     furi_hal_aes_deinit(handle);
 
     crypto_aes_chek(app, msg, "FuriHalAesModeCTR", encrypted_buffer, decrypted_buffer);
@@ -96,12 +92,10 @@ void crypto_aes_test_custom_size_key(CryptoTestApp* app, FuriString* msg, size_t
     furi_string_printf(msg, "Crypto AES FuriHalAesModeCBC\r\n");
     crypto_test_app_send_text(app, msg);
 
-    handle = furi_hal_aes_init(FuriHalAesModeCBC, key, key_size, iv, FuriHalAesWrappingModeOff);
+    handle = furi_hal_aes_init(FuriHalAesModeCBC, key, key_size, FuriHalAesWrappingModeOff);
 
-    furi_hal_aes_encrypt(handle, message, sizeof(message), encrypted_buffer);
-    printf("\r\nAES encryption success\r\n");
-    furi_hal_aes_decrypt(handle, encrypted_buffer, sizeof(message), decrypted_buffer);
-    printf("\r\nAES decryption success\r\n");
+    furi_hal_aes_encrypt(handle, iv, message, sizeof(message), encrypted_buffer);
+    furi_hal_aes_decrypt(handle, iv, encrypted_buffer, sizeof(message), decrypted_buffer);
     furi_hal_aes_deinit(handle);
 
     crypto_aes_chek(app, msg, "FuriHalAesModeCBC", encrypted_buffer, decrypted_buffer);
@@ -119,15 +113,12 @@ void crypto_aes_test_custom_size_key(CryptoTestApp* app, FuriString* msg, size_t
     furi_string_printf(msg, "Crypto AES FuriHalAesModeECB, Wrap key\r\n");
     crypto_test_app_send_text(app, msg);
 
-    handle = furi_hal_aes_init(FuriHalAesModeECB, key, key_size, NULL, FuriHalAesWrappingModeOff);
-    furi_hal_aes_encrypt(handle, message, sizeof(message), encrypted_buffer);
-    printf("\r\nAES encryption success\r\n");
+    handle = furi_hal_aes_init(FuriHalAesModeECB, key, key_size, FuriHalAesWrappingModeOff);
+    furi_hal_aes_encrypt(handle, NULL, message, sizeof(message), encrypted_buffer);
     furi_hal_aes_deinit(handle);
 
-    handle = furi_hal_aes_init(
-        FuriHalAesModeECB, wrapped_key, key_size, NULL, FuriHalAesWrappingModeOn);
-    furi_hal_aes_decrypt(handle, encrypted_buffer, sizeof(message), decrypted_buffer);
-    printf("\r\nAES decryption success\r\n");
+    handle = furi_hal_aes_init(FuriHalAesModeECB, wrapped_key, key_size, FuriHalAesWrappingModeOn);
+    furi_hal_aes_decrypt(handle, NULL, encrypted_buffer, sizeof(message), decrypted_buffer);
     furi_hal_aes_deinit(handle);
 
     crypto_aes_chek(app, msg, "FuriHalAesModeECB, Wrap key", encrypted_buffer, decrypted_buffer);
@@ -136,15 +127,12 @@ void crypto_aes_test_custom_size_key(CryptoTestApp* app, FuriString* msg, size_t
     furi_string_printf(msg, "Crypto AES FuriHalAesModeCTR, Wrap key\r\n");
     crypto_test_app_send_text(app, msg);
 
-    handle = furi_hal_aes_init(FuriHalAesModeCTR, key, key_size, iv, FuriHalAesWrappingModeOff);
-    furi_hal_aes_encrypt(handle, message, sizeof(message), encrypted_buffer);
-    printf("\r\nAES encryption success\r\n");
+    handle = furi_hal_aes_init(FuriHalAesModeCTR, key, key_size, FuriHalAesWrappingModeOff);
+    furi_hal_aes_encrypt(handle, iv, message, sizeof(message), encrypted_buffer);
     furi_hal_aes_deinit(handle);
 
-    handle =
-        furi_hal_aes_init(FuriHalAesModeCTR, wrapped_key, key_size, iv, FuriHalAesWrappingModeOn);
-    furi_hal_aes_decrypt(handle, encrypted_buffer, sizeof(message), decrypted_buffer);
-    printf("\r\nAES decryption success\r\n");
+    handle = furi_hal_aes_init(FuriHalAesModeCTR, wrapped_key, key_size, FuriHalAesWrappingModeOn);
+    furi_hal_aes_decrypt(handle, iv, encrypted_buffer, sizeof(message), decrypted_buffer);
     furi_hal_aes_deinit(handle);
 
     crypto_aes_chek(app, msg, "FuriHalAesModeCTR, Wrap key", encrypted_buffer, decrypted_buffer);
@@ -153,15 +141,12 @@ void crypto_aes_test_custom_size_key(CryptoTestApp* app, FuriString* msg, size_t
     furi_string_printf(msg, "Crypto AES FuriHalAesModeCBC, Wrap key\r\n");
     crypto_test_app_send_text(app, msg);
 
-    handle = furi_hal_aes_init(FuriHalAesModeCBC, key, key_size, iv, FuriHalAesWrappingModeOff);
-    furi_hal_aes_encrypt(handle, message, sizeof(message), encrypted_buffer);
-    printf("\r\nAES encryption success\r\n");
+    handle = furi_hal_aes_init(FuriHalAesModeCBC, key, key_size, FuriHalAesWrappingModeOff);
+    furi_hal_aes_encrypt(handle, iv, message, sizeof(message), encrypted_buffer);
     furi_hal_aes_deinit(handle);
 
-    handle =
-        furi_hal_aes_init(FuriHalAesModeCBC, wrapped_key, key_size, iv, FuriHalAesWrappingModeOn);
-    furi_hal_aes_decrypt(handle, encrypted_buffer, sizeof(message), decrypted_buffer);
-    printf("\r\nAES decryption success\r\n");
+    handle = furi_hal_aes_init(FuriHalAesModeCBC, wrapped_key, key_size, FuriHalAesWrappingModeOn);
+    furi_hal_aes_decrypt(handle, iv, encrypted_buffer, sizeof(message), decrypted_buffer);
     furi_hal_aes_deinit(handle);
 
     crypto_aes_chek(app, msg, "FuriHalAesModeCBC, Wrap key", encrypted_buffer, decrypted_buffer);
