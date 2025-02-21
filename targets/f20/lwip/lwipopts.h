@@ -1,21 +1,6 @@
 #ifndef __LWIPOPTS_H__
 #define __LWIPOPTS_H__
 
-#define NO_SYS                     0
-#define SYS_LIGHTWEIGHT_PROT       1
-#define MEM_ALIGNMENT              4
-#define LWIP_ETHERNET              1
-#define LWIP_RAW                   0
-#define LWIP_NETCONN               1
-#define LWIP_SOCKET                1
-#define LWIP_DHCP                  0
-#define LWIP_ICMP                  1
-#define LWIP_IGMP                  1
-#define LWIP_UDP                   1
-#define LWIP_TCP                   1
-#define LWIP_IPV4                  1
-#define LWIP_IPV6                  0
-#define ETH_PAD_SIZE               2
 #define LWIP_IP_ACCEPT_UDP_PORT(p) ((p) == PP_NTOHS(67))
 
 #define TCPIP_THREAD_STACKSIZE    4096
@@ -75,18 +60,18 @@
 
 // #define PBUF_POOL_SIZE 20 // TODO:
 
-// #define NO_SYS                                 0
+#define NO_SYS                                 0
 #define NO_SYS_NO_TIMERS                       0
 #define LWIP_TIMERS                            1
 #define LWIP_TIMERS_CUSTOM                     0
 #define LWIP_MPU_COMPATIBLE                    0
 // #define LWIP_TCPIP_CORE_LOCKING                1
 #define LWIP_TCPIP_CORE_LOCKING_INPUT          0
-// #define SYS_LIGHTWEIGHT_PROT                   1
+#define SYS_LIGHTWEIGHT_PROT                   1
 #define MEM_LIBC_MALLOC                        1
 #define MEMP_MEM_MALLOC                        0
 #define MEMP_MEM_INIT                          0
-// #define MEM_ALIGNMENT                          4
+#define MEM_ALIGNMENT                          4
 // #define MEM_SIZE                               16000
 #define MEMP_OVERFLOW_CHECK                    0
 #define MEMP_SANITY_CHECK                      0
@@ -126,11 +111,11 @@
 #define ARP_QUEUEING                           0
 #define ARP_QUEUE_LEN                          3
 #define ETHARP_SUPPORT_VLAN                    0
-// #define LWIP_ETHERNET                          LWIP_ARP
-// #define ETH_PAD_SIZE                           0
+#define LWIP_ETHERNET                          LWIP_ARP
+#define ETH_PAD_SIZE                           2
 // #define ETHARP_SUPPORT_STATIC_ENTRIES          1
 #define ETHARP_TABLE_MATCH_NETIF               !LWIP_SINGLE_NETIF
-// #define LWIP_IPV4                              1
+#define LWIP_IPV4                              1
 #define IP_FORWARD                             0
 #define IP_REASSEMBLY                          1
 #define IP_FRAG                                1
@@ -141,13 +126,13 @@
 #define IP_SOF_BROADCAST                       0
 #define IP_SOF_BROADCAST_RECV                  0
 #define IP_FORWARD_ALLOW_TX_ON_RX_NETIF        0
-// #define LWIP_ICMP                              1
+#define LWIP_ICMP                              1
 #define ICMP_TTL                               (IP_DEFAULT_TTL)
 // #define LWIP_BROADCAST_PING                    1
 // #define LWIP_MULTICAST_PING                    1
-// #define LWIP_RAW                               0
+#define LWIP_RAW                               0
 #define RAW_TTL                                (IP_DEFAULT_TTL)
-// #define LWIP_DHCP                              0 //LWIP_UDP
+#define LWIP_DHCP                              0 //LWIP_UDP
 #define LWIP_DHCP_CHECK_LINK_UP                0
 #define LWIP_DHCP_BOOTP_FILE                   0
 #define LWIP_DHCP_GET_NTP_SRV                  0
@@ -158,7 +143,7 @@
 #define LWIP_DHCP_AUTOIP_COOP_TRIES            9
 #define LWIP_MIB2_CALLBACKS                    0
 #define LWIP_MULTICAST_TX_OPTIONS              ((LWIP_IGMP || LWIP_IPV6_MLD) && (LWIP_UDP || LWIP_RAW))
-// #define LWIP_IGMP                              1
+#define LWIP_IGMP                              1
 #define LWIP_DNS                               0
 #define DNS_TABLE_SIZE                         4
 #define DNS_MAX_NAME_LENGTH                    256
@@ -171,11 +156,11 @@
 #define DNS_LOCAL_HOSTLIST            0
 #define DNS_LOCAL_HOSTLIST_IS_DYNAMIC 0
 #define LWIP_DNS_SUPPORT_MDNS_QUERIES 0
-// #define LWIP_UDP                      1
+#define LWIP_UDP                      1
 #define LWIP_UDPLITE                  0
 #define UDP_TTL                       (IP_DEFAULT_TTL)
 #define LWIP_NETBUF_RECVINFO          0
-// #define LWIP_TCP                      1
+#define LWIP_TCP                      1
 #define TCP_TTL                       (IP_DEFAULT_TTL)
 // #define TCP_WND                       (4 * TCP_MSS)
 #define TCP_MAXRTX                    12
@@ -240,11 +225,11 @@
 #define DEFAULT_UDP_RECVMBOX_SIZE       0
 #define DEFAULT_TCP_RECVMBOX_SIZE       0
 #define DEFAULT_ACCEPTMBOX_SIZE         0*/
-// #define LWIP_NETCONN                        1
+#define LWIP_NETCONN                        1
 #define LWIP_TCPIP_TIMEOUT                  0
 // #define LWIP_NETCONN_SEM_PER_THREAD         1
 // #define LWIP_NETCONN_FULLDUPLEX             1
-// #define LWIP_SOCKET                         1
+#define LWIP_SOCKET                         1
 // #define LWIP_COMPAT_SOCKETS                 1 /* 0..2 */
 // #define LWIP_POSIX_SOCKETS_IO_NAMES         1
 // #define LWIP_SOCKET_OFFSET                  0
@@ -292,7 +277,7 @@
 #define CHECKSUM_CHECK_ICMP                 1
 #define CHECKSUM_CHECK_ICMP6                1
 #define LWIP_CHECKSUM_ON_COPY               1
-// #define LWIP_IPV6                           0
+#define LWIP_IPV6                           0
 #define IPV6_REASS_MAXAGE                   60
 #define LWIP_IPV6_SCOPES                    (LWIP_IPV6 && !LWIP_SINGLE_NETIF)
 #define LWIP_IPV6_SCOPES_DEBUG              0

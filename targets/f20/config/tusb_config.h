@@ -30,6 +30,8 @@
 extern "C" {
 #endif
 
+#include <furi.h>
+
 //--------------------------------------------------------------------+
 // Board Specific Configuration
 //--------------------------------------------------------------------+
@@ -92,6 +94,8 @@ extern "C" {
 
 #define CFG_TUD_NCM_OUT_NTB_N 2
 #define CFG_TUD_NCM_IN_NTB_N  2
+// #define CFG_TUD_NCM_IN_MAX_DATAGRAMS_PER_NTB  1
+// #define CFG_TUD_NCM_OUT_MAX_DATAGRAMS_PER_NTB 1
 
 //------------- CLASS -------------//
 // Built-in classed are not used
@@ -101,6 +105,17 @@ extern "C" {
 #define CFG_TUD_MIDI   0
 #define CFG_TUD_VENDOR 0
 #define CFG_TUD_NCM    1
+
+#define CFG_TUD_TASK_QUEUE_SZ 64
+
+#define CFG_TUSB_DEBUG        1
+#define CFG_TUD_NCM_LOG_LEVEL 2
+
+#define CFG_TUSB_DEBUG_PRINTF usb_srv_log
+
+#define TU_ASSERT_1(_cond)       furi_assert(_cond)
+#define TU_ASSERT_2(_cond, _ret) furi_assert(_cond)
+#define TU_ASSERT(...)           TU_GET_3RD_ARG(__VA_ARGS__, TU_ASSERT_2, TU_ASSERT_1, _dummy)(__VA_ARGS__)
 
 #ifdef __cplusplus
 }

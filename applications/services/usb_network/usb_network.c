@@ -19,9 +19,6 @@
 #define INIT_IP4(a, b, c, d) {PP_HTONL(LWIP_MAKEU32(a, b, c, d))}
 
 struct UsbNetwork {
-    struct pbuf* rx_frame;
-    FuriSemaphore* rx_frame_sem;
-
     struct netif netif_data;
     struct netif* netif;
 
@@ -98,10 +95,6 @@ static void mdns_srv_txt(struct mdns_service* service, void* txt_userdata) {
 }
 
 bool tud_network_recv_cb(const uint8_t* src, uint16_t size) {
-    if(usb_network->rx_frame) {
-        return false;
-    }
-
     if(size != 0) {
 #if (ETH_PAD_SIZE != 0)
         size += ETH_PAD_SIZE; /* allow room for Ethernet padding */
@@ -110,7 +103,7 @@ bool tud_network_recv_cb(const uint8_t* src, uint16_t size) {
 
         if(!p) {
             FURI_LOG_T(TAG, "cannot receive frame, pbuf_alloc failed");
-            return true;
+            return false;
         }
 
 #if (ETH_PAD_SIZE != 0)
@@ -118,9 +111,8 @@ bool tud_network_recv_cb(const uint8_t* src, uint16_t size) {
 #endif
 
         for(struct pbuf* q = p; q != NULL && size > 0; q = q->next) {
-            /* Read enough bytes to fill this pbuf in the chain. The
-     * available data in the pbuf is given by the q->len
-     * variable. */
+            /* Read enough bytes to fill this pbuf in the chain. 
+             * The available data in the pbuf is given by the q->len variable. */
             memcpy(q->payload, src, size < q->len ? size : q->len);
             src += q->len;
             size -= q->len;
@@ -130,9 +122,8 @@ bool tud_network_recv_cb(const uint8_t* src, uint16_t size) {
         pbuf_header(p, ETH_PAD_SIZE); /* reclaim the padding word */
 #endif
 
-        /* store away the pointer for service_traffic() to later handle */
-        usb_network->rx_frame = p;
-        furi_semaphore_release(usb_network->rx_frame_sem);
+        usb_network->netif->input(p, usb_network->netif);
+        tud_network_recv_renew();
     }
 
     return true;
@@ -146,25 +137,6 @@ uint16_t tud_network_xmit_cb(uint8_t* dst, void* ref, uint16_t arg) {
 }
 
 void tud_network_init_cb(void) {
-    if(usb_network->rx_frame) {
-        pbuf_free(usb_network->rx_frame);
-        usb_network->rx_frame = NULL;
-    }
-}
-
-static void usb_network_handler(FuriEventLoopObject* object, void* context) {
-    UNUSED(context);
-    UsbNetwork* instance = context;
-
-    furi_assert(instance);
-    furi_assert(instance->rx_frame_sem == object);
-    furi_check(furi_semaphore_acquire(object, 0) == FuriStatusOk);
-
-    if(instance->rx_frame) {
-        instance->netif->input(instance->rx_frame, instance->netif);
-        instance->rx_frame = NULL;
-        tud_network_recv_renew();
-    }
 }
 
 static void usb_network_lwip_start_callback(void* arg) {
@@ -183,21 +155,13 @@ void usb_network_thread_cleanup(UsbNetwork* usb_network) {
     netconn_thread_cleanup();
 }
 
-void usb_network_init(FuriEventLoop* usb_loop) {
+void usb_network_init(void) {
     FuriSemaphore* lwip_start_sem = furi_semaphore_alloc(1, 0);
     tcpip_init(usb_network_lwip_start_callback, lwip_start_sem);
     furi_check(furi_semaphore_acquire(lwip_start_sem, FuriWaitForever) == FuriStatusOk);
 
     usb_network = malloc(sizeof(UsbNetwork));
     usb_network->netif = &(usb_network->netif_data);
-
-    usb_network->rx_frame_sem = furi_semaphore_alloc(1, 0);
-    furi_event_loop_subscribe_semaphore(
-        usb_loop,
-        usb_network->rx_frame_sem,
-        FuriEventLoopEventIn,
-        usb_network_handler,
-        usb_network);
 
     usb_network->netif_data.hwaddr_len = 6;
     memcpy(usb_network->netif_data.hwaddr, usb_network_get_mac_address(), 6);
@@ -222,7 +186,7 @@ void usb_network_init(FuriEventLoop* usb_loop) {
     }
     usb_network->dhcp_config.router.addr = PP_HTONL(LWIP_MAKEU32(0, 0, 0, 0));
     usb_network->dhcp_config.port = 67;
-    usb_network->dhcp_config.dns.addr = PP_HTONL(USB_NETWORK_IP);
+    usb_network->dhcp_config.dns.addr = 0; //PP_HTONL(USB_NETWORK_IP);
     usb_network->dhcp_config.domain = "usb";
     usb_network->dhcp_config.num_entry = DHCP_ENTRIES_MAX;
     usb_network->dhcp_config.entries = usb_network->dhcp_entries;
