@@ -27,7 +27,7 @@ struct Desktop {
     FuriEventLoop* event_loop;
     FuriSemaphore* exit_semaphore;
     FuriMessageQueue* input_queue;
-    FuriMessageQueue* app_queue;
+    FuriMessageQueue* start_queue;
     FuriEventLoopTimer* debounce_timer;
     FuriString* error_message;
     Loader* loader;
@@ -91,13 +91,13 @@ static void desktop_handle_switch_finished(Desktop* instance) {
     desktop_overlay_hide(instance->overlay);
 }
 
-static bool desktop_enqueue_app(Desktop* instance, const char* name, const char* arg) {
+static bool desktop_enqueue_app_start(Desktop* instance, const char* name, const char* arg) {
     const DesktopStartAppDesc desc = {
         .name = furi_string_alloc_set(name),
         .arg = arg,
     };
 
-    const bool success = furi_message_queue_put(instance->app_queue, &desc, 0) == FuriStatusOk;
+    const bool success = furi_message_queue_put(instance->start_queue, &desc, 0) == FuriStatusOk;
 
     if(!success) {
         furi_string_free(desc.name);
@@ -158,18 +158,18 @@ static void desktop_debounce_timer_callback(void* context) {
     furi_assert(instance->switch_pos < InputSwitchPositionMAX);
     const DesktopAppDesc* default_app = &desktop_apps[instance->switch_pos];
 
-    desktop_enqueue_app(instance, default_app->name, default_app->args);
+    desktop_enqueue_app_start(instance, default_app->name, default_app->args);
 }
 
 static void desktop_app_queue_callback(FuriEventLoopObject* object, void* context) {
     furi_assert(context);
 
     Desktop* instance = context;
-    furi_assert(instance->app_queue == object);
+    furi_assert(instance->start_queue == object);
 
     DesktopStartAppDesc desc = {0};
 
-    while(furi_message_queue_get(instance->app_queue, &desc, 0) == FuriStatusOk) {
+    while(furi_message_queue_get(instance->start_queue, &desc, 0) == FuriStatusOk) {
         furi_string_move(instance->start_app.name, desc.name);
         instance->start_app.arg = desc.arg;
     }
@@ -204,7 +204,7 @@ static Desktop* desktop_alloc(void) {
     instance->event_loop = furi_event_loop_alloc();
     instance->exit_semaphore = furi_semaphore_alloc(1, 1);
     instance->input_queue = furi_message_queue_alloc(16, sizeof(InputSwitchPosition));
-    instance->app_queue = furi_message_queue_alloc(3, sizeof(DesktopStartAppDesc));
+    instance->start_queue = furi_message_queue_alloc(3, sizeof(DesktopStartAppDesc));
     instance->debounce_timer = furi_event_loop_timer_alloc(
         instance->event_loop,
         desktop_debounce_timer_callback,
@@ -226,7 +226,7 @@ static Desktop* desktop_alloc(void) {
 
     furi_event_loop_subscribe_message_queue(
         instance->event_loop,
-        instance->app_queue,
+        instance->start_queue,
         FuriEventLoopEventIn,
         desktop_app_queue_callback,
         instance);
@@ -252,7 +252,7 @@ bool desktop_replace_current_app(Desktop* instance, const char* name, void* arg)
     furi_check(instance);
     furi_check(name);
 
-    return desktop_enqueue_app(instance, name, arg);
+    return desktop_enqueue_app_start(instance, name, arg);
 }
 
 int32_t desktop_srv(void* arg) {
