@@ -4,6 +4,7 @@ App(
     apptype=FlipperAppType.METAPACKAGE,
     provides=[
         "apps_menu",
+        "message",
     ],
     targets=["f20"],
 )
