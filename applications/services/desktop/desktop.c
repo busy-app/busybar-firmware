@@ -13,14 +13,6 @@
 
 #define DEBOUNCE_DELAY_MS (300)
 
-typedef enum {
-    DesktopStateIdle,
-    DesktopStateTransition,
-    DesktopStateAppStopping,
-    DesktopStateAppRunning,
-    DesktopStateError,
-} DesktopState;
-
 typedef struct {
     const char* name;
     const char* args;
@@ -41,7 +33,6 @@ struct Desktop {
     Loader* loader;
     DesktopOverlay* overlay;
     DesktopStartAppDesc start_app;
-    DesktopState state;
     InputSwitchPosition prev_pos;
     InputSwitchPosition current_pos;
 };
@@ -131,12 +122,10 @@ static void desktop_start_current_app(Desktop* instance) {
     FURI_LOG_I(TAG, "Starting application '%s' with arg 0x%p", name, arg);
 
     if(loader_start(instance->loader, name, arg, instance->error_message) == LoaderStatusOk) {
-        instance->state = DesktopStateAppRunning;
         desktop_handle_switch_finished(instance);
         FURI_LOG_I(TAG, "App %s started", name);
 
     } else {
-        instance->state = DesktopStateError;
         // TODO: Show error screen
         FURI_LOG_E(
             TAG, "Failed to load app %s: %s", name, furi_string_get_cstr(instance->error_message));
@@ -151,10 +140,8 @@ static void desktop_input_queue_callback(FuriEventLoopObject* object, void* cont
     Desktop* instance = context;
     furi_assert(instance->input_queue == object);
 
-    if(instance->state != DesktopStateTransition) {
+    if(!furi_event_loop_timer_is_running(instance->debounce_timer)) {
         desktop_handle_switch_start(instance);
-
-        instance->state = DesktopStateTransition;
         instance->prev_pos = instance->current_pos;
     }
 
@@ -194,7 +181,6 @@ static void desktop_app_queue_callback(FuriEventLoopObject* object, void* contex
     if(status == LoaderStatusOk) {
         /* App will be started asynchronously after
          * the currently running one will have stopped */
-        instance->state = DesktopStateAppStopping;
     } else if(status == LoaderStatusErrorAppNotRunning) {
         desktop_start_current_app(instance);
     } else if(status == LoaderStatusErrorInternal) {
