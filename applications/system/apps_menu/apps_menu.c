@@ -6,6 +6,10 @@
 
 #define TAG "AppsMenu"
 
+#ifndef APPS_MENU_ERROR_TEST
+#define APPS_MENU_ERROR_TEST 1
+#endif
+
 typedef struct {
     FuriEventLoop* event_loop;
     FuriMessageQueue* queue;
@@ -82,6 +86,12 @@ static AppsMenu* apps_menu_alloc(void) {
             lv_obj_add_event_cb(
                 button, apps_menu_button_event_callback, LV_EVENT_SINGLE_CLICKED, instance);
         }
+
+#if APPS_MENU_ERROR_TEST
+        lv_obj_t* error_test = lv_list_add_button(instance->list, NULL, "Error Test");
+        lv_obj_add_event_cb(
+            error_test, apps_menu_button_event_callback, LV_EVENT_SINGLE_CLICKED, instance);
+#endif
     });
 
     return instance;
