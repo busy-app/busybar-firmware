@@ -1,6 +1,4 @@
 #include <furi.h>
-
-#include <input/input.h>
 #include <gui_lvgl/gui_lvgl.h>
 
 typedef struct {
