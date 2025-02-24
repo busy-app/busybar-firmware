@@ -33,8 +33,7 @@ struct Desktop {
     Loader* loader;
     DesktopOverlay* overlay;
     DesktopStartAppDesc start_app;
-    InputSwitchPosition prev_pos;
-    InputSwitchPosition current_pos;
+    InputSwitchPosition switch_pos;
 };
 
 static const DesktopAppDesc desktop_apps[];
@@ -108,7 +107,7 @@ static bool desktop_enqueue_app(Desktop* instance, const char* name, const char*
 }
 
 static void desktop_prepare_default_app(Desktop* instance) {
-    const DesktopAppDesc* default_app = &desktop_apps[instance->current_pos];
+    const DesktopAppDesc* default_app = &desktop_apps[instance->switch_pos];
     furi_string_set(instance->start_app.name, default_app->name);
     instance->start_app.arg = default_app->args;
 }
@@ -142,10 +141,9 @@ static void desktop_input_queue_callback(FuriEventLoopObject* object, void* cont
 
     if(!furi_event_loop_timer_is_running(instance->debounce_timer)) {
         desktop_handle_switch_start(instance);
-        instance->prev_pos = instance->current_pos;
     }
 
-    while(furi_message_queue_get(instance->input_queue, &instance->current_pos, 0) ==
+    while(furi_message_queue_get(instance->input_queue, &instance->switch_pos, 0) ==
           FuriStatusOk) {
         desktop_handle_switch_update(instance);
     }
@@ -157,8 +155,8 @@ static void desktop_debounce_timer_callback(void* context) {
     furi_assert(context);
     Desktop* instance = context;
 
-    furi_assert(instance->current_pos < InputSwitchPositionMAX);
-    const DesktopAppDesc* default_app = &desktop_apps[instance->current_pos];
+    furi_assert(instance->switch_pos < InputSwitchPositionMAX);
+    const DesktopAppDesc* default_app = &desktop_apps[instance->switch_pos];
 
     desktop_enqueue_app(instance, default_app->name, default_app->args);
 }
