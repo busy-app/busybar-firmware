@@ -370,8 +370,6 @@ static void busy_free(BusyApp* instance) {
     lv_obj_delete(instance->back_label);
     gui_lvgl_release(instance->gui);
 
-    // furi_pubsub_unsubscribe(instance->, )
-
     furi_record_close(RECORD_GUI_LVGL);
     furi_record_close(RECORD_INPUT_EVENTS);
 
