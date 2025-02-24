@@ -7,7 +7,7 @@
 #define TAG "AppsMenu"
 
 #ifndef APPS_MENU_ERROR_TEST
-#define APPS_MENU_ERROR_TEST 1
+#define APPS_MENU_ERROR_TEST 0
 #endif
 
 typedef struct {
