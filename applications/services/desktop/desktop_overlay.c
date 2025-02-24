@@ -9,6 +9,7 @@
 struct DesktopOverlay {
     GuiLvgl* gui;
     lv_obj_t* dimmer;
+    bool show_requested;
 };
 
 static void desktop_overlay_anim_callback(void* var, int32_t value) {
@@ -49,8 +50,14 @@ DesktopOverlay* desktop_overlay_alloc(GuiLvgl* gui) {
 
 void desktop_overlay_show(DesktopOverlay* instance) {
     desktop_overlay_start_anim(instance, LV_OPA_COVER);
+    instance->show_requested = true;
 }
 
 void desktop_overlay_hide(DesktopOverlay* instance) {
     desktop_overlay_start_anim(instance, LV_OPA_TRANSP);
+    instance->show_requested = false;
+}
+
+bool desktop_overlay_show_requested(const DesktopOverlay* instance) {
+    return instance->show_requested;
 }

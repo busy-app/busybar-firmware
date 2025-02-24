@@ -91,6 +91,10 @@ static void desktop_handle_switch_finished(Desktop* instance) {
     desktop_overlay_hide(instance->overlay);
 }
 
+static bool desktop_should_handle_switch_start(Desktop* instance) {
+    return !desktop_overlay_show_requested(instance->overlay);
+}
+
 static bool desktop_enqueue_app_start(Desktop* instance, const char* name, const char* arg) {
     const DesktopStartAppDesc desc = {
         .name = furi_string_alloc_set(name),
@@ -139,7 +143,7 @@ static void desktop_input_queue_callback(FuriEventLoopObject* object, void* cont
     Desktop* instance = context;
     furi_assert(instance->input_queue == object);
 
-    if(!furi_event_loop_timer_is_running(instance->debounce_timer)) {
+    if(desktop_should_handle_switch_start(instance)) {
         desktop_handle_switch_start(instance);
     }
 
@@ -174,6 +178,11 @@ static void desktop_app_queue_callback(FuriEventLoopObject* object, void* contex
         instance->start_app.arg = desc.arg;
     }
 
+    if(desktop_should_handle_switch_start(instance)) {
+        desktop_handle_switch_start(instance);
+        furi_delay_ms(DEBOUNCE_DELAY_MS);
+    }
+
     const LoaderStatus status = loader_stop(instance->loader);
 
     if(status == LoaderStatusOk) {
@@ -193,6 +202,11 @@ static void desktop_exit_semaphore_callback(FuriEventLoopObject* object, void* c
 
     Desktop* instance = context;
     furi_assert(instance->exit_semaphore == object);
+
+    if(desktop_should_handle_switch_start(instance)) {
+        desktop_handle_switch_start(instance);
+        furi_delay_ms(DEBOUNCE_DELAY_MS);
+    }
 
     desktop_start_current_app(instance);
     furi_semaphore_release(instance->exit_semaphore);
