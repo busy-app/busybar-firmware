@@ -27,31 +27,24 @@ static Dummy* dummy_alloc(const char* message) {
     instance->event_loop = furi_event_loop_alloc();
     instance->gui = furi_record_open(RECORD_GUI_LVGL);
 
-    gui_lvgl_acquire(instance->gui);
+    with_gui_layer(instance->gui, GuiDisplayIdFront, GuiLayerIdActive, {
+        instance->label = lv_label_create(layer);
 
-    lv_obj_t* active = gui_lvgl_get_layer(instance->gui, GuiDisplayIdFront, GuiLayerIdActive);
+        lv_label_set_text(instance->label, message ? message : "Hello There");
+        lv_obj_set_style_text_color(instance->label, lv_color_white(), LV_PART_MAIN);
+        lv_obj_center(instance->label);
 
-    instance->label = lv_label_create(active);
-    lv_label_set_text(instance->label, message ? message : "Hello There");
-    lv_obj_set_style_text_color(instance->label, lv_color_white(), LV_PART_MAIN);
-    lv_obj_center(instance->label);
-
-    if(message == NULL) {
-        lv_group_add_obj(lv_group_get_default(), instance->label);
-        lv_obj_add_event_cb(instance->label, dummy_key_callback, LV_EVENT_KEY, instance);
-    }
-
-    gui_lvgl_release(instance->gui);
+        if(message == NULL) {
+            lv_group_add_obj(lv_group_get_default(), instance->label);
+            lv_obj_add_event_cb(instance->label, dummy_key_callback, LV_EVENT_KEY, instance);
+        }
+    });
 
     return instance;
 }
 
 static void dummy_free(Dummy* instance) {
-    gui_lvgl_acquire(instance->gui);
-
-    lv_obj_delete(instance->label);
-
-    gui_lvgl_release(instance->gui);
+    with_gui(instance->gui, { lv_obj_delete(instance->label); });
 
     furi_record_close(RECORD_GUI_LVGL);
 
