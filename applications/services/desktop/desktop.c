@@ -13,6 +13,11 @@
 
 // Time to wait for the rotary switch steady state
 #define SWITCH_DELAY_MS (300)
+// Maximum and initial counts for synchronisation primitives
+#define INPUT_QUEUE_COUNT (8)
+#define START_QUEUE_COUNT (3)
+#define EXIT_SEMAPH_COUNT (1)
+#define EXIT_SEMAPH_INIT  (1)
 
 typedef struct {
     const char* name;
@@ -255,9 +260,11 @@ static Desktop* desktop_alloc(void) {
     Desktop* instance = malloc(sizeof(Desktop));
 
     instance->event_loop = furi_event_loop_alloc();
-    instance->exit_semaphore = furi_semaphore_alloc(1, 1);
-    instance->input_queue = furi_message_queue_alloc(8, sizeof(InputSwitchPosition));
-    instance->start_queue = furi_message_queue_alloc(3, sizeof(DesktopStartRequest));
+    instance->exit_semaphore = furi_semaphore_alloc(EXIT_SEMAPH_COUNT, EXIT_SEMAPH_INIT);
+    instance->input_queue =
+        furi_message_queue_alloc(INPUT_QUEUE_COUNT, sizeof(InputSwitchPosition));
+    instance->start_queue =
+        furi_message_queue_alloc(START_QUEUE_COUNT, sizeof(DesktopStartRequest));
     instance->switch_timer = furi_event_loop_timer_alloc(
         instance->event_loop, desktop_switch_timer_callback, FuriEventLoopTimerTypeOnce, instance);
     instance->start_timer = furi_event_loop_timer_alloc(
