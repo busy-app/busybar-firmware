@@ -74,6 +74,21 @@ static void desktop_loader_pubsub_callback(const void* message, void* context) {
     }
 }
 
+static bool desktop_enqueue_app_start(Desktop* instance, const char* name, const char* arg) {
+    const DesktopStartAppDesc desc = {
+        .name = furi_string_alloc_set(name),
+        .arg = arg,
+    };
+
+    const bool success = furi_message_queue_put(instance->start_queue, &desc, 0) == FuriStatusOk;
+
+    if(!success) {
+        furi_string_free(desc.name);
+    }
+
+    return success;
+}
+
 static void desktop_handle_switch_start(Desktop* instance) {
     FURI_LOG_D(TAG, "Switch interaction started");
 
@@ -96,25 +111,10 @@ static bool desktop_should_handle_switch_start(Desktop* instance) {
     return !desktop_overlay_show_requested(instance->overlay);
 }
 
-static void desktop_handle_error(Desktop* instance, const char* error_message) {
-    UNUSED(instance);
+static void desktop_handle_error(Desktop* instance) {
+    FURI_LOG_D(TAG, "Error starting app: %s", furi_string_get_cstr(instance->error_message));
 
-    FURI_LOG_E(TAG, "Error: %s", error_message);
-}
-
-static bool desktop_enqueue_app_start(Desktop* instance, const char* name, const char* arg) {
-    const DesktopStartAppDesc desc = {
-        .name = furi_string_alloc_set(name),
-        .arg = arg,
-    };
-
-    const bool success = furi_message_queue_put(instance->start_queue, &desc, 0) == FuriStatusOk;
-
-    if(!success) {
-        furi_string_free(desc.name);
-    }
-
-    return success;
+    desktop_enqueue_app_start(instance, "message", furi_string_get_cstr(instance->error_message));
 }
 
 static void desktop_prepare_default_app(Desktop* instance) {
@@ -131,10 +131,11 @@ static void desktop_start_current_app(Desktop* instance) {
 
     FURI_LOG_D(TAG, "Starting application '%s' with arg 0x%p", app_name, app_arg);
 
-    if(loader_start(instance->loader, app_name, app_arg, instance->error_message) == LoaderStatusOk) {
+    if(loader_start(instance->loader, app_name, app_arg, instance->error_message) ==
+       LoaderStatusOk) {
         desktop_handle_switch_finished(instance);
     } else {
-        desktop_handle_error(instance, furi_string_get_cstr(instance->error_message));
+        desktop_handle_error(instance);
     }
 }
 
@@ -237,15 +238,9 @@ static Desktop* desktop_alloc(void) {
     instance->input_queue = furi_message_queue_alloc(16, sizeof(InputSwitchPosition));
     instance->start_queue = furi_message_queue_alloc(3, sizeof(DesktopStartAppDesc));
     instance->switch_timer = furi_event_loop_timer_alloc(
-        instance->event_loop,
-        desktop_switch_timer_callback,
-        FuriEventLoopTimerTypeOnce,
-        instance);
+        instance->event_loop, desktop_switch_timer_callback, FuriEventLoopTimerTypeOnce, instance);
     instance->start_timer = furi_event_loop_timer_alloc(
-        instance->event_loop,
-        desktop_start_timer_callback,
-        FuriEventLoopTimerTypeOnce,
-        instance);
+        instance->event_loop, desktop_start_timer_callback, FuriEventLoopTimerTypeOnce, instance);
     instance->error_message = furi_string_alloc();
     instance->loader = furi_record_open(RECORD_LOADER);
 

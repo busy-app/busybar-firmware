@@ -9,5 +9,6 @@ App(
     requires=[
         "gui_lvgl",
         "loader",
+        "message",
     ]
 )
