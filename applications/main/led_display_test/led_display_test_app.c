@@ -152,7 +152,9 @@ static void led_display_test_app_free(LedDisplayTestApp* instance) {
 
     furi_record_close(RECORD_GUI_LVGL);
 
+    furi_event_loop_unsubscribe(instance->event_loop, instance->event_queue);
     furi_message_queue_free(instance->event_queue);
+    furi_event_loop_timer_free(instance->timer);
     furi_event_loop_free(instance->event_loop);
     free(instance);
 }
