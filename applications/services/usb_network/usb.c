@@ -12,30 +12,10 @@ typedef struct {
 
 static UsbService* usb_service = NULL;
 
-// void tud_event_hook_cb(uint8_t rhport, uint32_t eventid, bool in_isr) {
-//     UNUSED(rhport);
-//     UNUSED(eventid);
-//     UNUSED(in_isr);
-
-//     furi_semaphore_release(usb_service->usb_semaphore);
-// }
-
 static void usb_core_irq(void* context) {
     UNUSED(context);
     tusb_int_handler(BOARD_TUD_RHPORT, true);
 }
-
-// static void usb_core_handler(FuriEventLoopObject* object, void* context) {
-//     furi_assert(context);
-//     UsbService* usb = context;
-
-//     furi_assert(usb->usb_semaphore == object);
-//     furi_check(furi_semaphore_acquire(object, 0) == FuriStatusOk);
-
-//     do {
-//         tud_task_ext(0, false);
-//     } while(tud_task_event_ready());
-// }
 
 int32_t usb_srv(void* p) {
     UNUSED(p);
