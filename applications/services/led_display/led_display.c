@@ -108,7 +108,7 @@ static DotMatrixSrv* led_display_srv_alloc(void) {
 
     furi_hal_gpio_init_simple(&gpio_led_power_en, GpioModeOutputPushPull);
     furi_hal_gpio_write(&gpio_led_power_en, true);
-    furi_delay_ms(10);
+    furi_delay_ms(50);
 
     led_display_scan_init();
     led_display_driver_init();
