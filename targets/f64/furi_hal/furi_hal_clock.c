@@ -5,6 +5,9 @@
 
 #include <FreeRTOS.h>
 
+#include <furi_hal_gpio.h>
+#include <furi_hal_resources.h>
+
 #define TAG "FuriHalClock"
 
 #define XTAL_FREQ_HZ     40000000UL
@@ -32,6 +35,16 @@ void furi_hal_clock_init(void) {
     NVIC_SetPriority(
         SysTick_IRQn, NVIC_EncodePriority(NVIC_GetPriorityGrouping(), TICK_INT_PRIORITY, 0));
     NVIC_EnableIRQ(SysTick_IRQn);
+
+    // Start 32KHz xtal oscillator
+    MCU_FSM->MCU_FSM_CLK_ENS_AND_FIRST_BOOTUP_b.MCU_ULP_32KHZ_XTAL_CLK_EN_b = 1;
+
+#ifdef FURI_HAL_CLOCK_MCO
+    furi_hal_gpio_init_ex(&gpio_12, GpioModeOutputPushPull, GpioPullNo, GpioSpeedHigh, GpioAltFn8);
+    M4CLK->CLK_CONFIG_REG3_b.MCU_CLKOUT_ENABLE = 0;
+    M4CLK->CLK_CONFIG_REG3_b.MCU_CLKOUT_SEL = FURI_HAL_CLOCK_MCO; // 8 - 32k XTAL, 2 - 40m XTAL
+    M4CLK->CLK_CONFIG_REG3_b.MCU_CLKOUT_ENABLE = 1;
+#endif
 
     FURI_LOG_I(TAG, "Init OK");
 }

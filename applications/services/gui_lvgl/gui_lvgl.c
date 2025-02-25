@@ -4,6 +4,7 @@
 #include <lvgl.h>
 
 #include <input/input.h>
+#include <power_simple/power.h>
 
 #include <lv_theme_front.h>
 
@@ -50,6 +51,7 @@ typedef struct {
 } GuiDisplayData;
 
 struct GuiLvgl {
+    Power* power;
     FuriEventLoop* event_loop;
     FuriMessageQueue* input_queue;
     FuriMutex* access_mutex;
@@ -320,6 +322,11 @@ static void gui_lvgl_init_input(GuiLvgl* instance) {
 
 static GuiLvgl* gui_lvgl_alloc(void) {
     GuiLvgl* instance = malloc(sizeof(GuiLvgl));
+
+    // Must be first to ensure that power subsystem is OK
+    instance->power = furi_record_open(RECORD_POWER);
+    // TODO: Subscribe to power subsystem events
+    // TODO: React on overheat or low power budget by limiting brightness
 
     instance->event_loop = furi_event_loop_alloc();
     instance->access_mutex = furi_mutex_alloc(FuriMutexTypeNormal);

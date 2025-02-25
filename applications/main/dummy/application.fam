@@ -1,0 +1,9 @@
+App(
+    appid="dummy",
+    name="Dummy",
+    apptype=FlipperAppType.APP,
+    entry_point="dummy_app",
+    requires=["gui_lvgl"],
+    stack_size=2 * 1024,
+    targets=["f20"],
+)

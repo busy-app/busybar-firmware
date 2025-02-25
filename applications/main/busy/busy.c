@@ -314,8 +314,9 @@ static BusyApp* busy_alloc(void) {
         instance);
     instance->gui = furi_record_open(RECORD_GUI_LVGL);
 
-    FuriPubSub* input = furi_record_open(RECORD_INPUT_EVENTS);
-    instance->input_events = furi_pubsub_subscribe(input, busy_input_callback, instance);
+    instance->input_events = furi_record_open(RECORD_INPUT_EVENTS);
+    instance->input_subscription =
+        furi_pubsub_subscribe(instance->input_events, busy_input_callback, instance);
 
     instance->current_scene_id = BusyAppSceneIdMax;
 
@@ -361,6 +362,8 @@ static void busy_free(BusyApp* instance) {
             free(instance->scene_data[instance->current_scene_id]);
         }
     }
+
+    furi_pubsub_unsubscribe(instance->input_events, instance->input_subscription);
 
     // Delete the back display label
     gui_lvgl_acquire(instance->gui);

@@ -1,0 +1,14 @@
+App(
+    appid="desktop",
+    name="DesktopSrv",
+    apptype=FlipperAppType.SERVICE,
+    entry_point="desktop_srv",
+    stack_size=1024 * 8,
+    order=70,
+    targets=["f20"],
+    requires=[
+        "gui_lvgl",
+        "loader",
+        "message",
+    ]
+)

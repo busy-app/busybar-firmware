@@ -10,7 +10,7 @@ App(
         # "cli_socket",
         "input",
         "gui_lvgl",
-        # "desktop_simple",
+        "desktop",
         "loader",
         "led_display",
         "usb_srv",

@@ -13,6 +13,7 @@ typedef struct Loader Loader;
 typedef enum {
     LoaderStatusOk,
     LoaderStatusErrorAppStarted,
+    LoaderStatusErrorAppNotRunning,
     LoaderStatusErrorUnknownApp,
     LoaderStatusErrorInternal,
 } LoaderStatus;
@@ -37,6 +38,14 @@ typedef struct {
  */
 LoaderStatus
     loader_start(Loader* instance, const char* name, const char* args, FuriString* error_message);
+
+/**
+ * @brief Stop the currently running application
+ *
+ * @param[in] instance loader instance
+ * @return LoaderStatusOk on success, any other error code on failure
+ */
+LoaderStatus loader_stop(Loader* instance);
 
 /**
  * @brief Lock application start
