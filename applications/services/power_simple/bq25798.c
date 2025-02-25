@@ -1,5 +1,8 @@
 #include "bq25798.h"
 
+#include <furi.h>
+#include <furi_hal_i2c.h>
+
 #define TAG "bq25798"
 
 #define I_IN_MAX_DEFAULT 500
@@ -58,30 +61,31 @@ bool bq25798_set_cfg(FuriHalI2cBusHandle* handle) {
         BQ25798_I2C_TIMEOUT);
 
     // Mask unused irqs
-    uint32_t irq_mask = ~(Bq25987IrqFlagVbusPresent); // | Bq25987IrqFlagChargeStatus);
+    uint32_t charger_flags_mask =
+        ~(Bq25987ChargerFlagVbusPresent); // | Bq25987ChargerFlagChargeStatus);
     furi_hal_i2c_write_reg_8(
         handle,
         BQ25798_I2C_ADDRESS,
         BQ25798_REG28_CHARGER_MASK_0,
-        irq_mask & 0xFF,
+        charger_flags_mask & 0xFF,
         BQ25798_I2C_TIMEOUT);
     furi_hal_i2c_write_reg_8(
         handle,
         BQ25798_I2C_ADDRESS,
         BQ25798_REG29_CHARGER_MASK_1,
-        (irq_mask >> 8) & 0xFF,
+        (charger_flags_mask >> 8) & 0xFF,
         BQ25798_I2C_TIMEOUT);
     furi_hal_i2c_write_reg_8(
         handle,
         BQ25798_I2C_ADDRESS,
         BQ25798_REG2A_CHARGER_MASK_2,
-        (irq_mask >> 16) & 0xFF,
+        (charger_flags_mask >> 16) & 0xFF,
         BQ25798_I2C_TIMEOUT);
     furi_hal_i2c_write_reg_8(
         handle,
         BQ25798_I2C_ADDRESS,
         BQ25798_REG2B_CHARGER_MASK_3,
-        (irq_mask >> 24) & 0xFF,
+        (charger_flags_mask >> 24) & 0xFF,
         BQ25798_I2C_TIMEOUT);
 
     // ADC enable
@@ -119,7 +123,22 @@ bool bq25798_set_cfg(FuriHalI2cBusHandle* handle) {
     return true;
 }
 
-bool bq25798_get_irq_flags(FuriHalI2cBusHandle* handle, uint32_t* flags) {
+bool bq25798_get_charger_status(FuriHalI2cBusHandle* handle, Bq25987ChargerStatus* status) {
+    furi_assert(handle);
+    furi_assert(status);
+
+    bool ret = furi_hal_i2c_read_mem(
+        handle,
+        BQ25798_I2C_ADDRESS,
+        BQ25798_REG1B_CHARGER_STATUS_0,
+        status->data,
+        5,
+        BQ25798_I2C_TIMEOUT);
+
+    return ret;
+}
+
+bool bq25798_get_charger_flags(FuriHalI2cBusHandle* handle, uint32_t* flags) {
     furi_assert(handle);
     furi_assert(flags);
 
@@ -164,6 +183,20 @@ bool bq25798_set_input_current_limit(FuriHalI2cBusHandle* handle, float value) {
         BQ25798_I2C_TIMEOUT);
 
     return true;
+}
+
+bool bq25798_set_charge_current_limit(FuriHalI2cBusHandle* handle, float value) {
+    furi_assert(handle);
+    furi_assert(value <= 5.f);
+
+    uint32_t cur_ma = value * 1000.f;
+
+    return furi_hal_i2c_write_reg_16(
+        handle,
+        BQ25798_I2C_ADDRESS,
+        BQ25798_REG03_CHARGE_CURRENT_LIMIT,
+        cur_ma / 10 & 0x1ff,
+        BQ25798_I2C_TIMEOUT);
 }
 
 void bq25798_power_switch(FuriHalI2cBusHandle* handle, Bq25987PowerSwitch mode) {
