@@ -5,9 +5,9 @@ App(
     provides=[
         # "audio",
         "storage",
-        # "cli",
+        "cli",
         # "gui",
-        # "cli_socket",
+        "cli_socket",
         "input",
         "gui_lvgl",
         "desktop",
