@@ -51,6 +51,8 @@ int32_t usb_srv(void* p) {
     };
     tusb_init(BOARD_TUD_RHPORT, &dev_init);
 
+    furi_thread_set_current_priority(FuriThreadPriorityHigh);
+
     while(1) {
         tud_task_ext(FuriWaitForever, false);
     }

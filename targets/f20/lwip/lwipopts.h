@@ -11,61 +11,16 @@
 #define DEFAULT_ACCEPTMBOX_SIZE   6
 #define MEMP_NUM_SYS_TIMEOUT      17
 
-#define TCP_MSS     (1500 /*mtu*/ - 20 /*iphdr*/ - 20 /*tcphhr*/)
-#define TCP_SND_BUF (4 * TCP_MSS)
-#define TCP_WND     (4 * TCP_MSS)
-
-#define ETHARP_SUPPORT_STATIC_ENTRIES 1
-
 #define LWIP_MDNS_RESPONDER 1
 
-#define LWIP_HTTPD_CGI             0
-#define LWIP_HTTPD_SSI             0
-#define LWIP_HTTPD_SSI_INCLUDE_TAG 0
-#define HTTPD_USE_CUSTOM_FSDATA    0
-
-#define LWIP_SINGLE_NETIF 1
-
-#define PBUF_POOL_SIZE 32
-
-#define LWIP_NUM_NETIF_CLIENT_DATA 10
-
-#define LWIP_TCPIP_CORE_LOCKING 1
-
-#define LWIP_MULTICAST_PING 1
-#define LWIP_BROADCAST_PING 1
-// #define LWIP_IPV6_MLD                 0
-// #define LWIP_IPV6_SEND_ROUTER_SOLICIT 0
-
-#define LWIP_NETCONN_SEM_PER_THREAD 1
-#define LWIP_NETCONN_FULLDUPLEX     1
-#define MEM_LIBC_MALLOC             1
-
-// #define LWIP_IP_ACCEPT_UDP_PORT(p) ((p) == PP_NTOHS(67))
-
-// #define TCPIP_THREAD_STACKSIZE 4096
-
-// #define TCPIP_MBOX_SIZE           6
-// #define DEFAULT_RAW_RECVMBOX_SIZE 6
-// #define DEFAULT_UDP_RECVMBOX_SIZE 6
-// #define DEFAULT_TCP_RECVMBOX_SIZE 6
-// #define DEFAULT_ACCEPTMBOX_SIZE   6
-// #define MEMP_NUM_SYS_TIMEOUT      17
-
-// #define TCP_MSS (1500 /*mtu*/ - 20 /*iphdr*/ - 20 /*tcphhr*/)
-// #define TCP_SND_BUF (4 * TCP_MSS)
-// #define TCP_WND     (4 * TCP_MSS)
-
-// #define LWIP_MDNS_RESPONDER 1
-
-// #define PBUF_POOL_SIZE 20 // TODO:
+#define PBUF_POOL_SIZE 8
 
 #define NO_SYS                                 0
 #define NO_SYS_NO_TIMERS                       0
 #define LWIP_TIMERS                            1
 #define LWIP_TIMERS_CUSTOM                     0
 #define LWIP_MPU_COMPATIBLE                    0
-// #define LWIP_TCPIP_CORE_LOCKING                1
+#define LWIP_TCPIP_CORE_LOCKING                1
 #define LWIP_TCPIP_CORE_LOCKING_INPUT          0
 #define SYS_LIGHTWEIGHT_PROT                   1
 #define MEM_LIBC_MALLOC                        1
@@ -113,7 +68,7 @@
 #define ETHARP_SUPPORT_VLAN                    0
 #define LWIP_ETHERNET                          LWIP_ARP
 #define ETH_PAD_SIZE                           2
-// #define ETHARP_SUPPORT_STATIC_ENTRIES          1
+#define ETHARP_SUPPORT_STATIC_ENTRIES          1
 #define ETHARP_TABLE_MATCH_NETIF               !LWIP_SINGLE_NETIF
 #define LWIP_IPV4                              1
 #define IP_FORWARD                             0
@@ -128,8 +83,8 @@
 #define IP_FORWARD_ALLOW_TX_ON_RX_NETIF        0
 #define LWIP_ICMP                              1
 #define ICMP_TTL                               (IP_DEFAULT_TTL)
-// #define LWIP_BROADCAST_PING                    1
-// #define LWIP_MULTICAST_PING                    1
+#define LWIP_BROADCAST_PING                    1
+#define LWIP_MULTICAST_PING                    1
 #define LWIP_RAW                               0
 #define RAW_TTL                                (IP_DEFAULT_TTL)
 #define LWIP_DHCP                              0 //LWIP_UDP
@@ -162,15 +117,15 @@
 #define LWIP_NETBUF_RECVINFO          0
 #define LWIP_TCP                      1
 #define TCP_TTL                       (IP_DEFAULT_TTL)
-// #define TCP_WND                       (4 * TCP_MSS)
+#define TCP_WND                       (4 * TCP_MSS)
 #define TCP_MAXRTX                    12
 #define TCP_SYNMAXRTX                 6
 #define TCP_QUEUE_OOSEQ               (LWIP_TCP)
 #define LWIP_TCP_SACK_OUT             0
 #define LWIP_TCP_MAX_SACK_NUM         4
-// #define TCP_MSS                       536
+#define TCP_MSS                       (1500 /*mtu*/ - 20 /*iphdr*/ - 20 /*tcphhr*/)
 #define TCP_CALCULATE_EFF_SEND_MSS    1
-// #define TCP_SND_BUF                   (2 * TCP_MSS)
+#define TCP_SND_BUF                   (4 * TCP_MSS)
 #define TCP_SND_QUEUELEN              ((4 * (TCP_SND_BUF) + (TCP_MSS - 1)) / (TCP_MSS))
 #define TCP_SNDLOWAT                  LWIP_MIN(LWIP_MAX(((TCP_SND_BUF) / 2), (2 * TCP_MSS) + 1), (TCP_SND_BUF) - 1)
 #define TCP_SNDQUEUELOWAT             LWIP_MAX(((TCP_SND_QUEUELEN) / 2), 5)
@@ -195,7 +150,7 @@
 #define PBUF_POOL_BUFSIZE \
     LWIP_MEM_ALIGN_SIZE(TCP_MSS + 40 + PBUF_LINK_ENCAPSULATION_HLEN + PBUF_LINK_HLEN)
 #define LWIP_PBUF_REF_T                     u8_t
-// #define LWIP_SINGLE_NETIF                   0
+#define LWIP_SINGLE_NETIF                   0
 #define LWIP_NETIF_HOSTNAME                 0
 #define LWIP_NETIF_API                      0
 #define LWIP_NETIF_STATUS_CALLBACK          0
@@ -204,7 +159,7 @@
 #define LWIP_NETIF_REMOVE_CALLBACK          0
 #define LWIP_NETIF_HWADDRHINT               0
 #define LWIP_NETIF_TX_SINGLE_PBUF           0
-// #define LWIP_NUM_NETIF_CLIENT_DATA          10
+#define LWIP_NUM_NETIF_CLIENT_DATA          10
 #define LWIP_HAVE_LOOPIF                    (LWIP_NETIF_LOOPBACK && !LWIP_SINGLE_NETIF)
 #define LWIP_LOOPIF_MULTICAST               0
 #define LWIP_NETIF_LOOPBACK                 1
@@ -227,8 +182,8 @@
 #define DEFAULT_ACCEPTMBOX_SIZE         0*/
 #define LWIP_NETCONN                        1
 #define LWIP_TCPIP_TIMEOUT                  0
-// #define LWIP_NETCONN_SEM_PER_THREAD         1
-// #define LWIP_NETCONN_FULLDUPLEX             1
+#define LWIP_NETCONN_SEM_PER_THREAD         1
+#define LWIP_NETCONN_FULLDUPLEX             1
 #define LWIP_SOCKET                         1
 // #define LWIP_COMPAT_SOCKETS                 1 /* 0..2 */
 // #define LWIP_POSIX_SOCKETS_IO_NAMES         1

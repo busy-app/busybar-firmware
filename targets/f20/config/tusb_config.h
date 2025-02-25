@@ -57,10 +57,6 @@ extern "C" {
 
 #define CFG_TUSB_OS OPT_OS_CUSTOM
 
-#ifndef CFG_TUSB_DEBUG
-#define CFG_TUSB_DEBUG 1
-#endif
-
 // Enable Device stack
 #define CFG_TUD_ENABLED 1
 
@@ -94,8 +90,6 @@ extern "C" {
 
 #define CFG_TUD_NCM_OUT_NTB_N 2
 #define CFG_TUD_NCM_IN_NTB_N  2
-// #define CFG_TUD_NCM_IN_MAX_DATAGRAMS_PER_NTB  1
-// #define CFG_TUD_NCM_OUT_MAX_DATAGRAMS_PER_NTB 1
 
 //------------- CLASS -------------//
 // Built-in classed are not used
