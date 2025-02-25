@@ -3,8 +3,8 @@ App(
     name="LedDisplayTest",
     apptype=FlipperAppType.APP,
     entry_point="led_display_test_app",
-    requires=["gui"],
-    stack_size=1 * 1024,
+    requires=["gui_lvgl"],
+    stack_size=2 * 1024,
     fap_category="Debug",
     targets=["f20"],
 )

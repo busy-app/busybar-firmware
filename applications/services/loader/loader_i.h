@@ -1,38 +1,29 @@
 #pragma once
-#include <furi.h>
-#include <toolbox/api_lock.h>
-#include <flipper_application/flipper_application.h>
 #include "loader.h"
-#include "loader_menu.h"
-#include "loader_applications.h"
+
+#include <toolbox/api_lock.h>
 
 typedef struct {
     char* args;
     FuriThread* thread;
     bool insomniac;
-    FlipperApplication* fap;
 } LoaderAppData;
 
 struct Loader {
-    FuriPubSub* pubsub;
+    FuriEventLoop* event_loop;
     FuriMessageQueue* queue;
-    LoaderMenu* loader_menu;
-    LoaderApplications* loader_applications;
+    FuriPubSub* pubsub;
     LoaderAppData app;
 };
 
 typedef enum {
-    LoaderMessageTypeStartByName,
+    LoaderMessageTypeStart,
+    LoaderMessageTypeStop,
     LoaderMessageTypeAppClosed,
-    LoaderMessageTypeShowMenu,
-    LoaderMessageTypeMenuClosed,
-    LoaderMessageTypeApplicationsClosed,
     LoaderMessageTypeLock,
     LoaderMessageTypeUnlock,
     LoaderMessageTypeIsLocked,
-    LoaderMessageTypeStartByNameDetachedWithGuiError,
-    LoaderMessageTypeSignal,
-    LoaderMessageTypeGetApplicationName,
+    LoaderMessageTypeMax,
 } LoaderMessageType;
 
 typedef struct {
@@ -42,24 +33,7 @@ typedef struct {
 } LoaderMessageStartByName;
 
 typedef struct {
-    uint32_t signal;
-    void* arg;
-} LoaderMessageSignal;
-
-typedef enum {
-    LoaderStatusErrorUnknown,
-    LoaderStatusErrorInvalidFile,
-    LoaderStatusErrorInvalidManifest,
-    LoaderStatusErrorMissingImports,
-    LoaderStatusErrorHWMismatch,
-    LoaderStatusErrorOutdatedApp,
-    LoaderStatusErrorOutOfMemory,
-    LoaderStatusErrorOutdatedFirmware,
-} LoaderStatusError;
-
-typedef struct {
     LoaderStatus value;
-    LoaderStatusError error;
 } LoaderMessageLoaderStatusResult;
 
 typedef struct {
@@ -72,8 +46,6 @@ typedef struct {
 
     union {
         LoaderMessageStartByName start;
-        LoaderMessageSignal signal;
-        FuriString* application_name;
     };
 
     union {
@@ -81,3 +53,5 @@ typedef struct {
         LoaderMessageBoolResult* bool_value;
     };
 } LoaderMessage;
+
+typedef void (*LoaderMessageHandler)(Loader* loader, const LoaderMessage* message);

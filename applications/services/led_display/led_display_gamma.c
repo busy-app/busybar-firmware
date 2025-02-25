@@ -7,7 +7,7 @@
 
 #define BRIGHTNESS_VAL_MAX 100
 
-inline uint16_t led_display_gamma_apply(uint16_t* gamma_lut, uint8_t in_val) {
+inline uint16_t led_display_gamma_apply(const uint16_t* gamma_lut, uint8_t in_val) {
     return (gamma_lut[in_val]);
 }
 

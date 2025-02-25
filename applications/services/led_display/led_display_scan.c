@@ -1,12 +1,11 @@
-#include <furi.h>
+#include "led_display_i.h"
+
 #include <stm32u5xx_ll_tim.h>
 #include <stm32u5xx_ll_rcc.h>
 #include <stm32u5xx_ll_spi.h>
 #include <stm32u5xx_ll_dma.h>
 
-#include "led_display_i.h"
-
-#define TAG "LED display"
+#include <furi.h>
 
 #define GCLK_COUNT      138
 #define GCLK_PRESCALER  10
@@ -14,8 +13,6 @@
 #define SCAN_PERIOD     180
 #define VSYNC_DELAY     10
 #define LATCH_DELAY     4
-
-#define LOAD_DELAY 50
 
 #define SCAN_DISABLED (1 << 5)
 
@@ -65,7 +62,7 @@ static void gclk_tim_init(void) {
     LL_TIM_CC_DisableChannel(TIM8, LL_TIM_CHANNEL_CH4N);
 
     LL_TIM_OC_SetMode(TIM8, LL_TIM_CHANNEL_CH4, LL_TIM_OCMODE_PWM1);
-    LL_TIM_OC_SetPolarity(TIM8, LL_TIM_CHANNEL_CH4N, LL_TIM_OCPOLARITY_HIGH);
+    LL_TIM_OC_SetPolarity(TIM8, LL_TIM_CHANNEL_CH4N, LL_TIM_OCPOLARITY_LOW);
     LL_TIM_OC_SetIdleState(TIM8, LL_TIM_CHANNEL_CH4N, LL_TIM_OCIDLESTATE_LOW);
     LL_TIM_OC_SetCompareCH4(TIM8, 1);
 
@@ -92,7 +89,7 @@ static void scan_tim_init(void) {
 
     LL_TIM_SetTriggerOutput(TIM5, LL_TIM_TRGO_UPDATE);
 
-    // CC1 - Vsync trig IRQ
+    // CC1 - VSYNC + Data load start
     LL_TIM_CC_DisableChannel(TIM5, LL_TIM_CHANNEL_CH1);
     LL_TIM_CC_DisableChannel(TIM5, LL_TIM_CHANNEL_CH1N);
     LL_TIM_OC_SetMode(TIM5, LL_TIM_CHANNEL_CH1, LL_TIM_OCMODE_TOGGLE);
@@ -108,21 +105,11 @@ static void scan_tim_init(void) {
     LL_TIM_OC_SetIdleState(TIM5, LL_TIM_CHANNEL_CH2, LL_TIM_OCIDLESTATE_LOW);
     LL_TIM_OC_SetCompareCH2(TIM5, SCAN_PERIOD - LATCH_DELAY);
 
-    // CC3 - Data load start
-    LL_TIM_CC_DisableChannel(TIM5, LL_TIM_CHANNEL_CH3);
-    LL_TIM_CC_DisableChannel(TIM5, LL_TIM_CHANNEL_CH3N);
-    LL_TIM_OC_SetMode(TIM5, LL_TIM_CHANNEL_CH3, LL_TIM_OCMODE_TOGGLE);
-    LL_TIM_OC_SetPolarity(TIM5, LL_TIM_CHANNEL_CH3, LL_TIM_OCPOLARITY_LOW);
-    LL_TIM_OC_SetIdleState(TIM5, LL_TIM_CHANNEL_CH3, LL_TIM_OCIDLESTATE_LOW);
-    LL_TIM_OC_SetCompareCH3(TIM5, LOAD_DELAY);
-
     LL_TIM_EnableAllOutputs(TIM5);
     LL_TIM_CC_EnableChannel(TIM5, LL_TIM_CHANNEL_CH1);
     LL_TIM_CC_EnableChannel(TIM5, LL_TIM_CHANNEL_CH2);
-    LL_TIM_CC_EnableChannel(TIM5, LL_TIM_CHANNEL_CH3);
 
     LL_TIM_ClearFlag_CC1(TIM5);
-    LL_TIM_ClearFlag_CC3(TIM5);
 
     NVIC_SetPriority(TIM5_IRQn, NVIC_EncodePriority(NVIC_GetPriorityGrouping(), 0, 0));
     NVIC_EnableIRQ(TIM5_IRQn);
@@ -267,34 +254,19 @@ static void scan_dma_tc_irq(void* context) {
         LL_TIM_ClearFlag_CC1(TIM5);
         LL_TIM_EnableIT_CC1(TIM5);
     }
-    if((LL_DMA_IsEnabledIT_HT(GPDMA1, led_scan->dma_channel)) &&
-       (LL_DMA_IsActiveFlag_HT(GPDMA1, led_scan->dma_channel))) {
-        LL_DMA_ClearFlag_HT(GPDMA1, led_scan->dma_channel);
-        LL_DMA_DisableIT_HT(GPDMA1, led_scan->dma_channel);
-        LL_TIM_ClearFlag_CC3(TIM5);
-        LL_TIM_EnableIT_CC3(TIM5);
-    }
 }
 
 void TIM5_IRQHandler(void) {
     if((LL_TIM_IsEnabledIT_CC1(TIM5)) && (LL_TIM_IsActiveFlag_CC1(TIM5))) {
-        led_display_vsync_trig();
+        led_display_driver_vsync_trig();
+        led_display_driver_send_buf_start();
         LL_TIM_DisableIT_CC1(TIM5);
     }
-    if((LL_TIM_IsEnabledIT_CC3(TIM5)) && (LL_TIM_IsActiveFlag_CC3(TIM5))) {
-        led_display_send_buf_start();
-        LL_TIM_DisableIT_CC3(TIM5);
-    }
-}
-
-inline void led_display_scan_vsync_enable(void) {
-    LL_DMA_ClearFlag_TC(GPDMA1, led_scan->dma_channel);
-    LL_DMA_EnableIT_TC(GPDMA1, led_scan->dma_channel);
 }
 
 inline void led_display_scan_data_sync_enable(void) {
-    LL_DMA_ClearFlag_HT(GPDMA1, led_scan->dma_channel);
-    LL_DMA_EnableIT_HT(GPDMA1, led_scan->dma_channel);
+    LL_DMA_ClearFlag_TC(GPDMA1, led_scan->dma_channel);
+    LL_DMA_EnableIT_TC(GPDMA1, led_scan->dma_channel);
 }
 
 void led_display_scan_init(void) {
@@ -311,7 +283,7 @@ void led_display_scan_start(void) {
     LL_TIM_EnableCounter(TIM5);
 }
 
-void led_display_output_enable(bool enable) {
+void led_display_scan_output_enable(bool enable) {
     if(enable) {
         memcpy(led_scan->scan_order_table, display_scan_table, DISPLAY_BLOCKS);
     } else {

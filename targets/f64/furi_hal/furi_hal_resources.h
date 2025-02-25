@@ -9,7 +9,7 @@
 #include <furi.h>
 #include <furi_hal_gpio.h>
 
-#include <input_common/input_common.h>
+#include <input/input_common.h>
 
 #ifdef __cplusplus
 extern "C" {
