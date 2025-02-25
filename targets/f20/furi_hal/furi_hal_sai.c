@@ -177,8 +177,10 @@ bool furi_hal_sai_init() {
         &gpio_i2s_sd, GpioModeAltFunctionPushPull, GpioPullNo, GpioSpeedLow, GpioAltFn13SAI1);
     furi_hal_gpio_init_ex(
         &gpio_i2s_fs, GpioModeAltFunctionPushPull, GpioPullNo, GpioSpeedLow, GpioAltFn13SAI1);
+#ifndef FURI_HAL_CLOCK_MCO
     furi_hal_gpio_init_ex(
         &gpio_i2s_sck, GpioModeAltFunctionPushPull, GpioPullNo, GpioSpeedLow, GpioAltFn13SAI1);
+#endif
     furi_hal_gpio_init(
         &gpio_audio_en_and_917_swo, GpioModeOutputPushPull, GpioPullNo, GpioSpeedLow);
 
