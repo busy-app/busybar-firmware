@@ -2,6 +2,8 @@
 
 #include <furi.h>
 
+#include <power_simple/power.h>
+
 #define TAG "DotMatrixSrv"
 
 #define REFRESH_PERIOD_MS (100)
@@ -28,6 +30,7 @@ typedef struct {
 } DotMatrixSrvMessage;
 
 struct DotMatrixSrv {
+    Power* power;
     FuriEventLoop* event_loop;
     FuriEventFlag* event_flag;
     const DotMatrixSrvMessage* message;
@@ -92,6 +95,11 @@ static void led_display_srv_custom_event_callback(uint32_t events, void* context
 static DotMatrixSrv* led_display_srv_alloc(void) {
     DotMatrixSrv* instance = malloc(sizeof(DotMatrixSrv));
 
+    // Must be first to ensure that power subsystem is OK
+    instance->power = furi_record_open(RECORD_POWER);
+    // TODO: Subscribe to power subsystem events
+    // TODO: React on overheat or low power budget by limiting brightness
+
     instance->event_loop = furi_event_loop_alloc();
     instance->event_flag = furi_event_flag_alloc();
 
@@ -100,7 +108,7 @@ static DotMatrixSrv* led_display_srv_alloc(void) {
 
     furi_hal_gpio_init_simple(&gpio_led_power_en, GpioModeOutputPushPull);
     furi_hal_gpio_write(&gpio_led_power_en, true);
-    furi_delay_ms(10);
+    furi_delay_ms(50);
 
     led_display_scan_init();
     led_display_driver_init();

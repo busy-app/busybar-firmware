@@ -3,6 +3,8 @@
 #include <stdint.h>
 #include <assert.h>
 
+#include <core/common_defines.h>
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -69,37 +71,97 @@ extern "C" {
 #define BQ25798_REG48_PART_INFORMATION       (0x48u)
 
 typedef enum {
+    Bq25987ChargerStatusVbusStatNoInput = 0x0, // No Input or BHOT or BCOLD in OTG mode
+    Bq25987ChargerStatusVbusStatSdp = 0x1, // USB SDP (500mA)
+    Bq25987ChargerStatusVbusStatCdp = 0x2, // USB CDP (1.5A)
+    Bq25987ChargerStatusVbusStatDcp = 0x3, // USB DCP (3.25A)
+    Bq25987ChargerStatusVbusStatHVDCP = 0x4, // Adjustable High Voltage DCP (HVDCP) (1.5A)
+    Bq25987ChargerStatusVbusStatUnknown = 0x5, //Unknown adaptor (3A)
+    Bq25987ChargerStatusVbusStatNonStandard = 0x6, // Non-Standard Adapter (1A/2A/2.1A/2.4A)
+    Bq25987ChargerStatusVbusStatOtg = 0x7, // In OTG mode
+    Bq25987ChargerStatusVbusStatNotQualified = 0x8, // Not qualified adaptor
+    Bq25987ChargerStatusVbusStatVbus = 0xB, // Device directly powered from VBUS
+    Bq25987ChargerStatusVbusStatBackup = 0xC, // Backup Mode
+} Bq25987ChargerStatusVbusStat;
+
+typedef enum {
+    Bq25987ChargerStatusChargeStatNot = 0x0, // Not Charging
+    Bq25987ChargerStatusChargeStatTrickle = 0x1, // Trickle Charge
+    Bq25987ChargerStatusChargeStatPre = 0x2, // Pre-charge
+    Bq25987ChargerStatusChargeStatFast = 0x3, // Fast charge (CC mode)
+    Bq25987ChargerStatusChargeStatTaper = 0x4, // Taper Charge (CV mode)
+    Bq25987ChargerStatusChargeStatTopOff = 0x6, // Top-off Timer Active Charging
+    Bq25987ChargerStatusChargeStatTermination = 0x7, // Charge Termination Done
+} Bq25987ChargerStatusChargeStat;
+
+typedef enum {
+    Bq25987ChargerStatusIcoDisabled = 0x0, // ICO disabled
+    Bq25987ChargerStatusIcoOptimization = 0x1, // ICO optimization in progress
+    Bq25987ChargerStatusIcoMaximum = 0x2, // Maximum input current detected
+} Bq25987ChargerStatusIco;
+
+typedef struct {
+    union {
+        struct {
+            // STATUS 0
+            bool vbus_present                       : 1;
+            bool ac1_present                        : 1;
+            bool ac2_present                        : 1;
+            bool power_good                         : 1;
+            uint8_t dummy0                          : 1;
+            bool wd                                 : 1;
+            bool vindpm_votg                        : 1;
+            bool iindpm_iotg                        : 1;
+            // STATUS 1
+            bool bc1_2_done_stat                    : 1;
+            Bq25987ChargerStatusVbusStat vbus_stat  : 4;
+            Bq25987ChargerStatusChargeStat chg_stat : 3;
+            // STATUS 2
+            bool vbat_present_stat                  : 1;
+            bool dpdm_stat                          : 1;
+            bool treg_stat                          : 1;
+            uint8_t dummy1                          : 3;
+            Bq25987ChargerStatusIco ico_stat        : 2;
+            // STATUS 3
+
+            // STATUS 4
+        };
+        uint8_t data[5];
+    };
+} FURI_PACKED Bq25987ChargerStatus;
+
+typedef enum {
     // Flag 0 reg
-    Bq25987IrqFlagVbusPresent = (1UL << 0),
-    Bq25987IrqFlagAC1Present = (1UL << 1),
-    Bq25987IrqFlagAC2Present = (1UL << 2),
-    Bq25987IrqFlagPowerGood = (1UL << 3),
-    Bq25987IrqFlagPoorSrc = (1UL << 4),
-    Bq25987IrqFlagI2CWdg = (1UL << 5),
-    Bq25987IrqFlagVindpmVotg = (1UL << 6),
-    Bq25987IrqFlagIindpmIotg = (1UL << 7),
+    Bq25987ChargerFlagVbusPresent = (1UL << 0),
+    Bq25987ChargerFlagAC1Present = (1UL << 1),
+    Bq25987ChargerFlagAC2Present = (1UL << 2),
+    Bq25987ChargerFlagPowerGood = (1UL << 3),
+    Bq25987ChargerFlagPoorSrc = (1UL << 4),
+    Bq25987ChargerFlagWd = (1UL << 5),
+    Bq25987ChargerFlagVindpmVotg = (1UL << 6),
+    Bq25987ChargerFlagIindpmIotg = (1UL << 7),
     // Flag 1 reg
-    Bq25987IrqFlagBC12Done = (1UL << 8),
-    Bq25987IrqFlagVbatPresent = (1UL << 9),
-    Bq25987IrqFlagThermReg = (1UL << 10),
-    Bq25987IrqFlagVbusStatus = (1UL << 12),
-    Bq25987IrqFlagICOStatus = (1UL << 14),
-    Bq25987IrqFlagChargeStatus = (1UL << 15),
+    Bq25987ChargerFlagBC12Done = (1UL << 8),
+    Bq25987ChargerFlagVbatPresent = (1UL << 9),
+    Bq25987ChargerFlagThermReg = (1UL << 10),
+    Bq25987ChargerFlagVbusStatus = (1UL << 12),
+    Bq25987ChargerFlagICOStatus = (1UL << 14),
+    Bq25987ChargerFlagChargeStatus = (1UL << 15),
     // Flag 2 reg
-    Bq25987IrqFlagTopOffTmr = (1UL << 16),
-    Bq25987IrqFlagPreChgTmr = (1UL << 17),
-    Bq25987IrqFlagTrickleChgTmr = (1UL << 18),
-    Bq25987IrqFlagFastChgTmr = (1UL << 19),
-    Bq25987IrqFlagVsysMinReg = (1UL << 20),
-    Bq25987IrqFlagAdcDone = (1UL << 21),
-    Bq25987IrqFlagDpDmDone = (1UL << 22),
+    Bq25987ChargerFlagTopOffTmr = (1UL << 16),
+    Bq25987ChargerFlagPreChgTmr = (1UL << 17),
+    Bq25987ChargerFlagTrickleChgTmr = (1UL << 18),
+    Bq25987ChargerFlagFastChgTmr = (1UL << 19),
+    Bq25987ChargerFlagVsysMinReg = (1UL << 20),
+    Bq25987ChargerFlagAdcDone = (1UL << 21),
+    Bq25987ChargerFlagDpDmDone = (1UL << 22),
     // Flag 3 reg
-    Bq25987IrqFlagTsHot = (1UL << 24),
-    Bq25987IrqFlagTsWarm = (1UL << 25),
-    Bq25987IrqFlagTsCool = (1UL << 26),
-    Bq25987IrqFlagTsCold = (1UL << 27),
-    Bq25987IrqFlagVbatOtgLow = (1UL << 28),
-} Bq25987IrqFlags;
+    Bq25987ChargerFlagTsHot = (1UL << 24),
+    Bq25987ChargerFlagTsWarm = (1UL << 25),
+    Bq25987ChargerFlagTsCool = (1UL << 26),
+    Bq25987ChargerFlagTsCold = (1UL << 27),
+    Bq25987ChargerFlagVbatOtgLow = (1UL << 28),
+} Bq25987ChargerFlag;
 
 typedef enum {
     Bq25987PowerIdle = 0, /** Normal mode, power is On */
