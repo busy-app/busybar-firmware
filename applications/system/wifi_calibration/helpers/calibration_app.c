@@ -39,7 +39,6 @@ ch  min     typ     max
 #define CHANNEL 1
 
 #define MAX_CALIB_COMMAND_LENGTH 32
-#define NO_OF_CALIB_COMMANDS     7
 
 enum calib_cmd_types {
     HELP,
@@ -48,22 +47,29 @@ enum calib_cmd_types {
     CALIB_WRITE,
     EVM_OFFSET,
     EVM_WRITE,
+    SET_MODE,
+    SET_CAHHNEL,
+    SET_POWER,
 #ifdef SLI_SI917
-    DPD_CALIB_WRITE
+    DPD_CALIB_WRITE,
 #endif
+    MAX_CMD_TYPES,
 };
 
 typedef struct calib_commands_t {
     uint8_t cmd[MAX_CALIB_COMMAND_LENGTH];
 } calib_commands_t;
 
-calib_commands_t calib_commands[NO_OF_CALIB_COMMANDS] = {
+calib_commands_t calib_commands[MAX_CMD_TYPES] = {
     {"?"},
     {"help"},
     {"sl_freq_offset"},
     {"sl_calib_write"},
     {"sl_evm_offset"},
     {"sl_evm_write"},
+    {"set_mode"},
+    {"set_channel"},
+    {"set_power"},
     {"sl_process_dpd_calibration"},
 };
 
@@ -98,7 +104,7 @@ https://www.silabs.com/documents/public/application-notes/an1436-siwx917-qms-cry
 */
 sl_si91x_request_tx_test_info_t tx_test_info = {
     .enable = 1,
-    .power = 18, // Sets TX power in dBm. The valid values are from (2 to 18)dBm and 127.
+    .power = 12, // Sets TX power in dBm. The valid values are from (2 to 18)dBm and 127.
     .rate = rate,
     .length =
         30, // Configures length of the TX packet. Valid values are in the range of 24 to 1500 bytes in the burst mode.
@@ -251,6 +257,42 @@ sl_status_t sl_process_dpd_calibration(
         }
         furi_delay_ms(1000);
     }
+    return status;
+}
+
+sl_status_t calibration_app_flow_transmit_tx(CalibrationApp* instance) {
+    sl_status_t status = SL_STATUS_FAIL;
+    uint16_t mode_temp = tx_test_info.mode;
+    do {
+        status = sl_si91x_transmit_test_stop();
+        if(status != SL_STATUS_OK) {
+            break;
+        }
+        furi_delay_ms(200);
+        tx_test_info.mode = CONTINUOUS_MODE;
+        status = sl_si91x_transmit_test_start(&tx_test_info);
+        if(status != SL_STATUS_OK) {
+            break;
+        }
+        furi_delay_ms(200);
+        status = sl_si91x_transmit_test_stop();
+        if(status != SL_STATUS_OK) {
+            break;
+        }
+        furi_delay_ms(200);
+        tx_test_info.mode = mode_temp;
+        status = sl_si91x_transmit_test_start(&tx_test_info);
+    } while(0);
+    if(status != SL_STATUS_OK) {
+        furi_string_printf(instance->msg, "Transmit test start failed: 0x%lx\r\n", status);
+        calibration_app_send_msg(instance);
+        return status;
+    } else {
+        furi_string_printf(instance->msg, "Transmit test started\r\n");
+        calibration_app_send_msg(instance);
+        instance->state = CalibrationStateTx;
+    }
+
     return status;
 }
 
@@ -436,6 +478,46 @@ sl_status_t calibration_app(CalibrationApp* instance, uint8_t cmd_index, FuriStr
             calibration_app_send_msg(instance);
         }
         break;
+    case SET_MODE:
+        if(furi_string_size(args)) {
+            parse_err |= strint_to_uint16(args_cstr, NULL, &tx_test_info.mode, 10);
+            if(parse_err == StrintParseNoError) {
+                calibration_app_flow_transmit_tx(instance);
+            }
+        }
+        break;
+    case SET_CAHHNEL:
+        if(furi_string_size(args)) {
+            uint16_t channel = 0;
+            parse_err |= strint_to_uint16(args_cstr, NULL, &channel, 10);
+            if(parse_err == StrintParseNoError) {
+                if(channel > 13 || channel < 1) {
+                    furi_string_printf(instance->msg, "Invalid channel number\r\n");
+                    calibration_app_send_msg(instance);
+                    break;
+                } else {
+                    tx_test_info.channel = channel;
+                    calibration_app_flow_transmit_tx(instance);
+                }
+            }
+        }
+        break;
+    case SET_POWER:
+        if(furi_string_size(args)) {
+            uint16_t power = 0;
+            parse_err |= strint_to_uint16(args_cstr, NULL, &power, 10);
+            if(parse_err == StrintParseNoError) {
+                if(((power > 18) && (power != 127)) || power < 2) {
+                    furi_string_printf(instance->msg, "Invalid power value\r\n");
+                    calibration_app_send_msg(instance);
+                    break;
+                } else {
+                    tx_test_info.power = power;
+                    calibration_app_flow_transmit_tx(instance);
+                }
+            }
+        }
+        break;
     default:
         furi_string_printf(instance->msg, "Invalid command\r\n");
         calibration_app_send_msg(instance);
@@ -577,7 +659,7 @@ void calibration_app_parse_msg(void* app_handle, uint8_t* data, size_t size) {
             break;
         }
 
-        for(i = 0; i < NO_OF_CALIB_COMMANDS; i++) {
+        for(i = 0; i < MAX_CMD_TYPES; i++) {
             if(furi_string_cmp_str(cmd, (char*)calib_commands[i].cmd) == 0) {
                 cmd_index = i;
                 cmd_valid = true;
@@ -629,6 +711,20 @@ void calibrate_app_cmd_usage(CalibrationApp* instance) {
         "11N_MCS0_MCS2> <evm_offset_11N_MCS0>,<evm_offset_11N_MCS7>\r\n");
     furi_string_cat_printf(
         instance->msg, "sl_process_dpd_calibration \033[0;31m Not used? \033[0m\r\n");
+    furi_string_cat_printf(
+        instance->msg,
+        "set_mode <index> %d-Burst, %d-Continuos, %d-CW, %d-CW-2,5, %d-CW+5\r\n",
+        BURST_MODE,
+        CONTINUOUS_MODE,
+        CW_MODE,
+        CW_MODE_25,
+        CW_MODE_50);
+    furi_string_cat_printf(
+        instance->msg, "set_channel <channel> 1-13, 1-2412Mhz, 6-2437Mhz, 13-2472Mhz\r\n");
+    furi_string_cat_printf(
+        instance->msg,
+        "set_power <power>  default=%d, 2-18dBm, 127-max power\r\n",
+        tx_test_info.power);
 
     furi_string_cat_printf(
         instance->msg,
