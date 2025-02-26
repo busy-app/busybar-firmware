@@ -14,9 +14,28 @@
 static void cli_command_display(Cli* cli, FuriString* args, GuiDisplayId id) {
     GuiLvgl* gui = furi_record_open(RECORD_GUI_LVGL);
     Storage* storage = furi_record_open(RECORD_STORAGE);
+    FuriString* cmd = furi_string_alloc();
 
-    if(storage_common_stat(storage, furi_string_get_cstr(args), NULL) != FSE_OK) {
-        printf("Not found file %s", furi_string_get_cstr(args));
+    bool arguments_parsed = false;
+    do {
+        args_read_string_and_trim(args, cmd);
+        if(furi_string_cmp_str(cmd, "show") != 0) {
+            printf(
+                "Incorrect argument. Command usage:\r\n%s show <file_path>\r\n",
+                id == GuiDisplayIdFront ? "dled" : "oled");
+            break;
+        }
+
+        if(storage_common_stat(storage, furi_string_get_cstr(args), NULL) != FSE_OK) {
+            printf("Not found file %s", furi_string_get_cstr(args));
+            break;
+        }
+
+        arguments_parsed = true;
+    } while(false);
+
+    furi_string_free(cmd);
+    if(!arguments_parsed) {
         furi_record_close(RECORD_STORAGE);
         return;
     }
