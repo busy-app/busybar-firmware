@@ -20,19 +20,11 @@
 #define FURI_HAL_SAI_DMA_PRIORITY     LL_DMA_HIGH_PRIORITY
 #define FURI_HAL_SAI_DMA_SAMPLE_COUNT (256u * 10u)
 
-typedef __PACKED_STRUCT {
-    int16_t left;
-    int16_t right;
-}
-SaiData;
-
-static_assert(sizeof(SaiData) == 4);
-
 typedef struct {
     FuriHalSaiCallback callback;
     void* callback_context;
 
-    SaiData data[FURI_HAL_SAI_DMA_SAMPLE_COUNT];
+    uint16_t data[FURI_HAL_SAI_DMA_SAMPLE_COUNT];
 
     uint32_t dma_channel;
     uint32_t data_ptr;
@@ -49,8 +41,7 @@ static void furi_hal_sai_refill(size_t start, size_t size) {
             sample = furi_hal_sai.callback(furi_hal_sai.callback_context);
         }
 
-        furi_hal_sai.data[start + i].left = sample;
-        furi_hal_sai.data[start + i].right = sample;
+        furi_hal_sai.data[start + i] = sample;
     }
 }
 
@@ -227,7 +218,7 @@ bool furi_hal_sai_init() {
 #define SAI_FREE_PROTOCOL            0x00000000U
 #define SAI_DATASIZE_16              SAI_xCR1_DS_2
 #define SAI_FIRSTBIT_MSB             0x00000000U
-#define SAI_STEREOMODE               0x00000000U
+#define SAI_STEREOMODE               SAI_xCR1_MONO
 #define SAI_OUTPUTDRIVE_DISABLE      0x00000000U
 #define SAI_MASTERDIVIDER_ENABLE     0x00000000U
 #define SAI_MCK_OUTPUT_DISABLE       0x00000000U
