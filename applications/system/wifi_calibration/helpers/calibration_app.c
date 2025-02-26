@@ -47,7 +47,7 @@ enum calib_cmd_types {
     CALIB_WRITE,
     EVM_OFFSET,
     EVM_WRITE,
-    MODE,
+    SET_MODE,
     SET_CAHHNEL,
     SET_POWER,
 #ifdef SLI_SI917
@@ -67,7 +67,7 @@ calib_commands_t calib_commands[MAX_CMD_TYPES] = {
     {"sl_calib_write"},
     {"sl_evm_offset"},
     {"sl_evm_write"},
-    {"mode"},
+    {"set_mode"},
     {"set_channel"},
     {"set_power"},
     {"sl_process_dpd_calibration"},
@@ -478,7 +478,7 @@ sl_status_t calibration_app(CalibrationApp* instance, uint8_t cmd_index, FuriStr
             calibration_app_send_msg(instance);
         }
         break;
-    case MODE:
+    case SET_MODE:
         if(furi_string_size(args)) {
             parse_err |= strint_to_uint16(args_cstr, NULL, &tx_test_info.mode, 10);
             if(parse_err == StrintParseNoError) {
@@ -713,7 +713,7 @@ void calibrate_app_cmd_usage(CalibrationApp* instance) {
         instance->msg, "sl_process_dpd_calibration \033[0;31m Not used? \033[0m\r\n");
     furi_string_cat_printf(
         instance->msg,
-        "mode <index> %d-Burst, %d-Continuos, %d-CW, %d-CW-2,5, %d-CW+5\r\n",
+        "set_mode <index> %d-Burst, %d-Continuos, %d-CW, %d-CW-2,5, %d-CW+5\r\n",
         BURST_MODE,
         CONTINUOUS_MODE,
         CW_MODE,
