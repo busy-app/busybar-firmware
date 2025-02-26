@@ -10,6 +10,8 @@
 #include <ssd1320.h>
 #include <led_display/led_display.h>
 
+#include "gui_lvgl_fs.h"
+
 #define TAG "GuiLvgl"
 
 #define FRONT_W                (DOT_MATRIX_W)
@@ -344,6 +346,7 @@ static GuiLvgl* gui_lvgl_alloc(void) {
     gui_lvgl_init_front(instance);
     gui_lvgl_init_back(instance);
     gui_lvgl_init_input(instance);
+    gui_lvgl_fs_init();
 
     furi_record_create(RECORD_GUI_LVGL, instance);
     return instance;

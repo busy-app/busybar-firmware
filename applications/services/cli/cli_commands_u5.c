@@ -1,5 +1,6 @@
 #include "cli_commands.h"
 #include "cli_command_gpio.h"
+#include "cli_command_display.h"
 
 #include <core/thread.h>
 #include <core/thread_list.h>
@@ -509,7 +510,7 @@ void cli_commands_init(Cli* cli) {
     cli_add_command(cli, "?", CliCommandFlagParallelSafe, cli_command_help, NULL);
     cli_add_command(cli, "help", CliCommandFlagParallelSafe, cli_command_help, NULL);
 
-    cli_add_command(cli, "uptime", CliCommandFlagDefault, cli_command_uptime, NULL);
+    cli_add_command(cli, "uptime", CliCommandFlagParallelSafe, cli_command_uptime, NULL);
     // cli_add_command(cli, "date", CliCommandFlagParallelSafe, cli_command_date, NULL);
     cli_add_command(cli, "log", CliCommandFlagParallelSafe, cli_command_log, NULL);
     // cli_add_command(cli, "sysctl", CliCommandFlagDefault, cli_command_sysctl, NULL);
@@ -523,4 +524,5 @@ void cli_commands_init(Cli* cli) {
     // cli_add_command(cli, "i2c", CliCommandFlagDefault, cli_command_i2c, NULL);
 
     cli_add_command(cli, "echo", CliCommandFlagDefault, cli_command_echo, NULL);
+    cli_add_command(cli, "dled", CliCommandFlagParallelSafe, cli_command_dled, NULL);
 }

@@ -7,3 +7,11 @@ App(
     order=80,
     targets=["f20"],
 )
+
+App(
+    appid="led_display_start",
+    apptype=FlipperAppType.STARTUP,
+    entry_point="led_display_on_system_start",
+    requires=["led_display"],
+    order=80,
+)
