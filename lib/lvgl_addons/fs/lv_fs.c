@@ -1,4 +1,4 @@
-#include "gui_lvgl_fs.h"
+#include "lv_fs.h"
 
 #include <furi/furi.h>
 #include <lvgl.h>

@@ -10,7 +10,7 @@
 #include <ssd1320.h>
 #include <led_display/led_display.h>
 
-#include "gui_lvgl_fs.h"
+#include <lvgl_addons/fs/lv_fs.h>
 
 #define TAG "GuiLvgl"
 
