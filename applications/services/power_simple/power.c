@@ -55,7 +55,7 @@ static void power_on_interrupt(FuriEventLoopObject* object, void* context) {
     furi_hal_i2c_acquire(POWER_I2C);
     uint32_t irq_flags = 0;
     bq25798_get_irq_flags(POWER_I2C, &irq_flags);
-    //FURI_LOG_I(TAG, "Charger Interrupt flags: %08lX", irq_flags);
+    FURI_LOG_I(TAG, "Charger Interrupt flags: %08lX", irq_flags);
 
     if(irq_flags & Bq25987IrqFlagVbusPresent) {
         bq25798_set_input_current_limit(POWER_I2C, instance->input_current_limit);
@@ -76,10 +76,10 @@ static void power_handle_shutdown(Power* power, bool full_shutdown) {
     // TODO: check if USB is not plugged
 
     if(full_shutdown) {
-        //FURI_LOG_I(TAG, "shutdown");
+        FURI_LOG_I(TAG, "shutdown");
         bq25798_power_switch(POWER_I2C, Bq25987PowerShutdown);
     } else {
-        //FURI_LOG_I(TAG, "off");
+        FURI_LOG_I(TAG, "off");
         bq25798_power_switch(POWER_I2C, Bq25987PowerOff);
     }
     furi_hal_i2c_release(POWER_I2C);
@@ -88,34 +88,34 @@ static void power_handle_shutdown(Power* power, bool full_shutdown) {
 static void power_handle_reboot(Power* power) {
     UNUSED(power);
     // TODO: normal reboot, DFU, ...
-    //FURI_LOG_I(TAG, "reset");
+    FURI_LOG_I(TAG, "reset");
     furi_hal_i2c_acquire(POWER_I2C);
     bq25798_power_switch(POWER_I2C, Bq25987PowerReset);
     furi_hal_i2c_release(POWER_I2C);
 }
 
 static void power_dump_pd_capabilities(Power* power) {
-    //FURI_LOG_I(
-    // TAG,
-    // "PD Capabilities: %u (default %.3fA)",
-    // power->pd_capabilities.cap_number,
-    // power->pd_capabilities.passive_mode_current / 1000.f);
+    FURI_LOG_I(
+        TAG,
+        "PD Capabilities: %u (default %.3fA)",
+        power->pd_capabilities.cap_number,
+        power->pd_capabilities.passive_mode_current / 1000.f);
     for(size_t i = 0; i < power->pd_capabilities.cap_number; i++) {
         if(power->pd_capabilities.cap[i].is_fixed) {
-            //FURI_LOG_I(
-            // TAG,
-            // "[%u] fixed %.3fV %.3fA",
-            // power->pd_capabilities.cap[i].pdo_id,
-            // power->pd_capabilities.cap[i].voltage_max / 1000.f,
-            // power->pd_capabilities.cap[i].current_max / 1000.f);
+            FURI_LOG_I(
+                TAG,
+                "[%u] fixed %.3fV %.3fA",
+                power->pd_capabilities.cap[i].pdo_id,
+                power->pd_capabilities.cap[i].voltage_max / 1000.f,
+                power->pd_capabilities.cap[i].current_max / 1000.f);
         } else {
-            //FURI_LOG_I(
-            // TAG,
-            // "[%u] PPS %.3f-%.3fV %.3fA",
-            // power->pd_capabilities.cap[i].pdo_id,
-            // power->pd_capabilities.cap[i].voltage_min / 1000.f,
-            // power->pd_capabilities.cap[i].voltage_max / 1000.f,
-            // power->pd_capabilities.cap[i].current_max / 1000.f);
+            FURI_LOG_I(
+                TAG,
+                "[%u] PPS %.3f-%.3fV %.3fA",
+                power->pd_capabilities.cap[i].pdo_id,
+                power->pd_capabilities.cap[i].voltage_min / 1000.f,
+                power->pd_capabilities.cap[i].voltage_max / 1000.f,
+                power->pd_capabilities.cap[i].current_max / 1000.f);
         }
     }
 }
@@ -145,11 +145,11 @@ static void power_message_callback(FuriEventLoopObject* object, void* context) {
         bq25798_set_input_current_limit(POWER_I2C, power->input_current_limit);
         furi_hal_i2c_release(POWER_I2C);
 
-        //FURI_LOG_I(
-        // TAG,
-        // "USB PD Mode: %.3fV %.3fA",
-        // msg.pd_mode.voltage / 1000.f,
-        // msg.pd_mode.current / 1000.f);
+        FURI_LOG_I(
+            TAG,
+            "USB PD Mode: %.3fV %.3fA",
+            msg.pd_mode.voltage / 1000.f,
+            msg.pd_mode.current / 1000.f);
 
         power_usb_pd_get_capabilities(power->usb_pd, &power->pd_capabilities);
         power_dump_pd_capabilities(power);
@@ -198,7 +198,7 @@ Power* power_alloc(void) {
 void power_run(Power* instance) {
     furi_assert(instance);
 
-    //FURI_LOG_I(TAG, "Configuring interrupt source");
+    FURI_LOG_I(TAG, "Configuring interrupt source");
     furi_event_loop_subscribe_semaphore(
         instance->event_loop,
         instance->gpio_semaphore,
@@ -208,15 +208,15 @@ void power_run(Power* instance) {
     furi_hal_gpio_init(POWER_IRQ_GPIO, GpioModeInterruptFall, GpioPullNo, GpioSpeedLow);
     furi_hal_gpio_add_int_callback(POWER_IRQ_GPIO, power_gpio_isr, instance);
 
-    //FURI_LOG_I(TAG, "Initializing charger");
+    FURI_LOG_I(TAG, "Initializing charger");
     furi_hal_i2c_acquire(POWER_I2C);
     instance->state.charger_alive = bq25798_init(POWER_I2C);
     if(instance->state.charger_alive) {
-        //FURI_LOG_I(TAG, "Charger is ready");
+        FURI_LOG_I(TAG, "Charger is ready");
         bq25798_reset(POWER_I2C);
         bq25798_set_cfg(POWER_I2C);
     } else {
-        //FURI_LOG_E(TAG, "Charger is absent");
+        FURI_LOG_E(TAG, "Charger is absent");
     }
     furi_hal_i2c_release(POWER_I2C);
 
@@ -225,7 +225,7 @@ void power_run(Power* instance) {
     // TODO: don't start PD if battery is dead
     power_usb_pd_start(instance->usb_pd);
 
-    //FURI_LOG_I(TAG, "Running event loop");
+    FURI_LOG_I(TAG, "Running event loop");
     furi_event_loop_run(instance->event_loop);
 }
 

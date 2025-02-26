@@ -465,10 +465,10 @@ static bool pd_send_request(PowerUsbPd* pd, uint32_t voltage, uint32_t current) 
         pd->req_voltage = voltage;
         pd->req_current = current;
         if(is_fixed) {
-            //FURI_LOG_D(TAG, "Request fixed cap %u", cap_id);
+            FURI_LOG_D(TAG, "Request fixed cap %u", cap_id);
             pd_send_request_fixed(pd, cap_id, current);
         } else {
-            //FURI_LOG_D(TAG, "Request PPS cap %u", cap_id);
+            FURI_LOG_D(TAG, "Request PPS cap %u", cap_id);
             pd_send_request_pps(pd, cap_id, voltage, current);
         }
     }
@@ -841,7 +841,7 @@ void power_usb_pd_msg_handler(FuriEventLoopObject* object, void* context) {
     } else if(msg.event == PdEventIdCCDebounce) {
         pd->cc_line = pd->cc_line_last;
         pd->cc_line_level = pd->cc_line_level_last;
-        //FURI_LOG_D(TAG, "CC change line:%u level:%u", pd->cc_line, pd->cc_line_level);
+        FURI_LOG_D(TAG, "CC change line:%u level:%u", pd->cc_line, pd->cc_line_level);
         pd->pps_keep_alive = false;
         pd->hrst_count = 0;
         pd->req_voltage = PD_VOLTAGE_DEFAULT;
@@ -855,10 +855,10 @@ void power_usb_pd_msg_handler(FuriEventLoopObject* object, void* context) {
         if(msg.rx_done.ord_set_type == PdOrdSetSOP0) {
             pd_msg_parse_sop0(pd, msg.rx_done.data);
         } else {
-            //FURI_LOG_W(TAG, "Unknown Ordered Set type %u", msg.rx_done.ord_set_type);
+            FURI_LOG_W(TAG, "Unknown Ordered Set type %u", msg.rx_done.ord_set_type);
         }
     } else if(msg.event == PdEventIdRxError) {
-        //FURI_LOG_W(TAG, "Rx error");
+        FURI_LOG_W(TAG, "Rx error");
     } else if(msg.event == PdEventIdHrst) {
         pd->req_voltage = PD_VOLTAGE_DEFAULT;
         pd->req_current = 0;
@@ -869,7 +869,7 @@ void power_usb_pd_msg_handler(FuriEventLoopObject* object, void* context) {
             pd->hrst_count = 0;
             pd_fallback(pd);
         }
-        //FURI_LOG_W(TAG, "HRST");
+        FURI_LOG_W(TAG, "HRST");
     } else if(msg.event == PdEventIdRequest) {
         pd_send_request(pd, msg.request_power.voltage_mv, msg.request_power.current_ma);
     } else if(msg.event == PdEventIdPpsKeepAlive) {
