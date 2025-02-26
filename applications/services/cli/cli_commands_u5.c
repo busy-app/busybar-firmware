@@ -525,4 +525,5 @@ void cli_commands_init(Cli* cli) {
 
     cli_add_command(cli, "echo", CliCommandFlagDefault, cli_command_echo, NULL);
     cli_add_command(cli, "dled", CliCommandFlagParallelSafe, cli_command_dled, NULL);
+    cli_add_command(cli, "oled", CliCommandFlagParallelSafe, cli_command_oled, NULL);
 }
