@@ -5,7 +5,7 @@
 
 #include <input/input.h>
 
-#include <lv_theme_front.h>
+#include <lvgl_addons/themes/lv_theme_front.h>
 
 #include <ssd1320.h>
 #include <led_display/led_display.h>
