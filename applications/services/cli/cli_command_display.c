@@ -6,12 +6,14 @@
 #include <storage/storage.h>
 
 #include <gui_lvgl/gui_lvgl.h>
-#include <led_display/led_display.h>
-#include <lib/lvgl/src/widgets/canvas/lv_canvas.h>
 
 #define TAG "CliDisplay"
 
-static void cli_command_display(Cli* cli, FuriString* args, GuiDisplayId id) {
+static void cli_command_display_print_usage(void) {
+    printf("Incorect arguments\r\nUsage: display <front|back> show <file_path>");
+}
+
+static void cli_command_show(Cli* cli, FuriString* args, GuiDisplayId id) {
     GuiLvgl* gui = furi_record_open(RECORD_GUI_LVGL);
     Storage* storage = furi_record_open(RECORD_STORAGE);
     FuriString* cmd = furi_string_alloc();
@@ -20,9 +22,7 @@ static void cli_command_display(Cli* cli, FuriString* args, GuiDisplayId id) {
     do {
         args_read_string_and_trim(args, cmd);
         if(furi_string_cmp_str(cmd, "show") != 0) {
-            printf(
-                "Incorrect argument. Command usage:\r\n%s show <file_path>\r\n",
-                id == GuiDisplayIdFront ? "dled" : "oled");
+            cli_command_display_print_usage();
             break;
         }
 
@@ -62,12 +62,18 @@ static void cli_command_display(Cli* cli, FuriString* args, GuiDisplayId id) {
     furi_record_close(RECORD_GUI_LVGL);
 }
 
-void cli_command_dled(Cli* cli, FuriString* args, void* context) {
+void cli_command_display(Cli* cli, FuriString* args, void* context) {
     UNUSED(context);
-    cli_command_display(cli, args, GuiDisplayIdFront);
-}
+    FuriString* display_type = furi_string_alloc();
+    args_read_string_and_trim(args, display_type);
 
-void cli_command_oled(Cli* cli, FuriString* args, void* context) {
-    UNUSED(context);
-    cli_command_display(cli, args, GuiDisplayIdBack);
+    if(furi_string_cmp_str(display_type, "front") == 0) {
+        cli_command_show(cli, args, GuiDisplayIdFront);
+    } else if(furi_string_cmp_str(display_type, "back") == 0) {
+        cli_command_show(cli, args, GuiDisplayIdBack);
+    } else {
+        cli_command_display_print_usage();
+    }
+
+    furi_string_free(display_type);
 }
