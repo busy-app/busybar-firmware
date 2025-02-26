@@ -799,7 +799,7 @@
 /* File system interfaces for common APIs */
 
 /** Setting a default driver letter allows skipping the driver prefix in filepaths. */
-#define LV_FS_DEFAULT_DRIVER_LETTER 'E'
+#define LV_FS_DEFAULT_DRIVER_LETTER 'C'
 
 /** API for fopen, fread, etc. */
 #define LV_USE_FS_STDIO 0

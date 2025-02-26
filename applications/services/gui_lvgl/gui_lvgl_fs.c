@@ -105,7 +105,7 @@ static lv_fs_res_t gui_lvgl_fs_dir_close(lv_fs_drv_t* drv, void* rddir_p) {
 }
 
 static lv_fs_drv_t gui_lvgl_fs_driver = {
-    .letter = 'E',
+    .letter = 'C',
     .cache_size = 0,
     .ready_cb = NULL,
     .open_cb = gui_lvgl_fs_open,
