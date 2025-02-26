@@ -12,8 +12,6 @@
 #define TAG "CliDisplay"
 
 static void cli_command_display(Cli* cli, FuriString* args, GuiDisplayId id) {
-    UNUSED(cli);
-
     GuiLvgl* gui = furi_record_open(RECORD_GUI_LVGL);
     Storage* storage = furi_record_open(RECORD_STORAGE);
 
