@@ -7,12 +7,14 @@
 extern "C" {
 #endif
 
+typedef void (*FuriHalSaiCallback)(void* context);
+
 bool furi_hal_sai_init(void);
 
-typedef int16_t (*FuriHalSaiCallback)(void* context);
+void furi_hal_sai_set_data(const int16_t* data, uint32_t data_count);
+void furi_hal_sai_set_callback(FuriHalSaiCallback callback, void* context);
 
-void furi_hal_sai_start(FuriHalSaiCallback callback, void* callback_context);
-
+void furi_hal_sai_start(void);
 void furi_hal_sai_stop(void);
 
 #ifdef __cplusplus
