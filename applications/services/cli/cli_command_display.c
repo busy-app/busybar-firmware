@@ -42,9 +42,10 @@ static void cli_command_display(Cli* cli, FuriString* args, GuiDisplayId id) {
 
     gui_lvgl_acquire(gui);
 
-    lv_obj_t* active = gui_lvgl_get_layer(gui, id, GuiLayerIdActive);
-    lv_obj_clean(active);
-    lv_obj_t* image = lv_image_create(active);
+    lv_obj_t* system = gui_lvgl_get_layer(gui, id, GuiLayerIdSystem);
+    lv_obj_t* screen = lv_obj_create(system);
+    lv_obj_set_size(screen, lv_obj_get_width(system), lv_obj_get_height(system));
+    lv_obj_t* image = lv_image_create(screen);
     lv_image_set_src(image, furi_string_get_cstr(args));
     lv_obj_set_pos(image, 0, 0);
 
@@ -54,7 +55,7 @@ static void cli_command_display(Cli* cli, FuriString* args, GuiDisplayId id) {
     };
 
     gui_lvgl_acquire(gui);
-    lv_obj_delete(image);
+    lv_obj_delete(screen);
     gui_lvgl_release(gui);
 
     furi_record_close(RECORD_STORAGE);
