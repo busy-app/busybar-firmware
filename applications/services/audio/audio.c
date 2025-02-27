@@ -46,19 +46,22 @@ static void audio_sai_callback(void* context) {
 }
 
 static bool audio_open_file(Audio* instance, const char* file_name) {
-    bool success;
-    // TODO: Check whether it is possible create a file only once and reuse it
-    if(instance->file) {
-        storage_file_free(instance->file);
-    }
+    bool success = false;
 
-    instance->file = storage_file_alloc(instance->storage);
+    do {
+        if(storage_file_is_open(instance->file)) {
+            if(!storage_file_close(instance->file)) {
+                break;
+            }
+        }
 
-    success = storage_file_open(instance->file, file_name, FSAM_READ, FSOM_OPEN_EXISTING);
+        if(!storage_file_open(instance->file, file_name, FSAM_READ, FSOM_OPEN_EXISTING)) {
+            storage_file_close(instance->file);
+            break;
+        }
 
-    if(!success) {
-        storage_file_close(instance->file);
-    }
+        success = true;
+    } while(false);
 
     return success;
 }
@@ -174,6 +177,7 @@ static Audio* audio_alloc(void) {
     instance->event_loop = furi_event_loop_alloc();
     instance->message_queue = furi_message_queue_alloc(AUDIO_MAX_MESSAGES, sizeof(AudioMessage));
     instance->storage = furi_record_open(RECORD_STORAGE);
+    instance->file = storage_file_alloc(instance->storage);
 
     furi_event_loop_subscribe_message_queue(
         instance->event_loop,
