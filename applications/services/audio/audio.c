@@ -160,7 +160,7 @@ static void audio_message_queue_callback(FuriEventLoopObject* object, void* cont
 
     if(msg.type == AudioMessageTypePlayFile) {
         result = audio_handle_play_file(instance, &msg);
-    } else if(msg.type == AudioMessageTypePlayFile) {
+    } else if(msg.type == AudioMessageTypeSetVolume) {
         instance->volume = msg.volume;
     } else {
         furi_crash("Invalid message type");
