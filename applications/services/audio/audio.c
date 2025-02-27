@@ -12,6 +12,10 @@
 #define AUDIO_MAX_MESSAGES (8)
 #define AUDIO_BUFFER_DEPTH (0x1000)
 
+#define AUDIO_VOLUME_MIN     (0.0F)
+#define AUDIO_VOLUME_MAX     (1.0F)
+#define AUDIO_VOLUME_DEFAULT (AUDIO_VOLUME_MAX)
+
 typedef enum {
     AudioBufferIndexPing = (1UL << FuriHalSaiEventHalfTransfer),
     AudioBufferIndexPong = (1UL << FuriHalSaiEventTransferComplete),
@@ -20,6 +24,7 @@ typedef enum {
 
 typedef enum {
     AudioMessageTypePlayFile,
+    AudioMessageTypeSetVolume,
 } AudioMessageType;
 
 typedef struct {
@@ -28,6 +33,7 @@ typedef struct {
     bool* result;
     union {
         const char* file_name;
+        float volume;
     };
 } AudioMessage;
 
@@ -37,6 +43,7 @@ struct Audio {
     Storage* storage;
     File* file;
     int16_t buffer[AUDIO_BUFFER_DEPTH];
+    float volume;
     bool should_stop;
 };
 
@@ -67,6 +74,17 @@ static bool audio_open_file(Audio* instance, const char* file_name) {
     return success;
 }
 
+static void audio_adjust_volume(Audio* instance, void* data_ptr, size_t data_size) {
+    if(instance->volume < AUDIO_VOLUME_MAX) {
+        int16_t* buffer = data_ptr;
+        const uint32_t count = data_size / sizeof(int16_t);
+
+        for(uint32_t i = 0; i < count; ++i) {
+            buffer[i] = roundf(buffer[i] * instance->volume);
+        }
+    }
+}
+
 static bool audio_load_file_data(Audio* instance, AudioBufferIndex fill_type) {
     bool success = false;
 
@@ -91,10 +109,13 @@ static bool audio_load_file_data(Audio* instance, AudioBufferIndex fill_type) {
 
     const size_t read_data_size = storage_file_read(instance->file, data_ptr, data_size);
 
-    if(read_data_size != 0) {
+    if(read_data_size > 0) {
+        audio_adjust_volume(instance, data_ptr, read_data_size);
+
         if(read_data_size < data_size) {
             memset(data_ptr + read_data_size, 0, data_size - read_data_size);
         }
+
         success = true;
     }
 
@@ -139,6 +160,8 @@ static void audio_message_queue_callback(FuriEventLoopObject* object, void* cont
 
     if(msg.type == AudioMessageTypePlayFile) {
         result = audio_handle_play_file(instance, &msg);
+    } else if(msg.type == AudioMessageTypePlayFile) {
+        instance->volume = msg.volume;
     } else {
         furi_crash("Invalid message type");
     }
@@ -183,6 +206,7 @@ static Audio* audio_alloc(void) {
     instance->message_queue = furi_message_queue_alloc(AUDIO_MAX_MESSAGES, sizeof(AudioMessage));
     instance->storage = furi_record_open(RECORD_STORAGE);
     instance->file = storage_file_alloc(instance->storage);
+    instance->volume = AUDIO_VOLUME_DEFAULT;
 
     furi_event_loop_subscribe_message_queue(
         instance->event_loop,
@@ -219,6 +243,18 @@ bool audio_play_file(Audio* instance, const char* file_name) {
     audio_send_message(instance, &msg);
 
     return result;
+}
+
+void audio_set_volume(Audio* instance, float volume) {
+    furi_check(instance);
+    furi_check(volume >= AUDIO_VOLUME_MIN && volume <= AUDIO_VOLUME_MAX);
+
+    const AudioMessage msg = {
+        .type = AudioMessageTypeSetVolume,
+        .volume = volume,
+    };
+
+    audio_send_message(instance, &msg);
 }
 
 int32_t audio_srv(void* p) {

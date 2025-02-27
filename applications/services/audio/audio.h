@@ -13,6 +13,8 @@ typedef struct Audio Audio;
 
 bool audio_play_file(Audio* instance, const char* file_name);
 
+void audio_set_volume(Audio* instance, float volume);
+
 #ifdef __cplusplus
 }
 #endif
