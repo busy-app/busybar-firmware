@@ -48,6 +48,9 @@ sources = [
     f"{SDK_DIR}/platform/common/src/sl_core_cortexm.c",
     f"{SDK_DIR}/platform/common/src/sl_string.c",
     f"{SDK_DIR}/platform/service/mem_pool/src/sl_mem_pool.c",
+
+    f"{SDK_DIR}/platform/emdrv/nvm3/src/nvm3_default_common_linker.c",
+
 ]
 
 lib = libenv.StaticLibrary("${FW_LIB_NAME}", sources)
