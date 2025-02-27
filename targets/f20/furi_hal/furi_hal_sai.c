@@ -107,6 +107,11 @@ static void furi_hal_sai_init_dma(void) {
 }
 
 static void furi_hal_sai_start_dma(void) {
+    furi_check(furi_hal_sai.dma_data_ptr);
+    furi_check(furi_hal_sai.dma_data_size);
+
+    furi_check(!LL_DMA_IsEnabledChannel(GPDMA1, furi_hal_sai.dma_channel));
+
     LL_DMA_InitTypeDef dma_init_struct = {
         .SrcAddress = furi_hal_sai.dma_data_ptr,
         .DestAddress = (uint32_t)(&FURI_HAL_SAI_BLOCK->DR),
@@ -282,12 +287,12 @@ bool furi_hal_sai_init(void) {
     return true;
 }
 
-void furi_hal_sai_set_data(const int16_t* data, uint32_t data_count) {
-    furi_check(data);
-    furi_check(data_count);
+void furi_hal_sai_set_buffer(const int16_t* buffer, uint32_t buffer_depth) {
+    furi_check(buffer);
+    furi_check(buffer_depth);
 
-    furi_hal_sai.dma_data_ptr = (uint32_t)data;
-    furi_hal_sai.dma_data_size = data_count * sizeof(int16_t);
+    furi_hal_sai.dma_data_ptr = (uint32_t)buffer;
+    furi_hal_sai.dma_data_size = buffer_depth * sizeof(int16_t);
 }
 
 void furi_hal_sai_set_callback(FuriHalSaiCallback callback, void* context) {

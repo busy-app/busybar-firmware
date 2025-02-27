@@ -218,7 +218,7 @@ static Audio* audio_alloc(void) {
     furi_event_loop_set_custom_event_callback(
         instance->event_loop, audio_custom_event_callback, instance);
 
-    furi_hal_sai_set_data(instance->buffer, COUNT_OF(instance->buffer));
+    furi_hal_sai_set_buffer(instance->buffer, COUNT_OF(instance->buffer));
     furi_hal_sai_set_callback(audio_sai_callback, instance);
 
     // TODO: Create record only when MMC has been mounted
