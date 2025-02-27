@@ -1,3 +1,5 @@
 #pragma once
 
-void gui_lvgl_fs_init(void);
+#include <storage/storage.h>
+
+void gui_lvgl_fs_init(Storage* storage);

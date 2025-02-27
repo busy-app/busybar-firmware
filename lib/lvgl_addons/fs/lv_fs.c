@@ -14,8 +14,12 @@ static void* gui_lvgl_fs_open(lv_fs_drv_t* drv, const char* path, lv_fs_mode_t m
     File* file = storage_file_alloc(storage);
     FS_AccessMode access_mode = (mode == LV_FS_MODE_RD) ? FSAM_READ : FSAM_READ_WRITE;
     bool storage_res = storage_file_open(file, path, access_mode, FSOM_OPEN_EXISTING);
+    if(!storage_res) {
+        storage_file_free(file);
+        file = NULL;
+    }
 
-    return storage_res ? file : NULL;
+    return file;
 }
 
 static lv_fs_res_t gui_lvgl_fs_close(lv_fs_drv_t* drv, void* file_p) {
@@ -82,8 +86,12 @@ static void* gui_lvgl_fs_dir_open(lv_fs_drv_t* drv, const char* path) {
 
     File* file = storage_file_alloc(storage);
     bool storage_res = storage_dir_open(file, path);
+    if(!storage_res) {
+        storage_file_free(file);
+        file = NULL;
+    }
 
-    return (storage_res == true) ? file : NULL;
+    return file;
 }
 
 static lv_fs_res_t
@@ -119,10 +127,8 @@ static lv_fs_drv_t gui_lvgl_fs_driver = {
     .dir_close_cb = gui_lvgl_fs_dir_close,
 };
 
-void gui_lvgl_fs_init(void) {
-    Storage* storage = furi_record_open(RECORD_STORAGE);
+void gui_lvgl_fs_init(Storage* storage) {
     gui_lvgl_fs_driver.user_data = storage;
-    furi_record_close(RECORD_STORAGE);
 
     lv_fs_drv_register(&gui_lvgl_fs_driver);
 }

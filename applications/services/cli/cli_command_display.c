@@ -37,6 +37,7 @@ static void cli_command_show(Cli* cli, FuriString* args, GuiDisplayId id) {
     furi_string_free(cmd);
     if(!arguments_parsed) {
         furi_record_close(RECORD_STORAGE);
+        furi_record_close(RECORD_GUI_LVGL);
         return;
     }
 
