@@ -230,7 +230,7 @@ static void busy_play_finished_sound(BusyApp* instance) {
 }
 
 static void busy_play_countdown_sound(BusyApp* instance) {
-    if(instance->enable_sound && instance->interval_time_left_s <= 3) {
+    if(instance->enable_sound && instance->interval_time_left_s <= 4) {
         if(instance->state == BusyTimerStateWork) {
             audio_play_file(instance->audio, EXT_PATH("audio/work_countdown.snd"));
         } else if(instance->state == BusyTimerStateRest || instance->state == BusyTimerStateLongRest) {
