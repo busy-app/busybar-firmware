@@ -23,7 +23,7 @@ typedef struct Audio Audio;
  * @brief Play an audio file from storage.
  *
  * The file MUST be in the following format:
- * - Heder: none
+ * - Header: none
  * - Channels: 1
  * - Rate: 44100 Hz
  * - Bits: 16bit LE
