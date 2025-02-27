@@ -25,6 +25,7 @@ typedef struct {
     void* callback_context;
     uint32_t dma_channel;
     uint32_t dma_data_ptr;
+    uint32_t dma_data_size;
 } FuriHalSai;
 
 static FuriHalSai furi_hal_sai = {};
@@ -47,10 +48,6 @@ static void furi_hal_sai_isr(void* context) {
     if(LL_DMA_IsActiveFlag_TO(GPDMA1, furi_hal_sai.dma_channel)) {
         LL_DMA_ClearFlag_TO(GPDMA1, furi_hal_sai.dma_channel);
         furi_crash("SAI DMA trigger overrun");
-    }
-    if(LL_DMA_IsActiveFlag_SUSP(GPDMA1, furi_hal_sai.dma_channel)) {
-        LL_DMA_ClearFlag_SUSP(GPDMA1, furi_hal_sai.dma_channel);
-        furi_crash("SAI DMA suspension");
     }
     if(LL_DMA_IsActiveFlag_USE(GPDMA1, furi_hal_sai.dma_channel)) {
         LL_DMA_ClearFlag_USE(GPDMA1, furi_hal_sai.dma_channel);
@@ -94,13 +91,26 @@ static bool furi_hal_sai_enable(void) {
     return true;
 }
 
-static void furi_hal_sai_setup_dma(void) {
+static void furi_hal_sai_init_dma(void) {
     furi_check(furi_hal_dma_allocate_gpdma_channel(&furi_hal_sai.dma_channel));
 
+    LL_DMA_EnableIT_TC(GPDMA1, furi_hal_sai.dma_channel);
+    LL_DMA_EnableIT_HT(GPDMA1, furi_hal_sai.dma_channel);
+
+    LL_DMA_EnableIT_TO(GPDMA1, furi_hal_sai.dma_channel);
+    LL_DMA_EnableIT_USE(GPDMA1, furi_hal_sai.dma_channel);
+    LL_DMA_EnableIT_ULE(GPDMA1, furi_hal_sai.dma_channel);
+    LL_DMA_EnableIT_DTE(GPDMA1, furi_hal_sai.dma_channel);
+
+    furi_hal_interrupt_set_isr(
+        furi_hal_dma_get_gpdma_interrupt_id(furi_hal_sai.dma_channel), furi_hal_sai_isr, NULL);
+}
+
+static void furi_hal_sai_start_dma(void) {
     LL_DMA_InitTypeDef dma_init_struct = {
-        .SrcAddress = 0,
+        .SrcAddress = furi_hal_sai.dma_data_ptr,
         .DestAddress = (uint32_t)(&FURI_HAL_SAI_BLOCK->DR),
-        .BlkDataLength = 0,
+        .BlkDataLength = furi_hal_sai.dma_data_size,
 
         .Request = FURI_HAL_SAI_DMA_REQUEST,
         .Direction = LL_DMA_DIRECTION_MEMORY_TO_PERIPH,
@@ -124,17 +134,25 @@ static void furi_hal_sai_setup_dma(void) {
     LL_DMA_Init(GPDMA1, furi_hal_sai.dma_channel, &dma_init_struct);
     LL_DMA_EnableCSARUpdate(GPDMA1, furi_hal_sai.dma_channel);
 
-    LL_DMA_EnableIT_TC(GPDMA1, furi_hal_sai.dma_channel);
-    LL_DMA_EnableIT_HT(GPDMA1, furi_hal_sai.dma_channel);
+    LL_DMA_EnableChannel(GPDMA1, furi_hal_sai.dma_channel);
+}
 
-    LL_DMA_EnableIT_TO(GPDMA1, furi_hal_sai.dma_channel);
-    LL_DMA_EnableIT_SUSP(GPDMA1, furi_hal_sai.dma_channel);
-    LL_DMA_EnableIT_USE(GPDMA1, furi_hal_sai.dma_channel);
-    LL_DMA_EnableIT_ULE(GPDMA1, furi_hal_sai.dma_channel);
-    LL_DMA_EnableIT_DTE(GPDMA1, furi_hal_sai.dma_channel);
+static bool furi_hal_sai_stop_dma(void) {
+    if(LL_DMA_IsEnabledChannel(GPDMA1, furi_hal_sai.dma_channel)) {
+        LL_DMA_SuspendChannel(GPDMA1, furi_hal_sai.dma_channel);
 
-    furi_hal_interrupt_set_isr(
-        furi_hal_dma_get_gpdma_interrupt_id(furi_hal_sai.dma_channel), furi_hal_sai_isr, NULL);
+        uint32_t count = SAI_DEFAULT_TIMEOUT * (SystemCoreClock / 7U / 1000U);
+        do {
+            if(count == 0U) {
+                return false;
+            }
+            count--;
+        } while(!LL_DMA_IsActiveFlag_SUSP(GPDMA1, furi_hal_sai.dma_channel));
+
+        LL_DMA_ResetChannel(GPDMA1, furi_hal_sai.dma_channel);
+    }
+
+    return true;
 }
 
 bool furi_hal_sai_init(void) {
@@ -255,7 +273,7 @@ bool furi_hal_sai_init(void) {
     // Disable PDM
     FURI_HAL_SAI->PDMCR &= ~(SAI_PDMCR_PDMEN);
 
-    furi_hal_sai_setup_dma();
+    furi_hal_sai_init_dma();
 
     // Enable DMA request
     FURI_HAL_SAI_BLOCK->CR1 |= SAI_xCR1_DMAEN;
@@ -268,13 +286,8 @@ void furi_hal_sai_set_data(const int16_t* data, uint32_t data_count) {
     furi_check(data);
     furi_check(data_count);
 
-    FURI_CRITICAL_ENTER();
-    LL_DMA_DisableChannel(GPDMA1, furi_hal_sai.dma_channel);
     furi_hal_sai.dma_data_ptr = (uint32_t)data;
-    LL_DMA_SetBlkDataLength(GPDMA1, furi_hal_sai.dma_channel, data_count * sizeof(int16_t));
-    LL_DMA_SetSrcAddress(GPDMA1, furi_hal_sai.dma_channel, furi_hal_sai.dma_data_ptr);
-    LL_DMA_EnableChannel(GPDMA1, furi_hal_sai.dma_channel);
-    FURI_CRITICAL_EXIT();
+    furi_hal_sai.dma_data_size = data_count * sizeof(int16_t);
 }
 
 void furi_hal_sai_set_callback(FuriHalSaiCallback callback, void* context) {
@@ -284,6 +297,7 @@ void furi_hal_sai_set_callback(FuriHalSaiCallback callback, void* context) {
 
 void furi_hal_sai_start(void) {
     FURI_CRITICAL_ENTER();
+    furi_hal_sai_start_dma();
     furi_check(furi_hal_sai_enable());
     FURI_CRITICAL_EXIT();
 }
@@ -291,5 +305,6 @@ void furi_hal_sai_start(void) {
 void furi_hal_sai_stop(void) {
     FURI_CRITICAL_ENTER();
     furi_check(furi_hal_sai_disable());
+    furi_check(furi_hal_sai_stop_dma());
     FURI_CRITICAL_EXIT();
 }
