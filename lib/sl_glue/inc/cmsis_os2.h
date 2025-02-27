@@ -66,6 +66,7 @@
 
 #include <furi.h>
 #include <stdlib.h>
+//#include <task.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -79,16 +80,16 @@ extern "C" {
 //   uint32_t                    kernel;   ///< Kernel version (major.minor.rev: mmnnnrrrr dec).
 // } osVersion_t;
 
-// /// Kernel state.
-// typedef enum {
-//   osKernelInactive        =  0,         ///< Inactive.
-//   osKernelReady           =  1,         ///< Ready.
-//   osKernelRunning         =  2,         ///< Running.
-//   osKernelLocked          =  3,         ///< Locked.
-//   osKernelSuspended       =  4,         ///< Suspended.
-//   osKernelError           = -1,         ///< Error.
-//   osKernelReserved        = 0x7FFFFFFF  ///< Prevents enum down-size compiler optimization.
-// } osKernelState_t;
+/// Kernel state.
+typedef enum {
+    osKernelInactive = 0, ///< Inactive.
+    osKernelReady = 1, ///< Ready.
+    osKernelRunning = 2, ///< Running.
+    osKernelLocked = 3, ///< Locked.
+    osKernelSuspended = 4, ///< Suspended.
+    osKernelError = -1, ///< Error.
+    osKernelReserved = 0x7FFFFFFF ///< Prevents enum down-size compiler optimization.
+} osKernelState_t;
 
 // /// Thread state.
 // typedef enum {
@@ -237,7 +238,7 @@ typedef void* osEventFlagsId_t;
 typedef void* osMutexId_t;
 
 // /// \details Semaphore ID identifies the semaphore.
-typedef void *osSemaphoreId_t;
+typedef void* osSemaphoreId_t;
 
 // /// \details Memory Pool ID identifies the memory pool.
 // typedef void *osMemoryPoolId_t;
@@ -302,10 +303,10 @@ typedef struct {
 
 /// Attributes structure for semaphore.
 typedef struct {
-  const char                   *name;   ///< name of the semaphore
-  uint32_t                 attr_bits;   ///< attribute bits
-  void                      *cb_mem;    ///< memory for control block
-  uint32_t                   cb_size;   ///< size of provided memory for control block
+    const char* name; ///< name of the semaphore
+    uint32_t attr_bits; ///< attribute bits
+    void* cb_mem; ///< memory for control block
+    uint32_t cb_size; ///< size of provided memory for control block
 } osSemaphoreAttr_t;
 
 // /// Attributes structure for memory pool.
@@ -344,9 +345,27 @@ static FURI_ALWAYS_INLINE osStatus_t osKernelInitialize(void) {
 // /// \return status code that indicates the execution status of the function.
 // osStatus_t osKernelGetInfo (osVersion_t *version, char *id_buf, uint32_t id_size);
 
-// /// Get the current RTOS Kernel state.
-// /// \return current RTOS Kernel state.
-// osKernelState_t osKernelGetState (void);
+/// Get the current RTOS Kernel state.
+/// \return current RTOS Kernel state.
+//osKernelState_t osKernelGetState (void);
+static FURI_ALWAYS_INLINE osKernelState_t osKernelGetState(void) {
+    osKernelState_t state;
+    uint32_t KernelState = furi_kernel_lock();
+
+    switch(KernelState){
+    case 0:
+        state = osKernelRunning;
+        break;
+    case 1:
+        state = osKernelLocked;
+        break;
+    case FuriStatusError:
+    default:
+        state = osKernelError;
+        break;
+    }
+    return (state);
+}
 
 // /// Start the RTOS Kernel scheduler.
 // /// \return status code that indicates the execution status of the function.

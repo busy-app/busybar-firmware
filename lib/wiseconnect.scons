@@ -58,7 +58,7 @@ env.Append(
         "SLI_SI91X_ENABLE_BLE",
         "SL_SI91X_ENABLE_LITTLE_ENDIAN=1",
         # NVM3
-        "FLASH_PAGE_SIZE=4096",
+        #"FLASH_PAGE_SIZE=4096",
     ],
 )
 
