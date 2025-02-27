@@ -10,7 +10,6 @@ MCU_INCDIR = f"#/lib/{MCU_DIR}"
 
 env.Append(
     CPPPATH=[
-        
         Dir(f"{WISECONNECT_INCDIR}/protocol/wifi/inc").rdir(),
         Dir(f"{WISECONNECT_INCDIR}/service/bsd_socket/inc").rdir(),
         Dir(f"{WIRELESS_INCDIR}/asynchronous_socket/inc").rdir(),
@@ -22,7 +21,7 @@ env.Append(
         Dir(f"{MCU_INCDIR}/drivers/peripheral_drivers/inc").rdir(),
         Dir(f"{MCU_INCDIR}/core/config").rdir(),
         Dir(f"{MCU_INCDIR}/drivers/unified_api/inc").rdir(),
-        Dir(f"{MCU_INCDIR}/drivers/service/clock_manager/inc").rdir(),      
+        Dir(f"{MCU_INCDIR}/drivers/service/clock_manager/inc").rdir(),
         Dir(f"{MCU_INCDIR}/drivers/unified_peripheral_drivers/inc").rdir(),
         Dir(f"{WIRELESS_INCDIR}/sl_net/inc").rdir(),
         Dir(f"{WIRELESS_INCDIR}/inc").rdir(),
@@ -57,8 +56,6 @@ env.Append(
         # SDK BLE Silabs
         "SLI_SI91X_ENABLE_BLE",
         "SL_SI91X_ENABLE_LITTLE_ENDIAN=1",
-        # NVM3
-        #"FLASH_PAGE_SIZE=4096",
     ],
 )
 
@@ -76,7 +73,6 @@ sources = [
     f"{MCU_DIR}/drivers/systemlevel/src/rsi_ipmu.c",
     f"{MCU_DIR}/drivers/systemlevel/src/rsi_ulpss_clk.c",
     f"{MCU_DIR}/drivers/service/clock_manager/src/sl_si91x_clock_manager.c",
-
     # SDK Wifi Silabs
     f"{WISECONNECT_DIR}/common/src/sl_utility.c",
     f"{WISECONNECT_DIR}/protocol/wifi/si91x/sl_wifi.c",
@@ -87,7 +83,6 @@ sources = [
     f"{WISECONNECT_DIR}/service/network_manager/src/sl_net_basic_profiles.c",
     f"{WISECONNECT_DIR}/service/network_manager/src/sl_net_credentials.c",
     f"{WISECONNECT_DIR}/service/network_manager/si91x/sl_net_si91x.c",
-
     f"{WIRELESS_DIR}/src/sl_si91x_driver.c",
     f"{WIRELESS_DIR}/src/sl_rsi_utility.c",
     f"{WIRELESS_DIR}/ahb_interface/src/rsi_hal_mcu_m4_rom.c",
