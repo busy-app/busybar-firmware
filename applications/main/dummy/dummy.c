@@ -40,7 +40,7 @@ static void dummy_custom_event_callback(uint32_t events, void* context) {
         furi_event_loop_stop(instance->event_loop);
     }
     if(events & DummyCustomEventSound) {
-        audio_play_file(instance->audio, "/ext/audio/rest_finished_s16le.bin");
+        audio_play_file(instance->audio, "/ext/test.snd");
     }
 }
 
