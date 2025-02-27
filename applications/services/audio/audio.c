@@ -13,6 +13,12 @@
 #define AUDIO_BUFFER_DEPTH (0x1000)
 
 typedef enum {
+    AudioBufferIndexPing = (1UL << FuriHalSaiEventHalfTransfer),
+    AudioBufferIndexPong = (1UL << FuriHalSaiEventTransferComplete),
+    AudioBufferIndexBoth = (AudioBufferIndexPing | AudioBufferIndexPong),
+} AudioBufferIndex;
+
+typedef enum {
     AudioMessageTypePlayFile,
 } AudioMessageType;
 
@@ -25,25 +31,19 @@ typedef struct {
     };
 } AudioMessage;
 
-typedef enum {
-    AudioEventTypeDataRequest = 1UL << 0,
-} AudioEventType;
-
 struct Audio {
     FuriEventLoop* event_loop;
     FuriMessageQueue* message_queue;
     Storage* storage;
     File* file;
     int16_t buffer[AUDIO_BUFFER_DEPTH];
-    bool ping_pong;
     bool should_stop;
 };
 
-static void audio_sai_callback(void* context) {
+static void audio_sai_callback(FuriHalSaiEvent event, void* context) {
     furi_assert(context);
     Audio* instance = context;
-    // TODO: Underrun check
-    furi_event_loop_set_custom_event(instance->event_loop, AudioEventTypeDataRequest);
+    furi_event_loop_set_custom_event(instance->event_loop, 1UL << event);
 }
 
 static bool audio_open_file(Audio* instance, const char* file_name) {
@@ -67,26 +67,26 @@ static bool audio_open_file(Audio* instance, const char* file_name) {
     return success;
 }
 
-static bool audio_load_file_data(Audio* instance, bool full) {
+static bool audio_load_file_data(Audio* instance, AudioBufferIndex fill_type) {
     bool success = false;
 
     void* data_ptr;
     size_t data_size;
 
-    if(full) {
+    if(fill_type == AudioBufferIndexBoth) {
         data_ptr = instance->buffer;
         data_size = AUDIO_BUFFER_DEPTH * sizeof(int16_t);
 
     } else {
         data_size = (AUDIO_BUFFER_DEPTH / 2) * sizeof(int16_t);
 
-        if(instance->ping_pong) {
+        if(fill_type == AudioBufferIndexPing) {
+            data_ptr = instance->buffer;
+        } else if(fill_type == AudioBufferIndexPong) {
             data_ptr = &instance->buffer[AUDIO_BUFFER_DEPTH / 2];
         } else {
-            data_ptr = instance->buffer;
+            furi_crash("Invalid fill type");
         }
-
-        instance->ping_pong = !instance->ping_pong;
     }
 
     const size_t read_data_size = storage_file_read(instance->file, data_ptr, data_size);
@@ -107,14 +107,13 @@ static bool audio_handle_play_file(Audio* instance, const AudioMessage* msg) {
     do {
         furi_hal_sai_stop();
 
-        instance->ping_pong = false;
         instance->should_stop = false;
 
         if(!audio_open_file(instance, msg->file_name)) {
             FURI_LOG_E(TAG, "Failed to open file: %s", msg->file_name);
             break;
         }
-        if(!audio_load_file_data(instance, true)) {
+        if(!audio_load_file_data(instance, AudioBufferIndexBoth)) {
             FURI_LOG_E(TAG, "Failed to load file data: %s", msg->file_name);
             break;
         }
@@ -156,12 +155,15 @@ static void audio_custom_event_callback(uint32_t events, void* context) {
     furi_assert(context);
     Audio* instance = context;
 
-    if(events & AudioEventTypeDataRequest) {
-        if(instance->should_stop) {
-            furi_hal_sai_stop();
-        } else if(!audio_load_file_data(instance, false)) {
+    if(!instance->should_stop) {
+        furi_check(events < AudioBufferIndexBoth, "Possible SAI underrun");
+
+        if(!audio_load_file_data(instance, events)) {
             instance->should_stop = true;
         }
+
+    } else {
+        furi_hal_sai_stop();
     }
 }
 

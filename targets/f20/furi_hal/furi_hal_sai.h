@@ -7,7 +7,12 @@
 extern "C" {
 #endif
 
-typedef void (*FuriHalSaiCallback)(void* context);
+typedef enum {
+    FuriHalSaiEventHalfTransfer,
+    FuriHalSaiEventTransferComplete,
+} FuriHalSaiEvent;
+
+typedef void (*FuriHalSaiCallback)(FuriHalSaiEvent event, void* context);
 
 bool furi_hal_sai_init(void);
 

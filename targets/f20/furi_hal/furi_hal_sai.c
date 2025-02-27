@@ -36,13 +36,13 @@ static void furi_hal_sai_isr(void* context) {
     if(LL_DMA_IsActiveFlag_TC(GPDMA1, furi_hal_sai.dma_channel)) {
         LL_DMA_ClearFlag_TC(GPDMA1, furi_hal_sai.dma_channel);
         if(furi_hal_sai.callback) {
-            furi_hal_sai.callback(furi_hal_sai.callback_context);
+            furi_hal_sai.callback(FuriHalSaiEventTransferComplete, furi_hal_sai.callback_context);
         }
     }
     if(LL_DMA_IsActiveFlag_HT(GPDMA1, furi_hal_sai.dma_channel)) {
         LL_DMA_ClearFlag_HT(GPDMA1, furi_hal_sai.dma_channel);
         if(furi_hal_sai.callback) {
-            furi_hal_sai.callback(furi_hal_sai.callback_context);
+            furi_hal_sai.callback(FuriHalSaiEventHalfTransfer, furi_hal_sai.callback_context);
         }
     }
     if(LL_DMA_IsActiveFlag_TO(GPDMA1, furi_hal_sai.dma_channel)) {
