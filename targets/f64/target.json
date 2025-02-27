@@ -78,6 +78,7 @@
         "simplicity_sdk",
         "wiseconnect",
         "freertos",
+        "matter_ext",
         "print",
         "targets",
         "furi",

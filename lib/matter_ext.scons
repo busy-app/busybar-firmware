@@ -1,0 +1,18 @@
+Import("env")
+
+LIB_FOLDER = "matter_ext"
+
+env.Append(
+    CPPPATH=[
+        Dir(LIB_FOLDER).srcnode(),
+    ],
+)
+
+libenv = env.Clone(FW_LIB_NAME=LIB_FOLDER)
+libenv.ApplyLibFlags()
+
+sources = []
+
+lib = libenv.StaticLibrary("${FW_LIB_NAME}", sources)
+libenv.Install("${LIB_DIST_DIR}", lib)
+Return("lib")

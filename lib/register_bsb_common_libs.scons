@@ -29,6 +29,7 @@ for libname in [
     "wiseconnect",
     "toolbox_f64",
     "firmware_applications_f64",
+    "matter_ext",
 ]:
     env.RegisterComponent(f"fwlib_{libname}", env.FindComponentSconscript(libname))
 
