@@ -22,6 +22,9 @@ env.Append(
         # Break cyclic dependency on WiseConnect
         Dir(f"{WISECONNECT_INCDIR}/device/silabs/si91x/mcu/core/config").rdir(),
         Dir(f"{WISECONNECT_INCDIR}/device/silabs/si91x/mcu/core/chip/inc").rdir(),
+        # NVM3
+        Dir(f"{SDK_INCDIR}/platform/emdrv/common/inc").rdir(),
+        Dir(f"{SDK_INCDIR}/platform/emdrv/nvm3/inc").rdir(),
     ],
     CPPDEFINES=[
         # SDK Wifi Silabs

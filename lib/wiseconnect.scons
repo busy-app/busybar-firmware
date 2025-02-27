@@ -32,6 +32,8 @@ env.Append(
         Dir(f"{MCU_INCDIR}/drivers/systemlevel/inc").rdir(),
         Dir(f"wiseconnect/resources/defaults").rdir(),
         Dir(f"{WISECONNECT_INCDIR}/common/inc").rdir(),
+        # NVM3
+        Dir(f"{MCU_INCDIR}/drivers/service/nvm3/inc").rdir(),
     ],
     CPPDEFINES=[
         "SI917",
@@ -55,6 +57,8 @@ env.Append(
         # SDK BLE Silabs
         "SLI_SI91X_ENABLE_BLE",
         "SL_SI91X_ENABLE_LITTLE_ENDIAN=1",
+        # NVM3
+        "FLASH_PAGE_SIZE=4096",
     ],
 )
 
@@ -109,6 +113,9 @@ sources = [
     f"{WIRELESS_DIR}/ble/src/rsi_bt_common_apis.c",
     f"{WIRELESS_DIR}/ble/src/rsi_ble_gap_apis.c",
     f"{WIRELESS_DIR}/ble/src/rsi_ble_gatt_apis.c",
+    # NVM3
+    f"{MCU_DIR}/drivers/service/nvm3/src/sl_si91x_common_flash_intf.c",
+    f"{MCU_DIR}/drivers/service/nvm3/src/sl_si91x_nvm3_hal_flash.c",
 ]
 
 lib = libenv.StaticLibrary("${FW_LIB_NAME}", sources)
