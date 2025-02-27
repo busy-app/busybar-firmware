@@ -1,5 +1,6 @@
 #include "cli_commands.h"
 #include "cli_command_gpio.h"
+#include "cli_command_display.h"
 
 #include <core/thread.h>
 #include <core/thread_list.h>
@@ -523,4 +524,5 @@ void cli_commands_init(Cli* cli) {
     // cli_add_command(cli, "i2c", CliCommandFlagDefault, cli_command_i2c, NULL);
 
     cli_add_command(cli, "echo", CliCommandFlagDefault, cli_command_echo, NULL);
+    cli_add_command(cli, "display", CliCommandFlagParallelSafe, cli_command_display, NULL);
 }
