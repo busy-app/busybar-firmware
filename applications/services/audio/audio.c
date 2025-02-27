@@ -10,7 +10,7 @@
 #define TAG "Audio"
 
 #define AUDIO_MAX_MESSAGES (8)
-#define AUDIO_BUFFER_DEPTH (0x2000)
+#define AUDIO_BUFFER_DEPTH (0x1000)
 
 typedef enum {
     AudioMessageTypePlayFile,
@@ -36,6 +36,7 @@ struct Audio {
     File* file;
     int16_t buffer[AUDIO_BUFFER_DEPTH];
     bool ping_pong;
+    bool should_stop;
 };
 
 static void audio_sai_callback(void* context) {
@@ -107,6 +108,7 @@ static bool audio_handle_play_file(Audio* instance, const AudioMessage* msg) {
         furi_hal_sai_stop();
 
         instance->ping_pong = false;
+        instance->should_stop = false;
 
         if(!audio_open_file(instance, msg->file_name)) {
             FURI_LOG_E(TAG, "Failed to open file: %s", msg->file_name);
@@ -155,9 +157,10 @@ static void audio_custom_event_callback(uint32_t events, void* context) {
     Audio* instance = context;
 
     if(events & AudioEventTypeDataRequest) {
-        if(!audio_load_file_data(instance, false)) {
-            // TODO: Do not cut off the last section
+        if(instance->should_stop) {
             furi_hal_sai_stop();
+        } else if(!audio_load_file_data(instance, false)) {
+            instance->should_stop = true;
         }
     }
 }
