@@ -13,5 +13,6 @@ App(
         "cli_command_gpio.c",
         "cli_commands_u5.c",
         "cli_command_display.c",
+        "cli_command_als.c",
     ],
 )
