@@ -109,3 +109,11 @@ bool intercom_sync_serial(FuriHalSerialHandle* serial) {
 
     return success;
 }
+
+void intercom_sync_request(const GpioPin* gpio) {
+    furi_hal_gpio_init(gpio, GpioModeOutputOpenDrain, GpioPullNo, GpioSpeedLow);
+    furi_hal_gpio_write_open_drain(gpio, false);
+    furi_delay_us(10);
+    furi_hal_gpio_write_open_drain(gpio, true);
+    furi_hal_gpio_init(gpio, GpioModeInput, GpioPullNo, GpioSpeedLow);
+}

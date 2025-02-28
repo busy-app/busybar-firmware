@@ -14,10 +14,22 @@
 #define INTERCOM_BAUD_RATE (11250000UL)
 #endif
 
-#ifdef STM32U595xx
-#define INTERCOM_SERIAL FuriHalSerialIdUsart1
+#if defined(STM32U595xx)
+#define TARGET_F20
+#elif defined(SI917)
+#define TARGET_F64
 #else
+#error "Unsupported MCU"
+#endif
+
+#if defined(TARGET_F20)
+#define INTERCOM_SERIAL FuriHalSerialIdUsart1
+#define INTERCOM_GPIO   gpio_917_irq
+#elif defined(TARGET_F64)
 #define INTERCOM_SERIAL FuriHalSerialIdUsart0
+#define INTERCOM_GPIO   gpio_u5_irq
+#else
+#error "Unsupported target"
 #endif
 
 typedef struct {
@@ -38,10 +50,20 @@ struct Intercom {
 };
 
 typedef enum {
-    IntercomEventFrameSent = 1UL << 0,
-    IntercomEventFrameReceived = 1UL << 1,
-    IntercomEventDataAvailable = 1UL << 2,
+    IntercomEventSyncRequested = 1UL << 0,
+    IntercomEventFrameSent = 1UL << 1,
+    IntercomEventFrameReceived = 1UL << 2,
+    IntercomEventDataAvailable = 1UL << 3,
 } IntercomEvent;
+
+// Called in ISR context
+static void intercom_gpio_irq_callback(void* context) {
+    furi_assert(context);
+    Intercom* instance = context;
+
+    furi_hal_gpio_remove_int_callback(&INTERCOM_GPIO);
+    furi_event_loop_set_custom_event(instance->event_loop, IntercomEventSyncRequested);
+}
 
 // Called in ISR context
 static void intercom_serial_tx_callback(
@@ -114,6 +136,26 @@ static void intercom_default_error_callback(IntercomError error, void* context) 
     }
 }
 
+static FURI_ALWAYS_INLINE void intercom_process_sync_requested_event(Intercom* instance) {
+    INTERCOM_LOG_D("Sync requested");
+
+    furi_hal_serial_dma_rx_stop(instance->serial);
+
+    if(intercom_sync_serial(instance->serial)) {
+// TODO: Unify function signatures
+#if defined (TARGET_F20)
+        furi_hal_gpio_init_simple(&INTERCOM_GPIO, GpioModeInterruptFall);
+        furi_hal_gpio_add_int_callback(&INTERCOM_GPIO, intercom_gpio_irq_callback, instance);
+#elif defined (TARGET_F64)
+        furi_hal_gpio_add_int_callback(&INTERCOM_GPIO, GpioConditionFall, intercom_gpio_irq_callback, instance);
+#else
+#error "Unsupported target"
+#endif
+    } else {
+        instance->error_callback(IntercomErrorSync, instance->error_callback_context);
+    }
+}
+
 static FURI_ALWAYS_INLINE void intercom_send_tx_frame(Intercom* instance) {
     IntercomFrame* tx_frame = &instance->tx_frame;
 
@@ -154,6 +196,10 @@ static FURI_ALWAYS_INLINE void intercom_process_tx_frame_event(Intercom* instanc
 
 static void intercom_custom_event_callback(uint32_t events, void* context) {
     Intercom* instance = context;
+    if(events & IntercomEventSyncRequested) {
+        INTERCOM_LOG_D("IntercomEventSyncRequested");
+        intercom_process_sync_requested_event(instance);
+    }
     if(events & IntercomEventFrameSent) {
         INTERCOM_LOG_D("IntercomEventFrameSent");
         intercom_process_tx_frame_event(instance);
@@ -191,10 +237,10 @@ static Intercom* intercom_alloc(void) {
 
     furi_hal_serial_init(instance->serial, INTERCOM_BAUD_RATE);
     furi_hal_serial_set_hw_flow_control(instance->serial, FuriHalSerialHwFlowControlRtsCts);
-
-    if(!intercom_sync_serial(instance->serial)) {
-        instance->error_callback(IntercomErrorSync, instance->error_callback_context);
-    }
+    // Pulse gpio_xxx_irq pin to request synchronisation procedure
+    intercom_sync_request(&INTERCOM_GPIO);
+    // Perform initial synchronisation procedure
+    intercom_process_sync_requested_event(instance);
 
     furi_hal_serial_set_callback(
         instance->serial, intercom_serial_tx_callback, intercom_serial_rx_callback, instance);
