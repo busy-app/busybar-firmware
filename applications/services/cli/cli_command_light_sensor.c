@@ -1,11 +1,11 @@
-#include "cli_command_als.h"
+#include "cli_command_light_sensor.h"
 
 #include <furi.h>
 
 #include <furi_hal_i2c_config.h>
 #include <drivers/bh1730/bh1730.h>
 
-void cli_command_als(Cli* cli, FuriString* args, void* context) {
+void cli_command_light_sensor(Cli* cli, FuriString* args, void* context) {
     UNUSED(cli);
     UNUSED(args);
     UNUSED(context);
