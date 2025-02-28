@@ -45,7 +45,7 @@ static bool
 
     const uint32_t start_time = furi_get_tick();
 
-    while(true) {
+    while(furi_get_tick() - start_time < INTERCOM_SYNC_TIMEOUT_MS) {
         if(send_leader) {
             furi_hal_serial_tx(serial, &sequence->leader, 1);
             if(!furi_hal_serial_tx_wait_complete(serial, INTERCOM_SYNC_TIMEOUT_MS)) {
@@ -62,12 +62,9 @@ static bool
                 success = true;
                 break;
             }
-
-        } else if(furi_get_tick() - start_time < INTERCOM_SYNC_TIMEOUT_MS) {
-            furi_delay_ms(sequence->interval);
-        } else {
-            break;
         }
+
+        furi_delay_ms(sequence->interval);
     }
 
     return success;
