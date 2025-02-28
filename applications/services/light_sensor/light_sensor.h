@@ -6,6 +6,7 @@
 #pragma once
 
 #include <stdint.h>
+#include <stdbool.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -49,6 +50,32 @@ float light_sensor_get_lux(void);
  * @return Instant light level in lux.
  */
 float light_sensor_get_lux_instant(void);
+
+/**
+ * @brief Get the current light level.
+ * @note Must be called after RECORD_LIGHT_SENSOR_EVENTS is created.
+ *
+ * @return Current light level.
+ */
+uint8_t light_sensor_get_light_level(void);
+
+/**
+ * @brief Get the raw 600nm light sensor value.
+ * @note Must be called after RECORD_LIGHT_SENSOR_EVENTS is created.
+ *
+ * @param[out] raw Raw 600nm light sensor value.
+ * @return True if successful, false otherwise.
+ */
+bool light_sensor_get_raw_600nm(uint16_t* raw);
+
+/**
+ * @brief Get the raw 840nm light sensor value.
+ * @note Must be called after RECORD_LIGHT_SENSOR_EVENTS is created.
+ *
+ * @param[out] raw Raw 840nm light sensor value.
+ * @return True if successful, false otherwise.
+ */
+bool light_sensor_get_raw_840nm(uint16_t* raw);
 
 #ifdef __cplusplus
 }

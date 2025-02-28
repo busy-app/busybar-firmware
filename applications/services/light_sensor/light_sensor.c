@@ -117,3 +117,21 @@ float light_sensor_get_lux_instant(void) {
 
     return light_sensor_data_get_lux_instant(light_sensor->data);
 }
+
+uint8_t light_sensor_get_light_level(void) {
+    furi_check(light_sensor);
+
+    return light_sensor_data_get_light_level(light_sensor->data);
+}
+
+bool light_sensor_get_raw_600nm(uint16_t* raw) {
+    furi_check(light_sensor);
+
+    return furi_hal_light_sensor_read_raw_600nm(LIGHT_SENSOR_I2C, raw);
+}
+
+bool light_sensor_get_raw_840nm(uint16_t* raw) {
+    furi_check(light_sensor);
+
+    return furi_hal_light_sensor_read_raw_840nm(LIGHT_SENSOR_I2C, raw);
+}

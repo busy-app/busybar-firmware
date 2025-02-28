@@ -1,8 +1,8 @@
 App(
-    appid="lightsensor_test",
-    name="LightSensor Test",
+    appid="light_sensor_test",
+    name="LightSensorTest",
     apptype=FlipperAppType.APP,
-    entry_point="lightsensor_app",
+    entry_point="light_sensor_test_app",
     requires=["gui"],
     stack_size=1 * 1024,
     fap_category="Debug",
