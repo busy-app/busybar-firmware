@@ -151,6 +151,8 @@ static FURI_ALWAYS_INLINE void intercom_process_sync_requested_event(Intercom* i
 #else
 #error "Unsupported target"
 #endif
+        furi_hal_serial_dma_rx_start(
+            instance->serial, (void*)&instance->rx_frame, sizeof(IntercomFrame));
     } else {
         instance->error_callback(IntercomErrorSync, instance->error_callback_context);
     }
@@ -237,15 +239,12 @@ static Intercom* intercom_alloc(void) {
 
     furi_hal_serial_init(instance->serial, INTERCOM_BAUD_RATE);
     furi_hal_serial_set_hw_flow_control(instance->serial, FuriHalSerialHwFlowControlRtsCts);
+    furi_hal_serial_set_callback(
+        instance->serial, intercom_serial_tx_callback, intercom_serial_rx_callback, instance);
     // Pulse gpio_xxx_irq pin to request synchronisation procedure
     intercom_sync_request(&INTERCOM_GPIO);
     // Perform initial synchronisation procedure
     intercom_process_sync_requested_event(instance);
-
-    furi_hal_serial_set_callback(
-        instance->serial, intercom_serial_tx_callback, intercom_serial_rx_callback, instance);
-    furi_hal_serial_dma_rx_start(
-        instance->serial, (void*)&instance->rx_frame, sizeof(IntercomFrame));
 
     furi_record_create(RECORD_INTERCOM, instance);
     return instance;
