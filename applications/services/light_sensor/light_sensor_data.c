@@ -18,9 +18,12 @@ static void light_sensor_data_update_light_level(LightSensorData* instance) {
     // TODO think about light_level = f(lux_mean, lux_instant, light_level) function
     // Now it is just a linear function
 
-    instance->light_level =
-        (uint8_t)(instance->lux_mean * instance->config.light_level_max_threshold /
+    uint8_t new_light_level =
+        (uint8_t)(instance->lux_mean / instance->config.light_level_max_threshold *
                   instance->config.light_level_max);
+    instance->light_level = new_light_level > instance->config.light_level_max ?
+                                instance->config.light_level_max :
+                                new_light_level;
 }
 
 LightSensorData* light_sensor_data_alloc(const LightSensorDataConfig* config) {
@@ -63,6 +66,14 @@ void light_sensor_data_add_measurement(LightSensorData* instance, float lux) {
     instance->measurement_index = (instance->measurement_index + 1) % instance->config.window_size;
 
     light_sensor_data_update_light_level(instance);
+
+    FURI_LOG_T(
+        "LightSensorData",
+        "new Lux: %.2f. New sum: %.2f. New mean: %.2f. level: %d",
+        lux,
+        instance->measurement_sum,
+        instance->lux_mean,
+        instance->light_level);
 }
 
 float light_sensor_data_get_lux(LightSensorData* instance) {

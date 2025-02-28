@@ -70,6 +70,9 @@ static LightSensor* light_sensor_alloc(void) {
     };
     light_sensor->data = light_sensor_data_alloc(&config);
 
+    light_sensor->light_level_previous = LIGHT_SENSOR_LIGHT_LEVEL_MAX;
+    light_sensor->light_level_current = LIGHT_SENSOR_LIGHT_LEVEL_MAX;
+
     light_sensor->event_loop = furi_event_loop_alloc();
     light_sensor->timer = furi_event_loop_timer_alloc(
         light_sensor->event_loop,
