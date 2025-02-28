@@ -3,6 +3,7 @@
 
 #include <furi_hal_resources.h>
 #include <furi_hal_interrupt.h>
+#include <furi_hal_cortex.h>
 #include <furi_hal_bus.h>
 #include <furi_hal_dma.h>
 
@@ -619,10 +620,21 @@ void furi_hal_serial_tx(FuriHalSerialHandle* handle, const uint8_t* buffer, size
     }
 }
 
-void furi_hal_serial_tx_wait_complete(FuriHalSerialHandle* handle) {
+bool furi_hal_serial_tx_wait_complete(FuriHalSerialHandle* handle, uint32_t timeout) {
     furi_check(handle);
-    while(!LL_USART_IsActiveFlag_TXFE(furi_hal_serial_resources[handle->id].periph))
-        ;
+
+    bool success = false;
+
+    FuriHalCortexTimer timer = furi_hal_cortex_timer_get(timeout * 1000);
+
+    while(!furi_hal_cortex_timer_is_expired(timer)) {
+        if(LL_USART_IsActiveFlag_TXFE(furi_hal_serial_resources[handle->id].periph)) {
+            success = true;
+            break;
+        }
+    }
+
+    return success;
 }
 
 bool furi_hal_serial_rx_available(FuriHalSerialHandle* handle) {
@@ -707,7 +719,16 @@ void furi_hal_serial_dma_rx_start(FuriHalSerialHandle* handle, uint8_t* buffer, 
 
 void furi_hal_serial_dma_rx_stop(FuriHalSerialHandle* handle) {
     furi_check(handle);
-    // TODO: Implement
+    FuriHalSerial* serial = furi_hal_serial[handle->id];
+    furi_check(serial);
+
+    USART_TypeDef* periph = serial->periph_ptr;
+    const uint32_t dma_channel = serial->dma_rx_channel;
+
+    FURI_CRITICAL_ENTER();
+    LL_USART_DisableDMAReq_RX(periph);
+    LL_DMA_DisableChannel(GPDMA1, dma_channel);
+    FURI_CRITICAL_EXIT();
 }
 
 void furi_hal_serial_clear(FuriHalSerialHandle* handle, FuriHalSerialDirection dir) {
