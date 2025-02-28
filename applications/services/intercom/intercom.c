@@ -190,13 +190,11 @@ static Intercom* intercom_alloc(void) {
         instance->event_loop, intercom_custom_event_callback, instance);
 
     furi_hal_serial_init(instance->serial, INTERCOM_BAUD_RATE);
+    furi_hal_serial_set_hw_flow_control(instance->serial, FuriHalSerialHwFlowControlRtsCts);
 
     if(!intercom_sync_serial(instance->serial)) {
         instance->error_callback(IntercomErrorSync, instance->error_callback_context);
     }
-
-    furi_hal_serial_set_hw_flow_control(instance->serial, FuriHalSerialHwFlowControlRtsCts);
-    furi_hal_serial_clear(instance->serial, FuriHalSerialDirectionTxRx);
 
     furi_hal_serial_set_callback(
         instance->serial, intercom_serial_tx_callback, intercom_serial_rx_callback, instance);

@@ -48,7 +48,9 @@ static bool
     while(true) {
         if(send_leader) {
             furi_hal_serial_tx(serial, &sequence->leader, 1);
-            furi_hal_serial_tx_wait_complete(serial);
+            if(!furi_hal_serial_tx_wait_complete(serial, INTERCOM_SYNC_TIMEOUT_MS)) {
+                break;
+            }
             // If repeat_leader is false, then the leader is sent only once
             if(!sequence->repeat_leader) {
                 send_leader = false;

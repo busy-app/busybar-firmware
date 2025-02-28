@@ -200,7 +200,7 @@ void furi_hal_serial_control_suspend(void) {
     furi_check(furi_hal_serial_control);
 
     for(size_t i = 0; i < FuriHalSerialIdMax; i++) {
-        furi_hal_serial_tx_wait_complete(&furi_hal_serial_control->handles[i]);
+        furi_hal_serial_tx_wait_complete(&furi_hal_serial_control->handles[i], 100);
         furi_hal_serial_suspend(&furi_hal_serial_control->handles[i]);
     }
 }
