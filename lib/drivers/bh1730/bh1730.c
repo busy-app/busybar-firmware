@@ -27,7 +27,7 @@ bool bh1730_init(FuriHalI2cBusHandle* handle) {
         if(!furi_hal_i2c_write_reg_8(
                handle,
                BH1730_I2C_ADDRESS,
-               0x80 | BH1730_REG_CONTROL,
+               BH1730_COMMAND_WRITE | BH1730_REG_CONTROL,
                *(uint8_t*)&ctrl,
                BH1730_I2C_TIMEOUT))
             break;
@@ -35,7 +35,7 @@ bool bh1730_init(FuriHalI2cBusHandle* handle) {
         if(!furi_hal_i2c_write_reg_8(
                handle,
                BH1730_I2C_ADDRESS,
-               0x80 | BH1730_REG_TIMING,
+               BH1730_COMMAND_WRITE | BH1730_REG_TIMING,
                BH1730_ITIME_VAL,
                BH1730_I2C_TIMEOUT))
             break;
@@ -46,7 +46,7 @@ bool bh1730_init(FuriHalI2cBusHandle* handle) {
         if(!furi_hal_i2c_write_reg_8(
                handle,
                BH1730_I2C_ADDRESS,
-               0x80 | BH1730_REG_GAIN,
+               BH1730_COMMAND_WRITE | BH1730_REG_GAIN,
                *(uint8_t*)&gain,
                BH1730_I2C_TIMEOUT))
             break;
@@ -66,7 +66,7 @@ static bool bh1730_read_raw_data(FuriHalI2cBusHandle* handle, uint16_t* value, u
     uint8_t data_buf[2] = {};
     furi_hal_i2c_acquire(handle);
     bool read_success = furi_hal_i2c_read_mem(
-        handle, BH1730_I2C_ADDRESS, 0x80 | reg, data_buf, 2, BH1730_I2C_TIMEOUT);
+        handle, BH1730_I2C_ADDRESS, BH1730_COMMAND_WRITE | reg, data_buf, 2, BH1730_I2C_TIMEOUT);
     furi_hal_i2c_release(handle);
 
     if(read_success) {
@@ -91,7 +91,12 @@ bool bh1730_read_lux(FuriHalI2cBusHandle* handle, float* value) {
     uint8_t data_buf[4] = {};
     furi_hal_i2c_acquire(handle);
     bool read_success = furi_hal_i2c_read_mem(
-        handle, BH1730_I2C_ADDRESS, 0x80 | BH1730_REG_DATA0LOW, data_buf, 4, BH1730_I2C_TIMEOUT);
+        handle,
+        BH1730_I2C_ADDRESS,
+        BH1730_COMMAND_WRITE | BH1730_REG_DATA0LOW,
+        data_buf,
+        4,
+        BH1730_I2C_TIMEOUT);
     furi_hal_i2c_release(handle);
 
     if(!read_success) {

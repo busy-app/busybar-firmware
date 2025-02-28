@@ -10,6 +10,8 @@ extern "C" {
 #define BH1730_I2C_ADDRESS (0x52)
 #define BH1730_I2C_TIMEOUT (50)
 
+#define BH1730_COMMAND_WRITE (0x80)
+
 #define BH1730_REG_CONTROL   (0x00)
 #define BH1730_REG_TIMING    (0x01)
 #define BH1730_REG_INTERRUPT (0x02)
