@@ -5,11 +5,14 @@
 
 #include <input/input.h>
 #include <power_simple/power.h>
+#include <storage/storage.h>
 
-#include <lv_theme_front.h>
+#include <lvgl_addons/themes/lv_theme_front.h>
 
 #include <ssd1320.h>
 #include <led_display/led_display.h>
+
+#include <lvgl_addons/fs/lv_fs.h>
 
 #define TAG "GuiLvgl"
 
@@ -52,6 +55,7 @@ typedef struct {
 
 struct GuiLvgl {
     Power* power;
+    Storage* storage;
     FuriEventLoop* event_loop;
     FuriMessageQueue* input_queue;
     FuriMutex* access_mutex;
@@ -328,6 +332,8 @@ static GuiLvgl* gui_lvgl_alloc(void) {
     // TODO: Subscribe to power subsystem events
     // TODO: React on overheat or low power budget by limiting brightness
 
+    instance->storage = furi_record_open(RECORD_STORAGE);
+
     instance->event_loop = furi_event_loop_alloc();
     instance->access_mutex = furi_mutex_alloc(FuriMutexTypeNormal);
     instance->dot_matrix = furi_record_open(RECORD_DOT_MATRIX);
@@ -351,6 +357,7 @@ static GuiLvgl* gui_lvgl_alloc(void) {
     gui_lvgl_init_front(instance);
     gui_lvgl_init_back(instance);
     gui_lvgl_init_input(instance);
+    gui_lvgl_fs_init(instance->storage);
 
     furi_record_create(RECORD_GUI_LVGL, instance);
     return instance;
