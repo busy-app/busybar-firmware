@@ -132,9 +132,9 @@ void nvm3_test_print_objects(FuriString* msg) {
 
     // check for NVM3 stored object count
     if(objects_count == 0) {
-        furi_string_cat(msg, "No deleted objects found\r\n");
+        furi_string_cat_printf(msg, "No deleted objects found\r\n");
     } else {
-        furi_string_cat(msg, "Keys of objects deleted from NVM3:\r\n");
+        furi_string_cat_printf(msg, "Keys of objects deleted from NVM3:\r\n");
         for(i = 0; i < objects_count; i++) {
             furi_string_cat_printf(msg, "> %lu\r\n", keys[i]);
         }
@@ -148,9 +148,9 @@ void nvm3_test_print_objects(FuriString* msg) {
         NVM3_MIN_DATA_KEY,
         NVM3_MAX_DATA_KEY);
     if(objects_count == 0) {
-        furi_string_printf(msg, "No stored objects found\r\n");
+        furi_string_cat_printf(msg, "No stored objects found\r\n");
     } else {
-        furi_string_printf(msg, "Keys and contents of objects stored in NVM3:\r\n");
+        furi_string_cat_printf(msg, "Keys and contents of objects stored in NVM3:\r\n");
         for(i = 0; i < objects_count; i++) {
             nvm3_getObjectInfo(NVM3_DEFAULT_HANDLE, keys[i], &type, &len);
             if(type == NVM3_OBJECTTYPE_DATA) {

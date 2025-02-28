@@ -132,6 +132,12 @@ void nvm3_test_app_test(NVM3TestApp* instance) {
 
     // write - read test
     do {
+        if(!nvm3_test_write(2, (uint8_t*)"BSB NVM3 Test\0", 14)) {
+            furi_string_printf(instance->msg, "Failed to write data to key 2\r\n");
+            nvm3_test_app_send_msg(instance);
+            break;
+        }
+
         if(!nvm3_test_write(1, test_data, sizeof(test_data))) {
             furi_string_printf(instance->msg, "Failed to write data to key 1\r\n");
             nvm3_test_app_send_msg(instance);
@@ -201,6 +207,19 @@ void nvm3_test_app_test(NVM3TestApp* instance) {
             nvm3_test_app_send_msg(instance);
             break;
         }
+
+        if(count != 6) {
+            furi_string_printf(instance->msg, "Counter 10 is not 6\r\n");
+            nvm3_test_app_send_msg(instance);
+            break;
+        }
+
+        if(!nvm3_test_increment_counter(10, NULL)) {
+            furi_string_printf(instance->msg, "Failed to increment counter 10\r\n");
+            nvm3_test_app_send_msg(instance);
+            break;
+        }
+
         if(!nvm3_test_read_counter(10, &count)) {
             furi_string_printf(instance->msg, "Failed to read counter 10\r\n");
             nvm3_test_app_send_msg(instance);
