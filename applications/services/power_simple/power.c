@@ -5,9 +5,6 @@
 #include <toolbox/api_lock.h>
 #include "bq25798.h"
 
-// TODO delete after ALS service is ready
-#include <drivers/bh1730/bh1730.h>
-
 #define TAG "Power"
 
 #define POWER_IRQ_GPIO (&gpio_bq25798_irq)
@@ -199,9 +196,6 @@ Power* power_alloc(void) {
     instance->gpio_semaphore = furi_semaphore_alloc(1, 0);
     instance->message_queue = furi_message_queue_alloc(4, sizeof(PowerMessage));
     instance->input_current_limit = 0.5f;
-
-    // TODO move to ALS service once it's ready
-    bh1730_init(POWER_I2C);
 
     furi_event_loop_subscribe_message_queue(
         instance->event_loop,
