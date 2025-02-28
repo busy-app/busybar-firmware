@@ -66,7 +66,6 @@
 
 #include <furi.h>
 #include <stdlib.h>
-//#include <task.h>
 
 #ifdef __cplusplus
 extern "C" {

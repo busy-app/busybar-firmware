@@ -6,6 +6,7 @@ App(
     sources=[
         "nvm3_test.c",
         "helpers/nvm3_test_app.c",
+        "helpers/nvm3_test.c",
     ],
     order=40,
 )

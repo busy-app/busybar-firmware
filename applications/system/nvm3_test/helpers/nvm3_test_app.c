@@ -1,75 +1,22 @@
 #include "nvm3_test_app.h"
+#include "nvm3_test.h"
 
 #include <furi.h>
 
 #include <sl_status.h>
 #include <sl_net.h>
 #include <sl_wifi.h>
-#include <sl_wifi_callback_framework.h>
-
-#include <nvm3_default.h>
-#include <ecode.h>
-#include <nvm3_default_config.h>
 
 #include <args.h>
 #include <strint.h>
 
 #define TAG "NVM3 Test"
 
-#define NVM3_DEFAULT_HANDLE nvm3_defaultHandle
-// Maximum number of data objects saved
-#define MAX_OBJECT_COUNT    10
-
-// Max and min keys for data objects
-#define MIN_DATA_KEY NVM3_KEY_MIN
-#define MAX_DATA_KEY (MIN_DATA_KEY + MAX_OBJECT_COUNT - 1)
-
-// Key of write counter object
-#define WRITE_COUNTER_KEY MAX_OBJECT_COUNT
-
-// Key of delete counter object
-#define DELETE_COUNTER_KEY (WRITE_COUNTER_KEY + 1)
-
-static char buffer[NVM3_DEFAULT_MAX_OBJECT_SIZE];
-uint8_t write_data1[12] = {"Silicon labs"};
-uint8_t write_data2[4] = {"NVM3"};
-
-const sl_wifi_device_configuration_t client_configuration = {
-    .boot_option = LOAD_NWP_FW,
-    .mac_address = NULL,
-    .band = SL_SI91X_WIFI_BAND_2_4GHZ,
-    .region_code = US,
-    .boot_config = {
-        .oper_mode = SL_SI91X_CLIENT_MODE,
-        .coex_mode = SL_SI91X_WLAN_ONLY_MODE,
-        .feature_bit_map =
-            (SL_SI91X_FEAT_SECURITY_PSK | SL_SI91X_FEAT_AGGREGATION
-#ifdef SLI_SI91X_MCU_INTERFACE
-             | SL_SI91X_FEAT_WPS_DISABLE
-#endif
-             ),
-        .tcp_ip_feature_bit_map = (SL_SI91X_TCP_IP_FEAT_DHCPV4_CLIENT),
-        .custom_feature_bit_map = (SL_SI91X_CUSTOM_FEAT_EXTENTION_VALID),
-        .ext_custom_feature_bit_map = (
-#ifdef SLI_SI91X_MCU_INTERFACE
-            SL_SI91X_RAM_LEVEL_NWP_ADV_MCU_BASIC
-#else
-            SL_SI91X_RAM_LEVEL_NWP_ALL_AVAILABLE
-#endif
-#if defined(SLI_SI917) || defined(SLI_SI915)
-            | SL_SI91X_EXT_FEAT_FRONT_END_SWITCH_PINS_ULP_GPIO_4_5_0
-#endif
-            ),
-        .bt_feature_bit_map = 0,
-        .ext_tcp_ip_feature_bit_map = 0,
-        .ble_feature_bit_map = 0,
-        .ble_ext_feature_bit_map = 0,
-        .config_feature_bit_map = 0}};
-
 typedef enum {
     NVM3TestCmdTypeHelp,
     NVM3TestCmdTypeHelpHelp,
-
+    NVM3TestCmdTypeNVM3,
+    NVM3TestCmdTypeNVM3Print,
     NVM3TestCmdTypeMax,
 } NVM3TestCmdType;
 
@@ -85,6 +32,8 @@ typedef struct {
 const NVM3TestCmd nvm3_test_cmd[NVM3TestCmdTypeMax] = {
     {"?"},
     {"help"},
+    {"nvm3_test"},
+    {"nvm3_print"},
 };
 
 struct NVM3TestApp {
@@ -116,154 +65,6 @@ static void nvm3_test_app_send_msg_invalid_arg(NVM3TestApp* instance) {
     nvm3_test_app_send_msg(instance);
 }
 
-static void nvm3_app_read(nvm3_ObjectKey_t key) {
-    uint32_t type;
-    size_t len;
-    Ecode_t err;
-
-    do {
-        // check for NVM3 maximum key value
-        if(key > MAX_DATA_KEY) {
-            printf("Invalid key\r\n");
-            break;
-        }
-        err = nvm3_getObjectInfo(NVM3_DEFAULT_HANDLE, key, &type, &len);
-        if(err != NVM3_OBJECTTYPE_DATA || type != NVM3_OBJECTTYPE_DATA) {
-            printf("Key does not contain data object\r\n");
-            break;
-        }
-        err = nvm3_readData(NVM3_DEFAULT_HANDLE, key, buffer, len);
-        // check for error code
-        if(ECODE_NVM3_OK == err) {
-            buffer[len] = '\0';
-            printf("Read data from key %lu:\r\n", key);
-            printf("%s\r\n", buffer);
-        } else {
-            printf("Error reading data from key %lu\r\n", key);
-        }
-    } while(false);
-
-    return;
-}
-
-void nvm3_app_write(uint32_t key, unsigned char* data, uint32_t len) {
-    do {
-        // check for NVM3 Maximum object size
-        //    if (len > NVM3_DEFAULT_MAX_OBJECT_SIZE) {
-        //      printf("Maximum object size exceeded\r\n");
-        //      break;
-        //    }
-        // check for NVM3 maximum key value
-        if(key > MAX_DATA_KEY) {
-            printf("Invalid key\r\n");
-            break;
-        }
-        // check for NVM3 write success or not
-        if(ECODE_NVM3_OK == nvm3_writeData(NVM3_DEFAULT_HANDLE, key, (unsigned char*)data, len)) {
-            printf("Stored data at key %lu\r\n", key);
-            // Track number of writes in counter object
-            nvm3_incrementCounter(NVM3_DEFAULT_HANDLE, WRITE_COUNTER_KEY, NULL);
-        } else {
-            printf("Error storing data\r\n");
-        }
-    } while(false);
-
-    return;
-}
-
-void nvm3_app_delete(uint32_t key) {
-    if(key > MAX_DATA_KEY) {
-        printf("Invalid key\r\n");
-    } else {
-        // check for NVM3 delete object success or not
-        if(ECODE_NVM3_OK == nvm3_deleteObject(NVM3_DEFAULT_HANDLE, key)) {
-            printf("Deleted data at key %lu\r\n", key);
-            // Track number or deletes in counter object
-            nvm3_incrementCounter(NVM3_DEFAULT_HANDLE, DELETE_COUNTER_KEY, NULL);
-        } else {
-            printf("Error deleting key\r\n");
-        }
-    }
-    return;
-}
-
-static void initialise_counters(void) {
-    uint32_t type;
-    size_t len;
-    Ecode_t err;
-
-    // check if the designated keys contain counters, and initialise if needed.
-    err = nvm3_getObjectInfo(NVM3_DEFAULT_HANDLE, WRITE_COUNTER_KEY, &type, &len);
-    if((err != ECODE_NVM3_OK) || (type != NVM3_OBJECTTYPE_COUNTER)) {
-        nvm3_writeCounter(NVM3_DEFAULT_HANDLE, WRITE_COUNTER_KEY, 0);
-    }
-
-    err = nvm3_getObjectInfo(NVM3_DEFAULT_HANDLE, DELETE_COUNTER_KEY, &type, &len);
-    if((err != ECODE_NVM3_OK) || (type != NVM3_OBJECTTYPE_COUNTER)) {
-        nvm3_writeCounter(NVM3_DEFAULT_HANDLE, DELETE_COUNTER_KEY, 0);
-    }
-}
-
-static void nvm3_app_display(void) {
-    nvm3_ObjectKey_t keys[MAX_OBJECT_COUNT];
-    size_t len, objects_count;
-    uint32_t type;
-    Ecode_t err;
-    uint32_t counter = 0;
-    size_t i;
-
-    objects_count = nvm3_enumDeletedObjects(
-        NVM3_DEFAULT_HANDLE,
-        (uint32_t*)keys,
-        sizeof(keys) / sizeof(keys[0]),
-        MIN_DATA_KEY,
-        MAX_DATA_KEY);
-    // check for NVM3 deleted object count
-    if(objects_count == 0) {
-        printf("No deleted objects found\r\n");
-    } else {
-        printf("Keys of objects deleted from NVM3:\r\n");
-        for(i = 0; i < objects_count; i++) {
-            printf("> %lu\r\n", keys[i]);
-        }
-    }
-
-    // Retrieve the keys of stored data
-    objects_count = nvm3_enumObjects(
-        NVM3_DEFAULT_HANDLE,
-        (uint32_t*)keys,
-        sizeof(keys) / sizeof(keys[0]),
-        MIN_DATA_KEY,
-        MAX_DATA_KEY);
-
-    // check for NVM3 stored object count
-    if(objects_count == 0) {
-        printf("No stored objects found\r\n");
-    } else {
-        printf("Keys and contents of objects stored in NVM3:\r\n");
-        for(i = 0; i < objects_count; i++) {
-            nvm3_getObjectInfo(NVM3_DEFAULT_HANDLE, keys[i], &type, &len);
-            if(type == NVM3_OBJECTTYPE_DATA) {
-                err = nvm3_readData(NVM3_DEFAULT_HANDLE, keys[i], buffer, len);
-                EFM_ASSERT(ECODE_NVM3_OK == err);
-                buffer[len] = '\0';
-                printf("> %lu: %s\r\n", keys[i], buffer);
-            }
-        }
-    }
-    // Display and reset counters
-    err = nvm3_readCounter(NVM3_DEFAULT_HANDLE, DELETE_COUNTER_KEY, &counter);
-    if(ECODE_NVM3_OK == err) {
-        printf("%lu objects have been deleted since last display\r\n", counter);
-    }
-    nvm3_writeCounter(NVM3_DEFAULT_HANDLE, DELETE_COUNTER_KEY, 0);
-    err = nvm3_readCounter(NVM3_DEFAULT_HANDLE, WRITE_COUNTER_KEY, &counter);
-    if(ECODE_NVM3_OK == err) {
-        printf("%lu objects have been written since last display\r\n", counter);
-    }
-    nvm3_writeCounter(NVM3_DEFAULT_HANDLE, WRITE_COUNTER_KEY, 0);
-}
-
 void* nvm3_test_app_start(CliWorker* worker) {
     FURI_LOG_I(TAG, "Starting");
 
@@ -285,41 +86,14 @@ void* nvm3_test_app_start(CliWorker* worker) {
             nvm3_test_app_send_msg(nvm3_test_app_instance);
             break;
         }
+        furi_string_printf(nvm3_test_app_instance->msg, "Wi-Fi APSTA interface init\r\n");
+        nvm3_test_app_send_msg(nvm3_test_app_instance);
 
-        Ecode_t err = nvm3_initDefault();
-        if(err != ECODE_OK) {
-            furi_string_printf(nvm3_test_app_instance->msg, "Failed to init NVM3: 0x%lx\r\n", err);
+        if(!nvm3_test_init()) {
+            furi_string_printf(nvm3_test_app_instance->msg, "Failed to init NVM3\r\n");
             nvm3_test_app_send_msg(nvm3_test_app_instance);
             break;
         }
-        initialise_counters();
-        printf("\nwrite key 1 data\r\n");
-        // nvm3_app_write(1, write_data1, 12);
-        nvm3_app_read(1);
-        printf("\nwrite key 2 data\r\n");
-        //nvm3_app_write(2, write_data2, 4);
-        nvm3_app_read(2);
-        printf("\nwrite key 3 data\r\n");
-        //nvm3_app_write(3, write_data2, 4);
-        nvm3_app_read(3);
-        printf("\nwrite key 4 data\r\n");
-        // nvm3_app_write(4, write_data1, 12);
-        nvm3_app_read(4);
-        nvm3_app_display();
-        // printf("\nDeleting all keys\r\n");
-        // nvm3_app_delete(1);
-        // nvm3_app_delete(2);
-        // nvm3_app_delete(3);
-        // nvm3_app_delete(4);
-        // nvm3_app_display();
-        // // Delete all data in NVM3.
-        // err = nvm3_eraseAll(NVM3_DEFAULT_HANDLE);
-        // if (ECODE_NVM3_OK == err) {
-        //   printf("Deleting all data stored in NVM3\r\n");
-        // }
-
-        furi_string_printf(nvm3_test_app_instance->msg, "Wi-Fi APSTA interface init\r\n");
-        nvm3_test_app_send_msg(nvm3_test_app_instance);
 
         nvm3_test_app_cmd_usage(nvm3_test_app_instance);
         nvm3_test_app_instance->state = NVM3TestStateInit;
@@ -338,6 +112,7 @@ void nvm3_test_app_stop(void* app_handle) {
     NVM3TestApp* instance = (NVM3TestApp*)app_handle;
 
     if(instance->state == NVM3TestStateInit) {
+        nvm3_test_deinit();
         sl_net_deinit(SL_NET_WIFI_CLIENT_INTERFACE);
     }
 
@@ -350,9 +125,100 @@ void nvm3_test_app_stop(void* app_handle) {
     }
 }
 
-static sl_status_t nvm3_test_app(NVM3TestApp* instance, uint8_t cmd_index, FuriString* args) {
-    //sl_status_t status = SL_STATUS_FAIL;
+void nvm3_test_app_test(NVM3TestApp* instance) {
+    uint8_t test_data[] = "Hello World\0";
+    uint8_t buffer[256];
+    uint32_t count;
 
+    // write - read test
+    do {
+        if(!nvm3_test_write(1, test_data, sizeof(test_data))) {
+            furi_string_printf(instance->msg, "Failed to write data to key 1\r\n");
+            nvm3_test_app_send_msg(instance);
+            break;
+        }
+        if(!nvm3_test_read(1, buffer, sizeof(test_data))) {
+            furi_string_printf(instance->msg, "Failed to read data from key 1\r\n");
+            nvm3_test_app_send_msg(instance);
+            break;
+        }
+
+        if(memcmp(test_data, buffer, sizeof(test_data)) != 0) {
+            furi_string_printf(
+                instance->msg, "Data read from key 1 is not the same as written\r\n");
+            nvm3_test_app_send_msg(instance);
+            break;
+        }
+
+        furi_string_printf(instance->msg, "Wrire-Read key 1 OK\r\n");
+        nvm3_test_app_send_msg(instance);
+    } while(false);
+
+    // delete test
+    do {
+        if(!nvm3_test_delete(1)) {
+            furi_string_printf(instance->msg, "Failed to delete key 1\r\n");
+            nvm3_test_app_send_msg(instance);
+            break;
+        }
+        if(nvm3_test_read(1, buffer, sizeof(test_data))) {
+            furi_string_printf(instance->msg, "Data read from key 1 after delete\r\n");
+            nvm3_test_app_send_msg(instance);
+            break;
+        }
+
+        furi_string_printf(instance->msg, "Delete key 1 OK\r\n");
+        nvm3_test_app_send_msg(instance);
+    } while(false);
+
+    // counter test
+    do {
+        if(!nvm3_test_write_counter(10, 5)) {
+            furi_string_printf(instance->msg, "Failed to write counter 10\r\n");
+            nvm3_test_app_send_msg(instance);
+            break;
+        }
+        if(!nvm3_test_read_counter(10, &count)) {
+            furi_string_printf(instance->msg, "Failed to read counter 10\r\n");
+            nvm3_test_app_send_msg(instance);
+            break;
+        }
+
+        if(count != 5) {
+            furi_string_printf(instance->msg, "Counter 10 is not 5\r\n");
+            nvm3_test_app_send_msg(instance);
+            break;
+        }
+
+        if(!nvm3_test_increment_counter(10, NULL)) {
+            furi_string_printf(instance->msg, "Failed to increment counter 10\r\n");
+            nvm3_test_app_send_msg(instance);
+            break;
+        }
+
+        if(!nvm3_test_read_counter(10, &count)) {
+            furi_string_printf(instance->msg, "Failed to read counter 10\r\n");
+            nvm3_test_app_send_msg(instance);
+            break;
+        }
+        if(!nvm3_test_read_counter(10, &count)) {
+            furi_string_printf(instance->msg, "Failed to read counter 10\r\n");
+            nvm3_test_app_send_msg(instance);
+            break;
+        }
+
+        if(count != 7) {
+            furi_string_printf(instance->msg, "Counter 10 is not 7\r\n");
+            nvm3_test_app_send_msg(instance);
+            break;
+        }
+
+        furi_string_printf(instance->msg, "Counter 10 OK\r\n");
+        nvm3_test_app_send_msg(instance);
+    } while(false);
+}
+
+static sl_status_t nvm3_test_app(NVM3TestApp* instance, uint8_t cmd_index, FuriString* args) {
     char* args_cstr = (char*)furi_string_get_cstr(args);
     UNUSED(args_cstr);
     FuriString* arg = furi_string_alloc();
@@ -361,6 +227,13 @@ static sl_status_t nvm3_test_app(NVM3TestApp* instance, uint8_t cmd_index, FuriS
     case NVM3TestCmdTypeHelp:
     case NVM3TestCmdTypeHelpHelp:
         nvm3_test_app_cmd_usage(instance);
+        break;
+    case NVM3TestCmdTypeNVM3:
+        nvm3_test_app_test(instance);
+        break;
+    case NVM3TestCmdTypeNVM3Print:
+        nvm3_test_print_objects(instance->msg);
+        nvm3_test_app_send_msg(instance);
         break;
 
     default:
@@ -417,8 +290,16 @@ static void nvm3_test_app_cmd_usage(NVM3TestApp* instance) {
         instance->msg,
         "*************************************************************************************************************"
         "******\r\n");
+    furi_string_cat_printf(
+        instance->msg,
+        "Read the manual:  https://docs.silabs.com/gecko-platform/latest/platform-driver/nvm3 \r\n");
+    furi_string_cat_printf(
+        instance->msg,
+        "Read the manual:  https://docs.silabs.com/gecko-platform/3.0/driver/api/group-nvm3 \r\n");
     furi_string_cat_printf(instance->msg, "?\r\n");
     furi_string_cat_printf(instance->msg, "help\r\n");
+    furi_string_cat_printf(instance->msg, "nvm3_test\r\n");
+    furi_string_cat_printf(instance->msg, "nvm3_print\r\n");
 
     furi_string_cat_printf(
         instance->msg,
