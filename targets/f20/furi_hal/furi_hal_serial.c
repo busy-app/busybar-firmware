@@ -719,7 +719,16 @@ void furi_hal_serial_dma_rx_start(FuriHalSerialHandle* handle, uint8_t* buffer, 
 
 void furi_hal_serial_dma_rx_stop(FuriHalSerialHandle* handle) {
     furi_check(handle);
-    // TODO: Implement
+    FuriHalSerial* serial = furi_hal_serial[handle->id];
+    furi_check(serial);
+
+    USART_TypeDef* periph = serial->periph_ptr;
+    const uint32_t dma_channel = serial->dma_rx_channel;
+
+    FURI_CRITICAL_ENTER();
+    LL_USART_DisableDMAReq_RX(periph);
+    LL_DMA_DisableChannel(GPDMA1, dma_channel);
+    FURI_CRITICAL_EXIT();
 }
 
 void furi_hal_serial_clear(FuriHalSerialHandle* handle, FuriHalSerialDirection dir) {
