@@ -1,17 +1,6 @@
-#include "intercom.h"
-
-#include <furi.h>
-
-#include <furi_hal_serial.h>
-#include <furi_hal_serial_control.h>
-
-#include "intercom_frame.h"
+#include "intercom_i.h"
 
 #define TAG "IntercomSrv"
-
-#define INTERCOM_SYNC_TIMEOUT_MS    (10000UL)
-#define INTERCOM_SYNC_INTERVAL_1_MS (5UL)
-#define INTERCOM_SYNC_INTERVAL_2_MS (1UL)
 
 #define INTERCOM_TX_TIMEOUT_MS (1000UL)
 
@@ -186,60 +175,6 @@ static void intercom_tx_timer_callback(void* context) {
     instance->error_callback(IntercomErrorTransmit, instance->error_callback_context);
 }
 
-static bool intercom_sync_serial(FuriHalSerialHandle* serial) {
-    bool success = true;
-
-    const uint8_t leader_1 = 0x55;
-    const uint8_t leader_2 = 0xAA;
-
-    do {
-        const uint32_t start_time = furi_get_tick();
-
-        // Stage 1 - ensure that the target is responding
-        while(true) {
-            furi_hal_serial_tx(serial, &leader_1, 1);
-            furi_hal_serial_tx_wait_complete(serial);
-
-            if(furi_hal_serial_rx_available(serial)) {
-                if(furi_hal_serial_rx(serial) == leader_1) {
-                    break;
-                }
-
-            } else if(furi_get_tick() - start_time < INTERCOM_SYNC_TIMEOUT_MS) {
-                furi_delay_ms(INTERCOM_SYNC_INTERVAL_1_MS);
-
-            } else {
-                success = false;
-                break;
-            }
-        }
-
-        if(!success) break;
-
-        // Stage 2 - ensure that data streams are in sync
-        furi_hal_serial_tx(serial, &leader_2, 1);
-        furi_hal_serial_tx_wait_complete(serial);
-
-        while(true) {
-            if(furi_hal_serial_rx_available(serial)) {
-                if(furi_hal_serial_rx(serial) == leader_2) {
-                    break;
-                }
-
-            } else if(furi_get_tick() - start_time < INTERCOM_SYNC_TIMEOUT_MS) {
-                furi_delay_ms(INTERCOM_SYNC_INTERVAL_2_MS);
-
-            } else {
-                success = false;
-                break;
-            }
-        }
-
-    } while(false);
-
-    return success;
-}
-
 static Intercom* intercom_alloc(void) {
     Intercom* instance = malloc(sizeof(Intercom));
 
@@ -251,18 +186,20 @@ static Intercom* intercom_alloc(void) {
     instance->error_callback = intercom_default_error_callback;
     instance->error_callback_context = instance;
 
-    furi_hal_serial_init(instance->serial, INTERCOM_BAUD_RATE);
-    furi_hal_serial_set_hw_flow_control(instance->serial, FuriHalSerialHwFlowControlRtsCts);
-    furi_hal_serial_set_callback(
-        instance->serial, intercom_serial_tx_callback, intercom_serial_rx_callback, instance);
     furi_event_loop_set_custom_event_callback(
         instance->event_loop, intercom_custom_event_callback, instance);
+
+    furi_hal_serial_init(instance->serial, INTERCOM_BAUD_RATE);
 
     if(!intercom_sync_serial(instance->serial)) {
         instance->error_callback(IntercomErrorSync, instance->error_callback_context);
     }
 
+    furi_hal_serial_set_hw_flow_control(instance->serial, FuriHalSerialHwFlowControlRtsCts);
     furi_hal_serial_clear(instance->serial, FuriHalSerialDirectionTxRx);
+
+    furi_hal_serial_set_callback(
+        instance->serial, intercom_serial_tx_callback, intercom_serial_rx_callback, instance);
     furi_hal_serial_dma_rx_start(
         instance->serial, (void*)&instance->rx_frame, sizeof(IntercomFrame));
 

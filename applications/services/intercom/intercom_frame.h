@@ -4,8 +4,7 @@
  */
 #pragma once
 
-#include <stdint.h>
-#include <stddef.h>
+#include <furi.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -16,21 +15,17 @@ extern "C" {
 /** Maximum data (payload) size */
 #define INTERCOM_FRAME_DATA_SIZE (INTERCOM_FRAME_SIZE - 5U)
 
-#pragma pack(push, 1)
-
 /**
  * @brief Intercom frame structure.
  *
  * All Intercom frames have a fixed size of 1024 bytes.
  */
-typedef struct {
+typedef struct FURI_PACKED {
     uint8_t channel; /**< Channel identifier */
     uint16_t data_size; /**< Size of the data (payload) contained in this frame */
     uint8_t data[INTERCOM_FRAME_DATA_SIZE]; /**< Data (payload) to transmit with the frame */
     uint16_t check; /**< 16-bit checksum for transmission error detection */
 } IntercomFrame;
-
-#pragma pack(pop)
 
 static_assert(sizeof(IntercomFrame) == INTERCOM_FRAME_SIZE);
 
