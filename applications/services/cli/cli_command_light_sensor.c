@@ -3,7 +3,7 @@
 #include <furi.h>
 
 #include <furi_hal_i2c_config.h>
-#include <drivers/bh1730/bh1730.h>
+#include <furi_hal_light_sensor.h>
 
 void cli_command_light_sensor(Cli* cli, FuriString* args, void* context) {
     UNUSED(cli);
@@ -16,9 +16,9 @@ void cli_command_light_sensor(Cli* cli, FuriString* args, void* context) {
 
     bool read_success = false;
     do {
-        if(!bh1730_read_raw_data0(&furi_hal_i2c_handle_1, &data0)) break;
-        if(!bh1730_read_raw_data1(&furi_hal_i2c_handle_1, &data1)) break;
-        if(!bh1730_read_lux(&furi_hal_i2c_handle_1, &lux)) break;
+        if(!furi_hal_light_sensor_read_raw_600nm(&furi_hal_i2c_handle_1, &data0)) break;
+        if(!furi_hal_light_sensor_read_raw_840nm(&furi_hal_i2c_handle_1, &data1)) break;
+        if(!furi_hal_light_sensor_read_lux(&furi_hal_i2c_handle_1, &lux)) break;
 
         read_success = true;
     } while(false);
