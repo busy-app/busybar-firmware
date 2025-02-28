@@ -20,6 +20,23 @@ static void light_sensor_test_app_draw(LightSensorTestApp* instance) {
     gui_lvgl_release(instance->gui);
 }
 
+static void light_sensor_test_app_keypad_callback(lv_event_t* event) {
+    LightSensorTestApp* instance = lv_event_get_user_data(event);
+
+    const lv_event_code_t code = lv_event_get_code(event);
+    if(code == LV_EVENT_KEY) {
+        const uint32_t key = *((uint32_t*)lv_event_get_param(event));
+        if(key == LV_KEY_ESC) {
+            LightSensorTestAppEvent app_event = {
+                .type = LightSensorTestAppEventExit,
+            };
+            furi_check(
+                furi_message_queue_put(instance->event_queue, &app_event, FuriWaitForever) ==
+                FuriStatusOk);
+        }
+    }
+}
+
 static void
     light_sensor_test_app_event_queue_callback(FuriEventLoopObject* object, void* context) {
     LightSensorTestApp* instance = context;
@@ -112,6 +129,13 @@ static LightSensorTestApp* light_sensor_test_app_alloc(void) {
     lv_obj_set_pos(instance->label_light_level, 10, 40);
     lv_obj_set_style_text_color(instance->label_light_level, lv_color_white(), LV_PART_MAIN);
 
+    // Input events
+    active = gui_lvgl_get_layer(instance->gui, GuiDisplayIdFront, GuiLayerIdActive);
+    instance->dummy_input = lv_label_create(active);
+    lv_group_add_obj(lv_group_get_default(), instance->dummy_input);
+    lv_obj_add_event_cb(
+        instance->dummy_input, light_sensor_test_app_keypad_callback, LV_EVENT_KEY, instance);
+
     gui_lvgl_release(instance->gui);
 
     light_sensor_test_app_get_measurements(instance);
@@ -131,6 +155,7 @@ static void light_sensor_test_app_free(LightSensorTestApp* instance) {
     lv_obj_delete(instance->label_lux_instant);
     lv_obj_delete(instance->label_lux_mean);
     lv_obj_delete(instance->label_light_level);
+    lv_obj_delete(instance->dummy_input);
 
     gui_lvgl_release(instance->gui);
 

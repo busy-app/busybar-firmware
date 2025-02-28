@@ -26,6 +26,9 @@ typedef struct {
     FuriPubSub* light_sensor_events;
     FuriPubSubSubscription* light_sensor_subscription;
 
+    // TODO delete
+    lv_obj_t* dummy_input;
+
     lv_obj_t* label_light_raw;
     lv_obj_t* label_lux_instant;
     lv_obj_t* label_lux_mean;
