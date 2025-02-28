@@ -143,11 +143,12 @@ static FURI_ALWAYS_INLINE void intercom_process_sync_requested_event(Intercom* i
 
     if(intercom_sync_serial(instance->serial)) {
 // TODO: Unify function signatures
-#if defined (TARGET_F20)
+#if defined(TARGET_F20)
         furi_hal_gpio_init_simple(&INTERCOM_GPIO, GpioModeInterruptFall);
         furi_hal_gpio_add_int_callback(&INTERCOM_GPIO, intercom_gpio_irq_callback, instance);
-#elif defined (TARGET_F64)
-        furi_hal_gpio_add_int_callback(&INTERCOM_GPIO, GpioConditionFall, intercom_gpio_irq_callback, instance);
+#elif defined(TARGET_F64)
+        furi_hal_gpio_add_int_callback(
+            &INTERCOM_GPIO, GpioConditionFall, intercom_gpio_irq_callback, instance);
 #else
 #error "Unsupported target"
 #endif
