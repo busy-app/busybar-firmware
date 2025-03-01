@@ -1,6 +1,7 @@
 #include "busy_i.h"
 
 #include <input/input.h>
+#include <storage/storage.h>
 
 #include "scenes/busy_scene_start.h"
 #include "scenes/busy_scene_timer.h"
@@ -21,7 +22,7 @@
 #define ENABLE_AUTOSTART_WORK_DEFAULT (false)
 #define ENABLE_AUTOSTART_REST_DEFAULT (false)
 #define ENABLE_AUTORESTART_SESSION    (false)
-#define ENABLE_SOUND_DEFAULT          (false)
+#define ENABLE_SOUND_DEFAULT          (true)
 #define ENABLE_SPEED_DEFAULT          (false)
 
 #define CYCLE_COUNT_DEFAULT (3)
@@ -218,8 +219,30 @@ static BusyCustomEvent busy_timer_calc_event(BusyApp* instance, bool skip_event)
     return event;
 }
 
+static void busy_play_finished_sound(BusyApp* instance) {
+    if(instance->enable_sound) {
+        if(instance->state == BusyTimerStateWork) {
+            audio_play_file(instance->audio, EXT_PATH("audio/work_finished.snd"));
+        } else if(instance->state == BusyTimerStateRest || instance->state == BusyTimerStateLongRest) {
+            audio_play_file(instance->audio, EXT_PATH("audio/rest_finished.snd"));
+        }
+    }
+}
+
+static void busy_play_countdown_sound(BusyApp* instance) {
+    if(instance->enable_sound && instance->interval_time_left_s <= 4) {
+        if(instance->state == BusyTimerStateWork) {
+            audio_play_file(instance->audio, EXT_PATH("audio/work_countdown.snd"));
+        } else if(instance->state == BusyTimerStateRest || instance->state == BusyTimerStateLongRest) {
+            audio_play_file(instance->audio, EXT_PATH("audio/rest_countdown.snd"));
+        }
+    }
+}
+
 void busy_timer_next_state(BusyApp* instance, bool skip_event) {
     FURI_LOG_I(TAG, "Current timer state: %s", busy_timer_get_state_name(instance->state));
+
+    busy_play_finished_sound(instance);
 
     if(instance->total_time_left_s == 0 && instance->state != BusyTimerStateIdle) {
         instance->state = BusyTimerStateIdle;
@@ -297,6 +320,7 @@ static void busy_scene_busy_timer_callback(void* context) {
 
     if(--instance->interval_time_left_s > 0) {
         busy_send_custom_event(instance, BusyCustomEventUpdate);
+        busy_play_countdown_sound(instance);
     } else {
         busy_timer_next_state(instance, false);
     }
@@ -313,6 +337,7 @@ static BusyApp* busy_alloc(void) {
         FuriEventLoopTimerTypePeriodic,
         instance);
     instance->gui = furi_record_open(RECORD_GUI_LVGL);
+    instance->audio = furi_record_open(RECORD_AUDIO);
 
     instance->input_events = furi_record_open(RECORD_INPUT_EVENTS);
     instance->input_subscription =
@@ -349,6 +374,8 @@ static BusyApp* busy_alloc(void) {
 
     gui_lvgl_release(instance->gui);
 
+    audio_set_volume(instance->audio, 0.33F);
+
     busy_switch_to_scene(instance, BusyAppSceneIdStart);
 
     return instance;
@@ -370,6 +397,7 @@ static void busy_free(BusyApp* instance) {
     lv_obj_delete(instance->back_label);
     gui_lvgl_release(instance->gui);
 
+    furi_record_close(RECORD_AUDIO);
     furi_record_close(RECORD_GUI_LVGL);
     furi_record_close(RECORD_INPUT_EVENTS);
 

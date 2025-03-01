@@ -10,7 +10,6 @@ MCU_INCDIR = f"#/lib/{MCU_DIR}"
 
 env.Append(
     CPPPATH=[
-        
         Dir(f"{WISECONNECT_INCDIR}/protocol/wifi/inc").rdir(),
         Dir(f"{WISECONNECT_INCDIR}/service/bsd_socket/inc").rdir(),
         Dir(f"{WIRELESS_INCDIR}/asynchronous_socket/inc").rdir(),
@@ -22,7 +21,7 @@ env.Append(
         Dir(f"{MCU_INCDIR}/drivers/peripheral_drivers/inc").rdir(),
         Dir(f"{MCU_INCDIR}/core/config").rdir(),
         Dir(f"{MCU_INCDIR}/drivers/unified_api/inc").rdir(),
-        Dir(f"{MCU_INCDIR}/drivers/service/clock_manager/inc").rdir(),      
+        Dir(f"{MCU_INCDIR}/drivers/service/clock_manager/inc").rdir(),
         Dir(f"{MCU_INCDIR}/drivers/unified_peripheral_drivers/inc").rdir(),
         Dir(f"{WIRELESS_INCDIR}/sl_net/inc").rdir(),
         Dir(f"{WIRELESS_INCDIR}/inc").rdir(),
@@ -32,6 +31,8 @@ env.Append(
         Dir(f"{MCU_INCDIR}/drivers/systemlevel/inc").rdir(),
         Dir(f"wiseconnect/resources/defaults").rdir(),
         Dir(f"{WISECONNECT_INCDIR}/common/inc").rdir(),
+        # NVM3
+        Dir(f"{MCU_INCDIR}/drivers/service/nvm3/inc").rdir(),
     ],
     CPPDEFINES=[
         "SI917",
@@ -72,7 +73,6 @@ sources = [
     f"{MCU_DIR}/drivers/systemlevel/src/rsi_ipmu.c",
     f"{MCU_DIR}/drivers/systemlevel/src/rsi_ulpss_clk.c",
     f"{MCU_DIR}/drivers/service/clock_manager/src/sl_si91x_clock_manager.c",
-
     # SDK Wifi Silabs
     f"{WISECONNECT_DIR}/common/src/sl_utility.c",
     f"{WISECONNECT_DIR}/protocol/wifi/si91x/sl_wifi.c",
@@ -83,7 +83,6 @@ sources = [
     f"{WISECONNECT_DIR}/service/network_manager/src/sl_net_basic_profiles.c",
     f"{WISECONNECT_DIR}/service/network_manager/src/sl_net_credentials.c",
     f"{WISECONNECT_DIR}/service/network_manager/si91x/sl_net_si91x.c",
-
     f"{WIRELESS_DIR}/src/sl_si91x_driver.c",
     f"{WIRELESS_DIR}/src/sl_rsi_utility.c",
     f"{WIRELESS_DIR}/ahb_interface/src/rsi_hal_mcu_m4_rom.c",
@@ -109,6 +108,9 @@ sources = [
     f"{WIRELESS_DIR}/ble/src/rsi_bt_common_apis.c",
     f"{WIRELESS_DIR}/ble/src/rsi_ble_gap_apis.c",
     f"{WIRELESS_DIR}/ble/src/rsi_ble_gatt_apis.c",
+    # NVM3
+    f"{MCU_DIR}/drivers/service/nvm3/src/sl_si91x_common_flash_intf.c",
+    f"{MCU_DIR}/drivers/service/nvm3/src/sl_si91x_nvm3_hal_flash.c",
 ]
 
 lib = libenv.StaticLibrary("${FW_LIB_NAME}", sources)
