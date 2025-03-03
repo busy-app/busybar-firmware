@@ -33,6 +33,7 @@ typedef struct {
 
 typedef enum {
     StatusLightsPresetRainbowGradient,
+    StatusLightsPresetWhiteFade,
 
     StatusLightsPresetNum,
 } StatusLightsPreset;

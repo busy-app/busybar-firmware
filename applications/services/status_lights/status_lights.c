@@ -62,7 +62,7 @@ static StatusLights* status_lights_alloc() {
 
     StatusLightsCommand command = {
         .type = StatusLightsCommandSetPreset,
-        .preset = StatusLightsPresetRainbowGradient,
+        .preset = StatusLightsPresetWhiteFade,
     };
     status_lights_execute_command(instance, command);
 

@@ -2,4 +2,5 @@
 
 const StatusLightsPresetBase* status_lights_preset_list[StatusLightsPresetNum] = {
     [StatusLightsPresetRainbowGradient] = &status_ligth_preset_rainbow_gradient,
+    [StatusLightsPresetWhiteFade] = &status_ligth_preset_white_fade,
 };
