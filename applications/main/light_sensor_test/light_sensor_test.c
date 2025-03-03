@@ -4,7 +4,7 @@
 
 #define TAG "LightSensorTest"
 
-static void light_sensor_test_app_draw(LightSensorTestApp* instance) {
+static void light_sensor_test_app_update(LightSensorTestApp* instance) {
     gui_lvgl_acquire(instance->gui);
 
     // Back screen
@@ -47,7 +47,7 @@ static void
 
     if(event.type == LightSensorTestAppEventLightLevelUpdate) {
         instance->light_level = event.light_level;
-        light_sensor_test_app_draw(instance);
+        light_sensor_test_app_update(instance);
     } else if(event.type == LightSensorTestAppEventExit) {
         furi_event_loop_stop(instance->event_loop);
     }
@@ -64,7 +64,7 @@ static void light_sensor_test_app_timer_callback(void* context) {
     LightSensorTestApp* instance = context;
 
     light_sensor_test_app_get_measurements(instance);
-    light_sensor_test_app_draw(instance);
+    light_sensor_test_app_update(instance);
 }
 
 static void light_sensor_test_app_light_sensor_callback(const void* message, void* context) {
@@ -139,7 +139,7 @@ static LightSensorTestApp* light_sensor_test_app_alloc(void) {
     gui_lvgl_release(instance->gui);
 
     light_sensor_test_app_get_measurements(instance);
-    light_sensor_test_app_draw(instance);
+    light_sensor_test_app_update(instance);
 
     furi_event_loop_timer_start(instance->timer, 1000 / 60);
 
