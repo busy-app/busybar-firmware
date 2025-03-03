@@ -124,14 +124,17 @@ uint8_t light_sensor_get_light_level(void) {
     return light_sensor_data_get_light_level(light_sensor->data);
 }
 
-bool light_sensor_get_raw_600nm(uint16_t* raw) {
+bool light_sensor_get_raw_data(LightSensorLightWavelength wavelength, uint16_t* raw) {
     furi_check(light_sensor);
 
-    return furi_hal_light_sensor_read_raw_600nm(LIGHT_SENSOR_I2C, raw);
-}
+    bool result = false;
+    if(wavelength == LightSensorLightWavelength600nm) {
+        result = furi_hal_light_sensor_read_raw(
+            LIGHT_SENSOR_I2C, FuriHalLightSensorLightWavelength600nm, raw);
+    } else if(wavelength == LightSensorLightWavelength840nm) {
+        result = furi_hal_light_sensor_read_raw(
+            LIGHT_SENSOR_I2C, FuriHalLightSensorLightWavelength840nm, raw);
+    }
 
-bool light_sensor_get_raw_840nm(uint16_t* raw) {
-    furi_check(light_sensor);
-
-    return furi_hal_light_sensor_read_raw_840nm(LIGHT_SENSOR_I2C, raw);
+    return result;
 }

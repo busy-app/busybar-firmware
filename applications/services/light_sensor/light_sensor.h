@@ -19,6 +19,14 @@ extern "C" {
 #define LIGHT_SENSOR_LIGHT_LEVEL_MAX (10U)
 
 /**
+ * @brief Light sensor wavelengths.
+ */
+typedef enum {
+    LightSensorLightWavelength600nm, /**< 600nm wavelength */
+    LightSensorLightWavelength840nm, /**< 840nm wavelength */
+} LightSensorLightWavelength;
+
+/**
  * @brief Light sensor event types.
 */
 typedef enum {
@@ -63,19 +71,11 @@ uint8_t light_sensor_get_light_level(void);
  * @brief Get the raw 600nm light sensor value.
  * @note Must be called after RECORD_LIGHT_SENSOR_EVENTS is created.
  *
+ * @param[in] wavelength Wavelength to read.
  * @param[out] raw Raw 600nm light sensor value.
  * @return True if successful, false otherwise.
  */
-bool light_sensor_get_raw_600nm(uint16_t* raw);
-
-/**
- * @brief Get the raw 840nm light sensor value.
- * @note Must be called after RECORD_LIGHT_SENSOR_EVENTS is created.
- *
- * @param[out] raw Raw 840nm light sensor value.
- * @return True if successful, false otherwise.
- */
-bool light_sensor_get_raw_840nm(uint16_t* raw);
+bool light_sensor_get_raw_data(LightSensorLightWavelength wavelength, uint16_t* raw);
 
 #ifdef __cplusplus
 }

@@ -56,8 +56,8 @@ static void
 static void light_sensor_test_app_get_measurements(LightSensorTestApp* instance) {
     instance->lux_instant = light_sensor_get_lux_instant();
     instance->lux_mean = light_sensor_get_lux();
-    light_sensor_get_raw_600nm(&instance->raw_600nm);
-    light_sensor_get_raw_840nm(&instance->raw_840nm);
+    light_sensor_get_raw_data(LightSensorLightWavelength600nm, &instance->raw_600nm);
+    light_sensor_get_raw_data(LightSensorLightWavelength840nm, &instance->raw_840nm);
 }
 
 static void light_sensor_test_app_timer_callback(void* context) {

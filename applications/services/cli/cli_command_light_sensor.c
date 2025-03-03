@@ -16,8 +16,12 @@ void cli_command_light_sensor(Cli* cli, FuriString* args, void* context) {
 
     bool read_success = false;
     do {
-        if(!furi_hal_light_sensor_read_raw_600nm(&furi_hal_i2c_handle_1, &data0)) break;
-        if(!furi_hal_light_sensor_read_raw_840nm(&furi_hal_i2c_handle_1, &data1)) break;
+        if(!furi_hal_light_sensor_read_raw(
+               &furi_hal_i2c_handle_1, FuriHalLightSensorLightWavelength600nm, &data0))
+            break;
+        if(!furi_hal_light_sensor_read_raw(
+               &furi_hal_i2c_handle_1, FuriHalLightSensorLightWavelength840nm, &data1))
+            break;
         if(!furi_hal_light_sensor_read_lux(&furi_hal_i2c_handle_1, &lux)) break;
 
         read_success = true;

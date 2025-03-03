@@ -1,12 +1,18 @@
 #pragma once
 
 #include <stdbool.h>
+#include <stdint.h>
 
 #include "furi_hal_i2c_types.h"
 
 #ifdef __cplusplus
 extern "C" {
 #endif
+
+typedef enum {
+    FuriHalLightSensorLightWavelength600nm,
+    FuriHalLightSensorLightWavelength840nm,
+} FuriHalLightSensorLightWavelength;
 
 /**
  * @brief Initialize light sensor
@@ -21,20 +27,14 @@ bool furi_hal_light_sensor_init(FuriHalI2cBusHandle* handle);
  * Read sensor ADC samples for 600nm wavelength
  *
  * @param handle I2C bus handle
+ * @param wavelength Wavelength to read
  * @param value Pointer to store the read value
  * @return true on success, false otherwise
  */
-bool furi_hal_light_sensor_read_raw_600nm(FuriHalI2cBusHandle* handle, uint16_t* value);
-
-/**
- * @brief Read raw data from light sensor
- * Read sensor ADC samples for 840nm wavelength
- *
- * @param handle I2C bus handle
- * @param value Pointer to store the read value
- * @return true on success, false otherwise
- */
-bool furi_hal_light_sensor_read_raw_840nm(FuriHalI2cBusHandle* handle, uint16_t* value);
+bool furi_hal_light_sensor_read_raw(
+    FuriHalI2cBusHandle* handle,
+    FuriHalLightSensorLightWavelength wavelength,
+    uint16_t* value);
 
 /** 
  * @brief Read lux value from light sensor
