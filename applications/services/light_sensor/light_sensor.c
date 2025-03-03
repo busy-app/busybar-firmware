@@ -13,7 +13,7 @@
 
 #define LIGHT_SENSOR_SAMPLE_INTERVAL_MS        (1000)
 #define LIGHT_SENSOR_LIGHT_LEVEL_MAX_THRESHOLD (1000.0f)
-#define LIGHT_SENSOE_WINDOW_SIZE               (10)
+#define LIGHT_SENSOR_WINDOW_SIZE               (10)
 
 typedef struct {
     FuriEventLoop* event_loop;
@@ -64,7 +64,7 @@ static LightSensor* light_sensor_alloc(void) {
     light_sensor = malloc(sizeof(LightSensor));
 
     LightSensorDataConfig config = {
-        .window_size = LIGHT_SENSOE_WINDOW_SIZE,
+        .window_size = LIGHT_SENSOR_WINDOW_SIZE,
         .light_level_max = LIGHT_SENSOR_LIGHT_LEVEL_MAX,
         .light_level_max_threshold = LIGHT_SENSOR_LIGHT_LEVEL_MAX_THRESHOLD,
     };
