@@ -2,94 +2,69 @@
 
 #include <furi_hal_pwm.h>
 
-#define STATUS_LIGHTS_TIMER_TICKS 16 //ms
+static void status_lights_timer_callback(void* context) {
+    furi_assert(context);
 
-StatusLights* status_lights = NULL;
+    StatusLights* instance = context;
+    furi_check(instance->preset_instance);
+    furi_check(instance->preset_api);
 
-// https://stackoverflow.com/questions/24152553/hsv-to-rgb-and-back-without-floating-point-math-in-python
-static void status_lights_hsv_to_rgb(const Color* hsv, Color* rgb) {
-    if(hsv->s == 0) {
-        rgb->r = hsv->v;
-        rgb->g = hsv->v;
-        rgb->b = hsv->v;
-        return;
+    StatusLightsColor color = {};
+    instance->preset_api->run(instance->preset_instance, &color);
+    furi_hal_pwm_set_rgb(color.r, color.g, color.b);
+}
+
+static void status_lights_execute_command(StatusLights* instance, StatusLightsCommand command) {
+    // If previous pattern was running, stop it
+    if(furi_event_loop_timer_is_running(instance->timer)) {
+        furi_event_loop_timer_stop(instance->timer);
+        instance->preset_api->free(instance->preset_instance);
     }
 
-    const uint8_t region = hsv->h / 43;
-    const uint8_t remainder = (hsv->h % 43) * 6;
+    if(command.type == StatusLightsCommandSetManual) {
+        furi_hal_pwm_set_rgb(command.manual.r, command.manual.g, command.manual.b);
+    } else if(command.type == StatusLightsCommandSetPreset) {
+        instance->preset_api = status_lights_preset_list[command.preset];
+        instance->preset_instance = instance->preset_api->alloc();
 
-    const uint16_t s = hsv->s;
-    const uint16_t v = hsv->v;
-
-    const uint16_t p = (v * (255 - hsv->s)) >> 8;
-    const uint16_t q = (v * (255 - ((s * remainder) >> 8))) >> 8;
-    const uint16_t t = (v * (255 - ((s * (255 - remainder)) >> 8))) >> 8;
-
-    switch(region) {
-    case 0:
-        rgb->r = v;
-        rgb->g = t;
-        rgb->b = p;
-        break;
-
-    case 1:
-        rgb->r = q;
-        rgb->g = v;
-        rgb->b = p;
-        break;
-
-    case 2:
-        rgb->r = p;
-        rgb->g = v;
-        rgb->b = t;
-        break;
-
-    case 3:
-        rgb->r = p;
-        rgb->g = q;
-        rgb->b = v;
-        break;
-
-    case 4:
-        rgb->r = t;
-        rgb->g = p;
-        rgb->b = v;
-        break;
-
-    default:
-        rgb->r = v;
-        rgb->g = p;
-        rgb->b = q;
-        break;
+        furi_check(instance->preset_api->period_ms > 0);
+        furi_event_loop_timer_start(instance->timer, instance->preset_api->period_ms);
     }
 }
 
-static void status_lights_timer_callback(void* context) {
-    furi_assert(context);
+static void status_lights_message_queue_callback(FuriEventLoopObject* object, void* context) {
     StatusLights* instance = context;
+    furi_check(object == instance->command_queue);
 
-    Color rgb;
+    StatusLightsCommand command;
+    furi_check(furi_message_queue_get(instance->command_queue, &command, 0) == FuriStatusOk);
 
-    status_lights_hsv_to_rgb(&instance->color, &rgb);
-    furi_hal_pwm_set_rgb(rgb.r, rgb.g, rgb.b);
-
-    instance->color.h++;
+    status_lights_execute_command(instance, command);
 }
 
 static StatusLights* status_lights_alloc() {
     StatusLights* instance = malloc(sizeof(StatusLights));
     instance->event_loop = furi_event_loop_alloc();
+    instance->command_queue = furi_message_queue_alloc(8, sizeof(StatusLightsCommand));
+    furi_event_loop_subscribe_message_queue(
+        instance->event_loop,
+        instance->command_queue,
+        FuriEventLoopEventIn,
+        status_lights_message_queue_callback,
+        instance);
     instance->timer = furi_event_loop_timer_alloc(
         instance->event_loop,
         status_lights_timer_callback,
         FuriEventLoopTimerTypePeriodic,
         instance);
-    instance->color.s = 255;
-    instance->color.v = 16;
 
     furi_hal_pwm_start();
 
-    furi_event_loop_timer_start(instance->timer, STATUS_LIGHTS_TIMER_TICKS);
+    StatusLightsCommand command = {
+        .type = StatusLightsCommandSetPreset,
+        .preset = StatusLightsPresetRainbowGradient,
+    };
+    status_lights_execute_command(instance, command);
 
     return instance;
 }
@@ -98,8 +73,16 @@ void status_lights_srv(void* p) {
     UNUSED(p);
     FURI_LOG_D(TAG, "Starting");
 
-    status_lights = status_lights_alloc();
-    furi_record_create(RECORD_STATUS_LIGHTS, status_lights);
+    StatusLights* instance = status_lights_alloc();
+    furi_record_create(RECORD_STATUS_LIGHTS, instance);
 
-    furi_event_loop_run(status_lights->event_loop);
+    furi_event_loop_run(instance->event_loop);
+}
+
+void status_light_send_command(StatusLights* instance, StatusLightsCommand command) {
+    furi_check(instance);
+
+    furi_check(
+        furi_message_queue_put(instance->command_queue, &command, FuriWaitForever) ==
+        FuriStatusOk);
 }

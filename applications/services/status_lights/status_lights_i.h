@@ -1,27 +1,17 @@
 #pragma once
 
 #include "status_lights.h"
+#include "status_lights_preset_defs.h"
 
 #include <furi/furi.h>
 
 #define TAG "StatusLightsSrv"
 
-typedef union {
-    struct {
-        uint8_t r;
-        uint8_t g;
-        uint8_t b;
-    };
-
-    struct {
-        uint8_t h;
-        uint8_t s;
-        uint8_t v;
-    };
-} Color;
-
 struct StatusLights {
     FuriEventLoop* event_loop;
+    FuriMessageQueue* command_queue;
     FuriEventLoopTimer* timer;
-    Color color;
+
+    StatusLightsGenericPreset* preset_instance;
+    const StatusLightsPresetBase* preset_api;
 };

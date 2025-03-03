@@ -4,6 +4,8 @@
  */
 #pragma once
 
+#include <stdint.h>
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -19,9 +21,31 @@ extern "C" {
 typedef struct StatusLights StatusLights;
 
 typedef enum {
-    StatusLightsPatternTypeManual,
-    StatusLightsPatternTypePreset,
-} StatusLightsPatternType;
+    StatusLightsCommandSetManual,
+    StatusLightsCommandSetPreset,
+} StatusLightsCommandType;
+
+typedef struct {
+    uint8_t r;
+    uint8_t g;
+    uint8_t b;
+} StatusLightsColor;
+
+typedef enum {
+    StatusLightsPresetRainbowGradient,
+
+    StatusLightsPresetNum,
+} StatusLightsPreset;
+
+typedef struct {
+    StatusLightsCommandType type;
+    union {
+        StatusLightsColor manual;
+        StatusLightsPreset preset;
+    };
+} StatusLightsCommand;
+
+void status_light_send_command(StatusLights* instance, StatusLightsCommand command);
 
 #ifdef __cplusplus
 }
