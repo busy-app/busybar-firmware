@@ -1,9 +1,9 @@
 #include <furi.h>
 #include <furi_hal_pwm.h>
 
-#define TAG "NotificationSrv"
+#define TAG "StatusLightsSrv"
 
-#define NOTIFICATION_TIMER_TICKS 16 //ms
+#define STATUS_LIGHTS_TIMER_TICKS 16 //ms
 
 typedef union {
     struct {
@@ -23,10 +23,10 @@ typedef struct {
     FuriEventLoop* event_loop;
     FuriEventLoopTimer* timer;
     Color color;
-} NotificationtSrv;
+} StatusLightstSrv;
 
 // https://stackoverflow.com/questions/24152553/hsv-to-rgb-and-back-without-floating-point-math-in-python
-static void notification_hsv_to_rgb(const Color* hsv, Color* rgb) {
+static void status_lights_hsv_to_rgb(const Color* hsv, Color* rgb) {
     if(hsv->s == 0) {
         rgb->r = hsv->v;
         rgb->g = hsv->v;
@@ -83,27 +83,27 @@ static void notification_hsv_to_rgb(const Color* hsv, Color* rgb) {
     }
 }
 
-static void notification_timer_callback(void* context) {
+static void status_lights_timer_callback(void* context) {
     furi_assert(context);
-    NotificationtSrv* instance = context;
+    StatusLightstSrv* instance = context;
 
     Color rgb;
 
-    notification_hsv_to_rgb(&instance->color, &rgb);
+    status_lights_hsv_to_rgb(&instance->color, &rgb);
     furi_hal_pwm_set_rgb(rgb.r, rgb.g, rgb.b);
 
     instance->color.h++;
 }
 
-void notification_srv(void* p) {
+void status_lights_srv(void* p) {
     UNUSED(p);
     FURI_LOG_D(TAG, "Starting");
 
-    NotificationtSrv* instance = malloc(sizeof(NotificationtSrv));
+    StatusLightstSrv* instance = malloc(sizeof(StatusLightstSrv));
     instance->event_loop = furi_event_loop_alloc();
     instance->timer = furi_event_loop_timer_alloc(
         instance->event_loop,
-        notification_timer_callback,
+        status_lights_timer_callback,
         FuriEventLoopTimerTypePeriodic,
         instance);
 
@@ -112,8 +112,8 @@ void notification_srv(void* p) {
 
     furi_hal_pwm_start();
 
-    furi_event_loop_timer_start(instance->timer, NOTIFICATION_TIMER_TICKS);
+    furi_event_loop_timer_start(instance->timer, STATUS_LIGHTS_TIMER_TICKS);
 
-    // Start Notification Service
+    // Start StatusLights Service
     furi_event_loop_run(instance->event_loop);
 }

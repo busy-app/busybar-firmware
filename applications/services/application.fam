@@ -30,7 +30,7 @@ App(
     provides=[
         # "cli", # Enabled in "hwtest" fw config (FIRMWARE_APP_SET)
         "input",
-        "notification",
+        "status_lights",
     ],
     targets=["f64"],
 )
