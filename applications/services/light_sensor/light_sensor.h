@@ -70,7 +70,7 @@ uint8_t light_sensor_get_light_level(void);
  * @note Must be called after RECORD_LIGHT_SENSOR_EVENTS is created.
  *
  * @param[in] wavelength Wavelength to read.
- * @param[out] raw Raw 600nm light sensor value.
+ * @param[out] raw Raw light sensor value.
  * @return True if successful, false otherwise.
  */
 bool light_sensor_get_raw_data(LightSensorLightWavelength wavelength, uint16_t* raw);
