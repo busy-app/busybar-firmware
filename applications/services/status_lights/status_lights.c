@@ -1,29 +1,10 @@
-#include <furi.h>
-#include <furi_hal_pwm.h>
+#include "status_lights_i.h"
 
-#define TAG "StatusLightsSrv"
+#include <furi_hal_pwm.h>
 
 #define STATUS_LIGHTS_TIMER_TICKS 16 //ms
 
-typedef union {
-    struct {
-        uint8_t r;
-        uint8_t g;
-        uint8_t b;
-    };
-
-    struct {
-        uint8_t h;
-        uint8_t s;
-        uint8_t v;
-    };
-} Color;
-
-typedef struct {
-    FuriEventLoop* event_loop;
-    FuriEventLoopTimer* timer;
-    Color color;
-} StatusLightstSrv;
+StatusLights* status_lights = NULL;
 
 // https://stackoverflow.com/questions/24152553/hsv-to-rgb-and-back-without-floating-point-math-in-python
 static void status_lights_hsv_to_rgb(const Color* hsv, Color* rgb) {
@@ -85,7 +66,7 @@ static void status_lights_hsv_to_rgb(const Color* hsv, Color* rgb) {
 
 static void status_lights_timer_callback(void* context) {
     furi_assert(context);
-    StatusLightstSrv* instance = context;
+    StatusLights* instance = context;
 
     Color rgb;
 
@@ -95,18 +76,14 @@ static void status_lights_timer_callback(void* context) {
     instance->color.h++;
 }
 
-void status_lights_srv(void* p) {
-    UNUSED(p);
-    FURI_LOG_D(TAG, "Starting");
-
-    StatusLightstSrv* instance = malloc(sizeof(StatusLightstSrv));
+static StatusLights* status_lights_alloc() {
+    StatusLights* instance = malloc(sizeof(StatusLights));
     instance->event_loop = furi_event_loop_alloc();
     instance->timer = furi_event_loop_timer_alloc(
         instance->event_loop,
         status_lights_timer_callback,
         FuriEventLoopTimerTypePeriodic,
         instance);
-
     instance->color.s = 255;
     instance->color.v = 16;
 
@@ -114,6 +91,15 @@ void status_lights_srv(void* p) {
 
     furi_event_loop_timer_start(instance->timer, STATUS_LIGHTS_TIMER_TICKS);
 
-    // Start StatusLights Service
-    furi_event_loop_run(instance->event_loop);
+    return instance;
+}
+
+void status_lights_srv(void* p) {
+    UNUSED(p);
+    FURI_LOG_D(TAG, "Starting");
+
+    status_lights = status_lights_alloc();
+    furi_record_create(RECORD_STATUS_LIGHTS, status_lights);
+
+    furi_event_loop_run(status_lights->event_loop);
 }
