@@ -30,8 +30,7 @@ typedef enum {
  * @brief Light sensor event types.
 */
 typedef enum {
-    LightSensorEventTypeLightLevelIncreased, /**< Light level increased event */
-    LightSensorEventTypeLightLevelDecreased, /**< Light level decreased event */
+    LightSensorEventTypeLightLevelChanged, /**< Light level changed event */
 } LightSensorEventType;
 
 /**
@@ -39,8 +38,7 @@ typedef enum {
 */
 typedef struct {
     LightSensorEventType type; /**< Type of the event */
-    uint8_t light_level_previous; /**< Previous light level */
-    uint8_t light_level_current; /**< Current light level */
+    uint8_t light_level; /**< Current light level */
 } LightSensorEvent;
 
 /**

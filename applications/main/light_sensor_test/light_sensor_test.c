@@ -75,7 +75,7 @@ static void light_sensor_test_app_light_sensor_callback(const void* message, voi
     const LightSensorEvent* event = message;
     LightSensorTestAppEvent app_event = {
         .type = LightSensorTestAppEventLightLevelUpdate,
-        .light_level = event->light_level_current,
+        .light_level = event->light_level,
     };
 
     furi_check(

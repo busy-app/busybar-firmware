@@ -22,7 +22,7 @@ typedef struct {
 
     LightSensorData* data;
     uint8_t light_level_previous;
-    uint8_t light_level_current;
+    uint8_t light_level;
 } LightSensor;
 
 LightSensor* light_sensor = NULL;
@@ -40,23 +40,20 @@ static void light_sensor_timer_callback(void* context) {
     FURI_LOG_T(TAG, "Light sensor: %.2f lux", lux);
     light_sensor_data_add_measurement(instance->data, lux);
 
-    instance->light_level_current = light_sensor_data_get_light_level(instance->data);
-    if(instance->light_level_current != instance->light_level_previous) {
+    instance->light_level = light_sensor_data_get_light_level(instance->data);
+    if(instance->light_level != instance->light_level_previous) {
         FURI_LOG_D(
             TAG,
             "Light level changed: %u -> %u",
             instance->light_level_previous,
-            instance->light_level_current);
+            instance->light_level);
         LightSensorEvent event = {
-            .type = instance->light_level_current > instance->light_level_previous ?
-                        LightSensorEventTypeLightLevelIncreased :
-                        LightSensorEventTypeLightLevelDecreased,
-            .light_level_previous = instance->light_level_previous,
-            .light_level_current = instance->light_level_current,
+            .type = LightSensorEventTypeLightLevelChanged,
+            .light_level = instance->light_level,
         };
 
         furi_pubsub_publish(instance->pubsub, &event);
-        instance->light_level_previous = instance->light_level_current;
+        instance->light_level_previous = instance->light_level;
     }
 }
 
@@ -71,7 +68,7 @@ static LightSensor* light_sensor_alloc(void) {
     light_sensor->data = light_sensor_data_alloc(&config);
 
     light_sensor->light_level_previous = LIGHT_SENSOR_LIGHT_LEVEL_MAX;
-    light_sensor->light_level_current = LIGHT_SENSOR_LIGHT_LEVEL_MAX;
+    light_sensor->light_level = LIGHT_SENSOR_LIGHT_LEVEL_MAX;
 
     light_sensor->event_loop = furi_event_loop_alloc();
     light_sensor->timer = furi_event_loop_timer_alloc(
