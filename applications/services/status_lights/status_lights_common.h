@@ -1,3 +1,7 @@
+/**
+ * @file status_lights_common.h
+ * @brief Common definitions for Status Lights.
+ */
 #pragma once
 
 #include <toolbox/color.h>
@@ -9,23 +13,25 @@ extern "C" {
 /** Opaque StatusLights type declaration. */
 typedef struct StatusLights StatusLights;
 
+/** Status lights command type */
 typedef enum {
-    StatusLightsCommandSetManual,
-    StatusLightsCommandSetPreset,
+    StatusLightsCommandSetManual, /**< Command to set manual color */
+    StatusLightsCommandSetPreset, /**< Command to set preset pattern */
 } StatusLightsCommandType;
 
+/** Status lights preset pattern */
 typedef enum {
-    StatusLightsPresetRainbowGradient,
-    StatusLightsPresetWhiteFade,
+    StatusLightsPresetRainbowGradient, /**< Rainbow gradient pattern */
+    StatusLightsPresetWhiteFade, /**< White fade pattern */
 
-    StatusLightsPresetNum,
+    StatusLightsPresetNum, /**< Number of presets */
 } StatusLightsPreset;
 
 typedef struct {
-    StatusLightsCommandType type;
+    StatusLightsCommandType type; /**< Command type */
     union {
-        Color color;
-        StatusLightsPreset preset;
+        Color color; /**< Manual color settings */
+        StatusLightsPreset preset; /**< Preset pattern */
     };
 } StatusLightsCommand;
 

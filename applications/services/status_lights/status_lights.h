@@ -17,6 +17,12 @@ extern "C" {
  */
 #define RECORD_STATUS_LIGHTS "status_lights"
 
+/**
+ * @brief Send command to Status Lights
+ *
+ * @param instance The Status Lights instance
+ * @param command The StatusLightsCommand to send
+ */
 void status_lights_send_command(StatusLights* instance, StatusLightsCommand command);
 
 #ifdef __cplusplus

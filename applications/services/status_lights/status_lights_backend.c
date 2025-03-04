@@ -100,14 +100,16 @@ static StatusLights* status_lights_alloc() {
     };
     status_lights_execute_command(instance, command);
 
+    furi_record_create(RECORD_STATUS_LIGHTS, instance);
+
     return instance;
 }
 
-void status_lights_srv(void* p) {
+int32_t status_lights_srv(void* p) {
     UNUSED(p);
 
     StatusLights* instance = status_lights_alloc();
-    furi_record_create(RECORD_STATUS_LIGHTS, instance);
-
     furi_event_loop_run(instance->event_loop);
+
+    return 0;
 }
