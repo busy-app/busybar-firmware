@@ -3,7 +3,7 @@
 #include <furi.h>
 
 #include <audio/audio.h>
-#include <gui_lvgl/gui_lvgl.h>
+#include <gui/gui.h>
 
 #define TAG "Busy"
 
@@ -77,7 +77,7 @@ typedef struct {
     FuriEventLoop* event_loop;
     FuriMessageQueue* event_queue;
     FuriEventLoopTimer* busy_timer;
-    GuiLvgl* gui;
+    Gui* gui;
     Audio* audio;
     lv_obj_t* back_label;
     FuriPubSub* input_events;

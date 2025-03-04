@@ -5,7 +5,7 @@
 #include <toolbox/args.h>
 #include <storage/storage.h>
 
-#include <gui_lvgl/gui_lvgl.h>
+#include <gui/gui.h>
 
 #define TAG "CliDisplay"
 
@@ -14,7 +14,7 @@ static void cli_command_display_print_usage(void) {
 }
 
 static void cli_command_show(Cli* cli, FuriString* args, GuiDisplayId id) {
-    GuiLvgl* gui = furi_record_open(RECORD_GUI_LVGL);
+    Gui* gui = furi_record_open(RECORD_GUI_LVGL);
     Storage* storage = furi_record_open(RECORD_STORAGE);
     FuriString* cmd = furi_string_alloc();
 
@@ -41,23 +41,23 @@ static void cli_command_show(Cli* cli, FuriString* args, GuiDisplayId id) {
         return;
     }
 
-    gui_lvgl_acquire(gui);
+    gui_acquire(gui);
 
-    lv_obj_t* system = gui_lvgl_get_layer(gui, id, GuiLayerIdSystem);
+    lv_obj_t* system = gui_get_layer(gui, id, GuiLayerIdSystem);
     lv_obj_t* screen = lv_obj_create(system);
     lv_obj_set_size(screen, lv_obj_get_width(system), lv_obj_get_height(system));
     lv_obj_t* image = lv_image_create(screen);
     lv_image_set_src(image, furi_string_get_cstr(args));
     lv_obj_set_pos(image, 0, 0);
 
-    gui_lvgl_release(gui);
+    gui_release(gui);
 
     while(!cli_cmd_interrupt_received(cli)) {
     };
 
-    gui_lvgl_acquire(gui);
+    gui_acquire(gui);
     lv_obj_delete(screen);
-    gui_lvgl_release(gui);
+    gui_release(gui);
 
     furi_record_close(RECORD_STORAGE);
     furi_record_close(RECORD_GUI_LVGL);

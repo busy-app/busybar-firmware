@@ -1,7 +1,7 @@
 #pragma once
 
 #include <furi.h>
-#include <gui_lvgl/gui_lvgl.h>
+#include <gui/gui.h>
 #include "led_display_test.h"
 #include <led_display/led_display.h>
 
@@ -18,7 +18,7 @@ typedef struct {
     FuriEventLoop* event_loop;
     FuriMessageQueue* event_queue;
     FuriEventLoopTimer* timer;
-    GuiLvgl* gui;
+    Gui* gui;
 
     // Back screen
     lv_obj_t* static_label;

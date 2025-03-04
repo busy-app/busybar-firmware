@@ -83,9 +83,9 @@ static void busy_scene_setup_on_enter(void* context) {
     BusyApp* instance = context;
     BusySceneSetup* data = busy_get_current_scene_data(instance);
 
-    gui_lvgl_acquire(instance->gui);
+    gui_acquire(instance->gui);
 
-    lv_obj_t* active = gui_lvgl_get_layer(instance->gui, GuiDisplayIdFront, GuiLayerIdActive);
+    lv_obj_t* active = gui_get_layer(instance->gui, GuiDisplayIdFront, GuiLayerIdActive);
 
     data->button_list = lv_list_create(active);
     lv_obj_set_style_pad_left(data->button_list, 6, LV_PART_MAIN);
@@ -171,18 +171,18 @@ static void busy_scene_setup_on_enter(void* context) {
 
     lv_label_set_text(instance->back_label, "Setup Menu");
 
-    gui_lvgl_release(instance->gui);
+    gui_release(instance->gui);
 }
 
 static void busy_scene_setup_on_exit(void* context) {
     BusyApp* instance = context;
     BusySceneSetup* data = busy_get_current_scene_data(instance);
 
-    gui_lvgl_acquire(instance->gui);
+    gui_acquire(instance->gui);
 
     lv_obj_delete(data->button_list);
 
-    gui_lvgl_release(instance->gui);
+    gui_release(instance->gui);
 }
 
 static void busy_scene_setup_on_event(const BusyEvent* event, void* context) {

@@ -2,7 +2,7 @@
 
 #include <audio/audio.h>
 #include <storage/storage.h>
-#include <gui_lvgl/gui_lvgl.h>
+#include <gui/gui.h>
 
 typedef enum {
     DummyCustomEventExit = 1UL << 0,
@@ -12,7 +12,7 @@ typedef enum {
 typedef struct {
     FuriEventLoop* event_loop;
     Audio* audio;
-    GuiLvgl* gui;
+    Gui* gui;
     lv_obj_t* label;
 } Dummy;
 

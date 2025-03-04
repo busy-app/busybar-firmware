@@ -365,14 +365,14 @@ static BusyApp* busy_alloc(void) {
         instance);
 
     // Create a single label for the back display
-    gui_lvgl_acquire(instance->gui);
+    gui_acquire(instance->gui);
 
-    lv_obj_t* active = gui_lvgl_get_layer(instance->gui, GuiDisplayIdBack, GuiLayerIdActive);
+    lv_obj_t* active = gui_get_layer(instance->gui, GuiDisplayIdBack, GuiLayerIdActive);
     instance->back_label = lv_label_create(active);
     lv_obj_center(instance->back_label);
     lv_obj_set_style_text_color(instance->back_label, lv_color_white(), LV_PART_MAIN);
 
-    gui_lvgl_release(instance->gui);
+    gui_release(instance->gui);
 
     audio_set_volume(instance->audio, 0.33F);
 
@@ -393,9 +393,9 @@ static void busy_free(BusyApp* instance) {
     furi_pubsub_unsubscribe(instance->input_events, instance->input_subscription);
 
     // Delete the back display label
-    gui_lvgl_acquire(instance->gui);
+    gui_acquire(instance->gui);
     lv_obj_delete(instance->back_label);
-    gui_lvgl_release(instance->gui);
+    gui_release(instance->gui);
 
     furi_record_close(RECORD_AUDIO);
     furi_record_close(RECORD_GUI_LVGL);

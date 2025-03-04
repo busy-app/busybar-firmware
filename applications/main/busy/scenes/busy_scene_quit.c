@@ -29,9 +29,9 @@ static void busy_scene_quit_on_enter(void* context) {
         busy_timer_pause(instance);
     }
 
-    gui_lvgl_acquire(instance->gui);
+    gui_acquire(instance->gui);
 
-    lv_obj_t* active = gui_lvgl_get_layer(instance->gui, GuiDisplayIdFront, GuiLayerIdActive);
+    lv_obj_t* active = gui_get_layer(instance->gui, GuiDisplayIdFront, GuiLayerIdActive);
 
     data->main_label = lv_label_create(active);
     lv_label_set_text(data->main_label, "Quit this BUSY?");
@@ -58,19 +58,19 @@ static void busy_scene_quit_on_enter(void* context) {
 
     lv_label_set_text(instance->back_label, "Quit Menu");
 
-    gui_lvgl_release(instance->gui);
+    gui_release(instance->gui);
 }
 
 static void busy_scene_quit_on_exit(void* context) {
     BusyApp* instance = context;
     BusySceneQuit* data = busy_get_current_scene_data(instance);
 
-    gui_lvgl_acquire(instance->gui);
+    gui_acquire(instance->gui);
 
     lv_obj_delete(data->main_label);
     lv_obj_delete(data->button_list);
 
-    gui_lvgl_release(instance->gui);
+    gui_release(instance->gui);
 }
 
 static void busy_scene_quit_on_event(const BusyEvent* event, void* context) {

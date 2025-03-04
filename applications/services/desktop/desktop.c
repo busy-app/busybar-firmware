@@ -7,12 +7,12 @@
 #include <input/input_common.h>
 
 #include <loader/loader.h>
-#include <gui_lvgl/gui_lvgl.h>
+#include <gui/gui.h>
 
 #define TAG "Desktop"
 
 // Time to wait for the rotary switch steady state
-#define SWITCH_DELAY_MS (300)
+#define SWITCH_DELAY_MS   (300)
 // Maximum and initial counts for synchronisation primitives
 #define INPUT_QUEUE_COUNT (8)
 #define START_QUEUE_COUNT (3)
@@ -272,7 +272,7 @@ static Desktop* desktop_alloc(void) {
     instance->error_message = furi_string_alloc();
     instance->loader = furi_record_open(RECORD_LOADER);
 
-    GuiLvgl* gui = furi_record_open(RECORD_GUI_LVGL);
+    Gui* gui = furi_record_open(RECORD_GUI_LVGL);
     instance->overlay = desktop_overlay_alloc(gui);
     instance->current_request.name = furi_string_alloc();
 

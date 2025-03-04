@@ -34,7 +34,7 @@ static void led_display_test_app_keypad_callback(lv_event_t* event) {
 }
 
 static void led_display_test_app_draw(LedDisplayTestApp* instance) {
-    gui_lvgl_acquire(instance->gui);
+    gui_acquire(instance->gui);
 
     memset(instance->canvas_buffer, 0, sizeof(instance->canvas_buffer));
     // Front screen
@@ -47,7 +47,7 @@ static void led_display_test_app_draw(LedDisplayTestApp* instance) {
     lv_label_set_text_fmt(
         instance->color_label, "Color: %s", led_display_get_color_str(instance->color));
 
-    gui_lvgl_release(instance->gui);
+    gui_release(instance->gui);
 }
 
 static void led_display_test_app_event_queue_callback(FuriEventLoopObject* object, void* context) {
@@ -97,9 +97,9 @@ static LedDisplayTestApp* led_display_test_app_alloc(void) {
 
     // Create a single label for the back display
     instance->gui = furi_record_open(RECORD_GUI_LVGL);
-    gui_lvgl_acquire(instance->gui);
+    gui_acquire(instance->gui);
 
-    lv_obj_t* active = gui_lvgl_get_layer(instance->gui, GuiDisplayIdBack, GuiLayerIdActive);
+    lv_obj_t* active = gui_get_layer(instance->gui, GuiDisplayIdBack, GuiLayerIdActive);
 
     // Back screen
     instance->static_label = lv_label_create(active);
@@ -117,7 +117,7 @@ static LedDisplayTestApp* led_display_test_app_alloc(void) {
     lv_obj_set_style_text_color(instance->color_label, lv_color_white(), LV_PART_MAIN);
 
     // Front screen
-    active = gui_lvgl_get_layer(instance->gui, GuiDisplayIdFront, GuiLayerIdActive);
+    active = gui_get_layer(instance->gui, GuiDisplayIdFront, GuiLayerIdActive);
     instance->canvas = lv_canvas_create(active);
     lv_canvas_set_buffer(
         instance->canvas, instance->canvas_buffer, 72, 16, LV_COLOR_FORMAT_RGB888);
@@ -128,7 +128,7 @@ static LedDisplayTestApp* led_display_test_app_alloc(void) {
     lv_obj_add_event_cb(
         instance->canvas, led_display_test_app_keypad_callback, LV_EVENT_KEY, instance);
 
-    gui_lvgl_release(instance->gui);
+    gui_release(instance->gui);
 
     instance->pattern = LedDisplayTestPatternChess;
     instance->color = LedDisplayTestColorRed;
@@ -141,14 +141,14 @@ static LedDisplayTestApp* led_display_test_app_alloc(void) {
 static void led_display_test_app_free(LedDisplayTestApp* instance) {
     furi_check(instance);
 
-    gui_lvgl_acquire(instance->gui);
+    gui_acquire(instance->gui);
 
     lv_obj_delete(instance->static_label);
     lv_obj_delete(instance->color_label);
     lv_obj_delete(instance->pattern_label);
     lv_obj_delete(instance->canvas);
 
-    gui_lvgl_release(instance->gui);
+    gui_release(instance->gui);
 
     furi_record_close(RECORD_GUI_LVGL);
 

@@ -17,9 +17,9 @@ static void busy_scene_next_on_enter(void* context) {
 
     BusySceneNext* data = busy_get_current_scene_data(instance);
 
-    gui_lvgl_acquire(instance->gui);
+    gui_acquire(instance->gui);
 
-    lv_obj_t* active = gui_lvgl_get_layer(instance->gui, GuiDisplayIdFront, GuiLayerIdActive);
+    lv_obj_t* active = gui_get_layer(instance->gui, GuiDisplayIdFront, GuiLayerIdActive);
 
     data->main_label = lv_label_create(active);
 
@@ -51,19 +51,19 @@ static void busy_scene_next_on_enter(void* context) {
 
     lv_label_set_text(instance->back_label, "Next Interval Menu");
 
-    gui_lvgl_release(instance->gui);
+    gui_release(instance->gui);
 }
 
 static void busy_scene_next_on_exit(void* context) {
     BusyApp* instance = context;
     BusySceneNext* data = busy_get_current_scene_data(instance);
 
-    gui_lvgl_acquire(instance->gui);
+    gui_acquire(instance->gui);
 
     lv_obj_delete(data->main_label);
     lv_obj_delete(data->start_button);
 
-    gui_lvgl_release(instance->gui);
+    gui_release(instance->gui);
 }
 
 static void busy_scene_next_on_event(const BusyEvent* event, void* context) {

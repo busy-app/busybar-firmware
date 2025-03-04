@@ -1,9 +1,9 @@
 #include <furi.h>
-#include <gui_lvgl/gui_lvgl.h>
+#include <gui/gui.h>
 
 typedef struct {
     FuriEventLoop* event_loop;
-    GuiLvgl* gui;
+    Gui* gui;
     lv_obj_t* label;
 } MessageApp;
 

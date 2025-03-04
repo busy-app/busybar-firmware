@@ -2,7 +2,7 @@
 #include <applications.h>
 
 #include <desktop/desktop.h>
-#include <gui_lvgl/gui_lvgl.h>
+#include <gui/gui.h>
 
 #define TAG "AppsMenu"
 
@@ -14,7 +14,7 @@ typedef struct {
     FuriEventLoop* event_loop;
     FuriMessageQueue* queue;
     Desktop* desktop;
-    GuiLvgl* gui;
+    Gui* gui;
     lv_obj_t* list;
 } AppsMenu;
 
