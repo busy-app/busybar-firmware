@@ -6,4 +6,18 @@ App(
     stack_size=1 * 1024,
     order=100,
     targets=["f64"],
+    requires=["intercom"],
+    sources=["status_lights_backend.c", "status_lights_preset_defs.c", "presets/*.c"],
+)
+
+App(
+    appid="status_lights",
+    name="StatusLightsSrv",
+    apptype=FlipperAppType.SERVICE,
+    entry_point="status_lights_srv",
+    stack_size=1 * 1024,
+    order=100,
+    targets=["f20"],
+    requires=["intercom"],
+    sources=["status_lights.c"],
 )

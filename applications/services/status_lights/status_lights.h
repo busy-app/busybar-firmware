@@ -4,9 +4,7 @@
  */
 #pragma once
 
-#include <stdint.h>
-
-#include <toolbox/color.h>
+#include "status_lights_common.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -18,29 +16,6 @@ extern "C" {
  * Get the instance pointer by calling `furi_record_open(RECORD_STATUS_LIGHTS)`
  */
 #define RECORD_STATUS_LIGHTS "status_lights"
-
-/** Opaque StatusLights type declaration. */
-typedef struct StatusLights StatusLights;
-
-typedef enum {
-    StatusLightsCommandSetManual,
-    StatusLightsCommandSetPreset,
-} StatusLightsCommandType;
-
-typedef enum {
-    StatusLightsPresetRainbowGradient,
-    StatusLightsPresetWhiteFade,
-
-    StatusLightsPresetNum,
-} StatusLightsPreset;
-
-typedef struct {
-    StatusLightsCommandType type;
-    union {
-        Color color;
-        StatusLightsPreset preset;
-    };
-} StatusLightsCommand;
 
 void status_light_send_command(StatusLights* instance, StatusLightsCommand command);
 
