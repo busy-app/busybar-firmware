@@ -6,6 +6,6 @@
 #define USB_NETWORK_HOSTNAME "busybar"
 #define WEBUSB_URL           USB_NETWORK_HOSTNAME ".local"
 
-void usb_network_init(FuriEventLoop* usb_loop);
+void usb_network_init(void);
 
 const uint8_t* usb_network_get_mac_address(void);

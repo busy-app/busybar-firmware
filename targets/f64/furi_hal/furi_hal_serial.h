@@ -143,8 +143,10 @@ void furi_hal_serial_tx(FuriHalSerialHandle* handle, const uint8_t* buffer, size
  * Wait for the transmission to complete.
  *
  * @param handle Pointer to the serial handle.
+ * @param timeout Timeout in milliseconds.
+ * @returns true if the transmission was complete within the timeout, false otherwise
  */
-void furi_hal_serial_tx_wait_complete(FuriHalSerialHandle* handle);
+bool furi_hal_serial_tx_wait_complete(FuriHalSerialHandle* handle, uint32_t timeout);
 
 /**
  * Determine whether there is received data ready for reading.

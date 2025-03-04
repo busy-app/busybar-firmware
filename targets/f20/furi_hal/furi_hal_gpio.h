@@ -287,6 +287,12 @@ static inline void furi_hal_gpio_write(const GpioPin* gpio, const bool state) {
 }
 
 /**
+ * Compatibility macro for systems that require a different
+ * open drain GPIO procedure
+ */
+#define furi_hal_gpio_write_open_drain(gpio, state) furi_hal_gpio_write(gpio, state)
+
+/**
  * GPIO read pin
  * @param port GPIO port
  * @param pin pin mask

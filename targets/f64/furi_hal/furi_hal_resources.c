@@ -49,7 +49,7 @@ const GpioPin gpio_i_encoder_b = {.type = GpioTypeHp, .pin = 74};
 const GpioPin gpio_i_uart1_tx = {.type = GpioTypeHp, .pin = 75};
 
 const GpioPin gpio_ulp_0 = {.type = GpioTypeUlp, .pin = 0};
-const GpioPin gpio_irq = {.type = GpioTypeUlp, .pin = 1};
+const GpioPin gpio_u5_irq = {.type = GpioTypeUlp, .pin = 1};
 const GpioPin gpio_ulp_2 = {.type = GpioTypeUlp, .pin = 2};
 const GpioPin gpio_ulp_i_3 = {.type = GpioTypeUlp, .pin = 3};
 const GpioPin gpio_ulp_4 = {.type = GpioTypeUlp, .pin = 4};
