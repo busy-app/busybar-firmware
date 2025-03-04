@@ -243,7 +243,7 @@ typedef void* osSemaphoreId_t;
 // typedef void *osMemoryPoolId_t;
 
 // /// \details Message Queue ID identifies the message queue.
-// typedef void *osMessageQueueId_t;
+typedef void* osMessageQueueId_t;
 
 #ifndef TZ_MODULEID_T
 #define TZ_MODULEID_T
@@ -351,14 +351,13 @@ static FURI_ALWAYS_INLINE osKernelState_t osKernelGetState(void) {
     osKernelState_t state;
     uint32_t KernelState = furi_kernel_lock();
 
-    switch(KernelState){
+    switch(KernelState) {
     case 0:
         state = osKernelRunning;
         break;
     case 1:
         state = osKernelLocked;
         break;
-    case FuriStatusError:
     default:
         state = osKernelError;
         break;
@@ -420,7 +419,7 @@ static FURI_ALWAYS_INLINE uint32_t osKernelGetTickCount(void) {
 //osThreadId_t osThreadNew (osThreadFunc_t func, void *argument, const osThreadAttr_t *attr);
 static FURI_ALWAYS_INLINE osThreadId_t
     osThreadNew(osThreadFunc_t func, void* argument, const osThreadAttr_t* attr) {
-    FuriThreadAdapter* adapter = malloc(sizeof(FuriThreadAdapter));
+    FuriThreadAdapter* adapter = (FuriThreadAdapter*)malloc(sizeof(FuriThreadAdapter));
 
     adapter->callback = func;
     adapter->context = argument;

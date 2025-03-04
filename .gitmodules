@@ -46,3 +46,6 @@
 [submodule "lib/matter_ext"]
 	path = lib/matter_ext
 	url = https://github.com/flipperdevices/silabs_matter_extension.git
+[submodule "lib/matter_zap"]
+	path = lib/matter_zap
+	url = https://github.com/flipperdevices/bsb-matter-zap.git

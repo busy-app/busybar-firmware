@@ -41,7 +41,7 @@
 #define configCHECK_FOR_STACK_OVERFLOW          0
 #define configUSE_RECURSIVE_MUTEXES             1
 #define configUSE_COUNTING_SEMAPHORES           1
-#define configENABLE_BACKWARD_COMPATIBILITY     0
+#define configENABLE_BACKWARD_COMPATIBILITY     1
 // #define configUSE_PORT_OPTIMISED_TASK_SELECTION 1
 #define configUSE_PORT_OPTIMISED_TASK_SELECTION 0
 // #define configUSE_TICKLESS_IDLE 2
