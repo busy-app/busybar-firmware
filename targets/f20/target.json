@@ -106,7 +106,6 @@
         "lvgl_addons",
         "network",
         "mongoose",
-        "canvas_oled",
         "flipper_format",
         "flipper_application",
         "heatshrink",

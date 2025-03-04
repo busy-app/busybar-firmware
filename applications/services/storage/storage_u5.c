@@ -4,12 +4,8 @@
 #include <storage/storage_processing.h>
 #include "storage/storage_glue.h"
 #include "storages/storage_ext_sdmmc.h"
-#include <assets_icons.h>
 
 #define STORAGE_TICK 1000
-
-#define ICON_SD_MOUNTED &I_SDcardMounted_11x8
-#define ICON_SD_ERROR   &I_SDcardFail_11x8
 
 #define TAG "Storage"
 

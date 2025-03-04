@@ -2,7 +2,6 @@
 
 #include <stdlib.h>
 #include <stdint.h>
-#include <gui/icon.h>
 
 #ifndef COUNT_OF
 #define COUNT_OF(x) (sizeof(x) / sizeof(x[0]))
@@ -20,13 +19,11 @@ typedef struct {
     const char* name;
     const char* appid;
     const size_t stack_size;
-    const Icon* icon;
     const FlipperInternalApplicationFlag flags;
 } FlipperInternalApplication;
 
 typedef struct {
     const char* name;
-    const Icon* icon;
     const char* path;
 } FlipperExternalApplication;
 

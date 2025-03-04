@@ -3,10 +3,5 @@
         .name = "{{ app.name }}",
         .appid = "{{ app.appid }}",
         .stack_size = {{ app.stack_size }},
-        .icon = {% if app.icon: %}
-            &{{ app.icon }},
-        {% :else: %}
-            NULL,
-        {% :endif %}
         .flags = {{ '|'.join(f"FlipperInternalApplicationFlag{flag}" for flag in app.flags) }},
     }
