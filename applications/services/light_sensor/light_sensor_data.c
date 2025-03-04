@@ -7,7 +7,6 @@ struct LightSensorData {
 
     float* measurements;
     size_t measurement_index;
-    float measurement_sum;
 
     float lux_mean;
     float lux_instant;
@@ -36,7 +35,6 @@ LightSensorData* light_sensor_data_alloc(const LightSensorDataConfig* config) {
     for(size_t i = 0; i < config->window_size; i++) {
         instance->measurements[i] = config->light_level_max_threshold;
     }
-    instance->measurement_sum = config->light_level_max_threshold * config->window_size;
     instance->measurement_index = 0;
 
     instance->lux_mean = config->light_level_max_threshold;
@@ -58,12 +56,14 @@ void light_sensor_data_add_measurement(LightSensorData* instance, float lux) {
 
     instance->lux_instant = lux;
 
-    instance->measurement_sum -= instance->measurements[instance->measurement_index];
     instance->measurements[instance->measurement_index] = lux;
-    instance->measurement_sum += lux;
-    instance->lux_mean = instance->measurement_sum / instance->config.window_size;
-
     instance->measurement_index = (instance->measurement_index + 1) % instance->config.window_size;
+
+    float lux_sum = 0.0f;
+    for(size_t i = 0; i < instance->config.window_size; i++) {
+        lux_sum += instance->measurements[i];
+    }
+    instance->lux_mean = lux_sum / instance->config.window_size;
 
     light_sensor_data_update_light_level(instance);
 
@@ -71,7 +71,7 @@ void light_sensor_data_add_measurement(LightSensorData* instance, float lux) {
         "LightSensorData",
         "new Lux: %.2f. New sum: %.2f. New mean: %.2f. level: %d",
         lux,
-        instance->measurement_sum,
+        lux_sum,
         instance->lux_mean,
         instance->light_level);
 }

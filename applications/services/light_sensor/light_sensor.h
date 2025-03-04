@@ -42,7 +42,7 @@ typedef struct {
 } LightSensorEvent;
 
 /**
- * @brief Get the current light level in lux.
+ * @brief Get the mean across measurement window lux value.
  * @note Must be called after RECORD_LIGHT_SENSOR_EVENTS is created.
  *
  * @return Current light level in lux.
@@ -66,7 +66,7 @@ float light_sensor_get_lux_instant(void);
 uint8_t light_sensor_get_light_level(void);
 
 /**
- * @brief Get the raw 600nm light sensor value.
+ * @brief Get the raw light sensor value.
  * @note Must be called after RECORD_LIGHT_SENSOR_EVENTS is created.
  *
  * @param[in] wavelength Wavelength to read.
