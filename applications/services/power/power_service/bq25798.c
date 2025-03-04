@@ -156,46 +156,55 @@ bool bq25798_get_charger_flags(FuriHalI2cBusHandle* handle, uint32_t* flags) {
     return ret;
 }
 
-bool bq25798_get_battery_voltage(FuriHalI2cBusHandle* handle, float* value) {
+bool bq25798_get_adc_values(FuriHalI2cBusHandle* handle, Bq25987AdcValues* values) {
     furi_assert(handle);
-    furi_assert(value);
+    furi_assert(values);
 
-    return true;
+    uint8_t regs_data[4 * 2];
+    bool ret = furi_hal_i2c_read_mem(
+        handle, BQ25798_I2C_ADDRESS, BQ25798_REG31_IBUS_ADC, regs_data, 3 * 2, BQ25798_I2C_TIMEOUT);
+    if(!ret) {
+        return ret;
+    }
+
+    values->usb_i = (regs_data[0] << 8) | regs_data[1];
+    values->bat_i = (regs_data[2] << 8) | regs_data[3];
+    values->usb_v = (regs_data[4] << 8) | regs_data[5];
+
+    ret = furi_hal_i2c_read_mem(
+        handle, BQ25798_I2C_ADDRESS, BQ25798_REG3B_VBAT_ADC, regs_data, 4 * 2, BQ25798_I2C_TIMEOUT);
+
+    values->bat_v = (regs_data[0] << 8) | regs_data[1];
+    values->sys_v = (regs_data[2] << 8) | regs_data[3];
+    values->temp_bat_pct = ((regs_data[4] << 8) | regs_data[5]) * 0.0976563f;
+    values->temp_charger = ((regs_data[6] << 8) | regs_data[7]) * 0.5f;
+
+    return ret;
 }
 
-bool bq25798_get_vbus_voltage(FuriHalI2cBusHandle* handle, float* value) {
+bool bq25798_set_input_current_limit(FuriHalI2cBusHandle* handle, uint32_t value_ma) {
     furi_assert(handle);
-    furi_assert(value);
+    furi_assert(value_ma <= 3300);
 
-    return true;
-}
-
-bool bq25798_set_input_current_limit(FuriHalI2cBusHandle* handle, float value) {
-    furi_assert(handle);
-    furi_assert(value <= 3.3f);
-
-    uint32_t cur_ma = value * 1000.f;
     furi_hal_i2c_write_reg_16(
         handle,
         BQ25798_I2C_ADDRESS,
         BQ25798_REG06_INPUT_CURRENT_LIMIT,
-        cur_ma / 10,
+        value_ma / 10,
         BQ25798_I2C_TIMEOUT);
 
     return true;
 }
 
-bool bq25798_set_charge_current_limit(FuriHalI2cBusHandle* handle, float value) {
+bool bq25798_set_charge_current_limit(FuriHalI2cBusHandle* handle, uint32_t value_ma) {
     furi_assert(handle);
-    furi_assert(value <= 5.f);
-
-    uint32_t cur_ma = value * 1000.f;
+    furi_assert(value_ma <= 5000);
 
     return furi_hal_i2c_write_reg_16(
         handle,
         BQ25798_I2C_ADDRESS,
         BQ25798_REG03_CHARGE_CURRENT_LIMIT,
-        cur_ma / 10 & 0x1ff,
+        value_ma / 10 & 0x1ff,
         BQ25798_I2C_TIMEOUT);
 }
 

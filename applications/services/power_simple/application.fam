@@ -1,9 +1,0 @@
-App(
-    appid="power_srv",
-    name="PowerSrv",
-    apptype=FlipperAppType.SERVICE,
-    entry_point="power_srv_app",
-    stack_size=2 * 1024,
-    order=80,
-    targets=["f20"],
-)

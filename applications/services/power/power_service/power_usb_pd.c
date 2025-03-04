@@ -1,8 +1,6 @@
-#include "power.h"
-
 #include <furi.h>
 #include <furi_hal.h>
-#include "power_usb_pd_i.h"
+#include "power_i.h"
 #include <stm32u5xx_ll_dma.h>
 #include <stm32u5xx_ll_ucpd.h>
 #include <stm32u5xx_ll_pwr.h>
@@ -199,6 +197,7 @@ struct PowerUsbPd {
     FuriMutex* cap_mutex;
 
     PowerUsbPdCapability caps;
+    uint8_t req_cap_id;
     uint32_t req_voltage;
     uint32_t req_current;
 
@@ -464,6 +463,7 @@ static bool pd_send_request(PowerUsbPd* pd, uint32_t voltage, uint32_t current) 
 
         pd->req_voltage = voltage;
         pd->req_current = current;
+        pd->req_cap_id = cap_id;
         if(is_fixed) {
             FURI_LOG_D(TAG, "Request fixed cap %u", cap_id);
             pd_send_request_fixed(pd, cap_id, current);
@@ -539,6 +539,9 @@ static void pd_msg_parse_sop0(PowerUsbPd* pd, uint8_t* buf) {
             // TODO: stop timeout timer
         } else if(hdr.msg_type == PdMsgAccept) {
             // Accept -> send GoodCRC
+            furi_mutex_acquire(pd->cap_mutex, FuriWaitForever);
+            pd->caps.cap_id_current = pd->req_cap_id;
+            furi_mutex_release(pd->cap_mutex);
         } else if(hdr.msg_type == PdMsgPsRdy) {
             // PS_RDY -> send GoodCRC
             if(pd->pps_keep_alive == false) {
@@ -679,6 +682,7 @@ static void pd_pps_keep_alive_callback(void* context) {
 
 static void pd_cc_line_change(PowerUsbPd* pd) {
     uint32_t max_current = PdCClineCurrentUsb500ma;
+
     if(pd->cc_line != PdCClineLevelNC) {
         LL_UCPD_SetCCPin(UCPD1, pd->cc_line == 1 ? LL_UCPD_CCPIN_CC1 : LL_UCPD_CCPIN_CC2);
 
@@ -714,8 +718,10 @@ static void pd_cc_line_change(PowerUsbPd* pd) {
     }
 
     furi_mutex_acquire(pd->cap_mutex, FuriWaitForever);
+    pd->caps.cc_line = pd->cc_line;
     pd->caps.passive_mode_current = max_current;
     pd->caps.cap_number = 0;
+    pd->caps.cap_id_current = 0;
     furi_mutex_release(pd->cap_mutex);
 
     Power* power = furi_record_open(RECORD_POWER);
@@ -757,8 +763,10 @@ static void pd_fallback(PowerUsbPd* pd) {
         max_current = PdCClineCurrent3000ma; // 3A
     }
     furi_mutex_acquire(pd->cap_mutex, FuriWaitForever);
+    pd->caps.cc_line = pd->cc_line;
     pd->caps.passive_mode_current = max_current;
     pd->caps.cap_number = 0;
+    pd->caps.cap_id_current = 0;
     furi_mutex_release(pd->cap_mutex);
 
     Power* power = furi_record_open(RECORD_POWER);
@@ -864,6 +872,9 @@ void power_usb_pd_msg_handler(FuriEventLoopObject* object, void* context) {
         pd->req_current = 0;
         pd->pps_keep_alive = false;
         furi_timer_stop(pd->pps_keep_alive_timer);
+        furi_mutex_acquire(pd->cap_mutex, FuriWaitForever);
+        pd->caps.cap_id_current = 0;
+        furi_mutex_release(pd->cap_mutex);
         pd->hrst_count++;
         if(pd->hrst_count >= RX_IGNORE_HRST_COUNT) {
             pd->hrst_count = 0;

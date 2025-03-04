@@ -4,7 +4,7 @@
 #include <lvgl.h>
 
 #include <input/input.h>
-#include <power_simple/power.h>
+#include <power/power_service/power.h>
 
 #include <lv_theme_front.h>
 

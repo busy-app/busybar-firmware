@@ -2,7 +2,7 @@
 
 #include "../helpers/variable_item.h"
 
-#include <power_simple/power.h>
+#include <power/power_service/power.h>
 
 typedef struct {
     lv_obj_t* button_list;

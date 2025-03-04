@@ -41,7 +41,7 @@ static void power_test_submenu_callback(void* context, uint32_t index) {
         furi_record_close(RECORD_POWER);
     } else if(index == PowerTestSubmenuReset) {
         Power* power = furi_record_open(RECORD_POWER);
-        power_reboot(power);
+        power_reboot(power, PowerRebootHardware);
         furi_record_close(RECORD_POWER);
     } else {
         furi_crash();

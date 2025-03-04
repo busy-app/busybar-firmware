@@ -2,7 +2,7 @@
 
 #include <furi.h>
 
-#include <power_simple/power.h>
+#include <power/power_service/power.h>
 
 #define TAG "DotMatrixSrv"
 
