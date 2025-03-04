@@ -83,7 +83,7 @@ static void busy_scene_setup_on_enter(void* context) {
     BusyApp* instance = context;
     BusySceneSetup* data = busy_get_current_scene_data(instance);
 
-    gui_acquire(instance->gui);
+    gui_lock(instance->gui);
 
     lv_obj_t* active = gui_get_layer(instance->gui, GuiDisplayIdFront, GuiLayerIdActive);
 
@@ -171,18 +171,18 @@ static void busy_scene_setup_on_enter(void* context) {
 
     lv_label_set_text(instance->back_label, "Setup Menu");
 
-    gui_release(instance->gui);
+    gui_unlock(instance->gui);
 }
 
 static void busy_scene_setup_on_exit(void* context) {
     BusyApp* instance = context;
     BusySceneSetup* data = busy_get_current_scene_data(instance);
 
-    gui_acquire(instance->gui);
+    gui_lock(instance->gui);
 
     lv_obj_delete(data->button_list);
 
-    gui_release(instance->gui);
+    gui_unlock(instance->gui);
 }
 
 static void busy_scene_setup_on_event(const BusyEvent* event, void* context) {

@@ -17,7 +17,7 @@ static void desktop_overlay_anim_callback(void* var, int32_t value) {
 }
 
 static void desktop_overlay_start_anim(DesktopOverlay* instance, int32_t end) {
-    gui_acquire(instance->gui);
+    gui_lock(instance->gui);
 
     lv_anim_t anim;
     lv_anim_init(&anim);
@@ -28,14 +28,14 @@ static void desktop_overlay_start_anim(DesktopOverlay* instance, int32_t end) {
     lv_anim_set_path_cb(&anim, lv_anim_path_ease_in_out);
     lv_anim_start(&anim);
 
-    gui_release(instance->gui);
+    gui_unlock(instance->gui);
 }
 
 DesktopOverlay* desktop_overlay_alloc(Gui* gui) {
     DesktopOverlay* instance = malloc(sizeof(DesktopOverlay));
     instance->gui = gui;
 
-    gui_acquire(instance->gui);
+    gui_lock(instance->gui);
 
     lv_obj_t* system = gui_get_layer(instance->gui, GuiDisplayIdFront, GuiLayerIdSystem);
     instance->dimmer = lv_obj_create(system);
@@ -43,7 +43,7 @@ DesktopOverlay* desktop_overlay_alloc(Gui* gui) {
     lv_obj_set_style_bg_color(instance->dimmer, lv_color_black(), LV_PART_MAIN);
     lv_obj_set_style_opa(instance->dimmer, LV_OPA_TRANSP, LV_PART_MAIN);
 
-    gui_release(instance->gui);
+    gui_unlock(instance->gui);
 
     return instance;
 }

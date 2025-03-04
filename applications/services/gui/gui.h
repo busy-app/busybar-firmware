@@ -30,9 +30,9 @@ typedef enum {
 
 typedef struct Gui Gui;
 
-void gui_acquire(Gui* instance);
+void gui_lock(Gui* instance);
 
-void gui_release(Gui* instance);
+void gui_unlock(Gui* instance);
 
 lv_display_t* gui_get_display(Gui* instance, GuiDisplayId display_id);
 
@@ -40,17 +40,17 @@ lv_obj_t* gui_get_layer(Gui* instance, GuiDisplayId display_id, GuiLayerId layer
 
 #define with_gui(gui, code) \
     {                       \
-        gui_acquire(gui);   \
+        gui_lock(gui);      \
         {code};             \
-        gui_release(gui);   \
+        gui_unlock(gui);    \
     }
 
 #define with_gui_layer(gui, display_id, layer_id, code)             \
     {                                                               \
-        gui_acquire(gui);                                           \
+        gui_lock(gui);                                              \
         lv_obj_t* layer = gui_get_layer(gui, display_id, layer_id); \
         {code};                                                     \
-        gui_release(gui);                                           \
+        gui_unlock(gui);                                            \
     }
 
 #ifdef __cplusplus

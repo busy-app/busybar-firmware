@@ -26,7 +26,6 @@
 #define BACK_H                 (SSD1320_H)
 #define BACK_COLOR_FORMAT      (LV_COLOR_FORMAT_L8)
 #define BACK_BYTES_PER_PIXEL   (LV_COLOR_FORMAT_GET_SIZE(BACK_COLOR_FORMAT))
-// TODO: Use partial draw to reduce memory usage?
 #define BACK_DRAW_BUFFER_SIZE  (BACK_W * BACK_H * BACK_BYTES_PER_PIXEL)
 #define BACK_FRAME_BUFFER_SIZE (SSD1320_BUF_SIZE)
 
@@ -372,12 +371,12 @@ int gui_srv(void* arg) {
 
 // Public API functions
 
-void gui_acquire(Gui* instance) {
+void gui_lock(Gui* instance) {
     furi_check(instance);
     furi_check(furi_mutex_acquire(instance->access_mutex, FuriWaitForever) == FuriStatusOk);
 }
 
-void gui_release(Gui* instance) {
+void gui_unlock(Gui* instance) {
     furi_check(instance);
     furi_check(furi_mutex_release(instance->access_mutex) == FuriStatusOk);
 }
