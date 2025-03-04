@@ -6,6 +6,8 @@
 
 #include <stdint.h>
 
+#include <toolbox/color.h>
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -25,12 +27,6 @@ typedef enum {
     StatusLightsCommandSetPreset,
 } StatusLightsCommandType;
 
-typedef struct {
-    uint8_t r;
-    uint8_t g;
-    uint8_t b;
-} StatusLightsColor;
-
 typedef enum {
     StatusLightsPresetRainbowGradient,
     StatusLightsPresetWhiteFade,
@@ -41,7 +37,7 @@ typedef enum {
 typedef struct {
     StatusLightsCommandType type;
     union {
-        StatusLightsColor manual;
+        Color color;
         StatusLightsPreset preset;
     };
 } StatusLightsCommand;

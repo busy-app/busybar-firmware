@@ -2,6 +2,8 @@
 
 #include <furi_hal_pwm.h>
 
+#define STATUS_LIGHTS_DEFAULT_PRESET StatusLightsPresetRainbowGradient
+
 static void status_lights_timer_callback(void* context) {
     furi_assert(context);
 
@@ -9,7 +11,7 @@ static void status_lights_timer_callback(void* context) {
     furi_check(instance->preset_instance);
     furi_check(instance->preset_api);
 
-    StatusLightsColor color = {};
+    Color color = {};
     instance->preset_api->run(instance->preset_instance, &color);
     furi_hal_pwm_set_rgb(color.r, color.g, color.b);
 }
@@ -22,7 +24,7 @@ static void status_lights_execute_command(StatusLights* instance, StatusLightsCo
     }
 
     if(command.type == StatusLightsCommandSetManual) {
-        furi_hal_pwm_set_rgb(command.manual.r, command.manual.g, command.manual.b);
+        furi_hal_pwm_set_rgb(command.color.r, command.color.g, command.color.b);
     } else if(command.type == StatusLightsCommandSetPreset) {
         instance->preset_api = status_lights_preset_list[command.preset];
         instance->preset_instance = instance->preset_api->alloc();
@@ -62,7 +64,7 @@ static StatusLights* status_lights_alloc() {
 
     StatusLightsCommand command = {
         .type = StatusLightsCommandSetPreset,
-        .preset = StatusLightsPresetWhiteFade,
+        .preset = STATUS_LIGHTS_DEFAULT_PRESET,
     };
     status_lights_execute_command(instance, command);
 

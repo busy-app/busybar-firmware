@@ -18,7 +18,7 @@ static void white_fade_free(WhiteFade* instance) {
     free(instance);
 }
 
-static void white_fade_run(WhiteFade* instance, StatusLightsColor* color) {
+static void white_fade_run(WhiteFade* instance, Color* color) {
     furi_check(instance);
     furi_check(color);
 

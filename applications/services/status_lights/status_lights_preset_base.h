@@ -10,8 +10,7 @@ typedef void StatusLightsGenericPreset;
 
 typedef StatusLightsGenericPreset* (*StatusLightsPresetAlloc)(void);
 typedef void (*StatusLightsPresetFree)(StatusLightsGenericPreset* instance);
-typedef void (
-    *StatusLightsPresetRun)(StatusLightsGenericPreset* instance, StatusLightsColor* color);
+typedef void (*StatusLightsPresetRun)(StatusLightsGenericPreset* instance, Color* color);
 
 typedef struct {
     int period_ms;
