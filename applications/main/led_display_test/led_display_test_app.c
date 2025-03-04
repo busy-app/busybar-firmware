@@ -96,7 +96,7 @@ static LedDisplayTestApp* led_display_test_app_alloc(void) {
         instance);
 
     // Create a single label for the back display
-    instance->gui = furi_record_open(RECORD_GUI_LVGL);
+    instance->gui = furi_record_open(RECORD_GUI);
     gui_lock(instance->gui);
 
     lv_obj_t* active = gui_get_layer(instance->gui, GuiDisplayIdBack, GuiLayerIdActive);
@@ -150,7 +150,7 @@ static void led_display_test_app_free(LedDisplayTestApp* instance) {
 
     gui_unlock(instance->gui);
 
-    furi_record_close(RECORD_GUI_LVGL);
+    furi_record_close(RECORD_GUI);
 
     furi_event_loop_unsubscribe(instance->event_loop, instance->event_queue);
     furi_message_queue_free(instance->event_queue);

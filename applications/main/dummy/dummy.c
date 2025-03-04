@@ -49,7 +49,7 @@ static Dummy* dummy_alloc(const char* message) {
     Dummy* instance = malloc(sizeof(Dummy));
     instance->event_loop = furi_event_loop_alloc();
     instance->audio = furi_record_open(RECORD_AUDIO);
-    instance->gui = furi_record_open(RECORD_GUI_LVGL);
+    instance->gui = furi_record_open(RECORD_GUI);
 
     furi_event_loop_set_custom_event_callback(
         instance->event_loop, dummy_custom_event_callback, instance);
@@ -73,7 +73,7 @@ static Dummy* dummy_alloc(const char* message) {
 static void dummy_free(Dummy* instance) {
     with_gui(instance->gui, { lv_obj_delete(instance->label); });
 
-    furi_record_close(RECORD_GUI_LVGL);
+    furi_record_close(RECORD_GUI);
     furi_record_close(RECORD_AUDIO);
 
     furi_event_loop_free(instance->event_loop);

@@ -356,7 +356,7 @@ static Gui* gui_alloc(void) {
     gui_init_input(instance);
     gui_lvgl_fs_init(instance->storage);
 
-    furi_record_create(RECORD_GUI_LVGL, instance);
+    furi_record_create(RECORD_GUI, instance);
     return instance;
 }
 

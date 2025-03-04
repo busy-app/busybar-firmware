@@ -272,7 +272,7 @@ static Desktop* desktop_alloc(void) {
     instance->error_message = furi_string_alloc();
     instance->loader = furi_record_open(RECORD_LOADER);
 
-    Gui* gui = furi_record_open(RECORD_GUI_LVGL);
+    Gui* gui = furi_record_open(RECORD_GUI);
     instance->overlay = desktop_overlay_alloc(gui);
     instance->current_request.name = furi_string_alloc();
 

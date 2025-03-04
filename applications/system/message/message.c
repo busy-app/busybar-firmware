@@ -23,7 +23,7 @@ static void message_app_key_callback(lv_event_t* event) {
 static MessageApp* message_app_alloc(const char* message) {
     MessageApp* instance = malloc(sizeof(MessageApp));
     instance->event_loop = furi_event_loop_alloc();
-    instance->gui = furi_record_open(RECORD_GUI_LVGL);
+    instance->gui = furi_record_open(RECORD_GUI);
 
     with_gui_layer(instance->gui, GuiDisplayIdFront, GuiLayerIdActive, {
         instance->label = lv_label_create(layer);
@@ -45,7 +45,7 @@ static MessageApp* message_app_alloc(const char* message) {
 static void message_app_free(MessageApp* instance) {
     with_gui(instance->gui, { lv_obj_delete(instance->label); });
 
-    furi_record_close(RECORD_GUI_LVGL);
+    furi_record_close(RECORD_GUI);
 
     furi_event_loop_free(instance->event_loop);
     free(instance);

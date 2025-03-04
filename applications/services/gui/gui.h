@@ -6,7 +6,7 @@
 extern "C" {
 #endif
 
-#define RECORD_GUI_LVGL "gui"
+#define RECORD_GUI "gui"
 
 typedef enum {
     GuiDisplayIdFront,

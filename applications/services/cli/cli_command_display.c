@@ -14,7 +14,7 @@ static void cli_command_display_print_usage(void) {
 }
 
 static void cli_command_show(Cli* cli, FuriString* args, GuiDisplayId id) {
-    Gui* gui = furi_record_open(RECORD_GUI_LVGL);
+    Gui* gui = furi_record_open(RECORD_GUI);
     Storage* storage = furi_record_open(RECORD_STORAGE);
     FuriString* cmd = furi_string_alloc();
 
@@ -37,7 +37,7 @@ static void cli_command_show(Cli* cli, FuriString* args, GuiDisplayId id) {
     furi_string_free(cmd);
     if(!arguments_parsed) {
         furi_record_close(RECORD_STORAGE);
-        furi_record_close(RECORD_GUI_LVGL);
+        furi_record_close(RECORD_GUI);
         return;
     }
 
@@ -60,7 +60,7 @@ static void cli_command_show(Cli* cli, FuriString* args, GuiDisplayId id) {
     gui_unlock(gui);
 
     furi_record_close(RECORD_STORAGE);
-    furi_record_close(RECORD_GUI_LVGL);
+    furi_record_close(RECORD_GUI);
 }
 
 void cli_command_display(Cli* cli, FuriString* args, void* context) {

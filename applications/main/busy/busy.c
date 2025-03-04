@@ -336,7 +336,7 @@ static BusyApp* busy_alloc(void) {
         busy_scene_busy_timer_callback,
         FuriEventLoopTimerTypePeriodic,
         instance);
-    instance->gui = furi_record_open(RECORD_GUI_LVGL);
+    instance->gui = furi_record_open(RECORD_GUI);
     instance->audio = furi_record_open(RECORD_AUDIO);
 
     instance->input_events = furi_record_open(RECORD_INPUT_EVENTS);
@@ -398,7 +398,7 @@ static void busy_free(BusyApp* instance) {
     gui_unlock(instance->gui);
 
     furi_record_close(RECORD_AUDIO);
-    furi_record_close(RECORD_GUI_LVGL);
+    furi_record_close(RECORD_GUI);
     furi_record_close(RECORD_INPUT_EVENTS);
 
     furi_event_loop_unsubscribe(instance->event_loop, instance->event_queue);

@@ -63,7 +63,7 @@ static AppsMenu* apps_menu_alloc(void) {
     instance->event_loop = furi_event_loop_alloc();
     instance->queue = furi_message_queue_alloc(1, sizeof(lv_obj_t*));
     instance->desktop = furi_record_open(RECORD_DESKTOP);
-    instance->gui = furi_record_open(RECORD_GUI_LVGL);
+    instance->gui = furi_record_open(RECORD_GUI);
 
     furi_event_loop_subscribe_message_queue(
         instance->event_loop,
@@ -100,7 +100,7 @@ static AppsMenu* apps_menu_alloc(void) {
 static void apps_menu_free(AppsMenu* instance) {
     with_gui(instance->gui, { lv_obj_delete(instance->list); });
 
-    furi_record_close(RECORD_GUI_LVGL);
+    furi_record_close(RECORD_GUI);
     furi_record_close(RECORD_DESKTOP);
 
     furi_event_loop_unsubscribe(instance->event_loop, instance->queue);
