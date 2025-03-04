@@ -1,7 +1,7 @@
 #include "crypto_hmac.h"
 #include "crypto_common.h"
 
-#include <furi_hal_hmac.h>
+#include <furi_hal_crypto.h>
 
 #define TAG "HMAC"
 
@@ -23,19 +23,19 @@ static const uint8_t message[] = {0x54, 0x65, 0x73, 0x74, 0x20, 0x55, 0x73, 0x69
                                   0x20, 0x4b, 0x65, 0x79, 0x20, 0x46, 0x69, 0x72, 0x73, 0x74};
 
 // Expected output for the given input from HMAC engine
-static const uint8_t digest_output_sha1[FURI_HAL_HMAC_SHA1_DIGEST_SIZE] = {
+static const uint8_t digest_output_sha1[FURI_HAL_CRYPTO_HMAC_SHA1_DIGEST_SIZE] = {
     0x90, 0xD0, 0xDA, 0xCE, 0x1C, 0x1B, 0xDC, 0x95, 0x73, 0x39,
     0x30, 0x78, 0x03, 0x16, 0x03, 0x35, 0xBD, 0xE6, 0xDF, 0x2B};
-static const uint8_t digest_output_sha256[FURI_HAL_HMAC_SHA256_DIGEST_SIZE] = {
+static const uint8_t digest_output_sha256[FURI_HAL_CRYPTO_HMAC_SHA256_DIGEST_SIZE] = {
     0x60, 0xe4, 0x31, 0x59, 0x1e, 0xe0, 0xb6, 0x7f, 0x0d, 0x8a, 0x26,
     0xaa, 0xcb, 0xf5, 0xb7, 0x7f, 0x8e, 0x0b, 0xc6, 0x21, 0x37, 0x28,
     0xc5, 0x14, 0x05, 0x46, 0x04, 0x0f, 0x0e, 0xe3, 0x7f, 0x54};
-static const uint8_t digest_output_sha384[FURI_HAL_HMAC_SHA384_DIGEST_SIZE] = {
+static const uint8_t digest_output_sha384[FURI_HAL_CRYPTO_HMAC_SHA384_DIGEST_SIZE] = {
     0x4e, 0xce, 0x08, 0x44, 0x85, 0x81, 0x3e, 0x90, 0x88, 0xd2, 0xc6, 0x3a,
     0x04, 0x1b, 0xc5, 0xb4, 0x4f, 0x9e, 0xf1, 0x01, 0x2a, 0x2b, 0x58, 0x8f,
     0x3c, 0xd1, 0x1f, 0x05, 0x03, 0x3a, 0xc4, 0xc6, 0x0c, 0x2e, 0xf6, 0xab,
     0x40, 0x30, 0xfe, 0x82, 0x96, 0x24, 0x8d, 0xf1, 0x63, 0xf4, 0x49, 0x52};
-static const uint8_t digest_output_sha512[FURI_HAL_HMAC_SHA512_DIGEST_SIZE] = {
+static const uint8_t digest_output_sha512[FURI_HAL_CRYPTO_HMAC_SHA512_DIGEST_SIZE] = {
     0x80, 0xb2, 0x42, 0x63, 0xc7, 0xc1, 0xa3, 0xeb, 0xb7, 0x14, 0x93, 0xc1, 0xdd,
     0x7b, 0xe8, 0xb4, 0x9b, 0x46, 0xd1, 0xf4, 0x1b, 0x4a, 0xee, 0xc1, 0x12, 0x1b,
     0x01, 0x37, 0x83, 0xf8, 0xf3, 0x52, 0x6b, 0x56, 0xd0, 0x37, 0xe0, 0x5f, 0x25,
@@ -64,23 +64,23 @@ void crypto_hmac_chek(
 void crypto_hmac_test_custom_sha_mode(
     CryptoTestApp* app,
     FuriString* msg,
-    FuriHalHmacShaMode hmac_sha_mode) {
+    FuriHalCryptoHmacShaMode hmac_sha_mode) {
     // Buffer to store response
-    uint8_t digest[FURI_HAL_HMAC_SHA512_DIGEST_SIZE] = {0};
+    uint8_t digest[FURI_HAL_CRYPTO_HMAC_SHA512_DIGEST_SIZE] = {0};
     size_t digest_length = 0;
 
     switch(hmac_sha_mode) {
-    case FuriHalHmacShaModeSha1:
-        digest_length = FURI_HAL_HMAC_SHA1_DIGEST_SIZE;
+    case FuriHalCryptoHmacShaModeSha1:
+        digest_length = FURI_HAL_CRYPTO_HMAC_SHA1_DIGEST_SIZE;
         break;
-    case FuriHalHmacShaModeSha256:
-        digest_length = FURI_HAL_HMAC_SHA256_DIGEST_SIZE;
+    case FuriHalCryptoHmacShaModeSha256:
+        digest_length = FURI_HAL_CRYPTO_HMAC_SHA256_DIGEST_SIZE;
         break;
-    case FuriHalHmacShaModeSha384:
-        digest_length = FURI_HAL_HMAC_SHA384_DIGEST_SIZE;
+    case FuriHalCryptoHmacShaModeSha384:
+        digest_length = FURI_HAL_CRYPTO_HMAC_SHA384_DIGEST_SIZE;
         break;
-    case FuriHalHmacShaModeSha512:
-        digest_length = FURI_HAL_HMAC_SHA512_DIGEST_SIZE;
+    case FuriHalCryptoHmacShaModeSha512:
+        digest_length = FURI_HAL_CRYPTO_HMAC_SHA512_DIGEST_SIZE;
         break;
 
     default:
@@ -88,44 +88,49 @@ void crypto_hmac_test_custom_sha_mode(
     }
 
     // Initialize HMAC
-    FuriHalHmac* handle = furi_hal_hmac_init(
-        hmac_sha_mode, (uint8_t*)key_hmac, sizeof(key_hmac), FuriHalHmacWrappingModeOff);
+    FuriHalCryptoHmac* handle = furi_hal_crypto_hmac_init(
+        hmac_sha_mode, (uint8_t*)key_hmac, sizeof(key_hmac), FuriHalCryptoWrappingModeOff);
     // Compute HMAC digest
-    furi_hal_hmac_digest(handle, (uint8_t*)message, sizeof(message), digest, digest_length);
+    furi_hal_crypto_hmac_digest(handle, (uint8_t*)message, sizeof(message), digest, digest_length);
     // Deinitialize HMAC
-    furi_hal_hmac_deinit(handle);
+    furi_hal_crypto_hmac_deinit(handle);
 
     switch(hmac_sha_mode) {
-    case FuriHalHmacShaModeSha1:
+    case FuriHalCryptoHmacShaModeSha1:
         crypto_hmac_chek(
-            app, msg, "HMAC_SHA1", digest, digest_output_sha1, FURI_HAL_HMAC_SHA1_DIGEST_SIZE);
+            app,
+            msg,
+            "HMAC_SHA1",
+            digest,
+            digest_output_sha1,
+            FURI_HAL_CRYPTO_HMAC_SHA1_DIGEST_SIZE);
         break;
-    case FuriHalHmacShaModeSha256:
+    case FuriHalCryptoHmacShaModeSha256:
         crypto_hmac_chek(
             app,
             msg,
             "HMAC_SHA256",
             digest,
             digest_output_sha256,
-            FURI_HAL_HMAC_SHA256_DIGEST_SIZE);
+            FURI_HAL_CRYPTO_HMAC_SHA256_DIGEST_SIZE);
         break;
-    case FuriHalHmacShaModeSha384:
+    case FuriHalCryptoHmacShaModeSha384:
         crypto_hmac_chek(
             app,
             msg,
             "HMAC_SHA384",
             digest,
             digest_output_sha384,
-            FURI_HAL_HMAC_SHA384_DIGEST_SIZE);
+            FURI_HAL_CRYPTO_HMAC_SHA384_DIGEST_SIZE);
         break;
-    case FuriHalHmacShaModeSha512:
+    case FuriHalCryptoHmacShaModeSha512:
         crypto_hmac_chek(
             app,
             msg,
             "HMAC_SHA512",
             digest,
             digest_output_sha512,
-            FURI_HAL_HMAC_SHA512_DIGEST_SIZE);
+            FURI_HAL_CRYPTO_HMAC_SHA512_DIGEST_SIZE);
         break;
     default:
         break;
@@ -135,23 +140,23 @@ void crypto_hmac_test_custom_sha_mode(
 void crypto_hmac_test_custom_sha_mode_wrap_on(
     CryptoTestApp* app,
     FuriString* msg,
-    FuriHalHmacShaMode hmac_sha_mode) {
+    FuriHalCryptoHmacShaMode hmac_sha_mode) {
     // Buffer to store response
-    uint8_t digest[FURI_HAL_HMAC_SHA512_DIGEST_SIZE] = {0};
+    uint8_t digest[FURI_HAL_CRYPTO_HMAC_SHA512_DIGEST_SIZE] = {0};
     size_t digest_length = 0;
 
     switch(hmac_sha_mode) {
-    case FuriHalHmacShaModeSha1:
-        digest_length = FURI_HAL_HMAC_SHA1_DIGEST_SIZE;
+    case FuriHalCryptoHmacShaModeSha1:
+        digest_length = FURI_HAL_CRYPTO_HMAC_SHA1_DIGEST_SIZE;
         break;
-    case FuriHalHmacShaModeSha256:
-        digest_length = FURI_HAL_HMAC_SHA256_DIGEST_SIZE;
+    case FuriHalCryptoHmacShaModeSha256:
+        digest_length = FURI_HAL_CRYPTO_HMAC_SHA256_DIGEST_SIZE;
         break;
-    case FuriHalHmacShaModeSha384:
-        digest_length = FURI_HAL_HMAC_SHA384_DIGEST_SIZE;
+    case FuriHalCryptoHmacShaModeSha384:
+        digest_length = FURI_HAL_CRYPTO_HMAC_SHA384_DIGEST_SIZE;
         break;
-    case FuriHalHmacShaModeSha512:
-        digest_length = FURI_HAL_HMAC_SHA512_DIGEST_SIZE;
+    case FuriHalCryptoHmacShaModeSha512:
+        digest_length = FURI_HAL_CRYPTO_HMAC_SHA512_DIGEST_SIZE;
         break;
 
     default:
@@ -160,7 +165,7 @@ void crypto_hmac_test_custom_sha_mode_wrap_on(
 
     size_t wrap_key_size = 256;
     uint8_t wrapped_key[256] = {0};
-    furi_hal_hmac_wrap_key(
+    furi_hal_crypto_hmac_wrap_key(
         sizeof(key_hmac), (uint8_t*)key_hmac, hmac_sha_mode, wrapped_key, &wrap_key_size);
     crypto_common_print_buffer_hex(app, msg, "Key =\t\t", key_hmac, sizeof(key_hmac));
     furi_string_printf(msg, "Wrapped key size = %d\r\n", wrap_key_size);
@@ -168,44 +173,49 @@ void crypto_hmac_test_custom_sha_mode_wrap_on(
     crypto_common_print_buffer_hex(app, msg, "Wrapped key =\t", wrapped_key, wrap_key_size);
 
     // Initialize HMAC
-    FuriHalHmac* handle =
-        furi_hal_hmac_init(hmac_sha_mode, wrapped_key, wrap_key_size, FuriHalHmacWrappingModeOn);
+    FuriHalCryptoHmac* handle = furi_hal_crypto_hmac_init(
+        hmac_sha_mode, wrapped_key, wrap_key_size, FuriHalCryptoWrappingModeOn);
     // Compute HMAC digest
-    furi_hal_hmac_digest(handle, (uint8_t*)message, sizeof(message), digest, digest_length);
+    furi_hal_crypto_hmac_digest(handle, (uint8_t*)message, sizeof(message), digest, digest_length);
     // Deinitialize HMAC
-    furi_hal_hmac_deinit(handle);
+    furi_hal_crypto_hmac_deinit(handle);
 
     switch(hmac_sha_mode) {
-    case FuriHalHmacShaModeSha1:
+    case FuriHalCryptoHmacShaModeSha1:
         crypto_hmac_chek(
-            app, msg, "HMAC_SHA1", digest, digest_output_sha1, FURI_HAL_HMAC_SHA1_DIGEST_SIZE);
+            app,
+            msg,
+            "HMAC_SHA1",
+            digest,
+            digest_output_sha1,
+            FURI_HAL_CRYPTO_HMAC_SHA1_DIGEST_SIZE);
         break;
-    case FuriHalHmacShaModeSha256:
+    case FuriHalCryptoHmacShaModeSha256:
         crypto_hmac_chek(
             app,
             msg,
             "HMAC_SHA256",
             digest,
             digest_output_sha256,
-            FURI_HAL_HMAC_SHA256_DIGEST_SIZE);
+            FURI_HAL_CRYPTO_HMAC_SHA256_DIGEST_SIZE);
         break;
-    case FuriHalHmacShaModeSha384:
+    case FuriHalCryptoHmacShaModeSha384:
         crypto_hmac_chek(
             app,
             msg,
             "HMAC_SHA384",
             digest,
             digest_output_sha384,
-            FURI_HAL_HMAC_SHA384_DIGEST_SIZE);
+            FURI_HAL_CRYPTO_HMAC_SHA384_DIGEST_SIZE);
         break;
-    case FuriHalHmacShaModeSha512:
+    case FuriHalCryptoHmacShaModeSha512:
         crypto_hmac_chek(
             app,
             msg,
             "HMAC_SHA512",
             digest,
             digest_output_sha512,
-            FURI_HAL_HMAC_SHA512_DIGEST_SIZE);
+            FURI_HAL_CRYPTO_HMAC_SHA512_DIGEST_SIZE);
         break;
     default:
         break;
@@ -215,17 +225,17 @@ void crypto_hmac_test_custom_sha_mode_wrap_on(
 void crypto_hmac_test(CryptoTestApp* app, FuriString* msg) {
     furi_string_printf(msg, "\033[0;33mHMAC key wrap off test\033[0m\r\n");
     crypto_test_app_send_text(app, msg);
-    crypto_hmac_test_custom_sha_mode(app, msg, FuriHalHmacShaModeSha1);
-    crypto_hmac_test_custom_sha_mode(app, msg, FuriHalHmacShaModeSha256);
-    crypto_hmac_test_custom_sha_mode(app, msg, FuriHalHmacShaModeSha384);
-    crypto_hmac_test_custom_sha_mode(app, msg, FuriHalHmacShaModeSha512);
+    crypto_hmac_test_custom_sha_mode(app, msg, FuriHalCryptoHmacShaModeSha1);
+    crypto_hmac_test_custom_sha_mode(app, msg, FuriHalCryptoHmacShaModeSha256);
+    crypto_hmac_test_custom_sha_mode(app, msg, FuriHalCryptoHmacShaModeSha384);
+    crypto_hmac_test_custom_sha_mode(app, msg, FuriHalCryptoHmacShaModeSha512);
 
     furi_string_printf(msg, "\033[0;33mHMAC key wrap on test\033[0m\r\n");
     crypto_test_app_send_text(app, msg);
-    crypto_hmac_test_custom_sha_mode_wrap_on(app, msg, FuriHalHmacShaModeSha1);
-    crypto_hmac_test_custom_sha_mode_wrap_on(app, msg, FuriHalHmacShaModeSha256);
-    crypto_hmac_test_custom_sha_mode_wrap_on(app, msg, FuriHalHmacShaModeSha384);
-    crypto_hmac_test_custom_sha_mode_wrap_on(app, msg, FuriHalHmacShaModeSha512);
+    crypto_hmac_test_custom_sha_mode_wrap_on(app, msg, FuriHalCryptoHmacShaModeSha1);
+    crypto_hmac_test_custom_sha_mode_wrap_on(app, msg, FuriHalCryptoHmacShaModeSha256);
+    crypto_hmac_test_custom_sha_mode_wrap_on(app, msg, FuriHalCryptoHmacShaModeSha384);
+    crypto_hmac_test_custom_sha_mode_wrap_on(app, msg, FuriHalCryptoHmacShaModeSha512);
 
     furi_string_printf(msg, "Crypto HMAC done\r\n");
     crypto_test_app_send_text(app, msg);
