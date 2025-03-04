@@ -8,7 +8,7 @@ App(
         "cli",
         "cli_socket",
         "input",
-        "gui_lvgl",
+        "gui",
         "desktop",
         "loader",
         "led_display",

@@ -1,4 +1,4 @@
-#include "gui_lvgl.h"
+#include "gui.h"
 
 #include <furi.h>
 #include <lvgl.h>
@@ -14,7 +14,7 @@
 
 #include <lvgl_addons/fs/lv_fs.h>
 
-#define TAG "GuiLvgl"
+#define TAG "Gui"
 
 #define FRONT_W                (DOT_MATRIX_W)
 #define FRONT_H                (DOT_MATRIX_H)
@@ -53,7 +53,7 @@ typedef struct {
     uint8_t* frame_buffer;
 } GuiDisplayData;
 
-struct GuiLvgl {
+struct Gui {
     Power* power;
     Storage* storage;
     FuriEventLoop* event_loop;
@@ -65,14 +65,14 @@ struct GuiLvgl {
 };
 
 // TODO: Optimise conversion?
-static void gui_lvgl_l8_to_l4(uint8_t* dst, const uint8_t* src) {
+static void gui_l8_to_l4(uint8_t* dst, const uint8_t* src) {
     for(uint32_t i = 0; i < BACK_FRAME_BUFFER_SIZE; ++i) {
         const uint32_t draw_idx = 2 * i;
         dst[i] = (src[draw_idx] >> 4) | (src[draw_idx + 1] & 0xF0);
     }
 }
 
-static GuiDisplayId gui_lvlgl_get_display_id(GuiLvgl* instance, const lv_display_t* display) {
+static GuiDisplayId gui_lvlgl_get_display_id(Gui* instance, const lv_display_t* display) {
     GuiDisplayId display_type;
 
     for(display_type = 0; display_type < GuiDisplayIdMax; ++display_type) {
@@ -84,13 +84,12 @@ static GuiDisplayId gui_lvlgl_get_display_id(GuiLvgl* instance, const lv_display
     return display_type;
 }
 
-static void
-    gui_lvgl_flush_callback(lv_display_t* display, const lv_area_t* area, uint8_t* px_map) {
+static void gui_flush_callback(lv_display_t* display, const lv_area_t* area, uint8_t* px_map) {
     UNUSED(area);
     // FURI_LOG_D(
     //     TAG, "Drawing area: (%ld, %ld), (%ld, %ld)", area->x1, area->y1, area->x2, area->y2);
 
-    GuiLvgl* instance = lv_display_get_user_data(display);
+    Gui* instance = lv_display_get_user_data(display);
 
     const GuiDisplayId display_type = gui_lvlgl_get_display_id(instance, display);
     furi_check(display_type < GuiDisplayIdMax);
@@ -101,15 +100,15 @@ static void
     if(display_type == GuiDisplayIdFront) {
         dot_matrix_draw(instance->dot_matrix, display_data->draw_buffer);
     } else if(display_type == GuiDisplayIdBack) {
-        gui_lvgl_l8_to_l4(display_data->frame_buffer, display_data->draw_buffer);
+        gui_l8_to_l4(display_data->frame_buffer, display_data->draw_buffer);
         ssd1320_draw(display_data->frame_buffer);
     }
 
     lv_display_flush_ready(display);
 }
 
-static void gui_lvgl_input_read_callback(lv_indev_t* indev, lv_indev_data_t* data) {
-    GuiLvgl* instance = lv_indev_get_user_data(indev);
+static void gui_input_read_callback(lv_indev_t* indev, lv_indev_data_t* data) {
+    Gui* instance = lv_indev_get_user_data(indev);
 
     const GuiInputEvent* event = &instance->input_event;
 
@@ -133,7 +132,7 @@ static void gui_lvgl_input_read_callback(lv_indev_t* indev, lv_indev_data_t* dat
     }
 }
 
-static void gui_lvgl_log_callback(lv_log_level_t level, const char* buf) {
+static void gui_log_callback(lv_log_level_t level, const char* buf) {
     char* line = strdup(buf);
     line[strlen(buf) - 1] = 0;
 
@@ -154,7 +153,7 @@ static void gui_lvgl_log_callback(lv_log_level_t level, const char* buf) {
     free(line);
 }
 
-static bool gui_lvgl_parse_encoder_event(const InputEvent* event, GuiInputEvent* gui_event) {
+static bool gui_parse_encoder_event(const InputEvent* event, GuiInputEvent* gui_event) {
     bool success = false;
 
     if(event->key == InputKeyUp || event->key == InputKeyDown) {
@@ -179,7 +178,7 @@ static bool gui_lvgl_parse_encoder_event(const InputEvent* event, GuiInputEvent*
     return success;
 }
 
-static bool gui_lvgl_parse_buttons_event(const InputEvent* event, GuiInputEvent* gui_event) {
+static bool gui_parse_buttons_event(const InputEvent* event, GuiInputEvent* gui_event) {
     bool success = false;
 
     if(event->key == InputKeyBack || event->key == InputKeyStart) {
@@ -195,16 +194,16 @@ static bool gui_lvgl_parse_buttons_event(const InputEvent* event, GuiInputEvent*
     return success;
 }
 
-static void gui_lvgl_input_pubsub_callback(const void* message, void* context) {
+static void gui_input_pubsub_callback(const void* message, void* context) {
     furi_assert(message);
     furi_assert(context);
 
-    GuiLvgl* instance = context;
+    Gui* instance = context;
     const InputEvent* event = message;
 
     GuiInputEvent gui_event;
-    bool event_parsed = gui_lvgl_parse_encoder_event(event, &gui_event) ||
-                        gui_lvgl_parse_buttons_event(event, &gui_event);
+    bool event_parsed = gui_parse_encoder_event(event, &gui_event) ||
+                        gui_parse_buttons_event(event, &gui_event);
     if(event_parsed) {
         furi_check(
             furi_message_queue_put(instance->input_queue, &gui_event, FuriWaitForever) ==
@@ -212,9 +211,9 @@ static void gui_lvgl_input_pubsub_callback(const void* message, void* context) {
     }
 }
 
-static void gui_lvgl_tick_callback(void* context) {
+static void gui_tick_callback(void* context) {
     furi_assert(context);
-    GuiLvgl* instance = context;
+    Gui* instance = context;
 
     if(furi_mutex_acquire(instance->access_mutex, 0) == FuriStatusOk) {
         lv_timer_periodic_handler();
@@ -224,10 +223,10 @@ static void gui_lvgl_tick_callback(void* context) {
     }
 }
 
-static void gui_lvgl_input_queue_callback(FuriEventLoopObject* object, void* context) {
+static void gui_input_queue_callback(FuriEventLoopObject* object, void* context) {
     furi_assert(context);
 
-    GuiLvgl* instance = context;
+    Gui* instance = context;
     furi_assert(object == instance->input_queue);
 
     if(furi_mutex_acquire(instance->access_mutex, 0) == FuriStatusOk) {
@@ -249,14 +248,14 @@ static void gui_lvgl_input_queue_callback(FuriEventLoopObject* object, void* con
     }
 }
 
-static void gui_lvgl_init_front(GuiLvgl* instance) {
+static void gui_init_front(Gui* instance) {
     GuiDisplayData* display_data = &instance->display_data[GuiDisplayIdFront];
 
     display_data->draw_buffer = malloc(FRONT_DRAW_BUFFER_SIZE);
     display_data->lv_display = lv_display_create(FRONT_W, FRONT_H);
 
     lv_display_set_user_data(display_data->lv_display, instance);
-    lv_display_set_flush_cb(display_data->lv_display, gui_lvgl_flush_callback);
+    lv_display_set_flush_cb(display_data->lv_display, gui_flush_callback);
     lv_display_set_color_format(display_data->lv_display, FRONT_COLOR_FORMAT);
     lv_display_set_buffers(
         display_data->lv_display,
@@ -269,7 +268,7 @@ static void gui_lvgl_init_front(GuiLvgl* instance) {
     lv_display_set_theme(display_data->lv_display, theme);
 }
 
-static void gui_lvgl_init_back(GuiLvgl* instance) {
+static void gui_init_back(Gui* instance) {
     ssd1320_init();
 
     GuiDisplayData* display_data = &instance->display_data[GuiDisplayIdBack];
@@ -279,7 +278,7 @@ static void gui_lvgl_init_back(GuiLvgl* instance) {
     display_data->lv_display = lv_display_create(BACK_W, BACK_H);
 
     lv_display_set_user_data(display_data->lv_display, instance);
-    lv_display_set_flush_cb(display_data->lv_display, gui_lvgl_flush_callback);
+    lv_display_set_flush_cb(display_data->lv_display, gui_flush_callback);
     lv_display_set_color_format(display_data->lv_display, BACK_COLOR_FORMAT);
     lv_display_set_buffers(
         display_data->lv_display,
@@ -293,7 +292,7 @@ static void gui_lvgl_init_back(GuiLvgl* instance) {
     lv_display_set_theme(display_data->lv_display, theme);
 }
 
-static void gui_lvgl_init_input(GuiLvgl* instance) {
+static void gui_init_input(Gui* instance) {
     GuiDisplayData* display_data = &instance->display_data[GuiDisplayIdFront];
     // Created input device gets associated with the default display
     lv_display_t* front = display_data->lv_display;
@@ -307,7 +306,7 @@ static void gui_lvgl_init_input(GuiLvgl* instance) {
     lv_indev_set_mode(encoder, LV_INDEV_MODE_EVENT);
     lv_indev_set_group(encoder, group);
     lv_indev_set_user_data(encoder, instance);
-    lv_indev_set_read_cb(encoder, gui_lvgl_input_read_callback);
+    lv_indev_set_read_cb(encoder, gui_input_read_callback);
 
     display_data->lv_indevs[GuiInputIdEncoder] = encoder;
 
@@ -316,16 +315,16 @@ static void gui_lvgl_init_input(GuiLvgl* instance) {
     lv_indev_set_mode(buttons, LV_INDEV_MODE_EVENT);
     lv_indev_set_group(buttons, group);
     lv_indev_set_user_data(buttons, instance);
-    lv_indev_set_read_cb(buttons, gui_lvgl_input_read_callback);
+    lv_indev_set_read_cb(buttons, gui_input_read_callback);
 
     display_data->lv_indevs[GuiInputIdButtons] = buttons;
 
     FuriPubSub* input_events = furi_record_open(RECORD_INPUT_EVENTS);
-    furi_pubsub_subscribe(input_events, gui_lvgl_input_pubsub_callback, instance);
+    furi_pubsub_subscribe(input_events, gui_input_pubsub_callback, instance);
 }
 
-static GuiLvgl* gui_lvgl_alloc(void) {
-    GuiLvgl* instance = malloc(sizeof(GuiLvgl));
+static Gui* gui_alloc(void) {
+    Gui* instance = malloc(sizeof(Gui));
 
     // Must be first to ensure that power subsystem is OK
     instance->power = furi_record_open(RECORD_POWER);
@@ -343,30 +342,29 @@ static GuiLvgl* gui_lvgl_alloc(void) {
         instance->event_loop,
         instance->input_queue,
         FuriEventLoopEventIn,
-        gui_lvgl_input_queue_callback,
+        gui_input_queue_callback,
         instance);
 
-    furi_event_loop_tick_set(
-        instance->event_loop, TICK_PERIOD_MS, gui_lvgl_tick_callback, instance);
+    furi_event_loop_tick_set(instance->event_loop, TICK_PERIOD_MS, gui_tick_callback, instance);
 
     lv_init();
     lv_tick_set_cb(furi_get_tick);
     lv_delay_set_cb(furi_delay_ms);
-    lv_log_register_print_cb(gui_lvgl_log_callback);
+    lv_log_register_print_cb(gui_log_callback);
 
-    gui_lvgl_init_front(instance);
-    gui_lvgl_init_back(instance);
-    gui_lvgl_init_input(instance);
+    gui_init_front(instance);
+    gui_init_back(instance);
+    gui_init_input(instance);
     gui_lvgl_fs_init(instance->storage);
 
     furi_record_create(RECORD_GUI_LVGL, instance);
     return instance;
 }
 
-int gui_lvgl_srv(void* arg) {
+int gui_srv(void* arg) {
     UNUSED(arg);
 
-    GuiLvgl* instance = gui_lvgl_alloc();
+    Gui* instance = gui_alloc();
     furi_event_loop_run(instance->event_loop);
 
     return 0;
@@ -374,17 +372,17 @@ int gui_lvgl_srv(void* arg) {
 
 // Public API functions
 
-void gui_lvgl_acquire(GuiLvgl* instance) {
+void gui_acquire(Gui* instance) {
     furi_check(instance);
     furi_check(furi_mutex_acquire(instance->access_mutex, FuriWaitForever) == FuriStatusOk);
 }
 
-void gui_lvgl_release(GuiLvgl* instance) {
+void gui_release(Gui* instance) {
     furi_check(instance);
     furi_check(furi_mutex_release(instance->access_mutex) == FuriStatusOk);
 }
 
-lv_display_t* gui_lvgl_get_display(GuiLvgl* instance, GuiDisplayId display_id) {
+lv_display_t* gui_get_display(Gui* instance, GuiDisplayId display_id) {
     furi_check(instance);
     furi_check(display_id < GuiDisplayIdMax);
     furi_check(furi_mutex_get_owner(instance->access_mutex) == furi_thread_get_current_id());
@@ -392,7 +390,7 @@ lv_display_t* gui_lvgl_get_display(GuiLvgl* instance, GuiDisplayId display_id) {
     return instance->display_data[display_id].lv_display;
 }
 
-lv_obj_t* gui_lvgl_get_layer(GuiLvgl* instance, GuiDisplayId display_id, GuiLayerId layer_id) {
+lv_obj_t* gui_get_layer(Gui* instance, GuiDisplayId display_id, GuiLayerId layer_id) {
     furi_check(instance);
     furi_check(display_id < GuiDisplayIdMax);
     furi_check(layer_id < GuiLayerIdMax);
