@@ -64,13 +64,9 @@ static void status_lights_intercom_rx_callback(const void* data, size_t data_siz
     furi_assert(context);
 
     StatusLights* instance = context;
-    const StatusLightsCommand* command = data;
-
-    status_lights_execute_command(instance, *command);
 
     furi_check(
-        furi_message_queue_put(instance->command_queue, &command, FuriWaitForever) ==
-        FuriStatusOk);
+        furi_message_queue_put(instance->command_queue, data, FuriWaitForever) == FuriStatusOk);
 }
 
 static StatusLights* status_lights_alloc() {

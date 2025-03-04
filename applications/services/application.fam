@@ -19,6 +19,7 @@ App(
         "intercom",
         "wifi",
         "sockets",
+        "status_lights",
     ],
     targets=["f20"],
 )

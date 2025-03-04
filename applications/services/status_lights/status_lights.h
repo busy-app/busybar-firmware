@@ -17,7 +17,7 @@ extern "C" {
  */
 #define RECORD_STATUS_LIGHTS "status_lights"
 
-void status_light_send_command(StatusLights* instance, StatusLightsCommand command);
+void status_lights_send_command(StatusLights* instance, StatusLightsCommand command);
 
 #ifdef __cplusplus
 }

@@ -55,7 +55,7 @@ int32_t status_lights_srv(void* p) {
     return 0;
 }
 
-void status_light_send_command(StatusLights* instance, StatusLightsCommand command) {
+void status_lights_send_command(StatusLights* instance, StatusLightsCommand command) {
     furi_check(instance);
 
     furi_check(
