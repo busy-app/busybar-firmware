@@ -44,8 +44,10 @@ typedef struct {
     lv_display_t* lv_display;
     lv_indev_t* lv_indevs[GuiInputIdMax];
     uint8_t* draw_buffer;
+    // TODO: Keep frame buffer in SSD1320 service
     uint8_t* frame_buffer;
-} GuiDisplayData;
+    void* driver;
+} GuiDisplay;
 
 struct Gui {
     Power* power;
@@ -53,6 +55,6 @@ struct Gui {
     FuriMessageQueue* input_queue;
     FuriMutex* access_mutex;
     DotMatrixSrv* dot_matrix;
-    GuiDisplayData display_data[GuiDisplayIdMax];
+    GuiDisplay displays[GuiDisplayIdMax];
     GuiInputEvent input_event;
 };

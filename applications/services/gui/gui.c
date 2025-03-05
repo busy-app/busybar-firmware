@@ -5,6 +5,18 @@
 
 #define TAG "Gui"
 
+static void
+    gui_flush_front_callback(lv_display_t* lv_display, const lv_area_t* area, uint8_t* px_map) {
+    UNUSED(area);
+
+    GuiDisplay* display = lv_display_get_user_data(lv_display);
+    furi_check(px_map == display->draw_buffer);
+
+    dot_matrix_draw(display->driver, display->draw_buffer);
+
+    lv_display_flush_ready(lv_display);
+}
+
 // TODO: Optimise conversion?
 static void gui_l8_to_l4(uint8_t* dst, const uint8_t* src) {
     for(uint32_t i = 0; i < BACK_FRAME_BUFFER_SIZE; ++i) {
@@ -13,45 +25,21 @@ static void gui_l8_to_l4(uint8_t* dst, const uint8_t* src) {
     }
 }
 
-static GuiDisplayId gui_lvlgl_get_display_id(Gui* instance, const lv_display_t* display) {
-    GuiDisplayId display_type;
-
-    for(display_type = 0; display_type < GuiDisplayIdMax; ++display_type) {
-        if(instance->display_data[display_type].lv_display == display) {
-            break;
-        }
-    }
-
-    return display_type;
-}
-
-static void gui_flush_callback(lv_display_t* display, const lv_area_t* area, uint8_t* px_map) {
+static void
+    gui_flush_back_callback(lv_display_t* lv_display, const lv_area_t* area, uint8_t* px_map) {
     UNUSED(area);
-    // FURI_LOG_D(
-    //     TAG, "Drawing area: (%ld, %ld), (%ld, %ld)", area->x1, area->y1, area->x2, area->y2);
 
-    Gui* instance = lv_display_get_user_data(display);
+    GuiDisplay* display = lv_display_get_user_data(lv_display);
+    furi_check(px_map == display->draw_buffer);
 
-    const GuiDisplayId display_type = gui_lvlgl_get_display_id(instance, display);
-    furi_check(display_type < GuiDisplayIdMax);
+    gui_l8_to_l4(display->frame_buffer, display->draw_buffer);
+    ssd1320_draw(display->frame_buffer);
 
-    GuiDisplayData* display_data = &instance->display_data[display_type];
-    furi_check(px_map == display_data->draw_buffer);
-
-    if(display_type == GuiDisplayIdFront) {
-        dot_matrix_draw(instance->dot_matrix, display_data->draw_buffer);
-    } else if(display_type == GuiDisplayIdBack) {
-        gui_l8_to_l4(display_data->frame_buffer, display_data->draw_buffer);
-        ssd1320_draw(display_data->frame_buffer);
-    }
-
-    lv_display_flush_ready(display);
+    lv_display_flush_ready(lv_display);
 }
 
 static void gui_input_read_callback(lv_indev_t* indev, lv_indev_data_t* data) {
-    Gui* instance = lv_indev_get_user_data(indev);
-
-    const GuiInputEvent* event = &instance->input_event;
+    const GuiInputEvent* event = lv_indev_get_user_data(indev);
 
     if(event->id == GuiInputIdEncoder) {
         furi_assert(lv_indev_get_type(indev) == LV_INDEV_TYPE_ENCODER);
@@ -177,7 +165,8 @@ static void gui_input_queue_callback(FuriEventLoopObject* object, void* context)
             furi_assert(input_id < GuiInputIdMax);
 
             for(uint32_t i = 0; i < GuiDisplayIdMax; ++i) {
-                lv_indev_t* indev = instance->display_data[i].lv_indevs[input_id];
+                GuiDisplay* display = &instance->displays[i];
+                lv_indev_t* indev = display->lv_indevs[input_id];
 
                 if(indev != NULL) {
                     lv_indev_read(indev);
@@ -190,75 +179,81 @@ static void gui_input_queue_callback(FuriEventLoopObject* object, void* context)
 }
 
 static void gui_init_front(Gui* instance) {
-    GuiDisplayData* display_data = &instance->display_data[GuiDisplayIdFront];
+    GuiDisplay* display = &instance->displays[GuiDisplayIdFront];
 
-    display_data->draw_buffer = malloc(FRONT_DRAW_BUFFER_SIZE);
-    display_data->lv_display = lv_display_create(FRONT_W, FRONT_H);
+    display->draw_buffer = malloc(FRONT_DRAW_BUFFER_SIZE);
+    display->lv_display = lv_display_create(FRONT_W, FRONT_H);
+    display->driver = furi_record_open(RECORD_DOT_MATRIX);
 
-    lv_display_set_user_data(display_data->lv_display, instance);
-    lv_display_set_flush_cb(display_data->lv_display, gui_flush_callback);
-    lv_display_set_color_format(display_data->lv_display, FRONT_COLOR_FORMAT);
+    lv_display_set_user_data(display->lv_display, display);
+    lv_display_set_flush_cb(display->lv_display, gui_flush_front_callback);
+    lv_display_set_color_format(display->lv_display, FRONT_COLOR_FORMAT);
     lv_display_set_buffers(
-        display_data->lv_display,
-        display_data->draw_buffer,
+        display->lv_display,
+        display->draw_buffer,
         NULL,
         FRONT_DRAW_BUFFER_SIZE,
         LV_DISPLAY_RENDER_MODE_DIRECT);
 
-    lv_theme_t* theme = lv_theme_front_init(display_data->lv_display);
-    lv_display_set_theme(display_data->lv_display, theme);
+    lv_theme_t* theme = lv_theme_front_init(display->lv_display);
+    lv_display_set_theme(display->lv_display, theme);
 }
 
 static void gui_init_back(Gui* instance) {
     ssd1320_init();
 
-    GuiDisplayData* display_data = &instance->display_data[GuiDisplayIdBack];
+    GuiDisplay* display = &instance->displays[GuiDisplayIdBack];
 
-    display_data->draw_buffer = malloc(BACK_DRAW_BUFFER_SIZE);
-    display_data->frame_buffer = malloc(BACK_FRAME_BUFFER_SIZE);
-    display_data->lv_display = lv_display_create(BACK_W, BACK_H);
+    display->draw_buffer = malloc(BACK_DRAW_BUFFER_SIZE);
+    display->frame_buffer = malloc(BACK_FRAME_BUFFER_SIZE);
+    display->lv_display = lv_display_create(BACK_W, BACK_H);
 
-    lv_display_set_user_data(display_data->lv_display, instance);
-    lv_display_set_flush_cb(display_data->lv_display, gui_flush_callback);
-    lv_display_set_color_format(display_data->lv_display, BACK_COLOR_FORMAT);
+    lv_display_set_user_data(display->lv_display, display);
+    lv_display_set_flush_cb(display->lv_display, gui_flush_back_callback);
+    lv_display_set_color_format(display->lv_display, BACK_COLOR_FORMAT);
     lv_display_set_buffers(
-        display_data->lv_display,
-        display_data->draw_buffer,
+        display->lv_display,
+        display->draw_buffer,
         NULL,
         BACK_DRAW_BUFFER_SIZE,
         LV_DISPLAY_RENDER_MODE_DIRECT);
 
-    lv_theme_t* theme =
-        lv_theme_mono_init(display_data->lv_display, true, &lv_font_haxrcorp4089_16);
-    lv_display_set_theme(display_data->lv_display, theme);
+    lv_theme_t* theme = lv_theme_mono_init(display->lv_display, true, &lv_font_haxrcorp4089_16);
+    lv_display_set_theme(display->lv_display, theme);
 }
 
-static void gui_init_input(Gui* instance) {
-    GuiDisplayData* display_data = &instance->display_data[GuiDisplayIdFront];
+static void gui_init_display_input(GuiDisplay* display, GuiInputEvent* event) {
     // Created input device gets associated with the default display
-    lv_display_t* front = display_data->lv_display;
-    lv_display_set_default(front);
-    // Newly created LVGL objects will be automatically added to the default group
-    lv_group_t* group = lv_group_create();
-    lv_group_set_default(group);
-
+    lv_display_set_default(display->lv_display);
+    // Create and initialise encoder
     lv_indev_t* encoder = lv_indev_create();
     lv_indev_set_type(encoder, LV_INDEV_TYPE_ENCODER);
     lv_indev_set_mode(encoder, LV_INDEV_MODE_EVENT);
-    lv_indev_set_group(encoder, group);
-    lv_indev_set_user_data(encoder, instance);
+    lv_indev_set_user_data(encoder, event);
     lv_indev_set_read_cb(encoder, gui_input_read_callback);
-
-    display_data->lv_indevs[GuiInputIdEncoder] = encoder;
-
+    display->lv_indevs[GuiInputIdEncoder] = encoder;
+    // Create and initialise buttons
     lv_indev_t* buttons = lv_indev_create();
     lv_indev_set_type(buttons, LV_INDEV_TYPE_KEYPAD);
     lv_indev_set_mode(buttons, LV_INDEV_MODE_EVENT);
-    lv_indev_set_group(buttons, group);
-    lv_indev_set_user_data(buttons, instance);
+    lv_indev_set_user_data(buttons, event);
     lv_indev_set_read_cb(buttons, gui_input_read_callback);
+    display->lv_indevs[GuiInputIdButtons] = buttons;
+}
 
-    display_data->lv_indevs[GuiInputIdButtons] = buttons;
+static void gui_init_input(Gui* instance) {
+    for(GuiDisplayId id = 0; id < GuiDisplayIdMax; ++id) {
+        gui_init_display_input(&instance->displays[id], &instance->input_event);
+    }
+
+    // TODO: Group management will be done in the Screen class
+    lv_group_t* default_group = lv_group_create();
+    lv_group_set_default(default_group);
+
+    GuiDisplay* front = &instance->displays[GuiDisplayIdFront];
+    for(GuiInputId id = 0; id < GuiInputIdMax; ++id) {
+        lv_indev_set_group(front->lv_indevs[id], default_group);
+    }
 
     FuriPubSub* input_events = furi_record_open(RECORD_INPUT_EVENTS);
     furi_pubsub_subscribe(input_events, gui_input_pubsub_callback, instance);
@@ -324,7 +319,7 @@ lv_display_t* gui_get_display(Gui* instance, GuiDisplayId display_id) {
     furi_check(display_id < GuiDisplayIdMax);
     furi_check(furi_mutex_get_owner(instance->access_mutex) == furi_thread_get_current_id());
 
-    return instance->display_data[display_id].lv_display;
+    return instance->displays[display_id].lv_display;
 }
 
 lv_obj_t* gui_get_layer(Gui* instance, GuiDisplayId display_id, GuiLayerId layer_id) {
@@ -333,7 +328,7 @@ lv_obj_t* gui_get_layer(Gui* instance, GuiDisplayId display_id, GuiLayerId layer
     furi_check(layer_id < GuiLayerIdMax);
     furi_check(furi_mutex_get_owner(instance->access_mutex) == furi_thread_get_current_id());
 
-    lv_display_t* display = instance->display_data[display_id].lv_display;
+    lv_display_t* display = instance->displays[display_id].lv_display;
 
     switch(layer_id) {
     case GuiLayerIdBottom:
