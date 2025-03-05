@@ -6,7 +6,9 @@ typedef struct {
     ColorHsv color;
 } RainbowGradient;
 
-RainbowGradient* rainbow_gradient_alloc(void) {
+RainbowGradient* rainbow_gradient_alloc(const Color* color) {
+    UNUSED(color);
+
     RainbowGradient* instance = malloc(sizeof(RainbowGradient));
     instance->color.s = 255;
     instance->color.v = 16;

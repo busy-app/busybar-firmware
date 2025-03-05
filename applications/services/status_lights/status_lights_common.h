@@ -13,26 +13,19 @@ extern "C" {
 /** Opaque StatusLights type declaration. */
 typedef struct StatusLights StatusLights;
 
-/** Status lights command type */
-typedef enum {
-    StatusLightsCommandSetManual, /**< Command to set manual color */
-    StatusLightsCommandSetPreset, /**< Command to set preset pattern */
-} StatusLightsCommandType;
-
 /** Status lights preset pattern */
 typedef enum {
+    StatusLightsPresetStatic, /**< Static color */
+    StatusLightsPresetFade, /**< White fade pattern */
     StatusLightsPresetRainbowGradient, /**< Rainbow gradient pattern */
-    StatusLightsPresetWhiteFade, /**< White fade pattern */
 
-    StatusLightsPresetNum, /**< Number of presets */
+    StatusLightsPresetMax, /**< Number of presets */
 } StatusLightsPreset;
 
+/** Status lights command */
 typedef struct {
-    StatusLightsCommandType type; /**< Command type */
-    union {
-        Color color; /**< Manual color settings */
-        StatusLightsPreset preset; /**< Preset pattern */
-    };
+    StatusLightsPreset preset; /**< Preset pattern */
+    Color color; /**< Color value */
 } StatusLightsCommand;
 
 #ifdef __cplusplus

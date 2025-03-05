@@ -9,7 +9,7 @@ extern "C" {
 extern const StatusLightsPresetBase status_ligth_preset_rainbow_gradient;
 extern const StatusLightsPresetBase status_ligth_preset_white_fade;
 
-extern const StatusLightsPresetBase* status_lights_preset_list[StatusLightsPresetNum];
+extern const StatusLightsPresetBase* const status_lights_preset_list[StatusLightsPresetMax];
 
 #ifdef __cplusplus
 }

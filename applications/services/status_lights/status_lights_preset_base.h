@@ -8,7 +8,7 @@ extern "C" {
 
 typedef void StatusLightsGenericPreset;
 
-typedef StatusLightsGenericPreset* (*StatusLightsPresetAlloc)(void);
+typedef StatusLightsGenericPreset* (*StatusLightsPresetAlloc)(const Color* color);
 typedef void (*StatusLightsPresetFree)(StatusLightsGenericPreset* instance);
 typedef void (*StatusLightsPresetRun)(StatusLightsGenericPreset* instance, Color* color);
 

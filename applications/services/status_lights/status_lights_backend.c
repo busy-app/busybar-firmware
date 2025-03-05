@@ -31,17 +31,19 @@ static void status_lights_timer_callback(void* context) {
 }
 
 static void status_lights_execute_command(StatusLights* instance, StatusLightsCommand command) {
+    furi_check(command.preset < StatusLightsPresetMax);
+
     // If previous pattern was running, stop it
     if(furi_event_loop_timer_is_running(instance->timer)) {
         furi_event_loop_timer_stop(instance->timer);
         instance->preset_api->free(instance->preset_instance);
     }
 
-    if(command.type == StatusLightsCommandSetManual) {
+    if(command.preset == StatusLightsPresetStatic) {
         furi_hal_pwm_set_rgb(command.color.r, command.color.g, command.color.b);
-    } else if(command.type == StatusLightsCommandSetPreset) {
+    } else {
         instance->preset_api = status_lights_preset_list[command.preset];
-        instance->preset_instance = instance->preset_api->alloc();
+        instance->preset_instance = instance->preset_api->alloc(&command.color);
 
         furi_check(instance->preset_api->period_ms > 0);
         furi_event_loop_timer_start(instance->timer, instance->preset_api->period_ms);
@@ -95,8 +97,8 @@ static StatusLights* status_lights_alloc() {
     furi_hal_pwm_start();
 
     StatusLightsCommand command = {
-        .type = StatusLightsCommandSetPreset,
         .preset = STATUS_LIGHTS_DEFAULT_PRESET,
+        .color = {0},
     };
     status_lights_execute_command(instance, command);
 
