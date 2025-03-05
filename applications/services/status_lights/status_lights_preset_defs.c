@@ -3,7 +3,7 @@
 #include <stddef.h>
 
 const StatusLightsPresetBase* const status_lights_preset_list[StatusLightsPresetMax] = {
-    [StatusLightsPresetStatic] = NULL, // Special case for static color
-    [StatusLightsPresetRainbowGradient] = &status_ligth_preset_rainbow_gradient,
-    [StatusLightsPresetFade] = &status_ligth_preset_white_fade,
+    [StatusLightsPresetStaticColor] = &status_lights_preset_static_color,
+    [StatusLightsPresetRainbowGradient] = &status_lights_preset_rainbow_gradient,
+    [StatusLightsPresetFade] = &status_lights_preset_fade,
 };

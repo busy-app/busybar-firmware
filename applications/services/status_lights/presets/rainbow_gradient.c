@@ -31,7 +31,7 @@ void rainbow_gradient_run(RainbowGradient* instance, Color* color) {
     *color = color_hsv_to_rgb(instance->color);
 }
 
-const StatusLightsPresetBase status_ligth_preset_rainbow_gradient = {
+const StatusLightsPresetBase status_lights_preset_rainbow_gradient = {
     .period_ms = 16,
     .alloc = (StatusLightsPresetAlloc)rainbow_gradient_alloc,
     .free = (StatusLightsPresetFree)rainbow_gradient_free,

@@ -5,24 +5,24 @@
 typedef struct {
     uint8_t tick;
     Color color;
-} WhiteFade;
+} Fade;
 
-static WhiteFade* white_fade_alloc(const Color* color) {
+static Fade* fade_alloc(const Color* color) {
     furi_check(color);
 
-    WhiteFade* instance = malloc(sizeof(WhiteFade));
+    Fade* instance = malloc(sizeof(Fade));
     instance->color = *color;
 
     return instance;
 }
 
-static void white_fade_free(WhiteFade* instance) {
+static void fade_free(Fade* instance) {
     furi_check(instance);
 
     free(instance);
 }
 
-static void white_fade_run(WhiteFade* instance, Color* color) {
+static void fade_run(Fade* instance, Color* color) {
     furi_check(instance);
     furi_check(color);
 
@@ -32,9 +32,9 @@ static void white_fade_run(WhiteFade* instance, Color* color) {
     color->b = instance->color.b / 128 * brightness;
 }
 
-const StatusLightsPresetBase status_ligth_preset_white_fade = {
+const StatusLightsPresetBase status_lights_preset_fade = {
     .period_ms = 10,
-    .alloc = (StatusLightsPresetAlloc)white_fade_alloc,
-    .free = (StatusLightsPresetFree)white_fade_free,
-    .run = (StatusLightsPresetRun)white_fade_run,
+    .alloc = (StatusLightsPresetAlloc)fade_alloc,
+    .free = (StatusLightsPresetFree)fade_free,
+    .run = (StatusLightsPresetRun)fade_run,
 };

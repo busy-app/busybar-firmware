@@ -26,7 +26,7 @@ void cli_command_status_lights(Cli* cli, FuriString* args, void* context) {
     }
 
     StatusLightsCommand command = {
-        .preset = StatusLightsPresetStatic,
+        .preset = StatusLightsPresetStaticColor,
         .color =
             {
                 .r = value[0],

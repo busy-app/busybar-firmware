@@ -18,7 +18,7 @@ struct StatusLights {
     const StatusLightsPresetBase* preset_api;
 };
 
-static void status_lights_timer_callback(void* context) {
+static void status_lights_run_pattern(void* context) {
     furi_assert(context);
 
     StatusLights* instance = context;
@@ -39,15 +39,12 @@ static void status_lights_execute_command(StatusLights* instance, StatusLightsCo
         instance->preset_api->free(instance->preset_instance);
     }
 
-    if(command.preset == StatusLightsPresetStatic) {
-        furi_hal_pwm_set_rgb(command.color.r, command.color.g, command.color.b);
-    } else {
-        instance->preset_api = status_lights_preset_list[command.preset];
-        instance->preset_instance = instance->preset_api->alloc(&command.color);
+    instance->preset_api = status_lights_preset_list[command.preset];
+    instance->preset_instance = instance->preset_api->alloc(&command.color);
 
-        furi_check(instance->preset_api->period_ms > 0);
-        furi_event_loop_timer_start(instance->timer, instance->preset_api->period_ms);
-    }
+    furi_check(instance->preset_api->period_ms > 0);
+    status_lights_run_pattern(instance);
+    furi_event_loop_timer_start(instance->timer, instance->preset_api->period_ms);
 }
 
 static void status_lights_message_queue_callback(FuriEventLoopObject* object, void* context) {
@@ -82,10 +79,7 @@ static StatusLights* status_lights_alloc() {
         status_lights_message_queue_callback,
         instance);
     instance->timer = furi_event_loop_timer_alloc(
-        instance->event_loop,
-        status_lights_timer_callback,
-        FuriEventLoopTimerTypePeriodic,
-        instance);
+        instance->event_loop, status_lights_run_pattern, FuriEventLoopTimerTypePeriodic, instance);
 
     instance->intercom = furi_record_open(RECORD_INTERCOM);
     intercom_set_rx_callback(
