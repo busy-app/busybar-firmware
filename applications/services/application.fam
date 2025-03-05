@@ -3,7 +3,7 @@ App(
     name="Basic services",
     apptype=FlipperAppType.METAPACKAGE,
     provides=[
-        # "audio",
+        "audio",
         "storage",
         "cli",
         # "gui",
@@ -19,6 +19,7 @@ App(
         "intercom",
         "wifi",
         "sockets",
+        "light_sensor",
     ],
     targets=["f20"],
 )

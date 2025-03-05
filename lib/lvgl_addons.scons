@@ -1,6 +1,6 @@
 Import("env")
 
-LIB_FOLDER = "lvgl_themes"
+LIB_FOLDER = "lvgl_addons"
 
 env.Append(
     CPPPATH=[
@@ -20,7 +20,10 @@ libenv.AppendUnique(
     ]
 )
 
-sources = libenv.Glob(LIB_FOLDER + "/*.c", source=True)
+sources = []
+sources += libenv.Glob(LIB_FOLDER + "/fonts/src/*.c", source=True)
+sources += libenv.Glob(LIB_FOLDER + "/themes/*.c", source=True)
+sources += libenv.Glob(LIB_FOLDER + "/fs/*.c", source=True)
 
 lib = libenv.StaticLibrary("${FW_LIB_NAME}", sources)
 libenv.Install("${LIB_DIST_DIR}", lib)

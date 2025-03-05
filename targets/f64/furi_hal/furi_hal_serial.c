@@ -2,6 +2,7 @@
 #include <furi_hal_serial_types_i.h>
 
 #include <furi_hal_resources.h>
+#include <furi_hal_cortex.h>
 #include <furi_hal_bus.h>
 #include <furi_hal_dma.h>
 
@@ -342,10 +343,21 @@ void furi_hal_serial_tx(FuriHalSerialHandle* handle, const uint8_t* buffer, size
     }
 }
 
-void furi_hal_serial_tx_wait_complete(FuriHalSerialHandle* handle) {
+bool furi_hal_serial_tx_wait_complete(FuriHalSerialHandle* handle, uint32_t timeout) {
     furi_check(handle);
-    while(!furi_hal_serial_resources[handle->id].periph->USR_b.TFE)
-        ;
+
+    bool success = false;
+
+    FuriHalCortexTimer timer = furi_hal_cortex_timer_get(timeout * 1000);
+
+    while(!furi_hal_cortex_timer_is_expired(timer)) {
+        if(furi_hal_serial_resources[handle->id].periph->USR_b.TFE) {
+            success = true;
+            break;
+        }
+    }
+
+    return success;
 }
 
 bool furi_hal_serial_rx_available(FuriHalSerialHandle* handle) {
