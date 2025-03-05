@@ -325,7 +325,7 @@ bool cli_worker_is_running(CliWorker* instance) {
 
 size_t cli_worker_add_rx_data(CliWorker* instance, uint8_t* data, size_t size) {
     furi_assert(instance);
-    size_t len = furi_stream_buffer_send(instance->rx_stream, data, size, 0);
+    size_t len = furi_stream_buffer_send(instance->rx_stream, data, size, 100);
     cli_worker_update_rx_event(instance);
     return len;
 }

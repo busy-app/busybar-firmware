@@ -2,6 +2,7 @@
 #include "cli_command_gpio.h"
 #include "cli_command_display.h"
 #include "cli_command_status_lights.h"
+#include "cli_command_light_sensor.h"
 
 #include <core/thread.h>
 #include <core/thread_list.h>
@@ -528,4 +529,5 @@ void cli_commands_init(Cli* cli) {
     cli_add_command(cli, "display", CliCommandFlagParallelSafe, cli_command_display, NULL);
     cli_add_command(
         cli, "status_lights", CliCommandFlagParallelSafe, cli_command_status_lights, NULL);
+        cli, "light_sensor", CliCommandFlagParallelSafe, cli_command_light_sensor, NULL);
 }
