@@ -1,67 +1,9 @@
-#include "gui.h"
-
-#include <furi.h>
-#include <lvgl.h>
-
-#include <input/input.h>
-#include <power_simple/power.h>
-#include <storage/storage.h>
-
-#include <lvgl_addons/themes/lv_theme_front.h>
-
-#include <ssd1320.h>
-#include <led_display/led_display.h>
+#include "gui_i.h"
 
 #include <lvgl_addons/fs/lv_fs.h>
+#include <lvgl_addons/themes/lv_theme_front.h>
 
 #define TAG "Gui"
-
-#define FRONT_W                (DOT_MATRIX_W)
-#define FRONT_H                (DOT_MATRIX_H)
-#define FRONT_COLOR_FORMAT     (LV_COLOR_FORMAT_RGB888)
-#define FRONT_BYTES_PER_PIXEL  (LV_COLOR_FORMAT_GET_SIZE(FRONT_COLOR_FORMAT))
-#define FRONT_DRAW_BUFFER_SIZE (FRONT_W * FRONT_H * FRONT_BYTES_PER_PIXEL)
-
-#define BACK_W                 (SSD1320_W)
-#define BACK_H                 (SSD1320_H)
-#define BACK_COLOR_FORMAT      (LV_COLOR_FORMAT_L8)
-#define BACK_BYTES_PER_PIXEL   (LV_COLOR_FORMAT_GET_SIZE(BACK_COLOR_FORMAT))
-#define BACK_DRAW_BUFFER_SIZE  (BACK_W * BACK_H * BACK_BYTES_PER_PIXEL)
-#define BACK_FRAME_BUFFER_SIZE (SSD1320_BUF_SIZE)
-
-#define TICK_PERIOD_MS (8)
-
-typedef struct {
-    GuiInputId id;
-    union {
-        struct {
-            int8_t diff;
-            lv_indev_state_t btn_state;
-        } encoder;
-        struct {
-            uint8_t key;
-            lv_indev_state_t state;
-        } button;
-    };
-} GuiInputEvent;
-
-typedef struct {
-    lv_display_t* lv_display;
-    lv_indev_t* lv_indevs[GuiInputIdMax];
-    uint8_t* draw_buffer;
-    uint8_t* frame_buffer;
-} GuiDisplayData;
-
-struct Gui {
-    Power* power;
-    Storage* storage;
-    FuriEventLoop* event_loop;
-    FuriMessageQueue* input_queue;
-    FuriMutex* access_mutex;
-    DotMatrixSrv* dot_matrix;
-    GuiDisplayData display_data[GuiDisplayIdMax];
-    GuiInputEvent input_event;
-};
 
 // TODO: Optimise conversion?
 static void gui_l8_to_l4(uint8_t* dst, const uint8_t* src) {
@@ -324,14 +266,10 @@ static void gui_init_input(Gui* instance) {
 
 static Gui* gui_alloc(void) {
     Gui* instance = malloc(sizeof(Gui));
-
     // Must be first to ensure that power subsystem is OK
     instance->power = furi_record_open(RECORD_POWER);
     // TODO: Subscribe to power subsystem events
     // TODO: React on overheat or low power budget by limiting brightness
-
-    instance->storage = furi_record_open(RECORD_STORAGE);
-
     instance->event_loop = furi_event_loop_alloc();
     instance->access_mutex = furi_mutex_alloc(FuriMutexTypeNormal);
     instance->dot_matrix = furi_record_open(RECORD_DOT_MATRIX);
@@ -347,6 +285,7 @@ static Gui* gui_alloc(void) {
     furi_event_loop_tick_set(instance->event_loop, TICK_PERIOD_MS, gui_tick_callback, instance);
 
     lv_init();
+    lv_storage_driver_init();
     lv_tick_set_cb(furi_get_tick);
     lv_delay_set_cb(furi_delay_ms);
     lv_log_register_print_cb(gui_log_callback);
@@ -354,7 +293,6 @@ static Gui* gui_alloc(void) {
     gui_init_front(instance);
     gui_init_back(instance);
     gui_init_input(instance);
-    gui_lvgl_fs_init(instance->storage);
 
     furi_record_create(RECORD_GUI, instance);
     return instance;
