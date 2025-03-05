@@ -152,6 +152,7 @@ static FURI_ALWAYS_INLINE void intercom_process_sync_requested_event(Intercom* i
 #else
 #error "Unsupported target"
 #endif
+        furi_hal_serial_clear(instance->serial, FuriHalSerialDirectionTxRx);
         furi_hal_serial_dma_rx_start(
             instance->serial, (void*)&instance->rx_frame, sizeof(IntercomFrame));
     } else {

@@ -9,7 +9,7 @@
 
 #include <lvgl_addons/themes/lv_theme_front.h>
 
-#include <ssd1320.h>
+#include <ssd1320/ssd1320.h>
 #include <led_display/led_display.h>
 
 #include <lvgl_addons/fs/lv_fs.h>
