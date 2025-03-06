@@ -5,7 +5,7 @@ App(
     provides=[
         # "storage_benchmark",
         # "crash_test",
-        # "lightsensor_test",
+        "light_sensor_test",
         "led_display_test",
         # "led_indicator",
         # "power_test",

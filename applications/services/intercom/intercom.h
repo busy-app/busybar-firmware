@@ -28,6 +28,7 @@ typedef enum {
     IntercomChannelInput, /**< Input handling */
     IntercomChannelWifi, /**< Wireless network handling */
     IntercomChannelSockets, /**< Network sockets handling */
+    IntercomChannelStatusLights, /**< Status lights handling */
     /* Add more channels here as needed */
     IntercomChannelDebug = 15, /**< Testing, debugging, etc */
     IntercomChannelMax, /**< Special value for internal use */

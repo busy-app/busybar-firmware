@@ -18,6 +18,8 @@ App(
         "intercom",
         "wifi",
         "sockets",
+        "status_lights",
+        "light_sensor",
     ],
     targets=["f20"],
 )
@@ -29,7 +31,7 @@ App(
     provides=[
         # "cli", # Enabled in "hwtest" fw config (FIRMWARE_APP_SET)
         "input",
-        "notification",
+        "status_lights",
     ],
     targets=["f64"],
 )

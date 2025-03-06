@@ -1,0 +1,9 @@
+App(
+    appid="light_sensor",
+    name="LightSensorSrv",
+    apptype=FlipperAppType.SERVICE,
+    entry_point="light_sensor_srv",
+    stack_size=1024,
+    order=80,
+    targets=["f20"],
+)
