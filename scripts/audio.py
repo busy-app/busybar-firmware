@@ -1,17 +1,16 @@
 #!/usr/bin/env python3
 # How to use:
-# audio.py convert click_1.wav click_1.inc
+# audio.py convert input.mp3 output.wav
 
 from flipper.app import App
 import subprocess
-import array
 
 
 class Main(App):
     def init(self):
         self.subparsers = self.parser.add_subparsers(help="sub-command help")
         self.parser_convert = self.subparsers.add_parser(
-            "convert", help="Process icons and build icon registry"
+            "convert", help="Convert audio file using FFmpeg"
         )
         self.parser_convert.add_argument("source", help="Source file")
         self.parser_convert.add_argument("destination", help="Destination file")
@@ -32,15 +31,10 @@ class Main(App):
             "1",
             "-ar",
             "44100",
-            "-",  # stdout
+            self.args.destination,
         )
-        print(" ".join(ffmpeg))
-        with open(self.args.destination, "w") as file_output:
-            with subprocess.Popen(ffmpeg, stdout=subprocess.PIPE) as proc:
-                while data := proc.stdout.read(4096):
-                    data_input = array.array("h", data)
-                    data_block = ", ".join(str(i) for i in data_input)
-                    file_output.write(data_block + ",\n")
+        print("Running command:", " ".join(ffmpeg))
+        subprocess.run(ffmpeg, check=True)
         return 0
 
 
