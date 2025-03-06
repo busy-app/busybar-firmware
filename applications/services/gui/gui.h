@@ -34,8 +34,6 @@ void gui_lock(Gui* instance);
 
 void gui_unlock(Gui* instance);
 
-lv_display_t* gui_get_display(Gui* instance, GuiDisplayId display_id);
-
 lv_obj_t* gui_get_layer(Gui* instance, GuiDisplayId display_id, GuiLayerId layer_id);
 
 #define with_gui(gui, code) \

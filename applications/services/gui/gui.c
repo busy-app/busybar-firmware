@@ -5,6 +5,8 @@
 
 #define TAG "Gui"
 
+#define IS_OWNER(mtx) (furi_mutex_get_owner(mtx) == furi_thread_get_current_id())
+
 static void
     gui_flush_front_callback(lv_display_t* lv_display, const lv_area_t* area, uint8_t* px_map) {
     UNUSED(area);
@@ -314,19 +316,11 @@ void gui_unlock(Gui* instance) {
     furi_check(furi_mutex_release(instance->access_mutex) == FuriStatusOk);
 }
 
-lv_display_t* gui_get_display(Gui* instance, GuiDisplayId display_id) {
-    furi_check(instance);
-    furi_check(display_id < GuiDisplayIdMax);
-    furi_check(furi_mutex_get_owner(instance->access_mutex) == furi_thread_get_current_id());
-
-    return instance->displays[display_id].lv_display;
-}
-
 lv_obj_t* gui_get_layer(Gui* instance, GuiDisplayId display_id, GuiLayerId layer_id) {
     furi_check(instance);
     furi_check(display_id < GuiDisplayIdMax);
     furi_check(layer_id < GuiLayerIdMax);
-    furi_check(furi_mutex_get_owner(instance->access_mutex) == furi_thread_get_current_id());
+    furi_check(IS_OWNER(instance->access_mutex));
 
     lv_display_t* display = instance->displays[display_id].lv_display;
 
