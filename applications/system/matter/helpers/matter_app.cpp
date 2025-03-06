@@ -7,7 +7,7 @@
 void matter_app_init(void) {
     //sl_mbedtls_init();
 
-    //SilabsMatterConfig::AppInit();
+    SilabsMatterConfig::AppInit();
 
     //ChipLogProgress(DeviceLayer, "==================================================");
 

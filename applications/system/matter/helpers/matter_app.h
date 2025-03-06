@@ -4,7 +4,7 @@
 extern "C" {
 #endif
 
-//void matter_app_init(void);
+void matter_app_init(void);
 
 #ifdef __cplusplus
 }

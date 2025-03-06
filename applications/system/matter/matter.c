@@ -2,23 +2,14 @@
 #include <furi.h>
 #include <args.h>
 #include <cli_worker.h>
-//#include "helpers/matter_app.h"
-
-//#include <lib/matter_ext/third_party/matter_sdk/src/lib/support/logging/TextOnlyLogging.h>
-//#include <sl_mbedtls.h>
-//#include <MatterConfig.h>
+#include "helpers/matter_app.h"
 
 void matter_command_start(Cli* cli, FuriString* args, void* context) {
     UNUSED(cli);
     UNUSED(context);
     UNUSED(args);
 
-    //matter_app_init();
-    //sl_mbedtls_init();
-
-    //SilabsMatterConfig::AppInit();
-
-    //ChipLogProgress(DeviceLayer, "==================================================");
+    matter_app_init();
 
     printf("\r\nExit Matter app\r\n");
 }
