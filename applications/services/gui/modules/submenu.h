@@ -1,6 +1,6 @@
 /**
  * @file submenu.h
- * GUI: SubMenu view module API
+ * @brief Plain text menu widget.
  */
 #pragma once
 
@@ -10,68 +10,75 @@
 extern "C" {
 #endif
 
-/** Submenu opaque structure */
+/** Submenu opaque structure. */
 typedef struct Submenu Submenu;
 
-/** Submenu item callback */
+/**
+ * @brief Submenu item callback function type.
+ *
+ * @param[in] index index value that the item was created with
+ * @param[in,out] context pointer to a user-specific object
+ */
+
 typedef void (*SubmenuItemCallback)(uint32_t index, void* context);
 
-/** Allocate and initialize submenu 
- * 
- * This submenu is used to select one option
+/**
+ * @brief Create a new Submenu instance.
  *
- * @return     Submenu instance
+ * @param[in,out] view_port pointer to the parent ViewPort instance
+ *
+ * @returns pointer to the newly created Submenu instance
  */
 Submenu* submenu_alloc(ViewPort* view_port);
 
-/** Deinitialize and free submenu
+/**
+ * @brief Delete a Submenu instance.
  *
- * @param      submenu  Submenu instance
+ * @param[in,out] instance pointer to the submenu instance to be deleted
  */
-void submenu_free(Submenu* submenu);
+void submenu_free(Submenu* instance);
 
-/** Add item to submenu
+/**
+ * @brief Add an item to a Submenu instance.
  *
- * @param      submenu           Submenu instance
- * @param      label             menu item label
- * @param      index             menu item index used for callback, does not have to be unique
- * @param      callback          menu item callback
- * @param      context           menu item callback context
+ * @param[in,out] instance pointer to the Submenu instance to be modified
+ * @param[in] label zero-terminated string containing the item text
+ * @param[in] index item identifier, doesn't have to be unique
+ * @param[in] callback pointer to the function to be called when the item is clicked
+ * @param[in,out] context pointer to a user-specific object, will be passed to callback
  */
 void submenu_add_item(
-    Submenu* submenu,
+    Submenu* instance,
     const char* label,
     uint32_t index,
     SubmenuItemCallback callback,
     void* context);
 
-/** Remove all items from submenu
+/**
+ * @brief Remove all items from a Submenu instance.
  *
- * @param      submenu  Submenu instance
+ * @param[in,out] instance pointer to the Submenu instance to be modified
  */
-void submenu_reset(Submenu* submenu);
+void submenu_reset(Submenu* instance);
 
-/** Get submenu selected item index
+/**
+ * @brief Get the index of the selected item in a Submenu instance.
  *
- * @param      submenu  Submenu instance
+ * @param[in] instance pointer to the Submenu instance to be queried
  *
- * @return     Index of the selected item
+ * @returns index of the selected item that was provided when adding it
  */
-uint32_t submenu_get_selected_item(Submenu* submenu);
+uint32_t submenu_get_selected_item_index(const Submenu* instance);
 
-/** Set submenu selected item by index
+/**
+ * @brief Select the item in a Submenu instance with a matching index
  *
- * @param      submenu  Submenu instance
- * @param      index    The index of the selected item
- */
-void submenu_set_selected_item(Submenu* submenu, uint32_t index);
-
-/** Set optional header for submenu
+ * @note If two or more items share the same index, only the first of them will be selected.
  *
- * @param      submenu  Submenu instance
- * @param      header   header to set
+ * @param[in,out] instance pointer to the Submenu instance to be modified
+ * @param[in] index the index of the item to be selected
  */
-void submenu_set_header(Submenu* submenu, const char* header);
+void submenu_set_selected_item_index(Submenu* instance, uint32_t index);
 
 #ifdef __cplusplus
 }

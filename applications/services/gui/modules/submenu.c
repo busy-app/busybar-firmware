@@ -105,6 +105,24 @@ void submenu_add_item(
     lv_obj_add_event_cb(item, submenu_item_event_callback, LV_EVENT_SINGLE_CLICKED, NULL);
 }
 
+void submenu_reset(Submenu* instance) {
+    furi_check(instance);
+    lv_obj_clean((lv_obj_t*)instance);
+}
+
+uint32_t submenu_get_selected_item_index(const Submenu* instance) {
+    furi_check(instance);
+    // For later
+    furi_crash("Not implemented");
+}
+
+void submenu_set_selected_item_index(Submenu* instance, uint32_t index) {
+    furi_check(instance);
+    UNUSED(index);
+    // For later
+    furi_crash("Not implemented");
+}
+
 const lv_obj_class_t lv_submenu_class = {
     .base_class = &lv_obj_class,
     .name = "submenu",
