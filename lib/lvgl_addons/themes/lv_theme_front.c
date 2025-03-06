@@ -2,13 +2,12 @@
  * @file lv_theme_front.c
  *
  */
-
 #include "lv_theme_front.h"
 
 #include <lvgl.h>
 
-#include <lvgl/src/themes/lv_theme_private.h>
 #include <lvgl/src/core/lv_global.h>
+#include <lvgl/src/themes/lv_theme_private.h>
 
 /*********************
  *      DEFINES
@@ -22,6 +21,10 @@ typedef struct _my_theme_t my_theme_t;
 #define COLOR_FG_FOCUSED lv_color_white()
 #define SCROLLBAR_WIDTH  1
 
+/** Custom widgets */
+extern const lv_obj_class_t lv_submenu_class;
+extern const lv_obj_class_t lv_submenu_item_class;
+
 /**********************
  *      TYPEDEFS
  **********************/
@@ -34,7 +37,7 @@ typedef struct {
     lv_style_t normal;
     lv_style_t focused;
     //     lv_style_t dim;
-    // lv_style_t scrollbar;
+    lv_style_t scrollbar;
     // #if LV_USE_ARC
     //     lv_style_t arc_line;
     //     lv_style_t arc_knob;
@@ -71,10 +74,10 @@ static void theme_apply(lv_theme_t* th, lv_obj_t* obj);
  **********************/
 
 static void style_init(my_theme_t* theme) {
-    // style_init_reset(&theme->styles.scrollbar);
-    // lv_style_set_bg_opa(&theme->styles.scrollbar, LV_OPA_COVER);
-    // lv_style_set_bg_color(&theme->styles.scrollbar, COLOR_BG_NORMAL);
-    // lv_style_set_width(&theme->styles.scrollbar, SCROLLBAR_WIDTH);
+    style_init_reset(&theme->styles.scrollbar);
+    lv_style_set_bg_opa(&theme->styles.scrollbar, LV_OPA_COVER);
+    lv_style_set_bg_color(&theme->styles.scrollbar, COLOR_FG_FOCUSED);
+    lv_style_set_width(&theme->styles.scrollbar, SCROLLBAR_WIDTH);
 
     style_init_reset(&theme->styles.screen);
     lv_style_set_bg_opa(&theme->styles.screen, LV_OPA_COVER);
@@ -104,11 +107,13 @@ static void style_init(my_theme_t* theme) {
     lv_style_set_bg_opa(&theme->styles.normal, LV_OPA_COVER);
     lv_style_set_bg_color(&theme->styles.normal, COLOR_BG_NORMAL);
     lv_style_set_text_color(&theme->styles.normal, COLOR_FG_NORMAL);
+    lv_style_set_text_font(&theme->styles.normal, &lv_font_tiny5_8);
 
     style_init_reset(&theme->styles.focused);
     lv_style_set_bg_opa(&theme->styles.focused, LV_OPA_COVER);
     lv_style_set_bg_color(&theme->styles.focused, COLOR_BG_NORMAL);
     lv_style_set_text_color(&theme->styles.focused, COLOR_FG_FOCUSED);
+    lv_style_set_text_font(&theme->styles.focused, &lv_font_tiny5_8);
 
     // style_init_reset(&theme->styles.dim);
     // lv_style_set_bg_opa(&theme->styles.dim, LV_OPA_COVER);
@@ -203,7 +208,7 @@ static void theme_apply(lv_theme_t* th, lv_obj_t* obj) {
 
     if(parent == NULL) {
         lv_obj_add_style(obj, &theme->styles.screen, LV_PART_MAIN);
-        // lv_obj_add_style(obj, &theme->styles.scrollbar, LV_PART_SCROLLBAR);
+        lv_obj_add_style(obj, &theme->styles.scrollbar, LV_PART_SCROLLBAR);
         return;
     }
 
@@ -373,7 +378,7 @@ static void theme_apply(lv_theme_t* th, lv_obj_t* obj) {
 #if LV_USE_LIST
     else if(lv_obj_check_type(obj, &lv_list_class)) {
         lv_obj_add_style(obj, &theme->styles.normal, LV_PART_MAIN);
-        // lv_obj_add_style(obj, &theme->styles.scrollbar, LV_PART_SCROLLBAR);
+        lv_obj_add_style(obj, &theme->styles.scrollbar, LV_PART_SCROLLBAR);
         return;
     } else if(lv_obj_check_type(obj, &lv_list_text_class)) {
     } else if(lv_obj_check_type(obj, &lv_list_button_class)) {
@@ -407,6 +412,13 @@ static void theme_apply(lv_theme_t* th, lv_obj_t* obj) {
         lv_obj_add_style(obj, &theme->styles.light, 0);
     }
 #endif
+    else if(lv_obj_check_type(obj, &lv_submenu_class)) {
+        lv_obj_add_style(obj, &theme->styles.normal, LV_PART_MAIN);
+        lv_obj_add_style(obj, &theme->styles.scrollbar, LV_PART_SCROLLBAR);
+    } else if(lv_obj_check_type(obj, &lv_submenu_item_class)) {
+        lv_obj_add_style(obj, &theme->styles.normal, LV_PART_MAIN);
+        lv_obj_add_style(obj, &theme->styles.focused, LV_PART_MAIN | LV_STATE_FOCUSED);
+    }
 }
 
 /**********************
