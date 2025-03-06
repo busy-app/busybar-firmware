@@ -32,7 +32,7 @@ App(
     provides=[
         # "cli", # Enabled in "hwtest" fw config (FIRMWARE_APP_SET)
         "input",
-        "status_lights",
+        #"status_lights", #ToDo FIX Intercom
     ],
     targets=["f64"],
 )

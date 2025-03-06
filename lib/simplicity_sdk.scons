@@ -26,9 +26,15 @@ env.Append(
         Dir(f"{SDK_INCDIR}/platform/emdrv/common/inc").rdir(),
         Dir(f"{SDK_INCDIR}/platform/emdrv/nvm3/inc").rdir(),
         Dir(f"{SDK_INCDIR}/platform/emdrv/nvm3/config").rdir(),
+        # Matter
+        Dir(
+            f"{SDK_INCDIR}/platform/security/sl_component/sl_mbedtls_support/inc"
+        ).rdir(),
+        Dir(f"{SDK_INCDIR}/util/third_party/mbedtls/include/").rdir(),
+        Dir(f"{SDK_INCDIR}/util/third_party/openthread/include").rdir(),
     ],
     CPPDEFINES=[
-        # SDK Wifi Silabs
+        # SDK Wifi Silabss
         "SI917",
         "SLI_SI917",
         "SLI_SI917B0",
@@ -42,7 +48,7 @@ env.Append(
     ],
 )
 
-libenv = env.Clone(FW_LIB_NAME="simplicity_sdk")
+libenv = env.Clone(FW_LIB_NAME=SDK_DIR)
 libenv.ApplyLibFlags()
 
 sources = [
@@ -57,7 +63,9 @@ sources = [
     f"{SDK_DIR}/platform/emdrv/nvm3/src/nvm3_object.c",
     f"{SDK_DIR}/platform/emdrv/nvm3/src/nvm3_page.c",
     f"{SDK_DIR}/platform/emdrv/nvm3/src/nvm3_utils.c",
-]
+    # Matter
+    f"{SDK_DIR}/platform/security/sl_component/sl_mbedtls_support/src/sl_mbedtls.c",
+]   
 
 lib = libenv.StaticLibrary("${FW_LIB_NAME}", sources)
 libenv.Install("${LIB_DIST_DIR}", lib)

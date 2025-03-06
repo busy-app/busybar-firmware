@@ -1,10 +1,32 @@
 Import("env")
 
 LIB_FOLDER = "matter_ext"
+LIB_INCDIR = f"#/lib/{LIB_FOLDER}"
+
+LIB_ZAP_FOLDER = "matter_zap"
+LIB_ZAP_INCDIR = f"#/lib/{LIB_ZAP_FOLDER}"
 
 env.Append(
     CPPPATH=[
         Dir(LIB_FOLDER).srcnode(),
+        ####
+        Dir(f"{LIB_INCDIR}/slc/inc").rdir(),
+        Dir(f"{LIB_INCDIR}/third_party/matter_sdk/src").rdir(),
+        Dir(f"{LIB_INCDIR}/third_party/matter_sdk/src/include").rdir(),
+        Dir(f"{LIB_INCDIR}/third_party/matter_sdk/examples/platform/silabs/").rdir(),
+        Dir(f"{LIB_ZAP_INCDIR}/zap-generated").rdir(),
+        Dir(f"{LIB_INCDIR}/third_party/nlassert/include/").rdir(),
+        Dir(f"{LIB_INCDIR}/third_party/nlio/include").rdir(),
+        Dir(f"{LIB_INCDIR}/third_party/matter_sdk/src/platform/silabs/rs911x").rdir(),
+    
+    ],
+    CPPFLAGS=[
+        #"-Wno-error",
+        "-Wno-unused-parameter",
+        #"-Wno-missing-field-initializers",
+    ],
+    CPPDEFINES=[
+        "CHIP_HAVE_CONFIG_H=1",
     ],
 )
 
@@ -16,8 +38,8 @@ libenv.AppendUnique(
     CPPPATH=[
         Dir("matter_ext/slc/inc").srcnode(),
         Dir("matter_ext/slc/config").srcnode(),
-        Dir("matter_ext/third_party/matter_sdk/src/include").srcnode(),
         Dir("matter_ext/third_party/matter_sdk/src").srcnode(),
+        Dir("matter_ext/third_party/matter_sdk/src/include").srcnode(),
         Dir("matter_ext/third_party/matter_sdk/src/lwip/freertos").srcnode(),
         Dir("matter_ext/third_party/matter_sdk/src/platform/silabs/SiWx917").srcnode(),
         Dir("matter_ext/third_party/matter_sdk/src/platform/silabs/rs911x").srcnode(),
@@ -32,6 +54,8 @@ libenv.AppendUnique(
     ],
     CPPFLAGS=[
         "-Wno-error",
+        "-Wno-unused-parameter",
+        "-Wno-missing-field-initializers",
     ],
     CPPDEFINES=[
         "__STARTUP_CLEAR_BSS=1",

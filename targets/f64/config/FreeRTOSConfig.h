@@ -155,4 +155,6 @@ header file. */
 #endif
 
 // Must be last line of config because of recursion
+#ifndef __cplusplus
 #include <core/check.h>
+#endif

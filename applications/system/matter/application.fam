@@ -1,0 +1,11 @@
+App(
+    appid="matter_start",
+    targets=["f64"],
+    apptype=FlipperAppType.STARTUP,
+    entry_point="matter_system_start",
+    sources=[
+        "matter.c",
+        "helpers/matter_app.cpp",
+    ],
+    order=40,
+)
