@@ -4,14 +4,6 @@
 
 #define MY_CLASS (&lv_view_port_class)
 
-const lv_obj_class_t lv_view_port_class = {
-    .base_class = &lv_obj_class,
-    .name = "view-port",
-    .width_def = LV_PCT(100),
-    .height_def = LV_PCT(100),
-    .instance_size = sizeof(ViewPort),
-};
-
 ViewPort* view_port_alloc(Gui* gui, GuiDisplayId display_id, GuiLayerId layer_id) {
     // Input parameter checks are done in the first call
     lv_obj_t* active_layer = gui_get_layer(gui, display_id, layer_id);
@@ -60,3 +52,11 @@ void view_port_move_to_background(ViewPort* instance) {
     furi_check(instance);
     lv_obj_move_background((lv_obj_t*)instance);
 }
+
+const lv_obj_class_t lv_view_port_class = {
+    .base_class = &lv_obj_class,
+    .name = "view-port",
+    .width_def = LV_PCT(100),
+    .height_def = LV_PCT(100),
+    .instance_size = sizeof(ViewPort),
+};
