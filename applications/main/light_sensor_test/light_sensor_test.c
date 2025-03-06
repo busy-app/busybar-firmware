@@ -5,19 +5,19 @@
 #define TAG "LightSensorTest"
 
 static void light_sensor_test_app_update(LightSensorTestApp* instance) {
-    gui_lvgl_acquire(instance->gui);
-
-    // Back screen
-    lv_label_set_text_fmt(
-        instance->label_light_raw,
-        "600nm: %d, 840nm: %d",
-        instance->raw_600nm,
-        instance->raw_840nm);
-    lv_label_set_text_fmt(instance->label_lux_instant, "Lux instant: %.2f", instance->lux_instant);
-    lv_label_set_text_fmt(instance->label_lux_mean, "Lux mean: %.2f", instance->lux_mean);
-    lv_label_set_text_fmt(instance->label_light_level, "Light level: %d", instance->light_level);
-
-    gui_lvgl_release(instance->gui);
+    with_gui(instance->gui, {
+        // Back screen
+        lv_label_set_text_fmt(
+            instance->label_light_raw,
+            "600nm: %d, 840nm: %d",
+            instance->raw_600nm,
+            instance->raw_840nm);
+        lv_label_set_text_fmt(
+            instance->label_lux_instant, "Lux instant: %.2f", instance->lux_instant);
+        lv_label_set_text_fmt(instance->label_lux_mean, "Lux mean: %.2f", instance->lux_mean);
+        lv_label_set_text_fmt(
+            instance->label_light_level, "Light level: %d", instance->light_level);
+    });
 }
 
 static void light_sensor_test_app_keypad_callback(lv_event_t* event) {
@@ -107,36 +107,35 @@ static LightSensorTestApp* light_sensor_test_app_alloc(void) {
     instance->light_sensor_subscription = furi_pubsub_subscribe(
         instance->light_sensor_events, light_sensor_test_app_light_sensor_callback, instance);
 
-    instance->gui = furi_record_open(RECORD_GUI_LVGL);
-    gui_lvgl_acquire(instance->gui);
+    instance->gui = furi_record_open(RECORD_GUI);
 
-    lv_obj_t* active = gui_lvgl_get_layer(instance->gui, GuiDisplayIdBack, GuiLayerIdActive);
+    with_gui(instance->gui, {
+        lv_obj_t* active = gui_get_layer(instance->gui, GuiDisplayIdBack, GuiLayerIdActive);
 
-    // Back screen
-    instance->label_light_raw = lv_label_create(active);
-    lv_obj_set_pos(instance->label_light_raw, 10, 0);
-    lv_obj_set_style_text_color(instance->label_light_raw, lv_color_white(), LV_PART_MAIN);
+        // Back screen
+        instance->label_light_raw = lv_label_create(active);
+        lv_obj_set_pos(instance->label_light_raw, 10, 0);
+        lv_obj_set_style_text_color(instance->label_light_raw, lv_color_white(), LV_PART_MAIN);
 
-    instance->label_lux_instant = lv_label_create(active);
-    lv_obj_set_pos(instance->label_lux_instant, 10, 10);
-    lv_obj_set_style_text_color(instance->label_lux_instant, lv_color_white(), LV_PART_MAIN);
+        instance->label_lux_instant = lv_label_create(active);
+        lv_obj_set_pos(instance->label_lux_instant, 10, 10);
+        lv_obj_set_style_text_color(instance->label_lux_instant, lv_color_white(), LV_PART_MAIN);
 
-    instance->label_lux_mean = lv_label_create(active);
-    lv_obj_set_pos(instance->label_lux_mean, 10, 30);
-    lv_obj_set_style_text_color(instance->label_lux_mean, lv_color_white(), LV_PART_MAIN);
+        instance->label_lux_mean = lv_label_create(active);
+        lv_obj_set_pos(instance->label_lux_mean, 10, 30);
+        lv_obj_set_style_text_color(instance->label_lux_mean, lv_color_white(), LV_PART_MAIN);
 
-    instance->label_light_level = lv_label_create(active);
-    lv_obj_set_pos(instance->label_light_level, 10, 40);
-    lv_obj_set_style_text_color(instance->label_light_level, lv_color_white(), LV_PART_MAIN);
+        instance->label_light_level = lv_label_create(active);
+        lv_obj_set_pos(instance->label_light_level, 10, 40);
+        lv_obj_set_style_text_color(instance->label_light_level, lv_color_white(), LV_PART_MAIN);
 
-    // Input events
-    active = gui_lvgl_get_layer(instance->gui, GuiDisplayIdFront, GuiLayerIdActive);
-    instance->dummy_input = lv_label_create(active);
-    lv_group_add_obj(lv_group_get_default(), instance->dummy_input);
-    lv_obj_add_event_cb(
-        instance->dummy_input, light_sensor_test_app_keypad_callback, LV_EVENT_KEY, instance);
-
-    gui_lvgl_release(instance->gui);
+        // Input events
+        active = gui_get_layer(instance->gui, GuiDisplayIdFront, GuiLayerIdActive);
+        instance->dummy_input = lv_label_create(active);
+        lv_group_add_obj(lv_group_get_default(), instance->dummy_input);
+        lv_obj_add_event_cb(
+            instance->dummy_input, light_sensor_test_app_keypad_callback, LV_EVENT_KEY, instance);
+    });
 
     light_sensor_test_app_get_measurements(instance);
     light_sensor_test_app_update(instance);
@@ -149,17 +148,15 @@ static LightSensorTestApp* light_sensor_test_app_alloc(void) {
 static void light_sensor_test_app_free(LightSensorTestApp* instance) {
     furi_check(instance);
 
-    gui_lvgl_acquire(instance->gui);
+    with_gui(instance->gui, {
+        lv_obj_delete(instance->label_light_raw);
+        lv_obj_delete(instance->label_lux_instant);
+        lv_obj_delete(instance->label_lux_mean);
+        lv_obj_delete(instance->label_light_level);
+        lv_obj_delete(instance->dummy_input);
+    });
 
-    lv_obj_delete(instance->label_light_raw);
-    lv_obj_delete(instance->label_lux_instant);
-    lv_obj_delete(instance->label_lux_mean);
-    lv_obj_delete(instance->label_light_level);
-    lv_obj_delete(instance->dummy_input);
-
-    gui_lvgl_release(instance->gui);
-
-    furi_record_close(RECORD_GUI_LVGL);
+    furi_record_close(RECORD_GUI);
 
     furi_pubsub_unsubscribe(instance->light_sensor_events, instance->light_sensor_subscription);
     furi_record_close(RECORD_LIGHT_SENSOR_EVENTS);

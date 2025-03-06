@@ -1,7 +1,7 @@
 #pragma once
 
 #include <furi.h>
-#include <gui_lvgl/gui_lvgl.h>
+#include <gui/gui.h>
 
 #include <light_sensor/light_sensor.h>
 
@@ -21,7 +21,7 @@ typedef struct {
     FuriEventLoop* event_loop;
     FuriMessageQueue* event_queue;
     FuriEventLoopTimer* timer;
-    GuiLvgl* gui;
+    Gui* gui;
 
     FuriPubSub* light_sensor_events;
     FuriPubSubSubscription* light_sensor_subscription;

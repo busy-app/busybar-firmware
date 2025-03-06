@@ -5,7 +5,7 @@
 #include <furi.h>
 #include <lvgl.h>
 
-#include <ssd1320.h>
+#include <ssd1320/ssd1320.h>
 
 #include <input/input.h>
 #include <power_simple/power.h>
