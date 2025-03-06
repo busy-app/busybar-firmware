@@ -21,6 +21,8 @@ void view_port_set_height(ViewPort* instance, int32_t height);
 
 void view_port_set_size(ViewPort* instance, int32_t width, int32_t height);
 
+void view_port_set_enabled(ViewPort* instance, bool enabled);
+
 void view_port_move_to_foreground(ViewPort* instance);
 
 void view_port_move_to_background(ViewPort* instance);

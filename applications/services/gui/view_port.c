@@ -42,6 +42,15 @@ void view_port_set_size(ViewPort* instance, int32_t width, int32_t height) {
     lv_obj_set_size((lv_obj_t*)instance, width, height);
 }
 
+void view_port_set_enabled(ViewPort* instance, bool enabled) {
+    furi_check(instance);
+    if(enabled) {
+        lv_obj_remove_flag((lv_obj_t*)instance, LV_OBJ_FLAG_HIDDEN);
+    } else {
+        lv_obj_add_flag((lv_obj_t*)instance, LV_OBJ_FLAG_HIDDEN);
+    }
+}
+
 void view_port_move_to_foreground(ViewPort* instance) {
     furi_check(instance);
     lv_obj_move_foreground((lv_obj_t*)instance);
