@@ -64,8 +64,17 @@
 #include <stdint.h>
 #include <stddef.h>
 
-#include <furi.h>
+//#include <furi.h>
 #include <stdlib.h>
+#include <furi/core/common_defines.h>
+//#include <furi/core/check.h> //ToDo: Fix m-lib
+#include <furi/core/thread.h>
+#include <furi/core/event_loop.h>
+#include <furi/core/semaphore.h>
+#include <furi/core/mutex.h>
+#include <furi/core/event_flag.h>
+#include <furi/core/kernel.h>
+#include <furi/core/message_queue.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -200,8 +209,8 @@ typedef void (*osThreadFunc_t)(void* argument);
 #define osFlagsErrorISR       ((uint32_t)FuriFlagErrorISR)
 
 // // Thread attributes (attr_bits in \ref osThreadAttr_t).
-// #define osThreadDetached      0x00000000U ///< Thread created in detached mode (default)
-// #define osThreadJoinable      0x00000001U ///< Thread created in joinable mode
+#define osThreadDetached 0x00000000U ///< Thread created in detached mode (default)
+#define osThreadJoinable 0x00000001U ///< Thread created in joinable mode
 
 // Mutex attributes (attr_bits in \ref osMutexAttr_t).
 #define osMutexRecursive   0x00000001U ///< Recursive mutex.
@@ -318,15 +327,15 @@ typedef struct {
 //   uint32_t                   mp_size;   ///< size of provided memory for data storage
 // } osMemoryPoolAttr_t;
 
-// /// Attributes structure for message queue.
-// typedef struct {
-//   const char                   *name;   ///< name of the message queue
-//   uint32_t                 attr_bits;   ///< attribute bits
-//   void                      *cb_mem;    ///< memory for control block
-//   uint32_t                   cb_size;   ///< size of provided memory for control block
-//   void                      *mq_mem;    ///< memory for data storage
-//   uint32_t                   mq_size;   ///< size of provided memory for data storage
-// } osMessageQueueAttr_t;
+/// Attributes structure for message queue.
+typedef struct {
+    const char* name; ///< name of the message queue
+    uint32_t attr_bits; ///< attribute bits
+    void* cb_mem; ///< memory for control block
+    uint32_t cb_size; ///< size of provided memory for control block
+    void* mq_mem; ///< memory for data storage
+    uint32_t mq_size; ///< size of provided memory for data storage
+} osMessageQueueAttr_t;
 
 // //  ==== Kernel Management Functions ====
 
@@ -428,7 +437,12 @@ static FURI_ALWAYS_INLINE osThreadId_t
         furi_thread_alloc_ex(attr->name, attr->stack_size, furi_cmsis_thread_callback, adapter);
 
     furi_thread_set_priority(adapter->thread, (FuriThreadPriority)attr->priority);
-    furi_thread_start(adapter->thread);
+    if(attr->attr_bits & osThreadJoinable) {
+        //ToDo: Implement joinable threads ??????
+    } else {
+        furi_thread_start(adapter->thread);
+    }
+
     return (osThreadId_t)adapter;
 }
 
@@ -613,7 +627,8 @@ static FURI_ALWAYS_INLINE osStatus_t osDelayUntil(uint32_t ticks) {
 /// \return event flags ID for reference by other functions or NULL in case of error.
 //osEventFlagsId_t osEventFlagsNew (const osEventFlagsAttr_t *attr);
 static FURI_ALWAYS_INLINE osEventFlagsId_t osEventFlagsNew(const osEventFlagsAttr_t* attr) {
-    furi_check((attr == NULL), "osEventFlagsNew: attr must be NULL");
+    UNUSED(attr);
+    //furi_check((attr == NULL), "osEventFlagsNew: attr must be NULL");
     return (osEventFlagsId_t)furi_event_flag_alloc();
 }
 
@@ -679,12 +694,12 @@ static FURI_ALWAYS_INLINE osStatus_t osEventFlagsDelete(osEventFlagsId_t ef_id) 
 //osMutexId_t osMutexNew (const osMutexAttr_t *attr);
 static FURI_ALWAYS_INLINE osMutexId_t osMutexNew(const osMutexAttr_t* attr) {
     UNUSED(attr);
-    furi_check((attr == NULL), "osMutexNew: attr != NULL Check");
+    //furi_check((attr == NULL), "osMutexNew: attr != NULL Check");
 
     if(attr == NULL) {
         return (osEventFlagsId_t)furi_mutex_alloc(FuriMutexTypeNormal);
     }
-    furi_crash("osMutexNew: attr != NULL Check");
+    //furi_crash("osMutexNew: attr != NULL Check");
     return NULL;
 }
 
@@ -735,12 +750,12 @@ static FURI_ALWAYS_INLINE osStatus_t osMutexDelete(osMutexId_t mutex_id) {
 static FURI_ALWAYS_INLINE osSemaphoreId_t
     osSemaphoreNew(uint32_t max_count, uint32_t initial_count, const osSemaphoreAttr_t* attr) {
     UNUSED(attr);
-    furi_check((attr == NULL), "osSemaphoreNew: attr != NULL Check");
+    //furi_check((attr == NULL), "osSemaphoreNew: attr != NULL Check");
 
     if(attr == NULL) {
         return (osSemaphoreId_t)furi_semaphore_alloc(max_count, initial_count);
     }
-    furi_crash("osSemaphoreNew: attr != NULL Check");
+    //furi_crash("osSemaphoreNew: attr != NULL Check");
     return NULL;
 }
 
@@ -839,7 +854,18 @@ static FURI_ALWAYS_INLINE osStatus_t osSemaphoreDelete(osSemaphoreId_t semaphore
 // /// \param[in]     msg_size      maximum message size in bytes.
 // /// \param[in]     attr          message queue attributes; NULL: default values.
 // /// \return message queue ID for reference by other functions or NULL in case of error.
-// osMessageQueueId_t osMessageQueueNew (uint32_t msg_count, uint32_t msg_size, const osMessageQueueAttr_t *attr);
+//osMessageQueueId_t osMessageQueueNew (uint32_t msg_count, uint32_t msg_size, const osMessageQueueAttr_t *attr);
+static FURI_ALWAYS_INLINE osMessageQueueId_t
+    osMessageQueueNew(uint32_t msg_count, uint32_t msg_size, const osMessageQueueAttr_t* attr) {
+    UNUSED(attr);
+    //furi_check((attr == NULL), "osMessageQueueNew: attr != NULL Check");
+
+    if(attr == NULL) {
+        return (osMessageQueueId_t)furi_message_queue_alloc(msg_count, msg_size);
+    }
+    //furi_crash("osMessageQueueNew: attr != NULL Check");
+    return NULL;
+}
 
 // /// Get name of a Message Queue object.
 // /// \param[in]     mq_id         message queue ID obtained by \ref osMessageQueueNew.
@@ -852,7 +878,15 @@ static FURI_ALWAYS_INLINE osStatus_t osSemaphoreDelete(osSemaphoreId_t semaphore
 // /// \param[in]     msg_prio      message priority.
 // /// \param[in]     timeout       \ref CMSIS_RTOS_TimeOutValue or 0 in case of no time-out.
 // /// \return status code that indicates the execution status of the function.
-// osStatus_t osMessageQueuePut (osMessageQueueId_t mq_id, const void *msg_ptr, uint8_t msg_prio, uint32_t timeout);
+//osStatus_t osMessageQueuePut (osMessageQueueId_t mq_id, const void *msg_ptr, uint8_t msg_prio, uint32_t timeout);
+static FURI_ALWAYS_INLINE osStatus_t osMessageQueuePut(
+    osMessageQueueId_t mq_id,
+    const void* msg_ptr,
+    uint8_t msg_prio,
+    uint32_t timeout) {
+    UNUSED(msg_prio);
+    return (osStatus_t)furi_message_queue_put((FuriMessageQueue*)mq_id, msg_ptr, timeout);
+}
 
 // /// Get a Message from a Queue or timeout if Queue is empty.
 // /// \param[in]     mq_id         message queue ID obtained by \ref osMessageQueueNew.
@@ -861,6 +895,14 @@ static FURI_ALWAYS_INLINE osStatus_t osSemaphoreDelete(osSemaphoreId_t semaphore
 // /// \param[in]     timeout       \ref CMSIS_RTOS_TimeOutValue or 0 in case of no time-out.
 // /// \return status code that indicates the execution status of the function.
 // osStatus_t osMessageQueueGet (osMessageQueueId_t mq_id, void *msg_ptr, uint8_t *msg_prio, uint32_t timeout);
+static FURI_ALWAYS_INLINE osStatus_t osMessageQueueGet(
+    osMessageQueueId_t mq_id,
+    void* msg_ptr,
+    uint8_t* msg_prio,
+    uint32_t timeout) {
+    UNUSED(msg_prio);
+    return (osStatus_t)furi_message_queue_get((FuriMessageQueue*)mq_id, msg_ptr, timeout);
+}
 
 // /// Get maximum number of messages in a Message Queue.
 // /// \param[in]     mq_id         message queue ID obtained by \ref osMessageQueueNew.

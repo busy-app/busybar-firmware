@@ -6,6 +6,7 @@ SL_GLUE_INCDIR = f"#/lib/{SL_GLUE_DIR}"
 env.Append(
     CPPPATH=[
         Dir(f"{SL_GLUE_INCDIR}/inc").rdir(),
+        Dir(f"{SL_GLUE_INCDIR}/matter_app/inc").rdir(),
     ],
     CPPDEFINES=[],
 )

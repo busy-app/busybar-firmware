@@ -11,5 +11,5 @@ void matter_app_init(void) {
 
     //ChipLogProgress(DeviceLayer, "==================================================");
 
-    printf("\r\nMatter app\r\n");
+    //printf("\r\nMatter app\r\n");
 }

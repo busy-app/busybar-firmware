@@ -32,6 +32,7 @@ env.Append(
         ).rdir(),
         Dir(f"{SDK_INCDIR}/util/third_party/mbedtls/include/").rdir(),
         Dir(f"{SDK_INCDIR}/util/third_party/openthread/include").rdir(),
+        Dir(f"{SDK_INCDIR}/platform/security/sl_component/sl_mbedtls_support/config").rdir(),
     ],
     CPPDEFINES=[
         # SDK Wifi Silabss
