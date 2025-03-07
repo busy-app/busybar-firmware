@@ -1,7 +1,5 @@
 #include "submenu.h"
 
-#include <furi.h>
-
 #include <gui/view_port_i.h>
 
 #include <lvgl/src/core/lv_obj_class_private.h>
@@ -14,7 +12,7 @@
 #define ITEM_INDICATOR_WIDTH_PX (6)
 
 struct Submenu {
-    lv_obj_t obj;
+    ViewPort view_port;
 };
 
 typedef struct {
@@ -124,7 +122,7 @@ void submenu_set_selected_item_index(Submenu* instance, uint32_t index) {
 }
 
 const lv_obj_class_t lv_submenu_class = {
-    .base_class = &lv_obj_class,
+    .base_class = &lv_view_port_class,
     .name = "submenu",
     .width_def = LV_PCT(100),
     .height_def = LV_PCT(100),

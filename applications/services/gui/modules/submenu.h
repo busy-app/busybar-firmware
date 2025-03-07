@@ -19,7 +19,6 @@ typedef struct Submenu Submenu;
  * @param[in] index index value that the item was created with
  * @param[in,out] context pointer to a user-specific object
  */
-
 typedef void (*SubmenuItemCallback)(uint32_t index, void* context);
 
 /**
