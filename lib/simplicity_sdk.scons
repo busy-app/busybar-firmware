@@ -30,9 +30,18 @@ env.Append(
         Dir(
             f"{SDK_INCDIR}/platform/security/sl_component/sl_mbedtls_support/inc"
         ).rdir(),
+        Dir(f"{SDK_INCDIR}/platform/security/sl_component/sl_mbedtls_support/config").rdir(),
+
         Dir(f"{SDK_INCDIR}/util/third_party/mbedtls/include/").rdir(),
         Dir(f"{SDK_INCDIR}/util/third_party/openthread/include").rdir(),
-        Dir(f"{SDK_INCDIR}/platform/security/sl_component/sl_mbedtls_support/config").rdir(),
+        Dir(f"{SDK_INCDIR}/platform/service/memory_manager/inc").rdir(),
+
+
+        Dir(f"{SDK_INCDIR}/util/third_party/mbedtls/library").rdir(),
+        Dir(f"{SDK_INCDIR}/platform/security/sl_component/sl_mbedtls_support/config/preset").rdir(),
+        Dir(f"{SDK_INCDIR}/platform/security/sl_component/sl_psa_driver/inc").rdir(),
+        Dir(f"{SDK_INCDIR}/platform/security/sl_component/sli_psec_osal/inc").rdir(),
+        
     ],
     CPPDEFINES=[
         # SDK Wifi Silabss
