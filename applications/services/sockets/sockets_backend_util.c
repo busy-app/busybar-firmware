@@ -2,6 +2,8 @@
 
 #include <sl_si91x_socket_utility.h>
 
+#include <furi.h>
+
 void sockets_connection_info_to_sl_address(
     const SocketConnectionInfo* connection_info,
     SocketSlAddress* sl_address) {

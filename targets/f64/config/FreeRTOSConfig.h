@@ -148,10 +148,21 @@ standard names. */
 /* Normal assert() semantics without relying on the provision of an assert.h
 header file. */
 #ifdef DEBUG
+#define configASSERTNULL(x) configASSERT(x)
+
+#ifdef __cplusplus
+#define configASSERT(x) \
+    if((x) == 0) {      \
+        abort();        \
+    }
+
+#else // __cplusplus
+
 #define configASSERT(x)                \
     if((x) == 0) {                     \
         furi_crash("FreeRTOS Assert"); \
     }
+#endif // __cplusplus
 #endif
 
 // Must be last line of config because of recursion

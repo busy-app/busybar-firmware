@@ -36,6 +36,9 @@ extern "C" {
 
 /*Sample print prototype*/
 // void Board_Debug_Init(void);
+
+#include <core/common_defines.h>
+
 // void Board_UARTPutSTR(const uint8_t *ptr);
 // uint8_t Board_UARTGetChar(void);
 // void Board_UARTPutChar(uint8_t ch);
