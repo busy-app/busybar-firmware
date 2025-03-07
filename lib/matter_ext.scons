@@ -130,6 +130,7 @@ env.Append(
         "CHIP_HAVE_CONFIG_H=1",
         # "DISPLAY_ENABLED=0",
     ],
+    FW_LIBS=["stdc++"],
 )
 
 libenv = env.Clone(FW_LIB_NAME=LIB_FOLDER)
