@@ -39,6 +39,6 @@ App(
     appid="main_apps_on_start",
     name="On start hooks",
     apptype=FlipperAppType.METAPACKAGE,
-    provides=[],
+    provides=["input_start"],
     targets=["f64"],
 )
