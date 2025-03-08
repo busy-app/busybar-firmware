@@ -33,11 +33,12 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
+#include <core/common_defines.h>
 
 /*Sample print prototype*/
 // void Board_Debug_Init(void);
-
-#include <core/common_defines.h>
+static FURI_ALWAYS_INLINE void Board_Debug_Init(void) {
+}
 
 // void Board_UARTPutSTR(const uint8_t *ptr);
 // uint8_t Board_UARTGetChar(void);

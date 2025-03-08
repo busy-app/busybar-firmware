@@ -773,6 +773,9 @@ static FURI_ALWAYS_INLINE osStatus_t osMutexRelease(osMutexId_t mutex_id) {
 // /// \param[in]     mutex_id      mutex ID obtained by \ref osMutexNew.
 // /// \return thread ID of owner thread or NULL when mutex was not acquired.
 // osThreadId_t osMutexGetOwner (osMutexId_t mutex_id);
+static FURI_ALWAYS_INLINE osThreadId_t osMutexGetOwner(osMutexId_t mutex_id) {
+    return (osThreadId_t)furi_mutex_get_owner((FuriMutex*)mutex_id);
+}
 
 /// Delete a Mutex object.
 /// \param[in]     mutex_id      mutex ID obtained by \ref osMutexNew.
