@@ -9,6 +9,9 @@ FREERTOS_INCDIR = f"#/lib/{FREERTOS_DIR}"
 WISECONNECT_DIR = "wiseconnect/components"
 WISECONNECT_INCDIR = f"#/lib/{WISECONNECT_DIR}"
 
+MATTER_LIB_FOLDER = "matter_ext"
+MATTER_LIB_INCDIR = f"#/lib/{MATTER_LIB_FOLDER}"
+
 env.Append(
     CPPPATH=[
         Dir(f"{SDK_INCDIR}/platform/common/inc").rdir(),
@@ -42,6 +45,15 @@ env.Append(
         Dir(f"{SDK_INCDIR}/platform/security/sl_component/sl_mbedtls_support/config/preset").rdir(),
         Dir(f"{SDK_INCDIR}/platform/security/sl_component/sl_psa_driver/inc").rdir(),
         Dir(f"{SDK_INCDIR}/platform/security/sl_component/sli_psec_osal/inc").rdir(),
+
+        #Dir(f"{SDK_INCDIR}/util/third_party/lwip/lwip/src/api").rdir(),
+        #Dir(f"{SDK_INCDIR}/util/third_party/lwip/lwip/src/core").rdir(),
+        #Dir(f"{SDK_INCDIR}/util/third_party/lwip/lwip/src/netif").rdir(),
+        Dir(f"{SDK_INCDIR}/util/third_party/lwip/lwip/src/include").rdir(),
+        Dir(f"{MATTER_LIB_INCDIR}/third_party/matter_sdk/src/lwip/silabs").rdir(),
+        Dir(f"{MATTER_LIB_INCDIR}/third_party/matter_sdk/src/lwip/freertos").rdir(),
+        
+        
         
     ],
     CPPFLAGS=[
@@ -64,6 +76,7 @@ env.Append(
         "FLASH_PAGE_SIZE=4096",
          ("MBEDTLS_CONFIG_FILE", '\\"sl_mbedtls_config.h\\"'),
         ("MBEDTLS_PSA_CRYPTO_CONFIG_FILE", '\\"psa_crypto_config.h\\"'),
+        "LWIP_TIMEVAL_PRIVATE = 0",
         #("MBEDTLS_USER_CONFIG_FILE", '\\"siwx917-chip-mbedtls-config.h\\"'),
     ],
 )
@@ -158,6 +171,53 @@ sources = [
     f"{SDK_DIR}/util/third_party/mbedtls/library/x509write.c",
     f"{SDK_DIR}/util/third_party/mbedtls/library/x509write_crt.c",
     f"{SDK_DIR}/util/third_party/mbedtls/library/x509write_csr.c",
+
+    f"{SDK_DIR}/util/third_party/lwip/lwip/src/api/api_lib.c",
+    f"{SDK_DIR}/util/third_party/lwip/lwip/src/api/api_msg.c",
+    f"{SDK_DIR}/util/third_party/lwip/lwip/src/api/err.c",
+    f"{SDK_DIR}/util/third_party/lwip/lwip/src/api/if_api.c",
+    f"{SDK_DIR}/util/third_party/lwip/lwip/src/api/netbuf.c",
+    f"{SDK_DIR}/util/third_party/lwip/lwip/src/api/netdb.c",
+    f"{SDK_DIR}/util/third_party/lwip/lwip/src/api/netifapi.c",
+    f"{SDK_DIR}/util/third_party/lwip/lwip/src/api/sockets.c",
+    f"{SDK_DIR}/util/third_party/lwip/lwip/src/api/tcpip.c",
+    f"{SDK_DIR}/util/third_party/lwip/lwip/src/core/altcp.c",
+    f"{SDK_DIR}/util/third_party/lwip/lwip/src/core/altcp_alloc.c",
+    f"{SDK_DIR}/util/third_party/lwip/lwip/src/core/altcp_tcp.c",
+    f"{SDK_DIR}/util/third_party/lwip/lwip/src/core/def.c",
+    f"{SDK_DIR}/util/third_party/lwip/lwip/src/core/dns.c",
+    f"{SDK_DIR}/util/third_party/lwip/lwip/src/core/inet_chksum.c",
+    f"{SDK_DIR}/util/third_party/lwip/lwip/src/core/init.c",
+    f"{SDK_DIR}/util/third_party/lwip/lwip/src/core/ip.c",
+    f"{SDK_DIR}/util/third_party/lwip/lwip/src/core/mem.c",
+    f"{SDK_DIR}/util/third_party/lwip/lwip/src/core/memp.c",
+    f"{SDK_DIR}/util/third_party/lwip/lwip/src/core/netif.c",
+    f"{SDK_DIR}/util/third_party/lwip/lwip/src/core/pbuf.c",
+    f"{SDK_DIR}/util/third_party/lwip/lwip/src/core/raw.c",
+    f"{SDK_DIR}/util/third_party/lwip/lwip/src/core/stats.c",
+    f"{SDK_DIR}/util/third_party/lwip/lwip/src/core/sys.c",
+    f"{SDK_DIR}/util/third_party/lwip/lwip/src/core/tcp.c",
+    f"{SDK_DIR}/util/third_party/lwip/lwip/src/core/tcp_in.c",
+    f"{SDK_DIR}/util/third_party/lwip/lwip/src/core/tcp_out.c",
+    f"{SDK_DIR}/util/third_party/lwip/lwip/src/core/timeouts.c",
+    f"{SDK_DIR}/util/third_party/lwip/lwip/src/core/udp.c",
+    f"{SDK_DIR}/util/third_party/lwip/lwip/src/core/ipv4/autoip.c",
+    f"{SDK_DIR}/util/third_party/lwip/lwip/src/core/ipv4/dhcp.c",
+    f"{SDK_DIR}/util/third_party/lwip/lwip/src/core/ipv4/etharp.c",
+    f"{SDK_DIR}/util/third_party/lwip/lwip/src/core/ipv4/icmp.c",
+    f"{SDK_DIR}/util/third_party/lwip/lwip/src/core/ipv4/igmp.c",
+    f"{SDK_DIR}/util/third_party/lwip/lwip/src/core/ipv4/ip4.c",
+    f"{SDK_DIR}/util/third_party/lwip/lwip/src/core/ipv4/ip4_addr.c",
+    f"{SDK_DIR}/util/third_party/lwip/lwip/src/core/ipv4/ip4_frag.c",
+    f"{SDK_DIR}/util/third_party/lwip/lwip/src/core/ipv6/ethip6.c",
+    f"{SDK_DIR}/util/third_party/lwip/lwip/src/core/ipv6/icmp6.c",
+    f"{SDK_DIR}/util/third_party/lwip/lwip/src/core/ipv6/inet6.c",
+    f"{SDK_DIR}/util/third_party/lwip/lwip/src/core/ipv6/ip6.c",
+    f"{SDK_DIR}/util/third_party/lwip/lwip/src/core/ipv6/ip6_addr.c",
+    f"{SDK_DIR}/util/third_party/lwip/lwip/src/core/ipv6/ip6_frag.c",
+    f"{SDK_DIR}/util/third_party/lwip/lwip/src/core/ipv6/mld6.c",
+    f"{SDK_DIR}/util/third_party/lwip/lwip/src/core/ipv6/nd6.c",
+    f"{SDK_DIR}/util/third_party/lwip/lwip/src/netif/ethernet.c",
 ]   
 
 lib = libenv.StaticLibrary("${FW_LIB_NAME}", sources)
