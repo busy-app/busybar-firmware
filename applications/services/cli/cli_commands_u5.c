@@ -100,7 +100,12 @@ void cli_command_uptime(Cli* cli, FuriString* args, void* context) {
     UNUSED(args);
     UNUSED(context);
     uint32_t uptime = furi_get_tick() / furi_kernel_get_tick_frequency();
-    printf("Uptime: %luh%lum%lus", uptime / 60 / 60, uptime / 60 % 60, uptime % 60);
+    printf(
+        "Uptime: %02lud %02luh %02lum %02lus",
+        uptime / 60 / 60 / 24,
+        uptime / 60 / 60,
+        uptime / 60 % 60,
+        uptime % 60);
 }
 
 // void cli_command_date(Cli* cli, FuriString* args, void* context) {
