@@ -2,6 +2,7 @@
 
 #include "view_port.h"
 
+#include <furi.h>
 #include <lvgl.h>
 #include <lvgl/src/core/lv_obj_private.h>
 
