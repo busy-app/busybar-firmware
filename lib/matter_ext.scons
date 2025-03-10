@@ -596,7 +596,7 @@ sources = [
     f"{LIB_FOLDER}/third_party/matter_sdk/src/platform/DeviceControlServer.cpp",
     f"{LIB_FOLDER}/third_party/matter_sdk/src/platform/DeviceInfoProvider.cpp",
     f"{LIB_FOLDER}/third_party/matter_sdk/src/platform/DeviceInstanceInfoProvider.cpp",
-    f"{LIB_FOLDER}/third_party/matter_sdk/src/platform/DiagnosticDataProvider.cpp",
+    f"{LIB_FOLDER}/third_party/matter_sdk/src/platform/DiagnosticDataProvider.cpp",#monitor stack
     f"{LIB_FOLDER}/third_party/matter_sdk/src/platform/Entropy.cpp",
     f"{LIB_FOLDER}/third_party/matter_sdk/src/platform/GeneralUtils.cpp",
     f"{LIB_FOLDER}/third_party/matter_sdk/src/platform/Globals.cpp",
@@ -609,7 +609,7 @@ sources = [
     f"{LIB_FOLDER}/third_party/matter_sdk/src/platform/silabs/CHIPMem-Platform.cpp",
     f"{LIB_FOLDER}/third_party/matter_sdk/src/platform/silabs/ConfigurationManagerImpl.cpp",
     f"{LIB_FOLDER}/third_party/matter_sdk/src/platform/silabs/ConnectivityManagerImpl_WIFI.cpp",
-    f"{LIB_FOLDER}/third_party/matter_sdk/src/platform/silabs/DiagnosticDataProviderImpl.cpp",
+    f"{LIB_FOLDER}/third_party/matter_sdk/src/platform/silabs/DiagnosticDataProviderImpl.cpp", #monitor stack
     f"{LIB_FOLDER}/third_party/matter_sdk/src/platform/silabs/KeyValueStoreManagerImpl.cpp",
     f"{LIB_FOLDER}/third_party/matter_sdk/src/platform/silabs/Logging.cpp",
     f"{LIB_FOLDER}/third_party/matter_sdk/src/platform/silabs/MigrationManager.cpp",

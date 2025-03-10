@@ -38,7 +38,8 @@ env.Append(
 
         Dir(f"{SDK_INCDIR}/util/third_party/mbedtls/include/").rdir(),
         Dir(f"{SDK_INCDIR}/util/third_party/openthread/include").rdir(),
-        Dir(f"{SDK_INCDIR}/platform/service/memory_manager/inc").rdir(),
+        
+        #Dir(f"{SDK_INCDIR}/platform/service/memory_manager/inc").rdir(),
 
 
         Dir(f"{SDK_INCDIR}/util/third_party/mbedtls/library").rdir(),
@@ -52,7 +53,7 @@ env.Append(
         Dir(f"{SDK_INCDIR}/util/third_party/lwip/lwip/src/include").rdir(),
         Dir(f"{MATTER_LIB_INCDIR}/third_party/matter_sdk/src/lwip/silabs").rdir(),
         Dir(f"{MATTER_LIB_INCDIR}/third_party/matter_sdk/src/lwip/freertos").rdir(),
-        Dir(f"{SDK_INCDIR}/platform/service/memory_manager/inc").rdir(),
+
        # Dir(f"{SDK_INCDIR}/util/third_party/lwip/lwip/src/include/lwip").rdir(),
         
         
@@ -221,8 +222,8 @@ sources = [
     f"{SDK_DIR}/util/third_party/lwip/lwip/src/core/ipv6/nd6.c",
     f"{SDK_DIR}/util/third_party/lwip/lwip/src/netif/ethernet.c",
 
-    f"{SDK_DIR}/platform/service/memory_manager/src/sl_memory_manager.c",
-    f"{SDK_DIR}/platform/service/memory_manager/src/sl_memory_manager_region.c",
+    #f"{SDK_DIR}/platform/service/memory_manager/src/sl_memory_manager.c",
+    #f"{SDK_DIR}/platform/service/memory_manager/src/sl_memory_manager_region.c",
     
     #f"{SDK_DIR}/platform/service/memory_manager/src/sl_memory_manager_cpp.cpp",
     #f"{SDK_DIR}/platform/service/memory_manager/src/sl_memory_manager_dynamic_reservation.c",
