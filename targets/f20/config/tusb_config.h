@@ -98,7 +98,6 @@ extern "C" {
 #define CFG_TUD_NCM_IN_NTB_MAX_SIZE  2048
 
 //------------- CLASS -------------//
-// Built-in classed are not used
 #define CFG_TUD_CDC       0
 #define CFG_TUD_MSC       0
 #define CFG_TUD_HID       0

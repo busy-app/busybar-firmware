@@ -84,14 +84,14 @@ static err_t netif_init_cb(struct netif* netif) {
     return ERR_OK;
 }
 
-// static void mdns_srv_txt(struct mdns_service* service, void* txt_userdata) {
-//     UNUSED(txt_userdata);
+static void mdns_srv_txt(struct mdns_service* service, void* txt_userdata) {
+    UNUSED(txt_userdata);
 
-//     err_t res = mdns_resp_add_service_txtitem(service, "path=/", 6);
-//     if(res != ERR_OK) {
-//         FURI_LOG_E(TAG, "mdns add service txt failed");
-//     }
-// }
+    err_t res = mdns_resp_add_service_txtitem(service, "path=/", 6);
+    if(res != ERR_OK) {
+        FURI_LOG_E(TAG, "mdns add service txt failed");
+    }
+}
 
 bool tud_network_recv_cb(const uint8_t* src, uint16_t size) {
     if(size != 0) {
@@ -194,11 +194,11 @@ void usb_network_init(void) {
     while(dhserv_init(&(usb_network->dhcp_config)) != ERR_OK)
         ;
 
-    // mdns_resp_init();
-    // mdns_resp_add_netif(netif_default, USB_NETWORK_HOSTNAME);
-    // mdns_resp_add_service(
-    //     netif_default, "httpd", "_http", DNSSD_PROTO_TCP, 80, mdns_srv_txt, NULL);
-    // mdns_resp_announce(netif_default);
+    mdns_resp_init();
+    mdns_resp_add_netif(netif_default, USB_NETWORK_HOSTNAME);
+    mdns_resp_add_service(
+        netif_default, "httpd", "_http", DNSSD_PROTO_TCP, 80, mdns_srv_txt, NULL);
+    mdns_resp_announce(netif_default);
 
 #ifdef USB_NET_IPERF
     lwiperf_start_tcp_server_default(NULL, NULL);
