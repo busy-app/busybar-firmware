@@ -84,8 +84,6 @@ static void input_cli_command_send(Cli* cli, FuriString* args, FuriPubSub* input
 }
 
 static void input_cli_command(Cli* cli, FuriString* args, void* context) {
-    UNUSED(cli);
-    UNUSED(args);
     UNUSED(context);
 
     FuriString* cmd = furi_string_alloc();
