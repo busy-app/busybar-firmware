@@ -21,7 +21,7 @@
 #define LWIP_TIMERS_CUSTOM                     0
 #define LWIP_MPU_COMPATIBLE                    0
 #define LWIP_TCPIP_CORE_LOCKING                1
-#define LWIP_TCPIP_CORE_LOCKING_INPUT          0
+#define LWIP_TCPIP_CORE_LOCKING_INPUT          1
 #define SYS_LIGHTWEIGHT_PROT                   1
 #define MEM_LIBC_MALLOC                        1
 #define MEMP_MEM_MALLOC                        0

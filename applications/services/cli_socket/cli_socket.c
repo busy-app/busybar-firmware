@@ -116,15 +116,21 @@ size_t cli_socket_rx(uint8_t* buffer, size_t size, uint32_t timeout) {
         return 1;
     }
 
-    int32_t ret = recv(cli_socket.client_socket, buffer, size, 0);
+    size_t received = 0;
 
-    if(ret < 0) {
-        CLI_SOCKET_DEBUG("disconnected while reading, errno: %d", errno);
-        furi_event_flag_set(cli_socket.evt_flags, FLAG_DISCONNECT);
-        return 0;
+    while(received < size) {
+        int32_t ret = recv(cli_socket.client_socket, buffer, size, 0);
+
+        if(ret < 0) {
+            CLI_SOCKET_DEBUG("disconnected while reading, errno: %d", errno);
+            furi_event_flag_set(cli_socket.evt_flags, FLAG_DISCONNECT);
+            return received;
+        }
+
+        received += ret;
     }
 
-    return ret;
+    return received;
 }
 
 void cli_socket_tx(const uint8_t* buffer, size_t size) {

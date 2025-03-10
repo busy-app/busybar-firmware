@@ -126,7 +126,7 @@ class FlipperStorage:
     CLI_PROMPT = ">: "
     CLI_EOL = "\r\n"
 
-    def __init__(self, portname: tuple[str, int], chunk_size: int = 1024):
+    def __init__(self, portname: tuple[str, int], chunk_size: int = 200*1024):
         self.port = Stream(portname)
         self.read = BufferedRead(self.port)
         self.chunk_size = chunk_size
