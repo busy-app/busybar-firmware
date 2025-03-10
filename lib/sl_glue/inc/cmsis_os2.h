@@ -66,6 +66,7 @@
 
 //#include <furi.h>
 #include <stdlib.h>
+#include <stdio.h>
 #include <furi/core/base.h>
 #include <furi/core/common_defines.h>
 //#include <furi/core/check.h> //ToDo: Fix m-lib

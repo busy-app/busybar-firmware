@@ -48,7 +48,7 @@ env.Append(
         Dir(f"{WIRELESS_INCDIR}/crypto/trng/inc").rdir(),
         Dir(f"{MCU_INCDIR}/hal/inc").rdir(),
         # NVM3
-        #Dir(f"{MCU_INCDIR}/drivers/service/nvm3/inc").rdir(),
+        Dir(f"{MCU_INCDIR}/drivers/service/nvm3/inc").rdir(),
     ],
     CPPDEFINES=[
         "SI917",
@@ -132,10 +132,17 @@ sources = [
     f"{WIRELESS_DIR}/crypto/ecdsa/src/sl_si91x_ecdsa.c",
     f"{WIRELESS_DIR}/crypto/hmac/src/sl_si91x_hmac.c",
     f"{WIRELESS_DIR}/crypto/gcm/src/sl_si91x_gcm.c",
+    #f"{WIRELESS_DIR}/crypto/ccm/src/sl_si91x_ccm.c",
+    #f"{WIRELESS_DIR}/crypto/ecdh/src/sl_si91x_ecdh.c",
+    #f"{WIRELESS_DIR}/crypto/aead/src/sl_si91x_aead.c",
+    #f"{WIRELESS_DIR}/crypto/mac/src/sl_si91x_mac.c",
+    f"{WIRELESS_DIR}/crypto/trng/src/sl_si91x_trng.c",
     
     # NVM3
     #f"{MCU_DIR}/drivers/service/nvm3/src/sl_si91x_common_flash_intf.c",
     #f"{MCU_DIR}/drivers/service/nvm3/src/sl_si91x_nvm3_hal_flash.c",
+
+    f"{MCU_DIR}/hal/src/sl_si91x_hal_soc_soft_reset.c",
 ]
 
 lib = libenv.StaticLibrary("${FW_LIB_NAME}", sources)
