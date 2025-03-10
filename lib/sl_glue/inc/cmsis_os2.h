@@ -663,7 +663,11 @@ static FURI_ALWAYS_INLINE uint32_t osTimerIsRunning(osTimerId_t timer_id) {
 // /// Delete a timer.
 // /// \param[in]     timer_id      timer ID obtained by \ref osTimerNew.
 // /// \return status code that indicates the execution status of the function.
-// osStatus_t osTimerDelete (osTimerId_t timer_id);
+//osStatus_t osTimerDelete (osTimerId_t timer_id);
+static FURI_ALWAYS_INLINE osStatus_t osTimerDelete(osTimerId_t timer_id) {
+    furi_timer_free((FuriTimer*)timer_id);
+    return osOK;
+}
 
 // //  ==== Event Flags Management Functions ====
 

@@ -16,6 +16,12 @@ libenv.ApplyLibFlags()
 
 sources = [
     f"{SL_GLUE_DIR}/src/sl_debug.c",
+    #f"{SL_GLUE_DIR}/matter_app/src/AppTask.cpp",
+    #f"{SL_GLUE_DIR}/matter_app/src/BindingHandler.cpp",
+    #f"{SL_GLUE_DIR}/matter_app/src/LightSwitchMgr.cpp",
+    #f"{SL_GLUE_DIR}/matter_app/src/ShellCommands.cpp",
+    #f"{SL_GLUE_DIR}/matter_app/src/ZclCallbacks.cpp",
+
 ]
 
 lib = libenv.StaticLibrary("${FW_LIB_NAME}", sources)

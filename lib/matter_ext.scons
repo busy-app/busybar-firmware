@@ -127,7 +127,13 @@ env.Append(
     CPPDEFINES=[
         "CHIP_HAVE_CONFIG_H=1",
     ],
-    FW_LIBS=["stdc++"],
+    LIBPATH=[
+        Dir(f"{LIB_FOLDER}/third_party/matter_support/matter/provision/lib/").srcnode(),
+    ],
+    FW_LIBS=[
+        "stdc++",
+        "libProvision_si917",
+        ],
 )
 
 libenv = env.Clone(FW_LIB_NAME=LIB_FOLDER)
@@ -250,8 +256,8 @@ libenv.AppendUnique(
         "SLI_SI91X_MCU_INTR_BASED_RX_ON_UART=1",
         "SLI_TRNG_DEVICE_SI91X=1",
         #"SPI_MULTI_SLAVE=1",
-        "SRAM_BASE=0x0cUL",
-        "SRAM_SIZE=0x4fc00UL",
+        #"SRAM_BASE=0x0cUL",
+        #"SRAM_SIZE=0x4fc00UL",
         "SUPPORT_CPLUSPLUS=1",
         "TA_DEEP_SLEEP_COMMON_FLASH=1",
         "TIME_SYNC_ENABLE_TSC_FEATURE=1",
@@ -302,7 +308,7 @@ sources = [
     f"{LIB_FOLDER}/third_party/matter_sdk/examples/platform/silabs/MatterShell.cpp",
     f"{LIB_FOLDER}/third_party/matter_sdk/examples/platform/silabs/OTAConfig.cpp",
     f"{LIB_FOLDER}/third_party/matter_sdk/examples/platform/silabs/SilabsTestEventTriggerDelegate.cpp",
-    #f"{LIB_FOLDER}/third_party/matter_sdk/examples/platform/silabs/SoftwareFaultReports.cpp",
+    f"{LIB_FOLDER}/third_party/matter_sdk/examples/platform/silabs/SoftwareFaultReports.cpp",
     f"{LIB_FOLDER}/third_party/matter_sdk/examples/platform/silabs/silabs_utils.cpp",
     f"{LIB_FOLDER}/third_party/matter_sdk/examples/platform/silabs/syscalls_stubs.cpp",
     f"{LIB_FOLDER}/third_party/matter_sdk/examples/platform/silabs/uart.cpp",
@@ -686,9 +692,15 @@ sources = [
     f"{LIB_FOLDER}/third_party/matter_support/matter/mbedtls/tinycrypt/src/ecc_dsa.c",
     f"{LIB_FOLDER}/third_party/matter_support/matter/mbedtls/tinycrypt/src/tinycrypt_util.c",
     #f"{LIB_FOLDER}/third_party/matter_support/matter/si91x/support/hal/rsi_hal_mcu_m4.c",
+
+    #ToDo move to matter_app_LIB
+    f"sl_glue/matter_app/src/AppTask.cpp",
+    f"sl_glue/matter_app/src/BindingHandler.cpp",
+    f"sl_glue/matter_app/src/LightSwitchMgr.cpp",
+    f"sl_glue/matter_app/src/ShellCommands.cpp",
+    f"sl_glue/matter_app/src/ZclCallbacks.cpp",
 ]
-#sources.extend(env.GlobRecursive("*.c*", "matter_ext/third_party/matter_support/matter/mbedtls/tinycrypt/src/"))
-#sources.extend(env.GlobRecursive("*.c*", "matter_ext/third_party/matter_sdk/examples/platform/silabs/"))
+
 sources.extend(env.GlobRecursive("*.c*", "matter_zap"))
 
 lib = libenv.StaticLibrary("${FW_LIB_NAME}", sources)

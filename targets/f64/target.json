@@ -2,7 +2,7 @@
     "cpu_flags": [
         "-mcpu=cortex-m4",
         "-mthumb",
-        "-mfloat-abi=hard",
+        "-mfloat-abi=softfp",
         "-mfpu=fpv4-sp-d16"
     ],
     "c_cpp_flags": [
