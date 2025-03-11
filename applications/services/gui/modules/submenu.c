@@ -3,6 +3,7 @@
 #include <gui/widget_i.h>
 
 #include <lvgl/src/core/lv_obj_class_private.h>
+#include <lvgl/src/widgets/label/lv_label_private.h>
 
 #define MY_CLASS      (&lv_submenu_class)
 #define MY_ITEM_CLASS (&lv_submenu_item_class)
@@ -16,8 +17,7 @@ struct Submenu {
 };
 
 typedef struct {
-    Widget widget;
-    lv_obj_t* label;
+    lv_label_t label;
     uint32_t index;
     SubmenuItemCallback callback;
     void* context;
@@ -62,13 +62,12 @@ static lv_obj_t* submenu_item_alloc(
     lv_obj_remove_flag(obj, LV_OBJ_FLAG_SCROLLABLE);
     lv_obj_add_flag(obj, LV_OBJ_FLAG_SCROLL_ON_FOCUS);
 
-    SubmenuItem* item = (SubmenuItem*)obj;
-    item->label = lv_label_create(obj);
-    lv_label_set_text(item->label, label);
-    lv_label_set_long_mode(item->label, LV_LABEL_LONG_MODE_SCROLL_CIRCULAR);
+    lv_label_set_text(obj, label);
+    lv_label_set_long_mode(obj, LV_LABEL_LONG_MODE_SCROLL_CIRCULAR);
     // TODO: Implement current item indicator
-    lv_obj_set_style_pad_left(item->label, ITEM_INDICATOR_WIDTH_PX, LV_PART_MAIN);
+    lv_obj_set_style_pad_left(obj, ITEM_INDICATOR_WIDTH_PX, LV_PART_MAIN);
 
+    SubmenuItem* item = (SubmenuItem*)obj;
     item->index = index;
     item->callback = callback;
     item->context = context;
@@ -156,7 +155,7 @@ const lv_obj_class_t lv_submenu_class = {
 };
 
 const lv_obj_class_t lv_submenu_item_class = {
-    .base_class = &lv_widget_class,
+    .base_class = &lv_label_class,
     .name = "submenu-item",
     .width_def = LV_PCT(100),
     .height_def = LV_SIZE_CONTENT,
