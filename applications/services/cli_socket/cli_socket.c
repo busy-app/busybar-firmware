@@ -103,8 +103,6 @@ void cli_socket_deinit(void) {
 }
 
 size_t cli_socket_rx(uint8_t* buffer, size_t size, uint32_t timeout) {
-    UNUSED(timeout);
-
     if(cli_socket.connected == false) {
         return 0;
     }
@@ -116,12 +114,29 @@ size_t cli_socket_rx(uint8_t* buffer, size_t size, uint32_t timeout) {
         return 1;
     }
 
-    int32_t ret = recv(cli_socket.client_socket, buffer, size, 0);
+    struct pollfd s = {
+        .fd = cli_socket.client_socket,
+        .events = POLLIN,
+    };
+
+    int32_t ret;
+
+    ret = poll(&s, 1, timeout);
 
     if(ret < 0) {
-        CLI_SOCKET_DEBUG("disconnected while reading, errno: %d", errno);
+        CLI_SOCKET_DEBUG("disconnected while polling, errno: %d", errno);
         furi_event_flag_set(cli_socket.evt_flags, FLAG_DISCONNECT);
         return 0;
+    }
+
+    if(ret > 0) {
+        ret = recv(cli_socket.client_socket, buffer, size, 0);
+
+        if(ret < 0) {
+            CLI_SOCKET_DEBUG("disconnected while reading, errno: %d", errno);
+            furi_event_flag_set(cli_socket.evt_flags, FLAG_DISCONNECT);
+            return 0;
+        }
     }
 
     return ret;
