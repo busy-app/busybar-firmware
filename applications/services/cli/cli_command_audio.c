@@ -49,6 +49,8 @@ void cli_command_audio(Cli* cli, FuriString* args, void* context) {
     } while(false);
 
     if(!parsed) {
+        furi_string_free(str_tmp);
+        furi_record_close(RECORD_STORAGE);
         return;
     }
 
