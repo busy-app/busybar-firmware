@@ -103,8 +103,6 @@ void cli_socket_deinit(void) {
 }
 
 size_t cli_socket_rx(uint8_t* buffer, size_t size, uint32_t timeout) {
-    UNUSED(timeout);
-
     if(cli_socket.connected == false) {
         return 0;
     }
@@ -116,8 +114,19 @@ size_t cli_socket_rx(uint8_t* buffer, size_t size, uint32_t timeout) {
         return 1;
     }
 
-    size_t received = 0;
+    struct pollfd poll_cfg = {
+        .fd = cli_socket.client_socket,
+        .events = POLLIN,
+    };
 
+    int32_t poll_ret = poll(&poll_cfg, 1, timeout);
+    if(poll_ret < 0) {
+        CLI_SOCKET_DEBUG("disconnected while polling, errno: %d", errno);
+        furi_event_flag_set(cli_socket.evt_flags, FLAG_DISCONNECT);
+        return 0;
+    }
+
+    size_t received = 0;
     while(received < size) {
         int32_t ret = recv(cli_socket.client_socket, buffer + received, size - received, 0);
 

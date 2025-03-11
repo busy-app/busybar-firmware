@@ -9,6 +9,7 @@ App(
     targets=["f20"],
     sources=["input.c"],
     sdk_headers=["input.h"],
+    provides=["input_start"],
 )
 
 App(
@@ -21,4 +22,13 @@ App(
     order=80,
     targets=["f64"],
     sources=["input_f64.c"],
+)
+
+App(
+    appid="input_start",
+    targets=["f20"],
+    apptype=FlipperAppType.STARTUP,
+    entry_point="input_on_system_start",
+    sources=["input_cli.c"],
+    order=30,
 )
