@@ -20,7 +20,7 @@ static void widget_obj_destructor(const lv_obj_class_t* class_p, lv_obj_t* obj) 
 Widget* widget_alloc(Widget* parent) {
     furi_check(parent);
 
-    lv_obj_t* obj = lv_obj_class_create_obj(MY_CLASS, &parent->obj);
+    lv_obj_t* obj = lv_obj_class_create_obj(MY_CLASS, (lv_obj_t*)parent);
     lv_obj_class_init_obj(obj);
 
     Widget* instance = (Widget*)obj;
@@ -32,9 +32,53 @@ void widget_free(Widget* instance) {
     lv_obj_delete(&instance->obj);
 }
 
-Widget* widget_get_parent(const Widget* instance) {
+void widget_set_visible(Widget* instance, bool visible) {
     furi_check(instance);
-    return (Widget*)lv_obj_get_parent(&instance->obj);
+    if(visible) {
+        lv_obj_remove_flag((lv_obj_t*)instance, LV_OBJ_FLAG_HIDDEN);
+    } else {
+        lv_obj_add_flag((lv_obj_t*)instance, LV_OBJ_FLAG_HIDDEN);
+    }
+}
+
+void widget_set_width(Widget* instance, int32_t width) {
+    furi_check(instance);
+    lv_obj_set_width((lv_obj_t*)instance, width);
+}
+
+void widget_set_height(Widget* instance, int32_t height) {
+    furi_check(instance);
+    lv_obj_set_height((lv_obj_t*)instance, height);
+}
+
+void widget_set_size(Widget* instance, int32_t width, int32_t height) {
+    furi_check(instance);
+    lv_obj_set_size((lv_obj_t*)instance, width, height);
+}
+
+void widget_set_pos_x(Widget* instance, int32_t x) {
+    furi_check(instance);
+    lv_obj_set_x((lv_obj_t*)instance, x);
+}
+
+void widget_set_pos_y(Widget* instance, int32_t y) {
+    furi_check(instance);
+    lv_obj_set_y((lv_obj_t*)instance, y);
+}
+
+void widget_set_pos(Widget* instance, int32_t x, int32_t y) {
+    furi_check(instance);
+    lv_obj_set_pos((lv_obj_t*)instance, x, y);
+}
+
+void widget_move_to_foreground(Widget* instance) {
+    furi_check(instance);
+    lv_obj_move_foreground((lv_obj_t*)instance);
+}
+
+void widget_move_to_background(Widget* instance) {
+    furi_check(instance);
+    lv_obj_move_background((lv_obj_t*)instance);
 }
 
 // Private API
