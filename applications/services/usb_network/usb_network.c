@@ -204,6 +204,7 @@ void usb_network_init(void) {
     FuriSemaphore* lwip_start_sem = furi_semaphore_alloc(1, 0);
     tcpip_init(usb_network_lwip_start_callback, lwip_start_sem);
     furi_check(furi_semaphore_acquire(lwip_start_sem, FuriWaitForever) == FuriStatusOk);
+    furi_semaphore_free(lwip_start_sem);
 
     usb_network = malloc(sizeof(UsbNetwork));
 
