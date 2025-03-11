@@ -84,7 +84,8 @@ SECTIONS {
             *rsi_deepsleep_soc.o
             *freertos_umm_malloc_host.o
             *malloc_buffers.o
-            *sl_rsi_utility.o)
+            *sl_rsi_utility.o
+            *rsi_pll.o)
         .text*)
 
         /* .ctors */
@@ -167,6 +168,7 @@ SECTIONS {
         *freertos_umm_malloc_host.o(.text*)
         *malloc_buffers.o(.text*)
         *sl_rsi_utility.o(.text*)
+        *rsi_pll.o(.text*)
 
         /* ipmu calibration data */
 		*(.common_ipmu_ram*)
