@@ -43,20 +43,19 @@ static err_t linkoutput_fn(struct netif* netif, struct pbuf* p) {
     pbuf_header(p, -ETH_PAD_SIZE); /* drop the padding word */
 #endif
 
-    for(;;) {
-        /* if TinyUSB isn't ready, we must signal back to lwip that there is nothing we can do */
-        if(!tud_ready()) return ERR_USE;
-
-        /* if the network driver can accept another packet, we make it happen */
-        if(tud_network_can_xmit(p->tot_len)) {
-            tud_network_xmit(p, 0 /* unused for this example */);
-            return ERR_OK;
-        }
+    if(!tud_ready()) {
+        return ERR_USE;
     }
+
+    if(!tud_network_can_xmit(p->tot_len)) {
+        return ERR_USE;
+    }
+    tud_network_xmit(p, 0);
 
 #if (ETH_PAD_SIZE != 0)
     pbuf_header(p, ETH_PAD_SIZE); /* reclaim the padding word */
 #endif
+    return ERR_OK;
 }
 
 static err_t ip4_output_fn(struct netif* netif, struct pbuf* p, const ip4_addr_t* addr) {
@@ -133,7 +132,8 @@ uint16_t tud_network_xmit_cb(uint8_t* dst, void* ref, uint16_t arg) {
     struct pbuf* p = (struct pbuf*)ref;
     UNUSED(arg);
 
-    return pbuf_copy_partial(p, dst, p->tot_len, 0);
+    uint16_t res = pbuf_copy_partial(p, dst, p->tot_len, 0);
+    return res;
 }
 
 void tud_network_init_cb(void) {
@@ -145,22 +145,9 @@ static void usb_network_lwip_start_callback(void* arg) {
     furi_semaphore_release(lwip_start_sem);
 }
 
-void usb_network_thread_init(UsbNetwork* usb_network) {
-    UNUSED(usb_network);
-    netconn_thread_init();
-}
+static void usb_network_init_netif(void* arg) {
+    UNUSED(arg);
 
-void usb_network_thread_cleanup(UsbNetwork* usb_network) {
-    UNUSED(usb_network);
-    netconn_thread_cleanup();
-}
-
-void usb_network_init(void) {
-    FuriSemaphore* lwip_start_sem = furi_semaphore_alloc(1, 0);
-    tcpip_init(usb_network_lwip_start_callback, lwip_start_sem);
-    furi_check(furi_semaphore_acquire(lwip_start_sem, FuriWaitForever) == FuriStatusOk);
-
-    usb_network = malloc(sizeof(UsbNetwork));
     usb_network->netif = &(usb_network->netif_data);
 
     usb_network->netif_data.hwaddr_len = 6;
@@ -173,8 +160,6 @@ void usb_network_init(void) {
     netif_create_ip6_linklocal_address(usb_network->netif, 1);
 #endif
     netif_set_default(usb_network->netif);
-
-    furi_record_create(RECORD_USB_NETWORK, usb_network);
 
     while(!netif_is_up(usb_network->netif))
         ;
@@ -203,4 +188,27 @@ void usb_network_init(void) {
 #ifdef USB_NET_IPERF
     lwiperf_start_tcp_server_default(NULL, NULL);
 #endif
+}
+
+void usb_network_thread_init(UsbNetwork* usb_network) {
+    UNUSED(usb_network);
+    netconn_thread_init();
+}
+
+void usb_network_thread_cleanup(UsbNetwork* usb_network) {
+    UNUSED(usb_network);
+    netconn_thread_cleanup();
+}
+
+void usb_network_init(void) {
+    FuriSemaphore* lwip_start_sem = furi_semaphore_alloc(1, 0);
+    tcpip_init(usb_network_lwip_start_callback, lwip_start_sem);
+    furi_check(furi_semaphore_acquire(lwip_start_sem, FuriWaitForever) == FuriStatusOk);
+    furi_semaphore_free(lwip_start_sem);
+
+    usb_network = malloc(sizeof(UsbNetwork));
+
+    tcpip_callback(usb_network_init_netif, NULL);
+
+    furi_record_create(RECORD_USB_NETWORK, usb_network);
 }

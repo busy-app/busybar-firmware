@@ -43,3 +43,6 @@
 [submodule "lib/lvgl"]
 	path = lib/lvgl
 	url = https://github.com/lvgl/lvgl.git
+[submodule "lib/matter_ext"]
+	path = lib/matter_ext
+	url = https://github.com/flipperdevices/silabs_matter_extension.git
