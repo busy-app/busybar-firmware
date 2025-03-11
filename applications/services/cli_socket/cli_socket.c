@@ -119,7 +119,7 @@ size_t cli_socket_rx(uint8_t* buffer, size_t size, uint32_t timeout) {
     size_t received = 0;
 
     while(received < size) {
-        int32_t ret = recv(cli_socket.client_socket, buffer, size, 0);
+        int32_t ret = recv(cli_socket.client_socket, buffer + received, size - received, 0);
 
         if(ret < 0) {
             CLI_SOCKET_DEBUG("disconnected while reading, errno: %d", errno);
