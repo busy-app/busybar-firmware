@@ -23,6 +23,8 @@ typedef struct _my_theme_t my_theme_t;
 
 /** Custom widgets */
 
+// Widget
+extern const lv_obj_class_t lv_widget_class;
 // Submenu
 extern const lv_obj_class_t lv_submenu_class;
 extern const lv_obj_class_t lv_submenu_item_class;
@@ -418,7 +420,9 @@ static void theme_apply(lv_theme_t* th, lv_obj_t* obj) {
         lv_obj_add_style(obj, &theme->styles.light, 0);
     }
 #endif
-    else if(lv_obj_check_type(obj, &lv_submenu_class)) {
+    else if(lv_obj_check_type(obj, &lv_widget_class)) {
+        lv_obj_add_style(obj, &theme->styles.normal, LV_PART_MAIN);
+    } else if(lv_obj_check_type(obj, &lv_submenu_class)) {
         lv_obj_add_style(obj, &theme->styles.normal, LV_PART_MAIN);
         lv_obj_add_style(obj, &theme->styles.scrollbar, LV_PART_SCROLLBAR);
     } else if(lv_obj_check_type(obj, &lv_submenu_item_class)) {

@@ -180,6 +180,57 @@ static void gui_input_queue_callback(FuriEventLoopObject* object, void* context)
     }
 }
 
+static void gui_display_set_active_group(GuiDisplay* display, lv_group_t* group) {
+    for(GuiInputId id = 0; id < GuiInputIdMax; ++id) {
+        lv_indev_t* indev = display->lv_indevs[id];
+        lv_indev_set_group(indev, group);
+    }
+}
+
+static void gui_display_widget_deleted_callback(void* context) {
+    furi_assert(context);
+
+    GuiDisplay* display = context;
+    gui_display_set_active_group(display, NULL);
+    display->active_widget = NULL;
+}
+
+static void gui_display_group_changed_callback(Widget* widget, void* context) {
+    furi_assert(widget);
+    furi_assert(context);
+
+    GuiDisplay* display = context;
+    furi_assert(display->active_widget == widget);
+
+    gui_display_set_active_group(display, widget->current_group);
+}
+
+static void gui_display_set_active_widget(GuiDisplay* display, Widget* widget) {
+    if(display->active_widget) {
+        widget_set_callbacks(display->active_widget, NULL, NULL, NULL);
+    }
+
+    display->active_widget = widget;
+
+    widget_set_callbacks(
+        widget, gui_display_widget_deleted_callback, gui_display_group_changed_callback, display);
+
+    gui_display_set_active_group(display, widget_get_current_group(widget));
+}
+
+static GuiDisplay* gui_find_display_by_widget(Gui* instance, const Widget* widget) {
+    lv_display_t* lv_display = lv_obj_get_display((lv_obj_t*)widget);
+
+    for(GuiDisplayId id = 0; id < GuiDisplayIdMax; ++id) {
+        GuiDisplay* display = &instance->displays[id];
+        if(display->lv_display == lv_display) {
+            return display;
+        }
+    }
+
+    return NULL;
+}
+
 static void gui_init_front(Gui* instance) {
     GuiDisplay* display = &instance->displays[GuiDisplayIdFront];
 
@@ -224,7 +275,7 @@ static void gui_init_back(Gui* instance) {
     lv_display_set_theme(display->lv_display, theme);
 }
 
-static void gui_init_display_input(GuiDisplay* display, GuiInputEvent* event) {
+static void gui_display_init_input(GuiDisplay* display, GuiInputEvent* event) {
     // Created input device gets associated with the default display
     lv_display_set_default(display->lv_display);
     // Create and initialise encoder
@@ -245,16 +296,8 @@ static void gui_init_display_input(GuiDisplay* display, GuiInputEvent* event) {
 
 static void gui_init_input(Gui* instance) {
     for(GuiDisplayId id = 0; id < GuiDisplayIdMax; ++id) {
-        gui_init_display_input(&instance->displays[id], &instance->input_event);
-    }
-
-    // TODO: Do not use default groups, set per object explicit group instead
-    lv_group_t* default_group = lv_group_create();
-    lv_group_set_default(default_group);
-
-    GuiDisplay* front = &instance->displays[GuiDisplayIdFront];
-    for(GuiInputId id = 0; id < GuiInputIdMax; ++id) {
-        lv_indev_set_group(front->lv_indevs[id], default_group);
+        GuiDisplay* display = &instance->displays[id];
+        gui_display_init_input(display, &instance->input_event);
     }
 
     FuriPubSub* input_events = furi_record_open(RECORD_INPUT_EVENTS);
@@ -315,6 +358,43 @@ void gui_unlock(Gui* instance) {
     furi_check(instance);
     furi_check(furi_mutex_release(instance->access_mutex) == FuriStatusOk);
 }
+
+Widget* gui_get_root_widget(Gui* instance, GuiDisplayId display_id, GuiLayerId layer_id) {
+    furi_check(instance);
+    furi_check(display_id < GuiDisplayIdMax);
+    furi_check(layer_id < GuiLayerIdMax);
+    furi_check(IS_OWNER(instance->access_mutex));
+
+    lv_display_t* display = instance->displays[display_id].lv_display;
+    lv_obj_t* root;
+
+    if(layer_id == GuiLayerIdBottom) {
+        root = lv_display_get_layer_bottom(display);
+    } else if(layer_id == GuiLayerIdActive) {
+        root = lv_display_get_screen_active(display);
+    } else if(layer_id == GuiLayerIdTop) {
+        root = lv_display_get_layer_top(display);
+    } else if(layer_id == GuiLayerIdSystem) {
+        root = lv_display_get_layer_sys(display);
+    } else {
+        furi_crash();
+    }
+
+    return (Widget*)root;
+}
+
+void gui_set_active_widget(Gui* instance, Widget* widget) {
+    furi_check(instance);
+    furi_check(widget);
+    furi_check(IS_WIDGET_CLASS(widget));
+    furi_check(IS_OWNER(instance->access_mutex));
+
+    GuiDisplay* display = gui_find_display_by_widget(instance, widget);
+    furi_assert(display);
+    gui_display_set_active_widget(display, widget);
+}
+
+// Old functions to delete
 
 lv_obj_t* gui_get_layer(Gui* instance, GuiDisplayId display_id, GuiLayerId layer_id) {
     furi_check(instance);

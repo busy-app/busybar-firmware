@@ -2,6 +2,8 @@
 
 #include "gui.h"
 
+#include "widget_i.h"
+
 #include <furi.h>
 #include <lvgl.h>
 
@@ -47,6 +49,7 @@ typedef struct {
     // TODO: Keep frame buffer in SSD1320 service
     uint8_t* frame_buffer;
     void* driver;
+    Widget* active_widget;
 } GuiDisplay;
 
 struct Gui {

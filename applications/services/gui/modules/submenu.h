@@ -4,7 +4,7 @@
  */
 #pragma once
 
-#include <gui/view_port.h>
+#include <gui/widget.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -24,11 +24,11 @@ typedef void (*SubmenuItemCallback)(uint32_t index, void* context);
 /**
  * @brief Create a new Submenu instance.
  *
- * @param[in,out] view_port pointer to the parent ViewPort instance
+ * @param[in,out] parent pointer to the parent Widget instance
  *
  * @returns pointer to the newly created Submenu instance
  */
-Submenu* submenu_alloc(ViewPort* view_port);
+Submenu* submenu_alloc(Widget* parent);
 
 /**
  * @brief Delete a Submenu instance.

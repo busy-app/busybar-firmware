@@ -17,7 +17,6 @@ typedef struct {
     FuriMessageQueue* queue;
     Desktop* desktop;
     Gui* gui;
-    ViewPort* view_port;
     Submenu* submenu;
 } AppsMenu;
 
@@ -66,28 +65,28 @@ static AppsMenu* apps_menu_alloc(void) {
         instance);
 
     with_gui(instance->gui, {
-        instance->view_port = view_port_alloc(instance->gui, GuiDisplayIdFront, GuiLayerIdActive);
-        instance->submenu = submenu_alloc(instance->view_port);
+        Widget* root = gui_get_root_widget(instance->gui, GuiDisplayIdFront, GuiLayerIdActive);
+        instance->submenu = submenu_alloc(root);
 
         for(uint32_t i = 0; i < FLIPPER_APPS_COUNT; ++i) {
             const FlipperInternalApplication* app = &FLIPPER_APPS[i];
             submenu_add_item(
                 instance->submenu, app->name, i, apps_menu_submenu_item_callback, instance);
         }
+        UNUSED(apps_menu_submenu_item_callback);
+
 #if APPS_MENU_ERROR_TEST
         submenu_add_item(
             instance->submenu, "Error Test", UINT32_MAX, apps_menu_submenu_item_callback, instance);
 #endif
+        gui_set_active_widget(instance->gui, (Widget*)instance->submenu);
     });
 
     return instance;
 }
 
 static void apps_menu_free(AppsMenu* instance) {
-    with_gui(instance->gui, {
-        submenu_free(instance->submenu);
-        view_port_free(instance->view_port);
-    });
+    with_gui(instance->gui, { submenu_free(instance->submenu); });
 
     furi_record_close(RECORD_GUI);
     furi_record_close(RECORD_DESKTOP);
