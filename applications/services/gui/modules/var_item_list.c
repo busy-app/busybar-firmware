@@ -1,6 +1,6 @@
 #include "var_item_list.h"
 
-#include <gui/view_port_i.h>
+#include <gui/widget_i.h>
 
 #include <lvgl/src/core/lv_obj_class_private.h>
 #include <lvgl/src/widgets/label/lv_label_private.h>
@@ -59,8 +59,9 @@ struct VarItem {
 };
 
 struct VarItemList {
-    ViewPort view_port;
-    lv_group_t* group;
+    Widget widget;
+    lv_group_t* main_group;
+    lv_group_t* edit_group;
 };
 
 // Class forward declarations
@@ -80,18 +81,6 @@ static void var_item_spinbox_clear_choices(VarItemSpinbox* instance);
 
 // LVGL-specific code
 
-// HACK: This should be done by Gui
-static void var_item_list_redirect_input_to_group(lv_obj_t* obj, lv_group_t* group) {
-    const lv_display_t* display = lv_obj_get_display(obj);
-
-    for(lv_indev_t* indev = lv_indev_get_next(NULL); indev != NULL;
-        indev = lv_indev_get_next(indev)) {
-        if(lv_indev_get_display(indev) == display) {
-            lv_indev_set_group(indev, group);
-        }
-    }
-}
-
 // TODO: Make it a universal fix
 static void var_item_list_scroll_event_callback(lv_event_t* event) {
     const lv_event_code_t code = lv_event_get_code(event);
@@ -108,15 +97,16 @@ static void lv_var_item_list_constructor(const lv_obj_class_t* class_p, lv_obj_t
     LV_UNUSED(class_p);
 
     VarItemList* instance = (VarItemList*)obj;
-    instance->group = lv_group_create();
-    lv_group_set_editing(instance->group, true);
+    instance->main_group = lv_group_create();
+    instance->edit_group = lv_group_create();
 }
 
 static void lv_var_item_list_destructor(const lv_obj_class_t* class_p, lv_obj_t* obj) {
     LV_UNUSED(class_p);
 
     VarItemList* instance = (VarItemList*)obj;
-    lv_group_delete(instance->group);
+    lv_group_delete(instance->main_group);
+    lv_group_delete(instance->edit_group);
 }
 
 // VarItem
@@ -223,19 +213,22 @@ static VarItemList* var_item_spinbox_get_list(const VarItemSpinbox* instance) {
 }
 
 static void var_item_spinbox_grab_input(VarItemSpinbox* instance, bool enable) {
+    VarItemList* var_list = var_item_spinbox_get_list(instance);
+
     lv_obj_t* obj = (lv_obj_t*)instance;
     lv_group_t* group;
 
     if(enable) {
-        VarItemList* list = var_item_spinbox_get_list(instance);
-        group = list->group;
+        group = var_list->edit_group;
         lv_group_add_obj(group, obj);
+        lv_group_set_editing(group, true);
+
     } else {
+        group = var_list->main_group;
         lv_group_remove_obj(obj);
-        group = lv_group_get_default();
     }
 
-    var_item_list_redirect_input_to_group(obj, group);
+    widget_set_current_group((Widget*)var_list, group);
 }
 
 static void var_item_spinbox_set_range_and_step(
@@ -368,12 +361,14 @@ static void var_item_spinbox_decrement(VarItemSpinbox* instance) {
 }
 
 static VarItem* var_item_alloc(
-    VarItemList* var_item_list,
+    VarItemList* parent,
     const char* label,
     VarItemChangeCallback callback,
     void* context) {
-    lv_obj_t* obj = lv_obj_class_create_obj(MY_ITEM_CLASS, (lv_obj_t*)var_item_list);
+    lv_obj_t* obj = lv_obj_class_create_obj(MY_ITEM_CLASS, (lv_obj_t*)parent);
     lv_obj_class_init_obj(obj);
+
+    lv_group_add_obj(parent->main_group, obj);
 
     VarItem* instance = (VarItem*)obj;
     lv_label_set_text(instance->label, label);
@@ -387,16 +382,18 @@ static VarItem* var_item_alloc(
 
 // Public API
 
-VarItemList* var_item_list_alloc(ViewPort* view_port) {
-    furi_check(view_port);
+VarItemList* var_item_list_alloc(Widget* parent) {
+    furi_check(parent);
 
-    lv_obj_t* obj = lv_obj_class_create_obj(MY_CLASS, (lv_obj_t*)view_port);
+    lv_obj_t* obj = lv_obj_class_create_obj(MY_CLASS, (lv_obj_t*)parent);
     lv_obj_class_init_obj(obj);
 
     lv_obj_set_flex_flow(obj, LV_FLEX_FLOW_COLUMN);
     lv_obj_add_event_cb(obj, var_item_list_scroll_event_callback, LV_EVENT_SCROLL_BEGIN, NULL);
 
     VarItemList* instance = (VarItemList*)obj;
+    widget_set_current_group((Widget*)instance, instance->main_group);
+
     return instance;
 }
 
@@ -523,7 +520,7 @@ void var_item_set_flags(VarItem* item, uint32_t flags) {
 // LVGL classes
 
 const lv_obj_class_t lv_var_item_list_class = {
-    .base_class = &lv_view_port_class,
+    .base_class = &lv_widget_class,
     .constructor_cb = lv_var_item_list_constructor,
     .destructor_cb = lv_var_item_list_destructor,
     .name = "var-item-list",
@@ -539,7 +536,6 @@ const lv_obj_class_t lv_var_item_class = {
     .name = "var-item",
     .width_def = LV_PCT(100),
     .height_def = LV_SIZE_CONTENT,
-    .group_def = LV_OBJ_CLASS_GROUP_DEF_TRUE,
     .instance_size = sizeof(VarItem),
 };
 

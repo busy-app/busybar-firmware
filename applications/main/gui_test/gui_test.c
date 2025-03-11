@@ -1,5 +1,6 @@
 #include <furi.h>
 
+#include <gui/gui.h>
 #include <gui/modules/var_item_list.h>
 
 #define TAG "GuiTest"
@@ -24,7 +25,6 @@
 typedef struct {
     FuriEventLoop* event_loop;
     Gui* gui;
-    ViewPort* view_port;
     VarItemList* var_list;
 } GuiTestApp;
 
@@ -91,8 +91,8 @@ GuiTestApp* gui_test_alloc(void) {
     instance->gui = furi_record_open(RECORD_GUI);
 
     with_gui(instance->gui, {
-        instance->view_port = view_port_alloc(instance->gui, GuiDisplayIdFront, GuiLayerIdActive);
-        instance->var_list = var_item_list_alloc(instance->view_port);
+        Widget* root = gui_get_root_widget(instance->gui, GuiDisplayIdFront, GuiLayerIdActive);
+        instance->var_list = var_item_list_alloc(root);
 
         VarItem* item;
 
@@ -157,16 +157,15 @@ GuiTestApp* gui_test_alloc(void) {
 
         item = var_item_list_add_switch(
             instance->var_list, "Switch", gui_test_switch_changed_callback, NULL);
+
+        gui_set_active_widget(instance->gui, (Widget*)instance->var_list);
     });
 
     return instance;
 }
 
 void gui_test_free(GuiTestApp* instance) {
-    with_gui(instance->gui, {
-        var_item_list_free(instance->var_list);
-        view_port_free(instance->view_port);
-    });
+    with_gui(instance->gui, { var_item_list_free(instance->var_list); });
 
     furi_record_close(RECORD_GUI);
 

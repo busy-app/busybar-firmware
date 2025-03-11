@@ -4,7 +4,7 @@
  */
 #pragma once
 
-#include <gui/view_port.h>
+#include <gui/widget.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -29,11 +29,11 @@ typedef void (*VarItemChangeCallback)(VarItem* item, void* context);
 /**
  * @brief Create a new VarItemList instance.
  *
- * @param[in,out] view_port pointer to the parent ViewPort instance
+ * @param[in,out] view_port pointer to the parent Widget instance
  *
  * @returns pointer to the newly created VarItemList instance
  */
-VarItemList* var_item_list_alloc(ViewPort* view_port);
+VarItemList* var_item_list_alloc(Widget* parent);
 
 /**
  * @brief Delete a VarItemList instance and all of its items.
