@@ -220,7 +220,7 @@ static void gui_init_back(Gui* instance) {
         BACK_DRAW_BUFFER_SIZE,
         LV_DISPLAY_RENDER_MODE_DIRECT);
 
-    lv_theme_t* theme = lv_theme_mono_init(display->lv_display, true, &lv_font_haxrcorp4089_16);
+    lv_theme_t* theme = lv_theme_front_init(display->lv_display);
     lv_display_set_theme(display->lv_display, theme);
 }
 
@@ -248,7 +248,7 @@ static void gui_init_input(Gui* instance) {
         gui_init_display_input(&instance->displays[id], &instance->input_event);
     }
 
-    // TODO: Group management will be done in the Screen class
+    // TODO: Do not use default groups, set per object explicit group instead
     lv_group_t* default_group = lv_group_create();
     lv_group_set_default(default_group);
 
