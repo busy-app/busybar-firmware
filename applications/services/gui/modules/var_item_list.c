@@ -54,6 +54,7 @@ typedef struct {
 
 struct VarItem {
     lv_obj_t obj;
+    lv_obj_t* cursor;
     lv_obj_t* label;
     VarItemSpinbox* spinbox;
 };
@@ -113,21 +114,29 @@ static void lv_var_item_list_destructor(const lv_obj_class_t* class_p, lv_obj_t*
 
 static void lv_var_item_constructor(const lv_obj_class_t* class_p, lv_obj_t* obj) {
     LV_UNUSED(class_p);
-    // TODO: Implement current item indicator
-    lv_obj_set_style_pad_left(obj, ITEM_INDICATOR_WIDTH_PX, LV_PART_MAIN);
+
+    lv_obj_set_flex_flow(obj, LV_FLEX_FLOW_ROW);
+    lv_obj_set_flex_align(obj, LV_FLEX_ALIGN_START, LV_FLEX_ALIGN_CENTER, LV_FLEX_ALIGN_START);
 
     lv_obj_remove_flag(obj, LV_OBJ_FLAG_SCROLLABLE);
     lv_obj_add_flag(obj, LV_OBJ_FLAG_SCROLL_ON_FOCUS);
-    // lv_obj_add_flag(obj, LV_OBJ_FLAG_EVENT_BUBBLE);
 
     VarItem* instance = (VarItem*)obj;
+    instance->cursor = lv_label_create(obj);
+    lv_label_set_text(instance->cursor, SYM_ARROW_RIGHT);
+    // TODO: A better way to show and hide the cursor
+    lv_obj_set_style_opa(instance->cursor, LV_OPA_TRANSP, LV_PART_MAIN);
+    lv_obj_set_style_pad_left(instance->cursor, 2, LV_PART_MAIN);
+    lv_obj_set_style_pad_right(instance->cursor, 1, LV_PART_MAIN);
+
     instance->label = lv_label_create(obj);
-    lv_label_set_long_mode(instance->label, LV_LABEL_LONG_MODE_SCROLL_CIRCULAR);
+    lv_obj_set_flex_grow(instance->label, 1);
+    lv_label_set_long_mode(instance->label, LV_LABEL_LONG_MODE_WRAP);
 
     lv_obj_t* spinbox = lv_obj_class_create_obj(MY_SPINBOX_CLASS, obj);
     lv_obj_class_init_obj(spinbox);
-    // TODO: Calculate horizontal pos based on available width
-    lv_obj_set_pos(spinbox, 38, 0);
+    lv_obj_set_flex_grow(spinbox, 1);
+    lv_label_set_long_mode(spinbox, LV_LABEL_LONG_MODE_CLIP);
 
     instance->spinbox = (VarItemSpinbox*)spinbox;
 }
@@ -140,11 +149,14 @@ static void lv_var_item_event(const lv_obj_class_t* class_p, lv_event_t* event) 
     if(res != LV_RESULT_OK) return;
 
     const lv_event_code_t code = lv_event_get_code(event);
-    lv_obj_t* target = lv_event_get_target(event);
+    VarItem* instance = lv_event_get_target(event);
 
     if(code == LV_EVENT_SHORT_CLICKED) {
-        VarItem* instance = (VarItem*)target;
         var_item_spinbox_grab_input(instance->spinbox, true);
+    } else if(code == LV_EVENT_FOCUSED) {
+        lv_obj_set_style_opa(instance->cursor, LV_OPA_COVER, LV_PART_MAIN);
+    } else if(code == LV_EVENT_DEFOCUSED) {
+        lv_obj_set_style_opa(instance->cursor, LV_OPA_TRANSP, LV_PART_MAIN);
     }
 }
 
