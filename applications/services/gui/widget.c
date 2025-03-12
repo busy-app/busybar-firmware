@@ -100,12 +100,14 @@ void widget_set_deleted_callback(Widget* instance, WidgetDeletedCallback callbac
 }
 
 void widget_input(Widget* instance, const InputEvent* event) {
-    if(instance->input_feed_callback) {
-        const bool consumed = instance->input_feed_callback(instance, event);
+    bool consumed = false;
 
-        if(!consumed && instance->input_callback) {
-            instance->input_callback(event, instance->input_callback_context);
-        }
+    if(instance->input_feed_callback) {
+        consumed = instance->input_feed_callback(instance, event);
+    }
+
+    if(!consumed && instance->input_callback) {
+        instance->input_callback(event, instance->input_callback_context);
     }
 }
 

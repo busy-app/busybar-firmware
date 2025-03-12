@@ -1,9 +1,10 @@
 #include "widget.h"
 
 #include <furi.h>
-
 #include <lvgl.h>
+
 #include <lvgl/src/core/lv_obj_private.h>
+#include <lvgl/src/core/lv_obj_class_private.h>
 
 #define IS_WIDGET_CLASS(w) (lv_obj_has_class((lv_obj_t*)(w), &lv_widget_class))
 
