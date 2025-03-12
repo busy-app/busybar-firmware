@@ -5,9 +5,9 @@
 #include <lvgl/src/core/lv_obj_class_private.h>
 #include <lvgl/src/widgets/label/lv_label_private.h>
 
-#define MY_CLASS         (&lv_var_item_list_class)
-#define MY_ITEM_CLASS    (&lv_var_item_class)
-#define MY_SPINBOX_CLASS (&lv_var_item_spinbox_class)
+#define MY_CLASS        (&lv_var_item_list_class)
+#define MY_ITEM_CLASS   (&lv_var_item_class)
+#define MY_EDITOR_CLASS (&lv_var_item_editor_class)
 
 #define SYM_INFINITY    "∞"
 #define SYM_ARROW_LEFT  "◃"
@@ -22,7 +22,7 @@
         furi_check((max - min) % step == 0, "Step error: range must be evenly divisible"); \
     } while(0)
 
-#define SET_SPINBOX_LABEL(label, fmt, ...) \
+#define SET_EDITOR_LABEL(label, fmt, ...) \
     (lv_label_set_text_fmt(label, "%s " fmt " %s", SYM_ARROW_LEFT, ##__VA_ARGS__, SYM_ARROW_RIGHT))
 
 typedef enum {
@@ -50,30 +50,30 @@ typedef struct {
     VarItemChangeCallback callback;
     void* context;
     VarItemType type;
-} VarItemSpinbox;
+} VarItemEditor;
 
 struct VarItem {
     lv_obj_t obj;
     lv_obj_t* cursor;
     lv_obj_t* label;
-    VarItemSpinbox* spinbox;
+    VarItemEditor* editor;
 };
 
 struct VarItemList {
     Widget widget;
     lv_group_t* group;
-    VarItemSpinbox* edited;
+    VarItemEditor* edited;
 };
 
 // Class forward declarations
 
 const lv_obj_class_t lv_var_item_list_class;
 const lv_obj_class_t lv_var_item_class;
-const lv_obj_class_t lv_var_item_spinbox_class;
+const lv_obj_class_t lv_var_item_editor_class;
 
 // Function prototypes
 
-static void var_item_spinbox_clear_choices(VarItemSpinbox* instance);
+static void var_item_editor_clear_choices(VarItemEditor* instance);
 
 // LVGL-specific code
 
@@ -126,12 +126,12 @@ static void lv_var_item_constructor(const lv_obj_class_t* class_p, lv_obj_t* obj
     lv_obj_set_flex_grow(instance->label, 1);
     lv_label_set_long_mode(instance->label, LV_LABEL_LONG_MODE_WRAP);
 
-    lv_obj_t* spinbox = lv_obj_class_create_obj(MY_SPINBOX_CLASS, obj);
-    lv_obj_class_init_obj(spinbox);
-    lv_obj_set_flex_grow(spinbox, 1);
-    lv_label_set_long_mode(spinbox, LV_LABEL_LONG_MODE_CLIP);
+    lv_obj_t* editor = lv_obj_class_create_obj(MY_EDITOR_CLASS, obj);
+    lv_obj_class_init_obj(editor);
+    lv_obj_set_flex_grow(editor, 1);
+    lv_label_set_long_mode(editor, LV_LABEL_LONG_MODE_CLIP);
 
-    instance->spinbox = (VarItemSpinbox*)spinbox;
+    instance->editor = (VarItemEditor*)editor;
 }
 
 static void lv_var_item_event(const lv_obj_class_t* class_p, lv_event_t* event) {
@@ -153,36 +153,36 @@ static void lv_var_item_event(const lv_obj_class_t* class_p, lv_event_t* event) 
 
 // VarItemSpinbox
 
-static void lv_var_item_spinbox_constructor(const lv_obj_class_t* class_p, lv_obj_t* obj) {
+static void lv_var_item_editor_constructor(const lv_obj_class_t* class_p, lv_obj_t* obj) {
     LV_UNUSED(class_p);
 
     lv_obj_remove_flag(obj, LV_OBJ_FLAG_SCROLLABLE);
 
-    VarItemSpinbox* instance = (VarItemSpinbox*)obj;
+    VarItemEditor* instance = (VarItemEditor*)obj;
     UNUSED(instance);
 }
 
-static void lv_var_item_spinbox_destructor(const lv_obj_class_t* class_p, lv_obj_t* obj) {
+static void lv_var_item_editor_destructor(const lv_obj_class_t* class_p, lv_obj_t* obj) {
     LV_UNUSED(class_p);
 
-    VarItemSpinbox* instance = (VarItemSpinbox*)obj;
+    VarItemEditor* instance = (VarItemEditor*)obj;
 
     if(instance->suffix) {
         free(instance->suffix);
     }
     if(instance->choices) {
-        var_item_spinbox_clear_choices(instance);
+        var_item_editor_clear_choices(instance);
     }
 }
 
 // Spinbox private functions
 
-static VarItem* var_item_spinbox_get_item(const VarItemSpinbox* instance) {
+static VarItem* var_item_editor_get_item(const VarItemEditor* instance) {
     return (VarItem*)lv_obj_get_parent((const lv_obj_t*)instance);
 }
 
-static void var_item_spinbox_set_range_and_step(
-    VarItemSpinbox* instance,
+static void var_item_editor_set_range_and_step(
+    VarItemEditor* instance,
     int32_t min,
     int32_t max,
     int32_t step) {
@@ -192,12 +192,12 @@ static void var_item_spinbox_set_range_and_step(
     instance->value = min;
 }
 
-static void var_item_spinbox_set_type(VarItemSpinbox* instance, VarItemType type) {
+static void var_item_editor_set_type(VarItemEditor* instance, VarItemType type) {
     instance->type = type;
 }
 
-static void var_item_spinbox_set_choices(
-    VarItemSpinbox* instance,
+static void var_item_editor_set_choices(
+    VarItemEditor* instance,
     const char* choice_text[],
     uint32_t choice_count) {
     furi_assert(instance->type == VarItemTypeSelector);
@@ -212,7 +212,7 @@ static void var_item_spinbox_set_choices(
     }
 }
 
-static void var_item_spinbox_clear_choices(VarItemSpinbox* instance) {
+static void var_item_editor_clear_choices(VarItemEditor* instance) {
     furi_assert(instance->choices);
 
     VarItemSelectorChoices* choices = instance->choices;
@@ -227,7 +227,7 @@ static void var_item_spinbox_clear_choices(VarItemSpinbox* instance) {
     instance->choices = NULL;
 }
 
-static void var_item_spinbox_set_suffix(VarItemSpinbox* instance, const char* suffix) {
+static void var_item_editor_set_suffix(VarItemEditor* instance, const char* suffix) {
     furi_assert(instance->type != VarItemTypeTimebox && instance->type != VarItemTypeSwitch);
     furi_assert(instance->suffix == NULL);
 
@@ -236,7 +236,7 @@ static void var_item_spinbox_set_suffix(VarItemSpinbox* instance, const char* su
     }
 }
 
-static void var_item_spinbox_update(VarItemSpinbox* instance) {
+static void var_item_editor_update(VarItemEditor* instance) {
     lv_obj_t* label = (lv_obj_t*)instance;
 
     const bool is_neg_infinity = (instance->value == instance->min) &&
@@ -245,13 +245,13 @@ static void var_item_spinbox_update(VarItemSpinbox* instance) {
                                  (instance->flags & VarItemFlagMaxIsInf);
 
     if(is_neg_infinity || is_pos_infinity) {
-        SET_SPINBOX_LABEL(label, "%s", SYM_INFINITY);
+        SET_EDITOR_LABEL(label, "%s", SYM_INFINITY);
 
     } else if(instance->type == VarItemTypeSpinbox) {
         if(instance->suffix) {
-            SET_SPINBOX_LABEL(label, "%ld %s", instance->value, instance->suffix);
+            SET_EDITOR_LABEL(label, "%ld %s", instance->value, instance->suffix);
         } else {
-            SET_SPINBOX_LABEL(label, "%ld", instance->value);
+            SET_EDITOR_LABEL(label, "%ld", instance->value);
         }
 
     } else if(instance->type == VarItemTypeTimebox) {
@@ -259,11 +259,11 @@ static void var_item_spinbox_update(VarItemSpinbox* instance) {
         const int32_t mm = instance->value % 60;
 
         if(hh == 0) {
-            SET_SPINBOX_LABEL(label, "%ld", mm);
+            SET_EDITOR_LABEL(label, "%ld", mm);
         } else if(mm == 0) {
-            SET_SPINBOX_LABEL(label, "%ld h", hh);
+            SET_EDITOR_LABEL(label, "%ld h", hh);
         } else {
-            SET_SPINBOX_LABEL(label, "%ld:%02ld", hh, mm);
+            SET_EDITOR_LABEL(label, "%ld:%02ld", hh, mm);
         }
 
     } else if(instance->type == VarItemTypeSelector) {
@@ -273,30 +273,30 @@ static void var_item_spinbox_update(VarItemSpinbox* instance) {
         furi_check(index < choices->count);
 
         if(instance->suffix) {
-            SET_SPINBOX_LABEL(label, "%s %s", choices->text[index], instance->suffix);
+            SET_EDITOR_LABEL(label, "%s %s", choices->text[index], instance->suffix);
         } else {
-            SET_SPINBOX_LABEL(label, "%s", choices->text[index]);
+            SET_EDITOR_LABEL(label, "%s", choices->text[index]);
         }
 
     } else if(instance->type == VarItemTypeSwitch) {
-        SET_SPINBOX_LABEL(label, "%s", instance->value ? "ON" : "OFF");
+        SET_EDITOR_LABEL(label, "%s", instance->value ? "ON" : "OFF");
 
     } else {
         furi_crash();
     }
 }
 
-static void var_item_spinbox_increment(VarItemSpinbox* instance) {
+static void var_item_editor_increment(VarItemEditor* instance) {
     if(instance->value < instance->max) {
         instance->value += instance->step;
-        var_item_spinbox_update(instance);
+        var_item_editor_update(instance);
     }
 }
 
-static void var_item_spinbox_decrement(VarItemSpinbox* instance) {
+static void var_item_editor_decrement(VarItemEditor* instance) {
     if(instance->value > instance->min) {
         instance->value -= instance->step;
-        var_item_spinbox_update(instance);
+        var_item_editor_update(instance);
     }
 }
 
@@ -308,7 +308,7 @@ static bool var_item_list_input_callback(Widget* widget, const InputEvent* event
     if(event->type == InputTypeShort) {
         if(event->key == InputKeyUp) {
             if(instance->edited) {
-                var_item_spinbox_increment(instance->edited);
+                var_item_editor_increment(instance->edited);
             } else {
                 lv_group_focus_next(instance->group);
             }
@@ -317,7 +317,7 @@ static bool var_item_list_input_callback(Widget* widget, const InputEvent* event
 
         } else if(event->key == InputKeyDown) {
             if(instance->edited) {
-                var_item_spinbox_decrement(instance->edited);
+                var_item_editor_decrement(instance->edited);
             } else {
                 lv_group_focus_prev(instance->group);
             }
@@ -325,20 +325,20 @@ static bool var_item_list_input_callback(Widget* widget, const InputEvent* event
             consumed = true;
 
         } else if(event->key == InputKeyOk) {
-            VarItemSpinbox* editor = instance->edited;
+            VarItemEditor* editor = instance->edited;
 
             if(editor) {
                 lv_obj_remove_state((lv_obj_t*)editor, LV_STATE_FOCUSED);
                 instance->edited = NULL;
 
                 if(editor->callback) {
-                    editor->callback(var_item_spinbox_get_item(editor), editor->context);
+                    editor->callback(var_item_editor_get_item(editor), editor->context);
                 }
 
             } else {
                 VarItem* item = (VarItem*)lv_group_get_focused(instance->group);
 
-                editor = item->spinbox;
+                editor = item->editor;
                 lv_obj_add_state((lv_obj_t*)editor, LV_STATE_FOCUSED);
                 instance->edited = editor;
             }
@@ -346,7 +346,7 @@ static bool var_item_list_input_callback(Widget* widget, const InputEvent* event
             consumed = true;
 
         } else if(event->key == InputKeyBack) {
-            VarItemSpinbox* editor = instance->edited;
+            VarItemEditor* editor = instance->edited;
 
             if(editor) {
                 lv_obj_remove_state((lv_obj_t*)editor, LV_STATE_FOCUSED);
@@ -372,9 +372,9 @@ static VarItem* var_item_alloc(
     VarItem* instance = (VarItem*)obj;
     lv_label_set_text(instance->label, label);
 
-    VarItemSpinbox* spinbox = instance->spinbox;
-    spinbox->callback = callback;
-    spinbox->context = context;
+    VarItemEditor* editor = instance->editor;
+    editor->callback = callback;
+    editor->context = context;
 
     return instance;
 }
@@ -415,9 +415,9 @@ VarItem* var_item_list_add_timebox(
 
     VarItem* item = var_item_alloc(instance, label, callback, context);
 
-    var_item_spinbox_set_type(item->spinbox, VarItemTypeTimebox);
-    var_item_spinbox_set_range_and_step(item->spinbox, min_mn, max_mn, step_mn);
-    var_item_spinbox_update(item->spinbox);
+    var_item_editor_set_type(item->editor, VarItemTypeTimebox);
+    var_item_editor_set_range_and_step(item->editor, min_mn, max_mn, step_mn);
+    var_item_editor_update(item->editor);
 
     return item;
 }
@@ -437,10 +437,10 @@ VarItem* var_item_list_add_spinbox(
 
     VarItem* item = var_item_alloc(instance, label, callback, context);
 
-    var_item_spinbox_set_type(item->spinbox, VarItemTypeSpinbox);
-    var_item_spinbox_set_range_and_step(item->spinbox, min, max, step);
-    var_item_spinbox_set_suffix(item->spinbox, suffix);
-    var_item_spinbox_update(item->spinbox);
+    var_item_editor_set_type(item->editor, VarItemTypeSpinbox);
+    var_item_editor_set_range_and_step(item->editor, min, max, step);
+    var_item_editor_set_suffix(item->editor, suffix);
+    var_item_editor_update(item->editor);
 
     return item;
 }
@@ -460,11 +460,11 @@ VarItem* var_item_list_add_selector(
 
     VarItem* item = var_item_alloc(instance, label, callback, context);
 
-    var_item_spinbox_set_type(item->spinbox, VarItemTypeSelector);
-    var_item_spinbox_set_range_and_step(item->spinbox, 0, choice_count - 1, 1);
-    var_item_spinbox_set_choices(item->spinbox, choice_text, choice_count);
-    var_item_spinbox_set_suffix(item->spinbox, suffix);
-    var_item_spinbox_update(item->spinbox);
+    var_item_editor_set_type(item->editor, VarItemTypeSelector);
+    var_item_editor_set_range_and_step(item->editor, 0, choice_count - 1, 1);
+    var_item_editor_set_choices(item->editor, choice_text, choice_count);
+    var_item_editor_set_suffix(item->editor, suffix);
+    var_item_editor_update(item->editor);
 
     return item;
 }
@@ -479,9 +479,9 @@ VarItem* var_item_list_add_switch(
 
     VarItem* item = var_item_alloc(instance, label, callback, context);
 
-    var_item_spinbox_set_type(item->spinbox, VarItemTypeSwitch);
-    var_item_spinbox_set_range_and_step(item->spinbox, 0, 1, 1);
-    var_item_spinbox_update(item->spinbox);
+    var_item_editor_set_type(item->editor, VarItemTypeSwitch);
+    var_item_editor_set_range_and_step(item->editor, 0, 1, 1);
+    var_item_editor_update(item->editor);
 
     return item;
 }
@@ -489,31 +489,31 @@ VarItem* var_item_list_add_switch(
 void var_item_set_value(VarItem* item, int32_t value) {
     furi_check(item);
 
-    VarItemSpinbox* spinbox = item->spinbox;
+    VarItemEditor* editor = item->editor;
 
-    furi_check(value <= spinbox->min);
-    furi_check(value >= spinbox->max);
-    furi_check(value % spinbox->step == 0);
+    furi_check(value <= editor->min);
+    furi_check(value >= editor->max);
+    furi_check(value % editor->step == 0);
 
-    if(spinbox->value != value) {
-        spinbox->value = value;
-        var_item_spinbox_update(spinbox);
+    if(editor->value != value) {
+        editor->value = value;
+        var_item_editor_update(editor);
     }
 }
 
 int32_t var_item_get_value(const VarItem* item) {
     furi_check(item);
 
-    const VarItemSpinbox* spinbox = item->spinbox;
-    return spinbox->value;
+    const VarItemEditor* editor = item->editor;
+    return editor->value;
 }
 
 void var_item_set_flags(VarItem* item, uint32_t flags) {
     furi_check(item);
 
-    VarItemSpinbox* spinbox = item->spinbox;
-    spinbox->flags = flags;
-    var_item_spinbox_update(spinbox);
+    VarItemEditor* editor = item->editor;
+    editor->flags = flags;
+    var_item_editor_update(editor);
 }
 
 // LVGL classes
@@ -538,12 +538,12 @@ const lv_obj_class_t lv_var_item_class = {
     .instance_size = sizeof(VarItem),
 };
 
-const lv_obj_class_t lv_var_item_spinbox_class = {
+const lv_obj_class_t lv_var_item_editor_class = {
     .base_class = &lv_label_class,
-    .constructor_cb = lv_var_item_spinbox_constructor,
-    .destructor_cb = lv_var_item_spinbox_destructor,
-    .name = "var-item-spinbox",
+    .constructor_cb = lv_var_item_editor_constructor,
+    .destructor_cb = lv_var_item_editor_destructor,
+    .name = "var-item-editor",
     .width_def = LV_PCT(100),
     .height_def = LV_SIZE_CONTENT,
-    .instance_size = sizeof(VarItemSpinbox),
+    .instance_size = sizeof(VarItemEditor),
 };
