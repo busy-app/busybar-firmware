@@ -34,6 +34,7 @@ void widget_free(Widget* instance) {
 
 void widget_set_input_callback(Widget* instance, WidgetInputCallback callback, void* context) {
     furi_check(instance);
+    furi_check(IS_WIDGET_CLASS(instance));
     instance->input_callback = callback;
     instance->input_callback_context = context;
 }
