@@ -70,7 +70,7 @@ void power_set_charge_current(Power* power, uint32_t current_ma) {
     int32_t param = current_ma;
 
     PowerMessage msg = {
-        .type = PowerMessageTypeChargeCurrent,
+        .type = PowerMessageTypeSetChargeCurrent,
         .param_int = &param,
         .lock = api_lock_alloc_locked(),
     };

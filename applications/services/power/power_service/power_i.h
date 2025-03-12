@@ -11,7 +11,7 @@ typedef enum {
     PowerMessageTypeGetInfo,
     PowerMessageTypeIsUsbConnected,
     PowerMessageTypeChargeEnable,
-    PowerMessageTypeChargeCurrent,
+    PowerMessageTypeSetChargeCurrent,
     PowerMessageTypePdGetInfo,
     PowerMessageTypePdRequest,
 

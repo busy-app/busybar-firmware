@@ -5,7 +5,7 @@
 #include <furi_hal_light_sensor.h>
 #include <furi_hal_i2c_config.h>
 
-#include <power_simple/power.h>
+#include <power/power_service/power.h>
 
 #define TAG "LightSensor"
 

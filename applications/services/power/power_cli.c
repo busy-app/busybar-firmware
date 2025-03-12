@@ -6,13 +6,14 @@
 #include <toolbox/property.h>
 #include <power/power_service/power.h>
 
-void power_cli_print_property(const char* key, const char* value, bool last, void* context) {
+static void
+    power_cli_print_property(const char* key, const char* value, bool last, void* context) {
     UNUSED(last);
     UNUSED(context);
     printf("%-30s: %s\r\n", key, value);
 }
 
-void power_cli_off(Cli* cli, FuriString* args) {
+static void power_cli_off(Cli* cli, FuriString* args) {
     UNUSED(cli);
     UNUSED(args);
     Power* power = furi_record_open(RECORD_POWER);
@@ -26,7 +27,7 @@ void power_cli_off(Cli* cli, FuriString* args) {
     } while(!success);
 }
 
-void power_cli_reboot(Cli* cli, FuriString* args) {
+static void power_cli_reboot(Cli* cli, FuriString* args) {
     UNUSED(cli);
 
     Power* power = furi_record_open(RECORD_POWER);
@@ -52,7 +53,7 @@ void power_cli_reboot(Cli* cli, FuriString* args) {
     furi_record_close(RECORD_POWER);
 }
 
-void power_cli_reboot2dfu(Cli* cli, FuriString* args) {
+static void power_cli_reboot2dfu(Cli* cli, FuriString* args) {
     UNUSED(cli);
 
     Power* power = furi_record_open(RECORD_POWER);
@@ -77,7 +78,7 @@ void power_cli_reboot2dfu(Cli* cli, FuriString* args) {
     furi_record_close(RECORD_POWER);
 }
 
-void power_cli_charger_on_off(Cli* cli, FuriString* args) {
+static void power_cli_charger_on_off(Cli* cli, FuriString* args) {
     UNUSED(cli);
 
     bool args_error = true;
@@ -99,7 +100,7 @@ void power_cli_charger_on_off(Cli* cli, FuriString* args) {
     }
 }
 
-void power_cli_charger_current(Cli* cli, FuriString* args) {
+static void power_cli_charger_current(Cli* cli, FuriString* args) {
     UNUSED(cli);
 
     bool args_error = true;
@@ -121,7 +122,7 @@ void power_cli_charger_current(Cli* cli, FuriString* args) {
     }
 }
 
-void power_cli_pd_info(Cli* cli, FuriString* args) {
+static void power_cli_pd_info(Cli* cli, FuriString* args) {
     UNUSED(args);
 
     Power* power = furi_record_open(RECORD_POWER);
@@ -177,7 +178,7 @@ void power_cli_pd_info(Cli* cli, FuriString* args) {
     furi_string_free(key);
 }
 
-void power_cli_pd_request(Cli* cli, FuriString* args) {
+static void power_cli_pd_request(Cli* cli, FuriString* args) {
     UNUSED(cli);
 
     bool args_error = true;
@@ -199,7 +200,7 @@ void power_cli_pd_request(Cli* cli, FuriString* args) {
     }
 }
 
-void power_cli_info(Cli* cli, FuriString* args) {
+static void power_cli_info(Cli* cli, FuriString* args) {
     UNUSED(args);
 
     Power* power = furi_record_open(RECORD_POWER);
@@ -259,7 +260,7 @@ static void power_cli_command_print_usage(void) {
     printf("\tpd_set\t - Request USB PD profile\r\n");
 }
 
-void power_cli(Cli* cli, FuriString* args, void* context) {
+static void power_cli(Cli* cli, FuriString* args, void* context) {
     UNUSED(context);
     FuriString* cmd;
     cmd = furi_string_alloc();
