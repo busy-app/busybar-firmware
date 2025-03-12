@@ -17,12 +17,6 @@ typedef enum {
 } GuiDisplayId;
 
 typedef enum {
-    GuiInputIdEncoder,
-    GuiInputIdButtons,
-    GuiInputIdMax,
-} GuiInputId;
-
-typedef enum {
     GuiLayerIdBottom,
     GuiLayerIdActive,
     GuiLayerIdTop,
@@ -42,11 +36,12 @@ void gui_set_active_widget(Gui* instance, Widget* widget);
 
 lv_obj_t* gui_get_layer(Gui* instance, GuiDisplayId display_id, GuiLayerId layer_id);
 
-#define with_gui(gui, code) \
-    {                       \
-        gui_lock(gui);      \
-        {code};             \
-        gui_unlock(gui);    \
+#define with_gui(_gui, code) \
+    {                        \
+        Gui* gui = _gui;     \
+        gui_lock(_gui);      \
+        {code};              \
+        gui_unlock(_gui);    \
     }
 
 #define with_gui_layer(gui, display_id, layer_id, code)             \
