@@ -383,6 +383,11 @@ static void theme_apply(lv_theme_t* th, lv_obj_t* obj) {
         lv_obj_add_style(obj, &theme->styles.light, LV_PART_ITEMS | LV_STATE_CHECKED);
     }
 #endif
+#if LV_USE_LABEL
+    else if(lv_obj_check_type(obj, &lv_label_class)) {
+        lv_obj_add_style(obj, &theme->styles.focused, LV_PART_MAIN);
+    }
+#endif
 #if LV_USE_LIST
     else if(lv_obj_check_type(obj, &lv_list_class)) {
         lv_obj_add_style(obj, &theme->styles.normal, LV_PART_MAIN);
