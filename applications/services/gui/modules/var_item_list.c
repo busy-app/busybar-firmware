@@ -324,7 +324,7 @@ static bool var_item_list_input_callback(Widget* widget, const InputEvent* event
 
             consumed = true;
 
-        } else if(event->key == InputKeyOk) {
+        } else if(event->key == InputKeyOk || event->key == InputKeyStart) {
             VarItemEditor* editor = instance->edited;
 
             if(editor) {

@@ -50,7 +50,7 @@ static bool submenu_input_callback(Widget* widget, const InputEvent* event) {
             lv_group_focus_prev(instance->group);
             consumed = true;
 
-        } else if(event->key == InputKeyOk) {
+        } else if(event->key == InputKeyOk || event->key == InputKeyStart) {
             const SubmenuItem* item = (SubmenuItem*)lv_group_get_focused(instance->group);
 
             if(item->callback) {
