@@ -39,9 +39,9 @@ lv_obj_t* gui_get_layer(Gui* instance, GuiDisplayId display_id, GuiLayerId layer
 #define with_gui(_gui, code) \
     {                        \
         Gui* gui = _gui;     \
-        gui_lock(_gui);      \
+        gui_lock(gui);       \
         {code};              \
-        gui_unlock(_gui);    \
+        gui_unlock(gui);     \
     }
 
 #define with_gui_layer(gui, display_id, layer_id, code)             \
