@@ -66,7 +66,7 @@ FURI_NORETURN void furi_hal_cortex_system_reset(void) {
 
 FURI_NORETURN void furi_hal_cortex_jump_to_dfu(void) {
     // TODO:
-    furi_crash("Not iplemented");
+    furi_crash("Not implemented");
     while(1)
         ;
 }
