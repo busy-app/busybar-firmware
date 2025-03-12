@@ -7,15 +7,21 @@
 #include <stdint.h>
 #include <stdbool.h>
 
+#include <input/input.h>
+
 #ifdef __cplusplus
 extern "C" {
 #endif
 
 typedef struct Widget Widget;
 
+typedef void (*WidgetInputCallback)(const InputEvent* event, void* context);
+
 Widget* widget_alloc(Widget* parent);
 
 void widget_free(Widget* instance);
+
+void widget_set_input_callback(Widget* instance, WidgetInputCallback callback, void* context);
 
 void widget_set_visible(Widget* instance, bool visible);
 

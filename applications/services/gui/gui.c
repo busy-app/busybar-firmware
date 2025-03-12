@@ -40,29 +40,6 @@ static void
     lv_display_flush_ready(lv_display);
 }
 
-static void gui_input_read_callback(lv_indev_t* indev, lv_indev_data_t* data) {
-    const GuiInputEvent* event = lv_indev_get_user_data(indev);
-
-    if(event->id == GuiInputIdEncoder) {
-        furi_assert(lv_indev_get_type(indev) == LV_INDEV_TYPE_ENCODER);
-
-        if(event->encoder.diff != 0) {
-            data->enc_diff = event->encoder.diff;
-        } else {
-            data->state = event->encoder.btn_state;
-        }
-
-    } else if(event->id == GuiInputIdButtons) {
-        furi_assert(lv_indev_get_type(indev) == LV_INDEV_TYPE_KEYPAD);
-
-        data->key = event->button.key;
-        data->state = event->button.state;
-
-    } else {
-        furi_crash("Invalid input id");
-    }
-}
-
 static void gui_log_callback(lv_log_level_t level, const char* buf) {
     char* line = strdup(buf);
     line[strlen(buf) - 1] = 0;
@@ -84,62 +61,14 @@ static void gui_log_callback(lv_log_level_t level, const char* buf) {
     free(line);
 }
 
-static bool gui_parse_encoder_event(const InputEvent* event, GuiInputEvent* gui_event) {
-    bool success = false;
-
-    if(event->key == InputKeyUp || event->key == InputKeyDown) {
-        if(event->type == InputTypeShort) {
-            gui_event->id = GuiInputIdEncoder;
-            gui_event->encoder.diff = (event->key == InputKeyUp) ? 1 : -1;
-            gui_event->encoder.btn_state = 0;
-
-            success = true;
-        }
-
-    } else if(event->key == InputKeyOk) {
-        if(event->type == InputTypePress || event->type == InputTypeRelease) {
-            gui_event->id = GuiInputIdEncoder;
-            gui_event->encoder.diff = 0;
-            gui_event->encoder.btn_state =
-                (event->type == InputTypePress) ? LV_INDEV_STATE_PRESSED : LV_INDEV_STATE_RELEASED;
-            success = true;
-        }
-    }
-
-    return success;
-}
-
-static bool gui_parse_buttons_event(const InputEvent* event, GuiInputEvent* gui_event) {
-    bool success = false;
-
-    if(event->key == InputKeyBack || event->key == InputKeyStart) {
-        if(event->type == InputTypePress || event->type == InputTypeRelease) {
-            gui_event->id = GuiInputIdButtons;
-            gui_event->button.key = (event->key == InputKeyBack) ? LV_KEY_ESC : LV_KEY_ENTER;
-            gui_event->button.state = (event->type == InputTypePress) ? LV_INDEV_STATE_PRESSED :
-                                                                        LV_INDEV_STATE_RELEASED;
-            success = true;
-        }
-    }
-
-    return success;
-}
-
 static void gui_input_pubsub_callback(const void* message, void* context) {
     furi_assert(message);
     furi_assert(context);
 
     Gui* instance = context;
-    const InputEvent* event = message;
 
-    GuiInputEvent gui_event;
-    bool event_parsed = gui_parse_encoder_event(event, &gui_event) ||
-                        gui_parse_buttons_event(event, &gui_event);
-    if(event_parsed) {
-        furi_check(
-            furi_message_queue_put(instance->input_queue, &gui_event, FuriWaitForever) ==
-            FuriStatusOk);
-    }
+    furi_check(
+        furi_message_queue_put(instance->input_queue, message, FuriWaitForever) == FuriStatusOk);
 }
 
 static void gui_tick_callback(void* context) {
@@ -161,17 +90,13 @@ static void gui_input_queue_callback(FuriEventLoopObject* object, void* context)
     furi_assert(object == instance->input_queue);
 
     if(furi_mutex_acquire(instance->access_mutex, 0) == FuriStatusOk) {
-        while(furi_message_queue_get(instance->input_queue, &instance->input_event, 0) ==
-              FuriStatusOk) {
-            const GuiInputId input_id = instance->input_event.id;
-            furi_assert(input_id < GuiInputIdMax);
+        InputEvent event;
 
-            for(uint32_t i = 0; i < GuiDisplayIdMax; ++i) {
-                GuiDisplay* display = &instance->displays[i];
-                lv_indev_t* indev = display->lv_indevs[input_id];
-
-                if(indev != NULL) {
-                    lv_indev_read(indev);
+        while(furi_message_queue_get(instance->input_queue, &event, 0) == FuriStatusOk) {
+            for(GuiDisplayId id = 0; id < GuiDisplayIdMax; ++id) {
+                Widget* active_widget = instance->displays[id].active_widget;
+                if(active_widget) {
+                    widget_input(active_widget, &event);
                 }
             }
         }
@@ -180,42 +105,19 @@ static void gui_input_queue_callback(FuriEventLoopObject* object, void* context)
     }
 }
 
-static void gui_display_set_active_group(GuiDisplay* display, lv_group_t* group) {
-    for(GuiInputId id = 0; id < GuiInputIdMax; ++id) {
-        lv_indev_t* indev = display->lv_indevs[id];
-        lv_indev_set_group(indev, group);
-    }
-}
-
 static void gui_display_widget_deleted_callback(void* context) {
     furi_assert(context);
 
     GuiDisplay* display = context;
-    gui_display_set_active_group(display, NULL);
     display->active_widget = NULL;
-}
-
-static void gui_display_group_changed_callback(Widget* widget, void* context) {
-    furi_assert(widget);
-    furi_assert(context);
-
-    GuiDisplay* display = context;
-    furi_assert(display->active_widget == widget);
-
-    gui_display_set_active_group(display, widget->current_group);
 }
 
 static void gui_display_set_active_widget(GuiDisplay* display, Widget* widget) {
     if(display->active_widget) {
-        widget_set_callbacks(display->active_widget, NULL, NULL, NULL);
+        widget_set_deleted_callback(display->active_widget, NULL, NULL);
     }
-
     display->active_widget = widget;
-
-    widget_set_callbacks(
-        widget, gui_display_widget_deleted_callback, gui_display_group_changed_callback, display);
-
-    gui_display_set_active_group(display, widget_get_current_group(widget));
+    widget_set_deleted_callback(widget, gui_display_widget_deleted_callback, display);
 }
 
 static GuiDisplay* gui_find_display_by_widget(Gui* instance, const Widget* widget) {
@@ -275,31 +177,7 @@ static void gui_init_back(Gui* instance) {
     lv_display_set_theme(display->lv_display, theme);
 }
 
-static void gui_display_init_input(GuiDisplay* display, GuiInputEvent* event) {
-    // Created input device gets associated with the default display
-    lv_display_set_default(display->lv_display);
-    // Create and initialise encoder
-    lv_indev_t* encoder = lv_indev_create();
-    lv_indev_set_type(encoder, LV_INDEV_TYPE_ENCODER);
-    lv_indev_set_mode(encoder, LV_INDEV_MODE_EVENT);
-    lv_indev_set_user_data(encoder, event);
-    lv_indev_set_read_cb(encoder, gui_input_read_callback);
-    display->lv_indevs[GuiInputIdEncoder] = encoder;
-    // Create and initialise buttons
-    lv_indev_t* buttons = lv_indev_create();
-    lv_indev_set_type(buttons, LV_INDEV_TYPE_KEYPAD);
-    lv_indev_set_mode(buttons, LV_INDEV_MODE_EVENT);
-    lv_indev_set_user_data(buttons, event);
-    lv_indev_set_read_cb(buttons, gui_input_read_callback);
-    display->lv_indevs[GuiInputIdButtons] = buttons;
-}
-
 static void gui_init_input(Gui* instance) {
-    for(GuiDisplayId id = 0; id < GuiDisplayIdMax; ++id) {
-        GuiDisplay* display = &instance->displays[id];
-        gui_display_init_input(display, &instance->input_event);
-    }
-
     FuriPubSub* input_events = furi_record_open(RECORD_INPUT_EVENTS);
     furi_pubsub_subscribe(input_events, gui_input_pubsub_callback, instance);
 }
@@ -313,7 +191,7 @@ static Gui* gui_alloc(void) {
     instance->event_loop = furi_event_loop_alloc();
     instance->access_mutex = furi_mutex_alloc(FuriMutexTypeNormal);
     instance->dot_matrix = furi_record_open(RECORD_DOT_MATRIX);
-    instance->input_queue = furi_message_queue_alloc(16, sizeof(GuiInputEvent));
+    instance->input_queue = furi_message_queue_alloc(16, sizeof(InputEvent));
 
     furi_event_loop_subscribe_message_queue(
         instance->event_loop,

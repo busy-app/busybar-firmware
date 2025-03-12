@@ -29,22 +29,7 @@
 #define TICK_PERIOD_MS (8)
 
 typedef struct {
-    GuiInputId id;
-    union {
-        struct {
-            int8_t diff;
-            lv_indev_state_t btn_state;
-        } encoder;
-        struct {
-            uint8_t key;
-            lv_indev_state_t state;
-        } button;
-    };
-} GuiInputEvent;
-
-typedef struct {
     lv_display_t* lv_display;
-    lv_indev_t* lv_indevs[GuiInputIdMax];
     uint8_t* draw_buffer;
     // TODO: Keep frame buffer in SSD1320 service
     uint8_t* frame_buffer;
@@ -59,5 +44,4 @@ struct Gui {
     FuriMutex* access_mutex;
     DotMatrixSrv* dot_matrix;
     GuiDisplay displays[GuiDisplayIdMax];
-    GuiInputEvent input_event;
 };

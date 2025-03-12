@@ -36,16 +36,32 @@ static void submenu_scroll_event_callback(lv_event_t* event) {
     }
 }
 
-static void submenu_item_event_callback(lv_event_t* event) {
-    const lv_event_code_t code = lv_event_get_code(event);
+static bool submenu_input_callback(Widget* widget, const InputEvent* event) {
+    Submenu* instance = (Submenu*)widget;
 
-    if(code == LV_EVENT_SINGLE_CLICKED) {
-        const SubmenuItem* item = lv_event_get_target(event);
+    bool consumed = false;
 
-        if(item->callback) {
-            item->callback(item->index, item->context);
+    if(event->type == InputTypeShort) {
+        if(event->key == InputKeyUp) {
+            lv_group_focus_next(instance->group);
+            consumed = true;
+
+        } else if(event->key == InputKeyDown) {
+            lv_group_focus_prev(instance->group);
+            consumed = true;
+
+        } else if(event->key == InputKeyOk) {
+            const SubmenuItem* item = (SubmenuItem*)lv_group_get_focused(instance->group);
+
+            if(item->callback) {
+                item->callback(item->index, item->context);
+            }
+
+            consumed = true;
         }
     }
+
+    return consumed;
 }
 
 static lv_obj_t* submenu_item_alloc(
@@ -83,8 +99,6 @@ static void submenu_obj_constructor(const lv_obj_class_t* class_p, lv_obj_t* obj
 
     Submenu* instance = (Submenu*)obj;
     instance->group = lv_group_create();
-
-    widget_set_current_group(&instance->widget, instance->group);
 }
 
 static void submenu_obj_destructor(const lv_obj_class_t* class_p, lv_obj_t* obj) {
@@ -103,6 +117,8 @@ Submenu* submenu_alloc(Widget* widget) {
     lv_obj_class_init_obj(obj);
 
     Submenu* instance = (Submenu*)obj;
+    widget_set_input_feed_callback((Widget*)instance, submenu_input_callback);
+
     return instance;
 }
 
@@ -121,7 +137,7 @@ void submenu_add_item(
     furi_check(label);
 
     lv_obj_t* item = submenu_item_alloc(instance, label, index, callback, context);
-    lv_obj_add_event_cb(item, submenu_item_event_callback, LV_EVENT_SINGLE_CLICKED, NULL);
+    UNUSED(item);
 }
 
 void submenu_reset(Submenu* instance) {

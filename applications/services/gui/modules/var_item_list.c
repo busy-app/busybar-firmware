@@ -61,8 +61,8 @@ struct VarItem {
 
 struct VarItemList {
     Widget widget;
-    lv_group_t* main_group;
-    lv_group_t* edit_group;
+    lv_group_t* group;
+    VarItemSpinbox* edited;
 };
 
 // Class forward declarations
@@ -73,11 +73,6 @@ const lv_obj_class_t lv_var_item_spinbox_class;
 
 // Function prototypes
 
-static void var_item_spinbox_update(VarItemSpinbox* instance);
-static void var_item_spinbox_increment(VarItemSpinbox* instance);
-static void var_item_spinbox_decrement(VarItemSpinbox* instance);
-static void var_item_spinbox_finish_editing(VarItemSpinbox* instance);
-static void var_item_spinbox_grab_input(VarItemSpinbox* instance, bool enable);
 static void var_item_spinbox_clear_choices(VarItemSpinbox* instance);
 
 // LVGL-specific code
@@ -98,16 +93,14 @@ static void lv_var_item_list_constructor(const lv_obj_class_t* class_p, lv_obj_t
     LV_UNUSED(class_p);
 
     VarItemList* instance = (VarItemList*)obj;
-    instance->main_group = lv_group_create();
-    instance->edit_group = lv_group_create();
+    instance->group = lv_group_create();
 }
 
 static void lv_var_item_list_destructor(const lv_obj_class_t* class_p, lv_obj_t* obj) {
     LV_UNUSED(class_p);
 
     VarItemList* instance = (VarItemList*)obj;
-    lv_group_delete(instance->main_group);
-    lv_group_delete(instance->edit_group);
+    lv_group_delete(instance->group);
 }
 
 // VarItem
@@ -151,9 +144,7 @@ static void lv_var_item_event(const lv_obj_class_t* class_p, lv_event_t* event) 
     const lv_event_code_t code = lv_event_get_code(event);
     VarItem* instance = lv_event_get_target(event);
 
-    if(code == LV_EVENT_SHORT_CLICKED) {
-        var_item_spinbox_grab_input(instance->spinbox, true);
-    } else if(code == LV_EVENT_FOCUSED) {
+    if(code == LV_EVENT_FOCUSED) {
         lv_obj_set_style_opa(instance->cursor, LV_OPA_COVER, LV_PART_MAIN);
     } else if(code == LV_EVENT_DEFOCUSED) {
         lv_obj_set_style_opa(instance->cursor, LV_OPA_TRANSP, LV_PART_MAIN);
@@ -175,7 +166,6 @@ static void lv_var_item_spinbox_destructor(const lv_obj_class_t* class_p, lv_obj
     LV_UNUSED(class_p);
 
     VarItemSpinbox* instance = (VarItemSpinbox*)obj;
-    var_item_spinbox_grab_input(instance, false);
 
     if(instance->suffix) {
         free(instance->suffix);
@@ -185,62 +175,10 @@ static void lv_var_item_spinbox_destructor(const lv_obj_class_t* class_p, lv_obj
     }
 }
 
-static void lv_var_item_spinbox_event(const lv_obj_class_t* class_p, lv_event_t* event) {
-    LV_UNUSED(class_p);
-
-    lv_result_t res = LV_RESULT_OK;
-    res = lv_obj_event_base(MY_SPINBOX_CLASS, event);
-    if(res != LV_RESULT_OK) return;
-
-    const lv_event_code_t code = lv_event_get_code(event);
-    lv_obj_t* target = lv_event_get_target(event);
-
-    VarItemSpinbox* spinbox = (VarItemSpinbox*)target;
-
-    if(code == LV_EVENT_SHORT_CLICKED) {
-        var_item_spinbox_finish_editing(spinbox);
-
-    } else if(code == LV_EVENT_KEY) {
-        const uint32_t key = *((uint32_t*)lv_event_get_param(event));
-
-        if(key == LV_KEY_RIGHT) {
-            var_item_spinbox_increment(spinbox);
-        } else if(key == LV_KEY_LEFT) {
-            var_item_spinbox_decrement(spinbox);
-        } else if(key == LV_KEY_ESC) {
-            var_item_spinbox_finish_editing(spinbox);
-        }
-    }
-}
-
 // Spinbox private functions
 
 static VarItem* var_item_spinbox_get_item(const VarItemSpinbox* instance) {
     return (VarItem*)lv_obj_get_parent((const lv_obj_t*)instance);
-}
-
-static VarItemList* var_item_spinbox_get_list(const VarItemSpinbox* instance) {
-    const lv_obj_t* item = lv_obj_get_parent((const lv_obj_t*)instance);
-    return (VarItemList*)lv_obj_get_parent(item);
-}
-
-static void var_item_spinbox_grab_input(VarItemSpinbox* instance, bool enable) {
-    VarItemList* var_list = var_item_spinbox_get_list(instance);
-
-    lv_obj_t* obj = (lv_obj_t*)instance;
-    lv_group_t* group;
-
-    if(enable) {
-        group = var_list->edit_group;
-        lv_group_add_obj(group, obj);
-        lv_group_set_editing(group, true);
-
-    } else {
-        group = var_list->main_group;
-        lv_group_remove_obj(obj);
-    }
-
-    widget_set_current_group((Widget*)var_list, group);
 }
 
 static void var_item_spinbox_set_range_and_step(
@@ -348,16 +286,6 @@ static void var_item_spinbox_update(VarItemSpinbox* instance) {
     }
 }
 
-static void var_item_spinbox_finish_editing(VarItemSpinbox* instance) {
-    var_item_spinbox_grab_input(instance, false);
-
-    VarItem* item = var_item_spinbox_get_item(instance);
-
-    if(instance->callback) {
-        instance->callback(item, instance->context);
-    }
-}
-
 static void var_item_spinbox_increment(VarItemSpinbox* instance) {
     if(instance->value < instance->max) {
         instance->value += instance->step;
@@ -372,6 +300,65 @@ static void var_item_spinbox_decrement(VarItemSpinbox* instance) {
     }
 }
 
+static bool var_item_list_input_callback(Widget* widget, const InputEvent* event) {
+    VarItemList* instance = (VarItemList*)widget;
+
+    bool consumed = false;
+
+    if(event->type == InputTypeShort) {
+        if(event->key == InputKeyUp) {
+            if(instance->edited) {
+                var_item_spinbox_increment(instance->edited);
+            } else {
+                lv_group_focus_next(instance->group);
+            }
+
+            consumed = true;
+
+        } else if(event->key == InputKeyDown) {
+            if(instance->edited) {
+                var_item_spinbox_decrement(instance->edited);
+            } else {
+                lv_group_focus_prev(instance->group);
+            }
+
+            consumed = true;
+
+        } else if(event->key == InputKeyOk) {
+            VarItemSpinbox* editor = instance->edited;
+
+            if(editor) {
+                lv_obj_remove_state((lv_obj_t*)editor, LV_STATE_FOCUSED);
+                instance->edited = NULL;
+
+                if(editor->callback) {
+                    editor->callback(var_item_spinbox_get_item(editor), editor->context);
+                }
+
+            } else {
+                VarItem* item = (VarItem*)lv_group_get_focused(instance->group);
+
+                editor = item->spinbox;
+                lv_obj_add_state((lv_obj_t*)editor, LV_STATE_FOCUSED);
+                instance->edited = editor;
+            }
+
+            consumed = true;
+
+        } else if(event->key == InputKeyBack) {
+            VarItemSpinbox* editor = instance->edited;
+
+            if(editor) {
+                lv_obj_remove_state((lv_obj_t*)editor, LV_STATE_FOCUSED);
+                instance->edited = NULL;
+                consumed = true;
+            }
+        }
+    }
+
+    return consumed;
+}
+
 static VarItem* var_item_alloc(
     VarItemList* parent,
     const char* label,
@@ -380,7 +367,7 @@ static VarItem* var_item_alloc(
     lv_obj_t* obj = lv_obj_class_create_obj(MY_ITEM_CLASS, (lv_obj_t*)parent);
     lv_obj_class_init_obj(obj);
 
-    lv_group_add_obj(parent->main_group, obj);
+    lv_group_add_obj(parent->group, obj);
 
     VarItem* instance = (VarItem*)obj;
     lv_label_set_text(instance->label, label);
@@ -404,7 +391,7 @@ VarItemList* var_item_list_alloc(Widget* parent) {
     lv_obj_add_event_cb(obj, var_item_list_scroll_event_callback, LV_EVENT_SCROLL_BEGIN, NULL);
 
     VarItemList* instance = (VarItemList*)obj;
-    widget_set_current_group((Widget*)instance, instance->main_group);
+    widget_set_input_feed_callback((Widget*)instance, var_item_list_input_callback);
 
     return instance;
 }
@@ -555,10 +542,8 @@ const lv_obj_class_t lv_var_item_spinbox_class = {
     .base_class = &lv_label_class,
     .constructor_cb = lv_var_item_spinbox_constructor,
     .destructor_cb = lv_var_item_spinbox_destructor,
-    .event_cb = lv_var_item_spinbox_event,
     .name = "var-item-spinbox",
     .width_def = LV_PCT(100),
     .height_def = LV_SIZE_CONTENT,
-    .editable = LV_OBJ_CLASS_EDITABLE_TRUE,
     .instance_size = sizeof(VarItemSpinbox),
 };

@@ -84,6 +84,17 @@ static void gui_test_switch_changed_callback(VarItem* item, void* context) {
     FURI_LOG_I(TAG, "Switch set: %s", value ? "ON" : "OFF");
 }
 
+static void gui_test_input_callback(const InputEvent* event, void* context) {
+    furi_assert(event);
+    furi_assert(context);
+
+    GuiTestApp* instance = context;
+
+    if(event->type == InputTypeShort && event->key == InputKeyBack) {
+        furi_event_loop_stop(instance->event_loop);
+    }
+}
+
 GuiTestApp* gui_test_alloc(void) {
     GuiTestApp* instance = malloc(sizeof(GuiTestApp));
 
@@ -92,7 +103,9 @@ GuiTestApp* gui_test_alloc(void) {
 
     with_gui(instance->gui, {
         Widget* root = gui_get_root_widget(instance->gui, GuiDisplayIdFront, GuiLayerIdActive);
+
         instance->var_list = var_item_list_alloc(root);
+        widget_set_input_callback((Widget*)instance->var_list, gui_test_input_callback, instance);
 
         VarItem* item;
 

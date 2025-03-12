@@ -8,10 +8,10 @@
 
 static void widget_obj_destructor(const lv_obj_class_t* class_p, lv_obj_t* obj) {
     UNUSED(class_p);
-
     Widget* instance = (Widget*)obj;
+
     if(instance->deleted_callback) {
-        instance->deleted_callback(instance->callback_context);
+        instance->deleted_callback(instance->deleted_callback_context);
     }
 }
 
@@ -30,6 +30,12 @@ Widget* widget_alloc(Widget* parent) {
 void widget_free(Widget* instance) {
     furi_check(instance);
     lv_obj_delete(&instance->obj);
+}
+
+void widget_set_input_callback(Widget* instance, WidgetInputCallback callback, void* context) {
+    furi_check(instance);
+    instance->input_callback = callback;
+    instance->input_callback_context = context;
 }
 
 void widget_set_visible(Widget* instance, bool visible) {
@@ -83,25 +89,22 @@ void widget_move_to_background(Widget* instance) {
 
 // Private API
 
-void widget_set_callbacks(
-    Widget* instance,
-    WidgetDeletedCallback deleted_callback,
-    WidgetGroupChangedCallback group_changed_callback,
-    void* context) {
-    instance->deleted_callback = deleted_callback;
-    instance->group_changed_callback = group_changed_callback;
-    instance->callback_context = context;
+void widget_set_input_feed_callback(Widget* instance, WidgetInputFeedCallback callback) {
+    instance->input_feed_callback = callback;
 }
 
-lv_group_t* widget_get_current_group(const Widget* instance) {
-    return instance->current_group;
+void widget_set_deleted_callback(Widget* instance, WidgetDeletedCallback callback, void* context) {
+    instance->deleted_callback = callback;
+    instance->deleted_callback_context = context;
 }
 
-void widget_set_current_group(Widget* instance, lv_group_t* group) {
-    instance->current_group = group;
+void widget_input(Widget* instance, const InputEvent* event) {
+    if(instance->input_feed_callback) {
+        const bool consumed = instance->input_feed_callback(instance, event);
 
-    if(instance->group_changed_callback) {
-        instance->group_changed_callback(instance, instance->callback_context);
+        if(!consumed && instance->input_callback) {
+            instance->input_callback(event, instance->input_callback_context);
+        }
     }
 }
 

@@ -8,26 +8,22 @@
 #define IS_WIDGET_CLASS(w) (lv_obj_has_class((lv_obj_t*)(w), &lv_widget_class))
 
 typedef void (*WidgetDeletedCallback)(void* context);
-typedef void (*WidgetGroupChangedCallback)(Widget* widget, void* context);
+typedef bool (*WidgetInputFeedCallback)(Widget* instance, const InputEvent* event);
 
 struct Widget {
     lv_obj_t obj;
-    lv_group_t* current_group;
+    WidgetInputCallback input_callback;
+    void* input_callback_context;
     WidgetDeletedCallback deleted_callback;
-    WidgetGroupChangedCallback group_changed_callback;
-    void* callback_context;
+    void* deleted_callback_context;
+    WidgetInputFeedCallback input_feed_callback;
 };
 
 static_assert(offsetof(Widget, obj) == 0);
 
 extern const lv_obj_class_t lv_widget_class;
 
-void widget_set_callbacks(
-    Widget* instance,
-    WidgetDeletedCallback deleted_callback,
-    WidgetGroupChangedCallback group_changed_callback,
-    void* context);
+void widget_set_deleted_callback(Widget* instance, WidgetDeletedCallback callback, void* context);
+void widget_set_input_feed_callback(Widget* instance, WidgetInputFeedCallback callback);
 
-lv_group_t* widget_get_current_group(const Widget* instance);
-
-void widget_set_current_group(Widget* instance, lv_group_t* group);
+void widget_input(Widget* instance, const InputEvent* event);

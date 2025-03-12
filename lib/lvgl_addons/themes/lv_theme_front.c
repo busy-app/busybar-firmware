@@ -436,8 +436,7 @@ static void theme_apply(lv_theme_t* th, lv_obj_t* obj) {
         lv_obj_add_style(obj, &theme->styles.focused, LV_PART_MAIN | LV_STATE_FOCUSED);
     } else if(lv_obj_check_type(obj, &lv_var_item_spinbox_class)) {
         lv_obj_add_style(obj, &theme->styles.normal, LV_PART_MAIN);
-        lv_obj_add_style(
-            obj, &theme->styles.focused, LV_PART_MAIN | LV_STATE_FOCUSED | LV_STATE_EDITED);
+        lv_obj_add_style(obj, &theme->styles.focused, LV_PART_MAIN | LV_STATE_FOCUSED);
     }
 }
 
