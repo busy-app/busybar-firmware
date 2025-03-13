@@ -3,7 +3,7 @@ App(
     targets=["f64"],
     apptype=FlipperAppType.STARTUP,
     entry_point="matter_system_start",
-    stack_size=10 * 1024,
+    stack_size=2 * 1024,
     sources=[
         "matter.c",
         "helpers/matter_app.cpp",

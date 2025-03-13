@@ -912,11 +912,11 @@ static FURI_ALWAYS_INLINE osMessageQueueId_t
     UNUSED(attr);
     //furi_check((attr == NULL), "osMessageQueueNew: attr != NULL Check");
 
-    if(attr == NULL) {
-        return (osMessageQueueId_t)furi_message_queue_alloc(msg_count, msg_size);
-    }
+    //if(attr == NULL) {
+    return (osMessageQueueId_t)furi_message_queue_alloc(msg_count, msg_size);
+    //}
     //furi_crash("osMessageQueueNew: attr != NULL Check");
-    return NULL;
+    //return NULL;
 }
 
 // /// Get name of a Message Queue object.

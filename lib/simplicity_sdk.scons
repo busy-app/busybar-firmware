@@ -52,7 +52,7 @@ env.Append(
         Dir(f"{SDK_INCDIR}/util/third_party/lwip/lwip/src/include").rdir(),
         Dir(f"{MATTER_LIB_INCDIR}/third_party/matter_sdk/src/lwip/silabs").rdir(),
         Dir(f"{MATTER_LIB_INCDIR}/third_party/matter_sdk/src/lwip/freertos").rdir(),
-        # Dir(f"{SDK_INCDIR}/util/third_party/lwip/lwip/src/include/lwip").rdir(),
+        #Dir(f"{SDK_INCDIR}/util/third_party/lwip/lwip/src/include/lwip").rdir(),
     ],
     CPPFLAGS=[
         # "-Wno-error",
@@ -67,6 +67,7 @@ env.Append(
         "SLI_SI917B0",
         "RS911X_WIFI",
         "LWIP_IPV6=1",
+        "LWIP_NETIF_API=1",
         # "PRINT_DEBUG_LOG",
         "SIWG917M111MGTBA",
         "SL_CODE_COMPONENT_CORE=core",
@@ -78,6 +79,7 @@ env.Append(
         ("MBEDTLS_PSA_CRYPTO_CONFIG_FILE", '\\"psa_crypto_config.h\\"'),
         # ("LWIP_TIMEVAL_PRIVATE", "0"),
         # ("MBEDTLS_USER_CONFIG_FILE", '\\"siwx917-chip-mbedtls-config.h\\"'),
+        #'"LWIP_PROVIDE_ERRNO"',  # TODO:
     ],
 )
 

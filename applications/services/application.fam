@@ -44,7 +44,7 @@ App(
     provides=[
         "intercom",  # Enabled in default fw config
         # "wifi",  # Enabled by "sockets"
-        "sockets",
+        #"sockets",
     ],
     targets=["f64"],
 )

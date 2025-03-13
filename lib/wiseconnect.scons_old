@@ -1,0 +1,153 @@
+Import("env")
+
+WISECONNECT_DIR = "wiseconnect/components"
+WISECONNECT_INCDIR = f"#/lib/{WISECONNECT_DIR}"
+DEVICE_DIR = f"{WISECONNECT_DIR}/device/silabs/si91x"
+WIRELESS_DIR = f"{DEVICE_DIR}/wireless"
+WIRELESS_INCDIR = f"#/lib/{WIRELESS_DIR}"
+MCU_DIR = f"{DEVICE_DIR}/mcu"
+MCU_INCDIR = f"#/lib/{MCU_DIR}"
+
+env.Append(
+    CPPPATH=[
+        Dir(f"{WISECONNECT_INCDIR}/protocol/wifi/inc").rdir(),
+        Dir(f"{WISECONNECT_INCDIR}/service/bsd_socket/inc").rdir(),
+        Dir(f"{WIRELESS_INCDIR}/asynchronous_socket/inc").rdir(),
+        Dir(f"{MCU_INCDIR}/drivers/cmsis_driver/CMSIS/Driver/Include").rdir(),
+        Dir(f"{MCU_INCDIR}/drivers/cmsis_driver").rdir(),
+        Dir(f"{WISECONNECT_INCDIR}/service/network_manager/inc").rdir(),
+        Dir(f"{MCU_INCDIR}/drivers/rom_driver/inc").rdir(),
+        Dir(f"{MCU_INCDIR}/core/chip/inc").rdir(),
+        Dir(f"{MCU_INCDIR}/drivers/peripheral_drivers/inc").rdir(),
+        Dir(f"{MCU_INCDIR}/core/config").rdir(),
+        Dir(f"{MCU_INCDIR}/drivers/unified_api/inc").rdir(),
+        Dir(f"{MCU_INCDIR}/drivers/service/clock_manager/inc").rdir(),
+        Dir(f"{MCU_INCDIR}/drivers/unified_peripheral_drivers/inc").rdir(),
+        Dir(f"{WIRELESS_INCDIR}/sl_net/inc").rdir(),
+        Dir(f"{WIRELESS_INCDIR}/inc").rdir(),
+        Dir(f"{WIRELESS_INCDIR}/ble/inc").rdir(),
+        Dir(f"{WIRELESS_INCDIR}/socket/inc").rdir(),
+        Dir(f"{WIRELESS_INCDIR}/ahb_interface/inc").rdir(),
+        Dir(f"{MCU_INCDIR}/drivers/systemlevel/inc").rdir(),
+        Dir(f"wiseconnect/resources/defaults").rdir(),
+        Dir(f"{WISECONNECT_INCDIR}/common/inc").rdir(),
+        # Crypto
+        Dir(f"{WIRELESS_INCDIR}/crypto/inc").rdir(),
+        Dir(f"{WIRELESS_INCDIR}/crypto/crypto_utility/inc").rdir(),
+        Dir(f"{WIRELESS_INCDIR}/crypto/aes/inc").rdir(),
+        Dir(f"{WIRELESS_INCDIR}/crypto/wrap/inc").rdir(),
+        Dir(f"{WIRELESS_INCDIR}/crypto/sha/inc").rdir(),
+        Dir(f"{WIRELESS_INCDIR}/crypto/ecdsa/inc").rdir(),
+        Dir(f"{WIRELESS_INCDIR}/crypto/hmac/inc").rdir(),
+        Dir(f"{WIRELESS_INCDIR}/crypto/gcm/inc").rdir(),
+
+        # Dir(f"{WIRELESS_INCDIR}/crypto/ccm/inc").rdir(),
+        # Dir(f"{WIRELESS_INCDIR}/crypto/ecdh/inc").rdir(),
+        # Dir(f"{WIRELESS_INCDIR}/crypto/aead/inc").rdir(),
+        # Dir(f"{WIRELESS_INCDIR}/crypto/mac/inc").rdir(),
+        Dir(f"{WIRELESS_INCDIR}/crypto/trng/inc").rdir(),
+        Dir(f"{MCU_INCDIR}/hal/inc").rdir(),
+        # NVM3
+        Dir(f"{MCU_INCDIR}/drivers/service/nvm3/inc").rdir(),
+    ],
+    CPPDEFINES=[
+        "SI917",
+        "SLI_SI917",
+        "SLI_SI917B0",
+        "SIWG917M111MGTBA",
+        "USER_CONFIGURATION_ENABLE",
+        "SL_SI91X_TICKLESS_MODE=0",
+        "SLI_SI91X_MCU_INTERFACE",
+        "SLI_SI91X_MCU_ENABLE_IPMU_APIS",
+        "SLI_SI91X_MCU_COMMON_FLASH_MODE",
+        "SLI_SI91X_MCU_CONFIG_RADIO_BOARD_BASE_VER",
+        "SLI_SI91X_MCU_CONFIG_RADIO_BOARD_VER2",
+        # SDK Wifi Silabs
+        #"SL_SI91X_SI917_RAM_MEM_CONFIG=2",
+        "SL_SI91X_SI917_RAM_MEM_CONFIG=3",
+        "SL_WIFI_COMPONENT_INCLUDED=1",
+        "SLI_SI91X_ENABLE_OS",
+        "ENABLE_DEBUG_MODULE",  # This is for debug power down mode
+        "SLI_SI91X_OFFLOAD_NETWORK_STACK",
+        "SLI_SI91X_SOCKETS",
+        # SDK BLE Silabs
+        "SLI_SI91X_ENABLE_BLE",
+        "SL_SI91X_ENABLE_LITTLE_ENDIAN=1",
+        "_STRUCT_TIMESPEC",
+        "NVM3_LOCK_OVERRIDE",
+    ],
+)
+
+libenv = env.Clone(FW_LIB_NAME="wiseconnect")
+libenv.ApplyLibFlags()
+
+sources = [
+    f"{MCU_DIR}/core/chip/src/system_si91x.c",
+    f"{MCU_DIR}/core/chip/src/startup_si91x.c",
+    f"{MCU_DIR}/core/chip/src/rsi_ps_ram_func.c",
+    f"{MCU_DIR}/core/chip/src/rsi_system_config.c",
+    f"{MCU_DIR}/core/chip/src/rsi_deepsleep_soc.c",
+    f"{MCU_DIR}/drivers/peripheral_drivers/src/rsi_pwm.c",
+    f"{MCU_DIR}/drivers/systemlevel/src/rsi_pll.c",
+    f"{MCU_DIR}/drivers/systemlevel/src/rsi_ipmu.c",
+    f"{MCU_DIR}/drivers/systemlevel/src/rsi_ulpss_clk.c",
+    f"{MCU_DIR}/drivers/service/clock_manager/src/sl_si91x_clock_manager.c",
+    # SDK Wifi Silabs
+    f"{WISECONNECT_DIR}/common/src/sl_utility.c",
+    f"{WISECONNECT_DIR}/protocol/wifi/si91x/sl_wifi.c",
+    f"{WISECONNECT_DIR}/protocol/wifi/src/sl_wifi_callback_framework.c",
+    f"{WISECONNECT_DIR}/protocol/wifi/src/sl_wifi_basic_credentials.c",
+    f"{WISECONNECT_DIR}/service/bsd_socket/si91x_socket/sl_si91x_bsd_socket.c",
+    f"{WISECONNECT_DIR}/service/network_manager/src/sl_net.c",
+    f"{WISECONNECT_DIR}/service/network_manager/src/sl_net_basic_profiles.c",
+    f"{WISECONNECT_DIR}/service/network_manager/src/sl_net_credentials.c",
+    f"{WISECONNECT_DIR}/service/network_manager/si91x/sl_net_si91x.c",
+    f"{WIRELESS_DIR}/src/sl_si91x_driver.c",
+    f"{WIRELESS_DIR}/src/sl_rsi_utility.c",
+    f"{WIRELESS_DIR}/ahb_interface/src/rsi_hal_mcu_m4_rom.c",
+    f"{WIRELESS_DIR}/ahb_interface/src/rsi_hal_mcu_m4_ram.c",
+    f"{WIRELESS_DIR}/ahb_interface/src/sl_si91x_bus.c",
+    f"{WIRELESS_DIR}/ahb_interface/src/sl_platform.c",
+    f"{WIRELESS_DIR}/ahb_interface/src/sli_siwx917_soc.c",
+    f"{WIRELESS_DIR}/ahb_interface/src/sl_platform_wireless.c",
+    f"{WIRELESS_DIR}/memory/mem_pool_buffer_quota.c",
+    f"{WIRELESS_DIR}/host_mcu/si91x/siwx917_soc_ncp_host.c",
+    f"{WIRELESS_DIR}/threading/sli_si91x_multithreaded.c",
+    f"{WIRELESS_DIR}/socket/src/sl_si91x_socket_utility.c",
+    f"{WIRELESS_DIR}/asynchronous_socket/src/sl_si91x_socket.c",
+    f"{WIRELESS_DIR}/sl_net/src/sl_net_si91x_integration_handler.c",
+    f"{WIRELESS_DIR}/sl_net/src/sl_net_rsi_utility.c",
+    f"{WIRELESS_DIR}/sl_net/src/sl_si91x_net_credentials.c",
+    f"{WIRELESS_DIR}/sl_net/src/sl_si91x_net_internal_stack.c",
+    f"{WIRELESS_DIR}/sl_net/src/sl_net_si91x_callback_framework.c",
+    # SDK BLE Silabs
+    f"{WIRELESS_DIR}/ble/src/rsi_common_apis.c",
+    f"{WIRELESS_DIR}/ble/src/rsi_bt_ble.c",
+    f"{WIRELESS_DIR}/ble/src/rsi_utils.c",
+    f"{WIRELESS_DIR}/ble/src/rsi_bt_common_apis.c",
+    f"{WIRELESS_DIR}/ble/src/rsi_ble_gap_apis.c",
+    f"{WIRELESS_DIR}/ble/src/rsi_ble_gatt_apis.c",
+    # Crypto
+    f"{WIRELESS_DIR}/crypto/crypto_utility/src/sl_si91x_crypto_utility.c",
+    f"{WIRELESS_DIR}/crypto/aes/src/sl_si91x_aes.c",
+    f"{WIRELESS_DIR}/crypto/wrap/src/sl_si91x_wrap.c",
+    f"{WIRELESS_DIR}/crypto/sha/src/sl_si91x_sha.c",
+    f"{WIRELESS_DIR}/crypto/ecdsa/src/sl_si91x_ecdsa.c",
+    f"{WIRELESS_DIR}/crypto/hmac/src/sl_si91x_hmac.c",
+    f"{WIRELESS_DIR}/crypto/gcm/src/sl_si91x_gcm.c",
+    #f"{WIRELESS_DIR}/crypto/ccm/src/sl_si91x_ccm.c",
+    #f"{WIRELESS_DIR}/crypto/ecdh/src/sl_si91x_ecdh.c",
+    #f"{WIRELESS_DIR}/crypto/aead/src/sl_si91x_aead.c",
+    #f"{WIRELESS_DIR}/crypto/mac/src/sl_si91x_mac.c",
+    f"{WIRELESS_DIR}/crypto/trng/src/sl_si91x_trng.c",
+    
+    # NVM3
+    f"{MCU_DIR}/drivers/service/nvm3/src/sl_si91x_common_flash_intf.c",
+    f"{MCU_DIR}/drivers/service/nvm3/src/sl_si91x_nvm3_hal_flash.c",
+
+    f"{MCU_DIR}/hal/src/sl_si91x_hal_soc_soft_reset.c",
+]
+
+lib = libenv.StaticLibrary("${FW_LIB_NAME}", sources)
+libenv.Install("${LIB_DIST_DIR}", lib)
+Return("lib")
