@@ -12,6 +12,11 @@ struct Canvas {
     Widget base;
     lv_obj_t* canvas;
     lv_draw_buf_t* draw_buf;
+    Color fill_color;
+    Color line_color;
+    int32_t line_width;
+    uint8_t fill_opacity;
+    uint8_t line_opacity;
 };
 
 // LVGL-specific code
@@ -21,6 +26,11 @@ static void canvas_lvgl_constructor(const lv_obj_class_t* class_p, lv_obj_t* obj
 
     Canvas* instance = (Canvas*)obj;
     instance->canvas = lv_canvas_create(obj);
+    instance->fill_color = color_hex_to_rgb(0xFFFFFF);
+    instance->line_color = color_hex_to_rgb(0xFFFFFF);
+    instance->line_width = 1;
+    instance->fill_opacity = 0xFF;
+    instance->line_opacity = 0xFF;
 }
 
 static void canvas_lvgl_destructor(const lv_obj_class_t* class_p, lv_obj_t* obj) {
@@ -61,9 +71,34 @@ void canvas_clear(Canvas* instance) {
     lv_draw_buf_clear(instance->draw_buf, &area);
 }
 
-void canvas_fill(Canvas* instance, Color color) {
+void canvas_set_fill_color(Canvas* instance, Color color) {
     furi_check(instance);
-    lv_canvas_fill_bg(instance->canvas, TO_LV_COLOR(color), LV_OPA_COVER);
+    instance->fill_color = color;
+}
+
+void canvas_set_fill_opacity(Canvas* instance, uint8_t opacity) {
+    furi_check(instance);
+    instance->fill_opacity = opacity;
+}
+
+void canvas_set_line_color(Canvas* instance, Color color) {
+    furi_check(instance);
+    instance->line_color = color;
+}
+
+void canvas_set_line_width(Canvas* instance, int32_t width) {
+    furi_check(instance);
+    instance->line_width = width;
+}
+
+void canvas_set_line_opacity(Canvas* instance, uint8_t opacity) {
+    furi_check(instance);
+    instance->line_opacity = opacity;
+}
+
+void canvas_fill(Canvas* instance) {
+    furi_check(instance);
+    lv_canvas_fill_bg(instance->canvas, TO_LV_COLOR(instance->fill_color), instance->fill_opacity);
 }
 
 void canvas_draw_pixel(Canvas* instance, int32_t x, int32_t y, Color color) {
@@ -71,13 +106,7 @@ void canvas_draw_pixel(Canvas* instance, int32_t x, int32_t y, Color color) {
     lv_canvas_set_px(instance->canvas, x, y, TO_LV_COLOR(color), LV_OPA_COVER);
 }
 
-void canvas_draw_line(
-    Canvas* instance,
-    int32_t x1,
-    int32_t y1,
-    int32_t x2,
-    int32_t y2,
-    Color color) {
+void canvas_draw_line(Canvas* instance, int32_t x1, int32_t y1, int32_t x2, int32_t y2) {
     furi_check(instance);
 
     const lv_draw_line_dsc_t draw = {
@@ -91,9 +120,9 @@ void canvas_draw_line(
                 .x = x2,
                 .y = y2,
             },
-        .color = TO_LV_COLOR(color),
-        .width = 1,
-        .opa = LV_OPA_COVER,
+        .color = TO_LV_COLOR(instance->line_color),
+        .width = instance->line_width,
+        .opa = instance->line_opacity,
     };
 
     lv_layer_t layer;
@@ -108,20 +137,18 @@ void canvas_draw_rect(
     int32_t y,
     int32_t width,
     int32_t height,
-    Color color,
     bool fill) {
     furi_check(instance);
 
     lv_draw_rect_dsc_t draw = {0};
+    draw.border_color = TO_LV_COLOR(instance->line_color);
+    draw.border_width = instance->line_width;
+    draw.border_opa = instance->line_opacity;
+    draw.border_side = LV_BORDER_SIDE_FULL;
 
     if(fill) {
-        draw.bg_color = TO_LV_COLOR(color);
-        draw.bg_opa = LV_OPA_COVER;
-    } else {
-        draw.border_color = TO_LV_COLOR(color);
-        draw.border_width = 1;
-        draw.border_opa = LV_OPA_COVER;
-        draw.border_side = LV_BORDER_SIDE_FULL;
+        draw.bg_color = TO_LV_COLOR(instance->fill_color);
+        draw.bg_opa = instance->fill_opacity;
     }
 
     const lv_area_t area = {

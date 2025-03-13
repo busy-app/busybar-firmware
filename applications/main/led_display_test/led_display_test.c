@@ -93,37 +93,50 @@ typedef struct {
 static void led_display_test_set_pattern_chess(Canvas* canvas, Color color) {
     const int32_t rect_w = 4;
 
+    canvas_set_fill_color(canvas, color);
+    canvas_set_line_width(canvas, 0);
+
     for(int32_t x = 0; x < DOT_MATRIX_W; x += rect_w) {
         for(int32_t y = 0; y < DOT_MATRIX_H; y += rect_w) {
             if(((x / rect_w) + (y / rect_w)) % 2 == 0) {
-                canvas_draw_rect(canvas, x, y, rect_w, rect_w, color, true);
+                canvas_draw_rect(canvas, x, y, rect_w, rect_w, true);
             }
         }
     }
 }
 
 static void led_display_test_set_pattern_lines_horizontal(Canvas* canvas, Color color) {
+    canvas_set_line_color(canvas, color);
+    canvas_set_line_width(canvas, 1);
+
     for(int32_t y = 0; y < DOT_MATRIX_H; y += 2) {
-        canvas_draw_line(canvas, 0, y, DOT_MATRIX_W, y, color);
+        canvas_draw_line(canvas, 0, y, DOT_MATRIX_W, y);
     }
 }
 
 static void led_display_test_set_pattern_lines_vertical(Canvas* canvas, Color color) {
+    canvas_set_line_color(canvas, color);
+    canvas_set_line_width(canvas, 1);
+
     for(int32_t x = 0; x < DOT_MATRIX_W; x += 2) {
-        canvas_draw_line(canvas, x, 0, x, DOT_MATRIX_H, color);
+        canvas_draw_line(canvas, x, 0, x, DOT_MATRIX_H);
     }
 }
 
 static void led_display_test_set_pattern_full_fill(Canvas* canvas, Color color) {
-    canvas_fill(canvas, color);
+    canvas_set_fill_color(canvas, color);
+    canvas_fill(canvas);
 }
 
 static void led_display_test_set_pattern_rectangulars(Canvas* canvas, Color color) {
     const int32_t rect_count = 3;
     const int32_t rect_w = DOT_MATRIX_W / (rect_count * 2);
 
+    canvas_set_fill_color(canvas, color);
+    canvas_set_line_width(canvas, 0);
+
     for(int32_t x = 0; x < DOT_MATRIX_W; x += 2 * rect_w) {
-        canvas_draw_rect(canvas, x, 0, rect_w, DOT_MATRIX_H, color, true);
+        canvas_draw_rect(canvas, x, 0, rect_w, DOT_MATRIX_H, true);
     }
 }
 
@@ -133,8 +146,11 @@ static void led_display_test_set_pattern_animated_rectangulars(Canvas* canvas, C
     const int32_t rect_count = 3;
     const int32_t rect_w = animation_frame++ % (DOT_MATRIX_W / rect_count);
 
+    canvas_set_fill_color(canvas, color);
+    canvas_set_line_width(canvas, 0);
+
     for(int32_t x = 0; x < DOT_MATRIX_W; x += DOT_MATRIX_W / rect_count) {
-        canvas_draw_rect(canvas, x, 0, rect_w, DOT_MATRIX_H, color, true);
+        canvas_draw_rect(canvas, x, 0, rect_w, DOT_MATRIX_H, true);
     }
 }
 
@@ -142,8 +158,11 @@ static void led_display_test_set_pattern_animated_rectangulars_half(Canvas* canv
     const int32_t rect_count = 3;
     const int32_t rect_w = (animation_frame++ * 2) % (DOT_MATRIX_W / rect_count);
 
+    canvas_set_fill_color(canvas, color);
+    canvas_set_line_width(canvas, 0);
+
     for(int32_t x = 0; x < DOT_MATRIX_W; x += DOT_MATRIX_W / rect_count) {
-        canvas_draw_rect(canvas, x, 0, rect_w, DOT_MATRIX_H, color, true);
+        canvas_draw_rect(canvas, x, 0, rect_w, DOT_MATRIX_H, true);
     }
 }
 
@@ -194,7 +213,10 @@ static void led_display_test_set_pattern_cross(Canvas* canvas, Color color) {
 }
 
 static void led_display_test_set_pattern_frame(Canvas* canvas, Color color) {
-    canvas_draw_rect(canvas, 0, 0, DOT_MATRIX_W, DOT_MATRIX_H, color, false);
+    canvas_set_line_color(canvas, color);
+    canvas_set_line_width(canvas, 1);
+
+    canvas_draw_rect(canvas, 0, 0, DOT_MATRIX_W, DOT_MATRIX_H, false);
 }
 
 static const LedDisplayTestPatternData led_display_test_pattern[LedDisplayTestPatternNum] = {
