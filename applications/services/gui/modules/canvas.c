@@ -164,6 +164,47 @@ void canvas_draw_rect(
     lv_canvas_finish_layer(instance->canvas, &layer);
 }
 
+void canvas_draw_text(Canvas* instance, int32_t x, int32_t y, const char* text) {
+    furi_check(instance);
+    furi_check(text);
+
+    const lv_draw_label_dsc_t draw = {
+        .text = text,
+        .text_length = strlen(text),
+        .font = lv_theme_get_font_normal((lv_obj_t*)instance), // TODO: font parameter
+        .color = TO_LV_COLOR(instance->fill_color),
+        .ofs_x = x,
+        .ofs_y = y,
+        .opa = instance->fill_opacity,
+    };
+
+    lv_layer_t layer;
+    lv_canvas_init_layer(instance->canvas, &layer);
+
+    const lv_area_t area = {
+        .x1 = x,
+        .y1 = y,
+        .x2 = layer.buf_area.x2,
+        .y2 = layer.buf_area.y2,
+    };
+
+    lv_draw_label(&layer, &draw, &area);
+    lv_canvas_finish_layer(instance->canvas, &layer);
+}
+
+void canvas_draw_text_fmt(Canvas* instance, int32_t x, int32_t y, const char* fmt, ...) {
+    furi_check(fmt);
+
+    va_list args;
+    va_start(args, fmt);
+
+    FuriString* str = furi_string_alloc_vprintf(fmt, args);
+    va_end(args);
+
+    canvas_draw_text(instance, x, y, furi_string_get_cstr(str));
+    furi_string_free(str);
+}
+
 // LVGL class descriptor
 
 const lv_obj_class_t canvas_lvgl_class = {

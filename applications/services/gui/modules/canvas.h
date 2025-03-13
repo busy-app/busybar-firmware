@@ -40,6 +40,10 @@ void canvas_draw_line(Canvas* instance, int32_t x1, int32_t y1, int32_t x2, int3
 
 void canvas_draw_rect(Canvas* instance, int32_t x, int32_t y, int32_t w, int32_t h, bool fill);
 
+void canvas_draw_text(Canvas* instance, int32_t x, int32_t y, const char* text);
+
+void canvas_draw_text_fmt(Canvas* instance, int32_t x, int32_t y, const char* fmt, ...);
+
 #ifdef __cplusplus
 }
 #endif
