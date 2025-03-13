@@ -1,273 +1,200 @@
 #include "led_display_test.h"
 
 #include <furi/furi.h>
+#include <toolbox/color.h>
+
 #include <led_display/led_display.h>
 
 typedef struct {
-    uint8_t red;
-    uint8_t green;
-    uint8_t blue;
-} LedDisplayTestColorCode;
-
-typedef struct {
-    LedDisplayTestColorCode code;
     const char* name;
+    const Color color;
 } LedDisplayTestColorData;
 
 static const LedDisplayTestColorData led_display_test_color[LedDisplayTestColorNum] = {
     [LedDisplayTestColorRed] =
         {
             .name = "Red",
-            .code =
+            .color =
                 {
-                    .red = 0xff,
-                    .green = 0x00,
-                    .blue = 0x00,
+                    .r = 0xff,
+                    .g = 0x00,
+                    .b = 0x00,
                 },
         },
     [LedDisplayTestColorGreen] =
         {
             .name = "Green",
-            .code =
+            .color =
                 {
-                    .red = 0x00,
-                    .green = 0xff,
-                    .blue = 0x00,
+                    .r = 0x00,
+                    .g = 0xff,
+                    .b = 0x00,
                 },
         },
     [LedDisplayTestColorBlue] =
         {
             .name = "Blue",
-            .code =
+            .color =
                 {
-                    .red = 0x00,
-                    .green = 0x00,
-                    .blue = 0xff,
+                    .r = 0x00,
+                    .g = 0x00,
+                    .b = 0xff,
                 },
         },
     [LedDisplayTestColorYellow] =
         {
             .name = "Yellow",
-            .code =
+            .color =
                 {
-                    .red = 0xff,
-                    .green = 0xff,
-                    .blue = 0x00,
+                    .r = 0xff,
+                    .g = 0xff,
+                    .b = 0x00,
                 },
         },
     [LedDisplayTestColorCian] =
         {
-            .name = "Cian",
-            .code =
+            .name = "Cyan",
+            .color =
                 {
-                    .red = 0x00,
-                    .green = 0xff,
-                    .blue = 0xff,
+                    .r = 0x00,
+                    .g = 0xff,
+                    .b = 0xff,
                 },
         },
     [LedDisplayTestColorPurple] =
         {
             .name = "Purple",
-            .code =
+            .color =
                 {
-                    .red = 0xff,
-                    .green = 0x00,
-                    .blue = 0xff,
+                    .r = 0xff,
+                    .g = 0x00,
+                    .b = 0xff,
                 },
         },
     [LedDisplayTestColorWhite] =
         {
             .name = "White",
-            .code =
+            .color =
                 {
-                    .red = 0xff,
-                    .green = 0xff,
-                    .blue = 0xff,
+                    .r = 0xff,
+                    .g = 0xff,
+                    .b = 0xff,
                 },
         },
 };
 
-typedef void (*LedDisplayTestPatternSet)(uint8_t* buff, LedDisplayTestColorCode color_code);
+typedef void (*LedDisplayTestPatternSet)(Canvas* canvas, Color color);
 
 typedef struct {
     LedDisplayTestPatternSet set;
     const char* name;
 } LedDisplayTestPatternData;
 
-static void led_display_set_pixel(
-    uint8_t* buff,
-    uint8_t x,
-    uint8_t y,
-    uint8_t red,
-    uint8_t green,
-    uint8_t blue) {
-    uint32_t pixel_offset = y * 72 + x;
-    buff[pixel_offset * 3 + 0] = blue;
-    buff[pixel_offset * 3 + 1] = green;
-    buff[pixel_offset * 3 + 2] = red;
-}
+static void led_display_test_set_pattern_chess(Canvas* canvas, Color color) {
+    const int32_t rect_w = 4;
 
-static void led_display_test_set_pattern_chess(uint8_t* buff, LedDisplayTestColorCode color_code) {
-    const uint8_t cell_size = 4;
-
-    for(size_t x = 0; x < DOT_MATRIX_W; x++) {
-        for(size_t y = 0; y < DOT_MATRIX_H; y++) {
-            if(((x / cell_size) + (y / cell_size)) % 2 == 0) {
-                led_display_set_pixel(
-                    buff, x, y, color_code.red, color_code.green, color_code.blue);
+    for(int32_t x = 0; x < DOT_MATRIX_W; x += rect_w) {
+        for(int32_t y = 0; y < DOT_MATRIX_H; y += rect_w) {
+            if(((x / rect_w) + (y / rect_w)) % 2 == 0) {
+                canvas_draw_rect(canvas, x, y, rect_w, rect_w, color, true);
             }
         }
     }
 }
 
-static void led_display_test_set_pattern_lines_horizontal(
-    uint8_t* buff,
-    LedDisplayTestColorCode color_code) {
-    for(size_t x = 0; x < DOT_MATRIX_W; x++) {
-        for(size_t y = 0; y < DOT_MATRIX_H; y++) {
-            if(y % 2 == 0) {
-                led_display_set_pixel(
-                    buff, x, y, color_code.red, color_code.green, color_code.blue);
-            }
-        }
+static void led_display_test_set_pattern_lines_horizontal(Canvas* canvas, Color color) {
+    for(int32_t y = 0; y < DOT_MATRIX_H; y += 2) {
+        canvas_draw_line(canvas, 0, y, DOT_MATRIX_W, y, color);
     }
 }
 
-static void
-    led_display_test_set_pattern_lines_vertical(uint8_t* buff, LedDisplayTestColorCode color_code) {
-    for(size_t x = 0; x < DOT_MATRIX_W; x++) {
-        for(size_t y = 0; y < DOT_MATRIX_H; y++) {
-            if(x % 2 == 0) {
-                led_display_set_pixel(
-                    buff, x, y, color_code.red, color_code.green, color_code.blue);
-            }
-        }
+static void led_display_test_set_pattern_lines_vertical(Canvas* canvas, Color color) {
+    for(int32_t x = 0; x < DOT_MATRIX_W; x += 2) {
+        canvas_draw_line(canvas, x, 0, x, DOT_MATRIX_H, color);
     }
 }
 
-static void
-    led_display_test_set_pattern_full_fill(uint8_t* buff, LedDisplayTestColorCode color_code) {
-    for(size_t x = 0; x < DOT_MATRIX_W; x++) {
-        for(size_t y = 0; y < DOT_MATRIX_H; y++) {
-            led_display_set_pixel(buff, x, y, color_code.red, color_code.green, color_code.blue);
-        }
-    }
+static void led_display_test_set_pattern_full_fill(Canvas* canvas, Color color) {
+    canvas_fill(canvas, color);
 }
 
-static void
-    led_display_test_set_pattern_rectangulars(uint8_t* buff, LedDisplayTestColorCode color_code) {
-    for(size_t x = 0; x < DOT_MATRIX_W; x++) {
-        for(size_t y = 0; y < DOT_MATRIX_H; y++) {
-            if((x % 24) < 12) {
-                led_display_set_pixel(
-                    buff, x, y, color_code.red, color_code.green, color_code.blue);
-            }
-        }
+static void led_display_test_set_pattern_rectangulars(Canvas* canvas, Color color) {
+    const int32_t rect_count = 3;
+    const int32_t rect_w = DOT_MATRIX_W / (rect_count * 2);
+
+    for(int32_t x = 0; x < DOT_MATRIX_W; x += 2 * rect_w) {
+        canvas_draw_rect(canvas, x, 0, rect_w, DOT_MATRIX_H, color, true);
     }
 }
 
 static size_t animation_frame = 0;
 
-static void led_display_test_set_pattern_animated_rectangulars(
-    uint8_t* buff,
-    LedDisplayTestColorCode color_code) {
-    size_t frame = animation_frame++ % 24;
+static void led_display_test_set_pattern_animated_rectangulars(Canvas* canvas, Color color) {
+    const int32_t rect_count = 3;
+    const int32_t rect_w = animation_frame++ % (DOT_MATRIX_W / rect_count);
 
-    for(size_t x = 0; x < DOT_MATRIX_W; x++) {
-        for(size_t y = 0; y < DOT_MATRIX_H; y++) {
-            if((x % 24) < frame) {
-                led_display_set_pixel(
-                    buff, x, y, color_code.red, color_code.green, color_code.blue);
-            }
-        }
+    for(int32_t x = 0; x < DOT_MATRIX_W; x += DOT_MATRIX_W / rect_count) {
+        canvas_draw_rect(canvas, x, 0, rect_w, DOT_MATRIX_H, color, true);
     }
 }
 
-static void led_display_test_set_pattern_animated_rectangulars_half(
-    uint8_t* buff,
-    LedDisplayTestColorCode color_code) {
-    size_t frame = animation_frame++ % 12;
+static void led_display_test_set_pattern_animated_rectangulars_half(Canvas* canvas, Color color) {
+    const int32_t rect_count = 3;
+    const int32_t rect_w = (animation_frame++ * 2) % (DOT_MATRIX_W / rect_count);
 
-    for(size_t x = 0; x < DOT_MATRIX_W; x++) {
-        for(size_t y = 0; y < DOT_MATRIX_H; y++) {
-            if((x % 24) < frame) {
-                led_display_set_pixel(
-                    buff, x, y, color_code.red, color_code.green, color_code.blue);
-            }
-        }
+    for(int32_t x = 0; x < DOT_MATRIX_W; x += DOT_MATRIX_W / rect_count) {
+        canvas_draw_rect(canvas, x, 0, rect_w, DOT_MATRIX_H, color, true);
     }
 }
 
-static void led_display_test_set_pattern_animated_fill_10_noise(
-    uint8_t* buff,
-    LedDisplayTestColorCode color_code) {
+static void led_display_test_set_pattern_animated_fill_10_noise(Canvas* canvas, Color color) {
     for(size_t x = 0; x < DOT_MATRIX_W; x++) {
         for(size_t y = 0; y < DOT_MATRIX_H; y++) {
             bool pixel_set = rand() % 10 == 0;
 
             if(pixel_set) {
-                led_display_set_pixel(
-                    buff, x, y, color_code.red, color_code.green, color_code.blue);
+                canvas_draw_pixel(canvas, x, y, color);
             }
         }
     }
 }
 
-static void led_display_test_set_pattern_animated_fill_25_noise(
-    uint8_t* buff,
-    LedDisplayTestColorCode color_code) {
+static void led_display_test_set_pattern_animated_fill_25_noise(Canvas* canvas, Color color) {
     for(size_t x = 0; x < DOT_MATRIX_W; x++) {
         for(size_t y = 0; y < DOT_MATRIX_H; y++) {
             bool pixel_set = rand() % 4 == 0;
 
             if(pixel_set) {
-                led_display_set_pixel(
-                    buff, x, y, color_code.red, color_code.green, color_code.blue);
+                canvas_draw_pixel(canvas, x, y, color);
             }
         }
     }
 }
-static void led_display_test_set_pattern_animated_fill_50_noise(
-    uint8_t* buff,
-    LedDisplayTestColorCode color_code) {
+static void led_display_test_set_pattern_animated_fill_50_noise(Canvas* canvas, Color color) {
     for(size_t x = 0; x < DOT_MATRIX_W; x++) {
         for(size_t y = 0; y < DOT_MATRIX_H; y++) {
             bool pixel_set = rand() % 2 == 0;
 
             if(pixel_set) {
-                led_display_set_pixel(
-                    buff, x, y, color_code.red, color_code.green, color_code.blue);
+                canvas_draw_pixel(canvas, x, y, color);
             }
         }
     }
 }
 
-static void led_display_test_set_pattern_cross(uint8_t* buff, LedDisplayTestColorCode color_code) {
+static void led_display_test_set_pattern_cross(Canvas* canvas, Color color) {
     for(size_t x = 0; x < DOT_MATRIX_W; x++) {
         for(size_t y = 0; y < DOT_MATRIX_H; y++) {
             if((2 * x) - (9 * y) < 6) {
-                led_display_set_pixel(
-                    buff, x, y, color_code.red, color_code.green, color_code.blue);
-                led_display_set_pixel(
-                    buff,
-                    x,
-                    DOT_MATRIX_H - 1 - y,
-                    color_code.red,
-                    color_code.green,
-                    color_code.blue);
+                canvas_draw_pixel(canvas, x, y, color);
+                canvas_draw_pixel(canvas, x, DOT_MATRIX_H - 1 - y, color);
             }
         }
     }
 }
 
-static void led_display_test_set_pattern_frame(uint8_t* buff, LedDisplayTestColorCode color_code) {
-    for(size_t x = 0; x < DOT_MATRIX_W; x++) {
-        for(size_t y = 0; y < DOT_MATRIX_H; y++) {
-            if((x == 0) || (y == 0) || (x == DOT_MATRIX_W - 1) || (y == DOT_MATRIX_H - 1))
-                led_display_set_pixel(
-                    buff, x, y, color_code.red, color_code.green, color_code.blue);
-        }
-    }
+static void led_display_test_set_pattern_frame(Canvas* canvas, Color color) {
+    canvas_draw_rect(canvas, 0, 0, DOT_MATRIX_W, DOT_MATRIX_H, color, false);
 }
 
 static const LedDisplayTestPatternData led_display_test_pattern[LedDisplayTestPatternNum] = {
@@ -333,12 +260,13 @@ static const LedDisplayTestPatternData led_display_test_pattern[LedDisplayTestPa
         },
 };
 
-void led_display_test_set(uint8_t* buff, LedDisplayTestPattern pattern, LedDisplayTestColor color) {
-    furi_check(buff);
+void led_display_test_set(Canvas* canvas, LedDisplayTestPattern pattern, LedDisplayTestColor color) {
+    furi_check(canvas);
     furi_check(pattern < LedDisplayTestPatternNum);
     furi_check(color < LedDisplayTestColorNum);
 
-    led_display_test_pattern[pattern].set(buff, led_display_test_color[color].code);
+    canvas_clear(canvas);
+    led_display_test_pattern[pattern].set(canvas, led_display_test_color[color].color);
 }
 
 const char* led_display_get_pattern_str(LedDisplayTestPattern pattern) {

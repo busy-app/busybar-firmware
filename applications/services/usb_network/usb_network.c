@@ -39,7 +39,7 @@ const uint8_t* usb_network_get_mac_address(void) {
 static err_t linkoutput_fn(struct netif* netif, struct pbuf* p) {
     (void)netif;
 
-#if (ETH_PAD_SIZE != 0)
+#if(ETH_PAD_SIZE != 0)
     pbuf_header(p, -ETH_PAD_SIZE); /* drop the padding word */
 #endif
 
@@ -52,7 +52,7 @@ static err_t linkoutput_fn(struct netif* netif, struct pbuf* p) {
     }
     tud_network_xmit(p, 0);
 
-#if (ETH_PAD_SIZE != 0)
+#if(ETH_PAD_SIZE != 0)
     pbuf_header(p, ETH_PAD_SIZE); /* reclaim the padding word */
 #endif
     return ERR_OK;
@@ -95,7 +95,7 @@ static void mdns_srv_txt(struct mdns_service* service, void* txt_userdata) {
 
 bool tud_network_recv_cb(const uint8_t* src, uint16_t size) {
     if(size != 0) {
-#if (ETH_PAD_SIZE != 0)
+#if(ETH_PAD_SIZE != 0)
         size += ETH_PAD_SIZE; /* allow room for Ethernet padding */
 #endif
         struct pbuf* p = pbuf_alloc(PBUF_RAW, size, PBUF_POOL);
@@ -105,7 +105,7 @@ bool tud_network_recv_cb(const uint8_t* src, uint16_t size) {
             return false;
         }
 
-#if (ETH_PAD_SIZE != 0)
+#if(ETH_PAD_SIZE != 0)
         pbuf_header(p, -ETH_PAD_SIZE); /* drop the padding word */
 #endif
 
@@ -117,7 +117,7 @@ bool tud_network_recv_cb(const uint8_t* src, uint16_t size) {
             size -= q->len;
         }
 
-#if (ETH_PAD_SIZE != 0)
+#if(ETH_PAD_SIZE != 0)
         pbuf_header(p, ETH_PAD_SIZE); /* reclaim the padding word */
 #endif
 
