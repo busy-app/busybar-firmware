@@ -82,7 +82,9 @@ ImageAnimation* image_animation_alloc(lv_obj_t* parent) {
 void image_animation_free(ImageAnimation* instance) {
     furi_check(instance);
 
-    lv_timer_delete(instance->timer);
+    if(instance->timer) {
+        lv_timer_delete(instance->timer);
+    }
     lv_obj_delete(instance->canvas);
 
     storage_file_free(instance->file);
@@ -176,12 +178,15 @@ bool image_animation_set_source(ImageAnimation* instance, const char* file_path)
 void image_animation_start(ImageAnimation* instance) {
     furi_check(instance);
     furi_check(instance->file);
-
-    lv_timer_resume(instance->timer);
+    if(instance->timer) {
+        lv_timer_resume(instance->timer);
+    }
 }
 
 void image_animation_stop(ImageAnimation* instance) {
     furi_check(instance);
 
-    lv_timer_pause(instance->timer);
+    if(instance->timer) {
+        lv_timer_pause(instance->timer);
+    }
 }
