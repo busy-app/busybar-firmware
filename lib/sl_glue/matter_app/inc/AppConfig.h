@@ -23,9 +23,9 @@
 
 // ---- Lighting Example App Config ----
 
-#define APP_TASK_NAME "Lit"
+#define APP_TASK_NAME "BSB"
 
-#define BLE_DEV_NAME "SiLabs-Light-Switch"
+#define BLE_DEV_NAME "BSB-Light-Switch"
 
 // Time it takes in ms for the simulated actuator to move from one
 // state to another.
