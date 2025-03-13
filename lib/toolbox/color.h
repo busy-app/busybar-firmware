@@ -13,9 +13,9 @@ extern "C" {
 
 /** RGB color structure */
 typedef struct {
-    uint8_t r; /**< Red component */
-    uint8_t g; /**< Green component */
     uint8_t b; /**< Blue component */
+    uint8_t g; /**< Green component */
+    uint8_t r; /**< Red component */
 } Color;
 
 /** HSV color structure */
