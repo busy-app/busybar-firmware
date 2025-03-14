@@ -14,7 +14,7 @@ App(
         # "sockets_test",
         # "sl_update_test",
         "animation_player",
-        "busy",
+        # "busy",
         "dummy",
     ],
     targets=["f20"],
