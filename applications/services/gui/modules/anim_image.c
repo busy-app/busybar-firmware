@@ -1,11 +1,11 @@
-#include "image_animation.h"
+#include "anim_image.h"
 
 #include <furi/furi.h>
 
 #include <gui/widget_i.h>
 #include <storage/storage.h>
 
-#define TAG "ImageAnimation"
+#define TAG "AnimImage"
 
 #define IMAGE_ANIMATION_FILE_MAGIC     (0x69)
 #define IMAGE_ANIMATION_FORMAT_VERSION (0x00)
@@ -22,13 +22,13 @@ typedef struct {
     uint32_t width;
     uint32_t height;
     uint32_t frames;
-} FURI_PACKED ImageAnimationFileHeader;
+} FURI_PACKED AnimImageFileHeader;
 
 static_assert(
-    sizeof(ImageAnimationFileHeader) == 7 * sizeof(uint32_t),
-    "Incorrect size of ImageAnimationFileHeader");
+    sizeof(AnimImageFileHeader) == 7 * sizeof(uint32_t),
+    "Incorrect size of AnimImageFileHeader");
 
-struct ImageAnimation {
+struct AnimImage {
     Widget base;
     lv_obj_t* canvas;
     lv_timer_t* timer;
@@ -37,7 +37,7 @@ struct ImageAnimation {
     Storage* storage;
     File* file;
 
-    ImageAnimationFileHeader header;
+    AnimImageFileHeader header;
 
     uint32_t frame_size;
     uint32_t frame_idx;
@@ -48,16 +48,16 @@ const lv_obj_class_t anim_image_lvgl_class;
 
 // Function prototypes
 
-static void image_animation_timer_callback(lv_timer_t* timer);
+static void anim_image_timer_callback(lv_timer_t* timer);
 
 // LVGL-specific code
 
 void anim_image_lvgl_constructor(const lv_obj_class_t* class_p, lv_obj_t* obj) {
     UNUSED(class_p);
 
-    ImageAnimation* instance = (ImageAnimation*)obj;
+    AnimImage* instance = (AnimImage*)obj;
     instance->canvas = lv_canvas_create(obj);
-    instance->timer = lv_timer_create(image_animation_timer_callback, UINT32_MAX, obj);
+    instance->timer = lv_timer_create(anim_image_timer_callback, UINT32_MAX, obj);
     instance->storage = furi_record_open(RECORD_STORAGE);
     instance->file = storage_file_alloc(instance->storage);
 
@@ -68,7 +68,7 @@ void anim_image_lvgl_constructor(const lv_obj_class_t* class_p, lv_obj_t* obj) {
 void anim_image_lvgl_destructor(const lv_obj_class_t* class_p, lv_obj_t* obj) {
     UNUSED(class_p);
 
-    ImageAnimation* instance = (ImageAnimation*)obj;
+    AnimImage* instance = (AnimImage*)obj;
     lv_timer_delete(instance->timer);
 
     if(instance->canvas_buf) {
@@ -81,12 +81,12 @@ void anim_image_lvgl_destructor(const lv_obj_class_t* class_p, lv_obj_t* obj) {
 
 // Implementation
 
-static bool image_animation_update_canvas_buffer(ImageAnimation* instance) {
+static bool anim_image_update_canvas_buffer(AnimImage* instance) {
     bool success = false;
 
     do {
         if(instance->frame_idx == 0) {
-            if(!storage_file_seek(instance->file, sizeof(ImageAnimationFileHeader), true)) {
+            if(!storage_file_seek(instance->file, sizeof(AnimImageFileHeader), true)) {
                 FURI_LOG_E(TAG, "Failed to seek animation file");
                 break;
             }
@@ -106,10 +106,10 @@ static bool image_animation_update_canvas_buffer(ImageAnimation* instance) {
     return success;
 }
 
-static void image_animation_timer_callback(lv_timer_t* timer) {
-    ImageAnimation* instance = lv_timer_get_user_data(timer);
+static void anim_image_timer_callback(lv_timer_t* timer) {
+    AnimImage* instance = lv_timer_get_user_data(timer);
 
-    if(!image_animation_update_canvas_buffer(instance)) {
+    if(!anim_image_update_canvas_buffer(instance)) {
         FURI_LOG_E(TAG, "Failed to read frame from file");
         return;
     }
@@ -118,22 +118,22 @@ static void image_animation_timer_callback(lv_timer_t* timer) {
 }
 
 static bool
-    image_animation_validate_header(const ImageAnimationFileHeader* header, size_t file_size) {
+    anim_image_validate_header(const AnimImageFileHeader* header, size_t file_size) {
     bool validated = false;
 
     do {
         if(header->magic != IMAGE_ANIMATION_FILE_MAGIC) {
-            FURI_LOG_D(TAG, "Invalid magic num: %ld", header->magic);
+            FURI_LOG_E(TAG, "Invalid magic num: %ld", header->magic);
             break;
         }
 
         if(header->format_version != IMAGE_ANIMATION_FORMAT_VERSION) {
-            FURI_LOG_D(TAG, "Invalid  format version: %ld", header->format_version);
+            FURI_LOG_E(TAG, "Invalid  format version: %ld", header->format_version);
             break;
         }
 
         if(header->fps > ANIM_IMAGE_MAX_FPS) {
-            FURI_LOG_D(
+            FURI_LOG_E(
                 TAG, "Unsupported fps: %ld. Must be less than %d", header->fps, ANIM_IMAGE_MAX_FPS);
             break;
         }
@@ -149,8 +149,8 @@ static bool
         const size_t frames_data_size =
             header->frames * header->bytes_per_pixel * header->width * header->height;
 
-        if((frames_data_size + sizeof(ImageAnimationFileHeader)) != file_size) {
-            FURI_LOG_D(
+        if((frames_data_size + sizeof(AnimImageFileHeader)) != file_size) {
+            FURI_LOG_E(
                 TAG,
                 "Frames: %ld, BPP: %ld, Width: %ld, Height: %ld",
                 header->frames,
@@ -158,11 +158,11 @@ static bool
                 header->width,
                 header->height);
 
-            FURI_LOG_D(
+            FURI_LOG_E(
                 TAG,
                 "Incorrect file size: %zu. Expected size: %zu",
                 file_size,
-                frames_data_size + sizeof(ImageAnimationFileHeader));
+                frames_data_size + sizeof(AnimImageFileHeader));
 
             break;
         }
@@ -175,27 +175,27 @@ static bool
 
 // Public API
 
-ImageAnimation* image_animation_alloc(Widget* parent) {
+AnimImage* anim_image_alloc(Widget* parent) {
     furi_check(parent);
 
     lv_obj_t* obj = lv_obj_class_create_obj(MY_CLASS, (lv_obj_t*)parent);
     lv_obj_class_init_obj(obj);
 
-    ImageAnimation* instance = (ImageAnimation*)obj;
+    AnimImage* instance = (AnimImage*)obj;
     return instance;
 }
 
-void image_animation_free(ImageAnimation* instance) {
+void anim_image_free(AnimImage* instance) {
     furi_check(instance);
     lv_obj_delete(instance->canvas);
 }
 
-bool image_animation_set_source(ImageAnimation* instance, const char* file_path) {
+bool anim_image_set_source(AnimImage* instance, const char* file_path) {
     furi_check(instance);
 
     bool success = false;
 
-    ImageAnimationFileHeader* header = &instance->header;
+    AnimImageFileHeader* header = &instance->header;
 
     do {
         if(storage_file_is_open(instance->file)) {
@@ -203,19 +203,20 @@ bool image_animation_set_source(ImageAnimation* instance, const char* file_path)
         }
 
         if(!storage_file_open(instance->file, file_path, FSAM_READ, FSOM_OPEN_EXISTING)) {
-            FURI_LOG_D(TAG, "Failed to open file %s", file_path);
+            FURI_LOG_E(TAG, "Failed to open file %s", file_path);
             break;
         }
 
         size_t bytes_read =
-            storage_file_read(instance->file, &instance->header, sizeof(ImageAnimationFileHeader));
+            storage_file_read(instance->file, &instance->header, sizeof(AnimImageFileHeader));
 
-        if(bytes_read != sizeof(ImageAnimationFileHeader)) {
-            FURI_LOG_D(TAG, "Failed to read file header");
+        if(bytes_read != sizeof(AnimImageFileHeader)) {
+            FURI_LOG_E(TAG, "Failed to read file header");
             break;
         }
 
-        if(!image_animation_validate_header(&instance->header, storage_file_size(instance->file))) {
+        if(!anim_image_validate_header(&instance->header, storage_file_size(instance->file))) {
+            FURI_LOG_E(TAG, "Corrupt or invalid file");
             break;
         }
 
@@ -240,13 +241,13 @@ bool image_animation_set_source(ImageAnimation* instance, const char* file_path)
         lv_timer_set_period(instance->timer, 1000 / header->fps);
         lv_timer_resume(instance->timer);
 
-        image_animation_update_canvas_buffer(instance);
+        anim_image_update_canvas_buffer(instance);
     }
 
     return success;
 }
 
-void image_animation_start(ImageAnimation* instance) {
+void anim_image_start(AnimImage* instance) {
     furi_check(instance);
 
     if(instance->timer) {
@@ -254,7 +255,7 @@ void image_animation_start(ImageAnimation* instance) {
     }
 }
 
-void image_animation_stop(ImageAnimation* instance) {
+void anim_image_stop(AnimImage* instance) {
     furi_check(instance);
 
     if(instance->timer) {
@@ -271,5 +272,5 @@ const lv_obj_class_t anim_image_lvgl_class = {
     .name = "widget-anim-image",
     .width_def = LV_SIZE_CONTENT,
     .height_def = LV_SIZE_CONTENT,
-    .instance_size = sizeof(ImageAnimation),
+    .instance_size = sizeof(AnimImage),
 };

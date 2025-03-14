@@ -59,17 +59,17 @@ static AnimationPlayerApp* animation_player_app_alloc(void* args) {
             (Widget*)instance->label, animation_player_app_input_callback, instance);
 
         root = gui_get_root_widget(gui, GuiDisplayIdFront, GuiLayerIdActive);
-        instance->image_animation = image_animation_alloc(root);
+        instance->anim_image = anim_image_alloc(root);
 
         const char* path = (args == NULL) ? ANIMATION_PLAYER_FILE_PATH : args;
 
-        if(!image_animation_set_source(instance->image_animation, path)) {
+        if(!anim_image_set_source(instance->anim_image, path)) {
             FURI_LOG_E(TAG, "Failed to load animation");
             label_set_text(instance->label, "Failed to load animation");
 
         } else {
             label_set_text(instance->label, "Running animation");
-            image_animation_start(instance->image_animation);
+            anim_image_start(instance->anim_image);
         }
 
         gui_set_active_widget(gui, (Widget*)instance->label);
@@ -82,8 +82,8 @@ static void animation_player_app_free(AnimationPlayerApp* instance) {
     furi_check(instance);
 
     with_gui(instance->gui, {
-        image_animation_stop(instance->image_animation);
-        image_animation_free(instance->image_animation);
+        anim_image_stop(instance->anim_image);
+        anim_image_free(instance->anim_image);
         label_free(instance->label);
     });
 

@@ -4,10 +4,9 @@
 
 #include <gui/gui.h>
 #include <gui/modules/label.h>
+#include <gui/modules/anim_image.h>
 
 #include <storage/storage.h>
-
-#include "image_animation.h"
 
 typedef enum {
     AnimationPlayerAppEventExit,
@@ -18,6 +17,6 @@ typedef struct {
     FuriMessageQueue* event_queue;
     Gui* gui;
 
-    ImageAnimation* image_animation;
+    AnimImage* anim_image;
     Label* label;
 } AnimationPlayerApp;
