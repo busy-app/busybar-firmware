@@ -11,6 +11,7 @@
 #include <task_control_block.h>
 #include <time.h>
 #include <loader/loader.h>
+#include <intercom/intercom.h>
 #include <toolbox/args.h>
 
 void cli_command_help(Cli* cli, FuriString* args, void* context) {
@@ -229,6 +230,14 @@ void cli_command_echo(Cli* cli, FuriString* args, void* context) {
     printf("%s\r\n", furi_string_get_cstr(args));
 }
 
+void cli_command_uart_917_echo(Cli* cli, FuriString* args, void* context) {
+    Intercom* intercom = furi_record_open(RECORD_INTERCOM);
+
+    intercom_tx(intercom, IntercomChannelControl, )
+
+        furi_record_close(RECORD_INTERCOM);
+}
+
 void cli_commands_init(Cli* cli) {
     //cli_add_command(cli, "!", CliCommandFlagParallelSafe, cli_command_info, (void*)true);
     //cli_add_command(cli, "info", CliCommandFlagParallelSafe, cli_command_info, NULL);
@@ -252,4 +261,6 @@ void cli_commands_init(Cli* cli) {
     cli_add_command(
         cli, "light_sensor", CliCommandFlagParallelSafe, cli_command_light_sensor, NULL);
     cli_add_command(cli, "audio", CliCommandFlagParallelSafe, cli_command_audio, NULL);
+    cli_add_command(
+        cli, "uart_917_echo", CliCommandFlagParallelSafe, cli_command_uart_917_echo, NULL);
 }
