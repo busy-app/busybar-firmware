@@ -17,33 +17,31 @@ static void desktop_overlay_anim_callback(void* var, int32_t value) {
 }
 
 static void desktop_overlay_start_anim(DesktopOverlay* instance, int32_t end) {
-    gui_lock(instance->gui);
-
-    lv_anim_t anim;
-    lv_anim_init(&anim);
-    lv_anim_set_var(&anim, instance->dimmer);
-    lv_anim_set_values(&anim, lv_obj_get_style_opa(instance->dimmer, LV_PART_MAIN), end);
-    lv_anim_set_duration(&anim, OVERLAY_ANIM_TIME_MS);
-    lv_anim_set_exec_cb(&anim, desktop_overlay_anim_callback);
-    lv_anim_set_path_cb(&anim, lv_anim_path_ease_in_out);
-    lv_anim_start(&anim);
-
-    gui_unlock(instance->gui);
+    with_gui(instance->gui, {
+        lv_anim_t anim;
+        lv_anim_init(&anim);
+        lv_anim_set_var(&anim, instance->dimmer);
+        lv_anim_set_values(&anim, lv_obj_get_style_opa(instance->dimmer, LV_PART_MAIN), end);
+        lv_anim_set_duration(&anim, OVERLAY_ANIM_TIME_MS);
+        lv_anim_set_exec_cb(&anim, desktop_overlay_anim_callback);
+        lv_anim_set_path_cb(&anim, lv_anim_path_ease_in_out);
+        lv_anim_start(&anim);
+    });
 }
 
 DesktopOverlay* desktop_overlay_alloc(Gui* gui) {
     DesktopOverlay* instance = malloc(sizeof(DesktopOverlay));
     instance->gui = gui;
 
-    gui_lock(instance->gui);
+    with_gui(instance->gui, {
+        Widget* root = gui_get_root_widget(gui, GuiDisplayIdFront, GuiLayerIdSystem);
 
-    lv_obj_t* system = gui_get_layer(instance->gui, GuiDisplayIdFront, GuiLayerIdSystem);
-    instance->dimmer = lv_obj_create(system);
-    lv_obj_set_size(instance->dimmer, lv_obj_get_width(system), lv_obj_get_height(system));
-    lv_obj_set_style_bg_color(instance->dimmer, lv_color_black(), LV_PART_MAIN);
-    lv_obj_set_style_opa(instance->dimmer, LV_OPA_TRANSP, LV_PART_MAIN);
+        instance->dimmer = lv_obj_create((lv_obj_t*)root);
+        lv_obj_set_size(instance->dimmer, widget_get_width(root), widget_get_height(root));
+        lv_obj_set_style_bg_color(instance->dimmer, lv_color_black(), LV_PART_MAIN);
+        lv_obj_set_style_opa(instance->dimmer, LV_OPA_TRANSP, LV_PART_MAIN);
+    });
 
-    gui_unlock(instance->gui);
 
     return instance;
 }
