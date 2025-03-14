@@ -10,6 +10,8 @@
 #define IMAGE_ANIMATION_FILE_MAGIC     (0x69)
 #define IMAGE_ANIMATION_FORMAT_VERSION (0x00)
 
+#define MY_CLASS (&anim_image_lvgl_class)
+
 typedef struct {
     uint32_t magic;
     uint32_t format_version;
@@ -25,21 +27,60 @@ static_assert(
     "Incorrect size of ImageAnimationFileHeader");
 
 struct ImageAnimation {
-    Storage* storage;
-    File* file;
-    ImageAnimationFileHeader header;
-
+    Widget base;
     lv_obj_t* canvas;
     lv_timer_t* timer;
-    uint8_t* canvas_buffer;
+    uint8_t* canvas_buf;
+
+    Storage* storage;
+    File* file;
+
+    ImageAnimationFileHeader header;
 
     uint32_t frame_size;
     uint32_t frame_idx;
     uint32_t frame_total;
 };
 
+const lv_obj_class_t anim_image_lvgl_class;
+
+// Function prototypes
+
+static void image_animation_timer_callback(lv_timer_t* timer);
+
+// LVGL-specific code
+
+void anim_image_lvgl_constructor(const lv_obj_class_t* class_p, lv_obj_t* obj) {
+    UNUSED(class_p);
+
+    ImageAnimation* instance = (ImageAnimation*)obj;
+    instance->canvas = lv_canvas_create(obj);
+    instance->timer = lv_timer_create(image_animation_timer_callback, UINT32_MAX, obj);
+    instance->storage = furi_record_open(RECORD_STORAGE);
+    instance->file = storage_file_alloc(instance->storage);
+
+    lv_timer_set_repeat_count(instance->timer, -1);
+    lv_timer_pause(instance->timer);
+}
+
+void anim_image_lvgl_destructor(const lv_obj_class_t* class_p, lv_obj_t* obj) {
+    UNUSED(class_p);
+
+    ImageAnimation* instance = (ImageAnimation*)obj;
+    lv_timer_delete(instance->timer);
+
+    if(instance->canvas_buf) {
+        free(instance->canvas_buf);
+    }
+
+    storage_file_free(instance->file);
+    furi_record_close(RECORD_STORAGE);
+}
+
+// Implementation
+
 static bool image_animation_update_canvas_buffer(ImageAnimation* instance) {
-    bool res = false;
+    bool success = false;
 
     do {
         if(instance->frame_idx == 0) {
@@ -48,18 +89,24 @@ static bool image_animation_update_canvas_buffer(ImageAnimation* instance) {
                 break;
             }
         }
+
         size_t bytes_read =
-            storage_file_read(instance->file, instance->canvas_buffer, instance->frame_size);
+            storage_file_read(instance->file, instance->canvas_buf, instance->frame_size);
         instance->frame_idx = (instance->frame_idx + 1) % instance->frame_total;
 
-        res = (bytes_read == instance->frame_size);
+        if(bytes_read != instance->frame_size) {
+            break;
+        }
+
+        success = true;
     } while(false);
 
-    return res;
+    return success;
 }
 
 static void image_animation_timer_callback(lv_timer_t* timer) {
     ImageAnimation* instance = lv_timer_get_user_data(timer);
+
     if(!image_animation_update_canvas_buffer(instance)) {
         FURI_LOG_E(TAG, "Failed to read frame from file");
         return;
@@ -68,34 +115,21 @@ static void image_animation_timer_callback(lv_timer_t* timer) {
     lv_obj_invalidate(instance->canvas);
 }
 
+// Public API
+
 ImageAnimation* image_animation_alloc(Widget* parent) {
     furi_check(parent);
 
-    ImageAnimation* instance = malloc(sizeof(ImageAnimation));
-    instance->storage = furi_record_open(RECORD_STORAGE);
-    instance->file = storage_file_alloc(instance->storage);
+    lv_obj_t* obj = lv_obj_class_create_obj(MY_CLASS, (lv_obj_t*)parent);
+    lv_obj_class_init_obj(obj);
 
-    instance->canvas = lv_canvas_create((lv_obj_t*)parent);
-
+    ImageAnimation* instance = (ImageAnimation*)obj;
     return instance;
 }
 
 void image_animation_free(ImageAnimation* instance) {
     furi_check(instance);
-
-    if(instance->timer) {
-        lv_timer_delete(instance->timer);
-    }
-
     lv_obj_delete(instance->canvas);
-
-    if(instance->canvas_buffer) {
-        free(instance->canvas_buffer);
-    }
-
-    storage_file_free(instance->file);
-    furi_record_close(RECORD_STORAGE);
-    free(instance);
 }
 
 bool image_animation_set_source(ImageAnimation* instance, const char* file_path) {
@@ -104,6 +138,7 @@ bool image_animation_set_source(ImageAnimation* instance, const char* file_path)
     ImageAnimationFileHeader* header = &instance->header;
 
     bool parsed = false;
+
     do {
         FileInfo file_info = {};
         if(storage_common_stat(instance->storage, file_path, &file_info) != FSE_OK) {
@@ -116,6 +151,7 @@ bool image_animation_set_source(ImageAnimation* instance, const char* file_path)
         }
 
         if(!storage_file_open(instance->file, file_path, FSAM_READ, FSOM_OPEN_EXISTING)) {
+            storage_file_close(instance->file);
             FURI_LOG_D(TAG, "Failed to open file %s", file_path);
             break;
         }
@@ -123,11 +159,10 @@ bool image_animation_set_source(ImageAnimation* instance, const char* file_path)
         size_t bytes_read =
             storage_file_read(instance->file, &instance->header, sizeof(ImageAnimationFileHeader));
         if(bytes_read != sizeof(ImageAnimationFileHeader)) {
+            storage_file_close(instance->file);
             FURI_LOG_D(TAG, "Failed to read file header");
             break;
         }
-
-        ImageAnimationFileHeader* header = &instance->header;
 
         if(header->magic != IMAGE_ANIMATION_FILE_MAGIC) {
             FURI_LOG_D(TAG, "Invalid magic num: %ld", header->magic);
@@ -143,6 +178,15 @@ bool image_animation_set_source(ImageAnimation* instance, const char* file_path)
             FURI_LOG_D(TAG, "Unsupported fps: %ld. Must be less than 100", header->fps);
             break;
         }
+
+        if(header->bytes_per_pixel != 3 && header->bytes_per_pixel != 1) {
+            FURI_LOG_E(
+                TAG,
+                "Unsupported bytes per pixel: %lu. Must be 3 (RGB888) or 1 (L8)",
+                header->bytes_per_pixel);
+            break;
+        }
+
         uint32_t frames_data_size =
             header->frames * header->bytes_per_pixel * header->width * header->height;
         if((frames_data_size + sizeof(ImageAnimationFileHeader)) != file_info.size) {
@@ -162,6 +206,7 @@ bool image_animation_set_source(ImageAnimation* instance, const char* file_path)
         }
 
         parsed = true;
+
     } while(false);
 
     if(parsed) {
@@ -169,22 +214,17 @@ bool image_animation_set_source(ImageAnimation* instance, const char* file_path)
         instance->frame_total = header->frames;
         instance->frame_idx = 0;
 
-        instance->timer =
-            lv_timer_create(image_animation_timer_callback, 1000 / header->fps, instance);
-        lv_timer_set_repeat_count(instance->timer, -1);
-
-        if(instance->canvas_buffer) {
-            free(instance->canvas_buffer);
-        }
-
-        instance->canvas_buffer = malloc(instance->frame_size);
+        instance->canvas_buf = realloc(instance->canvas_buf, instance->frame_size);
 
         lv_canvas_set_buffer(
             instance->canvas,
-            instance->canvas_buffer,
+            instance->canvas_buf,
             header->width,
             header->height,
-            LV_COLOR_FORMAT_RGB888);
+            header->bytes_per_pixel == 3 ? LV_COLOR_FORMAT_RGB888 : LV_COLOR_FORMAT_L8);
+
+        lv_timer_set_period(instance->timer, 1000 / header->fps);
+        lv_timer_resume(instance->timer);
 
         image_animation_update_canvas_buffer(instance);
     }
@@ -194,7 +234,7 @@ bool image_animation_set_source(ImageAnimation* instance, const char* file_path)
 
 void image_animation_start(ImageAnimation* instance) {
     furi_check(instance);
-    furi_check(instance->file);
+
     if(instance->timer) {
         lv_timer_resume(instance->timer);
     }
@@ -207,3 +247,15 @@ void image_animation_stop(ImageAnimation* instance) {
         lv_timer_pause(instance->timer);
     }
 }
+
+// LVGL class descriptor
+
+const lv_obj_class_t anim_image_lvgl_class = {
+    .base_class = &lv_widget_class,
+    .constructor_cb = anim_image_lvgl_constructor,
+    .destructor_cb = anim_image_lvgl_destructor,
+    .name = "widget-anim-image",
+    .width_def = LV_SIZE_CONTENT,
+    .height_def = LV_SIZE_CONTENT,
+    .instance_size = sizeof(ImageAnimation),
+};
