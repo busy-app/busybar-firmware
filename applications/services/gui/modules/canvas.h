@@ -147,7 +147,8 @@ void canvas_draw_text(Canvas* instance, int32_t x, int32_t y, const char* text);
  * @param[in] text zero-terminated format string
  * @param[in] ... variadic list of arguments according to the format string
  */
-void canvas_draw_text_fmt(Canvas* instance, int32_t x, int32_t y, const char* fmt, ...);
+void canvas_draw_text_fmt(Canvas* instance, int32_t x, int32_t y, const char* fmt, ...)
+    _ATTRIBUTE((__format__(__printf__, 4, 5)));
 
 #ifdef __cplusplus
 }
