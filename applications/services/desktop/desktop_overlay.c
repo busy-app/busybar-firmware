@@ -8,7 +8,7 @@
 
 struct DesktopOverlay {
     Gui* gui;
-    lv_obj_t* dimmer;
+    Widget* dimmer;
     bool show_requested;
 };
 
@@ -21,7 +21,8 @@ static void desktop_overlay_start_anim(DesktopOverlay* instance, int32_t end) {
         lv_anim_t anim;
         lv_anim_init(&anim);
         lv_anim_set_var(&anim, instance->dimmer);
-        lv_anim_set_values(&anim, lv_obj_get_style_opa(instance->dimmer, LV_PART_MAIN), end);
+        // TODO: Decide on the color and opacity API
+        lv_anim_set_values(&anim, lv_obj_get_style_opa((lv_obj_t*)instance->dimmer, LV_PART_MAIN), end);
         lv_anim_set_duration(&anim, OVERLAY_ANIM_TIME_MS);
         lv_anim_set_exec_cb(&anim, desktop_overlay_anim_callback);
         lv_anim_set_path_cb(&anim, lv_anim_path_ease_in_out);
@@ -35,13 +36,8 @@ DesktopOverlay* desktop_overlay_alloc(Gui* gui) {
 
     with_gui(instance->gui, {
         Widget* root = gui_get_root_widget(gui, GuiDisplayIdFront, GuiLayerIdSystem);
-
-        instance->dimmer = lv_obj_create((lv_obj_t*)root);
-        lv_obj_set_size(instance->dimmer, widget_get_width(root), widget_get_height(root));
-        lv_obj_set_style_bg_color(instance->dimmer, lv_color_black(), LV_PART_MAIN);
-        lv_obj_set_style_opa(instance->dimmer, LV_OPA_TRANSP, LV_PART_MAIN);
+        instance->dimmer = widget_alloc(root);
     });
-
 
     return instance;
 }
