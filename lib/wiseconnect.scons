@@ -14,8 +14,8 @@ MATTER_LIB_INCDIR = f"#/lib/{MATTER_LIB_FOLDER}"
 env.Append(
     CPPPATH=[
         Dir(f"{WISECONNECT_INCDIR}/protocol/wifi/inc").rdir(),
-       # Dir(f"{WISECONNECT_INCDIR}/service/bsd_socket/inc").rdir(),
-       # Dir(f"{WIRELESS_INCDIR}/asynchronous_socket/inc").rdir(),
+        Dir(f"{WISECONNECT_INCDIR}/service/bsd_socket/inc").rdir(),
+        Dir(f"{WIRELESS_INCDIR}/asynchronous_socket/inc").rdir(),
         Dir(f"{MCU_INCDIR}/drivers/cmsis_driver/CMSIS/Driver/Include").rdir(),
         Dir(f"{MCU_INCDIR}/drivers/cmsis_driver").rdir(),
        # Dir(f"{WISECONNECT_INCDIR}/service/network_manager/inc").rdir(),
@@ -29,7 +29,7 @@ env.Append(
         Dir(f"{WIRELESS_INCDIR}/sl_net/inc").rdir(),
         Dir(f"{WIRELESS_INCDIR}/inc").rdir(),
         Dir(f"{WIRELESS_INCDIR}/ble/inc").rdir(),
-       # Dir(f"{WIRELESS_INCDIR}/socket/inc").rdir(),
+        Dir(f"{WIRELESS_INCDIR}/socket/inc").rdir(),
         Dir(f"{WIRELESS_INCDIR}/ahb_interface/inc").rdir(),
         Dir(f"{MCU_INCDIR}/drivers/systemlevel/inc").rdir(),
        # Dir(f"wiseconnect/resources/defaults").rdir(),
@@ -74,8 +74,8 @@ env.Append(
         "SL_WIFI_COMPONENT_INCLUDED=1",
         "SLI_SI91X_ENABLE_OS",
         "ENABLE_DEBUG_MODULE",  # This is for debug power down mode
-        #"SLI_SI91X_OFFLOAD_NETWORK_STACK", #Todo no matter
-        #"SLI_SI91X_SOCKETS", #Todo no matter
+        "SLI_SI91X_OFFLOAD_NETWORK_STACK",
+        "SLI_SI91X_SOCKETS", #Todo no matter
         # SDK BLE Silabs
         "SLI_SI91X_ENABLE_BLE",
         "SL_SI91X_ENABLE_LITTLE_ENDIAN=1",
@@ -104,7 +104,7 @@ sources = [
    # f"{WISECONNECT_DIR}/protocol/wifi/si91x/sl_wifi.c",
    # f"{WISECONNECT_DIR}/protocol/wifi/src/sl_wifi_callback_framework.c",
    # f"{WISECONNECT_DIR}/protocol/wifi/src/sl_wifi_basic_credentials.c",
-   # f"{WISECONNECT_DIR}/service/bsd_socket/si91x_socket/sl_si91x_bsd_socket.c",
+     f"{WISECONNECT_DIR}/service/bsd_socket/si91x_socket/sl_si91x_bsd_socket.c",
    # f"{WISECONNECT_DIR}/service/network_manager/src/sl_net.c",
    # f"{WISECONNECT_DIR}/service/network_manager/src/sl_net_basic_profiles.c",
    # f"{WISECONNECT_DIR}/service/network_manager/src/sl_net_credentials.c",
@@ -120,8 +120,8 @@ sources = [
    # f"{WIRELESS_DIR}/memory/mem_pool_buffer_quota.c",
    # f"{WIRELESS_DIR}/host_mcu/si91x/siwx917_soc_ncp_host.c",
    # f"{WIRELESS_DIR}/threading/sli_si91x_multithreaded.c",
-   # f"{WIRELESS_DIR}/socket/src/sl_si91x_socket_utility.c",
-   # f"{WIRELESS_DIR}/asynchronous_socket/src/sl_si91x_socket.c",
+    f"{WIRELESS_DIR}/socket/src/sl_si91x_socket_utility.c",
+    f"{WIRELESS_DIR}/asynchronous_socket/src/sl_si91x_socket.c",
    # f"{WIRELESS_DIR}/sl_net/src/sl_net_si91x_integration_handler.c",
    # f"{WIRELESS_DIR}/sl_net/src/sl_net_rsi_utility.c",
    # f"{WIRELESS_DIR}/sl_net/src/sl_si91x_net_credentials.c",
@@ -213,6 +213,7 @@ sources = [
      f"{WISECONNECT_DIR}/device/silabs/si91x/wireless/ble/src/rsi_common_apis.c",
      f"{WISECONNECT_DIR}/device/silabs/si91x/wireless/ble/src/rsi_utils.c",
      f"{WISECONNECT_DIR}/device/silabs/si91x/wireless/ble/src/sl_si91x_ble.c",
+     f"{WISECONNECT_DIR}/device/silabs/si91x/wireless/crypto/aes/src/sl_si91x_aes.c",
      f"{WISECONNECT_DIR}/device/silabs/si91x/wireless/crypto/aead/src/sl_si91x_psa_aead.c",
      f"{WISECONNECT_DIR}/device/silabs/si91x/wireless/crypto/ccm/src/sl_si91x_ccm.c",
      f"{WISECONNECT_DIR}/device/silabs/si91x/wireless/crypto/ecdh/src/sl_si91x_ecdh.c",
@@ -230,9 +231,9 @@ sources = [
      f"{WISECONNECT_DIR}/device/silabs/si91x/wireless/crypto/wrap/src/sl_si91x_wrap.c",
      f"{WISECONNECT_DIR}/device/silabs/si91x/wireless/host_mcu/si91x/siwx917_soc_ncp_host.c",
      f"{WISECONNECT_DIR}/device/silabs/si91x/wireless/memory/malloc_buffers.c",
-    # f"{WISECONNECT_DIR}/device/silabs/si91x/wireless/sl_net/src/sl_net_rsi_utility.c",
-    # f"{WISECONNECT_DIR}/device/silabs/si91x/wireless/sl_net/src/sl_net_si91x_callback_framework.c",
-    # f"{WISECONNECT_DIR}/device/silabs/si91x/wireless/sl_net/src/sl_net_si91x_integration_handler.c",
+     f"{WISECONNECT_DIR}/device/silabs/si91x/wireless/sl_net/src/sl_net_rsi_utility.c",
+     f"{WISECONNECT_DIR}/device/silabs/si91x/wireless/sl_net/src/sl_net_si91x_callback_framework.c",
+     f"{WISECONNECT_DIR}/device/silabs/si91x/wireless/sl_net/src/sl_net_si91x_integration_handler.c",
      f"{WISECONNECT_DIR}/device/silabs/si91x/wireless/sl_net/src/sl_si91x_net_credentials.c",
      f"{WISECONNECT_DIR}/device/silabs/si91x/wireless/src/sl_rsi_utility.c",
      f"{WISECONNECT_DIR}/device/silabs/si91x/wireless/src/sl_si91x_driver.c",
@@ -242,6 +243,11 @@ sources = [
      f"{WISECONNECT_DIR}/protocol/wifi/src/sl_wifi_callback_framework.c",
      f"{WISECONNECT_DIR}/service/network_manager/src/sl_net_basic_profiles.c",
      f"{WISECONNECT_DIR}/service/network_manager/src/sl_net_credentials.c",
+     
+     #### Used for the bsd socket network_manager from Matter
+     f"{MATTER_LIB_FOLDER}/slc/component/sdk-content/wifi-sdk/components/service/network_manager/src/sl_net.c",
+     f"{MATTER_LIB_FOLDER}/slc/component/sdk-content/wifi-sdk/components/service/network_manager/src/sl_net_basic_certificate_store.c",
+     f"{MATTER_LIB_FOLDER}/slc/component/sdk-content/wifi-sdk/components/service/network_manager/src/sl_net_for_lwip.c",
 ]
 
 lib = libenv.StaticLibrary("${FW_LIB_NAME}", sources)

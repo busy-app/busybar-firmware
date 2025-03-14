@@ -32,7 +32,6 @@ App(
     provides=[
         # "cli", # Enabled in "hwtest" fw config (FIRMWARE_APP_SET)
         "input",
-        #"status_lights", #ToDo FIX Intercom
     ],
     targets=["f64"],
 )
@@ -44,7 +43,8 @@ App(
     provides=[
         "intercom",  # Enabled in default fw config
         # "wifi",  # Enabled by "sockets"
-        #"sockets",
+        "sockets",
+        "status_lights",
     ],
     targets=["f64"],
 )

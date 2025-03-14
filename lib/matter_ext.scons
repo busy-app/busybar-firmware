@@ -250,9 +250,9 @@ libenv.AppendUnique(
 
 sources = [
 
-    f"{LIB_FOLDER}/slc/component/sdk-content/wifi-sdk/components/service/network_manager/src/sl_net.c",
+    #f"{LIB_FOLDER}/slc/component/sdk-content/wifi-sdk/components/service/network_manager/src/sl_net.c",
     #f"{LIB_FOLDER}/slc/component/sdk-content/wifi-sdk/components/service/network_manager/src/sl_net_basic_certificate_store.c",
-    f"{LIB_FOLDER}/slc/component/sdk-content/wifi-sdk/components/service/network_manager/src/sl_net_for_lwip.c",
+    #f"{LIB_FOLDER}/slc/component/sdk-content/wifi-sdk/components/service/network_manager/src/sl_net_for_lwip.c",
     f"{LIB_FOLDER}/slc/component/sdk-content/wifi-sdk/device/silabs/si91x/wireless/firmware_upgrade/firmware_upgradation.c",
     f"{LIB_FOLDER}/third_party/matter_sdk/examples/platform/silabs/BaseApplication.cpp",
     f"{LIB_FOLDER}/third_party/matter_sdk/examples/platform/silabs/LEDWidget.cpp",
