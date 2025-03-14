@@ -49,13 +49,13 @@ static void style_init(my_theme_t* theme) {
     lv_style_set_bg_opa(&theme->styles.normal, LV_OPA_COVER);
     lv_style_set_bg_color(&theme->styles.normal, COLOR_BG_NORMAL);
     lv_style_set_text_color(&theme->styles.normal, COLOR_FG_NORMAL);
-    lv_style_set_text_font(&theme->styles.normal, &lv_font_tiny5_8);
+    lv_style_set_text_font(&theme->styles.normal, theme->base.font_normal);
 
     lv_style_init(&theme->styles.focused);
     lv_style_set_bg_opa(&theme->styles.focused, LV_OPA_COVER);
     lv_style_set_bg_color(&theme->styles.focused, COLOR_BG_NORMAL);
     lv_style_set_text_color(&theme->styles.focused, COLOR_FG_FOCUSED);
-    lv_style_set_text_font(&theme->styles.focused, &lv_font_tiny5_8);
+    lv_style_set_text_font(&theme->styles.focused, theme->base.font_normal);
 }
 
 static void theme_apply_callback(lv_theme_t* th, lv_obj_t* obj) {
@@ -123,13 +123,13 @@ static void theme_apply_callback(lv_theme_t* th, lv_obj_t* obj) {
 }
 
 // Public API
-lv_theme_t* lv_theme_front_alloc(lv_display_t* disp) {
+lv_theme_t* lv_theme_front_alloc(lv_display_t* disp, const lv_font_t* main_font) {
     my_theme_t* theme = malloc(sizeof(my_theme_t));
 
     theme->base.disp = disp;
-    theme->base.font_small = LV_FONT_DEFAULT;
-    theme->base.font_normal = LV_FONT_DEFAULT;
-    theme->base.font_large = LV_FONT_DEFAULT;
+    theme->base.font_small = &lv_font_tiny_6;
+    theme->base.font_normal = main_font;
+    theme->base.font_large = &lv_font_pixel_operator_8;
     theme->base.apply_cb = theme_apply_callback;
 
     style_init(theme);
