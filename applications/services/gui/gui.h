@@ -30,7 +30,9 @@ void gui_unlock(Gui* instance);
 
 Widget* gui_get_root_widget(Gui* instance, GuiDisplayId display_id, GuiLayerId layer_id);
 
-void gui_set_active_widget(Gui* instance, Widget* widget);
+void gui_add_active_widget(Gui* instance, Widget* widget);
+
+void gui_remove_active_widget(Gui* instance, Widget* widget);
 
 #define with_gui(gui, code) \
     {                       \

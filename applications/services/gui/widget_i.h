@@ -8,7 +8,7 @@
 
 #define IS_WIDGET_CLASS(w) (lv_obj_has_class((lv_obj_t*)(w), &lv_widget_class))
 
-typedef void (*WidgetDeletedCallback)(void* context);
+typedef void (*WidgetDeletedCallback)(Widget* instance, void* context);
 typedef bool (*WidgetInputFeedCallback)(Widget* instance, const InputEvent* event);
 
 struct Widget {

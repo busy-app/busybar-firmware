@@ -11,7 +11,7 @@ static void widget_obj_destructor(const lv_obj_class_t* class_p, lv_obj_t* obj) 
     Widget* instance = (Widget*)obj;
 
     if(instance->deleted_callback) {
-        instance->deleted_callback(instance->deleted_callback_context);
+        instance->deleted_callback(instance, instance->deleted_callback_context);
     }
 }
 

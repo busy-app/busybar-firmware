@@ -94,8 +94,9 @@ static void gui_input_queue_callback(FuriEventLoopObject* object, void* context)
 
         while(furi_message_queue_get(instance->input_queue, &event, 0) == FuriStatusOk) {
             for(GuiDisplayId id = 0; id < GuiDisplayIdMax; ++id) {
-                Widget* active_widget = instance->displays[id].active_widget;
-                if(active_widget) {
+                GuiDisplay* display = &instance->displays[id];
+                if(!WidgetList_empty_p(display->active_widgets)) {
+                    Widget* active_widget = *WidgetList_back(display->active_widgets);
                     widget_input(active_widget, &event);
                 }
             }
@@ -105,19 +106,28 @@ static void gui_input_queue_callback(FuriEventLoopObject* object, void* context)
     }
 }
 
-static void gui_display_widget_deleted_callback(void* context) {
+static void gui_display_remove_active_widget(GuiDisplay* display, Widget* widget) {
+    WidgetList_it_t it;
+    for(WidgetList_it(it, display->active_widgets); !WidgetList_end_p(it); WidgetList_next(it)) {
+        if(*WidgetList_cref(it) == widget) {
+            WidgetList_remove(display->active_widgets, it);
+            break;
+        }
+    }
+    widget_set_deleted_callback(widget, NULL, NULL);
+}
+
+static void gui_display_widget_deleted_callback(Widget* widget, void* context) {
     furi_assert(context);
 
     GuiDisplay* display = context;
-    display->active_widget = NULL;
+    gui_display_remove_active_widget(display, widget);
 }
 
-static void gui_display_set_active_widget(GuiDisplay* display, Widget* widget) {
-    if(display->active_widget) {
-        widget_set_deleted_callback(display->active_widget, NULL, NULL);
-    }
-    display->active_widget = widget;
+static void gui_display_add_active_widget(GuiDisplay* display, Widget* widget) {
+    gui_display_remove_active_widget(display, widget);
     widget_set_deleted_callback(widget, gui_display_widget_deleted_callback, display);
+    WidgetList_push_back(display->active_widgets, widget);
 }
 
 static GuiDisplay* gui_find_display_by_widget(Gui* instance, const Widget* widget) {
@@ -133,12 +143,12 @@ static GuiDisplay* gui_find_display_by_widget(Gui* instance, const Widget* widge
     return NULL;
 }
 
-static void gui_init_front(Gui* instance) {
-    GuiDisplay* display = &instance->displays[GuiDisplayIdFront];
-
+static void gui_init_front(GuiDisplay* display) {
     display->draw_buffer = malloc(FRONT_DRAW_BUFFER_SIZE);
     display->lv_display = lv_display_create(FRONT_W, FRONT_H);
     display->driver = furi_record_open(RECORD_DOT_MATRIX);
+
+    WidgetList_init(display->active_widgets);
 
     lv_display_set_user_data(display->lv_display, display);
     lv_display_set_flush_cb(display->lv_display, gui_flush_front_callback);
@@ -154,14 +164,14 @@ static void gui_init_front(Gui* instance) {
     lv_display_set_theme(display->lv_display, theme);
 }
 
-static void gui_init_back(Gui* instance) {
+static void gui_init_back(GuiDisplay* display) {
     ssd1320_init();
-
-    GuiDisplay* display = &instance->displays[GuiDisplayIdBack];
 
     display->draw_buffer = malloc(BACK_DRAW_BUFFER_SIZE);
     display->frame_buffer = malloc(BACK_FRAME_BUFFER_SIZE);
     display->lv_display = lv_display_create(BACK_W, BACK_H);
+
+    WidgetList_init(display->active_widgets);
 
     lv_display_set_user_data(display->lv_display, display);
     lv_display_set_flush_cb(display->lv_display, gui_flush_back_callback);
@@ -208,8 +218,8 @@ static Gui* gui_alloc(void) {
     lv_delay_set_cb(furi_delay_ms);
     lv_log_register_print_cb(gui_log_callback);
 
-    gui_init_front(instance);
-    gui_init_back(instance);
+    gui_init_front(&instance->displays[GuiDisplayIdFront]);
+    gui_init_back(&instance->displays[GuiDisplayIdBack]);
     gui_init_input(instance);
 
     furi_record_create(RECORD_GUI, instance);
@@ -240,7 +250,6 @@ void gui_unlock(Gui* instance) {
 Widget* gui_get_root_widget(Gui* instance, GuiDisplayId display_id, GuiLayerId layer_id) {
     furi_check(instance);
     furi_check(display_id < GuiDisplayIdMax);
-    furi_check(layer_id < GuiLayerIdMax);
     furi_check(IS_OWNER(instance->access_mutex));
 
     lv_display_t* display = instance->displays[display_id].lv_display;
@@ -261,7 +270,7 @@ Widget* gui_get_root_widget(Gui* instance, GuiDisplayId display_id, GuiLayerId l
     return (Widget*)root;
 }
 
-void gui_set_active_widget(Gui* instance, Widget* widget) {
+void gui_add_active_widget(Gui* instance, Widget* widget) {
     furi_check(instance);
     furi_check(widget);
     furi_check(IS_WIDGET_CLASS(widget));
@@ -269,29 +278,16 @@ void gui_set_active_widget(Gui* instance, Widget* widget) {
 
     GuiDisplay* display = gui_find_display_by_widget(instance, widget);
     furi_assert(display);
-    gui_display_set_active_widget(display, widget);
+    gui_display_add_active_widget(display, widget);
 }
 
-// Old functions to delete
-
-lv_obj_t* gui_get_layer(Gui* instance, GuiDisplayId display_id, GuiLayerId layer_id) {
+void gui_remove_active_widget(Gui* instance, Widget* widget) {
     furi_check(instance);
-    furi_check(display_id < GuiDisplayIdMax);
-    furi_check(layer_id < GuiLayerIdMax);
+    furi_check(widget);
+    furi_check(IS_WIDGET_CLASS(widget));
     furi_check(IS_OWNER(instance->access_mutex));
 
-    lv_display_t* display = instance->displays[display_id].lv_display;
-
-    switch(layer_id) {
-    case GuiLayerIdBottom:
-        return lv_display_get_layer_bottom(display);
-    case GuiLayerIdActive:
-        return lv_display_get_screen_active(display);
-    case GuiLayerIdTop:
-        return lv_display_get_layer_top(display);
-    case GuiLayerIdSystem:
-        return lv_display_get_layer_sys(display);
-    default:
-        furi_crash();
-    }
+    GuiDisplay* display = gui_find_display_by_widget(instance, widget);
+    furi_assert(display);
+    gui_display_remove_active_widget(display, widget);
 }

@@ -32,7 +32,7 @@ static MessageApp* message_app_alloc(const char* message) {
         label_set_text(instance->label, message ? message : "Hello There");
 
         widget_set_input_callback((Widget*)instance->label, message_app_input_callback, instance);
-        gui_set_active_widget(instance->gui, (Widget*)instance->label);
+        gui_add_active_widget(instance->gui, (Widget*)instance->label);
     });
 
     return instance;

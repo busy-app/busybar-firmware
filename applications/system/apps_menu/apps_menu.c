@@ -79,7 +79,7 @@ static AppsMenu* apps_menu_alloc(void) {
         submenu_add_item(
             instance->submenu, "Error Test", UINT32_MAX, apps_menu_submenu_item_callback, instance);
 #endif
-        gui_set_active_widget(instance->gui, (Widget*)instance->submenu);
+        gui_add_active_widget(instance->gui, (Widget*)instance->submenu);
     });
 
     return instance;

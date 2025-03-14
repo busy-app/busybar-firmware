@@ -66,7 +66,7 @@ static Dummy* dummy_alloc(const char* message) {
             instance->exit_on_back = true;
         }
 
-        gui_set_active_widget(instance->gui, (Widget*)instance->label);
+        gui_add_active_widget(instance->gui, (Widget*)instance->label);
     });
 
     return instance;

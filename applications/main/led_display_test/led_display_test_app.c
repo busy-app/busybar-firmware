@@ -119,7 +119,7 @@ static LedDisplayTestApp* led_display_test_app_alloc(void) {
         root = gui_get_root_widget(instance->gui, GuiDisplayIdFront, GuiLayerIdActive);
         instance->canvas = canvas_alloc(root, DOT_MATRIX_W, DOT_MATRIX_H);
 
-        gui_set_active_widget(instance->gui, instance->app_window);
+        gui_add_active_widget(instance->gui, instance->app_window);
     });
 
     instance->pattern = LedDisplayTestPatternChess;

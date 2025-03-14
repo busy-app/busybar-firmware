@@ -14,6 +14,8 @@
 
 #include <led_display/led_display.h>
 
+#include <m-list.h>
+
 #define FRONT_W                (DOT_MATRIX_W)
 #define FRONT_H                (DOT_MATRIX_H)
 #define FRONT_COLOR_FORMAT     (LV_COLOR_FORMAT_RGB888)
@@ -29,13 +31,15 @@
 
 #define TICK_PERIOD_MS (8)
 
+LIST_DEF(WidgetList, Widget*, M_PTR_OPLIST);
+
 typedef struct {
     lv_display_t* lv_display;
     uint8_t* draw_buffer;
     // TODO: Keep frame buffer in SSD1320 service
     uint8_t* frame_buffer;
     void* driver;
-    Widget* active_widget;
+    WidgetList_t active_widgets;
 } GuiDisplay;
 
 struct Gui {

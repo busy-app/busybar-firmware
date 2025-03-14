@@ -171,7 +171,7 @@ GuiTestApp* gui_test_alloc(void) {
         item = var_item_list_add_switch(
             instance->var_list, "Switch", gui_test_switch_changed_callback, NULL);
 
-        gui_set_active_widget(instance->gui, (Widget*)instance->var_list);
+        gui_add_active_widget(instance->gui, (Widget*)instance->var_list);
     });
 
     return instance;

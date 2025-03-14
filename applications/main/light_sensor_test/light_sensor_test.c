@@ -129,7 +129,7 @@ static LightSensorTestApp* light_sensor_test_app_alloc(void) {
         widget_set_input_callback(
             instance->app_window, ligh_sensor_test_app_input_callback, instance);
 
-        gui_set_active_widget(instance->gui, instance->app_window);
+        gui_add_active_widget(instance->gui, instance->app_window);
     });
 
     light_sensor_test_app_get_measurements(instance);

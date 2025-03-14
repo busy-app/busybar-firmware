@@ -72,7 +72,7 @@ static AnimationPlayerApp* animation_player_app_alloc(void* args) {
             anim_image_start(instance->anim_image);
         }
 
-        gui_set_active_widget(instance->gui, (Widget*)instance->label);
+        gui_add_active_widget(instance->gui, (Widget*)instance->label);
     });
 
     return instance;
