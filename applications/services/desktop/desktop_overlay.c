@@ -22,7 +22,8 @@ static void desktop_overlay_start_anim(DesktopOverlay* instance, int32_t end) {
         lv_anim_init(&anim);
         lv_anim_set_var(&anim, instance->dimmer);
         // TODO: Decide on the color and opacity API
-        lv_anim_set_values(&anim, lv_obj_get_style_opa((lv_obj_t*)instance->dimmer, LV_PART_MAIN), end);
+        lv_anim_set_values(
+            &anim, lv_obj_get_style_opa((lv_obj_t*)instance->dimmer, LV_PART_MAIN), end);
         lv_anim_set_duration(&anim, OVERLAY_ANIM_TIME_MS);
         lv_anim_set_exec_cb(&anim, desktop_overlay_anim_callback);
         lv_anim_set_path_cb(&anim, lv_anim_path_ease_in_out);
