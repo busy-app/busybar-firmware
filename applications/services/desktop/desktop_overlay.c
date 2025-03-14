@@ -36,7 +36,7 @@ DesktopOverlay* desktop_overlay_alloc(Gui* gui) {
     instance->gui = gui;
 
     with_gui(instance->gui, {
-        Widget* root = gui_get_root_widget(gui, GuiDisplayIdFront, GuiLayerIdSystem);
+        Widget* root = gui_get_root_widget(instance->gui, GuiDisplayIdFront, GuiLayerIdSystem);
         instance->dimmer = widget_alloc(root);
     });
 

@@ -56,7 +56,7 @@ static Dummy* dummy_alloc(const char* message) {
         instance->event_loop, dummy_custom_event_callback, instance);
 
     with_gui(instance->gui, {
-        Widget* root = gui_get_root_widget(gui, GuiDisplayIdFront, GuiLayerIdActive);
+        Widget* root = gui_get_root_widget(instance->gui, GuiDisplayIdFront, GuiLayerIdActive);
         instance->label = label_alloc(root);
         label_set_text(instance->label, message ? message : "Hello There");
 
@@ -66,7 +66,7 @@ static Dummy* dummy_alloc(const char* message) {
             instance->exit_on_back = true;
         }
 
-        gui_set_active_widget(gui, (Widget*)instance->label);
+        gui_set_active_widget(instance->gui, (Widget*)instance->label);
     });
 
     return instance;

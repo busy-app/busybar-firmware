@@ -117,8 +117,7 @@ static void anim_image_timer_callback(lv_timer_t* timer) {
     lv_obj_invalidate(instance->canvas);
 }
 
-static bool
-    anim_image_validate_header(const AnimImageFileHeader* header, size_t file_size) {
+static bool anim_image_validate_header(const AnimImageFileHeader* header, size_t file_size) {
     bool validated = false;
 
     do {

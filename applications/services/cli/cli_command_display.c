@@ -6,6 +6,7 @@
 #include <storage/storage.h>
 
 #include <gui/gui.h>
+#include <gui/modules/image.h>
 
 #define TAG "CliDisplay"
 
@@ -41,23 +42,18 @@ static void cli_command_show(Cli* cli, FuriString* args, GuiDisplayId id) {
         return;
     }
 
-    gui_lock(gui);
+    Image* image;
 
-    lv_obj_t* system = gui_get_layer(gui, id, GuiLayerIdSystem);
-    lv_obj_t* screen = lv_obj_create(system);
-    lv_obj_set_size(screen, lv_obj_get_width(system), lv_obj_get_height(system));
-    lv_obj_t* image = lv_image_create(screen);
-    lv_image_set_src(image, furi_string_get_cstr(args));
-    lv_obj_set_pos(image, 0, 0);
-
-    gui_unlock(gui);
+    with_gui(gui, {
+        Widget* root = gui_get_root_widget(gui, id, GuiLayerIdSystem);
+        image = image_alloc(root);
+        image_set_source(image, furi_string_get_cstr(args));
+    });
 
     while(!cli_cmd_interrupt_received(cli)) {
     };
 
-    gui_lock(gui);
-    lv_obj_delete(screen);
-    gui_unlock(gui);
+    with_gui(gui, { image_free(image); });
 
     furi_record_close(RECORD_STORAGE);
     furi_record_close(RECORD_GUI);

@@ -108,7 +108,7 @@ static LightSensorTestApp* light_sensor_test_app_alloc(void) {
     instance->gui = furi_record_open(RECORD_GUI);
 
     with_gui(instance->gui, {
-        Widget* root = gui_get_root_widget(gui, GuiDisplayIdBack, GuiLayerIdActive);
+        Widget* root = gui_get_root_widget(instance->gui, GuiDisplayIdBack, GuiLayerIdActive);
 
         instance->app_window = widget_alloc(root);
 
@@ -129,7 +129,7 @@ static LightSensorTestApp* light_sensor_test_app_alloc(void) {
         widget_set_input_callback(
             instance->app_window, ligh_sensor_test_app_input_callback, instance);
 
-        gui_set_active_widget(gui, instance->app_window);
+        gui_set_active_widget(instance->gui, instance->app_window);
     });
 
     light_sensor_test_app_get_measurements(instance);
