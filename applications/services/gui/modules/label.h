@@ -41,7 +41,7 @@ void label_set_text(Label* instance, const char* text);
  * @brief Set the label text with printf-like formatting.
  *
  * @param[in,out] instance pointer to the Label instance to be modified
- * @param[in] text zero-terminated format string
+ * @param[in] fmt zero-terminated format string
  * @param[in] ... variadic list of arguments according to the format string
  */
 void label_set_text_fmt(Label* instance, const char* fmt, ...)

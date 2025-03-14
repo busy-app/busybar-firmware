@@ -144,7 +144,7 @@ void canvas_draw_text(Canvas* instance, int32_t x, int32_t y, const char* text);
  * @param[in,out] instance pointer to the Canvas instance to be drawn on
  * @param[in] x1 horizontal (x) offset of the text
  * @param[in] y1 vertical (y) offset of the text
- * @param[in] text zero-terminated format string
+ * @param[in] fmt zero-terminated format string
  * @param[in] ... variadic list of arguments according to the format string
  */
 void canvas_draw_text_fmt(Canvas* instance, int32_t x, int32_t y, const char* fmt, ...)
