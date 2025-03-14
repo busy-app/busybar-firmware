@@ -10,7 +10,8 @@
 #include <ssd1320/ssd1320.h>
 
 #include <input/input.h>
-#include <power_simple/power.h>
+#include <power/power_service/power.h>
+
 #include <led_display/led_display.h>
 
 #define FRONT_W                (DOT_MATRIX_W)

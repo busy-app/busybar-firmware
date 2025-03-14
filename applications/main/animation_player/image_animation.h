@@ -1,10 +1,10 @@
 #pragma once
 
-#include <lib/lvgl/lvgl.h>
+#include <gui/widget.h>
 
 typedef struct ImageAnimation ImageAnimation;
 
-ImageAnimation* image_animation_alloc(lv_obj_t* parent);
+ImageAnimation* image_animation_alloc(Widget* parent);
 
 void image_animation_free(ImageAnimation* instance);
 

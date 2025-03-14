@@ -1,23 +1,20 @@
 #include "animation_player_app_i.h"
 
-#include <input/input.h>
-#include <lib/lvgl/src/widgets/canvas/lv_canvas.h>
-
 #include <furi.h>
 
 #define TAG "AnimationPlayer"
 
-#define ANIMATION_PLAYER_FILE_PATH "/ext/animations/test.anim"
+#define ANIMATION_PLAYER_FILE_PATH EXT_PATH("animations/test.anim")
 
-static void animation_player_app_keypad_callback(lv_event_t* event) {
-    AnimationPlayerApp* instance = lv_event_get_user_data(event);
+static void animation_player_app_input_callback(const InputEvent* event, void* context) {
+    furi_assert(event);
+    furi_assert(context);
 
-    // TODO Fix focus and differ OK and START buttons
-    const lv_event_code_t code = lv_event_get_code(event);
-    if(code == LV_EVENT_KEY) {
-        AnimationPlayerAppEvent app_event;
-        const uint32_t key = *((uint32_t*)lv_event_get_param(event));
-        if(key == LV_KEY_ESC) {
+    AnimationPlayerApp* instance = context;
+    AnimationPlayerAppEvent app_event;
+
+    if(event->type == InputTypeShort) {
+        if(event->key == InputKeyBack) {
             app_event = AnimationPlayerAppEventExit;
             furi_check(
                 furi_message_queue_put(instance->event_queue, &app_event, FuriWaitForever) ==
@@ -50,47 +47,47 @@ static AnimationPlayerApp* animation_player_app_alloc(void* args) {
         animation_player_app_event_queue_callback,
         instance);
 
-    instance->gui = furi_record_open(RECORD_GUI_LVGL);
-    gui_lvgl_acquire(instance->gui);
+    instance->gui = furi_record_open(RECORD_GUI);
 
-    lv_obj_t* active = gui_lvgl_get_layer(instance->gui, GuiDisplayIdBack, GuiLayerIdActive);
-    instance->label = lv_label_create(active);
+    with_gui(instance->gui, {
+        Widget* root;
+        root = gui_get_root_widget(gui, GuiDisplayIdBack, GuiLayerIdActive);
+        instance->label = label_alloc(root);
 
-    lv_obj_set_pos(instance->label, 10, 30);
-    lv_obj_set_style_text_color(instance->label, lv_color_white(), LV_PART_MAIN);
+        widget_set_pos((Widget*)instance->label, 10, 30);
+        widget_set_input_callback(
+            (Widget*)instance->label, animation_player_app_input_callback, instance);
 
-    lv_group_add_obj(lv_group_get_default(), instance->label);
-    lv_group_focus_obj(instance->label);
-    lv_obj_add_event_cb(
-        instance->label, animation_player_app_keypad_callback, LV_EVENT_KEY, instance);
+        root = gui_get_root_widget(gui, GuiDisplayIdFront, GuiLayerIdActive);
+        instance->image_animation = image_animation_alloc(root);
 
-    active = gui_lvgl_get_layer(instance->gui, GuiDisplayIdFront, GuiLayerIdActive);
-    instance->image_animation = image_animation_alloc(active);
-    const char* path = (args == NULL) ? ANIMATION_PLAYER_FILE_PATH : args;
-    if(!image_animation_set_source(instance->image_animation, path)) {
-        FURI_LOG_E(TAG, "Failed to launch animation");
-        lv_label_set_text(instance->label, "Failed to load animation");
-    } else {
-        lv_label_set_text(instance->label, "Running animation");
-        image_animation_start(instance->image_animation);
-    }
+        const char* path = (args == NULL) ? ANIMATION_PLAYER_FILE_PATH : args;
 
-    gui_lvgl_release(instance->gui);
+        if(!image_animation_set_source(instance->image_animation, path)) {
+            FURI_LOG_E(TAG, "Failed to load animation");
+            label_set_text(instance->label, "Failed to load animation");
+
+        } else {
+            label_set_text(instance->label, "Running animation");
+            image_animation_start(instance->image_animation);
+        }
+
+        gui_set_active_widget(gui, (Widget*)instance->label);
+    });
+
     return instance;
 }
 
 static void animation_player_app_free(AnimationPlayerApp* instance) {
     furi_check(instance);
 
-    gui_lvgl_acquire(instance->gui);
+    with_gui(instance->gui, {
+        image_animation_stop(instance->image_animation);
+        image_animation_free(instance->image_animation);
+        label_free(instance->label);
+    });
 
-    image_animation_stop(instance->image_animation);
-    image_animation_free(instance->image_animation);
-    lv_obj_delete(instance->label);
-
-    gui_lvgl_release(instance->gui);
-
-    furi_record_close(RECORD_GUI_LVGL);
+    furi_record_close(RECORD_GUI);
 
     furi_event_loop_unsubscribe(instance->event_loop, instance->event_queue);
     furi_message_queue_free(instance->event_queue);

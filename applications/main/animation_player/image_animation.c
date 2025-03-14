@@ -2,8 +2,8 @@
 
 #include <furi/furi.h>
 
+#include <gui/widget_i.h>
 #include <storage/storage.h>
-#include <led_display/led_display.h>
 
 #define TAG "ImageAnimation"
 
@@ -21,7 +21,7 @@ typedef struct {
 } FURI_PACKED ImageAnimationFileHeader;
 
 static_assert(
-    sizeof(ImageAnimationFileHeader) == 7 * 4,
+    sizeof(ImageAnimationFileHeader) == 7 * sizeof(uint32_t),
     "Incorrect size of ImageAnimationFileHeader");
 
 struct ImageAnimation {
@@ -30,16 +30,15 @@ struct ImageAnimation {
     ImageAnimationFileHeader header;
 
     lv_obj_t* canvas;
-    uint32_t frame_size;
-    uint8_t canvas_buffer[DOT_MATRIX_BPP * DOT_MATRIX_H * DOT_MATRIX_W];
+    lv_timer_t* timer;
+    uint8_t* canvas_buffer;
 
+    uint32_t frame_size;
     uint32_t frame_idx;
     uint32_t frame_total;
-
-    lv_timer_t* timer;
 };
 
-static bool image_update_canvas_buffer(ImageAnimation* instance) {
+static bool image_animation_update_canvas_buffer(ImageAnimation* instance) {
     bool res = false;
 
     do {
@@ -61,7 +60,7 @@ static bool image_update_canvas_buffer(ImageAnimation* instance) {
 
 static void image_animation_timer_callback(lv_timer_t* timer) {
     ImageAnimation* instance = lv_timer_get_user_data(timer);
-    if(!image_update_canvas_buffer(instance)) {
+    if(!image_animation_update_canvas_buffer(instance)) {
         FURI_LOG_E(TAG, "Failed to read frame from file");
         return;
     }
@@ -69,14 +68,14 @@ static void image_animation_timer_callback(lv_timer_t* timer) {
     lv_obj_invalidate(instance->canvas);
 }
 
-ImageAnimation* image_animation_alloc(lv_obj_t* parent) {
+ImageAnimation* image_animation_alloc(Widget* parent) {
     furi_check(parent);
 
     ImageAnimation* instance = malloc(sizeof(ImageAnimation));
     instance->storage = furi_record_open(RECORD_STORAGE);
     instance->file = storage_file_alloc(instance->storage);
 
-    instance->canvas = lv_canvas_create(parent);
+    instance->canvas = lv_canvas_create((lv_obj_t*)parent);
 
     return instance;
 }
@@ -169,14 +168,20 @@ bool image_animation_set_source(ImageAnimation* instance, const char* file_path)
             lv_timer_create(image_animation_timer_callback, 1000 / header->fps, instance);
         lv_timer_set_repeat_count(instance->timer, -1);
 
+        if(instance->canvas_buffer) {
+            free(instance->canvas_buffer);
+        }
+
+        instance->canvas_buffer = malloc(instance->frame_size);
+
         lv_canvas_set_buffer(
             instance->canvas,
             instance->canvas_buffer,
             header->width,
             header->height,
             LV_COLOR_FORMAT_RGB888);
-        lv_group_add_obj(lv_group_get_default(), instance->canvas);
-        image_update_canvas_buffer(instance);
+
+        image_animation_update_canvas_buffer(instance);
     }
 
     return parsed;
