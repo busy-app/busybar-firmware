@@ -256,7 +256,6 @@ static void power_cli_command_print_usage(void) {
     printf("\tch\t - charge on/off\r\n");
     printf("\tch_current\t - charge current limit\r\n");
     printf("\tpd_info\t - USB PD info\r\n");
-    // printf("\tpd_list\t - list USB PD capabilities\r\n");
     printf("\tpd_set\t - Request USB PD profile\r\n");
 }
 

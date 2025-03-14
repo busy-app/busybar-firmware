@@ -132,7 +132,7 @@ typedef struct {
 
 typedef struct {
     uint16_t bat_v; // Battery voltage (mV)
-    uint16_t bat_i; // Battery current (mA)
+    int16_t bat_i; // Battery current (mA)
     uint16_t usb_v; // USB voltage (mV)
     uint16_t usb_i; // USB voltage (mA)
     uint16_t sys_v; // System voltage (mV)
