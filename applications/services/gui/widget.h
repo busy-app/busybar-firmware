@@ -79,12 +79,28 @@ void widget_set_visible(Widget* instance, bool visible);
 void widget_set_width(Widget* instance, int32_t width);
 
 /**
+ * @brief Get the Widget width.
+ *
+ * @param[in] instance pointer to the Widget instance to be queried
+ * @returns widget width in pixels
+ */
+int32_t widget_get_width(const Widget* instance);
+
+/**
  * @brief Set the Widget height.
  *
  * @param[in,out] instance pointer to the Widget instance to be modified
  * @param[in] height new height in pixels
  */
 void widget_set_height(Widget* instance, int32_t height);
+
+/**
+ * @brief Get the Widget height.
+ *
+ * @param[in] instance pointer to the Widget instance to be queried
+ * @returns widget height in pixels
+ */
+int32_t widget_get_height(const Widget* instance);
 
 /**
  * @brief Set both the width and height of a Widget.
