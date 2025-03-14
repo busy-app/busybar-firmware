@@ -27,7 +27,7 @@ static MessageApp* message_app_alloc(const char* message) {
     instance->gui = furi_record_open(RECORD_GUI);
 
     with_gui(instance->gui, {
-        Widget* root = gui_get_root_widget(instance->gui, GuiDisplayIdFront, GuiLayerIdActive);
+        Widget* root = gui_get_root_widget(instance->gui, GuiDisplayIdFront, GuiLayerIdMain);
         instance->label = label_alloc(root);
         label_set_text(instance->label, message ? message : "Hello There");
 

@@ -102,7 +102,7 @@ GuiTestApp* gui_test_alloc(void) {
     instance->gui = furi_record_open(RECORD_GUI);
 
     with_gui(instance->gui, {
-        Widget* root = gui_get_root_widget(instance->gui, GuiDisplayIdFront, GuiLayerIdActive);
+        Widget* root = gui_get_root_widget(instance->gui, GuiDisplayIdFront, GuiLayerIdMain);
 
         instance->var_list = var_item_list_alloc(root);
         widget_set_input_callback((Widget*)instance->var_list, gui_test_input_callback, instance);

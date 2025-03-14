@@ -98,7 +98,7 @@ static LedDisplayTestApp* led_display_test_app_alloc(void) {
         Widget* root;
 
         // Back display
-        root = gui_get_root_widget(instance->gui, GuiDisplayIdBack, GuiLayerIdActive);
+        root = gui_get_root_widget(instance->gui, GuiDisplayIdBack, GuiLayerIdMain);
 
         instance->app_window = widget_alloc(root);
         widget_set_input_callback(
@@ -116,7 +116,7 @@ static LedDisplayTestApp* led_display_test_app_alloc(void) {
         widget_set_pos((Widget*)instance->color_label, 10, 40);
 
         // Front display
-        root = gui_get_root_widget(instance->gui, GuiDisplayIdFront, GuiLayerIdActive);
+        root = gui_get_root_widget(instance->gui, GuiDisplayIdFront, GuiLayerIdMain);
         instance->canvas = canvas_alloc(root, DOT_MATRIX_W, DOT_MATRIX_H);
 
         gui_add_active_widget(instance->gui, instance->app_window);

@@ -51,14 +51,14 @@ static AnimationPlayerApp* animation_player_app_alloc(void* args) {
 
     with_gui(instance->gui, {
         Widget* root;
-        root = gui_get_root_widget(instance->gui, GuiDisplayIdBack, GuiLayerIdActive);
+        root = gui_get_root_widget(instance->gui, GuiDisplayIdBack, GuiLayerIdMain);
         instance->label = label_alloc(root);
 
         widget_set_pos((Widget*)instance->label, 10, 30);
         widget_set_input_callback(
             (Widget*)instance->label, animation_player_app_input_callback, instance);
 
-        root = gui_get_root_widget(instance->gui, GuiDisplayIdFront, GuiLayerIdActive);
+        root = gui_get_root_widget(instance->gui, GuiDisplayIdFront, GuiLayerIdMain);
         instance->anim_image = anim_image_alloc(root);
 
         const char* path = (args == NULL) ? ANIMATION_PLAYER_FILE_PATH : args;

@@ -257,7 +257,7 @@ Widget* gui_get_root_widget(Gui* instance, GuiDisplayId display_id, GuiLayerId l
 
     if(layer_id == GuiLayerIdBottom) {
         root = lv_display_get_layer_bottom(display);
-    } else if(layer_id == GuiLayerIdActive) {
+    } else if(layer_id == GuiLayerIdMain) {
         root = lv_display_get_screen_active(display);
     } else if(layer_id == GuiLayerIdTop) {
         root = lv_display_get_layer_top(display);
