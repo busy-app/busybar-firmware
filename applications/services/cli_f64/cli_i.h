@@ -9,7 +9,7 @@
 #include <m-bptree.h>
 #include <m-array.h>
 
-#include "cli_uart.h"
+#include "cli_intercom.h"
 
 #define CLI_LINE_SIZE_MAX
 #define CLI_COMMANDS_TREE_RANK 4

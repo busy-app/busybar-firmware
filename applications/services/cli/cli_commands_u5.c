@@ -233,9 +233,9 @@ void cli_command_echo(Cli* cli, FuriString* args, void* context) {
 void cli_command_uart_917_echo(Cli* cli, FuriString* args, void* context) {
     Intercom* intercom = furi_record_open(RECORD_INTERCOM);
 
-    intercom_tx(intercom, IntercomChannelControl, )
+    intercom_tx(intercom, IntercomChannelControl, );
 
-        furi_record_close(RECORD_INTERCOM);
+    furi_record_close(RECORD_INTERCOM);
 }
 
 void cli_commands_init(Cli* cli) {
