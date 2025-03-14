@@ -7,10 +7,12 @@
 
 #define TAG "ImageAnimation"
 
-#define IMAGE_ANIMATION_FILE_MAGIC (0x69)
+#define IMAGE_ANIMATION_FILE_MAGIC     (0x69)
+#define IMAGE_ANIMATION_FORMAT_VERSION (0x00)
 
 typedef struct {
     uint32_t magic;
+    uint32_t format_version;
     uint32_t fps;
     uint32_t bytes_per_pixel;
     uint32_t width;
@@ -19,7 +21,7 @@ typedef struct {
 } FURI_PACKED ImageAnimationFileHeader;
 
 static_assert(
-    sizeof(ImageAnimationFileHeader) == 6 * 4,
+    sizeof(ImageAnimationFileHeader) == 7 * 4,
     "Incorrect size of ImageAnimationFileHeader");
 
 struct ImageAnimation {
@@ -125,6 +127,11 @@ bool image_animation_set_source(ImageAnimation* instance, const char* file_path)
 
         if(header->magic != IMAGE_ANIMATION_FILE_MAGIC) {
             FURI_LOG_D(TAG, "Invalid magic num: %ld", header->magic);
+            break;
+        }
+
+        if(header->format_version != IMAGE_ANIMATION_FORMAT_VERSION) {
+            FURI_LOG_D(TAG, "Invalid  format version: %ld", header->format_version);
             break;
         }
 

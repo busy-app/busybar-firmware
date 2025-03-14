@@ -40,10 +40,12 @@ class BusyBarAnimation:
     def create_header(self, frames):
         """Create the header for the binary file."""
         magic_number = 0x69
-        header_format = "IIIIII"
+        format_version = 0x00
+        header_format = "IIIIIII"
         header = struct.pack(
             header_format,
             magic_number,
+            format_version,
             self.fps,
             self.bytes_per_pixel,
             self.width,
