@@ -1,6 +1,7 @@
 #include "desktop_overlay.h"
 
 #include <furi.h>
+#include <lvgl.h>
 
 #define TAG "DesktopOverlay"
 

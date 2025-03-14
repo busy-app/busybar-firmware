@@ -1,7 +1,5 @@
 #pragma once
 
-#include <lvgl.h>
-
 #include "widget.h"
 
 #ifdef __cplusplus
@@ -33,8 +31,6 @@ void gui_unlock(Gui* instance);
 Widget* gui_get_root_widget(Gui* instance, GuiDisplayId display_id, GuiLayerId layer_id);
 
 void gui_set_active_widget(Gui* instance, Widget* widget);
-
-lv_obj_t* gui_get_layer(Gui* instance, GuiDisplayId display_id, GuiLayerId layer_id);
 
 #define with_gui(gui, code) \
     {                       \
