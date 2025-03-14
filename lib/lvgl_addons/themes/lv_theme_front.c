@@ -30,9 +30,9 @@ extern const lv_obj_class_t label_lvgl_class;
 extern const lv_obj_class_t submenu_lvgl_class;
 extern const lv_obj_class_t submenu_item_lvgl_class;
 // VarItemList
-extern const lv_obj_class_t lv_var_item_list_class;
-extern const lv_obj_class_t lv_var_item_class;
-extern const lv_obj_class_t lv_var_item_editor_class;
+extern const lv_obj_class_t var_item_list_lvgl_class;
+extern const lv_obj_class_t var_item_lvgl_class;
+extern const lv_obj_class_t var_item_editor_lvgl_class;
 
 static void style_init(my_theme_t* theme) {
     lv_style_init(&theme->styles.scrollbar);
@@ -108,15 +108,15 @@ static void theme_apply_callback(lv_theme_t* th, lv_obj_t* obj) {
         lv_obj_add_style(obj, &theme->styles.normal, LV_PART_MAIN);
         lv_obj_add_style(obj, &theme->styles.focused, LV_PART_MAIN | LV_STATE_FOCUSED);
 
-    } else if(lv_obj_check_type(obj, &lv_var_item_list_class)) {
+    } else if(lv_obj_check_type(obj, &var_item_list_lvgl_class)) {
         lv_obj_add_style(obj, &theme->styles.normal, LV_PART_MAIN);
         lv_obj_add_style(obj, &theme->styles.scrollbar, LV_PART_SCROLLBAR);
 
-    } else if(lv_obj_check_type(obj, &lv_var_item_class)) {
+    } else if(lv_obj_check_type(obj, &var_item_lvgl_class)) {
         lv_obj_add_style(obj, &theme->styles.normal, LV_PART_MAIN);
         lv_obj_add_style(obj, &theme->styles.focused, LV_PART_MAIN | LV_STATE_FOCUSED);
 
-    } else if(lv_obj_check_type(obj, &lv_var_item_editor_class)) {
+    } else if(lv_obj_check_type(obj, &var_item_editor_lvgl_class)) {
         lv_obj_add_style(obj, &theme->styles.normal, LV_PART_MAIN);
         lv_obj_add_style(obj, &theme->styles.focused, LV_PART_MAIN | LV_STATE_FOCUSED);
     }

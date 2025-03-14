@@ -5,9 +5,9 @@
 #include <lvgl/src/core/lv_obj_class_private.h>
 #include <lvgl/src/widgets/label/lv_label_private.h>
 
-#define MY_CLASS        (&lv_var_item_list_class)
-#define MY_ITEM_CLASS   (&lv_var_item_class)
-#define MY_EDITOR_CLASS (&lv_var_item_editor_class)
+#define MY_CLASS        (&var_item_list_lvgl_class)
+#define MY_ITEM_CLASS   (&var_item_lvgl_class)
+#define MY_EDITOR_CLASS (&var_item_editor_lvgl_class)
 
 #define SYM_INFINITY    "∞"
 #define SYM_ARROW_LEFT  "◃"
@@ -38,7 +38,7 @@ typedef struct {
 } VarItemSelectorChoices;
 
 typedef struct {
-    lv_label_t label;
+    lv_label_t base;
     int32_t min;
     int32_t max;
     int32_t step;
@@ -52,23 +52,23 @@ typedef struct {
 } VarItemEditor;
 
 struct VarItem {
-    lv_obj_t obj;
+    lv_obj_t base;
     lv_obj_t* cursor;
     lv_obj_t* label;
     VarItemEditor* editor;
 };
 
 struct VarItemList {
-    Widget widget;
+    Widget base;
     lv_group_t* group;
     VarItemEditor* edited;
 };
 
 // Class forward declarations
 
-const lv_obj_class_t lv_var_item_list_class;
-const lv_obj_class_t lv_var_item_class;
-const lv_obj_class_t lv_var_item_editor_class;
+const lv_obj_class_t var_item_list_lvgl_class;
+const lv_obj_class_t var_item_lvgl_class;
+const lv_obj_class_t var_item_editor_lvgl_class;
 
 // Function prototypes
 
@@ -88,14 +88,14 @@ static void var_item_list_scroll_event_callback(lv_event_t* event) {
 
 // VarItemList
 
-static void lv_var_item_list_constructor(const lv_obj_class_t* class_p, lv_obj_t* obj) {
+static void var_item_list_lvgl_constructor(const lv_obj_class_t* class_p, lv_obj_t* obj) {
     LV_UNUSED(class_p);
 
     VarItemList* instance = (VarItemList*)obj;
     instance->group = lv_group_create();
 }
 
-static void lv_var_item_list_destructor(const lv_obj_class_t* class_p, lv_obj_t* obj) {
+static void var_item_list_lvgl_destructor(const lv_obj_class_t* class_p, lv_obj_t* obj) {
     LV_UNUSED(class_p);
 
     VarItemList* instance = (VarItemList*)obj;
@@ -104,7 +104,7 @@ static void lv_var_item_list_destructor(const lv_obj_class_t* class_p, lv_obj_t*
 
 // VarItem
 
-static void lv_var_item_constructor(const lv_obj_class_t* class_p, lv_obj_t* obj) {
+static void var_item_lvgl_constructor(const lv_obj_class_t* class_p, lv_obj_t* obj) {
     LV_UNUSED(class_p);
 
     lv_obj_set_flex_flow(obj, LV_FLEX_FLOW_ROW);
@@ -132,7 +132,7 @@ static void lv_var_item_constructor(const lv_obj_class_t* class_p, lv_obj_t* obj
     instance->editor = (VarItemEditor*)editor;
 }
 
-static void lv_var_item_event(const lv_obj_class_t* class_p, lv_event_t* event) {
+static void var_item_lvgl_event(const lv_obj_class_t* class_p, lv_event_t* event) {
     LV_UNUSED(class_p);
 
     lv_result_t res = LV_RESULT_OK;
@@ -151,7 +151,7 @@ static void lv_var_item_event(const lv_obj_class_t* class_p, lv_event_t* event) 
 
 // VarItemSpinbox
 
-static void lv_var_item_editor_constructor(const lv_obj_class_t* class_p, lv_obj_t* obj) {
+static void var_item_editor_lvlgl_constructor(const lv_obj_class_t* class_p, lv_obj_t* obj) {
     LV_UNUSED(class_p);
 
     lv_obj_remove_flag(obj, LV_OBJ_FLAG_SCROLLABLE);
@@ -160,7 +160,7 @@ static void lv_var_item_editor_constructor(const lv_obj_class_t* class_p, lv_obj
     UNUSED(instance);
 }
 
-static void lv_var_item_editor_destructor(const lv_obj_class_t* class_p, lv_obj_t* obj) {
+static void var_item_editor_lvgl_destructor(const lv_obj_class_t* class_p, lv_obj_t* obj) {
     LV_UNUSED(class_p);
 
     VarItemEditor* instance = (VarItemEditor*)obj;
@@ -521,30 +521,30 @@ void var_item_set_flags(VarItem* item, uint32_t flags) {
 
 // LVGL classes
 
-const lv_obj_class_t lv_var_item_list_class = {
+const lv_obj_class_t var_item_list_lvgl_class = {
     .base_class = &widget_lvgl_class,
-    .constructor_cb = lv_var_item_list_constructor,
-    .destructor_cb = lv_var_item_list_destructor,
-    .name = "var-item-list",
+    .constructor_cb = var_item_list_lvgl_constructor,
+    .destructor_cb = var_item_list_lvgl_destructor,
+    .name = "widget-var-item-list",
     .width_def = LV_PCT(100),
     .height_def = LV_PCT(100),
     .instance_size = sizeof(VarItemList),
 };
 
-const lv_obj_class_t lv_var_item_class = {
+const lv_obj_class_t var_item_lvgl_class = {
     .base_class = &lv_obj_class,
-    .constructor_cb = lv_var_item_constructor,
-    .event_cb = lv_var_item_event,
+    .constructor_cb = var_item_lvgl_constructor,
+    .event_cb = var_item_lvgl_event,
     .name = "var-item",
     .width_def = LV_PCT(100),
     .height_def = LV_SIZE_CONTENT,
     .instance_size = sizeof(VarItem),
 };
 
-const lv_obj_class_t lv_var_item_editor_class = {
+const lv_obj_class_t var_item_editor_lvgl_class = {
     .base_class = &lv_label_class,
-    .constructor_cb = lv_var_item_editor_constructor,
-    .destructor_cb = lv_var_item_editor_destructor,
+    .constructor_cb = var_item_editor_lvlgl_constructor,
+    .destructor_cb = var_item_editor_lvgl_destructor,
     .name = "var-item-editor",
     .width_def = LV_PCT(100),
     .height_def = LV_SIZE_CONTENT,
