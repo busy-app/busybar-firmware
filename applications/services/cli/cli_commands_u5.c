@@ -201,27 +201,6 @@ static void cli_command_top(Cli* cli, FuriString* args, void* context) {
     furi_thread_list_free(thread_list);
 }
 
-static void cli_command_kill(Cli* cli, FuriString* args, void* context) {
-    UNUSED(cli);
-    UNUSED(args);
-    UNUSED(context);
-
-    Loader* loader = furi_record_open(RECORD_LOADER);
-
-    const LoaderStatus status = loader_stop(loader);
-    if(status == LoaderStatusOk) {
-        printf("App stopped successfully\r\n");
-    } else if(status == LoaderStatusErrorAppNotRunning) {
-        printf("No app running\r\n");
-    } else if(status == LoaderStatusErrorInternal) {
-        printf("Failed to stop: update app to support signals\r\n");
-    } else {
-        printf("Failed to stop: unexpected loader status");
-    }
-
-    furi_record_close(RECORD_LOADER);
-}
-
 void cli_command_free(Cli* cli, FuriString* args, void* context) {
     UNUSED(cli);
     UNUSED(args);
@@ -261,7 +240,6 @@ void cli_commands_init(Cli* cli) {
     cli_add_command(cli, "uptime", CliCommandFlagParallelSafe, cli_command_uptime, NULL);
     cli_add_command(cli, "log", CliCommandFlagParallelSafe, cli_command_log, NULL);
     cli_add_command(cli, "top", CliCommandFlagParallelSafe, cli_command_top, NULL);
-    cli_add_command(cli, "kill", CliCommandFlagParallelSafe, cli_command_kill, NULL);
     cli_add_command(cli, "free", CliCommandFlagParallelSafe, cli_command_free, NULL);
     cli_add_command(cli, "free_blocks", CliCommandFlagParallelSafe, cli_command_free_blocks, NULL);
 
