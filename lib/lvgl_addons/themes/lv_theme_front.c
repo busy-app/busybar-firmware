@@ -25,6 +25,8 @@ typedef struct _my_theme_t my_theme_t;
 
 // Widget
 extern const lv_obj_class_t lv_widget_class;
+// Label
+extern const lv_obj_class_t label_lvgl_class;
 // Submenu
 extern const lv_obj_class_t lv_submenu_class;
 extern const lv_obj_class_t lv_submenu_item_class;
@@ -383,11 +385,6 @@ static void theme_apply(lv_theme_t* th, lv_obj_t* obj) {
         lv_obj_add_style(obj, &theme->styles.light, LV_PART_ITEMS | LV_STATE_CHECKED);
     }
 #endif
-#if LV_USE_LABEL
-    else if(lv_obj_check_type(obj, &lv_label_class)) {
-        lv_obj_add_style(obj, &theme->styles.focused, LV_PART_MAIN);
-    }
-#endif
 #if LV_USE_LIST
     else if(lv_obj_check_type(obj, &lv_list_class)) {
         lv_obj_add_style(obj, &theme->styles.normal, LV_PART_MAIN);
@@ -427,6 +424,8 @@ static void theme_apply(lv_theme_t* th, lv_obj_t* obj) {
 #endif
     else if(lv_obj_check_type(obj, &lv_widget_class)) {
         lv_obj_add_style(obj, &theme->styles.normal, LV_PART_MAIN);
+    } else if(lv_obj_check_type(obj, &label_lvgl_class)) {
+        lv_obj_add_style(obj, &theme->styles.focused, LV_PART_MAIN);
     } else if(lv_obj_check_type(obj, &lv_submenu_class)) {
         lv_obj_add_style(obj, &theme->styles.normal, LV_PART_MAIN);
         lv_obj_add_style(obj, &theme->styles.scrollbar, LV_PART_SCROLLBAR);

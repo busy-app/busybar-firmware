@@ -2,19 +2,19 @@
 
 #include <gui/widget_i.h>
 
-#define MY_CLASS (&label_obj_class)
+#define MY_CLASS (&label_lvgl_class)
 
 struct Label {
-    Widget widget;
+    Widget base;
     lv_obj_t* label;
     FuriString* text;
 };
 
-const lv_obj_class_t label_obj_class;
+const lv_obj_class_t label_lvgl_class;
 
 // LVGL-specific code
 
-static void label_obj_constructor(const lv_obj_class_t* class_p, lv_obj_t* obj) {
+static void label_lvgl_constructor(const lv_obj_class_t* class_p, lv_obj_t* obj) {
     UNUSED(class_p);
 
     Label* instance = (Label*)obj;
@@ -22,7 +22,7 @@ static void label_obj_constructor(const lv_obj_class_t* class_p, lv_obj_t* obj) 
     instance->text = furi_string_alloc();
 }
 
-static void label_obj_destructor(const lv_obj_class_t* class_p, lv_obj_t* obj) {
+static void label_lvgl_destructor(const lv_obj_class_t* class_p, lv_obj_t* obj) {
     UNUSED(class_p);
 
     Label* instance = (Label*)obj;
@@ -69,11 +69,11 @@ void label_set_text_fmt(Label* instance, const char* fmt, ...) {
 
 // LVGL class descriptor
 
-const lv_obj_class_t label_obj_class = {
+const lv_obj_class_t label_lvgl_class = {
     .base_class = &lv_widget_class,
-    .constructor_cb = label_obj_constructor,
-    .destructor_cb = label_obj_destructor,
-    .name = "label-ex",
+    .constructor_cb = label_lvgl_constructor,
+    .destructor_cb = label_lvgl_destructor,
+    .name = "widget-label",
     .width_def = LV_SIZE_CONTENT,
     .height_def = LV_SIZE_CONTENT,
     .instance_size = sizeof(Label),
