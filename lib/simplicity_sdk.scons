@@ -79,6 +79,13 @@ env.Append(
         "SLI_SI917B0",
         "RS911X_WIFI",
         "LWIP_IPV6=1",
+        ####IP4
+        "LWIP_IPV4=1",
+        "LWIP_ARP=1",
+        "LWIP_ICMP=1",
+        "LWIP_IGMP=1",
+        "LWIP_DHCP=1",
+
         "LWIP_NETIF_API=1",
         # "PRINT_DEBUG_LOG",
         "SIWG917M111MGTBA",
@@ -91,9 +98,7 @@ env.Append(
          "NVM3_DEFAULT_NVM_SIZE=40960",
         ("MBEDTLS_CONFIG_FILE", '\\"sl_mbedtls_config.h\\"'),
         ("MBEDTLS_PSA_CRYPTO_CONFIG_FILE", '\\"psa_crypto_config.h\\"'),
-        # ("LWIP_TIMEVAL_PRIVATE", "0"),
-        # ("MBEDTLS_USER_CONFIG_FILE", '\\"siwx917-chip-mbedtls-config.h\\"'),
-        #'"LWIP_PROVIDE_ERRNO"',  # TODO:
+
         "SLI_AEAD_DEVICE_SI91X=1",
         "SLI_CODE_CLASSIFICATION_DISABLE=1",
         "SLI_ECDH_DEVICE_SI91X=1",

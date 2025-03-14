@@ -643,6 +643,8 @@ sources = [
     f"{LIB_FOLDER}/third_party/matter_support/matter/mbedtls/tinycrypt/src/ecc_dh.c",
     f"{LIB_FOLDER}/third_party/matter_support/matter/mbedtls/tinycrypt/src/ecc_dsa.c",
     f"{LIB_FOLDER}/third_party/matter_support/matter/mbedtls/tinycrypt/src/tinycrypt_util.c",
+    f"{LIB_FOLDER}/third_party/matter_sdk/src/platform/silabs/wifi/lwip-support/dhcp_client.cpp",
+    f"{LIB_FOLDER}/third_party/matter_sdk/src/platform/silabs/wifi/lwip-support/lwip_netif.cpp",
 
     #ToDo move to matter_app_LIB
     f"sl_glue/matter_app/src/AppTask.cpp",

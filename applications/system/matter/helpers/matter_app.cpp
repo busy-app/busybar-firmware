@@ -6,8 +6,6 @@
 #include <app/clusters/switch-server/switch-server.h>
 //#include <app-common/zap-generated/attributes/Accessors.h>
 
-// chip::EndpointId mLightSwitchEndpoint   = chip::kInvalidEndpointId;
-// chip::EndpointId mGenericSwitchEndpoint = chip::kInvalidEndpointId;
 constexpr chip::EndpointId kLightSwitchEndpoint   = 1;
 constexpr chip::EndpointId kGenericSwitchEndpoint = 2;
 
@@ -18,8 +16,6 @@ void matter_app_init(void) {
 
 void matter_factory_reset(void) {
     BaseApplication::StartFactoryResetSequence();
-    //AppTask::GetAppTask().StartFactoryResetSequence();
-    //AppTask::GetAppTask().CancelFactoryResetSequence();
 }
 
 void matter_button_press(void) {
