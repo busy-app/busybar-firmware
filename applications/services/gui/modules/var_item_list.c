@@ -349,6 +349,11 @@ static bool var_item_list_input_callback(Widget* widget, const InputEvent* event
             if(editor) {
                 lv_obj_remove_state((lv_obj_t*)editor, LV_STATE_FOCUSED);
                 instance->edited = NULL;
+
+                if(editor->callback) {
+                    editor->callback(var_item_editor_get_item(editor), editor->context);
+                }
+
                 consumed = true;
             }
         }
