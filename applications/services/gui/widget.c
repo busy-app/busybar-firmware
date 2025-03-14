@@ -88,6 +88,12 @@ void widget_set_pos(Widget* instance, int32_t x, int32_t y) {
     lv_obj_set_pos((lv_obj_t*)instance, x, y);
 }
 
+void widget_set_align(Widget* instance, Align align) {
+    furi_check(instance);
+    furi_check(align < AlignMax);
+    lv_obj_set_align((lv_obj_t*)instance, (lv_align_t)align);
+}
+
 void widget_move_to_foreground(Widget* instance) {
     furi_check(instance);
     lv_obj_move_foreground((lv_obj_t*)instance);

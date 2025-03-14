@@ -60,6 +60,7 @@ static Dummy* dummy_alloc(const char* message) {
         instance->label = label_alloc(root);
         label_set_text(instance->label, message ? message : "Hello There");
 
+        widget_set_align((Widget*)instance->label, AlignCenter);
         widget_set_input_callback((Widget*)instance->label, dummy_input_callback, instance);
 
         if(message == NULL) {

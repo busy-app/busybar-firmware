@@ -23,6 +23,21 @@ extern "C" {
 /** Widget opaque structure. */
 typedef struct Widget Widget;
 
+/** Enumeration of supported widget alignment modes. */
+typedef enum {
+    AlignDefault, /**< Use the default alignment from the class. */
+    AlignTopLeft,
+    AlignTopMid,
+    AlignTopRight,
+    AlignBottomLeft,
+    AlignBottomMid,
+    AlignBottomRight,
+    AlignLeftMid,
+    AlignRightMid,
+    AlignCenter, /**< Center the widget inside of its parent */
+    AlignMax, /**< Special value, not to be used in application code */
+} Align;
+
 /**
  * @brief Widget input callback function type.
  *
@@ -141,6 +156,14 @@ void widget_set_pos_y(Widget* instance, int32_t y);
  * @param[in] y new vertical position in pixels
  */
 void widget_set_pos(Widget* instance, int32_t x, int32_t y);
+
+/**
+ * @brief Set the Widget alignment relative to its parent.
+ *
+ * @param[in,out] instance pointer to the Widget instance to be modified
+ * @param[in] align alignment value from the Align enumeration
+ */
+void widget_set_align(Widget* instance, Align align);
 
 /**
  * @brief Make the Widget to be drawn above all others on the same layer.
