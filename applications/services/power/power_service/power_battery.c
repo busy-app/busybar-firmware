@@ -55,14 +55,5 @@ uint8_t power_get_battery_charge(uint32_t voltage_mv, int32_t current_ma, bool i
         pct = 100.f;
     }
 
-    FURI_LOG_I(
-        TAG,
-        "pct: %.2f %.2f/%.2f cur: %.2f chg: %u",
-        pct,
-        pct_low,
-        pct_high,
-        bat_current,
-        is_charging);
-
     return (uint8_t)pct;
 }
