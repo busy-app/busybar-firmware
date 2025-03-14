@@ -108,7 +108,6 @@ static void lv_var_item_constructor(const lv_obj_class_t* class_p, lv_obj_t* obj
     LV_UNUSED(class_p);
 
     lv_obj_set_flex_flow(obj, LV_FLEX_FLOW_ROW);
-    lv_obj_set_flex_align(obj, LV_FLEX_ALIGN_START, LV_FLEX_ALIGN_CENTER, LV_FLEX_ALIGN_START);
 
     lv_obj_remove_flag(obj, LV_OBJ_FLAG_SCROLLABLE);
     lv_obj_add_flag(obj, LV_OBJ_FLAG_SCROLL_ON_FOCUS);
