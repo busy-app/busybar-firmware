@@ -27,8 +27,8 @@ extern const lv_obj_class_t widget_lvgl_class;
 // Label
 extern const lv_obj_class_t label_lvgl_class;
 // Submenu
-extern const lv_obj_class_t lv_submenu_class;
-extern const lv_obj_class_t lv_submenu_item_class;
+extern const lv_obj_class_t submenu_lvgl_class;
+extern const lv_obj_class_t submenu_item_lvgl_class;
 // VarItemList
 extern const lv_obj_class_t lv_var_item_list_class;
 extern const lv_obj_class_t lv_var_item_class;
@@ -100,11 +100,11 @@ static void theme_apply_callback(lv_theme_t* th, lv_obj_t* obj) {
     } else if(lv_obj_check_type(obj, &label_lvgl_class)) {
         lv_obj_add_style(obj, &theme->styles.focused, LV_PART_MAIN);
 
-    } else if(lv_obj_check_type(obj, &lv_submenu_class)) {
+    } else if(lv_obj_check_type(obj, &submenu_lvgl_class)) {
         lv_obj_add_style(obj, &theme->styles.normal, LV_PART_MAIN);
         lv_obj_add_style(obj, &theme->styles.scrollbar, LV_PART_SCROLLBAR);
 
-    } else if(lv_obj_check_type(obj, &lv_submenu_item_class)) {
+    } else if(lv_obj_check_type(obj, &submenu_item_lvgl_class)) {
         lv_obj_add_style(obj, &theme->styles.normal, LV_PART_MAIN);
         lv_obj_add_style(obj, &theme->styles.focused, LV_PART_MAIN | LV_STATE_FOCUSED);
 

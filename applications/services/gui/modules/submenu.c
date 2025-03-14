@@ -4,8 +4,8 @@
 
 #include <lvgl/src/core/lv_obj_class_private.h>
 
-#define MY_CLASS      (&lv_submenu_class)
-#define MY_ITEM_CLASS (&lv_submenu_item_class)
+#define MY_CLASS      (&submenu_lvgl_class)
+#define MY_ITEM_CLASS (&submenu_item_lvgl_class)
 
 #define SYM_ARROW_RIGHT "▹"
 
@@ -25,8 +25,8 @@ typedef struct {
     void* context;
 } SubmenuItem;
 
-const lv_obj_class_t lv_submenu_class;
-const lv_obj_class_t lv_submenu_item_class;
+const lv_obj_class_t submenu_lvgl_class;
+const lv_obj_class_t submenu_item_lvgl_class;
 
 // TODO: Make it a universal fix
 static void submenu_scroll_event_callback(lv_event_t* event) {
@@ -86,7 +86,7 @@ static lv_obj_t* submenu_item_alloc(
     return obj;
 }
 
-static void submenu_obj_constructor(const lv_obj_class_t* class_p, lv_obj_t* obj) {
+static void submenu_lvlg_constructor(const lv_obj_class_t* class_p, lv_obj_t* obj) {
     UNUSED(class_p);
 
     lv_obj_set_flex_flow(obj, LV_FLEX_FLOW_COLUMN);
@@ -96,7 +96,7 @@ static void submenu_obj_constructor(const lv_obj_class_t* class_p, lv_obj_t* obj
     instance->group = lv_group_create();
 }
 
-static void submenu_obj_destructor(const lv_obj_class_t* class_p, lv_obj_t* obj) {
+static void submenu_lvlg_destructor(const lv_obj_class_t* class_p, lv_obj_t* obj) {
     UNUSED(class_p);
 
     Submenu* instance = (Submenu*)obj;
@@ -178,30 +178,30 @@ void submenu_reset(Submenu* instance) {
 
 uint32_t submenu_get_selected_item_index(const Submenu* instance) {
     furi_check(instance);
-    // For later
+    // TODO: For later
     furi_crash("Not implemented");
 }
 
 void submenu_set_selected_item_index(Submenu* instance, uint32_t index) {
     furi_check(instance);
     UNUSED(index);
-    // For later
+    // TODO: For later
     furi_crash("Not implemented");
 }
 
 // LVGL class descriptors
 
-const lv_obj_class_t lv_submenu_class = {
+const lv_obj_class_t submenu_lvgl_class = {
     .base_class = &widget_lvgl_class,
-    .constructor_cb = submenu_obj_constructor,
-    .destructor_cb = submenu_obj_destructor,
-    .name = "submenu",
+    .constructor_cb = submenu_lvlg_constructor,
+    .destructor_cb = submenu_lvlg_destructor,
+    .name = "widget-submenu",
     .width_def = LV_PCT(100),
     .height_def = LV_PCT(100),
     .instance_size = sizeof(Submenu),
 };
 
-const lv_obj_class_t lv_submenu_item_class = {
+const lv_obj_class_t submenu_item_lvgl_class = {
     .base_class = &lv_obj_class,
     .constructor_cb = submenu_item_lvgl_constructor,
     .event_cb = submenu_item_lvgl_event,
