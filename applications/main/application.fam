@@ -13,6 +13,7 @@ App(
         # "wifi_setup",
         # "sockets_test",
         # "sl_update_test",
+        "animation_player",
         "busy",
         "dummy",
     ],

@@ -34,13 +34,11 @@ bool bq25798_get_charger_status(FuriHalI2cBusHandle* handle, Bq25987ChargerStatu
 
 bool bq25798_get_charger_flags(FuriHalI2cBusHandle* handle, uint32_t* flags);
 
-bool bq25798_get_battery_voltage(FuriHalI2cBusHandle* handle, float* value);
+bool bq25798_get_adc_values(FuriHalI2cBusHandle* handle, Bq25987AdcValues* values);
 
-bool bq25798_get_vbus_voltage(FuriHalI2cBusHandle* handle, float* value);
+bool bq25798_set_input_current_limit(FuriHalI2cBusHandle* handle, uint32_t value_ma);
 
-bool bq25798_set_input_current_limit(FuriHalI2cBusHandle* handle, float value);
-
-bool bq25798_set_charge_current_limit(FuriHalI2cBusHandle* handle, float value);
+bool bq25798_set_charge_current_limit(FuriHalI2cBusHandle* handle, uint32_t value_ma);
 
 void bq25798_power_switch(FuriHalI2cBusHandle* handle, Bq25987PowerSwitch mode);
 

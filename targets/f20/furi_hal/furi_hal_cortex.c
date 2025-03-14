@@ -60,6 +60,17 @@ void furi_hal_cortex_timer_wait(FuriHalCortexTimer cortex_timer) {
         ;
 }
 
+FURI_NORETURN void furi_hal_cortex_system_reset(void) {
+    NVIC_SystemReset();
+}
+
+FURI_NORETURN void furi_hal_cortex_jump_to_dfu(void) {
+    // TODO:
+    furi_crash("Not implemented");
+    while(1)
+        ;
+}
+
 // // Duck ST
 // #undef COMP0
 // #undef COMP1

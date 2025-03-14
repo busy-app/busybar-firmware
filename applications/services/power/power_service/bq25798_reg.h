@@ -130,6 +130,16 @@ typedef struct {
     };
 } FURI_PACKED Bq25987ChargerStatus;
 
+typedef struct {
+    uint16_t bat_v; // Battery voltage (mV)
+    uint16_t bat_i; // Battery current (mA)
+    uint16_t usb_v; // USB voltage (mV)
+    uint16_t usb_i; // USB voltage (mA)
+    uint16_t sys_v; // System voltage (mV)
+    float temp_bat_pct; // Battery NTC (%)
+    float temp_charger; // Charger die temperature (°C)
+} Bq25987AdcValues;
+
 typedef enum {
     // Flag 0 reg
     Bq25987ChargerFlagVbusPresent = (1UL << 0),

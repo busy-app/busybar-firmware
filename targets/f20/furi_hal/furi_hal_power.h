@@ -10,9 +10,7 @@
 extern "C" {
 #endif
 
-/** Reset device
- */
-FURI_NORETURN void furi_hal_power_reset(void);
+void furi_hal_power_reset_917(bool to_dfu);
 
 #ifdef __cplusplus
 }

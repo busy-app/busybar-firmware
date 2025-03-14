@@ -1,26 +1,21 @@
 App(
-    appid="power",
+    appid="power_srv",
     name="PowerSrv",
     apptype=FlipperAppType.SERVICE,
-    entry_point="power_srv",
-    cdefines=["SRV_POWER"],
-    requires=[
-        "gui",
-        "cli",
-    ],
+    entry_point="power_srv_app",
+    stack_size=2 * 1024,
     provides=[
-        "power_settings",
-        "power_start",
+        "power_srv_start",
     ],
-    stack_size=1 * 1024,
-    order=110,
     sdk_headers=["power_service/power.h"],
+    order=80,
+    targets=["f20"],
 )
 
 App(
-    appid="power_start",
+    appid="power_srv_start",
     apptype=FlipperAppType.STARTUP,
     entry_point="power_on_system_start",
-    requires=["power"],
+    requires=["power_srv"],
     order=80,
 )

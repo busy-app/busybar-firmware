@@ -1,194 +1,136 @@
 #include "power_i.h"
-
-#include <furi.h>
-#include <furi_hal.h>
-
-#include <update_util/update_operation.h>
-#include <notification/notification_messages.h>
+#include "bq25798.h"
 
 #define TAG "Power"
 
-#define POWER_OFF_TIMEOUT_S  (90U)
-#define POWER_POLL_PERIOD_MS (1000UL)
+#define POWER_IRQ_GPIO (&gpio_bq25798_irq)
+#define POWER_I2C      (&furi_hal_i2c_handle_1)
 
-#define POWER_VBUS_LOW_THRESHOLD   (4.0f)
-#define POWER_HEALTH_LOW_THRESHOLD (70U)
-
-static void power_draw_battery_callback(Canvas* canvas, void* context) {
-    furi_assert(context);
+static void power_on_interrupt(FuriEventLoopObject* object, void* context) {
     Power* power = context;
-    canvas_draw_icon(canvas, 0, 0, &I_Battery_26x8);
 
-    if(power->info.gauge_is_ok) {
-        canvas_draw_box(canvas, 2, 2, (power->info.charge + 4) / 5, 4);
+    furi_assert(power);
+    furi_assert(power->gpio_semaphore == object);
 
-        if(power->info.voltage_battery_charge_limit < 4.2f) {
-            // Battery charge voltage limit is modified, indicate with cross pattern
-            canvas_invert_color(canvas);
-            uint8_t battery_bar_width = (power->info.charge + 4) / 5;
-            bool cross_odd = false;
-            // Start 1 further in from the battery bar's x position
-            for(uint8_t x = 3; x <= battery_bar_width; x++) {
-                // Cross pattern is from the center of the battery bar
-                // y = 2 + 1 (inset) + 1 (for every other)
-                canvas_draw_dot(canvas, x, 3 + (uint8_t)cross_odd);
-                cross_odd = !cross_odd;
-            }
-            canvas_invert_color(canvas);
+    furi_check(furi_semaphore_acquire(power->gpio_semaphore, 0) == FuriStatusOk);
+
+    furi_hal_i2c_acquire(POWER_I2C);
+    uint32_t irq_flags = 0;
+    bq25798_get_charger_flags(POWER_I2C, &irq_flags);
+    FURI_LOG_D(TAG, "Charger Interrupt flags: %08lX", irq_flags);
+    Bq25987ChargerStatus status = {};
+    bq25798_get_charger_status(POWER_I2C, &status);
+
+    if(irq_flags & Bq25987ChargerFlagVbusPresent) {
+        if(status.vbus_present) {
+            bq25798_set_input_current_limit(POWER_I2C, power->input_current_limit);
         }
+        power->state.usb_connected = status.vbus_present;
+    }
 
-        if(power->state == PowerStateCharging) {
-            canvas_set_bitmap_mode(canvas, 1);
-            canvas_set_color(canvas, ColorWhite);
-            // -1 used here to overflow u8 number and render is outside of the area
-            canvas_draw_icon(canvas, 8, -1, &I_Charging_lightning_mask_9x10);
-            canvas_set_color(canvas, ColorBlack);
-            canvas_draw_icon(canvas, 8, -1, &I_Charging_lightning_9x10);
-            canvas_set_bitmap_mode(canvas, 0);
-        }
+    furi_hal_i2c_release(POWER_I2C);
+}
 
+static void power_gpio_isr(void* context) {
+    Power* power = context;
+    furi_assert(power);
+    furi_semaphore_release(power->gpio_semaphore);
+}
+
+static void power_handle_shutdown(Power* power, bool full_shutdown) {
+    UNUSED(power);
+    furi_hal_i2c_acquire(POWER_I2C);
+
+    if(full_shutdown) {
+        bq25798_power_switch(POWER_I2C, Bq25987PowerShutdown);
     } else {
-        canvas_draw_box(canvas, 8, 3, 8, 2);
+        bq25798_power_switch(POWER_I2C, Bq25987PowerOff);
+    }
+    furi_hal_i2c_release(POWER_I2C);
+}
+
+static void power_handle_reboot(Power* power, PowerRebootMode mode) {
+    UNUSED(power);
+    if(mode == PowerRebootHardware) {
+        furi_hal_i2c_acquire(POWER_I2C);
+        bq25798_power_switch(POWER_I2C, Bq25987PowerReset);
+        furi_hal_i2c_release(POWER_I2C);
+        furi_delay_ms(100);
+        furi_crash("Should never happen");
+    }
+
+    if((mode == PowerRebootNormal) || (mode == PowerRebootNormal917)) {
+        furi_hal_power_reset_917(false);
+    } else if(mode == PowerRebootDfu917) {
+        furi_hal_power_reset_917(true);
+    }
+
+    if((mode == PowerRebootNormal) || (mode == PowerRebootNormalU5)) {
+        furi_hal_cortex_system_reset();
+        furi_crash("Should never happen");
+    } else if(mode == PowerRebootDfuU5) {
+        // TODO: set RTC flag & reboot
+        furi_hal_cortex_jump_to_dfu();
+        furi_crash("Should never happen");
     }
 }
 
-static ViewPort* power_battery_view_port_alloc(Power* power) {
-    ViewPort* battery_view_port = view_port_alloc();
-    view_port_set_width(battery_view_port, icon_get_width(&I_Battery_26x8));
-    view_port_draw_callback_set(battery_view_port, power_draw_battery_callback, power);
-    return battery_view_port;
-}
-
-static bool power_update_info(Power* power) {
-    const PowerInfo info = {
-        .is_charging = furi_hal_power_is_charging(),
-        .gauge_is_ok = furi_hal_power_gauge_is_ok(),
-        .is_shutdown_requested = furi_hal_power_is_shutdown_requested(),
-        .charge = furi_hal_power_get_pct(),
-        .health = furi_hal_power_get_bat_health_pct(),
-        .capacity_remaining = furi_hal_power_get_battery_remaining_capacity(),
-        .capacity_full = furi_hal_power_get_battery_full_capacity(),
-        .current_charger = furi_hal_power_get_battery_current(FuriHalPowerICCharger),
-        .current_gauge = furi_hal_power_get_battery_current(FuriHalPowerICFuelGauge),
-        .voltage_battery_charge_limit = furi_hal_power_get_battery_charge_voltage_limit(),
-        .voltage_charger = furi_hal_power_get_battery_voltage(FuriHalPowerICCharger),
-        .voltage_gauge = furi_hal_power_get_battery_voltage(FuriHalPowerICFuelGauge),
-        .voltage_vbus = furi_hal_power_get_usb_voltage(),
-        .temperature_charger = furi_hal_power_get_battery_temperature(FuriHalPowerICCharger),
-        .temperature_gauge = furi_hal_power_get_battery_temperature(FuriHalPowerICFuelGauge),
-    };
-
-    const bool need_refresh = (power->info.charge != info.charge) ||
-                              (power->info.is_charging != info.is_charging);
-    power->info = info;
-    return need_refresh;
-}
-
-static void power_check_charging_state(Power* power) {
-    NotificationApp* notification = furi_record_open(RECORD_NOTIFICATION);
-
-    if(furi_hal_power_is_charging()) {
-        if((power->info.charge == 100) || (furi_hal_power_is_charging_done())) {
-            if(power->state != PowerStateCharged) {
-                notification_internal_message(notification, &sequence_charged);
-                power->state = PowerStateCharged;
-                power->event.type = PowerEventTypeFullyCharged;
-                furi_pubsub_publish(power->event_pubsub, &power->event);
-            }
-
-        } else if(power->state != PowerStateCharging) {
-            notification_internal_message(notification, &sequence_charging);
-            power->state = PowerStateCharging;
-            power->event.type = PowerEventTypeStartCharging;
-            furi_pubsub_publish(power->event_pubsub, &power->event);
-        }
-
-    } else if(power->state != PowerStateNotCharging) {
-        notification_internal_message(notification, &sequence_not_charging);
-        power->state = PowerStateNotCharging;
-        power->event.type = PowerEventTypeStopCharging;
-        furi_pubsub_publish(power->event_pubsub, &power->event);
-    }
-
-    furi_record_close(RECORD_NOTIFICATION);
-}
-
-static void power_check_low_battery(Power* power) {
-    if(!power->info.gauge_is_ok) {
-        return;
-    }
-
-    // Check battery charge and vbus voltage
-    if((power->info.is_shutdown_requested) &&
-       (power->info.voltage_vbus < POWER_VBUS_LOW_THRESHOLD) && power->show_battery_low_warning) {
-        if(!power->battery_low) {
-            view_holder_send_to_front(power->view_holder);
-            view_holder_set_view(power->view_holder, power_off_get_view(power->view_power_off));
-        }
-        power->battery_low = true;
-    } else {
-        if(power->battery_low) {
-            // view_dispatcher_switch_to_view(power->view_dispatcher, VIEW_NONE);
-            view_holder_set_view(power->view_holder, NULL);
-            power->power_off_timeout = POWER_OFF_TIMEOUT_S;
-        }
-        power->battery_low = false;
-    }
-    // If battery low, update view and switch off power after timeout
-    if(power->battery_low) {
-        PowerOffResponse response = power_off_get_response(power->view_power_off);
-        if(response == PowerOffResponseDefault) {
-            if(power->power_off_timeout) {
-                power_off_set_time_left(power->view_power_off, power->power_off_timeout--);
-            } else {
-                power_off(power);
-            }
-        } else if(response == PowerOffResponseOk) {
-            power_off(power);
-        } else if(response == PowerOffResponseHide) {
-            view_holder_set_view(power->view_holder, NULL);
-            if(power->power_off_timeout) {
-                power_off_set_time_left(power->view_power_off, power->power_off_timeout--);
-            } else {
-                power_off(power);
-            }
-        } else if(response == PowerOffResponseCancel) {
-            view_holder_set_view(power->view_holder, NULL);
+static void power_dump_pd_capabilities(PowerUsbPdCapability* caps) {
+    FURI_LOG_I(
+        TAG,
+        "PD Capabilities: %u (default %.3fA)",
+        caps->cap_number,
+        caps->passive_mode_current / 1000.f);
+    for(size_t i = 0; i < caps->cap_number; i++) {
+        if(caps->cap[i].is_fixed) {
+            FURI_LOG_I(
+                TAG,
+                "[%u] fixed %.3fV %.3fA",
+                caps->cap[i].pdo_id,
+                caps->cap[i].voltage_max / 1000.f,
+                caps->cap[i].current_max / 1000.f);
+        } else {
+            FURI_LOG_I(
+                TAG,
+                "[%u] PPS %.3f-%.3fV %.3fA",
+                caps->cap[i].pdo_id,
+                caps->cap[i].voltage_min / 1000.f,
+                caps->cap[i].voltage_max / 1000.f,
+                caps->cap[i].current_max / 1000.f);
         }
     }
 }
 
-static void power_check_battery_level_change(Power* power) {
-    if(power->battery_level != power->info.charge) {
-        power->battery_level = power->info.charge;
-        power->event.type = PowerEventTypeBatteryLevelChanged;
-        power->event.data.battery_level = power->battery_level;
-        furi_pubsub_publish(power->event_pubsub, &power->event);
-    }
-}
+static void power_handle_pd_update(Power* power, uint32_t voltage, uint32_t current) {
+    FURI_LOG_I(TAG, "USB PD Mode: %.3fV %.3fA", voltage / 1000.f, current / 1000.f);
 
-static void power_handle_shutdown(Power* power) {
-    furi_hal_power_off();
-    // Notify user if USB is plugged
-    view_holder_send_to_front(power->view_holder);
-    view_holder_set_view(
-        power->view_holder, power_unplug_usb_get_view(power->view_power_unplug_usb));
-    furi_delay_ms(100);
-    furi_halt("Disconnect USB for safe shutdown");
-}
+    PowerUsbPdCapability pd_capabilities;
+    power_usb_pd_get_capabilities(power->usb_pd, &pd_capabilities);
+    power_dump_pd_capabilities(&pd_capabilities);
 
-static void power_handle_reboot(PowerBootMode mode) {
-    if(mode == PowerBootModeNormal) {
-        update_operation_disarm();
-    } else if(mode == PowerBootModeDfu) {
-        furi_hal_rtc_set_boot_mode(FuriHalRtcBootModeDfu);
-    } else if(mode == PowerBootModeUpdateStart) {
-        furi_hal_rtc_set_boot_mode(FuriHalRtcBootModePreUpdate);
-    } else {
-        furi_crash();
+    power->pd_info.voltage_set = voltage;
+    power->pd_info.current_max = current;
+    power->pd_info.cc_line = pd_capabilities.cc_line;
+    power->pd_info.cap_id = pd_capabilities.cap_id_current;
+    power->pd_info.passive_mode_current = pd_capabilities.passive_mode_current;
+    power->pd_info.cap_number = pd_capabilities.cap_number;
+    for(uint8_t i = 0; i < power->pd_info.cap_number; i++) {
+        power->pd_info.cap[i].voltage_min = pd_capabilities.cap[i].voltage_min;
+        power->pd_info.cap[i].voltage_max = pd_capabilities.cap[i].voltage_max;
+        power->pd_info.cap[i].current_max = pd_capabilities.cap[i].current_max;
+        power->pd_info.cap[i].pdo_id = pd_capabilities.cap[i].pdo_id;
+        power->pd_info.cap[i].is_fixed = pd_capabilities.cap[i].is_fixed;
     }
 
-    furi_hal_power_reset();
+    // TODO: check capabilities before
+    if((voltage == 5000) && (pd_capabilities.cap_number > 1)) {
+        power_usb_pd_request_power(power->usb_pd, 9000, 0); // Request 9v, max current
+    }
+
+    furi_hal_i2c_acquire(POWER_I2C);
+    power->input_current_limit = current;
+    bq25798_set_input_current_limit(POWER_I2C, power->input_current_limit);
+    furi_hal_i2c_release(POWER_I2C);
 }
 
 static void power_message_callback(FuriEventLoopObject* object, void* context) {
@@ -201,20 +143,36 @@ static void power_message_callback(FuriEventLoopObject* object, void* context) {
     furi_check(furi_message_queue_get(power->message_queue, &msg, 0) == FuriStatusOk);
 
     switch(msg.type) {
-    case PowerMessageTypeShutdown:
-        power_handle_shutdown(power);
+    case PowerMessageTypeOff:
+        power_handle_shutdown(power, false);
         break;
     case PowerMessageTypeReboot:
-        power_handle_reboot(msg.boot_mode);
+        power_handle_reboot(power, msg.reboot_mode);
+        break;
+    case PowerMessageTypeIsUsbConnected:
+        *(msg.param_bool) = power->state.usb_connected;
         break;
     case PowerMessageTypeGetInfo:
-        *msg.power_info = power->info;
+        furi_assert(msg.power_info);
+        memcpy(msg.power_info, &(power->info), sizeof(PowerInfo));
         break;
-    case PowerMessageTypeIsBatteryHealthy:
-        *msg.bool_param = power->info.health > POWER_HEALTH_LOW_THRESHOLD;
+    case PowerMessageTypeChargeEnable:
+        power->charger_enabled = *(msg.param_bool);
+        // TODO: charge on/off
         break;
-    case PowerMessageTypeShowBatteryLowWarning:
-        power->show_battery_low_warning = *msg.bool_param;
+    case PowerMessageTypeSetChargeCurrent:
+        power->charger_current_limit = *(msg.param_int);
+        bq25798_set_charge_current_limit(POWER_I2C, power->charger_current_limit);
+        break;
+    case PowerMessageTypePdGetInfo:
+        furi_assert(msg.power_info);
+        memcpy(msg.pd_info, &(power->pd_info), sizeof(PowerPdInfo));
+        break;
+    case PowerMessageTypePdRequest:
+        power_usb_pd_request_power(power->usb_pd, *(msg.param_int), 0);
+        break;
+    case PowerMessageTypeUsbPdUpdate:
+        power_handle_pd_update(power, msg.pd_mode.voltage, msg.pd_mode.current);
         break;
     default:
         furi_crash();
@@ -225,49 +183,66 @@ static void power_message_callback(FuriEventLoopObject* object, void* context) {
     }
 }
 
+static bool power_battery_wait(Power* power) {
+    UNUSED(power);
+
+    bool ret = false;
+    do {
+        Bq25987ChargerStatus status = {};
+        if(!bq25798_get_charger_status(POWER_I2C, &status)) {
+            FURI_LOG_E(TAG, "Failed to get status");
+            break;
+        }
+        if(!status.vbat_present_stat) {
+            FURI_LOG_E(TAG, "VBAT is not ready");
+            break;
+        }
+        ret = true;
+    } while(false);
+
+    return ret;
+}
+
+static void power_update_info(Power* power) {
+    UNUSED(power);
+    furi_hal_i2c_acquire(POWER_I2C);
+    Bq25987ChargerStatus status = {0};
+    bq25798_get_charger_status(POWER_I2C, &status);
+
+    Bq25987AdcValues adc_val = {0};
+    bq25798_get_adc_values(POWER_I2C, &adc_val);
+    furi_hal_i2c_release(POWER_I2C);
+
+    power->state.usb_connected = status.vbus_present;
+    power->info.is_charging = (status.chg_stat != Bq25987ChargerStatusChargeStatNot);
+    power->info.is_full_charged = (status.chg_stat == Bq25987ChargerStatusChargeStatTermination);
+
+    power->info.current_battery = adc_val.bat_i;
+    power->info.current_usb = adc_val.usb_i;
+    power->info.voltage_battery = adc_val.bat_v;
+    power->info.voltage_usb = adc_val.usb_v;
+    power->info.temperature_charger = adc_val.temp_charger;
+    power->info.temperature_battery = adc_val.temp_bat_pct;
+
+    power->info.charge_ilim_usb = power->input_current_limit;
+    power->info.charge_ilim_battery = power->charger_current_limit;
+    power->info.charge_enabled = power->charger_enabled;
+}
+
 static void power_tick_callback(void* context) {
     furi_assert(context);
     Power* power = context;
-
-    // Update data from gauge and charger
-    const bool need_refresh = power_update_info(power);
-    // Check low battery level
-    power_check_low_battery(power);
-    // Check and notify about charging state
-    power_check_charging_state(power);
-    // Check and notify about battery level change
-    power_check_battery_level_change(power);
-    // Update battery view port
-    if(need_refresh) {
-        view_port_update(power->battery_view_port);
-    }
-    // Check OTG status and disable it in case of fault
-    if(furi_hal_power_is_otg_enabled()) {
-        furi_hal_power_check_otg_status();
-    }
+    power_update_info(power);
 }
 
-static Power* power_alloc(void) {
+Power* power_alloc(void) {
     Power* power = malloc(sizeof(Power));
-    // Pubsub
-    power->event_pubsub = furi_pubsub_alloc();
-    // State initialization
-    power->power_off_timeout = POWER_OFF_TIMEOUT_S;
-    power->show_battery_low_warning = true;
-    // Gui
-    Gui* gui = furi_record_open(RECORD_GUI);
-
-    power->view_holder = view_holder_alloc();
-    power->view_power_off = power_off_alloc();
-    power->view_power_unplug_usb = power_unplug_usb_alloc();
-
-    view_holder_attach_to_gui(power->view_holder, gui);
-    // Battery view port
-    power->battery_view_port = power_battery_view_port_alloc(power);
-    gui_add_view_port(gui, power->battery_view_port, GuiLayerStatusBarRight);
-    // Event loop
     power->event_loop = furi_event_loop_alloc();
+    power->gpio_semaphore = furi_semaphore_alloc(1, 0);
     power->message_queue = furi_message_queue_alloc(4, sizeof(PowerMessage));
+    power->input_current_limit = 500;
+    power->charger_current_limit = CHARGE_CURRENT_MAX;
+    power->charger_enabled = true;
 
     furi_event_loop_subscribe_message_queue(
         power->event_loop,
@@ -275,26 +250,69 @@ static Power* power_alloc(void) {
         FuriEventLoopEventIn,
         power_message_callback,
         power);
+
+    FuriMessageQueue* pd_queue = NULL;
+    power->usb_pd = power_usb_pd_alloc(&pd_queue);
+    furi_event_loop_subscribe_message_queue(
+        power->event_loop, pd_queue, FuriEventLoopEventIn, power_usb_pd_msg_handler, power->usb_pd);
+
     furi_event_loop_tick_set(power->event_loop, 1000, power_tick_callback, power);
 
     return power;
 }
 
-int32_t power_srv(void* p) {
-    UNUSED(p);
+void power_run(Power* power) {
+    furi_assert(power);
 
-    if(furi_hal_rtc_get_boot_mode() != FuriHalRtcBootModeNormal) {
-        FURI_LOG_W(TAG, "Skipping start in special boot mode");
+    FURI_LOG_I(TAG, "Configuring interrupt source");
+    furi_event_loop_subscribe_semaphore(
+        power->event_loop, power->gpio_semaphore, FuriEventLoopEventIn, power_on_interrupt, power);
+    furi_hal_gpio_init(POWER_IRQ_GPIO, GpioModeInterruptFall, GpioPullNo, GpioSpeedLow);
+    furi_hal_gpio_add_int_callback(POWER_IRQ_GPIO, power_gpio_isr, power);
 
-        furi_thread_suspend(furi_thread_get_current_id());
-        return 0;
+    FURI_LOG_I(TAG, "Initializing charger");
+    furi_hal_i2c_acquire(POWER_I2C);
+    power->state.charger_alive = bq25798_init(POWER_I2C);
+    if(power->state.charger_alive) {
+        FURI_LOG_I(TAG, "Charger is ready");
+        bq25798_reset(POWER_I2C);
+        bq25798_set_cfg(POWER_I2C);
+    } else {
+        FURI_LOG_E(TAG, "Charger is absent");
     }
-
-    Power* power = power_alloc();
-    power_update_info(power);
+    FURI_LOG_I(TAG, "Waiting for battery to arrive");
+    while(!power_battery_wait(power)) {
+        furi_delay_ms(1000);
+    }
+    FURI_LOG_I(TAG, "Initializing PD");
+    power_usb_pd_start(power->usb_pd);
+    // TODO: update charge current limit based on temperature
+    bq25798_set_charge_current_limit(POWER_I2C, power->charger_current_limit);
+    furi_hal_i2c_release(POWER_I2C);
 
     furi_record_create(RECORD_POWER, power);
+
+    FURI_LOG_I(TAG, "Running event loop");
     furi_event_loop_run(power->event_loop);
+}
+
+void power_on_usb_pd_update(Power* power, uint32_t voltage, uint32_t current) {
+    furi_check(power);
+
+    PowerMessage msg = {
+        .type = PowerMessageTypeUsbPdUpdate,
+        .pd_mode = {.voltage = voltage, .current = current},
+    };
+
+    furi_check(
+        furi_message_queue_put(power->message_queue, &msg, FuriWaitForever) == FuriStatusOk);
+}
+
+int32_t power_srv_app(void* p) {
+    UNUSED(p);
+
+    Power* power = power_alloc();
+    power_run(power);
 
     return 0;
 }
