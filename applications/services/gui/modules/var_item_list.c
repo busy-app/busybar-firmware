@@ -14,7 +14,6 @@
 #define SYM_ARROW_RIGHT "▹"
 
 #define SCROLL_ANIM_DURATION_MS (64)
-#define ITEM_INDICATOR_WIDTH_PX (6)
 
 #define CHECK_RANGE_AND_STEP(min, max, step)                                               \
     do {                                                                                   \
