@@ -11,12 +11,45 @@ void matter_command_start(Cli* cli, FuriString* args, void* context) {
 
     matter_app_init();
 
-    printf("\r\nExit Matter app\r\n");
+    printf("\r\nMatter app start\r\n");
+}
+
+void matter_command_factory_reset(Cli* cli, FuriString* args, void* context) {
+    UNUSED(cli);
+    UNUSED(context);
+    UNUSED(args);
+
+    matter_factory_reset();
+
+    printf("\r\nMatter app factory reset\r\n");
+}
+
+void matter_command_button_release(Cli* cli, FuriString* args, void* context) {
+    UNUSED(cli);
+    UNUSED(context);
+    UNUSED(args);
+
+    matter_button_release();
+
+    printf("\r\nMatter app button release\r\n");
+}
+
+void matter_command_button_press(Cli* cli, FuriString* args, void* context) {
+    UNUSED(cli);
+    UNUSED(context);
+    UNUSED(args);
+
+    matter_button_press();
+
+    printf("\r\nMatter app button press\r\n");
 }
 
 static void matter_command_print_usage(void) {
     printf("Usage:\r\n");
-    printf("matter \"Matter app\"\r\n");
+    printf("matter \"Matter app start\"\r\n");
+    printf("matter res \"Matter app factory reset\"\r\n");
+    printf("matter b1 \"Matter app button press\"\r\n");
+    printf("matter b0 \"Matter app button release\"\r\n");
 }
 
 static void matter_command(Cli* cli, FuriString* args, void* context) {
@@ -26,6 +59,18 @@ static void matter_command(Cli* cli, FuriString* args, void* context) {
     do {
         if(!args_read_string_and_trim(args, cmd)) {
             matter_command_start(cli, args, context);
+            break;
+        }
+        if(furi_string_cmp_str(cmd, "res") == 0) {
+            matter_command_factory_reset(cli, args, context);
+            break;
+        }
+        if(furi_string_cmp_str(cmd, "b1") == 0) {
+            matter_command_button_press(cli, args, context);
+            break;
+        }
+        if(furi_string_cmp_str(cmd, "b0") == 0) {
+            matter_command_button_release(cli, args, context);
             break;
         }
 

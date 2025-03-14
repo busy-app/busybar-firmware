@@ -54,7 +54,7 @@ env.Append(
        # # NVM3
         Dir(f"{MCU_INCDIR}/drivers/service/nvm3/inc").rdir(),
 
-        Dir(f"{MATTER_LIB_INCDIR}/slc/component/sdk-content/wifi-sdk/components/service/network_manager/inc").rdir(),
+       Dir(f"{MATTER_LIB_INCDIR}/slc/component/sdk-content/wifi-sdk/components/service/network_manager/inc").rdir(),
     ],
     CPPDEFINES=[
         "SI917",
