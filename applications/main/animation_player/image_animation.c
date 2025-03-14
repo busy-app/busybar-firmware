@@ -86,7 +86,12 @@ void image_animation_free(ImageAnimation* instance) {
     if(instance->timer) {
         lv_timer_delete(instance->timer);
     }
+
     lv_obj_delete(instance->canvas);
+
+    if(instance->canvas_buffer) {
+        free(instance->canvas_buffer);
+    }
 
     storage_file_free(instance->file);
     furi_record_close(RECORD_STORAGE);
