@@ -70,7 +70,7 @@ void label_set_text_fmt(Label* instance, const char* fmt, ...) {
 // LVGL class descriptor
 
 const lv_obj_class_t label_lvgl_class = {
-    .base_class = &lv_widget_class,
+    .base_class = &widget_lvgl_class,
     .constructor_cb = label_lvgl_constructor,
     .destructor_cb = label_lvgl_destructor,
     .name = "widget-label",

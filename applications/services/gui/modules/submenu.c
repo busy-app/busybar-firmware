@@ -192,7 +192,7 @@ void submenu_set_selected_item_index(Submenu* instance, uint32_t index) {
 // LVGL class descriptors
 
 const lv_obj_class_t lv_submenu_class = {
-    .base_class = &lv_widget_class,
+    .base_class = &widget_lvgl_class,
     .constructor_cb = submenu_obj_constructor,
     .destructor_cb = submenu_obj_destructor,
     .name = "submenu",

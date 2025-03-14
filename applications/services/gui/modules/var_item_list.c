@@ -522,7 +522,7 @@ void var_item_set_flags(VarItem* item, uint32_t flags) {
 // LVGL classes
 
 const lv_obj_class_t lv_var_item_list_class = {
-    .base_class = &lv_widget_class,
+    .base_class = &widget_lvgl_class,
     .constructor_cb = lv_var_item_list_constructor,
     .destructor_cb = lv_var_item_list_destructor,
     .name = "var-item-list",

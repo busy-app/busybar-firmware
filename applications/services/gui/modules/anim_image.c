@@ -265,7 +265,7 @@ void anim_image_stop(AnimImage* instance) {
 // LVGL class descriptor
 
 const lv_obj_class_t anim_image_lvgl_class = {
-    .base_class = &lv_widget_class,
+    .base_class = &widget_lvgl_class,
     .constructor_cb = anim_image_lvgl_constructor,
     .destructor_cb = anim_image_lvgl_destructor,
     .name = "widget-anim-image",

@@ -2,11 +2,11 @@
 
 #include <lvgl/src/core/lv_obj_class_private.h>
 
-#define MY_CLASS (&lv_widget_class)
+#define MY_CLASS (&widget_lvgl_class)
 
 // Internal implementation
 
-static void widget_obj_destructor(const lv_obj_class_t* class_p, lv_obj_t* obj) {
+static void widget_lvgl_destructor(const lv_obj_class_t* class_p, lv_obj_t* obj) {
     UNUSED(class_p);
     Widget* instance = (Widget*)obj;
 
@@ -29,7 +29,7 @@ Widget* widget_alloc(Widget* parent) {
 
 void widget_free(Widget* instance) {
     furi_check(instance);
-    lv_obj_delete(&instance->obj);
+    lv_obj_delete((lv_obj_t*)instance);
 }
 
 void widget_set_input_callback(Widget* instance, WidgetInputCallback callback, void* context) {
@@ -129,9 +129,9 @@ void widget_input(Widget* instance, const InputEvent* event) {
 
 // LVGL class descriptor
 
-const lv_obj_class_t lv_widget_class = {
+const lv_obj_class_t widget_lvgl_class = {
     .base_class = &lv_obj_class,
-    .destructor_cb = widget_obj_destructor,
+    .destructor_cb = widget_lvgl_destructor,
     .name = "widget",
     .width_def = LV_PCT(100),
     .height_def = LV_PCT(100),

@@ -23,7 +23,7 @@ typedef struct {
 /** Custom widgets */
 
 // Widget
-extern const lv_obj_class_t lv_widget_class;
+extern const lv_obj_class_t widget_lvgl_class;
 // Label
 extern const lv_obj_class_t label_lvgl_class;
 // Submenu
@@ -94,7 +94,7 @@ static void theme_apply_callback(lv_theme_t* th, lv_obj_t* obj) {
         lv_obj_add_style(obj, &theme->styles.focused, LV_PART_MAIN | LV_STATE_FOCUSED);
     }
 #endif
-    else if(lv_obj_check_type(obj, &lv_widget_class)) {
+    else if(lv_obj_check_type(obj, &widget_lvgl_class)) {
         lv_obj_add_style(obj, &theme->styles.normal, LV_PART_MAIN);
 
     } else if(lv_obj_check_type(obj, &label_lvgl_class)) {

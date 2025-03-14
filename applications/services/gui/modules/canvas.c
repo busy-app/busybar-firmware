@@ -208,7 +208,7 @@ void canvas_draw_text_fmt(Canvas* instance, int32_t x, int32_t y, const char* fm
 // LVGL class descriptor
 
 const lv_obj_class_t canvas_lvgl_class = {
-    .base_class = &lv_widget_class,
+    .base_class = &widget_lvgl_class,
     .constructor_cb = canvas_lvgl_constructor,
     .destructor_cb = canvas_lvgl_destructor,
     .name = "canvas-ex",

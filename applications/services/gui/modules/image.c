@@ -48,7 +48,7 @@ bool image_set_source(Image* instance, const char* file_path) {
 // LVGL class descriptor
 
 const lv_obj_class_t image_lvgl_class = {
-    .base_class = &lv_widget_class,
+    .base_class = &widget_lvgl_class,
     .constructor_cb = image_lvgl_constructor,
     .name = "widget-image",
     .width_def = LV_SIZE_CONTENT,
