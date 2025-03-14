@@ -150,7 +150,7 @@ static void gui_init_front(Gui* instance) {
         FRONT_DRAW_BUFFER_SIZE,
         LV_DISPLAY_RENDER_MODE_DIRECT);
 
-    lv_theme_t* theme = lv_theme_front_init(display->lv_display);
+    lv_theme_t* theme = lv_theme_front_alloc(display->lv_display);
     lv_display_set_theme(display->lv_display, theme);
 }
 
@@ -173,7 +173,7 @@ static void gui_init_back(Gui* instance) {
         BACK_DRAW_BUFFER_SIZE,
         LV_DISPLAY_RENDER_MODE_DIRECT);
 
-    lv_theme_t* theme = lv_theme_front_init(display->lv_display);
+    lv_theme_t* theme = lv_theme_front_alloc(display->lv_display);
     lv_display_set_theme(display->lv_display, theme);
 }
 
