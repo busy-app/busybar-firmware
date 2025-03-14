@@ -7,9 +7,6 @@
 
 #include "image_animation.h"
 
-#define ANIMATION_PLAYER_CASH_SIZE    (10)
-#define ANIMATION_PLAYER_PRELOAD_SIZE (ANIMATION_PLAYER_CASH_SIZE / 5)
-
 typedef enum {
     AnimationPlayerAppEventExit,
 } AnimationPlayerAppEvent;
