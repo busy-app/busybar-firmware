@@ -141,7 +141,7 @@ libenv.ApplyLibFlags()
 libenv.AppendUnique(
     CPPPATH=[
         Dir("matter_ext/slc/inc").srcnode(),
-        Dir("matter_ext/slc/config").srcnode(),
+        #Dir("matter_ext/slc/config").srcnode(),
         Dir("matter_ext/third_party/matter_sdk/src").srcnode(),
         Dir("matter_ext/third_party/matter_sdk/src/include").srcnode(),
         Dir("matter_ext/third_party/matter_sdk/src/lwip/freertos").srcnode(),
