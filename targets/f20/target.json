@@ -102,6 +102,7 @@
         "print",
         "fatfs",
         "lwip",
+        "cjson",
         "lvgl",
         "lvgl_addons",
         "network",
