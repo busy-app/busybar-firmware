@@ -33,8 +33,6 @@ struct AnimImage {
     lv_obj_t* canvas;
     lv_timer_t* timer;
     uint8_t* canvas_buf;
-
-    Storage* storage;
     File* file;
 
     AnimImageFileHeader header;
@@ -58,8 +56,8 @@ void anim_image_lvgl_constructor(const lv_obj_class_t* class_p, lv_obj_t* obj) {
     AnimImage* instance = (AnimImage*)obj;
     instance->canvas = lv_canvas_create(obj);
     instance->timer = lv_timer_create(anim_image_timer_callback, UINT32_MAX, obj);
-    instance->storage = furi_record_open(RECORD_STORAGE);
-    instance->file = storage_file_alloc(instance->storage);
+    Storage* storage = furi_record_open(RECORD_STORAGE);
+    instance->file = storage_file_alloc(storage);
 
     lv_timer_set_repeat_count(instance->timer, -1);
     lv_timer_pause(instance->timer);
