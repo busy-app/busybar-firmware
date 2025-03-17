@@ -1,8 +1,8 @@
 App(
-    appid="keypad_test",
-    name="Keypad Test",
+    appid="input_test",
+    name="Input Test",
     apptype=FlipperAppType.APP,
-    entry_point="keypad_test_app",
+    entry_point="input_test_app",
     requires=["gui"],
     stack_size=1 * 1024,
     fap_category="Debug",
