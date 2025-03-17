@@ -39,6 +39,7 @@ DesktopOverlay* desktop_overlay_alloc(Gui* gui) {
     with_gui(instance->gui, {
         Widget* root = gui_get_root_widget(instance->gui, GuiDisplayIdFront, GuiLayerIdSystem);
         instance->dimmer = widget_alloc(root);
+        lv_obj_set_style_opa((lv_obj_t*)instance->dimmer, LV_OPA_TRANSP, LV_PART_MAIN);
     });
 
     return instance;
