@@ -5,18 +5,7 @@
 #define TAG "InputTest"
 
 static void input_test_app_update(InputTestApp* instance) {
-    with_gui(instance->gui, {
-        // Back screen
-        label_set_text_fmt(
-            instance->label_light_raw,
-            "600nm: %d, 840nm: %d",
-            instance->raw_600nm,
-            instance->raw_840nm);
-        label_set_text_fmt(
-            instance->label_lux_instant, "Lux instant: %.2f", instance->lux_instant);
-        label_set_text_fmt(instance->label_lux_mean, "Lux mean: %.2f", instance->lux_mean);
-        label_set_text_fmt(instance->label_light_level, "Light level: %d", instance->light_level);
-    });
+    with_gui(instance->gui, { label_set_text_fmt(instance->label_text, "Hi Hui"); });
 }
 
 static void ligh_sensor_test_app_input_callback(const InputEvent* event, void* context) {
@@ -25,13 +14,39 @@ static void ligh_sensor_test_app_input_callback(const InputEvent* event, void* c
 
     InputTestApp* instance = context;
 
-    if(event->type == InputTypeShort && event->key == InputKeyBack) {
+    if(event->type == InputTypeLong && event->key == InputKeyBack) {
         const InputTestAppEvent app_event = {
             .type = InputTestAppEventExit,
         };
         furi_check(
             furi_message_queue_put(instance->event_queue, &app_event, FuriWaitForever) ==
             FuriStatusOk);
+    } else if((event->type == InputTypeShort)) {
+        const InputTestAppEvent app_event = {
+            .type = InputTestAppEventKeyStateChanged,
+            .input_key = event->key,
+        };
+        furi_check(
+            furi_message_queue_put(instance->event_queue, &app_event, FuriWaitForever) ==
+            FuriStatusOk);
+    }
+}
+
+static void input_test_app_handle_input_short_event(InputTestApp* instance, InputKey key) {
+    InputTestAppModel* model = &instance->input_model;
+    if(key == InputKeyUp) {
+        model->encoder++;
+    } else if(key == InputKeyDown) {
+        model->encoder--;
+    } else if(key == InputKeyOk) {
+        model->ok++;
+    } else if(key == InputKeyBack) {
+        memset(model, 0, sizeof(InputTestAppModel));
+        model->switch_pos = -1;
+    } else if(key == InputKeyStart) {
+        model->start++;
+    } else if(key >= InputKeyBusy && key < InputKeyMAX) {
+        model->switch_pos = key;
     }
 }
 
@@ -42,26 +57,14 @@ static void input_test_app_event_queue_callback(FuriEventLoopObject* object, voi
     InputTestAppEvent event;
     furi_check(furi_message_queue_get(instance->event_queue, &event, 0) == FuriStatusOk);
 
-    if(event.type == InputTestAppEventLightLevelUpdate) {
-        instance->light_level = event.light_level;
-        input_test_app_update(instance);
-    } else if(event.type == InputTestAppEventExit) {
+    if(event.type == InputTestAppEventExit) {
         furi_event_loop_stop(instance->event_loop);
+    } else if(event.type == InputTestAppEventKeyStateChanged) {
+        with_gui(instance->gui, {
+            input_test_app_handle_input_short_event(instance, event.input_key);
+            input_test_app_update(instance);
+        })
     }
-}
-
-static void input_test_app_get_measurements(InputTestApp* instance) {
-    instance->lux_instant = 10.0f;
-    instance->lux_mean = 11.f;
-    // input_get_raw_data(InputLightWavelength600nm, &instance->raw_600nm);
-    // input_get_raw_data(InputLightWavelength840nm, &instance->raw_840nm);
-}
-
-static void input_test_app_timer_callback(void* context) {
-    InputTestApp* instance = context;
-
-    input_test_app_get_measurements(instance);
-    input_test_app_update(instance);
 }
 
 static InputTestApp* input_test_app_alloc(void) {
@@ -75,14 +78,6 @@ static InputTestApp* input_test_app_alloc(void) {
         FuriEventLoopEventIn,
         input_test_app_event_queue_callback,
         instance);
-    instance->timer = furi_event_loop_timer_alloc(
-        instance->event_loop,
-        input_test_app_timer_callback,
-        FuriEventLoopTimerTypePeriodic,
-        instance);
-
-    // To check light level changes in pubsub, receive further light level value from events
-    instance->light_level = 2;
 
     instance->gui = furi_record_open(RECORD_GUI);
 
@@ -92,29 +87,16 @@ static InputTestApp* input_test_app_alloc(void) {
         instance->app_window = widget_alloc(root);
 
         // Back screen
-        instance->label_light_raw = label_alloc(instance->app_window);
-        widget_set_pos((Widget*)instance->label_light_raw, 10, 0);
-
-        instance->label_lux_instant = label_alloc(instance->app_window);
-        widget_set_pos((Widget*)instance->label_lux_instant, 10, 10);
-
-        instance->label_lux_mean = label_alloc(instance->app_window);
-        widget_set_pos((Widget*)instance->label_lux_mean, 10, 30);
-
-        instance->label_light_level = label_alloc(instance->app_window);
-        widget_set_pos((Widget*)instance->label_light_level, 10, 40);
+        instance->label_text = label_alloc(instance->app_window);
+        widget_set_pos((Widget*)instance->label_text, 10, 0);
 
         // Input events
         widget_set_input_callback(
             instance->app_window, ligh_sensor_test_app_input_callback, instance);
 
         gui_add_active_widget(instance->gui, instance->app_window);
+        input_test_app_update(instance);
     });
-
-    input_test_app_get_measurements(instance);
-    input_test_app_update(instance);
-
-    furi_event_loop_timer_start(instance->timer, 1000 / 60);
 
     return instance;
 }

@@ -8,15 +8,20 @@
 
 typedef enum {
     InputTestAppEventExit,
-    InputTestAppEventLightLevelUpdate,
+    InputTestAppEventKeyStateChanged,
 } InputTestAppEventType;
 
 typedef struct {
     InputTestAppEventType type;
-    union {
-        uint8_t light_level;
-    };
+    InputKey input_key;
 } InputTestAppEvent;
+
+typedef struct {
+    uint32_t ok;
+    uint32_t start;
+    int32_t encoder;
+    int32_t switch_pos;
+} InputTestAppModel;
 
 typedef struct {
     FuriEventLoop* event_loop;
@@ -24,18 +29,9 @@ typedef struct {
     FuriEventLoopTimer* timer;
     Gui* gui;
 
-    FuriPubSub* light_sensor_events;
-    FuriPubSubSubscription* light_sensor_subscription;
+    InputTestAppModel input_model;
 
     Widget* app_window;
-    Label* label_light_raw;
-    Label* label_lux_instant;
-    Label* label_lux_mean;
-    Label* label_light_level;
+    Label* label_text;
 
-    uint16_t raw_600nm;
-    uint16_t raw_840nm;
-    float lux_instant;
-    float lux_mean;
-    uint8_t light_level;
 } InputTestApp;
