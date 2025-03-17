@@ -2,7 +2,7 @@
 #include <tusb.h>
 #include <class/net/net_device.h>
 #include <class/net/ncm.h>
-#include "usb_i.h"
+#include "usb_network_settings.h"
 
 #define VERSION_BCD(maj, min, rev) (((maj & 0xFF) << 8) | ((min & 0x0F) << 4) | (rev & 0x0F))
 
@@ -139,7 +139,7 @@ uint16_t const* tud_descriptor_string_cb(uint8_t index, uint16_t langid) {
         break;
 
     case UsbStrNcmMac:
-        const uint8_t* ncm_mac = usb_network_get_mac_address();
+        const uint8_t* ncm_mac = usb_network_settings_get_mac_address();
         for(uint8_t i = 0; i < 6; i++) {
             desc_string_temp[i * 2 + 1] = "0123456789ABCDEF"[(ncm_mac[i] >> 4) & 0xf];
             desc_string_temp[i * 2 + 2] = "0123456789ABCDEF"[(ncm_mac[i] >> 0) & 0xf];
@@ -237,13 +237,6 @@ static uint8_t const desc_ms_os_20[] = {
     /* clang-format on */
 };
 
-static const tusb_desc_webusb_url_t desc_webusb_url = {
-    .bLength = 3 + sizeof(WEBUSB_URL) - 1,
-    .bDescriptorType = 3, // WEBUSB URL type
-    .bScheme = 0, // 0: http, 1: https
-    .url = WEBUSB_URL,
-};
-
 bool tud_vendor_control_xfer_cb(
     uint8_t rhport,
     uint8_t stage,
@@ -257,9 +250,22 @@ bool tud_vendor_control_xfer_cb(
     case TUSB_REQ_TYPE_VENDOR:
         switch(request->bRequest) {
         case UsbVendorReqWebUsb:
+
             // Get landing page url
+            const char* webusb_url_str = usb_network_settings_get_webusb_url();
+
+            size_t webusb_url_desc_size =
+                sizeof(tusb_desc_webusb_url_t) + strlen(webusb_url_str) + 1;
+            tusb_desc_webusb_url_t* webusb_url = alloca(webusb_url_desc_size);
+            memset(webusb_url, 0, webusb_url_desc_size);
+
+            webusb_url->bLength = 3 + strlen(webusb_url_str);
+            webusb_url->bDescriptorType = 3; // WEBUSB URL type
+            webusb_url->bScheme = 0; // 0: http, 1: https
+            strcpy(webusb_url->url, webusb_url_str);
+
             return tud_control_xfer(
-                rhport, request, (void*)(uintptr_t)&desc_webusb_url, desc_webusb_url.bLength);
+                rhport, request, (void*)(uintptr_t)webusb_url, webusb_url->bLength);
 
         case UsbVendorReqMsos20:
             if(request->wIndex == 7) {
