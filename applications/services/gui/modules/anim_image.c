@@ -184,7 +184,7 @@ AnimImage* anim_image_alloc(Widget* parent) {
 
 void anim_image_free(AnimImage* instance) {
     furi_check(instance);
-    lv_obj_delete(instance->canvas);
+    lv_obj_delete((lv_obj_t*)instance);
 }
 
 bool anim_image_set_source(AnimImage* instance, const char* file_path) {
