@@ -1,6 +1,7 @@
 #pragma once
 
 #include <furi.h>
+#include <desktop/desktop.h>
 #include <gui/gui.h>
 #include <gui/modules/label.h>
 #include <gui/modules/canvas.h>
@@ -29,6 +30,7 @@ typedef struct {
     FuriMessageQueue* event_queue;
     FuriEventLoopTimer* timer;
     Gui* gui;
+    Desktop* desktop;
 
     InputTestAppModel input_model;
 

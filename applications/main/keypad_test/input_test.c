@@ -95,6 +95,9 @@ static InputTestApp* input_test_app_alloc(void) {
         input_test_app_event_queue_callback,
         instance);
 
+    instance->desktop = furi_record_open(RECORD_DESKTOP);
+    desktop_set_mode(instance->desktop, DesktopModeIgnoreSwitch);
+
     instance->gui = furi_record_open(RECORD_GUI);
 
     with_gui(instance->gui, {
@@ -128,6 +131,9 @@ static void input_test_app_free(InputTestApp* instance) {
     });
 
     furi_record_close(RECORD_GUI);
+
+    desktop_set_mode(instance->desktop, DesktopModeHandleSwitch);
+    furi_record_close(RECORD_DESKTOP);
 
     furi_record_close(RECORD_LIGHT_SENSOR_EVENTS);
 
