@@ -46,3 +46,6 @@
 [submodule "lib/matter_ext"]
 	path = lib/matter_ext
 	url = https://github.com/flipperdevices/silabs_matter_extension.git
+[submodule "lib/cjson"]
+	path = lib/cjson
+	url = https://github.com/DaveGamble/cJSON.git
