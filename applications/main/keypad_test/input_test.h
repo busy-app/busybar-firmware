@@ -3,6 +3,7 @@
 #include <furi.h>
 #include <gui/gui.h>
 #include <gui/modules/label.h>
+#include <gui/modules/canvas.h>
 
 #include <light_sensor/light_sensor.h>
 
@@ -31,7 +32,10 @@ typedef struct {
 
     InputTestAppModel input_model;
 
-    Widget* app_window;
+    // Front screen
     Label* label_text;
+
+    // Back screen
+    Canvas* canvas;
 
 } InputTestApp;

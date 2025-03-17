@@ -4,8 +4,18 @@
 
 #define TAG "InputTest"
 
-static void input_test_app_update(InputTestApp* instance) {
-    with_gui(instance->gui, { label_set_text_fmt(instance->label_text, "Hi Hui"); });
+static void input_test_app_back_screen_update(InputTestApp* instance) {
+    Canvas* c = instance->canvas;
+    InputTestAppModel* m = &instance->input_model;
+
+    canvas_clear(c);
+    canvas_draw_text(c, 4, 2, "Input Test");
+    canvas_draw_text_fmt(c, 4, 12, "OK: %lu   Start: %lu", m->ok, m->start);
+    canvas_draw_text_fmt(c, 4, 22, "Encoder: %ld", m->encoder);
+    canvas_draw_text_fmt(
+        c, 4, 32, "Switch: %s", m->switch_pos < 0 ? "--" : input_get_key_name(m->switch_pos));
+    canvas_draw_text(c, 4, 44, "hold Back to exit");
+    canvas_draw_rect(c, 0, 0, widget_get_width((Widget*)c), widget_get_height((Widget*)c), false);
 }
 
 static void ligh_sensor_test_app_input_callback(const InputEvent* event, void* context) {
@@ -32,6 +42,11 @@ static void ligh_sensor_test_app_input_callback(const InputEvent* event, void* c
     }
 }
 
+static void input_test_app_reset_model(InputTestAppModel* model) {
+    memset(model, 0, sizeof(InputTestAppModel));
+    model->switch_pos = -1;
+}
+
 static void input_test_app_handle_input_short_event(InputTestApp* instance, InputKey key) {
     InputTestAppModel* model = &instance->input_model;
     if(key == InputKeyUp) {
@@ -41,8 +56,7 @@ static void input_test_app_handle_input_short_event(InputTestApp* instance, Inpu
     } else if(key == InputKeyOk) {
         model->ok++;
     } else if(key == InputKeyBack) {
-        memset(model, 0, sizeof(InputTestAppModel));
-        model->switch_pos = -1;
+        input_test_app_reset_model(model);
     } else if(key == InputKeyStart) {
         model->start++;
     } else if(key >= InputKeyBusy && key < InputKeyMAX) {
@@ -62,15 +76,17 @@ static void input_test_app_event_queue_callback(FuriEventLoopObject* object, voi
     } else if(event.type == InputTestAppEventKeyStateChanged) {
         with_gui(instance->gui, {
             input_test_app_handle_input_short_event(instance, event.input_key);
-            input_test_app_update(instance);
+            input_test_app_back_screen_update(instance);
         })
     }
 }
 
 static InputTestApp* input_test_app_alloc(void) {
     InputTestApp* instance = malloc(sizeof(InputTestApp));
+    input_test_app_reset_model(&instance->input_model);
 
     instance->event_loop = furi_event_loop_alloc();
+
     instance->event_queue = furi_message_queue_alloc(16, sizeof(InputTestAppEvent));
     furi_event_loop_subscribe_message_queue(
         instance->event_loop,
@@ -82,20 +98,22 @@ static InputTestApp* input_test_app_alloc(void) {
     instance->gui = furi_record_open(RECORD_GUI);
 
     with_gui(instance->gui, {
-        Widget* root = gui_get_root_widget(instance->gui, GuiDisplayIdBack, GuiLayerIdMain);
-
-        instance->app_window = widget_alloc(root);
+        // Front screen
+        Widget* root = gui_get_root_widget(instance->gui, GuiDisplayIdFront, GuiLayerIdMain);
+        instance->label_text = label_alloc(root);
+        widget_set_pos((Widget*)instance->label_text, 2, 4);
+        label_set_text(instance->label_text, "Look at back screen");
 
         // Back screen
-        instance->label_text = label_alloc(instance->app_window);
-        widget_set_pos((Widget*)instance->label_text, 10, 0);
+        root = gui_get_root_widget(instance->gui, GuiDisplayIdBack, GuiLayerIdMain);
+        instance->canvas = canvas_alloc(root, widget_get_width(root), widget_get_height(root));
 
         // Input events
         widget_set_input_callback(
-            instance->app_window, ligh_sensor_test_app_input_callback, instance);
+            (Widget*)instance->canvas, ligh_sensor_test_app_input_callback, instance);
 
-        gui_add_active_widget(instance->gui, instance->app_window);
-        input_test_app_update(instance);
+        gui_add_active_widget(instance->gui, (Widget*)instance->canvas);
+        input_test_app_back_screen_update(instance);
     });
 
     return instance;
@@ -104,7 +122,10 @@ static InputTestApp* input_test_app_alloc(void) {
 static void input_test_app_free(InputTestApp* instance) {
     furi_check(instance);
 
-    with_gui(instance->gui, { widget_free(instance->app_window); });
+    with_gui(instance->gui, {
+        canvas_free(instance->canvas);
+        label_free(instance->label_text);
+    });
 
     furi_record_close(RECORD_GUI);
 
@@ -112,7 +133,6 @@ static void input_test_app_free(InputTestApp* instance) {
 
     furi_event_loop_unsubscribe(instance->event_loop, instance->event_queue);
     furi_message_queue_free(instance->event_queue);
-    furi_event_loop_timer_free(instance->timer);
     furi_event_loop_free(instance->event_loop);
     free(instance);
 }
