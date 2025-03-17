@@ -276,6 +276,8 @@ static Desktop* desktop_alloc(void) {
     instance->overlay = desktop_overlay_alloc(gui);
     instance->current_request.name = furi_string_alloc();
 
+    desktop_prepare_default_app(instance);
+
     furi_event_loop_subscribe_message_queue(
         instance->event_loop,
         instance->input_queue,
