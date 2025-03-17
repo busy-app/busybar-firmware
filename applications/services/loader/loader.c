@@ -409,7 +409,7 @@ static void loader_do_on_start(void) {
     }
 }
 
-static void loader_so_autorun(Loader* loader) {
+static void loader_do_autorun(Loader* loader) {
     UNUSED(loader);
 
     if(FLIPPER_AUTORUN_APP_NAME && strlen(FLIPPER_AUTORUN_APP_NAME)) {
@@ -427,7 +427,7 @@ int32_t loader_srv(void* p) {
     Loader* loader = loader_alloc();
 
     loader_do_on_start();
-    loader_so_autorun(loader);
+    loader_do_autorun(loader);
 
     furi_event_loop_run(loader->event_loop);
 
