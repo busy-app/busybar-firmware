@@ -230,12 +230,17 @@ void cli_command_echo(Cli* cli, FuriString* args, void* context) {
     printf("%s\r\n", furi_string_get_cstr(args));
 }
 
-void cli_command_uart_917_echo(Cli* cli, FuriString* args, void* context) {
-    Intercom* intercom = furi_record_open(RECORD_INTERCOM);
+void cli_command_917(Cli* cli, FuriString* args, void* context) {
+    UNUSED(cli);
+    UNUSED(args);
+    UNUSED(context);
 
-    intercom_tx(intercom, IntercomChannelControl, );
+    printf("Starting 917 cli...\r\n");
+    printf("Press Ctrl+] to exit\r\n");
 
-    furi_record_close(RECORD_INTERCOM);
+    while(true) {
+        size_t read_bytes = cli_read_timeout(cli, uint8_t * buffer, size_t size, uint32_t timeout)
+    }
 }
 
 void cli_commands_init(Cli* cli) {
@@ -261,6 +266,5 @@ void cli_commands_init(Cli* cli) {
     cli_add_command(
         cli, "light_sensor", CliCommandFlagParallelSafe, cli_command_light_sensor, NULL);
     cli_add_command(cli, "audio", CliCommandFlagParallelSafe, cli_command_audio, NULL);
-    cli_add_command(
-        cli, "uart_917_echo", CliCommandFlagParallelSafe, cli_command_uart_917_echo, NULL);
+    cli_add_command(cli, "917", CliCommandFlagParallelSafe, cli_command_917, NULL);
 }
