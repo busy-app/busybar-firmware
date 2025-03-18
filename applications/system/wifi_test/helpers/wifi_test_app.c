@@ -1,17 +1,22 @@
 #include "wifi_test_app.h"
 #include "wifi_scan.h"
-#include "wifi_async_socket_server_tcp_rx.h"
-#include "wifi_async_socket_client_tcp_tx.h"
-#include "wifi_async_socket_server_echo.h"
+// #include "wifi_async_socket_server_tcp_rx.h"
+// #include "wifi_async_socket_client_tcp_tx.h"
+// #include "wifi_async_socket_server_echo.h"
+#include "wifi_lwip_socket_server_echo.h"
 
 #include <furi.h>
 
 #include <sl_status.h>
 #include <sl_wifi.h>
-#include <sl_net_wifi_types.h>
-#include <sl_net.h>
+#include <rsi_ble_config.h>
+
 #include <sl_si91x_driver.h>
 #include <sl_wifi_callback_framework.h>
+
+#include <sl_net.h>
+#include <sl_net_wifi_types.h>
+#include <sl_net_for_lwip.h>
 
 #include <args.h>
 #include <strint.h>
@@ -106,10 +111,98 @@ static const sl_net_wifi_client_profile_t wifi_client_profile = {
 
     }};
 
+sl_net_wifi_lwip_context_t wifi_client_context_test;
+
+#ifdef EXP_BOARD
+#define REGION_CODE IGNORE_REGION
+#else
+#define REGION_CODE US
+#endif // EXP_BOARD
+
 static const sl_net_wifi_psk_credential_entry_t wifi_client_credential = {
     .type = SL_NET_WIFI_PSK,
     .data_length = sizeof(WIFI_CLIENT_CREDENTIAL) - 1,
     .data = WIFI_CLIENT_CREDENTIAL};
+
+const sl_wifi_device_configuration_t config = {
+    .boot_option = LOAD_NWP_FW,
+    .mac_address = NULL,
+    .band = SL_SI91X_WIFI_BAND_2_4GHZ,
+    .region_code = REGION_CODE,
+    .boot_config = {
+        .oper_mode = SL_SI91X_CLIENT_MODE,
+        .coex_mode = SL_SI91X_WLAN_BLE_MODE,
+        .feature_bit_map =
+#ifdef SLI_SI91X_MCU_INTERFACE
+            (SL_SI91X_FEAT_SECURITY_OPEN | SL_SI91X_FEAT_WPS_DISABLE),
+#else
+            (SL_SI91X_FEAT_SECURITY_OPEN | SL_SI91X_FEAT_AGGREGATION),
+#endif
+        .tcp_ip_feature_bit_map =
+            (SL_SI91X_TCP_IP_FEAT_DHCPV4_CLIENT | SL_SI91X_TCP_IP_FEAT_DNS_CLIENT |
+             SL_SI91X_TCP_IP_FEAT_SSL | SL_SI91X_TCP_IP_FEAT_BYPASS
+#ifdef ipv6_FEATURE_REQUIRED
+             | SL_SI91X_TCP_IP_FEAT_DHCPV6_CLIENT | SL_SI91X_TCP_IP_FEAT_IPV6
+#endif
+             | SL_SI91X_TCP_IP_FEAT_ICMP | SL_SI91X_TCP_IP_FEAT_EXTENSION_VALID),
+        .custom_feature_bit_map =
+            (SL_SI91X_CUSTOM_FEAT_EXTENTION_VALID | RSI_CUSTOM_FEATURE_BIT_MAP),
+        .ext_custom_feature_bit_map =
+            (RSI_EXT_CUSTOM_FEATURE_BIT_MAP | (SL_SI91X_EXT_FEAT_BT_CUSTOM_FEAT_ENABLE)
+#if(defined A2DP_POWER_SAVE_ENABLE)
+             | SL_SI91X_EXT_FEAT_XTAL_CLK_ENABLE(2)
+#endif
+                 ),
+        .bt_feature_bit_map =
+            (RSI_BT_FEATURE_BITMAP
+#if(RSI_BT_GATT_ON_CLASSIC)
+             | SL_SI91X_BT_ATT_OVER_CLASSIC_ACL /* to support att over classic acl link */
+#endif
+             ),
+#ifdef RSI_PROCESS_MAX_RX_DATA
+        .ext_tcp_ip_feature_bit_map =
+            (RSI_EXT_TCPIP_FEATURE_BITMAP | SL_SI91X_CONFIG_FEAT_EXTENTION_VALID |
+             SL_SI91X_EXT_TCP_MAX_RECV_LENGTH),
+#else
+        .ext_tcp_ip_feature_bit_map =
+            (RSI_EXT_TCPIP_FEATURE_BITMAP | SL_SI91X_CONFIG_FEAT_EXTENTION_VALID),
+#endif
+        //! ENABLE_BLE_PROTOCOL in bt_feature_bit_map
+        .ble_feature_bit_map =
+            ((SL_SI91X_BLE_MAX_NBR_PERIPHERALS(RSI_BLE_MAX_NBR_PERIPHERALS) |
+              SL_SI91X_BLE_MAX_NBR_CENTRALS(RSI_BLE_MAX_NBR_CENTRALS) |
+              SL_SI91X_BLE_MAX_NBR_ATT_SERV(RSI_BLE_MAX_NBR_ATT_SERV) |
+              SL_SI91X_BLE_MAX_NBR_ATT_REC(RSI_BLE_MAX_NBR_ATT_REC)) |
+             SL_SI91X_FEAT_BLE_CUSTOM_FEAT_EXTENTION_VALID |
+             SL_SI91X_BLE_PWR_INX(RSI_BLE_PWR_INX) |
+             SL_SI91X_BLE_PWR_SAVE_OPTIONS(RSI_BLE_PWR_SAVE_OPTIONS) |
+             SL_SI91X_916_BLE_COMPATIBLE_FEAT_ENABLE
+#if RSI_BLE_GATT_ASYNC_ENABLE
+             | SL_SI91X_BLE_GATT_ASYNC_ENABLE
+#endif
+             ),
+
+        .ble_ext_feature_bit_map =
+            ((SL_SI91X_BLE_NUM_CONN_EVENTS(RSI_BLE_NUM_CONN_EVENTS) |
+              SL_SI91X_BLE_NUM_REC_BYTES(RSI_BLE_NUM_REC_BYTES))
+#if RSI_BLE_INDICATE_CONFIRMATION_FROM_HOST
+             | SL_SI91X_BLE_INDICATE_CONFIRMATION_FROM_HOST // indication response from app
+#endif
+#if RSI_BLE_MTU_EXCHANGE_FROM_HOST
+             | SL_SI91X_BLE_MTU_EXCHANGE_FROM_HOST // MTU Exchange request initiation from app
+#endif
+#if RSI_BLE_SET_SCAN_RESP_DATA_FROM_HOST
+             | (SL_SI91X_BLE_SET_SCAN_RESP_DATA_FROM_HOST) // Set SCAN Resp Data from app
+#endif
+#if RSI_BLE_DISABLE_CODED_PHY_FROM_HOST
+             | (SL_SI91X_BLE_DISABLE_CODED_PHY_FROM_HOST) // Disable Coded PHY from app
+#endif
+#if BLE_SIMPLE_GATT
+             | SL_SI91X_BLE_GATT_INIT
+#endif
+             ),
+        .config_feature_bit_map =
+            (SL_SI91X_FEAT_SLEEP_GPIO_SEL_BITMAP | RSI_CONFIG_FEATURE_BITMAP)}};
 
 typedef enum {
     WifiTestCmdTypeHelp,
@@ -242,8 +335,10 @@ void* wifi_test_app_start(CliWorker* worker) {
     sl_status_t status = SL_STATUS_FAIL;
     do {
         // Initialize Wi-Fi APSTA interface
-        status = sl_net_init(
-            SL_NET_WIFI_AP_INTERFACE, &sl_wifi_default_concurrent_configuration, NULL, NULL);
+        // status = sl_net_init(
+        //     SL_NET_WIFI_AP_INTERFACE, &sl_wifi_default_concurrent_configuration, NULL, NULL);
+        status =
+            sl_net_init(SL_NET_WIFI_CLIENT_INTERFACE, &config, &wifi_client_context_test, NULL);
         if(status != SL_STATUS_OK) {
             furi_string_printf(
                 instance->msg, "Failed to start Wi-Fi APSTA interface: 0x%lx\r\n", status);
@@ -324,7 +419,7 @@ static sl_status_t wifi_test_app(WifiTestApp* instance, uint8_t cmd_index, FuriS
 
             // Set Wi-Fi AP profile
             status = sl_net_set_profile(
-                SL_NET_WIFI_AP_INTERFACE, SL_NET_PROFILE_ID_1, &wifi_ap_profile);
+                SL_NET_WIFI_AP_INTERFACE, SL_NET_DEFAULT_WIFI_CLIENT_PROFILE_ID, &wifi_ap_profile);
             if(status != SL_STATUS_OK) {
                 furi_string_printf(instance->msg, "Failed to set AP profile: 0x%lx\r\n", status);
                 wifi_test_app_send_msg(instance);
@@ -348,7 +443,7 @@ static sl_status_t wifi_test_app(WifiTestApp* instance, uint8_t cmd_index, FuriS
             wifi_test_app_send_msg(instance);
 
             // Bring Wi-Fi AP interface up
-            status = sl_net_up(SL_NET_WIFI_AP_INTERFACE, SL_NET_PROFILE_ID_1);
+            status = sl_net_up(SL_NET_WIFI_AP_INTERFACE, SL_NET_DEFAULT_WIFI_CLIENT_PROFILE_ID);
             if(status != SL_STATUS_OK) {
                 furi_string_printf(
                     instance->msg, "Failed to bring Wi-Fi AP interface up: 0x%lx\r\n", status);
@@ -386,7 +481,9 @@ static sl_status_t wifi_test_app(WifiTestApp* instance, uint8_t cmd_index, FuriS
             sl_ip_address_t ip_address = {0};
             //! Set Wi-Fi client profile
             status = sl_net_set_profile(
-                SL_NET_WIFI_CLIENT_INTERFACE, SL_NET_PROFILE_ID_1, &wifi_client_profile);
+                SL_NET_WIFI_CLIENT_INTERFACE,
+                SL_NET_DEFAULT_WIFI_CLIENT_PROFILE_ID,
+                &wifi_client_profile);
             if(status != SL_STATUS_OK) {
                 furi_string_printf(
                     instance->msg,
@@ -420,7 +517,8 @@ static sl_status_t wifi_test_app(WifiTestApp* instance, uint8_t cmd_index, FuriS
             wifi_test_app_send_msg(instance);
 
             //! Bring up Wi-Fi client interface
-            status = sl_net_up(SL_NET_WIFI_CLIENT_INTERFACE, SL_NET_PROFILE_ID_1);
+            status =
+                sl_net_up(SL_NET_WIFI_CLIENT_INTERFACE, SL_NET_DEFAULT_WIFI_CLIENT_PROFILE_ID);
             if(status != SL_STATUS_OK) {
                 furi_string_printf(
                     instance->msg,
@@ -435,7 +533,9 @@ static sl_status_t wifi_test_app(WifiTestApp* instance, uint8_t cmd_index, FuriS
 
             //! Get profile
             status = sl_net_get_profile(
-                SL_NET_WIFI_CLIENT_INTERFACE, SL_NET_PROFILE_ID_1, &client_profile);
+                SL_NET_WIFI_CLIENT_INTERFACE,
+                SL_NET_DEFAULT_WIFI_CLIENT_PROFILE_ID,
+                &client_profile);
             if(status != SL_STATUS_OK) {
                 furi_string_printf(
                     instance->msg, "Failed to get client profile: 0x%lx\r\n", status);
@@ -490,7 +590,7 @@ static sl_status_t wifi_test_app(WifiTestApp* instance, uint8_t cmd_index, FuriS
         break;
     case WifiTestCmdTypeTestTcpRx:
         if(instance->state == WifiTestStateStaUp || instance->state == WifiTestStateApUp) {
-            wifi_async_socket_server_tcp_rx_init(instance, instance->msg, 5005);
+            // wifi_async_socket_server_tcp_rx_init(instance, instance->msg, 5005);
         } else {
             furi_string_printf(instance->msg, "AP or STA is not up\r\n");
             wifi_test_app_send_msg(instance);
@@ -499,11 +599,11 @@ static sl_status_t wifi_test_app(WifiTestApp* instance, uint8_t cmd_index, FuriS
     case WifiTestCmdTypeTestTcpTx:
         if(instance->state == WifiTestStateStaUp || instance->state == WifiTestStateApUp) {
             if(!args_read_string_and_trim(args, arg)) {
-                wifi_async_socket_client_tcp_tx_init(
-                    instance, instance->msg, WIFI_TEST_SERVER_IP, 5000);
+                //    wifi_async_socket_client_tcp_tx_init(
+                //    instance, instance->msg, WIFI_TEST_SERVER_IP, 5000);
             } else {
-                wifi_async_socket_client_tcp_tx_init(
-                    instance, instance->msg, (char*)furi_string_get_cstr(arg), 5000);
+                //    wifi_async_socket_client_tcp_tx_init(
+                //    instance, instance->msg, (char*)furi_string_get_cstr(arg), 5000);
             }
         } else {
             furi_string_printf(instance->msg, "AP or STA is not up\r\n");
@@ -512,7 +612,8 @@ static sl_status_t wifi_test_app(WifiTestApp* instance, uint8_t cmd_index, FuriS
         break;
     case WifiTestCmdTypeTestEcho:
         if(instance->state == WifiTestStateStaUp || instance->state == WifiTestStateApUp) {
-            wifi_async_socket_server_echo_init(instance, instance->msg, 5005);
+            //  wifi_async_socket_server_echo_init(instance, instance->msg, 5005);
+            wifi_lwip_socket_server_echo_init(instance, instance->msg, 5005);
         } else {
             furi_string_printf(instance->msg, "AP or STA is not up\r\n");
             wifi_test_app_send_msg(instance);
