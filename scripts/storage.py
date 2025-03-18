@@ -83,6 +83,8 @@ class Main(App):
         self.parser_stress.set_defaults(func=self.stress)
 
     def _get_port(self):
+        if self.args.port != "auto":
+            return (self.args.port, 23)
         return ("10.0.4.20", 23)
 
     @WrapStorageOp
