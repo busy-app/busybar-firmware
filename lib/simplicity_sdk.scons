@@ -63,7 +63,8 @@ env.Append(
         Dir(f"{SDK_INCDIR}/platform/security/sl_component/sli_psec_osal/inc").rdir(),
         Dir(f"{SDK_INCDIR}/util/third_party/lwip/lwip/src/include").rdir(),
         Dir(f"{MATTER_LIB_INCDIR}/third_party/matter_sdk/src/lwip/silabs").rdir(),
-        Dir(f"{MATTER_LIB_INCDIR}/third_party/matter_sdk/src/lwip/freertos").rdir(),
+        #Dir(f"{MATTER_LIB_INCDIR}/third_party/matter_sdk/src/lwip/freertos").rdir(),
+        Dir("sl_glue/lwip").rdir(),
         Dir(f"{MATTER_LIB_INCDIR}/slc/inc/").rdir(),
     ],
     CPPFLAGS=[
