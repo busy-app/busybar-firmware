@@ -41,7 +41,7 @@ struct Desktop {
     DesktopOverlay* overlay;
     DesktopStartRequest* current_request;
     InputSwitchPosition switch_pos;
-    DesktopMode mode;
+    bool lock_current_app;
 };
 
 static const DesktopDefaultApp desktop_default_apps[];
@@ -57,7 +57,7 @@ static void desktop_input_pubsub_callback(const void* message, void* context) {
     if(event->type == InputTypePress) {
         const InputKey key = event->key;
         // Only react to rotary switch events
-        if(instance->mode == DesktopModeHandleSwitch) {
+        if(!instance->lock_current_app) {
             if(key >= InputKeyBusy && key < InputKeyMAX) {
                 const InputSwitchPosition pos = key - InputKeyBusy;
 
@@ -363,16 +363,10 @@ bool desktop_replace_current_app(Desktop* instance, const char* name, const char
     return desktop_enqueue_start_request(instance, name, args);
 }
 
-void desktop_set_mode(Desktop* instance, DesktopMode mode) {
+void desktop_pin_current_app(Desktop* instance, bool pin) {
     furi_check(instance);
 
-    instance->mode = mode;
-}
-
-DesktopMode desktop_get_mode(Desktop* instance) {
-    furi_check(instance);
-
-    return instance->mode;
+    instance->lock_current_app = pin;
 }
 
 int32_t desktop_srv(void* arg) {

@@ -1,45 +1,49 @@
 #include "input_test.h"
 
 #include <furi.h>
+#include <lvgl/lvgl.h>
 
 #define TAG "InputTest"
 
 static void input_test_app_back_screen_update(InputTestApp* instance) {
-    Canvas* c = instance->canvas;
-    InputTestAppModel* m = &instance->input_model;
+    with_gui(instance->gui, {
+        Canvas* c = instance->canvas;
+        InputTestAppModel* m = &instance->input_model;
 
-    canvas_clear(c);
-    canvas_draw_text(c, 4, 2, "Input Test");
-    canvas_draw_text_fmt(c, 4, 12, "OK: %lu   Start: %lu", m->ok, m->start);
-    canvas_draw_text_fmt(c, 4, 22, "Encoder: %ld", m->encoder);
-    canvas_draw_text_fmt(
-        c, 4, 32, "Switch: %s", m->switch_pos < 0 ? "--" : input_get_key_name(m->switch_pos));
-    canvas_draw_text(c, 4, 44, "hold Back to exit");
-    canvas_draw_rect(c, 0, 0, widget_get_width((Widget*)c), widget_get_height((Widget*)c), false);
+        canvas_clear(c);
+        canvas_draw_text(c, 4, 5, "Input Test");
+        canvas_draw_text_fmt(c, 4, 10, "OK: %lu   Start: %lu", m->ok, m->start);
+        canvas_draw_text_fmt(c, 4, 15, "Encoder: %ld", m->encoder);
+        canvas_draw_text_fmt(
+            c, 4, 20, "Switch: %s", m->switch_pos < 0 ? "--" : input_get_key_name(m->switch_pos));
+        canvas_draw_text(c, 4, 25, "hold Back to exit");
+    })
 }
 
-static void ligh_sensor_test_app_input_callback(const InputEvent* event, void* context) {
+static bool ligh_sensor_test_app_input_callback(const InputEvent* event, void* context) {
     furi_assert(event);
     furi_assert(context);
 
     InputTestApp* instance = context;
+    InputTestAppEvent app_event;
+    bool consumed = false;
 
     if(event->type == InputTypeLong && event->key == InputKeyBack) {
-        const InputTestAppEvent app_event = {
-            .type = InputTestAppEventExit,
-        };
-        furi_check(
-            furi_message_queue_put(instance->event_queue, &app_event, FuriWaitForever) ==
-            FuriStatusOk);
+        app_event.type = InputTestAppEventExit;
+        consumed = true;
     } else if((event->type == InputTypeShort)) {
-        const InputTestAppEvent app_event = {
-            .type = InputTestAppEventKeyStateChanged,
-            .input_key = event->key,
-        };
+        app_event.type = InputTestAppEventKeyStateChanged;
+        app_event.input_key = event->key;
+        consumed = true;
+    }
+
+    if(consumed) {
         furi_check(
             furi_message_queue_put(instance->event_queue, &app_event, FuriWaitForever) ==
             FuriStatusOk);
     }
+
+    return consumed;
 }
 
 static void input_test_app_reset_model(InputTestAppModel* model) {
@@ -74,10 +78,8 @@ static void input_test_app_event_queue_callback(FuriEventLoopObject* object, voi
     if(event.type == InputTestAppEventExit) {
         furi_event_loop_stop(instance->event_loop);
     } else if(event.type == InputTestAppEventKeyStateChanged) {
-        with_gui(instance->gui, {
-            input_test_app_handle_input_short_event(instance, event.input_key);
-            input_test_app_back_screen_update(instance);
-        })
+        input_test_app_handle_input_short_event(instance, event.input_key);
+        input_test_app_back_screen_update(instance);
     }
 }
 
@@ -96,28 +98,26 @@ static InputTestApp* input_test_app_alloc(void) {
         instance);
 
     instance->desktop = furi_record_open(RECORD_DESKTOP);
-    desktop_set_mode(instance->desktop, DesktopModeIgnoreSwitch);
+    desktop_pin_current_app(instance->desktop, true);
 
     instance->gui = furi_record_open(RECORD_GUI);
 
     with_gui(instance->gui, {
+        GuiLayer* main_layer = gui_get_layer(instance->gui, GuiLayerIdMain);
+        gui_layer_add_input_callback(main_layer, ligh_sensor_test_app_input_callback, instance);
+
         // Front screen
-        Widget* root = gui_get_root_widget(instance->gui, GuiDisplayIdFront, GuiLayerIdMain);
+        Widget* root = gui_layer_get_root_widget(main_layer, GuiDisplayIdFront);
         instance->label_text = label_alloc(root);
         widget_set_pos((Widget*)instance->label_text, 2, 4);
         label_set_text(instance->label_text, "Look at back screen");
 
         // Back screen
-        root = gui_get_root_widget(instance->gui, GuiDisplayIdBack, GuiLayerIdMain);
+        root = gui_layer_get_root_widget(main_layer, GuiDisplayIdBack);
         instance->canvas = canvas_alloc(root, widget_get_width(root), widget_get_height(root));
-
-        // Input events
-        widget_set_input_callback(
-            (Widget*)instance->canvas, ligh_sensor_test_app_input_callback, instance);
-
-        gui_add_active_widget(instance->gui, (Widget*)instance->canvas);
-        input_test_app_back_screen_update(instance);
     });
+
+    input_test_app_back_screen_update(instance);
 
     return instance;
 }
@@ -132,7 +132,7 @@ static void input_test_app_free(InputTestApp* instance) {
 
     furi_record_close(RECORD_GUI);
 
-    desktop_set_mode(instance->desktop, DesktopModeHandleSwitch);
+    desktop_pin_current_app(instance->desktop, false);
     furi_record_close(RECORD_DESKTOP);
 
     furi_record_close(RECORD_LIGHT_SENSOR_EVENTS);

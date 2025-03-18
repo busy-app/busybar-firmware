@@ -16,11 +16,6 @@
  */
 #define RECORD_DESKTOP "desktop"
 
-typedef enum {
-    DesktopModeHandleSwitch,
-    DesktopModeIgnoreSwitch,
-} DesktopMode;
-
 /**
  * @brief Opaque declaration for the Desktop type.
  */
@@ -43,6 +38,4 @@ typedef struct Desktop Desktop;
  */
 bool desktop_replace_current_app(Desktop* instance, const char* name, const char* args);
 
-void desktop_set_mode(Desktop* instance, DesktopMode mode);
-
-DesktopMode desktop_get_mode(Desktop* instance);
+void desktop_pin_current_app(Desktop* instance, bool pin);
