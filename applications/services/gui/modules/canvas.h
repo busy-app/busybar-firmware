@@ -34,6 +34,16 @@ Canvas* canvas_alloc(Widget* parent, int32_t width, int32_t height);
 void canvas_free(Canvas* instance);
 
 /**
+ * @brief Get a pointer to the base class instance.
+ *
+ * The return value can be used in all Widget methods.
+ *
+ * @param[in,out] instance pointer to the Canvas instance to be queried
+ * @returns pointer to the base class instance
+ */
+Widget* canvas_get_base(Canvas* instance);
+
+/**
  * @brief Set the color for fill operations.
  *
  * @param[in,out] instance pointer to the Canvas instance to be modified

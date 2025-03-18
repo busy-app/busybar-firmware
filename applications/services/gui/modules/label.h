@@ -30,6 +30,16 @@ Label* label_alloc(Widget* parent);
 void label_free(Label* instance);
 
 /**
+ * @brief Get a pointer to the base class instance.
+ *
+ * The return value can be used in all Widget methods.
+ *
+ * @param[in,out] instance pointer to the Label instance to be queried
+ * @returns pointer to the base class instance
+ */
+Widget* label_get_base(Label* instance);
+
+/**
  * @brief Set the label text.
  *
  * @param[in,out] instance pointer to the Label instance to be modified

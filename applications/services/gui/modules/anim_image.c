@@ -187,6 +187,11 @@ void anim_image_free(AnimImage* instance) {
     lv_obj_delete((lv_obj_t*)instance);
 }
 
+Widget* anim_image_get_base(AnimImage* instance) {
+    furi_check(instance);
+    return (Widget*)instance;
+}
+
 bool anim_image_set_source(AnimImage* instance, const char* file_path) {
     furi_check(instance);
 

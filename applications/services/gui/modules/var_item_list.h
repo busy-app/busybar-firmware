@@ -43,6 +43,16 @@ VarItemList* var_item_list_alloc(Widget* parent);
 void var_item_list_free(VarItemList* instance);
 
 /**
+ * @brief Get a pointer to the base class instance.
+ *
+ * The return value can be used in all Widget methods.
+ *
+ * @param[in,out] instance pointer to the VarItemList instance to be queried
+ * @returns pointer to the base class instance
+ */
+Widget* var_item_list_get_base(VarItemList* instance);
+
+/**
  * @brief Add a time selection item.
  *
  * @param[in,out] instance pointer to the VarItemList instance to be modified

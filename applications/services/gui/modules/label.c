@@ -46,6 +46,11 @@ void label_free(Label* instance) {
     lv_obj_delete((lv_obj_t*)instance);
 }
 
+Widget* label_get_base(Label* instance) {
+    furi_check(instance);
+    return (Widget*)instance;
+}
+
 void label_set_text(Label* instance, const char* text) {
     furi_check(instance);
     furi_check(text);

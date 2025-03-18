@@ -30,6 +30,16 @@ Image* image_alloc(Widget* parent);
 void image_free(Image* instance);
 
 /**
+ * @brief Get a pointer to the base class instance.
+ *
+ * The return value can be used in all Widget methods.
+ *
+ * @param[in,out] instance pointer to the Image instance to be queried
+ * @returns pointer to the base class instance
+ */
+Widget* image_get_base(Image* instance);
+
+/**
  * @brief Load and show an image from a file.
  *
  * @param[in,out] instance pointer to the Image instance to be modified

@@ -64,6 +64,11 @@ void canvas_free(Canvas* instance) {
     lv_obj_delete((lv_obj_t*)instance);
 }
 
+Widget* canvas_get_base(Canvas* instance) {
+    furi_check(instance);
+    return (Widget*)instance;
+}
+
 void canvas_clear(Canvas* instance) {
     furi_check(instance);
     lv_area_t area;

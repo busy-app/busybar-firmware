@@ -30,6 +30,16 @@ AnimImage* anim_image_alloc(Widget* parent);
 void anim_image_free(AnimImage* instance);
 
 /**
+ * @brief Get a pointer to the base class instance.
+ *
+ * The return value can be used in all Widget methods.
+ *
+ * @param[in,out] instance pointer to the AnimImage instance to be queried
+ * @returns pointer to the base class instance
+ */
+Widget* anim_image_get_base(AnimImage* instance);
+
+/**
  * @brief Load and show an animation from a file.
  *
  * @param[in,out] instance pointer to the AnimImage instance to be modified

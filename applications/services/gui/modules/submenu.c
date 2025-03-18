@@ -158,6 +158,11 @@ void submenu_free(Submenu* instance) {
     lv_obj_delete((lv_obj_t*)instance);
 }
 
+Widget* submenu_get_base(Submenu* instance) {
+    furi_check(instance);
+    return (Widget*)instance;
+}
+
 void submenu_add_item(
     Submenu* instance,
     const char* label,

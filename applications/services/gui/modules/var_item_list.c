@@ -404,6 +404,11 @@ void var_item_list_free(VarItemList* instance) {
     lv_obj_delete((lv_obj_t*)instance);
 }
 
+Widget* var_item_list_get_base(VarItemList* instance) {
+    furi_check(instance);
+    return (Widget*)instance;
+}
+
 VarItem* var_item_list_add_timebox(
     VarItemList* instance,
     const char* label,

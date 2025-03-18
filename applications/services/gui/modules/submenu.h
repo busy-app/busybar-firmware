@@ -33,9 +33,19 @@ Submenu* submenu_alloc(Widget* parent);
 /**
  * @brief Delete a Submenu instance.
  *
- * @param[in,out] instance pointer to the submenu instance to be deleted
+ * @param[in,out] instance pointer to the Submenu instance to be deleted
  */
 void submenu_free(Submenu* instance);
+
+/**
+ * @brief Get a pointer to the base class instance.
+ *
+ * The return value can be used in all Widget methods.
+ *
+ * @param[in,out] instance pointer to the Submenu instance to be queried
+ * @returns pointer to the base class instance
+ */
+Widget* submenu_get_base(Submenu* instance);
 
 /**
  * @brief Add an item to a Submenu instance.

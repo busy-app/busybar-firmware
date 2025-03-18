@@ -37,6 +37,11 @@ void image_free(Image* instance) {
     lv_obj_delete((lv_obj_t*)instance);
 }
 
+Widget* image_get_base(Image* instance) {
+    furi_check(instance);
+    return (Widget*)instance;
+}
+
 bool image_set_source(Image* instance, const char* file_path) {
     furi_check(instance);
     furi_check(file_path);
