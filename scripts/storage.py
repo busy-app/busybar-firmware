@@ -83,7 +83,7 @@ class Main(App):
         self.parser_stress.set_defaults(func=self.stress)
 
     def _get_port(self):
-        return ("10.12.34.1", 23)
+        return ("10.0.4.20", 23)
 
     @WrapStorageOp
     def mkdir(self):

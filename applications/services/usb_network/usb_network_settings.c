@@ -17,7 +17,7 @@ static FuriString* hostname = NULL;
 static FuriString* webusb_url = NULL;
 
 static UsbNetworkAddress address = {
-    .ip = {10, 12, 34, 1},
+    .ip = {10, 0, 4, 20},
     .netmask = {255, 255, 255, 0},
     .gateway = {0, 0, 0, 0},
 };
