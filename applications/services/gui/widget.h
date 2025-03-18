@@ -67,15 +67,6 @@ Widget* widget_alloc(Widget* parent);
 void widget_free(Widget* instance);
 
 /**
- * @brief Set a callback to be called whenever a Widget instance has unporcessed input events.
- *
- * @param[in,out] instance pointer to the Widget instance to be modified
- * @param[in] callback pointer to the callback function
- * @param[in,out] context pointer to a user-specified object (will be passed to callback)
- */
-void widget_set_input_callback(Widget* instance, WidgetInputCallback callback, void* context);
-
-/**
  * @brief Show or hide a Widget instance.
  *
  * Widgets are shown by default.

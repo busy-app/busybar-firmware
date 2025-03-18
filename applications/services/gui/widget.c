@@ -2,18 +2,7 @@
 
 #include <lvgl/src/core/lv_obj_class_private.h>
 
-#define MY_CLASS (&widget_lvgl_class)
-
-// Internal implementation
-
-static void widget_lvgl_destructor(const lv_obj_class_t* class_p, lv_obj_t* obj) {
-    UNUSED(class_p);
-    Widget* instance = (Widget*)obj;
-
-    if(instance->deleted_callback) {
-        instance->deleted_callback(instance, instance->deleted_callback_context);
-    }
-}
+#define MY_CLASS WIDGET_CLASS
 
 // Public API
 
@@ -33,10 +22,9 @@ void widget_free(Widget* instance) {
 }
 
 void widget_set_input_callback(Widget* instance, WidgetInputCallback callback, void* context) {
-    furi_check(instance);
-    furi_check(IS_WIDGET_CLASS(instance));
-    instance->input_callback = callback;
-    instance->input_callback_context = context;
+    UNUSED(instance);
+    UNUSED(callback);
+    UNUSED(context);
 }
 
 void widget_set_visible(Widget* instance, bool visible) {
@@ -110,28 +98,20 @@ void widget_set_input_feed_callback(Widget* instance, WidgetInputFeedCallback ca
     instance->input_feed_callback = callback;
 }
 
-void widget_set_deleted_callback(Widget* instance, WidgetDeletedCallback callback, void* context) {
-    instance->deleted_callback = callback;
-    instance->deleted_callback_context = context;
-}
-
-void widget_input(Widget* instance, const InputEvent* event) {
+bool widget_input(Widget* instance, const InputEvent* event) {
     bool consumed = false;
 
     if(instance->input_feed_callback) {
         consumed = instance->input_feed_callback(instance, event);
     }
 
-    if(!consumed && instance->input_callback) {
-        instance->input_callback(event, instance->input_callback_context);
-    }
+    return consumed;
 }
 
 // LVGL class descriptor
 
 const lv_obj_class_t widget_lvgl_class = {
     .base_class = &lv_obj_class,
-    .destructor_cb = widget_lvgl_destructor,
     .name = "widget",
     .width_def = LV_PCT(100),
     .height_def = LV_PCT(100),

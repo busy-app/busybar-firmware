@@ -108,28 +108,25 @@ static LightSensorTestApp* light_sensor_test_app_alloc(void) {
     instance->gui = furi_record_open(RECORD_GUI);
 
     with_gui(instance->gui, {
+        instance->input_events = gui_subscribe_to_input_events(
+            instance->gui, ligh_sensor_test_app_input_callback, instance);
+
         Widget* root = gui_get_root_widget(instance->gui, GuiDisplayIdBack, GuiLayerIdMain);
 
         instance->app_window = widget_alloc(root);
 
         // Back screen
         instance->label_light_raw = label_alloc(instance->app_window);
-        widget_set_pos((Widget*)instance->label_light_raw, 10, 0);
+        widget_set_pos(label_get_base(instance->label_light_raw), 10, 0);
 
         instance->label_lux_instant = label_alloc(instance->app_window);
-        widget_set_pos((Widget*)instance->label_lux_instant, 10, 10);
+        widget_set_pos(label_get_base(instance->label_lux_instant), 10, 10);
 
         instance->label_lux_mean = label_alloc(instance->app_window);
-        widget_set_pos((Widget*)instance->label_lux_mean, 10, 30);
+        widget_set_pos(label_get_base(instance->label_lux_mean), 10, 30);
 
         instance->label_light_level = label_alloc(instance->app_window);
-        widget_set_pos((Widget*)instance->label_light_level, 10, 40);
-
-        // Input events
-        widget_set_input_callback(
-            instance->app_window, ligh_sensor_test_app_input_callback, instance);
-
-        gui_add_active_widget(instance->gui, instance->app_window);
+        widget_set_pos(label_get_base(instance->label_light_level), 10, 40);
     });
 
     light_sensor_test_app_get_measurements(instance);
@@ -143,7 +140,10 @@ static LightSensorTestApp* light_sensor_test_app_alloc(void) {
 static void light_sensor_test_app_free(LightSensorTestApp* instance) {
     furi_check(instance);
 
-    with_gui(instance->gui, { widget_free(instance->app_window); });
+    with_gui(instance->gui, {
+        gui_unsubscribe_from_input_events(instance->gui, instance->input_events);
+        widget_free(instance->app_window);
+    });
 
     furi_record_close(RECORD_GUI);
 

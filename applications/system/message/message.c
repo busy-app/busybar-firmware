@@ -6,6 +6,7 @@
 typedef struct {
     FuriEventLoop* event_loop;
     Gui* gui;
+    GuiInputSubscription* input_events;
     Label* label;
 } MessageApp;
 
@@ -27,19 +28,21 @@ static MessageApp* message_app_alloc(const char* message) {
     instance->gui = furi_record_open(RECORD_GUI);
 
     with_gui(instance->gui, {
+        instance->input_events =
+            gui_subscribe_to_input_events(instance->gui, message_app_input_callback, instance);
         Widget* root = gui_get_root_widget(instance->gui, GuiDisplayIdFront, GuiLayerIdMain);
         instance->label = label_alloc(root);
         label_set_text(instance->label, message ? message : "Hello There");
-
-        widget_set_input_callback((Widget*)instance->label, message_app_input_callback, instance);
-        gui_add_active_widget(instance->gui, (Widget*)instance->label);
     });
 
     return instance;
 }
 
 static void message_app_free(MessageApp* instance) {
-    with_gui(instance->gui, { label_free(instance->label); });
+    with_gui(instance->gui, {
+        gui_unsubscribe_from_input_events(instance->gui, instance->input_events);
+        label_free(instance->label);
+    });
 
     furi_record_close(RECORD_GUI);
 

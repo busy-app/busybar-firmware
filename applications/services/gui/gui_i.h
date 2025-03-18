@@ -31,7 +31,7 @@
 
 #define TICK_PERIOD_MS (8)
 
-LIST_DEF(WidgetList, Widget*, M_PTR_OPLIST);
+LIST_DEF(InputCallbackList, GuiInputCallback, M_PTR_OPLIST);
 
 typedef struct {
     lv_display_t* lv_display;
@@ -39,13 +39,13 @@ typedef struct {
     // TODO: Keep frame buffer in SSD1320 service
     uint8_t* frame_buffer;
     void* driver;
-    WidgetList_t active_widgets;
 } GuiDisplay;
 
 struct Gui {
     Power* power;
     FuriEventLoop* event_loop;
     FuriMessageQueue* input_queue;
+    FuriPubSub* input_pubsub;
     FuriMutex* access_mutex;
     DotMatrixSrv* dot_matrix;
     GuiDisplay displays[GuiDisplayIdMax];

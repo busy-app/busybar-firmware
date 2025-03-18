@@ -14,6 +14,7 @@ typedef struct {
     FuriEventLoop* event_loop;
     Audio* audio;
     Gui* gui;
+    GuiInputSubscription* input_events;
     Label* label;
     bool exit_on_back;
 } Dummy;
@@ -56,25 +57,29 @@ static Dummy* dummy_alloc(const char* message) {
         instance->event_loop, dummy_custom_event_callback, instance);
 
     with_gui(instance->gui, {
+        instance->input_events =
+            gui_subscribe_to_input_events(instance->gui, dummy_input_callback, instance);
+
         Widget* root = gui_get_root_widget(instance->gui, GuiDisplayIdFront, GuiLayerIdMain);
         instance->label = label_alloc(root);
+
         label_set_text(instance->label, message ? message : "Hello There");
 
-        widget_set_align((Widget*)instance->label, AlignCenter);
-        widget_set_input_callback((Widget*)instance->label, dummy_input_callback, instance);
+        widget_set_align(label_get_base(instance->label), AlignCenter);
 
         if(message == NULL) {
             instance->exit_on_back = true;
         }
-
-        gui_add_active_widget(instance->gui, (Widget*)instance->label);
     });
 
     return instance;
 }
 
 static void dummy_free(Dummy* instance) {
-    with_gui(instance->gui, { label_free(instance->label); });
+    with_gui(instance->gui, {
+        gui_unsubscribe_from_input_events(instance->gui, instance->input_events);
+        label_free(instance->label);
+    });
 
     furi_record_close(RECORD_GUI);
     furi_record_close(RECORD_AUDIO);

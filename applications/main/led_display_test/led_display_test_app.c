@@ -95,31 +95,29 @@ static LedDisplayTestApp* led_display_test_app_alloc(void) {
     instance->gui = furi_record_open(RECORD_GUI);
 
     with_gui(instance->gui, {
+        instance->input_events = gui_subscribe_to_input_events(
+            instance->gui, led_display_test_app_input_callback, instance);
+
         Widget* root;
 
         // Back display
         root = gui_get_root_widget(instance->gui, GuiDisplayIdBack, GuiLayerIdMain);
 
         instance->app_window = widget_alloc(root);
-        widget_set_input_callback(
-            instance->app_window, led_display_test_app_input_callback, instance);
-
         instance->static_label = label_alloc(instance->app_window);
-        widget_set_pos((Widget*)instance->static_label, 10, 0);
+        widget_set_pos(label_get_base(instance->static_label), 10, 0);
         label_set_text(
             instance->static_label, "Start/Ok - change pattern.\nEncoder - change color");
 
         instance->pattern_label = label_alloc(instance->app_window);
-        widget_set_pos((Widget*)instance->pattern_label, 10, 30);
+        widget_set_pos(label_get_base(instance->pattern_label), 10, 30);
 
         instance->color_label = label_alloc(instance->app_window);
-        widget_set_pos((Widget*)instance->color_label, 10, 40);
+        widget_set_pos(label_get_base(instance->color_label), 10, 40);
 
         // Front display
         root = gui_get_root_widget(instance->gui, GuiDisplayIdFront, GuiLayerIdMain);
         instance->canvas = canvas_alloc(root, DOT_MATRIX_W, DOT_MATRIX_H);
-
-        gui_add_active_widget(instance->gui, instance->app_window);
     });
 
     instance->pattern = LedDisplayTestPatternChess;
@@ -135,6 +133,7 @@ static void led_display_test_app_free(LedDisplayTestApp* instance) {
     furi_assert(instance);
 
     with_gui(instance->gui, {
+        gui_unsubscribe_from_input_events(instance->gui, instance->input_events);
         widget_free(instance->app_window);
         canvas_free(instance->canvas);
     });

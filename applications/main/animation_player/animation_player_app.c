@@ -50,13 +50,14 @@ static AnimationPlayerApp* animation_player_app_alloc(void* args) {
     instance->gui = furi_record_open(RECORD_GUI);
 
     with_gui(instance->gui, {
+        instance->input_events = gui_subscribe_to_input_events(
+            instance->gui, animation_player_app_input_callback, instance);
+
         Widget* root;
         root = gui_get_root_widget(instance->gui, GuiDisplayIdBack, GuiLayerIdMain);
         instance->label = label_alloc(root);
 
-        widget_set_pos((Widget*)instance->label, 10, 30);
-        widget_set_input_callback(
-            (Widget*)instance->label, animation_player_app_input_callback, instance);
+        widget_set_align(label_get_base(instance->label), AlignCenter);
 
         root = gui_get_root_widget(instance->gui, GuiDisplayIdFront, GuiLayerIdMain);
         instance->anim_image = anim_image_alloc(root);
@@ -71,8 +72,6 @@ static AnimationPlayerApp* animation_player_app_alloc(void* args) {
             label_set_text(instance->label, "Running animation");
             anim_image_start(instance->anim_image);
         }
-
-        gui_add_active_widget(instance->gui, (Widget*)instance->label);
     });
 
     return instance;
@@ -82,6 +81,7 @@ static void animation_player_app_free(AnimationPlayerApp* instance) {
     furi_check(instance);
 
     with_gui(instance->gui, {
+        gui_unsubscribe_from_input_events(instance->gui, instance->input_events);
         anim_image_stop(instance->anim_image);
         anim_image_free(instance->anim_image);
         label_free(instance->label);

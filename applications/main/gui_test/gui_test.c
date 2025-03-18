@@ -25,6 +25,7 @@
 typedef struct {
     FuriEventLoop* event_loop;
     Gui* gui;
+    GuiInputSubscription* input_events;
     VarItemList* var_list;
 } GuiTestApp;
 
@@ -102,10 +103,11 @@ GuiTestApp* gui_test_alloc(void) {
     instance->gui = furi_record_open(RECORD_GUI);
 
     with_gui(instance->gui, {
-        Widget* root = gui_get_root_widget(instance->gui, GuiDisplayIdFront, GuiLayerIdMain);
+        instance->input_events =
+            gui_subscribe_to_input_events(instance->gui, gui_test_input_callback, instance);
 
+        Widget* root = gui_get_root_widget(instance->gui, GuiDisplayIdFront, GuiLayerIdMain);
         instance->var_list = var_item_list_alloc(root);
-        widget_set_input_callback((Widget*)instance->var_list, gui_test_input_callback, instance);
 
         VarItem* item;
 
@@ -170,15 +172,16 @@ GuiTestApp* gui_test_alloc(void) {
 
         item = var_item_list_add_switch(
             instance->var_list, "Switch", gui_test_switch_changed_callback, NULL);
-
-        gui_add_active_widget(instance->gui, (Widget*)instance->var_list);
     });
 
     return instance;
 }
 
 void gui_test_free(GuiTestApp* instance) {
-    with_gui(instance->gui, { var_item_list_free(instance->var_list); });
+    with_gui(instance->gui, {
+        gui_unsubscribe_from_input_events(instance->gui, instance->input_events);
+        var_item_list_free(instance->var_list);
+    });
 
     furi_record_close(RECORD_GUI);
 
