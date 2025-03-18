@@ -11,20 +11,21 @@
 
 #include <FreeRTOSConfig.h>
 
-static FuriMutex* lwip_protect_mutex;
+static FuriMutex* lwip_protect_mutex = NULL;
 
 static inline u32_t TicksToMS(uint32_t ticks) {
     return (ticks * 1000) / configTICK_RATE_HZ;
 }
 
 void sys_init(void) {
+    furi_check(!lwip_protect_mutex, "Already initialized");
     /* initialize sys_arch_protect global mutex */
     lwip_protect_mutex = furi_mutex_alloc(FuriMutexTypeRecursive);
 }
 
 err_t sys_sem_new(sys_sem_t* sem, u8_t initial_count) {
-    furi_check(sem);
-    furi_check(initial_count <= 1);
+    furi_assert(sem);
+    furi_assert(initial_count <= 1);
 
     sem->sem = furi_semaphore_alloc(1, initial_count);
     SYS_STATS_INC_USED(sem);
@@ -32,19 +33,19 @@ err_t sys_sem_new(sys_sem_t* sem, u8_t initial_count) {
 }
 
 void sys_sem_free(sys_sem_t* sem) {
-    furi_check(sem);
+    furi_assert(sem);
     SYS_STATS_DEC(sem.used);
     furi_semaphore_free(sem->sem);
     sem->sem = NULL;
 }
 
 void sys_sem_signal(sys_sem_t* sem) {
-    furi_check(sem);
+    furi_assert(sem);
     furi_semaphore_release(sem->sem);
 }
 
 u32_t sys_arch_sem_wait(sys_sem_t* sem, u32_t timeout_ms) {
-    furi_check(sem);
+    furi_assert(sem);
 
     if(!timeout_ms) {
         furi_semaphore_acquire(sem->sem, FuriWaitForever);
@@ -64,33 +65,33 @@ u32_t sys_arch_sem_wait(sys_sem_t* sem, u32_t timeout_ms) {
 #if !LWIP_COMPAT_MUTEX
 
 err_t sys_mutex_new(sys_mutex_t* mutex) {
-    furi_check(mutex);
+    furi_assert(mutex);
     mutex->mut = furi_mutex_alloc(FuriMutexTypeNormal);
     SYS_STATS_INC_USED(mutex);
     return ERR_OK;
 }
 
 void sys_mutex_free(sys_mutex_t* mutex) {
-    furi_check(mutex);
+    furi_assert(mutex);
     SYS_STATS_DEC(mutex.used);
     furi_mutex_free(mutex->mut);
     mutex->mut = NULL;
 }
 
 void sys_mutex_lock(sys_mutex_t* mutex) {
-    furi_check(mutex);
+    furi_assert(mutex);
     furi_mutex_acquire(mutex->mut, FuriWaitForever);
 }
 
 void sys_mutex_unlock(sys_mutex_t* mutex) {
-    furi_check(mutex);
+    furi_assert(mutex);
     furi_mutex_release(mutex->mut);
 }
 #endif
 
 err_t sys_mbox_new(sys_mbox_t* mbox, int size) {
-    furi_check(mbox);
-    furi_check(size > 0);
+    furi_assert(mbox);
+    furi_assert(size > 0);
 
     mbox->mbx = furi_message_queue_alloc(size, sizeof(void*));
     SYS_STATS_INC_USED(mbox);
@@ -98,20 +99,20 @@ err_t sys_mbox_new(sys_mbox_t* mbox, int size) {
 }
 
 void sys_mbox_free(sys_mbox_t* mbox) {
-    furi_check(mbox);
+    furi_assert(mbox);
     furi_message_queue_free(mbox->mbx);
     SYS_STATS_DEC(mbox.used);
 }
 
 void sys_mbox_post(sys_mbox_t* mbox, void* msg) {
-    furi_check(mbox);
+    furi_assert(mbox);
 
     FuriStatus res = furi_message_queue_put(mbox->mbx, &msg, FuriWaitForever);
     LWIP_ASSERT("Error posting to LwIP mbox", res == FuriStatusOk);
 }
 
 u32_t sys_arch_mbox_fetch(sys_mbox_t* mbox, void** msg, u32_t timeout_ms) {
-    furi_check(mbox);
+    furi_assert(mbox);
 
     void* msg_dummy;
     if(!msg) {
@@ -137,7 +138,7 @@ u32_t sys_arch_mbox_fetch(sys_mbox_t* mbox, void** msg, u32_t timeout_ms) {
 }
 
 u32_t sys_arch_mbox_tryfetch(sys_mbox_t* mbox, void** msg) {
-    furi_check(mbox);
+    furi_assert(mbox);
     void* msg_dummy;
     if(!msg) {
         msg = &msg_dummy;
@@ -153,7 +154,7 @@ u32_t sys_arch_mbox_tryfetch(sys_mbox_t* mbox, void** msg) {
 }
 
 err_t sys_mbox_trypost(sys_mbox_t* mbox, void* msg) {
-    furi_check(mbox);
+    furi_assert(mbox);
     FuriStatus ret = furi_message_queue_put(mbox->mbx, &msg, 0);
     if(ret != FuriStatusOk) {
         SYS_STATS_INC(mbox.err);
@@ -169,7 +170,7 @@ struct ThreadWrapper {
 };
 
 static int32_t sys_thread_wrapper(void* arg) {
-    furi_check(arg);
+    furi_assert(arg);
     ThreadWrapper* thread_wrapper = (ThreadWrapper*)arg;
 
     thread_wrapper->function(thread_wrapper->arg);

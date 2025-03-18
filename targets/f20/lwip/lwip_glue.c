@@ -40,7 +40,7 @@ void sys_arch_msleep(uint32_t delay_ms) {
 
 /* Create a new mutex*/
 err_t sys_mutex_new(sys_mutex_t* mutex) {
-    furi_assert(mutex);
+    furi_check(mutex);
 
     mutex->mut = furi_mutex_alloc(FuriMutexTypeNormal);
     SYS_STATS_INC_USED(mutex);
@@ -48,17 +48,17 @@ err_t sys_mutex_new(sys_mutex_t* mutex) {
 }
 
 void sys_mutex_lock(sys_mutex_t* mutex) {
-    furi_assert(mutex);
+    furi_check(mutex);
     furi_mutex_acquire(mutex->mut, FuriWaitForever);
 }
 
 void sys_mutex_unlock(sys_mutex_t* mutex) {
-    furi_assert(mutex);
+    furi_check(mutex);
     furi_mutex_release(mutex->mut);
 }
 
 void sys_mutex_free(sys_mutex_t* mutex) {
-    furi_assert(mutex);
+    furi_check(mutex);
     SYS_STATS_DEC(mutex.used);
     furi_mutex_free(mutex->mut);
     mutex->mut = NULL;
@@ -67,8 +67,8 @@ void sys_mutex_free(sys_mutex_t* mutex) {
 #endif
 
 err_t sys_sem_new(sys_sem_t* sem, uint8_t initial_count) {
-    furi_assert(sem);
-    furi_assert(initial_count <= 1);
+    furi_check(sem);
+    furi_check(initial_count <= 1);
 
     sem->sem = furi_semaphore_alloc(1, initial_count);
     SYS_STATS_INC_USED(sem);
@@ -76,13 +76,13 @@ err_t sys_sem_new(sys_sem_t* sem, uint8_t initial_count) {
 }
 
 void sys_sem_signal(sys_sem_t* sem) {
-    furi_assert(sem);
+    furi_check(sem);
 
     furi_semaphore_release(sem->sem);
 }
 
 uint32_t sys_arch_sem_wait(sys_sem_t* sem, uint32_t timeout_ms) {
-    furi_assert(sem);
+    furi_check(sem);
 
     if(!timeout_ms) {
         furi_semaphore_acquire(sem->sem, FuriWaitForever);
@@ -100,15 +100,15 @@ uint32_t sys_arch_sem_wait(sys_sem_t* sem, uint32_t timeout_ms) {
 }
 
 void sys_sem_free(sys_sem_t* sem) {
-    furi_assert(sem);
+    furi_check(sem);
     SYS_STATS_DEC(sem.used);
     furi_semaphore_free(sem->sem);
     sem->sem = NULL;
 }
 
 err_t sys_mbox_new(sys_mbox_t* mbox, int size) {
-    furi_assert(mbox);
-    furi_assert(size > 0);
+    furi_check(mbox);
+    furi_check(size > 0);
 
     mbox->mbx = furi_message_queue_alloc(size, sizeof(void*));
     SYS_STATS_INC_USED(mbox);
@@ -116,13 +116,13 @@ err_t sys_mbox_new(sys_mbox_t* mbox, int size) {
 }
 
 void sys_mbox_post(sys_mbox_t* mbox, void* msg) {
-    furi_assert(mbox);
+    furi_check(mbox);
 
     furi_message_queue_put(mbox->mbx, &msg, FuriWaitForever);
 }
 
 err_t sys_mbox_trypost(sys_mbox_t* mbox, void* msg) {
-    furi_assert(mbox);
+    furi_check(mbox);
 
     FuriStatus ret = furi_message_queue_put(mbox->mbx, &msg, 0);
     if(ret != FuriStatusOk) {
@@ -138,7 +138,7 @@ err_t sys_mbox_trypost_fromisr(sys_mbox_t* mbox, void* msg) {
 }
 
 uint32_t sys_arch_mbox_fetch(sys_mbox_t* mbox, void** msg, uint32_t timeout_ms) {
-    furi_assert(mbox);
+    furi_check(mbox);
 
     void* msg_dummy;
     if(!msg) {
@@ -164,7 +164,7 @@ uint32_t sys_arch_mbox_fetch(sys_mbox_t* mbox, void** msg, uint32_t timeout_ms) 
 }
 
 uint32_t sys_arch_mbox_tryfetch(sys_mbox_t* mbox, void** msg) {
-    furi_assert(mbox);
+    furi_check(mbox);
 
     void* msg_dummy;
     if(!msg) {
@@ -181,7 +181,7 @@ uint32_t sys_arch_mbox_tryfetch(sys_mbox_t* mbox, void** msg) {
 }
 
 void sys_mbox_free(sys_mbox_t* mbox) {
-    furi_assert(mbox);
+    furi_check(mbox);
 
     furi_message_queue_free(mbox->mbx);
     SYS_STATS_DEC(mbox.used);
@@ -194,7 +194,7 @@ struct ThreadWrapper {
 };
 
 static int32_t sys_thread_wrapper(void* arg) {
-    furi_assert(arg);
+    furi_check(arg);
     ThreadWrapper* thread_wrapper = arg;
 
     thread_wrapper->function(thread_wrapper->arg);
