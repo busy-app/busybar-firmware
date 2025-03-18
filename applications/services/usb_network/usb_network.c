@@ -165,10 +165,10 @@ static void usb_network_init_netif(void* arg) {
         ;
 
     // Prepare DHCP configuration
-    uint8_t counter = 0;
+    uint8_t counter = address.ip.d;
     for(uint8_t i = 0; i < DHCP_ENTRIES_MAX; i++) {
         // check for collision with our own address
-        if(counter == address.ip.d) {
+        if(counter == address.ip.d || counter == 0) {
             counter++;
         }
 

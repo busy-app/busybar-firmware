@@ -27,8 +27,6 @@ const uint8_t* usb_network_settings_get_mac_address(void);
 
 const char* usb_network_settings_get_hostname(void);
 
-const char* usb_network_settings_get_webusb_url(void);
-
 #ifdef __cplusplus
 }
 #endif

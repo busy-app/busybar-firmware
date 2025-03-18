@@ -14,7 +14,6 @@
 #define TAG "USB NET"
 
 static FuriString* hostname = NULL;
-static FuriString* webusb_url = NULL;
 
 static UsbNetworkAddress address = {
     .ip = {10, 0, 4, 20},
@@ -35,11 +34,6 @@ const uint8_t* usb_network_settings_get_mac_address(void) {
 const char* usb_network_settings_get_hostname(void) {
     furi_check(hostname);
     return furi_string_get_cstr(hostname);
-}
-
-const char* usb_network_settings_get_webusb_url(void) {
-    furi_check(webusb_url);
-    return furi_string_get_cstr(webusb_url);
 }
 
 static bool furi_string_from_cjson(FuriString* str, cJSON* root, const char* key) {
@@ -100,7 +94,6 @@ static bool usb_settings_load(Storage* storage) {
         cJSON* root = cJSON_Parse(buffer);
         if(root) {
             furi_string_from_cjson(hostname, root, "hostname");
-            furi_string_from_cjson(webusb_url, root, "webusb_url");
             usb_network_ip_from_cjson(&address.ip, root, "ip");
             usb_network_ip_from_cjson(&address.netmask, root, "netmask");
         }
@@ -114,14 +107,12 @@ static bool usb_settings_load(Storage* storage) {
 
 void usb_network_settings_init(void) {
     hostname = furi_string_alloc_set(DEFAULT_HOSTNAME);
-    webusb_url = furi_string_alloc_set(DEFAULT_HOSTNAME DEFAULT_WEBUSB_ZONE);
 
     Storage* storage = furi_record_open(RECORD_STORAGE);
     usb_settings_load(storage);
     furi_record_close(RECORD_STORAGE);
 
     FURI_LOG_D(TAG, "Hostname: %s", furi_string_get_cstr(hostname));
-    FURI_LOG_D(TAG, "WebUSB URL: %s", furi_string_get_cstr(webusb_url));
     FURI_LOG_D(TAG, "IP: %d.%d.%d.%d", address.ip.a, address.ip.b, address.ip.c, address.ip.d);
     FURI_LOG_D(
         TAG,

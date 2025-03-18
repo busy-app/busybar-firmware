@@ -252,17 +252,19 @@ bool tud_vendor_control_xfer_cb(
         case UsbVendorReqWebUsb:
 
             // Get landing page url
-            const char* webusb_url_str = usb_network_settings_get_webusb_url();
+            const char* hostname = usb_network_settings_get_hostname();
+            const char* zone = ".local";
 
             size_t webusb_url_desc_size =
-                sizeof(tusb_desc_webusb_url_t) + strlen(webusb_url_str) + 1;
+                sizeof(tusb_desc_webusb_url_t) + strlen(hostname) + strlen(zone) + 1;
             tusb_desc_webusb_url_t* webusb_url = alloca(webusb_url_desc_size);
             memset(webusb_url, 0, webusb_url_desc_size);
 
-            webusb_url->bLength = 3 + strlen(webusb_url_str);
+            webusb_url->bLength = 3 + strlen(hostname) + strlen(zone);
             webusb_url->bDescriptorType = 3; // WEBUSB URL type
             webusb_url->bScheme = 0; // 0: http, 1: https
-            strcpy(webusb_url->url, webusb_url_str);
+            strcpy(webusb_url->url, hostname);
+            strcat(webusb_url->url, zone);
 
             return tud_control_xfer(
                 rhport, request, (void*)(uintptr_t)webusb_url, webusb_url->bLength);
