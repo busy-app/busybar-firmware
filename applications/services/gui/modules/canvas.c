@@ -37,8 +37,6 @@ static void canvas_lvgl_destructor(const lv_obj_class_t* class_p, lv_obj_t* obj)
     UNUSED(class_p);
 
     Canvas* instance = (Canvas*)obj;
-
-    lv_obj_delete(instance->canvas);
     lv_draw_buf_destroy(instance->draw_buf);
 }
 
