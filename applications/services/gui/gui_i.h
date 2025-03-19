@@ -39,10 +39,10 @@ typedef struct {
     void* driver;
 } GuiDisplay;
 
-struct GuiInputSubscription {
+typedef struct {
     GuiInputCallback callback;
     void* context;
-};
+} GuiInputSubscription;
 
 LIST_DEF(GuiInputSubscriptionList, GuiInputSubscription, M_POD_OPLIST);
 

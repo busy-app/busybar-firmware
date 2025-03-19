@@ -289,27 +289,33 @@ Widget* gui_layer_get_root_widget(GuiLayer* layer, GuiDisplayId display_id) {
     return (Widget*)layer->root_objs[display_id];
 }
 
-GuiInputSubscription*
-    gui_layer_subscribe_to_input_events(GuiLayer* layer, GuiInputCallback callback, void* context) {
+void gui_layer_add_input_callback(GuiLayer* layer, GuiInputCallback callback, void* context) {
     furi_check(layer);
     furi_check(callback);
-
-    GuiInputSubscription* sub = GuiInputSubscriptionList_push_new(layer->input_list);
-    sub->callback = callback;
-    sub->context = context;
-
-    return sub;
-}
-
-void gui_layer_unsubscribe_from_input_events(GuiLayer* layer, GuiInputSubscription* subscription) {
-    furi_check(layer);
-    furi_check(subscription);
 
     GuiInputSubscriptionList_it_t it;
     for(GuiInputSubscriptionList_it(it, layer->input_list); !GuiInputSubscriptionList_end_p(it);
         GuiInputSubscriptionList_next(it)) {
         const GuiInputSubscription* item = GuiInputSubscriptionList_cref(it);
-        if(item == subscription) {
+        if(item->callback == callback) {
+            furi_crash(TAG ": Callback alrady registered");
+        }
+    }
+
+    GuiInputSubscription* item = GuiInputSubscriptionList_push_new(layer->input_list);
+    item->callback = callback;
+    item->context = context;
+}
+
+void gui_layer_remove_input_callback(GuiLayer* layer, GuiInputCallback callback) {
+    furi_check(layer);
+    furi_check(callback);
+
+    GuiInputSubscriptionList_it_t it;
+    for(GuiInputSubscriptionList_it(it, layer->input_list); !GuiInputSubscriptionList_end_p(it);
+        GuiInputSubscriptionList_next(it)) {
+        const GuiInputSubscription* item = GuiInputSubscriptionList_cref(it);
+        if(item->callback == callback) {
             GuiInputSubscriptionList_remove(layer->input_list, it);
             break;
         }

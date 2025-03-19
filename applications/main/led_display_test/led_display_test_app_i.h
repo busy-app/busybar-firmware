@@ -23,7 +23,6 @@ typedef struct {
     FuriMessageQueue* event_queue;
     FuriEventLoopTimer* timer;
     Gui* gui;
-    GuiInputSubscription* input_events;
 
     // Back display
     Widget* app_window;

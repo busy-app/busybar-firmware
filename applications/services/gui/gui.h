@@ -36,8 +36,13 @@ typedef struct Gui Gui;
 /** GuiLayer opaque type declaration. */
 typedef struct GuiLayer GuiLayer;
 
-typedef struct GuiInputSubscription GuiInputSubscription;
-
+/**
+ * @brief Input callback function type.
+ *
+ * @param[in] event pointer to the input event that has occurred
+ * @param[in,out] context pointer to a user-specific object, given upon callback registration
+ * @returns true if the event was consumed (handled) by the recipient, false otherwise
+ */
 typedef bool (*GuiInputCallback)(const InputEvent* event, void* context);
 
 /**
@@ -79,15 +84,21 @@ GuiLayer* gui_get_layer(Gui* instance, GuiLayerId layer_id);
 Widget* gui_layer_get_root_widget(GuiLayer* layer, GuiDisplayId display_id);
 
 /**
- * @brief
+ * @brief Register a callback to report for unhandled input events on a certain layer.
+ *
+ * @param[in,out] layer pointer to the layer to be modified
+ * @param[in] callback pointer to the function to be called upon eligible events
+ * @param[in,out] context pointer to a user-specific object (will be passed to the callback)
  */
-GuiInputSubscription*
-    gui_layer_subscribe_to_input_events(GuiLayer* layer, GuiInputCallback callback, void* context);
+void gui_layer_add_input_callback(GuiLayer* layer, GuiInputCallback callback, void* context);
 
 /**
- * @brief
+ * @brief Unregister a previously registered input callback.
+ *
+ * @param[in,out] layer pointer to the layer to be modified
+ * @param[in] callback pointer to the function to be unregistered
  */
-void gui_layer_unsubscribe_from_input_events(GuiLayer* layer, GuiInputSubscription* subscription);
+void gui_layer_remove_input_callback(GuiLayer* layer, GuiInputCallback callback);
 
 /**
  * @brief Shorthand for automatically locking and unlocking the GUI.

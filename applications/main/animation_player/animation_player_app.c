@@ -56,8 +56,7 @@ static AnimationPlayerApp* animation_player_app_alloc(void* args) {
 
     with_gui(instance->gui, {
         GuiLayer* main_layer = gui_get_layer(instance->gui, GuiLayerIdMain);
-        instance->input_events = gui_layer_subscribe_to_input_events(
-            main_layer, animation_player_app_input_callback, instance);
+        gui_layer_add_input_callback(main_layer, animation_player_app_input_callback, instance);
 
         Widget* root;
         root = gui_layer_get_root_widget(main_layer, GuiDisplayIdBack);
@@ -88,7 +87,7 @@ static void animation_player_app_free(AnimationPlayerApp* instance) {
 
     with_gui(instance->gui, {
         GuiLayer* main_layer = gui_get_layer(instance->gui, GuiLayerIdMain);
-        gui_layer_unsubscribe_from_input_events(main_layer, instance->input_events);
+        gui_layer_remove_input_callback(main_layer, animation_player_app_input_callback);
 
         anim_image_stop(instance->anim_image);
         anim_image_free(instance->anim_image);

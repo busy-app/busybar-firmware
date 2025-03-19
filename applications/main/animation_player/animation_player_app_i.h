@@ -16,7 +16,6 @@ typedef struct {
     FuriEventLoop* event_loop;
     FuriMessageQueue* event_queue;
     Gui* gui;
-    GuiInputSubscription* input_events;
 
     AnimImage* anim_image;
     Label* label;

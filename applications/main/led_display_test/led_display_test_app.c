@@ -104,8 +104,7 @@ static LedDisplayTestApp* led_display_test_app_alloc(void) {
 
     with_gui(instance->gui, {
         GuiLayer* main_layer = gui_get_layer(instance->gui, GuiLayerIdMain);
-        instance->input_events = gui_layer_subscribe_to_input_events(
-            main_layer, led_display_test_app_input_callback, instance);
+        gui_layer_add_input_callback(main_layer, led_display_test_app_input_callback, instance);
 
         Widget* root;
 
@@ -143,7 +142,7 @@ static void led_display_test_app_free(LedDisplayTestApp* instance) {
 
     with_gui(instance->gui, {
         GuiLayer* main_layer = gui_get_layer(instance->gui, GuiLayerIdMain);
-        gui_layer_unsubscribe_from_input_events(main_layer, instance->input_events);
+        gui_layer_remove_input_callback(main_layer, led_display_test_app_input_callback);
 
         widget_free(instance->app_window);
         canvas_free(instance->canvas);
