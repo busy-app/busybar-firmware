@@ -39,17 +39,6 @@ typedef enum {
 } Align;
 
 /**
- * @brief Widget input callback function type.
- *
- * The input callback will be called only if there are
- * input events that were not consumed by the widget.
- *
- * @param[in] event pointer to the occurred event
- * @param[in,out] context pointer to a user-specified object
- */
-typedef void (*WidgetInputCallback)(const InputEvent* event, void* context);
-
-/**
  * @brief Create a new widget instance.
  *
  * Either a regular Widget or a root widget can be used as the parent.

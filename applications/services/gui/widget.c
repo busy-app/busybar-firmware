@@ -21,12 +21,6 @@ void widget_free(Widget* instance) {
     lv_obj_delete((lv_obj_t*)instance);
 }
 
-void widget_set_input_callback(Widget* instance, WidgetInputCallback callback, void* context) {
-    UNUSED(instance);
-    UNUSED(callback);
-    UNUSED(context);
-}
-
 void widget_set_visible(Widget* instance, bool visible) {
     furi_check(instance);
     if(visible) {
