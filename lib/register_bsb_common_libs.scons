@@ -5,6 +5,7 @@ for libname in [
     "tinyusb",
     "nema_gfx",
     "lwip",
+    "cjson",
     "lvgl",
     "lvgl_addons",
     "network",
