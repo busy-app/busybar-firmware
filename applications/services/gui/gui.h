@@ -33,9 +33,12 @@ typedef enum {
 /** Gui opaque type declaration. */
 typedef struct Gui Gui;
 
+/** GuiLayer opaque type declaration. */
+typedef struct GuiLayer GuiLayer;
+
 typedef struct GuiInputSubscription GuiInputSubscription;
 
-typedef void (*GuiInputCallback)(const InputEvent* event, void* context);
+typedef bool (*GuiInputCallback)(const InputEvent* event, void* context);
 
 /**
  * @brief Lock the GUI system.
@@ -60,21 +63,31 @@ void gui_lock(Gui* instance);
 void gui_unlock(Gui* instance);
 
 /**
- * @brief Get the root widget of a certain Display and Layer.
+ * @brief
+ */
+GuiLayer* gui_get_layer(Gui* instance, GuiLayerId layer_id);
+
+/**
+ * @brief Get the root widget of a Layer on a certain display.
  *
  * A root widget cannot be moved, resized or used as the input event source.
  *
- * @param[in,out] instance pointer to the Gui instance
+ * @param[in,out] layer pointer to the GuiLayer instance
  * @param[in] display_id identifier of the display required
- * @param[in] layer_id identifier of the layer required
  * @return pointer to the root widget
  */
-Widget* gui_get_root_widget(Gui* instance, GuiDisplayId display_id, GuiLayerId layer_id);
+Widget* gui_layer_get_root_widget(GuiLayer* layer, GuiDisplayId display_id);
 
+/**
+ * @brief
+ */
 GuiInputSubscription*
-    gui_subscribe_to_input_events(Gui* instance, GuiInputCallback callback, void* context);
+    gui_layer_subscribe_to_input_events(GuiLayer* layer, GuiInputCallback callback, void* context);
 
-void gui_unsubscribe_from_input_events(Gui* instance, GuiInputSubscription* subscription);
+/**
+ * @brief
+ */
+void gui_layer_unsubscribe_from_input_events(GuiLayer* layer, GuiInputSubscription* subscription);
 
 /**
  * @brief Shorthand for automatically locking and unlocking the GUI.

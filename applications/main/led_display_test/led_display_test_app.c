@@ -4,31 +4,39 @@
 
 #define TAG "LedDisplayTest"
 
-static void led_display_test_app_input_callback(const InputEvent* event, void* context) {
+static bool led_display_test_app_input_callback(const InputEvent* event, void* context) {
     furi_assert(event);
     furi_assert(context);
 
     LedDisplayTestApp* instance = context;
+
+    bool consumed = false;
 
     if(event->type == InputTypeShort) {
         LedDisplayTestAppEvent app_event;
 
         if(event->key == InputKeyUp) {
             app_event = LedDisplayTestAppEventPrevColor;
+            consumed = true;
         } else if(event->key == InputKeyDown) {
             app_event = LedDisplayTestAppEventNextColor;
+            consumed = true;
         } else if(event->key == InputKeyBack) {
             app_event = LedDisplayTestAppEventExit;
+            consumed = true;
         } else if(event->key == InputKeyOk || event->key == InputKeyStart) {
             app_event = LedDisplayTestAppEventNextPattern;
-        } else {
-            return;
+            consumed = true;
         }
 
-        furi_check(
-            furi_message_queue_put(instance->event_queue, &app_event, FuriWaitForever) ==
-            FuriStatusOk);
+        if(consumed) {
+            furi_check(
+                furi_message_queue_put(instance->event_queue, &app_event, FuriWaitForever) ==
+                FuriStatusOk);
+        }
     }
+
+    return consumed;
 }
 
 static void led_display_test_app_update(LedDisplayTestApp* instance) {
@@ -95,13 +103,14 @@ static LedDisplayTestApp* led_display_test_app_alloc(void) {
     instance->gui = furi_record_open(RECORD_GUI);
 
     with_gui(instance->gui, {
-        instance->input_events = gui_subscribe_to_input_events(
-            instance->gui, led_display_test_app_input_callback, instance);
+        GuiLayer* main_layer = gui_get_layer(instance->gui, GuiLayerIdMain);
+        instance->input_events = gui_layer_subscribe_to_input_events(
+            main_layer, led_display_test_app_input_callback, instance);
 
         Widget* root;
 
         // Back display
-        root = gui_get_root_widget(instance->gui, GuiDisplayIdBack, GuiLayerIdMain);
+        root = gui_layer_get_root_widget(main_layer, GuiDisplayIdBack);
 
         instance->app_window = widget_alloc(root);
         instance->static_label = label_alloc(instance->app_window);
@@ -116,7 +125,7 @@ static LedDisplayTestApp* led_display_test_app_alloc(void) {
         widget_set_pos(label_get_base(instance->color_label), 10, 40);
 
         // Front display
-        root = gui_get_root_widget(instance->gui, GuiDisplayIdFront, GuiLayerIdMain);
+        root = gui_layer_get_root_widget(main_layer, GuiDisplayIdFront);
         instance->canvas = canvas_alloc(root, DOT_MATRIX_W, DOT_MATRIX_H);
     });
 
@@ -133,7 +142,9 @@ static void led_display_test_app_free(LedDisplayTestApp* instance) {
     furi_assert(instance);
 
     with_gui(instance->gui, {
-        gui_unsubscribe_from_input_events(instance->gui, instance->input_events);
+        GuiLayer* main_layer = gui_get_layer(instance->gui, GuiLayerIdMain);
+        gui_layer_unsubscribe_from_input_events(main_layer, instance->input_events);
+
         widget_free(instance->app_window);
         canvas_free(instance->canvas);
     });

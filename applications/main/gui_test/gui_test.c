@@ -85,15 +85,19 @@ static void gui_test_switch_changed_callback(VarItem* item, void* context) {
     FURI_LOG_I(TAG, "Switch set: %s", value ? "ON" : "OFF");
 }
 
-static void gui_test_input_callback(const InputEvent* event, void* context) {
+static bool gui_test_input_callback(const InputEvent* event, void* context) {
     furi_assert(event);
     furi_assert(context);
-
     GuiTestApp* instance = context;
+
+    bool consumed = false;
 
     if(event->type == InputTypeShort && event->key == InputKeyBack) {
         furi_event_loop_stop(instance->event_loop);
+        consumed = true;
     }
+
+    return consumed;
 }
 
 GuiTestApp* gui_test_alloc(void) {
@@ -103,10 +107,11 @@ GuiTestApp* gui_test_alloc(void) {
     instance->gui = furi_record_open(RECORD_GUI);
 
     with_gui(instance->gui, {
+        GuiLayer* main_layer = gui_get_layer(instance->gui, GuiLayerIdMain);
         instance->input_events =
-            gui_subscribe_to_input_events(instance->gui, gui_test_input_callback, instance);
+            gui_layer_subscribe_to_input_events(main_layer, gui_test_input_callback, instance);
 
-        Widget* root = gui_get_root_widget(instance->gui, GuiDisplayIdFront, GuiLayerIdMain);
+        Widget* root = gui_layer_get_root_widget(main_layer, GuiDisplayIdFront);
         instance->var_list = var_item_list_alloc(root);
 
         VarItem* item;
@@ -179,7 +184,8 @@ GuiTestApp* gui_test_alloc(void) {
 
 void gui_test_free(GuiTestApp* instance) {
     with_gui(instance->gui, {
-        gui_unsubscribe_from_input_events(instance->gui, instance->input_events);
+        GuiLayer* main_layer = gui_get_layer(instance->gui, GuiLayerIdMain);
+        gui_layer_unsubscribe_from_input_events(main_layer, instance->input_events);
         var_item_list_free(instance->var_list);
     });
 

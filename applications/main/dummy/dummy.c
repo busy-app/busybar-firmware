@@ -19,18 +19,24 @@ typedef struct {
     bool exit_on_back;
 } Dummy;
 
-static void dummy_input_callback(const InputEvent* event, void* context) {
+static bool dummy_input_callback(const InputEvent* event, void* context) {
     furi_assert(event);
     furi_assert(context);
     Dummy* instance = context;
 
+    bool consumed = false;
+
     if(event->type == InputTypeShort) {
         if(event->key == InputKeyBack) {
             furi_event_loop_set_custom_event(instance->event_loop, DummyCustomEventExit);
+            consumed = true;
         } else if(event->key == InputKeyStart) {
             furi_event_loop_set_custom_event(instance->event_loop, DummyCustomEventSound);
+            consumed = true;
         }
     }
+
+    return consumed;
 }
 
 static void dummy_custom_event_callback(uint32_t events, void* context) {
@@ -57,10 +63,11 @@ static Dummy* dummy_alloc(const char* message) {
         instance->event_loop, dummy_custom_event_callback, instance);
 
     with_gui(instance->gui, {
+        GuiLayer* main_layer = gui_get_layer(instance->gui, GuiLayerIdMain);
         instance->input_events =
-            gui_subscribe_to_input_events(instance->gui, dummy_input_callback, instance);
+            gui_layer_subscribe_to_input_events(main_layer, dummy_input_callback, instance);
 
-        Widget* root = gui_get_root_widget(instance->gui, GuiDisplayIdFront, GuiLayerIdMain);
+        Widget* root = gui_layer_get_root_widget(main_layer, GuiDisplayIdFront);
         instance->label = label_alloc(root);
 
         label_set_text(instance->label, message ? message : "Hello There");
@@ -77,7 +84,8 @@ static Dummy* dummy_alloc(const char* message) {
 
 static void dummy_free(Dummy* instance) {
     with_gui(instance->gui, {
-        gui_unsubscribe_from_input_events(instance->gui, instance->input_events);
+        GuiLayer* main_layer = gui_get_layer(instance->gui, GuiLayerIdMain);
+        gui_layer_unsubscribe_from_input_events(main_layer, instance->input_events);
         label_free(instance->label);
     });
 

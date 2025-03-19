@@ -10,16 +10,21 @@ typedef struct {
     Label* label;
 } MessageApp;
 
-static void message_app_input_callback(const InputEvent* event, void* context) {
+static bool message_app_input_callback(const InputEvent* event, void* context) {
     furi_assert(event);
     furi_assert(context);
     MessageApp* instance = context;
 
+    bool consumed = false;
+
     if(event->type == InputTypeShort) {
         if(event->key == InputKeyBack) {
             furi_event_loop_stop(instance->event_loop);
+            consumed = true;
         }
     }
+
+    return consumed;
 }
 
 static MessageApp* message_app_alloc(const char* message) {
@@ -28,9 +33,10 @@ static MessageApp* message_app_alloc(const char* message) {
     instance->gui = furi_record_open(RECORD_GUI);
 
     with_gui(instance->gui, {
+        GuiLayer* main_layer = gui_get_layer(instance->gui, GuiLayerIdMain);
         instance->input_events =
-            gui_subscribe_to_input_events(instance->gui, message_app_input_callback, instance);
-        Widget* root = gui_get_root_widget(instance->gui, GuiDisplayIdFront, GuiLayerIdMain);
+            gui_layer_subscribe_to_input_events(main_layer, message_app_input_callback, instance);
+        Widget* root = gui_layer_get_root_widget(main_layer, GuiDisplayIdFront);
         instance->label = label_alloc(root);
         label_set_text(instance->label, message ? message : "Hello There");
     });
@@ -40,7 +46,8 @@ static MessageApp* message_app_alloc(const char* message) {
 
 static void message_app_free(MessageApp* instance) {
     with_gui(instance->gui, {
-        gui_unsubscribe_from_input_events(instance->gui, instance->input_events);
+        GuiLayer* main_layer = gui_get_layer(instance->gui, GuiLayerIdMain);
+        gui_layer_unsubscribe_from_input_events(main_layer, instance->input_events);
         label_free(instance->label);
     });
 

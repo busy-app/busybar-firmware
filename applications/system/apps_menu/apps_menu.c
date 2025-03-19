@@ -65,7 +65,9 @@ static AppsMenu* apps_menu_alloc(void) {
         instance);
 
     with_gui(instance->gui, {
-        Widget* root = gui_get_root_widget(instance->gui, GuiDisplayIdFront, GuiLayerIdMain);
+        GuiLayer* main_layer = gui_get_layer(instance->gui, GuiLayerIdMain);
+        Widget* root = gui_layer_get_root_widget(main_layer, GuiDisplayIdFront);
+
         instance->submenu = submenu_alloc(root);
 
         for(uint32_t i = 0; i < FLIPPER_APPS_COUNT; ++i) {

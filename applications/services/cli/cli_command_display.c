@@ -45,7 +45,8 @@ static void cli_command_show(Cli* cli, FuriString* args, GuiDisplayId id) {
     Image* image;
 
     with_gui(gui, {
-        Widget* root = gui_get_root_widget(gui, id, GuiLayerIdSystem);
+        GuiLayer* system_layer = gui_get_layer(gui, GuiLayerIdSystem);
+        Widget* root = gui_layer_get_root_widget(system_layer, id);
         image = image_alloc(root);
         image_set_source(image, furi_string_get_cstr(args));
     });

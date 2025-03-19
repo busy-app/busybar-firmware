@@ -31,8 +31,6 @@
 
 #define TICK_PERIOD_MS (8)
 
-LIST_DEF(InputCallbackList, GuiInputCallback, M_PTR_OPLIST);
-
 typedef struct {
     lv_display_t* lv_display;
     uint8_t* draw_buffer;
@@ -41,12 +39,24 @@ typedef struct {
     void* driver;
 } GuiDisplay;
 
+struct GuiInputSubscription {
+    GuiInputCallback callback;
+    void* context;
+};
+
+LIST_DEF(GuiInputSubscriptionList, GuiInputSubscription, M_POD_OPLIST);
+
+struct GuiLayer {
+    GuiInputSubscriptionList_t input_list;
+    lv_obj_t* root_objs[GuiDisplayIdMax];
+};
+
 struct Gui {
     Power* power;
     FuriEventLoop* event_loop;
     FuriMessageQueue* input_queue;
-    FuriPubSub* input_pubsub;
     FuriMutex* access_mutex;
     DotMatrixSrv* dot_matrix;
     GuiDisplay displays[GuiDisplayIdMax];
+    GuiLayer layers[GuiLayerIdMax];
 };

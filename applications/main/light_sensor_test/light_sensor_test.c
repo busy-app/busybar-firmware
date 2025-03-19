@@ -19,13 +19,16 @@ static void light_sensor_test_app_update(LightSensorTestApp* instance) {
     });
 }
 
-static void ligh_sensor_test_app_input_callback(const InputEvent* event, void* context) {
+static bool ligh_sensor_test_app_input_callback(const InputEvent* event, void* context) {
     furi_assert(event);
     furi_assert(context);
 
     LightSensorTestApp* instance = context;
 
+    bool consumed = false;
+
     if(event->type == InputTypeShort && event->key == InputKeyBack) {
+        consumed = true;
         const LightSensorTestAppEvent app_event = {
             .type = LightSensorTestAppEventExit,
         };
@@ -33,6 +36,8 @@ static void ligh_sensor_test_app_input_callback(const InputEvent* event, void* c
             furi_message_queue_put(instance->event_queue, &app_event, FuriWaitForever) ==
             FuriStatusOk);
     }
+
+    return consumed;
 }
 
 static void
@@ -108,11 +113,11 @@ static LightSensorTestApp* light_sensor_test_app_alloc(void) {
     instance->gui = furi_record_open(RECORD_GUI);
 
     with_gui(instance->gui, {
-        instance->input_events = gui_subscribe_to_input_events(
-            instance->gui, ligh_sensor_test_app_input_callback, instance);
+        GuiLayer* main_layer = gui_get_layer(instance->gui, GuiLayerIdMain);
+        instance->input_events = gui_layer_subscribe_to_input_events(
+            main_layer, ligh_sensor_test_app_input_callback, instance);
 
-        Widget* root = gui_get_root_widget(instance->gui, GuiDisplayIdBack, GuiLayerIdMain);
-
+        Widget* root = gui_layer_get_root_widget(main_layer, GuiDisplayIdBack);
         instance->app_window = widget_alloc(root);
 
         // Back screen
@@ -141,7 +146,8 @@ static void light_sensor_test_app_free(LightSensorTestApp* instance) {
     furi_check(instance);
 
     with_gui(instance->gui, {
-        gui_unsubscribe_from_input_events(instance->gui, instance->input_events);
+        GuiLayer* main_layer = gui_get_layer(instance->gui, GuiLayerIdMain);
+        gui_layer_unsubscribe_from_input_events(main_layer, instance->input_events);
         widget_free(instance->app_window);
     });
 

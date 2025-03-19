@@ -6,21 +6,26 @@
 
 #define ANIMATION_PLAYER_FILE_PATH EXT_PATH("animations/test.anim")
 
-static void animation_player_app_input_callback(const InputEvent* event, void* context) {
+static bool animation_player_app_input_callback(const InputEvent* event, void* context) {
     furi_assert(event);
     furi_assert(context);
 
     AnimationPlayerApp* instance = context;
     AnimationPlayerAppEvent app_event;
 
+    bool consumed = false;
+
     if(event->type == InputTypeShort) {
         if(event->key == InputKeyBack) {
+            consumed = true;
             app_event = AnimationPlayerAppEventExit;
             furi_check(
                 furi_message_queue_put(instance->event_queue, &app_event, FuriWaitForever) ==
                 FuriStatusOk);
         }
     }
+
+    return consumed;
 }
 
 static void animation_player_app_event_queue_callback(FuriEventLoopObject* object, void* context) {
@@ -50,16 +55,17 @@ static AnimationPlayerApp* animation_player_app_alloc(void* args) {
     instance->gui = furi_record_open(RECORD_GUI);
 
     with_gui(instance->gui, {
-        instance->input_events = gui_subscribe_to_input_events(
-            instance->gui, animation_player_app_input_callback, instance);
+        GuiLayer* main_layer = gui_get_layer(instance->gui, GuiLayerIdMain);
+        instance->input_events = gui_layer_subscribe_to_input_events(
+            main_layer, animation_player_app_input_callback, instance);
 
         Widget* root;
-        root = gui_get_root_widget(instance->gui, GuiDisplayIdBack, GuiLayerIdMain);
+        root = gui_layer_get_root_widget(main_layer, GuiDisplayIdBack);
         instance->label = label_alloc(root);
 
         widget_set_align(label_get_base(instance->label), AlignCenter);
 
-        root = gui_get_root_widget(instance->gui, GuiDisplayIdFront, GuiLayerIdMain);
+        root = gui_layer_get_root_widget(main_layer, GuiDisplayIdFront);
         instance->anim_image = anim_image_alloc(root);
 
         const char* path = (args == NULL) ? ANIMATION_PLAYER_FILE_PATH : args;
@@ -81,7 +87,9 @@ static void animation_player_app_free(AnimationPlayerApp* instance) {
     furi_check(instance);
 
     with_gui(instance->gui, {
-        gui_unsubscribe_from_input_events(instance->gui, instance->input_events);
+        GuiLayer* main_layer = gui_get_layer(instance->gui, GuiLayerIdMain);
+        gui_layer_unsubscribe_from_input_events(main_layer, instance->input_events);
+
         anim_image_stop(instance->anim_image);
         anim_image_free(instance->anim_image);
         label_free(instance->label);

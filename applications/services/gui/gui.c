@@ -102,12 +102,11 @@ static lv_obj_t* gui_get_layer_root(Gui* instance, GuiDisplayId display_id, GuiL
     return layer;
 }
 
-static bool gui_feed_input_to_layer(Gui* instance, GuiLayerId layer_id, const InputEvent* event) {
+static bool gui_layer_feed_input(GuiLayer* layer, const InputEvent* event) {
     bool consumed = false;
 
     for(GuiDisplayId display_id = 0; display_id < GuiDisplayIdMax; ++display_id) {
-        lv_obj_t* root = gui_get_layer_root(instance, display_id, layer_id);
-
+        lv_obj_t* root = layer->root_objs[display_id];
         const uint32_t child_count = lv_obj_get_child_count(root);
 
         for(uint32_t i = 0; i < child_count; ++i) {
@@ -124,6 +123,21 @@ static bool gui_feed_input_to_layer(Gui* instance, GuiLayerId layer_id, const In
     return consumed;
 }
 
+static bool gui_layer_feed_user_input(GuiLayer* layer, const InputEvent* event) {
+    bool consumed = false;
+
+    GuiInputSubscriptionList_it_t it;
+    for(GuiInputSubscriptionList_it(it, layer->input_list); !GuiInputSubscriptionList_end_p(it);
+        GuiInputSubscriptionList_next(it)) {
+        const GuiInputSubscription* item = GuiInputSubscriptionList_cref(it);
+        if(item->callback(event, item->context)) {
+            consumed = true;
+        }
+    }
+
+    return consumed;
+}
+
 static void gui_input_queue_callback(FuriEventLoopObject* object, void* context) {
     furi_assert(context);
 
@@ -134,17 +148,14 @@ static void gui_input_queue_callback(FuriEventLoopObject* object, void* context)
         InputEvent event;
 
         while(furi_message_queue_get(instance->input_queue, &event, 0) == FuriStatusOk) {
-            bool consumed = false;
-
             for(GuiLayerId id = GuiLayerIdSystem; id < GuiLayerIdMax; ++id) {
-                if(gui_feed_input_to_layer(instance, id, &event)) {
-                    consumed = true;
+                GuiLayer* layer = &instance->layers[id];
+                if(gui_layer_feed_input(layer, &event)) {
                     break;
                 }
-            }
-
-            if(!consumed) {
-                furi_pubsub_publish(instance->input_pubsub, &event);
+                if(gui_layer_feed_user_input(layer, &event)) {
+                    break;
+                }
             }
         }
 
@@ -197,6 +208,16 @@ static void gui_init_input(Gui* instance) {
     furi_pubsub_subscribe(input_events, gui_input_pubsub_callback, instance);
 }
 
+static void gui_init_layers(Gui* instance) {
+    for(GuiLayerId layer_id = GuiLayerIdSystem; layer_id < GuiLayerIdMax; ++layer_id) {
+        GuiLayer* layer = &instance->layers[layer_id];
+        for(GuiDisplayId display_id = 0; display_id < GuiDisplayIdMax; ++display_id) {
+            layer->root_objs[display_id] = gui_get_layer_root(instance, display_id, layer_id);
+        }
+        GuiInputSubscriptionList_init(layer->input_list);
+    }
+}
+
 static Gui* gui_alloc(void) {
     Gui* instance = malloc(sizeof(Gui));
     // Must be first to ensure that power subsystem is OK
@@ -207,7 +228,6 @@ static Gui* gui_alloc(void) {
     instance->access_mutex = furi_mutex_alloc(FuriMutexTypeNormal);
     instance->dot_matrix = furi_record_open(RECORD_DOT_MATRIX);
     instance->input_queue = furi_message_queue_alloc(16, sizeof(InputEvent));
-    instance->input_pubsub = furi_pubsub_alloc();
 
     furi_event_loop_subscribe_message_queue(
         instance->event_loop,
@@ -226,6 +246,7 @@ static Gui* gui_alloc(void) {
 
     gui_init_front(&instance->displays[GuiDisplayIdFront]);
     gui_init_back(&instance->displays[GuiDisplayIdBack]);
+    gui_init_layers(instance);
     gui_init_input(instance);
 
     furi_record_create(RECORD_GUI, instance);
@@ -253,41 +274,44 @@ void gui_unlock(Gui* instance) {
     furi_check(furi_mutex_release(instance->access_mutex) == FuriStatusOk);
 }
 
-Widget* gui_get_root_widget(Gui* instance, GuiDisplayId display_id, GuiLayerId layer_id) {
+GuiLayer* gui_get_layer(Gui* instance, GuiLayerId layer_id) {
     furi_check(instance);
-    furi_check(display_id < GuiDisplayIdMax);
+    furi_check(layer_id < GuiLayerIdMax);
     furi_check(IS_OWNER(instance->access_mutex));
 
-    return (Widget*)gui_get_layer_root(instance, display_id, layer_id);
+    return &instance->layers[layer_id];
 }
 
-void gui_add_active_widget(Gui* instance, Widget* widget) {
-    UNUSED(instance);
-    UNUSED(widget);
-}
+Widget* gui_layer_get_root_widget(GuiLayer* layer, GuiDisplayId display_id) {
+    furi_check(layer);
+    furi_check(display_id < GuiDisplayIdMax);
 
-void gui_remove_active_widget(Gui* instance, Widget* widget) {
-    UNUSED(instance);
-    UNUSED(widget);
+    return (Widget*)layer->root_objs[display_id];
 }
 
 GuiInputSubscription*
-    gui_subscribe_to_input_events(Gui* instance, GuiInputCallback callback, void* context) {
-    furi_check(instance);
+    gui_layer_subscribe_to_input_events(GuiLayer* layer, GuiInputCallback callback, void* context) {
+    furi_check(layer);
     furi_check(callback);
-    furi_check(IS_OWNER(instance->access_mutex));
-    // Safe, same signature
-    FuriPubSubCallback pubsub_callback = (FuriPubSubCallback)callback;
-    FuriPubSubSubscription* subscription =
-        furi_pubsub_subscribe(instance->input_pubsub, pubsub_callback, context);
-    // Safe, nonexistent type
-    return (GuiInputSubscription*)subscription;
+
+    GuiInputSubscription* sub = GuiInputSubscriptionList_push_new(layer->input_list);
+    sub->callback = callback;
+    sub->context = context;
+
+    return sub;
 }
 
-void gui_unsubscribe_from_input_events(Gui* instance, GuiInputSubscription* subscription) {
-    furi_check(instance);
+void gui_layer_unsubscribe_from_input_events(GuiLayer* layer, GuiInputSubscription* subscription) {
+    furi_check(layer);
     furi_check(subscription);
-    furi_check(IS_OWNER(instance->access_mutex));
 
-    furi_pubsub_unsubscribe(instance->input_pubsub, (FuriPubSubSubscription*)subscription);
+    GuiInputSubscriptionList_it_t it;
+    for(GuiInputSubscriptionList_it(it, layer->input_list); !GuiInputSubscriptionList_end_p(it);
+        GuiInputSubscriptionList_next(it)) {
+        const GuiInputSubscription* item = GuiInputSubscriptionList_cref(it);
+        if(item == subscription) {
+            GuiInputSubscriptionList_remove(layer->input_list, it);
+            break;
+        }
+    }
 }
