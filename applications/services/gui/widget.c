@@ -99,6 +99,21 @@ bool widget_input(Widget* instance, const InputEvent* event) {
         consumed = instance->input_feed_callback(instance, event);
     }
 
+    if(!consumed) {
+        const uint32_t child_count = lv_obj_get_child_count((lv_obj_t*)instance);
+        for(uint32_t i = 0; i < child_count; ++i) {
+            lv_obj_t* child = lv_obj_get_child((lv_obj_t*)instance, i);
+
+            if(IS_WIDGET_CLASS(child)) {
+                // Recursion should not be a problem
+                // when the widget tree is not too deep
+                if(widget_input((Widget*)child, event)) {
+                    consumed = true;
+                }
+            }
+        }
+    }
+
     return consumed;
 }
 
