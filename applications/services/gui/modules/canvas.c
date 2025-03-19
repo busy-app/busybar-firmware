@@ -45,6 +45,9 @@ static void canvas_lvgl_destructor(const lv_obj_class_t* class_p, lv_obj_t* obj)
     lv_draw_buf_destroy(instance->draw_buf);
 }
 
+static_assert(
+    LVGL_VERSION_MAJOR == 9 && LVGL_VERSION_MINOR == 3 && LVGL_VERSION_PATCH == 0,
+    "This code was designed for LVGL v9.3.0, check lv_canvas_set_px implementation");
 static void lv_canvas_set_px_no_invalidate(
     lv_obj_t* obj,
     int32_t x,
@@ -146,6 +149,9 @@ void canvas_draw_begin(Canvas* instance) {
     instance->draw_nested++;
 }
 
+static_assert(
+    LVGL_VERSION_MAJOR == 9 && LVGL_VERSION_MINOR == 3 && LVGL_VERSION_PATCH == 0,
+    "This code was designed for LVGL v9.3.0, check lv_canvas_finish_layer implementation");
 void canvas_draw_end(Canvas* instance) {
     furi_check(instance);
     furi_check(instance->draw_nested > 0);
