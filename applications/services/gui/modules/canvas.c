@@ -113,7 +113,6 @@ static void lv_canvas_set_px_no_invalidate(
         buf->lumi = lv_color_luminance(color);
         buf->alpha = 255;
     }
-    lv_obj_invalidate(obj);
 }
 
 // Public API
@@ -154,7 +153,11 @@ void canvas_draw_end(Canvas* instance) {
     instance->draw_nested--;
 
     if(instance->draw_nested == 0) {
-        lv_canvas_finish_layer(instance->canvas, &instance->layer);
+        if(instance->layer.draw_task_head == NULL) {
+            lv_obj_invalidate(instance->canvas);
+        } else {
+            lv_canvas_finish_layer(instance->canvas, &instance->layer);
+        }
     }
 }
 
