@@ -5,8 +5,6 @@
 
 #define TAG "Gui"
 
-#define IS_OWNER(mtx) (furi_mutex_get_owner(mtx) == furi_thread_get_current_id())
-
 static void
     gui_flush_front_callback(lv_display_t* lv_display, const lv_area_t* area, uint8_t* px_map) {
     UNUSED(area);
@@ -277,7 +275,6 @@ void gui_unlock(Gui* instance) {
 GuiLayer* gui_get_layer(Gui* instance, GuiLayerId layer_id) {
     furi_check(instance);
     furi_check(layer_id < GuiLayerIdMax);
-    furi_check(IS_OWNER(instance->access_mutex));
 
     return &instance->layers[layer_id];
 }
