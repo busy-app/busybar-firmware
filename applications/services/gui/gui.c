@@ -126,10 +126,10 @@ static bool gui_layer_feed_input(GuiLayer* layer, const InputEvent* event) {
 static bool gui_layer_feed_user_input(GuiLayer* layer, const InputEvent* event) {
     bool consumed = false;
 
-    GuiInputSubscriptionList_it_t it;
-    for(GuiInputSubscriptionList_it(it, layer->input_list); !GuiInputSubscriptionList_end_p(it);
-        GuiInputSubscriptionList_next(it)) {
-        const GuiInputSubscription* item = GuiInputSubscriptionList_cref(it);
+    GuiInputItemList_it_t it;
+    for(GuiInputItemList_it(it, layer->input_list); !GuiInputItemList_end_p(it);
+        GuiInputItemList_next(it)) {
+        const GuiInputItem* item = GuiInputItemList_cref(it);
         if(item->callback(event, item->context)) {
             consumed = true;
         }
@@ -214,7 +214,7 @@ static void gui_init_layers(Gui* instance) {
         for(GuiDisplayId display_id = 0; display_id < GuiDisplayIdMax; ++display_id) {
             layer->root_objs[display_id] = gui_get_layer_root(instance, display_id, layer_id);
         }
-        GuiInputSubscriptionList_init(layer->input_list);
+        GuiInputItemList_init(layer->input_list);
     }
 }
 
@@ -293,16 +293,16 @@ void gui_layer_add_input_callback(GuiLayer* layer, GuiInputCallback callback, vo
     furi_check(layer);
     furi_check(callback);
 
-    GuiInputSubscriptionList_it_t it;
-    for(GuiInputSubscriptionList_it(it, layer->input_list); !GuiInputSubscriptionList_end_p(it);
-        GuiInputSubscriptionList_next(it)) {
-        const GuiInputSubscription* item = GuiInputSubscriptionList_cref(it);
+    GuiInputItemList_it_t it;
+    for(GuiInputItemList_it(it, layer->input_list); !GuiInputItemList_end_p(it);
+        GuiInputItemList_next(it)) {
+        const GuiInputItem* item = GuiInputItemList_cref(it);
         if(item->callback == callback) {
             furi_crash(TAG ": Callback alrady registered");
         }
     }
 
-    GuiInputSubscription* item = GuiInputSubscriptionList_push_new(layer->input_list);
+    GuiInputItem* item = GuiInputItemList_push_new(layer->input_list);
     item->callback = callback;
     item->context = context;
 }
@@ -311,12 +311,12 @@ void gui_layer_remove_input_callback(GuiLayer* layer, GuiInputCallback callback)
     furi_check(layer);
     furi_check(callback);
 
-    GuiInputSubscriptionList_it_t it;
-    for(GuiInputSubscriptionList_it(it, layer->input_list); !GuiInputSubscriptionList_end_p(it);
-        GuiInputSubscriptionList_next(it)) {
-        const GuiInputSubscription* item = GuiInputSubscriptionList_cref(it);
+    GuiInputItemList_it_t it;
+    for(GuiInputItemList_it(it, layer->input_list); !GuiInputItemList_end_p(it);
+        GuiInputItemList_next(it)) {
+        const GuiInputItem* item = GuiInputItemList_cref(it);
         if(item->callback == callback) {
-            GuiInputSubscriptionList_remove(layer->input_list, it);
+            GuiInputItemList_remove(layer->input_list, it);
             break;
         }
     }

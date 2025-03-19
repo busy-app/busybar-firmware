@@ -42,12 +42,12 @@ typedef struct {
 typedef struct {
     GuiInputCallback callback;
     void* context;
-} GuiInputSubscription;
+} GuiInputItem;
 
-LIST_DEF(GuiInputSubscriptionList, GuiInputSubscription, M_POD_OPLIST);
+LIST_DEF(GuiInputItemList, GuiInputItem, M_POD_OPLIST);
 
 struct GuiLayer {
-    GuiInputSubscriptionList_t input_list;
+    GuiInputItemList_t input_list;
     lv_obj_t* root_objs[GuiDisplayIdMax];
 };
 
