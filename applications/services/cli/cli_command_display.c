@@ -53,6 +53,7 @@ static void cli_command_show(Cli* cli, FuriString* args, GuiDisplayId id) {
     gui_lvgl_release(gui);
 
     while(!cli_cmd_interrupt_received(cli)) {
+        furi_delay_ms(50);
     };
 
     gui_lvgl_acquire(gui);
