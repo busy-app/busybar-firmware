@@ -32,11 +32,8 @@ static void back_display_test_canvas_update_fill(Canvas* canvas, BackDisplayTest
 
 static void
     back_display_test_canvas_update_checkerboard(Canvas* canvas, BackDisplayTestColor color) {
-    canvas_set_fill_color(canvas, back_display_test_colors[color].color);
-    canvas_fill(canvas);
-
     canvas_set_line_width(canvas, 0);
-    canvas_set_fill_color(canvas, (Color){.r = 0, .g = 0, .b = 0});
+    canvas_set_fill_color(canvas, back_display_test_colors[color].color);
     Widget* widget = canvas_get_base(canvas);
     const size_t checker_size = 16;
     for(int32_t y = 0; y < widget_get_height(widget); y += checker_size) {
@@ -51,37 +48,79 @@ static void
 static void back_display_test_canvas_update_gradient_horizontal(
     Canvas* canvas,
     BackDisplayTestColor color) {
-    UNUSED(color);
     Widget* widget = canvas_get_base(canvas);
     canvas_set_line_width(canvas, 0);
 
     for(int32_t i = 0; i < 16; i++) {
-        canvas_set_fill_color(canvas, back_display_test_colors[i].color);
-        canvas_draw_rect(
-            canvas,
-            i * widget_get_width(widget) / 16,
-            0,
-            widget_get_width(widget) / 16,
-            widget_get_height(widget),
-            true);
+        if(i > (int32_t)color - 1) {
+            canvas_set_fill_color(canvas, back_display_test_colors[i].color);
+            canvas_draw_rect(
+                canvas,
+                i * widget_get_width(widget) / 16,
+                0,
+                widget_get_width(widget) / 16,
+                widget_get_height(widget),
+                true);
+        }
     }
 }
 
 static void
     back_display_test_canvas_update_gradient_vertical(Canvas* canvas, BackDisplayTestColor color) {
-    UNUSED(color);
     Widget* widget = canvas_get_base(canvas);
     canvas_set_line_width(canvas, 0);
 
     for(int32_t i = 0; i < 16; i++) {
-        canvas_set_fill_color(canvas, back_display_test_colors[i].color);
-        canvas_draw_rect(
-            canvas,
-            0,
-            i * widget_get_height(widget) / 16,
-            widget_get_width(widget),
-            widget_get_height(widget) / 16,
-            true);
+        if(i > (int32_t)color - 1) {
+            canvas_set_fill_color(canvas, back_display_test_colors[i].color);
+            canvas_draw_rect(
+                canvas,
+                0,
+                i * widget_get_height(widget) / 16,
+                widget_get_width(widget),
+                widget_get_height(widget) / 16,
+                true);
+        }
+    }
+}
+
+static void back_display_test_canvas_update_gradient_horizontal_reverse(
+    Canvas* canvas,
+    BackDisplayTestColor color) {
+    Widget* widget = canvas_get_base(canvas);
+    canvas_set_line_width(canvas, 0);
+
+    for(int32_t i = 0; i < 16; i++) {
+        if((15 - i) > (int32_t)color) {
+            canvas_set_fill_color(canvas, back_display_test_colors[i].color);
+            canvas_draw_rect(
+                canvas,
+                i * widget_get_width(widget) / 16,
+                0,
+                widget_get_width(widget) / 16,
+                widget_get_height(widget),
+                true);
+        }
+    }
+}
+
+static void back_display_test_canvas_update_gradient_vertical_reverse(
+    Canvas* canvas,
+    BackDisplayTestColor color) {
+    Widget* widget = canvas_get_base(canvas);
+    canvas_set_line_width(canvas, 0);
+
+    for(int32_t i = 0; i < 16; i++) {
+        if((15 - i) > (int32_t)color) {
+            canvas_set_fill_color(canvas, back_display_test_colors[i].color);
+            canvas_draw_rect(
+                canvas,
+                0,
+                i * widget_get_height(widget) / 16,
+                widget_get_width(widget),
+                widget_get_height(widget) / 16,
+                true);
+        }
     }
 }
 
@@ -98,6 +137,10 @@ static const BackDisplayTestPatternInfo back_display_test_patterns[BackDisplayTe
         {back_display_test_canvas_update_gradient_horizontal, "Gradient H"},
     [BackDisplayTestPatternGradientVertical] =
         {back_display_test_canvas_update_gradient_vertical, "Gradient V"},
+    [BackDisplayTestPatternGradientReverseHorizontal] =
+        {back_display_test_canvas_update_gradient_horizontal_reverse, "Gradient H Rev"},
+    [BackDisplayTestPatternGradientReverseVertical] =
+        {back_display_test_canvas_update_gradient_vertical_reverse, "Gradient V Rev"},
 };
 
 void back_display_test_canvas_update(

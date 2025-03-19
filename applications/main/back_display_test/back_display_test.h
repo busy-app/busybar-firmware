@@ -23,6 +23,8 @@ typedef enum {
     BackDisplayTestPatternCheckerboard,
     BackDisplayTestPatternGradientHorizontal,
     BackDisplayTestPatternGradientVertical,
+    BackDisplayTestPatternGradientReverseHorizontal,
+    BackDisplayTestPatternGradientReverseVertical,
 
     BackDisplayTestPatternMax,
 } BackDisplayTestPattern;
