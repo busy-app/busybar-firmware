@@ -1,7 +1,6 @@
 #include "cli_i.h"
 #include "cli_commands.h"
-#include "cli_uart.h"
-#include "cli_intercom.h"
+
 #include <version/version.h>
 #include <applications.h>
 
@@ -348,10 +347,7 @@ static void cli_handle_escape(Cli* cli, char c) {
 }
 
 void cli_process_input(Cli* cli) {
-    FURI_LOG_E("CLI", "Call gets start");
     char in_chr = cli_getc(cli);
-    FURI_LOG_E("CLI", "Call gets end");
-
     size_t rx_len;
 
     if(in_chr == CliSymbolAsciiTab) {
@@ -489,8 +485,7 @@ int32_t cli_srv(void* p) {
         furi_thread_set_stdout_callback(NULL, NULL);
     }
 
-    // cli_session_open(cli, &cli_uart);
-    cli_session_open(cli, &cli_intercom);
+    cli_session_open(cli, CLI_SESSION);
 
     //TODO: Implement furi_hal_rtc_get_boot_mode
 #if 0

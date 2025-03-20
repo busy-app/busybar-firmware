@@ -2,7 +2,7 @@
 
 #include <intercom/intercom.h>
 
-#define CLI_BUFFER_SIZE (1024U)
+#define CLI_BUFFER_SIZE  (1024U)
 #define CLI_READ_TIMEOUT (10U)
 
 typedef struct {
@@ -49,7 +49,7 @@ void cli_command_917_cli(Cli* cli, FuriString* args, void* context) {
     CliCommand917Cli* instance = cli_command_917_cli_alloc();
 
     printf("Starting Si917 cli...\r\n");
-    printf("Press Ctrl+] to exit\r\n");
+    printf("Press Ctrl+C to exit\r\n");
 
     while(true) {
         uint8_t ch = 0;
@@ -60,7 +60,7 @@ void cli_command_917_cli(Cli* cli, FuriString* args, void* context) {
             furi_assert(tx_size == sizeof(ch));
 
             if(ch == CliSymbolAsciiETX) {
-                printf("\r\nEnd of 917 cli session...\r\n\r\n");
+                printf("\r\nEnd of Si917 cli session...\r\n\r\n");
                 break;
             }
         }

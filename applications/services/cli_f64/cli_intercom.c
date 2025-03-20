@@ -17,82 +17,71 @@ typedef struct {
     Intercom* intercom;
     FuriStreamBuffer* rx_buffer;
     uint8_t data[BUF_SIZE];
-} CliIntercomContext;
+} CliIntercom;
 
-static CliIntercomContext* instance = NULL;
+static CliIntercom* cli_intercom_handle = NULL;
 
 static void cli_intercom_rx_callback(const void* data, size_t data_size, void* context) {
+    furi_check(cli_intercom_handle);
     furi_check(data);
     UNUSED(context);
-    furi_check(instance);
 
-    if(instance) {
-        furi_check(
-            furi_stream_buffer_send(instance->rx_buffer, data, data_size, FuriWaitForever) ==
-            data_size);
-    }
+    const size_t rx_size =
+        furi_stream_buffer_send(cli_intercom_handle->rx_buffer, data, data_size, FuriWaitForever);
+    furi_assert(rx_size == data_size);
 }
 
 static void cli_intercom_init(void) {
-    if(instance == NULL) {
-        instance = malloc(sizeof(CliIntercomContext));
-        instance->rx_buffer = furi_stream_buffer_alloc(BUF_SIZE, 1);
+    if(cli_intercom_handle == NULL) {
+        cli_intercom_handle = malloc(sizeof(CliIntercom));
+        cli_intercom_handle->rx_buffer = furi_stream_buffer_alloc(BUF_SIZE, 1);
 
-        instance->intercom = furi_record_open(RECORD_INTERCOM);
+        cli_intercom_handle->intercom = furi_record_open(RECORD_INTERCOM);
         intercom_set_rx_callback(
-            instance->intercom, IntercomChannelControl, cli_intercom_rx_callback, instance);
+            cli_intercom_handle->intercom,
+            IntercomChannelControl,
+            cli_intercom_rx_callback,
+            cli_intercom_handle);
     }
 }
 
 static void cli_intercom_deinit(void) {
-    furi_check(instance);
+    furi_check(cli_intercom_handle);
 
     furi_record_close(RECORD_INTERCOM);
-    free(instance);
+    free(cli_intercom_handle);
 }
 
 static size_t cli_intercom_rx(uint8_t* buffer, size_t size, uint32_t timeout) {
-    furi_check(instance);
+    furi_check(cli_intercom_handle);
 
-    size_t rx_bytes = furi_stream_buffer_receive(instance->rx_buffer, buffer, size, timeout);
-
-    if(rx_bytes) {
-        FURI_LOG_W("INTERCOM", "Rx bytes %d: %c", rx_bytes, buffer[0]);
-    }
-
-    return rx_bytes;
+    return furi_stream_buffer_receive(cli_intercom_handle->rx_buffer, buffer, size, timeout);
 }
 
 static size_t cli_intercom_rx_stdin(uint8_t* data, size_t size, uint32_t timeout, void* context) {
+    furi_check(cli_intercom_handle);
     UNUSED(context);
-    furi_check(instance);
 
-    size_t rx_bytes = furi_stream_buffer_receive(instance->rx_buffer, data, size, timeout);
-
-    if(rx_bytes) {
-        FURI_LOG_W("INTERCOM", "Rx bytes %d: %c", rx_bytes, data[0]);
-    }
-
-    return rx_bytes;
+    return furi_stream_buffer_receive(cli_intercom_handle->rx_buffer, data, size, timeout);
 }
 
 static void cli_intercom_tx(const uint8_t* buffer, size_t size) {
-    furi_check(instance);
+    furi_check(cli_intercom_handle);
 
-    FURI_LOG_I("INTERCOM", "TX %d bytes: %c", size, buffer[0]);
-
-    intercom_tx(instance->intercom, IntercomChannelControl, buffer, size, FuriWaitForever);
+    intercom_tx(
+        cli_intercom_handle->intercom, IntercomChannelControl, buffer, size, FuriWaitForever);
 }
 
 static void cli_intercom_tx_stdout(const char* data, size_t size, void* context) {
+    furi_check(cli_intercom_handle);
     UNUSED(context);
-    furi_check(instance);
 
-    intercom_tx(instance->intercom, IntercomChannelControl, data, size, FuriWaitForever);
+    intercom_tx(
+        cli_intercom_handle->intercom, IntercomChannelControl, data, size, FuriWaitForever);
 }
 
 static bool cli_intercom_is_connected(void) {
-    return instance != NULL;
+    return cli_intercom_handle != NULL;
 }
 
 CliSession cli_intercom = {
