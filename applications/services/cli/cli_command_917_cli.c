@@ -29,13 +29,13 @@ static CliCommand917Cli* cli_command_917_cli_alloc(void) {
     instance->rx_buffer = furi_stream_buffer_alloc(CLI_BUFFER_SIZE, 1);
 
     intercom_set_rx_callback(
-        instance->intercom, IntercomChannelControl, cli_command_917_rx_callback, instance);
+        instance->intercom, IntercomChannelCli, cli_command_917_rx_callback, instance);
 
     return instance;
 }
 
 static void cli_command_917_cli_free(CliCommand917Cli* instance) {
-    intercom_set_rx_callback(instance->intercom, IntercomChannelControl, NULL, NULL);
+    intercom_set_rx_callback(instance->intercom, IntercomChannelCli, NULL, NULL);
     furi_record_close(RECORD_INTERCOM);
 
     furi_stream_buffer_free(instance->rx_buffer);
@@ -56,7 +56,7 @@ void cli_command_917_cli(Cli* cli, FuriString* args, void* context) {
 
         if(cli_read_timeout(cli, &ch, sizeof(ch), CLI_READ_TIMEOUT)) {
             const size_t tx_size = intercom_tx(
-                instance->intercom, IntercomChannelControl, &ch, sizeof(ch), FuriWaitForever);
+                instance->intercom, IntercomChannelCli, &ch, sizeof(ch), FuriWaitForever);
             furi_assert(tx_size == sizeof(ch));
 
             if(ch == CliSymbolAsciiETX) {

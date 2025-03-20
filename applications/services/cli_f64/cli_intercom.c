@@ -39,7 +39,7 @@ static void cli_intercom_init(void) {
         cli_intercom_handle->intercom = furi_record_open(RECORD_INTERCOM);
         intercom_set_rx_callback(
             cli_intercom_handle->intercom,
-            IntercomChannelControl,
+            IntercomChannelCli,
             cli_intercom_rx_callback,
             cli_intercom_handle);
     }
@@ -68,16 +68,14 @@ static size_t cli_intercom_rx_stdin(uint8_t* data, size_t size, uint32_t timeout
 static void cli_intercom_tx(const uint8_t* buffer, size_t size) {
     furi_check(cli_intercom_handle);
 
-    intercom_tx(
-        cli_intercom_handle->intercom, IntercomChannelControl, buffer, size, FuriWaitForever);
+    intercom_tx(cli_intercom_handle->intercom, IntercomChannelCli, buffer, size, FuriWaitForever);
 }
 
 static void cli_intercom_tx_stdout(const char* data, size_t size, void* context) {
     furi_check(cli_intercom_handle);
     UNUSED(context);
 
-    intercom_tx(
-        cli_intercom_handle->intercom, IntercomChannelControl, data, size, FuriWaitForever);
+    intercom_tx(cli_intercom_handle->intercom, IntercomChannelCli, data, size, FuriWaitForever);
 }
 
 static bool cli_intercom_is_connected(void) {
