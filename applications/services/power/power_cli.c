@@ -238,7 +238,7 @@ static void power_cli_info(Cli* cli, FuriString* args) {
     property_value_out(&prop_ctx, "%u", 2, "charger", "enabled", info.charge_enabled);
     property_value_out(
         &prop_ctx, "%u mA", 2, "charger", "current_limit", info.charge_ilim_battery);
-    property_value_out(&prop_ctx, "%.1f°C", 2, "charger", "temperature", info.temperature_charger);
+    property_value_out(&prop_ctx, "%.1fC", 2, "charger", "temperature", info.temperature_charger);
 
     furi_string_free(value);
     furi_string_free(key);
