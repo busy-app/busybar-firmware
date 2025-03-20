@@ -1,11 +1,12 @@
 #pragma once
 
 #include <furi.h>
-#include <gui_lvgl/gui_lvgl.h>
-#include <led_display/led_display.h>
-#include <storage/storage.h>
 
-#include "image_animation.h"
+#include <gui/gui.h>
+#include <gui/modules/label.h>
+#include <gui/modules/anim_image.h>
+
+#include <storage/storage.h>
 
 typedef enum {
     AnimationPlayerAppEventExit,
@@ -14,8 +15,8 @@ typedef enum {
 typedef struct {
     FuriEventLoop* event_loop;
     FuriMessageQueue* event_queue;
-    GuiLvgl* gui;
+    Gui* gui;
 
-    ImageAnimation* image_animation;
-    lv_obj_t* label;
+    AnimImage* anim_image;
+    Label* label;
 } AnimationPlayerApp;

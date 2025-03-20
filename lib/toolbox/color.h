@@ -13,9 +13,9 @@ extern "C" {
 
 /** RGB color structure */
 typedef struct {
-    uint8_t r; /**< Red component */
-    uint8_t g; /**< Green component */
     uint8_t b; /**< Blue component */
+    uint8_t g; /**< Green component */
+    uint8_t r; /**< Red component */
 } Color;
 
 /** HSV color structure */
@@ -33,6 +33,15 @@ typedef struct {
  * @return Color structure
  */
 Color color_hsv_to_rgb(ColorHsv hsv);
+
+/**
+ * @brief Convert a HEX representation to RGB color
+ *
+ * @param hex Hex value to convert
+ *
+ * @return Color structure
+ */
+Color color_hex_to_rgb(uint32_t hex);
 
 #ifdef __cplusplus
 }

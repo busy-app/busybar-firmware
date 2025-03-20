@@ -1,14 +1,15 @@
 #include "desktop_overlay.h"
 
 #include <furi.h>
+#include <lvgl.h>
 
 #define TAG "DesktopOverlay"
 
 #define OVERLAY_ANIM_TIME_MS (100)
 
 struct DesktopOverlay {
-    GuiLvgl* gui;
-    lv_obj_t* dimmer;
+    Gui* gui;
+    Widget* dimmer;
     bool show_requested;
 };
 
@@ -17,33 +18,31 @@ static void desktop_overlay_anim_callback(void* var, int32_t value) {
 }
 
 static void desktop_overlay_start_anim(DesktopOverlay* instance, int32_t end) {
-    gui_lvgl_acquire(instance->gui);
-
-    lv_anim_t anim;
-    lv_anim_init(&anim);
-    lv_anim_set_var(&anim, instance->dimmer);
-    lv_anim_set_values(&anim, lv_obj_get_style_opa(instance->dimmer, LV_PART_MAIN), end);
-    lv_anim_set_duration(&anim, OVERLAY_ANIM_TIME_MS);
-    lv_anim_set_exec_cb(&anim, desktop_overlay_anim_callback);
-    lv_anim_set_path_cb(&anim, lv_anim_path_ease_in_out);
-    lv_anim_start(&anim);
-
-    gui_lvgl_release(instance->gui);
+    with_gui(instance->gui, {
+        lv_anim_t anim;
+        lv_anim_init(&anim);
+        lv_anim_set_var(&anim, instance->dimmer);
+        // TODO: Decide on the color and opacity API
+        lv_anim_set_values(
+            &anim, lv_obj_get_style_opa((lv_obj_t*)instance->dimmer, LV_PART_MAIN), end);
+        lv_anim_set_duration(&anim, OVERLAY_ANIM_TIME_MS);
+        lv_anim_set_exec_cb(&anim, desktop_overlay_anim_callback);
+        lv_anim_set_path_cb(&anim, lv_anim_path_ease_in_out);
+        lv_anim_start(&anim);
+    });
 }
 
-DesktopOverlay* desktop_overlay_alloc(GuiLvgl* gui) {
+DesktopOverlay* desktop_overlay_alloc(Gui* gui) {
     DesktopOverlay* instance = malloc(sizeof(DesktopOverlay));
     instance->gui = gui;
 
-    gui_lvgl_acquire(instance->gui);
-
-    lv_obj_t* system = gui_lvgl_get_layer(instance->gui, GuiDisplayIdFront, GuiLayerIdSystem);
-    instance->dimmer = lv_obj_create(system);
-    lv_obj_set_size(instance->dimmer, lv_obj_get_width(system), lv_obj_get_height(system));
-    lv_obj_set_style_bg_color(instance->dimmer, lv_color_black(), LV_PART_MAIN);
-    lv_obj_set_style_opa(instance->dimmer, LV_OPA_TRANSP, LV_PART_MAIN);
-
-    gui_lvgl_release(instance->gui);
+    with_gui(instance->gui, {
+        GuiLayer* system_layer = gui_get_layer(instance->gui, GuiLayerIdSystem);
+        Widget* root = gui_layer_get_root_widget(system_layer, GuiDisplayIdFront);
+        instance->dimmer = widget_alloc(root);
+        // TODO: Decide on the color and opacity API
+        lv_obj_set_style_opa((lv_obj_t*)instance->dimmer, LV_OPA_TRANSP, LV_PART_MAIN);
+    });
 
     return instance;
 }

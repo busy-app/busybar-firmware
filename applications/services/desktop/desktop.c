@@ -7,7 +7,7 @@
 #include <input/input_common.h>
 
 #include <loader/loader.h>
-#include <gui_lvgl/gui_lvgl.h>
+#include <gui/gui.h>
 
 #define TAG "Desktop"
 
@@ -272,9 +272,9 @@ static Desktop* desktop_alloc(void) {
     instance->error_message = furi_string_alloc();
     instance->loader = furi_record_open(RECORD_LOADER);
 
-    GuiLvgl* gui = furi_record_open(RECORD_GUI_LVGL);
+    Gui* gui = furi_record_open(RECORD_GUI);
     instance->overlay = desktop_overlay_alloc(gui);
-    instance->current_request.name = furi_string_alloc();
+    instance->current_request.name = furi_string_alloc_set("apps_menu");
 
     furi_event_loop_subscribe_message_queue(
         instance->event_loop,
@@ -324,7 +324,7 @@ int32_t desktop_srv(void* arg) {
 }
 
 static const DesktopDefaultApp desktop_default_apps[] = {
-    [InputSwitchPositionBusy] = {"busy", NULL},
+    [InputSwitchPositionBusy] = {"dummy", "BUSY broken"},
     [InputSwitchPositionStatus] = {"dummy", "Status"},
     [InputSwitchPositionOff] = {"dummy", "Off"},
     [InputSwitchPositionApps] = {"apps_menu", NULL},

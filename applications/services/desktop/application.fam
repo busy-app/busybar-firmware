@@ -7,7 +7,7 @@ App(
     order=70,
     targets=["f20"],
     requires=[
-        "gui_lvgl",
+        "gui",
         "loader",
         "message",
     ]

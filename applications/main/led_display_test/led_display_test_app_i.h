@@ -1,9 +1,13 @@
 #pragma once
 
 #include <furi.h>
-#include <gui_lvgl/gui_lvgl.h>
-#include "led_display_test.h"
+#include <gui/gui.h>
+#include <gui/modules/label.h>
+#include <gui/modules/canvas.h>
+
 #include <led_display/led_display.h>
+
+#include "led_display_test.h"
 
 typedef enum {
     LedDisplayTestAppEventNextPattern,
@@ -18,16 +22,16 @@ typedef struct {
     FuriEventLoop* event_loop;
     FuriMessageQueue* event_queue;
     FuriEventLoopTimer* timer;
-    GuiLvgl* gui;
+    Gui* gui;
 
-    // Back screen
-    lv_obj_t* static_label;
-    lv_obj_t* pattern_label;
-    lv_obj_t* color_label;
+    // Back display
+    Widget* app_window;
+    Label* static_label;
+    Label* pattern_label;
+    Label* color_label;
 
-    // Front screen
-    lv_obj_t* canvas;
-    uint8_t canvas_buffer[DOT_MATRIX_BUF_SIZE];
+    // Front display
+    Canvas* canvas;
 
     LedDisplayTestPattern pattern;
     LedDisplayTestColor color;

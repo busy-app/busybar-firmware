@@ -12,10 +12,10 @@ typedef struct {
 static void busy_scene_static_toggle_pause_overlay(BusyApp* instance) {
     BusySceneStatic* data = busy_get_current_scene_data(instance);
 
-    gui_lvgl_acquire(instance->gui);
+    gui_lock(instance->gui);
 
     if(data->overlay == NULL) {
-        lv_obj_t* top = gui_lvgl_get_layer(instance->gui, GuiDisplayIdFront, GuiLayerIdTop);
+        lv_obj_t* top = gui_get_layer(instance->gui, GuiDisplayIdFront, GuiLayerIdTop);
 
         data->overlay = lv_obj_create(top);
         lv_obj_set_size(data->overlay, lv_obj_get_width(top), lv_obj_get_height(top));
@@ -33,16 +33,16 @@ static void busy_scene_static_toggle_pause_overlay(BusyApp* instance) {
         data->overlay_image = NULL;
     }
 
-    gui_lvgl_release(instance->gui);
+    gui_unlock(instance->gui);
 }
 
 static void busy_scene_static_on_enter(void* context) {
     BusyApp* instance = context;
     BusySceneStatic* data = busy_get_current_scene_data(instance);
 
-    gui_lvgl_acquire(instance->gui);
+    gui_lock(instance->gui);
 
-    lv_obj_t* active = gui_lvgl_get_layer(instance->gui, GuiDisplayIdFront, GuiLayerIdActive);
+    lv_obj_t* active = gui_get_layer(instance->gui, GuiDisplayIdFront, GuiLayerIdActive);
 
     data->main_image = lv_image_create(active);
     lv_image_set_src(data->main_image, &I_busy_large_70x14);
@@ -50,14 +50,14 @@ static void busy_scene_static_on_enter(void* context) {
 
     lv_label_set_text(instance->back_label, "Static Timer");
 
-    gui_lvgl_release(instance->gui);
+    gui_unlock(instance->gui);
 }
 
 static void busy_scene_static_on_exit(void* context) {
     BusyApp* instance = context;
     BusySceneStatic* data = busy_get_current_scene_data(instance);
 
-    gui_lvgl_acquire(instance->gui);
+    gui_lock(instance->gui);
 
     lv_obj_delete(data->main_image);
 
@@ -66,7 +66,7 @@ static void busy_scene_static_on_exit(void* context) {
         lv_obj_delete(data->overlay_image);
     }
 
-    gui_lvgl_release(instance->gui);
+    gui_unlock(instance->gui);
 }
 
 static void busy_scene_static_on_event(const BusyEvent* event, void* context) {
