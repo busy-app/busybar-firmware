@@ -1,4 +1,4 @@
-#include "cli_command_917_cli.h"
+#include "cli_command_sl_cli.h"
 
 #include <intercom/intercom.h>
 
@@ -9,21 +9,21 @@ typedef struct {
     Intercom* intercom;
     FuriStreamBuffer* rx_buffer;
     uint8_t rx_data[CLI_BUFFER_SIZE];
-} CliCommand917Cli;
+} CliCommandSlCli;
 
 static void cli_command_917_rx_callback(const void* data, size_t data_size, void* context) {
     furi_check(data);
     furi_check(context);
 
-    CliCommand917Cli* instance = context;
+    CliCommandSlCli* instance = context;
 
     furi_check(
         furi_stream_buffer_send(instance->rx_buffer, data, data_size, FuriWaitForever) ==
         data_size);
 }
 
-static CliCommand917Cli* cli_command_917_cli_alloc(void) {
-    CliCommand917Cli* instance = malloc(sizeof(CliCommand917Cli));
+static CliCommandSlCli* cli_command_sl_cli_alloc(void) {
+    CliCommandSlCli* instance = malloc(sizeof(CliCommandSlCli));
 
     instance->intercom = furi_record_open(RECORD_INTERCOM);
     instance->rx_buffer = furi_stream_buffer_alloc(CLI_BUFFER_SIZE, 1);
@@ -34,7 +34,7 @@ static CliCommand917Cli* cli_command_917_cli_alloc(void) {
     return instance;
 }
 
-static void cli_command_917_cli_free(CliCommand917Cli* instance) {
+static void cli_command_sl_cli_free(CliCommandSlCli* instance) {
     intercom_set_rx_callback(instance->intercom, IntercomChannelCli, NULL, NULL);
     furi_record_close(RECORD_INTERCOM);
 
@@ -42,11 +42,11 @@ static void cli_command_917_cli_free(CliCommand917Cli* instance) {
     free(instance);
 }
 
-void cli_command_917_cli(Cli* cli, FuriString* args, void* context) {
+void cli_command_sl_cli(Cli* cli, FuriString* args, void* context) {
     UNUSED(args);
     UNUSED(context);
 
-    CliCommand917Cli* instance = cli_command_917_cli_alloc();
+    CliCommandSlCli* instance = cli_command_sl_cli_alloc();
 
     printf("Starting Si917 cli...\r\n");
     printf("Press Ctrl+C to exit\r\n");
@@ -73,5 +73,5 @@ void cli_command_917_cli(Cli* cli, FuriString* args, void* context) {
         }
     }
 
-    cli_command_917_cli_free(instance);
+    cli_command_sl_cli_free(instance);
 }

@@ -16,6 +16,6 @@ App(
         "cli_command_status_lights.c",
         "cli_command_light_sensor.c",
         "cli_command_audio.c",
-        "cli_command_917_cli.c",
+        "cli_command_sl_cli.c",
     ],
 )
