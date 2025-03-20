@@ -38,29 +38,28 @@ ch  min     typ     max
 */
 #define CHANNEL 1
 
-#define MAX_CALIB_COMMAND_LENGTH 32
-
-enum calib_cmd_types {
-    HELP,
-    HELP_HELP,
-    FREQ_OFFSET,
-    CALIB_WRITE,
-    EVM_OFFSET,
-    EVM_WRITE,
-    SET_MODE,
-    SET_CAHHNEL,
-    SET_POWER,
+enum CalibCmdType {
+    CalibCmdTypeHelp,
+    CalibCmdTypeHelpHelp,
+    CalibCmdTypeFreqOffset,
+    CalibCmdTypeCalibWrite,
+    CalibCmdTypeEvmOffest,
+    CalibCmdTypeEvmWrite,
+    CalibCmdTypeSetMode,
+    CalibCmdTypeSetCannel,
+    CalibCmdTypeSetPower,
+    CalibCmdTypeSetRate,
 #ifdef SLI_SI917
     DPD_CALIB_WRITE,
 #endif
-    MAX_CMD_TYPES,
+    CalibCmdTypeMaxCmd,
 };
 
-typedef struct calib_commands_t {
-    uint8_t cmd[MAX_CALIB_COMMAND_LENGTH];
-} calib_commands_t;
+typedef struct CalibCmd {
+    char* cmd;
+} CalibCmd;
 
-calib_commands_t calib_commands[MAX_CMD_TYPES] = {
+CalibCmd calib_cmd[CalibCmdTypeMaxCmd] = {
     {"?"},
     {"help"},
     {"sl_freq_offset"},
@@ -70,13 +69,28 @@ calib_commands_t calib_commands[MAX_CMD_TYPES] = {
     {"set_mode"},
     {"set_channel"},
     {"set_power"},
+    {"set_rate"},
+#ifdef SLI_SI917
     {"sl_process_dpd_calibration"},
+#endif
+};
+
+typedef struct {
+    char* rate_cmd;
+    uint16_t rate_value;
+} CalibRateCmd;
+#define CALIB_RATE_CMD_MAX 21
+const CalibRateCmd calib_rate_cmd[CALIB_RATE_CMD_MAX] = {
+    {"1", 0},      {"2", 2},      {"5.5", 4},       {"11", 6},     {"6", 139},    {"9", 143},
+    {"12", 138},   {"18", 142},   {"24", 137},      {"36", 141},   {"48", 136},   {"54", 140},
+    {"MCS0", 256}, {"MCS1", 257}, {"MCS2", 258},    {"MCS3", 259}, {"MCS4", 260}, {"MCS5", 261},
+    {"MCS6", 262}, {"MCS7", 263}, {"MCS7_SG", 775},
 };
 
 typedef enum {
-    CalibrationStateIdle,
-    CalibrationStateTx,
-} CalibrationState;
+    CalibStateIdle,
+    CalibStateTx,
+} CalibState;
 
 typedef struct {
     FuriString* msg;
@@ -90,10 +104,10 @@ typedef struct {
     //sl_si91x_efuse_read_t efuse_read_pkt;
     sl_si91x_get_dpd_calib_data_t dpd_calib_pkt;
 
-    CalibrationState state;
-} CalibrationApp;
+    CalibState state;
+} CalibApp;
 
-const sl_wifi_data_rate_t rate = SL_WIFI_DATA_RATE_1;
+const sl_wifi_data_rate_t rate = SL_WIFI_DATA_RATE_6;
 /*
 https://www.silabs.com/documents/public/application-notes/an1436-siwx917-qms-crystal-calibration-application-note.pdf
  Note:
@@ -162,9 +176,9 @@ static const sl_wifi_device_configuration_t calibration_configuration = {
          .config_feature_bit_map = 0},
 };
 
-void calibrate_app_cmd_usage(CalibrationApp* instance);
+void calibrate_app_cmd_usage(CalibApp* instance);
 
-static void calibration_app_send_msg(CalibrationApp* instance) {
+static void calibration_app_send_msg(CalibApp* instance) {
     cli_worker_add_rx_data(
         instance->worker,
         (uint8_t*)furi_string_get_cstr(instance->msg),
@@ -174,9 +188,8 @@ static void calibration_app_send_msg(CalibrationApp* instance) {
 #define MAX_DPD_TRAINING_CHANNELS 6
 uint8_t channel_sel[MAX_DPD_TRAINING_CHANNELS] = {1, 3, 6, 8, 11, 13};
 
-sl_status_t sl_process_dpd_calibration(
-    CalibrationApp* instance,
-    sl_si91x_get_dpd_calib_data_t* dpd_power_inx) {
+sl_status_t
+    sl_process_dpd_calibration(CalibApp* instance, sl_si91x_get_dpd_calib_data_t* dpd_power_inx) {
     uint8_t i;
     sl_status_t status = SL_STATUS_OK;
     sl_si91x_calibration_write_t calib_pkt = {0};
@@ -190,7 +203,7 @@ sl_status_t sl_process_dpd_calibration(
     } else {
         furi_string_printf(instance->msg, "Transmit command stopped\n");
         calibration_app_send_msg(instance);
-        instance->state = CalibrationStateIdle;
+        instance->state = CalibStateIdle;
     }
 
     for(i = 0; i < MAX_DPD_TRAINING_CHANNELS; i++) {
@@ -210,7 +223,7 @@ sl_status_t sl_process_dpd_calibration(
                     "Transmit command started with channel num %x\r\n",
                     channel_sel[i]);
                 calibration_app_send_msg(instance);
-                instance->state = CalibrationStateTx;
+                instance->state = CalibStateTx;
             }
             furi_delay_ms(1000);
 
@@ -222,7 +235,7 @@ sl_status_t sl_process_dpd_calibration(
             } else {
                 furi_string_printf(instance->msg, "Transmit command stopped\r\n");
                 calibration_app_send_msg(instance);
-                instance->state = CalibrationStateIdle;
+                instance->state = CalibStateIdle;
             }
             furi_delay_ms(1000);
         }
@@ -260,7 +273,7 @@ sl_status_t sl_process_dpd_calibration(
     return status;
 }
 
-sl_status_t calibration_app_flow_transmit_tx(CalibrationApp* instance) {
+sl_status_t calibration_app_flow_transmit_tx(CalibApp* instance) {
     sl_status_t status = SL_STATUS_FAIL;
     uint16_t mode_temp = tx_test_info.mode;
     do {
@@ -290,26 +303,28 @@ sl_status_t calibration_app_flow_transmit_tx(CalibrationApp* instance) {
     } else {
         furi_string_printf(instance->msg, "Transmit test started\r\n");
         calibration_app_send_msg(instance);
-        instance->state = CalibrationStateTx;
+        instance->state = CalibStateTx;
     }
 
     return status;
 }
 
-sl_status_t calibration_app(CalibrationApp* instance, uint8_t cmd_index, FuriString* args) {
+sl_status_t calibration_app(CalibApp* instance, uint8_t cmd_index, FuriString* args) {
     UNUSED_PARAMETER(cmd_index);
 
     sl_status_t status = SL_STATUS_FAIL;
 
     char* args_cstr = (char*)furi_string_get_cstr(args);
+    FuriString* arg = furi_string_alloc();
     StrintParseError parse_err = StrintParseNoError;
+    uint32_t i = 0;
 
     switch(cmd_index) {
-    case HELP:
-    case HELP_HELP:
+    case CalibCmdTypeHelp:
+    case CalibCmdTypeHelpHelp:
         calibrate_app_cmd_usage(instance);
         break;
-    case FREQ_OFFSET:
+    case CalibCmdTypeFreqOffset:
         if(furi_string_size(args)) {
             parse_err |= strint_to_int32(
                 args_cstr, NULL, &instance->freq_calib_pkt.frequency_offset_in_khz, 10);
@@ -329,7 +344,7 @@ sl_status_t calibration_app(CalibrationApp* instance, uint8_t cmd_index, FuriStr
             }
         }
         break;
-    case CALIB_WRITE:
+    case CalibCmdTypeCalibWrite:
         if(furi_string_size(args)) {
             parse_err |= strint_to_uint8(args_cstr, &args_cstr, &instance->calib_pkt.target, 10);
             parse_err |= strint_to_uint32(args_cstr, &args_cstr, &instance->calib_pkt.flags, 10);
@@ -382,7 +397,7 @@ sl_status_t calibration_app(CalibrationApp* instance, uint8_t cmd_index, FuriStr
             }
         }
         break;
-    case EVM_OFFSET:
+    case CalibCmdTypeEvmOffest:
 
         if(furi_string_size(args)) {
             parse_err |=
@@ -400,7 +415,7 @@ sl_status_t calibration_app(CalibrationApp* instance, uint8_t cmd_index, FuriStr
                 } else {
                     furi_string_printf(instance->msg, "Transmit test stopped\r\n");
                     calibration_app_send_msg(instance);
-                    instance->state = CalibrationStateIdle;
+                    instance->state = CalibStateIdle;
                 }
 
                 status = sl_si91x_evm_offset(&instance->evm_offset_pkt);
@@ -423,13 +438,13 @@ sl_status_t calibration_app(CalibrationApp* instance, uint8_t cmd_index, FuriStr
                 } else {
                     furi_string_printf(instance->msg, "Transmit test started\r\n");
                     calibration_app_send_msg(instance);
-                    instance->state = CalibrationStateTx;
+                    instance->state = CalibStateTx;
                 }
             }
         }
 
         break;
-    case EVM_WRITE:
+    case CalibCmdTypeEvmWrite:
         if(furi_string_size(args)) {
             parse_err |=
                 strint_to_uint8(args_cstr, &args_cstr, &instance->evm_write_pkt.target, 10);
@@ -478,7 +493,7 @@ sl_status_t calibration_app(CalibrationApp* instance, uint8_t cmd_index, FuriStr
             calibration_app_send_msg(instance);
         }
         break;
-    case SET_MODE:
+    case CalibCmdTypeSetMode:
         if(furi_string_size(args)) {
             parse_err |= strint_to_uint16(args_cstr, NULL, &tx_test_info.mode, 10);
             if(parse_err == StrintParseNoError) {
@@ -486,7 +501,7 @@ sl_status_t calibration_app(CalibrationApp* instance, uint8_t cmd_index, FuriStr
             }
         }
         break;
-    case SET_CAHHNEL:
+    case CalibCmdTypeSetCannel:
         if(furi_string_size(args)) {
             uint16_t channel = 0;
             parse_err |= strint_to_uint16(args_cstr, NULL, &channel, 10);
@@ -502,7 +517,7 @@ sl_status_t calibration_app(CalibrationApp* instance, uint8_t cmd_index, FuriStr
             }
         }
         break;
-    case SET_POWER:
+    case CalibCmdTypeSetPower:
         if(furi_string_size(args)) {
             uint16_t power = 0;
             parse_err |= strint_to_uint16(args_cstr, NULL, &power, 10);
@@ -518,19 +533,44 @@ sl_status_t calibration_app(CalibrationApp* instance, uint8_t cmd_index, FuriStr
             }
         }
         break;
+    case CalibCmdTypeSetRate:
+        do {
+            if(!args_read_string_and_trim(args, arg)) {
+                furi_string_printf(instance->msg, "Invalid argument\r\n");
+                calibration_app_send_msg(instance);
+                break;
+            }
+
+            for(i = 0; i < CALIB_RATE_CMD_MAX; i++) {
+                if(furi_string_cmp_str(arg, (char*)calib_rate_cmd[i].rate_cmd) == 0) {
+                    tx_test_info.rate = calib_rate_cmd[i].rate_value;
+                    calibration_app_flow_transmit_tx(instance);
+                    furi_string_printf(
+                        instance->msg, "Rate set to %s\r\n", calib_rate_cmd[i].rate_cmd);
+                    calibration_app_send_msg(instance);
+                    break;
+                }
+            }
+
+            if(i == CALIB_RATE_CMD_MAX) {
+                furi_string_printf(instance->msg, "Unknown rate\r\n");
+                calibration_app_send_msg(instance);
+            }
+        } while(false);
+        break;
     default:
         furi_string_printf(instance->msg, "Invalid command\r\n");
         calibration_app_send_msg(instance);
         break;
     }
-
+    furi_string_free(arg);
     return SL_STATUS_OK;
 }
 
 void* calibration_app_start(CliWorker* worker) {
     FURI_LOG_I(TAG, "Starting");
 
-    CalibrationApp* instance = malloc(sizeof(CalibrationApp));
+    CalibApp* instance = malloc(sizeof(CalibApp));
     instance->msg = furi_string_alloc();
     instance->worker = worker;
 
@@ -562,7 +602,7 @@ void* calibration_app_start(CliWorker* worker) {
 
     instance->dpd_calib_pkt.dpd_power_index = 127;
 
-    instance->state = CalibrationStateIdle;
+    instance->state = CalibStateIdle;
 
     sl_status_t status = SL_STATUS_FAIL;
     do {
@@ -587,7 +627,7 @@ void* calibration_app_start(CliWorker* worker) {
             break;
         }
         FURI_LOG_D(TAG, "Wi-Fi transmit CONTINUOUS_MODE started");
-        instance->state = CalibrationStateTx;
+        instance->state = CalibStateTx;
         furi_delay_ms(200);
         status = sl_si91x_transmit_test_stop();
         if(status != SL_STATUS_OK) {
@@ -596,7 +636,7 @@ void* calibration_app_start(CliWorker* worker) {
             break;
         }
         FURI_LOG_D(TAG, "Wi-Fi transmit CONTINUOUS_MODE stopped");
-        instance->state = CalibrationStateIdle;
+        instance->state = CalibStateIdle;
         furi_delay_ms(200);
         tx_test_info.mode = TX_TEST_MODE;
 
@@ -609,7 +649,7 @@ void* calibration_app_start(CliWorker* worker) {
             furi_string_printf(instance->msg, "Transmit test started\r\n");
             calibration_app_send_msg(instance);
         }
-        instance->state = CalibrationStateTx;
+        instance->state = CalibStateTx;
         FURI_LOG_D(TAG, "Wi-Fi transmit started");
 
         calibrate_app_cmd_usage(instance);
@@ -624,11 +664,11 @@ void* calibration_app_start(CliWorker* worker) {
 }
 
 void calibration_app_stop(void* app_handle) {
-    CalibrationApp* instance = (CalibrationApp*)app_handle;
+    CalibApp* instance = (CalibApp*)app_handle;
     FURI_LOG_I(TAG, "Stopping");
 
     if(instance) {
-        if(instance->state == CalibrationStateTx) {
+        if(instance->state == CalibStateTx) {
             sl_si91x_transmit_test_stop();
             FURI_LOG_D(TAG, "Wi-Fi transmit stopped");
         }
@@ -643,7 +683,7 @@ void calibration_app_stop(void* app_handle) {
 }
 
 void calibration_app_parse_msg(void* app_handle, uint8_t* data, size_t size) {
-    CalibrationApp* instance = (CalibrationApp*)app_handle;
+    CalibApp* instance = (CalibApp*)app_handle;
     uint8_t i = 0;
     uint8_t cmd_index = 0;
     bool cmd_valid = false;
@@ -659,8 +699,8 @@ void calibration_app_parse_msg(void* app_handle, uint8_t* data, size_t size) {
             break;
         }
 
-        for(i = 0; i < MAX_CMD_TYPES; i++) {
-            if(furi_string_cmp_str(cmd, (char*)calib_commands[i].cmd) == 0) {
+        for(i = 0; i < CalibCmdTypeMaxCmd; i++) {
+            if(furi_string_cmp_str(cmd, (char*)calib_cmd[i].cmd) == 0) {
                 cmd_index = i;
                 cmd_valid = true;
                 break;
@@ -682,7 +722,7 @@ void calibration_app_parse_msg(void* app_handle, uint8_t* data, size_t size) {
     furi_string_free(cmd);
 }
 
-void calibrate_app_cmd_usage(CalibrationApp* instance) {
+void calibrate_app_cmd_usage(CalibApp* instance) {
     furi_string_printf(instance->msg, "Calibration commands usage:\r\n");
     furi_string_cat_printf(
         instance->msg,
@@ -725,6 +765,9 @@ void calibrate_app_cmd_usage(CalibrationApp* instance) {
         instance->msg,
         "set_power <power>  default=%d, 2-18dBm, 127-max power\r\n",
         tx_test_info.power);
+    furi_string_cat_printf(
+        instance->msg,
+        "set_rate <1|2|5.5|11|6|9|12|18|24|36|48|54|MCS0|MCS1|MCS2|MCS3|MCS4|MCS5|MCS6|MCS7|MCS7_SG> Set transmit rate.\r\n");
 
     furi_string_cat_printf(
         instance->msg,
