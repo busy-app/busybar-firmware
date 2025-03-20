@@ -302,7 +302,6 @@ void intercom_set_rx_callback(
     furi_check(channel < COUNT_OF(instance->channels));
 
     IntercomChannelData* port_data = &instance->channels[channel];
-    furi_check(port_data->rx_callback == NULL);
 
     port_data->rx_callback = callback;
     port_data->callback_context = context;
