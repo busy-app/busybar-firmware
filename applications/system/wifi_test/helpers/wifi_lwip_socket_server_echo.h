@@ -3,3 +3,4 @@
 #include "wifi_test_app.h"
 
 void wifi_lwip_socket_server_echo_init(WifiTestApp* app, FuriString* msg, uint16_t port);
+void wifi_lwip_socket_server_echo_deinit(void);

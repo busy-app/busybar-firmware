@@ -2,59 +2,19 @@
 #include "wifi_lwip_socket_server_echo.h"
 #include <lwip/sockets.h>
 
-// #include <sl_net.h>
-
-// #include <sl_si91x_socket.h>
-// #include <sl_si91x_socket_constants.h>
-// #include <sl_si91x_socket_utility.h>
-
-// #include "errno.h"
-
 #define TAG "WifiAsyncSocketServerEcho"
 
 typedef struct {
-    uint8_t exit;
-    uint8_t first_data_frame;
-    uint32_t start;
-    uint32_t now;
-    uint32_t bytes_read;
+    bool exit;
+    uint32_t port;
     FuriString* msg;
     WifiTestApp* app;
+    FuriThread* thread;
 } WifiAsyncSocketServerEcho;
 
 WifiAsyncSocketServerEcho* wifi_lwip_socket_echo_header = NULL;
 
-// void wifi_lwip_socket_server_echo_data_callback(
-//     uint32_t sock_no,
-//     uint8_t* buffer,
-//     uint32_t length,
-//     const sl_si91x_socket_metadata_t* firmware_socket_response) {
-//     UNUSED_PARAMETER(buffer);
-//     UNUSED_PARAMETER(firmware_socket_response);
-
-//     furi_string_printf(wifi_lwip_socket_echo_header->msg, "Client Socket ID : %ld\r\n", sock_no);
-//     wifi_test_app_send_text(
-//         wifi_lwip_socket_echo_header->app, wifi_lwip_socket_echo_header->msg);
-//     furi_string_printf(wifi_lwip_socket_echo_header->msg, "Data received : %ld\r\n", length);
-//     wifi_test_app_send_text(
-//         wifi_lwip_socket_echo_header->app, wifi_lwip_socket_echo_header->msg);
-//     furi_string_printf(wifi_lwip_socket_echo_header->msg, "Data : %s\r\n", buffer);
-//     wifi_test_app_send_text(
-//         wifi_lwip_socket_echo_header->app, wifi_lwip_socket_echo_header->msg);
-
-//     int16_t sent_bytes = send(sock_no, buffer, length, 0);
-//     if(sent_bytes < 0) {
-//         furi_string_printf(
-//             wifi_lwip_socket_echo_header->msg, "Send failed with BSD error:%d\r\n", errno);
-//         wifi_test_app_send_text(
-//             wifi_lwip_socket_echo_header->app, wifi_lwip_socket_echo_header->msg);
-//         wifi_lwip_socket_echo_header->exit = 1;
-//     } else {
-//         wifi_lwip_socket_echo_header->bytes_read += length;
-//     }
-// }
-
-#define buf_size 1024*4
+#define buf_size 1024 * 2
 uint8_t buffer[buf_size];
 
 typedef struct {
@@ -71,21 +31,10 @@ static CliSocket cli_socket = {
     .evt_flags = NULL,
 };
 
-void wifi_lwip_socket_server_echo_init(WifiTestApp* app, FuriString* msg, uint16_t port) {
-    wifi_lwip_socket_echo_header =
-        (WifiAsyncSocketServerEcho*)malloc(sizeof(WifiAsyncSocketServerEcho));
-
-    wifi_lwip_socket_echo_header->exit = 0;
-    wifi_lwip_socket_echo_header->first_data_frame = 1;
-    wifi_lwip_socket_echo_header->start = 0;
-    wifi_lwip_socket_echo_header->now = furi_get_tick();
-    wifi_lwip_socket_echo_header->bytes_read = 0;
-    wifi_lwip_socket_echo_header->msg = msg;
-    wifi_lwip_socket_echo_header->app = app;
-
+static int32_t wifi_lwip_socket_server_echo_thread_callback(void* context) {
+    WifiAsyncSocketServerEcho* instance = (WifiAsyncSocketServerEcho*)context;
     int32_t listen_fd;
     struct sockaddr_in address;
-    furi_delay_ms(1000);
     FURI_LOG_I(TAG, "Started");
 
     // Create a socket
@@ -98,7 +47,7 @@ void wifi_lwip_socket_server_echo_init(WifiTestApp* app, FuriString* msg, uint16
     // Set up the address
     memset(&address, 0, sizeof(address));
     address.sin_family = AF_INET;
-    address.sin_port = htons(port);
+    address.sin_port = htons(instance->port);
     address.sin_addr.s_addr = INADDR_ANY;
 
     // Bind the socket to the address
@@ -116,19 +65,46 @@ void wifi_lwip_socket_server_echo_init(WifiTestApp* app, FuriString* msg, uint16
         furi_crash("accept() failed");
     }
     size_t sent = 0;
-    while (1)
-    {
-        sent=recv(cli_socket.client_socket, &buffer, buf_size, 0);
-        sent ++;
-        //send(cli_socket.client_socket, &buffer, sent, 0);
+    //Todo need to send 1 more package to exit
+    while(!instance->exit) {
+        sent = recv(cli_socket.client_socket, &buffer, buf_size, 0);
+        send(cli_socket.client_socket, &buffer, sent, 0);
 
-        // furi_string_printf(msg, "DATA: %s\r\n", buffer);
-        // wifi_test_app_send_text(app, msg);
+        furi_string_printf(instance->msg, "DATA: %s\r\n", buffer);
+        wifi_test_app_send_text(instance->app, instance->msg);
     }
-    
-    
+    close(cli_socket.client_socket);
+    return 0;
+}
 
+void wifi_lwip_socket_server_echo_init(WifiTestApp* app, FuriString* msg, uint16_t port) {
+    wifi_lwip_socket_echo_header =
+        (WifiAsyncSocketServerEcho*)malloc(sizeof(WifiAsyncSocketServerEcho));
 
+    wifi_lwip_socket_echo_header->exit = 0;
+    wifi_lwip_socket_echo_header->port = port;
+    wifi_lwip_socket_echo_header->msg = msg;
+    wifi_lwip_socket_echo_header->app = app;
 
+    wifi_lwip_socket_echo_header->thread = furi_thread_alloc_ex(
+        "BLEPerTestShowStatus",
+        2048,
+        wifi_lwip_socket_server_echo_thread_callback,
+        wifi_lwip_socket_echo_header);
+    furi_thread_start(wifi_lwip_socket_echo_header->thread);
+}
+
+void wifi_lwip_socket_server_echo_deinit(void) {
+    FURI_LOG_I(TAG, "Stopping");
+    furi_check(wifi_lwip_socket_echo_header);
+    WifiAsyncSocketServerEcho* instance = (WifiAsyncSocketServerEcho*)wifi_lwip_socket_echo_header;
+    wifi_lwip_socket_echo_header->exit = true;
+    if(instance->thread) {
+        instance->exit = true;
+        furi_thread_join(instance->thread);
+        furi_thread_free(instance->thread);
+        instance->thread = NULL;
+    }
     free(wifi_lwip_socket_echo_header);
+    wifi_lwip_socket_echo_header = NULL;
 }

@@ -215,6 +215,7 @@ typedef enum {
     WifiTestCmdTypeTestTcpRx,
     WifiTestCmdTypeTestTcpTx,
     WifiTestCmdTypeTestEcho,
+    WifiTestCmdTypeTestEchoStop,
 
     WifiTestCmdTypeMax,
 } WifiTestCmdType;
@@ -224,6 +225,8 @@ typedef enum {
     //WifiTestStateDriverInit,
     WifiTestStateApUp,
     WifiTestStateStaUp,
+    WifiTestStateTestIdle,
+    WifiTestStateTestEcho,
 } WifiTestState;
 
 typedef struct {
@@ -240,13 +243,15 @@ const WifiTestCmd wifi_test_cmd[WifiTestCmdTypeMax] = {
     {"sta_down"},
     {"test_tcp_rx"},
     {"test_tcp_tx"},
-    {"test_echo"}};
+    {"test_echo"},
+    {"test_echo_stop"},
+};
 
 struct WifiTestApp {
     FuriString* msg;
     CliWorker* worker;
     WifiTestState state;
-
+    WifiTestState test_state;
     bool exit;
     bool ap_client_connected;
 };
@@ -328,6 +333,7 @@ void* wifi_test_app_start(CliWorker* worker) {
     instance->msg = furi_string_alloc();
     instance->worker = worker;
     instance->state = WifiTestStateIdle;
+    instance->test_state = WifiTestStateTestIdle;
 
     instance->exit = false;
     instance->ap_client_connected = false;
@@ -589,7 +595,8 @@ static sl_status_t wifi_test_app(WifiTestApp* instance, uint8_t cmd_index, FuriS
         }
         break;
     case WifiTestCmdTypeTestTcpRx:
-        if(instance->state == WifiTestStateStaUp || instance->state == WifiTestStateApUp) {
+        if((instance->state == WifiTestStateStaUp || instance->state == WifiTestStateApUp) &&
+           instance->test_state == WifiTestStateTestIdle) {
             // wifi_async_socket_server_tcp_rx_init(instance, instance->msg, 5005);
         } else {
             furi_string_printf(instance->msg, "AP or STA is not up\r\n");
@@ -597,7 +604,8 @@ static sl_status_t wifi_test_app(WifiTestApp* instance, uint8_t cmd_index, FuriS
         }
         break;
     case WifiTestCmdTypeTestTcpTx:
-        if(instance->state == WifiTestStateStaUp || instance->state == WifiTestStateApUp) {
+        if((instance->state == WifiTestStateStaUp || instance->state == WifiTestStateApUp) &&
+           instance->test_state == WifiTestStateTestIdle) {
             if(!args_read_string_and_trim(args, arg)) {
                 //    wifi_async_socket_client_tcp_tx_init(
                 //    instance, instance->msg, WIFI_TEST_SERVER_IP, 5000);
@@ -611,11 +619,27 @@ static sl_status_t wifi_test_app(WifiTestApp* instance, uint8_t cmd_index, FuriS
         }
         break;
     case WifiTestCmdTypeTestEcho:
-        if(instance->state == WifiTestStateStaUp || instance->state == WifiTestStateApUp) {
+        if((instance->state == WifiTestStateStaUp || instance->state == WifiTestStateApUp) &&
+           instance->test_state == WifiTestStateTestIdle) {
             //  wifi_async_socket_server_echo_init(instance, instance->msg, 5005);
             wifi_lwip_socket_server_echo_init(instance, instance->msg, 5005);
+            instance->test_state = WifiTestStateTestEcho;
+            furi_string_printf(instance->msg, "Echo test Start\r\n");
+            wifi_test_app_send_msg(instance);
         } else {
             furi_string_printf(instance->msg, "AP or STA is not up\r\n");
+            wifi_test_app_send_msg(instance);
+        }
+        break;
+    case WifiTestCmdTypeTestEchoStop:
+        if(instance->test_state == WifiTestStateTestEcho) {
+            // wifi_async_socket_server_echo_deinit();
+            wifi_lwip_socket_server_echo_deinit();
+            instance->test_state = WifiTestStateTestIdle;
+            furi_string_printf(instance->msg, "Echo test Stop\r\n");
+            wifi_test_app_send_msg(instance);
+        } else {
+            furi_string_printf(instance->msg, "Echo test is not running\r\n");
             wifi_test_app_send_msg(instance);
         }
         break;
@@ -693,8 +717,8 @@ static void wifi_test_app_cmd_usage(WifiTestApp* instance) {
     furi_string_cat_printf(
         instance->msg,
         "test_tcp_rx Start TCP RX iPref test \"iperf.exe -c 192.168.11.10 -p 5005 -i 1 -b70M -t 30\".\r\n");
-    furi_string_cat_printf(
-        instance->msg, "test_echo Start TCP echo test port 5005. Work time 90 sec\r\n");
+    furi_string_cat_printf(instance->msg, "test_echo Start TCP echo test port 5005.\r\n");
+    furi_string_cat_printf(instance->msg, "test_echo_stop Stop TCP echo test.\r\n");
     furi_string_cat_printf(
         instance->msg,
         "*************************************************************************************************************"
