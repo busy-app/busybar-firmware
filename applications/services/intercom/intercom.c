@@ -299,7 +299,6 @@ void intercom_set_rx_callback(
     IntercomRxCallback callback,
     void* context) {
     furi_check(instance);
-    furi_check(callback);
     furi_check(channel < COUNT_OF(instance->channels));
 
     IntercomChannelData* port_data = &instance->channels[channel];

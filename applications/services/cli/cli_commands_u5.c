@@ -4,6 +4,7 @@
 #include "cli_command_status_lights.h"
 #include "cli_command_light_sensor.h"
 #include "cli_command_audio.h"
+#include "cli_command_917_cli.h"
 
 #include <core/thread.h>
 #include <core/thread_list.h>
@@ -11,7 +12,6 @@
 #include <task_control_block.h>
 #include <time.h>
 #include <loader/loader.h>
-#include <intercom/intercom.h>
 #include <toolbox/args.h>
 
 void cli_command_help(Cli* cli, FuriString* args, void* context) {
@@ -230,56 +230,6 @@ void cli_command_echo(Cli* cli, FuriString* args, void* context) {
     printf("%s\r\n", furi_string_get_cstr(args));
 }
 
-void cli_command_917_rx_callback(const void* data, size_t data_size, void* context) {
-    furi_check(data);
-    furi_check(context);
-
-    FuriStreamBuffer* stream_buff = context;
-
-    furi_check(
-        furi_stream_buffer_send(stream_buff, data, data_size, FuriWaitForever) == data_size);
-}
-
-typedef struct {
-    Intercom* intercom;
-    FuriStreamBuffer* stream_buffer;
-    uint8_t data[1024];
-} CliCommand917Context;
-
-static CliCommand917Context contex = {};
-
-void cli_command_917(Cli* cli, FuriString* args, void* context) {
-    UNUSED(args);
-    UNUSED(context);
-
-    CliCommand917Context* instance = context;
-
-    printf("Starting 917 cli...\r\n");
-    printf("Press Ctrl+] to exit\r\n");
-
-    while(true) {
-        uint8_t symbol = 0;
-        size_t read_bytes = cli_read_timeout(cli, &symbol, 1, 10);
-        if(read_bytes == 1) {
-            size_t tx_bytes = intercom_tx(
-                instance->intercom, IntercomChannelControl, &symbol, 1, FuriWaitForever);
-            furi_check(tx_bytes == 1);
-            if(symbol == CliSymbolAsciiETX) {
-                printf("\r\nEnd of 917 cli session...\r\n\r\n");
-                break;
-            }
-
-            size_t rx_bytes = furi_stream_buffer_bytes_available(instance->stream_buffer);
-            if(rx_bytes) {
-                furi_check(
-                    furi_stream_buffer_receive(
-                        instance->stream_buffer, instance->data, rx_bytes, 0) == rx_bytes);
-                cli_write(cli, instance->data, rx_bytes);
-            }
-        }
-    }
-}
-
 void cli_commands_init(Cli* cli) {
     //cli_add_command(cli, "!", CliCommandFlagParallelSafe, cli_command_info, (void*)true);
     //cli_add_command(cli, "info", CliCommandFlagParallelSafe, cli_command_info, NULL);
@@ -303,13 +253,5 @@ void cli_commands_init(Cli* cli) {
     cli_add_command(
         cli, "light_sensor", CliCommandFlagParallelSafe, cli_command_light_sensor, NULL);
     cli_add_command(cli, "audio", CliCommandFlagParallelSafe, cli_command_audio, NULL);
-
-    memset(&contex, 0, sizeof(CliCommand917Context));
-    contex.intercom = furi_record_open(RECORD_INTERCOM);
-    contex.stream_buffer = furi_stream_buffer_alloc(1024, 1);
-
-    intercom_set_rx_callback(
-        contex.intercom, IntercomChannelControl, cli_command_917_rx_callback, contex.stream_buffer);
-
-    cli_add_command(cli, "917", CliCommandFlagParallelSafe, cli_command_917, &contex);
+    cli_add_command(cli, "917_cli", CliCommandFlagParallelSafe, cli_command_917_cli, NULL);
 }
