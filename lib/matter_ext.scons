@@ -247,6 +247,8 @@ libenv.AppendUnique(
         ("MBEDTLS_CONFIG_FILE", '\\"sl_mbedtls_config.h\\"'),
         ("MBEDTLS_PSA_CRYPTO_CONFIG_FILE", '\\"psa_crypto_config.h\\"'),
         ("MBEDTLS_USER_CONFIG_FILE", '\\"siwx917-chip-mbedtls-config.h\\"'),
+
+        
     ],
 )
 

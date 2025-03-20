@@ -54,7 +54,7 @@ WifiAsyncSocketServerEcho* wifi_lwip_socket_echo_header = NULL;
 //     }
 // }
 
-#define buf_size 1024*2
+#define buf_size 1024*4
 uint8_t buffer[buf_size];
 
 typedef struct {
@@ -119,7 +119,11 @@ void wifi_lwip_socket_server_echo_init(WifiTestApp* app, FuriString* msg, uint16
     while (1)
     {
         sent=recv(cli_socket.client_socket, &buffer, buf_size, 0);
-        send(cli_socket.client_socket, &buffer, sent, 0);
+        sent ++;
+        //send(cli_socket.client_socket, &buffer, sent, 0);
+
+        // furi_string_printf(msg, "DATA: %s\r\n", buffer);
+        // wifi_test_app_send_text(app, msg);
     }
     
     

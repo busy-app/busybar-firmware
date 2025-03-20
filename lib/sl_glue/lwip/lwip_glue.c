@@ -215,3 +215,36 @@ void sys_arch_unprotect(sys_prot_t pval) {
     UNUSED(pval);
     furi_mutex_release(lwip_protect_mutex);
 }
+
+// netconn per thread semaphores
+
+#define FURI_THREAD_LOCAL_SEM_INDEX 0
+
+sys_sem_t* sys_arch_netconn_sem_get(void) {
+    return furi_thread_local_storage_pointer_get(NULL, FURI_THREAD_LOCAL_SEM_INDEX);
+}
+
+void sys_arch_netconn_sem_alloc(void) {
+    void* ret = furi_thread_local_storage_pointer_get(NULL, FURI_THREAD_LOCAL_SEM_INDEX);
+    if(ret == NULL) {
+        sys_sem_t* sem;
+        err_t err;
+        /* need to allocate the memory for this semaphore */
+        sem = mem_malloc(sizeof(sys_sem_t));
+        LWIP_ASSERT("sem != NULL", sem != NULL);
+        err = sys_sem_new(sem, 0);
+        LWIP_ASSERT("err == ERR_OK", err == ERR_OK);
+        LWIP_ASSERT("sem invalid", sys_sem_valid(sem));
+        furi_thread_local_storage_pointer_set(NULL, FURI_THREAD_LOCAL_SEM_INDEX, sem);
+    }
+}
+
+void sys_arch_netconn_sem_free(void) {
+    void* ret = sys_arch_netconn_sem_get();
+    if(ret != NULL) {
+        sys_sem_t* sem = ret;
+        sys_sem_free(sem);
+        mem_free(sem);
+        furi_thread_local_storage_pointer_set(NULL, FURI_THREAD_LOCAL_SEM_INDEX, sem);
+    }
+}

@@ -3,6 +3,7 @@ App(
     targets=["f64"],
     apptype=FlipperAppType.STARTUP,
     entry_point="wifi_test_system_start",
+    stack_size=2 * 1024,
     sources=[
         "wifi_test.c",
         "helpers/wifi_test_app.c",

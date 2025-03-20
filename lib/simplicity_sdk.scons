@@ -62,7 +62,7 @@ env.Append(
         Dir(f"{SDK_INCDIR}/platform/security/sl_component/sl_psa_driver/inc").rdir(),
         Dir(f"{SDK_INCDIR}/platform/security/sl_component/sli_psec_osal/inc").rdir(),
         Dir(f"{SDK_INCDIR}/util/third_party/lwip/lwip/src/include").rdir(),
-        Dir(f"{MATTER_LIB_INCDIR}/third_party/matter_sdk/src/lwip/silabs").rdir(),
+        #Dir(f"{MATTER_LIB_INCDIR}/third_party/matter_sdk/src/lwip/silabs").rdir(),
         #Dir(f"{MATTER_LIB_INCDIR}/third_party/matter_sdk/src/lwip/freertos").rdir(),
         Dir("sl_glue/lwip").rdir(),
         Dir(f"{MATTER_LIB_INCDIR}/slc/inc/").rdir(),
@@ -72,6 +72,7 @@ env.Append(
         "-Wno-unused-parameter",
         # "-Wno-unused-variable",
          "-Wno-missing-field-initializers",
+         "-Wno-format",
     ],
     CPPDEFINES=[
         # SDK Wifi Silabss
@@ -88,7 +89,7 @@ env.Append(
         "LWIP_DHCP=1",
 
         "LWIP_NETIF_API=1",
-         "PRINT_DEBUG_LOG", #Print debug log NCP to Host
+        # "PRINT_DEBUG_LOG", #Print debug log NCP to Host
         "SIWG917M111MGTBA",
         "SL_CODE_COMPONENT_CORE=core",
         "SL_COMPONENT_CATALOG_PRESENT=1",
@@ -187,6 +188,8 @@ env.Append(
         "UDMA_ROMDRIVER_PRESENT=1",
         "ULPSS_CLOCK_ROMDRIVER_PRESENT=1",
 
+        #"LWIP_DEBUG_ENABLED=LWIP_DBG_ON",
+        #"LWIP_DEBUG=1",
     ],
 )
 
