@@ -10,6 +10,11 @@
 extern "C" {
 #endif
 
+typedef struct {
+    char* key;
+    uint32_t value;
+} VarItemKeyValue;
+
 /** VarItemList opaque structure. */
 typedef struct VarItemList VarItemList;
 /** VarItem opaque structure. */
@@ -111,6 +116,26 @@ VarItem* var_item_list_add_selector(
     const char* label,
     const char* suffix,
     const char* choice_text[],
+    uint32_t choice_count,
+    VarItemChangeCallback callback,
+    void* context);
+
+/**
+ * @brief Add a key:value list select element.
+ *
+ * @param[in,out] instance pointer to the VarItemList instance to be modified
+ * @param[in] label zero-terminated string containing the item label
+ * @param[in] choice_key_val pointer to an array of VarItemKeyValue structures
+ * @param[in] choice_count number of elements in the choice_text array
+ * @param[in] callback pointer to the function to call upon value being changed
+ * @param[in,out] context pointer to a user-specific object, will be passed to callback
+ * @returns pointer to the newly created VarItem instance
+ */    
+VarItem* var_item_list_add_selector_key_value(
+    VarItemList* instance,
+    const char* label,
+    const char* suffix,
+    const VarItemKeyValue* choice_key_val,
     uint32_t choice_count,
     VarItemChangeCallback callback,
     void* context);

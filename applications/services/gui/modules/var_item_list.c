@@ -210,6 +210,22 @@ static void var_item_editor_set_choices(
     }
 }
 
+static void var_item_editor_set_choices_key_value(
+    VarItemEditor* instance,
+    const VarItemKeyValue* key_value,
+    uint32_t choice_count) {
+    furi_assert(instance->type == VarItemTypeSelector);
+    furi_assert(instance->choices == NULL);
+
+    instance->choices = malloc(sizeof(VarItemSelectorChoices));
+    instance->choices->text = malloc(sizeof(char*) * choice_count);
+    instance->choices->count = choice_count;
+
+    for(uint32_t i = 0; i < choice_count; ++i) {
+        instance->choices->text[i] = strdup(key_value[i].key);
+    }
+}
+
 static void var_item_editor_clear_choices(VarItemEditor* instance) {
     furi_assert(instance->choices);
 
@@ -471,6 +487,30 @@ VarItem* var_item_list_add_selector(
     var_item_editor_set_type(item->editor, VarItemTypeSelector);
     var_item_editor_set_range_and_step(item->editor, 0, choice_count - 1, 1);
     var_item_editor_set_choices(item->editor, choice_text, choice_count);
+    var_item_editor_set_suffix(item->editor, suffix);
+    var_item_editor_update(item->editor);
+
+    return item;
+}
+
+VarItem* var_item_list_add_selector_key_value(
+    VarItemList* instance,
+    const char* label,
+    const char* suffix,
+    const VarItemKeyValue* choice_key_val,
+    uint32_t choice_count,
+    VarItemChangeCallback callback,
+    void* context) {
+    furi_check(instance);
+    furi_check(label);
+    furi_check(choice_key_val);
+    furi_check(choice_count);
+
+    VarItem* item = var_item_alloc(instance, label, callback, context);
+
+    var_item_editor_set_type(item->editor, VarItemTypeSelector);
+    var_item_editor_set_range_and_step(item->editor, 0, choice_count - 1, 1);
+    var_item_editor_set_choices_key_value(item->editor, choice_key_val, choice_count);
     var_item_editor_set_suffix(item->editor, suffix);
     var_item_editor_update(item->editor);
 
