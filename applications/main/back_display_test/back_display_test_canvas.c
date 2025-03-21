@@ -124,6 +124,64 @@ static void back_display_test_canvas_update_gradient_vertical_reverse(
     }
 }
 
+static void back_display_test_canvas_update_rand_10(Canvas* canvas, BackDisplayTestColor color) {
+    Widget* widget = canvas_get_base(canvas);
+    for(int32_t x = 0; x < widget_get_width(widget); x++) {
+        for(int32_t y = 0; y < widget_get_height(widget); y++) {
+            bool pixel_set = rand() % 10 == 0;
+
+            if(pixel_set) {
+                canvas_draw_pixel(canvas, x, y, back_display_test_colors[color].color);
+            }
+        }
+    }
+}
+
+static void
+    back_display_test_canvas_update_rand_10_grayscale(Canvas* canvas, BackDisplayTestColor color) {
+    Widget* widget = canvas_get_base(canvas);
+    for(int32_t x = 0; x < widget_get_width(widget); x++) {
+        for(int32_t y = 0; y < widget_get_height(widget); y++) {
+            bool pixel_set = rand() % 4 == 0;
+
+            if(pixel_set) {
+                uint32_t pixel_color = rand() % back_display_test_colors[color].color.r;
+                canvas_draw_pixel(
+                    canvas, x, y, (Color){.r = pixel_color, .g = pixel_color, .b = pixel_color});
+            }
+        }
+    }
+}
+
+static void
+    back_display_test_canvas_update_rand_lines(Canvas* canvas, BackDisplayTestColor color) {
+    Widget* widget = canvas_get_base(canvas);
+    canvas_set_line_color(canvas, back_display_test_colors[color].color);
+
+    for(int32_t i = 0; i < 30; i++) {
+        int32_t x1 = rand() % widget_get_width(widget);
+        int32_t y1 = rand() % widget_get_height(widget);
+        int32_t x2 = rand() % widget_get_width(widget);
+        int32_t y2 = rand() % widget_get_height(widget);
+
+        canvas_draw_line(canvas, x1, y1, x2, y2);
+    }
+}
+
+static void
+    back_display_test_canvas_update_rand_squares(Canvas* canvas, BackDisplayTestColor color) {
+    Widget* widget = canvas_get_base(canvas);
+    canvas_set_fill_color(canvas, back_display_test_colors[color].color);
+
+    for(int32_t i = 0; i < 10; i++) {
+        int32_t x = rand() % widget_get_width(widget);
+        int32_t y = rand() % widget_get_height(widget);
+        int32_t size = rand() % 20;
+
+        canvas_draw_rect(canvas, x, y, size, size, true);
+    }
+}
+
 typedef struct {
     void (*draw)(Canvas* canvas, BackDisplayTestColor color);
     const char* name;
@@ -138,9 +196,15 @@ static const BackDisplayTestPatternInfo back_display_test_patterns[BackDisplayTe
     [BackDisplayTestPatternGradientVertical] =
         {back_display_test_canvas_update_gradient_vertical, "Gradient V"},
     [BackDisplayTestPatternGradientReverseHorizontal] =
-        {back_display_test_canvas_update_gradient_horizontal_reverse, "Gradient H Rev"},
+        {back_display_test_canvas_update_gradient_horizontal_reverse, "Gradient HR"},
     [BackDisplayTestPatternGradientReverseVertical] =
-        {back_display_test_canvas_update_gradient_vertical_reverse, "Gradient V Rev"},
+        {back_display_test_canvas_update_gradient_vertical_reverse, "Gradient VR"},
+    [BackDisplayTestPatternRand10] = {back_display_test_canvas_update_rand_10, "Rand 10%%"},
+    [BackDisplayTestPatternRand10Grayscale] =
+        {back_display_test_canvas_update_rand_10_grayscale, "Rand 10%% G"},
+    [BackDisplayTestPatternRandLines] = {back_display_test_canvas_update_rand_lines, "Rand Lines"},
+    [BackDisplayTestPatternRandSquares] =
+        {back_display_test_canvas_update_rand_squares, "Rand Squares"},
 };
 
 void back_display_test_canvas_update(

@@ -4,6 +4,32 @@
 
 #define TAG "BackDisplayTest"
 
+typedef enum {
+    BackDisplayTestAppEventNextPattern,
+    BackDisplayTestAppEventPrevPattern,
+    BackDisplayTestAppEventNextColor,
+    BackDisplayTestAppEventPrevColor,
+    BackDisplayTestAppEventTick,
+    BackDisplayTestAppEventExit,
+} BackDisplayTestAppEvent;
+
+typedef struct {
+    FuriEventLoop* event_loop;
+    FuriMessageQueue* event_queue;
+    FuriEventLoopTimer* timer;
+    Gui* gui;
+
+    // Back display
+    Widget* app_window;
+    Label* pattern_label;
+
+    // Front display
+    Canvas* canvas;
+
+    BackDisplayTestPattern current_pattern;
+    BackDisplayTestColor current_color;
+} BackDisplayTestApp;
+
 static bool back_display_test_app_input_callback(const InputEvent* event, void* context) {
     furi_assert(event);
     furi_assert(context);
@@ -44,9 +70,10 @@ static void back_display_test_app_update(BackDisplayTestApp* app) {
         back_display_test_canvas_update(app->canvas, app->current_pattern, app->current_color);
         label_set_text_fmt(
             app->pattern_label,
-            "%s %s:15",
-            back_display_test_pattern_to_string(app->current_pattern),
-            back_display_test_color_to_string(app->current_color));
+            "Color: %.0f%%\nPattern: %s",
+            100.0f / (BackDisplayTestColorMax - 1) *
+                (BackDisplayTestColorMax - app->current_color - 1),
+            back_display_test_pattern_to_string(app->current_pattern));
     });
 }
 
@@ -116,14 +143,8 @@ static BackDisplayTestApp* back_display_test_app_alloc() {
             root = gui_layer_get_root_widget(main_layer, GuiDisplayIdFront);
 
             app->app_window = widget_alloc(root);
-            app->static_label = label_alloc(app->app_window);
-            widget_set_align(label_get_base(app->static_label), AlignTopMid);
-            widget_set_pos(label_get_base(app->static_label), 0, 0);
-            label_set_text(app->static_label, "< pattern >");
 
             app->pattern_label = label_alloc(app->app_window);
-            widget_set_align(label_get_base(app->pattern_label), AlignTopMid);
-            widget_set_pos(label_get_base(app->pattern_label), 0, 8);
         }
 
         //  Back display

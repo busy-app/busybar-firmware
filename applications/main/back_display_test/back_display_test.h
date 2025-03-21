@@ -10,21 +10,16 @@ extern "C" {
 #endif
 
 typedef enum {
-    BackDisplayTestAppEventNextPattern,
-    BackDisplayTestAppEventPrevPattern,
-    BackDisplayTestAppEventNextColor,
-    BackDisplayTestAppEventPrevColor,
-    BackDisplayTestAppEventTick,
-    BackDisplayTestAppEventExit,
-} BackDisplayTestAppEvent;
-
-typedef enum {
     BackDisplayTestPatternFill,
     BackDisplayTestPatternCheckerboard,
     BackDisplayTestPatternGradientHorizontal,
     BackDisplayTestPatternGradientVertical,
     BackDisplayTestPatternGradientReverseHorizontal,
     BackDisplayTestPatternGradientReverseVertical,
+    BackDisplayTestPatternRand10,
+    BackDisplayTestPatternRand10Grayscale,
+    BackDisplayTestPatternRandLines,
+    BackDisplayTestPatternRandSquares,
 
     BackDisplayTestPatternMax,
 } BackDisplayTestPattern;
@@ -49,24 +44,6 @@ typedef enum {
 
     BackDisplayTestColorMax,
 } BackDisplayTestColor;
-
-typedef struct {
-    FuriEventLoop* event_loop;
-    FuriMessageQueue* event_queue;
-    FuriEventLoopTimer* timer;
-    Gui* gui;
-
-    // Back display
-    Widget* app_window;
-    Label* static_label;
-    Label* pattern_label;
-
-    // Front display
-    Canvas* canvas;
-
-    BackDisplayTestPattern current_pattern;
-    BackDisplayTestColor current_color;
-} BackDisplayTestApp;
 
 #ifdef __cplusplus
 }
