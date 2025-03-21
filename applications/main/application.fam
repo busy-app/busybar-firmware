@@ -16,6 +16,7 @@ App(
         "animation_player",
         # "busy",
         "dummy",
+        "ble_per_test",
     ],
     targets=["f20"],
 )
