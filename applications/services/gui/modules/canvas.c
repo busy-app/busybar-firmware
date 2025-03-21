@@ -221,25 +221,31 @@ void canvas_draw_pixel(Canvas* instance, int32_t x, int32_t y, Color color) {
 
 void canvas_draw_line(Canvas* instance, int32_t x1, int32_t y1, int32_t x2, int32_t y2) {
     furi_check(instance);
-    furi_check(instance->draw_nested > 0);
 
-    const lv_draw_line_dsc_t draw = {
-        .p1 =
-            {
-                .x = x1,
-                .y = y1,
-            },
-        .p2 =
-            {
-                .x = x2,
-                .y = y2,
-            },
-        .color = TO_LV_COLOR(instance->line_color),
-        .width = instance->line_width,
-        .opa = instance->line_opacity,
-    };
+    const int32_t dx = abs(x2 - x1);
+    const int32_t dy = abs(y2 - y1);
+    const int32_t sx = x1 < x2 ? 1 : -1;
+    const int32_t sy = y1 < y2 ? 1 : -1;
+    int32_t err = dx - dy;
 
-    lv_draw_line(&instance->layer, &draw);
+    while(true) {
+        canvas_draw_pixel(instance, x1, y1, instance->line_color);
+
+        if(x1 == x2 && y1 == y2) {
+            break;
+        }
+
+        const int32_t e2 = 2 * err;
+        if(e2 > -dy) {
+            err -= dy;
+            x1 += sx;
+        }
+
+        if(e2 < dx) {
+            err += dx;
+            y1 += sy;
+        }
+    }
 }
 
 void canvas_draw_rect(
