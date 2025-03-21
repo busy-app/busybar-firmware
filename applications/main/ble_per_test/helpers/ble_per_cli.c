@@ -1,5 +1,4 @@
 #include "ble_per_cli.h"
-#include <furi.h>
 #include <intercom/intercom.h>
 
 #define TAG "BlePerCli"
@@ -10,7 +9,7 @@ typedef struct {
     Intercom* intercom;
     FuriStreamBuffer* rx_buffer;
     uint8_t rx_data[CLI_BUFFER_SIZE];
-    
+
 } CliCommandSlCli;
 
 CliCommandSlCli* ble_per_cli_instance = NULL;
@@ -43,8 +42,8 @@ void ble_per_cli_data_tx(uint8_t* data, size_t data_size) {
 }
 
 
-void ble_per_cli_start(void) {
-
+void ble_per_cli_start(BlePerCliSettings settings) {
+    UNUSED(settings);
     if(ble_per_cli_instance != NULL) {
         return;
     }

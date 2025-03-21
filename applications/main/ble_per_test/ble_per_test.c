@@ -25,17 +25,8 @@ typedef struct {
     VarItemList* var_list;
     bool exit_on_back;
     Label* label;
+    BlePerCliSettings settings;
 } BlePerTest;
-
-typedef struct {
-    uint8_t mode_work;
-    uint8_t mode;
-    uint8_t channel;
-    uint8_t tx_power;
-    uint8_t rate;
-    uint8_t payload_type;
-    bool start_test;
-} BlePerTestSettings;
 
 static const char* ble_per_test_mode_work_text[] = {
     "Carrier",
@@ -77,54 +68,63 @@ static const VarItemKeyValue ble_per_test_rate[RATE_MAX] = {
 };
 
 static void ble_per_test_mode_work_changed_callback(VarItem* item, void* context) {
-    UNUSED(context);
+    BlePerTest* instance = context;
     const int32_t index = var_item_get_value(item);
     FURI_LOG_I(TAG, "Mode work set: %s", ble_per_test_mode_work_text[index]);
+    instance->settings.mode_work = index;
 }
 
 static void ble_per_test_mode_changed_callback(VarItem* item, void* context) {
-    UNUSED(context);
+    BlePerTest* instance = context;
     const int32_t index = var_item_get_value(item);
     FURI_LOG_I(TAG, "Mode set: %s", ble_per_test_mode_text[index]);
+    instance->settings.mode = index;
 }
 
 static void ble_per_test_channel_changed_callback(VarItem* item, void* context) {
-    UNUSED(context);
+    BlePerTest* instance = context;
     const int32_t index = var_item_get_value(item);
     FURI_LOG_I(TAG, "Channel set: %s", ble_per_test_channel[index].key);
     FURI_LOG_I(TAG, "Channel value: %ld", ble_per_test_channel[index].value);
+    instance->settings.channel = ble_per_test_channel[index].value;
 }
 
 static void ble_per_test_power_changed_callback(VarItem* item, void* context) {
-    UNUSED(context);
+    BlePerTest* instance = context;
     const int32_t power = var_item_get_value(item);
     FURI_LOG_I(TAG, "Power set: %ld", power);
+    instance->settings.tx_power = power;
 }
 
 static void ble_per_test_payload_type_changed_callback(VarItem* item, void* context) {
-    UNUSED(context);
+    BlePerTest* instance = context;
     const int32_t index = var_item_get_value(item);
     FURI_LOG_I(TAG, "Payload type set: %s", ble_per_test_payload_type[index].key);
     FURI_LOG_I(TAG, "Payload type value: %ld", ble_per_test_payload_type[index].value);
+    instance->settings.payload_type = ble_per_test_payload_type[index].value;
 }
 
 static void ble_per_test_rate_changed_callback(VarItem* item, void* context) {
-    UNUSED(context);
+    BlePerTest* instance = context;
     const int32_t index = var_item_get_value(item);
     FURI_LOG_I(TAG, "Rate set: %s", ble_per_test_rate[index].key);
     FURI_LOG_I(TAG, "Rate value: %ld", ble_per_test_rate[index].value);
+    instance->settings.rate = ble_per_test_rate[index].value;
 }
 
 static void ble_per_test_switch_changed_callback(VarItem* item, void* context) {
-
     BlePerTest* instance = context;
     const int32_t value = var_item_get_value(item);
     FURI_LOG_I(TAG, "Start test set: %s", value ? "ON" : "OFF");
-    if(value) {
-        furi_event_loop_set_custom_event(instance->event_loop, BlePerTestCustomEventStartTest);
-    } else {
-        furi_event_loop_set_custom_event(instance->event_loop, BlePerTestCustomEventStopTest);
+    if(instance->settings.start_test != value) {
+        instance->settings.start_test = value;
+        if(value) {
+            furi_event_loop_set_custom_event(instance->event_loop, BlePerTestCustomEventStartTest);
+        } else {
+           furi_event_loop_set_custom_event(instance->event_loop, BlePerTestCustomEventStopTest);
+        }
     }
+    
 }
 
 static bool ble_per_test_input_callback(const InputEvent* event, void* context) {
@@ -161,7 +161,7 @@ static void ble_per_test_custom_event_callback(uint32_t events, void* context) {
 
     if(events & BlePerTestCustomEventStartTest) {
         FURI_LOG_I(TAG, "Start test");
-        ble_per_cli_start();
+        ble_per_cli_start(instance->settings);
     }
 
     if(events & BlePerTestCustomEventStopTest) {
@@ -202,7 +202,8 @@ static BlePerTest* ble_per_test_alloc(void) {
             ble_per_test_mode_work_text,
             COUNT_OF(ble_per_test_mode_work_text),
             ble_per_test_mode_work_changed_callback,
-            NULL);
+            instance);
+        instance->settings.mode_work = var_item_get_value(item); 
 
         item = var_item_list_add_selector(
             instance->var_list,
@@ -211,7 +212,9 @@ static BlePerTest* ble_per_test_alloc(void) {
             ble_per_test_mode_text,
             COUNT_OF(ble_per_test_mode_text),
             ble_per_test_mode_changed_callback,
-            NULL);
+            instance);
+        instance->settings.mode = var_item_get_value(item);
+
         item = var_item_list_add_selector_key_value(
             instance->var_list,
             "Channel",
@@ -219,7 +222,9 @@ static BlePerTest* ble_per_test_alloc(void) {
             ble_per_test_channel,
             CANNEL_MAX,
             ble_per_test_channel_changed_callback,
-            NULL);
+            instance);
+        instance->settings.channel = ble_per_test_channel[var_item_get_value(item)].value;
+
         item = var_item_list_add_spinbox(
             instance->var_list,
             "Power",
@@ -228,7 +233,8 @@ static BlePerTest* ble_per_test_alloc(void) {
             POWER_MAX,
             POWER_STEP,
             ble_per_test_power_changed_callback,
-            NULL);   
+            instance); 
+        instance->settings.tx_power = var_item_get_value(item);      
         
         item = var_item_list_add_selector_key_value(
             instance->var_list,
@@ -237,7 +243,9 @@ static BlePerTest* ble_per_test_alloc(void) {
             ble_per_test_payload_type,
             PAYLOAD_TYPE_KEY_MAX,
             ble_per_test_payload_type_changed_callback,
-            NULL);
+            instance);
+        instance->settings.payload_type = ble_per_test_payload_type[var_item_get_value(item)].value;
+            
         item = var_item_list_add_selector_key_value(
             instance->var_list,
             "Rate",
@@ -245,12 +253,12 @@ static BlePerTest* ble_per_test_alloc(void) {
             ble_per_test_rate,
             RATE_MAX,
             ble_per_test_rate_changed_callback,
-            NULL);
-
+            instance);
+        instance->settings.rate = ble_per_test_rate[var_item_get_value(item)].value;
+            
         item = var_item_list_add_switch(
             instance->var_list, "Start test", ble_per_test_switch_changed_callback, instance); 
-
-        UNUSED(item);
+        instance->settings.start_test = var_item_get_value(item);    
     });
 
     return instance;
