@@ -1,7 +1,8 @@
 #include "canvas.h"
 
 #include <gui/widget_i.h>
-#include "src/widgets/canvas/lv_canvas_private.h"
+#include <lvgl/src/widgets/canvas/lv_canvas_private.h>
+#include <lvgl/src/core/lv_refr_private.h>
 
 #define MY_CLASS (&canvas_lvgl_class)
 
@@ -140,9 +141,13 @@ void canvas_free(Canvas* instance) {
     lv_obj_delete((lv_obj_t*)instance);
 }
 
+static_assert(
+    LVGL_VERSION_MAJOR == 9 && LVGL_VERSION_MINOR == 3 && LVGL_VERSION_PATCH == 0,
+    "This code was designed for LVGL v9.3.0, check if lv_refr_set_disp_refreshing is still needed (antialiased lines is broken without it)");
 void canvas_draw_begin(Canvas* instance) {
     furi_check(instance);
     if(instance->draw_nested == 0) {
+        lv_refr_set_disp_refreshing(lv_obj_get_disp(instance->canvas));
         lv_canvas_init_layer(instance->canvas, &instance->layer);
     }
 
