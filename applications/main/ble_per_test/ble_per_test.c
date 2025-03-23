@@ -9,9 +9,9 @@
 
 #define TAG "BlePerTest"
 
-#define POWER_MIN  (0)
+#define POWER_MIN  (1)
 #define POWER_MAX  (6)
-#define POWER_STEP (2)
+#define POWER_STEP (1)
 
 typedef enum {
     BlePerTestCustomEventExit = (1UL << 0),
@@ -34,8 +34,8 @@ static const char* ble_per_test_mode_work_text[] = {
 };
 
 static const char* ble_per_test_mode_text[] = {
-    "Rx",
     "Tx",
+    "Rx",
     "Hopping",
 };
 
