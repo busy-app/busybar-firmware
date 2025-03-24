@@ -1,4 +1,3 @@
-#include <ssd1320/ssd1320.h>
 #include "back_display_test.h"
 #include "back_display_test_canvas.h"
 
@@ -150,7 +149,7 @@ static BackDisplayTestApp* back_display_test_app_alloc() {
         //  Back display
         {
             root = gui_layer_get_root_widget(main_layer, GuiDisplayIdBack);
-            app->canvas = canvas_alloc(root, SSD1320_W, SSD1320_H);
+            app->canvas = canvas_alloc(root, widget_get_width(root), widget_get_height(root));
         }
     });
 
