@@ -52,6 +52,7 @@ static void cli_command_show(Cli* cli, FuriString* args, GuiDisplayId id) {
     });
 
     while(!cli_cmd_interrupt_received(cli)) {
+        furi_delay_ms(50);
     };
 
     with_gui(gui, { image_free(image); });
