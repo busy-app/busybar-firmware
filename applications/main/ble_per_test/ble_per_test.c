@@ -35,46 +35,13 @@ static const char* ble_per_test_mode_text[] = {
 
 #define CANNEL_MAX 40
 static const VarItemKeyValue ble_per_test_channel[CANNEL_MAX] = {
-    {"2402", 0},
-    {"2404", 1},
-    {"2406", 2},
-    {"2408", 3},
-    {"2410", 4},
-    {"2412", 5},
-    {"2414", 6},
-    {"2416", 7},
-    {"2418", 8},
-    {"2420", 9},
-    {"2422", 10},
-    {"2424", 11},
-    {"2426", 12},
-    {"2428", 13},
-    {"2430", 14},
-    {"2432", 15},
-    {"2434", 16},
-    {"2436", 17},
-    {"2438", 18},
-    {"2440", 19},
-    {"2442", 20},
-    {"2444", 21},
-    {"2446", 22},
-    {"2448", 23},
-    {"2450", 24},
-    {"2452", 25},
-    {"2454", 26},
-    {"2456", 27},
-    {"2458", 28},
-    {"2460", 29},
-    {"2462", 30},
-    {"2464", 31},
-    {"2466", 32},
-    {"2468", 33},
-    {"2470", 34},
-    {"2472", 35},
-    {"2474", 36},
-    {"2476", 37},
-    {"2478", 38},
-    {"2480", 39},
+    {"2402", 0},  {"2404", 1},  {"2406", 2},  {"2408", 3},  {"2410", 4},  {"2412", 5},
+    {"2414", 6},  {"2416", 7},  {"2418", 8},  {"2420", 9},  {"2422", 10}, {"2424", 11},
+    {"2426", 12}, {"2428", 13}, {"2430", 14}, {"2432", 15}, {"2434", 16}, {"2436", 17},
+    {"2438", 18}, {"2440", 19}, {"2442", 20}, {"2444", 21}, {"2446", 22}, {"2448", 23},
+    {"2450", 24}, {"2452", 25}, {"2454", 26}, {"2456", 27}, {"2458", 28}, {"2460", 29},
+    {"2462", 30}, {"2464", 31}, {"2466", 32}, {"2468", 33}, {"2470", 34}, {"2472", 35},
+    {"2474", 36}, {"2476", 37}, {"2478", 38}, {"2480", 39},
 };
 
 #define RATE_MAX 5
@@ -95,7 +62,7 @@ static const VarItemKeyValue ble_per_test_payload_type[PAYLOAD_TYPE_KEY_MAX] = {
     {"PRBS9", 0},
     {"11110000", 1},
     {"10101010", 2},
-    {"PRBS15", 3}, 
+    {"PRBS15", 3},
     {"11111111", 4},
     {"00000000", 5},
     {"00001111", 6},
@@ -211,12 +178,13 @@ static void ble_per_test_switch_changed_callback(VarItem* item, void* context) {
     if(instance->settings.start_test != value) {
         instance->settings.start_test = value;
         if(value) {
+            instance->settings.start_test = true;
             furi_event_loop_set_custom_event(instance->event_loop, BlePerTestCustomEventStartTest);
         } else {
-           furi_event_loop_set_custom_event(instance->event_loop, BlePerTestCustomEventStopTest);
+            instance->settings.start_test = false;
+            furi_event_loop_set_custom_event(instance->event_loop, BlePerTestCustomEventStopTest);
         }
     }
-    
 }
 
 static bool ble_per_test_input_callback(const InputEvent* event, void* context) {
@@ -231,7 +199,7 @@ static bool ble_per_test_input_callback(const InputEvent* event, void* context) 
             furi_event_loop_set_custom_event(instance->event_loop, BlePerTestCustomEventExit);
             instance->exit_on_back = true;
             consumed = true;
-        } 
+        }
         //else if(event->key == InputKeyStart) {
         //     furi_event_loop_set_custom_event(instance->event_loop, BlePerTestCustomEventSound);
         //     consumed = true;
@@ -246,6 +214,10 @@ static void ble_per_test_custom_event_callback(uint32_t events, void* context) {
     BlePerTest* instance = context;
 
     if(events & BlePerTestCustomEventExit) {
+        if(instance->settings.start_test) {
+            FURI_LOG_I(TAG, "Stop test");
+            ble_per_cli_stop();
+        }
         if(instance->exit_on_back) {
             furi_event_loop_stop(instance->event_loop);
         }
@@ -275,13 +247,17 @@ static BlePerTest* ble_per_test_alloc(void) {
         GuiLayer* main_layer = gui_get_layer(instance->gui, GuiLayerIdMain);
         gui_layer_add_input_callback(main_layer, ble_per_test_input_callback, instance);
 
+        GuiLayer* top_layer = gui_get_layer(instance->gui, GuiLayerIdTop);
+        Widget* top_layer_root = gui_layer_get_root_widget(top_layer, GuiDisplayIdBack);
+
         Widget* root = gui_layer_get_root_widget(main_layer, GuiDisplayIdBack);
         instance->var_list = var_item_list_alloc(root);
-        widget_set_pos_y(var_item_list_get_base(instance->var_list), 15);
-        
-        instance->label = label_alloc(root);
+        widget_set_pos_y(var_item_list_get_base(instance->var_list), 20);
+        widget_set_height(var_item_list_get_base(instance->var_list), 50);
+
+        instance->label = label_alloc(top_layer_root);
         label_set_text(instance->label, "BlePerTest");
-        widget_set_pos(label_get_base(instance->label),30, 0);
+        widget_set_pos(label_get_base(instance->label), 30, 0);
 
         VarItem* item;
         item = var_item_list_add_selector_key_value(
@@ -312,7 +288,7 @@ static BlePerTest* ble_per_test_alloc(void) {
             HOPPING_MAX,
             ble_per_test_hopping_changed_callback,
             instance);
-        var_item_set_value_key_value(item, ble_per_test_hopping, instance->settings.hopping);      
+        var_item_set_value_key_value(item, ble_per_test_hopping, instance->settings.hopping);
 
         item = var_item_list_add_selector_key_value(
             instance->var_list,
@@ -331,7 +307,7 @@ static BlePerTest* ble_per_test_alloc(void) {
             ble_per_test_tx_power,
             TX_POWER_MAX,
             ble_per_test_power_changed_callback,
-            instance); 
+            instance);
         var_item_set_value_key_value(item, ble_per_test_tx_power, instance->settings.tx_power);
 
         item = var_item_list_add_spinbox(
@@ -342,9 +318,9 @@ static BlePerTest* ble_per_test_alloc(void) {
             PAYLOAD_LEN_MAX,
             PAYLOAD_LEN_STEP,
             ble_per_test_payload_len_changed_callback,
-            instance); 
-        var_item_set_value(item, instance->settings.payload_len); 
-        
+            instance);
+        var_item_set_value(item, instance->settings.payload_len);
+
         item = var_item_list_add_selector_key_value(
             instance->var_list,
             "Payload Type",
@@ -353,8 +329,9 @@ static BlePerTest* ble_per_test_alloc(void) {
             PAYLOAD_TYPE_KEY_MAX,
             ble_per_test_payload_type_changed_callback,
             instance);
-        var_item_set_value_key_value(item, ble_per_test_payload_type, instance->settings.payload_type);
-            
+        var_item_set_value_key_value(
+            item, ble_per_test_payload_type, instance->settings.payload_type);
+
         item = var_item_list_add_selector_key_value(
             instance->var_list,
             "Rate",
@@ -364,10 +341,10 @@ static BlePerTest* ble_per_test_alloc(void) {
             ble_per_test_rate_changed_callback,
             instance);
         var_item_set_value_key_value(item, ble_per_test_rate, instance->settings.rate);
-            
+
         item = var_item_list_add_switch(
-            instance->var_list, "Start test", ble_per_test_switch_changed_callback, instance); 
-        instance->settings.start_test = var_item_get_value(item);    
+            instance->var_list, "Start test", ble_per_test_switch_changed_callback, instance);
+        instance->settings.start_test = var_item_get_value(item);
     });
 
     return instance;

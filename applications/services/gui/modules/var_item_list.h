@@ -130,7 +130,7 @@ VarItem* var_item_list_add_selector(
  * @param[in] callback pointer to the function to call upon value being changed
  * @param[in,out] context pointer to a user-specific object, will be passed to callback
  * @returns pointer to the newly created VarItem instance
- */    
+ */
 VarItem* var_item_list_add_selector_key_value(
     VarItemList* instance,
     const char* label,
@@ -179,7 +179,10 @@ void var_item_set_value(VarItem* item, int32_t value);
  * @param[in] choice_key_val pointer to the array of VarItemKeyValue structures
  * @param[in] value value to be set
  */
-void var_item_set_value_key_value(VarItem* item, const VarItemKeyValue* choice_key_val, int32_t value);
+void var_item_set_value_key_value(
+    VarItem* item,
+    const VarItemKeyValue* choice_key_val,
+    int32_t value);
 
 /**
  * @brief Get the current item value.
