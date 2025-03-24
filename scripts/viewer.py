@@ -18,6 +18,7 @@ class Main(App):
             "anim", help="Start an animation on the device"
         )
         self.parser_anim.add_argument("source_dir", help="Source directory")
+        self.parser_anim.add_argument("-f", "--fps", help="Animation FPS", type=int, default=60)
         self.parser_anim.set_defaults(func=self.anim)
 
     def anim(self):
@@ -25,7 +26,7 @@ class Main(App):
             local_anim_path = os.path.join(temp_dir_path, self.ANIM_FILE_NAME)
             device_anim_path = os.path.join(self.ANIM_DEVICE_PATH, self.ANIM_FILE_NAME)
 
-            animation = BusyBarAnimation(self.args.source_dir, 60, local_anim_path)
+            animation = BusyBarAnimation(self.args.source_dir, self.args.fps, local_anim_path)
             animation.process_images()
 
             with FlipperStorage(self._get_port()) as storage:
