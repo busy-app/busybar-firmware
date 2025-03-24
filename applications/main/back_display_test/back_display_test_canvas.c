@@ -128,7 +128,7 @@ static void back_display_test_canvas_update_rand_10(Canvas* canvas, BackDisplayT
     Widget* widget = canvas_get_base(canvas);
     for(int32_t x = 0; x < widget_get_width(widget); x++) {
         for(int32_t y = 0; y < widget_get_height(widget); y++) {
-            bool pixel_set = rand() % 10 == 0;
+            bool pixel_set = rand() % 20 == 0;
 
             if(pixel_set) {
                 canvas_draw_pixel(canvas, x, y, back_display_test_colors[color].color);
@@ -142,7 +142,7 @@ static void
     Widget* widget = canvas_get_base(canvas);
     for(int32_t x = 0; x < widget_get_width(widget); x++) {
         for(int32_t y = 0; y < widget_get_height(widget); y++) {
-            bool pixel_set = rand() % 4 == 0;
+            bool pixel_set = rand() % 20 == 0;
 
             if(pixel_set) {
                 uint32_t pixel_color = rand() % back_display_test_colors[color].color.r;
@@ -199,9 +199,9 @@ static const BackDisplayTestPatternInfo back_display_test_patterns[BackDisplayTe
         {back_display_test_canvas_update_gradient_horizontal_reverse, "Gradient HR"},
     [BackDisplayTestPatternGradientReverseVertical] =
         {back_display_test_canvas_update_gradient_vertical_reverse, "Gradient VR"},
-    [BackDisplayTestPatternRand10] = {back_display_test_canvas_update_rand_10, "Rand 10%%"},
+    [BackDisplayTestPatternRand10] = {back_display_test_canvas_update_rand_10, "Rand 10%"},
     [BackDisplayTestPatternRand10Grayscale] =
-        {back_display_test_canvas_update_rand_10_grayscale, "Rand 10%% G"},
+        {back_display_test_canvas_update_rand_10_grayscale, "Rand 10% G"},
     [BackDisplayTestPatternRandLines] = {back_display_test_canvas_update_rand_lines, "Rand Lines"},
     [BackDisplayTestPatternRandSquares] =
         {back_display_test_canvas_update_rand_squares, "Rand Squares"},
