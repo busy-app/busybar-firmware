@@ -12,7 +12,7 @@ extern "C" {
 
 typedef struct {
     char* key;
-    uint32_t value;
+    int32_t value;
 } VarItemKeyValue;
 
 /** VarItemList opaque structure. */
@@ -168,6 +168,18 @@ VarItem* var_item_list_add_switch(
  * @param[in] value value to be set
  */
 void var_item_set_value(VarItem* item, int32_t value);
+
+/**
+ * @brief Set the current item value.
+ *
+ * This function has a different meaning depending on the item type:
+ * - VarItemKeyValue: set the current choice index
+ *
+ * @param[in,out] instance pointer to the item to be modified
+ * @param[in] choice_key_val pointer to the array of VarItemKeyValue structures
+ * @param[in] value value to be set
+ */
+void var_item_set_value_key_value(VarItem* item, const VarItemKeyValue* choice_key_val, int32_t value);
 
 /**
  * @brief Get the current item value.

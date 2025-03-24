@@ -548,6 +548,21 @@ void var_item_set_value(VarItem* item, int32_t value) {
     }
 }
 
+void var_item_set_value_key_value(VarItem* item, const VarItemKeyValue* choice_key_val, int32_t value) {
+    furi_check(item);
+
+    VarItemEditor* editor = item->editor;
+    int32_t index = 0x7FFFFFFF;
+    for (int32_t i = editor->min; i <= editor->max; i++)
+    {
+        if(choice_key_val[i].value == value) {
+            index = i;
+            break;
+        }
+    }
+    var_item_set_value(item, index);
+}
+
 int32_t var_item_get_value(const VarItem* item) {
     furi_check(item);
 
