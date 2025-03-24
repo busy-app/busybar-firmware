@@ -13,6 +13,8 @@ class Main(App):
     ANIM_DEVICE_PATH = "/ext/animations"
 
     def init(self):
+        self.parser.add_argument("-a", "--address", help="IP address or hostname", default="auto")
+
         self.subparsers = self.parser.add_subparsers(help="sub-command help")
         self.parser_anim = self.subparsers.add_parser(
             "anim", help="Start an animation on the device"
@@ -30,7 +32,8 @@ class Main(App):
             animation = BusyBarAnimation(self.args.source_dir, self.args.fps, local_anim_path)
             animation.process_images()
 
-            with FlipperStorage(self._get_port()) as storage:
+            with FlipperStorage(self._get_address()) as storage:
+                # TODO: Common CLI library for everything that uses it
                 self.logger.info("Closing currently running app")
                 storage.send_and_wait_prompt("loader kill\r")
 
@@ -40,15 +43,17 @@ class Main(App):
                 )
 
                 self.logger.info("Starting player app")
-                # TODO: Common CLI library for everything that uses it
                 storage.send_and_wait_prompt(
                     f"loader open animation_player {device_anim_path}\r"
                 )
 
         return 0
 
-    def _get_port(self):
-        return ("10.0.4.20", 23)
+    def _get_address(self):
+        if self.args.address != "auto":
+            return (self.args.address, 23)
+        else:
+            return ("10.0.4.20", 23)
 
 
 if __name__ == "__main__":
