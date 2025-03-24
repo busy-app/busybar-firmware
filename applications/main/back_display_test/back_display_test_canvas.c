@@ -179,6 +179,35 @@ static void
         canvas_draw_rect(canvas, x, y, size, size, true);
     }
 }
+static void
+    back_display_test_canvas_update_tearing_vertical(Canvas* canvas, BackDisplayTestColor color) {
+    Widget* widget = canvas_get_base(canvas);
+    canvas_set_line_color(canvas, back_display_test_colors[color].color);
+
+    static int32_t x = 0;
+
+    canvas_draw_rect(canvas, x, 0, 10, widget_get_height(widget), true);
+
+    x += 5;
+    if(x >= widget_get_width(widget)) {
+        x = 0;
+    }
+}
+
+static void
+    back_display_test_canvas_update_tearing_horizontal(Canvas* canvas, BackDisplayTestColor color) {
+    Widget* widget = canvas_get_base(canvas);
+    canvas_set_line_color(canvas, back_display_test_colors[color].color);
+
+    static int32_t y = 0;
+
+    canvas_draw_rect(canvas, 0, y, widget_get_width(widget), 10, true);
+
+    y += 5;
+    if(y >= widget_get_height(widget)) {
+        y = 0;
+    }
+}
 
 typedef struct {
     void (*draw)(Canvas* canvas, BackDisplayTestColor color);
@@ -203,6 +232,11 @@ static const BackDisplayTestPatternInfo back_display_test_patterns[BackDisplayTe
     [BackDisplayTestPatternRandLines] = {back_display_test_canvas_update_rand_lines, "Rand Lines"},
     [BackDisplayTestPatternRandSquares] =
         {back_display_test_canvas_update_rand_squares, "Rand Squares"},
+
+    [BackDisplayTestPatternTearingVertical] =
+        {back_display_test_canvas_update_tearing_vertical, "Tearing V"},
+    [BackDisplayTestPatternTearingHorizontal] =
+        {back_display_test_canvas_update_tearing_horizontal, "Tearing H"},
 };
 
 void back_display_test_canvas_update(

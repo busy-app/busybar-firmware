@@ -20,6 +20,8 @@ typedef enum {
     BackDisplayTestPatternRand10Grayscale,
     BackDisplayTestPatternRandLines,
     BackDisplayTestPatternRandSquares,
+    BackDisplayTestPatternTearingVertical,
+    BackDisplayTestPatternTearingHorizontal,
 
     BackDisplayTestPatternMax,
 } BackDisplayTestPattern;
