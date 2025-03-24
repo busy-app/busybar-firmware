@@ -9,9 +9,9 @@
 
 #define TAG "BlePerTest"
 
-#define POWER_MIN  (1)
-#define POWER_MAX  (6)
-#define POWER_STEP (1)
+// #define POWER_MIN  (1)
+// #define POWER_MAX  (6)
+// #define POWER_STEP (1)
 
 typedef enum {
     BlePerTestCustomEventExit = (1UL << 0),
@@ -28,23 +28,67 @@ typedef struct {
     BlePerCliSettings settings;
 } BlePerTest;
 
-static const char* ble_per_test_mode_work_text[] = {
-    "Carrier",
-    "Packet",
-};
-
 static const char* ble_per_test_mode_text[] = {
     "Tx",
     "Rx",
-    "Hopping",
 };
 
-#define CANNEL_MAX 3
+#define CANNEL_MAX 40
 static const VarItemKeyValue ble_per_test_channel[CANNEL_MAX] = {
     {"2402", 0},
+    {"2404", 1},
+    {"2406", 2},
+    {"2408", 3},
+    {"2410", 4},
+    {"2412", 5},
+    {"2414", 6},
+    {"2416", 7},
+    {"2418", 8},
+    {"2420", 9},
+    {"2422", 10},
+    {"2424", 11},
+    {"2426", 12},
+    {"2428", 13},
+    {"2430", 14},
+    {"2432", 15},
+    {"2434", 16},
+    {"2436", 17},
+    {"2438", 18},
     {"2440", 19},
+    {"2442", 20},
+    {"2444", 21},
+    {"2446", 22},
+    {"2448", 23},
+    {"2450", 24},
+    {"2452", 25},
+    {"2454", 26},
+    {"2456", 27},
+    {"2458", 28},
+    {"2460", 29},
+    {"2462", 30},
+    {"2464", 31},
+    {"2466", 32},
+    {"2468", 33},
+    {"2470", 34},
+    {"2472", 35},
+    {"2474", 36},
+    {"2476", 37},
+    {"2478", 38},
     {"2480", 39},
 };
+
+#define RATE_MAX 5
+static const VarItemKeyValue ble_per_test_rate[RATE_MAX] = {
+    {"1Mbps", 0},
+    {"2Mbps", 1},
+    {"125Kbps", 2},
+    {"1Mbps", 3},
+    {"500Kbps", 4},
+};
+
+#define PAYLOAD_LEN_MIN  (1)
+#define PAYLOAD_LEN_MAX  (255)
+#define PAYLOAD_LEN_STEP (1)
 
 #define PAYLOAD_TYPE_KEY_MAX 8
 static const VarItemKeyValue ble_per_test_payload_type[PAYLOAD_TYPE_KEY_MAX] = {
@@ -58,20 +102,52 @@ static const VarItemKeyValue ble_per_test_payload_type[PAYLOAD_TYPE_KEY_MAX] = {
     {"01010101", 7},
 };
 
-#define RATE_MAX 5
-static const VarItemKeyValue ble_per_test_rate[RATE_MAX] = {
-    {"1Mbps", 0},
-    {"2Mbps", 1},
-    {"125Kbps", 2},
-    {"1Mbps", 3},
-    {"500Kbps", 4},
+#define MODE_WORK_MAX 3
+static VarItemKeyValue ble_per_test_mode_work[MODE_WORK_MAX] = {
+    {"Burst", 0},
+    {"Continuous", 1},
+    {"Carrier", 2},
 };
 
+#define HOPPING_MAX 3
+static VarItemKeyValue ble_per_test_hopping[HOPPING_MAX] = {
+    {"No hopping", 0},
+    {"Fixed hopping", 1},
+    {"Random hopping", 2},
+};
+
+#define TX_POWER_MAX 11
+static VarItemKeyValue ble_per_test_tx_power[TX_POWER_MAX] = {
+    {"1dBm", 1},
+    {"2dBm", 2},
+    {"3dBm", 3},
+    {"4dBm", 4},
+    {"5dBm", 5},
+    {"6dBm", 6},
+    {"7dBm", 7},
+    {"8dBm", 8},
+    {"9dBm", 9},
+    {"10dBm", 10},
+    {"Max Power", 127},
+};
+
+void ble_per_test_set_default_settings(BlePerTest* instance) {
+    instance->settings.mode_work = 0; //Burst
+    instance->settings.mode = BLEPerCliSettingsModeTx;
+    instance->settings.channel = 0; //2402
+    instance->settings.rate = 1; //2Mbps
+    instance->settings.payload_len = 32; //32 bytes
+    instance->settings.payload_type = 0; //PRBS9
+    instance->settings.hopping = 0; //No hopping
+    instance->settings.tx_power = 127; //Max Power
+    instance->settings.start_test = false;
+}
 static void ble_per_test_mode_work_changed_callback(VarItem* item, void* context) {
     BlePerTest* instance = context;
     const int32_t index = var_item_get_value(item);
-    FURI_LOG_I(TAG, "Mode work set: %s", ble_per_test_mode_work_text[index]);
-    instance->settings.mode_work = index;
+    FURI_LOG_I(TAG, "Mode work set: %s", ble_per_test_mode_work[index].key);
+    FURI_LOG_I(TAG, "Mode work value: %ld", ble_per_test_mode_work[index].value);
+    instance->settings.mode_work = ble_per_test_mode_work[index].value;
 }
 
 static void ble_per_test_mode_changed_callback(VarItem* item, void* context) {
@@ -79,6 +155,14 @@ static void ble_per_test_mode_changed_callback(VarItem* item, void* context) {
     const int32_t index = var_item_get_value(item);
     FURI_LOG_I(TAG, "Mode set: %s", ble_per_test_mode_text[index]);
     instance->settings.mode = index;
+}
+
+static void ble_per_test_hopping_changed_callback(VarItem* item, void* context) {
+    BlePerTest* instance = context;
+    const int32_t index = var_item_get_value(item);
+    FURI_LOG_I(TAG, "Hopping set: %s", ble_per_test_hopping[index].key);
+    FURI_LOG_I(TAG, "Hopping value: %ld", ble_per_test_hopping[index].value);
+    instance->settings.hopping = ble_per_test_hopping[index].value;
 }
 
 static void ble_per_test_channel_changed_callback(VarItem* item, void* context) {
@@ -91,9 +175,17 @@ static void ble_per_test_channel_changed_callback(VarItem* item, void* context) 
 
 static void ble_per_test_power_changed_callback(VarItem* item, void* context) {
     BlePerTest* instance = context;
-    const int32_t power = var_item_get_value(item);
-    FURI_LOG_I(TAG, "Power set: %ld", power);
-    instance->settings.tx_power = power;
+    const int32_t index = var_item_get_value(item);
+    FURI_LOG_I(TAG, "Power set: %s", ble_per_test_tx_power[index].key);
+    FURI_LOG_I(TAG, "Power value: %ld", ble_per_test_tx_power[index].value);
+    instance->settings.tx_power = ble_per_test_tx_power[index].value;
+}
+
+static void ble_per_test_payload_len_changed_callback(VarItem* item, void* context) {
+    BlePerTest* instance = context;
+    const int32_t value = var_item_get_value(item);
+    FURI_LOG_I(TAG, "Payload length set: %ld", value);
+    instance->settings.payload_len = value;
 }
 
 static void ble_per_test_payload_type_changed_callback(VarItem* item, void* context) {
@@ -168,14 +260,11 @@ static void ble_per_test_custom_event_callback(uint32_t events, void* context) {
         FURI_LOG_I(TAG, "Stop test");
         ble_per_cli_stop();
     }
-
-    // if(events & BlePerTestCustomEventSound) {
-    //     audio_play_file(instance->audio, EXT_PATH("audio/test.snd"));
-    // }
 }
 
 static BlePerTest* ble_per_test_alloc(void) {
     BlePerTest* instance = malloc(sizeof(BlePerTest));
+    ble_per_test_set_default_settings(instance);
     instance->event_loop = furi_event_loop_alloc();
     instance->gui = furi_record_open(RECORD_GUI);
 
@@ -195,15 +284,15 @@ static BlePerTest* ble_per_test_alloc(void) {
         widget_set_pos(label_get_base(instance->label),30, 0);
 
         VarItem* item;
-        item = var_item_list_add_selector(
+        item = var_item_list_add_selector_key_value(
             instance->var_list,
             "Mode Work",
             NULL,
-            ble_per_test_mode_work_text,
-            COUNT_OF(ble_per_test_mode_work_text),
+            ble_per_test_mode_work,
+            MODE_WORK_MAX,
             ble_per_test_mode_work_changed_callback,
             instance);
-        instance->settings.mode_work = var_item_get_value(item); 
+        var_item_set_value_key_value(item, ble_per_test_mode_work, instance->settings.mode_work);
 
         item = var_item_list_add_selector(
             instance->var_list,
@@ -213,7 +302,17 @@ static BlePerTest* ble_per_test_alloc(void) {
             COUNT_OF(ble_per_test_mode_text),
             ble_per_test_mode_changed_callback,
             instance);
-        instance->settings.mode = var_item_get_value(item);
+        var_item_set_value(item, instance->settings.mode);
+
+        item = var_item_list_add_selector_key_value(
+            instance->var_list,
+            "Hopping",
+            NULL,
+            ble_per_test_hopping,
+            HOPPING_MAX,
+            ble_per_test_hopping_changed_callback,
+            instance);
+        var_item_set_value_key_value(item, ble_per_test_hopping, instance->settings.hopping);      
 
         item = var_item_list_add_selector_key_value(
             instance->var_list,
@@ -223,18 +322,28 @@ static BlePerTest* ble_per_test_alloc(void) {
             CANNEL_MAX,
             ble_per_test_channel_changed_callback,
             instance);
-        instance->settings.channel = ble_per_test_channel[var_item_get_value(item)].value;
+        var_item_set_value_key_value(item, ble_per_test_channel, instance->settings.channel);
 
-        item = var_item_list_add_spinbox(
+        item = var_item_list_add_selector_key_value(
             instance->var_list,
             "Power",
             NULL,
-            POWER_MIN,
-            POWER_MAX,
-            POWER_STEP,
+            ble_per_test_tx_power,
+            TX_POWER_MAX,
             ble_per_test_power_changed_callback,
             instance); 
-        instance->settings.tx_power = var_item_get_value(item);      
+        var_item_set_value_key_value(item, ble_per_test_tx_power, instance->settings.tx_power);
+
+        item = var_item_list_add_spinbox(
+            instance->var_list,
+            "Payload Length",
+            NULL,
+            PAYLOAD_LEN_MIN,
+            PAYLOAD_LEN_MAX,
+            PAYLOAD_LEN_STEP,
+            ble_per_test_payload_len_changed_callback,
+            instance); 
+        var_item_set_value(item, instance->settings.payload_len); 
         
         item = var_item_list_add_selector_key_value(
             instance->var_list,
@@ -244,7 +353,7 @@ static BlePerTest* ble_per_test_alloc(void) {
             PAYLOAD_TYPE_KEY_MAX,
             ble_per_test_payload_type_changed_callback,
             instance);
-        instance->settings.payload_type = ble_per_test_payload_type[var_item_get_value(item)].value;
+        var_item_set_value_key_value(item, ble_per_test_payload_type, instance->settings.payload_type);
             
         item = var_item_list_add_selector_key_value(
             instance->var_list,
@@ -254,7 +363,7 @@ static BlePerTest* ble_per_test_alloc(void) {
             RATE_MAX,
             ble_per_test_rate_changed_callback,
             instance);
-        instance->settings.rate = ble_per_test_rate[var_item_get_value(item)].value;
+        var_item_set_value_key_value(item, ble_per_test_rate, instance->settings.rate);
             
         item = var_item_list_add_switch(
             instance->var_list, "Start test", ble_per_test_switch_changed_callback, instance); 

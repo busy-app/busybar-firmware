@@ -113,34 +113,19 @@ void ble_per_cli_start(BlePerCliSettings settings) {
     //set settings
     furi_string_printf(msg, "%s %d\r\n", ble_per_cli_cmd[BlePerCliCmdTypeSetChannel].cmd, settings.channel);
     furi_string_cat_printf(msg, "%s %d\r\n", ble_per_cli_cmd[BlePerCliCmdTypeSetPhyRate].cmd, settings.rate);
+    furi_string_cat_printf(msg, "%s %d\r\n", ble_per_cli_cmd[BlePerCliCmdTypeSetPayloadLen].cmd, settings.payload_len);
     furi_string_cat_printf(msg, "%s %d\r\n", ble_per_cli_cmd[BlePerCliCmdTypeSetPayloadType].cmd, settings.payload_type);
+    furi_string_cat_printf(msg, "%s %d\r\n", ble_per_cli_cmd[BlePerCliCmdTypeSetMode].cmd, settings.mode_work);
+    furi_string_cat_printf(msg, "%s %d\r\n", ble_per_cli_cmd[BlePerCliCmdTypeSetHopping].cmd, settings.hopping);
     furi_string_cat_printf(msg, "%s %d\r\n", ble_per_cli_cmd[BlePerCliCmdTypeSetTxPower].cmd, settings.tx_power);
-    
-    switch (settings.mode_work)
-    {
-    case BLEPerCliSettingsModeWorkCarrier:
-        furi_string_cat_printf(msg, "%s %d\r\n", ble_per_cli_cmd[BlePerCliCmdTypeSetHopping].cmd, 0); //No hopping
-        furi_string_cat_printf(msg, "%s %d\r\n", ble_per_cli_cmd[BlePerCliCmdTypeSetMode].cmd, 2); //CW
+
+    if(settings.mode == BLEPerCliSettingsModeTx) {
         furi_string_cat_printf(msg, "%s\r\n", ble_per_cli_cmd[BlePerCliCmdTypeModeTx].cmd);
-        break;
-    case BLEPerCliSettingsModeWorkPacket:
-        if(settings.mode == BLEPerCliSettingsModeTx) {
-            furi_string_cat_printf(msg, "%s %d\r\n", ble_per_cli_cmd[BlePerCliCmdTypeSetHopping].cmd, 0); //No hoppin
-            furi_string_cat_printf(msg, "%s\r\n", ble_per_cli_cmd[BlePerCliCmdTypeModeTx].cmd);
-        } else if(settings.mode == BLEPerCliSettingsModeRx) {
-            furi_string_cat_printf(msg, "%s %d\r\n", ble_per_cli_cmd[BlePerCliCmdTypeSetHopping].cmd, 0); //No hoppin
-            furi_string_cat_printf(msg, "%s\r\n", ble_per_cli_cmd[BlePerCliCmdTypeModeRx].cmd);
-        } else if(settings.mode == BLEPerCliSettingsModeHopping) {
-            furi_string_cat_printf(msg, "%s %d\r\n", ble_per_cli_cmd[BlePerCliCmdTypeSetHopping].cmd, 2); //Random hopping
-            furi_string_cat_printf(msg, "%s\r\n", ble_per_cli_cmd[BlePerCliCmdTypeModeTx].cmd);
-        }
-        break;
-    
-    default:
-        furi_crash("Invalid mode work");
-        break;
+    } else if(settings.mode == BLEPerCliSettingsModeRx) {
+        furi_string_cat_printf(msg, "%s\r\n", ble_per_cli_cmd[BlePerCliCmdTypeModeRx].cmd);
+    } else {
+        furi_crash("Invalid mode");
     }
-    
     
     ble_per_cli_data_tx((uint8_t*)furi_string_get_cstr(msg), furi_string_utf8_length(msg));
     FURI_LOG_D(TAG, "%s", furi_string_get_cstr(msg));
