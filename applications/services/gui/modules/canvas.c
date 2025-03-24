@@ -216,6 +216,14 @@ void canvas_fill(Canvas* instance) {
 
 void canvas_draw_pixel(Canvas* instance, int32_t x, int32_t y, Color color) {
     furi_check(instance);
+    if(x < 0 || y < 0) {
+        return;
+    }
+
+    if(x >= lv_obj_get_width(instance->canvas) || y >= lv_obj_get_height(instance->canvas)) {
+        return;
+    }
+
     lv_canvas_set_px_no_invalidate(instance->canvas, x, y, TO_LV_COLOR(color), LV_OPA_COVER);
 }
 
