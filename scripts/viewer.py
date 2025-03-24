@@ -26,16 +26,20 @@ class Main(App):
             local_anim_path = os.path.join(temp_dir_path, self.ANIM_FILE_NAME)
             device_anim_path = os.path.join(self.ANIM_DEVICE_PATH, self.ANIM_FILE_NAME)
 
+            self.logger.info("Processing source files")
             animation = BusyBarAnimation(self.args.source_dir, self.args.fps, local_anim_path)
             animation.process_images()
 
             with FlipperStorage(self._get_port()) as storage:
+                self.logger.info("Closing currently running app")
+                storage.send_and_wait_prompt("loader kill\r")
+
+                self.logger.info("Uploading animation")
                 FlipperStorageOperations(storage).recursive_send(
                     device_anim_path, local_anim_path, True
                 )
 
-                self.logger.info("Starting animation player")
-
+                self.logger.info("Starting player app")
                 # TODO: Common CLI library for everything that uses it
                 storage.send_and_wait_prompt(
                     f"loader open animation_player {device_anim_path}\r"
