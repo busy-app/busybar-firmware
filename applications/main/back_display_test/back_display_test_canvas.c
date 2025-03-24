@@ -124,32 +124,30 @@ static void back_display_test_canvas_update_gradient_vertical_reverse(
     }
 }
 
-static void back_display_test_canvas_update_rand_10(Canvas* canvas, BackDisplayTestColor color) {
+static void back_display_test_canvas_update_rand(Canvas* canvas, BackDisplayTestColor color) {
     Widget* widget = canvas_get_base(canvas);
-    for(int32_t x = 0; x < widget_get_width(widget); x++) {
-        for(int32_t y = 0; y < widget_get_height(widget); y++) {
-            bool pixel_set = rand() % 20 == 0;
+    const size_t pixel_count = widget_get_width(widget) * widget_get_height(widget);
+    const size_t pixel_set_count = pixel_count / 10;
 
-            if(pixel_set) {
-                canvas_draw_pixel(canvas, x, y, back_display_test_colors[color].color);
-            }
-        }
+    for(size_t i = 0; i < pixel_set_count; i++) {
+        int32_t x = rand() % widget_get_width(widget);
+        int32_t y = rand() % widget_get_height(widget);
+        canvas_draw_pixel(canvas, x, y, back_display_test_colors[color].color);
     }
 }
 
 static void
-    back_display_test_canvas_update_rand_10_grayscale(Canvas* canvas, BackDisplayTestColor color) {
+    back_display_test_canvas_update_rand_grayscale(Canvas* canvas, BackDisplayTestColor color) {
     Widget* widget = canvas_get_base(canvas);
-    for(int32_t x = 0; x < widget_get_width(widget); x++) {
-        for(int32_t y = 0; y < widget_get_height(widget); y++) {
-            bool pixel_set = rand() % 20 == 0;
+    const size_t pixel_count = widget_get_width(widget) * widget_get_height(widget);
+    const size_t pixel_set_count = pixel_count / 10;
 
-            if(pixel_set) {
-                uint32_t pixel_color = rand() % back_display_test_colors[color].color.r;
-                canvas_draw_pixel(
-                    canvas, x, y, (Color){.r = pixel_color, .g = pixel_color, .b = pixel_color});
-            }
-        }
+    for(size_t i = 0; i < pixel_set_count; i++) {
+        int32_t x = rand() % widget_get_width(widget);
+        int32_t y = rand() % widget_get_height(widget);
+        uint32_t pixel_color = rand() % back_display_test_colors[color].color.r;
+        canvas_draw_pixel(
+            canvas, x, y, (Color){.r = pixel_color, .g = pixel_color, .b = pixel_color});
     }
 }
 
@@ -199,9 +197,9 @@ static const BackDisplayTestPatternInfo back_display_test_patterns[BackDisplayTe
         {back_display_test_canvas_update_gradient_horizontal_reverse, "Gradient HR"},
     [BackDisplayTestPatternGradientReverseVertical] =
         {back_display_test_canvas_update_gradient_vertical_reverse, "Gradient VR"},
-    [BackDisplayTestPatternRand10] = {back_display_test_canvas_update_rand_10, "Rand 10%"},
+    [BackDisplayTestPatternRand10] = {back_display_test_canvas_update_rand, "Rand"},
     [BackDisplayTestPatternRand10Grayscale] =
-        {back_display_test_canvas_update_rand_10_grayscale, "Rand 10% G"},
+        {back_display_test_canvas_update_rand_grayscale, "Rand Gr"},
     [BackDisplayTestPatternRandLines] = {back_display_test_canvas_update_rand_lines, "Rand Lines"},
     [BackDisplayTestPatternRandSquares] =
         {back_display_test_canvas_update_rand_squares, "Rand Squares"},
