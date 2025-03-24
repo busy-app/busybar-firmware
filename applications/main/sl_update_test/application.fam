@@ -3,7 +3,7 @@ App(
     name="Si917 Update Test",
     apptype=FlipperAppType.APP,
     entry_point="sl_update_test_app",
-    requires=["gui_lvgl"],
+    requires=["gui"],
     stack_size=2 * 1024,
     fap_category="Debug",
     targets=["f20"],
