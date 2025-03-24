@@ -87,7 +87,7 @@ typedef enum {
 
 typedef struct {
     char* cmd;
-    uint32_t value;
+    int32_t value;
 } BlePerStats;
 
 BlePerStats ble_per_cli_stats[BlePerCliStatsCmdMax] = {
@@ -145,7 +145,7 @@ static int32_t ble_per_cli_worker_thread(void* context) {
             FuriString* args = instance->rx_msg;
             char* args_cstr = (char*)furi_string_get_cstr(args);
             FuriString* arg = furi_string_alloc();
-            uint32_t arg_uint32 = 0;
+            int32_t arg_int32 = 0;
             uint32_t y = 0;
             const size_t rx_size =
                 furi_stream_buffer_receive(instance->rx_buffer, data, sizeof(data), 0);
@@ -153,23 +153,19 @@ static int32_t ble_per_cli_worker_thread(void* context) {
                 if(data[i] != '\n' && data[i] != '\r') {
                     furi_string_push_back(args, data[i]);
                 } else {
-                    // FURI_LOG_D(TAG, "Data1: \r\n%s\r\n", furi_string_get_cstr(args));
-                    // uint32_t ind = furi_string_search_str(args, ">: ", 0);
-                    // FURI_LOG_D(TAG, "Index: %ld", ind);
                     furi_string_right(args, furi_string_search_str(args, ">: ", 0) + 3);
 
-                    //FURI_LOG_D(TAG, "Data2: \r\n%s\r\n", furi_string_get_cstr(args));
                     do {
                         if(!args_read_string_and_trim(args, arg)) {
                             break;
                         }
-                        //FURI_LOG_D(TAG, "Data: %s", furi_string_get_cstr(arg));
                         for(y = 0; y < BlePerCliStatsCmdMax; y++) {
                             if(furi_string_cmp_str(arg, (char*)ble_per_cli_stats[y].cmd) == 0) {
                                 args_read_string_and_trim(args, arg);
-                                strint_to_uint32(args_cstr, &args_cstr, &arg_uint32, 10);
-                                ble_per_cli_stats[y].value = arg_uint32;
-                                //FURI_LOG_D(TAG, "\r\n%s %ld", ble_per_cli_stats[y].cmd, ble_per_cli_stats[y].value);
+                                strint_to_int32(
+                                    furi_string_get_cstr(arg), &args_cstr, &arg_int32, 10);
+                                ble_per_cli_stats[y].value = arg_int32;
+
                                 ble_per_test_update(
                                     instance->app_hendle,
                                     ble_per_cli_stats[BlePerCliStatsCmdTypeTxDones].value,
@@ -179,8 +175,6 @@ static int32_t ble_per_cli_worker_thread(void* context) {
                                 break;
                             }
                         }
-
-                        // FURI_LOG_D(TAG, "index: %ld data %ld", y, arg_uint32);
 
                     } while(false);
 

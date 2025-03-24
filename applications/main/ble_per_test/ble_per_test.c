@@ -234,15 +234,15 @@ void ble_per_test_update(
     uint32_t tx_dones,
     uint32_t crc_fail_cnt,
     uint32_t crc_pass_cnt,
-    uint32_t rssi) {
+    int32_t rssi) {
     FuriString* str = furi_string_alloc();
     furi_string_printf(
         str,
-        "tx_dones %ld crc_fail_cnt %ld\ncrc_pass_cnt %ld rssi %ld",
+        "tx_dones %ld rssi %ld \ncrc_fail_cnt %ld crc_pass_cnt %ld ",
         tx_dones,
+        rssi,
         crc_fail_cnt,
-        crc_pass_cnt,
-        rssi);
+        crc_pass_cnt);
     with_gui(instance->gui, { label_set_text(instance->label, furi_string_get_cstr(str)); });
     furi_string_free(str);
 }

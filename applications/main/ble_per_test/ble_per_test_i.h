@@ -7,4 +7,4 @@ void ble_per_test_update(
     uint32_t tx_dones,
     uint32_t crc_fail_cnt,
     uint32_t crc_pass_cnt,
-    uint32_t rssi);
+    int32_t rssi);
