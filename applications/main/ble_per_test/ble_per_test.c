@@ -1,7 +1,7 @@
 #include <furi.h>
 
-//#include <audio/audio.h>
-//#include <storage/storage.h>
+#include "ble_per_test_i.h"
+
 #include <gui/gui.h>
 #include <gui/modules/var_item_list.h>
 #include <gui/modules/label.h>
@@ -9,24 +9,20 @@
 
 #define TAG "BlePerTest"
 
-// #define POWER_MIN  (1)
-// #define POWER_MAX  (6)
-// #define POWER_STEP (1)
-
 typedef enum {
     BlePerTestCustomEventExit = (1UL << 0),
     BlePerTestCustomEventStartTest = (1UL << 1),
     BlePerTestCustomEventStopTest = (1UL << 2),
 } BlePerTestCustomEvent;
 
-typedef struct {
+struct BlePerTest {
     FuriEventLoop* event_loop;
     Gui* gui;
     VarItemList* var_list;
     bool exit_on_back;
     Label* label;
     BlePerCliSettings settings;
-} BlePerTest;
+};
 
 static const char* ble_per_test_mode_text[] = {
     "Tx",
@@ -178,10 +174,8 @@ static void ble_per_test_switch_changed_callback(VarItem* item, void* context) {
     if(instance->settings.start_test != value) {
         instance->settings.start_test = value;
         if(value) {
-            instance->settings.start_test = true;
             furi_event_loop_set_custom_event(instance->event_loop, BlePerTestCustomEventStartTest);
         } else {
-            instance->settings.start_test = false;
             furi_event_loop_set_custom_event(instance->event_loop, BlePerTestCustomEventStopTest);
         }
     }
@@ -214,18 +208,19 @@ static void ble_per_test_custom_event_callback(uint32_t events, void* context) {
     BlePerTest* instance = context;
 
     if(events & BlePerTestCustomEventExit) {
-        if(instance->settings.start_test) {
-            FURI_LOG_I(TAG, "Stop test");
-            ble_per_cli_stop();
-        }
         if(instance->exit_on_back) {
+            if(instance->settings.start_test) {
+                FURI_LOG_I(TAG, "Stop test");
+                ble_per_cli_stop();
+                instance->settings.start_test = false;
+            }
             furi_event_loop_stop(instance->event_loop);
         }
     }
 
     if(events & BlePerTestCustomEventStartTest) {
         FURI_LOG_I(TAG, "Start test");
-        ble_per_cli_start(instance->settings);
+        ble_per_cli_start(instance, instance->settings);
     }
 
     if(events & BlePerTestCustomEventStopTest) {
@@ -234,9 +229,28 @@ static void ble_per_test_custom_event_callback(uint32_t events, void* context) {
     }
 }
 
+void ble_per_test_update(
+    BlePerTest* instance,
+    uint32_t tx_dones,
+    uint32_t crc_fail_cnt,
+    uint32_t crc_pass_cnt,
+    uint32_t rssi) {
+    FuriString* str = furi_string_alloc();
+    furi_string_printf(
+        str,
+        "tx_dones %ld crc_fail_cnt %ld\ncrc_pass_cnt %ld rssi %ld",
+        tx_dones,
+        crc_fail_cnt,
+        crc_pass_cnt,
+        rssi);
+    with_gui(instance->gui, { label_set_text(instance->label, furi_string_get_cstr(str)); });
+    furi_string_free(str);
+}
+
 static BlePerTest* ble_per_test_alloc(void) {
     BlePerTest* instance = malloc(sizeof(BlePerTest));
     ble_per_test_set_default_settings(instance);
+
     instance->event_loop = furi_event_loop_alloc();
     instance->gui = furi_record_open(RECORD_GUI);
 
@@ -257,7 +271,7 @@ static BlePerTest* ble_per_test_alloc(void) {
 
         instance->label = label_alloc(top_layer_root);
         label_set_text(instance->label, "BlePerTest");
-        widget_set_pos(label_get_base(instance->label), 30, 0);
+        widget_set_pos(label_get_base(instance->label), 10, 0);
 
         VarItem* item;
         item = var_item_list_add_selector_key_value(
