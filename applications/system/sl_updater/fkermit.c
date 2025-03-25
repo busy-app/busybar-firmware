@@ -136,12 +136,16 @@ void kermit_packet_free(kermit_packet_t* packet) {
 // Kermit protocol conversion functions
 
 FURI_ALWAYS_INLINE uint8_t kermit_tochar(uint8_t value) {
+#if KERMIT_DEBUG
     furi_check(value <= 94);
+#endif
     return value + 32;
 }
 
 FURI_ALWAYS_INLINE uint8_t kermit_fromchar(uint8_t value) {
+#if KERMIT_DEBUG
     furi_check(value >= 32);
+#endif
     return value - 32;
 }
 
@@ -349,7 +353,7 @@ static bool kermit_feed_byte(kermit_t* kermit, uint8_t c) {
 
     case KERMIT_PACKET_STATE_WAIT_CHECKSUM:
         rx->checksum = kermit_fromchar(c);
-        UNUSED(rx->checksum); // FIXME: validate
+        UNUSED(rx->checksum); // todo: validate?
         rx->state = KERMIT_PACKET_STATE_WAIT_END;
         break;
 
