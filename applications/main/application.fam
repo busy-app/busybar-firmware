@@ -17,6 +17,7 @@ App(
         # "busy",
         "dummy",
         "ble_per_test",
+        "wifi_per_test",
     ],
     targets=["f20"],
 )

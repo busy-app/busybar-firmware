@@ -13,7 +13,7 @@ typedef struct {
     uint8_t rx_data[CLI_BUFFER_SIZE];
     FuriThread* thread;
     FuriString* rx_msg;
-    BlePerTest* app_hendle;
+    BlePerTest* app_handle;
 } CliCommandSlCli;
 
 typedef enum {
@@ -97,13 +97,6 @@ BlePerStats ble_per_cli_stats[BlePerCliStatsCmdMax] = {
     [BlePerCliStatsCmdTypeRssi] = {"rssi:"},
 };
 
-// typedef struct {
-//     uint32_t tx_dones;
-//     uint32_t crc_fail_cnt;
-//     uint32_t crc_pass_cnt;
-//     uint32_t rssi;
-// } BlePerCliStats;
-
 CliCommandSlCli* ble_per_cli_instance = NULL;
 
 static void cli_command_917_rx_callback(const void* data, size_t data_size, void* context) {
@@ -111,8 +104,6 @@ static void cli_command_917_rx_callback(const void* data, size_t data_size, void
     furi_check(context);
 
     CliCommandSlCli* instance = context;
-    UNUSED(instance);
-    UNUSED(data_size);
     for(size_t i = 0; i < data_size; i++) {
         FURI_LOG_RAW_E("%c", ((uint8_t*)data)[i]);
     }
@@ -167,7 +158,7 @@ static int32_t ble_per_cli_worker_thread(void* context) {
                                 ble_per_cli_stats[y].value = arg_int32;
 
                                 ble_per_test_update(
-                                    instance->app_hendle,
+                                    instance->app_handle,
                                     ble_per_cli_stats[BlePerCliStatsCmdTypeTxDones].value,
                                     ble_per_cli_stats[BlePerCliStatsCmdTypeCrcFailCnt].value,
                                     ble_per_cli_stats[BlePerCliStatsCmdTypeCrcPassCnt].value,
@@ -194,14 +185,14 @@ static int32_t ble_per_cli_worker_thread(void* context) {
     return 0;
 }
 
-void ble_per_cli_start(BlePerTest* app_hendle, BlePerCliSettings settings) {
+void ble_per_cli_start(BlePerTest* app_handle, BlePerCliSettings settings) {
     UNUSED(settings);
     if(ble_per_cli_instance != NULL) {
         return;
     }
 
     ble_per_cli_instance = malloc(sizeof(CliCommandSlCli));
-    ble_per_cli_instance->app_hendle = app_hendle;
+    ble_per_cli_instance->app_handle = app_handle;
     for(size_t i = 0; i < BlePerCliStatsCmdMax; i++) {
         ble_per_cli_stats[i].value = 0;
     }
