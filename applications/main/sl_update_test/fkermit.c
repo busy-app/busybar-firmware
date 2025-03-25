@@ -4,6 +4,18 @@
 
 #define TAG "Kermit"
 
+// Controls debug output and features
+#ifndef KERMIT_DEBUG
+#define KERMIT_DEBUG 0
+#endif
+
+#if KERMIT_DEBUG
+#define KERMIT_LOG(...) FURI_LOG_D(TAG, __VA_ARGS__)
+#else
+#define KERMIT_LOG(...)
+#endif
+
+// Kermit protocol constants
 #define KERMIT_PACKET_MAX_LENGTH     94
 #define KERMIT_PACKET_EXT_MAX_LENGTH 9024
 
@@ -15,16 +27,7 @@
 
 #define KERMIT_CONTROL_CHAR ('#')
 
-#ifndef KERMIT_DEBUG
-#define KERMIT_DEBUG 0
-#endif
-
-#if KERMIT_DEBUG
-#define KERMIT_LOG(...) FURI_LOG_D(TAG, __VA_ARGS__)
-#else
-#define KERMIT_LOG(...)
-#endif
-
+// Kermit packet container
 typedef struct {
     uint8_t* data;
     int32_t sz;
@@ -39,6 +42,7 @@ typedef enum {
     KERMIT_PACKET_TYPE_BREAK = 'B',
     KERMIT_PACKET_TYPE_FILE = 'F',
 } kermit_packet_type_t;
+
 typedef enum {
     KERMIT_PACKET_STATE_ERROR,
     KERMIT_PACKET_STATE_WAIT_MARK,
@@ -50,6 +54,7 @@ typedef enum {
     KERMIT_PACKET_STATE_WAIT_END,
 } kermit_packet_state_t;
 
+// Packet reassembly state
 typedef struct {
     kermit_packet_t* packet;
     kermit_packet_type_t type;
@@ -70,15 +75,15 @@ typedef enum {
 } kermit_file_transfer_state_t;
 
 struct kermit_t {
-    uint8_t seq_counter;
     uint32_t max_packet_length, max_ext_packet_length;
+    uint8_t seq_counter;
     const kermit_io_t* io;
     void* io_context;
-    kermit_rx_t rx; // Packet reassembly state
+    kermit_rx_t rx;
     kermit_file_transfer_state_t file_transfer_state;
 };
 
-//////////////////////////////////////////////////////////////////////////
+// Kermit packet header and footer structures
 
 typedef struct {
     uint8_t mark;
@@ -110,7 +115,7 @@ typedef struct {
 
 _Static_assert(sizeof(kermit_packet_footer_t) == 2, "Invalid size of kermit_packet_footer_t");
 
-//////////////////////////////////////////////////////////////////////////
+// Kermit packet allocation and deallocation
 
 static kermit_packet_t* kermit_packet_alloc(size_t sz) {
     kermit_packet_t* packet = malloc(sizeof(kermit_packet_t));
@@ -127,19 +132,19 @@ void kermit_packet_free(kermit_packet_t* packet) {
     free(packet);
 }
 
-//////////////////////////////////////////////////////////////////////////
+// Kermit protocol conversion functions
 
-uint8_t kermit_tochar(uint8_t value) {
+FURI_ALWAYS_INLINE uint8_t kermit_tochar(uint8_t value) {
     furi_check(value <= 94);
     return value + 32;
 }
 
-uint8_t kermit_fromchar(uint8_t value) {
+FURI_ALWAYS_INLINE uint8_t kermit_fromchar(uint8_t value) {
     furi_check(value >= 32);
     return value - 32;
 }
 
-uint8_t kermit_ctl(uint8_t value) {
+FURI_ALWAYS_INLINE uint8_t kermit_ctl(uint8_t value) {
     return value ^ 64;
 }
 
@@ -152,11 +157,11 @@ uint8_t kermit_checksum(const uint8_t* data, size_t length) {
     return kermit_tochar((sum + ((sum & 0xC0) >> 6)) & 0x3F);
 }
 
-static uint8_t kermit_next_seq(uint8_t seq) {
+static FURI_ALWAYS_INLINE uint8_t kermit_next_seq(uint8_t seq) {
     return (seq + 1) % KERMIT_SEQ_MODULO;
 }
 
-//////////////////////////////////////////////////////////////////////////
+// Kermit packet creation functions
 
 kermit_packet_t* kermit_create_packet(
     kermit_t* kermit,
@@ -175,19 +180,17 @@ kermit_packet_t* kermit_create_packet(
         .seq = kermit_tochar(kermit->seq_counter),
         .type = packet_type,
     };
-
-    kermit->seq_counter = kermit_next_seq(kermit->seq_counter);
-
     memcpy(packet->data, &header, sizeof(header));
     memcpy(packet->data + sizeof(header), data, length);
 
     kermit_packet_footer_t footer = {
-        .checksum = kermit_checksum(packet->data + 1, packet->sz - 2), // Skip the marks
+        // Skip the marks
+        .checksum = kermit_checksum(packet->data + 1, packet->sz - 2),
         .end = KERMIT_PACKET_END,
     };
-
     memcpy(packet->data + sizeof(header) + length, &footer, sizeof(footer));
 
+    kermit->seq_counter = kermit_next_seq(kermit->seq_counter);
     return packet;
 }
 
@@ -212,19 +215,17 @@ kermit_packet_t* kermit_create_ext_packet(
         .header_checksum = 0,
     };
     header.header_checksum = kermit_checksum((uint8_t*)(&header) + 1, sizeof(header) - 2);
-
-    kermit->seq_counter = kermit_next_seq(kermit->seq_counter);
-
     memcpy(packet->data, &header, sizeof(header));
     memcpy(packet->data + sizeof(header), data, length);
 
     kermit_packet_footer_t footer = {
-        .checksum = kermit_checksum(packet->data + 1, packet->sz - 2), // Skip the marks
+        // Skip the marks
+        .checksum = kermit_checksum(packet->data + 1, packet->sz - 2),
         .end = KERMIT_PACKET_END,
     };
-
     memcpy(packet->data + sizeof(header) + length, &footer, sizeof(footer));
 
+    kermit->seq_counter = kermit_next_seq(kermit->seq_counter);
     return packet;
 }
 
