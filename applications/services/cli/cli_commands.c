@@ -4,6 +4,7 @@
 #include "cli_command_status_lights.h"
 #include "cli_command_light_sensor.h"
 #include "cli_command_audio.h"
+#include "cli_command_sl_cli.h"
 
 #include <core/thread.h>
 #include <core/thread_list.h>
@@ -252,4 +253,5 @@ void cli_commands_init(Cli* cli) {
     cli_add_command(
         cli, "light_sensor", CliCommandFlagParallelSafe, cli_command_light_sensor, NULL);
     cli_add_command(cli, "audio", CliCommandFlagParallelSafe, cli_command_audio, NULL);
+    cli_add_command(cli, "sl_cli", CliCommandFlagParallelSafe, cli_command_sl_cli, NULL);
 }
