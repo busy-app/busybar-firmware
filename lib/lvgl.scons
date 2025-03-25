@@ -8,6 +8,10 @@ env.AppendUnique(
     CPPDEFINES=[
         "LV_CONF_INCLUDE_SIMPLE",
     ],
+    FW_LIBS=[
+        "m",
+        "stdc++",
+    ],
 )
 
 libenv = env.Clone(FW_LIB_NAME="lvgl")
@@ -17,7 +21,12 @@ libenv.AppendUnique(
     CPPFLAGS=[
         "-Wno-redundant-decls",
         "-Wno-type-limits",
-    ]
+        # ThorVG
+        "-Wno-unused-parameter",
+        "-Wno-double-promotion",
+        "-Wno-overflow",
+        "-Wno-format",
+    ],
 )
 
 sources = []
@@ -42,6 +51,7 @@ sources += libenv.Glob("lvgl/src/themes/*/*.c", source=True)
 sources += libenv.Glob("lvgl/src/tick/*.c", source=True)
 sources += libenv.Glob("lvgl/src/widgets/*/*.c", source=True)
 sources += libenv.Glob("lvgl/src/libs/lodepng/*.c", source=True)
+sources += libenv.Glob("lvgl/src/libs/thorvg/*.cpp", source=True)
 
 lib = libenv.StaticLibrary("${FW_LIB_NAME}", sources)
 libenv.Install("${LIB_DIST_DIR}", lib)
