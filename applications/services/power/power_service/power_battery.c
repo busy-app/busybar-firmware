@@ -24,15 +24,21 @@ static const uint16_t vbat_load_high[CHARGE_STEPS + 1] = {
 };
 
 static float get_percent(const uint16_t* table, uint32_t value) {
+    // Handle underflow case
+    if(value <= table[0]) {
+        return 0.0f;
+    }
+
+    const float step_size = 100.0f / CHARGE_STEPS;
+
     for(uint8_t i = 0; i < CHARGE_STEPS; i++) {
         if(value < table[i + 1]) {
-            float pct = i * (100 / CHARGE_STEPS);
-            pct += ((float)(value - table[i]) / (float)(table[i + 1] - table[i])) *
-                   (100 / CHARGE_STEPS);
+            float pct = i * step_size;
+            pct += ((float)(value - table[i]) / (float)(table[i + 1] - table[i])) * step_size;
             return pct;
         }
     }
-    return 100.f;
+    return 100.0f;
 }
 
 uint8_t power_get_battery_charge(uint32_t voltage_mv, int32_t current_ma, bool is_charging) {
