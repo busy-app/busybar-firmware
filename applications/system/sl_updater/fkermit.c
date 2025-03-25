@@ -19,12 +19,21 @@
 #define KERMIT_PACKET_MAX_LENGTH     94
 #define KERMIT_PACKET_EXT_MAX_LENGTH 9024
 
-#define KERMIT_PACKET_MARK         (0x01)
-#define KERMIT_PACKET_END          ('\r')
-#define KERMIT_CONTROL_CHAR        ('#')
-#define KERMIT_EXT_PACKET_SIZE_MOD (95)
+#define KERMIT_PACKET_MARK (0x01)
+#define KERMIT_PACKET_END  ('\r')
 
-#define KERMIT_SEQ_MODULO (64)
+// Kermit transfer configuration
+#define KERMIT_NPAD         (0)
+#define KERMIT_PADC         (0)
+#define KERMIT_CONTROL_CHAR ('#')
+#define KERMIT_EBQ_MODE     ('N')
+#define KERMIT_BCT_MODE     ('1') // 1 byte 6-bit checksum
+#define KERMIT_RPT          (' ')
+#define KERMIT_CAPAS_MASK   (0x02)
+#define KERMIT_WINDOW_SZ    (0)
+
+#define KERMIT_EXT_PACKET_SIZE_MOD (95)
+#define KERMIT_SEQ_MODULO          (64)
 
 #define KERMIT_DEFAULT_FILE_NAME "FIRMWA.RPS"
 
@@ -312,9 +321,12 @@ static bool kermit_feed_byte(kermit_t* kermit, uint8_t c) {
             rx->state = KERMIT_PACKET_STATE_ERROR;
             return false;
         }
-
-        furi_check(rx->len >= 3);
-        // seq + type + check go in separate fields
+        if(rx->len < 3) {
+            FURI_LOG_E(TAG, "Invalid packet length: %u < 3", rx->len);
+            rx->state = KERMIT_PACKET_STATE_ERROR;
+            return false;
+        }
+        // seq + type + check go to separate fields in reassembly
         rx->len -= 3;
         rx->state = KERMIT_PACKET_STATE_WAIT_SEQ;
         rx->packet = kermit_packet_alloc(rx->len);
@@ -327,13 +339,13 @@ static bool kermit_feed_byte(kermit_t* kermit, uint8_t c) {
         break;
 
     case KERMIT_PACKET_STATE_WAIT_TYPE:
-        KERMIT_LOG("Packet type: %c", c);
         rx->type = c;
+        KERMIT_LOG("Packet type: %c", c);
         rx->state = rx->len ? KERMIT_PACKET_STATE_WAIT_CONTENTS :
                               KERMIT_PACKET_STATE_WAIT_CHECKSUM;
         break;
 
-    case KERMIT_PACKET_STATE_WAIT_CONTENTS: // first byte is type
+    case KERMIT_PACKET_STATE_WAIT_CONTENTS:
         KERMIT_LOG("Packet sz: %ld, rem rxlen: %d", rx->packet->sz, rx->len);
         furi_check(rx->len >= 0);
         furi_check(rx->packet->sz - rx->len < rx->packet->sz);
@@ -353,7 +365,9 @@ static bool kermit_feed_byte(kermit_t* kermit, uint8_t c) {
 
     case KERMIT_PACKET_STATE_WAIT_CHECKSUM:
         rx->checksum = kermit_fromchar(c);
-        UNUSED(rx->checksum); // todo: validate?
+        // todo: validate?
+        // challenging, because we do not store header fields right next to the data
+        UNUSED(rx->checksum);
         rx->state = KERMIT_PACKET_STATE_WAIT_END;
         break;
 
@@ -388,11 +402,11 @@ bool kermit_feed_serial_data(kermit_t* kermit, const uint8_t* data, size_t lengt
     furi_check(data != NULL);
     furi_check(length > 0);
 
-    do {
+    while(length--) {
         if(!kermit_feed_byte(kermit, *data++)) {
             return false;
         }
-    } while(--length);
+    }
     return true;
 }
 
@@ -417,15 +431,15 @@ bool kermit_start(kermit_t* kermit, const uint8_t timeout_seconds) {
     kermit_init_packet_t init_packet_data = {
         .maxl = kermit_tochar(kermit->max_packet_length),
         .timo = kermit_tochar(timeout_seconds),
-        .npad = kermit_tochar(0),
-        .padc = kermit_ctl(0),
+        .npad = kermit_tochar(KERMIT_NPAD),
+        .padc = kermit_ctl(KERMIT_PADC),
         .eol = kermit_tochar(KERMIT_PACKET_END), // should be `kermit_ctl` to spec
-        .qctl = (KERMIT_CONTROL_CHAR), // ??
-        .ebq = 'N',
-        .bct = '1',
-        .rpt = ' ',
-        .capas = kermit_tochar(0x02),
-        .wslots = kermit_tochar(0),
+        .qctl = (KERMIT_CONTROL_CHAR),
+        .ebq = KERMIT_EBQ_MODE,
+        .bct = KERMIT_BCT_MODE,
+        .rpt = KERMIT_RPT,
+        .capas = kermit_tochar(KERMIT_CAPAS_MASK),
+        .wslots = kermit_tochar(KERMIT_WINDOW_SZ),
         .maxlx1 = kermit_tochar(kermit->max_ext_packet_length / KERMIT_EXT_PACKET_SIZE_MOD),
         .maxlx2 = kermit_tochar(kermit->max_ext_packet_length % KERMIT_EXT_PACKET_SIZE_MOD),
     };
@@ -567,6 +581,8 @@ static bool kermit_process_packet(kermit_t* kermit) {
         case KERMIT_FILE_TRANSFER_STATE_SEND_BREAK:
             kermit->file_transfer_state = KERMIT_FILE_TRANSFER_STATE_DONE;
             FURI_LOG_I(TAG, "File transfer done");
+            kermit_packet_free(kermit->rx.packet);
+            kermit->rx.packet = NULL;
             return true;
 
         default:
