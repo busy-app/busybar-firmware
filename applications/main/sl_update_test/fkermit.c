@@ -259,7 +259,7 @@ void kermit_free(kermit_t* kermit) {
     free(kermit);
 }
 
-bool kermit_is_running(kermit_t* kermit) {
+bool kermit_is_active(kermit_t* kermit) {
     return kermit->file_transfer_state != KERMIT_FILE_TRANSFER_STATE_DONE;
 }
 
@@ -292,6 +292,8 @@ static bool kermit_feed_byte(kermit_t* kermit, uint8_t c) {
     case KERMIT_PACKET_STATE_WAIT_MARK:
         if(c == KERMIT_PACKET_MARK) {
             rx->state = KERMIT_PACKET_STATE_WAIT_LEN;
+        } else {
+            KERMIT_LOG(TAG, "Garbage data: %02x", c);
         }
         break;
 
@@ -303,14 +305,13 @@ static bool kermit_feed_byte(kermit_t* kermit, uint8_t c) {
             return false;
         }
         if(rx->packet) {
-            FURI_LOG_E(TAG, "Packet already allocated");
+            FURI_LOG_E(TAG, "Packet already allocated but not processed");
             rx->state = KERMIT_PACKET_STATE_ERROR;
             return false;
         }
 
         furi_check(rx->len >= 3);
-        // seq + type + check go separately,
-        // we store at least 1 byte for the packet type
+        // seq + type + check go in separate fields
         rx->len -= 3;
         rx->state = KERMIT_PACKET_STATE_WAIT_SEQ;
         rx->packet = kermit_packet_alloc(rx->len);
@@ -334,19 +335,16 @@ static bool kermit_feed_byte(kermit_t* kermit, uint8_t c) {
         furi_check(rx->len >= 0);
         furi_check(rx->packet->sz - rx->len < rx->packet->sz);
 
+        if(c == KERMIT_PACKET_END) {
+            KERMIT_LOG("End of packet in contents"); // FIXME
+            rx->state = KERMIT_PACKET_STATE_ERROR;
+        }
+
         rx->packet->data[rx->packet->sz - rx->len] = c;
         rx->len--;
-        // rx->packet->data[rx->packet->sz - rx->len - 1] = c;
-        if(c == KERMIT_PACKET_END) {
-            furi_crash("End of packet in contents"); // FIXME
-            // furi_check(rx->len == 0);
-            // rx->state = KERMIT_PACKET_STATE_WAIT_END;
-        } else if(rx->len == 0) {
-            // FURI_LOG_E(TAG, "Invalid packet length");
-            KERMIT_LOG("received all expected data");
-            // rx->state = KERMIT_PACKET_STATE_ERROR;
+        if(rx->len == 0) {
+            KERMIT_LOG("Received all expected data");
             rx->state = KERMIT_PACKET_STATE_WAIT_CHECKSUM;
-            // return false;
         }
         break;
 
@@ -368,14 +366,11 @@ static bool kermit_feed_byte(kermit_t* kermit, uint8_t c) {
 
         kermit_packet_free(rx->packet);
         rx->packet = NULL;
-
         break;
 
     case KERMIT_PACKET_STATE_ERROR:
         FURI_LOG_E(TAG, "Error state");
-        result = false;
-        break;
-
+        // fallthrough
     default:
         FURI_LOG_E(TAG, "Invalid state: %d", rx->state);
         result = false;
@@ -524,7 +519,7 @@ static kermit_packet_t* kermit_encode_file_data_packet(kermit_t* kermit) {
         return kermit_create_packet(kermit, KERMIT_PACKET_TYPE_EOF, NULL, 0);
     }
 
-    FURI_LOG_I(TAG, "Packed %d file bytes", length);
+    KERMIT_LOG("Packeted %d bytes", length);
     return kermit_create_ext_packet(kermit, KERMIT_PACKET_TYPE_DATA, tmp_buffer, length);
 }
 
@@ -539,15 +534,12 @@ static kermit_packet_t* kermit_encode_file_header_packet(kermit_t* kermit) {
 static bool kermit_process_packet(kermit_t* kermit) {
     furi_check(kermit->rx.packet != NULL);
 
-    FURI_LOG_I(
+    FURI_LOG_D(
         TAG,
         "Received packet type: %c, seq: %i, data: %s",
         kermit->rx.type,
         kermit->rx.seq,
         kermit->rx.packet->sz ? (const char*)kermit->rx.packet->data : "NULL");
-
-    // kermit_packet_header_t* header = (kermit_packet_header_t*)packet->data;
-    // furi_check(header->seq == kermit_tochar(seq));
 
     if(kermit_next_seq(kermit->rx.seq) != kermit->seq_counter) {
         FURI_LOG_E(
@@ -562,7 +554,7 @@ static bool kermit_process_packet(kermit_t* kermit) {
     const kermit_packet_type_t packet_type = kermit->rx.type;
     switch(packet_type) {
     case KERMIT_PACKET_TYPE_ACK:
-        FURI_LOG_I(TAG, "ACK received, state: %d", kermit->file_transfer_state);
+        KERMIT_LOG("ACK received, state: %d", kermit->file_transfer_state);
         switch(kermit->file_transfer_state) {
         case KERMIT_FILE_TRANSFER_STATE_SYNC_PARAMS:
             kermit->file_transfer_state = KERMIT_FILE_TRANSFER_STATE_SEND_FILE_DATA;

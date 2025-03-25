@@ -27,7 +27,6 @@ typedef enum {
     Si917BootloaderStateKermitInit,
     Si917BootloaderStateKermitSend,
     Si917BootloaderStateWaitInstall,
-    Si917BootloaderStateClose,
 } Si917BootloaderState;
 
 typedef struct {
@@ -40,24 +39,24 @@ typedef struct {
     Intercom* intercom;
 #endif
     Si917BootloaderState bootloader_state;
-    // Kermit
     Storage* storage;
-    File* file;
+    File* firmware_file;
     kermit_t* kermit;
 } SlUpdateTestApp;
 
 //////////////////////////////////////////////////////////////////////////
+// Kermit i/o functions
 
 static int32_t kermit_src_file_read(void* context, uint8_t* buffer, size_t length) {
     SlUpdateTestApp* app = context;
-    return storage_file_read(app->file, buffer, length);
+    return storage_file_read(app->firmware_file, buffer, length);
 }
 
 static int32_t kermit_comms_send(void* context, const uint8_t* buffer, size_t length) {
     SlUpdateTestApp* app = context;
-    FURI_LOG_I(TAG, "Sending %d bytes", length);
+    FURI_LOG_D(TAG, "Sending %d bytes", length);
 
-#if 0
+#ifdef KERMIT_DEBUG
     FuriString* str = furi_string_alloc();
     furi_string_cat_printf(str, "Sending %d bytes: ", length);
     for(size_t i = 0; i < length; i++) {
@@ -95,6 +94,142 @@ static void sl_update_test_app_serial_irq_callback(
     }
 }
 
+static bool sl_update_test_app_check_rx_for(SlUpdateTestApp* instance, const char* str) {
+    if(furi_string_search_str(instance->rx_string, str) != FURI_STRING_FAILURE) {
+        furi_string_reset(instance->rx_string);
+        return true;
+    }
+    return false;
+}
+
+static void sl_update_test_app_handle_rx(SlUpdateTestApp* instance) {
+#ifdef KERMIT_DEBUG
+    FURI_LOG_D(
+        TAG,
+        "State: %d, Received data: %s",
+        instance->bootloader_state,
+        furi_string_get_cstr(instance->rx_string));
+#endif
+
+    bool should_stop = false;
+
+    switch(instance->bootloader_state) {
+    case Si917BootloaderStateInit:
+        if(sl_update_test_app_check_rx_for(instance, "Enter 'U'")) {
+            const uint8_t leader = 'U';
+            furi_hal_serial_tx(instance->serial_handle, &leader, sizeof(leader));
+            FURI_LOG_I(TAG, "Leader sent: %c", leader);
+            instance->bootloader_state = Si917BootloaderStateBoot;
+        }
+        break;
+
+    case Si917BootloaderStateBoot:
+        if(sl_update_test_app_check_rx_for(instance, "Change UART Baud Rate\r\n")) {
+            const uint8_t choice = 'b';
+            furi_hal_serial_tx(instance->serial_handle, &choice, sizeof(choice));
+            FURI_LOG_I(TAG, "UART Baud Rate change request sent: %c", choice);
+            instance->bootloader_state = Si917BootloaderStateChangeBaudRate;
+        }
+        break;
+
+    case Si917BootloaderStateChangeBaudRate:
+        if(sl_update_test_app_check_rx_for(instance, "5 115200\r\n")) {
+            const uint8_t choice = '4';
+            furi_hal_serial_tx(instance->serial_handle, &choice, sizeof(choice));
+            FURI_LOG_I(TAG, "UART Baud Rate speed request sent: %c", choice);
+
+            furi_hal_serial_set_baud_rate(instance->serial_handle, 921600);
+
+            // const uint8_t leader = 'U';
+            // furi_hal_serial_tx(instance->serial_handle, &leader, sizeof(leader));
+            // FURI_LOG_I(TAG, "New Leader sent: %c", leader);
+
+            instance->bootloader_state = Si917BootloaderStateChangeBaudRateSpeed;
+        }
+        break;
+
+    case Si917BootloaderStateChangeBaudRateSpeed:
+        const uint8_t leader = 'U';
+        furi_hal_serial_tx(instance->serial_handle, &leader, sizeof(leader));
+        FURI_LOG_I(TAG, "New Leader sent: %c", leader);
+        // fall through
+
+    case Si917BootloaderStateChangeBaudRateSpeedSuccess:
+        if(sl_update_test_app_check_rx_for(instance, "Baud Rate was updated successfully!")) {
+            FURI_LOG_I(TAG, "Baud rate was set to 921600");
+            instance->bootloader_state = Si917BootloaderStateSetImageType;
+        }
+        break;
+
+    case Si917BootloaderStateSetImageType:
+        if(sl_update_test_app_check_rx_for(instance, "Enter Next Command")) {
+            const uint8_t image_type = '4';
+            furi_hal_serial_tx(instance->serial_handle, &image_type, sizeof(image_type));
+
+            FURI_LOG_I(TAG, "Image type set to: %c", image_type);
+            instance->bootloader_state = Si917BootloaderStateSetImageSlot;
+        }
+        break;
+
+    case Si917BootloaderStateSetImageSlot:
+        if(sl_update_test_app_check_rx_for(instance, "Enter M4 Image No(1-f)")) {
+            const uint8_t image_slot = '1';
+            furi_hal_serial_tx(instance->serial_handle, &image_slot, sizeof(image_slot));
+
+            FURI_LOG_I(TAG, "Image slot set to: %c", image_slot);
+            instance->bootloader_state = Si917BootloaderStateKermitInit;
+        }
+        break;
+
+    case Si917BootloaderStateKermitInit:
+        if(sl_update_test_app_check_rx_for(instance, "Send MCU firmware(*.rps)")) {
+            FURI_LOG_W(TAG, "Kermit init");
+            instance->bootloader_state = Si917BootloaderStateKermitSend;
+            storage_file_open(
+                instance->firmware_file, "/ext/firmware.rps", FSAM_READ, FSOM_OPEN_EXISTING);
+            kermit_run(instance->kermit);
+        }
+        break;
+
+    case Si917BootloaderStateKermitSend:
+        if(kermit_is_active(instance->kermit)) {
+            int32_t data_size = furi_string_size(instance->rx_string);
+            int32_t data_fed = kermit_feed_serial_data(
+                instance->kermit,
+                (const uint8_t*)furi_string_get_cstr(instance->rx_string),
+                data_size);
+            furi_string_reset(instance->rx_string);
+            if(data_fed != data_size) {
+                FURI_LOG_E(TAG, "Error feeding data to kermit");
+                should_stop = true;
+            }
+        } else {
+            FURI_LOG_I(TAG, "Kermit upload complete");
+            instance->bootloader_state = Si917BootloaderStateWaitInstall;
+        }
+        break;
+
+    case Si917BootloaderStateWaitInstall:
+        if(sl_update_test_app_check_rx_for(instance, "Upgradation Successful")) {
+            FURI_LOG_W(TAG, "Install success");
+            should_stop = true;
+        } else if(sl_update_test_app_check_rx_for(instance, "Upgradation Failed")) {
+            FURI_LOG_E(TAG, "Install failed");
+            should_stop = true;
+        }
+        break;
+
+    default:
+        FURI_LOG_E(TAG, "Invalid state: %d", instance->bootloader_state);
+        should_stop = true;
+    }
+
+    if(should_stop) {
+        FURI_LOG_I(TAG, "Stopping event loop, state: %d", instance->bootloader_state);
+        furi_event_loop_stop(instance->event_loop);
+    }
+}
+
 static void sl_update_test_app_rx_buffer_callback(FuriEventLoopObject* object, void* context) {
     SlUpdateTestApp* instance = context;
     furi_check(object == instance->rx_buffer);
@@ -106,143 +241,9 @@ static void sl_update_test_app_rx_buffer_callback(FuriEventLoopObject* object, v
     while(furi_stream_buffer_bytes_available(instance->rx_buffer)) {
         furi_check(furi_stream_buffer_receive(instance->rx_buffer, &c, sizeof(c), 0) == sizeof(c));
         furi_string_push_back(instance->rx_string, c);
-        // FURI_LOG_D(TAG, "Received data: %s, c: %i ", furi_string_get_cstr(instance->rx_string), c);
     }
 
-    // FURI_LOG_D(
-    //     TAG,
-    //     "State: %d, Received data: %s",
-    //     instance->bootloader_state,
-    //     furi_string_get_cstr(instance->rx_string));
-
-    switch(instance->bootloader_state) {
-    case Si917BootloaderStateInit:
-        if(furi_string_search_str(instance->rx_string, "Enter 'U'") != FURI_STRING_FAILURE) {
-            const uint8_t leader = 'U';
-            furi_string_reset(instance->rx_string);
-            furi_hal_serial_tx(instance->serial_handle, &leader, sizeof(leader));
-            FURI_LOG_I(TAG, "Leader sent: %c", leader);
-            instance->bootloader_state = Si917BootloaderStateBoot;
-        }
-        break;
-    case Si917BootloaderStateBoot:
-        if(furi_string_search_str(instance->rx_string, "Change UART Baud Rate\r\n") !=
-           FURI_STRING_FAILURE) {
-            furi_string_reset(instance->rx_string);
-            const uint8_t choice = 'b';
-            furi_hal_serial_tx(instance->serial_handle, &choice, sizeof(choice));
-            FURI_LOG_I(TAG, "UART Baud Rate change request sent: %c", choice);
-            instance->bootloader_state = Si917BootloaderStateChangeBaudRate;
-        }
-        break;
-    case Si917BootloaderStateChangeBaudRate:
-        if(furi_string_search_str(instance->rx_string, "5 115200\r\n") != FURI_STRING_FAILURE) {
-            furi_string_reset(instance->rx_string);
-            const uint8_t choice = '4';
-            furi_hal_serial_tx(instance->serial_handle, &choice, sizeof(choice));
-            FURI_LOG_I(TAG, "UART Baud Rate speed request sent: %c", choice);
-
-            furi_hal_serial_set_baud_rate(instance->serial_handle, 921600);
-
-            const uint8_t leader = 'U';
-            furi_hal_serial_tx(instance->serial_handle, &leader, sizeof(leader));
-            FURI_LOG_I(TAG, "New Leader sent: %c", leader);
-
-            instance->bootloader_state = Si917BootloaderStateChangeBaudRateSpeed;
-        }
-        break;
-    case Si917BootloaderStateChangeBaudRateSpeed:
-        const uint8_t leader = 'U';
-        furi_hal_serial_tx(instance->serial_handle, &leader, sizeof(leader));
-        FURI_LOG_I(TAG, "New Leader sent: %c", leader);
-        // fall through
-
-    case Si917BootloaderStateChangeBaudRateSpeedSuccess:
-        if(furi_string_search_str(instance->rx_string, "Baud Rate was updated successfully!") !=
-           FURI_STRING_FAILURE) {
-            furi_string_reset(instance->rx_string);
-
-            FURI_LOG_I(TAG, "Baud rate was set to 921600 and it's working!");
-            // furi_event_loop_stop(instance->event_loop);
-
-            instance->bootloader_state = Si917BootloaderStateSetImageType;
-            break;
-        }
-        break;
-
-    case Si917BootloaderStateSetImageType:
-        // if(furi_string_search_str(instance->rx_string, "Waiting for Correct Option...") !=
-        if(furi_string_search_str(instance->rx_string, "Enter Next Command") !=
-           FURI_STRING_FAILURE) {
-            furi_string_reset(instance->rx_string);
-
-            const uint8_t image_type = '4';
-            furi_hal_serial_tx(instance->serial_handle, &image_type, sizeof(image_type));
-
-            FURI_LOG_I(TAG, "Image type set to: %c", image_type);
-            instance->bootloader_state = Si917BootloaderStateSetImageSlot;
-        }
-        break;
-    case Si917BootloaderStateSetImageSlot:
-        if(furi_string_search_str(instance->rx_string, "Enter M4 Image No(1-f)") !=
-           FURI_STRING_FAILURE) {
-            furi_string_reset(instance->rx_string);
-
-            const uint8_t image_slot = '1';
-            furi_hal_serial_tx(instance->serial_handle, &image_slot, sizeof(image_slot));
-
-            FURI_LOG_I(TAG, "Image slot set to: %c", image_slot);
-            instance->bootloader_state = Si917BootloaderStateKermitInit;
-        }
-        break;
-    case Si917BootloaderStateKermitInit:
-        if(furi_string_search_str(instance->rx_string, "Send MCU firmware(*.rps)") !=
-           FURI_STRING_FAILURE) {
-            furi_string_reset(instance->rx_string);
-            FURI_LOG_W(TAG, "Kermit init");
-            instance->bootloader_state = Si917BootloaderStateKermitSend;
-            storage_file_open(instance->file, "/ext/firmware.rps", FSAM_READ, FSOM_OPEN_EXISTING);
-            kermit_run(instance->kermit);
-        }
-        break;
-    case Si917BootloaderStateKermitSend:
-        if(!kermit_is_running(instance->kermit)) {
-            FURI_LOG_I(TAG, "Kermit done");
-            instance->bootloader_state = Si917BootloaderStateWaitInstall;
-        } else {
-            int32_t data_size = furi_string_size(instance->rx_string);
-            int32_t data_fed = kermit_feed_serial_data(
-                instance->kermit,
-                (const uint8_t*)furi_string_get_cstr(instance->rx_string),
-                data_size);
-            furi_string_reset(instance->rx_string);
-            if(data_fed != data_size) {
-                FURI_LOG_E(TAG, "Error feeding data to kermit");
-                furi_event_loop_stop(instance->event_loop); // ???
-                break;
-            }
-        }
-        break;
-    case Si917BootloaderStateWaitInstall:
-        if(furi_string_search_str(instance->rx_string, "Upgradation Successful") !=
-           FURI_STRING_FAILURE) {
-            furi_string_reset(instance->rx_string);
-            FURI_LOG_I(TAG, "Install success");
-            furi_event_loop_stop(instance->event_loop); // ???
-        } else if(
-            furi_string_search_str(instance->rx_string, "Upgradation Failed") !=
-            FURI_STRING_FAILURE) {
-            furi_string_reset(instance->rx_string);
-            FURI_LOG_E(TAG, "Install failed");
-            furi_event_loop_stop(instance->event_loop); // ???
-        }
-        break;
-    case Si917BootloaderStateClose:
-        furi_event_loop_stop(instance->event_loop); // ???
-        break;
-    default:
-        FURI_LOG_E(TAG, "Invalid state: %d", instance->bootloader_state);
-    }
+    sl_update_test_app_handle_rx(instance);
 }
 
 static void sl_update_app_intercom_error_callback(IntercomError error, void* context) {
@@ -272,7 +273,7 @@ static SlUpdateTestApp* sl_update_test_app_alloc(void) {
 
     instance->kermit = kermit_alloc(&kermit_io, instance);
     instance->storage = furi_record_open(RECORD_STORAGE);
-    instance->file = storage_file_alloc(instance->storage);
+    instance->firmware_file = storage_file_alloc(instance->storage);
     instance->idle_timer = furi_event_loop_timer_alloc(
         instance->event_loop,
         sl_update_test_idle_timer_callback,
@@ -329,7 +330,7 @@ static void sl_update_test_app_free(SlUpdateTestApp* instance) {
     furi_event_loop_free(instance->event_loop);
 
     kermit_free(instance->kermit);
-    storage_file_free(instance->file);
+    storage_file_free(instance->firmware_file);
     furi_record_close(RECORD_STORAGE);
 
     furi_hal_power_reset_917(false);
