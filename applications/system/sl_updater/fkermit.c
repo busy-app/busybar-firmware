@@ -502,17 +502,14 @@ static kermit_packet_t* kermit_encode_file_data_packet(kermit_t* kermit) {
         }
 
         if(((file_char & 0x7F) < 0x20) || (file_char == 0x7F)) {
-            *buffer_ptr = KERMIT_CONTROL_CHAR;
-            buffer_ptr++;
-            *buffer_ptr = kermit_ctl(file_char);
+            *buffer_ptr++ = KERMIT_CONTROL_CHAR;
+            *buffer_ptr++ = kermit_ctl(file_char);
         } else if(file_char == KERMIT_CONTROL_CHAR) {
-            *buffer_ptr = KERMIT_CONTROL_CHAR;
-            buffer_ptr++;
-            *buffer_ptr = KERMIT_CONTROL_CHAR;
+            *buffer_ptr++ = KERMIT_CONTROL_CHAR;
+            *buffer_ptr++ = KERMIT_CONTROL_CHAR;
         } else {
-            *buffer_ptr = file_char;
+            *buffer_ptr++ = file_char;
         }
-        buffer_ptr++;
         // leave 1 byte in case last char will be escaped
         // so we don't need to rewind the file pointer if it doesn't fit
     } while((uint32_t)(buffer_ptr - tmp_buffer) < (kermit->max_ext_packet_length - 2));
