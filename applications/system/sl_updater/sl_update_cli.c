@@ -4,6 +4,9 @@
 #include <cli/cli.h>
 #include <toolbox/args.h>
 
+#define SL_UPDATE_M4_COMM_TIMEOUT_S  (6)
+#define SL_UPDATE_NWP_COMM_TIMEOUT_S (25)
+
 static void updater_cli_command_print_usage(void) {
     printf("Usage:\r\n");
     printf("update <u5|917|917_ta> path\r\n");
@@ -32,17 +35,21 @@ static void updater_cli(Cli* cli, FuriString* args, void* context) {
         }
 
         bool is_stack_image = false;
-        if(furi_string_cmp_str(cmd, "917") == 0) {
-            is_stack_image = false;
-        } else if(furi_string_cmp_str(cmd, "917_ta") == 0) {
+        if(furi_string_cmp_str(cmd, "917_ta") == 0) {
             is_stack_image = true;
+        } else if(furi_string_cmp_str(cmd, "917") == 0) {
+            is_stack_image = false;
         } else {
             updater_cli_command_print_usage();
             break;
         }
 
         SlUpdater* instance = sl_updater_alloc();
-        if(sl_updater_run(instance, furi_string_get_cstr(path), is_stack_image, 6)) {
+        if(sl_updater_run(
+               instance,
+               furi_string_get_cstr(path),
+               is_stack_image,
+               is_stack_image ? SL_UPDATE_NWP_COMM_TIMEOUT_S : SL_UPDATE_M4_COMM_TIMEOUT_S)) {
             printf("Update succeeded\r\n");
         } else {
             printf("Update failed\r\n");
@@ -57,6 +64,6 @@ static void updater_cli(Cli* cli, FuriString* args, void* context) {
 
 void sl_update_on_system_start(void) {
     Cli* cli = furi_record_open(RECORD_CLI);
-    cli_add_command(cli, "update", CliCommandFlagDefault, updater_cli, NULL);
+    cli_add_command(cli, "update", CliCommandFlagParallelSafe, updater_cli, NULL);
     furi_record_close(RECORD_CLI);
 }

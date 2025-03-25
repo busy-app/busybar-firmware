@@ -169,7 +169,7 @@ static void sl_updater_handle_rx(SlUpdater* instance) {
 
     case Si917BootloaderStateSetImageType:
         if(sl_updater_check_rx_for(instance, "Enter Next Command")) {
-            const uint8_t image_type = instance->is_stack_image ? '4' : 'B';
+            const uint8_t image_type = instance->is_stack_image ? 'B' : '4';
             furi_hal_serial_tx(instance->serial_handle, &image_type, sizeof(image_type));
 
             FURI_LOG_I(TAG, "Image type set to: %c", image_type);
@@ -190,7 +190,9 @@ static void sl_updater_handle_rx(SlUpdater* instance) {
         break;
 
     case Si917BootloaderStateKermitInit:
-        if(sl_updater_check_rx_for(instance, "Send MCU firmware(*.rps)")) {
+        const char* fw_needle = instance->is_stack_image ? "Send NWP firmware(*.rps) " :
+                                                           "Send MCU firmware(*.rps)";
+        if(sl_updater_check_rx_for(instance, fw_needle)) {
             FURI_LOG_W(TAG, "Kermit init");
             instance->bootloader_state = Si917BootloaderStateKermitSend;
             kermit_start(instance->kermit, 5);

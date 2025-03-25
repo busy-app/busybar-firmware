@@ -292,7 +292,7 @@ static bool kermit_feed_byte(kermit_t* kermit, uint8_t c) {
         if(c == KERMIT_PACKET_MARK) {
             rx->state = KERMIT_PACKET_STATE_WAIT_LEN;
         } else {
-            KERMIT_LOG(TAG, "Garbage data: %02x", c);
+            KERMIT_LOG("Garbage data: %02x", c);
         }
         break;
 
