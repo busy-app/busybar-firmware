@@ -8,10 +8,6 @@ env.AppendUnique(
     CPPDEFINES=[
         "LV_CONF_INCLUDE_SIMPLE",
     ],
-    FW_LIBS=[
-        "m",
-        "stdc++",
-    ],
 )
 
 libenv = env.Clone(FW_LIB_NAME="lvgl")

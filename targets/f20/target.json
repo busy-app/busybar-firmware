@@ -25,7 +25,7 @@
         "-Wstrict-prototypes"
     ],
     "cpp_flags": [
-        "-std=c++20",
+        "-std=c++14",
         "-fno-rtti",
         "-fno-use-cxa-atexit",
         "-fno-exceptions",

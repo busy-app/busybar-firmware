@@ -4,7 +4,7 @@ App(
     apptype=FlipperAppType.SERVICE,
     entry_point="gui_srv",
     cdefines=["SRV_GUI"],
-    stack_size=8 * 1024,
+    stack_size=160 * 1024,
     targets=["f20"],
     requires=["led_display"],
     order=900,

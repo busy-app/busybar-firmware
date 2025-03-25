@@ -63,9 +63,9 @@ static lv_fs_res_t
     uint32_t size = storage_file_size(file_p);
 
     if(whence == LV_FS_SEEK_SET) {
-        seek_position = current_position + pos;
-    } else if(whence == LV_FS_SEEK_CUR) {
         seek_position = pos;
+    } else if(whence == LV_FS_SEEK_CUR) {
+        seek_position = current_position + pos;
     } else if(whence == LV_FS_SEEK_END) {
         if(pos > size) {
             seek_position = 0;
