@@ -1,3 +1,5 @@
+#include "sl_update.h"
+
 #include <furi.h>
 
 #include <furi_hal_resources.h>
@@ -27,9 +29,11 @@ typedef enum {
     Si917BootloaderStateKermitInit,
     Si917BootloaderStateKermitSend,
     Si917BootloaderStateWaitInstall,
+    Si917BootloaderStateInstallSuccess,
+    Si917BootloaderStateInstallFail,
 } Si917BootloaderState;
 
-typedef struct {
+struct SlUpdater {
     FuriEventLoop* event_loop;
     FuriStreamBuffer* rx_buffer;
     FuriString* rx_string;
@@ -43,18 +47,18 @@ typedef struct {
     Storage* storage;
     File* firmware_file;
     kermit_t* kermit;
-} SlUpdateTestApp;
+};
 
 //////////////////////////////////////////////////////////////////////////
 // Kermit i/o functions
 
 static int32_t kermit_src_file_read(void* context, uint8_t* buffer, size_t length) {
-    SlUpdateTestApp* app = context;
+    SlUpdater* app = context;
     return storage_file_read(app->firmware_file, buffer, length);
 }
 
 static int32_t kermit_comms_send(void* context, const uint8_t* buffer, size_t length) {
-    SlUpdateTestApp* app = context;
+    SlUpdater* app = context;
     FURI_LOG_D(TAG, "Sending %d bytes", length);
 
 #ifdef KERMIT_DEBUG
@@ -79,11 +83,11 @@ static const kermit_io_t kermit_io = {
 
 //////////////////////////////////////////////////////////////////////////
 
-static void sl_update_test_app_serial_irq_callback(
+static void sl_updater_serial_irq_callback(
     FuriHalSerialHandle* handle,
     FuriHalSerialRxEvent events,
     void* context) {
-    SlUpdateTestApp* instance = context;
+    SlUpdater* instance = context;
     furi_check(handle == instance->serial_handle);
 
     if(events & FuriHalSerialRxEventData) {
@@ -95,7 +99,7 @@ static void sl_update_test_app_serial_irq_callback(
     }
 }
 
-static bool sl_update_test_app_check_rx_for(SlUpdateTestApp* instance, const char* str) {
+static bool sl_updater_check_rx_for(SlUpdater* instance, const char* str) {
     if(furi_string_search_str(instance->rx_string, str) != FURI_STRING_FAILURE) {
         furi_string_reset(instance->rx_string);
         return true;
@@ -103,7 +107,7 @@ static bool sl_update_test_app_check_rx_for(SlUpdateTestApp* instance, const cha
     return false;
 }
 
-static void sl_update_test_app_handle_rx(SlUpdateTestApp* instance) {
+static void sl_updater_handle_rx(SlUpdater* instance) {
 #ifdef KERMIT_DEBUG
     FURI_LOG_D(
         TAG,
@@ -116,7 +120,7 @@ static void sl_update_test_app_handle_rx(SlUpdateTestApp* instance) {
 
     switch(instance->bootloader_state) {
     case Si917BootloaderStateInit:
-        if(sl_update_test_app_check_rx_for(instance, "Enter 'U'")) {
+        if(sl_updater_check_rx_for(instance, "Enter 'U'")) {
             const uint8_t leader = 'U';
             furi_hal_serial_tx(instance->serial_handle, &leader, sizeof(leader));
             FURI_LOG_I(TAG, "Leader sent: %c", leader);
@@ -125,7 +129,7 @@ static void sl_update_test_app_handle_rx(SlUpdateTestApp* instance) {
         break;
 
     case Si917BootloaderStateBoot:
-        if(sl_update_test_app_check_rx_for(instance, "Change UART Baud Rate\r\n")) {
+        if(sl_updater_check_rx_for(instance, "Change UART Baud Rate\r\n")) {
             const uint8_t choice = 'b';
             furi_hal_serial_tx(instance->serial_handle, &choice, sizeof(choice));
             FURI_LOG_I(TAG, "UART Baud Rate change request sent: %c", choice);
@@ -134,7 +138,7 @@ static void sl_update_test_app_handle_rx(SlUpdateTestApp* instance) {
         break;
 
     case Si917BootloaderStateChangeBaudRate:
-        if(sl_update_test_app_check_rx_for(instance, "5 115200\r\n")) {
+        if(sl_updater_check_rx_for(instance, "5 115200\r\n")) {
             const uint8_t choice = '4';
             furi_hal_serial_tx(instance->serial_handle, &choice, sizeof(choice));
             FURI_LOG_I(TAG, "UART Baud Rate speed request sent: %c", choice);
@@ -156,14 +160,14 @@ static void sl_update_test_app_handle_rx(SlUpdateTestApp* instance) {
         // fall through
 
     case Si917BootloaderStateChangeBaudRateSpeedSuccess:
-        if(sl_update_test_app_check_rx_for(instance, "Baud Rate was updated successfully!")) {
+        if(sl_updater_check_rx_for(instance, "Baud Rate was updated successfully!")) {
             FURI_LOG_I(TAG, "Baud rate was set to 921600");
             instance->bootloader_state = Si917BootloaderStateSetImageType;
         }
         break;
 
     case Si917BootloaderStateSetImageType:
-        if(sl_update_test_app_check_rx_for(instance, "Enter Next Command")) {
+        if(sl_updater_check_rx_for(instance, "Enter Next Command")) {
             const uint8_t image_type = '4';
             furi_hal_serial_tx(instance->serial_handle, &image_type, sizeof(image_type));
 
@@ -173,7 +177,7 @@ static void sl_update_test_app_handle_rx(SlUpdateTestApp* instance) {
         break;
 
     case Si917BootloaderStateSetImageSlot:
-        if(sl_update_test_app_check_rx_for(instance, "Enter M4 Image No(1-f)")) {
+        if(sl_updater_check_rx_for(instance, "Enter M4 Image No(1-f)")) {
             const uint8_t image_slot = '1';
             furi_hal_serial_tx(instance->serial_handle, &image_slot, sizeof(image_slot));
 
@@ -183,11 +187,9 @@ static void sl_update_test_app_handle_rx(SlUpdateTestApp* instance) {
         break;
 
     case Si917BootloaderStateKermitInit:
-        if(sl_update_test_app_check_rx_for(instance, "Send MCU firmware(*.rps)")) {
+        if(sl_updater_check_rx_for(instance, "Send MCU firmware(*.rps)")) {
             FURI_LOG_W(TAG, "Kermit init");
             instance->bootloader_state = Si917BootloaderStateKermitSend;
-            storage_file_open(
-                instance->firmware_file, "/ext/firmware.rps", FSAM_READ, FSOM_OPEN_EXISTING);
             kermit_start(instance->kermit, 5);
         }
         break;
@@ -210,13 +212,21 @@ static void sl_update_test_app_handle_rx(SlUpdateTestApp* instance) {
         break;
 
     case Si917BootloaderStateWaitInstall:
-        if(sl_update_test_app_check_rx_for(instance, "Upgradation Successful")) {
+        if(sl_updater_check_rx_for(instance, "Upgradation Successful")) {
             FURI_LOG_W(TAG, "Install success");
             should_stop = true;
-        } else if(sl_update_test_app_check_rx_for(instance, "Upgradation Failed")) {
+            instance->bootloader_state = Si917BootloaderStateInstallSuccess;
+        } else if(sl_updater_check_rx_for(instance, "Upgradation Failed")) {
             FURI_LOG_E(TAG, "Install failed");
             should_stop = true;
+            instance->bootloader_state = Si917BootloaderStateInstallFail;
         }
+        break;
+
+    case Si917BootloaderStateInstallSuccess:
+    case Si917BootloaderStateInstallFail:
+        // Do nothing
+        should_stop = true;
         break;
 
     default:
@@ -230,8 +240,8 @@ static void sl_update_test_app_handle_rx(SlUpdateTestApp* instance) {
     }
 }
 
-static void sl_update_test_app_rx_buffer_callback(FuriEventLoopObject* object, void* context) {
-    SlUpdateTestApp* instance = context;
+static void sl_updater_rx_buffer_callback(FuriEventLoopObject* object, void* context) {
+    SlUpdater* instance = context;
     furi_check(object == instance->rx_buffer);
 
     // Reset the idle timer
@@ -243,26 +253,26 @@ static void sl_update_test_app_rx_buffer_callback(FuriEventLoopObject* object, v
         furi_string_push_back(instance->rx_string, c);
     }
 
-    sl_update_test_app_handle_rx(instance);
+    sl_updater_handle_rx(instance);
 }
 
-static void sl_update_app_intercom_error_callback(IntercomError error, void* context) {
+static void sl_updater_intercom_error_callback(IntercomError error, void* context) {
     UNUSED(error);
     UNUSED(context);
     // Empty callback
 }
 
-static void sl_update_test_idle_timer_callback(void* context) {
-    SlUpdateTestApp* instance = context;
+static void sl_update_idle_timer_callback(void* context) {
+    SlUpdater* instance = context;
 
     FURI_LOG_W(TAG, "Watchdog expired");
     furi_event_loop_stop(instance->event_loop);
 }
 
-static SlUpdateTestApp* sl_update_test_app_alloc(void) {
+SlUpdater* sl_updater_alloc(void) {
     FURI_LOG_I(TAG, "Starting SL Update Test App");
 
-    SlUpdateTestApp* instance = malloc(sizeof(SlUpdateTestApp));
+    SlUpdater* instance = malloc(sizeof(SlUpdater));
 
     instance->event_loop = furi_event_loop_alloc();
     instance->rx_buffer = furi_stream_buffer_alloc(512, 1);
@@ -270,14 +280,14 @@ static SlUpdateTestApp* sl_update_test_app_alloc(void) {
     instance->serial_handle = furi_hal_serial_control_acquire(FuriHalSerialIdUsart2);
 
     instance->bootloader_state = Si917BootloaderStateInit;
-    instance->timeout_seconds = 5;
+    instance->timeout_seconds = 1;
 
     instance->kermit = kermit_alloc(&kermit_io, instance);
     instance->storage = furi_record_open(RECORD_STORAGE);
     instance->firmware_file = storage_file_alloc(instance->storage);
     instance->idle_timer = furi_event_loop_timer_alloc(
         instance->event_loop,
-        sl_update_test_idle_timer_callback,
+        sl_update_idle_timer_callback,
         FuriEventLoopTimerTypePeriodic,
         instance);
 
@@ -285,45 +295,13 @@ static SlUpdateTestApp* sl_update_test_app_alloc(void) {
         instance->event_loop,
         instance->rx_buffer,
         FuriEventLoopEventIn,
-        sl_update_test_app_rx_buffer_callback,
+        sl_updater_rx_buffer_callback,
         instance);
-
-#ifdef SRV_INTERCOM
-    // Prevent crashes
-    instance->intercom = furi_record_open(RECORD_INTERCOM);
-    intercom_set_error_callback(instance->intercom, sl_update_app_intercom_error_callback, NULL);
-#else
-    UNUSED(sl_update_app_intercom_error_callback);
-#endif
-
-    // Start idle timer
-    furi_event_loop_timer_start(
-        instance->idle_timer, furi_ms_to_ticks((instance->timeout_seconds + 2) * 1000));
-
-    furi_hal_serial_init(instance->serial_handle, 115200);
-    furi_hal_serial_set_callback(
-        instance->serial_handle, NULL, sl_update_test_app_serial_irq_callback, instance);
-    furi_hal_serial_async_rx_start(instance->serial_handle, false);
-
-    furi_hal_power_reset_917(true);
-
-    const uint8_t leader = 0;
-    furi_hal_serial_tx(instance->serial_handle, &leader, sizeof(leader));
 
     return instance;
 }
 
-static void sl_update_test_app_free(SlUpdateTestApp* instance) {
-#ifdef SRV_INTERCOM
-    // TODO: The ability to reset intercom
-    intercom_set_error_callback(instance->intercom, NULL, NULL);
-    furi_record_close(RECORD_INTERCOM);
-#endif
-
-    furi_hal_serial_async_rx_stop(instance->serial_handle);
-    furi_hal_serial_set_callback(instance->serial_handle, NULL, NULL, NULL);
-    furi_hal_serial_control_release(instance->serial_handle);
-
+void sl_updater_free(SlUpdater* instance) {
     furi_event_loop_timer_free(instance->idle_timer);
     furi_event_loop_unsubscribe(instance->event_loop, instance->rx_buffer);
 
@@ -335,19 +313,63 @@ static void sl_update_test_app_free(SlUpdateTestApp* instance) {
     storage_file_free(instance->firmware_file);
     furi_record_close(RECORD_STORAGE);
 
-    furi_hal_power_reset_917(false);
-
-    FURI_LOG_I(TAG, "SL Update Test App stopped");
+    FURI_LOG_I(TAG, "SL Updater stopped");
 
     free(instance);
 }
 
-int32_t sl_update_test_app(void* arg) {
-    UNUSED(arg);
+bool sl_updater_run(SlUpdater* instance, const char* firmware_path, uint8_t timeout_seconds) {
+    furi_check(instance);
+    furi_check(firmware_path);
 
-    SlUpdateTestApp* instance = sl_update_test_app_alloc();
+    instance->timeout_seconds = timeout_seconds;
+    instance->bootloader_state = Si917BootloaderStateInit;
+
+    if(!storage_file_open(instance->firmware_file, firmware_path, FSAM_READ, FSOM_OPEN_EXISTING)) {
+        FURI_LOG_E(TAG, "Failed to open firmware file: %s", firmware_path);
+        return false;
+    }
+
+#ifdef SRV_INTERCOM
+    // Prevent crashes
+    instance->intercom = furi_record_open(RECORD_INTERCOM);
+    intercom_set_error_callback(instance->intercom, sl_updater_intercom_error_callback, NULL);
+#else
+    UNUSED(sl_updater_intercom_error_callback);
+#endif
+
+    // Start idle timer
+    furi_event_loop_timer_start(
+        instance->idle_timer, furi_ms_to_ticks((instance->timeout_seconds + 2) * 1000));
+
+    furi_hal_serial_init(instance->serial_handle, 115200);
+    furi_hal_serial_set_callback(
+        instance->serial_handle, NULL, sl_updater_serial_irq_callback, instance);
+    furi_hal_serial_async_rx_start(instance->serial_handle, false);
+
+    furi_hal_power_reset_917(true);
+
+    const uint8_t leader = 0;
+    furi_hal_serial_tx(instance->serial_handle, &leader, sizeof(leader));
+
     furi_event_loop_run(instance->event_loop);
-    sl_update_test_app_free(instance);
 
-    return 0;
+    /// Magic!
+    bool success = instance->bootloader_state == Si917BootloaderStateInstallSuccess;
+
+    furi_hal_power_reset_917(false);
+
+#ifdef SRV_INTERCOM
+    // TODO: The ability to reset intercom
+    intercom_set_error_callback(instance->intercom, NULL, NULL);
+    furi_record_close(RECORD_INTERCOM);
+#endif
+
+    furi_hal_serial_async_rx_stop(instance->serial_handle);
+    furi_hal_serial_set_callback(instance->serial_handle, NULL, NULL, NULL);
+    furi_hal_serial_control_release(instance->serial_handle);
+
+    storage_file_close(instance->firmware_file);
+
+    return success;
 }

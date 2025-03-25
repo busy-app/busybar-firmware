@@ -8,9 +8,11 @@
 extern "C" {
 #endif
 
+// See https://www.kermitproject.org/kpackets.html for some details on Kermit protocol
+
 typedef struct {
-    int32_t (*src_file_read)(void* context, uint8_t* buffer, size_t length); // read from file
-    int32_t (*comms_send)(void* context, const uint8_t* buffer, size_t length); // send to comms
+    int32_t (*src_file_read)(void* context, uint8_t* buffer, size_t length);
+    int32_t (*comms_send)(void* context, const uint8_t* buffer, size_t length);
 } kermit_io_t;
 
 typedef struct kermit_t kermit_t;

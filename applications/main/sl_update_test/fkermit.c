@@ -247,10 +247,8 @@ kermit_t* kermit_alloc(const kermit_io_t* io, void* context) {
     furi_check(io != NULL);
 
     kermit_t* kermit = malloc(sizeof(kermit_t));
-
     kermit->io = io;
     kermit->io_context = context;
-
     kermit_reset_state(kermit);
 
     return kermit;
