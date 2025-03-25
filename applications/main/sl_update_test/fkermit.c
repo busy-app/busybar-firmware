@@ -11,6 +11,8 @@
 #define KERMIT_PACKET_END          ('\r')
 #define KERMIT_EXT_PACKET_SIZE_MOD (95)
 
+#define KERMIT_SEQ_MODULO (64)
+
 #define KERMIT_CONTROL_CHAR ('#')
 
 typedef struct {
@@ -138,6 +140,10 @@ uint8_t kermit_checksum(const uint8_t* data, size_t length) {
     return kermit_tochar((sum + ((sum & 0xC0) >> 6)) & 0x3F);
 }
 
+static uint8_t kermit_next_seq(uint8_t seq) {
+    return (seq + 1) % KERMIT_SEQ_MODULO;
+}
+
 //////////////////////////////////////////////////////////////////////////
 
 kermit_packet_t* kermit_create_packet(
@@ -154,9 +160,11 @@ kermit_packet_t* kermit_create_packet(
     kermit_packet_header_t header = {
         .mark = KERMIT_PACKET_MARK,
         .length = kermit_tochar(length + 3), // seq + type + check
-        .seq = kermit_tochar(kermit->seq_counter++),
+        .seq = kermit_tochar(kermit->seq_counter),
         .type = packet_type,
     };
+
+    kermit->seq_counter = kermit_next_seq(kermit->seq_counter);
 
     memcpy(packet->data, &header, sizeof(header));
     memcpy(packet->data + sizeof(header), data, length);
@@ -290,8 +298,8 @@ static bool kermit_feed_byte(kermit_t* kermit, uint8_t c) {
         break;
 
     case KERMIT_PACKET_STATE_WAIT_SEQ:
-        FURI_LOG_D(TAG, "Packet seq: %d", c);
         rx->seq = kermit_fromchar(c);
+        FURI_LOG_D(TAG, "Packet seq: %d", rx->seq);
         rx->state = KERMIT_PACKET_STATE_WAIT_TYPE;
         break;
 
@@ -419,6 +427,34 @@ bool kermit_run(kermit_t* kermit) {
     return result;
 }
 
+static bool kermit_parse_session_params(kermit_t* kermit) {
+    furi_check(kermit->rx.packet != NULL);
+    furi_check(kermit->rx.type == KERMIT_PACKET_TYPE_ACK);
+
+    if(kermit->rx.packet->sz != sizeof(kermit_init_packet_t)) {
+        FURI_LOG_E(TAG, "Invalid ACK packet size: %ld", kermit->rx.packet->sz);
+        return false;
+    }
+
+    kermit_init_packet_t* init_packet = (kermit_init_packet_t*)kermit->rx.packet->data;
+
+    FURI_LOG_I(TAG, "maxl: %d", init_packet->maxl);
+    FURI_LOG_I(TAG, "timo: %d", init_packet->timo);
+    FURI_LOG_I(TAG, "npad: %d", init_packet->npad);
+    FURI_LOG_I(TAG, "padc: %d", init_packet->padc);
+    FURI_LOG_I(TAG, "eol: %d", init_packet->eol);
+    FURI_LOG_I(TAG, "qctl: %d", init_packet->qctl);
+    FURI_LOG_I(TAG, "ebq: %d", init_packet->ebq);
+    FURI_LOG_I(TAG, "bct: %d", init_packet->bct);
+    FURI_LOG_I(TAG, "rpt: %d", init_packet->rpt);
+    FURI_LOG_I(TAG, "capas: %d", init_packet->capas);
+    FURI_LOG_I(TAG, "wslots: %d", init_packet->wslots);
+    FURI_LOG_I(TAG, "maxlx1: %d", init_packet->maxlx1);
+    FURI_LOG_I(TAG, "maxlx2: %d", init_packet->maxlx2);
+
+    return true;
+}
+
 static kermit_packet_t* kermit_encode_data_packet(kermit_t* kermit) {
     furi_check(kermit->file_transfer_state == KERMIT_FILE_TRANSFER_STATE_SEND_FILE_DATA);
     furi_check(kermit->max_ext_packet_length >= 2);
@@ -468,14 +504,23 @@ static bool kermit_process_packet(kermit_t* kermit) {
 
     FURI_LOG_I(
         TAG,
-        "Received packet type: %c, data: %s",
+        "Received packet type: %c, seq: %i, data: %s",
         kermit->rx.type,
+        kermit->rx.seq,
         kermit->rx.packet->sz ? (const char*)kermit->rx.packet->data : "NULL");
 
     // kermit_packet_header_t* header = (kermit_packet_header_t*)packet->data;
     // furi_check(header->seq == kermit_tochar(seq));
 
+    if(kermit_next_seq(kermit->rx.seq) != kermit->seq_counter) {
+        FURI_LOG_E(
+            TAG, "Invalid sequence number: %d != %d", kermit->rx.seq, kermit->seq_counter - 1);
+        return false;
+    }
+
     kermit_packet_t* response_packet = NULL;
+
+    bool rx_packet_is_sane = true;
 
     const kermit_packet_type_t packet_type = kermit->rx.type;
     switch(packet_type) {
@@ -485,6 +530,7 @@ static bool kermit_process_packet(kermit_t* kermit) {
         } else if(kermit->file_transfer_state == KERMIT_FILE_TRANSFER_STATE_SYNC_PARAMS) {
             kermit->file_transfer_state = KERMIT_FILE_TRANSFER_STATE_SEND_FILE_DATA;
             // TODO: Parse params from ACK packet
+            rx_packet_is_sane = kermit_parse_session_params(kermit);
             response_packet = kermit_encode_file_header_packet(kermit);
         }
         break;
@@ -506,5 +552,5 @@ static bool kermit_process_packet(kermit_t* kermit) {
     kermit_packet_free(kermit->rx.packet);
     kermit->rx.packet = NULL;
 
-    return response_packet != NULL;
+    return (response_packet != NULL) && rx_packet_is_sane;
 }

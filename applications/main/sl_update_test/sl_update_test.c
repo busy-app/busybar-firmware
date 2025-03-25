@@ -195,6 +195,7 @@ static void sl_update_test_app_rx_buffer_callback(FuriEventLoopObject* object, v
             furi_string_reset(instance->rx_string);
             FURI_LOG_W(TAG, "Kermit init");
             instance->bootloader_state = Si917BootloaderStateKermitSend;
+            // storage_file_open(instance->file, "/ext/firmware.rps", FSAM_READ, FSOM_OPEN_EXISTING);
             kermit_run(instance->kermit);
         }
         break;
