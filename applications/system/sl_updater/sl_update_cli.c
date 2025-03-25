@@ -7,9 +7,22 @@
 #define SL_UPDATE_M4_COMM_TIMEOUT_S  (6)
 #define SL_UPDATE_NWP_COMM_TIMEOUT_S (25)
 
+#define SL_UPDATE_RETRIES (3)
+
 static void updater_cli_command_print_usage(void) {
     printf("Usage:\r\n");
     printf("update <u5|917|917_ta> path\r\n");
+}
+
+static bool updater_cli_execute(const char* path, bool is_stack_image) {
+    SlUpdater* instance = sl_updater_alloc();
+    bool success = sl_updater_run(
+        instance,
+        path,
+        is_stack_image,
+        is_stack_image ? SL_UPDATE_NWP_COMM_TIMEOUT_S : SL_UPDATE_M4_COMM_TIMEOUT_S);
+    sl_updater_free(instance);
+    return success;
 }
 
 static void updater_cli(Cli* cli, FuriString* args, void* context) {
@@ -44,18 +57,15 @@ static void updater_cli(Cli* cli, FuriString* args, void* context) {
             break;
         }
 
-        SlUpdater* instance = sl_updater_alloc();
-        if(sl_updater_run(
-               instance,
-               furi_string_get_cstr(path),
-               is_stack_image,
-               is_stack_image ? SL_UPDATE_NWP_COMM_TIMEOUT_S : SL_UPDATE_M4_COMM_TIMEOUT_S)) {
-            printf("Update succeeded\r\n");
-        } else {
-            printf("Update failed\r\n");
+        for(int i = 0; i < SL_UPDATE_RETRIES; i++) {
+            printf("Update in progress");
+            if(updater_cli_execute(furi_string_get_cstr(path), is_stack_image)) {
+                printf("Update succeeded\r\n");
+                break;
+            } else {
+                printf("Update failed, retrying (%d/%d)\r\n", i + 1, SL_UPDATE_RETRIES);
+            }
         }
-        sl_updater_free(instance);
-
     } while(false);
 
     furi_string_free(path);

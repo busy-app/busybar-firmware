@@ -14,7 +14,7 @@
 
 #include <storage/storage.h>
 
-#define TAG "SlUpdateTest"
+#define TAG "SlUpdater"
 
 #include "fkermit.h"
 
@@ -272,7 +272,7 @@ static void sl_update_idle_timer_callback(void* context) {
 }
 
 SlUpdater* sl_updater_alloc(void) {
-    FURI_LOG_I(TAG, "Starting SL Update Test App");
+    FURI_LOG_I(TAG, "Starting");
 
     SlUpdater* instance = malloc(sizeof(SlUpdater));
 
@@ -315,9 +315,8 @@ void sl_updater_free(SlUpdater* instance) {
     storage_file_free(instance->firmware_file);
     furi_record_close(RECORD_STORAGE);
 
-    FURI_LOG_I(TAG, "SL Updater stopped");
-
     free(instance);
+    FURI_LOG_I(TAG, "Stopped");
 }
 
 bool sl_updater_run(
@@ -333,8 +332,10 @@ bool sl_updater_run(
 
     instance->bootloader_state = Si917BootloaderStateInit;
 
+    FURI_LOG_I(TAG, "Starting update with path: %s", firmware_path);
+
     if(!storage_file_open(instance->firmware_file, firmware_path, FSAM_READ, FSOM_OPEN_EXISTING)) {
-        FURI_LOG_E(TAG, "Failed to open firmware file: %s", firmware_path);
+        FURI_LOG_E(TAG, "Failed to open firmware file");
         return false;
     }
 
