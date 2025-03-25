@@ -1,6 +1,6 @@
 #include "cli_i.h"
 #include "cli_commands.h"
-#include "cli_uart.h"
+
 #include <version/version.h>
 #include <applications.h>
 
@@ -485,7 +485,7 @@ int32_t cli_srv(void* p) {
         furi_thread_set_stdout_callback(NULL, NULL);
     }
 
-    cli_session_open(cli, &cli_uart);
+    cli_session_open(cli, CLI_SESSION);
 
     //TODO: Implement furi_hal_rtc_get_boot_mode
 #if 0

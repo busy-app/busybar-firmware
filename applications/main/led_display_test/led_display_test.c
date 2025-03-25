@@ -287,8 +287,10 @@ void led_display_test_set(Canvas* canvas, LedDisplayTestPattern pattern, LedDisp
     furi_check(pattern < LedDisplayTestPatternNum);
     furi_check(color < LedDisplayTestColorNum);
 
+    canvas_draw_begin(canvas);
     canvas_clear(canvas);
     led_display_test_pattern[pattern].set(canvas, led_display_test_color[color].color);
+    canvas_draw_end(canvas);
 }
 
 const char* led_display_get_pattern_str(LedDisplayTestPattern pattern) {

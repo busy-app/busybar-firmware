@@ -9,7 +9,13 @@
 #include <m-bptree.h>
 #include <m-array.h>
 
+#ifdef CLI_SESSION_UART
 #include "cli_uart.h"
+#define CLI_SESSION (&cli_uart)
+#else
+#include "cli_intercom.h"
+#define CLI_SESSION (&cli_intercom)
+#endif
 
 #define CLI_LINE_SIZE_MAX
 #define CLI_COMMANDS_TREE_RANK 4

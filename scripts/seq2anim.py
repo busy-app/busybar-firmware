@@ -3,6 +3,7 @@
 import os
 import sys
 import struct
+import logging
 import argparse
 from PIL import Image
 
@@ -16,6 +17,7 @@ class BusyBarAnimation:
         self.width = 72  # default display width
         self.height = 16  # default display height
         self.bytes_per_pixel = 3  # RGB format
+        self.logger = logging.getLogger("Seq2Anim")
 
     def load_images(self):
         """Load and sort PNG images from the input folder."""
@@ -25,7 +27,7 @@ class BusyBarAnimation:
         self.png_files.sort()  # Ensure files are processed in alphanumeric order
 
         if not self.png_files:
-            print("No PNG images found in the specified folder.")
+            self.logger.error("No PNG images found in the specified folder.")
             sys.exit(1)
 
     def process_first_image(self):
@@ -70,7 +72,7 @@ class BusyBarAnimation:
         with open(self.output_file, "wb") as out_file:
             header = self.create_header(frames)
             out_file.write(header)
-            print(
+            self.logger.info(
                 f"Header written: magic=0x69, fps={self.fps}, width={self.width}, height={self.height}, frames={frames}"
             )
 
@@ -81,7 +83,8 @@ class BusyBarAnimation:
                     img = self.swap_red_blue(img)  # Swap red and blue channels
                     img_data = img.tobytes()
                     out_file.write(img_data)
-                    print(f"Processed frame {i + 1}/{frames}: {png_file}")
+
+            self.logger.info(f"Total frames processed: {i + 1}")
 
 
 def parse_arguments():
