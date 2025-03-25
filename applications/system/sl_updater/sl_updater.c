@@ -169,7 +169,7 @@ static void sl_updater_handle_rx(SlUpdater* instance) {
 
     case Si917BootloaderStateSetImageType:
         if(sl_updater_check_rx_for(instance, "Enter Next Command")) {
-            const uint8_t image_type = '4';
+            const uint8_t image_type = instance->is_stack_image ? '4' : 'B';
             furi_hal_serial_tx(instance->serial_handle, &image_type, sizeof(image_type));
 
             FURI_LOG_I(TAG, "Image type set to: %c", image_type);
@@ -178,8 +178,10 @@ static void sl_updater_handle_rx(SlUpdater* instance) {
         break;
 
     case Si917BootloaderStateSetImageSlot:
-        if(sl_updater_check_rx_for(instance, "Enter M4 Image No(1-f)")) {
-            const uint8_t image_slot = '1';
+        const char* needle = instance->is_stack_image ? "Enter Wireless Image No(0-f)" :
+                                                        "Enter M4 Image No(1-f)";
+        if(sl_updater_check_rx_for(instance, needle)) {
+            const uint8_t image_slot = instance->is_stack_image ? '0' : '1';
             furi_hal_serial_tx(instance->serial_handle, &image_slot, sizeof(image_slot));
 
             FURI_LOG_I(TAG, "Image slot set to: %c", image_slot);
