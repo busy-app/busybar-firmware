@@ -104,6 +104,7 @@ bool bq25798_set_cfg(FuriHalI2cBusHandle* handle) {
         &cfg_temp,
         BQ25798_I2C_TIMEOUT);
     cfg_temp &= ~(1 << 1); // EN_EXTILIM: 0
+    cfg_temp |= (1 << 5); // EN_IBAT
     cfg_temp |= (1 << 7); // Ship FET populated
     furi_hal_i2c_write_reg_8(
         handle,
@@ -205,6 +206,31 @@ bool bq25798_set_charge_current_limit(FuriHalI2cBusHandle* handle, uint32_t valu
         BQ25798_I2C_ADDRESS,
         BQ25798_REG03_CHARGE_CURRENT_LIMIT,
         value_ma / 10 & 0x1ff,
+        BQ25798_I2C_TIMEOUT);
+}
+
+bool bq25798_charge_enable(FuriHalI2cBusHandle* handle, bool enabled) {
+    furi_assert(handle);
+
+    uint8_t reg_temp = 0;
+    furi_hal_i2c_read_reg_8(
+        handle,
+        BQ25798_I2C_ADDRESS,
+        BQ25798_REG0F_CHARGER_CONTROL_0,
+        &reg_temp,
+        BQ25798_I2C_TIMEOUT);
+
+    if(enabled) {
+        reg_temp |= (1 << 5); // EN_CHG
+    } else {
+        reg_temp &= ~(1 << 5);
+    }
+
+    return furi_hal_i2c_write_reg_8(
+        handle,
+        BQ25798_I2C_ADDRESS,
+        BQ25798_REG0F_CHARGER_CONTROL_0,
+        reg_temp,
         BQ25798_I2C_TIMEOUT);
 }
 

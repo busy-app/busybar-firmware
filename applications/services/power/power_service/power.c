@@ -158,7 +158,9 @@ static void power_message_callback(FuriEventLoopObject* object, void* context) {
         break;
     case PowerMessageTypeChargeEnable:
         power->charger_enabled = *(msg.param_bool);
-        // TODO: charge on/off
+        furi_hal_i2c_acquire(POWER_I2C);
+        bq25798_charge_enable(POWER_I2C, power->charger_enabled);
+        furi_hal_i2c_release(POWER_I2C);
         break;
     case PowerMessageTypeSetChargeCurrent:
         power->charger_current_limit = *(msg.param_int);
@@ -216,6 +218,8 @@ static void power_update_info(Power* power) {
     power->state.usb_connected = status.vbus_present;
     power->info.is_charging = (status.chg_stat != Bq25987ChargerStatusChargeStatNot);
     power->info.is_full_charged = (status.chg_stat == Bq25987ChargerStatusChargeStatTermination);
+    power->info.charge =
+        power_get_battery_charge(adc_val.bat_v, adc_val.bat_i, power->info.is_charging);
 
     power->info.current_battery = adc_val.bat_i;
     power->info.current_usb = adc_val.usb_i;

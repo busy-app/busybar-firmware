@@ -40,6 +40,8 @@ bool bq25798_set_input_current_limit(FuriHalI2cBusHandle* handle, uint32_t value
 
 bool bq25798_set_charge_current_limit(FuriHalI2cBusHandle* handle, uint32_t value_ma);
 
+bool bq25798_charge_enable(FuriHalI2cBusHandle* handle, bool enabled);
+
 void bq25798_power_switch(FuriHalI2cBusHandle* handle, Bq25987PowerSwitch mode);
 
 #ifdef __cplusplus

@@ -36,16 +36,13 @@ static void loader_cli_open(FuriString* args, Desktop* desktop) {
             printf("No application provided\r\n");
             break;
         }
+
         furi_string_trim(args);
 
-        const char* args_str = furi_string_get_cstr(args);
-        if(strlen(args_str) == 0) {
-            args_str = NULL;
-        }
-
         const char* app_name_str = furi_string_get_cstr(app_name);
+        const char* args_str = !furi_string_empty(args) ? furi_string_get_cstr(args) : NULL;
 
-        if(!desktop_replace_current_app(desktop, app_name_str, (void*)args_str)) {
+        if(!desktop_replace_current_app(desktop, app_name_str, args_str)) {
             printf("Failed to launch %s", app_name_str);
         }
     } while(false);
