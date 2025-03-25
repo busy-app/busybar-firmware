@@ -35,6 +35,7 @@ typedef struct {
     FuriStreamBuffer* rx_buffer;
     FuriString* rx_string;
     FuriHalSerialHandle* serial_handle;
+    FuriEventLoopTimer* idle_timer;
 #ifdef SRV_INTERCOM
     Intercom* intercom;
 #endif
@@ -97,6 +98,9 @@ static void sl_update_test_app_serial_irq_callback(
 static void sl_update_test_app_rx_buffer_callback(FuriEventLoopObject* object, void* context) {
     SlUpdateTestApp* instance = context;
     furi_check(object == instance->rx_buffer);
+
+    // Reset the idle timer
+    furi_event_loop_timer_restart(instance->idle_timer);
 
     char c;
     while(furi_stream_buffer_bytes_available(instance->rx_buffer)) {
@@ -247,6 +251,13 @@ static void sl_update_app_intercom_error_callback(IntercomError error, void* con
     // Empty callback
 }
 
+static void sl_update_test_idle_timer_callback(void* context) {
+    SlUpdateTestApp* instance = context;
+
+    FURI_LOG_W(TAG, "Watchdog expired");
+    furi_event_loop_stop(instance->event_loop);
+}
+
 static SlUpdateTestApp* sl_update_test_app_alloc(void) {
     FURI_LOG_I(TAG, "Starting SL Update Test App");
 
@@ -262,6 +273,11 @@ static SlUpdateTestApp* sl_update_test_app_alloc(void) {
     instance->kermit = kermit_alloc(&kermit_io, instance);
     instance->storage = furi_record_open(RECORD_STORAGE);
     instance->file = storage_file_alloc(instance->storage);
+    instance->idle_timer = furi_event_loop_timer_alloc(
+        instance->event_loop,
+        sl_update_test_idle_timer_callback,
+        FuriEventLoopTimerTypePeriodic,
+        instance);
 
     furi_event_loop_subscribe_stream_buffer(
         instance->event_loop,
@@ -277,6 +293,9 @@ static SlUpdateTestApp* sl_update_test_app_alloc(void) {
 #else
     UNUSED(sl_update_app_intercom_error_callback);
 #endif
+
+    // Start idle timer
+    furi_event_loop_timer_start(instance->idle_timer, 5000); // FIXME
 
     furi_hal_serial_init(instance->serial_handle, 115200);
     furi_hal_serial_set_callback(
@@ -302,6 +321,7 @@ static void sl_update_test_app_free(SlUpdateTestApp* instance) {
     furi_hal_serial_set_callback(instance->serial_handle, NULL, NULL, NULL);
     furi_hal_serial_control_release(instance->serial_handle);
 
+    furi_event_loop_timer_free(instance->idle_timer);
     furi_event_loop_unsubscribe(instance->event_loop, instance->rx_buffer);
 
     furi_string_free(instance->rx_string);
