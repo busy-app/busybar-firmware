@@ -23,6 +23,8 @@ void kermit_free(kermit_t* kermit);
 
 bool kermit_run(kermit_t* kermit);
 
+bool kermit_is_running(kermit_t* kermit);
+
 int32_t kermit_feed_serial_data(kermit_t* kermit, const uint8_t* data, size_t length);
 
 #ifdef __cplusplus

@@ -26,6 +26,7 @@ typedef enum {
     Si917BootloaderStateSetImageSlot,
     Si917BootloaderStateKermitInit,
     Si917BootloaderStateKermitSend,
+    Si917BootloaderStateWaitInstall,
     Si917BootloaderStateClose,
 } Si917BootloaderState;
 
@@ -200,16 +201,29 @@ static void sl_update_test_app_rx_buffer_callback(FuriEventLoopObject* object, v
         }
         break;
     case Si917BootloaderStateKermitSend:
-        int32_t data_size = furi_string_size(instance->rx_string);
-        int32_t data_fed = kermit_feed_serial_data(
-            instance->kermit,
-            (const uint8_t*)furi_string_get_cstr(instance->rx_string),
-            data_size);
-        furi_string_reset(instance->rx_string);
-        if(data_fed != data_size) {
-            FURI_LOG_E(TAG, "Error feeding data to kermit");
+        if(!kermit_is_running(instance->kermit)) {
+            FURI_LOG_I(TAG, "Kermit done");
+            instance->bootloader_state = Si917BootloaderStateWaitInstall;
+        } else {
+            int32_t data_size = furi_string_size(instance->rx_string);
+            int32_t data_fed = kermit_feed_serial_data(
+                instance->kermit,
+                (const uint8_t*)furi_string_get_cstr(instance->rx_string),
+                data_size);
+            furi_string_reset(instance->rx_string);
+            if(data_fed != data_size) {
+                FURI_LOG_E(TAG, "Error feeding data to kermit");
+                furi_event_loop_stop(instance->event_loop); // ???
+                break;
+            }
+        }
+        break;
+    case Si917BootloaderStateWaitInstall:
+        if(furi_string_search_str(instance->rx_string, "Upgradation Successful") !=
+           FURI_STRING_FAILURE) {
+            furi_string_reset(instance->rx_string);
+            FURI_LOG_I(TAG, "Install success");
             furi_event_loop_stop(instance->event_loop); // ???
-            break;
         }
         break;
     case Si917BootloaderStateClose:

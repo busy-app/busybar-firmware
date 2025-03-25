@@ -252,6 +252,10 @@ void kermit_free(kermit_t* kermit) {
     free(kermit);
 }
 
+bool kermit_is_running(kermit_t* kermit) {
+    return kermit->file_transfer_state != KERMIT_FILE_TRANSFER_STATE_DONE;
+}
+
 static bool kermit_process_packet(kermit_t* kermit);
 
 typedef struct {
@@ -572,7 +576,7 @@ static bool kermit_process_packet(kermit_t* kermit) {
         case KERMIT_FILE_TRANSFER_STATE_SEND_BREAK:
             kermit->file_transfer_state = KERMIT_FILE_TRANSFER_STATE_DONE;
             FURI_LOG_I(TAG, "File transfer done");
-            return false; // FIXME
+            return true;
 
         default:
             FURI_LOG_E(TAG, "Invalid state for ACK packet: %d", kermit->file_transfer_state);
