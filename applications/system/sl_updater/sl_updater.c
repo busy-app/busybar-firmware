@@ -50,6 +50,8 @@ struct SlUpdater {
     kermit_t* kermit;
 };
 
+#define KERMIT_TIMEOUT_SECONDS (5)
+
 //////////////////////////////////////////////////////////////////////////
 // Kermit i/o functions
 
@@ -190,7 +192,7 @@ static void sl_updater_handle_rx(SlUpdater* instance) {
         if(sl_updater_check_rx_for(instance, fw_needle)) {
             FURI_LOG_W(TAG, "Kermit init");
             instance->bootloader_state = Si917BootloaderStateKermitSend;
-            kermit_start(instance->kermit, 5);
+            kermit_start(instance->kermit, KERMIT_TIMEOUT_SECONDS);
         }
         break;
 
