@@ -1,4 +1,4 @@
-#include "sl_update.h"
+#include "sl_updater.h"
 
 #include <furi.h>
 
