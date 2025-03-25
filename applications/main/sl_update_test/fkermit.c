@@ -15,8 +15,14 @@
 
 #define KERMIT_CONTROL_CHAR ('#')
 
-#ifndef KERMIT_DEBUG_LOG
-#define KERMIT_DEBUG_LOG 0
+#ifndef KERMIT_DEBUG
+#define KERMIT_DEBUG 0
+#endif
+
+#if KERMIT_DEBUG
+#define KERMIT_LOG(...) FURI_LOG_D(TAG, __VA_ARGS__)
+#else
+#define KERMIT_LOG(...)
 #endif
 
 typedef struct {
@@ -278,7 +284,7 @@ static bool kermit_feed_byte(kermit_t* kermit, uint8_t c) {
 
     kermit_rx_t* rx = &kermit->rx;
 
-    FURI_LOG_I(TAG, "Received: %02x, state: %d", c, rx->state);
+    KERMIT_LOG("Received: %02x, state: %d", c, rx->state);
 
     bool result = true;
     switch(rx->state) {
@@ -311,19 +317,19 @@ static bool kermit_feed_byte(kermit_t* kermit, uint8_t c) {
 
     case KERMIT_PACKET_STATE_WAIT_SEQ:
         rx->seq = kermit_fromchar(c);
-        FURI_LOG_D(TAG, "Packet seq: %d", rx->seq);
+        KERMIT_LOG("Packet seq: %d", rx->seq);
         rx->state = KERMIT_PACKET_STATE_WAIT_TYPE;
         break;
 
     case KERMIT_PACKET_STATE_WAIT_TYPE:
-        FURI_LOG_D(TAG, "Packet type: %c", c);
+        KERMIT_LOG("Packet type: %c", c);
         rx->type = c;
         rx->state = rx->len ? KERMIT_PACKET_STATE_WAIT_CONTENTS :
                               KERMIT_PACKET_STATE_WAIT_CHECKSUM;
         break;
 
     case KERMIT_PACKET_STATE_WAIT_CONTENTS: // first byte is type
-        FURI_LOG_D(TAG, "Packet sz: %ld, rem rxlen: %d", rx->packet->sz, rx->len);
+        KERMIT_LOG("Packet sz: %ld, rem rxlen: %d", rx->packet->sz, rx->len);
         furi_check(rx->len >= 0);
         furi_check(rx->packet->sz - rx->len < rx->packet->sz);
 
@@ -331,12 +337,12 @@ static bool kermit_feed_byte(kermit_t* kermit, uint8_t c) {
         rx->len--;
         // rx->packet->data[rx->packet->sz - rx->len - 1] = c;
         if(c == KERMIT_PACKET_END) {
-            furi_crash("End of packet in contents");
+            furi_crash("End of packet in contents"); // FIXME
             // furi_check(rx->len == 0);
             // rx->state = KERMIT_PACKET_STATE_WAIT_END;
         } else if(rx->len == 0) {
             // FURI_LOG_E(TAG, "Invalid packet length");
-            FURI_LOG_D(TAG, "received all expected data");
+            KERMIT_LOG("received all expected data");
             // rx->state = KERMIT_PACKET_STATE_ERROR;
             rx->state = KERMIT_PACKET_STATE_WAIT_CHECKSUM;
             // return false;
@@ -450,7 +456,7 @@ static bool kermit_parse_session_params(kermit_t* kermit) {
 
     kermit_init_packet_t* init_packet = (kermit_init_packet_t*)kermit->rx.packet->data;
 
-#if KERMIT_DEBUG_LOG
+#if KERMIT_DEBUG
     FURI_LOG_I(TAG, "maxl: %d", kermit_fromchar(init_packet->maxl));
     FURI_LOG_I(TAG, "timo: %d", kermit_fromchar(init_packet->timo));
     FURI_LOG_I(TAG, "npad: %d", kermit_fromchar(init_packet->npad));
@@ -506,7 +512,7 @@ static kermit_packet_t* kermit_encode_file_data_packet(kermit_t* kermit) {
         buffer_ptr++;
         // leave 1 byte in case last char will be escaped
         // so we don't need to rewind the file pointer if it doesn't fit
-    } while((uint32_t)(buffer_ptr - tmp_buffer) < (kermit->max_ext_packet_length - 1));
+    } while((uint32_t)(buffer_ptr - tmp_buffer) < (kermit->max_ext_packet_length - 2));
 
     size_t length = buffer_ptr - tmp_buffer;
 

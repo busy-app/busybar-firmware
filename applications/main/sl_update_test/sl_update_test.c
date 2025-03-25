@@ -54,9 +54,9 @@ static int32_t kermit_src_file_read(void* context, uint8_t* buffer, size_t lengt
 
 static int32_t kermit_comms_send(void* context, const uint8_t* buffer, size_t length) {
     SlUpdateTestApp* app = context;
-    // FURI_LOG_I(TAG, "Sending %d bytes: %s", length, buffer);
-    // FURI_LOG_I(TAG, "Sending %d bytes: %s", length, buffer);
+    FURI_LOG_I(TAG, "Sending %d bytes", length);
 
+#if 0
     FuriString* str = furi_string_alloc();
     furi_string_cat_printf(str, "Sending %d bytes: ", length);
     for(size_t i = 0; i < length; i++) {
@@ -65,6 +65,7 @@ static int32_t kermit_comms_send(void* context, const uint8_t* buffer, size_t le
     furi_string_cat_printf(str, "\n%s", buffer);
     FURI_LOG_I(TAG, "%s", furi_string_get_cstr(str));
     furi_string_free(str);
+#endif
 
     furi_hal_serial_tx(app->serial_handle, buffer, length);
     return length;
@@ -104,11 +105,11 @@ static void sl_update_test_app_rx_buffer_callback(FuriEventLoopObject* object, v
         // FURI_LOG_D(TAG, "Received data: %s, c: %i ", furi_string_get_cstr(instance->rx_string), c);
     }
 
-    FURI_LOG_D(
-        TAG,
-        "State: %d, Received data: %s",
-        instance->bootloader_state,
-        furi_string_get_cstr(instance->rx_string));
+    // FURI_LOG_D(
+    //     TAG,
+    //     "State: %d, Received data: %s",
+    //     instance->bootloader_state,
+    //     furi_string_get_cstr(instance->rx_string));
 
     switch(instance->bootloader_state) {
     case Si917BootloaderStateInit:
