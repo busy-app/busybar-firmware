@@ -22,8 +22,8 @@ typedef enum {
     Si917BootloaderStateInit,
     Si917BootloaderStateBoot,
     Si917BootloaderStateChangeBaudRate,
-    Si917BootloaderStateChangeBaudRateSpeed,
-    Si917BootloaderStateChangeBaudRateSpeedSuccess,
+    Si917BootloaderStateChangeBaudRateNewLeader,
+    Si917BootloaderStateChangeBaudRateSuccess,
     Si917BootloaderStateSetImageType,
     Si917BootloaderStateSetImageSlot,
     Si917BootloaderStateKermitInit,
@@ -145,17 +145,17 @@ static void sl_updater_handle_rx(SlUpdater* instance) {
             FURI_LOG_I(TAG, "UART Baud Rate speed request sent: %c", choice);
 
             furi_hal_serial_set_baud_rate(instance->serial_handle, 921600);
-            instance->bootloader_state = Si917BootloaderStateChangeBaudRateSpeed;
+            instance->bootloader_state = Si917BootloaderStateChangeBaudRateNewLeader;
         }
         break;
 
-    case Si917BootloaderStateChangeBaudRateSpeed:
+    case Si917BootloaderStateChangeBaudRateNewLeader:
         const uint8_t leader = 'U';
         furi_hal_serial_tx(instance->serial_handle, &leader, sizeof(leader));
         FURI_LOG_I(TAG, "New Leader sent: %c", leader);
         // fall through
 
-    case Si917BootloaderStateChangeBaudRateSpeedSuccess:
+    case Si917BootloaderStateChangeBaudRateSuccess:
         if(sl_updater_check_rx_for(instance, "Baud Rate was updated successfully!")) {
             FURI_LOG_I(TAG, "Baud rate was set to 921600");
             instance->bootloader_state = Si917BootloaderStateSetImageType;
@@ -360,7 +360,6 @@ bool sl_updater_run(
 
     furi_event_loop_run(instance->event_loop);
 
-    /// Magic!
     bool success = instance->bootloader_state == Si917BootloaderStateInstallSuccess;
 
     furi_hal_power_reset_917(false);
