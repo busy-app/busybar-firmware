@@ -80,3 +80,5 @@ void power_usb_pd_start(PowerUsbPd* pd);
 void power_usb_pd_get_capabilities(PowerUsbPd* pd, PowerUsbPdCapability* caps);
 
 void power_usb_pd_request_power(PowerUsbPd* pd, uint32_t voltage_mv, uint32_t current_ma);
+
+uint8_t power_get_battery_charge(uint32_t voltage_mv, int32_t current_ma, bool is_charging);
