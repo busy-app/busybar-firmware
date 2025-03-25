@@ -304,6 +304,9 @@ static bool kermit_feed_byte(kermit_t* kermit, uint8_t c) {
     case KERMIT_PACKET_STATE_WAIT_MARK:
         if(c == KERMIT_PACKET_MARK) {
             rx->state = KERMIT_PACKET_STATE_WAIT_LEN;
+        } else if(c == 0) { /// what the actual hell. FIXME TODO WTF
+            FURI_LOG_E(TAG, "Received zero byte, accepting as mark");
+            rx->state = KERMIT_PACKET_STATE_WAIT_LEN;
         } else {
             KERMIT_LOG("Garbage data: %02x", c);
         }
