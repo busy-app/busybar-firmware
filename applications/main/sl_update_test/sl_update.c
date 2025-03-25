@@ -43,6 +43,7 @@ struct SlUpdater {
     Intercom* intercom;
 #endif
     uint8_t timeout_seconds;
+    bool is_stack_image;
     Si917BootloaderState bootloader_state;
     Storage* storage;
     File* firmware_file;
@@ -318,11 +319,17 @@ void sl_updater_free(SlUpdater* instance) {
     free(instance);
 }
 
-bool sl_updater_run(SlUpdater* instance, const char* firmware_path, uint8_t timeout_seconds) {
+bool sl_updater_run(
+    SlUpdater* instance,
+    const char* firmware_path,
+    bool is_stack_image,
+    uint8_t timeout_seconds) {
     furi_check(instance);
     furi_check(firmware_path);
 
     instance->timeout_seconds = timeout_seconds;
+    instance->is_stack_image = is_stack_image;
+
     instance->bootloader_state = Si917BootloaderStateInit;
 
     if(!storage_file_open(instance->firmware_file, firmware_path, FSAM_READ, FSOM_OPEN_EXISTING)) {
