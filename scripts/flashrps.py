@@ -553,10 +553,11 @@ class RpsFlasher:
 
         if self.debug > 2:
             print(f"TX: {command}")
+            print(f"RX: {rx_data}")
+        if self.debug > 3:
             print(
                 f"TX: {len(command)}b: " + " ".join(f"{byte:02x}" for byte in command)
             )
-            print(f"RX: {rx_data}")
             print(
                 f"RX: {len(rx_data)}b: " + " ".join(f"{byte:02x}" for byte in rx_data)
             )
@@ -598,9 +599,9 @@ def main():
     parser.add_argument(
         "-d",
         type=int,
-        default=3,
+        default=0,
         metavar="LEVEL",
-        help="debug level (0 - none, 3 - full)",
+        help="debug level (0 - none, 4 - full)",
     )
     parser.add_argument(
         "-t",

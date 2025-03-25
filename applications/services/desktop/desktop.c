@@ -360,8 +360,6 @@ int32_t desktop_srv(void* arg) {
 
     Desktop* instance = desktop_alloc();
 
-    desktop_prepare_default_app(instance);
-
     furi_event_loop_run(instance->event_loop);
 
     return 0;

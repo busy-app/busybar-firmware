@@ -145,11 +145,6 @@ static void sl_updater_handle_rx(SlUpdater* instance) {
             FURI_LOG_I(TAG, "UART Baud Rate speed request sent: %c", choice);
 
             furi_hal_serial_set_baud_rate(instance->serial_handle, 921600);
-
-            // const uint8_t leader = 'U';
-            // furi_hal_serial_tx(instance->serial_handle, &leader, sizeof(leader));
-            // FURI_LOG_I(TAG, "New Leader sent: %c", leader);
-
             instance->bootloader_state = Si917BootloaderStateChangeBaudRateSpeed;
         }
         break;
