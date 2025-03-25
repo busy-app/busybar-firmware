@@ -38,6 +38,7 @@ typedef struct {
 #ifdef SRV_INTERCOM
     Intercom* intercom;
 #endif
+    uint8_t timeout_seconds;
     Si917BootloaderState bootloader_state;
     Storage* storage;
     File* firmware_file;
@@ -187,20 +188,19 @@ static void sl_update_test_app_handle_rx(SlUpdateTestApp* instance) {
             instance->bootloader_state = Si917BootloaderStateKermitSend;
             storage_file_open(
                 instance->firmware_file, "/ext/firmware.rps", FSAM_READ, FSOM_OPEN_EXISTING);
-            kermit_run(instance->kermit);
+            kermit_start(instance->kermit, 5);
         }
         break;
 
     case Si917BootloaderStateKermitSend:
         if(kermit_is_active(instance->kermit)) {
-            int32_t data_size = furi_string_size(instance->rx_string);
-            int32_t data_fed = kermit_feed_serial_data(
-                instance->kermit,
-                (const uint8_t*)furi_string_get_cstr(instance->rx_string),
-                data_size);
-            furi_string_reset(instance->rx_string);
-            if(data_fed != data_size) {
-                FURI_LOG_E(TAG, "Error feeding data to kermit");
+            if(kermit_feed_serial_data(
+                   instance->kermit,
+                   (const uint8_t*)furi_string_get_cstr(instance->rx_string),
+                   furi_string_size(instance->rx_string))) {
+                furi_string_reset(instance->rx_string);
+            } else {
+                FURI_LOG_E(TAG, "Kermit error");
                 should_stop = true;
             }
         } else {
@@ -270,6 +270,7 @@ static SlUpdateTestApp* sl_update_test_app_alloc(void) {
     instance->serial_handle = furi_hal_serial_control_acquire(FuriHalSerialIdUsart2);
 
     instance->bootloader_state = Si917BootloaderStateInit;
+    instance->timeout_seconds = 5;
 
     instance->kermit = kermit_alloc(&kermit_io, instance);
     instance->storage = furi_record_open(RECORD_STORAGE);
@@ -296,7 +297,8 @@ static SlUpdateTestApp* sl_update_test_app_alloc(void) {
 #endif
 
     // Start idle timer
-    furi_event_loop_timer_start(instance->idle_timer, 5000); // FIXME
+    furi_event_loop_timer_start(
+        instance->idle_timer, furi_ms_to_ticks((instance->timeout_seconds + 2) * 1000));
 
     furi_hal_serial_init(instance->serial_handle, 115200);
     furi_hal_serial_set_callback(

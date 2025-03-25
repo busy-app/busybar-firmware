@@ -21,11 +21,12 @@
 
 #define KERMIT_PACKET_MARK         (0x01)
 #define KERMIT_PACKET_END          ('\r')
+#define KERMIT_CONTROL_CHAR        ('#')
 #define KERMIT_EXT_PACKET_SIZE_MOD (95)
 
 #define KERMIT_SEQ_MODULO (64)
 
-#define KERMIT_CONTROL_CHAR ('#')
+#define KERMIT_DEFAULT_FILE_NAME "FIRMWA.RPS"
 
 // Kermit packet container
 typedef struct {
@@ -336,7 +337,7 @@ static bool kermit_feed_byte(kermit_t* kermit, uint8_t c) {
         furi_check(rx->packet->sz - rx->len < rx->packet->sz);
 
         if(c == KERMIT_PACKET_END) {
-            KERMIT_LOG("End of packet in contents"); // FIXME
+            KERMIT_LOG("End of packet in contents");
             rx->state = KERMIT_PACKET_STATE_ERROR;
         }
 
@@ -380,37 +381,40 @@ static bool kermit_feed_byte(kermit_t* kermit, uint8_t c) {
     return result;
 }
 
-int32_t kermit_feed_serial_data(kermit_t* kermit, const uint8_t* data, size_t length) {
+bool kermit_feed_serial_data(kermit_t* kermit, const uint8_t* data, size_t length) {
     furi_check(kermit != NULL);
     furi_check(data != NULL);
+    furi_check(length > 0);
 
-    const size_t orig_length = length;
-
-    while(length > 0) {
-        uint8_t c = *data;
-        data++;
-        length--;
-
-        if(!kermit_feed_byte(kermit, c)) {
-            return -1;
+    do {
+        if(!kermit_feed_byte(kermit, *data++)) {
+            return false;
         }
-    }
-
-    return orig_length;
+    } while(--length);
+    return true;
 }
 
-bool kermit_run(kermit_t* kermit) {
+static bool kermit_tx_and_release_packet(kermit_t* kermit, kermit_packet_t* packet) {
+    furi_check(packet != NULL);
+
+    bool success =
+        (kermit->io->comms_send(kermit->io_context, packet->data, packet->sz) == packet->sz);
+
+    kermit_packet_free(packet);
+    return success;
+}
+
+bool kermit_start(kermit_t* kermit, const uint8_t timeout_seconds) {
     furi_check(kermit != NULL);
     furi_check(kermit->file_transfer_state == KERMIT_FILE_TRANSFER_STATE_IDLE);
 
     // Start kermit session
 
-    bool result = false;
     kermit->file_transfer_state = KERMIT_FILE_TRANSFER_STATE_SYNC_PARAMS;
 
     kermit_init_packet_t init_packet_data = {
         .maxl = kermit_tochar(kermit->max_packet_length),
-        .timo = kermit_tochar(5), // FIXME
+        .timo = kermit_tochar(timeout_seconds),
         .npad = kermit_tochar(0),
         .padc = kermit_ctl(0),
         .eol = kermit_tochar(KERMIT_PACKET_END), // should be `kermit_ctl` to spec
@@ -427,18 +431,7 @@ bool kermit_run(kermit_t* kermit) {
     kermit_packet_t* init_packet = kermit_create_packet(
         kermit, KERMIT_PACKET_TYPE_INIT, (uint8_t*)&init_packet_data, sizeof(init_packet_data));
 
-    do {
-        if(kermit->io->comms_send(kermit->io_context, init_packet->data, init_packet->sz) !=
-           init_packet->sz) {
-            break;
-        }
-        result = true;
-    } while(false);
-
-    kermit_packet_free(init_packet);
-
-    // Further exchange is done in kermit_feed_serial_data
-    return result;
+    return kermit_tx_and_release_packet(kermit, init_packet);
 }
 
 static bool kermit_parse_session_params(kermit_t* kermit) {
@@ -452,21 +445,19 @@ static bool kermit_parse_session_params(kermit_t* kermit) {
 
     kermit_init_packet_t* init_packet = (kermit_init_packet_t*)kermit->rx.packet->data;
 
-#if KERMIT_DEBUG
-    FURI_LOG_I(TAG, "maxl: %d", kermit_fromchar(init_packet->maxl));
-    FURI_LOG_I(TAG, "timo: %d", kermit_fromchar(init_packet->timo));
-    FURI_LOG_I(TAG, "npad: %d", kermit_fromchar(init_packet->npad));
-    FURI_LOG_I(TAG, "padc: %d", kermit_ctl(init_packet->padc));
-    FURI_LOG_I(TAG, "eol: %d", kermit_fromchar(init_packet->eol));
-    FURI_LOG_I(TAG, "qctl: %d", init_packet->qctl);
-    FURI_LOG_I(TAG, "ebq: %d", init_packet->ebq);
-    FURI_LOG_I(TAG, "bct: %d", init_packet->bct);
-    FURI_LOG_I(TAG, "rpt: %d", init_packet->rpt);
-    FURI_LOG_I(TAG, "capas: %d", kermit_fromchar(init_packet->capas));
-    FURI_LOG_I(TAG, "wslots: %d", kermit_fromchar(init_packet->wslots));
-    FURI_LOG_I(TAG, "maxlx1: %d", kermit_fromchar(init_packet->maxlx1));
-    FURI_LOG_I(TAG, "maxlx2: %d", kermit_fromchar(init_packet->maxlx2));
-#endif
+    KERMIT_LOG("maxl: %d", kermit_fromchar(init_packet->maxl));
+    KERMIT_LOG("timo: %d", kermit_fromchar(init_packet->timo));
+    KERMIT_LOG("npad: %d", kermit_fromchar(init_packet->npad));
+    KERMIT_LOG("padc: %d", kermit_ctl(init_packet->padc));
+    KERMIT_LOG("eol: %d", kermit_fromchar(init_packet->eol));
+    KERMIT_LOG("qctl: %d", init_packet->qctl);
+    KERMIT_LOG("ebq: %d", init_packet->ebq);
+    KERMIT_LOG("bct: %d", init_packet->bct);
+    KERMIT_LOG("rpt: %d", init_packet->rpt);
+    KERMIT_LOG("capas: %d", kermit_fromchar(init_packet->capas));
+    KERMIT_LOG("wslots: %d", kermit_fromchar(init_packet->wslots));
+    KERMIT_LOG("maxlx1: %d", kermit_fromchar(init_packet->maxlx1));
+    KERMIT_LOG("maxlx2: %d", kermit_fromchar(init_packet->maxlx2));
 
     kermit->max_packet_length = kermit_fromchar(init_packet->maxl);
     kermit->max_ext_packet_length =
@@ -524,11 +515,10 @@ static kermit_packet_t* kermit_encode_file_data_packet(kermit_t* kermit) {
 }
 
 static kermit_packet_t* kermit_encode_file_header_packet(kermit_t* kermit) {
-    const char filename[] = "FIRMWA.RPS";
+    static const char filename[] = KERMIT_DEFAULT_FILE_NAME;
 
-    kermit_packet_t* packet = kermit_create_packet(
-        kermit, KERMIT_PACKET_TYPE_FILE, (uint8_t*)filename, sizeof(filename) - 1);
-    return packet;
+    return kermit_create_packet(
+        kermit, KERMIT_PACKET_TYPE_FILE, (uint8_t*)filename, strlen(filename));
 }
 
 static bool kermit_process_packet(kermit_t* kermit) {
@@ -593,13 +583,13 @@ static bool kermit_process_packet(kermit_t* kermit) {
         break;
     }
 
+    bool tx_failed = false;
     if(response_packet) {
-        kermit->io->comms_send(kermit->io_context, response_packet->data, response_packet->sz);
-        kermit_packet_free(response_packet);
+        tx_failed = !kermit_tx_and_release_packet(kermit, response_packet);
     }
 
     kermit_packet_free(kermit->rx.packet);
     kermit->rx.packet = NULL;
 
-    return (response_packet != NULL) && rx_packet_is_sane;
+    return rx_packet_is_sane && (response_packet != NULL) && !tx_failed;
 }
