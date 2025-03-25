@@ -11,7 +11,6 @@ App(
         # "power_test",
         # "wifi_setup",
         # "sockets_test",
-        "sl_update",
         # "busy",
         "animation_player",
         "dummy",

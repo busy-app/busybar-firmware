@@ -1,15 +1,4 @@
 App(
-    appid="sl_update",
-    name="Si917 Update Test",
-    apptype=FlipperAppType.APP,
-    entry_point="sl_update_app",
-    requires=["storage"],
-    stack_size=2 * 1024,
-    fap_category="Debug",
-    targets=["f20"],
-)
-
-App(
     appid="sl_update_start",
     apptype=FlipperAppType.STARTUP,
     entry_point="sl_update_on_system_start",

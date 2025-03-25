@@ -4,16 +4,6 @@
 #include <cli/cli.h>
 #include <toolbox/args.h>
 
-int32_t sl_update_app(void* arg) {
-    UNUSED(arg);
-
-    SlUpdater* instance = sl_updater_alloc();
-    sl_updater_run(instance, "/ext/firmware.rps", false, 6);
-    sl_updater_free(instance);
-
-    return 0;
-}
-
 static void updater_cli_command_print_usage(void) {
     printf("Usage:\r\n");
     printf("update <u5|917|917_ta> path\r\n");
@@ -52,10 +42,10 @@ static void updater_cli(Cli* cli, FuriString* args, void* context) {
         }
 
         SlUpdater* instance = sl_updater_alloc();
-        if(!sl_updater_run(instance, furi_string_get_cstr(path), is_stack_image, 6)) {
-            printf("Update failed\r\n");
-        } else {
+        if(sl_updater_run(instance, furi_string_get_cstr(path), is_stack_image, 6)) {
             printf("Update succeeded\r\n");
+        } else {
+            printf("Update failed\r\n");
         }
         sl_updater_free(instance);
 
