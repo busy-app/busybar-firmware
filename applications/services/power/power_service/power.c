@@ -258,6 +258,9 @@ Power* power_alloc(void) {
 
     furi_event_loop_tick_set(power->event_loop, 1000, power_tick_callback, power);
 
+    power->event_pubsub = furi_pubsub_alloc();
+    furi_record_create(RECORD_POWER, power);
+
     return power;
 }
 
@@ -290,7 +293,8 @@ void power_run(Power* power) {
     bq25798_set_charge_current_limit(POWER_I2C, power->charger_current_limit);
     furi_hal_i2c_release(POWER_I2C);
 
-    furi_record_create(RECORD_POWER, power);
+    PowerEvent pub_event = {.type = PowerEventReady};
+    furi_pubsub_publish(power->event_pubsub, &pub_event);
 
     FURI_LOG_I(TAG, "Running event loop");
     furi_event_loop_run(power->event_loop);
@@ -315,4 +319,9 @@ int32_t power_srv_app(void* p) {
     power_run(power);
 
     return 0;
+}
+
+FuriPubSub* power_get_pubsub(Power* power) {
+    furi_check(power);
+    return power->event_pubsub;
 }

@@ -1,5 +1,6 @@
 #pragma once
 
+#include <furi.h>
 #include <stdint.h>
 #include <stdbool.h>
 
@@ -17,6 +18,15 @@ typedef enum {
     PowerRebootDfuU5, // Reboot U5 to DFU
     PowerRebootDfu917, // Reboot 917 to DFU
 } PowerRebootMode;
+
+typedef enum {
+    PowerEventReady,
+    PowerEventDischarged,
+} PowerEventType;
+
+typedef struct {
+    PowerEventType type;
+} PowerEvent;
 
 typedef struct {
     bool is_charging;
@@ -53,6 +63,7 @@ typedef struct {
     } cap[7];
 } PowerPdInfo;
 
+FuriPubSub* power_get_pubsub(Power* power);
 bool power_off(Power* power);
 void power_reboot(Power* power, PowerRebootMode mode);
 bool power_is_usb_connected(Power* power);

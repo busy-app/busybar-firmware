@@ -9,7 +9,7 @@ App(
         "led_display_test",
         "gui_test",
         # "led_indicator",
-        # "power_test",
+        "power_test",
         # "wifi_setup",
         # "sockets_test",
         # "sl_update_test",

@@ -1,7 +1,6 @@
 #pragma once
 
 #include "power.h"
-#include <furi.h>
 #include <furi_hal.h>
 #include <toolbox/api_lock.h>
 
@@ -63,6 +62,7 @@ struct Power {
     FuriMessageQueue* message_queue;
     FuriSemaphore* gpio_semaphore;
     PowerUsbPd* usb_pd;
+    FuriPubSub* event_pubsub;
     PowerState state;
     PowerInfo info;
     PowerPdInfo pd_info;

@@ -1,0 +1,10 @@
+App(
+    appid="power_popup",
+    name="PowerPopup",
+    apptype=FlipperAppType.SERVICE,
+    entry_point="power_popup_start",
+    stack_size=4096,
+    order=70,
+    requires=["power_srv"],
+    targets=["f20"],
+)
