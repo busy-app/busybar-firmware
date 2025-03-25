@@ -524,7 +524,10 @@ static kermit_packet_t* kermit_encode_file_data_packet(kermit_t* kermit) {
     }
 
     KERMIT_LOG("Packeted %d bytes", length);
-    return kermit_create_ext_packet(kermit, KERMIT_PACKET_TYPE_DATA, tmp_buffer, length);
+    kermit_packet_t* packet =
+        kermit_create_ext_packet(kermit, KERMIT_PACKET_TYPE_DATA, tmp_buffer, length);
+    free(tmp_buffer);
+    return packet;
 }
 
 static kermit_packet_t* kermit_encode_file_header_packet(kermit_t* kermit) {
