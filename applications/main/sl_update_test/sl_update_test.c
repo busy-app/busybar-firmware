@@ -225,6 +225,12 @@ static void sl_update_test_app_rx_buffer_callback(FuriEventLoopObject* object, v
             furi_string_reset(instance->rx_string);
             FURI_LOG_I(TAG, "Install success");
             furi_event_loop_stop(instance->event_loop); // ???
+        } else if(
+            furi_string_search_str(instance->rx_string, "Upgradation Failed") !=
+            FURI_STRING_FAILURE) {
+            furi_string_reset(instance->rx_string);
+            FURI_LOG_E(TAG, "Install failed");
+            furi_event_loop_stop(instance->event_loop); // ???
         }
         break;
     case Si917BootloaderStateClose:
