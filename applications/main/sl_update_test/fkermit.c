@@ -15,6 +15,10 @@
 
 #define KERMIT_CONTROL_CHAR ('#')
 
+#ifndef KERMIT_DEBUG_LOG
+#define KERMIT_DEBUG_LOG 0
+#endif
+
 typedef struct {
     uint8_t* data;
     int32_t sz;
@@ -54,6 +58,8 @@ typedef enum {
     KERMIT_FILE_TRANSFER_STATE_SYNC_PARAMS,
     KERMIT_FILE_TRANSFER_STATE_SEND_FILE_NAME,
     KERMIT_FILE_TRANSFER_STATE_SEND_FILE_DATA,
+    KERMIT_FILE_TRANSFER_STATE_SEND_FILE_EOF,
+    KERMIT_FILE_TRANSFER_STATE_SEND_BREAK,
     KERMIT_FILE_TRANSFER_STATE_DONE,
 } kermit_file_transfer_state_t;
 
@@ -151,7 +157,7 @@ kermit_packet_t* kermit_create_packet(
     const kermit_packet_type_t packet_type,
     const uint8_t* data,
     size_t length) {
-    furi_check(data != NULL);
+    furi_check((length == 0) || (length && (data != NULL)));
     furi_check(length <= kermit->max_packet_length);
 
     kermit_packet_t* packet = kermit_packet_alloc(
@@ -193,13 +199,15 @@ kermit_packet_t* kermit_create_ext_packet(
     kermit_packet_ext_header_t header = {
         .mark = KERMIT_PACKET_MARK,
         .blank = 0,
-        .seq = kermit_tochar(0),
+        .seq = kermit_tochar(kermit->seq_counter),
         .type = packet_type,
         .length1 = kermit_tochar(length / KERMIT_EXT_PACKET_SIZE_MOD),
         .length2 = kermit_tochar(length % KERMIT_EXT_PACKET_SIZE_MOD),
         .header_checksum = 0,
     };
     header.header_checksum = kermit_checksum((uint8_t*)(&header) + 1, sizeof(header) - 2);
+
+    kermit->seq_counter = kermit_next_seq(kermit->seq_counter);
 
     memcpy(packet->data, &header, sizeof(header));
     memcpy(packet->data + sizeof(header), data, length);
@@ -438,24 +446,36 @@ static bool kermit_parse_session_params(kermit_t* kermit) {
 
     kermit_init_packet_t* init_packet = (kermit_init_packet_t*)kermit->rx.packet->data;
 
-    FURI_LOG_I(TAG, "maxl: %d", init_packet->maxl);
-    FURI_LOG_I(TAG, "timo: %d", init_packet->timo);
-    FURI_LOG_I(TAG, "npad: %d", init_packet->npad);
-    FURI_LOG_I(TAG, "padc: %d", init_packet->padc);
-    FURI_LOG_I(TAG, "eol: %d", init_packet->eol);
+#if KERMIT_DEBUG_LOG
+    FURI_LOG_I(TAG, "maxl: %d", kermit_fromchar(init_packet->maxl));
+    FURI_LOG_I(TAG, "timo: %d", kermit_fromchar(init_packet->timo));
+    FURI_LOG_I(TAG, "npad: %d", kermit_fromchar(init_packet->npad));
+    FURI_LOG_I(TAG, "padc: %d", kermit_ctl(init_packet->padc));
+    FURI_LOG_I(TAG, "eol: %d", kermit_fromchar(init_packet->eol));
     FURI_LOG_I(TAG, "qctl: %d", init_packet->qctl);
     FURI_LOG_I(TAG, "ebq: %d", init_packet->ebq);
     FURI_LOG_I(TAG, "bct: %d", init_packet->bct);
     FURI_LOG_I(TAG, "rpt: %d", init_packet->rpt);
-    FURI_LOG_I(TAG, "capas: %d", init_packet->capas);
-    FURI_LOG_I(TAG, "wslots: %d", init_packet->wslots);
-    FURI_LOG_I(TAG, "maxlx1: %d", init_packet->maxlx1);
-    FURI_LOG_I(TAG, "maxlx2: %d", init_packet->maxlx2);
+    FURI_LOG_I(TAG, "capas: %d", kermit_fromchar(init_packet->capas));
+    FURI_LOG_I(TAG, "wslots: %d", kermit_fromchar(init_packet->wslots));
+    FURI_LOG_I(TAG, "maxlx1: %d", kermit_fromchar(init_packet->maxlx1));
+    FURI_LOG_I(TAG, "maxlx2: %d", kermit_fromchar(init_packet->maxlx2));
+#endif
+
+    kermit->max_packet_length = kermit_fromchar(init_packet->maxl);
+    kermit->max_ext_packet_length =
+        kermit_fromchar(init_packet->maxlx1) * KERMIT_EXT_PACKET_SIZE_MOD +
+        kermit_fromchar(init_packet->maxlx2);
+    FURI_LOG_I(
+        TAG,
+        "Established max len: %ld, max ext len: %ld",
+        kermit->max_packet_length,
+        kermit->max_ext_packet_length);
 
     return true;
 }
 
-static kermit_packet_t* kermit_encode_data_packet(kermit_t* kermit) {
+static kermit_packet_t* kermit_encode_file_data_packet(kermit_t* kermit) {
     furi_check(kermit->file_transfer_state == KERMIT_FILE_TRANSFER_STATE_SEND_FILE_DATA);
     furi_check(kermit->max_ext_packet_length >= 2);
 
@@ -464,7 +484,7 @@ static kermit_packet_t* kermit_encode_data_packet(kermit_t* kermit) {
     do {
         uint8_t file_char;
         if(kermit->io->src_file_read(kermit->io_context, &file_char, 1) != 1) {
-            FURI_LOG_E(TAG, "Failed to read file");
+            FURI_LOG_W(TAG, "Failed to read file");
             break; // eof or error
         }
 
@@ -485,10 +505,16 @@ static kermit_packet_t* kermit_encode_data_packet(kermit_t* kermit) {
     } while((uint32_t)(buffer_ptr - tmp_buffer) < (kermit->max_ext_packet_length + 1));
 
     size_t length = buffer_ptr - tmp_buffer;
+
+    if(length == 0) {
+        free(tmp_buffer);
+        FURI_LOG_I(TAG, "EOF packet");
+        kermit->file_transfer_state = KERMIT_FILE_TRANSFER_STATE_SEND_FILE_EOF;
+        return kermit_create_packet(kermit, KERMIT_PACKET_TYPE_EOF, NULL, 0);
+    }
+
     FURI_LOG_I(TAG, "Read %d file bytes", length);
-    kermit_packet_t* packet =
-        kermit_create_ext_packet(kermit, KERMIT_PACKET_TYPE_DATA, tmp_buffer, length);
-    return packet;
+    return kermit_create_ext_packet(kermit, KERMIT_PACKET_TYPE_DATA, tmp_buffer, length);
 }
 
 static kermit_packet_t* kermit_encode_file_header_packet(kermit_t* kermit) {
@@ -525,13 +551,24 @@ static bool kermit_process_packet(kermit_t* kermit) {
     const kermit_packet_type_t packet_type = kermit->rx.type;
     switch(packet_type) {
     case KERMIT_PACKET_TYPE_ACK:
+        FURI_LOG_I(TAG, "ACK received, state: %d", kermit->file_transfer_state);
         if(kermit->file_transfer_state == KERMIT_FILE_TRANSFER_STATE_SEND_FILE_DATA) {
-            response_packet = kermit_encode_data_packet(kermit);
+            response_packet = kermit_encode_file_data_packet(kermit);
         } else if(kermit->file_transfer_state == KERMIT_FILE_TRANSFER_STATE_SYNC_PARAMS) {
             kermit->file_transfer_state = KERMIT_FILE_TRANSFER_STATE_SEND_FILE_DATA;
             // TODO: Parse params from ACK packet
             rx_packet_is_sane = kermit_parse_session_params(kermit);
             response_packet = kermit_encode_file_header_packet(kermit);
+        } else if(kermit->file_transfer_state == KERMIT_FILE_TRANSFER_STATE_SEND_FILE_EOF) {
+            kermit->file_transfer_state = KERMIT_FILE_TRANSFER_STATE_SEND_BREAK;
+            response_packet = kermit_create_packet(kermit, KERMIT_PACKET_TYPE_BREAK, NULL, 0);
+        } else if(kermit->file_transfer_state == KERMIT_FILE_TRANSFER_STATE_SEND_BREAK) {
+            kermit->file_transfer_state = KERMIT_FILE_TRANSFER_STATE_DONE;
+            FURI_LOG_I(TAG, "File transfer done");
+            return false; // FIXME
+        } else {
+            FURI_LOG_E(TAG, "Invalid state for ACK packet: %d", kermit->file_transfer_state);
+            rx_packet_is_sane = false;
         }
         break;
 
