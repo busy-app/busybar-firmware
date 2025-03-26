@@ -29,8 +29,7 @@ static const char* wifi_per_test_mode_text[] = {
     "Rx",
 };
 
-#define CANNEL_MAX 14
-static const VarItemKeyValue wifi_per_test_channel[CANNEL_MAX] = {
+static const VarItemKeyValue wifi_per_test_channel[] = {
     {"2412", 1},
     {"2417", 2},
     {"2422", 3},
@@ -60,8 +59,7 @@ static const char* wifi_per_test_mode_work_text[] = {
     "cw_high",
 };
 
-#define TX_POWER_MAX 18
-static VarItemKeyValue wifi_per_test_tx_power[TX_POWER_MAX] = {
+static VarItemKeyValue wifi_per_test_tx_power[] = {
     {"2dBm", 2},
     {"3dBm", 3},
     {"4dBm", 4},
@@ -155,10 +153,6 @@ static bool wifi_per_test_input_callback(const InputEvent* event, void* context)
             instance->exit_on_back = true;
             consumed = true;
         }
-        //else if(event->key == InputKeyStart) {
-        //     furi_event_loop_set_custom_event(instance->event_loop, WifiPerTestCustomEventSound);
-        //     consumed = true;
-        // }
     }
 
     return consumed;
@@ -199,11 +193,7 @@ void wifi_per_test_update(
     UNUSED(tx_dones);
     FuriString* str = furi_string_alloc();
     furi_string_printf(
-        str,
-        "rssi %ld \ncrc_fail_cnt %ld crc_pass_cnt %ld ",
-        rssi,
-        crc_fail_cnt,
-        crc_pass_cnt);
+        str, "rssi %ld \ncrc_fail_cnt %ld crc_pass_cnt %ld ", rssi, crc_fail_cnt, crc_pass_cnt);
     with_gui(instance->gui, { label_set_text(instance->label, furi_string_get_cstr(str)); });
     furi_string_free(str);
 }
@@ -261,7 +251,7 @@ static WifiPerTest* wifi_per_test_alloc(void) {
             "Channel",
             NULL,
             wifi_per_test_channel,
-            CANNEL_MAX,
+            COUNT_OF(wifi_per_test_channel),
             wifi_per_test_channel_changed_callback,
             instance);
         var_item_set_value_key_value(item, wifi_per_test_channel, instance->settings.channel);
@@ -271,7 +261,7 @@ static WifiPerTest* wifi_per_test_alloc(void) {
             "Power",
             NULL,
             wifi_per_test_tx_power,
-            TX_POWER_MAX,
+            COUNT_OF(wifi_per_test_tx_power),
             wifi_per_test_power_changed_callback,
             instance);
         var_item_set_value_key_value(item, wifi_per_test_tx_power, instance->settings.tx_power);
