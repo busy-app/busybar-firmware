@@ -2,122 +2,237 @@
 #include <furi.h>
 
 #include <gui/gui.h>
-#include <gui/view_dispatcher.h>
 #include <gui/modules/submenu.h>
-
-#include <power_simple/power.h>
+#include <gui/modules/label.h>
+#include <power/power_service/power.h>
 
 #define TAG "PowerTest"
 
+#define INFO_UPDATE_PERIOD 500
+
+typedef enum {
+    PowerTestSceneMenu,
+    PowerTestSceneInfo,
+} PowerTestScene;
+
+typedef enum {
+    PowerTestBack,
+    PowerTestInfo,
+    PowerTestOff,
+    PowerTestReboot,
+    PowerTestTick,
+} PowerTestEvent;
+
 typedef struct {
+    FuriEventLoop* event_loop;
+    FuriMessageQueue* queue;
     Gui* gui;
-    ViewDispatcher* view_dispatcher;
     Submenu* submenu;
+    Label* label_front;
+    Label* label_back;
+    PowerTestScene scene;
 } PowerTest;
 
-typedef enum {
-    PowerViewSubmenu,
-} PowerView;
+static void power_test_submenu_callback(uint32_t index, void* context) {
+    furi_assert(context);
+    PowerTest* instance = context;
 
-typedef enum {
-    PowerTestSubmenuInfo,
-    PowerTestSubmenuPdDebug,
-    PowerTestSubmenuOff,
-    PowerTestSubmenuShutdown,
-    PowerTestSubmenuReset,
-} PowerTestSubmenu;
+    furi_check(furi_message_queue_put(instance->queue, &index, FuriWaitForever) == FuriStatusOk);
+}
 
-static void power_test_submenu_callback(void* context, uint32_t index) {
-    PowerTest* instance = (PowerTest*)context;
-    UNUSED(instance);
+static void power_test_menu_enter(PowerTest* instance) {
+    furi_assert(instance);
 
-    if(index == PowerTestSubmenuOff) {
+    with_gui(instance->gui, {
+        GuiLayer* main_layer = gui_get_layer(instance->gui, GuiLayerIdMain);
+        Widget* root = gui_layer_get_root_widget(main_layer, GuiDisplayIdFront);
+
+        instance->submenu = submenu_alloc(root);
+
+        submenu_add_item(
+            instance->submenu, "Off", PowerTestOff, power_test_submenu_callback, instance);
+        submenu_add_item(
+            instance->submenu, "Reboot", PowerTestReboot, power_test_submenu_callback, instance);
+        submenu_add_item(
+            instance->submenu, "Info", PowerTestInfo, power_test_submenu_callback, instance);
+    });
+}
+
+static void power_test_menu_exit(PowerTest* instance) {
+    furi_assert(instance);
+
+    with_gui(instance->gui, { submenu_free(instance->submenu); });
+}
+
+static void power_test_info_update(PowerTest* instance) {
+    Power* power = furi_record_open(RECORD_POWER);
+    PowerInfo info;
+    power_get_info(power, &info);
+    furi_record_close(RECORD_POWER);
+
+    char* state = NULL;
+    if(info.is_charging) {
+        state = (info.is_full_charged) ? "Charged" : "Charging";
+    } else {
+        state = "Not charging";
+    }
+
+    with_gui(instance->gui, {
+        label_set_text_fmt(
+            instance->label_front,
+            "%s %u%%\nBAT %.2fV USB %.2fV",
+            state,
+            info.charge,
+            info.voltage_battery / 1000.f,
+            info.voltage_usb / 1000.f);
+        label_set_text_fmt(
+            instance->label_back,
+            "%s %u%%\n\nBattery: %.2fV  %.2fA\n\nUSB: %.2fV  %.2fA",
+            state,
+            info.charge,
+            info.voltage_battery / 1000.f,
+            info.current_battery / 1000.f,
+            info.voltage_usb / 1000.f,
+            info.current_usb / 1000.f);
+    });
+}
+
+static void power_test_info_tick_callback(void* context) {
+    furi_assert(context);
+    PowerTest* instance = context;
+
+    uint32_t event = PowerTestTick;
+    furi_check(furi_message_queue_put(instance->queue, &event, FuriWaitForever) == FuriStatusOk);
+}
+
+static void power_test_info_enter(PowerTest* instance) {
+    furi_assert(instance);
+
+    with_gui(instance->gui, {
+        GuiLayer* main_layer = gui_get_layer(instance->gui, GuiLayerIdMain);
+        Widget* root_front = gui_layer_get_root_widget(main_layer, GuiDisplayIdFront);
+        instance->label_front = label_alloc(root_front);
+
+        Widget* root_back = gui_layer_get_root_widget(main_layer, GuiDisplayIdBack);
+        instance->label_back = label_alloc(root_back);
+
+        widget_set_align(label_get_base(instance->label_front), AlignLeftMid);
+        widget_set_align(label_get_base(instance->label_back), AlignCenter);
+    });
+    power_test_info_update(instance);
+    furi_event_loop_tick_set(
+        instance->event_loop, INFO_UPDATE_PERIOD, power_test_info_tick_callback, instance);
+}
+
+static void power_test_info_exit(PowerTest* instance) {
+    furi_assert(instance);
+    with_gui(instance->gui, {
+        label_free(instance->label_front);
+        label_free(instance->label_back);
+    });
+    furi_event_loop_tick_set(instance->event_loop, 0, NULL, instance);
+}
+
+static bool power_test_input_callback(const InputEvent* event, void* context) {
+    furi_assert(event);
+    furi_assert(context);
+    PowerTest* instance = context;
+
+    bool consumed = false;
+
+    if((event->type == InputTypeShort) && (event->key == InputKeyBack)) {
+        uint32_t event = PowerTestBack;
+        furi_check(
+            furi_message_queue_put(instance->queue, &event, FuriWaitForever) == FuriStatusOk);
+        consumed = true;
+    }
+
+    return consumed;
+}
+
+static void power_test_queue_callback(FuriEventLoopObject* object, void* context) {
+    furi_assert(context);
+    PowerTest* instance = context;
+
+    furi_assert(object == instance->queue);
+
+    uint32_t index;
+    furi_check(furi_message_queue_get(instance->queue, &index, 0) == FuriStatusOk);
+    if(index == PowerTestBack) {
+        if(instance->scene == PowerTestSceneMenu) {
+            furi_event_loop_stop(instance->event_loop);
+        } else {
+            power_test_info_exit(instance);
+            instance->scene = PowerTestSceneMenu;
+            power_test_menu_enter(instance);
+        }
+    } else if(index == PowerTestInfo) {
+        power_test_menu_exit(instance);
+        instance->scene = PowerTestSceneInfo;
+        power_test_info_enter(instance);
+    } else if(index == PowerTestOff) {
         Power* power = furi_record_open(RECORD_POWER);
         power_off(power);
         furi_record_close(RECORD_POWER);
-    } else if(index == PowerTestSubmenuShutdown) {
+    } else if(index == PowerTestReboot) {
         Power* power = furi_record_open(RECORD_POWER);
-        power_shutdown(power);
+        power_reboot(power, PowerRebootNormal);
         furi_record_close(RECORD_POWER);
-    } else if(index == PowerTestSubmenuReset) {
-        Power* power = furi_record_open(RECORD_POWER);
-        power_reboot(power, PowerRebootHardware);
-        furi_record_close(RECORD_POWER);
+    } else if(index == PowerTestTick) {
+        if(instance->scene == PowerTestSceneInfo) {
+            power_test_info_update(instance);
+        }
     } else {
         furi_crash();
     }
 }
 
-static uint32_t power_test_exit_callback(void* context) {
-    UNUSED(context);
-    return VIEW_NONE;
-}
-
 PowerTest* power_test_alloc(void) {
     PowerTest* instance = malloc(sizeof(PowerTest));
 
-    View* view = NULL;
-
+    instance->event_loop = furi_event_loop_alloc();
+    instance->queue = furi_message_queue_alloc(1, sizeof(uint32_t));
     instance->gui = furi_record_open(RECORD_GUI);
-    instance->view_dispatcher = view_dispatcher_alloc();
-    view_dispatcher_attach_to_gui(
-        instance->view_dispatcher, instance->gui, ViewDispatcherTypeFullscreen);
 
-    // Menu
-    instance->submenu = submenu_alloc();
-    view = submenu_get_view(instance->submenu);
-    view_set_previous_callback(view, power_test_exit_callback);
-    view_dispatcher_add_view(instance->view_dispatcher, PowerViewSubmenu, view);
-    // submenu_add_item(
-    //     instance->submenu, "Info", PowerTestSubmenuInfo, power_test_submenu_callback, instance);
-    // submenu_add_item(
-    //     instance->submenu,
-    //     "PD Debug",
-    //     PowerTestSubmenuPdDebug,
-    //     power_test_submenu_callback,
-    //     instance);
-    submenu_add_item(
-        instance->submenu,
-        "Off (Ship mode)",
-        PowerTestSubmenuOff,
-        power_test_submenu_callback,
+    furi_event_loop_subscribe_message_queue(
+        instance->event_loop,
+        instance->queue,
+        FuriEventLoopEventIn,
+        power_test_queue_callback,
         instance);
-    submenu_add_item(
-        instance->submenu,
-        "Shutdown",
-        PowerTestSubmenuShutdown,
-        power_test_submenu_callback,
-        instance);
-    submenu_add_item(
-        instance->submenu, "Reset", PowerTestSubmenuReset, power_test_submenu_callback, instance);
+
+    with_gui(instance->gui, {
+        GuiLayer* main_layer = gui_get_layer(instance->gui, GuiLayerIdMain);
+        gui_layer_add_input_callback(main_layer, power_test_input_callback, instance);
+    });
+
+    instance->scene = PowerTestSceneMenu;
+    power_test_menu_enter(instance);
 
     return instance;
 }
 
 void power_test_free(PowerTest* instance) {
-    view_dispatcher_remove_view(instance->view_dispatcher, PowerViewSubmenu);
-    submenu_free(instance->submenu);
+    with_gui(instance->gui, {
+        GuiLayer* main_layer = gui_get_layer(instance->gui, GuiLayerIdMain);
+        gui_layer_remove_input_callback(main_layer, power_test_input_callback);
+    });
+    power_test_menu_exit(instance);
 
-    view_dispatcher_free(instance->view_dispatcher);
     furi_record_close(RECORD_GUI);
 
+    furi_event_loop_unsubscribe(instance->event_loop, instance->queue);
+    furi_message_queue_free(instance->queue);
+    furi_event_loop_free(instance->event_loop);
     free(instance);
 }
 
-int32_t power_test_run(PowerTest* instance) {
-    view_dispatcher_switch_to_view(instance->view_dispatcher, PowerViewSubmenu);
-    view_dispatcher_run(instance->view_dispatcher);
-    return 0;
-}
-
-int32_t power_test_app(void* p) {
-    UNUSED(p);
+int32_t power_test_app(void* arg) {
+    UNUSED(arg);
 
     PowerTest* instance = power_test_alloc();
-
-    int32_t ret = power_test_run(instance);
-
+    furi_event_loop_run(instance->event_loop);
     power_test_free(instance);
 
-    return ret;
+    return 0;
 }

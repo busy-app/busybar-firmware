@@ -10,7 +10,7 @@ App(
         "back_display_test",
         "gui_test",
         # "led_indicator",
-        # "power_test",
+        "power_test",
         # "wifi_setup",
         # "sockets_test",
         "animation_player",

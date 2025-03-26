@@ -1,7 +1,6 @@
 #pragma once
 
 #include "power.h"
-#include <furi.h>
 #include <furi_hal.h>
 #include <toolbox/api_lock.h>
 
@@ -10,6 +9,7 @@ typedef enum {
     PowerMessageTypeReboot,
     PowerMessageTypeGetInfo,
     PowerMessageTypeIsUsbConnected,
+    PowerMessageTypeIsBatteryReady,
     PowerMessageTypeChargeEnable,
     PowerMessageTypeSetChargeCurrent,
     PowerMessageTypePdGetInfo,
@@ -38,11 +38,6 @@ typedef struct {
 typedef struct PowerUsbPd PowerUsbPd;
 
 typedef struct {
-    bool charger_alive;
-    bool usb_connected;
-} PowerState;
-
-typedef struct {
     PowerMessageType type;
     FuriApiLock lock;
     union {
@@ -63,7 +58,12 @@ struct Power {
     FuriMessageQueue* message_queue;
     FuriSemaphore* gpio_semaphore;
     PowerUsbPd* usb_pd;
-    PowerState state;
+    FuriPubSub* event_pubsub;
+    struct {
+        bool charger_alive;
+        bool battery_ready;
+        bool usb_connected;
+    } state;
     PowerInfo info;
     PowerPdInfo pd_info;
     uint32_t input_current_limit;
