@@ -354,7 +354,7 @@ static bool kermit_feed_byte(kermit_t* kermit, uint8_t c) {
         break;
 
     case KERMIT_PACKET_STATE_WAIT_CONTENTS:
-        KERMIT_LOG("Packet sz: %ld, rem rxlen: %d", rx->packet->sz, rx->len);
+        KERMIT_LOG("Packet sz: %ld, rem rxlen: %d", rx->contents->sz, rx->len);
         furi_check(rx->len >= 0);
         furi_check(rx->contents->sz - rx->len < rx->contents->sz);
 
@@ -529,7 +529,7 @@ static kermit_packet_t* kermit_encode_file_data_packet(kermit_t* kermit) {
         packet = kermit_create_packet(kermit, KERMIT_PACKET_TYPE_EOF, NULL, 0);
         kermit->file_transfer_state = KERMIT_FILE_TRANSFER_STATE_SEND_FILE_EOF;
     } else {
-        KERMIT_LOG("Packeted %d bytes from %d file bytes", length, read_bytes);
+        KERMIT_LOG("Packeted %d bytes from %d file bytes", encoded_length, read_length);
         packet = kermit_create_ext_packet(
             kermit, KERMIT_PACKET_TYPE_DATA, encoded_data, encoded_length);
     }
@@ -550,7 +550,7 @@ static bool kermit_process_packet(kermit_t* kermit) {
         "Received packet type: %c, seq: %i, data: %s",
         kermit->rx.type,
         kermit->rx.seq,
-        kermit->rx.packet->sz ? (const char*)kermit->rx.packet->data : "NULL");
+        kermit->rx.contents->sz ? (const char*)kermit->rx.contents->data : "NULL");
 
     if(kermit_next_seq(kermit->rx.seq) != kermit->seq_counter) {
         FURI_LOG_E(TAG, "Broken sequencing");
