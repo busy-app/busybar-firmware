@@ -104,6 +104,8 @@ static void cli_command_917_rx_callback(const void* data, size_t data_size, void
     furi_check(context);
 
     CliCommandSlCli* instance = context;
+    UNUSED(instance);
+    UNUSED(data_size);
     for(size_t i = 0; i < data_size; i++) {
         FURI_LOG_RAW_E("%c", ((uint8_t*)data)[i]);
     }

@@ -29,8 +29,7 @@ static const char* ble_per_test_mode_text[] = {
     "Rx",
 };
 
-#define CANNEL_MAX 40
-static const VarItemKeyValue ble_per_test_channel[CANNEL_MAX] = {
+static const VarItemKeyValue ble_per_test_channel[] = {
     {"2402", 0},  {"2404", 1},  {"2406", 2},  {"2408", 3},  {"2410", 4},  {"2412", 5},
     {"2414", 6},  {"2416", 7},  {"2418", 8},  {"2420", 9},  {"2422", 10}, {"2424", 11},
     {"2426", 12}, {"2428", 13}, {"2430", 14}, {"2432", 15}, {"2434", 16}, {"2436", 17},
@@ -40,8 +39,7 @@ static const VarItemKeyValue ble_per_test_channel[CANNEL_MAX] = {
     {"2474", 36}, {"2476", 37}, {"2478", 38}, {"2480", 39},
 };
 
-#define RATE_MAX 5
-static const VarItemKeyValue ble_per_test_rate[RATE_MAX] = {
+static const VarItemKeyValue ble_per_test_rate[] = {
     {"1Mbps", 0},
     {"2Mbps", 1},
     {"125Kbps", 2},
@@ -53,8 +51,7 @@ static const VarItemKeyValue ble_per_test_rate[RATE_MAX] = {
 #define PAYLOAD_LEN_MAX  (255)
 #define PAYLOAD_LEN_STEP (1)
 
-#define PAYLOAD_TYPE_KEY_MAX 8
-static const VarItemKeyValue ble_per_test_payload_type[PAYLOAD_TYPE_KEY_MAX] = {
+static const VarItemKeyValue ble_per_test_payload_type[] = {
     {"PRBS9", 0},
     {"11110000", 1},
     {"10101010", 2},
@@ -65,22 +62,19 @@ static const VarItemKeyValue ble_per_test_payload_type[PAYLOAD_TYPE_KEY_MAX] = {
     {"01010101", 7},
 };
 
-#define MODE_WORK_MAX 3
-static VarItemKeyValue ble_per_test_mode_work[MODE_WORK_MAX] = {
+static VarItemKeyValue ble_per_test_mode_work[] = {
     {"Burst", 0},
     {"Continuous", 1},
     {"Carrier", 2},
 };
 
-#define HOPPING_MAX 3
-static VarItemKeyValue ble_per_test_hopping[HOPPING_MAX] = {
+static VarItemKeyValue ble_per_test_hopping[] = {
     {"No hopping", 0},
     {"Fixed hopping", 1},
     {"Random hopping", 2},
 };
 
-#define TX_POWER_MAX 11
-static VarItemKeyValue ble_per_test_tx_power[TX_POWER_MAX] = {
+static VarItemKeyValue ble_per_test_tx_power[] = {
     {"1dBm", 1},
     {"2dBm", 2},
     {"3dBm", 3},
@@ -194,10 +188,6 @@ static bool ble_per_test_input_callback(const InputEvent* event, void* context) 
             instance->exit_on_back = true;
             consumed = true;
         }
-        //else if(event->key == InputKeyStart) {
-        //     furi_event_loop_set_custom_event(instance->event_loop, BlePerTestCustomEventSound);
-        //     consumed = true;
-        // }
     }
 
     return consumed;
@@ -279,7 +269,7 @@ static BlePerTest* ble_per_test_alloc(void) {
             "Mode Work",
             NULL,
             ble_per_test_mode_work,
-            MODE_WORK_MAX,
+            COUNT_OF(ble_per_test_mode_work),
             ble_per_test_mode_work_changed_callback,
             instance);
         var_item_set_value_key_value(item, ble_per_test_mode_work, instance->settings.mode_work);
@@ -299,7 +289,7 @@ static BlePerTest* ble_per_test_alloc(void) {
             "Hopping",
             NULL,
             ble_per_test_hopping,
-            HOPPING_MAX,
+            COUNT_OF(ble_per_test_hopping),
             ble_per_test_hopping_changed_callback,
             instance);
         var_item_set_value_key_value(item, ble_per_test_hopping, instance->settings.hopping);
@@ -309,7 +299,7 @@ static BlePerTest* ble_per_test_alloc(void) {
             "Channel",
             NULL,
             ble_per_test_channel,
-            CANNEL_MAX,
+            COUNT_OF(ble_per_test_channel),
             ble_per_test_channel_changed_callback,
             instance);
         var_item_set_value_key_value(item, ble_per_test_channel, instance->settings.channel);
@@ -319,7 +309,7 @@ static BlePerTest* ble_per_test_alloc(void) {
             "Power",
             NULL,
             ble_per_test_tx_power,
-            TX_POWER_MAX,
+            COUNT_OF(ble_per_test_tx_power),
             ble_per_test_power_changed_callback,
             instance);
         var_item_set_value_key_value(item, ble_per_test_tx_power, instance->settings.tx_power);
@@ -340,7 +330,7 @@ static BlePerTest* ble_per_test_alloc(void) {
             "Payload Type",
             NULL,
             ble_per_test_payload_type,
-            PAYLOAD_TYPE_KEY_MAX,
+            COUNT_OF(ble_per_test_payload_type),
             ble_per_test_payload_type_changed_callback,
             instance);
         var_item_set_value_key_value(
@@ -351,7 +341,7 @@ static BlePerTest* ble_per_test_alloc(void) {
             "Rate",
             NULL,
             ble_per_test_rate,
-            RATE_MAX,
+            COUNT_OF(ble_per_test_rate),
             ble_per_test_rate_changed_callback,
             instance);
         var_item_set_value_key_value(item, ble_per_test_rate, instance->settings.rate);

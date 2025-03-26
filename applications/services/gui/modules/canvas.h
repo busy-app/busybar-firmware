@@ -34,6 +34,24 @@ Canvas* canvas_alloc(Widget* parent, int32_t width, int32_t height);
 void canvas_free(Canvas* instance);
 
 /**
+ * @brief Initialize the drawing process.
+ *
+ * This function must be called before any drawing operations.
+ *
+ * @param[in,out] instance pointer to the Canvas instance to be drawn on
+ */
+void canvas_draw_begin(Canvas* instance);
+
+/**
+ * @brief Finalize the drawing process.
+ *
+ * This function must be called after all drawing operations.
+ *
+ * @param[in,out] instance pointer to the Canvas instance to be drawn on
+ */
+void canvas_draw_end(Canvas* instance);
+
+/**
  * @brief Get a pointer to the base class instance.
  *
  * The return value can be used in all Widget methods.

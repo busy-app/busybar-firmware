@@ -554,6 +554,14 @@ class RpsFlasher:
         if self.debug > 2:
             print(f"TX: {command}")
             print(f"RX: {rx_data}")
+        if self.debug > 3:
+            print(
+                f"TX: {len(command)}b: " + " ".join(f"{byte:02x}" for byte in command)
+            )
+            print(
+                f"RX: {len(rx_data)}b: " + " ".join(f"{byte:02x}" for byte in rx_data)
+            )
+            print("-" * 40)
 
         if not rx_data.endswith(expected):
             raise TimeoutError
@@ -593,7 +601,7 @@ def main():
         type=int,
         default=0,
         metavar="LEVEL",
-        help="debug level (0 - none, 3 - full)",
+        help="debug level (0 - none, 4 - full)",
     )
     parser.add_argument(
         "-t",
