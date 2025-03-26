@@ -17,7 +17,7 @@ typedef struct {
     FuriMessageQueue* queue;
     Desktop* desktop;
     Gui* gui;
-    Submenu* submenu;
+    Submenu* submenus[GuiDisplayIdMax];
 } AppsMenu;
 
 static void apps_menu_submenu_item_callback(uint32_t index, void* context) {
@@ -66,27 +66,50 @@ static AppsMenu* apps_menu_alloc(void) {
 
     with_gui(instance->gui, {
         GuiLayer* main_layer = gui_get_layer(instance->gui, GuiLayerIdMain);
-        Widget* root = gui_layer_get_root_widget(main_layer, GuiDisplayIdFront);
 
-        instance->submenu = submenu_alloc(root);
+        for(GuiDisplayId id = 0; id < GuiDisplayIdMax; ++id) {
+            Widget* root = gui_layer_get_root_widget(main_layer, id);
 
-        for(uint32_t i = 0; i < FLIPPER_APPS_COUNT; ++i) {
-            const FlipperInternalApplication* app = &FLIPPER_APPS[i];
-            submenu_add_item(
-                instance->submenu, app->name, i, apps_menu_submenu_item_callback, instance);
-        }
+            instance->submenus[id] = submenu_alloc(root);
+
+            for(uint32_t i = 0; i < FLIPPER_APPS_COUNT; ++i) {
+                const FlipperInternalApplication* app = &FLIPPER_APPS[i];
+                if(id == GuiDisplayIdFront) {
+                    submenu_add_item(
+                        instance->submenus[id],
+                        app->name,
+                        i,
+                        apps_menu_submenu_item_callback,
+                        instance);
+                } else {
+                    submenu_add_item(instance->submenus[id], app->name, i, NULL, NULL);
+                }
+            }
 
 #if APPS_MENU_ERROR_TEST
-        submenu_add_item(
-            instance->submenu, "Error Test", UINT32_MAX, apps_menu_submenu_item_callback, instance);
+            if(id == GuiDisplayIdFront) {
+                submenu_add_item(
+                    instance->submenu,
+                    "Error Test",
+                    UINT32_MAX,
+                    apps_menu_submenu_item_callback,
+                    instance);
+            } else {
+                submenu_add_item(instance->submenu, "Error Test", UINT32_MAX, NULL, NULL);
+            }
 #endif
+        }
     });
 
     return instance;
 }
 
 static void apps_menu_free(AppsMenu* instance) {
-    with_gui(instance->gui, { submenu_free(instance->submenu); });
+    with_gui(instance->gui, {
+        for(GuiDisplayId id = 0; id < GuiDisplayIdMax; ++id) {
+            submenu_free(instance->submenus[id]);
+        }
+    });
 
     furi_record_close(RECORD_GUI);
     furi_record_close(RECORD_DESKTOP);
