@@ -2,9 +2,9 @@ App(
     appid="power_test",
     name="Power",
     apptype=FlipperAppType.APP,
+    order=90,
     entry_point="power_test_app",
     requires=["gui"],
-    stack_size=1 * 1024,
-    fap_category="Debug",
+    stack_size=2 * 1024,
     targets=["f20"],
 )
