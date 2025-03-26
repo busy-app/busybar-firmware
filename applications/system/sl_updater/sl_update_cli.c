@@ -4,8 +4,8 @@
 #include <cli/cli.h>
 #include <toolbox/args.h>
 
-#define SL_UPDATE_M4_COMM_TIMEOUT_S  (6)
-#define SL_UPDATE_NWP_COMM_TIMEOUT_S (20)
+#define SL_UPDATE_M4_COMM_TIMEOUT_S  (15)
+#define SL_UPDATE_NWP_COMM_TIMEOUT_S (30)
 
 #define SL_UPDATE_RETRIES (3)
 
