@@ -17,14 +17,6 @@ static void
     lv_display_flush_ready(lv_display);
 }
 
-// TODO: Optimise conversion?
-static void gui_l8_to_l4(uint8_t* dst, const uint8_t* src) {
-    for(uint32_t i = 0; i < BACK_FRAME_BUFFER_SIZE; ++i) {
-        const uint32_t draw_idx = 2 * i;
-        dst[i] = (src[draw_idx] >> 4) | (src[draw_idx + 1] & 0xF0);
-    }
-}
-
 static void
     gui_flush_back_callback(lv_display_t* lv_display, const lv_area_t* area, uint8_t* px_map) {
     UNUSED(area);
@@ -32,8 +24,7 @@ static void
     GuiDisplay* display = lv_display_get_user_data(lv_display);
     furi_check(px_map == display->draw_buffer);
 
-    gui_l8_to_l4(display->frame_buffer, display->draw_buffer);
-    ssd1320_draw(display->frame_buffer);
+    back_display_draw(display->driver, display->draw_buffer);
 
     lv_display_flush_ready(lv_display);
 }
@@ -181,11 +172,9 @@ static void gui_init_front(GuiDisplay* display) {
 }
 
 static void gui_init_back(GuiDisplay* display) {
-    ssd1320_init();
-
     display->draw_buffer = malloc(BACK_DRAW_BUFFER_SIZE);
-    display->frame_buffer = malloc(BACK_FRAME_BUFFER_SIZE);
     display->lv_display = lv_display_create(BACK_W, BACK_H);
+    display->driver = furi_record_open(RECORD_BACK_DISPLAY);
 
     lv_display_set_user_data(display->lv_display, display);
     lv_display_set_flush_cb(display->lv_display, gui_flush_back_callback);
