@@ -21,7 +21,10 @@ typedef enum {
 
 typedef enum {
     PowerEventReady,
-    PowerEventDischarged,
+    PowerEventBatteryLow,
+    PowerEventBatteryHot,
+    PowerEventChargerConnect,
+    PowerEventChargerDisconnect,
 } PowerEventType;
 
 typedef struct {
@@ -67,6 +70,7 @@ FuriPubSub* power_get_pubsub(Power* power);
 bool power_off(Power* power);
 void power_reboot(Power* power, PowerRebootMode mode);
 bool power_is_usb_connected(Power* power);
+bool power_is_battery_ready(Power* power);
 void power_get_info(Power* power, PowerInfo* info);
 void power_charge_enable(Power* power, bool enable);
 void power_set_charge_current(Power* power, uint32_t current_ma);

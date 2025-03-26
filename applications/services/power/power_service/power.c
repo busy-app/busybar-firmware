@@ -1,5 +1,5 @@
 #include "power_i.h"
-#include "bq25798.h"
+#include <drivers/bq25798/bq25798.h>
 
 #define TAG "Power"
 
@@ -152,6 +152,9 @@ static void power_message_callback(FuriEventLoopObject* object, void* context) {
     case PowerMessageTypeIsUsbConnected:
         *(msg.param_bool) = power->state.usb_connected;
         break;
+    case PowerMessageTypeIsBatteryReady:
+        *(msg.param_bool) = power->state.battery_ready;
+        break;
     case PowerMessageTypeGetInfo:
         furi_assert(msg.power_info);
         memcpy(msg.power_info, &(power->info), sizeof(PowerInfo));
@@ -171,7 +174,9 @@ static void power_message_callback(FuriEventLoopObject* object, void* context) {
         memcpy(msg.pd_info, &(power->pd_info), sizeof(PowerPdInfo));
         break;
     case PowerMessageTypePdRequest:
-        power_usb_pd_request_power(power->usb_pd, *(msg.param_int), 0);
+        if(power->state.battery_ready) {
+            power_usb_pd_request_power(power->usb_pd, *(msg.param_int), 0);
+        }
         break;
     case PowerMessageTypeUsbPdUpdate:
         power_handle_pd_update(power, msg.pd_mode.voltage, msg.pd_mode.current);
@@ -185,24 +190,11 @@ static void power_message_callback(FuriEventLoopObject* object, void* context) {
     }
 }
 
-static bool power_battery_wait(Power* power) {
-    UNUSED(power);
-
-    bool ret = false;
-    do {
-        Bq25987ChargerStatus status = {};
-        if(!bq25798_get_charger_status(POWER_I2C, &status)) {
-            FURI_LOG_E(TAG, "Failed to get status");
-            break;
-        }
-        if(!status.vbat_present_stat) {
-            FURI_LOG_E(TAG, "VBAT is not ready");
-            break;
-        }
-        ret = true;
-    } while(false);
-
-    return ret;
+static void power_battery_ready(Power* power) {
+    FURI_LOG_I(TAG, "Battery ready, initializing PD");
+    power_usb_pd_start(power->usb_pd);
+    PowerEvent pub_event = {.type = PowerEventReady};
+    furi_pubsub_publish(power->event_pubsub, &pub_event);
 }
 
 static void power_update_info(Power* power) {
@@ -215,7 +207,12 @@ static void power_update_info(Power* power) {
     bq25798_get_adc_values(POWER_I2C, &adc_val);
     furi_hal_i2c_release(POWER_I2C);
 
+    if((power->state.battery_ready == false) && (status.vbat_present_stat == true)) {
+        power->state.battery_ready = true;
+        power_battery_ready(power);
+    }
     power->state.usb_connected = status.vbus_present;
+
     power->info.is_charging = (status.chg_stat != Bq25987ChargerStatusChargeStatNot);
     power->info.is_full_charged = (status.chg_stat == Bq25987ChargerStatusChargeStatTermination);
     power->info.charge =
@@ -247,6 +244,7 @@ Power* power_alloc(void) {
     power->input_current_limit = 500;
     power->charger_current_limit = CHARGE_CURRENT_MAX;
     power->charger_enabled = true;
+    power->state.battery_ready = false;
 
     furi_event_loop_subscribe_message_queue(
         power->event_loop,
@@ -263,7 +261,6 @@ Power* power_alloc(void) {
     furi_event_loop_tick_set(power->event_loop, 1000, power_tick_callback, power);
 
     power->event_pubsub = furi_pubsub_alloc();
-    furi_record_create(RECORD_POWER, power);
 
     return power;
 }
@@ -287,18 +284,18 @@ void power_run(Power* power) {
     } else {
         FURI_LOG_E(TAG, "Charger is absent");
     }
-    FURI_LOG_I(TAG, "Waiting for battery to arrive");
-    while(!power_battery_wait(power)) {
-        furi_delay_ms(1000);
+
+    Bq25987ChargerStatus status = {0};
+    bq25798_get_charger_status(POWER_I2C, &status);
+    if(status.vbat_present_stat) {
+        power->state.battery_ready = true;
+        power_battery_ready(power);
     }
-    FURI_LOG_I(TAG, "Initializing PD");
-    power_usb_pd_start(power->usb_pd);
-    // TODO: update charge current limit based on temperature
+
     bq25798_set_charge_current_limit(POWER_I2C, power->charger_current_limit);
     furi_hal_i2c_release(POWER_I2C);
 
-    PowerEvent pub_event = {.type = PowerEventReady};
-    furi_pubsub_publish(power->event_pubsub, &pub_event);
+    furi_record_create(RECORD_POWER, power);
 
     FURI_LOG_I(TAG, "Running event loop");
     furi_event_loop_run(power->event_loop);
