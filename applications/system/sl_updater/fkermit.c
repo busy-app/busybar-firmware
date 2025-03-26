@@ -442,7 +442,7 @@ bool kermit_start(kermit_t* kermit, const uint8_t timeout_seconds) {
         .npad = kermit_tochar(KERMIT_NPAD),
         .padc = kermit_ctl(KERMIT_PADC),
         .eol = kermit_tochar(KERMIT_PACKET_END), // should be `kermit_ctl` to spec
-        .qctl = (KERMIT_CONTROL_CHAR),
+        .qctl = KERMIT_CONTROL_CHAR,
         .ebq = KERMIT_EBQ_MODE,
         .bct = KERMIT_BCT_MODE,
         .rpt = KERMIT_RPT,

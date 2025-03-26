@@ -364,8 +364,6 @@ bool sl_updater_run(
     UNUSED(sl_updater_intercom_error_callback);
 #endif
 
-    // Start idle timer
-
     instance->serial_handle = furi_hal_serial_control_acquire(FuriHalSerialIdUsart2);
 
     furi_hal_serial_init(instance->serial_handle, 115200);
