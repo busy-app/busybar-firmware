@@ -37,7 +37,7 @@ static void updater_cli(Cli* cli, FuriString* args, void* context) {
             break;
         }
 
-        if(furi_string_cmp_str(cmd, "u5") == 0) {
+        if(furi_string_equal_str(cmd, "u5")) {
             printf("Not yet implemented\r\n");
             break;
         }
@@ -48,9 +48,9 @@ static void updater_cli(Cli* cli, FuriString* args, void* context) {
         }
 
         bool is_stack_image = false;
-        if(furi_string_cmp_str(cmd, "917_ta") == 0) {
+        if(furi_string_equal_str(cmd, "917_ta")) {
             is_stack_image = true;
-        } else if(furi_string_cmp_str(cmd, "917") == 0) {
+        } else if(furi_string_equal_str(cmd, "917")) {
             is_stack_image = false;
         } else {
             updater_cli_command_print_usage();
