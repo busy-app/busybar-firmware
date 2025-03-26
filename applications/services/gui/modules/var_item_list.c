@@ -210,6 +210,22 @@ static void var_item_editor_set_choices(
     }
 }
 
+static void var_item_editor_set_choices_key_value(
+    VarItemEditor* instance,
+    const VarItemKeyValue* key_value,
+    uint32_t choice_count) {
+    furi_assert(instance->type == VarItemTypeSelector);
+    furi_assert(instance->choices == NULL);
+
+    instance->choices = malloc(sizeof(VarItemSelectorChoices));
+    instance->choices->text = malloc(sizeof(char*) * choice_count);
+    instance->choices->count = choice_count;
+
+    for(uint32_t i = 0; i < choice_count; ++i) {
+        instance->choices->text[i] = strdup(key_value[i].key);
+    }
+}
+
 static void var_item_editor_clear_choices(VarItemEditor* instance) {
     furi_assert(instance->choices);
 
@@ -477,6 +493,30 @@ VarItem* var_item_list_add_selector(
     return item;
 }
 
+VarItem* var_item_list_add_selector_key_value(
+    VarItemList* instance,
+    const char* label,
+    const char* suffix,
+    const VarItemKeyValue* choice_key_val,
+    uint32_t choice_count,
+    VarItemChangeCallback callback,
+    void* context) {
+    furi_check(instance);
+    furi_check(label);
+    furi_check(choice_key_val);
+    furi_check(choice_count);
+
+    VarItem* item = var_item_alloc(instance, label, callback, context);
+
+    var_item_editor_set_type(item->editor, VarItemTypeSelector);
+    var_item_editor_set_range_and_step(item->editor, 0, choice_count - 1, 1);
+    var_item_editor_set_choices_key_value(item->editor, choice_key_val, choice_count);
+    var_item_editor_set_suffix(item->editor, suffix);
+    var_item_editor_update(item->editor);
+
+    return item;
+}
+
 VarItem* var_item_list_add_switch(
     VarItemList* instance,
     const char* label,
@@ -498,15 +538,31 @@ void var_item_set_value(VarItem* item, int32_t value) {
     furi_check(item);
 
     VarItemEditor* editor = item->editor;
-
-    furi_check(value <= editor->min);
-    furi_check(value >= editor->max);
+    furi_check(value >= editor->min);
+    furi_check(value <= editor->max);
     furi_check(value % editor->step == 0);
 
     if(editor->value != value) {
         editor->value = value;
         var_item_editor_update(editor);
     }
+}
+
+void var_item_set_value_key_value(
+    VarItem* item,
+    const VarItemKeyValue* choice_key_val,
+    int32_t value) {
+    furi_check(item);
+
+    VarItemEditor* editor = item->editor;
+    int32_t index = 0x7FFFFFFF;
+    for(int32_t i = editor->min; i <= editor->max; i++) {
+        if(choice_key_val[i].value == value) {
+            index = i;
+            break;
+        }
+    }
+    var_item_set_value(item, index);
 }
 
 int32_t var_item_get_value(const VarItem* item) {

@@ -10,6 +10,11 @@
 extern "C" {
 #endif
 
+typedef struct {
+    char* key;
+    int32_t value;
+} VarItemKeyValue;
+
 /** VarItemList opaque structure. */
 typedef struct VarItemList VarItemList;
 /** VarItem opaque structure. */
@@ -116,6 +121,26 @@ VarItem* var_item_list_add_selector(
     void* context);
 
 /**
+ * @brief Add a key:value list select element.
+ *
+ * @param[in,out] instance pointer to the VarItemList instance to be modified
+ * @param[in] label zero-terminated string containing the item label
+ * @param[in] choice_key_val pointer to an array of VarItemKeyValue structures
+ * @param[in] choice_count number of elements in the choice_text array
+ * @param[in] callback pointer to the function to call upon value being changed
+ * @param[in,out] context pointer to a user-specific object, will be passed to callback
+ * @returns pointer to the newly created VarItem instance
+ */
+VarItem* var_item_list_add_selector_key_value(
+    VarItemList* instance,
+    const char* label,
+    const char* suffix,
+    const VarItemKeyValue* choice_key_val,
+    uint32_t choice_count,
+    VarItemChangeCallback callback,
+    void* context);
+
+/**
  * @brief Add a binary switch (on-off) item.
  *
  * @param[in,out] instance pointer to the VarItemList instance to be modified
@@ -143,6 +168,21 @@ VarItem* var_item_list_add_switch(
  * @param[in] value value to be set
  */
 void var_item_set_value(VarItem* item, int32_t value);
+
+/**
+ * @brief Set the current item value.
+ *
+ * This function has a different meaning depending on the item type:
+ * - VarItemKeyValue: set the current choice index
+ *
+ * @param[in,out] instance pointer to the item to be modified
+ * @param[in] choice_key_val pointer to the array of VarItemKeyValue structures
+ * @param[in] value value to be set
+ */
+void var_item_set_value_key_value(
+    VarItem* item,
+    const VarItemKeyValue* choice_key_val,
+    int32_t value);
 
 /**
  * @brief Get the current item value.

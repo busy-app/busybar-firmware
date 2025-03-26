@@ -13,10 +13,11 @@ App(
         "power_test",
         # "wifi_setup",
         # "sockets_test",
-        # "sl_update_test",
         "animation_player",
         # "busy",
         "dummy",
+        "ble_per_test",
+        "wifi_per_test",
     ],
     targets=["f20"],
 )
