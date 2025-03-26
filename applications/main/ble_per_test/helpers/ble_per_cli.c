@@ -97,13 +97,6 @@ BlePerStats ble_per_cli_stats[BlePerCliStatsCmdMax] = {
     [BlePerCliStatsCmdTypeRssi] = {"rssi:"},
 };
 
-// typedef struct {
-//     uint32_t tx_dones;
-//     uint32_t crc_fail_cnt;
-//     uint32_t crc_pass_cnt;
-//     uint32_t rssi;
-// } BlePerCliStats;
-
 CliCommandSlCli* ble_per_cli_instance = NULL;
 
 static void cli_command_917_rx_callback(const void* data, size_t data_size, void* context) {
