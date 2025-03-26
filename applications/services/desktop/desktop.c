@@ -359,6 +359,7 @@ int32_t desktop_srv(void* arg) {
     UNUSED(arg);
 
     Desktop* instance = desktop_alloc();
+
     furi_event_loop_run(instance->event_loop);
 
     return 0;
