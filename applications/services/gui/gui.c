@@ -172,8 +172,11 @@ static void gui_init_front(GuiDisplay* display) {
 }
 
 static void gui_init_back(GuiDisplay* display) {
-    display->draw_buffer = malloc(BACK_DRAW_BUFFER_SIZE);
-    display->lv_display = lv_display_create(BACK_W, BACK_H);
+    const size_t back_display_buffer_size =
+        back_display_get_width() * back_display_get_height() * BACK_BYTES_PER_PIXEL;
+
+    display->draw_buffer = malloc(back_display_buffer_size);
+    display->lv_display = lv_display_create(back_display_get_width(), back_display_get_height());
     display->driver = furi_record_open(RECORD_BACK_DISPLAY);
 
     lv_display_set_user_data(display->lv_display, display);
@@ -183,7 +186,7 @@ static void gui_init_back(GuiDisplay* display) {
         display->lv_display,
         display->draw_buffer,
         NULL,
-        BACK_DRAW_BUFFER_SIZE,
+        back_display_buffer_size,
         LV_DISPLAY_RENDER_MODE_DIRECT);
 
     lv_theme_t* theme = lv_theme_front_alloc(display->lv_display, &lv_font_haxrcorp4089_16);

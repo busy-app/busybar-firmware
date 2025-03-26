@@ -3,8 +3,6 @@
 #include <ssd1320/ssd1320.h>
 #include "back_display.h"
 
-#define BACK_DISPLAY_BUFFERS 2
-
 typedef enum {
     BackDisplayEventDraw = 1 << 0,
     BackDisplayEventTearing = 1 << 1,
@@ -12,7 +10,7 @@ typedef enum {
 
 struct BackDisplaySrv {
     FuriEventLoop* event_loop;
-    uint8_t data[BACK_DISPLAY_BUFFERS][BACK_DISPLAY_BUF_SIZE];
+    uint8_t data[2][SSD1320_BUF_SIZE];
 
     FuriMutex* buffers_mutex;
     uint8_t* send_buffer;
@@ -22,7 +20,7 @@ struct BackDisplaySrv {
 };
 
 static void buffer_l8_to_l4(uint8_t* dst_l4, const uint8_t* src_l8) {
-    for(uint32_t i = 0; i < BACK_DISPLAY_BUF_SIZE; ++i) {
+    for(uint32_t i = 0; i < SSD1320_BUF_SIZE; ++i) {
         const uint32_t draw_idx = 2 * i;
         dst_l4[i] = (src_l8[draw_idx] >> 4) | (src_l8[draw_idx + 1] & 0xF0);
     }
@@ -94,6 +92,14 @@ void back_display_draw(BackDisplaySrv* instance, const uint8_t* buf) {
     furi_mutex_release(instance->buffers_mutex);
 
     furi_event_loop_set_custom_event(instance->event_loop, BackDisplayEventDraw);
+}
+
+size_t back_display_get_width(void) {
+    return SSD1320_W;
+}
+
+size_t back_display_get_height(void) {
+    return SSD1320_H;
 }
 
 int32_t back_display_srv(void* arg) {
