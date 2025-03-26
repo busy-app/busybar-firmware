@@ -50,7 +50,7 @@ struct SlUpdater {
     kermit_t* kermit;
 };
 
-#define KERMIT_TIMEOUT_SECONDS (5)
+#define KERMIT_TIMEOUT_SECONDS (2)
 
 //////////////////////////////////////////////////////////////////////////
 // Kermit i/o functions
@@ -62,7 +62,7 @@ static int32_t kermit_src_file_read(void* context, uint8_t* buffer, size_t lengt
 
 static int32_t kermit_comms_send(void* context, const uint8_t* buffer, size_t length) {
     SlUpdater* app = context;
-    FURI_LOG_D(TAG, "Sending %d bytes", length);
+    FURI_LOG_T(TAG, "Sending %d bytes", length);
 
 #ifdef KERMIT_DEBUG
     FuriString* str = furi_string_alloc();
@@ -210,11 +210,6 @@ static void sl_updater_handle_rx(SlUpdater* instance) {
             }
         } else {
             FURI_LOG_I(TAG, "Kermit upload complete");
-            // Set higher watchdog timeout
-            furi_event_loop_timer_start(
-                instance->idle_timer,
-                furi_ms_to_ticks((instance->install_timeout_seconds + 2) * 1000));
-
             instance->bootloader_state = Si917BootloaderStateWaitInstall;
         }
         break;
@@ -272,6 +267,16 @@ static void sl_updater_intercom_error_callback(IntercomError error, void* contex
 
 static void sl_update_idle_timer_callback(void* context) {
     SlUpdater* instance = context;
+    if(instance->bootloader_state == Si917BootloaderStateWaitInstall) {
+        // First time we timeout, we update the timer to an actual install timeout
+        uint32_t desired_timeout = furi_ms_to_ticks(instance->install_timeout_seconds * 1000);
+        if(furi_event_loop_timer_get_interval(instance->idle_timer) != desired_timeout) {
+            furi_event_loop_timer_start(instance->idle_timer, desired_timeout);
+            FURI_LOG_I(
+                TAG, "Setting install timeout to %d seconds", instance->install_timeout_seconds);
+            return;
+        }
+    }
 
     FURI_LOG_W(TAG, "Watchdog expired");
     furi_event_loop_stop(instance->event_loop);
@@ -338,6 +343,7 @@ bool sl_updater_run(
     instance->is_stack_image = is_stack_image;
 
     kermit_reset_state(instance->kermit);
+    // We start with the default timeout since it's enough for non-install operations
     furi_event_loop_timer_start(
         instance->idle_timer, furi_ms_to_ticks((KERMIT_TIMEOUT_SECONDS + 1) * 1000));
 

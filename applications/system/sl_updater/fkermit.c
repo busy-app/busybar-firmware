@@ -545,8 +545,7 @@ static kermit_packet_t* kermit_encode_file_header_packet(kermit_t* kermit) {
 static bool kermit_process_packet(kermit_t* kermit) {
     furi_check(kermit->rx.packet != NULL);
 
-    FURI_LOG_D(
-        TAG,
+    KERMIT_LOG(
         "Received packet type: %c, seq: %i, data: %s",
         kermit->rx.type,
         kermit->rx.seq,
