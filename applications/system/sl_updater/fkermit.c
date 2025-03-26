@@ -497,41 +497,41 @@ static kermit_packet_t* kermit_encode_file_data_packet(kermit_t* kermit) {
     furi_check(kermit->file_transfer_state == KERMIT_FILE_TRANSFER_STATE_SEND_FILE_DATA);
     furi_check(kermit->max_ext_packet_length >= 2);
 
-    uint8_t* tmp_buffer = malloc(kermit->max_ext_packet_length);
-    uint8_t* read_buffer = malloc(kermit->max_ext_packet_length / 2);
-    uint8_t* buffer_ptr = tmp_buffer;
+    uint8_t* encoded_data = malloc(kermit->max_ext_packet_length);
+    uint8_t* encoded_data_write = encoded_data;
 
-    size_t read_bytes = kermit->io->src_file_read(
+    uint8_t* read_buffer = malloc(kermit->max_ext_packet_length / 2);
+    const size_t read_length = kermit->io->src_file_read(
         kermit->io_context, read_buffer, kermit->max_ext_packet_length / 2);
 
-    for(size_t i = 0; i < read_bytes; i++) {
-        uint8_t file_char = read_buffer[i];
+    for(size_t i = 0; i < read_length; i++) {
+        const uint8_t file_char = read_buffer[i];
 
-        // Escape control characters
         if(((file_char & 0x7F) < 0x20) || (file_char == 0x7F)) {
-            *buffer_ptr++ = KERMIT_CONTROL_CHAR;
-            *buffer_ptr++ = kermit_ctl(file_char);
+            *encoded_data_write++ = KERMIT_CONTROL_CHAR;
+            *encoded_data_write++ = kermit_ctl(file_char);
         } else if(file_char == KERMIT_CONTROL_CHAR) {
-            *buffer_ptr++ = KERMIT_CONTROL_CHAR;
-            *buffer_ptr++ = KERMIT_CONTROL_CHAR;
+            *encoded_data_write++ = KERMIT_CONTROL_CHAR;
+            *encoded_data_write++ = KERMIT_CONTROL_CHAR;
         } else {
-            *buffer_ptr++ = file_char;
+            *encoded_data_write++ = file_char;
         }
     }
     free(read_buffer);
-    size_t length = buffer_ptr - tmp_buffer;
+    const size_t encoded_length = encoded_data_write - encoded_data;
 
-    if(length == 0) {
-        free(tmp_buffer);
+    kermit_packet_t* packet = NULL;
+    if(encoded_length == 0) {
         FURI_LOG_I(TAG, "EOF packet");
+        packet = kermit_create_packet(kermit, KERMIT_PACKET_TYPE_EOF, NULL, 0);
         kermit->file_transfer_state = KERMIT_FILE_TRANSFER_STATE_SEND_FILE_EOF;
-        return kermit_create_packet(kermit, KERMIT_PACKET_TYPE_EOF, NULL, 0);
+    } else {
+        KERMIT_LOG("Packeted %d bytes from %d file bytes", length, read_bytes);
+        packet = kermit_create_ext_packet(
+            kermit, KERMIT_PACKET_TYPE_DATA, encoded_data, encoded_length);
     }
 
-    KERMIT_LOG("Packeted %d bytes from %d file bytes", length, read_bytes);
-    kermit_packet_t* packet =
-        kermit_create_ext_packet(kermit, KERMIT_PACKET_TYPE_DATA, tmp_buffer, length);
-    free(tmp_buffer);
+    free(encoded_data);
     return packet;
 }
 
