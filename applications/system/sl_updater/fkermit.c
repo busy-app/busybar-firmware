@@ -498,14 +498,16 @@ static kermit_packet_t* kermit_encode_file_data_packet(kermit_t* kermit) {
     furi_check(kermit->max_ext_packet_length >= 2);
 
     uint8_t* tmp_buffer = malloc(kermit->max_ext_packet_length);
+    uint8_t* read_buffer = malloc(kermit->max_ext_packet_length / 2);
     uint8_t* buffer_ptr = tmp_buffer;
-    do {
-        uint8_t file_char;
-        if(kermit->io->src_file_read(kermit->io_context, &file_char, 1) != 1) {
-            FURI_LOG_W(TAG, "Failed to read file");
-            break; // eof or error
-        }
 
+    size_t read_bytes = kermit->io->src_file_read(
+        kermit->io_context, read_buffer, kermit->max_ext_packet_length / 2);
+
+    for(size_t i = 0; i < read_bytes; i++) {
+        uint8_t file_char = read_buffer[i];
+
+        // Escape control characters
         if(((file_char & 0x7F) < 0x20) || (file_char == 0x7F)) {
             *buffer_ptr++ = KERMIT_CONTROL_CHAR;
             *buffer_ptr++ = kermit_ctl(file_char);
@@ -515,10 +517,8 @@ static kermit_packet_t* kermit_encode_file_data_packet(kermit_t* kermit) {
         } else {
             *buffer_ptr++ = file_char;
         }
-        // leave 1 byte in case last char will be escaped
-        // so we don't need to rewind the file pointer if it doesn't fit
-    } while((uint32_t)(buffer_ptr - tmp_buffer) < (kermit->max_ext_packet_length - 2));
-
+    }
+    free(read_buffer);
     size_t length = buffer_ptr - tmp_buffer;
 
     if(length == 0) {
@@ -528,7 +528,7 @@ static kermit_packet_t* kermit_encode_file_data_packet(kermit_t* kermit) {
         return kermit_create_packet(kermit, KERMIT_PACKET_TYPE_EOF, NULL, 0);
     }
 
-    KERMIT_LOG("Packeted %d bytes", length);
+    KERMIT_LOG("Packeted %d bytes from %d file bytes", length, read_bytes);
     kermit_packet_t* packet =
         kermit_create_ext_packet(kermit, KERMIT_PACKET_TYPE_DATA, tmp_buffer, length);
     free(tmp_buffer);
