@@ -125,6 +125,23 @@ typedef struct {
 
 _Static_assert(sizeof(kermit_packet_footer_t) == 2, "Invalid size of kermit_packet_footer_t");
 
+typedef struct {
+    uint8_t maxl;
+    uint8_t timo;
+    uint8_t npad;
+    uint8_t padc;
+    uint8_t eol;
+    uint8_t qctl;
+    uint8_t ebq;
+    uint8_t bct;
+    uint8_t rpt;
+    uint8_t capas;
+    uint8_t wslots;
+    uint8_t maxlx1, maxlx2;
+} FURI_PACKED kermit_init_packet_t;
+
+_Static_assert(sizeof(kermit_init_packet_t) == 13, "Invalid size of kermit_init_packet_t");
+
 // Kermit packet allocation and deallocation
 
 static kermit_packet_t* kermit_packet_alloc(size_t sz) {
@@ -273,6 +290,7 @@ kermit_t* kermit_alloc(const kermit_io_t* io, void* context) {
 }
 
 void kermit_free(kermit_t* kermit) {
+    kermit_reset_state(kermit);
     free(kermit);
 }
 
@@ -281,21 +299,6 @@ bool kermit_is_active(kermit_t* kermit) {
 }
 
 static bool kermit_process_packet(kermit_t* kermit);
-
-typedef struct {
-    uint8_t maxl;
-    uint8_t timo;
-    uint8_t npad;
-    uint8_t padc;
-    uint8_t eol;
-    uint8_t qctl;
-    uint8_t ebq;
-    uint8_t bct;
-    uint8_t rpt;
-    uint8_t capas;
-    uint8_t wslots;
-    uint8_t maxlx1, maxlx2;
-} FURI_PACKED kermit_init_packet_t;
 
 static bool kermit_feed_byte(kermit_t* kermit, uint8_t c) {
     furi_check(kermit != NULL);
@@ -535,9 +538,7 @@ static kermit_packet_t* kermit_encode_file_data_packet(kermit_t* kermit) {
     return packet;
 }
 
-static kermit_packet_t* kermit_encode_file_header_packet(kermit_t* kermit) {
-    static const char filename[] = KERMIT_DEFAULT_FILE_NAME;
-
+static kermit_packet_t* kermit_encode_file_header_packet(kermit_t* kermit, const char* filename) {
     return kermit_create_packet(
         kermit, KERMIT_PACKET_TYPE_FILE, (uint8_t*)filename, strlen(filename));
 }
@@ -552,24 +553,21 @@ static bool kermit_process_packet(kermit_t* kermit) {
         kermit->rx.packet->sz ? (const char*)kermit->rx.packet->data : "NULL");
 
     if(kermit_next_seq(kermit->rx.seq) != kermit->seq_counter) {
-        FURI_LOG_E(
-            TAG, "Invalid sequence number: %d != %d", kermit->rx.seq, kermit->seq_counter - 1);
+        FURI_LOG_E(TAG, "Broken sequencing");
         return false;
     }
 
     kermit_packet_t* response_packet = NULL;
-
     bool rx_packet_is_sane = true;
 
-    const kermit_packet_type_t packet_type = kermit->rx.type;
-    switch(packet_type) {
+    switch(kermit->rx.type) {
     case KERMIT_PACKET_TYPE_ACK:
         KERMIT_LOG("ACK received, state: %d", kermit->file_transfer_state);
         switch(kermit->file_transfer_state) {
         case KERMIT_FILE_TRANSFER_STATE_SYNC_PARAMS:
             kermit->file_transfer_state = KERMIT_FILE_TRANSFER_STATE_SEND_FILE_DATA;
             rx_packet_is_sane = kermit_parse_session_params(kermit);
-            response_packet = kermit_encode_file_header_packet(kermit);
+            response_packet = kermit_encode_file_header_packet(kermit, KERMIT_DEFAULT_FILE_NAME);
             break;
 
         case KERMIT_FILE_TRANSFER_STATE_SEND_FILE_DATA:
@@ -601,7 +599,7 @@ static bool kermit_process_packet(kermit_t* kermit) {
         break;
 
     default:
-        FURI_LOG_E(TAG, "Unsupported packet type: '%c' (%02x)", packet_type, packet_type);
+        FURI_LOG_E(TAG, "Unsupported packet type: '%c' (%02xh)", kermit->rx.type, kermit->rx.type);
         break;
     }
 
