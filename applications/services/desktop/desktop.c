@@ -315,7 +315,7 @@ static Desktop* desktop_alloc(void) {
     instance->overlay = desktop_overlay_alloc(gui);
 
     instance->current_request = desktop_start_request_alloc();
-    desktop_start_request_set_name(instance->current_request, "apps_menu");
+    instance->switch_pos = InputSwitchPositionApps;
 
     furi_event_loop_subscribe_message_queue(
         instance->event_loop,
@@ -343,6 +343,11 @@ static Desktop* desktop_alloc(void) {
 
     FuriPubSub* input_events = furi_record_open(RECORD_INPUT_EVENTS);
     furi_pubsub_subscribe(input_events, desktop_input_pubsub_callback, instance);
+
+    desktop_prepare_default_app(instance);
+    if(!loader_is_locked(instance->loader)) {
+        desktop_start_current_app(instance);
+    }
 
     furi_record_create(RECORD_DESKTOP, instance);
     return instance;
