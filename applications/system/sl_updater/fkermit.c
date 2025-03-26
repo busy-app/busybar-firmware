@@ -243,13 +243,16 @@ kermit_packet_t* kermit_create_ext_packet(
     return packet;
 }
 
-static void kermit_reset_state(kermit_t* kermit) {
+void kermit_reset_state(kermit_t* kermit) {
     kermit->seq_counter = 0;
 
     kermit->max_packet_length = KERMIT_PACKET_MAX_LENGTH;
     kermit->max_ext_packet_length = KERMIT_PACKET_EXT_MAX_LENGTH;
 
-    // todo: release packet if allocated
+    if(kermit->rx.packet) {
+        kermit_packet_free(kermit->rx.packet);
+    }
+
     memset(&kermit->rx, 0, sizeof(kermit_rx_t));
     kermit->rx.state = KERMIT_PACKET_STATE_WAIT_MARK;
 
@@ -262,6 +265,8 @@ kermit_t* kermit_alloc(const kermit_io_t* io, void* context) {
     kermit_t* kermit = malloc(sizeof(kermit_t));
     kermit->io = io;
     kermit->io_context = context;
+
+    kermit->rx.packet = NULL;
     kermit_reset_state(kermit);
 
     return kermit;
@@ -303,9 +308,6 @@ static bool kermit_feed_byte(kermit_t* kermit, uint8_t c) {
     switch(rx->state) {
     case KERMIT_PACKET_STATE_WAIT_MARK:
         if(c == KERMIT_PACKET_MARK) {
-            rx->state = KERMIT_PACKET_STATE_WAIT_LEN;
-        } else if(c == 0) { /// what the actual hell. FIXME TODO WTF
-            FURI_LOG_E(TAG, "Received zero byte, accepting as mark");
             rx->state = KERMIT_PACKET_STATE_WAIT_LEN;
         } else {
             KERMIT_LOG("Garbage data: %02x", c);

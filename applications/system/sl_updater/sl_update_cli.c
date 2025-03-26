@@ -58,11 +58,15 @@ static void updater_cli(Cli* cli, FuriString* args, void* context) {
         }
 
         for(int i = 0; i < SL_UPDATE_RETRIES; i++) {
-            printf("Update in progress");
+            printf("Update in progress\r\n");
             if(updater_cli_execute(furi_string_get_cstr(path), is_stack_image)) {
                 printf("Update succeeded\r\n");
                 break;
             } else {
+                if(i == SL_UPDATE_RETRIES - 1) {
+                    printf("Update failed\r\n");
+                    break;
+                }
                 printf("Update failed, retrying (%d/%d)\r\n", i + 1, SL_UPDATE_RETRIES);
             }
         }

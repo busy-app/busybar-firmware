@@ -30,6 +30,8 @@ bool kermit_is_active(kermit_t* kermit);
 // If false is returned, state of the session is invalid, and operation should be aborted.
 bool kermit_feed_serial_data(kermit_t* kermit, const uint8_t* data, size_t length);
 
+void kermit_reset_state(kermit_t* kermit);
+
 #ifdef __cplusplus
 }
 #endif
