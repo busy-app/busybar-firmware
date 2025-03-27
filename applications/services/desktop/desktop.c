@@ -41,7 +41,7 @@ struct Desktop {
     DesktopOverlay* overlay;
     DesktopStartRequest* current_request;
     InputSwitchPosition switch_pos;
-    bool lock_current_app;
+    bool pin_current_app;
 };
 
 static const DesktopDefaultApp desktop_default_apps[];
@@ -54,10 +54,10 @@ static void desktop_input_pubsub_callback(const void* message, void* context) {
     const InputEvent* event = message;
     Desktop* instance = context;
 
-    if(event->type == InputTypePress) {
-        const InputKey key = event->key;
-        // Only react to rotary switch events
-        if(!instance->lock_current_app) {
+    if(!instance->pin_current_app) {
+        if(event->type == InputTypePress) {
+            const InputKey key = event->key;
+            // Only react to rotary switch events
             if(key >= InputKeyBusy && key < InputKeyMAX) {
                 const InputSwitchPosition pos = key - InputKeyBusy;
 
@@ -366,7 +366,7 @@ bool desktop_replace_current_app(Desktop* instance, const char* name, const char
 void desktop_pin_current_app(Desktop* instance, bool pin) {
     furi_check(instance);
 
-    instance->lock_current_app = pin;
+    instance->pin_current_app = pin;
 }
 
 int32_t desktop_srv(void* arg) {
