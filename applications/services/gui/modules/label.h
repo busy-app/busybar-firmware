@@ -57,6 +57,14 @@ void label_set_text(Label* instance, const char* text);
 void label_set_text_fmt(Label* instance, const char* fmt, ...)
     _ATTRIBUTE((__format__(__printf__, 2, 3)));
 
+/**
+ * @brief Set the label line spacing.
+ *
+ * @param[in,out] instance pointer to the Label instance to be modified
+ * @param[in] spacing spacing value in pixels
+ */
+void label_set_line_spacing(Label* instance, int32_t spacing);
+
 #ifdef __cplusplus
 }
 #endif
