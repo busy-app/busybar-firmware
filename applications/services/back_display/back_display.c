@@ -3,8 +3,6 @@
 #include <ssd1320/ssd1320.h>
 #include "back_display.h"
 
-#define CANARY_SIZE 512
-
 typedef enum {
     BackDisplayEventDraw = 1 << 0,
     BackDisplayEventTearing = 1 << 1,
