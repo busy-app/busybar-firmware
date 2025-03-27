@@ -142,11 +142,19 @@ static void sl_updater_handle_rx(SlUpdater* instance) {
 
     case Si917BootloaderStateChangeBaudRate:
         if(sl_updater_check_rx_for(instance, "5 115200\r\n")) {
-            const uint8_t choice = '3';
+            const uint8_t choice = '4';
             furi_hal_serial_tx(instance->serial_handle, &choice, sizeof(choice));
             FURI_LOG_I(TAG, "UART Baud Rate speed request sent: %c", choice);
 
-            furi_hal_serial_set_baud_rate(instance->serial_handle, 460800);
+            furi_hal_serial_set_baud_rate(instance->serial_handle, 881600);
+            FURI_LOG_I(TAG, "Baud rate set %ld", furi_hal_serial_get_baud_rate(instance->serial_handle));
+            
+            if(furi_hal_serial_set_auto_baud_rate_by_0x55_pattern(instance->serial_handle,13000)){
+                FURI_LOG_I(TAG, "Baud rate auto set %ld", furi_hal_serial_get_baud_rate(instance->serial_handle));
+            }
+            else{
+                FURI_LOG_E(TAG, "Baud rate auto set failed");
+            }
             instance->bootloader_state = Si917BootloaderStateChangeBaudRateNewLeader;
         }
         break;

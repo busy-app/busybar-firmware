@@ -101,6 +101,25 @@ void furi_hal_serial_resume(FuriHalSerialHandle* handle);
 bool furi_hal_serial_is_baud_rate_supported(FuriHalSerialHandle* handle, uint32_t baud_rate);
 
 /**
+ * Auto detect baudrate by 0x55 byte
+ * @warning After running this function, 0x55 bytes must arrive within timeout, otherwise it will fail
+ *
+ * @param handle Pointer to the serial handle.
+ * @param timeout_set Timeout, ms.
+ * @returns true if the baud rate was set successfully, false otherwise.
+ */
+bool furi_hal_serial_set_auto_baud_rate_by_0x55_pattern(
+    FuriHalSerialHandle* handle,
+    uint32_t timeout_set);
+
+/**
+ * Get the baud rate for the serial interface.
+ * @param handle Pointer to the serial handle.
+ * @returns Baud rate.
+ */
+uint32_t furi_hal_serial_get_baud_rate(FuriHalSerialHandle* handle);
+
+/**
  * Set the baud rate for the serial interface.
  *
  * @param handle Pointer to the serial handle.

@@ -480,6 +480,42 @@ bool furi_hal_serial_is_baud_rate_supported(FuriHalSerialHandle* handle, uint32_
     return baud_rate >= 10 && baud_rate <= 20000000;
 }
 
+bool furi_hal_serial_set_auto_baud_rate_by_0x55_pattern(
+    FuriHalSerialHandle* handle,
+    uint32_t timeout_set) {
+    furi_check(handle);
+
+    FuriHalSerial* serial = furi_hal_serial[handle->id];
+    USART_TypeDef* periph = serial->periph_ptr;
+    FuriHalCortexTimer timeout = furi_hal_cortex_timer_get(timeout_set);
+
+    while(!LL_USART_IsActiveFlag_TXE_TXFNF(periph))
+        ;
+    LL_USART_TransmitData8(periph, 0x55);
+    LL_USART_SetAutoBaudRateMode(periph, LL_USART_AUTOBAUD_DETECT_ON_55_FRAME);
+    LL_USART_EnableAutoBaudRate(periph);
+    while(!LL_USART_IsActiveFlag_ABR(periph)&&
+    !furi_hal_cortex_timer_is_expired(timeout)){
+        furi_thread_yield();
+    };
+    return !LL_USART_IsActiveFlag_ABRE(periph);
+}
+
+uint32_t furi_hal_serial_get_baud_rate(FuriHalSerialHandle* handle) {
+    furi_check(handle);
+
+    FuriHalSerial* serial = furi_hal_serial[handle->id];
+    furi_check(serial);
+
+    USART_TypeDef* periph = serial->periph_ptr;
+
+    uint32_t prescaler = LL_USART_GetPrescaler(periph);
+    uint32_t over_sampling = LL_USART_GetOverSampling(periph);
+    uint32_t baud_rate = LL_USART_GetBaudRate(periph, SystemCoreClock, prescaler, over_sampling);
+
+    return baud_rate;
+}
+
 void furi_hal_serial_set_baud_rate(FuriHalSerialHandle* handle, uint32_t baud_rate) {
     furi_check(handle);
     furi_check(furi_hal_serial_is_baud_rate_supported(handle, baud_rate));
