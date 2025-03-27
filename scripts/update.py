@@ -75,13 +75,23 @@ class CubeCLIProgrammer(DfuProgrammerBackend):
 _programmers = [CubeCLIProgrammer, DfuUtil]
 
 
-def get_dfu_programmer():
+def get_available_dfu_programmer():
     for programmer in _programmers:
         if programmer.is_available():
             print(f"Using {programmer.UTIL_BIN_NAME} as DFU programmer")
             return programmer()
     raise RuntimeError(
         f"No DFU programmer found. Please proide one of {', '.join([p.UTIL_BIN_NAME for p in _programmers])}"
+    )
+
+
+def get_dfu_programmer_for_file(file_path):
+    for programmer in _programmers:
+        if programmer.is_file_supported(file_path):
+            print(f"Using {programmer.UTIL_BIN_NAME} as DFU programmer")
+            return programmer()
+    raise RuntimeError(
+        f"No DFU programmer found for file type {Path(file_path).suffix}. Please provide one of {', '.join([p.SUPPORTED_FILE_EXTENSION for p in _programmers])}"
     )
 
 
@@ -137,11 +147,9 @@ class UpdaterMain(App):
 
     def update_u5(self):
         try:
-            dfu_tool = get_dfu_programmer()
-            if not dfu_tool.is_file_supported(self.args.firmware_path):
-                raise RuntimeError(
-                    f"Unsupported file type for {dfu_tool.UTIL_BIN_NAME}: {self.args.firmware_path}. Expected {dfu_tool.SUPPORTED_FILE_EXTENSION}"
-                )
+            dfu_tool = get_dfu_programmer_for_file(self.args.firmware_path)
+            if not dfu_tool.is_available():
+                raise RuntimeError(f"{dfu_tool.UTIL_BIN_NAME} is not available")
 
             if self.args.to_dfu and not dfu_tool.find_devices():
                 self.logger.info("Trying to reset the device to DFU mode")
