@@ -41,6 +41,7 @@ struct Desktop {
     DesktopOverlay* overlay;
     DesktopStartRequest* current_request;
     InputSwitchPosition switch_pos;
+    bool pin_current_app;
 };
 
 static const DesktopDefaultApp desktop_default_apps[];
@@ -53,15 +54,17 @@ static void desktop_input_pubsub_callback(const void* message, void* context) {
     const InputEvent* event = message;
     Desktop* instance = context;
 
-    if(event->type == InputTypePress) {
-        const InputKey key = event->key;
-        // Only react to rotary switch events
-        if(key >= InputKeyBusy && key < InputKeyMAX) {
-            const InputSwitchPosition pos = key - InputKeyBusy;
+    if(!instance->pin_current_app) {
+        if(event->type == InputTypePress) {
+            const InputKey key = event->key;
+            // Only react to rotary switch events
+            if(key >= InputKeyBusy && key < InputKeyMAX) {
+                const InputSwitchPosition pos = key - InputKeyBusy;
 
-            furi_check(
-                furi_message_queue_put(instance->input_queue, &pos, FuriWaitForever) ==
-                FuriStatusOk);
+                furi_check(
+                    furi_message_queue_put(instance->input_queue, &pos, FuriWaitForever) ==
+                    FuriStatusOk);
+            }
         }
     }
 }
@@ -315,7 +318,7 @@ static Desktop* desktop_alloc(void) {
     instance->overlay = desktop_overlay_alloc(gui);
 
     instance->current_request = desktop_start_request_alloc();
-    desktop_start_request_set_name(instance->current_request, "apps_menu");
+    instance->switch_pos = InputSwitchPositionApps;
 
     furi_event_loop_subscribe_message_queue(
         instance->event_loop,
@@ -344,6 +347,11 @@ static Desktop* desktop_alloc(void) {
     FuriPubSub* input_events = furi_record_open(RECORD_INPUT_EVENTS);
     furi_pubsub_subscribe(input_events, desktop_input_pubsub_callback, instance);
 
+    desktop_prepare_default_app(instance);
+    if(!loader_is_locked(instance->loader)) {
+        desktop_start_current_app(instance);
+    }
+
     furi_record_create(RECORD_DESKTOP, instance);
     return instance;
 }
@@ -355,10 +363,17 @@ bool desktop_replace_current_app(Desktop* instance, const char* name, const char
     return desktop_enqueue_start_request(instance, name, args);
 }
 
+void desktop_pin_current_app(Desktop* instance, bool pin) {
+    furi_check(instance);
+
+    instance->pin_current_app = pin;
+}
+
 int32_t desktop_srv(void* arg) {
     UNUSED(arg);
 
     Desktop* instance = desktop_alloc();
+
     furi_event_loop_run(instance->event_loop);
 
     return 0;

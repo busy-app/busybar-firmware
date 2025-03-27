@@ -21,6 +21,7 @@ App(
         "sockets",
         "status_lights",
         "light_sensor",
+        "power_popup",
     ],
     targets=["f20"],
 )

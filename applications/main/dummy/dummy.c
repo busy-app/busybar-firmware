@@ -14,7 +14,7 @@ typedef struct {
     FuriEventLoop* event_loop;
     Audio* audio;
     Gui* gui;
-    Label* label;
+    Label* labels[GuiDisplayIdMax];
     bool exit_on_back;
 } Dummy;
 
@@ -65,12 +65,17 @@ static Dummy* dummy_alloc(const char* message) {
         GuiLayer* main_layer = gui_get_layer(instance->gui, GuiLayerIdMain);
         gui_layer_add_input_callback(main_layer, dummy_input_callback, instance);
 
-        Widget* root = gui_layer_get_root_widget(main_layer, GuiDisplayIdFront);
-        instance->label = label_alloc(root);
+        Widget* root;
 
-        label_set_text(instance->label, message ? message : "Hello There");
+        for(GuiDisplayId id = 0; id < GuiDisplayIdMax; ++id) {
+            root = gui_layer_get_root_widget(main_layer, id);
 
-        widget_set_align(label_get_base(instance->label), AlignCenter);
+            Label* label = label_alloc(root);
+            label_set_text(label, message ? message : "Hello There");
+            widget_set_align(label_get_base(label), AlignCenter);
+
+            instance->labels[id] = label;
+        }
 
         if(message == NULL) {
             instance->exit_on_back = true;
@@ -84,7 +89,9 @@ static void dummy_free(Dummy* instance) {
     with_gui(instance->gui, {
         GuiLayer* main_layer = gui_get_layer(instance->gui, GuiLayerIdMain);
         gui_layer_remove_input_callback(main_layer, dummy_input_callback);
-        label_free(instance->label);
+        for(GuiDisplayId id = 0; id < GuiDisplayIdMax; ++id) {
+            label_free(instance->labels[id]);
+        }
     });
 
     furi_record_close(RECORD_GUI);

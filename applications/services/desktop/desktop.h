@@ -37,3 +37,17 @@ typedef struct Desktop Desktop;
  * @returns true if the request has been scheduled, false otherwise
  */
 bool desktop_replace_current_app(Desktop* instance, const char* name, const char* args);
+
+/**
+ * @brief Pin or unpin the currently running app.
+ *
+ * Calling this function will prevent the Desktop from changing the currently
+ * running app in response to flicking the rotary switch, or, conversely,
+ * enable this behaviour, depending on the pin parameter value.
+ *
+ * @warning This function is intended for testing purposes only.
+ *
+ * @param[in,out] instance pointer to the Desktop instance
+ * @param[in] pin pin current app if true, do not pin if false
+ */
+void desktop_pin_current_app(Desktop* instance, bool pin);

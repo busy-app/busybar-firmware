@@ -2,6 +2,7 @@ App(
     appid="led_display_test",
     name="LedDisplayTest",
     apptype=FlipperAppType.APP,
+    order=40,
     entry_point="led_display_test_app",
     requires=["gui"],
     stack_size=2 * 1024,

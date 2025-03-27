@@ -287,7 +287,7 @@ void gui_layer_add_input_callback(GuiLayer* layer, GuiInputCallback callback, vo
         GuiInputItemList_next(it)) {
         const GuiInputItem* item = GuiInputItemList_cref(it);
         if(item->callback == callback) {
-            furi_crash(TAG ": Callback alrady registered");
+            furi_crash(TAG ": Callback already registered");
         }
     }
 

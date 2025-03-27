@@ -23,12 +23,18 @@ typedef struct {
     LightSensorData* data;
     uint8_t light_level_previous;
     uint8_t light_level;
+
+    bool sensor_alive;
 } LightSensor;
 
 LightSensor* light_sensor = NULL;
 
 static void light_sensor_timer_callback(void* context) {
     LightSensor* instance = context;
+
+    if(instance->sensor_alive == false) {
+        return;
+    }
 
     float lux = 0.0f;
     bool read_success = furi_hal_light_sensor_read_lux(LIGHT_SENSOR_I2C, &lux);
@@ -90,14 +96,13 @@ int32_t light_sensor_srv(void* p) {
 
     // Must be first to ensure that power subsystem is OK
     furi_record_open(RECORD_POWER);
+    LightSensor* instance = light_sensor_alloc();
 
-    bool initialized = furi_hal_light_sensor_init(LIGHT_SENSOR_I2C);
-    if(!initialized) {
+    instance->sensor_alive = furi_hal_light_sensor_init(LIGHT_SENSOR_I2C);
+    if(instance->sensor_alive == false) {
         FURI_LOG_E(TAG, "Failed to initialize light sensor");
-        return -1;
     }
 
-    LightSensor* instance = light_sensor_alloc();
     furi_event_loop_run(instance->event_loop);
 
     return 0;

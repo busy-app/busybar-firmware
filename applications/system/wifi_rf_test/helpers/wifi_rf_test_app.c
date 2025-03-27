@@ -303,9 +303,12 @@ static sl_status_t wifi_rf_test_stats_receive_handler(
 
         furi_string_cat_printf(
             instance->msg,
-            "stats : crc_pass %d, crc_fail %d, cal_rssi :%d\r\n",
-            result->crc_pass,
+            "Rx Stats\r\n"
+            "crc_fail_cnt: %d\r\n"
+            "crc_pass_cnt: %d\r\n"
+            "rssi: -%d\r\n",
             result->crc_fail,
+            result->crc_pass,
             result->cal_rssi);
         wifi_rf_test_app_send_msg(instance);
 

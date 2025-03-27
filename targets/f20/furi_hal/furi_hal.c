@@ -59,14 +59,3 @@ void furi_hal_init(void) {
     // furi_hal_dac_init();
     furi_hal_sai_init();
 }
-
-void furi_hal_switch(void* address) {
-    __set_BASEPRI(0);
-    asm volatile("ldr    r3, [%0]    \n"
-                 "msr    msp, r3     \n"
-                 "ldr    r3, [%1]    \n"
-                 "mov    pc, r3      \n"
-                 :
-                 : "r"(address), "r"(address + 0x4)
-                 : "r3");
-}

@@ -42,27 +42,25 @@ bool bq25798_reset(FuriHalI2cBusHandle* handle) {
 bool bq25798_set_cfg(FuriHalI2cBusHandle* handle) {
     furi_assert(handle);
 
-    uint8_t cfg_temp = 0;
-
     // Disable watchdog
+    Bq25987Reg10ChargerControl1 reg10_temp = {};
     furi_hal_i2c_read_reg_8(
         handle,
         BQ25798_I2C_ADDRESS,
         BQ25798_REG10_CHARGER_CONTROL_1,
-        &cfg_temp,
+        (uint8_t*)&reg10_temp,
         BQ25798_I2C_TIMEOUT);
-    cfg_temp |= (1 << 3); // WD_RST
-    cfg_temp &= ~(7 << 0); // Watchdog disable
+    reg10_temp.WD_RST = 1;
+    reg10_temp.WATCHDOG = 0; // Watchdog disable
     furi_hal_i2c_write_reg_8(
         handle,
         BQ25798_I2C_ADDRESS,
         BQ25798_REG10_CHARGER_CONTROL_1,
-        cfg_temp,
+        *(uint8_t*)&reg10_temp,
         BQ25798_I2C_TIMEOUT);
 
     // Mask unused irqs
-    uint32_t charger_flags_mask =
-        ~(Bq25987ChargerFlagVbusPresent); // | Bq25987ChargerFlagChargeStatus);
+    uint32_t charger_flags_mask = ~(Bq25987ChargerFlagVbusPresent);
     furi_hal_i2c_write_reg_8(
         handle,
         BQ25798_I2C_ADDRESS,
@@ -89,27 +87,39 @@ bool bq25798_set_cfg(FuriHalI2cBusHandle* handle) {
         BQ25798_I2C_TIMEOUT);
 
     // ADC enable
+    Bq25987Reg2EADCControl reg2e_temp = {.ADC_EN = 1};
     furi_hal_i2c_write_reg_8(
-        handle, BQ25798_I2C_ADDRESS, BQ25798_REG2E_ADC_CONTROL, (1 << 7), BQ25798_I2C_TIMEOUT);
+        handle,
+        BQ25798_I2C_ADDRESS,
+        BQ25798_REG2E_ADC_CONTROL,
+        *(uint8_t*)&reg2e_temp,
+        BQ25798_I2C_TIMEOUT);
 
     // Disable Dp/Dm detection
+    Bq25987Reg11ChargerControl2 reg11_temp = {0};
     furi_hal_i2c_write_reg_8(
-        handle, BQ25798_I2C_ADDRESS, BQ25798_REG11_CHARGER_CONTROL_2, 0, BQ25798_I2C_TIMEOUT);
+        handle,
+        BQ25798_I2C_ADDRESS,
+        BQ25798_REG11_CHARGER_CONTROL_2,
+        *(uint8_t*)&reg11_temp,
+        BQ25798_I2C_TIMEOUT);
 
     // Disable ILIM_HIZ
+    Bq25987Reg14ChargerControl5 reg14_temp = {0};
     furi_hal_i2c_read_reg_8(
         handle,
         BQ25798_I2C_ADDRESS,
         BQ25798_REG14_CHARGER_CONTROL_5,
-        &cfg_temp,
+        (uint8_t*)&reg14_temp,
         BQ25798_I2C_TIMEOUT);
-    cfg_temp &= ~(1 << 1); // EN_EXTILIM: 0
-    cfg_temp |= (1 << 7); // Ship FET populated
+    reg14_temp.EN_EXTILIM = 0;
+    reg14_temp.EN_IBAT = 1;
+    reg14_temp.SFET_PRESENT = 1; // Ship FET populated
     furi_hal_i2c_write_reg_8(
         handle,
         BQ25798_I2C_ADDRESS,
         BQ25798_REG14_CHARGER_CONTROL_5,
-        cfg_temp,
+        *(uint8_t*)&reg14_temp,
         BQ25798_I2C_TIMEOUT);
 
     // Set default USB current (500ma)
@@ -208,23 +218,44 @@ bool bq25798_set_charge_current_limit(FuriHalI2cBusHandle* handle, uint32_t valu
         BQ25798_I2C_TIMEOUT);
 }
 
+bool bq25798_charge_enable(FuriHalI2cBusHandle* handle, bool enabled) {
+    furi_assert(handle);
+
+    Bq25987Reg0FChargerControl0 reg_temp = {0};
+    furi_hal_i2c_read_reg_8(
+        handle,
+        BQ25798_I2C_ADDRESS,
+        BQ25798_REG0F_CHARGER_CONTROL_0,
+        (uint8_t*)&reg_temp,
+        BQ25798_I2C_TIMEOUT);
+
+    reg_temp.EN_CHG = enabled;
+
+    return furi_hal_i2c_write_reg_8(
+        handle,
+        BQ25798_I2C_ADDRESS,
+        BQ25798_REG0F_CHARGER_CONTROL_0,
+        *(uint8_t*)&reg_temp,
+        BQ25798_I2C_TIMEOUT);
+}
+
 void bq25798_power_switch(FuriHalI2cBusHandle* handle, Bq25987PowerSwitch mode) {
     furi_assert(handle);
     furi_assert(mode <= Bq25987PowerReset);
 
-    uint8_t reg_temp = 0;
-
+    Bq25987Reg11ChargerControl2 reg_temp = {0};
     furi_hal_i2c_read_reg_8(
         handle,
         BQ25798_I2C_ADDRESS,
         BQ25798_REG11_CHARGER_CONTROL_2,
-        &reg_temp,
+        (uint8_t*)&reg_temp,
         BQ25798_I2C_TIMEOUT);
-    reg_temp |= (mode << 1) | (1 << 0);
+    reg_temp.SDRV_DLY = 1;
+    reg_temp.SDRV_CTRL = mode;
     furi_hal_i2c_write_reg_8(
         handle,
         BQ25798_I2C_ADDRESS,
         BQ25798_REG11_CHARGER_CONTROL_2,
-        reg_temp,
+        *(uint8_t*)&reg_temp,
         BQ25798_I2C_TIMEOUT);
 }
