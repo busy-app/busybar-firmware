@@ -40,4 +40,7 @@ typedef struct {
     // Back screen
     Canvas* canvas;
 
+    // TODO remove after canvas_draw_text_fmt() is fixed
+    FuriString* lables_str[3];
+
 } InputTestApp;
