@@ -14,13 +14,14 @@ static void updater_cli_command_print_usage(void) {
     printf("update <u5|917|917_ta> path\r\n");
 }
 
-static bool updater_cli_execute(const char* path, bool is_stack_image) {
+static bool updater_cli_execute(const char* path, bool is_stack_image, uint8_t index) {
     SlUpdater* instance = sl_updater_alloc();
     bool success = sl_updater_run(
         instance,
         path,
         is_stack_image,
-        is_stack_image ? SL_UPDATE_NWP_COMM_TIMEOUT_S : SL_UPDATE_M4_COMM_TIMEOUT_S);
+        is_stack_image ? SL_UPDATE_NWP_COMM_TIMEOUT_S : SL_UPDATE_M4_COMM_TIMEOUT_S,
+        index);
     sl_updater_free(instance);
     return success;
 }
@@ -59,7 +60,7 @@ static void updater_cli(Cli* cli, FuriString* args, void* context) {
 
         for(int i = 0; i < SL_UPDATE_RETRIES; i++) {
             printf("Update in progress\r\n");
-            if(updater_cli_execute(furi_string_get_cstr(path), is_stack_image)) {
+            if(updater_cli_execute(furi_string_get_cstr(path), is_stack_image, i)) {
                 printf("Update succeeded\r\n");
                 break;
             } else {
