@@ -2,12 +2,87 @@
 
 import shutil
 import subprocess
-import sys
 import time
 from pathlib import Path
 
 from flipper.app import App
 from flipper.storage_socket import FlipperStorage, FlipperStorageOperations
+
+
+class DfuProgrammerBackend:
+    @classmethod
+    def is_available(cls):
+        print(f"Checking for {cls.UTIL_BIN_NAME}...")
+        return shutil.which(cls.UTIL_BIN_NAME) is not None
+
+    @classmethod
+    def is_file_supported(cls, file_path):
+        return Path(file_path).suffix.lower() == cls.SUPPORTED_FILE_EXTENSION
+
+    def execute(self, *args):
+        try:
+            subprocess.check_call([self.UTIL_BIN_NAME] + list(args))
+        except subprocess.CalledProcessError as e:
+            raise RuntimeError(f"Error executing {self.UTIL_BIN_NAME}: {e}")
+
+    def program_firmware(self, fw_file):
+        raise NotImplementedError()
+
+    def find_devices(self):
+        raise NotImplementedError()
+
+
+class DfuUtil(DfuProgrammerBackend):
+    UTIL_BIN_NAME = "dfu-util"
+    SUPPORTED_FILE_EXTENSION = ".dfu"
+
+    def program_firmware(self, fw_file):
+        self.execute("-D", fw_file, "-e")
+
+    def find_devices(self):
+        try:
+            result = subprocess.check_output(
+                [self.UTIL_BIN_NAME, "--list"], stderr=subprocess.STDOUT
+            )
+            return b"Found DFU" in result
+        except subprocess.CalledProcessError as e:
+            raise RuntimeError(f"Error executing {self.UTIL_BIN_NAME}: {e}")
+
+
+class CubeCLIProgrammer(DfuProgrammerBackend):
+    UTIL_BIN_NAME = "STM32_Programmer_CLI"
+    SUPPORTED_FILE_EXTENSION = ".hex"
+
+    def program_firmware(self, fw_file):
+        self.execute(
+            "-c",
+            "port=usb1",
+            "-d",
+            fw_file,
+            "--start",
+        )
+
+    def find_devices(self):
+        try:
+            result = subprocess.check_output(
+                [self.UTIL_BIN_NAME, "-l"], stderr=subprocess.STDOUT
+            )
+            return b"DFU in HS Mode" in result
+        except subprocess.CalledProcessError as e:
+            raise RuntimeError(f"Error executing {self.UTIL_BIN_NAME}: {e}")
+
+
+_programmers = [CubeCLIProgrammer, DfuUtil]
+
+
+def get_dfu_programmer():
+    for programmer in _programmers:
+        if programmer.is_available():
+            print(f"Using {programmer.UTIL_BIN_NAME} as DFU programmer")
+            return programmer()
+    raise RuntimeError(
+        f"No DFU programmer found. Please proide one of {', '.join([p.UTIL_BIN_NAME for p in _programmers])}"
+    )
 
 
 class UpdaterMain(App):
@@ -26,7 +101,9 @@ class UpdaterMain(App):
         self.parser_update = self.subparsers.add_parser(
             "u5", help="Update the STM32U5 firmware"
         )
-        self.parser_update.add_argument("dfu_path", help="Path to the DFU file")
+        self.parser_update.add_argument(
+            "firmware_path", help="Path to the firmware file"
+        )
         self.parser_update.add_argument(
             "--to-dfu",
             action="store_true",
@@ -51,12 +128,6 @@ class UpdaterMain(App):
             return (port_value, 23)
         return ("10.0.4.20", 23)
 
-    def __ensure_dfu_util(self):
-        if not shutil.which("dfu-util"):
-            raise RuntimeError(
-                "dfu-util not found. Please install it from https://dfu-util.sourceforge.net/"
-            )
-
     def _upload_file(self, file_path):
         remote_path = str(Path("/ext") / Path(file_path).name)
         FlipperStorageOperations(self.storage).recursive_send(
@@ -64,16 +135,15 @@ class UpdaterMain(App):
         )
         return remote_path
 
-    def find_dfu_devices(self):
-        dfu_devices = subprocess.check_output(
-            ["dfu-util", "--list"], stderr=subprocess.STDOUT
-        ).decode("utf-8")
-        return "Found DFU" in dfu_devices
-
     def update_u5(self):
         try:
-            self.__ensure_dfu_util()
-            if self.args.to_dfu and not self.find_dfu_devices():
+            dfu_tool = get_dfu_programmer()
+            if not dfu_tool.is_file_supported(self.args.firmware_path):
+                raise RuntimeError(
+                    f"Unsupported file type for {dfu_tool.UTIL_BIN_NAME}: {self.args.firmware_path}. Expected {dfu_tool.SUPPORTED_FILE_EXTENSION}"
+                )
+
+            if self.args.to_dfu and not dfu_tool.find_devices():
                 self.logger.info("Trying to reset the device to DFU mode")
                 self.storage = FlipperStorage(self._get_port(self.args.port))
                 self.storage.start()
@@ -82,15 +152,7 @@ class UpdaterMain(App):
                 time.sleep(self.DFU_WAIT_TIME)
 
             self.logger.info("Uploading STM32U5 firmware")
-            subprocess.check_call(
-                [
-                    "dfu-util",
-                    "-D",
-                    self.args.dfu_path,
-                ],
-                stdout=sys.stdout,
-                stderr=subprocess.STDOUT,
-            )
+            dfu_tool.program_firmware(self.args.firmware_path)
             self.logger.info("Firmware installed successfully")
             return 0
         except Exception as e:
