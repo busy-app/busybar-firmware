@@ -37,7 +37,7 @@ class DfuUtil(DfuProgrammerBackend):
     SUPPORTED_FILE_EXTENSION = ".dfu"
 
     def program_firmware(self, fw_file):
-        self.execute("-D", fw_file, "-e")
+        self.execute("-a", "0", "-D", fw_file, "-R")
 
     def find_devices(self):
         try:
