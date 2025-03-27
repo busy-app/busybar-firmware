@@ -1,12 +1,11 @@
 #pragma once
 
 #include <furi.h>
-#include <desktop/desktop.h>
+
 #include <gui/gui.h>
 #include <gui/modules/label.h>
-#include <gui/modules/canvas.h>
 
-#include <light_sensor/light_sensor.h>
+#include <desktop/desktop.h>
 
 typedef enum {
     InputTestAppEventExit,
@@ -31,16 +30,9 @@ typedef struct {
     FuriEventLoopTimer* timer;
     Gui* gui;
     Desktop* desktop;
-
     InputTestAppModel input_model;
-
-    // Front screen
-    Label* label_text;
-
-    // Back screen
-    Canvas* canvas;
-
-    // TODO remove after canvas_draw_text_fmt() is fixed
-    FuriString* lables_str[3];
-
+    // Front display
+    Label* front_label;
+    // Back display
+    Label* back_label;
 } InputTestApp;

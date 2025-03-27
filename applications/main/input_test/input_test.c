@@ -1,37 +1,26 @@
 #include "input_test.h"
 
-#include <furi.h>
-#include <lvgl/lvgl.h>
-
 #define TAG "InputTest"
 
-static void input_test_app_back_screen_update(InputTestApp* instance) {
+static void input_test_app_back_display_update(InputTestApp* instance) {
+    InputTestAppModel* m = &instance->input_model;
+
     with_gui(instance->gui, {
-        Canvas* c = instance->canvas;
-        InputTestAppModel* m = &instance->input_model;
-
-        canvas_draw_begin(c);
-        canvas_clear(c);
-        canvas_draw_text(c, 4, 1, "Input Test");
-
-        furi_string_printf(instance->lables_str[0], "OK: %lu   Start: %lu", m->ok, m->start);
-        canvas_draw_text(c, 4, 10, furi_string_get_cstr(instance->lables_str[0]));
-
-        furi_string_printf(instance->lables_str[1], "Encoder: %ld", m->encoder);
-        canvas_draw_text(c, 4, 17, furi_string_get_cstr(instance->lables_str[1]));
-
-        furi_string_printf(
-            instance->lables_str[2],
-            "Switch: %s",
+        label_set_text_fmt(
+            instance->back_label,
+            "Input Test\n\n"
+            "OK: %lu   Start: %lu\n"
+            "Encoder: %ld\n"
+            "Switch: %s\n\n"
+            "hold Back to exit",
+            m->ok,
+            m->start,
+            m->encoder,
             m->switch_pos < 0 ? "--" : input_get_key_name(m->switch_pos));
-        canvas_draw_text(c, 4, 24, furi_string_get_cstr(instance->lables_str[2]));
-
-        canvas_draw_text(c, 4, 31, "hold Back to exit");
-        canvas_draw_end(c);
-    })
+    });
 }
 
-static bool ligh_sensor_test_app_input_callback(const InputEvent* event, void* context) {
+static bool input_test_app_input_callback(const InputEvent* event, void* context) {
     furi_assert(event);
     furi_assert(context);
 
@@ -90,7 +79,7 @@ static void input_test_app_event_queue_callback(FuriEventLoopObject* object, voi
         furi_event_loop_stop(instance->event_loop);
     } else if(event.type == InputTestAppEventKeyStateChanged) {
         input_test_app_handle_input_short_event(instance, event.input_key);
-        input_test_app_back_screen_update(instance);
+        input_test_app_back_display_update(instance);
     }
 }
 
@@ -115,25 +104,22 @@ static InputTestApp* input_test_app_alloc(void) {
 
     with_gui(instance->gui, {
         GuiLayer* main_layer = gui_get_layer(instance->gui, GuiLayerIdMain);
-        gui_layer_add_input_callback(main_layer, ligh_sensor_test_app_input_callback, instance);
+        gui_layer_add_input_callback(main_layer, input_test_app_input_callback, instance);
 
-        // TODO remove after canvas_draw_text_fmt() is fixed
-        for(size_t i = 0; i < COUNT_OF(instance->lables_str); i++) {
-            instance->lables_str[i] = furi_string_alloc();
-        }
+        Widget* root;
 
-        // Front screen
-        Widget* root = gui_layer_get_root_widget(main_layer, GuiDisplayIdFront);
-        instance->label_text = label_alloc(root);
-        widget_set_pos((Widget*)instance->label_text, 2, 4);
-        label_set_text(instance->label_text, "Look at back screen");
+        // Front display
+        root = gui_layer_get_root_widget(main_layer, GuiDisplayIdFront);
+        instance->front_label = label_alloc(root);
+        widget_set_pos((Widget*)instance->front_label, 2, 4);
+        label_set_text(instance->front_label, "Look at back display");
 
-        // Back screen
+        // Back display
         root = gui_layer_get_root_widget(main_layer, GuiDisplayIdBack);
-        instance->canvas = canvas_alloc(root, widget_get_width(root), widget_get_height(root));
+        instance->back_label = label_alloc(root);
     });
 
-    input_test_app_back_screen_update(instance);
+    input_test_app_back_display_update(instance);
 
     return instance;
 }
@@ -143,22 +129,15 @@ static void input_test_app_free(InputTestApp* instance) {
 
     with_gui(instance->gui, {
         GuiLayer* main_layer = gui_get_layer(instance->gui, GuiLayerIdMain);
-        gui_layer_remove_input_callback(main_layer, ligh_sensor_test_app_input_callback);
-        canvas_free(instance->canvas);
-        label_free(instance->label_text);
-
-        // TODO remove after canvas_draw_text_fmt() is fixed
-        for(size_t i = 0; i < COUNT_OF(instance->lables_str); i++) {
-            furi_string_free(instance->lables_str[i]);
-        }
+        gui_layer_remove_input_callback(main_layer, input_test_app_input_callback);
+        label_free(instance->front_label);
+        label_free(instance->back_label);
     });
 
     furi_record_close(RECORD_GUI);
 
     desktop_pin_current_app(instance->desktop, false);
     furi_record_close(RECORD_DESKTOP);
-
-    furi_record_close(RECORD_LIGHT_SENSOR_EVENTS);
 
     furi_event_loop_unsubscribe(instance->event_loop, instance->event_queue);
     furi_message_queue_free(instance->event_queue);
