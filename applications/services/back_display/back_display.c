@@ -44,7 +44,7 @@ static void back_display_event_callback(uint32_t events, void* context) {
 
     // draw on tearing event, if needed
     if(instance->dirty && (events & BackDisplayEventTearing)) {
-        ssd1320_draw(instance->draw_buffer);
+        ssd1320_draw(instance->send_buffer);
         instance->dirty = false;
     }
 }
