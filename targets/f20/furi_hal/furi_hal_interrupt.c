@@ -624,3 +624,13 @@ uint32_t furi_hal_interrupt_get_time_in_isr_total(void) {
     // return furi_hal_interrupt.counter_time_in_isr_total; // TODO
     return 0;
 }
+
+void furi_hal_interrupt_assert_valid_priority(void) {
+    uint32_t ulCurrentInterrupt = __get_IPSR();
+
+    const uint32_t exti_priority = NVIC_GetPriority(ulCurrentInterrupt - 16);
+    uint32_t group_priority, sub_priority;
+    NVIC_DecodePriority(exti_priority, NVIC_GetPriorityGrouping(), &group_priority, &sub_priority);
+
+    furi_check(group_priority >= configLIBRARY_MAX_SYSCALL_INTERRUPT_PRIORITY);
+}
