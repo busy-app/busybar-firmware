@@ -43,10 +43,10 @@ typedef enum {
 
 static const uint8_t oled_init_table_ssd1320[] = {
     /* clang-format off */
-    0,    Cmd1320_DisplayOff, 
-    1,    Cmd1320_DisplayClockDiv, 0x22,
-    1,    Cmd1320_MultiplexRatio, 0x4F,
-    1,    Cmd1320_DisplayOffset, 0x78,
+    0,  Cmd1320_DisplayOff, 
+    1,  Cmd1320_DisplayClockDiv, 0x22,
+    1,  Cmd1320_MultiplexRatio, 0x4F,
+    1,  Cmd1320_DisplayOffset, 0x78,
     1,  Cmd1320_DisplayStartLine, 0x00,
     0,  Cmd1320_SegmentRemap1,
     0,  Cmd1320_ComOutputScanDirNormal,
