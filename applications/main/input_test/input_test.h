@@ -34,5 +34,8 @@ typedef struct {
     // Front display
     Label* front_label;
     // Back display
-    Label* back_label;
+    Widget* back_window;
+    Label* header_label;
+    Label* content_label;
+    Label* footer_label;
 } InputTestApp;

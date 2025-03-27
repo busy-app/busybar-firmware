@@ -7,12 +7,10 @@ static void input_test_app_back_display_update(InputTestApp* instance) {
 
     with_gui(instance->gui, {
         label_set_text_fmt(
-            instance->back_label,
-            "Input Test\n\n"
+            instance->content_label,
             "OK: %lu   Start: %lu\n"
             "Encoder: %ld\n"
-            "Switch: %s\n\n"
-            "hold Back to exit",
+            "Switch: %s",
             m->ok,
             m->start,
             m->encoder,
@@ -111,12 +109,25 @@ static InputTestApp* input_test_app_alloc(void) {
         // Front display
         root = gui_layer_get_root_widget(main_layer, GuiDisplayIdFront);
         instance->front_label = label_alloc(root);
-        widget_set_pos((Widget*)instance->front_label, 2, 4);
         label_set_text(instance->front_label, "Look at back display");
+        widget_set_align(label_get_base(instance->front_label), AlignCenter);
 
         // Back display
         root = gui_layer_get_root_widget(main_layer, GuiDisplayIdBack);
-        instance->back_label = label_alloc(root);
+
+        instance->back_window = widget_alloc(root);
+
+        instance->header_label = label_alloc(instance->back_window);
+        label_set_text(instance->header_label, "Input Test");
+        widget_set_align(label_get_base(instance->header_label), AlignTopMid);
+
+        instance->content_label = label_alloc(instance->back_window);
+        label_set_line_spacing(instance->content_label, 2);
+        widget_set_align(label_get_base(instance->content_label), AlignLeftMid);
+
+        instance->footer_label = label_alloc(instance->back_window);
+        label_set_text(instance->footer_label, "Hold 'Back' to exit");
+        widget_set_align(label_get_base(instance->footer_label), AlignBottomRight);
     });
 
     input_test_app_back_display_update(instance);
@@ -131,7 +142,7 @@ static void input_test_app_free(InputTestApp* instance) {
         GuiLayer* main_layer = gui_get_layer(instance->gui, GuiLayerIdMain);
         gui_layer_remove_input_callback(main_layer, input_test_app_input_callback);
         label_free(instance->front_label);
-        label_free(instance->back_label);
+        widget_free(instance->back_window);
     });
 
     furi_record_close(RECORD_GUI);
