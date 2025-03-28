@@ -30,6 +30,13 @@ typedef struct {
     uint32_t rx_dma_request;
 } FuriHalSerialResources;
 
+static const uint32_t furi_hal_serial_auto_baundrate_mode[] = {
+    [FuriHalSerialAutoBaudRateModeStartBit] = LL_USART_AUTOBAUD_DETECT_ON_STARTBIT,
+    [FuriHalSerialAutoBaudRateModeFallingEdge] = LL_USART_AUTOBAUD_DETECT_ON_FALLINGEDGE,
+    [FuriHalSerialAutoBaudRateMode0x7FFrame] = LL_USART_AUTOBAUD_DETECT_ON_7F_FRAME,
+    [FuriHalSerialAutoBaudRateMode0x55Frame] = LL_USART_AUTOBAUD_DETECT_ON_55_FRAME,
+};
+
 static const FuriHalSerialResources furi_hal_serial_resources[FuriHalSerialIdMax] = {
     [FuriHalSerialIdUsart1] =
         {
@@ -480,22 +487,19 @@ bool furi_hal_serial_is_baud_rate_supported(FuriHalSerialHandle* handle, uint32_
     return baud_rate >= 10 && baud_rate <= 20000000;
 }
 
-bool furi_hal_serial_set_auto_baud_rate_by_0x55_pattern(
+bool furi_hal_serial_set_auto_baud_rate(
     FuriHalSerialHandle* handle,
-    uint32_t timeout_set) {
+    FuriHalSerialAutoBaudRateMode mode,
+    uint32_t timeout) {
     furi_check(handle);
 
     FuriHalSerial* serial = furi_hal_serial[handle->id];
     USART_TypeDef* periph = serial->periph_ptr;
-    FuriHalCortexTimer timeout = furi_hal_cortex_timer_get(timeout_set);
+    FuriHalCortexTimer wait = furi_hal_cortex_timer_get(timeout);
 
-    while(!LL_USART_IsActiveFlag_TXE_TXFNF(periph))
-        ;
-    LL_USART_TransmitData8(periph, 0x55);
-    LL_USART_SetAutoBaudRateMode(periph, LL_USART_AUTOBAUD_DETECT_ON_55_FRAME);
+    LL_USART_SetAutoBaudRateMode(periph, furi_hal_serial_auto_baundrate_mode[mode]);
     LL_USART_EnableAutoBaudRate(periph);
-    while(!LL_USART_IsActiveFlag_ABR(periph)&&
-    !furi_hal_cortex_timer_is_expired(timeout)){
+    while(!LL_USART_IsActiveFlag_ABR(periph) && !furi_hal_cortex_timer_is_expired(wait)) {
         furi_thread_yield();
     };
     return !LL_USART_IsActiveFlag_ABRE(periph);

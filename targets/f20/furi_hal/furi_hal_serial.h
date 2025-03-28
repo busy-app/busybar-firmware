@@ -38,6 +38,13 @@ typedef enum {
     FuriHalSerialTxEventComplete = (1 << 0), /**< Transmission complete */
 } FuriHalSerialTxEvent;
 
+typedef enum {
+    FuriHalSerialAutoBaudRateModeStartBit,
+    FuriHalSerialAutoBaudRateModeFallingEdge,
+    FuriHalSerialAutoBaudRateMode0x7FFrame,
+    FuriHalSerialAutoBaudRateMode0x55Frame,
+} FuriHalSerialAutoBaudRateMode;
+
 /**
  * Receive callback function type.
  *
@@ -105,12 +112,14 @@ bool furi_hal_serial_is_baud_rate_supported(FuriHalSerialHandle* handle, uint32_
  * @warning After running this function, 0x55 bytes must arrive within timeout, otherwise it will fail
  *
  * @param handle Pointer to the serial handle.
- * @param timeout_set Timeout, ms.
+ * @param mode Auto baud rate mode.
+ * @param timeout Timeout, ms.
  * @returns true if the baud rate was set successfully, false otherwise.
  */
-bool furi_hal_serial_set_auto_baud_rate_by_0x55_pattern(
+bool furi_hal_serial_set_auto_baud_rate(
     FuriHalSerialHandle* handle,
-    uint32_t timeout_set);
+    FuriHalSerialAutoBaudRateMode mode,
+    uint32_t timeout);
 
 /**
  * Get the baud rate for the serial interface.

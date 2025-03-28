@@ -170,8 +170,10 @@ static void sl_updater_handle_rx(SlUpdater* instance) {
                 instance->serial_handle, sl_updater_baudrate[instance->index_baudrate].baudrate);
             FURI_LOG_I(
                 TAG, "Baud rate set %ld", furi_hal_serial_get_baud_rate(instance->serial_handle));
-
-            if(furi_hal_serial_set_auto_baud_rate_by_0x55_pattern(instance->serial_handle, 13000)) {
+            const uint8_t leader = 'U';
+            furi_hal_serial_tx(instance->serial_handle, &leader, sizeof(leader));
+            if(furi_hal_serial_set_auto_baud_rate(
+                   instance->serial_handle, FuriHalSerialAutoBaudRateMode0x55Frame, 13000)) {
                 FURI_LOG_I(
                     TAG,
                     "Baud rate auto set %ld",
