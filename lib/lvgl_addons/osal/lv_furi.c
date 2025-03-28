@@ -87,22 +87,61 @@ lv_result_t lv_mutex_delete(lv_mutex_t* mutex) {
 lv_result_t lv_thread_sync_init(lv_thread_sync_t* sync) {
     furi_assert(sync);
 
-    sync->furi_event_flag = furi_event_flag_alloc();
+    sync->sync_thread = NULL;
+    sync->sync_pending = false;
+
     return LV_RESULT_OK;
 }
 
 lv_result_t lv_thread_sync_wait(lv_thread_sync_t* sync) {
     furi_assert(sync);
 
-    uint32_t flags = furi_event_flag_wait(
-        sync->furi_event_flag, THREAD_SYNC_FLAG, FuriFlagWaitAll, FuriWaitForever);
-    return flags & FuriFlagError ? LV_RESULT_INVALID : LV_RESULT_OK;
+    lv_result_t result = LV_RESULT_OK;
+
+    bool sync_pending;
+
+    FURI_CRITICAL_ENTER();
+
+    sync_pending = sync->sync_pending;
+    sync->sync_pending = false;
+
+    if(!sync_pending) {
+        sync->sync_thread = furi_thread_get_current_id();
+    }
+
+    FURI_CRITICAL_EXIT();
+
+    if(!sync_pending) {
+        const uint32_t flags =
+            furi_thread_flags_wait(THREAD_SYNC_FLAG, FuriFlagWaitAll, FuriWaitForever);
+        if(flags & FuriFlagError) {
+            result = LV_RESULT_INVALID;
+        }
+    }
+
+    return result;
 }
 
 lv_result_t lv_thread_sync_signal(lv_thread_sync_t* sync) {
     furi_assert(sync);
 
-    furi_event_flag_set(sync->furi_event_flag, THREAD_SYNC_FLAG);
+    FuriThreadId thread_id;
+
+    FURI_CRITICAL_ENTER();
+
+    thread_id = sync->sync_thread;
+    sync->sync_thread = NULL;
+
+    if(thread_id == NULL) {
+        sync->sync_pending = true;
+    }
+
+    FURI_CRITICAL_EXIT();
+
+    if(thread_id != NULL) {
+        furi_thread_flags_set(thread_id, THREAD_SYNC_FLAG);
+    }
+
     return LV_RESULT_OK;
 }
 
@@ -112,7 +151,5 @@ lv_result_t lv_thread_sync_signal_isr(lv_thread_sync_t* sync) {
 
 lv_result_t lv_thread_sync_delete(lv_thread_sync_t* sync) {
     furi_assert(sync);
-
-    furi_event_flag_free(sync->furi_event_flag);
     return LV_RESULT_OK;
 }

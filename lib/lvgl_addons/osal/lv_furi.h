@@ -17,7 +17,8 @@ typedef struct {
 } lv_mutex_t;
 
 typedef struct {
-    FuriEventFlag* furi_event_flag;
+    FuriThreadId sync_thread;
+    bool sync_pending;
 } lv_thread_sync_t;
 
 #ifdef __cplusplus
