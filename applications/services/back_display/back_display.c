@@ -40,6 +40,7 @@ struct BackDisplaySrv {
     FuriEventLoopTimer* contrast_timer;
 };
 
+// y = 7,143377489 * (1,324264735 ^ x), x = 1..10
 static const uint8_t contrast_table[LIGHT_SENSOR_LIGHT_LEVEL_MAX] =
     {9, 13, 17, 22, 29, 39, 51, 68, 89, 118};
 
