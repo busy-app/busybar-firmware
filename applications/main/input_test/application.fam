@@ -1,0 +1,10 @@
+App(
+    appid="input_test",
+    name="Input Test",
+    apptype=FlipperAppType.APP,
+    entry_point="input_test_app",
+    requires=["gui"],
+    stack_size=2 * 1024,
+    fap_category="Debug",
+    targets=["f20"],
+)
