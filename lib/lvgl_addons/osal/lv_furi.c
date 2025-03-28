@@ -1,6 +1,6 @@
 #include "lv_furi.h"
 
-#include <lvgl/src/osal/lv_os.h>
+#include <lvgl.h>
 
 #define TAG "FuriOsal"
 

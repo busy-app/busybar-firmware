@@ -49,7 +49,6 @@ struct Gui {
     Power* power;
     FuriEventLoop* event_loop;
     FuriMessageQueue* input_queue;
-    FuriMutex* access_mutex;
     DotMatrixSrv* dot_matrix;
     GuiDisplay displays[GuiDisplayIdMax];
     GuiLayer layers[GuiLayerIdMax];
