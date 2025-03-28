@@ -7,12 +7,11 @@
 #include <furi.h>
 #include <lvgl.h>
 
+#include <led_display/led_display.h>
 #include <back_display/back_display.h>
 
 #include <input/input.h>
 #include <power/power_service/power.h>
-
-#include <led_display/led_display.h>
 
 #include <m-list.h>
 
@@ -49,7 +48,6 @@ struct Gui {
     Power* power;
     FuriEventLoop* event_loop;
     FuriMessageQueue* input_queue;
-    DotMatrixSrv* dot_matrix;
     GuiDisplay displays[GuiDisplayIdMax];
     GuiLayer layers[GuiLayerIdMax];
 };

@@ -208,7 +208,6 @@ static Gui* gui_alloc(void) {
     // TODO: Subscribe to power subsystem events
     // TODO: React on overheat or low power budget by limiting brightness
     instance->event_loop = furi_event_loop_alloc();
-    instance->dot_matrix = furi_record_open(RECORD_DOT_MATRIX);
     instance->input_queue = furi_message_queue_alloc(16, sizeof(InputEvent));
 
     furi_event_loop_subscribe_message_queue(
