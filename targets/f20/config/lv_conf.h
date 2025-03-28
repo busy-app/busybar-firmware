@@ -107,10 +107,10 @@
  * - LV_OS_MQX
  * - LV_OS_SDL2
  * - LV_OS_CUSTOM */
-#define LV_USE_OS   LV_OS_NONE
+#define LV_USE_OS   LV_OS_CUSTOM
 
 #if LV_USE_OS == LV_OS_CUSTOM
-    #define LV_OS_CUSTOM_INCLUDE <stdint.h>
+    #define LV_OS_CUSTOM_INCLUDE <lvgl_addons/osal/lv_furi.h>
 #endif
 #if LV_USE_OS == LV_OS_FREERTOS
 	/*
