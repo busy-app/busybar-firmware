@@ -115,6 +115,11 @@ static void ssd1320_sleep_mode(bool sleep) {
     ssd1320_send_command(&furi_hal_spi_bus_handle_oled, &power_cmd, 1);
 }
 
+void ssd1320_set_contrast(uint8_t contrast) {
+    uint8_t contrast_cmd[2] = {Cmd1320_ContrastControl, contrast};
+    ssd1320_send_command(&furi_hal_spi_bus_handle_oled, contrast_cmd, sizeof(contrast_cmd));
+}
+
 void ssd1320_draw(const uint8_t* buf) {
     furi_hal_spi_acquire(&furi_hal_spi_bus_handle_oled);
 
