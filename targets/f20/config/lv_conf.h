@@ -311,7 +311,7 @@
 #endif
 
 /** Accelerate blends, fills, etc. with STM32 DMA2D */
-#define LV_USE_DRAW_DMA2D 1
+#define LV_USE_DRAW_DMA2D 0
 
 #if LV_USE_DRAW_DMA2D
     #define LV_DRAW_DMA2D_HAL_INCLUDE "stm32u5xx.h"
@@ -975,12 +975,12 @@
 
     /** 1: Show CPU usage and FPS count.
      *  - Requires `LV_USE_SYSMON = 1` */
-    #define LV_USE_PERF_MONITOR 0
+    #define LV_USE_PERF_MONITOR 1
     #if LV_USE_PERF_MONITOR
         #define LV_USE_PERF_MONITOR_POS LV_ALIGN_BOTTOM_RIGHT
 
         /** 0: Displays performance data on the screen; 1: Prints performance data using log. */
-        #define LV_USE_PERF_MONITOR_LOG_MODE 0
+        #define LV_USE_PERF_MONITOR_LOG_MODE 1
     #endif
 
     /** 1: Show used memory and memory fragmentation.
