@@ -59,7 +59,7 @@ typedef struct {
     uint32_t baudrate;
 } SlUpdaterBaudeRate;
 
-static const SlUpdaterBaudeRate const sl_updater_baudrate[] = {
+static SlUpdaterBaudeRate const sl_updater_baudrate[] = {
     {"4", 921600},
     {"3", 460800},
     {"2", 230400},

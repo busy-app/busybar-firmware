@@ -22,7 +22,7 @@ static bool
         path,
         is_stack_image,
         is_stack_image ? SL_UPDATE_NWP_COMM_TIMEOUT_S : SL_UPDATE_M4_COMM_TIMEOUT_S,
-        index);
+        baud_throttle_ratio);
     sl_updater_free(instance);
     return success;
 }
