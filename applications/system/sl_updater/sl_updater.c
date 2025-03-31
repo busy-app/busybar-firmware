@@ -200,7 +200,7 @@ static void sl_updater_handle_rx(SlUpdater* instance) {
         if(sl_updater_check_rx_for(instance, "Baud Rate was updated successfully!")) {
             FURI_LOG_I(
                 TAG,
-                "Baud rate was set bootloader to %ld",
+                "BL baud rate set to %ld",
                 sl_updater_baudrate[instance->baud_throttle].baudrate);
             instance->bootloader_state = Si917BootloaderStateSetImageType;
         }
