@@ -820,7 +820,7 @@ void furi_hal_serial_set_transfer_direction(
         direction = LL_USART_DIRECTION_RX;
         furi_hal_gpio_init(gpio_tx, GpioModeAnalog, GpioPullNo, GpioSpeedLow);
         furi_hal_gpio_init_ex(
-            gpio_rx, GpioModeAltFunctionPushPull, GpioPullNo, GpioSpeedHigh, alt_fn);
+            gpio_rx, GpioModeAltFunctionPushPull, GpioPullUp, GpioSpeedHigh, alt_fn);
         break;
 
     case FuriHalSerialDirectionTxRx:
@@ -828,7 +828,7 @@ void furi_hal_serial_set_transfer_direction(
         furi_hal_gpio_init_ex(
             gpio_tx, GpioModeAltFunctionPushPull, GpioPullNo, GpioSpeedHigh, alt_fn);
         furi_hal_gpio_init_ex(
-            gpio_rx, GpioModeAltFunctionPushPull, GpioPullNo, GpioSpeedHigh, alt_fn);
+            gpio_rx, GpioModeAltFunctionPushPull, GpioPullUp, GpioSpeedHigh, alt_fn);
         break;
 
     default:

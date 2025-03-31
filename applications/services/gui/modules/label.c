@@ -72,6 +72,11 @@ void label_set_text_fmt(Label* instance, const char* fmt, ...) {
     va_end(args);
 }
 
+void label_set_line_spacing(Label* instance, int32_t spacing) {
+    furi_check(instance);
+    lv_obj_set_style_text_line_space((lv_obj_t*)instance, spacing, LV_PART_MAIN);
+}
+
 // LVGL class descriptor
 
 const lv_obj_class_t label_lvgl_class = {

@@ -195,7 +195,7 @@ static void octospi_dma_init(LedDisplayDriver* driver) {
 
     furi_hal_interrupt_set_isr_ex(
         furi_hal_dma_get_gpdma_interrupt_id(driver->dma_channel),
-        FuriHalInterruptPriorityKamiSama,
+        FuriHalInterruptPriorityHighest,
         octospi_dma_tc_irq,
         driver);
 }
