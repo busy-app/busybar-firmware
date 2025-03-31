@@ -14,7 +14,8 @@ static void updater_cli_command_print_usage(void) {
     printf("update <u5|917|917_ta> path\r\n");
 }
 
-static bool updater_cli_execute(const char* path, bool is_stack_image, uint8_t index) {
+static bool
+    updater_cli_execute(const char* path, bool is_stack_image, uint8_t baud_throttle_ratio) {
     SlUpdater* instance = sl_updater_alloc();
     bool success = sl_updater_run(
         instance,

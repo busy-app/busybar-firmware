@@ -44,21 +44,22 @@ struct SlUpdater {
 #endif
     uint8_t install_timeout_seconds;
     bool is_stack_image;
-    uint8_t index_baudrate;
+    uint8_t baud_throttle;
     Si917BootloaderState bootloader_state;
     Storage* storage;
     File* firmware_file;
     kermit_t* kermit;
 };
 
-#define KERMIT_TIMEOUT_SECONDS (2)
+#define KERMIT_TIMEOUT_SECONDS               (2)
+#define SL_UPDATER_AUTO_BAUD_RATE_TIMEOUT_MS (13000)
 
 typedef struct {
     const char* choice;
     uint32_t baudrate;
 } SlUpdaterBaudeRate;
 
-static const SlUpdaterBaudeRate sl_updater_baudrate[] = {
+static const SlUpdaterBaudeRate const sl_updater_baudrate[] = {
     {"4", 921600},
     {"3", 460800},
     {"2", 230400},
@@ -159,21 +160,25 @@ static void sl_updater_handle_rx(SlUpdater* instance) {
         if(sl_updater_check_rx_for(instance, "5 115200\r\n")) {
             furi_hal_serial_tx(
                 instance->serial_handle,
-                (uint8_t*)sl_updater_baudrate[instance->index_baudrate].choice,
+                (uint8_t*)sl_updater_baudrate[instance->baud_throttle].choice,
                 1);
             FURI_LOG_I(
                 TAG,
                 "UART Baud Rate speed request sent: %s",
-                sl_updater_baudrate[instance->index_baudrate].choice);
+                sl_updater_baudrate[instance->baud_throttle].choice);
 
             furi_hal_serial_set_baud_rate(
-                instance->serial_handle, sl_updater_baudrate[instance->index_baudrate].baudrate);
+                instance->serial_handle, sl_updater_baudrate[instance->baud_throttle].baudrate);
             FURI_LOG_I(
-                TAG, "Baud rate set %ld", furi_hal_serial_get_baud_rate(instance->serial_handle));
+                TAG,
+                "Reference baud set %ld",
+                furi_hal_serial_get_baud_rate(instance->serial_handle));
             const uint8_t leader = 'U';
             furi_hal_serial_tx(instance->serial_handle, &leader, sizeof(leader));
             if(furi_hal_serial_set_auto_baud_rate(
-                   instance->serial_handle, FuriHalSerialAutoBaudRateMode0x55Frame, 13000)) {
+                   instance->serial_handle,
+                   FuriHalSerialAutoBaudRateMode0x55Frame,
+                   SL_UPDATER_AUTO_BAUD_RATE_TIMEOUT_MS)) {
                 FURI_LOG_I(
                     TAG,
                     "Baud rate auto set %ld",
@@ -196,7 +201,7 @@ static void sl_updater_handle_rx(SlUpdater* instance) {
             FURI_LOG_I(
                 TAG,
                 "Baud rate was set bootloader to %ld",
-                sl_updater_baudrate[instance->index_baudrate].baudrate);
+                sl_updater_baudrate[instance->baud_throttle].baudrate);
             instance->bootloader_state = Si917BootloaderStateSetImageType;
         }
         break;
@@ -328,7 +333,7 @@ SlUpdater* sl_updater_alloc(void) {
     instance->rx_buffer = furi_stream_buffer_alloc(512, 1);
     instance->rx_string = furi_string_alloc();
     instance->serial_handle = NULL;
-    instance->index_baudrate = 0;
+    instance->baud_throttle = 0;
 
     instance->bootloader_state = Si917BootloaderStateInit;
     instance->install_timeout_seconds = 1;
@@ -373,15 +378,19 @@ bool sl_updater_run(
     const char* firmware_path,
     bool is_stack_image,
     uint8_t install_timeout_seconds,
-    uint8_t index_baudrate) {
+    uint8_t baud_throttle) {
     furi_check(instance);
     furi_check(firmware_path);
     furi_check(instance->serial_handle == NULL);
-    furi_assert(index_baudrate <= COUNT_OF(sl_updater_baudrate));
+    furi_assert(baud_throttle <= COUNT_OF(sl_updater_baudrate));
 
     instance->install_timeout_seconds = install_timeout_seconds;
     instance->is_stack_image = is_stack_image;
-    instance->index_baudrate = index_baudrate;
+    if(baud_throttle < COUNT_OF(sl_updater_baudrate)) {
+        instance->baud_throttle = baud_throttle;
+    } else {
+        instance->baud_throttle = COUNT_OF(sl_updater_baudrate);
+    }
 
     kermit_reset_state(instance->kermit);
     // We start with the default timeout since it's enough for non-install operations
