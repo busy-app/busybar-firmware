@@ -93,7 +93,8 @@ bool tud_network_recv_cb(const uint8_t* src, uint16_t size) {
 
         if(!p) {
             FURI_LOG_T(TAG, "cannot receive frame, pbuf_alloc failed");
-            return false;
+            tud_network_recv_renew();
+            return true;
         }
 
 #if(ETH_PAD_SIZE != 0)

@@ -33,7 +33,6 @@ bool power_is_usb_connected(Power* power) {
     furi_check(power);
 
     bool ret = false;
-
     PowerMessage msg = {
         .type = PowerMessageTypeIsUsbConnected,
         .param_bool = &ret,
@@ -43,7 +42,22 @@ bool power_is_usb_connected(Power* power) {
     furi_check(
         furi_message_queue_put(power->message_queue, &msg, FuriWaitForever) == FuriStatusOk);
     api_lock_wait_unlock_and_free(msg.lock);
+    return ret;
+}
 
+bool power_is_battery_ready(Power* power) {
+    furi_check(power);
+
+    bool ret = false;
+    PowerMessage msg = {
+        .type = PowerMessageTypeIsBatteryReady,
+        .param_bool = &ret,
+        .lock = api_lock_alloc_locked(),
+    };
+
+    furi_check(
+        furi_message_queue_put(power->message_queue, &msg, FuriWaitForever) == FuriStatusOk);
+    api_lock_wait_unlock_and_free(msg.lock);
     return ret;
 }
 

@@ -107,7 +107,9 @@ static void cli_worker_process(CliWorker* worker) {
         worker_event = cli_worker_get_event(worker);
         switch(worker_event.event) {
         case CliEventInputData:
-            if(worker_event.c == CliSymbolAsciiETX) {
+        if(worker_event.c == 0x00){
+            //do nothing
+        } else if(worker_event.c == CliSymbolAsciiETX) {
                 printf("\r\n");
                 worker_event.event = CliEventExitApp;
                 cli_worker_put_event(worker, &worker_event);

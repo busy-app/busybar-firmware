@@ -11,11 +11,11 @@ void furi_hal_power_reset_917(bool to_dfu) {
         furi_hal_gpio_write(&gpio_audio_en_and_917_swo, false);
     }
     furi_hal_gpio_write(&gpio_917_rst, false);
-    furi_delay_ms(10);
+    furi_delay_ms(20);
     furi_hal_gpio_write(&gpio_917_rst, true);
 
     if(to_dfu) {
-        furi_delay_ms(100);
+        furi_delay_ms(150);
     }
 
     furi_hal_gpio_init_simple(&gpio_audio_en_and_917_swo, GpioModeAnalog);

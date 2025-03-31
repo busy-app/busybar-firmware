@@ -1130,14 +1130,14 @@ static int32_t ble_per_test_app_thread_callback(void* context) {
         if(instance->state == BLEPerTestStateTx) {
             furi_string_printf(
                 msg,
-                "\r\nTx Stats\r\n"
+                "Tx Stats\r\n"
                 "tx_dones: %d\r\n",
                 instance->per_stats.tx_dones);
             ble_per_test_app_send_text(instance, msg);
         } else if(instance->state == BLEPerTestStateRx) {
             furi_string_printf(
                 msg,
-                "\r\nRx Stats\r\n"
+                "Rx Stats\r\n"
                 "crc_fail_cnt: %d\r\n"
                 "crc_pass_cnt: %d\r\n"
                 "rssi: %d\r\n",

@@ -188,9 +188,52 @@ typedef struct {
     uint8_t _RSVD   : 1; /** RO:0h: reserved spaces */
 } Bq25987Reg09TerminationControl;
 
-static_assert(
-    sizeof(Bq25987Reg09TerminationControl) == 1,
-    "Bq25987Reg09TerminationControl size mismatch");
+typedef struct {
+    uint8_t EN_BACKUP       : 1;
+    uint8_t EN_TERM         : 1;
+    uint8_t EN_HIZ          : 1;
+    uint8_t FORCE_ICO       : 1;
+    uint8_t EN_ICO          : 1;
+    uint8_t EN_CHG          : 1;
+    uint8_t FORCE_IBATDIS   : 1;
+    uint8_t EN_AUTO_IBATDIS : 1;
+} Bq25987Reg0FChargerControl0;
+
+typedef struct {
+    uint8_t WATCHDOG    : 3;
+    uint8_t WD_RST      : 1;
+    uint8_t VAC_OVP     : 2;
+    uint8_t VBUS_BACKUP : 2;
+} Bq25987Reg10ChargerControl1;
+
+typedef struct {
+    uint8_t SDRV_DLY      : 1;
+    uint8_t SDRV_CTRL     : 2;
+    uint8_t HVDCP_EN      : 1;
+    uint8_t EN_9V         : 1;
+    uint8_t EN_12V        : 1;
+    uint8_t AUTO_INDET_EN : 1;
+    uint8_t FORCE_INDET   : 1;
+} Bq25987Reg11ChargerControl2;
+
+typedef struct {
+    uint8_t EN_BATOC     : 1;
+    uint8_t EN_EXTILIM   : 1;
+    uint8_t EN_IINDPM    : 1;
+    uint8_t IBAT_REG     : 2;
+    uint8_t EN_IBAT      : 1;
+    uint8_t              : 1;
+    uint8_t SFET_PRESENT : 1;
+} Bq25987Reg14ChargerControl5;
+
+typedef struct {
+    uint8_t              : 2;
+    uint8_t ADC_AVG_INIT : 1;
+    uint8_t ADC_AVG      : 1;
+    uint8_t ADC_SAMPLE   : 2;
+    uint8_t ADC_RATE     : 1;
+    uint8_t ADC_EN       : 1;
+} Bq25987Reg2EADCControl;
 
 typedef struct {
     uint8_t DEV_REV : 3; /** RO:0b001: Device revision */
@@ -198,6 +241,22 @@ typedef struct {
     uint8_t _RSVD   : 2; /** RO:0b0: Reserved */
 } Bq25987Reg48PartInformation;
 
+static_assert(
+    sizeof(Bq25987Reg09TerminationControl) == 1,
+    "Bq25987Reg09TerminationControl size mismatch");
+static_assert(
+    sizeof(Bq25987Reg0FChargerControl0) == 1,
+    "Bq25987Reg0FChargerControl0 size mismatch");
+static_assert(
+    sizeof(Bq25987Reg10ChargerControl1) == 1,
+    "Bq25987Reg10ChargerControl1 size mismatch");
+static_assert(
+    sizeof(Bq25987Reg11ChargerControl2) == 1,
+    "Bq25987Reg11ChargerControl2 size mismatch");
+static_assert(
+    sizeof(Bq25987Reg14ChargerControl5) == 1,
+    "Bq25987Reg14ChargerControl5 size mismatch");
+static_assert(sizeof(Bq25987Reg2EADCControl) == 1, "Bq25987Reg2EADCControl size mismatch");
 static_assert(
     sizeof(Bq25987Reg48PartInformation) == 1,
     "Bq25987Reg48PartInformation size mismatch");

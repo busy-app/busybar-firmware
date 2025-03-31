@@ -1,0 +1,9 @@
+App(
+    appid="back_display",
+    name="BackDisplaySrv",
+    apptype=FlipperAppType.SERVICE,
+    entry_point="back_display_srv",
+    stack_size=4096,
+    order=80,
+    targets=["f20"],
+)

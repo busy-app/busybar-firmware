@@ -5,6 +5,7 @@ App(
     provides=[
         "apps_menu",
         "message",
+        "sl_update_start",
     ],
     targets=["f20"],
 )

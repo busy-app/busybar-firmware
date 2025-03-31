@@ -11,3 +11,5 @@
 void ssd1320_init(void);
 
 void ssd1320_draw(const uint8_t* buf);
+
+void ssd1320_set_contrast(uint8_t contrast);

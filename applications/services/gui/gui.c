@@ -17,14 +17,6 @@ static void
     lv_display_flush_ready(lv_display);
 }
 
-// TODO: Optimise conversion?
-static void gui_l8_to_l4(uint8_t* dst, const uint8_t* src) {
-    for(uint32_t i = 0; i < BACK_FRAME_BUFFER_SIZE; ++i) {
-        const uint32_t draw_idx = 2 * i;
-        dst[i] = (src[draw_idx] >> 4) | (src[draw_idx + 1] & 0xF0);
-    }
-}
-
 static void
     gui_flush_back_callback(lv_display_t* lv_display, const lv_area_t* area, uint8_t* px_map) {
     UNUSED(area);
@@ -32,8 +24,7 @@ static void
     GuiDisplay* display = lv_display_get_user_data(lv_display);
     furi_check(px_map == display->draw_buffer);
 
-    gui_l8_to_l4(display->frame_buffer, display->draw_buffer);
-    ssd1320_draw(display->frame_buffer);
+    back_display_draw(display->driver, display->draw_buffer);
 
     lv_display_flush_ready(lv_display);
 }
@@ -70,15 +61,9 @@ static void gui_input_pubsub_callback(const void* message, void* context) {
 }
 
 static void gui_tick_callback(void* context) {
-    furi_assert(context);
-    Gui* instance = context;
-
-    if(furi_mutex_acquire(instance->access_mutex, 0) == FuriStatusOk) {
-        lv_timer_periodic_handler();
-        furi_mutex_release(instance->access_mutex);
-    } else {
-        FURI_LOG_T(TAG, "Gui lockup: tick skipped");
-    }
+    UNUSED(context);
+    // lv_lock() is called inside lv_timer_periodic_handler
+    lv_timer_periodic_handler();
 }
 
 static lv_obj_t* gui_get_layer_root(Gui* instance, GuiDisplayId display_id, GuiLayerId layer_id) {
@@ -142,23 +127,22 @@ static void gui_input_queue_callback(FuriEventLoopObject* object, void* context)
     Gui* instance = context;
     furi_assert(object == instance->input_queue);
 
-    if(furi_mutex_acquire(instance->access_mutex, 0) == FuriStatusOk) {
-        InputEvent event;
+    lv_lock();
 
-        while(furi_message_queue_get(instance->input_queue, &event, 0) == FuriStatusOk) {
-            for(GuiLayerId id = GuiLayerIdSystem; id < GuiLayerIdMax; ++id) {
-                GuiLayer* layer = &instance->layers[id];
-                if(gui_layer_feed_input(layer, &event)) {
-                    break;
-                }
-                if(gui_layer_feed_user_input(layer, &event)) {
-                    break;
-                }
+    InputEvent event;
+    while(furi_message_queue_get(instance->input_queue, &event, 0) == FuriStatusOk) {
+        for(GuiLayerId id = GuiLayerIdSystem; id < GuiLayerIdMax; ++id) {
+            GuiLayer* layer = &instance->layers[id];
+            if(gui_layer_feed_input(layer, &event)) {
+                break;
+            }
+            if(gui_layer_feed_user_input(layer, &event)) {
+                break;
             }
         }
-
-        furi_mutex_release(instance->access_mutex);
     }
+
+    lv_unlock();
 }
 
 static void gui_init_front(GuiDisplay* display) {
@@ -181,11 +165,12 @@ static void gui_init_front(GuiDisplay* display) {
 }
 
 static void gui_init_back(GuiDisplay* display) {
-    ssd1320_init();
+    const size_t back_display_buffer_size =
+        back_display_get_width() * back_display_get_height() * BACK_BYTES_PER_PIXEL;
 
-    display->draw_buffer = malloc(BACK_DRAW_BUFFER_SIZE);
-    display->frame_buffer = malloc(BACK_FRAME_BUFFER_SIZE);
-    display->lv_display = lv_display_create(BACK_W, BACK_H);
+    display->draw_buffer = malloc(back_display_buffer_size);
+    display->lv_display = lv_display_create(back_display_get_width(), back_display_get_height());
+    display->driver = furi_record_open(RECORD_BACK_DISPLAY);
 
     lv_display_set_user_data(display->lv_display, display);
     lv_display_set_flush_cb(display->lv_display, gui_flush_back_callback);
@@ -194,7 +179,7 @@ static void gui_init_back(GuiDisplay* display) {
         display->lv_display,
         display->draw_buffer,
         NULL,
-        BACK_DRAW_BUFFER_SIZE,
+        back_display_buffer_size,
         LV_DISPLAY_RENDER_MODE_DIRECT);
 
     lv_theme_t* theme = lv_theme_front_alloc(display->lv_display, &lv_font_haxrcorp4089_16);
@@ -223,8 +208,6 @@ static Gui* gui_alloc(void) {
     // TODO: Subscribe to power subsystem events
     // TODO: React on overheat or low power budget by limiting brightness
     instance->event_loop = furi_event_loop_alloc();
-    instance->access_mutex = furi_mutex_alloc(FuriMutexTypeNormal);
-    instance->dot_matrix = furi_record_open(RECORD_DOT_MATRIX);
     instance->input_queue = furi_message_queue_alloc(16, sizeof(InputEvent));
 
     furi_event_loop_subscribe_message_queue(
@@ -264,12 +247,12 @@ int gui_srv(void* arg) {
 
 void gui_lock(Gui* instance) {
     furi_check(instance);
-    furi_check(furi_mutex_acquire(instance->access_mutex, FuriWaitForever) == FuriStatusOk);
+    lv_lock();
 }
 
 void gui_unlock(Gui* instance) {
     furi_check(instance);
-    furi_check(furi_mutex_release(instance->access_mutex) == FuriStatusOk);
+    lv_unlock();
 }
 
 GuiLayer* gui_get_layer(Gui* instance, GuiLayerId layer_id) {
@@ -295,7 +278,7 @@ void gui_layer_add_input_callback(GuiLayer* layer, GuiInputCallback callback, vo
         GuiInputItemList_next(it)) {
         const GuiInputItem* item = GuiInputItemList_cref(it);
         if(item->callback == callback) {
-            furi_crash(TAG ": Callback alrady registered");
+            furi_crash(TAG ": Callback already registered");
         }
     }
 
