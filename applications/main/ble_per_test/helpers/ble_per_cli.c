@@ -1,11 +1,13 @@
 #include "ble_per_cli.h"
 #include <intercom/intercom.h>
+#include <furi_hal_cortex.h>
 #include <args.h>
 #include <strint.h>
 
-#define TAG              "BlePerCli"
-#define CLI_BUFFER_SIZE  (1024U)
-#define CLI_READ_TIMEOUT (10U)
+#define TAG                   "BlePerCli"
+#define CLI_BUFFER_SIZE       (1024U)
+#define CLI_READ_TIMEOUT      (10U)
+#define CLI_START_APP_TIMEOUT (5000000U) // 5 seconds
 
 typedef struct {
     Intercom* intercom;
@@ -92,7 +94,7 @@ typedef struct {
 } BlePerStats;
 
 BlePerStats ble_per_cli_stats[BlePerCliStatsCmdMax] = {
-    [BlePerCliStatsCmdTypeStartApp] = {"Start"},
+    [BlePerCliStatsCmdTypeStartApp] = {"start_app:"},
     [BlePerCliStatsCmdTypeTxDones] = {"tx_dones:"},
     [BlePerCliStatsCmdTypeCrcFailCnt] = {"crc_fail_cnt:"},
     [BlePerCliStatsCmdTypeCrcPassCnt] = {"crc_pass_cnt:"},
@@ -146,13 +148,13 @@ bool ble_per_cli_parse_msg(FuriString* args, const char* suffix) {
             if(furi_string_cmp_str(arg, (char*)ble_per_cli_stats[i].cmd) == 0) {
                 args_read_string_and_trim(args, arg);
                 strint_to_int32(furi_string_get_cstr(arg), &args_cstr, &arg_int32, 10);
-                if(i != BlePerCliStatsCmdTypeRssi){
+                if(i != BlePerCliStatsCmdTypeRssi) {
                     ble_per_cli_stats[i].value += arg_int32;
                 } else {
                     //Rssi not needs to be savings
                     ble_per_cli_stats[i].value = arg_int32;
                 }
-                
+
                 ret = true;
                 break;
             }
@@ -201,10 +203,15 @@ static int32_t ble_per_cli_worker_thread(void* context) {
     return 0;
 }
 
-void ble_per_cli_start(BlePerTest* app_handle, BlePerCliSettings settings) {
+bool ble_per_cli_start(BlePerTest* app_handle, BlePerCliSettings settings) {
     UNUSED(settings);
+
+    FuriHalCortexTimer wait = furi_hal_cortex_timer_get(CLI_START_APP_TIMEOUT);
+    FuriString* msg = furi_string_alloc();
+    bool ret = false;
+
     if(ble_per_cli_instance != NULL) {
-        return;
+        return ret;
     }
 
     ble_per_cli_instance = malloc(sizeof(CliCommandSlCli));
@@ -225,56 +232,71 @@ void ble_per_cli_start(BlePerTest* app_handle, BlePerCliSettings settings) {
     ble_per_cli_instance->thread = furi_thread_alloc_ex(
         "BLE_CLI_Worker", CLI_BUFFER_SIZE * 2, ble_per_cli_worker_thread, ble_per_cli_instance);
     furi_thread_start(ble_per_cli_instance->thread);
-
-    FuriString* msg = furi_string_alloc();
-    //Start App
-    furi_string_printf(msg, "%s\r\n", ble_per_cli_cmd[BlePerCliCmdTypeStartApp].cmd);
-    ble_per_cli_data_tx((uint8_t*)furi_string_get_cstr(msg), furi_string_utf8_length(msg));
-    FURI_LOG_D(TAG, "%s", furi_string_get_cstr(msg));
-    furi_delay_ms(3000); //wait for the app to start
-    //set settings
-    furi_string_printf(
-        msg, "%s %d\r\n", ble_per_cli_cmd[BlePerCliCmdTypeSetChannel].cmd, settings.channel);
-    furi_string_cat_printf(
-        msg, "%s %d\r\n", ble_per_cli_cmd[BlePerCliCmdTypeSetPhyRate].cmd, settings.rate);
-    furi_string_cat_printf(
-        msg, "%s %d\r\n", ble_per_cli_cmd[BlePerCliCmdTypeSetPayloadLen].cmd, settings.payload_len);
-    furi_string_cat_printf(
-        msg,
-        "%s %d\r\n",
-        ble_per_cli_cmd[BlePerCliCmdTypeSetPayloadType].cmd,
-        settings.payload_type);
-    furi_string_cat_printf(
-        msg, "%s %d\r\n", ble_per_cli_cmd[BlePerCliCmdTypeSetMode].cmd, settings.mode_work);
-    furi_string_cat_printf(
-        msg, "%s %d\r\n", ble_per_cli_cmd[BlePerCliCmdTypeSetHopping].cmd, settings.hopping);
-    furi_string_cat_printf(
-        msg, "%s %d\r\n", ble_per_cli_cmd[BlePerCliCmdTypeSetTxPower].cmd, settings.tx_power);
-
-    if(settings.mode == BLEPerCliSettingsModeTx) {
-        furi_string_cat_printf(msg, "%s\r\n", ble_per_cli_cmd[BlePerCliCmdTypeModeTx].cmd);
-    } else if(settings.mode == BLEPerCliSettingsModeRx) {
-        furi_string_cat_printf(msg, "%s\r\n", ble_per_cli_cmd[BlePerCliCmdTypeModeRx].cmd);
-    } else {
-        furi_crash("Invalid mode");
-    }
-
-    ble_per_cli_data_tx((uint8_t*)furi_string_get_cstr(msg), furi_string_utf8_length(msg));
-    FURI_LOG_D(TAG, "%s", furi_string_get_cstr(msg));
-
     ble_per_cli_stats[BlePerCliStatsCmdTypeStartApp].value = 0;
     ble_per_cli_stats[BlePerCliStatsCmdTypeTxDones].value = 0;
     ble_per_cli_stats[BlePerCliStatsCmdTypeCrcFailCnt].value = 0;
     ble_per_cli_stats[BlePerCliStatsCmdTypeCrcPassCnt].value = 0;
     ble_per_cli_stats[BlePerCliStatsCmdTypeRssi].value = 0;
-    ble_per_test_update(
-        app_handle,
-        ble_per_cli_stats[BlePerCliStatsCmdTypeTxDones].value,
-        ble_per_cli_stats[BlePerCliStatsCmdTypeCrcFailCnt].value,
-        ble_per_cli_stats[BlePerCliStatsCmdTypeCrcPassCnt].value,
-        ble_per_cli_stats[BlePerCliStatsCmdTypeRssi].value);
+
+    //Start App
+    furi_string_printf(msg, "%s\r\n", ble_per_cli_cmd[BlePerCliCmdTypeStartApp].cmd);
+    ble_per_cli_data_tx((uint8_t*)furi_string_get_cstr(msg), furi_string_utf8_length(msg));
+    FURI_LOG_D(TAG, "%s", furi_string_get_cstr(msg));
+
+    //wait for the app to start
+    while(!furi_hal_cortex_timer_is_expired(wait)) {
+        furi_thread_yield();
+        if(ble_per_cli_stats[BlePerCliStatsCmdTypeStartApp].value) {
+            break;
+        }
+    };
+
+    if(ble_per_cli_stats[BlePerCliStatsCmdTypeStartApp].value) {
+        //set settings
+        furi_string_printf(
+            msg, "%s %d\r\n", ble_per_cli_cmd[BlePerCliCmdTypeSetChannel].cmd, settings.channel);
+        furi_string_cat_printf(
+            msg, "%s %d\r\n", ble_per_cli_cmd[BlePerCliCmdTypeSetPhyRate].cmd, settings.rate);
+        furi_string_cat_printf(
+            msg,
+            "%s %d\r\n",
+            ble_per_cli_cmd[BlePerCliCmdTypeSetPayloadLen].cmd,
+            settings.payload_len);
+        furi_string_cat_printf(
+            msg,
+            "%s %d\r\n",
+            ble_per_cli_cmd[BlePerCliCmdTypeSetPayloadType].cmd,
+            settings.payload_type);
+        furi_string_cat_printf(
+            msg, "%s %d\r\n", ble_per_cli_cmd[BlePerCliCmdTypeSetMode].cmd, settings.mode_work);
+        furi_string_cat_printf(
+            msg, "%s %d\r\n", ble_per_cli_cmd[BlePerCliCmdTypeSetHopping].cmd, settings.hopping);
+        furi_string_cat_printf(
+            msg, "%s %d\r\n", ble_per_cli_cmd[BlePerCliCmdTypeSetTxPower].cmd, settings.tx_power);
+
+        if(settings.mode == BLEPerCliSettingsModeTx) {
+            furi_string_cat_printf(msg, "%s\r\n", ble_per_cli_cmd[BlePerCliCmdTypeModeTx].cmd);
+        } else if(settings.mode == BLEPerCliSettingsModeRx) {
+            furi_string_cat_printf(msg, "%s\r\n", ble_per_cli_cmd[BlePerCliCmdTypeModeRx].cmd);
+        } else {
+            furi_crash("Invalid mode");
+        }
+
+        ble_per_cli_data_tx((uint8_t*)furi_string_get_cstr(msg), furi_string_utf8_length(msg));
+        FURI_LOG_D(TAG, "%s", furi_string_get_cstr(msg));
+
+        ble_per_test_update(
+            app_handle,
+            ble_per_cli_stats[BlePerCliStatsCmdTypeTxDones].value,
+            ble_per_cli_stats[BlePerCliStatsCmdTypeCrcFailCnt].value,
+            ble_per_cli_stats[BlePerCliStatsCmdTypeCrcPassCnt].value,
+            ble_per_cli_stats[BlePerCliStatsCmdTypeRssi].value);
+
+        ret = true;
+    }
 
     furi_string_free(msg);
+    return ret;
 }
 
 void ble_per_cli_stop(void) {

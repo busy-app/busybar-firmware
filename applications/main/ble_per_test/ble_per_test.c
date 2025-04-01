@@ -221,8 +221,13 @@ static void ble_per_test_custom_event_callback(uint32_t events, void* context) {
     }
 
     if(events & BlePerTestCustomEventStartTest) {
-        FURI_LOG_I(TAG, "Start test");
-        ble_per_cli_start(instance, instance->settings);
+        if(ble_per_cli_start(instance, instance->settings)) {
+            FURI_LOG_I(TAG, "Start test");
+        } else {
+            FURI_LOG_E(TAG, "Start test failed");
+            instance->settings.start_test = false;
+            var_item_set_value(instance->var_item_test_start, instance->settings.start_test);
+        }
     }
 
     if(events & BlePerTestCustomEventStopTest) {
