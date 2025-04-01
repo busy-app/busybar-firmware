@@ -43,6 +43,7 @@ const IRQn_Type furi_hal_interrupt_irqn[FuriHalInterruptIdMax] = {
     [FuriHalInterruptIdLPDMA1Channel3] = LPDMA1_Channel3_IRQn,
 
     // GPU
+    [FuriHalInterruptIdDMA2D] = DMA2D_IRQn,
     // [FuriHalInterruptIdGPU2D] = GPU2D_IRQn,
     // [FuriHalInterruptIdGPU2DError] = GPU2D_ER_IRQn,
 
@@ -253,6 +254,10 @@ void LPDMA1_Channel2_IRQHandler() {
 
 void LPDMA1_Channel3_IRQHandler() {
     furi_hal_interrupt_call(FuriHalInterruptIdLPDMA1Channel3);
+}
+
+void DMA2D_IRQHandler(void) {
+    furi_hal_interrupt_call(FuriHalInterruptIdDMA2D);
 }
 
 void LPUART1_IRQHandler() {

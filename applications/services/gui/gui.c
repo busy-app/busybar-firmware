@@ -61,15 +61,9 @@ static void gui_input_pubsub_callback(const void* message, void* context) {
 }
 
 static void gui_tick_callback(void* context) {
-    furi_assert(context);
-    Gui* instance = context;
-
-    if(furi_mutex_acquire(instance->access_mutex, 0) == FuriStatusOk) {
-        lv_timer_periodic_handler();
-        furi_mutex_release(instance->access_mutex);
-    } else {
-        FURI_LOG_T(TAG, "Gui lockup: tick skipped");
-    }
+    UNUSED(context);
+    // lv_lock() is called inside lv_timer_periodic_handler
+    lv_timer_periodic_handler();
 }
 
 static lv_obj_t* gui_get_layer_root(Gui* instance, GuiDisplayId display_id, GuiLayerId layer_id) {
@@ -133,23 +127,22 @@ static void gui_input_queue_callback(FuriEventLoopObject* object, void* context)
     Gui* instance = context;
     furi_assert(object == instance->input_queue);
 
-    if(furi_mutex_acquire(instance->access_mutex, 0) == FuriStatusOk) {
-        InputEvent event;
+    lv_lock();
 
-        while(furi_message_queue_get(instance->input_queue, &event, 0) == FuriStatusOk) {
-            for(GuiLayerId id = GuiLayerIdSystem; id < GuiLayerIdMax; ++id) {
-                GuiLayer* layer = &instance->layers[id];
-                if(gui_layer_feed_input(layer, &event)) {
-                    break;
-                }
-                if(gui_layer_feed_user_input(layer, &event)) {
-                    break;
-                }
+    InputEvent event;
+    while(furi_message_queue_get(instance->input_queue, &event, 0) == FuriStatusOk) {
+        for(GuiLayerId id = GuiLayerIdSystem; id < GuiLayerIdMax; ++id) {
+            GuiLayer* layer = &instance->layers[id];
+            if(gui_layer_feed_input(layer, &event)) {
+                break;
+            }
+            if(gui_layer_feed_user_input(layer, &event)) {
+                break;
             }
         }
-
-        furi_mutex_release(instance->access_mutex);
     }
+
+    lv_unlock();
 }
 
 static void gui_init_front(GuiDisplay* display) {
@@ -215,8 +208,6 @@ static Gui* gui_alloc(void) {
     // TODO: Subscribe to power subsystem events
     // TODO: React on overheat or low power budget by limiting brightness
     instance->event_loop = furi_event_loop_alloc();
-    instance->access_mutex = furi_mutex_alloc(FuriMutexTypeNormal);
-    instance->dot_matrix = furi_record_open(RECORD_DOT_MATRIX);
     instance->input_queue = furi_message_queue_alloc(16, sizeof(InputEvent));
 
     furi_event_loop_subscribe_message_queue(
@@ -256,12 +247,12 @@ int gui_srv(void* arg) {
 
 void gui_lock(Gui* instance) {
     furi_check(instance);
-    furi_check(furi_mutex_acquire(instance->access_mutex, FuriWaitForever) == FuriStatusOk);
+    lv_lock();
 }
 
 void gui_unlock(Gui* instance) {
     furi_check(instance);
-    furi_check(furi_mutex_release(instance->access_mutex) == FuriStatusOk);
+    lv_unlock();
 }
 
 GuiLayer* gui_get_layer(Gui* instance, GuiLayerId layer_id) {

@@ -19,7 +19,8 @@ bool sl_updater_run(
     SlUpdater* instance,
     const char* firmware_path,
     bool is_stack_image,
-    uint8_t install_timeout_seconds);
+    uint8_t install_timeout_seconds,
+    uint8_t baud_throttle);
 
 // Frees the SlUpdater instance
 void sl_updater_free(SlUpdater* instance);
