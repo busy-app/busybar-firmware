@@ -232,11 +232,6 @@ bool ble_per_cli_start(BlePerTest* app_handle, BlePerCliSettings settings) {
     ble_per_cli_instance->thread = furi_thread_alloc_ex(
         "BLE_CLI_Worker", CLI_BUFFER_SIZE * 2, ble_per_cli_worker_thread, ble_per_cli_instance);
     furi_thread_start(ble_per_cli_instance->thread);
-    ble_per_cli_stats[BlePerCliStatsCmdTypeStartApp].value = 0;
-    ble_per_cli_stats[BlePerCliStatsCmdTypeTxDones].value = 0;
-    ble_per_cli_stats[BlePerCliStatsCmdTypeCrcFailCnt].value = 0;
-    ble_per_cli_stats[BlePerCliStatsCmdTypeCrcPassCnt].value = 0;
-    ble_per_cli_stats[BlePerCliStatsCmdTypeRssi].value = 0;
 
     //Start App
     furi_string_printf(msg, "%s\r\n", ble_per_cli_cmd[BlePerCliCmdTypeStartApp].cmd);

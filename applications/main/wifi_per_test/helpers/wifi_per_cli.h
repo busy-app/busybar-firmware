@@ -17,5 +17,5 @@ typedef enum {
     BLEPerCliSettingsModeRx,
 } BLEPerCliSettingsMode;
 
-void wifi_per_cli_start(WifiPerTest* app_hendle, WifiPerCliSettings settings);
+bool wifi_per_cli_start(WifiPerTest* app_hendle, WifiPerCliSettings settings);
 void wifi_per_cli_stop(void);

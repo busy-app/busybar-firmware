@@ -22,6 +22,7 @@ struct WifiPerTest {
     bool exit_on_back;
     Label* label;
     WifiPerCliSettings settings;
+    VarItem* var_item_test_start;
 };
 
 static const char* wifi_per_test_mode_text[] = {
@@ -152,6 +153,17 @@ static bool wifi_per_test_input_callback(const InputEvent* event, void* context)
             furi_event_loop_set_custom_event(instance->event_loop, WifiPerTestCustomEventExit);
             instance->exit_on_back = true;
             consumed = true;
+        } else if(event->key == InputKeyStart) {
+            if(instance->settings.start_test) {
+                furi_event_loop_set_custom_event(
+                    instance->event_loop, WifiPerTestCustomEventStopTest);
+            } else {
+                furi_event_loop_set_custom_event(
+                    instance->event_loop, WifiPerTestCustomEventStartTest);
+            }
+            instance->settings.start_test = !instance->settings.start_test;
+            var_item_set_value(instance->var_item_test_start, instance->settings.start_test);
+            consumed = true;
         }
     }
 
@@ -174,8 +186,13 @@ static void wifi_per_test_custom_event_callback(uint32_t events, void* context) 
     }
 
     if(events & WifiPerTestCustomEventStartTest) {
-        FURI_LOG_I(TAG, "Start test");
-        wifi_per_cli_start(instance, instance->settings);
+        if(wifi_per_cli_start(instance, instance->settings)) {
+            FURI_LOG_I(TAG, "Start test");
+        } else {
+            FURI_LOG_E(TAG, "Start test failed");
+            instance->settings.start_test = false;
+            var_item_set_value(instance->var_item_test_start, instance->settings.start_test);
+        }
     }
 
     if(events & WifiPerTestCustomEventStopTest) {
@@ -193,7 +210,7 @@ void wifi_per_test_update(
     UNUSED(tx_dones);
     FuriString* str = furi_string_alloc();
     furi_string_printf(
-        str, "rssi %ld \ncrc_fail_cnt %ld crc_pass_cnt %ld ", rssi, crc_fail_cnt, crc_pass_cnt);
+        str, "Rssi %ld \nCrcFallCnt %ld CrcPassCnt %ld ", rssi, crc_fail_cnt, crc_pass_cnt);
     with_gui(instance->gui, { label_set_text(instance->label, furi_string_get_cstr(str)); });
     furi_string_free(str);
 }
@@ -277,9 +294,9 @@ static WifiPerTest* wifi_per_test_alloc(void) {
         //Todo:
         var_item_set_value(item, 4); // SL_WIFI_DATA_RATE_6
 
-        item = var_item_list_add_switch(
+        instance->var_item_test_start = var_item_list_add_switch(
             instance->var_list, "Start test", wifi_per_test_switch_changed_callback, instance);
-        instance->settings.start_test = var_item_get_value(item);
+        instance->settings.start_test = !var_item_get_value(item);
     });
 
     return instance;

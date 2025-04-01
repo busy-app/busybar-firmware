@@ -250,6 +250,8 @@ void* wifi_rf_test_app_start(CliWorker* worker) {
         }
 
         wifi_rf_test_app_cmd_usage(instance);
+        furi_string_printf(instance->msg, "start_app: 1\r\n");
+        wifi_rf_test_app_send_msg(instance);
     } while(0);
 
     if(status != SL_STATUS_OK) {
