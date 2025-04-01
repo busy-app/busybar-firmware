@@ -22,6 +22,7 @@ struct BlePerTest {
     bool exit_on_back;
     Label* label;
     BlePerCliSettings settings;
+    VarItem* var_item_test_start;
 };
 
 static const char* ble_per_test_mode_text[] = {
@@ -187,6 +188,17 @@ static bool ble_per_test_input_callback(const InputEvent* event, void* context) 
             furi_event_loop_set_custom_event(instance->event_loop, BlePerTestCustomEventExit);
             instance->exit_on_back = true;
             consumed = true;
+        } else if(event->key == InputKeyStart) {
+            if(instance->settings.start_test) {
+                furi_event_loop_set_custom_event(
+                    instance->event_loop, BlePerTestCustomEventStopTest);
+            } else {
+                furi_event_loop_set_custom_event(
+                    instance->event_loop, BlePerTestCustomEventStartTest);
+            }
+            instance->settings.start_test = !instance->settings.start_test;
+            var_item_set_value(instance->var_item_test_start, instance->settings.start_test);
+            consumed = true;
         }
     }
 
@@ -228,7 +240,7 @@ void ble_per_test_update(
     FuriString* str = furi_string_alloc();
     furi_string_printf(
         str,
-        "tx_dones %ld rssi %ld \ncrc_fail_cnt %ld crc_pass_cnt %ld ",
+        "TxDones %ld Rssi %ld \nCrcFallCnt %ld CrcPassCnt %ld ",
         tx_dones,
         rssi,
         crc_fail_cnt,
@@ -346,9 +358,9 @@ static BlePerTest* ble_per_test_alloc(void) {
             instance);
         var_item_set_value_key_value(item, ble_per_test_rate, instance->settings.rate);
 
-        item = var_item_list_add_switch(
+        instance->var_item_test_start = var_item_list_add_switch(
             instance->var_list, "Start test", ble_per_test_switch_changed_callback, instance);
-        instance->settings.start_test = var_item_get_value(item);
+        instance->settings.start_test = !var_item_get_value(item);
     });
 
     return instance;

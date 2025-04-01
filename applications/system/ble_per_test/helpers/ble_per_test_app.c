@@ -677,6 +677,8 @@ void* ble_per_test_app_start(CliWorker* worker) {
 
 #endif
         ble_per_test_app_cmd_usage(instance);
+        furi_string_printf(instance->msg, "start_app: 1\r\n");
+        ble_per_test_app_send_msg(instance);
     } while(false);
 
     if(status != SL_STATUS_OK) {
