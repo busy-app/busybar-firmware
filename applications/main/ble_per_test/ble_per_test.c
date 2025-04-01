@@ -365,7 +365,7 @@ static BlePerTest* ble_per_test_alloc(void) {
 
         instance->var_item_test_start = var_item_list_add_switch(
             instance->var_list, "Start test", ble_per_test_switch_changed_callback, instance);
-        instance->settings.start_test = !var_item_get_value(item);
+        instance->settings.start_test = var_item_get_value(instance->var_item_test_start);
     });
 
     return instance;
