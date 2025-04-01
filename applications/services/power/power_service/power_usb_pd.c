@@ -45,6 +45,13 @@ typedef enum {
 } PdOrdSet;
 
 typedef enum {
+    PdRevision10 = 0, // Revision 1.0 (Not supported)
+    PdRevision20 = 1, // Revision 2.0
+    PdRevision30 = 2, // Revision 3.0
+    PdRevisionReserved = 3, // Reserved (Not supported)
+} PdRevision;
+
+typedef enum {
     PdPowerRoleSnk = 0, // Sink
     PdPowerRoleSrc = 1, // Source
 } PdPowerRole;
@@ -61,13 +68,46 @@ typedef enum {
 
 typedef enum {
     PdMsgGoodCrc = 1,
+    PdMsgGotoMin = 2,
     PdMsgAccept = 3,
+    PdMsgReject = 4,
+    PdMsgPing = 5,
     PdMsgPsRdy = 6,
+    PdMsgGetSourceCaps = 7,
+    PdMsgGetSinkCaps = 8,
+    PdMsgDrSwap = 9,
+    PdMsgPrSwap = 10,
+    PdMsgVconnSwap = 11,
+    PdMsgWait = 12,
+    PdMsgSoftReset = 13,
+    PdMsgDataReset = 14,
+    PdMsgDataResetComplete = 15,
+    PdMsgNotSupported = 16,
+    PdMsgGetSourceCapsExt = 17,
+    PdMsgGetStatus = 18,
+    PdMsgFrSwap = 19,
+    PdMsgGetPpsStatus = 20,
+    PdMsgGetCountryCodes = 21,
+    PdMsgGetSinkCapsExt = 22,
+    PdMsgGetSrcInfo = 23,
+    PdMsgGetRevision = 24,
+    PdMsgControlMax = 25,
 } PdMsgControl;
 
 typedef enum {
     PdMsgSourceCaps = 1,
     PdMsgRequest = 2,
+    PdMsgBist = 3,
+    PdMsgSinkCaps = 4,
+    PdMsgBatteryStatus = 5,
+    PdMsgAlert = 6,
+    PdMsgGetCountryInfo = 7,
+    PdMsgEnterUsb = 8,
+    PdMsgEprRequest = 9,
+    PdMsgEprMode = 10,
+    PdMsgSrcInfo = 11,
+    PdMsgRevision = 12,
+    PdMsgDataMax = 13,
     PdMsgVendor = 0x0F,
 } PdMsgData;
 
@@ -121,6 +161,24 @@ typedef struct FURI_PACKED {
         uint32_t data;
     };
 } PdPowerDataObject;
+
+typedef struct FURI_PACKED {
+    union {
+        struct {
+            uint32_t current          : 10;
+            uint32_t voltage          : 10;
+            uint32_t                  : 3;
+            uint32_t frs_mode         : 2;
+            uint32_t drd              : 1;
+            uint32_t usb_data_support : 1;
+            uint32_t unconstrained    : 1;
+            uint32_t higher_cap       : 1;
+            uint32_t drp              : 1;
+            uint32_t type             : 2;
+        };
+        uint32_t data;
+    };
+} PdSinkPowerDataObject;
 
 typedef struct FURI_PACKED {
     union {
@@ -350,6 +408,74 @@ static void pd_send_goodcrc(PowerUsbPd* pd, uint8_t msg_id) {
     ucpd_transmit(pd, pd->tx_ord_set, pd->tx_buf, pd->tx_len);
 }
 
+static void pd_send_not_supported(PowerUsbPd* pd) {
+    furi_semaphore_acquire(pd->tx_idle_sem, FuriWaitForever);
+
+    PdHeaderSop0 hdr = {
+        .extended = 0,
+        .power_role = PdPowerRoleSnk,
+        .data_role = PdDataRoleUFP,
+        .revision = pd->src_rev_id,
+        .msg_id = pd->tx_msg_id,
+        .nb_objects = 0,
+        .msg_type = (pd->src_rev_id == PdRevision30) ? PdMsgNotSupported : PdMsgReject,
+    };
+
+    memcpy(&pd->tx_buf[0], &hdr.data, 2);
+
+    pd->tx_ord_set = PdOrdSetSOP0;
+    pd->tx_len = 2;
+    ucpd_transmit(pd, pd->tx_ord_set, pd->tx_buf, pd->tx_len);
+}
+
+static void pd_send_sink_caps(PowerUsbPd* pd) {
+    furi_semaphore_acquire(pd->tx_idle_sem, FuriWaitForever);
+
+    PdHeaderSop0 hdr = {
+        .extended = 0,
+        .power_role = PdPowerRoleSnk,
+        .data_role = PdDataRoleUFP,
+        .revision = pd->src_rev_id,
+        .msg_id = pd->tx_msg_id,
+        .nb_objects = 2,
+        .msg_type = PdMsgSinkCaps,
+    };
+
+    memcpy(&pd->tx_buf[0], &hdr.data, 2);
+
+    PdSinkPowerDataObject sink_pdo[2] = {
+        {
+            .type = 0,
+            .drp = 0,
+            .higher_cap = 0,
+            .unconstrained = 0,
+            .usb_data_support = 1,
+            .drd = 0,
+            .frs_mode = 0,
+            .voltage = PD_VOLTAGE_DEFAULT / 50,
+            .current = PD_MAX_CURRENT / 10,
+        },
+        {
+            .type = 0,
+            .drp = 0,
+            .higher_cap = 0,
+            .unconstrained = 0,
+            .usb_data_support = 1,
+            .drd = 0,
+            .frs_mode = 0,
+            .voltage = 9000 / 50,
+            .current = PD_MAX_CURRENT / 10,
+        },
+    };
+
+    memcpy(&pd->tx_buf[2], &sink_pdo[0].data, 4);
+    memcpy(&pd->tx_buf[6], &sink_pdo[1].data, 4);
+
+    pd->tx_ord_set = PdOrdSetSOP0;
+    pd->tx_len = 10;
+    ucpd_transmit(pd, pd->tx_ord_set, pd->tx_buf, pd->tx_len);
+}
+
 static void pd_send_request_fixed(PowerUsbPd* pd, uint32_t cap_id, uint32_t current_ma) {
     furi_timer_stop(pd->pps_keep_alive_timer);
     pd->pps_keep_alive = false;
@@ -536,7 +662,6 @@ static void pd_msg_parse_sop0(PowerUsbPd* pd, uint8_t* buf) {
         // Control messages
         if(hdr.msg_type == PdMsgGoodCrc) { // GoodCRC
             pd->tx_msg_id = (pd->tx_msg_id + 1) & 0x7;
-            // TODO: stop timeout timer
         } else if(hdr.msg_type == PdMsgAccept) {
             // Accept -> send GoodCRC
             furi_mutex_acquire(pd->cap_mutex, FuriWaitForever);
@@ -551,6 +676,11 @@ static void pd_msg_parse_sop0(PowerUsbPd* pd, uint8_t* buf) {
             } else {
                 pd->pps_keep_alive = false;
             }
+        } else if(hdr.msg_type == PdMsgGetSinkCaps) {
+            pd_send_sink_caps(pd);
+        } else {
+            pd_send_not_supported(pd);
+            FURI_LOG_W(TAG, "Unknown control msg %u", hdr.msg_type);
         }
     } else if(
         (hdr.power_role == PdPowerRoleSrc) && (hdr.data_role == PdDataRoleDFP) &&
@@ -564,36 +694,45 @@ static void pd_msg_parse_sop0(PowerUsbPd* pd, uint8_t* buf) {
                 };
                 furi_message_queue_put(pd->message_queue, &msg, FuriWaitForever);
             }
-        } // TODO: VDM SVID NAK (find compatible SRC)
+        } else {
+            pd_send_not_supported(pd);
+            FURI_LOG_W(TAG, "Unknown data msg %u", hdr.msg_type);
+        }
     }
 }
 
-static bool pd_is_ack_requiered(PowerUsbPd* pd, uint8_t ord_set, uint8_t* buf, uint8_t* msg_id) {
-    if(ord_set == PdOrdSetSOP0) {
-        PdHeaderSop0 hdr = {0};
-        memcpy(&hdr.data, buf, 2);
+static bool pd_is_ack_required(PowerUsbPd* pd, uint8_t ord_set, uint8_t* buf, uint8_t* msg_id) {
+    if(ord_set != PdOrdSetSOP0) {
+        // We only support SOP messages
+        return false;
+    }
 
-        *msg_id = hdr.msg_id;
+    PdHeaderSop0 hdr = {0};
+    memcpy(&hdr.data, buf, 2);
 
-        if((hdr.power_role == PdPowerRoleSrc) && (hdr.data_role == PdDataRoleDFP) &&
-           (hdr.nb_objects == 0)) {
-            // Command
-            pd->src_rev_id = hdr.revision;
-            if(hdr.msg_type == PdMsgAccept) { // Accept
-                return true;
-            } else if(hdr.msg_type == PdMsgPsRdy) { // PS_RDY
-                return true;
-            }
-        } else if(
-            (hdr.power_role == PdPowerRoleSrc) && (hdr.data_role == PdDataRoleDFP) &&
-            (hdr.nb_objects > 0)) {
-            // Data
-            pd->src_rev_id = hdr.revision;
-            if(hdr.msg_type == PdMsgSourceCaps) { // Capabilities
-                return true;
-            } else if(hdr.msg_type == PdMsgVendor) { // VDM
-                return true;
-            }
+    *msg_id = hdr.msg_id;
+
+    if((hdr.power_role == PdPowerRoleSrc) && (hdr.data_role == PdDataRoleDFP) &&
+       (hdr.nb_objects == 0)) {
+        // Command
+        pd->src_rev_id = hdr.revision;
+        if(hdr.msg_type == PdMsgGoodCrc) {
+            // Don't respond GoodCRC to GoodCRC
+            return false;
+        }
+        if((hdr.msg_type > 0) && (hdr.msg_type < PdMsgControlMax)) {
+            return true;
+        }
+    } else if(
+        (hdr.power_role == PdPowerRoleSrc) && (hdr.data_role == PdDataRoleDFP) &&
+        (hdr.nb_objects > 0)) {
+        // Data
+        pd->src_rev_id = hdr.revision;
+        if(hdr.msg_type == PdMsgVendor) { // VDM
+            return true;
+        }
+        if((hdr.msg_type > 0) && (hdr.msg_type < PdMsgDataMax)) {
+            return true;
         }
     }
 
@@ -639,7 +778,7 @@ static void ucpd_irq_handler(void* context) {
             pd->rx_msg.rx_done.ord_set_type = pd->rx_irq_ord_set;
             if(furi_message_queue_put(pd->message_queue, &(pd->rx_msg), 0) == FuriStatusOk) {
                 uint8_t msg_id = 0;
-                if(pd_is_ack_requiered(pd, pd->rx_irq_ord_set, pd->rx_msg.rx_done.data, &msg_id)) {
+                if(pd_is_ack_required(pd, pd->rx_irq_ord_set, pd->rx_msg.rx_done.data, &msg_id)) {
                     pd_send_goodcrc(pd, msg_id);
                 }
             }
