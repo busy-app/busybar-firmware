@@ -52,7 +52,7 @@ struct SlUpdater {
 };
 
 #define KERMIT_TIMEOUT_SECONDS               (2)
-#define SL_UPDATER_AUTO_BAUD_RATE_TIMEOUT_MS (13000)
+#define SL_UPDATER_AUTO_BAUD_RATE_TIMEOUT_US (13000000U) // 13s
 
 typedef struct {
     const char* choice;
@@ -178,7 +178,7 @@ static void sl_updater_handle_rx(SlUpdater* instance) {
             if(furi_hal_serial_set_auto_baud_rate(
                    instance->serial_handle,
                    FuriHalSerialAutoBaudRateMode0x55Frame,
-                   SL_UPDATER_AUTO_BAUD_RATE_TIMEOUT_MS)) {
+                   SL_UPDATER_AUTO_BAUD_RATE_TIMEOUT_US)) {
                 FURI_LOG_I(
                     TAG,
                     "Baud rate auto set %ld",
