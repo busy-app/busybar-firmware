@@ -44,13 +44,29 @@ struct SlUpdater {
 #endif
     uint8_t install_timeout_seconds;
     bool is_stack_image;
+    uint8_t baud_throttle;
     Si917BootloaderState bootloader_state;
     Storage* storage;
     File* firmware_file;
     kermit_t* kermit;
 };
 
-#define KERMIT_TIMEOUT_SECONDS (2)
+#define KERMIT_TIMEOUT_SECONDS               (2)
+#define SL_UPDATER_AUTO_BAUD_RATE_TIMEOUT_MS (13000)
+
+typedef struct {
+    const char* choice;
+    uint32_t baudrate;
+} SlUpdaterBaudeRate;
+
+static SlUpdaterBaudeRate const sl_updater_baudrate[] = {
+    {"4", 921600},
+    {"3", 460800},
+    {"2", 230400},
+    {"5", 115200},
+    {"1", 38400},
+    {"0", 9600},
+};
 
 //////////////////////////////////////////////////////////////////////////
 // Kermit i/o functions
@@ -142,11 +158,34 @@ static void sl_updater_handle_rx(SlUpdater* instance) {
 
     case Si917BootloaderStateChangeBaudRate:
         if(sl_updater_check_rx_for(instance, "5 115200\r\n")) {
-            const uint8_t choice = '3';
-            furi_hal_serial_tx(instance->serial_handle, &choice, sizeof(choice));
-            FURI_LOG_I(TAG, "UART Baud Rate speed request sent: %c", choice);
+            furi_hal_serial_tx(
+                instance->serial_handle,
+                (uint8_t*)sl_updater_baudrate[instance->baud_throttle].choice,
+                1);
+            FURI_LOG_I(
+                TAG,
+                "UART Baud Rate speed request sent: %s",
+                sl_updater_baudrate[instance->baud_throttle].choice);
 
-            furi_hal_serial_set_baud_rate(instance->serial_handle, 460800);
+            furi_hal_serial_set_baud_rate(
+                instance->serial_handle, sl_updater_baudrate[instance->baud_throttle].baudrate);
+            FURI_LOG_I(
+                TAG,
+                "Reference baud set %ld",
+                furi_hal_serial_get_baud_rate(instance->serial_handle));
+            const uint8_t leader = 'U';
+            furi_hal_serial_tx(instance->serial_handle, &leader, sizeof(leader));
+            if(furi_hal_serial_set_auto_baud_rate(
+                   instance->serial_handle,
+                   FuriHalSerialAutoBaudRateMode0x55Frame,
+                   SL_UPDATER_AUTO_BAUD_RATE_TIMEOUT_MS)) {
+                FURI_LOG_I(
+                    TAG,
+                    "Baud rate auto set %ld",
+                    furi_hal_serial_get_baud_rate(instance->serial_handle));
+            } else {
+                FURI_LOG_E(TAG, "Baud rate auto set failed");
+            }
             instance->bootloader_state = Si917BootloaderStateChangeBaudRateNewLeader;
         }
         break;
@@ -159,7 +198,10 @@ static void sl_updater_handle_rx(SlUpdater* instance) {
 
     case Si917BootloaderStateChangeBaudRateSuccess:
         if(sl_updater_check_rx_for(instance, "Baud Rate was updated successfully!")) {
-            FURI_LOG_I(TAG, "Baud rate was set to 460800");
+            FURI_LOG_I(
+                TAG,
+                "BL baud rate set to %ld",
+                sl_updater_baudrate[instance->baud_throttle].baudrate);
             instance->bootloader_state = Si917BootloaderStateSetImageType;
         }
         break;
@@ -291,6 +333,7 @@ SlUpdater* sl_updater_alloc(void) {
     instance->rx_buffer = furi_stream_buffer_alloc(512, 1);
     instance->rx_string = furi_string_alloc();
     instance->serial_handle = NULL;
+    instance->baud_throttle = 0;
 
     instance->bootloader_state = Si917BootloaderStateInit;
     instance->install_timeout_seconds = 1;
@@ -334,13 +377,20 @@ bool sl_updater_run(
     SlUpdater* instance,
     const char* firmware_path,
     bool is_stack_image,
-    uint8_t install_timeout_seconds) {
+    uint8_t install_timeout_seconds,
+    uint8_t baud_throttle) {
     furi_check(instance);
     furi_check(firmware_path);
     furi_check(instance->serial_handle == NULL);
+    furi_assert(baud_throttle <= COUNT_OF(sl_updater_baudrate));
 
     instance->install_timeout_seconds = install_timeout_seconds;
     instance->is_stack_image = is_stack_image;
+    if(baud_throttle < COUNT_OF(sl_updater_baudrate)) {
+        instance->baud_throttle = baud_throttle;
+    } else {
+        instance->baud_throttle = COUNT_OF(sl_updater_baudrate);
+    }
 
     kermit_reset_state(instance->kermit);
     // We start with the default timeout since it's enough for non-install operations
