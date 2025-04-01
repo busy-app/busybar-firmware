@@ -119,7 +119,7 @@ bool furi_hal_serial_is_baud_rate_supported(FuriHalSerialHandle* handle, uint32_
 bool furi_hal_serial_set_auto_baud_rate(
     FuriHalSerialHandle* handle,
     FuriHalSerialAutoBaudRateMode mode,
-    uint32_t timeout_us);
+    uint32_t timeout);
 
 /**
  * Get the baud rate for the serial interface.
