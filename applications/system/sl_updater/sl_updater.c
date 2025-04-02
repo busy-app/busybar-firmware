@@ -52,7 +52,7 @@ struct SlUpdater {
 };
 
 #define KERMIT_TIMEOUT_SECONDS               (2)
-#define SL_UPDATER_AUTO_BAUD_RATE_TIMEOUT_MS (13000)
+#define SL_UPDATER_AUTO_BAUD_RATE_TIMEOUT_MS (13000U) // 13s
 
 typedef struct {
     const char* choice;

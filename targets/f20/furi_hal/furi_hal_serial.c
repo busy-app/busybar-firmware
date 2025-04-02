@@ -495,7 +495,7 @@ bool furi_hal_serial_set_auto_baud_rate(
 
     FuriHalSerial* serial = furi_hal_serial[handle->id];
     USART_TypeDef* periph = serial->periph_ptr;
-    FuriHalCortexTimer wait = furi_hal_cortex_timer_get(timeout);
+    FuriHalCortexTimer wait = furi_hal_cortex_timer_get(timeout * 1000);
 
     LL_USART_SetAutoBaudRateMode(periph, furi_hal_serial_auto_baundrate_mode[mode]);
     LL_USART_EnableAutoBaudRate(periph);
