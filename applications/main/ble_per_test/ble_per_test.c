@@ -15,13 +15,22 @@ typedef enum {
     BlePerTestCustomEventStopTest = (1UL << 2),
 } BlePerTestCustomEvent;
 
+typedef enum {
+    BLEPerTestStateStop,
+    BLEPerTestStateLoading,
+    BLEPerTestStateRunning,
+    BLEPerTestStateStoping,
+} BLEPerTestState;
+
 struct BlePerTest {
     FuriEventLoop* event_loop;
     Gui* gui;
     VarItemList* var_list;
+    Label* label_status;
     bool exit_on_back;
     Label* label;
     BlePerCliSettings settings;
+    BLEPerTestState test_state;
 };
 
 static const char* ble_per_test_mode_text[] = {
@@ -97,7 +106,7 @@ void ble_per_test_set_default_settings(BlePerTest* instance) {
     instance->settings.payload_type = 0; //PRBS9
     instance->settings.hopping = 0; //No hopping
     instance->settings.tx_power = 127; //Max Power
-    instance->settings.start_test = false;
+    instance->test_state = BLEPerTestStateStop;
 }
 static void ble_per_test_mode_work_changed_callback(VarItem* item, void* context) {
     BlePerTest* instance = context;
@@ -161,20 +170,6 @@ static void ble_per_test_rate_changed_callback(VarItem* item, void* context) {
     instance->settings.rate = ble_per_test_rate[index].value;
 }
 
-static void ble_per_test_switch_changed_callback(VarItem* item, void* context) {
-    BlePerTest* instance = context;
-    const int32_t value = var_item_get_value(item);
-    FURI_LOG_I(TAG, "Start test set: %s", value ? "ON" : "OFF");
-    if(instance->settings.start_test != value) {
-        instance->settings.start_test = value;
-        if(value) {
-            furi_event_loop_set_custom_event(instance->event_loop, BlePerTestCustomEventStartTest);
-        } else {
-            furi_event_loop_set_custom_event(instance->event_loop, BlePerTestCustomEventStopTest);
-        }
-    }
-}
-
 static bool ble_per_test_input_callback(const InputEvent* event, void* context) {
     furi_assert(event);
     furi_assert(context);
@@ -187,7 +182,21 @@ static bool ble_per_test_input_callback(const InputEvent* event, void* context) 
             furi_event_loop_set_custom_event(instance->event_loop, BlePerTestCustomEventExit);
             instance->exit_on_back = true;
             consumed = true;
+        } else if(event->key == InputKeyStart) {
+            if(instance->test_state == BLEPerTestStateRunning) {
+                furi_event_loop_set_custom_event(
+                    instance->event_loop, BlePerTestCustomEventStopTest);
+            } else if(instance->test_state == BLEPerTestStateStop) {
+                furi_event_loop_set_custom_event(
+                    instance->event_loop, BlePerTestCustomEventStartTest);
+                instance->test_state = BLEPerTestStateLoading;
+            }
+            consumed = true;
         }
+    }
+
+    if(instance->test_state != BLEPerTestStateStop) {
+        consumed = true;
     }
 
     return consumed;
@@ -199,23 +208,41 @@ static void ble_per_test_custom_event_callback(uint32_t events, void* context) {
 
     if(events & BlePerTestCustomEventExit) {
         if(instance->exit_on_back) {
-            if(instance->settings.start_test) {
+            if(instance->test_state != BLEPerTestStateStop) {
                 FURI_LOG_I(TAG, "Stop test");
                 ble_per_cli_stop();
-                instance->settings.start_test = false;
+                instance->test_state = BLEPerTestStateStop;
             }
             furi_event_loop_stop(instance->event_loop);
         }
     }
 
     if(events & BlePerTestCustomEventStartTest) {
-        FURI_LOG_I(TAG, "Start test");
-        ble_per_cli_start(instance, instance->settings);
+        furi_check(instance->test_state == BLEPerTestStateLoading);
+        if(ble_per_cli_start(instance, instance->settings)) {
+            FURI_LOG_I(TAG, "Start test");
+            with_gui(instance->gui, {
+                widget_set_visible(var_item_list_get_base(instance->var_list), false);
+                widget_set_visible(label_get_base(instance->label_status), true);
+            });
+            instance->test_state = BLEPerTestStateRunning;
+        } else {
+            FURI_LOG_E(TAG, "Start test failed");
+            ble_per_cli_stop();
+            instance->test_state = BLEPerTestStateStop;
+        }
     }
 
     if(events & BlePerTestCustomEventStopTest) {
+        furi_check(instance->test_state == BLEPerTestStateRunning);
+        instance->test_state = BLEPerTestStateStoping;
         FURI_LOG_I(TAG, "Stop test");
         ble_per_cli_stop();
+        with_gui(instance->gui, {
+            widget_set_visible(var_item_list_get_base(instance->var_list), true);
+            widget_set_visible(label_get_base(instance->label_status), false);
+        });
+        instance->test_state = BLEPerTestStateStop;
     }
 }
 
@@ -228,12 +255,14 @@ void ble_per_test_update(
     FuriString* str = furi_string_alloc();
     furi_string_printf(
         str,
-        "tx_dones %ld rssi %ld \ncrc_fail_cnt %ld crc_pass_cnt %ld ",
+        "TxDones %ld\nRssi %ld\nCrcFallCnt %ld\nCrcPassCnt %ld",
         tx_dones,
         rssi,
         crc_fail_cnt,
         crc_pass_cnt);
-    with_gui(instance->gui, { label_set_text(instance->label, furi_string_get_cstr(str)); });
+    with_gui(instance->gui, {
+        label_set_text(instance->label_status, furi_string_get_cstr(str));
+    });
     furi_string_free(str);
 }
 
@@ -258,6 +287,11 @@ static BlePerTest* ble_per_test_alloc(void) {
         instance->var_list = var_item_list_alloc(root);
         widget_set_pos_y(var_item_list_get_base(instance->var_list), 20);
         widget_set_height(var_item_list_get_base(instance->var_list), 50);
+
+        instance->label_status = label_alloc(root);
+        widget_set_pos_y(label_get_base(instance->label_status), 20);
+        widget_set_height(label_get_base(instance->label_status), 50);
+        widget_set_visible(label_get_base(instance->label_status), false);
 
         instance->label = label_alloc(top_layer_root);
         label_set_text(instance->label, "BlePerTest");
@@ -345,10 +379,6 @@ static BlePerTest* ble_per_test_alloc(void) {
             ble_per_test_rate_changed_callback,
             instance);
         var_item_set_value_key_value(item, ble_per_test_rate, instance->settings.rate);
-
-        item = var_item_list_add_switch(
-            instance->var_list, "Start test", ble_per_test_switch_changed_callback, instance);
-        instance->settings.start_test = var_item_get_value(item);
     });
 
     return instance;
@@ -359,6 +389,7 @@ static void ble_per_test_free(BlePerTest* instance) {
         GuiLayer* main_layer = gui_get_layer(instance->gui, GuiLayerIdMain);
         gui_layer_remove_input_callback(main_layer, ble_per_test_input_callback);
         label_free(instance->label);
+        label_free(instance->label_status);
         var_item_list_free(instance->var_list);
     });
 

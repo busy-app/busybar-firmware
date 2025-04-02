@@ -12,7 +12,6 @@ typedef struct {
     uint8_t hopping;
     uint8_t tx_power;
 
-    bool start_test;
 } BlePerCliSettings;
 
 typedef enum {
@@ -20,5 +19,5 @@ typedef enum {
     BLEPerCliSettingsModeRx,
 } BLEPerCliSettingsMode;
 
-void ble_per_cli_start(BlePerTest* app_hendle, BlePerCliSettings settings);
+bool ble_per_cli_start(BlePerTest* app_hendle, BlePerCliSettings settings);
 void ble_per_cli_stop(void);

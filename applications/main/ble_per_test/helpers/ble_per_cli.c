@@ -1,11 +1,13 @@
 #include "ble_per_cli.h"
 #include <intercom/intercom.h>
+#include <furi_hal_cortex.h>
 #include <args.h>
 #include <strint.h>
 
-#define TAG              "BlePerCli"
-#define CLI_BUFFER_SIZE  (1024U)
-#define CLI_READ_TIMEOUT (10U)
+#define TAG                   "BlePerCli"
+#define CLI_BUFFER_SIZE       (1024U)
+#define CLI_READ_TIMEOUT      (10U)
+#define CLI_START_APP_TIMEOUT (5000000U) // 5 seconds
 
 typedef struct {
     Intercom* intercom;
@@ -77,6 +79,7 @@ static const BlePerCliCmd ble_per_cli_cmd[BlePerCliCmdTypeMax] = {
 };
 
 typedef enum {
+    BlePerCliStatsCmdTypeStartApp,
     BlePerCliStatsCmdTypeTxDones,
     BlePerCliStatsCmdTypeCrcFailCnt,
     BlePerCliStatsCmdTypeCrcPassCnt,
@@ -91,6 +94,7 @@ typedef struct {
 } BlePerStats;
 
 BlePerStats ble_per_cli_stats[BlePerCliStatsCmdMax] = {
+    [BlePerCliStatsCmdTypeStartApp] = {"start_app:"},
     [BlePerCliStatsCmdTypeTxDones] = {"tx_dones:"},
     [BlePerCliStatsCmdTypeCrcFailCnt] = {"crc_fail_cnt:"},
     [BlePerCliStatsCmdTypeCrcPassCnt] = {"crc_pass_cnt:"},
@@ -125,6 +129,42 @@ void ble_per_cli_data_tx(uint8_t* data, size_t data_size) {
     furi_assert(tx_size == data_size);
 }
 
+bool ble_per_cli_parse_msg(FuriString* args, const char* suffix) {
+    furi_check(args);
+    furi_check(suffix);
+    FuriString* arg = furi_string_alloc();
+    int32_t arg_int32 = 0;
+    char* args_cstr = (char*)furi_string_get_cstr(args);
+    bool ret = false;
+
+    furi_string_right(args, furi_string_search_str(args, suffix, 0) + strlen(suffix));
+
+    do {
+        if(!args_read_string_and_trim(args, arg)) {
+            break;
+        }
+        //update stats
+        for(uint32_t i = 0; i < BlePerCliStatsCmdMax; i++) {
+            if(furi_string_cmp_str(arg, (char*)ble_per_cli_stats[i].cmd) == 0) {
+                args_read_string_and_trim(args, arg);
+                strint_to_int32(furi_string_get_cstr(arg), &args_cstr, &arg_int32, 10);
+                if(i != BlePerCliStatsCmdTypeRssi) {
+                    ble_per_cli_stats[i].value += arg_int32;
+                } else {
+                    //Rssi not needs to be savings
+                    ble_per_cli_stats[i].value = arg_int32;
+                }
+
+                ret = true;
+                break;
+            }
+        }
+
+    } while(false);
+    furi_string_free(arg);
+    return ret;
+}
+
 static int32_t ble_per_cli_worker_thread(void* context) {
     CliCommandSlCli* instance = context;
     UNUSED(instance);
@@ -135,47 +175,23 @@ static int32_t ble_per_cli_worker_thread(void* context) {
 
         if(events & BlePerCliThreadEventRxData) {
             uint8_t data[CLI_BUFFER_SIZE];
-            FuriString* args = instance->rx_msg;
-            char* args_cstr = (char*)furi_string_get_cstr(args);
-            FuriString* arg = furi_string_alloc();
-            int32_t arg_int32 = 0;
-            uint32_t y = 0;
             const size_t rx_size =
                 furi_stream_buffer_receive(instance->rx_buffer, data, sizeof(data), 0);
             for(size_t i = 0; i < rx_size; i++) {
                 if(data[i] != '\n' && data[i] != '\r') {
-                    furi_string_push_back(args, data[i]);
+                    furi_string_push_back(instance->rx_msg, data[i]);
                 } else {
-                    furi_string_right(args, furi_string_search_str(args, ">: ", 0) + 3);
-
-                    do {
-                        if(!args_read_string_and_trim(args, arg)) {
-                            break;
-                        }
-                        for(y = 0; y < BlePerCliStatsCmdMax; y++) {
-                            if(furi_string_cmp_str(arg, (char*)ble_per_cli_stats[y].cmd) == 0) {
-                                args_read_string_and_trim(args, arg);
-                                strint_to_int32(
-                                    furi_string_get_cstr(arg), &args_cstr, &arg_int32, 10);
-                                ble_per_cli_stats[y].value = arg_int32;
-
-                                ble_per_test_update(
-                                    instance->app_handle,
-                                    ble_per_cli_stats[BlePerCliStatsCmdTypeTxDones].value,
-                                    ble_per_cli_stats[BlePerCliStatsCmdTypeCrcFailCnt].value,
-                                    ble_per_cli_stats[BlePerCliStatsCmdTypeCrcPassCnt].value,
-                                    ble_per_cli_stats[BlePerCliStatsCmdTypeRssi].value);
-                                break;
-                            }
-                        }
-
-                    } while(false);
-
+                    if(ble_per_cli_parse_msg(instance->rx_msg, ">: ")) {
+                        ble_per_test_update(
+                            instance->app_handle,
+                            ble_per_cli_stats[BlePerCliStatsCmdTypeTxDones].value,
+                            ble_per_cli_stats[BlePerCliStatsCmdTypeCrcFailCnt].value,
+                            ble_per_cli_stats[BlePerCliStatsCmdTypeCrcPassCnt].value,
+                            ble_per_cli_stats[BlePerCliStatsCmdTypeRssi].value);
+                    }
                     furi_string_reset(instance->rx_msg);
                 }
             }
-
-            furi_string_free(arg);
         }
 
         if(events & BlePerCliThreadEventStop) {
@@ -187,11 +203,16 @@ static int32_t ble_per_cli_worker_thread(void* context) {
     return 0;
 }
 
-void ble_per_cli_start(BlePerTest* app_handle, BlePerCliSettings settings) {
+bool ble_per_cli_start(BlePerTest* app_handle, BlePerCliSettings settings) {
     UNUSED(settings);
+
+    bool ret = false;
     if(ble_per_cli_instance != NULL) {
-        return;
+        return ret;
     }
+
+    FuriHalCortexTimer wait = furi_hal_cortex_timer_get(CLI_START_APP_TIMEOUT);
+    FuriString* msg = furi_string_alloc();
 
     ble_per_cli_instance = malloc(sizeof(CliCommandSlCli));
     ble_per_cli_instance->app_handle = app_handle;
@@ -212,43 +233,65 @@ void ble_per_cli_start(BlePerTest* app_handle, BlePerCliSettings settings) {
         "BLE_CLI_Worker", CLI_BUFFER_SIZE * 2, ble_per_cli_worker_thread, ble_per_cli_instance);
     furi_thread_start(ble_per_cli_instance->thread);
 
-    FuriString* msg = furi_string_alloc();
     //Start App
     furi_string_printf(msg, "%s\r\n", ble_per_cli_cmd[BlePerCliCmdTypeStartApp].cmd);
     ble_per_cli_data_tx((uint8_t*)furi_string_get_cstr(msg), furi_string_utf8_length(msg));
     FURI_LOG_D(TAG, "%s", furi_string_get_cstr(msg));
-    furi_delay_ms(3000); //wait for the app to start
-    //set settings
-    furi_string_printf(
-        msg, "%s %d\r\n", ble_per_cli_cmd[BlePerCliCmdTypeSetChannel].cmd, settings.channel);
-    furi_string_cat_printf(
-        msg, "%s %d\r\n", ble_per_cli_cmd[BlePerCliCmdTypeSetPhyRate].cmd, settings.rate);
-    furi_string_cat_printf(
-        msg, "%s %d\r\n", ble_per_cli_cmd[BlePerCliCmdTypeSetPayloadLen].cmd, settings.payload_len);
-    furi_string_cat_printf(
-        msg,
-        "%s %d\r\n",
-        ble_per_cli_cmd[BlePerCliCmdTypeSetPayloadType].cmd,
-        settings.payload_type);
-    furi_string_cat_printf(
-        msg, "%s %d\r\n", ble_per_cli_cmd[BlePerCliCmdTypeSetMode].cmd, settings.mode_work);
-    furi_string_cat_printf(
-        msg, "%s %d\r\n", ble_per_cli_cmd[BlePerCliCmdTypeSetHopping].cmd, settings.hopping);
-    furi_string_cat_printf(
-        msg, "%s %d\r\n", ble_per_cli_cmd[BlePerCliCmdTypeSetTxPower].cmd, settings.tx_power);
 
-    if(settings.mode == BLEPerCliSettingsModeTx) {
-        furi_string_cat_printf(msg, "%s\r\n", ble_per_cli_cmd[BlePerCliCmdTypeModeTx].cmd);
-    } else if(settings.mode == BLEPerCliSettingsModeRx) {
-        furi_string_cat_printf(msg, "%s\r\n", ble_per_cli_cmd[BlePerCliCmdTypeModeRx].cmd);
-    } else {
-        furi_crash("Invalid mode");
+    //wait for the app to start
+    while(!furi_hal_cortex_timer_is_expired(wait)) {
+        furi_thread_yield();
+        if(ble_per_cli_stats[BlePerCliStatsCmdTypeStartApp].value) {
+            break;
+        }
+    };
+
+    if(ble_per_cli_stats[BlePerCliStatsCmdTypeStartApp].value) {
+        //set settings
+        furi_string_printf(
+            msg, "%s %d\r\n", ble_per_cli_cmd[BlePerCliCmdTypeSetChannel].cmd, settings.channel);
+        furi_string_cat_printf(
+            msg, "%s %d\r\n", ble_per_cli_cmd[BlePerCliCmdTypeSetPhyRate].cmd, settings.rate);
+        furi_string_cat_printf(
+            msg,
+            "%s %d\r\n",
+            ble_per_cli_cmd[BlePerCliCmdTypeSetPayloadLen].cmd,
+            settings.payload_len);
+        furi_string_cat_printf(
+            msg,
+            "%s %d\r\n",
+            ble_per_cli_cmd[BlePerCliCmdTypeSetPayloadType].cmd,
+            settings.payload_type);
+        furi_string_cat_printf(
+            msg, "%s %d\r\n", ble_per_cli_cmd[BlePerCliCmdTypeSetMode].cmd, settings.mode_work);
+        furi_string_cat_printf(
+            msg, "%s %d\r\n", ble_per_cli_cmd[BlePerCliCmdTypeSetHopping].cmd, settings.hopping);
+        furi_string_cat_printf(
+            msg, "%s %d\r\n", ble_per_cli_cmd[BlePerCliCmdTypeSetTxPower].cmd, settings.tx_power);
+
+        if(settings.mode == BLEPerCliSettingsModeTx) {
+            furi_string_cat_printf(msg, "%s\r\n", ble_per_cli_cmd[BlePerCliCmdTypeModeTx].cmd);
+        } else if(settings.mode == BLEPerCliSettingsModeRx) {
+            furi_string_cat_printf(msg, "%s\r\n", ble_per_cli_cmd[BlePerCliCmdTypeModeRx].cmd);
+        } else {
+            furi_crash("Invalid mode");
+        }
+
+        ble_per_cli_data_tx((uint8_t*)furi_string_get_cstr(msg), furi_string_utf8_length(msg));
+        FURI_LOG_D(TAG, "%s", furi_string_get_cstr(msg));
+
+        ble_per_test_update(
+            app_handle,
+            ble_per_cli_stats[BlePerCliStatsCmdTypeTxDones].value,
+            ble_per_cli_stats[BlePerCliStatsCmdTypeCrcFailCnt].value,
+            ble_per_cli_stats[BlePerCliStatsCmdTypeCrcPassCnt].value,
+            ble_per_cli_stats[BlePerCliStatsCmdTypeRssi].value);
+
+        ret = true;
     }
 
-    ble_per_cli_data_tx((uint8_t*)furi_string_get_cstr(msg), furi_string_utf8_length(msg));
-    FURI_LOG_D(TAG, "%s", furi_string_get_cstr(msg));
-
     furi_string_free(msg);
+    return ret;
 }
 
 void ble_per_cli_stop(void) {
@@ -265,6 +308,7 @@ void ble_per_cli_stop(void) {
 
     furi_string_printf(msg, "%c\r\n", 0x03); //Ctrl+C
     ble_per_cli_data_tx((uint8_t*)furi_string_get_cstr(msg), furi_string_utf8_length(msg));
+    furi_delay_ms(1000); //wait for the app to stop
     FURI_LOG_D(TAG, "End APP");
 
     furi_string_free(msg);
