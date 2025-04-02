@@ -221,8 +221,10 @@ static void ble_per_test_custom_event_callback(uint32_t events, void* context) {
         furi_check(instance->test_state == BLEPerTestStateLoading);
         if(ble_per_cli_start(instance, instance->settings)) {
             FURI_LOG_I(TAG, "Start test");
-            widget_set_visible(var_item_list_get_base(instance->var_list), false);
-            widget_set_visible(label_get_base(instance->label_status), true);
+            with_gui(instance->gui, {
+                widget_set_visible(var_item_list_get_base(instance->var_list), false);
+                widget_set_visible(label_get_base(instance->label_status), true);
+            });
             instance->test_state = BLEPerTestStateRunning;
         } else {
             FURI_LOG_E(TAG, "Start test failed");
@@ -236,8 +238,10 @@ static void ble_per_test_custom_event_callback(uint32_t events, void* context) {
         instance->test_state = BLEPerTestStateStoping;
         FURI_LOG_I(TAG, "Stop test");
         ble_per_cli_stop();
-        widget_set_visible(var_item_list_get_base(instance->var_list), true);
-        widget_set_visible(label_get_base(instance->label_status), false);
+        with_gui(instance->gui, {
+            widget_set_visible(var_item_list_get_base(instance->var_list), true);
+            widget_set_visible(label_get_base(instance->label_status), false);
+        });
         instance->test_state = BLEPerTestStateStop;
     }
 }
