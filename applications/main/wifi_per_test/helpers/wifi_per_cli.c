@@ -292,6 +292,7 @@ void wifi_per_cli_stop(void) {
 
     furi_string_printf(msg, "%c\r\n", 0x03); //Ctrl+C
     wifi_per_cli_data_tx((uint8_t*)furi_string_get_cstr(msg), furi_string_utf8_length(msg));
+    furi_delay_ms(1000); //wait for the app to stop
     FURI_LOG_D(TAG, "End APP");
 
     furi_string_free(msg);
