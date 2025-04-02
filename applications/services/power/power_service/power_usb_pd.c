@@ -11,6 +11,8 @@
 #define PD_MAX_CURRENT     3000
 #define PD_VOLTAGE_DEFAULT 5000
 
+#define PD_SINK_CAP_VOLTAGE 9000
+
 #define PD_CC_DEBOUNCE_TIME 50
 #define PD_MAX_PACKET_LEN   32
 
@@ -463,7 +465,7 @@ static void pd_send_sink_caps(PowerUsbPd* pd) {
             .usb_data_support = 1,
             .drd = 0,
             .frs_mode = 0,
-            .voltage = 9000 / 50,
+            .voltage = PD_SINK_CAP_VOLTAGE / 50,
             .current = PD_MAX_CURRENT / 10,
         },
     };
@@ -663,12 +665,12 @@ static void pd_msg_parse_sop0(PowerUsbPd* pd, uint8_t* buf) {
         if(hdr.msg_type == PdMsgGoodCrc) { // GoodCRC
             pd->tx_msg_id = (pd->tx_msg_id + 1) & 0x7;
         } else if(hdr.msg_type == PdMsgAccept) {
-            // Accept -> send GoodCRC
+            // Accept -> update current capability
             furi_mutex_acquire(pd->cap_mutex, FuriWaitForever);
             pd->caps.cap_id_current = pd->req_cap_id;
             furi_mutex_release(pd->cap_mutex);
         } else if(hdr.msg_type == PdMsgPsRdy) {
-            // PS_RDY -> send GoodCRC
+            // PS_RDY -> mode switch done
             if(pd->pps_keep_alive == false) {
                 Power* power = furi_record_open(RECORD_POWER);
                 power_on_usb_pd_update(power, pd->req_voltage, pd->req_current);
@@ -677,16 +679,18 @@ static void pd_msg_parse_sop0(PowerUsbPd* pd, uint8_t* buf) {
                 pd->pps_keep_alive = false;
             }
         } else if(hdr.msg_type == PdMsgGetSinkCaps) {
+            // Sink capabilities
             pd_send_sink_caps(pd);
         } else {
             pd_send_not_supported(pd);
-            FURI_LOG_W(TAG, "Unknown control msg %u", hdr.msg_type);
+            FURI_LOG_W(TAG, "Unsupported control msg %u", hdr.msg_type);
         }
     } else if(
         (hdr.power_role == PdPowerRoleSrc) && (hdr.data_role == PdDataRoleDFP) &&
         (hdr.nb_objects > 0) && (hdr.extended == 0)) {
         // Data messages
-        if(hdr.msg_type == PdMsgSourceCaps) { // Capabilities
+        if(hdr.msg_type == PdMsgSourceCaps) {
+            // Source capabilities
             if(pd_msg_parse_capabilities(pd, &buf[2], hdr.nb_objects)) {
                 PdMessage msg = {
                     .event = PdEventIdRequest,
@@ -696,7 +700,7 @@ static void pd_msg_parse_sop0(PowerUsbPd* pd, uint8_t* buf) {
             }
         } else {
             pd_send_not_supported(pd);
-            FURI_LOG_W(TAG, "Unknown data msg %u", hdr.msg_type);
+            FURI_LOG_W(TAG, "Unsupported data msg %u", hdr.msg_type);
         }
     }
 }
