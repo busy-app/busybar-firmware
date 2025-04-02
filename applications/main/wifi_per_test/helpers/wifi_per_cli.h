@@ -8,8 +8,6 @@ typedef struct {
     uint8_t channel;
     char* rate;
     uint8_t tx_power;
-
-    bool start_test;
 } WifiPerCliSettings;
 
 typedef enum {

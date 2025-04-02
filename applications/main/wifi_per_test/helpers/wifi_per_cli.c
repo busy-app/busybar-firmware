@@ -200,14 +200,14 @@ static int32_t wifi_per_cli_worker_thread(void* context) {
 
 bool wifi_per_cli_start(WifiPerTest* app_handle, WifiPerCliSettings settings) {
     UNUSED(settings);
-    FuriHalCortexTimer wait = furi_hal_cortex_timer_get(CLI_START_APP_TIMEOUT);
-    FuriString* msg = furi_string_alloc();
-    bool ret = false;
 
+    bool ret = false;
     if(wifi_per_cli_instance != NULL) {
         return ret;
     }
 
+    FuriHalCortexTimer wait = furi_hal_cortex_timer_get(CLI_START_APP_TIMEOUT);
+    FuriString* msg = furi_string_alloc();
     wifi_per_cli_instance = malloc(sizeof(CliCommandSlCli));
     wifi_per_cli_instance->app_handle = app_handle;
     for(size_t i = 0; i < WifiPerCliStatsCmdMax; i++) {
