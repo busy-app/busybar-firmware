@@ -206,13 +206,13 @@ static int32_t ble_per_cli_worker_thread(void* context) {
 bool ble_per_cli_start(BlePerTest* app_handle, BlePerCliSettings settings) {
     UNUSED(settings);
 
-    FuriHalCortexTimer wait = furi_hal_cortex_timer_get(CLI_START_APP_TIMEOUT);
-    FuriString* msg = furi_string_alloc();
     bool ret = false;
-
     if(ble_per_cli_instance != NULL) {
         return ret;
     }
+
+    FuriHalCortexTimer wait = furi_hal_cortex_timer_get(CLI_START_APP_TIMEOUT);
+    FuriString* msg = furi_string_alloc();
 
     ble_per_cli_instance = malloc(sizeof(CliCommandSlCli));
     ble_per_cli_instance->app_handle = app_handle;

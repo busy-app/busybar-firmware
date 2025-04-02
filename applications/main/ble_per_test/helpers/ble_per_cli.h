@@ -12,7 +12,6 @@ typedef struct {
     uint8_t hopping;
     uint8_t tx_power;
 
-    bool start_test;
 } BlePerCliSettings;
 
 typedef enum {
