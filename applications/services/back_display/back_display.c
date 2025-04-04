@@ -35,8 +35,8 @@ struct BackDisplaySrv {
 
     FuriPubSub* light_sensor_events;
 
-    uint8_t current_contrast;
-    uint8_t target_contrast;
+    uint8_t current_level;
+    uint8_t target_level;
     FuriEventLoopTimer* contrast_timer;
 };
 
@@ -67,7 +67,7 @@ static void back_display_update_brightness(BackDisplaySrv* instance) {
         light_level = LIGHT_SENSOR_LIGHT_LEVEL_MAX - 1;
     }
 
-    instance->target_contrast = contrast_table[light_level];
+    instance->target_level = light_level;
 }
 
 static void back_display_light_sensor_callback(const void* message, void* context) {
@@ -114,15 +114,17 @@ static void back_display_event_callback(uint32_t events, void* context) {
     }
 
     if(events & BackDisplayEventContrastUpdate) {
-        if(instance->current_contrast != instance->target_contrast) {
-            int8_t step = get_value_step(instance->current_contrast, instance->target_contrast, 1);
-            instance->current_contrast += step;
-            ssd1320_set_contrast(instance->current_contrast);
+        if(instance->current_level != instance->target_level) {
+            int8_t step = get_value_step(instance->current_level, instance->target_level, 1);
+            instance->current_level += step;
+            uint8_t contrast = contrast_table[instance->current_level];
+            ssd1320_set_contrast(contrast);
             BACK_DISPLAY_DEBUG(
-                "Back display contrast: %d -> %d (step: %d)",
-                instance->current_contrast,
-                instance->target_contrast,
-                step);
+                "Back display level: %d -> %d (step: %d) (contrast: %d)",
+                instance->current_level,
+                instance->target_level,
+                step,
+                contrast);
         }
     }
 }
