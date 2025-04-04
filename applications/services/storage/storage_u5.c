@@ -4,6 +4,7 @@
 #include <storage/storage_processing.h>
 #include "storage/storage_glue.h"
 #include "storages/storage_ext_sdmmc.h"
+#include "storage_posix_api.h"
 
 #define STORAGE_TICK 1000
 
@@ -20,6 +21,8 @@ Storage* storage_app_alloc(void) {
     }
 
     storage_ext_init(&app->storage[ST_EXT]);
+
+    storage_posix_api_init(app);
 
     return app;
 }

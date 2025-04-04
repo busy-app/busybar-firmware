@@ -1,3 +1,5 @@
+#include "storage_posix_api.h"
+
 #include <furi.h>
 #include <storage/storage.h>
 
@@ -5,41 +7,41 @@
 #include <sys/stat.h>
 #include <fcntl.h>
 
-#define FILE_COUNT 8
-static File* file_storage[FILE_COUNT] = {0};
+#include <m-array.h>
+
+#define TAG "StoragePosix"
+
+ARRAY_DEF(FileArray, File*, M_PTR_OPLIST) // NOLINT
+
+typedef struct {
+    Storage* storage;
+    FileArray_t files;
+} StoragePosix;
+
+static StoragePosix* instance;
 
 static int file_add(File* file) {
-    for(int i = 0; i < FILE_COUNT; i++) {
-        if(file_storage[i] == NULL) {
-            file_storage[i] = file;
-            return i;
-        }
-    }
+    furi_assert(instance);
 
-    return -1;
+    const int idx = FileArray_size(instance->files);
+    FileArray_push_back(instance->files, file);
+
+    return idx;
 }
 
 static File* file_get(int fd) {
-    if(fd < 0 || fd >= FILE_COUNT) {
-        return NULL;
-    }
-
-    return file_storage[fd];
+    furi_assert(instance);
+    return *FileArray_get(instance->files, fd);
 }
 
 static int file_remove(int fd) {
-    if(fd < 0 || fd >= FILE_COUNT) {
-        return -1;
-    }
-
-    file_storage[fd] = NULL;
+    furi_assert(instance);
+    FileArray_pop_at(NULL, instance->files, fd);
     return 0;
 }
 
 extern int __wrap_fflush(FILE* stream);
 extern int __wrap_vsnprintf(char* str, size_t size, const char* format, va_list args);
-
-#define TAG "posix"
 
 int __wrap_sniprintf(char* str, size_t size, const char* format, ...) {
     va_list args;
@@ -61,8 +63,8 @@ int _isatty(int fd) {
 }
 
 int _open(const char* filename, int oflag) {
-    Storage* storage = furi_record_open(RECORD_STORAGE);
-    File* file = storage_file_alloc(storage);
+    furi_assert(instance);
+    File* file = storage_file_alloc(instance->storage);
 
     FS_AccessMode access_mode = FSAM_READ;
     if(oflag & O_WRONLY) {
@@ -83,7 +85,7 @@ int _open(const char* filename, int oflag) {
     bool result = storage_file_open(file, filename, access_mode, open_mode);
 
     if(!result) {
-        FURI_LOG_E(
+        FURI_LOG_T(
             TAG,
             "Failed to open file %s, flags in %d, access_mode %d, open_mode %d, error %d",
             filename,
@@ -97,13 +99,13 @@ int _open(const char* filename, int oflag) {
 
     int fd = file_add(file);
 
-    FURI_LOG_D(TAG, "Opened file %s, file %p", filename, file);
+    FURI_LOG_T(TAG, "Opened file %s, file %p", filename, file);
     return fd;
 }
 
 int _close(int fd) {
     File* file = file_get(fd);
-    FURI_LOG_D(TAG, "close %p", file);
+    FURI_LOG_T(TAG, "close %p", file);
     storage_file_close(file);
     storage_file_free(file);
     file_remove(fd);
@@ -112,7 +114,7 @@ int _close(int fd) {
 
 int _fstat(int fd, struct stat* buf) {
     File* file = file_get(fd);
-    FURI_LOG_D(TAG, "fstat %p", file);
+    FURI_LOG_T(TAG, "fstat %p", file);
 
     UNUSED(fd);
     buf->st_mode = S_IFCHR;
@@ -121,7 +123,7 @@ int _fstat(int fd, struct stat* buf) {
 
 int _lseek(int fd, int pos, int whence) {
     File* file_p = file_get(fd);
-    FURI_LOG_D(TAG, "lseek %p, pos %d, whence %d", file_p, pos, whence);
+    FURI_LOG_T(TAG, "lseek %p, pos %d, whence %d", file_p, pos, whence);
 
     int seek_position = 0;
     int current_position = storage_file_tell(file_p);
@@ -146,14 +148,22 @@ int _lseek(int fd, int pos, int whence) {
 
 ssize_t _read(int fd, void* buf, size_t count) {
     File* file = file_get(fd);
-    FURI_LOG_D(TAG, "read %p, count %d", file, count);
+    FURI_LOG_T(TAG, "read %p, count %d", file, count);
 
     return storage_file_read(file, buf, count);
 }
 
 ssize_t _write(int fd, const void* buf, size_t count) {
     File* file = file_get(fd);
-    FURI_LOG_D(TAG, "write %p, count %d", file, count);
+    FURI_LOG_T(TAG, "write %p, count %d", file, count);
 
     return storage_file_write(file, buf, count);
+}
+
+void storage_posix_api_init(Storage* storage) {
+    furi_assert(instance == NULL);
+
+    instance = malloc(sizeof(StoragePosix));
+    instance->storage = storage;
+    FileArray_init(instance->files);
 }
