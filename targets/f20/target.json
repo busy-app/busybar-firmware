@@ -103,6 +103,7 @@
         "fatfs",
         "lwip",
         "cjson",
+        "thorvg",
         "lvgl",
         "lvgl_addons",
         "network",

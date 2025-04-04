@@ -17,11 +17,6 @@ libenv.AppendUnique(
     CPPFLAGS=[
         "-Wno-redundant-decls",
         "-Wno-type-limits",
-        # ThorVG
-        "-Wno-unused-parameter",
-        "-Wno-double-promotion",
-        "-Wno-overflow",
-        "-Wno-format",
     ],
 )
 
@@ -50,7 +45,6 @@ sources += libenv.Glob("lvgl/src/themes/*/*.c", source=True)
 sources += libenv.Glob("lvgl/src/tick/*.c", source=True)
 sources += libenv.Glob("lvgl/src/widgets/*/*.c", source=True)
 sources += libenv.Glob("lvgl/src/libs/lodepng/*.c", source=True)
-sources += libenv.Glob("lvgl/src/libs/thorvg/*.cpp", source=True)
 
 lib = libenv.StaticLibrary("${FW_LIB_NAME}", sources)
 libenv.Install("${LIB_DIST_DIR}", lib)

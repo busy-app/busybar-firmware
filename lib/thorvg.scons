@@ -1,0 +1,55 @@
+Import("env")
+
+LIB_FOLDER="thorvg"
+
+INC_FOLDER=LIB_FOLDER + "/inc"
+SRC_FOLDER=LIB_FOLDER + "/src"
+
+env.AppendUnique(
+    CPPPATH=[
+        Dir(INC_FOLDER).srcnode(),
+        Dir(SRC_FOLDER + "/bindings/capi").srcnode(),
+    ],
+)
+
+libenv = env.Clone(FW_LIB_NAME=LIB_FOLDER)
+libenv.ApplyLibFlags()
+
+libenv.AppendUnique(
+    CPPDEFINES=[
+        "__linux__",  # Hack, needed for <alloca.h>
+    ],
+    CPPPATH=[
+        Dir(SRC_FOLDER + "/common").srcnode(),
+        Dir(SRC_FOLDER + "/loaders/lottie").srcnode(),
+        Dir(SRC_FOLDER + "/loaders/raw").srcnode(),
+        Dir(SRC_FOLDER + "/loaders/tvg").srcnode(),
+        Dir(SRC_FOLDER + "/renderer").srcnode(),
+        Dir(SRC_FOLDER + "/renderer/sw_engine").srcnode(),
+    ],
+    CPPFLAGS=[
+        "-Wno-double-promotion",
+        "-Wno-extra",
+        "-Wno-format",
+        "-Wno-missing-field-initializers",
+        "-Wno-overflow",
+        "-Wno-redundant-decls",
+        "-Wno-type-limits",
+        "-Wno-unknown-pragmas",
+        "-Wno-unused-parameter",
+    ],
+)
+
+sources = [
+    libenv.Glob(SRC_FOLDER + "/bindings/capi/*.cpp", source=True),
+    libenv.Glob(SRC_FOLDER + "/common/*.cpp", source=True),
+    libenv.Glob(SRC_FOLDER + "/loaders/lottie/*.cpp", source=True),
+    libenv.Glob(SRC_FOLDER + "/loaders/raw/*.cpp", source=True),
+    libenv.Glob(SRC_FOLDER + "/loaders/tvg/*.cpp", source=True),
+    libenv.Glob(SRC_FOLDER + "/renderer/*.cpp", source=True),
+    libenv.Glob(SRC_FOLDER + "/renderer/sw_engine/*.cpp", source=True),
+]
+
+lib = libenv.StaticLibrary("${FW_LIB_NAME}", sources)
+libenv.Install("${LIB_DIST_DIR}", lib)
+Return("lib")

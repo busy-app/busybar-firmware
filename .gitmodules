@@ -49,3 +49,6 @@
 [submodule "lib/cjson"]
 	path = lib/cjson
 	url = https://github.com/DaveGamble/cJSON.git
+[submodule "lib/thorvg"]
+	path = lib/thorvg
+	url = https://github.com/thorvg/thorvg.git
