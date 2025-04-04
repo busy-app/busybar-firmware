@@ -28,6 +28,7 @@ libenv.AppendUnique(
         Dir(SRC_FOLDER + "/renderer/sw_engine").srcnode(),
     ],
     CPPFLAGS=[
+        "-Wno-deprecated-declarations",
         "-Wno-double-promotion",
         "-Wno-extra",
         "-Wno-format",
