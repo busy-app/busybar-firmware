@@ -13,7 +13,8 @@
 
 #define LIGHT_SENSOR_SAMPLE_INTERVAL_MS        (1000)
 #define LIGHT_SENSOR_LIGHT_LEVEL_MAX_THRESHOLD (1000.0f)
-#define LIGHT_SENSOR_WINDOW_SIZE               (10)
+#define LIGHT_SENSOR_WINDOW_SIZE               (5)
+#define LIGHT_SENSOR_COEF                      (0.5f) /**< By applying 1.0f light level logic will become linear */
 
 typedef struct {
     FuriEventLoop* event_loop;
@@ -70,6 +71,7 @@ static LightSensor* light_sensor_alloc(void) {
         .window_size = LIGHT_SENSOR_WINDOW_SIZE,
         .light_level_max = LIGHT_SENSOR_LIGHT_LEVEL_MAX,
         .light_level_max_threshold = LIGHT_SENSOR_LIGHT_LEVEL_MAX_THRESHOLD,
+        .coef = LIGHT_SENSOR_COEF,
     };
     light_sensor->data = light_sensor_data_alloc(&config);
 
