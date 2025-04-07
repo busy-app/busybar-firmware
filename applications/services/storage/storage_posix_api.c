@@ -7,37 +7,54 @@
 #include <sys/stat.h>
 #include <fcntl.h>
 
-#include <m-array.h>
+#include <m-bptree.h>
 
 #define TAG "StoragePosix"
 
-ARRAY_DEF(FileArray, File*, M_PTR_OPLIST) // NOLINT
+#define FD_TREE_RANK (4)
+
+BPTREE_DEF2(FileTree, FD_TREE_RANK, uint16_t, M_DEFAULT_OPLIST, File*, M_PTR_OPLIST) // NOLINT
 
 typedef struct {
     Storage* storage;
-    FileArray_t files;
+    FileTree_t files;
 } StoragePosix;
 
 static StoragePosix* instance;
 
-static int file_add(File* file) {
-    furi_assert(instance);
+static inline uint16_t file_get_free_fd(void) {
+    furi_check(FileTree_size(instance->files) < UINT16_MAX);
 
-    const int idx = FileArray_size(instance->files);
-    FileArray_push_back(instance->files, file);
+    uint16_t ret = 0;
 
-    return idx;
+    FileTree_it_ct it;
+    for(FileTree_it(it, instance->files); !FileTree_end_p(it); FileTree_next(it)) {
+        if(ret != *FileTree_cref(it)->key_ptr) {
+            break;
+        }
+        ret += 1;
+    }
+
+    return ret;
 }
 
-static File* file_get(int fd) {
+static inline int file_add(File* file) {
     furi_assert(instance);
-    return *FileArray_get(instance->files, fd);
+
+    const uint16_t fd = file_get_free_fd();
+    FileTree_set_at(instance->files, fd, file);
+
+    return fd;
 }
 
-static int file_remove(int fd) {
+static inline File* file_get(int fd) {
     furi_assert(instance);
-    FileArray_pop_at(NULL, instance->files, fd);
-    return 0;
+    return *FileTree_get(instance->files, fd);
+}
+
+static inline void file_remove(int fd) {
+    furi_assert(instance);
+    furi_check(FileTree_erase(instance->files, fd));
 }
 
 extern int __wrap_fflush(FILE* stream);
@@ -165,5 +182,5 @@ void storage_posix_api_init(Storage* storage) {
 
     instance = malloc(sizeof(StoragePosix));
     instance->storage = storage;
-    FileArray_init(instance->files);
+    FileTree_init(instance->files);
 }
