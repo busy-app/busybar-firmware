@@ -132,7 +132,7 @@ env.Append(
         "DEBUG_ENABLE=1",
         "DEBUG_UART=1",
         #"DISPLAY_ENABLED=1", # Disable display
-        "ENABLE_CHIP_SHELL=1", #?????????
+        #"ENABLE_CHIP_SHELL=1", #off SHELL
         "ENABLE_DEBUG_MODULE=1",
         #"ENABLE_WSTK_LEDS=1",
         "KVS_MAX_ENTRIES=255",

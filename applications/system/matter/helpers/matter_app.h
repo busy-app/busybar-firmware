@@ -8,6 +8,7 @@ void matter_app_init(void);
 void matter_factory_reset(void);
 void matter_button_press(void);
 void matter_button_release(void);
+void matter_basic_commissioning_window(void);
 
 #ifdef __cplusplus
 }

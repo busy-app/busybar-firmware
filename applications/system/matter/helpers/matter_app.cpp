@@ -41,3 +41,7 @@ void matter_button_release(void) {
     // // Trigger event
     // chip::app::Clusters::SwitchServer::Instance().OnShortRelease(chip::kInvalidEndpointId, previousPosition);
 }
+
+void matter_basic_commissioning_window (void){
+    BaseApplication::DoProvisioningBasicCommissioningWindow();
+}

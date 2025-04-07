@@ -44,12 +44,23 @@ void matter_command_button_press(Cli* cli, FuriString* args, void* context) {
     printf("\r\nMatter app button press\r\n");
 }
 
+void matter_command_basic_commissioning_window (Cli* cli, FuriString* args, void* context) {
+    UNUSED(cli);
+    UNUSED(context);
+    UNUSED(args);
+
+    matter_basic_commissioning_window();
+
+    printf("\r\nMatter app basic commissioning window\r\n");
+}
+
 static void matter_command_print_usage(void) {
     printf("Usage:\r\n");
     printf("matter \"Matter app start\"\r\n");
     printf("matter res \"Matter app factory reset\"\r\n");
     printf("matter b1 \"Matter app button press\"\r\n");
     printf("matter b0 \"Matter app button release\"\r\n");
+    printf("matter comm \"Matter app basic commissioning window\"\r\n");
 }
 
 static void matter_command(Cli* cli, FuriString* args, void* context) {
@@ -71,6 +82,10 @@ static void matter_command(Cli* cli, FuriString* args, void* context) {
         }
         if(furi_string_cmp_str(cmd, "b0") == 0) {
             matter_command_button_release(cli, args, context);
+            break;
+        }
+        if(furi_string_cmp_str(cmd, "comm") == 0) {
+            matter_command_basic_commissioning_window(cli, args, context);
             break;
         }
 
