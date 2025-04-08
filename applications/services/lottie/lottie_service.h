@@ -5,6 +5,7 @@
 #pragma once
 
 #include <stdint.h>
+#include <stddef.h>
 #include <stdbool.h>
 
 #define RECORD_LOTTIE "lottie"
@@ -13,12 +14,12 @@ typedef struct LottieService LottieService;
 
 typedef struct LottieServiceTask LottieServiceTask;
 
-typedef void (*LottieServiceTaskCallback)(void* context);
+typedef void (*LottieServiceTaskCallback)(const void* canvas_buf, void* context);
 
 typedef struct {
     int32_t canvas_width;
     int32_t canvas_height;
-    uint32_t* canvas_buf;
+    size_t canvas_buf_size;
 } LottieServiceTaskInfo;
 
 LottieServiceTask* lottie_service_task_alloc(

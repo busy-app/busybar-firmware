@@ -55,6 +55,7 @@ typedef struct {
 struct LottieServiceTask {
     LottieService* owner;
     FuriEventLoopTimer* timer;
+    uint32_t* canvas_buf;
     Tvg_Paint* tvg_paint;
     Tvg_Canvas* tvg_canvas;
     Tvg_Animation* tvg_anim;
@@ -84,7 +85,7 @@ static void lottie_service_task_update(void* context) {
     }
 
     if(task->callback) {
-        task->callback(task->callback_context);
+        task->callback(task->canvas_buf, task->callback_context);
     }
 }
 
@@ -112,8 +113,8 @@ static void lottie_service_task_free_internal(LottieServiceTask* task) {
     tvg_animation_del(task->tvg_anim);
     tvg_canvas_destroy(task->tvg_canvas);
 
-    if(task->info.canvas_buf) {
-        free(task->info.canvas_buf);
+    if(task->canvas_buf) {
+        free(task->canvas_buf);
     }
 
     free(task);
@@ -121,19 +122,14 @@ static void lottie_service_task_free_internal(LottieServiceTask* task) {
 
 static void
     lottie_service_task_init_draw_buffer(LottieServiceTask* task, int32_t width, int32_t height) {
-    task->info.canvas_buf = realloc(task->info.canvas_buf, width * height * BYTES_PER_PIXEL);
+    task->canvas_buf = realloc(task->canvas_buf, width * height * BYTES_PER_PIXEL);
     task->info.canvas_width = width;
     task->info.canvas_height = height;
 
     const int32_t stride = lv_draw_buf_width_to_stride(width, COLOR_FORMAT);
 
     tvg_swcanvas_set_target(
-        task->tvg_canvas,
-        task->info.canvas_buf,
-        stride / 4,
-        width,
-        height,
-        TVG_COLORSPACE_ARGB8888);
+        task->tvg_canvas, task->canvas_buf, stride / 4, width, height, TVG_COLORSPACE_ARGB8888);
     tvg_canvas_push(task->tvg_canvas, task->tvg_paint);
 }
 

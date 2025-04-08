@@ -9,23 +9,26 @@
 
 #define MY_CLASS (&lottie_animation_lvgl_class)
 
-#define COLOR_FORMAT    (LV_COLOR_FORMAT_ARGB8888)
-#define BYTES_PER_PIXEL (LV_COLOR_FORMAT_GET_SIZE(COLOR_FORMAT))
+#define COLOR_FORMAT (LV_COLOR_FORMAT_ARGB8888)
 
 struct LottieAnimation {
     Widget base;
     lv_obj_t* canvas;
+    uint32_t* canvas_buf;
+    LottieServiceTaskInfo task_info;
     LottieServiceTask* lottie_task;
 };
 
-static void lottie_animation_update_callback(void* context) {
+static void lottie_animation_update_callback(const void* canvas_buf, void* context) {
+    furi_assert(canvas_buf);
     furi_assert(context);
 
-    // TODO: call this in GUI thread
+    LottieAnimation* instance = context;
+
     lv_lock();
 
-    lv_obj_t* obj = context;
-    lv_obj_invalidate(obj);
+    memcpy(instance->canvas_buf, canvas_buf, instance->task_info.canvas_buf_size);
+    lv_obj_invalidate((lv_obj_t*)instance);
 
     lv_unlock();
 }
@@ -50,6 +53,10 @@ void lottie_animation_lvgl_destructor(const lv_obj_class_t* class_p, lv_obj_t* o
 
     LottieAnimation* instance = (LottieAnimation*)obj;
     lottie_service_task_free(instance->lottie_task);
+
+    if(instance->canvas_buf) {
+        free(instance->canvas_buf);
+    }
 }
 
 // Public API
@@ -85,23 +92,21 @@ bool lottie_animation_set_source(LottieAnimation* instance, const char* file_pat
             break;
         }
 
-        LottieServiceTaskInfo task_info;
-        if(!lottie_service_task_get_info(instance->lottie_task, &task_info)) {
+        if(!lottie_service_task_get_info(instance->lottie_task, &instance->task_info)) {
             break;
         }
 
+        instance->canvas_buf = realloc(instance->canvas_buf, instance->task_info.canvas_buf_size);
+
         lv_canvas_set_buffer(
             instance->canvas,
-            task_info.canvas_buf,
-            task_info.canvas_width,
-            task_info.canvas_height,
+            instance->canvas_buf,
+            instance->task_info.canvas_width,
+            instance->task_info.canvas_height,
             COLOR_FORMAT);
 
-        /* Rendered output images are premultiplied */
         lv_draw_buf_t* draw_buf = lv_canvas_get_draw_buf(instance->canvas);
         lv_draw_buf_set_flag(draw_buf, LV_IMAGE_FLAGS_PREMULTIPLIED);
-
-        // lottie_animation_update_callback(instance);
 
         success = true;
     } while(false);
