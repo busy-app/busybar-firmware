@@ -13,6 +13,16 @@ extern "C" {
 /** Label opaque structure. */
 typedef struct Label Label;
 
+/** Enumeration of possible text alignment types */
+typedef enum {
+    TextAlignAuto, /**< Align text automatically */
+    TextAlignLeft, /**< Align text to the left */
+    TextAlignCenter, /**< Align text to the centre */
+    TextAlignRight, /**< Align text to the right */
+
+    TextAlignMax, /**< Special value, not to be used in application code */
+} TextAlign;
+
 /**
  * @brief Create a new Label instance.
  *
@@ -64,6 +74,14 @@ void label_set_text_fmt(Label* instance, const char* fmt, ...)
  * @param[in] spacing spacing value in pixels
  */
 void label_set_line_spacing(Label* instance, int32_t spacing);
+
+/**
+ * @brief Set the label text alignment.
+ *
+ * @param[in,out] instance pointer to the Label instance to be modified
+ * @param[in] align enum value to determine the alignment type
+ */
+void label_set_text_align(Label* instance, TextAlign align);
 
 #ifdef __cplusplus
 }

@@ -77,6 +77,13 @@ void label_set_line_spacing(Label* instance, int32_t spacing) {
     lv_obj_set_style_text_line_space((lv_obj_t*)instance, spacing, LV_PART_MAIN);
 }
 
+void label_set_text_align(Label* instance, TextAlign align) {
+    furi_check(instance);
+    furi_check(align < TextAlignMax);
+
+    lv_obj_set_style_text_align((lv_obj_t*)instance, (lv_text_align_t)align, LV_PART_MAIN);
+}
+
 // LVGL class descriptor
 
 const lv_obj_class_t label_lvgl_class = {
