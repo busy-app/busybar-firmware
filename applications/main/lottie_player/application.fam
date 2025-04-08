@@ -1,8 +1,9 @@
 App(
-    appid="lottie_test",
-    name="LottieTest",
+    appid="lottie_player",
+    name="Lottie Player",
     apptype=FlipperAppType.APP,
-    entry_point="lottie_test_app",
+    order=15,
+    entry_point="lottie_player_app",
     requires=["gui"],
     stack_size=4 * 1024,
     targets=["f20"],

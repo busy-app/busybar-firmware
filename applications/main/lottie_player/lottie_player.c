@@ -5,7 +5,7 @@
 #include <gui/gui.h>
 #include <gui/modules/lottie_animation.h>
 
-#define TAG "LottieTest"
+#define TAG "LottiePlayer"
 
 #define DEFAULT_FILE_PATH EXT_PATH("waves_test.json")
 
@@ -25,10 +25,10 @@
 #define SLOT_NAME "wave_offset"
 
 typedef enum {
-    LottieTestEventExit,
-    LottieTestEventIncOffset,
-    LottieTestEventDecOffset,
-} LottieTestEvent;
+    LottiePlayerEventExit,
+    LottiePlayerEventIncOffset,
+    LottiePlayerEventDecOffset,
+} LottiePlayerEvent;
 
 typedef struct {
     FuriEventLoop* event_loop;
@@ -37,38 +37,39 @@ typedef struct {
     Gui* gui;
     LottieAnimation* lottie;
     float offset;
-} LottieTest;
+} LottiePlayer;
 
-static bool lottie_test_input_callback(const InputEvent* event, void* context) {
+static bool lottie_player_input_callback(const InputEvent* event, void* context) {
     furi_assert(event);
     furi_assert(context);
-    LottieTest* instance = context;
+    LottiePlayer* instance = context;
 
-    LottieTestEvent e;
+    LottiePlayerEvent app_event;
     bool consumed = false;
 
     if(event->type == InputTypeShort) {
         if(event->key == InputKeyBack) {
-            e = LottieTestEventExit;
+            app_event = LottiePlayerEventExit;
             consumed = true;
         } else if(event->key == InputKeyUp) {
-            e = LottieTestEventIncOffset;
+            app_event = LottiePlayerEventIncOffset;
             consumed = true;
         } else if(event->key == InputKeyDown) {
-            e = LottieTestEventDecOffset;
+            app_event = LottiePlayerEventDecOffset;
             consumed = true;
         }
     }
 
     if(consumed) {
         furi_check(
-            furi_message_queue_put(instance->event_queue, &e, FuriWaitForever) == FuriStatusOk);
+            furi_message_queue_put(instance->event_queue, &app_event, FuriWaitForever) ==
+            FuriStatusOk);
     }
 
     return consumed;
 }
 
-static void lottie_test_override_offset(LottieTest* instance) {
+static void lottie_player_override_offset(LottiePlayer* instance) {
     furi_string_printf(instance->text_store, SLOT_TEMPLATE, SLOT_NAME, 0.F, instance->offset);
 
     if(!lottie_animation_override_slot(
@@ -77,30 +78,30 @@ static void lottie_test_override_offset(LottieTest* instance) {
     }
 }
 
-static void lottie_test_custom_event_callback(FuriEventLoopObject* object, void* context) {
+static void lottie_player_custom_event_callback(FuriEventLoopObject* object, void* context) {
     furi_assert(context);
 
-    LottieTest* instance = context;
+    LottiePlayer* instance = context;
     furi_assert(instance->event_queue == object);
 
-    LottieTestEvent event;
+    LottiePlayerEvent event;
     furi_check(furi_message_queue_get(instance->event_queue, &event, 0) == FuriStatusOk);
 
-    if(event == LottieTestEventExit) {
+    if(event == LottiePlayerEventExit) {
         furi_event_loop_stop(instance->event_loop);
-    } else if(event == LottieTestEventIncOffset) {
+    } else if(event == LottiePlayerEventIncOffset) {
         instance->offset += OFFSET_STEP;
-        lottie_test_override_offset(instance);
-    } else if(event == LottieTestEventDecOffset) {
+        lottie_player_override_offset(instance);
+    } else if(event == LottiePlayerEventDecOffset) {
         instance->offset -= OFFSET_STEP;
-        lottie_test_override_offset(instance);
+        lottie_player_override_offset(instance);
     }
 }
 
-static LottieTest* lottie_test_alloc(void) {
-    LottieTest* instance = malloc(sizeof(LottieTest));
+static LottiePlayer* lottie_player_alloc(void) {
+    LottiePlayer* instance = malloc(sizeof(LottiePlayer));
     instance->event_loop = furi_event_loop_alloc();
-    instance->event_queue = furi_message_queue_alloc(16, sizeof(LottieTestEvent));
+    instance->event_queue = furi_message_queue_alloc(16, sizeof(LottiePlayerEvent));
     instance->text_store = furi_string_alloc();
     instance->gui = furi_record_open(RECORD_GUI);
 
@@ -108,12 +109,12 @@ static LottieTest* lottie_test_alloc(void) {
         instance->event_loop,
         instance->event_queue,
         FuriEventLoopEventIn,
-        lottie_test_custom_event_callback,
+        lottie_player_custom_event_callback,
         instance);
 
     with_gui(instance->gui, {
         GuiLayer* main_layer = gui_get_layer(instance->gui, GuiLayerIdMain);
-        gui_layer_add_input_callback(main_layer, lottie_test_input_callback, instance);
+        gui_layer_add_input_callback(main_layer, lottie_player_input_callback, instance);
 
         Widget* root = gui_layer_get_root_widget(main_layer, GuiDisplayIdFront);
 
@@ -126,10 +127,10 @@ static LottieTest* lottie_test_alloc(void) {
     return instance;
 }
 
-static void lottie_test_free(LottieTest* instance) {
+static void lottie_player_free(LottiePlayer* instance) {
     with_gui(instance->gui, {
         GuiLayer* main_layer = gui_get_layer(instance->gui, GuiLayerIdMain);
-        gui_layer_remove_input_callback(main_layer, lottie_test_input_callback);
+        gui_layer_remove_input_callback(main_layer, lottie_player_input_callback);
         lottie_animation_free(instance->lottie);
     });
 
@@ -144,12 +145,12 @@ static void lottie_test_free(LottieTest* instance) {
     free(instance);
 }
 
-int32_t lottie_test_app(void* arg) {
+int32_t lottie_player_app(void* arg) {
     UNUSED(arg);
 
-    LottieTest* instance = lottie_test_alloc();
+    LottiePlayer* instance = lottie_player_alloc();
     furi_event_loop_run(instance->event_loop);
-    lottie_test_free(instance);
+    lottie_player_free(instance);
 
     return 0;
 }
