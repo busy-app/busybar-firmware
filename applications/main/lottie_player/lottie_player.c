@@ -3,6 +3,7 @@
 #include <storage/storage.h>
 
 #include <gui/gui.h>
+#include <gui/modules/label.h>
 #include <gui/modules/lottie_animation.h>
 
 #define TAG "LottiePlayer"
@@ -36,6 +37,7 @@ typedef struct {
     FuriString* text_store;
     Gui* gui;
     LottieAnimation* lottie;
+    Label* back_label;
     float offset;
 } LottiePlayer;
 
@@ -98,7 +100,7 @@ static void lottie_player_custom_event_callback(FuriEventLoopObject* object, voi
     }
 }
 
-static LottiePlayer* lottie_player_alloc(void) {
+static LottiePlayer* lottie_player_alloc(const char* file_path) {
     LottiePlayer* instance = malloc(sizeof(LottiePlayer));
     instance->event_loop = furi_event_loop_alloc();
     instance->event_queue = furi_message_queue_alloc(16, sizeof(LottiePlayerEvent));
@@ -112,15 +114,29 @@ static LottiePlayer* lottie_player_alloc(void) {
         lottie_player_custom_event_callback,
         instance);
 
+    if(file_path == NULL) {
+        file_path = DEFAULT_FILE_PATH;
+    }
+
     with_gui(instance->gui, {
         GuiLayer* main_layer = gui_get_layer(instance->gui, GuiLayerIdMain);
         gui_layer_add_input_callback(main_layer, lottie_player_input_callback, instance);
 
-        Widget* root = gui_layer_get_root_widget(main_layer, GuiDisplayIdFront);
+        Widget* root;
 
+        root = gui_layer_get_root_widget(main_layer, GuiDisplayIdFront);
         instance->lottie = lottie_animation_alloc(root);
-        if(!lottie_animation_set_source(instance->lottie, DEFAULT_FILE_PATH)) {
-            FURI_LOG_E(TAG, "Failed to load animation");
+
+        root = gui_layer_get_root_widget(main_layer, GuiDisplayIdBack);
+        instance->back_label = label_alloc(root);
+        label_set_text_align(instance->back_label, TextAlignCenter);
+        label_set_line_spacing(instance->back_label, 4);
+        widget_set_align(label_get_base(instance->back_label), AlignCenter);
+
+        if(lottie_animation_set_source(instance->lottie, file_path)) {
+            label_set_text_fmt(instance->back_label, "Playing animation:\n%s", file_path);
+        } else {
+            label_set_text_fmt(instance->back_label, "Failed to load:\n%s", file_path);
         }
     });
 
@@ -146,9 +162,7 @@ static void lottie_player_free(LottiePlayer* instance) {
 }
 
 int32_t lottie_player_app(void* arg) {
-    UNUSED(arg);
-
-    LottiePlayer* instance = lottie_player_alloc();
+    LottiePlayer* instance = lottie_player_alloc(arg);
     furi_event_loop_run(instance->event_loop);
     lottie_player_free(instance);
 
