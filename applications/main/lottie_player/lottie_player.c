@@ -148,6 +148,7 @@ static void lottie_player_free(LottiePlayer* instance) {
         GuiLayer* main_layer = gui_get_layer(instance->gui, GuiLayerIdMain);
         gui_layer_remove_input_callback(main_layer, lottie_player_input_callback);
         lottie_animation_free(instance->lottie);
+        label_free(instance->back_label);
     });
 
     furi_record_close(RECORD_GUI);
