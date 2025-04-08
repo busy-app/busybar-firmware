@@ -8,8 +8,9 @@
 
 #define TAG "LottieSrv"
 
-#define COLOR_FORMAT    (LV_COLOR_FORMAT_ARGB8888)
-#define BYTES_PER_PIXEL (LV_COLOR_FORMAT_GET_SIZE(COLOR_FORMAT))
+#define LV_COLOR_FORMAT  (LV_COLOR_FORMAT_ARGB8888)
+#define TVG_COLOR_FORMAT (TVG_COLORSPACE_ARGB8888)
+#define BYTES_PER_PIXEL  (LV_COLOR_FORMAT_GET_SIZE(LV_COLOR_FORMAT))
 
 typedef enum {
     LottieServiceRequestTypeAlloc,
@@ -18,6 +19,8 @@ typedef enum {
     LottieServiceRequestTypeOverrideSlot,
     LottieServiceRequestTypeGetInfo,
     LottieServiceRequestTypeStart,
+
+    LottieServiceRequestTypeMax,
 } LottieServiceRequestType;
 
 typedef struct {
@@ -48,20 +51,24 @@ typedef struct {
     LottieServiceTask* task;
 } LottieServiceStartRequest;
 
+typedef union {
+    LottieServiceAllocRequest alloc;
+    LottieServiceFreeRequest free;
+    LottieServiceSetSourceRequest set_source;
+    LottieServiceOverrideSlotRequest override_slot;
+    LottieServiceGetInfoRequest get_info;
+    LottieServiceStartRequest start;
+} LottieServiceRequest;
+
+typedef union {
+    bool* boolean;
+    LottieServiceTask** task;
+} LottieServiceResult;
+
 typedef struct {
     const LottieServiceRequestType type;
-    union {
-        const LottieServiceAllocRequest alloc;
-        const LottieServiceFreeRequest free;
-        const LottieServiceSetSourceRequest set_source;
-        const LottieServiceOverrideSlotRequest override_slot;
-        const LottieServiceGetInfoRequest get_info;
-        const LottieServiceStartRequest start;
-    } request;
-    union {
-        bool* boolean;
-        LottieServiceTask** task;
-    } result;
+    const LottieServiceRequest request;
+    const LottieServiceResult result;
     FuriApiLock lock;
 } LottieServiceMessage;
 
@@ -85,6 +92,13 @@ struct LottieService {
     FuriMessageQueue* message_queue;
 };
 
+typedef void (*const LottieServiceMessageHandler)(
+    LottieService* instance,
+    const LottieServiceRequest* request,
+    const LottieServiceResult* result);
+
+static const LottieServiceMessageHandler lottie_message_handlers[LottieServiceRequestTypeMax];
+
 static void lottie_service_task_update(void* context) {
     furi_assert(context);
     LottieServiceTask* task = context;
@@ -103,10 +117,10 @@ static void lottie_service_task_update(void* context) {
     }
 }
 
-static LottieServiceTask* lottie_service_task_alloc_internal(
+static void lottie_service_task_alloc_handler(
     LottieService* instance,
-    LottieServiceTaskCallback callback,
-    void* context) {
+    const LottieServiceRequest* request,
+    const LottieServiceResult* result) {
     LottieServiceTask* task = malloc(sizeof(LottieServiceTask));
 
     task->owner = instance;
@@ -115,13 +129,21 @@ static LottieServiceTask* lottie_service_task_alloc_internal(
     task->tvg_anim = tvg_animation_new();
     task->tvg_paint = tvg_animation_get_picture(task->tvg_anim);
     task->tvg_canvas = tvg_swcanvas_create();
-    task->callback = callback;
-    task->callback_context = context;
+    task->callback = request->alloc.callback;
+    task->callback_context = request->alloc.callback_context;
 
-    return task;
+    *result->task = task;
 }
 
-static void lottie_service_task_free_internal(LottieServiceTask* task) {
+static void lottie_service_task_free_handler(
+    LottieService* instance,
+    const LottieServiceRequest* request,
+    const LottieServiceResult* result) {
+    UNUSED(instance);
+    UNUSED(result);
+
+    LottieServiceTask* task = request->free.task;
+
     furi_event_loop_timer_free(task->timer);
 
     tvg_animation_del(task->tvg_anim);
@@ -142,47 +164,42 @@ static void
 
     task->canvas_buf = realloc(task->canvas_buf, task->info.canvas_buf_size);
 
-    const int32_t stride = lv_draw_buf_width_to_stride(width, COLOR_FORMAT);
+    const int32_t stride = lv_draw_buf_width_to_stride(width, LV_COLOR_FORMAT);
 
     tvg_swcanvas_set_target(
-        task->tvg_canvas, task->canvas_buf, stride / 4, width, height, TVG_COLORSPACE_ARGB8888);
+        task->tvg_canvas, task->canvas_buf, stride / 4, width, height, TVG_COLOR_FORMAT);
     tvg_canvas_push(task->tvg_canvas, task->tvg_paint);
 }
 
-static bool
-    lottie_service_task_set_source_internal(LottieServiceTask* task, const char* file_path) {
+static void lottie_service_task_set_source_handler(
+    LottieService* instance,
+    const LottieServiceRequest* request,
+    const LottieServiceResult* result) {
+    UNUSED(instance);
+
     bool success = false;
+
+    LottieServiceTask* task = request->set_source.task;
 
     do {
         Tvg_Result res;
 
-        res = tvg_picture_load(task->tvg_paint, file_path);
-        if(res != TVG_RESULT_SUCCESS) {
-            break;
-        }
+        res = tvg_picture_load(task->tvg_paint, request->set_source.file_path);
+        if(res != TVG_RESULT_SUCCESS) break;
 
         float width, height;
         res = tvg_picture_get_size(task->tvg_paint, &width, &height);
-
-        if(res != TVG_RESULT_SUCCESS) {
-            break;
-        }
+        if(res != TVG_RESULT_SUCCESS) break;
 
         float num_frames;
         res = tvg_animation_get_total_frame(task->tvg_anim, &num_frames);
-
-        if(res != TVG_RESULT_SUCCESS) {
-            break;
-        }
+        if(res != TVG_RESULT_SUCCESS) break;
 
         task->num_frames = num_frames;
 
         float duration_s;
         res = tvg_animation_get_duration(task->tvg_anim, &duration_s);
-
-        if(res != TVG_RESULT_SUCCESS) {
-            break;
-        }
+        if(res != TVG_RESULT_SUCCESS) break;
 
         task->fps = num_frames / duration_s;
 
@@ -191,36 +208,54 @@ static bool
         success = true;
     } while(false);
 
-    return success;
+    *result->boolean = success;
 }
 
-static bool
-    lottie_service_task_override_slot_internal(LottieServiceTask* task, const char* slot_str) {
-    return tvg_lottie_animation_override(task->tvg_anim, slot_str) == TVG_RESULT_SUCCESS;
+static void lottie_service_task_override_slot_handler(
+    LottieService* instance,
+    const LottieServiceRequest* request,
+    const LottieServiceResult* result) {
+    UNUSED(instance);
+
+    LottieServiceTask* task = request->override_slot.task;
+    *result->boolean = tvg_lottie_animation_override(
+                           task->tvg_anim, request->override_slot.slot_str) == TVG_RESULT_SUCCESS;
 }
 
-static bool lottie_service_task_get_info_internal(
-    const LottieServiceTask* task,
-    LottieServiceTaskInfo* info) {
+static void lottie_service_task_get_info_handler(
+    LottieService* instance,
+    const LottieServiceRequest* request,
+    const LottieServiceResult* result) {
+    UNUSED(instance);
+
     bool success = false;
 
+    const LottieServiceTask* task = request->get_info.task;
+
     if(task->canvas_buf) {
-        *info = task->info;
+        *request->get_info.task_info = task->info;
         success = true;
     }
 
-    return success;
+    *result->boolean = success;
 }
 
-static bool lottie_service_task_start_internal(LottieServiceTask* task) {
+static void lottie_service_task_start_handler(
+    LottieService* instance,
+    const LottieServiceRequest* request,
+    const LottieServiceResult* result) {
+    UNUSED(instance);
+
     bool success = false;
+
+    const LottieServiceTask* task = request->start.task;
 
     if(task->canvas_buf) {
         furi_event_loop_timer_start(task->timer, 1000.0F / task->fps);
         success = true;
     }
 
-    return success;
+    *result->boolean = success;
 }
 
 static void lottie_service_message_queue_callback(FuriEventLoopObject* object, void* context) {
@@ -229,33 +264,14 @@ static void lottie_service_message_queue_callback(FuriEventLoopObject* object, v
     LottieService* instance = context;
     furi_assert(instance->message_queue == object);
 
-    LottieServiceMessage msg;
-    furi_check(furi_message_queue_get(instance->message_queue, &msg, 0) == FuriStatusOk);
+    LottieServiceMessage message;
+    furi_check(furi_message_queue_get(instance->message_queue, &message, 0) == FuriStatusOk);
 
-    if(msg.type == LottieServiceRequestTypeAlloc) {
-        const LottieServiceAllocRequest* req = &msg.request.alloc;
-        *msg.result.task =
-            lottie_service_task_alloc_internal(instance, req->callback, req->callback_context);
-    } else if(msg.type == LottieServiceRequestTypeFree) {
-        const LottieServiceFreeRequest* req = &msg.request.free;
-        lottie_service_task_free_internal(req->task);
-    } else if(msg.type == LottieServiceRequestTypeSetSource) {
-        const LottieServiceSetSourceRequest* req = &msg.request.set_source;
-        *msg.result.boolean = lottie_service_task_set_source_internal(req->task, req->file_path);
-    } else if(msg.type == LottieServiceRequestTypeOverrideSlot) {
-        const LottieServiceOverrideSlotRequest* req = &msg.request.override_slot;
-        *msg.result.boolean = lottie_service_task_override_slot_internal(req->task, req->slot_str);
-    } else if(msg.type == LottieServiceRequestTypeGetInfo) {
-        const LottieServiceGetInfoRequest* req = &msg.request.get_info;
-        *msg.result.boolean = lottie_service_task_get_info_internal(req->task, req->task_info);
-    } else if(msg.type == LottieServiceRequestTypeStart) {
-        const LottieServiceStartRequest* req = &msg.request.start;
-        *msg.result.boolean = lottie_service_task_start_internal(req->task);
-    } else {
-        furi_crash();
-    }
+    const LottieServiceRequestType request_type = message.type;
+    furi_assert(request_type < LottieServiceRequestTypeMax);
 
-    api_lock_unlock(msg.lock);
+    lottie_message_handlers[request_type](instance, &message.request, &message.result);
+    api_lock_unlock(message.lock);
 }
 
 static LottieService* lottie_service_alloc(void) {
@@ -411,3 +427,14 @@ int32_t lottie_srv(void* arg) {
 
     furi_crash();
 }
+
+// Message handlers
+
+static const LottieServiceMessageHandler lottie_message_handlers[LottieServiceRequestTypeMax] = {
+    [LottieServiceRequestTypeAlloc] = lottie_service_task_alloc_handler,
+    [LottieServiceRequestTypeFree] = lottie_service_task_free_handler,
+    [LottieServiceRequestTypeSetSource] = lottie_service_task_set_source_handler,
+    [LottieServiceRequestTypeOverrideSlot] = lottie_service_task_override_slot_handler,
+    [LottieServiceRequestTypeGetInfo] = lottie_service_task_get_info_handler,
+    [LottieServiceRequestTypeStart] = lottie_service_task_start_handler,
+};
