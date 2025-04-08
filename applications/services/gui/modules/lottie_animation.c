@@ -15,7 +15,7 @@ struct LottieAnimation {
     Widget base;
     lv_obj_t* canvas;
     uint32_t* canvas_buf;
-    LottieServiceTaskInfo task_info;
+    size_t canvas_buf_size;
     LottieServiceTask* lottie_task;
 };
 
@@ -27,7 +27,7 @@ static void lottie_animation_update_callback(const void* canvas_buf, void* conte
 
     lv_lock();
 
-    memcpy(instance->canvas_buf, canvas_buf, instance->task_info.canvas_buf_size);
+    memcpy(instance->canvas_buf, canvas_buf, instance->canvas_buf_size);
     lv_obj_invalidate((lv_obj_t*)instance);
 
     lv_unlock();
@@ -59,6 +59,25 @@ static void lottie_animation_lvgl_destructor(const lv_obj_class_t* class_p, lv_o
     }
 }
 
+// Implementation
+
+static void lottie_animation_init_canvas(
+    LottieAnimation* instance,
+    const LottieServiceTaskInfo* task_info) {
+    instance->canvas_buf = realloc(instance->canvas_buf, task_info->canvas_buf_size);
+    instance->canvas_buf_size = task_info->canvas_buf_size;
+
+    lv_canvas_set_buffer(
+        instance->canvas,
+        instance->canvas_buf,
+        task_info->canvas_width,
+        task_info->canvas_height,
+        COLOR_FORMAT);
+
+    lv_draw_buf_t* draw_buf = lv_canvas_get_draw_buf(instance->canvas);
+    lv_draw_buf_set_flag(draw_buf, LV_IMAGE_FLAGS_PREMULTIPLIED);
+}
+
 // Public API
 
 LottieAnimation* lottie_animation_alloc(Widget* parent) {
@@ -88,29 +107,13 @@ bool lottie_animation_set_source(LottieAnimation* instance, const char* file_pat
     bool success = false;
 
     do {
-        if(!lottie_service_task_set_source(instance->lottie_task, file_path)) {
-            break;
-        }
+        if(!lottie_service_task_set_source(instance->lottie_task, file_path)) break;
 
-        if(!lottie_service_task_get_info(instance->lottie_task, &instance->task_info)) {
-            break;
-        }
+        LottieServiceTaskInfo task_info;
+        if(!lottie_service_task_get_info(instance->lottie_task, &task_info)) break;
 
-        instance->canvas_buf = realloc(instance->canvas_buf, instance->task_info.canvas_buf_size);
-
-        lv_canvas_set_buffer(
-            instance->canvas,
-            instance->canvas_buf,
-            instance->task_info.canvas_width,
-            instance->task_info.canvas_height,
-            COLOR_FORMAT);
-
-        lv_draw_buf_t* draw_buf = lv_canvas_get_draw_buf(instance->canvas);
-        lv_draw_buf_set_flag(draw_buf, LV_IMAGE_FLAGS_PREMULTIPLIED);
-
-        if(!lottie_service_task_start(instance->lottie_task)) {
-            break;
-        }
+        lottie_animation_init_canvas(instance, &task_info);
+        if(!lottie_service_task_start(instance->lottie_task)) break;
 
         success = true;
     } while(false);
