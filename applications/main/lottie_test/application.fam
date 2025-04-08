@@ -4,6 +4,6 @@ App(
     apptype=FlipperAppType.APP,
     entry_point="lottie_test_app",
     requires=["gui"],
-    stack_size=160 * 1024,
+    stack_size=4 * 1024,
     targets=["f20"],
 )

@@ -9,6 +9,7 @@ App(
         "cli_socket",
         "input",
         "gui",
+        "lottie",
         "desktop",
         "loader",
         "led_display",
