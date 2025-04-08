@@ -7,6 +7,8 @@
 
 #define TAG "LottieTest"
 
+#define DEFAULT_FILE_PATH EXT_PATH("waves_test.json")
+
 #define OFFSET_STEP 0.2F
 
 #define SLOT_TEMPLATE \
@@ -116,7 +118,7 @@ static LottieTest* lottie_test_alloc(void) {
         Widget* root = gui_layer_get_root_widget(main_layer, GuiDisplayIdFront);
 
         instance->lottie = lottie_animation_alloc(root);
-        if(!lottie_animation_set_source(instance->lottie, EXT_PATH("lottietest.json"))) {
+        if(!lottie_animation_set_source(instance->lottie, DEFAULT_FILE_PATH)) {
             FURI_LOG_E(TAG, "Failed to load animation");
         }
     });
