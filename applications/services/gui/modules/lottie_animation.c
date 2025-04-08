@@ -37,7 +37,7 @@ static void lottie_animation_update_callback(const void* canvas_buf, void* conte
 
 const lv_obj_class_t lottie_animation_lvgl_class;
 
-void lottie_animation_lvgl_constructor(const lv_obj_class_t* class_p, lv_obj_t* obj) {
+static void lottie_animation_lvgl_constructor(const lv_obj_class_t* class_p, lv_obj_t* obj) {
     UNUSED(class_p);
 
     LottieAnimation* instance = (LottieAnimation*)obj;
@@ -48,7 +48,7 @@ void lottie_animation_lvgl_constructor(const lv_obj_class_t* class_p, lv_obj_t* 
         lottie_service_task_alloc(lottie_srv, lottie_animation_update_callback, instance);
 }
 
-void lottie_animation_lvgl_destructor(const lv_obj_class_t* class_p, lv_obj_t* obj) {
+static void lottie_animation_lvgl_destructor(const lv_obj_class_t* class_p, lv_obj_t* obj) {
     UNUSED(class_p);
 
     LottieAnimation* instance = (LottieAnimation*)obj;
@@ -107,6 +107,10 @@ bool lottie_animation_set_source(LottieAnimation* instance, const char* file_pat
 
         lv_draw_buf_t* draw_buf = lv_canvas_get_draw_buf(instance->canvas);
         lv_draw_buf_set_flag(draw_buf, LV_IMAGE_FLAGS_PREMULTIPLIED);
+
+        if(!lottie_service_task_start(instance->lottie_task)) {
+            break;
+        }
 
         success = true;
     } while(false);

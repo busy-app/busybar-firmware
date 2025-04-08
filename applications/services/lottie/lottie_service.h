@@ -34,3 +34,5 @@ bool lottie_service_task_set_source(LottieServiceTask* task, const char* file_pa
 bool lottie_service_task_override_slot(LottieServiceTask* task, const char* slot_str);
 
 bool lottie_service_task_get_info(const LottieServiceTask* task, LottieServiceTaskInfo* info);
+
+bool lottie_service_task_start(LottieServiceTask* task);
