@@ -4,7 +4,7 @@ App(
     apptype=FlipperAppType.SERVICE,
     entry_point="lottie_srv",
     cdefines=["SRV_LOTTIE"],
-    stack_size=64 * 1024,
+    stack_size=32 * 1024,
     targets=["f20"],
     requires=["gui", "storage"],
     order=900,
