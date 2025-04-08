@@ -51,6 +51,8 @@ bool lottie_animation_set_source(LottieAnimation* instance, const char* file_pat
 /**
  * @brief Override a slot in a Lottie animation.
  *
+ * Documentation on Lottie slots: https://lottie.github.io/lottie-spec/dev/specs/helpers/#slots
+ *
  * @param[in,out] instance pointer to the LottieAnimation instance to be modified
  * @param[in] slot_str zero-terminated string containing the JSON object to override the slot with
  * @returns true if the slot was successfully overridden, false otherwise
