@@ -52,8 +52,7 @@ static const VarItemKeyValue ble_per_test_rate[] = {
     {"1Mbps", 0},
     {"2Mbps", 1},
     {"125Kbps", 2},
-    {"1Mbps", 3},
-    {"500Kbps", 4},
+    {"500Kbps", 3},
 };
 
 #define PAYLOAD_LEN_MIN  (1)
