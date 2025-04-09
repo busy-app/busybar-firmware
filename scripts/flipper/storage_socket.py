@@ -449,13 +449,13 @@ class FlipperStorageOperations:
         self.logger.debug(
             f"* send_file_to_storage:  {local_file_path}->{flipper_file_path}, {force=}"
         )
-        exists = self.storage.exist_file(flipper_file_path)
-        do_upload = not exists
-        if exists:
-            hash_local = self.storage.hash_local(local_file_path)
-            hash_flipper = self.storage.hash_flipper(flipper_file_path)
-            self.logger.debug(f"hash check: local {hash_local}, flipper {hash_flipper}")
-            do_upload = force or (hash_local != hash_flipper)
+        if self.storage.exist_file(flipper_file_path):
+            do_upload = force
+            if not do_upload:
+                hash_local = self.storage.hash_local(local_file_path)
+                hash_flipper = self.storage.hash_flipper(flipper_file_path)
+                self.logger.debug(f"hash check: local {hash_local}, flipper {hash_flipper}")
+                do_upload = (hash_local != hash_flipper)
 
         if do_upload:
             self.logger.info(f'Sending "{local_file_path}" to "{flipper_file_path}"')
