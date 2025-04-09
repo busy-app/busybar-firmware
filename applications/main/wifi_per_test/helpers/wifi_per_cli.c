@@ -244,11 +244,11 @@ bool wifi_per_cli_start(WifiPerTest* app_handle, WifiPerCliSettings settings) {
 
     if(wifi_per_cli_stats[WifiPerCliStatsCmdTypeStartApp].value) {
         //set settings
-        furi_string_cat_printf(
+        furi_string_printf(
             msg, "%s %d\r\n", wifi_per_cli_cmd[WifiPerCliCmdTypeSetTxPower].cmd, settings.tx_power);
         furi_string_cat_printf(
             msg, "%s %s\r\n", wifi_per_cli_cmd[WifiPerCliCmdTypeSetPhyRate].cmd, settings.rate);
-        furi_string_printf(
+        furi_string_cat_printf(
             msg, "%s %d\r\n", wifi_per_cli_cmd[WifiPerCliCmdTypeSetChannel].cmd, settings.channel);
         furi_string_cat_printf(
             msg, "%s %s\r\n", wifi_per_cli_cmd[WifiPerCliCmdTypeSetMode].cmd, settings.mode_work);

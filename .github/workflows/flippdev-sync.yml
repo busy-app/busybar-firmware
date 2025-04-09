@@ -1,0 +1,25 @@
+name: Sync with mirror repo
+on:
+  push:
+    branches:
+      - dev
+      - hedger/*
+  workflow_dispatch:
+
+jobs:
+  sync:
+    name: Push branch to mirror repo
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Sync with ${{ vars.REPO_MIRROR_URL }}
+        id: sync
+        run: |
+          git config --global user.name "GitHub Actions"
+          git config --global user.email "actions@github.com"
+          git remote add forgejo "https://${{ secrets.REPO_MIRROR_TOKEN }}@${{ vars.REPO_MIRROR_URL }}"
+          git push --force forgejo ${{ github.ref }} 
