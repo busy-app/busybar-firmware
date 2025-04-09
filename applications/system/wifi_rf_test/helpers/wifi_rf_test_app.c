@@ -455,6 +455,7 @@ sl_status_t wifi_rf_test_app(WifiRfTestApp* instance, uint8_t cmd_index, FuriStr
                     instance->tx_test_info.mode = mode_temp;
                     break;
                 }
+                furi_delay_ms(200);
                 status = sl_si91x_transmit_test_stop();
                 if(status != SL_STATUS_OK) {
                     furi_string_printf(instance->msg, "Transmit failed to stop %lx\r\n", status);
