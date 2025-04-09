@@ -13,8 +13,8 @@
 
 #define PD_SINK_CAP_VOLTAGE 9000
 
-#define PD_CC_DEBOUNCE_TIME 50
-#define PD_MAX_PACKET_LEN   32
+#define PD_CC_POLL_PERIOD 500
+#define PD_MAX_PACKET_LEN 32
 
 #define RX_IGNORE_HRST_COUNT 3
 
@@ -226,7 +226,7 @@ typedef struct {
         PdEventIdRxError,
         PdEventIdHrst,
 
-        PdEventIdCCDebounce,
+        PdEventIdCCPoll,
 
         PdEventIdStart,
         PdEventIdRequest,
@@ -251,7 +251,7 @@ typedef struct {
 struct PowerUsbPd {
     FuriMessageQueue* message_queue;
 
-    FuriTimer* cc_timer;
+    FuriTimer* cc_poll_timer;
     FuriTimer* pps_keep_alive_timer;
     FuriSemaphore* tx_idle_sem;
     FuriMutex* cap_mutex;
@@ -266,8 +266,7 @@ struct PowerUsbPd {
 
     uint8_t cc_line;
     uint8_t cc_line_level;
-    uint8_t cc_line_last;
-    uint8_t cc_line_level_last;
+    uint8_t cc_irq_last;
 
     PdMessage rx_msg;
     uint8_t rx_irq_ord_set;
@@ -349,6 +348,7 @@ static void ucpd_init(PowerUsbPd* pd) {
     LL_UCPD_SetTransWin(UCPD1, UCPD_TRANSWIN);
     LL_UCPD_SetIfrGap(UCPD1, UCPD_IFRGAP);
     LL_UCPD_SetHbitClockDiv(UCPD1, UCPD_HBIT_CLOCK_DIV);
+    LL_UCPD_FRSDetectionDisable(UCPD1);
 
     ucpd_dma_init(pd);
 
@@ -388,6 +388,14 @@ static void ucpd_transmit(PowerUsbPd* pd, uint8_t ord_set, uint8_t* buf, size_t 
     LL_UCPD_WriteTxOrderSet(UCPD1, LL_UCPD_ORDERED_SET_SOP);
     LL_UCPD_WriteTxPaySize(UCPD1, len);
     UCPD1->CR |= UCPD_CR_TXSEND | (LL_UCPD_TXMODE_NORMAL << UCPD_CR_TXMODE_Pos);
+}
+
+static inline void ucpd_cc_detector_control(bool enable) {
+    if(enable) {
+        UCPD1->CR &= ~(UCPD_CR_CC1TCDIS_Msk | UCPD_CR_CC2TCDIS_Msk);
+    } else {
+        UCPD1->CR |= UCPD_CR_CC1TCDIS_Msk | UCPD_CR_CC2TCDIS_Msk;
+    }
 }
 
 static void pd_send_goodcrc(PowerUsbPd* pd, uint8_t msg_id) {
@@ -659,8 +667,14 @@ static void pd_msg_parse_sop0(PowerUsbPd* pd, uint8_t* buf) {
     PdHeaderSop0 hdr = {0};
     memcpy(&hdr.data, buf, 2);
 
-    if((hdr.power_role == PdPowerRoleSrc) && (hdr.data_role == PdDataRoleDFP) &&
-       (hdr.nb_objects == 0) && (hdr.extended == 0)) {
+    if((hdr.power_role != PdPowerRoleSrc) || (hdr.data_role != PdDataRoleDFP)) {
+        return;
+    }
+
+    if(hdr.extended == 1) {
+        pd_send_not_supported(pd);
+        FURI_LOG_W(TAG, "Unsupported ext msg %u", hdr.msg_type);
+    } else if(hdr.nb_objects == 0) {
         // Control messages
         if(hdr.msg_type == PdMsgGoodCrc) { // GoodCRC
             pd->tx_msg_id = (pd->tx_msg_id + 1) & 0x7;
@@ -685,16 +699,14 @@ static void pd_msg_parse_sop0(PowerUsbPd* pd, uint8_t* buf) {
             pd_send_not_supported(pd);
             FURI_LOG_W(TAG, "Unsupported control msg %u", hdr.msg_type);
         }
-    } else if(
-        (hdr.power_role == PdPowerRoleSrc) && (hdr.data_role == PdDataRoleDFP) &&
-        (hdr.nb_objects > 0) && (hdr.extended == 0)) {
+    } else if(hdr.nb_objects > 0) {
         // Data messages
         if(hdr.msg_type == PdMsgSourceCaps) {
             // Source capabilities
             if(pd_msg_parse_capabilities(pd, &buf[2], hdr.nb_objects)) {
                 PdMessage msg = {
                     .event = PdEventIdRequest,
-                    .request_power = {.voltage_mv = pd->req_voltage, .current_ma = pd->req_current},
+                    .request_power = {.voltage_mv = PD_VOLTAGE_DEFAULT, .current_ma = 0},
                 };
                 furi_message_queue_put(pd->message_queue, &msg, FuriWaitForever);
             }
@@ -749,16 +761,19 @@ static void ucpd_irq_handler(void* context) {
 
     if(irq_flags & (UCPD_SR_TYPECEVT1 | UCPD_SR_TYPECEVT2)) {
         UCPD1->ICR |= (UCPD_ICR_TYPECEVT1CF | UCPD_ICR_TYPECEVT2CF);
-        uint32_t cc1_state = (UCPD1->SR & UCPD_SR_TYPEC_VSTATE_CC1) >>
-                             UCPD_SR_TYPEC_VSTATE_CC1_Pos;
-        uint32_t cc2_state = (UCPD1->SR & UCPD_SR_TYPEC_VSTATE_CC2) >>
-                             UCPD_SR_TYPEC_VSTATE_CC2_Pos;
+        uint8_t cc1_state = (UCPD1->SR & UCPD_SR_TYPEC_VSTATE_CC1) >> UCPD_SR_TYPEC_VSTATE_CC1_Pos;
+        uint8_t cc2_state = (UCPD1->SR & UCPD_SR_TYPEC_VSTATE_CC2) >> UCPD_SR_TYPEC_VSTATE_CC2_Pos;
+        uint8_t cc_state = (cc1_state << 2) | cc2_state;
+        ucpd_cc_detector_control(false);
 
-        PdMessage msg = {
-            .event = PdEventIdCCState,
-            .cc_state = {.cc1 = cc1_state, .cc2 = cc2_state},
-        };
-        furi_message_queue_put(pd->message_queue, &msg, 0);
+        if(cc_state != pd->cc_irq_last) {
+            pd->cc_irq_last = cc_state;
+            PdMessage msg = {
+                .event = PdEventIdCCState,
+                .cc_state = {.cc1 = cc1_state, .cc2 = cc2_state},
+            };
+            furi_message_queue_put(pd->message_queue, &msg, 0);
+        }
     }
     if(irq_flags & UCPD_SR_TXMSGSENT) {
         UCPD1->ICR |= UCPD_ICR_TXMSGSENTCF;
@@ -807,11 +822,11 @@ static void ucpd_irq_handler(void* context) {
     }
 }
 
-static void pd_cc_debounce_callback(void* context) {
+static void pd_cc_poll_callback(void* context) {
     furi_check(context);
     PowerUsbPd* pd = context;
 
-    PdMessage msg = {.event = PdEventIdCCDebounce};
+    PdMessage msg = {.event = PdEventIdCCPoll};
     furi_message_queue_put(pd->message_queue, &msg, FuriWaitForever);
 }
 
@@ -919,8 +934,8 @@ static void pd_fallback(PowerUsbPd* pd) {
 
 PowerUsbPd* power_usb_pd_alloc(FuriMessageQueue** pd_queue) {
     PowerUsbPd* pd = malloc(sizeof(PowerUsbPd));
-    pd->message_queue = furi_message_queue_alloc(8, sizeof(PdMessage));
-    pd->cc_timer = furi_timer_alloc(pd_cc_debounce_callback, FuriTimerTypeOnce, pd);
+    pd->message_queue = furi_message_queue_alloc(16, sizeof(PdMessage));
+    pd->cc_poll_timer = furi_timer_alloc(pd_cc_poll_callback, FuriTimerTypePeriodic, pd);
     pd->pps_keep_alive_timer = furi_timer_alloc(pd_pps_keep_alive_callback, FuriTimerTypeOnce, pd);
     pd->tx_idle_sem = furi_semaphore_alloc(1, 1);
     pd->cap_mutex = furi_mutex_alloc(FuriMutexTypeNormal);
@@ -963,16 +978,7 @@ void power_usb_pd_msg_handler(FuriEventLoopObject* object, void* context) {
     PdMessage msg;
     furi_check(furi_message_queue_get(pd->message_queue, &msg, 0) == FuriStatusOk);
 
-    if(msg.event == PdEventIdStart) {
-        furi_check(pd->started == false);
-        ucpd_init(pd);
-        pd_reset_source(pd);
-
-        pd->req_voltage = PD_VOLTAGE_DEFAULT;
-        pd->req_current = 0;
-
-        pd->started = true;
-    } else if(msg.event == PdEventIdCCState) {
+    if(msg.event == PdEventIdCCState) {
         uint8_t cc_line_cur = 0;
         uint8_t cc_line_level = PdCClineLevelNC;
         if((msg.cc_state.cc1 == PdCClineLevelNC) && (msg.cc_state.cc2 != PdCClineLevelNC)) {
@@ -984,23 +990,17 @@ void power_usb_pd_msg_handler(FuriEventLoopObject* object, void* context) {
         }
 
         if(pd->cc_line != cc_line_cur) {
-            furi_timer_stop(pd->cc_timer);
-            pd->cc_line_last = cc_line_cur;
-            pd->cc_line_level_last = cc_line_level;
-            furi_check(furi_timer_start(pd->cc_timer, PD_CC_DEBOUNCE_TIME) == FuriStatusOk);
-        }
-    } else if(msg.event == PdEventIdCCDebounce) {
-        pd->cc_line = pd->cc_line_last;
-        pd->cc_line_level = pd->cc_line_level_last;
-        FURI_LOG_D(TAG, "CC change line:%u level:%u", pd->cc_line, pd->cc_line_level);
-        pd->pps_keep_alive = false;
-        pd->hrst_count = 0;
-        pd->req_voltage = PD_VOLTAGE_DEFAULT;
-        pd->req_current = 0;
-        furi_timer_stop(pd->pps_keep_alive_timer);
-        pd_cc_line_change(pd);
-        if(pd->cc_line > 0) {
-            LL_UCPD_RxEnable(UCPD1);
+            pd->cc_line = cc_line_cur;
+            pd->cc_line_level = cc_line_level;
+            FURI_LOG_D(TAG, "CC change line:%u level:%u", pd->cc_line, pd->cc_line_level);
+            pd->pps_keep_alive = false;
+            pd->hrst_count = 0;
+            pd->req_voltage = PD_VOLTAGE_DEFAULT;
+            pd->req_current = 0;
+            pd_cc_line_change(pd);
+            if(pd->cc_line > 0) {
+                LL_UCPD_RxEnable(UCPD1);
+            }
         }
     } else if((msg.event == PdEventIdRxDone) && (pd->cc_line != 0)) {
         if(msg.rx_done.ord_set_type == PdOrdSetSOP0) {
@@ -1018,16 +1018,31 @@ void power_usb_pd_msg_handler(FuriEventLoopObject* object, void* context) {
         furi_mutex_acquire(pd->cap_mutex, FuriWaitForever);
         pd->caps.cap_id_current = 0;
         furi_mutex_release(pd->cap_mutex);
+        FURI_LOG_W(TAG, "HRST");
         pd->hrst_count++;
         if(pd->hrst_count >= RX_IGNORE_HRST_COUNT) {
             pd->hrst_count = 0;
             pd_fallback(pd);
+            FURI_LOG_W(TAG, "Fallback to passive mode");
         }
-        FURI_LOG_W(TAG, "HRST");
     } else if(msg.event == PdEventIdRequest) {
         pd_send_request(pd, msg.request_power.voltage_mv, msg.request_power.current_ma);
     } else if(msg.event == PdEventIdPpsKeepAlive) {
         pd->pps_keep_alive = true;
         pd_send_request(pd, pd->req_voltage, pd->req_current);
+    } else if(msg.event == PdEventIdCCPoll) {
+        ucpd_cc_detector_control(true);
+    } else if(msg.event == PdEventIdStart) {
+        furi_check(pd->started == false);
+        ucpd_init(pd);
+        pd_reset_source(pd);
+
+        UCPD1->CR |= UCPD_CR_CC1TCDIS_Msk | UCPD_CR_CC2TCDIS_Msk;
+        furi_check(furi_timer_start(pd->cc_poll_timer, PD_CC_POLL_PERIOD) == FuriStatusOk);
+
+        pd->req_voltage = PD_VOLTAGE_DEFAULT;
+        pd->req_current = 0;
+
+        pd->started = true;
     }
 }
