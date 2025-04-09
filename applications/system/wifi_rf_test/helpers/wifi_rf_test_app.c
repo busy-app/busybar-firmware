@@ -59,12 +59,14 @@ typedef struct {
     char* rate_cmd;
     uint16_t rate_value;
 } WifiTestRateCmd;
-#define WIFI_RF_TEST_RATE_CMD_MAX 21
+#define WIFI_RF_TEST_RATE_CMD_MAX 25
 const WifiTestRateCmd wifi_rf_test_rate_cmd[WIFI_RF_TEST_RATE_CMD_MAX] = {
-    {"1", 0},      {"2", 2},      {"5.5", 4},       {"11", 6},     {"6", 139},    {"9", 143},
-    {"12", 138},   {"18", 142},   {"24", 137},      {"36", 141},   {"48", 136},   {"54", 140},
-    {"MCS0", 256}, {"MCS1", 257}, {"MCS2", 258},    {"MCS3", 259}, {"MCS4", 260}, {"MCS5", 261},
-    {"MCS6", 262}, {"MCS7", 263}, {"MCS7_SG", 775},
+    {"1", 0},         {"2", 2},         {"5.5", 4},         {"11", 6},        {"6", 139},
+    {"9", 143},       {"12", 138},      {"18", 142},        {"24", 137},      {"36", 141},
+    {"48", 136},      {"54", 140},      {"MCS0", 256},      {"MCS1", 257},    {"MCS2", 258},
+    {"MCS3", 259},    {"MCS4", 260},    {"MCS5", 261},      {"MCS6", 262},    {"MCS7", 263},
+    {"MCS7_SG", 775}, {"802.11b_1", 0}, {"802.11b_5.5", 4}, {"802.11g", 139}, {"802.11n", 256},
+
 };
 
 typedef struct {
@@ -678,7 +680,7 @@ static void wifi_rf_test_app_cmd_usage(WifiRfTestApp* instance) {
     furi_string_cat_printf(instance->msg, "set_power <2..18|127> Set transmit power.\r\n");
     furi_string_cat_printf(
         instance->msg,
-        "set_rate <1|2|5.5|11|6|9|12|18|24|36|48|54|MCS0|MCS1|MCS2|MCS3|MCS4|MCS5|MCS6|MCS7|MCS7_SG> Set transmit rate.\r\n");
+        "set_rate <1|2|5.5|11|6|9|12|18|24|36|48|54|MCS0|MCS1|MCS2|MCS3|MCS4|MCS5|MCS6|MCS7|MCS7_SG|802.11b_1|802.11b_5.5|802.11g|802.11n> Set transmit rate.\r\n");
     furi_string_cat_printf(instance->msg, "set_channel <1..14> Set transmit channel.\r\n");
     furi_string_cat_printf(
         instance->msg, "set_mode <burst|continuous|cw|cw_low|cw_high> Set transmit mode.\r\n");

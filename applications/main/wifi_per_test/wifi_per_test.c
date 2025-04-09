@@ -55,10 +55,10 @@ static const VarItemKeyValue wifi_per_test_channel[] = {
     {"2484", 14},
 };
 
-static const char* wifi_per_test_rate_text[] = {"1",    "2",    "5.5",    "11",   "6",    "9",
-                                                "12",   "18",   "24",     "36",   "48",   "54",
-                                                "MCS0", "MCS1", "MCS2",   "MCS3", "MCS4", "MCS5",
-                                                "MCS6", "MCS7", "MCS7_SG"};
+static const char* wifi_per_test_rate_text[] = {
+    "1",    "2",    "5.5",     "11",        "6",           "9",       "12",     "18",   "24",
+    "36",   "48",   "54",      "MCS0",      "MCS1",        "MCS2",    "MCS3",   "MCS4", "MCS5",
+    "MCS6", "MCS7", "MCS7_SG", "802.11b_1", "802.11b_5.5", "802.11g", "802.11n"};
 
 static const char* wifi_per_test_mode_work_text[] = {
     "burst",
