@@ -8,7 +8,7 @@
 
 #define TAG "LottiePlayer"
 
-#define DEFAULT_FILE_PATH EXT_PATH("waves_test.json")
+#define DEFAULT_FILE_PATH EXT_PATH("lottietest.json")
 
 #define OFFSET_STEP 0.2F
 
