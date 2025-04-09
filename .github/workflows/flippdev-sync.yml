@@ -1,4 +1,4 @@
-name: Sync with dev mirror
+name: Sync with mirror repo
 on:
   push:
     branches:
@@ -8,7 +8,7 @@ on:
 
 jobs:
   sync:
-    name: Sync with dev mirror
+    name: Push branch to mirror repo
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -16,11 +16,12 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Sync with dev mirror
+      - name: Sync with ${{ vars.REPO_MIRROR_URL }}
         id: sync
         run: |
-          echo "Pushing changes to Forgejo mirror"
           git config --global user.name "GitHub Actions"
           git config --global user.email "actions@github.com"
           git remote add forgejo "https://${{ secrets.REPO_MIRROR_TOKEN }}@${{ vars.REPO_MIRROR_URL }}"
-          git push forgejo ${{ github.ref }}
+          git push --force forgejo ${{ github.ref }} 
+
+
