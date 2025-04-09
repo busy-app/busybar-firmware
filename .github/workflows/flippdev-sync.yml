@@ -23,5 +23,3 @@ jobs:
           git config --global user.email "actions@github.com"
           git remote add forgejo "https://${{ secrets.REPO_MIRROR_TOKEN }}@${{ vars.REPO_MIRROR_URL }}"
           git push --force forgejo ${{ github.ref }} 
-
-
