@@ -1,0 +1,20 @@
+name: Sync branches with upstream 
+on:
+  push:
+    branches:
+      - "*/*"
+
+jobs:
+  sync:
+    name: Push branch to upstream
+    runs-on: docker
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Sync with upstream
+        run: |
+          git remote add github "https://${{ secrets.REPO_UPSTREAM_TOKEN }}@${{ vars.REPO_UPSTREAM_URL }}"
+          git push --force github ${{ github.ref }}

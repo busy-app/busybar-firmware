@@ -20,7 +20,6 @@ typedef enum {
     BackDisplayEventDraw = 1 << 0,
     BackDisplayEventTearing = 1 << 1,
     BackDisplayEventLightLevelUpdate = 1 << 2,
-    BackDisplayEventContrastUpdate = 1 << 3,
 } BackDisplayEvent;
 
 struct BackDisplaySrv {
@@ -35,9 +34,7 @@ struct BackDisplaySrv {
 
     FuriPubSub* light_sensor_events;
 
-    uint8_t current_contrast;
-    uint8_t target_contrast;
-    FuriEventLoopTimer* contrast_timer;
+    uint8_t contrast_level;
 };
 
 // y = 7,143377489 * (1,324264735 ^ x), x = 1..10
@@ -51,23 +48,15 @@ static void buffer_l8_to_l4(uint8_t* dst_l4, const uint8_t* src_l8) {
     }
 }
 
-static int32_t get_value_step(uint32_t current, uint32_t target, uint32_t max_step) {
-    if(current < target) {
-        return (target - current) > max_step ? max_step : (target - current);
-    } else if(current > target) {
-        return (current - target) > max_step ? -max_step : (target - current);
-    } else {
-        return 0;
-    }
-}
-
 static void back_display_update_brightness(BackDisplaySrv* instance) {
     uint8_t light_level = light_sensor_get_light_level();
     if(light_level >= LIGHT_SENSOR_LIGHT_LEVEL_MAX) {
         light_level = LIGHT_SENSOR_LIGHT_LEVEL_MAX - 1;
     }
 
-    instance->target_contrast = contrast_table[light_level];
+    instance->contrast_level = light_level;
+    uint8_t contrast = contrast_table[light_level];
+    ssd1320_set_contrast(contrast);
 }
 
 static void back_display_light_sensor_callback(const void* message, void* context) {
@@ -76,12 +65,6 @@ static void back_display_light_sensor_callback(const void* message, void* contex
 
     BackDisplaySrv* instance = context;
     furi_event_loop_set_custom_event(instance->event_loop, BackDisplayEventLightLevelUpdate);
-}
-
-static void back_display_contrast_timer_callback(void* context) {
-    furi_check(context);
-    BackDisplaySrv* instance = context;
-    furi_event_loop_set_custom_event(instance->event_loop, BackDisplayEventContrastUpdate);
 }
 
 static void back_display_event_callback(uint32_t events, void* context) {
@@ -111,19 +94,6 @@ static void back_display_event_callback(uint32_t events, void* context) {
 
     if(events & BackDisplayEventLightLevelUpdate) {
         back_display_update_brightness(instance);
-    }
-
-    if(events & BackDisplayEventContrastUpdate) {
-        if(instance->current_contrast != instance->target_contrast) {
-            int8_t step = get_value_step(instance->current_contrast, instance->target_contrast, 1);
-            instance->current_contrast += step;
-            ssd1320_set_contrast(instance->current_contrast);
-            BACK_DISPLAY_DEBUG(
-                "Back display contrast: %d -> %d (step: %d)",
-                instance->current_contrast,
-                instance->target_contrast,
-                step);
-        }
     }
 }
 
@@ -159,14 +129,6 @@ static BackDisplaySrv* back_display_alloc(void) {
     furi_hal_gpio_add_int_callback(&gpio_oled_fr, back_display_tearing_callback, instance);
 
     furi_thread_set_current_priority(FuriThreadPriorityHigh);
-
-    instance->contrast_timer = furi_event_loop_timer_alloc(
-        instance->event_loop,
-        back_display_contrast_timer_callback,
-        FuriEventLoopTimerTypePeriodic,
-        instance);
-    furi_event_loop_timer_start(
-        instance->contrast_timer, 1000 / BACK_DISPLAY_CONTRAST_UPDATES_PER_SECOND);
 
     furi_record_create(RECORD_BACK_DISPLAY, instance);
 

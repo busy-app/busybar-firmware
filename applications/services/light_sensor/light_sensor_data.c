@@ -2,6 +2,8 @@
 
 #include <furi/furi.h>
 
+#define TAG "LightSensorData"
+
 struct LightSensorData {
     LightSensorDataConfig config;
 
@@ -14,15 +16,12 @@ struct LightSensorData {
 };
 
 static void light_sensor_data_update_light_level(LightSensorData* instance) {
-    // TODO think about light_level = f(lux_mean, lux_instant, light_level) function
-    // Now it is just a linear function
+    float _log = logf(instance->lux_mean / instance->config.light_level_max_threshold);
+    float value = expf(_log * 1.0f / instance->config.coef) * instance->config.light_level_max;
 
-    uint8_t new_light_level =
-        (uint8_t)(instance->lux_mean / instance->config.light_level_max_threshold *
-                  instance->config.light_level_max);
-    instance->light_level = new_light_level > instance->config.light_level_max ?
+    instance->light_level = value > instance->config.light_level_max ?
                                 instance->config.light_level_max :
-                                new_light_level;
+                                (uint8_t)value;
 }
 
 LightSensorData* light_sensor_data_alloc(const LightSensorDataConfig* config) {
@@ -68,7 +67,7 @@ void light_sensor_data_add_measurement(LightSensorData* instance, float lux) {
     light_sensor_data_update_light_level(instance);
 
     FURI_LOG_T(
-        "LightSensorData",
+        TAG,
         "new Lux: %.2f. New sum: %.2f. New mean: %.2f. level: %d",
         lux,
         lux_sum,

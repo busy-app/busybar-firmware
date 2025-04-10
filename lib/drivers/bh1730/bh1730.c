@@ -103,21 +103,22 @@ bool bh1730_read_lux(FuriHalI2cBusHandle* handle, float* value) {
         return false;
     }
 
-    int16_t adc0_val = (data_buf[1] << 8) | data_buf[0];
-    int16_t adc1_val = (data_buf[3] << 8) | data_buf[1];
+    uint16_t adc0_val = (data_buf[1] << 8) | data_buf[0];
+    uint16_t adc1_val = (data_buf[3] << 8) | data_buf[1];
     uint8_t gain = 1;
 
     float itime_ms = (2.8f * 964.f * (256.f - BH1730_ITIME_VAL)) / 1000.f;
 
-    float lux = 0.f;
+    float lux = 0.0f;
     if(adc0_val != 0) {
-        if(adc1_val / adc0_val < 0.26f) {
+        float adc_ratio = (float)adc1_val / adc0_val;
+        if(adc_ratio < 0.26f) {
             lux = (1.290f * adc0_val - 2.733f * adc1_val) / gain * 102.6f / itime_ms;
-        } else if(adc1_val / adc0_val < 0.55f) {
+        } else if(adc_ratio < 0.55f) {
             lux = (0.795f * adc0_val - 0.859f * adc1_val) / gain * 102.6f / itime_ms;
-        } else if(adc1_val / adc0_val < 1.09f) {
+        } else if(adc_ratio < 1.09f) {
             lux = (0.510f * adc0_val - 0.345f * adc1_val) / gain * 102.6f / itime_ms;
-        } else if(adc1_val / adc0_val < 2.13f) {
+        } else if(adc_ratio < 2.13f) {
             lux = (0.276f * adc0_val - 0.130f * adc1_val) / gain * 102.6f / itime_ms;
         }
     }

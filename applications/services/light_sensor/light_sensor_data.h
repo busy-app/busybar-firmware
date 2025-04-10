@@ -15,9 +15,10 @@ typedef struct LightSensorData LightSensorData;
  * @brief Configuration structure for LightSensorData.
  */
 typedef struct {
-    uint8_t window_size; /**< Size of the measurement window */
+    uint8_t window_size; /**< Size of the measurement window. The less value, the faster response */
     uint8_t light_level_max; /**< Maximum light level */
-    float light_level_max_threshold; /**< Threshold for maximum light level */
+    float light_level_max_threshold; /**< Threshold for maximum light level. */
+    float coef; /**< By manipulating this coef different behaviour of light level logic can be achieved. */
 } LightSensorDataConfig;
 
 /**

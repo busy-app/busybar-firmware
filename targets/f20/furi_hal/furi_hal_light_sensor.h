@@ -24,7 +24,7 @@ bool furi_hal_light_sensor_init(FuriHalI2cBusHandle* handle);
 
 /**
  * @brief Read raw data from light sensor
- * Read sensor ADC samples for 600nm wavelength
+ * Read sensor ADC samples for desired wavelength
  *
  * @param handle I2C bus handle
  * @param wavelength Wavelength to read
