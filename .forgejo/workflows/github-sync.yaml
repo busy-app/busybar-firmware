@@ -1,0 +1,15 @@
+name: Sync branches with upstream 
+on:
+  push:
+    branches:
+      - "*/*"
+
+jobs:
+  sync:
+    name: Push branch to upstream
+    runs-on: docker
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
