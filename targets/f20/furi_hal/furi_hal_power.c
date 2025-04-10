@@ -1,5 +1,9 @@
 #include <furi_hal.h>
 
+void furi_hal_power_reset(void) {
+    furi_hal_cortex_system_reset();
+}
+
 void furi_hal_power_reset_917(bool to_dfu) {
     furi_hal_gpio_write(&gpio_audio_en_and_917_swo, true);
     furi_hal_gpio_write(&gpio_917_rst, true);
