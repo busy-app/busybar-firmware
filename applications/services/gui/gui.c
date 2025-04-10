@@ -133,10 +133,10 @@ static void gui_input_queue_callback(FuriEventLoopObject* object, void* context)
     while(furi_message_queue_get(instance->input_queue, &event, 0) == FuriStatusOk) {
         for(GuiLayerId id = GuiLayerIdSystem; id < GuiLayerIdMax; ++id) {
             GuiLayer* layer = &instance->layers[id];
-            if(gui_layer_feed_input(layer, &event)) {
+            if(gui_layer_feed_user_input(layer, &event)) {
                 break;
             }
-            if(gui_layer_feed_user_input(layer, &event)) {
+            if(gui_layer_feed_input(layer, &event)) {
                 break;
             }
         }

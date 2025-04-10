@@ -233,7 +233,7 @@ static int32_t cli_worker_thread(void* context) {
     event.event = CliEventStartApp;
     furi_message_queue_put(instance->event_queue, &event, 0);
     while(instance->worker_running) {
-        if(cli_read_timeout(instance->cli, (uint8_t*)&c, 1, 1000) == 1) {
+        if(cli_read_timeout(instance->cli, (uint8_t*)&c, 1, 100) == 1) {
             event.event = CliEventInputData;
             event.c = c;
             furi_message_queue_put(instance->event_queue, &event, FuriWaitForever);

@@ -6,6 +6,5 @@ App(
     entry_point="light_sensor_test_app",
     requires=["gui"],
     stack_size=1 * 1024,
-    fap_category="Debug",
     targets=["f20"],
 )

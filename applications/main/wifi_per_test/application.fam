@@ -6,7 +6,6 @@ App(
     entry_point="wifi_per_test_app",
     requires=["gui"],
     stack_size=2 * 1024,
-    fap_category="Debug",
     targets=["f20"],
     sources=[
         "wifi_per_test.c",
