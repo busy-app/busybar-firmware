@@ -2,7 +2,11 @@
 
 #include <furi.h>
 #include <api_lock.h>
+
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wstrict-prototypes"
 #include <thorvg_capi.h>
+#pragma GCC diagnostic pop
 
 #include <lvgl.h>
 
@@ -82,9 +86,10 @@ struct LottieServiceTask {
     LottieServiceTaskCallback callback;
     void* callback_context;
     LottieServiceTaskInfo info;
-    uint32_t fps;
-    uint32_t num_frames;
-    uint32_t current_frame;
+    float fps;
+    float num_frames;
+    float current_frame;
+    uint32_t last_frame_time;
 };
 
 struct LottieService {
@@ -103,14 +108,21 @@ static void lottie_service_task_update(void* context) {
     furi_assert(context);
     LottieServiceTask* task = context;
 
-    tvg_animation_set_frame(task->tvg_anim, task->current_frame);
-    tvg_canvas_update(task->tvg_canvas);
-    tvg_canvas_draw(task->tvg_canvas);
-    tvg_canvas_sync(task->tvg_canvas);
+    uint32_t now = furi_get_tick();
+    uint32_t diff = now - task->last_frame_time;
 
-    if(++task->current_frame >= task->num_frames) {
-        task->current_frame = 0;
+    task->last_frame_time = now;
+    task->current_frame += (diff / 1000.F * task->fps);
+
+    if(task->current_frame > task->num_frames) {
+        task->current_frame -= task->num_frames;
     }
+
+    tvg_animation_set_frame(task->tvg_anim, task->current_frame);
+
+    tvg_canvas_update(task->tvg_canvas);
+    tvg_canvas_draw(task->tvg_canvas, true);
+    tvg_canvas_sync(task->tvg_canvas);
 
     if(task->callback) {
         task->callback(task->canvas_buf, task->callback_context);
@@ -251,6 +263,7 @@ static void lottie_service_task_start_handler(
     LottieServiceTask* task = request->start.task;
 
     if(task->canvas_buf) {
+        task->last_frame_time = furi_get_tick();
         if(task->num_frames > 1) {
             furi_event_loop_timer_start(task->timer, 1000.0F / task->fps);
         }
@@ -289,6 +302,8 @@ static LottieService* lottie_service_alloc(void) {
         FuriEventLoopEventIn,
         lottie_service_message_queue_callback,
         instance);
+
+    furi_check(tvg_engine_init(TVG_ENGINE_SW, 0) == TVG_RESULT_SUCCESS);
 
     furi_record_create(RECORD_LOTTIE, instance);
     return instance;
