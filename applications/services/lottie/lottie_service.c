@@ -251,7 +251,9 @@ static void lottie_service_task_start_handler(
     LottieServiceTask* task = request->start.task;
 
     if(task->canvas_buf) {
-        furi_event_loop_timer_start(task->timer, 1000.0F / task->fps);
+        if(task->num_frames > 1) {
+            furi_event_loop_timer_start(task->timer, 1000.0F / task->fps);
+        }
         furi_event_loop_pend_callback(instance->event_loop, lottie_service_task_update, task);
         success = true;
     }
