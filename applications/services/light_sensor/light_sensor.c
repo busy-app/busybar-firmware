@@ -12,9 +12,9 @@
 #define LIGHT_SENSOR_I2C (&furi_hal_i2c_handle_1)
 
 #define LIGHT_SENSOR_SAMPLE_INTERVAL_MS        (1000)
-#define LIGHT_SENSOR_LIGHT_LEVEL_MAX_THRESHOLD (1000.0f)
+#define LIGHT_SENSOR_LIGHT_LEVEL_MAX_THRESHOLD (4000.0f)
 #define LIGHT_SENSOR_WINDOW_SIZE               (5)
-#define LIGHT_SENSOR_COEF                      (0.5f) /**< By applying 1.0f light level logic will become linear */
+#define LIGHT_SENSOR_COEF                      (0.4f) /**< By applying 1.0f light level logic will become linear */
 
 typedef struct {
     FuriEventLoop* event_loop;
