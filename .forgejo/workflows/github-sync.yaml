@@ -14,7 +14,7 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Sync with ${{ vars.REPO_UPSTREAM_URL }}
+      - name: Sync with upstream
         run: |
           git remote add github "https://${{ secrets.REPO_UPSTREAM_TOKEN }}@${{ vars.REPO_UPSTREAM_URL }}"
           git push --force github ${{ github.ref }}
