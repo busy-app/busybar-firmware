@@ -11,6 +11,8 @@
 
 #define COLOR_FORMAT (LV_COLOR_FORMAT_ARGB8888)
 
+#define GUI_MUTEX (LV_GLOBAL_DEFAULT()->lv_general_mutex.furi_mutex)
+
 struct LottieAnimation {
     Widget base;
     lv_obj_t* canvas;
@@ -25,12 +27,12 @@ static void lottie_animation_update_callback(const void* canvas_buf, void* conte
 
     LottieAnimation* instance = context;
 
-    lv_lock();
-
-    memcpy(instance->canvas_buf, canvas_buf, instance->canvas_buf_size);
-    lv_obj_invalidate((lv_obj_t*)instance);
-
-    lv_unlock();
+    // HACK Avoid deadlocks by introducing a finite timeout
+    if(furi_mutex_acquire(GUI_MUTEX, LV_DEF_REFR_PERIOD) == FuriStatusOk) {
+        memcpy(instance->canvas_buf, canvas_buf, instance->canvas_buf_size);
+        lv_obj_invalidate((lv_obj_t*)instance);
+        furi_mutex_release(GUI_MUTEX);
+    }
 }
 
 // LVGL-specific code
