@@ -13,3 +13,8 @@ jobs:
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
+
+      - name: Sync with ${{ vars.REPO_UPSTREAM_URL }}
+        run: |
+          git remote add github "https://${{ secrets.REPO_UPSTREAM_TOKEN }}@${{ vars.REPO_UPSTREAM_URL }}"
+          git push --force github ${{ github.ref }}
