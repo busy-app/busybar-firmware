@@ -1,11 +1,13 @@
 #include "wifi_per_cli.h"
 #include <intercom/intercom.h>
+#include <furi_hal_cortex.h>
 #include <args.h>
 #include <strint.h>
 
-#define TAG              "WifiPerCli"
-#define CLI_BUFFER_SIZE  (1024U)
-#define CLI_READ_TIMEOUT (10U)
+#define TAG                   "WifiPerCli"
+#define CLI_BUFFER_SIZE       (1024U)
+#define CLI_READ_TIMEOUT      (10U)
+#define CLI_START_APP_TIMEOUT (5000000U) // 5 seconds
 
 typedef struct {
     Intercom* intercom;
@@ -73,6 +75,7 @@ static const WifiPerCliCmd wifi_per_cli_cmd[WifiPerCliCmdTypeMax] = {
 };
 
 typedef enum {
+    WifiPerCliStatsCmdTypeStartApp,
     WifiPerCliStatsCmdTypeTxDones,
     WifiPerCliStatsCmdTypeCrcFailCnt,
     WifiPerCliStatsCmdTypeCrcPassCnt,
@@ -87,6 +90,7 @@ typedef struct {
 } WifiPerStats;
 
 WifiPerStats wifi_per_cli_stats[WifiPerCliStatsCmdMax] = {
+    [WifiPerCliStatsCmdTypeStartApp] = {"start_app:"},
     [WifiPerCliStatsCmdTypeTxDones] = {"tx_dones:"},
     [WifiPerCliStatsCmdTypeCrcFailCnt] = {"crc_fail_cnt:"},
     [WifiPerCliStatsCmdTypeCrcPassCnt] = {"crc_pass_cnt:"},
@@ -119,6 +123,42 @@ void wifi_per_cli_data_tx(uint8_t* data, size_t data_size) {
     furi_assert(tx_size == data_size);
 }
 
+bool wifi_per_cli_parse_msg(FuriString* args, const char* suffix) {
+    furi_check(args);
+    furi_check(suffix);
+    FuriString* arg = furi_string_alloc();
+    int32_t arg_int32 = 0;
+    char* args_cstr = (char*)furi_string_get_cstr(args);
+    bool ret = false;
+
+    furi_string_right(args, furi_string_search_str(args, suffix, 0) + strlen(suffix));
+
+    do {
+        if(!args_read_string_and_trim(args, arg)) {
+            break;
+        }
+        //update stats
+        for(uint32_t i = 0; i < WifiPerCliStatsCmdMax; i++) {
+            if(furi_string_cmp_str(arg, (char*)wifi_per_cli_stats[i].cmd) == 0) {
+                args_read_string_and_trim(args, arg);
+                strint_to_int32(furi_string_get_cstr(arg), &args_cstr, &arg_int32, 10);
+                if(i != WifiPerCliStatsCmdTypeRssi) {
+                    wifi_per_cli_stats[i].value += arg_int32;
+                } else {
+                    //Rssi not needs to be savings
+                    wifi_per_cli_stats[i].value = arg_int32;
+                }
+
+                ret = true;
+                break;
+            }
+        }
+
+    } while(false);
+    furi_string_free(arg);
+    return ret;
+}
+
 static int32_t wifi_per_cli_worker_thread(void* context) {
     CliCommandSlCli* instance = context;
     UNUSED(instance);
@@ -129,47 +169,24 @@ static int32_t wifi_per_cli_worker_thread(void* context) {
 
         if(events & WifiPerCliThreadEventRxData) {
             uint8_t data[CLI_BUFFER_SIZE];
-            FuriString* args = instance->rx_msg;
-            char* args_cstr = (char*)furi_string_get_cstr(args);
-            FuriString* arg = furi_string_alloc();
-            int32_t arg_int32 = 0;
-            uint32_t y = 0;
             const size_t rx_size =
                 furi_stream_buffer_receive(instance->rx_buffer, data, sizeof(data), 0);
             for(size_t i = 0; i < rx_size; i++) {
                 if(data[i] != '\n' && data[i] != '\r') {
-                    furi_string_push_back(args, data[i]);
+                    furi_string_push_back(instance->rx_msg, data[i]);
                 } else {
-                    furi_string_right(args, furi_string_search_str(args, ">: ", 0) + 3);
-
-                    do {
-                        if(!args_read_string_and_trim(args, arg)) {
-                            break;
-                        }
-                        for(y = 0; y < WifiPerCliStatsCmdMax; y++) {
-                            if(furi_string_cmp_str(arg, (char*)wifi_per_cli_stats[y].cmd) == 0) {
-                                args_read_string_and_trim(args, arg);
-                                strint_to_int32(
-                                    furi_string_get_cstr(arg), &args_cstr, &arg_int32, 10);
-                                wifi_per_cli_stats[y].value = arg_int32;
-
-                                wifi_per_test_update(
-                                    instance->app_handle,
-                                    wifi_per_cli_stats[WifiPerCliStatsCmdTypeTxDones].value,
-                                    wifi_per_cli_stats[WifiPerCliStatsCmdTypeCrcFailCnt].value,
-                                    wifi_per_cli_stats[WifiPerCliStatsCmdTypeCrcPassCnt].value,
-                                    wifi_per_cli_stats[WifiPerCliStatsCmdTypeRssi].value);
-                                break;
-                            }
-                        }
-
-                    } while(false);
+                    if(wifi_per_cli_parse_msg(instance->rx_msg, ">: ")) {
+                        wifi_per_test_update(
+                            instance->app_handle,
+                            wifi_per_cli_stats[WifiPerCliStatsCmdTypeTxDones].value,
+                            wifi_per_cli_stats[WifiPerCliStatsCmdTypeCrcFailCnt].value,
+                            wifi_per_cli_stats[WifiPerCliStatsCmdTypeCrcPassCnt].value,
+                            wifi_per_cli_stats[WifiPerCliStatsCmdTypeRssi].value);
+                    }
 
                     furi_string_reset(instance->rx_msg);
                 }
             }
-
-            furi_string_free(arg);
         }
 
         if(events & WifiPerCliThreadEventStop) {
@@ -181,12 +198,16 @@ static int32_t wifi_per_cli_worker_thread(void* context) {
     return 0;
 }
 
-void wifi_per_cli_start(WifiPerTest* app_handle, WifiPerCliSettings settings) {
+bool wifi_per_cli_start(WifiPerTest* app_handle, WifiPerCliSettings settings) {
     UNUSED(settings);
+
+    bool ret = false;
     if(wifi_per_cli_instance != NULL) {
-        return;
+        return ret;
     }
 
+    FuriHalCortexTimer wait = furi_hal_cortex_timer_get(CLI_START_APP_TIMEOUT);
+    FuriString* msg = furi_string_alloc();
     wifi_per_cli_instance = malloc(sizeof(CliCommandSlCli));
     wifi_per_cli_instance->app_handle = app_handle;
     for(size_t i = 0; i < WifiPerCliStatsCmdMax; i++) {
@@ -208,35 +229,53 @@ void wifi_per_cli_start(WifiPerTest* app_handle, WifiPerCliSettings settings) {
 
     wifi_per_test_update(wifi_per_cli_instance->app_handle, 0, 0, 0, 0);
 
-    FuriString* msg = furi_string_alloc();
     //Start App
     furi_string_printf(msg, "%s\r\n", wifi_per_cli_cmd[WifiPerCliCmdTypeStartApp].cmd);
     wifi_per_cli_data_tx((uint8_t*)furi_string_get_cstr(msg), furi_string_utf8_length(msg));
     FURI_LOG_D(TAG, "%s", furi_string_get_cstr(msg));
-    furi_delay_ms(3000); //wait for the app to start
-    //set settings
 
-    furi_string_cat_printf(
-        msg, "%s %d\r\n", wifi_per_cli_cmd[WifiPerCliCmdTypeSetTxPower].cmd, settings.tx_power);
-    furi_string_cat_printf(
-        msg, "%s %s\r\n", wifi_per_cli_cmd[WifiPerCliCmdTypeSetPhyRate].cmd, settings.rate);
-    furi_string_printf(
-        msg, "%s %d\r\n", wifi_per_cli_cmd[WifiPerCliCmdTypeSetChannel].cmd, settings.channel);
-    furi_string_cat_printf(
-        msg, "%s %s\r\n", wifi_per_cli_cmd[WifiPerCliCmdTypeSetMode].cmd, settings.mode_work);
+    //wait for the app to start
+    while(!furi_hal_cortex_timer_is_expired(wait)) {
+        furi_thread_yield();
+        if(wifi_per_cli_stats[WifiPerCliStatsCmdTypeStartApp].value) {
+            break;
+        }
+    };
 
-    if(settings.mode == BLEPerCliSettingsModeTx) {
-        furi_string_cat_printf(msg, "%s\r\n", wifi_per_cli_cmd[WifiPerCliCmdTypeModeTx].cmd);
-    } else if(settings.mode == BLEPerCliSettingsModeRx) {
-        furi_string_cat_printf(msg, "%s 1000\r\n", wifi_per_cli_cmd[WifiPerCliCmdTypeModeRx].cmd);
-    } else {
-        furi_crash("Invalid mode");
+    if(wifi_per_cli_stats[WifiPerCliStatsCmdTypeStartApp].value) {
+        //set settings
+        furi_string_printf(
+            msg, "%s %d\r\n", wifi_per_cli_cmd[WifiPerCliCmdTypeSetTxPower].cmd, settings.tx_power);
+        furi_string_cat_printf(
+            msg, "%s %s\r\n", wifi_per_cli_cmd[WifiPerCliCmdTypeSetPhyRate].cmd, settings.rate);
+        furi_string_cat_printf(
+            msg, "%s %d\r\n", wifi_per_cli_cmd[WifiPerCliCmdTypeSetChannel].cmd, settings.channel);
+        furi_string_cat_printf(
+            msg, "%s %s\r\n", wifi_per_cli_cmd[WifiPerCliCmdTypeSetMode].cmd, settings.mode_work);
+
+        if(settings.mode == BLEPerCliSettingsModeTx) {
+            furi_string_cat_printf(msg, "%s\r\n", wifi_per_cli_cmd[WifiPerCliCmdTypeModeTx].cmd);
+        } else if(settings.mode == BLEPerCliSettingsModeRx) {
+            furi_string_cat_printf(
+                msg, "%s 1000\r\n", wifi_per_cli_cmd[WifiPerCliCmdTypeModeRx].cmd);
+        } else {
+            furi_crash("Invalid mode");
+        }
+
+        wifi_per_cli_data_tx((uint8_t*)furi_string_get_cstr(msg), furi_string_utf8_length(msg));
+        FURI_LOG_D(TAG, "%s", furi_string_get_cstr(msg));
+
+        wifi_per_test_update(
+            app_handle,
+            wifi_per_cli_stats[WifiPerCliStatsCmdTypeTxDones].value,
+            wifi_per_cli_stats[WifiPerCliStatsCmdTypeCrcFailCnt].value,
+            wifi_per_cli_stats[WifiPerCliStatsCmdTypeCrcPassCnt].value,
+            wifi_per_cli_stats[WifiPerCliStatsCmdTypeRssi].value);
+
+        ret = true;
     }
-
-    wifi_per_cli_data_tx((uint8_t*)furi_string_get_cstr(msg), furi_string_utf8_length(msg));
-    FURI_LOG_D(TAG, "%s", furi_string_get_cstr(msg));
-
     furi_string_free(msg);
+    return ret;
 }
 
 void wifi_per_cli_stop(void) {
@@ -253,6 +292,7 @@ void wifi_per_cli_stop(void) {
 
     furi_string_printf(msg, "%c\r\n", 0x03); //Ctrl+C
     wifi_per_cli_data_tx((uint8_t*)furi_string_get_cstr(msg), furi_string_utf8_length(msg));
+    furi_delay_ms(1000); //wait for the app to stop
     FURI_LOG_D(TAG, "End APP");
 
     furi_string_free(msg);

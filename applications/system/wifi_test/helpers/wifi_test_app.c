@@ -255,6 +255,8 @@ void* wifi_test_app_start(CliWorker* worker) {
         wifi_test_app_send_msg(instance);
 
         wifi_test_app_cmd_usage(instance);
+        furi_string_printf(instance->msg, "start_app: 1\r\n");
+        wifi_test_app_send_msg(instance);
     } while(0);
 
     if(status != SL_STATUS_OK) {
@@ -455,7 +457,7 @@ static sl_status_t wifi_test_app(WifiTestApp* instance, uint8_t cmd_index, FuriS
             if(ip_address.type == SL_IPV4) {
                 furi_string_printf(
                     instance->msg,
-                    "Ip address of client: %d.%d.%d.%d\r\nWi-Fi client connected\r\n",
+                    "ip_address_of_client: %d.%d.%d.%d\r\nWi-Fi client connected\r\n",
                     ip_address.ip.v4.bytes[0],
                     ip_address.ip.v4.bytes[1],
                     ip_address.ip.v4.bytes[2],

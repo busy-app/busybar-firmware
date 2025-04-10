@@ -1,0 +1,15 @@
+App(
+    appid="wifi_sta_test",
+    name="WiFi STA Test",
+    apptype=FlipperAppType.APP,
+    order=90,
+    entry_point="wifi_sta_test_app",
+    requires=["gui"],
+    stack_size=2 * 1024,
+    fap_category="Debug",
+    targets=["f20"],
+    sources=[
+        "wifi_sta_test.c",
+        "helpers/wifi_sta_cli.c",
+    ],
+)
