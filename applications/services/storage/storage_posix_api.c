@@ -133,8 +133,11 @@ int _fstat(int fd, struct stat* buf) {
     File* file = file_get(fd);
     FURI_LOG_T(TAG, "fstat %p", file);
 
-    UNUSED(fd);
-    buf->st_mode = S_IFCHR;
+    memset(buf, 0, sizeof(struct stat));
+
+    buf->st_mode = S_IFREG;
+    buf->st_size = storage_file_size(file);
+
     return 0;
 }
 
