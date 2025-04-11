@@ -87,7 +87,7 @@ struct LottieServiceTask {
     void* callback_context;
     LottieServiceTaskInfo info;
     float fps;
-    float num_frames;
+    float max_frame;
     float current_frame;
     uint32_t last_frame_time;
 };
@@ -108,17 +108,18 @@ static void lottie_service_task_update(void* context) {
     furi_assert(context);
     LottieServiceTask* task = context;
 
+    // Assuming 1000 Hz ticks
     uint32_t now = furi_get_tick();
     uint32_t diff = now - task->last_frame_time;
 
     task->last_frame_time = now;
     task->current_frame += (diff / 1000.F * task->fps);
 
-    if(task->current_frame > task->num_frames) {
-        task->current_frame -= task->num_frames;
+    if(task->current_frame > task->max_frame) {
+        task->current_frame -= task->max_frame;
     }
 
-    tvg_animation_set_frame(task->tvg_anim, task->current_frame);
+    tvg_animation_set_frame(task->tvg_anim, roundf(task->current_frame));
 
     tvg_canvas_update(task->tvg_canvas);
     tvg_canvas_draw(task->tvg_canvas, true);
@@ -207,7 +208,7 @@ static void lottie_service_task_set_source_handler(
         res = tvg_animation_get_total_frame(task->tvg_anim, &num_frames);
         if(res != TVG_RESULT_SUCCESS) break;
 
-        task->num_frames = num_frames;
+        task->max_frame = num_frames - 1.F;
 
         float duration_s;
         res = tvg_animation_get_duration(task->tvg_anim, &duration_s);
@@ -264,7 +265,7 @@ static void lottie_service_task_start_handler(
 
     if(task->canvas_buf) {
         task->last_frame_time = furi_get_tick();
-        if(task->num_frames > 1) {
+        if(ceilf(task->max_frame) > 0.F) {
             furi_event_loop_timer_start(task->timer, 1000.0F / task->fps);
         }
         furi_event_loop_pend_callback(instance->event_loop, lottie_service_task_update, task);
