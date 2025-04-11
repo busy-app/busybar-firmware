@@ -1,31 +1,49 @@
 Import("env")
 
-LIB_FOLDER="thorvg"
+LIB_DIR="thorvg"
 
-INC_FOLDER=LIB_FOLDER + "/inc"
-SRC_FOLDER=LIB_FOLDER + "/src"
+INC_DIR=LIB_DIR + "/inc"
+SRC_DIR=LIB_DIR + "/src"
+LOADERS_DIR=SRC_DIR + "/loaders"
+RENDERER_DIR=SRC_DIR + "/renderer"
+LOTTIE_DIR=LOADERS_DIR + "/lottie"
+JERRYSCRIPT_DIR=LOTTIE_DIR + "/jerryscript/jerry-core"
 
 env.AppendUnique(
     CPPPATH=[
-        Dir(INC_FOLDER).srcnode(),
-        Dir(SRC_FOLDER + "/bindings/capi").srcnode(),
+        Dir(INC_DIR).srcnode(),
+        Dir(SRC_DIR + "/bindings/capi").srcnode(),
     ],
 )
 
-libenv = env.Clone(FW_LIB_NAME=LIB_FOLDER)
+libenv = env.Clone(FW_LIB_NAME=LIB_DIR)
 libenv.ApplyLibFlags()
 
 libenv.AppendUnique(
     CPPDEFINES=[
-        "__linux__",  # Hack, needed for <alloca.h>
+        "alloca=__builtin_alloca",
+        "JERRY_GLOBAL_HEAP_SIZE=8", # 8 KiB
     ],
     CPPPATH=[
-        Dir(SRC_FOLDER + "/common").srcnode(),
-        Dir(SRC_FOLDER + "/loaders/lottie").srcnode(),
-        Dir(SRC_FOLDER + "/loaders/raw").srcnode(),
-        Dir(SRC_FOLDER + "/loaders/tvg").srcnode(),
-        Dir(SRC_FOLDER + "/renderer").srcnode(),
-        Dir(SRC_FOLDER + "/renderer/sw_engine").srcnode(),
+        Dir(SRC_DIR + "/common").srcnode(),
+        Dir(LOADERS_DIR + "/lottie").srcnode(),
+        Dir(LOADERS_DIR + "/raw").srcnode(),
+        Dir(LOADERS_DIR + "/tvg").srcnode(),
+        Dir(RENDERER_DIR).srcnode(),
+        Dir(RENDERER_DIR + "/sw_engine").srcnode(),
+        # JerryScript for Lottie expressions support
+        Dir(JERRYSCRIPT_DIR + "/include").srcnode(),
+        Dir(JERRYSCRIPT_DIR + "/ecma/base").srcnode(),
+        Dir(JERRYSCRIPT_DIR + "/ecma/builtin-objects").srcnode(),
+        Dir(JERRYSCRIPT_DIR + "/ecma/builtin-objects/typedarray").srcnode(),
+        Dir(JERRYSCRIPT_DIR + "/ecma/operations").srcnode(),
+        Dir(JERRYSCRIPT_DIR + "/jcontext").srcnode(),
+        Dir(JERRYSCRIPT_DIR + "/jmem").srcnode(),
+        Dir(JERRYSCRIPT_DIR + "/jrt").srcnode(),
+        Dir(JERRYSCRIPT_DIR + "/lit").srcnode(),
+        Dir(JERRYSCRIPT_DIR + "/parser/js").srcnode(),
+        Dir(JERRYSCRIPT_DIR + "/parser/regexp").srcnode(),
+        Dir(JERRYSCRIPT_DIR + "/vm").srcnode(),
     ],
     CPPFLAGS=[
         "-Wno-deprecated-declarations",
@@ -38,17 +56,31 @@ libenv.AppendUnique(
         "-Wno-type-limits",
         "-Wno-unknown-pragmas",
         "-Wno-unused-parameter",
+        "-Wno-undef",
     ],
 )
 
 sources = [
-    libenv.Glob(SRC_FOLDER + "/bindings/capi/*.cpp", source=True),
-    libenv.Glob(SRC_FOLDER + "/common/*.cpp", source=True),
-    libenv.Glob(SRC_FOLDER + "/loaders/lottie/*.cpp", source=True),
-    libenv.Glob(SRC_FOLDER + "/loaders/raw/*.cpp", source=True),
-    libenv.Glob(SRC_FOLDER + "/loaders/tvg/*.cpp", source=True),
-    libenv.Glob(SRC_FOLDER + "/renderer/*.cpp", source=True),
-    libenv.Glob(SRC_FOLDER + "/renderer/sw_engine/*.cpp", source=True),
+    libenv.Glob(SRC_DIR + "/bindings/capi/*.cpp", source=True),
+    libenv.Glob(SRC_DIR + "/common/*.cpp", source=True),
+    libenv.Glob(LOADERS_DIR + "/lottie/*.cpp", source=True),
+    libenv.Glob(LOADERS_DIR + "/raw/*.cpp", source=True),
+    libenv.Glob(LOADERS_DIR + "/tvg/*.cpp", source=True),
+    libenv.Glob(RENDERER_DIR + "/*.cpp", source=True),
+    libenv.Glob(RENDERER_DIR + "/sw_engine/*.cpp", source=True),
+    # JerryScript for Lottie expressions support
+    libenv.Glob(JERRYSCRIPT_DIR + "/api/*.cpp", source=True),
+    libenv.Glob(JERRYSCRIPT_DIR + "/ecma/base/*.cpp", source=True),
+    libenv.Glob(JERRYSCRIPT_DIR + "/ecma/builtin-objects/*.cpp", source=True),
+    libenv.Glob(JERRYSCRIPT_DIR + "/ecma/builtin-objects/typedarray/*.cpp", source=True),
+    libenv.Glob(JERRYSCRIPT_DIR + "/ecma/operations/*.cpp", source=True),
+    libenv.Glob(JERRYSCRIPT_DIR + "/jcontext/*.cpp", source=True),
+    libenv.Glob(JERRYSCRIPT_DIR + "/jmem/*.cpp", source=True),
+    libenv.Glob(JERRYSCRIPT_DIR + "/jrt/*.cpp", source=True),
+    libenv.Glob(JERRYSCRIPT_DIR + "/lit/*.cpp", source=True),
+    libenv.Glob(JERRYSCRIPT_DIR + "/parser/js/*.cpp", source=True),
+    libenv.Glob(JERRYSCRIPT_DIR + "/parser/regexp/*.cpp", source=True),
+    libenv.Glob(JERRYSCRIPT_DIR + "/vm/*.cpp", source=True),
 ]
 
 lib = libenv.StaticLibrary("${FW_LIB_NAME}", sources)
