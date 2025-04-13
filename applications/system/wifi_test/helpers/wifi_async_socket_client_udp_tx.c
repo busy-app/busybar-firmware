@@ -19,7 +19,7 @@ typedef struct {
     FuriThread* thread;
     WifiTestApp* app;
     FuriString* msg;
-    char* ip;
+    FuriString* ip;
     uint16_t port;
     bool exit;
 } WifiAsyncSocketClientUdpTx;
@@ -43,7 +43,7 @@ static int32_t wifi_async_socket_client_udp_tx_callback(void* context) {
 
     server_address.sin_family = AF_INET;
     server_address.sin_port = instance->port;
-    sl_net_inet_addr(instance->ip, &server_address.sin_addr.s_addr);
+    sl_net_inet_addr((char*)furi_string_get_cstr(instance->ip), &server_address.sin_addr.s_addr);
 
     // Create client socket
     client_socket = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
@@ -112,7 +112,8 @@ void wifi_async_socket_client_udp_tx_init(
     wifi_async_socket_client_udp_tx_instance = malloc(sizeof(WifiAsyncSocketClientUdpTx));
     wifi_async_socket_client_udp_tx_instance->msg = msg;
     wifi_async_socket_client_udp_tx_instance->app = app;
-    wifi_async_socket_client_udp_tx_instance->ip = ip;
+    wifi_async_socket_client_udp_tx_instance->ip = furi_string_alloc();
+    furi_string_set_str(wifi_async_socket_client_udp_tx_instance->ip, ip);
     wifi_async_socket_client_udp_tx_instance->port = port;
     wifi_async_socket_client_udp_tx_instance->exit = false;
     wifi_async_socket_client_udp_tx_instance->thread = furi_thread_alloc_ex(
@@ -130,6 +131,7 @@ void wifi_async_socket_client_udp_tx_stop() {
     wifi_async_socket_client_udp_tx_instance->exit = true;
 
     furi_thread_join(wifi_async_socket_client_udp_tx_instance->thread);
+    furi_string_free(wifi_async_socket_client_udp_tx_instance->ip);
     furi_thread_free(wifi_async_socket_client_udp_tx_instance->thread);
     free(wifi_async_socket_client_udp_tx_instance);
     wifi_async_socket_client_udp_tx_instance = NULL;
