@@ -33,7 +33,7 @@ struct BackDisplaySrv {
     bool dirty;
 
     FuriPubSub* light_sensor_events;
-
+    bool auto_contrast;
     uint8_t contrast_level;
 };
 
@@ -49,13 +49,15 @@ static void buffer_l8_to_l4(uint8_t* dst_l4, const uint8_t* src_l8) {
 }
 
 static void back_display_update_brightness(BackDisplaySrv* instance) {
-    uint8_t light_level = light_sensor_get_light_level();
-    if(light_level >= LIGHT_SENSOR_LIGHT_LEVEL_MAX) {
-        light_level = LIGHT_SENSOR_LIGHT_LEVEL_MAX - 1;
+    if(instance->auto_contrast) {
+        instance->contrast_level = light_sensor_get_light_level();
     }
 
-    instance->contrast_level = light_level;
-    uint8_t contrast = contrast_table[light_level];
+    if(instance->contrast_level >= LIGHT_SENSOR_LIGHT_LEVEL_MAX) {
+        instance->contrast_level = LIGHT_SENSOR_LIGHT_LEVEL_MAX - 1;
+    }
+
+    uint8_t contrast = contrast_table[instance->contrast_level];
     ssd1320_set_contrast(contrast);
 }
 
@@ -114,6 +116,7 @@ static BackDisplaySrv* back_display_alloc(void) {
     instance->send_buffer = instance->data[0];
     instance->draw_buffer = instance->data[1];
     instance->dirty = false;
+    instance->auto_contrast = true;
 
     instance->light_sensor_events = furi_record_open(RECORD_LIGHT_SENSOR_EVENTS);
     furi_pubsub_subscribe(
@@ -144,6 +147,18 @@ void back_display_draw(BackDisplaySrv* instance, const uint8_t* data) {
     furi_mutex_release(instance->buffers_mutex);
 
     furi_event_loop_set_custom_event(instance->event_loop, BackDisplayEventDraw);
+}
+
+void back_display_set_brightness(
+    BackDisplaySrv* instance,
+    bool auto_brightness,
+    uint8_t brightness) {
+    furi_check(instance);
+    if(brightness > LIGHT_SENSOR_LIGHT_LEVEL_MAX) brightness = LIGHT_SENSOR_LIGHT_LEVEL_MAX;
+
+    instance->contrast_level = brightness;
+    instance->auto_contrast = auto_brightness;
+    furi_event_loop_set_custom_event(instance->event_loop, BackDisplayEventLightLevelUpdate);
 }
 
 size_t back_display_get_width(void) {

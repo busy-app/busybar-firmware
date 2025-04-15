@@ -22,6 +22,18 @@ typedef struct BackDisplaySrv BackDisplaySrv;
 void back_display_draw(BackDisplaySrv* instance, const uint8_t* data);
 
 /**
+ * @brief Set back display brightness. To some value, or make it auto
+ *
+ * @param instance back display service instance
+ * @param auto_brightness if true next param doesn't play any role, brightness will be taken from light sensor. 
+ * @param brightness desired brightness value from 0 to LIGHT_SENSOR_LIGHT_LEVEL_MAX
+ */
+void back_display_set_brightness(
+    BackDisplaySrv* instance,
+    bool auto_brightness,
+    uint8_t brightness);
+
+/**
  * @brief Get the width of the back display.
  *
  * @return the width of the back display
