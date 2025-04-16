@@ -34,7 +34,7 @@ void led_display_scan_data_sync_enable(void);
 uint16_t led_display_gamma_apply(const uint16_t* gamma_lut, uint8_t in_val);
 void led_display_gamma_lut_generate(uint16_t* gamma_lut, float gamma_val, uint8_t brightness);
 
-void led_display_driver_init(void);
+void led_display_driver_init(uint8_t initial_brightness);
 void led_display_driver_start(void);
 void led_display_driver_set_update_callback(LedDisplayCallback callback, void* context);
 void led_display_driver_send_buf_start(void);
