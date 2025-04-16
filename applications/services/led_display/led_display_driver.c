@@ -416,3 +416,7 @@ void led_display_driver_start(void) {
         led_display_driver_send_buffer(led_driver);
     }
 }
+
+void led_display_driver_set_brightness(uint8_t brightness) {
+    led_display_gamma_lut_generate(led_driver->gamma_lut, DISPLAY_GAMMA, brightness);
+}
