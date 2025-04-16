@@ -22,13 +22,14 @@ jobs:
           fetch-depth: 2
           token: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: 'Update submodules'
-        run: |
-          git submodule update --init --recursive --jobs=$(nproc)
+      # - name: 'Update submodules'
+      #   run: |
+      #     git submodule update --init --recursive --jobs=$(nproc)
 
       - name: 'Get commit details'
         id: names
         run: |
+          export FBT_GIT_SUBMODULE_SHALLOW=1
           BUILD_TYPE='DEBUG=1 COMPACT=0'
           if [[ ${{ github.event_name }} == 'pull_request' ]]; then
             TYPE="pull"

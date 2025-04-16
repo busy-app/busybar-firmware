@@ -22,6 +22,7 @@ jobs:
         if: always()
         run: |
           set +e;
+          export FBT_GIT_SUBMODULE_SHALLOW=1;
           bash ./fbt -s lint TARGET_HW=20 2>&1 | tee lint-cpp.log;
           if [ "${PIPESTATUS[0]}" -ne 0 ]; then
             # Save multiline output
