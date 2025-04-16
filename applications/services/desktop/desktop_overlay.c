@@ -3,6 +3,10 @@
 #include <furi.h>
 #include <lvgl.h>
 
+#include <gui/modules/image.h>
+
+#include <storage/storage.h>
+
 #define TAG "DesktopOverlay"
 
 #define OVERLAY_ANIM_TIME_MS (100)
@@ -10,6 +14,7 @@
 struct DesktopOverlay {
     Gui* gui;
     Widget* dimmer;
+    Image* status_bar;
     bool show_requested;
 };
 
@@ -38,10 +43,18 @@ DesktopOverlay* desktop_overlay_alloc(Gui* gui) {
 
     with_gui(instance->gui, {
         GuiLayer* system_layer = gui_get_layer(instance->gui, GuiLayerIdSystem);
-        Widget* root = gui_layer_get_root_widget(system_layer, GuiDisplayIdFront);
+
+        Widget* root;
+
+        root = gui_layer_get_root_widget(system_layer, GuiDisplayIdFront);
         instance->dimmer = widget_alloc(root);
         // TODO: Decide on the color and opacity API
         lv_obj_set_style_opa((lv_obj_t*)instance->dimmer, LV_OPA_TRANSP, LV_PART_MAIN);
+
+        root = gui_layer_get_root_widget(system_layer, GuiDisplayIdBack);
+        instance->status_bar = image_alloc(root);
+        image_set_source(instance->status_bar, EXT_PATH("busy/gfx/status_bar_static_12x80.png"));
+        widget_set_align(image_get_base(instance->status_bar), AlignRightMid);
     });
 
     return instance;
