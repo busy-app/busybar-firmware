@@ -89,6 +89,9 @@ void http_handler_remove(HttpHandlersList_t list, const HttpHandler* handler) {
     for(HttpHandlersList_it(it, list); !HttpHandlersList_end_p(it); HttpHandlersList_next(it)) {
         const HttpHandlerInstance* inst = HttpHandlersList_cref(it);
         if(inst->handler == handler) {
+            if((inst->handler) && (inst->context)) {
+                inst->handler->ctx_free(inst->context);
+            }
             HttpHandlersList_remove(list, it);
             break;
         }
@@ -99,8 +102,8 @@ void http_handler_remove_all(HttpHandlersList_t list) {
     HttpHandlersList_it_t it;
     for(HttpHandlersList_it(it, list); !HttpHandlersList_end_p(it); HttpHandlersList_next(it)) {
         const HttpHandlerInstance* inst = HttpHandlersList_cref(it);
-        if(inst->context) {
-            free(inst->context);
+        if((inst->handler) && (inst->context)) {
+            inst->handler->ctx_free(inst->context);
         }
     }
     HttpHandlersList_reset(list);
