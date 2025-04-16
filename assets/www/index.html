@@ -2,7 +2,7 @@
 <html lang="en">
 
 <body>
-    <h1>Mongoose HTTPD demo</h1>
+    <h1>WebServer test</h1>
     <div style="height: 0.3em;">&nbsp;</div>
     <button id="btn1">Get FW version</button>
     <br />
@@ -11,6 +11,11 @@
     <br />
     <button id="btn_led_json_on">LED ON (POST)</button>
     <button id="btn_led_json_off">LED OFF (POST)</button>
+    <br />
+    <button id="btn_ws">WS open/close</button>
+    <input id="message" type="text" placeholder="Type message" style="width: 20em;" />
+    <button id="btn_ws_send">WS send</button>
+    <br />
 
     <div style="margin-top: 1em;">Action log:</div>
     <div id="log" style="background: #eee; height: 10em; padding: 0.5em; overflow:auto;">
@@ -22,10 +27,7 @@
     var btn_led_on = E('btn_led_on'), btn_led_off = E('btn_led_off');
     var btn_led_json_on = E('btn_led_json_on'), btn_led_json_off = E('btn_led_json_off');
 
-    var enable = function (en) { btn1.disabled = !en; };
     var log = text => msglog.innerHTML += text + '<br/>\n';
-
-    enable(true);
 
     btn1.onclick = ev => fetch('/api/version')
         .then(r => r.json())
@@ -58,6 +60,22 @@
 
     btn_led_json_on.onclick = ev => set_led_json(1);
     btn_led_json_off.onclick = ev => set_led_json(0);
+
+    var ws
+    btn_ws.onclick = function () {
+        if (ws) { ws.close(); ws = null; return; }
+        ws = new WebSocket('/ws_test');
+        if (!ws) return;
+        ws.onopen = function () { log('WS: CONNECTION OPENED'); }
+        ws.onmessage = function (ev) { log('WS: RECEIVED: ' + ev.data); }
+        ws.onerror = function (ev) { log('WS: ERROR: ' + ev); }
+        ws.onclose = function () { log('WS: CONNECTION CLOSED'); ws = null; }
+    };
+    btn_ws_send.onclick = function () {
+        if (!ws) return;
+        log('WS: SENT: ' + message.value);
+        ws.send(message.value);
+    }
 </script>
 
 </html>

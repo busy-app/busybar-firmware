@@ -2,7 +2,7 @@
 #include <storage/storage.h>
 #include "mongoose.h"
 
-#define TAG "HTTPD FS"
+#define TAG "HTTP FS"
 
 static int fs_stat(const char* path, size_t* size, time_t* mtime) {
     Storage* fs_api = furi_record_open(RECORD_STORAGE);
@@ -98,6 +98,6 @@ static const struct mg_fs mg_fs_flipper = {
     .mkd = fs_mkdir,
 };
 
-const struct mg_fs* web_storage_get(void) {
+const struct mg_fs* http_fs_get(void) {
     return &mg_fs_flipper;
 }

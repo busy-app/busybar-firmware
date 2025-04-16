@@ -1,0 +1,261 @@
+#include <furi.h>
+#include <version.h>
+#include "web_server_i.h"
+#include "http_api/http_api.h"
+
+#define TAG "HTTP_SRV"
+
+// TODO: wakeup dispatch
+// TODO: timers
+
+typedef struct {
+    HttpHandlersList_t handlers;
+} WebServer;
+
+static const HttpHandler handlers_root[] = {
+    {
+        .uri = "/api/#",
+        .method = "*",
+        .type = HttpHandlerCustom,
+        .callback = http_api_root_callback,
+        .ctx_alloc = http_api_root_alloc,
+        .ctx_free = http_api_root_free,
+    },
+    {
+        .uri = "/ws_test",
+        .method = "GET",
+        .type = HttpHandlerCustom,
+        .callback = http_websocket_callback,
+        .ctx_alloc = http_websocket_alloc,
+        .ctx_free = http_websocket_free,
+    },
+    {
+        .uri = "#",
+        .method = "GET",
+        .type = HttpHandlerDir,
+        .path = WEB_ROOT,
+        .mime_types_custom = NULL,
+        .extra_headers = NULL,
+    },
+};
+
+static void http_event_handler(struct mg_connection* conn, int ev, void* ev_data) {
+    if(ev == MG_EV_HTTP_MSG) {
+        WebServer* context = conn->fn_data;
+
+        struct mg_http_message* msg = (struct mg_http_message*)ev_data;
+        FURI_LOG_I(TAG, "%.*s %.*s", msg->method.len, msg->method.buf, msg->uri.len, msg->uri.buf);
+        if(msg->query.len > 0) {
+            FURI_LOG_I(TAG, "Query %.*s", msg->query.len, msg->query.buf);
+        }
+
+        bool result = http_handle_request(context->handlers, conn, msg);
+        if(!result) {
+            mg_http_reply(conn, 400, "", "Bad Request");
+        }
+    } else if(ev == MG_EV_WS_MSG) {
+        struct mg_ws_message* ws_msg = (struct mg_ws_message*)ev_data;
+        ConnectionContext* conn_ctx = (void*)conn->data;
+        if(conn_ctx->ws.on_message) {
+            conn_ctx->ws.on_message(conn, ws_msg);
+        }
+    } else if(ev == MG_EV_WS_OPEN) {
+        ConnectionContext* conn_ctx = (void*)conn->data;
+        if(conn_ctx->ws.on_open) {
+            conn_ctx->ws.on_open(conn);
+        }
+    } else if(ev == MG_EV_CLOSE) {
+        if(conn->is_websocket) {
+            ConnectionContext* conn_ctx = (void*)conn->data;
+            if(conn_ctx->ws.on_close) {
+                conn_ctx->ws.on_close(conn);
+            }
+        }
+    }
+}
+
+void http_handler_add(HttpHandlersList_t list, const HttpHandler* handler) {
+    HttpHandlerInstance inst = {.handler = handler, .context = NULL};
+    if(inst.handler->type == HttpHandlerCustom) {
+        if(inst.handler->ctx_alloc) {
+            inst.context = inst.handler->ctx_alloc();
+        }
+    }
+    HttpHandlersList_push_back(list, inst);
+}
+
+void http_handler_remove(HttpHandlersList_t list, const HttpHandler* handler) {
+    HttpHandlersList_it_t it;
+    for(HttpHandlersList_it(it, list); !HttpHandlersList_end_p(it); HttpHandlersList_next(it)) {
+        const HttpHandlerInstance* inst = HttpHandlersList_cref(it);
+        if(inst->handler == handler) {
+            HttpHandlersList_remove(list, it);
+            break;
+        }
+    }
+}
+
+void http_handler_remove_all(HttpHandlersList_t list) {
+    HttpHandlersList_it_t it;
+    for(HttpHandlersList_it(it, list); !HttpHandlersList_end_p(it); HttpHandlersList_next(it)) {
+        const HttpHandlerInstance* inst = HttpHandlersList_cref(it);
+        if(inst->context) {
+            free(inst->context);
+        }
+    }
+    HttpHandlersList_reset(list);
+}
+
+bool http_handle_request(
+    HttpHandlersList_t handlers,
+    struct mg_connection* conn,
+    struct mg_http_message* msg) {
+    bool handled = false;
+    HttpHandlersList_it_t it;
+    for(HttpHandlersList_it(it, handlers); !HttpHandlersList_end_p(it);
+        HttpHandlersList_next(it)) {
+        const HttpHandlerInstance* inst = HttpHandlersList_cref(it);
+        do {
+            if(!mg_match(msg->uri, mg_str(inst->handler->uri), NULL)) {
+                break;
+            }
+            if(!mg_match(msg->method, mg_str(inst->handler->method), NULL)) {
+                break;
+            }
+            if(inst->handler->type == HttpHandlerCustom) {
+                furi_assert(inst->handler->callback);
+                handled = inst->handler->callback(conn, msg, inst->context);
+            } else if(inst->handler->type == HttpHandlerFile) {
+                struct mg_http_serve_opts opts = {
+                    .ssi_pattern = NULL,
+                    .extra_headers = inst->handler->extra_headers,
+                    .mime_types = inst->handler->mime_types_custom,
+                    .page404 = WEB_ROOT "404.html",
+                    .fs = http_fs_get(),
+                };
+                mg_http_serve_file(conn, msg, inst->handler->path, &opts);
+                handled = true;
+            } else if(inst->handler->type == HttpHandlerDir) {
+                struct mg_http_serve_opts opts = {
+                    .root_dir = inst->handler->path,
+                    .ssi_pattern = NULL,
+                    .extra_headers = inst->handler->extra_headers,
+                    .mime_types = inst->handler->mime_types_custom,
+                    .page404 = WEB_ROOT "404.html",
+                    .fs = http_fs_get(),
+                };
+                mg_http_serve_dir(conn, msg, &opts);
+                handled = true;
+            } else {
+                furi_crash();
+            }
+        } while(0);
+        if(handled) break;
+    }
+    return handled;
+}
+
+int32_t web_srv_start(void* p) {
+    UNUSED(p);
+    UsbNetwork* usb_network = furi_record_open(RECORD_USB_NETWORK);
+    usb_network_thread_init(usb_network);
+
+    // mg_log_set(MG_LL_VERBOSE);
+    mg_log_set(MG_LL_INFO);
+
+    struct mg_mgr mgr; // Event manager
+    mg_mgr_init(&mgr); // Inititialise event manager
+    // mg_wakeup_init(&mgr);
+
+    WebServer* srv = malloc(sizeof(WebServer));
+    HttpHandlersList_init(srv->handlers);
+
+    for(size_t i = COUNT_OF(handlers_root); i > 0; i--) {
+        http_handler_add(srv->handlers, &handlers_root[i - 1]);
+    }
+
+    // Setup listener
+    mg_http_listen(&mgr, "http://0.0.0.0", http_event_handler, srv);
+
+    // Event loop
+    while(1) {
+        mg_mgr_poll(&mgr, 1000);
+    }
+
+    http_handler_remove_all(srv->handlers);
+    free(srv);
+
+    // Cleanup
+    mg_mgr_free(&mgr);
+
+    usb_network_thread_cleanup(usb_network);
+    furi_record_close(RECORD_USB_NETWORK);
+
+    return 0;
+}
+
+uint64_t mg_millis(void) {
+    return furi_get_tick();
+}
+
+void mg_log_prefix(int level, const char* file, int line, const char* fname) {
+    UNUSED(file);
+    FuriString* string = furi_string_alloc();
+
+    const char* color = _FURI_LOG_CLR_RESET;
+    const char* log_letter = " ";
+    switch(level) {
+    case MG_LL_ERROR:
+        color = _FURI_LOG_CLR_E;
+        log_letter = "E";
+        break;
+    case MG_LL_INFO:
+        color = _FURI_LOG_CLR_I;
+        log_letter = "I";
+        break;
+    case MG_LL_DEBUG:
+        color = _FURI_LOG_CLR_D;
+        log_letter = "D";
+        break;
+    case MG_LL_VERBOSE:
+        color = _FURI_LOG_CLR_T;
+        log_letter = "T";
+        break;
+    default:
+        break;
+    }
+
+    furi_string_printf(
+        string,
+        "%lu %s[%s][%s] " _FURI_LOG_CLR_RESET,
+        furi_get_tick(),
+        color,
+        log_letter,
+        "Mongoose");
+
+    furi_string_cat_printf(string, "%s:%u ", fname, line);
+    furi_log_puts(furi_string_get_cstr(string));
+
+    furi_string_free(string);
+}
+
+void mg_log(const char* fmt, ...) {
+    FuriString* string = furi_string_alloc();
+
+    va_list args;
+    va_start(args, fmt);
+    furi_string_vprintf(string, fmt, args);
+    va_end(args);
+
+    furi_string_cat_str(string, "\r\n");
+    furi_log_puts(furi_string_get_cstr(string));
+    furi_string_free(string);
+}
+
+int _gettimeofday(struct timeval* tv, void* tz) {
+    uint64_t now = mg_now();
+    (void)tz;
+    tv->tv_sec = (time_t)(now / 1000);
+    tv->tv_usec = (unsigned long)((now % 1000) * 1000);
+    return 0;
+}
