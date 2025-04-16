@@ -19,7 +19,7 @@ jobs:
 
       - name: 'Update submodules'
         run: |
-          git submodule update --init --recursive --jobs=$(nproc) scripts/toolchain lib/lwip
+          git submodule update --init --recursive --jobs=$(nproc) scripts/toolchain lib/lwip lib/matter_ext
 
       - name: 'Check C/C++ code formatting for f20'
         id: syntax_check_cpp
