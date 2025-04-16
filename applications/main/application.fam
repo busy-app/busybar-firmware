@@ -16,7 +16,7 @@ App(
         # "sockets_test",
         "animation_player",
         "lottie_player",
-        # "busy",
+        "busy",
         #"dummy",
         "sound",
         "ble_per_test",
