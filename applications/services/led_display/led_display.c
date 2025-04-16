@@ -34,6 +34,7 @@ struct DotMatrixSrv {
     FuriEventLoop* event_loop;
     FuriSemaphore* power_ready_sem;
     FuriEventFlag* event_flag;
+    const uint8_t* frame_buf_ptr;
     const DotMatrixSrvMessage* message;
 };
 
@@ -83,6 +84,7 @@ static void led_display_srv_custom_event_callback(uint32_t events, void* context
         if(message_type == DotMatrixSrvMessageTypeDraw) {
             led_display_driver_send_frame(message->frame_buffer);
             furi_event_flag_set(instance->event_flag, DotMatrixSrvEventFlagDone);
+            if(instance->frame_buf_ptr == NULL) instance->frame_buf_ptr = message->frame_buffer;
         }
 
     } else if(events == DotMatrixSrvEventUpdateDone) {
@@ -119,6 +121,7 @@ static DotMatrixSrv* led_display_srv_alloc(void) {
             furi_semaphore_acquire(instance->power_ready_sem, FuriWaitForever) == FuriStatusOk);
         furi_semaphore_free(instance->power_ready_sem);
     }
+    instance->frame_buf_ptr = NULL;
 
     instance->event_loop = furi_event_loop_alloc();
     instance->event_flag = furi_event_flag_alloc();
