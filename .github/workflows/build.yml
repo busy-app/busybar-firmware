@@ -18,7 +18,7 @@ jobs:
       - name: 'Checkout code'
         uses: actions/checkout@v4
         with:
-          ref: ${{ github.event.pull_request.head.sha }}
+          ref: ${{ github.sha }}
           fetch-depth: 2
           token: ${{ secrets.GITHUB_TOKEN }}
 
@@ -38,17 +38,11 @@ jobs:
           else
             TYPE="other"
           fi
-          # python3 fbt_layers/fbtng/scripts/get_env.py "--event_file=${{ github.event_path }}" "--type=$TYPE" || cat "${{ github.event_path }}"
-          # echo "event_type=$TYPE" >> $GITHUB_OUTPUT
-          # echo "FBT_BUILD_TYPE=$BUILD_TYPE" >> $GITHUB_ENV
 
-      - name: 'Build the firmware and apps'
+      - name: 'Build the firmware'
         id: build-fw
         run: |
           source ./scripts/toolchain/fbtenv.sh
-          echo Debug: PATH=$PATH
-          echo Toolchain: `which arm-none-eabi-gcc` `arm-none-eabi-gcc --version`
-          echo Toolchain: `ls -al toolchain/latest`
           bash ./fbt TARGET_HW=20 $FBT_BUILD_TYPE
           bash ./fbt TARGET_HW=64 $FBT_BUILD_TYPE
 

@@ -13,15 +13,14 @@ jobs:
       - name: 'Checkout code'
         uses: actions/checkout@v4
         with:
-          fetch-depth: 2
           ref: ${{ github.sha }}
-          submodules: recursive
+          fetch-depth: 2
           token: ${{ secrets.GITHUB_TOKEN }}
-          # ssh-key: ${{ secrets.GH_SSH_KEY }}
 
       - name: 'Check C/C++ code formatting for f20'
         id: syntax_check_cpp
         if: always()
+        shell: bash
         run: |
           set +e;
           ./fbt -s lint TARGET_HW=20 2>&1 | tee lint-cpp.log;
@@ -37,7 +36,7 @@ jobs:
           fi
 
       - name: 'Report code formatting errors'
-        if: ( steps.syntax_check_cpp.outputs.errors ) && github.event.pull_request
+        if: steps.syntax_check_cpp.outputs.errors && github.event.pull_request
         run: |
           echo "Code formatting errors found";
           echo "Please run './fbt format' or './fbt format_py' to fix them";
