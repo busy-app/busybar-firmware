@@ -9,7 +9,7 @@
 
 #define SYM_ARROW_RIGHT "▹"
 
-#define SCROLL_ANIM_DURATION_MS (64)
+#define SCROLL_ANIM_DURATION_MS (0)
 
 struct Submenu {
     Widget base;
@@ -86,17 +86,22 @@ static lv_obj_t* submenu_item_alloc(
     return obj;
 }
 
-static void submenu_lvlg_constructor(const lv_obj_class_t* class_p, lv_obj_t* obj) {
+static void submenu_lvgl_constructor(const lv_obj_class_t* class_p, lv_obj_t* obj) {
     UNUSED(class_p);
 
     lv_obj_set_flex_flow(obj, LV_FLEX_FLOW_COLUMN);
+    lv_obj_set_scroll_snap_y(obj, LV_SCROLL_SNAP_CENTER);
     lv_obj_add_event_cb(obj, submenu_scroll_event_callback, LV_EVENT_SCROLL_BEGIN, NULL);
+    // Compensate for scrollbar overlap
+    lv_obj_set_style_pad_right(
+        obj, lv_obj_get_style_width(obj, LV_PART_SCROLLBAR) + 1, LV_PART_MAIN);
 
     Submenu* instance = (Submenu*)obj;
     instance->group = lv_group_create();
+    lv_group_set_wrap(instance->group, false);
 }
 
-static void submenu_lvlg_destructor(const lv_obj_class_t* class_p, lv_obj_t* obj) {
+static void submenu_lvgl_destructor(const lv_obj_class_t* class_p, lv_obj_t* obj) {
     UNUSED(class_p);
 
     Submenu* instance = (Submenu*)obj;
@@ -198,8 +203,8 @@ void submenu_set_selected_item_index(Submenu* instance, uint32_t index) {
 
 const lv_obj_class_t submenu_lvgl_class = {
     .base_class = &widget_lvgl_class,
-    .constructor_cb = submenu_lvlg_constructor,
-    .destructor_cb = submenu_lvlg_destructor,
+    .constructor_cb = submenu_lvgl_constructor,
+    .destructor_cb = submenu_lvgl_destructor,
     .name = "widget-submenu",
     .width_def = LV_PCT(100),
     .height_def = LV_PCT(100),

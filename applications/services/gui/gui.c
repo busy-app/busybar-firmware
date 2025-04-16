@@ -2,6 +2,7 @@
 
 #include <lvgl_addons/fs/lv_fs.h>
 #include <lvgl_addons/themes/lv_theme_front.h>
+#include <lvgl_addons/themes/lv_theme_back.h>
 
 #define TAG "Gui"
 
@@ -160,7 +161,7 @@ static void gui_init_front(GuiDisplay* display) {
         FRONT_DRAW_BUFFER_SIZE,
         LV_DISPLAY_RENDER_MODE_DIRECT);
 
-    lv_theme_t* theme = lv_theme_front_alloc(display->lv_display, &lv_font_tiny5_8);
+    lv_theme_t* theme = lv_theme_front_alloc(display->lv_display);
     lv_display_set_theme(display->lv_display, theme);
 }
 
@@ -182,7 +183,7 @@ static void gui_init_back(GuiDisplay* display) {
         back_display_buffer_size,
         LV_DISPLAY_RENDER_MODE_DIRECT);
 
-    lv_theme_t* theme = lv_theme_front_alloc(display->lv_display, &lv_font_cubic_12);
+    lv_theme_t* theme = lv_theme_back_alloc(display->lv_display);
     lv_display_set_theme(display->lv_display, theme);
 }
 

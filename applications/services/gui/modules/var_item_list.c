@@ -13,7 +13,7 @@
 #define SYM_ARROW_LEFT  "◃"
 #define SYM_ARROW_RIGHT "▹"
 
-#define SCROLL_ANIM_DURATION_MS (64)
+#define SCROLL_ANIM_DURATION_MS (0)
 
 #define CHECK_RANGE_AND_STEP(min, max, step)                                               \
     do {                                                                                   \
@@ -91,8 +91,16 @@ static void var_item_list_scroll_event_callback(lv_event_t* event) {
 static void var_item_list_lvgl_constructor(const lv_obj_class_t* class_p, lv_obj_t* obj) {
     LV_UNUSED(class_p);
 
+    lv_obj_set_flex_flow(obj, LV_FLEX_FLOW_COLUMN);
+    lv_obj_set_scroll_snap_y(obj, LV_SCROLL_SNAP_CENTER);
+    lv_obj_add_event_cb(obj, var_item_list_scroll_event_callback, LV_EVENT_SCROLL_BEGIN, NULL);
+    // Compensate for scrollbar overlap
+    lv_obj_set_style_pad_right(
+        obj, lv_obj_get_style_width(obj, LV_PART_SCROLLBAR) + 1, LV_PART_MAIN);
+
     VarItemList* instance = (VarItemList*)obj;
     instance->group = lv_group_create();
+    lv_group_set_wrap(instance->group, false);
 }
 
 static void var_item_list_lvgl_destructor(const lv_obj_class_t* class_p, lv_obj_t* obj) {
@@ -405,9 +413,6 @@ VarItemList* var_item_list_alloc(Widget* parent) {
 
     lv_obj_t* obj = lv_obj_class_create_obj(MY_CLASS, (lv_obj_t*)parent);
     lv_obj_class_init_obj(obj);
-
-    lv_obj_set_flex_flow(obj, LV_FLEX_FLOW_COLUMN);
-    lv_obj_add_event_cb(obj, var_item_list_scroll_event_callback, LV_EVENT_SCROLL_BEGIN, NULL);
 
     VarItemList* instance = (VarItemList*)obj;
     widget_set_input_feed_callback((Widget*)instance, var_item_list_input_callback);

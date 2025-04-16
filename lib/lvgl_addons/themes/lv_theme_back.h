@@ -1,6 +1,6 @@
 /**
- * @file lv_theme_front.h
- * @brief Widget theme for the BSB front display.
+ * @file lv_theme_back.h
+ * @brief Widget theme for the BSB back display.
  */
 #pragma once
 
@@ -17,7 +17,7 @@ extern "C" {
  * @param disp pointer to display to attach the theme
  * @return a pointer to reference this theme later
  */
-lv_theme_t* lv_theme_front_alloc(lv_display_t* disp);
+lv_theme_t* lv_theme_back_alloc(lv_display_t* disp);
 
 #ifdef __cplusplus
 } /*extern "C"*/
