@@ -182,7 +182,7 @@ static void gui_init_back(GuiDisplay* display) {
         back_display_buffer_size,
         LV_DISPLAY_RENDER_MODE_DIRECT);
 
-    lv_theme_t* theme = lv_theme_front_alloc(display->lv_display, &lv_font_haxrcorp4089_16);
+    lv_theme_t* theme = lv_theme_front_alloc(display->lv_display, &lv_font_cubic_12);
     lv_display_set_theme(display->lv_display, theme);
 }
 
