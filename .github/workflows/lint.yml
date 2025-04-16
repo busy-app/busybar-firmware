@@ -20,10 +20,9 @@ jobs:
       - name: 'Check C/C++ code formatting for f20'
         id: syntax_check_cpp
         if: always()
-        shell: bash
         run: |
           set +e;
-          ./fbt -s lint TARGET_HW=20 2>&1 | tee lint-cpp.log;
+          bash ./fbt -s lint TARGET_HW=20 2>&1 | tee lint-cpp.log;
           if [ "${PIPESTATUS[0]}" -ne 0 ]; then
             # Save multiline output
             echo "errors=1" >> $GITHUB_OUTPUT;

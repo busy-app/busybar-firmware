@@ -3,7 +3,7 @@ on:
   push:
     branches:
       - dev
-      - hedger/*
+      # - hedger/*
   workflow_dispatch:
 
 jobs:
