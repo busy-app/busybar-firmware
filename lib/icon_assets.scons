@@ -1,31 +1,6 @@
 Import("env")
 
-assetsenv = env.Clone(
-    tools=["fbt_assets"],
-    FW_LIB_NAME="icon_assets",
-    ASSETS_WORK_DIR=Dir("."),
-    ASSETS_SRC_DIR=env.Dir("#/assets"),
-)
-assetsenv.ApplyLibFlags()
-
-
-icons = assetsenv.CompileIcons(
-    assetsenv["ASSETS_WORK_DIR"], assetsenv["ASSETS_SRC_DIR"].Dir("icons")
-)
-assetsenv.Alias("icons", icons)
-
-
-headers = list(filter(lambda fn: fn.name.endswith(".h"), Flatten(icons)))
-sources = list(filter(lambda fn: not fn.name.endswith(".h"), Flatten(icons)))
-
+# Stub for potential future use
 env.AppendUnique(
-    FW_ASSETS_HEADERS=headers,
-    FW_STATIC_ANALYSIS_DEPS=icons,
-    CPPPATH=[Dir(".")],
+    FW_ASSETS_HEADERS=[],
 )
-
-lib = assetsenv.StaticLibrary("${FW_LIB_NAME}", sources)
-assetsenv.Install("${LIB_DIST_DIR}", lib)
-
-Alias("bbbb", lib)
-Return("lib")

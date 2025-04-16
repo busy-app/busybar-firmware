@@ -1,7 +1,10 @@
 #include <core/log.h>
 #include <core/check.h>
 #include <furi_hal_bus.h>
+#include <furi_hal_gpio.h>
+#include <furi_hal_resources.h>
 #include <furi_hal_clock.h>
+
 #include <stm32u5xx_ll_cortex.h>
 #include <stm32u5xx_ll_system.h>
 #include <stm32u5xx_ll_pwr.h>
@@ -51,6 +54,24 @@ void furi_hal_clock_init(void) {
     while(LL_RCC_HSE_IsReady() != 1) {
     }
 
+    // Start 32KHz xtal oscillator
+    LL_PWR_EnableBkUpAccess();
+    while(LL_PWR_IsEnabledBkUpAccess() == 0U) {
+    }
+
+    LL_RCC_LSE_SetDriveCapability(LL_RCC_LSEDRIVE_LOW);
+    LL_RCC_LSE_EnablePropagation();
+    LL_RCC_LSE_Enable();
+
+    while(LL_RCC_LSE_IsReady() != 1) {
+    }
+
+#ifdef FURI_HAL_CLOCK_MCO
+    furi_hal_gpio_init_ex(
+        &gpio_i2s_sck, GpioModeAltFunctionPushPull, GpioPullNo, GpioSpeedHigh, GpioAltFn0MCO);
+    LL_RCC_ConfigMCO(FURI_HAL_CLOCK_MCO, LL_RCC_MCO1_DIV_1);
+#endif
+
     // PLL1R used for system clock, 160 MHz
     LL_RCC_PLL1_ConfigDomain_SYS(
         LL_RCC_PLL1SOURCE_HSE, FURI_CLOCK_PLL1_M, FURI_CLOCK_PLL1_N, FURI_CLOCK_PLL1_R);
@@ -88,15 +109,6 @@ void furi_hal_clock_init(void) {
     LL_SetSystemCoreClock(160000000);
     LL_InitTick(SystemCoreClock, 1000U);
     LL_SYSTICK_EnableIT();
-
-    // Enable LSI for LPTimer
-    LL_PWR_EnableBkUpAccess();
-    while(LL_PWR_IsEnabledBkUpAccess() == 0U) {
-    }
-
-    // LL_RCC_LSI_Enable();
-    // while(LL_RCC_LSI_IsReady() != 1) {
-    // }
 
     LL_RCC_HSI_Enable();
     while(LL_RCC_HSI_IsReady() != 1) {

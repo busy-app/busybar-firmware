@@ -30,6 +30,8 @@
 extern "C" {
 #endif
 
+#include <furi.h>
+
 //--------------------------------------------------------------------+
 // Board Specific Configuration
 //--------------------------------------------------------------------+
@@ -54,10 +56,6 @@ extern "C" {
 #endif
 
 #define CFG_TUSB_OS OPT_OS_CUSTOM
-
-#ifndef CFG_TUSB_DEBUG
-#define CFG_TUSB_DEBUG 1
-#endif
 
 // Enable Device stack
 #define CFG_TUD_ENABLED 1
@@ -90,17 +88,34 @@ extern "C" {
 
 #define CFG_TUD_DWC2_DMA_ENABLE 1
 
-#define CFG_TUD_NCM_OUT_NTB_N 2
-#define CFG_TUD_NCM_IN_NTB_N  2
+#define CFG_TUD_NCM_OUT_NTB_N 1
+#define CFG_TUD_NCM_IN_NTB_N  1
+
+#define CFG_TUD_NCM_IN_MAX_DATAGRAMS_PER_NTB  8
+#define CFG_TUD_NCM_OUT_MAX_DATAGRAMS_PER_NTB 8
+
+#define CFG_TUD_NCM_OUT_NTB_MAX_SIZE 2048 //3020
+#define CFG_TUD_NCM_IN_NTB_MAX_SIZE  2048
 
 //------------- CLASS -------------//
-// Built-in classed are not used
-#define CFG_TUD_CDC    0
-#define CFG_TUD_MSC    0
-#define CFG_TUD_HID    0
-#define CFG_TUD_MIDI   0
-#define CFG_TUD_VENDOR 0
-#define CFG_TUD_NCM    1
+#define CFG_TUD_CDC       0
+#define CFG_TUD_MSC       0
+#define CFG_TUD_HID       0
+#define CFG_TUD_MIDI      0
+#define CFG_TUD_VENDOR    0
+#define CFG_TUD_NCM       1
+#define CFG_TUD_ECM_RNDIS 0
+
+#define CFG_TUD_TASK_QUEUE_SZ 32
+
+#define CFG_TUSB_DEBUG        1
+#define CFG_TUD_NCM_LOG_LEVEL 2
+
+#define CFG_TUSB_DEBUG_PRINTF usb_srv_log
+
+#define TU_ASSERT_1(_cond)       furi_assert(_cond)
+#define TU_ASSERT_2(_cond, _ret) furi_assert(_cond)
+#define TU_ASSERT(...)           TU_GET_3RD_ARG(__VA_ARGS__, TU_ASSERT_2, TU_ASSERT_1, _dummy)(__VA_ARGS__)
 
 #ifdef __cplusplus
 }

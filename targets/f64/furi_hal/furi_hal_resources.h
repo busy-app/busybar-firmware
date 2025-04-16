@@ -9,7 +9,7 @@
 #include <furi.h>
 #include <furi_hal_gpio.h>
 
-#include <input_common/input_common.h>
+#include <input/input_common.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -70,7 +70,7 @@ extern const GpioPin gpio_i_uart1_tx; /**< Not available on the package, interna
 
 /* ULP GPIO pins */
 extern const GpioPin gpio_ulp_0;
-extern const GpioPin gpio_irq;
+extern const GpioPin gpio_u5_irq;
 extern const GpioPin gpio_ulp_2;
 extern const GpioPin gpio_ulp_i_3; /**< Not available on the package, internal use only */
 extern const GpioPin gpio_ulp_4;

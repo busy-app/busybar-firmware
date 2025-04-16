@@ -3,7 +3,7 @@ App(
     name="Busy",
     apptype=FlipperAppType.APP,
     entry_point="busy_app",
-    requires=["gui_lvgl"],
+    requires=["gui"],
     stack_size=2 * 1024,
     targets=["f20"],
 )

@@ -10,6 +10,7 @@ App(
         "helpers/wifi_async_socket_server_tcp_rx.c",
         "helpers/wifi_async_socket_client_tcp_tx.c",
         "helpers/wifi_async_socket_server_echo.c",
+        "helpers/wifi_async_socket_client_udp_tx.c",
     ],
     order=40,
 )

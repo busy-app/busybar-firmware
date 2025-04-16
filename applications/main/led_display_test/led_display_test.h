@@ -1,5 +1,9 @@
 #pragma once
+
 #include <stddef.h>
+#include <stdint.h>
+
+#include <gui/modules/canvas.h>
 
 typedef enum {
     LedDisplayTestPatternChess,
@@ -31,12 +35,8 @@ typedef enum {
     LedDisplayTestColorNum,
 } LedDisplayTestColor;
 
-void led_display_test_set(LedDisplayTestPattern pattern, LedDisplayTestColor color);
+void led_display_test_set(Canvas* canvas, LedDisplayTestPattern pattern, LedDisplayTestColor color);
 
 const char* led_display_get_pattern_str(LedDisplayTestPattern pattern);
 
 const char* led_display_get_color_str(LedDisplayTestColor color);
-
-size_t led_display_get_pattern_frame_time(LedDisplayTestPattern pattern);
-
-void led_display_test_advance_frame(LedDisplayTestPattern pattern);

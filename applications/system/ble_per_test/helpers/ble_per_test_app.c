@@ -677,6 +677,8 @@ void* ble_per_test_app_start(CliWorker* worker) {
 
 #endif
         ble_per_test_app_cmd_usage(instance);
+        furi_string_printf(instance->msg, "start_app: 1\r\n");
+        ble_per_test_app_send_msg(instance);
     } while(false);
 
     if(status != SL_STATUS_OK) {
@@ -1099,7 +1101,7 @@ static void ble_per_test_app_cmd_usage(BLEPerTestApp* instance) {
     furi_string_cat_printf(
         instance->msg, "channel <0..39> BLE channels 2402MHz to 2480MHz with 2MHz spacing\r\n");
     furi_string_cat_printf(
-        instance->msg, "phy_rate <0..4> PHY 0: 1Mbps, 1: 2Mbps, 2: 125Kbps, 3: 500Kbps\r\n");
+        instance->msg, "phy_rate <0..3> PHY 0: 1Mbps, 1: 2Mbps, 2: 125Kbps, 3: 500Kbps\r\n");
     furi_string_cat_printf(instance->msg, "payload_len <1..255> Payload length\r\n");
     furi_string_cat_printf(
         instance->msg,
@@ -1130,14 +1132,14 @@ static int32_t ble_per_test_app_thread_callback(void* context) {
         if(instance->state == BLEPerTestStateTx) {
             furi_string_printf(
                 msg,
-                "\r\nTx Stats\r\n"
+                "Tx Stats\r\n"
                 "tx_dones: %d\r\n",
                 instance->per_stats.tx_dones);
             ble_per_test_app_send_text(instance, msg);
         } else if(instance->state == BLEPerTestStateRx) {
             furi_string_printf(
                 msg,
-                "\r\nRx Stats\r\n"
+                "Rx Stats\r\n"
                 "crc_fail_cnt: %d\r\n"
                 "crc_pass_cnt: %d\r\n"
                 "rssi: %d\r\n",

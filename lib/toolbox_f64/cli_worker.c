@@ -107,7 +107,9 @@ static void cli_worker_process(CliWorker* worker) {
         worker_event = cli_worker_get_event(worker);
         switch(worker_event.event) {
         case CliEventInputData:
-            if(worker_event.c == CliSymbolAsciiETX) {
+        if(worker_event.c == 0x00){
+            //do nothing
+        } else if(worker_event.c == CliSymbolAsciiETX) {
                 printf("\r\n");
                 worker_event.event = CliEventExitApp;
                 cli_worker_put_event(worker, &worker_event);
@@ -231,7 +233,7 @@ static int32_t cli_worker_thread(void* context) {
     event.event = CliEventStartApp;
     furi_message_queue_put(instance->event_queue, &event, 0);
     while(instance->worker_running) {
-        if(cli_read_timeout(instance->cli, (uint8_t*)&c, 1, 1000) == 1) {
+        if(cli_read_timeout(instance->cli, (uint8_t*)&c, 1, 100) == 1) {
             event.event = CliEventInputData;
             event.c = c;
             furi_message_queue_put(instance->event_queue, &event, FuriWaitForever);
@@ -325,7 +327,7 @@ bool cli_worker_is_running(CliWorker* instance) {
 
 size_t cli_worker_add_rx_data(CliWorker* instance, uint8_t* data, size_t size) {
     furi_assert(instance);
-    size_t len = furi_stream_buffer_send(instance->rx_stream, data, size, 0);
+    size_t len = furi_stream_buffer_send(instance->rx_stream, data, size, 100);
     cli_worker_update_rx_event(instance);
     return len;
 }

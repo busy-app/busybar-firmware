@@ -36,5 +36,5 @@ void furi_hal_usb_init(void) {
 
 void furi_hal_usb_set_irq(FuriHalInterruptISR usb_isr, void* isr_ctx) {
     furi_hal_interrupt_set_isr_ex(
-        FuriHalInterruptIdUSBHS, FuriHalInterruptPriorityHighest, usb_isr, isr_ctx);
+        FuriHalInterruptIdUSBHS, FuriHalInterruptPriorityNormal, usb_isr, isr_ctx);
 }

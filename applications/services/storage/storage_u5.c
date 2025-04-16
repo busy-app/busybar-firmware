@@ -4,12 +4,9 @@
 #include <storage/storage_processing.h>
 #include "storage/storage_glue.h"
 #include "storages/storage_ext_sdmmc.h"
-#include <assets_icons.h>
+#include "storage_posix_api.h"
 
 #define STORAGE_TICK 1000
-
-#define ICON_SD_MOUNTED &I_SDcardMounted_11x8
-#define ICON_SD_ERROR   &I_SDcardFail_11x8
 
 #define TAG "Storage"
 
@@ -24,6 +21,8 @@ Storage* storage_app_alloc(void) {
     }
 
     storage_ext_init(&app->storage[ST_EXT]);
+
+    storage_posix_api_init(app);
 
     return app;
 }

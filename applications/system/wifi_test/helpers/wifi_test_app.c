@@ -3,6 +3,7 @@
 #include "wifi_async_socket_server_tcp_rx.h"
 #include "wifi_async_socket_client_tcp_tx.h"
 #include "wifi_async_socket_server_echo.h"
+#include "wifi_async_socket_client_udp_tx.h"
 
 #include <furi.h>
 
@@ -122,6 +123,8 @@ typedef enum {
     WifiTestCmdTypeTestTcpRx,
     WifiTestCmdTypeTestTcpTx,
     WifiTestCmdTypeTestEcho,
+    WifiTestCmdTypeTestUdpTx,
+    WifiTestCmdTypeTestUdpTxStop,
 
     WifiTestCmdTypeMax,
 } WifiTestCmdType;
@@ -147,7 +150,10 @@ const WifiTestCmd wifi_test_cmd[WifiTestCmdTypeMax] = {
     {"sta_down"},
     {"test_tcp_rx"},
     {"test_tcp_tx"},
-    {"test_echo"}};
+    {"test_echo"},
+    {"test_udp_tx"},
+    {"test_udp_tx_stop"},
+};
 
 struct WifiTestApp {
     FuriString* msg;
@@ -155,6 +161,7 @@ struct WifiTestApp {
     WifiTestState state;
 
     bool exit;
+    bool udp_test_running;
     bool ap_client_connected;
 };
 
@@ -255,6 +262,8 @@ void* wifi_test_app_start(CliWorker* worker) {
         wifi_test_app_send_msg(instance);
 
         wifi_test_app_cmd_usage(instance);
+        furi_string_printf(instance->msg, "start_app: 1\r\n");
+        wifi_test_app_send_msg(instance);
     } while(0);
 
     if(status != SL_STATUS_OK) {
@@ -270,6 +279,9 @@ void wifi_test_app_stop(void* app_handle) {
     WifiTestApp* instance = (WifiTestApp*)app_handle;
 
     if(instance) {
+        if(instance->udp_test_running) {
+            wifi_async_socket_client_udp_tx_stop();
+        }
         instance->exit = true;
         furi_delay_ms(100);
         if(instance->state == WifiTestStateApUp) {
@@ -455,7 +467,7 @@ static sl_status_t wifi_test_app(WifiTestApp* instance, uint8_t cmd_index, FuriS
             if(ip_address.type == SL_IPV4) {
                 furi_string_printf(
                     instance->msg,
-                    "Ip address of client: %d.%d.%d.%d\r\nWi-Fi client connected\r\n",
+                    "ip_address_of_client: %d.%d.%d.%d\r\nWi-Fi client connected\r\n",
                     ip_address.ip.v4.bytes[0],
                     ip_address.ip.v4.bytes[1],
                     ip_address.ip.v4.bytes[2],
@@ -505,6 +517,32 @@ static sl_status_t wifi_test_app(WifiTestApp* instance, uint8_t cmd_index, FuriS
                 wifi_async_socket_client_tcp_tx_init(
                     instance, instance->msg, (char*)furi_string_get_cstr(arg), 5000);
             }
+        } else {
+            furi_string_printf(instance->msg, "AP or STA is not up\r\n");
+            wifi_test_app_send_msg(instance);
+        }
+        break;
+    case WifiTestCmdTypeTestUdpTx:
+        if(instance->state == WifiTestStateStaUp || instance->state == WifiTestStateApUp) {
+            if(!args_read_string_and_trim(args, arg)) {
+                wifi_async_socket_client_udp_tx_init(
+                    instance, instance->msg, WIFI_TEST_SERVER_IP, 5001);
+            } else {
+                wifi_async_socket_client_udp_tx_init(
+                    instance, instance->msg, (char*)furi_string_get_cstr(arg), 5001);
+            }
+            instance->udp_test_running = true;
+        } else {
+            furi_string_printf(instance->msg, "AP or STA is not up\r\n");
+            wifi_test_app_send_msg(instance);
+        }
+        break;
+    case WifiTestCmdTypeTestUdpTxStop:
+        if(instance->state == WifiTestStateStaUp || instance->state == WifiTestStateApUp) {
+            wifi_async_socket_client_udp_tx_stop(instance, instance->msg);
+            furi_string_printf(instance->msg, "UDP TX stopped\r\n");
+            wifi_test_app_send_msg(instance);
+            instance->udp_test_running = false;
         } else {
             furi_string_printf(instance->msg, "AP or STA is not up\r\n");
             wifi_test_app_send_msg(instance);
@@ -594,6 +632,11 @@ static void wifi_test_app_cmd_usage(WifiTestApp* instance) {
         "test_tcp_rx Start TCP RX iPref test \"iperf.exe -c 192.168.11.10 -p 5005 -i 1 -b70M -t 30\".\r\n");
     furi_string_cat_printf(
         instance->msg, "test_echo Start TCP echo test port 5005. Work time 90 sec\r\n");
+    furi_string_cat_printf(
+        instance->msg,
+        "test_udp_tx [ip] Start UDP TX iPref test \"iperf.exe -s -u -p 5001 -i 1\". Default IP:%s Work time 5 min\r\n",
+        WIFI_TEST_SERVER_IP);
+    furi_string_cat_printf(instance->msg, "test_udp_tx_stop Stop UDP TX iPref test\r\n");
     furi_string_cat_printf(
         instance->msg,
         "*************************************************************************************************************"

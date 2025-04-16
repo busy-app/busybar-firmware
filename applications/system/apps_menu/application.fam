@@ -1,0 +1,9 @@
+App(
+    appid="apps_menu",
+    name="AppsMenu",
+    apptype=FlipperAppType.SYSTEM,
+    entry_point="apps_menu_app",
+    requires=["gui"],
+    stack_size=2 * 1024,
+    targets=["f20"],
+)

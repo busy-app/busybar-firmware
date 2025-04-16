@@ -1,6 +1,7 @@
 #include <stm32u5xx.h>
 #include <stm32u5xx_ll_dma.h>
 #include <stm32u5xx_ll_rcc.h>
+
 #include <furi_hal_clock.h>
 #include <furi_hal_dma.h>
 #include <furi_hal_bus.h>
@@ -15,62 +16,38 @@
 
 #define SAI_DEFAULT_TIMEOUT 4U
 
-#define FURI_HAL_SAI_DMA              GPDMA1
-#define FURI_HAL_SAI_DMA_REQUEST      LL_GPDMA1_REQUEST_SAI1_A
-#define FURI_HAL_SAI_DMA_PRIORITY     LL_DMA_HIGH_PRIORITY
-#define FURI_HAL_SAI_DMA_SAMPLE_COUNT (256u * 10u)
-
-typedef __PACKED_STRUCT {
-    int16_t left;
-    int16_t right;
-}
-SaiData;
-
-static_assert(sizeof(SaiData) == 4);
+#define FURI_HAL_SAI_DMA          GPDMA1
+#define FURI_HAL_SAI_DMA_REQUEST  LL_GPDMA1_REQUEST_SAI1_A
+#define FURI_HAL_SAI_DMA_PRIORITY LL_DMA_HIGH_PRIORITY
 
 typedef struct {
     FuriHalSaiCallback callback;
     void* callback_context;
-
-    SaiData data[FURI_HAL_SAI_DMA_SAMPLE_COUNT];
-
     uint32_t dma_channel;
-    uint32_t data_ptr;
-    uint32_t data_size;
+    uint32_t dma_data_ptr;
+    uint32_t dma_data_size;
 } FuriHalSai;
 
 static FuriHalSai furi_hal_sai = {};
 
-static void furi_hal_sai_refill(size_t start, size_t size) {
-    for(size_t i = 0; i < size; i++) {
-        int16_t sample = 0;
+static void furi_hal_sai_isr(void* context) {
+    UNUSED(context);
 
-        if(furi_hal_sai.callback) {
-            sample = furi_hal_sai.callback(furi_hal_sai.callback_context);
-        }
-
-        furi_hal_sai.data[start + i].left = sample;
-        furi_hal_sai.data[start + i].right = sample;
-    }
-}
-
-static void furi_hal_sai_isr(void*) {
     if(LL_DMA_IsActiveFlag_TC(GPDMA1, furi_hal_sai.dma_channel)) {
         LL_DMA_ClearFlag_TC(GPDMA1, furi_hal_sai.dma_channel);
-        furi_hal_sai_refill(FURI_HAL_SAI_DMA_SAMPLE_COUNT / 2, FURI_HAL_SAI_DMA_SAMPLE_COUNT / 2);
+        if(furi_hal_sai.callback) {
+            furi_hal_sai.callback(FuriHalSaiEventTransferComplete, furi_hal_sai.callback_context);
+        }
     }
     if(LL_DMA_IsActiveFlag_HT(GPDMA1, furi_hal_sai.dma_channel)) {
         LL_DMA_ClearFlag_HT(GPDMA1, furi_hal_sai.dma_channel);
-        furi_hal_sai_refill(0, FURI_HAL_SAI_DMA_SAMPLE_COUNT / 2);
+        if(furi_hal_sai.callback) {
+            furi_hal_sai.callback(FuriHalSaiEventHalfTransfer, furi_hal_sai.callback_context);
+        }
     }
-
     if(LL_DMA_IsActiveFlag_TO(GPDMA1, furi_hal_sai.dma_channel)) {
         LL_DMA_ClearFlag_TO(GPDMA1, furi_hal_sai.dma_channel);
         furi_crash("SAI DMA trigger overrun");
-    }
-    if(LL_DMA_IsActiveFlag_SUSP(GPDMA1, furi_hal_sai.dma_channel)) {
-        LL_DMA_ClearFlag_SUSP(GPDMA1, furi_hal_sai.dma_channel);
-        furi_crash("SAI DMA suspension");
     }
     if(LL_DMA_IsActiveFlag_USE(GPDMA1, furi_hal_sai.dma_channel)) {
         LL_DMA_ClearFlag_USE(GPDMA1, furi_hal_sai.dma_channel);
@@ -86,7 +63,7 @@ static void furi_hal_sai_isr(void*) {
     }
 }
 
-static bool furi_hal_sai_disable() {
+static bool furi_hal_sai_disable(void) {
     FURI_HAL_SAI_BLOCK->CR1 &= ~SAI_xCR1_SAIEN;
 
     uint32_t count = SAI_DEFAULT_TIMEOUT * (SystemCoreClock / 7U / 1000U);
@@ -100,7 +77,7 @@ static bool furi_hal_sai_disable() {
     return true;
 }
 
-static bool furi_hal_sai_enable() {
+static bool furi_hal_sai_enable(void) {
     FURI_HAL_SAI_BLOCK->CR1 |= SAI_xCR1_SAIEN;
 
     uint32_t count = SAI_DEFAULT_TIMEOUT * (SystemCoreClock / 7U / 1000U);
@@ -114,59 +91,76 @@ static bool furi_hal_sai_enable() {
     return true;
 }
 
-static void furi_hal_sai_setup_dma() {
+static void furi_hal_sai_init_dma(void) {
     furi_check(furi_hal_dma_allocate_gpdma_channel(&furi_hal_sai.dma_channel));
-
-    LL_DMA_InitTypeDef dma_init_strust = {0};
-
-    furi_hal_sai.data_ptr = (uint32_t)furi_hal_sai.data;
-    furi_hal_sai.data_size = sizeof(furi_hal_sai.data);
-
-    dma_init_strust.SrcAddress = furi_hal_sai.data_ptr;
-    dma_init_strust.DestAddress = (uint32_t)(&FURI_HAL_SAI_BLOCK->DR);
-    dma_init_strust.BlkDataLength = furi_hal_sai.data_size;
-
-    dma_init_strust.Request = FURI_HAL_SAI_DMA_REQUEST;
-    dma_init_strust.Direction = LL_DMA_DIRECTION_MEMORY_TO_PERIPH;
-
-    dma_init_strust.SrcAllocatedPort = LL_DMA_SRC_ALLOCATED_PORT1;
-    dma_init_strust.SrcBurstLength = 8;
-    dma_init_strust.SrcIncMode = LL_DMA_SRC_INCREMENT;
-    dma_init_strust.SrcDataWidth = LL_DMA_SRC_DATAWIDTH_HALFWORD;
-
-    dma_init_strust.DestAllocatedPort = LL_DMA_DEST_ALLOCATED_PORT0;
-    dma_init_strust.DestBurstLength = 1;
-    dma_init_strust.DestIncMode = LL_DMA_DEST_FIXED;
-    dma_init_strust.DestDataWidth = LL_DMA_DEST_DATAWIDTH_HALFWORD;
-
-    dma_init_strust.Priority = FURI_HAL_SAI_DMA_PRIORITY;
-    dma_init_strust.LinkAllocatedPort = LL_DMA_LINK_ALLOCATED_PORT1;
-    dma_init_strust.LinkedListBaseAddr = (uint32_t)&furi_hal_sai.data_ptr;
-    dma_init_strust.LinkedListAddrOffset = (uint32_t)&furi_hal_sai.data_ptr;
-
-    LL_DMA_Init(GPDMA1, furi_hal_sai.dma_channel, &dma_init_strust);
-    LL_DMA_EnableCSARUpdate(GPDMA1, furi_hal_sai.dma_channel);
 
     LL_DMA_EnableIT_TC(GPDMA1, furi_hal_sai.dma_channel);
     LL_DMA_EnableIT_HT(GPDMA1, furi_hal_sai.dma_channel);
 
     LL_DMA_EnableIT_TO(GPDMA1, furi_hal_sai.dma_channel);
-    LL_DMA_EnableIT_SUSP(GPDMA1, furi_hal_sai.dma_channel);
     LL_DMA_EnableIT_USE(GPDMA1, furi_hal_sai.dma_channel);
     LL_DMA_EnableIT_ULE(GPDMA1, furi_hal_sai.dma_channel);
     LL_DMA_EnableIT_DTE(GPDMA1, furi_hal_sai.dma_channel);
 
     furi_hal_interrupt_set_isr(
         furi_hal_dma_get_gpdma_interrupt_id(furi_hal_sai.dma_channel), furi_hal_sai_isr, NULL);
+}
 
-    //Start DMA Channel
+static void furi_hal_sai_start_dma(void) {
+    furi_check(furi_hal_sai.dma_data_ptr);
+    furi_check(furi_hal_sai.dma_data_size);
+
+    furi_check(!LL_DMA_IsEnabledChannel(GPDMA1, furi_hal_sai.dma_channel));
+
+    LL_DMA_InitTypeDef dma_init_struct = {
+        .SrcAddress = furi_hal_sai.dma_data_ptr,
+        .DestAddress = (uint32_t)(&FURI_HAL_SAI_BLOCK->DR),
+        .BlkDataLength = furi_hal_sai.dma_data_size,
+
+        .Request = FURI_HAL_SAI_DMA_REQUEST,
+        .Direction = LL_DMA_DIRECTION_MEMORY_TO_PERIPH,
+
+        .SrcAllocatedPort = LL_DMA_SRC_ALLOCATED_PORT1,
+        .SrcBurstLength = 8,
+        .SrcIncMode = LL_DMA_SRC_INCREMENT,
+        .SrcDataWidth = LL_DMA_SRC_DATAWIDTH_HALFWORD,
+
+        .DestAllocatedPort = LL_DMA_DEST_ALLOCATED_PORT0,
+        .DestBurstLength = 1,
+        .DestIncMode = LL_DMA_DEST_FIXED,
+        .DestDataWidth = LL_DMA_DEST_DATAWIDTH_HALFWORD,
+
+        .Priority = FURI_HAL_SAI_DMA_PRIORITY,
+        .LinkAllocatedPort = LL_DMA_LINK_ALLOCATED_PORT1,
+        .LinkedListBaseAddr = (uint32_t)&furi_hal_sai.dma_data_ptr,
+        .LinkedListAddrOffset = (uint32_t)&furi_hal_sai.dma_data_ptr,
+    };
+
+    LL_DMA_Init(GPDMA1, furi_hal_sai.dma_channel, &dma_init_struct);
+    LL_DMA_EnableCSARUpdate(GPDMA1, furi_hal_sai.dma_channel);
+
     LL_DMA_EnableChannel(GPDMA1, furi_hal_sai.dma_channel);
 }
 
-void furi_hal_sai_transmit_start() {
+static bool furi_hal_sai_stop_dma(void) {
+    if(LL_DMA_IsEnabledChannel(GPDMA1, furi_hal_sai.dma_channel)) {
+        LL_DMA_SuspendChannel(GPDMA1, furi_hal_sai.dma_channel);
+
+        uint32_t count = SAI_DEFAULT_TIMEOUT * (SystemCoreClock / 7U / 1000U);
+        do {
+            if(count == 0U) {
+                return false;
+            }
+            count--;
+        } while(!LL_DMA_IsActiveFlag_SUSP(GPDMA1, furi_hal_sai.dma_channel));
+
+        LL_DMA_ResetChannel(GPDMA1, furi_hal_sai.dma_channel);
+    }
+
+    return true;
 }
 
-bool furi_hal_sai_init() {
+bool furi_hal_sai_init(void) {
     // Init the low level hardware : GPIO, CLOCK, NVIC and DMA
     LL_RCC_SetSAIClockSource(LL_RCC_SAI1_CLKSOURCE_PLL1);
 
@@ -177,8 +171,10 @@ bool furi_hal_sai_init() {
         &gpio_i2s_sd, GpioModeAltFunctionPushPull, GpioPullNo, GpioSpeedLow, GpioAltFn13SAI1);
     furi_hal_gpio_init_ex(
         &gpio_i2s_fs, GpioModeAltFunctionPushPull, GpioPullNo, GpioSpeedLow, GpioAltFn13SAI1);
+#ifndef FURI_HAL_CLOCK_MCO
     furi_hal_gpio_init_ex(
         &gpio_i2s_sck, GpioModeAltFunctionPushPull, GpioPullNo, GpioSpeedLow, GpioAltFn13SAI1);
+#endif
     furi_hal_gpio_init(
         &gpio_audio_en_and_917_swo, GpioModeOutputPushPull, GpioPullNo, GpioSpeedLow);
 
@@ -225,7 +221,7 @@ bool furi_hal_sai_init() {
 #define SAI_FREE_PROTOCOL            0x00000000U
 #define SAI_DATASIZE_16              SAI_xCR1_DS_2
 #define SAI_FIRSTBIT_MSB             0x00000000U
-#define SAI_STEREOMODE               0x00000000U
+#define SAI_STEREOMODE               SAI_xCR1_MONO
 #define SAI_OUTPUTDRIVE_DISABLE      0x00000000U
 #define SAI_MASTERDIVIDER_ENABLE     0x00000000U
 #define SAI_MCK_OUTPUT_DISABLE       0x00000000U
@@ -282,27 +278,38 @@ bool furi_hal_sai_init() {
     // Disable PDM
     FURI_HAL_SAI->PDMCR &= ~(SAI_PDMCR_PDMEN);
 
-    FURI_LOG_I(TAG, "furi_hal_sai_init done");
-
-    furi_hal_sai_setup_dma();
+    furi_hal_sai_init_dma();
 
     // Enable DMA request
     FURI_HAL_SAI_BLOCK->CR1 |= SAI_xCR1_DMAEN;
 
+    FURI_LOG_I(TAG, "furi_hal_sai_init done");
     return true;
 }
 
-void furi_hal_sai_start(FuriHalSaiCallback callback, void* callback_context) {
-    furi_hal_sai.callback = callback;
-    furi_hal_sai.callback_context = callback_context;
+void furi_hal_sai_set_buffer(const int16_t* buffer, uint32_t buffer_depth) {
+    furi_check(buffer);
+    furi_check(buffer_depth);
 
-    furi_hal_sai_refill(0, FURI_HAL_SAI_DMA_SAMPLE_COUNT);
+    furi_hal_sai.dma_data_ptr = (uint32_t)buffer;
+    furi_hal_sai.dma_data_size = buffer_depth * sizeof(int16_t);
+}
+
+void furi_hal_sai_set_callback(FuriHalSaiCallback callback, void* context) {
+    furi_hal_sai.callback = callback;
+    furi_hal_sai.callback_context = context;
+}
+
+void furi_hal_sai_start(void) {
+    FURI_CRITICAL_ENTER();
+    furi_hal_sai_start_dma();
     furi_check(furi_hal_sai_enable());
+    FURI_CRITICAL_EXIT();
 }
 
 void furi_hal_sai_stop(void) {
+    FURI_CRITICAL_ENTER();
     furi_check(furi_hal_sai_disable());
-
-    furi_hal_sai.callback = NULL;
-    furi_hal_sai.callback_context = NULL;
+    furi_check(furi_hal_sai_stop_dma());
+    FURI_CRITICAL_EXIT();
 }

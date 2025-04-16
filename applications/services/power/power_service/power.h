@@ -1,101 +1,81 @@
 #pragma once
 
+#include <furi.h>
 #include <stdint.h>
 #include <stdbool.h>
 
-#include <core/pubsub.h>
-
-#ifdef __cplusplus
-extern "C" {
-#endif
+typedef struct Power Power;
 
 #define RECORD_POWER "power"
 
-typedef struct Power Power;
+#define CHARGE_CURRENT_MAX 3300
 
 typedef enum {
-    PowerBootModeNormal,
-    PowerBootModeDfu,
-    PowerBootModeUpdateStart,
-} PowerBootMode;
+    PowerRebootHardware, // Hardware power reboot using charger
+    PowerRebootNormal, // Reboot U5 + 917
+    PowerRebootNormalU5, // Reboot U5 only
+    PowerRebootNormal917, // Reboot 917 only
+    PowerRebootDfuU5, // Reboot U5 to DFU
+    PowerRebootDfu917, // Reboot 917 to DFU
+} PowerRebootMode;
 
 typedef enum {
-    PowerEventTypeStopCharging,
-    PowerEventTypeStartCharging,
-    PowerEventTypeFullyCharged,
-    PowerEventTypeBatteryLevelChanged,
+    PowerEventReady,
+    PowerEventBatteryLow,
+    PowerEventBatteryHot,
+    PowerEventChargerConnect,
+    PowerEventChargerDisconnect,
 } PowerEventType;
-
-typedef union {
-    uint8_t battery_level;
-} PowerEventData;
 
 typedef struct {
     PowerEventType type;
-    PowerEventData data;
 } PowerEvent;
 
 typedef struct {
-    bool gauge_is_ok;
     bool is_charging;
-    bool is_shutdown_requested;
+    bool is_full_charged;
+    bool charge_enabled;
+    uint8_t charge;
 
-    float current_charger;
-    float current_gauge;
+    int32_t current_battery;
+    uint32_t current_usb;
 
-    float voltage_battery_charge_limit;
-    float voltage_charger;
-    float voltage_gauge;
-    float voltage_vbus;
-
-    uint32_t capacity_remaining;
-    uint32_t capacity_full;
+    uint32_t voltage_battery;
+    uint32_t voltage_usb;
 
     float temperature_charger;
-    float temperature_gauge;
+    float temperature_battery;
 
-    uint8_t charge;
-    uint8_t health;
+    uint32_t charge_ilim_usb;
+    uint32_t charge_ilim_battery;
 } PowerInfo;
 
-/** Power off device
- */
-void power_off(Power* power);
+typedef struct {
+    uint8_t cap_number;
+    uint8_t cc_line;
+    uint8_t cap_id;
+    uint32_t voltage_set;
+    uint32_t current_max;
+    uint32_t passive_mode_current;
+    struct {
+        uint32_t voltage_min;
+        uint32_t voltage_max;
+        uint32_t current_max;
+        uint8_t pdo_id;
+        bool is_fixed;
+    } cap[7];
+} PowerPdInfo;
 
-/** Reboot device
- *
- * @param mode      PowerBootMode
- */
-void power_reboot(Power* power, PowerBootMode mode);
-
-/** Get power info
- *
- * @param power     Power instance
- * @param info      PowerInfo instance
- */
-void power_get_info(Power* power, PowerInfo* info);
-
-/** Get power event pubsub handler
- *
- * @param power     Power instance
- *
- * @return          FuriPubSub instance
- */
 FuriPubSub* power_get_pubsub(Power* power);
+bool power_off(Power* power);
+void power_reboot(Power* power, PowerRebootMode mode);
+bool power_is_usb_connected(Power* power);
+bool power_is_battery_ready(Power* power);
+void power_get_info(Power* power, PowerInfo* info);
+void power_charge_enable(Power* power, bool enable);
+void power_set_charge_current(Power* power, uint32_t current_ma);
+void power_get_pd_info(Power* power, PowerPdInfo* info);
+void power_set_pd_mode(Power* power, uint32_t voltage_mv);
 
-/** Check battery health
- *
- * @return          true if battery is healthy
- */
-bool power_is_battery_healthy(Power* power);
-
-/** Enable or disable battery low level notification message
- *
- * @param power     Power instance
- * @param enable    true - enable, false - disable
- */
-void power_enable_low_battery_level_notification(Power* power, bool enable);
-
-#ifdef __cplusplus
-}
-#endif
+// TODO: internal API
+void power_on_usb_pd_update(Power* power, uint32_t voltage, uint32_t current);

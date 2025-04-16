@@ -8,12 +8,22 @@
 #define TAG                       "Loader"
 #define LOADER_MAGIC_THREAD_VALUE 0xDEADBEEF
 
+static const LoaderMessageHandler loader_handlers[];
+
 // internal
 
-void furi_hal_power_insomnia_enter(void) {
+static void furi_hal_power_insomnia_enter(void) {
 }
 
-void furi_hal_power_insomnia_exit(void) {
+static void furi_hal_power_insomnia_exit(void) {
+}
+
+static void loader_send_message(Loader* loader, const LoaderMessage* message) {
+    furi_check(furi_message_queue_put(loader->queue, message, FuriWaitForever) == FuriStatusOk);
+
+    if(message->api_lock) {
+        api_lock_wait_unlock_and_free(message->api_lock);
+    }
 }
 
 // API
@@ -23,55 +33,73 @@ LoaderStatus
     furi_check(loader);
     furi_check(name);
 
-    LoaderMessage message;
     LoaderMessageLoaderStatusResult result;
 
-    message.type = LoaderMessageTypeStartByName;
-    message.start.name = name;
-    message.start.args = args;
-    message.start.error_message = error_message;
-    message.api_lock = api_lock_alloc_locked();
-    message.status_value = &result;
-    furi_message_queue_put(loader->queue, &message, FuriWaitForever);
-    api_lock_wait_unlock_and_free(message.api_lock);
+    const LoaderMessage message = {
+        .type = LoaderMessageTypeStart,
+        .start.name = name,
+        .start.args = args,
+        .start.error_message = error_message,
+        .api_lock = api_lock_alloc_locked(),
+        .status_value = &result,
+    };
 
+    loader_send_message(loader, &message);
+    return result.value;
+}
+
+LoaderStatus loader_stop(Loader* loader) {
+    furi_check(loader);
+
+    LoaderMessageLoaderStatusResult result;
+
+    const LoaderMessage message = {
+        .type = LoaderMessageTypeStop,
+        .api_lock = api_lock_alloc_locked(),
+        .status_value = &result,
+    };
+
+    loader_send_message(loader, &message);
     return result.value;
 }
 
 bool loader_lock(Loader* loader) {
     furi_check(loader);
 
-    LoaderMessage message;
     LoaderMessageBoolResult result;
-    message.type = LoaderMessageTypeLock;
-    message.api_lock = api_lock_alloc_locked();
-    message.bool_value = &result;
-    furi_message_queue_put(loader->queue, &message, FuriWaitForever);
-    api_lock_wait_unlock_and_free(message.api_lock);
 
+    const LoaderMessage message = {
+        .type = LoaderMessageTypeLock,
+        .api_lock = api_lock_alloc_locked(),
+        .bool_value = &result,
+    };
+
+    loader_send_message(loader, &message);
     return result.value;
 }
 
 void loader_unlock(Loader* loader) {
     furi_check(loader);
 
-    LoaderMessage message;
-    message.type = LoaderMessageTypeUnlock;
+    const LoaderMessage message = {
+        .type = LoaderMessageTypeUnlock,
+    };
 
-    furi_message_queue_put(loader->queue, &message, FuriWaitForever);
+    loader_send_message(loader, &message);
 }
 
 bool loader_is_locked(Loader* loader) {
     furi_check(loader);
 
-    LoaderMessage message;
     LoaderMessageBoolResult result;
-    message.type = LoaderMessageTypeIsLocked;
-    message.api_lock = api_lock_alloc_locked();
-    message.bool_value = &result;
-    furi_message_queue_put(loader->queue, &message, FuriWaitForever);
-    api_lock_wait_unlock_and_free(message.api_lock);
 
+    const LoaderMessage message = {
+        .type = LoaderMessageTypeIsLocked,
+        .api_lock = api_lock_alloc_locked(),
+        .bool_value = &result,
+    };
+
+    loader_send_message(loader, &message);
     return result.value;
 }
 
@@ -83,6 +111,12 @@ FuriPubSub* loader_get_pubsub(Loader* loader) {
     return loader->pubsub;
 }
 
+// implementation
+
+static bool loader_is_locked_internal(const Loader* loader) {
+    return loader->app.thread != NULL;
+}
+
 static void
     loader_thread_state_callback(FuriThread* thread, FuriThreadState thread_state, void* context) {
     UNUSED(thread);
@@ -91,22 +125,12 @@ static void
     if(thread_state == FuriThreadStateStopped) {
         Loader* loader = context;
 
-        LoaderMessage message;
-        message.type = LoaderMessageTypeAppClosed;
-        furi_message_queue_put(loader->queue, &message, FuriWaitForever);
+        const LoaderMessage message = {
+            .type = LoaderMessageTypeAppClosed,
+        };
+
+        loader_send_message(loader, &message);
     }
-}
-
-// implementation
-
-static Loader* loader_alloc(void) {
-    Loader* loader = malloc(sizeof(Loader));
-    loader->pubsub = furi_pubsub_alloc();
-    loader->queue = furi_message_queue_alloc(1, sizeof(LoaderMessage));
-    loader->app.args = NULL;
-    loader->app.thread = NULL;
-    loader->app.insomniac = false;
-    return loader;
 }
 
 static FlipperInternalApplication const* loader_find_application_by_name_in_list(
@@ -122,10 +146,12 @@ static FlipperInternalApplication const* loader_find_application_by_name_in_list
 }
 
 static const FlipperInternalApplication* loader_find_application_by_name(const char* name) {
-    const struct {
+    typedef struct {
         const FlipperInternalApplication* list;
         const uint32_t count;
-    } lists[] = {
+    } FlipperInternalApplicationList;
+
+    const FlipperInternalApplicationList lists[] = {
         {FLIPPER_SETTINGS_APPS, FLIPPER_SETTINGS_APPS_COUNT},
         {FLIPPER_SYSTEM_APPS, FLIPPER_SYSTEM_APPS_COUNT},
         {FLIPPER_DEBUG_APPS, FLIPPER_DEBUG_APPS_COUNT},
@@ -223,19 +249,16 @@ static LoaderStatus loader_make_success_status(FuriString* error_message) {
     return LoaderStatusOk;
 }
 
-static bool loader_do_is_locked(Loader* loader) {
-    return loader->app.thread != NULL;
-}
-
-static LoaderStatus loader_do_start_by_name(
+static LoaderStatus loader_start_internal(
     Loader* loader,
     const char* name,
     const char* args,
     FuriString* error_message) {
     LoaderStatus status;
+
     do {
         // check lock
-        if(loader_do_is_locked(loader)) {
+        if(loader_is_locked_internal(loader)) {
             const char* current_thread_name =
                 furi_thread_get_name(furi_thread_get_id(loader->app.thread));
             status = loader_make_status_error(
@@ -258,26 +281,43 @@ static LoaderStatus loader_do_start_by_name(
 
         status = loader_make_status_error(
             LoaderStatusErrorUnknownApp, error_message, "Application \"%s\" not found", name);
+
     } while(false);
 
     return status;
 }
 
-static bool loader_do_lock(Loader* loader) {
-    if(loader->app.thread) {
-        return false;
-    }
+// Message handlers
 
-    loader->app.thread = (FuriThread*)LOADER_MAGIC_THREAD_VALUE;
-    return true;
+static void loader_start_handler(Loader* loader, const LoaderMessage* message) {
+    const LoaderMessageStartByName* start = &message->start;
+    message->status_value->value =
+        loader_start_internal(loader, start->name, start->args, start->error_message);
 }
 
-static void loader_do_unlock(Loader* loader) {
-    furi_check(loader->app.thread == (FuriThread*)LOADER_MAGIC_THREAD_VALUE);
-    loader->app.thread = NULL;
+static void loader_stop_handler(Loader* loader, const LoaderMessage* message) {
+    LoaderStatus status;
+
+    do {
+        if(!loader_is_locked_internal(loader)) {
+            status = LoaderStatusErrorAppNotRunning;
+            break;
+        }
+
+        if(!furi_thread_signal(loader->app.thread, FuriSignalExit, NULL)) {
+            status = LoaderStatusErrorInternal;
+            break;
+        }
+
+        status = LoaderStatusOk;
+
+    } while(false);
+
+    message->status_value->value = status;
 }
 
-static void loader_do_app_closed(Loader* loader) {
+static void loader_app_closed_handler(Loader* loader, const LoaderMessage* message) {
+    UNUSED(message);
     furi_assert(loader->app.thread);
 
     furi_thread_join(loader->app.thread);
@@ -297,54 +337,108 @@ static void loader_do_app_closed(Loader* loader) {
 
     FURI_LOG_I(TAG, "Application stopped. Free heap: %zu", memmgr_get_free_heap());
 
-    LoaderEvent event;
-    event.type = LoaderEventTypeApplicationStopped;
+    LoaderEvent event = {
+        .type = LoaderEventTypeApplicationStopped,
+    };
+
     furi_pubsub_publish(loader->pubsub, &event);
+}
+
+static void loader_lock_handler(Loader* loader, const LoaderMessage* message) {
+    bool success = false;
+
+    if(!loader_is_locked_internal(loader)) {
+        loader->app.thread = (FuriThread*)LOADER_MAGIC_THREAD_VALUE;
+        success = true;
+    }
+
+    message->bool_value->value = success;
+}
+
+static void loader_unlock_handler(Loader* loader, const LoaderMessage* message) {
+    UNUSED(message);
+
+    furi_check(loader->app.thread == (FuriThread*)LOADER_MAGIC_THREAD_VALUE);
+    loader->app.thread = NULL;
+}
+
+static void loader_is_locked_handler(Loader* loader, const LoaderMessage* message) {
+    message->bool_value->value = loader_is_locked_internal(loader);
+}
+
+static void loader_message_queue_callback(FuriEventLoopObject* object, void* context) {
+    furi_assert(context);
+    Loader* loader = context;
+    furi_assert(object == loader->queue);
+
+    LoaderMessage message;
+    furi_check(furi_message_queue_get(loader->queue, &message, FuriWaitForever) == FuriStatusOk);
+    furi_assert(message.type < LoaderMessageTypeMax);
+
+    loader_handlers[message.type](loader, &message);
+
+    if(message.api_lock) {
+        api_lock_unlock(message.api_lock);
+    }
+}
+
+static Loader* loader_alloc(void) {
+    Loader* loader = malloc(sizeof(Loader));
+
+    loader->event_loop = furi_event_loop_alloc();
+    loader->queue = furi_message_queue_alloc(1, sizeof(LoaderMessage));
+    loader->pubsub = furi_pubsub_alloc();
+
+    furi_event_loop_subscribe_message_queue(
+        loader->event_loop,
+        loader->queue,
+        FuriEventLoopEventIn,
+        loader_message_queue_callback,
+        loader);
+
+    furi_record_create(RECORD_LOADER, loader);
+
+    return loader;
+}
+
+static void loader_do_on_start(void) {
+    FURI_LOG_I(TAG, "Executing system start hooks");
+
+    for(size_t i = 0; i < FLIPPER_ON_SYSTEM_START_COUNT; i++) {
+        FLIPPER_ON_SYSTEM_START[i]();
+    }
+}
+
+static void loader_do_autorun(Loader* loader) {
+    UNUSED(loader);
+
+    if(FLIPPER_AUTORUN_APP_NAME && strlen(FLIPPER_AUTORUN_APP_NAME)) {
+        FURI_LOG_I(TAG, "Starting autorun app: %s", FLIPPER_AUTORUN_APP_NAME);
+
+        loader_start_internal(loader, FLIPPER_AUTORUN_APP_NAME, NULL, NULL);
+    }
 }
 
 // app
 
 int32_t loader_srv(void* p) {
     UNUSED(p);
+
     Loader* loader = loader_alloc();
-    furi_record_create(RECORD_LOADER, loader);
 
-    FURI_LOG_I(TAG, "Executing system start hooks");
-    for(size_t i = 0; i < FLIPPER_ON_SYSTEM_START_COUNT; i++) {
-        FLIPPER_ON_SYSTEM_START[i]();
-    }
+    loader_do_on_start();
+    loader_do_autorun(loader);
 
-    if(FLIPPER_AUTORUN_APP_NAME && strlen(FLIPPER_AUTORUN_APP_NAME)) {
-        FURI_LOG_I(TAG, "Starting autorun app: %s", FLIPPER_AUTORUN_APP_NAME);
-        loader_do_start_by_name(loader, FLIPPER_AUTORUN_APP_NAME, NULL, NULL);
-    }
-
-    LoaderMessage message;
-    while(true) {
-        if(furi_message_queue_get(loader->queue, &message, FuriWaitForever) == FuriStatusOk) {
-            switch(message.type) {
-            case LoaderMessageTypeStartByName:
-                message.status_value->value = loader_do_start_by_name(
-                    loader, message.start.name, message.start.args, message.start.error_message);
-                api_lock_unlock(message.api_lock);
-                break;
-            case LoaderMessageTypeIsLocked:
-                message.bool_value->value = loader_do_is_locked(loader);
-                api_lock_unlock(message.api_lock);
-                break;
-            case LoaderMessageTypeAppClosed:
-                loader_do_app_closed(loader);
-                break;
-            case LoaderMessageTypeLock:
-                message.bool_value->value = loader_do_lock(loader);
-                api_lock_unlock(message.api_lock);
-                break;
-            case LoaderMessageTypeUnlock:
-                loader_do_unlock(loader);
-                break;
-            }
-        }
-    }
+    furi_event_loop_run(loader->event_loop);
 
     return 0;
 }
+
+static const LoaderMessageHandler loader_handlers[LoaderMessageTypeMax] = {
+    [LoaderMessageTypeStart] = loader_start_handler,
+    [LoaderMessageTypeStop] = loader_stop_handler,
+    [LoaderMessageTypeAppClosed] = loader_app_closed_handler,
+    [LoaderMessageTypeLock] = loader_lock_handler,
+    [LoaderMessageTypeUnlock] = loader_unlock_handler,
+    [LoaderMessageTypeIsLocked] = loader_is_locked_handler,
+};

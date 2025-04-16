@@ -1,61 +1,84 @@
 #pragma once
 
 #include "power.h"
-
-#include <gui/gui.h>
-#include <gui/view_holder.h>
-
+#include <furi_hal.h>
 #include <toolbox/api_lock.h>
-#include <assets_icons.h>
-
-#include "views/power_off.h"
-#include "views/power_unplug_usb.h"
 
 typedef enum {
-    PowerStateNotCharging,
-    PowerStateCharging,
-    PowerStateCharged,
-} PowerState;
-
-struct Power {
-    ViewHolder* view_holder;
-    FuriPubSub* event_pubsub;
-    FuriEventLoop* event_loop;
-    FuriMessageQueue* message_queue;
-
-    ViewPort* battery_view_port;
-    PowerOff* view_power_off;
-    PowerUnplugUsb* view_power_unplug_usb;
-
-    PowerEvent event;
-    PowerState state;
-    PowerInfo info;
-
-    bool battery_low;
-    bool show_battery_low_warning;
-    uint8_t battery_level;
-    uint8_t power_off_timeout;
-};
-
-typedef enum {
-    PowerViewOff,
-    PowerViewUnplugUsb,
-} PowerView;
-
-typedef enum {
-    PowerMessageTypeShutdown,
+    PowerMessageTypeOff,
     PowerMessageTypeReboot,
     PowerMessageTypeGetInfo,
-    PowerMessageTypeIsBatteryHealthy,
-    PowerMessageTypeShowBatteryLowWarning,
+    PowerMessageTypeIsUsbConnected,
+    PowerMessageTypeIsBatteryReady,
+    PowerMessageTypeChargeEnable,
+    PowerMessageTypeSetChargeCurrent,
+    PowerMessageTypePdGetInfo,
+    PowerMessageTypePdRequest,
+
+    // TODO: separate queue for internal messages?
+    PowerMessageTypeUsbPdUpdate,
 } PowerMessageType;
+
+#define PDO_NUMBER_MAX 7
+
+typedef struct {
+    uint32_t passive_mode_current;
+    size_t cap_number;
+    uint8_t cc_line;
+    uint8_t cap_id_current;
+    struct {
+        uint32_t voltage_min;
+        uint32_t voltage_max;
+        uint32_t current_max;
+        uint8_t pdo_id;
+        bool is_fixed;
+    } cap[PDO_NUMBER_MAX];
+} PowerUsbPdCapability;
+
+typedef struct PowerUsbPd PowerUsbPd;
 
 typedef struct {
     PowerMessageType type;
-    union {
-        PowerBootMode boot_mode;
-        PowerInfo* power_info;
-        bool* bool_param;
-    };
     FuriApiLock lock;
+    union {
+        PowerRebootMode reboot_mode;
+        struct {
+            uint32_t voltage;
+            uint32_t current;
+        } pd_mode;
+        PowerInfo* power_info;
+        PowerPdInfo* pd_info;
+        bool* param_bool;
+        int32_t* param_int;
+    };
 } PowerMessage;
+
+struct Power {
+    FuriEventLoop* event_loop;
+    FuriMessageQueue* message_queue;
+    FuriSemaphore* gpio_semaphore;
+    PowerUsbPd* usb_pd;
+    FuriPubSub* event_pubsub;
+    struct {
+        bool charger_alive;
+        bool battery_ready;
+        bool usb_connected;
+    } state;
+    PowerInfo info;
+    PowerPdInfo pd_info;
+    uint32_t input_current_limit;
+    uint32_t charger_current_limit;
+    bool charger_enabled;
+};
+
+PowerUsbPd* power_usb_pd_alloc(FuriMessageQueue** pd_queue);
+
+void power_usb_pd_msg_handler(FuriEventLoopObject* object, void* context);
+
+void power_usb_pd_start(PowerUsbPd* pd);
+
+void power_usb_pd_get_capabilities(PowerUsbPd* pd, PowerUsbPdCapability* caps);
+
+void power_usb_pd_request_power(PowerUsbPd* pd, uint32_t voltage_mv, uint32_t current_ma);
+
+uint8_t power_get_battery_charge(uint32_t voltage_mv, int32_t current_ma, bool is_charging);

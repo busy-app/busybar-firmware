@@ -1,5 +1,17 @@
 App(
     appid="system_apps",
+    name="Applications not shown in menus",
+    apptype=FlipperAppType.METAPACKAGE,
+    provides=[
+        "apps_menu",
+        "message",
+        "sl_update_start",
+    ],
+    targets=["f20"],
+)
+
+App(
+    appid="system_apps",
     name="Basic applications for system menu",
     apptype=FlipperAppType.METAPACKAGE,
     provides=[
@@ -21,6 +33,8 @@ App(
         "ble_ibeacon_start",
         "ble_per_test_start",
         "ble_usart_echo_start",
+        "crypto_test_start",
+        "nvm3_test_start",
     ],
     targets=["f64"],
 )

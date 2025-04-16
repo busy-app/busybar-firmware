@@ -14,6 +14,7 @@ App(
         "storage_glue.c",
         "storage_processing_u5.c",
         "storage_sd_api.c",
+        "storage_posix_api.c",
         "storages/storage_ext_sdmmc.c",
     ],
     targets=["f50", "f20"],

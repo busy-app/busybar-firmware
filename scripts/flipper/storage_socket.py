@@ -5,10 +5,10 @@ import logging
 import math
 import os
 import posixpath
+import socket
 import sys
 import time
 
-import socket
 
 def timing(func):
     """
@@ -63,6 +63,7 @@ class FlipperStorageException(Exception):
             f"Storage error: path '{path}': {error_code.value}"
         )
 
+
 class Stream:
     def __init__(self, portname: tuple[str, int]):
         self.address = portname[0]
@@ -85,19 +86,20 @@ class Stream:
         data = self.socket.recv(size)
         self.received += len(data)
         return data
-    
+
     def read(self, size: int):
         data = self.try_read(size)
         while len(data) < size:
             data += self.try_read(size - len(data))
         return data
-    
+
     def reset_input_buffer(self):
         pass
-    
+
     @property
     def in_waiting(self):
         return 1
+
 
 class BufferedRead:
     def __init__(self, stream: Stream):
@@ -122,11 +124,12 @@ class BufferedRead:
             data = self.stream.read(i)
             self.buffer.extend(data)
 
+
 class FlipperStorage:
     CLI_PROMPT = ">: "
     CLI_EOL = "\r\n"
 
-    def __init__(self, portname: tuple[str, int], chunk_size: int = 1024):
+    def __init__(self, portname: tuple[str, int], chunk_size: int = 200 * 1024):
         self.port = Stream(portname)
         self.read = BufferedRead(self.port)
         self.chunk_size = chunk_size
@@ -446,13 +449,13 @@ class FlipperStorageOperations:
         self.logger.debug(
             f"* send_file_to_storage:  {local_file_path}->{flipper_file_path}, {force=}"
         )
-        exists = self.storage.exist_file(flipper_file_path)
-        do_upload = not exists
-        if exists:
-            hash_local = self.storage.hash_local(local_file_path)
-            hash_flipper = self.storage.hash_flipper(flipper_file_path)
-            self.logger.debug(f"hash check: local {hash_local}, flipper {hash_flipper}")
-            do_upload = force or (hash_local != hash_flipper)
+        do_upload = True
+        if self.storage.exist_file(flipper_file_path):
+            if not force:
+                hash_local = self.storage.hash_local(local_file_path)
+                hash_flipper = self.storage.hash_flipper(flipper_file_path)
+                self.logger.debug(f"hash check: local {hash_local}, flipper {hash_flipper}")
+                do_upload = (hash_local != hash_flipper)
 
         if do_upload:
             self.logger.info(f'Sending "{local_file_path}" to "{flipper_file_path}"')

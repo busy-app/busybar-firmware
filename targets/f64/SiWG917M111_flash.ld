@@ -31,8 +31,11 @@ ENTRY(Reset_Handler)
 
 _stack_size = 0x200; /* Required amount of stack */
 
+_flash_address_start = 0x8202000;
+_flash_size = 0x1fe000;
+
 MEMORY {
-    FLASH (rx)  : ORIGIN = 0x8202000, LENGTH = 0x1fe000
+    FLASH (rx)  : ORIGIN = _flash_address_start, LENGTH = _flash_size
     RAM   (rwx) : ORIGIN = 0x000000c, LENGTH = 0x3fbf4
     UDMA0 (rwx) : ORIGIN = 0x003fc00, LENGTH = 0x400
 }
@@ -232,4 +235,24 @@ SECTIONS {
         . = ALIGN(512);
         *(.udma_addr0*)
     } > UDMA0 AT> FLASH
+
+    __main_flash_end__ = _flash_address_start + _flash_size;
+        /* This is where we handle flash storage blocks. We use dummy sections for finding the configured
+    * block sizes and then "place" them at the end of flash when the size is known. */
+    .internal_storage1 (DSECT) : {
+        KEEP(*(.internal_storage1*))
+    } > FLASH
+    .nvm (DSECT) : {
+        KEEP(*(.simee*))
+    } > FLASH
+    
+    linker_nvm_end = __main_flash_end__ - 4096;
+    linker_nvm_begin = linker_nvm_end - SIZEOF(.nvm);
+    linker_nvm_size = SIZEOF(.nvm);
+    linker_storage_end = linker_nvm_begin;
+    __nvm3Base = linker_nvm_begin;	
+    linker_storage_begin = linker_storage_end - SIZEOF(.internal_storage1);
+    linker_storage_size = SIZEOF(.internal_storage1);
+    ASSERT((linker_storage_begin >= (__etext + SIZEOF(.data))), "FLASH memory overflowed !")   
+
 }

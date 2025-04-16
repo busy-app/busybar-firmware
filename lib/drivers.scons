@@ -9,7 +9,10 @@ env.AppendUnique(
 libenv = env.Clone(FW_LIB_NAME="drivers")
 libenv.ApplyLibFlags()
 
-sources = libenv.Glob("drivers/*.c", source=True)
+sources = []
+sources += libenv.Glob("drivers/ssd1320/*.c", source=True)
+sources += libenv.Glob("drivers/bh1730/*.c", source=True)
+sources += libenv.Glob("drivers/bq25798/*.c", source=True)
 
 lib = libenv.StaticLibrary("${FW_LIB_NAME}", sources)
 libenv.Install("${LIB_DIST_DIR}", lib)

@@ -49,7 +49,7 @@ static void busy_scene_timer_state_update(BusySceneTimer* data) {
 static void busy_scene_timer_update(BusyApp* instance) {
     BusySceneTimer* data = busy_get_current_scene_data(instance);
 
-    gui_lvgl_acquire(instance->gui);
+    gui_lock(instance->gui);
 
     if(data->timer_state != instance->state) {
         data->timer_state = instance->state;
@@ -71,7 +71,7 @@ static void busy_scene_timer_update(BusyApp* instance) {
         lv_label_set_text_fmt(instance->back_label, "LONG REST: %02lu:%02lu", minutes, seconds);
     }
 
-    gui_lvgl_release(instance->gui);
+    gui_unlock(instance->gui);
 }
 
 static void busy_scene_timer_show_pause_overlay(BusyApp* instance, bool show) {
@@ -81,10 +81,10 @@ static void busy_scene_timer_show_pause_overlay(BusyApp* instance, bool show) {
         return;
     }
 
-    gui_lvgl_acquire(instance->gui);
+    gui_lock(instance->gui);
 
     if(show) {
-        lv_obj_t* top = gui_lvgl_get_layer(instance->gui, GuiDisplayIdFront, GuiLayerIdTop);
+        lv_obj_t* top = gui_get_layer(instance->gui, GuiDisplayIdFront, GuiLayerIdTop);
 
         data->overlay = lv_obj_create(top);
         lv_obj_set_size(data->overlay, lv_obj_get_width(top), lv_obj_get_height(top));
@@ -102,7 +102,7 @@ static void busy_scene_timer_show_pause_overlay(BusyApp* instance, bool show) {
         data->overlay_image = NULL;
     }
 
-    gui_lvgl_release(instance->gui);
+    gui_unlock(instance->gui);
 }
 
 static void busy_scene_timer_toggle_pause_overlay(BusyApp* instance) {
@@ -129,9 +129,9 @@ static void busy_scene_timer_on_enter(void* context) {
     BusyApp* instance = context;
     BusySceneTimer* data = busy_get_current_scene_data(instance);
 
-    gui_lvgl_acquire(instance->gui);
+    gui_lock(instance->gui);
 
-    lv_obj_t* active = gui_lvgl_get_layer(instance->gui, GuiDisplayIdFront, GuiLayerIdActive);
+    lv_obj_t* active = gui_get_layer(instance->gui, GuiDisplayIdFront, GuiLayerIdActive);
 
     data->main_image = lv_image_create(active);
 
@@ -165,7 +165,7 @@ static void busy_scene_timer_on_enter(void* context) {
     lv_obj_set_pos(data->time_bar, 1, 15);
     lv_obj_set_size(data->time_bar, lv_obj_get_width(active) - 2, 1);
 
-    gui_lvgl_release(instance->gui);
+    gui_unlock(instance->gui);
 
     busy_scene_timer_update(instance);
 }
@@ -174,7 +174,7 @@ static void busy_scene_timer_on_exit(void* context) {
     BusyApp* instance = context;
     BusySceneTimer* data = busy_get_current_scene_data(instance);
 
-    gui_lvgl_acquire(instance->gui);
+    gui_lock(instance->gui);
 
     // Stop sending input events to the label
     // TODO: Why isn't it removed automatically?
@@ -190,7 +190,7 @@ static void busy_scene_timer_on_exit(void* context) {
         lv_obj_delete(data->overlay_image);
     }
 
-    gui_lvgl_release(instance->gui);
+    gui_unlock(instance->gui);
 }
 
 static void busy_scene_timer_on_event(const BusyEvent* event, void* context) {

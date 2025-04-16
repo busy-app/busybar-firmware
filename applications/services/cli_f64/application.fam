@@ -7,5 +7,5 @@ App(
     stack_size=4 * 1024,
     order=30,
     targets=["f64"],
-    conflicts=["intercom"],
+    # conflicts=["intercom"],
 )

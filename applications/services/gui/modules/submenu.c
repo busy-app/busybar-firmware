@@ -1,393 +1,217 @@
 #include "submenu.h"
 
-#include <gui/elements.h>
-#include <furi.h>
-#include <m-array.h>
+#include <gui/widget_i.h>
+
+#include <lvgl/src/core/lv_obj_class_private.h>
+
+#define MY_CLASS      (&submenu_lvgl_class)
+#define MY_ITEM_CLASS (&submenu_item_lvgl_class)
+
+#define SYM_ARROW_RIGHT "▹"
+
+#define SCROLL_ANIM_DURATION_MS (64)
 
 struct Submenu {
-    View* view;
+    Widget base;
+    lv_group_t* group;
 };
 
 typedef struct {
-    FuriString* label;
+    lv_obj_t base;
+    lv_obj_t* cursor;
+    lv_obj_t* label;
     uint32_t index;
     SubmenuItemCallback callback;
-    void* callback_context;
+    void* context;
 } SubmenuItem;
 
-static void SubmenuItem_init(SubmenuItem* item) {
-    item->label = furi_string_alloc();
-    item->index = 0;
-    item->callback = NULL;
-    item->callback_context = NULL;
-}
+const lv_obj_class_t submenu_lvgl_class;
+const lv_obj_class_t submenu_item_lvgl_class;
 
-static void SubmenuItem_init_set(SubmenuItem* item, const SubmenuItem* src) {
-    item->label = furi_string_alloc_set(src->label);
-    item->index = src->index;
-    item->callback = src->callback;
-    item->callback_context = src->callback_context;
-}
+// TODO: Make it a universal fix
+static void submenu_scroll_event_callback(lv_event_t* event) {
+    const lv_event_code_t code = lv_event_get_code(event);
 
-static void SubmenuItem_set(SubmenuItem* item, const SubmenuItem* src) {
-    furi_string_set(item->label, src->label);
-    item->index = src->index;
-    item->callback = src->callback;
-    item->callback_context = src->callback_context;
-}
-
-static void SubmenuItem_clear(SubmenuItem* item) {
-    furi_string_free(item->label);
-}
-
-ARRAY_DEF(
-    SubmenuItemArray,
-    SubmenuItem,
-    (INIT(API_2(SubmenuItem_init)),
-     SET(API_6(SubmenuItem_set)),
-     INIT_SET(API_6(SubmenuItem_init_set)),
-     CLEAR(API_2(SubmenuItem_clear))))
-
-typedef struct {
-    SubmenuItemArray_t items;
-    FuriString* header;
-    size_t position;
-    size_t window_position;
-} SubmenuModel;
-
-static void submenu_process_up(Submenu* submenu);
-static void submenu_process_down(Submenu* submenu);
-static void submenu_process_ok(Submenu* submenu);
-
-static void submenu_view_draw_callback(Canvas* canvas, void* _model) {
-    SubmenuModel* model = _model;
-
-    const uint8_t item_height = 16;
-    uint8_t item_width = canvas_width(canvas) - 5;
-
-    canvas_clear(canvas);
-
-    if(!furi_string_empty(model->header)) {
-        canvas_set_font(canvas, FontPrimary);
-        canvas_draw_str(canvas, 4, 11, furi_string_get_cstr(model->header));
+    if(code == LV_EVENT_SCROLL_BEGIN) {
+        lv_anim_t* anim = lv_event_get_scroll_anim(event);
+        if(anim) anim->duration = SCROLL_ANIM_DURATION_MS;
     }
-
-    canvas_set_font(canvas, FontSecondary);
-
-    size_t position = 0;
-    SubmenuItemArray_it_t it;
-    for(SubmenuItemArray_it(it, model->items); !SubmenuItemArray_end_p(it);
-        SubmenuItemArray_next(it)) {
-        const size_t item_position = position - model->window_position;
-        const size_t items_on_screen = furi_string_empty(model->header) ? 5 : 4;
-        uint8_t y_offset = furi_string_empty(model->header) ? 0 : 16;
-
-        if(item_position < items_on_screen) {
-            if(position == model->position) {
-                canvas_set_color(canvas, ColorBlack);
-                elements_slightly_rounded_box(
-                    canvas,
-                    0,
-                    y_offset + (item_position * item_height) + 1,
-                    item_width,
-                    item_height - 2);
-                canvas_set_color(canvas, ColorWhite);
-            } else {
-                canvas_set_color(canvas, ColorBlack);
-            }
-
-            FuriString* disp_str;
-            disp_str = furi_string_alloc_set(SubmenuItemArray_cref(it)->label);
-            elements_string_fit_width(canvas, disp_str, item_width - (6 * 2));
-
-            canvas_draw_str(
-                canvas,
-                6,
-                y_offset + (item_position * item_height) + item_height - 4,
-                furi_string_get_cstr(disp_str));
-
-            furi_string_free(disp_str);
-        }
-
-        position++;
-    }
-
-    elements_scrollbar(canvas, model->position, SubmenuItemArray_size(model->items));
 }
 
-static bool submenu_view_input_callback(InputEvent* event, void* context) {
-    Submenu* submenu = context;
-    furi_assert(submenu);
+static bool submenu_input_callback(Widget* widget, const InputEvent* event) {
+    Submenu* instance = (Submenu*)widget;
+
     bool consumed = false;
 
     if(event->type == InputTypeShort) {
-        switch(event->key) {
-        case InputKeyUp:
-            consumed = true;
-            submenu_process_up(submenu);
-            break;
-        case InputKeyDown:
-            consumed = true;
-            submenu_process_down(submenu);
-            break;
-        case InputKeyOk:
-            consumed = true;
-            submenu_process_ok(submenu);
-            break;
-        default:
-            break;
-        }
-    } else if(event->type == InputTypeRepeat) {
         if(event->key == InputKeyUp) {
+            lv_group_focus_next(instance->group);
             consumed = true;
-            submenu_process_up(submenu);
+
         } else if(event->key == InputKeyDown) {
+            lv_group_focus_prev(instance->group);
             consumed = true;
-            submenu_process_down(submenu);
+
+        } else if(event->key == InputKeyOk || event->key == InputKeyStart) {
+            const SubmenuItem* item = (SubmenuItem*)lv_group_get_focused(instance->group);
+
+            if(item->callback) {
+                item->callback(item->index, item->context);
+            }
+
+            consumed = true;
         }
     }
 
     return consumed;
 }
 
-Submenu* submenu_alloc(void) {
-    Submenu* submenu = malloc(sizeof(Submenu));
-    submenu->view = view_alloc();
-    view_set_context(submenu->view, submenu);
-    view_allocate_model(submenu->view, ViewModelTypeLocking, sizeof(SubmenuModel));
-    view_set_draw_callback(submenu->view, submenu_view_draw_callback);
-    view_set_input_callback(submenu->view, submenu_view_input_callback);
-
-    with_view_model(
-        submenu->view,
-        SubmenuModel * model,
-        {
-            SubmenuItemArray_init(model->items);
-            model->position = 0;
-            model->window_position = 0;
-            model->header = furi_string_alloc();
-        },
-        true);
-
-    return submenu;
-}
-
-void submenu_free(Submenu* submenu) {
-    furi_check(submenu);
-
-    with_view_model(
-        submenu->view,
-        SubmenuModel * model,
-        {
-            furi_string_free(model->header);
-            SubmenuItemArray_clear(model->items);
-        },
-        true);
-    view_free(submenu->view);
-    free(submenu);
-}
-
-View* submenu_get_view(Submenu* submenu) {
-    furi_check(submenu);
-    return submenu->view;
-}
-
-void submenu_add_item(
-    Submenu* submenu,
+static lv_obj_t* submenu_item_alloc(
+    Submenu* parent,
     const char* label,
     uint32_t index,
     SubmenuItemCallback callback,
-    void* callback_context) {
-    SubmenuItem* item = NULL;
-    furi_check(label);
-    furi_check(submenu);
+    void* context) {
+    lv_obj_t* obj = lv_obj_class_create_obj(MY_ITEM_CLASS, (lv_obj_t*)parent);
+    lv_obj_class_init_obj(obj);
 
-    with_view_model(
-        submenu->view,
-        SubmenuModel * model,
-        {
-            item = SubmenuItemArray_push_new(model->items);
-            furi_string_set_str(item->label, label);
-            item->index = index;
-            item->callback = callback;
-            item->callback_context = callback_context;
-        },
-        true);
+    SubmenuItem* instance = (SubmenuItem*)obj;
+    instance->index = index;
+    instance->callback = callback;
+    instance->context = context;
+
+    lv_label_set_text(instance->label, label);
+    lv_group_add_obj(parent->group, obj);
+
+    return obj;
 }
 
-void submenu_change_item_label(Submenu* submenu, uint32_t index, const char* label) {
-    furi_check(submenu);
-    furi_check(label);
+static void submenu_lvlg_constructor(const lv_obj_class_t* class_p, lv_obj_t* obj) {
+    UNUSED(class_p);
 
-    with_view_model(
-        submenu->view,
-        SubmenuModel * model,
-        {
-            SubmenuItemArray_it_t it;
-            for(SubmenuItemArray_it(it, model->items); !SubmenuItemArray_end_p(it);
-                SubmenuItemArray_next(it)) {
-                if(index == SubmenuItemArray_cref(it)->index) {
-                    furi_string_set_str(SubmenuItemArray_cref(it)->label, label);
-                    break;
-                }
-            }
-        },
-        true);
+    lv_obj_set_flex_flow(obj, LV_FLEX_FLOW_COLUMN);
+    lv_obj_add_event_cb(obj, submenu_scroll_event_callback, LV_EVENT_SCROLL_BEGIN, NULL);
+
+    Submenu* instance = (Submenu*)obj;
+    instance->group = lv_group_create();
 }
 
-void submenu_reset(Submenu* submenu) {
-    furi_check(submenu);
+static void submenu_lvlg_destructor(const lv_obj_class_t* class_p, lv_obj_t* obj) {
+    UNUSED(class_p);
 
-    with_view_model(
-        submenu->view,
-        SubmenuModel * model,
-        {
-            SubmenuItemArray_reset(model->items);
-            model->position = 0;
-            model->window_position = 0;
-            furi_string_reset(model->header);
-        },
-        true);
+    Submenu* instance = (Submenu*)obj;
+    lv_group_delete(instance->group);
 }
 
-uint32_t submenu_get_selected_item(Submenu* submenu) {
-    furi_check(submenu);
+static void submenu_item_lvgl_constructor(const lv_obj_class_t* class_p, lv_obj_t* obj) {
+    UNUSED(class_p);
 
-    uint32_t selected_item_index = 0;
+    lv_obj_set_flex_flow(obj, LV_FLEX_FLOW_ROW);
 
-    with_view_model(
-        submenu->view,
-        SubmenuModel * model,
-        {
-            if(model->position < SubmenuItemArray_size(model->items)) {
-                const SubmenuItem* item = SubmenuItemArray_cget(model->items, model->position);
-                selected_item_index = item->index;
-            }
-        },
-        false);
+    lv_obj_remove_flag(obj, LV_OBJ_FLAG_SCROLLABLE);
+    lv_obj_add_flag(obj, LV_OBJ_FLAG_SCROLL_ON_FOCUS);
 
-    return selected_item_index;
+    SubmenuItem* instance = (SubmenuItem*)obj;
+    instance->cursor = lv_label_create(obj);
+    lv_label_set_text(instance->cursor, SYM_ARROW_RIGHT);
+    instance->label = lv_label_create(obj);
+    lv_label_set_long_mode(instance->label, LV_LABEL_LONG_MODE_WRAP);
+    // TODO: A better way to show and hide the cursor
+    lv_obj_set_style_opa(instance->cursor, LV_OPA_TRANSP, LV_PART_MAIN);
+    lv_obj_set_style_pad_left(instance->cursor, 2, LV_PART_MAIN);
+    lv_obj_set_style_pad_right(instance->cursor, 1, LV_PART_MAIN);
 }
 
-void submenu_set_selected_item(Submenu* submenu, uint32_t index) {
-    furi_check(submenu);
-    with_view_model(
-        submenu->view,
-        SubmenuModel * model,
-        {
-            size_t position = 0;
-            SubmenuItemArray_it_t it;
-            for(SubmenuItemArray_it(it, model->items); !SubmenuItemArray_end_p(it);
-                SubmenuItemArray_next(it)) {
-                if(index == SubmenuItemArray_cref(it)->index) {
-                    break;
-                }
-                position++;
-            }
+static void submenu_item_lvgl_event(const lv_obj_class_t* class_p, lv_event_t* event) {
+    LV_UNUSED(class_p);
 
-            const size_t items_size = SubmenuItemArray_size(model->items);
+    lv_result_t res = LV_RESULT_OK;
+    res = lv_obj_event_base(MY_ITEM_CLASS, event);
+    if(res != LV_RESULT_OK) return;
 
-            if(position >= items_size) {
-                position = 0;
-            }
+    const lv_event_code_t code = lv_event_get_code(event);
+    SubmenuItem* instance = lv_event_get_target(event);
 
-            model->position = position;
-            model->window_position = position;
-
-            if(model->window_position > 0) {
-                model->window_position -= 1;
-            }
-
-            const size_t items_on_screen = furi_string_empty(model->header) ? 5 : 4;
-
-            if(items_size <= items_on_screen) {
-                model->window_position = 0;
-            } else {
-                const size_t pos = items_size - items_on_screen;
-                if(model->window_position > pos) {
-                    model->window_position = pos;
-                }
-            }
-        },
-        true);
-}
-
-void submenu_process_up(Submenu* submenu) {
-    with_view_model(
-        submenu->view,
-        SubmenuModel * model,
-        {
-            const size_t items_on_screen = furi_string_empty(model->header) ? 5 : 4;
-            const size_t items_size = SubmenuItemArray_size(model->items);
-
-            if(model->position > 0) {
-                model->position--;
-                if((model->position == model->window_position) && (model->window_position > 0)) {
-                    model->window_position--;
-                }
-            } else {
-                model->position = items_size - 1;
-                if(model->position > items_on_screen - 1) {
-                    model->window_position = model->position - (items_on_screen - 1);
-                }
-            }
-        },
-        true);
-}
-
-void submenu_process_down(Submenu* submenu) {
-    with_view_model(
-        submenu->view,
-        SubmenuModel * model,
-        {
-            const size_t items_on_screen = furi_string_empty(model->header) ? 5 : 4;
-            const size_t items_size = SubmenuItemArray_size(model->items);
-
-            if(model->position < items_size - 1) {
-                model->position++;
-                if((model->position - model->window_position > items_on_screen - 2) &&
-                   (model->window_position < items_size - items_on_screen)) {
-                    model->window_position++;
-                }
-            } else {
-                model->position = 0;
-                model->window_position = 0;
-            }
-        },
-        true);
-}
-
-void submenu_process_ok(Submenu* submenu) {
-    SubmenuItem* item = NULL;
-
-    with_view_model(
-        submenu->view,
-        SubmenuModel * model,
-        {
-            const size_t items_size = SubmenuItemArray_size(model->items);
-            if(model->position < items_size) {
-                item = SubmenuItemArray_get(model->items, model->position);
-            }
-        },
-        true);
-
-    if(item && item->callback) {
-        item->callback(item->callback_context, item->index);
+    if(code == LV_EVENT_FOCUSED) {
+        lv_obj_set_style_opa(instance->cursor, LV_OPA_COVER, LV_PART_MAIN);
+    } else if(code == LV_EVENT_DEFOCUSED) {
+        lv_obj_set_style_opa(instance->cursor, LV_OPA_TRANSP, LV_PART_MAIN);
     }
 }
 
-void submenu_set_header(Submenu* submenu, const char* header) {
-    furi_check(submenu);
+// Public API
 
-    with_view_model(
-        submenu->view,
-        SubmenuModel * model,
-        {
-            if(header == NULL) {
-                furi_string_reset(model->header);
-            } else {
-                furi_string_set_str(model->header, header);
-            }
-        },
-        true);
+Submenu* submenu_alloc(Widget* widget) {
+    furi_check(widget);
+
+    lv_obj_t* obj = lv_obj_class_create_obj(MY_CLASS, (lv_obj_t*)widget);
+    lv_obj_class_init_obj(obj);
+
+    Submenu* instance = (Submenu*)obj;
+    widget_set_input_feed_callback((Widget*)instance, submenu_input_callback);
+
+    return instance;
 }
+
+void submenu_free(Submenu* instance) {
+    furi_check(instance);
+    lv_obj_delete((lv_obj_t*)instance);
+}
+
+Widget* submenu_get_base(Submenu* instance) {
+    furi_check(instance);
+    return (Widget*)instance;
+}
+
+void submenu_add_item(
+    Submenu* instance,
+    const char* label,
+    uint32_t index,
+    SubmenuItemCallback callback,
+    void* context) {
+    furi_check(instance);
+    furi_check(label);
+
+    lv_obj_t* item = submenu_item_alloc(instance, label, index, callback, context);
+    UNUSED(item);
+}
+
+void submenu_reset(Submenu* instance) {
+    furi_check(instance);
+    lv_obj_clean((lv_obj_t*)instance);
+}
+
+uint32_t submenu_get_selected_item_index(const Submenu* instance) {
+    furi_check(instance);
+    // TODO: For later
+    furi_crash("Not implemented");
+}
+
+void submenu_set_selected_item_index(Submenu* instance, uint32_t index) {
+    furi_check(instance);
+    UNUSED(index);
+    // TODO: For later
+    furi_crash("Not implemented");
+}
+
+// LVGL class descriptors
+
+const lv_obj_class_t submenu_lvgl_class = {
+    .base_class = &widget_lvgl_class,
+    .constructor_cb = submenu_lvlg_constructor,
+    .destructor_cb = submenu_lvlg_destructor,
+    .name = "widget-submenu",
+    .width_def = LV_PCT(100),
+    .height_def = LV_PCT(100),
+    .instance_size = sizeof(Submenu),
+};
+
+const lv_obj_class_t submenu_item_lvgl_class = {
+    .base_class = &lv_obj_class,
+    .constructor_cb = submenu_item_lvgl_constructor,
+    .event_cb = submenu_item_lvgl_event,
+    .name = "submenu-item",
+    .width_def = LV_PCT(100),
+    .height_def = LV_SIZE_CONTENT,
+    .instance_size = sizeof(SubmenuItem),
+};

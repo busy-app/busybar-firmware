@@ -1,5 +1,5 @@
 #include <furi_hal_cortex.h>
-#include <furi_hal_bus.h>
+#include <furi_hal.h>
 #include <furi.h>
 
 #include <stm32u5xx.h>
@@ -7,6 +7,7 @@
 #include <stm32u5xx_ll_dcache.h>
 
 #define FURI_HAL_CORTEX_INSTRUCTIONS_PER_MICROSECOND (SystemCoreClock / 1000000)
+#define ROM_BASE_ADDR                                0x0BF90000
 
 void furi_hal_cortex_init_early(void) {
     CoreDebug->DEMCR |= (CoreDebug_DEMCR_TRCENA_Msk | CoreDebug_DEMCR_MON_EN_Msk);
@@ -58,6 +59,52 @@ bool furi_hal_cortex_timer_is_expired(FuriHalCortexTimer cortex_timer) {
 void furi_hal_cortex_timer_wait(FuriHalCortexTimer cortex_timer) {
     while(!furi_hal_cortex_timer_is_expired(cortex_timer))
         ;
+}
+
+FURI_NORETURN void furi_hal_cortex_system_reset(void) {
+    NVIC_SystemReset();
+}
+
+void furi_hal_cortex_switch(void* address) {
+    __set_BASEPRI(0);
+    __set_CONTROL(0); // Reset MSP/PSP selection
+    asm volatile("ldr    r3, [%0]    \n"
+                 "msr    msp, r3     \n"
+                 "ldr    r3, [%1]    \n"
+                 "mov    pc, r3      \n"
+                 :
+                 : "r"(address), "r"(address + 0x4)
+                 : "r3");
+}
+
+FURI_NORETURN void furi_hal_cortex_jump_to_dfu(void) {
+    // Disable all interrupts
+    __disable_irq();
+
+    furi_hal_deinit_early();
+
+    // Disable Systick timer
+    SysTick->CTRL = 0;
+
+    // Clear Interrupt Enable Register & Interrupt Pending Register
+    for(size_t i = 0; i < 5; i++) {
+        NVIC->ICER[i] = 0xFFFFFFFF;
+        NVIC->ICPR[i] = 0xFFFFFFFF;
+    }
+
+#ifdef DCACHE_ENABLE
+    LL_DCACHE_Invalidate(DCACHE1);
+    LL_DCACHE_Disable(DCACHE1);
+#endif
+
+    LL_ICACHE_Invalidate();
+    LL_ICACHE_Disable();
+
+    SCB->VTOR = ROM_BASE_ADDR;
+
+    furi_hal_cortex_switch((void*)ROM_BASE_ADDR);
+    while(1) {
+    }
 }
 
 // // Duck ST

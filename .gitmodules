@@ -42,4 +42,13 @@
 	url = https://github.com/flipperdevices/fbtng-freertos.git
 [submodule "lib/lvgl"]
 	path = lib/lvgl
-	url = https://github.com/lvgl/lvgl.git
+	url = https://github.com/flipperdevices/lvgl.git
+[submodule "lib/matter_ext"]
+	path = lib/matter_ext
+	url = https://github.com/flipperdevices/silabs_matter_extension.git
+[submodule "lib/cjson"]
+	path = lib/cjson
+	url = https://github.com/DaveGamble/cJSON.git
+[submodule "lib/thorvg"]
+	path = lib/thorvg
+	url = https://github.com/thorvg/thorvg.git

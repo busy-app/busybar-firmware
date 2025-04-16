@@ -1,131 +1,168 @@
-#include <furi.h>
-#include <gui/gui.h>
-#include <input/input.h>
+#include "led_display_test_app_i.h"
 
-#include "led_display_test.h"
-#include <led_display/led_display.h>
+#include <furi.h>
 
 #define TAG "LedDisplayTest"
 
-typedef struct {
-    FuriMutex* mutex;
-    FuriMessageQueue* event_queue;
-    FuriString* tmp_str;
+static bool led_display_test_app_input_callback(const InputEvent* event, void* context) {
+    furi_assert(event);
+    furi_assert(context);
 
-    LedDisplayTestColor color;
-    LedDisplayTestPattern pattern;
-} LedDisplayTest;
+    LedDisplayTestApp* instance = context;
 
-typedef enum {
-    LedDisplayTestEventExit,
-    LedDisplayTestEventUpdateDisplay,
-} LedDisplayTestEventType;
+    bool consumed = false;
 
-typedef struct {
-    LedDisplayTestEventType type;
-} LedDisplayTestEvent;
+    if(event->type == InputTypeShort) {
+        LedDisplayTestAppEvent app_event;
 
-static void led_display_test_render_callback(Canvas* canvas, void* ctx) {
-    LedDisplayTest* instance = ctx;
-    furi_mutex_acquire(instance->mutex, FuriWaitForever);
-    canvas_clear(canvas);
+        if(event->key == InputKeyUp) {
+            app_event = LedDisplayTestAppEventPrevColor;
+            consumed = true;
+        } else if(event->key == InputKeyDown) {
+            app_event = LedDisplayTestAppEventNextColor;
+            consumed = true;
+        } else if(event->key == InputKeyBack) {
+            app_event = LedDisplayTestAppEventExit;
+            consumed = true;
+        } else if(event->key == InputKeyOk || event->key == InputKeyStart) {
+            app_event = LedDisplayTestAppEventNextPattern;
+            consumed = true;
+        }
 
-    canvas_set_font(canvas, FontSecondary);
-    canvas_draw_str(canvas, 0, 12, "Press Start / OK to change Pattern");
-    canvas_draw_str(canvas, 0, 24, "Rotate Encoder to change color ");
+        if(consumed) {
+            furi_check(
+                furi_message_queue_put(instance->event_queue, &app_event, FuriWaitForever) ==
+                FuriStatusOk);
+        }
+    }
 
-    furi_string_printf(
-        instance->tmp_str, "Pattern: %s", led_display_get_pattern_str(instance->pattern));
-    canvas_draw_str(canvas, 10, 40, furi_string_get_cstr(instance->tmp_str));
-
-    furi_string_printf(instance->tmp_str, "Color: %s", led_display_get_color_str(instance->color));
-    canvas_draw_str(canvas, 10, 52, furi_string_get_cstr(instance->tmp_str));
-
-    furi_mutex_release(instance->mutex);
+    return consumed;
 }
 
-static void led_display_test_input_callback(InputEvent* input_event, void* ctx) {
-    LedDisplayTest* instance = ctx;
-    furi_mutex_acquire(instance->mutex, FuriWaitForever);
+static void led_display_test_app_update(LedDisplayTestApp* instance) {
+    with_gui(instance->gui, {
+        // Front display
+        led_display_test_set(instance->canvas, instance->pattern, instance->color);
+        // Back display
+        label_set_text_fmt(
+            instance->pattern_label,
+            "Pattern: %s",
+            led_display_get_pattern_str(instance->pattern));
+        label_set_text_fmt(
+            instance->color_label, "Color: %s", led_display_get_color_str(instance->color));
+    });
+}
 
-    if((input_event->key == InputKeyBack) && (input_event->type == InputTypeShort)) {
-        LedDisplayTestEvent event = {.type = LedDisplayTestEventExit};
-        furi_message_queue_put(instance->event_queue, &event, FuriWaitForever);
-    } else if(
-        ((input_event->key == InputKeyStart) || (input_event->key == InputKeyOk)) &&
-        (input_event->type == InputTypeShort)) {
+static void led_display_test_app_event_queue_callback(FuriEventLoopObject* object, void* context) {
+    LedDisplayTestApp* instance = context;
+    furi_check(object == instance->event_queue);
+
+    LedDisplayTestAppEvent event;
+    furi_check(furi_message_queue_get(instance->event_queue, &event, 0) == FuriStatusOk);
+
+    if(event == LedDisplayTestAppEventNextPattern) {
         instance->pattern = (instance->pattern + 1) % LedDisplayTestPatternNum;
-        LedDisplayTestEvent event = {.type = LedDisplayTestEventUpdateDisplay};
-        furi_message_queue_put(instance->event_queue, &event, FuriWaitForever);
-    } else if((input_event->key == InputKeyUp) && (input_event->type == InputTypeShort)) {
+    } else if(event == LedDisplayTestAppEventPrevPattern) {
+        instance->pattern = (instance->pattern == 0) ? LedDisplayTestPatternNum - 1 :
+                                                       instance->pattern - 1;
+    } else if(event == LedDisplayTestAppEventNextColor) {
         instance->color = (instance->color + 1) % LedDisplayTestColorNum;
-        LedDisplayTestEvent event = {.type = LedDisplayTestEventUpdateDisplay};
-        furi_message_queue_put(instance->event_queue, &event, FuriWaitForever);
-    } else if((input_event->key == InputKeyDown) && (input_event->type == InputTypeShort)) {
-        if(instance->color == 0) {
-            instance->color = LedDisplayTestColorNum - 1;
-        } else {
-            instance->color = (instance->color - 1);
-        }
-        LedDisplayTestEvent event = {.type = LedDisplayTestEventUpdateDisplay};
-        furi_message_queue_put(instance->event_queue, &event, FuriWaitForever);
+    } else if(event == LedDisplayTestAppEventPrevColor) {
+        instance->color = (instance->color == 0) ? LedDisplayTestColorNum - 1 :
+                                                   instance->color - 1;
+    } else if(event == LedDisplayTestAppEventExit) {
+        furi_event_loop_stop(instance->event_loop);
     }
 
-    furi_mutex_release(instance->mutex);
+    led_display_test_app_update(instance);
 }
 
-int32_t led_display_test_app(void* p) {
-    UNUSED(p);
+static void led_display_test_app_timer_callback(void* context) {
+    LedDisplayTestApp* instance = context;
+    led_display_test_app_update(instance);
+}
 
-    LedDisplayTest* instance = malloc(sizeof(LedDisplayTest));
-    instance->mutex = furi_mutex_alloc(FuriMutexTypeNormal);
-    instance->event_queue = furi_message_queue_alloc(32, sizeof(LedDisplayTestEvent));
-    instance->tmp_str = furi_string_alloc();
+static LedDisplayTestApp* led_display_test_app_alloc(void) {
+    LedDisplayTestApp* instance = malloc(sizeof(LedDisplayTestApp));
 
-    ViewPort* view_port = view_port_alloc();
+    instance->event_loop = furi_event_loop_alloc();
+    instance->event_queue = furi_message_queue_alloc(16, sizeof(LedDisplayTestAppEvent));
+    furi_event_loop_subscribe_message_queue(
+        instance->event_loop,
+        instance->event_queue,
+        FuriEventLoopEventIn,
+        led_display_test_app_event_queue_callback,
+        instance);
+    instance->timer = furi_event_loop_timer_alloc(
+        instance->event_loop,
+        led_display_test_app_timer_callback,
+        FuriEventLoopTimerTypePeriodic,
+        instance);
 
-    view_port_draw_callback_set(view_port, led_display_test_render_callback, instance);
-    view_port_input_callback_set(view_port, led_display_test_input_callback, instance);
+    // Create a single label for the back display
+    instance->gui = furi_record_open(RECORD_GUI);
 
-    Gui* gui = furi_record_open(RECORD_GUI);
-    gui_add_view_port(gui, view_port, GuiLayerFullscreen);
+    with_gui(instance->gui, {
+        GuiLayer* main_layer = gui_get_layer(instance->gui, GuiLayerIdMain);
+        gui_layer_add_input_callback(main_layer, led_display_test_app_input_callback, instance);
 
-    led_display_test_set(instance->pattern, instance->color);
+        Widget* root;
 
-    LedDisplayTestEvent event;
-    size_t frame_time = led_display_get_pattern_frame_time(instance->pattern);
+        // Back display
+        root = gui_layer_get_root_widget(main_layer, GuiDisplayIdBack);
 
-    while(true) {
-        FuriStatus status = furi_message_queue_get(instance->event_queue, &event, frame_time);
+        instance->app_window = widget_alloc(root);
+        instance->static_label = label_alloc(instance->app_window);
+        widget_set_pos(label_get_base(instance->static_label), 10, 0);
+        label_set_text(
+            instance->static_label, "Start/Ok - change pattern.\nEncoder - change color");
 
-        furi_mutex_acquire(instance->mutex, FuriWaitForever);
+        instance->pattern_label = label_alloc(instance->app_window);
+        widget_set_pos(label_get_base(instance->pattern_label), 10, 30);
 
-        if(status == FuriStatusErrorTimeout) {
-            led_display_test_advance_frame(instance->pattern);
-            led_display_test_set(instance->pattern, instance->color);
-        } else {
-            if(event.type == LedDisplayTestEventExit) {
-                furi_mutex_release(instance->mutex);
-                led_display_set_default_img();
-                break;
-            } else if(event.type == LedDisplayTestEventUpdateDisplay) {
-                frame_time = led_display_get_pattern_frame_time(instance->pattern);
-                led_display_test_set(instance->pattern, instance->color);
-            }
-        }
+        instance->color_label = label_alloc(instance->app_window);
+        widget_set_pos(label_get_base(instance->color_label), 10, 40);
 
-        furi_mutex_release(instance->mutex);
-        view_port_update(view_port);
-    }
+        // Front display
+        root = gui_layer_get_root_widget(main_layer, GuiDisplayIdFront);
+        instance->canvas = canvas_alloc(root, DOT_MATRIX_W, DOT_MATRIX_H);
+    });
 
-    gui_remove_view_port(gui, view_port);
-    view_port_free(view_port);
-    furi_message_queue_free(instance->event_queue);
-    furi_mutex_free(instance->mutex);
-    furi_string_free(instance->tmp_str);
-    free(instance);
+    instance->pattern = LedDisplayTestPatternChess;
+    instance->color = LedDisplayTestColorRed;
+
+    led_display_test_app_update(instance);
+    furi_event_loop_timer_start(instance->timer, 1000 / 60);
+
+    return instance;
+}
+
+static void led_display_test_app_free(LedDisplayTestApp* instance) {
+    furi_assert(instance);
+
+    with_gui(instance->gui, {
+        GuiLayer* main_layer = gui_get_layer(instance->gui, GuiLayerIdMain);
+        gui_layer_remove_input_callback(main_layer, led_display_test_app_input_callback);
+
+        widget_free(instance->app_window);
+        canvas_free(instance->canvas);
+    });
 
     furi_record_close(RECORD_GUI);
+
+    furi_event_loop_unsubscribe(instance->event_loop, instance->event_queue);
+    furi_message_queue_free(instance->event_queue);
+    furi_event_loop_timer_free(instance->timer);
+    furi_event_loop_free(instance->event_loop);
+    free(instance);
+}
+
+int32_t led_display_test_app(void* args) {
+    UNUSED(args);
+
+    LedDisplayTestApp* instance = led_display_test_app_alloc();
+    furi_event_loop_run(instance->event_loop);
+    led_display_test_app_free(instance);
 
     return 0;
 }

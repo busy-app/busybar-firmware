@@ -1,5 +1,4 @@
 #include "applications.h"
-#include <assets_icons.h>
 
 {%
 from fbt.appmanifest import FlipperApplication, FlipperAppType
@@ -64,12 +63,6 @@ const FlipperExternalApplication FLIPPER_EXTERNAL_APPS[] = {
 %}
     {
         .name = "{{ app.name }}",
-        .icon = 
-    {% if app.icon: %}
-            &{{ app.icon }},
-    {% :else: %}
-            NULL,
-    {% :endif %}
         .path = "{{ app_path }}",
     },
 {% :endfor %}
