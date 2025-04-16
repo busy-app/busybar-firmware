@@ -83,10 +83,9 @@ static void cli_action_brightness(Cli* cli, FuriString* args, GuiDisplayId id) {
                 srv, auto_brightness, brightness / LIGHT_SENSOR_LIGHT_LEVEL_MAX);
             furi_record_close(RECORD_BACK_DISPLAY);
         } else if(id == GuiDisplayIdFront) {
-            printf("Not implemented\r\n");
-            // DotMatrixSrv* srv = furi_record_open(RECORD_DOT_MATRIX);
-
-            // furi_record_close(RECORD_DOT_MATRIX);
+            DotMatrixSrv* srv = furi_record_open(RECORD_DOT_MATRIX);
+            dot_matrix_set_brightness(srv, brightness);
+            furi_record_close(RECORD_DOT_MATRIX);
         }
     } while(false);
 }
