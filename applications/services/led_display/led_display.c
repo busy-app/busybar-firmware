@@ -20,16 +20,19 @@ typedef enum {
 
 typedef enum {
     DotMatrixSrvMessageTypeDraw,
+    DotMatrixSrvMessageTypeBrightness,
 } DotMatrixSrvMessageType;
 
 typedef struct {
     DotMatrixSrvMessageType type;
     union {
+        uint8_t brightness;
         const uint8_t* frame_buffer;
     };
 } DotMatrixSrvMessage;
 
 struct DotMatrixSrv {
+    uint8_t brightness;
     Power* power;
     FuriEventLoop* event_loop;
     FuriSemaphore* power_ready_sem;
@@ -69,6 +72,21 @@ void dot_matrix_draw(DotMatrixSrv* instance, const uint8_t* frame_buffer) {
     dot_matrix_send_message(instance, &message);
 }
 
+void dot_matrix_set_brightness(DotMatrixSrv* instance, uint8_t brightness) {
+    furi_check(instance);
+
+    if(instance->brightness == brightness) return;
+
+    if(brightness > BRIGHTNESS_VAL_MAX) brightness = BRIGHTNESS_VAL_MAX;
+
+    const DotMatrixSrvMessage message = {
+        .type = DotMatrixSrvMessageTypeBrightness,
+        .brightness = brightness,
+    };
+    dot_matrix_send_message(instance, &message);
+    instance->brightness = brightness;
+}
+
 static void led_display_update_done_callback(void* context) {
     DotMatrixSrv* instance = context;
     furi_event_loop_set_custom_event(instance->event_loop, DotMatrixSrvEventUpdateDone);
@@ -81,7 +99,11 @@ static void led_display_srv_custom_event_callback(uint32_t events, void* context
         const DotMatrixSrvMessage* message = instance->message;
         const DotMatrixSrvMessageType message_type = message->type;
 
-        if(message_type == DotMatrixSrvMessageTypeDraw) {
+        if(message_type == DotMatrixSrvMessageTypeBrightness) {
+            led_display_driver_set_brightness(message->brightness);
+            led_display_driver_send_frame(instance->frame_buf_ptr);
+            furi_event_flag_set(instance->event_flag, DotMatrixSrvEventFlagDone);
+        } else if(message_type == DotMatrixSrvMessageTypeDraw) {
             led_display_driver_send_frame(message->frame_buffer);
             furi_event_flag_set(instance->event_flag, DotMatrixSrvEventFlagDone);
             if(instance->frame_buf_ptr == NULL) instance->frame_buf_ptr = message->frame_buffer;
@@ -121,6 +143,8 @@ static DotMatrixSrv* led_display_srv_alloc(void) {
             furi_semaphore_acquire(instance->power_ready_sem, FuriWaitForever) == FuriStatusOk);
         furi_semaphore_free(instance->power_ready_sem);
     }
+
+    instance->brightness = BRIGHTNESS_VAL_MAX;
     instance->frame_buf_ptr = NULL;
 
     instance->event_loop = furi_event_loop_alloc();
@@ -134,7 +158,7 @@ static DotMatrixSrv* led_display_srv_alloc(void) {
     furi_delay_ms(50);
 
     led_display_scan_init();
-    led_display_driver_init();
+    led_display_driver_init(instance->brightness);
     led_display_driver_set_update_callback(led_display_update_done_callback, instance);
 
     led_display_scan_start();
