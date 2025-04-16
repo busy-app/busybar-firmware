@@ -16,4 +16,4 @@ void dot_matrix_reset(DotMatrixSrv* instance);
 
 void dot_matrix_draw(DotMatrixSrv* instance, const uint8_t* buf);
 
-void dot_matrix_set_brightness(DotMatrixSrv* instance, uint8_t brightness);
+void dot_matrix_set_brightness(DotMatrixSrv* instance, bool auto_brightness, uint8_t brightness);
