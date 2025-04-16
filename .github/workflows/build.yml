@@ -22,14 +22,13 @@ jobs:
           fetch-depth: 2
           token: ${{ secrets.GITHUB_TOKEN }}
 
-      # - name: 'Update submodules'
-      #   run: |
-      #     git submodule update --init --recursive --jobs=$(nproc)
+      - name: 'Update submodules'
+        run: |
+          git submodule update --init --recursive --jobs=$(nproc) scripts/toolchain lib/lwip
 
       - name: 'Get commit details'
         id: names
         run: |
-          export FBT_GIT_SUBMODULE_SHALLOW=1
           BUILD_TYPE='DEBUG=1 COMPACT=0'
           if [[ ${{ github.event_name }} == 'pull_request' ]]; then
             TYPE="pull"
@@ -44,6 +43,7 @@ jobs:
         id: build-fw
         run: |
           source ./scripts/toolchain/fbtenv.sh
+          export FBT_GIT_SUBMODULE_SHALLOW=1
           bash ./fbt TARGET_HW=20 $FBT_BUILD_TYPE
           bash ./fbt TARGET_HW=64 $FBT_BUILD_TYPE
 
