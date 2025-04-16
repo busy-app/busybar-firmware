@@ -84,7 +84,7 @@ static void cli_action_brightness(Cli* cli, FuriString* args, GuiDisplayId id) {
             furi_record_close(RECORD_BACK_DISPLAY);
         } else if(id == GuiDisplayIdFront) {
             DotMatrixSrv* srv = furi_record_open(RECORD_DOT_MATRIX);
-            dot_matrix_set_brightness(srv, brightness);
+            dot_matrix_set_brightness(srv, auto_brightness, brightness);
             furi_record_close(RECORD_DOT_MATRIX);
         }
     } while(false);
