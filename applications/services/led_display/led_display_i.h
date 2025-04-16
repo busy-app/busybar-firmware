@@ -15,6 +15,8 @@
 
 #define DISPLAY_GAMMA (0.35f) // Default gamma value
 
+#define BRIGHTNESS_VAL_MAX 100
+
 #define LED_DRIVER_CHAIN (3)
 #define PIXEL_BUF_LEN    (3 * 2 * 2) // Tx buffer len for 1 pixel (RGB * uint16_t * 2(Dual SPI))
 #define DISPLAY_BLOCKS   (8 * 3) // Scan blocks number (24)
@@ -38,3 +40,4 @@ void led_display_driver_set_update_callback(LedDisplayCallback callback, void* c
 void led_display_driver_send_buf_start(void);
 void led_display_driver_send_frame(const uint8_t* frame_buf);
 void led_display_driver_vsync_trig(void);
+void led_display_driver_set_brightness(uint8_t brightness);
