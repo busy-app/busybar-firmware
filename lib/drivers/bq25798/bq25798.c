@@ -10,7 +10,7 @@
 bool bq25798_init(FuriHalI2cBusHandle* handle) {
     furi_assert(handle);
 
-    Bq25987Reg48PartInformation data = {};
+    Bq25798Reg48PartInformation data = {};
     bool ret = furi_hal_i2c_read_mem(
         handle,
         BQ25798_I2C_ADDRESS,
@@ -29,7 +29,7 @@ bool bq25798_init(FuriHalI2cBusHandle* handle) {
 
 bool bq25798_reset(FuriHalI2cBusHandle* handle) {
     furi_assert(handle);
-    Bq25987Reg09TerminationControl data = {.REG_RST = 1};
+    Bq25798Reg09TerminationControl data = {.REG_RST = 1};
     return furi_hal_i2c_read_mem(
         handle,
         BQ25798_I2C_ADDRESS,
@@ -43,7 +43,7 @@ bool bq25798_set_cfg(FuriHalI2cBusHandle* handle) {
     furi_assert(handle);
 
     // Disable watchdog
-    Bq25987Reg10ChargerControl1 reg10_temp = {};
+    Bq25798Reg10ChargerControl1 reg10_temp = {};
     furi_hal_i2c_read_reg_8(
         handle,
         BQ25798_I2C_ADDRESS,
@@ -60,7 +60,7 @@ bool bq25798_set_cfg(FuriHalI2cBusHandle* handle) {
         BQ25798_I2C_TIMEOUT);
 
     // Mask unused irqs
-    uint32_t charger_flags_mask = ~(Bq25987ChargerFlagVbusPresent);
+    uint32_t charger_flags_mask = ~(Bq25798ChargerFlagVbusPresent);
     furi_hal_i2c_write_reg_8(
         handle,
         BQ25798_I2C_ADDRESS,
@@ -87,7 +87,7 @@ bool bq25798_set_cfg(FuriHalI2cBusHandle* handle) {
         BQ25798_I2C_TIMEOUT);
 
     // ADC enable
-    Bq25987Reg2EADCControl reg2e_temp = {.ADC_EN = 1};
+    Bq25798Reg2EADCControl reg2e_temp = {.ADC_EN = 1};
     furi_hal_i2c_write_reg_8(
         handle,
         BQ25798_I2C_ADDRESS,
@@ -96,7 +96,7 @@ bool bq25798_set_cfg(FuriHalI2cBusHandle* handle) {
         BQ25798_I2C_TIMEOUT);
 
     // Disable Dp/Dm detection
-    Bq25987Reg11ChargerControl2 reg11_temp = {0};
+    Bq25798Reg11ChargerControl2 reg11_temp = {0};
     furi_hal_i2c_write_reg_8(
         handle,
         BQ25798_I2C_ADDRESS,
@@ -105,7 +105,7 @@ bool bq25798_set_cfg(FuriHalI2cBusHandle* handle) {
         BQ25798_I2C_TIMEOUT);
 
     // Disable ILIM_HIZ
-    Bq25987Reg14ChargerControl5 reg14_temp = {0};
+    Bq25798Reg14ChargerControl5 reg14_temp = {0};
     furi_hal_i2c_read_reg_8(
         handle,
         BQ25798_I2C_ADDRESS,
@@ -133,7 +133,7 @@ bool bq25798_set_cfg(FuriHalI2cBusHandle* handle) {
     return true;
 }
 
-bool bq25798_get_charger_status(FuriHalI2cBusHandle* handle, Bq25987ChargerStatus* status) {
+bool bq25798_get_charger_status(FuriHalI2cBusHandle* handle, Bq25798ChargerStatus* status) {
     furi_assert(handle);
     furi_assert(status);
 
@@ -148,7 +148,7 @@ bool bq25798_get_charger_status(FuriHalI2cBusHandle* handle, Bq25987ChargerStatu
     return ret;
 }
 
-bool bq25798_get_charger_fault(FuriHalI2cBusHandle* handle, Bq25987ChargerFault* fault) {
+bool bq25798_get_charger_fault(FuriHalI2cBusHandle* handle, Bq25798ChargerFault* fault) {
     furi_assert(handle);
     furi_assert(fault);
 
@@ -181,7 +181,7 @@ bool bq25798_get_charger_irq_flags(FuriHalI2cBusHandle* handle, uint32_t* flags)
     return ret;
 }
 
-bool bq25798_get_adc_values(FuriHalI2cBusHandle* handle, Bq25987AdcValues* values) {
+bool bq25798_get_adc_values(FuriHalI2cBusHandle* handle, Bq25798AdcValues* values) {
     furi_assert(handle);
     furi_assert(values);
 
@@ -236,7 +236,7 @@ bool bq25798_set_charge_current_limit(FuriHalI2cBusHandle* handle, uint32_t valu
 bool bq25798_charge_enable(FuriHalI2cBusHandle* handle, bool enabled) {
     furi_assert(handle);
 
-    Bq25987Reg0FChargerControl0 reg_temp = {0};
+    Bq25798Reg0FChargerControl0 reg_temp = {0};
     furi_hal_i2c_read_reg_8(
         handle,
         BQ25798_I2C_ADDRESS,
@@ -254,11 +254,11 @@ bool bq25798_charge_enable(FuriHalI2cBusHandle* handle, bool enabled) {
         BQ25798_I2C_TIMEOUT);
 }
 
-void bq25798_power_switch(FuriHalI2cBusHandle* handle, Bq25987PowerSwitch mode) {
+void bq25798_power_switch(FuriHalI2cBusHandle* handle, Bq25798PowerSwitch mode) {
     furi_assert(handle);
-    furi_assert(mode <= Bq25987PowerReset);
+    furi_assert(mode <= Bq25798PowerReset);
 
-    Bq25987Reg11ChargerControl2 reg_temp = {0};
+    Bq25798Reg11ChargerControl2 reg_temp = {0};
     furi_hal_i2c_read_reg_8(
         handle,
         BQ25798_I2C_ADDRESS,

@@ -51,8 +51,8 @@ typedef struct {
     uint32_t charge_ilim_battery;
 
     struct {
-        Bq25987ChargerStatus charger_status;
-        Bq25987ChargerFault charger_fault;
+        Bq25798ChargerStatus charger_status;
+        Bq25798ChargerFault charger_fault;
     } debug;
 } PowerInfo;
 

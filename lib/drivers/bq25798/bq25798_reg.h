@@ -71,34 +71,34 @@ extern "C" {
 #define BQ25798_REG48_PART_INFORMATION       (0x48u)
 
 typedef enum {
-    Bq25987ChargerStatusVbusStatNoInput = 0x0, // No Input or BHOT or BCOLD in OTG mode
-    Bq25987ChargerStatusVbusStatSdp = 0x1, // USB SDP (500mA)
-    Bq25987ChargerStatusVbusStatCdp = 0x2, // USB CDP (1.5A)
-    Bq25987ChargerStatusVbusStatDcp = 0x3, // USB DCP (3.25A)
-    Bq25987ChargerStatusVbusStatHVDCP = 0x4, // Adjustable High Voltage DCP (HVDCP) (1.5A)
-    Bq25987ChargerStatusVbusStatUnknown = 0x5, //Unknown adaptor (3A)
-    Bq25987ChargerStatusVbusStatNonStandard = 0x6, // Non-Standard Adapter (1A/2A/2.1A/2.4A)
-    Bq25987ChargerStatusVbusStatOtg = 0x7, // In OTG mode
-    Bq25987ChargerStatusVbusStatNotQualified = 0x8, // Not qualified adaptor
-    Bq25987ChargerStatusVbusStatVbus = 0xB, // Device directly powered from VBUS
-    Bq25987ChargerStatusVbusStatBackup = 0xC, // Backup Mode
-} Bq25987ChargerStatusVbusStat;
+    Bq25798ChargerStatusVbusStatNoInput = 0x0, // No Input or BHOT or BCOLD in OTG mode
+    Bq25798ChargerStatusVbusStatSdp = 0x1, // USB SDP (500mA)
+    Bq25798ChargerStatusVbusStatCdp = 0x2, // USB CDP (1.5A)
+    Bq25798ChargerStatusVbusStatDcp = 0x3, // USB DCP (3.25A)
+    Bq25798ChargerStatusVbusStatHVDCP = 0x4, // Adjustable High Voltage DCP (HVDCP) (1.5A)
+    Bq25798ChargerStatusVbusStatUnknown = 0x5, //Unknown adaptor (3A)
+    Bq25798ChargerStatusVbusStatNonStandard = 0x6, // Non-Standard Adapter (1A/2A/2.1A/2.4A)
+    Bq25798ChargerStatusVbusStatOtg = 0x7, // In OTG mode
+    Bq25798ChargerStatusVbusStatNotQualified = 0x8, // Not qualified adaptor
+    Bq25798ChargerStatusVbusStatVbus = 0xB, // Device directly powered from VBUS
+    Bq25798ChargerStatusVbusStatBackup = 0xC, // Backup Mode
+} Bq25798ChargerStatusVbusStat;
 
 typedef enum {
-    Bq25987ChargerStatusChargeStatNot = 0x0, // Not Charging
-    Bq25987ChargerStatusChargeStatTrickle = 0x1, // Trickle Charge
-    Bq25987ChargerStatusChargeStatPre = 0x2, // Pre-charge
-    Bq25987ChargerStatusChargeStatFast = 0x3, // Fast charge (CC mode)
-    Bq25987ChargerStatusChargeStatTaper = 0x4, // Taper Charge (CV mode)
-    Bq25987ChargerStatusChargeStatTopOff = 0x6, // Top-off Timer Active Charging
-    Bq25987ChargerStatusChargeStatTermination = 0x7, // Charge Termination Done
-} Bq25987ChargerStatusChargeStat;
+    Bq25798ChargerStatusChargeStatNot = 0x0, // Not Charging
+    Bq25798ChargerStatusChargeStatTrickle = 0x1, // Trickle Charge
+    Bq25798ChargerStatusChargeStatPre = 0x2, // Pre-charge
+    Bq25798ChargerStatusChargeStatFast = 0x3, // Fast charge (CC mode)
+    Bq25798ChargerStatusChargeStatTaper = 0x4, // Taper Charge (CV mode)
+    Bq25798ChargerStatusChargeStatTopOff = 0x6, // Top-off Timer Active Charging
+    Bq25798ChargerStatusChargeStatTermination = 0x7, // Charge Termination Done
+} Bq25798ChargerStatusChargeStat;
 
 typedef enum {
-    Bq25987ChargerStatusIcoDisabled = 0x0, // ICO disabled
-    Bq25987ChargerStatusIcoOptimization = 0x1, // ICO optimization in progress
-    Bq25987ChargerStatusIcoMaximum = 0x2, // Maximum input current detected
-} Bq25987ChargerStatusIco;
+    Bq25798ChargerStatusIcoDisabled = 0x0, // ICO disabled
+    Bq25798ChargerStatusIcoOptimization = 0x1, // ICO optimization in progress
+    Bq25798ChargerStatusIcoMaximum = 0x2, // Maximum input current detected
+} Bq25798ChargerStatusIco;
 
 typedef struct {
     union {
@@ -114,21 +114,21 @@ typedef struct {
             bool iindpm_iotg                        : 1;
             // STATUS 1
             bool bc1_2_done_stat                    : 1;
-            Bq25987ChargerStatusVbusStat vbus_stat  : 4;
-            Bq25987ChargerStatusChargeStat chg_stat : 3;
+            Bq25798ChargerStatusVbusStat vbus_stat  : 4;
+            Bq25798ChargerStatusChargeStat chg_stat : 3;
             // STATUS 2
             bool vbat_present_stat                  : 1;
             bool dpdm_stat                          : 1;
             bool treg_stat                          : 1;
             uint8_t dummy1                          : 3;
-            Bq25987ChargerStatusIco ico_stat        : 2;
+            Bq25798ChargerStatusIco ico_stat        : 2;
             // STATUS 3
 
             // STATUS 4
         } FURI_PACKED;
         uint8_t data[5];
     };
-} FURI_PACKED Bq25987ChargerStatus;
+} FURI_PACKED Bq25798ChargerStatus;
 
 typedef struct {
     union {
@@ -153,7 +153,7 @@ typedef struct {
         } FURI_PACKED;
         uint8_t data[2];
     };
-} FURI_PACKED Bq25987ChargerFault;
+} FURI_PACKED Bq25798ChargerFault;
 
 typedef struct {
     uint16_t bat_v; // Battery voltage (mV)
@@ -163,47 +163,47 @@ typedef struct {
     uint16_t sys_v; // System voltage (mV)
     float temp_bat_pct; // Battery NTC (%)
     float temp_charger; // Charger die temperature (°C)
-} Bq25987AdcValues;
+} Bq25798AdcValues;
 
 typedef enum {
     // Flag 0 reg
-    Bq25987ChargerFlagVbusPresent = (1UL << 0),
-    Bq25987ChargerFlagAC1Present = (1UL << 1),
-    Bq25987ChargerFlagAC2Present = (1UL << 2),
-    Bq25987ChargerFlagPowerGood = (1UL << 3),
-    Bq25987ChargerFlagPoorSrc = (1UL << 4),
-    Bq25987ChargerFlagWd = (1UL << 5),
-    Bq25987ChargerFlagVindpmVotg = (1UL << 6),
-    Bq25987ChargerFlagIindpmIotg = (1UL << 7),
+    Bq25798ChargerFlagVbusPresent = (1UL << 0),
+    Bq25798ChargerFlagAC1Present = (1UL << 1),
+    Bq25798ChargerFlagAC2Present = (1UL << 2),
+    Bq25798ChargerFlagPowerGood = (1UL << 3),
+    Bq25798ChargerFlagPoorSrc = (1UL << 4),
+    Bq25798ChargerFlagWd = (1UL << 5),
+    Bq25798ChargerFlagVindpmVotg = (1UL << 6),
+    Bq25798ChargerFlagIindpmIotg = (1UL << 7),
     // Flag 1 reg
-    Bq25987ChargerFlagBC12Done = (1UL << 8),
-    Bq25987ChargerFlagVbatPresent = (1UL << 9),
-    Bq25987ChargerFlagThermReg = (1UL << 10),
-    Bq25987ChargerFlagVbusStatus = (1UL << 12),
-    Bq25987ChargerFlagICOStatus = (1UL << 14),
-    Bq25987ChargerFlagChargeStatus = (1UL << 15),
+    Bq25798ChargerFlagBC12Done = (1UL << 8),
+    Bq25798ChargerFlagVbatPresent = (1UL << 9),
+    Bq25798ChargerFlagThermReg = (1UL << 10),
+    Bq25798ChargerFlagVbusStatus = (1UL << 12),
+    Bq25798ChargerFlagICOStatus = (1UL << 14),
+    Bq25798ChargerFlagChargeStatus = (1UL << 15),
     // Flag 2 reg
-    Bq25987ChargerFlagTopOffTmr = (1UL << 16),
-    Bq25987ChargerFlagPreChgTmr = (1UL << 17),
-    Bq25987ChargerFlagTrickleChgTmr = (1UL << 18),
-    Bq25987ChargerFlagFastChgTmr = (1UL << 19),
-    Bq25987ChargerFlagVsysMinReg = (1UL << 20),
-    Bq25987ChargerFlagAdcDone = (1UL << 21),
-    Bq25987ChargerFlagDpDmDone = (1UL << 22),
+    Bq25798ChargerFlagTopOffTmr = (1UL << 16),
+    Bq25798ChargerFlagPreChgTmr = (1UL << 17),
+    Bq25798ChargerFlagTrickleChgTmr = (1UL << 18),
+    Bq25798ChargerFlagFastChgTmr = (1UL << 19),
+    Bq25798ChargerFlagVsysMinReg = (1UL << 20),
+    Bq25798ChargerFlagAdcDone = (1UL << 21),
+    Bq25798ChargerFlagDpDmDone = (1UL << 22),
     // Flag 3 reg
-    Bq25987ChargerFlagTsHot = (1UL << 24),
-    Bq25987ChargerFlagTsWarm = (1UL << 25),
-    Bq25987ChargerFlagTsCool = (1UL << 26),
-    Bq25987ChargerFlagTsCold = (1UL << 27),
-    Bq25987ChargerFlagVbatOtgLow = (1UL << 28),
-} Bq25987ChargerFlag;
+    Bq25798ChargerFlagTsHot = (1UL << 24),
+    Bq25798ChargerFlagTsWarm = (1UL << 25),
+    Bq25798ChargerFlagTsCool = (1UL << 26),
+    Bq25798ChargerFlagTsCold = (1UL << 27),
+    Bq25798ChargerFlagVbatOtgLow = (1UL << 28),
+} Bq25798ChargerFlag;
 
 typedef enum {
-    Bq25987PowerIdle = 0, /** Normal mode, power is On */
-    Bq25987PowerShutdown = 1, /** Total shutdown (wake up by USB cable only) */
-    Bq25987PowerOff = 2, /** Power OFF (Ship mode) */
-    Bq25987PowerReset = 3, /** System Power Reset */
-} Bq25987PowerSwitch;
+    Bq25798PowerIdle = 0, /** Normal mode, power is On */
+    Bq25798PowerShutdown = 1, /** Total shutdown (wake up by USB cable only) */
+    Bq25798PowerOff = 2, /** Power OFF (Ship mode) */
+    Bq25798PowerReset = 3, /** System Power Reset */
+} Bq25798PowerSwitch;
 
 typedef struct {
     uint8_t ITERM : 5; /** RW:5h: Termination current */
@@ -211,7 +211,7 @@ typedef struct {
         STOP_WD_CHG : 1; /** RW:0h: Defines whether a watchdog timer expiration will disable charging */
     uint8_t REG_RST : 1; /** RW:0h: Reset registers to default values and reset timer */
     uint8_t _RSVD   : 1; /** RO:0h: reserved spaces */
-} Bq25987Reg09TerminationControl;
+} Bq25798Reg09TerminationControl;
 
 typedef struct {
     uint8_t EN_BACKUP       : 1;
@@ -222,14 +222,14 @@ typedef struct {
     uint8_t EN_CHG          : 1;
     uint8_t FORCE_IBATDIS   : 1;
     uint8_t EN_AUTO_IBATDIS : 1;
-} Bq25987Reg0FChargerControl0;
+} Bq25798Reg0FChargerControl0;
 
 typedef struct {
     uint8_t WATCHDOG    : 3;
     uint8_t WD_RST      : 1;
     uint8_t VAC_OVP     : 2;
     uint8_t VBUS_BACKUP : 2;
-} Bq25987Reg10ChargerControl1;
+} Bq25798Reg10ChargerControl1;
 
 typedef struct {
     uint8_t SDRV_DLY      : 1;
@@ -239,7 +239,7 @@ typedef struct {
     uint8_t EN_12V        : 1;
     uint8_t AUTO_INDET_EN : 1;
     uint8_t FORCE_INDET   : 1;
-} Bq25987Reg11ChargerControl2;
+} Bq25798Reg11ChargerControl2;
 
 typedef struct {
     uint8_t EN_BATOC     : 1;
@@ -249,7 +249,7 @@ typedef struct {
     uint8_t EN_IBAT      : 1;
     uint8_t              : 1;
     uint8_t SFET_PRESENT : 1;
-} Bq25987Reg14ChargerControl5;
+} Bq25798Reg14ChargerControl5;
 
 typedef struct {
     uint8_t              : 2;
@@ -258,35 +258,35 @@ typedef struct {
     uint8_t ADC_SAMPLE   : 2;
     uint8_t ADC_RATE     : 1;
     uint8_t ADC_EN       : 1;
-} Bq25987Reg2EADCControl;
+} Bq25798Reg2EADCControl;
 
 typedef struct {
     uint8_t DEV_REV : 3; /** RO:0b001: Device revision */
     uint8_t PN      : 3; /** RO:0b011: Part Number */
     uint8_t _RSVD   : 2; /** RO:0b0: Reserved */
-} Bq25987Reg48PartInformation;
+} Bq25798Reg48PartInformation;
 
-static_assert(sizeof(Bq25987ChargerStatus) == 5, "Bq25987ChargerStatus size mismatch");
-static_assert(sizeof(Bq25987ChargerFault) == 2, "Bq25987ChargerFault size mismatch");
+static_assert(sizeof(Bq25798ChargerStatus) == 5, "Bq25798ChargerStatus size mismatch");
+static_assert(sizeof(Bq25798ChargerFault) == 2, "Bq25798ChargerFault size mismatch");
 static_assert(
-    sizeof(Bq25987Reg09TerminationControl) == 1,
-    "Bq25987Reg09TerminationControl size mismatch");
+    sizeof(Bq25798Reg09TerminationControl) == 1,
+    "Bq25798Reg09TerminationControl size mismatch");
 static_assert(
-    sizeof(Bq25987Reg0FChargerControl0) == 1,
-    "Bq25987Reg0FChargerControl0 size mismatch");
+    sizeof(Bq25798Reg0FChargerControl0) == 1,
+    "Bq25798Reg0FChargerControl0 size mismatch");
 static_assert(
-    sizeof(Bq25987Reg10ChargerControl1) == 1,
-    "Bq25987Reg10ChargerControl1 size mismatch");
+    sizeof(Bq25798Reg10ChargerControl1) == 1,
+    "Bq25798Reg10ChargerControl1 size mismatch");
 static_assert(
-    sizeof(Bq25987Reg11ChargerControl2) == 1,
-    "Bq25987Reg11ChargerControl2 size mismatch");
+    sizeof(Bq25798Reg11ChargerControl2) == 1,
+    "Bq25798Reg11ChargerControl2 size mismatch");
 static_assert(
-    sizeof(Bq25987Reg14ChargerControl5) == 1,
-    "Bq25987Reg14ChargerControl5 size mismatch");
-static_assert(sizeof(Bq25987Reg2EADCControl) == 1, "Bq25987Reg2EADCControl size mismatch");
+    sizeof(Bq25798Reg14ChargerControl5) == 1,
+    "Bq25798Reg14ChargerControl5 size mismatch");
+static_assert(sizeof(Bq25798Reg2EADCControl) == 1, "Bq25798Reg2EADCControl size mismatch");
 static_assert(
-    sizeof(Bq25987Reg48PartInformation) == 1,
-    "Bq25987Reg48PartInformation size mismatch");
+    sizeof(Bq25798Reg48PartInformation) == 1,
+    "Bq25798Reg48PartInformation size mismatch");
 
 #ifdef __cplusplus
 }

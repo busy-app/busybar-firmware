@@ -18,10 +18,10 @@ static void power_on_interrupt(FuriEventLoopObject* object, void* context) {
     uint32_t irq_flags = 0;
     bq25798_get_charger_irq_flags(POWER_I2C, &irq_flags);
     FURI_LOG_D(TAG, "Charger Interrupt flags: %08lX", irq_flags);
-    Bq25987ChargerStatus status = {};
+    Bq25798ChargerStatus status = {};
     bq25798_get_charger_status(POWER_I2C, &status);
 
-    if(irq_flags & Bq25987ChargerFlagVbusPresent) {
+    if(irq_flags & Bq25798ChargerFlagVbusPresent) {
         if(status.vbus_present) {
             bq25798_set_input_current_limit(POWER_I2C, power->input_current_limit);
         }
@@ -42,9 +42,9 @@ static void power_handle_shutdown(Power* power, bool full_shutdown) {
     furi_hal_i2c_acquire(POWER_I2C);
 
     if(full_shutdown) {
-        bq25798_power_switch(POWER_I2C, Bq25987PowerShutdown);
+        bq25798_power_switch(POWER_I2C, Bq25798PowerShutdown);
     } else {
-        bq25798_power_switch(POWER_I2C, Bq25987PowerOff);
+        bq25798_power_switch(POWER_I2C, Bq25798PowerOff);
     }
     furi_hal_i2c_release(POWER_I2C);
 }
@@ -53,7 +53,7 @@ static void power_handle_reboot(Power* power, PowerRebootMode mode) {
     UNUSED(power);
     if(mode == PowerRebootHardware) {
         furi_hal_i2c_acquire(POWER_I2C);
-        bq25798_power_switch(POWER_I2C, Bq25987PowerReset);
+        bq25798_power_switch(POWER_I2C, Bq25798PowerReset);
         furi_hal_i2c_release(POWER_I2C);
         furi_delay_ms(100);
         furi_crash("Should never happen");
@@ -200,13 +200,13 @@ static void power_battery_ready(Power* power) {
 static void power_update_info(Power* power) {
     UNUSED(power);
     furi_hal_i2c_acquire(POWER_I2C);
-    Bq25987ChargerStatus status = {0};
+    Bq25798ChargerStatus status = {0};
     bq25798_get_charger_status(POWER_I2C, &status);
 
     bq25798_get_charger_fault(POWER_I2C, &power->info.debug.charger_fault);
-    memcpy(&power->info.debug.charger_status, &status, sizeof(Bq25987ChargerStatus));
+    memcpy(&power->info.debug.charger_status, &status, sizeof(Bq25798ChargerStatus));
 
-    Bq25987AdcValues adc_val = {0};
+    Bq25798AdcValues adc_val = {0};
     bq25798_get_adc_values(POWER_I2C, &adc_val);
     furi_hal_i2c_release(POWER_I2C);
 
@@ -216,8 +216,8 @@ static void power_update_info(Power* power) {
     }
     power->state.usb_connected = status.vbus_present;
 
-    power->info.is_charging = (status.chg_stat != Bq25987ChargerStatusChargeStatNot);
-    power->info.is_full_charged = (status.chg_stat == Bq25987ChargerStatusChargeStatTermination);
+    power->info.is_charging = (status.chg_stat != Bq25798ChargerStatusChargeStatNot);
+    power->info.is_full_charged = (status.chg_stat == Bq25798ChargerStatusChargeStatTermination);
     power->info.charge =
         power_get_battery_charge(adc_val.bat_v, adc_val.bat_i, power->info.is_charging);
 
@@ -288,7 +288,7 @@ void power_run(Power* power) {
         FURI_LOG_E(TAG, "Charger is absent");
     }
 
-    Bq25987ChargerStatus status = {0};
+    Bq25798ChargerStatus status = {0};
     bq25798_get_charger_status(POWER_I2C, &status);
     if(status.vbat_present_stat) {
         power->state.battery_ready = true;

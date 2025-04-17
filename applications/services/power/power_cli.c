@@ -226,7 +226,7 @@ static void power_cli_info_print_debug(PropertyValueContext* prop_ctx, PowerInfo
         info->debug.charger_fault.data[0],
         info->debug.charger_fault.data[1]);
 
-    Bq25987ChargerFault* f = &(info->debug.charger_fault);
+    Bq25798ChargerFault* f = &(info->debug.charger_fault);
     property_value_out(prop_ctx, "%u", 3, "charger", "fault", "IBAT_REG", f->ibat_reg);
     property_value_out(prop_ctx, "%u", 3, "charger", "fault", "VBUS_OVP", f->vbus_ovp);
     property_value_out(prop_ctx, "%u", 3, "charger", "fault", "VBAT_OVP", f->vbat_ovp);
