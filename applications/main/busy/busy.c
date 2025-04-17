@@ -76,6 +76,8 @@ static BusyApp* busy_alloc(void) {
 
         root = gui_layer_get_root_widget(layer, GuiDisplayIdBack);
         instance->back_window = widget_alloc(root);
+        // TODO: Return a root widget of appropriate size to accomodate the status bar
+        widget_set_size(instance->back_window, widget_get_width(root) - 12, widget_get_height(root));
     });
 
     furi_event_loop_subscribe_message_queue(

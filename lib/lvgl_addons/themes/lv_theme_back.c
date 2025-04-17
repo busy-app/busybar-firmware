@@ -135,8 +135,6 @@ static void theme_apply_callback(lv_theme_t* th, lv_obj_t* obj) {
 
     } else if(lv_obj_check_type(obj, &menu_lvgl_class)) {
         lv_obj_add_style(obj, &theme->styles.scrollbar, LV_PART_SCROLLBAR);
-        // TODO: Remove when root size is fixed
-        lv_obj_add_style(obj, &theme->styles.margin_right, LV_PART_MAIN);
 
     } else if(lv_obj_check_type(obj, &menu_item_lvgl_class)) {
         lv_obj_add_style(obj, &theme->styles.focused, LV_PART_MAIN);
