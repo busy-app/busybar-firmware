@@ -24,7 +24,7 @@ jobs:
 
       - name: 'Update submodules'
         run: |
-          git submodule update --init --recursive --jobs=$(nproc) scripts/toolchain lib/lwip lib/matter_ext
+          git submodule update --init --recursive --jobs=$(nproc) scripts/toolchain lib/lwip lib/matter_ext || cat /home/runner/work/bsb-firmware/bsb-firmware/.git/modules/lib/matter_ext/lfs/logs/*
 
       - name: 'Get commit details'
         id: names
