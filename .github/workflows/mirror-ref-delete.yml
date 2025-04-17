@@ -6,7 +6,7 @@ on:
 jobs:
   purge:
     name: Ref cleanup
-    runs-on: docker
+    runs-on: ubuntu-latest
     steps:
       - name: Cleanup
         run: |
