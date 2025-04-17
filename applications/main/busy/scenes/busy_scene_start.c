@@ -3,6 +3,7 @@
 
 #include <gui/modules/menu.h>
 #include <gui/modules/anim_image.h>
+#include <gui/modules/flex_layout.h>
 
 #include "../compiled_assets/compiled_assets.h"
 
@@ -10,6 +11,7 @@
 #define ANIM_MENU_TRANSITION_FRAMES (10)
 
 typedef struct {
+    FlexLayout* front_layout;
     AnimImage* front_logo;
     AnimMenu* front_menu;
     Menu* back_menu;
@@ -36,16 +38,17 @@ static void busy_scene_start_on_enter(void* context) {
     BusySceneStart* data = scene_manager_get_current_scene_data(instance->scene_manager);
 
     with_gui(instance->gui, {
-        data->front_logo = anim_image_alloc(instance->front_window);
+        data->front_layout = flex_layout_alloc(instance->front_window, FlexLayoutTypeRow);
+
+        data->front_logo = anim_image_alloc(flex_layout_get_base(data->front_layout));
         anim_image_set_source(data->front_logo, BUSY_ANIM_PATH("A_start_logo_41x16.anim"));
         anim_image_start(data->front_logo);
 
-        data->front_menu = anim_menu_alloc(instance->front_window);
+        data->front_menu = anim_menu_alloc(flex_layout_get_base(data->front_layout));
         anim_menu_set_callback(data->front_menu, busy_scene_start_menu_callback, instance);
         anim_menu_set_source(data->front_menu, BUSY_ANIM_PATH("A_start_menu_31x16.anim"));
         anim_menu_set_intervals(
             data->front_menu, ANIM_MENU_IDLE_FRAMES, ANIM_MENU_TRANSITION_FRAMES);
-        widget_set_pos_x(anim_menu_get_base(data->front_menu), 41);
 
         data->back_menu = menu_alloc(instance->back_window);
         menu_add_item(data->back_menu, "START", NULL, (const void*)&I_start_12x12, 0, NULL, NULL);
@@ -60,8 +63,7 @@ static void busy_scene_start_on_exit(void* context) {
     BusySceneStart* data = scene_manager_get_current_scene_data(instance->scene_manager);
 
     with_gui(instance->gui, {
-        anim_image_free(data->front_logo);
-        anim_menu_free(data->front_menu);
+        flex_layout_free(data->front_layout);
         menu_free(data->back_menu);
     });
 }
