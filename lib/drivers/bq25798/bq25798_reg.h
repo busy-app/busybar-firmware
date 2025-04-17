@@ -125,7 +125,7 @@ typedef struct {
             // STATUS 3
 
             // STATUS 4
-        };
+        } FURI_PACKED;
         uint8_t data[5];
     };
 } FURI_PACKED Bq25987ChargerStatus;
@@ -143,14 +143,14 @@ typedef struct {
             uint8_t vbus_ovp   : 1;
             uint8_t ibat_reg   : 1;
             // FAULT 1
-            uint8_t vsys_short : 1;
-            uint8_t vsys_ovp   : 1;
-            uint8_t otg_ovp    : 1;
-            uint8_t otg_uvp    : 1;
-            uint8_t            : 1;
-            uint8_t therm_shut : 1;
             uint8_t            : 2;
-        };
+            uint8_t therm_shut : 1;
+            uint8_t            : 1;
+            uint8_t otg_uvp    : 1;
+            uint8_t otg_ovp    : 1;
+            uint8_t vsys_ovp   : 1;
+            uint8_t vsys_short : 1;
+        } FURI_PACKED;
         uint8_t data[2];
     };
 } FURI_PACKED Bq25987ChargerFault;
@@ -266,6 +266,8 @@ typedef struct {
     uint8_t _RSVD   : 2; /** RO:0b0: Reserved */
 } Bq25987Reg48PartInformation;
 
+static_assert(sizeof(Bq25987ChargerStatus) == 5, "Bq25987ChargerStatus size mismatch");
+static_assert(sizeof(Bq25987ChargerFault) == 2, "Bq25987ChargerFault size mismatch");
 static_assert(
     sizeof(Bq25987Reg09TerminationControl) == 1,
     "Bq25987Reg09TerminationControl size mismatch");
