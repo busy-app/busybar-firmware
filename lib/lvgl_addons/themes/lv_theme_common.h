@@ -9,6 +9,11 @@ extern const lv_obj_class_t widget_lvgl_class;
 // Label
 extern const lv_obj_class_t label_lvgl_class;
 
+// Menu
+extern const lv_obj_class_t menu_lvgl_class;
+extern const lv_obj_class_t menu_item_lvgl_class;
+extern const lv_obj_class_t menu_icon_lvgl_class;
+
 // Submenu
 extern const lv_obj_class_t submenu_lvgl_class;
 extern const lv_obj_class_t submenu_item_lvgl_class;

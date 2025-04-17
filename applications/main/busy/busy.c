@@ -69,8 +69,13 @@ static BusyApp* busy_alloc(void) {
         GuiLayer* layer = gui_get_layer(instance->gui, GuiLayerIdMain);
         gui_layer_add_input_callback(layer, busy_gui_input_callback, instance);
 
-        Widget* root = gui_layer_get_root_widget(layer, GuiDisplayIdFront);
+        Widget* root;
+
+        root = gui_layer_get_root_widget(layer, GuiDisplayIdFront);
         instance->front_window = widget_alloc(root);
+
+        root = gui_layer_get_root_widget(layer, GuiDisplayIdBack);
+        instance->back_window = widget_alloc(root);
     });
 
     furi_event_loop_subscribe_message_queue(
@@ -101,6 +106,7 @@ static void busy_free(BusyApp* instance) {
         gui_layer_remove_input_callback(layer, busy_gui_input_callback);
 
         widget_free(instance->front_window);
+        widget_free(instance->back_window);
     });
 
     furi_record_close(RECORD_GUI);

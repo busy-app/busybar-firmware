@@ -6,7 +6,7 @@
 #include <storage/storage.h>
 
 #include "busy_timer.h"
-#include "scene_manager.h"
+#include "busy_scenes.h"
 
 #define TAG "Busy"
 
@@ -32,6 +32,7 @@ typedef struct {
     BusyTimer* busy_timer;
     Gui* gui;
     Widget* front_window;
+    Widget* back_window;
 } BusyApp;
 
 void busy_send_custom_event(BusyApp* instance, uint32_t custom_event);

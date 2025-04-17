@@ -8,6 +8,10 @@
 
 #define SCROLLBAR_WIDTH (3)
 
+#define MENU_ITEM_RADIUS  (4)
+#define MENU_ITEM_PAD_HOR (4)
+#define MENU_ITEM_PAD_VER (7)
+
 #define SUBMENU_ITEM_RADIUS  (4)
 #define SUBMENU_ITEM_PAD_VER (4)
 
@@ -19,7 +23,10 @@ typedef struct {
     lv_style_t focused;
     lv_style_t inverted;
     lv_style_t transparent;
+    lv_style_t subtractive;
     lv_style_t scrollbar;
+    lv_style_t menu_item;
+    lv_style_t menu_icon;
     lv_style_t submenu_item;
     lv_style_t submenu_cursor;
     lv_style_t var_list_item;
@@ -59,6 +66,17 @@ static void style_init(my_theme_t* theme) {
     lv_style_init(&theme->styles.transparent);
     lv_style_set_bg_opa(&theme->styles.transparent, LV_OPA_TRANSP);
     lv_style_set_text_opa(&theme->styles.transparent, LV_OPA_TRANSP);
+
+    lv_style_init(&theme->styles.subtractive);
+    lv_style_set_blend_mode(&theme->styles.subtractive, LV_BLEND_MODE_SUBTRACTIVE);
+
+    lv_style_init(&theme->styles.menu_item);
+    lv_style_set_pad_column(&theme->styles.menu_item, 6);
+    lv_style_set_pad_hor(&theme->styles.menu_item, MENU_ITEM_PAD_HOR);
+    lv_style_set_pad_ver(&theme->styles.menu_item, MENU_ITEM_PAD_VER);
+    lv_style_set_radius(&theme->styles.menu_item, MENU_ITEM_RADIUS);
+
+    lv_style_init(&theme->styles.menu_icon);
 
     lv_style_init(&theme->styles.submenu_item);
     lv_style_set_pad_ver(&theme->styles.submenu_item, SUBMENU_ITEM_PAD_VER);
@@ -102,8 +120,21 @@ static void theme_apply_callback(lv_theme_t* th, lv_obj_t* obj) {
     } else if(lv_obj_check_type(obj, &label_lvgl_class)) {
         lv_obj_add_style(obj, &theme->styles.focused, LV_PART_MAIN);
 
-    } else if(lv_obj_check_type(obj, &submenu_lvgl_class)) {
+    } else if(lv_obj_check_type(obj, &menu_lvgl_class)) {
+        lv_obj_add_style(obj, &theme->styles.scrollbar, LV_PART_SCROLLBAR);
+        // TODO: Remove when root size is fixed
+        lv_obj_add_style(obj, &theme->styles.margin_right, LV_PART_MAIN);
+
+    } else if(lv_obj_check_type(obj, &menu_item_lvgl_class)) {
         lv_obj_add_style(obj, &theme->styles.normal, LV_PART_MAIN);
+        lv_obj_add_style(obj, &theme->styles.inverted, LV_PART_MAIN | LV_STATE_FOCUSED);
+        lv_obj_add_style(obj, &theme->styles.menu_item, LV_PART_MAIN);
+
+    } else if(lv_obj_check_type(obj, &menu_icon_lvgl_class)) {
+        lv_obj_add_style(obj, &theme->styles.menu_icon, LV_PART_MAIN);
+        lv_obj_add_style(obj, &theme->styles.subtractive, LV_PART_MAIN | LV_STATE_FOCUSED);
+
+    } else if(lv_obj_check_type(obj, &submenu_lvgl_class)) {
         lv_obj_add_style(obj, &theme->styles.scrollbar, LV_PART_SCROLLBAR);
         // TODO: Remove when root size is fixed
         lv_obj_add_style(obj, &theme->styles.margin_right, LV_PART_MAIN);
@@ -119,7 +150,6 @@ static void theme_apply_callback(lv_theme_t* th, lv_obj_t* obj) {
         lv_obj_add_style(obj, &theme->styles.submenu_cursor, LV_PART_MAIN);
 
     } else if(lv_obj_check_type(obj, &var_item_list_lvgl_class)) {
-        lv_obj_add_style(obj, &theme->styles.normal, LV_PART_MAIN);
         lv_obj_add_style(obj, &theme->styles.scrollbar, LV_PART_SCROLLBAR);
         // TODO: Remove when root size is fixed
         lv_obj_add_style(obj, &theme->styles.margin_right, LV_PART_MAIN);
