@@ -2,8 +2,6 @@ name: Create pull request on upstream
 on:
   pull_request:
     types: [opened]
-    branches:
-      - "*/*"
 
 jobs:
   sync:
