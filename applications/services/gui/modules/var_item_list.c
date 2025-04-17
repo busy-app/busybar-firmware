@@ -8,6 +8,7 @@
 #define MY_CLASS        (&var_item_list_lvgl_class)
 #define MY_ITEM_CLASS   (&var_item_lvgl_class)
 #define MY_EDITOR_CLASS (&var_item_editor_lvgl_class)
+#define MY_CURSOR_CLASS (&var_item_cursor_lvgl_class)
 
 #define SYM_INFINITY    "∞"
 #define SYM_ARROW_LEFT  "◃"
@@ -69,6 +70,7 @@ struct VarItemList {
 const lv_obj_class_t var_item_list_lvgl_class;
 const lv_obj_class_t var_item_lvgl_class;
 const lv_obj_class_t var_item_editor_lvgl_class;
+const lv_obj_class_t var_item_cursor_lvgl_class;
 
 // Function prototypes
 
@@ -121,12 +123,9 @@ static void var_item_lvgl_constructor(const lv_obj_class_t* class_p, lv_obj_t* o
     lv_obj_add_flag(obj, LV_OBJ_FLAG_SCROLL_ON_FOCUS);
 
     VarItem* instance = (VarItem*)obj;
-    instance->cursor = lv_label_create(obj);
+    instance->cursor = lv_obj_class_create_obj(MY_CURSOR_CLASS, obj);
+    lv_obj_class_init_obj(instance->cursor);
     lv_label_set_text(instance->cursor, SYM_ARROW_RIGHT);
-    // TODO: A better way to show and hide the cursor
-    lv_obj_set_style_opa(instance->cursor, LV_OPA_TRANSP, LV_PART_MAIN);
-    lv_obj_set_style_pad_left(instance->cursor, 2, LV_PART_MAIN);
-    lv_obj_set_style_pad_right(instance->cursor, 1, LV_PART_MAIN);
 
     instance->label = lv_label_create(obj);
     lv_obj_set_flex_grow(instance->label, 1);
@@ -151,9 +150,9 @@ static void var_item_lvgl_event(const lv_obj_class_t* class_p, lv_event_t* event
     VarItem* instance = lv_event_get_target(event);
 
     if(code == LV_EVENT_FOCUSED) {
-        lv_obj_set_style_opa(instance->cursor, LV_OPA_COVER, LV_PART_MAIN);
+        lv_obj_add_state(instance->cursor, LV_STATE_FOCUSED);
     } else if(code == LV_EVENT_DEFOCUSED) {
-        lv_obj_set_style_opa(instance->cursor, LV_OPA_TRANSP, LV_PART_MAIN);
+        lv_obj_remove_state(instance->cursor, LV_STATE_FOCUSED);
     }
 }
 
@@ -615,4 +614,11 @@ const lv_obj_class_t var_item_editor_lvgl_class = {
     .width_def = LV_PCT(100),
     .height_def = LV_SIZE_CONTENT,
     .instance_size = sizeof(VarItemEditor),
+};
+
+const lv_obj_class_t var_item_cursor_lvgl_class = {
+    .base_class = &lv_label_class,
+    .name = "var-item-cursor",
+    .width_def = LV_SIZE_CONTENT,
+    .height_def = LV_SIZE_CONTENT,
 };

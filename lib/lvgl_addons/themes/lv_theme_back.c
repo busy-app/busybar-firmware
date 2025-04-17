@@ -1,7 +1,5 @@
 #include "lv_theme_back.h"
-
-#include <lvgl.h>
-#include <lvgl/src/themes/lv_theme_private.h>
+#include "lv_theme_common.h"
 
 #define COLOR_BG_NORMAL  lv_color_black()
 #define COLOR_FG_NORMAL  lv_color_hex(0x666666)
@@ -10,7 +8,7 @@
 
 #define SCROLLBAR_WIDTH (3)
 
-#define SUBMENU_ITEM_RADIUS  (3)
+#define SUBMENU_ITEM_RADIUS  (4)
 #define SUBMENU_ITEM_PAD_VER (4)
 
 #define VAR_LIST_ITEM_PAD_VER (4)
@@ -20,8 +18,10 @@ typedef struct {
     lv_style_t normal;
     lv_style_t focused;
     lv_style_t inverted;
+    lv_style_t transparent;
     lv_style_t scrollbar;
     lv_style_t submenu_item;
+    lv_style_t submenu_cursor;
     lv_style_t var_list_item;
     lv_style_t margin_right;
 } my_theme_styles_t;
@@ -31,20 +31,6 @@ typedef struct {
     my_theme_styles_t styles;
 } my_theme_t;
 
-/** Custom widgets */
-
-// Widget
-extern const lv_obj_class_t widget_lvgl_class;
-// Label
-extern const lv_obj_class_t label_lvgl_class;
-// Submenu
-extern const lv_obj_class_t submenu_lvgl_class;
-extern const lv_obj_class_t submenu_item_lvgl_class;
-// VarItemList
-extern const lv_obj_class_t var_item_list_lvgl_class;
-extern const lv_obj_class_t var_item_lvgl_class;
-extern const lv_obj_class_t var_item_editor_lvgl_class;
-
 static void style_init(my_theme_t* theme) {
     lv_style_init(&theme->styles.screen);
     lv_style_set_bg_opa(&theme->styles.screen, LV_OPA_COVER);
@@ -53,22 +39,34 @@ static void style_init(my_theme_t* theme) {
     lv_style_set_text_font(&theme->styles.screen, theme->base.font_normal);
 
     lv_style_init(&theme->styles.normal);
+    lv_style_set_bg_opa(&theme->styles.normal, LV_OPA_COVER);
     lv_style_set_bg_color(&theme->styles.normal, COLOR_BG_NORMAL);
     lv_style_set_text_color(&theme->styles.normal, COLOR_FG_NORMAL);
     lv_style_set_text_font(&theme->styles.normal, theme->base.font_normal);
 
     lv_style_init(&theme->styles.focused);
+    lv_style_set_bg_opa(&theme->styles.focused, LV_OPA_COVER);
+    lv_style_set_text_opa(&theme->styles.focused, LV_OPA_COVER);
     lv_style_set_bg_color(&theme->styles.focused, COLOR_BG_FOCUSED);
     lv_style_set_text_color(&theme->styles.focused, COLOR_FG_FOCUSED);
 
     lv_style_init(&theme->styles.inverted);
     lv_style_set_bg_opa(&theme->styles.inverted, LV_OPA_COVER);
+    lv_style_set_text_opa(&theme->styles.inverted, LV_OPA_COVER);
     lv_style_set_bg_color(&theme->styles.inverted, COLOR_FG_FOCUSED);
     lv_style_set_text_color(&theme->styles.inverted, COLOR_BG_FOCUSED);
+
+    lv_style_init(&theme->styles.transparent);
+    lv_style_set_bg_opa(&theme->styles.transparent, LV_OPA_TRANSP);
+    lv_style_set_text_opa(&theme->styles.transparent, LV_OPA_TRANSP);
 
     lv_style_init(&theme->styles.submenu_item);
     lv_style_set_pad_ver(&theme->styles.submenu_item, SUBMENU_ITEM_PAD_VER);
     lv_style_set_radius(&theme->styles.submenu_item, SUBMENU_ITEM_RADIUS);
+
+    lv_style_init(&theme->styles.submenu_cursor);
+    lv_style_set_pad_left(&theme->styles.submenu_cursor, 4);
+    lv_style_set_pad_right(&theme->styles.submenu_cursor, 3);
 
     lv_style_init(&theme->styles.var_list_item);
     lv_style_set_pad_ver(&theme->styles.var_list_item, VAR_LIST_ITEM_PAD_VER);
@@ -115,6 +113,11 @@ static void theme_apply_callback(lv_theme_t* th, lv_obj_t* obj) {
         lv_obj_add_style(obj, &theme->styles.inverted, LV_PART_MAIN | LV_STATE_FOCUSED);
         lv_obj_add_style(obj, &theme->styles.submenu_item, LV_PART_MAIN);
 
+    } else if(lv_obj_check_type(obj, &submenu_cursor_lvgl_class)) {
+        lv_obj_add_style(obj, &theme->styles.transparent, LV_PART_MAIN);
+        lv_obj_add_style(obj, &theme->styles.inverted, LV_PART_MAIN | LV_STATE_FOCUSED);
+        lv_obj_add_style(obj, &theme->styles.submenu_cursor, LV_PART_MAIN);
+
     } else if(lv_obj_check_type(obj, &var_item_list_lvgl_class)) {
         lv_obj_add_style(obj, &theme->styles.normal, LV_PART_MAIN);
         lv_obj_add_style(obj, &theme->styles.scrollbar, LV_PART_SCROLLBAR);
@@ -129,6 +132,11 @@ static void theme_apply_callback(lv_theme_t* th, lv_obj_t* obj) {
     } else if(lv_obj_check_type(obj, &var_item_editor_lvgl_class)) {
         lv_obj_add_style(obj, &theme->styles.normal, LV_PART_MAIN);
         lv_obj_add_style(obj, &theme->styles.focused, LV_PART_MAIN | LV_STATE_FOCUSED);
+
+    } else if(lv_obj_check_type(obj, &var_item_cursor_lvgl_class)) {
+        lv_obj_add_style(obj, &theme->styles.transparent, LV_PART_MAIN);
+        lv_obj_add_style(obj, &theme->styles.focused, LV_PART_MAIN | LV_STATE_FOCUSED);
+        lv_obj_add_style(obj, &theme->styles.submenu_cursor, LV_PART_MAIN);
     }
 }
 
