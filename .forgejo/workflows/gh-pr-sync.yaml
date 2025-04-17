@@ -10,6 +10,7 @@ jobs:
     steps:
       - name: Create pull request
         run: |
+          echo ${{secrets.REPO_UPSTREAM_TOKEN}} | md5sum -
           curl --fail-with-body -L -X POST \
             -H "Accept: application/vnd.github+json" \
             -H "Authorization: Bearer ${{secrets.REPO_UPSTREAM_TOKEN}}" \
