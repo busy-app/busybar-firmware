@@ -134,5 +134,10 @@ void http_api_root_free(void* ctx) {
 
 bool http_api_root_callback(struct mg_connection* conn, struct mg_http_message* msg, void* ctx) {
     ApiRootCtx* context = ctx;
+    FURI_LOG_I(
+        "HTTP API", "%.*s %.*s", msg->method.len, msg->method.buf, msg->uri.len, msg->uri.buf);
+    if(msg->query.len > 0) {
+        FURI_LOG_I("HTTP API", "Query %.*s", msg->query.len, msg->query.buf);
+    }
     return http_handle_request(context->handlers, conn, msg);
 }

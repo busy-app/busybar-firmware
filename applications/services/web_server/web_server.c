@@ -5,12 +5,20 @@
 
 #define TAG "HTTP_SRV"
 
+#define MAX_UPLOAD_LEN 1024 * 1024 * 1024
+
 // TODO: wakeup dispatch
 // TODO: timers
 
 typedef struct {
     HttpHandlersList_t handlers;
 } WebServer;
+
+bool http_upload_callback(struct mg_connection* conn, struct mg_http_message* msg, void* ctx) {
+    UNUSED(ctx);
+    mg_http_upload(conn, msg, http_fs_get(), WEB_ROOT "upload", MAX_UPLOAD_LEN);
+    return true;
+}
 
 static const HttpHandler handlers_root[] = {
     {
@@ -30,6 +38,12 @@ static const HttpHandler handlers_root[] = {
         .ctx_free = http_websocket_free,
     },
     {
+        .uri = "/upload",
+        .method = "POST",
+        .type = HttpHandlerCustom,
+        .callback = http_upload_callback,
+    },
+    {
         .uri = "#",
         .method = "GET",
         .type = HttpHandlerDir,
@@ -44,10 +58,6 @@ static void http_event_handler(struct mg_connection* conn, int ev, void* ev_data
         WebServer* context = conn->fn_data;
 
         struct mg_http_message* msg = (struct mg_http_message*)ev_data;
-        FURI_LOG_I(TAG, "%.*s %.*s", msg->method.len, msg->method.buf, msg->uri.len, msg->uri.buf);
-        if(msg->query.len > 0) {
-            FURI_LOG_I(TAG, "Query %.*s", msg->query.len, msg->query.buf);
-        }
 
         bool result = http_handle_request(context->handlers, conn, msg);
         if(!result) {
