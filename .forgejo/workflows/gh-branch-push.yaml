@@ -16,5 +16,5 @@ jobs:
 
       - name: Sync with upstream
         run: |
-          git remote add github "https://${{ secrets.REPO_UPSTREAM_TOKEN }}@${{ vars.REPO_UPSTREAM_URL }}"
+          git remote add github "https://${{ secrets.REPO_UPSTREAM_TOKEN }}@github.com/${{ vars.REPO_UPSTREAM }}.git"
           git push --force github ${{ github.ref }}
