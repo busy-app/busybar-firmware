@@ -33,12 +33,12 @@ static void busy_scene_start_on_enter(void* context) {
 
     with_gui(instance->gui, {
         data->logo = anim_image_alloc(instance->front_window);
-        anim_image_set_source(data->logo, ANIM_PATH("start.anim"));
+        anim_image_set_source(data->logo, BUSY_ANIM_PATH("A_start_logo_41x16.anim"));
         anim_image_start(data->logo);
 
         data->menu = anim_menu_alloc(instance->front_window);
         anim_menu_set_callback(data->menu, busy_scene_start_input_callback, instance);
-        anim_menu_set_source(data->menu, ANIM_PATH("menu.anim"));
+        anim_menu_set_source(data->menu, BUSY_ANIM_PATH("A_start_menu_31x16.anim"));
         anim_menu_set_intervals(data->menu, ANIM_MENU_IDLE_FRAMES, ANIM_MENU_TRANSITION_FRAMES);
         widget_set_pos_x(anim_menu_get_base(data->menu), 41);
     });

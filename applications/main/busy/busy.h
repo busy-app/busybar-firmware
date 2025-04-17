@@ -11,7 +11,8 @@
 #define TAG "Busy"
 
 #define TOTAL_TIME_LOW_THR_MN (15)
-#define ANIM_PATH(path)       EXT_PATH("busy/gfx/" path)
+
+#define BUSY_ANIM_PATH(path) (APP_ASSETS_PATH("animations") "/" path)
 
 typedef enum {
     BusyCustomEventUpdate = 100,
