@@ -8,6 +8,8 @@
 #include "busy_timer.h"
 #include "busy_scenes.h"
 
+#include "compiled_assets/compiled_assets.h"
+
 #define TAG "Busy"
 
 #define TOTAL_TIME_LOW_THR_MN (15)

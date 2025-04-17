@@ -1,11 +1,10 @@
 #include "../busy.h"
 #include "../widgets/anim_menu.h"
+#include "../widgets/nav_header.h"
 
 #include <gui/modules/menu.h>
 #include <gui/modules/anim_image.h>
 #include <gui/modules/flex_layout.h>
-
-#include "../compiled_assets/compiled_assets.h"
 
 #define ANIM_MENU_IDLE_FRAMES       (120)
 #define ANIM_MENU_TRANSITION_FRAMES (10)
@@ -14,6 +13,8 @@ typedef struct {
     FlexLayout* front_layout;
     AnimImage* front_logo;
     AnimMenu* front_menu;
+    FlexLayout* back_layout;
+    NavHeader* back_header;
     Menu* back_menu;
 } BusySceneStart;
 
@@ -50,7 +51,15 @@ static void busy_scene_start_on_enter(void* context) {
         anim_menu_set_intervals(
             data->front_menu, ANIM_MENU_IDLE_FRAMES, ANIM_MENU_TRANSITION_FRAMES);
 
-        data->back_menu = menu_alloc(instance->back_window);
+        data->back_layout = flex_layout_alloc(instance->back_window, FlexLayoutTypeColumn);
+
+        data->back_header = nav_header_alloc(flex_layout_get_base(data->back_layout));
+        nav_header_set_image(data->back_header, (const void*)&I_header_40x16);
+        // TODO: Remove
+        nav_header_push_location(data->back_header, "SETUP");
+        nav_header_push_location(data->back_header, "TIMER");
+
+        data->back_menu = menu_alloc(flex_layout_get_base(data->back_layout));
         menu_add_item(data->back_menu, "START", NULL, (const void*)&I_start_12x12, 0, NULL, NULL);
         menu_add_item(data->back_menu, "SETUP", NULL, (const void*)&I_setup_12x12, 0, NULL, NULL);
     });
@@ -64,7 +73,7 @@ static void busy_scene_start_on_exit(void* context) {
 
     with_gui(instance->gui, {
         flex_layout_free(data->front_layout);
-        menu_free(data->back_menu);
+        flex_layout_free(data->back_layout);
     });
 }
 

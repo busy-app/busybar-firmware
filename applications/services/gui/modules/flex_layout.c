@@ -77,6 +77,6 @@ void flex_layout_set_reverse(FlexLayout* instance, bool reverse) {
 const lv_obj_class_t flex_layout_lvgl_class = {
     .base_class = &widget_lvgl_class,
     .name = "widget-flex-layout",
-    .width_def = LV_SIZE_CONTENT,
-    .height_def = LV_SIZE_CONTENT,
+    .width_def = LV_PCT(100),
+    .height_def = LV_PCT(100),
 };
