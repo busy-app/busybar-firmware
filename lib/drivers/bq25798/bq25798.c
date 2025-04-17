@@ -148,7 +148,22 @@ bool bq25798_get_charger_status(FuriHalI2cBusHandle* handle, Bq25987ChargerStatu
     return ret;
 }
 
-bool bq25798_get_charger_flags(FuriHalI2cBusHandle* handle, uint32_t* flags) {
+bool bq25798_get_charger_fault(FuriHalI2cBusHandle* handle, Bq25987ChargerFault* fault) {
+    furi_assert(handle);
+    furi_assert(fault);
+
+    bool ret = furi_hal_i2c_read_mem(
+        handle,
+        BQ25798_I2C_ADDRESS,
+        BQ25798_REG20_FAULT_STATUS_0,
+        fault->data,
+        2,
+        BQ25798_I2C_TIMEOUT);
+
+    return ret;
+}
+
+bool bq25798_get_charger_irq_flags(FuriHalI2cBusHandle* handle, uint32_t* flags) {
     furi_assert(handle);
     furi_assert(flags);
 

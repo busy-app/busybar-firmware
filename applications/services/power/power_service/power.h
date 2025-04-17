@@ -3,12 +3,13 @@
 #include <furi.h>
 #include <stdint.h>
 #include <stdbool.h>
+#include <drivers/bq25798/bq25798.h>
 
 typedef struct Power Power;
 
 #define RECORD_POWER "power"
 
-#define CHARGE_CURRENT_MAX 1500
+#define CHARGE_CURRENT_MAX 1500 // TODO: was 3300
 
 typedef enum {
     PowerRebootHardware, // Hardware power reboot using charger
@@ -48,6 +49,11 @@ typedef struct {
 
     uint32_t charge_ilim_usb;
     uint32_t charge_ilim_battery;
+
+    struct {
+        Bq25987ChargerStatus charger_status;
+        Bq25987ChargerFault charger_fault;
+    } debug;
 } PowerInfo;
 
 typedef struct {

@@ -16,7 +16,7 @@ static void power_on_interrupt(FuriEventLoopObject* object, void* context) {
 
     furi_hal_i2c_acquire(POWER_I2C);
     uint32_t irq_flags = 0;
-    bq25798_get_charger_flags(POWER_I2C, &irq_flags);
+    bq25798_get_charger_irq_flags(POWER_I2C, &irq_flags);
     FURI_LOG_D(TAG, "Charger Interrupt flags: %08lX", irq_flags);
     Bq25987ChargerStatus status = {};
     bq25798_get_charger_status(POWER_I2C, &status);
@@ -202,6 +202,9 @@ static void power_update_info(Power* power) {
     furi_hal_i2c_acquire(POWER_I2C);
     Bq25987ChargerStatus status = {0};
     bq25798_get_charger_status(POWER_I2C, &status);
+
+    bq25798_get_charger_fault(POWER_I2C, &power->info.debug.charger_fault);
+    memcpy(&power->info.debug.charger_status, &status, sizeof(Bq25987ChargerStatus));
 
     Bq25987AdcValues adc_val = {0};
     bq25798_get_adc_values(POWER_I2C, &adc_val);

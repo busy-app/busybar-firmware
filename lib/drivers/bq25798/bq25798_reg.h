@@ -131,6 +131,31 @@ typedef struct {
 } FURI_PACKED Bq25987ChargerStatus;
 
 typedef struct {
+    union {
+        struct {
+            // FAULT 0
+            uint8_t vac1_ovp   : 1;
+            uint8_t vac2_ovp   : 1;
+            uint8_t conv_ocp   : 1;
+            uint8_t ibat_ocp   : 1;
+            uint8_t ibus_ocp   : 1;
+            uint8_t vbat_ovp   : 1;
+            uint8_t vbus_ovp   : 1;
+            uint8_t ibat_reg   : 1;
+            // FAULT 1
+            uint8_t vsys_short : 1;
+            uint8_t vsys_ovp   : 1;
+            uint8_t otg_ovp    : 1;
+            uint8_t otg_uvp    : 1;
+            uint8_t            : 1;
+            uint8_t therm_shut : 1;
+            uint8_t            : 2;
+        };
+        uint8_t data[2];
+    };
+} FURI_PACKED Bq25987ChargerFault;
+
+typedef struct {
     uint16_t bat_v; // Battery voltage (mV)
     int16_t bat_i; // Battery current (mA)
     uint16_t usb_v; // USB voltage (mV)

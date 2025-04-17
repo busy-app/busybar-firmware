@@ -32,7 +32,9 @@ bool bq25798_set_cfg(FuriHalI2cBusHandle* handle);
 
 bool bq25798_get_charger_status(FuriHalI2cBusHandle* handle, Bq25987ChargerStatus* status);
 
-bool bq25798_get_charger_flags(FuriHalI2cBusHandle* handle, uint32_t* flags);
+bool bq25798_get_charger_fault(FuriHalI2cBusHandle* handle, Bq25987ChargerFault* fault);
+
+bool bq25798_get_charger_irq_flags(FuriHalI2cBusHandle* handle, uint32_t* flags);
 
 bool bq25798_get_adc_values(FuriHalI2cBusHandle* handle, Bq25987AdcValues* values);
 
