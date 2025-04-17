@@ -1,0 +1,14 @@
+name: Delete refs from mirrors
+
+on:
+  delete:
+
+jobs:
+  purge:
+    name: Ref cleanup
+    runs-on: docker
+    steps:
+      - name: Cleanup
+        run: |
+          git remote add forgejo "https://${{ secrets.REPO_MIRROR_TOKEN }}@${{ vars.REPO_MIRROR_URL }}"
+          git push --delete forgejo ${{ github.ref }}

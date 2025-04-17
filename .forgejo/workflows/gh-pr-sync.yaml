@@ -1,4 +1,4 @@
-name: Create pull request
+name: Create pull request on upstream
 on:
   pull_request:
     types: [opened]
@@ -6,15 +6,10 @@ on:
       - "*/*"
 
 jobs:
-  create_pr:
-    name: Create pull request
+  sync:
+    name: Push branch to upstream
     runs-on: docker
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-
       - name: Create pull request
         run: |
           curl -L -X POST \
@@ -23,7 +18,7 @@ jobs:
             -H "Accept: application/vnd.github.v3+json" \
             https://api.github.com/repos/${{ vars.REPO_UPSTREAM }}/pulls \
             -d '{
-              "title": "Sync branch with upstream",
-              "head": "${{ github.ref }}",
+              "title": "${{ github.event.pull_request.title || "Pull request" }}",
+              "head": "${{ github.head.ref }}",
               "base": "${{ github.base_ref }}"
             }'
