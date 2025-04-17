@@ -5,8 +5,6 @@
 
 #include <gui/modules/image.h>
 
-#include <storage/storage.h>
-
 #define TAG "DesktopOverlay"
 
 #define OVERLAY_ANIM_TIME_MS (100)
@@ -17,6 +15,8 @@ struct DesktopOverlay {
     Image* status_bar;
     bool show_requested;
 };
+
+extern const lv_image_dsc_t I_status_bar_static_12x80;
 
 static void desktop_overlay_anim_callback(void* var, int32_t value) {
     lv_obj_set_style_opa(var, value, LV_PART_MAIN);
@@ -53,7 +53,8 @@ DesktopOverlay* desktop_overlay_alloc(Gui* gui) {
 
         root = gui_layer_get_root_widget(system_layer, GuiDisplayIdBack);
         instance->status_bar = image_alloc(root);
-        image_set_source(instance->status_bar, EXT_PATH("busy/gfx/status_bar_static_12x80.png"));
+        // TODO: Implement built-in images properly
+        image_set_source(instance->status_bar, (const void*)(&I_status_bar_static_12x80));
         widget_set_align(image_get_base(instance->status_bar), AlignRightMid);
     });
 
