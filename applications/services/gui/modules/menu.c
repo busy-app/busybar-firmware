@@ -4,11 +4,10 @@
 
 #include <lvgl/src/core/lv_obj_class_private.h>
 
-#define MY_CLASS      (&menu_lvgl_class)
-#define MY_ITEM_CLASS (&menu_item_lvgl_class)
-#define MY_ICON_CLASS (&menu_icon_lvgl_class)
-
-#define SYM_ARROW_RIGHT "▹"
+#define MY_CLASS          (&menu_lvgl_class)
+#define MY_ITEM_CLASS     (&menu_item_lvgl_class)
+#define MY_ICON_CLASS     (&menu_icon_lvgl_class)
+#define MY_SUBLABEL_CLASS (&menu_sublabel_lvgl_class)
 
 #define SCROLL_ANIM_DURATION_MS (0)
 
@@ -30,6 +29,7 @@ typedef struct {
 const lv_obj_class_t menu_lvgl_class;
 const lv_obj_class_t menu_item_lvgl_class;
 const lv_obj_class_t menu_icon_lvgl_class;
+const lv_obj_class_t menu_sublabel_lvgl_class;
 
 // TODO: Make it a universal fix
 static void menu_scroll_event_callback(lv_event_t* event) {
@@ -91,7 +91,7 @@ static lv_obj_t* menu_item_alloc(
     lv_group_add_obj(parent->group, obj);
 
     if(sub_label) {
-        lv_label_set_text_fmt(instance->sub_label, "%s %s", sub_label, SYM_ARROW_RIGHT);
+        lv_label_set_text_fmt(instance->sub_label, "%s >", sub_label);
     }
 
     return obj;
@@ -132,7 +132,8 @@ static void menu_item_lvgl_constructor(const lv_obj_class_t* class_p, lv_obj_t* 
     lv_obj_class_init_obj(instance->icon);
 
     instance->label = lv_label_create(obj);
-    instance->sub_label = lv_label_create(obj);
+    instance->sub_label = lv_obj_class_create_obj(MY_SUBLABEL_CLASS, obj);
+    lv_obj_class_init_obj(instance->sub_label);
 }
 
 static void menu_item_lvgl_event(const lv_obj_class_t* class_p, lv_event_t* event) {
@@ -144,12 +145,13 @@ static void menu_item_lvgl_event(const lv_obj_class_t* class_p, lv_event_t* even
 
     const lv_event_code_t code = lv_event_get_code(event);
     MenuItem* instance = lv_event_get_target(event);
-    UNUSED(instance);
 
     if(code == LV_EVENT_FOCUSED) {
         lv_obj_add_state(instance->icon, LV_STATE_FOCUSED);
+        lv_obj_add_state(instance->sub_label, LV_STATE_FOCUSED);
     } else if(code == LV_EVENT_DEFOCUSED) {
         lv_obj_remove_state(instance->icon, LV_STATE_FOCUSED);
+        lv_obj_remove_state(instance->sub_label, LV_STATE_FOCUSED);
     }
 }
 
@@ -237,6 +239,13 @@ const lv_obj_class_t menu_item_lvgl_class = {
 const lv_obj_class_t menu_icon_lvgl_class = {
     .base_class = &lv_image_class,
     .name = "menu-icon",
+    .width_def = LV_SIZE_CONTENT,
+    .height_def = LV_SIZE_CONTENT,
+};
+
+const lv_obj_class_t menu_sublabel_lvgl_class = {
+    .base_class = &lv_label_class,
+    .name = "menu-sublabel",
     .width_def = LV_SIZE_CONTENT,
     .height_def = LV_SIZE_CONTENT,
 };

@@ -49,17 +49,24 @@ static void nav_header_lvgl_destructor(const lv_obj_class_t* class_p, lv_obj_t* 
 // Implementation
 
 static void nav_header_update(NavHeader* instance) {
-    FuriString* tmp = furi_string_alloc();
+    if(LocationStack_size(instance->locations)) {
+        FuriString* tmp = furi_string_alloc();
 
-    LocationStack_it_ct it;
-    for(LocationStack_it(it, instance->locations); !LocationStack_end_p(it);
-        LocationStack_next(it)) {
-        furi_string_cat_printf(tmp, "> %s ", *LocationStack_cref(it));
+        LocationStack_it_ct it;
+        for(LocationStack_it(it, instance->locations); !LocationStack_end_p(it);
+            LocationStack_next(it)) {
+            furi_string_cat_printf(tmp, "> %s ", *LocationStack_cref(it));
+        }
+
+        lv_label_set_text(instance->breadcrumbs, furi_string_get_cstr(tmp));
+
+        furi_string_free(tmp);
+
+        lv_obj_remove_flag(instance->breadcrumbs, LV_OBJ_FLAG_HIDDEN);
+
+    } else {
+        lv_obj_add_flag(instance->breadcrumbs, LV_OBJ_FLAG_HIDDEN);
     }
-
-    lv_label_set_text(instance->breadcrumbs, furi_string_get_cstr(tmp));
-
-    furi_string_free(tmp);
 }
 
 // Public API
@@ -71,6 +78,8 @@ NavHeader* nav_header_alloc(Widget* parent) {
     lv_obj_class_init_obj(obj);
 
     NavHeader* instance = (NavHeader*)obj;
+    nav_header_update(instance);
+
     return instance;
 }
 

@@ -27,6 +27,7 @@ typedef struct {
     lv_style_t scrollbar;
     lv_style_t menu_item;
     lv_style_t menu_icon;
+    lv_style_t menu_sublabel;
     lv_style_t submenu_item;
     lv_style_t submenu_cursor;
     lv_style_t var_list_item;
@@ -78,6 +79,12 @@ static void style_init(my_theme_t* theme) {
     lv_style_set_radius(&theme->styles.menu_item, MENU_ITEM_RADIUS);
 
     lv_style_init(&theme->styles.menu_icon);
+
+    lv_style_init(&theme->styles.menu_sublabel);
+    lv_style_set_pad_all(&theme->styles.menu_sublabel, 2);
+    lv_style_set_flex_grow(&theme->styles.menu_sublabel, 1);
+    lv_style_set_text_align(&theme->styles.menu_sublabel, LV_TEXT_ALIGN_RIGHT);
+    lv_style_set_text_font(&theme->styles.menu_sublabel, theme->base.font_small);
 
     lv_style_init(&theme->styles.submenu_item);
     lv_style_set_pad_ver(&theme->styles.submenu_item, SUBMENU_ITEM_PAD_VER);
@@ -132,13 +139,18 @@ static void theme_apply_callback(lv_theme_t* th, lv_obj_t* obj) {
         lv_obj_add_style(obj, &theme->styles.margin_right, LV_PART_MAIN);
 
     } else if(lv_obj_check_type(obj, &menu_item_lvgl_class)) {
-        lv_obj_add_style(obj, &theme->styles.normal, LV_PART_MAIN);
+        lv_obj_add_style(obj, &theme->styles.focused, LV_PART_MAIN);
         lv_obj_add_style(obj, &theme->styles.inverted, LV_PART_MAIN | LV_STATE_FOCUSED);
         lv_obj_add_style(obj, &theme->styles.menu_item, LV_PART_MAIN);
 
     } else if(lv_obj_check_type(obj, &menu_icon_lvgl_class)) {
         lv_obj_add_style(obj, &theme->styles.menu_icon, LV_PART_MAIN);
         lv_obj_add_style(obj, &theme->styles.subtractive, LV_PART_MAIN | LV_STATE_FOCUSED);
+
+    } else if(lv_obj_check_type(obj, &menu_sublabel_lvgl_class)) {
+        lv_obj_add_style(obj, &theme->styles.menu_sublabel, LV_PART_MAIN);
+        lv_obj_add_style(obj, &theme->styles.transparent, LV_PART_MAIN);
+        lv_obj_add_style(obj, &theme->styles.inverted, LV_PART_MAIN | LV_STATE_FOCUSED);
 
     } else if(lv_obj_check_type(obj, &submenu_lvgl_class)) {
         lv_obj_add_style(obj, &theme->styles.scrollbar, LV_PART_SCROLLBAR);
@@ -178,8 +190,8 @@ static void theme_apply_callback(lv_theme_t* th, lv_obj_t* obj) {
         lv_obj_add_style(obj, &theme->styles.normal, LV_PART_MAIN);
         lv_obj_add_style(obj, &theme->styles.nav_header, LV_PART_MAIN);
 
-    // } else if(lv_obj_check_type(obj, &nav_header_bcrumbs_lvgl_class)) {
-    //     lv_obj_add_style(obj, &theme->styles.normal, LV_PART_MAIN);
+        // } else if(lv_obj_check_type(obj, &nav_header_bcrumbs_lvgl_class)) {
+        //     lv_obj_add_style(obj, &theme->styles.normal, LV_PART_MAIN);
     }
 }
 

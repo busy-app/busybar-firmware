@@ -55,9 +55,6 @@ static void busy_scene_start_on_enter(void* context) {
 
         data->back_header = nav_header_alloc(flex_layout_get_base(data->back_layout));
         nav_header_set_image(data->back_header, (const void*)&I_header_40x16);
-        // TODO: Remove
-        nav_header_push_location(data->back_header, "SETUP");
-        nav_header_push_location(data->back_header, "TIMER");
 
         data->back_menu = menu_alloc(flex_layout_get_base(data->back_layout));
         menu_add_item(data->back_menu, "START", NULL, (const void*)&I_start_12x12, 0, NULL, NULL);
@@ -78,19 +75,19 @@ static void busy_scene_start_on_exit(void* context) {
 }
 
 static bool busy_scene_start_on_event(const SceneManagerEvent* event, void* context) {
+    furi_assert(context);
     BusyApp* instance = context;
-    UNUSED(instance);
 
     bool consumed = false;
 
     if(event->type == SceneManagerEventTypeCustom) {
         if(event->event == BusySceneStartMenuIndexStart) {
-            FURI_LOG_D("Start", "Start selected!");
-            consumed = true;
+            FURI_LOG_D(TAG, "Start selected!");
         } else if(event->event == BusySceneStartMenuIndexSetup) {
-            FURI_LOG_D("Start", "Setup selected!");
-            consumed = true;
+            scene_manager_switch_to_scene(instance->scene_manager, BusyAppSceneIdSetup);
         }
+
+        consumed = true;
     }
     return consumed;
 }
