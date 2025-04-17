@@ -8,7 +8,7 @@ typedef struct Power Power;
 
 #define RECORD_POWER "power"
 
-#define CHARGE_CURRENT_MAX 3300
+#define CHARGE_CURRENT_MAX 1500
 
 typedef enum {
     PowerRebootHardware, // Hardware power reboot using charger
