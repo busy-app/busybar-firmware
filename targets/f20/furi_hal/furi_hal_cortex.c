@@ -3,6 +3,7 @@
 #include <furi.h>
 
 #include <stm32u5xx.h>
+#include <stm32u5xx_ll_pwr.h>
 #include <stm32u5xx_ll_icache.h>
 #include <stm32u5xx_ll_dcache.h>
 
@@ -91,6 +92,8 @@ FURI_NORETURN void furi_hal_cortex_jump_to_dfu(void) {
         NVIC->ICER[i] = 0xFFFFFFFF;
         NVIC->ICPR[i] = 0xFFFFFFFF;
     }
+
+    LL_PWR_EnableUCPDDeadBattery();
 
 #ifdef DCACHE_ENABLE
     LL_DCACHE_Invalidate(DCACHE1);

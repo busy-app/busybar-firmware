@@ -6,6 +6,10 @@
 #include <toolbox/property.h>
 #include <power/power_service/power.h>
 
+#ifndef POWER_CLI_DEBUG
+#define POWER_CLI_DEBUG 1
+#endif
+
 static void
     power_cli_print_property(const char* key, const char* value, bool last, void* context) {
     UNUSED(last);
@@ -200,6 +204,46 @@ static void power_cli_pd_request(Cli* cli, FuriString* args) {
     }
 }
 
+#if POWER_CLI_DEBUG == 1
+static void power_cli_info_print_debug(PropertyValueContext* prop_ctx, PowerInfo* info) {
+    property_value_out(
+        prop_ctx,
+        "%02X, %02X, %02X, %02X, %02X",
+        2,
+        "charger",
+        "status_raw",
+        info->debug.charger_status.data[0],
+        info->debug.charger_status.data[1],
+        info->debug.charger_status.data[2],
+        info->debug.charger_status.data[3],
+        info->debug.charger_status.data[4]);
+    property_value_out(
+        prop_ctx,
+        "%02X, %02X",
+        2,
+        "charger",
+        "fault_raw",
+        info->debug.charger_fault.data[0],
+        info->debug.charger_fault.data[1]);
+
+    Bq25798ChargerFault* f = &(info->debug.charger_fault);
+    property_value_out(prop_ctx, "%u", 3, "charger", "fault", "IBAT_REG", f->ibat_reg);
+    property_value_out(prop_ctx, "%u", 3, "charger", "fault", "VBUS_OVP", f->vbus_ovp);
+    property_value_out(prop_ctx, "%u", 3, "charger", "fault", "VBAT_OVP", f->vbat_ovp);
+    property_value_out(prop_ctx, "%u", 3, "charger", "fault", "IBUS_OCP", f->ibus_ocp);
+    property_value_out(prop_ctx, "%u", 3, "charger", "fault", "IBAT_OCP", f->ibat_ocp);
+    property_value_out(prop_ctx, "%u", 3, "charger", "fault", "CONV_OCP", f->conv_ocp);
+    property_value_out(prop_ctx, "%u", 3, "charger", "fault", "VAC2_OVP", f->vac2_ovp);
+    property_value_out(prop_ctx, "%u", 3, "charger", "fault", "VAC1_OVP", f->vac1_ovp);
+
+    property_value_out(prop_ctx, "%u", 3, "charger", "fault", "VSYS_SHORT", f->vsys_short);
+    property_value_out(prop_ctx, "%u", 3, "charger", "fault", "VSYS_OVP", f->vsys_ovp);
+    property_value_out(prop_ctx, "%u", 3, "charger", "fault", "OTG_OVP", f->otg_ovp);
+    property_value_out(prop_ctx, "%u", 3, "charger", "fault", "OTG_UVP", f->otg_uvp);
+    property_value_out(prop_ctx, "%u", 3, "charger", "fault", "THERM_SHUT", f->therm_shut);
+}
+#endif
+
 static void power_cli_info(Cli* cli, FuriString* args) {
     UNUSED(args);
 
@@ -239,6 +283,10 @@ static void power_cli_info(Cli* cli, FuriString* args) {
     property_value_out(
         &prop_ctx, "%u mA", 2, "charger", "current_limit", info.charge_ilim_battery);
     property_value_out(&prop_ctx, "%.1fC", 2, "charger", "temperature", info.temperature_charger);
+
+#if POWER_CLI_DEBUG == 1
+    power_cli_info_print_debug(&prop_ctx, &info);
+#endif
 
     furi_string_free(value);
     furi_string_free(key);
