@@ -14,14 +14,12 @@ jobs:
 
       - name: Create pull request
         run: |
-          # Use jq to properly construct the JSON payload
-          PR_TITLE=$(jq -Rs . <<< "${{ github.event.pull_request.title }}")
-          
           JSON_PAYLOAD=$(jq -n \
             --arg title "${{ github.event.pull_request.title }}" \
             --arg head "${{ github.head_ref }}" \
             --arg base "${{ github.base_ref }}" \
-            '{title: $title, head: $head, base: $base}')
+            --arg body "${{ github.event.pull_request.body }}" \
+            '{title: $title, head: $head, base: $base, body: $body}')
           
           # Send the request with proper JSON
           curl --fail -L -X POST \
