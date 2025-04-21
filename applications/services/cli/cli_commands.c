@@ -5,6 +5,7 @@
 #include "cli_command_light_sensor.h"
 #include "cli_command_audio.h"
 #include "cli_command_sl_cli.h"
+#include "cli_command_sysctl.h"
 
 #include <core/thread.h>
 #include <core/thread_list.h>
