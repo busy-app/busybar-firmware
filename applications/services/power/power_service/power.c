@@ -296,6 +296,7 @@ void power_run(Power* power) {
     }
 
     bq25798_set_charge_current_limit(POWER_I2C, power->charger_current_limit);
+    bq25798_set_charge_voltage_limit(POWER_I2C, 4200);
     furi_hal_i2c_release(POWER_I2C);
 
     furi_record_create(RECORD_POWER, power);

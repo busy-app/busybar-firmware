@@ -242,6 +242,17 @@ typedef struct {
 } Bq25798Reg11ChargerControl2;
 
 typedef struct {
+    uint8_t DIS_FWD_OOA : 1;
+    uint8_t DIS_OTG_OOA : 1;
+    uint8_t DIS_LDO     : 1;
+    uint8_t WKUP_DLY    : 1;
+    uint8_t PFM_FWD_DIS : 1;
+    uint8_t PFM_OTG_DIS : 1;
+    uint8_t EN_OTG      : 1;
+    uint8_t DIS_ACDRV   : 1;
+} Bq25798Reg12ChargerControl3;
+
+typedef struct {
     uint8_t EN_BATOC     : 1;
     uint8_t EN_EXTILIM   : 1;
     uint8_t EN_IINDPM    : 1;
@@ -280,6 +291,9 @@ static_assert(
 static_assert(
     sizeof(Bq25798Reg11ChargerControl2) == 1,
     "Bq25798Reg11ChargerControl2 size mismatch");
+static_assert(
+    sizeof(Bq25798Reg12ChargerControl3) == 1,
+    "Bq25798Reg12ChargerControl3 size mismatch");
 static_assert(
     sizeof(Bq25798Reg14ChargerControl5) == 1,
     "Bq25798Reg14ChargerControl5 size mismatch");
