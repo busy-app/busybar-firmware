@@ -1,9 +1,10 @@
 #include "wifi_test_app.h"
 #include "wifi_scan.h"
-// #include "wifi_async_socket_server_tcp_rx.h"
-// #include "wifi_async_socket_client_tcp_tx.h"
+//#include "wifi_async_socket_server_tcp_rx.h"
+ #include "wifi_async_socket_client_tcp_tx.h"
 // #include "wifi_async_socket_server_echo.h"
 #include "wifi_lwip_socket_server_echo.h"
+#include "wifi_lwip_async_socket_client_udp_tx.h"
 
 #include <furi.h>
 
@@ -149,13 +150,13 @@ const sl_wifi_device_configuration_t config = {
             (SL_SI91X_CUSTOM_FEAT_EXTENTION_VALID | RSI_CUSTOM_FEATURE_BIT_MAP),
         .ext_custom_feature_bit_map =
             (RSI_EXT_CUSTOM_FEATURE_BIT_MAP | (SL_SI91X_EXT_FEAT_BT_CUSTOM_FEAT_ENABLE)
-#if(defined A2DP_POWER_SAVE_ENABLE)
+#if (defined A2DP_POWER_SAVE_ENABLE)
              | SL_SI91X_EXT_FEAT_XTAL_CLK_ENABLE(2)
 #endif
                  ),
         .bt_feature_bit_map =
             (RSI_BT_FEATURE_BITMAP
-#if(RSI_BT_GATT_ON_CLASSIC)
+#if (RSI_BT_GATT_ON_CLASSIC)
              | SL_SI91X_BT_ATT_OVER_CLASSIC_ACL /* to support att over classic acl link */
 #endif
              ),
@@ -217,6 +218,9 @@ typedef enum {
     WifiTestCmdTypeTestEcho,
     WifiTestCmdTypeTestEchoStop,
 
+    WifiTestCmdTypeTestUdpTx,
+    WifiTestCmdTypeTestUdpRx,
+
     WifiTestCmdTypeMax,
 } WifiTestCmdType;
 
@@ -245,6 +249,8 @@ const WifiTestCmd wifi_test_cmd[WifiTestCmdTypeMax] = {
     {"test_tcp_tx"},
     {"test_echo"},
     {"test_echo_stop"},
+    {"test_udp_tx"},
+    {"test_udp_rx"},
 };
 
 struct WifiTestApp {
@@ -607,11 +613,11 @@ static sl_status_t wifi_test_app(WifiTestApp* instance, uint8_t cmd_index, FuriS
         if((instance->state == WifiTestStateStaUp || instance->state == WifiTestStateApUp) &&
            instance->test_state == WifiTestStateTestIdle) {
             if(!args_read_string_and_trim(args, arg)) {
-                //    wifi_async_socket_client_tcp_tx_init(
-                //    instance, instance->msg, WIFI_TEST_SERVER_IP, 5000);
+                wifi_async_socket_client_tcp_tx_init(
+                    instance, instance->msg, WIFI_TEST_SERVER_IP, 5000);
             } else {
-                //    wifi_async_socket_client_tcp_tx_init(
-                //    instance, instance->msg, (char*)furi_string_get_cstr(arg), 5000);
+                wifi_async_socket_client_tcp_tx_init(
+                    instance, instance->msg, (char*)furi_string_get_cstr(arg), 5000);
             }
         } else {
             furi_string_printf(instance->msg, "AP or STA is not up\r\n");
@@ -640,6 +646,16 @@ static sl_status_t wifi_test_app(WifiTestApp* instance, uint8_t cmd_index, FuriS
             wifi_test_app_send_msg(instance);
         } else {
             furi_string_printf(instance->msg, "Echo test is not running\r\n");
+            wifi_test_app_send_msg(instance);
+        }
+        break;
+    case WifiTestCmdTypeTestUdpTx:
+        if((instance->state == WifiTestStateStaUp || instance->state == WifiTestStateApUp) &&
+           instance->test_state == WifiTestStateTestIdle) {
+            wifi_lwip_async_socket_client_udp_tx_init(
+                instance, instance->msg, WIFI_TEST_SERVER_IP, 777);
+        } else {
+            furi_string_printf(instance->msg, "AP or STA is not up\r\n");
             wifi_test_app_send_msg(instance);
         }
         break;
@@ -719,6 +735,8 @@ static void wifi_test_app_cmd_usage(WifiTestApp* instance) {
         "test_tcp_rx Start TCP RX iPref test \"iperf.exe -c 192.168.11.10 -p 5005 -i 1 -b70M -t 30\".\r\n");
     furi_string_cat_printf(instance->msg, "test_echo Start TCP echo test port 5005.\r\n");
     furi_string_cat_printf(instance->msg, "test_echo_stop Stop TCP echo test.\r\n");
+    furi_string_cat_printf(instance->msg, "test_udp_tx Start UDP TX test.\r\n");
+    furi_string_cat_printf(instance->msg, "test_udp_rx Start UDP RX test.\r\n");
     furi_string_cat_printf(
         instance->msg,
         "*************************************************************************************************************"

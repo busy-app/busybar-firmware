@@ -74,7 +74,7 @@
 //########
  #define LWIP_NETCONN                        1
  #define LWIP_TCPIP_TIMEOUT                  0
- #define LWIP_NETCONN_SEM_PER_THREAD         1
+ //#define LWIP_NETCONN_SEM_PER_THREAD         1
  #define LWIP_NETCONN_FULLDUPLEX             1
 // #define MEMP_NUM_TCP_PCB (6)
 // #define LWIP_SOCKET                         1
