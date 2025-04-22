@@ -15,7 +15,7 @@ App(
         "led_display",
         "back_display",
         "usb_srv",
-        "httpd_test",
+        "web_server",
         "power_srv",
         "intercom",
         "wifi",
