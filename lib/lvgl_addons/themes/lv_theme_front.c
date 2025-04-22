@@ -8,12 +8,19 @@
 
 #define SCROLLBAR_WIDTH (1)
 
+#define MENU_ITEM_PAD_HOR (2)
+#define MENU_ITEM_PAD_VER (0)
+#define MENU_ITEM_PAD_COL (4)
+
 typedef struct {
     lv_style_t screen;
     lv_style_t normal;
     lv_style_t focused;
     lv_style_t transparent;
     lv_style_t scrollbar;
+    lv_style_t menu_item;
+    lv_style_t menu_icon;
+    lv_style_t menu_sublabel;
     lv_style_t submenu;
     lv_style_t submenu_cursor;
 } my_theme_styles_t;
@@ -45,6 +52,19 @@ static void style_init(my_theme_t* theme) {
     lv_style_init(&theme->styles.transparent);
     lv_style_set_bg_opa(&theme->styles.transparent, LV_OPA_TRANSP);
     lv_style_set_text_opa(&theme->styles.transparent, LV_OPA_TRANSP);
+    lv_style_set_image_opa(&theme->styles.transparent, LV_OPA_TRANSP);
+
+    lv_style_init(&theme->styles.menu_item);
+    lv_style_set_pad_column(&theme->styles.menu_item, MENU_ITEM_PAD_COL);
+    lv_style_set_pad_hor(&theme->styles.menu_item, MENU_ITEM_PAD_HOR);
+    lv_style_set_pad_ver(&theme->styles.menu_item, MENU_ITEM_PAD_VER);
+
+    lv_style_init(&theme->styles.menu_icon);
+    lv_style_set_image_opa(&theme->styles.menu_icon, LV_OPA_COVER);
+
+    lv_style_init(&theme->styles.menu_sublabel);
+    lv_style_set_flex_grow(&theme->styles.menu_sublabel, 1);
+    lv_style_set_text_align(&theme->styles.menu_sublabel, LV_TEXT_ALIGN_RIGHT);
 
     lv_style_init(&theme->styles.submenu);
     lv_style_set_pad_row(&theme->styles.submenu, 1);
@@ -79,6 +99,22 @@ static void theme_apply_callback(lv_theme_t* th, lv_obj_t* obj) {
 
     } else if(lv_obj_check_type(obj, &label_lvgl_class)) {
         lv_obj_add_style(obj, &theme->styles.focused, LV_PART_MAIN);
+
+    } else if(lv_obj_check_type(obj, &menu_lvgl_class)) {
+        // Nothing special for now
+
+    } else if(lv_obj_check_type(obj, &menu_item_lvgl_class)) {
+        lv_obj_add_style(obj, &theme->styles.focused, LV_PART_MAIN);
+        lv_obj_add_style(obj, &theme->styles.menu_item, LV_PART_MAIN);
+
+    } else if(lv_obj_check_type(obj, &menu_icon_lvgl_class)) {
+        lv_obj_add_style(obj, &theme->styles.menu_icon, LV_PART_MAIN | LV_STATE_FOCUSED);
+        lv_obj_add_style(obj, &theme->styles.transparent, LV_PART_MAIN);
+
+    } else if(lv_obj_check_type(obj, &menu_sublabel_lvgl_class)) {
+        lv_obj_add_style(obj, &theme->styles.menu_sublabel, LV_PART_MAIN);
+        lv_obj_add_style(obj, &theme->styles.transparent, LV_PART_MAIN);
+        lv_obj_add_style(obj, &theme->styles.focused, LV_PART_MAIN | LV_STATE_FOCUSED);
 
     } else if(lv_obj_check_type(obj, &submenu_lvgl_class)) {
         lv_obj_add_style(obj, &theme->styles.normal, LV_PART_MAIN);

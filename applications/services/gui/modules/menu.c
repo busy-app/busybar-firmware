@@ -101,6 +101,11 @@ static void menu_lvgl_constructor(const lv_obj_class_t* class_p, lv_obj_t* obj) 
     UNUSED(class_p);
 
     lv_obj_set_flex_flow(obj, LV_FLEX_FLOW_COLUMN);
+
+    if(lv_display_get_vertical_resolution(lv_obj_get_display(obj)) <= 16) {
+        lv_obj_set_scroll_snap_y(obj, LV_SCROLL_SNAP_CENTER);
+    }
+
     lv_obj_add_event_cb(obj, menu_scroll_event_callback, LV_EVENT_SCROLL_BEGIN, NULL);
     // Compensate for scrollbar overlap
     lv_obj_set_style_pad_right(
@@ -132,8 +137,10 @@ static void menu_item_lvgl_constructor(const lv_obj_class_t* class_p, lv_obj_t* 
     lv_obj_class_init_obj(instance->icon);
 
     instance->label = lv_label_create(obj);
+
     instance->sub_label = lv_obj_class_create_obj(MY_SUBLABEL_CLASS, obj);
     lv_obj_class_init_obj(instance->sub_label);
+    lv_label_set_long_mode(instance->sub_label, LV_LABEL_LONG_MODE_CLIP);
 }
 
 static void menu_item_lvgl_event(const lv_obj_class_t* class_p, lv_event_t* event) {

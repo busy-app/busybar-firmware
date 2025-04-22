@@ -8,6 +8,7 @@
 typedef struct {
     FlexLayout* back_layout;
     NavHeader* back_header;
+    Menu* front_menu;
     Menu* back_menu;
 } BusySceneSetup;
 
@@ -32,29 +33,34 @@ static void busy_scene_setup_on_enter(void* context) {
     BusySceneSetup* data = scene_manager_get_current_scene_data(instance->scene_manager);
 
     with_gui(instance->gui, {
-        data->back_layout = flex_layout_alloc(instance->back_window, FlexLayoutTypeColumn);
+        data->front_menu = menu_alloc(instance->front_window);
 
+        menu_add_item(
+            data->front_menu,
+            "TIMER",
+            "Interv",
+            (const void*)&I_timer_8x8,
+            BusySceneSetupMenuIndexTimer,
+            busy_scene_setup_menu_callback,
+            instance);
+        menu_add_item(
+            data->front_menu,
+            "THEME",
+            "",
+            (const void*)&I_theme_8x8,
+            BusySceneSetupMenuIndexTheme,
+            busy_scene_setup_menu_callback,
+            instance);
+
+        data->back_layout = flex_layout_alloc(instance->back_window, FlexLayoutTypeColumn);
         data->back_header = nav_header_alloc(flex_layout_get_base(data->back_layout));
         nav_header_set_image(data->back_header, (const void*)&I_header_40x16);
         nav_header_push_location(data->back_header, "SETUP");
 
         data->back_menu = menu_alloc(flex_layout_get_base(data->back_layout));
         menu_add_item(
-            data->back_menu,
-            "TIMER",
-            "Interval",
-            (const void*)&I_timer_12x12,
-            BusySceneSetupMenuIndexTimer,
-            busy_scene_setup_menu_callback,
-            instance);
-        menu_add_item(
-            data->back_menu,
-            "THEME",
-            "",
-            (const void*)&I_theme_12x12,
-            BusySceneSetupMenuIndexTheme,
-            busy_scene_setup_menu_callback,
-            instance);
+            data->back_menu, "TIMER", "Interval", (const void*)&I_timer_12x12, 0, NULL, NULL);
+        menu_add_item(data->back_menu, "THEME", "", (const void*)&I_theme_12x12, 0, NULL, NULL);
     });
 }
 
@@ -64,7 +70,10 @@ static void busy_scene_setup_on_exit(void* context) {
     BusyApp* instance = context;
     BusySceneSetup* data = scene_manager_get_current_scene_data(instance->scene_manager);
 
-    with_gui(instance->gui, { flex_layout_free(data->back_layout); });
+    with_gui(instance->gui, {
+        menu_free(data->front_menu);
+        flex_layout_free(data->back_layout);
+    });
 }
 
 static bool busy_scene_setup_on_event(const SceneManagerEvent* event, void* context) {
