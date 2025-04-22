@@ -6,8 +6,7 @@
 #include <storage/storage.h>
 
 #include "busy_timer.h"
-#include "busy_scenes.h"
-
+#include "scenes/busy_scenes.h"
 #include "compiled_assets/compiled_assets.h"
 
 #define TAG "Busy"

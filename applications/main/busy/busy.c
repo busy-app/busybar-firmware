@@ -1,7 +1,5 @@
 #include "busy.h"
 
-#include "busy_scenes.h"
-
 static void busy_input_queue_callback(FuriEventLoopObject* object, void* context) {
     furi_assert(context);
 
