@@ -15,7 +15,7 @@ typedef enum {
     BusySceneSetupMenuIndexTimer,
     BusySceneSetupMenuIndexTheme,
     BusySceneSetupMenuIndexMax,
-} BusySceneStartMenuIndex;
+} BusySceneSetupMenuIndex;
 
 static void busy_scene_setup_menu_callback(uint32_t index, void* context) {
     furi_assert(index < BusySceneSetupMenuIndexMax);
@@ -75,7 +75,7 @@ static bool busy_scene_setup_on_event(const SceneManagerEvent* event, void* cont
 
     if(event->type == SceneManagerEventTypeCustom) {
         if(event->event == BusySceneSetupMenuIndexTimer) {
-            FURI_LOG_D(TAG, "Timer selected!");
+            scene_manager_switch_to_scene(instance->scene_manager, BusyAppSceneIdSetupTimer);
         } else if(event->event == BusySceneSetupMenuIndexTheme) {
             FURI_LOG_D(TAG, "Theme selected!");
         }

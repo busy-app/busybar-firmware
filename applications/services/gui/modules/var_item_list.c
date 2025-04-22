@@ -280,7 +280,7 @@ static void var_item_editor_update(VarItemEditor* instance) {
         const int32_t mm = instance->value % 60;
 
         if(hh == 0) {
-            SET_EDITOR_LABEL(label, "%ld", mm);
+            SET_EDITOR_LABEL(label, "%ld m", mm);
         } else if(mm == 0) {
             SET_EDITOR_LABEL(label, "%ld h", hh);
         } else {

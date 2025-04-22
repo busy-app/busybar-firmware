@@ -10,6 +10,7 @@ typedef enum {
     BusyAppSceneIdNext,
     BusyAppSceneIdRestart,
     BusyAppSceneIdSetup,
+    BusyAppSceneIdSetupTimer,
     BusyAppSceneIdMax,
 } BusyAppSceneId;
 
