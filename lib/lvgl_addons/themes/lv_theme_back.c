@@ -105,6 +105,7 @@ static void style_init(my_theme_t* theme) {
 
     lv_style_init(&theme->styles.nav_header);
     lv_style_set_pad_all(&theme->styles.nav_header, 4);
+    lv_style_set_pad_column(&theme->styles.nav_header, 2);
     lv_style_set_text_font(&theme->styles.nav_header, theme->base.font_small);
     lv_style_set_text_color(&theme->styles.nav_header, COLOR_BG_NORMAL);
 
