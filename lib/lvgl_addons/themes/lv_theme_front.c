@@ -153,7 +153,7 @@ lv_theme_t* lv_theme_front_alloc(lv_display_t* disp) {
     theme->base.disp = disp;
     theme->base.font_small = &lv_font_tiny_6;
     theme->base.font_normal = &lv_font_tiny5_8;
-    theme->base.font_large = &lv_font_pixel_operator_8;
+    theme->base.font_large = &lv_font_ark_pixel_10;
     theme->base.apply_cb = theme_apply_callback;
 
     style_init(theme);

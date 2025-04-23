@@ -10,3 +10,5 @@ extern const lv_image_dsc_t I_timer_12x12;
 extern const lv_image_dsc_t I_theme_8x8;
 extern const lv_image_dsc_t I_theme_12x12;
 extern const lv_image_dsc_t I_header_40x16;
+extern const lv_image_dsc_t I_active_indicator_left_28x7;
+extern const lv_image_dsc_t I_active_indicator_right_28x7;

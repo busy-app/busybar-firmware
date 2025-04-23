@@ -591,8 +591,7 @@
     LV_FONT_DECLARE(lv_font_tiny_6) \
     LV_FONT_DECLARE(lv_font_tiny5_8) \
     LV_FONT_DECLARE(lv_font_cubic_12) \
-    LV_FONT_DECLARE(lv_font_ark_pixel_12) \
-    LV_FONT_DECLARE(lv_font_pixel_operator_8)
+    LV_FONT_DECLARE(lv_font_ark_pixel_10)
 
 /** Always set a default font */
 #define LV_FONT_DEFAULT &lv_font_tiny5_8

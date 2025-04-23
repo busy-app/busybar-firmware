@@ -1,11 +1,9 @@
 #include "../busy.h"
 
-#include <gui/modules/flex_layout.h>
-#include <lvgl.h>
+#include "../widgets/timer_card.h"
 
 typedef struct {
-    FlexLayout* back_layout;
-    BusyTimerState timer_state;
+    TimerCard* timer_card;
 } BusySceneTimer;
 
 static void busy_scene_timer_event_callback(const BusyTimerEvent* event, void* context) {
@@ -137,13 +135,9 @@ static void busy_scene_timer_on_enter(void* context) {
     BusySceneTimer* data = scene_manager_get_current_scene_data(instance->scene_manager);
 
     with_gui(instance->gui, {
-        data->back_layout = flex_layout_alloc(instance->back_window, FlexLayoutTypeColumn);
-        widget_set_size(flex_layout_get_base(data->back_layout), 146, 72);
-        widget_set_pos(flex_layout_get_base(data->back_layout), 2, 4);
-        // TODO: Make wrappers for raw LVGL APIs
-        lv_obj_set_style_bg_color((lv_obj_t*)data->back_layout, lv_color_white(), LV_PART_MAIN);
-        lv_obj_set_style_bg_opa((lv_obj_t*)data->back_layout, LV_OPA_COVER, LV_PART_MAIN);
-        lv_obj_set_style_radius((lv_obj_t*)data->back_layout, 4, LV_PART_MAIN);
+        data->timer_card = timer_card_alloc(instance->back_window);
+        widget_set_size(timer_card_get_base(data->timer_card), 146, 72);
+        widget_set_pos(timer_card_get_base(data->timer_card), 2, 4);
     });
 
     busy_timer_set_callback(instance->busy_timer, busy_scene_timer_event_callback, instance);
@@ -156,7 +150,7 @@ static void busy_scene_timer_on_exit(void* context) {
 
     BusySceneTimer* data = scene_manager_get_current_scene_data(instance->scene_manager);
 
-    with_gui(instance->gui, { flex_layout_free(data->back_layout); });
+    with_gui(instance->gui, { timer_card_free(data->timer_card); });
 
     busy_timer_set_callback(instance->busy_timer, NULL, NULL);
 }
