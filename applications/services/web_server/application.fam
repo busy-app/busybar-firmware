@@ -1,0 +1,9 @@
+App(
+    appid="web_server",
+    name="WebSrv",
+    apptype=FlipperAppType.SERVICE,
+    entry_point="web_srv_start",
+    stack_size=8 * 1024,
+    order=70,
+    targets=["f20"],
+)
