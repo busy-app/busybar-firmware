@@ -83,8 +83,6 @@ static void style_init(my_theme_t* theme) {
 
     lv_style_init(&theme->styles.menu_sublabel);
     lv_style_set_pad_all(&theme->styles.menu_sublabel, 2);
-    lv_style_set_flex_grow(&theme->styles.menu_sublabel, 1);
-    lv_style_set_text_align(&theme->styles.menu_sublabel, LV_TEXT_ALIGN_RIGHT);
     lv_style_set_text_font(&theme->styles.menu_sublabel, theme->base.font_small);
 
     lv_style_init(&theme->styles.submenu_item);

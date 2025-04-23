@@ -63,8 +63,6 @@ static void style_init(my_theme_t* theme) {
     lv_style_set_image_opa(&theme->styles.menu_icon, LV_OPA_COVER);
 
     lv_style_init(&theme->styles.menu_sublabel);
-    lv_style_set_flex_grow(&theme->styles.menu_sublabel, 1);
-    lv_style_set_text_align(&theme->styles.menu_sublabel, LV_TEXT_ALIGN_RIGHT);
 
     lv_style_init(&theme->styles.submenu);
     lv_style_set_pad_row(&theme->styles.submenu, 1);

@@ -137,6 +137,7 @@ static void menu_item_lvgl_constructor(const lv_obj_class_t* class_p, lv_obj_t* 
     lv_obj_class_init_obj(instance->icon);
 
     instance->label = lv_label_create(obj);
+    lv_obj_set_flex_grow(instance->label, 1);
 
     instance->sub_label = lv_obj_class_create_obj(MY_SUBLABEL_CLASS, obj);
     lv_obj_class_init_obj(instance->sub_label);
