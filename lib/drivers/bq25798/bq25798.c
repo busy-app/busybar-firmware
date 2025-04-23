@@ -104,6 +104,21 @@ bool bq25798_set_cfg(FuriHalI2cBusHandle* handle) {
         *(uint8_t*)&reg11_temp,
         BQ25798_I2C_TIMEOUT);
 
+    Bq25798Reg12ChargerControl3 reg12_temp = {0};
+    furi_hal_i2c_read_reg_8(
+        handle,
+        BQ25798_I2C_ADDRESS,
+        BQ25798_REG12_CHARGER_CONTROL_3,
+        (uint8_t*)&reg12_temp,
+        BQ25798_I2C_TIMEOUT);
+    reg12_temp.PFM_FWD_DIS = 1;
+    furi_hal_i2c_write_reg_8(
+        handle,
+        BQ25798_I2C_ADDRESS,
+        BQ25798_REG12_CHARGER_CONTROL_3,
+        *(uint8_t*)&reg12_temp,
+        BQ25798_I2C_TIMEOUT);
+
     // Disable ILIM_HIZ
     Bq25798Reg14ChargerControl5 reg14_temp = {0};
     furi_hal_i2c_read_reg_8(
@@ -230,6 +245,18 @@ bool bq25798_set_charge_current_limit(FuriHalI2cBusHandle* handle, uint32_t valu
         BQ25798_I2C_ADDRESS,
         BQ25798_REG03_CHARGE_CURRENT_LIMIT,
         value_ma / 10 & 0x1ff,
+        BQ25798_I2C_TIMEOUT);
+}
+
+bool bq25798_set_charge_voltage_limit(FuriHalI2cBusHandle* handle, uint32_t value_mv) {
+    furi_assert(handle);
+    furi_assert(value_mv <= 4200);
+
+    return furi_hal_i2c_write_reg_16(
+        handle,
+        BQ25798_I2C_ADDRESS,
+        BQ25798_REG01_CHARGE_VOLTAGE_LIMIT,
+        value_mv / 10 & 0x7ff,
         BQ25798_I2C_TIMEOUT);
 }
 
