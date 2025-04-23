@@ -15,23 +15,37 @@ typedef enum {
     BusyTimerStateMax,
 } BusyTimerState;
 
+typedef enum {
+    BusyTimerEventTypeTick,
+    BusyTimerEventTypeStateChanged,
+    BusyTimerEventTypeMax,
+} BusyTimerEventType;
+
 typedef struct {
-    uint32_t total_time_mn;
+    BusyTimerEventType type;
+    union {
+        uint32_t time_s;
+        BusyTimerState state;
+    };
+} BusyTimerEvent;
+
+typedef struct {
     uint32_t work_time_mn;
     uint32_t rest_time_mn;
+    uint32_t cycle_count;
     bool enable_intervals;
-    bool enable_autostart_work;
-    bool enable_autostart_rest;
-    bool enable_autorestart;
+    bool enable_autostart;
     bool enable_sound;
     bool enable_speed;
 } BusyTimerConfig;
 
-typedef void (*BusyTimerCallback)(void* context);
+typedef void (*BusyTimerCallback)(const BusyTimerEvent* event, void* context);
 
 BusyTimer* busy_timer_alloc(void);
 
 void busy_timer_free(BusyTimer* instance);
+
+void busy_timer_set_callback(BusyTimer* instance, BusyTimerCallback callback, void* context);
 
 BusyTimerState busy_timer_get_state(const BusyTimer* instance);
 
@@ -39,8 +53,10 @@ void busy_timer_get_config(const BusyTimer* instance, BusyTimerConfig* config);
 
 void busy_timer_set_config(const BusyTimer* instance, const BusyTimerConfig* config);
 
-// void busy_timer_start(BusyTimer* instance);
-// void busy_timer_stop(BusyTimer* instance);
+void busy_timer_start(BusyTimer* instance);
+
+void busy_timer_stop(BusyTimer* instance);
+
 // void busy_timer_next_state(BusyTimer* instance, bool skip_event);
 // void busy_timer_pause(BusyTimer* instance);
 // void busy_timer_resume(BusyTimer* instance);

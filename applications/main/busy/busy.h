@@ -18,13 +18,8 @@
 #define BUSY_ANIM_PATH(path) (APP_ASSETS_PATH("animations") "/" path)
 
 typedef enum {
-    BusyCustomEventUpdate = 100,
-    BusyCustomEventIntervalEnd,
-    BusyCustomEventSessionEnd,
-    BusyCustomEventNext,
-    BusyCustomEventBack,
-    BusyCustomEventStartSingle,
-    BusyCustomEventStartDouble,
+    BusyCustomEventTimerTick = 100,
+    BusyCustomEventTimerStateChanged,
 } BusyCustomEvent;
 
 typedef struct {

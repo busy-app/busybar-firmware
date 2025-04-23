@@ -82,13 +82,14 @@ static bool busy_scene_start_on_event(const SceneManagerEvent* event, void* cont
 
     if(event->type == SceneManagerEventTypeCustom) {
         if(event->event == BusySceneStartMenuIndexStart) {
-            FURI_LOG_D(TAG, "Start selected!");
+            scene_manager_switch_to_scene(instance->scene_manager, BusyAppSceneIdTimer);
         } else if(event->event == BusySceneStartMenuIndexSetup) {
             scene_manager_switch_to_scene(instance->scene_manager, BusyAppSceneIdSetup);
         }
 
         consumed = true;
     }
+
     return consumed;
 }
 

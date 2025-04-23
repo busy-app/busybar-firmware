@@ -1,8 +1,23 @@
 #include "../busy.h"
 
+#include <gui/modules/flex_layout.h>
+#include <lvgl.h>
+
 typedef struct {
+    FlexLayout* back_layout;
     BusyTimerState timer_state;
 } BusySceneTimer;
+
+static void busy_scene_timer_event_callback(const BusyTimerEvent* event, void* context) {
+    furi_assert(event);
+    furi_assert(context);
+
+    if(event->type == BusyTimerEventTypeTick) {
+        FURI_LOG_I(TAG, "Tick: %ld s remaining", event->time_s);
+    } else if(event->type == BusyTimerEventTypeStateChanged) {
+        FURI_LOG_I(TAG, "State changed: %d", event->state);
+    }
+}
 
 // static void busy_scene_timer_state_update(BusySceneTimer* data) {
 //     const lv_image_dsc_t* main_image_dsc;
@@ -115,102 +130,45 @@ typedef struct {
 // }
 
 static void busy_scene_timer_on_enter(void* context) {
+    furi_assert(context);
     BusyApp* instance = context;
     UNUSED(instance);
-    // BusySceneTimer* data = busy_get_current_scene_data(instance);
-    //
-    // gui_lock(instance->gui);
-    //
-    // lv_obj_t* active = gui_get_layer(instance->gui, GuiDisplayIdFront, GuiLayerIdActive);
-    //
-    // data->main_image = lv_image_create(active);
-    //
-    // data->time_label = lv_label_create(active);
-    // lv_obj_set_style_text_font(data->time_label, &lv_font_pixel_operator_8, LV_PART_MAIN);
-    // // TODO: Implement in theme
-    // lv_obj_set_style_text_color(data->time_label, lv_color_white(), LV_PART_MAIN);
-    // lv_obj_set_pos(data->time_label, 41, 1);
-    //
-    // data->info_label = lv_label_create(active);
-    // lv_label_set_text(data->info_label, "LEFT");
-    // lv_obj_set_style_text_font(data->info_label, &lv_font_tiny_6, LV_PART_MAIN);
-    // // TODO: Implement in theme
-    // lv_obj_set_style_text_color(data->info_label, lv_color_white(), LV_PART_MAIN);
-    // lv_obj_set_pos(data->info_label, 41, 10);
-    //
-    // lv_obj_add_event_cb(
-    //     data->info_label,
-    //     busy_scene_timer_start_pressed_callback,
-    //     LV_EVENT_SINGLE_CLICKED,
-    //     instance);
-    // lv_obj_add_event_cb(
-    //     data->info_label,
-    //     busy_scene_timer_start_pressed_callback,
-    //     LV_EVENT_DOUBLE_CLICKED,
-    //     instance);
-    // // Send input events to the label
-    // lv_group_add_obj(lv_group_get_default(), data->info_label);
-    //
-    // data->time_bar = lv_bar_create(active);
-    // lv_obj_set_pos(data->time_bar, 1, 15);
-    // lv_obj_set_size(data->time_bar, lv_obj_get_width(active) - 2, 1);
-    //
-    // gui_unlock(instance->gui);
-    //
-    // busy_scene_timer_update(instance);
+
+    BusySceneTimer* data = scene_manager_get_current_scene_data(instance->scene_manager);
+
+    with_gui(instance->gui, {
+        data->back_layout = flex_layout_alloc(instance->back_window, FlexLayoutTypeColumn);
+        widget_set_size(flex_layout_get_base(data->back_layout), 146, 72);
+        widget_set_pos(flex_layout_get_base(data->back_layout), 2, 4);
+        // TODO: Make wrappers for raw LVGL APIs
+        lv_obj_set_style_bg_color((lv_obj_t*)data->back_layout, lv_color_white(), LV_PART_MAIN);
+        lv_obj_set_style_bg_opa((lv_obj_t*)data->back_layout, LV_OPA_COVER, LV_PART_MAIN);
+        lv_obj_set_style_radius((lv_obj_t*)data->back_layout, 4, LV_PART_MAIN);
+    });
+
+    busy_timer_set_callback(instance->busy_timer, busy_scene_timer_event_callback, instance);
+    busy_timer_start(instance->busy_timer);
 }
 
 static void busy_scene_timer_on_exit(void* context) {
+    furi_assert(context);
     BusyApp* instance = context;
-    UNUSED(instance);
-    // BusySceneTimer* data = busy_get_current_scene_data(instance);
-    //
-    // gui_lock(instance->gui);
-    //
-    // // Stop sending input events to the label
-    // // TODO: Why isn't it removed automatically?
-    // lv_group_remove_obj(data->info_label);
-    //
-    // lv_obj_delete(data->main_image);
-    // lv_obj_delete(data->time_label);
-    // lv_obj_delete(data->info_label);
-    // lv_obj_delete(data->time_bar);
-    //
-    // if(data->overlay) {
-    //     lv_obj_delete(data->overlay);
-    //     lv_obj_delete(data->overlay_image);
-    // }
-    //
-    // gui_unlock(instance->gui);
+
+    BusySceneTimer* data = scene_manager_get_current_scene_data(instance->scene_manager);
+
+    with_gui(instance->gui, { flex_layout_free(data->back_layout); });
+
+    busy_timer_set_callback(instance->busy_timer, NULL, NULL);
 }
 
 static bool busy_scene_timer_on_event(const SceneManagerEvent* event, void* context) {
+    furi_assert(context);
     BusyApp* instance = context;
-    UNUSED(instance);
+
+    BusySceneTimer* data = scene_manager_get_current_scene_data(instance->scene_manager);
+    UNUSED(data);
     UNUSED(event);
 
-    // if(event->type == BusyEventTypeBack) {
-    //     busy_switch_to_scene(instance, BusyAppSceneIdQuit);
-    //
-    // } else if(event->type == BusyEventTypeOk) {
-    //     busy_timer_next_state(instance, true);
-    //     busy_scene_timer_show_pause_overlay(instance, false);
-    //
-    // } else if(event->type == BusyEventTypeCustom) {
-    //     if(event->custom_value == BusyCustomEventUpdate) {
-    //         busy_scene_timer_update(instance);
-    //     } else if(event->custom_value == BusyCustomEventIntervalEnd) {
-    //         busy_switch_to_scene(instance, BusyAppSceneIdNext);
-    //     } else if(event->custom_value == BusyCustomEventSessionEnd) {
-    //         busy_switch_to_scene(instance, BusyAppSceneIdRestart);
-    //     } else if(event->custom_value == BusyCustomEventStartSingle) {
-    //         busy_timer_toggle(instance);
-    //         busy_scene_timer_toggle_pause_overlay(instance);
-    //     } else if(event->custom_value == BusyCustomEventStartDouble) {
-    //         busy_timer_next_state(instance, true);
-    //         busy_scene_timer_show_pause_overlay(instance, false);
-    //     }
-    // }
     return true;
 }
 
