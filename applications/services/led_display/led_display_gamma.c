@@ -1,5 +1,4 @@
 #include <stdint.h>
-#include <string.h>
 #include <math.h>
 #include "led_display_i.h"
 

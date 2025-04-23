@@ -40,4 +40,6 @@ void led_display_driver_set_update_callback(LedDisplayCallback callback, void* c
 void led_display_driver_send_buf_start(void);
 void led_display_driver_send_frame(const uint8_t* frame_buf);
 void led_display_driver_vsync_trig(void);
+
+// Valid brightness values: [0, BRIGHTNESS_VAL_MAX]
 void led_display_driver_set_brightness(uint8_t brightness);

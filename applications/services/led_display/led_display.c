@@ -9,7 +9,8 @@
 
 #define REFRESH_PERIOD_MS (100)
 
-#define BRIGHTNESS_TO_LIGHT_SENSOR_MAX_RATIO (BRIGHTNESS_VAL_MAX / LIGHT_SENSOR_LIGHT_LEVEL_MAX)
+#define AUTO_BRIGHTNESS_MIN_LEVEL (5)
+#define AUTO_BRIGHTNESS_MAX_LEVEL (100)
 
 typedef enum {
     DotMatrixSrvEventMessage = 1UL << 0,
@@ -35,8 +36,7 @@ typedef struct {
 } DotMatrixSrvMessage;
 
 struct DotMatrixSrv {
-    bool auto_brightness;
-    uint8_t brightness;
+    uint8_t sensor_brightness, brightness_override;
     Power* power;
     FuriEventLoop* event_loop;
     FuriSemaphore* power_ready_sem;
@@ -77,26 +77,23 @@ void dot_matrix_draw(DotMatrixSrv* instance, const uint8_t* frame_buffer) {
     dot_matrix_send_message(instance, &message);
 }
 
-static void dot_matrix_update_brightness(DotMatrixSrv* instance) {
-    if(instance->auto_brightness) {
-        instance->brightness =
-            light_sensor_get_light_level() * BRIGHTNESS_TO_LIGHT_SENSOR_MAX_RATIO;
-        if(instance->brightness == 0) instance->brightness = 1;
-    }
+static void dot_matrix_apply_brightness_level(DotMatrixSrv* instance) {
+    const uint8_t brightness = (instance->brightness_override == DOT_MATRIX_BRIGHTNESS_AUTO) ?
+                                   instance->sensor_brightness :
+                                   instance->brightness_override;
 
     const DotMatrixSrvMessage message = {
         .type = DotMatrixSrvMessageTypeBrightness,
-        .brightness = instance->brightness,
+        .brightness = brightness,
     };
     dot_matrix_send_message(instance, &message);
 }
 
-void dot_matrix_set_brightness(DotMatrixSrv* instance, bool auto_brightness, uint8_t brightness) {
+void dot_matrix_set_brightness(DotMatrixSrv* instance, uint8_t brightness) {
     furi_check(instance);
 
-    instance->auto_brightness = auto_brightness;
-    instance->brightness = brightness;
-    dot_matrix_update_brightness(instance);
+    instance->brightness_override = brightness;
+    dot_matrix_apply_brightness_level(instance);
 }
 
 static void led_display_update_done_callback(void* context) {
@@ -129,12 +126,31 @@ static void led_display_srv_custom_event_callback(uint32_t events, void* context
     }
 }
 
+static uint8_t led_display_light_sensor_level_to_brightness(uint8_t light_level) {
+    uint8_t constrained_light = MIN(light_level, LIGHT_SENSOR_LIGHT_LEVEL_MAX);
+
+    // Apply a non-linear mapping to better match human perception
+    uint8_t brightness = AUTO_BRIGHTNESS_MIN_LEVEL +
+                         ((AUTO_BRIGHTNESS_MAX_LEVEL - AUTO_BRIGHTNESS_MIN_LEVEL) *
+                          constrained_light * constrained_light) /
+                             (LIGHT_SENSOR_LIGHT_LEVEL_MAX * LIGHT_SENSOR_LIGHT_LEVEL_MAX);
+
+    return MIN(MAX(brightness, AUTO_BRIGHTNESS_MIN_LEVEL), AUTO_BRIGHTNESS_MAX_LEVEL);
+}
+
 static void led_display_srv_light_sensor_event(const void* message, void* context) {
     furi_assert(message);
     furi_assert(context);
 
     DotMatrixSrv* instance = context;
-    if(instance->auto_brightness) dot_matrix_update_brightness(instance);
+
+    const LightSensorEvent* event = message;
+    if(event->type != LightSensorEventTypeLightLevelChanged) {
+        return;
+    }
+
+    instance->sensor_brightness = led_display_light_sensor_level_to_brightness(event->light_level);
+    dot_matrix_apply_brightness_level(instance);
 }
 
 static void led_display_srv_power_event(const void* message, void* context) {
@@ -164,8 +180,8 @@ static DotMatrixSrv* led_display_srv_alloc(void) {
         furi_semaphore_free(instance->power_ready_sem);
     }
 
-    instance->auto_brightness = true;
-    instance->brightness = BRIGHTNESS_VAL_MAX;
+    instance->brightness_override = DOT_MATRIX_BRIGHTNESS_AUTO;
+    instance->sensor_brightness = BRIGHTNESS_VAL_MAX;
     instance->frame_buf_ptr = NULL;
 
     instance->event_loop = furi_event_loop_alloc();
@@ -179,7 +195,7 @@ static DotMatrixSrv* led_display_srv_alloc(void) {
     furi_delay_ms(50);
 
     led_display_scan_init();
-    led_display_driver_init(instance->brightness);
+    led_display_driver_init(instance->sensor_brightness);
     led_display_driver_set_update_callback(led_display_update_done_callback, instance);
 
     led_display_scan_start();
