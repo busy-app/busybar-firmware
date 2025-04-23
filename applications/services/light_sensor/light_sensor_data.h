@@ -1,6 +1,8 @@
 #pragma once
 
 #include <stdint.h>
+#include <stdbool.h>
+#include <stddef.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -15,10 +17,15 @@ typedef struct LightSensorData LightSensorData;
  * @brief Configuration structure for LightSensorData.
  */
 typedef struct {
-    uint8_t window_size; /**< Size of the measurement window. The less value, the faster response */
-    uint8_t light_level_max; /**< Maximum light level */
-    float light_level_max_threshold; /**< Threshold for maximum light level. */
-    float coef; /**< By manipulating this coef different behaviour of light level logic can be achieved. */
+    size_t window_size; /**< Size of the measurement window. The less value, the faster response */
+
+    // Light level range
+    uint8_t light_level_max; /**< Maximum light level index */
+
+    // Light mapping parameters
+    float lux_min; /**< Minimum lux value to map (default: 5.0) */
+    float lux_max; /**< Maximum lux value to map (default: 15000.0) */
+    bool use_logarithmic_mapping; /**< Whether to use logarithmic mapping (true) or linear (false) */
 } LightSensorDataConfig;
 
 /**

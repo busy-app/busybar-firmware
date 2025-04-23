@@ -3,10 +3,14 @@
 #include <furi.h>
 
 #include <power/power_service/power.h>
+#include <light_sensor/light_sensor.h>
 
 #define TAG "DotMatrixSrv"
 
 #define REFRESH_PERIOD_MS (100)
+
+#define AUTO_BRIGHTNESS_MIN_LEVEL (5)
+#define AUTO_BRIGHTNESS_MAX_LEVEL (100)
 
 typedef enum {
     DotMatrixSrvEventMessage = 1UL << 0,
@@ -20,20 +24,25 @@ typedef enum {
 
 typedef enum {
     DotMatrixSrvMessageTypeDraw,
+    DotMatrixSrvMessageTypeBrightness,
 } DotMatrixSrvMessageType;
 
 typedef struct {
     DotMatrixSrvMessageType type;
     union {
+        uint8_t brightness;
         const uint8_t* frame_buffer;
     };
 } DotMatrixSrvMessage;
 
 struct DotMatrixSrv {
+    uint8_t sensor_brightness, brightness_override;
     Power* power;
     FuriEventLoop* event_loop;
     FuriSemaphore* power_ready_sem;
     FuriEventFlag* event_flag;
+    FuriPubSub* light_sensor_pubsub;
+    const uint8_t* frame_buf_ptr;
     const DotMatrixSrvMessage* message;
 };
 
@@ -68,6 +77,25 @@ void dot_matrix_draw(DotMatrixSrv* instance, const uint8_t* frame_buffer) {
     dot_matrix_send_message(instance, &message);
 }
 
+static void dot_matrix_apply_brightness_level(DotMatrixSrv* instance) {
+    const uint8_t brightness = (instance->brightness_override == DOT_MATRIX_BRIGHTNESS_AUTO) ?
+                                   instance->sensor_brightness :
+                                   instance->brightness_override;
+
+    const DotMatrixSrvMessage message = {
+        .type = DotMatrixSrvMessageTypeBrightness,
+        .brightness = brightness,
+    };
+    dot_matrix_send_message(instance, &message);
+}
+
+void dot_matrix_set_brightness(DotMatrixSrv* instance, uint8_t brightness) {
+    furi_check(instance);
+
+    instance->brightness_override = brightness;
+    dot_matrix_apply_brightness_level(instance);
+}
+
 static void led_display_update_done_callback(void* context) {
     DotMatrixSrv* instance = context;
     furi_event_loop_set_custom_event(instance->event_loop, DotMatrixSrvEventUpdateDone);
@@ -80,9 +108,14 @@ static void led_display_srv_custom_event_callback(uint32_t events, void* context
         const DotMatrixSrvMessage* message = instance->message;
         const DotMatrixSrvMessageType message_type = message->type;
 
-        if(message_type == DotMatrixSrvMessageTypeDraw) {
+        if(message_type == DotMatrixSrvMessageTypeBrightness) {
+            led_display_driver_set_brightness(message->brightness);
+            led_display_driver_send_frame(instance->frame_buf_ptr);
+            furi_event_flag_set(instance->event_flag, DotMatrixSrvEventFlagDone);
+        } else if(message_type == DotMatrixSrvMessageTypeDraw) {
             led_display_driver_send_frame(message->frame_buffer);
             furi_event_flag_set(instance->event_flag, DotMatrixSrvEventFlagDone);
+            if(instance->frame_buf_ptr == NULL) instance->frame_buf_ptr = message->frame_buffer;
         }
 
     } else if(events == DotMatrixSrvEventUpdateDone) {
@@ -91,6 +124,33 @@ static void led_display_srv_custom_event_callback(uint32_t events, void* context
     } else {
         furi_crash(TAG ": Multiple events");
     }
+}
+
+static uint8_t led_display_light_sensor_level_to_brightness(uint8_t light_level) {
+    uint8_t constrained_light = MIN(light_level, LIGHT_SENSOR_LIGHT_LEVEL_MAX);
+
+    // Apply a non-linear mapping to better match human perception
+    uint8_t brightness = AUTO_BRIGHTNESS_MIN_LEVEL +
+                         ((AUTO_BRIGHTNESS_MAX_LEVEL - AUTO_BRIGHTNESS_MIN_LEVEL) *
+                          constrained_light * constrained_light) /
+                             (LIGHT_SENSOR_LIGHT_LEVEL_MAX * LIGHT_SENSOR_LIGHT_LEVEL_MAX);
+
+    return MIN(MAX(brightness, AUTO_BRIGHTNESS_MIN_LEVEL), AUTO_BRIGHTNESS_MAX_LEVEL);
+}
+
+static void led_display_srv_light_sensor_event(const void* message, void* context) {
+    furi_assert(message);
+    furi_assert(context);
+
+    DotMatrixSrv* instance = context;
+
+    const LightSensorEvent* event = message;
+    if(event->type != LightSensorEventTypeLightLevelChanged) {
+        return;
+    }
+
+    instance->sensor_brightness = led_display_light_sensor_level_to_brightness(event->light_level);
+    dot_matrix_apply_brightness_level(instance);
 }
 
 static void led_display_srv_power_event(const void* message, void* context) {
@@ -120,6 +180,10 @@ static DotMatrixSrv* led_display_srv_alloc(void) {
         furi_semaphore_free(instance->power_ready_sem);
     }
 
+    instance->brightness_override = DOT_MATRIX_BRIGHTNESS_AUTO;
+    instance->sensor_brightness = BRIGHTNESS_VAL_MIN;
+    instance->frame_buf_ptr = NULL;
+
     instance->event_loop = furi_event_loop_alloc();
     instance->event_flag = furi_event_flag_alloc();
 
@@ -131,11 +195,15 @@ static DotMatrixSrv* led_display_srv_alloc(void) {
     furi_delay_ms(50);
 
     led_display_scan_init();
-    led_display_driver_init();
+    led_display_driver_init(instance->sensor_brightness);
     led_display_driver_set_update_callback(led_display_update_done_callback, instance);
 
     led_display_scan_start();
     led_display_driver_start();
+
+    instance->light_sensor_pubsub = furi_record_open(RECORD_LIGHT_SENSOR_EVENTS);
+    furi_pubsub_subscribe(
+        instance->light_sensor_pubsub, led_display_srv_light_sensor_event, instance);
 
     furi_event_flag_set(instance->event_flag, DotMatrixSrvEventFlagReady);
 
