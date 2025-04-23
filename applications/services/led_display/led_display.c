@@ -181,7 +181,7 @@ static DotMatrixSrv* led_display_srv_alloc(void) {
     }
 
     instance->brightness_override = DOT_MATRIX_BRIGHTNESS_AUTO;
-    instance->sensor_brightness = BRIGHTNESS_VAL_MAX;
+    instance->sensor_brightness = BRIGHTNESS_VAL_MIN;
     instance->frame_buf_ptr = NULL;
 
     instance->event_loop = furi_event_loop_alloc();

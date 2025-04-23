@@ -15,7 +15,8 @@
 
 #define DISPLAY_GAMMA (0.35f) // Default gamma value
 
-#define BRIGHTNESS_VAL_MAX 100
+#define BRIGHTNESS_VAL_MIN (0)
+#define BRIGHTNESS_VAL_MAX (100)
 
 #define LED_DRIVER_CHAIN (3)
 #define PIXEL_BUF_LEN    (3 * 2 * 2) // Tx buffer len for 1 pixel (RGB * uint16_t * 2(Dual SPI))

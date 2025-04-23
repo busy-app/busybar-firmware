@@ -10,15 +10,15 @@
 #define DOT_MATRIX_BPP      (24)
 #define DOT_MATRIX_BUF_SIZE (DOT_MATRIX_W * DOT_MATRIX_H * DOT_MATRIX_BPP / 8)
 
+#define DOT_MATRIX_BRIGHTNESS_MIN  (0)
+#define DOT_MATRIX_BRIGHTNESS_MAX  (100)
+#define DOT_MATRIX_BRIGHTNESS_AUTO (255)
+
 typedef struct DotMatrixSrv DotMatrixSrv;
 
 void dot_matrix_reset(DotMatrixSrv* instance);
 
 void dot_matrix_draw(DotMatrixSrv* instance, const uint8_t* buf);
-
-#define DOT_MATRIX_BRIGHTNESS_MIN  (0)
-#define DOT_MATRIX_BRIGHTNESS_MAX  (100)
-#define DOT_MATRIX_BRIGHTNESS_AUTO (255)
 
 /**
  * @brief Set the brightness of the dot matrix display

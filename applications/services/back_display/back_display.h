@@ -10,6 +10,10 @@ extern "C" {
 
 #define RECORD_BACK_DISPLAY "back_display"
 
+#define BACK_DISPLAY_BRIGHTNESS_MIN  (0)
+#define BACK_DISPLAY_BRIGHTNESS_MAX  (100)
+#define BACK_DISPLAY_BRIGHTNESS_AUTO (255)
+
 typedef struct BackDisplaySrv BackDisplaySrv;
 
 /**
@@ -22,16 +26,13 @@ typedef struct BackDisplaySrv BackDisplaySrv;
 void back_display_draw(BackDisplaySrv* instance, const uint8_t* data);
 
 /**
- * @brief Set back display brightness. To some value, or make it auto
- *
- * @param instance back display service instance
- * @param auto_brightness if true next param doesn't play any role, brightness will be taken from light sensor. 
- * @param brightness desired brightness value from 0 to LIGHT_SENSOR_LIGHT_LEVEL_MAX
+ * @brief Set the back display brightness 
+ * 
+ * @param instance Pointer to the DotMatrixSrv instance
+ * @param brightness Brightness value (BACK_DISPLAY_BRIGHTNESS_MIN to BACK_DISPLAY_BRIGHTNESS_MAX),
+ *                   or BACK_DISPLAY_BRIGHTNESS_AUTO for automatic brightness adjustment
  */
-void back_display_set_brightness(
-    BackDisplaySrv* instance,
-    bool auto_brightness,
-    uint8_t brightness);
+void back_display_set_brightness(BackDisplaySrv* instance, uint8_t brightness);
 
 /**
  * @brief Get the width of the back display.
