@@ -392,10 +392,9 @@ void led_display_driver_send_frame(const uint8_t* frame_buf) {
     led_display_driver_send_buffer(led_driver);
 }
 
-void led_display_driver_init(void) {
+void led_display_driver_init(uint8_t initial_brightness) {
     led_driver = malloc(sizeof(LedDisplayDriver));
-
-    led_display_gamma_lut_generate(led_driver->gamma_lut, DISPLAY_GAMMA, 100);
+    led_display_gamma_lut_generate(led_driver->gamma_lut, DISPLAY_GAMMA, initial_brightness);
 
     octospi_init();
     octospi_dma_init(led_driver);
@@ -416,4 +415,8 @@ void led_display_driver_start(void) {
         furi_delay_ms(5);
         led_display_driver_send_buffer(led_driver);
     }
+}
+
+void led_display_driver_set_brightness(uint8_t brightness) {
+    led_display_gamma_lut_generate(led_driver->gamma_lut, DISPLAY_GAMMA, brightness);
 }
