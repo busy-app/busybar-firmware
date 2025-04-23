@@ -242,7 +242,7 @@ static void octospi_init(void) {
         GpioAltFn10OCTOSPI1);
 }
 
-static void led_driver_add_le_cmd(uint8_t* tx_data, LedDriverCommand cmd) {
+static FURI_ALWAYS_INLINE void led_driver_add_le_cmd(uint8_t* tx_data, LedDriverCommand cmd) {
     uint32_t cmd_mask = 0;
 
     uint8_t bitcnt = 0;
@@ -266,8 +266,37 @@ static inline void led_driver_encode_byte(uint8_t* tx_data, uint8_t data) {
     tx_data[1] = interleave_lut[data & 0x0f];
 }
 
+static FURI_ALWAYS_INLINE uint16_t
+    led_display_gamma_apply(const uint16_t* gamma_lut, uint8_t in_val) {
+    return (gamma_lut[in_val]);
+}
+
+static void
+    led_display_gamma_lut_generate(uint16_t* gamma_lut, float gamma_val, uint8_t brightness) {
+    if(brightness > BRIGHTNESS_VAL_MAX) {
+        brightness = BRIGHTNESS_VAL_MAX;
+    }
+
+    uint32_t out_max = (brightness * 65535) / BRIGHTNESS_VAL_MAX;
+
+    float inv_gamma = 1.f / (float)gamma_val;
+
+    for(uint16_t i = 0; i < 256; i++) {
+        float val_in = ((float)i) / 255.f;
+        float val_out = powf(val_in, inv_gamma);
+        gamma_lut[i] = (uint16_t)(val_out * out_max);
+    }
+}
+
 static void
     led_driver_encode_pixel(uint8_t* tx_data, const uint8_t* pix_data, const uint16_t* gamma) {
+    // Fast path for empty (black) pixels
+    if(pix_data[0] == 0 && pix_data[1] == 0 && pix_data[2] == 0) {
+        // Clear all bytes at once for empty pixels
+        memset(tx_data, 0, 12);
+        return;
+    }
+
     uint16_t led_data = led_display_gamma_apply(gamma, pix_data[0]);
     led_driver_encode_byte(&tx_data[0], (led_data >> 8));
     led_driver_encode_byte(&tx_data[2], (led_data & 0xFF));

@@ -9,7 +9,7 @@
 
 #define REFRESH_PERIOD_MS (100)
 
-#define AUTO_BRIGHTNESS_MIN_LEVEL (5)
+#define AUTO_BRIGHTNESS_MIN_LEVEL (25)
 #define AUTO_BRIGHTNESS_MAX_LEVEL (100)
 
 typedef enum {
