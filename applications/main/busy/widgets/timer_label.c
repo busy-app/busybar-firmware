@@ -76,10 +76,6 @@ static void timer_label_lvgl_constructor(const lv_obj_class_t* class_p, lv_obj_t
 
     lv_obj_set_flex_flow(obj, LV_FLEX_FLOW_COLUMN);
 
-    // TODO: Set in theme
-    lv_obj_set_style_pad_row(obj, 2, LV_PART_MAIN);
-    lv_obj_set_style_text_color(obj, lv_color_white(), LV_PART_MAIN);
-
     TimerLabel* instance = (TimerLabel*)obj;
 
     instance->top_label = lv_label_create(obj);

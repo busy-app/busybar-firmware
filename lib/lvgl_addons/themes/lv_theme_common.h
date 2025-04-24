@@ -32,3 +32,6 @@ extern const lv_obj_class_t nav_header_bcrumbs_lvgl_class;
 
 // TimerCard
 extern const lv_obj_class_t timer_card_lvgl_class;
+
+// TimerLabel
+extern const lv_obj_class_t timer_label_lvgl_class;

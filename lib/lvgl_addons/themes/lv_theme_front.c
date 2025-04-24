@@ -23,6 +23,7 @@ typedef struct {
     lv_style_t menu_sublabel;
     lv_style_t submenu;
     lv_style_t submenu_cursor;
+    lv_style_t timer_label;
 } my_theme_styles_t;
 
 typedef struct {
@@ -64,6 +65,10 @@ static void style_init(my_theme_t* theme) {
     lv_style_init(&theme->styles.submenu_cursor);
     lv_style_set_pad_left(&theme->styles.submenu_cursor, 2);
     lv_style_set_pad_right(&theme->styles.submenu_cursor, 1);
+
+    lv_style_init(&theme->styles.timer_label);
+    lv_style_set_pad_row(&theme->styles.timer_label, 2);
+    lv_style_set_text_color(&theme->styles.timer_label, COLOR_FG_FOCUSED);
 
     lv_style_init(&theme->styles.scrollbar);
     lv_style_set_bg_opa(&theme->styles.scrollbar, LV_OPA_COVER);
@@ -137,6 +142,9 @@ static void theme_apply_callback(lv_theme_t* th, lv_obj_t* obj) {
         lv_obj_add_style(obj, &theme->styles.transparent, LV_PART_MAIN);
         lv_obj_add_style(obj, &theme->styles.focused, LV_PART_MAIN | LV_STATE_FOCUSED);
         lv_obj_add_style(obj, &theme->styles.submenu_cursor, LV_PART_MAIN);
+
+    } else if(lv_obj_check_type(obj, &timer_label_lvgl_class)) {
+        lv_obj_add_style(obj, &theme->styles.timer_label, LV_PART_MAIN);
     }
 }
 
