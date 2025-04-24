@@ -14,17 +14,17 @@
 #define FRONT_DISPLAY_BRIGHTNESS_MAX  (100)
 #define FRONT_DISPLAY_BRIGHTNESS_AUTO (255)
 
-typedef struct DotMatrixSrv DotMatrixSrv;
+typedef struct FrontDisplaySrv FrontDisplaySrv;
 
-void front_display_reset(DotMatrixSrv* instance);
+void front_display_reset(FrontDisplaySrv* instance);
 
-void front_display_draw(DotMatrixSrv* instance, const uint8_t* buf);
+void front_display_draw(FrontDisplaySrv* instance, const uint8_t* buf);
 
 /**
  * @brief Set the brightness of front display
  * 
- * @param instance Pointer to the DotMatrixSrv instance
+ * @param instance Pointer to the FrontDisplaySrv instance
  * @param brightness Brightness value (FRONT_DISPLAY_BRIGHTNESS_MIN to FRONT_DISPLAY_BRIGHTNESS_MAX),
  *                   or FRONT_DISPLAY_BRIGHTNESS_AUTO for automatic brightness adjustment
  */
-void front_display_set_brightness(DotMatrixSrv* instance, uint8_t brightness);
+void front_display_set_brightness(FrontDisplaySrv* instance, uint8_t brightness);

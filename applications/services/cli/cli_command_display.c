@@ -84,7 +84,7 @@ static void cli_action_brightness(Cli* cli, FuriString* args, GuiDisplayId id) {
             back_display_set_brightness(srv, back_display_brightness);
             furi_record_close(RECORD_BACK_DISPLAY);
         } else if(id == GuiDisplayIdFront) {
-            DotMatrixSrv* srv = furi_record_open(RECORD_FRONT_DISPLAY);
+            FrontDisplaySrv* srv = furi_record_open(RECORD_FRONT_DISPLAY);
             uint8_t matrix_brightness = auto_brightness ? FRONT_DISPLAY_BRIGHTNESS_AUTO :
                                                           brightness;
             front_display_set_brightness(srv, matrix_brightness);

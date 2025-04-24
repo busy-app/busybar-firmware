@@ -5,7 +5,7 @@
 #include <power/power_service/power.h>
 #include <light_sensor/light_sensor.h>
 
-#define TAG "DotMatrixSrv"
+#define TAG "FrontDisplaySrv"
 
 #define REFRESH_PERIOD_MS (100)
 
@@ -13,29 +13,29 @@
 #define AUTO_BRIGHTNESS_MAX_LEVEL (100)
 
 typedef enum {
-    DotMatrixSrvEventMessage = 1UL << 0,
-    DotMatrixSrvEventUpdateDone = 1UL << 1,
-} DotMatrixSrvEvent;
+    FrontDisplaySrvEventMessage = 1UL << 0,
+    FrontDisplaySrvEventUpdateDone = 1UL << 1,
+} FrontDisplaySrvEvent;
 
 typedef enum {
-    DotMatrixSrvEventFlagReady = 1UL << 0,
-    DotMatrixSrvEventFlagDone = 1UL << 1,
-} DotMatrixSrvEventFlag;
+    FrontDisplaySrvEventFlagReady = 1UL << 0,
+    FrontDisplaySrvEventFlagDone = 1UL << 1,
+} FrontDisplaySrvEventFlag;
 
 typedef enum {
-    DotMatrixSrvMessageTypeDraw,
-    DotMatrixSrvMessageTypeBrightness,
-} DotMatrixSrvMessageType;
+    FrontDisplaySrvMessageTypeDraw,
+    FrontDisplaySrvMessageTypeBrightness,
+} FrontDisplaySrvMessageType;
 
 typedef struct {
-    DotMatrixSrvMessageType type;
+    FrontDisplaySrvMessageType type;
     union {
         uint8_t brightness;
         const uint8_t* frame_buffer;
     };
-} DotMatrixSrvMessage;
+} FrontDisplaySrvMessage;
 
-struct DotMatrixSrv {
+struct FrontDisplaySrv {
     uint8_t sensor_brightness, brightness_override;
     Power* power;
     FuriEventLoop* event_loop;
@@ -43,54 +43,54 @@ struct DotMatrixSrv {
     FuriEventFlag* event_flag;
     FuriPubSub* light_sensor_pubsub;
     const uint8_t* frame_buf_ptr;
-    const DotMatrixSrvMessage* message;
+    const FrontDisplaySrvMessage* message;
 };
 
-void front_display_reset(DotMatrixSrv* instance) {
+void front_display_reset(FrontDisplaySrv* instance) {
     furi_check(instance);
 }
 
 static void
-    front_display_send_message(DotMatrixSrv* instance, const DotMatrixSrvMessage* message) {
+    front_display_send_message(FrontDisplaySrv* instance, const FrontDisplaySrvMessage* message) {
     uint32_t flags;
 
     flags = furi_event_flag_wait(
-        instance->event_flag, DotMatrixSrvEventFlagReady, FuriFlagWaitAll, FuriWaitForever);
-    furi_check(flags == DotMatrixSrvEventFlagReady);
+        instance->event_flag, FrontDisplaySrvEventFlagReady, FuriFlagWaitAll, FuriWaitForever);
+    furi_check(flags == FrontDisplaySrvEventFlagReady);
 
     instance->message = message;
-    furi_event_loop_set_custom_event(instance->event_loop, DotMatrixSrvEventMessage);
+    furi_event_loop_set_custom_event(instance->event_loop, FrontDisplaySrvEventMessage);
 
     flags = furi_event_flag_wait(
-        instance->event_flag, DotMatrixSrvEventFlagDone, FuriFlagWaitAll, FuriWaitForever);
-    furi_check(flags == DotMatrixSrvEventFlagDone);
+        instance->event_flag, FrontDisplaySrvEventFlagDone, FuriFlagWaitAll, FuriWaitForever);
+    furi_check(flags == FrontDisplaySrvEventFlagDone);
 }
 
-void front_display_draw(DotMatrixSrv* instance, const uint8_t* frame_buffer) {
+void front_display_draw(FrontDisplaySrv* instance, const uint8_t* frame_buffer) {
     furi_check(instance);
     furi_check(frame_buffer);
 
-    const DotMatrixSrvMessage message = {
-        .type = DotMatrixSrvMessageTypeDraw,
+    const FrontDisplaySrvMessage message = {
+        .type = FrontDisplaySrvMessageTypeDraw,
         .frame_buffer = frame_buffer,
     };
 
     front_display_send_message(instance, &message);
 }
 
-static void front_display_apply_brightness_level(DotMatrixSrv* instance) {
+static void front_display_apply_brightness_level(FrontDisplaySrv* instance) {
     const uint8_t brightness = (instance->brightness_override == FRONT_DISPLAY_BRIGHTNESS_AUTO) ?
                                    instance->sensor_brightness :
                                    instance->brightness_override;
 
-    const DotMatrixSrvMessage message = {
-        .type = DotMatrixSrvMessageTypeBrightness,
+    const FrontDisplaySrvMessage message = {
+        .type = FrontDisplaySrvMessageTypeBrightness,
         .brightness = brightness,
     };
     front_display_send_message(instance, &message);
 }
 
-void front_display_set_brightness(DotMatrixSrv* instance, uint8_t brightness) {
+void front_display_set_brightness(FrontDisplaySrv* instance, uint8_t brightness) {
     furi_check(instance);
 
     instance->brightness_override = brightness;
@@ -98,29 +98,29 @@ void front_display_set_brightness(DotMatrixSrv* instance, uint8_t brightness) {
 }
 
 static void front_display_update_done_callback(void* context) {
-    DotMatrixSrv* instance = context;
-    furi_event_loop_set_custom_event(instance->event_loop, DotMatrixSrvEventUpdateDone);
+    FrontDisplaySrv* instance = context;
+    furi_event_loop_set_custom_event(instance->event_loop, FrontDisplaySrvEventUpdateDone);
 }
 
 static void front_display_srv_custom_event_callback(uint32_t events, void* context) {
-    DotMatrixSrv* instance = context;
+    FrontDisplaySrv* instance = context;
 
-    if(events == DotMatrixSrvEventMessage) {
-        const DotMatrixSrvMessage* message = instance->message;
-        const DotMatrixSrvMessageType message_type = message->type;
+    if(events == FrontDisplaySrvEventMessage) {
+        const FrontDisplaySrvMessage* message = instance->message;
+        const FrontDisplaySrvMessageType message_type = message->type;
 
-        if(message_type == DotMatrixSrvMessageTypeBrightness) {
+        if(message_type == FrontDisplaySrvMessageTypeBrightness) {
             front_display_driver_set_brightness(message->brightness);
             front_display_driver_send_frame(instance->frame_buf_ptr);
-            furi_event_flag_set(instance->event_flag, DotMatrixSrvEventFlagDone);
-        } else if(message_type == DotMatrixSrvMessageTypeDraw) {
+            furi_event_flag_set(instance->event_flag, FrontDisplaySrvEventFlagDone);
+        } else if(message_type == FrontDisplaySrvMessageTypeDraw) {
             front_display_driver_send_frame(message->frame_buffer);
-            furi_event_flag_set(instance->event_flag, DotMatrixSrvEventFlagDone);
+            furi_event_flag_set(instance->event_flag, FrontDisplaySrvEventFlagDone);
             if(instance->frame_buf_ptr == NULL) instance->frame_buf_ptr = message->frame_buffer;
         }
 
-    } else if(events == DotMatrixSrvEventUpdateDone) {
-        furi_event_flag_set(instance->event_flag, DotMatrixSrvEventFlagReady);
+    } else if(events == FrontDisplaySrvEventUpdateDone) {
+        furi_event_flag_set(instance->event_flag, FrontDisplaySrvEventFlagReady);
 
     } else {
         furi_crash(TAG ": Multiple events");
@@ -143,7 +143,7 @@ static void front_display_srv_light_sensor_event(const void* message, void* cont
     furi_assert(message);
     furi_assert(context);
 
-    DotMatrixSrv* instance = context;
+    FrontDisplaySrv* instance = context;
 
     const LightSensorEvent* event = message;
     if(event->type != LightSensorEventTypeLightLevelChanged) {
@@ -160,7 +160,7 @@ static void front_display_srv_power_event(const void* message, void* context) {
     furi_assert(context);
 
     const PowerEvent* event = message;
-    DotMatrixSrv* instance = context;
+    FrontDisplaySrv* instance = context;
 
     if(event->type == PowerEventReady) {
         furi_semaphore_release(instance->power_ready_sem);
@@ -168,8 +168,8 @@ static void front_display_srv_power_event(const void* message, void* context) {
     // TODO: React on overheat or low power budget by limiting brightness
 }
 
-static DotMatrixSrv* front_display_srv_alloc(void) {
-    DotMatrixSrv* instance = malloc(sizeof(DotMatrixSrv));
+static FrontDisplaySrv* front_display_srv_alloc(void) {
+    FrontDisplaySrv* instance = malloc(sizeof(FrontDisplaySrv));
 
     // Must be first to ensure that power subsystem is OK
     instance->power = furi_record_open(RECORD_POWER);
@@ -207,7 +207,7 @@ static DotMatrixSrv* front_display_srv_alloc(void) {
     furi_pubsub_subscribe(
         instance->light_sensor_pubsub, front_display_srv_light_sensor_event, instance);
 
-    furi_event_flag_set(instance->event_flag, DotMatrixSrvEventFlagReady);
+    furi_event_flag_set(instance->event_flag, FrontDisplaySrvEventFlagReady);
 
     furi_record_create(RECORD_FRONT_DISPLAY, instance);
     return instance;
@@ -216,7 +216,7 @@ static DotMatrixSrv* front_display_srv_alloc(void) {
 int32_t front_display_srv(void* p) {
     UNUSED(p);
 
-    DotMatrixSrv* instance = front_display_srv_alloc();
+    FrontDisplaySrv* instance = front_display_srv_alloc();
     furi_event_loop_run(instance->event_loop);
 
     return 0;

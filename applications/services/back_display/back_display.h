@@ -28,7 +28,7 @@ void back_display_draw(BackDisplaySrv* instance, const uint8_t* data);
 /**
  * @brief Set the back display brightness 
  * 
- * @param instance Pointer to the DotMatrixSrv instance
+ * @param instance Pointer to the FrontDisplaySrv instance
  * @param brightness Brightness value (BACK_DISPLAY_BRIGHTNESS_MIN to BACK_DISPLAY_BRIGHTNESS_MAX),
  *                   or BACK_DISPLAY_BRIGHTNESS_AUTO for automatic brightness adjustment
  */
