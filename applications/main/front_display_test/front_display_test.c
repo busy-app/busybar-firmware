@@ -1,4 +1,4 @@
-#include "led_display_test.h"
+#include "front_display_test.h"
 
 #include <furi/furi.h>
 #include <toolbox/color.h>
@@ -6,10 +6,10 @@
 typedef struct {
     const char* name;
     const Color color;
-} LedDisplayTestColorData;
+} FrontDisplayTestColorData;
 
-static const LedDisplayTestColorData led_display_test_color[LedDisplayTestColorNum] = {
-    [LedDisplayTestColorRed] =
+static const FrontDisplayTestColorData front_display_test_color[FrontDisplayTestColorNum] = {
+    [FrontDisplayTestColorRed] =
         {
             .name = "Red",
             .color =
@@ -19,7 +19,7 @@ static const LedDisplayTestColorData led_display_test_color[LedDisplayTestColorN
                     .b = 0x00,
                 },
         },
-    [LedDisplayTestColorGreen] =
+    [FrontDisplayTestColorGreen] =
         {
             .name = "Green",
             .color =
@@ -29,7 +29,7 @@ static const LedDisplayTestColorData led_display_test_color[LedDisplayTestColorN
                     .b = 0x00,
                 },
         },
-    [LedDisplayTestColorBlue] =
+    [FrontDisplayTestColorBlue] =
         {
             .name = "Blue",
             .color =
@@ -39,7 +39,7 @@ static const LedDisplayTestColorData led_display_test_color[LedDisplayTestColorN
                     .b = 0xff,
                 },
         },
-    [LedDisplayTestColorYellow] =
+    [FrontDisplayTestColorYellow] =
         {
             .name = "Yellow",
             .color =
@@ -49,7 +49,7 @@ static const LedDisplayTestColorData led_display_test_color[LedDisplayTestColorN
                     .b = 0x00,
                 },
         },
-    [LedDisplayTestColorCian] =
+    [FrontDisplayTestColorCian] =
         {
             .name = "Cyan",
             .color =
@@ -59,7 +59,7 @@ static const LedDisplayTestColorData led_display_test_color[LedDisplayTestColorN
                     .b = 0xff,
                 },
         },
-    [LedDisplayTestColorPurple] =
+    [FrontDisplayTestColorPurple] =
         {
             .name = "Purple",
             .color =
@@ -69,7 +69,7 @@ static const LedDisplayTestColorData led_display_test_color[LedDisplayTestColorN
                     .b = 0xff,
                 },
         },
-    [LedDisplayTestColorWhite] =
+    [FrontDisplayTestColorWhite] =
         {
             .name = "White",
             .color =
@@ -81,14 +81,14 @@ static const LedDisplayTestColorData led_display_test_color[LedDisplayTestColorN
         },
 };
 
-typedef void (*LedDisplayTestPatternSet)(Canvas* canvas, Color color);
+typedef void (*FrontDisplayTestPatternSet)(Canvas* canvas, Color color);
 
 typedef struct {
-    LedDisplayTestPatternSet set;
+    FrontDisplayTestPatternSet set;
     const char* name;
-} LedDisplayTestPatternData;
+} FrontDisplayTestPatternData;
 
-static void led_display_test_set_pattern_chess(Canvas* canvas, Color color) {
+static void front_display_test_set_pattern_chess(Canvas* canvas, Color color) {
     const int32_t rect_w = 4;
 
     canvas_set_fill_color(canvas, color);
@@ -103,7 +103,7 @@ static void led_display_test_set_pattern_chess(Canvas* canvas, Color color) {
     }
 }
 
-static void led_display_test_set_pattern_lines_horizontal(Canvas* canvas, Color color) {
+static void front_display_test_set_pattern_lines_horizontal(Canvas* canvas, Color color) {
     canvas_set_line_color(canvas, color);
     canvas_set_line_width(canvas, 1);
 
@@ -112,7 +112,7 @@ static void led_display_test_set_pattern_lines_horizontal(Canvas* canvas, Color 
     }
 }
 
-static void led_display_test_set_pattern_lines_vertical(Canvas* canvas, Color color) {
+static void front_display_test_set_pattern_lines_vertical(Canvas* canvas, Color color) {
     canvas_set_line_color(canvas, color);
     canvas_set_line_width(canvas, 1);
 
@@ -121,12 +121,12 @@ static void led_display_test_set_pattern_lines_vertical(Canvas* canvas, Color co
     }
 }
 
-static void led_display_test_set_pattern_full_fill(Canvas* canvas, Color color) {
+static void front_display_test_set_pattern_full_fill(Canvas* canvas, Color color) {
     canvas_set_fill_color(canvas, color);
     canvas_fill(canvas);
 }
 
-static void led_display_test_set_pattern_rectangulars(Canvas* canvas, Color color) {
+static void front_display_test_set_pattern_rectangulars(Canvas* canvas, Color color) {
     const int32_t rect_count = 3;
     const int32_t rect_w = widget_get_width(canvas_get_base(canvas)) / (rect_count * 2);
 
@@ -140,7 +140,7 @@ static void led_display_test_set_pattern_rectangulars(Canvas* canvas, Color colo
 
 static size_t animation_frame = 0;
 
-static void led_display_test_set_pattern_animated_rectangulars(Canvas* canvas, Color color) {
+static void front_display_test_set_pattern_animated_rectangulars(Canvas* canvas, Color color) {
     const int32_t rect_count = 3;
     const int32_t rect_w =
         animation_frame++ % (widget_get_width(canvas_get_base(canvas)) / rect_count);
@@ -154,7 +154,8 @@ static void led_display_test_set_pattern_animated_rectangulars(Canvas* canvas, C
     }
 }
 
-static void led_display_test_set_pattern_animated_rectangulars_half(Canvas* canvas, Color color) {
+static void
+    front_display_test_set_pattern_animated_rectangulars_half(Canvas* canvas, Color color) {
     const int32_t rect_count = 3;
     const int32_t rect_w =
         (animation_frame++ * 2) % (widget_get_width(canvas_get_base(canvas)) / rect_count);
@@ -168,7 +169,7 @@ static void led_display_test_set_pattern_animated_rectangulars_half(Canvas* canv
     }
 }
 
-static void led_display_test_set_pattern_animated_fill_10_noise(Canvas* canvas, Color color) {
+static void front_display_test_set_pattern_animated_fill_10_noise(Canvas* canvas, Color color) {
     for(int32_t x = 0; x < widget_get_width(canvas_get_base(canvas)); x++) {
         for(int32_t y = 0; y < widget_get_height(canvas_get_base(canvas)); y++) {
             bool pixel_set = rand() % 10 == 0;
@@ -180,7 +181,7 @@ static void led_display_test_set_pattern_animated_fill_10_noise(Canvas* canvas, 
     }
 }
 
-static void led_display_test_set_pattern_animated_fill_25_noise(Canvas* canvas, Color color) {
+static void front_display_test_set_pattern_animated_fill_25_noise(Canvas* canvas, Color color) {
     for(int32_t x = 0; x < widget_get_width(canvas_get_base(canvas)); x++) {
         for(int32_t y = 0; y < widget_get_height(canvas_get_base(canvas)); y++) {
             bool pixel_set = rand() % 4 == 0;
@@ -191,7 +192,7 @@ static void led_display_test_set_pattern_animated_fill_25_noise(Canvas* canvas, 
         }
     }
 }
-static void led_display_test_set_pattern_animated_fill_50_noise(Canvas* canvas, Color color) {
+static void front_display_test_set_pattern_animated_fill_50_noise(Canvas* canvas, Color color) {
     for(int32_t x = 0; x < widget_get_width(canvas_get_base(canvas)); x++) {
         for(int32_t y = 0; y < widget_get_height(canvas_get_base(canvas)); y++) {
             bool pixel_set = rand() % 2 == 0;
@@ -203,7 +204,7 @@ static void led_display_test_set_pattern_animated_fill_50_noise(Canvas* canvas, 
     }
 }
 
-static void led_display_test_set_pattern_cross(Canvas* canvas, Color color) {
+static void front_display_test_set_pattern_cross(Canvas* canvas, Color color) {
     canvas_set_line_color(canvas, color);
     canvas_set_line_width(canvas, 1);
 
@@ -221,7 +222,7 @@ static void led_display_test_set_pattern_cross(Canvas* canvas, Color color) {
         0);
 }
 
-static void led_display_test_set_pattern_frame(Canvas* canvas, Color color) {
+static void front_display_test_set_pattern_frame(Canvas* canvas, Color color) {
     canvas_set_line_color(canvas, color);
     canvas_set_line_width(canvas, 1);
 
@@ -234,88 +235,91 @@ static void led_display_test_set_pattern_frame(Canvas* canvas, Color color) {
         false);
 }
 
-static const LedDisplayTestPatternData led_display_test_pattern[LedDisplayTestPatternNum] = {
-    [LedDisplayTestPatternChess] =
+static const FrontDisplayTestPatternData front_display_test_pattern[FrontDisplayTestPatternNum] = {
+    [FrontDisplayTestPatternChess] =
         {
-            .set = led_display_test_set_pattern_chess,
+            .set = front_display_test_set_pattern_chess,
             .name = "Chess",
         },
-    [LedDisplayTestPatternLinesHorizontal] =
+    [FrontDisplayTestPatternLinesHorizontal] =
         {
-            .set = led_display_test_set_pattern_lines_horizontal,
+            .set = front_display_test_set_pattern_lines_horizontal,
             .name = "Horizontal Lines",
         },
-    [LedDisplayTestPatternLinesVertical] =
+    [FrontDisplayTestPatternLinesVertical] =
         {
-            .set = led_display_test_set_pattern_lines_vertical,
+            .set = front_display_test_set_pattern_lines_vertical,
             .name = "Vertical Lines",
         },
-    [LedDisplayTestPatternFullFill] =
+    [FrontDisplayTestPatternFullFill] =
         {
-            .set = led_display_test_set_pattern_full_fill,
+            .set = front_display_test_set_pattern_full_fill,
             .name = "Full Fill",
         },
-    [LedDisplayTestPatternRectangulars] =
+    [FrontDisplayTestPatternRectangulars] =
         {
-            .set = led_display_test_set_pattern_rectangulars,
+            .set = front_display_test_set_pattern_rectangulars,
             .name = "Rectangulars",
         },
-    [LedDisplayTestPatternCross] =
+    [FrontDisplayTestPatternCross] =
         {
-            .set = led_display_test_set_pattern_cross,
+            .set = front_display_test_set_pattern_cross,
             .name = "Cross",
         },
-    [LedDisplayTestPatternFrame] =
+    [FrontDisplayTestPatternFrame] =
         {
-            .set = led_display_test_set_pattern_frame,
+            .set = front_display_test_set_pattern_frame,
             .name = "Frame",
         },
-    [LedDisplayTestPatternAnimFill] =
+    [FrontDisplayTestPatternAnimFill] =
         {
-            .set = led_display_test_set_pattern_animated_rectangulars,
+            .set = front_display_test_set_pattern_animated_rectangulars,
             .name = "Animated Rectangulars Fill",
         },
-    [LedDisplayTestPatternAnimHalfFill] =
+    [FrontDisplayTestPatternAnimHalfFill] =
         {
-            .set = led_display_test_set_pattern_animated_rectangulars_half,
+            .set = front_display_test_set_pattern_animated_rectangulars_half,
             .name = "Animated Rectangulars Half Fill",
         },
-    [LedDisplayTestPatternAnimFill10Noise] =
+    [FrontDisplayTestPatternAnimFill10Noise] =
         {
-            .set = led_display_test_set_pattern_animated_fill_10_noise,
+            .set = front_display_test_set_pattern_animated_fill_10_noise,
             .name = "Animated Fill 10% Noise",
         },
-    [LedDisplayTestPatternAnimFill25Noise] =
+    [FrontDisplayTestPatternAnimFill25Noise] =
         {
-            .set = led_display_test_set_pattern_animated_fill_25_noise,
+            .set = front_display_test_set_pattern_animated_fill_25_noise,
             .name = "Animated Fill 25% Noise",
         },
-    [LedDisplayTestPatternAnimFill50Noise] =
+    [FrontDisplayTestPatternAnimFill50Noise] =
         {
-            .set = led_display_test_set_pattern_animated_fill_50_noise,
+            .set = front_display_test_set_pattern_animated_fill_50_noise,
             .name = "Animated Fill 50% Noise",
         },
 };
 
-void led_display_test_set(Canvas* canvas, LedDisplayTestPattern pattern, LedDisplayTestColor color) {
+void front_display_test_set(
+    Canvas* canvas,
+    FrontDisplayTestPattern pattern,
+    FrontDisplayTestColor color) {
     furi_check(canvas);
-    furi_check(pattern < LedDisplayTestPatternNum);
-    furi_check(color < LedDisplayTestColorNum);
+    furi_check(pattern < FrontDisplayTestPatternNum);
+    furi_check(color < FrontDisplayTestColorNum);
 
     canvas_draw_begin(canvas);
     canvas_clear(canvas);
-    led_display_test_pattern[pattern].set(canvas, led_display_test_color[color].color);
+    front_display_test_pattern[pattern].set(canvas, front_display_test_color[color].color);
     canvas_draw_end(canvas);
 }
 
-const char* led_display_get_pattern_str(LedDisplayTestPattern pattern) {
-    furi_check(pattern < LedDisplayTestPatternNum);
+const char* front_display_get_pattern_str(FrontDisplayTestPattern pattern) {
+    furi_check(pattern < FrontDisplayTestPatternNum);
 
-    return led_display_test_pattern[pattern].name;
+    return front_display_test_pattern[pattern].name;
 }
 
-const char* led_display_get_color_str(LedDisplayTestColor color) {
-    furi_check(color < LedDisplayTestColorNum);
+const char* front_display_get_color_str(FrontDisplayTestColor color) {
+    furi_check(color < FrontDisplayTestColorNum);
 
-    return led_display_test_color[color].name;
+    return front_display_test_color[color].name;
 }

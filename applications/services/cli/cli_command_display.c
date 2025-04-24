@@ -9,7 +9,7 @@
 #include <gui/gui.h>
 #include <gui/modules/image.h>
 #include <back_display/back_display.h>
-#include <led_display/led_display.h>
+#include <front_display/front_display.h>
 #include <light_sensor/light_sensor.h>
 
 #define TAG "CliDisplay"
@@ -84,10 +84,11 @@ static void cli_action_brightness(Cli* cli, FuriString* args, GuiDisplayId id) {
             back_display_set_brightness(srv, back_display_brightness);
             furi_record_close(RECORD_BACK_DISPLAY);
         } else if(id == GuiDisplayIdFront) {
-            DotMatrixSrv* srv = furi_record_open(RECORD_DOT_MATRIX);
-            uint8_t matrix_brightness = auto_brightness ? DOT_MATRIX_BRIGHTNESS_AUTO : brightness;
-            dot_matrix_set_brightness(srv, matrix_brightness);
-            furi_record_close(RECORD_DOT_MATRIX);
+            DotMatrixSrv* srv = furi_record_open(RECORD_FRONT_DISPLAY);
+            uint8_t matrix_brightness = auto_brightness ? FRONT_DISPLAY_BRIGHTNESS_AUTO :
+                                                          brightness;
+            front_display_set_brightness(srv, matrix_brightness);
+            furi_record_close(RECORD_FRONT_DISPLAY);
         }
     } while(false);
 }
