@@ -2,35 +2,53 @@
 
 #include <furi.h>
 
+#include <m-array.h>
+
 #define TAG "SceneManager"
 
-#define SCENE_INVALID_ID (UINT32_MAX)
+#define REMOVE_CONST(x) ((void*)(x))
+
+ARRAY_DEF(SceneIdStack, uint32_t, M_DEFAULT_OPLIST)
 
 struct SceneManager {
     const SceneArray* scenes;
     SceneData** scene_data;
     uint32_t scene_count;
-    uint32_t current_scene_id;
+    SceneIdStack_t scene_id_stack;
     void* context;
 };
+
+// Implementation
+
+static const Scene* scene_manager_get_current_scene(const SceneManager* instance) {
+    const Scene* scene = NULL;
+
+    if(SceneIdStack_size(instance->scene_id_stack)) {
+        scene = instance->scenes[scene_manager_get_current_scene_id(instance)];
+    }
+
+    return scene;
+}
+
+// Public API
 
 SceneManager*
     scene_manager_alloc(const SceneArray* const scenes, uint32_t scene_count, void* context) {
     furi_check(scenes);
     furi_check(scene_count);
-    furi_check(scene_count < SCENE_INVALID_ID);
 
     SceneManager* instance = malloc(sizeof(SceneManager));
 
     instance->scenes = scenes;
     instance->scene_count = scene_count;
     instance->scene_data = malloc(sizeof(SceneData*) * scene_count);
-    instance->current_scene_id = SCENE_INVALID_ID;
     instance->context = context;
 
     for(uint32_t i = 0; i < instance->scene_count; ++i) {
         instance->scene_data[i] = malloc(instance->scenes[i]->data_size);
     }
+
+    SceneIdStack_init(instance->scene_id_stack);
 
     return instance;
 }
@@ -38,10 +56,13 @@ SceneManager*
 void scene_manager_free(SceneManager* instance) {
     furi_check(instance);
 
-    if(instance->current_scene_id != SCENE_INVALID_ID) {
-        const Scene* scene = instance->scenes[instance->current_scene_id];
-        scene->exit_callback(instance->context);
+    const Scene* current_scene = scene_manager_get_current_scene(instance);
+
+    if(current_scene) {
+        current_scene->exit_callback(instance->context);
     }
+
+    SceneIdStack_clear(instance->scene_id_stack);
 
     for(uint32_t i = 0; i < instance->scene_count; ++i) {
         free(instance->scene_data[i]);
@@ -61,9 +82,10 @@ bool scene_manager_handle_custom_event(SceneManager* instance, uint32_t custom_e
         .event = custom_event,
     };
 
-    if(instance->current_scene_id != SCENE_INVALID_ID) {
-        const Scene* scene = instance->scenes[instance->current_scene_id];
-        consumed = scene->event_callback(&event, instance->context);
+    const Scene* current_scene = scene_manager_get_current_scene(instance);
+
+    if(current_scene) {
+        consumed = current_scene->event_callback(&event, instance->context);
     }
 
     return consumed;
@@ -78,13 +100,14 @@ bool scene_manager_handle_back_event(SceneManager* instance) {
         .type = SceneManagerEventTypeBack,
     };
 
-    if(instance->current_scene_id != SCENE_INVALID_ID) {
-        const Scene* scene = instance->scenes[instance->current_scene_id];
-        consumed = scene->event_callback(&event, instance->context);
+    const Scene* current_scene = scene_manager_get_current_scene(instance);
+
+    if(current_scene) {
+        consumed = current_scene->event_callback(&event, instance->context);
     }
 
     if(!consumed) {
-        // TODO: Go back one scene
+        consumed = scene_manager_previous_scene(instance);
     }
 
     return consumed;
@@ -97,35 +120,110 @@ void scene_manager_handle_tick_event(SceneManager* instance) {
         .type = SceneManagerEventTypeTick,
     };
 
-    if(instance->current_scene_id != SCENE_INVALID_ID) {
-        const Scene* scene = instance->scenes[instance->current_scene_id];
-        scene->event_callback(&event, instance->context);
+    const Scene* current_scene = scene_manager_get_current_scene(instance);
+
+    if(current_scene) {
+        current_scene->event_callback(&event, instance->context);
     }
 }
 
 uint32_t scene_manager_get_current_scene_id(const SceneManager* instance) {
     furi_check(instance);
-    return instance->current_scene_id;
+    return *SceneIdStack_back(REMOVE_CONST(instance->scene_id_stack));
 }
 
 SceneData* scene_manager_get_current_scene_data(const SceneManager* instance) {
     furi_check(instance);
-    return instance->scene_data[instance->current_scene_id];
+    return instance->scene_data[scene_manager_get_current_scene_id(instance)];
 }
 
-void scene_manager_switch_to_scene(SceneManager* instance, uint32_t scene_id) {
+void scene_manager_next_scene(SceneManager* instance, uint32_t scene_id) {
     furi_check(instance);
     furi_check(scene_id < instance->scene_count);
 
-    if(scene_id != instance->current_scene_id) {
-        if(instance->current_scene_id != SCENE_INVALID_ID) {
-            const Scene* scene = instance->scenes[instance->current_scene_id];
-            scene->exit_callback(instance->context);
+    const Scene* current_scene = scene_manager_get_current_scene(instance);
+
+    if(current_scene) {
+        current_scene->exit_callback(instance->context);
+    }
+
+    SceneIdStack_push_back(instance->scene_id_stack, scene_id);
+
+    const Scene* next_scene = scene_manager_get_current_scene(instance);
+    next_scene->enter_callback(instance->context);
+}
+
+bool scene_manager_previous_scene(SceneManager* instance) {
+    furi_check(instance);
+
+    bool success = false;
+
+    do {
+        const Scene* current_scene = scene_manager_get_current_scene(instance);
+        if(!current_scene) break;
+
+        current_scene->exit_callback(instance->context);
+        SceneIdStack_pop_back(NULL, instance->scene_id_stack);
+
+        const Scene* previous_scene = scene_manager_get_current_scene(instance);
+        if(!previous_scene) break;
+
+        previous_scene->enter_callback(instance->context);
+        success = true;
+
+    } while(false);
+
+    return success;
+}
+
+bool scene_manager_has_previous_scene(const SceneManager* instance, uint32_t scene_id) {
+    furi_check(instance);
+    furi_check(scene_id < instance->scene_count);
+
+    bool success = false;
+
+    SceneIdStack_it_ct it;
+    for(SceneIdStack_it_last(it, instance->scene_id_stack); !SceneIdStack_end_p(it);
+        SceneIdStack_previous(it)) {
+        if(*SceneIdStack_cref(it) == scene_id) {
+            success = true;
+            break;
+        }
+    }
+
+    return success;
+}
+
+bool scene_manager_search_and_switch_to_previous_scene(SceneManager* instance, uint32_t scene_id) {
+    furi_check(instance);
+    furi_check(scene_id < instance->scene_count);
+
+    bool success = false;
+
+    do {
+        const Scene* current_scene = scene_manager_get_current_scene(instance);
+        if(!current_scene) break;
+
+        current_scene->exit_callback(instance->context);
+        SceneIdStack_pop_back(NULL, instance->scene_id_stack);
+
+        SceneIdStack_it_ct it;
+        for(SceneIdStack_it_last(it, instance->scene_id_stack); !SceneIdStack_end_p(it);
+            SceneIdStack_previous(it)) {
+            if(*SceneIdStack_cref(it) == scene_id) {
+                break;
+            }
         }
 
-        instance->current_scene_id = scene_id;
+        SceneIdStack_pop_until(instance->scene_id_stack, it);
 
-        const Scene* scene = instance->scenes[instance->current_scene_id];
-        scene->enter_callback(instance->context);
-    }
+        const Scene* previous_scene = scene_manager_get_current_scene(instance);
+        if(!previous_scene) break;
+
+        previous_scene->enter_callback(instance->context);
+        success = true;
+
+    } while(false);
+
+    return success;
 }

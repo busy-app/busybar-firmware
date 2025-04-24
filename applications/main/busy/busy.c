@@ -93,7 +93,7 @@ static BusyApp* busy_alloc(void) {
         busy_event_queue_callback,
         instance);
 
-    scene_manager_switch_to_scene(instance->scene_manager, BusyAppSceneIdStart);
+    scene_manager_next_scene(instance->scene_manager, BusyAppSceneIdStart);
 
     return instance;
 }

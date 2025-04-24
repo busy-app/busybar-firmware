@@ -67,15 +67,12 @@ static void busy_scene_setup_timer_on_exit(void* context) {
 static bool busy_scene_setup_timer_on_event(const SceneManagerEvent* event, void* context) {
     furi_assert(context);
     BusyApp* instance = context;
+    UNUSED(instance);
 
     bool consumed = false;
 
     if(event->type == SceneManagerEventTypeCustom) {
         // TODO: Handle custom events
-        consumed = true;
-    } else if(event->type == SceneManagerEventTypeBack) {
-        // TODO: React to unhandled back events
-        scene_manager_switch_to_scene(instance->scene_manager, BusyAppSceneIdSetup);
         consumed = true;
     }
 

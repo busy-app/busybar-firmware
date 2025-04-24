@@ -70,6 +70,8 @@ static bool busy_scene_timer_on_event(const SceneManagerEvent* event, void* cont
     BusyApp* instance = context;
     BusySceneTimer* data = scene_manager_get_current_scene_data(instance->scene_manager);
 
+    bool consumed = false;
+
     if(event->type == SceneManagerEventTypeCustom) {
         if(event->event == BusyCustomEventTimerTick) {
             with_gui(instance->gui, { busy_scene_timer_update(data); });
@@ -77,10 +79,13 @@ static bool busy_scene_timer_on_event(const SceneManagerEvent* event, void* cont
         } else if(event->event == BusyCustomEventTimerStateChanged) {
         }
 
+        consumed = true;
+
     } else if(event->type == SceneManagerEventTypeBack) {
+        // TODO: Ask to exit?
     }
 
-    return true;
+    return consumed;
 }
 
 const Scene busy_scene_timer = {

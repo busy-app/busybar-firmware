@@ -84,14 +84,11 @@ static bool busy_scene_setup_on_event(const SceneManagerEvent* event, void* cont
 
     if(event->type == SceneManagerEventTypeCustom) {
         if(event->event == BusySceneSetupMenuIndexTimer) {
-            scene_manager_switch_to_scene(instance->scene_manager, BusyAppSceneIdSetupTimer);
+            scene_manager_next_scene(instance->scene_manager, BusyAppSceneIdSetupTimer);
         } else if(event->event == BusySceneSetupMenuIndexTheme) {
-            FURI_LOG_D(TAG, "Theme selected!");
+            FURI_LOG_D(TAG, "Theme setup selected!");
         }
-        consumed = true;
-    } else if(event->type == SceneManagerEventTypeBack) {
-        // TODO: React to unhandled back events
-        scene_manager_switch_to_scene(instance->scene_manager, BusyAppSceneIdStart);
+
         consumed = true;
     }
 

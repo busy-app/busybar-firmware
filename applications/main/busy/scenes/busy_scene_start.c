@@ -82,9 +82,9 @@ static bool busy_scene_start_on_event(const SceneManagerEvent* event, void* cont
 
     if(event->type == SceneManagerEventTypeCustom) {
         if(event->event == BusySceneStartMenuIndexStart) {
-            scene_manager_switch_to_scene(instance->scene_manager, BusyAppSceneIdTimer);
+            scene_manager_next_scene(instance->scene_manager, BusyAppSceneIdTimer);
         } else if(event->event == BusySceneStartMenuIndexSetup) {
-            scene_manager_switch_to_scene(instance->scene_manager, BusyAppSceneIdSetup);
+            scene_manager_next_scene(instance->scene_manager, BusyAppSceneIdSetup);
         }
 
         consumed = true;
