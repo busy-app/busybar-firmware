@@ -42,7 +42,7 @@ typedef union {
         // Bit 14: Enable open circuit detection (0: Disable, 1: enable, Default: 1'h0)
         uint16_t open_det_en     : 1;
         uint16_t reserved        : 1;
-    } bits;
+    };
 } LedDriverCfg1;
 _Static_assert(sizeof(LedDriverCfg1) == sizeof(uint16_t), "LedDriverCfg1 size mismatch");
 
@@ -59,7 +59,7 @@ typedef union {
         uint16_t adj                : 5;
         // Bit 15: Reserved
         uint16_t reserved           : 1;
-    } bits;
+    };
 } LedDriverCfg2;
 _Static_assert(sizeof(LedDriverCfg2) == sizeof(uint16_t), "LedDriverCfg2 size mismatch");
 
@@ -79,7 +79,7 @@ typedef union {
         uint16_t test_10_11  : 2;
         uint16_t test_12_14  : 3;
         uint16_t reserved_15 : 1;
-    } bits;
+    };
 } LedDriverCfg3;
 _Static_assert(sizeof(LedDriverCfg3) == sizeof(uint16_t), "LedDriverCfg3 size mismatch");
 
@@ -105,7 +105,7 @@ typedef union {
         // Bit 14: PWM_ADD_EN (Low gray compensation enable, Default: 1'h0)
         uint16_t pwm_add_en  : 1;
         uint16_t reserved    : 1;
-    } bits;
+    };
 } LedDriverCfg4;
 
 _Static_assert(sizeof(LedDriverCfg4) == sizeof(uint16_t), "LedDriverCfg4 size mismatch");
@@ -475,46 +475,46 @@ static void led_driver_write_reg(LedDisplayDriver* driver, LedDriverCommand cmd,
 
 static void led_display_driver_send_init(LedDisplayDriver* driver) {
     LedDriverCfg1 cfg1 = {
-        .bits.scan_line = (DOT_MATRIX_W / LED_DRIVER_CHAIN) - 1,
-        .bits.data_mapping_en = 3, // Disable data mapping
+        .scan_line = (DOT_MATRIX_W / LED_DRIVER_CHAIN) - 1,
+        .data_mapping_en = 3, // Disable data mapping
     };
     led_driver_write_reg(
         driver, LedDriverCmdWriteCfg1, (uint16_t[]){cfg1.value, cfg1.value, cfg1.value});
 
     LedDriverCfg2 cfg2_r = {
-        .bits.adj = 31,
-        .bits.i_div4n = 1,
-        .bits.igain = 255,
-        .bits.text_ghost_opt_dis = 1,
+        .adj = 31,
+        .i_div4n = 1,
+        .igain = 255,
+        .text_ghost_opt_dis = 1,
     };
     LedDriverCfg2 cfg2_g = {
-        .bits.adj = 28,
-        .bits.i_div4n = 1,
-        .bits.igain = 255,
-        .bits.text_ghost_opt_dis = 1,
+        .adj = 28,
+        .i_div4n = 1,
+        .igain = 255,
+        .text_ghost_opt_dis = 1,
     };
     LedDriverCfg2 cfg2_b = {
-        .bits.adj = 23,
-        .bits.i_div4n = 1,
-        .bits.igain = 255,
-        .bits.text_ghost_opt_dis = 1,
+        .adj = 23,
+        .i_div4n = 1,
+        .igain = 255,
+        .text_ghost_opt_dis = 1,
     };
     led_driver_write_reg(
         driver, LedDriverCmdWriteCfg2, (uint16_t[]){cfg2_r.value, cfg2_g.value, cfg2_b.value});
 
     LedDriverCfg3 cfg3 = {
-        .bits.test_12_14 = 4,
-        .bits.reg_en = 1,
-        .bits.pwm_add = 15,
-        .bits.up_sel = 1,
-        .bits.test_cfg = 3,
+        .test_12_14 = 4,
+        .reg_en = 1,
+        .pwm_add = 15,
+        .up_sel = 1,
+        .test_cfg = 3,
     };
     led_driver_write_reg(
         driver, LedDriverCmdWriteCfg3, (uint16_t[]){cfg3.value, cfg3.value, cfg3.value});
 
     LedDriverCfg4 cfg4 = {
-        .bits.pwm_add_en = 1,
-        .bits.mapping_en = 1,
+        .pwm_add_en = 1,
+        .mapping_en = 1,
     };
     led_driver_write_reg(
         driver, LedDriverCmdWriteCfg4, (uint16_t[]){cfg4.value, cfg4.value, cfg4.value});
