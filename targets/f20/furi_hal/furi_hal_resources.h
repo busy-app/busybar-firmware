@@ -67,24 +67,24 @@ extern const GpioPin gpio_usb_dp;
 extern const GpioPin gpio_ucpd_cc1;
 extern const GpioPin gpio_ucpd_cc2;
 
-extern const GpioPin gpio_oled_spi_sdin;
-extern const GpioPin gpio_oled_spi_sclk;
-extern const GpioPin gpio_oled_cs;
-extern const GpioPin gpio_oled_dc;
-extern const GpioPin gpio_oled_fr;
-extern const GpioPin gpio_oled_vcc_en;
+extern const GpioPin gpio_back_display_spi_sdin;
+extern const GpioPin gpio_back_display_spi_sclk;
+extern const GpioPin gpio_back_display_cs;
+extern const GpioPin gpio_back_display_dc;
+extern const GpioPin gpio_back_display_fr;
+extern const GpioPin gpio_back_display_vcc_en;
 
 extern const GpioPin gpio_i2c_scl;
 extern const GpioPin gpio_i2c_sda;
 
-extern const GpioPin gpio_led_power_en;
-extern const GpioPin gpio_led_scan_sdi;
-extern const GpioPin gpio_led_scan_clk;
-extern const GpioPin gpio_led_scan_latch;
-extern const GpioPin gpio_led_gclk;
-extern const GpioPin gpio_led_sdi_ospi_d0;
-extern const GpioPin gpio_led_le_ospi_d1;
-extern const GpioPin gpio_led_dclk_ospi_clk;
+extern const GpioPin gpio_front_display_power_en;
+extern const GpioPin gpio_front_display_scan_sdi;
+extern const GpioPin gpio_front_display_scan_clk;
+extern const GpioPin gpio_front_display_scan_latch;
+extern const GpioPin gpio_front_display_gclk;
+extern const GpioPin gpio_front_display_sdi_ospi_d0;
+extern const GpioPin gpio_front_display_le_ospi_d1;
+extern const GpioPin gpio_front_display_dclk_ospi_clk;
 
 extern const GpioPin gpio_i2s_fs;
 extern const GpioPin gpio_i2s_sck;

@@ -23,7 +23,7 @@ typedef struct {
 extern FuriHalSpiBus furi_hal_spi_bus_1;
 
 /** OLED on `furi_hal_spi_bus_1` */
-extern FuriHalSpiBusHandle furi_hal_spi_bus_handle_oled;
+extern FuriHalSpiBusHandle furi_hal_spi_bus_handle_back_display;
 
 #ifdef __cplusplus
 }

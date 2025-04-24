@@ -44,6 +44,8 @@
 #define SDMMC_INIT_CLOCK_POWER_SAVE      (SDMMC_CLOCK_POWER_SAVE_DISABLE)
 #define SDMMC_INIT_HARDWARE_FLOW_CONTROL (SDMMC_HARDWARE_FLOW_CONTROL_ENABLE)
 
+#define SDMMC_CLOCK_POWER_SAVE (SDMMC_CLOCK_POWER_SAVE_ENABLE)
+
 #define SDMMC_REAL_DATATIMEOUT (FURI_SDMMC_SWDATATIMEOUT * 5000U)
 
 typedef enum {
@@ -219,42 +221,20 @@ void furi_hal_sdmmc_set_presence_callback(FuriHalSdMmcPresentCallback callback, 
 }
 
 static void furi_hal_sdmmc_periph_init(void) {
+    GpioSpeed speed = GpioSpeedMedium;
+
     furi_hal_gpio_init_ex(
-        &gpio_sd_card_d0,
-        GpioModeAltFunctionPushPull,
-        GpioPullNo,
-        GpioSpeedVeryHigh,
-        FURI_SDMMC_PIN_ALTFN);
+        &gpio_sd_card_d0, GpioModeAltFunctionPushPull, GpioPullNo, speed, FURI_SDMMC_PIN_ALTFN);
     furi_hal_gpio_init_ex(
-        &gpio_sd_card_d1,
-        GpioModeAltFunctionPushPull,
-        GpioPullNo,
-        GpioSpeedVeryHigh,
-        FURI_SDMMC_PIN_ALTFN);
+        &gpio_sd_card_d1, GpioModeAltFunctionPushPull, GpioPullNo, speed, FURI_SDMMC_PIN_ALTFN);
     furi_hal_gpio_init_ex(
-        &gpio_sd_card_d2,
-        GpioModeAltFunctionPushPull,
-        GpioPullNo,
-        GpioSpeedVeryHigh,
-        FURI_SDMMC_PIN_ALTFN);
+        &gpio_sd_card_d2, GpioModeAltFunctionPushPull, GpioPullNo, speed, FURI_SDMMC_PIN_ALTFN);
     furi_hal_gpio_init_ex(
-        &gpio_sd_card_d3,
-        GpioModeAltFunctionPushPull,
-        GpioPullNo,
-        GpioSpeedVeryHigh,
-        FURI_SDMMC_PIN_ALTFN);
+        &gpio_sd_card_d3, GpioModeAltFunctionPushPull, GpioPullNo, speed, FURI_SDMMC_PIN_ALTFN);
     furi_hal_gpio_init_ex(
-        &gpio_sd_card_ck,
-        GpioModeAltFunctionPushPull,
-        GpioPullNo,
-        GpioSpeedVeryHigh,
-        FURI_SDMMC_PIN_ALTFN);
+        &gpio_sd_card_ck, GpioModeAltFunctionPushPull, GpioPullNo, speed, FURI_SDMMC_PIN_ALTFN);
     furi_hal_gpio_init_ex(
-        &gpio_sd_card_cmd,
-        GpioModeAltFunctionPushPull,
-        GpioPullNo,
-        GpioSpeedVeryHigh,
-        FURI_SDMMC_PIN_ALTFN);
+        &gpio_sd_card_cmd, GpioModeAltFunctionPushPull, GpioPullNo, speed, FURI_SDMMC_PIN_ALTFN);
 
     LL_RCC_SetSDMMCKernelClockSource(LL_RCC_SDMMC12_KERNELCLKSOURCE_PLL1);
 
@@ -826,7 +806,7 @@ static bool sdmmc_config_wide_bus_operation(uint32_t sdmmc_clk) {
 
     /* Configure the SDMMC peripheral */
     init.ClockEdge = SDMMC_INIT_CLOCK_EDGE;
-    init.ClockPowerSave = SDMMC_INIT_CLOCK_POWER_SAVE;
+    init.ClockPowerSave = SDMMC_CLOCK_POWER_SAVE;
     init.BusWide = SDMMC_BUS_WIDE_4B;
     init.HardwareFlowControl = SDMMC_INIT_HARDWARE_FLOW_CONTROL;
     init.ClockDiv = 0U;
@@ -1625,7 +1605,7 @@ static FuriHalSdError sdmmc_mmc_high_speed(FunctionalState state, uint32_t sdmmc
             } else {
                 /* Configure high speed */
                 init.ClockEdge = SDMMC_INIT_CLOCK_EDGE;
-                init.ClockPowerSave = SDMMC_INIT_CLOCK_POWER_SAVE;
+                init.ClockPowerSave = SDMMC_CLOCK_POWER_SAVE;
                 init.BusWide = (FURI_SDMMC_BLOCK->CLKCR & SDMMC_CLKCR_WIDBUS);
                 init.HardwareFlowControl = SDMMC_INIT_HARDWARE_FLOW_CONTROL;
 

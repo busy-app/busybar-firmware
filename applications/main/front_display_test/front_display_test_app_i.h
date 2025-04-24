@@ -5,18 +5,18 @@
 #include <gui/modules/label.h>
 #include <gui/modules/canvas.h>
 
-#include <led_display/led_display.h>
+#include <front_display/front_display.h>
 
-#include "led_display_test.h"
+#include "front_display_test.h"
 
 typedef enum {
-    LedDisplayTestAppEventNextPattern,
-    LedDisplayTestAppEventPrevPattern,
-    LedDisplayTestAppEventNextColor,
-    LedDisplayTestAppEventPrevColor,
-    LedDisplayTestAppEventTick,
-    LedDisplayTestAppEventExit,
-} LedDisplayTestAppEvent;
+    FrontDisplayTestAppEventNextPattern,
+    FrontDisplayTestAppEventPrevPattern,
+    FrontDisplayTestAppEventNextColor,
+    FrontDisplayTestAppEventPrevColor,
+    FrontDisplayTestAppEventTick,
+    FrontDisplayTestAppEventExit,
+} FrontDisplayTestAppEvent;
 
 typedef struct {
     FuriEventLoop* event_loop;
@@ -33,6 +33,6 @@ typedef struct {
     // Front display
     Canvas* canvas;
 
-    LedDisplayTestPattern pattern;
-    LedDisplayTestColor color;
-} LedDisplayTestApp;
+    FrontDisplayTestPattern pattern;
+    FrontDisplayTestColor color;
+} FrontDisplayTestApp;
