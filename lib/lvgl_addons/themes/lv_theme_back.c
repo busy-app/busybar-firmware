@@ -33,6 +33,7 @@ typedef struct {
     lv_style_t submenu_cursor;
     lv_style_t var_item;
     lv_style_t nav_header;
+    lv_style_t timer_card;
     lv_style_t margin_right;
 } my_theme_styles_t;
 
@@ -45,19 +46,12 @@ static void style_init(my_theme_t* theme) {
     lv_style_init(&theme->styles.screen);
     lv_style_set_bg_opa(&theme->styles.screen, LV_OPA_COVER);
     lv_style_set_bg_color(&theme->styles.screen, COLOR_BG_NORMAL);
-    lv_style_set_text_color(&theme->styles.screen, COLOR_FG_NORMAL);
-    lv_style_set_text_font(&theme->styles.screen, theme->base.font_normal);
 
     lv_style_init(&theme->styles.normal);
-    lv_style_set_bg_opa(&theme->styles.normal, LV_OPA_COVER);
-    lv_style_set_bg_color(&theme->styles.normal, COLOR_BG_NORMAL);
     lv_style_set_text_color(&theme->styles.normal, COLOR_FG_NORMAL);
     lv_style_set_text_font(&theme->styles.normal, theme->base.font_normal);
 
     lv_style_init(&theme->styles.focused);
-    lv_style_set_bg_opa(&theme->styles.focused, LV_OPA_COVER);
-    lv_style_set_text_opa(&theme->styles.focused, LV_OPA_COVER);
-    lv_style_set_bg_color(&theme->styles.focused, COLOR_BG_FOCUSED);
     lv_style_set_text_color(&theme->styles.focused, COLOR_FG_FOCUSED);
 
     lv_style_init(&theme->styles.inverted);
@@ -106,6 +100,13 @@ static void style_init(my_theme_t* theme) {
     lv_style_set_pad_column(&theme->styles.nav_header, 2);
     lv_style_set_text_font(&theme->styles.nav_header, theme->base.font_small);
     lv_style_set_text_color(&theme->styles.nav_header, COLOR_BG_NORMAL);
+
+    lv_style_init(&theme->styles.timer_card);
+    lv_style_set_bg_color(&theme->styles.timer_card, COLOR_FG_FOCUSED);
+    lv_style_set_bg_opa(&theme->styles.timer_card, LV_OPA_COVER);
+    lv_style_set_pad_hor(&theme->styles.timer_card, 1);
+    lv_style_set_pad_row(&theme->styles.timer_card, 5);
+    lv_style_set_radius(&theme->styles.timer_card, 4);
 
     // TODO: This should be handled by the root size
     lv_style_init(&theme->styles.margin_right);
@@ -188,6 +189,8 @@ static void theme_apply_callback(lv_theme_t* th, lv_obj_t* obj) {
 
         // } else if(lv_obj_check_type(obj, &nav_header_bcrumbs_lvgl_class)) {
         //     lv_obj_add_style(obj, &theme->styles.normal, LV_PART_MAIN);
+    } else if(lv_obj_check_type(obj, &timer_card_lvgl_class)) {
+        lv_obj_add_style(obj, &theme->styles.timer_card, LV_PART_MAIN);
     }
 }
 

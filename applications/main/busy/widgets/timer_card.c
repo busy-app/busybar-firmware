@@ -29,20 +29,12 @@ static void timer_card_lvgl_constructor(const lv_obj_class_t* class_p, lv_obj_t*
     lv_obj_set_flex_flow(obj, LV_FLEX_FLOW_COLUMN);
     lv_obj_set_flex_align(obj, LV_FLEX_ALIGN_START, LV_FLEX_ALIGN_CENTER, LV_FLEX_ALIGN_CENTER);
 
-    // TODO: Set in theme
-    lv_obj_set_style_bg_color(obj, lv_color_white(), LV_PART_MAIN);
-    lv_obj_set_style_bg_opa(obj, LV_OPA_COVER, LV_PART_MAIN);
-    lv_obj_set_style_pad_hor(obj, 1, LV_PART_MAIN);
-    lv_obj_set_style_pad_row(obj, 5, LV_PART_MAIN);
-    lv_obj_set_style_radius(obj, 4, LV_PART_MAIN);
-
     TimerCard* instance = (TimerCard*)obj;
     instance->top_layout = lv_obj_create(obj);
     lv_obj_set_size(instance->top_layout, LV_SIZE_CONTENT, LV_SIZE_CONTENT);
     lv_obj_set_flex_flow(instance->top_layout, LV_FLEX_FLOW_ROW);
     lv_obj_set_flex_align(
         instance->top_layout, LV_FLEX_ALIGN_START, LV_FLEX_ALIGN_CENTER, LV_FLEX_ALIGN_START);
-    lv_obj_set_style_bg_opa(instance->top_layout, LV_OPA_TRANSP, LV_PART_MAIN);
     lv_obj_set_style_pad_ver(instance->top_layout, 5, LV_PART_MAIN);
     lv_obj_set_style_pad_column(instance->top_layout, 4, LV_PART_MAIN);
 
@@ -62,6 +54,7 @@ static void timer_card_lvgl_constructor(const lv_obj_class_t* class_p, lv_obj_t*
     instance->mirror_image = lv_obj_create(obj);
     lv_obj_set_size(instance->mirror_image, 72 * 2, 16 * 2);
     lv_obj_set_style_radius(instance->mirror_image, 4, LV_PART_MAIN);
+    lv_obj_set_style_bg_opa(instance->mirror_image, LV_OPA_COVER, LV_PART_MAIN);
     lv_obj_set_style_bg_color(instance->mirror_image, lv_color_black(), LV_PART_MAIN);
 
     instance->bottom_layout = lv_obj_create(obj);
