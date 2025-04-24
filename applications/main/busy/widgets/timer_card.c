@@ -2,6 +2,7 @@
 
 #include <gui/widget_i.h>
 
+#include "../time_macros.h"
 #include "../compiled_assets/compiled_assets.h"
 
 #define MY_CLASS (&timer_card_lvgl_class)
@@ -72,7 +73,6 @@ static void timer_card_lvgl_constructor(const lv_obj_class_t* class_p, lv_obj_t*
     lv_obj_set_style_pad_column(instance->bottom_layout, 4, LV_PART_MAIN);
 
     instance->bottom_timer_text = lv_label_create(instance->bottom_layout);
-    lv_label_set_text(instance->bottom_timer_text, "09:57");
     lv_obj_set_style_text_color(instance->bottom_timer_text, lv_color_black(), LV_PART_MAIN);
     lv_obj_set_style_text_font(instance->bottom_timer_text, &lv_font_ark_pixel_10, LV_PART_MAIN);
 
@@ -81,13 +81,6 @@ static void timer_card_lvgl_constructor(const lv_obj_class_t* class_p, lv_obj_t*
     lv_obj_set_style_text_color(instance->bottom_static_text, lv_color_black(), LV_PART_MAIN);
     lv_obj_set_style_text_font(
         instance->bottom_static_text, lv_theme_get_font_small(obj), LV_PART_MAIN);
-}
-
-static void timer_card_lvgl_destructor(const lv_obj_class_t* class_p, lv_obj_t* obj) {
-    UNUSED(class_p);
-
-    TimerCard* instance = (TimerCard*)obj;
-    UNUSED(instance);
 }
 
 // Public API
@@ -112,12 +105,42 @@ Widget* timer_card_get_base(TimerCard* instance) {
     return (Widget*)instance;
 }
 
+void timer_card_show_header(TimerCard* instance, bool show) {
+    furi_check(instance);
+
+    lv_opa_t opacity = show ? LV_OPA_COVER : LV_OPA_TRANSP;
+    lv_obj_set_style_text_opa(instance->top_static_text, opacity, LV_PART_MAIN);
+    lv_obj_set_style_image_opa(instance->left_image, opacity, LV_PART_MAIN);
+    lv_obj_set_style_image_opa(instance->right_image, opacity, LV_PART_MAIN);
+}
+
+void timer_card_show_footer(TimerCard* instance, bool show) {
+    furi_check(instance);
+
+    lv_opa_t opacity = show ? LV_OPA_COVER : LV_OPA_TRANSP;
+    lv_obj_set_style_text_opa(instance->bottom_timer_text, opacity, LV_PART_MAIN);
+    lv_obj_set_style_text_opa(instance->bottom_static_text, opacity, LV_PART_MAIN);
+}
+
+void timer_card_set_time_left(TimerCard* instance, uint32_t time_left_s) {
+    furi_check(instance);
+
+    const uint32_t h = S_TO_H(time_left_s);
+    const uint32_t m = S_TO_M(time_left_s - H_TO_S(h));
+    const uint32_t s = time_left_s - H_TO_S(h) - M_TO_S(m);
+
+    if(h) {
+        lv_label_set_text_fmt(instance->bottom_timer_text, "%02lu:%02lu:%02lu", h, m, s);
+    } else {
+        lv_label_set_text_fmt(instance->bottom_timer_text, "%02lu:%02lu", m, s);
+    }
+}
+
 // LVGL class descriptor
 
 const lv_obj_class_t timer_card_lvgl_class = {
     .base_class = &widget_lvgl_class,
     .constructor_cb = timer_card_lvgl_constructor,
-    .destructor_cb = timer_card_lvgl_destructor,
     .name = "widget-timer-card",
     .width_def = LV_PCT(100),
     .height_def = LV_PCT(100),

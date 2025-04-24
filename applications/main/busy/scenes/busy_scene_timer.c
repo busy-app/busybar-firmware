@@ -4,16 +4,24 @@
 
 typedef struct {
     TimerCard* timer_card;
+    uint32_t timer_time_s;
+    BusyTimerState timer_state;
 } BusySceneTimer;
 
 static void busy_scene_timer_event_callback(const BusyTimerEvent* event, void* context) {
     furi_assert(event);
     furi_assert(context);
 
+    BusyApp* instance = context;
+    BusySceneTimer* data = scene_manager_get_current_scene_data(instance->scene_manager);
+
     if(event->type == BusyTimerEventTypeTick) {
-        FURI_LOG_I(TAG, "Tick: %ld s remaining", event->time_s);
+        data->timer_time_s = event->time_s;
+        busy_send_custom_event(instance, BusyCustomEventTimerTick);
+
     } else if(event->type == BusyTimerEventTypeStateChanged) {
-        FURI_LOG_I(TAG, "State changed: %d", event->state);
+        data->timer_state = event->state;
+        busy_send_custom_event(instance, BusyCustomEventTimerStateChanged);
     }
 }
 
@@ -48,33 +56,9 @@ static void busy_scene_timer_event_callback(const BusyTimerEvent* event, void* c
 //         data->time_bar, lv_color_hex(bar_color_indicator), LV_PART_INDICATOR);
 // }
 
-// static void busy_scene_timer_update(BusyApp* instance) {
-//     BusySceneTimer* data = busy_get_current_scene_data(instance);
-//
-//     gui_lock(instance->gui);
-//
-//     if(data->timer_state != instance->state) {
-//         data->timer_state = instance->state;
-//         busy_scene_timer_state_update(data);
-//     }
-//
-//     const uint32_t minutes = S_TO_M(instance->interval_time_left_s);
-//     const uint32_t seconds = S_TO_R(instance->interval_time_left_s);
-//     const uint32_t percent = (instance->interval_time_left_s * 100) / instance->interval_time_s;
-//
-//     lv_label_set_text_fmt(data->time_label, "%02lu:%02lu", minutes, seconds);
-//     lv_bar_set_value(data->time_bar, percent, LV_ANIM_OFF);
-//
-//     if(data->timer_state == BusyTimerStateWork) {
-//         lv_label_set_text_fmt(instance->back_label, "BUSY: %02lu:%02lu", minutes, seconds);
-//     } else if(data->timer_state == BusyTimerStateRest) {
-//         lv_label_set_text_fmt(instance->back_label, "REST: %02lu:%02lu", minutes, seconds);
-//     } else if(data->timer_state == BusyTimerStateLongRest) {
-//         lv_label_set_text_fmt(instance->back_label, "LONG REST: %02lu:%02lu", minutes, seconds);
-//     }
-//
-//     gui_unlock(instance->gui);
-// }
+static void busy_scene_timer_update(BusySceneTimer* data) {
+    timer_card_set_time_left(data->timer_card, data->timer_time_s);
+}
 
 // static void busy_scene_timer_show_pause_overlay(BusyApp* instance, bool show) {
 //     BusySceneTimer* data = busy_get_current_scene_data(instance);
@@ -129,9 +113,8 @@ static void busy_scene_timer_event_callback(const BusyTimerEvent* event, void* c
 
 static void busy_scene_timer_on_enter(void* context) {
     furi_assert(context);
-    BusyApp* instance = context;
-    UNUSED(instance);
 
+    BusyApp* instance = context;
     BusySceneTimer* data = scene_manager_get_current_scene_data(instance->scene_manager);
 
     with_gui(instance->gui, {
@@ -157,11 +140,22 @@ static void busy_scene_timer_on_exit(void* context) {
 
 static bool busy_scene_timer_on_event(const SceneManagerEvent* event, void* context) {
     furi_assert(context);
-    BusyApp* instance = context;
 
+    BusyApp* instance = context;
     BusySceneTimer* data = scene_manager_get_current_scene_data(instance->scene_manager);
-    UNUSED(data);
-    UNUSED(event);
+
+    if(event->type == SceneManagerEventTypeCustom) {
+        if(event->event == BusyCustomEventTimerTick) {
+            with_gui(instance->gui, {
+                busy_scene_timer_update(data);
+            });
+
+        } else if(event->event == BusyCustomEventTimerStateChanged) {
+        }
+
+    } else if(event->type == SceneManagerEventTypeBack) {
+
+    }
 
     return true;
 }

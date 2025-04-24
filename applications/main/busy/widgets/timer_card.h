@@ -39,6 +39,12 @@ void timer_card_free(TimerCard* instance);
  */
 Widget* timer_card_get_base(TimerCard* instance);
 
+void timer_card_show_header(TimerCard* instance, bool show);
+
+void timer_card_show_footer(TimerCard* instance, bool show);
+
+void timer_card_set_time_left(TimerCard* instance, uint32_t time_left_s);
+
 #ifdef __cplusplus
 }
 #endif
