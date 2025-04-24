@@ -192,8 +192,8 @@ static DotMatrixSrv* front_display_srv_alloc(void) {
     furi_event_loop_set_custom_event_callback(
         instance->event_loop, front_display_srv_custom_event_callback, instance);
 
-    furi_hal_gpio_init_simple(&gpio_led_power_en, GpioModeOutputPushPull);
-    furi_hal_gpio_write(&gpio_led_power_en, true);
+    furi_hal_gpio_init_simple(&gpio_front_display_power_en, GpioModeOutputPushPull);
+    furi_hal_gpio_write(&gpio_front_display_power_en, true);
     furi_delay_ms(50);
 
     front_display_scan_init();

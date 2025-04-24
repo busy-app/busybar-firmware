@@ -72,7 +72,11 @@ static void gclk_tim_init(void) {
     LL_TIM_CC_EnableChannel(TIM8, LL_TIM_CHANNEL_CH4N);
 
     furi_hal_gpio_init_ex(
-        &gpio_led_gclk, GpioModeAltFunctionPushPull, GpioPullNo, GpioSpeedMedium, GpioAltFn3TIM8);
+        &gpio_front_display_gclk,
+        GpioModeAltFunctionPushPull,
+        GpioPullNo,
+        GpioSpeedMedium,
+        GpioAltFn3TIM8);
 }
 
 static void scan_tim_init(void) {
@@ -115,7 +119,7 @@ static void scan_tim_init(void) {
     NVIC_EnableIRQ(TIM5_IRQn);
 
     furi_hal_gpio_init_ex(
-        &gpio_led_scan_latch,
+        &gpio_front_display_scan_latch,
         GpioModeAltFunctionPushPull,
         GpioPullNo,
         GpioSpeedMedium,
@@ -230,13 +234,13 @@ static void spi_595_init(void) {
     LL_SPI_StartMasterTransfer(SPI2);
 
     furi_hal_gpio_init_ex(
-        &gpio_led_scan_clk,
+        &gpio_front_display_scan_clk,
         GpioModeAltFunctionPushPull,
         GpioPullNo,
         GpioSpeedMedium,
         GpioAltFn5SPI2);
     furi_hal_gpio_init_ex(
-        &gpio_led_scan_sdi,
+        &gpio_front_display_scan_sdi,
         GpioModeAltFunctionPushPull,
         GpioPullNo,
         GpioSpeedMedium,

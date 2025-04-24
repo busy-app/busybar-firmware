@@ -313,19 +313,19 @@ static void octospi_init(void) {
     OCTOSPIM->PCR[0] |= (OCTOSPIM_PCR_DQSEN | OCTOSPIM_PCR_CLKEN);
 
     furi_hal_gpio_init_ex(
-        &gpio_led_sdi_ospi_d0,
+        &gpio_front_display_sdi_ospi_d0,
         GpioModeAltFunctionPushPull,
         GpioPullNo,
         GpioSpeedMedium,
         GpioAltFn10OCTOSPI1);
     furi_hal_gpio_init_ex(
-        &gpio_led_le_ospi_d1,
+        &gpio_front_display_le_ospi_d1,
         GpioModeAltFunctionPushPull,
         GpioPullNo,
         GpioSpeedMedium,
         GpioAltFn10OCTOSPI1);
     furi_hal_gpio_init_ex(
-        &gpio_led_dclk_ospi_clk,
+        &gpio_front_display_dclk_ospi_clk,
         GpioModeAltFunctionPushPull,
         GpioPullNo,
         GpioSpeedMedium,

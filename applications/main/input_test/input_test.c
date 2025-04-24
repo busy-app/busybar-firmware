@@ -2,7 +2,7 @@
 
 #define TAG "InputTest"
 
-static void input_test_app_back_display_update(InputTestApp* instance) {
+static void input_test_app_back_displaylay_update(InputTestApp* instance) {
     InputTestAppModel* m = &instance->input_model;
 
     with_gui(instance->gui, {
@@ -77,7 +77,7 @@ static void input_test_app_event_queue_callback(FuriEventLoopObject* object, voi
         furi_event_loop_stop(instance->event_loop);
     } else if(event.type == InputTestAppEventKeyStateChanged) {
         input_test_app_handle_input_short_event(instance, event.input_key);
-        input_test_app_back_display_update(instance);
+        input_test_app_back_displaylay_update(instance);
     }
 }
 
@@ -130,7 +130,7 @@ static InputTestApp* input_test_app_alloc(void) {
         widget_set_align(label_get_base(instance->footer_label), AlignBottomRight);
     });
 
-    input_test_app_back_display_update(instance);
+    input_test_app_back_displaylay_update(instance);
 
     return instance;
 }

@@ -25,12 +25,12 @@ static bool cli_command_gpio_parse_value(FuriString* args, uint8_t* value) {
 
 static const CliGpioPinNamePair gpios[] = {
     {
-        .name = "en_oled",
-        .pin = &gpio_oled_vcc_en,
+        .name = "en_back_disp",
+        .pin = &gpio_back_display_vcc_en,
     },
     {
-        .name = "en_dled",
-        .pin = &gpio_led_power_en,
+        .name = "en_front_disp",
+        .pin = &gpio_front_display_power_en,
     },
     {
         .name = "en_audio",
