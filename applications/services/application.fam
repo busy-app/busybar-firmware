@@ -12,7 +12,7 @@ App(
         "lottie",
         "desktop",
         "loader",
-        "led_display",
+        "front_display",
         "back_display",
         "usb_srv",
         "web_server",

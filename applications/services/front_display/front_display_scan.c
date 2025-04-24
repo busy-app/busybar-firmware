@@ -1,4 +1,4 @@
-#include "led_display_i.h"
+#include "front_display_i.h"
 
 #include <stm32u5xx_ll_tim.h>
 #include <stm32u5xx_ll_rcc.h>
@@ -30,13 +30,13 @@ static const uint8_t display_scan_table[DISPLAY_BLOCKS] = {
     (1 << 0) | (0 << 2),
 };
 
-struct LedDisplayScan {
+struct FrontDisplayScan {
     LL_DMA_LinkNodeTypeDef dma_link_node;
     uint32_t dma_channel;
     uint8_t scan_order_table[DISPLAY_BLOCKS];
 };
 
-static LedDisplayScan* led_scan;
+static FrontDisplayScan* led_scan;
 
 static void scan_dma_tc_irq(void* context);
 
@@ -72,7 +72,11 @@ static void gclk_tim_init(void) {
     LL_TIM_CC_EnableChannel(TIM8, LL_TIM_CHANNEL_CH4N);
 
     furi_hal_gpio_init_ex(
-        &gpio_led_gclk, GpioModeAltFunctionPushPull, GpioPullNo, GpioSpeedMedium, GpioAltFn3TIM8);
+        &gpio_front_display_gclk,
+        GpioModeAltFunctionPushPull,
+        GpioPullNo,
+        GpioSpeedMedium,
+        GpioAltFn3TIM8);
 }
 
 static void scan_tim_init(void) {
@@ -115,7 +119,7 @@ static void scan_tim_init(void) {
     NVIC_EnableIRQ(TIM5_IRQn);
 
     furi_hal_gpio_init_ex(
-        &gpio_led_scan_latch,
+        &gpio_front_display_scan_latch,
         GpioModeAltFunctionPushPull,
         GpioPullNo,
         GpioSpeedMedium,
@@ -230,13 +234,13 @@ static void spi_595_init(void) {
     LL_SPI_StartMasterTransfer(SPI2);
 
     furi_hal_gpio_init_ex(
-        &gpio_led_scan_clk,
+        &gpio_front_display_scan_clk,
         GpioModeAltFunctionPushPull,
         GpioPullNo,
         GpioSpeedMedium,
         GpioAltFn5SPI2);
     furi_hal_gpio_init_ex(
-        &gpio_led_scan_sdi,
+        &gpio_front_display_scan_sdi,
         GpioModeAltFunctionPushPull,
         GpioPullNo,
         GpioSpeedMedium,
@@ -258,19 +262,19 @@ static void scan_dma_tc_irq(void* context) {
 
 void TIM5_IRQHandler(void) {
     if((LL_TIM_IsEnabledIT_CC1(TIM5)) && (LL_TIM_IsActiveFlag_CC1(TIM5))) {
-        led_display_driver_vsync_trig();
-        led_display_driver_send_buf_start();
+        front_display_driver_vsync_trig();
+        front_display_driver_send_buf_start();
         LL_TIM_DisableIT_CC1(TIM5);
     }
 }
 
-inline void led_display_scan_data_sync_enable(void) {
+inline void front_display_scan_data_sync_enable(void) {
     LL_DMA_ClearFlag_TC(GPDMA1, led_scan->dma_channel);
     LL_DMA_EnableIT_TC(GPDMA1, led_scan->dma_channel);
 }
 
-void led_display_scan_init(void) {
-    led_scan = malloc(sizeof(LedDisplayScan));
+void front_display_scan_init(void) {
+    led_scan = malloc(sizeof(FrontDisplayScan));
     memset(led_scan->scan_order_table, SCAN_DISABLED, DISPLAY_BLOCKS);
 
     scan_tim_init();
@@ -279,11 +283,11 @@ void led_display_scan_init(void) {
     spi_dma_init();
 }
 
-void led_display_scan_start(void) {
+void front_display_scan_start(void) {
     LL_TIM_EnableCounter(TIM5);
 }
 
-void led_display_scan_output_enable(bool enable) {
+void front_display_scan_output_enable(bool enable) {
     if(enable) {
         memcpy(led_scan->scan_order_table, display_scan_table, DISPLAY_BLOCKS);
     } else {

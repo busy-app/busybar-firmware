@@ -154,8 +154,8 @@ static BackDisplaySrv* back_display_alloc(void) {
     ssd1320_init();
     back_display_update_brightness(instance);
 
-    furi_hal_gpio_init_simple(&gpio_oled_fr, GpioModeInterruptRise);
-    furi_hal_gpio_add_int_callback(&gpio_oled_fr, back_display_tearing_callback, instance);
+    furi_hal_gpio_init_simple(&gpio_back_display_fr, GpioModeInterruptRise);
+    furi_hal_gpio_add_int_callback(&gpio_back_display_fr, back_display_tearing_callback, instance);
 
     furi_thread_set_current_priority(FuriThreadPriorityHigh);
 

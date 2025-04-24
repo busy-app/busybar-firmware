@@ -12,7 +12,7 @@
 
 /* SPI Presets */
 
-const FuriHalSpiBusCfg furi_hal_spi_preset_oled = {
+const FuriHalSpiBusCfg furi_hal_spi_preset_back_display = {
     .mode = LL_SPI_MODE_MASTER,
     .transfer_dir = LL_SPI_SIMPLEX_TX,
     .data_width = LL_SPI_DATAWIDTH_8BIT,
@@ -60,11 +60,11 @@ void furi_hal_spi_bus_set_config(SPI_TypeDef* spi, const FuriHalSpiBusCfg* bus_c
 
 void furi_hal_spi_config_init_early(void) {
     furi_hal_spi_bus_init(&furi_hal_spi_bus_1);
-    furi_hal_spi_bus_handle_init(&furi_hal_spi_bus_handle_oled);
+    furi_hal_spi_bus_handle_init(&furi_hal_spi_bus_handle_back_display);
 }
 
 void furi_hal_spi_config_deinit_early(void) {
-    furi_hal_spi_bus_handle_deinit(&furi_hal_spi_bus_handle_oled);
+    furi_hal_spi_bus_handle_deinit(&furi_hal_spi_bus_handle_back_display);
     furi_hal_spi_bus_deinit(&furi_hal_spi_bus_1);
 }
 
@@ -127,17 +127,17 @@ inline static void furi_hal_spi_bus_1_handle_event_callback(
     }
 }
 
-static void furi_hal_spi_bus_handle_oled_event_callback(
+static void furi_hal_spi_bus_handle_back_display_event_callback(
     FuriHalSpiBusHandle* handle,
     FuriHalSpiBusHandleEvent event) {
-    furi_hal_spi_bus_1_handle_event_callback(handle, event, &furi_hal_spi_preset_oled);
+    furi_hal_spi_bus_1_handle_event_callback(handle, event, &furi_hal_spi_preset_back_display);
 }
 
-FuriHalSpiBusHandle furi_hal_spi_bus_handle_oled = {
+FuriHalSpiBusHandle furi_hal_spi_bus_handle_back_display = {
     .bus = &furi_hal_spi_bus_1,
-    .callback = furi_hal_spi_bus_handle_oled_event_callback,
+    .callback = furi_hal_spi_bus_handle_back_display_event_callback,
     .miso = NULL,
-    .mosi = &gpio_oled_spi_sdin,
-    .sck = &gpio_oled_spi_sclk,
-    .cs = &gpio_oled_cs,
+    .mosi = &gpio_back_display_spi_sdin,
+    .sck = &gpio_back_display_spi_sclk,
+    .cs = &gpio_back_display_cs,
 };

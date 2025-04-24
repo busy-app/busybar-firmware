@@ -132,7 +132,7 @@ static void furi_hal_dac_setup_dac() {
 
 static void furi_hal_dac_setup_timer() {
     // furi_hal_gpio_init_ex(
-    //     &gpio_led_le_ospi_d1,
+    //     &gpio_front_display_le_ospi_d1,
     //     GpioModeAltFunctionPushPull,
     //     GpioPullNo,
     //     GpioSpeedVeryHigh,

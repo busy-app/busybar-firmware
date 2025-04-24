@@ -6,7 +6,7 @@ App(
         # "storage_benchmark",
         # "crash_test",
         "light_sensor_test",
-        "led_display_test",
+        "front_display_test",
         "back_display_test",
         "gui_test",
         "input_test",
