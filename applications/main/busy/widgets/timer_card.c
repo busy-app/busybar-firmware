@@ -32,6 +32,7 @@ static void timer_card_lvgl_constructor(const lv_obj_class_t* class_p, lv_obj_t*
     // TODO: Set in theme
     lv_obj_set_style_bg_color(obj, lv_color_white(), LV_PART_MAIN);
     lv_obj_set_style_bg_opa(obj, LV_OPA_COVER, LV_PART_MAIN);
+    lv_obj_set_style_pad_hor(obj, 1, LV_PART_MAIN);
     lv_obj_set_style_pad_row(obj, 5, LV_PART_MAIN);
     lv_obj_set_style_radius(obj, 4, LV_PART_MAIN);
 
@@ -142,7 +143,7 @@ const lv_obj_class_t timer_card_lvgl_class = {
     .base_class = &widget_lvgl_class,
     .constructor_cb = timer_card_lvgl_constructor,
     .name = "widget-timer-card",
-    .width_def = LV_PCT(100),
-    .height_def = LV_PCT(100),
+    .width_def = LV_SIZE_CONTENT,
+    .height_def = LV_SIZE_CONTENT,
     .instance_size = sizeof(TimerCard),
 };
