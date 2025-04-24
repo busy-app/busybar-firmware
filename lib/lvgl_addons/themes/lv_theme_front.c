@@ -34,20 +34,14 @@ static void style_init(my_theme_t* theme) {
     lv_style_init(&theme->styles.screen);
     lv_style_set_bg_opa(&theme->styles.screen, LV_OPA_COVER);
     lv_style_set_bg_color(&theme->styles.screen, COLOR_BG_NORMAL);
-    lv_style_set_text_color(&theme->styles.screen, COLOR_FG_NORMAL);
 
     lv_style_init(&theme->styles.normal);
-    lv_style_set_bg_opa(&theme->styles.normal, LV_OPA_COVER);
-    lv_style_set_bg_color(&theme->styles.normal, COLOR_BG_NORMAL);
     lv_style_set_text_color(&theme->styles.normal, COLOR_FG_NORMAL);
     lv_style_set_text_font(&theme->styles.normal, theme->base.font_normal);
 
     lv_style_init(&theme->styles.focused);
-    lv_style_set_bg_opa(&theme->styles.focused, LV_OPA_COVER);
     lv_style_set_text_opa(&theme->styles.focused, LV_OPA_COVER);
-    lv_style_set_bg_color(&theme->styles.focused, COLOR_BG_FOCUSED);
     lv_style_set_text_color(&theme->styles.focused, COLOR_FG_FOCUSED);
-    lv_style_set_text_font(&theme->styles.focused, theme->base.font_normal);
 
     lv_style_init(&theme->styles.transparent);
     lv_style_set_bg_opa(&theme->styles.transparent, LV_OPA_TRANSP);
