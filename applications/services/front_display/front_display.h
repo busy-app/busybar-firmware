@@ -21,7 +21,7 @@ void front_display_reset(DotMatrixSrv* instance);
 void front_display_draw(DotMatrixSrv* instance, const uint8_t* buf);
 
 /**
- * @brief Set the brightness of the dot matrix display
+ * @brief Set the brightness of front display
  * 
  * @param instance Pointer to the DotMatrixSrv instance
  * @param brightness Brightness value (FRONT_DISPLAY_BRIGHTNESS_MIN to FRONT_DISPLAY_BRIGHTNESS_MAX),
