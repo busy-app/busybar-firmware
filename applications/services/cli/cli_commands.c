@@ -217,47 +217,6 @@ void cli_command_free(Cli* cli, FuriString* args, void* context) {
     printf("Maximum pool block: %zu\r\n", memmgr_pool_get_max_block());
 }
 
-static void cli_command_sysctl_debug(Cli* cli, FuriString* args, void* context) {
-    UNUSED(context);
-
-    if(furi_string_equal_str(args, "0")) {
-        cli_delete_command(cli, "gpio");
-        printf("Debug disabled.");
-    } else if(furi_string_equal_str(args, "1")) {
-        cli_add_command(cli, "gpio", CliCommandFlagParallelSafe, cli_command_gpio, NULL);
-        printf("Debug enabled.");
-    } else {
-        cli_print_usage("sysctl debug", "<1|0>", furi_string_get_cstr(args));
-    }
-}
-
-static void cli_command_sysctl_print_usage() {
-    printf("Usage:\r\n");
-    printf("sysctl <cmd>\r\n");
-    printf("Cmd list:\r\n");
-    printf("\tdebug - enables or disables some debug commands\r\n");
-}
-
-void cli_command_sysctl(Cli* cli, FuriString* args, void* context) {
-    FuriString* cmd;
-    cmd = furi_string_alloc();
-
-    do {
-        if(!args_read_string_and_trim(args, cmd)) {
-            cli_command_sysctl_print_usage();
-            break;
-        }
-
-        if(furi_string_cmp_str(cmd, "debug") == 0) {
-            cli_command_sysctl_debug(cli, args, context);
-            break;
-        }
-        cli_command_sysctl_print_usage();
-    } while(false);
-
-    furi_string_free(cmd);
-}
-
 void cli_command_free_blocks(Cli* cli, FuriString* args, void* context) {
     UNUSED(cli);
     UNUSED(args);
