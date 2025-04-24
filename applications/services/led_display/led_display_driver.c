@@ -8,17 +8,107 @@
 #define START_VSYNC_COUNT   START_REFRESH_COUNT
 
 typedef enum {
-    LedDriverCmdNone = 0,
-    LedDriverCmdDataLatch = 1,
-    LedDriverCmdVsync = 3,
-    LedDriverCmdWriteCfg1 = 4,
-    LedDriverCmdWriteCfg2 = 6,
-    LedDriverCmdWriteCfg3 = 8,
-    LedDriverCmdWriteCfg4 = 10,
-    LedDriverCmdWriteCfg5Dbg = 2,
-    LedDriverCmdEnOp = 12,
-    LedDriverCmdPreactive = 14,
+    LedDriverCmdNone = 0, // Placeholder
+    LedDriverCmdDataLatch = 1, // Latch 16bit data and send it to SRAM
+    LedDriverCmdWriteCfg5Dbg = 2, // Write debug register (DBG_MODE, GROUP_SEL)
+    LedDriverCmdVsync = 3, // Update display data
+    LedDriverCmdWriteCfg1 = 4, // Write configuration register 1
+    LedDriverCmdReadCfg1 = 5, // Read configuration register 1
+    LedDriverCmdWriteCfg2 = 6, // Write configuration register 2
+    LedDriverCmdReadCfg2 = 7, // Read configuration register 2
+    LedDriverCmdWriteCfg3 = 8, // Write configuration register 3
+    LedDriverCmdReadCfg3 = 9, // Read configuration register 3
+    LedDriverCmdWriteCfg4 = 10, // Write configuration register 4
+    LedDriverCmdReadCfg4 = 11, // Read configuration register 4
+    LedDriverCmdEnOp = 12, // Enable all output channels
+    LedDriverCmdDisOp = 13, // Disable all output channels
+    LedDriverCmdPreactive = 14, // Write enable command (Send before register writes)
+    LedDriverCmdMbist = 15, // Enable SRAM checksum read status
 } LedDriverCommand;
+
+typedef union {
+    uint16_t value;
+    struct {
+        uint16_t test_0_2        : 3;
+        // Bit 3: Cross-version color difference optimization: (Default: 1'h0)
+        uint16_t pwm_c           : 1;
+        // Bits 5:4: DATA_MAPPING (1: Enable, Other: Disable, Default: 2'h0)
+        uint16_t data_mapping_en : 2;
+        // Bits 7:6: Low ash uniformity (Default: 2'h0)
+        uint16_t opt_lvl         : 2;
+        // Bits 12:8: Number of scan lines, (Default: 5'h1F)
+        uint16_t scan_line       : 5;
+        uint16_t test_13         : 1;
+        // Bit 14: Enable open circuit detection (0: Disable, 1: enable, Default: 1'h0)
+        uint16_t open_det_en     : 1;
+        uint16_t reserved        : 1;
+    } bits;
+} LedDriverCfg1;
+_Static_assert(sizeof(LedDriverCfg1) == sizeof(uint16_t), "LedDriverCfg1 size mismatch");
+
+typedef union {
+    uint16_t value;
+    struct {
+        // Bit 0: TEST (Text ghost optimization, 0=Open/Enable, 1=Close/Disable, Default: 1'h1)
+        uint16_t text_ghost_opt_dis : 1;
+        // Bits 8:1: IGAIN (Constant current gain, Range 64-255, Default: 8'hFF)
+        uint16_t igain              : 8;
+        // Bit 9: I_DIV4N (Current divisor select, 1=IOUT*=/256, 0=IOUT*=/1024, Default: 1'h1)
+        uint16_t i_div4n            : 1;
+        // Bits 14:10: ADJ Blanking level adjustment (Range 0-31, Default: 5'h1F)
+        uint16_t adj                : 5;
+        // Bit 15: Reserved
+        uint16_t reserved           : 1;
+    } bits;
+} LedDriverCfg2;
+_Static_assert(sizeof(LedDriverCfg2) == sizeof(uint16_t), "LedDriverCfg2 size mismatch");
+
+typedef union {
+    uint16_t value;
+    struct {
+        uint16_t test_cfg    : 2;
+        // Bit 2: UP_SEL (Blanking level select, Default: 1'b1)
+        uint16_t up_sel      : 1;
+        uint16_t test_3      : 1;
+        // Bits 7:4: PWM_ADD (Low gray color cast compensation level, Range 0-15, Default: 4'h0)
+        uint16_t pwm_add     : 4;
+        // Bit 8: Reg_EN (Register 5 write enable, 0: Disable, 1: Enable, Default: 1'h0)
+        uint16_t reg_en      : 1;
+        // Bit 9: (Register map select, 0: Write Reg1-4, 1: Write Debug Reg5, Default: 1'h1)
+        uint16_t reg_map_sel : 1;
+        uint16_t test_10_11  : 2;
+        uint16_t test_12_14  : 3;
+        uint16_t reserved_15 : 1;
+    } bits;
+} LedDriverCfg3;
+_Static_assert(sizeof(LedDriverCfg3) == sizeof(uint16_t), "LedDriverCfg3 size mismatch");
+
+typedef union {
+    uint16_t value;
+    struct {
+        // Bit 0: Mapping_EN (Default: 1'h0)
+        uint16_t mapping_en  : 1;
+        // Bits 2:1: TRIM_ADJ (Constant current trimming value, Default: 2'h0)
+        uint16_t trim_adj    : 2;
+        // Bit 3: TRIM_ADD_EN (Trimming sign, 0: Subtract, 1: Add, Default: 1'h0)
+        uint16_t trim_add_en : 1;
+        // Bits 5:4: DN_SEL (First row dark compensation level, Range 0-3, Default: 2'h0)
+        uint16_t dn_sel      : 2;
+        // Bit 6: DN (First row dark compensation enable, Default: 1'h1)
+        uint16_t dn_en       : 1;
+        // Bit 7: OPEN_SCAN (Open circuit detection scan, 0: Off, 1: Reset & On, Default: 1'h0)
+        uint16_t open_scan   : 1;
+        uint16_t test_8_9    : 2;
+        uint16_t test_10_11  : 2;
+        uint16_t test_12     : 1;
+        uint16_t test_13     : 1;
+        // Bit 14: PWM_ADD_EN (Low gray compensation enable, Default: 1'h0)
+        uint16_t pwm_add_en  : 1;
+        uint16_t reserved    : 1;
+    } bits;
+} LedDriverCfg4;
+
+_Static_assert(sizeof(LedDriverCfg4) == sizeof(uint16_t), "LedDriverCfg4 size mismatch");
 
 // VSYNC command: LE high during 3x DCLK periods + 1 dummy clock
 #define VSYNC_CMD ((1 << 3) | (1 << 5) | (1 << 7))
@@ -384,28 +474,52 @@ static void led_driver_write_reg(LedDisplayDriver* driver, LedDriverCommand cmd,
 }
 
 static void led_display_driver_send_init(LedDisplayDriver* driver) {
-    uint16_t cfg_data = ((24 - 1) << 8) | (0 << 6) | (3 << 4) | (0 << 3);
+    LedDriverCfg1 cfg1 = {
+        .bits.scan_line = (DOT_MATRIX_W / LED_DRIVER_CHAIN) - 1,
+        .bits.data_mapping_en = 3, // Disable data mapping
+    };
     led_driver_write_reg(
-        driver, LedDriverCmdWriteCfg1, (uint16_t[]){cfg_data, cfg_data, cfg_data});
+        driver, LedDriverCmdWriteCfg1, (uint16_t[]){cfg1.value, cfg1.value, cfg1.value});
 
-    uint16_t cfg_data_r = (31 << 10) | (1 << 9) | (255 << 1);
-    uint16_t cfg_data_g = (28 << 10) | (1 << 9) | (255 << 1);
-    uint16_t cfg_data_b = (23 << 10) | (1 << 9) | (255 << 1);
+    LedDriverCfg2 cfg2_r = {
+        .bits.adj = 31,
+        .bits.i_div4n = 1,
+        .bits.igain = 255,
+        .bits.text_ghost_opt_dis = 1,
+    };
+    LedDriverCfg2 cfg2_g = {
+        .bits.adj = 28,
+        .bits.i_div4n = 1,
+        .bits.igain = 255,
+        .bits.text_ghost_opt_dis = 1,
+    };
+    LedDriverCfg2 cfg2_b = {
+        .bits.adj = 23,
+        .bits.i_div4n = 1,
+        .bits.igain = 255,
+        .bits.text_ghost_opt_dis = 1,
+    };
     led_driver_write_reg(
-        driver, LedDriverCmdWriteCfg2, (uint16_t[]){cfg_data_r, cfg_data_g, cfg_data_b});
+        driver, LedDriverCmdWriteCfg2, (uint16_t[]){cfg2_r.value, cfg2_g.value, cfg2_b.value});
 
-    cfg_data = (4 << 12) | (1 << 8) | (15 << 4) | (1 << 2) | 3;
+    LedDriverCfg3 cfg3 = {
+        .bits.test_12_14 = 4,
+        .bits.reg_en = 1,
+        .bits.pwm_add = 15,
+        .bits.up_sel = 1,
+        .bits.test_cfg = 3,
+    };
     led_driver_write_reg(
-        driver, LedDriverCmdWriteCfg3, (uint16_t[]){cfg_data, cfg_data, cfg_data});
+        driver, LedDriverCmdWriteCfg3, (uint16_t[]){cfg3.value, cfg3.value, cfg3.value});
 
-    cfg_data = (1 << 14) | (0 << 6) | (0 << 4) | 1;
+    LedDriverCfg4 cfg4 = {
+        .bits.pwm_add_en = 1,
+        .bits.mapping_en = 1,
+    };
     led_driver_write_reg(
-        driver, LedDriverCmdWriteCfg4, (uint16_t[]){cfg_data, cfg_data, cfg_data});
+        driver, LedDriverCmdWriteCfg4, (uint16_t[]){cfg4.value, cfg4.value, cfg4.value});
 
-    // cfg_data = 0;
-    // led_driver_write_reg(
-    //     driver, LedDriverCmdWriteCfg5Dbg, (uint16_t[]){cfg_data, cfg_data, cfg_data});
-
+    // Enable all output channels
     led_driver_write_reg(driver, LedDriverCmdEnOp, (uint16_t[]){0, 0, 0});
 }
 
