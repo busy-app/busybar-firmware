@@ -22,7 +22,7 @@
 #define FURI_HAL_SAI_DMA_REQUEST  LL_GPDMA1_REQUEST_SAI1_A
 #define FURI_HAL_SAI_DMA_PRIORITY LL_DMA_HIGH_PRIORITY
 
-#define NS4168_HPF Ns4168Hpf_65Hz
+#define FURI_HAL_NS4168_HPF Ns4168Hpf_65Hz
 
 typedef struct {
     FuriHalSaiCallback callback;
@@ -303,7 +303,7 @@ void furi_hal_sai_set_callback(FuriHalSaiCallback callback, void* context) {
 }
 
 void furi_hal_sai_start(void) {
-    ns4168_power_on(NS4168_HPF);
+    ns4168_power_on(FURI_HAL_NS4168_HPF);
     FURI_CRITICAL_ENTER();
     furi_hal_sai_start_dma();
     furi_check(furi_hal_sai_enable());

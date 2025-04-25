@@ -27,5 +27,4 @@ void ns4168_power_on(Ns4168Hpf hpf) {
 
 void ns4168_power_off(void) {
     furi_hal_gpio_write(&gpio_audio_en_and_boot0, false);
-    furi_delay_us(120);
 }
