@@ -282,24 +282,20 @@ static void cli_send_sl_cli_cmd(FuriString* cmd) {
 }
 
 void cli_command_sl_echo(Cli* cli, FuriString* args, void* context) {
-    UNUSED(args);
     UNUSED(context);
+    UNUSED(args);
 
-    printf("Starting echo server on 917...\r\n");
+    const uint32_t baud = 230400UL;
 
-    FuriString* cmd = furi_string_alloc_printf("echo_server\r");
+    printf("Starting 917 echo server on %ld\r\n", baud);
+    FuriString* cmd = furi_string_alloc_printf("echo_server  %ld\r", baud);
     cli_send_sl_cli_cmd(cmd);
 
     FuriHalSerialHandle* serial = furi_hal_serial_control_acquire(FuriHalSerialIdUsart6);
-    furi_hal_serial_init(serial, 230400UL);
+    furi_hal_serial_init(serial, baud);
     furi_hal_serial_clear(serial, FuriHalSerialDirectionTxRx);
 
     while(true) {
-        while(furi_hal_serial_rx_available(serial)) {
-            uint8_t data = furi_hal_serial_rx(serial);
-            cli_putc(cli, data);
-        }
-
         uint8_t ch = cli_getc(cli);
 
         if(ch == CliSymbolAsciiETX) {
@@ -313,10 +309,14 @@ void cli_command_sl_echo(Cli* cli, FuriString* args, void* context) {
         }
 
         furi_delay_ms(10);
+
+        while(furi_hal_serial_rx_available(serial)) {
+            ch = furi_hal_serial_rx(serial);
+            cli_putc(cli, ch);
+        }
     }
 
     furi_hal_serial_control_release(serial);
-
     furi_string_printf(cmd, "%c\r", CliSymbolAsciiETX);
     cli_send_sl_cli_cmd(cmd);
     furi_string_free(cmd);
