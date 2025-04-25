@@ -11,6 +11,7 @@ typedef struct {
     TimerCard* timer_card;
     uint32_t timer_time_s;
     BusyTimerState timer_state;
+    bool is_paused;
 } BusySceneTimer;
 
 static bool busy_scene_timer_input_callback(const InputEvent* event, void* context) {
@@ -20,16 +21,29 @@ static bool busy_scene_timer_input_callback(const InputEvent* event, void* conte
     BusyApp* instance = context;
 
     bool consumed = false;
+    BusyCustomEvent custom_event;
 
     if(event->type == InputTypeShort) {
         if(event->key == InputKeyUp) {
-            busy_send_custom_event(instance, BusyCustomEventTimeIncrement);
+            custom_event = BusyCustomEventTimeIncrement;
             consumed = true;
 
         } else if(event->key == InputKeyDown) {
-            busy_send_custom_event(instance, BusyCustomEventTimeDecrement);
+            custom_event = BusyCustomEventTimeDecrement;
+            consumed = true;
+
+        } else if(event->key == InputKeyOk) {
+            custom_event = BusyCustomEventTimerSkip;
+            consumed = true;
+
+        } else if(event->key == InputKeyStart) {
+            custom_event = BusyCustomEventTimerToggle;
             consumed = true;
         }
+    }
+
+    if(consumed) {
+        busy_send_custom_event(instance, custom_event);
     }
 
     return consumed;
@@ -52,17 +66,32 @@ static void busy_scene_timer_event_callback(const BusyTimerEvent* event, void* c
     }
 }
 
-static void busy_scene_timer_update_tick(BusySceneTimer* data) {
-    timer_label_set_time_left(data->timer_label, data->timer_time_s);
-    timer_card_set_time_left(data->timer_card, data->timer_time_s);
+static void busy_scene_timer_update_tick(BusyApp* instance) {
+    BusySceneTimer* data = scene_manager_get_current_scene_data(instance->scene_manager);
+
+    with_gui(instance->gui, {
+        timer_label_set_time_left(data->timer_label, data->timer_time_s);
+        timer_card_set_time_left(data->timer_card, data->timer_time_s);
+    });
 }
 
-static void busy_scene_timer_update_state(BusySceneTimer* data) {
-    if(data->timer_state == BusyTimerStateWork) {
-        image_set_source(data->state_image, BUSY_IMG_PATH("I_busy_label_40x14.png"));
-    } else if(data->timer_state == BusyTimerStateRest) {
-        image_set_source(data->state_image, BUSY_IMG_PATH("I_rest_label_40x14.png"));
-    }
+static void busy_scene_timer_update_state(BusyApp* instance) {
+    BusySceneTimer* data = scene_manager_get_current_scene_data(instance->scene_manager);
+
+    with_gui(instance->gui, {
+        if(data->timer_state == BusyTimerStateWork) {
+            image_set_source(data->state_image, BUSY_IMG_PATH("I_busy_label_40x14.png"));
+        } else if(data->timer_state == BusyTimerStateRest) {
+            image_set_source(data->state_image, BUSY_IMG_PATH("I_rest_label_40x14.png"));
+        }
+    });
+}
+
+static void busy_scene_timer_toggle_pause(BusyApp* instance) {
+    BusySceneTimer* data = scene_manager_get_current_scene_data(instance->scene_manager);
+    data->is_paused = !data->is_paused;
+
+    with_gui(instance->gui, { timer_card_show_header(data->timer_card, !data->is_paused); });
 }
 
 static void busy_scene_timer_on_enter(void* context) {
@@ -108,18 +137,23 @@ static void busy_scene_timer_on_exit(void* context) {
 
 static bool busy_scene_timer_on_event(const SceneManagerEvent* event, void* context) {
     furi_assert(context);
-
     BusyApp* instance = context;
-    BusySceneTimer* data = scene_manager_get_current_scene_data(instance->scene_manager);
 
     bool consumed = false;
 
     if(event->type == SceneManagerEventTypeCustom) {
         if(event->event == BusyCustomEventTimerTick) {
-            with_gui(instance->gui, { busy_scene_timer_update_tick(data); });
+            busy_scene_timer_update_tick(instance);
 
         } else if(event->event == BusyCustomEventTimerStateChanged) {
-            with_gui(instance->gui, { busy_scene_timer_update_state(data); });
+            busy_scene_timer_update_state(instance);
+
+        } else if(event->event == BusyCustomEventTimerToggle) {
+            busy_scene_timer_toggle_pause(instance);
+            busy_timer_toggle(instance->busy_timer);
+
+        } else if(event->event == BusyCustomEventTimerSkip) {
+            busy_timer_skip(instance->busy_timer);
 
         } else if(event->event == BusyCustomEventTimeIncrement) {
             busy_timer_add_time(instance->busy_timer, BUSY_TIMER_TIME_INCREMENT_MN);

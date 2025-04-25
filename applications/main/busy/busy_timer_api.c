@@ -78,6 +78,26 @@ void busy_timer_stop(BusyTimer* instance) {
     busy_timer_send_message(instance, &message);
 }
 
+void busy_timer_toggle(BusyTimer* instance) {
+    furi_assert(instance);
+
+    BusyTimerMessage message = {
+        .type = BusyTimerMessageTypeToggle,
+    };
+
+    busy_timer_send_message(instance, &message);
+}
+
+void busy_timer_skip(BusyTimer* instance) {
+    furi_assert(instance);
+
+    BusyTimerMessage message = {
+        .type = BusyTimerMessageTypeSkip,
+    };
+
+    busy_timer_send_message(instance, &message);
+}
+
 void busy_timer_add_time(BusyTimer* instance, int32_t time_mn) {
     furi_assert(instance);
 

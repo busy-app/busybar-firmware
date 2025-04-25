@@ -25,6 +25,8 @@ typedef enum {
     BusyTimerMessageTypeGetState,
     BusyTimerMessageTypeSetCallback,
     BusyTimerMessageTypeAddTime,
+    BusyTimerMessageTypeToggle,
+    BusyTimerMessageTypeSkip,
 
     BusyTimerMessageTypeMax,
 } BusyTimerMessageType;

@@ -107,36 +107,6 @@ static uint32_t busy_timer_calc_time_left(BusyTimer* instance) {
     return interval_s;
 }
 
-// static BusyCustomEvent busy_timer_calc_event(BusyApp* instance, bool skip_event) {
-//     BusyCustomEvent event = BusyCustomEventUpdate;
-//
-//     if(!skip_event) {
-//         if(instance->state == BusyTimerStateIdle) {
-//             if(!instance->enable_autorestart_session) {
-//                 event = BusyCustomEventSessionEnd;
-//             } else {
-//                 FURI_LOG_D(TAG, "Autorestart session OFF, skipping event");
-//             }
-//         } else if(instance->state == BusyTimerStateRest || instance->state == BusyTimerStateLongRest) {
-//             if(!instance->enable_autostart_work) {
-//                 event = BusyCustomEventIntervalEnd;
-//             } else {
-//                 FURI_LOG_D(TAG, "Autorestart work OFF, skipping event");
-//             }
-//         } else if(instance->state == BusyTimerStateWork) {
-//             if(!instance->enable_autostart_rest) {
-//                 event = BusyCustomEventIntervalEnd;
-//             } else {
-//                 FURI_LOG_D(TAG, "Autorestart rest OFF, skipping event");
-//             }
-//         }
-//     } else {
-//         FURI_LOG_D(TAG, "Skipping state change event");
-//     }
-//
-//     return event;
-// }
-//
 // static void busy_play_finished_sound(BusyApp* instance) {
 //     if(instance->enable_sound) {
 //         if(instance->state == BusyTimerStateWork) {
@@ -146,7 +116,7 @@ static uint32_t busy_timer_calc_time_left(BusyTimer* instance) {
 //         }
 //     }
 // }
-//
+
 // static void busy_play_countdown_sound(BusyApp* instance) {
 //     if(instance->enable_sound && instance->interval_time_left_s <= 4) {
 //         if(instance->state == BusyTimerStateWork) {
@@ -157,8 +127,7 @@ static uint32_t busy_timer_calc_time_left(BusyTimer* instance) {
 //     }
 // }
 
-void busy_timer_next_state(BusyTimer* instance, bool skip_event) {
-    UNUSED(skip_event);
+void busy_timer_next_state(BusyTimer* instance) {
     FURI_LOG_I(TAG, "Current state: %s", busy_timer_get_state_name(instance->state));
 
     instance->state = busy_timer_calc_state(instance);
@@ -184,7 +153,7 @@ static void busy_timer_callback(void* context) {
         busy_timer_notify_tick(instance);
 
     } else {
-        busy_timer_next_state(instance, false);
+        busy_timer_next_state(instance);
     }
 }
 
@@ -257,7 +226,7 @@ static void busy_timer_start_message_handler(BusyTimer* instance, BusyTimerMessa
     FURI_LOG_I(TAG, "Starting");
 
     instance->state = BusyTimerStateIdle;
-    busy_timer_next_state(instance, true);
+    busy_timer_next_state(instance);
 
     FURI_LOG_I(TAG, "Started");
 }
@@ -326,6 +295,21 @@ static void busy_timer_add_time_message_handler(BusyTimer* instance, BusyTimerMe
     busy_timer_notify_tick(instance);
 }
 
+static void busy_timer_toggle_message_handler(BusyTimer* instance, BusyTimerMessageData* data) {
+    UNUSED(data);
+
+    if(furi_event_loop_timer_is_running(instance->timer)) {
+        furi_event_loop_timer_stop(instance->timer);
+    } else {
+        furi_event_loop_timer_restart(instance->timer);
+    }
+}
+
+static void busy_timer_skip_message_handler(BusyTimer* instance, BusyTimerMessageData* data) {
+    UNUSED(data);
+    busy_timer_next_state(instance);
+}
+
 static const BusyTimerMessageHandler busy_timer_message_handlers[BusyTimerMessageTypeMax] = {
     [BusyTimerMessageTypeStart] = busy_timer_start_message_handler,
     [BusyTimerMessageTypeStop] = busy_timer_stop_message_handler,
@@ -334,4 +318,6 @@ static const BusyTimerMessageHandler busy_timer_message_handlers[BusyTimerMessag
     [BusyTimerMessageTypeGetState] = busy_timer_get_state_message_handler,
     [BusyTimerMessageTypeSetCallback] = busy_timer_set_callback_message_handler,
     [BusyTimerMessageTypeAddTime] = busy_timer_add_time_message_handler,
+    [BusyTimerMessageTypeToggle] = busy_timer_toggle_message_handler,
+    [BusyTimerMessageTypeSkip] = busy_timer_skip_message_handler,
 };

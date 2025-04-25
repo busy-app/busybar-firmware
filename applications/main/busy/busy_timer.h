@@ -72,11 +72,9 @@ void busy_timer_start(BusyTimer* instance);
 
 void busy_timer_stop(BusyTimer* instance);
 
-// void busy_timer_next_state(BusyTimer* instance, bool skip_event);
-// void busy_timer_pause(BusyTimer* instance);
-// void busy_timer_resume(BusyTimer* instance);
-// void busy_timer_toggle(BusyTimer* instance);
-// bool busy_timer_is_running(BusyTimer* instance);
+void busy_timer_toggle(BusyTimer* instance);
+
+void busy_timer_skip(BusyTimer* instance);
 
 void busy_timer_add_time(BusyTimer* instance, int32_t time_mn);
 
