@@ -263,6 +263,21 @@ typedef struct {
 } Bq25798Reg14ChargerControl5;
 
 typedef struct {
+    uint8_t             : 1;
+    uint8_t JEITA_ISETC : 2;
+    uint8_t JEITA_ISETH : 2;
+    uint8_t JEITA_VSET  : 3;
+} Bq25798Reg17NtcControl0;
+
+typedef struct {
+    uint8_t TS_IGNORE : 1;
+    uint8_t BCOLD     : 1;
+    uint8_t BHOT      : 2;
+    uint8_t TS_WARM   : 2;
+    uint8_t TS_COOL   : 2;
+} Bq25798Reg18NtcControl1;
+
+typedef struct {
     uint8_t              : 2;
     uint8_t ADC_AVG_INIT : 1;
     uint8_t ADC_AVG      : 1;
@@ -297,6 +312,8 @@ static_assert(
 static_assert(
     sizeof(Bq25798Reg14ChargerControl5) == 1,
     "Bq25798Reg14ChargerControl5 size mismatch");
+static_assert(sizeof(Bq25798Reg17NtcControl0) == 1, "Bq25798Reg17NtcControl0 size mismatch");
+static_assert(sizeof(Bq25798Reg18NtcControl1) == 1, "Bq25798Reg18NtcControl1 size mismatch");
 static_assert(sizeof(Bq25798Reg2EADCControl) == 1, "Bq25798Reg2EADCControl size mismatch");
 static_assert(
     sizeof(Bq25798Reg48PartInformation) == 1,
