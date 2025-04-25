@@ -280,8 +280,7 @@ static void
 
 static void
     busy_timer_set_config_message_handler(BusyTimer* instance, BusyTimerMessageData* data) {
-    UNUSED(instance);
-    UNUSED(data);
+    instance->config = *data->config_c;
 }
 
 static void busy_timer_get_state_message_handler(BusyTimer* instance, BusyTimerMessageData* data) {

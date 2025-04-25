@@ -9,13 +9,39 @@ typedef struct {
     FlexLayout* back_layout;
     NavHeader* back_header;
     VarItemList* back_list;
+    BusyTimerConfig timer_config;
 } BusySceneSetupTimer;
 
-static void busy_scene_setup_timer_simple_changed_callback(VarItem* item, void* context) {
-    UNUSED(item);
+static void busy_scene_setup_timer_work_changed_callback(VarItem* item, void* context) {
+    furi_assert(item);
+    furi_assert(context);
 
-    BusyApp* instance = context;
-    UNUSED(instance);
+    BusySceneSetupTimer* data = context;
+    data->timer_config.work_time_mn = var_item_get_value(item);
+}
+
+static void busy_scene_setup_timer_rest_changed_callback(VarItem* item, void* context) {
+    furi_assert(item);
+    furi_assert(context);
+
+    BusySceneSetupTimer* data = context;
+    data->timer_config.rest_time_mn = var_item_get_value(item);
+}
+
+static void busy_scene_setup_timer_cycles_changed_callback(VarItem* item, void* context) {
+    furi_assert(item);
+    furi_assert(context);
+
+    BusySceneSetupTimer* data = context;
+    data->timer_config.cycle_count = var_item_get_value(item);
+}
+
+static void busy_scene_setup_timer_autostart_changed_callback(VarItem* item, void* context) {
+    furi_assert(item);
+    furi_assert(context);
+
+    BusySceneSetupTimer* data = context;
+    data->timer_config.enable_autostart = var_item_get_value(item);
 }
 
 static void busy_scene_setup_timer_on_enter(void* context) {
@@ -23,6 +49,8 @@ static void busy_scene_setup_timer_on_enter(void* context) {
 
     BusyApp* instance = context;
     BusySceneSetupTimer* data = scene_manager_get_current_scene_data(instance->scene_manager);
+
+    busy_timer_get_config(instance->busy_timer, &data->timer_config);
 
     with_gui(instance->gui, {
         data->back_layout = flex_layout_alloc(instance->back_window, FlexLayoutTypeColumn);
@@ -40,18 +68,42 @@ static void busy_scene_setup_timer_on_enter(void* context) {
 
         item = var_item_list_add_timebox(
             data->back_list,
-            "SIMPLE",
-            5,
-            H_TO_M(24),
-            5,
-            busy_scene_setup_timer_simple_changed_callback,
-            instance);
-        item = var_item_list_add_switch(
-            data->back_list, "INTERVAL", busy_scene_setup_timer_simple_changed_callback, instance);
-        item = var_item_list_add_switch(
-            data->back_list, "OFF", busy_scene_setup_timer_simple_changed_callback, instance);
+            "WORK",
+            BUSY_TIMER_WORK_TIME_MIN_MN,
+            BUSY_TIMER_WORK_TIME_MAX_MN,
+            BUSY_TIMER_TIME_INCREMENT_MN,
+            busy_scene_setup_timer_work_changed_callback,
+            data);
 
-        UNUSED(item);
+        var_item_set_value(item, data->timer_config.work_time_mn);
+
+        item = var_item_list_add_timebox(
+            data->back_list,
+            "REST",
+            BUSY_TIMER_REST_TIME_MIN_MN,
+            BUSY_TIMER_REST_TIME_MAX_MN,
+            BUSY_TIMER_TIME_INCREMENT_MN,
+            busy_scene_setup_timer_rest_changed_callback,
+            data);
+
+        var_item_set_value(item, data->timer_config.rest_time_mn);
+
+        item = var_item_list_add_spinbox(
+            data->back_list,
+            "CYCLES",
+            NULL,
+            BUSY_TIMER_CYCLE_COUNT_MIN,
+            BUSY_TIMER_CYCLE_COUNT_MAX,
+            BUSY_TIMER_CYCLE_INCREMENT,
+            busy_scene_setup_timer_cycles_changed_callback,
+            data);
+
+        var_item_set_value(item, data->timer_config.cycle_count);
+
+        item = var_item_list_add_switch(
+            data->back_list, "A.START", busy_scene_setup_timer_autostart_changed_callback, data);
+
+        var_item_set_value(item, data->timer_config.enable_autostart);
     });
 }
 
@@ -61,21 +113,19 @@ static void busy_scene_setup_timer_on_exit(void* context) {
     BusyApp* instance = context;
     BusySceneSetupTimer* data = scene_manager_get_current_scene_data(instance->scene_manager);
 
+    busy_timer_set_config(instance->busy_timer, &data->timer_config);
+
     with_gui(instance->gui, { flex_layout_free(data->back_layout); });
 }
 
 static bool busy_scene_setup_timer_on_event(const SceneManagerEvent* event, void* context) {
+    furi_assert(event);
     furi_assert(context);
+
     BusyApp* instance = context;
     UNUSED(instance);
 
     bool consumed = false;
-
-    if(event->type == SceneManagerEventTypeCustom) {
-        // TODO: Handle custom events
-        consumed = true;
-    }
-
     return consumed;
 }
 

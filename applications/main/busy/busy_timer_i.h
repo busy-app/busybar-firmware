@@ -4,8 +4,6 @@
 
 #include <toolbox/api_lock.h>
 
-#include "time_macros.h"
-
 #define TAG "BusyTimer"
 
 #define WORK_TIME_DEFAULT_MN (20)
@@ -16,13 +14,6 @@
 #define ENABLE_AUTOSTART_DEFAULT (false)
 #define ENABLE_SOUND_DEFAULT     (true)
 #define ENABLE_SPEED_DEFAULT     (false)
-
-#define WORK_TIME_MIN_MN (5)
-#define WORK_TIME_MAX_MN H_TOM_M(8)
-#define REST_TIME_MIN_MN (5)
-#define REST_TIME_MAX_MN H_TOM_M(8)
-#define CYCLE_COUNT_MIN  (2)
-#define CYCLE_COUNT_MAX  (35)
 
 #define SPEED_MULTIPLIER (60)
 
