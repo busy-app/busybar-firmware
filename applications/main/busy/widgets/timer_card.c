@@ -1,6 +1,7 @@
 #include "timer_card.h"
 
-#include <gui/widget_i.h>
+// #include <gui/widget_i.h>
+#include <gui/gui_i.h>
 
 #include "../time_macros.h"
 #include "../compiled_assets/compiled_assets.h"
@@ -9,6 +10,7 @@
 
 struct TimerCard {
     Widget base;
+    lv_display_t* display;
     lv_obj_t* top_layout;
     lv_obj_t* left_image;
     lv_obj_t* right_image;
@@ -17,9 +19,15 @@ struct TimerCard {
     lv_obj_t* bottom_layout;
     lv_obj_t* bottom_timer_text;
     lv_obj_t* bottom_static_text;
+    lv_image_dsc_t mirror_image_dsc;
 };
 
 const lv_obj_class_t timer_card_lvgl_class;
+
+static void timer_card_refresh_callback(lv_event_t* event) {
+    lv_obj_t* image = lv_event_get_user_data(event);
+    lv_obj_invalidate(image);
+}
 
 // LVGL-specific code
 
@@ -50,12 +58,24 @@ static void timer_card_lvgl_constructor(const lv_obj_class_t* class_p, lv_obj_t*
     instance->right_image = lv_image_create(instance->top_layout);
     lv_image_set_src(instance->right_image, &I_active_indicator_right_28x7);
 
-    // TODO: Stream image from front display
-    instance->mirror_image = lv_obj_create(obj);
-    lv_obj_set_size(instance->mirror_image, 72 * 2, 16 * 2);
-    lv_obj_set_style_radius(instance->mirror_image, 4, LV_PART_MAIN);
-    lv_obj_set_style_bg_opa(instance->mirror_image, LV_OPA_COVER, LV_PART_MAIN);
-    lv_obj_set_style_bg_color(instance->mirror_image, lv_color_black(), LV_PART_MAIN);
+    instance->mirror_image = lv_image_create(obj);
+    Gui* gui = furi_record_open(RECORD_GUI);
+    GuiDisplay* front = &gui->displays[GuiDisplayIdFront];
+
+    lv_image_dsc_t* image_dsc = &instance->mirror_image_dsc;
+    image_dsc->header.magic = LV_IMAGE_HEADER_MAGIC, image_dsc->header.cf = FRONT_COLOR_FORMAT,
+    image_dsc->header.w = FRONT_W, image_dsc->header.h = FRONT_H,
+    image_dsc->header.stride = LV_DRAW_BUF_STRIDE(FRONT_W, FRONT_COLOR_FORMAT),
+    image_dsc->data_size = FRONT_DRAW_BUFFER_SIZE, image_dsc->data = front->draw_buffer,
+
+    lv_image_set_antialias(instance->mirror_image, false);
+    lv_image_set_scale(instance->mirror_image, LV_SCALE_NONE * 2);
+    lv_image_set_src(instance->mirror_image, image_dsc);
+    lv_obj_set_size(instance->mirror_image, FRONT_W * 2, FRONT_H * 2);
+    // TODO: Rounded corners
+    // lv_obj_set_style_radius(instance->mirror_image, 4, LV_PART_MAIN);
+    // lv_obj_set_style_bg_opa(instance->mirror_image, LV_OPA_COVER, LV_PART_MAIN);
+    // lv_obj_set_style_bg_color(instance->mirror_image, lv_color_black(), LV_PART_MAIN);
 
     instance->bottom_layout = lv_obj_create(obj);
     lv_obj_set_size(instance->bottom_layout, LV_SIZE_CONTENT, LV_SIZE_CONTENT);
@@ -76,6 +96,22 @@ static void timer_card_lvgl_constructor(const lv_obj_class_t* class_p, lv_obj_t*
     lv_obj_set_style_text_color(instance->bottom_static_text, lv_color_black(), LV_PART_MAIN);
     lv_obj_set_style_text_font(
         instance->bottom_static_text, lv_theme_get_font_small(obj), LV_PART_MAIN);
+
+    instance->display = front->lv_display;
+    lv_display_add_event_cb(
+        instance->display,
+        timer_card_refresh_callback,
+        LV_EVENT_REFR_READY,
+        instance->mirror_image);
+}
+
+static void timer_card_lvgl_destructor(const lv_obj_class_t* class_p, lv_obj_t* obj) {
+    UNUSED(class_p);
+
+    TimerCard* instance = (TimerCard*)obj;
+    lv_display_remove_event_cb_with_user_data(
+        instance->display, timer_card_refresh_callback, instance->mirror_image);
+    furi_record_close(RECORD_GUI);
 }
 
 // Public API
@@ -136,6 +172,7 @@ void timer_card_set_time_left(TimerCard* instance, uint32_t time_left_s) {
 const lv_obj_class_t timer_card_lvgl_class = {
     .base_class = &widget_lvgl_class,
     .constructor_cb = timer_card_lvgl_constructor,
+    .destructor_cb = timer_card_lvgl_destructor,
     .name = "widget-timer-card",
     .width_def = LV_SIZE_CONTENT,
     .height_def = LV_SIZE_CONTENT,
