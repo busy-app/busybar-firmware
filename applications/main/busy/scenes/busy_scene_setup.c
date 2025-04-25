@@ -86,7 +86,7 @@ static bool busy_scene_setup_on_event(const SceneManagerEvent* event, void* cont
         if(event->event == BusySceneSetupMenuIndexTimer) {
             scene_manager_next_scene(instance->scene_manager, BusyAppSceneIdSetupTimer);
         } else if(event->event == BusySceneSetupMenuIndexTheme) {
-            FURI_LOG_D(TAG, "Theme setup selected!");
+            scene_manager_next_scene(instance->scene_manager, BusyAppSceneIdSetupTheme);
         }
 
         consumed = true;
