@@ -41,8 +41,8 @@ static void busy_scene_setup_theme_on_exit(void* context) {
     BusySceneSetupTheme* data = scene_manager_get_current_scene_data(instance->scene_manager);
 
     with_gui(instance->gui, {
+        label_free(data->front_label);
         flex_layout_free(data->back_layout);
-        label_free(data->back_label);
     });
 }
 
