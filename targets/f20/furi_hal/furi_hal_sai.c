@@ -9,6 +9,8 @@
 #include <furi_hal_interrupt.h>
 #include <furi_hal_sai.h>
 
+#include <drivers/ns4168/ns4168.h>
+
 #define FURI_HAL_SAI       SAI1
 #define FURI_HAL_SAI_BLOCK SAI1_Block_A
 
@@ -19,6 +21,8 @@
 #define FURI_HAL_SAI_DMA          GPDMA1
 #define FURI_HAL_SAI_DMA_REQUEST  LL_GPDMA1_REQUEST_SAI1_A
 #define FURI_HAL_SAI_DMA_PRIORITY LL_DMA_HIGH_PRIORITY
+
+#define NS4168_HPF Ns4168Hpf_65Hz
 
 typedef struct {
     FuriHalSaiCallback callback;
@@ -175,10 +179,8 @@ bool furi_hal_sai_init(void) {
     furi_hal_gpio_init_ex(
         &gpio_i2s_sck, GpioModeAltFunctionPushPull, GpioPullNo, GpioSpeedLow, GpioAltFn13SAI1);
 #endif
-    furi_hal_gpio_init(
-        &gpio_audio_en_and_917_swo, GpioModeOutputPushPull, GpioPullNo, GpioSpeedLow);
 
-    furi_hal_gpio_write(&gpio_audio_en_and_917_swo, true);
+    ns4168_init();
 
     // Disable the selected SAI peripheral
     if(!furi_hal_sai_disable()) {
@@ -301,6 +303,7 @@ void furi_hal_sai_set_callback(FuriHalSaiCallback callback, void* context) {
 }
 
 void furi_hal_sai_start(void) {
+    ns4168_power_on(NS4168_HPF);
     FURI_CRITICAL_ENTER();
     furi_hal_sai_start_dma();
     furi_check(furi_hal_sai_enable());
@@ -312,4 +315,5 @@ void furi_hal_sai_stop(void) {
     furi_check(furi_hal_sai_disable());
     furi_check(furi_hal_sai_stop_dma());
     FURI_CRITICAL_EXIT();
+    ns4168_power_off();
 }
