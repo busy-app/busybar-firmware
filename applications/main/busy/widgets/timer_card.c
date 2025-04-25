@@ -11,12 +11,10 @@
 struct TimerCard {
     Widget base;
     lv_display_t* display;
-    lv_obj_t* top_layout;
     lv_obj_t* left_image;
     lv_obj_t* right_image;
     lv_obj_t* top_static_text;
     lv_obj_t* mirror_image;
-    lv_obj_t* bottom_layout;
     lv_obj_t* bottom_timer_text;
     lv_obj_t* bottom_static_text;
     lv_image_dsc_t mirror_image_dsc;
@@ -37,28 +35,34 @@ static void timer_card_lvgl_constructor(const lv_obj_class_t* class_p, lv_obj_t*
     lv_obj_set_flex_flow(obj, LV_FLEX_FLOW_COLUMN);
     lv_obj_set_flex_align(obj, LV_FLEX_ALIGN_START, LV_FLEX_ALIGN_CENTER, LV_FLEX_ALIGN_CENTER);
 
-    TimerCard* instance = (TimerCard*)obj;
-    instance->top_layout = lv_obj_create(obj);
-    lv_obj_set_size(instance->top_layout, LV_SIZE_CONTENT, LV_SIZE_CONTENT);
-    lv_obj_set_flex_flow(instance->top_layout, LV_FLEX_FLOW_ROW);
+    lv_obj_t* top_layout = lv_obj_create(obj);
+    lv_obj_set_size(top_layout, LV_SIZE_CONTENT, LV_SIZE_CONTENT);
+    lv_obj_set_flex_flow(top_layout, LV_FLEX_FLOW_ROW);
     lv_obj_set_flex_align(
-        instance->top_layout, LV_FLEX_ALIGN_START, LV_FLEX_ALIGN_CENTER, LV_FLEX_ALIGN_START);
-    lv_obj_set_style_pad_ver(instance->top_layout, 5, LV_PART_MAIN);
-    lv_obj_set_style_pad_column(instance->top_layout, 4, LV_PART_MAIN);
+        top_layout, LV_FLEX_ALIGN_START, LV_FLEX_ALIGN_CENTER, LV_FLEX_ALIGN_START);
+    lv_obj_set_style_pad_ver(top_layout, 5, LV_PART_MAIN);
+    lv_obj_set_style_pad_column(top_layout, 4, LV_PART_MAIN);
 
-    instance->left_image = lv_image_create(instance->top_layout);
+    TimerCard* instance = (TimerCard*)obj;
+    instance->left_image = lv_image_create(top_layout);
     lv_image_set_src(instance->left_image, &I_active_indicator_left_28x7);
 
-    instance->top_static_text = lv_label_create(instance->top_layout);
+    instance->top_static_text = lv_label_create(top_layout);
     lv_obj_set_style_text_font(
         instance->top_static_text, lv_theme_get_font_small(obj), LV_PART_MAIN);
     lv_obj_set_style_text_color(instance->top_static_text, lv_color_black(), LV_PART_MAIN);
     lv_label_set_text(instance->top_static_text, "ACTIVE");
 
-    instance->right_image = lv_image_create(instance->top_layout);
+    instance->right_image = lv_image_create(top_layout);
     lv_image_set_src(instance->right_image, &I_active_indicator_right_28x7);
 
-    instance->mirror_image = lv_image_create(obj);
+    // Mask object for image rounded corners
+    lv_obj_t* mask = lv_obj_create(obj);
+    lv_obj_set_size(mask, LV_SIZE_CONTENT, LV_SIZE_CONTENT);
+    lv_obj_set_style_radius(mask, 4, LV_PART_MAIN);
+    lv_obj_set_style_clip_corner(mask, true, LV_PART_MAIN);
+
+    instance->mirror_image = lv_image_create(mask);
     Gui* gui = furi_record_open(RECORD_GUI);
     GuiDisplay* front = &gui->displays[GuiDisplayIdFront];
 
@@ -72,26 +76,22 @@ static void timer_card_lvgl_constructor(const lv_obj_class_t* class_p, lv_obj_t*
     lv_image_set_scale(instance->mirror_image, LV_SCALE_NONE * 2);
     lv_image_set_src(instance->mirror_image, image_dsc);
     lv_obj_set_size(instance->mirror_image, FRONT_W * 2, FRONT_H * 2);
-    // TODO: Rounded corners
-    // lv_obj_set_style_radius(instance->mirror_image, 4, LV_PART_MAIN);
-    // lv_obj_set_style_bg_opa(instance->mirror_image, LV_OPA_COVER, LV_PART_MAIN);
-    // lv_obj_set_style_bg_color(instance->mirror_image, lv_color_black(), LV_PART_MAIN);
 
-    instance->bottom_layout = lv_obj_create(obj);
-    lv_obj_set_size(instance->bottom_layout, LV_SIZE_CONTENT, LV_SIZE_CONTENT);
-    lv_obj_set_flex_flow(instance->bottom_layout, LV_FLEX_FLOW_ROW);
+    lv_obj_t* bottom_layout = lv_obj_create(obj);
+    lv_obj_set_size(bottom_layout, LV_SIZE_CONTENT, LV_SIZE_CONTENT);
+    lv_obj_set_flex_flow(bottom_layout, LV_FLEX_FLOW_ROW);
     lv_obj_set_flex_align(
-        instance->bottom_layout, LV_FLEX_ALIGN_START, LV_FLEX_ALIGN_CENTER, LV_FLEX_ALIGN_START);
-    lv_obj_set_style_bg_opa(instance->bottom_layout, LV_OPA_TRANSP, LV_PART_MAIN);
-    lv_obj_set_style_pad_ver(instance->bottom_layout, 3, LV_PART_MAIN);
-    lv_obj_set_style_pad_column(instance->bottom_layout, 4, LV_PART_MAIN);
+        bottom_layout, LV_FLEX_ALIGN_START, LV_FLEX_ALIGN_CENTER, LV_FLEX_ALIGN_START);
+    lv_obj_set_style_bg_opa(bottom_layout, LV_OPA_TRANSP, LV_PART_MAIN);
+    lv_obj_set_style_pad_ver(bottom_layout, 3, LV_PART_MAIN);
+    lv_obj_set_style_pad_column(bottom_layout, 4, LV_PART_MAIN);
 
-    instance->bottom_timer_text = lv_label_create(instance->bottom_layout);
+    instance->bottom_timer_text = lv_label_create(bottom_layout);
     lv_obj_set_style_text_color(instance->bottom_timer_text, lv_color_black(), LV_PART_MAIN);
     lv_obj_set_style_text_font(
         instance->bottom_timer_text, &lv_font_ark_numerals_regular_10, LV_PART_MAIN);
 
-    instance->bottom_static_text = lv_label_create(instance->bottom_layout);
+    instance->bottom_static_text = lv_label_create(bottom_layout);
     lv_label_set_text(instance->bottom_static_text, "LEFT");
     lv_obj_set_style_text_color(instance->bottom_static_text, lv_color_black(), LV_PART_MAIN);
     lv_obj_set_style_text_font(
