@@ -1,9 +1,12 @@
 #include "../busy.h"
 
+#include <gui/modules/image.h>
+
 #include "../widgets/timer_card.h"
 #include "../widgets/timer_label.h"
 
 typedef struct {
+    Image* state_image;
     TimerLabel* timer_label;
     TimerCard* timer_card;
     uint32_t timer_time_s;
@@ -49,9 +52,17 @@ static void busy_scene_timer_event_callback(const BusyTimerEvent* event, void* c
     }
 }
 
-static void busy_scene_timer_update(BusySceneTimer* data) {
+static void busy_scene_timer_update_tick(BusySceneTimer* data) {
     timer_label_set_time_left(data->timer_label, data->timer_time_s);
     timer_card_set_time_left(data->timer_card, data->timer_time_s);
+}
+
+static void busy_scene_timer_update_state(BusySceneTimer* data) {
+    if(data->timer_state == BusyTimerStateWork) {
+        image_set_source(data->state_image, BUSY_IMG_PATH("I_busy_label_40x14.png"));
+    } else if(data->timer_state == BusyTimerStateRest) {
+        image_set_source(data->state_image, BUSY_IMG_PATH("I_rest_label_40x14.png"));
+    }
 }
 
 static void busy_scene_timer_on_enter(void* context) {
@@ -63,6 +74,8 @@ static void busy_scene_timer_on_enter(void* context) {
     with_gui(instance->gui, {
         GuiLayer* layer = gui_get_layer(instance->gui, GuiLayerIdMain);
         gui_layer_add_input_callback(layer, busy_scene_timer_input_callback, instance);
+
+        data->state_image = image_alloc(instance->front_window);
 
         data->timer_label = timer_label_alloc(instance->front_window);
         widget_set_pos(timer_label_get_base(data->timer_label), 42, 1);
@@ -85,6 +98,7 @@ static void busy_scene_timer_on_exit(void* context) {
         GuiLayer* layer = gui_get_layer(instance->gui, GuiLayerIdMain);
         gui_layer_remove_input_callback(layer, busy_scene_timer_input_callback);
 
+        image_free(data->state_image);
         timer_label_free(data->timer_label);
         timer_card_free(data->timer_card);
     });
@@ -102,12 +116,14 @@ static bool busy_scene_timer_on_event(const SceneManagerEvent* event, void* cont
 
     if(event->type == SceneManagerEventTypeCustom) {
         if(event->event == BusyCustomEventTimerTick) {
-            with_gui(instance->gui, { busy_scene_timer_update(data); });
+            with_gui(instance->gui, { busy_scene_timer_update_tick(data); });
 
         } else if(event->event == BusyCustomEventTimerStateChanged) {
-            // TODO: React to state change
+            with_gui(instance->gui, { busy_scene_timer_update_state(data); });
+
         } else if(event->event == BusyCustomEventTimeIncrement) {
             busy_timer_add_time(instance->busy_timer, BUSY_TIMER_TIME_INCREMENT_MN);
+
         } else if(event->event == BusyCustomEventTimeDecrement) {
             busy_timer_add_time(instance->busy_timer, -BUSY_TIMER_TIME_INCREMENT_MN);
         }
