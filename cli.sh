@@ -3,6 +3,7 @@
 # DEVICE_IP=10.12.34.1
 DEVICE_IP=10.0.4.20
 DEVICE_IP_REF=10.0.4.22
+PORT=23
 
 if [[ $1 != "" ]]; then
     DEVICE_IP=$1
@@ -30,7 +31,7 @@ if [[ $(cat $TELNET_CFG | md5sum) != "a7406582213a3d53fd4811d05588e754  -" ]]; t
 fi
 
 # nc -c 10.12.34.1 23
-telnet $DEVICE_IP
+telnet $DEVICE_IP $PORT
 
 
 
