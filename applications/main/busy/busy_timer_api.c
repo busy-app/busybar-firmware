@@ -77,3 +77,14 @@ void busy_timer_stop(BusyTimer* instance) {
 
     busy_timer_send_message(instance, &message);
 }
+
+void busy_timer_add_time(BusyTimer* instance, int32_t time_mn) {
+    furi_assert(instance);
+
+    BusyTimerMessage message = {
+        .type = BusyTimerMessageTypeAddTime,
+        .data.add_time_mn = time_mn,
+    };
+
+    busy_timer_send_message(instance, &message);
+}

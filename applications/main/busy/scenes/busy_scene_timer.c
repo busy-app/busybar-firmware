@@ -10,6 +10,28 @@ typedef struct {
     BusyTimerState timer_state;
 } BusySceneTimer;
 
+static bool busy_scene_timer_input_callback(const InputEvent* event, void* context) {
+    furi_assert(event);
+    furi_assert(context);
+
+    BusyApp* instance = context;
+
+    bool consumed = false;
+
+    if(event->type == InputTypeShort) {
+        if(event->key == InputKeyUp) {
+            busy_send_custom_event(instance, BusyCustomEventTimeIncrement);
+            consumed = true;
+
+        } else if(event->key == InputKeyDown) {
+            busy_send_custom_event(instance, BusyCustomEventTimeDecrement);
+            consumed = true;
+        }
+    }
+
+    return consumed;
+}
+
 static void busy_scene_timer_event_callback(const BusyTimerEvent* event, void* context) {
     furi_assert(event);
     furi_assert(context);
@@ -39,6 +61,9 @@ static void busy_scene_timer_on_enter(void* context) {
     BusySceneTimer* data = scene_manager_get_current_scene_data(instance->scene_manager);
 
     with_gui(instance->gui, {
+        GuiLayer* layer = gui_get_layer(instance->gui, GuiLayerIdMain);
+        gui_layer_add_input_callback(layer, busy_scene_timer_input_callback, instance);
+
         data->timer_label = timer_label_alloc(instance->front_window);
         widget_set_pos(timer_label_get_base(data->timer_label), 42, 1);
 
@@ -57,6 +82,9 @@ static void busy_scene_timer_on_exit(void* context) {
     BusySceneTimer* data = scene_manager_get_current_scene_data(instance->scene_manager);
 
     with_gui(instance->gui, {
+        GuiLayer* layer = gui_get_layer(instance->gui, GuiLayerIdMain);
+        gui_layer_remove_input_callback(layer, busy_scene_timer_input_callback);
+
         timer_label_free(data->timer_label);
         timer_card_free(data->timer_card);
     });
@@ -77,12 +105,14 @@ static bool busy_scene_timer_on_event(const SceneManagerEvent* event, void* cont
             with_gui(instance->gui, { busy_scene_timer_update(data); });
 
         } else if(event->event == BusyCustomEventTimerStateChanged) {
+            // TODO: React to state change
+        } else if(event->event == BusyCustomEventTimeIncrement) {
+            busy_timer_add_time(instance->busy_timer, BUSY_TIMER_TIME_INCREMENT_MN);
+        } else if(event->event == BusyCustomEventTimeDecrement) {
+            busy_timer_add_time(instance->busy_timer, -BUSY_TIMER_TIME_INCREMENT_MN);
         }
 
         consumed = true;
-
-    } else if(event->type == SceneManagerEventTypeBack) {
-        // TODO: Ask to exit?
     }
 
     return consumed;

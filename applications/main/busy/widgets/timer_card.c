@@ -125,7 +125,7 @@ void timer_card_set_time_left(TimerCard* instance, uint32_t time_left_s) {
     const uint32_t s = time_left_s - H_TO_S(h) - M_TO_S(m);
 
     if(h) {
-        lv_label_set_text_fmt(instance->bottom_timer_text, "%02lu:%02lu:%02lu", h, m, s);
+        lv_label_set_text_fmt(instance->bottom_timer_text, "%lu:%02lu:%02lu", h, m, s);
     } else {
         lv_label_set_text_fmt(instance->bottom_timer_text, "%02lu:%02lu", m, s);
     }

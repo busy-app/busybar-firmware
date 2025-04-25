@@ -293,6 +293,39 @@ static void
     instance->callback_context = data->callback_info->context;
 }
 
+static void busy_timer_add_time_message_handler(BusyTimer* instance, BusyTimerMessageData* data) {
+    int32_t time_left_s = instance->time_left_s;
+    int32_t increment_s = M_TO_S(data->add_time_mn);
+
+    /* Round to the nearest increment multiple with
+     * respect to the direction (sign), e.g:
+     *
+     * 15:00 + 5:00 = 20:00
+     * 17:32 + 5:00 = 20:00
+     * 15:00 - 5:00 = 10:00
+     * 17:32 - 5:00 = 15:00
+     *
+     */
+
+    const int32_t remainder_s = time_left_s % increment_s;
+
+    if(remainder_s) {
+        if(increment_s > 0) {
+            increment_s -= remainder_s;
+        } else {
+            increment_s = -remainder_s;
+        }
+    }
+
+    time_left_s += increment_s;
+
+    instance->time_left_s =
+        CLAMP(time_left_s, M_TO_S(BUSY_TIMER_TIME_MAX_MN), M_TO_S(BUSY_TIMER_TIME_MIN_MN));
+
+    furi_event_loop_timer_restart(instance->timer);
+    busy_timer_notify_tick(instance);
+}
+
 static const BusyTimerMessageHandler busy_timer_message_handlers[BusyTimerMessageTypeMax] = {
     [BusyTimerMessageTypeStart] = busy_timer_start_message_handler,
     [BusyTimerMessageTypeStop] = busy_timer_stop_message_handler,
@@ -300,4 +333,5 @@ static const BusyTimerMessageHandler busy_timer_message_handlers[BusyTimerMessag
     [BusyTimerMessageTypeSetConfig] = busy_timer_set_config_message_handler,
     [BusyTimerMessageTypeGetState] = busy_timer_get_state_message_handler,
     [BusyTimerMessageTypeSetCallback] = busy_timer_set_callback_message_handler,
+    [BusyTimerMessageTypeAddTime] = busy_timer_add_time_message_handler,
 };

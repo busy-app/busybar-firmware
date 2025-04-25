@@ -20,6 +20,8 @@
 typedef enum {
     BusyCustomEventTimerTick = 100,
     BusyCustomEventTimerStateChanged,
+    BusyCustomEventTimeIncrement,
+    BusyCustomEventTimeDecrement,
 } BusyCustomEvent;
 
 typedef struct {

@@ -4,14 +4,18 @@
 
 #include "time_macros.h"
 
-#define BUSY_TIMER_WORK_TIME_MIN_MN  (5)
-#define BUSY_TIMER_WORK_TIME_MAX_MN  H_TO_M(8)
-#define BUSY_TIMER_REST_TIME_MIN_MN  (5)
-#define BUSY_TIMER_REST_TIME_MAX_MN  H_TO_M(8)
-#define BUSY_TIMER_CYCLE_COUNT_MIN   (2)
-#define BUSY_TIMER_CYCLE_COUNT_MAX   (35)
+#define BUSY_TIMER_TIME_MIN_MN       (5)
+#define BUSY_TIMER_TIME_MAX_MN       H_TO_M(24)
 #define BUSY_TIMER_TIME_INCREMENT_MN (5)
-#define BUSY_TIMER_CYCLE_INCREMENT   (1)
+
+#define BUSY_TIMER_WORK_TIME_MIN_MN (5)
+#define BUSY_TIMER_WORK_TIME_MAX_MN H_TO_M(8)
+#define BUSY_TIMER_REST_TIME_MIN_MN (5)
+#define BUSY_TIMER_REST_TIME_MAX_MN H_TO_M(8)
+
+#define BUSY_TIMER_CYCLE_COUNT_MIN (2)
+#define BUSY_TIMER_CYCLE_COUNT_MAX (35)
+#define BUSY_TIMER_CYCLE_INCREMENT (1)
 
 #ifdef __cplusplus
 extern "C" {
@@ -73,6 +77,8 @@ void busy_timer_stop(BusyTimer* instance);
 // void busy_timer_resume(BusyTimer* instance);
 // void busy_timer_toggle(BusyTimer* instance);
 // bool busy_timer_is_running(BusyTimer* instance);
+
+void busy_timer_add_time(BusyTimer* instance, int32_t time_mn);
 
 #ifdef __cplusplus
 }
