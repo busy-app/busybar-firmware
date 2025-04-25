@@ -221,6 +221,56 @@ void cli_command_free_blocks(Cli* cli, FuriString* args, void* context) {
     memmgr_heap_printf_free_blocks();
 }
 
+static void cli_command_echo_server_rx_callback(
+    FuriHalSerialHandle* handle,
+    FuriHalSerialRxEvent event,
+    void* context) {
+    FuriStreamBuffer* stream = context;
+    if(event & (FuriHalSerialRxEventData | FuriHalSerialRxEventIdle)) {
+        while(furi_hal_serial_rx_available(handle)) {
+            uint8_t c = furi_hal_serial_rx(handle);
+            furi_check(furi_stream_buffer_send(stream, &c, sizeof(c), 0) == sizeof(c));
+        }
+    }
+}
+
+void cli_command_echo_server(Cli* cli, FuriString* args, void* context) {
+    UNUSED(args);
+    UNUSED(context);
+
+    FuriStreamBuffer* stream = furi_stream_buffer_alloc(5U, 1);
+
+    FuriHalSerialHandle* serial = furi_hal_serial_control_acquire(FuriHalSerialIdUart1);
+    furi_hal_serial_init(serial, 230400UL);
+
+    furi_hal_serial_set_callback(serial, NULL, cli_command_echo_server_rx_callback, stream);
+    furi_hal_serial_clear(serial, FuriHalSerialDirectionTxRx);
+    furi_hal_serial_async_rx_start(serial, false);
+
+    FURI_LOG_D("Echo", "Echo server started");
+    while(!cli_cmd_interrupt_received(cli)) {
+        if(!furi_stream_buffer_bytes_available(stream)) continue;
+
+        uint8_t ch;
+        if(!furi_stream_buffer_receive(stream, &ch, sizeof(ch), 100)) {
+            FURI_LOG_W("Echo", "Failed to read data from stream");
+            break;
+        }
+        FURI_LOG_D("Echo", "Rx: %c", ch);
+        furi_hal_serial_tx(serial, &ch, sizeof(ch));
+        if(!furi_hal_serial_tx_wait_complete(serial, 100)) {
+            FURI_LOG_W("Echo", "Failed to send data back");
+            break;
+        }
+    }
+
+    furi_hal_serial_async_rx_stop(serial);
+    furi_hal_serial_set_callback(serial, NULL, NULL, NULL);
+    furi_hal_serial_control_release(serial);
+    furi_stream_buffer_free(stream);
+    FURI_LOG_D("Echo", "Echo server stopped");
+}
+
 void cli_commands_init(Cli* cli) {
     cli_add_command(cli, "?", CliCommandFlagParallelSafe, cli_command_help, NULL);
     cli_add_command(cli, "help", CliCommandFlagParallelSafe, cli_command_help, NULL);
@@ -230,4 +280,5 @@ void cli_commands_init(Cli* cli) {
     cli_add_command(cli, "top", CliCommandFlagParallelSafe, cli_command_top, NULL);
     cli_add_command(cli, "free", CliCommandFlagParallelSafe, cli_command_free, NULL);
     cli_add_command(cli, "free_blocks", CliCommandFlagParallelSafe, cli_command_free_blocks, NULL);
+    cli_add_command(cli, "echo_server", CliCommandFlagParallelSafe, cli_command_echo_server, NULL);
 }
