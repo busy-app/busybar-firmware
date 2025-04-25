@@ -6,68 +6,19 @@
 
 #define MY_CLASS (&timer_label_lvgl_class)
 
-#define DOUBLE_HOUR_STRING_LEN (8)
-#define SINGLE_HOUR_STRING_LEN (7)
+#define FONT_REGULAR   (&lv_font_ark_numerals_regular_10)
+#define FONT_CONDENSED (&lv_font_ark_numerals_condensed_10)
+#define FONT_SMALLNUM  (&lv_font_ark_numerals_small_10)
 
 struct TimerLabel {
     Widget base;
-    lv_obj_t* top_label;
+    lv_obj_t* top_layout;
+    lv_obj_t* main_label;
+    lv_obj_t* seconds_label;
     lv_obj_t* bottom_label;
 };
 
 const lv_obj_class_t timer_label_lvgl_class;
-
-/* Subscript charaters for slightly smaller numerals */
-static const char* subscript_table[] = {
-    "₀", /* U+2080 */
-    "₁", /* U+2081 */
-    "₂", /* U+2082 */
-    "₃", /* U+2083 */
-    "₄", /* U+2084 */
-    "₅", /* U+2085 */
-    "₆", /* U+2086 */
-    "₇", /* U+2087 */
-    "₈", /* U+2088 */
-    "₉", /* U+2089 */
-};
-
-/* Superscript characters for tiny seconds */
-static const char* superscript_table[] = {
-    "⁰", /* U+2070 */
-    "¹", /* U+00B9 */
-    "²", /* U+00B2 */
-    "³", /* U+00B3 */
-    "⁴", /* U+2074 */
-    "⁵", /* U+2075 */
-    "⁶", /* U+2076 */
-    "⁷", /* U+2077 */
-    "⁸", /* U+2078 */
-    "⁹", /* U+2079 */
-};
-
-static void timer_label_replace_numbers_from_table(
-    FuriString* str,
-    const char* table[10],
-    uint32_t start,
-    uint32_t count) {
-    for(uint32_t i = start, replace_count = 0;
-        i < furi_string_size(str) && replace_count < count;) {
-        const char c = furi_string_get_char(str, i);
-
-        if(c >= '0' && c <= '9') {
-            const char needle[2] = {c, '\0'};
-            const char* replace = table[c - '0'];
-
-            furi_string_replace(str, needle, replace, i);
-
-            i += strlen(replace);
-            ++replace_count;
-
-        } else {
-            ++i;
-        }
-    }
-}
 
 // LVGL-specific code
 
@@ -78,8 +29,17 @@ static void timer_label_lvgl_constructor(const lv_obj_class_t* class_p, lv_obj_t
 
     TimerLabel* instance = (TimerLabel*)obj;
 
-    instance->top_label = lv_label_create(obj);
-    lv_obj_set_style_text_font(instance->top_label, lv_theme_get_font_large(obj), LV_PART_MAIN);
+    instance->top_layout = lv_obj_create(obj);
+    lv_obj_set_flex_flow(instance->top_layout, LV_FLEX_FLOW_ROW);
+    lv_obj_set_size(instance->top_layout, LV_SIZE_CONTENT, LV_SIZE_CONTENT);
+    lv_obj_set_style_pad_column(instance->top_layout, 1, LV_PART_MAIN);
+
+    instance->main_label = lv_label_create(instance->top_layout);
+    lv_obj_set_style_text_color(instance->main_label, lv_color_white(), LV_PART_MAIN);
+
+    instance->seconds_label = lv_label_create(instance->top_layout);
+    lv_obj_set_style_text_font(instance->seconds_label, FONT_SMALLNUM, LV_PART_MAIN);
+    lv_obj_set_style_text_color(instance->seconds_label, lv_color_white(), LV_PART_MAIN);
 
     instance->bottom_label = lv_label_create(obj);
     lv_obj_set_style_text_font(instance->bottom_label, lv_theme_get_font_small(obj), LV_PART_MAIN);
@@ -111,29 +71,28 @@ Widget* timer_label_get_base(TimerLabel* instance) {
 void timer_label_set_time_left(TimerLabel* instance, uint32_t time_left_s) {
     furi_check(instance);
 
-    FuriString* tmp = furi_string_alloc();
-
     const uint32_t h = S_TO_H(time_left_s);
     const uint32_t m = S_TO_M(time_left_s - H_TO_S(h));
     const uint32_t s = time_left_s - H_TO_S(h) - M_TO_S(m);
 
     if(h) {
-        furi_string_printf(tmp, "%lu:%02lu %02lu", h, m, s);
+        if(h >= 10) {
+            lv_obj_set_style_text_font(instance->main_label, FONT_CONDENSED, LV_PART_MAIN);
+        } else {
+            lv_obj_set_style_text_font(instance->main_label, FONT_REGULAR, LV_PART_MAIN);
+        }
+
+        lv_label_set_text_fmt(instance->main_label, "%lu:%02lu", h, m);
+        lv_label_set_text_fmt(instance->seconds_label, "%02lu", s);
+
+        lv_obj_remove_flag(instance->seconds_label, LV_OBJ_FLAG_HIDDEN);
+
     } else {
-        furi_string_printf(tmp, "%02lu:%02lu", m, s);
-    }
+        lv_label_set_text_fmt(instance->main_label, "%02lu:%02lu", m, s);
+        lv_obj_set_style_text_font(instance->main_label, FONT_REGULAR, LV_PART_MAIN);
 
-    if(furi_string_size(tmp) == DOUBLE_HOUR_STRING_LEN) {
-        timer_label_replace_numbers_from_table(tmp, subscript_table, 0, 4);
+        lv_obj_add_flag(instance->seconds_label, LV_OBJ_FLAG_HIDDEN);
     }
-
-    if(furi_string_size(tmp) >= SINGLE_HOUR_STRING_LEN) {
-        timer_label_replace_numbers_from_table(
-            tmp, superscript_table, furi_string_size(tmp) - 2, 2);
-    }
-
-    lv_label_set_text(instance->top_label, furi_string_get_cstr(tmp));
-    furi_string_free(tmp);
 }
 
 // LVGL class descriptor

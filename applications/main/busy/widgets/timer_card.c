@@ -68,7 +68,8 @@ static void timer_card_lvgl_constructor(const lv_obj_class_t* class_p, lv_obj_t*
 
     instance->bottom_timer_text = lv_label_create(instance->bottom_layout);
     lv_obj_set_style_text_color(instance->bottom_timer_text, lv_color_black(), LV_PART_MAIN);
-    lv_obj_set_style_text_font(instance->bottom_timer_text, &lv_font_ark_pixel_10, LV_PART_MAIN);
+    lv_obj_set_style_text_font(
+        instance->bottom_timer_text, &lv_font_ark_numerals_regular_10, LV_PART_MAIN);
 
     instance->bottom_static_text = lv_label_create(instance->bottom_layout);
     lv_label_set_text(instance->bottom_static_text, "LEFT");
