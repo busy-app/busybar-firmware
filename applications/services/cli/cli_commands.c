@@ -13,6 +13,7 @@
 #include <time.h>
 #include <loader/loader.h>
 #include <toolbox/args.h>
+#include <intercom/intercom.h>
 
 void cli_command_help(Cli* cli, FuriString* args, void* context) {
     UNUSED(args);
@@ -269,6 +270,56 @@ void cli_command_echo(Cli* cli, FuriString* args, void* context) {
     UNUSED(cli);
     UNUSED(context);
     printf("%s\r\n", furi_string_get_cstr(args));
+}
+
+static void cli_send_sl_cli_cmd(FuriString* cmd) {
+    Intercom* intercom = furi_record_open(RECORD_INTERCOM);
+    size_t sz = furi_string_size(cmd);
+    size_t tx_size =
+        intercom_tx(intercom, IntercomChannelCli, furi_string_get_cstr(cmd), sz, FuriWaitForever);
+    furi_assert(tx_size == sz);
+    furi_record_close(RECORD_INTERCOM);
+}
+
+void cli_command_sl_echo(Cli* cli, FuriString* args, void* context) {
+    UNUSED(args);
+    UNUSED(context);
+
+    printf("Starting echo server on 917...\r\n");
+
+    FuriString* cmd = furi_string_alloc_printf("echo_server\r");
+    cli_send_sl_cli_cmd(cmd);
+
+    FuriHalSerialHandle* serial = furi_hal_serial_control_acquire(FuriHalSerialIdUsart6);
+    furi_hal_serial_init(serial, 230400UL);
+    furi_hal_serial_clear(serial, FuriHalSerialDirectionTxRx);
+
+    while(true) {
+        while(furi_hal_serial_rx_available(serial)) {
+            uint8_t data = furi_hal_serial_rx(serial);
+            cli_putc(cli, data);
+        }
+
+        uint8_t ch = cli_getc(cli);
+
+        if(ch == CliSymbolAsciiETX) {
+            break;
+        } else if(ch == CliSymbolAsciiCR || ch == CliSymbolAsciiLF)
+            continue;
+
+        furi_hal_serial_tx(serial, &ch, 1);
+        if(!furi_hal_serial_tx_wait_complete(serial, 100)) {
+            break;
+        }
+
+        furi_delay_ms(10);
+    }
+
+    furi_hal_serial_control_release(serial);
+
+    furi_string_printf(cmd, "%c\r", CliSymbolAsciiETX);
+    cli_send_sl_cli_cmd(cmd);
+    furi_string_free(cmd);
 }
 
 void cli_commands_init(Cli* cli) {
