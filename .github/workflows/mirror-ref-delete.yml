@@ -5,7 +5,8 @@ on:
 
 jobs:
   purge:
-    name: Ref cleanup
+    if: github.event.ref_type == 'branch'
+    name: Branch cleanup
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -13,7 +14,7 @@ jobs:
         with:
           fetch-depth: 1
 
-      - name: Cleanup
+      - name: Cleanup for branch ${{ github.event.ref}}
         run: |
           git remote add forgejo "https://${{ secrets.REPO_MIRROR_TOKEN }}@${{ vars.REPO_MIRROR_URL }}"
-          git push --delete forgejo ${{ github.ref }} || true
+          git push --delete forgejo ${{ github.event.ref }} || true
