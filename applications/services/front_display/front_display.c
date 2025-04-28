@@ -110,8 +110,10 @@ static void front_display_srv_custom_event_callback(uint32_t events, void* conte
         const FrontDisplaySrvMessageType message_type = message->type;
 
         if(message_type == FrontDisplaySrvMessageTypeBrightness) {
-            front_display_driver_set_brightness(message->brightness);
-            front_display_driver_send_frame(instance->frame_buf_ptr);
+            if(instance->frame_buf_ptr) {
+                front_display_driver_set_brightness(message->brightness);
+                front_display_driver_send_frame(instance->frame_buf_ptr);
+            }
             furi_event_flag_set(instance->event_flag, FrontDisplaySrvEventFlagDone);
         } else if(message_type == FrontDisplaySrvMessageTypeDraw) {
             front_display_driver_send_frame(message->frame_buffer);
