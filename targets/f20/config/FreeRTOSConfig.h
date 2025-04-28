@@ -46,8 +46,7 @@
 #define configENABLE_BACKWARD_COMPATIBILITY     0
 // #define configUSE_PORT_OPTIMISED_TASK_SELECTION 1
 #define configUSE_PORT_OPTIMISED_TASK_SELECTION 0
-// #define configUSE_TICKLESS_IDLE 2
-#define configUSE_TICKLESS_IDLE                 0
+#define configUSE_TICKLESS_IDLE                 2
 #define configRECORD_STACK_HIGH_ADDRESS         1
 #define configUSE_NEWLIB_REENTRANT              0
 // #define configENABLE_TRUSTZONE 1

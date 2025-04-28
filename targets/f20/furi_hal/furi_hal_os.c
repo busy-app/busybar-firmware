@@ -1,0 +1,29 @@
+#include <furi_hal_os.h>
+#include <furi.h>
+#include <furi_hal_power.h>
+#include <stm32u5xx_ll_cortex.h>
+
+#include <FreeRTOS.h>
+#include <task.h>
+
+#define TAG "FuriHalOs"
+
+extern void xPortSysTickHandler(void);
+
+void furi_hal_os_init(void) {
+    FURI_LOG_I(TAG, "Init OK");
+}
+
+void furi_hal_os_tick(void) {
+    if(xTaskGetSchedulerState() != taskSCHEDULER_NOT_STARTED) {
+        xPortSysTickHandler();
+    }
+}
+
+void vPortSuppressTicksAndSleep(TickType_t expected_idle_ticks) {
+    UNUSED(expected_idle_ticks);
+    if(!furi_hal_power_sleep_available()) {
+        __WFI();
+        return;
+    }
+}
