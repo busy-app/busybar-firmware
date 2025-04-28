@@ -16,4 +16,4 @@ jobs:
       - name: Cleanup
         run: |
           git remote add forgejo "https://${{ secrets.REPO_MIRROR_TOKEN }}@${{ vars.REPO_MIRROR_URL }}"
-          git push --delete forgejo ${{ github.ref }}
+          git push --delete forgejo ${{ github.ref }} || true
