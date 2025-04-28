@@ -6,6 +6,39 @@
 #define POWER_IRQ_GPIO (&gpio_bq25798_irq)
 #define POWER_I2C      (&furi_hal_i2c_handle_1)
 
+static void power_print_interrupt_flags(uint32_t flags) {
+    FURI_LOG_D(TAG, "Charger Interrupt flags: %08lX", flags);
+    if(flags & Bq25798ChargerFlagVbusPresent) FURI_LOG_D(TAG, "\tVbus present");
+    if(flags & Bq25798ChargerFlagAC1Present) FURI_LOG_D(TAG, "\tAC1 present");
+    if(flags & Bq25798ChargerFlagAC2Present) FURI_LOG_D(TAG, "\tAC2 present");
+    if(flags & Bq25798ChargerFlagPowerGood) FURI_LOG_D(TAG, "\tPower good");
+    if(flags & Bq25798ChargerFlagPoorSrc) FURI_LOG_D(TAG, "\tPoor source");
+    if(flags & Bq25798ChargerFlagWd) FURI_LOG_D(TAG, "\tWatchdog");
+    if(flags & Bq25798ChargerFlagVindpmVotg) FURI_LOG_D(TAG, "\tVindpm Votg");
+    if(flags & Bq25798ChargerFlagIindpmIotg) FURI_LOG_D(TAG, "\tIindpm Iotg");
+
+    if(flags & Bq25798ChargerFlagBC12Done) FURI_LOG_D(TAG, "\tBC1.2 done");
+    if(flags & Bq25798ChargerFlagVbatPresent) FURI_LOG_D(TAG, "\tVbat present");
+    if(flags & Bq25798ChargerFlagThermReg) FURI_LOG_D(TAG, "\tThermal regulation");
+    if(flags & Bq25798ChargerFlagVbusStatus) FURI_LOG_D(TAG, "\tVbus status");
+    if(flags & Bq25798ChargerFlagICOStatus) FURI_LOG_D(TAG, "\tICO status");
+    if(flags & Bq25798ChargerFlagChargeStatus) FURI_LOG_D(TAG, "\tCharge status");
+
+    if(flags & Bq25798ChargerFlagTopOffTmr) FURI_LOG_D(TAG, "\tTop off timer");
+    if(flags & Bq25798ChargerFlagPreChgTmr) FURI_LOG_D(TAG, "\tPre charge timer");
+    if(flags & Bq25798ChargerFlagTrickleChgTmr) FURI_LOG_D(TAG, "\tTrickle charge timer");
+    if(flags & Bq25798ChargerFlagFastChgTmr) FURI_LOG_D(TAG, "\tFast charge timer");
+    if(flags & Bq25798ChargerFlagVsysMinReg) FURI_LOG_D(TAG, "\tVsys min regulation");
+    if(flags & Bq25798ChargerFlagAdcDone) FURI_LOG_D(TAG, "\tADC done");
+    if(flags & Bq25798ChargerFlagDpDmDone) FURI_LOG_D(TAG, "\tDP DM done");
+
+    if(flags & Bq25798ChargerFlagTsHot) FURI_LOG_D(TAG, "\tThermal shutdown");
+    if(flags & Bq25798ChargerFlagTsWarm) FURI_LOG_D(TAG, "\tThermal warm");
+    if(flags & Bq25798ChargerFlagTsCool) FURI_LOG_D(TAG, "\tThermal cool");
+    if(flags & Bq25798ChargerFlagTsCold) FURI_LOG_D(TAG, "\tThermal cold");
+    if(flags & Bq25798ChargerFlagVbatOtgLow) FURI_LOG_D(TAG, "\tVbat OTG low");
+}
+
 static void power_on_interrupt(FuriEventLoopObject* object, void* context) {
     Power* power = context;
 
@@ -17,7 +50,8 @@ static void power_on_interrupt(FuriEventLoopObject* object, void* context) {
     furi_hal_i2c_acquire(POWER_I2C);
     uint32_t irq_flags = 0;
     bq25798_get_charger_irq_flags(POWER_I2C, &irq_flags);
-    FURI_LOG_D(TAG, "Charger Interrupt flags: %08lX", irq_flags);
+    power_print_interrupt_flags(irq_flags);
+
     Bq25798ChargerStatus status = {};
     bq25798_get_charger_status(POWER_I2C, &status);
 
