@@ -41,7 +41,7 @@ typedef enum {
     Cmd1320_CommandLock = 0xFD,
 } Cmd1320;
 
-static const uint8_t oled_init_table_ssd1320[] = {
+static const uint8_t display_init_table_ssd1320[] = {
     /* clang-format off */
     0,  Cmd1320_DisplayOff, 
     1,  Cmd1320_DisplayClockDiv, 0x22,
@@ -66,7 +66,7 @@ static const uint8_t oled_init_table_ssd1320[] = {
 };
 
 static void ssd1320_send_command(FuriHalSpiBusHandle* handle, uint8_t* command, size_t len) {
-    furi_hal_gpio_write(&gpio_oled_dc, false);
+    furi_hal_gpio_write(&gpio_back_display_dc, false);
 
     furi_hal_spi_acquire(handle);
     furi_hal_spi_bus_tx(handle, command, len, 100);
@@ -74,20 +74,20 @@ static void ssd1320_send_command(FuriHalSpiBusHandle* handle, uint8_t* command, 
 }
 
 static void ssd1320_clear(void) {
-    furi_hal_spi_acquire(&furi_hal_spi_bus_handle_oled);
+    furi_hal_spi_acquire(&furi_hal_spi_bus_handle_back_display);
 
     const uint8_t addr_cmd[6] = {0x21, 0, SSD1320_H - 1, 0x22, 0, SSD1320_W - 1};
-    furi_hal_gpio_write(&gpio_oled_dc, false);
-    furi_hal_spi_bus_tx(&furi_hal_spi_bus_handle_oled, addr_cmd, sizeof(addr_cmd), 100);
+    furi_hal_gpio_write(&gpio_back_display_dc, false);
+    furi_hal_spi_bus_tx(&furi_hal_spi_bus_handle_back_display, addr_cmd, sizeof(addr_cmd), 100);
 
-    furi_hal_gpio_write(&gpio_oled_dc, true);
+    furi_hal_gpio_write(&gpio_back_display_dc, true);
 
     uint8_t tx_buf[32] = {0};
     for(size_t i = 0; i < SSD1320_BUF_SIZE; i += sizeof(tx_buf)) {
-        furi_hal_spi_bus_tx(&furi_hal_spi_bus_handle_oled, tx_buf, sizeof(tx_buf), 100);
+        furi_hal_spi_bus_tx(&furi_hal_spi_bus_handle_back_display, tx_buf, sizeof(tx_buf), 100);
     }
 
-    furi_hal_spi_release(&furi_hal_spi_bus_handle_oled);
+    furi_hal_spi_release(&furi_hal_spi_bus_handle_back_display);
 }
 
 static void ssd1320_send_init_sequence(const uint8_t* init_table, size_t table_len) {
@@ -104,7 +104,7 @@ static void ssd1320_send_init_sequence(const uint8_t* init_table, size_t table_l
         } else {
             furi_assert(len_byte < CMD_LEN_MAX);
             memcpy(cmd_buf, &init_table[cmd_offset + 1], len_byte + 1);
-            ssd1320_send_command(&furi_hal_spi_bus_handle_oled, cmd_buf, len_byte + 1);
+            ssd1320_send_command(&furi_hal_spi_bus_handle_back_display, cmd_buf, len_byte + 1);
             cmd_offset += len_byte + 2;
         }
     }
@@ -112,16 +112,17 @@ static void ssd1320_send_init_sequence(const uint8_t* init_table, size_t table_l
 
 static void ssd1320_sleep_mode(bool sleep) {
     uint8_t power_cmd = sleep ? Cmd1320_DisplayOff : Cmd1320_DisplayOn;
-    ssd1320_send_command(&furi_hal_spi_bus_handle_oled, &power_cmd, 1);
+    ssd1320_send_command(&furi_hal_spi_bus_handle_back_display, &power_cmd, 1);
 }
 
 void ssd1320_set_contrast(uint8_t contrast) {
     uint8_t contrast_cmd[2] = {Cmd1320_ContrastControl, contrast};
-    ssd1320_send_command(&furi_hal_spi_bus_handle_oled, contrast_cmd, sizeof(contrast_cmd));
+    ssd1320_send_command(
+        &furi_hal_spi_bus_handle_back_display, contrast_cmd, sizeof(contrast_cmd));
 }
 
 void ssd1320_draw(const uint8_t* buf) {
-    furi_hal_spi_acquire(&furi_hal_spi_bus_handle_oled);
+    furi_hal_spi_acquire(&furi_hal_spi_bus_handle_back_display);
 
     const uint8_t addr_cmd[6] = {
         Cmd1320_ColumnAddress,
@@ -131,29 +132,30 @@ void ssd1320_draw(const uint8_t* buf) {
         0,
         SSD1320_W - 1,
     };
-    furi_hal_gpio_write(&gpio_oled_dc, false);
-    furi_hal_spi_bus_tx(&furi_hal_spi_bus_handle_oled, addr_cmd, sizeof(addr_cmd), 100);
+    furi_hal_gpio_write(&gpio_back_display_dc, false);
+    furi_hal_spi_bus_tx(&furi_hal_spi_bus_handle_back_display, addr_cmd, sizeof(addr_cmd), 100);
 
-    furi_hal_gpio_write(&gpio_oled_dc, true);
+    furi_hal_gpio_write(&gpio_back_display_dc, true);
 
     // TODO: DMA transfer
-    furi_hal_spi_bus_tx(&furi_hal_spi_bus_handle_oled, buf, SSD1320_BUF_SIZE, 100);
+    furi_hal_spi_bus_tx(&furi_hal_spi_bus_handle_back_display, buf, SSD1320_BUF_SIZE, 100);
 
-    furi_hal_spi_release(&furi_hal_spi_bus_handle_oled);
+    furi_hal_spi_release(&furi_hal_spi_bus_handle_back_display);
 }
 
 void ssd1320_init(void) {
-    furi_hal_gpio_init(&gpio_oled_vcc_en, GpioModeOutputPushPull, GpioPullNo, GpioSpeedMedium);
-    furi_hal_gpio_write(&gpio_oled_vcc_en, false);
+    furi_hal_gpio_init(
+        &gpio_back_display_vcc_en, GpioModeOutputPushPull, GpioPullNo, GpioSpeedMedium);
+    furi_hal_gpio_write(&gpio_back_display_vcc_en, false);
 
-    furi_hal_gpio_write(&gpio_oled_dc, true);
-    furi_hal_gpio_init(&gpio_oled_dc, GpioModeOutputPushPull, GpioPullUp, GpioSpeedMedium);
+    furi_hal_gpio_write(&gpio_back_display_dc, true);
+    furi_hal_gpio_init(&gpio_back_display_dc, GpioModeOutputPushPull, GpioPullUp, GpioSpeedMedium);
     furi_delay_ms(1);
 
-    ssd1320_send_init_sequence(oled_init_table_ssd1320, sizeof(oled_init_table_ssd1320));
+    ssd1320_send_init_sequence(display_init_table_ssd1320, sizeof(display_init_table_ssd1320));
     ssd1320_clear();
 
-    furi_hal_gpio_write(&gpio_oled_vcc_en, true);
+    furi_hal_gpio_write(&gpio_back_display_vcc_en, true);
     furi_delay_ms(5);
 
     ssd1320_sleep_mode(false);

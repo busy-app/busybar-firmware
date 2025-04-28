@@ -34,24 +34,24 @@ const GpioPin gpio_usb_dp = {.port = GPIOA, .pin = LL_GPIO_PIN_12};
 const GpioPin gpio_ucpd_cc1 = {.port = GPIOA, .pin = LL_GPIO_PIN_15};
 const GpioPin gpio_ucpd_cc2 = {.port = GPIOB, .pin = LL_GPIO_PIN_15};
 
-const GpioPin gpio_oled_spi_sdin = {.port = GPIOA, .pin = LL_GPIO_PIN_7};
-const GpioPin gpio_oled_spi_sclk = {.port = GPIOA, .pin = LL_GPIO_PIN_5};
-const GpioPin gpio_oled_cs = {.port = GPIOA, .pin = LL_GPIO_PIN_6};
-const GpioPin gpio_oled_dc = {.port = GPIOC, .pin = LL_GPIO_PIN_4};
-const GpioPin gpio_oled_fr = {.port = GPIOC, .pin = LL_GPIO_PIN_5};
-const GpioPin gpio_oled_vcc_en = {.port = GPIOA, .pin = LL_GPIO_PIN_0};
+const GpioPin gpio_back_display_spi_sdin = {.port = GPIOA, .pin = LL_GPIO_PIN_7};
+const GpioPin gpio_back_display_spi_sclk = {.port = GPIOA, .pin = LL_GPIO_PIN_5};
+const GpioPin gpio_back_display_cs = {.port = GPIOA, .pin = LL_GPIO_PIN_6};
+const GpioPin gpio_back_display_dc = {.port = GPIOC, .pin = LL_GPIO_PIN_4};
+const GpioPin gpio_back_display_fr = {.port = GPIOC, .pin = LL_GPIO_PIN_5};
+const GpioPin gpio_back_display_vcc_en = {.port = GPIOA, .pin = LL_GPIO_PIN_0};
 
 const GpioPin gpio_i2c_scl = {.port = GPIOB, .pin = LL_GPIO_PIN_8};
 const GpioPin gpio_i2c_sda = {.port = GPIOB, .pin = LL_GPIO_PIN_9};
 
-const GpioPin gpio_led_power_en = {.port = GPIOB, .pin = LL_GPIO_PIN_12};
-const GpioPin gpio_led_scan_sdi = {.port = GPIOC, .pin = LL_GPIO_PIN_1};
-const GpioPin gpio_led_scan_clk = {.port = GPIOB, .pin = LL_GPIO_PIN_13};
-const GpioPin gpio_led_scan_latch = {.port = GPIOA, .pin = LL_GPIO_PIN_1};
-const GpioPin gpio_led_gclk = {.port = GPIOB, .pin = LL_GPIO_PIN_2};
-const GpioPin gpio_led_sdi_ospi_d0 = {.port = GPIOB, .pin = LL_GPIO_PIN_1};
-const GpioPin gpio_led_le_ospi_d1 = {.port = GPIOB, .pin = LL_GPIO_PIN_0};
-const GpioPin gpio_led_dclk_ospi_clk = {.port = GPIOB, .pin = LL_GPIO_PIN_10};
+const GpioPin gpio_front_display_power_en = {.port = GPIOB, .pin = LL_GPIO_PIN_12};
+const GpioPin gpio_front_display_scan_sdi = {.port = GPIOC, .pin = LL_GPIO_PIN_1};
+const GpioPin gpio_front_display_scan_clk = {.port = GPIOB, .pin = LL_GPIO_PIN_13};
+const GpioPin gpio_front_display_scan_latch = {.port = GPIOA, .pin = LL_GPIO_PIN_1};
+const GpioPin gpio_front_display_gclk = {.port = GPIOB, .pin = LL_GPIO_PIN_2};
+const GpioPin gpio_front_display_sdi_ospi_d0 = {.port = GPIOB, .pin = LL_GPIO_PIN_1};
+const GpioPin gpio_front_display_le_ospi_d1 = {.port = GPIOB, .pin = LL_GPIO_PIN_0};
+const GpioPin gpio_front_display_dclk_ospi_clk = {.port = GPIOB, .pin = LL_GPIO_PIN_10};
 
 const GpioPin gpio_i2s_fs = {.port = GPIOA, .pin = LL_GPIO_PIN_9};
 const GpioPin gpio_i2s_sck = {.port = GPIOA, .pin = LL_GPIO_PIN_8};

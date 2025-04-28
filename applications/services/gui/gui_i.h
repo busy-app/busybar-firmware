@@ -7,7 +7,7 @@
 #include <furi.h>
 #include <lvgl.h>
 
-#include <led_display/led_display.h>
+#include <front_display/front_display.h>
 #include <back_display/back_display.h>
 
 #include <input/input.h>
@@ -15,8 +15,8 @@
 
 #include <m-list.h>
 
-#define FRONT_W                (DOT_MATRIX_W)
-#define FRONT_H                (DOT_MATRIX_H)
+#define FRONT_W                (FRONT_DISPLAY_W)
+#define FRONT_H                (FRONT_DISPLAY_H)
 #define FRONT_COLOR_FORMAT     (LV_COLOR_FORMAT_RGB888)
 #define FRONT_BYTES_PER_PIXEL  (LV_COLOR_FORMAT_GET_SIZE(FRONT_COLOR_FORMAT))
 #define FRONT_DRAW_BUFFER_SIZE (FRONT_W * FRONT_H * FRONT_BYTES_PER_PIXEL)

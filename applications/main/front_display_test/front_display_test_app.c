@@ -1,31 +1,31 @@
-#include "led_display_test_app_i.h"
+#include "front_display_test_app_i.h"
 
 #include <furi.h>
 
-#define TAG "LedDisplayTest"
+#define TAG "FrontDisplayTest"
 
-static bool led_display_test_app_input_callback(const InputEvent* event, void* context) {
+static bool front_display_test_app_input_callback(const InputEvent* event, void* context) {
     furi_assert(event);
     furi_assert(context);
 
-    LedDisplayTestApp* instance = context;
+    FrontDisplayTestApp* instance = context;
 
     bool consumed = false;
 
     if(event->type == InputTypeShort) {
-        LedDisplayTestAppEvent app_event;
+        FrontDisplayTestAppEvent app_event;
 
         if(event->key == InputKeyUp) {
-            app_event = LedDisplayTestAppEventPrevColor;
+            app_event = FrontDisplayTestAppEventPrevColor;
             consumed = true;
         } else if(event->key == InputKeyDown) {
-            app_event = LedDisplayTestAppEventNextColor;
+            app_event = FrontDisplayTestAppEventNextColor;
             consumed = true;
         } else if(event->key == InputKeyBack) {
-            app_event = LedDisplayTestAppEventExit;
+            app_event = FrontDisplayTestAppEventExit;
             consumed = true;
         } else if(event->key == InputKeyOk || event->key == InputKeyStart) {
-            app_event = LedDisplayTestAppEventNextPattern;
+            app_event = FrontDisplayTestAppEventNextPattern;
             consumed = true;
         }
 
@@ -39,63 +39,64 @@ static bool led_display_test_app_input_callback(const InputEvent* event, void* c
     return consumed;
 }
 
-static void led_display_test_app_update(LedDisplayTestApp* instance) {
+static void front_display_test_app_update(FrontDisplayTestApp* instance) {
     with_gui(instance->gui, {
         // Front display
-        led_display_test_set(instance->canvas, instance->pattern, instance->color);
+        front_display_test_set(instance->canvas, instance->pattern, instance->color);
         // Back display
         label_set_text_fmt(
             instance->pattern_label,
             "Pattern: %s",
-            led_display_get_pattern_str(instance->pattern));
+            front_display_get_pattern_str(instance->pattern));
         label_set_text_fmt(
-            instance->color_label, "Color: %s", led_display_get_color_str(instance->color));
+            instance->color_label, "Color: %s", front_display_get_color_str(instance->color));
     });
 }
 
-static void led_display_test_app_event_queue_callback(FuriEventLoopObject* object, void* context) {
-    LedDisplayTestApp* instance = context;
+static void
+    front_display_test_app_event_queue_callback(FuriEventLoopObject* object, void* context) {
+    FrontDisplayTestApp* instance = context;
     furi_check(object == instance->event_queue);
 
-    LedDisplayTestAppEvent event;
+    FrontDisplayTestAppEvent event;
     furi_check(furi_message_queue_get(instance->event_queue, &event, 0) == FuriStatusOk);
 
-    if(event == LedDisplayTestAppEventNextPattern) {
-        instance->pattern = (instance->pattern + 1) % LedDisplayTestPatternNum;
-    } else if(event == LedDisplayTestAppEventPrevPattern) {
-        instance->pattern = (instance->pattern == 0) ? LedDisplayTestPatternNum - 1 :
+    if(event == FrontDisplayTestAppEventNextPattern) {
+        instance->pattern = (instance->pattern + 1) % FrontDisplayTestPatternNum;
+    } else if(event == FrontDisplayTestAppEventPrevPattern) {
+        instance->pattern = (instance->pattern == 0) ? FrontDisplayTestPatternNum - 1 :
                                                        instance->pattern - 1;
-    } else if(event == LedDisplayTestAppEventNextColor) {
-        instance->color = (instance->color + 1) % LedDisplayTestColorNum;
-    } else if(event == LedDisplayTestAppEventPrevColor) {
-        instance->color = (instance->color == 0) ? LedDisplayTestColorNum - 1 :
+    } else if(event == FrontDisplayTestAppEventNextColor) {
+        instance->color = (instance->color + 1) % FrontDisplayTestColorNum;
+    } else if(event == FrontDisplayTestAppEventPrevColor) {
+        instance->color = (instance->color == 0) ? FrontDisplayTestColorNum - 1 :
                                                    instance->color - 1;
-    } else if(event == LedDisplayTestAppEventExit) {
+    } else if(event == FrontDisplayTestAppEventExit) {
         furi_event_loop_stop(instance->event_loop);
     }
 
-    led_display_test_app_update(instance);
+    front_display_test_app_update(instance);
 }
 
-static void led_display_test_app_timer_callback(void* context) {
-    LedDisplayTestApp* instance = context;
-    led_display_test_app_update(instance);
+static void front_display_test_app_timer_callback(void* context) {
+    FrontDisplayTestApp* instance = context;
+    front_display_test_app_update(instance);
 }
 
-static LedDisplayTestApp* led_display_test_app_alloc(void) {
-    LedDisplayTestApp* instance = malloc(sizeof(LedDisplayTestApp));
+static FrontDisplayTestApp* front_display_test_app_alloc(void) {
+    FrontDisplayTestApp* instance = malloc(sizeof(FrontDisplayTestApp));
 
     instance->event_loop = furi_event_loop_alloc();
-    instance->event_queue = furi_message_queue_alloc(16, sizeof(LedDisplayTestAppEvent));
+    instance->event_queue = furi_message_queue_alloc(16, sizeof(FrontDisplayTestAppEvent));
     furi_event_loop_subscribe_message_queue(
         instance->event_loop,
         instance->event_queue,
         FuriEventLoopEventIn,
-        led_display_test_app_event_queue_callback,
+        front_display_test_app_event_queue_callback,
         instance);
     instance->timer = furi_event_loop_timer_alloc(
         instance->event_loop,
-        led_display_test_app_timer_callback,
+        front_display_test_app_timer_callback,
         FuriEventLoopTimerTypePeriodic,
         instance);
 
@@ -104,7 +105,7 @@ static LedDisplayTestApp* led_display_test_app_alloc(void) {
 
     with_gui(instance->gui, {
         GuiLayer* main_layer = gui_get_layer(instance->gui, GuiLayerIdMain);
-        gui_layer_add_input_callback(main_layer, led_display_test_app_input_callback, instance);
+        gui_layer_add_input_callback(main_layer, front_display_test_app_input_callback, instance);
 
         Widget* root;
 
@@ -125,24 +126,24 @@ static LedDisplayTestApp* led_display_test_app_alloc(void) {
 
         // Front display
         root = gui_layer_get_root_widget(main_layer, GuiDisplayIdFront);
-        instance->canvas = canvas_alloc(root, DOT_MATRIX_W, DOT_MATRIX_H);
+        instance->canvas = canvas_alloc(root, FRONT_DISPLAY_W, FRONT_DISPLAY_H);
     });
 
-    instance->pattern = LedDisplayTestPatternChess;
-    instance->color = LedDisplayTestColorRed;
+    instance->pattern = FrontDisplayTestPatternChess;
+    instance->color = FrontDisplayTestColorRed;
 
-    led_display_test_app_update(instance);
+    front_display_test_app_update(instance);
     furi_event_loop_timer_start(instance->timer, 1000 / 60);
 
     return instance;
 }
 
-static void led_display_test_app_free(LedDisplayTestApp* instance) {
+static void front_display_test_app_free(FrontDisplayTestApp* instance) {
     furi_assert(instance);
 
     with_gui(instance->gui, {
         GuiLayer* main_layer = gui_get_layer(instance->gui, GuiLayerIdMain);
-        gui_layer_remove_input_callback(main_layer, led_display_test_app_input_callback);
+        gui_layer_remove_input_callback(main_layer, front_display_test_app_input_callback);
 
         widget_free(instance->app_window);
         canvas_free(instance->canvas);
@@ -157,12 +158,12 @@ static void led_display_test_app_free(LedDisplayTestApp* instance) {
     free(instance);
 }
 
-int32_t led_display_test_app(void* args) {
+int32_t front_display_test_app(void* args) {
     UNUSED(args);
 
-    LedDisplayTestApp* instance = led_display_test_app_alloc();
+    FrontDisplayTestApp* instance = front_display_test_app_alloc();
     furi_event_loop_run(instance->event_loop);
-    led_display_test_app_free(instance);
+    front_display_test_app_free(instance);
 
     return 0;
 }
