@@ -266,6 +266,11 @@ static void busy_timer_add_time_message_handler(BusyTimer* instance, BusyTimerMe
     int32_t time_remaining_s = instance->time.remain_s;
     int32_t increment_s = M_TO_S(data->add_time_mn);
 
+    if((increment_s < 0) && (time_remaining_s < M_TO_S(BUSY_TIMER_TIME_MIN_MN))) {
+        // Cannot decrease interval below minimum time
+        return;
+    }
+
     /* Round to the nearest increment multiple with
      * respect to the direction (sign), e.g:
      *
