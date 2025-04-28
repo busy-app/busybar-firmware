@@ -1,6 +1,8 @@
 /**
  * @file timer_card.h
- * @brief
+ * @brief A widget that shows the timer status.
+ *
+ * Can be used only on the back display.
  */
 #pragma once
 
@@ -39,11 +41,29 @@ void timer_card_free(TimerCard* instance);
  */
 Widget* timer_card_get_base(TimerCard* instance);
 
+/**
+ * @brief Show or hide the top text
+ *
+ * @param[in,out] instance pointer to the TimerCard instance to be modified
+ * @param[in] show show the top text if @c true, hide if @c false
+ */
 void timer_card_show_header(TimerCard* instance, bool show);
 
-void timer_card_show_footer(TimerCard* instance, bool show);
+/**
+ * @brief Show or hide the time display
+ *
+ * @param[in,out] instance pointer to the TimerCard instance to be modified
+ * @param[in] show show the time display if @c true, hide if @c false
+ */
+void timer_card_show_time(TimerCard* instance, bool show);
 
-void timer_card_set_time_left(TimerCard* instance, uint32_t time_left_s);
+/**
+ * @brief Set the displayed time.
+ *
+ * @param[in,out] instance pointer to the TimerCard instance to be modified
+ * @param[in] time_s time to show, in seconds
+ */
+void timer_card_set_time(TimerCard* instance, uint32_t time_s);
 
 #ifdef __cplusplus
 }

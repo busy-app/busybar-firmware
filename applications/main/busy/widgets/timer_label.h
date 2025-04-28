@@ -1,6 +1,8 @@
 /**
  * @file timer_label.h
- * @brief
+ * @brief A widget that shows the remaining time.
+ *
+ * Can be used only on the front display.
  */
 #pragma once
 
@@ -39,7 +41,13 @@ void timer_label_free(TimerLabel* instance);
  */
 Widget* timer_label_get_base(TimerLabel* instance);
 
-void timer_label_set_time_left(TimerLabel* instance, uint32_t time_left_s);
+/**
+ * @brief Set the displayed time.
+ *
+ * @param[in,out] instance pointer to the TimerLabel instance to be modified
+ * @param[in] time_s time to show, in seconds
+ */
+void timer_label_set_time(TimerLabel* instance, uint32_t time_s);
 
 #ifdef __cplusplus
 }

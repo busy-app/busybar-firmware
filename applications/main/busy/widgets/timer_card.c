@@ -1,6 +1,5 @@
 #include "timer_card.h"
 
-// #include <gui/widget_i.h>
 #include <gui/gui_i.h>
 
 #include "../time_macros.h"
@@ -145,7 +144,7 @@ void timer_card_show_header(TimerCard* instance, bool show) {
     lv_obj_set_style_image_opa(instance->right_image, opacity, LV_PART_MAIN);
 }
 
-void timer_card_show_footer(TimerCard* instance, bool show) {
+void timer_card_show_time(TimerCard* instance, bool show) {
     furi_check(instance);
 
     lv_opa_t opacity = show ? LV_OPA_COVER : LV_OPA_TRANSP;
@@ -153,12 +152,12 @@ void timer_card_show_footer(TimerCard* instance, bool show) {
     lv_obj_set_style_text_opa(instance->bottom_static_text, opacity, LV_PART_MAIN);
 }
 
-void timer_card_set_time_left(TimerCard* instance, uint32_t time_left_s) {
+void timer_card_set_time(TimerCard* instance, uint32_t time_s) {
     furi_check(instance);
 
-    const uint32_t h = S_TO_H(time_left_s);
-    const uint32_t m = S_TO_M(time_left_s - H_TO_S(h));
-    const uint32_t s = time_left_s - H_TO_S(h) - M_TO_S(m);
+    const uint32_t h = S_TO_H(time_s);
+    const uint32_t m = S_TO_M(time_s - H_TO_S(h));
+    const uint32_t s = time_s - H_TO_S(h) - M_TO_S(m);
 
     if(h) {
         lv_label_set_text_fmt(instance->bottom_timer_text, "%lu:%02lu:%02lu", h, m, s);

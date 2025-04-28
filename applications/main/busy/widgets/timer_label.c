@@ -68,12 +68,12 @@ Widget* timer_label_get_base(TimerLabel* instance) {
     return (Widget*)instance;
 }
 
-void timer_label_set_time_left(TimerLabel* instance, uint32_t time_left_s) {
+void timer_label_set_time(TimerLabel* instance, uint32_t time_s) {
     furi_check(instance);
 
-    const uint32_t h = S_TO_H(time_left_s);
-    const uint32_t m = S_TO_M(time_left_s - H_TO_S(h));
-    const uint32_t s = time_left_s - H_TO_S(h) - M_TO_S(m);
+    const uint32_t h = S_TO_H(time_s);
+    const uint32_t m = S_TO_M(time_s - H_TO_S(h));
+    const uint32_t s = time_s - H_TO_S(h) - M_TO_S(m);
 
     if(h) {
         if(h >= 10) {

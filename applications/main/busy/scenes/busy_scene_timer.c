@@ -73,8 +73,8 @@ static void busy_scene_timer_update_tick(BusyApp* instance) {
     const uint32_t progress = roundf(time->elapsed_s * 100.f / (time->elapsed_s + time->remain_s));
 
     with_gui(instance->gui, {
-        timer_label_set_time_left(data->timer_label, data->timer_time.remain_s);
-        timer_card_set_time_left(data->timer_card, data->timer_time.remain_s);
+        timer_label_set_time(data->timer_label, data->timer_time.remain_s);
+        timer_card_set_remaining_time(data->timer_card, data->timer_time.remain_s);
     });
 
     FURI_LOG_D(TAG, "Progress: %lu%%", progress);
