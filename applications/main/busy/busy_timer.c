@@ -1,6 +1,8 @@
 #include "busy_timer_i.h"
 
+#ifdef BUSY_TIMER_TICK_DEBUG
 #define TIME_MAX_LEN (14)
+#endif
 
 typedef void (*const BusyTimerMessageHandler)(BusyTimer* instance, BusyTimerMessageData* data);
 
@@ -28,6 +30,7 @@ static const char* busy_timer_get_state_name(BusyTimerState state) {
     return state_names[state];
 }
 
+#ifdef BUSY_TIMER_TICK_DEBUG
 static void busy_timer_get_time_str(uint32_t time_s, char buf[TIME_MAX_LEN]) {
     const uint32_t h = S_TO_H(time_s);
     const uint32_t m = S_TO_M(time_s - H_TO_S(h));
@@ -49,9 +52,12 @@ static void busy_timer_log_time(BusyTimer* instance) {
     busy_timer_get_time_str(instance->time.remain_s, buf);
     FURI_LOG_D(TAG, "Remaining: %s", buf);
 }
+#endif
 
 static void busy_timer_notify_tick(BusyTimer* instance) {
+#ifdef BUSY_TIMER_TICK_DEBUG
     busy_timer_log_time(instance);
+#endif
 
     if(instance->callback) {
         const BusyTimerEvent event = {
@@ -266,7 +272,7 @@ static void busy_timer_add_time_message_handler(BusyTimer* instance, BusyTimerMe
     int32_t time_remaining_s = instance->time.remain_s;
     int32_t increment_s = M_TO_S(data->add_time_mn);
 
-    if((increment_s < 0) && (time_remaining_s < M_TO_S(BUSY_TIMER_TIME_MIN_MN))) {
+    if((increment_s < 0) && (time_remaining_s < BUSY_TIMER_TIME_MIN_S)) {
         // Cannot decrease interval below minimum time
         return;
     }
@@ -294,7 +300,7 @@ static void busy_timer_add_time_message_handler(BusyTimer* instance, BusyTimerMe
     time_remaining_s += increment_s;
 
     instance->time.remain_s =
-        CLAMP(time_remaining_s, M_TO_S(BUSY_TIMER_TIME_MAX_MN), M_TO_S(BUSY_TIMER_TIME_MIN_MN));
+        CLAMP(time_remaining_s, BUSY_TIMER_TIME_MAX_S, BUSY_TIMER_TIME_MIN_S);
 
     furi_event_loop_timer_restart(instance->timer);
     busy_timer_notify_tick(instance);
