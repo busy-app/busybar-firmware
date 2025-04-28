@@ -37,9 +37,14 @@ typedef enum {
 } BusyTimerEventType;
 
 typedef struct {
+    uint32_t elapsed_s;
+    uint32_t remain_s;
+} BusyTimerTime;
+
+typedef struct {
     BusyTimerEventType type;
     union {
-        uint32_t time_s;
+        BusyTimerTime time;
         BusyTimerState state;
     };
 } BusyTimerEvent;

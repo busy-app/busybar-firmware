@@ -9,7 +9,7 @@ typedef struct {
     Image* state_image;
     TimerLabel* timer_label;
     TimerCard* timer_card;
-    uint32_t timer_time_s;
+    BusyTimerTime timer_time;
     BusyTimerState timer_state;
     bool is_paused;
 } BusySceneTimer;
@@ -57,7 +57,7 @@ static void busy_scene_timer_event_callback(const BusyTimerEvent* event, void* c
     BusySceneTimer* data = scene_manager_get_current_scene_data(instance->scene_manager);
 
     if(event->type == BusyTimerEventTypeTick) {
-        data->timer_time_s = event->time_s;
+        data->timer_time = event->time;
         busy_send_custom_event(instance, BusyCustomEventTimerTick);
 
     } else if(event->type == BusyTimerEventTypeStateChanged) {
@@ -68,11 +68,16 @@ static void busy_scene_timer_event_callback(const BusyTimerEvent* event, void* c
 
 static void busy_scene_timer_update_tick(BusyApp* instance) {
     BusySceneTimer* data = scene_manager_get_current_scene_data(instance->scene_manager);
+    const BusyTimerTime* time = &data->timer_time;
+
+    const uint32_t progress = roundf(time->elapsed_s * 100.f / (time->elapsed_s + time->remain_s));
 
     with_gui(instance->gui, {
-        timer_label_set_time_left(data->timer_label, data->timer_time_s);
-        timer_card_set_time_left(data->timer_card, data->timer_time_s);
+        timer_label_set_time_left(data->timer_label, data->timer_time.remain_s);
+        timer_card_set_time_left(data->timer_card, data->timer_time.remain_s);
     });
+
+    FURI_LOG_D(TAG, "Progress: %lu%%", progress);
 }
 
 static void busy_scene_timer_update_state(BusyApp* instance) {

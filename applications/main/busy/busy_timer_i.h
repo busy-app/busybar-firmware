@@ -57,8 +57,8 @@ struct BusyTimer {
     FuriMessageQueue* message_queue;
     BusyTimerCallback callback;
     void* callback_context;
-    uint32_t time_left_s;
     uint32_t cycles_left;
     BusyTimerConfig config;
+    BusyTimerTime time;
     BusyTimerState state;
 };
