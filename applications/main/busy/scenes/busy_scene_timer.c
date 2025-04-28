@@ -4,10 +4,12 @@
 
 #include "../widgets/timer_card.h"
 #include "../widgets/timer_label.h"
+#include "../widgets/progress_bar.h"
 
 typedef struct {
     Image* state_image;
     TimerLabel* timer_label;
+    ProgressBar* progress_bar;
     TimerCard* timer_card;
     BusyTimerTime timer_time;
     BusyTimerState timer_state;
@@ -70,14 +72,13 @@ static void busy_scene_timer_update_tick(BusyApp* instance) {
     BusySceneTimer* data = scene_manager_get_current_scene_data(instance->scene_manager);
     const BusyTimerTime* time = &data->timer_time;
 
-    const uint32_t progress = roundf(time->elapsed_s * 100.f / (time->elapsed_s + time->remain_s));
+    const float progress = (float)time->elapsed_s / (time->elapsed_s + time->remain_s);
 
     with_gui(instance->gui, {
+        progress_bar_set_value(data->progress_bar, progress);
         timer_label_set_time(data->timer_label, data->timer_time.remain_s);
-        timer_card_set_remaining_time(data->timer_card, data->timer_time.remain_s);
+        timer_card_set_time(data->timer_card, data->timer_time.remain_s);
     });
-
-    FURI_LOG_D(TAG, "Progress: %lu%%", progress);
 }
 
 static void busy_scene_timer_update_state(BusyApp* instance) {
@@ -86,8 +87,11 @@ static void busy_scene_timer_update_state(BusyApp* instance) {
     with_gui(instance->gui, {
         if(data->timer_state == BusyTimerStateWork) {
             image_set_source(data->state_image, BUSY_IMG_PATH("I_busy_label_40x14.png"));
+            progress_bar_set_alt_color(data->progress_bar, false);
+
         } else if(data->timer_state == BusyTimerStateRest) {
             image_set_source(data->state_image, BUSY_IMG_PATH("I_rest_label_40x14.png"));
+            progress_bar_set_alt_color(data->progress_bar, true);
         }
     });
 }
@@ -110,6 +114,9 @@ static void busy_scene_timer_on_enter(void* context) {
         gui_layer_add_input_callback(layer, busy_scene_timer_input_callback, instance);
 
         data->state_image = image_alloc(instance->front_window);
+
+        data->progress_bar = progress_bar_alloc(instance->front_window);
+        widget_set_pos(progress_bar_get_base(data->progress_bar), 1, 15);
 
         data->timer_label = timer_label_alloc(instance->front_window);
         widget_set_pos(timer_label_get_base(data->timer_label), 42, 1);
