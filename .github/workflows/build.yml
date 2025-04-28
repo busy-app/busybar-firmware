@@ -1,0 +1,52 @@
+name: 'Build'
+
+on:
+  push:
+    branches:
+      - dev
+    tags:
+      - '*'
+  pull_request:
+
+env:
+  FBT_GIT_SUBMODULE_SHALLOW: 0
+
+jobs:
+  main:
+    runs-on: ubuntu-latest
+    steps:
+      - name: 'Checkout code'
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+          fetch-depth: 2
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: 'Update submodules'
+        run: |
+          git submodule update --init --recursive --jobs=$(nproc) scripts/toolchain lib/lwip lib/matter_ext || cat /home/runner/work/bsb-firmware/bsb-firmware/.git/modules/lib/matter_ext/lfs/logs/*
+
+      - name: 'Get commit details'
+        id: names
+        run: |
+          BUILD_TYPE='DEBUG=1 COMPACT=0'
+          if [[ ${{ github.event_name }} == 'pull_request' ]]; then
+            TYPE="pull"
+          elif [[ "${{ github.ref }}" == "refs/tags/"* ]]; then
+            TYPE="tag"
+            BUILD_TYPE='DEBUG=0 COMPACT=1'
+          else
+            TYPE="other"
+          fi
+
+      - name: 'Build the firmware'
+        id: build-fw
+        run: |
+          source ./scripts/toolchain/fbtenv.sh
+          export FBT_GIT_SUBMODULE_SHALLOW=1
+          bash ./fbt TARGET_HW=20 $FBT_BUILD_TYPE
+          bash ./fbt TARGET_HW=64 $FBT_BUILD_TYPE
+
+      - name: 'Check for uncommitted changes'
+        run: |
+          git diff --exit-code

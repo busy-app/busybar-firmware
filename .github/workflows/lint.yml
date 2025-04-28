@@ -1,0 +1,47 @@
+name: 'Lint sources'
+
+on:
+  pull_request:
+
+env:
+  SET_GH_OUTPUT: 1
+
+jobs:
+  lint_sources_check_submodules:
+    runs-on: ubuntu-latest
+    steps:
+      - name: 'Checkout code'
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+          fetch-depth: 2
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: 'Update submodules'
+        run: |
+          git submodule update --init --recursive --jobs=$(nproc) scripts/toolchain lib/lwip lib/matter_ext
+
+      - name: 'Check C/C++ code formatting for f20'
+        id: syntax_check_cpp
+        if: always()
+        run: |
+          set +e;
+          export FBT_GIT_SUBMODULE_SHALLOW=1;
+          bash ./fbt -s lint TARGET_HW=20 2>&1 | tee lint-cpp.log;
+          if [ "${PIPESTATUS[0]}" -ne 0 ]; then
+            # Save multiline output
+            echo "errors=1" >> $GITHUB_OUTPUT;
+            printf "C Lint errors:\n\`\`\`\n" >> $GITHUB_STEP_SUMMARY;
+            echo "$(cat lint-cpp.log)" >> $GITHUB_STEP_SUMMARY;
+            printf "\n\`\`\`\n" >> $GITHUB_STEP_SUMMARY;
+            exit 1;
+          else
+            echo "C Lint: all good ✨" >> $GITHUB_STEP_SUMMARY;
+          fi
+
+      - name: 'Report code formatting errors'
+        if: steps.syntax_check_cpp.outputs.errors && github.event.pull_request
+        run: |
+          echo "Code formatting errors found";
+          echo "Please run './fbt format' or './fbt format_py' to fix them";
+          exit 1;
