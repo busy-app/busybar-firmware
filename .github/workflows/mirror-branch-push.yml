@@ -25,7 +25,10 @@ jobs:
             # For PR events, fetch the source branch explicitly
             git fetch origin ${{ github.event.pull_request.head.ref }}:${{ github.event.pull_request.head.ref }}
           else
-            echo "branch_name=${{ github.ref }}" >> $GITHUB_ENV
+            # Strip refs/heads/ prefix if present
+            BRANCH_REF="${{ github.ref }}"
+            BRANCH_NAME="${BRANCH_REF#refs/heads/}"
+            echo "branch_name=$BRANCH_NAME" >> $GITHUB_ENV
             echo "expected_commit=${{ github.sha }}" >> $GITHUB_ENV
           fi
 
