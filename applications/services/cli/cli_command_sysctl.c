@@ -1,5 +1,6 @@
 #include "cli_command_sysctl.h"
 #include "cli_command_gpio.h"
+#include "cli_command_sl_cli.h"
 #include <toolbox/args.h>
 #include <furi_hal_nvm.h>
 #include <storage/storage.h>
@@ -17,9 +18,11 @@ static void cli_command_sysctl_debug(Cli* cli, FuriString* args, void* context) 
 
     if(furi_string_equal_str(args, "0")) {
         cli_delete_command(cli, "gpio");
+        cli_delete_command(cli, "sl_echo");
         printf("Debug disabled.");
     } else if(furi_string_equal_str(args, "1")) {
         cli_add_command(cli, "gpio", CliCommandFlagParallelSafe, cli_command_gpio, NULL);
+        cli_add_command(cli, "sl_echo", CliCommandFlagParallelSafe, cli_command_sl_echo, NULL);
         furi_hal_rtc_set_flag(FuriHalRtcFlagDebug);
         printf("Debug enabled.");
     } else {
