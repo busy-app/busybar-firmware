@@ -67,7 +67,7 @@ static void style_init(my_theme_t* theme) {
     lv_style_set_pad_right(&theme->styles.submenu_cursor, 1);
 
     lv_style_init(&theme->styles.timer_label);
-    lv_style_set_pad_row(&theme->styles.timer_label, 2);
+    lv_style_set_pad_row(&theme->styles.timer_label, 1);
     lv_style_set_text_color(&theme->styles.timer_label, COLOR_FG_FOCUSED);
 
     lv_style_init(&theme->styles.scrollbar);

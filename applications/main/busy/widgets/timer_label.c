@@ -42,7 +42,6 @@ static void timer_label_lvgl_constructor(const lv_obj_class_t* class_p, lv_obj_t
     lv_obj_set_style_text_color(instance->seconds_label, lv_color_white(), LV_PART_MAIN);
 
     instance->bottom_label = lv_label_create(obj);
-    lv_obj_set_style_text_font(instance->bottom_label, lv_theme_get_font_small(obj), LV_PART_MAIN);
     lv_label_set_text(instance->bottom_label, "LEFT");
 }
 

@@ -137,7 +137,7 @@ static void busy_scene_timer_on_enter(void* context) {
         data->state_image = anim_image_alloc(instance->front_window);
 
         data->timer_label = timer_label_alloc(instance->front_window);
-        widget_set_pos(timer_label_get_base(data->timer_label), 42, 1);
+        widget_set_pos(timer_label_get_base(data->timer_label), 42, 0);
 
         data->progress_bar = progress_bar_alloc(instance->front_window);
         widget_set_pos(progress_bar_get_base(data->progress_bar), 1, 15);
