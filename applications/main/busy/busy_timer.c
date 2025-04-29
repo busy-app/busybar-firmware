@@ -269,11 +269,16 @@ static void
 }
 
 static void busy_timer_add_time_message_handler(BusyTimer* instance, BusyTimerMessageData* data) {
+    // Ignore if the timer is not running (paused)
+    if(!furi_event_loop_timer_is_running(instance->timer)) {
+        return;
+    }
+
     int32_t time_remaining_s = instance->time.remain_s;
     int32_t increment_s = M_TO_S(data->add_time_mn);
 
+    // Ignore if the remaining time is below minimum
     if((increment_s < 0) && (time_remaining_s < BUSY_TIMER_TIME_MIN_S)) {
-        // Cannot decrease interval below minimum time
         return;
     }
 

@@ -5,11 +5,13 @@
 #include "../widgets/timer_card.h"
 #include "../widgets/timer_label.h"
 #include "../widgets/progress_bar.h"
+#include "../widgets/pause_overlay.h"
 
 typedef struct {
     Image* state_image;
     TimerLabel* timer_label;
     ProgressBar* progress_bar;
+    PauseOverlay* pause_overlay;
     TimerCard* timer_card;
     BusyTimerTime timer_time;
     BusyTimerState timer_state;
@@ -100,7 +102,10 @@ static void busy_scene_timer_toggle_pause(BusyApp* instance) {
     BusySceneTimer* data = scene_manager_get_current_scene_data(instance->scene_manager);
     data->is_paused = !data->is_paused;
 
-    with_gui(instance->gui, { timer_card_show_header(data->timer_card, !data->is_paused); });
+    with_gui(instance->gui, {
+        pause_overlay_show(data->pause_overlay, data->is_paused);
+        timer_card_show_header(data->timer_card, !data->is_paused);
+    });
 }
 
 static void busy_scene_timer_on_enter(void* context) {
@@ -120,6 +125,8 @@ static void busy_scene_timer_on_enter(void* context) {
 
         data->progress_bar = progress_bar_alloc(instance->front_window);
         widget_set_pos(progress_bar_get_base(data->progress_bar), 1, 15);
+
+        data->pause_overlay = pause_overlay_alloc(instance->front_window);
 
         data->timer_card = timer_card_alloc(instance->back_window);
         widget_set_pos(timer_card_get_base(data->timer_card), 2, 4);
@@ -142,6 +149,7 @@ static void busy_scene_timer_on_exit(void* context) {
         image_free(data->state_image);
         timer_label_free(data->timer_label);
         progress_bar_free(data->progress_bar);
+        pause_overlay_free(data->pause_overlay);
         timer_card_free(data->timer_card);
     });
 
