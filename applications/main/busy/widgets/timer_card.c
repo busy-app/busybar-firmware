@@ -62,19 +62,23 @@ static void timer_card_lvgl_constructor(const lv_obj_class_t* class_p, lv_obj_t*
     lv_obj_set_style_clip_corner(mask, true, LV_PART_MAIN);
 
     instance->mirror_image = lv_image_create(mask);
+
     Gui* gui = furi_record_open(RECORD_GUI);
     GuiDisplay* front = &gui->displays[GuiDisplayIdFront];
 
     lv_image_dsc_t* image_dsc = &instance->mirror_image_dsc;
-    image_dsc->header.magic = LV_IMAGE_HEADER_MAGIC, image_dsc->header.cf = FRONT_COLOR_FORMAT,
-    image_dsc->header.w = FRONT_W, image_dsc->header.h = FRONT_H,
-    image_dsc->header.stride = LV_DRAW_BUF_STRIDE(FRONT_W, FRONT_COLOR_FORMAT),
-    image_dsc->data_size = FRONT_DRAW_BUFFER_SIZE, image_dsc->data = front->draw_buffer,
+    image_dsc->header.magic = LV_IMAGE_HEADER_MAGIC;
+    image_dsc->header.cf = FRONT_COLOR_FORMAT;
+    image_dsc->header.w = FRONT_W;
+    image_dsc->header.h = FRONT_H;
+    image_dsc->header.stride = LV_DRAW_BUF_STRIDE(FRONT_W, FRONT_COLOR_FORMAT);
+    image_dsc->data_size = FRONT_DRAW_BUFFER_SIZE;
+    image_dsc->data = front->draw_buffer;
 
+    lv_obj_set_size(instance->mirror_image, FRONT_W * 2, FRONT_H * 2);
     lv_image_set_antialias(instance->mirror_image, false);
     lv_image_set_scale(instance->mirror_image, LV_SCALE_NONE * 2);
     lv_image_set_src(instance->mirror_image, image_dsc);
-    lv_obj_set_size(instance->mirror_image, FRONT_W * 2, FRONT_H * 2);
 
     lv_obj_t* bottom_layout = lv_obj_create(obj);
     lv_obj_set_size(bottom_layout, LV_SIZE_CONTENT, LV_SIZE_CONTENT);
