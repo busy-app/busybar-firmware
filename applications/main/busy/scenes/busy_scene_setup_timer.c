@@ -136,7 +136,10 @@ static void busy_scene_setup_timer_on_exit(void* context) {
 
     busy_timer_set_config(instance->busy_timer, &data->timer_config);
 
-    with_gui(instance->gui, { flex_layout_free(data->back_layout); });
+    with_gui(instance->gui, {
+        var_item_list_free(data->front_list);
+        flex_layout_free(data->back_layout);
+    });
 }
 
 static bool busy_scene_setup_timer_on_event(const SceneManagerEvent* event, void* context) {
