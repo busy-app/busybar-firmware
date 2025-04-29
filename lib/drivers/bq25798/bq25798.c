@@ -115,12 +115,7 @@ bool bq25798_set_cfg(FuriHalI2cBusHandle* handle) {
 
     // NTC configuration
     Bq25798Reg17NtcControl0 ntc_cfg0_temp = {.JEITA_VSET = 3, .JEITA_ISETH = 2, .JEITA_ISETC = 1};
-    furi_hal_i2c_write_reg_8(
-        handle,
-        BQ25798_I2C_ADDRESS,
-        BQ25798_REG17_NTC_CONTROL_0,
-        *(uint8_t*)&ntc_cfg0_temp,
-        BQ25798_I2C_TIMEOUT);
+    bq25798_write_reg_8(handle, BQ25798_REG17_NTC_CONTROL_0, *(uint8_t*)&ntc_cfg0_temp);
 
     Bq25798Reg18NtcControl1 ntc_cfg1_temp = {
         .TS_COOL = 1,
@@ -129,12 +124,7 @@ bool bq25798_set_cfg(FuriHalI2cBusHandle* handle) {
         .BCOLD = 0,
         .TS_IGNORE = 0,
     };
-    furi_hal_i2c_write_reg_8(
-        handle,
-        BQ25798_I2C_ADDRESS,
-        BQ25798_REG18_NTC_CONTROL_1,
-        *(uint8_t*)&ntc_cfg1_temp,
-        BQ25798_I2C_TIMEOUT);
+    bq25798_write_reg_8(handle, BQ25798_REG18_NTC_CONTROL_1, *(uint8_t*)&ntc_cfg1_temp);
 
     // Set default USB current (500ma)
     bq25798_set_input_current_limit(handle, I_IN_MAX_DEFAULT);
