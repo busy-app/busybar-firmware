@@ -6,6 +6,7 @@
 #include "cli_command_audio.h"
 #include "cli_command_sl_cli.h"
 
+#include <intercom/intercom.h>
 #include <core/thread.h>
 #include <core/thread_list.h>
 #include <furi_hal.h>
@@ -13,6 +14,7 @@
 #include <time.h>
 #include <loader/loader.h>
 #include <toolbox/args.h>
+#include <furi_hal_info.h>
 
 void cli_command_help(Cli* cli, FuriString* args, void* context) {
     UNUSED(args);
@@ -271,14 +273,27 @@ void cli_command_echo(Cli* cli, FuriString* args, void* context) {
     printf("%s\r\n", furi_string_get_cstr(args));
 }
 
-void cli_commands_init(Cli* cli) {
-    //cli_add_command(cli, "!", CliCommandFlagParallelSafe, cli_command_info, (void*)true);
-    //cli_add_command(cli, "info", CliCommandFlagParallelSafe, cli_command_info, NULL);
-    //cli_add_command(cli, "device_info", CliCommandFlagParallelSafe, cli_command_info, (void*)true);
+static void
+    cli_command_device_info_callback(const char* key, const char* value, bool last, void* context) {
+    UNUSED(last);
+    UNUSED(context);
+    printf("%-30s: %s\r\n", key, value);
+}
 
+void cli_command_device_info(Cli* cli, FuriString* args, void* context) {
+    UNUSED(cli);
+    UNUSED(args);
+    UNUSED(context);
+
+    furi_hal_info_get(cli_command_device_info_callback, '_', NULL);
+    cli_command_sl_cli_send_command_get_response(cli, "device_info");
+}
+
+void cli_commands_init(Cli* cli) {
     cli_add_command(cli, "?", CliCommandFlagParallelSafe, cli_command_help, NULL);
     cli_add_command(cli, "help", CliCommandFlagParallelSafe, cli_command_help, NULL);
 
+    cli_add_command(cli, "device_info", CliCommandFlagParallelSafe, cli_command_device_info, NULL);
     cli_add_command(cli, "uptime", CliCommandFlagParallelSafe, cli_command_uptime, NULL);
     cli_add_command(cli, "log", CliCommandFlagParallelSafe, cli_command_log, NULL);
     cli_add_command(cli, "top", CliCommandFlagParallelSafe, cli_command_top, NULL);
