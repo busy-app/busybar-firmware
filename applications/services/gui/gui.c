@@ -75,6 +75,10 @@ static lv_obj_t* gui_get_layer_root(Gui* instance, GuiDisplayId display_id, GuiL
         layer = lv_display_get_layer_bottom(display);
     } else if(layer_id == GuiLayerIdMain) {
         layer = lv_display_get_screen_active(display);
+        if(display_id == GuiDisplayIdBack) {
+            // Special case: make room for the status bar
+            lv_obj_set_style_pad_right(layer, BACK_STATUS_BAR_WIDTH, LV_PART_MAIN);
+        }
     } else if(layer_id == GuiLayerIdTop) {
         layer = lv_display_get_layer_top(display);
     } else if(layer_id == GuiLayerIdSystem) {
@@ -196,6 +200,7 @@ static void gui_init_layers(Gui* instance) {
     for(GuiLayerId layer_id = GuiLayerIdSystem; layer_id < GuiLayerIdMax; ++layer_id) {
         GuiLayer* layer = &instance->layers[layer_id];
         for(GuiDisplayId display_id = 0; display_id < GuiDisplayIdMax; ++display_id) {
+            furi_assert(layer->root_objs[display_id] == NULL);
             layer->root_objs[display_id] = gui_get_layer_root(instance, display_id, layer_id);
         }
         GuiInputItemList_init(layer->input_list);

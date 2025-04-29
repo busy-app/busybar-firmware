@@ -34,7 +34,6 @@ typedef struct {
     lv_style_t var_item;
     lv_style_t nav_header;
     lv_style_t timer_card;
-    lv_style_t margin_right;
 } my_theme_styles_t;
 
 typedef struct {
@@ -107,10 +106,6 @@ static void style_init(my_theme_t* theme) {
     lv_style_set_pad_hor(&theme->styles.timer_card, 1);
     lv_style_set_pad_row(&theme->styles.timer_card, 5);
     lv_style_set_radius(&theme->styles.timer_card, 4);
-
-    // TODO: This should be handled by the root size
-    lv_style_init(&theme->styles.margin_right);
-    lv_style_set_margin_right(&theme->styles.margin_right, 12);
 }
 
 static void theme_apply_callback(lv_theme_t* th, lv_obj_t* obj) {
@@ -153,8 +148,6 @@ static void theme_apply_callback(lv_theme_t* th, lv_obj_t* obj) {
 
     } else if(lv_obj_check_type(obj, &submenu_lvgl_class)) {
         lv_obj_add_style(obj, &theme->styles.scrollbar, LV_PART_SCROLLBAR);
-        // TODO: Remove when root size is fixed
-        lv_obj_add_style(obj, &theme->styles.margin_right, LV_PART_MAIN);
 
     } else if(lv_obj_check_type(obj, &submenu_item_lvgl_class)) {
         lv_obj_add_style(obj, &theme->styles.normal, LV_PART_MAIN);
@@ -187,8 +180,6 @@ static void theme_apply_callback(lv_theme_t* th, lv_obj_t* obj) {
         lv_obj_add_style(obj, &theme->styles.normal, LV_PART_MAIN);
         lv_obj_add_style(obj, &theme->styles.nav_header, LV_PART_MAIN);
 
-        // } else if(lv_obj_check_type(obj, &nav_header_bcrumbs_lvgl_class)) {
-        //     lv_obj_add_style(obj, &theme->styles.normal, LV_PART_MAIN);
     } else if(lv_obj_check_type(obj, &timer_card_lvgl_class)) {
         lv_obj_add_style(obj, &theme->styles.timer_card, LV_PART_MAIN);
     }
