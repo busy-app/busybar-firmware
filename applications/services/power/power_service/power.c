@@ -201,7 +201,9 @@ static void power_message_callback(FuriEventLoopObject* object, void* context) {
         break;
     case PowerMessageTypeSetChargeCurrent:
         power->charger_current_limit = *(msg.param_int);
+        furi_hal_i2c_acquire(POWER_I2C);
         bq25798_set_charge_current_limit(POWER_I2C, power->charger_current_limit);
+        furi_hal_i2c_release(POWER_I2C);
         break;
     case PowerMessageTypePdGetInfo:
         furi_assert(msg.power_info);

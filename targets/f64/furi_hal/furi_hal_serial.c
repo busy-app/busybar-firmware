@@ -106,6 +106,11 @@ static void furi_hal_serial_enable_fifo(FuriHalSerialHandle* handle) {
     periph->FCR = FCR_RT_ONE_CHAR | FCR_DMAM_SET | FCR_FIFOE_SET;
 }
 
+static void furi_hal_serial_disable_fifo(FuriHalSerialHandle* handle) {
+    USART0_Type* periph = furi_hal_serial_resources[handle->id].periph;
+    periph->FCR_b.FIFOE = 0;
+}
+
 void furi_hal_serial_init(FuriHalSerialHandle* handle, uint32_t baud) {
     furi_check(handle);
 
@@ -205,7 +210,7 @@ void furi_hal_serial_init(FuriHalSerialHandle* handle, uint32_t baud) {
         furi_hal_gpio_enable_ulp_on_hp(&gpio_ulp_i_3, GpioAltFn3ULP_UART_TX);
 
     } else {
-        furi_crash();
+        furi_crash("Invalid serial id");
     }
 
     furi_hal_serial_set_baud_rate(handle, baud);
@@ -216,7 +221,24 @@ void furi_hal_serial_init(FuriHalSerialHandle* handle, uint32_t baud) {
 
 void furi_hal_serial_deinit(FuriHalSerialHandle* handle) {
     furi_check(handle);
-    // TODO: Other deinitialisation
+    furi_hal_serial_disable_fifo(handle);
+
+    if(handle->id == FuriHalSerialIdUsart0) {
+        furi_hal_bus_disable(FuriHalBusUSART1_PCLK);
+        furi_hal_bus_disable(FuriHalBusUSART1_SCLK);
+
+    } else if(handle->id == FuriHalSerialIdUart1) {
+        furi_hal_bus_disable(FuriHalBusUSART2_PCLK);
+        furi_hal_bus_disable(FuriHalBusUSART2_SCLK);
+
+    } else if(handle->id == FuriHalSerialIdUlpuart) {
+        furi_hal_bus_disable(FuriHalBusULPSS_CLK);
+        furi_hal_bus_disable(FuriHalBusUlpSCLK_UART);
+        furi_hal_bus_disable(FuriHalBusUlpPCLK_UART);
+
+    } else {
+        furi_crash("Invalid serial id");
+    }
     furi_hal_serial[handle->id].handle = NULL;
 }
 
