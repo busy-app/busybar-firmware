@@ -43,7 +43,7 @@ static tusb_desc_device_t const desc_device = {
     .bMaxPacketSize0 = CFG_TUD_ENDPOINT0_SIZE,
 
     .idVendor = 0x37C1,
-    .idProduct = 0x0001,
+    .idProduct = 0x6213,
     .bcdDevice = VERSION_BCD(1, 0, 1),
 
     .iManufacturer = UsbStrManufacturer,
@@ -120,7 +120,7 @@ uint8_t const* tud_descriptor_other_speed_configuration_cb(uint8_t index) {
 static char const* desc_string_arr[] = {
     [UsbStrLang] = (const char[]){0x09, 0x04},
     [UsbStrManufacturer] = "Flipper Devices Inc.",
-    [UsbStrProduct] = "Busy Status Bar",
+    [UsbStrProduct] = "BUSY Bar USB Ethernet",
     [UsbStrSerial] = "0", //TODO: furi_hal_version
     [UsbStrNcmInterface] = "Network Interface",
     [UsbStrNcmMac] = NULL,
