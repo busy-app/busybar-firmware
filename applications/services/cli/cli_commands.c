@@ -5,7 +5,9 @@
 #include "cli_command_light_sensor.h"
 #include "cli_command_audio.h"
 #include "cli_command_sl_cli.h"
+#include "cli_command_factory_reset.h"
 
+#include <intercom/intercom.h>
 #include <core/thread.h>
 #include <core/thread_list.h>
 #include <furi_hal.h>
@@ -13,6 +15,7 @@
 #include <time.h>
 #include <loader/loader.h>
 #include <toolbox/args.h>
+#include <furi_hal_info.h>
 #include <intercom/intercom.h>
 
 void cli_command_help(Cli* cli, FuriString* args, void* context) {
@@ -53,6 +56,52 @@ void cli_command_help(Cli* cli, FuriString* args, void* context) {
         printf("%s", furi_string_get_cstr(args));
         printf("` command not found");
     }
+}
+
+static void cli_command_sysctl_debug(Cli* cli, FuriString* args, void* context) {
+    UNUSED(context);
+
+    if(furi_string_equal_str(args, "0")) {
+        cli_delete_command(cli, "gpio");
+        cli_delete_command(cli, "sl_echo");
+        cli_delete_command(cli, "factory_reset");
+        printf("Debug disabled.");
+    } else if(furi_string_equal_str(args, "1")) {
+        cli_add_command(cli, "gpio", CliCommandFlagParallelSafe, cli_command_gpio, NULL);
+        cli_add_command(cli, "sl_echo", CliCommandFlagParallelSafe, cli_command_sl_echo, NULL);
+        cli_add_command(
+            cli, "factory_reset", CliCommandFlagParallelSafe, cli_command_factroy_reset, NULL);
+        printf("Debug enabled.");
+    } else {
+        cli_print_usage("sysctl debug", "<1|0>", furi_string_get_cstr(args));
+    }
+}
+
+static void cli_command_sysctl_print_usage() {
+    printf("Usage:\r\n");
+    printf("sysctl <cmd>\r\n");
+    printf("Cmd list:\r\n");
+    printf("\tdebug - enables or disables some debug commands\r\n");
+}
+
+void cli_command_sysctl(Cli* cli, FuriString* args, void* context) {
+    FuriString* cmd;
+    cmd = furi_string_alloc();
+
+    do {
+        if(!args_read_string_and_trim(args, cmd)) {
+            cli_command_sysctl_print_usage();
+            break;
+        }
+
+        if(furi_string_cmp_str(cmd, "debug") == 0) {
+            cli_command_sysctl_debug(cli, args, context);
+            break;
+        }
+        cli_command_sysctl_print_usage();
+    } while(false);
+
+    furi_string_free(cmd);
 }
 
 void cli_command_uptime(Cli* cli, FuriString* args, void* context) {
@@ -217,99 +266,6 @@ void cli_command_free(Cli* cli, FuriString* args, void* context) {
     printf("Maximum pool block: %zu\r\n", memmgr_pool_get_max_block());
 }
 
-static void cli_send_sl_cli_cmd(FuriString* cmd) {
-    Intercom* intercom = furi_record_open(RECORD_INTERCOM);
-    size_t sz = furi_string_size(cmd);
-    size_t tx_size =
-        intercom_tx(intercom, IntercomChannelCli, furi_string_get_cstr(cmd), sz, FuriWaitForever);
-    furi_assert(tx_size == sz);
-    furi_record_close(RECORD_INTERCOM);
-}
-
-void cli_command_sl_echo(Cli* cli, FuriString* args, void* context) {
-    UNUSED(context);
-    UNUSED(args);
-
-    const uint32_t baud = 230400UL;
-
-    printf("Starting 917 echo server on %ld\r\n", baud);
-    FuriString* cmd = furi_string_alloc_printf("echo_server  %ld\r", baud);
-    cli_send_sl_cli_cmd(cmd);
-
-    FuriHalSerialHandle* serial = furi_hal_serial_control_acquire(FuriHalSerialIdUsart6);
-    furi_hal_serial_init(serial, baud);
-    furi_hal_serial_clear(serial, FuriHalSerialDirectionTxRx);
-
-    while(true) {
-        uint8_t ch = cli_getc(cli);
-
-        if(ch == CliSymbolAsciiETX) {
-            break;
-        } else if(ch == CliSymbolAsciiCR || ch == CliSymbolAsciiLF)
-            continue;
-
-        furi_hal_serial_tx(serial, &ch, 1);
-        if(!furi_hal_serial_tx_wait_complete(serial, 100)) {
-            break;
-        }
-
-        furi_delay_ms(10);
-
-        while(furi_hal_serial_rx_available(serial)) {
-            ch = furi_hal_serial_rx(serial);
-            cli_putc(cli, ch);
-        }
-    }
-
-    furi_hal_serial_control_release(serial);
-    furi_string_printf(cmd, "%c\r", CliSymbolAsciiETX);
-    cli_send_sl_cli_cmd(cmd);
-    furi_string_free(cmd);
-}
-
-static void cli_command_sysctl_debug(Cli* cli, FuriString* args, void* context) {
-    UNUSED(context);
-
-    if(furi_string_equal_str(args, "0")) {
-        cli_delete_command(cli, "gpio");
-        cli_delete_command(cli, "sl_echo");
-        printf("Debug disabled.");
-    } else if(furi_string_equal_str(args, "1")) {
-        cli_add_command(cli, "gpio", CliCommandFlagParallelSafe, cli_command_gpio, NULL);
-        cli_add_command(cli, "sl_echo", CliCommandFlagParallelSafe, cli_command_sl_echo, NULL);
-        printf("Debug enabled.");
-    } else {
-        cli_print_usage("sysctl debug", "<1|0>", furi_string_get_cstr(args));
-    }
-}
-
-static void cli_command_sysctl_print_usage() {
-    printf("Usage:\r\n");
-    printf("sysctl <cmd>\r\n");
-    printf("Cmd list:\r\n");
-    printf("\tdebug - enables or disables some debug commands\r\n");
-}
-
-void cli_command_sysctl(Cli* cli, FuriString* args, void* context) {
-    FuriString* cmd;
-    cmd = furi_string_alloc();
-
-    do {
-        if(!args_read_string_and_trim(args, cmd)) {
-            cli_command_sysctl_print_usage();
-            break;
-        }
-
-        if(furi_string_cmp_str(cmd, "debug") == 0) {
-            cli_command_sysctl_debug(cli, args, context);
-            break;
-        }
-        cli_command_sysctl_print_usage();
-    } while(false);
-
-    furi_string_free(cmd);
-}
-
 void cli_command_free_blocks(Cli* cli, FuriString* args, void* context) {
     UNUSED(cli);
     UNUSED(args);
@@ -324,14 +280,27 @@ void cli_command_echo(Cli* cli, FuriString* args, void* context) {
     printf("%s\r\n", furi_string_get_cstr(args));
 }
 
-void cli_commands_init(Cli* cli) {
-    //cli_add_command(cli, "!", CliCommandFlagParallelSafe, cli_command_info, (void*)true);
-    //cli_add_command(cli, "info", CliCommandFlagParallelSafe, cli_command_info, NULL);
-    //cli_add_command(cli, "device_info", CliCommandFlagParallelSafe, cli_command_info, (void*)true);
+static void
+    cli_command_device_info_callback(const char* key, const char* value, bool last, void* context) {
+    UNUSED(last);
+    UNUSED(context);
+    printf("%-30s: %s\r\n", key, value);
+}
 
+void cli_command_device_info(Cli* cli, FuriString* args, void* context) {
+    UNUSED(cli);
+    UNUSED(args);
+    UNUSED(context);
+
+    furi_hal_info_get(cli_command_device_info_callback, '_', NULL);
+    cli_command_sl_cli_send_command_get_response(cli, "device_info");
+}
+
+void cli_commands_init(Cli* cli) {
     cli_add_command(cli, "?", CliCommandFlagParallelSafe, cli_command_help, NULL);
     cli_add_command(cli, "help", CliCommandFlagParallelSafe, cli_command_help, NULL);
 
+    cli_add_command(cli, "device_info", CliCommandFlagParallelSafe, cli_command_device_info, NULL);
     cli_add_command(cli, "uptime", CliCommandFlagParallelSafe, cli_command_uptime, NULL);
     cli_add_command(cli, "log", CliCommandFlagParallelSafe, cli_command_log, NULL);
     cli_add_command(cli, "top", CliCommandFlagParallelSafe, cli_command_top, NULL);
