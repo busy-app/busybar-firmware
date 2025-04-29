@@ -145,7 +145,7 @@ static void busy_scene_timer_on_enter(void* context) {
         data->pause_overlay = pause_overlay_alloc(instance->front_window);
 
         data->timer_card = timer_card_alloc(instance->back_window);
-        widget_set_pos(timer_card_get_base(data->timer_card), 2, 4);
+        widget_set_pos(timer_card_get_base(data->timer_card), 0, 4);
     });
 
     busy_timer_set_callback(instance->busy_timer, busy_scene_timer_event_callback, instance);
