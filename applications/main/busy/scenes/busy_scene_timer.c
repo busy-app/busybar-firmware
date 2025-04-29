@@ -115,6 +115,12 @@ static void busy_scene_timer_toggle_pause(BusyApp* instance) {
     with_gui(instance->gui, {
         pause_overlay_show(data->pause_overlay, data->is_paused);
         timer_card_show_header(data->timer_card, !data->is_paused);
+
+        if(data->is_paused) {
+            anim_image_stop(data->state_image);
+        } else {
+            anim_image_start(data->state_image);
+        }
     });
 }
 
