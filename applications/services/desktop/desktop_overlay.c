@@ -19,7 +19,7 @@ struct DesktopOverlay {
 extern const lv_image_dsc_t I_status_bar_static_12x80;
 
 static void desktop_overlay_anim_callback(void* var, int32_t value) {
-    lv_obj_set_style_opa(var, value, LV_PART_MAIN);
+    lv_obj_set_style_bg_opa(var, value, LV_PART_MAIN);
 }
 
 static void desktop_overlay_start_anim(DesktopOverlay* instance, int32_t end) {
@@ -29,7 +29,7 @@ static void desktop_overlay_start_anim(DesktopOverlay* instance, int32_t end) {
         lv_anim_set_var(&anim, instance->dimmer);
         // TODO: Decide on the color and opacity API
         lv_anim_set_values(
-            &anim, lv_obj_get_style_opa((lv_obj_t*)instance->dimmer, LV_PART_MAIN), end);
+            &anim, lv_obj_get_style_bg_opa((lv_obj_t*)instance->dimmer, LV_PART_MAIN), end);
         lv_anim_set_duration(&anim, OVERLAY_ANIM_TIME_MS);
         lv_anim_set_exec_cb(&anim, desktop_overlay_anim_callback);
         lv_anim_set_path_cb(&anim, lv_anim_path_ease_in_out);
@@ -49,7 +49,8 @@ DesktopOverlay* desktop_overlay_alloc(Gui* gui) {
         root = gui_layer_get_root_widget(system_layer, GuiDisplayIdFront);
         instance->dimmer = widget_alloc(root);
         // TODO: Decide on the color and opacity API
-        lv_obj_set_style_opa((lv_obj_t*)instance->dimmer, LV_OPA_TRANSP, LV_PART_MAIN);
+        lv_obj_set_style_bg_opa((lv_obj_t*)instance->dimmer, LV_OPA_TRANSP, LV_PART_MAIN);
+        lv_obj_set_style_bg_color((lv_obj_t*)instance->dimmer, lv_color_black(), LV_PART_MAIN);
 
         root = gui_layer_get_root_widget(system_layer, GuiDisplayIdBack);
         instance->status_bar = image_alloc(root);
