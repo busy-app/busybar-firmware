@@ -3,7 +3,8 @@ on:
   push:
     branches:
       - dev
-  workflow_dispatch:
+  pull_request:
+    types: [opened, synchronize, reopened]
 
 jobs:
   sync:
@@ -15,9 +16,33 @@ jobs:
         with:
           fetch-depth: 0
 
+      - name: Set appropriate branch name
+        id: set_branch_name
+        run: |
+          if [[ "${{ github.event_name }}" == "pull_request" ]]; then
+            echo "branch_name=${{ github.event.pull_request.head.ref }}" >> $GITHUB_ENV
+            echo "expected_commit=${{ github.event.pull_request.head.sha }}" >> $GITHUB_ENV
+            # For PR events, fetch the source branch explicitly
+            git fetch origin ${{ github.event.pull_request.head.ref }}:${{ github.event.pull_request.head.ref }}
+          else
+            echo "branch_name=${{ github.ref }}" >> $GITHUB_ENV
+            echo "expected_commit=${{ github.sha }}" >> $GITHUB_ENV
+          fi
+
+      - name: Verify commit integrity
+        run: |
+          git checkout ${{ env.branch_name }}
+          CURRENT_COMMIT=$(git rev-parse HEAD)
+          if [[ "$CURRENT_COMMIT" != "${{ env.expected_commit }}" ]]; then
+            echo "Error: Current commit ($CURRENT_COMMIT) doesn't match expected commit (${{ env.expected_commit }})"
+            echo "This could mean the branch has been updated since the workflow was triggered."
+            exit 1
+          fi
+          echo "Commit verification passed. Proceeding with sync."
+
       - name: Sync with ${{ vars.REPO_MIRROR_URL }}
         run: |
           git config --global user.name "GitHub Actions"
           git config --global user.email "actions@github.com"
           git remote add forgejo "https://${{ secrets.REPO_MIRROR_TOKEN }}@${{ vars.REPO_MIRROR_URL }}"
-          git push --force forgejo ${{ github.ref }} 
+          git push --force forgejo ${{ env.branch_name }}:refs/heads/${{ env.branch_name }}
