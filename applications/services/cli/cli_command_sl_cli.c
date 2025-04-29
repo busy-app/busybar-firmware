@@ -42,15 +42,18 @@ static void cli_command_sl_cli_free(CliCommandSlCli* instance) {
     free(instance);
 }
 
+static void cli_command_sl_cli_send_command(Intercom* intercom, FuriString* cmd) {
+    const size_t sz = furi_string_size(cmd);
+    const size_t tx_size =
+        intercom_tx(intercom, IntercomChannelCli, furi_string_get_cstr(cmd), sz, FuriWaitForever);
+    furi_assert(tx_size == sz);
+}
+
 void cli_command_sl_cli_send_command_get_response(Cli* cli, const char* command) {
     CliCommandSlCli* instance = cli_command_sl_cli_alloc();
 
     FuriString* buf = furi_string_alloc_printf("%s\r", command);
-    size_t sz = furi_string_size(buf);
-
-    const size_t tx_size = intercom_tx(
-        instance->intercom, IntercomChannelCli, furi_string_get_cstr(buf), sz, FuriWaitForever);
-    furi_assert(tx_size == sz);
+    cli_command_sl_cli_send_command(instance->intercom, buf);
 
     while(true) {
         const size_t rx_size = furi_stream_buffer_receive(
@@ -59,6 +62,9 @@ void cli_command_sl_cli_send_command_get_response(Cli* cli, const char* command)
         if(!rx_size) break;
         cli_write(cli, instance->rx_data, rx_size);
     }
+
+    furi_string_printf(buf, "%c\r", CliSymbolAsciiETX);
+    cli_command_sl_cli_send_command(instance->intercom, buf);
 
     cli_command_sl_cli_free(instance);
     furi_string_free(buf);
