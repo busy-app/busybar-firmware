@@ -207,6 +207,10 @@ static void anim_image_set_range_internal(
 
         anim_image_update(instance);
     }
+
+    if(lv_timer_get_paused(instance->timer)) {
+        lv_timer_resume(instance->timer);
+    }
 }
 
 // Public API

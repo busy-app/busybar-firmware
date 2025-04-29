@@ -7,6 +7,9 @@
 #include "../widgets/progress_bar.h"
 #include "../widgets/pause_overlay.h"
 
+#define PROGRESS_BAR_COLOR_BUSY color_hex_to_rgb(0x4A0000)
+#define PROGRESS_BAR_COLOR_REST color_hex_to_rgb(0x011809)
+
 typedef struct {
     Image* state_image;
     TimerLabel* timer_label;
@@ -89,11 +92,15 @@ static void busy_scene_timer_update_state(BusyApp* instance) {
     with_gui(instance->gui, {
         if(data->timer_state == BusyTimerStateWork) {
             image_set_source(data->state_image, BUSY_IMG_PATH("I_busy_label_40x14.png"));
-            progress_bar_set_alt_color(data->progress_bar, false);
+            progress_bar_set_trough_color(data->progress_bar, PROGRESS_BAR_COLOR_BUSY);
+            progress_bar_set_anim_source(
+                data->progress_bar, BUSY_ANIM_PATH("A_progress_bar_busy_71x1.anim"));
 
         } else if(data->timer_state == BusyTimerStateRest) {
             image_set_source(data->state_image, BUSY_IMG_PATH("I_rest_label_40x14.png"));
-            progress_bar_set_alt_color(data->progress_bar, true);
+            progress_bar_set_trough_color(data->progress_bar, PROGRESS_BAR_COLOR_REST);
+            progress_bar_set_anim_source(
+                data->progress_bar, BUSY_ANIM_PATH("A_progress_bar_rest_71x1.anim"));
         }
     });
 }

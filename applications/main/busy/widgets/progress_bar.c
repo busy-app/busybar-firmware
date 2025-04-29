@@ -1,21 +1,17 @@
 #include "progress_bar.h"
 
 #include <gui/widget_i.h>
+#include <gui/modules/anim_image.h>
 
 #define TROUGH_WIDTH  (70)
 #define TROUGH_HEIGHT (1)
-
-#define BAR_COLOR_MAIN    lv_color_hex(0xFF0000)
-#define TROUGH_COLOR_MAIN lv_color_hex(0x4A0000)
-
-#define BAR_COLOR_ALT    lv_color_hex(0x13F562)
-#define TROUGH_COLOR_ALT lv_color_hex(0x011809)
 
 #define MY_CLASS (&progress_bar_lvgl_class)
 
 struct ProgressBar {
     Widget base;
-    lv_obj_t* bar;
+    AnimImage* bar;
+    int32_t prev_offset;
 };
 
 const lv_obj_class_t progress_bar_lvgl_class;
@@ -26,16 +22,12 @@ static void progress_bar_lvgl_constructor(const lv_obj_class_t* class_p, lv_obj_
     UNUSED(class_p);
 
     lv_obj_set_style_bg_opa(obj, LV_OPA_COVER, LV_PART_MAIN);
-    lv_obj_set_style_bg_color(obj, TROUGH_COLOR_MAIN, LV_PART_MAIN);
+    lv_obj_set_style_bg_color(obj, lv_color_black(), LV_PART_MAIN);
 
     ProgressBar* instance = (ProgressBar*)obj;
-    instance->bar = lv_obj_create(obj);
+    instance->bar = anim_image_alloc((Widget*)obj);
 
-    lv_obj_set_size(instance->bar, LV_PCT(100), LV_PCT(100));
-    lv_obj_set_style_bg_opa(instance->bar, LV_OPA_COVER, LV_PART_MAIN);
-    lv_obj_set_style_bg_color(instance->bar, BAR_COLOR_MAIN, LV_PART_MAIN);
-
-    lv_obj_align_to(instance->bar, obj, LV_ALIGN_OUT_LEFT_MID, 0, 0);
+    lv_obj_align_to((lv_obj_t*)instance->bar, obj, LV_ALIGN_OUT_LEFT_MID, 1, 0);
 }
 
 // Public API
@@ -60,25 +52,30 @@ Widget* progress_bar_get_base(ProgressBar* instance) {
     return (Widget*)instance;
 }
 
+bool progress_bar_set_anim_source(ProgressBar* instance, const char* file_path) {
+    furi_check(instance);
+    furi_check(file_path);
+
+    return anim_image_set_source(instance->bar, file_path);
+}
+
+void progress_bar_set_trough_color(ProgressBar* instance, Color color) {
+    furi_check(instance);
+    lv_obj_set_style_bg_color((lv_obj_t*)instance, *((lv_color_t*)&color), LV_PART_MAIN);
+}
+
 void progress_bar_set_value(ProgressBar* instance, float value) {
     furi_check(instance);
 
     const int32_t width = lv_obj_get_width((lv_obj_t*)instance);
-    const int32_t bar_offset = roundf(width * value);
+    const int32_t offset = width - roundf(width * value);
 
-    lv_obj_set_x(instance->bar, -(width - bar_offset));
-}
-
-void progress_bar_set_alt_color(ProgressBar* instance, bool set) {
-    furi_check(instance);
-
-    if(set) {
-        lv_obj_set_style_bg_color((lv_obj_t*)instance, TROUGH_COLOR_ALT, LV_PART_MAIN);
-        lv_obj_set_style_bg_color(instance->bar, BAR_COLOR_ALT, LV_PART_MAIN);
-    } else {
-        lv_obj_set_style_bg_color((lv_obj_t*)instance, TROUGH_COLOR_MAIN, LV_PART_MAIN);
-        lv_obj_set_style_bg_color(instance->bar, BAR_COLOR_MAIN, LV_PART_MAIN);
+    if(offset != instance->prev_offset) {
+        instance->prev_offset = offset;
+        lv_obj_set_x((lv_obj_t*)instance->bar, -offset);
     }
+
+    anim_image_set_range(instance->bar, 0, 59, false, false);
 }
 
 // LVGL class descriptor

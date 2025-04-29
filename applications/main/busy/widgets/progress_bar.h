@@ -8,6 +8,8 @@
 
 #include <gui/widget.h>
 
+#include <color.h>
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -42,20 +44,29 @@ void progress_bar_free(ProgressBar* instance);
 Widget* progress_bar_get_base(ProgressBar* instance);
 
 /**
- * @brief Set the displayed time.
+ * @brief Set the animation file for the bar part.
+ *
+ * @param[in,out] instance pointer to the ProgressBar instance to be modified
+ * @param[in] file_path zero-terminated string containing the full path to the animation file
+ * @returns @c true if the file could be loaded, @c false otherwise
+ */
+bool progress_bar_set_anim_source(ProgressBar* instance, const char* file_path);
+
+/**
+ * @brief Set the fill color for the background trough.
+ *
+ * @param[in,out] instance pointer to the ProgressBar instance to be modified
+ * @param[in] color trough color value
+ */
+void progress_bar_set_trough_color(ProgressBar* instance, Color color);
+
+/**
+ * @brief Set the displayed value.
  *
  * @param[in,out] instance pointer to the ProgressBar instance to be modified
  * @param[in] value progress value (@c 0.0 - no fill, @c 1.0 - fully filled)
  */
 void progress_bar_set_value(ProgressBar* instance, float value);
-
-/**
- * @brief Set alternate colour scheme.
- *
- * @param[in,out] instance pointer to the ProgressBar instance to be modified
- * @param[in] set if @c true, select alternate colour scheme.
- */
-void progress_bar_set_alt_color(ProgressBar* instance, bool set);
 
 #ifdef __cplusplus
 }
