@@ -2,7 +2,7 @@
 #include "lv_theme_common.h"
 
 #define COLOR_BG_NORMAL  lv_color_black()
-#define COLOR_FG_NORMAL  lv_color_hex(0x666666)
+#define COLOR_FG_NORMAL  lv_color_hex(0xAAAAAA)
 #define COLOR_BG_FOCUSED lv_color_black()
 #define COLOR_FG_FOCUSED lv_color_white()
 
@@ -10,8 +10,7 @@
 
 #define MENU_ITEM_RADIUS  (4)
 #define MENU_ITEM_PAD_HOR (4)
-#define MENU_ITEM_PAD_VER (7)
-#define MENU_ITEM_PAD_COL (6)
+#define MENU_ITEM_PAD_VER (4)
 
 #define SUBMENU_ITEM_RADIUS  (4)
 #define SUBMENU_ITEM_PAD_VER (4)
@@ -67,19 +66,22 @@ static void style_init(my_theme_t* theme) {
     lv_style_set_blend_mode(&theme->styles.subtractive, LV_BLEND_MODE_SUBTRACTIVE);
 
     lv_style_init(&theme->styles.menu_item);
-    lv_style_set_pad_column(&theme->styles.menu_item, MENU_ITEM_PAD_COL);
     lv_style_set_pad_hor(&theme->styles.menu_item, MENU_ITEM_PAD_HOR);
-    lv_style_set_pad_ver(&theme->styles.menu_item, MENU_ITEM_PAD_VER);
+    lv_style_set_pad_top(&theme->styles.menu_item, MENU_ITEM_PAD_VER);
+    lv_style_set_pad_bottom(&theme->styles.menu_item, MENU_ITEM_PAD_VER - 1);
     lv_style_set_radius(&theme->styles.menu_item, MENU_ITEM_RADIUS);
 
     lv_style_init(&theme->styles.menu_icon);
+    lv_style_set_margin_right(&theme->styles.menu_icon, 6);
 
     lv_style_init(&theme->styles.menu_sublabel);
-    lv_style_set_pad_all(&theme->styles.menu_sublabel, 2);
+    lv_style_set_pad_top(&theme->styles.menu_sublabel, MENU_ITEM_PAD_HOR / 2);
+    lv_style_set_pad_left(&theme->styles.menu_sublabel, MENU_ITEM_PAD_HOR / 2);
     lv_style_set_text_font(&theme->styles.menu_sublabel, theme->base.font_small);
 
     lv_style_init(&theme->styles.submenu_item);
-    lv_style_set_pad_ver(&theme->styles.submenu_item, SUBMENU_ITEM_PAD_VER);
+    lv_style_set_pad_top(&theme->styles.submenu_item, SUBMENU_ITEM_PAD_VER);
+    lv_style_set_pad_bottom(&theme->styles.submenu_item, SUBMENU_ITEM_PAD_VER - 1);
     lv_style_set_radius(&theme->styles.submenu_item, SUBMENU_ITEM_RADIUS);
 
     lv_style_init(&theme->styles.submenu_cursor);
@@ -133,7 +135,7 @@ static void theme_apply_callback(lv_theme_t* th, lv_obj_t* obj) {
         lv_obj_add_style(obj, &theme->styles.scrollbar, LV_PART_SCROLLBAR);
 
     } else if(lv_obj_check_type(obj, &menu_item_lvgl_class)) {
-        lv_obj_add_style(obj, &theme->styles.focused, LV_PART_MAIN);
+        lv_obj_add_style(obj, &theme->styles.normal, LV_PART_MAIN);
         lv_obj_add_style(obj, &theme->styles.inverted, LV_PART_MAIN | LV_STATE_FOCUSED);
         lv_obj_add_style(obj, &theme->styles.menu_item, LV_PART_MAIN);
 

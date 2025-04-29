@@ -21,6 +21,7 @@ typedef struct {
     lv_obj_t* icon;
     lv_obj_t* label;
     lv_obj_t* sub_label;
+    lv_obj_t* arrow;
     uint32_t index;
     MenuItemCallback callback;
     void* context;
@@ -91,7 +92,10 @@ static lv_obj_t* menu_item_alloc(
     lv_group_add_obj(parent->group, obj);
 
     if(sub_label) {
-        lv_label_set_text_fmt(instance->sub_label, "%s >", sub_label);
+        if(strlen(sub_label)) {
+            lv_label_set_text(instance->sub_label, sub_label);
+        }
+        lv_label_set_text(instance->arrow, ">");
     }
 
     return obj;
@@ -139,9 +143,11 @@ static void menu_item_lvgl_constructor(const lv_obj_class_t* class_p, lv_obj_t* 
     instance->label = lv_label_create(obj);
     lv_obj_set_flex_grow(instance->label, 1);
 
-    instance->sub_label = lv_obj_class_create_obj(MY_SUBLABEL_CLASS, obj);
-    lv_obj_class_init_obj(instance->sub_label);
+    instance->sub_label = lv_label_create(obj);
     lv_label_set_long_mode(instance->sub_label, LV_LABEL_LONG_MODE_CLIP);
+
+    instance->arrow = lv_obj_class_create_obj(MY_SUBLABEL_CLASS, obj);
+    lv_obj_class_init_obj(instance->arrow);
 }
 
 static void menu_item_lvgl_event(const lv_obj_class_t* class_p, lv_event_t* event) {
@@ -157,9 +163,11 @@ static void menu_item_lvgl_event(const lv_obj_class_t* class_p, lv_event_t* even
     if(code == LV_EVENT_FOCUSED) {
         lv_obj_add_state(instance->icon, LV_STATE_FOCUSED);
         lv_obj_add_state(instance->sub_label, LV_STATE_FOCUSED);
+        lv_obj_add_state(instance->arrow, LV_STATE_FOCUSED);
     } else if(code == LV_EVENT_DEFOCUSED) {
         lv_obj_remove_state(instance->icon, LV_STATE_FOCUSED);
         lv_obj_remove_state(instance->sub_label, LV_STATE_FOCUSED);
+        lv_obj_remove_state(instance->arrow, LV_STATE_FOCUSED);
     }
 }
 
