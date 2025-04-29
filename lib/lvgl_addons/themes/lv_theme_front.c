@@ -10,7 +10,6 @@
 
 #define MENU_ITEM_PAD_HOR (2)
 #define MENU_ITEM_PAD_VER (0)
-#define MENU_ITEM_PAD_COL (4)
 
 typedef struct {
     lv_style_t screen;
@@ -24,6 +23,7 @@ typedef struct {
     lv_style_t submenu;
     lv_style_t submenu_cursor;
     lv_style_t timer_label;
+    lv_style_t margin_right;
 } my_theme_styles_t;
 
 typedef struct {
@@ -50,7 +50,6 @@ static void style_init(my_theme_t* theme) {
     lv_style_set_image_opa(&theme->styles.transparent, LV_OPA_TRANSP);
 
     lv_style_init(&theme->styles.menu_item);
-    lv_style_set_pad_column(&theme->styles.menu_item, MENU_ITEM_PAD_COL);
     lv_style_set_pad_hor(&theme->styles.menu_item, MENU_ITEM_PAD_HOR);
     lv_style_set_pad_ver(&theme->styles.menu_item, MENU_ITEM_PAD_VER);
 
@@ -58,6 +57,7 @@ static void style_init(my_theme_t* theme) {
     lv_style_set_image_opa(&theme->styles.menu_icon, LV_OPA_COVER);
 
     lv_style_init(&theme->styles.menu_sublabel);
+    lv_style_set_pad_left(&theme->styles.menu_sublabel, 3);
 
     lv_style_init(&theme->styles.submenu);
     lv_style_set_pad_row(&theme->styles.submenu, 1);
@@ -74,6 +74,9 @@ static void style_init(my_theme_t* theme) {
     lv_style_set_bg_opa(&theme->styles.scrollbar, LV_OPA_COVER);
     lv_style_set_bg_color(&theme->styles.scrollbar, COLOR_FG_FOCUSED);
     lv_style_set_width(&theme->styles.scrollbar, SCROLLBAR_WIDTH);
+
+    lv_style_init(&theme->styles.margin_right);
+    lv_style_set_margin_right(&theme->styles.margin_right, 4);
 }
 
 static void theme_apply_callback(lv_theme_t* th, lv_obj_t* obj) {
@@ -101,12 +104,15 @@ static void theme_apply_callback(lv_theme_t* th, lv_obj_t* obj) {
         // Nothing special for now
 
     } else if(lv_obj_check_type(obj, &menu_item_lvgl_class)) {
-        lv_obj_add_style(obj, &theme->styles.focused, LV_PART_MAIN);
+        lv_obj_add_style(obj, &theme->styles.normal, LV_PART_MAIN);
         lv_obj_add_style(obj, &theme->styles.menu_item, LV_PART_MAIN);
+        lv_obj_add_style(obj, &theme->styles.focused, LV_PART_MAIN | LV_STATE_FOCUSED);
 
     } else if(lv_obj_check_type(obj, &menu_icon_lvgl_class)) {
         lv_obj_add_style(obj, &theme->styles.menu_icon, LV_PART_MAIN | LV_STATE_FOCUSED);
         lv_obj_add_style(obj, &theme->styles.transparent, LV_PART_MAIN);
+        lv_obj_add_style(obj, &theme->styles.margin_right, LV_PART_MAIN);
+        lv_obj_add_style(obj, &theme->styles.margin_right, LV_PART_MAIN | LV_STATE_FOCUSED);
 
     } else if(lv_obj_check_type(obj, &menu_sublabel_lvgl_class)) {
         lv_obj_add_style(obj, &theme->styles.menu_sublabel, LV_PART_MAIN);
