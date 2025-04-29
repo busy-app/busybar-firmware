@@ -81,6 +81,7 @@
         "print",
         "targets",
         "furi",
+        "version",
         "toolbox_f64",
         "firmware_applications_f64"
     ],
