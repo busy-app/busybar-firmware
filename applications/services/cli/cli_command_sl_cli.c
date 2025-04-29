@@ -49,10 +49,10 @@ static void cli_command_sl_cli_send_command(Intercom* intercom, FuriString* cmd)
     furi_assert(tx_size == sz);
 }
 
-void cli_command_sl_cli_send_command_get_response(Cli* cli, const char* command) {
+void cli_command_sl_cli_send_command_get_response(Cli* cli, const char* sl_cmd) {
     CliCommandSlCli* instance = cli_command_sl_cli_alloc();
 
-    FuriString* buf = furi_string_alloc_printf("%s\r", command);
+    FuriString* buf = furi_string_alloc_printf("%s\r", sl_cmd);
     cli_command_sl_cli_send_command(instance->intercom, buf);
 
     while(true) {
@@ -101,5 +101,51 @@ void cli_command_sl_cli(Cli* cli, FuriString* args, void* context) {
         }
     }
 
+    cli_command_sl_cli_free(instance);
+}
+
+void cli_command_sl_echo(Cli* cli, FuriString* args, void* context) {
+    UNUSED(context);
+    UNUSED(args);
+
+    const uint32_t baud = 230400UL;
+
+    printf("Starting 917 echo server on %ld\r\n", baud);
+    FuriString* cmd = furi_string_alloc_printf("echo_server  %ld\r", baud);
+
+    CliCommandSlCli* instance = cli_command_sl_cli_alloc();
+    cli_command_sl_cli_send_command(instance->intercom, cmd);
+
+    FuriHalSerialHandle* serial = furi_hal_serial_control_acquire(FuriHalSerialIdUsart6);
+    furi_hal_serial_init(serial, baud);
+    furi_hal_serial_clear(serial, FuriHalSerialDirectionTxRx);
+
+    while(true) {
+        uint8_t ch = cli_getc(cli);
+
+        if(ch == CliSymbolAsciiETX) {
+            break;
+        } else if(ch == CliSymbolAsciiCR || ch == CliSymbolAsciiLF)
+            continue;
+
+        furi_hal_serial_tx(serial, &ch, 1);
+        if(!furi_hal_serial_tx_wait_complete(serial, 100)) {
+            break;
+        }
+
+        furi_delay_ms(10);
+
+        while(furi_hal_serial_rx_available(serial)) {
+            ch = furi_hal_serial_rx(serial);
+            cli_putc(cli, ch);
+        }
+    }
+
+    furi_hal_serial_control_release(serial);
+
+    furi_string_printf(cmd, "%c\r", CliSymbolAsciiETX);
+    cli_command_sl_cli_send_command(instance->intercom, cmd);
+
+    furi_string_free(cmd);
     cli_command_sl_cli_free(instance);
 }
