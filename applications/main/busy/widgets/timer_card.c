@@ -76,8 +76,12 @@ static void timer_card_lvgl_constructor(const lv_obj_class_t* class_p, lv_obj_t*
     image_dsc->data = front->draw_buffer;
 
     lv_obj_set_size(instance->mirror_image, FRONT_W * 2, FRONT_H * 2);
+    lv_image_set_pivot(instance->mirror_image, 0, 0);
+    lv_image_set_inner_align(instance->mirror_image, LV_IMAGE_ALIGN_TOP_LEFT);
     lv_image_set_antialias(instance->mirror_image, false);
-    lv_image_set_scale(instance->mirror_image, LV_SCALE_NONE * 2);
+    // TODO: Figure out why different x and y scale works best
+    lv_image_set_scale_x(instance->mirror_image, LV_SCALE_NONE * 2);
+    lv_image_set_scale_y(instance->mirror_image, LV_SCALE_NONE * 2 + 1);
     lv_image_set_src(instance->mirror_image, image_dsc);
 
     lv_obj_t* bottom_layout = lv_obj_create(obj);
