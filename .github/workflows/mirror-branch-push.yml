@@ -3,7 +3,8 @@ on:
   push:
     branches:
       - dev
-  workflow_dispatch:
+  pull_request:
+    types: [opened, synchronize, reopened]
 
 jobs:
   sync:
