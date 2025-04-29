@@ -1,6 +1,7 @@
 #include "../busy.h"
 
 #include <gui/modules/image.h>
+#include <gui/modules/anim_image.h>
 
 #include "../widgets/timer_card.h"
 #include "../widgets/timer_label.h"
@@ -11,7 +12,7 @@
 #define PROGRESS_BAR_COLOR_REST color_hex_to_rgb(0x011809)
 
 typedef struct {
-    Image* state_image;
+    AnimImage* state_image;
     TimerLabel* timer_label;
     ProgressBar* progress_bar;
     PauseOverlay* pause_overlay;
@@ -91,13 +92,15 @@ static void busy_scene_timer_update_state(BusyApp* instance) {
 
     with_gui(instance->gui, {
         if(data->timer_state == BusyTimerStateWork) {
-            image_set_source(data->state_image, BUSY_IMG_PATH("I_busy_label_40x14.png"));
+            anim_image_set_source(data->state_image, BUSY_ANIM_PATH("A_busy_label_40x14.anim"));
+            anim_image_start(data->state_image);
             progress_bar_set_trough_color(data->progress_bar, PROGRESS_BAR_COLOR_BUSY);
             progress_bar_set_anim_source(
                 data->progress_bar, BUSY_ANIM_PATH("A_progress_bar_busy_71x1.anim"));
 
         } else if(data->timer_state == BusyTimerStateRest) {
-            image_set_source(data->state_image, BUSY_IMG_PATH("I_rest_label_40x14.png"));
+            anim_image_set_source(data->state_image, BUSY_ANIM_PATH("A_rest_label_40x14.anim"));
+            anim_image_start(data->state_image);
             progress_bar_set_trough_color(data->progress_bar, PROGRESS_BAR_COLOR_REST);
             progress_bar_set_anim_source(
                 data->progress_bar, BUSY_ANIM_PATH("A_progress_bar_rest_71x1.anim"));
@@ -125,7 +128,7 @@ static void busy_scene_timer_on_enter(void* context) {
         GuiLayer* layer = gui_get_layer(instance->gui, GuiLayerIdMain);
         gui_layer_add_input_callback(layer, busy_scene_timer_input_callback, instance);
 
-        data->state_image = image_alloc(instance->front_window);
+        data->state_image = anim_image_alloc(instance->front_window);
 
         data->timer_label = timer_label_alloc(instance->front_window);
         widget_set_pos(timer_label_get_base(data->timer_label), 42, 1);
@@ -153,7 +156,7 @@ static void busy_scene_timer_on_exit(void* context) {
         GuiLayer* layer = gui_get_layer(instance->gui, GuiLayerIdMain);
         gui_layer_remove_input_callback(layer, busy_scene_timer_input_callback);
 
-        image_free(data->state_image);
+        anim_image_free(data->state_image);
         timer_label_free(data->timer_label);
         progress_bar_free(data->progress_bar);
         pause_overlay_free(data->pause_overlay);
