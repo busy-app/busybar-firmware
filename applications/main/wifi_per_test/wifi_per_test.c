@@ -146,7 +146,10 @@ static bool wifi_per_test_input_callback(const InputEvent* event, void* context)
             furi_event_loop_set_custom_event(instance->event_loop, WifiPerTestCustomEventExit);
             instance->exit_on_back = true;
             consumed = true;
-        } else if(event->key == InputKeyStart) {
+        }
+
+    } else if(event->type == InputTypeLong) {
+        if(event->key == InputKeyStart) {
             if(instance->test_state == WifiPerTestStateRunning) {
                 furi_event_loop_set_custom_event(
                     instance->event_loop, WifiPerTestCustomEventStopTest);
