@@ -1,6 +1,7 @@
 #include "sl_updater.h"
 
 #include <furi.h>
+#include <furi_hal_nvm.h>
 #include <cli/cli.h>
 #include <toolbox/args.h>
 
@@ -11,8 +12,9 @@
 #define SL_PROBING_RETRIES (3)
 
 static void updater_cli_command_print_usage(void) {
+    bool is_debug = furi_hal_rtc_is_flag_set(FuriHalRtcFlagDebug);
     printf("Usage:\r\n");
-    printf("update <u5|917|917_ta|917_probe> path\r\n");
+    printf("update <u5|917|917_ta%s> path\r\n", is_debug ? "|917_probe" : "");
 }
 
 static bool
@@ -65,7 +67,8 @@ static void updater_cli(Cli* cli, FuriString* args, void* context) {
             break;
         }
 
-        if(furi_string_equal_str(cmd, "917_probe")) {
+        if(furi_hal_rtc_is_flag_set(FuriHalRtcFlagDebug) &&
+           furi_string_equal_str(cmd, "917_probe")) {
             updater_cli_probe_excute();
             break;
         }
