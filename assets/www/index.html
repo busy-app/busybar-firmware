@@ -18,9 +18,12 @@
     <br />
     <div id="wrapper">
         <input type="file" id="el1" style="display: none" />
-        <button id="el2">choose file...</button>
+        <button id="el2">Upload file...</button>
         <div id="el3"></div>
     </div>
+    <br />
+    <button id="btn_display_1">Show image (front)</button>
+    <button id="btn_display_2">Show image (back)</button>
 
     <div style="margin-top: 1em;">Action log:</div>
     <div id="log" style="background: #eee; height: 10em; padding: 0.5em; overflow:auto;">
@@ -65,6 +68,18 @@
 
     btn_led_json_on.onclick = ev => set_led_json(1);
     btn_led_json_off.onclick = ev => set_led_json(0);
+
+    const show_image = (path, display) =>
+        fetch('/api/display?path=' + path + '&display=' + display)
+            .then(r => r.json())
+            .then(r => {
+                console.log(r);
+                log('GET /api/display?path = ' + state + ' &display=' + display + ': ' + JSON.stringify(r))
+            })
+            .catch(err => console.log(err));
+
+    btn_display_1.onclick = ev => show_image('/ext/www/upload/test.png', "front");
+    btn_display_2.onclick = ev => show_image('/ext/www/upload/test.png', "back");
 
     var ws
     btn_ws.onclick = function () {
@@ -124,7 +139,7 @@
         r.readAsArrayBuffer(f);
         r.onload = function () {
             ev.target.value = '';
-            sendFileData(f.name, new Uint8Array(r.result), 20 * 1024);
+            sendFileData(f.name, new Uint8Array(r.result), 64 * 1024);
         };
     };
 </script>

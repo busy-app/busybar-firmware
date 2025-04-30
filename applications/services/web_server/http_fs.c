@@ -82,7 +82,12 @@ static size_t fs_read(void* fd, void* buf, size_t len) {
 }
 
 static size_t fs_write(void* fd, const void* buf, size_t len) {
-    return storage_file_write(fd, buf, len);
+    uint8_t* temp_buf = malloc(len);
+    memcpy(temp_buf, buf, len);
+    // TODO: fix sdmmc buffer alignment bug to get rid of temp buffer
+    size_t ret = storage_file_write(fd, temp_buf, len);
+    free(temp_buf);
+    return ret;
 }
 
 static size_t fs_seek(void* fd, size_t offset) {
