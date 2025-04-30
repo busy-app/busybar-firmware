@@ -92,11 +92,7 @@ static void submenu_lvgl_constructor(const lv_obj_class_t* class_p, lv_obj_t* ob
     UNUSED(class_p);
 
     lv_obj_set_flex_flow(obj, LV_FLEX_FLOW_COLUMN);
-    lv_obj_set_scroll_snap_y(obj, LV_SCROLL_SNAP_CENTER);
     lv_obj_add_event_cb(obj, submenu_scroll_event_callback, LV_EVENT_SCROLL_BEGIN, NULL);
-    // Compensate for scrollbar overlap
-    lv_obj_set_style_pad_right(
-        obj, lv_obj_get_style_width(obj, LV_PART_SCROLLBAR) + 1, LV_PART_MAIN);
 
     Submenu* instance = (Submenu*)obj;
     instance->group = lv_group_create();

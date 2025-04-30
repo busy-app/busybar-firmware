@@ -94,11 +94,7 @@ static void var_item_list_lvgl_constructor(const lv_obj_class_t* class_p, lv_obj
     LV_UNUSED(class_p);
 
     lv_obj_set_flex_flow(obj, LV_FLEX_FLOW_COLUMN);
-    lv_obj_set_scroll_snap_y(obj, LV_SCROLL_SNAP_CENTER);
     lv_obj_add_event_cb(obj, var_item_list_scroll_event_callback, LV_EVENT_SCROLL_BEGIN, NULL);
-    // Compensate for scrollbar overlap
-    lv_obj_set_style_pad_right(
-        obj, lv_obj_get_style_width(obj, LV_PART_SCROLLBAR) + 1, LV_PART_MAIN);
 
     VarItemList* instance = (VarItemList*)obj;
     instance->group = lv_group_create();
@@ -133,7 +129,6 @@ static void var_item_lvgl_constructor(const lv_obj_class_t* class_p, lv_obj_t* o
 
     lv_obj_t* editor = lv_obj_class_create_obj(MY_EDITOR_CLASS, obj);
     lv_obj_class_init_obj(editor);
-    lv_obj_set_flex_grow(editor, 1);
     lv_label_set_long_mode(editor, LV_LABEL_LONG_MODE_CLIP);
 
     instance->editor = (VarItemEditor*)editor;
@@ -321,6 +316,23 @@ static void var_item_editor_decrement(VarItemEditor* instance) {
     }
 }
 
+static void var_item_editor_set_edited(VarItemEditor* instance, bool set) {
+    VarItem* item = (VarItem*)lv_obj_get_parent((lv_obj_t*)instance);
+
+    if(set) {
+        lv_obj_add_state((lv_obj_t*)instance, LV_STATE_EDITED);
+        lv_obj_remove_state((lv_obj_t*)item, LV_STATE_FOCUSED);
+        lv_obj_add_state((lv_obj_t*)item->cursor, LV_STATE_EDITED);
+        lv_obj_remove_state((lv_obj_t*)item->cursor, LV_STATE_FOCUSED);
+
+    } else {
+        lv_obj_remove_state((lv_obj_t*)instance, LV_STATE_EDITED);
+        lv_obj_add_state((lv_obj_t*)item, LV_STATE_FOCUSED);
+        lv_obj_add_state((lv_obj_t*)item->cursor, LV_STATE_FOCUSED);
+        lv_obj_remove_state((lv_obj_t*)item->cursor, LV_STATE_EDITED);
+    }
+}
+
 static bool var_item_list_input_callback(Widget* widget, const InputEvent* event) {
     VarItemList* instance = (VarItemList*)widget;
 
@@ -349,7 +361,8 @@ static bool var_item_list_input_callback(Widget* widget, const InputEvent* event
             VarItemEditor* editor = instance->edited;
 
             if(editor) {
-                lv_obj_remove_state((lv_obj_t*)editor, LV_STATE_FOCUSED);
+                var_item_editor_set_edited(editor, false);
+
                 instance->edited = NULL;
 
                 if(editor->callback) {
@@ -358,9 +371,9 @@ static bool var_item_list_input_callback(Widget* widget, const InputEvent* event
 
             } else {
                 VarItem* item = (VarItem*)lv_group_get_focused(instance->group);
-
                 editor = item->editor;
-                lv_obj_add_state((lv_obj_t*)editor, LV_STATE_FOCUSED);
+
+                var_item_editor_set_edited(editor, true);
                 instance->edited = editor;
             }
 
@@ -370,7 +383,7 @@ static bool var_item_list_input_callback(Widget* widget, const InputEvent* event
             VarItemEditor* editor = instance->edited;
 
             if(editor) {
-                lv_obj_remove_state((lv_obj_t*)editor, LV_STATE_FOCUSED);
+                var_item_editor_set_edited(editor, false);
                 instance->edited = NULL;
 
                 if(editor->callback) {
@@ -611,7 +624,7 @@ const lv_obj_class_t var_item_editor_lvgl_class = {
     .constructor_cb = var_item_editor_lvlgl_constructor,
     .destructor_cb = var_item_editor_lvgl_destructor,
     .name = "var-item-editor",
-    .width_def = LV_PCT(100),
+    .width_def = LV_SIZE_CONTENT,
     .height_def = LV_SIZE_CONTENT,
     .instance_size = sizeof(VarItemEditor),
 };
