@@ -9,11 +9,8 @@
 #define DEFAULT_UDP_RECVMBOX_SIZE 6
 #define DEFAULT_TCP_RECVMBOX_SIZE 6
 #define DEFAULT_ACCEPTMBOX_SIZE   6
-#define MEMP_NUM_SYS_TIMEOUT      17
 
 #define LWIP_MDNS_RESPONDER 1
-
-#define PBUF_POOL_SIZE 8
 
 #define NO_SYS                                 0
 #define NO_SYS_NO_TIMERS                       0
@@ -27,7 +24,7 @@
 #define MEMP_MEM_MALLOC                        0
 #define MEMP_MEM_INIT                          0
 #define MEM_ALIGNMENT                          4
-// #define MEM_SIZE                               16000
+#define MEM_SIZE                               16000
 #define MEMP_OVERFLOW_CHECK                    0
 #define MEMP_SANITY_CHECK                      0
 #define MEM_OVERFLOW_CHECK                     0
@@ -36,30 +33,30 @@
 #define MEM_USE_POOLS_TRY_BIGGER_POOL          0
 #define MEMP_USE_CUSTOM_POOLS                  0
 #define LWIP_ALLOW_MEM_FREE_FROM_OTHER_CONTEXT 0
-/*#define MEMP_NUM_PBUF                   16
-#define MEMP_NUM_RAW_PCB                4
-#define MEMP_NUM_UDP_PCB                4
-#define MEMP_NUM_TCP_PCB                5
-#define MEMP_NUM_TCP_PCB_LISTEN         8
-#define MEMP_NUM_TCP_SEG                16
-#define MEMP_NUM_ALTCP_PCB              MEMP_NUM_TCP_PCB
-#define MEMP_NUM_REASSDATA              5
-#define MEMP_NUM_FRAG_PBUF              15
-#define MEMP_NUM_ARP_QUEUE              30
-#define MEMP_NUM_IGMP_GROUP             8
-#define MEMP_NUM_SYS_TIMEOUT            (LWIP_NUM_SYS_TIMEOUT_INTERNAL + 2)
-#define MEMP_NUM_NETBUF                 2
-#define MEMP_NUM_NETCONN                4
-#define MEMP_NUM_SELECT_CB              4
-#define MEMP_NUM_TCPIP_MSG_API          8
-#define MEMP_NUM_TCPIP_MSG_INPKT        8
-#define MEMP_NUM_NETDB                  1
-#define MEMP_NUM_LOCALHOSTLIST          1
-#define PBUF_POOL_SIZE                  16
-#define MEMP_NUM_API_MSG                MEMP_NUM_TCPIP_MSG_API
-#define MEMP_NUM_DNS_API_MSG            MEMP_NUM_TCPIP_MSG_API
-#define MEMP_NUM_SOCKET_SETGETSOCKOPT_DATA MEMP_NUM_TCPIP_MSG_API
-#define MEMP_NUM_NETIFAPI_MSG           MEMP_NUM_TCPIP_MSG_API*/
+#define MEMP_NUM_PBUF                          16
+#define MEMP_NUM_RAW_PCB                       4
+#define MEMP_NUM_UDP_PCB                       4
+#define MEMP_NUM_TCP_PCB                       8
+#define MEMP_NUM_TCP_PCB_LISTEN                8
+#define MEMP_NUM_TCP_SEG                       16
+#define MEMP_NUM_ALTCP_PCB                     MEMP_NUM_TCP_PCB
+#define MEMP_NUM_REASSDATA                     5
+#define MEMP_NUM_FRAG_PBUF                     15
+#define MEMP_NUM_ARP_QUEUE                     30
+#define MEMP_NUM_IGMP_GROUP                    8
+#define MEMP_NUM_SYS_TIMEOUT                   (LWIP_NUM_SYS_TIMEOUT_INTERNAL + 4)
+#define MEMP_NUM_NETBUF                        2
+#define MEMP_NUM_NETCONN                       10
+#define MEMP_NUM_SELECT_CB                     4
+#define MEMP_NUM_TCPIP_MSG_API                 8
+#define MEMP_NUM_TCPIP_MSG_INPKT               8
+#define MEMP_NUM_NETDB                         1
+#define MEMP_NUM_LOCALHOSTLIST                 1
+#define PBUF_POOL_SIZE                         16
+#define MEMP_NUM_API_MSG                       MEMP_NUM_TCPIP_MSG_API
+#define MEMP_NUM_DNS_API_MSG                   MEMP_NUM_TCPIP_MSG_API
+#define MEMP_NUM_SOCKET_SETGETSOCKOPT_DATA     MEMP_NUM_TCPIP_MSG_API
+#define MEMP_NUM_NETIFAPI_MSG                  MEMP_NUM_TCPIP_MSG_API
 #define LWIP_ARP                               1
 #define ARP_TABLE_SIZE                         10
 #define ARP_MAXAGE                             300
@@ -287,7 +284,7 @@
 #define IP_REASS_DEBUG     LWIP_DBG_OFF
 #define RAW_DEBUG          LWIP_DBG_OFF
 #define MEM_DEBUG          LWIP_DBG_OFF
-#define MEMP_DEBUG         LWIP_DBG_OFF
+#define MEMP_DEBUG         LWIP_DBG_ON
 #define SYS_DEBUG          LWIP_DBG_OFF
 #define TIMERS_DEBUG       LWIP_DBG_OFF
 #define TCP_DEBUG          LWIP_DBG_OFF
@@ -308,6 +305,7 @@
 #define IP6_DEBUG          LWIP_DBG_OFF
 #define DHCP6_DEBUG        LWIP_DBG_OFF
 #define LWIP_TESTMODE      0
+#define LWIP_DEBUG
 
 #define LWIP_PERF 0
 
