@@ -42,6 +42,7 @@ struct SlUpdater {
     FuriEventLoop* event_loop;
     FuriStreamBuffer* rx_buffer;
     FuriString* rx_string;
+    FuriString* bootloader_version;
     FuriHalSerialHandle* serial_handle;
     FuriEventLoopTimer* idle_timer;
 #ifdef SRV_INTERCOM
@@ -132,6 +133,20 @@ static bool sl_updater_check_rx_for(SlUpdater* instance, const char* str) {
     return false;
 }
 
+static bool sl_update_get_version(SlUpdater* instance) {
+    size_t pos = furi_string_search_str(instance->rx_string, "BootLoader Version");
+    if(pos == FURI_STRING_FAILURE) return false;
+
+    furi_string_right(instance->rx_string, pos);
+    pos = furi_string_search_rchar(instance->rx_string, '\r');
+
+    if(pos == FURI_STRING_FAILURE) return false;
+
+    furi_string_left(instance->rx_string, pos);
+    furi_string_set(instance->bootloader_version, instance->rx_string);
+    return true;
+}
+
 static void sl_updater_handle_rx(SlUpdater* instance) {
 #ifdef KERMIT_DEBUG
     FURI_LOG_D(
@@ -154,11 +169,17 @@ static void sl_updater_handle_rx(SlUpdater* instance) {
         break;
 
     case Si917BootloaderStateBoot:
-        if(sl_updater_check_rx_for(instance, "Change UART Baud Rate\r\n")) {
-            const uint8_t choice = 'b';
-            furi_hal_serial_tx(instance->serial_handle, &choice, sizeof(choice));
-            FURI_LOG_I(TAG, "UART Baud Rate change request sent: %c", choice);
-            instance->bootloader_state = Si917BootloaderStateChangeBaudRate;
+        if((instance->bootloader_mode == Si917BootloaderModeProbe) &&
+           (sl_update_get_version(instance))) {
+            FURI_LOG_I(TAG, "Probe success");
+            instance->bootloader_state = Si917BootloaderStateInstallSuccess;
+        } else {
+            if(sl_updater_check_rx_for(instance, "Change UART Baud Rate\r\n")) {
+                const uint8_t choice = 'b';
+                furi_hal_serial_tx(instance->serial_handle, &choice, sizeof(choice));
+                FURI_LOG_I(TAG, "UART Baud Rate change request sent: %c", choice);
+                instance->bootloader_state = Si917BootloaderStateChangeBaudRate;
+            }
         }
         break;
 
@@ -431,8 +452,6 @@ static bool
     furi_hal_serial_set_callback(instance->serial_handle, NULL, NULL, NULL);
     furi_hal_serial_control_release(instance->serial_handle);
     instance->serial_handle = NULL;
-
-    storage_file_close(instance->firmware_file);
 
     return success;
 }
