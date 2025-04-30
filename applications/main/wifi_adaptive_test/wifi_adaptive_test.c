@@ -47,7 +47,10 @@ static bool wifi_adaptive_test_input_callback(const InputEvent* event, void* con
                 instance->event_loop, WifiAdaptiveTestCustomEventExit);
             instance->exit_on_back = true;
             consumed = true;
-        } else if(event->key == InputKeyStart) {
+        }
+
+    } else if(event->type == InputTypeLong) {
+        if(event->key == InputKeyStart) {
             if(instance->test_state == WifiAdaptiveTestStateRunning) {
                 furi_event_loop_set_custom_event(
                     instance->event_loop, WifiAdaptiveTestCustomEventStopTest);

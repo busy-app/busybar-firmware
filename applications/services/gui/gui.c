@@ -2,6 +2,7 @@
 
 #include <lvgl_addons/fs/lv_fs.h>
 #include <lvgl_addons/themes/lv_theme_front.h>
+#include <lvgl_addons/themes/lv_theme_back.h>
 
 #define TAG "Gui"
 
@@ -74,6 +75,10 @@ static lv_obj_t* gui_get_layer_root(Gui* instance, GuiDisplayId display_id, GuiL
         layer = lv_display_get_layer_bottom(display);
     } else if(layer_id == GuiLayerIdMain) {
         layer = lv_display_get_screen_active(display);
+        if(display_id == GuiDisplayIdBack) {
+            // Special case: make room for the status bar
+            lv_obj_set_style_pad_right(layer, BACK_STATUS_BAR_WIDTH, LV_PART_MAIN);
+        }
     } else if(layer_id == GuiLayerIdTop) {
         layer = lv_display_get_layer_top(display);
     } else if(layer_id == GuiLayerIdSystem) {
@@ -133,10 +138,10 @@ static void gui_input_queue_callback(FuriEventLoopObject* object, void* context)
     while(furi_message_queue_get(instance->input_queue, &event, 0) == FuriStatusOk) {
         for(GuiLayerId id = GuiLayerIdSystem; id < GuiLayerIdMax; ++id) {
             GuiLayer* layer = &instance->layers[id];
-            if(gui_layer_feed_user_input(layer, &event)) {
+            if(gui_layer_feed_input(layer, &event)) {
                 break;
             }
-            if(gui_layer_feed_input(layer, &event)) {
+            if(gui_layer_feed_user_input(layer, &event)) {
                 break;
             }
         }
@@ -160,7 +165,7 @@ static void gui_init_front(GuiDisplay* display) {
         FRONT_DRAW_BUFFER_SIZE,
         LV_DISPLAY_RENDER_MODE_DIRECT);
 
-    lv_theme_t* theme = lv_theme_front_alloc(display->lv_display, &lv_font_tiny5_8);
+    lv_theme_t* theme = lv_theme_front_alloc(display->lv_display);
     lv_display_set_theme(display->lv_display, theme);
 }
 
@@ -182,7 +187,7 @@ static void gui_init_back(GuiDisplay* display) {
         back_display_buffer_size,
         LV_DISPLAY_RENDER_MODE_DIRECT);
 
-    lv_theme_t* theme = lv_theme_front_alloc(display->lv_display, &lv_font_haxrcorp4089_16);
+    lv_theme_t* theme = lv_theme_back_alloc(display->lv_display);
     lv_display_set_theme(display->lv_display, theme);
 }
 
@@ -195,6 +200,7 @@ static void gui_init_layers(Gui* instance) {
     for(GuiLayerId layer_id = GuiLayerIdSystem; layer_id < GuiLayerIdMax; ++layer_id) {
         GuiLayer* layer = &instance->layers[layer_id];
         for(GuiDisplayId display_id = 0; display_id < GuiDisplayIdMax; ++display_id) {
+            furi_assert(layer->root_objs[display_id] == NULL);
             layer->root_objs[display_id] = gui_get_layer_root(instance, display_id, layer_id);
         }
         GuiInputItemList_init(layer->input_list);
