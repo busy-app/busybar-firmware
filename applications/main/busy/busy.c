@@ -96,8 +96,8 @@ static BusyApp* busy_alloc(void) {
 }
 
 static void busy_free(BusyApp* instance) {
-    busy_timer_free(instance->busy_timer);
     scene_manager_free(instance->scene_manager);
+    busy_timer_free(instance->busy_timer);
 
     with_gui(instance->gui, {
         GuiLayer* layer = gui_get_layer(instance->gui, GuiLayerIdMain);
