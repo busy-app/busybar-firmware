@@ -4,6 +4,8 @@
 
 #define TAG "HTTP FS"
 
+#define MAX_FILENAME_LEN 255
+
 static int fs_stat(const char* path, size_t* size, time_t* mtime) {
     Storage* fs_api = furi_record_open(RECORD_STORAGE);
     FileInfo file_info;
@@ -28,8 +30,23 @@ static int fs_stat(const char* path, size_t* size, time_t* mtime) {
 }
 
 static void fs_list(const char* path, void (*fn)(const char*, void*), void* userdata) {
-    (void)path, (void)fn, (void)userdata;
-    FURI_LOG_W(TAG, "TODO: %s %s", __func__, path);
+    Storage* fs_api = furi_record_open(RECORD_STORAGE);
+    File* file = storage_file_alloc(fs_api);
+
+    if(storage_dir_open(file, path)) {
+        FileInfo fileinfo;
+        char* name = malloc(MAX_FILENAME_LEN);
+
+        while(storage_dir_read(file, &fileinfo, name, MAX_FILENAME_LEN)) {
+            fn(name, userdata);
+        }
+
+        free(name);
+    }
+
+    storage_dir_close(file);
+    storage_file_free(file);
+    furi_record_close(RECORD_STORAGE);
 }
 
 static void* fs_open(const char* path, int flags) {
@@ -63,25 +80,28 @@ static void fs_close(void* fp) {
 static size_t fs_read(void* fd, void* buf, size_t len) {
     return storage_file_read(fd, buf, len);
 }
+
 static size_t fs_write(void* fd, const void* buf, size_t len) {
     return storage_file_write(fd, buf, len);
 }
+
 static size_t fs_seek(void* fd, size_t offset) {
-    (void)fd, (void)offset;
-    FURI_LOG_W(TAG, "TODO: %s", __func__);
-    return (size_t)~0;
+    return storage_file_seek(fd, offset, true);
 }
+
 static bool fs_rename(const char* from, const char* to) {
     (void)from, (void)to;
     FURI_LOG_W(TAG, "TODO: %s", __func__);
     return false;
 }
+
 static bool fs_remove(const char* path) {
     Storage* fs_api = furi_record_open(RECORD_STORAGE);
     storage_common_remove(fs_api, path);
     furi_record_close(RECORD_STORAGE);
     return false;
 }
+
 static bool fs_mkdir(const char* path) {
     (void)path;
     FURI_LOG_W(TAG, "TODO: %s", __func__);
