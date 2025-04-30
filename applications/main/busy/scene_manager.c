@@ -45,7 +45,11 @@ SceneManager*
     instance->context = context;
 
     for(uint32_t i = 0; i < instance->scene_count; ++i) {
-        instance->scene_data[i] = malloc(instance->scenes[i]->data_size);
+        const size_t data_size = instance->scenes[i]->data_size;
+
+        if(data_size) {
+            instance->scene_data[i] = malloc(data_size);
+        }
     }
 
     SceneIdStack_init(instance->scene_id_stack);
@@ -65,7 +69,11 @@ void scene_manager_free(SceneManager* instance) {
     SceneIdStack_clear(instance->scene_id_stack);
 
     for(uint32_t i = 0; i < instance->scene_count; ++i) {
-        free(instance->scene_data[i]);
+        SceneData* scene_data = instance->scene_data[i];
+
+        if(scene_data) {
+            free(scene_data);
+        }
     }
 
     free(instance->scene_data);
