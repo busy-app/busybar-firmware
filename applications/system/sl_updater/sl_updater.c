@@ -19,6 +19,11 @@
 #include "fkermit.h"
 
 typedef enum {
+    Si917BootloaderModeDefault,
+    Si917BootloaderModeProbe,
+} Si917BootloaderMode;
+
+typedef enum {
     Si917BootloaderStateInit,
     Si917BootloaderStateBoot,
     Si917BootloaderStateChangeBaudRate,
@@ -46,6 +51,7 @@ struct SlUpdater {
     bool is_stack_image;
     uint8_t baud_throttle;
     Si917BootloaderState bootloader_state;
+    Si917BootloaderMode bootloader_mode;
     Storage* storage;
     File* firmware_file;
     kermit_t* kermit;
