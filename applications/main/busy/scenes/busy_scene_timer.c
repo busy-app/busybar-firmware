@@ -71,6 +71,10 @@ static void busy_scene_timer_event_callback(const BusyTimerEvent* event, void* c
     } else if(event->type == BusyTimerEventTypeStateChanged) {
         data->timer_state = event->state;
         busy_send_custom_event(instance, BusyCustomEventTimerStateChanged);
+
+    } else if(event->type == BusyTimerEventTypeIntervalEnded) {
+        data->timer_state = event->state;
+        busy_send_custom_event(instance, BusyCustomEventTimerIntervalEnded);
     }
 }
 
@@ -184,6 +188,9 @@ static bool busy_scene_timer_on_event(const SceneManagerEvent* event, void* cont
 
         } else if(event->event == BusyCustomEventTimerStateChanged) {
             busy_scene_timer_update_state(instance);
+
+        } else if(event->event == BusyCustomEventTimerIntervalEnded) {
+            scene_manager_next_scene(instance->scene_manager, BusyAppSceneIdProgress);
 
         } else if(event->event == BusyCustomEventTimerToggle) {
             busy_scene_timer_toggle_pause(instance);

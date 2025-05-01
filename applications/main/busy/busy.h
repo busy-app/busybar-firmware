@@ -23,6 +23,7 @@
 typedef enum {
     BusyCustomEventTimerTick = 100,
     BusyCustomEventTimerStateChanged,
+    BusyCustomEventTimerIntervalEnded,
     BusyCustomEventTimerToggle,
     BusyCustomEventTimerSkip,
     BusyCustomEventTimeIncrement,

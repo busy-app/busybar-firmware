@@ -26,6 +26,7 @@ typedef enum {
     BusyTimerMessageTypeGetConfig,
     BusyTimerMessageTypeSetConfig,
     BusyTimerMessageTypeGetState,
+    BusyTimerMessageTypeGetCycles,
     BusyTimerMessageTypeSetCallback,
     BusyTimerMessageTypeAddTime,
     BusyTimerMessageTypeToggle,
@@ -41,6 +42,7 @@ typedef struct {
 
 typedef union {
     BusyTimerState state;
+    BusyTimerCycles* cycles;
     BusyTimerConfig* config;
     const BusyTimerConfig* config_c;
     const BusyTimerCallbackInfo* callback_info;
@@ -60,7 +62,7 @@ struct BusyTimer {
     FuriMessageQueue* message_queue;
     BusyTimerCallback callback;
     void* callback_context;
-    uint32_t cycles_left;
+    uint32_t cycles_done;
     BusyTimerConfig config;
     BusyTimerTime time;
     BusyTimerState state;

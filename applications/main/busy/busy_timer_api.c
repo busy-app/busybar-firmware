@@ -34,6 +34,18 @@ BusyTimerState busy_timer_get_state(const BusyTimer* instance) {
     return message.data.state;
 }
 
+void busy_timer_get_cycles(const BusyTimer* instance, BusyTimerCycles* cycles) {
+    furi_assert(instance);
+    furi_assert(cycles);
+
+    BusyTimerMessage message = {
+        .type = BusyTimerMessageTypeGetCycles,
+        .data.cycles = cycles,
+    };
+
+    busy_timer_send_message(instance, &message);
+}
+
 void busy_timer_get_config(const BusyTimer* instance, BusyTimerConfig* config) {
     furi_assert(instance);
     furi_assert(config);
