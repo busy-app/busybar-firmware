@@ -18,13 +18,17 @@ struct TimerCard {
     lv_obj_t* bottom_timer_text;
     lv_obj_t* bottom_static_text;
     lv_image_dsc_t mirror_image_dsc;
+    uint32_t refresh_count;
 };
 
 const lv_obj_class_t timer_card_lvgl_class;
 
 static void timer_card_refresh_callback(lv_event_t* event) {
-    lv_obj_t* image = lv_event_get_user_data(event);
-    lv_obj_invalidate(image);
+    TimerCard* instance = lv_event_get_user_data(event);
+    // Limit mirror refresh rate to half of the original
+    if(instance->refresh_count++ % 2 == 0) {
+        lv_obj_invalidate(instance->mirror_image);
+    }
 }
 
 // LVGL-specific code
@@ -111,10 +115,7 @@ static void timer_card_lvgl_constructor(const lv_obj_class_t* class_p, lv_obj_t*
 
     instance->display = front->lv_display;
     lv_display_add_event_cb(
-        instance->display,
-        timer_card_refresh_callback,
-        LV_EVENT_REFR_READY,
-        instance->mirror_image);
+        instance->display, timer_card_refresh_callback, LV_EVENT_REFR_READY, instance);
 }
 
 static void timer_card_lvgl_destructor(const lv_obj_class_t* class_p, lv_obj_t* obj) {
@@ -122,7 +123,7 @@ static void timer_card_lvgl_destructor(const lv_obj_class_t* class_p, lv_obj_t* 
 
     TimerCard* instance = (TimerCard*)obj;
     lv_display_remove_event_cb_with_user_data(
-        instance->display, timer_card_refresh_callback, instance->mirror_image);
+        instance->display, timer_card_refresh_callback, instance);
     furi_record_close(RECORD_GUI);
 }
 
