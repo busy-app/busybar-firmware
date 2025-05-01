@@ -5,6 +5,7 @@
 #define COLOR_FG_NORMAL  lv_color_hex(0xAAAAAA)
 #define COLOR_BG_FOCUSED lv_color_black()
 #define COLOR_FG_FOCUSED lv_color_white()
+#define COLOR_FG_DIMMED  lv_color_hex(0x777777)
 
 #define SCROLLBAR_WIDTH (3)
 
@@ -115,8 +116,8 @@ static void style_init(my_theme_t* theme) {
     lv_style_set_pad_all(&theme->styles.nav_header, 2);
     lv_style_set_pad_bottom(&theme->styles.nav_header, 4);
     lv_style_set_pad_column(&theme->styles.nav_header, 2);
+    lv_style_set_text_color(&theme->styles.nav_header, COLOR_FG_DIMMED);
     lv_style_set_text_font(&theme->styles.nav_header, theme->base.font_small);
-    lv_style_set_text_color(&theme->styles.nav_header, COLOR_BG_NORMAL);
 
     lv_style_init(&theme->styles.timer_card);
     lv_style_set_bg_color(&theme->styles.timer_card, COLOR_FG_FOCUSED);
