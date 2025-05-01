@@ -172,6 +172,8 @@ void busy_timer_next_state(BusyTimer* instance) {
     instance->cycles_done = busy_timer_calc_cycles_done(instance);
     instance->state = busy_timer_calc_state(instance);
 
+    busy_timer_notify_state_changed(instance);
+
     if(instance->state != BusyTimerStateIdle) {
         instance->time.elapsed_s = 0;
         instance->time.remain_s = busy_timer_calc_remaining_time(instance);
@@ -187,9 +189,8 @@ void busy_timer_next_state(BusyTimer* instance) {
 
     } else {
         furi_event_loop_timer_stop(instance->timer);
+        busy_timer_notify_interval_ended(instance);
     }
-
-    busy_timer_notify_state_changed(instance);
 }
 
 static void busy_timer_callback(void* context) {

@@ -13,17 +13,29 @@ static void busy_scene_progress_on_enter(void* context) {
     BusyApp* instance = context;
     BusySceneProgress* data = scene_manager_get_current_scene_data(instance->scene_manager);
 
-    data->countdown = 3;
-
-    BusyTimerCycles cycles;
-    busy_timer_get_cycles(instance->busy_timer, &cycles);
-
     with_gui(instance->gui, {
         data->front_label = label_alloc(instance->front_window);
-        label_set_text_fmt(
-            data->front_label, "DONE: %lu/%lu", cycles.done_count, cycles.total_count);
         widget_set_align(label_get_base(data->front_label), AlignCenter);
     });
+
+    const BusyTimerState state = busy_timer_get_state(instance->busy_timer);
+
+    if(state == BusyTimerStateRest || state == BusyTimerStateIdle) {
+        BusyTimerCycles cycles;
+        busy_timer_get_cycles(instance->busy_timer, &cycles);
+
+        with_gui(instance->gui, {
+            label_set_text_fmt(
+                data->front_label, "DONE: %lu/%lu", cycles.done_count, cycles.total_count);
+        });
+
+        data->countdown = 3;
+
+    } else if(state == BusyTimerStateWork) {
+        with_gui(instance->gui, { label_set_text(data->front_label, "(rest transition)"); });
+
+        data->countdown = 1;
+    }
 }
 
 static void busy_scene_progress_on_exit(void* context) {
