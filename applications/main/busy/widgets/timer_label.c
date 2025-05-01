@@ -10,6 +10,10 @@
 #define FONT_CONDENSED (&lv_font_ark_numerals_condensed_10)
 #define FONT_SMALLNUM  (&lv_font_ark_numerals_small_10)
 
+#define BLINK_COUNT     (3)
+#define BLINK_DELAY_MS  (100)
+#define BLINK_PERIOD_MS (332)
+
 struct TimerLabel {
     Widget base;
     lv_obj_t* top_layout;
@@ -21,6 +25,13 @@ struct TimerLabel {
 const lv_obj_class_t timer_label_lvgl_class;
 
 // LVGL-specific code
+
+static void timer_label_lvgl_anim_callback(void* context, int32_t value) {
+    furi_assert(context);
+
+    lv_obj_t* instance = context;
+    lv_obj_set_style_opa(instance, value, LV_PART_MAIN);
+}
 
 static void timer_label_lvgl_constructor(const lv_obj_class_t* class_p, lv_obj_t* obj) {
     UNUSED(class_p);
@@ -43,6 +54,25 @@ static void timer_label_lvgl_constructor(const lv_obj_class_t* class_p, lv_obj_t
 
     instance->bottom_label = lv_label_create(obj);
     lv_label_set_text(instance->bottom_label, "LEFT");
+}
+
+// Implementation
+
+static void timer_label_blink(TimerLabel* instance) {
+    lv_anim_t anim;
+    lv_anim_init(&anim);
+
+    lv_anim_set_repeat_count(&anim, BLINK_COUNT);
+    lv_anim_set_values(&anim, LV_OPA_COVER, LV_OPA_TRANSP);
+    lv_anim_set_delay(&anim, BLINK_DELAY_MS);
+    lv_anim_set_duration(&anim, BLINK_PERIOD_MS / 2);
+    lv_anim_set_reverse_duration(&anim, BLINK_PERIOD_MS / 2);
+
+    lv_anim_set_exec_cb(&anim, timer_label_lvgl_anim_callback);
+    lv_anim_set_path_cb(&anim, lv_anim_path_ease_in_out);
+    lv_anim_set_var(&anim, instance);
+
+    lv_anim_start(&anim);
 }
 
 // Public API
@@ -91,6 +121,10 @@ void timer_label_set_time(TimerLabel* instance, uint32_t time_s) {
         lv_obj_set_style_text_font(instance->main_label, FONT_REGULAR, LV_PART_MAIN);
 
         lv_obj_add_flag(instance->seconds_label, LV_OBJ_FLAG_HIDDEN);
+    }
+
+    if(!time_s) {
+        timer_label_blink(instance);
     }
 }
 
