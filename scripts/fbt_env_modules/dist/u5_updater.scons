@@ -1,0 +1,23 @@
+Import("FW_ENV", "DIST_ENV")
+distenv, firmware_env = DIST_ENV, FW_ENV
+
+# Depends: fwenv.resources
+
+# print('BUILD_TARGETS', BUILD_TARGETS)
+
+distenv.SetDefault(
+    UPDATE_BUNDLE_DIR="#dist/${DIST_DIR}/${F_TARGET_HW}-update-${DIST_SUFFIX}",
+)
+
+if GetOption("fullenv") or any(
+    filter(
+        lambda target: isinstance(target, str)
+        and ("updater" in target or "flash_usb" in target),
+        BUILD_TARGETS,
+    )
+):
+    updater_env = distenv.AddFwProject(
+        base_env=distenv["CORE_ENV"],
+        fw_type="updater",
+        fw_env_key="UPD_ENV",
+    )

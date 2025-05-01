@@ -149,10 +149,17 @@ SECTIONS
     . = ALIGN(8);
     PROVIDE ( end = . );
     PROVIDE ( _end = . );
-    . = . + _Min_Heap_Size;
+/*    . = . + _Min_Heap_Size; */
+    __heap_start__ = .;
+    . = ORIGIN(RAM) + LENGTH(RAM) - _Min_Stack_Size;
+    __heap_end__ = .;
+
     . = . + _Min_Stack_Size;
     . = ALIGN(8);
   } >RAM
+
+  /* Store remaining heap size as a symbol address */
+  __heap_size__ = __heap_end__ - __heap_start__;
 
   /* Remove information from the compiler libraries */
   /DISCARD/ :

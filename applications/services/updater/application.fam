@@ -1,0 +1,14 @@
+App(
+    appid="updater",
+    name="UpdaterSvc",
+    apptype=FlipperAppType.SERVICE,
+    entry_point="updater_srv",
+    requires=[
+        "gui",
+        "storage",
+        "busy",  # TODO: resolve theme dependency
+    ],
+    stack_size=2 * 1024,
+    order=200,
+    targets=["f20"],
+)
