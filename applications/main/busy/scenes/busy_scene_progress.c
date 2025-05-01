@@ -4,11 +4,16 @@
 
 typedef struct {
     Label* front_label;
+    uint32_t countdown;
 } BusySceneProgress;
 
 static void busy_scene_progress_on_enter(void* context) {
+    furi_assert(context);
+
     BusyApp* instance = context;
     BusySceneProgress* data = scene_manager_get_current_scene_data(instance->scene_manager);
+
+    data->countdown = 3;
 
     BusyTimerCycles cycles;
     busy_timer_get_cycles(instance->busy_timer, &cycles);
@@ -22,6 +27,8 @@ static void busy_scene_progress_on_enter(void* context) {
 }
 
 static void busy_scene_progress_on_exit(void* context) {
+    furi_assert(context);
+
     BusyApp* instance = context;
     BusySceneProgress* data = scene_manager_get_current_scene_data(instance->scene_manager);
 
@@ -29,11 +36,27 @@ static void busy_scene_progress_on_exit(void* context) {
 }
 
 static bool busy_scene_progress_on_event(const SceneManagerEvent* event, void* context) {
-    BusyApp* instance = context;
-    UNUSED(instance);
-    UNUSED(event);
+    furi_assert(context);
 
-    return true;
+    BusyApp* instance = context;
+    BusySceneProgress* data = scene_manager_get_current_scene_data(instance->scene_manager);
+
+    bool consumed = false;
+
+    if(event->type == SceneManagerEventTypeTick) {
+        data->countdown -= 1;
+
+        if(data->countdown == 0) {
+            scene_manager_next_scene(instance->scene_manager, BusyAppSceneIdNext);
+        }
+
+        consumed = true;
+
+    } else if(event->type == SceneManagerEventTypeBack) {
+        consumed = true;
+    }
+
+    return consumed;
 }
 
 const Scene busy_scene_progress = {

@@ -303,7 +303,7 @@ static void
 }
 
 static void busy_timer_get_state_message_handler(BusyTimer* instance, BusyTimerMessageData* data) {
-    data->state = instance->state;
+    *data->state = instance->state;
 }
 
 static void

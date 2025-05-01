@@ -28,6 +28,8 @@ typedef enum {
     BusyCustomEventTimerSkip,
     BusyCustomEventTimeIncrement,
     BusyCustomEventTimeDecrement,
+    BusyCustomEventStartPressed,
+    BusyCustomEventStartReleased,
 } BusyCustomEvent;
 
 typedef struct {

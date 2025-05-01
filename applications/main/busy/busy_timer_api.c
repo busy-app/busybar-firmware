@@ -26,12 +26,16 @@ void busy_timer_set_callback(BusyTimer* instance, BusyTimerCallback callback, vo
 BusyTimerState busy_timer_get_state(const BusyTimer* instance) {
     furi_assert(instance);
 
+    BusyTimerState state;
+
     BusyTimerMessage message = {
         .type = BusyTimerMessageTypeGetState,
+        .data.state = &state,
     };
 
     busy_timer_send_message(instance, &message);
-    return message.data.state;
+
+    return state;
 }
 
 void busy_timer_get_cycles(const BusyTimer* instance, BusyTimerCycles* cycles) {

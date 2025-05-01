@@ -223,7 +223,6 @@ static void anim_image_set_placeholder(AnimImage* instance) {
     lv_obj_invalidate(instance->canvas);
 }
 
-
 // Public API
 
 AnimImage* anim_image_alloc(Widget* parent) {

@@ -41,7 +41,7 @@ typedef struct {
 } BusyTimerCallbackInfo;
 
 typedef union {
-    BusyTimerState state;
+    BusyTimerState* state;
     BusyTimerCycles* cycles;
     BusyTimerConfig* config;
     const BusyTimerConfig* config_c;
