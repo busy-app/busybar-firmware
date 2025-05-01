@@ -1,0 +1,21 @@
+Import("env")
+
+LIB_DIR="assets"
+
+IMAGES_DIR=LIB_DIR + "/images"
+
+env.AppendUnique(
+    CPPPATH=[
+        Dir(LIB_DIR).srcnode(),
+    ],
+)
+
+libenv = env.Clone(FW_LIB_NAME=LIB_DIR)
+libenv.ApplyLibFlags()
+
+sources = []
+sources += libenv.Glob(IMAGES_DIR + "/*.c", source=True)
+
+lib = libenv.StaticLibrary("${FW_LIB_NAME}", sources)
+libenv.Install("${LIB_DIST_DIR}", lib)
+Return("lib")

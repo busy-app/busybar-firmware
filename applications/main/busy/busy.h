@@ -5,11 +5,12 @@
 #include <gui/gui.h>
 #include <storage/storage.h>
 
+#include <assets/assets_images.h>
+
 #include "busy_timer.h"
 #include "time_macros.h"
 
 #include "scenes/busy_scenes.h"
-#include "compiled_assets/compiled_assets.h"
 
 #define TAG "Busy"
 

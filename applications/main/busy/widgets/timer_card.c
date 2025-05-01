@@ -2,8 +2,9 @@
 
 #include <gui/gui_i.h>
 
+#include <assets/assets_images.h>
+
 #include "../time_macros.h"
-#include "../compiled_assets/compiled_assets.h"
 
 #define MY_CLASS (&timer_card_lvgl_class)
 
