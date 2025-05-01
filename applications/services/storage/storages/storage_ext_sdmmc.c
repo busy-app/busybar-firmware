@@ -1,6 +1,7 @@
 #include <fatfs.h>
 #include <furi_hal.h>
 #include <furi_hal_sdmmc.h>
+#include <furi_hal_nvm.h>
 
 #include "storage_ext_sdmmc.h"
 
@@ -171,7 +172,7 @@ FS_Error sd_mount_card(StorageData* storage) {
 
 #ifndef FURI_RAM_EXEC
 #if false
-        if(furi_hal_rtc_is_flag_set(FuriHalRtcFlagStorageFormatInternal)) {
+        if(furi_hal_nvm_is_flag_set(FuriHalNvmFlagStorageFormatInternal)) {
 #endif
         if(false) {
             FURI_LOG_I(TAG, "deleting internal storage directory");
@@ -702,6 +703,6 @@ void storage_ext_init(StorageData* storage) {
     sd_presence_changed(storage);
 #ifndef FURI_RAM_EXEC
     // always reset the flag to prevent accidental wipe on SD card insertion
-    // furi_hal_rtc_reset_flag(FuriHalRtcFlagStorageFormatInternal);
+    furi_hal_nvm_reset_flag(FuriHalNvmFlagStorageFormatInternal);
 #endif
 }

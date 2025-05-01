@@ -46,6 +46,7 @@ MEMORY
 {
   RAM   (xrw) : ORIGIN = 0x20000000, LENGTH = 2496K
   SRAM4 (xrw) : ORIGIN = 0x28000000, LENGTH = 16K
+  BKPSRAM (rw) : ORIGIN = 0x40036400, LENGTH = 2K
   FLASH (rx)  : ORIGIN = 0x08000000, LENGTH = 2048K
 }
 
@@ -159,6 +160,13 @@ SECTIONS
 
   /* Store remaining heap size as a symbol address */
   __heap_size__ = __heap_end__ - __heap_start__;
+
+  /* Store boundaries for BKPSRAM */
+  __bkp_start__ = ORIGIN(BKPSRAM);
+  __bkp_end__ = ORIGIN(BKPSRAM) + LENGTH(BKPSRAM);
+  __bkp_size__ = LENGTH(BKPSRAM);
+
+  /*  NVM_RAM (NOLOAD)        : { *(NVM_RAM) } >BKPSRAM */
 
   /* Remove information from the compiler libraries */
   /*

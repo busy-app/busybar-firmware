@@ -177,13 +177,14 @@ static void theme_apply_callback(lv_theme_t* th, lv_obj_t* obj) {
         lv_obj_add_style(obj, &theme->styles.transparent, LV_PART_MAIN);
         lv_obj_add_style(obj, &theme->styles.focused, LV_PART_MAIN | LV_STATE_FOCUSED);
         lv_obj_add_style(obj, &theme->styles.submenu_cursor, LV_PART_MAIN);
-
+#ifndef FURI_RAM_EXEC
     } else if(lv_obj_check_type(obj, &nav_header_lvgl_class)) {
         lv_obj_add_style(obj, &theme->styles.normal, LV_PART_MAIN);
         lv_obj_add_style(obj, &theme->styles.nav_header, LV_PART_MAIN);
 
     } else if(lv_obj_check_type(obj, &timer_card_lvgl_class)) {
         lv_obj_add_style(obj, &theme->styles.timer_card, LV_PART_MAIN);
+#endif
     }
 }
 

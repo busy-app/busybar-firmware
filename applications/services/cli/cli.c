@@ -475,8 +475,8 @@ int32_t cli_srv(void* p) {
 
     cli_session_open(cli, &cli_session);
 
-    //TODO: Implement furi_hal_rtc_get_boot_mode
-    // if(furi_hal_rtc_get_boot_mode() == FuriHalRtcBootModeNormal) {
+    //TODO: Implement furi_hal_nvm_get_boot_mode
+    // if(furi_hal_rtc_get_boot_mode() == FuriHalNvmBootModeNormal) {
     //     cli_session_open(cli, &cli_vcp);
     // } else {
     //     FURI_LOG_W(TAG, "Skipping start in special boot mode");
