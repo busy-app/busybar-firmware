@@ -307,6 +307,10 @@ static void busy_timer_get_state_message_handler(BusyTimer* instance, BusyTimerM
     *data->state = instance->state;
 }
 
+static void busy_timer_get_time_message_handler(BusyTimer* instance, BusyTimerMessageData* data) {
+    *data->time = instance->time;
+}
+
 static void
     busy_timer_get_cycles_message_handler(BusyTimer* instance, BusyTimerMessageData* data) {
     data->cycles->total_count = instance->config.cycle_count;
@@ -387,6 +391,7 @@ static const BusyTimerMessageHandler busy_timer_message_handlers[BusyTimerMessag
     [BusyTimerMessageTypeGetConfig] = busy_timer_get_config_message_handler,
     [BusyTimerMessageTypeSetConfig] = busy_timer_set_config_message_handler,
     [BusyTimerMessageTypeGetState] = busy_timer_get_state_message_handler,
+    [BusyTimerMessageTypeGetTime] = busy_timer_get_time_message_handler,
     [BusyTimerMessageTypeGetCycles] = busy_timer_get_cycles_message_handler,
     [BusyTimerMessageTypeSetCallback] = busy_timer_set_callback_message_handler,
     [BusyTimerMessageTypeAddTime] = busy_timer_add_time_message_handler,

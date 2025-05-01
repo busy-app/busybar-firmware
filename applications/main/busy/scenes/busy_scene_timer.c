@@ -155,14 +155,16 @@ static void busy_scene_timer_on_enter(void* context) {
     busy_timer_set_callback(instance->busy_timer, busy_scene_timer_event_callback, instance);
 
     data->timer_state = busy_timer_get_state(instance->busy_timer);
+    busy_timer_get_time(instance->busy_timer, &data->timer_time);
 
     if(data->timer_state == BusyTimerStateIdle) {
         busy_timer_start(instance->busy_timer);
     } else {
         busy_timer_toggle(instance->busy_timer);
-        busy_scene_timer_update_tick(instance);
-        busy_scene_timer_update_state(instance);
     }
+
+    busy_scene_timer_update_tick(instance);
+    busy_scene_timer_update_state(instance);
 }
 
 static void busy_scene_timer_on_exit(void* context) {

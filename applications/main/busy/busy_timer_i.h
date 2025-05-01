@@ -26,6 +26,7 @@ typedef enum {
     BusyTimerMessageTypeGetConfig,
     BusyTimerMessageTypeSetConfig,
     BusyTimerMessageTypeGetState,
+    BusyTimerMessageTypeGetTime,
     BusyTimerMessageTypeGetCycles,
     BusyTimerMessageTypeSetCallback,
     BusyTimerMessageTypeAddTime,
@@ -42,6 +43,7 @@ typedef struct {
 
 typedef union {
     BusyTimerState* state;
+    BusyTimerTime* time;
     BusyTimerCycles* cycles;
     BusyTimerConfig* config;
     const BusyTimerConfig* config_c;

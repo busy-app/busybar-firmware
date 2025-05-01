@@ -75,6 +75,8 @@ void busy_timer_set_callback(BusyTimer* instance, BusyTimerCallback callback, vo
 
 BusyTimerState busy_timer_get_state(const BusyTimer* instance);
 
+void busy_timer_get_time(const BusyTimer* instance, BusyTimerTime* time);
+
 void busy_timer_get_cycles(const BusyTimer* instance, BusyTimerCycles* cycles);
 
 void busy_timer_get_config(const BusyTimer* instance, BusyTimerConfig* config);
