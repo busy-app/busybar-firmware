@@ -5,6 +5,8 @@
 #include <gui/widget_i.h>
 #include <storage/storage.h>
 
+#include <assets/assets_images.h>
+
 #define TAG "AnimImage"
 
 #define ANIM_IMAGE_FILE_MAGIC     (0x69)
@@ -213,6 +215,15 @@ static void anim_image_set_range_internal(
     }
 }
 
+static void anim_image_set_placeholder(AnimImage* instance) {
+    const lv_image_header_t* header = &I_load_error_9x9.header;
+    void* data = (void*)I_load_error_9x9.data;
+
+    lv_canvas_set_buffer(instance->canvas, data, header->w, header->h, header->cf);
+    lv_obj_invalidate(instance->canvas);
+}
+
+
 // Public API
 
 AnimImage* anim_image_alloc(Widget* parent) {
@@ -284,6 +295,9 @@ bool anim_image_set_source(AnimImage* instance, const char* file_path) {
         lv_timer_set_period(instance->timer, 1000 / header.fps);
 
         anim_image_set_range_internal(instance, 0, header.frame_count - 1, true, false);
+
+    } else {
+        anim_image_set_placeholder(instance);
     }
 
     return success;
