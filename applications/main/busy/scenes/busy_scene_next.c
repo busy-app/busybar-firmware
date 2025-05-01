@@ -89,8 +89,16 @@ static bool busy_scene_next_on_event(const SceneManagerEvent* event, void* conte
             // TODO: Play different animation sequence
 
         } else if(event->event == BusyCustomEventStartReleased) {
-            scene_manager_search_and_switch_to_previous_scene(
-                instance->scene_manager, BusyAppSceneIdTimer);
+            const BusySceneNext* data =
+                scene_manager_get_current_scene_data(instance->scene_manager);
+
+            if(data->timer_state == BusyTimerStateIdle) {
+                scene_manager_search_and_switch_to_previous_scene(
+                    instance->scene_manager, BusyAppSceneIdStart);
+            } else {
+                scene_manager_search_and_switch_to_previous_scene(
+                    instance->scene_manager, BusyAppSceneIdTimer);
+            }
         }
 
         consumed = true;
