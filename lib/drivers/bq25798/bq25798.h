@@ -48,6 +48,8 @@ bool bq25798_charge_enable(FuriHalI2cBusHandle* handle, bool enabled);
 
 void bq25798_power_switch(FuriHalI2cBusHandle* handle, Bq25798PowerSwitch mode);
 
+bool bq25798_adc_enable(FuriHalI2cBusHandle* handle, bool enabled);
+
 #ifdef __cplusplus
 }
 #endif

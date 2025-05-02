@@ -7,6 +7,32 @@
 
 #define I_IN_MAX_DEFAULT 500
 
+typedef enum {
+    TsCool_5 = 0x00,
+    TsCool_10 = 0x01,
+    TsCool_15 = 0x02,
+    TsCool_20 = 0x03,
+} TsCool;
+
+typedef enum {
+    TsWarm_40 = 0x00,
+    TsWarm_45 = 0x01,
+    TsWarm_50 = 0x02,
+    TsWarm_55 = 0x03,
+} TsWarm;
+
+typedef enum {
+    BHot_55 = 0x00,
+    BHot_60 = 0x01,
+    BHot_65 = 0x02,
+    BHot_Disable = 0x03,
+} BHot;
+
+typedef enum {
+    BCold_n10 = 0x00, // -10C
+    BCold_n20 = 0x01, // -20C
+} BCold;
+
 static bool
     bq25798_read_mem(FuriHalI2cBusHandle* handle, uint8_t mem_addr, uint8_t* data, size_t len) {
     return furi_hal_i2c_read_mem(
@@ -76,7 +102,7 @@ bool bq25798_set_cfg(FuriHalI2cBusHandle* handle) {
     }
 
     {
-        // ADC enable
+        // ADC enable, continuous mode, 15 bit, avg off
         Bq25798Reg2EADCControl reg = {.ADC_EN = 1};
         bq25798_write_reg_8(handle, BQ25798_REG2E_ADC_CONTROL, *(uint8_t*)&reg);
     }
@@ -118,10 +144,10 @@ bool bq25798_set_cfg(FuriHalI2cBusHandle* handle) {
     bq25798_write_reg_8(handle, BQ25798_REG17_NTC_CONTROL_0, *(uint8_t*)&ntc_cfg0_temp);
 
     Bq25798Reg18NtcControl1 ntc_cfg1_temp = {
-        .TS_COOL = 1,
-        .TS_WARM = 1,
-        .BHOT = 1,
-        .BCOLD = 0,
+        .TS_COOL = TsCool_5,
+        .TS_WARM = TsWarm_55,
+        .BHOT = BHot_60,
+        .BCOLD = BCold_n10,
         .TS_IGNORE = 0,
     };
     bq25798_write_reg_8(handle, BQ25798_REG18_NTC_CONTROL_1, *(uint8_t*)&ntc_cfg1_temp);
@@ -130,6 +156,14 @@ bool bq25798_set_cfg(FuriHalI2cBusHandle* handle) {
     bq25798_set_input_current_limit(handle, I_IN_MAX_DEFAULT);
 
     return true;
+}
+
+bool bq25798_adc_enable(FuriHalI2cBusHandle* handle, bool enabled) {
+    furi_assert(handle);
+
+    Bq25798Reg2EADCControl reg_temp = {0};
+    reg_temp.ADC_EN = enabled;
+    return bq25798_write_reg_8(handle, BQ25798_REG2E_ADC_CONTROL, *(uint8_t*)&reg_temp);
 }
 
 bool bq25798_get_charger_status(FuriHalI2cBusHandle* handle, Bq25798ChargerStatus* status) {
@@ -177,11 +211,28 @@ bool bq25798_get_adc_values(FuriHalI2cBusHandle* handle, Bq25798AdcValues* value
     values->usb_v = (regs_data[4] << 8) | regs_data[5];
 
     ret = bq25798_read_mem(handle, BQ25798_REG3B_VBAT_ADC, regs_data, 4 * 2);
+    if(!ret) {
+        return ret;
+    }
 
     values->bat_v = (regs_data[0] << 8) | regs_data[1];
     values->sys_v = (regs_data[2] << 8) | regs_data[3];
     values->temp_bat_pct = ((regs_data[4] << 8) | regs_data[5]) * 0.0976563f;
     values->temp_charger = ((regs_data[6] << 8) | regs_data[7]) * 0.5f;
+
+#if 0
+    {
+        // Debug sudden ADC shutdown. It can happen on charger disconnect if battery voltage is lower than 2.8V.
+        
+        uint8_t adc_functions[3] = {0};
+        ret = bq25798_read_mem(handle, BQ25798_REG2E_ADC_CONTROL, adc_functions, 3);
+        if(!ret) {
+            return ret;
+        }
+
+        FURI_LOG_I(TAG, "ADC: %x %x %x", adc_functions[0], adc_functions[1], adc_functions[2]);
+    }
+#endif
 
     return ret;
 }
