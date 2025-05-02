@@ -1,9 +1,17 @@
 #include "../busy.h"
 
 #include <gui/modules/label.h>
+#include <gui/modules/anim_image.h>
+
+#define WAIT_ANIM_BEGIN (0)
+#define WAIT_ANIM_END   (179)
+
+#define PRESS_ANIM_BEGIN (180)
+#define PRESS_ANIM_END   (185)
 
 typedef struct {
     Label* front_label;
+    AnimImage* front_anim;
     BusyTimerState timer_state;
 } BusySceneNext;
 
@@ -46,17 +54,24 @@ static void busy_scene_next_on_enter(void* context) {
         GuiLayer* layer = gui_get_layer(instance->gui, GuiLayerIdMain);
         gui_layer_add_input_callback(layer, busy_scene_next_input_callback, instance);
 
-        data->front_label = label_alloc(instance->front_window);
-
         if(state == BusyTimerStateIdle) {
+            data->front_label = label_alloc(instance->front_window);
             label_set_text(data->front_label, "FINISHED!");
-        } else if(state == BusyTimerStateWork) {
-            label_set_text(data->front_label, "BUSY...");
-        } else if(state == BusyTimerStateRest) {
-            label_set_text(data->front_label, "REST...");
-        }
+            widget_set_align(label_get_base(data->front_label), AlignCenter);
 
-        widget_set_align(label_get_base(data->front_label), AlignCenter);
+        } else {
+            data->front_anim = anim_image_alloc(instance->front_window);
+
+            if(state == BusyTimerStateWork) {
+                anim_image_set_source(
+                    data->front_anim, BUSY_ANIM_PATH("A_busy_waiting_72x16.anim"));
+            } else if(state == BusyTimerStateRest) {
+                anim_image_set_source(
+                    data->front_anim, BUSY_ANIM_PATH("A_rest_waiting_72x16.anim"));
+            }
+
+            anim_image_set_range(data->front_anim, WAIT_ANIM_BEGIN, WAIT_ANIM_END, true, false);
+        }
     });
 
     data->timer_state = state;
@@ -72,7 +87,15 @@ static void busy_scene_next_on_exit(void* context) {
         GuiLayer* layer = gui_get_layer(instance->gui, GuiLayerIdMain);
         gui_layer_remove_input_callback(layer, busy_scene_next_input_callback);
 
-        label_free(data->front_label);
+        if(data->front_label) {
+            label_free(data->front_label);
+            data->front_label = NULL;
+        }
+
+        if(data->front_anim) {
+            anim_image_free(data->front_anim);
+            data->front_anim = NULL;
+        }
     });
 }
 
@@ -85,13 +108,15 @@ static bool busy_scene_next_on_event(const SceneManagerEvent* event, void* conte
     bool consumed = false;
 
     if(event->type == SceneManagerEventTypeCustom) {
+        const BusySceneNext* data = scene_manager_get_current_scene_data(instance->scene_manager);
+
         if(event->event == BusyCustomEventStartPressed) {
-            // TODO: Play different animation sequence
+            if(data->front_anim) {
+                anim_image_set_range(
+                    data->front_anim, PRESS_ANIM_BEGIN, PRESS_ANIM_END, false, false);
+            }
 
         } else if(event->event == BusyCustomEventStartReleased) {
-            const BusySceneNext* data =
-                scene_manager_get_current_scene_data(instance->scene_manager);
-
             if(data->timer_state == BusyTimerStateIdle) {
                 scene_manager_search_and_switch_to_previous_scene(
                     instance->scene_manager, BusyAppSceneIdStart);
