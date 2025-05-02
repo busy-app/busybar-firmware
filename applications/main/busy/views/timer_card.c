@@ -2,8 +2,9 @@
 
 #include <gui/gui_i.h>
 
+#include <assets/assets_images.h>
+
 #include "../time_macros.h"
-#include "../compiled_assets/compiled_assets.h"
 
 #define MY_CLASS (&timer_card_lvgl_class)
 
@@ -17,13 +18,17 @@ struct TimerCard {
     lv_obj_t* bottom_timer_text;
     lv_obj_t* bottom_static_text;
     lv_image_dsc_t mirror_image_dsc;
+    uint32_t refresh_count;
 };
 
 const lv_obj_class_t timer_card_lvgl_class;
 
 static void timer_card_refresh_callback(lv_event_t* event) {
-    lv_obj_t* image = lv_event_get_user_data(event);
-    lv_obj_invalidate(image);
+    TimerCard* instance = lv_event_get_user_data(event);
+    // Limit mirror refresh rate to half of the original
+    if(instance->refresh_count++ % 2 == 0) {
+        lv_obj_invalidate(instance->mirror_image);
+    }
 }
 
 // LVGL-specific code
@@ -39,7 +44,7 @@ static void timer_card_lvgl_constructor(const lv_obj_class_t* class_p, lv_obj_t*
     lv_obj_set_flex_flow(top_layout, LV_FLEX_FLOW_ROW);
     lv_obj_set_flex_align(
         top_layout, LV_FLEX_ALIGN_START, LV_FLEX_ALIGN_CENTER, LV_FLEX_ALIGN_START);
-    lv_obj_set_style_pad_ver(top_layout, 5, LV_PART_MAIN);
+    // lv_obj_set_style_pad_ver(top_layout, 5, LV_PART_MAIN);
     lv_obj_set_style_pad_column(top_layout, 4, LV_PART_MAIN);
 
     TimerCard* instance = (TimerCard*)obj;
@@ -92,28 +97,24 @@ static void timer_card_lvgl_constructor(const lv_obj_class_t* class_p, lv_obj_t*
     lv_obj_set_size(bottom_layout, LV_SIZE_CONTENT, LV_SIZE_CONTENT);
     lv_obj_set_flex_flow(bottom_layout, LV_FLEX_FLOW_ROW);
     lv_obj_set_flex_align(
-        bottom_layout, LV_FLEX_ALIGN_START, LV_FLEX_ALIGN_CENTER, LV_FLEX_ALIGN_START);
+        bottom_layout, LV_FLEX_ALIGN_START, LV_FLEX_ALIGN_END, LV_FLEX_ALIGN_END);
     lv_obj_set_style_bg_opa(bottom_layout, LV_OPA_TRANSP, LV_PART_MAIN);
-    lv_obj_set_style_pad_ver(bottom_layout, 3, LV_PART_MAIN);
-    lv_obj_set_style_pad_column(bottom_layout, 4, LV_PART_MAIN);
+    lv_obj_set_style_pad_column(bottom_layout, 2, LV_PART_MAIN);
+    lv_obj_set_style_margin_ver(bottom_layout, -2, LV_PART_MAIN);
 
     instance->bottom_timer_text = lv_label_create(bottom_layout);
     lv_obj_set_style_text_color(instance->bottom_timer_text, lv_color_black(), LV_PART_MAIN);
-    lv_obj_set_style_text_font(
-        instance->bottom_timer_text, &lv_font_ark_numerals_regular_10, LV_PART_MAIN);
 
     instance->bottom_static_text = lv_label_create(bottom_layout);
     lv_label_set_text(instance->bottom_static_text, "LEFT");
     lv_obj_set_style_text_color(instance->bottom_static_text, lv_color_black(), LV_PART_MAIN);
     lv_obj_set_style_text_font(
         instance->bottom_static_text, lv_theme_get_font_small(obj), LV_PART_MAIN);
+    lv_obj_set_style_translate_y(instance->bottom_static_text, -2, LV_PART_MAIN);
 
     instance->display = front->lv_display;
     lv_display_add_event_cb(
-        instance->display,
-        timer_card_refresh_callback,
-        LV_EVENT_REFR_READY,
-        instance->mirror_image);
+        instance->display, timer_card_refresh_callback, LV_EVENT_REFR_READY, instance);
 }
 
 static void timer_card_lvgl_destructor(const lv_obj_class_t* class_p, lv_obj_t* obj) {
@@ -121,7 +122,7 @@ static void timer_card_lvgl_destructor(const lv_obj_class_t* class_p, lv_obj_t* 
 
     TimerCard* instance = (TimerCard*)obj;
     lv_display_remove_event_cb_with_user_data(
-        instance->display, timer_card_refresh_callback, instance->mirror_image);
+        instance->display, timer_card_refresh_callback, instance);
     furi_record_close(RECORD_GUI);
 }
 
@@ -185,7 +186,7 @@ const lv_obj_class_t timer_card_lvgl_class = {
     .constructor_cb = timer_card_lvgl_constructor,
     .destructor_cb = timer_card_lvgl_destructor,
     .name = "widget-timer-card",
-    .width_def = LV_SIZE_CONTENT,
+    .width_def = LV_PCT(100),
     .height_def = LV_SIZE_CONTENT,
     .instance_size = sizeof(TimerCard),
 };

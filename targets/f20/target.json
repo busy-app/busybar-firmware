@@ -117,6 +117,7 @@
         "furi",
         "drivers",
         "version",
+        "assets",
         "ext_applications",
         "firmware_applications_f20"
     ],

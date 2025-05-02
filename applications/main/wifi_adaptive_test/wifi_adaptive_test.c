@@ -156,7 +156,6 @@ static WifiAdaptiveTest* wifi_adaptive_test_alloc(void) {
         instance->label_status = label_alloc(root);
         widget_set_pos_y(label_get_base(instance->label_status), 60);
         widget_set_height(label_get_base(instance->label_status), 30);
-        //widget_set_visible(label_get_base(instance->label_status), false);
 
         instance->label = label_alloc(top_layer_root);
         label_set_text(

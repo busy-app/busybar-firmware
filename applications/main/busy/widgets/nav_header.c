@@ -30,14 +30,6 @@ static void nav_header_lvgl_constructor(const lv_obj_class_t* class_p, lv_obj_t*
     NavHeader* instance = (NavHeader*)obj;
     instance->image = lv_image_create(obj);
     instance->breadcrumbs = lv_label_create(obj);
-    // instance->breadcrumbs = lv_obj_class_create_obj(MY_BCRUMBS_CLASS, obj);
-    // lv_obj_class_init_obj(instance->breadcrumbs);
-
-    // TODO: Set these parameters in theme
-    lv_obj_set_style_bg_opa(instance->breadcrumbs, LV_OPA_COVER, LV_PART_MAIN);
-    lv_obj_set_style_bg_color(instance->breadcrumbs, lv_color_hex(0x666666), LV_PART_MAIN);
-    lv_obj_set_style_pad_hor(instance->breadcrumbs, 2, LV_PART_MAIN);
-    lv_obj_set_style_pad_ver(instance->breadcrumbs, 1, LV_PART_MAIN);
 
     LocationStack_init(instance->locations);
 }
@@ -129,11 +121,4 @@ const lv_obj_class_t nav_header_lvgl_class = {
     .width_def = LV_SIZE_CONTENT,
     .height_def = LV_SIZE_CONTENT,
     .instance_size = sizeof(NavHeader),
-};
-
-const lv_obj_class_t nav_header_lvgl_bcrumbs_class = {
-    .base_class = &lv_label_class,
-    .name = "widget-nav-header-bcrumbs",
-    .width_def = LV_SIZE_CONTENT,
-    .height_def = LV_SIZE_CONTENT,
 };

@@ -54,7 +54,7 @@ static void busy_timer_log_time(BusyTimer* instance) {
 }
 #endif
 
-static void busy_timer_notify_tick(BusyTimer* instance) {
+static void busy_timer_notify_tick(const BusyTimer* instance) {
 #ifdef BUSY_TIMER_TICK_DEBUG
     busy_timer_log_time(instance);
 #endif
@@ -69,7 +69,7 @@ static void busy_timer_notify_tick(BusyTimer* instance) {
     }
 }
 
-static void busy_timer_notify_state_changed(BusyTimer* instance) {
+static void busy_timer_notify_state_changed(const BusyTimer* instance) {
     FURI_LOG_D(TAG, "State changed: %s", busy_timer_get_state_name(instance->state));
 
     if(instance->callback) {
@@ -82,15 +82,35 @@ static void busy_timer_notify_state_changed(BusyTimer* instance) {
     }
 }
 
-static BusyTimerState busy_timer_calc_state(BusyTimer* instance) {
+static void busy_timer_notify_interval_ended(const BusyTimer* instance) {
+    FURI_LOG_D(TAG, "Interval ended: %s", busy_timer_get_state_name(instance->state));
+
+    if(instance->callback) {
+        const BusyTimerEvent event = {
+            .type = BusyTimerEventTypeIntervalEnded,
+            .state = instance->state,
+        };
+
+        instance->callback(&event, instance->callback_context);
+    }
+}
+
+static BusyTimerState busy_timer_calc_state(const BusyTimer* instance) {
     BusyTimerState state;
 
     if(instance->state == BusyTimerStateIdle) {
         state = BusyTimerStateWork;
+
     } else if(instance->state == BusyTimerStateWork) {
-        state = BusyTimerStateRest;
+        if(instance->cycles_done == instance->config.cycle_count) {
+            state = BusyTimerStateIdle;
+        } else {
+            state = BusyTimerStateRest;
+        }
+
     } else if(instance->state == BusyTimerStateRest) {
         state = BusyTimerStateWork;
+
     } else {
         furi_crash();
     }
@@ -98,7 +118,7 @@ static BusyTimerState busy_timer_calc_state(BusyTimer* instance) {
     return state;
 }
 
-static uint32_t busy_timer_calc_remaining_time(BusyTimer* instance) {
+static uint32_t busy_timer_calc_remaining_time(const BusyTimer* instance) {
     uint32_t interval_s;
 
     if(instance->state == BusyTimerStateWork) {
@@ -110,6 +130,21 @@ static uint32_t busy_timer_calc_remaining_time(BusyTimer* instance) {
     }
 
     return interval_s;
+}
+
+// Called BEFORE calculating the state
+static uint32_t busy_timer_calc_cycles_done(const BusyTimer* instance) {
+    if(instance->state == BusyTimerStateIdle) {
+        return 0;
+    } else if(instance->state == BusyTimerStateWork) {
+        return instance->cycles_done + 1;
+    } else {
+        return instance->cycles_done;
+    }
+}
+
+static uint32_t busy_timer_calc_timeout(const BusyTimer* instance) {
+    return instance->config.enable_speed ? S_TO_MS(1) / SPEED_MULTIPLIER : S_TO_MS(1);
 }
 
 // static void busy_play_finished_sound(BusyApp* instance) {
@@ -132,21 +167,41 @@ static uint32_t busy_timer_calc_remaining_time(BusyTimer* instance) {
 //     }
 // }
 
-void busy_timer_next_state(BusyTimer* instance) {
+static bool busy_timer_is_running(const BusyTimer* instance) {
+    return furi_event_loop_timer_is_running(instance->timer);
+}
+
+static void busy_timer_start_timer(BusyTimer* instance) {
+    furi_event_loop_timer_start(instance->timer, busy_timer_calc_timeout(instance));
+}
+
+static void busy_timer_stop_timer(BusyTimer* instance) {
+    furi_event_loop_timer_stop(instance->timer);
+}
+
+void busy_timer_next_state(BusyTimer* instance, bool force) {
     FURI_LOG_I(TAG, "Current state: %s", busy_timer_get_state_name(instance->state));
 
+    instance->cycles_done = busy_timer_calc_cycles_done(instance);
     instance->state = busy_timer_calc_state(instance);
-    instance->time.elapsed_s = 0;
-    instance->time.remain_s = busy_timer_calc_remaining_time(instance);
-
-    const uint32_t timeout_ms = instance->config.enable_speed ? S_TO_MS(1) / SPEED_MULTIPLIER :
-                                                                S_TO_MS(1);
-    furi_event_loop_timer_start(instance->timer, timeout_ms);
-
-    busy_timer_notify_state_changed(instance);
 
     if(instance->state != BusyTimerStateIdle) {
-        busy_timer_notify_tick(instance);
+        instance->time.elapsed_s = 0;
+        instance->time.remain_s = busy_timer_calc_remaining_time(instance);
+
+        if(instance->config.enable_autostart || force) {
+            busy_timer_start_timer(instance);
+            busy_timer_notify_state_changed(instance);
+            busy_timer_notify_tick(instance);
+
+        } else {
+            busy_timer_stop_timer(instance);
+            busy_timer_notify_interval_ended(instance);
+        }
+
+    } else {
+        busy_timer_stop_timer(instance);
+        busy_timer_notify_interval_ended(instance);
     }
 }
 
@@ -161,7 +216,7 @@ static void busy_timer_callback(void* context) {
         busy_timer_notify_tick(instance);
 
     } else {
-        busy_timer_next_state(instance);
+        busy_timer_next_state(instance, false);
     }
 }
 
@@ -233,16 +288,24 @@ static void busy_timer_start_message_handler(BusyTimer* instance, BusyTimerMessa
 
     FURI_LOG_I(TAG, "Starting");
 
-    instance->state = BusyTimerStateIdle;
-    busy_timer_next_state(instance);
+    if(instance->state == BusyTimerStateIdle) {
+        busy_timer_next_state(instance, true);
 
-    FURI_LOG_I(TAG, "Started");
+        FURI_LOG_I(TAG, "Started");
+
+    } else {
+        busy_timer_start_timer(instance);
+        busy_timer_notify_state_changed(instance);
+        busy_timer_notify_tick(instance);
+
+        FURI_LOG_I(TAG, "Resumed");
+    }
 }
 
 static void busy_timer_stop_message_handler(BusyTimer* instance, BusyTimerMessageData* data) {
     UNUSED(data);
 
-    furi_event_loop_timer_stop(instance->timer);
+    busy_timer_stop_timer(instance);
     instance->state = BusyTimerStateIdle;
 
     FURI_LOG_I(TAG, "Stopped");
@@ -259,7 +322,17 @@ static void
 }
 
 static void busy_timer_get_state_message_handler(BusyTimer* instance, BusyTimerMessageData* data) {
-    data->state = instance->state;
+    *data->state = instance->state;
+}
+
+static void busy_timer_get_time_message_handler(BusyTimer* instance, BusyTimerMessageData* data) {
+    *data->time = instance->time;
+}
+
+static void
+    busy_timer_get_cycles_message_handler(BusyTimer* instance, BusyTimerMessageData* data) {
+    data->cycles->total_count = instance->config.cycle_count;
+    data->cycles->done_count = instance->cycles_done;
 }
 
 static void
@@ -270,7 +343,7 @@ static void
 
 static void busy_timer_add_time_message_handler(BusyTimer* instance, BusyTimerMessageData* data) {
     // Ignore if the timer is not running (paused)
-    if(!furi_event_loop_timer_is_running(instance->timer)) {
+    if(!busy_timer_is_running(instance)) {
         return;
     }
 
@@ -307,7 +380,7 @@ static void busy_timer_add_time_message_handler(BusyTimer* instance, BusyTimerMe
     instance->time.remain_s =
         CLAMP(time_remaining_s, BUSY_TIMER_TIME_MAX_S, BUSY_TIMER_TIME_MIN_S);
 
-    furi_event_loop_timer_restart(instance->timer);
+    busy_timer_start_timer(instance);
     busy_timer_notify_tick(instance);
 
     FURI_LOG_I(TAG, "Interval override");
@@ -316,18 +389,22 @@ static void busy_timer_add_time_message_handler(BusyTimer* instance, BusyTimerMe
 static void busy_timer_toggle_message_handler(BusyTimer* instance, BusyTimerMessageData* data) {
     UNUSED(data);
 
-    if(furi_event_loop_timer_is_running(instance->timer)) {
-        furi_event_loop_timer_stop(instance->timer);
+    if(busy_timer_is_running(instance)) {
+        busy_timer_stop_timer(instance);
         FURI_LOG_I(TAG, "Paused");
+
     } else {
-        furi_event_loop_timer_restart(instance->timer);
+        busy_timer_start_timer(instance);
         FURI_LOG_I(TAG, "Resumed");
     }
 }
 
 static void busy_timer_skip_message_handler(BusyTimer* instance, BusyTimerMessageData* data) {
     UNUSED(data);
-    busy_timer_next_state(instance);
+
+    if(busy_timer_is_running(instance)) {
+        busy_timer_next_state(instance, true);
+    }
 }
 
 static const BusyTimerMessageHandler busy_timer_message_handlers[BusyTimerMessageTypeMax] = {
@@ -336,6 +413,8 @@ static const BusyTimerMessageHandler busy_timer_message_handlers[BusyTimerMessag
     [BusyTimerMessageTypeGetConfig] = busy_timer_get_config_message_handler,
     [BusyTimerMessageTypeSetConfig] = busy_timer_set_config_message_handler,
     [BusyTimerMessageTypeGetState] = busy_timer_get_state_message_handler,
+    [BusyTimerMessageTypeGetTime] = busy_timer_get_time_message_handler,
+    [BusyTimerMessageTypeGetCycles] = busy_timer_get_cycles_message_handler,
     [BusyTimerMessageTypeSetCallback] = busy_timer_set_callback_message_handler,
     [BusyTimerMessageTypeAddTime] = busy_timer_add_time_message_handler,
     [BusyTimerMessageTypeToggle] = busy_timer_toggle_message_handler,

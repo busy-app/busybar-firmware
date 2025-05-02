@@ -33,6 +33,7 @@ typedef enum {
 typedef enum {
     BusyTimerEventTypeTick,
     BusyTimerEventTypeStateChanged,
+    BusyTimerEventTypeIntervalEnded,
     BusyTimerEventTypeMax,
 } BusyTimerEventType;
 
@@ -40,6 +41,11 @@ typedef struct {
     uint32_t elapsed_s;
     uint32_t remain_s;
 } BusyTimerTime;
+
+typedef struct {
+    uint32_t done_count;
+    uint32_t total_count;
+} BusyTimerCycles;
 
 typedef struct {
     BusyTimerEventType type;
@@ -68,6 +74,10 @@ void busy_timer_free(BusyTimer* instance);
 void busy_timer_set_callback(BusyTimer* instance, BusyTimerCallback callback, void* context);
 
 BusyTimerState busy_timer_get_state(const BusyTimer* instance);
+
+void busy_timer_get_time(const BusyTimer* instance, BusyTimerTime* time);
+
+void busy_timer_get_cycles(const BusyTimer* instance, BusyTimerCycles* cycles);
 
 void busy_timer_get_config(const BusyTimer* instance, BusyTimerConfig* config);
 

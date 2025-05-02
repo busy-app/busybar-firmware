@@ -54,11 +54,13 @@ static void busy_scene_start_on_enter(void* context) {
         data->back_layout = flex_layout_alloc(instance->back_window, FlexLayoutTypeColumn);
 
         data->back_header = nav_header_alloc(flex_layout_get_base(data->back_layout));
-        nav_header_set_image(data->back_header, (const void*)&I_header_40x16);
+        nav_header_set_image(data->back_header, (const void*)&I_header_busy_39x16);
 
         data->back_menu = menu_alloc(flex_layout_get_base(data->back_layout));
         menu_add_item(data->back_menu, "START", NULL, (const void*)&I_start_12x12, 0, NULL, NULL);
         menu_add_item(data->back_menu, "SETUP", NULL, (const void*)&I_setup_12x12, 0, NULL, NULL);
+
+        widget_set_visible(timer_card_get_base(instance->timer_card), false);
     });
 }
 

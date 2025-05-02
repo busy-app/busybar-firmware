@@ -2,7 +2,7 @@
 
 extern const Scene busy_scene_next;
 extern const Scene busy_scene_quit;
-extern const Scene busy_scene_restart;
+extern const Scene busy_scene_progress;
 extern const Scene busy_scene_setup;
 extern const Scene busy_scene_setup_timer;
 extern const Scene busy_scene_setup_theme;
@@ -14,9 +14,9 @@ const Scene* const busy_scenes[BusyAppSceneIdMax] = {
     [BusyAppSceneIdStart] = &busy_scene_start,
     [BusyAppSceneIdTimer] = &busy_scene_timer,
     [BusyAppSceneIdStatic] = &busy_scene_static,
-    [BusyAppSceneIdQuit] = &busy_scene_quit,
     [BusyAppSceneIdNext] = &busy_scene_next,
-    [BusyAppSceneIdRestart] = &busy_scene_restart,
+    [BusyAppSceneIdQuit] = &busy_scene_quit,
+    [BusyAppSceneIdProgress] = &busy_scene_progress,
     [BusyAppSceneIdSetup] = &busy_scene_setup,
     [BusyAppSceneIdSetupTimer] = &busy_scene_setup_timer,
     [BusyAppSceneIdSetupTheme] = &busy_scene_setup_theme,

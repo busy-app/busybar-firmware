@@ -59,7 +59,7 @@ static void
 
     item = var_item_list_add_timebox(
         list,
-        "WORK",
+        "Work",
         BUSY_TIMER_WORK_TIME_MIN_MN,
         BUSY_TIMER_WORK_TIME_MAX_MN,
         BUSY_TIMER_TIME_INCREMENT_MN,
@@ -70,7 +70,7 @@ static void
 
     item = var_item_list_add_timebox(
         list,
-        "REST",
+        "Rest",
         BUSY_TIMER_REST_TIME_MIN_MN,
         BUSY_TIMER_REST_TIME_MAX_MN,
         BUSY_TIMER_TIME_INCREMENT_MN,
@@ -81,7 +81,7 @@ static void
 
     item = var_item_list_add_spinbox(
         list,
-        "CYCLES",
+        "Cycles",
         NULL,
         BUSY_TIMER_CYCLE_COUNT_MIN,
         BUSY_TIMER_CYCLE_COUNT_MAX,
@@ -92,12 +92,12 @@ static void
     var_item_set_value(item, data->timer_config.cycle_count);
 
     item = var_item_list_add_switch(
-        list, "A.START", set_cb ? busy_scene_setup_timer_autostart_changed_callback : NULL, data);
+        list, "Autostart", set_cb ? busy_scene_setup_timer_autostart_changed_callback : NULL, data);
 
     var_item_set_value(item, data->timer_config.enable_autostart);
 
     item = var_item_list_add_switch(
-        list, "HI.SPEED", set_cb ? busy_scene_setup_timer_speed_changed_callback : NULL, data);
+        list, "Fast mode", set_cb ? busy_scene_setup_timer_speed_changed_callback : NULL, data);
 
     var_item_set_value(item, data->timer_config.enable_speed);
 }
@@ -117,13 +117,13 @@ static void busy_scene_setup_timer_on_enter(void* context) {
         data->back_layout = flex_layout_alloc(instance->back_window, FlexLayoutTypeColumn);
 
         data->back_header = nav_header_alloc(flex_layout_get_base(data->back_layout));
-        nav_header_set_image(data->back_header, (const void*)&I_header_40x16);
+        nav_header_set_image(data->back_header, (const void*)&I_header_busy_39x16);
         nav_header_push_location(data->back_header, "SETUP");
         nav_header_push_location(data->back_header, "TIMER");
 
         data->back_list = var_item_list_alloc(flex_layout_get_base(data->back_layout));
         // TODO: Fix the layout to set appropriate sizes for children
-        widget_set_height(var_item_list_get_base(data->back_list), 56);
+        widget_set_height(var_item_list_get_base(data->back_list), 58);
         busy_scene_setup_fill_var_item_list(data->back_list, data, false);
     });
 }

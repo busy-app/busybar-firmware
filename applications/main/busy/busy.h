@@ -5,11 +5,15 @@
 #include <gui/gui.h>
 #include <storage/storage.h>
 
+#include <assets/assets_images.h>
+
 #include "busy_timer.h"
 #include "time_macros.h"
 
+#include "helpers/run_later.h"
 #include "scenes/busy_scenes.h"
-#include "compiled_assets/compiled_assets.h"
+
+#include "views/timer_card.h"
 
 #define TAG "Busy"
 
@@ -22,10 +26,14 @@
 typedef enum {
     BusyCustomEventTimerTick = 100,
     BusyCustomEventTimerStateChanged,
+    BusyCustomEventTimerIntervalEnded,
+    BusyCustomEventTimerSequenceEnded,
     BusyCustomEventTimerToggle,
     BusyCustomEventTimerSkip,
     BusyCustomEventTimeIncrement,
     BusyCustomEventTimeDecrement,
+    BusyCustomEventStartPressed,
+    BusyCustomEventStartReleased,
 } BusyCustomEvent;
 
 typedef struct {
@@ -35,8 +43,11 @@ typedef struct {
     SceneManager* scene_manager;
     BusyTimer* busy_timer;
     Gui* gui;
+    // Application windows
     Widget* front_window;
     Widget* back_window;
+    // Views
+    TimerCard* timer_card;
 } BusyApp;
 
 void busy_send_custom_event(BusyApp* instance, uint32_t custom_event);
