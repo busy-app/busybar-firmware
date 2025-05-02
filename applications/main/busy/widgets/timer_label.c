@@ -11,8 +11,8 @@
 #define FONT_SMALLNUM  (&lv_font_ark_numerals_small_10)
 
 #define BLINK_COUNT     (3)
-#define BLINK_DELAY_MS  (100)
-#define BLINK_PERIOD_MS (332)
+#define BLINK_DELAY_MS  (500)
+#define BLINK_PERIOD_MS (333)
 
 struct TimerLabel {
     Widget base;
@@ -69,7 +69,6 @@ static void timer_label_blink(TimerLabel* instance) {
     lv_anim_set_reverse_duration(&anim, BLINK_PERIOD_MS / 2);
 
     lv_anim_set_exec_cb(&anim, timer_label_lvgl_anim_callback);
-    lv_anim_set_path_cb(&anim, lv_anim_path_ease_in_out);
     lv_anim_set_var(&anim, instance);
 
     lv_anim_start(&anim);
