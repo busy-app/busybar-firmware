@@ -32,7 +32,7 @@ void furi_hal_init(void) {
     furi_hal_clock_init();
     // furi_hal_psram_init();
     furi_hal_nvm_init();
-    furi_hal_sdmmc_init();
+    furi_hal_sdmmc_init(true);
     // furi_hal_random_init();
     furi_hal_serial_control_init();
     // furi_hal_rtc_init();

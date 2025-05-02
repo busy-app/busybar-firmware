@@ -177,6 +177,8 @@ typedef struct {
     volatile uint32_t state;
     volatile FuriHalSdError error;
     FuriEventFlag* event;
+    // For non-RTOS operation
+    volatile uint32_t event_flags;
 } SdMmcDmaContext;
 
 static SdMmcDmaContext sdmmc_dma_context = {0};
@@ -193,12 +195,57 @@ bool furi_hal_sdmmc_is_sd_present(void) {
     return sd_present;
 }
 
-void furi_hal_sdmmc_init(void) {
+void furi_hal_sdmmc_init(bool have_rtos) {
     furi_hal_sdmmc_gpio_init();
-    sdmmc_dma_context.event = furi_event_flag_alloc();
+
+    if(have_rtos) {
+        sdmmc_dma_context.event = furi_event_flag_alloc();
+    } else {
+        sdmmc_dma_context.event = NULL;
+        sdmmc_dma_context.event_flags = 0;
+    }
+
     sdmmc1.card_alive = false;
 
     FURI_LOG_I(TAG, "Init OK");
+}
+
+static uint32_t furi_hal_sdmmc_event_wait(uint32_t mask, size_t timeout) {
+    if(sdmmc_dma_context.event != NULL) {
+        return furi_event_flag_wait(sdmmc_dma_context.event, mask, FuriFlagWaitAny, timeout);
+    }
+
+    FuriHalCortexTimer timer = furi_hal_cortex_timer_get(timeout * 1000);
+    while(!(sdmmc_dma_context.event_flags & mask) && !furi_hal_cortex_timer_is_expired(timer)) {
+        // Loop until the event is set or timeout
+    }
+
+    if(furi_hal_cortex_timer_is_expired(timer)) {
+        return FuriStatusErrorTimeout;
+    }
+
+    // Save the flags we received
+    uint32_t flags = sdmmc_dma_context.event_flags & mask;
+    // Clear the event
+    sdmmc_dma_context.event_flags &= ~flags;
+
+    return flags;
+}
+
+static void furi_hal_sdmmc_event_clear(uint32_t mask) {
+    if(sdmmc_dma_context.event != NULL) {
+        furi_event_flag_clear(sdmmc_dma_context.event, mask);
+    } else {
+        sdmmc_dma_context.event_flags &= ~mask;
+    }
+}
+
+static void furi_hal_sdmmc_event_set(uint32_t mask) {
+    if(sdmmc_dma_context.event != NULL) {
+        furi_event_flag_set(sdmmc_dma_context.event, mask);
+    } else {
+        sdmmc_dma_context.event_flags |= mask;
+    }
 }
 
 // static void furi_hal_sdmmc_present_callback(void* context) {
@@ -1051,13 +1098,12 @@ static void sdmmc_irq_handler(void* ctx) {
                 errorstate = SDMMC_CmdStopTransfer(FURI_SDMMC_BLOCK);
                 if(errorstate != FuriHalSdErrorNone) {
                     sdmmc_dma_context.error |= errorstate;
-
-                    furi_event_flag_set(sdmmc_dma_context.event, SdMmcDmaEventError);
+                    furi_hal_sdmmc_event_set(SdMmcDmaEventError);
                 }
             }
 
             sdmmc_clear_static_data_flags();
-            furi_event_flag_set(sdmmc_dma_context.event, SdMmcDmaEventComplete);
+            furi_hal_sdmmc_event_set(SdMmcDmaEventComplete);
         }
     } else if(sdmmc_get_flags(
                   SDMMC_FLAG_DCRCFAIL | SDMMC_FLAG_DTIMEOUT | SDMMC_FLAG_RXOVERR |
@@ -1095,8 +1141,7 @@ static void sdmmc_irq_handler(void* ctx) {
             if(sdmmc_dma_context.error != FuriHalSdErrorNone) {
                 /* Disable Internal DMA */
                 FURI_SDMMC_BLOCK->IDMACTRL = SDMMC_DISABLE_IDMA;
-
-                furi_event_flag_set(sdmmc_dma_context.event, SdMmcDmaEventError);
+                furi_hal_sdmmc_event_set(SdMmcDmaEventError);
             }
         }
     }
@@ -1960,16 +2005,14 @@ bool furi_hal_sdmmc_read_blocks(
         SDMMC_IT_RXOVERR);
     sdmmc_clear_static_flags();
 
-    furi_event_flag_clear(sdmmc_dma_context.event, SdMmcDmaEventComplete | SdMmcDmaEventError);
+    furi_hal_sdmmc_event_clear(SdMmcDmaEventComplete | SdMmcDmaEventError);
+
     furi_hal_interrupt_set_isr(FuriHalInterruptIdSdMmc1, sdmmc_irq_handler, &sdmmc_dma_context);
 
     bool status = sdmmc_read_blocks_dma(buffer, address, count);
 
-    uint32_t flags = furi_event_flag_wait(
-        sdmmc_dma_context.event,
-        SdMmcDmaEventComplete | SdMmcDmaEventError,
-        FuriFlagWaitAny,
-        timeout_ms);
+    uint32_t flags =
+        furi_hal_sdmmc_event_wait(SdMmcDmaEventComplete | SdMmcDmaEventError, timeout_ms);
 
     furi_hal_interrupt_set_isr(FuriHalInterruptIdSdMmc1, NULL, NULL);
 
@@ -2016,16 +2059,13 @@ bool furi_hal_sdmmc_write_blocks(
         SDMMC_IT_RXOVERR);
     sdmmc_clear_static_flags();
 
-    furi_event_flag_clear(sdmmc_dma_context.event, SdMmcDmaEventComplete | SdMmcDmaEventError);
+    furi_hal_sdmmc_event_clear(SdMmcDmaEventComplete | SdMmcDmaEventError);
     furi_hal_interrupt_set_isr(FuriHalInterruptIdSdMmc1, sdmmc_irq_handler, &sdmmc_dma_context);
 
     bool status = sdmmc_write_blocks_dma(buffer, address, count);
 
-    uint32_t flags = furi_event_flag_wait(
-        sdmmc_dma_context.event,
-        SdMmcDmaEventComplete | SdMmcDmaEventError,
-        FuriFlagWaitAny,
-        timeout_ms);
+    uint32_t flags =
+        furi_hal_sdmmc_event_wait(SdMmcDmaEventComplete | SdMmcDmaEventError, timeout_ms);
 
     furi_hal_interrupt_set_isr(FuriHalInterruptIdSdMmc1, NULL, NULL);
 

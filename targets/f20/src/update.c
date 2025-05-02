@@ -13,7 +13,7 @@ static bool platform_boot_update_init(void) {
     // Init core HAL systems
     furi_hal_mpu_init();
     furi_hal_clock_init();
-    furi_hal_sdmmc_init();
+    furi_hal_sdmmc_init(false);
     furi_hal_interrupt_init();
     furi_hal_spi_config_init();
     __disable_irq();
