@@ -63,7 +63,7 @@ static void timer_card_lvgl_constructor(const lv_obj_class_t* class_p, lv_obj_t*
     // Mask object for image rounded corners
     lv_obj_t* mask = lv_obj_create(obj);
     lv_obj_set_size(mask, LV_SIZE_CONTENT, LV_SIZE_CONTENT);
-    lv_obj_set_style_radius(mask, 2, LV_PART_MAIN);
+    lv_obj_set_style_radius(mask, 6, LV_PART_MAIN);
     lv_obj_set_style_clip_corner(mask, true, LV_PART_MAIN);
     lv_obj_set_style_pad_hor(mask, 1, LV_PART_MAIN);
     lv_obj_set_style_pad_ver(mask, 2, LV_PART_MAIN);

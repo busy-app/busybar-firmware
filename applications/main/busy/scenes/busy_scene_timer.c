@@ -82,6 +82,7 @@ static void busy_scene_timer_run_later_callback(void* context) {
     furi_assert(context);
     BusyApp* instance = context;
 
+    timer_card_show_time(instance->timer_card, false);
     scene_manager_next_scene(instance->scene_manager, BusyAppSceneIdProgress);
 }
 
@@ -156,6 +157,9 @@ static void busy_scene_timer_on_enter(void* context) {
         data->pause_overlay = pause_overlay_alloc(instance->front_window);
 
         widget_set_visible(timer_card_get_base(instance->timer_card), true);
+
+        timer_card_show_header(instance->timer_card, true);
+        timer_card_show_time(instance->timer_card, true);
     });
 
     busy_timer_set_callback(instance->busy_timer, busy_scene_timer_event_callback, instance);
