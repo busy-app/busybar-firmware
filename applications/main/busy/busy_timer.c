@@ -132,8 +132,11 @@ static uint32_t busy_timer_calc_remaining_time(const BusyTimer* instance) {
     return interval_s;
 }
 
+// Called BEFORE calculating the state
 static uint32_t busy_timer_calc_cycles_done(const BusyTimer* instance) {
-    if(instance->state == BusyTimerStateWork) {
+    if(instance->state == BusyTimerStateIdle) {
+        return 0;
+    } else if(instance->state == BusyTimerStateWork) {
         return instance->cycles_done + 1;
     } else {
         return instance->cycles_done;
@@ -273,12 +276,19 @@ static void busy_timer_start_message_handler(BusyTimer* instance, BusyTimerMessa
 
     FURI_LOG_I(TAG, "Starting");
 
-    instance->state = BusyTimerStateIdle;
-    instance->cycles_done = 0;
+    if(instance->state == BusyTimerStateIdle) {
+        busy_timer_next_state(instance, true);
 
-    busy_timer_next_state(instance, true);
+        FURI_LOG_I(TAG, "Started");
 
-    FURI_LOG_I(TAG, "Started");
+    } else {
+        furi_event_loop_timer_restart(instance->timer);
+
+        busy_timer_notify_state_changed(instance);
+        busy_timer_notify_tick(instance);
+
+        FURI_LOG_I(TAG, "Resumed");
+    }
 }
 
 static void busy_timer_stop_message_handler(BusyTimer* instance, BusyTimerMessageData* data) {

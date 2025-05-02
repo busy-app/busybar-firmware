@@ -129,6 +129,11 @@ static bool busy_scene_next_on_event(const SceneManagerEvent* event, void* conte
         consumed = true;
 
     } else if(event->type == SceneManagerEventTypeBack) {
+        // TODO: Ask for confirmation
+        busy_timer_stop(instance->busy_timer);
+        scene_manager_search_and_switch_to_previous_scene(
+            instance->scene_manager, BusyAppSceneIdStart);
+
         consumed = true;
     }
 

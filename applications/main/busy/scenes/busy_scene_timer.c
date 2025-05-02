@@ -162,18 +162,7 @@ static void busy_scene_timer_on_enter(void* context) {
     });
 
     busy_timer_set_callback(instance->busy_timer, busy_scene_timer_event_callback, instance);
-
-    if(data->timer_state == BusyTimerStateIdle) {
-        busy_timer_start(instance->busy_timer);
-    } else {
-        busy_timer_toggle(instance->busy_timer);
-    }
-
-    data->timer_state = busy_timer_get_state(instance->busy_timer);
-    busy_timer_get_time(instance->busy_timer, &data->timer_time);
-
-    busy_scene_timer_update_tick(instance);
-    busy_scene_timer_update_state(instance);
+    busy_timer_start(instance->busy_timer);
 }
 
 static void busy_scene_timer_on_exit(void* context) {
@@ -229,6 +218,14 @@ static bool busy_scene_timer_on_event(const SceneManagerEvent* event, void* cont
         } else if(event->event == BusyCustomEventTimeDecrement) {
             busy_timer_add_time(instance->busy_timer, -BUSY_TIMER_TIME_INCREMENT_MN);
         }
+
+        consumed = true;
+
+    } else if(event->type == SceneManagerEventTypeBack) {
+        // TODO: Ask for confirmation
+        busy_timer_stop(instance->busy_timer);
+        scene_manager_search_and_switch_to_previous_scene(
+            instance->scene_manager, BusyAppSceneIdStart);
 
         consumed = true;
     }
