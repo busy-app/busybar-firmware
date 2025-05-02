@@ -59,6 +59,8 @@ static void busy_scene_start_on_enter(void* context) {
         data->back_menu = menu_alloc(flex_layout_get_base(data->back_layout));
         menu_add_item(data->back_menu, "START", NULL, (const void*)&I_start_12x12, 0, NULL, NULL);
         menu_add_item(data->back_menu, "SETUP", NULL, (const void*)&I_setup_12x12, 0, NULL, NULL);
+
+        widget_set_visible(timer_card_get_base(instance->timer_card), false);
     });
 }
 

@@ -13,6 +13,8 @@
 #include "helpers/run_later.h"
 #include "scenes/busy_scenes.h"
 
+#include "views/timer_card.h"
+
 #define TAG "Busy"
 
 #define TOTAL_TIME_LOW_THR_MN (15)
@@ -41,8 +43,11 @@ typedef struct {
     SceneManager* scene_manager;
     BusyTimer* busy_timer;
     Gui* gui;
+    // Application windows
     Widget* front_window;
     Widget* back_window;
+    // Views
+    TimerCard* timer_card;
 } BusyApp;
 
 void busy_send_custom_event(BusyApp* instance, uint32_t custom_event);

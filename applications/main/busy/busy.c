@@ -68,12 +68,15 @@ static BusyApp* busy_alloc(void) {
         gui_layer_add_input_callback(layer, busy_gui_input_callback, instance);
 
         Widget* root;
-
+        // Create application windows
         root = gui_layer_get_root_widget(layer, GuiDisplayIdFront);
         instance->front_window = widget_alloc(root);
 
         root = gui_layer_get_root_widget(layer, GuiDisplayIdBack);
         instance->back_window = widget_alloc(root);
+
+        // Create persistent views
+        instance->timer_card = timer_card_alloc(instance->back_window);
     });
 
     furi_event_loop_subscribe_message_queue(

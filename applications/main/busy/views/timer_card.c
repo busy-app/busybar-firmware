@@ -44,7 +44,7 @@ static void timer_card_lvgl_constructor(const lv_obj_class_t* class_p, lv_obj_t*
     lv_obj_set_flex_flow(top_layout, LV_FLEX_FLOW_ROW);
     lv_obj_set_flex_align(
         top_layout, LV_FLEX_ALIGN_START, LV_FLEX_ALIGN_CENTER, LV_FLEX_ALIGN_START);
-    lv_obj_set_style_pad_ver(top_layout, 5, LV_PART_MAIN);
+    // lv_obj_set_style_pad_ver(top_layout, 5, LV_PART_MAIN);
     lv_obj_set_style_pad_column(top_layout, 4, LV_PART_MAIN);
 
     TimerCard* instance = (TimerCard*)obj;
@@ -63,7 +63,7 @@ static void timer_card_lvgl_constructor(const lv_obj_class_t* class_p, lv_obj_t*
     // Mask object for image rounded corners
     lv_obj_t* mask = lv_obj_create(obj);
     lv_obj_set_size(mask, LV_SIZE_CONTENT, LV_SIZE_CONTENT);
-    lv_obj_set_style_radius(mask, 6, LV_PART_MAIN);
+    lv_obj_set_style_radius(mask, 2, LV_PART_MAIN);
     lv_obj_set_style_clip_corner(mask, true, LV_PART_MAIN);
     lv_obj_set_style_pad_hor(mask, 1, LV_PART_MAIN);
     lv_obj_set_style_pad_ver(mask, 2, LV_PART_MAIN);
@@ -97,21 +97,20 @@ static void timer_card_lvgl_constructor(const lv_obj_class_t* class_p, lv_obj_t*
     lv_obj_set_size(bottom_layout, LV_SIZE_CONTENT, LV_SIZE_CONTENT);
     lv_obj_set_flex_flow(bottom_layout, LV_FLEX_FLOW_ROW);
     lv_obj_set_flex_align(
-        bottom_layout, LV_FLEX_ALIGN_START, LV_FLEX_ALIGN_CENTER, LV_FLEX_ALIGN_START);
+        bottom_layout, LV_FLEX_ALIGN_START, LV_FLEX_ALIGN_END, LV_FLEX_ALIGN_END);
     lv_obj_set_style_bg_opa(bottom_layout, LV_OPA_TRANSP, LV_PART_MAIN);
-    lv_obj_set_style_pad_ver(bottom_layout, 3, LV_PART_MAIN);
-    lv_obj_set_style_pad_column(bottom_layout, 4, LV_PART_MAIN);
+    lv_obj_set_style_pad_column(bottom_layout, 2, LV_PART_MAIN);
+    lv_obj_set_style_margin_ver(bottom_layout, -2, LV_PART_MAIN);
 
     instance->bottom_timer_text = lv_label_create(bottom_layout);
     lv_obj_set_style_text_color(instance->bottom_timer_text, lv_color_black(), LV_PART_MAIN);
-    lv_obj_set_style_text_font(
-        instance->bottom_timer_text, &lv_font_ark_numerals_regular_10, LV_PART_MAIN);
 
     instance->bottom_static_text = lv_label_create(bottom_layout);
     lv_label_set_text(instance->bottom_static_text, "LEFT");
     lv_obj_set_style_text_color(instance->bottom_static_text, lv_color_black(), LV_PART_MAIN);
     lv_obj_set_style_text_font(
         instance->bottom_static_text, lv_theme_get_font_small(obj), LV_PART_MAIN);
+    lv_obj_set_style_translate_y(instance->bottom_static_text, -2, LV_PART_MAIN);
 
     instance->display = front->lv_display;
     lv_display_add_event_cb(
@@ -187,7 +186,7 @@ const lv_obj_class_t timer_card_lvgl_class = {
     .constructor_cb = timer_card_lvgl_constructor,
     .destructor_cb = timer_card_lvgl_destructor,
     .name = "widget-timer-card",
-    .width_def = LV_SIZE_CONTENT,
+    .width_def = LV_PCT(100),
     .height_def = LV_SIZE_CONTENT,
     .instance_size = sizeof(TimerCard),
 };

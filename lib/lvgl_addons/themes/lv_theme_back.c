@@ -120,11 +120,12 @@ static void style_init(my_theme_t* theme) {
     lv_style_set_text_font(&theme->styles.nav_header, theme->base.font_small);
 
     lv_style_init(&theme->styles.timer_card);
-    lv_style_set_bg_color(&theme->styles.timer_card, COLOR_FG_FOCUSED);
     lv_style_set_bg_opa(&theme->styles.timer_card, LV_OPA_COVER);
-    lv_style_set_pad_hor(&theme->styles.timer_card, 1);
-    lv_style_set_pad_row(&theme->styles.timer_card, 3);
-    lv_style_set_radius(&theme->styles.timer_card, 4);
+    lv_style_set_bg_color(&theme->styles.timer_card, COLOR_FG_FOCUSED);
+    lv_style_set_pad_row(&theme->styles.timer_card, 8);
+    lv_style_set_pad_ver(&theme->styles.timer_card, 4);
+    lv_style_set_translate_y(&theme->styles.timer_card, 2);
+    lv_style_set_radius(&theme->styles.timer_card, MENU_ITEM_RADIUS);
 }
 
 static void theme_apply_callback(lv_theme_t* th, lv_obj_t* obj) {
