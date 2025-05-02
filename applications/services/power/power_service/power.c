@@ -39,6 +39,24 @@ static void power_print_interrupt_flags(uint32_t flags) {
     if(flags & Bq25798ChargerFlagVbatOtgLow) FURI_LOG_D(TAG, "\tVbat OTG low");
 }
 
+static float power_ntc_temperature_from_resistance(float resistance) {
+    const float beta = 3950.f;
+    const float R0 = 10000.f;
+    const float T0 = 298.15f; // 25 degrees Celsius
+
+    const float T = 1.f / ((1.f / T0) + (1.f / beta) * logf(resistance / R0));
+    return T - 273.15f; // Convert Kelvin to Celsius
+}
+
+static float power_ntc_resistance_from_percent(float percent) {
+    const float R1 = 5230.f; // 5.23kOhm
+    const float R2 = 31600.f; // 31.6kOhm
+
+    float ntc = 1.f / ((percent / (R1 * (1.f - percent))) - 1.f / R2);
+
+    return ntc;
+}
+
 static void power_on_interrupt(FuriEventLoopObject* object, void* context) {
     Power* power = context;
 
@@ -61,6 +79,9 @@ static void power_on_interrupt(FuriEventLoopObject* object, void* context) {
         }
         power->state.usb_connected = status.vbus_present;
     }
+
+    // ADC can be disabled by internal BQ25798 mechanism
+    bq25798_adc_enable(POWER_I2C, true);
 
     furi_hal_i2c_release(POWER_I2C);
 }
@@ -233,18 +254,64 @@ static void power_battery_ready(Power* power) {
     furi_pubsub_publish(power->event_pubsub, &pub_event);
 }
 
+static bool power_charger_is_charging(Bq25798ChargerStatusChargeStat status) {
+    return (status == Bq25798ChargerStatusChargeStatTrickle) ||
+           (status == Bq25798ChargerStatusChargeStatPre) ||
+           (status == Bq25798ChargerStatusChargeStatFast) ||
+           (status == Bq25798ChargerStatusChargeStatTaper) ||
+           (status == Bq25798ChargerStatusChargeStatTopOff);
+}
+
+static bool power_charger_is_charged(Bq25798ChargerStatusChargeStat status) {
+    return (status == Bq25798ChargerStatusChargeStatTermination);
+}
+
 static void power_update_info(Power* power) {
     UNUSED(power);
     furi_hal_i2c_acquire(POWER_I2C);
     Bq25798ChargerStatus status = {0};
-    bq25798_get_charger_status(POWER_I2C, &status);
+    assert(bq25798_get_charger_status(POWER_I2C, &status) == true);
 
-    bq25798_get_charger_fault(POWER_I2C, &power->info.debug.charger_fault);
+    assert(bq25798_get_charger_fault(POWER_I2C, &power->info.debug.charger_fault) == true);
     memcpy(&power->info.debug.charger_status, &status, sizeof(Bq25798ChargerStatus));
 
     Bq25798AdcValues adc_val = {0};
-    bq25798_get_adc_values(POWER_I2C, &adc_val);
+    assert(bq25798_get_adc_values(POWER_I2C, &adc_val) == true);
+
     furi_hal_i2c_release(POWER_I2C);
+
+    float percent = adc_val.temp_bat_pct / 100.f;
+    percent = 1.f - percent;
+    float ntc_resistance = power_ntc_resistance_from_percent(percent);
+    float ntc_temp = power_ntc_temperature_from_resistance(ntc_resistance);
+
+#if 0
+    {
+        // Debug battery status
+
+        FURI_LOG_I(
+            TAG,
+            "ADC values: %u %d %u %u %u %.2f %.2f (%.1f C)",
+            adc_val.bat_v,
+            adc_val.bat_i,
+            adc_val.usb_v,
+            adc_val.usb_i,
+            adc_val.sys_v,
+            adc_val.temp_charger,
+            adc_val.temp_bat_pct,
+            ntc_temp);
+
+        if(status.treg_stat) FURI_LOG_I(TAG, "Thermal regulation");
+        if(status.prechg_timer_stat) FURI_LOG_I(TAG, "Precharge timer expired");
+        if(status.trichg_timer_stat) FURI_LOG_I(TAG, "Trickle charge timer expired");
+        if(status.chg_timer_stat) FURI_LOG_I(TAG, "Charge timer expired");
+
+        if(status.ts_hot_stat) FURI_LOG_I(TAG, "Thermal sensor hot");
+        if(status.ts_warm_stat) FURI_LOG_I(TAG, "Thermal sensor warm");
+        if(status.ts_cool_stat) FURI_LOG_I(TAG, "Thermal sensor cool");
+        if(status.ts_cold_stat) FURI_LOG_I(TAG, "Thermal sensor cold");
+    }
+#endif
 
     if((power->state.battery_ready == false) && (status.vbat_present_stat == true)) {
         power->state.battery_ready = true;
@@ -252,8 +319,8 @@ static void power_update_info(Power* power) {
     }
     power->state.usb_connected = status.vbus_present;
 
-    power->info.is_charging = (status.chg_stat != Bq25798ChargerStatusChargeStatNot);
-    power->info.is_full_charged = (status.chg_stat == Bq25798ChargerStatusChargeStatTermination);
+    power->info.is_charging = power_charger_is_charging(status.chg_stat);
+    power->info.is_full_charged = power_charger_is_charged(status.chg_stat);
     power->info.charge =
         power_get_battery_charge(adc_val.bat_v, adc_val.bat_i, power->info.is_charging);
 
@@ -263,6 +330,7 @@ static void power_update_info(Power* power) {
     power->info.voltage_usb = adc_val.usb_v;
     power->info.temperature_charger = adc_val.temp_charger;
     power->info.temperature_battery = adc_val.temp_bat_pct;
+    power->info.temperature_battery_celsius = ntc_temp;
 
     power->info.charge_ilim_usb = power->input_current_limit;
     power->info.charge_ilim_battery = power->charger_current_limit;
