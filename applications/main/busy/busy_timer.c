@@ -164,22 +164,19 @@ static uint32_t busy_timer_calc_timeout(const BusyTimer* instance) {
 //     }
 // }
 
-void busy_timer_next_state(BusyTimer* instance) {
-    const BusyTimerState prev_state = instance->state;
-
-    FURI_LOG_I(TAG, "Current state: %s", busy_timer_get_state_name(prev_state));
+void busy_timer_next_state(BusyTimer* instance, bool force) {
+    FURI_LOG_I(TAG, "Current state: %s", busy_timer_get_state_name(instance->state));
 
     instance->cycles_done = busy_timer_calc_cycles_done(instance);
     instance->state = busy_timer_calc_state(instance);
-
-    busy_timer_notify_state_changed(instance);
 
     if(instance->state != BusyTimerStateIdle) {
         instance->time.elapsed_s = 0;
         instance->time.remain_s = busy_timer_calc_remaining_time(instance);
 
-        if(instance->config.enable_autostart || prev_state == BusyTimerStateIdle) {
+        if(instance->config.enable_autostart || force) {
             furi_event_loop_timer_start(instance->timer, busy_timer_calc_timeout(instance));
+            busy_timer_notify_state_changed(instance);
             busy_timer_notify_tick(instance);
 
         } else {
@@ -204,7 +201,7 @@ static void busy_timer_callback(void* context) {
         busy_timer_notify_tick(instance);
 
     } else {
-        busy_timer_next_state(instance);
+        busy_timer_next_state(instance, false);
     }
 }
 
@@ -279,7 +276,7 @@ static void busy_timer_start_message_handler(BusyTimer* instance, BusyTimerMessa
     instance->state = BusyTimerStateIdle;
     instance->cycles_done = 0;
 
-    busy_timer_next_state(instance);
+    busy_timer_next_state(instance, true);
 
     FURI_LOG_I(TAG, "Started");
 }
@@ -382,7 +379,7 @@ static void busy_timer_toggle_message_handler(BusyTimer* instance, BusyTimerMess
 
 static void busy_timer_skip_message_handler(BusyTimer* instance, BusyTimerMessageData* data) {
     UNUSED(data);
-    busy_timer_next_state(instance);
+    busy_timer_next_state(instance, true);
 }
 
 static const BusyTimerMessageHandler busy_timer_message_handlers[BusyTimerMessageTypeMax] = {

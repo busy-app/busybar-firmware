@@ -11,6 +11,8 @@
 #define PROGRESS_BAR_COLOR_BUSY color_hex_to_rgb(0x4A0000)
 #define PROGRESS_BAR_COLOR_REST color_hex_to_rgb(0x011809)
 
+#define PROGRESS_TRANSITION_MS (1000)
+
 typedef struct {
     AnimImage* state_image;
     TimerLabel* timer_label;
@@ -161,14 +163,14 @@ static void busy_scene_timer_on_enter(void* context) {
 
     busy_timer_set_callback(instance->busy_timer, busy_scene_timer_event_callback, instance);
 
-    data->timer_state = busy_timer_get_state(instance->busy_timer);
-    busy_timer_get_time(instance->busy_timer, &data->timer_time);
-
     if(data->timer_state == BusyTimerStateIdle) {
         busy_timer_start(instance->busy_timer);
     } else {
         busy_timer_toggle(instance->busy_timer);
     }
+
+    data->timer_state = busy_timer_get_state(instance->busy_timer);
+    busy_timer_get_time(instance->busy_timer, &data->timer_time);
 
     busy_scene_timer_update_tick(instance);
     busy_scene_timer_update_state(instance);
@@ -208,7 +210,11 @@ static bool busy_scene_timer_on_event(const SceneManagerEvent* event, void* cont
             busy_scene_timer_update_state(instance);
 
         } else if(event->event == BusyCustomEventTimerIntervalEnded) {
-            run_later(instance->event_loop, busy_scene_timer_run_later_callback, instance, 500);
+            run_later(
+                instance->event_loop,
+                busy_scene_timer_run_later_callback,
+                instance,
+                PROGRESS_TRANSITION_MS);
 
         } else if(event->event == BusyCustomEventTimerToggle) {
             busy_scene_timer_toggle_pause(instance);

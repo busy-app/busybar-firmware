@@ -45,7 +45,7 @@ static void busy_scene_progress_on_enter(void* context) {
             DONE_TRANSITION_DELAY_MS);
 
     } else if(state == BusyTimerStateWork) {
-        with_gui(instance->gui, { label_set_text(data->front_label, "(rest transition)"); });
+        with_gui(instance->gui, { label_set_text(data->front_label, "v REST"); });
 
         run_later(
             instance->event_loop,
