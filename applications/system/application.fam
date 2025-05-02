@@ -5,7 +5,7 @@ App(
     provides=[
         "apps_menu",
         "message",
-        "sl_update_start",
+        "system_apps_on_start",
     ],
     targets=["f20"],
 )
@@ -37,4 +37,14 @@ App(
         "nvm3_test_start",
     ],
     targets=["f64"],
+)
+
+App(
+    appid="system_apps_on_start",
+    name="On start hooks",
+    apptype=FlipperAppType.METAPACKAGE,
+    provides=[
+        "update_start",
+    ],
+    targets=["f20"],
 )

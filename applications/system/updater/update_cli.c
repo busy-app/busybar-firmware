@@ -2,6 +2,8 @@
 
 #include <furi.h>
 #include <furi_hal_nvm.h>
+#include <furi_hal_power.h>
+
 #include <cli/cli.h>
 #include <toolbox/args.h>
 
@@ -30,7 +32,7 @@ static bool
     return success;
 }
 
-static void updater_cli_probe_excute() {
+static void updater_cli_execute_917probe() {
     SlUpdater* instance = sl_updater_alloc();
     FuriString* version = furi_string_alloc();
     for(int i = 0; i < SL_PROBING_RETRIES; i++) {
@@ -50,6 +52,14 @@ static void updater_cli_probe_excute() {
     sl_updater_free(instance);
 }
 
+static void updater_cli_execute_u5(FuriString* path) {
+    printf("Update U5...\r\n");
+
+    UNUSED(path);
+    furi_hal_nvm_set_boot_mode(FuriHalNvmBootModeUpdate);
+    furi_hal_power_reset();
+}
+
 static void updater_cli(Cli* cli, FuriString* args, void* context) {
     UNUSED(cli);
     UNUSED(context);
@@ -62,19 +72,19 @@ static void updater_cli(Cli* cli, FuriString* args, void* context) {
             break;
         }
 
-        if(furi_string_equal_str(cmd, "u5")) {
-            printf("Not yet implemented\r\n");
-            break;
-        }
-
         if(furi_hal_nvm_is_flag_set(FuriHalNvmFlagDebug) &&
            furi_string_equal_str(cmd, "917_probe")) {
-            updater_cli_probe_excute();
+            updater_cli_execute_917probe();
             break;
         }
 
         if(!args_read_string_and_trim(args, path)) {
             updater_cli_command_print_usage();
+            break;
+        }
+
+        if(furi_string_equal_str(cmd, "u5")) {
+            updater_cli_execute_u5(path);
             break;
         }
 
@@ -107,7 +117,7 @@ static void updater_cli(Cli* cli, FuriString* args, void* context) {
     furi_string_free(cmd);
 }
 
-void sl_update_on_system_start(void) {
+void update_on_system_start(void) {
     Cli* cli = furi_record_open(RECORD_CLI);
     cli_add_command(cli, "update", CliCommandFlagParallelSafe, updater_cli, NULL);
     furi_record_close(RECORD_CLI);
