@@ -27,7 +27,8 @@ typedef struct {
     FuriEventLoop* event_loop;
     FuriMessageQueue* queue;
     Gui* gui;
-    Submenu* submenu;
+    Submenu* submenu_front;
+    Submenu* submenu_back;
     Label* label_front;
     Label* label_back;
     PowerTestScene scene;
@@ -45,23 +46,40 @@ static void power_test_menu_enter(PowerTest* instance) {
 
     with_gui(instance->gui, {
         GuiLayer* main_layer = gui_get_layer(instance->gui, GuiLayerIdMain);
-        Widget* root = gui_layer_get_root_widget(main_layer, GuiDisplayIdFront);
 
-        instance->submenu = submenu_alloc(root);
+        instance->submenu_front =
+            submenu_alloc(gui_layer_get_root_widget(main_layer, GuiDisplayIdFront));
 
         submenu_add_item(
-            instance->submenu, "Off", PowerTestOff, power_test_submenu_callback, instance);
+            instance->submenu_front, "Off", PowerTestOff, power_test_submenu_callback, instance);
         submenu_add_item(
-            instance->submenu, "Reboot", PowerTestReboot, power_test_submenu_callback, instance);
+            instance->submenu_front,
+            "Reboot",
+            PowerTestReboot,
+            power_test_submenu_callback,
+            instance);
         submenu_add_item(
-            instance->submenu, "Info", PowerTestInfo, power_test_submenu_callback, instance);
+            instance->submenu_front, "Info", PowerTestInfo, power_test_submenu_callback, instance);
+
+        instance->submenu_back =
+            submenu_alloc(gui_layer_get_root_widget(main_layer, GuiDisplayIdBack));
+
+        submenu_add_item(instance->submenu_back, "Off", PowerTestOff, NULL, NULL);
+        submenu_add_item(instance->submenu_back, "Reboot", PowerTestReboot, NULL, NULL);
+        submenu_add_item(instance->submenu_back, "Info", PowerTestInfo, NULL, NULL);
     });
 }
 
 static void power_test_menu_exit(PowerTest* instance) {
     furi_assert(instance);
 
-    with_gui(instance->gui, { submenu_free(instance->submenu); });
+    with_gui(instance->gui, {
+        submenu_free(instance->submenu_front);
+        submenu_free(instance->submenu_back);
+
+        instance->submenu_front = NULL;
+        instance->submenu_back = NULL;
+    });
 }
 
 static void power_test_info_update(PowerTest* instance) {
@@ -72,26 +90,65 @@ static void power_test_info_update(PowerTest* instance) {
 
     char* state = NULL;
     if(info.is_charging) {
-        state = (info.is_full_charged) ? "Charged" : "Charging";
+        switch(info.debug.charger_status.chg_stat) {
+        case Bq25798ChargerStatusChargeStatTrickle:
+            state = "Tr chrg";
+            break;
+        case Bq25798ChargerStatusChargeStatPre:
+            state = "Prechrg";
+            break;
+        case Bq25798ChargerStatusChargeStatFast:
+            state = "Fast chrg";
+            break;
+        case Bq25798ChargerStatusChargeStatTaper:
+            state = "Tap chrg";
+            break;
+        case Bq25798ChargerStatusChargeStatTopOff:
+            state = "TopOff chrg";
+            break;
+        default:
+            state = (info.is_full_charged) ? "Chrgd" : "Chrg";
+            break;
+        }
     } else {
-        state = "Not charging";
+        state = "Idle";
     }
+
+    Bq25798ChargerStatus status = info.debug.charger_status;
+
+    const char* flags_charger = "";
+    if(status.treg_stat) FURI_LOG_I(TAG, "r");
+    if(status.prechg_timer_stat) FURI_LOG_I(TAG, "p");
+    if(status.trichg_timer_stat) FURI_LOG_I(TAG, "t");
+    if(status.chg_timer_stat) FURI_LOG_I(TAG, "c");
+
+    const char* flags_battery = "";
+    if(status.ts_hot_stat) flags_battery = "H";
+    if(status.ts_warm_stat) flags_battery = "W";
+    if(status.ts_cool_stat) flags_battery = "C";
+    if(status.ts_cold_stat) flags_battery = "-";
 
     with_gui(instance->gui, {
         label_set_text_fmt(
             instance->label_front,
-            "%s %u%%\nBAT %.2fV USB %.2fV",
+            "%s %u%% %s%s\nB%.2fV U%.2fV %.2fC",
             state,
             info.charge,
+            flags_battery,
+            flags_charger,
             info.voltage_battery / 1000.f,
-            info.voltage_usb / 1000.f);
+            info.voltage_usb / 1000.f,
+            info.temperature_battery_celsius);
         label_set_text_fmt(
             instance->label_back,
-            "%s %u%%\n\nBattery: %.2fV  %.2fA\n\nUSB: %.2fV  %.2fA",
+            "%s %u%% %s%s\n\nBattery: %.2fV  %.2fA %.2fC\n\nUSB: %.2fV  %.2fA",
             state,
             info.charge,
+            flags_battery,
+            flags_charger,
             info.voltage_battery / 1000.f,
             info.current_battery / 1000.f,
+            info.temperature_battery_celsius,
             info.voltage_usb / 1000.f,
             info.current_usb / 1000.f);
     });
