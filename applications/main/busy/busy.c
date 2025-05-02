@@ -31,13 +31,6 @@ static void busy_event_queue_callback(FuriEventLoopObject* object, void* context
     }
 }
 
-static void busy_tick_callback(void* context) {
-    furi_assert(context);
-
-    BusyApp* instance = context;
-    scene_manager_handle_tick_event(instance->scene_manager);
-}
-
 static bool busy_gui_input_callback(const InputEvent* event, void* context) {
     furi_assert(event);
     furi_assert(context);
@@ -96,8 +89,6 @@ static BusyApp* busy_alloc(void) {
         FuriEventLoopEventIn,
         busy_event_queue_callback,
         instance);
-
-    furi_event_loop_tick_set(instance->event_loop, 1000, busy_tick_callback, instance);
 
     scene_manager_next_scene(instance->scene_manager, BusyAppSceneIdStart);
 

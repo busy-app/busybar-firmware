@@ -2,10 +2,19 @@
 
 #include <gui/modules/label.h>
 
+#define DONE_TRANSITION_DELAY_MS (2000)
+#define REST_TRANSITION_DELAY_MS (1000)
+
 typedef struct {
     Label* front_label;
-    uint32_t countdown;
 } BusySceneProgress;
+
+static void busy_scene_progress_run_later_callback(void* context) {
+    furi_assert(context);
+    BusyApp* instance = context;
+
+    scene_manager_next_scene(instance->scene_manager, BusyAppSceneIdNext);
+}
 
 static void busy_scene_progress_on_enter(void* context) {
     furi_assert(context);
@@ -29,12 +38,20 @@ static void busy_scene_progress_on_enter(void* context) {
                 data->front_label, "DONE: %lu/%lu", cycles.done_count, cycles.total_count);
         });
 
-        data->countdown = 3;
+        run_later(
+            instance->event_loop,
+            busy_scene_progress_run_later_callback,
+            instance,
+            DONE_TRANSITION_DELAY_MS);
 
     } else if(state == BusyTimerStateWork) {
         with_gui(instance->gui, { label_set_text(data->front_label, "(rest transition)"); });
 
-        data->countdown = 1;
+        run_later(
+            instance->event_loop,
+            busy_scene_progress_run_later_callback,
+            instance,
+            REST_TRANSITION_DELAY_MS);
     }
 }
 
@@ -51,20 +68,11 @@ static bool busy_scene_progress_on_event(const SceneManagerEvent* event, void* c
     furi_assert(context);
 
     BusyApp* instance = context;
-    BusySceneProgress* data = scene_manager_get_current_scene_data(instance->scene_manager);
+    UNUSED(instance);
 
     bool consumed = false;
 
-    if(event->type == SceneManagerEventTypeTick) {
-        data->countdown -= 1;
-
-        if(data->countdown == 0) {
-            scene_manager_next_scene(instance->scene_manager, BusyAppSceneIdNext);
-        }
-
-        consumed = true;
-
-    } else if(event->type == SceneManagerEventTypeBack) {
+    if(event->type == SceneManagerEventTypeBack) {
         consumed = true;
     }
 
