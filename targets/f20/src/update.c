@@ -3,9 +3,59 @@
 
 #include <platform_startup.h>
 
-#define TAG "FlipperBootUpdate"
+#include <fatfs.h>
+
+#define FS_MOUNT_POINT "/boot"
+
+static FATFS* pfs = NULL;
+
+static bool platform_boot_update_init(void) {
+    // Init core HAL systems
+    furi_hal_mpu_init();
+    furi_hal_clock_init();
+    furi_hal_sdmmc_init();
+    furi_hal_interrupt_init();
+    furi_hal_spi_config_init();
+    __disable_irq();
+
+    fatfs_init();
+
+    // Init FS
+    do {
+        if(!furi_hal_sdmmc_is_sd_present()) {
+            break;
+        }
+
+        if(!furi_hal_sdmmc_init_card()) {
+            break;
+        }
+
+        pfs = malloc(sizeof(FATFS));
+        if(!pfs) {
+            break;
+        }
+        memset(pfs, 0, sizeof(FATFS));
+        if(f_mount(pfs, FS_MOUNT_POINT, 1) != FR_OK) {
+            free(pfs);
+            pfs = NULL;
+            break;
+        }
+        // Check if the filesystem is valid
+        if(f_getfree(FS_MOUNT_POINT, NULL, &pfs) != FR_OK) {
+            f_mount(NULL, FS_MOUNT_POINT, 1); // Unmount the filesystem
+            free(pfs);
+            pfs = NULL;
+            break;
+        }
+
+        return true;
+    } while(0);
+
+    return false;
+}
 
 void platform_boot_exec_update(void) {
-    // FURI_LOG_I(TAG, "Booting into update mode");
-    // FURI_LOG_W(TAG, "Simulating unsuccessful update switch");
+    if(!platform_boot_update_init()) {
+        return;
+    }
 }
