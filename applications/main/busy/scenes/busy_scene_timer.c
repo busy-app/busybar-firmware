@@ -78,6 +78,13 @@ static void busy_scene_timer_event_callback(const BusyTimerEvent* event, void* c
     }
 }
 
+static void busy_scene_timer_run_later_callback(void* context) {
+    furi_assert(context);
+    BusyApp* instance = context;
+
+    scene_manager_next_scene(instance->scene_manager, BusyAppSceneIdProgress);
+}
+
 static void busy_scene_timer_update_tick(BusyApp* instance) {
     BusySceneTimer* data = scene_manager_get_current_scene_data(instance->scene_manager);
     const BusyTimerTime* time = &data->timer_time;
@@ -201,7 +208,7 @@ static bool busy_scene_timer_on_event(const SceneManagerEvent* event, void* cont
             busy_scene_timer_update_state(instance);
 
         } else if(event->event == BusyCustomEventTimerIntervalEnded) {
-            scene_manager_next_scene(instance->scene_manager, BusyAppSceneIdProgress);
+            run_later(instance->event_loop, busy_scene_timer_run_later_callback, instance, 500);
 
         } else if(event->event == BusyCustomEventTimerToggle) {
             busy_scene_timer_toggle_pause(instance);
