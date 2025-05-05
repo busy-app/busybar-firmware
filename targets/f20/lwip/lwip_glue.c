@@ -1,10 +1,8 @@
 #include <furi.h>
-#include "lwip/debug.h"
-#include "lwip/def.h"
-#include "lwip/sys.h"
-#include "lwip/mem.h"
-#include "lwip/stats.h"
-#include "lwip/tcpip.h"
+#include <lwip/debug.h>
+#include <lwip/sys.h>
+#include <lwip/mem.h>
+#include <lwip/stats.h>
 
 static FuriMutex* lwip_protect_mutex;
 
@@ -251,4 +249,18 @@ void sys_arch_netconn_sem_free(void) {
         mem_free(sem);
         furi_thread_local_storage_pointer_set(NULL, FURI_THREAD_LOCAL_SEM_INDEX, sem);
     }
+}
+
+void lwip_glue_log(const char* fmt, ...) {
+    FuriString* string = furi_string_alloc();
+
+    va_list args;
+    va_start(args, fmt);
+    furi_string_vprintf(string, fmt, args);
+    va_end(args);
+
+    furi_string_trim(string, "\r\n");
+
+    FURI_LOG_D("LWIP", "%s", furi_string_get_cstr(string));
+    furi_string_free(string);
 }

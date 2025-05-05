@@ -94,4 +94,5 @@ const lv_obj_class_t label_lvgl_class = {
     .width_def = LV_SIZE_CONTENT,
     .height_def = LV_SIZE_CONTENT,
     .instance_size = sizeof(Label),
+    .theme_inheritable = true,
 };

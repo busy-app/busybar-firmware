@@ -72,6 +72,16 @@
 
 #define LWIP_PLATFORM_ASSERT(x) furi_crash(x)
 
+#ifdef LWIP_DEBUG
+void lwip_glue_log(const char* fmt, ...);
+#define LWIP_PLATFORM_DIAG(x) \
+    do {                      \
+        lwip_glue_log x;      \
+    } while(0)
+#else
+#define LWIP_PLATFORM_DIAG(x)
+#endif
+
 #define LWIP_DONT_PROVIDE_BYTEORDER_FUNCTIONS
 #define htons(x) __builtin_bswap16(x)
 #define ntohs(x) __builtin_bswap16(x)

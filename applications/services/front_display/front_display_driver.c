@@ -241,19 +241,19 @@ static void octospi_init(void) {
         &gpio_front_display_sdi_ospi_d0,
         GpioModeAltFunctionPushPull,
         GpioPullNo,
-        GpioSpeedMedium,
+        GpioSpeedLow,
         GpioAltFn10OCTOSPI1);
     furi_hal_gpio_init_ex(
         &gpio_front_display_le_ospi_d1,
         GpioModeAltFunctionPushPull,
         GpioPullNo,
-        GpioSpeedMedium,
+        GpioSpeedLow,
         GpioAltFn10OCTOSPI1);
     furi_hal_gpio_init_ex(
         &gpio_front_display_dclk_ospi_clk,
         GpioModeAltFunctionPushPull,
         GpioPullNo,
-        GpioSpeedMedium,
+        GpioSpeedLow,
         GpioAltFn10OCTOSPI1);
 }
 

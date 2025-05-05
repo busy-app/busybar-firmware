@@ -49,6 +49,24 @@ Widget* anim_image_get_base(AnimImage* instance);
 bool anim_image_set_source(AnimImage* instance, const char* file_path);
 
 /**
+ * @brief Set the range of frames to play.
+ *
+ * By default, the range to play is (0, number of frames - 1) and the looping is on.
+ *
+ * @param[in,out] instance pointer to the AnimImage instance to be modified
+ * @param[in] begin the number (index) of the first frame, starting from 0
+ * @param[in] end the number (index) of the last frame, inclusive
+ * @param[in] loop loop the range if true, play once otherwise
+ * @param[in] wait_end wait for the end of the previous range if true, start immediately otherwise
+ */
+void anim_image_set_range(
+    AnimImage* instance,
+    uint32_t begin,
+    uint32_t end,
+    bool loop,
+    bool wait_end);
+
+/**
  * @brief Start playing the animation.
  *
  * The animation file MUST be loaded using anim_image_set_source()

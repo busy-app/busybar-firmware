@@ -1,0 +1,42 @@
+
+#if defined(LV_LVGL_H_INCLUDE_SIMPLE)
+#include "lvgl.h"
+#elif defined(LV_BUILD_TEST)
+#include "../lvgl.h"
+#else
+#include "lvgl/lvgl.h"
+#endif
+
+#ifndef LV_ATTRIBUTE_MEM_ALIGN
+#define LV_ATTRIBUTE_MEM_ALIGN
+#endif
+
+#ifndef LV_ATTRIBUTE_I_ACTIVE_INDICATOR_LEFT_28X7
+#define LV_ATTRIBUTE_I_ACTIVE_INDICATOR_LEFT_28X7
+#endif
+
+static const LV_ATTRIBUTE_MEM_ALIGN LV_ATTRIBUTE_LARGE_CONST
+    LV_ATTRIBUTE_I_ACTIVE_INDICATOR_LEFT_28X7 uint8_t I_active_indicator_left_28x7_map[] = {
+
+        0x4c, 0x70, 0x47, 0x00, 0x22, 0x22, 0x22, 0xff, 0x66, 0x66, 0x66, 0xff, 0x11,
+        0x11, 0x11, 0xff,
+
+        0xa0, 0x00, 0x05, 0x00, 0x00, 0xf0, 0x00, 0xaa, 0x00, 0x05, 0x50, 0x00, 0xff,
+        0x00, 0xaa, 0xa0, 0x05, 0x55, 0x00, 0xff, 0xf0, 0xaa, 0xaa, 0x05, 0x55, 0x50,
+        0xff, 0xff, 0xaa, 0xa0, 0x05, 0x55, 0x00, 0xff, 0xf0, 0xaa, 0x00, 0x05, 0x50,
+        0x00, 0xff, 0x00, 0xa0, 0x00, 0x05, 0x00, 0x00, 0xf0, 0x00,
+
+};
+
+const lv_image_dsc_t I_active_indicator_left_28x7 = {
+    .header.magic = LV_IMAGE_HEADER_MAGIC,
+    .header.cf = LV_COLOR_FORMAT_I2,
+    .header.flags = 0,
+    .header.w = 28,
+    .header.h = 7,
+    .header.stride = 7,
+    .header.reserved_2 = 0,
+    .data_size = sizeof(I_active_indicator_left_28x7_map),
+    .data = I_active_indicator_left_28x7_map,
+    .reserved = NULL,
+};

@@ -2,6 +2,8 @@
 
 #include <gui/widget_i.h>
 
+#include <assets/assets_images.h>
+
 #define MY_CLASS (&image_lvgl_class)
 
 struct Image {
@@ -46,8 +48,16 @@ bool image_set_source(Image* instance, const char* file_path) {
     furi_check(instance);
     furi_check(file_path);
 
+    lv_image_set_src(instance->image, NULL);
     lv_image_set_src(instance->image, file_path);
-    return true;
+
+    const void* loaded_src = lv_image_get_src(instance->image);
+
+    if(!loaded_src) {
+        lv_image_set_src(instance->image, &I_load_error_9x9);
+    }
+
+    return loaded_src != NULL;
 }
 
 // LVGL class descriptor
