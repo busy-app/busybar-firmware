@@ -3,7 +3,7 @@ App(
     name="Basic applications for main menu",
     apptype=FlipperAppType.METAPACKAGE,
     provides=[
-        # "storage_benchmark",
+        "storage_benchmark",
         # "crash_test",
         "light_sensor_test",
         "front_display_test",

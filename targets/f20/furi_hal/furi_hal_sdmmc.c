@@ -268,9 +268,6 @@ typedef struct {
 _Static_assert(
     sizeof(CardExtendedCSDRegister) == 512,
     "Size check for 'CardExtendedCSDRegister' failed.");
-// _Static_assert(
-//     offsetof(CardExtendedCSDRegister, SecCount) == 297,
-//     "Size check for 'CardExtendedCSDRegister' failed.");
 
 typedef struct {
     uint8_t DataBusWidth; /*!< Shows the currently defined data bus width */
@@ -510,9 +507,6 @@ static inline void sdmmc_enable_it(uint32_t it) {
     __SDMMC_ENABLE_IT(FURI_SDMMC_BLOCK, it);
 }
 
-static FuriHalSdError
-    sdmmc_mmc_read_ext_csd_field(uint32_t* field_data, uint16_t field_index, uint32_t timeout);
-
 static bool sdmmc_parse_csd(CardCSDInfo* info, uint32_t csd[4]) {
     info->CSDStruct = (uint8_t)((csd[0] & 0xC0000000U) >> 30U);
     info->SysSpecVersion = (uint8_t)((csd[0] & 0x3C000000U) >> 26U);
@@ -545,14 +539,7 @@ static bool sdmmc_parse_csd(CardCSDInfo* info, uint32_t csd[4]) {
         info->MaxWrCurrentVDDMax = (uint8_t)((csd[2] & 0x001C0000U) >> 18U);
         info->DeviceSizeMul = (uint8_t)((csd[2] & 0x00038000U) >> 15U);
     } else if(sdmmc1.info.type == FuriHalSdTypeMMCHighCapacity) {
-        FURI_LOG_D("tag", "# %lX", sdmmc1.csd_ext.SecCount);
-        uint32_t block_nbr = 0;
-        if(sdmmc_mmc_read_ext_csd_field(&block_nbr, 212, SDMMC_CMDTIMEOUT * 1000U) !=
-           FuriHalSdErrorNone) {
-            return false;
-        }
-
-        info->DeviceSize = block_nbr;
+        info->DeviceSize = sdmmc1.csd_ext.SecCount;
     } else {
         furi_crash("Unknown SD/MMC type");
     }
@@ -1390,10 +1377,6 @@ static FuriHalSdError
         }
     }
 
-    uint8_t* csd = (uint8_t*)&sdmmc1.csd_ext;
-    for(uint32_t i = 0; i < 512; i++) {
-        FURI_LOG_D(TAG, "CSD[%ld] = 0x%02x", i, csd[i]);
-    }
     __SDMMC_CMDTRANS_DISABLE(FURI_SDMMC_BLOCK);
 
     /* Get error state */
@@ -1412,85 +1395,6 @@ static FuriHalSdError
     } else {
         /* Nothing to do */
     }
-
-    /* Clear the static data flags */
-    sdmmc_clear_static_data_flags();
-
-    return errorstate;
-}
-
-static FuriHalSdError
-    sdmmc_mmc_read_ext_csd_field(uint32_t* field_data, uint16_t field_index, uint32_t timeout) {
-    SDMMC_DataInitTypeDef config;
-    FuriHalSdError errorstate = FuriHalSdErrorNone;
-    FuriHalCortexTimer timer = furi_hal_cortex_timer_get(timeout);
-
-    uint32_t count;
-    uint32_t i = 0;
-    uint32_t tmp_data;
-
-    /* Initialize data control register */
-    FURI_SDMMC_BLOCK->DCTRL = 0;
-
-    /* Configure the MMC DPSM (Data Path State Machine) */
-    config.DataTimeOut = SDMMC_REAL_DATATIMEOUT;
-    config.DataLength = MMC_BLOCKSIZE;
-    config.DataBlockSize = SDMMC_DATABLOCK_SIZE_512B;
-    config.TransferDir = SDMMC_TRANSFER_DIR_TO_SDMMC;
-    config.TransferMode = SDMMC_TRANSFER_MODE_BLOCK;
-    config.DPSM = SDMMC_DPSM_ENABLE;
-    (void)SDMMC_ConfigData(FURI_SDMMC_BLOCK, &config);
-
-    /* Set Block Size for Card */
-    errorstate = SDMMC_CmdSendEXTCSD(FURI_SDMMC_BLOCK, (uint32_t)(sdmmc1.card_rca << 16U));
-    if(errorstate != FuriHalSdErrorNone) {
-        /* Clear all the static flags */
-        sdmmc_clear_static_flags();
-        return errorstate;
-    }
-
-    /* Poll on SDMMC flags */
-    while(!sdmmc_get_flags(
-        SDMMC_FLAG_RXOVERR | SDMMC_FLAG_DCRCFAIL | SDMMC_FLAG_DTIMEOUT | SDMMC_FLAG_DATAEND)) {
-        if(sdmmc_get_flags(SDMMC_FLAG_RXFIFOHF)) {
-            /* Read data from SDMMC Rx FIFO */
-            for(count = 0U; count < (SDMMC_FIFO_SIZE / 4U); count++) {
-                tmp_data = SDMMC_ReadFIFO(FURI_SDMMC_BLOCK);
-                /* eg : SEC_COUNT   : field_index = 212 => i+count = 53 */
-                /*      DEVICE_TYPE : field_index = 196 => i+count = 49 */
-                if((i + count) == ((uint32_t)field_index / 4U)) {
-                    *field_data = tmp_data;
-                }
-            }
-            i += 8U;
-        }
-
-        if(furi_hal_cortex_timer_is_expired(timer)) {
-            /* Clear all the static flags */
-            sdmmc_clear_static_flags();
-            return FuriHalSdErrorTimeout;
-        }
-    }
-
-    /* Get error state */
-    if(sdmmc_get_flags(SDMMC_FLAG_DTIMEOUT)) {
-        /* Clear all the static flags */
-        sdmmc_clear_static_flags();
-        return FuriHalSdErrorDataTimeout;
-    } else if(sdmmc_get_flags(SDMMC_FLAG_DCRCFAIL)) {
-        /* Clear all the static flags */
-        sdmmc_clear_static_flags();
-        return FuriHalSdErrorDataCrcFail;
-    } else if(sdmmc_get_flags(SDMMC_FLAG_RXOVERR)) {
-        /* Clear all the static flags */
-        sdmmc_clear_static_flags();
-        return FuriHalSdErrorRxOverrun;
-    } else {
-        /* Nothing to do */
-    }
-
-    /* While card is not ready for data and trial number for sending CMD13 is not exceeded */
-    errorstate = SDMMC_CmdSendStatus(FURI_SDMMC_BLOCK, (uint32_t)(sdmmc1.card_rca << 16U));
 
     /* Clear the static data flags */
     sdmmc_clear_static_data_flags();
