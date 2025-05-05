@@ -121,6 +121,156 @@ typedef struct {
     uint8_t CSD_CRC; /*!< CSD CRC */
     uint8_t Reserved4; /*!< Always 1 */
 } CardCSDInfo;
+_Static_assert(sizeof(CardCSDInfo) == sizeof(CardCSDInfo), "Size check for 'CardCSDInfo' failed.");
+
+/*
+    R:          Read only. 
+    W:          One time programmable and not readable. 
+    R/W:        One time programmable and readable. 
+    W/E:        Multiple writable with value kept after power failure, H/W reset assertion and any CMD0 reset and not readable. 
+    R/W/E:      Multiple writable with value kept after power failure, H/W reset assertion and any CMD0 reset and readable. 
+    R/W/C_P:    Writable after value cleared by power failure and HW/rest assertion (the value not cleared by CMD0 reset) and readable. 
+    R/W/E_P:    Multiple writable with value reset after power failure,  H/W reset assertion and any CMD0 reset and readable. 
+    W/E_P:      Multiple writable with value reset after power failure,  H/W reset assertion and any CMD0 reset and not readable. 
+*/
+typedef struct {
+    uint8_t Reserved24[32]; /*!< Reserved [TBD][31:0]*/
+    uint8_t FlushCache; /*!< Flushing of the cache [W/E_P][32]*/
+    uint8_t CacheCtrl; /*!< Control to turn the Cache ON/OFF [R/W/E_P][33]*/
+    uint8_t PowerOffNotification; /*!< Power Off Notification [R/W/E_P][34]*/
+    uint8_t PackedFailureIndex; /*!< Packed command failure index [R][35]*/
+    uint8_t PackedCommandStatus; /*!< Packed command status [R][36]*/
+    uint8_t ContextConf[15]; /*!< Context configuration [R/W/E_P][51:37]*/
+    uint16_t ExtPartitionsAttribute; /*!< Extended Partitions Attribute [R/W][53:52]*/
+    uint16_t ExceptionEventsStatus; /*!< Exception events status [R][55:54]*/
+    uint16_t ExceptionEventsCtrl; /*!< Exception events control [R/W/E_P][57:56]*/
+    uint8_t DyncapNeeded; /*!< Number of addressed group to be released [D][58]*/
+    uint8_t Class6Ctrl; /*!< Class 6 commands control [R/W/E_P][59]*/
+    uint8_t IniTimeoutEmu; /*!< 1st initialization after disabling sector size emulation [R][60]*/
+    uint8_t DataSectorSize; /*!< Sector size [R][61]*/
+    uint8_t UseNativeSector; /*!< Sector size emulation [R/W][62]*/
+    uint8_t NativeSectorSize; /*!< Native sector size [R][63]*/
+    uint8_t VendorSpecificField[64]; /*!< Vendor Specific Fields <vendor specific> [127:64]*/
+    uint8_t Reserved23[2]; /*!< Reserved [TBD][129:128]*/
+    uint8_t ProgramCidCsdDDRSupport; /*!< Program CID/CSD in DDR mode support [R][130]*/
+    uint8_t PeriodicWakeup; /*!< Periodic Wake-up [R/W/E][131]*/
+    uint8_t TCaseSupport; /*!< Package Case Temperature is controlled [W/E_P][132]*/
+    uint8_t Reserved22[1]; /*!< Reserved [TBD][133]*/
+    uint8_t SecBadBlkMgmnt; /*!< Bad Block Management mode [R/W][134]*/
+    uint8_t Reserved21[1]; /*!< Reserved [TBD][135]*/
+    uint8_t EnhStartAddr[4]; /*!< Enhanced User Data Start Address [R/W][139:136]*/
+    uint8_t EnhSizeMult[3]; /*!< Enhanced User Data Area Size [R/W][142:140]*/
+    uint8_t GPSizeMult[12]; /*!< General Purpose Partition Size [R/W][154:143]*/
+    uint8_t PartitionSettingCompleted; /*!< Partitioning Setting [R/W][155]*/
+    uint8_t PartitionsAttribute; /*!< Partitions attribute [R/W][156]*/
+    uint8_t MaxEnhSizeMult[3]; /*!< Max Enhanced Area Size [R][159:157]*/
+    uint8_t PartitioningSupport; /*!< Partitioning Support [R][160]*/
+    uint8_t HPIMgmt; /*!< HPI management [R/W/E_P][161]*/
+    uint8_t RSTnFunction; /*!< H/W reset function [R/W][162]*/
+    uint8_t BKOPSEn; /*!< Enable background operations handshake [R/W][163]*/
+    uint8_t BKOPSStart; /*!< Manually start background operations [W/E_P][164]*/
+    uint8_t SanitizeStart; /*!< Start Sanitize operation [W/E_P][165]*/
+    uint8_t WrRelParam; /*!< Write reliability parameter register [R][166]*/
+    uint8_t WrRelSet; /*!< Write reliability setting register [R/W][167]*/
+    uint8_t RpmbSizeMult; /*!< RPMB Size [R][168]*/
+    uint8_t FWConfig; /*!< FW configuration [R/W][169]*/
+    uint8_t Reserved20; /*!< Reserved [TBD][170]*/
+    uint8_t UserWp; /*!< User area write protection register [R/W, R/W/C_P & R/W/E_P][171]*/
+    uint8_t Reserved19; /*!< Reserved [TBD][172]*/
+    uint8_t BootWp; /*!< Boot area write protection register [R/W & R/W/C_P][173]*/
+    uint8_t BootWpStatus; /*!< Boot write protection status registers [R][174]*/
+    uint8_t EraseGroupDef; /*!< High-density erase group definition [R/W/E_P][175]*/
+    uint8_t Reserved18; /*!< Reserved [TBD][176]*/
+    uint8_t BootBusConditions; /*!< Boot bus conditions [R/W/E][177]*/
+    uint8_t BootConfigProt; /*!< Boot config protection [R/W & R/W/C_P][178]*/
+    uint8_t PartitionConfig; /*!< Partition configuration [R/W/E & R/W/E_P][179]*/
+    uint8_t Reserved17; /*!< Reserved [TBD][180]*/
+    uint8_t ErasedMemCont; /*!< Erased memory content [R][181]*/
+    uint8_t Reserved16; /*!< Reserved [TBD][182]*/
+    uint8_t BusWidth; /*!< Bus width mode [R/W/E_P][183]*/
+    uint8_t Reserved15; /*!< Reserved [TBD][184]*/
+    uint8_t HSTiming; /*!< High-speed interface timing [R/W/E_P][185]*/
+    uint8_t Reserved14; /*!< Reserved [TBD][186]*/
+    uint8_t PowerClass; /*!< Power class [R/W/E_P][187]*/
+    uint8_t Reserved13; /*!< Reserved [TBD][188]*/
+    uint8_t CmdSetRev; /*!< Command set revision [R][189]*/
+    uint8_t Reserved12; /*!< Reserved [TBD][190]*/
+    uint8_t CmdSet; /*!< Command set [R/W/E_P][191]*/
+    uint8_t ExtCSDRev; /*!< Extended CSD revision [R][192]*/
+    uint8_t Reserved11; /*!< Reserved [TBD][193]*/
+    uint8_t CSDStructVer; /*!< CSD structure version [R][194]*/
+    uint8_t Reserved10; /*!< Reserved [TBD][195]*/
+    uint8_t DeviceType; /*!< Device type [R][196]*/
+    uint8_t DriverStrength; /*!< I/O Driver Strength [R][197]*/
+    uint8_t OutOfInterruptTime; /*!< Out-of-interrupt busy timing [R][198]*/
+    uint8_t PartitionSwitchTime; /*!< Partition switching timing [R][199]*/
+    uint8_t PwrCl52_195; /*!< Power class for 52MHz at 1.95V [R][200]*/
+    uint8_t PwrCl26_195; /*!< Power class for 26MHz at 1.95V [R][201]*/
+    uint8_t PwrCl52_360; /*!< Power class for 52MHz at 3.6V [R][202]*/
+    uint8_t PwrCl26_360; /*!< Power class for 26MHz at 3.6V [R][203]*/
+    uint8_t Reserved9; /*!< Reserved [TBD][204]*/
+    uint8_t MinPerfR_4_26; /*!< Minimum read performance for 4bit at 26MHz [R][205]*/
+    uint8_t MinPerfW_4_26; /*!< Minimum write performance for 4bit at 26MHz [R][206]*/
+    uint8_t
+        MinPerfR_8_26_4_52; /*!< Minimum read performance for 8bit at 26MHz, for 4bit at 52MHz [R][207]*/
+    uint8_t
+        MinPerfW_8_26_4_52; /*!< Minimum write performance for 8bit at 26MHz, for 4bit at 52MHz [R][208]*/
+    uint8_t MinPerfR_8_52; /*!< Minimum read performance for 8bit at 52MHz [R][209]*/
+    uint8_t MinPerfW_8_52; /*!< Minimum write performance for 8bit at 52MHz [R][210]*/
+    uint8_t Reserved8; /*!< Reserved [TBD][211]*/
+    uint32_t SecCount; /*!< Sector Count [R][215:212]*/
+    uint8_t Reserved7; /*!< Reserved [TBD][216]*/
+    uint8_t SATimeout; /*!< Sleep/awake timeout [R][217]*/
+    uint8_t Reserved6; /*!< Reserved [TBD][218]*/
+    uint8_t SCVccQ; /*!< Sleep current (VCCQ) [R][219]*/
+    uint8_t SCVcc; /*!< Sleep current (VCC) [R][220]*/
+    uint8_t HCWriteProtectGrpSize; /*!< High-capacity write protect group size [R][221]*/
+    uint8_t RelWrSecC; /*!< Reliable write sector count [R][222]*/
+    uint8_t EraseTimeoutMult; /*!< High-capacity erase timeout [R][223]*/
+    uint8_t HCEraseGrpSize; /*!< High-capacity erase unit size [R][224]*/
+    uint8_t AccSize; /*!< Access size [R][225]*/
+    uint8_t BootSizeMulti; /*!< Boot partition size [R][226]*/
+    uint8_t Reserved5; /*!< Reserved [TBD][227]*/
+    uint8_t BootInfo; /*!< Boot information [R][228]*/
+    uint8_t SecTrimMult; /*!< Secure TRIM Multiplier [R][229]*/
+    uint8_t SecEraseMult; /*!< Secure Erase Multiplier [R][230]*/
+    uint8_t SecFeatureSupport; /*!< Secure feature support [R][231]*/
+    uint8_t TrimMult; /*!< TRIM Multiplier [R][232]*/
+    uint8_t Reserved4; /*!< Reserved [TBD][233]*/
+    uint8_t MinPerfDdrR_8_52; /*!< Minimum read performance for 8bit at 52MHz in DDR mode [R][234]*/
+    uint8_t MinPerfDdrW_8_52; /*!< Minimum write performance for 8bit at 52MHz in DDR mode [R][235]*/
+    uint8_t PwrCl200_130; /*!< Power class for 200MHz at 1.3V  [R][236]*/
+    uint8_t PwrCl200_195; /*!< Power class for 200MHz at 1.95V [R][237]*/
+    uint8_t PwrClDdr52_195; /*!< Power class for 52MHz, DDR at 1.95V [R][238]*/
+    uint8_t PwrClDdr52_360; /*!< Power class for 52MHz, DDR at 3.6V [R][239]*/
+    uint8_t Reserved3; /*!< Reserved [TBD][240]*/
+    uint8_t InitTimeAfterPart; /*!< 1st initialization time after partitioning [R][241]*/
+    uint32_t CorrectlyPrgSectorsNum; /*!< Number of correctly programmed sectors [R][245:242]*/
+    uint8_t BKOPSStatus; /*!< Background operations status [R][246]*/
+    uint8_t PowerOffLongTime; /*!< Power off notification (long) timeout [R][247]*/
+    uint8_t GenericCmd6Time; /*!< Generic CMD6 timeout [R][248]*/
+    uint32_t CacheSize; /*!< Cache size [R][252:249]*/
+    uint8_t Reserved2[241]; /*!< Reserved [TBD][493:253]*/
+    uint8_t ExtSupport; /*!< Extended partitions attribute support [R][494]*/
+    uint8_t LargeUnitSizeM1; /*!< Large unit size [R][495]*/
+    uint8_t ContextCapabilities; /*!< Context management capabilities [R][496]*/
+    uint8_t TagResourcesSize; /*!< Tag resources size [R][497]*/
+    uint8_t TagUnitSize; /*!< Tag unit size [R][498]*/
+    uint8_t DataTagSupport; /*!< Data tag support [R][499]*/
+    uint8_t MaxPackedWrites; /*!< Max packed write commands [R][500]*/
+    uint8_t MaxPackedReads; /*!< Max packed read commands [R][501]*/
+    uint8_t BKOPSSupport; /*!< Background operations support [R][502]*/
+    uint8_t HPIFeatures; /*!< HPI features [R][503]*/
+    uint8_t SCmdSet; /*!< Supported command sets [R][504]*/
+    uint8_t ExtSecurityErr; /*!< Extended security commands error [R][505]*/
+    uint8_t Reserved1[6]; /*!< Reserved [TBD][511:506]*/
+} FURI_PACKED CardExtendedCSDRegister;
+_Static_assert(
+    sizeof(CardExtendedCSDRegister) == 512,
+    "Size check for 'CardExtendedCSDRegister' failed.");
+// _Static_assert(
+//     offsetof(CardExtendedCSDRegister, SecCount) == 297,
+//     "Size check for 'CardExtendedCSDRegister' failed.");
 
 typedef struct {
     uint8_t DataBusWidth; /*!< Shows the currently defined data bus width */
@@ -150,7 +300,7 @@ typedef struct {
     uint32_t card_rca;
     bool card_alive;
 
-    uint32_t csd_ext[128];
+    CardExtendedCSDRegister csd_ext;
 } SdMmc;
 
 static SdMmc sdmmc1 = {0};
@@ -395,6 +545,7 @@ static bool sdmmc_parse_csd(CardCSDInfo* info, uint32_t csd[4]) {
         info->MaxWrCurrentVDDMax = (uint8_t)((csd[2] & 0x001C0000U) >> 18U);
         info->DeviceSizeMul = (uint8_t)((csd[2] & 0x00038000U) >> 15U);
     } else if(sdmmc1.info.type == FuriHalSdTypeMMCHighCapacity) {
+        FURI_LOG_D("tag", "# %lX", sdmmc1.csd_ext.SecCount);
         uint32_t block_nbr = 0;
         if(sdmmc_mmc_read_ext_csd_field(&block_nbr, 212, SDMMC_CMDTIMEOUT * 1000U) !=
            FuriHalSdErrorNone) {
@@ -1187,8 +1338,9 @@ static bool sdmmc_init_sdcard(uint32_t sdmmc_clk) {
 }
 
 // emmc
-static FuriHalSdError sdmmc_mmc_read_ext_csd(uint32_t* csd_buffer, uint32_t timeout) {
-    furi_check(csd_buffer);
+static FuriHalSdError
+    sdmmc_mmc_read_ext_csd(CardExtendedCSDRegister* ext_csd_reg, uint32_t timeout) {
+    furi_check(ext_csd_reg);
 
     SDMMC_DataInitTypeDef config;
     FuriHalSdError errorstate = FuriHalSdErrorNone;
@@ -1200,7 +1352,7 @@ static FuriHalSdError sdmmc_mmc_read_ext_csd(uint32_t* csd_buffer, uint32_t time
     FURI_SDMMC_BLOCK->DCTRL = 0;
 
     /* Initiaize the destination pointer */
-    tmp_buf = csd_buffer;
+    tmp_buf = (uint32_t*)ext_csd_reg;
 
     /* Configure the MMC DPSM (Data Path State Machine) */
     config.DataTimeOut = SDMMC_REAL_DATATIMEOUT;
@@ -1213,7 +1365,7 @@ static FuriHalSdError sdmmc_mmc_read_ext_csd(uint32_t* csd_buffer, uint32_t time
     __SDMMC_CMDTRANS_ENABLE(FURI_SDMMC_BLOCK);
 
     /* Send ExtCSD Read command to Card */
-    errorstate = SDMMC_CmdSendEXTCSD(FURI_SDMMC_BLOCK, 0);
+    errorstate = SDMMC_CmdSendEXTCSD(FURI_SDMMC_BLOCK, (uint32_t)(sdmmc1.card_rca << 16U));
     if(errorstate != FuriHalSdErrorNone) {
         /* Clear all the static flags */
         sdmmc_clear_static_flags();
@@ -1238,6 +1390,10 @@ static FuriHalSdError sdmmc_mmc_read_ext_csd(uint32_t* csd_buffer, uint32_t time
         }
     }
 
+    uint8_t* csd = (uint8_t*)&sdmmc1.csd_ext;
+    for(uint32_t i = 0; i < 512; i++) {
+        FURI_LOG_D(TAG, "CSD[%ld] = 0x%02x", i, csd[i]);
+    }
     __SDMMC_CMDTRANS_DISABLE(FURI_SDMMC_BLOCK);
 
     /* Get error state */
@@ -1286,7 +1442,7 @@ static FuriHalSdError
     (void)SDMMC_ConfigData(FURI_SDMMC_BLOCK, &config);
 
     /* Set Block Size for Card */
-    errorstate = SDMMC_CmdSendEXTCSD(FURI_SDMMC_BLOCK, 0);
+    errorstate = SDMMC_CmdSendEXTCSD(FURI_SDMMC_BLOCK, (uint32_t)(sdmmc1.card_rca << 16U));
     if(errorstate != FuriHalSdErrorNone) {
         /* Clear all the static flags */
         sdmmc_clear_static_flags();
@@ -1396,13 +1552,6 @@ static FuriHalSdError sdmmc_mmc_init_card(void) {
         return errorstate;
     }
 
-    /* Parse parameters */
-    if(!sdmmc_parse_csd(&sdmmc1.csd, CSD)) {
-        return FuriHalSdErrorTimeout;
-    }
-
-    sdmmc_parse_info(&sdmmc1.info, &sdmmc1.csd, CID);
-
     /* While card is not ready for data and trial number for sending CMD13 is not exceeded */
     errorstate =
         SDMMC_CmdSendStatus(FURI_SDMMC_BLOCK, (uint32_t)(((uint32_t)sdmmc1.card_rca) << 16U));
@@ -1411,10 +1560,17 @@ static FuriHalSdError sdmmc_mmc_init_card(void) {
     }
 
     /* Get Extended CSD parameters */
-    errorstate = sdmmc_mmc_read_ext_csd(sdmmc1.csd_ext, SDMMC_CMDTIMEOUT * 1000U);
+    errorstate = sdmmc_mmc_read_ext_csd(&sdmmc1.csd_ext, SDMMC_CMDTIMEOUT * 1000U);
     if(errorstate != FuriHalSdErrorNone) {
         return errorstate;
     }
+
+    /* Parse parameters */
+    if(!sdmmc_parse_csd(&sdmmc1.csd, CSD)) {
+        return FuriHalSdErrorTimeout;
+    }
+
+    sdmmc_parse_info(&sdmmc1.info, &sdmmc1.csd, CID);
 
     /* While card is not ready for data and trial number for sending CMD13 is not exceeded */
     errorstate =
@@ -1477,38 +1633,20 @@ static FuriHalSdError sdmm_mmc_pwr_class_update(uint32_t Wide, uint32_t Speed) {
     uint32_t count;
     uint32_t response = 0U;
     FuriHalSdError errorstate = FuriHalSdErrorNone;
-    uint32_t power_class;
+    uint8_t power_class = sdmmc1.csd_ext.PowerClass;
     uint32_t supported_pwr_class;
 
     if((Wide == SDMMC_BUS_WIDE_8B) || (Wide == SDMMC_BUS_WIDE_4B)) {
-        power_class = 0U; /* Default value after power-on or software reset */
-
-        /* Read the PowerClass field of the Extended CSD register */
-
-        errorstate = sdmmc_mmc_read_ext_csd_field(&power_class, 187, SDMMC_REAL_DATATIMEOUT);
-        if(errorstate != FuriHalSdErrorNone) {
-            return errorstate;
-        } else {
-            power_class = ((power_class >> 24U) & 0x000000FFU);
-        }
-
         /* Get the supported PowerClass field of the Extended CSD register */
         if(Speed == SDMMC_SPEED_MODE_DDR) {
             /* Field PWR_CL_DDR_52_xxx [238 or 239] */
-            supported_pwr_class =
-                ((sdmmc1.csd_ext[(MMC_EXT_CSD_PWR_CL_DDR_52_INDEX / 4)] >>
-                  MMC_EXT_CSD_PWR_CL_DDR_52_POS) &
-                 0x000000FFU);
+            supported_pwr_class = sdmmc1.csd_ext.PwrClDdr52_195;
         } else if(Speed == SDMMC_SPEED_MODE_HIGH) {
             /* Field PWR_CL_52_xxx [200 or 202] */
-            supported_pwr_class =
-                ((sdmmc1.csd_ext[(MMC_EXT_CSD_PWR_CL_52_INDEX / 4)] >> MMC_EXT_CSD_PWR_CL_52_POS) &
-                 0x000000FFU);
+            supported_pwr_class = sdmmc1.csd_ext.PwrCl52_195;
         } else {
             /* Field PWR_CL_26_xxx [201 or 203] */
-            supported_pwr_class =
-                ((sdmmc1.csd_ext[(MMC_EXT_CSD_PWR_CL_26_INDEX / 4)] >> MMC_EXT_CSD_PWR_CL_26_POS) &
-                 0x000000FFU);
+            supported_pwr_class = sdmmc1.csd_ext.PwrCl26_195;
         }
 
         if(Wide == SDMMC_BUS_WIDE_8B) {
@@ -1548,6 +1686,8 @@ static FuriHalSdError sdmm_mmc_pwr_class_update(uint32_t Wide, uint32_t Speed) {
                     /* Nothing to do */
                 }
             }
+            //* Update the current power class */
+            errorstate = sdmmc_mmc_read_ext_csd(&sdmmc1.csd_ext, SDMMC_CMDTIMEOUT * 1000U);
         }
     }
 
@@ -1727,8 +1867,8 @@ static FuriHalSdError sdmmc_mmc_ddr_mode(FunctionalState state) {
 static FuriHalSdError sdmmc_mmc_config_speed_bus_mode(uint32_t sdmmc_clk) {
     FuriHalSdError errorstate = FuriHalSdErrorNone;
 
-    /* Field DEVICE_TYPE [196 = 49*4] of Extended CSD register */
-    uint32_t device_type = (sdmmc1.csd_ext[49] & 0x000000FFU);
+    /* Field DEVICE_TYPE [196] of Extended CSD register */
+    uint32_t device_type = sdmmc1.csd_ext.DeviceType;
 
     // auto switch to high speed mode
     if(((FURI_SDMMC_BLOCK->CLKCR & SDMMC_CLKCR_WIDBUS) != 0U) && ((device_type & 0x04U) != 0U)) {
