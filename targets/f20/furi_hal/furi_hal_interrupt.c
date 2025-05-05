@@ -471,6 +471,12 @@ void FPU_IRQHandler() {
     furi_crash("FpuFault");
 }
 
+void FuriSysTick_Handler(void) {
+    // FURI_HAL_INTERRUPT_ACCOUNT_START();
+    furi_hal_os_tick();
+    // FURI_HAL_INTERRUPT_ACCOUNT_END();
+}
+
 // Potential space-saver for updater build
 const char* furi_hal_interrupt_get_name(uint8_t exception_number) {
     int32_t id = (int32_t)exception_number - 16;

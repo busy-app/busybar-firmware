@@ -13,10 +13,20 @@ static bool platform_boot_update_init(void) {
     // Init core HAL systems
     furi_hal_mpu_init();
     furi_hal_clock_init();
-    furi_hal_sdmmc_init(false);
     furi_hal_interrupt_init();
-    furi_hal_spi_config_init();
-    __disable_irq();
+    furi_hal_sdmmc_init(false);
+    // furi_hal_serial_control_init();
+    // furi_hal_spi_config_init();
+    // __disable_irq();
+
+    // furi_hal_init();
+
+    // furi_hal_bus_enable(FuriHalBusSPI1);
+    // furi_hal_bus_enable(FuriHalBusSPI2);
+    // furi_hal_bus_enable(FuriHalBusOCTOSPI1);
+    // furi_hal_bus_enable(FuriHalBusOCTOSPIM);
+    // furi_hal_bus_enable(FuriHalBusGPDMA1);
+    // furi_hal_bus_enable(FuriHalBusLPDMA1);
 
     fatfs_init();
 

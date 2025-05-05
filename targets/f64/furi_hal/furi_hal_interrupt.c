@@ -315,7 +315,7 @@ void UsageFault_Handler(void) {
 void DebugMon_Handler(void) {
 }
 
-void SysTick_Handler(void) {
+void FuriSysTick_Handler(void) {
     FURI_HAL_INTERRUPT_ACCOUNT_START();
     furi_hal_os_tick();
     FURI_HAL_INTERRUPT_ACCOUNT_END();
