@@ -40,6 +40,34 @@
 
 #define SDMMC_REAL_DATATIMEOUT (FURI_SDMMC_SWDATATIMEOUT * 5000U)
 
+/*
+CMD  type   arg               resp abbr     cmd description
+CMD6  ac    [31:26] Set to 0  R1b  SWITCH   Switches the mode of operation of the selected 
+            [25:24] Access                  Device or modifies the EXT_CSD registers. (See 
+            [23:16] Index                   Section 6.6.1)  
+            [15:8] Value  
+            [7:3] Set to 0  
+            [2:0] Cmd Set  
+
+
+Table 6 — EXT_CSD access mode 
+AccessBits  Access Name     Operation  
+    00      Command Set     The command set is changed according to the Cmd Set field of the argument   
+    01      Set Bits        The bits in the pointed byte are set, according to the ‘1’ bits in the Value field. 
+    10      Clear Bits      The bits in the pointed byte are cleared, according to the ‘1’ bits in the Value field.
+    11      Write Byte      The Value field is written into the pointed byte. 
+*/
+// ToDo Cmd Set ???
+#define SDMMC_CMD6_REG_VAL(reg, value, cmd_set)                                        \
+    ((((uint32_t)reg) << 16) & 0x00FF0000) | ((((uint32_t)value) << 8) & 0x0000FF00) | \
+        (cmd_set & 0x3)
+#define SDMMC_CMD6_SET_EXT_CSD(reg, value)      0x00000000U | SDMMC_CMD6_REG_VAL(reg, value, 0x00)
+#define SDMMC_CMD6_SET_BITS_EXT_CSD(reg, value) 0x01000000U | SDMMC_CMD6_REG_VAL(reg, value, 0x00)
+#define SDMMC_CMD6_CLEAR_BITS_EXT_CSD(reg, value) \
+    0x02000000U | SDMMC_CMD6_REG_VAL(reg, value, 0x00)
+#define SDMMC_CMD6_WRITE_BYTE_EXT_CSD(reg, value) \
+    0x03000000U | SDMMC_CMD6_REG_VAL(reg, value, 0x00)
+
 typedef enum {
     FuriHalSdErrorNone = SDMMC_ERROR_NONE,
     FuriHalSdErrorDataCrcFail = SDMMC_ERROR_DATA_CRC_FAIL,
@@ -1543,7 +1571,7 @@ static FuriHalSdError sdmm_mmc_pwr_class_update(uint32_t wide, uint32_t speed) {
             modes. Bits [7:4] code the current consumption for the 8 bit bus configuration. Bits [3:0] code the current 
             consumption for the 4 bit bus configuration.  
             The PWR_52_vvv registers are not defined for 26MHz e•MMCs.  
-            
+
             Table 109 — Power classes 
             Voltage  Value  Max RMS     Max Peak Remarks
                             Current     Current 
@@ -1616,7 +1644,8 @@ static FuriHalSdError sdmm_mmc_pwr_class_update(uint32_t wide, uint32_t speed) {
             This field is 0 after power-on or software reset.
             */
             errorstate = SDMMC_CmdSwitch(
-                FURI_SDMMC_BLOCK, (0x03BB0000U | ((supported_pwr_class & 0x0FU) << 8U)));
+                FURI_SDMMC_BLOCK,
+                SDMMC_CMD6_WRITE_BYTE_EXT_CSD(187, (supported_pwr_class & 0x0FU)));
 
             if(errorstate == FuriHalSdErrorNone) {
                 /* While card is not ready for data and trial number for sending CMD13 is not exceeded */
@@ -1673,7 +1702,8 @@ static FuriHalSdError sdmmc_mmc_high_speed(FunctionalState state, uint32_t sdmmc
         }
 
         /* Index : 185 - Value : 0 */
-        errorstate = SDMMC_CmdSwitch(FURI_SDMMC_BLOCK, 0x03B90000U);
+        errorstate =
+            SDMMC_CmdSwitch(FURI_SDMMC_BLOCK, SDMMC_CMD6_WRITE_BYTE_EXT_CSD(185, 0)); //0x03B90000U
     }
 
     if(((FURI_SDMMC_BLOCK->CLKCR & SDMMC_CLKCR_BUSSPEED) == 0U) && (state != DISABLE)) {
@@ -1684,7 +1714,8 @@ static FuriHalSdError sdmmc_mmc_high_speed(FunctionalState state, uint32_t sdmmc
         }
 
         /* Index : 185 - Value : 1 */
-        errorstate = SDMMC_CmdSwitch(FURI_SDMMC_BLOCK, 0x03B90100U);
+        errorstate =
+            SDMMC_CmdSwitch(FURI_SDMMC_BLOCK, SDMMC_CMD6_WRITE_BYTE_EXT_CSD(185, 1)); //0x03B90100U
     }
 
     if(errorstate == FuriHalSdErrorNone) {
@@ -1768,7 +1799,8 @@ static FuriHalSdError sdmmc_mmc_ddr_mode(FunctionalState state) {
             }
 
             /* Index : 183 - Value : 1 */
-            errorstate = SDMMC_CmdSwitch(FURI_SDMMC_BLOCK, 0x03B70100U);
+            errorstate = SDMMC_CmdSwitch(
+                FURI_SDMMC_BLOCK, SDMMC_CMD6_WRITE_BYTE_EXT_CSD(183, 1)); //0x03B70100U
 
         } else {
             errorstate = sdmm_mmc_pwr_class_update(SDMMC_BUS_WIDE_8B, SDMMC_SPEED_MODE_HIGH);
@@ -1777,7 +1809,8 @@ static FuriHalSdError sdmmc_mmc_ddr_mode(FunctionalState state) {
             }
 
             /* Index : 183 - Value : 2 */
-            errorstate = SDMMC_CmdSwitch(FURI_SDMMC_BLOCK, 0x03B70200U);
+            errorstate = SDMMC_CmdSwitch(
+                FURI_SDMMC_BLOCK, SDMMC_CMD6_WRITE_BYTE_EXT_CSD(183, 2)); //0x03B70200U
         }
     }
 
@@ -1789,7 +1822,8 @@ static FuriHalSdError sdmmc_mmc_ddr_mode(FunctionalState state) {
             }
 
             /* Index : 183 - Value : 5 */
-            errorstate = SDMMC_CmdSwitch(FURI_SDMMC_BLOCK, 0x03B70500U);
+            errorstate = SDMMC_CmdSwitch(
+                FURI_SDMMC_BLOCK, SDMMC_CMD6_WRITE_BYTE_EXT_CSD(183, 5)); //0x03B70500U
 
         } else {
             errorstate = sdmm_mmc_pwr_class_update(SDMMC_BUS_WIDE_8B, SDMMC_SPEED_MODE_DDR);
@@ -1798,7 +1832,8 @@ static FuriHalSdError sdmmc_mmc_ddr_mode(FunctionalState state) {
             }
 
             /* Index : 183 - Value : 6 */
-            errorstate = SDMMC_CmdSwitch(FURI_SDMMC_BLOCK, 0x03B70600U);
+            errorstate = SDMMC_CmdSwitch(
+                FURI_SDMMC_BLOCK, SDMMC_CMD6_WRITE_BYTE_EXT_CSD(183, 6)); //0x03B70600U
         }
     }
 
@@ -1919,11 +1954,14 @@ static FuriHalSdError sdmmc_mmc_wide_bus_mode(uint32_t wide_mode) {
         7..255  Reserved
         */
         if(wide_mode == SDMMC_BUS_WIDE_8B) {
-            errorstate = SDMMC_CmdSwitch(FURI_SDMMC_BLOCK, 0x03B70200U);
+            errorstate = SDMMC_CmdSwitch(
+                FURI_SDMMC_BLOCK, SDMMC_CMD6_WRITE_BYTE_EXT_CSD(183, 2)); //0x03B70200U
         } else if(wide_mode == SDMMC_BUS_WIDE_4B) {
-            errorstate = SDMMC_CmdSwitch(FURI_SDMMC_BLOCK, 0x03B70100U);
+            errorstate = SDMMC_CmdSwitch(
+                FURI_SDMMC_BLOCK, SDMMC_CMD6_WRITE_BYTE_EXT_CSD(183, 1)); //0x03B70100U
         } else if(wide_mode == SDMMC_BUS_WIDE_1B) {
-            errorstate = SDMMC_CmdSwitch(FURI_SDMMC_BLOCK, 0x03B70000U);
+            errorstate = SDMMC_CmdSwitch(
+                FURI_SDMMC_BLOCK, SDMMC_CMD6_WRITE_BYTE_EXT_CSD(183, 0)); //0x03B70000U
         } else {
             /* wide_mode is not a valid argument*/
             errorstate = FuriHalSdErrorParam;
