@@ -38,21 +38,18 @@ int32_t cli_socket_srv(void* p) {
 
     cli_socket.evt_flags = furi_event_flag_alloc();
 
-    int32_t listen_fd;
-    struct sockaddr_in address;
-
     furi_delay_ms(1000);
     FURI_LOG_I(TAG, "Started");
 
     // Create a socket
-    listen_fd = socket(AF_INET, SOCK_STREAM, 0);
+    int32_t listen_fd = socket(AF_INET, SOCK_STREAM, 0);
 
     if(listen_fd < 0) {
         furi_crash("socket() failed");
     }
 
     // Set up the address
-    memset(&address, 0, sizeof(address));
+    struct sockaddr_in address = {0};
     address.sin_family = AF_INET;
     address.sin_port = htons(CLI_SOCKET_PORT);
     address.sin_addr.s_addr = INADDR_ANY;
@@ -71,7 +68,9 @@ int32_t cli_socket_srv(void* p) {
         cli_socket.client_socket = accept(listen_fd, NULL, NULL);
 
         if(cli_socket.client_socket < 0) {
-            furi_crash("accept() failed");
+            // May fail if we have too many socket connections
+            CLI_SOCKET_DEBUG("accept() failed, errno: %d", errno);
+            continue;
         }
 
         cli_socket.soh_sent = false;

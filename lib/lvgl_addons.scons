@@ -28,7 +28,7 @@ libenv.AppendUnique(
 )
 
 sources = []
-sources += libenv.Glob(FONTS_FOLDER + "/src/*.c", source=True)
+sources += libenv.Glob(FONTS_FOLDER + "/*.c", source=True)
 sources += libenv.Glob(THEMES_FOLDER + "/*.c", source=True)
 sources += libenv.Glob(STORAGE_FOLDER + "/*.c", source=True)
 sources += libenv.Glob(OSAL_FOLDER + "/*.c", source=True)

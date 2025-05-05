@@ -1,85 +1,148 @@
-#include "busy_scene_next.h"
+#include "../busy.h"
+
+#include <gui/modules/label.h>
+#include <gui/modules/anim_image.h>
+
+#define WAIT_ANIM_BEGIN (0)
+#define WAIT_ANIM_END   (179)
+
+#define PRESS_ANIM_BEGIN (180)
+#define PRESS_ANIM_END   (185)
 
 typedef struct {
-    lv_obj_t* main_label;
-    lv_obj_t* start_button;
+    Label* front_label;
+    AnimImage* front_anim;
+    BusyTimerState timer_state;
 } BusySceneNext;
 
-static void busy_scene_next_button_event_callback(lv_event_t* event) {
-    BusyApp* instance = lv_event_get_user_data(event);
-    busy_send_custom_event(instance, BusyCustomEventNext);
+static bool busy_scene_next_input_callback(const InputEvent* event, void* context) {
+    furi_assert(event);
+    furi_assert(context);
+
+    BusyApp* instance = context;
+
+    bool consumed = false;
+    BusyCustomEvent custom_event;
+
+    if(event->key == InputKeyStart) {
+        if(event->type == InputTypePress) {
+            custom_event = BusyCustomEventStartPressed;
+            consumed = true;
+
+        } else if(event->type == InputTypeRelease) {
+            custom_event = BusyCustomEventStartReleased;
+            consumed = true;
+        }
+    }
+
+    if(consumed) {
+        busy_send_custom_event(instance, custom_event);
+    }
+
+    return consumed;
 }
 
 static void busy_scene_next_on_enter(void* context) {
+    furi_assert(context);
+
     BusyApp* instance = context;
+    BusySceneNext* data = scene_manager_get_current_scene_data(instance->scene_manager);
 
-    busy_timer_pause(instance);
+    const BusyTimerState state = busy_timer_get_state(instance->busy_timer);
 
-    BusySceneNext* data = busy_get_current_scene_data(instance);
+    with_gui(instance->gui, {
+        GuiLayer* layer = gui_get_layer(instance->gui, GuiLayerIdMain);
+        gui_layer_add_input_callback(layer, busy_scene_next_input_callback, instance);
 
-    gui_lock(instance->gui);
+        if(state == BusyTimerStateIdle) {
+            data->front_label = label_alloc(instance->front_window);
+            label_set_text(data->front_label, "FINISHED!");
+            widget_set_align(label_get_base(data->front_label), AlignCenter);
 
-    lv_obj_t* active = gui_get_layer(instance->gui, GuiDisplayIdFront, GuiLayerIdActive);
+        } else {
+            data->front_anim = anim_image_alloc(instance->front_window);
 
-    data->main_label = lv_label_create(active);
+            if(state == BusyTimerStateWork) {
+                anim_image_set_source(
+                    data->front_anim, BUSY_ANIM_PATH("A_busy_waiting_72x16.anim"));
+            } else if(state == BusyTimerStateRest) {
+                anim_image_set_source(
+                    data->front_anim, BUSY_ANIM_PATH("A_rest_waiting_72x16.anim"));
+            }
 
-    if(instance->state == BusyTimerStateRest) {
-        lv_label_set_text(data->main_label, "Rest");
-    } else if(instance->state == BusyTimerStateLongRest) {
-        lv_label_set_text(data->main_label, "Long Rest");
-    } else {
-        lv_label_set_text_fmt(
-            data->main_label,
-            "%lu/%lu BUSY",
-            instance->intervals_done + 1,
-            instance->intervals_total);
-    }
+            anim_image_set_range(data->front_anim, WAIT_ANIM_BEGIN, WAIT_ANIM_END, true, false);
+        }
+    });
 
-    lv_obj_set_pos(data->main_label, 0, 5);
-    lv_obj_set_style_text_font(data->main_label, &lv_font_tiny5_8, LV_PART_MAIN);
-    lv_obj_set_style_text_color(data->main_label, lv_color_white(), LV_PART_MAIN);
-
-    data->start_button = lv_button_create(active);
-    lv_obj_set_pos(data->start_button, 43, 5);
-    lv_obj_add_event_cb(
-        data->start_button, busy_scene_next_button_event_callback, LV_EVENT_CLICKED, instance);
-
-    lv_obj_t* label = lv_label_create(data->start_button);
-    lv_label_set_text(label, "▶ START");
-    lv_obj_set_style_text_font(label, &lv_font_tiny5_8, LV_PART_MAIN);
-    lv_obj_set_style_text_color(label, lv_color_hex(0x13F562), LV_PART_MAIN);
-
-    lv_label_set_text(instance->back_label, "Next Interval Menu");
-
-    gui_unlock(instance->gui);
+    data->timer_state = state;
 }
 
 static void busy_scene_next_on_exit(void* context) {
+    furi_assert(context);
+
     BusyApp* instance = context;
-    BusySceneNext* data = busy_get_current_scene_data(instance);
+    BusySceneNext* data = scene_manager_get_current_scene_data(instance->scene_manager);
 
-    gui_lock(instance->gui);
+    with_gui(instance->gui, {
+        GuiLayer* layer = gui_get_layer(instance->gui, GuiLayerIdMain);
+        gui_layer_remove_input_callback(layer, busy_scene_next_input_callback);
 
-    lv_obj_delete(data->main_label);
-    lv_obj_delete(data->start_button);
-
-    gui_unlock(instance->gui);
-}
-
-static void busy_scene_next_on_event(const BusyEvent* event, void* context) {
-    BusyApp* instance = context;
-
-    if(event->type == BusyEventTypeCustom) {
-        if(event->custom_value == BusyCustomEventNext) {
-            busy_timer_resume(instance);
-            busy_switch_to_scene(instance, BusyAppSceneIdTimer);
+        if(data->front_label) {
+            label_free(data->front_label);
+            data->front_label = NULL;
         }
-    }
+
+        if(data->front_anim) {
+            anim_image_free(data->front_anim);
+            data->front_anim = NULL;
+        }
+    });
 }
 
-const BusyAppScene busy_scene_next = {
-    .on_enter = busy_scene_next_on_enter,
-    .on_exit = busy_scene_next_on_exit,
-    .on_event = busy_scene_next_on_event,
+static bool busy_scene_next_on_event(const SceneManagerEvent* event, void* context) {
+    furi_assert(context);
+    furi_assert(event);
+
+    BusyApp* instance = context;
+
+    bool consumed = false;
+
+    if(event->type == SceneManagerEventTypeCustom) {
+        const BusySceneNext* data = scene_manager_get_current_scene_data(instance->scene_manager);
+
+        if(event->event == BusyCustomEventStartPressed) {
+            if(data->front_anim) {
+                anim_image_set_range(
+                    data->front_anim, PRESS_ANIM_BEGIN, PRESS_ANIM_END, false, false);
+            }
+
+        } else if(event->event == BusyCustomEventStartReleased) {
+            if(data->timer_state == BusyTimerStateIdle) {
+                scene_manager_search_and_switch_to_previous_scene(
+                    instance->scene_manager, BusyAppSceneIdStart);
+            } else {
+                scene_manager_search_and_switch_to_previous_scene(
+                    instance->scene_manager, BusyAppSceneIdTimer);
+            }
+        }
+
+        consumed = true;
+
+    } else if(event->type == SceneManagerEventTypeBack) {
+        // TODO: Ask for confirmation
+        busy_timer_stop(instance->busy_timer);
+        scene_manager_search_and_switch_to_previous_scene(
+            instance->scene_manager, BusyAppSceneIdStart);
+
+        consumed = true;
+    }
+
+    return consumed;
+}
+
+const Scene busy_scene_next = {
+    .enter_callback = busy_scene_next_on_enter,
+    .exit_callback = busy_scene_next_on_exit,
+    .event_callback = busy_scene_next_on_event,
     .data_size = sizeof(BusySceneNext),
 };

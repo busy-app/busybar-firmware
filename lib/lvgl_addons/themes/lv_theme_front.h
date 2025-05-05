@@ -17,7 +17,7 @@ extern "C" {
  * @param disp pointer to display to attach the theme
  * @return a pointer to reference this theme later
  */
-lv_theme_t* lv_theme_front_alloc(lv_display_t* disp, const lv_font_t* main_font);
+lv_theme_t* lv_theme_front_alloc(lv_display_t* disp);
 
 #ifdef __cplusplus
 } /*extern "C"*/

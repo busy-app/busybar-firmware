@@ -1,88 +1,103 @@
-#include "busy_scene_start.h"
+#include "../busy.h"
+#include "../widgets/anim_menu.h"
+#include "../widgets/nav_header.h"
 
-extern const lv_image_dsc_t I_pending_39x16;
+#include <gui/modules/menu.h>
+#include <gui/modules/anim_image.h>
+#include <gui/modules/flex_layout.h>
+
+#define ANIM_MENU_IDLE_FRAMES       (120)
+#define ANIM_MENU_TRANSITION_FRAMES (10)
 
 typedef struct {
-    lv_obj_t* main_image;
-    lv_obj_t* button_list;
-    lv_obj_t* start_button;
-    lv_obj_t* setup_button;
+    FlexLayout* front_layout;
+    AnimImage* front_logo;
+    AnimMenu* front_menu;
+    FlexLayout* back_layout;
+    NavHeader* back_header;
+    Menu* back_menu;
 } BusySceneStart;
 
-static void busy_button_event_callback(lv_event_t* event) {
-    BusyApp* instance = lv_event_get_user_data(event);
-    busy_send_custom_event(instance, (uint32_t)lv_event_get_target_obj(event));
+typedef enum {
+    BusySceneStartMenuIndexStart,
+    BusySceneStartMenuIndexSetup,
+    BusySceneStartMenuIndexMax,
+} BusySceneStartMenuIndex;
+
+static void busy_scene_start_menu_callback(uint32_t index, void* context) {
+    furi_assert(index < BusySceneStartMenuIndexMax);
+    furi_assert(context);
+
+    BusyApp* instance = context;
+    busy_send_custom_event(instance, index);
 }
 
 static void busy_scene_start_on_enter(void* context) {
+    furi_assert(context);
+
     BusyApp* instance = context;
-    BusySceneStart* data = busy_get_current_scene_data(instance);
+    BusySceneStart* data = scene_manager_get_current_scene_data(instance->scene_manager);
 
-    gui_lock(instance->gui);
+    with_gui(instance->gui, {
+        data->front_layout = flex_layout_alloc(instance->front_window, FlexLayoutTypeRow);
 
-    lv_obj_t* active = gui_get_layer(instance->gui, GuiDisplayIdFront, GuiLayerIdActive);
+        data->front_logo = anim_image_alloc(flex_layout_get_base(data->front_layout));
+        anim_image_set_source(data->front_logo, BUSY_ANIM_PATH("A_start_logo_41x16.anim"));
+        anim_image_start(data->front_logo);
 
-    data->main_image = lv_image_create(active);
-    lv_image_set_src(data->main_image, &I_pending_39x16);
+        data->front_menu = anim_menu_alloc(flex_layout_get_base(data->front_layout));
+        anim_menu_set_callback(data->front_menu, busy_scene_start_menu_callback, instance);
+        anim_menu_set_source(data->front_menu, BUSY_ANIM_PATH("A_start_menu_31x16.anim"));
+        anim_menu_set_intervals(
+            data->front_menu, ANIM_MENU_IDLE_FRAMES, ANIM_MENU_TRANSITION_FRAMES);
 
-    data->button_list = lv_list_create(active);
-    lv_obj_set_pos(data->button_list, 39, 1);
-    lv_obj_set_size(data->button_list, 33, lv_obj_get_height(active) - 2);
-    lv_obj_set_style_text_font(data->button_list, &lv_font_tiny5_8, LV_PART_MAIN);
-    lv_obj_set_style_pad_left(data->button_list, 8, LV_PART_MAIN);
+        data->back_layout = flex_layout_alloc(instance->back_window, FlexLayoutTypeColumn);
 
-    data->start_button = lv_list_add_button(data->button_list, NULL, "START");
-    lv_obj_set_style_text_color(data->start_button, lv_color_hex(0x033013), LV_PART_MAIN);
-    lv_obj_set_style_text_color(
-        data->start_button, lv_color_hex(0x13F562), LV_PART_MAIN | LV_STATE_FOCUSED);
-    lv_obj_add_event_cb(
-        data->start_button, busy_button_event_callback, LV_EVENT_CLICKED, instance);
+        data->back_header = nav_header_alloc(flex_layout_get_base(data->back_layout));
+        nav_header_set_image(data->back_header, (const void*)&I_header_busy_39x16);
 
-    data->setup_button = lv_list_add_button(data->button_list, NULL, "SETUP");
-    lv_obj_add_event_cb(
-        data->setup_button, busy_button_event_callback, LV_EVENT_CLICKED, instance);
+        data->back_menu = menu_alloc(flex_layout_get_base(data->back_layout));
+        menu_add_item(data->back_menu, "START", NULL, (const void*)&I_start_12x12, 0, NULL, NULL);
+        menu_add_item(data->back_menu, "SETUP", NULL, (const void*)&I_setup_12x12, 0, NULL, NULL);
 
-    lv_label_set_text(instance->back_label, "Start Menu");
-
-    gui_unlock(instance->gui);
+        widget_set_visible(timer_card_get_base(instance->timer_card), false);
+    });
 }
 
 static void busy_scene_start_on_exit(void* context) {
+    furi_assert(context);
+
     BusyApp* instance = context;
-    BusySceneStart* data = busy_get_current_scene_data(instance);
+    BusySceneStart* data = scene_manager_get_current_scene_data(instance->scene_manager);
 
-    gui_lock(instance->gui);
-
-    lv_obj_delete(data->button_list);
-    lv_obj_delete(data->main_image);
-
-    gui_unlock(instance->gui);
+    with_gui(instance->gui, {
+        flex_layout_free(data->front_layout);
+        flex_layout_free(data->back_layout);
+    });
 }
 
-static void busy_scene_start_on_event(const BusyEvent* event, void* context) {
+static bool busy_scene_start_on_event(const SceneManagerEvent* event, void* context) {
+    furi_assert(context);
     BusyApp* instance = context;
 
-    if(event->type == BusyEventTypeCustom) {
-        BusySceneStart* data = busy_get_current_scene_data(instance);
-        const uint32_t button_id = event->custom_value;
+    bool consumed = false;
 
-        if(button_id == (uint32_t)data->start_button) {
-            if(instance->total_time_mn >= TOTAL_TIME_LOW_THR_MN) {
-                busy_timer_start(instance);
-                busy_switch_to_scene(instance, BusyAppSceneIdTimer);
-            } else {
-                busy_switch_to_scene(instance, BusyAppSceneIdStatic);
-            }
-
-        } else if(button_id == (uint32_t)data->setup_button) {
-            busy_switch_to_scene(instance, BusyAppSceneIdSetup);
+    if(event->type == SceneManagerEventTypeCustom) {
+        if(event->event == BusySceneStartMenuIndexStart) {
+            scene_manager_next_scene(instance->scene_manager, BusyAppSceneIdTimer);
+        } else if(event->event == BusySceneStartMenuIndexSetup) {
+            scene_manager_next_scene(instance->scene_manager, BusyAppSceneIdSetup);
         }
+
+        consumed = true;
     }
+
+    return consumed;
 }
 
-const BusyAppScene busy_scene_start = {
-    .on_enter = busy_scene_start_on_enter,
-    .on_exit = busy_scene_start_on_exit,
-    .on_event = busy_scene_start_on_event,
+const Scene busy_scene_start = {
+    .enter_callback = busy_scene_start_on_enter,
+    .exit_callback = busy_scene_start_on_exit,
+    .event_callback = busy_scene_start_on_event,
     .data_size = sizeof(BusySceneStart),
 };

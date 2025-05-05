@@ -8,12 +8,13 @@
 #define MY_CLASS        (&var_item_list_lvgl_class)
 #define MY_ITEM_CLASS   (&var_item_lvgl_class)
 #define MY_EDITOR_CLASS (&var_item_editor_lvgl_class)
+#define MY_CURSOR_CLASS (&var_item_cursor_lvgl_class)
 
 #define SYM_INFINITY    "∞"
 #define SYM_ARROW_LEFT  "◃"
 #define SYM_ARROW_RIGHT "▹"
 
-#define SCROLL_ANIM_DURATION_MS (64)
+#define SCROLL_ANIM_DURATION_MS (0)
 
 #define CHECK_RANGE_AND_STEP(min, max, step)                                               \
     do {                                                                                   \
@@ -69,6 +70,7 @@ struct VarItemList {
 const lv_obj_class_t var_item_list_lvgl_class;
 const lv_obj_class_t var_item_lvgl_class;
 const lv_obj_class_t var_item_editor_lvgl_class;
+const lv_obj_class_t var_item_cursor_lvgl_class;
 
 // Function prototypes
 
@@ -91,8 +93,12 @@ static void var_item_list_scroll_event_callback(lv_event_t* event) {
 static void var_item_list_lvgl_constructor(const lv_obj_class_t* class_p, lv_obj_t* obj) {
     LV_UNUSED(class_p);
 
+    lv_obj_set_flex_flow(obj, LV_FLEX_FLOW_COLUMN);
+    lv_obj_add_event_cb(obj, var_item_list_scroll_event_callback, LV_EVENT_SCROLL_BEGIN, NULL);
+
     VarItemList* instance = (VarItemList*)obj;
     instance->group = lv_group_create();
+    lv_group_set_wrap(instance->group, false);
 }
 
 static void var_item_list_lvgl_destructor(const lv_obj_class_t* class_p, lv_obj_t* obj) {
@@ -113,12 +119,9 @@ static void var_item_lvgl_constructor(const lv_obj_class_t* class_p, lv_obj_t* o
     lv_obj_add_flag(obj, LV_OBJ_FLAG_SCROLL_ON_FOCUS);
 
     VarItem* instance = (VarItem*)obj;
-    instance->cursor = lv_label_create(obj);
+    instance->cursor = lv_obj_class_create_obj(MY_CURSOR_CLASS, obj);
+    lv_obj_class_init_obj(instance->cursor);
     lv_label_set_text(instance->cursor, SYM_ARROW_RIGHT);
-    // TODO: A better way to show and hide the cursor
-    lv_obj_set_style_opa(instance->cursor, LV_OPA_TRANSP, LV_PART_MAIN);
-    lv_obj_set_style_pad_left(instance->cursor, 2, LV_PART_MAIN);
-    lv_obj_set_style_pad_right(instance->cursor, 1, LV_PART_MAIN);
 
     instance->label = lv_label_create(obj);
     lv_obj_set_flex_grow(instance->label, 1);
@@ -126,7 +129,6 @@ static void var_item_lvgl_constructor(const lv_obj_class_t* class_p, lv_obj_t* o
 
     lv_obj_t* editor = lv_obj_class_create_obj(MY_EDITOR_CLASS, obj);
     lv_obj_class_init_obj(editor);
-    lv_obj_set_flex_grow(editor, 1);
     lv_label_set_long_mode(editor, LV_LABEL_LONG_MODE_CLIP);
 
     instance->editor = (VarItemEditor*)editor;
@@ -143,9 +145,9 @@ static void var_item_lvgl_event(const lv_obj_class_t* class_p, lv_event_t* event
     VarItem* instance = lv_event_get_target(event);
 
     if(code == LV_EVENT_FOCUSED) {
-        lv_obj_set_style_opa(instance->cursor, LV_OPA_COVER, LV_PART_MAIN);
+        lv_obj_add_state(instance->cursor, LV_STATE_FOCUSED);
     } else if(code == LV_EVENT_DEFOCUSED) {
-        lv_obj_set_style_opa(instance->cursor, LV_OPA_TRANSP, LV_PART_MAIN);
+        lv_obj_remove_state(instance->cursor, LV_STATE_FOCUSED);
     }
 }
 
@@ -273,7 +275,7 @@ static void var_item_editor_update(VarItemEditor* instance) {
         const int32_t mm = instance->value % 60;
 
         if(hh == 0) {
-            SET_EDITOR_LABEL(label, "%ld", mm);
+            SET_EDITOR_LABEL(label, "%ld m", mm);
         } else if(mm == 0) {
             SET_EDITOR_LABEL(label, "%ld h", hh);
         } else {
@@ -314,6 +316,23 @@ static void var_item_editor_decrement(VarItemEditor* instance) {
     }
 }
 
+static void var_item_editor_set_edited(VarItemEditor* instance, bool set) {
+    VarItem* item = (VarItem*)lv_obj_get_parent((lv_obj_t*)instance);
+
+    if(set) {
+        lv_obj_add_state((lv_obj_t*)instance, LV_STATE_EDITED);
+        lv_obj_remove_state((lv_obj_t*)item, LV_STATE_FOCUSED);
+        lv_obj_add_state((lv_obj_t*)item->cursor, LV_STATE_EDITED);
+        lv_obj_remove_state((lv_obj_t*)item->cursor, LV_STATE_FOCUSED);
+
+    } else {
+        lv_obj_remove_state((lv_obj_t*)instance, LV_STATE_EDITED);
+        lv_obj_add_state((lv_obj_t*)item, LV_STATE_FOCUSED);
+        lv_obj_add_state((lv_obj_t*)item->cursor, LV_STATE_FOCUSED);
+        lv_obj_remove_state((lv_obj_t*)item->cursor, LV_STATE_EDITED);
+    }
+}
+
 static bool var_item_list_input_callback(Widget* widget, const InputEvent* event) {
     VarItemList* instance = (VarItemList*)widget;
 
@@ -342,7 +361,8 @@ static bool var_item_list_input_callback(Widget* widget, const InputEvent* event
             VarItemEditor* editor = instance->edited;
 
             if(editor) {
-                lv_obj_remove_state((lv_obj_t*)editor, LV_STATE_FOCUSED);
+                var_item_editor_set_edited(editor, false);
+
                 instance->edited = NULL;
 
                 if(editor->callback) {
@@ -351,9 +371,9 @@ static bool var_item_list_input_callback(Widget* widget, const InputEvent* event
 
             } else {
                 VarItem* item = (VarItem*)lv_group_get_focused(instance->group);
-
                 editor = item->editor;
-                lv_obj_add_state((lv_obj_t*)editor, LV_STATE_FOCUSED);
+
+                var_item_editor_set_edited(editor, true);
                 instance->edited = editor;
             }
 
@@ -363,7 +383,7 @@ static bool var_item_list_input_callback(Widget* widget, const InputEvent* event
             VarItemEditor* editor = instance->edited;
 
             if(editor) {
-                lv_obj_remove_state((lv_obj_t*)editor, LV_STATE_FOCUSED);
+                var_item_editor_set_edited(editor, false);
                 instance->edited = NULL;
 
                 if(editor->callback) {
@@ -405,9 +425,6 @@ VarItemList* var_item_list_alloc(Widget* parent) {
 
     lv_obj_t* obj = lv_obj_class_create_obj(MY_CLASS, (lv_obj_t*)parent);
     lv_obj_class_init_obj(obj);
-
-    lv_obj_set_flex_flow(obj, LV_FLEX_FLOW_COLUMN);
-    lv_obj_add_event_cb(obj, var_item_list_scroll_event_callback, LV_EVENT_SCROLL_BEGIN, NULL);
 
     VarItemList* instance = (VarItemList*)obj;
     widget_set_input_feed_callback((Widget*)instance, var_item_list_input_callback);
@@ -607,7 +624,14 @@ const lv_obj_class_t var_item_editor_lvgl_class = {
     .constructor_cb = var_item_editor_lvlgl_constructor,
     .destructor_cb = var_item_editor_lvgl_destructor,
     .name = "var-item-editor",
-    .width_def = LV_PCT(100),
+    .width_def = LV_SIZE_CONTENT,
     .height_def = LV_SIZE_CONTENT,
     .instance_size = sizeof(VarItemEditor),
+};
+
+const lv_obj_class_t var_item_cursor_lvgl_class = {
+    .base_class = &lv_label_class,
+    .name = "var-item-cursor",
+    .width_def = LV_SIZE_CONTENT,
+    .height_def = LV_SIZE_CONTENT,
 };
