@@ -5,10 +5,10 @@ App(
     entry_point="desktop_srv",
     stack_size=1024 * 8,
     order=70,
-    targets=["f20"],
+    targets=["f20", "f21"],
     requires=[
         "gui",
         "loader",
         "message",
-    ]
+    ],
 )

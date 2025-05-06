@@ -6,7 +6,7 @@ App(
     cdefines=["SRV_LOADER"],
     stack_size=2 * 1024,
     order=90,
-    targets=["f20"],
+    targets=["f20", "f21"],
     sources=["loader.c"],
     provides=["loader_start"],
 )
