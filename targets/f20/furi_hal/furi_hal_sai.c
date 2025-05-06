@@ -30,6 +30,7 @@ typedef struct {
     uint32_t dma_channel;
     uint32_t dma_data_ptr;
     uint32_t dma_data_size;
+    NS4168* ns4168;
 } FuriHalSai;
 
 static FuriHalSai furi_hal_sai = {};
@@ -180,7 +181,8 @@ bool furi_hal_sai_init(void) {
         &gpio_i2s_sck, GpioModeAltFunctionPushPull, GpioPullNo, GpioSpeedLow, GpioAltFn13SAI1);
 #endif
 
-    ns4168_init();
+    furi_hal_sai.ns4168 = ns4168_alloc();
+    ns4168_init(furi_hal_sai.ns4168);
 
     // Disable the selected SAI peripheral
     if(!furi_hal_sai_disable()) {
@@ -303,7 +305,7 @@ void furi_hal_sai_set_callback(FuriHalSaiCallback callback, void* context) {
 }
 
 void furi_hal_sai_start(void) {
-    ns4168_power_on(FURI_HAL_NS4168_HPF);
+    ns4168_power_on(furi_hal_sai.ns4168, FURI_HAL_NS4168_HPF);
     FURI_CRITICAL_ENTER();
     furi_hal_sai_start_dma();
     furi_check(furi_hal_sai_enable());
@@ -315,5 +317,5 @@ void furi_hal_sai_stop(void) {
     furi_check(furi_hal_sai_disable());
     furi_check(furi_hal_sai_stop_dma());
     FURI_CRITICAL_EXIT();
-    ns4168_power_off();
+    ns4168_power_off(furi_hal_sai.ns4168);
 }

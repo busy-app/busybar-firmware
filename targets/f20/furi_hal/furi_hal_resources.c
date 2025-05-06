@@ -58,7 +58,7 @@ const GpioPin gpio_i2s_sck = {.port = GPIOA, .pin = LL_GPIO_PIN_8};
 const GpioPin gpio_i2s_sd = {.port = GPIOA, .pin = LL_GPIO_PIN_10};
 
 const GpioPin gpio_917_swo = {.port = GPIOC, .pin = LL_GPIO_PIN_7};
-const GpioPin gpio_audio_en_and_boot0 = {.port = GPIOH, .pin = LL_GPIO_PIN_3};
+const GpioPin gpio_audio_en = {.port = GPIOH, .pin = LL_GPIO_PIN_3};
 
 const GpioPinRecord gpio_pins[] = {};
 

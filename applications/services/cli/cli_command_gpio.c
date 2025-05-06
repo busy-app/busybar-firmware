@@ -34,7 +34,7 @@ static const CliGpioPinNamePair gpios[] = {
     },
     {
         .name = "en_audio",
-        .pin = &gpio_audio_en_and_boot0,
+        .pin = &gpio_audio_en,
     },
 };
 
