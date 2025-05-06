@@ -15,6 +15,12 @@ typedef struct {
     BusyTimerState timer_state;
 } BusySceneNext;
 
+static const char* front_anim_file_path[BusyTimerStateMax] = {
+    [BusyTimerStateIdle] = BUSY_ANIM_PATH("A_finish_waiting_72x16.anim"),
+    [BusyTimerStateWork] = BUSY_ANIM_PATH("A_busy_waiting_72x16.anim"),
+    [BusyTimerStateRest] = BUSY_ANIM_PATH("A_rest_waiting_72x16.anim"),
+};
+
 static bool busy_scene_next_input_callback(const InputEvent* event, void* context) {
     furi_assert(event);
     furi_assert(context);
@@ -48,33 +54,17 @@ static void busy_scene_next_on_enter(void* context) {
     BusyApp* instance = context;
     BusySceneNext* data = scene_manager_get_current_scene_data(instance->scene_manager);
 
-    const BusyTimerState state = busy_timer_get_state(instance->busy_timer);
+    data->timer_state = busy_timer_get_state(instance->busy_timer);
 
     with_gui(instance->gui, {
         GuiLayer* layer = gui_get_layer(instance->gui, GuiLayerIdMain);
         gui_layer_add_input_callback(layer, busy_scene_next_input_callback, instance);
 
-        if(state == BusyTimerStateIdle) {
-            data->front_label = label_alloc(instance->front_window);
-            label_set_text(data->front_label, "FINISHED!");
-            widget_set_align(label_get_base(data->front_label), AlignCenter);
+        data->front_anim = anim_image_alloc(instance->front_window);
 
-        } else {
-            data->front_anim = anim_image_alloc(instance->front_window);
-
-            if(state == BusyTimerStateWork) {
-                anim_image_set_source(
-                    data->front_anim, BUSY_ANIM_PATH("A_busy_waiting_72x16.anim"));
-            } else if(state == BusyTimerStateRest) {
-                anim_image_set_source(
-                    data->front_anim, BUSY_ANIM_PATH("A_rest_waiting_72x16.anim"));
-            }
-
-            anim_image_set_range(data->front_anim, WAIT_ANIM_BEGIN, WAIT_ANIM_END, true, false);
-        }
+        anim_image_set_source(data->front_anim, front_anim_file_path[data->timer_state]);
+        anim_image_set_range(data->front_anim, WAIT_ANIM_BEGIN, WAIT_ANIM_END, true, false);
     });
-
-    data->timer_state = state;
 }
 
 static void busy_scene_next_on_exit(void* context) {
