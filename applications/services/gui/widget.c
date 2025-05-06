@@ -95,12 +95,21 @@ void widget_set_input_feed_callback(Widget* instance, WidgetInputFeedCallback ca
 bool widget_input(Widget* instance, const InputEvent* event) {
     bool consumed = false;
 
-    if(instance->input_feed_callback) {
-        consumed = instance->input_feed_callback(instance, event);
-    }
+    do {
+        if(lv_obj_has_flag((lv_obj_t*)instance, LV_OBJ_FLAG_HIDDEN)) {
+            break;
+        }
 
-    if(!consumed) {
+        if(instance->input_feed_callback) {
+            consumed = instance->input_feed_callback(instance, event);
+
+            if(consumed) {
+                break;
+            }
+        }
+
         const uint32_t child_count = lv_obj_get_child_count((lv_obj_t*)instance);
+
         for(uint32_t i = 0; i < child_count; ++i) {
             lv_obj_t* child = lv_obj_get_child((lv_obj_t*)instance, i);
 
@@ -112,7 +121,8 @@ bool widget_input(Widget* instance, const InputEvent* event) {
                 }
             }
         }
-    }
+
+    } while(false);
 
     return consumed;
 }
