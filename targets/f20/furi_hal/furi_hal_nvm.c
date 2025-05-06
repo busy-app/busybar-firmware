@@ -22,6 +22,7 @@ typedef struct {
     uint32_t flags;
     FuriHalNvmBootMode boot_mode;
     uint32_t fault_data;
+    uint32_t switch_pos;
 } NvmData;
 
 _Static_assert(FuriHalNvmFlagCount <= 32, "Too many NVM flags defined!");
@@ -75,8 +76,10 @@ void furi_hal_nvm_init_early(void) {
 
     if(furi_hal_nvm_is_flag_set(FuriHalNvmFlagDebug)) {
         furi_hal_debug_enable();
+        furi_log_set_level(FuriLogLevelDebug);
     } else {
         furi_hal_debug_disable();
+        furi_log_set_level(FuriLogLevelDefault);
     }
 }
 
@@ -86,4 +89,12 @@ void furi_hal_nvm_init(void) {
 
 void furi_hal_nvm_set_fault_data(uint32_t value) {
     nvm_storage->fault_data = value;
+}
+
+void furi_hal_nvm_store_switch_pos(uint32_t pos) {
+    nvm_storage->switch_pos = pos;
+}
+
+uint32_t furi_hal_nvm_get_switch_pos(void) {
+    return nvm_storage->switch_pos;
 }

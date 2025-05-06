@@ -64,3 +64,7 @@ void furi_hal_nvm_set_boot_mode(FuriHalNvmBootMode mode);
  * @return     The fault data.
  */
 void furi_hal_nvm_set_fault_data(uint32_t value);
+
+void furi_hal_nvm_store_switch_pos(uint32_t pos);
+
+uint32_t furi_hal_nvm_get_switch_pos(void);
