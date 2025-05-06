@@ -22,7 +22,7 @@ extern "C" {
 
 typedef struct NS4168 NS4168;
 
-NS4168* ns4168_alloc(void);
+NS4168* ns4168_alloc(const GpioPin* gpio_pin);
 void ns4168_free(NS4168* ns4168);
 
 void ns4168_init(NS4168* ns4168);

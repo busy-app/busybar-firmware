@@ -181,7 +181,7 @@ bool furi_hal_sai_init(void) {
         &gpio_i2s_sck, GpioModeAltFunctionPushPull, GpioPullNo, GpioSpeedLow, GpioAltFn13SAI1);
 #endif
 
-    furi_hal_sai.ns4168 = ns4168_alloc();
+    furi_hal_sai.ns4168 = ns4168_alloc(&gpio_audio_en);
     ns4168_init(furi_hal_sai.ns4168);
 
     // Disable the selected SAI peripheral

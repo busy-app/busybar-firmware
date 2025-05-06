@@ -53,6 +53,10 @@
 #define configENABLE_TRUSTZONE                  0
 #define configRUN_FREERTOS_SECURE_ONLY          0
 
+#define configENABLE_PAC              0
+#define configASSERT_DEFINED          1
+#define portHAS_ARMV8M_MAIN_EXTENSION 1
+
 /* Defaults to size_t for backward compatibility, but can be changed
    if lengths will always be less than the number of bytes in a size_t. */
 #define configMESSAGE_BUFFER_LENGTH_TYPE size_t
@@ -174,7 +178,7 @@ header file. */
 
 extern void furi_hal_interrupt_assert_valid_priority(void);
 
-#define portASSERT_IF_INTERRUPT_PRIORITY_INVALID() furi_hal_interrupt_assert_valid_priority()
+// #define portASSERT_IF_INTERRUPT_PRIORITY_INVALID() furi_hal_interrupt_assert_valid_priority()
 
 // Must be last line of config because of recursion
 #include <core/check.h>

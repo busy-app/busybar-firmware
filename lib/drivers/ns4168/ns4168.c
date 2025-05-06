@@ -10,8 +10,9 @@ struct NS4168 {
     const GpioPin* gpio_pin;
 };
 
-NS4168* ns4168_alloc(void) {
+NS4168* ns4168_alloc(const GpioPin* gpio_pin) {
     NS4168* handle = malloc(sizeof(NS4168));
+    handle->gpio_pin = gpio_pin;
     return handle;
 }
 
