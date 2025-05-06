@@ -39,6 +39,7 @@ int main(void) {
 #else
     FuriHalNvmBootMode boot_mode = furi_hal_nvm_get_boot_mode();
     if(boot_mode == FuriHalNvmBootModeUpdate || true) {
+        furi_delay_ms(200);
         platform_boot_exec_update();
         // If we are here, the switch to the update was not successful
         // FURI_LOG_W(TAG, "Failed to switch to update mode");
