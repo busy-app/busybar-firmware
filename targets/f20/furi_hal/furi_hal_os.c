@@ -8,7 +8,7 @@
 
 #define TAG "FuriHalOs"
 
-extern void xPortSysTickHandler(void);
+extern void SysTick_Handler(void);
 
 void furi_hal_os_init(void) {
     FURI_LOG_I(TAG, "Init OK");
@@ -16,7 +16,7 @@ void furi_hal_os_init(void) {
 
 void furi_hal_os_tick(void) {
     if(xTaskGetSchedulerState() != taskSCHEDULER_NOT_STARTED) {
-        xPortSysTickHandler();
+        SysTick_Handler();
     }
 }
 
