@@ -2,6 +2,6 @@
     "inherit": "f20",
     "sources": [
         "*/*.c",
-        "f20:!furi_hal/furi_hal_resources.c"
+        "f20:!furi_hal/furi_hal_resources_pins.c"
     ]
 }
