@@ -38,7 +38,7 @@ static void busy_scene_overview_on_enter(void* context) {
         widget_set_visible(timer_card_get_base(instance->timer_card), true);
     });
 
-    run_later(instance->event_loop, busy_scene_overview_run_later_callback, instance, 2500);
+    run_later(instance->event_loop, busy_scene_overview_run_later_callback, instance, 2250);
     busy_start_transition(instance);
 }
 

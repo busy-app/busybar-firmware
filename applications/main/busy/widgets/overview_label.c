@@ -5,8 +5,11 @@
 #define MY_CLASS (&overview_label_lvgl_class)
 
 #define COLOR_DIM  (lv_color_hex(0x3F444D))
-#define COLOR_BUSY (lv_color_hex(0xFF0000))
+#define COLOR_WORK (lv_color_hex(0xFF0000))
 #define COLOR_REST (lv_color_hex(0x13F562))
+
+#define TRANSITION_TIME_MS (250)
+#define DELAY_TIME_MS      (750)
 
 typedef enum {
     OverviewLabelColumnIdxWork,
@@ -36,6 +39,24 @@ static lv_obj_t* overview_label_get_bottom(OverviewLabel* instance, OverviewLabe
 
 // LVGL-specific code
 
+static void overview_label_lvgl_anim_exec_callback(lv_anim_t* anim, int32_t value) {
+    furi_assert(anim);
+
+    OverviewLabelColumn* column = anim->var;
+    const OverviewLabelColumnIdx idx = (OverviewLabelColumnIdx)anim->user_data;
+
+    if(idx == OverviewLabelColumnIdxWork) {
+        lv_obj_set_style_text_color(
+            column->top_label, lv_color_mix(COLOR_WORK, COLOR_DIM, value), LV_PART_MAIN);
+    } else {
+        lv_obj_set_style_text_color(
+            column->top_label, lv_color_mix(COLOR_REST, COLOR_DIM, value), LV_PART_MAIN);
+    }
+
+    lv_obj_set_style_text_color(
+        column->bottom_label, lv_color_mix(lv_color_white(), COLOR_DIM, value), LV_PART_MAIN);
+}
+
 static void overview_label_lvgl_constructor(const lv_obj_class_t* class_p, lv_obj_t* obj) {
     UNUSED(class_p);
 
@@ -63,12 +84,37 @@ static void overview_label_lvgl_constructor(const lv_obj_class_t* class_p, lv_ob
         lv_obj_set_style_text_font(
             column->bottom_label, lv_theme_get_font_large(obj), LV_PART_MAIN);
 
-        lv_obj_set_style_text_color(column->top_label, COLOR_DIM, LV_PART_MAIN);
-        lv_obj_set_style_text_color(column->bottom_label, COLOR_DIM, LV_PART_MAIN);
+        // Configure animations
+
+        lv_anim_t anim;
+        lv_anim_init(&anim);
+
+        lv_anim_set_values(&anim, LV_OPA_TRANSP, LV_OPA_COVER);
+        lv_anim_set_duration(&anim, TRANSITION_TIME_MS);
+        lv_anim_set_delay(&anim, i * (TRANSITION_TIME_MS + DELAY_TIME_MS));
+        lv_anim_set_reverse_delay(&anim, DELAY_TIME_MS);
+        lv_anim_set_reverse_duration(&anim, TRANSITION_TIME_MS);
+
+        lv_anim_set_custom_exec_cb(&anim, overview_label_lvgl_anim_exec_callback);
+        lv_anim_set_var(&anim, column);
+        lv_anim_set_user_data(&anim, (void*)i);
+
+        lv_anim_start(&anim);
     }
 
     lv_label_set_text(overview_label_get_top(instance, OverviewLabelColumnIdxWork), "WORK");
     lv_label_set_text(overview_label_get_top(instance, OverviewLabelColumnIdxRest), "REST");
+}
+
+static void overview_label_lvgl_destructor(const lv_obj_class_t* class_p, lv_obj_t* obj) {
+    UNUSED(class_p);
+
+    OverviewLabel* instance = (OverviewLabel*)obj;
+
+    for(uint32_t i = 0; i < OverviewLabelColumnIdxMax; ++i) {
+        OverviewLabelColumn* column = &instance->columns[i];
+        lv_anim_delete(column, NULL);
+    }
 }
 
 // Implementation
@@ -116,6 +162,7 @@ void overview_label_set_intervals(
 const lv_obj_class_t overview_label_lvgl_class = {
     .base_class = &widget_lvgl_class,
     .constructor_cb = overview_label_lvgl_constructor,
+    .destructor_cb = overview_label_lvgl_destructor,
     .name = "widget-overview-label",
     .width_def = LV_PCT(100),
     .height_def = LV_PCT(100),
