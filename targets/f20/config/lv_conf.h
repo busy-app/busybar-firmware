@@ -590,11 +590,13 @@
 #define LV_FONT_CUSTOM_DECLARE \
     LV_FONT_DECLARE(lv_font_tiny_6) \
     LV_FONT_DECLARE(lv_font_tiny5_8) \
-    LV_FONT_DECLARE(lv_font_haxrcorp4089_16) \
-    LV_FONT_DECLARE(lv_font_pixel_operator_8)
+    LV_FONT_DECLARE(lv_font_cubic_12) \
+    LV_FONT_DECLARE(lv_font_ark_numerals_small_10) \
+    LV_FONT_DECLARE(lv_font_ark_numerals_regular_10) \
+    LV_FONT_DECLARE(lv_font_ark_numerals_condensed_10)
 
 /** Always set a default font */
-#define LV_FONT_DEFAULT &lv_font_haxrcorp4089_16
+#define LV_FONT_DEFAULT &lv_font_tiny5_8
 
 /** Enable handling large font and/or fonts with a lot of characters.
  *  The limit depends on the font size, font face and bpp.
@@ -673,7 +675,7 @@
 
 #define LV_USE_BAR        1
 
-#define LV_USE_BUTTON        1
+#define LV_USE_BUTTON        0
 
 #define LV_USE_BUTTONMATRIX  0
 
@@ -717,7 +719,7 @@
 
 #define LV_USE_LINE       0
 
-#define LV_USE_LIST       1
+#define LV_USE_LIST       0
 
 #define LV_USE_LOTTIE     0  /**< Requires: lv_canvas, thorvg */
 

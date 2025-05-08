@@ -19,6 +19,11 @@
 #include "fkermit.h"
 
 typedef enum {
+    Si917BootloaderModeDefault,
+    Si917BootloaderModeProbe,
+} Si917BootloaderMode;
+
+typedef enum {
     Si917BootloaderStateInit,
     Si917BootloaderStateBoot,
     Si917BootloaderStateChangeBaudRate,
@@ -37,6 +42,7 @@ struct SlUpdater {
     FuriEventLoop* event_loop;
     FuriStreamBuffer* rx_buffer;
     FuriString* rx_string;
+    FuriString* bootloader_version;
     FuriHalSerialHandle* serial_handle;
     FuriEventLoopTimer* idle_timer;
 #ifdef SRV_INTERCOM
@@ -46,6 +52,7 @@ struct SlUpdater {
     bool is_stack_image;
     uint8_t baud_throttle;
     Si917BootloaderState bootloader_state;
+    Si917BootloaderMode bootloader_mode;
     Storage* storage;
     File* firmware_file;
     kermit_t* kermit;
@@ -126,6 +133,20 @@ static bool sl_updater_check_rx_for(SlUpdater* instance, const char* str) {
     return false;
 }
 
+static bool sl_update_get_version(SlUpdater* instance) {
+    size_t pos = furi_string_search_str(instance->rx_string, "BootLoader Version");
+    if(pos == FURI_STRING_FAILURE) return false;
+
+    furi_string_right(instance->rx_string, pos);
+    pos = furi_string_search_rchar(instance->rx_string, '\r');
+
+    if(pos == FURI_STRING_FAILURE) return false;
+
+    furi_string_left(instance->rx_string, pos);
+    furi_string_set(instance->bootloader_version, instance->rx_string);
+    return true;
+}
+
 static void sl_updater_handle_rx(SlUpdater* instance) {
 #ifdef KERMIT_DEBUG
     FURI_LOG_D(
@@ -148,11 +169,17 @@ static void sl_updater_handle_rx(SlUpdater* instance) {
         break;
 
     case Si917BootloaderStateBoot:
-        if(sl_updater_check_rx_for(instance, "Change UART Baud Rate\r\n")) {
-            const uint8_t choice = 'b';
-            furi_hal_serial_tx(instance->serial_handle, &choice, sizeof(choice));
-            FURI_LOG_I(TAG, "UART Baud Rate change request sent: %c", choice);
-            instance->bootloader_state = Si917BootloaderStateChangeBaudRate;
+        if((instance->bootloader_mode == Si917BootloaderModeProbe) &&
+           (sl_update_get_version(instance))) {
+            FURI_LOG_I(TAG, "Probe success");
+            instance->bootloader_state = Si917BootloaderStateInstallSuccess;
+        } else {
+            if(sl_updater_check_rx_for(instance, "Change UART Baud Rate\r\n")) {
+                const uint8_t choice = 'b';
+                furi_hal_serial_tx(instance->serial_handle, &choice, sizeof(choice));
+                FURI_LOG_I(TAG, "UART Baud Rate change request sent: %c", choice);
+                instance->bootloader_state = Si917BootloaderStateChangeBaudRate;
+            }
         }
         break;
 
@@ -373,19 +400,8 @@ void sl_updater_free(SlUpdater* instance) {
     FURI_LOG_I(TAG, "Stopped");
 }
 
-bool sl_updater_run(
-    SlUpdater* instance,
-    const char* firmware_path,
-    bool is_stack_image,
-    uint8_t install_timeout_seconds,
-    uint8_t baud_throttle) {
-    furi_check(instance);
-    furi_check(firmware_path);
-    furi_check(instance->serial_handle == NULL);
-    furi_assert(baud_throttle <= COUNT_OF(sl_updater_baudrate));
-
-    instance->install_timeout_seconds = install_timeout_seconds;
-    instance->is_stack_image = is_stack_image;
+static bool
+    sl_update_inner_run(SlUpdater* instance, Si917BootloaderMode mode, uint8_t baud_throttle) {
     if(baud_throttle < COUNT_OF(sl_updater_baudrate)) {
         instance->baud_throttle = baud_throttle;
     } else {
@@ -397,14 +413,8 @@ bool sl_updater_run(
     furi_event_loop_timer_start(
         instance->idle_timer, furi_ms_to_ticks((KERMIT_TIMEOUT_SECONDS + 1) * 1000));
 
+    instance->bootloader_mode = mode;
     instance->bootloader_state = Si917BootloaderStateInit;
-
-    FURI_LOG_I(TAG, "Starting update with path: %s", firmware_path);
-
-    if(!storage_file_open(instance->firmware_file, firmware_path, FSAM_READ, FSOM_OPEN_EXISTING)) {
-        FURI_LOG_E(TAG, "Failed to open firmware file");
-        return false;
-    }
 
 #ifdef SRV_INTERCOM
     // Prevent crashes
@@ -443,7 +453,38 @@ bool sl_updater_run(
     furi_hal_serial_control_release(instance->serial_handle);
     instance->serial_handle = NULL;
 
-    storage_file_close(instance->firmware_file);
-
     return success;
+}
+
+bool sl_update_probe(SlUpdater* instance, uint8_t baud_throttle, FuriString* version) {
+    furi_check(instance);
+    furi_assert(version);
+    furi_assert(baud_throttle <= COUNT_OF(sl_updater_baudrate));
+
+    instance->bootloader_version = version;
+    return sl_update_inner_run(instance, Si917BootloaderModeProbe, baud_throttle);
+}
+
+bool sl_updater_run(
+    SlUpdater* instance,
+    const char* firmware_path,
+    bool is_stack_image,
+    uint8_t install_timeout_seconds,
+    uint8_t baud_throttle) {
+    furi_check(instance);
+    furi_check(firmware_path);
+    furi_check(instance->serial_handle == NULL);
+    furi_assert(baud_throttle <= COUNT_OF(sl_updater_baudrate));
+
+    instance->is_stack_image = is_stack_image;
+    instance->install_timeout_seconds = install_timeout_seconds;
+
+    if(!storage_file_open(instance->firmware_file, firmware_path, FSAM_READ, FSOM_OPEN_EXISTING)) {
+        FURI_LOG_E(TAG, "Failed to open firmware file");
+        return false;
+    }
+
+    bool result = sl_update_inner_run(instance, Si917BootloaderModeDefault, baud_throttle);
+    storage_file_close(instance->firmware_file);
+    return result;
 }

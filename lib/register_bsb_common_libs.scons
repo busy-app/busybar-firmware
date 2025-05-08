@@ -1,6 +1,7 @@
 Import("env")
 
 for libname in [
+    "assets",
     "drivers",
     "tinyusb",
     "nema_gfx",

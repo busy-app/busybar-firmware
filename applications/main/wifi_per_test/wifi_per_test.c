@@ -146,7 +146,10 @@ static bool wifi_per_test_input_callback(const InputEvent* event, void* context)
             furi_event_loop_set_custom_event(instance->event_loop, WifiPerTestCustomEventExit);
             instance->exit_on_back = true;
             consumed = true;
-        } else if(event->key == InputKeyStart) {
+        }
+
+    } else if(event->type == InputTypeLong) {
+        if(event->key == InputKeyStart) {
             if(instance->test_state == WifiPerTestStateRunning) {
                 furi_event_loop_set_custom_event(
                     instance->event_loop, WifiPerTestCustomEventStopTest);
@@ -244,8 +247,8 @@ static WifiPerTest* wifi_per_test_alloc(void) {
 
         Widget* root = gui_layer_get_root_widget(main_layer, GuiDisplayIdBack);
         instance->var_list = var_item_list_alloc(root);
-        widget_set_pos_y(var_item_list_get_base(instance->var_list), 20);
-        widget_set_height(var_item_list_get_base(instance->var_list), 50);
+        widget_set_pos_y(var_item_list_get_base(instance->var_list), 15);
+        widget_set_height(var_item_list_get_base(instance->var_list), 65);
 
         instance->label_status = label_alloc(root);
         widget_set_pos_y(label_get_base(instance->label_status), 20);
