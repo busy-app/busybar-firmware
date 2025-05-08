@@ -47,9 +47,11 @@ static void busy_scene_start_on_enter(void* context) {
 
         data->front_menu = anim_menu_alloc(flex_layout_get_base(data->front_layout));
         anim_menu_set_callback(data->front_menu, busy_scene_start_menu_callback, instance);
-        anim_menu_set_source(data->front_menu, BUSY_ANIM_PATH("A_start_menu_31x16.anim"));
-        anim_menu_set_intervals(
-            data->front_menu, ANIM_MENU_IDLE_FRAMES, ANIM_MENU_TRANSITION_FRAMES);
+        anim_menu_set_source(
+            data->front_menu,
+            BUSY_ANIM_PATH("A_start_menu_31x16.anim"),
+            ANIM_MENU_IDLE_FRAMES,
+            ANIM_MENU_TRANSITION_FRAMES);
 
         data->back_layout = flex_layout_alloc(instance->back_window, FlexLayoutTypeColumn);
 
