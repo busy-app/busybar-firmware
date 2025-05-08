@@ -165,6 +165,8 @@ static void busy_scene_timer_on_enter(void* context) {
 
     busy_timer_set_callback(instance->busy_timer, busy_scene_timer_event_callback, instance);
     busy_timer_start(instance->busy_timer);
+
+    busy_start_transition(instance);
 }
 
 static void busy_scene_timer_on_exit(void* context) {

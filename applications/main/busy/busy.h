@@ -14,6 +14,7 @@
 #include "scenes/busy_scenes.h"
 
 #include "views/timer_card.h"
+#include "widgets/transition_overlay.h"
 
 #define TAG "Busy"
 
@@ -46,8 +47,13 @@ typedef struct {
     // Application windows
     Widget* front_window;
     Widget* back_window;
-    // Views
+    // Persistent widgets
+    TransitionOverlay* transition_overlay;
     TimerCard* timer_card;
 } BusyApp;
 
 void busy_send_custom_event(BusyApp* instance, uint32_t custom_event);
+
+void busy_prepare_transition(BusyApp* instance);
+
+void busy_start_transition(BusyApp* instance);
