@@ -291,6 +291,11 @@ void anim_image_set_range(
     }
 }
 
+void anim_image_set_loop(AnimImage* instance, bool set) {
+    furi_check(instance);
+    instance->current_range.loop = set;
+}
+
 void anim_image_start(AnimImage* instance) {
     furi_check(instance);
 
