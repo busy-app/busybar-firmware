@@ -4,6 +4,10 @@
 
 #define MY_CLASS (&overview_label_lvgl_class)
 
+#define COLOR_DIM  (lv_color_hex(0x3F444D))
+#define COLOR_BUSY (lv_color_hex(0xFF0000))
+#define COLOR_REST (lv_color_hex(0x13F562))
+
 typedef enum {
     OverviewLabelColumnIdxWork,
     OverviewLabelColumnIdxRest,
@@ -58,6 +62,9 @@ static void overview_label_lvgl_constructor(const lv_obj_class_t* class_p, lv_ob
         lv_obj_set_style_text_font(column->top_label, lv_theme_get_font_small(obj), LV_PART_MAIN);
         lv_obj_set_style_text_font(
             column->bottom_label, lv_theme_get_font_large(obj), LV_PART_MAIN);
+
+        lv_obj_set_style_text_color(column->top_label, COLOR_DIM, LV_PART_MAIN);
+        lv_obj_set_style_text_color(column->bottom_label, COLOR_DIM, LV_PART_MAIN);
     }
 
     lv_label_set_text(overview_label_get_top(instance, OverviewLabelColumnIdxWork), "WORK");
