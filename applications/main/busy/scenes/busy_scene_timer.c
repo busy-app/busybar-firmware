@@ -229,6 +229,9 @@ static bool busy_scene_timer_on_event(const SceneManagerEvent* event, void* cont
     } else if(event->type == SceneManagerEventTypeBack) {
         // TODO: Ask for confirmation
         busy_timer_stop(instance->busy_timer);
+
+        busy_prepare_transition(instance, BusyTransitionTypeBlack);
+
         scene_manager_search_and_switch_to_previous_scene(
             instance->scene_manager, BusyAppSceneIdStart);
 

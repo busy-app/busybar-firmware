@@ -5,7 +5,7 @@
 
 #define MY_CLASS (&transition_overlay_lvgl_class)
 
-#define ANIM_DURATION_MS (300)
+#define ANIM_DURATION_MS (500)
 
 struct TransitionOverlay {
     Widget base;
@@ -102,6 +102,7 @@ void transition_overlay_start(TransitionOverlay* instance) {
     lv_anim_set_duration(&anim, ANIM_DURATION_MS / 2);
     lv_anim_set_reverse_duration(&anim, ANIM_DURATION_MS / 2);
 
+    lv_anim_set_path_cb(&anim, lv_anim_path_ease_out);
     lv_anim_set_custom_exec_cb(&anim, transition_overlay_lvgl_anim_exec_callback);
     lv_anim_set_completed_cb(&anim, transition_overlay_lvgl_anim_completed_callback);
     lv_anim_set_var(&anim, instance);
