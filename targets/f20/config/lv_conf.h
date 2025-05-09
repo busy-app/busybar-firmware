@@ -591,6 +591,7 @@
     LV_FONT_DECLARE(lv_font_tiny_6) \
     LV_FONT_DECLARE(lv_font_tiny5_8) \
     LV_FONT_DECLARE(lv_font_cubic_12) \
+    LV_FONT_DECLARE(lv_font_somybmp_7) \
     LV_FONT_DECLARE(lv_font_ark_numerals_small_10) \
     LV_FONT_DECLARE(lv_font_ark_numerals_regular_10) \
     LV_FONT_DECLARE(lv_font_ark_numerals_condensed_10)
