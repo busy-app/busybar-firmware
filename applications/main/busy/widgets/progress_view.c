@@ -21,6 +21,29 @@ const lv_obj_class_t progress_view_lvgl_class;
 
 // LVGL-specific code
 
+void progress_view_lvgl_grow_anim_exec_callback(lv_anim_t* anim, int32_t value) {
+    furi_assert(anim);
+    ProgressView* instance = anim->var;
+
+    const int32_t done_bar_width = MAX(value - 1, 0);
+    lv_obj_set_width(instance->done_bar, done_bar_width);
+
+    const int32_t end_value = anim->end_value;
+
+    if(end_value < lv_obj_get_width(lv_obj_get_parent(instance->done_bar))) {
+        const int32_t next_bar_width = 2 * end_value - (done_bar_width + anim->start_value);
+        lv_obj_set_width(instance->next_bar, next_bar_width);
+    }
+}
+
+void progress_view_lvgl_blink_anim_exec_callback(void* context, int32_t value) {
+    furi_assert(context);
+    ProgressView* instance = context;
+
+    lv_obj_set_style_bg_color(
+        instance->next_bar, lv_color_mix(COLOR_NEXT, COLOR_BG, value), LV_PART_MAIN);
+}
+
 static void progress_view_lvgl_constructor(const lv_obj_class_t* class_p, lv_obj_t* obj) {
     UNUSED(class_p);
 
@@ -75,6 +98,48 @@ static void progress_view_lvgl_constructor(const lv_obj_class_t* class_p, lv_obj
 
 // Implementation
 
+static void
+    progress_view_start_grow_animation(ProgressView* instance, int32_t done, int32_t total) {
+    const int32_t total_width = lv_obj_get_width(lv_obj_get_parent(instance->done_bar));
+    const int32_t sector_width = total_width / total;
+    const int32_t done_width = done * total_width / total;
+    const int32_t prev_done_width = done_width - sector_width;
+
+    lv_anim_t anim;
+    lv_anim_init(&anim);
+
+    lv_anim_set_values(&anim, prev_done_width, done_width);
+    lv_anim_set_duration(&anim, 500);
+    lv_anim_set_delay(&anim, 500);
+    lv_anim_set_bezier3_param(
+        &anim,
+        LV_BEZIER_VAL_FLOAT(0.37F),
+        LV_BEZIER_VAL_FLOAT(0.0F),
+        LV_BEZIER_VAL_FLOAT(0.3F),
+        LV_BEZIER_VAL_FLOAT(1.78F));
+    lv_anim_set_path_cb(&anim, lv_anim_path_custom_bezier3);
+    lv_anim_set_custom_exec_cb(&anim, progress_view_lvgl_grow_anim_exec_callback);
+    lv_anim_set_var(&anim, instance);
+
+    lv_anim_start(&anim);
+}
+
+static void progress_view_start_blink_animation(ProgressView* instance) {
+    lv_anim_t anim;
+    lv_anim_init(&anim);
+
+    lv_anim_set_repeat_count(&anim, LV_ANIM_REPEAT_INFINITE);
+    lv_anim_set_values(&anim, LV_OPA_TRANSP, LV_OPA_COVER);
+    lv_anim_set_duration(&anim, 1000);
+    lv_anim_set_reverse_duration(&anim, 1000);
+    lv_anim_set_delay(&anim, 700);
+    lv_anim_set_path_cb(&anim, lv_anim_path_ease_in_out);
+    lv_anim_set_exec_cb(&anim, progress_view_lvgl_blink_anim_exec_callback);
+    lv_anim_set_var(&anim, instance);
+
+    lv_anim_start(&anim);
+}
+
 // Public API
 
 ProgressView* progress_view_alloc(Widget* parent) {
@@ -104,13 +169,11 @@ void progress_view_set_progress(ProgressView* instance, uint32_t done, uint32_t 
     lv_label_set_text_fmt(instance->progress_label, "%lu/%lu", done, total);
     lv_obj_update_layout(TO_LV_OBJ(instance));
 
-    const int32_t total_width = lv_obj_get_width(TO_LV_OBJ(instance));
+    progress_view_start_grow_animation(instance, done, total);
 
-    const int32_t done_width = done * total_width / total;
-    const int32_t next_width = done < total ? done_width : 0;
-
-    lv_obj_set_width(instance->done_bar, done_width - 1);
-    lv_obj_set_width(instance->next_bar, next_width);
+    if(done != total) {
+        progress_view_start_blink_animation(instance);
+    }
 }
 
 // LVGL class descriptor
