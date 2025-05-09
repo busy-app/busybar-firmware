@@ -1,6 +1,7 @@
 #pragma once
 
 #define M_TO_S(m)     ((m) * 60)
+#define M_TO_H(m)     ((m) / 60)
 #define H_TO_M(h)     ((h) * 60)
 #define H_TO_S(h)     (M_TO_S(H_TO_M(h)))
 #define HM_TO_M(h, m) (H_TO_M(h) + (m))

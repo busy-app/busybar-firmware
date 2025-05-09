@@ -2,6 +2,8 @@
 
 #include <gui/widget_i.h>
 
+#include "../time_macros.h"
+
 #define MY_CLASS (&overview_label_lvgl_class)
 
 #define COLOR_DIM  (lv_color_hex(0x3F444D))
@@ -29,21 +31,16 @@ struct OverviewLabel {
 
 const lv_obj_class_t overview_label_lvgl_class;
 
-static lv_obj_t* overview_label_get_top(OverviewLabel* instance, OverviewLabelColumnIdx idx) {
-    return instance->columns[idx].top_label;
-}
-
-static lv_obj_t* overview_label_get_bottom(OverviewLabel* instance, OverviewLabelColumnIdx idx) {
-    return instance->columns[idx].bottom_label;
-}
-
 // LVGL-specific code
 
 static void overview_label_lvgl_anim_exec_callback(lv_anim_t* anim, int32_t value) {
     furi_assert(anim);
 
-    OverviewLabelColumn* column = anim->var;
+    OverviewLabel* instance = anim->var;
+    furi_assert(instance);
+
     const OverviewLabelColumnIdx idx = (OverviewLabelColumnIdx)anim->user_data;
+    const OverviewLabelColumn* column = &instance->columns[idx];
 
     if(idx == OverviewLabelColumnIdxWork) {
         lv_obj_set_style_text_color(
@@ -84,7 +81,11 @@ static void overview_label_lvgl_constructor(const lv_obj_class_t* class_p, lv_ob
         lv_obj_set_style_text_font(
             column->bottom_label, lv_theme_get_font_large(obj), LV_PART_MAIN);
 
-        // Configure animations
+        if(i == OverviewLabelColumnIdxWork) {
+            lv_label_set_text(column->top_label, "WORK");
+        } else {
+            lv_label_set_text(column->top_label, "REST");
+        }
 
         lv_anim_t anim;
         lv_anim_init(&anim);
@@ -96,28 +97,29 @@ static void overview_label_lvgl_constructor(const lv_obj_class_t* class_p, lv_ob
         lv_anim_set_reverse_duration(&anim, TRANSITION_TIME_MS);
 
         lv_anim_set_custom_exec_cb(&anim, overview_label_lvgl_anim_exec_callback);
-        lv_anim_set_var(&anim, column);
+        lv_anim_set_var(&anim, obj);
         lv_anim_set_user_data(&anim, (void*)i);
 
         lv_anim_start(&anim);
     }
-
-    lv_label_set_text(overview_label_get_top(instance, OverviewLabelColumnIdxWork), "WORK");
-    lv_label_set_text(overview_label_get_top(instance, OverviewLabelColumnIdxRest), "REST");
-}
-
-static void overview_label_lvgl_destructor(const lv_obj_class_t* class_p, lv_obj_t* obj) {
-    UNUSED(class_p);
-
-    OverviewLabel* instance = (OverviewLabel*)obj;
-
-    for(uint32_t i = 0; i < OverviewLabelColumnIdxMax; ++i) {
-        OverviewLabelColumn* column = &instance->columns[i];
-        lv_anim_delete(column, NULL);
-    }
 }
 
 // Implementation
+
+static void overview_label_format_time(lv_obj_t* label, uint32_t time_mn) {
+    const uint32_t h = M_TO_H(time_mn);
+    const uint32_t m = time_mn - H_TO_M(h);
+
+    if(h) {
+        if(m) {
+            lv_label_set_text_fmt(label, "%lu:%02lu", h, m);
+        } else {
+            lv_label_set_text_fmt(label, "%luh", h);
+        }
+    } else {
+        lv_label_set_text_fmt(label, "%lum", m);
+    }
+}
 
 // Public API
 
@@ -147,14 +149,13 @@ void overview_label_set_intervals(
     uint32_t rest_time_mn) {
     furi_check(instance);
 
-    lv_obj_t* work_interval_label =
-        overview_label_get_bottom(instance, OverviewLabelColumnIdxWork);
-    lv_obj_t* rest_interval_label =
-        overview_label_get_bottom(instance, OverviewLabelColumnIdxRest);
+    const OverviewLabelColumn* columns = instance->columns;
 
-    // TODO: Proper time formatting
-    lv_label_set_text_fmt(work_interval_label, "%lum", work_time_mn);
-    lv_label_set_text_fmt(rest_interval_label, "%lum", rest_time_mn);
+    lv_obj_t* work_interval_label = columns[OverviewLabelColumnIdxWork].bottom_label;
+    lv_obj_t* rest_interval_label = columns[OverviewLabelColumnIdxRest].bottom_label;
+
+    overview_label_format_time(work_interval_label, work_time_mn);
+    overview_label_format_time(rest_interval_label, rest_time_mn);
 }
 
 // LVGL class descriptor
@@ -162,7 +163,6 @@ void overview_label_set_intervals(
 const lv_obj_class_t overview_label_lvgl_class = {
     .base_class = &widget_lvgl_class,
     .constructor_cb = overview_label_lvgl_constructor,
-    .destructor_cb = overview_label_lvgl_destructor,
     .name = "widget-overview-label",
     .width_def = LV_PCT(100),
     .height_def = LV_PCT(100),
