@@ -65,6 +65,8 @@ static void busy_scene_next_on_enter(void* context) {
         anim_image_set_source(data->front_anim, front_anim_file_path[data->timer_state]);
         anim_image_set_range(data->front_anim, WAIT_ANIM_BEGIN, WAIT_ANIM_END, true, false);
     });
+
+    busy_start_transition(instance);
 }
 
 static void busy_scene_next_on_exit(void* context) {
@@ -107,18 +109,22 @@ static bool busy_scene_next_on_event(const SceneManagerEvent* event, void* conte
             }
 
         } else if(event->event == BusyCustomEventStartReleased) {
-            if(data->timer_state == BusyTimerStateIdle) {
-                scene_manager_search_and_switch_to_previous_scene(
-                    instance->scene_manager, BusyAppSceneIdStart);
+            const BusyTimerState timer_state = data->timer_state;
+            BusyTransitionType transition_type;
+            BusyAppSceneId scene_id;
+
+            if(timer_state == BusyTimerStateIdle) {
+                scene_id = BusyAppSceneIdStart;
+                transition_type = BusyTransitionTypeBlack;
 
             } else {
-                busy_prepare_transition(
-                    instance,
-                    data->timer_state == BusyTimerStateWork ? BusyTransitionTypeWork :
-                                                              BusyTransitionTypeRest);
-                scene_manager_search_and_switch_to_previous_scene(
-                    instance->scene_manager, BusyAppSceneIdTimer);
+                scene_id = BusyAppSceneIdTimer;
+                transition_type = (timer_state == BusyTimerStateWork) ? BusyTransitionTypeWork :
+                                                                        BusyTransitionTypeRest;
             }
+
+            busy_prepare_transition(instance, transition_type);
+            scene_manager_search_and_switch_to_previous_scene(instance->scene_manager, scene_id);
         }
 
         consumed = true;
@@ -126,6 +132,9 @@ static bool busy_scene_next_on_event(const SceneManagerEvent* event, void* conte
     } else if(event->type == SceneManagerEventTypeBack) {
         // TODO: Ask for confirmation
         busy_timer_stop(instance->busy_timer);
+
+        busy_prepare_transition(instance, BusyTransitionTypeBlack);
+
         scene_manager_search_and_switch_to_previous_scene(
             instance->scene_manager, BusyAppSceneIdStart);
 

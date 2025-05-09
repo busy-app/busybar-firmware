@@ -64,6 +64,8 @@ static void busy_scene_start_on_enter(void* context) {
 
         widget_set_visible(timer_card_get_base(instance->timer_card), false);
     });
+
+    busy_start_transition(instance);
 }
 
 static void busy_scene_start_on_exit(void* context) {

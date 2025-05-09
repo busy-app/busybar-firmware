@@ -39,6 +39,7 @@ static void busy_scene_overview_on_enter(void* context) {
     });
 
     run_later(instance->event_loop, busy_scene_overview_run_later_callback, instance, 2250);
+
     busy_start_transition(instance);
 }
 

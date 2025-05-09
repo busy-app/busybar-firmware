@@ -82,6 +82,8 @@ static void busy_scene_timer_run_later_callback(void* context) {
     furi_assert(context);
     BusyApp* instance = context;
 
+    busy_prepare_transition(instance, BusyTransitionTypeWhite);
+
     with_gui(instance->gui, { timer_card_show_time(instance->timer_card, false); });
 
     scene_manager_next_scene(instance->scene_manager, BusyAppSceneIdProgress);

@@ -53,6 +53,8 @@ static void busy_scene_progress_on_enter(void* context) {
             instance,
             REST_TRANSITION_DELAY_MS);
     }
+
+    busy_start_transition(instance);
 }
 
 static void busy_scene_progress_on_exit(void* context) {
@@ -60,6 +62,8 @@ static void busy_scene_progress_on_exit(void* context) {
 
     BusyApp* instance = context;
     BusySceneProgress* data = scene_manager_get_current_scene_data(instance->scene_manager);
+
+    busy_prepare_transition(instance, BusyTransitionTypeBlack);
 
     with_gui(instance->gui, { label_free(data->front_label); });
 }
