@@ -2,6 +2,12 @@
 #include <furi_hal.h>
 #include <flipper.h>
 
+#include <stm32u5xx_ll_cortex.h>
+#include <stm32u5xx_ll_system.h>
+#include <stm32u5xx_ll_pwr.h>
+#include <stm32u5xx_ll_utils.h>
+#include <furi_hal_clock.h>
+
 #define TAG "Main"
 
 int32_t init_task(void* context) {
@@ -23,6 +29,7 @@ int32_t init_task(void* context) {
 
 int main(void) {
     // Initialize FURI layer
+
     furi_init();
     furi_log_set_level(FuriLogLevelDebug);
 

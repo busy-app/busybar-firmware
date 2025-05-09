@@ -12,12 +12,6 @@ static const LoaderMessageHandler loader_handlers[];
 
 // internal
 
-static void furi_hal_power_insomnia_enter(void) {
-}
-
-static void furi_hal_power_insomnia_exit(void) {
-}
-
 static void loader_send_message(Loader* loader, const LoaderMessage* message) {
     furi_check(furi_message_queue_put(loader->queue, message, FuriWaitForever) == FuriStatusOk);
 
