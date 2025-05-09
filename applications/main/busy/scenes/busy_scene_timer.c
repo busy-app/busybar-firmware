@@ -20,6 +20,7 @@ typedef struct {
     BusyTimerTime timer_time;
     BusyTimerState timer_state;
     bool is_paused;
+    bool is_force_ended;
 } BusySceneTimer;
 
 static bool busy_scene_timer_input_callback(const InputEvent* event, void* context) {
@@ -73,7 +74,7 @@ static void busy_scene_timer_event_callback(const BusyTimerEvent* event, void* c
         busy_send_custom_event(instance, BusyCustomEventTimerStateChanged);
 
     } else if(event->type == BusyTimerEventTypeIntervalEnded) {
-        data->timer_state = event->state;
+        data->is_force_ended = event->is_force_ended;
         busy_send_custom_event(instance, BusyCustomEventTimerIntervalEnded);
     }
 }
@@ -137,6 +138,21 @@ static void busy_scene_timer_toggle_pause(BusyApp* instance) {
             anim_image_start(data->state_image);
         }
     });
+}
+
+static void busy_scene_timer_go_to_progress_scene(BusyApp* instance) {
+    BusySceneTimer* data = scene_manager_get_current_scene_data(instance->scene_manager);
+
+    if(data->is_force_ended) {
+        busy_scene_timer_run_later_callback(instance);
+
+    } else {
+        run_later(
+            instance->event_loop,
+            busy_scene_timer_run_later_callback,
+            instance,
+            PROGRESS_TRANSITION_MS);
+    }
 }
 
 static void busy_scene_timer_on_enter(void* context) {
@@ -204,11 +220,7 @@ static bool busy_scene_timer_on_event(const SceneManagerEvent* event, void* cont
             busy_scene_timer_update_state(instance);
 
         } else if(event->event == BusyCustomEventTimerIntervalEnded) {
-            run_later(
-                instance->event_loop,
-                busy_scene_timer_run_later_callback,
-                instance,
-                PROGRESS_TRANSITION_MS);
+            busy_scene_timer_go_to_progress_scene(instance);
 
         } else if(event->event == BusyCustomEventTimerToggle) {
             busy_scene_timer_toggle_pause(instance);

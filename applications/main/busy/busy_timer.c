@@ -88,7 +88,7 @@ static void busy_timer_notify_interval_ended(const BusyTimer* instance) {
     if(instance->callback) {
         const BusyTimerEvent event = {
             .type = BusyTimerEventTypeIntervalEnded,
-            .state = instance->state,
+            .is_force_ended = instance->next_state_forced,
         };
 
         instance->callback(&event, instance->callback_context);
@@ -184,6 +184,7 @@ void busy_timer_next_state(BusyTimer* instance, bool force) {
 
     instance->cycles_done = busy_timer_calc_cycles_done(instance);
     instance->state = busy_timer_calc_state(instance);
+    instance->next_state_forced = force;
 
     if(instance->state != BusyTimerStateIdle) {
         instance->time.elapsed_s = 0;

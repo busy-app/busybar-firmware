@@ -52,6 +52,7 @@ typedef struct {
     union {
         BusyTimerTime time;
         BusyTimerState state;
+        bool is_force_ended;
     };
 } BusyTimerEvent;
 
