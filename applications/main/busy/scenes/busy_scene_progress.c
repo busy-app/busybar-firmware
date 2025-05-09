@@ -4,7 +4,7 @@
 
 #include "../widgets/progress_view.h"
 
-#define DONE_TRANSITION_DELAY_MS (2000)
+#define DONE_TRANSITION_DELAY_MS (4000)
 #define REST_TRANSITION_DELAY_MS (1000)
 
 typedef struct {
