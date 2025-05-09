@@ -7,8 +7,9 @@
 #define MY_CLASS (&progress_view_lvgl_class)
 
 #define COLOR_BG     (lv_color_hex(0x333333))
-#define COLOR_NEXT   (lv_color_hex(0x999999))
-#define COLOR_DONE   (lv_color_hex(0xFF2020))
+#define COLOR_NEXT   (lv_color_hex(0x6F6F6F))
+#define COLOR_DONE_1 (lv_color_hex(0x910000))
+#define COLOR_DONE_2 (lv_color_hex(0xFF2020))
 #define COLOR_SLIDER (lv_color_hex(0xFF7778))
 
 struct ProgressView {
@@ -83,7 +84,9 @@ static void progress_view_lvgl_constructor(const lv_obj_class_t* class_p, lv_obj
     instance->done_bar = lv_obj_create(bottom_layout);
     lv_obj_set_size(instance->done_bar, 0, 4);
     lv_obj_set_style_bg_opa(instance->done_bar, LV_OPA_COVER, LV_PART_MAIN);
-    lv_obj_set_style_bg_color(instance->done_bar, COLOR_DONE, LV_PART_MAIN);
+    lv_obj_set_style_bg_color(instance->done_bar, COLOR_DONE_1, LV_PART_MAIN);
+    lv_obj_set_style_bg_grad_color(instance->done_bar, COLOR_DONE_2, LV_PART_MAIN);
+    lv_obj_set_style_bg_grad_dir(instance->done_bar, LV_GRAD_DIR_HOR, LV_PART_MAIN);
 
     instance->slider = lv_obj_create(bottom_layout);
     lv_obj_set_size(instance->slider, 1, LV_PCT(100));
