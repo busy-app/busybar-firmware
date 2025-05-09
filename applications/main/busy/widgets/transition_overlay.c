@@ -91,6 +91,10 @@ void transition_overlay_show(TransitionOverlay* instance) {
 void transition_overlay_start(TransitionOverlay* instance) {
     furi_check(instance);
 
+    if(!widget_is_visible((Widget*)instance)) {
+        return;
+    }
+
     lv_anim_t anim;
     lv_anim_init(&anim);
 
