@@ -13,7 +13,7 @@ static void busy_scene_overview_run_later_callback(void* context) {
     furi_assert(context);
     BusyApp* instance = context;
 
-    busy_prepare_transition(instance);
+    busy_prepare_transition(instance, BusyTransitionTypeBlack);
     scene_manager_next_scene(instance->scene_manager, BusyAppSceneIdTimer);
 }
 

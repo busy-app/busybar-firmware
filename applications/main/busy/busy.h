@@ -37,6 +37,14 @@ typedef enum {
     BusyCustomEventStartReleased,
 } BusyCustomEvent;
 
+typedef enum {
+    BusyTransitionTypeBlack,
+    BusyTransitionTypeWhite,
+    BusyTransitionTypeWork,
+    BusyTransitionTypeRest,
+    BusyTransitionTypeMax,
+} BusyTransitionType;
+
 typedef struct {
     FuriEventLoop* event_loop;
     FuriMessageQueue* input_queue;
@@ -54,6 +62,6 @@ typedef struct {
 
 void busy_send_custom_event(BusyApp* instance, uint32_t custom_event);
 
-void busy_prepare_transition(BusyApp* instance);
+void busy_prepare_transition(BusyApp* instance, BusyTransitionType type);
 
 void busy_start_transition(BusyApp* instance);

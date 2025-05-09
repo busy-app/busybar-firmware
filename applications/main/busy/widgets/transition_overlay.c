@@ -49,7 +49,6 @@ static void transition_overlay_lvgl_constructor(const lv_obj_class_t* class_p, l
     instance->dimmer = lv_obj_create(obj);
 
     lv_obj_set_size(instance->dimmer, LV_PCT(100), LV_PCT(100));
-    lv_obj_set_style_bg_color(instance->dimmer, lv_color_white(), LV_PART_MAIN);
 }
 
 // Public API
@@ -74,6 +73,11 @@ Widget* transition_overlay_get_base(TransitionOverlay* instance) {
     return (Widget*)instance;
 }
 
+void transition_overlay_set_color(TransitionOverlay* instance, Color color) {
+    furi_check(instance);
+    lv_obj_set_style_bg_color(instance->dimmer, TO_LV_COLOR(color), LV_PART_MAIN);
+}
+
 void transition_overlay_show(TransitionOverlay* instance) {
     furi_check(instance);
 
@@ -82,7 +86,6 @@ void transition_overlay_show(TransitionOverlay* instance) {
     lv_obj_set_style_bg_opa(instance->dimmer, LV_OPA_TRANSP, LV_PART_MAIN);
 
     widget_set_visible((Widget*)instance, true);
-    widget_move_to_foreground((Widget*)instance);
 }
 
 void transition_overlay_start(TransitionOverlay* instance) {
@@ -97,7 +100,6 @@ void transition_overlay_start(TransitionOverlay* instance) {
 
     lv_anim_set_custom_exec_cb(&anim, transition_overlay_lvgl_anim_exec_callback);
     lv_anim_set_completed_cb(&anim, transition_overlay_lvgl_anim_completed_callback);
-    lv_anim_set_path_cb(&anim, lv_anim_path_ease_in_out);
     lv_anim_set_var(&anim, instance);
 
     lv_anim_start(&anim);

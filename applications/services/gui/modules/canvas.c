@@ -1,12 +1,11 @@
 #include "canvas.h"
 
 #include <gui/widget_i.h>
+
 #include <lvgl/src/widgets/canvas/lv_canvas_private.h>
 #include <lvgl/src/core/lv_refr_private.h>
 
 #define MY_CLASS (&canvas_lvgl_class)
-
-#define TO_LV_COLOR(c) (*(lv_color_t*)(&c))
 
 const lv_obj_class_t canvas_lvgl_class;
 

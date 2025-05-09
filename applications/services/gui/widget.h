@@ -14,6 +14,8 @@
 #include <stdint.h>
 #include <stdbool.h>
 
+#include <toolbox/color.h>
+
 #ifdef __cplusplus
 extern "C" {
 #endif

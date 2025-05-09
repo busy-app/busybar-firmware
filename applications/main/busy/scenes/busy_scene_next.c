@@ -110,7 +110,12 @@ static bool busy_scene_next_on_event(const SceneManagerEvent* event, void* conte
             if(data->timer_state == BusyTimerStateIdle) {
                 scene_manager_search_and_switch_to_previous_scene(
                     instance->scene_manager, BusyAppSceneIdStart);
+
             } else {
+                busy_prepare_transition(
+                    instance,
+                    data->timer_state == BusyTimerStateWork ? BusyTransitionTypeWork :
+                                                              BusyTransitionTypeRest);
                 scene_manager_search_and_switch_to_previous_scene(
                     instance->scene_manager, BusyAppSceneIdTimer);
             }

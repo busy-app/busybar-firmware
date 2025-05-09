@@ -1,5 +1,12 @@
 #include "busy.h"
 
+static const Color busy_transition_colors[BusyTransitionTypeMax] = {
+    [BusyTransitionTypeBlack] = COLOR_MAKE_HEX(0x000000),
+    [BusyTransitionTypeWhite] = COLOR_MAKE_HEX(0xFFFFFF),
+    [BusyTransitionTypeWork] = COLOR_MAKE_HEX(0xFF0000),
+    [BusyTransitionTypeRest] = COLOR_MAKE_HEX(0x13F562),
+};
+
 static void busy_input_queue_callback(FuriEventLoopObject* object, void* context) {
     furi_assert(context);
 
@@ -141,10 +148,14 @@ void busy_send_custom_event(BusyApp* instance, uint32_t custom_event) {
         FuriStatusOk);
 }
 
-void busy_prepare_transition(BusyApp* instance) {
+void busy_prepare_transition(BusyApp* instance, BusyTransitionType type) {
     furi_assert(instance);
+    furi_assert(type < BusyTransitionTypeMax);
 
-    with_gui(instance->gui, { transition_overlay_show(instance->transition_overlay); });
+    with_gui(instance->gui, {
+        transition_overlay_set_color(instance->transition_overlay, busy_transition_colors[type]);
+        transition_overlay_show(instance->transition_overlay);
+    });
 }
 
 void busy_start_transition(BusyApp* instance) {

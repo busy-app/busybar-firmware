@@ -42,6 +42,14 @@ void transition_overlay_free(TransitionOverlay* instance);
 Widget* transition_overlay_get_base(TransitionOverlay* instance);
 
 /**
+ * @brief Set the overlay color for a TransitionOverlay instance.
+ *
+ * @param[in,out] instance pointer to the TransitionOverlay instance to be modified
+ * @param[in] color color value for the overlay transition effect
+ */
+void transition_overlay_set_color(TransitionOverlay* instance, Color color);
+
+/**
  * @brief Capture the current display contents and show the overlay.
  *
  * A static image will be shown until transition_overlay_start() is called.
