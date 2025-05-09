@@ -51,7 +51,8 @@ static bool platform_boot_update_init(void) {
             break;
         }
         // Check if the filesystem is valid
-        if(f_getfree(FS_MOUNT_POINT, NULL, &pfs) != FR_OK) {
+        DWORD free_clst;
+        if(f_getfree(FS_MOUNT_POINT, &free_clst, &pfs) != FR_OK) {
             f_mount(NULL, FS_MOUNT_POINT, 1); // Unmount the filesystem
             free(pfs);
             pfs = NULL;

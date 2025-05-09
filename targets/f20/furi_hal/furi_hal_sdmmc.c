@@ -1016,9 +1016,6 @@ static bool sdmmc_read_blocks_dma(uint8_t* data, uint32_t address, uint32_t bloc
     FURI_SDMMC_BLOCK->IDMABASER = (uint32_t)data;
     FURI_SDMMC_BLOCK->IDMACTRL = SDMMC_ENABLE_IDMA_SINGLE_BUFF;
 
-    /* Enable transfer interrupts */
-    sdmmc_enable_it(SDMMC_IT_DCRCFAIL | SDMMC_IT_DTIMEOUT | SDMMC_IT_RXOVERR | SDMMC_IT_DATAEND);
-
     /* Read Blocks in DMA mode */
     if(block_count > 1U) {
         sdmmc_dma_context.state = SdMmcDmaStateEnabled | SdMmcDmaStateRxMulti;
@@ -1038,6 +1035,10 @@ static bool sdmmc_read_blocks_dma(uint8_t* data, uint32_t address, uint32_t bloc
         FURI_LOG_E(TAG, "SDMMC_CmdReadSingle/MultiBlock failed with error 0x%08x", errorstate);
         return false;
     }
+
+    /* Enable transfer interrupts */
+    /* NB: SDMMC_IT_DATAEND is still set from successful command */
+    sdmmc_enable_it(SDMMC_IT_DCRCFAIL | SDMMC_IT_DTIMEOUT | SDMMC_IT_RXOVERR | SDMMC_IT_DATAEND);
 
     return true;
 }
@@ -2030,20 +2031,6 @@ bool furi_hal_sdmmc_read_blocks(
     furi_hal_sdmmc_event_clear(SdMmcDmaEventComplete | SdMmcDmaEventError);
 
     furi_hal_interrupt_set_isr(FuriHalInterruptIdSdMmc1, sdmmc_irq_handler, &sdmmc_dma_context);
-
-    // Sanity checks
-    if(!(NVIC->ISER[SDMMC1_IRQn >> 5] & (1UL << (SDMMC1_IRQn & 0x1F)))) {
-        furi_crash("NVIC IRQ for SDMMC1 not enabled!");
-    }
-
-    uint32_t primask_value = __get_PRIMASK();
-    if(primask_value != 0) {
-        furi_crash("Global interrupts are disabled (PRIMASK=1)!");
-        // FURI_LOG_E(TAG, "Global interrupts are disabled (PRIMASK=1)!");
-        // // Consider enabling them if appropriate here, or ensure they are enabled earlier:
-        // __enable_irq();
-    }
-    ////
 
     bool status = sdmmc_read_blocks_dma(buffer, address, count);
 

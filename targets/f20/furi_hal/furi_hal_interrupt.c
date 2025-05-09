@@ -134,7 +134,10 @@ void furi_hal_interrupt_init() {
 }
 
 void furi_hal_interrupt_set_isr(FuriHalInterruptId index, FuriHalInterruptISR isr, void* context) {
-    furi_hal_interrupt_set_isr_ex(index, FuriHalInterruptPriorityNormal, isr, context);
+    FuriHalInterruptPriority priority = furi_kernel_is_running() ?
+                                            FuriHalInterruptPriorityNormal :
+                                            FuriHalInterruptPriorityKamiSama;
+    furi_hal_interrupt_set_isr_ex(index, priority, isr, context);
 }
 
 void furi_hal_interrupt_set_isr_ex(
