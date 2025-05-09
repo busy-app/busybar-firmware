@@ -3,6 +3,8 @@
 #include <furi.h>
 #include <lvgl.h>
 
+#include <input/input.h>
+
 #include <lvgl/src/core/lv_obj_private.h>
 #include <lvgl/src/core/lv_obj_class_private.h>
 

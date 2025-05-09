@@ -312,19 +312,6 @@ void canvas_draw_text(Canvas* instance, int32_t x, int32_t y, const char* text) 
     lv_draw_label(&instance->layer, &draw, &area);
 }
 
-void canvas_draw_text_fmt(Canvas* instance, int32_t x, int32_t y, const char* fmt, ...) {
-    furi_check(fmt);
-
-    va_list args;
-    va_start(args, fmt);
-
-    FuriString* str = furi_string_alloc_vprintf(fmt, args);
-    va_end(args);
-
-    canvas_draw_text(instance, x, y, furi_string_get_cstr(str));
-    furi_string_free(str);
-}
-
 // LVGL class descriptor
 
 const lv_obj_class_t canvas_lvgl_class = {
