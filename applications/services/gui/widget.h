@@ -66,6 +66,14 @@ void widget_free(Widget* instance);
 void widget_set_visible(Widget* instance, bool visible);
 
 /**
+ * @brief Check if a Widget instance is currently visible.
+ *
+ * @param[in] instance pointer to the Widget instance to be queried
+ * @returns @c true if widget is visible, @c false otherwise
+ */
+bool widget_is_visible(const Widget* instance);
+
+/**
  * @brief Set the Widget width.
  *
  * @param[in,out] instance pointer to the Widget instance to be modified

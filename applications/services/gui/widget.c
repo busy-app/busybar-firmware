@@ -30,6 +30,11 @@ void widget_set_visible(Widget* instance, bool visible) {
     }
 }
 
+bool widget_is_visible(const Widget* instance) {
+    furi_check(instance);
+    return !lv_obj_has_flag(TO_LV_OBJ(instance), LV_OBJ_FLAG_HIDDEN);
+}
+
 void widget_set_width(Widget* instance, int32_t width) {
     furi_check(instance);
     lv_obj_set_width((lv_obj_t*)instance, width);
