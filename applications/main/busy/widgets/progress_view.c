@@ -2,6 +2,8 @@
 
 #include <gui/widget_i.h>
 
+#include <assets/assets_images.h>
+
 #define MY_CLASS (&progress_view_lvgl_class)
 
 #define COLOR_BG     (lv_color_hex(0x333333))
@@ -48,25 +50,29 @@ static void progress_view_lvgl_constructor(const lv_obj_class_t* class_p, lv_obj
     UNUSED(class_p);
 
     lv_obj_set_flex_flow(obj, LV_FLEX_FLOW_COLUMN);
-    lv_obj_set_style_pad_top(obj, 1, LV_PART_MAIN);
-    lv_obj_set_style_pad_row(obj, 2, LV_PART_MAIN);
+    lv_obj_set_style_pad_hor(obj, 2, LV_PART_MAIN);
+    lv_obj_set_style_pad_ver(obj, 1, LV_PART_MAIN);
+    lv_obj_set_style_pad_row(obj, 1, LV_PART_MAIN);
 
     ProgressView* instance = (ProgressView*)obj;
 
     lv_obj_t* top_layout = lv_obj_create(obj);
     lv_obj_set_size(top_layout, LV_PCT(100), LV_SIZE_CONTENT);
     lv_obj_set_flex_flow(top_layout, LV_FLEX_FLOW_ROW);
-    lv_obj_set_style_pad_left(top_layout, 2, LV_PART_MAIN);
+    lv_obj_set_style_pad_column(top_layout, 2, LV_PART_MAIN);
 
     lv_obj_t* done_label = lv_label_create(top_layout);
     lv_label_set_text(done_label, "DONE");
     lv_obj_set_flex_grow(done_label, 1);
     lv_obj_set_style_text_color(done_label, lv_color_white(), LV_PART_MAIN);
 
-    // TODO: Tickmark icon
+    lv_obj_t* tick_icon = lv_image_create(top_layout);
+    lv_image_set_src(tick_icon, &I_tick_red_6x5);
+    lv_obj_set_style_translate_y(tick_icon, 1, LV_PART_MAIN);
 
     instance->progress_label = lv_label_create(top_layout);
     lv_obj_set_style_text_color(instance->progress_label, lv_color_white(), LV_PART_MAIN);
+    lv_obj_set_style_margin_right(instance->progress_label, -1, LV_PART_MAIN);
 
     lv_obj_t* bottom_layout = lv_obj_create(obj);
     lv_obj_set_size(bottom_layout, LV_PCT(100), 6);
@@ -111,12 +117,21 @@ static void
     lv_anim_set_values(&anim, prev_done_width, done_width);
     lv_anim_set_duration(&anim, 500);
     lv_anim_set_delay(&anim, 500);
-    lv_anim_set_bezier3_param(
-        &anim,
-        LV_BEZIER_VAL_FLOAT(0.37F),
-        LV_BEZIER_VAL_FLOAT(0.0F),
-        LV_BEZIER_VAL_FLOAT(0.3F),
-        LV_BEZIER_VAL_FLOAT(1.78F));
+    if(done < total) {
+        lv_anim_set_bezier3_param(
+            &anim,
+            LV_BEZIER_VAL_FLOAT(0.37F),
+            LV_BEZIER_VAL_FLOAT(0.0F),
+            LV_BEZIER_VAL_FLOAT(0.3F),
+            LV_BEZIER_VAL_FLOAT(1.78F));
+    } else {
+        lv_anim_set_bezier3_param(
+            &anim,
+            LV_BEZIER_VAL_FLOAT(0.37F),
+            LV_BEZIER_VAL_FLOAT(0.0F),
+            LV_BEZIER_VAL_FLOAT(0.3F),
+            LV_BEZIER_VAL_FLOAT(1.4F));
+    }
     lv_anim_set_path_cb(&anim, lv_anim_path_custom_bezier3);
     lv_anim_set_custom_exec_cb(&anim, progress_view_lvgl_grow_anim_exec_callback);
     lv_anim_set_var(&anim, instance);
