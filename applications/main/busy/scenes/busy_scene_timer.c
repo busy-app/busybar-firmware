@@ -215,6 +215,8 @@ static bool busy_scene_timer_on_event(const SceneManagerEvent* event, void* cont
             busy_timer_toggle(instance->busy_timer);
 
         } else if(event->event == BusyCustomEventTimerSkip) {
+            busy_prepare_transition(instance, BusyTransitionTypeWhite);
+            busy_start_transition(instance);
             busy_timer_skip(instance->busy_timer);
 
         } else if(event->event == BusyCustomEventTimeIncrement) {
