@@ -108,7 +108,7 @@ typedef struct {
             bool ac1_present                        : 1;
             bool ac2_present                        : 1;
             bool power_good                         : 1;
-            uint8_t dummy0                          : 1;
+            uint8_t                                 : 1;
             bool wd                                 : 1;
             bool vindpm_votg                        : 1;
             bool iindpm_iotg                        : 1;
@@ -120,11 +120,24 @@ typedef struct {
             bool vbat_present_stat                  : 1;
             bool dpdm_stat                          : 1;
             bool treg_stat                          : 1;
-            uint8_t dummy1                          : 3;
+            uint8_t                                 : 3;
             Bq25798ChargerStatusIco ico_stat        : 2;
             // STATUS 3
-
+            uint8_t                                 : 1;
+            bool prechg_timer_stat                  : 1;
+            bool trichg_timer_stat                  : 1;
+            bool chg_timer_stat                     : 1;
+            bool vsys_stat                          : 1;
+            bool adc_done_stat                      : 1;
+            bool acrb1_stat                         : 1;
+            bool acrb2_stat                         : 1;
             // STATUS 4
+            bool ts_hot_stat                        : 1;
+            bool ts_warm_stat                       : 1;
+            bool ts_cool_stat                       : 1;
+            bool ts_cold_stat                       : 1;
+            bool vbat_otg_low_stat                  : 1;
+            uint8_t                                 : 3;
         } FURI_PACKED;
         uint8_t data[5];
     };
