@@ -10,7 +10,6 @@
 #define PRESS_ANIM_END   (185)
 
 typedef struct {
-    Label* front_label;
     AnimImage* front_anim;
     BusyTimerState timer_state;
 } BusySceneNext;
@@ -79,15 +78,7 @@ static void busy_scene_next_on_exit(void* context) {
         GuiLayer* layer = gui_get_layer(instance->gui, GuiLayerIdMain);
         gui_layer_remove_input_callback(layer, busy_scene_next_input_callback);
 
-        if(data->front_label) {
-            label_free(data->front_label);
-            data->front_label = NULL;
-        }
-
-        if(data->front_anim) {
-            anim_image_free(data->front_anim);
-            data->front_anim = NULL;
-        }
+        anim_image_free(data->front_anim);
     });
 }
 

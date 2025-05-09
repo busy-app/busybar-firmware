@@ -5,7 +5,7 @@
 
 #define MY_CLASS (&transition_overlay_lvgl_class)
 
-#define ANIM_DURATION_MS (500)
+#define ANIM_DURATION_MS (400)
 
 struct TransitionOverlay {
     Widget base;
