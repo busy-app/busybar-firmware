@@ -172,6 +172,12 @@ void furi_hal_interrupt_set_isr_ex(
     }
 }
 
+void FuriSysTick_Handler(void) {
+    // FURI_HAL_INTERRUPT_ACCOUNT_START();
+    furi_hal_os_tick();
+    // FURI_HAL_INTERRUPT_ACCOUNT_END();
+}
+
 void SDMMC1_IRQHandler() {
     furi_hal_interrupt_call(FuriHalInterruptIdSdMmc1);
 }

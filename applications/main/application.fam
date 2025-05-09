@@ -23,7 +23,7 @@ App(
         "wifi_per_test",
         "wifi_adaptive_test",
     ],
-    targets=["f20"],
+    targets=["f20", "f21"],
 )
 
 App(
@@ -31,7 +31,7 @@ App(
     name="On start hooks",
     apptype=FlipperAppType.METAPACKAGE,
     provides=[],
-    targets=["f20"],
+    targets=["f20", "f21"],
 )
 
 App(

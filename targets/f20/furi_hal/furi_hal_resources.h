@@ -46,7 +46,6 @@ extern const GpioPin gpio_usart1_cts;
 extern const GpioPin gpio_usart2_tx;
 extern const GpioPin gpio_usart2_rx;
 
-extern const GpioPin gpio_917_pwr_en;
 extern const GpioPin gpio_917_rst;
 extern const GpioPin gpio_917_swo;
 extern const GpioPin gpio_917_irq;
@@ -90,7 +89,7 @@ extern const GpioPin gpio_i2s_fs;
 extern const GpioPin gpio_i2s_sck;
 extern const GpioPin gpio_i2s_sd;
 
-extern const GpioPin gpio_audio_en_and_917_swo;
+extern const GpioPin gpio_audio_en;
 
 extern const GpioPinRecord gpio_pins[];
 extern const size_t gpio_pins_count;
