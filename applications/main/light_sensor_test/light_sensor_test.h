@@ -28,7 +28,8 @@ typedef struct {
     FuriPubSubSubscription* light_sensor_subscription;
 
     Widget* app_window;
-    Label* label_light_raw;
+    Label* label_light_raw_600nm;
+    Label* label_light_raw_840nm;
     Label* label_lux_instant;
     Label* label_lux_mean;
     Label* label_light_level;

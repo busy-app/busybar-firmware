@@ -7,11 +7,8 @@
 static void light_sensor_test_app_update(LightSensorTestApp* instance) {
     with_gui(instance->gui, {
         // Back screen
-        label_set_text_fmt(
-            instance->label_light_raw,
-            "600nm: %d, 840nm: %d",
-            instance->raw_600nm,
-            instance->raw_840nm);
+        label_set_text_fmt(instance->label_light_raw_600nm, "600nm: %d", instance->raw_600nm);
+        label_set_text_fmt(instance->label_light_raw_840nm, "840nm: %d", instance->raw_840nm);
         label_set_text_fmt(
             instance->label_lux_instant, "Lux instant: %.2f", instance->lux_instant);
         label_set_text_fmt(instance->label_lux_mean, "Lux mean: %.2f", instance->lux_mean);
@@ -120,17 +117,20 @@ static LightSensorTestApp* light_sensor_test_app_alloc(void) {
         instance->app_window = widget_alloc(root);
 
         // Back screen
-        instance->label_light_raw = label_alloc(instance->app_window);
-        widget_set_pos(label_get_base(instance->label_light_raw), 10, 0);
+        instance->label_light_raw_600nm = label_alloc(instance->app_window);
+        widget_set_pos(label_get_base(instance->label_light_raw_600nm), 10, 0);
+
+        instance->label_light_raw_840nm = label_alloc(instance->app_window);
+        widget_set_pos(label_get_base(instance->label_light_raw_840nm), 10, 13);
 
         instance->label_lux_instant = label_alloc(instance->app_window);
-        widget_set_pos(label_get_base(instance->label_lux_instant), 10, 10);
+        widget_set_pos(label_get_base(instance->label_lux_instant), 10, 13 * 2);
 
         instance->label_lux_mean = label_alloc(instance->app_window);
-        widget_set_pos(label_get_base(instance->label_lux_mean), 10, 30);
+        widget_set_pos(label_get_base(instance->label_lux_mean), 10, 13 * 4);
 
         instance->label_light_level = label_alloc(instance->app_window);
-        widget_set_pos(label_get_base(instance->label_light_level), 10, 40);
+        widget_set_pos(label_get_base(instance->label_light_level), 10, 13 * 5);
     });
 
     light_sensor_test_app_get_measurements(instance);
