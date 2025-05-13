@@ -177,7 +177,7 @@ static void power_test_info_update(PowerTest* instance) {
             info.temperature_battery_celsius);
         label_set_text_fmt(
             instance->label_back,
-            "%s %u%% %s%s\n\nBattery: %.2fV  %.2fA %.2fC\n\nUSB: %.2fV  %.2fA",
+            "%s %u%% %s%s\n\nBAT: %.2fV  %.2fA %.2fC\n\nUSB: %.2fV  %.2fA",
             state,
             info.charge,
             flags_battery,
@@ -210,7 +210,7 @@ static void power_test_info_enter(PowerTest* instance) {
         instance->label_back = label_alloc(root_back);
 
         widget_set_align(label_get_base(instance->label_front), AlignLeftMid);
-        widget_set_align(label_get_base(instance->label_back), AlignCenter);
+        //widget_set_align(label_get_base(instance->label_back), AlignTopLeft);
     });
     power_test_info_update(instance);
     furi_event_loop_tick_set(
