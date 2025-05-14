@@ -113,6 +113,7 @@ static LightSensorTestApp* light_sensor_test_app_alloc(void) {
     instance->gui = furi_record_open(RECORD_GUI);
 
     with_gui(instance->gui, {
+        gui_display_set_theme(instance->gui, GuiDisplayIdBack, GuiThemeIdDebug);
         GuiLayer* main_layer = gui_get_layer(instance->gui, GuiLayerIdMain);
         gui_layer_add_input_callback(main_layer, ligh_sensor_test_app_input_callback, instance);
 
@@ -148,6 +149,7 @@ static void light_sensor_test_app_free(LightSensorTestApp* instance) {
         GuiLayer* main_layer = gui_get_layer(instance->gui, GuiLayerIdMain);
         gui_layer_remove_input_callback(main_layer, ligh_sensor_test_app_input_callback);
         widget_free(instance->app_window);
+        gui_display_set_theme(instance->gui, GuiDisplayIdBack, GuiThemeIdDefault);
     });
 
     furi_record_close(RECORD_GUI);

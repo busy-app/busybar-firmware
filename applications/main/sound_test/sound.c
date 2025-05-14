@@ -295,6 +295,7 @@ static Sound* sound_alloc(void) {
     sound_init_storage(instance->button_sounds[SoundButtonOk], EXT_PATH(SOUND_FOLDER_BUTTON_OK));
 
     with_gui(instance->gui, {
+        gui_display_set_theme(instance->gui, GuiDisplayIdBack, GuiThemeIdDebug);
         GuiLayer* top_layer = gui_get_layer(instance->gui, GuiLayerIdTop);
         gui_layer_add_input_callback(top_layer, sound_top_layer_callback, instance);
 
@@ -333,6 +334,7 @@ static Sound* sound_alloc(void) {
 
 static void sound_free(Sound* instance) {
     with_gui(instance->gui, {
+        gui_display_set_theme(instance->gui, GuiDisplayIdBack, GuiThemeIdDefault);
         GuiLayer* top_layer = gui_get_layer(instance->gui, GuiLayerIdTop);
         gui_layer_remove_input_callback(top_layer, sound_top_layer_callback);
 

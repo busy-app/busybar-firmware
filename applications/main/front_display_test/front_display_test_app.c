@@ -104,6 +104,7 @@ static FrontDisplayTestApp* front_display_test_app_alloc(void) {
     instance->gui = furi_record_open(RECORD_GUI);
 
     with_gui(instance->gui, {
+        gui_display_set_theme(instance->gui, GuiDisplayIdBack, GuiThemeIdDebug);
         GuiLayer* main_layer = gui_get_layer(instance->gui, GuiLayerIdMain);
         gui_layer_add_input_callback(main_layer, front_display_test_app_input_callback, instance);
 
@@ -142,6 +143,7 @@ static void front_display_test_app_free(FrontDisplayTestApp* instance) {
     furi_assert(instance);
 
     with_gui(instance->gui, {
+        gui_display_set_theme(instance->gui, GuiDisplayIdBack, GuiThemeIdDefault);
         GuiLayer* main_layer = gui_get_layer(instance->gui, GuiLayerIdMain);
         gui_layer_remove_input_callback(main_layer, front_display_test_app_input_callback);
 

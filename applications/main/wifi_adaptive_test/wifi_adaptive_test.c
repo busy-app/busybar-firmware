@@ -145,6 +145,7 @@ static WifiAdaptiveTest* wifi_adaptive_test_alloc(void) {
         instance->event_loop, wifi_adaptive_test_custom_event_callback, instance);
 
     with_gui(instance->gui, {
+        gui_display_set_theme(instance->gui, GuiDisplayIdBack, GuiThemeIdDebug);
         GuiLayer* main_layer = gui_get_layer(instance->gui, GuiLayerIdMain);
         gui_layer_add_input_callback(main_layer, wifi_adaptive_test_input_callback, instance);
 
@@ -175,6 +176,7 @@ static WifiAdaptiveTest* wifi_adaptive_test_alloc(void) {
 
 static void wifi_adaptive_test_free(WifiAdaptiveTest* instance) {
     with_gui(instance->gui, {
+        gui_display_set_theme(instance->gui, GuiDisplayIdBack, GuiThemeIdDefault);
         GuiLayer* main_layer = gui_get_layer(instance->gui, GuiLayerIdMain);
         gui_layer_remove_input_callback(main_layer, wifi_adaptive_test_input_callback);
         label_free(instance->label);

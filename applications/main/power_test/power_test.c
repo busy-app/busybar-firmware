@@ -202,6 +202,7 @@ static void power_test_info_enter(PowerTest* instance) {
     furi_assert(instance);
 
     with_gui(instance->gui, {
+        gui_display_set_theme(instance->gui, GuiDisplayIdBack, GuiThemeIdDebug);
         GuiLayer* main_layer = gui_get_layer(instance->gui, GuiLayerIdMain);
         Widget* root_front = gui_layer_get_root_widget(main_layer, GuiDisplayIdFront);
         instance->label_front = label_alloc(root_front);
@@ -220,6 +221,7 @@ static void power_test_info_enter(PowerTest* instance) {
 static void power_test_info_exit(PowerTest* instance) {
     furi_assert(instance);
     with_gui(instance->gui, {
+        gui_display_set_theme(instance->gui, GuiDisplayIdBack, GuiThemeIdDefault);
         label_free(instance->label_front);
         label_free(instance->label_back);
     });
