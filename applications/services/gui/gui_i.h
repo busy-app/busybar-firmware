@@ -3,6 +3,7 @@
 #include "gui.h"
 
 #include "widget_i.h"
+#include "theme_registry.h"
 
 #include <furi.h>
 #include <lvgl.h>
@@ -29,6 +30,7 @@
 
 typedef struct {
     lv_display_t* lv_display;
+    GuiThemeRegistry* themes;
     uint8_t* draw_buffer;
     void* driver;
 } GuiDisplay;

@@ -3,6 +3,7 @@
 #include <lvgl_addons/fs/lv_fs.h>
 #include <lvgl_addons/themes/lv_theme_front.h>
 #include <lvgl_addons/themes/lv_theme_back.h>
+#include <lvgl_addons/themes/lv_theme_back_debug.h>
 
 #define TAG "Gui"
 
@@ -165,8 +166,15 @@ static void gui_init_front(GuiDisplay* display) {
         FRONT_DRAW_BUFFER_SIZE,
         LV_DISPLAY_RENDER_MODE_DIRECT);
 
-    lv_theme_t* theme = lv_theme_front_alloc(display->lv_display);
-    lv_display_set_theme(display->lv_display, theme);
+    ThemeAllocHandler theme_alloc_handlers[GuiThemeIdCount] = {
+        [GuiThemeIdDefault] = lv_theme_front_alloc,
+        [GuiThemeIdDebug] = NULL,
+    };
+
+    display->themes = gui_theme_registry_init(
+        display->lv_display, COUNT_OF(theme_alloc_handlers), theme_alloc_handlers);
+    lv_display_set_theme(
+        display->lv_display, theme_registry_get_theme(display->themes, GuiThemeIdDefault));
 }
 
 static void gui_init_back(GuiDisplay* display) {
@@ -187,8 +195,15 @@ static void gui_init_back(GuiDisplay* display) {
         back_display_buffer_size,
         LV_DISPLAY_RENDER_MODE_DIRECT);
 
-    lv_theme_t* theme = lv_theme_back_alloc(display->lv_display);
-    lv_display_set_theme(display->lv_display, theme);
+    ThemeAllocHandler theme_alloc_handlers[GuiThemeIdCount] = {
+        [GuiThemeIdDefault] = lv_theme_back_alloc,
+        [GuiThemeIdDebug] = lv_theme_back_debug_alloc,
+    };
+
+    display->themes = gui_theme_registry_init(
+        display->lv_display, COUNT_OF(theme_alloc_handlers), theme_alloc_handlers);
+    lv_display_set_theme(
+        display->lv_display, theme_registry_get_theme(display->themes, GuiThemeIdDefault));
 }
 
 static void gui_init_input(Gui* instance) {
@@ -305,5 +320,15 @@ void gui_layer_remove_input_callback(GuiLayer* layer, GuiInputCallback callback)
             GuiInputItemList_remove(layer->input_list, it);
             break;
         }
+    }
+}
+
+void gui_display_set_theme(Gui* instance, GuiDisplayId display_id, uint32_t theme_id) {
+    furi_assert(instance);
+    furi_assert(display_id < GuiDisplayIdMax);
+    GuiDisplay* display = &instance->displays[display_id];
+    lv_theme_t* theme = theme_registry_get_theme(display->themes, theme_id);
+    if(theme) {
+        lv_display_set_theme(display->lv_display, theme);
     }
 }

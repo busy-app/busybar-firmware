@@ -30,6 +30,14 @@ typedef enum {
     GuiLayerIdMax, /**< Special value, not to be used in application code */
 } GuiLayerId;
 
+/** Enumeration of available themes*/
+typedef enum {
+    GuiThemeIdDefault, /**< Main theme used by default on both displays */
+    GuiThemeIdDebug, /**< Debug theme used on Back display by some debug apps */
+
+    GuiThemeIdCount,
+} GuiThemeId;
+
 /** Gui opaque type declaration. */
 typedef struct Gui Gui;
 
@@ -71,6 +79,17 @@ void gui_unlock(Gui* instance);
  * @brief
  */
 GuiLayer* gui_get_layer(Gui* instance, GuiLayerId layer_id);
+
+/**
+ * @brief Apply theme to display by id
+ * 
+ * Retrieves theme from theme registry and applies it to display
+ * 
+ * @param[in] instance pointer to the Guiinstance
+ * @param[in] display_id identifier of the display required
+ * @param[in] theme_id identifier of the theme required
+ */
+void gui_set_theme(Gui* instance, GuiDisplayId display_id, GuiThemeId theme_id);
 
 /**
  * @brief Get the root widget of a Layer on a certain display.
