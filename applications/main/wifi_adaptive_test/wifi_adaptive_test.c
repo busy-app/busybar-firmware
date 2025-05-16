@@ -154,10 +154,14 @@ static WifiAdaptiveTest* wifi_adaptive_test_alloc(void) {
         Widget* root = gui_layer_get_root_widget(main_layer, GuiDisplayIdBack);
 
         instance->label_status = label_alloc(root);
-        widget_set_pos_y(label_get_base(instance->label_status), 60);
+        widget_set_pos(label_get_base(instance->label_status), 5, 70);
         widget_set_height(label_get_base(instance->label_status), 30);
 
         instance->label = label_alloc(top_layer_root);
+        label_set_max_width(instance->label, 160 - 12 - 5);
+        label_set_max_height(instance->label, 70);
+        label_set_long_content_mode(instance->label, LabelLongContentModeScroll, 5000);
+
         label_set_text(
             instance->label,
             "WifiAdaptiveTest plz create ap\n"
