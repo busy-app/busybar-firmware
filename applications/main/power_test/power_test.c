@@ -177,7 +177,7 @@ static void power_test_info_update(PowerTest* instance) {
             info.temperature_battery_celsius);
         label_set_text_fmt(
             instance->label_back,
-            "%s %u%% %s%s\n\nBAT: %.2fV  %.2fA %.2fC\n\nUSB: %.2fV  %.2fA",
+            "%s %u%% %s%s\n\nBAT: %.2fV %.2fA %.2fC\n\nUSB: %.2fV %.2fA",
             state,
             info.charge,
             flags_battery,
