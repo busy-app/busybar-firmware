@@ -65,11 +65,10 @@ void label_set_text_fmt(Label* instance, const char* fmt, ...) {
 
     va_list args;
     va_start(args, fmt);
-
     furi_string_vprintf(instance->text, fmt, args);
-    lv_label_set_text_static(instance->label, furi_string_get_cstr(instance->text));
-
     va_end(args);
+
+    lv_label_set_text_static(instance->label, furi_string_get_cstr(instance->text));
 }
 
 void label_set_line_spacing(Label* instance, int32_t spacing) {
@@ -82,6 +81,32 @@ void label_set_text_align(Label* instance, TextAlign align) {
     furi_check(align < TextAlignMax);
 
     lv_obj_set_style_text_align((lv_obj_t*)instance, (lv_text_align_t)align, LV_PART_MAIN);
+}
+
+void label_set_max_width(Label* instance, int32_t max_width) {
+    furi_check(instance);
+    lv_obj_set_style_max_width(instance->label, max_width, LV_PART_MAIN);
+}
+
+void label_set_max_height(Label* instance, int32_t max_height) {
+    furi_check(instance);
+    lv_obj_set_style_max_height(instance->label, max_height, LV_PART_MAIN);
+}
+
+void label_set_long_content_mode(Label* instance, LabelLongContentMode mode, uint32_t duration) {
+    furi_check(instance);
+    furi_check(mode < LabelLongContentModeCount);
+
+    const lv_label_long_mode_t lv_modes[] = {
+        [LabelLongContentModeWrap] = LV_LABEL_LONG_MODE_WRAP,
+        [LabelLongContentModeDots] = LV_LABEL_LONG_MODE_DOTS,
+        [LabelLongContentModeScroll] = LV_LABEL_LONG_MODE_SCROLL,
+        [LabelLongContentModeScrollCircular] = LV_LABEL_LONG_MODE_SCROLL_CIRCULAR,
+        [LabelLongContentModeClip] = LV_LABEL_LONG_MODE_CLIP,
+    };
+
+    lv_label_set_long_mode(instance->label, lv_modes[mode]);
+    lv_obj_set_style_anim_time(instance->label, duration, LV_PART_MAIN);
 }
 
 // LVGL class descriptor
