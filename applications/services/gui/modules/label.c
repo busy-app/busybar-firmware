@@ -99,15 +99,7 @@ void label_set_long_content_mode(Label* instance, LabelLongContentMode mode, uin
     furi_check(instance);
     furi_check(mode < LabelLongContentModeCount);
 
-    const lv_label_long_mode_t lv_modes[] = {
-        [LabelLongContentModeWrap] = LV_LABEL_LONG_MODE_WRAP,
-        [LabelLongContentModeDots] = LV_LABEL_LONG_MODE_DOTS,
-        [LabelLongContentModeScroll] = LV_LABEL_LONG_MODE_SCROLL,
-        [LabelLongContentModeScrollCircular] = LV_LABEL_LONG_MODE_SCROLL_CIRCULAR,
-        [LabelLongContentModeClip] = LV_LABEL_LONG_MODE_CLIP,
-    };
-
-    lv_label_set_long_mode(instance->label, lv_modes[mode]);
+    lv_label_set_long_mode(instance->label, (lv_label_long_mode_t)mode);
     lv_obj_set_style_anim_time(instance->label, duration, LV_PART_MAIN);
 }
 

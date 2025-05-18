@@ -25,11 +25,11 @@ typedef enum {
 
 /** Enumeration of possible behaviour with long content */
 typedef enum {
-    LabelLongContentModeWrap, /**< Wrap long content, set by default */
-    LabelLongContentModeDots, /**< Replace last 3 visible symbols with '...'. Adjusts text buffer!*/
-    LabelLongContentModeScroll, /**< Scrolls content if max width and max height are set for the element*/
-    LabelLongContentModeScrollCircular, /**< Circulary scrolls content if max width and max height are set for the element*/
-    LabelLongContentModeClip, /**< Clips content*/
+    LabelLongContentModeWrap, /**< Keep the object width, wrap lines longer than object width and expand the object height*/
+    LabelLongContentModeDots, /**< Keep the size and write dots at the end if the text is too long*/
+    LabelLongContentModeScroll, /**< Keep the size and roll the text back and forth*/
+    LabelLongContentModeScrollCircular, /**< Keep the size and roll the text circularly*/
+    LabelLongContentModeClip, /**< Keep the size and clip the text out of it*/
 
     LabelLongContentModeCount /**< Count of possible choices*/
 } LabelLongContentMode;
@@ -111,10 +111,10 @@ void label_set_max_width(Label* instance, int32_t max_width);
 void label_set_max_height(Label* instance, int32_t max_width);
 
 /**
- * @brief Set the label scroll mode.
+ * @brief Set label long content mode.
  *
  * @param[in,out] instance pointer to the Label instance to be modified
- * @param[in] mode new scrolling mode for label
+ * @param[in] mode new long content mode for label
  * @param[in] duration defines animation speed in scrollable modes
  */
 void label_set_long_content_mode(Label* instance, LabelLongContentMode mode, uint32_t duration);
