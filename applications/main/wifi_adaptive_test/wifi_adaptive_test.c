@@ -148,19 +148,22 @@ static WifiAdaptiveTest* wifi_adaptive_test_alloc(void) {
         GuiLayer* main_layer = gui_get_layer(instance->gui, GuiLayerIdMain);
         gui_layer_add_input_callback(main_layer, wifi_adaptive_test_input_callback, instance);
 
-        GuiLayer* top_layer = gui_get_layer(instance->gui, GuiLayerIdTop);
-        Widget* top_layer_root = gui_layer_get_root_widget(top_layer, GuiDisplayIdBack);
-
         Widget* root = gui_layer_get_root_widget(main_layer, GuiDisplayIdBack);
 
+        const int32_t pos_x = 5;
+
         instance->label_status = label_alloc(root);
-        widget_set_pos(label_get_base(instance->label_status), 5, 70);
+        widget_set_pos(label_get_base(instance->label_status), pos_x, 70);
         widget_set_height(label_get_base(instance->label_status), 30);
 
-        instance->label = label_alloc(top_layer_root);
-        label_set_max_width(instance->label, 160 - 12 - 5);
-        label_set_max_height(instance->label, 70);
-        label_set_long_content_mode(instance->label, LabelLongContentModeScroll, 5000);
+        int32_t width = widget_get_width(root) - BACK_STATUS_BAR_WIDTH - pos_x;
+        instance->label = label_alloc(root);
+        Widget* base = label_get_base(instance->label);
+        widget_set_pos(base, pos_x, 0);
+        widget_set_height(base, 60);
+        widget_set_width(base, width);
+        label_set_max_width(instance->label, width);
+        label_set_scrollbar_mode(instance->label, LabelScrollBarModeAuto);
 
         label_set_text(
             instance->label,
@@ -169,7 +172,6 @@ static WifiAdaptiveTest* wifi_adaptive_test_alloc(void) {
             "PASS: 1qa2wszz\n"
             "set static ip " UDP_SERVER_IP " on your PC\n"
             "start \"iperf.exe -s -u -p 5001 -i 1\"");
-        widget_set_pos(label_get_base(instance->label), 5, 0);
     });
 
     wifi_adaptive_test_update(instance, WifiAdaptiveTestStatusDisconnected, NULL);
