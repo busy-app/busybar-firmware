@@ -58,6 +58,7 @@ typedef struct {
 
     VarItem* var_list_sound_items[SoundButtonNum];
     VarItemList* var_list;
+    Label* footer_label;
 
     ButtonSoundArray_t button_sounds[SoundButtonNum];
 } Sound;
@@ -229,6 +230,10 @@ static Sound* sound_alloc(void) {
         instance->var_list_sound_items[SoundButtonOk] = var_item_list_add_selector(
             instance->var_list, BTN_NAME_OK, NULL, buf->items, buf->size, NULL, NULL);
         sound_collection_free(buf);
+
+        instance->footer_label = label_alloc(root_widget);
+        label_set_text(instance->footer_label, "Hold 'Back' to exit");
+        widget_set_align(label_get_base(instance->footer_label), AlignBottomRight);
     });
 
     return instance;
@@ -240,6 +245,7 @@ static void sound_free(Sound* instance) {
         gui_layer_remove_input_callback(main_layer, sound_input_callback);
 
         var_item_list_free(instance->var_list);
+        label_free(instance->footer_label);
     });
 
     for(size_t i = 0; i < SoundButtonNum; i++) {
