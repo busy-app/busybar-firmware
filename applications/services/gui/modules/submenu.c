@@ -10,8 +10,6 @@
 
 #define SYM_ARROW_RIGHT "▹"
 
-#define SCROLL_ANIM_DURATION_MS (0)
-
 struct Submenu {
     Widget base;
     lv_group_t* group;
@@ -29,16 +27,6 @@ typedef struct {
 const lv_obj_class_t submenu_lvgl_class;
 const lv_obj_class_t submenu_item_lvgl_class;
 const lv_obj_class_t submenu_cursor_lvgl_class;
-
-// TODO: Make it a universal fix
-static void submenu_scroll_event_callback(lv_event_t* event) {
-    const lv_event_code_t code = lv_event_get_code(event);
-
-    if(code == LV_EVENT_SCROLL_BEGIN) {
-        lv_anim_t* anim = lv_event_get_scroll_anim(event);
-        if(anim) anim->duration = SCROLL_ANIM_DURATION_MS;
-    }
-}
 
 static bool submenu_input_callback(Widget* widget, const InputEvent* event) {
     Submenu* instance = (Submenu*)widget;
@@ -92,7 +80,7 @@ static void submenu_lvgl_constructor(const lv_obj_class_t* class_p, lv_obj_t* ob
     UNUSED(class_p);
 
     lv_obj_set_flex_flow(obj, LV_FLEX_FLOW_COLUMN);
-    lv_obj_add_event_cb(obj, submenu_scroll_event_callback, LV_EVENT_SCROLL_BEGIN, NULL);
+    lv_obj_add_event_cb(obj, widget_scroll_event_callback, LV_EVENT_SCROLL_BEGIN, NULL);
 
     Submenu* instance = (Submenu*)obj;
     instance->group = lv_group_create();

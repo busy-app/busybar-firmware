@@ -9,8 +9,6 @@
 #define MY_ICON_CLASS     (&menu_icon_lvgl_class)
 #define MY_SUBLABEL_CLASS (&menu_sublabel_lvgl_class)
 
-#define SCROLL_ANIM_DURATION_MS (0)
-
 struct Menu {
     Widget base;
     lv_group_t* group;
@@ -31,16 +29,6 @@ const lv_obj_class_t menu_lvgl_class;
 const lv_obj_class_t menu_item_lvgl_class;
 const lv_obj_class_t menu_icon_lvgl_class;
 const lv_obj_class_t menu_sublabel_lvgl_class;
-
-// TODO: Make it a universal fix
-static void menu_scroll_event_callback(lv_event_t* event) {
-    const lv_event_code_t code = lv_event_get_code(event);
-
-    if(code == LV_EVENT_SCROLL_BEGIN) {
-        lv_anim_t* anim = lv_event_get_scroll_anim(event);
-        if(anim) anim->duration = SCROLL_ANIM_DURATION_MS;
-    }
-}
 
 static bool menu_input_callback(Widget* widget, const InputEvent* event) {
     Menu* instance = (Menu*)widget;
@@ -105,7 +93,7 @@ static void menu_lvgl_constructor(const lv_obj_class_t* class_p, lv_obj_t* obj) 
     UNUSED(class_p);
 
     lv_obj_set_flex_flow(obj, LV_FLEX_FLOW_COLUMN);
-    lv_obj_add_event_cb(obj, menu_scroll_event_callback, LV_EVENT_SCROLL_BEGIN, NULL);
+    lv_obj_add_event_cb(obj, widget_scroll_event_callback, LV_EVENT_SCROLL_BEGIN, NULL);
 
     Menu* instance = (Menu*)obj;
     instance->group = lv_group_create();

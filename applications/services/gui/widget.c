@@ -4,6 +4,17 @@
 
 #define MY_CLASS WIDGET_CLASS
 
+#define SCROLL_ANIM_DURATION_MS (0)
+
+void widget_scroll_event_callback(lv_event_t* event) {
+    const lv_event_code_t code = lv_event_get_code(event);
+
+    if(code == LV_EVENT_SCROLL_BEGIN) {
+        lv_anim_t* anim = lv_event_get_scroll_anim(event);
+        if(anim) anim->duration = SCROLL_ANIM_DURATION_MS;
+    }
+}
+
 // Public API
 
 Widget* widget_alloc(Widget* parent) {
