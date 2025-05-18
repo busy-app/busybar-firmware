@@ -114,14 +114,18 @@ static FrontDisplayTestApp* front_display_test_app_alloc(void) {
 
         instance->app_window = widget_alloc(root);
         instance->static_label = label_alloc(instance->app_window);
-        widget_set_pos(label_get_base(instance->static_label), 10, 0);
+
+        const int32_t pos_x = 10;
+        widget_set_pos(label_get_base(instance->static_label), pos_x, 0);
         label_set_text(instance->static_label, "Start/Ok - next pattern\nEncoder - next color");
 
-        instance->pattern_label = label_alloc(instance->app_window);
-        widget_set_pos(label_get_base(instance->pattern_label), 10, 30);
-
         instance->color_label = label_alloc(instance->app_window);
-        widget_set_pos(label_get_base(instance->color_label), 10, 44);
+        widget_set_pos(label_get_base(instance->color_label), pos_x, 30);
+
+        instance->pattern_label = label_alloc(instance->app_window);
+        widget_set_pos(label_get_base(instance->pattern_label), pos_x, 44);
+        label_set_max_width(
+            instance->pattern_label, widget_get_width(root) - BACK_STATUS_BAR_WIDTH - pos_x);
 
         // Front display
         root = gui_layer_get_root_widget(main_layer, GuiDisplayIdFront);
