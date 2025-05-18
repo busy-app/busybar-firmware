@@ -34,6 +34,15 @@ typedef enum {
     LabelLongContentModeCount /**< Count of possible choices*/
 } LabelLongContentMode;
 
+/** Enumeration of possible scrollbar modes for label */
+typedef enum {
+    LabelScrollBarModeOff, /**< Never show scrollbars*/
+    LabelScrollBarModeOn, /**< Always show scrollbars*/
+    LabelScrollBarModeActive, /**< Show scroll bars when Widget is being scrolled*/
+    LabelScrollBarModeAuto, /**< Show scroll bars when the content is large enough to be scrolled*/
+    LabelScrollBarModeCount /**< Special value, not to be used in application code */
+} LabelScrollBarMode;
+
 /**
  * @brief Create a new Label instance.
  *
@@ -118,6 +127,15 @@ void label_set_max_height(Label* instance, int32_t max_width);
  * @param[in] duration defines animation speed in scrollable modes
  */
 void label_set_long_content_mode(Label* instance, LabelLongContentMode mode, uint32_t duration);
+
+/**
+ * @brief Set label scrollbar mode.
+ *
+ * @param[in,out] instance pointer to the Label instance to be modified
+ * @param[in] scrollbar_mode new scrollbar mode for label
+ */
+void label_set_scrollbar_mode(Label* instance, LabelScrollBarMode scrollbar_mode);
+
 #ifdef __cplusplus
 }
 #endif
