@@ -14,8 +14,6 @@ extern "C" {
 
 #define RECORD_GUI "gui"
 
-#define BACK_STATUS_BAR_WIDTH (12)
-
 /** Enumeration of available display identifiers. */
 typedef enum {
     GuiDisplayIdFront, /**< Front (main display) */
