@@ -14,6 +14,7 @@ App(
         "power_test",
         # "wifi_setup",
         # "sockets_test",
+        "http_viewer",
         "animation_player",
         "lottie_player",
         "busy",

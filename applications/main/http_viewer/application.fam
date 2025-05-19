@@ -1,0 +1,10 @@
+App(
+    appid="http_viewer",
+    name="HttpViewer",
+    apptype=FlipperAppType.APP,
+    order=60,
+    entry_point="http_viewer_app",
+    requires=["gui"],
+    stack_size=2 * 1024,
+    targets=["f20"],
+)
