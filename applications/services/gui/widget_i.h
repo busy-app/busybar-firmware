@@ -28,5 +28,3 @@ extern const lv_obj_class_t widget_lvgl_class;
 void widget_set_input_feed_callback(Widget* instance, WidgetInputFeedCallback callback);
 
 bool widget_input(Widget* instance, const InputEvent* event);
-
-void widget_scroll_event_callback(lv_event_t* event);

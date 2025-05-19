@@ -20,8 +20,6 @@ static void label_lvgl_constructor(const lv_obj_class_t* class_p, lv_obj_t* obj)
     Label* instance = (Label*)obj;
     instance->label = lv_label_create(obj);
     instance->text = furi_string_alloc();
-
-    lv_obj_add_event_cb(obj, widget_scroll_event_callback, LV_EVENT_SCROLL_BEGIN, NULL);
 }
 
 static void label_lvgl_destructor(const lv_obj_class_t* class_p, lv_obj_t* obj) {

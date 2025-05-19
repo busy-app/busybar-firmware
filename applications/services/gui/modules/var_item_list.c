@@ -14,6 +14,8 @@
 #define SYM_ARROW_LEFT  "◃"
 #define SYM_ARROW_RIGHT "▹"
 
+#define SCROLL_ANIM_DURATION_MS (0)
+
 #define CHECK_RANGE_AND_STEP(min, max, step)                                               \
     do {                                                                                   \
         furi_check(max >= min, "Range error: min > max");                                  \
@@ -74,13 +76,25 @@ const lv_obj_class_t var_item_cursor_lvgl_class;
 
 static void var_item_editor_clear_choices(VarItemEditor* instance);
 
+// LVGL-specific code
+
+// TODO: Make it a universal fix
+static void var_item_list_scroll_event_callback(lv_event_t* event) {
+    const lv_event_code_t code = lv_event_get_code(event);
+
+    if(code == LV_EVENT_SCROLL_BEGIN) {
+        lv_anim_t* anim = lv_event_get_scroll_anim(event);
+        if(anim) anim->duration = SCROLL_ANIM_DURATION_MS;
+    }
+}
+
 // VarItemList
 
 static void var_item_list_lvgl_constructor(const lv_obj_class_t* class_p, lv_obj_t* obj) {
     LV_UNUSED(class_p);
 
     lv_obj_set_flex_flow(obj, LV_FLEX_FLOW_COLUMN);
-    lv_obj_add_event_cb(obj, widget_scroll_event_callback, LV_EVENT_SCROLL_BEGIN, NULL);
+    lv_obj_add_event_cb(obj, var_item_list_scroll_event_callback, LV_EVENT_SCROLL_BEGIN, NULL);
 
     VarItemList* instance = (VarItemList*)obj;
     instance->group = lv_group_create();
