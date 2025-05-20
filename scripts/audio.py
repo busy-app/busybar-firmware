@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # How to use:
-# audio.py convert input.mp3 output.wav
+# audio.py input.mp3 output.snd
 
 from flipper.app import App
 
@@ -13,14 +13,9 @@ import tempfile
 
 class Main(App):
     def init(self):
-        self.subparsers = self.parser.add_subparsers(help="sub-command help")
-
-        self.parser_convert = self.subparsers.add_parser(
-            "convert", help="Convert audio file using FFmpeg"
-        )
-        self.parser_convert.add_argument("source", help="Source file")
-        self.parser_convert.add_argument("destination", help="Destination file")
-        self.parser_convert.set_defaults(func=self.convert)
+        self.parser.add_argument("source", help="Source file")
+        self.parser.add_argument("destination", help="Destination file")
+        self.parser.set_defaults(func=self.convert)
 
         self.args = self.parser.parse_args()
 

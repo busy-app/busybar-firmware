@@ -2,7 +2,7 @@
 
 #include <furi/furi.h>
 
-#include <assets/assets_images.h>
+#include <assets_images.h>
 
 #define TAG "AnimImage"
 

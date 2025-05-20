@@ -117,7 +117,7 @@
         "furi",
         "drivers",
         "version",
-        "assets",
+        "internal_assets",
         "ext_applications",
         "firmware_applications_f20"
     ],
@@ -125,6 +125,7 @@
         "fw_elf",
         "fw_artifacts",
         "fw_cdb",
+        "bsb_assets",
         "sdk_extapps",
         "link_builddir"
     ],

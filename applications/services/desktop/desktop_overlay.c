@@ -4,7 +4,7 @@
 #include <lvgl.h>
 
 #include <gui/modules/image.h>
-#include <assets/assets_images.h>
+#include <assets_images.h>
 
 #define TAG "DesktopOverlay"
 

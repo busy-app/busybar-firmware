@@ -1,0 +1,38 @@
+Import("FW_ENV")
+fwenv = FW_ENV
+
+from SCons.Util import splitext
+
+fw_assets_env = fwenv.Clone(tools=["bsb_assets"])
+
+sounds_src_files = fwenv.GlobRecursive("*.*", Dir("#/assets/sounds/"))
+
+sounds_converted = []
+
+for f in sounds_src_files:
+    file_node = fw_assets_env.File("${BUILD_DIR}/resources/apps_assets/" + f.Dir(".").name + "/sounds/" + splitext(f.name)[0] + ".snd")
+    sounds_converted.append(fw_assets_env.AudioConverter(file_node, f))
+
+fw_artifacts = fwenv["FW_ARTIFACTS"]
+fw_artifacts.append(sounds_converted)
+
+anim_src_files = fwenv.GlobRecursive("*/meta.txt", Dir("#/assets/animations/"))
+
+anim_converted = []
+
+for f in anim_src_files:
+    file_node = fw_assets_env.File("${BUILD_DIR}/resources/apps_assets/" + f.Dir("..").name + "/animations/" + f.Dir(".").name + ".anim")
+    anim_converted.append(fw_assets_env.AnimationConverter(file_node, f))
+
+fw_artifacts.append(anim_converted)
+
+image_src_files = fwenv.GlobRecursive("*.png", Dir("#/assets/images/external"))
+
+images_converted = []
+
+for f in image_src_files:
+    internal_name = splitext(f.name)[0]
+    file_node = fw_assets_env.File("${BUILD_DIR}/resources/apps_assets/" + f.Dir(".").name + "/images/" + internal_name + ".bin")
+    images_converted.append(fw_assets_env.ImageConverter(file_node, f, IMAGE_FILE_FORMAT="BIN", IMAGE_INTERNAL_NAME=internal_name))
+
+fw_artifacts.append(images_converted)

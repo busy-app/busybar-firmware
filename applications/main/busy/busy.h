@@ -5,7 +5,7 @@
 #include <gui/gui.h>
 #include <storage/storage.h>
 
-#include <assets/assets_images.h>
+#include <assets_images.h>
 
 #include "busy_timer.h"
 #include "time_macros.h"

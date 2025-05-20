@@ -2,7 +2,7 @@
 
 #include <gui/gui_i.h>
 
-#include <assets/assets_images.h>
+#include <assets_images.h>
 
 #include "../time_macros.h"
 
