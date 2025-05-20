@@ -7,12 +7,14 @@
 
 #define MAX_UPLOAD_LEN 1024 * 1024 * 1024
 
-// TODO: wakeup dispatch
 // TODO: timers
 
 typedef struct {
     HttpHandlersList_t handlers;
+    struct mg_mgr mgr; // Event manager
 } WebServer;
+
+static WebServer srv = {0};
 
 bool http_upload_callback(struct mg_connection* conn, struct mg_http_message* msg, void* ctx) {
     UNUSED(ctx);
@@ -80,6 +82,13 @@ static void http_event_handler(struct mg_connection* conn, int ev, void* ev_data
             if(conn_ctx->ws.on_close) {
                 conn_ctx->ws.on_close(conn);
             }
+        }
+    } else if(ev == MG_EV_WAKEUP) {
+        struct mg_str* wakeup_data = (struct mg_str*)ev_data;
+
+        ConnectionContext* conn_ctx = (void*)conn->data;
+        if(conn_ctx->on_wakeup) {
+            conn_ctx->on_wakeup(conn, wakeup_data->buf, wakeup_data->len);
         }
     }
 }
@@ -176,35 +185,36 @@ int32_t web_srv_start(void* p) {
     // mg_log_set(MG_LL_VERBOSE);
     mg_log_set(MG_LL_INFO);
 
-    struct mg_mgr mgr; // Event manager
-    mg_mgr_init(&mgr); // Inititialise event manager
-    // mg_wakeup_init(&mgr);
+    mg_mgr_init(&srv.mgr); // Inititialise event manager
+    mg_wakeup_init(&srv.mgr);
 
-    WebServer* srv = malloc(sizeof(WebServer));
-    HttpHandlersList_init(srv->handlers);
+    HttpHandlersList_init(srv.handlers);
 
     for(size_t i = COUNT_OF(handlers_root); i > 0; i--) {
-        http_handler_add(srv->handlers, &handlers_root[i - 1]);
+        http_handler_add(srv.handlers, &handlers_root[i - 1]);
     }
 
     // Setup listener
-    mg_http_listen(&mgr, "http://0.0.0.0", http_event_handler, srv);
+    mg_http_listen(&srv.mgr, "http://0.0.0.0", http_event_handler, &srv);
 
     // Event loop
     while(1) {
-        mg_mgr_poll(&mgr, 1000);
+        mg_mgr_poll(&srv.mgr, 1000);
     }
 
-    http_handler_remove_all(srv->handlers);
-    free(srv);
+    http_handler_remove_all(srv.handlers);
 
     // Cleanup
-    mg_mgr_free(&mgr);
+    mg_mgr_free(&srv.mgr);
 
     usb_network_thread_cleanup(usb_network);
     furi_record_close(RECORD_USB_NETWORK);
 
     return 0;
+}
+
+struct mg_mgr* web_srv_get_mgr(void) {
+    return (&srv.mgr);
 }
 
 uint64_t mg_millis(void) {
