@@ -2,7 +2,7 @@
 
 #include <gui/widget_i.h>
 
-#include <assets_images.h>
+#include "../storage_macros.h"
 
 #define MY_CLASS (&progress_view_lvgl_class)
 
@@ -70,7 +70,7 @@ static void progress_view_lvgl_constructor(const lv_obj_class_t* class_p, lv_obj
     lv_obj_set_style_text_color(done_label, lv_color_white(), LV_PART_MAIN);
 
     lv_obj_t* tick_icon = lv_image_create(top_layout);
-    lv_image_set_src(tick_icon, &I_tick_red_6x5);
+    lv_image_set_src(tick_icon, BUSY_IMG_PATH("tick_red_6x5.bin"));
 
     instance->progress_label = lv_label_create(top_layout);
     lv_obj_set_style_text_color(instance->progress_label, lv_color_white(), LV_PART_MAIN);

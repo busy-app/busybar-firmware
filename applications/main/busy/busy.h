@@ -3,12 +3,11 @@
 #include <furi.h>
 
 #include <gui/gui.h>
-#include <storage/storage.h>
-
-#include <assets_images.h>
 
 #include "busy_timer.h"
+
 #include "time_macros.h"
+#include "storage_macros.h"
 
 #include "helpers/run_later.h"
 #include "scenes/busy_scenes.h"
@@ -19,10 +18,6 @@
 #define TAG "Busy"
 
 #define TOTAL_TIME_LOW_THR_MN (15)
-
-#define BUSY_ASSETS_PATH(path) EXT_PATH("apps_assets/busy") "/" path
-#define BUSY_ANIM_PATH(path)   BUSY_ASSETS_PATH("animations") "/" path
-#define BUSY_IMG_PATH(path)    BUSY_ASSETS_PATH("images") "/" path
 
 typedef enum {
     BusyCustomEventTimerTick = 100,
