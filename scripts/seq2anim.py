@@ -27,8 +27,6 @@ class BusyBarAnimation:
         """ Sort the files in natural order """
         self.png_files.sort(key=lambda x: int("".join(filter(str.isdigit, x))))
 
-        print(self.png_files)
-
         if not self.png_files:
             self.logger.error("No PNG images found in the specified folder.")
             sys.exit(1)
