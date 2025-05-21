@@ -32,13 +32,7 @@ class Main(App):
             self.args.source,
             "-ac",
             "1",
-            "-af",
-            "superequalizer="
-            "1b=0:2b=0:3b=0:4b=0:"
-            "5b=0:6b=0:7b=0:8b=1:"
-            "9b=0.8:10b=0.3:11b=0.4:12b=0.5:"
-            "13b=0.5:14b=0.5:15b=0.5:16b=0.5:"
-            "17b=0:18b=0",
+            # TODO: Find an EQ method that would work on short files
             self.temp_wav_path,
         )
 
@@ -62,6 +56,9 @@ class Main(App):
         json_str = re.search(r"\{.+\}", proc.stderr.decode(), re.DOTALL)[0]
 
         self.loudness_data = json.loads(json_str)
+
+        if self.loudness_data["input_i"] == "-inf":
+            self.loudness_data["input_i"] = "-99"
 
     def apply_loudness(self):
         cmd = (
