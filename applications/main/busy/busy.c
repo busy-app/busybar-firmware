@@ -68,6 +68,7 @@ static BusyApp* busy_alloc(void) {
     instance->event_queue = furi_message_queue_alloc(8, sizeof(uint32_t));
     instance->scene_manager = scene_manager_alloc(busy_scenes, BusyAppSceneIdMax, instance);
     instance->busy_timer = busy_timer_alloc();
+    instance->audio = furi_record_open(RECORD_AUDIO);
     instance->gui = furi_record_open(RECORD_GUI);
 
     with_gui(instance->gui, {
@@ -120,6 +121,7 @@ static void busy_free(BusyApp* instance) {
         widget_free(instance->back_window);
     });
 
+    furi_record_close(RECORD_AUDIO);
     furi_record_close(RECORD_GUI);
 
     furi_event_loop_unsubscribe(instance->event_loop, instance->input_queue);

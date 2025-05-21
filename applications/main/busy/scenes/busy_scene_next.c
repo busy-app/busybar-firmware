@@ -65,6 +65,10 @@ static void busy_scene_next_on_enter(void* context) {
         anim_image_set_range(data->front_anim, WAIT_ANIM_BEGIN, WAIT_ANIM_END, true, false);
     });
 
+    if(data->timer_state == BusyTimerStateIdle) {
+        audio_play_file(instance->audio, BUSY_SOUND_PATH("session_completed.snd"));
+    }
+
     busy_start_transition(instance);
 }
 

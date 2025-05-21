@@ -15,7 +15,6 @@
 
 #define ENABLE_INTERVALS_DEFAULT (true)
 #define ENABLE_AUTOSTART_DEFAULT (false)
-#define ENABLE_SOUND_DEFAULT     (true)
 #define ENABLE_SPEED_DEFAULT     (false)
 
 #define SPEED_MULTIPLIER (60)

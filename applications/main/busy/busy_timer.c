@@ -14,7 +14,6 @@ static const BusyTimerConfig busy_timer_config_default = {
     .cycle_count = CYCLE_COUNT_DEFAULT,
     .enable_intervals = ENABLE_INTERVALS_DEFAULT,
     .enable_autostart = ENABLE_AUTOSTART_DEFAULT,
-    .enable_sound = ENABLE_SOUND_DEFAULT,
     .enable_speed = ENABLE_SPEED_DEFAULT,
 };
 
@@ -146,26 +145,6 @@ static uint32_t busy_timer_calc_cycles_done(const BusyTimer* instance) {
 static uint32_t busy_timer_calc_timeout(const BusyTimer* instance) {
     return instance->config.enable_speed ? S_TO_MS(1) / SPEED_MULTIPLIER : S_TO_MS(1);
 }
-
-// static void busy_play_finished_sound(BusyApp* instance) {
-//     if(instance->enable_sound) {
-//         if(instance->state == BusyTimerStateWork) {
-//             audio_play_file(instance->audio, EXT_PATH("audio/work_finished.snd"));
-//         } else if(instance->state == BusyTimerStateRest || instance->state == BusyTimerStateLongRest) {
-//             audio_play_file(instance->audio, EXT_PATH("audio/rest_finished.snd"));
-//         }
-//     }
-// }
-
-// static void busy_play_countdown_sound(BusyApp* instance) {
-//     if(instance->enable_sound && instance->interval_time_left_s <= 4) {
-//         if(instance->state == BusyTimerStateWork) {
-//             audio_play_file(instance->audio, EXT_PATH("audio/work_countdown.snd"));
-//         } else if(instance->state == BusyTimerStateRest || instance->state == BusyTimerStateLongRest) {
-//             audio_play_file(instance->audio, EXT_PATH("audio/rest_countdown.snd"));
-//         }
-//     }
-// }
 
 static bool busy_timer_is_running(const BusyTimer* instance) {
     return furi_event_loop_timer_is_running(instance->timer);

@@ -101,6 +101,12 @@ static void busy_scene_timer_update_tick(BusyApp* instance) {
         timer_label_set_time(data->timer_label, data->timer_time.remain_s);
         timer_card_set_time(instance->timer_card, data->timer_time.remain_s);
     });
+
+    if(time->remain_s == 0) {
+        audio_play_file(instance->audio, BUSY_SOUND_PATH("countdown_finish.snd"));
+    } else if(time->remain_s <= 3) {
+        audio_play_file(instance->audio, BUSY_SOUND_PATH("countdown_tick.snd"));
+    }
 }
 
 static void busy_scene_timer_update_state(BusyApp* instance) {

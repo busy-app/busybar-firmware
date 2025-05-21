@@ -3,6 +3,7 @@
 #include <furi.h>
 
 #include <gui/gui.h>
+#include <audio/audio.h>
 
 #include "busy_timer.h"
 
@@ -46,6 +47,7 @@ typedef struct {
     FuriMessageQueue* event_queue;
     SceneManager* scene_manager;
     BusyTimer* busy_timer;
+    Audio* audio;
     Gui* gui;
     // Application windows
     Widget* front_window;
