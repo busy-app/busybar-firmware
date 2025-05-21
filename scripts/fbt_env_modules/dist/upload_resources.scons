@@ -1,7 +1,7 @@
 Import("FW_ENV", "DIST_ENV")
 distenv, firmware_env = DIST_ENV, FW_ENV
 
-distenv.PhonyTarget(
+upload_resources = distenv.PhonyTarget(
     "resources_upload",
     [
         [
@@ -13,3 +13,5 @@ distenv.PhonyTarget(
         ]
     ],
 )
+
+Depends(upload_resources, firmware_env["RESOURCES_ROOT"])
