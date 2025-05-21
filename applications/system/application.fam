@@ -35,6 +35,7 @@ App(
         "ble_usart_echo_start",
         "crypto_test_start",
         "nvm3_test_start",
+        "crypto_start",
     ],
     targets=["f64"],
 )

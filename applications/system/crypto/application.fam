@@ -1,0 +1,10 @@
+App(
+    appid="crypto_start",
+    targets=["f64"],
+    apptype=FlipperAppType.STARTUP,
+    entry_point="crypto_system_start",
+    sources=[
+        "crypto.c",
+    ],
+    order=40,
+)
