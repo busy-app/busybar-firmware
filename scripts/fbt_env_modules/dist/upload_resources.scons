@@ -1,0 +1,15 @@
+Import("FW_ENV", "DIST_ENV")
+distenv, firmware_env = DIST_ENV, FW_ENV
+
+distenv.PhonyTarget(
+    "resources_upload",
+    [
+        [
+            "${PYTHON3}",
+            distenv.Real("${FBT_SCRIPT_DIR}/storage.py"),
+            "send",
+            firmware_env["RESOURCES_ROOT"],
+            "/ext",
+        ]
+    ],
+)

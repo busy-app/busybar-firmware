@@ -4,6 +4,7 @@ import sys
 import os.path
 import contextlib
 
+# FIXME
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), os.path.pardir, "lib", "lvgl", "scripts")))
 
 from LVGLImage import main as convert  # noqa: E402

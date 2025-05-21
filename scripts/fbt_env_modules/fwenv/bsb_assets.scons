@@ -53,6 +53,3 @@ if fwenv.get("IS_BASE_FIRMWARE", False):
     fwenv.Replace(FW_RESOURCES_MANIFEST=manifest)
     Depends(manifest, resources_dist)
     Alias("resources", manifest)
-
-    fw_artifacts = fwenv["FW_ARTIFACTS"]
-    fw_artifacts.extend(resources_dist)

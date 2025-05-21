@@ -135,7 +135,8 @@
         "lint",
         "vscode_project",
         "subl_project",
-        "cli"
+        "cli",
+        "upload_resources"
     ],
     "extra_target_meta": {
         "debug_tags": [
