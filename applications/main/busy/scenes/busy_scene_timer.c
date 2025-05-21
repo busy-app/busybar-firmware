@@ -108,18 +108,18 @@ static void busy_scene_timer_update_state(BusyApp* instance) {
 
     with_gui(instance->gui, {
         if(data->timer_state == BusyTimerStateWork) {
-            anim_image_set_source(data->state_image, BUSY_ANIM_PATH("A_busy_label_40x14.anim"));
+            anim_image_set_source(data->state_image, BUSY_ANIM_PATH("busy_label_40x14.anim"));
             anim_image_start(data->state_image);
             progress_bar_set_trough_color(data->progress_bar, PROGRESS_BAR_COLOR_BUSY);
             progress_bar_set_anim_source(
-                data->progress_bar, BUSY_ANIM_PATH("A_progress_bar_busy_71x1.anim"));
+                data->progress_bar, BUSY_ANIM_PATH("progress_bar_busy_71x1.anim"));
 
         } else if(data->timer_state == BusyTimerStateRest) {
-            anim_image_set_source(data->state_image, BUSY_ANIM_PATH("A_rest_label_40x14.anim"));
+            anim_image_set_source(data->state_image, BUSY_ANIM_PATH("rest_label_40x14.anim"));
             anim_image_start(data->state_image);
             progress_bar_set_trough_color(data->progress_bar, PROGRESS_BAR_COLOR_REST);
             progress_bar_set_anim_source(
-                data->progress_bar, BUSY_ANIM_PATH("A_progress_bar_rest_71x1.anim"));
+                data->progress_bar, BUSY_ANIM_PATH("progress_bar_rest_71x1.anim"));
         }
     });
 }

@@ -15,9 +15,9 @@ typedef struct {
 } BusySceneNext;
 
 static const char* front_anim_file_path[BusyTimerStateMax] = {
-    [BusyTimerStateIdle] = BUSY_ANIM_PATH("A_finish_waiting_72x16.anim"),
-    [BusyTimerStateWork] = BUSY_ANIM_PATH("A_busy_waiting_72x16.anim"),
-    [BusyTimerStateRest] = BUSY_ANIM_PATH("A_rest_waiting_72x16.anim"),
+    [BusyTimerStateIdle] = BUSY_ANIM_PATH("finish_waiting_72x16.anim"),
+    [BusyTimerStateWork] = BUSY_ANIM_PATH("busy_waiting_72x16.anim"),
+    [BusyTimerStateRest] = BUSY_ANIM_PATH("rest_waiting_72x16.anim"),
 };
 
 static bool busy_scene_next_input_callback(const InputEvent* event, void* context) {
