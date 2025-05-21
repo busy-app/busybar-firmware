@@ -2,37 +2,57 @@ Import("FW_ENV")
 fwenv = FW_ENV
 
 from SCons.Util import splitext
+from fbt.version import get_git_commit_unix_timestamp
+
+fwenv.SetDefault(RESOURCES_ROOT=fwenv.Dir("${BUILD_DIR}/resources"))
 
 fw_assets_env = fwenv.Clone(tools=["bsb_assets"])
 
-sounds_src_files = fwenv.GlobRecursive("*.*", Dir("#/assets/sounds/"))
+if fwenv.get("IS_BASE_FIRMWARE", False):
+    assets_dir = fwenv.Dir("${BUILD_DIR}/apps_assets")
 
-sounds_converted = []
+    sounds_src_files = fwenv.GlobRecursive("*.*", Dir("#/assets/sounds/"))
 
-for f in sounds_src_files:
-    file_node = fw_assets_env.File("${BUILD_DIR}/resources/apps_assets/" + f.Dir(".").name + "/sounds/" + splitext(f.name)[0] + ".snd")
-    sounds_converted.append(fw_assets_env.AudioConverter(file_node, f))
+    sounds_converted = []
 
-fw_artifacts = fwenv["FW_ARTIFACTS"]
-fw_artifacts.append(sounds_converted)
+    for f in sounds_src_files:
+        file_node = assets_dir.File(f.Dir(".").name + "/sounds/" + splitext(f.name)[0] + ".snd")
+        sounds_converted.append(fw_assets_env.AudioConverter(file_node, f))
 
-anim_src_files = fwenv.GlobRecursive("*/meta.txt", Dir("#/assets/animations/"))
+    resources_dist = []
+    resources_dist.append(sounds_converted)
 
-anim_converted = []
+    anim_src_files = fwenv.GlobRecursive("*/meta.txt", Dir("#/assets/animations/"))
 
-for f in anim_src_files:
-    file_node = fw_assets_env.File("${BUILD_DIR}/resources/apps_assets/" + f.Dir("..").name + "/animations/" + f.Dir(".").name + ".anim")
-    anim_converted.append(fw_assets_env.AnimationConverter(file_node, f))
+    anim_converted = []
 
-fw_artifacts.append(anim_converted)
+    for f in anim_src_files:
+        file_node = assets_dir.File(f.Dir("..").name + "/animations/" + f.Dir(".").name + ".anim")
+        anim_converted.append(fw_assets_env.AnimationConverter(file_node, f))
 
-image_src_files = fwenv.GlobRecursive("*.png", Dir("#/assets/images/external"))
+    resources_dist.append(anim_converted)
 
-images_converted = []
+    image_src_files = fwenv.GlobRecursive("*.png", Dir("#/assets/images/external"))
 
-for f in image_src_files:
-    internal_name = splitext(f.name)[0]
-    file_node = fw_assets_env.File("${BUILD_DIR}/resources/apps_assets/" + f.Dir(".").name + "/images/" + internal_name + ".bin")
-    images_converted.append(fw_assets_env.ImageConverter(file_node, f, IMAGE_FILE_FORMAT="BIN", IMAGE_INTERNAL_NAME=internal_name))
+    images_converted = []
 
-fw_artifacts.append(images_converted)
+    for f in image_src_files:
+        internal_name = splitext(f.name)[0]
+        file_node = assets_dir.File(f.Dir(".").name + "/images/" + internal_name + ".bin")
+        images_converted.append(fw_assets_env.ImageConverter(file_node, f, IMAGE_FILE_FORMAT="BIN", IMAGE_INTERNAL_NAME=internal_name))
+
+    resources_dist.append(images_converted)
+
+    resources_env = fwenv.Clone(tools=["fbt_resources"])
+    # Resources & manifest for SD card
+    manifest = resources_env.ManifestBuilder(
+        "${RESOURCES_ROOT}/Manifest",
+        GIT_UNIX_TIMESTAMP=get_git_commit_unix_timestamp(),
+        _EXTRA_DIST=[assets_dir],
+    )
+    fwenv.Replace(FW_RESOURCES_MANIFEST=manifest)
+    Depends(manifest, resources_dist)
+    Alias("resources", manifest)
+
+    fw_artifacts = fwenv["FW_ARTIFACTS"]
+    fw_artifacts.extend(resources_dist)
