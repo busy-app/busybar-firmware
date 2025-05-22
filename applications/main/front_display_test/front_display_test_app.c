@@ -118,7 +118,6 @@ static FrontDisplayTestApp* front_display_test_app_alloc(void) {
             instance->static_label, "Start/Ok - change pattern\nEncoder - change color");
 
         instance->pattern_label = label_alloc(flex_base);
-        label_set_auto_resize_mode(instance->pattern_label, LabelAutoResizeModeToParentWidth);
         instance->color_label = label_alloc(flex_base);
 
         // Front display

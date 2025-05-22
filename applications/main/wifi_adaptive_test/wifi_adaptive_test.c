@@ -156,7 +156,6 @@ static WifiAdaptiveTest* wifi_adaptive_test_alloc(void) {
         instance->flex = flex_layout_alloc(back_screen, FlexLayoutTypeColumn);
         instance->label = label_alloc(flex_layout_get_base(instance->flex));
         widget_set_scrollbar_mode(label_get_base(instance->label), WidgetScrollBarModeAuto);
-        label_set_auto_resize_mode(instance->label, LabelAutoResizeModeToParentWidth);
         label_set_text(
             instance->label,
             "WifiAdaptiveTest plz create ap\n"
