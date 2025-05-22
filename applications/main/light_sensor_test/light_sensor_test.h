@@ -2,6 +2,7 @@
 
 #include <furi.h>
 #include <gui/gui.h>
+#include <gui/modules/flex_layout.h>
 #include <gui/modules/label.h>
 
 #include <light_sensor/light_sensor.h>
@@ -27,7 +28,7 @@ typedef struct {
     FuriPubSub* light_sensor_events;
     FuriPubSubSubscription* light_sensor_subscription;
 
-    Widget* app_window;
+    FlexLayout* flex;
     Label* label_light_raw_600nm;
     Label* label_light_raw_840nm;
     Label* label_lux_instant;
