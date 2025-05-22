@@ -4,6 +4,24 @@
 
 #define MY_CLASS WIDGET_CLASS
 
+static bool widget_input_callback(Widget* widget, const InputEvent* event) {
+    lv_obj_t* obj = (lv_obj_t*)widget;
+
+    if(lv_obj_get_scrollbar_mode(obj) != LV_SCROLLBAR_MODE_OFF) {
+        const int32_t delta = 10;
+        const bool anim = false;
+        if(event->type == InputTypeShort) {
+            if(event->key == InputKeyUp) {
+                lv_obj_scroll_by_bounded(obj, -delta, -delta, anim);
+            } else if(event->key == InputKeyDown) {
+                lv_obj_scroll_by_bounded(obj, delta, delta, anim);
+            }
+        }
+    }
+
+    return false;
+}
+
 // Public API
 
 Widget* widget_alloc(Widget* parent) {
@@ -89,6 +107,13 @@ void widget_move_to_foreground(Widget* instance) {
 void widget_move_to_background(Widget* instance) {
     furi_check(instance);
     lv_obj_move_background((lv_obj_t*)instance);
+}
+
+void widget_set_scrollbar_mode(Widget* instance, WidgetScrollBarMode scrollbar_mode) {
+    furi_check(instance);
+    furi_check(scrollbar_mode < WidgetScrollBarModeCount);
+    lv_obj_set_scrollbar_mode((lv_obj_t*)instance, (lv_scrollbar_mode_t)scrollbar_mode);
+    widget_set_input_feed_callback((Widget*)instance, widget_input_callback);
 }
 
 // Private API
