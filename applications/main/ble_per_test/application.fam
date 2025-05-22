@@ -6,7 +6,7 @@ App(
     entry_point="ble_per_test_app",
     requires=["gui"],
     stack_size=2 * 1024,
-    targets=["f20"],
+    targets=["f20", "f21"],
     sources=[
         "ble_per_test.c",
         "helpers/ble_per_cli.c",

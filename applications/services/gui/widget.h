@@ -14,7 +14,7 @@
 #include <stdint.h>
 #include <stdbool.h>
 
-#include <input/input.h>
+#include <toolbox/color.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -64,6 +64,14 @@ void widget_free(Widget* instance);
  * @param[in] visible make the Widget instance visible if true, otherwise invisible
  */
 void widget_set_visible(Widget* instance, bool visible);
+
+/**
+ * @brief Check if a Widget instance is currently visible.
+ *
+ * @param[in] instance pointer to the Widget instance to be queried
+ * @returns @c true if widget is visible, @c false otherwise
+ */
+bool widget_is_visible(const Widget* instance);
 
 /**
  * @brief Set the Widget width.

@@ -20,6 +20,7 @@ typedef struct {
     BusyTimerTime timer_time;
     BusyTimerState timer_state;
     bool is_paused;
+    bool is_force_ended;
 } BusySceneTimer;
 
 static bool busy_scene_timer_input_callback(const InputEvent* event, void* context) {
@@ -73,7 +74,7 @@ static void busy_scene_timer_event_callback(const BusyTimerEvent* event, void* c
         busy_send_custom_event(instance, BusyCustomEventTimerStateChanged);
 
     } else if(event->type == BusyTimerEventTypeIntervalEnded) {
-        data->timer_state = event->state;
+        data->is_force_ended = event->is_force_ended;
         busy_send_custom_event(instance, BusyCustomEventTimerIntervalEnded);
     }
 }
@@ -81,6 +82,8 @@ static void busy_scene_timer_event_callback(const BusyTimerEvent* event, void* c
 static void busy_scene_timer_run_later_callback(void* context) {
     furi_assert(context);
     BusyApp* instance = context;
+
+    busy_prepare_transition(instance, BusyTransitionTypeWhite);
 
     with_gui(instance->gui, { timer_card_show_time(instance->timer_card, false); });
 
@@ -137,6 +140,21 @@ static void busy_scene_timer_toggle_pause(BusyApp* instance) {
     });
 }
 
+static void busy_scene_timer_go_to_progress_scene(BusyApp* instance) {
+    BusySceneTimer* data = scene_manager_get_current_scene_data(instance->scene_manager);
+
+    if(data->is_force_ended) {
+        busy_scene_timer_run_later_callback(instance);
+
+    } else {
+        run_later(
+            instance->event_loop,
+            busy_scene_timer_run_later_callback,
+            instance,
+            PROGRESS_TRANSITION_MS);
+    }
+}
+
 static void busy_scene_timer_on_enter(void* context) {
     furi_assert(context);
 
@@ -165,6 +183,8 @@ static void busy_scene_timer_on_enter(void* context) {
 
     busy_timer_set_callback(instance->busy_timer, busy_scene_timer_event_callback, instance);
     busy_timer_start(instance->busy_timer);
+
+    busy_start_transition(instance);
 }
 
 static void busy_scene_timer_on_exit(void* context) {
@@ -200,17 +220,15 @@ static bool busy_scene_timer_on_event(const SceneManagerEvent* event, void* cont
             busy_scene_timer_update_state(instance);
 
         } else if(event->event == BusyCustomEventTimerIntervalEnded) {
-            run_later(
-                instance->event_loop,
-                busy_scene_timer_run_later_callback,
-                instance,
-                PROGRESS_TRANSITION_MS);
+            busy_scene_timer_go_to_progress_scene(instance);
 
         } else if(event->event == BusyCustomEventTimerToggle) {
             busy_scene_timer_toggle_pause(instance);
             busy_timer_toggle(instance->busy_timer);
 
         } else if(event->event == BusyCustomEventTimerSkip) {
+            busy_prepare_transition(instance, BusyTransitionTypeWhite);
+            busy_start_transition(instance);
             busy_timer_skip(instance->busy_timer);
 
         } else if(event->event == BusyCustomEventTimeIncrement) {
@@ -225,6 +243,9 @@ static bool busy_scene_timer_on_event(const SceneManagerEvent* event, void* cont
     } else if(event->type == SceneManagerEventTypeBack) {
         // TODO: Ask for confirmation
         busy_timer_stop(instance->busy_timer);
+
+        busy_prepare_transition(instance, BusyTransitionTypeBlack);
+
         scene_manager_search_and_switch_to_previous_scene(
             instance->scene_manager, BusyAppSceneIdStart);
 

@@ -32,14 +32,6 @@
 #define MMC_INVALID_VOLTAGE_RANGE 0x0001FF01U
 #define MMC_HIGH_SPEED_FREQ       52000000U /* High speed phase : 52 MHz max */
 
-#define MMC_EXT_CSD_PWR_CL_26_INDEX     201
-#define MMC_EXT_CSD_PWR_CL_52_INDEX     200
-#define MMC_EXT_CSD_PWR_CL_DDR_52_INDEX 238
-
-#define MMC_EXT_CSD_PWR_CL_26_POS     8
-#define MMC_EXT_CSD_PWR_CL_52_POS     0
-#define MMC_EXT_CSD_PWR_CL_DDR_52_POS 16
-
 #define SDMMC_INIT_CLOCK_EDGE            (SDMMC_CLOCK_EDGE_RISING)
 #define SDMMC_INIT_CLOCK_POWER_SAVE      (SDMMC_CLOCK_POWER_SAVE_DISABLE)
 #define SDMMC_INIT_HARDWARE_FLOW_CONTROL (SDMMC_HARDWARE_FLOW_CONTROL_ENABLE)
@@ -47,6 +39,34 @@
 #define SDMMC_CLOCK_POWER_SAVE (SDMMC_CLOCK_POWER_SAVE_ENABLE)
 
 #define SDMMC_REAL_DATATIMEOUT (FURI_SDMMC_SWDATATIMEOUT * 5000U)
+
+/*
+CMD  type   arg               resp abbr     cmd description
+CMD6  ac    [31:26] Set to 0  R1b  SWITCH   Switches the mode of operation of the selected 
+            [25:24] Access                  Device or modifies the EXT_CSD registers. (See 
+            [23:16] Index                   Section 6.6.1)  
+            [15:8] Value  
+            [7:3] Set to 0  
+            [2:0] Cmd Set  
+
+
+Table 6 — EXT_CSD access mode 
+AccessBits  Access Name     Operation  
+    00      Command Set     The command set is changed according to the Cmd Set field of the argument   
+    01      Set Bits        The bits in the pointed byte are set, according to the ‘1’ bits in the Value field. 
+    10      Clear Bits      The bits in the pointed byte are cleared, according to the ‘1’ bits in the Value field.
+    11      Write Byte      The Value field is written into the pointed byte. 
+*/
+// ToDo Cmd Set ???
+#define SDMMC_CMD6_REG_VAL(reg, value, cmd_set)                                        \
+    ((((uint32_t)reg) << 16) & 0x00FF0000) | ((((uint32_t)value) << 8) & 0x0000FF00) | \
+        (cmd_set & 0x3)
+#define SDMMC_CMD6_SET_EXT_CSD(reg, value)      0x00000000U | SDMMC_CMD6_REG_VAL(reg, value, 0x00)
+#define SDMMC_CMD6_SET_BITS_EXT_CSD(reg, value) 0x01000000U | SDMMC_CMD6_REG_VAL(reg, value, 0x00)
+#define SDMMC_CMD6_CLEAR_BITS_EXT_CSD(reg, value) \
+    0x02000000U | SDMMC_CMD6_REG_VAL(reg, value, 0x00)
+#define SDMMC_CMD6_WRITE_BYTE_EXT_CSD(reg, value) \
+    0x03000000U | SDMMC_CMD6_REG_VAL(reg, value, 0x00)
 
 typedef enum {
     FuriHalSdErrorNone = SDMMC_ERROR_NONE,
@@ -83,60 +103,208 @@ typedef enum {
 } FuriHalSdError;
 
 typedef struct {
-    uint8_t CSDStruct; /*!< CSD structure */
-    uint8_t SysSpecVersion; /*!< System specification version */
-    uint8_t Reserved1; /*!< Reserved */
-    uint8_t TAAC; /*!< Data read access time 1 */
-    uint8_t NSAC; /*!< Data read access time 2 in CLK cycles */
-    uint8_t MaxBusClkFrec; /*!< Max. bus clock frequency */
-    uint16_t CardComdClasses; /*!< Card command classes */
-    uint8_t RdBlockLen; /*!< Max. read data block length */
-    uint8_t PartBlockRead; /*!< Partial blocks for read allowed */
-    uint8_t WrBlockMisalign; /*!< Write block misalignment */
-    uint8_t RdBlockMisalign; /*!< Read block misalignment */
-    uint8_t DSRImpl; /*!< DSR implemented */
-    uint8_t Reserved2; /*!< Reserved */
-    uint32_t DeviceSize; /*!< Device Size */
-    uint8_t MaxRdCurrentVDDMin; /*!< Max. read current @ VDD min */
-    uint8_t MaxRdCurrentVDDMax; /*!< Max. read current @ VDD max */
-    uint8_t MaxWrCurrentVDDMin; /*!< Max. write current @ VDD min */
-    uint8_t MaxWrCurrentVDDMax; /*!< Max. write current @ VDD max */
-    uint8_t DeviceSizeMul; /*!< Device size multiplier */
-    uint8_t EraseGrSize; /*!< Erase group size */
-    uint8_t EraseGrMul; /*!< Erase group size multiplier */
-    uint8_t WrProtectGrSize; /*!< Write protect group size */
-    uint8_t WrProtectGrEnable; /*!< Write protect group enable */
-    uint8_t ManDeflECC; /*!< Manufacturer default ECC */
-    uint8_t WrSpeedFact; /*!< Write speed factor */
-    uint8_t MaxWrBlockLen; /*!< Max. write data block length */
-    uint8_t WriteBlockPaPartial; /*!< Partial blocks for write allowed */
-    uint8_t Reserved3; /*!< Reserved */
-    uint8_t ContentProtectAppli; /*!< Content protection application */
-    uint8_t FileFormatGroup; /*!< File format group */
-    uint8_t CopyFlag; /*!< Copy flag (OTP */
-    uint8_t PermWrProtect; /*!< Permanent write protection */
-    uint8_t TempWrProtect; /*!< Temporary write protection */
-    uint8_t FileFormat; /*!< File format */
-    uint8_t ECC; /*!< ECC code */
-    uint8_t CSD_CRC; /*!< CSD CRC */
-    uint8_t Reserved4; /*!< Always 1 */
+    uint8_t csd_struct; /*!< CSD structure */
+    uint8_t sys_spec_version; /*!< System specification version */
+    uint8_t reserved1; /*!< Reserved */
+    uint8_t taac; /*!< Data read access time 1 */
+    uint8_t nsac; /*!< Data read access time 2 in CLK cycles */
+    uint8_t max_bus_clk_frec; /*!< Max. bus clock frequency */
+    uint16_t card_comd_classes; /*!< Card command classes */
+    uint8_t rd_block_len; /*!< Max. read data block length */
+    uint8_t part_block_read; /*!< Partial blocks for read allowed */
+    uint8_t wr_block_misalign; /*!< Write block misalignment */
+    uint8_t rd_block_misalign; /*!< Read block misalignment */
+    uint8_t dsr_impl; /*!< DSR implemented */
+    uint8_t reserved2; /*!< Reserved */
+    uint32_t device_size; /*!< Device Size */
+    uint8_t max_rd_current_vdd_min; /*!< Max. read current @ VDD min */
+    uint8_t max_rd_current_vdd_max; /*!< Max. read current @ VDD max */
+    uint8_t max_wr_current_vdd_min; /*!< Max. write current @ VDD min */
+    uint8_t max_wr_current_vdd_max; /*!< Max. write current @ VDD max */
+    uint8_t device_size_mul; /*!< Device size multiplier */
+    uint8_t erase_gr_size; /*!< Erase group size */
+    uint8_t erase_gr_mul; /*!< Erase group size multiplier */
+    uint8_t wr_protect_gr_size; /*!< Write protect group size */
+    uint8_t wr_protect_gr_enable; /*!< Write protect group enable */
+    uint8_t man_defl_ecc; /*!< Manufacturer default ECC */
+    uint8_t wr_speed_fact; /*!< Write speed factor */
+    uint8_t max_wr_block_len; /*!< Max. write data block length */
+    uint8_t write_block_pa_partial; /*!< Partial blocks for write allowed */
+    uint8_t reserved3; /*!< Reserved */
+    uint8_t content_protect_appli; /*!< Content protection application */
+    uint8_t file_format_group; /*!< File format group */
+    uint8_t copy_flag; /*!< Copy flag (OTP */
+    uint8_t perm_wr_protect; /*!< Permanent write protection */
+    uint8_t temp_wr_protect; /*!< Temporary write protection */
+    uint8_t file_format; /*!< File format */
+    uint8_t ecc; /*!< ECC code */
+    uint8_t csd_crc; /*!< CSD CRC */
+    uint8_t reserved4; /*!< Always 1 */
 } CardCSDInfo;
 
+/*
+    R:          Read only. 
+    W:          One time programmable and not readable. 
+    R/W:        One time programmable and readable. 
+    W/E:        Multiple writable with value kept after power failure, H/W reset assertion and any CMD0 reset and not readable. 
+    R/W/E:      Multiple writable with value kept after power failure, H/W reset assertion and any CMD0 reset and readable. 
+    R/W/C_P:    Writable after value cleared by power failure and HW/rest assertion (the value not cleared by CMD0 reset) and readable. 
+    R/W/E_P:    Multiple writable with value reset after power failure,  H/W reset assertion and any CMD0 reset and readable. 
+    W/E_P:      Multiple writable with value reset after power failure,  H/W reset assertion and any CMD0 reset and not readable. 
+*/
 typedef struct {
-    uint8_t DataBusWidth; /*!< Shows the currently defined data bus width */
-    uint8_t SecuredMode; /*!< Card is in secured mode of operation */
-    uint16_t CardType; /*!< Carries information about card type */
-    uint32_t ProtectedAreaSize; /*!< Carries information about the capacity of protected area */
-    uint8_t SpeedClass; /*!< Carries information about the speed class of the card */
-    uint8_t PerformanceMove; /*!< Carries information about the card's performance move */
-    uint8_t AllocationUnitSize; /*!< Carries information about the card's allocation unit size */
-    uint16_t EraseSize; /*!< Determines the number of AUs to be erased in one operation */
-    uint8_t EraseTimeout; /*!< Determines the timeout for any number of AU erase */
-    uint8_t EraseOffset; /*!< Carries information about the erase offset */
-    uint8_t UhsSpeedGrade; /*!< Carries information about the speed grade of UHS card */
+    uint8_t reserved24[32]; /*!< Reserved [TBD][31:0]*/
+    uint8_t flush_cache; /*!< Flushing of the cache [W/E_P][32]*/
+    uint8_t cache_ctrl; /*!< Control to turn the Cache ON/OFF [R/W/E_P][33]*/
+    uint8_t power_off_notification; /*!< Power Off Notification [R/W/E_P][34]*/
+    uint8_t packed_failure_index; /*!< Packed command failure index [R][35]*/
+    uint8_t packed_command_status; /*!< Packed command status [R][36]*/
+    uint8_t context_conf[15]; /*!< Context configuration [R/W/E_P][51:37]*/
+    uint16_t ext_partitions_attribute; /*!< Extended Partitions Attribute [R/W][53:52]*/
+    uint16_t exception_events_status; /*!< Exception events status [R][55:54]*/
+    uint16_t exception_events_ctrl; /*!< Exception events control [R/W/E_P][57:56]*/
+    uint8_t dyncap_needed; /*!< Number of addressed group to be released [D][58]*/
+    uint8_t class_6_ctrl; /*!< Class 6 commands control [R/W/E_P][59]*/
+    uint8_t ini_timeout_emu; /*!< 1st initialization after disabling sector size emulation [R][60]*/
+    uint8_t data_sector_size; /*!< Sector size [R][61]*/
+    uint8_t use_native_sector; /*!< Sector size emulation [R/W][62]*/
+    uint8_t native_sector_size; /*!< Native sector size [R][63]*/
+    uint8_t vendor_specific_field[64]; /*!< Vendor Specific Fields <vendor specific> [127:64]*/
+    uint8_t reserved23[2]; /*!< Reserved [TBD][129:128]*/
+    uint8_t program_cid_csd_ddr_support; /*!< Program CID/CSD in DDR mode support [R][130]*/
+    uint8_t periodic_wakeup; /*!< Periodic Wake-up [R/W/E][131]*/
+    uint8_t t_case_support; /*!< Package Case Temperature is controlled [W/E_P][132]*/
+    uint8_t reserved22[1]; /*!< Reserved [TBD][133]*/
+    uint8_t sec_bad_blk_mgmnt; /*!< Bad Block Management mode [R/W][134]*/
+    uint8_t reserved21[1]; /*!< Reserved [TBD][135]*/
+    uint8_t enh_start_addr[4]; /*!< Enhanced User Data Start Address [R/W][139:136]*/
+    uint8_t enh_size_mult[3]; /*!< Enhanced User Data Area Size [R/W][142:140]*/
+    uint8_t gp_size_mult[12]; /*!< General Purpose Partition Size [R/W][154:143]*/
+    uint8_t partition_setting_completed; /*!< Partitioning Setting [R/W][155]*/
+    uint8_t partitions_attribute; /*!< Partitions attribute [R/W][156]*/
+    uint8_t max_enh_size_mult[3]; /*!< Max Enhanced Area Size [R][159:157]*/
+    uint8_t partitioning_support; /*!< Partitioning Support [R][160]*/
+    uint8_t hpi_mgmt; /*!< HPI management [R/W/E_P][161]*/
+    uint8_t rst_n_function; /*!< H/W reset function [R/W][162]*/
+    uint8_t bkops_en; /*!< Enable background operations handshake [R/W][163]*/
+    uint8_t bkops_start; /*!< Manually start background operations [W/E_P][164]*/
+    uint8_t sanitize_start; /*!< Start Sanitize operation [W/E_P][165]*/
+    uint8_t wr_rel_param; /*!< Write reliability parameter register [R][166]*/
+    uint8_t wr_rel_set; /*!< Write reliability setting register [R/W][167]*/
+    uint8_t rpmb_size_mult; /*!< RPMB Size [R][168]*/
+    uint8_t fw_config; /*!< FW configuration [R/W][169]*/
+    uint8_t reserved20; /*!< Reserved [TBD][170]*/
+    uint8_t user_wp; /*!< User area write protection register [R/W, R/W/C_P & R/W/E_P][171]*/
+    uint8_t reserved19; /*!< Reserved [TBD][172]*/
+    uint8_t boot_wp; /*!< Boot area write protection register [R/W & R/W/C_P][173]*/
+    uint8_t boot_wp_status; /*!< Boot write protection status registers [R][174]*/
+    uint8_t erase_group_def; /*!< High-density erase group definition [R/W/E_P][175]*/
+    uint8_t reserved18; /*!< Reserved [TBD][176]*/
+    uint8_t boot_bus_conditions; /*!< Boot bus conditions [R/W/E][177]*/
+    uint8_t boot_config_prot; /*!< Boot config protection [R/W & R/W/C_P][178]*/
+    uint8_t partition_config; /*!< Partition configuration [R/W/E & R/W/E_P][179]*/
+    uint8_t reserved17; /*!< Reserved [TBD][180]*/
+    uint8_t erased_mem_cont; /*!< Erased memory content [R][181]*/
+    uint8_t reserved16; /*!< Reserved [TBD][182]*/
+    uint8_t bus_width; /*!< Bus width mode [R/W/E_P][183]*/
+    uint8_t reserved15; /*!< Reserved [TBD][184]*/
+    uint8_t hs_timing; /*!< High-speed interface timing [R/W/E_P][185]*/
+    uint8_t reserved14; /*!< Reserved [TBD][186]*/
+    uint8_t power_class; /*!< Power class [R/W/E_P][187]*/
+    uint8_t reserved13; /*!< Reserved [TBD][188]*/
+    uint8_t cmd_set_rev; /*!< Command set revision [R][189]*/
+    uint8_t reserved12; /*!< Reserved [TBD][190]*/
+    uint8_t cmd_set; /*!< Command set [R/W/E_P][191]*/
+    uint8_t ext_csd_rev; /*!< Extended CSD revision [R][192]*/
+    uint8_t reserved11; /*!< Reserved [TBD][193]*/
+    uint8_t csd_struct_ver; /*!< CSD structure version [R][194]*/
+    uint8_t reserved10; /*!< Reserved [TBD][195]*/
+    uint8_t device_type; /*!< Device type [R][196]*/
+    uint8_t driver_strength; /*!< I/O Driver Strength [R][197]*/
+    uint8_t out_of_interrupt_time; /*!< Out-of-interrupt busy timing [R][198]*/
+    uint8_t partition_switch_time; /*!< Partition switching timing [R][199]*/
+    uint8_t pwr_cl_52_195; /*!< Power class for 52MHz at 1.95V [R][200]*/
+    uint8_t pwr_cl_26_195; /*!< Power class for 26MHz at 1.95V [R][201]*/
+    uint8_t pwr_cl_52_360; /*!< Power class for 52MHz at 3.6V [R][202]*/
+    uint8_t pwr_cl_26_360; /*!< Power class for 26MHz at 3.6V [R][203]*/
+    uint8_t reserved9; /*!< Reserved [TBD][204]*/
+    uint8_t min_perf_r_4_26; /*!< Minimum read performance for 4bit at 26MHz [R][205]*/
+    uint8_t min_perf_w_4_26; /*!< Minimum write performance for 4bit at 26MHz [R][206]*/
     uint8_t
-        UhsAllocationUnitSize; /*!< Carries information about the UHS card's allocation unit size */
-    uint8_t VideoSpeedClass; /*!< Carries information about the Video Speed Class of UHS card */
+        min_perf_r_8_26_4_52; /*!< Minimum read performance for 8bit at 26MHz, for 4bit at 52MHz [R][207]*/
+    uint8_t
+        min_perf_w_8_26_4_52; /*!< Minimum write performance for 8bit at 26MHz, for 4bit at 52MHz [R][208]*/
+    uint8_t min_perf_r_8_52; /*!< Minimum read performance for 8bit at 52MHz [R][209]*/
+    uint8_t min_perf_w_8_52; /*!< Minimum write performance for 8bit at 52MHz [R][210]*/
+    uint8_t reserved8; /*!< Reserved [TBD][211]*/
+    uint32_t sec_count; /*!< Sector Count [R][215:212]*/
+    uint8_t reserved7; /*!< Reserved [TBD][216]*/
+    uint8_t s_a_timeout; /*!< Sleep/awake timeout [R][217]*/
+    uint8_t reserved6; /*!< Reserved [TBD][218]*/
+    uint8_t s_c_vccq; /*!< Sleep current (VCCQ) [R][219]*/
+    uint8_t s_c_vcc; /*!< Sleep current (VCC) [R][220]*/
+    uint8_t hc_wr_grp_size; /*!< High-capacity write protect group size [R][221]*/
+    uint8_t rel_wr_sec_c; /*!< Reliable write sector count [R][222]*/
+    uint8_t erase_timeout_wult; /*!< High-capacity erase timeout [R][223]*/
+    uint8_t hc_erase_grp_size; /*!< High-capacity erase unit size [R][224]*/
+    uint8_t acc_size; /*!< Access size [R][225]*/
+    uint8_t boot_size_multi; /*!< Boot partition size [R][226]*/
+    uint8_t reserved5; /*!< Reserved [TBD][227]*/
+    uint8_t boot_info; /*!< Boot information [R][228]*/
+    uint8_t sec_trim_mult; /*!< Secure TRIM Multiplier [R][229]*/
+    uint8_t sec_erase_mult; /*!< Secure Erase Multiplier [R][230]*/
+    uint8_t sec_feature_support; /*!< Secure feature support [R][231]*/
+    uint8_t trim_mult; /*!< TRIM Multiplier [R][232]*/
+    uint8_t reserved4; /*!< Reserved [TBD][233]*/
+    uint8_t
+        min_perf_ddr_r_8_52; /*!< Minimum read performance for 8bit at 52MHz in DDR mode [R][234]*/
+    uint8_t
+        min_perf_ddr_w_8_52; /*!< Minimum write performance for 8bit at 52MHz in DDR mode [R][235]*/
+    uint8_t pwr_cl_200_130; /*!< Power class for 200MHz at 1.3V  [R][236]*/
+    uint8_t pwr_cl_200_195; /*!< Power class for 200MHz at 1.95V [R][237]*/
+    uint8_t pwr_cl_ddr52_195; /*!< Power class for 52MHz, DDR at 1.95V [R][238]*/
+    uint8_t pwr_cl_ddr52_360; /*!< Power class for 52MHz, DDR at 3.6V [R][239]*/
+    uint8_t reserved3; /*!< Reserved [TBD][240]*/
+    uint8_t init_time_after_part; /*!< 1st initialization time after partitioning [R][241]*/
+    uint32_t correctly_prg_sectors_num; /*!< Number of correctly programmed sectors [R][245:242]*/
+    uint8_t bkops_status; /*!< Background operations status [R][246]*/
+    uint8_t power_off_long_time; /*!< Power off notification (long) timeout [R][247]*/
+    uint8_t generic_cmd_6_time; /*!< Generic CMD6 timeout [R][248]*/
+    uint32_t cache_size; /*!< Cache size [R][252:249]*/
+    uint8_t reserved2[241]; /*!< Reserved [TBD][493:253]*/
+    uint8_t ext_support; /*!< Extended partitions attribute support [R][494]*/
+    uint8_t large_unit_size_m1; /*!< Large unit size [R][495]*/
+    uint8_t context_capabilities; /*!< Context management capabilities [R][496]*/
+    uint8_t tag_resources_size; /*!< Tag resources size [R][497]*/
+    uint8_t tag_unit_size; /*!< Tag unit size [R][498]*/
+    uint8_t data_tag_support; /*!< Data tag support [R][499]*/
+    uint8_t max_packed_writes; /*!< Max packed write commands [R][500]*/
+    uint8_t max_packed_reads; /*!< Max packed read commands [R][501]*/
+    uint8_t bkops_support; /*!< Background operations support [R][502]*/
+    uint8_t hpi_features; /*!< HPI features [R][503]*/
+    uint8_t s_cmd_set; /*!< Supported command sets [R][504]*/
+    uint8_t ext_security_err; /*!< Extended security commands error [R][505]*/
+    uint8_t reserved1[6]; /*!< Reserved [TBD][511:506]*/
+} FURI_PACKED CardExtendedCSDRegister;
+_Static_assert(
+    sizeof(CardExtendedCSDRegister) == 512,
+    "Size check for 'CardExtendedCSDRegister' failed.");
+
+typedef struct {
+    uint8_t data_bus_width; /*!< Shows the currently defined data bus width */
+    uint8_t secured_mode; /*!< Card is in secured mode of operation */
+    uint16_t card_type; /*!< Carries information about card type */
+    uint32_t protected_area_size; /*!< Carries information about the capacity of protected area */
+    uint8_t speed_class; /*!< Carries information about the speed class of the card */
+    uint8_t performance_move; /*!< Carries information about the card's performance move */
+    uint8_t allocation_unit_size; /*!< Carries information about the card's allocation unit size */
+    uint16_t erase_size; /*!< Determines the number of AUs to be erased in one operation */
+    uint8_t erase_timeout; /*!< Determines the timeout for any number of AU erase */
+    uint8_t erase_offset; /*!< Carries information about the erase offset */
+    uint8_t uhs_speed_grade; /*!< Carries information about the speed grade of UHS card */
+    uint8_t
+        uhs_allocation_unit_size; /*!< Carries information about the UHS card's allocation unit size */
+    uint8_t video_speed_class; /*!< Carries information about the Video Speed Class of UHS card */
 } CardStatus;
 
 typedef struct {
@@ -150,7 +318,7 @@ typedef struct {
     uint32_t card_rca;
     bool card_alive;
 
-    uint32_t csd_ext[128];
+    CardExtendedCSDRegister ext_csd_reg;
 } SdMmc;
 
 static SdMmc sdmmc1 = {0};
@@ -429,94 +597,85 @@ static inline void sdmmc_enable_it(uint32_t it) {
     __SDMMC_ENABLE_IT(FURI_SDMMC_BLOCK, it);
 }
 
-static FuriHalSdError
-    sdmmc_mmc_read_ext_csd_field(uint32_t* field_data, uint16_t field_index, uint32_t timeout);
-
 static bool sdmmc_parse_csd(CardCSDInfo* info, uint32_t csd[4]) {
-    info->CSDStruct = (uint8_t)((csd[0] & 0xC0000000U) >> 30U);
-    info->SysSpecVersion = (uint8_t)((csd[0] & 0x3C000000U) >> 26U);
-    info->Reserved1 = (uint8_t)((csd[0] & 0x03000000U) >> 24U);
-    info->TAAC = (uint8_t)((csd[0] & 0x00FF0000U) >> 16U);
-    info->NSAC = (uint8_t)((csd[0] & 0x0000FF00U) >> 8U);
-    info->MaxBusClkFrec = (uint8_t)(csd[0] & 0x000000FFU);
-    info->CardComdClasses = (uint16_t)((csd[1] & 0xFFF00000U) >> 20U);
-    info->RdBlockLen = (uint8_t)((csd[1] & 0x000F0000U) >> 16U);
-    info->PartBlockRead = (uint8_t)((csd[1] & 0x00008000U) >> 15U);
-    info->WrBlockMisalign = (uint8_t)((csd[1] & 0x00004000U) >> 14U);
-    info->RdBlockMisalign = (uint8_t)((csd[1] & 0x00002000U) >> 13U);
-    info->DSRImpl = (uint8_t)((csd[1] & 0x00001000U) >> 12U);
-    info->Reserved2 = 0U;
+    info->csd_struct = (uint8_t)((csd[0] & 0xC0000000U) >> 30U);
+    info->sys_spec_version = (uint8_t)((csd[0] & 0x3C000000U) >> 26U);
+    info->reserved1 = (uint8_t)((csd[0] & 0x03000000U) >> 24U);
+    info->taac = (uint8_t)((csd[0] & 0x00FF0000U) >> 16U);
+    info->nsac = (uint8_t)((csd[0] & 0x0000FF00U) >> 8U);
+    info->max_bus_clk_frec = (uint8_t)(csd[0] & 0x000000FFU);
+    info->card_comd_classes = (uint16_t)((csd[1] & 0xFFF00000U) >> 20U);
+    info->rd_block_len = (uint8_t)((csd[1] & 0x000F0000U) >> 16U);
+    info->part_block_read = (uint8_t)((csd[1] & 0x00008000U) >> 15U);
+    info->wr_block_misalign = (uint8_t)((csd[1] & 0x00004000U) >> 14U);
+    info->rd_block_misalign = (uint8_t)((csd[1] & 0x00002000U) >> 13U);
+    info->dsr_impl = (uint8_t)((csd[1] & 0x00001000U) >> 12U);
+    info->reserved2 = 0U;
 
     if(sdmmc1.info.type == FuriHalSdTypeSC) {
-        info->DeviceSize = (((csd[1] & 0x000003FFU) << 2U) | ((csd[2] & 0xC0000000U) >> 30U));
-        info->MaxRdCurrentVDDMin = (uint8_t)((csd[2] & 0x38000000U) >> 27U);
-        info->MaxRdCurrentVDDMax = (uint8_t)((csd[2] & 0x07000000U) >> 24U);
-        info->MaxWrCurrentVDDMin = (uint8_t)((csd[2] & 0x00E00000U) >> 21U);
-        info->MaxWrCurrentVDDMax = (uint8_t)((csd[2] & 0x001C0000U) >> 18U);
-        info->DeviceSizeMul = (uint8_t)((csd[2] & 0x00038000U) >> 15U);
+        info->device_size = (((csd[1] & 0x000003FFU) << 2U) | ((csd[2] & 0xC0000000U) >> 30U));
+        info->max_rd_current_vdd_min = (uint8_t)((csd[2] & 0x38000000U) >> 27U);
+        info->max_rd_current_vdd_max = (uint8_t)((csd[2] & 0x07000000U) >> 24U);
+        info->max_wr_current_vdd_min = (uint8_t)((csd[2] & 0x00E00000U) >> 21U);
+        info->max_wr_current_vdd_max = (uint8_t)((csd[2] & 0x001C0000U) >> 18U);
+        info->device_size_mul = (uint8_t)((csd[2] & 0x00038000U) >> 15U);
     } else if(sdmmc1.info.type == FuriHalSdTypeHCXC) {
-        info->DeviceSize = (((csd[1] & 0x0000003FU) << 16U) | ((csd[2] & 0xFFFF0000U) >> 16U));
+        info->device_size = (((csd[1] & 0x0000003FU) << 16U) | ((csd[2] & 0xFFFF0000U) >> 16U));
     } else if(sdmmc1.info.type == FuriHalSdTypeMMCLowCapacity) {
-        info->DeviceSize = (((csd[1] & 0x000003FFU) << 2U) | ((csd[2] & 0xC0000000U) >> 30U));
-        info->MaxRdCurrentVDDMin = (uint8_t)((csd[2] & 0x38000000U) >> 27U);
-        info->MaxRdCurrentVDDMax = (uint8_t)((csd[2] & 0x07000000U) >> 24U);
-        info->MaxWrCurrentVDDMin = (uint8_t)((csd[2] & 0x00E00000U) >> 21U);
-        info->MaxWrCurrentVDDMax = (uint8_t)((csd[2] & 0x001C0000U) >> 18U);
-        info->DeviceSizeMul = (uint8_t)((csd[2] & 0x00038000U) >> 15U);
+        info->device_size = (((csd[1] & 0x000003FFU) << 2U) | ((csd[2] & 0xC0000000U) >> 30U));
+        info->max_rd_current_vdd_min = (uint8_t)((csd[2] & 0x38000000U) >> 27U);
+        info->max_rd_current_vdd_max = (uint8_t)((csd[2] & 0x07000000U) >> 24U);
+        info->max_wr_current_vdd_min = (uint8_t)((csd[2] & 0x00E00000U) >> 21U);
+        info->max_wr_current_vdd_max = (uint8_t)((csd[2] & 0x001C0000U) >> 18U);
+        info->device_size_mul = (uint8_t)((csd[2] & 0x00038000U) >> 15U);
     } else if(sdmmc1.info.type == FuriHalSdTypeMMCHighCapacity) {
-        uint32_t block_nbr = 0;
-        if(sdmmc_mmc_read_ext_csd_field(&block_nbr, 212, SDMMC_CMDTIMEOUT * 1000U) !=
-           FuriHalSdErrorNone) {
-            return false;
-        }
-
-        info->DeviceSize = block_nbr;
+        info->device_size = sdmmc1.ext_csd_reg.sec_count;
     } else {
         furi_crash("Unknown SD/MMC type");
     }
 
-    info->EraseGrSize = (uint8_t)((csd[2] & 0x00004000U) >> 14U);
-    info->EraseGrMul = (uint8_t)((csd[2] & 0x00003F80U) >> 7U);
-    info->WrProtectGrSize = (uint8_t)(csd[2] & 0x0000007FU);
-    info->WrProtectGrEnable = (uint8_t)((csd[3] & 0x80000000U) >> 31U);
-    info->ManDeflECC = (uint8_t)((csd[3] & 0x60000000U) >> 29U);
-    info->WrSpeedFact = (uint8_t)((csd[3] & 0x1C000000U) >> 26U);
-    info->MaxWrBlockLen = (uint8_t)((csd[3] & 0x03C00000U) >> 22U);
-    info->WriteBlockPaPartial = (uint8_t)((csd[3] & 0x00200000U) >> 21U);
-    info->Reserved3 = 0;
-    info->ContentProtectAppli = (uint8_t)((csd[3] & 0x00010000U) >> 16U);
-    info->FileFormatGroup = (uint8_t)((csd[3] & 0x00008000U) >> 15U);
-    info->CopyFlag = (uint8_t)((csd[3] & 0x00004000U) >> 14U);
-    info->PermWrProtect = (uint8_t)((csd[3] & 0x00002000U) >> 13U);
-    info->TempWrProtect = (uint8_t)((csd[3] & 0x00001000U) >> 12U);
-    info->FileFormat = (uint8_t)((csd[3] & 0x00000C00U) >> 10U);
-    info->ECC = (uint8_t)((csd[3] & 0x00000300U) >> 8U);
-    info->CSD_CRC = (uint8_t)((csd[3] & 0x000000FEU) >> 1U);
-    info->Reserved4 = 1;
+    info->erase_gr_size = (uint8_t)((csd[2] & 0x00004000U) >> 14U);
+    info->erase_gr_mul = (uint8_t)((csd[2] & 0x00003F80U) >> 7U);
+    info->wr_protect_gr_size = (uint8_t)(csd[2] & 0x0000007FU);
+    info->wr_protect_gr_enable = (uint8_t)((csd[3] & 0x80000000U) >> 31U);
+    info->man_defl_ecc = (uint8_t)((csd[3] & 0x60000000U) >> 29U);
+    info->wr_speed_fact = (uint8_t)((csd[3] & 0x1C000000U) >> 26U);
+    info->max_wr_block_len = (uint8_t)((csd[3] & 0x03C00000U) >> 22U);
+    info->write_block_pa_partial = (uint8_t)((csd[3] & 0x00200000U) >> 21U);
+    info->reserved3 = 0;
+    info->content_protect_appli = (uint8_t)((csd[3] & 0x00010000U) >> 16U);
+    info->file_format_group = (uint8_t)((csd[3] & 0x00008000U) >> 15U);
+    info->copy_flag = (uint8_t)((csd[3] & 0x00004000U) >> 14U);
+    info->perm_wr_protect = (uint8_t)((csd[3] & 0x00002000U) >> 13U);
+    info->temp_wr_protect = (uint8_t)((csd[3] & 0x00001000U) >> 12U);
+    info->file_format = (uint8_t)((csd[3] & 0x00000C00U) >> 10U);
+    info->ecc = (uint8_t)((csd[3] & 0x00000300U) >> 8U);
+    info->csd_crc = (uint8_t)((csd[3] & 0x000000FEU) >> 1U);
+    info->reserved4 = 1;
 
     return true;
 }
 
 static void sdmmc_parse_info(FuriHalSdInfo* info, CardCSDInfo* csd, uint32_t cid[4]) {
     if(info->type == FuriHalSdTypeSC) {
-        uint32_t block_count = (csd->DeviceSize + 1U);
-        block_count *= (1UL << ((csd->DeviceSizeMul & 0x07U) + 2U));
-        uint32_t block_size = (1UL << (csd->RdBlockLen & 0x0FU));
+        uint32_t block_count = (csd->device_size + 1U);
+        block_count *= (1UL << ((csd->device_size_mul & 0x07U) + 2U));
+        uint32_t block_size = (1UL << (csd->rd_block_len & 0x0FU));
 
         info->logical_block_count = (block_count) * ((block_size) / SD_BLOCKSIZE);
         info->logical_block_size = SD_BLOCKSIZE;
     } else if(sdmmc1.info.type == FuriHalSdTypeHCXC) {
-        info->logical_block_count = ((csd->DeviceSize + 1U) * 1024U);
+        info->logical_block_count = ((csd->device_size + 1U) * 1024U);
         info->logical_block_size = SD_BLOCKSIZE;
     } else if(sdmmc1.info.type == FuriHalSdTypeMMCLowCapacity) {
-        uint32_t block_count = (csd->DeviceSize + 1U);
-        block_count *= (1UL << ((csd->DeviceSizeMul & 0x07U) + 2U));
-        uint32_t block_size = (1UL << (csd->RdBlockLen & 0x0FU));
+        uint32_t block_count = (csd->device_size + 1U);
+        block_count *= (1UL << ((csd->device_size_mul & 0x07U) + 2U));
+        uint32_t block_size = (1UL << (csd->rd_block_len & 0x0FU));
 
         info->logical_block_count = (block_count) * ((block_size) / SD_BLOCKSIZE);
         info->logical_block_size = SD_BLOCKSIZE;
     } else if(sdmmc1.info.type == FuriHalSdTypeMMCHighCapacity) {
-        info->logical_block_count = csd->DeviceSize;
+        info->logical_block_count = csd->device_size;
         info->logical_block_size = MMC_BLOCKSIZE;
     } else {
         furi_crash("Unknown SD/MMC type");
@@ -706,23 +865,23 @@ static bool sd_mmc_get_card_status(CardStatus* card_status) {
         FURI_LOG_E(TAG, "sdmmc_send_status_command failed with error 0x%08x", errorstate);
         status = false;
     } else {
-        card_status->DataBusWidth = (uint8_t)((sd_status[0] & 0xC0U) >> 6U);
-        card_status->SecuredMode = (uint8_t)((sd_status[0] & 0x20U) >> 5U);
-        card_status->CardType = (uint16_t)(((sd_status[0] & 0x00FF0000U) >> 8U) |
-                                           ((sd_status[0] & 0xFF000000U) >> 24U));
-        card_status->ProtectedAreaSize =
+        card_status->data_bus_width = (uint8_t)((sd_status[0] & 0xC0U) >> 6U);
+        card_status->secured_mode = (uint8_t)((sd_status[0] & 0x20U) >> 5U);
+        card_status->card_type = (uint16_t)(((sd_status[0] & 0x00FF0000U) >> 8U) |
+                                            ((sd_status[0] & 0xFF000000U) >> 24U));
+        card_status->protected_area_size =
             (((sd_status[1] & 0xFFU) << 24U) | ((sd_status[1] & 0xFF00U) << 8U) |
              ((sd_status[1] & 0xFF0000U) >> 8U) | ((sd_status[1] & 0xFF000000U) >> 24U));
-        card_status->SpeedClass = (uint8_t)(sd_status[2] & 0xFFU);
-        card_status->PerformanceMove = (uint8_t)((sd_status[2] & 0xFF00U) >> 8U);
-        card_status->AllocationUnitSize = (uint8_t)((sd_status[2] & 0xF00000U) >> 20U);
-        card_status->EraseSize =
+        card_status->speed_class = (uint8_t)(sd_status[2] & 0xFFU);
+        card_status->performance_move = (uint8_t)((sd_status[2] & 0xFF00U) >> 8U);
+        card_status->allocation_unit_size = (uint8_t)((sd_status[2] & 0xF00000U) >> 20U);
+        card_status->erase_size =
             (uint16_t)(((sd_status[2] & 0xFF000000U) >> 16U) | (sd_status[3] & 0xFFU));
-        card_status->EraseTimeout = (uint8_t)((sd_status[3] & 0xFC00U) >> 10U);
-        card_status->EraseOffset = (uint8_t)((sd_status[3] & 0x0300U) >> 8U);
-        card_status->UhsSpeedGrade = (uint8_t)((sd_status[3] & 0x00F0U) >> 4U);
-        card_status->UhsAllocationUnitSize = (uint8_t)(sd_status[3] & 0x000FU);
-        card_status->VideoSpeedClass = (uint8_t)((sd_status[4] & 0xFF000000U) >> 24U);
+        card_status->erase_timeout = (uint8_t)((sd_status[3] & 0xFC00U) >> 10U);
+        card_status->erase_offset = (uint8_t)((sd_status[3] & 0x0300U) >> 8U);
+        card_status->uhs_speed_grade = (uint8_t)((sd_status[3] & 0x00F0U) >> 4U);
+        card_status->uhs_allocation_unit_size = (uint8_t)(sd_status[3] & 0x000FU);
+        card_status->video_speed_class = (uint8_t)((sd_status[4] & 0xFF000000U) >> 24U);
     }
 
     /* Set Block Size for Card */
@@ -737,13 +896,13 @@ static bool sd_mmc_get_card_status(CardStatus* card_status) {
     return status;
 }
 
-static FuriHalSdError sdmmc_find_scr(uint32_t* pSCR) {
+static FuriHalSdError sdmmc_find_scr(uint32_t* p_scr) {
     SDMMC_DataInitTypeDef config = {0};
     FuriHalSdError errorstate;
     FuriHalCortexTimer timer = furi_hal_cortex_timer_get(SDMMC_REAL_DATATIMEOUT);
     uint32_t index = 0U;
     uint32_t tempscr[2U] = {0};
-    uint32_t* scr = pSCR;
+    uint32_t* scr = p_scr;
 
     /* Set Block Size To 8 Bytes */
     errorstate = SDMMC_CmdBlockLength(FURI_SDMMC_BLOCK, 8U);
@@ -1229,8 +1388,8 @@ static bool sdmmc_init_sdcard(uint32_t sdmmc_clk) {
     }
 
     /* Get Initial Card Speed from Card Status */
-    uint32_t speedgrade = sdmmc1.status.UhsSpeedGrade;
-    uint32_t unitsize = sdmmc1.status.UhsAllocationUnitSize;
+    uint32_t speedgrade = sdmmc1.status.uhs_speed_grade;
+    uint32_t unitsize = sdmmc1.status.uhs_allocation_unit_size;
     if(sdmmc1.info.type == FuriHalSdTypeHCXC && ((speedgrade != 0U) || (unitsize != 0U))) {
         sdmmc1.info.speed = FuriHalSdSpeedUltraHigh;
     } else if(sdmmc1.info.type == FuriHalSdTypeHCXC) {
@@ -1255,8 +1414,9 @@ static bool sdmmc_init_sdcard(uint32_t sdmmc_clk) {
 }
 
 // emmc
-static FuriHalSdError sdmmc_mmc_read_ext_csd(uint32_t* csd_buffer, uint32_t timeout) {
-    furi_check(csd_buffer);
+static FuriHalSdError
+    sdmmc_mmc_read_ext_csd(CardExtendedCSDRegister* ext_csd_reg, uint32_t timeout) {
+    furi_check(ext_csd_reg);
 
     SDMMC_DataInitTypeDef config;
     FuriHalSdError errorstate = FuriHalSdErrorNone;
@@ -1268,7 +1428,7 @@ static FuriHalSdError sdmmc_mmc_read_ext_csd(uint32_t* csd_buffer, uint32_t time
     FURI_SDMMC_BLOCK->DCTRL = 0;
 
     /* Initiaize the destination pointer */
-    tmp_buf = csd_buffer;
+    tmp_buf = (uint32_t*)ext_csd_reg;
 
     /* Configure the MMC DPSM (Data Path State Machine) */
     config.DataTimeOut = SDMMC_REAL_DATATIMEOUT;
@@ -1281,7 +1441,7 @@ static FuriHalSdError sdmmc_mmc_read_ext_csd(uint32_t* csd_buffer, uint32_t time
     __SDMMC_CMDTRANS_ENABLE(FURI_SDMMC_BLOCK);
 
     /* Send ExtCSD Read command to Card */
-    errorstate = SDMMC_CmdSendEXTCSD(FURI_SDMMC_BLOCK, 0);
+    errorstate = SDMMC_CmdSendEXTCSD(FURI_SDMMC_BLOCK, (uint32_t)(sdmmc1.card_rca << 16U));
     if(errorstate != FuriHalSdErrorNone) {
         /* Clear all the static flags */
         sdmmc_clear_static_flags();
@@ -1324,85 +1484,6 @@ static FuriHalSdError sdmmc_mmc_read_ext_csd(uint32_t* csd_buffer, uint32_t time
     } else {
         /* Nothing to do */
     }
-
-    /* Clear the static data flags */
-    sdmmc_clear_static_data_flags();
-
-    return errorstate;
-}
-
-static FuriHalSdError
-    sdmmc_mmc_read_ext_csd_field(uint32_t* field_data, uint16_t field_index, uint32_t timeout) {
-    SDMMC_DataInitTypeDef config;
-    FuriHalSdError errorstate = FuriHalSdErrorNone;
-    FuriHalCortexTimer timer = furi_hal_cortex_timer_get(timeout);
-
-    uint32_t count;
-    uint32_t i = 0;
-    uint32_t tmp_data;
-
-    /* Initialize data control register */
-    FURI_SDMMC_BLOCK->DCTRL = 0;
-
-    /* Configure the MMC DPSM (Data Path State Machine) */
-    config.DataTimeOut = SDMMC_REAL_DATATIMEOUT;
-    config.DataLength = MMC_BLOCKSIZE;
-    config.DataBlockSize = SDMMC_DATABLOCK_SIZE_512B;
-    config.TransferDir = SDMMC_TRANSFER_DIR_TO_SDMMC;
-    config.TransferMode = SDMMC_TRANSFER_MODE_BLOCK;
-    config.DPSM = SDMMC_DPSM_ENABLE;
-    (void)SDMMC_ConfigData(FURI_SDMMC_BLOCK, &config);
-
-    /* Set Block Size for Card */
-    errorstate = SDMMC_CmdSendEXTCSD(FURI_SDMMC_BLOCK, 0);
-    if(errorstate != FuriHalSdErrorNone) {
-        /* Clear all the static flags */
-        sdmmc_clear_static_flags();
-        return errorstate;
-    }
-
-    /* Poll on SDMMC flags */
-    while(!sdmmc_get_flags(
-        SDMMC_FLAG_RXOVERR | SDMMC_FLAG_DCRCFAIL | SDMMC_FLAG_DTIMEOUT | SDMMC_FLAG_DATAEND)) {
-        if(sdmmc_get_flags(SDMMC_FLAG_RXFIFOHF)) {
-            /* Read data from SDMMC Rx FIFO */
-            for(count = 0U; count < (SDMMC_FIFO_SIZE / 4U); count++) {
-                tmp_data = SDMMC_ReadFIFO(FURI_SDMMC_BLOCK);
-                /* eg : SEC_COUNT   : field_index = 212 => i+count = 53 */
-                /*      DEVICE_TYPE : field_index = 196 => i+count = 49 */
-                if((i + count) == ((uint32_t)field_index / 4U)) {
-                    *field_data = tmp_data;
-                }
-            }
-            i += 8U;
-        }
-
-        if(furi_hal_cortex_timer_is_expired(timer)) {
-            /* Clear all the static flags */
-            sdmmc_clear_static_flags();
-            return FuriHalSdErrorTimeout;
-        }
-    }
-
-    /* Get error state */
-    if(sdmmc_get_flags(SDMMC_FLAG_DTIMEOUT)) {
-        /* Clear all the static flags */
-        sdmmc_clear_static_flags();
-        return FuriHalSdErrorDataTimeout;
-    } else if(sdmmc_get_flags(SDMMC_FLAG_DCRCFAIL)) {
-        /* Clear all the static flags */
-        sdmmc_clear_static_flags();
-        return FuriHalSdErrorDataCrcFail;
-    } else if(sdmmc_get_flags(SDMMC_FLAG_RXOVERR)) {
-        /* Clear all the static flags */
-        sdmmc_clear_static_flags();
-        return FuriHalSdErrorRxOverrun;
-    } else {
-        /* Nothing to do */
-    }
-
-    /* While card is not ready for data and trial number for sending CMD13 is not exceeded */
-    errorstate = SDMMC_CmdSendStatus(FURI_SDMMC_BLOCK, (uint32_t)(sdmmc1.card_rca << 16U));
 
     /* Clear the static data flags */
     sdmmc_clear_static_data_flags();
@@ -1464,13 +1545,6 @@ static FuriHalSdError sdmmc_mmc_init_card(void) {
         return errorstate;
     }
 
-    /* Parse parameters */
-    if(!sdmmc_parse_csd(&sdmmc1.csd, CSD)) {
-        return FuriHalSdErrorTimeout;
-    }
-
-    sdmmc_parse_info(&sdmmc1.info, &sdmmc1.csd, CID);
-
     /* While card is not ready for data and trial number for sending CMD13 is not exceeded */
     errorstate =
         SDMMC_CmdSendStatus(FURI_SDMMC_BLOCK, (uint32_t)(((uint32_t)sdmmc1.card_rca) << 16U));
@@ -1479,10 +1553,17 @@ static FuriHalSdError sdmmc_mmc_init_card(void) {
     }
 
     /* Get Extended CSD parameters */
-    errorstate = sdmmc_mmc_read_ext_csd(sdmmc1.csd_ext, SDMMC_CMDTIMEOUT * 1000U);
+    errorstate = sdmmc_mmc_read_ext_csd(&sdmmc1.ext_csd_reg, SDMMC_CMDTIMEOUT * 1000U);
     if(errorstate != FuriHalSdErrorNone) {
         return errorstate;
     }
+
+    /* Parse parameters */
+    if(!sdmmc_parse_csd(&sdmmc1.csd, CSD)) {
+        return FuriHalSdErrorTimeout;
+    }
+
+    sdmmc_parse_info(&sdmmc1.info, &sdmmc1.csd, CID);
 
     /* While card is not ready for data and trial number for sending CMD13 is not exceeded */
     errorstate =
@@ -1541,53 +1622,98 @@ static FuriHalSdError sdmmc_mmc_power_on(void) {
     return FuriHalSdErrorNone;
 }
 
-static FuriHalSdError sdmm_mmc_pwr_class_update(uint32_t Wide, uint32_t Speed) {
+static FuriHalSdError sdmm_mmc_pwr_class_update(uint32_t wide, uint32_t speed) {
     uint32_t count;
     uint32_t response = 0U;
     FuriHalSdError errorstate = FuriHalSdErrorNone;
-    uint32_t power_class;
+    uint8_t power_class = sdmmc1.ext_csd_reg.power_class;
     uint32_t supported_pwr_class;
+    /*
+            
+            7.4.34 PWR_CL_ff_vvv [203:200] and PWR_CL_DDR_ff_vvv [239:238]  
+            These fields define the supported power classes by the Device. By default, the Device has to operate at 
+            maximum frequency using 1 bit bus configuration, within the default max current consumption, as stated 
+            in the table below. If 4 bit/8 bits bus configurations require increased current consumption, it has to be 
+            stated in these registers.  
+            By reading these registers the host can determine the power consumption of the Device in different bus 
+            modes. Bits [7:4] code the current consumption for the 8 bit bus configuration. Bits [3:0] code the current 
+            consumption for the 4 bit bus configuration.  
+            The PWR_52_vvv registers are not defined for 26MHz e•MMCs.  
 
-    if((Wide == SDMMC_BUS_WIDE_8B) || (Wide == SDMMC_BUS_WIDE_4B)) {
-        power_class = 0U; /* Default value after power-on or software reset */
+            Table 109 — Power classes 
+            Voltage  Value  Max RMS     Max Peak Remarks
+                            Current     Current 
+            3.6V    0       100 mA      200 mA  Default current consumption for high voltage Devices  
+                    1       120 mA      220 mA   
+                    2       150 mA      250 mA   
+                    3       180 mA      280 mA   
+                    4       200 mA      300 mA   
+                    5       220 mA      320 mA   
+                    6       250 mA      350 mA   
+                    7       300 mA      400 mA   
+                    8       350 mA      450 mA   
+                    9       400 mA      500 mA   
+                    10      450 mA      550 mA   
+                    11      500mA       600mA  
+                    12      600mA       700mA  
+                    13      700mA       800mA  
+                    14      800mA       900mA  
+                    15      >800mA >900mA  
+            1.95V   0       65 mA       130 mA  Default current consumption for Dual voltage Devices  
+                    1       70 mA       140 mA   
+                    2       80 mA       160 mA   
+                    3       90 mA       180 mA   
+                    4       100 mA      200 mA   
+                    5       120 mA      220 mA   
+                    6       140 mA      240 mA   
+                    7       160 mA      260 mA   
+                    8       180 mA      280 mA   
+                    9       200 mA      300 mA   
+                    10      250 mA      350 mA   
+                    11      300mA       400mA  
+                    12      350mA       450mA  
+                    13      400mA       500mA  
+                    14      500mA       600mA  
+                    15      >500mA      >600mA  
+            */
 
-        /* Read the PowerClass field of the Extended CSD register */
-
-        errorstate = sdmmc_mmc_read_ext_csd_field(&power_class, 187, SDMMC_REAL_DATATIMEOUT);
-        if(errorstate != FuriHalSdErrorNone) {
-            return errorstate;
-        } else {
-            power_class = ((power_class >> 24U) & 0x000000FFU);
-        }
-
+    if((wide == SDMMC_BUS_WIDE_8B) || (wide == SDMMC_BUS_WIDE_4B)) {
         /* Get the supported PowerClass field of the Extended CSD register */
-        if(Speed == SDMMC_SPEED_MODE_DDR) {
+        if(speed == SDMMC_SPEED_MODE_DDR) {
             /* Field PWR_CL_DDR_52_xxx [238 or 239] */
-            supported_pwr_class =
-                ((sdmmc1.csd_ext[(MMC_EXT_CSD_PWR_CL_DDR_52_INDEX / 4)] >>
-                  MMC_EXT_CSD_PWR_CL_DDR_52_POS) &
-                 0x000000FFU);
-        } else if(Speed == SDMMC_SPEED_MODE_HIGH) {
+            supported_pwr_class = sdmmc1.ext_csd_reg.pwr_cl_ddr52_195;
+        } else if(speed == SDMMC_SPEED_MODE_HIGH) {
             /* Field PWR_CL_52_xxx [200 or 202] */
-            supported_pwr_class =
-                ((sdmmc1.csd_ext[(MMC_EXT_CSD_PWR_CL_52_INDEX / 4)] >> MMC_EXT_CSD_PWR_CL_52_POS) &
-                 0x000000FFU);
+            supported_pwr_class = sdmmc1.ext_csd_reg.pwr_cl_52_195;
         } else {
             /* Field PWR_CL_26_xxx [201 or 203] */
-            supported_pwr_class =
-                ((sdmmc1.csd_ext[(MMC_EXT_CSD_PWR_CL_26_INDEX / 4)] >> MMC_EXT_CSD_PWR_CL_26_POS) &
-                 0x000000FFU);
+            supported_pwr_class = sdmmc1.ext_csd_reg.pwr_cl_26_195;
         }
 
-        if(Wide == SDMMC_BUS_WIDE_8B) {
+        if(wide == SDMMC_BUS_WIDE_8B) {
             /* Bit [7:4]: power class for 8-bits bus configuration - Bit [3:0]: power class for 4-bits bus configuration */
             supported_pwr_class = (supported_pwr_class >> 4U);
         }
 
         if((power_class & 0x0FU) != (supported_pwr_class & 0x0FU)) {
             /* Need to change current power class */
+            /*
+            7.4.43 POWER_CLASS [187]  
+            This field contains the 4-bit value of the selected power class for the Device. The power classes are 
+            defined in Table 117. The host should be responsible of properly writing this field with the maximum 
+            power class it allows the Device to use. The Device uses this information to, internally, manage the power 
+            budget and deliver an optimized performance.  
+            
+            Table 117 — Power class codes 
+            Bits  Description  
+            [7:4]  Reserved  
+            [3:0]  Device power class code (See Table 109) 
+            
+            This field is 0 after power-on or software reset.
+            */
             errorstate = SDMMC_CmdSwitch(
-                FURI_SDMMC_BLOCK, (0x03BB0000U | ((supported_pwr_class & 0x0FU) << 8U)));
+                FURI_SDMMC_BLOCK,
+                SDMMC_CMD6_WRITE_BYTE_EXT_CSD(187, (supported_pwr_class & 0x0FU)));
 
             if(errorstate == FuriHalSdErrorNone) {
                 /* While card is not ready for data and trial number for sending CMD13 is not exceeded */
@@ -1616,6 +1742,8 @@ static FuriHalSdError sdmm_mmc_pwr_class_update(uint32_t Wide, uint32_t Speed) {
                     /* Nothing to do */
                 }
             }
+            //* Update the current power class */
+            errorstate = sdmmc_mmc_read_ext_csd(&sdmmc1.ext_csd_reg, SDMMC_CMDTIMEOUT * 1000U);
         }
     }
 
@@ -1627,7 +1755,13 @@ static FuriHalSdError sdmmc_mmc_high_speed(FunctionalState state, uint32_t sdmmc
     uint32_t response = 0U;
     uint32_t count;
     SDMMC_InitTypeDef init;
-
+    /*
+    7.4.44 HS_TIMING [185]
+    Value   Timing Interface  
+    0x0     Selecting backwards compatibility interface timing  
+    0x1     High Speed   
+    0x2     HS200  
+    */
     if(((FURI_SDMMC_BLOCK->CLKCR & SDMMC_CLKCR_BUSSPEED) != 0U) && (state == DISABLE)) {
         errorstate = sdmm_mmc_pwr_class_update(
             (FURI_SDMMC_BLOCK->CLKCR & SDMMC_CLKCR_WIDBUS), SDMMC_SPEED_MODE_DEFAULT);
@@ -1636,7 +1770,8 @@ static FuriHalSdError sdmmc_mmc_high_speed(FunctionalState state, uint32_t sdmmc
         }
 
         /* Index : 185 - Value : 0 */
-        errorstate = SDMMC_CmdSwitch(FURI_SDMMC_BLOCK, 0x03B90000U);
+        errorstate =
+            SDMMC_CmdSwitch(FURI_SDMMC_BLOCK, SDMMC_CMD6_WRITE_BYTE_EXT_CSD(185, 0)); //0x03B90000U
     }
 
     if(((FURI_SDMMC_BLOCK->CLKCR & SDMMC_CLKCR_BUSSPEED) == 0U) && (state != DISABLE)) {
@@ -1647,7 +1782,8 @@ static FuriHalSdError sdmmc_mmc_high_speed(FunctionalState state, uint32_t sdmmc
         }
 
         /* Index : 185 - Value : 1 */
-        errorstate = SDMMC_CmdSwitch(FURI_SDMMC_BLOCK, 0x03B90100U);
+        errorstate =
+            SDMMC_CmdSwitch(FURI_SDMMC_BLOCK, SDMMC_CMD6_WRITE_BYTE_EXT_CSD(185, 1)); //0x03B90100U
     }
 
     if(errorstate == FuriHalSdErrorNone) {
@@ -1712,6 +1848,17 @@ static FuriHalSdError sdmmc_mmc_ddr_mode(FunctionalState state) {
     uint32_t response = 0U;
     uint32_t count;
 
+    /*
+    7.4.45 BUS_WIDTH [183] 
+    Value   Bus Width
+    0       1 bit bus width
+    1       4 bit bus width
+    2       8 bit bus width
+    3..4    Reserved
+    5       4 bit bus width DDR mode
+    6       8 bit bus width DDR mode
+    7..255  Reserved
+    */
     if(((FURI_SDMMC_BLOCK->CLKCR & SDMMC_CLKCR_DDR) != 0U) && (state == DISABLE)) {
         if((FURI_SDMMC_BLOCK->CLKCR & SDMMC_CLKCR_WIDBUS_0) != 0U) {
             errorstate = sdmm_mmc_pwr_class_update(SDMMC_BUS_WIDE_4B, SDMMC_SPEED_MODE_HIGH);
@@ -1720,7 +1867,8 @@ static FuriHalSdError sdmmc_mmc_ddr_mode(FunctionalState state) {
             }
 
             /* Index : 183 - Value : 1 */
-            errorstate = SDMMC_CmdSwitch(FURI_SDMMC_BLOCK, 0x03B70100U);
+            errorstate = SDMMC_CmdSwitch(
+                FURI_SDMMC_BLOCK, SDMMC_CMD6_WRITE_BYTE_EXT_CSD(183, 1)); //0x03B70100U
 
         } else {
             errorstate = sdmm_mmc_pwr_class_update(SDMMC_BUS_WIDE_8B, SDMMC_SPEED_MODE_HIGH);
@@ -1729,7 +1877,8 @@ static FuriHalSdError sdmmc_mmc_ddr_mode(FunctionalState state) {
             }
 
             /* Index : 183 - Value : 2 */
-            errorstate = SDMMC_CmdSwitch(FURI_SDMMC_BLOCK, 0x03B70200U);
+            errorstate = SDMMC_CmdSwitch(
+                FURI_SDMMC_BLOCK, SDMMC_CMD6_WRITE_BYTE_EXT_CSD(183, 2)); //0x03B70200U
         }
     }
 
@@ -1741,7 +1890,8 @@ static FuriHalSdError sdmmc_mmc_ddr_mode(FunctionalState state) {
             }
 
             /* Index : 183 - Value : 5 */
-            errorstate = SDMMC_CmdSwitch(FURI_SDMMC_BLOCK, 0x03B70500U);
+            errorstate = SDMMC_CmdSwitch(
+                FURI_SDMMC_BLOCK, SDMMC_CMD6_WRITE_BYTE_EXT_CSD(183, 5)); //0x03B70500U
 
         } else {
             errorstate = sdmm_mmc_pwr_class_update(SDMMC_BUS_WIDE_8B, SDMMC_SPEED_MODE_DDR);
@@ -1750,7 +1900,8 @@ static FuriHalSdError sdmmc_mmc_ddr_mode(FunctionalState state) {
             }
 
             /* Index : 183 - Value : 6 */
-            errorstate = SDMMC_CmdSwitch(FURI_SDMMC_BLOCK, 0x03B70600U);
+            errorstate = SDMMC_CmdSwitch(
+                FURI_SDMMC_BLOCK, SDMMC_CMD6_WRITE_BYTE_EXT_CSD(183, 6)); //0x03B70600U
         }
     }
 
@@ -1795,8 +1946,18 @@ static FuriHalSdError sdmmc_mmc_ddr_mode(FunctionalState state) {
 static FuriHalSdError sdmmc_mmc_config_speed_bus_mode(uint32_t sdmmc_clk) {
     FuriHalSdError errorstate = FuriHalSdErrorNone;
 
-    /* Field DEVICE_TYPE [196 = 49*4] of Extended CSD register */
-    uint32_t device_type = (sdmmc1.csd_ext[49] & 0x000000FFU);
+    /* Field DEVICE_TYPE [196] of Extended CSD register */
+    uint32_t device_type = sdmmc1.ext_csd_reg.device_type;
+    /*
+    Bit     Device Type  
+    7:6     Reserved 
+    5       HS200 Single Data Rate e•MMC @ 200 MHz - 1.2V I/O 
+    4       HS200 Single Data Rate e•MMC @ 200 MHz - 1.8V I/O 
+    3       High-Speed Dual Data Rate e•MMC @ 52MHz - 1.2V I/O  
+    2       High-Speed Dual Data Rate e•MMC @ 52MHz - 1.8V or 3V I/O  
+    1       High-Speed e•MMC @ 52MHz - at rated device voltage(s)  
+    0       High-Speed e•MMC @ 26MHz - at rated device voltage(s) 
+    */
 
     // auto switch to high speed mode
     if(((FURI_SDMMC_BLOCK->CLKCR & SDMMC_CLKCR_WIDBUS) != 0U) && ((device_type & 0x04U) != 0U)) {
@@ -1831,7 +1992,7 @@ static FuriHalSdError sdmmc_mmc_config_speed_bus_mode(uint32_t sdmmc_clk) {
     return errorstate;
 }
 
-static FuriHalSdError sdmmc_mmc_wide_bus_mode(uint32_t WideMode) {
+static FuriHalSdError sdmmc_mmc_wide_bus_mode(uint32_t wide_mode) {
     uint32_t count;
     // SDMMC_InitTypeDef Init;
     FuriHalSdError errorstate;
@@ -1840,23 +2001,37 @@ static FuriHalSdError sdmmc_mmc_wide_bus_mode(uint32_t WideMode) {
     /* Check and update the power class if needed */
     if((FURI_SDMMC_BLOCK->CLKCR & SDMMC_CLKCR_BUSSPEED) != 0U) {
         if((FURI_SDMMC_BLOCK->CLKCR & SDMMC_CLKCR_DDR) != 0U) {
-            errorstate = sdmm_mmc_pwr_class_update(WideMode, SDMMC_SPEED_MODE_DDR);
+            errorstate = sdmm_mmc_pwr_class_update(wide_mode, SDMMC_SPEED_MODE_DDR);
         } else {
-            errorstate = sdmm_mmc_pwr_class_update(WideMode, SDMMC_SPEED_MODE_HIGH);
+            errorstate = sdmm_mmc_pwr_class_update(wide_mode, SDMMC_SPEED_MODE_HIGH);
         }
     } else {
-        errorstate = sdmm_mmc_pwr_class_update(WideMode, SDMMC_SPEED_MODE_DEFAULT);
+        errorstate = sdmm_mmc_pwr_class_update(wide_mode, SDMMC_SPEED_MODE_DEFAULT);
     }
 
     if(errorstate == FuriHalSdErrorNone) {
-        if(WideMode == SDMMC_BUS_WIDE_8B) {
-            errorstate = SDMMC_CmdSwitch(FURI_SDMMC_BLOCK, 0x03B70200U);
-        } else if(WideMode == SDMMC_BUS_WIDE_4B) {
-            errorstate = SDMMC_CmdSwitch(FURI_SDMMC_BLOCK, 0x03B70100U);
-        } else if(WideMode == SDMMC_BUS_WIDE_1B) {
-            errorstate = SDMMC_CmdSwitch(FURI_SDMMC_BLOCK, 0x03B70000U);
+        /*
+        7.4.45 BUS_WIDTH [183] 
+        Value   Bus Width
+        0       1 bit bus width
+        1       4 bit bus width
+        2       8 bit bus width
+        3..4    Reserved
+        5       4 bit bus width DDR mode
+        6       8 bit bus width DDR mode
+        7..255  Reserved
+        */
+        if(wide_mode == SDMMC_BUS_WIDE_8B) {
+            errorstate = SDMMC_CmdSwitch(
+                FURI_SDMMC_BLOCK, SDMMC_CMD6_WRITE_BYTE_EXT_CSD(183, 2)); //0x03B70200U
+        } else if(wide_mode == SDMMC_BUS_WIDE_4B) {
+            errorstate = SDMMC_CmdSwitch(
+                FURI_SDMMC_BLOCK, SDMMC_CMD6_WRITE_BYTE_EXT_CSD(183, 1)); //0x03B70100U
+        } else if(wide_mode == SDMMC_BUS_WIDE_1B) {
+            errorstate = SDMMC_CmdSwitch(
+                FURI_SDMMC_BLOCK, SDMMC_CMD6_WRITE_BYTE_EXT_CSD(183, 0)); //0x03B70000U
         } else {
-            /* WideMode is not a valid argument*/
+            /* wide_mode is not a valid argument*/
             errorstate = FuriHalSdErrorParam;
         }
 
@@ -1884,11 +2059,11 @@ static FuriHalSdError sdmmc_mmc_wide_bus_mode(uint32_t WideMode) {
                 } else {
                     /* Configure the SDMMC peripheral */
                     // Init = hmmc->Init;
-                    // Init.BusWide = WideMode;
+                    // Init.BusWide = wide_mode;
                     // (void)SDMMC_Init(FURI_SDMMC_BLOCK, Init);
                     uint32_t clkcr = FURI_SDMMC_BLOCK->CLKCR;
                     clkcr &= ~SDMMC_CLKCR_WIDBUS;
-                    clkcr |= WideMode;
+                    clkcr |= wide_mode;
                     FURI_SDMMC_BLOCK->CLKCR = clkcr;
                 }
             } else if(count == 0U) {

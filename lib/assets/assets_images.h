@@ -7,6 +7,7 @@ extern const lv_image_dsc_t I_load_error_9x9;
 extern const lv_image_dsc_t I_pause_5x5;
 extern const lv_image_dsc_t I_setup_12x12;
 extern const lv_image_dsc_t I_start_12x12;
+extern const lv_image_dsc_t I_tick_red_6x5;
 extern const lv_image_dsc_t I_timer_8x8;
 extern const lv_image_dsc_t I_timer_12x12;
 extern const lv_image_dsc_t I_theme_8x8;

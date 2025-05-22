@@ -17,7 +17,7 @@ App(
         "storage_posix_api.c",
         "storages/storage_ext_sdmmc.c",
     ],
-    targets=["f20"],
+    targets=["f20", "f21"],
 )
 
 App(
@@ -26,6 +26,6 @@ App(
     entry_point="storage_on_system_start",
     requires=["storage"],
     order=90,
-    targets=["f20"],
+    targets=["f20", "f21"],
     sources=["storage_cli_u5.c"],
 )
