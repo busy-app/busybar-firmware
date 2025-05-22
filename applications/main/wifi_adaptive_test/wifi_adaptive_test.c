@@ -5,6 +5,7 @@
 #include <gui/gui.h>
 #include <gui/modules/var_item_list.h>
 #include <gui/modules/label.h>
+#include <gui/modules/flex_layout.h>
 #include "helpers/wifi_adaptive_cli.h"
 
 #define TAG "WifiAdaptiveTest"
@@ -29,6 +30,7 @@ struct WifiAdaptiveTest {
     Gui* gui;
     Label* label_status;
     bool exit_on_back;
+    FlexLayout* flex;
     Label* label;
     WifiAdaptiveCliSettings settings;
     WifiAdaptiveTestState test_state;
@@ -148,23 +150,13 @@ static WifiAdaptiveTest* wifi_adaptive_test_alloc(void) {
         GuiLayer* main_layer = gui_get_layer(instance->gui, GuiLayerIdMain);
         gui_layer_add_input_callback(main_layer, wifi_adaptive_test_input_callback, instance);
 
-        Widget* root = gui_layer_get_root_widget(main_layer, GuiDisplayIdBack);
+        Widget* back_screen = gui_layer_get_root_widget(main_layer, GuiDisplayIdBack);
 
-        const int32_t pos_x = 5;
-
-        instance->label_status = label_alloc(root);
-        widget_set_pos(label_get_base(instance->label_status), pos_x, 70);
-        widget_set_height(label_get_base(instance->label_status), 30);
-
-        int32_t width = widget_get_width(root) - BACK_STATUS_BAR_WIDTH - pos_x;
-        instance->label = label_alloc(root);
-        Widget* base = label_get_base(instance->label);
-        widget_set_pos(base, pos_x, 0);
-        widget_set_height(base, 60);
-        widget_set_width(base, width);
-        label_set_max_width(instance->label, width);
-        label_set_scrollbar_mode(instance->label, LabelScrollBarModeAuto);
-
+        //FLEX
+        instance->flex = flex_layout_alloc(back_screen, FlexLayoutTypeColumn);
+        instance->label = label_alloc(flex_layout_get_base(instance->flex));
+        widget_set_scrollbar_mode(label_get_base(instance->label), WidgetScrollBarModeAuto);
+        label_set_auto_resize_mode(instance->label, LabelAutoResizeModeToParentWidth);
         label_set_text(
             instance->label,
             "WifiAdaptiveTest plz create ap\n"
@@ -172,6 +164,9 @@ static WifiAdaptiveTest* wifi_adaptive_test_alloc(void) {
             "PASS: 1qa2wszz\n"
             "set static ip " UDP_SERVER_IP " on your PC\n"
             "start \"iperf.exe -s -u -p 5001 -i 1\"");
+        instance->label_status = label_alloc(flex_layout_get_base(instance->flex));
+        widget_set_flex_grow(label_get_base(instance->label), 5);
+        widget_set_flex_grow(label_get_base(instance->label_status), 1);
     });
 
     wifi_adaptive_test_update(instance, WifiAdaptiveTestStatusDisconnected, NULL);
@@ -185,6 +180,7 @@ static void wifi_adaptive_test_free(WifiAdaptiveTest* instance) {
         gui_layer_remove_input_callback(main_layer, wifi_adaptive_test_input_callback);
         label_free(instance->label);
         label_free(instance->label_status);
+        flex_layout_free(instance->flex);
     });
 
     furi_record_close(RECORD_GUI);
