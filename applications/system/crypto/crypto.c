@@ -1,107 +1,12 @@
 #include "crypto.h"
+#include <furi_hal_crypto_storage.h>
 #include <furi.h>
 #include <args.h>
+#include <strint.h>
 #include <cli_worker.h>
 #include "sl_si91x_driver.h"
 
-#define NWP_FLASH_START_ADDRESS   0
-#define NWP_FLASH_END_ADDRESS     (1024 * 20)
-#define SIZE_BUF                  (1024 * 4)
-#define FLASH_SECTOR_ERASE_ENABLE 0
-#define MAGIC_NUMBER_KEY          0x464c4950
-#define MAX_KEY_SLOT              32
-
-typedef struct {
-    uint32_t magic_number;
-    uint16_t key_slot;
-    uint16_t key_size;
-    uint32_t key_type;
-    uint32_t key_flags;
-    uint8_t key_data[112];
-} FURI_PACKED FuriHalCryptoKey;
-_Static_assert(sizeof(FuriHalCryptoKey) == 128, "Size check for 'FuriHalCryptoKey' failed.");
-
-static bool crypto_check_key_slot_is_free(uint32_t key_slot) {
-    sl_status_t status = 0;
-    uint32_t address = NWP_FLASH_START_ADDRESS + key_slot * sizeof(FuriHalCryptoKey);
-    FuriHalCryptoKey* key = malloc(sizeof(FuriHalCryptoKey));
-    bool ret = false;
-    uint32_t i = 0;
-    do {
-        if(key == NULL) {
-            printf("Failed to allocate memory\r\n");
-            break;
-        }
-        status = sl_si91x_command_to_read_common_flash(
-            address, sizeof(FuriHalCryptoKey), (uint8_t*)key);
-        if(status != SL_STATUS_OK) {
-            printf("Failed to read from NWP flash: 0x%lx\r\n", status);
-            break;
-        }
-        uint8_t* p_key = (uint8_t*)key;
-        while(i < sizeof(FuriHalCryptoKey)) {
-            if(p_key[i] != 0xFF) {
-                break;
-            }
-            i++;
-        }
-
-        if(i == sizeof(FuriHalCryptoKey)) {
-            ret = true;
-        }
-
-    } while(false);
-    free(key);
-    return ret;
-}
-
-static bool crypto_write_key(FuriHalCryptoKey* key) {
-    furi_check(key);
-
-    if(key->key_slot >= MAX_KEY_SLOT) {
-        printf("Key slot %d is out of range\r\n", key->key_slot);
-        return false;
-    }
-
-    if(!crypto_check_key_slot_is_free(key->key_slot)) {
-        printf("Key slot %d is not free\r\n", key->key_slot);
-        return false;
-    }
-
-    sl_status_t status = 0;
-    uint32_t address = NWP_FLASH_START_ADDRESS + key->key_slot * sizeof(FuriHalCryptoKey);
-    status = sl_si91x_command_to_write_common_flash(
-        address, (uint8_t*)key, sizeof(FuriHalCryptoKey), 0);
-    if(status != SL_STATUS_OK) {
-        printf("Failed to write to NWP flash: 0x%lx\r\n", status);
-        return false;
-    }
-    return true;
-}
-
-static bool crypto_read_key(FuriHalCryptoKey* key) {
-    furi_check(key);
-
-    if(key->key_slot >= MAX_KEY_SLOT) {
-        printf("Key slot %d is out of range\r\n", key->key_slot);
-        return false;
-    }
-    uint16_t key_slot = key->key_slot;
-
-    sl_status_t status = 0;
-    uint32_t address = NWP_FLASH_START_ADDRESS + key->key_slot * sizeof(FuriHalCryptoKey);
-    status =
-        sl_si91x_command_to_read_common_flash(address, sizeof(FuriHalCryptoKey), (uint8_t*)key);
-    if(status != SL_STATUS_OK) {
-        printf("Failed to read from NWP flash: 0x%lx\r\n", status);
-        return false;
-    }
-    if(key->magic_number != MAGIC_NUMBER_KEY) {
-        printf("Key slot %d is not valid\r\n", key_slot);
-        return false;
-    }
-    return true;
-}
+#define CRYPTO_SIZE_BUF (1024 * 1)
 
 void crypto_command_wipe(Cli* cli, FuriString* args, void* context) {
     UNUSED(context);
@@ -110,7 +15,7 @@ void crypto_command_wipe(Cli* cli, FuriString* args, void* context) {
     UNUSED(args);
 
     sl_status_t status = sl_si91x_command_to_write_common_flash(
-        NWP_FLASH_START_ADDRESS, NULL, NWP_FLASH_END_ADDRESS, 1);
+        FURI_HAL_CRYPTO_STORAGE_START_ADDRESS, NULL, FURI_HAL_CRYPTO_STORAGE_END_ADDRESS, 1);
     if(status != SL_STATUS_OK) {
         printf("Failed to wipe NWP flash: 0x%lx\r\n", status);
         return;
@@ -124,19 +29,19 @@ void crypto_command_write_all(Cli* cli, FuriString* args, void* context) {
 
     UNUSED(args);
     sl_status_t status = 0;
-    uint32_t address = NWP_FLASH_START_ADDRESS;
-    uint8_t* buf = malloc(SIZE_BUF);
+    uint32_t address = FURI_HAL_CRYPTO_STORAGE_START_ADDRESS;
+    uint8_t* buf = malloc(CRYPTO_SIZE_BUF);
     if(buf == NULL) {
         printf("Failed to allocate memory\r\n");
         return;
     }
-    for(int i = 0; i < SIZE_BUF; i++) {
+    for(int i = 0; i < CRYPTO_SIZE_BUF; i++) {
         buf[i] = i % 256;
     }
 
     for(uint32_t i = 0; i < 20; i++) {
         status = sl_si91x_command_to_write_common_flash(
-            NWP_FLASH_START_ADDRESS + i * 1024, buf, 1024, 0);
+            FURI_HAL_CRYPTO_STORAGE_START_ADDRESS + i * 1024, buf, 1024, 0);
         if(status != SL_STATUS_OK) {
             printf("Failed to write to NWP flash: 0x%lx\r\n", status);
             free(buf);
@@ -145,7 +50,7 @@ void crypto_command_write_all(Cli* cli, FuriString* args, void* context) {
         printf("Write data to NWP flash:\r\n");
 
         for(int i = 0; i < 1024; i++) {
-            if((i) % 32 == 0) printf("%08lx :", address);
+            if((i) % 32 == 0) printf("%08lx: ", address);
             printf("%02x ", buf[i]);
             if((i + 1) % 32 == 0) {
                 printf("\r\n");
@@ -169,16 +74,41 @@ void crypto_command_write_key(Cli* cli, FuriString* args, void* context) {
         return;
     }
 
-    key->magic_number = MAGIC_NUMBER_KEY;
-    key->key_slot = 1;
-    key->key_size = 100;
-    key->key_type = 0;
-    key->key_flags = 0;
-    for(int i = 0; i < key->key_size; i++) {
-        key->key_data[i] = i % 256;
+    key->magic_number = FURI_HAL_CRYPTO_STORAGE_MAGIC_NUMBER_KEY;
+
+    if(furi_string_size(args)) {
+        char* args_cstr = (char*)furi_string_get_cstr(args);
+        StrintParseError parse_err = StrintParseNoError;
+        parse_err |= strint_to_uint16(args_cstr, &args_cstr, &key->key_slot, 10);
+        parse_err |= strint_to_uint16(args_cstr, &args_cstr, &key->key_size, 10);
+        if(!parse_err && (key->key_size > sizeof(key->key_data))) {
+            cli_print_usage(
+                "crypto write_key", "<key_size> of range\r\n", furi_string_get_cstr(args));
+            free(key);
+            return;
+        }
+        parse_err |= strint_to_uint32(args_cstr, &args_cstr, &key->key_type, 10);
+        parse_err |= strint_to_uint32(args_cstr, &args_cstr, &key->key_flags, 16);
+        furi_string_printf(args, "%s", args_cstr);
+        furi_string_trim(args);
+        if(parse_err || !args_read_hex_bytes(args, key->key_data, key->key_size)) {
+            cli_print_usage(
+                "crypto write_key",
+                "<key_slot><key_size><key_type><key_flag: in HEX><key_data: in byte>\r\n",
+                furi_string_get_cstr(args));
+            free(key);
+            return;
+        }
+    } else {
+        cli_print_usage(
+            "crypto write_key",
+            "<key_slot><key_size><key_type><key_flag: in HEX><key_data: in byte>\r\n",
+            furi_string_get_cstr(args));
+        free(key);
+        return;
     }
 
-    if(!crypto_write_key(key)) {
+    if(!furi_hal_crypto_storage_write_key(key)) {
         printf("Failed to write key\r\n");
     } else {
         printf("Write key to NWP flash slot: %d \r\n", key->key_slot);
@@ -197,8 +127,28 @@ void crypto_command_read_key(Cli* cli, FuriString* args, void* context) {
         return;
     }
 
-    key->key_slot = 1;
-    if(!crypto_read_key(key)) {
+    if(furi_string_size(args)) {
+        char* args_cstr = (char*)furi_string_get_cstr(args);
+        StrintParseError parse_err = StrintParseNoError;
+        parse_err |= strint_to_uint16(args_cstr, &args_cstr, &key->key_slot, 10);
+        if(parse_err) {
+            cli_print_usage(
+                "crypto read_key",
+                "<key_slot> Read key from NWP flash slot\r\n",
+                furi_string_get_cstr(args));
+            free(key);
+            return;
+        }
+    } else {
+        cli_print_usage(
+            "crypto read_key",
+            "<key_slot> Read key from NWP flash slot\r\n",
+            furi_string_get_cstr(args));
+        free(key);
+        return;
+    }
+
+    if(!furi_hal_crypto_storage_read_key(key)) {
         printf("Failed to read key\r\n");
     } else {
         printf("Read key from NWP flash slot: %d \r\n", key->key_slot);
@@ -206,10 +156,10 @@ void crypto_command_read_key(Cli* cli, FuriString* args, void* context) {
         printf("Key slot: %d\r\n", key->key_slot);
         printf("Key size: %d\r\n", key->key_size);
         printf("Key type: %ld\r\n", key->key_type);
-        printf("Key flags: %ld\r\n", key->key_flags);
+        printf("Key flags: 0x%08lX\r\n", key->key_flags);
         printf("Key data:\r\n");
         for(uint32_t i = 0; i < key->key_size; i++) {
-            if((i) % 32 == 0) printf("%08lx :", i);
+            if((i) % 32 == 0) printf("%08lx: ", i);
             printf("%02x ", key->key_data[i]);
             if((i + 1) % 32 == 0) {
                 printf("\r\n");
@@ -225,15 +175,15 @@ void crypto_command_dump(Cli* cli, FuriString* args, void* context) {
     UNUSED(cli);
     UNUSED(args);
     sl_status_t status = 0;
-    uint32_t address = NWP_FLASH_START_ADDRESS;
-    uint8_t* buf = malloc(SIZE_BUF);
+    uint32_t address = FURI_HAL_CRYPTO_STORAGE_START_ADDRESS;
+    uint8_t* buf = malloc(CRYPTO_SIZE_BUF);
     if(buf == NULL) {
         printf("Failed to allocate memory\r\n");
         return;
     }
     for(uint32_t i = 0; i < 20; i++) {
-        status =
-            sl_si91x_command_to_read_common_flash(NWP_FLASH_START_ADDRESS + i * 1024, 1024, buf);
+        status = sl_si91x_command_to_read_common_flash(
+            FURI_HAL_CRYPTO_STORAGE_START_ADDRESS + i * 1024, 1024, buf);
         if(status != SL_STATUS_OK) {
             printf("Failed to read from NWP flash: 0x%lx\r\n", status);
             free(buf);
@@ -242,7 +192,7 @@ void crypto_command_dump(Cli* cli, FuriString* args, void* context) {
         printf("Read data from NWP flash:\r\n");
 
         for(int i = 0; i < 1024; i++) {
-            if((i) % 32 == 0) printf("%08lx :", address);
+            if((i) % 32 == 0) printf("%08lx: ", address);
 
             printf("%02x ", buf[i]);
 
@@ -260,11 +210,12 @@ static void crypto_command_print_usage(void) {
     printf("crypto <cmd> <args>\r\n");
     printf("Cmd list:\r\n");
 
-    printf("\tcrypro wipe\r\n");
-    printf("\tcrypro dump\r\n");
-    printf("\tcrypro write_all\r\n");
-    printf("\tcrypro read_key\r\n");
-    printf("\tcrypro write_key\r\n");
+    printf("\tcrypro wipe Clear crypto storage\r\n");
+    printf("\tcrypro dump Dump crypto storage\r\n");
+    printf("\tcrypro write_all Write random date to crypto storage\r\n");
+    printf("\tcrypro read_key <key_slot> Read key from NWP flash slot\r\n");
+    printf(
+        "\tcrypro write_key <key_slot><key_size><key_type><key_flag: in HEX><key_data: in Byte> Write key from NWP flash slot\r\n");
 }
 
 static void crypto_command(Cli* cli, FuriString* args, void* context) {
