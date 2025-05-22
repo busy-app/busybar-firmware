@@ -1,5 +1,12 @@
 #include "busy.h"
 
+static const Color busy_transition_colors[BusyTransitionTypeMax] = {
+    [BusyTransitionTypeBlack] = COLOR_MAKE_HEX(0x000000),
+    [BusyTransitionTypeWhite] = COLOR_MAKE_HEX(0xFFFFFF),
+    [BusyTransitionTypeWork] = COLOR_MAKE_HEX(0xFF0000),
+    [BusyTransitionTypeRest] = COLOR_MAKE_HEX(0x13F562),
+};
+
 static void busy_input_queue_callback(FuriEventLoopObject* object, void* context) {
     furi_assert(context);
 
@@ -71,11 +78,12 @@ static BusyApp* busy_alloc(void) {
         // Create application windows
         root = gui_layer_get_root_widget(layer, GuiDisplayIdFront);
         instance->front_window = widget_alloc(root);
+        instance->transition_overlay = transition_overlay_alloc(root);
 
         root = gui_layer_get_root_widget(layer, GuiDisplayIdBack);
         instance->back_window = widget_alloc(root);
 
-        // Create persistent views
+        // Create persistent widgets
         instance->timer_card = timer_card_alloc(instance->back_window);
     });
 
@@ -105,6 +113,8 @@ static void busy_free(BusyApp* instance) {
     with_gui(instance->gui, {
         GuiLayer* layer = gui_get_layer(instance->gui, GuiLayerIdMain);
         gui_layer_remove_input_callback(layer, busy_gui_input_callback);
+
+        transition_overlay_free(instance->transition_overlay);
 
         widget_free(instance->front_window);
         widget_free(instance->back_window);
@@ -136,4 +146,20 @@ void busy_send_custom_event(BusyApp* instance, uint32_t custom_event) {
     furi_check(
         furi_message_queue_put(instance->event_queue, &custom_event, FuriWaitForever) ==
         FuriStatusOk);
+}
+
+void busy_prepare_transition(BusyApp* instance, BusyTransitionType type) {
+    furi_assert(instance);
+    furi_assert(type < BusyTransitionTypeMax);
+
+    with_gui(instance->gui, {
+        transition_overlay_set_color(instance->transition_overlay, busy_transition_colors[type]);
+        transition_overlay_show(instance->transition_overlay);
+    });
+}
+
+void busy_start_transition(BusyApp* instance) {
+    furi_assert(instance);
+
+    with_gui(instance->gui, { transition_overlay_start(instance->transition_overlay); });
 }

@@ -6,5 +6,5 @@ App(
     cdefines=["SRV_CLI_SOCKET"],
     stack_size=4 * 1024,
     order=30,
-    targets=["f20"],
+    targets=["f20", "f21"],
 )

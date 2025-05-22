@@ -6,7 +6,7 @@
  */
 #pragma once
 
-#include <gui/widget.h>
+#include <gui/modules/anim_image.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -50,22 +50,29 @@ void anim_menu_free(AnimMenu* instance);
 Widget* anim_menu_get_base(AnimMenu* instance);
 
 /**
+ * @brief Get a pointer to the underlying AnimImage instance.
+ *
+ * The return value can be used in all AnimImage methods.
+ *
+ * @param[in,out] instance pointer to the AnimMenu instance to be queried
+ * @returns pointer to the AnimImage instance
+ */
+AnimImage* anim_menu_get_anim_image(AnimMenu* instance);
+
+/**
  * @brief Set the animation file for the AnimMenu instance.
  *
  * @param[in,out] instance pointer to the AnimMenu instance to be modified
  * @param[in] file_path zero-terminated string containing the full path to animation file
- * @returns true if the source was successfully set, false otherwise
- */
-bool anim_menu_set_source(AnimMenu* instance, const char* file_path);
-
-/**
- * @brief Set the idle and transition intervals the AnimMenu instance.
- *
- * @param[in,out] instance pointer to the AnimMenu instance to be modified
  * @param[in] idle_frames number of frames in the idle sequence
  * @param[in] transition_frames number of frames in the transition sequence
+ * @returns true if the source was successfully set, false otherwise
  */
-void anim_menu_set_intervals(AnimMenu* instance, uint32_t idle_frames, uint32_t transition_frames);
+bool anim_menu_set_source(
+    AnimMenu* instance,
+    const char* file_path,
+    uint32_t idle_frames,
+    uint32_t transition_frames);
 
 /**
  * @brief Set a function to be called when an item has been clicked.

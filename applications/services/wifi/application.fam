@@ -5,7 +5,7 @@ App(
     entry_point="wifi_srv",
     stack_size=4 * 1024,
     order=100,
-    targets=["f20"],
+    targets=["f20", "f21"],
     requires=["intercom"],
     sources=["wifi.c"],
 )

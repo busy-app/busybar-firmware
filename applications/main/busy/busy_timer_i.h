@@ -68,4 +68,5 @@ struct BusyTimer {
     BusyTimerConfig config;
     BusyTimerTime time;
     BusyTimerState state;
+    bool next_state_forced;
 };

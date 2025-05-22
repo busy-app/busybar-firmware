@@ -1,7 +1,6 @@
 #include "anim_menu.h"
 
-#include <gui/widget_i.h>
-#include <gui/modules/anim_image.h>
+#include <gui/modules/anim_image_i.h>
 
 #include <storage/storage.h>
 
@@ -10,8 +9,7 @@
 #define MY_CLASS (&anim_menu_lvgl_class)
 
 struct AnimMenu {
-    Widget base;
-    AnimImage* anim_image;
+    AnimImage base;
     AnimMenuCallback callback;
     void* context;
     uint32_t idle_frames;
@@ -55,12 +53,12 @@ static bool anim_menu_input_callback(Widget* widget, const InputEvent* event) {
                 AnimMenuFrameRange range;
                 // Transition from item 0 to item 1
                 anim_menu_calc_transition_range(instance, &range);
-                anim_image_set_range(instance->anim_image, range.begin, range.end, false, false);
+                anim_image_set_range((AnimImage*)instance, range.begin, range.end, false, false);
                 // Important: read the code before attempting to move the below line
                 instance->current_idx = 1;
                 // Item 1 idle
                 anim_menu_calc_idle_range(instance, &range);
-                anim_image_set_range(instance->anim_image, range.begin, range.end, true, true);
+                anim_image_set_range((AnimImage*)instance, range.begin, range.end, true, true);
             }
 
             consumed = true;
@@ -70,12 +68,12 @@ static bool anim_menu_input_callback(Widget* widget, const InputEvent* event) {
                 AnimMenuFrameRange range;
                 // Transition from item 1 to item 0
                 anim_menu_calc_transition_range(instance, &range);
-                anim_image_set_range(instance->anim_image, range.begin, range.end, false, false);
+                anim_image_set_range((AnimImage*)instance, range.begin, range.end, false, false);
                 // Important: read the code before attempting to move the below line
                 instance->current_idx = 0;
                 // Item 0 idle
                 anim_menu_calc_idle_range(instance, &range);
-                anim_image_set_range(instance->anim_image, range.begin, range.end, true, true);
+                anim_image_set_range((AnimImage*)instance, range.begin, range.end, true, true);
             }
 
             consumed = true;
@@ -96,8 +94,6 @@ static void anim_menu_lvlg_constructor(const lv_obj_class_t* class_p, lv_obj_t* 
     UNUSED(class_p);
 
     AnimMenu* instance = (AnimMenu*)obj;
-    instance->anim_image = anim_image_alloc((Widget*)instance);
-
     widget_set_input_feed_callback((Widget*)instance, anim_menu_input_callback);
 }
 
@@ -130,22 +126,32 @@ Widget* anim_menu_get_base(AnimMenu* instance) {
     return (Widget*)instance;
 }
 
-bool anim_menu_set_source(AnimMenu* instance, const char* file_path) {
+AnimImage* anim_menu_get_anim_image(AnimMenu* instance) {
     furi_check(instance);
-    furi_check(file_path);
-    return anim_image_set_source(instance->anim_image, file_path);
+    return (AnimImage*)instance;
 }
 
-void anim_menu_set_intervals(AnimMenu* instance, uint32_t idle_frames, uint32_t transition_frames) {
+bool anim_menu_set_source(
+    AnimMenu* instance,
+    const char* file_path,
+    uint32_t idle_frames,
+    uint32_t transition_frames) {
     furi_check(instance);
+    furi_check(file_path);
     furi_check(idle_frames > 0);
     furi_check(transition_frames > 0);
 
-    instance->idle_frames = idle_frames;
-    instance->transition_frames = transition_frames;
+    const bool success = anim_image_set_source((AnimImage*)instance, file_path);
 
-    anim_image_set_range(instance->anim_image, 0, idle_frames - 1, true, false);
-    anim_image_start(instance->anim_image);
+    if(success) {
+        instance->idle_frames = idle_frames;
+        instance->transition_frames = transition_frames;
+
+        anim_image_set_range((AnimImage*)instance, 0, idle_frames - 1, true, false);
+        anim_image_start((AnimImage*)instance);
+    }
+
+    return success;
 }
 
 void anim_menu_set_callback(AnimMenu* instance, AnimMenuCallback callback, void* context) {
@@ -158,7 +164,7 @@ void anim_menu_set_callback(AnimMenu* instance, AnimMenuCallback callback, void*
 // LVGL class descriptors
 
 const lv_obj_class_t anim_menu_lvgl_class = {
-    .base_class = &widget_lvgl_class,
+    .base_class = &anim_image_lvgl_class,
     .constructor_cb = anim_menu_lvlg_constructor,
     .destructor_cb = anim_menu_lvlg_destructor,
     .name = "widget-anim-menu",

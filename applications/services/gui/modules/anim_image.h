@@ -67,6 +67,14 @@ void anim_image_set_range(
     bool wait_end);
 
 /**
+ * @brief Set the looping of the current frame range.
+ *
+ * @param[in,out] instance pointer to the AnimImage instance to be modified
+ * @param[in] set loop the current range if @c true, do not loop if @c false
+ */
+void anim_image_set_loop(AnimImage* instance, bool set);
+
+/**
  * @brief Start playing the animation.
  *
  * The animation file MUST be loaded using anim_image_set_source()

@@ -7,7 +7,7 @@ App(
         "message",
         "sl_update_start",
     ],
-    targets=["f20"],
+    targets=["f20", "f21"],
 )
 
 App(

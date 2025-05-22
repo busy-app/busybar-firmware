@@ -11,6 +11,11 @@
 extern "C" {
 #endif
 
+#define COLOR_MAKE_RGB(r, g, b) {.b = (b), .g = (g), .r = (r)}
+
+#define COLOR_MAKE_HEX(hex) \
+    {.b = (hex) & 0xFF, .g = ((hex) >> 8) & 0xFF, .r = ((hex) >> 16) & 0xFF}
+
 /** RGB color structure */
 typedef struct {
     uint8_t b; /**< Blue component */

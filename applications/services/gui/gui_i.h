@@ -10,7 +10,6 @@
 #include <front_display/front_display.h>
 #include <back_display/back_display.h>
 
-#include <input/input.h>
 #include <power/power_service/power.h>
 
 #include <m-list.h>

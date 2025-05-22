@@ -65,7 +65,7 @@ void label_set_text(Label* instance, const char* text);
  * @param[in] ... variadic list of arguments according to the format string
  */
 void label_set_text_fmt(Label* instance, const char* fmt, ...)
-    _ATTRIBUTE((__format__(__printf__, 2, 3)));
+    __attribute__((__format__(__printf__, 2, 3)));
 
 /**
  * @brief Set the label line spacing.
