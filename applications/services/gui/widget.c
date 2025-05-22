@@ -31,6 +31,7 @@ Widget* widget_alloc(Widget* parent) {
     lv_obj_class_init_obj(obj);
 
     Widget* instance = (Widget*)obj;
+    widget_set_scrollbar_mode(instance, WidgetScrollBarModeOff);
     return instance;
 }
 
@@ -113,7 +114,9 @@ void widget_set_scrollbar_mode(Widget* instance, WidgetScrollBarMode scrollbar_m
     furi_check(instance);
     furi_check(scrollbar_mode < WidgetScrollBarModeCount);
     lv_obj_set_scrollbar_mode((lv_obj_t*)instance, (lv_scrollbar_mode_t)scrollbar_mode);
-    widget_set_input_feed_callback((Widget*)instance, widget_input_callback);
+    widget_set_input_feed_callback(
+        (Widget*)instance,
+        scrollbar_mode == WidgetScrollBarModeOff ? NULL : widget_input_callback);
 }
 
 void widget_set_flex_grow(Widget* instance, uint8_t grow) {
