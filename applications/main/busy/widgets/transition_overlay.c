@@ -1,6 +1,8 @@
 #include "transition_overlay.h"
 
 #include <gui/widget_i.h>
+
+#include <gui/modules/anim_image.h>
 #include <gui/modules/snap_image.h>
 
 #define MY_CLASS (&transition_overlay_lvgl_class)
@@ -10,7 +12,10 @@
 struct TransitionOverlay {
     Widget base;
     SnapImage* snap;
-    lv_obj_t* dimmer;
+    AnimImage* mask;
+    lv_obj_t* color;
+    TransitionOverlayColorMode color_mode;
+    TransitionOverlayMaskMode mask_mode;
 };
 
 const lv_obj_class_t transition_overlay_lvgl_class;
@@ -23,10 +28,10 @@ static void transition_overlay_lvgl_anim_exec_callback(lv_anim_t* anim, int32_t 
     TransitionOverlay* instance = anim->var;
 
     if(value == anim->end_value) {
-        lv_obj_add_flag((lv_obj_t*)instance->snap, LV_OBJ_FLAG_HIDDEN);
+        widget_set_visible((Widget*)instance->snap, false);
     }
 
-    lv_obj_set_style_bg_opa(instance->dimmer, value, LV_PART_MAIN);
+    lv_obj_set_style_bg_opa(instance->color, value, LV_PART_MAIN);
 }
 
 static void transition_overlay_lvgl_anim_completed_callback(lv_anim_t* anim) {
@@ -35,20 +40,102 @@ static void transition_overlay_lvgl_anim_completed_callback(lv_anim_t* anim) {
     TransitionOverlay* instance = anim->var;
     furi_assert(instance);
 
-    lv_obj_add_flag((lv_obj_t*)instance, LV_OBJ_FLAG_HIDDEN);
-    lv_obj_remove_flag((lv_obj_t*)instance->snap, LV_OBJ_FLAG_HIDDEN);
+    widget_set_visible((Widget*)instance->snap, true);
+    widget_set_visible((Widget*)instance, false);
+}
+
+static void transition_overlay_lvgl_mask_timer_callback(lv_timer_t* timer) {
+    furi_assert(timer);
+
+    TransitionOverlay* instance = lv_timer_get_user_data(timer);
+    furi_assert(instance);
+
+    if(timer->repeat_count == 1) {
+        widget_set_visible((Widget*)instance->snap, false);
+    } else if(timer->repeat_count == 0) {
+        widget_set_visible((Widget*)instance->snap, true);
+        widget_set_visible((Widget*)instance, false);
+    }
 }
 
 static void transition_overlay_lvgl_constructor(const lv_obj_class_t* class_p, lv_obj_t* obj) {
     UNUSED(class_p);
 
-    lv_obj_add_flag(obj, LV_OBJ_FLAG_HIDDEN);
-
     TransitionOverlay* instance = (TransitionOverlay*)obj;
     instance->snap = snap_image_alloc((Widget*)obj);
-    instance->dimmer = lv_obj_create(obj);
+    instance->color = lv_obj_create(obj);
+    instance->mask = anim_image_alloc((Widget*)obj);
 
-    lv_obj_set_size(instance->dimmer, LV_PCT(100), LV_PCT(100));
+    lv_obj_set_size(instance->color, LV_PCT(100), LV_PCT(100));
+
+    widget_set_visible((Widget*)instance, false);
+}
+
+// Implementation
+
+static void transition_overlay_animate_color(TransitionOverlay* instance) {
+    const TransitionOverlayColorMode mode = instance->color_mode;
+
+    if(mode != TransitionOverlayColorModeOff) {
+        lv_blend_mode_t blend_mode;
+
+        if(mode == TransitionOverlayColorModeNormal) {
+            blend_mode = LV_BLEND_MODE_NORMAL;
+        } else if(mode == TransitionOverlayColorModeMultiply) {
+            blend_mode = LV_BLEND_MODE_MULTIPLY;
+        } else if(mode == TransitionOverlayColorModeAdd) {
+            blend_mode = LV_BLEND_MODE_ADDITIVE;
+        } else {
+            furi_crash();
+        }
+
+        lv_obj_set_style_blend_mode(instance->color, blend_mode, LV_PART_MAIN);
+        lv_obj_set_style_bg_opa(instance->color, LV_OPA_TRANSP, LV_PART_MAIN);
+
+        lv_anim_t anim;
+        lv_anim_init(&anim);
+
+        lv_anim_set_values(&anim, LV_OPA_TRANSP, LV_OPA_COVER);
+        lv_anim_set_duration(&anim, ANIM_DURATION_MS / 2);
+        lv_anim_set_reverse_duration(&anim, ANIM_DURATION_MS / 2);
+
+        lv_anim_set_path_cb(&anim, lv_anim_path_ease_out);
+        lv_anim_set_custom_exec_cb(&anim, transition_overlay_lvgl_anim_exec_callback);
+        lv_anim_set_completed_cb(&anim, transition_overlay_lvgl_anim_completed_callback);
+        lv_anim_set_var(&anim, instance);
+
+        lv_anim_start(&anim);
+
+        widget_set_visible((Widget*)instance->color, true);
+    }
+}
+
+static void transition_overlay_animate_mask(TransitionOverlay* instance) {
+    const TransitionOverlayMaskMode mode = instance->mask_mode;
+
+    if(mode != TransitionOverlayMaskModeOff) {
+        lv_blend_mode_t blend_mode;
+
+        if(mode == TransitionOverlayMaskModeMultiply) {
+            blend_mode = LV_BLEND_MODE_MULTIPLY;
+        } else if(mode == TransitionOverlayMaskModeAdd) {
+            blend_mode = LV_BLEND_MODE_ADDITIVE;
+        } else {
+            furi_crash();
+        }
+
+        lv_obj_set_style_blend_mode(TO_LV_OBJ(instance->mask), blend_mode, LV_PART_MAIN);
+
+        const uint32_t period_ms = 500 * anim_image_get_frame_count(instance->mask) /
+                                   anim_image_get_frame_rate(instance->mask);
+        lv_timer_t* mask_timer =
+            lv_timer_create(transition_overlay_lvgl_mask_timer_callback, period_ms, instance);
+        lv_timer_set_repeat_count(mask_timer, 2);
+
+        anim_image_start(instance->mask);
+
+        widget_set_visible((Widget*)instance->mask, true);
+    }
 }
 
 // Public API
@@ -65,7 +152,7 @@ TransitionOverlay* transition_overlay_alloc(Widget* parent) {
 
 void transition_overlay_free(TransitionOverlay* instance) {
     furi_check(instance);
-    lv_obj_delete((lv_obj_t*)instance);
+    lv_obj_delete(TO_LV_OBJ(instance));
 }
 
 Widget* transition_overlay_get_base(TransitionOverlay* instance) {
@@ -75,7 +162,32 @@ Widget* transition_overlay_get_base(TransitionOverlay* instance) {
 
 void transition_overlay_set_color(TransitionOverlay* instance, Color color) {
     furi_check(instance);
-    lv_obj_set_style_bg_color(instance->dimmer, TO_LV_COLOR(color), LV_PART_MAIN);
+    lv_obj_set_style_bg_color(instance->color, TO_LV_COLOR(color), LV_PART_MAIN);
+}
+
+void transition_overlay_set_color_mode(
+    TransitionOverlay* instance,
+    TransitionOverlayColorMode mode) {
+    furi_check(instance);
+    furi_check(mode < TransitionOverlayColorModeMax);
+
+    instance->color_mode = mode;
+}
+
+void transition_overlay_set_mask(TransitionOverlay* instance, const char* file_path) {
+    furi_check(instance);
+    furi_check(file_path);
+
+    anim_image_set_source(instance->mask, file_path);
+    anim_image_set_loop(instance->mask, false);
+    anim_image_stop(instance->mask);
+}
+
+void transition_overlay_set_mask_mode(TransitionOverlay* instance, TransitionOverlayMaskMode mode) {
+    furi_check(instance);
+    furi_check(mode < TransitionOverlayMaskModeMax);
+
+    instance->mask_mode = mode;
 }
 
 void transition_overlay_show(TransitionOverlay* instance) {
@@ -83,31 +195,18 @@ void transition_overlay_show(TransitionOverlay* instance) {
 
     snap_image_capture_display(instance->snap);
 
-    lv_obj_set_style_bg_opa(instance->dimmer, LV_OPA_TRANSP, LV_PART_MAIN);
-
+    widget_set_visible((Widget*)instance->color, false);
+    widget_set_visible((Widget*)instance->mask, false);
     widget_set_visible((Widget*)instance, true);
 }
 
 void transition_overlay_start(TransitionOverlay* instance) {
     furi_check(instance);
 
-    if(!widget_is_visible((Widget*)instance)) {
-        return;
+    if(widget_is_visible((Widget*)instance)) {
+        transition_overlay_animate_color(instance);
+        transition_overlay_animate_mask(instance);
     }
-
-    lv_anim_t anim;
-    lv_anim_init(&anim);
-
-    lv_anim_set_values(&anim, LV_OPA_TRANSP, LV_OPA_COVER);
-    lv_anim_set_duration(&anim, ANIM_DURATION_MS / 2);
-    lv_anim_set_reverse_duration(&anim, ANIM_DURATION_MS / 2);
-
-    lv_anim_set_path_cb(&anim, lv_anim_path_ease_out);
-    lv_anim_set_custom_exec_cb(&anim, transition_overlay_lvgl_anim_exec_callback);
-    lv_anim_set_completed_cb(&anim, transition_overlay_lvgl_anim_completed_callback);
-    lv_anim_set_var(&anim, instance);
-
-    lv_anim_start(&anim);
 }
 
 // LVGL class descriptor

@@ -1,10 +1,38 @@
 #include "busy.h"
 
-static const Color busy_transition_colors[BusyTransitionTypeMax] = {
-    [BusyTransitionTypeBlack] = COLOR_MAKE_HEX(0x000000),
-    [BusyTransitionTypeWhite] = COLOR_MAKE_HEX(0xFFFFFF),
-    [BusyTransitionTypeWork] = COLOR_MAKE_HEX(0xFF0000),
-    [BusyTransitionTypeRest] = COLOR_MAKE_HEX(0x13F562),
+typedef struct {
+    Color color;
+    const char* mask_path;
+    TransitionOverlayColorMode color_mode;
+    TransitionOverlayMaskMode mask_mode;
+} BusyTransition;
+
+static const BusyTransition busy_transitions[BusyTransitionTypeMax] = {
+    [BusyTransitionTypeBlack] =
+        {
+            .color = COLOR_MAKE_HEX(0x000000),
+            .color_mode = TransitionOverlayColorModeNormal,
+        },
+    [BusyTransitionTypeBlackMask] =
+        {
+            .mask_path = BUSY_ANIM_PATH("transition_oval_72x16.anim"),
+            .mask_mode = TransitionOverlayMaskModeMultiply,
+        },
+    [BusyTransitionTypeWhite] =
+        {
+            .color = COLOR_MAKE_HEX(0xFFFFFF),
+            .color_mode = TransitionOverlayColorModeNormal,
+        },
+    [BusyTransitionTypeWork] =
+        {
+            .color = COLOR_MAKE_HEX(0xFF0000),
+            .color_mode = TransitionOverlayColorModeNormal,
+        },
+    [BusyTransitionTypeRest] =
+        {
+            .color = COLOR_MAKE_HEX(0x13F562),
+            .color_mode = TransitionOverlayColorModeNormal,
+        },
 };
 
 static void busy_input_queue_callback(FuriEventLoopObject* object, void* context) {
@@ -154,8 +182,17 @@ void busy_prepare_transition(BusyApp* instance, BusyTransitionType type) {
     furi_assert(instance);
     furi_assert(type < BusyTransitionTypeMax);
 
+    const BusyTransition* transition = &busy_transitions[type];
+
     with_gui(instance->gui, {
-        transition_overlay_set_color(instance->transition_overlay, busy_transition_colors[type]);
+        transition_overlay_set_color(instance->transition_overlay, transition->color);
+        transition_overlay_set_color_mode(instance->transition_overlay, transition->color_mode);
+
+        if(transition->mask_path) {
+            transition_overlay_set_mask(instance->transition_overlay, transition->mask_path);
+        }
+
+        transition_overlay_set_mask_mode(instance->transition_overlay, transition->mask_mode);
         transition_overlay_show(instance->transition_overlay);
     });
 }

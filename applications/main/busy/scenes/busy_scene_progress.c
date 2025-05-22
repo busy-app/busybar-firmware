@@ -67,7 +67,7 @@ static void busy_scene_progress_on_exit(void* context) {
     BusyApp* instance = context;
     BusySceneProgress* data = scene_manager_get_current_scene_data(instance->scene_manager);
 
-    busy_prepare_transition(instance, BusyTransitionTypeBlack);
+    busy_prepare_transition(instance, BusyTransitionTypeBlackMask);
 
     with_gui(instance->gui, {
         if(data->front_progress_view) {
