@@ -184,6 +184,13 @@ void widget_move_to_background(Widget* instance);
  */
 void widget_set_scrollbar_mode(Widget* instance, WidgetScrollBarMode scrollbar_mode);
 
+/**
+ * @brief Set how much space widget will take when using flex layout
+ *
+ * @param[in,out] instance pointer to the widget instance to be modified
+ * @param[in] scrollbar_mode new grow value needs to be > 1 or 0 to disable grow on the child.
+ */
+void widget_set_flex_grow(Widget* instance, uint8_t grow);
 #ifdef __cplusplus
 }
 #endif

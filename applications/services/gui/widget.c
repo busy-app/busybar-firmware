@@ -116,6 +116,10 @@ void widget_set_scrollbar_mode(Widget* instance, WidgetScrollBarMode scrollbar_m
     widget_set_input_feed_callback((Widget*)instance, widget_input_callback);
 }
 
+void widget_set_flex_grow(Widget* instance, uint8_t grow) {
+    furi_check(instance);
+    lv_obj_set_flex_grow((lv_obj_t*)instance, grow);
+}
 // Private API
 
 void widget_set_input_feed_callback(Widget* instance, WidgetInputFeedCallback callback) {
