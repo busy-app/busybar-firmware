@@ -34,16 +34,6 @@ typedef enum {
     LabelLongContentModeCount /**< Count of possible choices*/
 } LabelLongContentMode;
 
-/** Enumeration of possible label resize modes */
-typedef enum {
-    LabelAutoResizeModeToContent, /** < Fits label size to its content automaticaly. Default value  */
-    LabelAutoResizeModeToParentWidth, /** < Width will be inherited from base label widget, height will fit to content  */
-    LabelAutoResizeModeToParentHeight, /** < Height will be inherited from base label widget, width will fit to content  */
-    LabelAutoResizeModeToParentSize, /** < Both height and width will inherited from base label widget */
-
-    LabelAutoResizeModeCount, /**< Count of possible choices*/
-} LabelAutoResizeMode;
-
 /**
  * @brief Create a new Label instance.
  *
@@ -112,14 +102,6 @@ void label_set_text_align(Label* instance, TextAlign align);
  * @param[in] duration defines animation speed in scrollable modes
  */
 void label_set_long_content_mode(Label* instance, LabelLongContentMode mode, uint32_t duration);
-
-/**
- * @brief Set label resize mode.
- *
- * @param[in,out] instance pointer to the Label instance to be modified
- * @param[in] mode new resize mode for label
- */
-void label_set_auto_resize_mode(Label* instance, LabelAutoResizeMode mode);
 
 #ifdef __cplusplus
 }
