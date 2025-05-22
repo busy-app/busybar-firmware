@@ -108,9 +108,10 @@ static bool fs_remove(const char* path) {
 }
 
 static bool fs_mkdir(const char* path) {
-    (void)path;
-    FURI_LOG_W(TAG, "TODO: %s", __func__);
-    return false;
+    Storage* fs_api = furi_record_open(RECORD_STORAGE);
+    FS_Error error = storage_common_mkdir(fs_api, path);
+    furi_record_close(RECORD_STORAGE);
+    return (error == FSE_OK);
 }
 
 static const struct mg_fs mg_fs_flipper = {

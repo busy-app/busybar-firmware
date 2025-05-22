@@ -1,8 +1,5 @@
 #include "http_api.h"
 #include <version.h>
-#include <loader/loader.h>
-#include <desktop/desktop.h>
-#include <gui/gui.h>
 
 typedef struct {
     bool led_state;
@@ -97,78 +94,6 @@ bool http_api_version_callback(struct mg_connection* conn, struct mg_http_messag
     return true;
 }
 
-static bool
-    http_api_display_callback(struct mg_connection* conn, struct mg_http_message* msg, void* ctx) {
-    UNUSED(ctx);
-    char file_path[32];
-    GuiDisplayId display_id;
-    bool success = false;
-    UNUSED(display_id);
-
-    do {
-        if(msg->query.len == 0) {
-            break;
-        }
-
-        int var_len = mg_http_get_var(&msg->query, "path", file_path, sizeof(file_path));
-        if(var_len <= 0) {
-            break;
-        }
-
-        //TODO: place some file saving logic in here
-
-        char display_id_str[8];
-        var_len = mg_http_get_var(&msg->query, "display", display_id_str, sizeof(display_id_str));
-        if(var_len <= 0) {
-            break;
-        }
-
-        if(strncmp(display_id_str, "front", 5) == 0) {
-            display_id = GuiDisplayIdFront;
-        } else if(strncmp(display_id_str, "back", 4) == 0) {
-            display_id = GuiDisplayIdBack;
-        } else {
-            break;
-        }
-        success = true;
-    } while(0);
-
-    if(!success) {
-        mg_http_reply(conn, 400, "", "Bad Request");
-        return true;
-    }
-
-    Desktop* desktop = furi_record_open(RECORD_DESKTOP);
-    if(!desktop_replace_current_app(desktop, "http_viewer", "")) {
-        mg_http_reply(conn, 400, "", "Failed to load app");
-        success = false;
-    }
-
-    if(success)
-        mg_http_reply(conn, 200, "Content-Type: application/json\r\n", "{\"result\":\"OK\"}\n");
-
-    furi_record_close(RECORD_DESKTOP);
-
-    return true;
-}
-
-static bool http_api_display_delete_callback(
-    struct mg_connection* conn,
-    struct mg_http_message* msg,
-    void* ctx) {
-    UNUSED(conn);
-    UNUSED(msg);
-    UNUSED(ctx);
-    FURI_LOG_I("HTTP display", "DELETE");
-
-    Loader* loader = furi_record_open(RECORD_LOADER);
-    loader_stop(loader);
-    furi_record_close(RECORD_LOADER);
-    // mg_http_reply(conn, 200, "Content-Type: application/json\r\n", "{\"result\":\"OK\"}\n");
-    mg_http_reply(conn, 200, "", "OK");
-    return true;
-}
-
 static const HttpHandler handlers_api_root[] = {
     {
         .uri = "/*/led",
@@ -176,25 +101,22 @@ static const HttpHandler handlers_api_root[] = {
         .type = HttpHandlerCustom,
         .ctx_alloc = http_api_led_alloc,
         .ctx_free = http_api_led_free,
-        .callback = http_api_led_callback,
+        .on_request = http_api_led_callback,
     },
     {
         .uri = "/*/version",
         .method = "GET",
         .type = HttpHandlerCustom,
-        .callback = http_api_version_callback,
+        .on_request = http_api_version_callback,
     },
     {
-        .uri = "/*/display",
-        .method = "POST",
+        .uri = "/*/display/*",
+        .method = "*",
         .type = HttpHandlerCustom,
-        .callback = http_api_display_callback,
-    },
-    {
-        .uri = "/*/display",
-        .method = "DELETE",
-        .type = HttpHandlerCustom,
-        .callback = http_api_display_delete_callback,
+        .ctx_alloc = http_api_display_alloc,
+        .ctx_free = http_api_display_free,
+        .on_request = http_api_display_callback,
+        .on_headers = http_api_display_hdr_callback,
     },
 };
 
@@ -227,4 +149,9 @@ bool http_api_root_callback(struct mg_connection* conn, struct mg_http_message* 
         FURI_LOG_I("HTTP API", "Query %.*s", msg->query.len, msg->query.buf);
     }
     return http_handle_request(context->handlers, conn, msg);
+}
+
+bool http_api_root_hdr_callback(struct mg_connection* conn, struct mg_http_message* msg, void* ctx) {
+    ApiRootCtx* context = ctx;
+    return http_handle_headers(context->handlers, conn, msg);
 }

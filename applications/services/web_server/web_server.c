@@ -27,7 +27,8 @@ static const HttpHandler handlers_root[] = {
         .uri = "/api/#",
         .method = "*",
         .type = HttpHandlerCustom,
-        .callback = http_api_root_callback,
+        .on_request = http_api_root_callback,
+        .on_headers = http_api_root_hdr_callback,
         .ctx_alloc = http_api_root_alloc,
         .ctx_free = http_api_root_free,
     },
@@ -35,7 +36,7 @@ static const HttpHandler handlers_root[] = {
         .uri = "/ws_test",
         .method = "GET",
         .type = HttpHandlerCustom,
-        .callback = http_websocket_callback,
+        .on_request = http_websocket_callback,
         .ctx_alloc = http_websocket_alloc,
         .ctx_free = http_websocket_free,
     },
@@ -43,7 +44,7 @@ static const HttpHandler handlers_root[] = {
         .uri = "/upload",
         .method = "POST",
         .type = HttpHandlerCustom,
-        .callback = http_upload_callback,
+        .on_request = http_upload_callback,
     },
     {
         .uri = "#",
@@ -58,12 +59,25 @@ static const HttpHandler handlers_root[] = {
 static void http_event_handler(struct mg_connection* conn, int ev, void* ev_data) {
     if(ev == MG_EV_HTTP_MSG) {
         WebServer* context = conn->fn_data;
-
         struct mg_http_message* msg = (struct mg_http_message*)ev_data;
+        ConnectionContext* conn_ctx = (void*)conn->data;
+        if(conn_ctx->raw.on_data == NULL) { // Skip raw connections
+            bool result = http_handle_request(context->handlers, conn, msg);
+            if(!result) {
+                mg_http_reply(conn, 400, "", "Bad Request");
+            }
+        }
 
-        bool result = http_handle_request(context->handlers, conn, msg);
-        if(!result) {
-            mg_http_reply(conn, 400, "", "Bad Request");
+    } else if(ev == MG_EV_HTTP_HDRS) {
+        WebServer* context = conn->fn_data;
+        struct mg_http_message* msg = (struct mg_http_message*)ev_data;
+        http_handle_headers(context->handlers, conn, msg);
+    } else if(ev == MG_EV_READ) {
+        if(!conn->is_websocket) {
+            ConnectionContext* conn_ctx = (void*)conn->data;
+            if(conn_ctx->raw.on_data) {
+                conn_ctx->raw.on_data(conn, &conn->recv);
+            }
         }
     } else if(ev == MG_EV_WS_MSG) {
         struct mg_ws_message* ws_msg = (struct mg_ws_message*)ev_data;
@@ -77,11 +91,9 @@ static void http_event_handler(struct mg_connection* conn, int ev, void* ev_data
             conn_ctx->ws.on_open(conn);
         }
     } else if(ev == MG_EV_CLOSE) {
-        if(conn->is_websocket) {
-            ConnectionContext* conn_ctx = (void*)conn->data;
-            if(conn_ctx->ws.on_close) {
-                conn_ctx->ws.on_close(conn);
-            }
+        ConnectionContext* conn_ctx = (void*)conn->data;
+        if(conn_ctx->on_close) {
+            conn_ctx->on_close(conn);
         }
     } else if(ev == MG_EV_WAKEUP) {
         struct mg_str* wakeup_data = (struct mg_str*)ev_data;
@@ -145,8 +157,8 @@ bool http_handle_request(
                 break;
             }
             if(inst->handler->type == HttpHandlerCustom) {
-                furi_assert(inst->handler->callback);
-                handled = inst->handler->callback(conn, msg, inst->context);
+                furi_assert(inst->handler->on_request);
+                handled = inst->handler->on_request(conn, msg, inst->context);
             } else if(inst->handler->type == HttpHandlerFile) {
                 struct mg_http_serve_opts opts = {
                     .ssi_pattern = NULL,
@@ -170,6 +182,34 @@ bool http_handle_request(
                 handled = true;
             } else {
                 furi_crash();
+            }
+        } while(0);
+        if(handled) break;
+    }
+    return handled;
+}
+
+bool http_handle_headers(
+    HttpHandlersList_t handlers,
+    struct mg_connection* conn,
+    struct mg_http_message* msg) {
+    bool handled = false;
+    HttpHandlersList_it_t it;
+    for(HttpHandlersList_it(it, handlers); !HttpHandlersList_end_p(it);
+        HttpHandlersList_next(it)) {
+        const HttpHandlerInstance* inst = HttpHandlersList_cref(it);
+        do {
+            if(inst->handler->type != HttpHandlerCustom) {
+                break;
+            }
+            if(!mg_match(msg->uri, mg_str(inst->handler->uri), NULL)) {
+                break;
+            }
+            if(!mg_match(msg->method, mg_str(inst->handler->method), NULL)) {
+                break;
+            }
+            if(inst->handler->on_headers) {
+                handled = inst->handler->on_headers(conn, msg, inst->context);
             }
         } while(0);
         if(handled) break;

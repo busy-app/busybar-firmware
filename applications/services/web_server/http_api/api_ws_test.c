@@ -54,8 +54,8 @@ static void websocket_test_on_close(struct mg_connection* conn) {
 
     // Clear connection callbacks
     conn_ctx->ws.on_open = NULL;
-    conn_ctx->ws.on_close = NULL;
     conn_ctx->ws.on_message = NULL;
+    conn_ctx->on_close = NULL;
     conn_ctx->on_wakeup = NULL;
 
     FURI_LOG_I(TAG, "Close");
@@ -100,8 +100,8 @@ bool http_websocket_callback(struct mg_connection* conn, struct mg_http_message*
         // Assign connection callbacks
         ConnectionContext* conn_ctx = (void*)conn->data;
         conn_ctx->ws.on_open = websocket_test_on_open;
-        conn_ctx->ws.on_close = websocket_test_on_close;
         conn_ctx->ws.on_message = websocket_test_on_message;
+        conn_ctx->on_close = websocket_test_on_close;
         conn_ctx->on_wakeup = websocket_test_on_wakeup;
         conn_ctx->context = context;
 
