@@ -29,23 +29,6 @@ static void label_lvgl_destructor(const lv_obj_class_t* class_p, lv_obj_t* obj) 
     furi_string_free(instance->text);
 }
 
-static bool label_input_callback(Widget* widget, const InputEvent* event) {
-    lv_obj_t* obj = (lv_obj_t*)widget;
-
-    if(lv_obj_get_scrollbar_mode(obj) != LV_SCROLLBAR_MODE_OFF) {
-        const int32_t delta = 10;
-        const bool anim = false;
-        if(event->type == InputTypeShort) {
-            if(event->key == InputKeyUp) {
-                lv_obj_scroll_by_bounded(obj, -delta, -delta, anim);
-            } else if(event->key == InputKeyDown) {
-                lv_obj_scroll_by_bounded(obj, delta, delta, anim);
-            }
-        }
-    }
-
-    return false;
-}
 // Public API
 
 Label* label_alloc(Widget* parent) {
@@ -101,22 +84,12 @@ void label_set_text_align(Label* instance, TextAlign align) {
     lv_obj_set_style_text_align((lv_obj_t*)instance, (lv_text_align_t)align, LV_PART_MAIN);
 }
 
-void label_set_max_width(Label* instance, int32_t max_width) {
-    furi_check(instance);
-    lv_obj_set_style_max_width(instance->label, max_width, LV_PART_MAIN);
-}
-
-void label_set_max_height(Label* instance, int32_t max_height) {
-    furi_check(instance);
-    lv_obj_set_style_max_height(instance->label, max_height, LV_PART_MAIN);
-}
-
 void label_set_long_content_mode(Label* instance, LabelLongContentMode mode, uint32_t duration) {
     furi_check(instance);
     furi_check(mode < LabelLongContentModeCount);
 
-    lv_label_set_long_mode(instance->label, (lv_label_long_mode_t)mode);
-    lv_obj_set_style_anim_time(instance->label, duration, LV_PART_MAIN);
+    lv_label_set_long_mode((lv_obj_t*)instance->label, (lv_label_long_mode_t)mode);
+    lv_obj_set_style_anim_time((lv_obj_t*)instance->label, duration, LV_PART_MAIN);
 }
 
 void label_set_scrollbar_mode(Label* instance, LabelScrollBarMode scrollbar_mode) {

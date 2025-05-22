@@ -104,22 +104,6 @@ void label_set_line_spacing(Label* instance, int32_t spacing);
 void label_set_text_align(Label* instance, TextAlign align);
 
 /**
- * @brief Set the label max width.
- *
- * @param[in,out] instance pointer to the Label instance to be modified
- * @param[in] max_width new maximum width value
- */
-void label_set_max_width(Label* instance, int32_t max_width);
-
-/**
- * @brief Set the label max height.
- *
- * @param[in,out] instance pointer to the Label instance to be modified
- * @param[in] max_width new maximum height value
- */
-void label_set_max_height(Label* instance, int32_t max_width);
-
-/**
  * @brief Set label long content mode.
  *
  * @param[in,out] instance pointer to the Label instance to be modified
