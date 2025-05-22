@@ -272,7 +272,7 @@ void crypto_ecdsa_test(CryptoTestApp* app, FuriString* msg) {
     crypto_ecdsa_224_test_wrap_off_custom_sha_mode(app, msg, FuriHalCryptoEcdsaModeSha384);
     crypto_ecdsa_224_test_wrap_off_custom_sha_mode(app, msg, FuriHalCryptoEcdsaModeSha512);
 
-    furi_string_printf(msg, "\033[0;33mECDSA SECP256R1 key wrap on test\033[0m\r\n");
+    furi_string_printf(msg, "\033[0;33mECDSA SECP224R1 key wrap on test\033[0m\r\n");
     crypto_test_app_send_text(app, msg);
     uint8_t private_key_wrap_224[FURI_HAL_CRYPTO_ECDSA_PRIV_KEY_SIZE_224] = {0};
     furi_hal_crypto_wrap_key(

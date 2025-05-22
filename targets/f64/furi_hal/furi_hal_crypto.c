@@ -407,6 +407,7 @@ void furi_hal_crypto_wrap_key(uint32_t key_size, uint8_t* key, uint8_t* wrapped_
     wrap_config.padding = 0;
     memcpy(wrap_config.key_buffer, key, wrap_config.key_size);
     sl_status_t status = sl_si91x_wrap(&wrap_config, wrapped_key);
+    furi_check(key_size == wrap_config.key_size, "Invalid key size");
     if(status != SL_STATUS_OK) {
         FURI_LOG_E(TAG, "Failed to wrap key: 0x%08lX", status);
         furi_crash("Failed to wrap key");

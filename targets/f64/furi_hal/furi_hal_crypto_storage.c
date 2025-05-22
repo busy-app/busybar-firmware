@@ -1,10 +1,11 @@
 #include <furi_hal_crypto_storage.h>
+#include <furi_hal_crypto.h>
 #include "sl_si91x_driver.h"
 
 #define TAG "FuriHalCryptoStorage"
 
 bool furi_hal_crypto_storage_check_key_slot_is_free(uint32_t key_slot) {
-    sl_status_t status = 0;
+    sl_status_t status = SL_STATUS_FAIL;
     uint32_t address = FURI_HAL_CRYPTO_STORAGE_START_ADDRESS + key_slot * sizeof(FuriHalCryptoKey);
     FuriHalCryptoKey* key = malloc(sizeof(FuriHalCryptoKey));
     bool ret = false;
@@ -39,6 +40,7 @@ bool furi_hal_crypto_storage_check_key_slot_is_free(uint32_t key_slot) {
 
 bool furi_hal_crypto_storage_write_key(FuriHalCryptoKey* key) {
     furi_check(key);
+    furi_check(key->key_size <= sizeof(key->key_data));
 
     if(key->key_slot >= FURI_HAL_CRYPTO_STORAGE_MAX_KEY_SLOT) {
         FURI_LOG_E(TAG, "Key slot %d is out of range\r\n", key->key_slot);
@@ -50,7 +52,54 @@ bool furi_hal_crypto_storage_write_key(FuriHalCryptoKey* key) {
         return false;
     }
 
-    sl_status_t status = 0;
+    //######### Wrap Key ###########
+    if(key->key_flags & FuriHalCryptoKeyFlagWrap) {
+        if(key->key_type != FuriHalCryptoKeyTypeHmacSha1 &&
+           key->key_type != FuriHalCryptoKeyTypeHmacSha256 &&
+           key->key_type != FuriHalCryptoKeyTypeHmacSha384 &&
+           key->key_type != FuriHalCryptoKeyTypeHmacSha512) {
+            uint8_t* key_data_wrap = malloc(key->key_size);
+            if(key_data_wrap == NULL) {
+                FURI_LOG_E(TAG, "Failed to allocate memory\r\n");
+                furi_crash("Failed to allocate memory");
+            }
+            furi_hal_crypto_wrap_key(key->key_size, key->key_data, key_data_wrap); // wrap key
+            memcpy(key->key_data, key_data_wrap, key->key_size);
+            memset(key_data_wrap, 0, key->key_size);
+            free(key_data_wrap);
+        } else {
+            uint8_t* key_hmac_data_wrap = malloc((key->key_size % 16) + 16);
+            if(key_hmac_data_wrap == NULL) {
+                FURI_LOG_E(TAG, "Failed to allocate memory\r\n");
+                furi_crash("Failed to allocate memory");
+            }
+            FuriHalCryptoHmacShaMode hmac_sha_mode = 0xFF;
+            if(key->key_type == FuriHalCryptoKeyTypeHmacSha1) {
+                hmac_sha_mode = FuriHalCryptoHmacShaModeSha1;
+            } else if(key->key_type == FuriHalCryptoKeyTypeHmacSha256) {
+                hmac_sha_mode = FuriHalCryptoHmacShaModeSha256;
+            } else if(key->key_type == FuriHalCryptoKeyTypeHmacSha384) {
+                hmac_sha_mode = FuriHalCryptoHmacShaModeSha384;
+            } else if(key->key_type == FuriHalCryptoKeyTypeHmacSha512) {
+                hmac_sha_mode = FuriHalCryptoHmacShaModeSha512;
+            }
+
+            size_t key_hmac_data_wrap_size = 0;
+            furi_hal_crypto_hmac_wrap_key(
+                key->key_size,
+                key->key_data,
+                hmac_sha_mode,
+                key_hmac_data_wrap,
+                &key_hmac_data_wrap_size);
+            furi_check(key_hmac_data_wrap_size <= sizeof(key->key_data));
+            memcpy(key->key_data, key_hmac_data_wrap, key_hmac_data_wrap_size);
+            memset(key_hmac_data_wrap, 0, key_hmac_data_wrap_size);
+            free(key_hmac_data_wrap);
+            key->key_size = key_hmac_data_wrap_size;
+        }
+    }
+
+    sl_status_t status = SL_STATUS_FAIL;
     uint32_t address =
         FURI_HAL_CRYPTO_STORAGE_START_ADDRESS + key->key_slot * sizeof(FuriHalCryptoKey);
     status = sl_si91x_command_to_write_common_flash(
@@ -71,7 +120,7 @@ bool furi_hal_crypto_storage_read_key(FuriHalCryptoKey* key) {
     }
     uint16_t key_slot = key->key_slot;
 
-    sl_status_t status = 0;
+    sl_status_t status = SL_STATUS_FAIL;
     uint32_t address =
         FURI_HAL_CRYPTO_STORAGE_START_ADDRESS + key->key_slot * sizeof(FuriHalCryptoKey);
     status =

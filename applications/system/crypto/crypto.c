@@ -28,7 +28,7 @@ void crypto_command_write_all(Cli* cli, FuriString* args, void* context) {
     UNUSED(cli);
 
     UNUSED(args);
-    sl_status_t status = 0;
+    sl_status_t status = SL_STATUS_FAIL;
     uint32_t address = FURI_HAL_CRYPTO_STORAGE_START_ADDRESS;
     uint8_t* buf = malloc(CRYPTO_SIZE_BUF);
     if(buf == NULL) {
@@ -177,7 +177,7 @@ void crypto_command_dump(Cli* cli, FuriString* args, void* context) {
     UNUSED(context);
     UNUSED(cli);
     UNUSED(args);
-    sl_status_t status = 0;
+    sl_status_t status = SL_STATUS_FAIL;
     uint32_t address = FURI_HAL_CRYPTO_STORAGE_START_ADDRESS;
     uint8_t* buf = malloc(CRYPTO_SIZE_BUF);
     if(buf == NULL) {

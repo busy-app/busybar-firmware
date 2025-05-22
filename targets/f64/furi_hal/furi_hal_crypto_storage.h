@@ -18,8 +18,8 @@ typedef enum {
     FuriHalCryptoKeyTypeEcdsaPriv256,
     FuriHalCryptoKeyTypeEcdsaPub224,
     FuriHalCryptoKeyTypeEcdsaPub256,
-    FuriHalCryptoKeyTypeNone=0xFFFFFFFF,
-} FuriHalCryptoKeyType ;
+    FuriHalCryptoKeyTypeNone = 0xFFFFFFFF,
+} FuriHalCryptoKeyType;
 _Static_assert(sizeof(FuriHalCryptoKeyType) == 4, "Size check for 'FuriHalCryptoKeyType' failed.");
 
 typedef enum {
