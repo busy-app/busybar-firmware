@@ -38,7 +38,10 @@ typedef struct {
     uint16_t key_size;
     FuriHalCryptoKeyType key_type;
     FuriHalCryptoKeyFlag key_flags;
-    uint8_t key_data[112];
+    uint32_t key_id;
+    uint32_t key_reserved;
+    uint8_t key_data[100];
+    uint32_t key_crc32;
 } FURI_PACKED FuriHalCryptoKey;
 _Static_assert(sizeof(FuriHalCryptoKey) == 128, "Size check for 'FuriHalCryptoKey' failed.");
 
