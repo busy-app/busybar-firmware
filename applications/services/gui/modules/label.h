@@ -34,14 +34,15 @@ typedef enum {
     LabelLongContentModeCount /**< Count of possible choices*/
 } LabelLongContentMode;
 
-/** Enumeration of possible scrollbar modes for label */
+/** Enumeration of possible label resize modes */
 typedef enum {
-    LabelScrollBarModeOff, /**< Never show scrollbars*/
-    LabelScrollBarModeOn, /**< Always show scrollbars*/
-    LabelScrollBarModeActive, /**< Show scroll bars when Widget is being scrolled*/
-    LabelScrollBarModeAuto, /**< Show scroll bars when the content is large enough to be scrolled*/
-    LabelScrollBarModeCount /**< Special value, not to be used in application code */
-} LabelScrollBarMode;
+    LabelAutoResizeModeToContent, /** < Fits label size to its content automaticaly. Default value  */
+    LabelAutoResizeModeToParentWidth, /** < Width will be inherited from base label widget, height will fit to content  */
+    LabelAutoResizeModeToParentHeight, /** < Height will be inherited from base label widget, width will fit to content  */
+    LabelAutoResizeModeToParentSize, /** < Both height and width will inherited from base label widget */
+
+    LabelAutoResizeModeCount, /**< Count of possible choices*/
+} LabelAutoResizeMode;
 
 /**
  * @brief Create a new Label instance.
@@ -113,12 +114,12 @@ void label_set_text_align(Label* instance, TextAlign align);
 void label_set_long_content_mode(Label* instance, LabelLongContentMode mode, uint32_t duration);
 
 /**
- * @brief Set label scrollbar mode.
+ * @brief Set label resize mode.
  *
  * @param[in,out] instance pointer to the Label instance to be modified
- * @param[in] scrollbar_mode new scrollbar mode for label
+ * @param[in] mode new resize mode for label
  */
-void label_set_scrollbar_mode(Label* instance, LabelScrollBarMode scrollbar_mode);
+void label_set_auto_resize_mode(Label* instance, LabelAutoResizeMode mode);
 
 #ifdef __cplusplus
 }

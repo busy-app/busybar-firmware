@@ -38,7 +38,7 @@ Label* label_alloc(Widget* parent) {
     lv_obj_class_init_obj(obj);
 
     Label* instance = (Label*)obj;
-    label_set_scrollbar_mode(instance, LabelScrollBarModeOff);
+    label_set_auto_resize_mode(instance, LabelAutoResizeModeToContent);
     return instance;
 }
 
@@ -92,16 +92,26 @@ void label_set_long_content_mode(Label* instance, LabelLongContentMode mode, uin
     lv_obj_set_style_anim_time((lv_obj_t*)instance->label, duration, LV_PART_MAIN);
 }
 
-void label_set_scrollbar_mode(Label* instance, LabelScrollBarMode scrollbar_mode) {
+void label_set_auto_resize_mode(Label* instance, LabelAutoResizeMode mode) {
     furi_check(instance);
-    furi_check(scrollbar_mode < LabelScrollBarModeCount);
-    lv_obj_set_scrollbar_mode((lv_obj_t*)instance, (lv_scrollbar_mode_t)scrollbar_mode);
 
-    WidgetInputFeedCallback input_cb =
-        (scrollbar_mode == LabelScrollBarModeOff) ? NULL : label_input_callback;
-    widget_set_input_feed_callback((Widget*)instance, input_cb);
+    switch(mode) {
+    case LabelAutoResizeModeToContent:
+        lv_obj_set_size(instance->label, LV_SIZE_CONTENT, LV_SIZE_CONTENT);
+        break;
+    case LabelAutoResizeModeToParentHeight:
+        lv_obj_set_size(instance->label, LV_SIZE_CONTENT, LV_PCT(100));
+        break;
+    case LabelAutoResizeModeToParentWidth:
+        lv_obj_set_size(instance->label, LV_PCT(100), LV_SIZE_CONTENT);
+        break;
+    case LabelAutoResizeModeToParentSize:
+        lv_obj_set_size(instance->label, LV_PCT(100), LV_PCT(100));
+        break;
+    default:
+        furi_crash();
+    }
 }
-
 // LVGL class descriptor
 
 const lv_obj_class_t label_lvgl_class = {
