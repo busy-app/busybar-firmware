@@ -56,6 +56,8 @@ void transition_overlay_free(TransitionOverlay* instance);
  */
 Widget* transition_overlay_get_base(TransitionOverlay* instance);
 
+void transition_overlay_set_timings(TransitionOverlay* instance, uint32_t in_ms, uint32_t out_ms);
+
 /**
  * @brief Set the overlay color for a TransitionOverlay instance.
  *

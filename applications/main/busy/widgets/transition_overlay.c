@@ -7,8 +7,6 @@
 
 #define MY_CLASS (&transition_overlay_lvgl_class)
 
-#define ANIM_DURATION_MS (400)
-
 struct TransitionOverlay {
     Widget base;
     SnapImage* snap;
@@ -16,6 +14,10 @@ struct TransitionOverlay {
     lv_obj_t* color;
     TransitionOverlayColorMode color_mode;
     TransitionOverlayMaskMode mask_mode;
+    struct {
+        uint32_t in_ms;
+        uint32_t out_ms;
+    } timings;
 };
 
 const lv_obj_class_t transition_overlay_lvgl_class;
@@ -51,7 +53,9 @@ static void transition_overlay_lvgl_mask_timer_callback(lv_timer_t* timer) {
     furi_assert(instance);
 
     if(timer->repeat_count == 1) {
+        lv_timer_set_period(timer, instance->timings.out_ms);
         widget_set_visible((Widget*)instance->snap, false);
+
     } else if(timer->repeat_count == 0) {
         widget_set_visible((Widget*)instance->snap, true);
         widget_set_visible((Widget*)instance, false);
@@ -95,18 +99,9 @@ static void transition_overlay_animate_color(TransitionOverlay* instance) {
         lv_anim_t anim;
         lv_anim_init(&anim);
 
-        uint32_t duration_ms_2;
-
-        if(instance->mask_mode != TransitionOverlayMaskModeOff) {
-            duration_ms_2 = 500 * anim_image_get_frame_count(instance->mask) /
-                            anim_image_get_frame_rate(instance->mask);
-        } else {
-            duration_ms_2 = ANIM_DURATION_MS / 2;
-        }
-
         lv_anim_set_values(&anim, LV_OPA_TRANSP, LV_OPA_COVER);
-        lv_anim_set_duration(&anim, duration_ms_2);
-        lv_anim_set_reverse_duration(&anim, duration_ms_2);
+        lv_anim_set_duration(&anim, instance->timings.in_ms);
+        lv_anim_set_reverse_duration(&anim, instance->timings.out_ms);
 
         lv_anim_set_path_cb(&anim, lv_anim_path_ease_out);
         lv_anim_set_custom_exec_cb(&anim, transition_overlay_lvgl_anim_exec_callback);
@@ -135,10 +130,8 @@ static void transition_overlay_animate_mask(TransitionOverlay* instance) {
 
         lv_obj_set_style_blend_mode(TO_LV_OBJ(instance->mask), blend_mode, LV_PART_MAIN);
 
-        const uint32_t period_ms = 500 * anim_image_get_frame_count(instance->mask) /
-                                   anim_image_get_frame_rate(instance->mask);
-        lv_timer_t* mask_timer =
-            lv_timer_create(transition_overlay_lvgl_mask_timer_callback, period_ms, instance);
+        lv_timer_t* mask_timer = lv_timer_create(
+            transition_overlay_lvgl_mask_timer_callback, instance->timings.in_ms, instance);
         lv_timer_set_repeat_count(mask_timer, 2);
 
         anim_image_start(instance->mask);
@@ -167,6 +160,13 @@ void transition_overlay_free(TransitionOverlay* instance) {
 Widget* transition_overlay_get_base(TransitionOverlay* instance) {
     furi_check(instance);
     return (Widget*)instance;
+}
+
+void transition_overlay_set_timings(TransitionOverlay* instance, uint32_t in_ms, uint32_t out_ms) {
+    furi_check(instance);
+
+    instance->timings.in_ms = in_ms;
+    instance->timings.out_ms = out_ms;
 }
 
 void transition_overlay_set_color(TransitionOverlay* instance, Color color) {

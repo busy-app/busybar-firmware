@@ -5,6 +5,10 @@ typedef struct {
     const char* mask_path;
     TransitionOverlayColorMode color_mode;
     TransitionOverlayMaskMode mask_mode;
+    struct {
+        uint32_t in_ms;
+        uint32_t out_ms;
+    } timings;
 } BusyTransition;
 
 static const BusyTransition busy_transitions[BusyTransitionTypeMax] = {
@@ -12,37 +16,61 @@ static const BusyTransition busy_transitions[BusyTransitionTypeMax] = {
         {
             .color = COLOR_MAKE_HEX(0x000000),
             .color_mode = TransitionOverlayColorModeNormal,
+            .timings =
+                {
+                    .in_ms = 200,
+                    .out_ms = 200,
+                },
         },
     [BusyTransitionTypeBlackMask] =
         {
             .mask_path = BUSY_ANIM_PATH("transition_oval_72x16.anim"),
             .mask_mode = TransitionOverlayMaskModeMultiply,
+            .timings =
+                {
+                    .in_ms = 340,
+                    .out_ms = 340,
+                },
         },
     [BusyTransitionTypeWhite] =
         {
             .color = COLOR_MAKE_HEX(0xFFFFFF),
             .color_mode = TransitionOverlayColorModeNormal,
+            .timings =
+                {
+                    .in_ms = 200,
+                    .out_ms = 200,
+                },
         },
     [BusyTransitionTypeWhiteSelect] =
         {
-            .color = COLOR_MAKE_HEX(0xAAAAAA),
-            .color_mode = TransitionOverlayColorModeAdd,
             .mask_path = BUSY_ANIM_PATH("transition_select_72x16.anim"),
             .mask_mode = TransitionOverlayMaskModeAdd,
+            .timings =
+                {
+                    .in_ms = 100,
+                    .out_ms = 1000,
+                },
         },
     [BusyTransitionTypeWork] =
         {
-            .color = COLOR_MAKE_HEX(0xFF0000),
-            .color_mode = TransitionOverlayColorModeNormal,
-            .mask_path = BUSY_ANIM_PATH("transition_select_72x16.anim"),
+            .mask_path = BUSY_ANIM_PATH("transition_select_red_72x16.anim"),
             .mask_mode = TransitionOverlayMaskModeAdd,
+            .timings =
+                {
+                    .in_ms = 100,
+                    .out_ms = 1000,
+                },
         },
     [BusyTransitionTypeRest] =
         {
-            .color = COLOR_MAKE_HEX(0x13F562),
-            .color_mode = TransitionOverlayColorModeNormal,
-            .mask_path = BUSY_ANIM_PATH("transition_select_72x16.anim"),
+            .mask_path = BUSY_ANIM_PATH("transition_select_green_72x16.anim"),
             .mask_mode = TransitionOverlayMaskModeAdd,
+            .timings =
+                {
+                    .in_ms = 100,
+                    .out_ms = 1000,
+                },
         },
 };
 
@@ -222,6 +250,8 @@ void busy_prepare_transition(BusyApp* instance, BusyTransitionType type) {
     const BusyTransition* transition = &busy_transitions[type];
 
     with_gui(instance->gui, {
+        transition_overlay_set_timings(
+            instance->transition_overlay, transition->timings.in_ms, transition->timings.out_ms);
         transition_overlay_set_color(instance->transition_overlay, transition->color);
         transition_overlay_set_color_mode(instance->transition_overlay, transition->color_mode);
 
