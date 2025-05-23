@@ -8,7 +8,7 @@
 #include "../widgets/pause_overlay.h"
 
 #define PROGRESS_BAR_COLOR_BUSY color_hex_to_rgb(0x4A0000)
-#define PROGRESS_BAR_COLOR_REST color_hex_to_rgb(0x011809)
+#define PROGRESS_BAR_COLOR_REST color_hex_to_rgb(0x003B28)
 
 #define PROGRESS_TRANSITION_MS (1000)
 
