@@ -107,8 +107,10 @@ static FrontDisplayTestApp* front_display_test_app_alloc(void) {
         GuiLayer* main_layer = gui_get_layer(instance->gui, GuiLayerIdMain);
         gui_layer_add_input_callback(main_layer, front_display_test_app_input_callback, instance);
 
+        Widget* root;
+
         // Back display
-        Widget* root = gui_layer_get_root_widget(main_layer, GuiDisplayIdBack);
+        root = gui_layer_get_root_widget(main_layer, GuiDisplayIdBack);
 
         instance->flex = flex_layout_alloc(root, FlexLayoutTypeColumn);
         Widget* flex_base = flex_layout_get_base(instance->flex);
