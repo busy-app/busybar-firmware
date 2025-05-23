@@ -164,8 +164,9 @@ static WifiAdaptiveTest* wifi_adaptive_test_alloc(void) {
             "set static ip " UDP_SERVER_IP " on your PC\n"
             "start \"iperf.exe -s -u -p 5001 -i 1\"");
         instance->label_status = label_alloc(flex_layout_get_base(instance->flex));
-        widget_set_flex_grow(label_get_base(instance->label), 5);
-        widget_set_flex_grow(label_get_base(instance->label_status), 1);
+        flex_layout_set_child_widget_grow(instance->flex, label_get_base(instance->label), 5);
+        flex_layout_set_child_widget_grow(
+            instance->flex, label_get_base(instance->label_status), 1);
     });
 
     wifi_adaptive_test_update(instance, WifiAdaptiveTestStatusDisconnected, NULL);

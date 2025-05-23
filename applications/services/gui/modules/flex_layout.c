@@ -97,6 +97,14 @@ void flex_layout_set_reverse(FlexLayout* instance, bool reverse) {
     lv_obj_set_flex_flow(obj, flow);
 }
 
+void flex_layout_set_child_widget_grow(FlexLayout* instance, Widget* child, uint8_t grow) {
+    furi_check(instance);
+    furi_check(child);
+
+    if((lv_obj_t*)instance == lv_obj_get_parent((lv_obj_t*)child)) {
+        lv_obj_set_flex_grow((lv_obj_t*)child, grow);
+    }
+}
 // LVGL class descriptor
 
 const lv_obj_class_t flex_layout_lvgl_class = {

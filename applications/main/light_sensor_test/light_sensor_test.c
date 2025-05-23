@@ -122,7 +122,8 @@ static LightSensorTestApp* light_sensor_test_app_alloc(void) {
         instance->label_light_raw_840nm = label_alloc(flex_base);
 
         instance->label_lux_instant = label_alloc(flex_base);
-        widget_set_flex_grow(label_get_base(instance->label_lux_instant), 2);
+        flex_layout_set_child_widget_grow(
+            instance->flex, label_get_base(instance->label_lux_instant), 2);
 
         instance->label_lux_mean = label_alloc(flex_base);
         instance->label_light_level = label_alloc(flex_base);
