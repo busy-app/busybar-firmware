@@ -97,7 +97,7 @@ void crypto_command_write_key(Cli* cli, FuriString* args, void* context) {
         if(parse_err || !args_read_hex_bytes(args, key->data, key->size)) {
             cli_print_usage(
                 "crypto write_key",
-                "<slot><size><type><key_flag: in HEX><id: in HEX><data: in byte>\r\n",
+                "<slot><size><type><flags: in HEX><id: in HEX><data: in byte>\r\n",
                 furi_string_get_cstr(args));
             free(key);
             return;
@@ -105,7 +105,7 @@ void crypto_command_write_key(Cli* cli, FuriString* args, void* context) {
     } else {
         cli_print_usage(
             "crypto write_key",
-            "<slot><size><type><key_flag: in HEX><id: in HEX><data: in byte>\r\n",
+            "<slot><size><type><flags: in HEX><id: in HEX><data: in byte>\r\n",
             furi_string_get_cstr(args));
         free(key);
         return;
@@ -221,7 +221,7 @@ static void crypto_command_print_usage(void) {
     printf("\tcrypto write_all Write random date to crypto storage\r\n");
     printf("\tcrypto read_key <slot> Read key from NWP flash slot\r\n");
     printf(
-        "\tcrypto write_key <slot><size><type><key_flag: in HEX><id: in HEX><data: in Byte> Write key from NWP flash slot\r\n");
+        "\tcrypto write_key <slot><size><type><flags: in HEX><id: in HEX><data: in Byte> Write key from NWP flash slot\r\n");
 }
 
 static void crypto_command(Cli* cli, FuriString* args, void* context) {
