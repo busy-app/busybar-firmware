@@ -4,6 +4,7 @@
 
 #include <gui/gui.h>
 #include <audio/audio.h>
+#include <status_lights/status_lights.h>
 
 #include "busy_timer.h"
 
@@ -43,12 +44,21 @@ typedef enum {
     BusyTransitionTypeMax,
 } BusyTransitionType;
 
+typedef enum {
+    BusyStatusLightsTypeDefault,
+    BusyStatusLightsTypeWork,
+    BusyStatusLightsTypeRest,
+    BusyStatusLightsTypeOff,
+    BusyStatusLightsTypeMax,
+} BusyStatusLightsType;
+
 typedef struct {
     FuriEventLoop* event_loop;
     FuriMessageQueue* input_queue;
     FuriMessageQueue* event_queue;
     SceneManager* scene_manager;
     BusyTimer* busy_timer;
+    StatusLights* status_lights;
     Audio* audio;
     Gui* gui;
     // Application windows
@@ -64,3 +74,5 @@ void busy_send_custom_event(BusyApp* instance, uint32_t custom_event);
 void busy_prepare_transition(BusyApp* instance, BusyTransitionType type);
 
 void busy_start_transition(BusyApp* instance);
+
+void busy_set_status_lights(BusyApp* instance, BusyStatusLightsType type);

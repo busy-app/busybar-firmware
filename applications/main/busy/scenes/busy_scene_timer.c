@@ -112,22 +112,28 @@ static void busy_scene_timer_update_tick(BusyApp* instance) {
 static void busy_scene_timer_update_state(BusyApp* instance) {
     BusySceneTimer* data = scene_manager_get_current_scene_data(instance->scene_manager);
 
-    with_gui(instance->gui, {
-        if(data->timer_state == BusyTimerStateWork) {
+    if(data->timer_state == BusyTimerStateWork) {
+        with_gui(instance->gui, {
             anim_image_set_source(data->state_image, BUSY_ANIM_PATH("busy_label_40x14.anim"));
             anim_image_start(data->state_image);
             progress_bar_set_trough_color(data->progress_bar, PROGRESS_BAR_COLOR_BUSY);
             progress_bar_set_anim_source(
                 data->progress_bar, BUSY_ANIM_PATH("progress_bar_busy_71x1.anim"));
+        });
 
-        } else if(data->timer_state == BusyTimerStateRest) {
+        busy_set_status_lights(instance, BusyStatusLightsTypeWork);
+
+    } else if(data->timer_state == BusyTimerStateRest) {
+        with_gui(instance->gui, {
             anim_image_set_source(data->state_image, BUSY_ANIM_PATH("rest_label_40x14.anim"));
             anim_image_start(data->state_image);
             progress_bar_set_trough_color(data->progress_bar, PROGRESS_BAR_COLOR_REST);
             progress_bar_set_anim_source(
                 data->progress_bar, BUSY_ANIM_PATH("progress_bar_rest_71x1.anim"));
-        }
-    });
+        });
+
+        busy_set_status_lights(instance, BusyStatusLightsTypeRest);
+    }
 }
 
 static void busy_scene_timer_toggle_pause(BusyApp* instance) {
@@ -210,6 +216,8 @@ static void busy_scene_timer_on_exit(void* context) {
     });
 
     busy_timer_set_callback(instance->busy_timer, NULL, NULL);
+
+    busy_set_status_lights(instance, BusyStatusLightsTypeDefault);
 }
 
 static bool busy_scene_timer_on_event(const SceneManagerEvent* event, void* context) {

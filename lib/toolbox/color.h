@@ -11,7 +11,7 @@
 extern "C" {
 #endif
 
-#define COLOR_MAKE_RGB(r, g, b) {.b = (b), .g = (g), .r = (r)}
+#define COLOR_MAKE_RGB(rv, gv, bv) {.b = (bv), .g = (gv), .r = (rv)}
 
 #define COLOR_MAKE_HEX(hex) \
     {.b = (hex) & 0xFF, .g = ((hex) >> 8) & 0xFF, .r = ((hex) >> 16) & 0xFF}

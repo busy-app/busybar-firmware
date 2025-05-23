@@ -25,7 +25,7 @@ void cli_command_status_lights(Cli* cli, FuriString* args, void* context) {
         return;
     }
 
-    StatusLightsCommand command = {
+    const StatusLightsCommand command = {
         .preset = StatusLightsPresetStaticColor,
         .color =
             {
@@ -36,6 +36,6 @@ void cli_command_status_lights(Cli* cli, FuriString* args, void* context) {
     };
 
     StatusLights* status_lights = furi_record_open(RECORD_STATUS_LIGHTS);
-    status_lights_send_command(status_lights, command);
+    status_lights_send_command(status_lights, &command);
     furi_record_close(RECORD_STATUS_LIGHTS);
 }
