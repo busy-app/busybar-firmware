@@ -79,26 +79,25 @@ void crypto_command_write_key(Cli* cli, FuriString* args, void* context) {
     if(furi_string_size(args)) {
         char* args_cstr = (char*)furi_string_get_cstr(args);
         StrintParseError parse_err = StrintParseNoError;
-        parse_err |= strint_to_uint16(args_cstr, &args_cstr, &key->key_slot, 10);
-        parse_err |= strint_to_uint16(args_cstr, &args_cstr, &key->key_size, 10);
-        if(!parse_err && (key->key_size > sizeof(key->key_data))) {
-            cli_print_usage(
-                "crypto write_key", "<key_size> of range\r\n", furi_string_get_cstr(args));
+        parse_err |= strint_to_uint16(args_cstr, &args_cstr, &key->slot, 10);
+        parse_err |= strint_to_uint16(args_cstr, &args_cstr, &key->size, 10);
+        if(!parse_err && (key->size > sizeof(key->data))) {
+            cli_print_usage("crypto write_key", "<size> of range\r\n", furi_string_get_cstr(args));
             free(key);
             return;
         }
         uint32_t temp = 0;
         parse_err |= strint_to_uint32(args_cstr, &args_cstr, &temp, 10);
-        key->key_type = (FuriHalCryptoKeyType)temp;
+        key->type = (FuriHalCryptoKeyType)temp;
         parse_err |= strint_to_uint32(args_cstr, &args_cstr, &temp, 16);
-        key->key_flags = (FuriHalCryptoKeyFlag)temp;
-        parse_err |= strint_to_uint32(args_cstr, &args_cstr, &key->key_id, 16);
+        key->flags = (FuriHalCryptoKeyFlag)temp;
+        parse_err |= strint_to_uint32(args_cstr, &args_cstr, &key->id, 16);
         furi_string_printf(args, "%s", args_cstr);
         furi_string_trim(args);
-        if(parse_err || !args_read_hex_bytes(args, key->key_data, key->key_size)) {
+        if(parse_err || !args_read_hex_bytes(args, key->data, key->size)) {
             cli_print_usage(
                 "crypto write_key",
-                "<key_slot><key_size><key_type><key_flag: in HEX><key_id: in HEX><key_data: in byte>\r\n",
+                "<slot><size><type><key_flag: in HEX><id: in HEX><data: in byte>\r\n",
                 furi_string_get_cstr(args));
             free(key);
             return;
@@ -106,7 +105,7 @@ void crypto_command_write_key(Cli* cli, FuriString* args, void* context) {
     } else {
         cli_print_usage(
             "crypto write_key",
-            "<key_slot><key_size><key_type><key_flag: in HEX><key_id: in HEX><key_data: in byte>\r\n",
+            "<slot><size><type><key_flag: in HEX><id: in HEX><data: in byte>\r\n",
             furi_string_get_cstr(args));
         free(key);
         return;
@@ -115,7 +114,7 @@ void crypto_command_write_key(Cli* cli, FuriString* args, void* context) {
     if(!furi_hal_crypto_storage_write_key(key)) {
         printf("Failed to write key\r\n");
     } else {
-        printf("Write key to NWP flash slot: %d \r\n", key->key_slot);
+        printf("Write key to NWP flash slot: %d \r\n", key->slot);
     }
     free(key);
 }
@@ -134,11 +133,11 @@ void crypto_command_read_key(Cli* cli, FuriString* args, void* context) {
     if(furi_string_size(args)) {
         char* args_cstr = (char*)furi_string_get_cstr(args);
         StrintParseError parse_err = StrintParseNoError;
-        parse_err |= strint_to_uint16(args_cstr, &args_cstr, &key->key_slot, 10);
+        parse_err |= strint_to_uint16(args_cstr, &args_cstr, &key->slot, 10);
         if(parse_err) {
             cli_print_usage(
                 "crypto read_key",
-                "<key_slot> Read key from NWP flash slot\r\n",
+                "<slot> Read key from NWP flash slot\r\n",
                 furi_string_get_cstr(args));
             free(key);
             return;
@@ -146,7 +145,7 @@ void crypto_command_read_key(Cli* cli, FuriString* args, void* context) {
     } else {
         cli_print_usage(
             "crypto read_key",
-            "<key_slot> Read key from NWP flash slot\r\n",
+            "<slot> Read key from NWP flash slot\r\n",
             furi_string_get_cstr(args));
         free(key);
         return;
@@ -155,19 +154,19 @@ void crypto_command_read_key(Cli* cli, FuriString* args, void* context) {
     if(!furi_hal_crypto_storage_read_key(key)) {
         printf("Failed to read key\r\n");
     } else {
-        printf("Read key from NWP flash slot: %d \r\n", key->key_slot);
+        printf("Read key from NWP flash slot: %d \r\n", key->slot);
         printf("Magic number: %lx\r\n", key->magic_number);
-        printf("Key slot: %d\r\n", key->key_slot);
-        printf("Key size: %d\r\n", key->key_size);
-        printf("Key type: %ld\r\n", (uint32_t)key->key_type);
-        printf("Key flags: 0x%08lX\r\n", (uint32_t)key->key_flags);
-        printf("Key key_id: 0x%08lX\r\n", (uint32_t)key->key_id);
-        printf("Key key_reserved: 0x%08lX\r\n", (uint32_t)key->key_reserved);
-        printf("Key key_crc32: 0x%08lX\r\n", (uint32_t)key->key_crc32);
+        printf("Key slot: %d\r\n", key->slot);
+        printf("Key size: %d\r\n", key->size);
+        printf("Key type: %ld\r\n", (uint32_t)key->type);
+        printf("Key flags: 0x%08lX\r\n", (uint32_t)key->flags);
+        printf("Key id: 0x%08lX\r\n", (uint32_t)key->id);
+        printf("Key reserved: 0x%08lX\r\n", (uint32_t)key->reserved);
+        printf("Key crc32: 0x%08lX\r\n", (uint32_t)key->crc32);
         printf("Key data:\r\n");
-        for(uint32_t i = 0; i < key->key_size; i++) {
+        for(uint32_t i = 0; i < key->size; i++) {
             if((i) % 32 == 0) printf("%08lx: ", i);
-            printf("%02x ", key->key_data[i]);
+            printf("%02x ", key->data[i]);
             if((i + 1) % 32 == 0) {
                 printf("\r\n");
             }
@@ -220,9 +219,9 @@ static void crypto_command_print_usage(void) {
     printf("\tcrypto wipe Clear crypto storage\r\n");
     printf("\tcrypto dump Dump crypto storage\r\n");
     printf("\tcrypto write_all Write random date to crypto storage\r\n");
-    printf("\tcrypto read_key <key_slot> Read key from NWP flash slot\r\n");
+    printf("\tcrypto read_key <slot> Read key from NWP flash slot\r\n");
     printf(
-        "\tcrypto write_key <key_slot><key_size><key_type><key_flag: in HEX><key_id: in HEX><key_data: in Byte> Write key from NWP flash slot\r\n");
+        "\tcrypto write_key <slot><size><type><key_flag: in HEX><id: in HEX><data: in Byte> Write key from NWP flash slot\r\n");
 }
 
 static void crypto_command(Cli* cli, FuriString* args, void* context) {

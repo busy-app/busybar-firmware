@@ -34,14 +34,14 @@ _Static_assert(sizeof(FuriHalCryptoKeyFlag) == 4, "Size check for 'FuriHalCrypto
 
 typedef struct {
     uint32_t magic_number;
-    uint16_t key_slot;
-    uint16_t key_size;
-    FuriHalCryptoKeyType key_type;
-    FuriHalCryptoKeyFlag key_flags;
-    uint32_t key_id;
-    uint32_t key_reserved;
-    uint8_t key_data[100];
-    uint32_t key_crc32;
+    uint16_t slot;
+    uint16_t size;
+    FuriHalCryptoKeyType type;
+    FuriHalCryptoKeyFlag flags;
+    uint32_t id;
+    uint32_t reserved;
+    uint8_t data[100];
+    uint32_t crc32;
 } FURI_PACKED FuriHalCryptoKey;
 _Static_assert(sizeof(FuriHalCryptoKey) == 128, "Size check for 'FuriHalCryptoKey' failed.");
 
@@ -53,7 +53,7 @@ extern "C" {
 * @param[in] key_slot Key slot to check.
 * @return true if the key slot is free, false otherwise.
 */
-bool furi_hal_crypto_storage_check_key_slot_is_free(uint32_t key_slot);
+bool furi_hal_crypto_storage_check_key_slot_is_free(uint16_t key_slot);
 
 /*
 * Write the key to the key slot.
