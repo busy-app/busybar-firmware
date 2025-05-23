@@ -22,12 +22,12 @@ if fwenv.get("IS_BASE_FIRMWARE", False):
     resources_dist = []
     resources_dist.append(sounds_converted)
 
-    anim_src_files = fwenv.GlobRecursive("*/meta.txt", Dir("#/assets/animations/"))
+    anim_src_files = fwenv.GlobRecursive("*.zip", Dir("#/assets/animations/"))
 
     anim_converted = []
 
     for f in anim_src_files:
-        file_node = assets_dir.File(f.Dir("..").name + "/animations/" + f.Dir(".").name + ".anim")
+        file_node = assets_dir.File(f.Dir(".").name + "/animations/" + splitext(f.name)[0] + ".anim")
         anim_converted.append(fw_assets_env.AnimationConverter(file_node, f))
 
     resources_dist.append(anim_converted)

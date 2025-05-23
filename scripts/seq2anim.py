@@ -5,7 +5,9 @@ import sys
 import struct
 import logging
 import argparse
+import tempfile
 from PIL import Image
+from zipfile import PyZipFile
 
 
 class BusyBarAnimation:
@@ -94,9 +96,9 @@ def parse_arguments():
     )
     parser.add_argument(
         "-i",
-        "--input_folder",
+        "--input_path",
         required=True,
-        help="Path to the folder containing PNG images.",
+        help="Path to the folder or .zip file containing PNG images.",
     )
     parser.add_argument(
         "-f",
@@ -113,7 +115,19 @@ def parse_arguments():
 
 def main():
     args = parse_arguments()
-    animation = BusyBarAnimation(args.input_folder, args.fps, args.output_file)
+
+    if os.path.isfile(args.input_path):
+        workdir = tempfile.TemporaryDirectory()
+
+        zip_file = PyZipFile(args.input_path)
+        zip_file.extractall(workdir.name)
+
+        input_folder = os.path.join(workdir.name, os.path.splitext(os.path.basename(args.input_path))[0])
+
+    else:
+        input_folder = args.input_path
+
+    animation = BusyBarAnimation(input_folder, args.fps, args.output_file)
     animation.process_images()
 
 

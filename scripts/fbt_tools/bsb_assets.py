@@ -48,7 +48,7 @@ def generate(env):
                             "${PYTHON3}",
                             "${ANIM_CONVERTER}",
                             "-i",
-                            "${SOURCE.dir}",
+                            "${SOURCE}",
                             "-o",
                             "${TARGET}",
                             # TODO: Read fps from meta.txt
