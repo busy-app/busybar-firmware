@@ -37,6 +37,7 @@ typedef enum {
     BusyTransitionTypeBlack,
     BusyTransitionTypeBlackMask,
     BusyTransitionTypeWhite,
+    BusyTransitionTypeWhiteSelect,
     BusyTransitionTypeWork,
     BusyTransitionTypeRest,
     BusyTransitionTypeMax,

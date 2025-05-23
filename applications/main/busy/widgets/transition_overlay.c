@@ -95,9 +95,18 @@ static void transition_overlay_animate_color(TransitionOverlay* instance) {
         lv_anim_t anim;
         lv_anim_init(&anim);
 
+        uint32_t duration_ms_2;
+
+        if(instance->mask_mode != TransitionOverlayMaskModeOff) {
+            duration_ms_2 = 500 * anim_image_get_frame_count(instance->mask) /
+                            anim_image_get_frame_rate(instance->mask);
+        } else {
+            duration_ms_2 = ANIM_DURATION_MS / 2;
+        }
+
         lv_anim_set_values(&anim, LV_OPA_TRANSP, LV_OPA_COVER);
-        lv_anim_set_duration(&anim, ANIM_DURATION_MS / 2);
-        lv_anim_set_reverse_duration(&anim, ANIM_DURATION_MS / 2);
+        lv_anim_set_duration(&anim, duration_ms_2);
+        lv_anim_set_reverse_duration(&anim, duration_ms_2);
 
         lv_anim_set_path_cb(&anim, lv_anim_path_ease_out);
         lv_anim_set_custom_exec_cb(&anim, transition_overlay_lvgl_anim_exec_callback);

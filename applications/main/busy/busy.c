@@ -23,15 +23,26 @@ static const BusyTransition busy_transitions[BusyTransitionTypeMax] = {
             .color = COLOR_MAKE_HEX(0xFFFFFF),
             .color_mode = TransitionOverlayColorModeNormal,
         },
+    [BusyTransitionTypeWhiteSelect] =
+        {
+            .color = COLOR_MAKE_HEX(0xAAAAAA),
+            .color_mode = TransitionOverlayColorModeAdd,
+            .mask_path = BUSY_ANIM_PATH("transition_select_72x16.anim"),
+            .mask_mode = TransitionOverlayMaskModeAdd,
+        },
     [BusyTransitionTypeWork] =
         {
             .color = COLOR_MAKE_HEX(0xFF0000),
             .color_mode = TransitionOverlayColorModeNormal,
+            .mask_path = BUSY_ANIM_PATH("transition_select_72x16.anim"),
+            .mask_mode = TransitionOverlayMaskModeAdd,
         },
     [BusyTransitionTypeRest] =
         {
             .color = COLOR_MAKE_HEX(0x13F562),
             .color_mode = TransitionOverlayColorModeNormal,
+            .mask_path = BUSY_ANIM_PATH("transition_select_72x16.anim"),
+            .mask_mode = TransitionOverlayMaskModeAdd,
         },
 };
 
