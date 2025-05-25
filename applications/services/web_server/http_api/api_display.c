@@ -185,7 +185,7 @@ static bool api_display_delete_callback(
     UNUSED(conn);
     UNUSED(msg);
     UNUSED(ctx);
-    FURI_LOG_I("HTTP display", "DELETE");
+    FURI_LOG_I(TAG, "DELETE");
 
     Loader* loader = furi_record_open(RECORD_LOADER);
     loader_stop(loader);
