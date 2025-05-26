@@ -7,11 +7,8 @@
 static void light_sensor_test_app_update(LightSensorTestApp* instance) {
     with_gui(instance->gui, {
         // Back screen
-        label_set_text_fmt(
-            instance->label_light_raw,
-            "600nm: %d, 840nm: %d",
-            instance->raw_600nm,
-            instance->raw_840nm);
+        label_set_text_fmt(instance->label_light_raw_600nm, "600nm: %d", instance->raw_600nm);
+        label_set_text_fmt(instance->label_light_raw_840nm, "840nm: %d", instance->raw_840nm);
         label_set_text_fmt(
             instance->label_lux_instant, "Lux instant: %.2f", instance->lux_instant);
         label_set_text_fmt(instance->label_lux_mean, "Lux mean: %.2f", instance->lux_mean);
@@ -117,20 +114,19 @@ static LightSensorTestApp* light_sensor_test_app_alloc(void) {
         gui_layer_add_input_callback(main_layer, ligh_sensor_test_app_input_callback, instance);
 
         Widget* root = gui_layer_get_root_widget(main_layer, GuiDisplayIdBack);
-        instance->app_window = widget_alloc(root);
 
-        // Back screen
-        instance->label_light_raw = label_alloc(instance->app_window);
-        widget_set_pos(label_get_base(instance->label_light_raw), 10, 0);
+        instance->flex = flex_layout_alloc(root, FlexLayoutTypeColumn);
+        Widget* flex_base = flex_layout_get_base(instance->flex);
 
-        instance->label_lux_instant = label_alloc(instance->app_window);
-        widget_set_pos(label_get_base(instance->label_lux_instant), 10, 10);
+        instance->label_light_raw_600nm = label_alloc(flex_base);
+        instance->label_light_raw_840nm = label_alloc(flex_base);
 
-        instance->label_lux_mean = label_alloc(instance->app_window);
-        widget_set_pos(label_get_base(instance->label_lux_mean), 10, 30);
+        instance->label_lux_instant = label_alloc(flex_base);
+        flex_layout_set_child_widget_grow(
+            instance->flex, label_get_base(instance->label_lux_instant), 2);
 
-        instance->label_light_level = label_alloc(instance->app_window);
-        widget_set_pos(label_get_base(instance->label_light_level), 10, 40);
+        instance->label_lux_mean = label_alloc(flex_base);
+        instance->label_light_level = label_alloc(flex_base);
     });
 
     light_sensor_test_app_get_measurements(instance);
@@ -147,7 +143,7 @@ static void light_sensor_test_app_free(LightSensorTestApp* instance) {
     with_gui(instance->gui, {
         GuiLayer* main_layer = gui_get_layer(instance->gui, GuiLayerIdMain);
         gui_layer_remove_input_callback(main_layer, ligh_sensor_test_app_input_callback);
-        widget_free(instance->app_window);
+        flex_layout_free(instance->flex);
     });
 
     furi_record_close(RECORD_GUI);

@@ -74,10 +74,15 @@ static lv_obj_t* gui_get_layer_root(Gui* instance, GuiDisplayId display_id, GuiL
     if(layer_id == GuiLayerIdBottom) {
         layer = lv_display_get_layer_bottom(display);
     } else if(layer_id == GuiLayerIdMain) {
-        layer = lv_display_get_screen_active(display);
+        lv_obj_t* root = lv_display_get_screen_active(display);
+
         if(display_id == GuiDisplayIdBack) {
             // Special case: make room for the status bar
-            lv_obj_set_style_pad_right(layer, BACK_STATUS_BAR_WIDTH, LV_PART_MAIN);
+            layer = lv_obj_create(root);
+            lv_obj_set_size(
+                layer, lv_obj_get_width(root) - BACK_STATUS_BAR_WIDTH, lv_obj_get_height(root));
+        } else {
+            layer = root;
         }
     } else if(layer_id == GuiLayerIdTop) {
         layer = lv_display_get_layer_top(display);

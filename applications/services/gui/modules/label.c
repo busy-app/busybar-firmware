@@ -14,6 +14,29 @@ const lv_obj_class_t label_lvgl_class;
 
 // LVGL-specific code
 
+static void label_event_callback(const lv_obj_class_t* class_p, lv_event_t* event) {
+    UNUSED(class_p);
+
+    lv_result_t res = LV_RESULT_OK;
+    res = lv_obj_event_base(MY_CLASS, event);
+    if(res != LV_RESULT_OK) return;
+
+    lv_event_code_t code = lv_event_get_code(event);
+    Label* instance = (Label*)lv_event_get_target_obj(event);
+
+    if(code == LV_EVENT_SIZE_CHANGED) {
+        int32_t lv_base_width = lv_obj_get_style_width((lv_obj_t*)&instance->base, LV_PART_MAIN);
+        int32_t lv_base_height = lv_obj_get_style_height((lv_obj_t*)&instance->base, LV_PART_MAIN);
+
+        lv_obj_set_width(
+            instance->label,
+            (lv_base_width == LV_SIZE_CONTENT) ? MY_CLASS->width_def : LV_PCT(100));
+        lv_obj_set_height(
+            instance->label,
+            (lv_base_height == LV_SIZE_CONTENT) ? MY_CLASS->height_def : LV_PCT(100));
+    }
+}
+
 static void label_lvgl_constructor(const lv_obj_class_t* class_p, lv_obj_t* obj) {
     UNUSED(class_p);
 
@@ -65,11 +88,10 @@ void label_set_text_fmt(Label* instance, const char* fmt, ...) {
 
     va_list args;
     va_start(args, fmt);
-
     furi_string_vprintf(instance->text, fmt, args);
-    lv_label_set_text_static(instance->label, furi_string_get_cstr(instance->text));
-
     va_end(args);
+
+    lv_label_set_text_static(instance->label, furi_string_get_cstr(instance->text));
 }
 
 void label_set_line_spacing(Label* instance, int32_t spacing) {
@@ -84,12 +106,21 @@ void label_set_text_align(Label* instance, TextAlign align) {
     lv_obj_set_style_text_align((lv_obj_t*)instance, (lv_text_align_t)align, LV_PART_MAIN);
 }
 
+void label_set_long_content_mode(Label* instance, LabelLongContentMode mode, uint32_t duration) {
+    furi_check(instance);
+    furi_check(mode < LabelLongContentModeCount);
+
+    lv_label_set_long_mode((lv_obj_t*)instance->label, (lv_label_long_mode_t)mode);
+    lv_obj_set_style_anim_time((lv_obj_t*)instance->label, duration, LV_PART_MAIN);
+}
+
 // LVGL class descriptor
 
 const lv_obj_class_t label_lvgl_class = {
     .base_class = &widget_lvgl_class,
     .constructor_cb = label_lvgl_constructor,
     .destructor_cb = label_lvgl_destructor,
+    .event_cb = label_event_callback,
     .name = "widget-label",
     .width_def = LV_SIZE_CONTENT,
     .height_def = LV_SIZE_CONTENT,
