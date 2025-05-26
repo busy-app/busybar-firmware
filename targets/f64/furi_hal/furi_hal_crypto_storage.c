@@ -12,10 +12,6 @@ bool furi_hal_crypto_storage_check_key_slot_is_free(uint16_t key_slot) {
     bool ret = false;
     uint32_t i = 0;
     do {
-        if(key == NULL) {
-            FURI_LOG_E(TAG, "Failed to allocate memory\r\n");
-            break;
-        }
         status = sl_si91x_command_to_read_common_flash(
             address, sizeof(FuriHalCryptoKey), (uint8_t*)key);
 
@@ -114,10 +110,7 @@ bool furi_hal_crypto_storage_write_key(FuriHalCryptoKey* key) {
 
     //check if key is written correctly
     FuriHalCryptoKey* key_check = malloc(sizeof(FuriHalCryptoKey));
-    if(key_check == NULL) {
-        FURI_LOG_E(TAG, "Failed to allocate memory\r\n");
-        furi_crash("Failed to allocate memory");
-    }
+
     key_check->slot = key->slot;
     furi_hal_crypto_storage_read_key(key_check);
     if(memcmp(key, key_check, sizeof(FuriHalCryptoKey)) != 0) {

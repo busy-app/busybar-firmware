@@ -31,10 +31,7 @@ void crypto_command_write_all(Cli* cli, FuriString* args, void* context) {
     sl_status_t status = SL_STATUS_FAIL;
     uint32_t address = FURI_HAL_CRYPTO_STORAGE_START_ADDRESS;
     uint8_t* buf = malloc(CRYPTO_SIZE_BUF);
-    if(buf == NULL) {
-        printf("Failed to allocate memory\r\n");
-        return;
-    }
+
     for(int i = 0; i < CRYPTO_SIZE_BUF; i++) {
         buf[i] = i % 256;
     }
@@ -69,10 +66,6 @@ void crypto_command_write_key(Cli* cli, FuriString* args, void* context) {
     UNUSED(args);
 
     FuriHalCryptoKey* key = malloc(sizeof(FuriHalCryptoKey));
-    if(key == NULL) {
-        printf("Failed to allocate memory\r\n");
-        return;
-    }
 
     key->magic_number = FURI_HAL_CRYPTO_STORAGE_MAGIC_NUMBER_KEY;
 
@@ -125,10 +118,6 @@ void crypto_command_read_key(Cli* cli, FuriString* args, void* context) {
     UNUSED(args);
 
     FuriHalCryptoKey* key = malloc(sizeof(FuriHalCryptoKey));
-    if(key == NULL) {
-        printf("Failed to allocate memory\r\n");
-        return;
-    }
 
     if(furi_string_size(args)) {
         char* args_cstr = (char*)furi_string_get_cstr(args);
@@ -183,10 +172,7 @@ void crypto_command_dump(Cli* cli, FuriString* args, void* context) {
     sl_status_t status = SL_STATUS_FAIL;
     uint32_t address = FURI_HAL_CRYPTO_STORAGE_START_ADDRESS;
     uint8_t* buf = malloc(CRYPTO_SIZE_BUF);
-    if(buf == NULL) {
-        printf("Failed to allocate memory\r\n");
-        return;
-    }
+
     for(uint32_t i = 0; i < 20; i++) {
         status = sl_si91x_command_to_read_common_flash(
             FURI_HAL_CRYPTO_STORAGE_START_ADDRESS + i * 1024, 1024, buf);
