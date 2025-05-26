@@ -18,6 +18,7 @@ bool furi_hal_crypto_storage_check_key_slot_is_free(uint16_t key_slot) {
         }
         status = sl_si91x_command_to_read_common_flash(
             address, sizeof(FuriHalCryptoKey), (uint8_t*)key);
+
         if(status != SL_STATUS_OK) {
             FURI_LOG_E(TAG, "Failed to read from NWP flash: 0x%lx\r\n", status);
             break;
@@ -56,25 +57,21 @@ bool furi_hal_crypto_storage_write_key(FuriHalCryptoKey* key) {
 
     //wrap key if needed
     if(key->flags & FuriHalCryptoKeyFlagWrap) {
+        uint16_t key_size = (key->size % 16) != 0 ? ((key->size / 16) * 16) + 16 :
+                                                    key->size; // Align to 16 bytes
+        furi_check(key_size <= sizeof(key->data));
+        uint8_t* key_data_wrap = malloc(key_size);
+
         if(key->type != FuriHalCryptoKeyTypeHmacSha1 &&
            key->type != FuriHalCryptoKeyTypeHmacSha256 &&
            key->type != FuriHalCryptoKeyTypeHmacSha384 &&
            key->type != FuriHalCryptoKeyTypeHmacSha512) {
-            uint8_t* key_data_wrap = malloc(key->size);
-            if(key_data_wrap == NULL) {
-                FURI_LOG_E(TAG, "Failed to allocate memory\r\n");
-                furi_crash("Failed to allocate memory");
-            }
-            furi_hal_crypto_wrap_key(key->size, key->data, key_data_wrap); // wrap key
+            furi_hal_crypto_wrap_key(key->size, key->data, key_data_wrap);
+            key->size = key_size;
             memcpy(key->data, key_data_wrap, key->size);
             memset(key_data_wrap, 0, key->size);
-            free(key_data_wrap);
+
         } else {
-            uint8_t* key_hmac_data_wrap = malloc((key->size % 16) + 16);
-            if(key_hmac_data_wrap == NULL) {
-                FURI_LOG_E(TAG, "Failed to allocate memory\r\n");
-                furi_crash("Failed to allocate memory");
-            }
             FuriHalCryptoHmacShaMode hmac_sha_mode = 0xFF;
             if(key->type == FuriHalCryptoKeyTypeHmacSha1) {
                 hmac_sha_mode = FuriHalCryptoHmacShaModeSha1;
@@ -88,13 +85,13 @@ bool furi_hal_crypto_storage_write_key(FuriHalCryptoKey* key) {
 
             size_t key_hmac_data_wrap_size = 0;
             furi_hal_crypto_hmac_wrap_key(
-                key->size, key->data, hmac_sha_mode, key_hmac_data_wrap, &key_hmac_data_wrap_size);
+                key->size, key->data, hmac_sha_mode, key_data_wrap, &key_hmac_data_wrap_size);
             furi_check(key_hmac_data_wrap_size <= sizeof(key->data));
-            memcpy(key->data, key_hmac_data_wrap, key_hmac_data_wrap_size);
-            memset(key_hmac_data_wrap, 0, key_hmac_data_wrap_size);
-            free(key_hmac_data_wrap);
+            memcpy(key->data, key_data_wrap, key_hmac_data_wrap_size);
+            memset(key_data_wrap, 0, key_hmac_data_wrap_size);
             key->size = key_hmac_data_wrap_size;
         }
+        free(key_data_wrap);
     }
 
     //get crc32 of key
@@ -102,12 +99,14 @@ bool furi_hal_crypto_storage_write_key(FuriHalCryptoKey* key) {
     key->crc32 = crc32_calc_buffer(
         key->crc32, (uint8_t*)key, sizeof(FuriHalCryptoKey) - sizeof(key->crc32));
 
-    //write key to NWP flash   
+    //write key to NWP flash
     sl_status_t status = SL_STATUS_FAIL;
     uint32_t address =
         FURI_HAL_CRYPTO_STORAGE_START_ADDRESS + key->slot * sizeof(FuriHalCryptoKey);
+
     status = sl_si91x_command_to_write_common_flash(
         address, (uint8_t*)key, sizeof(FuriHalCryptoKey), 0);
+
     if(status != SL_STATUS_OK) {
         FURI_LOG_E(TAG, "Failed to write to NWP flash: 0x%lx\r\n", status);
         return false;
@@ -147,6 +146,7 @@ bool furi_hal_crypto_storage_read_key(FuriHalCryptoKey* key) {
         FURI_HAL_CRYPTO_STORAGE_START_ADDRESS + key->slot * sizeof(FuriHalCryptoKey);
     status =
         sl_si91x_command_to_read_common_flash(address, sizeof(FuriHalCryptoKey), (uint8_t*)key);
+
     if(status != SL_STATUS_OK) {
         FURI_LOG_E(TAG, "Failed to read from NWP flash: 0x%lx\r\n", status);
         return false;

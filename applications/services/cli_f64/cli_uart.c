@@ -6,7 +6,7 @@
 
 #define TAG "CliUart"
 
-#define BUF_SIZE       (256UL)
+#define BUF_SIZE       (1024UL)
 #define UART_BAUD_RATE (230400UL)
 #define HANDLE_UART    FuriHalSerialIdUart1
 
@@ -71,7 +71,7 @@ static void cli_uart_init(void) {
     if(cli_uart_handle == NULL) {
         cli_uart_handle = malloc(sizeof(CliUart));
         cli_uart_handle->tx_stream = furi_stream_buffer_alloc(STREAM_BUFFER_SIZE_TX, 1);
-        cli_uart_handle->rx_stream = furi_stream_buffer_alloc(STREAM_BUFFER_SIZE_TX, 1);
+        cli_uart_handle->rx_stream = furi_stream_buffer_alloc(STREAM_BUFFER_SIZE_RX, 1);
         cli_uart_handle->handle_uart = furi_hal_serial_control_acquire(HANDLE_UART);
         furi_check(cli_uart_handle->handle_uart);
         furi_hal_serial_init(cli_uart_handle->handle_uart, UART_BAUD_RATE);
