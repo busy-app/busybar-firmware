@@ -110,13 +110,21 @@ static const HttpHandler handlers_api_root[] = {
         .on_request = http_api_version_callback,
     },
     {
+        .uri = "/*/assets/*",
+        .method = "*",
+        .type = HttpHandlerCustom,
+        .ctx_alloc = http_api_assets_alloc,
+        .ctx_free = http_api_assets_free,
+        .on_request = http_api_assets_callback,
+        .on_headers = http_api_assets_hdr_callback,
+    },
+    {
         .uri = "/*/display/*",
         .method = "*",
         .type = HttpHandlerCustom,
         .ctx_alloc = http_api_display_alloc,
         .ctx_free = http_api_display_free,
         .on_request = http_api_display_callback,
-        .on_headers = http_api_display_hdr_callback,
     },
 };
 

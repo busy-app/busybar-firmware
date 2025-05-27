@@ -5,8 +5,6 @@
 
 #define TAG "HTTP_SRV"
 
-#define MAX_UPLOAD_LEN 1024 * 1024 * 1024
-
 // TODO: timers
 
 typedef struct {
@@ -15,12 +13,6 @@ typedef struct {
 } WebServer;
 
 static WebServer srv = {0};
-
-bool http_upload_callback(struct mg_connection* conn, struct mg_http_message* msg, void* ctx) {
-    UNUSED(ctx);
-    mg_http_upload(conn, msg, http_fs_get(), WEB_ROOT "upload", MAX_UPLOAD_LEN);
-    return true;
-}
 
 static const HttpHandler handlers_root[] = {
     {
@@ -39,12 +31,6 @@ static const HttpHandler handlers_root[] = {
         .on_request = http_websocket_callback,
         .ctx_alloc = http_websocket_alloc,
         .ctx_free = http_websocket_free,
-    },
-    {
-        .uri = "/upload",
-        .method = "POST",
-        .type = HttpHandlerCustom,
-        .on_request = http_upload_callback,
     },
     {
         .uri = "#",
