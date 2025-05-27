@@ -117,7 +117,7 @@
         "furi",
         "drivers",
         "version",
-        "assets",
+        "internal_assets",
         "ext_applications",
         "firmware_applications_f20"
     ],
@@ -126,6 +126,7 @@
         "fw_artifacts",
         "fw_cdb",
         "sdk_extapps",
+        "bsb_assets",
         "link_builddir"
     ],
     "dist_modules": [
@@ -135,6 +136,7 @@
         "vscode_project",
         "subl_project",
         "cli",
+        "upload_resources",
         "u5_updater"
     ],
     "extra_target_meta": {

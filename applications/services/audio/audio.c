@@ -190,6 +190,7 @@ static void audio_custom_event_callback(uint32_t events, void* context) {
 
     } else {
         furi_hal_sai_stop();
+        storage_file_close(instance->file);
     }
 }
 

@@ -101,13 +101,22 @@ static const HttpHandler handlers_api_root[] = {
         .type = HttpHandlerCustom,
         .ctx_alloc = http_api_led_alloc,
         .ctx_free = http_api_led_free,
-        .callback = http_api_led_callback,
+        .on_request = http_api_led_callback,
     },
     {
         .uri = "/*/version",
         .method = "GET",
         .type = HttpHandlerCustom,
-        .callback = http_api_version_callback,
+        .on_request = http_api_version_callback,
+    },
+    {
+        .uri = "/*/display/*",
+        .method = "*",
+        .type = HttpHandlerCustom,
+        .ctx_alloc = http_api_display_alloc,
+        .ctx_free = http_api_display_free,
+        .on_request = http_api_display_callback,
+        .on_headers = http_api_display_hdr_callback,
     },
 };
 
@@ -140,4 +149,9 @@ bool http_api_root_callback(struct mg_connection* conn, struct mg_http_message* 
         FURI_LOG_I("HTTP API", "Query %.*s", msg->query.len, msg->query.buf);
     }
     return http_handle_request(context->handlers, conn, msg);
+}
+
+bool http_api_root_hdr_callback(struct mg_connection* conn, struct mg_http_message* msg, void* ctx) {
+    ApiRootCtx* context = ctx;
+    return http_handle_headers(context->handlers, conn, msg);
 }

@@ -2,9 +2,8 @@
 
 #include <gui/gui_i.h>
 
-#include <assets/assets_images.h>
-
 #include "../time_macros.h"
+#include "../storage_macros.h"
 
 #define MY_CLASS (&timer_card_lvgl_class)
 
@@ -49,7 +48,7 @@ static void timer_card_lvgl_constructor(const lv_obj_class_t* class_p, lv_obj_t*
 
     TimerCard* instance = (TimerCard*)obj;
     instance->left_image = lv_image_create(top_layout);
-    lv_image_set_src(instance->left_image, &I_active_indicator_left_28x7);
+    lv_image_set_src(instance->left_image, BUSY_IMG_PATH("active_indicator_left_28x7.bin"));
 
     instance->top_static_text = lv_label_create(top_layout);
     lv_obj_set_style_text_font(
@@ -58,7 +57,7 @@ static void timer_card_lvgl_constructor(const lv_obj_class_t* class_p, lv_obj_t*
     lv_label_set_text(instance->top_static_text, "ACTIVE");
 
     instance->right_image = lv_image_create(top_layout);
-    lv_image_set_src(instance->right_image, &I_active_indicator_right_28x7);
+    lv_image_set_src(instance->right_image, BUSY_IMG_PATH("active_indicator_right_28x7.bin"));
 
     // Mask object for image rounded corners
     lv_obj_t* mask = lv_obj_create(obj);

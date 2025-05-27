@@ -1148,6 +1148,8 @@ static bool sdmmc_wait_for_transfer_state(size_t timeout_ms) {
 }
 
 static bool sdmmc_read_blocks_dma(uint8_t* data, uint32_t address, uint32_t block_count) {
+    furi_assert(
+        ((uint32_t)data & 0x03) == 0, "sdmmc_read_blocks_dma: data pointer is not aligned");
     SDMMC_DataInitTypeDef config = {0};
     FuriHalSdError errorstate;
 
@@ -1203,6 +1205,8 @@ static bool sdmmc_read_blocks_dma(uint8_t* data, uint32_t address, uint32_t bloc
 }
 
 static bool sdmmc_write_blocks_dma(const uint8_t* data, uint32_t address, uint32_t block_count) {
+    furi_assert(
+        ((uint32_t)data & 0x03) == 0, "sdmmc_write_blocks_dma: data pointer is not aligned");
     SDMMC_DataInitTypeDef config = {0};
     FuriHalSdError errorstate;
 

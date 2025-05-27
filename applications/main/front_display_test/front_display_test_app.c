@@ -112,17 +112,15 @@ static FrontDisplayTestApp* front_display_test_app_alloc(void) {
         // Back display
         root = gui_layer_get_root_widget(main_layer, GuiDisplayIdBack);
 
-        instance->app_window = widget_alloc(root);
-        instance->static_label = label_alloc(instance->app_window);
-        widget_set_pos(label_get_base(instance->static_label), 10, 0);
+        instance->flex = flex_layout_alloc(root, FlexLayoutTypeColumn);
+        Widget* flex_base = flex_layout_get_base(instance->flex);
+
+        instance->static_label = label_alloc(flex_base);
         label_set_text(
-            instance->static_label, "Start/Ok - change pattern.\nEncoder - change color");
+            instance->static_label, "Start/Ok - change pattern\nEncoder - change color");
 
-        instance->pattern_label = label_alloc(instance->app_window);
-        widget_set_pos(label_get_base(instance->pattern_label), 10, 30);
-
-        instance->color_label = label_alloc(instance->app_window);
-        widget_set_pos(label_get_base(instance->color_label), 10, 40);
+        instance->pattern_label = label_alloc(flex_base);
+        instance->color_label = label_alloc(flex_base);
 
         // Front display
         root = gui_layer_get_root_widget(main_layer, GuiDisplayIdFront);
@@ -145,7 +143,7 @@ static void front_display_test_app_free(FrontDisplayTestApp* instance) {
         GuiLayer* main_layer = gui_get_layer(instance->gui, GuiLayerIdMain);
         gui_layer_remove_input_callback(main_layer, front_display_test_app_input_callback);
 
-        widget_free(instance->app_window);
+        flex_layout_free(instance->flex);
         canvas_free(instance->canvas);
     });
 

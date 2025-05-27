@@ -20,10 +20,10 @@ extern "C" {
 /**
  * @brief Send command to Status Lights
  *
- * @param instance  pointer to StatusLights instance
- * @param command   StatusLightsCommand instance to send
+ * @param instance  pointer to a StatusLights instance
+ * @param command   pointer to a StatusLightsCommand to send
  */
-void status_lights_send_command(StatusLights* instance, StatusLightsCommand command);
+void status_lights_send_command(StatusLights* instance, const StatusLightsCommand* command);
 
 #ifdef __cplusplus
 }

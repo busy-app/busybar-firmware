@@ -2,7 +2,7 @@
 
 #include <gui/widget_i.h>
 
-#include <assets/assets_images.h>
+#include "../storage_macros.h"
 
 #define MY_CLASS (&pause_overlay_lvgl_class)
 
@@ -31,7 +31,7 @@ static void pause_overlay_lvgl_constructor(const lv_obj_class_t* class_p, lv_obj
     lv_obj_align(layout, LV_ALIGN_CENTER, 0, -1);
 
     lv_obj_t* image = lv_image_create(layout);
-    lv_image_set_src(image, &I_pause_5x5);
+    lv_image_set_src(image, BUSY_IMG_PATH("pause_5x5.bin"));
 
     lv_obj_t* label = lv_label_create(layout);
     lv_label_set_text(label, "PAUSED");

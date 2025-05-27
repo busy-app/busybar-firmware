@@ -6,6 +6,8 @@ App(
     requires=[
         "gui",
         "storage",
+        "desktop",
+        "loader",
         # "busy",  # TODO: resolve theme dependency
     ],
     stack_size=2 * 1024,

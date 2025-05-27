@@ -346,8 +346,12 @@ static Desktop* desktop_alloc(void) {
     FuriPubSub* loader_events = loader_get_pubsub(instance->loader);
     furi_pubsub_subscribe(loader_events, desktop_loader_pubsub_callback, instance);
 
+#if defined(SRV_INPUT)
     FuriPubSub* input_events = furi_record_open(RECORD_INPUT_EVENTS);
     furi_pubsub_subscribe(input_events, desktop_input_pubsub_callback, instance);
+#else
+    UNUSED(desktop_input_pubsub_callback);
+#endif
 
     desktop_prepare_default_app(instance);
     if(!loader_is_locked(instance->loader)) {

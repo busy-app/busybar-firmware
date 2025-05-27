@@ -8,7 +8,9 @@
 #include "../widgets/pause_overlay.h"
 
 #define PROGRESS_BAR_COLOR_BUSY color_hex_to_rgb(0x4A0000)
-#define PROGRESS_BAR_COLOR_REST color_hex_to_rgb(0x011809)
+#define PROGRESS_BAR_COLOR_REST color_hex_to_rgb(0x003B28)
+
+#define COUNTDOWN_THRESHOLD_S (3)
 
 #define PROGRESS_TRANSITION_MS (1000)
 
@@ -101,27 +103,39 @@ static void busy_scene_timer_update_tick(BusyApp* instance) {
         timer_label_set_time(data->timer_label, data->timer_time.remain_s);
         timer_card_set_time(instance->timer_card, data->timer_time.remain_s);
     });
+
+    if(time->remain_s == 0) {
+        audio_play_file(instance->audio, BUSY_SOUND_PATH("countdown_finish.snd"));
+    } else if(time->remain_s <= COUNTDOWN_THRESHOLD_S) {
+        audio_play_file(instance->audio, BUSY_SOUND_PATH("countdown_tick.snd"));
+    }
 }
 
 static void busy_scene_timer_update_state(BusyApp* instance) {
     BusySceneTimer* data = scene_manager_get_current_scene_data(instance->scene_manager);
 
-    with_gui(instance->gui, {
-        if(data->timer_state == BusyTimerStateWork) {
-            anim_image_set_source(data->state_image, BUSY_ANIM_PATH("A_busy_label_40x14.anim"));
+    if(data->timer_state == BusyTimerStateWork) {
+        with_gui(instance->gui, {
+            anim_image_set_source(data->state_image, BUSY_ANIM_PATH("busy_label_40x14.anim"));
             anim_image_start(data->state_image);
             progress_bar_set_trough_color(data->progress_bar, PROGRESS_BAR_COLOR_BUSY);
             progress_bar_set_anim_source(
-                data->progress_bar, BUSY_ANIM_PATH("A_progress_bar_busy_71x1.anim"));
+                data->progress_bar, BUSY_ANIM_PATH("progress_bar_busy_71x1.anim"));
+        });
 
-        } else if(data->timer_state == BusyTimerStateRest) {
-            anim_image_set_source(data->state_image, BUSY_ANIM_PATH("A_rest_label_40x14.anim"));
+        busy_set_status_lights(instance, BusyStatusLightsTypeWork);
+
+    } else if(data->timer_state == BusyTimerStateRest) {
+        with_gui(instance->gui, {
+            anim_image_set_source(data->state_image, BUSY_ANIM_PATH("rest_label_40x14.anim"));
             anim_image_start(data->state_image);
             progress_bar_set_trough_color(data->progress_bar, PROGRESS_BAR_COLOR_REST);
             progress_bar_set_anim_source(
-                data->progress_bar, BUSY_ANIM_PATH("A_progress_bar_rest_71x1.anim"));
-        }
-    });
+                data->progress_bar, BUSY_ANIM_PATH("progress_bar_rest_71x1.anim"));
+        });
+
+        busy_set_status_lights(instance, BusyStatusLightsTypeRest);
+    }
 }
 
 static void busy_scene_timer_toggle_pause(BusyApp* instance) {
@@ -204,6 +218,8 @@ static void busy_scene_timer_on_exit(void* context) {
     });
 
     busy_timer_set_callback(instance->busy_timer, NULL, NULL);
+
+    busy_set_status_lights(instance, BusyStatusLightsTypeDefault);
 }
 
 static bool busy_scene_timer_on_event(const SceneManagerEvent* event, void* context) {

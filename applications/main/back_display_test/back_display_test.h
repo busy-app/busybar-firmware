@@ -11,6 +11,7 @@ extern "C" {
 
 typedef enum {
     BackDisplayTestPatternFill,
+    BackDisplayTestPatternFillInverted,
     BackDisplayTestPatternCheckerboard,
     BackDisplayTestPatternGradientHorizontal,
     BackDisplayTestPatternGradientVertical,
