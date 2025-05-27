@@ -12,15 +12,93 @@ void crypto_command_wipe(Cli* cli, FuriString* args, void* context) {
     UNUSED(context);
     UNUSED(cli);
 
-    UNUSED(args);
-
-    sl_status_t status = sl_si91x_command_to_write_common_flash(
-        FURI_HAL_CRYPTO_STORAGE_START_ADDRESS, NULL, FURI_HAL_CRYPTO_STORAGE_END_ADDRESS, 1);
-    if(status != SL_STATUS_OK) {
-        printf("Failed to wipe NWP flash: 0x%lx\r\n", status);
+    uint16_t partition = 0xFF;
+    if(furi_string_size(args)) {
+        char* args_cstr = (char*)furi_string_get_cstr(args);
+        StrintParseError parse_err = StrintParseNoError;
+        parse_err |= strint_to_uint16(args_cstr, &args_cstr, &partition, 10);
+        if(parse_err) {
+            cli_print_usage(
+                "crypto wipe",
+                "<partition> 0-partition1, 1-partition2, 2-matter, 3-user, 5-all. Clear crypto storage\r\n",
+                furi_string_get_cstr(args));
+            return;
+        }
+    } else {
+        cli_print_usage(
+            "crypto wipe",
+            "<partition> 0-partition1, 1-partition2, 2-matter, 3-user, 5-all. Clear crypto storage\r\n",
+            furi_string_get_cstr(args));
         return;
     }
-    printf("Wipe NWP flash\r\n");
+
+    sl_status_t status = SL_STATUS_FAIL;
+    switch(partition) {
+    case 0: // partition1
+        status = sl_si91x_command_to_write_common_flash(
+            FURI_HAL_CRYPTO_STORAGE_PARTITION_1_START_ADDRESS,
+            NULL,
+            FURI_HAL_CRYPTO_STORAGE_PARTITION_1_END_ADDRESS -
+                FURI_HAL_CRYPTO_STORAGE_PARTITION_1_START_ADDRESS + 1,
+            1);
+        if(status != SL_STATUS_OK) {
+            printf("Failed to wipe NWP flash partition1: 0x%lx\r\n", status);
+        } else {
+            printf("Wipe NWP flash partition1\r\n");
+        }
+        break;
+    case 1: // partition2
+        status = sl_si91x_command_to_write_common_flash(
+            FURI_HAL_CRYPTO_STORAGE_PARTITION_2_START_ADDRESS,
+            NULL,
+            FURI_HAL_CRYPTO_STORAGE_PARTITION_2_END_ADDRESS -
+                FURI_HAL_CRYPTO_STORAGE_PARTITION_2_START_ADDRESS + 1,
+            1);
+        if(status != SL_STATUS_OK) {
+            printf("Failed to wipe NWP flash partition2: 0x%lx\r\n", status);
+        } else {
+            printf("Wipe NWP flash partition2\r\n");
+        }
+        break;
+    case 2: // matter
+        status = sl_si91x_command_to_write_common_flash(
+            FURI_HAL_CRYPTO_STORAGE_PARTITION_MATTER_START_ADDRESS,
+            NULL,
+            FURI_HAL_CRYPTO_STORAGE_PARTITION_MATTER_END_ADDRESS -
+                FURI_HAL_CRYPTO_STORAGE_PARTITION_MATTER_START_ADDRESS + 1,
+            1);
+        if(status != SL_STATUS_OK) {
+            printf("Failed to wipe NWP flash matter: 0x%lx\r\n", status);
+        } else {
+            printf("Wipe NWP flash matter\r\n");
+        }
+        break;
+    case 3: // user
+        status = sl_si91x_command_to_write_common_flash(
+            FURI_HAL_CRYPTO_STORAGE_PARTITION_USER_START_ADDRESS,
+            NULL,
+            FURI_HAL_CRYPTO_STORAGE_PARTITION_USER_END_ADDRESS -
+                FURI_HAL_CRYPTO_STORAGE_PARTITION_USER_START_ADDRESS + 1,
+            1);
+        if(status != SL_STATUS_OK) {
+            printf("Failed to wipe NWP flash user: 0x%lx\r\n", status);
+        } else {
+            printf("Wipe NWP flash user\r\n");
+        }
+        break;
+    case 5: // all
+        status = sl_si91x_command_to_write_common_flash(
+            FURI_HAL_CRYPTO_STORAGE_START_ADDRESS, NULL, FURI_HAL_CRYPTO_STORAGE_END_ADDRESS, 1);
+        if(status != SL_STATUS_OK) {
+            printf("Failed to wipe NWP flash all: 0x%lx\r\n", status);
+        } else {
+            printf("Wipe NWP flash all\r\n");
+        }
+        break;
+    default:
+        furi_crash();
+        return;
+    }
 }
 
 void crypto_command_write_all(Cli* cli, FuriString* args, void* context) {
@@ -202,7 +280,8 @@ static void crypto_command_print_usage(void) {
     printf("crypto <cmd> <args>\r\n");
     printf("Cmd list:\r\n");
 
-    printf("\tcrypto wipe Clear crypto storage\r\n");
+    printf(
+        "\tcrypto wipe <partition> 0-partition1, 1-partition2, 2-matter, 3-user, 5-all. Clear crypto storage\r\n");
     printf("\tcrypto dump Dump crypto storage\r\n");
     printf("\tcrypto write_all Write random date to crypto storage\r\n");
     printf("\tcrypto read_key <slot> Read key from NWP flash slot\r\n");
