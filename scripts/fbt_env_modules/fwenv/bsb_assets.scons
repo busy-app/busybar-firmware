@@ -11,7 +11,7 @@ fw_assets_env = fwenv.Clone(tools=["bsb_assets"])
 if fwenv.get("IS_BASE_FIRMWARE", False):
     assets_dir = fwenv.Dir("${BUILD_DIR}/apps_assets")
 
-    sounds_src_files = fwenv.GlobRecursive("*.*", Dir("#/assets/sounds/"))
+    sounds_src_files = fwenv.GlobRecursive("*.wav", Dir("#/assets/sounds/"))
 
     sounds_converted = []
 
