@@ -1,15 +1,15 @@
 #include "../busy.h"
 
-#include <gui/modules/label.h>
+#include <gui/modules/image.h>
 
 #include "../widgets/progress_view.h"
 
 #define DONE_TRANSITION_DELAY_MS (4000)
-#define REST_TRANSITION_DELAY_MS (1000)
+#define REST_TRANSITION_DELAY_MS (1500)
 
 typedef struct {
-    Label* front_label;
     ProgressView* front_progress_view;
+    Image* front_rest_image;
 } BusySceneProgress;
 
 static void busy_scene_progress_run_later_callback(void* context) {
@@ -45,10 +45,8 @@ static void busy_scene_progress_on_enter(void* context) {
 
     } else if(state == BusyTimerStateWork) {
         with_gui(instance->gui, {
-            data->front_label = label_alloc(instance->front_window);
-
-            label_set_text(data->front_label, "v REST");
-            widget_set_align(label_get_base(data->front_label), AlignCenter);
+            data->front_rest_image = image_alloc(instance->front_window);
+            image_set_source(data->front_rest_image, BUSY_IMG_PATH("rest_done_72x16.bin"));
         });
 
         run_later_delay = REST_TRANSITION_DELAY_MS;
@@ -79,9 +77,9 @@ static void busy_scene_progress_on_exit(void* context) {
             data->front_progress_view = NULL;
         }
 
-        if(data->front_label) {
-            label_free(data->front_label);
-            data->front_label = NULL;
+        if(data->front_rest_image) {
+            image_free(data->front_rest_image);
+            data->front_rest_image = NULL;
         }
     });
 
