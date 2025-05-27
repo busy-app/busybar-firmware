@@ -7,6 +7,12 @@ WifiStatus wifi_decode_sl_status(sl_status_t sl_status) {
 
     if(sl_status == SL_STATUS_OK) {
         status = WifiStatusOk;
+    } else if(sl_status == SL_STATUS_NOT_INITIALIZED) {
+        status = WifiStatusNotInitialized;
+    } else if(sl_status == SL_STATUS_ALREADY_INITIALIZED) {
+        status = WifiStatusAlreadyInitialized;
+    } else if(sl_status == SL_STATUS_INITIALIZATION) {
+        status = WifiStatusFailedToInitialize;
     } else {
         // TODO: More error cases
         status = WifiStatusError;

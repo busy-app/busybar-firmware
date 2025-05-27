@@ -31,6 +31,9 @@ typedef struct Wifi Wifi;
 typedef enum {
     WifiStatusOk, /**< No error has occurred. */
     WifiStatusError, /**< A generic error has occurred. */
+    WifiStatusNotInitialized, /**< Wifi was not initialized before use. */
+    WifiStatusAlreadyInitialized, /** Wifi has already been initialized. */
+    WifiStatusFailedToInitialize, /** Wifi initialization failed. */
     // TODO: Add more errors
 } WifiStatus;
 
