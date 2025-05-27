@@ -197,8 +197,13 @@ static void gui_init_back(GuiDisplay* display) {
 }
 
 static void gui_init_input(Gui* instance) {
+#if defined(SRV_INPUT)
     FuriPubSub* input_events = furi_record_open(RECORD_INPUT_EVENTS);
     furi_pubsub_subscribe(input_events, gui_input_pubsub_callback, instance);
+#else
+    UNUSED(instance);
+    UNUSED(gui_input_pubsub_callback);
+#endif
 }
 
 static void gui_init_layers(Gui* instance) {
