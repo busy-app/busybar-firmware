@@ -125,7 +125,8 @@ static void power_handle_reboot(Power* power, PowerRebootMode mode) {
         furi_crash("Should never happen");
     } else if(mode == PowerRebootDfuU5) {
         // TODO: set RTC flag & reboot
-        furi_hal_cortex_jump_to_dfu();
+        furi_hal_deinit_early();
+        furi_hal_cortex_jump(FuriHalCortexJumpDFU);
         furi_crash("Should never happen");
     }
 }
