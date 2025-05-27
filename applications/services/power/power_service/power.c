@@ -39,24 +39,6 @@ static void power_print_interrupt_flags(uint32_t flags) {
     if(flags & Bq25798ChargerFlagVbatOtgLow) FURI_LOG_D(TAG, "\tVbat OTG low");
 }
 
-static float power_ntc_temperature_from_resistance(float resistance) {
-    const float beta = 3950.f;
-    const float R0 = 10000.f;
-    const float T0 = 298.15f; // 25 degrees Celsius
-
-    const float T = 1.f / ((1.f / T0) + (1.f / beta) * logf(resistance / R0));
-    return T - 273.15f; // Convert Kelvin to Celsius
-}
-
-static float power_ntc_resistance_from_percent(float percent) {
-    const float R1 = 5230.f; // 5.23kOhm
-    const float R2 = 31600.f; // 31.6kOhm
-
-    float ntc = 1.f / ((percent / (R1 * (1.f - percent))) - 1.f / R2);
-
-    return ntc;
-}
-
 static void power_on_interrupt(FuriEventLoopObject* object, void* context) {
     Power* power = context;
 
@@ -280,11 +262,6 @@ static void power_update_info(Power* power) {
 
     furi_hal_i2c_release(POWER_I2C);
 
-    float percent = adc_val.temp_bat_pct / 100.f;
-    percent = 1.f - percent;
-    float ntc_resistance = power_ntc_resistance_from_percent(percent);
-    float ntc_temp = power_ntc_temperature_from_resistance(ntc_resistance);
-
 #if 0
     {
         // Debug battery status
@@ -330,7 +307,6 @@ static void power_update_info(Power* power) {
     power->info.voltage_usb = adc_val.usb_v;
     power->info.temperature_charger = adc_val.temp_charger;
     power->info.temperature_battery = adc_val.temp_bat_pct;
-    power->info.temperature_battery_celsius = ntc_temp;
 
     power->info.charge_ilim_usb = power->input_current_limit;
     power->info.charge_ilim_battery = power->charger_current_limit;
