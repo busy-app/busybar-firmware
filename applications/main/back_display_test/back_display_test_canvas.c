@@ -31,6 +31,13 @@ static void back_display_test_canvas_update_fill(Canvas* canvas, BackDisplayTest
 }
 
 static void
+    back_display_test_canvas_update_fill_inverted(Canvas* canvas, BackDisplayTestColor color) {
+    BackDisplayTestColor inverted_color = BackDisplayTestColor0 - color;
+    canvas_set_fill_color(canvas, back_display_test_colors[inverted_color].color);
+    canvas_fill(canvas);
+}
+
+static void
     back_display_test_canvas_update_checkerboard(Canvas* canvas, BackDisplayTestColor color) {
     canvas_set_line_width(canvas, 0);
     canvas_set_fill_color(canvas, back_display_test_colors[color].color);
@@ -216,6 +223,8 @@ typedef struct {
 
 static const BackDisplayTestPatternInfo back_display_test_patterns[BackDisplayTestPatternMax] = {
     [BackDisplayTestPatternFill] = {back_display_test_canvas_update_fill, "Fill"},
+    [BackDisplayTestPatternFillInverted] =
+        {back_display_test_canvas_update_fill_inverted, "Fill inverted"},
     [BackDisplayTestPatternCheckerboard] =
         {back_display_test_canvas_update_checkerboard, "Checker"},
     [BackDisplayTestPatternGradientHorizontal] =

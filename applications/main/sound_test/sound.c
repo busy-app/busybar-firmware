@@ -37,11 +37,6 @@ typedef enum {
 } SoundCustomEvent;
 
 typedef enum {
-    SoundAppModeEdit,
-    SoundAppModeTest
-} SoundAppMode;
-
-typedef enum {
     SoundButtonStart,
     SoundButtonBack,
     SoundButtonOk,
@@ -61,15 +56,9 @@ typedef struct {
     Audio* audio;
     Gui* gui;
 
-    Label* label;
     VarItem* var_list_sound_items[SoundButtonNum];
     VarItemList* var_list;
-
-    Widget* widget_list;
-    Widget* widget_label;
-
-    SoundAppMode mode;
-    FuriString* label_text;
+    Label* footer_label;
 
     ButtonSoundArray_t button_sounds[SoundButtonNum];
 } Sound;
@@ -85,59 +74,19 @@ static bool sound_input_callback(const InputEvent* event, void* context) {
     furi_assert(context);
     Sound* instance = context;
 
-    bool consumed = false;
-
-    if(event->type == InputTypeLong) {
-        if(event->key == InputKeyStart || event->key == InputKeyOk) {
-            furi_event_loop_set_custom_event(
-                instance->event_loop,
-                instance->mode == SoundAppModeEdit ? SoundCustomEventTest : SoundCustomEventEdit);
-            consumed = true;
-        }
-    }
-
-    return consumed;
-}
-
-static bool sound_top_layer_callback(const InputEvent* event, void* context) {
-    furi_assert(event);
-    furi_assert(context);
-    Sound* instance = context;
-
-    bool consumed = false;
-    if(event->type == InputTypeShort) {
-        if(instance->mode == SoundAppModeTest) {
-            uint32_t custom_event;
-            if(event->key == InputKeyStart) {
-                custom_event = SoundCustomEventSoundStart;
-            } else if(event->key == InputKeyBack) {
-                custom_event = SoundCustomEventSoundBack;
-            } else if(event->key == InputKeyOk) {
-                custom_event = SoundCustomEventSoundOk;
-            } else
-                return consumed;
-
-            furi_event_loop_set_custom_event(instance->event_loop, custom_event);
-            consumed = false;
+    if(event->type == InputTypePress) {
+        if(event->key == InputKeyStart) {
+            furi_event_loop_set_custom_event(instance->event_loop, SoundCustomEventSoundStart);
+        } else if(event->key == InputKeyBack) {
+            furi_event_loop_set_custom_event(instance->event_loop, SoundCustomEventSoundBack);
+        } else if(event->key == InputKeyOk) {
+            furi_event_loop_set_custom_event(instance->event_loop, SoundCustomEventSoundOk);
         }
     } else if(event->type == InputTypeLong && event->key == InputKeyBack) {
         furi_event_loop_set_custom_event(instance->event_loop, SoundCustomEventExit);
-        consumed = true;
     }
 
-    return consumed;
-}
-
-static void sound_app_switch_mode(Sound* instance, SoundAppMode new_mode) {
-    with_gui(instance->gui, {
-        Widget* widget_list = instance->widget_list;
-        Widget* widget_label = instance->widget_label;
-
-        widget_move_to_foreground(new_mode == SoundAppModeEdit ? widget_list : widget_label);
-        widget_move_to_background(new_mode == SoundAppModeEdit ? widget_label : widget_list);
-
-        instance->mode = new_mode;
-    });
+    return true;
 }
 
 static const char* sound_var_list_item_get_filename(Sound* instance, SoundButtonNames button) {
@@ -157,29 +106,6 @@ static bool
     path_append(output, name);
     furi_string_cat_str(output, ".snd");
     return true;
-}
-
-static void sound_app_format_label(Sound* instance) {
-    furi_string_reset(instance->label_text);
-
-    int32_t index = var_item_get_value(instance->var_list_sound_items[SoundButtonStart]);
-    const char* name = *ButtonSoundArray_cget(instance->button_sounds[SoundButtonStart], index);
-    furi_string_cat_printf(
-        instance->label_text, "  %s                  %s\n", BTN_NAME_START, name);
-
-    index = var_item_get_value(instance->var_list_sound_items[SoundButtonBack]);
-    name = *ButtonSoundArray_cget(instance->button_sounds[SoundButtonBack], index);
-    furi_string_cat_printf(
-        instance->label_text, "  %s                    %s\n", BTN_NAME_BACK, name);
-
-    index = var_item_get_value(instance->var_list_sound_items[SoundButtonOk]);
-    name = *ButtonSoundArray_cget(instance->button_sounds[SoundButtonOk], index);
-    furi_string_cat_printf(
-        instance->label_text, "  %s                        %s\n", BTN_NAME_OK, name);
-
-    // furi_string_cat_printf(instance->label_text, "  START                  %s\n", text[0]);
-    // furi_string_cat_printf(instance->label_text, "  BACK                    %s\n", text[0]);
-    // furi_string_cat_printf(instance->label_text, "  OK                        %s\n", text[0]);
 }
 
 static void sound_button_play_if_exist(Sound* instance, SoundButtonNames button) {
@@ -207,16 +133,6 @@ static void sound_custom_event_callback(uint32_t events, void* context) {
 
     if(events & SoundCustomEventSoundOk) {
         sound_button_play_if_exist(instance, SoundButtonOk);
-    }
-
-    if(events & SoundCustomEventTest) {
-        sound_app_format_label(instance);
-        label_set_text_fmt(instance->label, furi_string_get_cstr(instance->label_text));
-        sound_app_switch_mode(instance, SoundAppModeTest);
-    }
-
-    if(events & SoundCustomEventEdit) {
-        sound_app_switch_mode(instance, SoundAppModeEdit);
     }
 }
 
@@ -283,8 +199,6 @@ static Sound* sound_alloc(void) {
     instance->audio = furi_record_open(RECORD_AUDIO);
     instance->gui = furi_record_open(RECORD_GUI);
 
-    instance->label_text = furi_string_alloc();
-
     furi_event_loop_set_custom_event_callback(
         instance->event_loop, sound_custom_event_callback, instance);
 
@@ -295,14 +209,11 @@ static Sound* sound_alloc(void) {
     sound_init_storage(instance->button_sounds[SoundButtonOk], EXT_PATH(SOUND_FOLDER_BUTTON_OK));
 
     with_gui(instance->gui, {
-        GuiLayer* top_layer = gui_get_layer(instance->gui, GuiLayerIdTop);
-        gui_layer_add_input_callback(top_layer, sound_top_layer_callback, instance);
-
         GuiLayer* main_layer = gui_get_layer(instance->gui, GuiLayerIdMain);
         gui_layer_add_input_callback(main_layer, sound_input_callback, instance);
 
-        instance->widget_list = gui_layer_get_root_widget(main_layer, GuiDisplayIdBack);
-        instance->var_list = var_item_list_alloc(instance->widget_list);
+        Widget* root_widget = gui_layer_get_root_widget(main_layer, GuiDisplayIdBack);
+        instance->var_list = var_item_list_alloc(root_widget);
 
         SoundButtonCollection* buf =
             sound_collection_alloc_from_array(instance->button_sounds[SoundButtonStart]);
@@ -320,35 +231,27 @@ static Sound* sound_alloc(void) {
             instance->var_list, BTN_NAME_OK, NULL, buf->items, buf->size, NULL, NULL);
         sound_collection_free(buf);
 
-        instance->widget_label = widget_alloc(instance->widget_list);
-        instance->label = label_alloc(instance->widget_label);
-
-        sound_app_format_label(instance);
-        label_set_text_fmt(instance->label, furi_string_get_cstr(instance->label_text));
+        instance->footer_label = label_alloc(root_widget);
+        label_set_text(instance->footer_label, "Hold 'Back' to exit");
+        widget_set_align(label_get_base(instance->footer_label), AlignBottomRight);
     });
-    sound_app_switch_mode(instance, SoundAppModeEdit);
 
     return instance;
 }
 
 static void sound_free(Sound* instance) {
     with_gui(instance->gui, {
-        GuiLayer* top_layer = gui_get_layer(instance->gui, GuiLayerIdTop);
-        gui_layer_remove_input_callback(top_layer, sound_top_layer_callback);
-
         GuiLayer* main_layer = gui_get_layer(instance->gui, GuiLayerIdMain);
         gui_layer_remove_input_callback(main_layer, sound_input_callback);
 
         var_item_list_free(instance->var_list);
-        label_free(instance->label);
-        widget_free(instance->widget_label);
+        label_free(instance->footer_label);
     });
 
     for(size_t i = 0; i < SoundButtonNum; i++) {
         ButtonSoundArray_clear(instance->button_sounds[i]);
     }
 
-    furi_string_free(instance->label_text);
     furi_record_close(RECORD_GUI);
     furi_record_close(RECORD_AUDIO);
 

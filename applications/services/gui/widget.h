@@ -38,6 +38,15 @@ typedef enum {
     AlignMax, /**< Special value, not to be used in application code */
 } Align;
 
+/** Enumeration of possible scrollbar modes for widget */
+typedef enum {
+    WidgetScrollBarModeOff, /**< Never show scrollbars*/
+    WidgetScrollBarModeOn, /**< Always show scrollbars*/
+    WidgetScrollBarModeActive, /**< Show scroll bars when Widget is being scrolled*/
+    WidgetScrollBarModeAuto, /**< Show scroll bars when the content is large enough to be scrolled*/
+    WidgetScrollBarModeCount /**< Special value, not to be used in application code */
+} WidgetScrollBarMode;
+
 /**
  * @brief Create a new widget instance.
  *
@@ -166,6 +175,14 @@ void widget_move_to_foreground(Widget* instance);
  * @param[in,out] instance pointer to the Widget instance to be modified
  */
 void widget_move_to_background(Widget* instance);
+
+/**
+ * @brief Set widget scrollbar mode.
+ *
+ * @param[in,out] instance pointer to the widget instance to be modified
+ * @param[in] scrollbar_mode new scrollbar mode for widget
+ */
+void widget_set_scrollbar_mode(Widget* instance, WidgetScrollBarMode scrollbar_mode);
 
 #ifdef __cplusplus
 }
