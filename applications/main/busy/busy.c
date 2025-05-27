@@ -9,6 +9,7 @@ typedef struct {
         uint32_t in_ms;
         uint32_t out_ms;
     } timings;
+    bool enable_press;
 } BusyTransition;
 
 static const BusyTransition busy_transitions[BusyTransitionTypeMax] = {
@@ -51,6 +52,7 @@ static const BusyTransition busy_transitions[BusyTransitionTypeMax] = {
                     .in_ms = 100,
                     .out_ms = 1000,
                 },
+            .enable_press = true,
         },
     [BusyTransitionTypeWork] =
         {
@@ -61,6 +63,7 @@ static const BusyTransition busy_transitions[BusyTransitionTypeMax] = {
                     .in_ms = 100,
                     .out_ms = 1000,
                 },
+            .enable_press = true,
         },
     [BusyTransitionTypeRest] =
         {
@@ -71,6 +74,7 @@ static const BusyTransition busy_transitions[BusyTransitionTypeMax] = {
                     .in_ms = 100,
                     .out_ms = 1000,
                 },
+            .enable_press = true,
         },
 };
 
@@ -173,6 +177,8 @@ static BusyApp* busy_alloc(void) {
         root = gui_layer_get_root_widget(layer, GuiDisplayIdFront);
         instance->front_window = widget_alloc(root);
         instance->transition_overlay = transition_overlay_alloc(root);
+        transition_overlay_set_pressed_widget(
+            instance->transition_overlay, instance->front_window);
 
         root = gui_layer_get_root_widget(layer, GuiDisplayIdBack);
         instance->back_window = widget_alloc(root);
@@ -214,6 +220,7 @@ static void busy_free(BusyApp* instance) {
         widget_free(instance->back_window);
     });
 
+    furi_record_close(RECORD_STATUS_LIGHTS);
     furi_record_close(RECORD_AUDIO);
     furi_record_close(RECORD_GUI);
 
@@ -254,6 +261,8 @@ void busy_prepare_transition(BusyApp* instance, BusyTransitionType type) {
             instance->transition_overlay, transition->timings.in_ms, transition->timings.out_ms);
         transition_overlay_set_color(instance->transition_overlay, transition->color);
         transition_overlay_set_color_mode(instance->transition_overlay, transition->color_mode);
+        transition_overlay_enable_press_effect(
+            instance->transition_overlay, transition->enable_press);
 
         if(transition->mask_path) {
             transition_overlay_set_mask(instance->transition_overlay, transition->mask_path);

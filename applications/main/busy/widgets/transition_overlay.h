@@ -100,6 +100,22 @@ void transition_overlay_set_mask(TransitionOverlay* instance, const char* file_p
 void transition_overlay_set_mask_mode(TransitionOverlay* instance, TransitionOverlayMaskMode mode);
 
 /**
+ * @brief Enable or disable the press effect for a TransitionOverlay instance.
+ *
+ * @param[in,out] instance pointer to the TransitionOverlay instance to be modified
+ * @param[in] enable enable press effect if @c true, disable it if @c false
+ */
+void transition_overlay_enable_press_effect(TransitionOverlay* instance, bool enable);
+
+/**
+ * @brief Set the widget to participate in the press effect for a TransitionOverlay instance.
+ *
+ * @param[in,out] instance pointer to the TransitionOverlay instance to be modified
+ * @param[in,out] widget pointer to the widget to participate in the effect
+ */
+void transition_overlay_set_pressed_widget(TransitionOverlay* instance, Widget* widget);
+
+/**
  * @brief Capture the current display contents and show the overlay.
  *
  * A static image will be shown until transition_overlay_start() is called.

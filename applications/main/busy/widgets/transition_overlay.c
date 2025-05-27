@@ -7,17 +7,25 @@
 
 #define MY_CLASS (&transition_overlay_lvgl_class)
 
+#define PRESS_OFFSET_Y_START (0)
+#define PRESS_OFFSET_Y_END   (3)
+
+#define MASK_ANIM_START (0)
+#define MASK_ANIM_END   (1)
+
 struct TransitionOverlay {
     Widget base;
     SnapImage* snap;
     AnimImage* mask;
     lv_obj_t* color;
-    TransitionOverlayColorMode color_mode;
-    TransitionOverlayMaskMode mask_mode;
+    Widget* press_widget;
     struct {
         uint32_t in_ms;
         uint32_t out_ms;
     } timings;
+    TransitionOverlayColorMode color_mode;
+    TransitionOverlayMaskMode mask_mode;
+    bool enable_press_effect;
 };
 
 const lv_obj_class_t transition_overlay_lvgl_class;
@@ -46,6 +54,18 @@ static void transition_overlay_lvgl_anim_completed_callback(lv_anim_t* anim) {
 
     widget_set_visible((Widget*)instance->snap, true);
     widget_set_visible((Widget*)instance, false);
+}
+
+static void transition_overlay_lvgl_press_anim_exec_callback(lv_anim_t* anim, int32_t value) {
+    furi_assert(anim);
+
+    TransitionOverlay* instance = anim->var;
+
+    widget_set_pos_y((Widget*)instance->snap, value);
+
+    if(instance->press_widget) {
+        widget_set_pos_y(instance->press_widget, value);
+    }
 }
 
 static void transition_overlay_lvgl_constructor(const lv_obj_class_t* class_p, lv_obj_t* obj) {
@@ -120,7 +140,7 @@ static void transition_overlay_animate_mask(TransitionOverlay* instance) {
         lv_anim_t anim;
         lv_anim_init(&anim);
 
-        lv_anim_set_values(&anim, 0, 1);
+        lv_anim_set_values(&anim, MASK_ANIM_START, MASK_ANIM_END);
         lv_anim_set_duration(&anim, instance->timings.in_ms);
         lv_anim_set_reverse_duration(&anim, instance->timings.out_ms);
 
@@ -134,6 +154,23 @@ static void transition_overlay_animate_mask(TransitionOverlay* instance) {
         anim_image_start(instance->mask);
 
         widget_set_visible((Widget*)instance->mask, true);
+    }
+}
+
+static void transition_overlay_animate_press(TransitionOverlay* instance) {
+    if(instance->enable_press_effect) {
+        lv_anim_t anim;
+        lv_anim_init(&anim);
+
+        lv_anim_set_values(&anim, PRESS_OFFSET_Y_START, PRESS_OFFSET_Y_END);
+        lv_anim_set_duration(&anim, instance->timings.in_ms);
+        lv_anim_set_reverse_duration(&anim, instance->timings.in_ms);
+
+        lv_anim_set_path_cb(&anim, lv_anim_path_ease_in);
+        lv_anim_set_custom_exec_cb(&anim, transition_overlay_lvgl_press_anim_exec_callback);
+        lv_anim_set_var(&anim, instance);
+
+        lv_anim_start(&anim);
     }
 }
 
@@ -196,6 +233,18 @@ void transition_overlay_set_mask_mode(TransitionOverlay* instance, TransitionOve
     instance->mask_mode = mode;
 }
 
+void transition_overlay_enable_press_effect(TransitionOverlay* instance, bool enable) {
+    furi_check(instance);
+
+    instance->enable_press_effect = enable;
+}
+
+void transition_overlay_set_pressed_widget(TransitionOverlay* instance, Widget* widget) {
+    furi_check(instance);
+
+    instance->press_widget = widget;
+}
+
 void transition_overlay_show(TransitionOverlay* instance) {
     furi_check(instance);
 
@@ -212,6 +261,7 @@ void transition_overlay_start(TransitionOverlay* instance) {
     if(widget_is_visible((Widget*)instance)) {
         transition_overlay_animate_color(instance);
         transition_overlay_animate_mask(instance);
+        transition_overlay_animate_press(instance);
     }
 }
 
