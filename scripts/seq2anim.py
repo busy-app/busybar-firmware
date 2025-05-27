@@ -12,6 +12,9 @@ from zipfile import PyZipFile
 
 class BusyBarAnimation:
     def __init__(self, input_folder, fps, output_file):
+        if not os.path.isdir(input_folder):
+            raise FileNotFoundError("Invalid path")
+
         self.input_folder = input_folder
         self.fps = fps
         self.output_file = output_file
@@ -127,8 +130,17 @@ def main():
     else:
         input_folder = args.input_path
 
-    animation = BusyBarAnimation(input_folder, args.fps, args.output_file)
-    animation.process_images()
+    try:
+        animation = BusyBarAnimation(input_folder, args.fps, args.output_file)
+        animation.process_images()
+
+    except FileNotFoundError:
+        print(f"Directory \"{input_folder}\" does not exist")
+        exit(1)
+
+    except Exception:
+        print("Unknown error")
+        exit(1)
 
 
 if __name__ == "__main__":
