@@ -118,6 +118,15 @@ static const HttpHandler handlers_api_root[] = {
         .on_request = http_api_display_callback,
         .on_headers = http_api_display_hdr_callback,
     },
+    {
+        .uri = "/*/wifi/*",
+        .method = "*",
+        .type = HttpHandlerCustom,
+        .ctx_alloc = http_api_wifi_alloc,
+        .ctx_free = http_api_wifi_free,
+        .on_request = http_api_wifi_callback,
+        //.on_headers = http_api_wifi_hdr_callback, TODO: Figure out do we need header for wifi requests
+    },
 };
 
 typedef struct {
