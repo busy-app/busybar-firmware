@@ -10,6 +10,8 @@
 #define PROGRESS_BAR_COLOR_BUSY color_hex_to_rgb(0x4A0000)
 #define PROGRESS_BAR_COLOR_REST color_hex_to_rgb(0x003B28)
 
+#define COUNTDOWN_THRESHOLD_S (3)
+
 #define PROGRESS_TRANSITION_MS (1000)
 
 typedef struct {
@@ -104,7 +106,7 @@ static void busy_scene_timer_update_tick(BusyApp* instance) {
 
     if(time->remain_s == 0) {
         audio_play_file(instance->audio, BUSY_SOUND_PATH("countdown_finish.snd"));
-    } else if(time->remain_s <= 3) {
+    } else if(time->remain_s <= COUNTDOWN_THRESHOLD_S) {
         audio_play_file(instance->audio, BUSY_SOUND_PATH("countdown_tick.snd"));
     }
 }
