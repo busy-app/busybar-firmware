@@ -56,6 +56,13 @@ void transition_overlay_free(TransitionOverlay* instance);
  */
 Widget* transition_overlay_get_base(TransitionOverlay* instance);
 
+/**
+ * @brief Set the animation segment times for a TransitionOverlay instance.
+ *
+ * @param[in,out] instance pointer to the TransitionOverlay instance to be modified
+ * @param[in] in_ms time for the fade-in animation segment, in milliseconds
+ * @param[in] out_ms time for the fade-out animation segment, in milliseconds
+ */
 void transition_overlay_set_timings(TransitionOverlay* instance, uint32_t in_ms, uint32_t out_ms);
 
 /**
