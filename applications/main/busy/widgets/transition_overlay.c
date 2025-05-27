@@ -29,11 +29,13 @@ static void transition_overlay_lvgl_anim_exec_callback(lv_anim_t* anim, int32_t 
 
     TransitionOverlay* instance = anim->var;
 
-    if(value == anim->end_value) {
+    if(anim->end_value == value) {
         widget_set_visible((Widget*)instance->snap, false);
     }
 
-    lv_obj_set_style_bg_opa(instance->color, value, LV_PART_MAIN);
+    if(anim->user_data == instance->color) {
+        lv_obj_set_style_bg_opa(instance->color, value, LV_PART_MAIN);
+    }
 }
 
 static void transition_overlay_lvgl_anim_completed_callback(lv_anim_t* anim) {
@@ -44,22 +46,6 @@ static void transition_overlay_lvgl_anim_completed_callback(lv_anim_t* anim) {
 
     widget_set_visible((Widget*)instance->snap, true);
     widget_set_visible((Widget*)instance, false);
-}
-
-static void transition_overlay_lvgl_mask_timer_callback(lv_timer_t* timer) {
-    furi_assert(timer);
-
-    TransitionOverlay* instance = lv_timer_get_user_data(timer);
-    furi_assert(instance);
-
-    if(timer->repeat_count == 1) {
-        lv_timer_set_period(timer, instance->timings.out_ms);
-        widget_set_visible((Widget*)instance->snap, false);
-
-    } else if(timer->repeat_count == 0) {
-        widget_set_visible((Widget*)instance->snap, true);
-        widget_set_visible((Widget*)instance, false);
-    }
 }
 
 static void transition_overlay_lvgl_constructor(const lv_obj_class_t* class_p, lv_obj_t* obj) {
@@ -106,6 +92,7 @@ static void transition_overlay_animate_color(TransitionOverlay* instance) {
         lv_anim_set_path_cb(&anim, lv_anim_path_ease_out);
         lv_anim_set_custom_exec_cb(&anim, transition_overlay_lvgl_anim_exec_callback);
         lv_anim_set_completed_cb(&anim, transition_overlay_lvgl_anim_completed_callback);
+        lv_anim_set_user_data(&anim, instance->color);
         lv_anim_set_var(&anim, instance);
 
         lv_anim_start(&anim);
@@ -130,9 +117,19 @@ static void transition_overlay_animate_mask(TransitionOverlay* instance) {
 
         lv_obj_set_style_blend_mode(TO_LV_OBJ(instance->mask), blend_mode, LV_PART_MAIN);
 
-        lv_timer_t* mask_timer = lv_timer_create(
-            transition_overlay_lvgl_mask_timer_callback, instance->timings.in_ms, instance);
-        lv_timer_set_repeat_count(mask_timer, 2);
+        lv_anim_t anim;
+        lv_anim_init(&anim);
+
+        lv_anim_set_values(&anim, 0, 1);
+        lv_anim_set_duration(&anim, instance->timings.in_ms);
+        lv_anim_set_reverse_duration(&anim, instance->timings.out_ms);
+
+        lv_anim_set_path_cb(&anim, lv_anim_path_linear);
+        lv_anim_set_custom_exec_cb(&anim, transition_overlay_lvgl_anim_exec_callback);
+        lv_anim_set_completed_cb(&anim, transition_overlay_lvgl_anim_completed_callback);
+        lv_anim_set_var(&anim, instance);
+
+        lv_anim_start(&anim);
 
         anim_image_start(instance->mask);
 
