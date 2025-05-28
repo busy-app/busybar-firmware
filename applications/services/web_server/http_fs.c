@@ -2,11 +2,12 @@
 #include <storage/storage.h>
 #include "mongoose.h"
 
-#define TAG "HTTP FS"
+#define TAG "HttpFs"
 
 #define MAX_FILENAME_LEN 255
 
 static int fs_stat(const char* path, size_t* size, time_t* mtime) {
+    FURI_LOG_D(TAG, "fs_stat: %s", path);
     Storage* fs_api = furi_record_open(RECORD_STORAGE);
     FileInfo file_info;
     FS_Error result = storage_common_stat(fs_api, path, &file_info);
@@ -30,6 +31,7 @@ static int fs_stat(const char* path, size_t* size, time_t* mtime) {
 }
 
 static void fs_list(const char* path, void (*fn)(const char*, void*), void* userdata) {
+    FURI_LOG_D(TAG, "fs_list: %s", path);
     Storage* fs_api = furi_record_open(RECORD_STORAGE);
     File* file = storage_file_alloc(fs_api);
 
@@ -50,6 +52,7 @@ static void fs_list(const char* path, void (*fn)(const char*, void*), void* user
 }
 
 static void* fs_open(const char* path, int flags) {
+    FURI_LOG_D(TAG, "fs_open: %s (flags: 0x%x)", path, flags);
     if(flags & MG_FS_DIR) {
         FURI_LOG_W(TAG, "TODO: %s MG_FS_DIR", __func__);
         return NULL;
@@ -73,34 +76,43 @@ static void* fs_open(const char* path, int flags) {
 }
 
 static void fs_close(void* fp) {
+    FURI_LOG_D(TAG, "fs_close: fd=%p", fp);
     storage_file_close(fp);
     storage_file_free(fp);
 }
 
 static size_t fs_read(void* fd, void* buf, size_t len) {
-    return storage_file_read(fd, buf, len);
+    size_t result = storage_file_read(fd, buf, len);
+    FURI_LOG_T(TAG, "fs_read: fd=%p, len=%zu, result=%zu", fd, len, result);
+    return result;
 }
 
 static size_t fs_write(void* fd, const void* buf, size_t len) {
+    FURI_LOG_D(TAG, "fs_write: fd=%p, len=%zu", fd, len);
     uint8_t* temp_buf = malloc(len);
     memcpy(temp_buf, buf, len);
     // TODO: fix sdmmc buffer alignment bug to get rid of temp buffer
     size_t ret = storage_file_write(fd, temp_buf, len);
     free(temp_buf);
+    FURI_LOG_D(TAG, "fs_write: result=%zu", ret);
     return ret;
 }
 
 static size_t fs_seek(void* fd, size_t offset) {
-    return storage_file_seek(fd, offset, true);
+    size_t result = storage_file_seek(fd, offset, true);
+    FURI_LOG_D(TAG, "fs_seek: fd=%p, offset=%zu, result=%zu", fd, offset, result);
+    return result;
 }
 
 static bool fs_rename(const char* from, const char* to) {
+    FURI_LOG_D(TAG, "fs_rename: %s -> %s", from, to);
     (void)from, (void)to;
     FURI_LOG_W(TAG, "TODO: %s", __func__);
     return false;
 }
 
 static bool fs_remove(const char* path) {
+    FURI_LOG_D(TAG, "fs_remove: %s", path);
     Storage* fs_api = furi_record_open(RECORD_STORAGE);
     FS_Error error = storage_common_remove(fs_api, path);
     furi_record_close(RECORD_STORAGE);
@@ -108,9 +120,11 @@ static bool fs_remove(const char* path) {
 }
 
 static bool fs_mkdir(const char* path) {
+    FURI_LOG_D(TAG, "fs_mkdir: %s", path);
     Storage* fs_api = furi_record_open(RECORD_STORAGE);
     FS_Error error = storage_common_mkdir(fs_api, path);
     furi_record_close(RECORD_STORAGE);
+    FURI_LOG_D(TAG, "fs_mkdir: result=%d", error);
     return (error == FSE_OK);
 }
 

@@ -3,7 +3,7 @@
 #include "web_server_i.h"
 #include "http_api/http_api.h"
 
-#define TAG "HTTP_SRV"
+#define TAG "HttpSrv"
 
 // TODO: timers
 
@@ -150,7 +150,7 @@ bool http_handle_request(
                     .ssi_pattern = NULL,
                     .extra_headers = inst->handler->extra_headers,
                     .mime_types = inst->handler->mime_types_custom,
-                    .page404 = WEB_ROOT "404.html",
+                    .page404 = NULL, // WEB_ROOT "404.html",
                     .fs = http_fs_get(),
                 };
                 mg_http_serve_file(conn, msg, inst->handler->path, &opts);
@@ -161,7 +161,7 @@ bool http_handle_request(
                     .ssi_pattern = NULL,
                     .extra_headers = inst->handler->extra_headers,
                     .mime_types = inst->handler->mime_types_custom,
-                    .page404 = WEB_ROOT "404.html",
+                    .page404 = NULL, // WEB_ROOT "404.html",
                     .fs = http_fs_get(),
                 };
                 mg_http_serve_dir(conn, msg, &opts);
