@@ -1,63 +1,217 @@
 #include "nvm3_test.h"
+#include "helpers/nvm3_test.h"
+
 #include <furi.h>
-#include <args.h>
-#include <cli_worker.h>
-#include "helpers/nvm3_test_app.h"
 
-void nvm3_test_command_start(Cli* cli, FuriString* args, void* context) {
-    UNUSED(context);
-    UNUSED(args);
+#include <sl_status.h>
+#include <sl_net.h>
+#include <sl_wifi.h>
 
-    CliWorker* worker = cli_worker_alloc("NVM3 Test", cli);
-    cli_worker_set_callback(
-        worker, nvm3_test_app_start, nvm3_test_app_parse_msg, nvm3_test_app_stop);
-    if(!cli_worker_start(worker)) {
-        printf("Failed to start NVM3 Test worker\r\n");
-        if(cli_worker_is_running(worker)) {
-            cli_worker_stop(worker);
-            cli_worker_free(worker);
-            return;
-        }
-    }
+#include <cli/args.h>
+#include <cli/shell/cli_shell.h>
+#include <cli/cli_ansi.h>
+#include <strint.h>
 
-    cli_worker_run(worker);
+#define TAG "NVM3 Test"
 
-    if(cli_worker_is_running(worker)) {
-        cli_worker_stop(worker);
-        cli_worker_free(worker);
-    }
-    printf("\r\nExit NVM3 Test app\r\n");
-}
+typedef enum {
+    NVM3TestStateIdle,
+    NVM3TestStateInit,
+} NVM3TestState;
 
-static void nvm3_test_command_print_usage(void) {
-    printf("Usage:\r\n");
-    printf("nvm3_test \"NVM3 Test app\"\r\n");
-}
+typedef struct {
+    FuriString* msg;
+    CliShell* shell;
+    NVM3TestState state;
 
-static void nvm3_test_command(Cli* cli, FuriString* args, void* context) {
-    FuriString* cmd;
-    cmd = furi_string_alloc();
+    bool exit;
+} NVM3TestApp;
 
+static NVM3TestApp* nvm3_test_app_instance = NULL;
+
+void nvm3_test_app_stop(void* app_handle);
+
+void* nvm3_test_app_start(CliShell* shell) {
+    FURI_LOG_I(TAG, "Starting");
+
+    nvm3_test_app_instance = malloc(sizeof(NVM3TestApp));
+    nvm3_test_app_instance->msg = furi_string_alloc();
+    nvm3_test_app_instance->shell = shell;
+    nvm3_test_app_instance->state = NVM3TestStateIdle;
+
+    nvm3_test_app_instance->exit = false;
+    sl_status_t status = SL_STATUS_FAIL;
     do {
-        if(!args_read_string_and_trim(args, cmd)) {
-            nvm3_test_command_start(cli, args, context);
+        status = sl_net_init(
+            SL_NET_WIFI_CLIENT_INTERFACE, &sl_wifi_default_concurrent_configuration, NULL, NULL);
+        if(status != SL_STATUS_OK) {
+            furi_string_printf(nvm3_test_app_instance->msg,
+                ANSI_FG_RED "Failed to start Wi-Fi client interface: 0x%lx" ANSI_RESET,
+                status);
+            cli_shell_notification_print(nvm3_test_app_instance->shell, nvm3_test_app_instance->msg);
+            break;
+        }
+        furi_string_printf(nvm3_test_app_instance->msg, "Wi-Fi APSTA interface init");
+        cli_shell_notification_print(nvm3_test_app_instance->shell, nvm3_test_app_instance->msg);
+
+        if(!nvm3_test_init()) {
+            furi_string_printf(nvm3_test_app_instance->msg, ANSI_FG_RED "Failed to init NVM3" ANSI_RESET);
+            cli_shell_notification_print(nvm3_test_app_instance->shell, nvm3_test_app_instance->msg);
             break;
         }
 
-        nvm3_test_command_print_usage();
-    } while(false);
+        nvm3_test_app_instance->state = NVM3TestStateInit;
+    } while(0);
 
-    furi_string_free(cmd);
+    if(status != SL_STATUS_OK) {
+        nvm3_test_app_stop(nvm3_test_app_instance);
+        return NULL;
+    }
+    return (void*)nvm3_test_app_instance;
 }
 
-void nvm3_test_system_start(void) {
-#ifdef SRV_CLI
-    Cli* cli = furi_record_open(RECORD_CLI);
+void nvm3_test_app_stop(void* app_handle) {
+    furi_check(app_handle);
+    FURI_LOG_I(TAG, "Stopping");
+    NVM3TestApp* instance = (NVM3TestApp*)app_handle;
 
-    cli_add_command(cli, "nvm3_test", CliCommandFlagParallelSafe, nvm3_test_command, NULL);
+    if(instance->state == NVM3TestStateInit) {
+        nvm3_test_deinit();
+        sl_net_deinit(SL_NET_WIFI_CLIENT_INTERFACE);
+    }
 
-    furi_record_close(RECORD_CLI);
-#else
-    UNUSED(nvm3_test_command);
-#endif
+    if(instance) {
+        instance->exit = true;
+
+        furi_string_free(instance->msg);
+        free(instance);
+        instance = NULL;
+    }
+}
+
+void nvm3_test_test_command(PipeSide* pipe, FuriString* args, void* context) {
+    UNUSED(pipe);
+    UNUSED(args);
+    NVM3TestApp* instance = context;
+
+    uint8_t test_data[] = "Hello World\0";
+    uint8_t buffer[256];
+    uint32_t count;
+
+    // write - read test
+    do {
+        if(!nvm3_test_write(2, (uint8_t*)"BSB NVM3 Test\0", 14)) {
+            printf("Failed to write data to key 2\r\n");
+            break;
+        }
+
+        if(!nvm3_test_write(1, test_data, sizeof(test_data))) {
+            printf("Failed to write data to key 1\r\n");
+            break;
+        }
+        if(!nvm3_test_read(1, buffer, sizeof(test_data))) {
+            printf("Failed to read data from key 1\r\n");
+            break;
+        }
+
+        if(memcmp(test_data, buffer, sizeof(test_data)) != 0) {
+            furi_string_printf(
+                instance->msg, "Data read from key 1 is not the same as written\r\n");
+            break;
+        }
+
+        printf("Wrire-Read key 1 OK\r\n");
+    } while(false);
+
+    // delete test
+    do {
+        if(!nvm3_test_delete(1)) {
+            printf("Failed to delete key 1\r\n");
+            break;
+        }
+        if(nvm3_test_read(1, buffer, sizeof(test_data))) {
+            printf("Data read from key 1 after delete\r\n");
+            break;
+        }
+
+        printf("Delete key 1 OK\r\n");
+    } while(false);
+
+    // counter test
+    do {
+        if(!nvm3_test_write_counter(10, 5)) {
+            printf("Failed to write counter 10\r\n");
+            break;
+        }
+        if(!nvm3_test_read_counter(10, &count)) {
+            printf("Failed to read counter 10\r\n");
+            break;
+        }
+
+        if(count != 5) {
+            printf("Counter 10 is not 5\r\n");
+            break;
+        }
+
+        if(!nvm3_test_increment_counter(10, NULL)) {
+            printf("Failed to increment counter 10\r\n");
+            break;
+        }
+
+        if(!nvm3_test_read_counter(10, &count)) {
+            printf("Failed to read counter 10\r\n");
+            break;
+        }
+
+        if(count != 6) {
+            printf("Counter 10 is not 6\r\n");
+            break;
+        }
+
+        if(!nvm3_test_increment_counter(10, NULL)) {
+            printf("Failed to increment counter 10\r\n");
+            break;
+        }
+
+        if(!nvm3_test_read_counter(10, &count)) {
+            printf("Failed to read counter 10\r\n");
+            break;
+        }
+
+        if(count != 7) {
+            printf("Counter 10 is not 7\r\n");
+            break;
+        }
+
+        printf("Counter 10 OK\r\n");
+    } while(false);
+}
+
+static void nvm3_test_motd(void* context) {
+    UNUSED(context);
+    printf("\r\n+-----------------------------+\r\n");
+    printf("| Welcome to nvm3 test shell! |\r\n");
+    printf("+-----------------------------+\r\n\r\n");
+    printf("Read the manual: https://docs.silabs.com/gecko-platform/latest/platform-driver/nvm3\r\n");
+    printf("Read the manual: https://docs.silabs.com/gecko-platform/3.0/driver/api/group-nvm3\r\n");
+}
+
+void nvm3_test_command(PipeSide* pipe, FuriString* args, void* context) {
+    UNUSED(args);
+    UNUSED(context);
+
+    CliRegistry* registry = cli_registry_alloc();
+    cli_registry_add_command(registry, "test", CliCommandFlagDefault, nvm3_test_test_command, NULL);
+    cli_registry_add_command(registry, "print", CliCommandFlagDefault, nvm3_test_print_command, NULL);
+
+    CliShell* shell = cli_shell_alloc(nvm3_test_motd, NULL, pipe, registry, NULL);
+    cli_shell_set_prompt(shell, "crypto_test");
+
+    cli_shell_start(shell);
+    NVM3TestApp* app = nvm3_test_app_start(shell);
+    cli_shell_join(shell);
+    nvm3_test_app_stop(app);
+
+    cli_shell_free(shell);
+    cli_registry_free(registry);
 }

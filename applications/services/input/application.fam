@@ -9,7 +9,7 @@ App(
     targets=["f20"],
     sources=["input.c"],
     sdk_headers=["input.h"],
-    provides=["input_start"],
+    provides=["input_command"],
 )
 
 App(
@@ -25,10 +25,10 @@ App(
 )
 
 App(
-    appid="input_start",
+    appid="input_command",
+    name="input",
     targets=["f20"],
-    apptype=FlipperAppType.STARTUP,
-    entry_point="input_on_system_start",
+    apptype=FlipperAppType.CLICMD,
+    entry_point="input_cli_command",
     sources=["input_cli.c"],
-    order=30,
 )

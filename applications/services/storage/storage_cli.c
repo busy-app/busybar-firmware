@@ -3,7 +3,7 @@
 #include <furi_hal_version.h>
 
 #include <cli/cli.h>
-#include <toolbox/args.h>
+#include <cli/args.h>
 #include <toolbox/md5_calc.h>
 #include <toolbox/dir_walk.h>
 #include <toolbox/strint.h>

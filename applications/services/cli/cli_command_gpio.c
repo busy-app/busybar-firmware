@@ -3,7 +3,7 @@
 #include <furi.h>
 #include <furi_hal.h>
 #include <furi_hal_resources.h>
-#include <toolbox/args.h>
+#include <cli/args.h>
 #include <furi_hal_nvm.h>
 
 typedef struct {
@@ -71,8 +71,8 @@ static bool cli_command_gpio_parse_pin(FuriString* args, const CliGpioPinNamePai
     return result;
 }
 
-void cli_command_gpio(Cli* cli, FuriString* args, void* context) {
-    UNUSED(cli);
+void cli_command_gpio(PipeSide* pipe, FuriString* args, void* context) {
+    UNUSED(pipe);
     UNUSED(context);
 
     do {

@@ -1,7 +1,7 @@
 App(
-    appid="sl_update_start",
-    apptype=FlipperAppType.STARTUP,
-    entry_point="sl_update_on_system_start",
+    appid="sl_update",
+    name="update",
+    apptype=FlipperAppType.CLICMD,
+    entry_point="update_command",
     requires=["storage"],
-    order=110,
 )

@@ -16,8 +16,6 @@
 #define TEST_TIMEOUT    (30000) //30sec
 
 void wifi_async_socket_client_tcp_tx_init(
-    WifiTestApp* app,
-    FuriString* msg,
     char* ip,
     uint16_t port) {
     uint32_t now = 0;
@@ -38,26 +36,22 @@ void wifi_async_socket_client_tcp_tx_init(
     // Create client socket
     client_socket = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
     if(client_socket < 0) {
-        furi_string_printf(msg, "Socket create failed with BSD error: %d\r\n", errno);
-        wifi_test_app_send_text(app, msg);
+        printf("Socket create failed with BSD error: %d\r\n", errno);
         return;
     }
-    furi_string_printf(msg, "Socket ID : %d\r\n", client_socket);
-    wifi_test_app_send_text(app, msg);
+    printf("Socket ID : %d\r\n", client_socket);
+    
     // Connect socket
     socket_return_value = connect(client_socket, (struct sockaddr*)&server_address, socket_length);
     if(socket_return_value < 0) {
-        furi_string_printf(msg, "Socket Connect failed with BSD error: %d\r\n", errno);
-        wifi_test_app_send_text(app, msg);
+        printf("Socket Connect failed with BSD error: %d\r\n", errno);
         close(client_socket);
         return;
     }
-    furi_string_printf(msg, "Socket connected to TCP server\r\n");
-    wifi_test_app_send_text(app, msg);
+    printf("Socket connected to TCP server\r\n");
 
     // Send data
-    furi_string_printf(msg, "TCP_TX Throughput test start\r\n");
-    wifi_test_app_send_text(app, msg);
+    printf("TCP_TX Throughput test start\r\n");
     start = furi_get_tick();
 
     data_buffer = (uint8_t*)malloc(TCP_BUFFER_SIZE);
@@ -65,24 +59,21 @@ void wifi_async_socket_client_tcp_tx_init(
         sent_bytes = send(client_socket, data_buffer, TCP_BUFFER_SIZE, 0);
         now = furi_get_tick();
         if(sent_bytes < 0) {
-            furi_string_printf(msg, "Socket send failed with bsd error: %d\r\n", errno);
-            wifi_test_app_send_text(app, msg);
+            printf("Socket send failed with bsd error: %d\r\n", errno); 
             close(client_socket);
             break;
         }
         total_bytes_sent = total_bytes_sent + sent_bytes;
 
         if((now - start) > TEST_TIMEOUT) {
-            furi_string_printf(msg, "Time Out: %ld\r\n", (now - start));
-            wifi_test_app_send_text(app, msg);
+            printf("Time Out: %ld\r\n", (now - start));   
             break;
         }
     }
     free(data_buffer);
-    furi_string_printf(msg, "TCP_TX Throughput test finished\r\n");
-    wifi_test_app_send_text(app, msg);
-    furi_string_printf(msg, "Total bytes sent : %ld\r\n", total_bytes_sent);
-    wifi_test_app_send_text(app, msg);
+    printf("TCP_TX Throughput test finished\r\n");
+    printf("Total bytes sent : %ld\r\n", total_bytes_sent);
+    
     // Close socket
     close(client_socket);
 }

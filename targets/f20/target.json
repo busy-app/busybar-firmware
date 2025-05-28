@@ -119,7 +119,9 @@
         "version",
         "assets",
         "ext_applications",
-        "firmware_applications_f20"
+        "firmware_applications_f20",
+        "cli",
+        "containers"
     ],
     "fw_modules": [
         "fw_elf",

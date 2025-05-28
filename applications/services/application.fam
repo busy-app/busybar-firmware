@@ -7,6 +7,7 @@ App(
         "storage",
         "cli",
         "cli_socket",
+        "cli_intercom",
         "input",
         "gui",
         "lottie",
@@ -47,6 +48,7 @@ App(
         # "wifi",  # Enabled by "sockets"
         "sockets",
         "status_lights",
+        "cli_intercom",
     ],
     targets=["f64"],
 )

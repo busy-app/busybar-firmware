@@ -2,8 +2,8 @@
 
 #include <furi.h>
 #include <furi_hal_nvm.h>
-#include <cli/cli.h>
-#include <toolbox/args.h>
+#include <cli/cli_command.h>
+#include <cli/args.h>
 
 #define SL_UPDATE_M4_COMM_TIMEOUT_S  (15)
 #define SL_UPDATE_NWP_COMM_TIMEOUT_S (30)
@@ -50,8 +50,8 @@ static void updater_cli_probe_excute() {
     sl_updater_free(instance);
 }
 
-static void updater_cli(Cli* cli, FuriString* args, void* context) {
-    UNUSED(cli);
+void update_command(PipeSide* pipe, FuriString* args, void* context) {
+    UNUSED(pipe);
     UNUSED(context);
     FuriString* cmd = furi_string_alloc();
     FuriString* path = furi_string_alloc();
@@ -105,10 +105,4 @@ static void updater_cli(Cli* cli, FuriString* args, void* context) {
 
     furi_string_free(path);
     furi_string_free(cmd);
-}
-
-void sl_update_on_system_start(void) {
-    Cli* cli = furi_record_open(RECORD_CLI);
-    cli_add_command(cli, "update", CliCommandFlagParallelSafe, updater_cli, NULL);
-    furi_record_close(RECORD_CLI);
 }

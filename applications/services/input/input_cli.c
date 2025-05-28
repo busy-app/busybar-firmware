@@ -1,11 +1,12 @@
 #include <furi/furi.h>
 
 #include <input/input.h>
-#include <cli/cli.h>
-#include <toolbox/args.h>
+#include <containers/pipe.h>
+#include <cli/args.h>
+#include <cli/cli_command.h>
 
-static void input_cli_print_usage(Cli* cli, void* context) {
-    UNUSED(cli);
+static void input_cli_print_usage(PipeSide* pipe, void* context) {
+    UNUSED(pipe);
     UNUSED(context);
 
     printf("Usage: input <command>\r\n");
@@ -21,14 +22,14 @@ static void input_cli_dump_events_callback(const void* value, void* ctx) {
     furi_message_queue_put(input_queue, value, FuriWaitForever);
 }
 
-static void input_cli_dump(Cli* cli, FuriPubSub* input_events) {
+static void input_cli_dump(PipeSide* pipe, FuriPubSub* input_events) {
     FuriMessageQueue* input_queue = furi_message_queue_alloc(8, sizeof(InputEvent));
     FuriPubSubSubscription* input_subscription =
         furi_pubsub_subscribe(input_events, input_cli_dump_events_callback, input_queue);
 
     InputEvent input_event;
     printf("Press CTRL+C to stop\r\n");
-    while(!cli_cmd_interrupt_received(cli)) {
+    while(!cli_is_pipe_broken_or_is_etx_next_char(pipe)) {
         if(furi_message_queue_get(input_queue, &input_event, 100) == FuriStatusOk) {
             printf(
                 "key: %s type: %s\r\n",
@@ -42,8 +43,8 @@ static void input_cli_dump(Cli* cli, FuriPubSub* input_events) {
     furi_message_queue_free(input_queue);
 }
 
-static void input_cli_command_send(Cli* cli, FuriString* args, FuriPubSub* input_events) {
-    UNUSED(cli);
+static void input_cli_command_send(PipeSide* pipe, FuriString* args, FuriPubSub* input_events) {
+    UNUSED(pipe);
     UNUSED(args);
 
     InputKey key = InputKeyUp;
@@ -71,7 +72,7 @@ static void input_cli_command_send(Cli* cli, FuriString* args, FuriPubSub* input
     } while(false);
 
     if(!args_parsed) {
-        input_cli_print_usage(cli, NULL);
+        input_cli_print_usage(pipe, NULL);
     } else {
         InputEvent event = {
             .key = key,
@@ -83,7 +84,7 @@ static void input_cli_command_send(Cli* cli, FuriString* args, FuriPubSub* input
     furi_string_free(str_tmp);
 }
 
-static void input_cli_command(Cli* cli, FuriString* args, void* context) {
+void input_cli_command(PipeSide* pipe, FuriString* args, void* context) {
     UNUSED(context);
 
     FuriString* cmd = furi_string_alloc();
@@ -93,9 +94,9 @@ static void input_cli_command(Cli* cli, FuriString* args, void* context) {
     do {
         if(!args_read_string_and_trim(args, cmd)) break;
         if(furi_string_cmp_str(cmd, "dump") == 0) {
-            input_cli_dump(cli, input_events);
+            input_cli_dump(pipe, input_events);
         } else if(furi_string_cmp_str(cmd, "send") == 0) {
-            input_cli_command_send(cli, args, input_events);
+            input_cli_command_send(pipe, args, input_events);
         } else {
             break;
         }
@@ -104,19 +105,9 @@ static void input_cli_command(Cli* cli, FuriString* args, void* context) {
     } while(false);
 
     if(!cmd_parsed) {
-        input_cli_print_usage(cli, NULL);
+        input_cli_print_usage(pipe, NULL);
     }
 
     furi_string_free(cmd);
     furi_record_close(RECORD_INPUT_EVENTS);
-}
-
-void input_on_system_start(void) {
-#ifdef SRV_CLI
-    Cli* cli = furi_record_open(RECORD_CLI);
-    cli_add_command(cli, "input", CliCommandFlagParallelSafe, input_cli_command, NULL);
-    furi_record_close(RECORD_CLI);
-#else
-    UNUSED(nfc_cli);
-#endif
 }

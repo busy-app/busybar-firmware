@@ -7,6 +7,8 @@ for libname in [
     "nema_gfx",
     "lwip",
     "cjson",
+    "cli",
+    "containers",
     "thorvg",
     "lvgl",
     "lvgl_addons",

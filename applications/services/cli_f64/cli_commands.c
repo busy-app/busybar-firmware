@@ -6,221 +6,178 @@
 #include <furi_hal_info.h>
 #include <task_control_block.h>
 #include <time.h>
-#include <toolbox/args.h>
+#include <cli/args.h>
+#include <cli/cli_registry.h>
+#include <cli/cli_ansi.h>
+#include <firmware_applications_f64/applications.h>
 
 // Close to ISO, `date +'%Y-%m-%d %H:%M:%S %u'`
 #define CLI_DATE_FORMAT "%.4d-%.2d-%.2d %.2d:%.2d:%.2d %d"
 
-void cli_command_info_callback(const char* key, const char* value, bool last, void* context) {
-    UNUSED(last);
-    UNUSED(context);
-    printf("%-30s: %s\r\n", key, value);
-}
+// void cli_command_uptime(Cli* cli, FuriString* args, void* context) {
+//     UNUSED(cli);
+//     UNUSED(args);
+//     UNUSED(context);
+//     uint32_t uptime = furi_get_tick() / furi_kernel_get_tick_frequency();
+//     printf("Uptime: %luh%lum%lus", uptime / 60 / 60, uptime / 60 % 60, uptime % 60);
+// }
 
-void cli_command_help(Cli* cli, FuriString* args, void* context) {
-    UNUSED(args);
-    UNUSED(context);
-    printf("Commands available:");
+// #define CLI_COMMAND_LOG_RING_SIZE   2048
+// #define CLI_COMMAND_LOG_BUFFER_SIZE 64
 
-    // Command count
-    const size_t commands_count = CliCommandTree_size(cli->commands);
-    const size_t commands_count_mid = commands_count / 2 + commands_count % 2;
+// void cli_command_log_tx_callback(const uint8_t* buffer, size_t size, void* context) {
+//     furi_stream_buffer_send(context, buffer, size, 0);
+// }
 
-    // Use 2 iterators from start and middle to show 2 columns
-    CliCommandTree_it_t it_left;
-    CliCommandTree_it(it_left, cli->commands);
-    CliCommandTree_it_t it_right;
-    CliCommandTree_it(it_right, cli->commands);
-    for(size_t i = 0; i < commands_count_mid; i++)
-        CliCommandTree_next(it_right);
+// bool cli_command_log_level_set_from_string(FuriString* level) {
+//     FuriLogLevel log_level;
+//     if(furi_log_level_from_string(furi_string_get_cstr(level), &log_level)) {
+//         furi_log_set_level(log_level);
+//         return true;
+//     } else {
+//         printf("<log> — start logging using the current level from the system settings\r\n");
+//         printf("<log error> — only critical errors and other important messages\r\n");
+//         printf("<log warn> — non-critical errors and warnings including <log error>\r\n");
+//         printf("<log info> — non-critical information including <log warn>\r\n");
+//         printf("<log default> — the default system log level (equivalent to <log info>)\r\n");
+//         printf(
+//             "<log debug> — debug information including <log info> (may impact system performance)\r\n");
+//         printf(
+//             "<log trace> — system traces including <log debug> (may impact system performance)\r\n");
+//     }
+//     return false;
+// }
 
-    // Iterate throw tree
-    for(size_t i = 0; i < commands_count_mid; i++) {
-        printf("\r\n");
-        // Left Column
-        if(!CliCommandTree_end_p(it_left)) {
-            printf("%-30s", furi_string_get_cstr(*CliCommandTree_ref(it_left)->key_ptr));
-            CliCommandTree_next(it_left);
-        }
-        // Right Column
-        if(!CliCommandTree_end_p(it_right)) {
-            printf("%s", furi_string_get_cstr(*CliCommandTree_ref(it_right)->key_ptr));
-            CliCommandTree_next(it_right);
-        }
-    };
+// void cli_command_log(Cli* cli, FuriString* args, void* context) {
+//     UNUSED(context);
+//     FuriStreamBuffer* ring = furi_stream_buffer_alloc(CLI_COMMAND_LOG_RING_SIZE, 1);
+//     uint8_t buffer[CLI_COMMAND_LOG_BUFFER_SIZE];
+//     FuriLogLevel previous_level = furi_log_get_level();
+//     bool restore_log_level = false;
 
-    if(furi_string_size(args) > 0) {
-        cli_nl(cli);
-        printf("`");
-        printf("%s", furi_string_get_cstr(args));
-        printf("` command not found");
-    }
-}
+//     if(furi_string_size(args) > 0) {
+//         if(!cli_command_log_level_set_from_string(args)) {
+//             furi_stream_buffer_free(ring);
+//             return;
+//         }
+//         restore_log_level = true;
+//     }
 
-void cli_command_uptime(Cli* cli, FuriString* args, void* context) {
-    UNUSED(cli);
-    UNUSED(args);
-    UNUSED(context);
-    uint32_t uptime = furi_get_tick() / furi_kernel_get_tick_frequency();
-    printf("Uptime: %luh%lum%lus", uptime / 60 / 60, uptime / 60 % 60, uptime % 60);
-}
+//     const char* current_level;
+//     furi_log_level_to_string(furi_log_get_level(), &current_level);
+//     printf("Current log level: %s\r\n", current_level);
 
-#define CLI_COMMAND_LOG_RING_SIZE   2048
-#define CLI_COMMAND_LOG_BUFFER_SIZE 64
+//     FuriLogHandler log_handler = {
+//         .callback = cli_command_log_tx_callback,
+//         .context = ring,
+//     };
 
-void cli_command_log_tx_callback(const uint8_t* buffer, size_t size, void* context) {
-    furi_stream_buffer_send(context, buffer, size, 0);
-}
+//     furi_log_add_handler(log_handler);
 
-bool cli_command_log_level_set_from_string(FuriString* level) {
-    FuriLogLevel log_level;
-    if(furi_log_level_from_string(furi_string_get_cstr(level), &log_level)) {
-        furi_log_set_level(log_level);
-        return true;
-    } else {
-        printf("<log> — start logging using the current level from the system settings\r\n");
-        printf("<log error> — only critical errors and other important messages\r\n");
-        printf("<log warn> — non-critical errors and warnings including <log error>\r\n");
-        printf("<log info> — non-critical information including <log warn>\r\n");
-        printf("<log default> — the default system log level (equivalent to <log info>)\r\n");
-        printf(
-            "<log debug> — debug information including <log info> (may impact system performance)\r\n");
-        printf(
-            "<log trace> — system traces including <log debug> (may impact system performance)\r\n");
-    }
-    return false;
-}
+//     printf("Use <log ?> to list available log levels\r\n");
+//     printf("Press CTRL+C to stop...\r\n");
+//     while(!cli_cmd_interrupt_received(cli)) {
+//         size_t ret = furi_stream_buffer_receive(ring, buffer, CLI_COMMAND_LOG_BUFFER_SIZE, 50);
+//         cli_write(cli, buffer, ret);
+//     }
 
-void cli_command_log(Cli* cli, FuriString* args, void* context) {
-    UNUSED(context);
-    FuriStreamBuffer* ring = furi_stream_buffer_alloc(CLI_COMMAND_LOG_RING_SIZE, 1);
-    uint8_t buffer[CLI_COMMAND_LOG_BUFFER_SIZE];
-    FuriLogLevel previous_level = furi_log_get_level();
-    bool restore_log_level = false;
+//     furi_log_remove_handler(log_handler);
 
-    if(furi_string_size(args) > 0) {
-        if(!cli_command_log_level_set_from_string(args)) {
-            furi_stream_buffer_free(ring);
-            return;
-        }
-        restore_log_level = true;
-    }
+//     if(restore_log_level) {
+//         // There will be strange behaviour if log level is set from settings while log command is running
+//         furi_log_set_level(previous_level);
+//     }
 
-    const char* current_level;
-    furi_log_level_to_string(furi_log_get_level(), &current_level);
-    printf("Current log level: %s\r\n", current_level);
+//     furi_stream_buffer_free(ring);
+// }
 
-    FuriLogHandler log_handler = {
-        .callback = cli_command_log_tx_callback,
-        .context = ring,
-    };
+// static void cli_command_top(Cli* cli, FuriString* args, void* context) {
+//     UNUSED(cli);
+//     UNUSED(context);
 
-    furi_log_add_handler(log_handler);
+//     int interval = 1000;
+//     args_read_int_and_trim(args, &interval);
 
-    printf("Use <log ?> to list available log levels\r\n");
-    printf("Press CTRL+C to stop...\r\n");
-    while(!cli_cmd_interrupt_received(cli)) {
-        size_t ret = furi_stream_buffer_receive(ring, buffer, CLI_COMMAND_LOG_BUFFER_SIZE, 50);
-        cli_write(cli, buffer, ret);
-    }
+//     FuriThreadList* thread_list = furi_thread_list_alloc();
+//     while(!cli_cmd_interrupt_received(cli)) {
+//         uint32_t tick = furi_get_tick();
+//         furi_thread_enumerate(thread_list);
 
-    furi_log_remove_handler(log_handler);
+//         if(interval) printf("\e[2J\e[0;0f"); // Clear display and return to 0
 
-    if(restore_log_level) {
-        // There will be strange behaviour if log level is set from settings while log command is running
-        furi_log_set_level(previous_level);
-    }
+//         uint32_t uptime = tick / furi_kernel_get_tick_frequency();
+//         printf(
+//             "Threads: %zu, ISR Time: %0.2f%%, Uptime: %luh%lum%lus\r\n",
+//             furi_thread_list_size(thread_list),
+//             (double)furi_thread_list_get_isr_time(thread_list),
+//             uptime / 60 / 60,
+//             uptime / 60 % 60,
+//             uptime % 60);
 
-    furi_stream_buffer_free(ring);
-}
+//         printf(
+//             "Heap: total %zu, free %zu, minimum %zu, max block %zu\r\n\r\n",
+//             memmgr_get_total_heap(),
+//             memmgr_get_free_heap(),
+//             memmgr_get_minimum_free_heap(),
+//             memmgr_heap_get_max_free_block());
 
-static void cli_command_top(Cli* cli, FuriString* args, void* context) {
-    UNUSED(cli);
-    UNUSED(context);
+//         printf(
+//             "%-25s %-20s %-10s %5s %12s %6s %10s %7s %5s\r\n",
+//             "AppID",
+//             "Name",
+//             "State",
+//             "Prio",
+//             "Stack start",
+//             "Stack",
+//             "Stack Min",
+//             "Heap",
+//             "CPU");
 
-    int interval = 1000;
-    args_read_int_and_trim(args, &interval);
+//         for(size_t i = 0; i < furi_thread_list_size(thread_list); i++) {
+//             const FuriThreadListItem* item = furi_thread_list_get_at(thread_list, i);
+//             printf(
+//                 "%-25s %-20s %-10s %5d   0x%08lx %6lu %10lu %7zu %5.1f\r\n",
+//                 item->app_id,
+//                 item->name,
+//                 item->state,
+//                 item->priority,
+//                 item->stack_address,
+//                 item->stack_size,
+//                 item->stack_min_free,
+//                 item->heap,
+//                 (double)item->cpu);
+//         }
 
-    FuriThreadList* thread_list = furi_thread_list_alloc();
-    while(!cli_cmd_interrupt_received(cli)) {
-        uint32_t tick = furi_get_tick();
-        furi_thread_enumerate(thread_list);
+//         if(interval > 0) {
+//             furi_delay_ms(interval);
+//         } else {
+//             break;
+//         }
+//     }
+//     furi_thread_list_free(thread_list);
+// }
 
-        if(interval) printf("\e[2J\e[0;0f"); // Clear display and return to 0
+// void cli_command_free(Cli* cli, FuriString* args, void* context) {
+//     UNUSED(cli);
+//     UNUSED(args);
+//     UNUSED(context);
 
-        uint32_t uptime = tick / furi_kernel_get_tick_frequency();
-        printf(
-            "Threads: %zu, ISR Time: %0.2f%%, Uptime: %luh%lum%lus\r\n",
-            furi_thread_list_size(thread_list),
-            (double)furi_thread_list_get_isr_time(thread_list),
-            uptime / 60 / 60,
-            uptime / 60 % 60,
-            uptime % 60);
+//     printf("Free heap size: %zu\r\n", memmgr_get_free_heap());
+//     printf("Total heap size: %zu\r\n", memmgr_get_total_heap());
+//     printf("Minimum heap size: %zu\r\n", memmgr_get_minimum_free_heap());
+//     printf("Maximum heap block: %zu\r\n", memmgr_heap_get_max_free_block());
 
-        printf(
-            "Heap: total %zu, free %zu, minimum %zu, max block %zu\r\n\r\n",
-            memmgr_get_total_heap(),
-            memmgr_get_free_heap(),
-            memmgr_get_minimum_free_heap(),
-            memmgr_heap_get_max_free_block());
+//     printf("Pool free: %zu\r\n", memmgr_pool_get_free());
+//     printf("Maximum pool block: %zu\r\n", memmgr_pool_get_max_block());
+// }
 
-        printf(
-            "%-25s %-20s %-10s %5s %12s %6s %10s %7s %5s\r\n",
-            "AppID",
-            "Name",
-            "State",
-            "Prio",
-            "Stack start",
-            "Stack",
-            "Stack Min",
-            "Heap",
-            "CPU");
+// void cli_command_free_blocks(Cli* cli, FuriString* args, void* context) {
+//     UNUSED(cli);
+//     UNUSED(args);
+//     UNUSED(context);
 
-        for(size_t i = 0; i < furi_thread_list_size(thread_list); i++) {
-            const FuriThreadListItem* item = furi_thread_list_get_at(thread_list, i);
-            printf(
-                "%-25s %-20s %-10s %5d   0x%08lx %6lu %10lu %7zu %5.1f\r\n",
-                item->app_id,
-                item->name,
-                item->state,
-                item->priority,
-                item->stack_address,
-                item->stack_size,
-                item->stack_min_free,
-                item->heap,
-                (double)item->cpu);
-        }
-
-        if(interval > 0) {
-            furi_delay_ms(interval);
-        } else {
-            break;
-        }
-    }
-    furi_thread_list_free(thread_list);
-}
-
-void cli_command_free(Cli* cli, FuriString* args, void* context) {
-    UNUSED(cli);
-    UNUSED(args);
-    UNUSED(context);
-
-    printf("Free heap size: %zu\r\n", memmgr_get_free_heap());
-    printf("Total heap size: %zu\r\n", memmgr_get_total_heap());
-    printf("Minimum heap size: %zu\r\n", memmgr_get_minimum_free_heap());
-    printf("Maximum heap block: %zu\r\n", memmgr_heap_get_max_free_block());
-
-    printf("Pool free: %zu\r\n", memmgr_pool_get_free());
-    printf("Maximum pool block: %zu\r\n", memmgr_pool_get_max_block());
-}
-
-void cli_command_free_blocks(Cli* cli, FuriString* args, void* context) {
-    UNUSED(cli);
-    UNUSED(args);
-    UNUSED(context);
-
-    memmgr_heap_printf_free_blocks();
-}
+//     memmgr_heap_printf_free_blocks();
+// }
 
 static void
     cli_command_device_info_callback(const char* key, const char* value, bool last, void* context) {
@@ -229,77 +186,86 @@ static void
     printf("%-30s: %s\r\n", key, value);
 }
 
-void cli_command_device_info(Cli* cli, FuriString* args, void* context) {
-    UNUSED(cli);
+void cli_command_device_info(PipeSide* pipe, FuriString* args, void* context) {
+    UNUSED(pipe);
     UNUSED(args);
     UNUSED(context);
     furi_hal_info_get(cli_command_device_info_callback, '_', NULL);
 }
 
-static void cli_command_echo_server_rx_callback(
-    FuriHalSerialHandle* handle,
-    FuriHalSerialRxEvent event,
-    void* context) {
-    FuriStreamBuffer* stream = context;
-    if(event & (FuriHalSerialRxEventData | FuriHalSerialRxEventIdle)) {
-        while(furi_hal_serial_rx_available(handle)) {
-            uint8_t c = furi_hal_serial_rx(handle);
-            furi_check(furi_stream_buffer_send(stream, &c, sizeof(c), 0) == sizeof(c));
-        }
+// static void cli_command_echo_server_rx_callback(
+//     FuriHalSerialHandle* handle,
+//     FuriHalSerialRxEvent event,
+//     void* context) {
+//     FuriStreamBuffer* stream = context;
+//     if(event & (FuriHalSerialRxEventData | FuriHalSerialRxEventIdle)) {
+//         while(furi_hal_serial_rx_available(handle)) {
+//             uint8_t c = furi_hal_serial_rx(handle);
+//             furi_check(furi_stream_buffer_send(stream, &c, sizeof(c), 0) == sizeof(c));
+//         }
+//     }
+// }
+
+// void cli_command_echo_server(Cli* cli, FuriString* args, void* context) {
+//     UNUSED(context);
+
+//     uint32_t baud = 0;
+//     if(!args_read_int_and_trim(args, (int*)&baud)) {
+//         FURI_LOG_W("EchoSrv", "Unable to parse baud");
+//         return;
+//     }
+
+//     FuriStreamBuffer* stream = furi_stream_buffer_alloc(5U, 1);
+
+//     FuriHalSerialHandle* serial = furi_hal_serial_control_acquire(FuriHalSerialIdUart1);
+//     furi_hal_serial_init(serial, baud);
+
+//     furi_hal_serial_set_callback(serial, NULL, cli_command_echo_server_rx_callback, stream);
+//     furi_hal_serial_clear(serial, FuriHalSerialDirectionTxRx);
+//     furi_hal_serial_async_rx_start(serial, false);
+
+//     FURI_LOG_D("EchoSrv", "Echo server started on baud %ld", baud);
+//     while(!cli_cmd_interrupt_received(cli)) {
+//         if(!furi_stream_buffer_bytes_available(stream)) continue;
+
+//         uint8_t ch;
+//         if(!furi_stream_buffer_receive(stream, &ch, sizeof(ch), 100)) {
+//             FURI_LOG_W("EchoSrv", "Failed to read data from stream");
+//             break;
+//         }
+//         FURI_LOG_D("EchoSrv", "Rx: %c", ch);
+//         furi_hal_serial_tx(serial, &ch, sizeof(ch));
+//         if(!furi_hal_serial_tx_wait_complete(serial, 100)) {
+//             FURI_LOG_W("EchoSrv", "Failed to send data back");
+//             break;
+//         }
+//     }
+
+//     furi_hal_serial_async_rx_stop(serial);
+//     furi_hal_serial_set_callback(serial, NULL, NULL, NULL);
+//     furi_hal_serial_control_release(serial);
+//     furi_stream_buffer_free(stream);
+//     FURI_LOG_D("EchoSrv", "Echo server stopped");
+// }
+
+static void cli_commands_init(CliRegistry* registry) {
+    cli_registry_add_command(registry, "device_info", CliCommandFlagParallelSafe, cli_command_device_info, NULL);
+    // cli_registry_add_command(registry, "uptime", CliCommandFlagParallelSafe, cli_command_uptime, NULL);
+    // cli_registry_add_command(registry, "log", CliCommandFlagParallelSafe, cli_command_log, NULL);
+    // cli_registry_add_command(registry, "top", CliCommandFlagParallelSafe, cli_command_top, NULL);
+    // cli_registry_add_command(registry, "free", CliCommandFlagParallelSafe, cli_command_free, NULL);
+    // cli_registry_add_command(registry, "free_blocks", CliCommandFlagParallelSafe, cli_command_free_blocks, NULL);
+    // cli_registry_add_command(registry, "echo_server", CliCommandFlagParallelSafe, cli_command_echo_server, NULL);
+
+    // commands from `.fam`s
+    for(size_t i = 0; i < FLIPPER_CLI_COMMANDS_COUNT; i++) {
+        const FlipperInternalCommandApplication* command = &FLIPPER_CLI_COMMANDS[i];
+        cli_registry_add_command_ex(registry, command->name, command->flags, command->callback, NULL, command->stack_size);
     }
 }
 
-void cli_command_echo_server(Cli* cli, FuriString* args, void* context) {
-    UNUSED(context);
-
-    uint32_t baud = 0;
-    if(!args_read_int_and_trim(args, (int*)&baud)) {
-        FURI_LOG_W("EchoSrv", "Unable to parse baud");
-        return;
-    }
-
-    FuriStreamBuffer* stream = furi_stream_buffer_alloc(5U, 1);
-
-    FuriHalSerialHandle* serial = furi_hal_serial_control_acquire(FuriHalSerialIdUart1);
-    furi_hal_serial_init(serial, baud);
-
-    furi_hal_serial_set_callback(serial, NULL, cli_command_echo_server_rx_callback, stream);
-    furi_hal_serial_clear(serial, FuriHalSerialDirectionTxRx);
-    furi_hal_serial_async_rx_start(serial, false);
-
-    FURI_LOG_D("EchoSrv", "Echo server started on baud %ld", baud);
-    while(!cli_cmd_interrupt_received(cli)) {
-        if(!furi_stream_buffer_bytes_available(stream)) continue;
-
-        uint8_t ch;
-        if(!furi_stream_buffer_receive(stream, &ch, sizeof(ch), 100)) {
-            FURI_LOG_W("EchoSrv", "Failed to read data from stream");
-            break;
-        }
-        FURI_LOG_D("EchoSrv", "Rx: %c", ch);
-        furi_hal_serial_tx(serial, &ch, sizeof(ch));
-        if(!furi_hal_serial_tx_wait_complete(serial, 100)) {
-            FURI_LOG_W("EchoSrv", "Failed to send data back");
-            break;
-        }
-    }
-
-    furi_hal_serial_async_rx_stop(serial);
-    furi_hal_serial_set_callback(serial, NULL, NULL, NULL);
-    furi_hal_serial_control_release(serial);
-    furi_stream_buffer_free(stream);
-    FURI_LOG_D("EchoSrv", "Echo server stopped");
-}
-
-void cli_commands_init(Cli* cli) {
-    cli_add_command(cli, "?", CliCommandFlagParallelSafe, cli_command_help, NULL);
-    cli_add_command(cli, "help", CliCommandFlagParallelSafe, cli_command_help, NULL);
-
-    cli_add_command(cli, "device_info", CliCommandFlagParallelSafe, cli_command_device_info, NULL);
-    cli_add_command(cli, "uptime", CliCommandFlagParallelSafe, cli_command_uptime, NULL);
-    cli_add_command(cli, "log", CliCommandFlagParallelSafe, cli_command_log, NULL);
-    cli_add_command(cli, "top", CliCommandFlagParallelSafe, cli_command_top, NULL);
-    cli_add_command(cli, "free", CliCommandFlagParallelSafe, cli_command_free, NULL);
-    cli_add_command(cli, "free_blocks", CliCommandFlagParallelSafe, cli_command_free_blocks, NULL);
-    cli_add_command(cli, "echo_server", CliCommandFlagParallelSafe, cli_command_echo_server, NULL);
+void cli_on_system_start(void) {
+    CliRegistry* registry = cli_registry_alloc();
+    cli_commands_init(registry);
+    furi_record_create(RECORD_CLI, registry);
 }

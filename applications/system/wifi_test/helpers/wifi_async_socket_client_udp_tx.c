@@ -17,7 +17,7 @@
 
 typedef struct {
     FuriThread* thread;
-    WifiTestApp* app;
+    CliShell* shell;
     FuriString* msg;
     FuriString* ip;
     uint16_t port;
@@ -49,26 +49,26 @@ static int32_t wifi_async_socket_client_udp_tx_callback(void* context) {
     client_socket = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
     if(client_socket < 0) {
         furi_string_printf(instance->msg, "Socket create failed with BSD error: %d\r\n", errno);
-        wifi_test_app_send_text(instance->app, instance->msg);
+        cli_shell_notification_print(instance->shell, instance->msg);
         return 0;
     }
     furi_string_printf(instance->msg, "Socket ID : %d\r\n", client_socket);
-    wifi_test_app_send_text(instance->app, instance->msg);
+    cli_shell_notification_print(instance->shell, instance->msg);
     // Connect socket
     socket_return_value = connect(client_socket, (struct sockaddr*)&server_address, socket_length);
     if(socket_return_value < 0) {
         furi_string_printf(instance->msg, "Socket Connect failed with BSD error: %d\r\n", errno);
-        wifi_test_app_send_text(instance->app, instance->msg);
+        cli_shell_notification_print(instance->shell, instance->msg);
         close(client_socket);
         return 0;
     }
     furi_string_printf(instance->msg, "Socket connected to UDP server\r\n");
-    wifi_test_app_send_text(instance->app, instance->msg);
+    cli_shell_notification_print(instance->shell, instance->msg);
 
     // Send data
 
     furi_string_printf(instance->msg, "UDP_TX Throughput test start\r\n");
-    wifi_test_app_send_text(instance->app, instance->msg);
+    cli_shell_notification_print(instance->shell, instance->msg);
     start = furi_get_tick();
 
     data_buffer = (uint8_t*)malloc(UDP_BUFFER_SIZE);
@@ -77,7 +77,7 @@ static int32_t wifi_async_socket_client_udp_tx_callback(void* context) {
         now = furi_get_tick();
         if(sent_bytes < 0) {
             furi_string_printf(instance->msg, "Socket send failed with bsd error: %d\r\n", errno);
-            wifi_test_app_send_text(instance->app, instance->msg);
+            cli_shell_notification_print(instance->shell, instance->msg);
             close(client_socket);
             break;
         }
@@ -85,33 +85,32 @@ static int32_t wifi_async_socket_client_udp_tx_callback(void* context) {
 
         // if((now - start) > TEST_TIMEOUT) {
         //     furi_string_printf(msg, "Time Out: %ld\r\n", (now - start));
-        //     wifi_test_app_send_text(instance->app, instance->msg);
+        //     cli_shell_notification_print(instance->shell, instance->msg);
         //     break;
         // }
     }
     free(data_buffer);
     furi_string_printf(instance->msg, "Time test: %ld\r\n", (now - start));
-    wifi_test_app_send_text(instance->app, instance->msg);
+    cli_shell_notification_print(instance->shell, instance->msg);
     furi_string_printf(instance->msg, "UDP_TX Throughput test finished\r\n");
-    wifi_test_app_send_text(instance->app, instance->msg);
+    cli_shell_notification_print(instance->shell, instance->msg);
     furi_string_printf(instance->msg, "Total bytes sent : %ld\r\n", total_bytes_sent);
-    wifi_test_app_send_text(instance->app, instance->msg);
+    cli_shell_notification_print(instance->shell, instance->msg);
     // Close socket
     close(client_socket);
     return 0;
 }
 
 void wifi_async_socket_client_udp_tx_init(
-    WifiTestApp* app,
-    FuriString* msg,
+    CliShell* shell,
     char* ip,
     uint16_t port) {
     if(wifi_async_socket_client_udp_tx_instance != NULL) {
         wifi_async_socket_client_udp_tx_stop();
     }
     wifi_async_socket_client_udp_tx_instance = malloc(sizeof(WifiAsyncSocketClientUdpTx));
-    wifi_async_socket_client_udp_tx_instance->msg = msg;
-    wifi_async_socket_client_udp_tx_instance->app = app;
+    wifi_async_socket_client_udp_tx_instance->shell = shell;
+    wifi_async_socket_client_udp_tx_instance->msg = furi_string_alloc();
     wifi_async_socket_client_udp_tx_instance->ip = furi_string_alloc();
     furi_string_set_str(wifi_async_socket_client_udp_tx_instance->ip, ip);
     wifi_async_socket_client_udp_tx_instance->port = port;
@@ -132,6 +131,7 @@ void wifi_async_socket_client_udp_tx_stop() {
 
     furi_thread_join(wifi_async_socket_client_udp_tx_instance->thread);
     furi_string_free(wifi_async_socket_client_udp_tx_instance->ip);
+    furi_string_free(wifi_async_socket_client_udp_tx_instance->msg);
     furi_thread_free(wifi_async_socket_client_udp_tx_instance->thread);
     free(wifi_async_socket_client_udp_tx_instance);
     wifi_async_socket_client_udp_tx_instance = NULL;

@@ -46,8 +46,6 @@ typedef struct {
     uint32_t start;
     uint32_t now;
     uint32_t bytes_read;
-    FuriString* msg;
-    WifiTestApp* app;
 } WifiAsyncSocketServerEcho;
 
 WifiAsyncSocketServerEcho* wifi_async_socket_echo_header = NULL;
@@ -60,29 +58,29 @@ void wifi_async_socket_server_echo_data_callback(
     UNUSED_PARAMETER(buffer);
     UNUSED_PARAMETER(firmware_socket_response);
 
-    furi_string_printf(wifi_async_socket_echo_header->msg, "Client Socket ID : %ld\r\n", sock_no);
-    wifi_test_app_send_text(
-        wifi_async_socket_echo_header->app, wifi_async_socket_echo_header->msg);
-    furi_string_printf(wifi_async_socket_echo_header->msg, "Data received : %ld\r\n", length);
-    wifi_test_app_send_text(
-        wifi_async_socket_echo_header->app, wifi_async_socket_echo_header->msg);
-    furi_string_printf(wifi_async_socket_echo_header->msg, "Data : %s\r\n", buffer);
-    wifi_test_app_send_text(
-        wifi_async_socket_echo_header->app, wifi_async_socket_echo_header->msg);
+    // furi_string_printf(wifi_async_socket_echo_header->msg, "Client Socket ID : %ld\r\n", sock_no);
+    // wifi_test_app_send_text(
+    //     wifi_async_socket_echo_header->app, wifi_async_socket_echo_header->msg);
+    // furi_string_printf(wifi_async_socket_echo_header->msg, "Data received : %ld\r\n", length);
+    // wifi_test_app_send_text(
+    //     wifi_async_socket_echo_header->app, wifi_async_socket_echo_header->msg);
+    // furi_string_printf(wifi_async_socket_echo_header->msg, "Data : %s\r\n", buffer);
+    // wifi_test_app_send_text(
+    //     wifi_async_socket_echo_header->app, wifi_async_socket_echo_header->msg);
 
     int16_t sent_bytes = send(sock_no, buffer, length, 0);
     if(sent_bytes < 0) {
-        furi_string_printf(
-            wifi_async_socket_echo_header->msg, "Send failed with BSD error:%d\r\n", errno);
-        wifi_test_app_send_text(
-            wifi_async_socket_echo_header->app, wifi_async_socket_echo_header->msg);
+        // furi_string_printf(
+        //     wifi_async_socket_echo_header->msg, "Send failed with BSD error:%d\r\n", errno);
+        // wifi_test_app_send_text(
+        //     wifi_async_socket_echo_header->app, wifi_async_socket_echo_header->msg);
         wifi_async_socket_echo_header->exit = 1;
     } else {
         wifi_async_socket_echo_header->bytes_read += length;
     }
 }
 
-void wifi_async_socket_server_echo_init(WifiTestApp* app, FuriString* msg, uint16_t port) {
+void wifi_async_socket_server_echo_init(uint16_t port) {
     wifi_async_socket_echo_header =
         (WifiAsyncSocketServerEcho*)malloc(sizeof(WifiAsyncSocketServerEcho));
 
@@ -91,8 +89,6 @@ void wifi_async_socket_server_echo_init(WifiTestApp* app, FuriString* msg, uint1
     wifi_async_socket_echo_header->start = 0;
     wifi_async_socket_echo_header->now = furi_get_tick();
     wifi_async_socket_echo_header->bytes_read = 0;
-    wifi_async_socket_echo_header->msg = msg;
-    wifi_async_socket_echo_header->app = app;
 
     int server_socket = -1;
     int client_socket = -1;
@@ -104,23 +100,20 @@ void wifi_async_socket_server_echo_init(WifiTestApp* app, FuriString* msg, uint1
     do {
         sl_status_t status = sl_si91x_config_socket(socket_config);
         if(status != SL_STATUS_OK) {
-            furi_string_printf(msg, "Socket config failed: %ld\r\n", status);
-            wifi_test_app_send_text(app, msg);
+            printf("Socket config failed: %ld\r\n", status);
             break;
         }
-        furi_string_printf(msg, "Socket config Done\r\n");
-        wifi_test_app_send_text(app, msg);
+        printf("Socket config Done\r\n");
 
         // Create Server socket
         server_socket = sl_si91x_socket_async(
             AF_INET, SOCK_STREAM, IPPROTO_TCP, &wifi_async_socket_server_echo_data_callback);
         if(server_socket < 0) {
-            furi_string_printf(msg, "Socket create failed with BSD error: %d\r\n", errno);
-            wifi_test_app_send_text(app, msg);
+            printf("Socket create failed with BSD error: %d\r\n", errno);
             break;
         }
-        furi_string_printf(msg, "Server Socket ID : %d\r\n", server_socket);
-        wifi_test_app_send_text(app, msg);
+        printf("Server Socket ID : %d\r\n", server_socket);
+        
         //Set socket
         socket_return_value = sl_si91x_setsockopt(
             server_socket,
@@ -129,8 +122,7 @@ void wifi_async_socket_server_echo_init(WifiTestApp* app, FuriString* msg, uint1
             &high_performance_socket,
             sizeof(high_performance_socket));
         if(socket_return_value < 0) {
-            furi_string_printf(msg, "Set Socket option failed with BSD error: %d\r\n", errno);
-            wifi_test_app_send_text(app, msg);
+            printf("Set Socket option failed with BSD error: %d\r\n", errno);
             close(server_socket);
             break;
         }
@@ -141,8 +133,7 @@ void wifi_async_socket_server_echo_init(WifiTestApp* app, FuriString* msg, uint1
         socket_return_value =
             sl_si91x_bind(server_socket, (struct sockaddr*)&server_address, socket_length);
         if(socket_return_value < 0) {
-            furi_string_printf(msg, "Socket bind failed with BSD error: %d\r\n", errno);
-            wifi_test_app_send_text(app, msg);
+            printf("Socket bind failed with BSD error: %d\r\n", errno);
             close(server_socket);
             break;
         }
@@ -150,18 +141,16 @@ void wifi_async_socket_server_echo_init(WifiTestApp* app, FuriString* msg, uint1
         // Listen socket
         socket_return_value = sl_si91x_listen(server_socket, BACK_LOG);
         if(socket_return_value < 0) {
-            furi_string_printf(msg, "Socket listen failed with BSD error: %d\r\n", errno);
-            wifi_test_app_send_text(app, msg);
+            printf("Socket listen failed with BSD error: %d\r\n", errno);
             close(server_socket);
             break;
         }
-        furi_string_printf(msg, "Listening on Local Port : %d\r\n", port);
-        wifi_test_app_send_text(app, msg);
+        printf("Listening on Local Port : %d\r\n", port);
+        
         // Accept socket
         client_socket = sl_si91x_accept(server_socket, NULL, 0);
         if(client_socket < 0) {
-            furi_string_printf(msg, "Socket accept failed with BSD error: %d\r\n", errno);
-            wifi_test_app_send_text(app, msg);
+            printf("Socket accept failed with BSD error: %d\r\n", errno);
             close(server_socket);
             break;
         }
@@ -184,11 +173,9 @@ void wifi_async_socket_server_echo_init(WifiTestApp* app, FuriString* msg, uint1
             furi_thread_yield();
         }
 
-        furi_string_printf(msg, "TCP_RX Throughput test finished\r\n");
-        wifi_test_app_send_text(app, msg);
-        furi_string_printf(
-            msg, "Total bytes received : %ld\r\n", wifi_async_socket_echo_header->bytes_read);
-        wifi_test_app_send_text(app, msg);
+        printf("TCP_RX Throughput test finished\r\n");
+        printf("Total bytes received : %ld\r\n", wifi_async_socket_echo_header->bytes_read);
+        
         // Close socket
         close(server_socket);
         close(client_socket);
