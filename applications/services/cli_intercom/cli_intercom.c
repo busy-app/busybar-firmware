@@ -56,7 +56,9 @@ typedef struct {
 static void cli_intercom_pipe_broken(PipeSide* pipe, void* context);
 static void cli_intercom_data_from_pipe(PipeSide* pipe, void* context);
 
+// =================
 // Protocol handling
+// =================
 
 static void
     cli_intercom_send_protocol(CliIntercom* cli_intercom, const uint8_t* data, size_t size) {
@@ -135,7 +137,9 @@ static void cli_intercom_intercom_rx_callback(const void* data, size_t data_size
     }
 }
 
+// ===============
 // Service helpers
+// ===============
 
 static void cli_intercom_attach_own_pipe(CliIntercom* cli_intercom, PipeSide* pipe) {
     furi_check(!cli_intercom->own_pipe);
@@ -149,7 +153,7 @@ static void cli_intercom_attach_own_pipe(CliIntercom* cli_intercom, PipeSide* pi
 static void cli_intercom_detach_own_pipe(CliIntercom* cli_intercom) {
     furi_check(cli_intercom->own_pipe);
     pipe_detach_from_event_loop(cli_intercom->own_pipe);
-#ifdef TARGET_F64
+#ifdef CLI_INTERCOM_SLAVE
     // on f20, own_pipe is provided and managed externally
     // on f64, own_pipe is created by us
     pipe_free(cli_intercom->own_pipe);
@@ -158,7 +162,7 @@ static void cli_intercom_detach_own_pipe(CliIntercom* cli_intercom) {
 }
 
 static void cli_intercom_free_shell(CliIntercom* cli_intercom) {
-#ifdef TARGET_F64
+#ifdef CLI_INTERCOM_SLAVE
     furi_check(cli_intercom->cli_shell);
     cli_shell_join(cli_intercom->cli_shell);
     cli_shell_free(cli_intercom->cli_shell);
@@ -171,7 +175,7 @@ static void cli_intercom_free_shell(CliIntercom* cli_intercom) {
 static void cli_intercom_do_protocol_spawn(CliIntercom* cli_intercom) {
     FURI_LOG_D(TAG, "ProtocolSpawn");
 
-#ifdef TARGET_F20
+#ifdef CLI_INTERCOM_MASTER
     furi_crash(); // can't spawn a shell on f20
 #endif
     furi_check(!cli_intercom->own_pipe);
@@ -205,7 +209,7 @@ static void cli_intercom_do_protocol_disconnect(CliIntercom* cli_intercom) {
 static void cli_intercom_do_api_spawn(CliIntercom* cli_intercom, CliIntercomInternalEvent* event) {
     FURI_LOG_D(TAG, "ApiSpawn");
 
-#ifdef TARGET_F64
+#ifdef CLI_INTERCOM_SLAVE
     furi_crash(); // can't spawn a shell on f20
 #endif
     do {
@@ -226,7 +230,7 @@ static void cli_intercom_do_api_spawn(CliIntercom* cli_intercom, CliIntercomInte
 static void cli_intercom_do_api_join(CliIntercom* cli_intercom, CliIntercomInternalEvent* event) {
     FURI_LOG_D(TAG, "ApiJoin");
 
-#ifdef TARGET_F64
+#ifdef CLI_INTERCOM_SLAVE
     furi_crash(); // can't spawn a shell on f20
 #endif
     if(!cli_intercom->own_pipe) {
@@ -237,7 +241,9 @@ static void cli_intercom_do_api_join(CliIntercom* cli_intercom, CliIntercomInter
     cli_intercom->join_lock = event->api_lock;
 }
 
+// ===================
 // EventLoop callbacks
+// ===================
 
 static void cli_intercom_msg_handler(FuriEventLoopObject* object, void* context) {
     FuriMessageQueue* msg_queue = object;
@@ -295,7 +301,9 @@ static void cli_intercom_intercom_rx_handler(FuriEventLoopObject* object, void* 
     pipe_send(cli_intercom->own_pipe, buffer, sizeof(buffer));
 }
 
+// ============
 // Thread setup
+// ============
 
 static CliIntercom* cli_intercom_alloc(void) {
     CliIntercom* cli_intercom = malloc(sizeof(CliIntercom));
@@ -341,7 +349,9 @@ int32_t cli_intercom_srv(void* context) {
     return 0;
 }
 
+// ==========
 // Public API
+// ==========
 
 static void cli_intercom_api_call(CliIntercom* cli_intercom, CliIntercomInternalEvent* event) {
     furi_check(cli_intercom);

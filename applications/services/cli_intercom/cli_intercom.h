@@ -21,15 +21,15 @@ typedef enum {
 } CliIntercomSpawnStatus;
 
 #if defined(STM32U595xx)
-#define TARGET_F20
+#define CLI_INTERCOM_MASTER
 #elif defined(SI917)
-#define TARGET_F64
+#define CLI_INTERCOM_SLAVE
 #else
 #error "Unsupported MCU"
 #endif
 
 // This service has no public API on f64.
-#ifdef TARGET_F20
+#ifdef CLI_INTERCOM_MASTER
 
 /**
  * @brief Spawns a shell on f64. Relays data and status information in both
