@@ -2,7 +2,7 @@
 
 #include <gui/widget_i.h>
 
-#include <assets/assets_images.h>
+#include <assets_images.h>
 
 #define MY_CLASS (&image_lvgl_class)
 

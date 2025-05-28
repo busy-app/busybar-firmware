@@ -25,7 +25,7 @@ static void busy_scene_setup_theme_on_enter(void* context) {
         data->back_layout = flex_layout_alloc(instance->back_window, FlexLayoutTypeColumn);
 
         data->back_header = nav_header_alloc(flex_layout_get_base(data->back_layout));
-        nav_header_set_image(data->back_header, (const void*)&I_header_busy_39x16);
+        nav_header_set_image(data->back_header, BUSY_IMG_PATH("header_busy_39x16.bin"));
         nav_header_push_location(data->back_header, "SETUP");
         nav_header_push_location(data->back_header, "THEME");
 

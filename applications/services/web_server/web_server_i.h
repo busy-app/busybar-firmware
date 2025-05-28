@@ -5,7 +5,7 @@
 #include <storage/storage.h>
 #include <m-list.h>
 
-#define WEB_ROOT EXT_PATH("www/")
+#define WEB_ROOT APP_ASSETS_PATH("www/")
 
 typedef struct {
     char* uri;

@@ -39,7 +39,7 @@ static void busy_scene_setup_on_enter(void* context) {
             data->front_menu,
             "TIMER",
             "Interv",
-            (const void*)&I_timer_8x8,
+            BUSY_IMG_PATH("timer_8x8.bin"),
             BusySceneSetupMenuIndexTimer,
             busy_scene_setup_menu_callback,
             instance);
@@ -47,20 +47,21 @@ static void busy_scene_setup_on_enter(void* context) {
             data->front_menu,
             "THEME",
             "",
-            (const void*)&I_theme_8x8,
+            BUSY_IMG_PATH("theme_8x8.bin"),
             BusySceneSetupMenuIndexTheme,
             busy_scene_setup_menu_callback,
             instance);
 
         data->back_layout = flex_layout_alloc(instance->back_window, FlexLayoutTypeColumn);
         data->back_header = nav_header_alloc(flex_layout_get_base(data->back_layout));
-        nav_header_set_image(data->back_header, (const void*)&I_header_busy_39x16);
+        nav_header_set_image(data->back_header, BUSY_IMG_PATH("header_busy_39x16.bin"));
         nav_header_push_location(data->back_header, "SETUP");
 
         data->back_menu = menu_alloc(flex_layout_get_base(data->back_layout));
         menu_add_item(
-            data->back_menu, "TIMER", "Interval", (const void*)&I_timer_12x12, 0, NULL, NULL);
-        menu_add_item(data->back_menu, "THEME", "", (const void*)&I_theme_12x12, 0, NULL, NULL);
+            data->back_menu, "TIMER", "Interval", BUSY_IMG_PATH("timer_12x12.bin"), 0, NULL, NULL);
+        menu_add_item(
+            data->back_menu, "THEME", "", BUSY_IMG_PATH("theme_12x12.bin"), 0, NULL, NULL);
     });
 }
 

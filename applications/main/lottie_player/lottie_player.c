@@ -8,7 +8,8 @@
 
 #define TAG "LottiePlayer"
 
-#define DEFAULT_FILE_PATH EXT_PATH("lottietest.json")
+#define LOTTIE_RESOURCES_PATH(path) EXT_PATH("apps_assets/lottie_player") "/" path
+#define DEFAULT_FILE_PATH           LOTTIE_RESOURCES_PATH("wave.json")
 
 #define OFFSET_STEP 0.2F
 

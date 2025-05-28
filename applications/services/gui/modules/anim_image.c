@@ -2,7 +2,7 @@
 
 #include <furi/furi.h>
 
-#include <assets/assets_images.h>
+#include <assets_images.h>
 
 #define TAG "AnimImage"
 
@@ -256,6 +256,7 @@ bool anim_image_set_source(AnimImage* instance, const char* file_path) {
 
     if(success) {
         instance->frame_size = header.height * header.width * header.bytes_per_pixel;
+        instance->frame_rate = header.fps;
         instance->frame_count = header.frame_count;
         instance->canvas_buf = realloc(instance->canvas_buf, instance->frame_size);
 
@@ -310,6 +311,16 @@ void anim_image_stop(AnimImage* instance) {
     if(instance->timer) {
         lv_timer_pause(instance->timer);
     }
+}
+
+uint32_t anim_image_get_frame_rate(const AnimImage* instance) {
+    furi_check(instance);
+    return instance->frame_rate;
+}
+
+uint32_t anim_image_get_frame_count(const AnimImage* instance) {
+    furi_check(instance);
+    return instance->frame_count;
 }
 
 // LVGL class descriptor

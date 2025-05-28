@@ -7,4 +7,5 @@ App(
     order=70,
     requires=["usb_srv", "canvas"],
     targets=["f20", "f21"],
+    resources="resources",
 )

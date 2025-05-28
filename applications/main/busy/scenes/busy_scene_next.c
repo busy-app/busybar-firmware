@@ -15,9 +15,9 @@ typedef struct {
 } BusySceneNext;
 
 static const char* front_anim_file_path[BusyTimerStateMax] = {
-    [BusyTimerStateIdle] = BUSY_ANIM_PATH("A_finish_waiting_72x16.anim"),
-    [BusyTimerStateWork] = BUSY_ANIM_PATH("A_busy_waiting_72x16.anim"),
-    [BusyTimerStateRest] = BUSY_ANIM_PATH("A_rest_waiting_72x16.anim"),
+    [BusyTimerStateIdle] = BUSY_ANIM_PATH("finish_waiting_72x16.anim"),
+    [BusyTimerStateWork] = BUSY_ANIM_PATH("busy_waiting_72x16.anim"),
+    [BusyTimerStateRest] = BUSY_ANIM_PATH("rest_waiting_72x16.anim"),
 };
 
 static bool busy_scene_next_input_callback(const InputEvent* event, void* context) {
@@ -64,6 +64,10 @@ static void busy_scene_next_on_enter(void* context) {
         anim_image_set_source(data->front_anim, front_anim_file_path[data->timer_state]);
         anim_image_set_range(data->front_anim, WAIT_ANIM_BEGIN, WAIT_ANIM_END, true, false);
     });
+
+    if(data->timer_state == BusyTimerStateIdle) {
+        audio_play_file(instance->audio, BUSY_SOUND_PATH("session_completed.snd"));
+    }
 
     busy_start_transition(instance);
 }
