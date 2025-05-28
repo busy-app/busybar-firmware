@@ -79,9 +79,9 @@ static const BusyTransition busy_transitions[BusyTransitionTypeMax] = {
 };
 
 static const StatusLightsCommand busy_status_lights[BusyStatusLightsTypeMax] = {
-    [BusyStatusLightsTypeDefault] =
+    [BusyStatusLightsTypeOff] =
         {
-            .preset = StatusLightsPresetRainbowGradient,
+            .preset = StatusLightsPresetOff,
         },
     [BusyStatusLightsTypeWork] =
         {
@@ -92,11 +92,6 @@ static const StatusLightsCommand busy_status_lights[BusyStatusLightsTypeMax] = {
         {
             .preset = StatusLightsPresetStaticColor,
             .color = COLOR_MAKE_RGB(10, 150, 5),
-        },
-    [BusyStatusLightsTypeOff] =
-        {
-            .preset = StatusLightsPresetStaticColor,
-            .color = COLOR_MAKE_RGB(0, 0, 0),
         },
 };
 
@@ -165,9 +160,6 @@ static BusyApp* busy_alloc(void) {
     instance->audio = furi_record_open(RECORD_AUDIO);
     instance->gui = furi_record_open(RECORD_GUI);
 
-    // TODO: Implement audio settings
-    audio_set_volume(instance->audio, .5F);
-
     with_gui(instance->gui, {
         GuiLayer* layer = gui_get_layer(instance->gui, GuiLayerIdMain);
         gui_layer_add_input_callback(layer, busy_gui_input_callback, instance);
@@ -201,12 +193,18 @@ static BusyApp* busy_alloc(void) {
         busy_event_queue_callback,
         instance);
 
+    // TODO: Implement audio settings
+    audio_set_volume(instance->audio, .5F);
+    busy_set_status_lights(instance, BusyStatusLightsTypeOff);
+
     scene_manager_next_scene(instance->scene_manager, BusyAppSceneIdStart);
 
     return instance;
 }
 
 static void busy_free(BusyApp* instance) {
+    busy_set_status_lights(instance, BusyStatusLightsTypeOff);
+
     scene_manager_free(instance->scene_manager);
     busy_timer_free(instance->busy_timer);
 

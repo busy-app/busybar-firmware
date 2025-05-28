@@ -145,13 +145,15 @@ static void busy_scene_timer_toggle_pause(BusyApp* instance) {
     with_gui(instance->gui, {
         pause_overlay_show(data->pause_overlay, data->is_paused);
         timer_card_show_header(instance->timer_card, !data->is_paused);
-
-        if(data->is_paused) {
-            anim_image_stop(data->state_image);
-        } else {
-            anim_image_start(data->state_image);
-        }
     });
+
+    if(data->is_paused) {
+        busy_set_status_lights(instance, BusyStatusLightsTypeOff);
+    } else if(data->timer_state == BusyTimerStateWork) {
+        busy_set_status_lights(instance, BusyStatusLightsTypeWork);
+    } else if(data->timer_state == BusyTimerStateRest) {
+        busy_set_status_lights(instance, BusyStatusLightsTypeRest);
+    }
 }
 
 static void busy_scene_timer_go_to_progress_scene(BusyApp* instance) {
@@ -221,8 +223,6 @@ static void busy_scene_timer_on_exit(void* context) {
     });
 
     busy_timer_set_callback(instance->busy_timer, NULL, NULL);
-
-    busy_set_status_lights(instance, BusyStatusLightsTypeDefault);
 }
 
 static bool busy_scene_timer_on_event(const SceneManagerEvent* event, void* context) {
@@ -264,6 +264,7 @@ static bool busy_scene_timer_on_event(const SceneManagerEvent* event, void* cont
         busy_timer_stop(instance->busy_timer);
 
         busy_prepare_transition(instance, BusyTransitionTypeBlack);
+        busy_set_status_lights(instance, BusyStatusLightsTypeOff);
 
         scene_manager_search_and_switch_to_previous_scene(
             instance->scene_manager, BusyAppSceneIdStart);

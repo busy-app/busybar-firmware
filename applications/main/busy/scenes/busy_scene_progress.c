@@ -41,8 +41,6 @@ static void busy_scene_progress_on_enter(void* context) {
 
         run_later_delay = DONE_TRANSITION_DELAY_MS;
 
-        busy_set_status_lights(instance, BusyStatusLightsTypeWork);
-
     } else if(state == BusyTimerStateWork) {
         with_gui(instance->gui, {
             data->front_rest_image = image_alloc(instance->front_window);
@@ -50,8 +48,6 @@ static void busy_scene_progress_on_enter(void* context) {
         });
 
         run_later_delay = REST_TRANSITION_DELAY_MS;
-
-        busy_set_status_lights(instance, BusyStatusLightsTypeRest);
 
     } else {
         furi_crash();
@@ -83,7 +79,7 @@ static void busy_scene_progress_on_exit(void* context) {
         }
     });
 
-    busy_set_status_lights(instance, BusyStatusLightsTypeDefault);
+    busy_set_status_lights(instance, BusyStatusLightsTypeOff);
 }
 
 static bool busy_scene_progress_on_event(const SceneManagerEvent* event, void* context) {

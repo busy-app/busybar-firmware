@@ -45,10 +45,9 @@ typedef enum {
 } BusyTransitionType;
 
 typedef enum {
-    BusyStatusLightsTypeDefault,
+    BusyStatusLightsTypeOff,
     BusyStatusLightsTypeWork,
     BusyStatusLightsTypeRest,
-    BusyStatusLightsTypeOff,
     BusyStatusLightsTypeMax,
 } BusyStatusLightsType;
 
