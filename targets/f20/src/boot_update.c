@@ -101,7 +101,7 @@ void platform_boot_exec_update(void) {
 
         // Disable interrupts, move image to RAM start address and execute it
         __disable_irq();
-        memmove((void*)0x20000000, buffer, stat.fsize);
+        memmove((void*)SRAM1_BASE, buffer, stat.fsize);
         furi_hal_cortex_jump(FuriHalCortexJumpSRAM);
 
     } while(0);
