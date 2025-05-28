@@ -207,6 +207,9 @@ static void busy_scene_timer_on_exit(void* context) {
 
     BusySceneTimer* data = scene_manager_get_current_scene_data(instance->scene_manager);
 
+    data->is_force_ended = false;
+    data->is_paused = false;
+
     with_gui(instance->gui, {
         GuiLayer* layer = gui_get_layer(instance->gui, GuiLayerIdMain);
         gui_layer_remove_input_callback(layer, busy_scene_timer_input_callback);
