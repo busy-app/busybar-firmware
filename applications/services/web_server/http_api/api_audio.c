@@ -2,10 +2,9 @@
 #include <toolbox/path.h>
 #include <audio/audio.h>
 
-#define TAG "HTTP Audio"
+#define TAG "HttpAudio"
 
-#define API_AUDIO_ASSETS_DIR        "/ext/www/audio"
-#define API_AUDIO_FILE_NAME_LEN_MAX 32
+#define AUDIO_ASSETS_DIR EXT_PATH("assets")
 
 typedef struct {
     size_t len_remain;
@@ -29,7 +28,7 @@ static bool
         }
 
         FuriString* path =
-            furi_string_alloc_printf("%s/%.*s", API_AUDIO_ASSETS_DIR, var_len, file_path);
+            furi_string_alloc_printf("%s/%.*s", AUDIO_ASSETS_DIR, var_len, file_path);
         Audio* audio = furi_record_open(RECORD_AUDIO);
         success = audio_play_file(audio, furi_string_get_cstr(path));
         furi_record_close(RECORD_AUDIO);
@@ -90,9 +89,6 @@ void* http_api_audio_alloc(void) {
     for(size_t i = COUNT_OF(api_audio_handlers); i > 0; i--) {
         http_handler_add(context->handlers, &api_audio_handlers[i - 1]);
     }
-
-    // Create assets directory
-    http_fs_get()->mkd(API_AUDIO_ASSETS_DIR);
     return context;
 }
 
@@ -107,13 +103,4 @@ bool http_api_audio_callback(struct mg_connection* conn, struct mg_http_message*
     ApiAudioCtx* context = ctx;
 
     return http_handle_request(context->handlers, conn, msg);
-}
-
-bool http_api_audio_hdr_callback(
-    struct mg_connection* conn,
-    struct mg_http_message* msg,
-    void* ctx) {
-    ApiAudioCtx* context = ctx;
-
-    return http_handle_headers(context->handlers, conn, msg);
 }

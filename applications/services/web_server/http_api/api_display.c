@@ -8,7 +8,6 @@
 #define TAG "HttpDisplay"
 
 #define DISPLAY_ASSETS_DIR EXT_PATH("assets")
-#define FILE_NAME_LEN_MAX  32
 
 static bool api_display_draw_parse_element(
     CanvasElementsArray_t elements_array,

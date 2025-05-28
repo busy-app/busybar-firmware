@@ -25,10 +25,6 @@ bool http_api_display_callback(struct mg_connection* conn, struct mg_http_messag
 void* http_api_audio_alloc(void);
 void http_api_audio_free(void* ctx);
 bool http_api_audio_callback(struct mg_connection* conn, struct mg_http_message* msg, void* ctx);
-bool http_api_audio_hdr_callback(
-    struct mg_connection* conn,
-    struct mg_http_message* msg,
-    void* ctx);
 
 // WebSocket test
 void* http_websocket_alloc(void);
