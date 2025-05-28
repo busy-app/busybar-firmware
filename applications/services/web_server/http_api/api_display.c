@@ -100,13 +100,28 @@ static bool
     if(success) {
         bool app_running = furi_record_exists(RECORD_CANVAS);
         if(!app_running) {
-            Desktop* desktop = furi_record_open(RECORD_DESKTOP);
-            if(!desktop_replace_current_app(desktop, "canvas", "")) {
-                mg_http_reply(conn, 400, "", "Failed to load app");
-            } else {
-                app_running = true;
+            Loader* loader = furi_record_open(RECORD_LOADER);
+            FuriString* app_name = furi_string_alloc();
+            bool loader_busy = false;
+            if(loader_get_application_name(loader, app_name)) {
+                if(furi_string_cmp(app_name, "Busy") == 0) {
+                    loader_busy = true;
+                }
             }
-            furi_record_close(RECORD_DESKTOP);
+            furi_string_free(app_name);
+            furi_record_close(RECORD_LOADER);
+
+            if(loader_busy) {
+                mg_http_reply(conn, 403, "", "Forbidden");
+            } else {
+                Desktop* desktop = furi_record_open(RECORD_DESKTOP);
+                if(!desktop_replace_current_app(desktop, "canvas", "")) {
+                    mg_http_reply(conn, 400, "", "Failed to load app");
+                } else {
+                    app_running = true;
+                }
+                furi_record_close(RECORD_DESKTOP);
+            }
         }
 
         if(app_running) {
@@ -132,15 +147,20 @@ static bool api_display_delete_callback(
     struct mg_connection* conn,
     struct mg_http_message* msg,
     void* ctx) {
-    UNUSED(conn);
     UNUSED(msg);
     UNUSED(ctx);
     FURI_LOG_I(TAG, "DELETE");
 
+    FuriString* app_name = furi_string_alloc();
     Loader* loader = furi_record_open(RECORD_LOADER);
-    loader_stop(loader);
+    if(loader_get_application_name(loader, app_name)) {
+        if(furi_string_cmp(app_name, "Canvas") == 0) {
+            loader_stop(loader);
+        }
+    }
     furi_record_close(RECORD_LOADER);
     mg_http_reply(conn, 200, "", "OK");
+    furi_string_free(app_name);
     return true;
 }
 
