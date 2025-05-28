@@ -123,7 +123,7 @@ static bool api_assets_upload_headers_callback(
 
 static const HttpHandler handlers_assets[] = {
     {
-        .uri = "/*/*/upload",
+        .uri = "#/upload",
         .method = "POST",
         .type = HttpHandlerCustom,
         .on_headers = api_assets_upload_headers_callback,

@@ -110,7 +110,7 @@ static const HttpHandler handlers_api_root[] = {
         .on_request = http_api_version_callback,
     },
     {
-        .uri = "/*/assets/*",
+        .uri = "/*/v0/assets/*",
         .method = "*",
         .type = HttpHandlerCustom,
         .ctx_alloc = http_api_assets_alloc,
@@ -119,7 +119,7 @@ static const HttpHandler handlers_api_root[] = {
         .on_headers = http_api_assets_hdr_callback,
     },
     {
-        .uri = "/*/display/*",
+        .uri = "/*/v0/display/*",
         .method = "*",
         .type = HttpHandlerCustom,
         .ctx_alloc = http_api_display_alloc,
@@ -127,7 +127,7 @@ static const HttpHandler handlers_api_root[] = {
         .on_request = http_api_display_callback,
     },
     {
-        .uri = "/*/audio/*",
+        .uri = "/*/v0/audio/*",
         .method = "*",
         .type = HttpHandlerCustom,
         .ctx_alloc = http_api_audio_alloc,

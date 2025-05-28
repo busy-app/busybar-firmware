@@ -107,6 +107,7 @@ FuriPubSub* loader_get_pubsub(Loader* loader) {
 
 bool loader_get_application_name(Loader* loader, FuriString* name) {
     furi_check(loader);
+    furi_check(name);
 
     LoaderMessageBoolResult result;
 

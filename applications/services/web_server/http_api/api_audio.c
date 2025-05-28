@@ -65,13 +65,13 @@ static bool
 
 static const HttpHandler api_audio_handlers[] = {
     {
-        .uri = "/*/*/play",
+        .uri = "#/play",
         .method = "POST",
         .type = HttpHandlerCustom,
         .on_request = api_audio_play_callback,
     },
     {
-        .uri = "/*/*/play",
+        .uri = "#/play",
         .method = "DELETE",
         .type = HttpHandlerCustom,
         .on_request = api_audio_delete_callback,

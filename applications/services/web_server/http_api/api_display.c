@@ -166,13 +166,13 @@ static bool api_display_delete_callback(
 
 static const HttpHandler handlers_display[] = {
     {
-        .uri = "/*/*/draw",
+        .uri = "#/draw",
         .method = "POST",
         .type = HttpHandlerCustom,
         .on_request = api_display_draw_callback,
     },
     {
-        .uri = "/*/*/draw",
+        .uri = "#/draw",
         .method = "DELETE",
         .type = HttpHandlerCustom,
         .on_request = api_display_delete_callback,
