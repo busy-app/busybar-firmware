@@ -163,7 +163,9 @@ void* wifi_rf_test_app_start(CliShell* shell) {
             sl_net_init(SL_NET_WIFI_CLIENT_INTERFACE, &wifi_rf_test_configuration, NULL, NULL);
         if(status != SL_STATUS_OK) {
             furi_string_printf(
-                instance->msg, ANSI_FG_RED "Failed to start Wi-Fi client interface: 0x%lx" ANSI_RESET, status);
+                instance->msg,
+                ANSI_FG_RED "Failed to start Wi-Fi client interface: 0x%lx" ANSI_RESET,
+                status);
             cli_shell_notification_print(instance->shell, instance->msg);
             break;
         } else {
@@ -173,13 +175,19 @@ void* wifi_rf_test_app_start(CliShell* shell) {
         // Register WLAN receive stats call back handler
         status = sl_wifi_set_stats_callback(wifi_rf_test_stats_receive_handler, instance);
         if(status != SL_STATUS_OK) {
-            furi_string_printf(instance->msg, ANSI_FG_RED "Failed to set stats callback: 0x%lx" ANSI_RESET, status);
+            furi_string_printf(
+                instance->msg,
+                ANSI_FG_RED "Failed to set stats callback: 0x%lx" ANSI_RESET,
+                status);
             cli_shell_notification_print(instance->shell, instance->msg);
             break;
         }
         status = sl_wifi_set_antenna(SL_WIFI_CLIENT_2_4GHZ_INTERFACE, SL_WIFI_ANTENNA_INTERNAL);
         if(status != SL_STATUS_OK) {
-            furi_string_printf(instance->msg, ANSI_FG_RED "Failed to start set Antenna: 0x%lx" ANSI_RESET, status);
+            furi_string_printf(
+                instance->msg,
+                ANSI_FG_RED "Failed to start set Antenna: 0x%lx" ANSI_RESET,
+                status);
             cli_shell_notification_print(instance->shell, instance->msg);
             break;
         }
@@ -234,8 +242,7 @@ static sl_status_t wifi_rf_test_stats_receive_handler(
     if(event == SL_WIFI_STATS_ASYNC_EVENT) {
         sl_si91x_async_stats_response_t* result = (sl_si91x_async_stats_response_t*)reponse;
 
-        furi_string_printf(
-            instance->msg, "WIFI STATS Recieved packet# %d", instance->stats_count);
+        furi_string_printf(instance->msg, "WIFI STATS Recieved packet# %d", instance->stats_count);
 
         furi_string_cat_printf(
             instance->msg,
@@ -284,9 +291,18 @@ static sl_status_t wifi_rf_test_stats_receive_handler(
     return SL_STATUS_OK;
 }
 
-static bool wifi_rf_test_generic_command_guard(WifiRfTestApp* instance, FuriString* args, WifiTestState expected_state, uint8_t min_arg, uint8_t max_arg, uint8_t* arg_out) {
+static bool wifi_rf_test_generic_command_guard(
+    WifiRfTestApp* instance,
+    FuriString* args,
+    WifiTestState expected_state,
+    uint8_t min_arg,
+    uint8_t max_arg,
+    uint8_t* arg_out) {
     if(instance->state != expected_state) {
-        printf(ANSI_FG_RED "invalid state %d; expected to be in state %d\r\n" ANSI_RESET, instance->state, expected_state);
+        printf(
+            ANSI_FG_RED "invalid state %d; expected to be in state %d\r\n" ANSI_RESET,
+            instance->state,
+            expected_state);
         return false;
     }
 
@@ -297,7 +313,10 @@ static bool wifi_rf_test_generic_command_guard(WifiRfTestApp* instance, FuriStri
     }
 
     if(arg < (int)min_arg || arg > (int)max_arg) {
-        printf(ANSI_FG_RED "argument out of bounds; expected >= %d, <= %d\r\n" ANSI_RESET, min_arg, max_arg);
+        printf(
+            ANSI_FG_RED "argument out of bounds; expected >= %d, <= %d\r\n" ANSI_RESET,
+            min_arg,
+            max_arg);
         return false;
     }
 
@@ -305,9 +324,17 @@ static bool wifi_rf_test_generic_command_guard(WifiRfTestApp* instance, FuriStri
     return true;
 }
 
-static bool wifi_rf_test_generic_enum_arg_command_guard(WifiRfTestApp* instance, FuriString* args, WifiTestState expected_state, const WifiRfTestOption* options, uint16_t* arg_out) {
+static bool wifi_rf_test_generic_enum_arg_command_guard(
+    WifiRfTestApp* instance,
+    FuriString* args,
+    WifiTestState expected_state,
+    const WifiRfTestOption* options,
+    uint16_t* arg_out) {
     if(instance->state != expected_state) {
-        printf(ANSI_FG_RED "invalid state %d; expected to be in state %d\r\n" ANSI_RESET, instance->state, expected_state);
+        printf(
+            ANSI_FG_RED "invalid state %d; expected to be in state %d\r\n" ANSI_RESET,
+            instance->state,
+            expected_state);
         return false;
     }
 
@@ -361,7 +388,8 @@ static void wifi_rf_test_set_power_command(PipeSide* pipe, FuriString* args, voi
             printf("Power set to %d\r\n", arg);
             instance->tx_test_info.power = arg;
         } else {
-            printf(ANSI_FG_RED "argument out of bounds; expected >= 2, <= 18, or 127\r\n" ANSI_RESET);
+            printf(ANSI_FG_RED
+                   "argument out of bounds; expected >= 2, <= 18, or 127\r\n" ANSI_RESET);
         }
     }
 }
@@ -370,7 +398,8 @@ static void wifi_rf_test_set_rate_command(PipeSide* pipe, FuriString* args, void
     UNUSED(pipe);
     WifiRfTestApp* instance = context;
     uint16_t arg;
-    if(wifi_rf_test_generic_enum_arg_command_guard(instance, args, WifiTestStateIdle, wifi_rf_test_rate_options, &arg)) {
+    if(wifi_rf_test_generic_enum_arg_command_guard(
+           instance, args, WifiTestStateIdle, wifi_rf_test_rate_options, &arg)) {
         instance->tx_test_info.rate = arg;
         printf("Rate set\r\n");
     }
@@ -391,7 +420,8 @@ static void wifi_rf_test_set_mode_command(PipeSide* pipe, FuriString* args, void
     UNUSED(pipe);
     WifiRfTestApp* instance = context;
     uint16_t arg;
-    if(wifi_rf_test_generic_enum_arg_command_guard(instance, args, WifiTestStateIdle, wifi_rf_test_mode_options, &arg)) {
+    if(wifi_rf_test_generic_enum_arg_command_guard(
+           instance, args, WifiTestStateIdle, wifi_rf_test_mode_options, &arg)) {
         instance->tx_test_info.mode = arg;
         printf("Mode set\r\n");
     }
@@ -465,7 +495,8 @@ static void wifi_rf_test_rx_command(PipeSide* pipe, FuriString* args, void* cont
         instance->fail_avg = 0;
     }
 
-    printf("NOTE: Receive stats testing should be done in a controlled environment (RF shield box or chamber).");
+    printf(
+        "NOTE: Receive stats testing should be done in a controlled environment (RF shield box or chamber).");
 }
 
 static void wifi_rf_test_tx_start_command(PipeSide* pipe, FuriString* args, void* context) {
@@ -532,7 +563,8 @@ static void wifi_rf_test_motd(void* context) {
     printf("\r\n+---------------------------------+\r\n");
     printf("| Welcome to Wi-Fi RF test shell! |\r\n");
     printf("+---------------------------------+\r\n\r\n");
-    printf("Read the manual: https://github.com/SiliconLabs/wiseconnect/tree/master/examples/snippets/wlan/wlan_rf_test\r\n");
+    printf(
+        "Read the manual: https://github.com/SiliconLabs/wiseconnect/tree/master/examples/snippets/wlan/wlan_rf_test\r\n");
 }
 
 void wifi_rf_test_command(PipeSide* pipe, FuriString* args, void* context) {
@@ -546,12 +578,18 @@ void wifi_rf_test_command(PipeSide* pipe, FuriString* args, void* context) {
 
     WifiRfTestApp* app = wifi_rf_test_app_start(shell);
     cli_registry_add_command(registry, "rx", CliCommandFlagDefault, wifi_rf_test_rx_command, app);
-    cli_registry_add_command(registry, "tx_start", CliCommandFlagDefault, wifi_rf_test_tx_start_command, app);
-    cli_registry_add_command(registry, "tx_stop", CliCommandFlagDefault, wifi_rf_test_tx_stop_command, app);
-    cli_registry_add_command(registry, "set_power", CliCommandFlagDefault, wifi_rf_test_set_power_command, app);
-    cli_registry_add_command(registry, "set_channel", CliCommandFlagDefault, wifi_rf_test_set_channel_command, app);
-    cli_registry_add_command(registry, "set_mode", CliCommandFlagDefault, wifi_rf_test_set_mode_command, app);
-    cli_registry_add_command(registry, "set_rate", CliCommandFlagDefault, wifi_rf_test_set_rate_command, app);
+    cli_registry_add_command(
+        registry, "tx_start", CliCommandFlagDefault, wifi_rf_test_tx_start_command, app);
+    cli_registry_add_command(
+        registry, "tx_stop", CliCommandFlagDefault, wifi_rf_test_tx_stop_command, app);
+    cli_registry_add_command(
+        registry, "set_power", CliCommandFlagDefault, wifi_rf_test_set_power_command, app);
+    cli_registry_add_command(
+        registry, "set_channel", CliCommandFlagDefault, wifi_rf_test_set_channel_command, app);
+    cli_registry_add_command(
+        registry, "set_mode", CliCommandFlagDefault, wifi_rf_test_set_mode_command, app);
+    cli_registry_add_command(
+        registry, "set_rate", CliCommandFlagDefault, wifi_rf_test_set_rate_command, app);
 
     cli_shell_join(shell);
     wifi_rf_test_app_stop(app);

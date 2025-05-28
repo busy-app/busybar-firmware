@@ -101,10 +101,7 @@ static int32_t wifi_async_socket_client_udp_tx_callback(void* context) {
     return 0;
 }
 
-void wifi_async_socket_client_udp_tx_init(
-    CliShell* shell,
-    char* ip,
-    uint16_t port) {
+void wifi_async_socket_client_udp_tx_init(CliShell* shell, char* ip, uint16_t port) {
     if(wifi_async_socket_client_udp_tx_instance != NULL) {
         wifi_async_socket_client_udp_tx_stop();
     }

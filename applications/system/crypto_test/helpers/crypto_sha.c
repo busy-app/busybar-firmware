@@ -46,8 +46,7 @@ void crypto_sha_check(
     }
 }
 
-void crypto_sha_test_custom_sha_mode(
-    FuriHalCryptoShaMode sha_mode) {
+void crypto_sha_test_custom_sha_mode(FuriHalCryptoShaMode sha_mode) {
     uint8_t digest[FURI_HAL_CRYPTO_SHA512_DIGEST_SIZE] = {0};
     size_t digest_length = 0;
 
@@ -76,24 +75,19 @@ void crypto_sha_test_custom_sha_mode(
 
     switch(sha_mode) {
     case FuriHalCryptoShaModeSha1:
-        crypto_sha_check(
-            "SHA1", digest, digest_out_sha1, FURI_HAL_CRYPTO_SHA1_DIGEST_SIZE);
+        crypto_sha_check("SHA1", digest, digest_out_sha1, FURI_HAL_CRYPTO_SHA1_DIGEST_SIZE);
         break;
     case FuriHalCryptoShaModeSha256:
-        crypto_sha_check(
-            "SHA256", digest, digest_out_sha256, FURI_HAL_CRYPTO_SHA256_DIGEST_SIZE);
+        crypto_sha_check("SHA256", digest, digest_out_sha256, FURI_HAL_CRYPTO_SHA256_DIGEST_SIZE);
         break;
     case FuriHalCryptoShaModeSha384:
-        crypto_sha_check(
-            "SHA384", digest, digest_out_sha384, FURI_HAL_CRYPTO_SHA384_DIGEST_SIZE);
+        crypto_sha_check("SHA384", digest, digest_out_sha384, FURI_HAL_CRYPTO_SHA384_DIGEST_SIZE);
         break;
     case FuriHalCryptoShaModeSha512:
-        crypto_sha_check(
-            "SHA512", digest, digest_out_sha512, FURI_HAL_CRYPTO_SHA512_DIGEST_SIZE);
+        crypto_sha_check("SHA512", digest, digest_out_sha512, FURI_HAL_CRYPTO_SHA512_DIGEST_SIZE);
         break;
     case FuriHalCryptoShaModeSha244:
-        crypto_sha_check(
-            "SHA224", digest, digest_out_sha244, FURI_HAL_CRYPTO_SHA224_DIGEST_SIZE);
+        crypto_sha_check("SHA224", digest, digest_out_sha244, FURI_HAL_CRYPTO_SHA224_DIGEST_SIZE);
         break;
 
     default:

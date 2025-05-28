@@ -10,9 +10,9 @@
 // #define CLI_INTERCOM_TRACE_ENABLE
 
 #define PIPE_SZ_PER_DIRECTION 1024
-#define MSG_Q_SIZE 4
-#define RX_STREAM_SIZE (4 * CLI_INTERCOM_MAX_PAYLOAD_LEN)
-#define DATA_BATCH_SIZE (2 * CLI_INTERCOM_MAX_PAYLOAD_LEN)
+#define MSG_Q_SIZE            4
+#define RX_STREAM_SIZE        (4 * CLI_INTERCOM_MAX_PAYLOAD_LEN)
+#define DATA_BATCH_SIZE       (2 * CLI_INTERCOM_MAX_PAYLOAD_LEN)
 
 #ifdef CLI_INTERCOM_TRACE_ENABLE
 #define CLI_INTERCOM_TRACE(...) FURI_LOG_T(__VA_ARGS__)
@@ -58,11 +58,15 @@ static void cli_intercom_data_from_pipe(PipeSide* pipe, void* context);
 
 // Protocol handling
 
-static void cli_intercom_send_protocol(CliIntercom* cli_intercom, const uint8_t* data, size_t size) {
-    furi_check(intercom_tx(cli_intercom->intercom, IntercomChannelCli, data, size, FuriWaitForever) == size);
+static void
+    cli_intercom_send_protocol(CliIntercom* cli_intercom, const uint8_t* data, size_t size) {
+    furi_check(
+        intercom_tx(cli_intercom->intercom, IntercomChannelCli, data, size, FuriWaitForever) ==
+        size);
 }
 
-static void cli_intercom_send_protocol_status(CliIntercom* cli_intercom, CliIntercomMessageType type) {
+static void
+    cli_intercom_send_protocol_status(CliIntercom* cli_intercom, CliIntercomMessageType type) {
     CLI_INTERCOM_TRACE(TAG, "OutStatus type=%d", type);
     furi_assert(type < CliIntercomMessageTypeStatusMAX);
     uint8_t message[] = {
@@ -71,7 +75,11 @@ static void cli_intercom_send_protocol_status(CliIntercom* cli_intercom, CliInte
     cli_intercom_send_protocol(cli_intercom, message, sizeof(message));
 }
 
-static void cli_intercom_send_protocol_payload(CliIntercom* cli_intercom, CliIntercomMessageType type, const uint8_t* payload, size_t payload_size) {
+static void cli_intercom_send_protocol_payload(
+    CliIntercom* cli_intercom,
+    CliIntercomMessageType type,
+    const uint8_t* payload,
+    size_t payload_size) {
     CLI_INTERCOM_TRACE(TAG, "OutPayload type=%d len=%zu", type, payload_size);
     furi_assert(type < CliIntercomMessageTypeMAX);
     furi_assert(type >= CliIntercomMessageTypeStatusMAX);
@@ -81,7 +89,8 @@ static void cli_intercom_send_protocol_payload(CliIntercom* cli_intercom, CliInt
     cli_intercom_send_protocol(cli_intercom, message, sizeof(message));
 }
 
-static void cli_intercom_send_simple_event(CliIntercom* cli_intercom, CliIntercomInternalEventType type) {
+static void
+    cli_intercom_send_simple_event(CliIntercom* cli_intercom, CliIntercomInternalEventType type) {
     CliIntercomInternalEvent event = {
         .type = type,
     };
@@ -106,13 +115,15 @@ static void cli_intercom_intercom_rx_callback(const void* data, size_t data_size
         break;
 
     case CliIntercomMessageTypeDisconnect:
-        cli_intercom_send_simple_event(cli_intercom, CliIntercomInternalEventTypeProtocolDisconnect);
+        cli_intercom_send_simple_event(
+            cli_intercom, CliIntercomInternalEventTypeProtocolDisconnect);
         break;
 
     case CliIntercomMessageTypeData: {
         const uint8_t* payload = buffer + 1;
         while(payload_length) {
-            size_t sent = furi_stream_buffer_send(cli_intercom->intercom_rx_stream, payload, payload_length, FuriWaitForever);
+            size_t sent = furi_stream_buffer_send(
+                cli_intercom->intercom_rx_stream, payload, payload_length, FuriWaitForever);
             payload += sent;
             payload_length -= sent;
         }
@@ -171,7 +182,8 @@ static void cli_intercom_do_protocol_spawn(CliIntercom* cli_intercom) {
 
     cli_intercom_attach_own_pipe(cli_intercom, bundle.alices_side);
 
-    cli_intercom->cli_shell = cli_shell_alloc(cli_main_motd, NULL, shell_pipe, cli_intercom->registry, NULL);
+    cli_intercom->cli_shell =
+        cli_shell_alloc(cli_main_motd, NULL, shell_pipe, cli_intercom->registry, NULL);
     cli_shell_free_pipe_on_exit(cli_intercom->cli_shell);
     cli_shell_set_prompt(cli_intercom->cli_shell, "917");
     cli_shell_start(cli_intercom->cli_shell);
@@ -258,7 +270,8 @@ static void cli_intercom_data_from_pipe(PipeSide* pipe, void* context) {
 
     uint8_t buffer[to_transfer];
     furi_check(pipe_receive(pipe, buffer, sizeof(buffer)) == sizeof(buffer));
-    cli_intercom_send_protocol_payload(cli_intercom, CliIntercomMessageTypeData, buffer, sizeof(buffer));
+    cli_intercom_send_protocol_payload(
+        cli_intercom, CliIntercomMessageTypeData, buffer, sizeof(buffer));
 }
 
 static void cli_intercom_pipe_broken(PipeSide* pipe, void* context) {
@@ -272,7 +285,7 @@ static void cli_intercom_pipe_broken(PipeSide* pipe, void* context) {
 static void cli_intercom_intercom_rx_handler(FuriEventLoopObject* object, void* context) {
     FuriStreamBuffer* rx_stream = object;
     CliIntercom* cli_intercom = context;
-    
+
     size_t bytes_in_buffer = furi_stream_buffer_bytes_available(rx_stream);
     size_t spaces_in_pipe = pipe_spaces_available(cli_intercom->own_pipe);
     size_t to_transfer = MIN(MIN(bytes_in_buffer, spaces_in_pipe), DATA_BATCH_SIZE);
@@ -290,15 +303,30 @@ static CliIntercom* cli_intercom_alloc(void) {
     cli_intercom->registry = furi_record_open(RECORD_CLI);
 
     cli_intercom->intercom = furi_record_open(RECORD_INTERCOM);
-    intercom_set_rx_callback(cli_intercom->intercom, IntercomChannelCli, cli_intercom_intercom_rx_callback, cli_intercom);
+    intercom_set_rx_callback(
+        cli_intercom->intercom,
+        IntercomChannelCli,
+        cli_intercom_intercom_rx_callback,
+        cli_intercom);
 
     cli_intercom->event_loop = furi_event_loop_alloc();
 
-    cli_intercom->msg_queue = furi_message_queue_alloc(MSG_Q_SIZE, sizeof(CliIntercomInternalEvent));
-    furi_event_loop_subscribe_message_queue(cli_intercom->event_loop, cli_intercom->msg_queue, FuriEventLoopEventIn, cli_intercom_msg_handler, cli_intercom);
+    cli_intercom->msg_queue =
+        furi_message_queue_alloc(MSG_Q_SIZE, sizeof(CliIntercomInternalEvent));
+    furi_event_loop_subscribe_message_queue(
+        cli_intercom->event_loop,
+        cli_intercom->msg_queue,
+        FuriEventLoopEventIn,
+        cli_intercom_msg_handler,
+        cli_intercom);
 
     cli_intercom->intercom_rx_stream = furi_stream_buffer_alloc(RX_STREAM_SIZE, 1);
-    furi_event_loop_subscribe_stream_buffer(cli_intercom->event_loop, cli_intercom->intercom_rx_stream, FuriEventLoopEventIn, cli_intercom_intercom_rx_handler, cli_intercom);
+    furi_event_loop_subscribe_stream_buffer(
+        cli_intercom->event_loop,
+        cli_intercom->intercom_rx_stream,
+        FuriEventLoopEventIn,
+        cli_intercom_intercom_rx_handler,
+        cli_intercom);
 
     furi_record_create(RECORD_CLI_INTERCOM, cli_intercom);
     return cli_intercom;

@@ -233,8 +233,7 @@ static int32_t ble_ibeacon_app_thread_callback(void* context) {
     //! Firmware version Prints
     status = sl_wifi_get_firmware_version(&version);
     if(status != SL_STATUS_OK) {
-        furi_string_printf(
-            instance->msg, "Firmware version Failed, Error Code : 0x%lX", status);
+        furi_string_printf(instance->msg, "Firmware version Failed, Error Code : 0x%lX", status);
         cli_shell_notification_print(instance->shell, instance->msg);
     } else {
         furi_string_printf(
@@ -279,8 +278,7 @@ static int32_t ble_ibeacon_app_thread_callback(void* context) {
     //! set the local device name
     status = rsi_bt_set_local_name((uint8_t*)BLE_IBEACON_APP_LOCAL_NAME);
     if(status != RSI_SUCCESS) {
-        furi_string_printf(
-            instance->msg, "Failed to set local name, error code : %lx", status);
+        furi_string_printf(instance->msg, "Failed to set local name, error code : %lx", status);
         cli_shell_notification_print(instance->shell, instance->msg);
         furi_crash();
     }
@@ -288,8 +286,7 @@ static int32_t ble_ibeacon_app_thread_callback(void* context) {
     //! get the local device name
     status = rsi_bt_get_local_name(&instance->rsi_app_resp_get_local_name);
     if(status != RSI_SUCCESS) {
-        furi_string_printf(
-            instance->msg, "Failed to get local name, error code : %lx", status);
+        furi_string_printf(instance->msg, "Failed to get local name, error code : %lx", status);
         cli_shell_notification_print(instance->shell, instance->msg);
         furi_crash();
     }
@@ -312,8 +309,7 @@ static int32_t ble_ibeacon_app_thread_callback(void* context) {
     //! set advertise data
     rsi_ble_set_advertise_data(adv, 30);
     if(status != RSI_SUCCESS) {
-        furi_string_printf(
-            instance->msg, "Set Advertise Data Failed, error code : %lx", status);
+        furi_string_printf(instance->msg, "Set Advertise Data Failed, error code : %lx", status);
         cli_shell_notification_print(instance->shell, instance->msg);
         furi_crash();
     } else {
@@ -337,8 +333,7 @@ static int32_t ble_ibeacon_app_thread_callback(void* context) {
     //! start the advertising
     status = rsi_ble_start_advertising();
     if(status != RSI_SUCCESS) {
-        furi_string_printf(
-            instance->msg, "Failed to start advertising, error code : %lx", status);
+        furi_string_printf(instance->msg, "Failed to start advertising, error code : %lx", status);
         cli_shell_notification_print(instance->shell, instance->msg);
         furi_crash();
     } else {
@@ -439,7 +434,8 @@ static void ble_ibeacon_motd(void* context) {
     printf("\r\n+-------------------------------+\r\n");
     printf("| Welcome to BLE iBeacon shell! |\r\n");
     printf("+-------------------------------+\r\n\r\n");
-    printf("This application emulates an iBeacon beacon named \"" BLE_IBEACON_APP_LOCAL_NAME "\" with the ability to connect to it\r\n");
+    printf("This application emulates an iBeacon beacon named \"" BLE_IBEACON_APP_LOCAL_NAME
+           "\" with the ability to connect to it\r\n");
 }
 
 void ble_ibeacon_command(PipeSide* pipe, FuriString* args, void* context) {

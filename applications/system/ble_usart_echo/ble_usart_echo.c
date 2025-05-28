@@ -626,7 +626,10 @@ static int32_t ble_usart_echo_app_thread_callback(void* context) {
     //! Wi-Fi initialization
     status = sl_wifi_init(&config, NULL, sl_wifi_default_event_handler);
     if(status != SL_STATUS_OK) {
-        furi_string_printf(instance->msg, ANSI_FG_RED "Wi-Fi Initialization Failed, Error Code : 0x0x%08lx" ANSI_RESET, status);
+        furi_string_printf(
+            instance->msg,
+            ANSI_FG_RED "Wi-Fi Initialization Failed, Error Code : 0x0x%08lx" ANSI_RESET,
+            status);
         cli_shell_notification_print(instance->shell, instance->msg);
         furi_crash();
     }
@@ -636,10 +639,14 @@ static int32_t ble_usart_echo_app_thread_callback(void* context) {
     //! Firmware version Prints
     status = sl_wifi_get_firmware_version(&version);
     if(status != SL_STATUS_OK) {
-        furi_string_printf(instance->msg, ANSI_FG_RED "Firmware version Failed, Error Code : 0x0x%08lx" ANSI_RESET, status);
+        furi_string_printf(
+            instance->msg,
+            ANSI_FG_RED "Firmware version Failed, Error Code : 0x0x%08lx" ANSI_RESET,
+            status);
         cli_shell_notification_print(instance->shell, instance->msg);
     } else {
-        furi_string_printf(instance->msg, 
+        furi_string_printf(
+            instance->msg,
             "Firmware version is: %x%x.%d.%d.%d.%d.%d.%d",
             version.chip_id,
             version.rom_id,
@@ -655,7 +662,10 @@ static int32_t ble_usart_echo_app_thread_callback(void* context) {
     //! get the local device MAC address.
     status = rsi_bt_get_local_device_address(rsi_app_resp_get_dev_addr);
     if(status != RSI_SUCCESS) {
-        furi_string_printf(instance->msg, ANSI_FG_RED "Get local device address failed = 0x%08lx" ANSI_RESET, status);
+        furi_string_printf(
+            instance->msg,
+            ANSI_FG_RED "Get local device address failed = 0x%08lx" ANSI_RESET,
+            status);
         cli_shell_notification_print(instance->shell, instance->msg);
         furi_crash();
     } else {
@@ -711,7 +721,10 @@ static int32_t ble_usart_echo_app_thread_callback(void* context) {
     //! Set local name
     status = rsi_bt_set_local_name((uint8_t*)BLE_USART_ECHO_APP_LOCAL_NAME);
     if(status != RSI_SUCCESS) {
-        furi_string_printf(instance->msg, ANSI_FG_RED "Failed to set local name, error code : 0x%08lx" ANSI_RESET, status);
+        furi_string_printf(
+            instance->msg,
+            ANSI_FG_RED "Failed to set local name, error code : 0x%08lx" ANSI_RESET,
+            status);
         cli_shell_notification_print(instance->shell, instance->msg);
         furi_crash();
     }
@@ -727,12 +740,14 @@ static int32_t ble_usart_echo_app_thread_callback(void* context) {
     //! start advertising
     status = rsi_ble_start_advertising();
     if(status != RSI_SUCCESS) {
-        furi_string_printf(instance->msg, ANSI_FG_RED "Failed to start advertising, error code : 0x%08lx" ANSI_RESET, status);
+        furi_string_printf(
+            instance->msg,
+            ANSI_FG_RED "Failed to start advertising, error code : 0x%08lx" ANSI_RESET,
+            status);
         cli_shell_notification_print(instance->shell, instance->msg);
     } else {
-        furi_string_printf(instance->msg, 
-            "Start advertising ... Local Name : %s",
-            BLE_USART_ECHO_APP_LOCAL_NAME);
+        furi_string_printf(
+            instance->msg, "Start advertising ... Local Name : %s", BLE_USART_ECHO_APP_LOCAL_NAME);
         cli_shell_notification_print(instance->shell, instance->msg);
     }
 
@@ -743,16 +758,16 @@ static int32_t ble_usart_echo_app_thread_callback(void* context) {
 
         if(events & BLEUsartEchoEvtConnected) {
             //! event invokes when connection was completed
-            furi_string_printf(instance->msg, 
-                "Connected, str_remote_address : %s",
-                instance->str_remote_address);
+            furi_string_printf(
+                instance->msg, "Connected, str_remote_address : %s", instance->str_remote_address);
             cli_shell_notification_print(instance->shell, instance->msg);
 
             //! Setting MTU Exchange event
             status = rsi_ble_mtu_exchange_event(
                 instance->remote_dev_address, BLE_USART_ECHO_APP_MAX_MTU_SIZE);
             if(status != RSI_SUCCESS) {
-                furi_string_printf(instance->msg, 
+                furi_string_printf(
+                    instance->msg,
                     ANSI_FG_RED "MTU request cmd failed with error code = 0x%08lx" ANSI_RESET,
                     status);
                 cli_shell_notification_print(instance->shell, instance->msg);
@@ -766,8 +781,10 @@ static int32_t ble_usart_echo_app_thread_callback(void* context) {
                     CONN_LATENCY,
                     SUPERVISION_TIMEOUT);
                 if(status != RSI_SUCCESS) {
-                    furi_string_printf(instance->msg, 
-                        ANSI_FG_RED "Failed to update connection parameters, error code : 0x%08lx" ANSI_RESET,
+                    furi_string_printf(
+                        instance->msg,
+                        ANSI_FG_RED
+                        "Failed to update connection parameters, error code : 0x%08lx" ANSI_RESET,
                         status);
                     cli_shell_notification_print(instance->shell, instance->msg);
                     furi_crash();
@@ -777,7 +794,8 @@ static int32_t ble_usart_echo_app_thread_callback(void* context) {
 
         if(events & BLEUsartEchoEvtDisconnected) {
             //! event invokes when disconnection was completed
-            furi_string_printf(instance->msg, 
+            furi_string_printf(
+                instance->msg,
                 "Disconnected, str_remote_address : %s",
                 instance->str_remote_address);
             cli_shell_notification_print(instance->shell, instance->msg);
@@ -788,12 +806,14 @@ static int32_t ble_usart_echo_app_thread_callback(void* context) {
             //! start advertising
             status = rsi_ble_start_advertising();
             if(status != RSI_SUCCESS) {
-                furi_string_printf(instance->msg, 
+                furi_string_printf(
+                    instance->msg,
                     ANSI_FG_RED "Failed to start advertising, error code : 0x%08lx" ANSI_RESET,
                     status);
                 cli_shell_notification_print(instance->shell, instance->msg);
             } else {
-                furi_string_printf(instance->msg, 
+                furi_string_printf(
+                    instance->msg,
                     "Start advertising ... Local Name : %s",
                     BLE_USART_ECHO_APP_LOCAL_NAME);
                 cli_shell_notification_print(instance->shell, instance->msg);
@@ -802,7 +822,8 @@ static int32_t ble_usart_echo_app_thread_callback(void* context) {
 
         if(events & BLEUsartEchoEvtReceveRemoteFeatures) {
             //! event invokes when remote features were received
-            furi_string_printf(instance->msg, 
+            furi_string_printf(
+                instance->msg,
                 "Feature received is 0x%x",
                 *(uint8_t*)instance->remote_dev_feature.remote_features);
             cli_shell_notification_print(instance->shell, instance->msg);
@@ -810,7 +831,8 @@ static int32_t ble_usart_echo_app_thread_callback(void* context) {
             if(instance->remote_dev_feature.remote_features[0] & 0x20) {
                 status = rsi_ble_set_data_len(instance->remote_dev_address, TX_LEN, TX_TIME);
                 if(status != RSI_SUCCESS) {
-                    furi_string_printf(instance->msg, 
+                    furi_string_printf(
+                        instance->msg,
                         ANSI_FG_RED "Failed to set data length, error code : 0x%08lx" ANSI_RESET,
                         status);
                     cli_shell_notification_print(instance->shell, instance->msg);
@@ -833,7 +855,10 @@ static int32_t ble_usart_echo_app_thread_callback(void* context) {
                             furi_thread_get_id(ble_usart_echo_app_instance->thread),
                             BLEUsartEchoEvtDataLengthChange);
                     } else {
-                        furi_string_printf(instance->msg, ANSI_FG_RED "Failed to set phy, error code : 0x%08lx" ANSI_RESET, status);
+                        furi_string_printf(
+                            instance->msg,
+                            ANSI_FG_RED "Failed to set phy, error code : 0x%08lx" ANSI_RESET,
+                            status);
                         cli_shell_notification_print(instance->shell, instance->msg);
                     }
                 }
@@ -841,7 +866,13 @@ static int32_t ble_usart_echo_app_thread_callback(void* context) {
         }
 
         if(events & BLEUsartEchoEvtDataLengthChange) {
-            furi_string_printf(instance->msg, "Max_tx_octets: %d\r\nMax_tx_time: %d\r\nMax_rx_octets: %d\r\nMax_rx_time: %d", instance->data_length_update.MaxTxOctets, instance->data_length_update.MaxTxTime, instance->data_length_update.MaxRxOctets, instance->data_length_update.MaxRxTime);
+            furi_string_printf(
+                instance->msg,
+                "Max_tx_octets: %d\r\nMax_tx_time: %d\r\nMax_rx_octets: %d\r\nMax_rx_time: %d",
+                instance->data_length_update.MaxTxOctets,
+                instance->data_length_update.MaxTxTime,
+                instance->data_length_update.MaxRxOctets,
+                instance->data_length_update.MaxRxTime);
             cli_shell_notification_print(instance->shell, instance->msg);
 
             if(instance->remote_dev_feature.remote_features[1] & 0x01) {
@@ -858,7 +889,10 @@ static int32_t ble_usart_echo_app_thread_callback(void* context) {
                             furi_thread_get_id(ble_usart_echo_app_instance->thread),
                             BLEUsartEchoEvtDataLengthChange);
                     } else {
-                        furi_string_printf(instance->msg, ANSI_FG_RED "Failed to set phy, error code : 0x%08lx" ANSI_RESET, status);
+                        furi_string_printf(
+                            instance->msg,
+                            ANSI_FG_RED "Failed to set phy, error code : 0x%08lx" ANSI_RESET,
+                            status);
                         cli_shell_notification_print(instance->shell, instance->msg);
                     }
                 }
@@ -867,7 +901,8 @@ static int32_t ble_usart_echo_app_thread_callback(void* context) {
 
         if(events & BLEUsartEchoEvtPhyUpdateComplete) {
             //! phy update complete event
-            furi_string_printf(instance->msg, 
+            furi_string_printf(
+                instance->msg,
                 "Tx Phy rate = 0x%x  and Rx Phy rate = 0x%x",
                 instance->app_phy_update_complete.TxPhy,
                 instance->app_phy_update_complete.RxPhy);
@@ -875,7 +910,8 @@ static int32_t ble_usart_echo_app_thread_callback(void* context) {
         }
 
         if(events & BLEUsartEchoEvtConnUpdate) {
-            furi_string_printf(instance->msg, 
+            furi_string_printf(
+                instance->msg,
                 "Connection parameters update completed \r\n Connection interval = %d, Latency = %d, Supervision Timeout = %d",
                 instance->event_conn_update_complete.conn_interval,
                 instance->event_conn_update_complete.conn_latency,
@@ -885,7 +921,8 @@ static int32_t ble_usart_echo_app_thread_callback(void* context) {
 
         if(events & BLEUsartEchoEvtMtu) {
             //! event invokes when write/notification events received
-            furi_string_printf(instance->msg, 
+            furi_string_printf(
+                instance->msg,
                 "MTU size received from remote device(%s) is %u",
                 instance->str_remote_address,
                 instance->app_ble_mtu_event.mtu_size);
@@ -894,12 +931,15 @@ static int32_t ble_usart_echo_app_thread_callback(void* context) {
             status = rsi_ble_set_wo_resp_notify_buf_info(
                 instance->remote_dev_address, DLE_BUFFER_MODE, DLE_BUFFER_COUNT);
             if(status != RSI_SUCCESS) {
-                furi_string_printf(instance->msg, 
-                    ANSI_FG_RED "Failed to set the buffer configuration mode, error: 0x%08lx" ANSI_RESET,
+                furi_string_printf(
+                    instance->msg,
+                    ANSI_FG_RED
+                    "Failed to set the buffer configuration mode, error: 0x%08lx" ANSI_RESET,
                     status);
                 cli_shell_notification_print(instance->shell, instance->msg);
             } else {
-                furi_string_printf(instance->msg, 
+                furi_string_printf(
+                    instance->msg,
                     "Buffer configuration done for notify and set_att cmds buf mode = %d , max buff count =%d",
                     DLE_BUFFER_MODE,
                     DLE_BUFFER_COUNT);
@@ -909,16 +949,16 @@ static int32_t ble_usart_echo_app_thread_callback(void* context) {
 
         if(events & BLEUsartEchoEvtWrite) {
             //! event invokes when write/notification events receive
-            furi_string_printf(instance->msg, 
+            furi_string_printf(
+                instance->msg,
                 "Received packet type = %u",
                 instance->app_ble_write_event.pkt_type);
             cli_shell_notification_print(instance->shell, instance->msg);
 
             //TO DO: send ERR or write response
             if((*(uint16_t*)instance->app_ble_write_event.handle) == instance->ble_att1_val_hndl) {
-                furi_string_printf(instance->msg, 
-                    "Received data: %s",
-                    instance->app_ble_write_event.att_value);
+                furi_string_printf(
+                    instance->msg, "Received data: %s", instance->app_ble_write_event.att_value);
                 cli_shell_notification_print(instance->shell, instance->msg);
 
                 rsi_ble_gatt_write_response(instance->remote_dev_address, 0);
@@ -991,7 +1031,9 @@ static void ble_usart_echo_motd(void* context) {
     printf("\r\n+-----------------------------+\r\n");
     printf("| Welcome to BLE USART shell! |\r\n");
     printf("+-----------------------------+\r\n\r\n");
-    printf("This application emulates an BLE USART named \"%s\" with the ability to connect to it.\r\n", BLE_USART_ECHO_APP_LOCAL_NAME);
+    printf(
+        "This application emulates an BLE USART named \"%s\" with the ability to connect to it.\r\n",
+        BLE_USART_ECHO_APP_LOCAL_NAME);
 }
 
 void ble_usart_echo_command(PipeSide* pipe, FuriString* args, void* context) {

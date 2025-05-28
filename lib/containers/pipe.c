@@ -8,7 +8,8 @@
  */
 typedef struct {
     // Two are needed because EventLoop only allows one instance to subscribe to the same object with the same event type:
-    FuriSemaphore* instance_count; // <! 1 = both sides, 0 = only one side. Alice uses this one to connect the pipe to her EventLoop.
+    FuriSemaphore*
+        instance_count; // <! 1 = both sides, 0 = only one side. Alice uses this one to connect the pipe to her EventLoop.
     FuriSemaphore* bobs_instance_count; // <! Bob uses this one to connect the pipe to his EventLoop.
     FuriMutex* state_transition;
 } PipeShared;
@@ -200,7 +201,8 @@ static void pipe_semaphore_callback(FuriEventLoopObject* semaphore, void* contex
  * @brief Gets the semaphore that can be used to subscribe to the `broken` event.
  */
 static FuriSemaphore* pipe_get_instance_semaphore(PipeSide* pipe) {
-    return (pipe->role == PipeRoleAlice) ? pipe->shared->instance_count : pipe->shared->bobs_instance_count;
+    return (pipe->role == PipeRoleAlice) ? pipe->shared->instance_count :
+                                           pipe->shared->bobs_instance_count;
 }
 
 void pipe_attach_to_event_loop(PipeSide* pipe, FuriEventLoop* event_loop) {

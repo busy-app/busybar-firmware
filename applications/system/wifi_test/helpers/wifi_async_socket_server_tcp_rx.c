@@ -109,7 +109,7 @@ void wifi_async_socket_server_tcp_rx_init(uint16_t port) {
             break;
         }
         printf("Server Socket ID : %d\r\n", server_socket);
-        
+
         //Set socket
         socket_return_value = sl_si91x_setsockopt(
             server_socket,
@@ -142,7 +142,7 @@ void wifi_async_socket_server_tcp_rx_init(uint16_t port) {
             break;
         }
         printf("Listening on Local Port : %d\r\n", port);
-        
+
         // Accept socket
         client_socket = sl_si91x_accept(server_socket, NULL, 0);
         if(client_socket < 0) {
@@ -157,7 +157,7 @@ void wifi_async_socket_server_tcp_rx_init(uint16_t port) {
 
         printf("TCP_RX Throughput test finished\r\n");
         printf("Total bytes received : %ld\r\n", wifi_async_socket_header->bytes_read);
-        
+
         // Close socket
         close(server_socket);
         close(client_socket);

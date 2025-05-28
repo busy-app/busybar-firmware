@@ -15,9 +15,7 @@
 #define BYTES_TO_SEND   (1 << 29) //512MB
 #define TEST_TIMEOUT    (30000) //30sec
 
-void wifi_async_socket_client_tcp_tx_init(
-    char* ip,
-    uint16_t port) {
+void wifi_async_socket_client_tcp_tx_init(char* ip, uint16_t port) {
     uint32_t now = 0;
     uint32_t start = 0;
     int client_socket = -1;
@@ -40,7 +38,7 @@ void wifi_async_socket_client_tcp_tx_init(
         return;
     }
     printf("Socket ID : %d\r\n", client_socket);
-    
+
     // Connect socket
     socket_return_value = connect(client_socket, (struct sockaddr*)&server_address, socket_length);
     if(socket_return_value < 0) {
@@ -59,21 +57,21 @@ void wifi_async_socket_client_tcp_tx_init(
         sent_bytes = send(client_socket, data_buffer, TCP_BUFFER_SIZE, 0);
         now = furi_get_tick();
         if(sent_bytes < 0) {
-            printf("Socket send failed with bsd error: %d\r\n", errno); 
+            printf("Socket send failed with bsd error: %d\r\n", errno);
             close(client_socket);
             break;
         }
         total_bytes_sent = total_bytes_sent + sent_bytes;
 
         if((now - start) > TEST_TIMEOUT) {
-            printf("Time Out: %ld\r\n", (now - start));   
+            printf("Time Out: %ld\r\n", (now - start));
             break;
         }
     }
     free(data_buffer);
     printf("TCP_TX Throughput test finished\r\n");
     printf("Total bytes sent : %ld\r\n", total_bytes_sent);
-    
+
     // Close socket
     close(client_socket);
 }

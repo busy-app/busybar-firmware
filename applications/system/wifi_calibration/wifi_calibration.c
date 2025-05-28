@@ -189,9 +189,7 @@ sl_status_t
                 printf("Transmit failed with channel num %lx\r\n", status);
                 return status;
             } else {
-                printf(
-                    "Transmit command started with channel num %x\r\n",
-                    channel_sel[i]);
+                printf("Transmit command started with channel num %x\r\n", channel_sel[i]);
                 instance->state = CalibStateTx;
             }
             furi_delay_ms(1000);
@@ -270,7 +268,10 @@ sl_status_t calibration_app_flow_transmit_tx(CalibApp* instance) {
     return status;
 }
 
-static bool calibration_generic_enum_arg_command_guard(FuriString* args, const CalibOption* options, uint16_t* arg_out) {
+static bool calibration_generic_enum_arg_command_guard(
+    FuriString* args,
+    const CalibOption* options,
+    uint16_t* arg_out) {
     FuriString* arg = furi_string_alloc();
     bool ret_val = false;
     do {
@@ -316,154 +317,145 @@ static void calibration_sl_freq_offset_command(PipeSide* pipe, FuriString* args,
     UNUSED(pipe);
     CalibApp* instance = context;
     const char* args_cstr = furi_string_get_cstr(args);
-        StrintParseError parse_err = strint_to_int32(
-            args_cstr, NULL, &instance->freq_calib_pkt.frequency_offset_in_khz, 10);
+    StrintParseError parse_err =
+        strint_to_int32(args_cstr, NULL, &instance->freq_calib_pkt.frequency_offset_in_khz, 10);
 
-        if(parse_err == StrintParseNoError) {
-            sl_status_t status = sl_si91x_frequency_offset(&instance->freq_calib_pkt);
-            if(status != SL_STATUS_OK) {
-                printf("Frequency offset correction failed: 0x%lx\r\n", status);
-                //return status;
-            } else {
-                printf("Frequency offset correction successful\r\n");
-            }
+    if(parse_err == StrintParseNoError) {
+        sl_status_t status = sl_si91x_frequency_offset(&instance->freq_calib_pkt);
+        if(status != SL_STATUS_OK) {
+            printf("Frequency offset correction failed: 0x%lx\r\n", status);
+            //return status;
         } else {
-            printf("sl_freq_offset <freq_offset_in_KHz>\r\n");
+            printf("Frequency offset correction successful\r\n");
         }
+    } else {
+        printf("sl_freq_offset <freq_offset_in_KHz>\r\n");
+    }
 }
 
 static void calibration_sl_calib_write_command(PipeSide* pipe, FuriString* args, void* context) {
     UNUSED(pipe);
     CalibApp* instance = context;
     char* args_cstr = (char*)furi_string_get_cstr(args);
-        StrintParseError parse_err = StrintParseNoError;
-        parse_err |= strint_to_uint8(args_cstr, &args_cstr, &instance->calib_pkt.target, 10);
-        parse_err |= strint_to_uint32(args_cstr, &args_cstr, &instance->calib_pkt.flags, 10);
-        parse_err |=
-            strint_to_int8(args_cstr, &args_cstr, &instance->calib_pkt.gain_offset[0], 10);
-        parse_err |=
-            strint_to_int8(args_cstr, &args_cstr, &instance->calib_pkt.gain_offset[1], 10);
-        parse_err |=
-            strint_to_int8(args_cstr, &args_cstr, &instance->calib_pkt.gain_offset[2], 10);
-        if(*args_cstr != 0x00) {
-            parse_err |=
-                strint_to_int8(args_cstr, &args_cstr, &instance->calib_pkt.xo_ctune, 10);
-            parse_err |=
-                strint_to_int8(args_cstr, NULL, &instance->calib_pkt.gain_offset_ch14, 10);
-        }
-        if(parse_err == StrintParseNoError) {
-            sl_status_t status = sl_si91x_calibration_write(instance->calib_pkt);
-            //furi_delay_ms(500);
-            if(status != SL_STATUS_OK) {
-                printf("Calibration data write failed: 0x%lx\r\n", status);
-                return;
-            } else {
-                printf("Calibration data write successful\r\n");
-            }
-            instance->target.target = instance->calib_pkt.target;
-            status = sl_si91x_calibration_read(instance->target, &instance->calib_read_pkt);
-            if(status != SL_STATUS_OK) {
-                printf("Calibration data read failed: 0x%lx\r\n", status);
-                return;
-            } else {
-                printf("Calibration data read successful\r\n");
-                printf(
-                    "target %d, gain_offset_low:%d, gain_offset_2:%d, gain_offset_3:%d,xo_tune:%d,gain_offset_ch14:%d\r\n",
-                    instance->calib_read_pkt.target,
-                    instance->calib_read_pkt.gain_offset[0],
-                    instance->calib_read_pkt.gain_offset[1],
-                    instance->calib_read_pkt.gain_offset[2],
-                    instance->calib_read_pkt.xo_ctune,
-                    instance->calib_read_pkt.gain_offset_ch14);
-            }
+    StrintParseError parse_err = StrintParseNoError;
+    parse_err |= strint_to_uint8(args_cstr, &args_cstr, &instance->calib_pkt.target, 10);
+    parse_err |= strint_to_uint32(args_cstr, &args_cstr, &instance->calib_pkt.flags, 10);
+    parse_err |= strint_to_int8(args_cstr, &args_cstr, &instance->calib_pkt.gain_offset[0], 10);
+    parse_err |= strint_to_int8(args_cstr, &args_cstr, &instance->calib_pkt.gain_offset[1], 10);
+    parse_err |= strint_to_int8(args_cstr, &args_cstr, &instance->calib_pkt.gain_offset[2], 10);
+    if(*args_cstr != 0x00) {
+        parse_err |= strint_to_int8(args_cstr, &args_cstr, &instance->calib_pkt.xo_ctune, 10);
+        parse_err |= strint_to_int8(args_cstr, NULL, &instance->calib_pkt.gain_offset_ch14, 10);
+    }
+    if(parse_err == StrintParseNoError) {
+        sl_status_t status = sl_si91x_calibration_write(instance->calib_pkt);
+        //furi_delay_ms(500);
+        if(status != SL_STATUS_OK) {
+            printf("Calibration data write failed: 0x%lx\r\n", status);
+            return;
         } else {
-            printf("sl_calib_write <target> <flags> <gain_offset_low> <gain_offset_mid> <gain_offset_high> <xo_ctune> <gain_"
-        "offset_ch14>\r\n");
+            printf("Calibration data write successful\r\n");
         }
+        instance->target.target = instance->calib_pkt.target;
+        status = sl_si91x_calibration_read(instance->target, &instance->calib_read_pkt);
+        if(status != SL_STATUS_OK) {
+            printf("Calibration data read failed: 0x%lx\r\n", status);
+            return;
+        } else {
+            printf("Calibration data read successful\r\n");
+            printf(
+                "target %d, gain_offset_low:%d, gain_offset_2:%d, gain_offset_3:%d,xo_tune:%d,gain_offset_ch14:%d\r\n",
+                instance->calib_read_pkt.target,
+                instance->calib_read_pkt.gain_offset[0],
+                instance->calib_read_pkt.gain_offset[1],
+                instance->calib_read_pkt.gain_offset[2],
+                instance->calib_read_pkt.xo_ctune,
+                instance->calib_read_pkt.gain_offset_ch14);
+        }
+    } else {
+        printf(
+            "sl_calib_write <target> <flags> <gain_offset_low> <gain_offset_mid> <gain_offset_high> <xo_ctune> <gain_"
+            "offset_ch14>\r\n");
+    }
 }
 
 static void calibration_sl_evm_offset_command(PipeSide* pipe, FuriString* args, void* context) {
     UNUSED(pipe);
     CalibApp* instance = context;
     char* args_cstr = (char*)furi_string_get_cstr(args);
-        StrintParseError parse_err = StrintParseNoError;
-        parse_err |=
-            strint_to_uint8(args_cstr, &args_cstr, &instance->evm_offset_pkt.evm_index, 10);
-        parse_err |= strint_to_int8(
-            args_cstr, &args_cstr, &instance->evm_offset_pkt.evm_offset_val, 10);
+    StrintParseError parse_err = StrintParseNoError;
+    parse_err |= strint_to_uint8(args_cstr, &args_cstr, &instance->evm_offset_pkt.evm_index, 10);
+    parse_err |=
+        strint_to_int8(args_cstr, &args_cstr, &instance->evm_offset_pkt.evm_offset_val, 10);
 
-        if(parse_err == StrintParseNoError) {
-            sl_status_t status = sl_si91x_transmit_test_stop();
-            if(status != SL_STATUS_OK) {
-                printf("Transmit test stop failed: 0x%lx\r\n", status);
-                return;
-            } else {
-                printf("Transmit test stopped\r\n");
-                instance->state = CalibStateIdle;
-            }
-
-            status = sl_si91x_evm_offset(&instance->evm_offset_pkt);
-            if(status != SL_STATUS_OK) {
-                printf("EVM offset correction failed: 0x%lx\r\n", status);
-                return;
-            } else {
-                printf("EVM offset correction successful\r\n");
-            }
-
-            status = sl_si91x_transmit_test_start(&tx_test_info);
-            if(status != SL_STATUS_OK) {
-                printf("Transmit test start failed: 0x%lx\r\n", status);
-                return;
-            } else {
-                printf("Transmit test started\r\n");
-                instance->state = CalibStateTx;
-            }
+    if(parse_err == StrintParseNoError) {
+        sl_status_t status = sl_si91x_transmit_test_stop();
+        if(status != SL_STATUS_OK) {
+            printf("Transmit test stop failed: 0x%lx\r\n", status);
+            return;
         } else {
-            printf("sl_evm_offset <index> <evm_offset>\r\n");
+            printf("Transmit test stopped\r\n");
+            instance->state = CalibStateIdle;
         }
+
+        status = sl_si91x_evm_offset(&instance->evm_offset_pkt);
+        if(status != SL_STATUS_OK) {
+            printf("EVM offset correction failed: 0x%lx\r\n", status);
+            return;
+        } else {
+            printf("EVM offset correction successful\r\n");
+        }
+
+        status = sl_si91x_transmit_test_start(&tx_test_info);
+        if(status != SL_STATUS_OK) {
+            printf("Transmit test start failed: 0x%lx\r\n", status);
+            return;
+        } else {
+            printf("Transmit test started\r\n");
+            instance->state = CalibStateTx;
+        }
+    } else {
+        printf("sl_evm_offset <index> <evm_offset>\r\n");
+    }
 }
 
 static void calibration_sl_evm_write_command(PipeSide* pipe, FuriString* args, void* context) {
     UNUSED(pipe);
     CalibApp* instance = context;
     char* args_cstr = (char*)furi_string_get_cstr(args);
-        StrintParseError parse_err = StrintParseNoError;
-        parse_err |=
-            strint_to_uint8(args_cstr, &args_cstr, &instance->evm_write_pkt.target, 10);
-        parse_err |=
-            strint_to_uint32(args_cstr, &args_cstr, &instance->evm_write_pkt.flags, 10);
-        parse_err |= strint_to_uint8(
-            args_cstr, &args_cstr, &instance->evm_write_pkt.evm_offset_11B, 10);
-        parse_err |= strint_to_uint8(
-            args_cstr,
-            &args_cstr,
-            &instance->evm_write_pkt.evm_offset_11G_36M_54M_11N_MCS3_MCS7,
-            10);
-        parse_err |= strint_to_uint8(
-            args_cstr,
-            &args_cstr,
-            &instance->evm_write_pkt.evm_offset_11G_6M_24M_11N_MCS0_MCS2,
-            10);
-        parse_err |= strint_to_uint8(
-            args_cstr, &args_cstr, &instance->evm_write_pkt.evm_offset_11N_MCS0, 10);
-        parse_err |=
-            strint_to_uint8(args_cstr, NULL, &instance->evm_write_pkt.evm_offset_11N_MCS7, 10);
+    StrintParseError parse_err = StrintParseNoError;
+    parse_err |= strint_to_uint8(args_cstr, &args_cstr, &instance->evm_write_pkt.target, 10);
+    parse_err |= strint_to_uint32(args_cstr, &args_cstr, &instance->evm_write_pkt.flags, 10);
+    parse_err |=
+        strint_to_uint8(args_cstr, &args_cstr, &instance->evm_write_pkt.evm_offset_11B, 10);
+    parse_err |= strint_to_uint8(
+        args_cstr, &args_cstr, &instance->evm_write_pkt.evm_offset_11G_36M_54M_11N_MCS3_MCS7, 10);
+    parse_err |= strint_to_uint8(
+        args_cstr, &args_cstr, &instance->evm_write_pkt.evm_offset_11G_6M_24M_11N_MCS0_MCS2, 10);
+    parse_err |=
+        strint_to_uint8(args_cstr, &args_cstr, &instance->evm_write_pkt.evm_offset_11N_MCS0, 10);
+    parse_err |=
+        strint_to_uint8(args_cstr, NULL, &instance->evm_write_pkt.evm_offset_11N_MCS7, 10);
 
-        if(parse_err == StrintParseNoError) {
-            sl_status_t status = sl_si91x_evm_write(&instance->evm_write_pkt);
-            if(status != SL_STATUS_OK) {
-                printf("EVM offset correction failed: 0x%lx\r\n", status);
-                return;
-            } else {
-                printf("EVM offset correction successful\r\n");
-            }
+    if(parse_err == StrintParseNoError) {
+        sl_status_t status = sl_si91x_evm_write(&instance->evm_write_pkt);
+        if(status != SL_STATUS_OK) {
+            printf("EVM offset correction failed: 0x%lx\r\n", status);
+            return;
         } else {
-            printf("sl_evm_write <target> <flags> <evm_offset_11B> <evm_offset_11G_36M_54M_11N_MCS3_MCS7> <evm_offset_11G_6M_24M_"
-        "11N_MCS0_MCS2> <evm_offset_11N_MCS0>,<evm_offset_11N_MCS7>\r\n");
+            printf("EVM offset correction successful\r\n");
         }
+    } else {
+        printf(
+            "sl_evm_write <target> <flags> <evm_offset_11B> <evm_offset_11G_36M_54M_11N_MCS3_MCS7> <evm_offset_11G_6M_24M_"
+            "11N_MCS0_MCS2> <evm_offset_11N_MCS0>,<evm_offset_11N_MCS7>\r\n");
+    }
 }
 
-static void calibration_sl_process_dpd_calibration_command(PipeSide* pipe, FuriString* args, void* context) {
+static void calibration_sl_process_dpd_calibration_command(
+    PipeSide* pipe,
+    FuriString* args,
+    void* context) {
     UNUSED(pipe);
     UNUSED(args);
     CalibApp* instance = context;
@@ -479,55 +471,56 @@ static void calibration_set_mode_command(PipeSide* pipe, FuriString* args, void*
     UNUSED(pipe);
     CalibApp* instance = context;
     char* args_cstr = (char*)furi_string_get_cstr(args);
-        StrintParseError parse_err = strint_to_uint16(args_cstr, NULL, &tx_test_info.mode, 10);
-        if(parse_err == StrintParseNoError) {
-            calibration_app_flow_transmit_tx(instance);
-        } else {
-            printf("set_mode <index> %d-Burst, %d-Continuos, %d-CW, %d-CW-2,5, %d-CW+5\r\n",
-        BURST_MODE,
-        CONTINUOUS_MODE,
-        CW_MODE,
-        CW_MODE_25,
-        CW_MODE_50);
-        }
+    StrintParseError parse_err = strint_to_uint16(args_cstr, NULL, &tx_test_info.mode, 10);
+    if(parse_err == StrintParseNoError) {
+        calibration_app_flow_transmit_tx(instance);
+    } else {
+        printf(
+            "set_mode <index> %d-Burst, %d-Continuos, %d-CW, %d-CW-2,5, %d-CW+5\r\n",
+            BURST_MODE,
+            CONTINUOUS_MODE,
+            CW_MODE,
+            CW_MODE_25,
+            CW_MODE_50);
+    }
 }
 
 static void calibration_set_channel_command(PipeSide* pipe, FuriString* args, void* context) {
     UNUSED(pipe);
     CalibApp* instance = context;
     char* args_cstr = (char*)furi_string_get_cstr(args);
-        uint16_t channel = 0;
-        StrintParseError parse_err = strint_to_uint16(args_cstr, NULL, &channel, 10);
-        if(parse_err == StrintParseNoError) {
-            if(channel > 13 || channel < 1) {
-                printf("Invalid channel number\r\n");
-                return;
-            } else {
-                tx_test_info.channel = channel;
-                calibration_app_flow_transmit_tx(instance);
-            }
+    uint16_t channel = 0;
+    StrintParseError parse_err = strint_to_uint16(args_cstr, NULL, &channel, 10);
+    if(parse_err == StrintParseNoError) {
+        if(channel > 13 || channel < 1) {
+            printf("Invalid channel number\r\n");
+            return;
         } else {
-            printf("set_channel <channel> 1-13, 1-2412Mhz, 6-2437Mhz, 13-2472Mhz\r\n");
+            tx_test_info.channel = channel;
+            calibration_app_flow_transmit_tx(instance);
         }
+    } else {
+        printf("set_channel <channel> 1-13, 1-2412Mhz, 6-2437Mhz, 13-2472Mhz\r\n");
+    }
 }
 
 static void calibration_set_power_command(PipeSide* pipe, FuriString* args, void* context) {
     UNUSED(pipe);
     CalibApp* instance = context;
     char* args_cstr = (char*)furi_string_get_cstr(args);
-        uint16_t power = 0;
-        StrintParseError parse_err = strint_to_uint16(args_cstr, NULL, &power, 10);
-        if(parse_err == StrintParseNoError) {
-            if(((power > 18) && (power != 127)) || power < 2) {
-                printf("Invalid power value\r\n");
-                return;
-            } else {
-                tx_test_info.power = power;
-                calibration_app_flow_transmit_tx(instance);
-            }
+    uint16_t power = 0;
+    StrintParseError parse_err = strint_to_uint16(args_cstr, NULL, &power, 10);
+    if(parse_err == StrintParseNoError) {
+        if(((power > 18) && (power != 127)) || power < 2) {
+            printf("Invalid power value\r\n");
+            return;
         } else {
-            printf("set_power <power>  default=%d, 2-18dBm, 127-max power\r\n", tx_test_info.power);
+            tx_test_info.power = power;
+            calibration_app_flow_transmit_tx(instance);
         }
+    } else {
+        printf("set_power <power>  default=%d, 2-18dBm, 127-max power\r\n", tx_test_info.power);
+    }
 }
 
 static void calibration_set_rate_command(PipeSide* pipe, FuriString* args, void* context) {
@@ -659,9 +652,12 @@ static void wifi_calibration_motd(void* context) {
     printf("\r\n+-------------------------------------+\r\n");
     printf("| Welcome to Wi-Fi calibration shell! |\r\n");
     printf("+-------------------------------------+\r\n\r\n");
-    printf("Read the manual: https://www.silabs.com/documents/public/application-notes/an1440-siwx917-gain-offset-calibration.pdf\r\n");
-    printf("Read the manual: https://www.silabs.com/documents/public/application-notes/an1436-siwx917-qms-crystal-calibration-application-note.pdf\r\n");
-    printf("Read the manual: https://github.com/SiliconLabs/wiseconnect/tree/master/examples/snippets/wlan/calibration_app\r\n");
+    printf(
+        "Read the manual: https://www.silabs.com/documents/public/application-notes/an1440-siwx917-gain-offset-calibration.pdf\r\n");
+    printf(
+        "Read the manual: https://www.silabs.com/documents/public/application-notes/an1436-siwx917-qms-crystal-calibration-application-note.pdf\r\n");
+    printf(
+        "Read the manual: https://github.com/SiliconLabs/wiseconnect/tree/master/examples/snippets/wlan/calibration_app\r\n");
 }
 
 void wifi_calibration_command(PipeSide* pipe, FuriString* args, void* context) {
@@ -674,17 +670,30 @@ void wifi_calibration_command(PipeSide* pipe, FuriString* args, void* context) {
     cli_shell_start(shell);
 
     CalibApp* app = calibration_app_start(shell);
-    cli_registry_add_command(registry, "sl_freq_offset", CliCommandFlagDefault, calibration_sl_freq_offset_command, app);
-    cli_registry_add_command(registry, "sl_calib_write", CliCommandFlagDefault, calibration_sl_calib_write_command, app);
-    cli_registry_add_command(registry, "sl_evm_offset", CliCommandFlagDefault, calibration_sl_evm_offset_command, app);
-    cli_registry_add_command(registry, "sl_evm_write", CliCommandFlagDefault, calibration_sl_evm_write_command, app);
+    cli_registry_add_command(
+        registry, "sl_freq_offset", CliCommandFlagDefault, calibration_sl_freq_offset_command, app);
+    cli_registry_add_command(
+        registry, "sl_calib_write", CliCommandFlagDefault, calibration_sl_calib_write_command, app);
+    cli_registry_add_command(
+        registry, "sl_evm_offset", CliCommandFlagDefault, calibration_sl_evm_offset_command, app);
+    cli_registry_add_command(
+        registry, "sl_evm_write", CliCommandFlagDefault, calibration_sl_evm_write_command, app);
 #ifdef SLI_SI917
-    cli_registry_add_command(registry, "sl_process_dpd_calibration", CliCommandFlagDefault, calibration_sl_process_dpd_calibration_command, app);
+    cli_registry_add_command(
+        registry,
+        "sl_process_dpd_calibration",
+        CliCommandFlagDefault,
+        calibration_sl_process_dpd_calibration_command,
+        app);
 #endif
-    cli_registry_add_command(registry, "set_mode", CliCommandFlagDefault, calibration_set_mode_command, app);
-    cli_registry_add_command(registry, "set_channel", CliCommandFlagDefault, calibration_set_channel_command, app);
-    cli_registry_add_command(registry, "set_power", CliCommandFlagDefault, calibration_set_power_command, app);
-    cli_registry_add_command(registry, "set_rate", CliCommandFlagDefault, calibration_set_rate_command, app);
+    cli_registry_add_command(
+        registry, "set_mode", CliCommandFlagDefault, calibration_set_mode_command, app);
+    cli_registry_add_command(
+        registry, "set_channel", CliCommandFlagDefault, calibration_set_channel_command, app);
+    cli_registry_add_command(
+        registry, "set_power", CliCommandFlagDefault, calibration_set_power_command, app);
+    cli_registry_add_command(
+        registry, "set_rate", CliCommandFlagDefault, calibration_set_rate_command, app);
     cli_shell_join(shell);
     calibration_app_stop(app);
 

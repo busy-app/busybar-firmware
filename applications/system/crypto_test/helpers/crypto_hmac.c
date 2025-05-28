@@ -52,14 +52,13 @@ void crypto_hmac_check(
     crypto_common_print_buffer_hex("Digest =\t\t", digest, digest_length);
     crypto_common_print_buffer_hex("Expected =\t", digest_out, digest_length);
     if(memcmp(digest, digest_out, digest_length) != 0) {
-        printf(ANSI_FG_RED "%s mode failed" ANSI_RESET "\r\n", tag);        
+        printf(ANSI_FG_RED "%s mode failed" ANSI_RESET "\r\n", tag);
     } else {
         printf(ANSI_FG_GREEN "%s mode success" ANSI_RESET "\r\n", tag);
     }
 }
 
-void crypto_hmac_test_custom_sha_mode(
-    FuriHalCryptoHmacShaMode hmac_sha_mode) {
+void crypto_hmac_test_custom_sha_mode(FuriHalCryptoHmacShaMode hmac_sha_mode) {
     // Buffer to store response
     uint8_t digest[FURI_HAL_CRYPTO_HMAC_SHA512_DIGEST_SIZE] = {0};
     size_t digest_length = 0;
@@ -93,39 +92,26 @@ void crypto_hmac_test_custom_sha_mode(
     switch(hmac_sha_mode) {
     case FuriHalCryptoHmacShaModeSha1:
         crypto_hmac_check(
-            "HMAC_SHA1",
-            digest,
-            digest_output_sha1,
-            FURI_HAL_CRYPTO_HMAC_SHA1_DIGEST_SIZE);
+            "HMAC_SHA1", digest, digest_output_sha1, FURI_HAL_CRYPTO_HMAC_SHA1_DIGEST_SIZE);
         break;
     case FuriHalCryptoHmacShaModeSha256:
         crypto_hmac_check(
-            "HMAC_SHA256",
-            digest,
-            digest_output_sha256,
-            FURI_HAL_CRYPTO_HMAC_SHA256_DIGEST_SIZE);
+            "HMAC_SHA256", digest, digest_output_sha256, FURI_HAL_CRYPTO_HMAC_SHA256_DIGEST_SIZE);
         break;
     case FuriHalCryptoHmacShaModeSha384:
         crypto_hmac_check(
-            "HMAC_SHA384",
-            digest,
-            digest_output_sha384,
-            FURI_HAL_CRYPTO_HMAC_SHA384_DIGEST_SIZE);
+            "HMAC_SHA384", digest, digest_output_sha384, FURI_HAL_CRYPTO_HMAC_SHA384_DIGEST_SIZE);
         break;
     case FuriHalCryptoHmacShaModeSha512:
         crypto_hmac_check(
-            "HMAC_SHA512",
-            digest,
-            digest_output_sha512,
-            FURI_HAL_CRYPTO_HMAC_SHA512_DIGEST_SIZE);
+            "HMAC_SHA512", digest, digest_output_sha512, FURI_HAL_CRYPTO_HMAC_SHA512_DIGEST_SIZE);
         break;
     default:
         break;
     }
 }
 
-void crypto_hmac_test_custom_sha_mode_wrap_on(
-    FuriHalCryptoHmacShaMode hmac_sha_mode) {
+void crypto_hmac_test_custom_sha_mode_wrap_on(FuriHalCryptoHmacShaMode hmac_sha_mode) {
     // Buffer to store response
     uint8_t digest[FURI_HAL_CRYPTO_HMAC_SHA512_DIGEST_SIZE] = {0};
     size_t digest_length = 0;
@@ -167,31 +153,19 @@ void crypto_hmac_test_custom_sha_mode_wrap_on(
     switch(hmac_sha_mode) {
     case FuriHalCryptoHmacShaModeSha1:
         crypto_hmac_check(
-            "HMAC_SHA1",
-            digest,
-            digest_output_sha1,
-            FURI_HAL_CRYPTO_HMAC_SHA1_DIGEST_SIZE);
+            "HMAC_SHA1", digest, digest_output_sha1, FURI_HAL_CRYPTO_HMAC_SHA1_DIGEST_SIZE);
         break;
     case FuriHalCryptoHmacShaModeSha256:
         crypto_hmac_check(
-            "HMAC_SHA256",
-            digest,
-            digest_output_sha256,
-            FURI_HAL_CRYPTO_HMAC_SHA256_DIGEST_SIZE);
+            "HMAC_SHA256", digest, digest_output_sha256, FURI_HAL_CRYPTO_HMAC_SHA256_DIGEST_SIZE);
         break;
     case FuriHalCryptoHmacShaModeSha384:
         crypto_hmac_check(
-            "HMAC_SHA384",
-            digest,
-            digest_output_sha384,
-            FURI_HAL_CRYPTO_HMAC_SHA384_DIGEST_SIZE);
+            "HMAC_SHA384", digest, digest_output_sha384, FURI_HAL_CRYPTO_HMAC_SHA384_DIGEST_SIZE);
         break;
     case FuriHalCryptoHmacShaModeSha512:
         crypto_hmac_check(
-            "HMAC_SHA512",
-            digest,
-            digest_output_sha512,
-            FURI_HAL_CRYPTO_HMAC_SHA512_DIGEST_SIZE);
+            "HMAC_SHA512", digest, digest_output_sha512, FURI_HAL_CRYPTO_HMAC_SHA512_DIGEST_SIZE);
         break;
     default:
         break;

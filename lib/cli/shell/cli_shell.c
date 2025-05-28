@@ -29,7 +29,7 @@
 #define TAG "CliShell"
 
 #define ANSI_TIMEOUT_MS 10
-#define API_Q_SIZE 4
+#define API_Q_SIZE      4
 
 typedef enum {
     CliShellComponentCompletions,
@@ -250,8 +250,7 @@ void cli_shell_execute_command(CliShell* cli_shell, FuriString* command) {
             furi_check(!(command_data.flags & CliCommandFlagUseShellThread));
         }
 
-        lock loader
-        if(!(command_data.flags & CliCommandFlagParallelSafe)) {
+        lock loader if(!(command_data.flags & CliCommandFlagParallelSafe)) {
             loader_locked = loader_lock(loader);
             if(!loader_locked) {
                 printf(ANSI_FG_RED
@@ -357,12 +356,17 @@ static void cli_shell_api_request(FuriEventLoopObject* object, void* context) {
         size_t position = 0;
         while(1) {
             size_t newline_pos = furi_string_search_str(request.notification, "\r\n", position);
-            
+
             FuriString* line = furi_string_alloc_set(request.notification);
             // guarantees that we can use the error value as an index well beyond the bounds of any string
             static_assert(FURI_STRING_FAILURE == ((size_t)-1));
             furi_string_mid(line, position, newline_pos - position);
-            printf(ANSI_FG_BR_CYAN "[%s]" ANSI_RESET " %s" ANSI_RESET ANSI_ERASE_LINE(ANSI_ERASE_FROM_CURSOR_TO_END) "\r\n", prompt, furi_string_get_cstr(line));
+            printf(
+                ANSI_FG_BR_CYAN
+                "[%s]" ANSI_RESET
+                " %s" ANSI_RESET ANSI_ERASE_LINE(ANSI_ERASE_FROM_CURSOR_TO_END) "\r\n",
+                prompt,
+                furi_string_get_cstr(line));
             furi_string_free(line);
 
             if(newline_pos == FURI_STRING_FAILURE) break;
@@ -472,7 +476,8 @@ static void cli_shell_init(CliShell* shell) {
         shell->event_loop, cli_shell_timer_expired, FuriEventLoopTimerTypeOnce, shell);
 
     shell->api_queue = furi_message_queue_alloc(API_Q_SIZE, sizeof(CliShellApiRequest));
-    furi_event_loop_subscribe_message_queue(shell->event_loop, shell->api_queue, FuriEventLoopEventIn, cli_shell_api_request, shell);
+    furi_event_loop_subscribe_message_queue(
+        shell->event_loop, shell->api_queue, FuriEventLoopEventIn, cli_shell_api_request, shell);
 
 #ifdef CLI_PLATFORM_SUPPORTS_STORAGE_UPDATES
     shell->storage.event_flag = furi_event_flag_alloc();

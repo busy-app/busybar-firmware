@@ -6,11 +6,11 @@
 #include <cli/cli_commands.h>
 #include <cli/cli_ansi.h>
 
-#define THREAD_STACK_SIZE (2 * 1024)
+#define THREAD_STACK_SIZE     (2 * 1024)
 #define PIPE_SZ_PER_DIRECTION 1024U
 // #define CLI_SOCKET_TRACE_ENABLE
 
-#define TAG "CliSocketClient"
+#define TAG       "CliSocketClient"
 #define DIR_CL_SH ANSI_FG_GREEN "cl->sh" ANSI_RESET
 #define DIR_SH_CL ANSI_FG_YELLOW "sh->cl" ANSI_RESET
 
@@ -49,7 +49,12 @@ static void cli_socket_client_try_copy_sh2cl(CliSocketClient* client) {
     size_t available_in_tcp_buf = tcp_sndbuf(client->socket);
     size_t available_in_pipe = pipe_bytes_available(client->own_pipe);
     size_t batch_sz = MIN(available_in_pipe, available_in_tcp_buf);
-    CLI_SOCKET_TRACE(TAG, DIR_SH_CL ": batch=%zu (tcp=%zu pipe=%zu)", batch_sz, available_in_tcp_buf, available_in_pipe);
+    CLI_SOCKET_TRACE(
+        TAG,
+        DIR_SH_CL ": batch=%zu (tcp=%zu pipe=%zu)",
+        batch_sz,
+        available_in_tcp_buf,
+        available_in_pipe);
     if(!batch_sz) return;
 
     if(furi_semaphore_release(client->tx_semaphore) != FuriStatusOk) {
@@ -78,7 +83,8 @@ static void cli_socket_client_try_copy_cl2sh(CliSocketClient* client, struct pbu
 
         while(available_in_chunk) {
             size_t batch_sz = MIN(available_in_chunk, PIPE_SZ_PER_DIRECTION);
-            CLI_SOCKET_TRACE(TAG, DIR_CL_SH ":     batch=%zu (left=%zu)", batch_sz, available_in_chunk);
+            CLI_SOCKET_TRACE(
+                TAG, DIR_CL_SH ":     batch=%zu (left=%zu)", batch_sz, available_in_chunk);
 
             uint8_t buf[batch_sz];
             memcpy(buf, payload, sizeof(buf));
@@ -88,7 +94,7 @@ static void cli_socket_client_try_copy_cl2sh(CliSocketClient* client, struct pbu
             payload += batch_sz;
             read_total += batch_sz;
         }
-        
+
         chunk = chunk->next;
     }
 
@@ -115,7 +121,11 @@ static err_t cli_socket_client_tcp_tx_done(void* context, struct tcp_pcb* socket
     return ERR_OK;
 }
 
-static err_t cli_socket_data_from_client(void* context, struct tcp_pcb* socket, struct pbuf* data, err_t err) {
+static err_t cli_socket_data_from_client(
+    void* context,
+    struct tcp_pcb* socket,
+    struct pbuf* data,
+    err_t err) {
     UNUSED(socket);
     CliSocketClient* client = context;
 
@@ -147,7 +157,7 @@ static void cli_socket_client_event(FuriEventLoopObject* object, void* context) 
         furi_semaphore_acquire(client->tx_semaphore, 0);
     }
 
-    if(flags & CliSocketClientEventDisconnected) { 
+    if(flags & CliSocketClientEventDisconnected) {
         furi_event_loop_stop(client->event_loop);
     }
 }
@@ -163,7 +173,12 @@ static void cli_socket_client_thread_init(CliSocketClient* client) {
     client->event_loop = furi_event_loop_alloc();
 
     client->event_flag = furi_event_flag_alloc();
-    furi_event_loop_subscribe_event_flag(client->event_loop, client->event_flag, FuriEventLoopEventIn | FuriEventLoopEventFlagEdge, cli_socket_client_event, client);
+    furi_event_loop_subscribe_event_flag(
+        client->event_loop,
+        client->event_flag,
+        FuriEventLoopEventIn | FuriEventLoopEventFlagEdge,
+        cli_socket_client_event,
+        client);
 
     client->tx_semaphore = furi_semaphore_alloc(1, 0);
     PipeSideBundle pipes = pipe_alloc(PIPE_SZ_PER_DIRECTION, 1);
@@ -179,7 +194,8 @@ static void cli_socket_client_thread_init(CliSocketClient* client) {
 
     client->main_registry = furi_record_open(RECORD_CLI);
 
-    client->shell = cli_shell_alloc(cli_main_motd, NULL, client->shell_pipe, client->main_registry, NULL);
+    client->shell =
+        cli_shell_alloc(cli_main_motd, NULL, client->shell_pipe, client->main_registry, NULL);
     cli_shell_start(client->shell);
 }
 
@@ -219,7 +235,10 @@ static int32_t cli_socket_client_thread(void* context) {
     return 0;
 }
 
-static void cli_socket_client_thread_state_callback(FuriThread* thread, FuriThreadState state, void* context) {
+static void cli_socket_client_thread_state_callback(
+    FuriThread* thread,
+    FuriThreadState state,
+    void* context) {
     CliSocketClient* client = context;
     UNUSED(client);
     if(state == FuriThreadStateStopped) {
@@ -237,7 +256,8 @@ void cli_socket_client_start(struct tcp_pcb* client_socket) {
     CliSocketClient* client = malloc(sizeof(CliSocketClient));
     client->socket = client_socket;
 
-    FuriThread* thread = furi_thread_alloc_ex(TAG, THREAD_STACK_SIZE, cli_socket_client_thread, client);
+    FuriThread* thread =
+        furi_thread_alloc_ex(TAG, THREAD_STACK_SIZE, cli_socket_client_thread, client);
     furi_thread_set_state_callback(thread, cli_socket_client_thread_state_callback);
     furi_thread_start(thread);
 }

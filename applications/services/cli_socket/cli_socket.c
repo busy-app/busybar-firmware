@@ -19,7 +19,7 @@ void cli_socket_on_system_start(void) {
 
     struct tcp_pcb* server_socket = tcp_new();
     furi_check(tcp_bind(server_socket, IP_ADDR_ANY, CLI_SOCKET_PORT) == ERR_OK);
-    
+
     struct tcp_pcb* listen_socket = tcp_listen(server_socket);
     tcp_arg(listen_socket, listen_socket);
     tcp_accept(listen_socket, cli_socket_accept_callback);

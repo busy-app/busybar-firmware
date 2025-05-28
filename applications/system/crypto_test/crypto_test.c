@@ -84,12 +84,13 @@ void* crypto_test_app_start(CliShell* shell) {
                 crypto_test_app_instance->msg,
                 ANSI_FG_RED "Failed to start Wi-Fi client interface: 0x%lx" ANSI_RESET,
                 status);
-            cli_shell_notification_print(crypto_test_app_instance->shell, crypto_test_app_instance->msg);
+            cli_shell_notification_print(
+                crypto_test_app_instance->shell, crypto_test_app_instance->msg);
             break;
         } else {
-            furi_string_printf(
-                crypto_test_app_instance->msg, "Wi-Fi initialization successful");
-            cli_shell_notification_print(crypto_test_app_instance->shell, crypto_test_app_instance->msg);
+            furi_string_printf(crypto_test_app_instance->msg, "Wi-Fi initialization successful");
+            cli_shell_notification_print(
+                crypto_test_app_instance->shell, crypto_test_app_instance->msg);
         }
         FURI_LOG_D(TAG, "Wi-Fi initialization successful");
         crypto_test_app_instance->state = CryptoTestStateWifiInit;

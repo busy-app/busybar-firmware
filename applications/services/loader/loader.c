@@ -414,7 +414,8 @@ static void loader_do_on_start(void) {
 
     for(size_t i = 0; i < FLIPPER_ON_SYSTEM_START_COUNT; i++) {
         FlipperInternalOnStartHook hook = FLIPPER_ON_SYSTEM_START[i];
-        hook_threads[i] = furi_thread_alloc_ex("Hook thread", 2048, loader_startup_hook_thread, hook);
+        hook_threads[i] =
+            furi_thread_alloc_ex("Hook thread", 2048, loader_startup_hook_thread, hook);
         furi_thread_start(hook_threads[i]);
     }
 

@@ -462,8 +462,7 @@ void* ble_per_test_app_start(CliShell* shell) {
         status = sl_si91x_set_device_region(
             config.boot_config.oper_mode, config.band, config.region_code);
         if(status != SL_STATUS_OK) {
-            furi_string_printf(
-                instance->msg, "Failed to set region, error code: 0x%08lX", status);
+            furi_string_printf(instance->msg, "Failed to set region, error code: 0x%08lX", status);
             cli_shell_notification_print(instance->shell, instance->msg);
             break;
         } else {
@@ -487,9 +486,7 @@ void* ble_per_test_app_start(CliShell* shell) {
         status = sl_wifi_get_firmware_version(&version);
         if(status != SL_STATUS_OK) {
             furi_string_printf(
-                instance->msg,
-                "Failed to fetch firmware version, error code: 0x%08lX",
-                status);
+                instance->msg, "Failed to fetch firmware version, error code: 0x%08lX", status);
             cli_shell_notification_print(instance->shell, instance->msg);
             break;
         } else {
@@ -512,9 +509,7 @@ void* ble_per_test_app_start(CliShell* shell) {
         status = rsi_bt_get_local_device_address(instance->rsi_app_resp_get_dev_addr);
         if(status != RSI_SUCCESS) {
             furi_string_printf(
-                instance->msg,
-                "Failed to get local device address, error code: 0x%08lX",
-                status);
+                instance->msg, "Failed to get local device address, error code: 0x%08lX", status);
             cli_shell_notification_print(instance->shell, instance->msg);
             break;
         } else {
@@ -541,9 +536,7 @@ void* ble_per_test_app_start(CliShell* shell) {
             break;
         }
         furi_string_printf(
-            instance->msg,
-            "Local name set to: %s",
-            instance->rsi_app_resp_get_local_name.name);
+            instance->msg, "Local name set to: %s", instance->rsi_app_resp_get_local_name.name);
         cli_shell_notification_print(instance->shell, instance->msg);
 
 #if GAIN_TABLE_AND_MAX_POWER_UPDATE_ENABLE
@@ -575,9 +568,7 @@ void* ble_per_test_app_start(CliShell* shell) {
             BLE_GAIN_TABLE_OFFSET_UPDATE);
         if(status != RSI_SUCCESS) {
             furi_string_printf(
-                instance->msg,
-                "Failed to update gain table offset, error code: 0x%08lX",
-                status);
+                instance->msg, "Failed to update gain table offset, error code: 0x%08lX", status);
             cli_shell_notification_print(instance->shell, instance->msg);
             break;
         } else {
@@ -808,9 +799,18 @@ static void ble_per_test_stop_cmd(PipeSide* pipe, FuriString* args, void* contex
     }
 }
 
-static bool ble_per_test_generic_command_guard(BLEPerTestApp* instance, FuriString* args, BLEPerTestState expected_state, uint8_t min_arg, uint8_t max_arg, uint8_t* arg_out) {
+static bool ble_per_test_generic_command_guard(
+    BLEPerTestApp* instance,
+    FuriString* args,
+    BLEPerTestState expected_state,
+    uint8_t min_arg,
+    uint8_t max_arg,
+    uint8_t* arg_out) {
     if(instance->state != expected_state) {
-        printf(ANSI_FG_RED "invalid state %d; expected to be in state %d\r\n" ANSI_RESET, instance->state, expected_state);
+        printf(
+            ANSI_FG_RED "invalid state %d; expected to be in state %d\r\n" ANSI_RESET,
+            instance->state,
+            expected_state);
         return false;
     }
 
@@ -821,7 +821,10 @@ static bool ble_per_test_generic_command_guard(BLEPerTestApp* instance, FuriStri
     }
 
     if(arg < (int)min_arg || arg > (int)max_arg) {
-        printf(ANSI_FG_RED "argument out of bounds; expected >= %d, <= %d\r\n" ANSI_RESET, min_arg, max_arg);
+        printf(
+            ANSI_FG_RED "argument out of bounds; expected >= %d, <= %d\r\n" ANSI_RESET,
+            min_arg,
+            max_arg);
         return false;
     }
 
@@ -848,11 +851,10 @@ static void ble_per_test_phy_rate_cmd(PipeSide* pipe, FuriString* args, void* co
     UNUSED(pipe);
     BLEPerTestApp* instance = context;
     uint8_t arg_uint8;
-    if(ble_per_test_generic_command_guard(instance, args, BLEPerTestStateIdle, 0, BLE_PER_TEST_PHY_RATE_MAX - 1, &arg_uint8)) {
-        instance->rsi_ble_per_tx.phy_rate =
-            ble_per_test_phy_rate[arg_uint8].rate_value;
-        instance->rsi_ble_per_rx.phy_rate =
-            ble_per_test_phy_rate[arg_uint8].rate_value;
+    if(ble_per_test_generic_command_guard(
+           instance, args, BLEPerTestStateIdle, 0, BLE_PER_TEST_PHY_RATE_MAX - 1, &arg_uint8)) {
+        instance->rsi_ble_per_tx.phy_rate = ble_per_test_phy_rate[arg_uint8].rate_value;
+        instance->rsi_ble_per_rx.phy_rate = ble_per_test_phy_rate[arg_uint8].rate_value;
         printf("PHY rate set to %d", arg_uint8);
     } else {
         printf("Usage: phy_rate <0..3>\r\n  PHY 0: 1Mbps, 1: 2Mbps, 2: 125Kbps, 3: 500Kbps");
@@ -864,7 +866,8 @@ static void ble_per_test_payload_len_cmd(PipeSide* pipe, FuriString* args, void*
     UNUSED(args);
     BLEPerTestApp* instance = context;
     uint8_t arg_uint8;
-    if(ble_per_test_generic_command_guard(instance, args, BLEPerTestStateIdle, 1, 255, &arg_uint8)) {
+    if(ble_per_test_generic_command_guard(
+           instance, args, BLEPerTestStateIdle, 1, 255, &arg_uint8)) {
         instance->rsi_ble_per_tx.pkt_len[0] = arg_uint8;
         printf("Payload length set to %d", arg_uint8);
     } else {
@@ -876,12 +879,14 @@ static void ble_per_test_payload_type_cmd(PipeSide* pipe, FuriString* args, void
     UNUSED(pipe);
     BLEPerTestApp* instance = context;
     uint8_t arg_uint8;
-    if(ble_per_test_generic_command_guard(instance, args, BLEPerTestStateIdle, 0, BLE_PER_TEST_PAYLOAD_TYPE_MAX - 1, &arg_uint8)) {
+    if(ble_per_test_generic_command_guard(
+           instance, args, BLEPerTestStateIdle, 0, BLE_PER_TEST_PAYLOAD_TYPE_MAX - 1, &arg_uint8)) {
         instance->rsi_ble_per_tx.payload_type =
             ble_per_test_payload_type[arg_uint8].payload_type_value;
         printf("Payload type set to %d", arg_uint8);
     } else {
-        printf("Usage: payload_type <0..7>\r\n  Payload type\r\n  0: PRBS9, 1: 11110000, 2: 10101010, 3: PRBS15, 4: 11111111, 5: 00000000, 6: 00001111, 7: 01010101");
+        printf(
+            "Usage: payload_type <0..7>\r\n  Payload type\r\n  0: PRBS9, 1: 11110000, 2: 10101010, 3: PRBS15, 4: 11111111, 5: 00000000, 6: 00001111, 7: 01010101");
     }
 }
 
@@ -889,9 +894,9 @@ static void ble_per_test_mode_cmd(PipeSide* pipe, FuriString* args, void* contex
     UNUSED(pipe);
     BLEPerTestApp* instance = context;
     uint8_t arg_uint8;
-    if(ble_per_test_generic_command_guard(instance, args, BLEPerTestStateIdle, 0, BLE_PER_TEST_TRANSMIT_MODE_MAX - 1, &arg_uint8)) {
-        instance->rsi_ble_per_tx.transmit_mode =
-            ble_per_test_transmit_mode[arg_uint8].mode_value;
+    if(ble_per_test_generic_command_guard(
+           instance, args, BLEPerTestStateIdle, 0, BLE_PER_TEST_TRANSMIT_MODE_MAX - 1, &arg_uint8)) {
+        instance->rsi_ble_per_tx.transmit_mode = ble_per_test_transmit_mode[arg_uint8].mode_value;
         printf("Transmit mode set to %d", arg_uint8);
     } else {
         printf("Usage: mode <0..3>\r\n  Transmit mode\r\n  0: Burst, 1: Continuous 2: Cw");
@@ -902,14 +907,16 @@ static void ble_per_test_tx_power_cmd(PipeSide* pipe, FuriString* args, void* co
     UNUSED(pipe);
     BLEPerTestApp* instance = context;
     uint8_t arg_uint8;
-    if(ble_per_test_generic_command_guard(instance, args, BLEPerTestStateIdle, 1, 127, &arg_uint8)) {
+    if(ble_per_test_generic_command_guard(
+           instance, args, BLEPerTestStateIdle, 1, 127, &arg_uint8)) {
         if(arg_uint8 <= 10 || arg_uint8 == 127) {
             instance->rsi_ble_per_tx.tx_power = arg_uint8;
             printf("Tx power set to %d", arg_uint8);
             return;
         }
     }
-    printf("Usage: tx_power <1..10 | 127>\r\n  Transmit power\r\n  1..10: 1dBm..10dBm, 127: Max Power Supported by Country region");
+    printf(
+        "Usage: tx_power <1..10 | 127>\r\n  Transmit power\r\n  1..10: 1dBm..10dBm, 127: Max Power Supported by Country region");
 }
 
 static void ble_per_test_hopping_cmd(PipeSide* pipe, FuriString* args, void* context) {
@@ -917,12 +924,13 @@ static void ble_per_test_hopping_cmd(PipeSide* pipe, FuriString* args, void* con
     UNUSED(args);
     BLEPerTestApp* instance = context;
     uint8_t arg_uint8;
-    if(ble_per_test_generic_command_guard(instance, args, BLEPerTestStateIdle, 0, BLE_PER_TEST_HOPPING_MODE_MAX - 1, &arg_uint8)) {
-        instance->rsi_ble_per_tx.freq_hop_en =
-            ble_per_test_hopping_mode[arg_uint8].hopping_value;
+    if(ble_per_test_generic_command_guard(
+           instance, args, BLEPerTestStateIdle, 0, BLE_PER_TEST_HOPPING_MODE_MAX - 1, &arg_uint8)) {
+        instance->rsi_ble_per_tx.freq_hop_en = ble_per_test_hopping_mode[arg_uint8].hopping_value;
         printf("Hopping set to %d\r\n", arg_uint8);
     } else {
-        printf("Usage: hopping <0..2>\r\n  Frequency hopping\r\n  0: No hopping, 1: Fixed Hopping, 2: Random Hopping");
+        printf(
+            "Usage: hopping <0..2>\r\n  Frequency hopping\r\n  0: No hopping, 1: Fixed Hopping, 2: Random Hopping");
     }
 }
 
@@ -998,13 +1006,19 @@ void ble_per_test_command(PipeSide* pipe, FuriString* args, void* context) {
     cli_registry_add_command(registry, "tx", CliCommandFlagDefault, ble_per_test_tx_cmd, app);
     cli_registry_add_command(registry, "rx", CliCommandFlagDefault, ble_per_test_rx_cmd, app);
     cli_registry_add_command(registry, "stop", CliCommandFlagDefault, ble_per_test_stop_cmd, app);
-    cli_registry_add_command(registry, "channel", CliCommandFlagDefault, ble_per_test_channel_cmd, app);
-    cli_registry_add_command(registry, "phy_rate", CliCommandFlagDefault, ble_per_test_phy_rate_cmd, app);
-    cli_registry_add_command(registry, "payload_len", CliCommandFlagDefault, ble_per_test_payload_len_cmd, app);
-    cli_registry_add_command(registry, "payload_type", CliCommandFlagDefault, ble_per_test_payload_type_cmd, app);
+    cli_registry_add_command(
+        registry, "channel", CliCommandFlagDefault, ble_per_test_channel_cmd, app);
+    cli_registry_add_command(
+        registry, "phy_rate", CliCommandFlagDefault, ble_per_test_phy_rate_cmd, app);
+    cli_registry_add_command(
+        registry, "payload_len", CliCommandFlagDefault, ble_per_test_payload_len_cmd, app);
+    cli_registry_add_command(
+        registry, "payload_type", CliCommandFlagDefault, ble_per_test_payload_type_cmd, app);
     cli_registry_add_command(registry, "mode", CliCommandFlagDefault, ble_per_test_mode_cmd, app);
-    cli_registry_add_command(registry, "hopping", CliCommandFlagDefault, ble_per_test_hopping_cmd, app);
-    cli_registry_add_command(registry, "tx_power", CliCommandFlagDefault, ble_per_test_tx_power_cmd, app);
+    cli_registry_add_command(
+        registry, "hopping", CliCommandFlagDefault, ble_per_test_hopping_cmd, app);
+    cli_registry_add_command(
+        registry, "tx_power", CliCommandFlagDefault, ble_per_test_tx_power_cmd, app);
 
     cli_shell_join(shell);
     ble_per_test_app_stop(app);

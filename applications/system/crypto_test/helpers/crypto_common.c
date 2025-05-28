@@ -1,9 +1,6 @@
 #include "crypto_common.h"
 
-void crypto_common_print_buffer_char(
-    char* tag,
-    uint8_t* buffer,
-    uint16_t length) {
+void crypto_common_print_buffer_char(char* tag, uint8_t* buffer, uint16_t length) {
     printf("%s", tag);
     for(uint16_t i = 0; i < length; i++) {
         if(buffer[i] != 0x00) {
@@ -15,10 +12,7 @@ void crypto_common_print_buffer_char(
     printf("\r\n");
 }
 
-void crypto_common_print_buffer_hex(
-    char* tag,
-    const uint8_t* buffer,
-    uint16_t length) {
+void crypto_common_print_buffer_hex(char* tag, const uint8_t* buffer, uint16_t length) {
     printf("%s", tag);
 
     for(uint16_t i = 0; i < length; i++) {

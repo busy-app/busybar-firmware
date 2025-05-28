@@ -201,7 +201,8 @@ void* wifi_test_app_start(CliShell* shell) {
         status = sl_net_init(
             SL_NET_WIFI_AP_INTERFACE, &sl_wifi_default_concurrent_configuration, NULL, NULL);
         if(status != SL_STATUS_OK) {
-            printf(ANSI_FG_RED "Failed to start Wi-Fi APSTA interface: 0x%lx\r\n" ANSI_RESET, status);
+            printf(
+                ANSI_FG_RED "Failed to start Wi-Fi APSTA interface: 0x%lx\r\n" ANSI_RESET, status);
             break;
         }
 
@@ -271,8 +272,8 @@ static void wifi_test_ap_up_command(PipeSide* pipe, FuriString* args, void* cont
             instance);
 
         // Set Wi-Fi AP profile
-        status = sl_net_set_profile(
-            SL_NET_WIFI_AP_INTERFACE, SL_NET_PROFILE_ID_1, &wifi_ap_profile);
+        status =
+            sl_net_set_profile(SL_NET_WIFI_AP_INTERFACE, SL_NET_PROFILE_ID_1, &wifi_ap_profile);
         if(status != SL_STATUS_OK) {
             printf(ANSI_FG_RED "Failed to set AP profile: 0x%lx\r\n" ANSI_RESET, status);
             return;
@@ -294,7 +295,8 @@ static void wifi_test_ap_up_command(PipeSide* pipe, FuriString* args, void* cont
         // Bring Wi-Fi AP interface up
         status = sl_net_up(SL_NET_WIFI_AP_INTERFACE, SL_NET_PROFILE_ID_1);
         if(status != SL_STATUS_OK) {
-            printf(ANSI_FG_RED "Failed to bring Wi-Fi AP interface up: 0x%lx\r\n" ANSI_RESET, status);
+            printf(
+                ANSI_FG_RED "Failed to bring Wi-Fi AP interface up: 0x%lx\r\n" ANSI_RESET, status);
             return;
         }
         printf("AP started\r\n");
@@ -311,7 +313,9 @@ static void wifi_test_ap_down_command(PipeSide* pipe, FuriString* args, void* co
     if(instance->state == WifiTestStateApUp) {
         sl_status_t status = sl_net_down(SL_NET_WIFI_AP_INTERFACE);
         if(status != SL_STATUS_OK) {
-            printf(ANSI_FG_RED "Failed to bring Wi-Fi AP interface down: 0x%lx\r\n" ANSI_RESET, status);
+            printf(
+                ANSI_FG_RED "Failed to bring Wi-Fi AP interface down: 0x%lx\r\n" ANSI_RESET,
+                status);
             return;
         }
         printf("AP stopped\r\n");
@@ -328,7 +332,8 @@ static void wifi_test_sta_up_command(PipeSide* pipe, FuriString* args, void* con
     WifiTestApp* instance = context;
     sl_status_t status;
     if(instance->state == WifiTestStateIdle) {
-        printf("Connecting to SSID:%s PASS:%s\r\n", WIFI_CLIENT_PROFILE_SSID, WIFI_CLIENT_CREDENTIAL);
+        printf(
+            "Connecting to SSID:%s PASS:%s\r\n", WIFI_CLIENT_PROFILE_SSID, WIFI_CLIENT_CREDENTIAL);
 
         sl_net_wifi_client_profile_t client_profile = {0};
         sl_ip_address_t ip_address = {0};
@@ -337,9 +342,10 @@ static void wifi_test_sta_up_command(PipeSide* pipe, FuriString* args, void* con
             SL_NET_WIFI_CLIENT_INTERFACE, SL_NET_PROFILE_ID_1, &wifi_client_profile);
         if(status != SL_STATUS_OK) {
             printf(
-                ANSI_FG_RED "Failed to store the Wi-Fi client network profile: 0x%lx\r\n" ANSI_RESET,
+                ANSI_FG_RED
+                "Failed to store the Wi-Fi client network profile: 0x%lx\r\n" ANSI_RESET,
                 status);
-                return;
+            return;
         }
 
         printf("Successfully stored the Wi-Fi client network profile\r\n");
@@ -354,7 +360,7 @@ static void wifi_test_sta_up_command(PipeSide* pipe, FuriString* args, void* con
             printf(
                 ANSI_FG_RED "Failed to configure Wi-Fi client credentials: 0x%lx\r\n" ANSI_RESET,
                 status);
-                return;
+            return;
         }
 
         printf("Configuring Wi-Fi client credentials is successful\r\n");
@@ -371,8 +377,8 @@ static void wifi_test_sta_up_command(PipeSide* pipe, FuriString* args, void* con
         printf("Wi-Fi client interface up\r\n");
 
         //! Get profile
-        status = sl_net_get_profile(
-            SL_NET_WIFI_CLIENT_INTERFACE, SL_NET_PROFILE_ID_1, &client_profile);
+        status =
+            sl_net_get_profile(SL_NET_WIFI_CLIENT_INTERFACE, SL_NET_PROFILE_ID_1, &client_profile);
         if(status != SL_STATUS_OK) {
             printf(ANSI_FG_RED "Failed to get client profile: 0x%lx\r\n" ANSI_RESET, status);
             return;
@@ -514,14 +520,22 @@ void wifi_test_command(PipeSide* pipe, FuriString* args, void* context) {
 
     WifiTestApp* app = wifi_test_app_start(shell);
     cli_registry_add_command(registry, "scan", CliCommandFlagDefault, wifi_test_scan_command, app);
-    cli_registry_add_command(registry, "ap_up", CliCommandFlagDefault, wifi_test_ap_up_command, app);
-    cli_registry_add_command(registry, "ap_down", CliCommandFlagDefault, wifi_test_ap_down_command, app);
-    cli_registry_add_command(registry, "sta_up", CliCommandFlagDefault, wifi_test_sta_up_command, app);
-    cli_registry_add_command(registry, "sta_down", CliCommandFlagDefault, wifi_test_sta_down_command, app);
-    cli_registry_add_command(registry, "tcp_tx", CliCommandFlagDefault, wifi_test_tcp_tx_command, app);
-    cli_registry_add_command(registry, "tcp_rx", CliCommandFlagDefault, wifi_test_tcp_rx_command, app);
-    cli_registry_add_command(registry, "udp_tx", CliCommandFlagDefault, wifi_test_udp_tx_command, app);
-    cli_registry_add_command(registry, "udp_tx_stop", CliCommandFlagDefault, wifi_test_udp_tx_stop_command, app);
+    cli_registry_add_command(
+        registry, "ap_up", CliCommandFlagDefault, wifi_test_ap_up_command, app);
+    cli_registry_add_command(
+        registry, "ap_down", CliCommandFlagDefault, wifi_test_ap_down_command, app);
+    cli_registry_add_command(
+        registry, "sta_up", CliCommandFlagDefault, wifi_test_sta_up_command, app);
+    cli_registry_add_command(
+        registry, "sta_down", CliCommandFlagDefault, wifi_test_sta_down_command, app);
+    cli_registry_add_command(
+        registry, "tcp_tx", CliCommandFlagDefault, wifi_test_tcp_tx_command, app);
+    cli_registry_add_command(
+        registry, "tcp_rx", CliCommandFlagDefault, wifi_test_tcp_rx_command, app);
+    cli_registry_add_command(
+        registry, "udp_tx", CliCommandFlagDefault, wifi_test_udp_tx_command, app);
+    cli_registry_add_command(
+        registry, "udp_tx_stop", CliCommandFlagDefault, wifi_test_udp_tx_stop_command, app);
     cli_registry_add_command(registry, "echo", CliCommandFlagDefault, wifi_test_echo_command, app);
 
     cli_shell_start(shell);

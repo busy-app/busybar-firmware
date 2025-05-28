@@ -205,8 +205,7 @@ void* ble_test_app_start(CliShell* shell) {
             cli_shell_notification_print(instance->shell, instance->msg);
             break;
         } else {
-            furi_string_printf(
-                instance->msg, "Local device address %s", instance->local_dev_addr);
+            furi_string_printf(instance->msg, "Local device address %s", instance->local_dev_addr);
             cli_shell_notification_print(instance->shell, instance->msg);
         }
     } while(0);
@@ -248,7 +247,7 @@ static void ble_test_tx_cmd(PipeSide* pipe, FuriString* args, void* context) {
             printf(ANSI_FG_RED "Failed to start Tx test mode" ANSI_RESET);
         } else {
             printf(
-                
+
                 "Tx test mode started. Channel:%dMhz, Phy:%s, Payload_len:%d, Payload_type:%s",
                 (2402 + (2 * instance->channel)),
                 ble_test_phy_rate[instance->phy].rate_name,
@@ -274,7 +273,7 @@ static void ble_test_rx_cmd(PipeSide* pipe, FuriString* args, void* context) {
             printf(ANSI_FG_RED "Failed to start Rx test mode" ANSI_RESET);
         } else {
             printf(
-                
+
                 "Rx test mode started. Channel:%dMhz, Phy:%s",
                 (2402 + (2 * instance->channel)),
                 ble_test_phy_rate[instance->phy].rate_name);
@@ -297,8 +296,7 @@ static void ble_test_stop_cmd(PipeSide* pipe, FuriString* args, void* context) {
             if(instance->state == BLETestStateTx) {
                 printf("Tx mode stopped");
             } else if(instance->state == BLETestStateRx) {
-                printf(
-                    "Rx mode stopped, number of packets: %d", num_of_pkts);
+                printf("Rx mode stopped, number of packets: %d", num_of_pkts);
             }
         }
         instance->state = BLETestStateIdle;
@@ -307,9 +305,18 @@ static void ble_test_stop_cmd(PipeSide* pipe, FuriString* args, void* context) {
     }
 }
 
-static bool ble_test_generic_command_guard(BLETestApp* instance, FuriString* args, BLETestState expected_state, uint8_t min_arg, uint8_t max_arg, uint8_t* arg_out) {
+static bool ble_test_generic_command_guard(
+    BLETestApp* instance,
+    FuriString* args,
+    BLETestState expected_state,
+    uint8_t min_arg,
+    uint8_t max_arg,
+    uint8_t* arg_out) {
     if(instance->state != expected_state) {
-        printf(ANSI_FG_RED "invalid state %d; expected to be in state %d\r\n" ANSI_RESET, instance->state, expected_state);
+        printf(
+            ANSI_FG_RED "invalid state %d; expected to be in state %d\r\n" ANSI_RESET,
+            instance->state,
+            expected_state);
         return false;
     }
 
@@ -320,7 +327,10 @@ static bool ble_test_generic_command_guard(BLETestApp* instance, FuriString* arg
     }
 
     if(arg < (int)min_arg || arg > (int)max_arg) {
-        printf(ANSI_FG_RED "argument out of bounds; expected >= %d, <= %d\r\n" ANSI_RESET, min_arg, max_arg);
+        printf(
+            ANSI_FG_RED "argument out of bounds; expected >= %d, <= %d\r\n" ANSI_RESET,
+            min_arg,
+            max_arg);
         return false;
     }
 
@@ -368,7 +378,8 @@ static void ble_test_payload_type_cmd(PipeSide* pipe, FuriString* args, void* co
     if(ble_test_generic_command_guard(instance, args, BLETestStateIdle, 0, 7, &arg_uint8)) {
         instance->payload_type = arg_uint8;
     } else {
-        printf("Usage: payload_type <0..7>\r\n  Payload type\r\n  0: PRBS9, 1: 11110000, 2: 10101010, 3: PRBS15, 4: 11111111, 5: 00000000, 6: 00001111, 7: 01010101");
+        printf(
+            "Usage: payload_type <0..7>\r\n  Payload type\r\n  0: PRBS9, 1: 11110000, 2: 10101010, 3: PRBS15, 4: 11111111, 5: 00000000, 6: 00001111, 7: 01010101");
     }
 }
 
@@ -393,10 +404,14 @@ void ble_test_command(PipeSide* pipe, FuriString* args, void* context) {
     cli_registry_add_command(registry, "tx", CliCommandFlagDefault, ble_test_tx_cmd, app);
     cli_registry_add_command(registry, "rx", CliCommandFlagDefault, ble_test_rx_cmd, app);
     cli_registry_add_command(registry, "stop", CliCommandFlagDefault, ble_test_stop_cmd, app);
-    cli_registry_add_command(registry, "channel", CliCommandFlagDefault, ble_test_channel_cmd, app);
-    cli_registry_add_command(registry, "phy_rate", CliCommandFlagDefault, ble_test_phy_rate_cmd, app);
-    cli_registry_add_command(registry, "payload_len", CliCommandFlagDefault, ble_test_payload_len_cmd, app);
-    cli_registry_add_command(registry, "payload_type", CliCommandFlagDefault, ble_test_payload_type_cmd, app);
+    cli_registry_add_command(
+        registry, "channel", CliCommandFlagDefault, ble_test_channel_cmd, app);
+    cli_registry_add_command(
+        registry, "phy_rate", CliCommandFlagDefault, ble_test_phy_rate_cmd, app);
+    cli_registry_add_command(
+        registry, "payload_len", CliCommandFlagDefault, ble_test_payload_len_cmd, app);
+    cli_registry_add_command(
+        registry, "payload_type", CliCommandFlagDefault, ble_test_payload_type_cmd, app);
 
     cli_shell_join(shell);
     ble_test_app_stop(app);

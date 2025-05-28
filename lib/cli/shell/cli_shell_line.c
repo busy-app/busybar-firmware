@@ -85,7 +85,8 @@ void cli_shell_line_full_rerender(CliShellLine* line) {
     cli_shell_line_format_prompt(line, prompt, sizeof(prompt));
     FuriString* command = cli_shell_line_get_selected(line);
     printf(
-        ANSI_CURSOR_HOR_POS("1") "%s%s" ANSI_ERASE_LINE(ANSI_ERASE_FROM_CURSOR_TO_END) ANSI_CURSOR_HOR_POS("%zu"),
+        ANSI_CURSOR_HOR_POS("1") "%s%s" ANSI_ERASE_LINE(ANSI_ERASE_FROM_CURSOR_TO_END)
+            ANSI_CURSOR_HOR_POS("%zu"),
         prompt,
         furi_string_get_cstr(command),
         line->line_position + strlen(prompt) + 1);

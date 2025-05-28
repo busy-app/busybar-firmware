@@ -20,10 +20,7 @@ static const uint8_t key_const[FURI_HAL_CRYPTO_AES_KEY_SIZE_256] = {
 static const uint8_t iv_const[FURI_HAL_CRYPTO_AES_IV_SIZE] =
     {'0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'A', 'B', 'C', 'D', 'E', 'F'};
 
-void crypto_aes_check(
-    char* tag,
-    uint8_t* encrypted_buffer,
-    uint8_t* decrypted_buffer) {
+void crypto_aes_check(char* tag, uint8_t* encrypted_buffer, uint8_t* decrypted_buffer) {
     crypto_common_print_buffer_char("msg =\t\t", (uint8_t*)message_const, sizeof(message_const));
     crypto_common_print_buffer_hex("msg =\t\t", (uint8_t*)message_const, sizeof(message_const));
 

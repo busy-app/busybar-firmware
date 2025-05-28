@@ -45,18 +45,22 @@ void* nvm3_test_app_start(CliShell* shell) {
         status = sl_net_init(
             SL_NET_WIFI_CLIENT_INTERFACE, &sl_wifi_default_concurrent_configuration, NULL, NULL);
         if(status != SL_STATUS_OK) {
-            furi_string_printf(nvm3_test_app_instance->msg,
+            furi_string_printf(
+                nvm3_test_app_instance->msg,
                 ANSI_FG_RED "Failed to start Wi-Fi client interface: 0x%lx" ANSI_RESET,
                 status);
-            cli_shell_notification_print(nvm3_test_app_instance->shell, nvm3_test_app_instance->msg);
+            cli_shell_notification_print(
+                nvm3_test_app_instance->shell, nvm3_test_app_instance->msg);
             break;
         }
         furi_string_printf(nvm3_test_app_instance->msg, "Wi-Fi APSTA interface init");
         cli_shell_notification_print(nvm3_test_app_instance->shell, nvm3_test_app_instance->msg);
 
         if(!nvm3_test_init()) {
-            furi_string_printf(nvm3_test_app_instance->msg, ANSI_FG_RED "Failed to init NVM3" ANSI_RESET);
-            cli_shell_notification_print(nvm3_test_app_instance->shell, nvm3_test_app_instance->msg);
+            furi_string_printf(
+                nvm3_test_app_instance->msg, ANSI_FG_RED "Failed to init NVM3" ANSI_RESET);
+            cli_shell_notification_print(
+                nvm3_test_app_instance->shell, nvm3_test_app_instance->msg);
             break;
         }
 
@@ -192,8 +196,10 @@ static void nvm3_test_motd(void* context) {
     printf("\r\n+-----------------------------+\r\n");
     printf("| Welcome to nvm3 test shell! |\r\n");
     printf("+-----------------------------+\r\n\r\n");
-    printf("Read the manual: https://docs.silabs.com/gecko-platform/latest/platform-driver/nvm3\r\n");
-    printf("Read the manual: https://docs.silabs.com/gecko-platform/3.0/driver/api/group-nvm3\r\n");
+    printf(
+        "Read the manual: https://docs.silabs.com/gecko-platform/latest/platform-driver/nvm3\r\n");
+    printf(
+        "Read the manual: https://docs.silabs.com/gecko-platform/3.0/driver/api/group-nvm3\r\n");
 }
 
 void nvm3_test_command(PipeSide* pipe, FuriString* args, void* context) {
@@ -201,8 +207,10 @@ void nvm3_test_command(PipeSide* pipe, FuriString* args, void* context) {
     UNUSED(context);
 
     CliRegistry* registry = cli_registry_alloc();
-    cli_registry_add_command(registry, "test", CliCommandFlagDefault, nvm3_test_test_command, NULL);
-    cli_registry_add_command(registry, "print", CliCommandFlagDefault, nvm3_test_print_command, NULL);
+    cli_registry_add_command(
+        registry, "test", CliCommandFlagDefault, nvm3_test_test_command, NULL);
+    cli_registry_add_command(
+        registry, "print", CliCommandFlagDefault, nvm3_test_print_command, NULL);
 
     CliShell* shell = cli_shell_alloc(nvm3_test_motd, NULL, pipe, registry, NULL);
     cli_shell_set_prompt(shell, "crypto_test");

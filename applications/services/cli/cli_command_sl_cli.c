@@ -3,7 +3,7 @@
 #include <containers/pipe_util.h>
 
 #define TEMP_PIPE_SZ 128U
-#define CLI_PROMPT "\r\n917>: "
+#define CLI_PROMPT   "\r\n917>: "
 
 void cli_command_sl_cli_send_command_get_response(PipeSide* pipe, const char* sl_cmd) {
     PipeSideBundle temp_bundle = pipe_alloc(TEMP_PIPE_SZ, 1);
@@ -21,7 +21,7 @@ void cli_command_sl_cli_send_command_get_response(PipeSide* pipe, const char* sl
     furi_check(pipe_copy_until(temp_own_pipe, NULL, "\r\n"));
 
     furi_check(pipe_copy_until(temp_own_pipe, pipe, CLI_PROMPT));
-    
+
     pipe_free(temp_own_pipe);
     cli_intercom_join(cli_intercom);
     furi_record_close(RECORD_CLI_INTERCOM);

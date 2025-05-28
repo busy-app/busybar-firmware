@@ -14,15 +14,11 @@ typedef struct {
 
 static const PipeCopyTestCase test_cases[] = {
     // real-world use cases
-    {
-        "property  : value\r\n>: ",
-        "\r\n>: ",
-        "property  : value"
-    },
+    {"property  : value\r\n>: ", "\r\n>: ", "property  : value"},
     // synthetic use cases
-    { "abcabcabc", "cab", "ab" },
-    { "aaaabc", "abc", "aaa" },
-    { "aababcabcd", "abcd", "aababc" },
+    {"abcabcabc", "cab", "ab"},
+    {"aaaabc", "abc", "aaa"},
+    {"aababcabcd", "abcd", "aababc"},
 };
 
 MU_TEST(pipe_copy_until_test) {
@@ -53,7 +49,8 @@ MU_TEST(pipe_copy_until_test) {
         leftover_buf[leftover_cnt] = '\0';
         pipe_free(b);
 
-        const char* expected_leftover = test_case->input + strlen(test_case->terminator) + strlen(test_case->expected_output);
+        const char* expected_leftover =
+            test_case->input + strlen(test_case->terminator) + strlen(test_case->expected_output);
         mu_assert_string_eq(test_case->expected_output, output_buf);
         mu_assert_string_eq(expected_leftover, leftover_buf);
     }
@@ -78,7 +75,8 @@ MU_TEST(pipe_copy_to_null_until_test) {
         leftover_buf[leftover_cnt] = '\0';
         pipe_free(b);
 
-        const char* expected_leftover = test_case->input + strlen(test_case->terminator) + strlen(test_case->expected_output);
+        const char* expected_leftover =
+            test_case->input + strlen(test_case->terminator) + strlen(test_case->expected_output);
         mu_assert_string_eq(expected_leftover, leftover_buf);
     }
 }

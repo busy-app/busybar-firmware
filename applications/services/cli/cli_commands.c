@@ -32,7 +32,8 @@ static void cli_command_sysctl_debug(PipeSide* pipe, FuriString* args, void* con
         cli_registry_delete_command(registry, "factory_reset");
         printf("Debug disabled.");
     } else if(furi_string_equal_str(args, "1")) {
-        cli_registry_add_command(registry, "gpio", CliCommandFlagParallelSafe, cli_command_gpio, NULL);
+        cli_registry_add_command(
+            registry, "gpio", CliCommandFlagParallelSafe, cli_command_gpio, NULL);
         // cli_registry_add_command(registry, "sl_echo", CliCommandFlagParallelSafe, cli_command_sl_echo, NULL);
         cli_registry_add_command(
             registry, "factory_reset", CliCommandFlagParallelSafe, cli_command_factory_reset, NULL);
@@ -262,26 +263,36 @@ static void cli_command_device_info(PipeSide* pipe, FuriString* args, void* cont
 }
 
 static void cli_commands_init(CliRegistry* registry) {
-    cli_registry_add_command(registry, "device_info", CliCommandFlagParallelSafe, cli_command_device_info, NULL);
-    cli_registry_add_command(registry, "uptime", CliCommandFlagParallelSafe, cli_command_uptime, NULL);
+    cli_registry_add_command(
+        registry, "device_info", CliCommandFlagParallelSafe, cli_command_device_info, NULL);
+    cli_registry_add_command(
+        registry, "uptime", CliCommandFlagParallelSafe, cli_command_uptime, NULL);
     cli_registry_add_command(registry, "log", CliCommandFlagParallelSafe, cli_command_log, NULL);
     cli_registry_add_command(registry, "top", CliCommandFlagParallelSafe, cli_command_top, NULL);
     cli_registry_add_command(registry, "free", CliCommandFlagParallelSafe, cli_command_free, NULL);
-    cli_registry_add_command(registry, "free_blocks", CliCommandFlagParallelSafe, cli_command_free_blocks, NULL);
+    cli_registry_add_command(
+        registry, "free_blocks", CliCommandFlagParallelSafe, cli_command_free_blocks, NULL);
 
-    cli_registry_add_command(registry, "sysctl", CliCommandFlagParallelSafe, cli_command_sysctl, NULL);
+    cli_registry_add_command(
+        registry, "sysctl", CliCommandFlagParallelSafe, cli_command_sysctl, NULL);
 
     cli_registry_add_command(registry, "echo", CliCommandFlagDefault, cli_command_echo, NULL);
-    cli_registry_add_command(registry, "display", CliCommandFlagParallelSafe, cli_command_display, NULL);
-    cli_registry_add_command(registry, "status_lights", CliCommandFlagParallelSafe, cli_command_status_lights, NULL);
-    cli_registry_add_command(registry, "light_sensor", CliCommandFlagParallelSafe, cli_command_light_sensor, NULL);
-    cli_registry_add_command(registry, "audio", CliCommandFlagParallelSafe, cli_command_audio, NULL);
-    cli_registry_add_command(registry, "sl_cli", CliCommandFlagParallelSafe, cli_command_sl_cli, NULL);
+    cli_registry_add_command(
+        registry, "display", CliCommandFlagParallelSafe, cli_command_display, NULL);
+    cli_registry_add_command(
+        registry, "status_lights", CliCommandFlagParallelSafe, cli_command_status_lights, NULL);
+    cli_registry_add_command(
+        registry, "light_sensor", CliCommandFlagParallelSafe, cli_command_light_sensor, NULL);
+    cli_registry_add_command(
+        registry, "audio", CliCommandFlagParallelSafe, cli_command_audio, NULL);
+    cli_registry_add_command(
+        registry, "sl_cli", CliCommandFlagParallelSafe, cli_command_sl_cli, NULL);
 
     // commands from `.fam`s
     for(size_t i = 0; i < FLIPPER_CLI_COMMANDS_COUNT; i++) {
         const FlipperInternalCommandApplication* command = &FLIPPER_CLI_COMMANDS[i];
-        cli_registry_add_command_ex(registry, command->name, command->flags, command->callback, NULL, command->stack_size);
+        cli_registry_add_command_ex(
+            registry, command->name, command->flags, command->callback, NULL, command->stack_size);
     }
 }
 

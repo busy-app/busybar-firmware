@@ -249,7 +249,8 @@ void cli_command_device_info(PipeSide* pipe, FuriString* args, void* context) {
 // }
 
 static void cli_commands_init(CliRegistry* registry) {
-    cli_registry_add_command(registry, "device_info", CliCommandFlagParallelSafe, cli_command_device_info, NULL);
+    cli_registry_add_command(
+        registry, "device_info", CliCommandFlagParallelSafe, cli_command_device_info, NULL);
     // cli_registry_add_command(registry, "uptime", CliCommandFlagParallelSafe, cli_command_uptime, NULL);
     // cli_registry_add_command(registry, "log", CliCommandFlagParallelSafe, cli_command_log, NULL);
     // cli_registry_add_command(registry, "top", CliCommandFlagParallelSafe, cli_command_top, NULL);
@@ -260,7 +261,8 @@ static void cli_commands_init(CliRegistry* registry) {
     // commands from `.fam`s
     for(size_t i = 0; i < FLIPPER_CLI_COMMANDS_COUNT; i++) {
         const FlipperInternalCommandApplication* command = &FLIPPER_CLI_COMMANDS[i];
-        cli_registry_add_command_ex(registry, command->name, command->flags, command->callback, NULL, command->stack_size);
+        cli_registry_add_command_ex(
+            registry, command->name, command->flags, command->callback, NULL, command->stack_size);
     }
 }
 
