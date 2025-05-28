@@ -102,9 +102,9 @@ static bool fs_rename(const char* from, const char* to) {
 
 static bool fs_remove(const char* path) {
     Storage* fs_api = furi_record_open(RECORD_STORAGE);
-    storage_common_remove(fs_api, path);
+    FS_Error error = storage_common_remove(fs_api, path);
     furi_record_close(RECORD_STORAGE);
-    return false;
+    return (error == FSE_OK);
 }
 
 static bool fs_mkdir(const char* path) {

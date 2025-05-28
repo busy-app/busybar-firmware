@@ -149,7 +149,6 @@ static bool api_display_delete_callback(
     void* ctx) {
     UNUSED(msg);
     UNUSED(ctx);
-    FURI_LOG_I(TAG, "DELETE");
 
     FuriString* app_name = furi_string_alloc();
     Loader* loader = furi_record_open(RECORD_LOADER);

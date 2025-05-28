@@ -121,6 +121,41 @@ static bool api_assets_upload_headers_callback(
     return true;
 }
 
+static bool
+    api_assets_delete_callback(struct mg_connection* conn, struct mg_http_message* msg, void* ctx) {
+    UNUSED(ctx);
+
+    FuriString* dir_path = furi_string_alloc();
+    bool success = false;
+    do {
+        if(msg->query.len == 0) {
+            break;
+        }
+
+        char app_id_str[FILE_NAME_LEN_MAX];
+
+        int var_len = mg_http_get_var(&msg->query, "app_id", app_id_str, sizeof(app_id_str));
+        if(var_len <= 0) {
+            break;
+        }
+        furi_string_printf(dir_path, "%s/%.*s", ASSETS_UPLOAD_DIR, var_len, app_id_str);
+
+        Storage* fs_api = furi_record_open(RECORD_STORAGE);
+        success = storage_simply_remove_recursive(fs_api, furi_string_get_cstr(dir_path));
+        furi_record_close(RECORD_STORAGE);
+    } while(0);
+
+    furi_string_free(dir_path);
+
+    if(success) {
+        mg_http_reply(conn, 200, "", "OK");
+    } else {
+        mg_http_reply(conn, 400, "", "Bad Request");
+    }
+
+    return true;
+}
+
 static const HttpHandler handlers_assets[] = {
     {
         .uri = "#/upload",
@@ -128,7 +163,12 @@ static const HttpHandler handlers_assets[] = {
         .type = HttpHandlerCustom,
         .on_headers = api_assets_upload_headers_callback,
     },
-    // TODO: delete -> remove all assets for app_id
+    {
+        .uri = "#/upload",
+        .method = "DELETE",
+        .type = HttpHandlerCustom,
+        .on_request = api_assets_delete_callback,
+    },
 };
 
 typedef struct {
