@@ -79,6 +79,89 @@ static bool api_wifi_get_networks_callaback(
     return true;
 }
 
+static bool parse_octet(char* octet, WifiIpType type, int* value) {
+    uint8_t base = (type == WifiIpTypeV4) ? 10 : 16;
+    char* endptr;
+    *value = strtoul(octet, &endptr, base);
+    return (*endptr == '\0');
+}
+
+static bool validate_octet(int raw_octet, WifiIpType type) {
+    UNUSED(raw_octet);
+    UNUSED(type);
+    uint16_t max_value = type == WifiIpTypeV4 ? UINT8_MAX : UINT16_MAX;
+    return (raw_octet >= 0 && raw_octet <= max_value);
+}
+
+static bool parse_ip_address(WifiIpConfig* ip_config, char* str) {
+    uint8_t i = 0;
+
+    const char* separator;
+    uint8_t length;
+
+    if(ip_config->type == WifiIpTypeV4) {
+        separator = ".";
+        length = sizeof(ip_config->address.v4);
+    } else {
+        separator = ":";
+        length = sizeof(ip_config->address.v6);
+    }
+
+    char* octet_str = strtok(str, separator);
+    while(octet_str != NULL && i < length) {
+        int raw_octet;
+        if(!parse_octet(octet_str, ip_config->type, &raw_octet)) {
+            FURI_LOG_W(
+                TAG,
+                "Failed to parse \"%s\" as IPv%d octet",
+                octet_str,
+                ip_config->type == WifiIpTypeV4 ? 4 : 6);
+            break;
+        }
+
+        if(!validate_octet(raw_octet, ip_config->type)) {
+            FURI_LOG_W(
+                TAG,
+                "Octet \"%d\" is not valid for ipv%d",
+                raw_octet,
+                ip_config->type == WifiIpTypeV4 ? 4 : 6);
+            break;
+        }
+
+        if(ip_config->type == WifiIpTypeV4) {
+            ip_config->address.v4[i] = (uint8_t)raw_octet;
+            i++;
+        } else {
+            *((uint16_t*)(&ip_config->address.v6[i])) = raw_octet;
+            i += 2;
+        }
+
+        octet_str = strtok(NULL, separator);
+    }
+
+    return i == length;
+}
+
+static void wifi_print_parsed_address(
+    FuriString* str,
+    WifiIpType type,
+    const uint8_t* bytes,
+    const uint8_t size) {
+    furi_string_reset(str);
+    const char separator = (type == WifiIpTypeV4) ? '.' : ':';
+
+    for(size_t i = 0; i < size;) {
+        if(type == WifiIpTypeV4) {
+            furi_string_cat_printf(str, "%d%c", bytes[i], (i + 1 == size) ? 0 : separator);
+            i++;
+        } else {
+            furi_string_cat_printf(
+                str, "%X%c", *((uint16_t*)(&bytes[i])), (i + 2 == size) ? 0 : separator);
+            i += 2;
+        }
+    }
+}
+
 static bool
     api_wifi_connect_callaback(struct mg_connection* conn, struct mg_http_message* msg, void* ctx) {
     UNUSED(msg);
