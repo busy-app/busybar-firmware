@@ -84,8 +84,13 @@ static void busy_scene_timer_event_callback(const BusyTimerEvent* event, void* c
 static void busy_scene_timer_run_later_callback(void* context) {
     furi_assert(context);
     BusyApp* instance = context;
+    BusySceneTimer* data = scene_manager_get_current_scene_data(instance->scene_manager);
 
-    busy_prepare_transition(instance, BusyTransitionTypeWhite);
+    if(data->timer_state == BusyTimerStateRest) {
+        busy_prepare_transition(instance, BusyTransitionTypeRestDone);
+    } else {
+        busy_prepare_transition(instance, BusyTransitionTypeWorkDone);
+    }
 
     with_gui(instance->gui, { timer_card_show_time(instance->timer_card, false); });
 

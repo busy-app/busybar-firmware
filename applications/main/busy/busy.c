@@ -76,6 +76,26 @@ static const BusyTransition busy_transitions[BusyTransitionTypeMax] = {
                 },
             .enable_press = true,
         },
+    [BusyTransitionTypeWorkDone] =
+        {
+            .mask_path = BUSY_ANIM_PATH("transition_done_red_72x16.anim"),
+            .mask_mode = TransitionOverlayMaskModeAdd,
+            .timings =
+                {
+                    .in_ms = 134,
+                    .out_ms = 1000,
+                },
+        },
+    [BusyTransitionTypeRestDone] =
+        {
+            .mask_path = BUSY_ANIM_PATH("transition_done_green_72x16.anim"),
+            .mask_mode = TransitionOverlayMaskModeAdd,
+            .timings =
+                {
+                    .in_ms = 134,
+                    .out_ms = 1000,
+                },
+        },
 };
 
 static const StatusLightsCommand busy_status_lights[BusyStatusLightsTypeMax] = {
