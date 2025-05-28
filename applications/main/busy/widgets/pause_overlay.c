@@ -1,15 +1,18 @@
 #include "pause_overlay.h"
 
 #include <gui/widget_i.h>
+#include <gui/modules/snap_image.h>
 
 #include "../storage_macros.h"
 
 #define MY_CLASS (&pause_overlay_lvgl_class)
 
-#define BG_OPACITY (180)
+#define BLUR_STRENGTH (255)
+#define DIM_STRENGTH  (160)
 
 struct PauseOverlay {
     Widget base;
+    SnapImage* snap;
 };
 
 const lv_obj_class_t pause_overlay_lvgl_class;
@@ -19,9 +22,10 @@ const lv_obj_class_t pause_overlay_lvgl_class;
 static void pause_overlay_lvgl_constructor(const lv_obj_class_t* class_p, lv_obj_t* obj) {
     UNUSED(class_p);
 
-    lv_obj_add_flag(obj, LV_OBJ_FLAG_HIDDEN);
-    lv_obj_set_style_bg_color(obj, lv_color_black(), LV_PART_MAIN);
-    lv_obj_set_style_bg_opa(obj, BG_OPACITY, LV_PART_MAIN);
+    PauseOverlay* instance = (PauseOverlay*)obj;
+    instance->snap = snap_image_alloc((Widget*)instance);
+    snap_image_set_effect(instance->snap, SnapImageEffectBlur, BLUR_STRENGTH);
+    snap_image_set_effect(instance->snap, SnapImageEffectDim, DIM_STRENGTH);
 
     lv_obj_t* layout = lv_obj_create(obj);
     lv_obj_set_size(layout, LV_SIZE_CONTENT, LV_SIZE_CONTENT);
@@ -36,6 +40,8 @@ static void pause_overlay_lvgl_constructor(const lv_obj_class_t* class_p, lv_obj
     lv_obj_t* label = lv_label_create(layout);
     lv_label_set_text(label, "PAUSED");
     lv_obj_set_style_text_color(label, lv_color_white(), LV_PART_MAIN);
+
+    widget_set_visible((Widget*)instance, false);
 }
 
 // Public API
@@ -64,9 +70,11 @@ void pause_overlay_show(PauseOverlay* instance, bool show) {
     furi_check(instance);
 
     if(show) {
-        lv_obj_remove_flag((lv_obj_t*)instance, LV_OBJ_FLAG_HIDDEN);
+        snap_image_capture_display(instance->snap);
+        widget_set_visible((Widget*)instance, true);
+
     } else {
-        lv_obj_add_flag((lv_obj_t*)instance, LV_OBJ_FLAG_HIDDEN);
+        widget_set_visible((Widget*)instance, false);
     }
 }
 

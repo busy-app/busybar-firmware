@@ -13,6 +13,12 @@ extern "C" {
 /** SnapImage opaque structure. */
 typedef struct SnapImage SnapImage;
 
+typedef enum {
+    SnapImageEffectBlur,
+    SnapImageEffectDim,
+    SnapImageEffectMax,
+} SnapImageEffect;
+
 /**
  * @brief Create a new SnapImage instance.
  *
@@ -38,6 +44,17 @@ void snap_image_free(SnapImage* instance);
  * @returns pointer to the base class instance
  */
 Widget* snap_image_get_base(SnapImage* instance);
+
+/**
+ * @brief Set effect strength for a SnapImage instance.
+ *
+ * @note effects must be set before calling snap_image_capture_display()
+ *
+ * @param[in,out] instance pointer to the SnapImage instance to be operated on
+ * @param[in] effect value from SnapImageEffect enumeration
+ * @param[in] strength 0 - disable effect, 255 - enable fully
+ */
+void snap_image_set_effect(SnapImage* instance, SnapImageEffect effect, uint8_t strength);
 
 /**
  * @brief Capture the display contents to a SnapImage instance.
