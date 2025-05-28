@@ -67,6 +67,14 @@ void anim_image_set_range(
     bool wait_end);
 
 /**
+ * @brief Set the looping of the current frame range.
+ *
+ * @param[in,out] instance pointer to the AnimImage instance to be modified
+ * @param[in] set loop the current range if @c true, do not loop if @c false
+ */
+void anim_image_set_loop(AnimImage* instance, bool set);
+
+/**
  * @brief Start playing the animation.
  *
  * The animation file MUST be loaded using anim_image_set_source()
@@ -82,6 +90,22 @@ void anim_image_start(AnimImage* instance);
  * @param[in,out] instance pointer to the AnimImage instance to be stopped
  */
 void anim_image_stop(AnimImage* instance);
+
+/**
+ * @brief Get the frame rate of the animation.
+ *
+ * @param[in] instance pointer to the AnimImage instance to be queried
+ * @returns frame rate in frames per second
+ */
+uint32_t anim_image_get_frame_rate(const AnimImage* instance);
+
+/**
+ * @brief Get the total number of frames in the animation.
+ *
+ * @param[in] instance pointer to the AnimImage instance to be queried
+ * @returns total number of frames in the animation
+ */
+uint32_t anim_image_get_frame_count(const AnimImage* instance);
 
 #ifdef __cplusplus
 }

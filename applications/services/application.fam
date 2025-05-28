@@ -25,7 +25,7 @@ App(
         "light_sensor",
         "power_popup",
     ],
-    targets=["f20"],
+    targets=["f20", "f21"],
 )
 
 App(

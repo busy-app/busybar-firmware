@@ -17,7 +17,7 @@ App(
         "storage_posix_api.c",
         "storages/storage_ext_sdmmc.c",
     ],
-    targets=["f20"],
+    targets=["f20", "f21"],
 )
 
 App(
@@ -26,7 +26,7 @@ App(
     apptype=FlipperAppType.CLICMD,
     entry_point="storage_command",
     requires=["storage"],
-    targets=["f20"],
+    targets=["f20", "f21"],
     sources=["storage_cli_u5.c"],
     stack_size=1024 * 2,
 )

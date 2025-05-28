@@ -1,11 +1,8 @@
-#include "anim_image.h"
+#include "anim_image_i.h"
 
 #include <furi/furi.h>
 
-#include <gui/widget_i.h>
-#include <storage/storage.h>
-
-#include <assets/assets_images.h>
+#include <assets_images.h>
 
 #define TAG "AnimImage"
 
@@ -28,28 +25,6 @@ typedef struct {
 static_assert(
     sizeof(AnimImageFileHeader) == 7 * sizeof(uint32_t),
     "Incorrect size of AnimImageFileHeader");
-
-typedef struct {
-    uint32_t begin_idx;
-    uint32_t end_idx;
-    bool loop;
-} AnimImageRange;
-
-struct AnimImage {
-    Widget base;
-    lv_obj_t* canvas;
-    lv_timer_t* timer;
-    uint8_t* canvas_buf;
-    File* file;
-    uint32_t frame_count;
-    size_t frame_size;
-    uint32_t current_idx;
-    AnimImageRange current_range;
-    AnimImageRange waiting_range;
-    bool has_waiting_range;
-};
-
-const lv_obj_class_t anim_image_lvgl_class;
 
 // Function prototypes
 
@@ -281,6 +256,7 @@ bool anim_image_set_source(AnimImage* instance, const char* file_path) {
 
     if(success) {
         instance->frame_size = header.height * header.width * header.bytes_per_pixel;
+        instance->frame_rate = header.fps;
         instance->frame_count = header.frame_count;
         instance->canvas_buf = realloc(instance->canvas_buf, instance->frame_size);
 
@@ -316,6 +292,11 @@ void anim_image_set_range(
     }
 }
 
+void anim_image_set_loop(AnimImage* instance, bool set) {
+    furi_check(instance);
+    instance->current_range.loop = set;
+}
+
 void anim_image_start(AnimImage* instance) {
     furi_check(instance);
 
@@ -330,6 +311,16 @@ void anim_image_stop(AnimImage* instance) {
     if(instance->timer) {
         lv_timer_pause(instance->timer);
     }
+}
+
+uint32_t anim_image_get_frame_rate(const AnimImage* instance) {
+    furi_check(instance);
+    return instance->frame_rate;
+}
+
+uint32_t anim_image_get_frame_count(const AnimImage* instance) {
+    furi_check(instance);
+    return instance->frame_count;
 }
 
 // LVGL class descriptor

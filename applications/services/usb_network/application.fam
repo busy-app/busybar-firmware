@@ -3,7 +3,7 @@ App(
     name="USBSrv",
     apptype=FlipperAppType.SERVICE,
     entry_point="usb_srv",
-    stack_size=1024*4,
+    stack_size=1024 * 4,
     order=40,
-    targets=["f20"],
+    targets=["f20", "f21"],
 )

@@ -5,11 +5,16 @@ import sys
 import struct
 import logging
 import argparse
+import tempfile
 from PIL import Image
+from zipfile import PyZipFile
 
 
 class BusyBarAnimation:
     def __init__(self, input_folder, fps, output_file):
+        if not os.path.isdir(input_folder):
+            raise FileNotFoundError("Invalid path")
+
         self.input_folder = input_folder
         self.fps = fps
         self.output_file = output_file
@@ -24,7 +29,8 @@ class BusyBarAnimation:
         self.png_files = [
             f for f in os.listdir(self.input_folder) if f.lower().endswith(".png")
         ]
-        self.png_files.sort()  # Ensure files are processed in alphanumeric order
+        """ Sort the files in natural order """
+        self.png_files.sort(key=lambda x: int("".join(filter(str.isdigit, x))))
 
         if not self.png_files:
             self.logger.error("No PNG images found in the specified folder.")
@@ -93,9 +99,9 @@ def parse_arguments():
     )
     parser.add_argument(
         "-i",
-        "--input_folder",
+        "--input_path",
         required=True,
-        help="Path to the folder containing PNG images.",
+        help="Path to the folder or .zip file containing PNG images.",
     )
     parser.add_argument(
         "-f",
@@ -112,8 +118,29 @@ def parse_arguments():
 
 def main():
     args = parse_arguments()
-    animation = BusyBarAnimation(args.input_folder, args.fps, args.output_file)
-    animation.process_images()
+
+    if os.path.isfile(args.input_path):
+        workdir = tempfile.TemporaryDirectory()
+
+        zip_file = PyZipFile(args.input_path)
+        zip_file.extractall(workdir.name)
+
+        input_folder = os.path.join(workdir.name, os.path.splitext(os.path.basename(args.input_path))[0])
+
+    else:
+        input_folder = args.input_path
+
+    try:
+        animation = BusyBarAnimation(input_folder, args.fps, args.output_file)
+        animation.process_images()
+
+    except FileNotFoundError:
+        print(f"Directory \"{input_folder}\" does not exist")
+        exit(1)
+
+    except Exception:
+        print("Unknown error")
+        exit(1)
 
 
 if __name__ == "__main__":

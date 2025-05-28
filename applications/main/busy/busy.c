@@ -1,5 +1,105 @@
 #include "busy.h"
 
+typedef struct {
+    Color color;
+    const char* mask_path;
+    TransitionOverlayColorMode color_mode;
+    TransitionOverlayMaskMode mask_mode;
+    struct {
+        uint32_t in_ms;
+        uint32_t out_ms;
+    } timings;
+    bool enable_press;
+} BusyTransition;
+
+static const BusyTransition busy_transitions[BusyTransitionTypeMax] = {
+    [BusyTransitionTypeBlack] =
+        {
+            .color = COLOR_MAKE_HEX(0x000000),
+            .color_mode = TransitionOverlayColorModeNormal,
+            .timings =
+                {
+                    .in_ms = 200,
+                    .out_ms = 200,
+                },
+        },
+    [BusyTransitionTypeBlackMask] =
+        {
+            .mask_path = BUSY_ANIM_PATH("transition_oval_72x16.anim"),
+            .mask_mode = TransitionOverlayMaskModeMultiply,
+            .timings =
+                {
+                    .in_ms = 340,
+                    .out_ms = 340,
+                },
+        },
+    [BusyTransitionTypeWhite] =
+        {
+            .color = COLOR_MAKE_HEX(0xFFFFFF),
+            .color_mode = TransitionOverlayColorModeNormal,
+            .timings =
+                {
+                    .in_ms = 200,
+                    .out_ms = 200,
+                },
+        },
+    [BusyTransitionTypeWhiteSelect] =
+        {
+            .mask_path = BUSY_ANIM_PATH("transition_select_72x16.anim"),
+            .mask_mode = TransitionOverlayMaskModeAdd,
+            .timings =
+                {
+                    .in_ms = 100,
+                    .out_ms = 1000,
+                },
+            .enable_press = true,
+        },
+    [BusyTransitionTypeWork] =
+        {
+            .mask_path = BUSY_ANIM_PATH("transition_select_red_72x16.anim"),
+            .mask_mode = TransitionOverlayMaskModeAdd,
+            .timings =
+                {
+                    .in_ms = 100,
+                    .out_ms = 1000,
+                },
+            .enable_press = true,
+        },
+    [BusyTransitionTypeRest] =
+        {
+            .mask_path = BUSY_ANIM_PATH("transition_select_green_72x16.anim"),
+            .mask_mode = TransitionOverlayMaskModeAdd,
+            .timings =
+                {
+                    .in_ms = 100,
+                    .out_ms = 1000,
+                },
+            .enable_press = true,
+        },
+};
+
+static const StatusLightsCommand busy_status_lights[BusyStatusLightsTypeMax] = {
+    [BusyStatusLightsTypeDefault] =
+        {
+            .preset = StatusLightsPresetRainbowGradient,
+        },
+    [BusyStatusLightsTypeWork] =
+        {
+            .preset = StatusLightsPresetStaticColor,
+            .color = COLOR_MAKE_RGB(150, 0, 0),
+        },
+    [BusyStatusLightsTypeRest] =
+        {
+            .preset = StatusLightsPresetStaticColor,
+            .color = COLOR_MAKE_RGB(10, 150, 5),
+        },
+    [BusyStatusLightsTypeOff] =
+        {
+            .preset = StatusLightsPresetStaticColor,
+            .color = COLOR_MAKE_RGB(0, 0, 0),
+        },
+};
+
 static void busy_input_queue_callback(FuriEventLoopObject* object, void* context) {
     furi_assert(context);
 
@@ -61,7 +161,12 @@ static BusyApp* busy_alloc(void) {
     instance->event_queue = furi_message_queue_alloc(8, sizeof(uint32_t));
     instance->scene_manager = scene_manager_alloc(busy_scenes, BusyAppSceneIdMax, instance);
     instance->busy_timer = busy_timer_alloc();
+    instance->status_lights = furi_record_open(RECORD_STATUS_LIGHTS);
+    instance->audio = furi_record_open(RECORD_AUDIO);
     instance->gui = furi_record_open(RECORD_GUI);
+
+    // TODO: Implement audio settings
+    audio_set_volume(instance->audio, .5F);
 
     with_gui(instance->gui, {
         GuiLayer* layer = gui_get_layer(instance->gui, GuiLayerIdMain);
@@ -71,11 +176,14 @@ static BusyApp* busy_alloc(void) {
         // Create application windows
         root = gui_layer_get_root_widget(layer, GuiDisplayIdFront);
         instance->front_window = widget_alloc(root);
+        instance->transition_overlay = transition_overlay_alloc(root);
+        transition_overlay_set_pressed_widget(
+            instance->transition_overlay, instance->front_window);
 
         root = gui_layer_get_root_widget(layer, GuiDisplayIdBack);
         instance->back_window = widget_alloc(root);
 
-        // Create persistent views
+        // Create persistent widgets
         instance->timer_card = timer_card_alloc(instance->back_window);
     });
 
@@ -106,10 +214,14 @@ static void busy_free(BusyApp* instance) {
         GuiLayer* layer = gui_get_layer(instance->gui, GuiLayerIdMain);
         gui_layer_remove_input_callback(layer, busy_gui_input_callback);
 
+        transition_overlay_free(instance->transition_overlay);
+
         widget_free(instance->front_window);
         widget_free(instance->back_window);
     });
 
+    furi_record_close(RECORD_STATUS_LIGHTS);
+    furi_record_close(RECORD_AUDIO);
     furi_record_close(RECORD_GUI);
 
     furi_event_loop_unsubscribe(instance->event_loop, instance->input_queue);
@@ -136,4 +248,40 @@ void busy_send_custom_event(BusyApp* instance, uint32_t custom_event) {
     furi_check(
         furi_message_queue_put(instance->event_queue, &custom_event, FuriWaitForever) ==
         FuriStatusOk);
+}
+
+void busy_prepare_transition(BusyApp* instance, BusyTransitionType type) {
+    furi_assert(instance);
+    furi_assert(type < BusyTransitionTypeMax);
+
+    const BusyTransition* transition = &busy_transitions[type];
+
+    with_gui(instance->gui, {
+        transition_overlay_set_timings(
+            instance->transition_overlay, transition->timings.in_ms, transition->timings.out_ms);
+        transition_overlay_set_color(instance->transition_overlay, transition->color);
+        transition_overlay_set_color_mode(instance->transition_overlay, transition->color_mode);
+        transition_overlay_enable_press_effect(
+            instance->transition_overlay, transition->enable_press);
+
+        if(transition->mask_path) {
+            transition_overlay_set_mask(instance->transition_overlay, transition->mask_path);
+        }
+
+        transition_overlay_set_mask_mode(instance->transition_overlay, transition->mask_mode);
+        transition_overlay_show(instance->transition_overlay);
+    });
+}
+
+void busy_start_transition(BusyApp* instance) {
+    furi_assert(instance);
+
+    with_gui(instance->gui, { transition_overlay_start(instance->transition_overlay); });
+}
+
+void busy_set_status_lights(BusyApp* instance, BusyStatusLightsType type) {
+    furi_assert(instance);
+    furi_assert(type < BusyStatusLightsTypeMax);
+
+    status_lights_send_command(instance->status_lights, &busy_status_lights[type]);
 }

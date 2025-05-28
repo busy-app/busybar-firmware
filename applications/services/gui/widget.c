@@ -4,6 +4,24 @@
 
 #define MY_CLASS WIDGET_CLASS
 
+static bool widget_input_callback(Widget* widget, const InputEvent* event) {
+    lv_obj_t* obj = (lv_obj_t*)widget;
+
+    if(lv_obj_get_scrollbar_mode(obj) != LV_SCROLLBAR_MODE_OFF) {
+        const int32_t delta = 10;
+        const bool anim = false;
+        if(event->type == InputTypeShort) {
+            if(event->key == InputKeyUp) {
+                lv_obj_scroll_by_bounded(obj, -delta, -delta, anim);
+            } else if(event->key == InputKeyDown) {
+                lv_obj_scroll_by_bounded(obj, delta, delta, anim);
+            }
+        }
+    }
+
+    return false;
+}
+
 // Public API
 
 Widget* widget_alloc(Widget* parent) {
@@ -13,6 +31,7 @@ Widget* widget_alloc(Widget* parent) {
     lv_obj_class_init_obj(obj);
 
     Widget* instance = (Widget*)obj;
+    widget_set_scrollbar_mode(instance, WidgetScrollBarModeOff);
     return instance;
 }
 
@@ -28,6 +47,11 @@ void widget_set_visible(Widget* instance, bool visible) {
     } else {
         lv_obj_add_flag((lv_obj_t*)instance, LV_OBJ_FLAG_HIDDEN);
     }
+}
+
+bool widget_is_visible(const Widget* instance) {
+    furi_check(instance);
+    return !lv_obj_has_flag(TO_LV_OBJ(instance), LV_OBJ_FLAG_HIDDEN);
 }
 
 void widget_set_width(Widget* instance, int32_t width) {
@@ -86,6 +110,15 @@ void widget_move_to_background(Widget* instance) {
     lv_obj_move_background((lv_obj_t*)instance);
 }
 
+void widget_set_scrollbar_mode(Widget* instance, WidgetScrollBarMode scrollbar_mode) {
+    furi_check(instance);
+    furi_check(scrollbar_mode < WidgetScrollBarModeCount);
+    lv_obj_set_scrollbar_mode((lv_obj_t*)instance, (lv_scrollbar_mode_t)scrollbar_mode);
+    widget_set_input_feed_callback(
+        (Widget*)instance,
+        scrollbar_mode == WidgetScrollBarModeOff ? NULL : widget_input_callback);
+}
+
 // Private API
 
 void widget_set_input_feed_callback(Widget* instance, WidgetInputFeedCallback callback) {
@@ -95,12 +128,21 @@ void widget_set_input_feed_callback(Widget* instance, WidgetInputFeedCallback ca
 bool widget_input(Widget* instance, const InputEvent* event) {
     bool consumed = false;
 
-    if(instance->input_feed_callback) {
-        consumed = instance->input_feed_callback(instance, event);
-    }
+    do {
+        if(lv_obj_has_flag((lv_obj_t*)instance, LV_OBJ_FLAG_HIDDEN)) {
+            break;
+        }
 
-    if(!consumed) {
+        if(instance->input_feed_callback) {
+            consumed = instance->input_feed_callback(instance, event);
+
+            if(consumed) {
+                break;
+            }
+        }
+
         const uint32_t child_count = lv_obj_get_child_count((lv_obj_t*)instance);
+
         for(uint32_t i = 0; i < child_count; ++i) {
             lv_obj_t* child = lv_obj_get_child((lv_obj_t*)instance, i);
 
@@ -112,7 +154,8 @@ bool widget_input(Widget* instance, const InputEvent* event) {
                 }
             }
         }
-    }
+
+    } while(false);
 
     return consumed;
 }

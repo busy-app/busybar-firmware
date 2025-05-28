@@ -117,7 +117,7 @@
         "furi",
         "drivers",
         "version",
-        "assets",
+        "internal_assets",
         "ext_applications",
         "firmware_applications_f20",
         "cli",
@@ -128,6 +128,7 @@
         "fw_artifacts",
         "fw_cdb",
         "sdk_extapps",
+        "bsb_assets",
         "link_builddir"
     ],
     "dist_modules": [
@@ -136,7 +137,8 @@
         "lint",
         "vscode_project",
         "subl_project",
-        "cli"
+        "cli",
+        "upload_resources"
     ],
     "extra_target_meta": {
         "debug_tags": [

@@ -23,6 +23,17 @@ typedef enum {
     TextAlignMax, /**< Special value, not to be used in application code */
 } TextAlign;
 
+/** Enumeration of possible behaviour with long content */
+typedef enum {
+    LabelLongContentModeWrap, /**< Keep the object width, wrap lines longer than object width and expand the object height*/
+    LabelLongContentModeDots, /**< Keep the size and write dots at the end if the text is too long*/
+    LabelLongContentModeScroll, /**< Keep the size and roll the text back and forth*/
+    LabelLongContentModeScrollCircular, /**< Keep the size and roll the text circularly*/
+    LabelLongContentModeClip, /**< Keep the size and clip the text out of it*/
+
+    LabelLongContentModeCount /**< Count of possible choices*/
+} LabelLongContentMode;
+
 /**
  * @brief Create a new Label instance.
  *
@@ -65,7 +76,7 @@ void label_set_text(Label* instance, const char* text);
  * @param[in] ... variadic list of arguments according to the format string
  */
 void label_set_text_fmt(Label* instance, const char* fmt, ...)
-    _ATTRIBUTE((__format__(__printf__, 2, 3)));
+    __attribute__((__format__(__printf__, 2, 3)));
 
 /**
  * @brief Set the label line spacing.
@@ -82,6 +93,15 @@ void label_set_line_spacing(Label* instance, int32_t spacing);
  * @param[in] align enum value to determine the alignment type
  */
 void label_set_text_align(Label* instance, TextAlign align);
+
+/**
+ * @brief Set label long content mode.
+ *
+ * @param[in,out] instance pointer to the Label instance to be modified
+ * @param[in] mode new long content mode for label
+ * @param[in] duration defines animation speed in scrollable modes
+ */
+void label_set_long_content_mode(Label* instance, LabelLongContentMode mode, uint32_t duration);
 
 #ifdef __cplusplus
 }

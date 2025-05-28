@@ -82,7 +82,12 @@ static size_t fs_read(void* fd, void* buf, size_t len) {
 }
 
 static size_t fs_write(void* fd, const void* buf, size_t len) {
-    return storage_file_write(fd, buf, len);
+    uint8_t* temp_buf = malloc(len);
+    memcpy(temp_buf, buf, len);
+    // TODO: fix sdmmc buffer alignment bug to get rid of temp buffer
+    size_t ret = storage_file_write(fd, temp_buf, len);
+    free(temp_buf);
+    return ret;
 }
 
 static size_t fs_seek(void* fd, size_t offset) {
@@ -103,9 +108,10 @@ static bool fs_remove(const char* path) {
 }
 
 static bool fs_mkdir(const char* path) {
-    (void)path;
-    FURI_LOG_W(TAG, "TODO: %s", __func__);
-    return false;
+    Storage* fs_api = furi_record_open(RECORD_STORAGE);
+    FS_Error error = storage_common_mkdir(fs_api, path);
+    furi_record_close(RECORD_STORAGE);
+    return (error == FSE_OK);
 }
 
 static const struct mg_fs mg_fs_flipper = {

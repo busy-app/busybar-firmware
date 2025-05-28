@@ -47,6 +47,7 @@ typedef struct {
 
     float temperature_charger;
     float temperature_battery;
+    float temperature_battery_celsius;
 
     uint32_t charge_ilim_usb;
     uint32_t charge_ilim_battery;

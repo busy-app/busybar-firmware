@@ -6,5 +6,6 @@ App(
     entry_point="lottie_player_app",
     requires=["gui"],
     stack_size=4 * 1024,
-    targets=["f20"],
+    targets=["f20", "f21"],
+    resources="resources",
 )

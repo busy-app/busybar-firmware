@@ -14,7 +14,7 @@
 #include <stdint.h>
 #include <stdbool.h>
 
-#include <input/input.h>
+#include <toolbox/color.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -37,6 +37,15 @@ typedef enum {
     AlignCenter, /**< Center the widget inside of its parent */
     AlignMax, /**< Special value, not to be used in application code */
 } Align;
+
+/** Enumeration of possible scrollbar modes for widget */
+typedef enum {
+    WidgetScrollBarModeOff, /**< Never show scrollbars*/
+    WidgetScrollBarModeOn, /**< Always show scrollbars*/
+    WidgetScrollBarModeActive, /**< Show scroll bars when Widget is being scrolled*/
+    WidgetScrollBarModeAuto, /**< Show scroll bars when the content is large enough to be scrolled*/
+    WidgetScrollBarModeCount /**< Special value, not to be used in application code */
+} WidgetScrollBarMode;
 
 /**
  * @brief Create a new widget instance.
@@ -64,6 +73,14 @@ void widget_free(Widget* instance);
  * @param[in] visible make the Widget instance visible if true, otherwise invisible
  */
 void widget_set_visible(Widget* instance, bool visible);
+
+/**
+ * @brief Check if a Widget instance is currently visible.
+ *
+ * @param[in] instance pointer to the Widget instance to be queried
+ * @returns @c true if widget is visible, @c false otherwise
+ */
+bool widget_is_visible(const Widget* instance);
 
 /**
  * @brief Set the Widget width.
@@ -158,6 +175,14 @@ void widget_move_to_foreground(Widget* instance);
  * @param[in,out] instance pointer to the Widget instance to be modified
  */
 void widget_move_to_background(Widget* instance);
+
+/**
+ * @brief Set widget scrollbar mode.
+ *
+ * @param[in,out] instance pointer to the widget instance to be modified
+ * @param[in] scrollbar_mode new scrollbar mode for widget
+ */
+void widget_set_scrollbar_mode(Widget* instance, WidgetScrollBarMode scrollbar_mode);
 
 #ifdef __cplusplus
 }

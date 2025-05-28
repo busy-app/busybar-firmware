@@ -52,6 +52,7 @@ typedef struct {
     union {
         BusyTimerTime time;
         BusyTimerState state;
+        bool is_force_ended;
     };
 } BusyTimerEvent;
 
@@ -61,7 +62,6 @@ typedef struct {
     uint32_t cycle_count;
     bool enable_intervals;
     bool enable_autostart;
-    bool enable_sound;
     bool enable_speed;
 } BusyTimerConfig;
 

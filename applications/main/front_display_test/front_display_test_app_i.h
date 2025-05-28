@@ -2,6 +2,7 @@
 
 #include <furi.h>
 #include <gui/gui.h>
+#include <gui/modules/flex_layout.h>
 #include <gui/modules/label.h>
 #include <gui/modules/canvas.h>
 
@@ -25,7 +26,7 @@ typedef struct {
     Gui* gui;
 
     // Back display
-    Widget* app_window;
+    FlexLayout* flex;
     Label* static_label;
     Label* pattern_label;
     Label* color_label;

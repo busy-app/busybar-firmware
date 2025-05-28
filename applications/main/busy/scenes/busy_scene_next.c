@@ -10,10 +10,15 @@
 #define PRESS_ANIM_END   (185)
 
 typedef struct {
-    Label* front_label;
     AnimImage* front_anim;
     BusyTimerState timer_state;
 } BusySceneNext;
+
+static const char* front_anim_file_path[BusyTimerStateMax] = {
+    [BusyTimerStateIdle] = BUSY_ANIM_PATH("finish_waiting_72x16.anim"),
+    [BusyTimerStateWork] = BUSY_ANIM_PATH("busy_waiting_72x16.anim"),
+    [BusyTimerStateRest] = BUSY_ANIM_PATH("rest_waiting_72x16.anim"),
+};
 
 static bool busy_scene_next_input_callback(const InputEvent* event, void* context) {
     furi_assert(event);
@@ -48,33 +53,23 @@ static void busy_scene_next_on_enter(void* context) {
     BusyApp* instance = context;
     BusySceneNext* data = scene_manager_get_current_scene_data(instance->scene_manager);
 
-    const BusyTimerState state = busy_timer_get_state(instance->busy_timer);
+    data->timer_state = busy_timer_get_state(instance->busy_timer);
 
     with_gui(instance->gui, {
         GuiLayer* layer = gui_get_layer(instance->gui, GuiLayerIdMain);
         gui_layer_add_input_callback(layer, busy_scene_next_input_callback, instance);
 
-        if(state == BusyTimerStateIdle) {
-            data->front_label = label_alloc(instance->front_window);
-            label_set_text(data->front_label, "FINISHED!");
-            widget_set_align(label_get_base(data->front_label), AlignCenter);
+        data->front_anim = anim_image_alloc(instance->front_window);
 
-        } else {
-            data->front_anim = anim_image_alloc(instance->front_window);
-
-            if(state == BusyTimerStateWork) {
-                anim_image_set_source(
-                    data->front_anim, BUSY_ANIM_PATH("A_busy_waiting_72x16.anim"));
-            } else if(state == BusyTimerStateRest) {
-                anim_image_set_source(
-                    data->front_anim, BUSY_ANIM_PATH("A_rest_waiting_72x16.anim"));
-            }
-
-            anim_image_set_range(data->front_anim, WAIT_ANIM_BEGIN, WAIT_ANIM_END, true, false);
-        }
+        anim_image_set_source(data->front_anim, front_anim_file_path[data->timer_state]);
+        anim_image_set_range(data->front_anim, WAIT_ANIM_BEGIN, WAIT_ANIM_END, true, false);
     });
 
-    data->timer_state = state;
+    if(data->timer_state == BusyTimerStateIdle) {
+        audio_play_file(instance->audio, BUSY_SOUND_PATH("session_completed.snd"));
+    }
+
+    busy_start_transition(instance);
 }
 
 static void busy_scene_next_on_exit(void* context) {
@@ -87,15 +82,7 @@ static void busy_scene_next_on_exit(void* context) {
         GuiLayer* layer = gui_get_layer(instance->gui, GuiLayerIdMain);
         gui_layer_remove_input_callback(layer, busy_scene_next_input_callback);
 
-        if(data->front_label) {
-            label_free(data->front_label);
-            data->front_label = NULL;
-        }
-
-        if(data->front_anim) {
-            anim_image_free(data->front_anim);
-            data->front_anim = NULL;
-        }
+        anim_image_free(data->front_anim);
     });
 }
 
@@ -117,13 +104,22 @@ static bool busy_scene_next_on_event(const SceneManagerEvent* event, void* conte
             }
 
         } else if(event->event == BusyCustomEventStartReleased) {
-            if(data->timer_state == BusyTimerStateIdle) {
-                scene_manager_search_and_switch_to_previous_scene(
-                    instance->scene_manager, BusyAppSceneIdStart);
+            const BusyTimerState timer_state = data->timer_state;
+            BusyTransitionType transition_type;
+            BusyAppSceneId scene_id;
+
+            if(timer_state == BusyTimerStateIdle) {
+                scene_id = BusyAppSceneIdStart;
+                transition_type = BusyTransitionTypeBlack;
+
             } else {
-                scene_manager_search_and_switch_to_previous_scene(
-                    instance->scene_manager, BusyAppSceneIdTimer);
+                scene_id = BusyAppSceneIdTimer;
+                transition_type = (timer_state == BusyTimerStateWork) ? BusyTransitionTypeWork :
+                                                                        BusyTransitionTypeRest;
             }
+
+            busy_prepare_transition(instance, transition_type);
+            scene_manager_search_and_switch_to_previous_scene(instance->scene_manager, scene_id);
         }
 
         consumed = true;
@@ -131,6 +127,9 @@ static bool busy_scene_next_on_event(const SceneManagerEvent* event, void* conte
     } else if(event->type == SceneManagerEventTypeBack) {
         // TODO: Ask for confirmation
         busy_timer_stop(instance->busy_timer);
+
+        busy_prepare_transition(instance, BusyTransitionTypeBlack);
+
         scene_manager_search_and_switch_to_previous_scene(
             instance->scene_manager, BusyAppSceneIdStart);
 
