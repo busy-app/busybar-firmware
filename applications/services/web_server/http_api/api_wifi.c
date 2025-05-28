@@ -25,6 +25,16 @@ static const char* security_modes[WifiSecurityModeMax] = {
     [WifiSecurityModeWpa3TransitionEnterprise] = "WPA2/WPA3 (Enterprise)",
 };
 
+static WifiSecurityMode api_wifi_get_security_mode_by_name(const FuriString* name) {
+    WifiSecurityMode mode = WifiSecurityModeMax;
+    for(size_t i = 0; i < WifiSecurityModeMax; i++) {
+        if(!furi_string_equal_str(name, security_modes[i])) continue;
+        mode = (WifiSecurityMode)i;
+        break;
+    }
+    return mode;
+}
+
 static bool api_wifi_get_networks_callaback(
     struct mg_connection* conn,
     struct mg_http_message* msg,
