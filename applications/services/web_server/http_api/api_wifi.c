@@ -167,28 +167,74 @@ static bool
     UNUSED(msg);
     UNUSED(ctx);
 
-    FURI_LOG_D(TAG, "connect");
-
     WifiCredentials credentials;
     WifiIpConfig ip_config;
+    memset(&credentials, 0, sizeof(WifiCredentials));
+    memset(&ip_config, 0, sizeof(WifiIpConfig));
 
+    bool parse_result = false;
     do {
         strncpy(credentials.ssid, mg_json_get_str(msg->body, "$.SSID"), SSID_MAX_LEN);
         strncpy(
             credentials.passphrase, mg_json_get_str(msg->body, "$.Password"), PASSPHRASE_MAX_LEN);
-        long raw_security_mode = mg_json_get_long(msg->body, "$.Security", WifiSecurityModeMax);
-        FURI_LOG_D(TAG, "Raw security: %ld", raw_security_mode);
-        if(raw_security_mode >= WifiSecurityModeMax) break;
-        credentials.security_mode = (WifiSecurityMode)raw_security_mode;
+
+        FuriString* buf;
+        buf = furi_string_alloc_set_str(mg_json_get_str(msg->body, "$.Security"));
+        WifiSecurityMode mode = api_wifi_get_security_mode_by_name(buf);
+
+        if(mode == WifiSecurityModeMax) break;
+        credentials.security_mode = mode;
+
+        struct mg_str ip_config_json = mg_json_get_tok(msg->body, "$.ip_config");
+        if(ip_config_json.len == 0) break;
+
+        furi_string_set_str(buf, mg_json_get_str(ip_config_json, "$.ip_method"));
+        if(furi_string_equal_str(buf, "dhcp")) {
+            ip_config.mgmt = WifiIpManagementDynamic;
+        } else if(furi_string_equal_str(buf, "static")) {
+            ip_config.mgmt = WifiIpManagementStatic;
+        } else
+            break;
+
+        if(ip_config.mgmt == WifiIpManagementStatic) {
+            furi_string_set_str(buf, mg_json_get_str(ip_config_json, "$.ip_type"));
+            if(furi_string_equal_str(buf, "ipv4")) {
+                ip_config.type = WifiIpTypeV4;
+            } else if(furi_string_equal_str(buf, "ipv6")) {
+                ip_config.type = WifiIpTypeV6;
+            } else
+                break;
+
+            char* str = mg_json_get_str(ip_config_json, "$.ip_address");
+            if(!parse_ip_address(&ip_config, str)) break;
+
+            wifi_print_parsed_address(
+                buf,
+                ip_config.type,
+                (uint8_t*)&ip_config.address,
+                ip_config.type == WifiIpTypeV4 ? 4 : 16);
+            FURI_LOG_D(TAG, "IP: %s", furi_string_get_cstr(buf));
+        }
+        furi_string_free(buf);
+        parse_result = true;
     } while(false);
 
     ///TODO: check parsing is ok
+    UNUSED(parse_result);
 
-    Wifi* wifi = furi_record_open(RECORD_WIFI);
-    WifiStatus status = wifi_connect(wifi, &credentials, &ip_config);
-    UNUSED(status);
-    furi_record_close(RECORD_WIFI);
-    mg_http_reply(conn, 200, "", "OK");
+    if(parse_result) {
+        Wifi* wifi = furi_record_open(RECORD_WIFI);
+        WifiStatus status = wifi_connect(wifi, &credentials, &ip_config);
+        FURI_LOG_D(TAG, "Connect status: %X", status);
+
+        furi_record_close(RECORD_WIFI);
+        if(status == WifiStatusOk)
+            mg_http_reply(conn, 200, "", "OK");
+        else
+            mg_http_reply(conn, 503, "", "Failed to connect");
+    } else {
+        mg_http_reply(conn, 400, "", "Failed");
+    }
     return true;
 }
 
@@ -200,7 +246,16 @@ static bool api_wifi_disconnect_callaback(
     UNUSED(ctx);
 
     FURI_LOG_D(TAG, "disconnect");
-    mg_http_reply(conn, 200, "", "OK");
+
+    Wifi* wifi = furi_record_open(RECORD_WIFI);
+    WifiStatus status = wifi_disconnect(wifi);
+    furi_record_close(RECORD_WIFI);
+
+    if(status == WifiStatusOk)
+        mg_http_reply(conn, 200, "", "OK");
+    else
+        mg_http_reply(conn, 400, "", "Failed: %d", status);
+
     return true;
 }
 
