@@ -7,6 +7,18 @@
 
 #define WIFI_SCAN_RESULT_COUNT 20U
 
+#define WIFI_JSON_KEY_STATE      "State"
+#define WIFI_JSON_KEY_SECURITY   "Security"
+#define WIFI_JSON_KEY_SSID       "SSID"
+#define WIFI_JSON_KEY_RSSI       "RSSI"
+#define WIFI_JSON_KEY_PASSWORD   "Password"
+#define WIFI_JSON_KEY_COUNT      "count"
+#define WIFI_JSON_KEY_NETWORKS   "networks"
+#define WIFI_JSON_KEY_IP_CONFIG  "ip_config"
+#define WIFI_JSON_KEY_IP_METHOD  "ip_method"
+#define WIFI_JSON_KEY_IP_TYPE    "ip_type"
+#define WIFI_JSON_KEY_IP_ADDRESS "ip_address"
+
 typedef struct {
     HttpHandlersList_t handlers;
 } ApiWifiCtx;
@@ -114,14 +126,19 @@ static bool api_wifi_get_networks_callaback(
     WifiStatus status = wifi_scan(wifi, results, &result_count, WIFI_SCAN_RESULT_COUNT);
 
     if(status == WifiStatusOk) {
-        FuriString* response = furi_string_alloc_printf("{\"count\":%u,\r\n", result_count);
-        furi_string_cat_printf(response, "\"networks\" : [\r\n");
+        FuriString* response =
+            furi_string_alloc_printf("{\"" WIFI_JSON_KEY_COUNT "\":%u,\r\n", result_count);
+        furi_string_cat_printf(response, "\"" WIFI_JSON_KEY_NETWORKS "\" : [\r\n");
         for(size_t i = 0; i < result_count; i++) {
-            furi_string_cat_printf(response, "{\r\n\"SSID\": \"%s\",\r\n", results[i].ssid);
+            furi_string_cat_printf(
+                response, "{\r\n\"" WIFI_JSON_KEY_SSID "\": \"%s\",\r\n", results[i].ssid);
 
             furi_string_cat_printf(
-                response, "\"Security\": \"%s\",\r\n", security_modes[results[i].security_mode]);
-            furi_string_cat_printf(response, "\"RSSI\": %d\r\n", results[i].rssi);
+                response,
+                "\"" WIFI_JSON_KEY_SECURITY "\": \"%s\",\r\n",
+                security_modes[results[i].security_mode]);
+            furi_string_cat_printf(
+                response, "\"" WIFI_JSON_KEY_RSSI "\": %d\r\n", results[i].rssi);
             furi_string_cat_printf(response, i + 1 == result_count ? "}\r\n" : "},\r\n");
         }
         furi_string_cat_printf(response, "]\r\n}\r\n");
@@ -230,7 +247,7 @@ static bool api_wifi_parse_ip_config(struct mg_str ip_config_json, WifiIpConfig*
     do {
         if(ip_config_json.len == 0) break;
 
-        furi_string_set_str(buf, mg_json_get_str(ip_config_json, "$.ip_method"));
+        furi_string_set_str(buf, mg_json_get_str(ip_config_json, "$." WIFI_JSON_KEY_IP_METHOD ""));
         if(!api_wifi_parse_ip_method(buf, &ip_config->mgmt)) break;
 
         if(ip_config->mgmt == WifiIpManagementDynamic) {
@@ -238,10 +255,10 @@ static bool api_wifi_parse_ip_config(struct mg_str ip_config_json, WifiIpConfig*
             break;
         }
 
-        furi_string_set_str(buf, mg_json_get_str(ip_config_json, "$.ip_type"));
+        furi_string_set_str(buf, mg_json_get_str(ip_config_json, "$." WIFI_JSON_KEY_IP_TYPE ""));
         if(!aip_wifi_parse_ip_type(buf, &ip_config->type)) break;
 
-        char* str = mg_json_get_str(ip_config_json, "$.ip_address");
+        char* str = mg_json_get_str(ip_config_json, "$." WIFI_JSON_KEY_IP_ADDRESS "");
         if(!api_wifi_parse_ip_address(ip_config, str)) break;
 
         ///TODO: Remove this, or make it debug
@@ -263,14 +280,18 @@ static bool api_wifi_connect_parse_config(
     WifiIpConfig* ip_config) {
     bool parse_result = false;
     do {
-        strncpy(credentials->ssid, mg_json_get_str(body, "$.SSID"), SSID_MAX_LEN);
-        strncpy(credentials->passphrase, mg_json_get_str(body, "$.Password"), PASSPHRASE_MAX_LEN);
+        strncpy(
+            credentials->ssid, mg_json_get_str(body, "$." WIFI_JSON_KEY_SSID ""), SSID_MAX_LEN);
+        strncpy(
+            credentials->passphrase,
+            mg_json_get_str(body, "$." WIFI_JSON_KEY_PASSWORD ""),
+            PASSPHRASE_MAX_LEN);
 
         FuriString* buf;
-        buf = furi_string_alloc_set_str(mg_json_get_str(body, "$.Security"));
+        buf = furi_string_alloc_set_str(mg_json_get_str(body, "$." WIFI_JSON_KEY_SECURITY ""));
         if(!api_wifi_get_security_mode_by_name(buf, &credentials->security_mode)) break;
 
-        struct mg_str ip_config_json = mg_json_get_tok(body, "$.ip_config");
+        struct mg_str ip_config_json = mg_json_get_tok(body, "$." WIFI_JSON_KEY_IP_CONFIG "");
         if(!api_wifi_parse_ip_config(ip_config_json, ip_config)) break;
 
         furi_string_free(buf);
@@ -380,30 +401,43 @@ static bool api_wifi_get_status_callaback(
     furi_record_close(RECORD_WIFI);
 
     if(status == WifiStatusOk) {
-        FuriString* response =
-            furi_string_alloc_printf("{\"State\":\"%s\",\r\n", wifi_state[info.state]);
+        FuriString* response = furi_string_alloc_printf(
+            "{\"" WIFI_JSON_KEY_STATE "\":\"%s\",\r\n", wifi_state[info.state]);
 
-        furi_string_cat_printf(response, "\"SSID\": \"%s\",\r\n", info.ssid);
-        furi_string_cat_printf(
-            response, "\"Security\": \"%s\",\r\n", security_modes[info.securiy_mode]);
+        if(info.state != WifiStateDeinit) {
+            furi_string_cat_printf(response, "\"" WIFI_JSON_KEY_SSID "\": \"%s\",\r\n", info.ssid);
+            furi_string_cat_printf(
+                response,
+                "\"" WIFI_JSON_KEY_SECURITY "\": \"%s\",\r\n",
+                security_modes[info.securiy_mode]);
 
-        furi_string_cat_printf(response, "\"ip_config\":{\r\n");
-        furi_string_cat_printf(
-            response, "\"ip_method\":\"%s\",\r\n", wifi_ip_method[info.ip_config.mgmt]);
-        furi_string_cat_printf(
-            response, "\"ip_type\":\"%s\",\r\n", wifi_ip_type[info.ip_config.type]);
+            if(info.state == WifiStateUp) {
+                furi_string_cat_printf(response, "\"" WIFI_JSON_KEY_IP_CONFIG "\":{\r\n");
+                furi_string_cat_printf(
+                    response,
+                    "\"" WIFI_JSON_KEY_IP_METHOD "\":\"%s\",\r\n",
+                    wifi_ip_method[info.ip_config.mgmt]);
+                furi_string_cat_printf(
+                    response,
+                    "\"" WIFI_JSON_KEY_IP_TYPE "\":\"%s\",\r\n",
+                    wifi_ip_type[info.ip_config.type]);
 
-        FuriString* b2 = furi_string_alloc();
+                FuriString* b2 = furi_string_alloc();
 
-        wifi_print_parsed_address(
-            b2,
-            info.ip_config.type,
-            (uint8_t*)&info.ip_config.address,
-            info.ip_config.type == WifiIpTypeV4 ? 4 : 16);
+                wifi_print_parsed_address(
+                    b2,
+                    info.ip_config.type,
+                    (uint8_t*)&info.ip_config.address,
+                    info.ip_config.type == WifiIpTypeV4 ? 4 : 16);
 
-        furi_string_cat_printf(
-            response, "\"ip_address\":\"%s\"\r\n}\r\n}", furi_string_get_cstr(b2));
-        furi_string_free(b2);
+                furi_string_cat_printf(
+                    response,
+                    "\"" WIFI_JSON_KEY_IP_ADDRESS "\":\"%s\"\r\n}\r\n",
+                    furi_string_get_cstr(b2));
+                furi_string_free(b2);
+            }
+        }
+        furi_string_cat_printf(response, "}");
 
         mg_http_reply(
             conn, 200, "Content-Type: application/json\r\n", furi_string_get_cstr(response));
