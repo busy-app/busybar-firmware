@@ -5,11 +5,11 @@
 static float power_ntc_temperature_from_resistance(float resistance) {
     const float beta = 3380.f;
     const float R0 = 10000.f;
-    const float Kelvin = 273.15f; // 0 degrees Celsius
-    const float T0 = 25.f + Kelvin; // 25 degrees Celsius in Kelvin
+    const float kelvin = 273.15f; // 0 degrees Celsius
+    const float T0 = 25.f + kelvin; // 25 degrees Celsius in Kelvin
 
     const float T = 1.f / ((1.f / T0) + (1.f / beta) * logf(resistance / R0));
-    return T - Kelvin; // Convert Kelvin to Celsius
+    return T - kelvin; // Convert Kelvin to Celsius
 }
 
 // calculate NTC resistance from charger adc voltage percent
