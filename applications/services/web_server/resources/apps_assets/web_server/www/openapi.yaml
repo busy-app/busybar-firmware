@@ -1,0 +1,508 @@
+openapi: 3.0.3
+info:
+  title: BSB HTTP API
+  description: HTTP API for BSB web server
+  version: 0.0.1
+  contact:
+    name: tbd
+
+paths:
+  /api/v0/led:
+    get:
+      tags:
+        - Hardware
+      summary: Get LED state
+      description: Retrieves the current LED state
+      operationId: getLedState
+      parameters:
+        - name: state
+          in: query
+          required: false
+          schema:
+            type: integer
+            enum: [0, 1]
+          description: LED state (0 for off, 1 for on) - alternative to JSON body
+      responses:
+        '200':
+          description: LED state retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LedState'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+    
+    post:
+      tags:
+        - Hardware
+      summary: Set LED state
+      description: Sets the LED state via query parameter or JSON body
+      operationId: setLedState
+      parameters:
+        - name: state
+          in: query
+          required: false
+          schema:
+            type: integer
+            enum: [0, 1]
+          description: LED state (0 for off, 1 for on) - alternative to JSON body
+      requestBody:
+        required: false
+        description: LED state as JSON (alternative to query parameter)
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LedStateRequest'
+      responses:
+        '200':
+          description: LED state set successfully
+          content:
+            text/plain:
+              schema:
+                type: string
+                example: "OK"
+        '400':
+          description: Invalid state parameter
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /api/v0/version:
+    get:
+      tags:
+        - System
+      summary: Get firmware version information
+      description: Retrieves firmware version, branch, build date, and commit information
+      operationId: getVersion
+      responses:
+        '200':
+          description: Version information retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/VersionInfo'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /api/v0/assets/{filename}:
+    get:
+      tags:
+        - Assets
+      summary: Get asset file
+      description: Retrieves static asset files from the assets directory
+      operationId: getAsset
+      parameters:
+        - name: filename
+          in: path
+          required: true
+          schema:
+            type: string
+            pattern: '^[a-zA-Z0-9._-]+$'
+          description: Asset filename (alphanumeric, dots, underscores, hyphens only)
+          example: "example.txt"
+      responses:
+        '200':
+          description: Asset file retrieved successfully
+          content:
+            '*/*':
+              schema:
+                type: string
+                format: binary
+        '404':
+          description: Asset not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '400':
+          description: Invalid filename
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+    post:
+      tags:
+        - Assets
+      summary: Upload asset file
+      description: Uploads a file to the assets directory
+      operationId: uploadAsset
+      parameters:
+        - name: filename
+          in: path
+          required: true
+          schema:
+            type: string
+            pattern: '^[a-zA-Z0-9._-]+$'
+          description: Filename for the uploaded asset
+          example: "my_file.txt"
+      requestBody:
+        required: true
+        content:
+          application/octet-stream:
+            schema:
+              type: string
+              format: binary
+              description: File data to upload as raw binary content
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                file:
+                  type: string
+                  format: binary
+                  description: File to upload
+              required:
+                - file
+      responses:
+        '200':
+          description: File uploaded successfully
+          content:
+            text/plain:
+              schema:
+                type: string
+                example: "OK"
+        '400':
+          description: Invalid filename or upload failed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '413':
+          description: File too large
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /api/v0/assets/upload:
+    post:
+      tags:
+        - Assets
+      summary: Upload asset file with app ID
+      description: Uploads a file to a specific app's assets directory
+      operationId: uploadAssetWithAppId
+      parameters:
+        - name: app_id
+          in: query
+          required: true
+          schema:
+            type: string
+            pattern: '^[a-zA-Z0-9._-]+$'
+          description: Application ID for organizing assets
+          example: "my_app"
+        - name: file
+          in: query
+          required: true
+          schema:
+            type: string
+            pattern: '^[a-zA-Z0-9._-]+$'
+          description: Filename for the uploaded asset
+          example: "data.json"
+      requestBody:
+        required: true
+        content:
+          application/octet-stream:
+            schema:
+              type: string
+              format: binary
+              description: File data to upload as raw binary content
+      responses:
+        '200':
+          description: File uploaded successfully
+          content:
+            text/plain:
+              schema:
+                type: string
+                example: "OK"
+        '400':
+          description: Invalid parameters or upload failed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '413':
+          description: File too large
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+    
+    delete:
+      tags:
+        - Assets
+      summary: Delete app assets
+      description: Deletes all assets for a specific app ID
+      operationId: deleteAppAssets
+      parameters:
+        - name: app_id
+          in: query
+          required: true
+          schema:
+            type: string
+            pattern: '^[a-zA-Z0-9._-]+$'
+          description: Application ID whose assets should be deleted
+          example: "my_app"
+      responses:
+        '200':
+          description: Assets deleted successfully
+          content:
+            text/plain:
+              schema:
+                type: string
+                example: "OK"
+        '400':
+          description: Invalid app_id or deletion failed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /api/v0/display/draw:
+    post:
+      tags:
+        - Hardware
+      summary: Draw on display
+      description: |
+        Sends binary drawing data to the display.
+        The binary data format should consist of pixel information that matches
+        the display's resolution and color depth.
+      operationId: drawOnDisplay
+      requestBody:
+        required: true
+        content:
+          application/octet-stream:
+            schema:
+              type: string
+              format: binary
+              description: Binary drawing data for the display
+      responses:
+        '200':
+          description: Drawing command executed successfully
+          content:
+            text/plain:
+              schema:
+                type: string
+                example: "OK"
+        '400':
+          description: Invalid drawing data
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Display error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+    delete:
+      tags:
+        - Hardware
+      summary: Clear display
+      description: Clears the display and stops the Canvas application if running
+      operationId: clearDisplay
+      responses:
+        '200':
+          description: Display cleared successfully
+          content:
+            text/plain:
+              schema:
+                type: string
+                example: "OK"
+        '500':
+          description: Display error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /api/v0/audio/play:
+    post:
+      tags:
+        - Hardware
+      summary: Play audio file
+      description: |
+        Plays an audio file from the assets directory.
+        Supported formats include WAV files.
+      operationId: playAudio
+      parameters:
+        - name: path
+          in: query
+          required: true
+          schema:
+            type: string
+            pattern: '^[a-zA-Z0-9._/-]+$'
+          description: Path to audio file in assets directory (relative path)
+          example: "sounds/beep.wav"
+      responses:
+        '200':
+          description: Audio playback started successfully
+          content:
+            text/plain:
+              schema:
+                type: string
+                example: "OK"
+        '400':
+          description: Invalid file path or file not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Audio system error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+    
+    delete:
+      tags:
+        - Hardware
+      summary: Stop audio playback
+      description: Stops any currently playing audio
+      operationId: stopAudio
+      responses:
+        '200':
+          description: Audio playback stopped successfully
+          content:
+            text/plain:
+              schema:
+                type: string
+                example: "OK"
+        '500':
+          description: Audio system error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /ws_test:
+    get:
+      tags:
+        - WebSocket
+      summary: WebSocket test endpoint
+      description: |
+        WebSocket connection for real-time communication and testing.
+        Upgrade from HTTP to WebSocket protocol is required.
+      operationId: connectWebSocket
+      responses:
+        '101':
+          description: WebSocket connection established
+        '400':
+          description: WebSocket upgrade failed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '426':
+          description: Upgrade required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+components:
+  schemas:
+    LedState:
+      type: object
+      properties:
+        state:
+          type: integer
+          enum: [0, 1]
+          description: Current LED state (0 for off, 1 for on)
+      required:
+        - state
+      example:
+        state: 1
+
+    LedStateRequest:
+      type: object
+      properties:
+        state:
+          type: integer
+          enum: [0, 1]
+          description: LED state (0 for off, 1 for on)
+      required:
+        - state
+      example:
+        state: 1
+
+    VersionInfo:
+      type: object
+      properties:
+        branch:
+          type: string
+          description: Git branch name
+          example: "main"
+        version:
+          type: string
+          description: Firmware version
+          example: "1.0.0"
+        build_date:
+          type: string
+          description: Build date
+          example: "2024-01-01"
+        commit_hash:
+          type: string
+          description: Git commit hash (may include -dirty suffix)
+          example: "abc123def456-dirty"
+      required:
+        - branch
+        - version
+        - build_date
+        - commit_hash
+      example:
+        branch: "main"
+        version: "1.0.0"
+        build_date: "2024-01-01"
+        commit_hash: "abc123def456"
+
+    BinaryUpload:
+      type: string
+      format: binary
+      description: Binary data upload
+
+    FileUpload:
+      type: object
+      properties:
+        file:
+          type: string
+          format: binary
+          description: File to upload
+      required:
+        - file
+
+    Error:
+      type: object
+      properties:
+        error:
+          type: string
+          description: Error message
+        code:
+          type: integer
+          description: Error code
+      required:
+        - error
+      example:
+        error: "Invalid parameter"
+        code: 400
+
+tags:
+  - name: System
+    description: System information and control
+  - name: Hardware
+    description: Hardware control (LED, display, audio)
+  - name: Assets
+    description: Asset file management and upload
+  - name: WebSocket
+    description: Real-time communication via WebSocket
