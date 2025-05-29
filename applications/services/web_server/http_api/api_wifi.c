@@ -418,43 +418,43 @@ static bool api_wifi_get_status_callaback(
 
 static const HttpHandler handlers_wifi[] = {
     {
-        .uri = "/*/networks",
+        .uri = "/api/v0/wifi/networks",
         .method = "GET",
         .type = HttpHandlerCustom,
         .on_request = api_wifi_get_networks_callaback,
     },
     {
-        .uri = "/*/connect",
+        .uri = "/api/v0/wifi/connect",
         .method = "POST",
         .type = HttpHandlerCustom,
         .on_request = api_wifi_connect_callaback,
     },
     {
-        .uri = "/*/disconnect",
+        .uri = "/api/v0/wifi/disconnect",
         .method = "POST",
         .type = HttpHandlerCustom,
         .on_request = api_wifi_disconnect_callaback,
     },
     {
-        .uri = "/*/forget",
+        .uri = "/api/v0/wifi/forget",
         .method = "POST",
         .type = HttpHandlerCustom,
         .on_request = api_wifi_forget_callaback,
     },
     {
-        .uri = "/*/enable",
+        .uri = "/api/v0/wifi/enable",
         .method = "POST",
         .type = HttpHandlerCustom,
         .on_request = api_wifi_enable_callaback,
     },
     {
-        .uri = "/*/disable",
+        .uri = "/api/v0/wifi/disable",
         .method = "POST",
         .type = HttpHandlerCustom,
         .on_request = api_wifi_disable_callaback,
     },
     {
-        .uri = "/*/status",
+        .uri = "/api/v0/wifi/status",
         .method = "GET",
         .type = HttpHandlerCustom,
         .on_request = api_wifi_get_status_callaback,
