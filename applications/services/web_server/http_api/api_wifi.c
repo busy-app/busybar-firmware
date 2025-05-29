@@ -11,6 +11,19 @@ typedef struct {
     HttpHandlersList_t handlers;
 } ApiWifiCtx;
 
+typedef struct {
+    int code;
+    const char* message;
+} ApiWifiResponseData;
+
+static const ApiWifiResponseData wifi_response_data[] = {
+    [WifiStatusOk] = {.code = 200, "OK"},
+    [WifiStatusError] = {.code = 500, "Generic error"},
+    [WifiStatusNotInitialized] = {.code = 400, "Not initialized"},
+    [WifiStatusAlreadyInitialized] = {.code = 400, "Already initialized"},
+    [WifiStatusFailedToInitialize] = {.code = 503, "Failed to initialize"},
+};
+
 static const char* security_modes[WifiSecurityModeMax] = {
     [WifiSecurityModeOpen] = "Open",
     [WifiSecurityModeWpa] = "WPA",
@@ -25,11 +38,10 @@ static const char* security_modes[WifiSecurityModeMax] = {
     [WifiSecurityModeWpa3TransitionEnterprise] = "WPA2/WPA3 (Enterprise)",
 };
 
-static WifiSecurityMode api_wifi_get_security_mode_by_name(const FuriString* name) {
-    WifiSecurityMode mode = WifiSecurityModeMax;
-    for(size_t i = 0; i < WifiSecurityModeMax; i++) {
-        if(!furi_string_equal_str(name, security_modes[i])) continue;
-        mode = (WifiSecurityMode)i;
+static const ApiWifiResponseData* api_wifi_get_response_data_from_status(WifiStatus status) {
+    furi_assert(status < COUNT_OF(wifi_response_data));
+    return &wifi_response_data[status];
+}
         break;
     }
     return mode;
@@ -228,12 +240,10 @@ static bool
         FURI_LOG_D(TAG, "Connect status: %X", status);
 
         furi_record_close(RECORD_WIFI);
-        if(status == WifiStatusOk)
-            mg_http_reply(conn, 200, "", "OK");
-        else
-            mg_http_reply(conn, 503, "", "Failed to connect");
+        const ApiWifiResponseData* data = api_wifi_get_response_data_from_status(status);
+        mg_http_reply(conn, data->code, "", data->message);
     } else {
-        mg_http_reply(conn, 400, "", "Failed");
+        mg_http_reply(conn, 400, "", "Parsing failed");
     }
     return true;
 }
@@ -251,10 +261,8 @@ static bool api_wifi_disconnect_callaback(
     WifiStatus status = wifi_disconnect(wifi);
     furi_record_close(RECORD_WIFI);
 
-    if(status == WifiStatusOk)
-        mg_http_reply(conn, 200, "", "OK");
-    else
-        mg_http_reply(conn, 400, "", "Failed: %d", status);
+    const ApiWifiResponseData* data = api_wifi_get_response_data_from_status(status);
+    mg_http_reply(conn, data->code, "", data->message);
 
     return true;
 }
@@ -281,24 +289,9 @@ static bool
     FURI_LOG_D(TAG, "Enable status: %X", status);
     furi_record_close(RECORD_WIFI);
 
-    int response_code = 403;
-    FuriString* response = furi_string_alloc();
-    if(status == WifiStatusOk) {
-        response_code = 200;
-        furi_string_set_str(response, "OK");
-    } else if(status == WifiStatusAlreadyInitialized) {
-        response_code = 400;
-        furi_string_set_str(response, "Already initialized");
-    } else if(status == WifiStatusFailedToInitialize) {
-        response_code = 503;
-        furi_string_set_str(response, "Failed to initialize");
-    } else {
-        response_code = 500;
-        furi_string_printf(response, "Generic error: %X", status);
-    }
+    const ApiWifiResponseData* data = api_wifi_get_response_data_from_status(status);
+    mg_http_reply(conn, data->code, "", data->message);
 
-    mg_http_reply(conn, response_code, "", furi_string_get_cstr(response));
-    furi_string_free(response);
     return true;
 }
 
@@ -314,21 +307,9 @@ static bool
     FURI_LOG_D(TAG, "Disable status: %X", status);
     furi_record_close(RECORD_WIFI);
 
-    int response_code = 403;
-    FuriString* response = furi_string_alloc();
-    if(status == WifiStatusOk) {
-        response_code = 200;
-        furi_string_set_str(response, "OK");
-    } else if(status == WifiStatusNotInitialized) {
-        response_code = 400;
-        furi_string_set_str(response, "Not initialized");
-    } else {
-        response_code = 500;
-        furi_string_printf(response, "Generic error: %X", status);
-    }
+    const ApiWifiResponseData* data = api_wifi_get_response_data_from_status(status);
+    mg_http_reply(conn, data->code, "", data->message);
 
-    mg_http_reply(conn, response_code, "", furi_string_get_cstr(response));
-    furi_string_free(response);
     return true;
 }
 
