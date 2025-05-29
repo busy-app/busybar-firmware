@@ -18,22 +18,36 @@ static void api_assets_upload_data_callback(struct mg_connection* conn, struct m
     ConnectionContext* conn_ctx = (void*)conn->data;
     UploadClientCtx* upload_ctx = conn_ctx->context;
 
+    bool do_close_file = false;
+
     if((data->len > 0) && (upload_ctx->file)) {
         // Write file chunk
-        http_fs_get()->wr(upload_ctx->file, data->buf, data->len);
+        if(http_fs_get()->wr(upload_ctx->file, data->buf, data->len) != data->len) {
+            FURI_LOG_E(TAG, "Failed to write file chunk");
+            MG_REPLY_INTERNAL_ERROR(conn, "Failed to write file chunk");
+            do_close_file = true;
+        } else {
+            upload_ctx->len_remain -= data->len;
+            FURI_LOG_T(
+                TAG,
+                "Wrote %zu bytes to file, remaining %zu bytes",
+                data->len,
+                upload_ctx->len_remain);
+        }
     }
 
-    if(data->len >= upload_ctx->len_remain) {
-        // End of transfer - close connection
+    if(upload_ctx->len_remain == 0) {
         MG_REPLY_OK(conn);
-        conn->is_draining = 1;
+        do_close_file = true; // End of upload
+    }
+
+    if(do_close_file) { // error or end of upload
+        FURI_LOG_I(TAG, "Closing file after upload data");
         if(upload_ctx->file) {
             http_fs_get()->cl(upload_ctx->file);
             upload_ctx->file = NULL;
         }
-        upload_ctx->len_remain = 0;
-    } else {
-        upload_ctx->len_remain -= data->len;
+        conn->is_draining = 1; // Drain connection
     }
     data->len = 0;
 }
@@ -117,6 +131,9 @@ static bool api_assets_upload_headers_callback(
 
     mg_iobuf_del(&conn->recv, 0, msg->head.len); // Delete HTTP headers
     conn->pfn = NULL; // Silence HTTP protocol handler, we'll use MG_EV_READ
+
+    // Also handle possible data in the buffer
+    api_assets_upload_data_callback(conn, &conn->recv);
 
     return true;
 }
