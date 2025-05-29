@@ -48,6 +48,12 @@ static const char* wifi_ip_type[] = {
     [WifiIpTypeV6] = "ipv6",
 };
 
+static const char* wifi_state[] = {
+    [WifiStateDeinit] = "disabled",
+    [WifiStateDown] = "enabled",
+    [WifiStateUp] = "connected",
+};
+
 static const ApiWifiResponseData* api_wifi_get_response_data_from_status(WifiStatus status) {
     furi_assert(status < COUNT_OF(wifi_response_data));
     return &wifi_response_data[status];
@@ -368,7 +374,45 @@ static bool api_wifi_get_status_callaback(
     UNUSED(msg);
     UNUSED(ctx);
 
-    mg_http_reply(conn, 200, "", "OK");
+    WifiInfo info = {0};
+    Wifi* wifi = furi_record_open(RECORD_WIFI);
+    WifiStatus status = wifi_get_info(wifi, &info);
+    furi_record_close(RECORD_WIFI);
+
+    if(status == WifiStatusOk) {
+        FuriString* response =
+            furi_string_alloc_printf("{\"State\":\"%s\",\r\n", wifi_state[info.state]);
+
+        furi_string_cat_printf(response, "\"SSID\": \"%s\",\r\n", info.ssid);
+        furi_string_cat_printf(
+            response, "\"Security\": \"%s\",\r\n", security_modes[info.securiy_mode]);
+
+        furi_string_cat_printf(response, "\"ip_config\":{\r\n");
+        furi_string_cat_printf(
+            response, "\"ip_method\":\"%s\",\r\n", wifi_ip_method[info.ip_config.mgmt]);
+        furi_string_cat_printf(
+            response, "\"ip_type\":\"%s\",\r\n", wifi_ip_type[info.ip_config.type]);
+
+        FuriString* b2 = furi_string_alloc();
+
+        wifi_print_parsed_address(
+            b2,
+            info.ip_config.type,
+            (uint8_t*)&info.ip_config.address,
+            info.ip_config.type == WifiIpTypeV4 ? 4 : 16);
+
+        furi_string_cat_printf(
+            response, "\"ip_address\":\"%s\"\r\n}\r\n}", furi_string_get_cstr(b2));
+        furi_string_free(b2);
+
+        mg_http_reply(
+            conn, 200, "Content-Type: application/json\r\n", furi_string_get_cstr(response));
+
+        furi_string_free(response);
+    } else {
+        const ApiWifiResponseData* data = api_wifi_get_response_data_from_status(status);
+        mg_http_reply(conn, data->code, "", data->message);
+    }
     return true;
 }
 
