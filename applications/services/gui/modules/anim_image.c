@@ -86,15 +86,15 @@ static void anim_image_update(AnimImage* instance) {
             if(instance->has_waiting_range) {
                 instance->has_waiting_range = false;
                 instance->current_range = instance->waiting_range;
-                instance->current_idx = instance->current_range.begin_idx;
+            }
 
-            } else if(instance->current_range.loop) {
-                instance->current_idx = instance->current_range.begin_idx;
+            instance->current_idx = instance->current_range.begin_idx;
 
-            } else {
+            if(!instance->current_range.loop) {
                 lv_timer_pause(instance->timer);
             }
         }
+
     } while(false);
 }
 

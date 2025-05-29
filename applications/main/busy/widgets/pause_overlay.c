@@ -2,6 +2,7 @@
 
 #include <gui/widget_i.h>
 #include <gui/modules/snap_image.h>
+#include <gui/modules/anim_image.h>
 
 #include "../storage_macros.h"
 
@@ -10,9 +11,13 @@
 #define BLUR_STRENGTH (255)
 #define DIM_STRENGTH  (160)
 
+#define HIDE_DURATION_MS (200)
+
 struct PauseOverlay {
     Widget base;
     SnapImage* snap;
+    AnimImage* mask;
+    lv_obj_t* layout;
 };
 
 const lv_obj_class_t pause_overlay_lvgl_class;
@@ -27,21 +32,104 @@ static void pause_overlay_lvgl_constructor(const lv_obj_class_t* class_p, lv_obj
     snap_image_set_effect(instance->snap, SnapImageEffectBlur, BLUR_STRENGTH);
     snap_image_set_effect(instance->snap, SnapImageEffectDim, DIM_STRENGTH);
 
-    lv_obj_t* layout = lv_obj_create(obj);
-    lv_obj_set_size(layout, LV_SIZE_CONTENT, LV_SIZE_CONTENT);
-    lv_obj_set_style_pad_column(layout, 4, LV_PART_MAIN);
-    lv_obj_set_flex_flow(layout, LV_FLEX_FLOW_ROW);
-    lv_obj_set_flex_align(layout, LV_FLEX_ALIGN_START, LV_FLEX_ALIGN_CENTER, LV_FLEX_ALIGN_START);
-    lv_obj_align(layout, LV_ALIGN_CENTER, 0, -1);
+    instance->layout = lv_obj_create(obj);
+    lv_obj_set_size(instance->layout, LV_SIZE_CONTENT, LV_SIZE_CONTENT);
+    lv_obj_set_style_pad_column(instance->layout, 4, LV_PART_MAIN);
+    lv_obj_set_flex_flow(instance->layout, LV_FLEX_FLOW_ROW);
+    lv_obj_set_flex_align(
+        instance->layout, LV_FLEX_ALIGN_START, LV_FLEX_ALIGN_CENTER, LV_FLEX_ALIGN_START);
+    lv_obj_align(instance->layout, LV_ALIGN_CENTER, 0, -1);
 
-    lv_obj_t* image = lv_image_create(layout);
+    lv_obj_t* image = lv_image_create(instance->layout);
     lv_image_set_src(image, BUSY_IMG_PATH("pause_5x5.bin"));
 
-    lv_obj_t* label = lv_label_create(layout);
+    lv_obj_t* label = lv_label_create(instance->layout);
     lv_label_set_text(label, "PAUSED");
     lv_obj_set_style_text_color(label, lv_color_white(), LV_PART_MAIN);
 
+    instance->mask = anim_image_alloc((Widget*)instance);
+    anim_image_set_source(instance->mask, BUSY_ANIM_PATH("transition_pause_72x16.anim"));
+    anim_image_set_loop(instance->mask, false);
+    anim_image_stop(instance->mask);
+
+    lv_obj_set_style_blend_mode(TO_LV_OBJ(instance->mask), LV_BLEND_MODE_ADDITIVE, LV_PART_MAIN);
+
     widget_set_visible((Widget*)instance, false);
+}
+
+static void pause_overlay_lvgl_show_anim_callback(void* var, int32_t value) {
+    furi_assert(var);
+
+    PauseOverlay* instance = var;
+    lv_obj_set_y(instance->layout, value);
+}
+
+static void pause_overlay_lvgl_show_anim_start_callback(lv_anim_t* anim) {
+    furi_assert(anim);
+
+    PauseOverlay* instance = anim->var;
+    furi_assert(instance);
+
+    widget_set_visible((Widget*)instance->layout, true);
+}
+
+static void pause_overlay_lvgl_hide_anim_callback(void* var, int32_t value) {
+    furi_assert(var);
+
+    lv_obj_set_style_opa(var, value, LV_PART_MAIN);
+}
+
+static void pause_overlay_lvgl_hide_anim_finished_callback(lv_anim_t* anim) {
+    furi_assert(anim);
+
+    PauseOverlay* instance = anim->var;
+    furi_assert(instance);
+
+    widget_set_visible((Widget*)instance, false);
+}
+
+// Implementation
+
+static void pause_overlay_animate_show(PauseOverlay* instance) {
+    lv_anim_t anim;
+    lv_anim_init(&anim);
+
+    lv_anim_set_values(&anim, -5, -1);
+    lv_anim_set_delay(&anim, 100);
+    lv_anim_set_duration(&anim, 300);
+    lv_anim_set_bezier3_param(
+        &anim,
+        LV_BEZIER_VAL_FLOAT(0.37F),
+        LV_BEZIER_VAL_FLOAT(0.0F),
+        LV_BEZIER_VAL_FLOAT(0.3F),
+        LV_BEZIER_VAL_FLOAT(4.0F));
+
+    lv_anim_set_path_cb(&anim, lv_anim_path_custom_bezier3);
+    lv_anim_set_start_cb(&anim, pause_overlay_lvgl_show_anim_start_callback);
+    lv_anim_set_exec_cb(&anim, pause_overlay_lvgl_show_anim_callback);
+    lv_anim_set_var(&anim, instance);
+
+    lv_anim_start(&anim);
+
+    lv_obj_set_style_opa(TO_LV_OBJ(instance), LV_OPA_COVER, LV_PART_MAIN);
+
+    widget_set_visible((Widget*)instance->layout, false);
+    widget_set_visible((Widget*)instance, true);
+}
+
+static void pause_overlay_animate_hide(PauseOverlay* instance) {
+    lv_anim_t anim;
+    lv_anim_init(&anim);
+
+    lv_anim_set_values(&anim, LV_OPA_COVER, LV_OPA_TRANSP);
+    lv_anim_set_duration(&anim, HIDE_DURATION_MS);
+
+    lv_anim_set_path_cb(&anim, lv_anim_path_ease_in_out);
+    lv_anim_set_exec_cb(&anim, pause_overlay_lvgl_hide_anim_callback);
+    lv_anim_set_completed_cb(&anim, pause_overlay_lvgl_hide_anim_finished_callback);
+    lv_anim_set_var(&anim, instance);
+
+    lv_anim_start(&anim);
 }
 
 // Public API
@@ -71,10 +159,10 @@ void pause_overlay_show(PauseOverlay* instance, bool show) {
 
     if(show) {
         snap_image_capture_display(instance->snap);
-        widget_set_visible((Widget*)instance, true);
-
+        anim_image_start(instance->mask);
+        pause_overlay_animate_show(instance);
     } else {
-        widget_set_visible((Widget*)instance, false);
+        pause_overlay_animate_hide(instance);
     }
 }
 

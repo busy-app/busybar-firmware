@@ -44,7 +44,12 @@ static void snap_image_lvgl_destructor(const lv_obj_class_t* class_p, lv_obj_t* 
 
 // Implementation
 
-static lv_color_t snap_image_get_box_average(lv_draw_buf_t* buf, uint32_t buf_width, uint32_t buf_height, uint32_t cx, uint32_t cy) {
+static lv_color_t snap_image_get_box_average(
+    lv_draw_buf_t* buf,
+    uint32_t buf_width,
+    uint32_t buf_height,
+    uint32_t cx,
+    uint32_t cy) {
     const uint32_t x1 = cx > 0 ? cx - 1 : cx;
     const uint32_t y1 = cy > 0 ? cy - 1 : cy;
 
@@ -76,7 +81,8 @@ static void snap_image_box_blur_3x3(lv_draw_buf_t* buf) {
 
     for(uint32_t x = 0; x < buf_width; ++x) {
         for(uint32_t y = 0; y < buf_height; ++y) {
-            const lv_color_t average = snap_image_get_box_average(ref_buf, buf_width, buf_height, x, y);
+            const lv_color_t average =
+                snap_image_get_box_average(ref_buf, buf_width, buf_height, x, y);
             *(lv_color_t*)lv_draw_buf_goto_xy(buf, x, y) = average;
         }
     }
