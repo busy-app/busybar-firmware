@@ -116,31 +116,39 @@ static void busy_scene_timer_update_tick(BusyApp* instance) {
     }
 }
 
+static void busy_scene_timer_update_lights(BusyApp* instance) {
+    const BusySceneTimer* data = scene_manager_get_current_scene_data(instance->scene_manager);
+
+    if(data->is_paused) {
+        busy_set_status_lights(instance, BusyStatusLightsTypeOff);
+    } else if(data->timer_state == BusyTimerStateWork) {
+        busy_set_status_lights(instance, BusyStatusLightsTypeWork);
+    } else if(data->timer_state == BusyTimerStateRest) {
+        busy_set_status_lights(instance, BusyStatusLightsTypeRest);
+    }
+}
+
 static void busy_scene_timer_update_state(BusyApp* instance) {
     BusySceneTimer* data = scene_manager_get_current_scene_data(instance->scene_manager);
 
-    if(data->timer_state == BusyTimerStateWork) {
-        with_gui(instance->gui, {
+    with_gui(instance->gui, {
+        if(data->timer_state == BusyTimerStateWork) {
             anim_image_set_source(data->state_image, BUSY_ANIM_PATH("busy_label_40x14.anim"));
             anim_image_start(data->state_image);
             progress_bar_set_trough_color(data->progress_bar, PROGRESS_BAR_COLOR_BUSY);
             progress_bar_set_anim_source(
                 data->progress_bar, BUSY_ANIM_PATH("progress_bar_busy_71x1.anim"));
-        });
 
-        busy_set_status_lights(instance, BusyStatusLightsTypeWork);
-
-    } else if(data->timer_state == BusyTimerStateRest) {
-        with_gui(instance->gui, {
+        } else if(data->timer_state == BusyTimerStateRest) {
             anim_image_set_source(data->state_image, BUSY_ANIM_PATH("rest_label_40x14.anim"));
             anim_image_start(data->state_image);
             progress_bar_set_trough_color(data->progress_bar, PROGRESS_BAR_COLOR_REST);
             progress_bar_set_anim_source(
                 data->progress_bar, BUSY_ANIM_PATH("progress_bar_rest_71x1.anim"));
-        });
+        }
+    });
 
-        busy_set_status_lights(instance, BusyStatusLightsTypeRest);
-    }
+    busy_scene_timer_update_lights(instance);
 }
 
 static void busy_scene_timer_toggle_pause(BusyApp* instance) {
@@ -158,17 +166,42 @@ static void busy_scene_timer_toggle_pause(BusyApp* instance) {
         }
     });
 
+    busy_scene_timer_update_lights(instance);
+    busy_timer_toggle(instance->busy_timer);
+}
+
+static void busy_scene_timer_handle_skip(BusyApp* instance) {
+    const BusySceneTimer* data = scene_manager_get_current_scene_data(instance->scene_manager);
+
     if(data->is_paused) {
+        scene_manager_search_and_switch_to_previous_scene(
+            instance->scene_manager, BusyAppSceneIdStart);
+    } else {
+        busy_prepare_transition(instance, BusyTransitionTypeWhite);
+        busy_start_transition(instance);
+        busy_timer_skip(instance->busy_timer);
+    }
+}
+
+static void busy_scene_timer_handle_back(BusyApp* instance) {
+    const BusySceneTimer* data = scene_manager_get_current_scene_data(instance->scene_manager);
+
+    if(data->is_paused) {
+        busy_scene_timer_toggle_pause(instance);
+
+    } else {
+        busy_timer_stop(instance->busy_timer);
+
+        busy_prepare_transition(instance, BusyTransitionTypeBlack);
         busy_set_status_lights(instance, BusyStatusLightsTypeOff);
-    } else if(data->timer_state == BusyTimerStateWork) {
-        busy_set_status_lights(instance, BusyStatusLightsTypeWork);
-    } else if(data->timer_state == BusyTimerStateRest) {
-        busy_set_status_lights(instance, BusyStatusLightsTypeRest);
+
+        scene_manager_search_and_switch_to_previous_scene(
+            instance->scene_manager, BusyAppSceneIdStart);
     }
 }
 
 static void busy_scene_timer_go_to_progress_scene(BusyApp* instance) {
-    BusySceneTimer* data = scene_manager_get_current_scene_data(instance->scene_manager);
+    const BusySceneTimer* data = scene_manager_get_current_scene_data(instance->scene_manager);
 
     if(data->is_force_ended) {
         busy_scene_timer_run_later_callback(instance);
@@ -254,12 +287,9 @@ static bool busy_scene_timer_on_event(const SceneManagerEvent* event, void* cont
 
         } else if(event->event == BusyCustomEventTimerToggle) {
             busy_scene_timer_toggle_pause(instance);
-            busy_timer_toggle(instance->busy_timer);
 
         } else if(event->event == BusyCustomEventTimerSkip) {
-            busy_prepare_transition(instance, BusyTransitionTypeWhite);
-            busy_start_transition(instance);
-            busy_timer_skip(instance->busy_timer);
+            busy_scene_timer_handle_skip(instance);
 
         } else if(event->event == BusyCustomEventTimeIncrement) {
             busy_timer_add_time(instance->busy_timer, BUSY_TIMER_TIME_INCREMENT_MN);
@@ -271,14 +301,7 @@ static bool busy_scene_timer_on_event(const SceneManagerEvent* event, void* cont
         consumed = true;
 
     } else if(event->type == SceneManagerEventTypeBack) {
-        // TODO: Ask for confirmation
-        busy_timer_stop(instance->busy_timer);
-
-        busy_prepare_transition(instance, BusyTransitionTypeBlack);
-        busy_set_status_lights(instance, BusyStatusLightsTypeOff);
-
-        scene_manager_search_and_switch_to_previous_scene(
-            instance->scene_manager, BusyAppSceneIdStart);
+        busy_scene_timer_handle_back(instance);
 
         consumed = true;
     }
