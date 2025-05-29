@@ -1,0 +1,76 @@
+Import("FW_ENV")
+fwenv = FW_ENV
+
+from SCons.Util import splitext
+from fbt.version import get_git_commit_unix_timestamp
+
+fwenv.SetDefault(RESOURCES_ROOT=fwenv.Dir("${BUILD_DIR}/resources"))
+
+fw_assets_env = fwenv.Clone(tools=["bsb_assets"])
+
+if fwenv.get("IS_BASE_FIRMWARE", False):
+    assets_dir = fwenv.Dir("${BUILD_DIR}/apps_assets")
+
+    sounds_src_files = fwenv.GlobRecursive("*.wav", Dir("#/assets/sounds/"))
+
+    sounds_converted = []
+
+    for f in sounds_src_files:
+        file_node = assets_dir.File(
+            f.Dir(".").name + "/sounds/" + splitext(f.name)[0] + ".snd"
+        )
+        sounds_converted.append(fw_assets_env.AudioConverter(file_node, f))
+
+    resources_dist = []
+    resources_dist.append(sounds_converted)
+
+    anim_src_files = fwenv.GlobRecursive("*.zip", Dir("#/assets/animations/"))
+
+    anim_converted = []
+
+    for f in anim_src_files:
+        file_node = assets_dir.File(
+            f.Dir(".").name + "/animations/" + splitext(f.name)[0] + ".anim"
+        )
+        anim_converted.append(fw_assets_env.AnimationConverter(file_node, f))
+
+    resources_dist.append(anim_converted)
+
+    image_src_files = fwenv.GlobRecursive("*.png", Dir("#/assets/images/external"))
+
+    images_converted = []
+
+    for f in image_src_files:
+        internal_name = splitext(f.name)[0]
+        file_node = assets_dir.File(
+            f.Dir(".").name + "/images/" + internal_name + ".bin"
+        )
+        images_converted.append(
+            fw_assets_env.ImageConverter(
+                file_node, f, IMAGE_FILE_FORMAT="BIN", IMAGE_INTERNAL_NAME=internal_name
+            )
+        )
+
+    resources_dist.append(images_converted)
+
+    swagger_files = fw_assets_env.SwaggerGenerator(
+        assets_dir.File("web_server/www/docs/index.html"),
+        fw_assets_env.Real(
+            assets_dir.File(
+                "#/applications/services/web_server/resources/apps_assets/web_server/www/openapi.yaml"
+            )
+        ),
+    )
+
+    resources_dist.append(swagger_files)
+
+    resources_env = fwenv.Clone(tools=["fbt_resources"])
+    # Resources & manifest for SD card
+    manifest = resources_env.ManifestBuilder(
+        "${RESOURCES_ROOT}/Manifest",
+        GIT_UNIX_TIMESTAMP=get_git_commit_unix_timestamp(),
+        _EXTRA_DIST=[assets_dir],
+    )
+    fwenv.Replace(FW_RESOURCES_MANIFEST=manifest)
+    Depends(manifest, resources_dist)
+    Alias("resources", manifest)

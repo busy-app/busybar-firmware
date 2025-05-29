@@ -48,6 +48,18 @@ The following steps need to be done each time the firmware needs to be flashed:
 4. Once the process has been started, release the `917_BOOT` button as well,
 5. Wait until the "Firmware has been flashed" message shows and briefly press the `917_RST` button again.
 
+### Resource provisioning
+
+Resource files are required for correct firmware operation.
+
+To build and upload the resources, run
+
+```shell
+./fbt resources_upload
+```
+
+while the device is connected via USB and its virtual ethernet interface is initialised.
+
 ## Project structure
 
 - `applications`        - Applications and services used in firmware

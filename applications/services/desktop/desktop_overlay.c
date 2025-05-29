@@ -3,12 +3,15 @@
 #include <furi.h>
 #include <lvgl.h>
 
+#include <storage/storage.h>
 #include <gui/modules/image.h>
-#include <assets/assets_images.h>
 
 #define TAG "DesktopOverlay"
 
 #define OVERLAY_ANIM_TIME_MS (100)
+
+#define DESKTOP_ASSETS_PATH(path) EXT_PATH("apps_assets/desktop") "/" path
+#define DESKTOP_IMG_PATH(path)    DESKTOP_ASSETS_PATH("images") "/" path
 
 struct DesktopOverlay {
     Gui* gui;
@@ -53,8 +56,7 @@ DesktopOverlay* desktop_overlay_alloc(Gui* gui) {
 
         root = gui_layer_get_root_widget(system_layer, GuiDisplayIdBack);
         instance->status_bar = image_alloc(root);
-        // TODO: Implement built-in images properly
-        image_set_source(instance->status_bar, (const void*)(&I_status_bar_dummy_12x80));
+        image_set_source(instance->status_bar, DESKTOP_IMG_PATH("status_bar_dummy_12x80.bin"));
         widget_set_align(image_get_base(instance->status_bar), AlignRightMid);
     });
 
