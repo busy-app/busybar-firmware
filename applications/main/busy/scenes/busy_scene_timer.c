@@ -173,10 +173,7 @@ static void busy_scene_timer_toggle_pause(BusyApp* instance) {
 static void busy_scene_timer_handle_skip(BusyApp* instance) {
     const BusySceneTimer* data = scene_manager_get_current_scene_data(instance->scene_manager);
 
-    if(data->is_paused) {
-        scene_manager_search_and_switch_to_previous_scene(
-            instance->scene_manager, BusyAppSceneIdStart);
-    } else {
+    if(!data->is_paused) {
         busy_prepare_transition(instance, BusyTransitionTypeWhite);
         busy_start_transition(instance);
         busy_timer_skip(instance->busy_timer);
@@ -186,10 +183,7 @@ static void busy_scene_timer_handle_skip(BusyApp* instance) {
 static void busy_scene_timer_handle_back(BusyApp* instance) {
     const BusySceneTimer* data = scene_manager_get_current_scene_data(instance->scene_manager);
 
-    if(data->is_paused) {
-        busy_scene_timer_toggle_pause(instance);
-
-    } else {
+    if(!data->is_paused) {
         busy_timer_stop(instance->busy_timer);
 
         busy_prepare_transition(instance, BusyTransitionTypeBlack);
@@ -197,6 +191,8 @@ static void busy_scene_timer_handle_back(BusyApp* instance) {
 
         scene_manager_search_and_switch_to_previous_scene(
             instance->scene_manager, BusyAppSceneIdStart);
+    } else {
+        busy_scene_timer_toggle_pause(instance);
     }
 }
 
