@@ -136,21 +136,21 @@ static bool api_wifi_get_networks_callaback(
     return true;
 }
 
-static bool parse_octet(char* octet, WifiIpType type, int* value) {
+static inline bool parse_octet(char* octet, WifiIpType type, int* value) {
     uint8_t base = (type == WifiIpTypeV4) ? 10 : 16;
     char* endptr;
     *value = strtoul(octet, &endptr, base);
     return (*endptr == '\0');
 }
 
-static bool validate_octet(int raw_octet, WifiIpType type) {
+static inline bool validate_octet(int raw_octet, WifiIpType type) {
     UNUSED(raw_octet);
     UNUSED(type);
     uint16_t max_value = type == WifiIpTypeV4 ? UINT8_MAX : UINT16_MAX;
     return (raw_octet >= 0 && raw_octet <= max_value);
 }
 
-static bool parse_ip_address(WifiIpConfig* ip_config, char* str) {
+static bool api_wifi_parse_ip_address(WifiIpConfig* ip_config, char* str) {
     uint8_t i = 0;
 
     const char* separator;
@@ -195,7 +195,6 @@ static bool parse_ip_address(WifiIpConfig* ip_config, char* str) {
 
         octet_str = strtok(NULL, separator);
     }
-
     return i == length;
 }
 
@@ -237,7 +236,7 @@ static bool api_wifi_parse_ip_config(struct mg_str ip_config_json, WifiIpConfig*
         if(!aip_wifi_parse_ip_type(buf, &ip_config->type)) break;
 
         char* str = mg_json_get_str(ip_config_json, "$.ip_address");
-        if(!parse_ip_address(ip_config, str)) break;
+        if(!api_wifi_parse_ip_address(ip_config, str)) break;
 
         ///TODO: Remove this, or make it debug
         wifi_print_parsed_address(
@@ -276,13 +275,10 @@ static bool api_wifi_connect_parse_config(
 
 static bool
     api_wifi_connect_callaback(struct mg_connection* conn, struct mg_http_message* msg, void* ctx) {
-    UNUSED(msg);
     UNUSED(ctx);
 
-    WifiCredentials credentials;
-    WifiIpConfig ip_config;
-    memset(&credentials, 0, sizeof(WifiCredentials));
-    memset(&ip_config, 0, sizeof(WifiIpConfig));
+    WifiCredentials credentials = {0};
+    WifiIpConfig ip_config = {0};
 
     bool parse_result = api_wifi_connect_parse_config(msg->body, &credentials, &ip_config);
     int status_code;
@@ -295,10 +291,13 @@ static bool
 
         furi_record_close(RECORD_WIFI);
         const ApiWifiResponseData* data = api_wifi_get_response_data_from_status(status);
-        mg_http_reply(conn, data->code, "", data->message);
+        status_code = data->code;
+        response_msg = data->message;
     } else {
-        mg_http_reply(conn, 400, "", "Parsing failed");
+        status_code = 400;
+        response_msg = "Parsing failed";
     }
+    mg_http_reply(conn, status_code, "", response_msg);
     return true;
 }
 
@@ -308,8 +307,6 @@ static bool api_wifi_disconnect_callaback(
     void* ctx) {
     UNUSED(msg);
     UNUSED(ctx);
-
-    FURI_LOG_D(TAG, "disconnect");
 
     Wifi* wifi = furi_record_open(RECORD_WIFI);
     WifiStatus status = wifi_disconnect(wifi);
@@ -337,10 +334,7 @@ static bool
     UNUSED(msg);
 
     Wifi* wifi = furi_record_open(RECORD_WIFI);
-
     WifiStatus status = wifi_init(wifi);
-
-    FURI_LOG_D(TAG, "Enable status: %X", status);
     furi_record_close(RECORD_WIFI);
 
     const ApiWifiResponseData* data = api_wifi_get_response_data_from_status(status);
