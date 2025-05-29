@@ -92,89 +92,6 @@ paths:
               schema:
                 $ref: '#/components/schemas/Error'
 
-  /api/v0/assets/{filename}:
-    get:
-      tags:
-        - Assets
-      summary: Get asset file
-      description: Retrieves static asset files from the assets directory
-      operationId: getAsset
-      parameters:
-        - name: filename
-          in: path
-          required: true
-          schema:
-            type: string
-            pattern: '^[a-zA-Z0-9._-]+$'
-          description: Asset filename (alphanumeric, dots, underscores, hyphens only)
-          example: "example.txt"
-      responses:
-        '200':
-          description: Asset file retrieved successfully
-          content:
-            '*/*':
-              schema:
-                type: string
-                format: binary
-        '404':
-          description: Asset not found
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Error'
-        '400':
-          description: Invalid filename
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Error'
-
-    post:
-      tags:
-        - Assets
-      summary: Upload asset file
-      description: Uploads a file to the assets directory
-      operationId: uploadAsset
-      parameters:
-        - name: filename
-          in: path
-          required: true
-          schema:
-            type: string
-            pattern: '^[a-zA-Z0-9._-]+$'
-          description: Filename for the uploaded asset
-          example: "my_file.txt"
-      requestBody:
-        required: true
-        content:
-          application/octet-stream:
-            schema:
-              type: string
-              format: binary
-              description: File data to upload as raw binary content
-          multipart/form-data:
-            schema:
-              $ref: '#/components/schemas/FileUpload'
-      responses:
-        '200':
-          description: File uploaded successfully
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/SuccessResponse'
-        '400':
-          description: Invalid filename or upload failed
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Error'
-        '413':
-          description: File too large
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Error'
-
   /api/v0/assets/upload:
     post:
       tags:
@@ -259,21 +176,18 @@ paths:
   /api/v0/display/draw:
     post:
       tags:
-        - Hardware
+        - Assets
       summary: Draw on display
       description: |
-        Sends binary drawing data to the display.
-        The binary data format should consist of pixel information that matches
-        the display's resolution and color depth.
+        Sends drawing data to the display.
+        Supports JSON-defined display elements.
       operationId: drawOnDisplay
       requestBody:
         required: true
         content:
-          application/octet-stream:
+          application/json:
             schema:
-              type: string
-              format: binary
-              description: Binary drawing data for the display
+              $ref: '#/components/schemas/DisplayElements'
       responses:
         '200':
           description: Drawing command executed successfully
@@ -295,7 +209,7 @@ paths:
                 $ref: '#/components/schemas/Error'
     delete:
       tags:
-        - Hardware
+        - Assets
       summary: Clear display
       description: Clears the display and stops the Canvas application if running
       operationId: clearDisplay
@@ -316,7 +230,7 @@ paths:
   /api/v0/audio/play:
     post:
       tags:
-        - Hardware
+        - Assets
       summary: Play audio file
       description: |
         Plays an audio file from the assets directory.
@@ -361,7 +275,7 @@ paths:
     
     delete:
       tags:
-        - Hardware
+        - Assets
       summary: Stop audio playback
       description: Stops any currently playing audio
       operationId: stopAudio
@@ -512,12 +426,105 @@ components:
         error: "Invalid parameter"
         code: 400
 
+    DisplayElements:
+      type: object
+      properties:
+        app_id:
+          type: string
+          pattern: '^[a-zA-Z0-9._-]+$'
+          description: Application ID for organizing assets
+          example: "my_app"
+        elements:
+          type: array
+          items:
+            $ref: '#/components/schemas/DisplayElement'
+          description: Array of elements to display
+      required:
+        - app_id
+        - elements
+      example:
+        app_id: "my_app"
+        elements:
+          - id: "0"
+            timeout: 5
+            type: "text"
+            text: "Hello, world!"
+            x: 0
+            y: 0
+            display: "front"
+          - id: "1"
+            timeout: 6
+            type: "image"
+            path: "data.png"
+            x: 0
+            y: 0
+            display: "back"
+      
+    DisplayElement:
+      type: object
+      required:
+        - id
+        - type
+        - x
+        - y
+      properties:
+        id:
+          type: string
+          description: Unique identifier for the element
+        timeout:
+          type: integer
+          minimum: 0
+          description: Time in seconds the element should be displayed (0 for no timeout)
+        type:
+          type: string
+          enum: [text, image]
+          description: Type of display element
+        x:
+          type: integer
+          description: X coordinate for placement on display
+        y:
+          type: integer
+          description: Y coordinate for placement on display
+        display:
+          type: string
+          enum: [front, back]
+          description: Which display to show the element on (for dual-display devices)
+          default: front
+      discriminator:
+        propertyName: type
+        mapping:
+          text: '#/components/schemas/TextElement'
+          image: '#/components/schemas/ImageElement'
+      
+    TextElement:
+      allOf:
+        - $ref: '#/components/schemas/DisplayElement'
+        - type: object
+          required:
+            - text
+          properties:
+            text:
+              type: string
+              description: Text content to display
+            
+    ImageElement:
+      allOf:
+        - $ref: '#/components/schemas/DisplayElement'
+        - type: object
+          required:
+            - path
+          properties:
+            path:
+              type: string
+              pattern: '^[a-zA-Z0-9._/-]+$'
+              description: Path to the image file in the app's assets
+
 tags:
   - name: System
     description: System information and control
   - name: Hardware
-    description: Hardware control (LED, display, audio)
+    description: Low-level hardware control
   - name: Assets
-    description: Asset file management and upload
+    description: Asset file management and display control
   - name: WebSocket
     description: Real-time communication via WebSocket

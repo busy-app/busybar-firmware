@@ -188,9 +188,8 @@ class Main(App):
     def _create_swagger_html(self, target_dir: Path, api_yaml_path: str) -> None:
         """Create a customized Swagger UI HTML file."""
 
-        # For constructing the URL path in the browser, we need to find the relative path
-        # from the docs directory (target_dir) to the api spec file
-        api_url_path = f"../{api_yaml_path}"
+        # for now, we assume the API spec location
+        api_url_path = api_yaml_path
 
         html_content = f"""<!DOCTYPE html>
 <html lang="en">
