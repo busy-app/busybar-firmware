@@ -74,6 +74,15 @@ bool loader_is_locked(Loader* instance);
  */
 FuriPubSub* loader_get_pubsub(Loader* instance);
 
+/**
+ * @brief Get the name of the currently running application
+ *
+ * @param[in] instance pointer to the loader instance
+ * @param[in,out] name pointer to the string to contain the name (must be allocated)
+ * @return true if it was possible to get an application name, false otherwise
+ */
+bool loader_get_application_name(Loader* instance, FuriString* name);
+
 #ifdef __cplusplus
 }
 #endif

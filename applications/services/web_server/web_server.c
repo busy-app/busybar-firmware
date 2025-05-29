@@ -3,9 +3,7 @@
 #include "web_server_i.h"
 #include "http_api/http_api.h"
 
-#define TAG "HTTP_SRV"
-
-#define MAX_UPLOAD_LEN 1024 * 1024 * 1024
+#define TAG "HttpSrv"
 
 // TODO: timers
 
@@ -15,12 +13,6 @@ typedef struct {
 } WebServer;
 
 static WebServer srv = {0};
-
-bool http_upload_callback(struct mg_connection* conn, struct mg_http_message* msg, void* ctx) {
-    UNUSED(ctx);
-    mg_http_upload(conn, msg, http_fs_get(), WEB_ROOT "upload", MAX_UPLOAD_LEN);
-    return true;
-}
 
 static const HttpHandler handlers_root[] = {
     {
@@ -41,12 +33,6 @@ static const HttpHandler handlers_root[] = {
         .ctx_free = http_websocket_free,
     },
     {
-        .uri = "/upload",
-        .method = "POST",
-        .type = HttpHandlerCustom,
-        .on_request = http_upload_callback,
-    },
-    {
         .uri = "#",
         .method = "GET",
         .type = HttpHandlerDir,
@@ -64,7 +50,7 @@ static void http_event_handler(struct mg_connection* conn, int ev, void* ev_data
         if(conn_ctx->raw.on_data == NULL) { // Skip raw connections
             bool result = http_handle_request(context->handlers, conn, msg);
             if(!result) {
-                mg_http_reply(conn, 400, "", "Bad Request");
+                MG_REPLY_BAD_REQUEST(conn);
             }
         }
 
@@ -164,7 +150,7 @@ bool http_handle_request(
                     .ssi_pattern = NULL,
                     .extra_headers = inst->handler->extra_headers,
                     .mime_types = inst->handler->mime_types_custom,
-                    .page404 = WEB_ROOT "404.html",
+                    .page404 = NULL, // WEB_ROOT "404.html",
                     .fs = http_fs_get(),
                 };
                 mg_http_serve_file(conn, msg, inst->handler->path, &opts);
@@ -175,7 +161,7 @@ bool http_handle_request(
                     .ssi_pattern = NULL,
                     .extra_headers = inst->handler->extra_headers,
                     .mime_types = inst->handler->mime_types_custom,
-                    .page404 = WEB_ROOT "404.html",
+                    .page404 = NULL, // WEB_ROOT "404.html",
                     .fs = http_fs_get(),
                 };
                 mg_http_serve_dir(conn, msg, &opts);
