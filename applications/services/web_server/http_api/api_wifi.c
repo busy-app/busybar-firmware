@@ -38,13 +38,58 @@ static const char* security_modes[WifiSecurityModeMax] = {
     [WifiSecurityModeWpa3TransitionEnterprise] = "WPA2/WPA3 (Enterprise)",
 };
 
+static const char* wifi_ip_method[] = {
+    [WifiIpManagementStatic] = "static",
+    [WifiIpManagementDynamic] = "dhcp",
+};
+
+static const char* wifi_ip_type[] = {
+    [WifiIpTypeV4] = "ipv4",
+    [WifiIpTypeV6] = "ipv6",
+};
+
 static const ApiWifiResponseData* api_wifi_get_response_data_from_status(WifiStatus status) {
     furi_assert(status < COUNT_OF(wifi_response_data));
     return &wifi_response_data[status];
 }
+
+static bool api_wifi_parse_value_from_array(
+    const FuriString* value_str,
+    const char** array,
+    size_t length,
+    int* result) {
+    bool state = false;
+    for(size_t i = 0; i < length; i++) {
+        if(!furi_string_equal_str(value_str, array[i])) continue;
+        *result = i;
+        state = true;
         break;
     }
-    return mode;
+    return state;
+}
+
+static bool api_wifi_get_security_mode_by_name(const FuriString* name, WifiSecurityMode* mode) {
+    int value = WifiSecurityModeMax;
+    bool result =
+        api_wifi_parse_value_from_array(name, security_modes, WifiSecurityModeMax, &value);
+    *mode = (WifiSecurityMode)value;
+    return result;
+}
+
+static bool api_wifi_parse_ip_method(FuriString* method_str, WifiIpManagement* method) {
+    int value = 0;
+    bool result = api_wifi_parse_value_from_array(
+        method_str, wifi_ip_method, COUNT_OF(wifi_ip_method), &value);
+    *method = (WifiIpManagement)value;
+    return result;
+}
+
+static bool aip_wifi_parse_ip_type(FuriString* ip_type_str, WifiIpType* ip_type) {
+    int value = 0;
+    bool result =
+        api_wifi_parse_value_from_array(ip_type_str, wifi_ip_type, COUNT_OF(wifi_ip_type), &value);
+    *ip_type = (WifiIpType)value;
+    return result;
 }
 
 static bool api_wifi_get_networks_callaback(
@@ -174,6 +219,61 @@ static void wifi_print_parsed_address(
     }
 }
 
+static bool api_wifi_parse_ip_config(struct mg_str ip_config_json, WifiIpConfig* const ip_config) {
+    bool result = false;
+    FuriString* buf = furi_string_alloc();
+    do {
+        if(ip_config_json.len == 0) break;
+
+        furi_string_set_str(buf, mg_json_get_str(ip_config_json, "$.ip_method"));
+        if(!api_wifi_parse_ip_method(buf, &ip_config->mgmt)) break;
+
+        if(ip_config->mgmt == WifiIpManagementDynamic) {
+            result = true;
+            break;
+        }
+
+        furi_string_set_str(buf, mg_json_get_str(ip_config_json, "$.ip_type"));
+        if(!aip_wifi_parse_ip_type(buf, &ip_config->type)) break;
+
+        char* str = mg_json_get_str(ip_config_json, "$.ip_address");
+        if(!parse_ip_address(ip_config, str)) break;
+
+        ///TODO: Remove this, or make it debug
+        wifi_print_parsed_address(
+            buf,
+            ip_config->type,
+            (uint8_t*)&ip_config->address,
+            ip_config->type == WifiIpTypeV4 ? 4 : 16);
+        FURI_LOG_D(TAG, "IP: %s", furi_string_get_cstr(buf));
+        result = true;
+    } while(false);
+    furi_string_free(buf);
+    return result;
+}
+
+static bool api_wifi_connect_parse_config(
+    struct mg_str body,
+    WifiCredentials* credentials,
+    WifiIpConfig* ip_config) {
+    bool parse_result = false;
+    do {
+        strncpy(credentials->ssid, mg_json_get_str(body, "$.SSID"), SSID_MAX_LEN);
+        strncpy(credentials->passphrase, mg_json_get_str(body, "$.Password"), PASSPHRASE_MAX_LEN);
+
+        FuriString* buf;
+        buf = furi_string_alloc_set_str(mg_json_get_str(body, "$.Security"));
+        if(!api_wifi_get_security_mode_by_name(buf, &credentials->security_mode)) break;
+
+        struct mg_str ip_config_json = mg_json_get_tok(body, "$.ip_config");
+        if(!api_wifi_parse_ip_config(ip_config_json, ip_config)) break;
+
+        furi_string_free(buf);
+        parse_result = true;
+    } while(false);
+    return parse_result;
+}
+
 static bool
     api_wifi_connect_callaback(struct mg_connection* conn, struct mg_http_message* msg, void* ctx) {
     UNUSED(msg);
@@ -184,55 +284,9 @@ static bool
     memset(&credentials, 0, sizeof(WifiCredentials));
     memset(&ip_config, 0, sizeof(WifiIpConfig));
 
-    bool parse_result = false;
-    do {
-        strncpy(credentials.ssid, mg_json_get_str(msg->body, "$.SSID"), SSID_MAX_LEN);
-        strncpy(
-            credentials.passphrase, mg_json_get_str(msg->body, "$.Password"), PASSPHRASE_MAX_LEN);
-
-        FuriString* buf;
-        buf = furi_string_alloc_set_str(mg_json_get_str(msg->body, "$.Security"));
-        WifiSecurityMode mode = api_wifi_get_security_mode_by_name(buf);
-
-        if(mode == WifiSecurityModeMax) break;
-        credentials.security_mode = mode;
-
-        struct mg_str ip_config_json = mg_json_get_tok(msg->body, "$.ip_config");
-        if(ip_config_json.len == 0) break;
-
-        furi_string_set_str(buf, mg_json_get_str(ip_config_json, "$.ip_method"));
-        if(furi_string_equal_str(buf, "dhcp")) {
-            ip_config.mgmt = WifiIpManagementDynamic;
-        } else if(furi_string_equal_str(buf, "static")) {
-            ip_config.mgmt = WifiIpManagementStatic;
-        } else
-            break;
-
-        if(ip_config.mgmt == WifiIpManagementStatic) {
-            furi_string_set_str(buf, mg_json_get_str(ip_config_json, "$.ip_type"));
-            if(furi_string_equal_str(buf, "ipv4")) {
-                ip_config.type = WifiIpTypeV4;
-            } else if(furi_string_equal_str(buf, "ipv6")) {
-                ip_config.type = WifiIpTypeV6;
-            } else
-                break;
-
-            char* str = mg_json_get_str(ip_config_json, "$.ip_address");
-            if(!parse_ip_address(&ip_config, str)) break;
-
-            wifi_print_parsed_address(
-                buf,
-                ip_config.type,
-                (uint8_t*)&ip_config.address,
-                ip_config.type == WifiIpTypeV4 ? 4 : 16);
-            FURI_LOG_D(TAG, "IP: %s", furi_string_get_cstr(buf));
-        }
-        furi_string_free(buf);
-        parse_result = true;
-    } while(false);
-
-    ///TODO: check parsing is ok
-    UNUSED(parse_result);
+    bool parse_result = api_wifi_connect_parse_config(msg->body, &credentials, &ip_config);
+    int status_code;
+    const char* response_msg;
 
     if(parse_result) {
         Wifi* wifi = furi_record_open(RECORD_WIFI);
