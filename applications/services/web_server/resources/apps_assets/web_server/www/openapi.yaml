@@ -28,7 +28,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/LedState'
+                $ref: '#/components/schemas/LedStateResponse'
         '500':
           description: Internal server error
           content:
@@ -61,10 +61,9 @@ paths:
         '200':
           description: LED state set successfully
           content:
-            text/plain:
+            application/json:
               schema:
-                type: string
-                example: "OK"
+                $ref: '#/components/schemas/LedStateResponse'
         '400':
           description: Invalid state parameter
           content:
@@ -155,22 +154,14 @@ paths:
               description: File data to upload as raw binary content
           multipart/form-data:
             schema:
-              type: object
-              properties:
-                file:
-                  type: string
-                  format: binary
-                  description: File to upload
-              required:
-                - file
+              $ref: '#/components/schemas/FileUpload'
       responses:
         '200':
           description: File uploaded successfully
           content:
-            text/plain:
+            application/json:
               schema:
-                type: string
-                example: "OK"
+                $ref: '#/components/schemas/SuccessResponse'
         '400':
           description: Invalid filename or upload failed
           content:
@@ -220,10 +211,9 @@ paths:
         '200':
           description: File uploaded successfully
           content:
-            text/plain:
+            application/json:
               schema:
-                type: string
-                example: "OK"
+                $ref: '#/components/schemas/SuccessResponse'
         '400':
           description: Invalid parameters or upload failed
           content:
@@ -256,10 +246,9 @@ paths:
         '200':
           description: Assets deleted successfully
           content:
-            text/plain:
+            application/json:
               schema:
-                type: string
-                example: "OK"
+                $ref: '#/components/schemas/SuccessResponse'
         '400':
           description: Invalid app_id or deletion failed
           content:
@@ -289,10 +278,9 @@ paths:
         '200':
           description: Drawing command executed successfully
           content:
-            text/plain:
+            application/json:
               schema:
-                type: string
-                example: "OK"
+                $ref: '#/components/schemas/SuccessResponse'
         '400':
           description: Invalid drawing data
           content:
@@ -315,10 +303,9 @@ paths:
         '200':
           description: Display cleared successfully
           content:
-            text/plain:
+            application/json:
               schema:
-                type: string
-                example: "OK"
+                $ref: '#/components/schemas/SuccessResponse'
         '500':
           description: Display error
           content:
@@ -333,25 +320,32 @@ paths:
       summary: Play audio file
       description: |
         Plays an audio file from the assets directory.
-        Supported formats include WAV files.
+        Supported formats include .snd files.
       operationId: playAudio
       parameters:
+        - name: app_id
+          in: query
+          required: true
+          schema:
+            type: string
+            pattern: '^[a-zA-Z0-9._-]+$'
+          description: Application ID for organizing assets
+          example: "my_app"
         - name: path
           in: query
           required: true
           schema:
             type: string
             pattern: '^[a-zA-Z0-9._/-]+$'
-          description: Path to audio file in assets directory (relative path)
-          example: "sounds/beep.wav"
+          description: Path to audio file within app's assets directory
+          example: "data.snd"
       responses:
         '200':
           description: Audio playback started successfully
           content:
-            text/plain:
+            application/json:
               schema:
-                type: string
-                example: "OK"
+                $ref: '#/components/schemas/SuccessResponse'
         '400':
           description: Invalid file path or file not found
           content:
@@ -375,10 +369,9 @@ paths:
         '200':
           description: Audio playback stopped successfully
           content:
-            text/plain:
+            application/json:
               schema:
-                type: string
-                example: "OK"
+                $ref: '#/components/schemas/SuccessResponse'
         '500':
           description: Audio system error
           content:
@@ -400,7 +393,7 @@ paths:
           description: WebSocket connection established
         '400':
           description: WebSocket upgrade failed
-          content:
+          content:            
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
@@ -436,6 +429,28 @@ components:
         - state
       example:
         state: 1
+
+    SuccessResponse:
+      type: object
+      properties:
+        result:
+          type: string
+          example: "OK"
+          description: Success status message
+      required:
+        - result
+
+    LedStateResponse:
+      allOf:
+        - $ref: '#/components/schemas/SuccessResponse'
+        - type: object
+          properties:
+            state:
+              type: integer
+              enum: [0, 1]
+              description: Current LED state (0 for off, 1 for on)
+          required:
+            - state
 
     VersionInfo:
       type: object

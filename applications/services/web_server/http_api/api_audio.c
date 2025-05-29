@@ -4,7 +4,8 @@
 
 #define TAG "HttpAudio"
 
-#define AUDIO_ASSETS_DIR EXT_PATH("assets")
+#define AUDIO_ASSETS_DIR  EXT_PATH("assets")
+#define FILE_NAME_LEN_MAX 32
 
 typedef struct {
     size_t len_remain;
@@ -14,28 +15,34 @@ typedef struct {
 static bool
     api_audio_play_callback(struct mg_connection* conn, struct mg_http_message* msg, void* ctx) {
     UNUSED(ctx);
-    char file_path[32];
+    char temp_str[FILE_NAME_LEN_MAX];
     bool success = false;
 
+    FuriString* path = furi_string_alloc();
     do {
         if(msg->query.len == 0) {
             break;
         }
 
-        int var_len = mg_http_get_var(&msg->query, "path", file_path, sizeof(file_path));
+        int var_len = mg_http_get_var(&msg->query, "app_id", temp_str, sizeof(temp_str));
+        if(var_len <= 0) {
+            return false;
+        }
+        furi_string_printf(path, "%s/%.*s", AUDIO_ASSETS_DIR, var_len, temp_str);
+
+        var_len = mg_http_get_var(&msg->query, "path", temp_str, sizeof(temp_str));
         if(var_len <= 0) {
             break;
         }
+        furi_string_cat_printf(path, "/%.*s", var_len, temp_str);
 
-        FuriString* path =
-            furi_string_alloc_printf("%s/%.*s", AUDIO_ASSETS_DIR, var_len, file_path);
         Audio* audio = furi_record_open(RECORD_AUDIO);
         success = audio_play_file(audio, furi_string_get_cstr(path));
         furi_record_close(RECORD_AUDIO);
-        furi_string_free(path);
 
     } while(0);
 
+    furi_string_free(path);
     if(success) {
         MG_REPLY_OK(conn);
     } else {
