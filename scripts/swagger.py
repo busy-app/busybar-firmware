@@ -6,18 +6,36 @@ This script downloads the latest Swagger UI distribution and creates
 a customized HTML page that serves the API schema from the embedded device.
 """
 
+import logging
 import shutil
 import tempfile
 import urllib.request
 import zipfile
+import ssl
+import sys
 from pathlib import Path
 
 from flipper.app import App
 
 
 class Main(App):
+    SWAGGER_UI_URL_BASE = (
+        "https://github.com/swagger-api/swagger-ui/archive/refs/tags/v{version}.zip"
+    )
+    REQUIRED_STATIC_FILES = [
+        "swagger-ui-bundle.js",
+        "swagger-ui.css",
+        "swagger-ui-standalone-preset.js",
+        "favicon-16x16.png",
+        "favicon-32x32.png",
+    ]
+
     def init(self):
-        """Initialize the argument parser."""
+        self.parser.add_argument(
+            "api_spec",
+            help="Full path to OpenAPI specification file",
+            type=str,
+        )
         self.parser.add_argument(
             "--version",
             help="Swagger UI version to download",
@@ -25,15 +43,10 @@ class Main(App):
             required=False,
         )
         self.parser.add_argument(
+            "-o",
             "--target-dir",
             help="Target directory for generated files",
             default=None,
-            required=False,
-        )
-        self.parser.add_argument(
-            "--api-spec",
-            help="Path to OpenAPI specification file relative to web root",
-            default="openapi.yaml",
             required=False,
         )
         self.parser.add_argument(
@@ -42,27 +55,43 @@ class Main(App):
             action="store_true",
             default=True,
         )
+        self.parser.add_argument(
+            "-q",
+            "--quiet",
+            help="Suppress output messages",
+            action="store_true",
+            default=False,
+        )
 
         self.parser.set_defaults(func=self.generate)
 
     def generate(self):
-        """Main function to generate Swagger UI files."""
-        self.logger.info("BSB Firmware Swagger UI Generator")
-        self.logger.info("=" * 40)
+        if self.args.quiet:
+            self.logger.setLevel(logging.WARNING)
+
+        # Get API specification file path (now a required positional argument)
+        api_spec_path = Path(self.args.api_spec)
+
+        if not api_spec_path.exists():
+            self.logger.error(f"OpenAPI specification file not found: {api_spec_path}")
+            return 1
+
+        self.logger.info(f"Using OpenAPI specification: {api_spec_path}")
 
         # Determine target directory
         if self.args.target_dir:
             target_dir = Path(self.args.target_dir)
         else:
-            target_dir = (
-                Path(__file__).parent.parent
-                / "applications/services/web_server/resources/apps_assets/web_server/www/docs"
-            )
+            # Use "docs" directory next to the OpenAPI file
+            target_dir = api_spec_path.parent / "docs"
+            self.logger.info(f"No target directory specified, using: {target_dir}")
+
+        # Extract just the filename for API spec relative path
+        api_yaml_path = api_spec_path.name
 
         # Configuration
         swagger_ui_version = self.args.version
-        swagger_ui_url = f"https://github.com/swagger-api/swagger-ui/archive/refs/tags/v{swagger_ui_version}.zip"
-        api_yaml_path = self.args.api_spec
+        swagger_ui_url = self.SWAGGER_UI_URL_BASE.format(version=swagger_ui_version)
 
         # Clean and create target directory
         if self.args.clean and target_dir.exists():
@@ -71,47 +100,6 @@ class Main(App):
 
         target_dir.mkdir(parents=True, exist_ok=True)
         self.logger.info(f"Created docs directory: {target_dir}")
-
-        # Check if the specified API specification file exists
-        www_root = target_dir.parent
-
-        # Construct the full path to the API spec file based on the provided argument
-        api_spec_full_path = www_root / api_yaml_path
-
-        if not api_spec_full_path.exists():
-            self.logger.error(
-                f"OpenAPI specification file not found: {api_spec_full_path}"
-            )
-            self.logger.error(
-                f"Please ensure '{api_yaml_path}' exists in the www directory."
-            )
-
-            # If the user specified a custom path, also suggest the default
-            if api_yaml_path != "openapi.yaml":
-                default_path = www_root / "openapi.yaml"
-                if default_path.exists():
-                    self.logger.info(
-                        f"Note: Found default 'openapi.yaml' at {default_path}"
-                    )
-                    self.logger.info(
-                        "Consider using the default or copying your spec file to the expected location."
-                    )
-
-            return 1
-
-        self.logger.info(f"Using OpenAPI specification: {api_spec_full_path}")
-
-        # Validate that the API spec file is readable and appears to be valid YAML
-        try:
-            with open(api_spec_full_path, "r", encoding="utf-8") as f:
-                content = f.read(100)  # Read first 100 chars to check if it's readable
-                if not content.strip():
-                    self.logger.warning(
-                        f"API specification file appears to be empty: {api_spec_full_path}"
-                    )
-        except (IOError, UnicodeDecodeError) as e:
-            self.logger.error(f"Failed to read API specification file: {e}")
-            return 1
 
         try:
             with tempfile.TemporaryDirectory() as temp_dir:
@@ -131,7 +119,6 @@ class Main(App):
                 # Create API index redirect
                 self._create_api_index_redirect(target_dir)
 
-            self.logger.info("=" * 40)
             self.logger.info("✅ Swagger UI generation completed successfully!")
 
             return 0
@@ -148,14 +135,33 @@ class Main(App):
 
         zip_path = temp_dir / "swagger-ui.zip"
 
-        # Download the zip file
-        urllib.request.urlretrieve(swagger_ui_url, zip_path)
+        try:
+            # Try normal download first
+            urllib.request.urlretrieve(swagger_ui_url, zip_path)
+        except urllib.error.URLError as e:
+            if "CERTIFICATE_VERIFY_FAILED" in str(e):
+                self.logger.warning(
+                    "SSL certificate verification failed. Trying with verification disabled..."
+                )
+                # Create a context with SSL verification disabled
+                import ssl
 
-        # Extract the zip file
+                context = ssl.create_default_context()
+                context.check_hostname = False
+                context.verify_mode = ssl.CERT_NONE
+
+                # Download with SSL verification disabled
+                with urllib.request.urlopen(
+                    swagger_ui_url, context=context
+                ) as response, open(zip_path, "wb") as out_file:
+                    out_file.write(response.read())
+            else:
+                # Re-raise if it's not a certificate issue
+                raise
+
         with zipfile.ZipFile(zip_path, "r") as zip_ref:
             zip_ref.extractall(temp_dir)
 
-        # Find the extracted directory
         extracted_dir = temp_dir / f"swagger-ui-{swagger_ui_version}"
         if not extracted_dir.exists():
             raise FileNotFoundError(f"Extracted directory not found: {extracted_dir}")
@@ -165,18 +171,9 @@ class Main(App):
     def _copy_swagger_assets(self, swagger_dist_dir: Path, target_dir: Path) -> None:
         """Copy necessary Swagger UI assets."""
 
-        # List of files we need from Swagger UI
-        required_files = [
-            "swagger-ui-bundle.js",
-            "swagger-ui.css",
-            "swagger-ui-standalone-preset.js",
-            "favicon-16x16.png",
-            "favicon-32x32.png",
-        ]
-
         self.logger.info("Copying Swagger UI assets...")
 
-        for filename in required_files:
+        for filename in self.REQUIRED_STATIC_FILES:
             src_file = swagger_dist_dir / filename
             dst_file = target_dir / filename
 
@@ -190,6 +187,10 @@ class Main(App):
 
     def _create_swagger_html(self, target_dir: Path, api_yaml_path: str) -> None:
         """Create a customized Swagger UI HTML file."""
+
+        # For constructing the URL path in the browser, we need to find the relative path
+        # from the docs directory (target_dir) to the api spec file
+        api_url_path = f"../{api_yaml_path}"
 
         html_content = f"""<!DOCTYPE html>
 <html lang="en">
@@ -246,7 +247,7 @@ class Main(App):
             const baseUrl = window.location.protocol + '//' + window.location.host;
             
             // Build the API spec URL
-            const apiSpecUrl = baseUrl + '/{api_yaml_path}';
+            const apiSpecUrl = baseUrl + '/{api_url_path}';
             
             // Initialize Swagger UI
             const ui = SwaggerUIBundle({{

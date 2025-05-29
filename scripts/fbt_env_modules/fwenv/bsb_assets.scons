@@ -16,7 +16,9 @@ if fwenv.get("IS_BASE_FIRMWARE", False):
     sounds_converted = []
 
     for f in sounds_src_files:
-        file_node = assets_dir.File(f.Dir(".").name + "/sounds/" + splitext(f.name)[0] + ".snd")
+        file_node = assets_dir.File(
+            f.Dir(".").name + "/sounds/" + splitext(f.name)[0] + ".snd"
+        )
         sounds_converted.append(fw_assets_env.AudioConverter(file_node, f))
 
     resources_dist = []
@@ -27,7 +29,9 @@ if fwenv.get("IS_BASE_FIRMWARE", False):
     anim_converted = []
 
     for f in anim_src_files:
-        file_node = assets_dir.File(f.Dir(".").name + "/animations/" + splitext(f.name)[0] + ".anim")
+        file_node = assets_dir.File(
+            f.Dir(".").name + "/animations/" + splitext(f.name)[0] + ".anim"
+        )
         anim_converted.append(fw_assets_env.AnimationConverter(file_node, f))
 
     resources_dist.append(anim_converted)
@@ -38,10 +42,27 @@ if fwenv.get("IS_BASE_FIRMWARE", False):
 
     for f in image_src_files:
         internal_name = splitext(f.name)[0]
-        file_node = assets_dir.File(f.Dir(".").name + "/images/" + internal_name + ".bin")
-        images_converted.append(fw_assets_env.ImageConverter(file_node, f, IMAGE_FILE_FORMAT="BIN", IMAGE_INTERNAL_NAME=internal_name))
+        file_node = assets_dir.File(
+            f.Dir(".").name + "/images/" + internal_name + ".bin"
+        )
+        images_converted.append(
+            fw_assets_env.ImageConverter(
+                file_node, f, IMAGE_FILE_FORMAT="BIN", IMAGE_INTERNAL_NAME=internal_name
+            )
+        )
 
     resources_dist.append(images_converted)
+
+    swagger_files = fw_assets_env.SwaggerGenerator(
+        assets_dir.File("web_server/www/docs/index.html"),
+        fw_assets_env.Real(
+            assets_dir.File(
+                "#/applications/services/web_server/resources/apps_assets/web_server/www/openapi.yaml"
+            )
+        ),
+    )
+
+    resources_dist.append(swagger_files)
 
     resources_env = fwenv.Clone(tools=["fbt_resources"])
     # Resources & manifest for SD card
