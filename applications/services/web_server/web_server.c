@@ -50,7 +50,7 @@ static void http_event_handler(struct mg_connection* conn, int ev, void* ev_data
         if(conn_ctx->raw.on_data == NULL) { // Skip raw connections
             bool result = http_handle_request(context->handlers, conn, msg);
             if(!result) {
-                mg_http_reply(conn, 400, "", "Bad Request");
+                MG_REPLY_BAD_REQUEST(conn);
             }
         }
 

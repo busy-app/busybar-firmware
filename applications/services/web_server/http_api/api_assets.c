@@ -25,7 +25,7 @@ static void api_assets_upload_data_callback(struct mg_connection* conn, struct m
 
     if(data->len >= upload_ctx->len_remain) {
         // End of transfer - close connection
-        mg_http_reply(conn, 200, "", "OK");
+        MG_REPLY_OK(conn);
         conn->is_draining = 1;
         if(upload_ctx->file) {
             http_fs_get()->cl(upload_ctx->file);
@@ -105,11 +105,11 @@ static bool api_assets_upload_headers_callback(
         }
 
         if(upload_ctx->file == NULL) {
-            mg_http_reply(conn, 500, "", "FS error");
+            MG_REPLY_INTERNAL_ERROR(conn, "Failed to open file for writing");
             conn->is_draining = 1;
         }
     } else {
-        mg_http_reply(conn, 400, "", "Bad Request");
+        MG_REPLY_BAD_REQUEST(conn);
         conn->is_draining = 1;
     }
 
@@ -148,9 +148,9 @@ static bool
     furi_string_free(dir_path);
 
     if(success) {
-        mg_http_reply(conn, 200, "", "OK");
+        MG_REPLY_OK(conn);
     } else {
-        mg_http_reply(conn, 400, "", "Bad Request");
+        MG_REPLY_BAD_REQUEST(conn);
     }
 
     return true;
@@ -158,13 +158,13 @@ static bool
 
 static const HttpHandler handlers_assets[] = {
     {
-        .uri = "#/upload",
+        .uri = "/api/v0/assets/upload",
         .method = "POST",
         .type = HttpHandlerCustom,
         .on_headers = api_assets_upload_headers_callback,
     },
     {
-        .uri = "#/upload",
+        .uri = "/api/v0/assets/upload",
         .method = "DELETE",
         .type = HttpHandlerCustom,
         .on_request = api_assets_delete_callback,

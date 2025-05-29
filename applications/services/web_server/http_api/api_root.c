@@ -60,12 +60,9 @@ bool http_api_led_callback(struct mg_connection* conn, struct mg_http_message* m
     }
 
     if(success) {
-        mg_http_reply(
-            conn,
-            200,
-            "Content-Type: application/json\r\n",
-            "{\"result\":\"OK\",\"state\":%u}\n",
-            context->led_state);
+        MG_REPLY_OK_BODY(conn, "{\"result\":\"OK\",\"state\":%u}\n", context->led_state);
+    } else {
+        MG_REPLY_BAD_REQUEST(conn);
     }
     return success;
 }
@@ -87,8 +84,7 @@ bool http_api_version_callback(struct mg_connection* conn, struct mg_http_messag
         version_get_githash(firmware_version),
         version_get_dirty_flag(firmware_version) ? "-dirty" : "");
 
-    mg_http_reply(
-        conn, 200, "Content-Type: application/json\r\n", "{%s}\n", furi_string_get_cstr(ver_str));
+    MG_REPLY_OK_BODY(conn, "{%s}\n", furi_string_get_cstr(ver_str));
     furi_string_free(ver_str);
 
     return true;
@@ -96,7 +92,7 @@ bool http_api_version_callback(struct mg_connection* conn, struct mg_http_messag
 
 static const HttpHandler handlers_api_root[] = {
     {
-        .uri = "/*/led",
+        .uri = "/api/v0/led",
         .method = "*",
         .type = HttpHandlerCustom,
         .ctx_alloc = http_api_led_alloc,
@@ -104,13 +100,13 @@ static const HttpHandler handlers_api_root[] = {
         .on_request = http_api_led_callback,
     },
     {
-        .uri = "/*/version",
+        .uri = "/api/v0/version",
         .method = "GET",
         .type = HttpHandlerCustom,
         .on_request = http_api_version_callback,
     },
     {
-        .uri = "/*/v0/assets/*",
+        .uri = "/api/v0/assets/*",
         .method = "*",
         .type = HttpHandlerCustom,
         .ctx_alloc = http_api_assets_alloc,
@@ -119,7 +115,7 @@ static const HttpHandler handlers_api_root[] = {
         .on_headers = http_api_assets_hdr_callback,
     },
     {
-        .uri = "/*/v0/display/*",
+        .uri = "/api/v0/display/*",
         .method = "*",
         .type = HttpHandlerCustom,
         .ctx_alloc = http_api_display_alloc,
@@ -127,7 +123,7 @@ static const HttpHandler handlers_api_root[] = {
         .on_request = http_api_display_callback,
     },
     {
-        .uri = "/*/v0/audio/*",
+        .uri = "/api/v0/audio/*",
         .method = "*",
         .type = HttpHandlerCustom,
         .ctx_alloc = http_api_audio_alloc,

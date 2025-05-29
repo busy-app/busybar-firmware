@@ -36,13 +36,10 @@ static bool
 
     } while(0);
 
-    if(!success) {
-        mg_http_reply(conn, 400, "", "Bad Request");
-        return true;
-    }
-
     if(success) {
-        mg_http_reply(conn, 200, "Content-Type: application/json\r\n", "{\"result\":\"OK\"}\n");
+        MG_REPLY_OK(conn);
+    } else {
+        MG_REPLY_BAD_REQUEST(conn);
     }
 
     return true;
@@ -59,19 +56,19 @@ static bool
     audio_stop(audio);
     furi_record_close(RECORD_AUDIO);
 
-    mg_http_reply(conn, 200, "Content-Type: application/json\r\n", "{\"result\":\"OK\"}\n");
+    MG_REPLY_OK(conn);
     return true;
 }
 
 static const HttpHandler api_audio_handlers[] = {
     {
-        .uri = "#/play",
+        .uri = "/api/v0/audio/play",
         .method = "POST",
         .type = HttpHandlerCustom,
         .on_request = api_audio_play_callback,
     },
     {
-        .uri = "#/play",
+        .uri = "/api/v0/audio/play",
         .method = "DELETE",
         .type = HttpHandlerCustom,
         .on_request = api_audio_delete_callback,

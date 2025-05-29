@@ -112,11 +112,11 @@ static bool
             furi_record_close(RECORD_LOADER);
 
             if(loader_busy) {
-                mg_http_reply(conn, 403, "", "Forbidden");
+                MG_REPLY_ERROR(conn, 423, "Loader is busy with another app");
             } else {
                 Desktop* desktop = furi_record_open(RECORD_DESKTOP);
                 if(!desktop_replace_current_app(desktop, "canvas", "")) {
-                    mg_http_reply(conn, 400, "", "Failed to load app");
+                    MG_REPLY_ERROR(conn, 503, "Failed to load app");
                 } else {
                     app_running = true;
                 }
@@ -127,15 +127,15 @@ static bool
         if(app_running) {
             CanvasApp* canvas = furi_record_open(RECORD_CANVAS);
             if(canvas_show_elements(canvas, app_id, elements_array)) {
-                mg_http_reply(conn, 200, "", "OK");
+                MG_REPLY_OK(conn);
             } else {
-                mg_http_reply(conn, 400, "", "Bad Request");
+                MG_REPLY_BAD_REQUEST(conn);
             }
             furi_record_close(RECORD_CANVAS);
         }
 
     } else {
-        mg_http_reply(conn, 400, "", "Bad Request");
+        MG_REPLY_BAD_REQUEST(conn);
     }
 
     CanvasElementsArray_clear(elements_array);
@@ -158,20 +158,20 @@ static bool api_display_delete_callback(
         }
     }
     furi_record_close(RECORD_LOADER);
-    mg_http_reply(conn, 200, "", "OK");
+    MG_REPLY_OK(conn);
     furi_string_free(app_name);
     return true;
 }
 
 static const HttpHandler handlers_display[] = {
     {
-        .uri = "#/draw",
+        .uri = "/api/v0/display/draw",
         .method = "POST",
         .type = HttpHandlerCustom,
         .on_request = api_display_draw_callback,
     },
     {
-        .uri = "#/draw",
+        .uri = "/api/v0/display/draw",
         .method = "DELETE",
         .type = HttpHandlerCustom,
         .on_request = api_display_delete_callback,
