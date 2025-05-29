@@ -13,7 +13,7 @@
 #define BLUR_STRENGTH (255)
 #define DIM_STRENGTH  (160)
 
-#define TEXT_OFFSET_START (-5)
+#define TEXT_OFFSET_START (-4)
 #define TEXT_OFFSET_END   (-1)
 
 #define TEXT_ANIM_DELAY_MS    (FRAMES_TO_MS(5))
@@ -111,10 +111,10 @@ static void pause_overlay_animate_show(PauseOverlay* instance) {
     // Overshoot effect curve
     lv_anim_set_bezier3_param(
         &anim,
-        LV_BEZIER_VAL_FLOAT(0.37F),
+        LV_BEZIER_VAL_FLOAT(0.6F),
         LV_BEZIER_VAL_FLOAT(0.0F),
         LV_BEZIER_VAL_FLOAT(0.3F),
-        LV_BEZIER_VAL_FLOAT(4.0F));
+        LV_BEZIER_VAL_FLOAT(3.0F));
 
     lv_anim_set_path_cb(&anim, lv_anim_path_custom_bezier3);
     lv_anim_set_start_cb(&anim, pause_overlay_lvgl_show_anim_start_callback);
