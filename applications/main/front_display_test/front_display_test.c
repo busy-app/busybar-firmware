@@ -235,6 +235,33 @@ static void front_display_test_set_pattern_frame(Canvas* canvas, Color color) {
         false);
 }
 
+static void front_display_test_set_pattern_gradient_full(Canvas* canvas, Color color) {
+    canvas_set_line_width(canvas, 1);
+
+    Color line_color = color;
+    for(int32_t x = 0; x < widget_get_width(canvas_get_base(canvas)); x++) {
+        uint32_t color_k = 255 - x * 255 / widget_get_width(canvas_get_base(canvas));
+        line_color.r = color.r * color_k;
+        line_color.g = color.g * color_k;
+        line_color.b = color.b * color_k;
+        canvas_set_line_color(canvas, line_color);
+        canvas_draw_line(canvas, x, 0, x, widget_get_height(canvas_get_base(canvas)));
+    }
+}
+
+static void front_display_test_set_pattern_gradient_low(Canvas* canvas, Color color) {
+    canvas_set_line_width(canvas, 1);
+
+    Color line_color = color;
+    for(int32_t x = 0; x < widget_get_width(canvas_get_base(canvas)); x++) {
+        line_color.r = (color.r > 0) ? x : 0;
+        line_color.g = (color.g > 0) ? x : 0;
+        line_color.b = (color.b > 0) ? x : 0;
+        canvas_set_line_color(canvas, line_color);
+        canvas_draw_line(canvas, x, 0, x, widget_get_height(canvas_get_base(canvas)));
+    }
+}
+
 static const FrontDisplayTestPatternData front_display_test_pattern[FrontDisplayTestPatternNum] = {
     [FrontDisplayTestPatternChess] =
         {
@@ -270,6 +297,16 @@ static const FrontDisplayTestPatternData front_display_test_pattern[FrontDisplay
         {
             .set = front_display_test_set_pattern_frame,
             .name = "Frame",
+        },
+    [FrontDisplayTestPatternGradientFull] =
+        {
+            .set = front_display_test_set_pattern_gradient_full,
+            .name = "Gradient",
+        },
+    [FrontDisplayTestPatternGradientLow] =
+        {
+            .set = front_display_test_set_pattern_gradient_low,
+            .name = "Gradient Low Brightness",
         },
     [FrontDisplayTestPatternAnimFill] =
         {
