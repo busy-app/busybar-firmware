@@ -329,8 +329,8 @@ static bool
     UNUSED(msg);
     UNUSED(ctx);
 
-    FURI_LOG_D(TAG, "forget");
-    mg_http_reply(conn, 200, "", "OK");
+    ///TODO: implemet after configs
+    mg_http_reply(conn, 400, "", "Not implemented");
     return true;
 }
 
