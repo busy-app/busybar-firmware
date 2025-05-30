@@ -36,6 +36,9 @@ static void busy_scene_start_on_enter(void* context) {
     BusySceneStart* data = scene_manager_get_current_scene_data(instance->scene_manager);
 
     with_gui(instance->gui, {
+        widget_set_visible(timer_card_get_base(instance->timer_card), false);
+        widget_set_visible(nav_stack_get_base(instance->nav_stack), true);
+
         data->front_layout = flex_layout_alloc(instance->front_window, FlexLayoutTypeRow);
 
         data->front_logo = anim_image_alloc(flex_layout_get_base(data->front_layout));
@@ -55,9 +58,6 @@ static void busy_scene_start_on_enter(void* context) {
             data->back_menu, "START", NULL, BUSY_IMG_PATH("start_12x12.bin"), 0, NULL, NULL);
         menu_add_item(
             data->back_menu, "SETUP", NULL, BUSY_IMG_PATH("setup_12x12.bin"), 0, NULL, NULL);
-
-        widget_set_visible(nav_stack_get_base(instance->nav_stack), true);
-        widget_set_visible(timer_card_get_base(instance->timer_card), false);
     });
 
     busy_start_transition(instance);
@@ -83,6 +83,11 @@ static bool busy_scene_start_on_event(const SceneManagerEvent* event, void* cont
 
     if(event->type == SceneManagerEventTypeCustom) {
         if(event->event == BusySceneStartMenuIndexStart) {
+            with_gui(instance->gui, {
+                widget_set_visible(nav_stack_get_base(instance->nav_stack), false);
+                widget_set_visible(timer_card_get_base(instance->timer_card), true);
+            });
+
             busy_prepare_transition(instance, BusyTransitionTypeWhiteSelect);
             scene_manager_next_scene(instance->scene_manager, BusyAppSceneIdOverview);
 
