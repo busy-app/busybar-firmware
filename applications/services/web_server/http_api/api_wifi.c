@@ -425,10 +425,11 @@ static bool api_wifi_get_status_callaback(
         }
 
         mg_http_reply(conn, 200, "Content-Type: application/json\r\n", cJSON_Print(response));
-
         cJSON_Delete(response);
-    } else
-        mg_http_reply(conn, 400, "", "Error");
+    } else {
+        const ApiWifiResponseData* data = api_wifi_get_response_data_from_status(status);
+        mg_http_reply(conn, data->code, "", data->message);
+    }
 
     return true;
 }
