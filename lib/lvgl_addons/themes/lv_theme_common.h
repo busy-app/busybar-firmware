@@ -26,8 +26,8 @@ extern const lv_obj_class_t var_item_lvgl_class;
 extern const lv_obj_class_t var_item_editor_lvgl_class;
 extern const lv_obj_class_t var_item_cursor_lvgl_class;
 
-// NavHeader
-extern const lv_obj_class_t nav_header_lvgl_class;
+// NavStack
+extern const lv_obj_class_t nav_stack_lvgl_class;
 
 // TimerCard
 extern const lv_obj_class_t timer_card_lvgl_class;

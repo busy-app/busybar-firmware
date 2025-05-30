@@ -71,17 +71,23 @@ static BusyApp* busy_alloc(void) {
         gui_layer_add_input_callback(layer, busy_gui_input_callback, instance);
 
         Widget* root;
-        // Create application windows
+        // Create application window on Front display
         root = gui_layer_get_root_widget(layer, GuiDisplayIdFront);
         instance->front_window = widget_alloc(root);
+
+        // Create persistent widgets on Front display
         instance->transition_overlay = transition_overlay_alloc(root);
         transition_overlay_set_pressed_widget(
             instance->transition_overlay, instance->front_window);
 
+        // Create application window on Back display
         root = gui_layer_get_root_widget(layer, GuiDisplayIdBack);
         instance->back_window = widget_alloc(root);
 
-        // Create persistent widgets
+        // Create persistent widgets on Back display
+        instance->nav_stack = nav_stack_alloc(instance->back_window);
+        nav_stack_set_image(instance->nav_stack, BUSY_IMG_PATH("header_busy_39x16.bin"));
+
         instance->timer_card = timer_card_alloc(instance->back_window);
     });
 
@@ -188,4 +194,17 @@ void busy_set_status_lights(BusyApp* instance, BusyStatusLightsType type) {
     furi_assert(type < BusyStatusLightsTypeMax);
 
     status_lights_send_command(instance->status_lights, &busy_status_lights[type]);
+}
+
+void busy_push_location(BusyApp* instance, const char* location_name) {
+    furi_assert(instance);
+    furi_assert(location_name);
+
+    with_gui(instance->gui, { nav_stack_push_location(instance->nav_stack, location_name); });
+}
+
+void busy_pop_location(BusyApp* instance) {
+    furi_assert(instance);
+
+    with_gui(instance->gui, { nav_stack_pop_location(instance->nav_stack); });
 }

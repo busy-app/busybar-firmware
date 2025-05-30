@@ -63,6 +63,7 @@ static void busy_scene_overview_on_enter(void* context) {
             data->front_overview_label, timer_config.work_time_mn, timer_config.rest_time_mn);
 
         widget_set_visible(timer_card_get_base(instance->timer_card), true);
+        widget_set_visible(nav_stack_get_base(instance->nav_stack), false);
     });
 
     data->run_later =

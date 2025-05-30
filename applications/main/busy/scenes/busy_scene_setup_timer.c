@@ -1,14 +1,10 @@
 #include "../busy.h"
-#include "../widgets/nav_header.h"
 
 #include <gui/modules/var_item_list.h>
 #include <gui/modules/anim_image.h>
-#include <gui/modules/flex_layout.h>
 
 typedef struct {
     VarItemList* front_list;
-    FlexLayout* back_layout;
-    NavHeader* back_header;
     VarItemList* back_list;
     BusyTimerConfig timer_config;
 } BusySceneSetupTimer;
@@ -114,14 +110,7 @@ static void busy_scene_setup_timer_on_enter(void* context) {
         data->front_list = var_item_list_alloc(instance->front_window);
         busy_scene_setup_fill_var_item_list(data->front_list, data, true);
 
-        data->back_layout = flex_layout_alloc(instance->back_window, FlexLayoutTypeColumn);
-
-        data->back_header = nav_header_alloc(flex_layout_get_base(data->back_layout));
-        nav_header_set_image(data->back_header, BUSY_IMG_PATH("header_busy_39x16.bin"));
-        nav_header_push_location(data->back_header, "SETUP");
-        nav_header_push_location(data->back_header, "TIMER");
-
-        data->back_list = var_item_list_alloc(flex_layout_get_base(data->back_layout));
+        data->back_list = var_item_list_alloc(nav_stack_get_base(instance->nav_stack));
         // TODO: Fix the layout to set appropriate sizes for children
         widget_set_height(var_item_list_get_base(data->back_list), 58);
         busy_scene_setup_fill_var_item_list(data->back_list, data, false);
@@ -138,7 +127,7 @@ static void busy_scene_setup_timer_on_exit(void* context) {
 
     with_gui(instance->gui, {
         var_item_list_free(data->front_list);
-        flex_layout_free(data->back_layout);
+        var_item_list_free(data->back_list);
     });
 }
 
@@ -146,10 +135,14 @@ static bool busy_scene_setup_timer_on_event(const SceneManagerEvent* event, void
     furi_assert(event);
     furi_assert(context);
 
-    BusyApp* instance = context;
-    UNUSED(instance);
-
     bool consumed = false;
+
+    BusyApp* instance = context;
+
+    if(event->type == SceneManagerEventTypeBack) {
+        busy_pop_location(instance);
+    }
+
     return consumed;
 }
 

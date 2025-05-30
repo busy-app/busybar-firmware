@@ -32,7 +32,7 @@ typedef struct {
     lv_style_t submenu_item;
     lv_style_t var_item;
     lv_style_t var_item_editor;
-    lv_style_t nav_header;
+    lv_style_t nav_stack;
     lv_style_t timer_card;
 } my_theme_styles_t;
 
@@ -112,12 +112,8 @@ static void style_init(my_theme_t* theme) {
     lv_style_set_bg_color(&theme->styles.scrollbar, COLOR_FG_FOCUSED);
     lv_style_set_width(&theme->styles.scrollbar, SCROLLBAR_WIDTH);
 
-    lv_style_init(&theme->styles.nav_header);
-    lv_style_set_pad_all(&theme->styles.nav_header, 2);
-    lv_style_set_pad_bottom(&theme->styles.nav_header, 4);
-    lv_style_set_pad_column(&theme->styles.nav_header, 2);
-    lv_style_set_text_color(&theme->styles.nav_header, COLOR_FG_DIMMED);
-    lv_style_set_text_font(&theme->styles.nav_header, theme->base.font_small);
+    lv_style_init(&theme->styles.nav_stack);
+    lv_style_set_pad_row(&theme->styles.nav_stack, 2);
 
     lv_style_init(&theme->styles.timer_card);
     lv_style_set_bg_opa(&theme->styles.timer_card, LV_OPA_COVER);
@@ -200,9 +196,9 @@ static void theme_apply_callback(lv_theme_t* th, lv_obj_t* obj) {
         lv_obj_add_style(obj, &theme->styles.normal, LV_PART_MAIN | LV_STATE_EDITED);
         lv_obj_add_style(obj, &theme->styles.inverted, LV_PART_MAIN | LV_STATE_FOCUSED);
 
-    } else if(lv_obj_check_type(obj, &nav_header_lvgl_class)) {
+    } else if(lv_obj_check_type(obj, &nav_stack_lvgl_class)) {
         lv_obj_add_style(obj, &theme->styles.normal, LV_PART_MAIN);
-        lv_obj_add_style(obj, &theme->styles.nav_header, LV_PART_MAIN);
+        lv_obj_add_style(obj, &theme->styles.nav_stack, LV_PART_MAIN);
 
     } else if(lv_obj_check_type(obj, &timer_card_lvgl_class)) {
         lv_obj_add_style(obj, &theme->styles.timer_card, LV_PART_MAIN);
