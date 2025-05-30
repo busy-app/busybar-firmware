@@ -4,10 +4,13 @@
 #include <lwip/mem.h>
 #include <lwip/stats.h>
 
-static FuriMutex* lwip_protect_mutex;
+#define TAG "LwipGlue"
+
+static FuriMutex* lwip_protect_mutex = NULL;
 
 /* Initialize this module (see description in sys.h) */
 void sys_init(void) {
+    furi_check(lwip_protect_mutex == NULL);
     /* initialize sys_arch_protect global mutex */
     lwip_protect_mutex = furi_mutex_alloc(FuriMutexTypeRecursive);
 }
@@ -21,13 +24,15 @@ uint32_t sys_jiffies(void) {
 }
 
 sys_prot_t sys_arch_protect(void) {
-    furi_mutex_acquire(lwip_protect_mutex, FuriWaitForever);
+    FuriStatus ret = furi_mutex_acquire(lwip_protect_mutex, FuriWaitForever);
+    furi_check(ret == FuriStatusOk);
     return 1;
 }
 
 void sys_arch_unprotect(sys_prot_t pval) {
     UNUSED(pval);
-    furi_mutex_release(lwip_protect_mutex);
+    FuriStatus ret = furi_mutex_release(lwip_protect_mutex);
+    furi_check(ret == FuriStatusOk);
 }
 
 void sys_arch_msleep(uint32_t delay_ms) {
@@ -39,6 +44,7 @@ void sys_arch_msleep(uint32_t delay_ms) {
 /* Create a new mutex*/
 err_t sys_mutex_new(sys_mutex_t* mutex) {
     furi_check(mutex);
+    furi_check(mutex->mut == NULL);
 
     mutex->mut = furi_mutex_alloc(FuriMutexTypeNormal);
     SYS_STATS_INC_USED(mutex);
@@ -47,12 +53,15 @@ err_t sys_mutex_new(sys_mutex_t* mutex) {
 
 void sys_mutex_lock(sys_mutex_t* mutex) {
     furi_check(mutex);
-    furi_mutex_acquire(mutex->mut, FuriWaitForever);
+
+    FuriStatus ret = furi_mutex_acquire(mutex->mut, FuriWaitForever);
+    furi_check(ret == FuriStatusOk);
 }
 
 void sys_mutex_unlock(sys_mutex_t* mutex) {
     furi_check(mutex);
-    furi_mutex_release(mutex->mut);
+    FuriStatus ret = furi_mutex_release(mutex->mut);
+    furi_check(ret == FuriStatusOk);
 }
 
 void sys_mutex_free(sys_mutex_t* mutex) {
@@ -83,7 +92,8 @@ uint32_t sys_arch_sem_wait(sys_sem_t* sem, uint32_t timeout_ms) {
     furi_check(sem);
 
     if(!timeout_ms) {
-        furi_semaphore_acquire(sem->sem, FuriWaitForever);
+        FuriStatus ret = furi_semaphore_acquire(sem->sem, FuriWaitForever);
+        furi_check(ret == FuriStatusOk);
     } else {
         FuriStatus ret = furi_semaphore_acquire(sem->sem, timeout_ms);
         if(ret == FuriStatusErrorTimeout) {
@@ -116,7 +126,8 @@ err_t sys_mbox_new(sys_mbox_t* mbox, int size) {
 void sys_mbox_post(sys_mbox_t* mbox, void* msg) {
     furi_check(mbox);
 
-    furi_message_queue_put(mbox->mbx, &msg, FuriWaitForever);
+    FuriStatus ret = furi_message_queue_put(mbox->mbx, &msg, FuriWaitForever);
+    furi_check(ret == FuriStatusOk);
 }
 
 err_t sys_mbox_trypost(sys_mbox_t* mbox, void* msg) {
@@ -144,7 +155,8 @@ uint32_t sys_arch_mbox_fetch(sys_mbox_t* mbox, void** msg, uint32_t timeout_ms) 
     }
 
     if(!timeout_ms) {
-        furi_message_queue_get(mbox->mbx, &(*msg), FuriWaitForever);
+        FuriStatus ret = furi_message_queue_get(mbox->mbx, &(*msg), FuriWaitForever);
+        furi_check(ret == FuriStatusOk);
     } else {
         FuriStatus ret = furi_message_queue_get(mbox->mbx, &(*msg), timeout_ms);
         if(ret == FuriStatusErrorTimeout) {
@@ -261,6 +273,6 @@ void lwip_glue_log(const char* fmt, ...) {
 
     furi_string_trim(string, "\r\n");
 
-    FURI_LOG_D("LWIP", "%s", furi_string_get_cstr(string));
+    FURI_LOG_D(TAG, "%s", furi_string_get_cstr(string));
     furi_string_free(string);
 }
