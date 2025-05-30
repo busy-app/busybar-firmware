@@ -1,7 +1,6 @@
 #include "http_api.h"
 #include <wifi/wifi.h>
-#include <lwip/ip4_addr.h>
-#include <lwip/ip6_addr.h>
+#include <cjson/cJSON.h>
 
 #define TAG "HTTP WiFi"
 
@@ -120,42 +119,35 @@ static bool api_wifi_get_networks_callaback(
     FURI_LOG_D(TAG, "networks");
 
     Wifi* wifi = furi_record_open(RECORD_WIFI);
-
     WifiScanResult* results = malloc(sizeof(WifiScanResult) * WIFI_SCAN_RESULT_COUNT);
     uint8_t result_count = 0;
     WifiStatus status = wifi_scan(wifi, results, &result_count, WIFI_SCAN_RESULT_COUNT);
+    furi_record_close(RECORD_WIFI);
 
     if(status == WifiStatusOk) {
-        FuriString* response =
-            furi_string_alloc_printf("{\"" WIFI_JSON_KEY_COUNT "\":%u,\r\n", result_count);
-        furi_string_cat_printf(response, "\"" WIFI_JSON_KEY_NETWORKS "\" : [\r\n");
-        for(size_t i = 0; i < result_count; i++) {
-            furi_string_cat_printf(
-                response, "{\r\n\"" WIFI_JSON_KEY_SSID "\": \"%s\",\r\n", results[i].ssid);
+        cJSON* response = cJSON_CreateObject();
 
-            furi_string_cat_printf(
-                response,
-                "\"" WIFI_JSON_KEY_SECURITY "\": \"%s\",\r\n",
-                security_modes[results[i].security_mode]);
-            furi_string_cat_printf(
-                response, "\"" WIFI_JSON_KEY_RSSI "\": %d\r\n", results[i].rssi);
-            furi_string_cat_printf(response, i + 1 == result_count ? "}\r\n" : "},\r\n");
+        cJSON_AddNumberToObject(response, WIFI_JSON_KEY_COUNT, result_count);
+        cJSON* array = cJSON_AddArrayToObject(response, WIFI_JSON_KEY_NETWORKS);
+
+        for(size_t i = 0; i < result_count; i++) {
+            cJSON* item = cJSON_CreateObject();
+            cJSON_AddStringToObject(item, WIFI_JSON_KEY_SSID, results[i].ssid);
+
+            WifiSecurityMode mode = results[i].security_mode;
+            cJSON_AddStringToObject(item, WIFI_JSON_KEY_SECURITY, security_modes[mode]);
+            cJSON_AddNumberToObject(item, WIFI_JSON_KEY_RSSI, results[i].rssi);
+            cJSON_AddItemToArray(array, item);
         }
-        furi_string_cat_printf(response, "]\r\n}\r\n");
-        mg_http_reply(
-            conn, 200, "Content-Type: application/json\r\n", furi_string_get_cstr(response));
-        furi_string_free(response);
+
+        mg_http_reply(conn, 200, "Content-Type: application/json\r\n", cJSON_Print(response));
+        cJSON_Delete(response);
     } else {
-        mg_http_reply(
-            conn,
-            500,
-            "",
-            status == WifiStatusNotInitialized ? "WiFi not enabled" : "Generic error");
+        const ApiWifiResponseData* data = api_wifi_get_response_data_from_status(status);
+        mg_http_reply(conn, data->code, "", data->message);
     }
 
     free(results);
-    furi_record_close(RECORD_WIFI);
-
     return true;
 }
 
@@ -401,52 +393,46 @@ static bool api_wifi_get_status_callaback(
     furi_record_close(RECORD_WIFI);
 
     if(status == WifiStatusOk) {
-        FuriString* response = furi_string_alloc_printf(
-            "{\"" WIFI_JSON_KEY_STATE "\":\"%s\",\r\n", wifi_state[info.state]);
+        cJSON* response = cJSON_CreateObject();
+
+        cJSON_AddStringToObject(response, WIFI_JSON_KEY_STATE, wifi_state[info.state]);
 
         if(info.state != WifiStateDeinit) {
-            furi_string_cat_printf(response, "\"" WIFI_JSON_KEY_SSID "\": \"%s\",\r\n", info.ssid);
-            furi_string_cat_printf(
-                response,
-                "\"" WIFI_JSON_KEY_SECURITY "\": \"%s\",\r\n",
-                security_modes[info.securiy_mode]);
+            cJSON_AddStringToObject(response, WIFI_JSON_KEY_SSID, info.ssid);
+
+            const char* security_mode = security_modes[info.securiy_mode];
+            cJSON_AddStringToObject(response, WIFI_JSON_KEY_SECURITY, security_mode);
 
             if(info.state == WifiStateUp) {
-                furi_string_cat_printf(response, "\"" WIFI_JSON_KEY_IP_CONFIG "\":{\r\n");
-                furi_string_cat_printf(
-                    response,
-                    "\"" WIFI_JSON_KEY_IP_METHOD "\":\"%s\",\r\n",
-                    wifi_ip_method[info.ip_config.mgmt]);
-                furi_string_cat_printf(
-                    response,
-                    "\"" WIFI_JSON_KEY_IP_TYPE "\":\"%s\",\r\n",
-                    wifi_ip_type[info.ip_config.type]);
+                cJSON* ip_config_json = cJSON_CreateObject();
+                cJSON_AddStringToObject(
+                    ip_config_json, WIFI_JSON_KEY_IP_METHOD, wifi_ip_method[info.ip_config.mgmt]);
+                cJSON_AddStringToObject(
+                    ip_config_json, WIFI_JSON_KEY_IP_TYPE, wifi_ip_type[info.ip_config.type]);
 
-                FuriString* b2 = furi_string_alloc();
+                FuriString* ip_str = furi_string_alloc();
 
                 wifi_print_parsed_address(
-                    b2,
+                    ip_str,
                     info.ip_config.type,
                     (uint8_t*)&info.ip_config.address,
                     info.ip_config.type == WifiIpTypeV4 ? 4 : 16);
 
-                furi_string_cat_printf(
-                    response,
-                    "\"" WIFI_JSON_KEY_IP_ADDRESS "\":\"%s\"\r\n}\r\n",
-                    furi_string_get_cstr(b2));
-                furi_string_free(b2);
+                cJSON_AddStringToObject(
+                    ip_config_json, WIFI_JSON_KEY_IP_ADDRESS, furi_string_get_cstr(ip_str));
+
+                furi_string_free(ip_str);
+
+                cJSON_AddItemToObject(response, WIFI_JSON_KEY_IP_CONFIG, ip_config_json);
             }
         }
-        furi_string_cat_printf(response, "}");
 
-        mg_http_reply(
-            conn, 200, "Content-Type: application/json\r\n", furi_string_get_cstr(response));
+        mg_http_reply(conn, 200, "Content-Type: application/json\r\n", cJSON_Print(response));
 
-        furi_string_free(response);
-    } else {
-        const ApiWifiResponseData* data = api_wifi_get_response_data_from_status(status);
-        mg_http_reply(conn, data->code, "", data->message);
-    }
+        cJSON_Delete(response);
+    } else
+        mg_http_reply(conn, 400, "", "Error");
+
     return true;
 }
 
