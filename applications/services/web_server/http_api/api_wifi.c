@@ -116,8 +116,6 @@ static bool api_wifi_get_networks_callaback(
     UNUSED(ctx);
     UNUSED(msg);
 
-    FURI_LOG_D(TAG, "networks");
-
     Wifi* wifi = furi_record_open(RECORD_WIFI);
     WifiScanResult* results = malloc(sizeof(WifiScanResult) * WIFI_SCAN_RESULT_COUNT);
     uint8_t result_count = 0;
@@ -159,8 +157,6 @@ static inline bool parse_octet(char* octet, WifiIpType type, int* value) {
 }
 
 static inline bool validate_octet(int raw_octet, WifiIpType type) {
-    UNUSED(raw_octet);
-    UNUSED(type);
     uint16_t max_value = type == WifiIpTypeV4 ? UINT8_MAX : UINT16_MAX;
     return (raw_octet >= 0 && raw_octet <= max_value);
 }
@@ -298,9 +294,8 @@ static bool
     if(parse_result) {
         Wifi* wifi = furi_record_open(RECORD_WIFI);
         WifiStatus status = wifi_connect(wifi, &credentials, &ip_config);
-        FURI_LOG_D(TAG, "Connect status: %X", status);
-
         furi_record_close(RECORD_WIFI);
+
         const ApiWifiResponseData* data = api_wifi_get_response_data_from_status(status);
         status_code = data->code;
         response_msg = data->message;
@@ -360,10 +355,7 @@ static bool
     UNUSED(msg);
 
     Wifi* wifi = furi_record_open(RECORD_WIFI);
-
     WifiStatus status = wifi_deinit(wifi);
-
-    FURI_LOG_D(TAG, "Disable status: %X", status);
     furi_record_close(RECORD_WIFI);
 
     const ApiWifiResponseData* data = api_wifi_get_response_data_from_status(status);
