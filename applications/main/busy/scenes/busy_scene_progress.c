@@ -10,6 +10,7 @@
 typedef struct {
     ProgressView* front_progress_view;
     Image* front_rest_image;
+    RunLater* run_later;
 } BusySceneProgress;
 
 static void busy_scene_progress_run_later_callback(void* context) {
@@ -53,7 +54,7 @@ static void busy_scene_progress_on_enter(void* context) {
         furi_crash();
     }
 
-    run_later(
+    data->run_later = run_later(
         instance->event_loop, busy_scene_progress_run_later_callback, instance, run_later_delay);
 
     busy_start_transition(instance);
@@ -65,7 +66,10 @@ static void busy_scene_progress_on_exit(void* context) {
     BusyApp* instance = context;
     BusySceneProgress* data = scene_manager_get_current_scene_data(instance->scene_manager);
 
+    run_later_cancel(data->run_later);
+
     busy_prepare_transition(instance, BusyTransitionTypeBlackMask);
+    busy_set_status_lights(instance, BusyStatusLightsTypeOff);
 
     with_gui(instance->gui, {
         if(data->front_progress_view) {
@@ -78,8 +82,6 @@ static void busy_scene_progress_on_exit(void* context) {
             data->front_rest_image = NULL;
         }
     });
-
-    busy_set_status_lights(instance, BusyStatusLightsTypeOff);
 }
 
 static bool busy_scene_progress_on_event(const SceneManagerEvent* event, void* context) {

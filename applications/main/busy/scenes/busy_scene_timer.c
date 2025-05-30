@@ -19,6 +19,7 @@ typedef struct {
     TimerLabel* timer_label;
     ProgressBar* progress_bar;
     PauseOverlay* pause_overlay;
+    RunLater* run_later;
     BusyTimerTime timer_time;
     BusyTimerState timer_state;
     bool is_paused;
@@ -197,13 +198,15 @@ static void busy_scene_timer_handle_back(BusyApp* instance) {
 }
 
 static void busy_scene_timer_go_to_progress_scene(BusyApp* instance) {
-    const BusySceneTimer* data = scene_manager_get_current_scene_data(instance->scene_manager);
+    BusySceneTimer* data = scene_manager_get_current_scene_data(instance->scene_manager);
 
     if(data->is_force_ended) {
         busy_scene_timer_run_later_callback(instance);
 
     } else {
-        run_later(
+        furi_assert(data->run_later == NULL);
+
+        data->run_later = run_later(
             instance->event_loop,
             busy_scene_timer_run_later_callback,
             instance,
@@ -246,8 +249,14 @@ static void busy_scene_timer_on_enter(void* context) {
 static void busy_scene_timer_on_exit(void* context) {
     furi_assert(context);
     BusyApp* instance = context;
-
     BusySceneTimer* data = scene_manager_get_current_scene_data(instance->scene_manager);
+
+    busy_timer_set_callback(instance->busy_timer, NULL, NULL);
+
+    if(data->run_later) {
+        run_later_cancel(data->run_later);
+        data->run_later = NULL;
+    }
 
     data->is_force_ended = false;
     data->is_paused = false;
@@ -261,8 +270,6 @@ static void busy_scene_timer_on_exit(void* context) {
         progress_bar_free(data->progress_bar);
         pause_overlay_free(data->pause_overlay);
     });
-
-    busy_timer_set_callback(instance->busy_timer, NULL, NULL);
 }
 
 static bool busy_scene_timer_on_event(const SceneManagerEvent* event, void* context) {

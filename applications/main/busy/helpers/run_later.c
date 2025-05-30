@@ -2,26 +2,22 @@
 
 #include <furi.h>
 
-typedef struct {
+struct RunLater {
     FuriEventLoopTimer* timer;
     RunLaterCallback callback;
     void* callback_context;
-} RunLater;
-
-static void run_later_free(RunLater* instance) {
-    furi_event_loop_timer_free(instance->timer);
-    free(instance);
-}
+};
 
 static void run_later_timer_callback(void* context) {
     furi_assert(context);
     RunLater* instance = context;
 
-    instance->callback(instance->callback_context);
-    run_later_free(instance);
+    if(instance->callback) {
+        instance->callback(instance->callback_context);
+    }
 }
 
-void run_later(
+RunLater* run_later(
     FuriEventLoop* event_loop,
     RunLaterCallback callback,
     void* context,
@@ -37,4 +33,13 @@ void run_later(
     instance->callback_context = context;
 
     furi_event_loop_timer_start(instance->timer, delay_ms);
+
+    return instance;
+}
+
+void run_later_cancel(RunLater* instance) {
+    furi_assert(instance);
+
+    furi_event_loop_timer_free(instance->timer);
+    free(instance);
 }
