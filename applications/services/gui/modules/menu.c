@@ -211,15 +211,26 @@ void menu_reset(Menu* instance) {
 
 uint32_t menu_get_selected_item_index(const Menu* instance) {
     furi_check(instance);
-    // TODO: For later
-    furi_crash("Not implemented");
+
+    uint32_t ret;
+
+    const lv_obj_t* focused = lv_group_get_focused(instance->group);
+    const uint32_t item_count = lv_group_get_obj_count(instance->group);
+
+    for(ret = 0; ret < item_count; ++ret) {
+        if(focused == lv_group_get_obj_by_index(instance->group, ret)) {
+            break;
+        }
+    }
+
+    return ret;
 }
 
 void menu_set_selected_item_index(Menu* instance, uint32_t index) {
     furi_check(instance);
-    UNUSED(index);
-    // TODO: For later
-    furi_crash("Not implemented");
+    furi_check(index < lv_group_get_obj_count(instance->group));
+
+    lv_group_focus_obj(lv_group_get_obj_by_index(instance->group, index));
 }
 
 // LVGL class descriptors
