@@ -180,6 +180,8 @@ static void transition_overlay_reset(TransitionOverlay* instance) {
     if(instance->press_widget) {
         widget_set_pos(instance->press_widget, 0, 0);
     }
+
+    widget_set_pos((Widget*)instance->snap, 0, 0);
 }
 
 // Public API
