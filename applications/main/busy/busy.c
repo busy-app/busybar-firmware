@@ -1,5 +1,4 @@
 #include "busy.h"
-
 #include "busy_presets.h"
 
 static void busy_input_queue_callback(FuriEventLoopObject* object, void* context) {
