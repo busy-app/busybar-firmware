@@ -105,6 +105,25 @@ FuriPubSub* loader_get_pubsub(Loader* loader) {
     return loader->pubsub;
 }
 
+bool loader_get_application_name(Loader* loader, FuriString* name) {
+    furi_check(loader);
+    furi_check(name);
+
+    LoaderMessageBoolResult result;
+
+    LoaderMessage message = {
+        .type = LoaderMessageTypeGetApplicationName,
+        .api_lock = api_lock_alloc_locked(),
+        .application_name = name,
+        .bool_value = &result,
+    };
+
+    furi_message_queue_put(loader->queue, &message, FuriWaitForever);
+    api_lock_wait_unlock_and_free(message.api_lock);
+
+    return result.value;
+}
+
 // implementation
 
 static bool loader_is_locked_internal(const Loader* loader) {
@@ -360,6 +379,21 @@ static void loader_is_locked_handler(Loader* loader, const LoaderMessage* messag
     message->bool_value->value = loader_is_locked_internal(loader);
 }
 
+static bool loader_is_application_running(Loader* loader) {
+    FuriThread* app_thread = loader->app.thread;
+    return app_thread && (app_thread != (FuriThread*)LOADER_MAGIC_THREAD_VALUE);
+}
+
+static void loader_do_get_application_name(Loader* loader, const LoaderMessage* message) {
+    message->bool_value->value = false;
+    if(loader_is_application_running(loader)) {
+        furi_string_set(
+            message->application_name,
+            furi_thread_get_name(furi_thread_get_id(loader->app.thread)));
+        message->bool_value->value = true;
+    }
+}
+
 static void loader_message_queue_callback(FuriEventLoopObject* object, void* context) {
     furi_assert(context);
     Loader* loader = context;
@@ -453,4 +487,5 @@ static const LoaderMessageHandler loader_handlers[LoaderMessageTypeMax] = {
     [LoaderMessageTypeLock] = loader_lock_handler,
     [LoaderMessageTypeUnlock] = loader_unlock_handler,
     [LoaderMessageTypeIsLocked] = loader_is_locked_handler,
+    [LoaderMessageTypeGetApplicationName] = loader_do_get_application_name,
 };

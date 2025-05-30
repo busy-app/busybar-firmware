@@ -37,20 +37,20 @@
 
     var log = text => msglog.innerHTML += text + '<br/>\n';
 
-    btn1.onclick = ev => fetch('/api/version')
+    btn1.onclick = ev => fetch('/api/v0/version')
         .then(r => r.json())
         .then(r => {
             console.log(r);
-            log('GET /api/version: ' + JSON.stringify(r))
+            log('GET /api/v0/version: ' + JSON.stringify(r))
         })
         .catch(err => console.log(err));
 
     const set_led = (state) =>
-        fetch('/api/led?state=' + state)
+        fetch('/api/v0/led?state=' + state)
             .then(r => r.json())
             .then(r => {
                 console.log(r);
-                log('GET /api/led?state=' + state + ': ' + JSON.stringify(r))
+                log('GET /api/v0/led?state=' + state + ': ' + JSON.stringify(r))
             })
             .catch(err => console.log(err));
 
@@ -58,11 +58,11 @@
     btn_led_off.onclick = ev => set_led(0);
 
     const set_led_json = (state) =>
-        fetch('/api/led', { method: 'POST', body: JSON.stringify({ "state": state }) })
+        fetch('/api/v0/led', { method: 'POST', body: JSON.stringify({ "state": state }) })
             .then(r => r.json())
             .then(r => {
                 console.log(r);
-                log('POST /api/led: ' + JSON.stringify(r))
+                log('POST /api/v0/led: ' + JSON.stringify(r))
             })
             .catch(err => console.log(err));
 
@@ -70,11 +70,11 @@
     btn_led_json_off.onclick = ev => set_led_json(0);
 
     const show_image = (path, display) =>
-        fetch('/api/display?path=' + path + '&display=' + display)
+        fetch('/api/v0/display?path=' + path + '&display=' + display)
             .then(r => r.json())
             .then(r => {
                 console.log(r);
-                log('GET /api/display?path = ' + path + ' &display=' + display + ': ' + JSON.stringify(r))
+                log('GET /api/v0/display?path = ' + path + ' &display=' + display + ': ' + JSON.stringify(r))
             })
             .catch(err => console.log(err));
 

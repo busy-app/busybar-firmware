@@ -147,13 +147,6 @@ static inline void furi_hal_pwm_configure_duty_cycle(uint32_t chnlNum) {
 }
 
 void furi_hal_pwm_init(void) {
-    // GPIO initialization
-    furi_hal_gpio_init_ex(
-        &gpio_pwm_red, GpioModeOutputPushPull, GpioPullNo, GpioSpeedHigh, GpioAltFn10PWM_0H);
-    furi_hal_gpio_init_ex(
-        &gpio_pwm_green, GpioModeOutputPushPull, GpioPullNo, GpioSpeedHigh, GpioAltFn10PWM_2H);
-    furi_hal_gpio_init_ex(
-        &gpio_pwm_blue, GpioModeOutputPushPull, GpioPullNo, GpioSpeedHigh, GpioAltFn10PWM_3H);
     // Enable PWM clock
     furi_hal_bus_enable(FuriHalBusMCPWM_PCLK);
 
@@ -204,17 +197,28 @@ void furi_hal_pwm_start(void) {
     mcpwm_start(MCPWM, FURI_HAL_PWM_CHANNEL_RED);
     mcpwm_start(MCPWM, FURI_HAL_PWM_CHANNEL_GREEN);
     mcpwm_start(MCPWM, FURI_HAL_PWM_CHANNEL_BLUE);
+    // Initialise GPIO
+    furi_hal_gpio_init_ex(
+        &gpio_pwm_red, GpioModeOutputPushPull, GpioPullNo, GpioSpeedHigh, GpioAltFn10PWM_0H);
+    furi_hal_gpio_init_ex(
+        &gpio_pwm_green, GpioModeOutputPushPull, GpioPullNo, GpioSpeedHigh, GpioAltFn10PWM_2H);
+    furi_hal_gpio_init_ex(
+        &gpio_pwm_blue, GpioModeOutputPushPull, GpioPullNo, GpioSpeedHigh, GpioAltFn10PWM_3H);
 }
 
 void furi_hal_pwm_stop(void) {
-    // Reset the counter
-    mcpwm_counter_reset(MCPWM, FURI_HAL_PWM_CHANNEL_RED);
-    mcpwm_counter_reset(MCPWM, FURI_HAL_PWM_CHANNEL_GREEN);
-    mcpwm_counter_reset(MCPWM, FURI_HAL_PWM_CHANNEL_BLUE);
+    // Deinitialise GPIO
+    furi_hal_gpio_init_simple(&gpio_pwm_red, GpioModeInput);
+    furi_hal_gpio_init_simple(&gpio_pwm_green, GpioModeInput);
+    furi_hal_gpio_init_simple(&gpio_pwm_blue, GpioModeInput);
     // Stop the PWM
     mcpwm_stop(MCPWM, FURI_HAL_PWM_CHANNEL_RED);
     mcpwm_stop(MCPWM, FURI_HAL_PWM_CHANNEL_GREEN);
     mcpwm_stop(MCPWM, FURI_HAL_PWM_CHANNEL_BLUE);
+    // Reset the counter
+    mcpwm_counter_reset(MCPWM, FURI_HAL_PWM_CHANNEL_RED);
+    mcpwm_counter_reset(MCPWM, FURI_HAL_PWM_CHANNEL_GREEN);
+    mcpwm_counter_reset(MCPWM, FURI_HAL_PWM_CHANNEL_BLUE);
 }
 
 void furi_hal_pwm_set_rgb(uint8_t red, uint8_t green, uint8_t blue) {
