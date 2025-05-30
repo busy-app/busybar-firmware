@@ -174,6 +174,14 @@ static void transition_overlay_animate_press(TransitionOverlay* instance) {
     }
 }
 
+static void transition_overlay_reset(TransitionOverlay* instance) {
+    lv_anim_delete(instance, NULL);
+
+    if(instance->press_widget) {
+        widget_set_pos(instance->press_widget, 0, 0);
+    }
+}
+
 // Public API
 
 TransitionOverlay* transition_overlay_alloc(Widget* parent) {
@@ -248,6 +256,7 @@ void transition_overlay_set_pressed_widget(TransitionOverlay* instance, Widget* 
 void transition_overlay_show(TransitionOverlay* instance) {
     furi_check(instance);
 
+    transition_overlay_reset(instance);
     snap_image_capture_display(instance->snap);
 
     widget_set_visible((Widget*)instance->color, false);
