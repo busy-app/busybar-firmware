@@ -482,7 +482,6 @@ static const HttpHandler handlers_wifi[] = {
 void* http_api_wifi_alloc(void) {
     ApiWifiCtx* context = malloc(sizeof(ApiWifiCtx));
     HttpHandlersList_init(context->handlers);
-    FURI_LOG_D(TAG, "Ctx alloc");
     for(size_t i = COUNT_OF(handlers_wifi); i > 0; i--) {
         http_handler_add(context->handlers, &handlers_wifi[i - 1]);
     }
@@ -493,7 +492,6 @@ void* http_api_wifi_alloc(void) {
 void http_api_wifi_free(void* ctx) {
     furi_assert(ctx);
     ApiWifiCtx* context = ctx;
-    FURI_LOG_D(TAG, "Ctx free");
     HttpHandlersList_clear(context->handlers);
     free(context);
 }
@@ -501,10 +499,4 @@ void http_api_wifi_free(void* ctx) {
 bool http_api_wifi_callback(struct mg_connection* conn, struct mg_http_message* msg, void* ctx) {
     ApiWifiCtx* context = ctx;
     return http_handle_request(context->handlers, conn, msg);
-}
-
-bool http_api_wifi_hdr_callback(struct mg_connection* conn, struct mg_http_message* msg, void* ctx) {
-    ApiWifiCtx* context = ctx;
-    FURI_LOG_D(TAG, "Header CB");
-    return http_handle_headers(context->handlers, conn, msg);
 }
