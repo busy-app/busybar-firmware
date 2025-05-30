@@ -161,7 +161,8 @@ static inline bool validate_octet(int raw_octet, WifiIpType type) {
     return (raw_octet >= 0 && raw_octet <= max_value);
 }
 
-static bool api_wifi_parse_ip_address(WifiIpConfig* ip_config, char* str) {
+static bool
+    api_wifi_parse_ip_address(WifiIpConfig* ip_config, char* address_str, FuriString* error_msg) {
     uint8_t i = 0;
 
     const char* separator;
@@ -175,12 +176,12 @@ static bool api_wifi_parse_ip_address(WifiIpConfig* ip_config, char* str) {
         length = sizeof(ip_config->address.v6);
     }
 
-    char* octet_str = strtok(str, separator);
+    char* octet_str = strtok(address_str, separator);
     while(octet_str != NULL && i < length) {
         int raw_octet;
         if(!parse_octet(octet_str, ip_config->type, &raw_octet)) {
-            FURI_LOG_W(
-                TAG,
+            furi_string_printf(
+                error_msg,
                 "Failed to parse \"%s\" as IPv%d octet",
                 octet_str,
                 ip_config->type == WifiIpTypeV4 ? 4 : 6);
@@ -188,10 +189,10 @@ static bool api_wifi_parse_ip_address(WifiIpConfig* ip_config, char* str) {
         }
 
         if(!validate_octet(raw_octet, ip_config->type)) {
-            FURI_LOG_W(
-                TAG,
-                "Octet \"%d\" is not valid for ipv%d",
-                raw_octet,
+            furi_string_printf(
+                error_msg,
+                "Octet \"%s\" is not valid for ipv%d",
+                octet_str,
                 ip_config->type == WifiIpTypeV4 ? 4 : 6);
             break;
         }
@@ -229,14 +230,21 @@ static void api_wifi_print_ip_address(FuriString* str, WifiIpConfig* ip_config) 
     }
 }
 
-static bool api_wifi_parse_ip_config(struct mg_str ip_config_json, WifiIpConfig* ip_config) {
+static bool api_wifi_parse_ip_config(
+    struct mg_str ip_config_json,
+    WifiIpConfig* ip_config,
+    FuriString* error_msg) {
     bool result = false;
     FuriString* buf = furi_string_alloc();
     do {
         if(ip_config_json.len == 0) break;
 
         furi_string_set_str(buf, mg_json_get_str(ip_config_json, "$." WIFI_JSON_KEY_IP_METHOD ""));
-        if(!api_wifi_parse_ip_method(buf, &ip_config->mgmt)) break;
+        if(!api_wifi_parse_ip_method(buf, &ip_config->mgmt)) {
+            furi_string_printf(
+                error_msg, "\"%s\" is not valid ip_method", furi_string_get_cstr(buf));
+            break;
+        }
 
         if(ip_config->mgmt == WifiIpManagementDynamic) {
             result = true;
@@ -244,10 +252,14 @@ static bool api_wifi_parse_ip_config(struct mg_str ip_config_json, WifiIpConfig*
         }
 
         furi_string_set_str(buf, mg_json_get_str(ip_config_json, "$." WIFI_JSON_KEY_IP_TYPE ""));
-        if(!aip_wifi_parse_ip_type(buf, &ip_config->type)) break;
+        if(!aip_wifi_parse_ip_type(buf, &ip_config->type)) {
+            furi_string_printf(
+                error_msg, "\"%s\" is not valid ip_type", furi_string_get_cstr(buf));
+            break;
+        }
 
-        char* str = mg_json_get_str(ip_config_json, "$." WIFI_JSON_KEY_IP_ADDRESS "");
-        if(!api_wifi_parse_ip_address(ip_config, str)) break;
+        char* address_str = mg_json_get_str(ip_config_json, "$." WIFI_JSON_KEY_IP_ADDRESS "");
+        if(!api_wifi_parse_ip_address(ip_config, address_str, error_msg)) break;
         result = true;
     } while(false);
     furi_string_free(buf);
@@ -257,7 +269,8 @@ static bool api_wifi_parse_ip_config(struct mg_str ip_config_json, WifiIpConfig*
 static bool api_wifi_connect_parse_config(
     struct mg_str body,
     WifiCredentials* credentials,
-    WifiIpConfig* ip_config) {
+    WifiIpConfig* ip_config,
+    FuriString* error_msg) {
     bool parse_result = false;
     do {
         strncpy(
@@ -269,10 +282,14 @@ static bool api_wifi_connect_parse_config(
 
         FuriString* buf;
         buf = furi_string_alloc_set_str(mg_json_get_str(body, "$." WIFI_JSON_KEY_SECURITY ""));
-        if(!api_wifi_get_security_mode_by_name(buf, &credentials->security_mode)) break;
+        if(!api_wifi_get_security_mode_by_name(buf, &credentials->security_mode)) {
+            furi_string_printf(
+                error_msg, "\"%s\" is not valid security mode", furi_string_get_cstr(buf));
+            break;
+        }
 
         struct mg_str ip_config_json = mg_json_get_tok(body, "$." WIFI_JSON_KEY_IP_CONFIG "");
-        if(!api_wifi_parse_ip_config(ip_config_json, ip_config)) break;
+        if(!api_wifi_parse_ip_config(ip_config_json, ip_config, error_msg)) break;
 
         furi_string_free(buf);
         parse_result = true;
@@ -287,7 +304,9 @@ static bool
     WifiCredentials credentials = {0};
     WifiIpConfig ip_config = {0};
 
-    bool parse_result = api_wifi_connect_parse_config(msg->body, &credentials, &ip_config);
+    FuriString* error_msg = furi_string_alloc();
+    bool parse_result =
+        api_wifi_connect_parse_config(msg->body, &credentials, &ip_config, error_msg);
     int status_code;
     const char* response_msg;
 
@@ -301,9 +320,10 @@ static bool
         response_msg = data->message;
     } else {
         status_code = 400;
-        response_msg = "Parsing failed";
+        response_msg = furi_string_get_cstr(error_msg);
     }
     mg_http_reply(conn, status_code, "", response_msg);
+    furi_string_free(error_msg);
     return true;
 }
 
