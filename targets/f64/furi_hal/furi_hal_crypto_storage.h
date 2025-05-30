@@ -4,9 +4,6 @@
 #define FURI_HAL_CRYPTO_STORAGE_START_ADDRESS (0UL)
 #define FURI_HAL_CRYPTO_STORAGE_END_ADDRESS   (0x00005000UL) // 20KB partition
 
-#define FURI_HAL_CRYPTO_STORAGE_MAGIC_NUMBER_KEY (0x464c4950UL) // "FLIP"
-#define FURI_HAL_CRYPTO_STORAGE_MAX_KEY_SLOT     (32UL)
-
 #define FURI_HAL_CRYPTO_STORAGE_PARTITION_1_START_ADDRESS (0x00000000UL)
 #define FURI_HAL_CRYPTO_STORAGE_PARTITION_1_END_ADDRESS   (0x00000FFFUL) // 4KB partition
 
@@ -39,6 +36,10 @@ typedef enum {
     FuriHalCryptoKeyTypeEcdsaPriv256,
     FuriHalCryptoKeyTypeEcdsaPub224,
     FuriHalCryptoKeyTypeEcdsaPub256,
+    FuriHalCryptoKeyTypeMatterDAC,
+    FuriHalCryptoKeyTypeMatterPAI,
+    FuriHalCryptoKeyTypeMatterCD,
+    FuriHalCryptoKeyTypeMatterVID_PID,
     FuriHalCryptoKeyTypeNone = 0xFFFFFFFF,
 } FuriHalCryptoKeyType;
 _Static_assert(sizeof(FuriHalCryptoKeyType) == 4, "Size check for 'FuriHalCryptoKeyType' failed.");
@@ -49,6 +50,7 @@ typedef enum {
     FuriHalCryptoKeyFlagPublicKey = (1 << 2),
     FuriHalCryptoKeyFlagPrivateKey = (1 << 3),
     FuriHalCryptoKeyFlagSignature = (1 << 4),
+    FuriHalCryptoKeyFlagBigData = (1 << 5),
     FuriHalCryptoKeyFlagNone = 0xFFFFFFFF,
 } FuriHalCryptoKeyFlag;
 _Static_assert(sizeof(FuriHalCryptoKeyFlag) == 4, "Size check for 'FuriHalCryptoKeyFlag' failed.");
@@ -77,9 +79,19 @@ typedef struct {
 extern "C" {
 #endif
 
+/*
+* Allocate a key structure.
+* @param[in] partition Partition to get the start address of.
+* @return Pointer to the allocated key structure.
+*/
 FuriHalCryptoKey* furi_hal_crypto_storage_alloc_key(FuriHalCryptoPartition partition);
 
+/*
+* Free the key structure.
+* @param[in] key Pointer to the key structure to free.
+*/
 void furi_hal_crypto_storage_free_key(FuriHalCryptoKey* key);
+
 /*
 * Check if the key slot is free.
 * @param[in] partition Partition to check.
