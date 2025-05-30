@@ -14,8 +14,8 @@
 #include "helpers/run_later.h"
 #include "scenes/busy_scenes.h"
 
-#include "views/timer_card.h"
 #include "widgets/nav_stack.h"
+#include "widgets/timer_card.h"
 #include "widgets/transition_overlay.h"
 
 #define TAG "Busy"
