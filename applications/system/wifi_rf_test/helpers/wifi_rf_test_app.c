@@ -560,6 +560,7 @@ sl_status_t wifi_rf_test_app(WifiRfTestApp* instance, uint8_t cmd_index, FuriStr
                     if(furi_string_cmp_str(arg, (char*)wifi_rf_test_channel_cmd[i].channel_cmd) ==
                        0) {
                         instance->tx_test_info.channel = i + 1;
+                        instance->channel = i + 1;
                         furi_string_printf(
                             instance->msg,
                             "Channel set to %d frequency %d Mhz\r\n",
