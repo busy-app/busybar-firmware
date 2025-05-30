@@ -23,7 +23,6 @@ typedef struct {
     lv_style_t focused;
     lv_style_t inverted;
     lv_style_t transparent;
-    lv_style_t subtractive;
     lv_style_t scrollbar;
     lv_style_t menu;
     lv_style_t menu_item;
@@ -60,13 +59,11 @@ static void style_init(my_theme_t* theme) {
     lv_style_set_text_opa(&theme->styles.inverted, LV_OPA_COVER);
     lv_style_set_bg_color(&theme->styles.inverted, COLOR_FG_FOCUSED);
     lv_style_set_text_color(&theme->styles.inverted, COLOR_BG_FOCUSED);
+    lv_style_set_image_recolor(&theme->styles.inverted, COLOR_BG_NORMAL);
 
     lv_style_init(&theme->styles.transparent);
     lv_style_set_bg_opa(&theme->styles.transparent, LV_OPA_TRANSP);
     lv_style_set_text_opa(&theme->styles.transparent, LV_OPA_TRANSP);
-
-    lv_style_init(&theme->styles.subtractive);
-    lv_style_set_blend_mode(&theme->styles.subtractive, LV_BLEND_MODE_SUBTRACTIVE);
 
     lv_style_init(&theme->styles.menu);
     lv_style_set_pad_left(&theme->styles.menu, MENU_PAD_ALL);
@@ -82,6 +79,8 @@ static void style_init(my_theme_t* theme) {
 
     lv_style_init(&theme->styles.menu_icon);
     lv_style_set_margin_right(&theme->styles.menu_icon, 6);
+    lv_style_set_image_recolor(&theme->styles.menu_icon, COLOR_FG_NORMAL);
+    lv_style_set_image_recolor_opa(&theme->styles.menu_icon, LV_OPA_COVER);
 
     lv_style_init(&theme->styles.menu_sublabel);
     lv_style_set_pad_top(&theme->styles.menu_sublabel, MENU_ITEM_PAD_HOR / 2);
@@ -157,7 +156,7 @@ static void theme_apply_callback(lv_theme_t* th, lv_obj_t* obj) {
 
     } else if(lv_obj_check_type(obj, &menu_icon_lvgl_class)) {
         lv_obj_add_style(obj, &theme->styles.menu_icon, LV_PART_MAIN);
-        lv_obj_add_style(obj, &theme->styles.subtractive, LV_PART_MAIN | LV_STATE_FOCUSED);
+        lv_obj_add_style(obj, &theme->styles.inverted, LV_PART_MAIN | LV_STATE_FOCUSED);
 
     } else if(lv_obj_check_type(obj, &menu_sublabel_lvgl_class)) {
         lv_obj_add_style(obj, &theme->styles.menu_sublabel, LV_PART_MAIN);
