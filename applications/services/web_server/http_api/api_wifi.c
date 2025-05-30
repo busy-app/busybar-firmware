@@ -213,13 +213,13 @@ static bool api_wifi_parse_ip_address(WifiIpConfig* ip_config, char* str) {
     return i == length;
 }
 
-static void wifi_print_parsed_address(
-    FuriString* str,
-    WifiIpType type,
-    const uint8_t* bytes,
-    const uint8_t size) {
+static void api_wifi_print_ip_address(FuriString* str, WifiIpConfig* ip_config) {
     furi_string_reset(str);
+    const WifiIpType type = ip_config->type;
+    const size_t size = (type == WifiIpTypeV4) ? sizeof(ip_config->address.v4) :
+                                                 sizeof(ip_config->address.v6);
     const char separator = (type == WifiIpTypeV4) ? '.' : ':';
+    const uint8_t* bytes = (type == WifiIpTypeV4) ? ip_config->address.v4 : ip_config->address.v6;
 
     for(size_t i = 0; i < size;) {
         if(type == WifiIpTypeV4) {
@@ -233,7 +233,7 @@ static void wifi_print_parsed_address(
     }
 }
 
-static bool api_wifi_parse_ip_config(struct mg_str ip_config_json, WifiIpConfig* const ip_config) {
+static bool api_wifi_parse_ip_config(struct mg_str ip_config_json, WifiIpConfig* ip_config) {
     bool result = false;
     FuriString* buf = furi_string_alloc();
     do {
@@ -252,14 +252,6 @@ static bool api_wifi_parse_ip_config(struct mg_str ip_config_json, WifiIpConfig*
 
         char* str = mg_json_get_str(ip_config_json, "$." WIFI_JSON_KEY_IP_ADDRESS "");
         if(!api_wifi_parse_ip_address(ip_config, str)) break;
-
-        ///TODO: Remove this, or make it debug
-        wifi_print_parsed_address(
-            buf,
-            ip_config->type,
-            (uint8_t*)&ip_config->address,
-            ip_config->type == WifiIpTypeV4 ? 4 : 16);
-        FURI_LOG_D(TAG, "IP: %s", furi_string_get_cstr(buf));
         result = true;
     } while(false);
     furi_string_free(buf);
@@ -411,16 +403,9 @@ static bool api_wifi_get_status_callaback(
                     ip_config_json, WIFI_JSON_KEY_IP_TYPE, wifi_ip_type[info.ip_config.type]);
 
                 FuriString* ip_str = furi_string_alloc();
-
-                wifi_print_parsed_address(
-                    ip_str,
-                    info.ip_config.type,
-                    (uint8_t*)&info.ip_config.address,
-                    info.ip_config.type == WifiIpTypeV4 ? 4 : 16);
-
+                api_wifi_print_ip_address(ip_str, &info.ip_config);
                 cJSON_AddStringToObject(
                     ip_config_json, WIFI_JSON_KEY_IP_ADDRESS, furi_string_get_cstr(ip_str));
-
                 furi_string_free(ip_str);
 
                 cJSON_AddItemToObject(response, WIFI_JSON_KEY_IP_CONFIG, ip_config_json);
