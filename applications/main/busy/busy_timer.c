@@ -35,6 +35,11 @@ static const char* busy_timer_get_state_name(BusyTimerState state) {
     return busy_timer_state_names[state];
 }
 
+static const char* busy_timer_get_mode_name(BusyTimerMode mode) {
+    furi_assert(mode < BusyTimerModeMax);
+    return busy_timer_mode_names[mode];
+}
+
 #ifdef BUSY_TIMER_TICK_DEBUG
 static void busy_timer_get_time_str(uint32_t time_s, char buf[TIME_MAX_LEN]) {
     const uint32_t h = S_TO_H(time_s);
@@ -74,6 +79,19 @@ static void busy_timer_notify_tick(const BusyTimer* instance) {
     }
 }
 
+static void busy_timer_notify_mode_changed(const BusyTimer* instance) {
+    FURI_LOG_D(TAG, "Mode changed: %s", busy_timer_get_mode_name(instance->mode));
+
+    if(instance->callback) {
+        const BusyTimerEvent event = {
+            .type = BusyTimerEventTypeModeChanged,
+            .mode = instance->mode,
+        };
+
+        instance->callback(&event, instance->callback_context);
+    }
+}
+
 static void busy_timer_notify_state_changed(const BusyTimer* instance) {
     FURI_LOG_D(TAG, "State changed: %s", busy_timer_get_state_name(instance->state));
 
@@ -107,10 +125,13 @@ static BusyTimerState busy_timer_calc_state(const BusyTimer* instance) {
         state = BusyTimerStateWork;
 
     } else if(instance->state == BusyTimerStateWork) {
-        if(instance->cycles_done == instance->config.cycle_count) {
-            state = BusyTimerStateIdle;
-        } else {
+        const bool interval_timer = instance->mode == BusyTimerModeInterval;
+        const bool cycles_remaining = instance->cycles_done < instance->config.cycle_count;
+
+        if(interval_timer && cycles_remaining) {
             state = BusyTimerStateRest;
+        } else {
+            state = BusyTimerStateIdle;
         }
 
     } else if(instance->state == BusyTimerStateRest) {
@@ -171,7 +192,9 @@ static bool busy_timer_is_running(const BusyTimer* instance) {
 }
 
 static void busy_timer_start_timer(BusyTimer* instance) {
-    furi_event_loop_timer_start(instance->timer, S_TO_MS(1));
+    if(instance->mode != BusyTimerModeInfinite) {
+        furi_event_loop_timer_start(instance->timer, S_TO_MS(1));
+    }
 }
 
 static void busy_timer_stop_timer(BusyTimer* instance) {
@@ -293,6 +316,9 @@ static void busy_timer_start_message_handler(BusyTimer* instance, BusyTimerMessa
     UNUSED(data);
 
     FURI_LOG_I(TAG, "Starting");
+
+    instance->mode = instance->config.mode;
+    busy_timer_notify_mode_changed(instance);
 
     if(instance->state == BusyTimerStateIdle) {
         busy_timer_next_state(instance, true);

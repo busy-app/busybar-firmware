@@ -27,7 +27,9 @@ static void busy_scene_progress_on_enter(void* context) {
     BusySceneProgress* data = scene_manager_get_current_scene_data(instance->scene_manager);
 
     const BusyTimerState state = busy_timer_get_state(instance->busy_timer);
+
     uint32_t run_later_delay;
+    BusyStatusLightsType status_lights;
 
     if(state == BusyTimerStateRest || state == BusyTimerStateIdle) {
         BusyTimerCycles cycles;
@@ -41,6 +43,7 @@ static void busy_scene_progress_on_enter(void* context) {
         });
 
         run_later_delay = DONE_TRANSITION_DELAY_MS;
+        status_lights = BusyStatusLightsTypeWork;
 
     } else if(state == BusyTimerStateWork) {
         with_gui(instance->gui, {
@@ -49,6 +52,7 @@ static void busy_scene_progress_on_enter(void* context) {
         });
 
         run_later_delay = REST_TRANSITION_DELAY_MS;
+        status_lights = BusyStatusLightsTypeRest;
 
     } else {
         furi_crash();
@@ -57,6 +61,7 @@ static void busy_scene_progress_on_enter(void* context) {
     data->run_later = run_later(
         instance->event_loop, busy_scene_progress_run_later_callback, instance, run_later_delay);
 
+    busy_set_status_lights(instance, status_lights);
     busy_start_transition(instance);
 }
 

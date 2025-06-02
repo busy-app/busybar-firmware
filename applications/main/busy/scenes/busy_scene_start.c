@@ -89,7 +89,15 @@ static bool busy_scene_start_on_event(const SceneManagerEvent* event, void* cont
             });
 
             busy_prepare_transition(instance, BusyTransitionTypeWhiteSelect);
-            scene_manager_next_scene(instance->scene_manager, BusyAppSceneIdOverview);
+
+            BusyTimerConfig timer_config;
+            busy_timer_get_config(instance->busy_timer, &timer_config);
+
+            if(timer_config.mode == BusyTimerModeInterval) {
+                scene_manager_next_scene(instance->scene_manager, BusyAppSceneIdOverview);
+            } else {
+                scene_manager_next_scene(instance->scene_manager, BusyAppSceneIdTimer);
+            }
 
         } else if(event->event == BusySceneStartMenuIndexSetup) {
             busy_push_location(instance, "SETUP");

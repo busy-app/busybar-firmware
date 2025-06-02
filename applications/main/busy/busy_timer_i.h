@@ -66,6 +66,7 @@ struct BusyTimer {
     uint32_t cycles_done;
     BusyTimerConfig config;
     BusyTimerTime time;
+    BusyTimerMode mode;
     BusyTimerState state;
     bool next_state_forced;
 };

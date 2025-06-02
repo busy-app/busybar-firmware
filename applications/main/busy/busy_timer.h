@@ -39,6 +39,7 @@ typedef enum {
 
 typedef enum {
     BusyTimerEventTypeTick,
+    BusyTimerEventTypeModeChanged,
     BusyTimerEventTypeStateChanged,
     BusyTimerEventTypeIntervalEnded,
     BusyTimerEventTypeMax,
@@ -58,6 +59,7 @@ typedef struct {
     BusyTimerEventType type;
     union {
         BusyTimerTime time;
+        BusyTimerMode mode;
         BusyTimerState state;
         bool is_force_ended;
     };
