@@ -2,6 +2,7 @@
 
 #include <gui/modules/image.h>
 #include <gui/modules/anim_image.h>
+#include <gui/modules/flex_layout.h>
 
 #include "../widgets/timer_label.h"
 #include "../widgets/progress_bar.h"
@@ -15,6 +16,7 @@
 #define PROGRESS_TRANSITION_MS (1000)
 
 typedef struct {
+    FlexLayout* front_flex;
     AnimImage* state_image;
     TimerLabel* timer_label;
     ProgressBar* progress_bar;
@@ -143,19 +145,19 @@ static void busy_scene_timer_update_timer_mode(BusyApp* instance) {
 
     with_gui(instance->gui, {
         if(data->timer_mode == BusyTimerModeInfinite) {
-            widget_set_pos(anim_image_get_base(data->state_image), 1, 1);
+            widget_set_pos(flex_layout_get_base(data->front_flex), 1, 1);
             widget_set_visible(timer_label_get_base(data->timer_label), false);
             widget_set_visible(progress_bar_get_base(data->progress_bar), false);
             timer_card_show_time(instance->timer_card, false);
 
         } else if(data->timer_mode == BusyTimerModeSimple) {
-            widget_set_pos(anim_image_get_base(data->state_image), 0, 0);
+            widget_set_pos(flex_layout_get_base(data->front_flex), 0, 1);
             widget_set_visible(timer_label_get_base(data->timer_label), true);
             widget_set_visible(progress_bar_get_base(data->progress_bar), true);
             timer_card_show_time(instance->timer_card, true);
 
         } else if(data->timer_mode == BusyTimerModeInterval) {
-            widget_set_pos(anim_image_get_base(data->state_image), 0, 0);
+            widget_set_pos(flex_layout_get_base(data->front_flex), 0, 0);
             widget_set_visible(timer_label_get_base(data->timer_label), true);
             widget_set_visible(progress_bar_get_base(data->progress_bar), true);
             timer_card_show_time(instance->timer_card, true);
@@ -267,10 +269,11 @@ static void busy_scene_timer_on_enter(void* context) {
         GuiLayer* layer = gui_get_layer(instance->gui, GuiLayerIdMain);
         gui_layer_add_input_callback(layer, busy_scene_timer_input_callback, instance);
 
-        data->state_image = anim_image_alloc(instance->front_window);
+        data->front_flex = flex_layout_alloc(instance->front_window, FlexLayoutTypeRow);
+        flex_layout_set_spacing(data->front_flex, 2);
 
-        data->timer_label = timer_label_alloc(instance->front_window);
-        widget_set_pos(timer_label_get_base(data->timer_label), 42, 0);
+        data->state_image = anim_image_alloc(flex_layout_get_base(data->front_flex));
+        data->timer_label = timer_label_alloc(flex_layout_get_base(data->front_flex));
 
         data->progress_bar = progress_bar_alloc(instance->front_window);
         widget_set_pos(progress_bar_get_base(data->progress_bar), 1, 15);
@@ -309,8 +312,7 @@ static void busy_scene_timer_on_exit(void* context) {
         GuiLayer* layer = gui_get_layer(instance->gui, GuiLayerIdMain);
         gui_layer_remove_input_callback(layer, busy_scene_timer_input_callback);
 
-        anim_image_free(data->state_image);
-        timer_label_free(data->timer_label);
+        flex_layout_free(data->front_flex);
         progress_bar_free(data->progress_bar);
         pause_overlay_free(data->pause_overlay);
     });
