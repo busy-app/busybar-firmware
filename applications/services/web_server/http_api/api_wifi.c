@@ -149,65 +149,38 @@ static bool api_wifi_get_networks_callaback(
     return true;
 }
 
-static inline bool parse_octet(char* octet, WifiIpType type, int* value) {
-    uint8_t base = (type == WifiIpTypeV4) ? 10 : 16;
-    char* endptr;
-    *value = strtoul(octet, &endptr, base);
-    return (*endptr == '\0');
-}
-
-static inline bool validate_octet(int raw_octet, WifiIpType type) {
-    uint16_t max_value = type == WifiIpTypeV4 ? UINT8_MAX : UINT16_MAX;
-    return (raw_octet >= 0 && raw_octet <= max_value);
-}
-
-static bool
-    api_wifi_parse_ip_address(WifiIpConfig* ip_config, char* address_str, FuriString* error_msg) {
-    uint8_t i = 0;
-
-    const char* separator;
-    uint8_t length;
-
-    if(ip_config->type == WifiIpTypeV4) {
-        separator = ".";
-        length = sizeof(ip_config->address.v4);
-    } else {
-        separator = ":";
-        length = sizeof(ip_config->address.v6);
-    }
-
-    char* octet_str = strtok(address_str, separator);
-    while(octet_str != NULL && i < length) {
-        int raw_octet;
-        if(!parse_octet(octet_str, ip_config->type, &raw_octet)) {
-            furi_string_printf(
-                error_msg,
-                "Failed to parse \"%s\" as IPv%d octet",
-                octet_str,
-                ip_config->type == WifiIpTypeV4 ? 4 : 6);
+bool api_wifi_parse_ip_address(
+    FuriString* address_str,
+    WifiIpType type,
+    uint8_t* result_bytes,
+    FuriString* error_msg) {
+    bool result = false;
+    do {
+        struct mg_addr addr;
+        const char* address_cstr = furi_string_get_cstr(address_str);
+        struct mg_str str = mg_str(address_cstr);
+        if(!mg_aton(str, &addr)) {
+            furi_string_printf(error_msg, "Unable to parse \"%s\" as a valid ip", address_cstr);
             break;
         }
 
-        if(!validate_octet(raw_octet, ip_config->type)) {
-            furi_string_printf(
-                error_msg,
-                "Octet \"%s\" is not valid for ipv%d",
-                octet_str,
-                ip_config->type == WifiIpTypeV4 ? 4 : 6);
+        if(type == WifiIpTypeV4 && addr.is_ip6) {
+            furi_string_printf(error_msg, "Address \"%s\" is not IPv4", address_cstr);
             break;
         }
 
-        if(ip_config->type == WifiIpTypeV4) {
-            ip_config->address.v4[i] = (uint8_t)raw_octet;
-            i++;
-        } else {
-            *((uint16_t*)(&ip_config->address.v6[i])) = raw_octet;
-            i += 2;
+        const uint8_t size = addr.is_ip6 ? 16 : 4;
+        memcpy(result_bytes, addr.ip, size);
+
+        if(type == WifiIpTypeV6) {
+            for(size_t i = 0; i < size; i += 4) {
+                *((uint32_t*)&result_bytes[i]) = mg_ntohl(*((uint32_t*)&result_bytes[i]));
+            }
         }
 
-        octet_str = strtok(NULL, separator);
-    }
-    return i == length;
+        result = true;
+    } while(false);
+    return result;
 }
 
 static void api_wifi_print_ip_address(FuriString* str, WifiIpConfig* ip_config) {
