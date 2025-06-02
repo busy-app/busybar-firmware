@@ -24,6 +24,13 @@ extern "C" {
 typedef struct BusyTimer BusyTimer;
 
 typedef enum {
+    BusyTimerModeInfinite,
+    BusyTimerModeSimple,
+    BusyTimerModeInterval,
+    BusyTimerModeMax,
+} BusyTimerMode;
+
+typedef enum {
     BusyTimerStateIdle,
     BusyTimerStateWork,
     BusyTimerStateRest,
@@ -57,6 +64,7 @@ typedef struct {
 } BusyTimerEvent;
 
 typedef struct {
+    BusyTimerMode mode;
     uint32_t work_time_mn;
     uint32_t rest_time_mn;
     uint32_t cycle_count;
@@ -92,6 +100,8 @@ void busy_timer_toggle(BusyTimer* instance);
 void busy_timer_skip(BusyTimer* instance);
 
 void busy_timer_add_time(BusyTimer* instance, int32_t time_mn);
+
+const char** busy_timer_get_mode_names(void);
 
 #ifdef __cplusplus
 }

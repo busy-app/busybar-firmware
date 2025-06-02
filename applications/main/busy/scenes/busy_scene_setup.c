@@ -28,13 +28,18 @@ static void busy_scene_setup_on_enter(void* context) {
     BusyApp* instance = context;
     BusySceneSetup* data = scene_manager_get_current_scene_data(instance->scene_manager);
 
+    BusyTimerConfig timer_config;
+    busy_timer_get_config(instance->busy_timer, &timer_config);
+
+    const char* mode_name = busy_timer_get_mode_names()[timer_config.mode];
+
     with_gui(instance->gui, {
         data->front_menu = menu_alloc(instance->front_window);
 
         menu_add_item(
             data->front_menu,
             "TIMER",
-            "Interv",
+            mode_name,
             BUSY_IMG_PATH("timer_8x8.bin"),
             BusySceneSetupMenuIndexTimer,
             busy_scene_setup_menu_callback,
@@ -50,7 +55,7 @@ static void busy_scene_setup_on_enter(void* context) {
 
         data->back_menu = menu_alloc(nav_stack_get_base(instance->nav_stack));
         menu_add_item(
-            data->back_menu, "TIMER", "Interval", BUSY_IMG_PATH("timer_12x12.bin"), 0, NULL, NULL);
+            data->back_menu, "TIMER", mode_name, BUSY_IMG_PATH("timer_12x12.bin"), 0, NULL, NULL);
         menu_add_item(
             data->back_menu, "THEME", "", BUSY_IMG_PATH("theme_12x12.bin"), 0, NULL, NULL);
     });

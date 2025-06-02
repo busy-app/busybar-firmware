@@ -9,6 +9,14 @@ typedef struct {
     BusyTimerConfig timer_config;
 } BusySceneSetupTimer;
 
+static void busy_scene_setup_timer_mode_changed_callback(VarItem* item, void* context) {
+    furi_assert(item);
+    furi_assert(context);
+
+    BusySceneSetupTimer* data = context;
+    data->timer_config.mode = var_item_get_value(item);
+}
+
 static void busy_scene_setup_timer_work_changed_callback(VarItem* item, void* context) {
     furi_assert(item);
     furi_assert(context);
@@ -52,6 +60,17 @@ static void busy_scene_setup_timer_speed_changed_callback(VarItem* item, void* c
 static void
     busy_scene_setup_fill_var_item_list(VarItemList* list, BusySceneSetupTimer* data, bool set_cb) {
     VarItem* item;
+
+    item = var_item_list_add_selector(
+        list,
+        "Mode",
+        NULL,
+        busy_timer_get_mode_names(),
+        BusyTimerModeMax,
+        set_cb ? busy_scene_setup_timer_mode_changed_callback : NULL,
+        data);
+
+    var_item_set_value(item, data->timer_config.mode);
 
     item = var_item_list_add_timebox(
         list,

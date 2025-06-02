@@ -9,6 +9,7 @@ typedef void (*const BusyTimerMessageHandler)(BusyTimer* instance, BusyTimerMess
 static const BusyTimerMessageHandler busy_timer_message_handlers[];
 
 static const BusyTimerConfig busy_timer_config_default = {
+    .mode = BusyTimerModeInterval,
     .work_time_mn = WORK_TIME_DEFAULT_MN,
     .rest_time_mn = REST_TIME_DEFAULT_MN,
     .cycle_count = CYCLE_COUNT_DEFAULT,
@@ -17,16 +18,21 @@ static const BusyTimerConfig busy_timer_config_default = {
     .enable_speed = ENABLE_SPEED_DEFAULT,
 };
 
+static const char* busy_timer_mode_names[BusyTimerModeMax] = {
+    [BusyTimerModeInfinite] = "Off",
+    [BusyTimerModeSimple] = "Simple",
+    [BusyTimerModeInterval] = "Interval",
+};
+
+static const char* busy_timer_state_names[BusyTimerStateMax] = {
+    [BusyTimerStateIdle] = "Idle",
+    [BusyTimerStateWork] = "Work",
+    [BusyTimerStateRest] = "Rest",
+};
+
 static const char* busy_timer_get_state_name(BusyTimerState state) {
     furi_assert(state < BusyTimerStateMax);
-
-    static const char* state_names[BusyTimerStateMax] = {
-        [BusyTimerStateIdle] = "Idle",
-        [BusyTimerStateWork] = "Work",
-        [BusyTimerStateRest] = "Rest",
-    };
-
-    return state_names[state];
+    return busy_timer_state_names[state];
 }
 
 #ifdef BUSY_TIMER_TICK_DEBUG
@@ -275,6 +281,10 @@ void busy_timer_free(BusyTimer* instance) {
     furi_thread_free(instance->thread);
 
     free(instance);
+}
+
+const char** busy_timer_get_mode_names(void) {
+    return busy_timer_mode_names;
 }
 
 // Message handlers
