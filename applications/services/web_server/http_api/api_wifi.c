@@ -16,7 +16,9 @@
 #define WIFI_JSON_KEY_IP_CONFIG  "ip_config"
 #define WIFI_JSON_KEY_IP_METHOD  "ip_method"
 #define WIFI_JSON_KEY_IP_TYPE    "ip_type"
-#define WIFI_JSON_KEY_IP_ADDRESS "ip_address"
+#define WIFI_JSON_KEY_IP_ADDRESS "address"
+#define WIFI_JSON_KEY_IP_MASK    "mask"
+#define WIFI_JSON_KEY_IP_GATEWAY "gateway"
 
 typedef struct {
     HttpHandlersList_t handlers;
@@ -199,6 +201,81 @@ static void api_wifi_print_ip_address(FuriString* str, WifiIpConfig* ip_config) 
         }
     }
 }
+
+static bool api_wifi_mg_json_get_str_key(
+    struct mg_str body,
+    const char* key,
+    FuriString* output,
+    FuriString* error_msg) {
+    bool result = false;
+    do {
+        furi_string_printf(output, "$.%s", key);
+        char* mg_str = mg_json_get_str(body, furi_string_get_cstr(output));
+
+        if(mg_str == NULL) {
+            furi_string_printf(error_msg, "Key \"%s\" is missing", key);
+            furi_string_reset(output);
+            break;
+        }
+
+        furi_string_set_str(output, mg_str);
+        result = true;
+
+    } while(false);
+    return result;
+}
+
+static bool api_wifi_parse_ipv6_settings(
+    struct mg_str ip_config_json,
+    WifiIpv6Settings* ip6_settings,
+    FuriString* error_msg) {
+    bool result = false;
+    FuriString* buf = furi_string_alloc();
+    do {
+        if(!api_wifi_mg_json_get_str_key(ip_config_json, WIFI_JSON_KEY_IP_ADDRESS, buf, error_msg))
+            break;
+        if(!api_wifi_parse_ip_address(buf, WifiIpTypeV6, ip6_settings->global.bytes, error_msg))
+            break;
+
+        if(!api_wifi_mg_json_get_str_key(ip_config_json, WIFI_JSON_KEY_IP_GATEWAY, buf, error_msg))
+            break;
+        if(!api_wifi_parse_ip_address(buf, WifiIpTypeV6, ip6_settings->gateway.bytes, error_msg))
+            break;
+
+        result = true;
+    } while(false);
+
+    furi_string_free(buf);
+    return result;
+}
+
+static bool api_wifi_parse_ipv4_settings(
+    struct mg_str ip_config_json,
+    WifiIpv4Settings* ip4_settings,
+    FuriString* error_msg) {
+    bool result = false;
+    FuriString* buf = furi_string_alloc();
+    do {
+        if(!api_wifi_mg_json_get_str_key(ip_config_json, WIFI_JSON_KEY_IP_ADDRESS, buf, error_msg))
+            break;
+        if(!api_wifi_parse_ip_address(buf, WifiIpTypeV4, ip4_settings->address.bytes, error_msg))
+            break;
+
+        if(!api_wifi_mg_json_get_str_key(ip_config_json, WIFI_JSON_KEY_IP_MASK, buf, error_msg))
+            break;
+        if(!api_wifi_parse_ip_address(buf, WifiIpTypeV4, ip4_settings->mask.bytes, error_msg))
+            break;
+
+        if(!api_wifi_mg_json_get_str_key(ip_config_json, WIFI_JSON_KEY_IP_GATEWAY, buf, error_msg))
+            break;
+        if(!api_wifi_parse_ip_address(buf, WifiIpTypeV4, ip4_settings->gateway.bytes, error_msg))
+            break;
+
+        result = true;
+    } while(false);
+    furi_string_free(buf);
+
+    return result;
 }
 
 static bool api_wifi_parse_ip_config(
@@ -208,9 +285,8 @@ static bool api_wifi_parse_ip_config(
     bool result = false;
     FuriString* buf = furi_string_alloc();
     do {
-        if(ip_config_json.len == 0) break;
-
-        furi_string_set_str(buf, mg_json_get_str(ip_config_json, "$." WIFI_JSON_KEY_IP_METHOD ""));
+        if(!api_wifi_mg_json_get_str_key(ip_config_json, WIFI_JSON_KEY_IP_METHOD, buf, error_msg))
+            break;
         if(!api_wifi_parse_ip_method(buf, &ip_config->mgmt)) {
             furi_string_printf(
                 error_msg, "\"%s\" is not valid ip_method", furi_string_get_cstr(buf));
@@ -222,16 +298,18 @@ static bool api_wifi_parse_ip_config(
             break;
         }
 
-        furi_string_set_str(buf, mg_json_get_str(ip_config_json, "$." WIFI_JSON_KEY_IP_TYPE ""));
+        if(!api_wifi_mg_json_get_str_key(ip_config_json, WIFI_JSON_KEY_IP_TYPE, buf, error_msg))
+            break;
         if(!aip_wifi_parse_ip_type(buf, &ip_config->type)) {
             furi_string_printf(
                 error_msg, "\"%s\" is not valid ip_type", furi_string_get_cstr(buf));
             break;
         }
 
-        char* address_str = mg_json_get_str(ip_config_json, "$." WIFI_JSON_KEY_IP_ADDRESS "");
-        if(!api_wifi_parse_ip_address(ip_config, address_str, error_msg)) break;
-        result = true;
+        if(ip_config->type == WifiIpTypeV4)
+            result = api_wifi_parse_ipv4_settings(ip_config_json, &ip_config->ip4, error_msg);
+        else
+            result = api_wifi_parse_ipv6_settings(ip_config_json, &ip_config->ip6, error_msg);
     } while(false);
     furi_string_free(buf);
     return result;
@@ -243,16 +321,15 @@ static bool api_wifi_connect_parse_config(
     WifiIpConfig* ip_config,
     FuriString* error_msg) {
     bool parse_result = false;
+    FuriString* buf = furi_string_alloc();
     do {
-        strncpy(
-            credentials->ssid, mg_json_get_str(body, "$." WIFI_JSON_KEY_SSID ""), SSID_MAX_LEN);
-        strncpy(
-            credentials->passphrase,
-            mg_json_get_str(body, "$." WIFI_JSON_KEY_PASSWORD ""),
-            PASSPHRASE_MAX_LEN);
+        if(!api_wifi_mg_json_get_str_key(body, WIFI_JSON_KEY_SSID, buf, error_msg)) break;
+        strncpy(credentials->ssid, furi_string_get_cstr(buf), SSID_MAX_LEN);
 
-        FuriString* buf;
-        buf = furi_string_alloc_set_str(mg_json_get_str(body, "$." WIFI_JSON_KEY_SECURITY ""));
+        if(!api_wifi_mg_json_get_str_key(body, WIFI_JSON_KEY_PASSWORD, buf, error_msg)) break;
+        strncpy(credentials->passphrase, furi_string_get_cstr(buf), PASSPHRASE_MAX_LEN);
+
+        if(!api_wifi_mg_json_get_str_key(body, WIFI_JSON_KEY_SECURITY, buf, error_msg)) break;
         if(!api_wifi_get_security_mode_by_name(buf, &credentials->security_mode)) {
             furi_string_printf(
                 error_msg, "\"%s\" is not valid security mode", furi_string_get_cstr(buf));
@@ -260,11 +337,16 @@ static bool api_wifi_connect_parse_config(
         }
 
         struct mg_str ip_config_json = mg_json_get_tok(body, "$." WIFI_JSON_KEY_IP_CONFIG "");
+        if(ip_config_json.len == 0) {
+            furi_string_printf(error_msg, "\"%s\" is missing", WIFI_JSON_KEY_IP_CONFIG);
+            break;
+        }
         if(!api_wifi_parse_ip_config(ip_config_json, ip_config, error_msg)) break;
 
-        furi_string_free(buf);
         parse_result = true;
     } while(false);
+    furi_string_free(buf);
+
     return parse_result;
 }
 
