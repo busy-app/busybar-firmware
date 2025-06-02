@@ -86,14 +86,38 @@ typedef enum {
     WifiIpTypeV6, /**< IP version 6 */
 } WifiIpType;
 
+/** Union which represents IPv4 as byte sequence and single uint32_t */
+typedef union {
+    uint32_t value; ///< IPv4 address as a uint32_t
+    uint8_t bytes[4]; ///< IPv4 address as uint8_t[4]
+} WifiIpv4;
+
+/** All 3 parts of IPv4. This must match to sl_net_ipv4_setting_t, because memcpy is done between them */
+typedef struct {
+    WifiIpv4 address;
+    WifiIpv4 gateway;
+    WifiIpv4 mask;
+} WifiIpv4Settings;
+
+/** Union which represents IPv6 as byte and uint32_t sequences */
+typedef union {
+    uint32_t value[4]; ///< IPv6 address as a uint32_t[4]
+    uint8_t bytes[16]; ///< IPv6 address as uint8_t[16]
+} WifiIpv6;
+
+/** All 3 parts of IPv6. This must match to sl_net_ipv6_setting_t, because memcpy is done between them */
+typedef struct {
+    WifiIpv6 local;
+    WifiIpv6 global;
+    WifiIpv6 gateway;
+} WifiIpv6Settings;
+
 /** IP configuration structure. */
 typedef struct {
     WifiIpManagement mgmt; /**< Address management method to use */
     WifiIpType type; /**< IP version to use */
-    union {
-        uint8_t v4[4]; /**< Value for IP address v4 */
-        uint8_t v6[16]; /**< Value for IP address v6 */
-    } address; /**< IP address */
+    WifiIpv4Settings ip4;
+    WifiIpv6Settings ip6;
 } WifiIpConfig;
 
 /**

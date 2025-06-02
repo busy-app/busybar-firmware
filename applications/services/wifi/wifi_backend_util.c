@@ -119,19 +119,20 @@ void wifi_decode_ip_config(WifiIpConfig* config, const sl_net_ip_configuration_t
     config->type = wifi_decode_ip_version(sl_config->type);
 
     const uint8_t* ip_ptr;
+    uint8_t* dest;
     size_t ip_length;
 
     if(config->type == WifiIpTypeV4) {
         ip_ptr = sl_config->ip.v4.ip_address.bytes;
         ip_length = sizeof(sl_config->ip.v4.ip_address.bytes);
-
+        dest = config->ip4.address.bytes;
     } else if(config->type == WifiIpTypeV6) {
         ip_ptr = sl_config->ip.v6.global_address.bytes;
         ip_length = sizeof(sl_config->ip.v6.global_address.bytes);
-
+        dest = config->ip6.global.bytes;
     } else {
         furi_crash("Invalid WifiIpType value");
     }
 
-    memcpy(&config->address, ip_ptr, ip_length);
+    memcpy(dest, ip_ptr, ip_length);
 }
