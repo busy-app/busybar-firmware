@@ -135,6 +135,14 @@ static void wifi_connect_request_handler(Wifi* instance) {
                 },
         };
 
+        if(ip->mgmt == WifiIpManagementStatic) {
+            static_assert(sizeof(sl_net_ipv4_setting_t) == sizeof(WifiIpv4Settings));
+            memcpy(&profile.ip.ip.v4, &ip->ip4, sizeof(WifiIpv4Settings));
+
+            static_assert(sizeof(sl_net_ipv6_setting_t) == sizeof(WifiIpv6Settings));
+            memcpy(&profile.ip.ip.v6, &ip->ip6, sizeof(WifiIpv6Settings));
+        }
+
         wifi_encode_ssid(&profile.config.ssid, credentials->ssid);
 
         // Set profile
