@@ -29,6 +29,7 @@ typedef struct {
     lv_style_t menu_icon;
     lv_style_t menu_arrow;
     lv_style_t submenu_item;
+    lv_style_t submenu_cursor;
     lv_style_t var_item;
     lv_style_t var_item_editor;
     lv_style_t nav_stack;
@@ -93,6 +94,10 @@ static void style_init(my_theme_t* theme) {
     lv_style_set_pad_bottom(&theme->styles.submenu_item, MENU_ITEM_PAD_VER - 1);
     lv_style_set_pad_column(&theme->styles.submenu_item, SUBMENU_ITEM_PAD_COL);
     lv_style_set_radius(&theme->styles.submenu_item, MENU_ITEM_RADIUS);
+
+    lv_style_init(&theme->styles.submenu_cursor);
+    lv_style_set_width(&theme->styles.submenu_cursor, 0);
+    lv_style_set_margin_right(&theme->styles.submenu_cursor, -SUBMENU_ITEM_PAD_COL);
 
     lv_style_init(&theme->styles.var_item);
     lv_style_set_pad_hor(&theme->styles.var_item, MENU_ITEM_PAD_HOR);
@@ -173,8 +178,7 @@ static void theme_apply_callback(lv_theme_t* th, lv_obj_t* obj) {
         lv_obj_add_style(obj, &theme->styles.submenu_item, LV_PART_MAIN);
 
     } else if(lv_obj_check_type(obj, &submenu_cursor_lvgl_class)) {
-        lv_obj_add_style(obj, &theme->styles.transparent, LV_PART_MAIN);
-        lv_obj_add_style(obj, &theme->styles.inverted, LV_PART_MAIN | LV_STATE_FOCUSED);
+        lv_obj_add_style(obj, &theme->styles.submenu_cursor, LV_PART_MAIN);
 
     } else if(lv_obj_check_type(obj, &var_item_list_lvgl_class)) {
         lv_obj_add_style(obj, &theme->styles.menu, LV_PART_MAIN);
@@ -191,9 +195,7 @@ static void theme_apply_callback(lv_theme_t* th, lv_obj_t* obj) {
         lv_obj_add_style(obj, &theme->styles.inverted, LV_PART_MAIN | LV_STATE_EDITED);
 
     } else if(lv_obj_check_type(obj, &var_item_cursor_lvgl_class)) {
-        lv_obj_add_style(obj, &theme->styles.transparent, LV_PART_MAIN);
-        lv_obj_add_style(obj, &theme->styles.normal, LV_PART_MAIN | LV_STATE_EDITED);
-        lv_obj_add_style(obj, &theme->styles.inverted, LV_PART_MAIN | LV_STATE_FOCUSED);
+        lv_obj_add_style(obj, &theme->styles.submenu_cursor, LV_PART_MAIN);
 
     } else if(lv_obj_check_type(obj, &nav_stack_lvgl_class)) {
         lv_obj_add_style(obj, &theme->styles.normal, LV_PART_MAIN);
