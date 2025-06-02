@@ -11,6 +11,8 @@
 #define MENU_ITEM_PAD_HOR (2)
 #define MENU_ITEM_PAD_VER (0)
 
+#define MENU_SUBLABEL_MAX_WIDTH (22)
+
 typedef struct {
     lv_style_t screen;
     lv_style_t normal;
@@ -20,6 +22,7 @@ typedef struct {
     lv_style_t menu_item;
     lv_style_t menu_icon;
     lv_style_t menu_sublabel;
+    lv_style_t menu_arrow;
     lv_style_t submenu;
     lv_style_t submenu_cursor;
     lv_style_t timer_label;
@@ -58,7 +61,10 @@ static void style_init(my_theme_t* theme) {
     lv_style_set_image_opa(&theme->styles.menu_icon, LV_OPA_COVER);
 
     lv_style_init(&theme->styles.menu_sublabel);
-    lv_style_set_pad_left(&theme->styles.menu_sublabel, 3);
+    lv_style_set_max_width(&theme->styles.menu_sublabel, MENU_SUBLABEL_MAX_WIDTH);
+
+    lv_style_init(&theme->styles.menu_arrow);
+    lv_style_set_pad_left(&theme->styles.menu_arrow, 3);
 
     lv_style_init(&theme->styles.submenu);
     lv_style_set_pad_row(&theme->styles.submenu, 1);
@@ -117,6 +123,9 @@ static void theme_apply_callback(lv_theme_t* th, lv_obj_t* obj) {
 
     } else if(lv_obj_check_type(obj, &menu_sublabel_lvgl_class)) {
         lv_obj_add_style(obj, &theme->styles.menu_sublabel, LV_PART_MAIN);
+
+    } else if(lv_obj_check_type(obj, &menu_arrow_lvgl_class)) {
+        lv_obj_add_style(obj, &theme->styles.menu_arrow, LV_PART_MAIN);
         lv_obj_add_style(obj, &theme->styles.transparent, LV_PART_MAIN);
         lv_obj_add_style(obj, &theme->styles.focused, LV_PART_MAIN | LV_STATE_FOCUSED);
 

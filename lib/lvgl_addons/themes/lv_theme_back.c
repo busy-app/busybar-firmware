@@ -27,7 +27,7 @@ typedef struct {
     lv_style_t menu;
     lv_style_t menu_item;
     lv_style_t menu_icon;
-    lv_style_t menu_sublabel;
+    lv_style_t menu_arrow;
     lv_style_t submenu_item;
     lv_style_t var_item;
     lv_style_t var_item_editor;
@@ -82,10 +82,10 @@ static void style_init(my_theme_t* theme) {
     lv_style_set_image_recolor(&theme->styles.menu_icon, COLOR_FG_NORMAL);
     lv_style_set_image_recolor_opa(&theme->styles.menu_icon, LV_OPA_COVER);
 
-    lv_style_init(&theme->styles.menu_sublabel);
-    lv_style_set_pad_top(&theme->styles.menu_sublabel, MENU_ITEM_PAD_HOR / 2);
-    lv_style_set_pad_left(&theme->styles.menu_sublabel, MENU_ITEM_PAD_HOR / 2);
-    lv_style_set_text_font(&theme->styles.menu_sublabel, theme->base.font_small);
+    lv_style_init(&theme->styles.menu_arrow);
+    lv_style_set_pad_top(&theme->styles.menu_arrow, MENU_ITEM_PAD_HOR / 2);
+    lv_style_set_pad_left(&theme->styles.menu_arrow, MENU_ITEM_PAD_HOR / 2);
+    lv_style_set_text_font(&theme->styles.menu_arrow, theme->base.font_small);
 
     lv_style_init(&theme->styles.submenu_item);
     lv_style_set_pad_hor(&theme->styles.submenu_item, MENU_ITEM_PAD_HOR);
@@ -158,8 +158,8 @@ static void theme_apply_callback(lv_theme_t* th, lv_obj_t* obj) {
         lv_obj_add_style(obj, &theme->styles.menu_icon, LV_PART_MAIN);
         lv_obj_add_style(obj, &theme->styles.inverted, LV_PART_MAIN | LV_STATE_FOCUSED);
 
-    } else if(lv_obj_check_type(obj, &menu_sublabel_lvgl_class)) {
-        lv_obj_add_style(obj, &theme->styles.menu_sublabel, LV_PART_MAIN);
+    } else if(lv_obj_check_type(obj, &menu_arrow_lvgl_class)) {
+        lv_obj_add_style(obj, &theme->styles.menu_arrow, LV_PART_MAIN);
         lv_obj_add_style(obj, &theme->styles.transparent, LV_PART_MAIN);
         lv_obj_add_style(obj, &theme->styles.inverted, LV_PART_MAIN | LV_STATE_FOCUSED);
 
