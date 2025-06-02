@@ -186,21 +186,19 @@ bool api_wifi_parse_ip_address(
 static void api_wifi_print_ip_address(FuriString* str, WifiIpConfig* ip_config) {
     furi_string_reset(str);
     const WifiIpType type = ip_config->type;
-    const size_t size = (type == WifiIpTypeV4) ? sizeof(ip_config->address.v4) :
-                                                 sizeof(ip_config->address.v6);
-    const char separator = (type == WifiIpTypeV4) ? '.' : ':';
-    const uint8_t* bytes = (type == WifiIpTypeV4) ? ip_config->address.v4 : ip_config->address.v6;
 
-    for(size_t i = 0; i < size;) {
-        if(type == WifiIpTypeV4) {
-            furi_string_cat_printf(str, "%d%c", bytes[i], (i + 1 == size) ? 0 : separator);
-            i++;
-        } else {
-            furi_string_cat_printf(
-                str, "%X%c", *((uint16_t*)(&bytes[i])), (i + 2 == size) ? 0 : separator);
-            i += 2;
+    if(type == WifiIpTypeV4) {
+        const uint8_t* bytes = ip_config->ip4.address.bytes;
+        furi_string_cat_printf(str, "%d.%d.%d.%d", bytes[0], bytes[1], bytes[2], bytes[3]);
+    } else {
+        uint8_t n = COUNT_OF(ip_config->ip6.global.value);
+        for(size_t i = 0; i < n; i++) {
+            uint16_t w1 = (ip_config->ip6.global.value[i] >> 16);
+            uint16_t w2 = (ip_config->ip6.global.value[i] & 0xFFFF);
+            furi_string_cat_printf(str, "%X:%X%c", w1, w2, (i + 1 == n) ? 0 : ':');
         }
     }
+}
 }
 
 static bool api_wifi_parse_ip_config(
