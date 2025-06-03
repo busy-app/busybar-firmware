@@ -121,6 +121,12 @@ static void wifi_connect_request_handler(Wifi* instance) {
         const WifiCredentials* credentials = &request->credentials;
         const WifiIpConfig* ip = &request->ip;
 
+        if(instance->state == WifiStateUp) {
+            status = SL_STATUS_SI91X_SCAN_ISSUED_IN_ASSOCIATED_STATE;
+            FURI_LOG_E(TAG, "Wifi already connected");
+            break;
+        }
+
         // Initialise client profile
         sl_net_wifi_client_profile_t profile = {
             .config =
