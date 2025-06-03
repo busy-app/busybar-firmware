@@ -34,6 +34,7 @@ typedef enum {
     WifiStatusNotInitialized, /**< Wifi was not initialized before use. */
     WifiStatusAlreadyInitialized, /** Wifi has already been initialized. */
     WifiStatusFailedToInitialize, /** Wifi initialization failed. */
+    WifiStatusAlreadyConnected, /** Wifi has already been connected. */
     // TODO: Add more errors
 } WifiStatus;
 

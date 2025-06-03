@@ -13,6 +13,8 @@ WifiStatus wifi_decode_sl_status(sl_status_t sl_status) {
         status = WifiStatusAlreadyInitialized;
     } else if(sl_status == SL_STATUS_INITIALIZATION) {
         status = WifiStatusFailedToInitialize;
+    } else if(sl_status == SL_STATUS_SI91X_SCAN_ISSUED_IN_ASSOCIATED_STATE) {
+        status = WifiStatusAlreadyConnected;
     } else {
         // TODO: More error cases
         status = WifiStatusError;
