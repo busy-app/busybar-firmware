@@ -458,7 +458,7 @@ static bool api_wifi_get_status_callaback(
 
         cJSON_AddStringToObject(response, WIFI_JSON_KEY_STATE, wifi_state[info.state]);
 
-        if(info.state != WifiStateDeinit) {
+        if(info.state == WifiStateUp) {
             cJSON_AddStringToObject(response, WIFI_JSON_KEY_SSID, info.ssid);
 
             const char* security_mode = security_modes[info.securiy_mode];
