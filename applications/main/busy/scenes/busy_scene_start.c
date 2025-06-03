@@ -86,6 +86,9 @@ static bool busy_scene_start_on_event(const SceneManagerEvent* event, void* cont
             with_gui(instance->gui, {
                 widget_set_visible(nav_stack_get_base(instance->nav_stack), false);
                 widget_set_visible(timer_card_get_base(instance->timer_card), true);
+
+                timer_card_show_header(instance->timer_card, false);
+                timer_card_show_time(instance->timer_card, false);
             });
 
             busy_prepare_transition(instance, BusyTransitionTypeWhiteSelect);

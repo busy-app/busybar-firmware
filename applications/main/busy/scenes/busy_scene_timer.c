@@ -92,15 +92,14 @@ static void busy_scene_timer_event_callback(const BusyTimerEvent* event, void* c
 static void busy_scene_timer_run_later_callback(void* context) {
     furi_assert(context);
     BusyApp* instance = context;
-    BusySceneTimer* data = scene_manager_get_current_scene_data(instance->scene_manager);
+
+    const BusySceneTimer* data = scene_manager_get_current_scene_data(instance->scene_manager);
 
     if(data->timer_state == BusyTimerStateRest) {
         busy_prepare_transition(instance, BusyTransitionTypeRestDone);
     } else {
         busy_prepare_transition(instance, BusyTransitionTypeWorkDone);
     }
-
-    with_gui(instance->gui, { timer_card_show_time(instance->timer_card, false); });
 
     if(data->timer_mode == BusyTimerModeInterval) {
         scene_manager_next_scene(instance->scene_manager, BusyAppSceneIdProgress);
@@ -110,7 +109,7 @@ static void busy_scene_timer_run_later_callback(void* context) {
 }
 
 static void busy_scene_timer_update_tick(BusyApp* instance) {
-    BusySceneTimer* data = scene_manager_get_current_scene_data(instance->scene_manager);
+    const BusySceneTimer* data = scene_manager_get_current_scene_data(instance->scene_manager);
     const BusyTimerTime* time = &data->timer_time;
 
     const float progress = (float)time->elapsed_s / (time->elapsed_s + time->remain_s);
@@ -166,7 +165,7 @@ static void busy_scene_timer_update_timer_mode(BusyApp* instance) {
 }
 
 static void busy_scene_timer_update_timer_state(BusyApp* instance) {
-    BusySceneTimer* data = scene_manager_get_current_scene_data(instance->scene_manager);
+    const BusySceneTimer* data = scene_manager_get_current_scene_data(instance->scene_manager);
 
     with_gui(instance->gui, {
         if(data->timer_state == BusyTimerStateWork) {
@@ -200,6 +199,7 @@ static void busy_scene_timer_update_timer_state(BusyApp* instance) {
 
 static void busy_scene_timer_toggle_pause(BusyApp* instance) {
     BusySceneTimer* data = scene_manager_get_current_scene_data(instance->scene_manager);
+
     data->is_paused = !data->is_paused;
 
     with_gui(instance->gui, {
@@ -311,6 +311,9 @@ static void busy_scene_timer_on_exit(void* context) {
     with_gui(instance->gui, {
         GuiLayer* layer = gui_get_layer(instance->gui, GuiLayerIdMain);
         gui_layer_remove_input_callback(layer, busy_scene_timer_input_callback);
+
+        timer_card_show_header(instance->timer_card, false);
+        timer_card_show_time(instance->timer_card, false);
 
         flex_layout_free(data->front_flex);
         progress_bar_free(data->progress_bar);
