@@ -160,7 +160,7 @@ static uint32_t busy_timer_calc_remaining_time(const BusyTimer* instance) {
 
 // Called BEFORE calculating the state
 static uint32_t busy_timer_calc_cycles_done(const BusyTimer* instance) {
-    if(instance->state == BusyTimerStateIdle) {
+    if((instance->state == BusyTimerStateIdle) || (instance->mode != BusyTimerModeInterval)) {
         return 0;
     } else if(instance->state == BusyTimerStateWork) {
         return instance->cycles_done + 1;
@@ -199,6 +199,17 @@ static void busy_timer_start_timer(BusyTimer* instance) {
 
 static void busy_timer_stop_timer(BusyTimer* instance) {
     furi_event_loop_timer_stop(instance->timer);
+}
+
+static void busy_timer_infinite_to_simple(BusyTimer* instance) {
+    instance->mode = BusyTimerModeSimple;
+    instance->time.remain_s = M_TO_S(BUSY_TIMER_TIME_INCREMENT_MN);
+    instance->time.elapsed_s = 0;
+
+    busy_timer_start_timer(instance);
+    busy_timer_notify_mode_changed(instance);
+    busy_timer_notify_state_changed(instance);
+    busy_timer_notify_tick(instance);
 }
 
 void busy_timer_next_state(BusyTimer* instance, bool force) {
@@ -374,8 +385,15 @@ static void
 }
 
 static void busy_timer_add_time_message_handler(BusyTimer* instance, BusyTimerMessageData* data) {
-    // Ignore if the timer is not running (paused)
-    if(!busy_timer_is_running(instance)) {
+    if(instance->mode == BusyTimerModeInfinite) {
+        if(data->add_time_mn > 0) {
+            // Special case: start a Simple timer
+            busy_timer_infinite_to_simple(instance);
+        }
+        return;
+
+    } else if(!busy_timer_is_running(instance)) {
+        // Ignore if the timer is not running (paused)
         return;
     }
 
