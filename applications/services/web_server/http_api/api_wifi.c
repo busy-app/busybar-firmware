@@ -293,16 +293,19 @@ static bool api_wifi_parse_ip_config(
             break;
         }
 
-        if(ip_config->mgmt == WifiIpManagementDynamic) {
-            result = true;
+        if(!api_wifi_mg_json_get_str_key(ip_config_json, WIFI_JSON_KEY_IP_TYPE, buf, error_msg)) {
+            result = (ip_config->mgmt == WifiIpManagementDynamic);
             break;
         }
 
-        if(!api_wifi_mg_json_get_str_key(ip_config_json, WIFI_JSON_KEY_IP_TYPE, buf, error_msg))
-            break;
         if(!aip_wifi_parse_ip_type(buf, &ip_config->type)) {
             furi_string_printf(
                 error_msg, "\"%s\" is not valid ip_type", furi_string_get_cstr(buf));
+            break;
+        }
+
+        if(ip_config->mgmt == WifiIpManagementDynamic) {
+            result = true;
             break;
         }
 
