@@ -27,6 +27,7 @@ for libname in [
     "sl_glue",
     "simplicity_sdk",
     "wiseconnect",
+    "sl_socket_glue",
     "toolbox_f64",
     "firmware_applications_f64",
     "matter_ext",

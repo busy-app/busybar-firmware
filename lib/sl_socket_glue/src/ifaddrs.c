@@ -1,0 +1,98 @@
+#include <ifaddrs.h>
+#include <net/if.h>
+#include <sl_net.h>
+
+static const uint8_t if_addrs_default_v6_netmask[16] = {
+    // default is /64
+    0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF,
+    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+};
+
+static void if_addrs_sl_addr_to_sockaddr(const void* addr, size_t addr_len, struct sockaddr_storage* out) {
+    if(addr_len == sizeof(sl_ipv4_address_t)) {
+        struct sockaddr_in sockaddr = {
+            .sin_len = sizeof(struct sockaddr_in),
+            .sin_family = AF_INET,
+        };
+        memcpy(&sockaddr.sin_addr, addr, addr_len);
+        memcpy(out, &sockaddr, sizeof(sockaddr));
+    } else if(addr_len == sizeof(sl_ipv6_address_t)) {
+        struct sockaddr_in6 sockaddr = {
+            .sin6_len = sizeof(struct sockaddr_in),
+            .sin6_family = AF_INET6,
+            .sin6_scope_id = __IPV6_ADDR_SCOPE_LINKLOCAL,
+        };
+        memcpy(&sockaddr.sin6_addr, addr, addr_len);
+        memcpy(out, &sockaddr, sizeof(sockaddr));
+    }
+}
+
+static struct sockaddr* if_addrs_getifaddrs_sockaddr_copy(struct sockaddr_storage* output_sockaddrs, size_t* sockaddr_pos, const struct sockaddr_storage* source) {
+    struct sockaddr_storage* dest = &output_sockaddrs[*sockaddr_pos];
+    memcpy(dest, source, sizeof(*source));
+    (*sockaddr_pos)++;
+    return (struct sockaddr*)dest;
+}
+
+static void if_addrs_getifaddrs_link_addr(struct ifaddrs* output_buf, size_t* buf_pos) {
+    if(*buf_pos) output_buf[*buf_pos].ifa_next = &output_buf[*buf_pos + 1];
+    (*buf_pos)++;
+}
+
+int getifaddrs(struct ifaddrs** ifap) {
+    UNUSED(ifap);
+    return -1;
+    sl_net_ip_address_t sl_addresses;
+    if(sl_net_get_ip_address(SL_NET_WIFI_CLIENT_INTERFACE, &sl_addresses, 100) != SL_STATUS_OK) {
+        *ifap = NULL;
+        return -1;
+    }
+
+    size_t addr_count = 0;
+    if(sl_addresses.type & SL_IPV4) addr_count++;
+    if(sl_addresses.type & SL_IPV6) addr_count++;
+    if(!addr_count) {
+        *ifap = NULL;
+        return -1;
+    }
+
+    struct sockaddr_storage sockaddr_temp;
+
+    // the entire linked list is contained in two allocations
+    size_t sockaddr_count = addr_count * 2;
+    struct sockaddr_storage* output_sockaddrs = malloc(sizeof(struct sockaddr_storage) * sockaddr_count);
+    size_t sockaddr_pos = 0;
+    struct ifaddrs* output_buf = malloc(sizeof(struct ifaddrs) * addr_count);
+    size_t buf_pos = 0;
+
+    if(sl_addresses.type & SL_IPV4) {
+        output_buf[buf_pos].ifa_name = NET_IF_SIWX917_INTERFACE_NAME;
+        output_buf[buf_pos].ifa_flags = 0;
+        if_addrs_sl_addr_to_sockaddr(&sl_addresses.v4, sizeof(sl_ipv4_address_t), &sockaddr_temp);
+        output_buf[buf_pos].ifa_addr = if_addrs_getifaddrs_sockaddr_copy(output_sockaddrs, &sockaddr_pos, &sockaddr_temp);
+        // if_addrs_sl_addr_to_sockaddr(&sl_addresses.v4, sizeof(sl_ipv4_address_t), &sockaddr_temp);
+        // output_buf[buf_pos].ifa_netmask = if_addrs_getifaddrs_sockaddr_copy(output_sockaddrs, &sockaddr_pos, &sockaddr_temp);
+        output_buf[buf_pos].ifa_netmask = NULL;
+        if_addrs_getifaddrs_link_addr(output_buf, &buf_pos);
+    }
+    if(sl_addresses.type & SL_IPV6) {
+        output_buf[buf_pos].ifa_name = NET_IF_SIWX917_INTERFACE_NAME;
+        output_buf[buf_pos].ifa_flags = 0;
+        if_addrs_sl_addr_to_sockaddr(&sl_addresses.v6, sizeof(sl_ipv6_address_t), &sockaddr_temp);
+        output_buf[buf_pos].ifa_addr = if_addrs_getifaddrs_sockaddr_copy(output_sockaddrs, &sockaddr_pos, &sockaddr_temp);
+        if_addrs_sl_addr_to_sockaddr(if_addrs_default_v6_netmask, sizeof(sl_ipv6_address_t), &sockaddr_temp);
+        output_buf[buf_pos].ifa_netmask = if_addrs_getifaddrs_sockaddr_copy(output_sockaddrs, &sockaddr_pos, &sockaddr_temp);
+        if_addrs_getifaddrs_link_addr(output_buf, &buf_pos);
+    }
+
+    furi_assert(buf_pos == addr_count);
+    *ifap = output_buf;
+    return 0;
+}
+
+void freeifaddrs(struct ifaddrs* ifp) {
+    if(!ifp) return;
+    // the entire linked list is contained in two allocations
+    free(ifp->ifa_addr);
+    free(ifp);
+}

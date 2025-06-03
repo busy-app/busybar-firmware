@@ -471,12 +471,12 @@ class RpsFlasher:
         """
         Put the target device into the bootloader mode.
         """
-        self.__signal_boot(1)
-        self.__signal_reset(1)
-        time.sleep(self.RESET_DELAY_SEC)
-        self.__signal_reset(0)
-        time.sleep(self.RESET_DELAY_SEC)
-        self.__signal_boot(0)
+        # self.__signal_boot(1)
+        # self.__signal_reset(1)
+        # time.sleep(self.RESET_DELAY_SEC)
+        # self.__signal_reset(0)
+        # time.sleep(self.RESET_DELAY_SEC)
+        # self.__signal_boot(0)
 
     def __wait_for_device(self):
         """
@@ -523,13 +523,13 @@ class RpsFlasher:
 
     def __increase_baudrate(self):
         """
-        Configure the bootloader to use 921600 baud instead of 115200.
+        Configure the bootloader to use 460800 baud instead of 115200.
         """
 
         self.__raw_transaction(b"b", b"5 115200\r\n")
-        self.__raw_transaction(b"4", b"4")
+        self.__raw_transaction(b"3", b"3")
         # Switch baud rate
-        self.serial.baudrate = 921600
+        self.serial.baudrate = 460800
         # Confirm new baud rate
         self.__raw_transaction(b"U", b"Baud Rate was updated successfully!")
 

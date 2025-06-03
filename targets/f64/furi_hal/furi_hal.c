@@ -45,7 +45,7 @@ void furi_hal_init(void) {
     // furi_hal_power_init();
     // furi_hal_light_init();
     furi_hal_pwm_init();
-    sl_net_lwip_init();
+    // sl_net_lwip_init();
 
 #ifndef FURI_RAM_EXEC
 #endif

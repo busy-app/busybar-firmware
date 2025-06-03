@@ -1,0 +1,30 @@
+Import("env")
+
+SL_SOCKET_GLUE_DIR = "sl_socket_glue"
+SL_SOCKET_GLUE_INC_DIR = f"#/lib/{SL_SOCKET_GLUE_DIR}"
+
+# note: Prepend instead of Append on purpose
+# read inc/sys/socket.h
+env.Prepend(
+    CPPPATH=[
+        Dir(f"{SL_SOCKET_GLUE_INC_DIR}/inc").rdir(),
+    ],
+    CPPDEFINES=[],
+)
+
+libenv = env.Clone(FW_LIB_NAME="sl_socket_glue")
+libenv.ApplyLibFlags()
+
+sources = [
+    f"{SL_SOCKET_GLUE_DIR}/src/sys/socket.c",
+    f"{SL_SOCKET_GLUE_DIR}/src/sys/ioctl.c",
+    f"{SL_SOCKET_GLUE_DIR}/src/net/if.c",
+    f"{SL_SOCKET_GLUE_DIR}/src/ifaddrs.c",
+    # f"{SL_SOCKET_GLUE_DIR}/src/arpa/inet_ntop.c",
+    # f"{SL_SOCKET_GLUE_DIR}/src/arpa/inet_pton.c",
+    f"{SL_SOCKET_GLUE_DIR}/src/arpa/inet.c",
+]
+
+lib = libenv.StaticLibrary("${FW_LIB_NAME}", sources)
+libenv.Install("${LIB_DIST_DIR}", lib)
+Return("lib")

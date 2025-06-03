@@ -1,14 +1,12 @@
 #include "wifi_async_socket_client_tcp_tx.h"
 
-// #include <sl_net.h>
+#include <sl_net.h>
 
-// #include <sl_si91x_socket.h>
-// #include <sl_si91x_socket_constants.h>
-// #include <sl_si91x_socket_utility.h>
+#include <sl_si91x_socket.h>
+#include <sl_si91x_socket_constants.h>
+#include <sl_si91x_socket_utility.h>
 
-// #include "errno.h"
-#include <lwip/sockets.h>
-#include <lwip/netdb.h>
+#include "errno.h"
 
 #define TAG "WifiAsyncSocketClientTcpTx"
 
@@ -33,6 +31,11 @@ void wifi_async_socket_client_tcp_tx_init(
 
     uint8_t* data_buffer = NULL;
 
+    server_address.sin_family = AF_INET;
+    server_address.sin_port = port;
+    sl_net_inet_addr(ip, &server_address.sin_addr.s_addr);
+
+    // Create client socket
     client_socket = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
     if(client_socket < 0) {
         furi_string_printf(msg, "Socket create failed with BSD error: %d\r\n", errno);
@@ -41,14 +44,8 @@ void wifi_async_socket_client_tcp_tx_init(
     }
     furi_string_printf(msg, "Socket ID : %d\r\n", client_socket);
     wifi_test_app_send_text(app, msg);
-    
-    memset(&server_address, 0, sizeof(server_address));
-    server_address.sin_family = AF_INET;
-    server_address.sin_port = htons(port);
-    server_address.sin_addr.s_addr = inet_addr(ip);
-
-    socket_return_value = connect(
-        client_socket, (struct sockaddr*)&server_address, sizeof(struct sockaddr_in));
+    // Connect socket
+    socket_return_value = connect(client_socket, (struct sockaddr*)&server_address, socket_length);
     if(socket_return_value < 0) {
         furi_string_printf(msg, "Socket Connect failed with BSD error: %d\r\n", errno);
         wifi_test_app_send_text(app, msg);

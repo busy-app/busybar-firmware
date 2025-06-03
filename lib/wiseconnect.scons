@@ -15,10 +15,10 @@ env.Append(
     CPPPATH=[
         Dir(f"{WISECONNECT_INCDIR}/protocol/wifi/inc").rdir(),
         Dir(f"{WISECONNECT_INCDIR}/service/bsd_socket/inc").rdir(),
-        # Dir(f"{WIRELESS_INCDIR}/asynchronous_socket/inc").rdir(),
+        Dir(f"{WIRELESS_INCDIR}/asynchronous_socket/inc").rdir(),
         Dir(f"{MCU_INCDIR}/drivers/cmsis_driver/CMSIS/Driver/Include").rdir(),
         Dir(f"{MCU_INCDIR}/drivers/cmsis_driver").rdir(),
-       # Dir(f"{WISECONNECT_INCDIR}/service/network_manager/inc").rdir(),
+    #    Dir(f"{WISECONNECT_INCDIR}/service/network_manager/inc").rdir(),
         Dir(f"{MCU_INCDIR}/drivers/rom_driver/inc").rdir(),
        # Dir(f"{MCU_INCDIR}/core/chip/inc").rdir(),
         Dir(f"{MCU_INCDIR}/drivers/peripheral_drivers/inc").rdir(),
@@ -29,7 +29,7 @@ env.Append(
         Dir(f"{WIRELESS_INCDIR}/sl_net/inc").rdir(),
         Dir(f"{WIRELESS_INCDIR}/inc").rdir(),
         Dir(f"{WIRELESS_INCDIR}/ble/inc").rdir(),
-        #Dir(f"{WIRELESS_INCDIR}/socket/inc").rdir(),
+        Dir(f"{WIRELESS_INCDIR}/socket/inc").rdir(),
         Dir(f"{WIRELESS_INCDIR}/ahb_interface/inc").rdir(),
         Dir(f"{MCU_INCDIR}/drivers/systemlevel/inc").rdir(),
        # Dir(f"wiseconnect/resources/defaults").rdir(),
@@ -68,14 +68,15 @@ env.Append(
         "SLI_SI91X_MCU_COMMON_FLASH_MODE",
         "SLI_SI91X_MCU_CONFIG_RADIO_BOARD_BASE_VER",
         "SLI_SI91X_MCU_CONFIG_RADIO_BOARD_VER2",
+        "SLI_SI91X_ENABLE_IPV6",
         # SDK Wifi Silabs
         #"SL_SI91X_SI917_RAM_MEM_CONFIG=2",
         "SL_SI91X_SI917_RAM_MEM_CONFIG=3",
         "SL_WIFI_COMPONENT_INCLUDED=1",
         "SLI_SI91X_ENABLE_OS",
         "ENABLE_DEBUG_MODULE",  # This is for debug power down mode
-        #"SLI_SI91X_OFFLOAD_NETWORK_STACK",  #Todo no matter this macro should be defined to use the network or TCP/IP stack from the SiWx917 NCP.
-        #"SLI_SI91X_SOCKETS", #Todo no matter
+        "SLI_SI91X_OFFLOAD_NETWORK_STACK",  #Todo no matter this macro should be defined to use the network or TCP/IP stack from the SiWx917 NCP.
+        "SLI_SI91X_SOCKETS", #Todo no matter
         # SDK BLE Silabs
         "SLI_SI91X_ENABLE_BLE",
         "SL_SI91X_ENABLE_LITTLE_ENDIAN=1",
@@ -100,15 +101,15 @@ sources = [
    # f"{MCU_DIR}/drivers/systemlevel/src/rsi_ulpss_clk.c",
    # f"{MCU_DIR}/drivers/service/clock_manager/src/sl_si91x_clock_manager.c",
    # # SDK Wifi Silabs
-   # f"{WISECONNECT_DIR}/common/src/sl_utility.c",
-   # f"{WISECONNECT_DIR}/protocol/wifi/si91x/sl_wifi.c",
-   # f"{WISECONNECT_DIR}/protocol/wifi/src/sl_wifi_callback_framework.c",
-   # f"{WISECONNECT_DIR}/protocol/wifi/src/sl_wifi_basic_credentials.c",
-   #f"{WISECONNECT_DIR}/service/bsd_socket/si91x_socket/sl_si91x_bsd_socket.c",
-   # f"{WISECONNECT_DIR}/service/network_manager/src/sl_net.c",
-   # f"{WISECONNECT_DIR}/service/network_manager/src/sl_net_basic_profiles.c",
-   # f"{WISECONNECT_DIR}/service/network_manager/src/sl_net_credentials.c",
-   # f"{WISECONNECT_DIR}/service/network_manager/si91x/sl_net_si91x.c",
+   f"{WISECONNECT_DIR}/common/src/sl_utility.c",
+   f"{WISECONNECT_DIR}/protocol/wifi/si91x/sl_wifi.c",
+   f"{WISECONNECT_DIR}/protocol/wifi/src/sl_wifi_callback_framework.c",
+   f"{WISECONNECT_DIR}/protocol/wifi/src/sl_wifi_basic_credentials.c",
+   f"{WISECONNECT_DIR}/service/bsd_socket/si91x_socket/sl_si91x_bsd_socket.c",
+   f"{WISECONNECT_DIR}/service/network_manager/src/sl_net.c",
+   f"{WISECONNECT_DIR}/service/network_manager/src/sl_net_basic_profiles.c",
+   f"{WISECONNECT_DIR}/service/network_manager/src/sl_net_credentials.c",
+   f"{WISECONNECT_DIR}/service/network_manager/si91x/sl_net_si91x.c",
    # f"{WIRELESS_DIR}/src/sl_si91x_driver.c",
    # f"{WIRELESS_DIR}/src/sl_rsi_utility.c",
    # f"{WIRELESS_DIR}/ahb_interface/src/rsi_hal_mcu_m4_rom.c",
@@ -120,12 +121,12 @@ sources = [
    # f"{WIRELESS_DIR}/memory/mem_pool_buffer_quota.c",
    # f"{WIRELESS_DIR}/host_mcu/si91x/siwx917_soc_ncp_host.c",
    # f"{WIRELESS_DIR}/threading/sli_si91x_multithreaded.c",
-   # f"{WIRELESS_DIR}/socket/src/sl_si91x_socket_utility.c",
-   # f"{WIRELESS_DIR}/asynchronous_socket/src/sl_si91x_socket.c",
+   f"{WIRELESS_DIR}/socket/src/sl_si91x_socket_utility.c",
+   f"{WIRELESS_DIR}/asynchronous_socket/src/sl_si91x_socket.c",
    # f"{WIRELESS_DIR}/sl_net/src/sl_net_si91x_integration_handler.c",
    # f"{WIRELESS_DIR}/sl_net/src/sl_net_rsi_utility.c",
    # f"{WIRELESS_DIR}/sl_net/src/sl_si91x_net_credentials.c",
-   # f"{WIRELESS_DIR}/sl_net/src/sl_si91x_net_internal_stack.c",
+   f"{WIRELESS_DIR}/sl_net/src/sl_si91x_net_internal_stack.c",
    # f"{WIRELESS_DIR}/sl_net/src/sl_net_si91x_callback_framework.c",
    # # SDK BLE Silabs
    # f"{WIRELESS_DIR}/ble/src/rsi_common_apis.c",
@@ -155,7 +156,7 @@ sources = [
    # f"{MCU_DIR}/hal/src/sl_si91x_hal_soc_soft_reset.c",
 
 
-     f"{WISECONNECT_DIR}/common/src/sl_utility.c",
+    #  f"{WISECONNECT_DIR}/common/src/sl_utility.c",
      f"{WISECONNECT_DIR}/device/silabs/si91x/mcu/core/chip/src/iPMU_prog/iPMU_dotc/ipmu_apis.c",
      f"{WISECONNECT_DIR}/device/silabs/si91x/mcu/core/chip/src/iPMU_prog/iPMU_dotc/rsi_system_config_917.c",
      f"{WISECONNECT_DIR}/device/silabs/si91x/mcu/core/chip/src/rsi_deepsleep_soc.c",
@@ -238,18 +239,13 @@ sources = [
      f"{WISECONNECT_DIR}/device/silabs/si91x/wireless/src/sl_rsi_utility.c",
      f"{WISECONNECT_DIR}/device/silabs/si91x/wireless/src/sl_si91x_driver.c",
      f"{WISECONNECT_DIR}/device/silabs/si91x/wireless/threading/sli_si91x_multithreaded.c",
-     f"{WISECONNECT_DIR}/protocol/wifi/si91x/sl_wifi.c",
-     f"{WISECONNECT_DIR}/protocol/wifi/src/sl_wifi_basic_credentials.c",
-     f"{WISECONNECT_DIR}/protocol/wifi/src/sl_wifi_callback_framework.c",
-     #f"{WISECONNECT_DIR}/service/network_manager/src/sl_net_basic_profiles.c",
-     #f"{WISECONNECT_DIR}/service/network_manager/src/sl_net_credentials.c",
      
      #### Used for the bsd socket network_manager from Matter
-     f"{MATTER_LIB_FOLDER}/slc/component/sdk-content/wifi-sdk/components/service/network_manager/src/sl_net_basic_profiles.c",
-     f"{MATTER_LIB_FOLDER}/slc/component/sdk-content/wifi-sdk/components/service/network_manager/src/sl_net_credentials.c",
-     f"{MATTER_LIB_FOLDER}/slc/component/sdk-content/wifi-sdk/components/service/network_manager/src/sl_net.c",
-     f"{MATTER_LIB_FOLDER}/slc/component/sdk-content/wifi-sdk/components/service/network_manager/src/sl_net_basic_certificate_store.c",
-     f"{MATTER_LIB_FOLDER}/slc/component/sdk-content/wifi-sdk/components/service/network_manager/src/sl_net_for_lwip.c",
+    #  f"{MATTER_LIB_FOLDER}/slc/component/sdk-content/wifi-sdk/components/service/network_manager/src/sl_net_basic_profiles.c",
+    #  f"{MATTER_LIB_FOLDER}/slc/component/sdk-content/wifi-sdk/components/service/network_manager/src/sl_net_credentials.c",
+    #  f"{MATTER_LIB_FOLDER}/slc/component/sdk-content/wifi-sdk/components/service/network_manager/src/sl_net.c",
+    #  f"{MATTER_LIB_FOLDER}/slc/component/sdk-content/wifi-sdk/components/service/network_manager/src/sl_net_basic_certificate_store.c",
+    #  f"{MATTER_LIB_FOLDER}/slc/component/sdk-content/wifi-sdk/components/service/network_manager/src/sl_net_for_lwip.c",
      f"{MATTER_LIB_FOLDER}/slc/component/sdk-content/wifi-sdk/device/silabs/si91x/wireless/firmware_upgrade/firmware_upgradation.c",
 ]
 
