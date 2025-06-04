@@ -66,6 +66,16 @@ static BusyApp* busy_alloc(void) {
     instance->audio = furi_record_open(RECORD_AUDIO);
     instance->gui = furi_record_open(RECORD_GUI);
 
+    if(!busy_settings_load(&instance->settings)) {
+        FURI_LOG_W(TAG, "Loading default settings");
+        // Get default timer config
+        busy_timer_get_config(instance->busy_timer, &instance->settings.timer_config);
+        busy_settings_save(&instance->settings);
+
+    } else {
+        busy_timer_set_config(instance->busy_timer, &instance->settings.timer_config);
+    }
+
     with_gui(instance->gui, {
         GuiLayer* layer = gui_get_layer(instance->gui, GuiLayerIdMain);
         gui_layer_add_input_callback(layer, busy_gui_input_callback, instance);

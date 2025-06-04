@@ -123,7 +123,8 @@ static void busy_scene_setup_timer_on_enter(void* context) {
     BusyApp* instance = context;
     BusySceneSetupTimer* data = scene_manager_get_current_scene_data(instance->scene_manager);
 
-    busy_timer_get_config(instance->busy_timer, &data->timer_config);
+    // TODO: Refactor the code to use application settings
+    data->timer_config = instance->settings.timer_config;
 
     with_gui(instance->gui, {
         data->front_list = var_item_list_alloc(instance->front_window);
@@ -143,6 +144,9 @@ static void busy_scene_setup_timer_on_exit(void* context) {
     BusySceneSetupTimer* data = scene_manager_get_current_scene_data(instance->scene_manager);
 
     busy_timer_set_config(instance->busy_timer, &data->timer_config);
+
+    instance->settings.timer_config = data->timer_config;
+    busy_settings_save(&instance->settings);
 
     with_gui(instance->gui, {
         var_item_list_free(data->front_list);

@@ -7,6 +7,7 @@
 #include <status_lights/status_lights.h>
 
 #include "busy_timer.h"
+#include "busy_settings.h"
 
 #include "time_macros.h"
 #include "storage_macros.h"
@@ -73,6 +74,8 @@ typedef struct {
     TransitionOverlay* transition_overlay;
     TimerCard* timer_card;
     NavStack* nav_stack;
+    // Application settings
+    BusySettings settings;
 } BusyApp;
 
 void busy_send_custom_event(BusyApp* instance, uint32_t custom_event);
