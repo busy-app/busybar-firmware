@@ -40,13 +40,34 @@ static void if_addrs_getifaddrs_link_addr(struct ifaddrs* output_buf, size_t* bu
 }
 
 int getifaddrs(struct ifaddrs** ifap) {
-    UNUSED(ifap);
-    return -1;
-    sl_net_ip_address_t sl_addresses;
-    if(sl_net_get_ip_address(SL_NET_WIFI_CLIENT_INTERFACE, &sl_addresses, 100) != SL_STATUS_OK) {
-        *ifap = NULL;
-        return -1;
-    }
+    sl_net_ip_address_t sl_addresses = {
+        .mode = SL_IP_MANAGEMENT_STATIC_IP,
+        .type = SL_IPV6_LINK_LOCAL,
+        .v6 = {
+            .link_local_address = {.bytes = {
+                0xfe, 0x80,  0x00, 0x00,
+                0x00, 0x00,  0x00, 0x00,
+                0x8e, 0x8b,  0x48, 0xff,
+                0xfe, 0x33,  0xe7, 0x88,
+            }},
+            .global_address = {.bytes = {
+                0xfe, 0x80,  0x00, 0x00,
+                0x00, 0x00,  0x00, 0x00,
+                0x8e, 0x8b,  0x48, 0xff,
+                0xfe, 0x33,  0xe7, 0x88,
+            }},
+            .gateway = {.bytes = {
+                0xfe, 0x80,  0x00, 0x00,
+                0x00, 0x00,  0x00, 0x00,
+                0x00, 0x00,  0x00, 0x00,
+                0x00, 0x00,  0x00, 0x01,
+            }},
+        },
+    };
+    // if(sl_net_get_ip_address(SL_NET_WIFI_CLIENT_INTERFACE, &sl_addresses, 100) != SL_STATUS_OK) {
+    //     *ifap = NULL;
+    //     return -1;
+    // }
 
     size_t addr_count = 0;
     if(sl_addresses.type & SL_IPV4) addr_count++;
