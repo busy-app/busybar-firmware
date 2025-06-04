@@ -318,6 +318,92 @@ paths:
               schema:
                 $ref: '#/components/schemas/Error'
 
+  /api/v0/wifi/enable:
+    post:
+      tags:
+        - Wifi
+      description: Enables wifi module
+      parameters: []
+      responses:
+        '200':
+          description: Wifi enabled
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+
+  /api/v0/wifi/disable:
+    post:
+      tags:
+        - Wifi
+      description: Disables wifi module
+      parameters: []
+      responses:
+        '200':
+          description: Wifi disabled
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+
+  /api/v0/wifi/status:
+    get:
+      tags:
+        - Wifi
+      description: Returns current wifi status
+      parameters: []
+      responses:
+        '200':
+          description: OK
+
+  /api/v0/wifi/connect:
+    post:
+      tags:
+        - Wifi
+      description: Attempts to connect to wifi using config
+      parameters: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ConnectRequestConfig"
+      responses:
+        '200':
+          description: Network connection established
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+
+  /api/v0/wifi/disconnect:
+    post:
+      tags:
+        - Wifi
+      description: Attempts to connect to wifi using config
+      parameters: []
+      responses:
+        '200':
+          description: Network connection terminated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+
+  /api/v0/wifi/networks:
+    get:
+      tags:
+        - Wifi
+      description: Scans environment for available wifi networks
+      parameters: []
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/NetworkResponse"
+
 components:
   schemas:
     LedState:
@@ -519,6 +605,111 @@ components:
               pattern: '^[a-zA-Z0-9._/-]+$'
               description: Path to the image file in the app's assets
 
+    WifiSecurityMethod:
+      type: string
+      example: "WPA3"
+      enum:
+        [
+          Open,
+          WPA,
+          WPA2,
+          WEP,
+          WPA (Enterprise),
+          WPA2 (Enterprise),
+          WPA/WPA2,
+          WPA3,
+          WPA2/WPA3,
+          WPA3 (Enterprise),
+          WPA2/WPA3 (Enterprise),
+        ]
+
+    WifiIpMethod:
+      type: string
+      example: "dhcp"
+      enum: ["dhcp", "static"]
+
+    WifiIpType:
+      type: string
+      example: "ipv4"
+      enum: ["ipv4", "ipv6"]
+
+    Network:
+      type: object
+      properties:
+        SSID:
+          type: string
+          example: "42"
+        Security:
+          $ref: "#/components/schemas/WifiSecurityMethod"
+        RSSI:
+          type: integer
+          example: "58"
+
+    StatusResponse:
+      type: object
+      properties:
+        State:
+          type: string
+          example: enabled
+          enum:
+            - disabled
+            - enabled
+            - connected
+        SSID:
+          type: string
+          example: Your_WIFI_SSID
+        Security:
+          $ref: "#/components/schemas/WifiSecurityMethod"
+        ip_config:
+          type: object
+          properties:
+            ip_method:
+              $ref: "#/components/schemas/WifiIpMethod"
+            ip_type:
+              $ref: "#/components/schemas/WifiIpType"
+            address:
+              type: string
+              example: 192.168.50.5
+
+    ConnectRequestConfig:
+      type: object
+      properties:
+        SSID:
+          type: string
+          example: Your_WIFI_SSID
+        Password:
+          type: string
+          example: Your_WIFI_Pass
+        Security:
+          $ref: "#/components/schemas/WifiSecurityMethod"
+        ip_config:
+          type: object
+          properties:
+            ip_method:
+              $ref: "#/components/schemas/WifiIpMethod"
+            ip_type:
+              $ref: "#/components/schemas/WifiIpType"
+            address:
+              type: string
+              example: 192.168.50.5
+            mask:
+              type: string
+              example: 255.255.255.0
+            gateway:
+              type: string
+              example: 192.168.50.1
+
+    NetworkResponse:
+      type: object
+      properties:
+        count:
+          type: integer
+          example: 2
+        networks:
+          type: array
+          items:
+            $ref: "#/components/schemas/Network"
+
 tags:
   - name: System
     description: System information and control
@@ -528,3 +719,5 @@ tags:
     description: Asset file management and display control
   - name: WebSocket
     description: Real-time communication via WebSocket
+  - name: Wifi
+    description: Allows to operate with Wifi
