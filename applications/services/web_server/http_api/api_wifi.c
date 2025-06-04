@@ -42,7 +42,7 @@ static const char* security_modes[WifiSecurityModeMax] = {
     [WifiSecurityModeOpen] = "Open",
     [WifiSecurityModeWpa] = "WPA",
     [WifiSecurityModeWpa2] = "WPA2",
-    [WifiSecurityModeWep] "WEP",
+    [WifiSecurityModeWep] = "WEP",
     [WifiSecurityModeWpaEnterprise] = "WPA (Enterprise)",
     [WifiSecurityModeWpa2Enterprise] = "WPA2 (Enterprise)",
     [WifiSecurityModeWpaWpa2Mixed] = "WPA/WPA2",
@@ -141,11 +141,11 @@ static bool api_wifi_get_networks_callaback(
             cJSON_AddItemToArray(array, item);
         }
 
-        mg_http_reply(conn, 200, "Content-Type: application/json\r\n", cJSON_Print(response));
+        MG_REPLY_OK_BODY(conn, cJSON_Print(response));
         cJSON_Delete(response);
     } else {
         const ApiWifiResponseData* data = api_wifi_get_response_data_from_status(status);
-        mg_http_reply(conn, data->code, "", data->message);
+        MG_REPLY_ERROR(conn, data->code, data->message);
     }
 
     free(results);
@@ -379,7 +379,12 @@ static bool
         status_code = 400;
         response_msg = furi_string_get_cstr(error_msg);
     }
-    mg_http_reply(conn, status_code, "", response_msg);
+
+    if(status_code == 200)
+        MG_REPLY_OK(conn);
+    else
+        MG_REPLY_ERROR(conn, status_code, response_msg);
+
     furi_string_free(error_msg);
     return true;
 }
@@ -396,7 +401,10 @@ static bool api_wifi_disconnect_callaback(
     furi_record_close(RECORD_WIFI);
 
     const ApiWifiResponseData* data = api_wifi_get_response_data_from_status(status);
-    mg_http_reply(conn, data->code, "", data->message);
+    if(data->code == 200)
+        MG_REPLY_OK(conn);
+    else
+        MG_REPLY_ERROR(conn, data->code, data->message);
 
     return true;
 }
@@ -407,7 +415,7 @@ static bool
     UNUSED(ctx);
 
     ///TODO: implemet after configs
-    mg_http_reply(conn, 400, "", "Not implemented");
+    MG_REPLY_ERROR(conn, 400, "Not implemented");
     return true;
 }
 
@@ -421,7 +429,10 @@ static bool
     furi_record_close(RECORD_WIFI);
 
     const ApiWifiResponseData* data = api_wifi_get_response_data_from_status(status);
-    mg_http_reply(conn, data->code, "", data->message);
+    if(data->code == 200)
+        MG_REPLY_OK(conn);
+    else
+        MG_REPLY_ERROR(conn, data->code, data->message);
 
     return true;
 }
@@ -436,7 +447,10 @@ static bool
     furi_record_close(RECORD_WIFI);
 
     const ApiWifiResponseData* data = api_wifi_get_response_data_from_status(status);
-    mg_http_reply(conn, data->code, "", data->message);
+    if(data->code == 200)
+        MG_REPLY_OK(conn);
+    else
+        MG_REPLY_ERROR(conn, data->code, data->message);
 
     return true;
 }
@@ -481,11 +495,11 @@ static bool api_wifi_get_status_callaback(
             }
         }
 
-        mg_http_reply(conn, 200, "Content-Type: application/json\r\n", cJSON_Print(response));
+        MG_REPLY_OK_BODY(conn, cJSON_Print(response));
         cJSON_Delete(response);
     } else {
         const ApiWifiResponseData* data = api_wifi_get_response_data_from_status(status);
-        mg_http_reply(conn, data->code, "", data->message);
+        MG_REPLY_ERROR(conn, data->code, data->message);
     }
 
     return true;
