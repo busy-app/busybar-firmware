@@ -1,12 +1,14 @@
 #include "../busy.h"
+#include "../busy_presets.h"
 
 #include <gui/modules/image.h>
 #include <gui/modules/anim_image.h>
 #include <gui/modules/flex_layout.h>
 
-#include "../widgets/timer_label.h"
-#include "../widgets/progress_bar.h"
 #include "../widgets/pause_overlay.h"
+#include "../widgets/progress_bar.h"
+#include "../widgets/timer_indicator.h"
+#include "../widgets/timer_label.h"
 
 #define PROGRESS_BAR_COLOR_BUSY color_hex_to_rgb(0x4A0000)
 #define PROGRESS_BAR_COLOR_REST color_hex_to_rgb(0x003B28)
@@ -17,7 +19,7 @@
 
 typedef struct {
     FlexLayout* front_flex;
-    AnimImage* state_image;
+    TimerIndicator* timer_indicator;
     TimerLabel* timer_label;
     ProgressBar* progress_bar;
     PauseOverlay* pause_overlay;
@@ -172,13 +174,13 @@ static void busy_scene_timer_update_timer_state(BusyApp* instance) {
     with_gui(instance->gui, {
         if(data->timer_state == BusyTimerStateWork) {
             if(data->timer_mode == BusyTimerModeInfinite) {
-                anim_image_set_source(data->state_image, BUSY_ANIM_PATH("busy_label_70x14.anim"));
+                timer_indicator_set_state(data->timer_indicator, TimerIndicatorStateWorkBig);
 
             } else if(data->timer_mode == BusyTimerModeSimple) {
-                anim_image_set_source(data->state_image, BUSY_ANIM_PATH("busy_label_40x14.anim"));
+                timer_indicator_set_state(data->timer_indicator, TimerIndicatorStateWork);
 
             } else if(data->timer_mode == BusyTimerModeInterval) {
-                anim_image_set_source(data->state_image, BUSY_ANIM_PATH("busy_label_40x14.anim"));
+                timer_indicator_set_state(data->timer_indicator, TimerIndicatorStateWork);
 
                 progress_bar_set_trough_color(data->progress_bar, PROGRESS_BAR_COLOR_BUSY);
                 progress_bar_set_anim_source(
@@ -188,7 +190,7 @@ static void busy_scene_timer_update_timer_state(BusyApp* instance) {
         } else if(data->timer_state == BusyTimerStateRest) {
             furi_assert(data->timer_mode == BusyTimerModeInterval);
 
-            anim_image_set_source(data->state_image, BUSY_ANIM_PATH("rest_label_40x14.anim"));
+            timer_indicator_set_state(data->timer_indicator, TimerIndicatorStateRest);
 
             progress_bar_set_trough_color(data->progress_bar, PROGRESS_BAR_COLOR_REST);
             progress_bar_set_anim_source(
@@ -209,9 +211,9 @@ static void busy_scene_timer_toggle_pause(BusyApp* instance) {
         timer_card_show_header(instance->timer_card, !data->is_paused);
 
         if(data->is_paused) {
-            anim_image_stop(data->state_image);
+            anim_image_stop(timer_indicator_get_anim_image(data->timer_indicator));
         } else {
-            anim_image_start(data->state_image);
+            anim_image_start(timer_indicator_get_anim_image(data->timer_indicator));
         }
     });
 
@@ -274,7 +276,9 @@ static void busy_scene_timer_on_enter(void* context) {
         data->front_flex = flex_layout_alloc(instance->front_window, FlexLayoutTypeRow);
         flex_layout_set_spacing(data->front_flex, 2);
 
-        data->state_image = anim_image_alloc(flex_layout_get_base(data->front_flex));
+        data->timer_indicator = timer_indicator_alloc(flex_layout_get_base(data->front_flex));
+        timer_indicator_set_anim_sources(data->timer_indicator, &busy_indicator_anim_sources);
+
         data->timer_label = timer_label_alloc(flex_layout_get_base(data->front_flex));
 
         data->progress_bar = progress_bar_alloc(instance->front_window);

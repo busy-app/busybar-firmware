@@ -102,3 +102,18 @@ const StatusLightsCommand busy_status_lights[BusyStatusLightsTypeMax] = {
             .color = COLOR_MAKE_RGB(10, 150, 5),
         },
 };
+
+const TimerIndicatorAnimSources busy_indicator_anim_sources = {
+    .states =
+        {
+            [TimerIndicatorStateWork] = BUSY_ANIM_PATH("busy_label_40x14.anim"),
+            [TimerIndicatorStateRest] = BUSY_ANIM_PATH("rest_label_40x14.anim"),
+            [TimerIndicatorStateWorkBig] = BUSY_ANIM_PATH("busy_label_70x14.anim"),
+            [TimerIndicatorStateRestBig] = BUSY_ANIM_PATH("rest_label_70x14.anim"),
+        },
+    .transitions =
+        {
+            [TimerIndicatorTransitionOffToSimple] =
+                BUSY_ANIM_PATH("busy_label_transition_70x14.anim"),
+        },
+};

@@ -17,3 +17,5 @@ typedef struct {
 extern const BusyTransition busy_transitions[BusyTransitionTypeMax];
 
 extern const StatusLightsCommand busy_status_lights[BusyStatusLightsTypeMax];
+
+extern const TimerIndicatorAnimSources busy_indicator_anim_sources;

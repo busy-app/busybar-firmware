@@ -16,6 +16,7 @@
 
 #include "widgets/nav_stack.h"
 #include "widgets/timer_card.h"
+#include "widgets/timer_indicator.h"
 #include "widgets/transition_overlay.h"
 
 #define TAG "Busy"
