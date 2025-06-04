@@ -75,7 +75,7 @@ static void gclk_tim_init(void) {
         &gpio_front_display_gclk,
         GpioModeAltFunctionPushPull,
         GpioPullNo,
-        GpioSpeedLow,
+        GpioSpeedHigh,
         GpioAltFn3TIM8);
 }
 
@@ -122,7 +122,7 @@ static void scan_tim_init(void) {
         &gpio_front_display_scan_latch,
         GpioModeAltFunctionPushPull,
         GpioPullNo,
-        GpioSpeedLow,
+        GpioSpeedHigh,
         GpioAltFn2TIM5);
 }
 
@@ -237,13 +237,13 @@ static void spi_595_init(void) {
         &gpio_front_display_scan_clk,
         GpioModeAltFunctionPushPull,
         GpioPullNo,
-        GpioSpeedLow,
+        GpioSpeedHigh,
         GpioAltFn5SPI2);
     furi_hal_gpio_init_ex(
         &gpio_front_display_scan_sdi,
         GpioModeAltFunctionPushPull,
         GpioPullNo,
-        GpioSpeedLow,
+        GpioSpeedHigh,
         GpioAltFn3SPI2);
 
     LL_SPI_TransmitData8(SPI2, SCAN_DISABLED);

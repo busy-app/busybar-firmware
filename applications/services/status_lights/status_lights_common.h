@@ -15,6 +15,7 @@ typedef struct StatusLights StatusLights;
 
 /** Status lights preset pattern */
 typedef enum {
+    StatusLightsPresetOff, /**< Status lights off */
     StatusLightsPresetStaticColor, /**< Static color */
     StatusLightsPresetFade, /**< White fade pattern */
     StatusLightsPresetRainbowGradient, /**< Rainbow gradient pattern */

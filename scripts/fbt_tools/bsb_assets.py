@@ -16,6 +16,7 @@ def generate(env):
         AUDIO_CONVERTER=env.Real("${FBT_SCRIPT_DIR}/audio.py"),
         ANIM_CONVERTER=env.Real("${FBT_SCRIPT_DIR}/seq2anim.py"),
         IMAGE_CONVERTER=env.Real("${FBT_SCRIPT_DIR}/image.py"),
+        SWAGGER_GENERATOR=env.Real("${FBT_SCRIPT_DIR}/swagger.py"),
     )
 
     if not env["VERBOSE"]:
@@ -24,6 +25,7 @@ def generate(env):
             ANIMCOMSTR="\tANIM\t${TARGET}",
             IMAGECONVCOMSTR="\tIMGCONV\t${TARGET}",
             IMAGEHEADERCOMSTR="\tIMGHDR\t${TARGET}",
+            SWAGGERCOMSTR="\tSWAG\t${TARGET}",
         )
 
     env.Append(
@@ -73,7 +75,7 @@ def generate(env):
                             "${IMAGE_INTERNAL_NAME}",
                             "${SOURCE}",
                             "-o",
-                            "${TARGET.dir}"
+                            "${TARGET.dir}",
                         ],
                     ],
                     "${IMAGECONVCOMSTR}",
@@ -83,6 +85,21 @@ def generate(env):
                 action=Action(
                     create_header_file_action,
                     "${IMAGEHEADERCOMSTR}",
+                ),
+            ),
+            "SwaggerGenerator": Builder(
+                action=Action(
+                    [
+                        [
+                            "${PYTHON3}",
+                            "${SWAGGER_GENERATOR}",
+                            "${SOURCE}",
+                            "-o",
+                            "${TARGET.dir}",
+                            "-q",
+                        ],
+                    ],
+                    "${SWAGGERCOMSTR}",
                 ),
             ),
         }
