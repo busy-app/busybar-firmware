@@ -331,6 +331,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/SuccessResponse'
+        '400':
+          description: Wifi already enabled
+          content:
+              application/json:
+                schema:
+                  $ref: '#/components/schemas/Error'
 
   /api/v0/wifi/disable:
     post:
@@ -345,6 +351,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/SuccessResponse'
+        '400':
+          description: Not initialized
+          content:
+              application/json:
+                schema:
+                  $ref: '#/components/schemas/Error'
 
   /api/v0/wifi/status:
     get:
@@ -375,6 +387,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/SuccessResponse'
+        '400':
+          description: Wifi already connected
+          content:
+              application/json:
+                schema:
+                  $ref: '#/components/schemas/Error'
 
   /api/v0/wifi/disconnect:
     post:
@@ -389,6 +407,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/SuccessResponse'
+        '500':
+          description: Command issued in an invalid state
+          content:
+              application/json:
+                schema:
+                  $ref: '#/components/schemas/Error'
 
   /api/v0/wifi/networks:
     get:
@@ -403,6 +427,26 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/NetworkResponse"
+        '400':
+          description: Wifi already connected
+          content:
+              application/json:
+                schema:
+                  $ref: '#/components/schemas/Error'
+    
+  /api/v0/wifi/forget:
+    post:
+      tags:
+        - Wifi
+      description: Forgets saved Wifi config
+      parameters: []
+      responses:
+        '400':
+          description: Not implemented
+          content:
+              application/json:
+                schema:
+                  $ref: '#/components/schemas/Error'
 
 components:
   schemas:
