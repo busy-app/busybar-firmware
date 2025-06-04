@@ -4,6 +4,8 @@
 
 #define MY_CLASS (&timer_indicator_lvgl_class)
 
+#define FRAMES_TO_MS(x) ((x) * 1000 / 60)
+
 struct TimerIndicator {
     AnimImage base;
     TimerIndicatorAnimSources sources;
@@ -64,7 +66,14 @@ static void
     lv_anim_set_values(&anim, preset->start_width, preset->end_width);
     lv_anim_set_duration(&anim, preset->duration_ms);
 
-    lv_anim_set_path_cb(&anim, lv_anim_path_ease_in_out);
+    lv_anim_set_bezier3_param(
+        &anim,
+        LV_BEZIER_VAL_FLOAT(0.3F),
+        LV_BEZIER_VAL_FLOAT(0.0F),
+        LV_BEZIER_VAL_FLOAT(0.3F),
+        LV_BEZIER_VAL_FLOAT(1.0F));
+
+    lv_anim_set_path_cb(&anim, lv_anim_path_custom_bezier3);
     lv_anim_set_exec_cb(&anim, timer_indicator_lvgl_anim_callback);
     lv_anim_set_completed_cb(&anim, timer_indicator_lvgl_anim_completed_callback);
     lv_anim_set_var(&anim, instance);
@@ -149,6 +158,6 @@ static const TimerTransitionPreset
             {
                 .start_width = 70,
                 .end_width = 40,
-                .duration_ms = 500,
+                .duration_ms = FRAMES_TO_MS(40),
             },
 };
