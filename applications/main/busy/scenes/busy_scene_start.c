@@ -91,7 +91,7 @@ static bool busy_scene_start_on_event(const SceneManagerEvent* event, void* cont
                 timer_card_show_time(instance->timer_card, false);
             });
 
-            busy_prepare_transition(instance, BusyTransitionTypeWhiteSelect);
+            busy_prepare_transition(instance, BusyTransitionTypeSelect);
 
             BusyTimerConfig timer_config;
             busy_timer_get_config(instance->busy_timer, &timer_config);

@@ -38,10 +38,10 @@ typedef enum {
 } BusyCustomEvent;
 
 typedef enum {
-    BusyTransitionTypeBlack,
-    BusyTransitionTypeBlackMask,
-    BusyTransitionTypeWhite,
-    BusyTransitionTypeWhiteSelect,
+    BusyTransitionTypeDefault,
+    BusyTransitionTypeAutomatic,
+    BusyTransitionTypeSkip,
+    BusyTransitionTypeSelect,
     BusyTransitionTypeWork,
     BusyTransitionTypeRest,
     BusyTransitionTypeWorkDone,

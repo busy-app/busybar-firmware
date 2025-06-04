@@ -1,7 +1,7 @@
 #include "busy_presets.h"
 
 const BusyTransition busy_transitions[BusyTransitionTypeMax] = {
-    [BusyTransitionTypeBlack] =
+    [BusyTransitionTypeDefault] =
         {
             .color = COLOR_MAKE_HEX(0x000000),
             .color_mode = TransitionOverlayColorModeNormal,
@@ -11,7 +11,7 @@ const BusyTransition busy_transitions[BusyTransitionTypeMax] = {
                     .out_ms = 200,
                 },
         },
-    [BusyTransitionTypeBlackMask] =
+    [BusyTransitionTypeAutomatic] =
         {
             .mask_path = BUSY_ANIM_PATH("transition_oval_72x16.anim"),
             .mask_mode = TransitionOverlayMaskModeMultiply,
@@ -21,17 +21,17 @@ const BusyTransition busy_transitions[BusyTransitionTypeMax] = {
                     .out_ms = 340,
                 },
         },
-    [BusyTransitionTypeWhite] =
+    [BusyTransitionTypeSkip] =
         {
-            .color = COLOR_MAKE_HEX(0xFFFFFF),
-            .color_mode = TransitionOverlayColorModeNormal,
+            .mask_path = BUSY_ANIM_PATH("transition_skip_72x16.anim"),
+            .mask_mode = TransitionOverlayMaskModeAdd,
             .timings =
                 {
-                    .in_ms = 200,
-                    .out_ms = 200,
+                    .in_ms = 250,
+                    .out_ms = 250,
                 },
         },
-    [BusyTransitionTypeWhiteSelect] =
+    [BusyTransitionTypeSelect] =
         {
             .mask_path = BUSY_ANIM_PATH("transition_select_72x16.anim"),
             .mask_mode = TransitionOverlayMaskModeAdd,

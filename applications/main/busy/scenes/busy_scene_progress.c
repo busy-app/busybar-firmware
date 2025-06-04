@@ -73,7 +73,7 @@ static void busy_scene_progress_on_exit(void* context) {
 
     run_later_cancel(data->run_later);
 
-    busy_prepare_transition(instance, BusyTransitionTypeBlackMask);
+    busy_prepare_transition(instance, BusyTransitionTypeAutomatic);
     busy_set_status_lights(instance, BusyStatusLightsTypeOff);
 
     with_gui(instance->gui, {

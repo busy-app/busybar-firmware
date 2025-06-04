@@ -95,7 +95,9 @@ static void busy_scene_timer_run_later_callback(void* context) {
 
     const BusySceneTimer* data = scene_manager_get_current_scene_data(instance->scene_manager);
 
-    if(data->timer_state == BusyTimerStateRest) {
+    if(data->is_force_ended) {
+        busy_prepare_transition(instance, BusyTransitionTypeSkip);
+    } else if(data->timer_state == BusyTimerStateRest) {
         busy_prepare_transition(instance, BusyTransitionTypeRestDone);
     } else {
         busy_prepare_transition(instance, BusyTransitionTypeWorkDone);
@@ -221,7 +223,7 @@ static void busy_scene_timer_handle_skip(BusyApp* instance) {
     const BusySceneTimer* data = scene_manager_get_current_scene_data(instance->scene_manager);
 
     if((data->timer_mode == BusyTimerModeInterval) && !data->is_paused) {
-        busy_prepare_transition(instance, BusyTransitionTypeWhite);
+        busy_prepare_transition(instance, BusyTransitionTypeSkip);
         busy_start_transition(instance);
         busy_timer_skip(instance->busy_timer);
     }
@@ -233,7 +235,7 @@ static void busy_scene_timer_handle_back(BusyApp* instance) {
     if(!data->is_paused) {
         busy_timer_stop(instance->busy_timer);
 
-        busy_prepare_transition(instance, BusyTransitionTypeBlack);
+        busy_prepare_transition(instance, BusyTransitionTypeDefault);
 
         scene_manager_search_and_switch_to_previous_scene(
             instance->scene_manager, BusyAppSceneIdStart);

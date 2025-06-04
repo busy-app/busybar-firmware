@@ -14,7 +14,7 @@ static void busy_scene_overview_run_later_callback(void* context) {
     furi_assert(context);
     BusyApp* instance = context;
 
-    busy_prepare_transition(instance, BusyTransitionTypeBlackMask);
+    busy_prepare_transition(instance, BusyTransitionTypeAutomatic);
     scene_manager_next_scene(instance->scene_manager, BusyAppSceneIdTimer);
 }
 
@@ -94,14 +94,14 @@ static bool busy_scene_overview_on_event(const SceneManagerEvent* event, void* c
 
     if(event->type == SceneManagerEventTypeCustom) {
         if(event->event == BusyCustomEventStartShortPressed) {
-            busy_prepare_transition(instance, BusyTransitionTypeWhite);
+            busy_prepare_transition(instance, BusyTransitionTypeSkip);
             scene_manager_next_scene(instance->scene_manager, BusyAppSceneIdTimer);
         }
 
         consumed = true;
 
     } else if(event->type == SceneManagerEventTypeBack) {
-        busy_prepare_transition(instance, BusyTransitionTypeBlack);
+        busy_prepare_transition(instance, BusyTransitionTypeDefault);
     }
 
     return consumed;
