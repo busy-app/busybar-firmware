@@ -8,6 +8,10 @@
 
 #define BUSY_SETTINGS_FILE APP_DATA_PATH("settings.json")
 
+#define BUSY_SETTINGS_CURRENT_VERSION (0)
+
+#define VERSION_KEY    "version"
+
 #define BUSY_TIMER_KEY "timer"
 
 #define BUSY_TIMER_MODE_KEY             "mode"
@@ -106,6 +110,16 @@ static bool busy_settings_parse(const cJSON* json, BusySettings* settings) {
 
         cJSON* item;
 
+        item = cJSON_GetObjectItem(json, VERSION_KEY);
+
+        if(!cJSON_IsNumber(item)) {
+            break;
+        }
+
+        if(item->valueint != BUSY_SETTINGS_CURRENT_VERSION) {
+            break;
+        }
+
         item = cJSON_GetObjectItem(json, BUSY_TIMER_KEY);
 
         if(!busy_settings_parse_timer_config(item, &settings->timer_config)) {
@@ -196,6 +210,8 @@ bool busy_settings_save(const BusySettings* settings) {
         }
 
         cJSON* root = cJSON_CreateObject();
+
+        cJSON_AddNumberToObject(root, VERSION_KEY, BUSY_SETTINGS_CURRENT_VERSION);
 
         busy_settings_serialize_timer_config(root, &settings->timer_config);
 
