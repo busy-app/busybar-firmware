@@ -49,12 +49,12 @@ static void busy_scene_setup_timer_autostart_changed_callback(VarItem* item, voi
     data->timer_config.enable_autostart = var_item_get_value(item);
 }
 
-static void busy_scene_setup_timer_speed_changed_callback(VarItem* item, void* context) {
+static void busy_scene_setup_timer_demo_mode_changed_callback(VarItem* item, void* context) {
     furi_assert(item);
     furi_assert(context);
 
     BusySceneSetupTimer* data = context;
-    data->timer_config.enable_speed = var_item_get_value(item);
+    data->timer_config.enable_demo_mode = var_item_get_value(item);
 }
 
 static void
@@ -112,9 +112,9 @@ static void
     var_item_set_value(item, data->timer_config.enable_autostart);
 
     item = var_item_list_add_switch(
-        list, "Fast mode", set_cb ? busy_scene_setup_timer_speed_changed_callback : NULL, data);
+        list, "Demo mode", set_cb ? busy_scene_setup_timer_demo_mode_changed_callback : NULL, data);
 
-    var_item_set_value(item, data->timer_config.enable_speed);
+    var_item_set_value(item, data->timer_config.enable_demo_mode);
 }
 
 static void busy_scene_setup_timer_on_enter(void* context) {

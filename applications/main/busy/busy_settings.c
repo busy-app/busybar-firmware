@@ -87,7 +87,7 @@ static bool busy_settings_parse_timer_config(const cJSON* json, BusyTimerConfig*
             break;
         }
 
-        config->enable_speed = cJSON_IsTrue(item);
+        config->enable_demo_mode = cJSON_IsTrue(item);
 
         success = true;
 
@@ -179,7 +179,7 @@ static void busy_settings_serialize_timer_config(cJSON* json, const BusyTimerCon
     cJSON_AddNumberToObject(timer_json, BUSY_TIMER_REST_TIME_KEY, config->rest_time_mn);
     cJSON_AddNumberToObject(timer_json, BUSY_TIMER_CYCLE_COUNT_KEY, config->cycle_count);
     cJSON_AddBoolToObject(timer_json, BUSY_TIMER_ENABLE_AUTOSTART_KEY, config->enable_autostart);
-    cJSON_AddBoolToObject(timer_json, BUSY_TIMER_ENABLE_DEMO_MODE_KEY, config->enable_speed);
+    cJSON_AddBoolToObject(timer_json, BUSY_TIMER_ENABLE_DEMO_MODE_KEY, config->enable_demo_mode);
 }
 
 bool busy_settings_save(const BusySettings* settings) {

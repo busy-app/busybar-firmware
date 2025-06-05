@@ -72,7 +72,7 @@ typedef struct {
     uint32_t cycle_count;
     bool enable_intervals;
     bool enable_autostart;
-    bool enable_speed;
+    bool enable_demo_mode;
 } BusyTimerConfig;
 
 typedef void (*BusyTimerCallback)(const BusyTimerEvent* event, void* context);

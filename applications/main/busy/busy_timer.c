@@ -15,7 +15,7 @@ static const BusyTimerConfig busy_timer_config_default = {
     .cycle_count = CYCLE_COUNT_DEFAULT,
     .enable_intervals = ENABLE_INTERVALS_DEFAULT,
     .enable_autostart = ENABLE_AUTOSTART_DEFAULT,
-    .enable_speed = ENABLE_SPEED_DEFAULT,
+    .enable_demo_mode = ENABLE_SPEED_DEFAULT,
 };
 
 static const char* busy_timer_mode_names[BusyTimerModeMax] = {
@@ -170,7 +170,7 @@ static uint32_t busy_timer_calc_cycles_done(const BusyTimer* instance) {
 }
 
 static uint32_t busy_timer_calc_delta(const BusyTimer* instance) {
-    if(instance->config.enable_speed) {
+    if(instance->config.enable_demo_mode) {
         if(instance->time.remain_s > 60) {
             return 60;
         } else if(instance->time.remain_s > 30) {
