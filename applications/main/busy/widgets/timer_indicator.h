@@ -70,18 +70,22 @@ Widget* timer_indicator_get_base(TimerIndicator* instance);
 AnimImage* timer_indicator_get_anim_image(TimerIndicator* instance);
 
 /**
- * @brief
+ * @brief Set animation sources for different states of a TimerIndicator instance.
  *
  * @param[in,out] instance pointer to the TimerIndicator instance to be operated on
+ * @param[in] sources pointer to the structure containing animation source paths
  */
 void timer_indicator_set_anim_sources(
     TimerIndicator* instance,
     const TimerIndicatorAnimSources* sources);
 
 /**
- * @brief
+ * @brief Set current state of a TimerIndicator instance.
+ *
+ * If a transition is defined between the old and new state, it will be played.
  *
  * @param[in,out] instance pointer to the TimerIndicator instance to be operated on
+ * @param[in] state value to determine the new state
  */
 void timer_indicator_set_state(TimerIndicator* instance, TimerIndicatorState state);
 
