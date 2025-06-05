@@ -125,6 +125,9 @@ static void pause_overlay_animate_show(PauseOverlay* instance) {
 
     lv_obj_set_style_opa(TO_LV_OBJ(instance), LV_OPA_COVER, LV_PART_MAIN);
 
+    const uint32_t frame_count = anim_image_get_frame_count(instance->mask);
+    anim_image_set_range(instance->mask, 0, frame_count - 1, false, false);
+
     widget_set_visible((Widget*)instance->layout, false);
     widget_set_visible((Widget*)instance, true);
 }
@@ -164,6 +167,11 @@ static void pause_overlay_stop_blink(PauseOverlay* instance) {
     lv_anim_delete(instance->pause_img, pause_overlay_lvgl_opacity_anim_callback);
 }
 
+static void pause_overlay_stop_animations(PauseOverlay* instance) {
+    lv_anim_delete(instance, NULL);
+    lv_anim_delete(instance->pause_img, NULL);
+}
+
 // Public API
 
 PauseOverlay* pause_overlay_alloc(Widget* parent) {
@@ -189,9 +197,10 @@ Widget* pause_overlay_get_base(PauseOverlay* instance) {
 void pause_overlay_show(PauseOverlay* instance, bool show) {
     furi_check(instance);
 
+    pause_overlay_stop_animations(instance);
+
     if(show) {
         snap_image_capture_display(instance->snap);
-        anim_image_start(instance->mask);
         pause_overlay_start_blink(instance);
         pause_overlay_animate_show(instance);
 
