@@ -23,21 +23,23 @@ typedef struct {
     BusyTimerConfig timer_config;
 } BusySceneSetupTimer;
 
-static const bool var_item_is_shown[BusyTimerModeMax][VarItemListIdMax] = {
-    [BusyTimerModeInfinite] = {0},
-    [BusyTimerModeSimple] = {true, /* filled with zeroes */},
-    [BusyTimerModeInterval] = {false, true, true, true, true},
-};
-
 static void busy_scene_setup_timer_filter_items(BusySceneSetupTimer* data) {
-    const bool* const is_shown = var_item_is_shown[data->timer_config.mode];
+    // Which items to show w/ respect to the current time mode
+    static const bool is_shown_table[BusyTimerModeMax][VarItemListIdMax] = {
+        [BusyTimerModeInfinite] = {0},
+        [BusyTimerModeSimple] = {true, /* filled with zeroes */},
+        [BusyTimerModeInterval] = {false, true, true, true, true},
+    };
+
+    const BusyTimerMode timer_mode = data->timer_config.mode;
+    const bool* const is_shown_in_mode = is_shown_table[timer_mode];
 
     for(GuiDisplayId display_id = 0; display_id < GuiDisplayIdMax; ++display_id) {
         VarItemListContainer* container = &data->containers[display_id];
         VarItem** items = container->items;
 
         for(VarItemListId item_id = 0; item_id < VarItemListIdMax; ++item_id) {
-            widget_set_visible((Widget*)items[item_id], is_shown[item_id]);
+            widget_set_visible((Widget*)items[item_id], is_shown_in_mode[item_id]);
         }
     }
 }
