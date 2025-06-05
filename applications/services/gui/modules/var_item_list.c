@@ -305,6 +305,11 @@ static void var_item_editor_update(VarItemEditor* instance) {
 static void var_item_editor_increment(VarItemEditor* instance) {
     if(instance->value < instance->max) {
         instance->value += instance->step;
+
+        if(instance->callback) {
+            instance->callback(var_item_editor_get_item(instance), instance->context);
+        }
+
         var_item_editor_update(instance);
     }
 }
@@ -312,6 +317,11 @@ static void var_item_editor_increment(VarItemEditor* instance) {
 static void var_item_editor_decrement(VarItemEditor* instance) {
     if(instance->value > instance->min) {
         instance->value -= instance->step;
+
+        if(instance->callback) {
+            instance->callback(var_item_editor_get_item(instance), instance->context);
+        }
+
         var_item_editor_update(instance);
     }
 }
@@ -362,12 +372,7 @@ static bool var_item_list_input_callback(Widget* widget, const InputEvent* event
 
             if(editor) {
                 var_item_editor_set_edited(editor, false);
-
                 instance->edited = NULL;
-
-                if(editor->callback) {
-                    editor->callback(var_item_editor_get_item(editor), editor->context);
-                }
 
             } else {
                 VarItem* item = (VarItem*)lv_group_get_focused(instance->group);
