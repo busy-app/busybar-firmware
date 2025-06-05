@@ -13,7 +13,13 @@ void http_api_led_free(void* ctx) {
     free(ctx);
 }
 
-bool http_api_led_callback(struct mg_connection* conn, struct mg_http_message* msg, void* ctx) {
+bool http_api_led_callback(
+    FuriString* path,
+    struct mg_connection* conn,
+    struct mg_http_message* msg,
+    void* ctx) {
+    if(!IS_HTTP_ENDPOINT(path)) return false;
+
     ApiLedCtx* context = ctx;
 
     bool success = false;
@@ -67,9 +73,16 @@ bool http_api_led_callback(struct mg_connection* conn, struct mg_http_message* m
     return success;
 }
 
-bool http_api_version_callback(struct mg_connection* conn, struct mg_http_message* msg, void* ctx) {
+bool http_api_version_callback(
+    FuriString* path,
+    struct mg_connection* conn,
+    struct mg_http_message* msg,
+    void* ctx) {
     UNUSED(msg);
     UNUSED(ctx);
+
+    if(!IS_HTTP_ENDPOINT(path)) return false;
+
     FuriString* ver_str = furi_string_alloc();
     const Version* firmware_version = version_get();
     furi_string_printf(
@@ -92,7 +105,7 @@ bool http_api_version_callback(struct mg_connection* conn, struct mg_http_messag
 
 static const HttpHandler handlers_api_root[] = {
     {
-        .uri = "/api/v0/led",
+        .uri = "led",
         .method = "*",
         .type = HttpHandlerCustom,
         .ctx_alloc = http_api_led_alloc,
@@ -100,13 +113,13 @@ static const HttpHandler handlers_api_root[] = {
         .on_request = http_api_led_callback,
     },
     {
-        .uri = "/api/v0/version",
+        .uri = "version",
         .method = "GET",
         .type = HttpHandlerCustom,
         .on_request = http_api_version_callback,
     },
     {
-        .uri = "/api/v0/assets/*",
+        .uri = "assets",
         .method = "*",
         .type = HttpHandlerCustom,
         .ctx_alloc = http_api_assets_alloc,
@@ -115,7 +128,7 @@ static const HttpHandler handlers_api_root[] = {
         .on_headers = http_api_assets_hdr_callback,
     },
     {
-        .uri = "/api/v0/display/*",
+        .uri = "display",
         .method = "*",
         .type = HttpHandlerCustom,
         .ctx_alloc = http_api_display_alloc,
@@ -123,7 +136,7 @@ static const HttpHandler handlers_api_root[] = {
         .on_request = http_api_display_callback,
     },
     {
-        .uri = "/api/v0/audio/*",
+        .uri = "audio",
         .method = "*",
         .type = HttpHandlerCustom,
         .ctx_alloc = http_api_audio_alloc,
@@ -153,17 +166,25 @@ void http_api_root_free(void* ctx) {
     free(context);
 }
 
-bool http_api_root_callback(struct mg_connection* conn, struct mg_http_message* msg, void* ctx) {
+bool http_api_root_callback(
+    FuriString* path,
+    struct mg_connection* conn,
+    struct mg_http_message* msg,
+    void* ctx) {
     ApiRootCtx* context = ctx;
     FURI_LOG_I(
         "HTTP API", "%.*s %.*s", msg->method.len, msg->method.buf, msg->uri.len, msg->uri.buf);
     if(msg->query.len > 0) {
         FURI_LOG_I("HTTP API", "Query %.*s", msg->query.len, msg->query.buf);
     }
-    return http_handle_request(context->handlers, conn, msg);
+    return http_handle_request(path, context->handlers, conn, msg);
 }
 
-bool http_api_root_hdr_callback(struct mg_connection* conn, struct mg_http_message* msg, void* ctx) {
+bool http_api_root_hdr_callback(
+    FuriString* path,
+    struct mg_connection* conn,
+    struct mg_http_message* msg,
+    void* ctx) {
     ApiRootCtx* context = ctx;
-    return http_handle_headers(context->handlers, conn, msg);
+    return http_handle_headers(path, context->handlers, conn, msg);
 }

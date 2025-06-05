@@ -12,13 +12,19 @@ typedef struct {
     void* file;
 } UploadClientCtx;
 
-static bool
-    api_audio_play_callback(struct mg_connection* conn, struct mg_http_message* msg, void* ctx) {
+static bool api_audio_play_callback(
+    FuriString* path,
+    struct mg_connection* conn,
+    struct mg_http_message* msg,
+    void* ctx) {
     UNUSED(ctx);
+
+    if(!IS_HTTP_ENDPOINT(path)) return false;
+
     char temp_str[FILE_NAME_LEN_MAX];
     bool success = false;
 
-    FuriString* path = furi_string_alloc();
+    FuriString* file_path = furi_string_alloc();
     do {
         if(msg->query.len == 0) {
             break;
@@ -28,21 +34,21 @@ static bool
         if(var_len <= 0) {
             return false;
         }
-        furi_string_printf(path, "%s/%.*s", AUDIO_ASSETS_DIR, var_len, temp_str);
+        furi_string_printf(file_path, "%s/%.*s", AUDIO_ASSETS_DIR, var_len, temp_str);
 
         var_len = mg_http_get_var(&msg->query, "path", temp_str, sizeof(temp_str));
         if(var_len <= 0) {
             break;
         }
-        furi_string_cat_printf(path, "/%.*s", var_len, temp_str);
+        furi_string_cat_printf(file_path, "/%.*s", var_len, temp_str);
 
         Audio* audio = furi_record_open(RECORD_AUDIO);
-        success = audio_play_file(audio, furi_string_get_cstr(path));
+        success = audio_play_file(audio, furi_string_get_cstr(file_path));
         furi_record_close(RECORD_AUDIO);
 
     } while(0);
 
-    furi_string_free(path);
+    furi_string_free(file_path);
     if(success) {
         MG_REPLY_OK(conn);
     } else {
@@ -52,12 +58,16 @@ static bool
     return true;
 }
 
-static bool
-    api_audio_delete_callback(struct mg_connection* conn, struct mg_http_message* msg, void* ctx) {
+static bool api_audio_delete_callback(
+    FuriString* path,
+    struct mg_connection* conn,
+    struct mg_http_message* msg,
+    void* ctx) {
     UNUSED(conn);
     UNUSED(msg);
     UNUSED(ctx);
-    FURI_LOG_I(TAG, "DELETE");
+
+    if(!IS_HTTP_ENDPOINT(path)) return false;
 
     Audio* audio = furi_record_open(RECORD_AUDIO);
     audio_stop(audio);
@@ -69,13 +79,13 @@ static bool
 
 static const HttpHandler api_audio_handlers[] = {
     {
-        .uri = "/api/v0/audio/play",
+        .uri = "play",
         .method = "POST",
         .type = HttpHandlerCustom,
         .on_request = api_audio_play_callback,
     },
     {
-        .uri = "/api/v0/audio/play",
+        .uri = "play",
         .method = "DELETE",
         .type = HttpHandlerCustom,
         .on_request = api_audio_delete_callback,
@@ -103,8 +113,12 @@ void http_api_audio_free(void* ctx) {
     free(context);
 }
 
-bool http_api_audio_callback(struct mg_connection* conn, struct mg_http_message* msg, void* ctx) {
+bool http_api_audio_callback(
+    FuriString* path,
+    struct mg_connection* conn,
+    struct mg_http_message* msg,
+    void* ctx) {
     ApiAudioCtx* context = ctx;
 
-    return http_handle_request(context->handlers, conn, msg);
+    return http_handle_request(path, context->handlers, conn, msg);
 }

@@ -31,6 +31,8 @@
 #define MG_REPLY_INTERNAL_ERROR(conn, ...) \
     _MG_REPLY_INTERNAL_ERROR(conn, M_IF_EMPTY(__VA_ARGS__)("failed", (__VA_ARGS__)))
 
+#define IS_HTTP_ENDPOINT(path) furi_string_empty(path)
+
 typedef struct {
     char* uri;
     char* method;
@@ -49,8 +51,16 @@ typedef struct {
         struct {
             void* (*ctx_alloc)(void);
             void (*ctx_free)(void*);
-            bool (*on_request)(struct mg_connection* conn, struct mg_http_message* msg, void* ctx);
-            bool (*on_headers)(struct mg_connection* conn, struct mg_http_message* msg, void* ctx);
+            bool (*on_request)(
+                FuriString* path,
+                struct mg_connection* conn,
+                struct mg_http_message* msg,
+                void* ctx);
+            bool (*on_headers)(
+                FuriString* path,
+                struct mg_connection* conn,
+                struct mg_http_message* msg,
+                void* ctx);
         };
     };
 } HttpHandler;
@@ -83,11 +93,13 @@ static_assert(sizeof(ConnectionContext) == MG_DATA_SIZE);
 struct mg_fs* http_fs_get(void);
 
 bool http_handle_request(
+    FuriString* path,
     HttpHandlersList_t handlers,
     struct mg_connection* conn,
     struct mg_http_message* msg);
 
 bool http_handle_headers(
+    FuriString* path,
     HttpHandlersList_t handlers,
     struct mg_connection* conn,
     struct mg_http_message* msg);

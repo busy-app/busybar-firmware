@@ -16,7 +16,7 @@ static WebServer srv = {0};
 
 static const HttpHandler handlers_root[] = {
     {
-        .uri = "/api/#",
+        .uri = "/api/v0",
         .method = "*",
         .type = HttpHandlerCustom,
         .on_request = http_api_root_callback,
@@ -33,7 +33,7 @@ static const HttpHandler handlers_root[] = {
         .ctx_free = http_websocket_free,
     },
     {
-        .uri = "#",
+        .uri = "",
         .method = "GET",
         .type = HttpHandlerDir,
         .path = WEB_ROOT,
@@ -48,7 +48,9 @@ static void http_event_handler(struct mg_connection* conn, int ev, void* ev_data
         struct mg_http_message* msg = (struct mg_http_message*)ev_data;
         ConnectionContext* conn_ctx = (void*)conn->data;
         if(conn_ctx->raw.on_data == NULL) { // Skip raw connections
-            bool result = http_handle_request(context->handlers, conn, msg);
+            FuriString* path = furi_string_alloc_printf("%.*s", msg->uri.len, msg->uri.buf);
+            bool result = http_handle_request(path, context->handlers, conn, msg);
+            furi_string_free(path);
             if(!result) {
                 MG_REPLY_BAD_REQUEST(conn);
             }
@@ -57,7 +59,9 @@ static void http_event_handler(struct mg_connection* conn, int ev, void* ev_data
     } else if(ev == MG_EV_HTTP_HDRS) {
         WebServer* context = conn->fn_data;
         struct mg_http_message* msg = (struct mg_http_message*)ev_data;
-        http_handle_headers(context->handlers, conn, msg);
+        FuriString* path = furi_string_alloc_printf("%.*s", msg->uri.len, msg->uri.buf);
+        http_handle_headers(path, context->handlers, conn, msg);
+        furi_string_free(path);
     } else if(ev == MG_EV_READ) {
         if(!conn->is_websocket) {
             ConnectionContext* conn_ctx = (void*)conn->data;
@@ -127,6 +131,7 @@ void http_handler_remove_all(HttpHandlersList_t list) {
 }
 
 bool http_handle_request(
+    FuriString* path,
     HttpHandlersList_t handlers,
     struct mg_connection* conn,
     struct mg_http_message* msg) {
@@ -136,7 +141,7 @@ bool http_handle_request(
         HttpHandlersList_next(it)) {
         const HttpHandlerInstance* inst = HttpHandlersList_cref(it);
         do {
-            if(!mg_match(msg->uri, mg_str(inst->handler->uri), NULL)) {
+            if(!furi_string_start_with(path, inst->handler->uri)) {
                 break;
             }
             if(!mg_match(msg->method, mg_str(inst->handler->method), NULL)) {
@@ -144,13 +149,19 @@ bool http_handle_request(
             }
             if(inst->handler->type == HttpHandlerCustom) {
                 furi_assert(inst->handler->on_request);
-                handled = inst->handler->on_request(conn, msg, inst->context);
+                FuriString* path_remain = furi_string_alloc_set(path);
+                furi_string_right(path_remain, strlen(inst->handler->uri));
+                if(furi_string_start_with(path_remain, "/")) {
+                    furi_string_right(path_remain, 1);
+                }
+                handled = inst->handler->on_request(path_remain, conn, msg, inst->context);
+                furi_string_free(path_remain);
             } else if(inst->handler->type == HttpHandlerFile) {
                 struct mg_http_serve_opts opts = {
                     .ssi_pattern = NULL,
                     .extra_headers = inst->handler->extra_headers,
                     .mime_types = inst->handler->mime_types_custom,
-                    .page404 = NULL, // WEB_ROOT "404.html",
+                    .page404 = NULL, // TODO: WEB_ROOT "404.html",
                     .fs = http_fs_get(),
                 };
                 mg_http_serve_file(conn, msg, inst->handler->path, &opts);
@@ -161,7 +172,7 @@ bool http_handle_request(
                     .ssi_pattern = NULL,
                     .extra_headers = inst->handler->extra_headers,
                     .mime_types = inst->handler->mime_types_custom,
-                    .page404 = NULL, // WEB_ROOT "404.html",
+                    .page404 = NULL, // TODO: WEB_ROOT "404.html",
                     .fs = http_fs_get(),
                 };
                 mg_http_serve_dir(conn, msg, &opts);
@@ -176,6 +187,7 @@ bool http_handle_request(
 }
 
 bool http_handle_headers(
+    FuriString* path,
     HttpHandlersList_t handlers,
     struct mg_connection* conn,
     struct mg_http_message* msg) {
@@ -188,14 +200,20 @@ bool http_handle_headers(
             if(inst->handler->type != HttpHandlerCustom) {
                 break;
             }
-            if(!mg_match(msg->uri, mg_str(inst->handler->uri), NULL)) {
+            if(!furi_string_start_with(path, inst->handler->uri)) {
                 break;
             }
             if(!mg_match(msg->method, mg_str(inst->handler->method), NULL)) {
                 break;
             }
             if(inst->handler->on_headers) {
-                handled = inst->handler->on_headers(conn, msg, inst->context);
+                FuriString* path_remain = furi_string_alloc_set(path);
+                furi_string_right(path_remain, strlen(inst->handler->uri));
+                if(furi_string_start_with(path_remain, "/")) {
+                    furi_string_right(path_remain, 1);
+                }
+                handled = inst->handler->on_headers(path_remain, conn, msg, inst->context);
+                furi_string_free(path_remain);
             }
         } while(0);
         if(handled) break;

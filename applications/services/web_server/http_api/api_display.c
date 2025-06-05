@@ -71,9 +71,14 @@ static bool api_display_draw_parse_element(
     return success;
 }
 
-static bool
-    api_display_draw_callback(struct mg_connection* conn, struct mg_http_message* msg, void* ctx) {
+static bool api_display_draw_callback(
+    FuriString* path,
+    struct mg_connection* conn,
+    struct mg_http_message* msg,
+    void* ctx) {
     UNUSED(ctx);
+
+    if(!IS_HTTP_ENDPOINT(path)) return false;
 
     CanvasElementsArray_t elements_array;
     CanvasElementsArray_init(elements_array);
@@ -144,11 +149,14 @@ static bool
 }
 
 static bool api_display_delete_callback(
+    FuriString* path,
     struct mg_connection* conn,
     struct mg_http_message* msg,
     void* ctx) {
     UNUSED(msg);
     UNUSED(ctx);
+
+    if(!IS_HTTP_ENDPOINT(path)) return false;
 
     FuriString* app_name = furi_string_alloc();
     Loader* loader = furi_record_open(RECORD_LOADER);
@@ -165,13 +173,13 @@ static bool api_display_delete_callback(
 
 static const HttpHandler handlers_display[] = {
     {
-        .uri = "/api/v0/display/draw",
+        .uri = "draw",
         .method = "POST",
         .type = HttpHandlerCustom,
         .on_request = api_display_draw_callback,
     },
     {
-        .uri = "/api/v0/display/draw",
+        .uri = "draw",
         .method = "DELETE",
         .type = HttpHandlerCustom,
         .on_request = api_display_delete_callback,
@@ -199,7 +207,11 @@ void http_api_display_free(void* ctx) {
     free(context);
 }
 
-bool http_api_display_callback(struct mg_connection* conn, struct mg_http_message* msg, void* ctx) {
+bool http_api_display_callback(
+    FuriString* path,
+    struct mg_connection* conn,
+    struct mg_http_message* msg,
+    void* ctx) {
     ApiDisplayCtx* context = ctx;
-    return http_handle_request(context->handlers, conn, msg);
+    return http_handle_request(path, context->handlers, conn, msg);
 }
