@@ -313,6 +313,15 @@ void anim_image_stop(AnimImage* instance) {
     }
 }
 
+void anim_image_rewind(AnimImage* instance) {
+    furi_check(instance);
+
+    if(instance->is_loaded) {
+        instance->has_waiting_range = false;
+        instance->current_idx = instance->current_range.begin_idx;
+    }
+}
+
 uint32_t anim_image_get_frame_rate(const AnimImage* instance) {
     furi_check(instance);
     return instance->frame_rate;

@@ -125,8 +125,10 @@ static void pause_overlay_animate_show(PauseOverlay* instance) {
 
     lv_obj_set_style_opa(TO_LV_OBJ(instance), LV_OPA_COVER, LV_PART_MAIN);
 
-    const uint32_t frame_count = anim_image_get_frame_count(instance->mask);
-    anim_image_set_range(instance->mask, 0, frame_count - 1, false, false);
+    // const uint32_t frame_count = anim_image_get_frame_count(instance->mask);
+    // anim_image_set_range(instance->mask, 0, frame_count - 1, false, false);
+    anim_image_rewind(instance->mask);
+    anim_image_start(instance->mask);
 
     widget_set_visible((Widget*)instance->layout, false);
     widget_set_visible((Widget*)instance, true);
