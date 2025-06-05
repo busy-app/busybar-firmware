@@ -6,8 +6,6 @@
 
 #include <intercom/intercom.h>
 
-#define STATUS_LIGHTS_DEFAULT_PRESET StatusLightsPresetRainbowGradient
-
 struct StatusLights {
     FuriEventLoop* event_loop;
     FuriMessageQueue* command_queue;
@@ -33,18 +31,30 @@ static void status_lights_run_pattern(void* context) {
 static void status_lights_execute_command(StatusLights* instance, StatusLightsCommand command) {
     furi_check(command.preset < StatusLightsPresetMax);
 
-    // If previous pattern was running, stop it
-    if(furi_event_loop_timer_is_running(instance->timer)) {
-        furi_event_loop_timer_stop(instance->timer);
+    if(instance->preset_instance) {
+        furi_assert(instance->preset_api);
+
         instance->preset_api->free(instance->preset_instance);
+        instance->preset_instance = NULL;
+
+        furi_event_loop_timer_stop(instance->timer);
     }
 
     instance->preset_api = status_lights_preset_list[command.preset];
-    instance->preset_instance = instance->preset_api->alloc(&command.color);
 
-    furi_check(instance->preset_api->period_ms > 0);
-    status_lights_run_pattern(instance);
-    furi_event_loop_timer_start(instance->timer, instance->preset_api->period_ms);
+    if(instance->preset_api) {
+        furi_check(instance->preset_api->period_ms > 0);
+
+        furi_hal_pwm_start();
+
+        instance->preset_instance = instance->preset_api->alloc(&command.color);
+
+        furi_event_loop_timer_start(instance->timer, instance->preset_api->period_ms);
+        status_lights_run_pattern(instance);
+
+    } else {
+        furi_hal_pwm_stop();
+    }
 }
 
 static void status_lights_message_queue_callback(FuriEventLoopObject* object, void* context) {
@@ -87,14 +97,6 @@ static StatusLights* status_lights_alloc() {
         IntercomChannelStatusLights,
         status_lights_intercom_rx_callback,
         instance);
-
-    furi_hal_pwm_start();
-
-    StatusLightsCommand command = {
-        .preset = STATUS_LIGHTS_DEFAULT_PRESET,
-        .color = {0},
-    };
-    status_lights_execute_command(instance, command);
 
     furi_record_create(RECORD_STATUS_LIGHTS, instance);
 
