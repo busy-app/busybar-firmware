@@ -10,9 +10,6 @@
 #include "../widgets/timer_indicator.h"
 #include "../widgets/timer_label.h"
 
-#define PROGRESS_BAR_COLOR_BUSY color_hex_to_rgb(0x4A0000)
-#define PROGRESS_BAR_COLOR_REST color_hex_to_rgb(0x003B28)
-
 #define COUNTDOWN_THRESHOLD_S (3)
 
 #define PROGRESS_TRANSITION_MS (1000)
@@ -184,20 +181,16 @@ static void busy_scene_timer_update_timer_state(BusyApp* instance) {
 
             } else if(data->timer_mode == BusyTimerModeInterval) {
                 timer_indicator_set_state(data->timer_indicator, TimerIndicatorStateWork);
-
-                progress_bar_set_trough_color(data->progress_bar, PROGRESS_BAR_COLOR_BUSY);
-                progress_bar_set_anim_source(
-                    data->progress_bar, BUSY_ANIM_PATH("progress_bar_busy_71x1.anim"));
+                progress_bar_set_preset(
+                    data->progress_bar, &busy_progress_bar[BusyProgressBarTypeWork]);
             }
 
         } else if(data->timer_state == BusyTimerStateRest) {
             furi_assert(data->timer_mode == BusyTimerModeInterval);
 
             timer_indicator_set_state(data->timer_indicator, TimerIndicatorStateRest);
-
-            progress_bar_set_trough_color(data->progress_bar, PROGRESS_BAR_COLOR_REST);
-            progress_bar_set_anim_source(
-                data->progress_bar, BUSY_ANIM_PATH("progress_bar_rest_71x1.anim"));
+            progress_bar_set_preset(
+                data->progress_bar, &busy_progress_bar[BusyProgressBarTypeRest]);
         }
     });
 

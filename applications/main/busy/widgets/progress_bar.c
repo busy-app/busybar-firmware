@@ -52,16 +52,14 @@ Widget* progress_bar_get_base(ProgressBar* instance) {
     return (Widget*)instance;
 }
 
-bool progress_bar_set_anim_source(ProgressBar* instance, const char* file_path) {
+void progress_bar_set_preset(ProgressBar* instance, const ProgressBarPreset* preset) {
     furi_check(instance);
-    furi_check(file_path);
 
-    return anim_image_set_source(instance->bar, file_path);
-}
+    anim_image_set_source(instance->bar, preset->file_path);
+    anim_image_stop(instance->bar);
 
-void progress_bar_set_trough_color(ProgressBar* instance, Color color) {
-    furi_check(instance);
-    lv_obj_set_style_bg_color((lv_obj_t*)instance, *((lv_color_t*)&color), LV_PART_MAIN);
+    lv_obj_set_style_bg_color(
+        TO_LV_OBJ(instance), TO_LV_COLOR(preset->trough_color), LV_PART_MAIN);
 }
 
 void progress_bar_set_value(ProgressBar* instance, float value) {
