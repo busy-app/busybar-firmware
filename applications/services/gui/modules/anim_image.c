@@ -223,7 +223,7 @@ Widget* anim_image_get_base(AnimImage* instance) {
 bool anim_image_set_source(AnimImage* instance, const char* file_path) {
     furi_check(instance);
 
-    bool success = false;
+    instance->is_loaded = false;
 
     AnimImageFileHeader header;
 
@@ -250,11 +250,11 @@ bool anim_image_set_source(AnimImage* instance, const char* file_path) {
             break;
         }
 
-        success = true;
+        instance->is_loaded = true;
 
     } while(false);
 
-    if(success) {
+    if(instance->is_loaded) {
         instance->frame_size = header.height * header.width * header.bytes_per_pixel;
         instance->frame_rate = header.fps;
         instance->frame_count = header.frame_count;
@@ -275,7 +275,7 @@ bool anim_image_set_source(AnimImage* instance, const char* file_path) {
         anim_image_set_placeholder(instance);
     }
 
-    return success;
+    return instance->is_loaded;
 }
 
 void anim_image_set_range(
@@ -287,7 +287,7 @@ void anim_image_set_range(
     furi_check(instance);
     furi_check(begin <= end);
 
-    if(instance->timer) {
+    if(instance->is_loaded) {
         anim_image_set_range_internal(instance, begin, end, loop, wait_end);
     }
 }
@@ -300,7 +300,7 @@ void anim_image_set_loop(AnimImage* instance, bool set) {
 void anim_image_start(AnimImage* instance) {
     furi_check(instance);
 
-    if(instance->timer) {
+    if(instance->is_loaded) {
         lv_timer_resume(instance->timer);
     }
 }
@@ -308,7 +308,7 @@ void anim_image_start(AnimImage* instance) {
 void anim_image_stop(AnimImage* instance) {
     furi_check(instance);
 
-    if(instance->timer) {
+    if(instance->is_loaded) {
         lv_timer_pause(instance->timer);
     }
 }
