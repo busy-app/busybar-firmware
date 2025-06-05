@@ -119,7 +119,10 @@ static void busy_scene_timer_update_tick(BusyApp* instance) {
     const float progress = (float)time->elapsed_s / (time->elapsed_s + time->remain_s);
 
     with_gui(instance->gui, {
-        progress_bar_set_value(data->progress_bar, progress);
+        if(widget_is_visible(progress_bar_get_base(data->progress_bar))) {
+            progress_bar_set_value(data->progress_bar, progress);
+        }
+
         timer_label_set_time(data->timer_label, data->timer_time.remain_s);
         timer_card_set_time(instance->timer_card, data->timer_time.remain_s);
     });
