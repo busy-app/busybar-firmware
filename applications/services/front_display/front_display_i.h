@@ -23,7 +23,7 @@
 #define DISPLAY_BLOCKS   (8 * 3) // Scan blocks number (24)
 #define TRANSFER_COUNT   (FRONT_DISPLAY_H * FRONT_DISPLAY_W / LED_DRIVER_CHAIN)
 
-#define DISPLAY_GPIO_SPEED GpioSpeedHigh
+#define DISPLAY_GPIO_SPEED GpioSpeedMedium
 
 typedef struct FrontDisplayDriver FrontDisplayDriver;
 typedef struct FrontDisplayScan FrontDisplayScan;
