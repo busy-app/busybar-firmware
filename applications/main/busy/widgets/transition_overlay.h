@@ -13,19 +13,39 @@ extern "C" {
 #endif
 
 typedef enum {
-    TransitionOverlayColorModeOff,
-    TransitionOverlayColorModeNormal,
-    TransitionOverlayColorModeMultiply,
-    TransitionOverlayColorModeAdd,
-    TransitionOverlayColorModeMax,
-} TransitionOverlayColorMode;
+    TransitionOverlayTypeColor,
+    TransitionOverlayTypeMask,
+    TransitionOverlayTypeMax,
+} TransitionOverlayType;
 
 typedef enum {
-    TransitionOverlayMaskModeOff,
-    TransitionOverlayMaskModeMultiply,
-    TransitionOverlayMaskModeAdd,
-    TransitionOverlayMaskModeMax,
-} TransitionOverlayMaskMode;
+    TransitionOverlayBlendModeNormal,
+    TransitionOverlayBlendModeMultiply,
+    TransitionOverlayBlendModeAdd,
+    TransitionOverlayBlendModeMax,
+} TransitionOverlayBlendMode;
+
+typedef enum {
+    TransitionOverlayEffectNone,
+    TransitionOverlayEffectPress,
+    TransitionOverlayEffectMax,
+} TransitionOverlayEffect;
+
+typedef struct {
+    uint32_t in_ms;
+    uint32_t out_ms;
+} TransitionOverlayTimings;
+
+typedef struct {
+    TransitionOverlayType type;
+    TransitionOverlayBlendMode blend_mode;
+    TransitionOverlayTimings timings;
+    TransitionOverlayEffect effect;
+    union {
+        Color color;
+        const char* file_path;
+    } mask;
+} TransitionOverlayPreset;
 
 /** TransitionOverlay opaque structure. */
 typedef struct TransitionOverlay TransitionOverlay;
@@ -57,13 +77,23 @@ void transition_overlay_free(TransitionOverlay* instance);
 Widget* transition_overlay_get_base(TransitionOverlay* instance);
 
 /**
+ * @brief
+ *
+ * @param[in,out] instance pointer to the TransitionOverlay instance to be modified
+ * @param[in] preset
+ */
+void transition_overlay_set_preset(
+    TransitionOverlay* instance,
+    const TransitionOverlayPreset* preset);
+
+/**
  * @brief Set the animation segment times for a TransitionOverlay instance.
  *
  * @param[in,out] instance pointer to the TransitionOverlay instance to be modified
  * @param[in] in_ms time for the fade-in animation segment, in milliseconds
  * @param[in] out_ms time for the fade-out animation segment, in milliseconds
  */
-void transition_overlay_set_timings(TransitionOverlay* instance, uint32_t in_ms, uint32_t out_ms);
+// void transition_overlay_set_timings(TransitionOverlay* instance, uint32_t in_ms, uint32_t out_ms);
 
 /**
  * @brief Set the overlay color for a TransitionOverlay instance.
@@ -71,7 +101,7 @@ void transition_overlay_set_timings(TransitionOverlay* instance, uint32_t in_ms,
  * @param[in,out] instance pointer to the TransitionOverlay instance to be modified
  * @param[in] color color value for the overlay transition effect
  */
-void transition_overlay_set_color(TransitionOverlay* instance, Color color);
+// void transition_overlay_set_color(TransitionOverlay* instance, Color color);
 
 /**
  * @brief Set the color blending mode for a TransitionOverlay instance.
@@ -79,9 +109,9 @@ void transition_overlay_set_color(TransitionOverlay* instance, Color color);
  * @param[in,out] instance pointer to the TransitionOverlay instance to be modified
  * @param[in] mode blending mode for the color overlay effect
  */
-void transition_overlay_set_color_mode(
-    TransitionOverlay* instance,
-    TransitionOverlayColorMode mode);
+// void transition_overlay_set_color_mode(
+// TransitionOverlay* instance,
+// TransitionOverlayColorMode mode);
 
 /**
  * @brief Set the animated overlay mask for a TransitionOverlay instance.
@@ -89,7 +119,7 @@ void transition_overlay_set_color_mode(
  * @param[in,out] instance pointer to the TransitionOverlay instance to be modified
  * @param[in] file_path full path to the mask animation file
  */
-void transition_overlay_set_mask(TransitionOverlay* instance, const char* file_path);
+// void transition_overlay_set_mask(TransitionOverlay* instance, const char* file_path);
 
 /**
  * @brief Set the mask blending mode for a TransitionOverlay instance.
@@ -97,7 +127,7 @@ void transition_overlay_set_mask(TransitionOverlay* instance, const char* file_p
  * @param[in,out] instance pointer to the TransitionOverlay instance to be modified
  * @param[in] mode blending mode for the mask overlay effect
  */
-void transition_overlay_set_mask_mode(TransitionOverlay* instance, TransitionOverlayMaskMode mode);
+// void transition_overlay_set_mask_mode(TransitionOverlay* instance, TransitionOverlayMaskMode mode);
 
 /**
  * @brief Enable or disable the press effect for a TransitionOverlay instance.
@@ -105,7 +135,7 @@ void transition_overlay_set_mask_mode(TransitionOverlay* instance, TransitionOve
  * @param[in,out] instance pointer to the TransitionOverlay instance to be modified
  * @param[in] enable enable press effect if @c true, disable it if @c false
  */
-void transition_overlay_enable_press_effect(TransitionOverlay* instance, bool enable);
+// void transition_overlay_enable_press_effect(TransitionOverlay* instance, bool enable);
 
 /**
  * @brief Set the widget to participate in the press effect for a TransitionOverlay instance.

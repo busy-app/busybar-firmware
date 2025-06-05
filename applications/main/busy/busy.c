@@ -174,21 +174,8 @@ void busy_prepare_transition(BusyApp* instance, BusyTransitionType type) {
     furi_assert(instance);
     furi_assert(type < BusyTransitionTypeMax);
 
-    const BusyTransition* transition = &busy_transitions[type];
-
     with_gui(instance->gui, {
-        transition_overlay_set_timings(
-            instance->transition_overlay, transition->timings.in_ms, transition->timings.out_ms);
-        transition_overlay_set_color(instance->transition_overlay, transition->color);
-        transition_overlay_set_color_mode(instance->transition_overlay, transition->color_mode);
-        transition_overlay_enable_press_effect(
-            instance->transition_overlay, transition->enable_press);
-
-        if(transition->mask_path) {
-            transition_overlay_set_mask(instance->transition_overlay, transition->mask_path);
-        }
-
-        transition_overlay_set_mask_mode(instance->transition_overlay, transition->mask_mode);
+        transition_overlay_set_preset(instance->transition_overlay, &busy_transitions[type]);
         transition_overlay_show(instance->transition_overlay);
     });
 }
