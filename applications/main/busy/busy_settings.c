@@ -10,7 +10,7 @@
 
 #define BUSY_SETTINGS_CURRENT_VERSION (0)
 
-#define VERSION_KEY    "version"
+#define VERSION_KEY "version"
 
 #define BUSY_TIMER_KEY "timer"
 
