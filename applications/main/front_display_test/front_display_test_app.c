@@ -11,10 +11,9 @@ static bool front_display_test_app_input_callback(const InputEvent* event, void*
     FrontDisplayTestApp* instance = context;
 
     bool consumed = false;
+    FrontDisplayTestAppEvent app_event;
 
     if(event->type == InputTypeShort) {
-        FrontDisplayTestAppEvent app_event;
-
         if(event->key == InputKeyUp) {
             app_event = FrontDisplayTestAppEventPrevColor;
             consumed = true;
@@ -28,12 +27,15 @@ static bool front_display_test_app_input_callback(const InputEvent* event, void*
             app_event = FrontDisplayTestAppEventNextPattern;
             consumed = true;
         }
+    } else if(event->key == InputKeyStart && event->type == InputTypeLong) {
+        app_event = FrontDisplayTestAppEventDisplayPower;
+        consumed = true;
+    }
 
-        if(consumed) {
-            furi_check(
-                furi_message_queue_put(instance->event_queue, &app_event, FuriWaitForever) ==
-                FuriStatusOk);
-        }
+    if(consumed) {
+        furi_check(
+            furi_message_queue_put(instance->event_queue, &app_event, FuriWaitForever) ==
+            FuriStatusOk);
     }
 
     return consumed;
@@ -71,6 +73,8 @@ static void
     } else if(event == FrontDisplayTestAppEventPrevColor) {
         instance->color = (instance->color == 0) ? FrontDisplayTestColorNum - 1 :
                                                    instance->color - 1;
+    } else if(event == FrontDisplayTestAppEventDisplayPower) {
+        furi_hal_gpio_write(&gpio_front_display_power_en, 0);
     } else if(event == FrontDisplayTestAppEventExit) {
         furi_event_loop_stop(instance->event_loop);
     }
