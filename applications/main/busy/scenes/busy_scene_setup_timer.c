@@ -24,7 +24,7 @@ typedef struct {
 } BusySceneSetupTimer;
 
 static void busy_scene_setup_timer_filter_items(BusySceneSetupTimer* data) {
-    // Which items to show w/ respect to the current time mode
+    // Which items to show w/ respect to the current timer mode
     static const bool is_shown_table[BusyTimerModeMax][VarItemListIdMax] = {
         [BusyTimerModeInfinite] = {0},
         [BusyTimerModeSimple] = {true, /* filled with zeroes */},
