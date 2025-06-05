@@ -145,14 +145,22 @@ static bool
     }
 
     if(success) {
+        FuriString* filename = furi_string_alloc();
+        path_extract_filename(file_path, filename, false);
+        FuriString* content_header = furi_string_alloc_printf(
+            "Content-Disposition: attachment; filename=\"%s\"\r\n",
+            furi_string_get_cstr(filename));
+        furi_string_free(filename);
+
         struct mg_http_serve_opts opts = {
             .ssi_pattern = NULL,
-            .extra_headers = NULL,
+            .extra_headers = furi_string_get_cstr(content_header),
             .mime_types = "*=application/octet-stream",
             .page404 = NULL,
             .fs = http_fs_get(),
         };
         mg_http_serve_file(conn, msg, furi_string_get_cstr(file_path), &opts);
+        furi_string_free(content_header);
     } else {
         MG_REPLY_BAD_REQUEST(conn);
     }
