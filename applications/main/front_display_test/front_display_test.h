@@ -14,6 +14,8 @@ typedef enum {
     FrontDisplayTestPatternCross,
     FrontDisplayTestPatternFrame,
 
+    FrontDisplayTestPatternGradientFull,
+    FrontDisplayTestPatternGradientLow,
     FrontDisplayTestPatternAnimFill,
     FrontDisplayTestPatternAnimHalfFill,
     FrontDisplayTestPatternAnimFill10Noise,
