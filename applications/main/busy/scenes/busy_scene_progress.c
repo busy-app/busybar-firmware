@@ -17,7 +17,31 @@ static void busy_scene_progress_run_later_callback(void* context) {
     furi_assert(context);
     BusyApp* instance = context;
 
+    busy_prepare_transition(instance, BusyTransitionTypeAutomatic);
     scene_manager_next_scene(instance->scene_manager, BusyAppSceneIdNext);
+}
+
+static bool busy_scene_progress_input_callback(const InputEvent* event, void* context) {
+    furi_assert(event);
+    furi_assert(context);
+
+    BusyApp* instance = context;
+
+    bool consumed = false;
+    BusyCustomEvent custom_event;
+
+    if(event->type == InputTypeShort) {
+        if(event->key == InputKeyStart) {
+            custom_event = BusyCustomEventStartShortPressed;
+            consumed = true;
+        }
+    }
+
+    if(consumed) {
+        busy_send_custom_event(instance, custom_event);
+    }
+
+    return consumed;
 }
 
 static void busy_scene_progress_on_enter(void* context) {
@@ -30,6 +54,11 @@ static void busy_scene_progress_on_enter(void* context) {
 
     uint32_t run_later_delay;
     BusyStatusLightsType status_lights;
+
+    with_gui(instance->gui, {
+        GuiLayer* layer = gui_get_layer(instance->gui, GuiLayerIdMain);
+        gui_layer_add_input_callback(layer, busy_scene_progress_input_callback, instance);
+    });
 
     if(state == BusyTimerStateRest || state == BusyTimerStateIdle) {
         BusyTimerCycles cycles;
@@ -73,10 +102,12 @@ static void busy_scene_progress_on_exit(void* context) {
 
     run_later_cancel(data->run_later);
 
-    busy_prepare_transition(instance, BusyTransitionTypeAutomatic);
     busy_set_status_lights(instance, BusyStatusLightsTypeOff);
 
     with_gui(instance->gui, {
+        GuiLayer* layer = gui_get_layer(instance->gui, GuiLayerIdMain);
+        gui_layer_remove_input_callback(layer, busy_scene_progress_input_callback);
+
         if(data->front_progress_view) {
             progress_view_free(data->front_progress_view);
             data->front_progress_view = NULL;
@@ -91,13 +122,23 @@ static void busy_scene_progress_on_exit(void* context) {
 
 static bool busy_scene_progress_on_event(const SceneManagerEvent* event, void* context) {
     furi_assert(context);
-
     BusyApp* instance = context;
-    UNUSED(instance);
 
     bool consumed = false;
 
-    if(event->type == SceneManagerEventTypeBack) {
+    if(event->type == SceneManagerEventTypeCustom) {
+        if(event->event == BusyCustomEventStartShortPressed) {
+            busy_prepare_transition(instance, BusyTransitionTypeSkip);
+            scene_manager_next_scene(instance->scene_manager, BusyAppSceneIdNext);
+        }
+
+        consumed = true;
+
+    } else if(event->type == SceneManagerEventTypeBack) {
+        busy_prepare_transition(instance, BusyTransitionTypeDefault);
+        scene_manager_search_and_switch_to_previous_scene(
+            instance->scene_manager, BusyAppSceneIdStart);
+
         consumed = true;
     }
 
