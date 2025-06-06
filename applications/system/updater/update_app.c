@@ -31,6 +31,12 @@ static bool update_task_flash_program_page(
     const uint8_t i_page,
     const uint8_t* update_block,
     uint16_t update_block_len) {
+    FURI_LOG_T(
+        TAG,
+        "Programming flash page %u at address 0x%08X with update block of length %u",
+        i_page,
+        (unsigned int)(furi_hal_flash_get_base() + furi_hal_flash_get_page_size() * i_page),
+        update_block_len);
     furi_hal_flash_program_page(i_page, update_block, update_block_len);
     return true;
 }
@@ -40,12 +46,24 @@ static bool page_task_compare_flash(
     const uint8_t* update_block,
     uint16_t update_block_len) {
     const size_t page_addr = furi_hal_flash_get_base() + furi_hal_flash_get_page_size() * i_page;
+    FURI_LOG_T(
+        TAG,
+        "Comparing flash page %u at address 0x%08X with update block of length %u",
+        i_page,
+        (unsigned int)page_addr,
+        update_block_len);
     return memcmp(update_block, (void*)page_addr, update_block_len) == 0;
 }
 
 static bool check_address_boundaries(const size_t address) {
     const size_t min_allowed_address = furi_hal_flash_get_base();
     const size_t max_allowed_address = (size_t)furi_hal_flash_get_free_end_address();
+    FURI_LOG_D(
+        TAG,
+        "Checking address 0x%08X against boundaries: 0x%08X - 0x%08X",
+        (unsigned int)address,
+        (unsigned int)min_allowed_address,
+        (unsigned int)max_allowed_address);
     return (address >= min_allowed_address) && (address < max_allowed_address);
 }
 
@@ -81,6 +99,7 @@ static void updater_execute(const char* update_path) {
                 FURI_LOG_E(TAG, "DFU CRC validation failed: %s", dfu_path);
             } else {
                 uint8_t n_targets = dfu_file_validate_headers(dfu_file, &bsb_dfu_params);
+                FURI_LOG_I(TAG, "DFU file has %u targets", n_targets);
                 if(n_targets > 0) {
                     if(dfu_file_process_targets(&page_task, dfu_file, n_targets)) {
                         FURI_LOG_I(TAG, "DFU flashing succeeded: %s", dfu_path);
@@ -109,6 +128,7 @@ static void updater_execute(const char* update_path) {
 
     if(dfu_flashed) {
         // Restart system after successful update and verification
+        furi_delay_ms(10);
         furi_hal_power_reset();
     }
 

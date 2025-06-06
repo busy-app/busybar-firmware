@@ -7,6 +7,8 @@
 #define DFU_SUFFIX_VERSION   0x011A
 #define DFU_SIGNATURE        "DfuSe"
 
+#define TAG "DfuFile"
+
 bool dfu_file_validate_crc(File* dfuf, const DfuPageTaskProgressCb progress_cb, void* context) {
     uint32_t file_crc = crc32_calc_file(dfuf, progress_cb, context);
 
@@ -86,12 +88,23 @@ static DfuUpdateBlockResult dfu_file_perform_task_for_update_pages(
                             !task->address_cb(header->dwElementAddress + header->dwElementSize))) {
         storage_file_seek(dfuf, header->dwElementSize, false);
         task->progress_cb(100, task->context);
+        FURI_LOG_W(
+            TAG,
+            "Update task address callback failed for element at 0x%08lX, size %lu, skipping",
+            header->dwElementAddress,
+            header->dwElementSize);
         return UpdateBlockResult_Skipped;
     }
 
     uint8_t* fw_block = malloc(FLASH_PAGE_SIZE);
     size_t bytes_read = 0;
     uint32_t element_offs = 0;
+
+    FURI_LOG_D(
+        TAG,
+        "Processing update element at 0x%08lX, size %lu",
+        header->dwElementAddress,
+        header->dwElementSize);
 
     while(element_offs < header->dwElementSize) {
         uint32_t n_bytes_to_read = DEVICE_FLASH_PAGE_SIZE;
