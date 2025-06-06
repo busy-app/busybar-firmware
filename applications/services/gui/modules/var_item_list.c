@@ -320,7 +320,7 @@ static void var_item_editor_update(VarItemEditor* instance) {
         }
 
     } else if(instance->type == VarItemTypeSwitch) {
-        lv_label_set_text_fmt(label, "%s", instance->value ? "ON" : "OFF");
+        lv_label_set_text_fmt(label, "%s", instance->value ? "On" : "Off");
 
     } else {
         furi_crash();

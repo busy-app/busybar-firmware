@@ -2,7 +2,7 @@
 #include "lv_theme_common.h"
 
 #define COLOR_BG_NORMAL  lv_color_black()
-#define COLOR_FG_NORMAL  lv_color_hex(0x444444)
+#define COLOR_FG_NORMAL  lv_color_hex(0x666666)
 #define COLOR_BG_FOCUSED lv_color_black()
 #define COLOR_FG_FOCUSED lv_color_white()
 
