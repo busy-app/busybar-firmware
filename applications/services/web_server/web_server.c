@@ -211,7 +211,7 @@ int32_t web_srv_start(void* p) {
     // mg_log_set(MG_LL_VERBOSE);
     mg_log_set(MG_LL_INFO);
 
-    mg_mgr_init(&srv.mgr); // Inititialise event manager
+    mg_mgr_init(&srv.mgr); // Initialise event manager
     mg_wakeup_init(&srv.mgr);
 
     HttpHandlersList_init(srv.handlers);

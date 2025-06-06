@@ -1,4 +1,5 @@
 #include "sl_updater.h"
+#include "updater_core.h"
 
 #include <furi.h>
 #include <furi_hal_nvm.h>
@@ -16,7 +17,7 @@
 static void updater_cli_command_print_usage(void) {
     bool is_debug = furi_hal_nvm_is_flag_set(FuriHalNvmFlagDebug);
     printf("Usage:\r\n");
-    printf("update <u5|917|917_ta%s> path\r\n", is_debug ? "|917_probe" : "");
+    printf("update <u5|917|917_ta%s|install> path\r\n", is_debug ? "|917_probe" : "");
 }
 
 static bool
@@ -60,6 +61,34 @@ static void updater_cli_execute_u5(FuriString* path) {
     furi_hal_power_reset();
 }
 
+static void updater_cli_execute_install(FuriString* path) {
+    printf("Installing update bundle from: %s\r\n", furi_string_get_cstr(path));
+
+    UpdaterState* state = updater_state_alloc(furi_string_get_cstr(path));
+    do {
+        bool config_ok = updater_load_configuration(state);
+        if(!config_ok) {
+            printf("Failed to load updater configuration\r\n");
+            break;
+        }
+
+        config_ok = updater_validate_config(state);
+        if(!config_ok) {
+            printf("Updater configuration validation failed\r\n");
+            break;
+        }
+
+        printf("Updater configuration loaded and validated successfully\r\n");
+
+        // Set boot mode and reset to trigger update on next boot
+        furi_hal_nvm_set_boot_mode(FuriHalNvmBootModeUpdate);
+        // Optionally, copy or validate the bundle here if needed
+        furi_hal_power_reset();
+    } while(false);
+
+    updater_state_free(state);
+}
+
 static void updater_cli(Cli* cli, FuriString* args, void* context) {
     UNUSED(cli);
     UNUSED(context);
@@ -85,6 +114,12 @@ static void updater_cli(Cli* cli, FuriString* args, void* context) {
 
         if(furi_string_equal_str(cmd, "u5")) {
             updater_cli_execute_u5(path);
+            break;
+        }
+
+        // Add install subcommand
+        if(furi_string_equal_str(cmd, "install")) {
+            updater_cli_execute_install(path);
             break;
         }
 

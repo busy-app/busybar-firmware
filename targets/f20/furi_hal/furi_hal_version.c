@@ -30,3 +30,7 @@ const uint8_t* furi_hal_version_get_ble_mac(void) {
 
     return ble_mac;
 }
+
+uint8_t furi_hal_version_get_hw_target(void) {
+    return version_get_target(version_get());
+}

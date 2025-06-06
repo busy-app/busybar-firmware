@@ -121,6 +121,11 @@ static void intercom_default_error_callback(IntercomError error, void* context) 
 
     Intercom* instance = context;
 
+#if defined(FURI_RAM_EXEC)
+    FURI_LOG_E(TAG, "Intercom error: %d", error);
+    return;
+#endif
+
     if(error == IntercomErrorSync) {
         // TODO can't crash since 917 might not be flashed. Think what we really need to do
         // furi_crash("Other side not in sync");
