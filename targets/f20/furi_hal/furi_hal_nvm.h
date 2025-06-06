@@ -2,24 +2,24 @@
 #include <stdint.h>
 
 typedef enum {
-    FuriHalNvmFlagDebug,
-    FuriHalNvmFlagDetailedFilename,
-    FuriHalNvmFlagStorageFormatInternal,
-    FuriHalNvmFlagHandOrient
+    FuriHalRtcFlagDebug,
+    FuriHalRtcFlagDetailedFilename,
+    FuriHalRtcFlagStorageFormatInternal,
+    FuriHalRtcFlagHandOrient
 } FuriHalRtcFlag;
 
 typedef enum {
-    FuriHalNvmBootModeNormal, /**< Normal boot mode, default value */
+    FuriHalRtcBootModeNormal, /**< Normal boot mode, default value */
 } FuriHalRtcBootMode;
 
 /** Reset ALL RTC registers content */
-void furi_hal_nvm_reset_registers(void);
+void furi_hal_rtc_reset_registers(void);
 
 /** Set RTC Flag
  *
  * @param[in]  flag  The flag to set
  */
-void furi_hal_nvm_set_flag(FuriHalRtcFlag flag);
+void furi_hal_rtc_set_flag(FuriHalRtcFlag flag);
 
 /** Check if RTC Flag is set
  *
@@ -27,10 +27,10 @@ void furi_hal_nvm_set_flag(FuriHalRtcFlag flag);
  *
  * @return     true if set
  */
-bool furi_hal_nvm_is_flag_set(FuriHalRtcFlag flag);
+bool furi_hal_rtc_is_flag_set(FuriHalRtcFlag flag);
 
 /** Get RTC boot mode
  *
  * @return     The RTC boot mode.
  */
-FuriHalRtcBootMode furi_hal_nvm_get_boot_mode(void);
+FuriHalRtcBootMode furi_hal_rtc_get_boot_mode(void);
