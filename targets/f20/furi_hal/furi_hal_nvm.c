@@ -13,6 +13,6 @@ bool furi_hal_rtc_is_flag_set(FuriHalRtcFlag flag) {
     return flag == FuriHalRtcFlagDebug;
 }
 
-FuriHalRtcBootMode furi_hal_rtc_get_boot_mode(void) {
+FuriHalRtcBootMode furi_hal_nvm_get_boot_mode(void) {
     return FuriHalRtcBootModeNormal;
 }

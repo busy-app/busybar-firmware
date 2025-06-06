@@ -33,4 +33,4 @@ bool furi_hal_rtc_is_flag_set(FuriHalRtcFlag flag);
  *
  * @return     The RTC boot mode.
  */
-FuriHalRtcBootMode furi_hal_rtc_get_boot_mode(void);
+FuriHalRtcBootMode furi_hal_nvm_get_boot_mode(void);
