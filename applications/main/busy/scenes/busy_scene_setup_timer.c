@@ -54,6 +54,14 @@ static void busy_scene_setup_timer_mode_changed_callback(VarItem* item, void* co
     busy_scene_setup_timer_filter_items(data);
 }
 
+static void busy_scene_setup_timer_time_changed_callback(VarItem* item, void* context) {
+    furi_assert(item);
+    furi_assert(context);
+
+    BusySceneSetupTimer* data = context;
+    data->timer_config.time_mn = var_item_get_value(item);
+}
+
 static void busy_scene_setup_timer_work_changed_callback(VarItem* item, void* context) {
     furi_assert(item);
     furi_assert(context);
@@ -118,13 +126,13 @@ static void
     item = var_item_list_add_timebox(
         container->list,
         "Time",
-        BUSY_TIMER_WORK_TIME_MIN_MN,
-        BUSY_TIMER_WORK_TIME_MAX_MN,
+        BUSY_TIMER_TIME_MIN_MN,
+        BUSY_TIMER_TIME_MAX_MN,
         BUSY_TIMER_TIME_INCREMENT_MN,
-        set_cb ? busy_scene_setup_timer_work_changed_callback : NULL,
+        set_cb ? busy_scene_setup_timer_time_changed_callback : NULL,
         data);
 
-    var_item_set_value(item, data->timer_config.work_time_mn);
+    var_item_set_value(item, data->timer_config.time_mn);
 
     container->items[item_id++] = item;
 

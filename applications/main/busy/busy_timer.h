@@ -67,6 +67,7 @@ typedef struct {
 
 typedef struct {
     BusyTimerMode mode;
+    uint32_t time_mn;
     uint32_t work_time_mn;
     uint32_t rest_time_mn;
     uint32_t cycle_count;

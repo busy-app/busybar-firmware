@@ -15,6 +15,7 @@
 #define BUSY_TIMER_KEY "timer"
 
 #define BUSY_TIMER_MODE_KEY             "mode"
+#define BUSY_TIMER_TIME_KEY             "time"
 #define BUSY_TIMER_WORK_TIME_KEY        "work_time"
 #define BUSY_TIMER_REST_TIME_KEY        "rest_time"
 #define BUSY_TIMER_CYCLE_COUNT_KEY      "cycle_count"
@@ -52,6 +53,14 @@ static bool busy_settings_parse_timer_config(const cJSON* json, BusyTimerConfig*
         } else {
             break;
         }
+
+        item = cJSON_GetObjectItem(json, BUSY_TIMER_TIME_KEY);
+
+        if(!cJSON_IsNumber(item)) {
+            break;
+        }
+
+        config->time_mn = item->valueint;
 
         item = cJSON_GetObjectItem(json, BUSY_TIMER_WORK_TIME_KEY);
 
@@ -189,6 +198,7 @@ static void busy_settings_serialize_timer_config(cJSON* json, const BusyTimerCon
     }
 
     cJSON_AddStringToObject(timer_json, BUSY_TIMER_MODE_KEY, mode_str);
+    cJSON_AddNumberToObject(timer_json, BUSY_TIMER_TIME_KEY, config->time_mn);
     cJSON_AddNumberToObject(timer_json, BUSY_TIMER_WORK_TIME_KEY, config->work_time_mn);
     cJSON_AddNumberToObject(timer_json, BUSY_TIMER_REST_TIME_KEY, config->rest_time_mn);
     cJSON_AddNumberToObject(timer_json, BUSY_TIMER_CYCLE_COUNT_KEY, config->cycle_count);

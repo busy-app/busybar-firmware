@@ -10,6 +10,7 @@ static const BusyTimerMessageHandler busy_timer_message_handlers[];
 
 static const BusyTimerConfig busy_timer_config_default = {
     .mode = BusyTimerModeInterval,
+    .time_mn = TIME_DEFAULT_MN,
     .work_time_mn = WORK_TIME_DEFAULT_MN,
     .rest_time_mn = REST_TIME_DEFAULT_MN,
     .cycle_count = CYCLE_COUNT_DEFAULT,
@@ -148,7 +149,12 @@ static uint32_t busy_timer_calc_remaining_time(const BusyTimer* instance) {
     uint32_t interval_s;
 
     if(instance->state == BusyTimerStateWork) {
-        interval_s = M_TO_S(instance->config.work_time_mn);
+        if(instance->mode == BusyTimerModeInterval) {
+            interval_s = M_TO_S(instance->config.work_time_mn);
+        } else {
+            interval_s = M_TO_S(instance->config.time_mn);
+        }
+
     } else if(instance->state == BusyTimerStateRest) {
         interval_s = M_TO_S(instance->config.rest_time_mn);
     } else {
