@@ -13,7 +13,7 @@
 #include <version/version.h>
 #include <toolbox/crc32_calc.h>
 #include <toolbox/path.h>
-#include <toolbox/update_util.h>
+#include <toolbox/update_lib/update_util.h>
 
 #define TAG "Updater"
 

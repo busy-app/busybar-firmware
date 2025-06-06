@@ -1,6 +1,6 @@
 #include "update_util.h"
 
-#include <toolbox/update_util.h>
+#include <toolbox/update_lib/update_util.h>
 #include <cjson/cJSON.h>
 #include <core/string.h>
 #include <furi.h>

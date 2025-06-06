@@ -4,7 +4,7 @@
 #include <platform_startup.h>
 
 #include <fatfs.h>
-#include <toolbox/update_util.h>
+#include <toolbox/update_lib/update_util.h>
 #include <toolbox/crc32_calc.h>
 
 #define FS_MOUNT_POINT "/"
