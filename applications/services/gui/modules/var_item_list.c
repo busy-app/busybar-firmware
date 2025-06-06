@@ -11,10 +11,10 @@
 #define MY_CURSOR_CLASS (&var_item_cursor_lvgl_class)
 #define MY_ARROW_CLASS  (&var_item_arrow_lvgl_class)
 
-#define SYM_INFINITY    "∞"
-#define SYM_ARROW_LEFT  "◃"
-#define SYM_ARROW_RIGHT "▹"
-#define SYM_ARROW_LEFT_BIG "<"
+#define SYM_INFINITY        "∞"
+#define SYM_ARROW_LEFT      "◃"
+#define SYM_ARROW_RIGHT     "▹"
+#define SYM_ARROW_LEFT_BIG  "<"
 #define SYM_ARROW_RIGHT_BIG ">"
 
 #define SCROLL_ANIM_DURATION_MS (0)
