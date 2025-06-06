@@ -142,8 +142,22 @@ static uint32_t busy_timer_calc_cycles_done(const BusyTimer* instance) {
     }
 }
 
-static uint32_t busy_timer_calc_timeout(const BusyTimer* instance) {
-    return instance->config.enable_speed ? S_TO_MS(1) / SPEED_MULTIPLIER : S_TO_MS(1);
+static uint32_t busy_timer_calc_delta(const BusyTimer* instance) {
+    if(instance->config.enable_speed) {
+        if(instance->time.remain_s > 60) {
+            return 60;
+        } else if(instance->time.remain_s > 30) {
+            return 30;
+        } else if(instance->time.remain_s > 15) {
+            return 15;
+        } else if(instance->time.remain_s > 5) {
+            return 5;
+        } else {
+            return 1;
+        }
+    } else {
+        return 1;
+    }
 }
 
 static bool busy_timer_is_running(const BusyTimer* instance) {
@@ -151,7 +165,7 @@ static bool busy_timer_is_running(const BusyTimer* instance) {
 }
 
 static void busy_timer_start_timer(BusyTimer* instance) {
-    furi_event_loop_timer_start(instance->timer, busy_timer_calc_timeout(instance));
+    furi_event_loop_timer_start(instance->timer, S_TO_MS(1));
 }
 
 static void busy_timer_stop_timer(BusyTimer* instance) {
@@ -190,8 +204,10 @@ static void busy_timer_callback(void* context) {
     BusyTimer* instance = context;
 
     if(instance->time.remain_s) {
-        instance->time.remain_s--;
-        instance->time.elapsed_s++;
+        const uint32_t delta_s = busy_timer_calc_delta(instance);
+
+        instance->time.remain_s -= delta_s;
+        instance->time.elapsed_s += delta_s;
 
         busy_timer_notify_tick(instance);
 

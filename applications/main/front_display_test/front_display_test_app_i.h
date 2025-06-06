@@ -15,6 +15,7 @@ typedef enum {
     FrontDisplayTestAppEventPrevPattern,
     FrontDisplayTestAppEventNextColor,
     FrontDisplayTestAppEventPrevColor,
+    FrontDisplayTestAppEventDisplayPower,
     FrontDisplayTestAppEventTick,
     FrontDisplayTestAppEventExit,
 } FrontDisplayTestAppEvent;

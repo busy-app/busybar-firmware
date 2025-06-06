@@ -23,6 +23,7 @@ typedef enum {
     LoaderMessageTypeLock,
     LoaderMessageTypeUnlock,
     LoaderMessageTypeIsLocked,
+    LoaderMessageTypeGetApplicationName,
     LoaderMessageTypeMax,
 } LoaderMessageType;
 
@@ -46,6 +47,7 @@ typedef struct {
 
     union {
         LoaderMessageStartByName start;
+        FuriString* application_name;
     };
 
     union {
