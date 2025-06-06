@@ -284,6 +284,9 @@ static int32_t busy_timer_thread(void* arg) {
     instance->event_loop = furi_event_loop_alloc();
     instance->timer = furi_event_loop_timer_alloc(
         instance->event_loop, busy_timer_callback, FuriEventLoopTimerTypePeriodic, instance);
+    instance->message_queue = furi_message_queue_alloc(1, sizeof(BusyTimerMessage));
+    instance->config = busy_timer_config_default;
+
     furi_event_loop_subscribe_message_queue(
         instance->event_loop,
         instance->message_queue,
@@ -297,6 +300,8 @@ static int32_t busy_timer_thread(void* arg) {
     furi_event_loop_timer_free(instance->timer);
     furi_event_loop_free(instance->event_loop);
 
+    furi_message_queue_free(instance->message_queue);
+
     return 0;
 }
 
@@ -306,10 +311,8 @@ BusyTimer* busy_timer_alloc(void) {
     BusyTimer* instance = malloc(sizeof(BusyTimer));
 
     instance->thread = furi_thread_alloc_ex(TAG, 1024, busy_timer_thread, instance);
-    instance->message_queue = furi_message_queue_alloc(1, sizeof(BusyTimerMessage));
-    instance->config = busy_timer_config_default;
-
     furi_thread_start(instance->thread);
+
     return instance;
 }
 
