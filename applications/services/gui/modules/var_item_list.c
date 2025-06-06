@@ -14,6 +14,8 @@
 #define SYM_INFINITY    "∞"
 #define SYM_ARROW_LEFT  "◃"
 #define SYM_ARROW_RIGHT "▹"
+#define SYM_ARROW_LEFT_BIG "<"
+#define SYM_ARROW_RIGHT_BIG ">"
 
 #define SCROLL_ANIM_DURATION_MS (0)
 
@@ -170,8 +172,13 @@ static void var_item_editor_lvlgl_constructor(const lv_obj_class_t* class_p, lv_
     instance->arrow_right = lv_obj_class_create_obj(MY_ARROW_CLASS, obj);
     lv_obj_class_init_obj(instance->arrow_right);
 
-    lv_label_set_text(instance->arrow_left, SYM_ARROW_LEFT);
-    lv_label_set_text(instance->arrow_right, SYM_ARROW_RIGHT);
+    if(lv_theme_get_font_normal(obj) == &lv_font_tiny5_8) {
+        lv_label_set_text(instance->arrow_left, SYM_ARROW_LEFT);
+        lv_label_set_text(instance->arrow_right, SYM_ARROW_RIGHT);
+    } else {
+        lv_label_set_text(instance->arrow_left, SYM_ARROW_LEFT_BIG);
+        lv_label_set_text(instance->arrow_right, SYM_ARROW_RIGHT_BIG);
+    }
 }
 
 static void var_item_editor_lvgl_destructor(const lv_obj_class_t* class_p, lv_obj_t* obj) {

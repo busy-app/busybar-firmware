@@ -106,6 +106,7 @@ static void style_init(my_theme_t* theme) {
     lv_style_set_radius(&theme->styles.var_item, MENU_ITEM_RADIUS);
 
     lv_style_init(&theme->styles.var_item_editor);
+    lv_style_set_pad_column(&theme->styles.var_item_editor, 4);
     lv_style_set_margin_hor(&theme->styles.var_item_editor, -MENU_ITEM_PAD_HOR);
     lv_style_set_margin_top(&theme->styles.var_item_editor, -MENU_ITEM_PAD_VER);
     lv_style_set_margin_bottom(&theme->styles.var_item_editor, -(MENU_ITEM_PAD_VER - 1));
@@ -198,6 +199,8 @@ static void theme_apply_callback(lv_theme_t* th, lv_obj_t* obj) {
 
     } else if(lv_obj_check_type(obj, &var_item_arrow_lvgl_class)) {
         lv_obj_add_style(obj, &theme->styles.normal, LV_PART_MAIN | LV_STATE_DISABLED);
+        lv_obj_add_style(obj, &theme->styles.menu_arrow, LV_PART_MAIN);
+        lv_obj_add_style(obj, &theme->styles.menu_arrow, LV_PART_MAIN | LV_STATE_DISABLED);
 
     } else if(lv_obj_check_type(obj, &nav_stack_lvgl_class)) {
         lv_obj_add_style(obj, &theme->styles.normal, LV_PART_MAIN);
