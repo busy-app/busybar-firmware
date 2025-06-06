@@ -9,6 +9,7 @@
 #define MY_ITEM_CLASS   (&var_item_lvgl_class)
 #define MY_EDITOR_CLASS (&var_item_editor_lvgl_class)
 #define MY_CURSOR_CLASS (&var_item_cursor_lvgl_class)
+#define MY_ARROW_CLASS  (&var_item_arrow_lvgl_class)
 
 #define SYM_INFINITY    "∞"
 #define SYM_ARROW_LEFT  "◃"
@@ -21,9 +22,6 @@
         furi_check(max >= min, "Range error: min > max");                                  \
         furi_check((max - min) % step == 0, "Step error: range must be evenly divisible"); \
     } while(0)
-
-#define SET_EDITOR_LABEL(label, fmt, ...) \
-    (lv_label_set_text_fmt(label, "%s " fmt " %s", SYM_ARROW_LEFT, ##__VA_ARGS__, SYM_ARROW_RIGHT))
 
 typedef enum {
     VarItemTypeSpinbox,
@@ -39,7 +37,10 @@ typedef struct {
 } VarItemSelectorChoices;
 
 typedef struct {
-    lv_label_t base;
+    lv_obj_t base;
+    lv_obj_t* arrow_left;
+    lv_obj_t* text;
+    lv_obj_t* arrow_right;
     int32_t min;
     int32_t max;
     int32_t step;
@@ -71,6 +72,7 @@ const lv_obj_class_t var_item_list_lvgl_class;
 const lv_obj_class_t var_item_lvgl_class;
 const lv_obj_class_t var_item_editor_lvgl_class;
 const lv_obj_class_t var_item_cursor_lvgl_class;
+const lv_obj_class_t var_item_arrow_lvgl_class;
 
 // Function prototypes
 
@@ -129,7 +131,6 @@ static void var_item_lvgl_constructor(const lv_obj_class_t* class_p, lv_obj_t* o
 
     lv_obj_t* editor = lv_obj_class_create_obj(MY_EDITOR_CLASS, obj);
     lv_obj_class_init_obj(editor);
-    lv_label_set_long_mode(editor, LV_LABEL_LONG_MODE_CLIP);
 
     instance->editor = (VarItemEditor*)editor;
 }
@@ -157,9 +158,20 @@ static void var_item_editor_lvlgl_constructor(const lv_obj_class_t* class_p, lv_
     LV_UNUSED(class_p);
 
     lv_obj_remove_flag(obj, LV_OBJ_FLAG_SCROLLABLE);
+    lv_obj_set_flex_flow(obj, LV_FLEX_FLOW_ROW);
 
     VarItemEditor* instance = (VarItemEditor*)obj;
-    UNUSED(instance);
+
+    instance->arrow_left = lv_obj_class_create_obj(MY_ARROW_CLASS, obj);
+    lv_obj_class_init_obj(instance->arrow_left);
+
+    instance->text = lv_label_create(obj);
+
+    instance->arrow_right = lv_obj_class_create_obj(MY_ARROW_CLASS, obj);
+    lv_obj_class_init_obj(instance->arrow_right);
+
+    lv_label_set_text(instance->arrow_left, SYM_ARROW_LEFT);
+    lv_label_set_text(instance->arrow_right, SYM_ARROW_RIGHT);
 }
 
 static void var_item_editor_lvgl_destructor(const lv_obj_class_t* class_p, lv_obj_t* obj) {
@@ -253,21 +265,34 @@ static void var_item_editor_set_suffix(VarItemEditor* instance, const char* suff
 }
 
 static void var_item_editor_update(VarItemEditor* instance) {
-    lv_obj_t* label = (lv_obj_t*)instance;
+    lv_obj_t* label = instance->text;
 
-    const bool is_neg_infinity = (instance->value == instance->min) &&
-                                 (instance->flags & VarItemFlagMinIsInf);
-    const bool is_pos_infinity = (instance->value == instance->max) &&
-                                 (instance->flags & VarItemFlagMaxIsInf);
+    const bool is_lower_bound = (instance->value == instance->min);
+    const bool is_upper_bound = (instance->value == instance->max);
+
+    const bool is_neg_infinity = is_lower_bound && (instance->flags & VarItemFlagMinIsInf);
+    const bool is_pos_infinity = is_upper_bound && (instance->flags & VarItemFlagMaxIsInf);
+
+    if(is_lower_bound) {
+        lv_obj_add_state(instance->arrow_left, LV_STATE_DISABLED);
+    } else {
+        lv_obj_remove_state(instance->arrow_left, LV_STATE_DISABLED);
+    }
+
+    if(is_upper_bound) {
+        lv_obj_add_state(instance->arrow_right, LV_STATE_DISABLED);
+    } else {
+        lv_obj_remove_state(instance->arrow_right, LV_STATE_DISABLED);
+    }
 
     if(is_neg_infinity || is_pos_infinity) {
-        SET_EDITOR_LABEL(label, "%s", SYM_INFINITY);
+        lv_label_set_text_fmt(label, "%s", SYM_INFINITY);
 
     } else if(instance->type == VarItemTypeSpinbox) {
         if(instance->suffix) {
-            SET_EDITOR_LABEL(label, "%ld %s", instance->value, instance->suffix);
+            lv_label_set_text_fmt(label, "%ld %s", instance->value, instance->suffix);
         } else {
-            SET_EDITOR_LABEL(label, "%ld", instance->value);
+            lv_label_set_text_fmt(label, "%ld", instance->value);
         }
 
     } else if(instance->type == VarItemTypeTimebox) {
@@ -275,11 +300,11 @@ static void var_item_editor_update(VarItemEditor* instance) {
         const int32_t mm = instance->value % 60;
 
         if(hh == 0) {
-            SET_EDITOR_LABEL(label, "%ld m", mm);
+            lv_label_set_text_fmt(label, "%ld m", mm);
         } else if(mm == 0) {
-            SET_EDITOR_LABEL(label, "%ld h", hh);
+            lv_label_set_text_fmt(label, "%ld h", hh);
         } else {
-            SET_EDITOR_LABEL(label, "%ld:%02ld", hh, mm);
+            lv_label_set_text_fmt(label, "%ld:%02ld", hh, mm);
         }
 
     } else if(instance->type == VarItemTypeSelector) {
@@ -289,13 +314,13 @@ static void var_item_editor_update(VarItemEditor* instance) {
         furi_check(index < choices->count);
 
         if(instance->suffix) {
-            SET_EDITOR_LABEL(label, "%s %s", choices->text[index], instance->suffix);
+            lv_label_set_text_fmt(label, "%s %s", choices->text[index], instance->suffix);
         } else {
-            SET_EDITOR_LABEL(label, "%s", choices->text[index]);
+            lv_label_set_text_fmt(label, "%s", choices->text[index]);
         }
 
     } else if(instance->type == VarItemTypeSwitch) {
-        SET_EDITOR_LABEL(label, "%s", instance->value ? "ON" : "OFF");
+        lv_label_set_text_fmt(label, "%s", instance->value ? "ON" : "OFF");
 
     } else {
         furi_crash();
@@ -625,7 +650,7 @@ const lv_obj_class_t var_item_lvgl_class = {
 };
 
 const lv_obj_class_t var_item_editor_lvgl_class = {
-    .base_class = &lv_label_class,
+    .base_class = &lv_obj_class,
     .constructor_cb = var_item_editor_lvlgl_constructor,
     .destructor_cb = var_item_editor_lvgl_destructor,
     .name = "var-item-editor",
@@ -637,6 +662,13 @@ const lv_obj_class_t var_item_editor_lvgl_class = {
 const lv_obj_class_t var_item_cursor_lvgl_class = {
     .base_class = &lv_label_class,
     .name = "var-item-cursor",
+    .width_def = LV_SIZE_CONTENT,
+    .height_def = LV_SIZE_CONTENT,
+};
+
+const lv_obj_class_t var_item_arrow_lvgl_class = {
+    .base_class = &lv_label_class,
+    .name = "var-item-arrow",
     .width_def = LV_SIZE_CONTENT,
     .height_def = LV_SIZE_CONTENT,
 };

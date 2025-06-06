@@ -26,6 +26,7 @@ extern const lv_obj_class_t var_item_list_lvgl_class;
 extern const lv_obj_class_t var_item_lvgl_class;
 extern const lv_obj_class_t var_item_editor_lvgl_class;
 extern const lv_obj_class_t var_item_cursor_lvgl_class;
+extern const lv_obj_class_t var_item_arrow_lvgl_class;
 
 // NavStack
 extern const lv_obj_class_t nav_stack_lvgl_class;

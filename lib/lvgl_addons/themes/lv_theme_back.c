@@ -5,7 +5,6 @@
 #define COLOR_FG_NORMAL  lv_color_hex(0xAAAAAA)
 #define COLOR_BG_FOCUSED lv_color_black()
 #define COLOR_FG_FOCUSED lv_color_white()
-#define COLOR_FG_DIMMED  lv_color_hex(0x777777)
 
 #define SCROLLBAR_WIDTH (3)
 
@@ -196,6 +195,9 @@ static void theme_apply_callback(lv_theme_t* th, lv_obj_t* obj) {
 
     } else if(lv_obj_check_type(obj, &var_item_cursor_lvgl_class)) {
         lv_obj_add_style(obj, &theme->styles.submenu_cursor, LV_PART_MAIN);
+
+    } else if(lv_obj_check_type(obj, &var_item_arrow_lvgl_class)) {
+        lv_obj_add_style(obj, &theme->styles.normal, LV_PART_MAIN | LV_STATE_DISABLED);
 
     } else if(lv_obj_check_type(obj, &nav_stack_lvgl_class)) {
         lv_obj_add_style(obj, &theme->styles.normal, LV_PART_MAIN);
