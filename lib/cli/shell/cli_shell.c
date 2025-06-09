@@ -37,6 +37,13 @@ typedef enum {
     CliShellComponentMAX, //<! do not use
 } CliShellComponent;
 
+typedef enum {
+    CliShellRegistryIdGlobal,
+    CliShellRegistryIdBuiltinCommands,
+    CliShellRegistryIdMAX, //<! do not use
+} CliShellRegistryId;
+static_assert(CLI_REGISTRY_COUNT == CliShellRegistryIdMAX);
+
 CliShellKeyComboSet* component_key_combo_sets[] = {
     [CliShellComponentCompletions] = &cli_shell_completions_key_combo_set,
     [CliShellComponentLine] = &cli_shell_line_key_combo_set,
@@ -77,16 +84,16 @@ struct CliShell {
     CliShellMotd motd;
     void* callback_context;
     bool free_pipe_on_exit;
-    CliRegistry* registry;
+    CliRegistry* registries[CLI_REGISTRY_COUNT]; // 0 (global) owned externally, 1 (builtin) owned internally
     const CliCommandExternalConfig* ext_config;
     FuriThread* thread;
     const char* prompt;
+    FuriMessageQueue* api_queue;
 
     // Set and freed by shell thread
     FuriEventLoop* event_loop;
     CliAnsiParser* ansi_parser;
     FuriEventLoopTimer* ansi_parsing_timer;
-    FuriMessageQueue* api_queue;
 #ifdef CLI_PLATFORM_SUPPORTS_STORAGE_UPDATES
     CliShellStorage storage;
 #endif
@@ -129,7 +136,7 @@ void cli_command_reload_external(PipeSide* pipe, FuriString* args, void* context
     UNUSED(args);
     CliShell* shell = context;
     furi_check(shell->ext_config);
-    cli_registry_reload_external_commands(shell->registry, shell->ext_config);
+    cli_registry_reload_external_commands(shell->registries[CliShellRegistryIdGlobal], shell->ext_config);
     printf("OK!");
 }
 #endif
@@ -138,23 +145,22 @@ void cli_command_help(PipeSide* pipe, FuriString* args, void* context) {
     UNUSED(pipe);
     UNUSED(args);
     CliShell* shell = context;
-    CliRegistry* registry = shell->registry;
-
+    
     const size_t columns = 3;
 
     printf("Available commands:\r\n" ANSI_FG_GREEN);
-    cli_registry_lock(registry);
-    CliCommandDict_t* commands = cli_registry_get_commands(registry);
-    size_t commands_count = CliCommandDict_size(*commands);
+    size_t total_count = 0;
 
-    CliCommandDict_it_t iterator;
-    CliCommandDict_it(iterator, *commands);
-    for(size_t i = 0; i < commands_count; i++) {
-        const CliCommandDict_itref_t* item = CliCommandDict_cref(iterator);
-        printf("%-30s", furi_string_get_cstr(item->key));
-        CliCommandDict_next(iterator);
-
-        if(i % columns == columns - 1) printf("\r\n");
+    for(size_t r = 0; r < CLI_REGISTRY_COUNT; r++) {
+        CliRegistry* registry = shell->registries[r];
+        cli_registry_lock(registry);
+        CliCommandDict_t* commands = cli_registry_get_commands(registry);
+        for M_EACH(item, *commands, CliCommandDict_t) {
+            printf("%-30s", furi_string_get_cstr(item->key));
+            if(total_count % columns == columns - 1) printf("\r\n");
+            total_count++;
+        }
+        cli_registry_unlock(registry);
     }
 
     if(shell->ext_config)
@@ -162,8 +168,6 @@ void cli_command_help(PipeSide* pipe, FuriString* args, void* context) {
             ANSI_RESET
             "\r\nIf you added a new external command and can't see it above, run `reload_ext_cmds`");
     printf(ANSI_RESET "\r\nFind out more: https://docs.flipper.net/development/cli");
-
-    cli_registry_unlock(registry);
 }
 
 void cli_command_exit(PipeSide* pipe, FuriString* args, void* context) {
@@ -206,15 +210,19 @@ void cli_shell_execute_command(CliShell* cli_shell, FuriString* command) {
     Loader* loader = furi_record_open(RECORD_LOADER);
     bool loader_locked = false;
 #endif
-    CliRegistryCommand command_data;
+    CliRegistryCommand command_data = {0};
 
     do {
         // find handler
-        if(!cli_registry_get_command(cli_shell->registry, command_name, &command_data)) {
+        for(size_t i = 0; i < CLI_REGISTRY_COUNT; i++) {
+            CliRegistry* registry = cli_shell->registries[i];
+            if(cli_registry_get_command(registry, command_name, &command_data))
+                break;
+        }
+        if(!command_data.execute_callback) {
             printf(
-                ANSI_FG_RED "could not find command `%s`, try `help`" ANSI_RESET,
-                furi_string_get_cstr(command_name));
-            break;
+                    ANSI_FG_RED "could not find command `%s`, try `help`" ANSI_RESET,
+                    furi_string_get_cstr(command_name));
         }
 
 #ifdef CLI_PLATFORM_SUPPORTS_EXT_CMDS
@@ -331,9 +339,9 @@ static void cli_shell_storage_internal_event(FuriEventLoopObject* object, void* 
     furi_check(!(event & FuriFlagError));
 
     if(event & CliShellStorageEventUnmount) {
-        cli_registry_remove_external_commands(cli_shell->registry);
+        cli_registry_remove_external_commands(cli_shell->registries[CliShellRegistryIdGlobal]);
     } else if(event & CliShellStorageEventMount) {
-        cli_registry_reload_external_commands(cli_shell->registry, cli_shell->ext_config);
+        cli_registry_reload_external_commands(cli_shell->registries[CliShellRegistryIdGlobal], cli_shell->ext_config);
     } else {
         furi_crash();
     }
@@ -434,20 +442,23 @@ static void cli_shell_timer_expired(void* context) {
 // ===========
 
 static void cli_shell_init(CliShell* shell) {
+    CliRegistry* builtin_registry = cli_registry_alloc();
+    shell->registries[CliShellRegistryIdBuiltinCommands] = builtin_registry;
+
     cli_registry_add_command(
-        shell->registry,
+        builtin_registry,
         "help",
         CliCommandFlagUseShellThread | CliCommandFlagParallelSafe,
         cli_command_help,
         shell);
     cli_registry_add_command(
-        shell->registry,
+        builtin_registry,
         "?",
         CliCommandFlagUseShellThread | CliCommandFlagParallelSafe,
         cli_command_help,
         shell);
     cli_registry_add_command(
-        shell->registry,
+        builtin_registry,
         "exit",
         CliCommandFlagUseShellThread | CliCommandFlagParallelSafe,
         cli_command_exit,
@@ -456,18 +467,18 @@ static void cli_shell_init(CliShell* shell) {
 #ifdef CLI_PLATFORM_SUPPORTS_EXT_CMDS
     if(shell->ext_config) {
         cli_registry_add_command(
-            shell->registry,
+            builtin_registry,
             "reload_ext_cmds",
             CliCommandFlagUseShellThread,
             cli_command_reload_external,
             shell);
-        cli_registry_reload_external_commands(shell->registry, shell->ext_config);
+        cli_registry_reload_external_commands(builtin_registry, shell->ext_config);
     }
 #endif
 
     shell->components[CliShellComponentLine] = cli_shell_line_alloc(shell);
     shell->components[CliShellComponentCompletions] = cli_shell_completions_alloc(
-        shell->registry, shell, shell->components[CliShellComponentLine]);
+        shell->registries, shell, shell->components[CliShellComponentLine]);
 
     shell->ansi_parser = cli_ansi_parser_alloc();
 
@@ -475,7 +486,6 @@ static void cli_shell_init(CliShell* shell) {
     shell->ansi_parsing_timer = furi_event_loop_timer_alloc(
         shell->event_loop, cli_shell_timer_expired, FuriEventLoopTimerTypeOnce, shell);
 
-    shell->api_queue = furi_message_queue_alloc(API_Q_SIZE, sizeof(CliShellApiRequest));
     furi_event_loop_subscribe_message_queue(
         shell->event_loop, shell->api_queue, FuriEventLoopEventIn, cli_shell_api_request, shell);
 
@@ -505,7 +515,6 @@ static void cli_shell_deinit(CliShell* shell) {
 #endif
 
     furi_event_loop_unsubscribe(shell->event_loop, shell->api_queue);
-    furi_message_queue_free(shell->api_queue);
 
     cli_shell_completions_free(shell->components[CliShellComponentCompletions]);
     cli_shell_line_free(shell->components[CliShellComponentLine]);
@@ -514,6 +523,8 @@ static void cli_shell_deinit(CliShell* shell) {
     furi_event_loop_timer_free(shell->ansi_parsing_timer);
     furi_event_loop_free(shell->event_loop);
     cli_ansi_parser_free(shell->ansi_parser);
+
+    cli_registry_free(shell->registries[CliShellRegistryIdBuiltinCommands]);
 
     if(shell->free_pipe_on_exit) pipe_free(shell->pipe);
 }
@@ -559,15 +570,14 @@ CliShell* cli_shell_alloc(
     furi_check(pipe);
     furi_check(registry);
 
-    registry = cli_registry_alloc_clone(registry);
-
     CliShell* shell = malloc(sizeof(CliShell));
     *shell = (CliShell){
         .motd = motd,
         .callback_context = context,
         .pipe = pipe,
-        .registry = registry,
+        .registries = { registry, NULL },
         .ext_config = ext_config,
+        .api_queue = furi_message_queue_alloc(API_Q_SIZE, sizeof(CliShellApiRequest)),
     };
 
     shell->thread =
@@ -578,6 +588,7 @@ CliShell* cli_shell_alloc(
 
 void cli_shell_free(CliShell* shell) {
     furi_check(shell);
+    furi_message_queue_free(shell->api_queue);
     furi_thread_free(shell->thread);
     free(shell);
 }

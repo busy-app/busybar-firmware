@@ -431,6 +431,7 @@ static void wifi_rf_test_set_mode_command(PipeSide* pipe, FuriString* args, void
 }
 
 static void wifi_rf_test_rx_command(PipeSide* pipe, FuriString* args, void* context) {
+    UNUSED(pipe);
     char* args_cstr = (char*)furi_string_get_cstr(args);
     WifiRfTestApp* instance = context;
 

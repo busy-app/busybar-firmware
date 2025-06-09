@@ -12,7 +12,7 @@ ARRAY_DEF(CommandCompletions, FuriString*, FURI_STRING_OPLIST); // -V524
 #define M_OPL_CommandCompletions_t() ARRAY_OPLIST(CommandCompletions)
 
 struct CliShellCompletions {
-    CliRegistry* registry;
+    CliRegistry** registries;
     CliShell* shell;
     CliShellLine* line;
     CommandCompletions_t variants;
@@ -97,17 +97,19 @@ void cli_shell_completions_fill_variants(CliShellCompletions* completions) {
     furi_string_left(input, segment.length);
 
     if(segment.type == CliShellCompletionSegmentTypeCommand) {
-        CliRegistry* registry = completions->registry;
-        cli_registry_lock(registry);
-        CliCommandDict_t* commands = cli_registry_get_commands(registry);
-        for
-            M_EACH(registered_command, *commands, CliCommandDict_t) {
-                FuriString* command_name = registered_command->key;
-                if(furi_string_start_with(command_name, input)) {
-                    CommandCompletions_push_back(completions->variants, command_name);
+        for(size_t i = 0; i < CLI_REGISTRY_COUNT; i++) {
+            CliRegistry* registry = completions->registries[i];
+            cli_registry_lock(registry);
+            CliCommandDict_t* commands = cli_registry_get_commands(registry);
+            for
+                M_EACH(registered_command, *commands, CliCommandDict_t) {
+                    FuriString* command_name = registered_command->key;
+                    if(furi_string_start_with(command_name, input)) {
+                        CommandCompletions_push_back(completions->variants, command_name);
+                    }
                 }
-            }
-        cli_registry_unlock(registry);
+            cli_registry_unlock(registry);
+        }
 
     } else {
         // support removed, might reimplement in the future
@@ -289,10 +291,10 @@ void cli_shell_completions_render(
 // ==========
 
 CliShellCompletions*
-    cli_shell_completions_alloc(CliRegistry* registry, CliShell* shell, CliShellLine* line) {
+    cli_shell_completions_alloc(CliRegistry** registries, CliShell* shell, CliShellLine* line) {
     CliShellCompletions* completions = malloc(sizeof(CliShellCompletions));
 
-    completions->registry = registry;
+    completions->registries = registries;
     completions->shell = shell;
     completions->line = line;
     CommandCompletions_init(completions->variants);

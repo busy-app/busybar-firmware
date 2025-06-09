@@ -6,6 +6,8 @@
 extern "C" {
 #endif
 
+#define CLI_REGISTRY_COUNT 2
+
 typedef struct CliShell CliShell;
 
 /**

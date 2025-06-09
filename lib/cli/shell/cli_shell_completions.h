@@ -14,7 +14,7 @@ extern "C" {
 typedef struct CliShellCompletions CliShellCompletions;
 
 CliShellCompletions*
-    cli_shell_completions_alloc(CliRegistry* registry, CliShell* shell, CliShellLine* line);
+    cli_shell_completions_alloc(CliRegistry** registries, CliShell* shell, CliShellLine* line);
 
 void cli_shell_completions_free(CliShellCompletions* completions);
 
