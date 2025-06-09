@@ -12,7 +12,7 @@
 #include <storage/storage.h>
 
 #define TAG          "UpdaterApp"
-#define MAX_PATH_LEN 256 // Using a fixed size as FURI_STRING_UTF8_MAX_LENGTH was problematic
+#define MAX_PATH_LEN 256
 
 #define STM_DFU_VENDOR_ID   0x0483
 #define STM_DFU_PRODUCT_ID  0xDF11
@@ -38,7 +38,7 @@ static bool update_task_flash_program_page(
     return true;
 }
 
-static bool page_task_compare_flash(
+static bool pdate_task_compare_flash(
     const uint8_t i_page,
     const uint8_t* update_block,
     uint16_t update_block_len) {
@@ -69,165 +69,174 @@ static void update_task_file_progress(const uint8_t progress, void* context) {
     UNUSED(progress);
 }
 
-static void updater_execute(const char* update_path) {
-    static DfuUpdateTask page_task = {
+static bool updater_execute(const char* update_path) {
+    FURI_LOG_I(TAG, "Update from: %s", update_path);
+
+    bool overall_success = false;
+    Storage* storage = NULL;
+    UpdaterState* state = NULL;
+    File* dfu_file = NULL;
+
+    DfuUpdateTask page_task = {
         .address_cb = &check_address_boundaries,
         .progress_cb = &update_task_file_progress,
         .task_cb = &update_task_flash_program_page,
         .context = NULL,
     };
 
-    FURI_LOG_I(TAG, "Executing update from path: %s", update_path);
-    Storage* storage = furi_record_open(RECORD_STORAGE);
-    UpdaterState* state = updater_state_alloc();
+    storage = furi_record_open(RECORD_STORAGE);
+    do {
+        state = updater_state_alloc();
 
-    bool config_ok = updater_state_init_config(state, update_path);
-    if(!config_ok) {
-        FURI_LOG_E(TAG, "Failed to initialize updater config from path: %s", update_path);
-        updater_state_free(state);
-        furi_record_close(RECORD_STORAGE);
-        return;
-    }
-
-    config_ok = updater_state_validate_config(state);
-    FURI_LOG_I(TAG, "Updater config validated: %s", config_ok ? "OK" : "FAIL");
-    if(!config_ok) {
-        FURI_LOG_E(TAG, "Updater config validation failed for path: %s", update_path);
-        updater_state_free(state);
-        furi_record_close(RECORD_STORAGE);
-        return; // Early exit if config is invalid
-    }
-
-    // Flash DFU file if present in config
-    bool dfu_flashed = false;
-    const UpdateManifest* config = updater_state_get_config(state);
-    // Corrected: use updater_manifest_get_path and UpdateManifestPathDfu from update_manifest.h
-    const FuriString* dfu_furi_string = updater_manifest_get_path(config, UpdateManifestPathDfu);
-    if(state && config && dfu_furi_string && !furi_string_empty(dfu_furi_string)) {
-        const char* dfu_path = furi_string_get_cstr(dfu_furi_string);
-        FURI_LOG_I(TAG, "Flashing DFU file: %s", dfu_path);
-
-        File* dfu_file = storage_file_alloc(storage);
-        if(storage_file_open(dfu_file, dfu_path, FSAM_READ, FSOM_OPEN_EXISTING)) {
-            if(!dfu_file_validate_crc(dfu_file, NULL, NULL)) {
-                FURI_LOG_E(TAG, "DFU CRC validation failed: %s", dfu_path);
-            } else {
-                uint8_t n_targets = dfu_file_validate_headers(dfu_file, &bsb_dfu_params);
-                FURI_LOG_I(TAG, "DFU file has %u targets", n_targets);
-                if(n_targets > 0) {
-                    if(dfu_file_process_targets(&page_task, dfu_file, n_targets)) {
-                        FURI_LOG_I(TAG, "DFU flashing succeeded: %s", dfu_path);
-                        dfu_flashed = true;
-                    } else {
-                        FURI_LOG_E(TAG, "DFU flashing failed: %s", dfu_path);
-                    }
-
-                    page_task.task_cb = &page_task_compare_flash;
-                    if(dfu_file_process_targets(&page_task, dfu_file, n_targets)) {
-                        FURI_LOG_I(TAG, "DFU flash verification succeeded: %s", dfu_path);
-                    } else {
-                        FURI_LOG_E(TAG, "DFU flash verification failed: %s", dfu_path);
-                        dfu_flashed = false;
-                    }
-                } else {
-                    FURI_LOG_E(TAG, "DFU header validation failed: %s", dfu_path);
-                }
-            }
-            storage_file_close(dfu_file);
-        } else {
-            FURI_LOG_E(TAG, "Failed to open DFU file: %s", dfu_path);
+        if(!updater_state_init_config(state, update_path)) {
+            FURI_LOG_E(TAG, "Config init failed: %s", update_path);
+            break;
         }
+
+        if(!updater_state_validate_config(state)) {
+            FURI_LOG_E(TAG, "Config validation failed: %s", update_path);
+            break;
+        }
+
+        const UpdateManifest* config = updater_state_get_config(state);
+        const FuriString* dfu_furi_string =
+            updater_manifest_get_path(config, UpdateManifestPathDfu);
+
+        if(dfu_furi_string && !furi_string_empty(dfu_furi_string)) {
+            const char* dfu_path = furi_string_get_cstr(dfu_furi_string);
+            FURI_LOG_I(TAG, "DFU: %s", dfu_path);
+
+            dfu_file = storage_file_alloc(storage);
+            if(!dfu_file) {
+                FURI_LOG_E(TAG, "DFU file alloc failed");
+                break;
+            }
+
+            if(!storage_file_open(dfu_file, dfu_path, FSAM_READ, FSOM_OPEN_EXISTING)) {
+                FURI_LOG_E(TAG, "DFU open failed: %s", dfu_path);
+                break;
+            }
+
+            if(!dfu_file_validate_crc(dfu_file, NULL, NULL)) {
+                FURI_LOG_E(TAG, "DFU CRC failed: %s", dfu_path);
+                break;
+            }
+
+            uint8_t n_targets = dfu_file_validate_headers(dfu_file, &bsb_dfu_params);
+            FURI_LOG_I(TAG, "DFU targets: %u", n_targets);
+            if(n_targets == 0) {
+                FURI_LOG_E(TAG, "DFU header invalid: %s", dfu_path);
+                break;
+            }
+
+            // Program DFU
+            page_task.task_cb = &update_task_flash_program_page;
+            if(!dfu_file_process_targets(&page_task, dfu_file, n_targets)) {
+                FURI_LOG_E(TAG, "DFU flash failed: %s", dfu_path);
+                break;
+            }
+            FURI_LOG_I(TAG, "DFU flash OK: %s", dfu_path);
+
+            // Verify DFU
+            page_task.task_cb = &pdate_task_compare_flash;
+            if(!dfu_file_process_targets(&page_task, dfu_file, n_targets)) {
+                FURI_LOG_E(TAG, "DFU verify failed: %s", dfu_path);
+                break;
+            }
+            FURI_LOG_I(TAG, "DFU verify OK: %s", dfu_path);
+            overall_success = true;
+
+        } else {
+            FURI_LOG_I(TAG, "No DFU in manifest.");
+            overall_success = true;
+        }
+
+    } while(false);
+
+    if(dfu_file) {
         storage_file_free(dfu_file);
     }
+    if(state) {
+        updater_state_free(state);
+    }
+    furi_record_close(RECORD_STORAGE);
 
-    if(dfu_flashed) {
-        // Restart system after successful update and verification
-        FURI_LOG_I(TAG, "DFU flash successful. System will restart.");
-        furi_delay_ms(100); // Brief delay before reset
-        furi_hal_power_reset();
+    if(overall_success) {
+        FURI_LOG_I(TAG, "Update exec OK.");
     } else {
-        FURI_LOG_W(TAG, "DFU flashing was not performed or failed. System will restart.");
-        // Even if DFU flashing didn't happen or failed, we've finished this stage.
-        // Boot mode and pointer file are handled by the caller (updater_srv)
+        FURI_LOG_E(TAG, "Update exec FAILED.");
     }
 
-    furi_record_close(RECORD_STORAGE);
-    updater_state_free(state);
+    return overall_success;
+}
+
+static FuriString* updater_read_pointer_file(Storage* storage) {
+    furi_assert(storage);
+
+    char local_path_buffer[MAX_PATH_LEN];
+    FuriString* manifest_path_fstr = NULL;
+    File* pointer_file = storage_file_alloc(storage);
+
+    FURI_LOG_I(TAG, "Reading ptr: %s", EXT_PATH(UPDATE_POINTER_FILE_NAME));
+    do {
+        if(!storage_file_open(
+               pointer_file, EXT_PATH(UPDATE_POINTER_FILE_NAME), FSAM_READ, FSOM_OPEN_EXISTING)) {
+            FURI_LOG_E(
+                TAG,
+                "Ptr open failed: %s, Err: %s",
+                EXT_PATH(UPDATE_POINTER_FILE_NAME),
+                storage_error_get_desc(storage_file_get_error(pointer_file)));
+            break;
+        }
+
+        uint16_t bytes_read =
+            storage_file_read(pointer_file, local_path_buffer, sizeof(local_path_buffer) - 1);
+        FS_Error error = storage_file_get_error(pointer_file);
+
+        if(error != FSE_OK || bytes_read == 0 || bytes_read >= sizeof(local_path_buffer)) {
+            FURI_LOG_E(
+                TAG, "Ptr read failed: %s, Bytes: %d", storage_error_get_desc(error), bytes_read);
+            break;
+        }
+
+        local_path_buffer[bytes_read] = '\0';
+        manifest_path_fstr = furi_string_alloc_set(local_path_buffer);
+        FURI_LOG_I(TAG, "Update path read: '%s'", local_path_buffer);
+    } while(false);
+
+    storage_file_free(pointer_file);
+
+    return manifest_path_fstr;
 }
 
 int32_t updater_srv(void* arg) {
     UNUSED(arg);
-    FURI_LOG_I(TAG, "Updater service (stage) started.");
+    FURI_LOG_I(TAG, "Updater service started.");
 
     Storage* storage = furi_record_open(RECORD_STORAGE);
-    File* pointer_file = storage_file_alloc(storage);
-    char update_folder_relative_path[MAX_PATH_LEN]; // Use MAX_PATH_LEN
-    bool path_read_success = false;
+    FuriString* update_manifest_path_fstr = NULL;
+    bool execution_succeeded = false;
 
-    FURI_LOG_I(TAG, "Attempting to read update path from: %s", EXT_PATH(UPDATE_POINTER_FILE_NAME));
-    if(storage_file_open(
-           pointer_file, EXT_PATH(UPDATE_POINTER_FILE_NAME), FSAM_READ, FSOM_OPEN_EXISTING)) {
-        uint16_t bytes_read = storage_file_read(
-            pointer_file, update_folder_relative_path, sizeof(update_folder_relative_path) - 1);
-        if(storage_file_get_error(pointer_file) == FSE_OK && bytes_read > 0 &&
-           bytes_read < sizeof(update_folder_relative_path)) {
-            update_folder_relative_path[bytes_read] = '\0';
-            path_read_success = true;
-            FURI_LOG_I(TAG, "Read relative update path: '%s'", update_folder_relative_path);
-        } else {
-            FURI_LOG_E(
-                TAG,
-                "Failed to read from pointer file or path is invalid/empty. Error: %s, Bytes: %d",
-                storage_error_get_desc(storage_file_get_error(pointer_file)),
-                bytes_read);
-        }
-        storage_file_close(pointer_file);
+    update_manifest_path_fstr = updater_read_pointer_file(storage);
+
+    if(update_manifest_path_fstr && !furi_string_empty(update_manifest_path_fstr)) {
+        execution_succeeded = updater_execute(furi_string_get_cstr(update_manifest_path_fstr));
     } else {
-        FURI_LOG_E(
-            TAG,
-            "Pointer file %s not found or cannot be opened. Error: %s",
-            EXT_PATH(UPDATE_POINTER_FILE_NAME),
-            storage_error_get_desc(storage_file_get_error(pointer_file)));
-    }
-    storage_file_free(pointer_file);
-
-    // Always try to delete the pointer file after attempting to read it.
-    // If reading failed, we still want to remove it to prevent issues on next boot.
-    // If reading succeeded, it has served its purpose for this stage.
-    FURI_LOG_I(TAG, "Deleting pointer file: %s", EXT_PATH(UPDATE_POINTER_FILE_NAME));
-    FS_Error fs_err = storage_common_remove(storage, EXT_PATH(UPDATE_POINTER_FILE_NAME));
-    if(fs_err != FSE_OK && fs_err != FSE_NOT_EXIST) {
-        FURI_LOG_W(
-            TAG,
-            "Failed to delete pointer file %s. Error: %s",
-            EXT_PATH(UPDATE_POINTER_FILE_NAME),
-            storage_error_get_desc(fs_err));
-    } else {
-        FURI_LOG_I(TAG, "Pointer file deleted or was not present.");
+        FURI_LOG_E(TAG, "Failed to get update path from pointer. Rebooting.");
     }
 
-    if(!path_read_success) {
-        FURI_LOG_E(
-            TAG, "Failed to obtain update path. Setting boot mode to normal and rebooting.");
-        furi_hal_nvm_set_boot_mode(FuriHalNvmBootModeNormal);
-        furi_record_close(RECORD_STORAGE);
-        furi_delay_ms(100);
-        furi_hal_power_reset(); // Reboot to normal mode
-        furi_thread_suspend(furi_thread_get_current_id()); // Should not be reached
-        return 1;
+    FURI_LOG_I(TAG, execution_succeeded ? "Update OK" : "Update FAILED.");
+
+    if(update_manifest_path_fstr) {
+        furi_string_free(update_manifest_path_fstr);
     }
 
-    updater_execute(update_folder_relative_path);
-
-    FURI_LOG_I(
-        TAG, "Update process operations finished. Setting boot mode to normal and rebooting.");
-    furi_hal_nvm_set_boot_mode(FuriHalNvmBootModeNormal);
-
+    furi_hal_nvm_set_boot_mode(FuriHalNvmBootModeNormal); // Ensure NVM is set before reboot
     furi_record_close(RECORD_STORAGE);
-    furi_delay_ms(100); // Brief delay before reset
+    furi_delay_ms(50);
     furi_hal_power_reset();
 
-    // This part should not be reached as power_reset() will restart the device.
+    // This part should not be reached
     furi_thread_suspend(furi_thread_get_current_id());
-    return 0; // Should not be reached
+    return execution_succeeded ? 0 : 1;
 }
