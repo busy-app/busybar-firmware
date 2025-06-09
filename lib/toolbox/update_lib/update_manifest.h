@@ -21,6 +21,11 @@ typedef enum {
 } UpdateManifestPath;
 
 /**
+ * @brief Manifest version.
+ */
+#define UPDATE_MANIFEST_VERSION (1)
+
+/**
  * @brief Allocates a new UpdateManifest structure.
  * @return Pointer to the allocated UpdateManifest, or NULL on failure.
  */
@@ -82,6 +87,13 @@ const FuriString*
  * @return The target hardware identifier.
  */
 uint8_t updater_manifest_get_target(const UpdateManifest* config);
+
+/**
+ * @brief Gets the version of the manifest file format.
+ * @param config Pointer to the UpdateManifest.
+ * @return The manifest version.
+ */
+uint32_t updater_manifest_get_version(const UpdateManifest* config);
 
 #ifdef __cplusplus
 }

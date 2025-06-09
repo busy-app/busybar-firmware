@@ -73,6 +73,16 @@ UpdateConfigValidation
             furi_string_get_cstr(
                 updater_manifest_get_path(state->config, UpdateManifestPathStage)));
 
+        if(updater_manifest_get_version(state->config) != UPDATE_MANIFEST_VERSION) {
+            FURI_LOG_E(
+                TAG,
+                "Manifest version mismatch: expected %d, got %lu",
+                UPDATE_MANIFEST_VERSION,
+                updater_manifest_get_version(state->config));
+            result = UpdateConfigValidationOutdatedManifestVersion;
+            break;
+        }
+
         uint8_t device_target = furi_hal_version_get_hw_target();
         if(updater_manifest_get_target(state->config) != device_target) {
             FURI_LOG_E(

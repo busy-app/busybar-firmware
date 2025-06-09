@@ -39,7 +39,7 @@ class Main(App):
         args = self.args
         os.makedirs(args.output, exist_ok=True)
 
-        manifest = {"target": args.target}
+        manifest = {"target": args.target, "version": 1}
 
         # Copy files into output directory if provided
         if args.stage:

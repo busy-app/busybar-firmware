@@ -6,6 +6,7 @@
 #include <path.h>
 
 struct UpdateManifest {
+    uint32_t version;
     uint32_t updater_stage_crc32;
     FuriString* updater_stage;
     FuriString* updater_resources;
@@ -27,6 +28,7 @@ UpdateManifest* updater_manifest_alloc(void) {
     config->updater_sil_radio_fw = furi_string_alloc();
     config->updater_dfu = furi_string_alloc();
     config->target = 0;
+    config->version = 0;
     return config;
 }
 
@@ -72,6 +74,8 @@ bool updater_manifest_init_from_memory(
     do {
         if(!root) break;
         cJSON* item;
+        item = cJSON_GetObjectItem(root, "version");
+        config->version = cJSON_IsNumber(item) ? (uint32_t)item->valuedouble : 0;
         item = cJSON_GetObjectItem(root, "target");
         config->target = cJSON_IsNumber(item) ? (uint8_t)item->valueint : 0;
         item = cJSON_GetObjectItem(root, "updater_stage_crc32");
@@ -153,4 +157,9 @@ const FuriString*
 uint8_t updater_manifest_get_target(const UpdateManifest* config) {
     furi_check(config);
     return config->target;
+}
+
+uint32_t updater_manifest_get_version(const UpdateManifest* config) {
+    furi_check(config);
+    return config->version;
 }
