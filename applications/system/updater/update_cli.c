@@ -1,5 +1,5 @@
 #include "sl_updater.h"
-#include "updater_core.h"
+#include "update_config.h"
 
 #include <furi.h>
 #include <furi_hal_nvm.h>
@@ -59,24 +59,20 @@ static void updater_cli_execute_917probe() {
 static void updater_cli_execute_install(const char* manifest_path) {
     printf("Installing update bundle from: %s\r\n", manifest_path);
 
-    UpdaterState* state = updater_state_alloc();
+    UpdateConfig* state = update_config_alloc();
     Storage* storage = furi_record_open(RECORD_STORAGE);
     File* pointer_file = storage_file_alloc(storage);
 
     do {
-        bool config_ok = updater_state_init_config(state, manifest_path);
-        if(!config_ok) {
-            printf("Failed to load updater configuration\r\n");
+        UpdateConfigValidation config_state = update_config_load_config(state, manifest_path);
+        if(config_state != UpdateConfigValidationOK) {
+            printf(
+                "Failed to load updater configuration: %s\r\n",
+                update_config_validation_get_error_str(config_state));
             break;
         }
 
-        config_ok = updater_state_validate_config(state);
-        if(!config_ok) {
-            printf("Updater configuration validation failed\r\n");
-            break;
-        }
-
-        printf("Updater configuration loaded and validated successfully\r\n");
+        printf("Updater configuration valid\r\n");
 
         if(!storage_file_open(
                pointer_file, EXT_PATH(UPDATE_POINTER_FILE_NAME), FSAM_WRITE, FSOM_CREATE_ALWAYS)) {
@@ -103,7 +99,7 @@ static void updater_cli_execute_install(const char* manifest_path) {
 
     storage_file_free(pointer_file);
     furi_record_close(RECORD_STORAGE);
-    updater_state_free(state);
+    update_config_free(state);
 }
 
 static void updater_cli(Cli* cli, FuriString* args, void* context) {

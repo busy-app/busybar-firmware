@@ -1,4 +1,4 @@
-#include "updater_core.h"
+#include "update_config.h"
 
 #include <toolbox/update_lib/dfu_file.h>
 #include <toolbox/update_lib/update_manifest.h>
@@ -74,7 +74,7 @@ static bool updater_execute(const char* update_path) {
 
     bool overall_success = false;
     Storage* storage = NULL;
-    UpdaterState* state = NULL;
+    UpdateConfig* state = NULL;
     File* dfu_file = NULL;
 
     DfuUpdateTask page_task = {
@@ -86,25 +86,26 @@ static bool updater_execute(const char* update_path) {
 
     storage = furi_record_open(RECORD_STORAGE);
     do {
-        state = updater_state_alloc();
+        state = update_config_alloc();
 
-        if(!updater_state_init_config(state, update_path)) {
-            FURI_LOG_E(TAG, "Config init failed: %s", update_path);
+        UpdateConfigValidation validation_result = update_config_load_config(state, update_path);
+        if(validation_result != UpdateConfigValidationOK) {
+            FURI_LOG_E(
+                TAG,
+                "Config load failed: %s, Error: %s (%d)",
+                update_path,
+                update_config_validation_get_error_str(validation_result),
+                validation_result);
             break;
         }
 
-        if(!updater_state_validate_config(state)) {
-            FURI_LOG_E(TAG, "Config validation failed: %s", update_path);
-            break;
-        }
-
-        const UpdateManifest* config = updater_state_get_config(state);
+        const UpdateManifest* config = update_config_get_manifest(state);
         const FuriString* dfu_furi_string =
             updater_manifest_get_path(config, UpdateManifestPathDfu);
 
         if(dfu_furi_string && !furi_string_empty(dfu_furi_string)) {
             const char* dfu_path = furi_string_get_cstr(dfu_furi_string);
-            FURI_LOG_I(TAG, "DFU: %s", dfu_path);
+            FURI_LOG_I(TAG, "DFU path: '%s'", dfu_path);
 
             dfu_file = storage_file_alloc(storage);
             if(!dfu_file) {
@@ -113,37 +114,37 @@ static bool updater_execute(const char* update_path) {
             }
 
             if(!storage_file_open(dfu_file, dfu_path, FSAM_READ, FSOM_OPEN_EXISTING)) {
-                FURI_LOG_E(TAG, "DFU open failed: %s", dfu_path);
+                FURI_LOG_E(TAG, "DFU open failed");
                 break;
             }
 
             if(!dfu_file_validate_crc(dfu_file, NULL, NULL)) {
-                FURI_LOG_E(TAG, "DFU CRC failed: %s", dfu_path);
+                FURI_LOG_E(TAG, "DFU CRC failed");
                 break;
             }
 
             uint8_t n_targets = dfu_file_validate_headers(dfu_file, &bsb_dfu_params);
             FURI_LOG_I(TAG, "DFU targets: %u", n_targets);
             if(n_targets == 0) {
-                FURI_LOG_E(TAG, "DFU header invalid: %s", dfu_path);
+                FURI_LOG_E(TAG, "DFU header invalid");
                 break;
             }
 
             // Program DFU
             page_task.task_cb = &update_task_flash_program_page;
             if(!dfu_file_process_targets(&page_task, dfu_file, n_targets)) {
-                FURI_LOG_E(TAG, "DFU flash failed: %s", dfu_path);
+                FURI_LOG_E(TAG, "DFU flash failed");
                 break;
             }
-            FURI_LOG_I(TAG, "DFU flash OK: %s", dfu_path);
+            FURI_LOG_I(TAG, "DFU flash OK");
 
             // Verify DFU
             page_task.task_cb = &pdate_task_compare_flash;
             if(!dfu_file_process_targets(&page_task, dfu_file, n_targets)) {
-                FURI_LOG_E(TAG, "DFU verify failed: %s", dfu_path);
+                FURI_LOG_E(TAG, "DFU verify failed");
                 break;
             }
-            FURI_LOG_I(TAG, "DFU verify OK: %s", dfu_path);
+            FURI_LOG_I(TAG, "DFU verify OK");
             overall_success = true;
 
         } else {
@@ -157,7 +158,7 @@ static bool updater_execute(const char* update_path) {
         storage_file_free(dfu_file);
     }
     if(state) {
-        updater_state_free(state);
+        update_config_free(state);
     }
     furi_record_close(RECORD_STORAGE);
 
