@@ -88,7 +88,7 @@ static bool updater_execute(const char* update_path) {
     do {
         state = update_config_alloc();
 
-        UpdateConfigValidation validation_result = update_config_load_config(state, update_path);
+        UpdateConfigValidation validation_result = update_config_load(state, update_path);
         if(validation_result != UpdateConfigValidationOK) {
             FURI_LOG_E(
                 TAG,
@@ -171,56 +171,16 @@ static bool updater_execute(const char* update_path) {
     return overall_success;
 }
 
-static FuriString* updater_read_pointer_file(Storage* storage) {
-    furi_assert(storage);
-
-    char local_path_buffer[MAX_PATH_LEN];
-    FuriString* manifest_path_fstr = NULL;
-    File* pointer_file = storage_file_alloc(storage);
-
-    FURI_LOG_I(TAG, "Reading ptr: %s", EXT_PATH(UPDATE_POINTER_FILE_NAME));
-    do {
-        if(!storage_file_open(
-               pointer_file, EXT_PATH(UPDATE_POINTER_FILE_NAME), FSAM_READ, FSOM_OPEN_EXISTING)) {
-            FURI_LOG_E(
-                TAG,
-                "Ptr open failed: %s, Err: %s",
-                EXT_PATH(UPDATE_POINTER_FILE_NAME),
-                storage_error_get_desc(storage_file_get_error(pointer_file)));
-            break;
-        }
-
-        uint16_t bytes_read =
-            storage_file_read(pointer_file, local_path_buffer, sizeof(local_path_buffer) - 1);
-        FS_Error error = storage_file_get_error(pointer_file);
-
-        if(error != FSE_OK || bytes_read == 0 || bytes_read >= sizeof(local_path_buffer)) {
-            FURI_LOG_E(
-                TAG, "Ptr read failed: %s, Bytes: %d", storage_error_get_desc(error), bytes_read);
-            break;
-        }
-
-        local_path_buffer[bytes_read] = '\0';
-        manifest_path_fstr = furi_string_alloc_set(local_path_buffer);
-        FURI_LOG_I(TAG, "Update path read: '%s'", local_path_buffer);
-    } while(false);
-
-    storage_file_free(pointer_file);
-
-    return manifest_path_fstr;
-}
-
 int32_t updater_srv(void* arg) {
     UNUSED(arg);
     FURI_LOG_I(TAG, "Updater service started.");
 
     Storage* storage = furi_record_open(RECORD_STORAGE);
-    FuriString* update_manifest_path_fstr = NULL;
+    FuriString* update_manifest_path_fstr = furi_string_alloc();
     bool execution_succeeded = false;
 
-    update_manifest_path_fstr = updater_read_pointer_file(storage);
-
-    if(update_manifest_path_fstr && !furi_string_empty(update_manifest_path_fstr)) {
+    if(update_config_read_pointer_file(storage, update_manifest_path_fstr) &&
+       !furi_string_empty(update_manifest_path_fstr)) {
         execution_succeeded = updater_execute(furi_string_get_cstr(update_manifest_path_fstr));
     } else {
         FURI_LOG_E(TAG, "Failed to get update path from pointer. Rebooting.");

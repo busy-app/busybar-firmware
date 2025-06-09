@@ -141,9 +141,9 @@ const FuriString*
         return config->updater_stage;
     case UpdateManifestPathResources:
         return config->updater_resources;
-    case UpdateManifestPathSilFw:
+    case UpdateManifestPath917:
         return config->updater_sil_fw;
-    case UpdateManifestPathSilRadioFw:
+    case UpdateManifestPath917Radio:
         return config->updater_sil_radio_fw;
     case UpdateManifestPathDfu:
         return config->updater_dfu;

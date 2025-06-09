@@ -61,10 +61,9 @@ static void updater_cli_execute_install(const char* manifest_path) {
 
     UpdateConfig* state = update_config_alloc();
     Storage* storage = furi_record_open(RECORD_STORAGE);
-    File* pointer_file = storage_file_alloc(storage);
 
     do {
-        UpdateConfigValidation config_state = update_config_load_config(state, manifest_path);
+        UpdateConfigValidation config_state = update_config_load(state, manifest_path);
         if(config_state != UpdateConfigValidationOK) {
             printf(
                 "Failed to load updater configuration: %s\r\n",
@@ -74,22 +73,11 @@ static void updater_cli_execute_install(const char* manifest_path) {
 
         printf("Updater configuration valid\r\n");
 
-        if(!storage_file_open(
-               pointer_file, EXT_PATH(UPDATE_POINTER_FILE_NAME), FSAM_WRITE, FSOM_CREATE_ALWAYS)) {
-            printf(
-                "Failed to open pointer file %s for writing\r\n",
-                EXT_PATH(UPDATE_POINTER_FILE_NAME));
+        if(!update_config_write_pointer_file(storage, manifest_path)) {
+            printf("Failed to write manifest path to pointer file.\r\n");
             break;
         }
 
-        const size_t path_to_write_len = strlen(manifest_path);
-        if(storage_file_write(pointer_file, manifest_path, path_to_write_len) !=
-           path_to_write_len) {
-            printf("Failed to write to pointer file %s\r\n", EXT_PATH(UPDATE_POINTER_FILE_NAME));
-            storage_file_close(pointer_file);
-            break;
-        }
-        storage_file_close(pointer_file);
         printf("Manifest path written to %s\r\n", EXT_PATH(UPDATE_POINTER_FILE_NAME));
 
         furi_hal_nvm_set_boot_mode(FuriHalNvmBootModeUpdate);
@@ -97,7 +85,6 @@ static void updater_cli_execute_install(const char* manifest_path) {
         furi_hal_power_reset();
     } while(false);
 
-    storage_file_free(pointer_file);
     furi_record_close(RECORD_STORAGE);
     update_config_free(state);
 }

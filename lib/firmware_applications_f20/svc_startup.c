@@ -8,7 +8,7 @@
 #define TAG "SvcStartup"
 
 void flipper_init_services(void) {
-    FURI_LOG_I(TAG, "Starting %d services!!", FLIPPER_SERVICES_COUNT);
+    FURI_LOG_I(TAG, "Starting %d services", FLIPPER_SERVICES_COUNT);
 
     for(size_t i = 0; i < FLIPPER_SERVICES_COUNT; i++) {
         FURI_LOG_D(TAG, "Starting service %s", FLIPPER_SERVICES[i].name);

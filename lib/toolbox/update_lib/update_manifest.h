@@ -15,8 +15,8 @@ typedef struct UpdateManifest UpdateManifest;
 typedef enum {
     UpdateManifestPathStage,
     UpdateManifestPathResources,
-    UpdateManifestPathSilFw,
-    UpdateManifestPathSilRadioFw,
+    UpdateManifestPath917,
+    UpdateManifestPath917Radio,
     UpdateManifestPathDfu,
 } UpdateManifestPath;
 

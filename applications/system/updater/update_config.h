@@ -53,8 +53,7 @@ void update_config_free(UpdateConfig* state);
  * @return UpdateConfigValidation enum value indicating the result of the operation.
  *         UpdateConfigValidationOK on success, or an error code on failure.
  */
-UpdateConfigValidation
-    update_config_load_config(UpdateConfig* state, const char* update_manifest_path);
+UpdateConfigValidation update_config_load(UpdateConfig* state, const char* update_manifest_path);
 
 /**
  * @brief Get a pointer to the loaded update manifest.
@@ -72,6 +71,26 @@ const UpdateManifest* update_config_get_manifest(const UpdateConfig* state);
  * @return A constant string describing the error.
  */
 const char* update_config_validation_get_error_str(UpdateConfigValidation error_code);
+
+/**
+ * @brief Writes the provided manifest path to the update pointer file.
+ * This function creates or overwrites the update pointer file with the full
+ * path to the update manifest.
+ * @param storage Pointer to the Storage instance.
+ * @param manifest_path The full path to the update manifest file to be written.
+ * @return True if the path was successfully written to the pointer file, false otherwise.
+ */
+bool update_config_write_pointer_file(Storage* storage, const char* manifest_path);
+
+/**
+ * @brief Reads the manifest path from the update pointer file.
+ * This function reads the content of the update pointer file into the provided FuriString.
+ * @param storage Pointer to the Storage instance.
+ * @param manifest_path_output Pointer to a FuriString where the read path will be stored.
+ *                             The string will be cleared if the file cannot be read or is empty.
+ * @return True if the path was successfully read and is not empty, false otherwise.
+ */
+bool update_config_read_pointer_file(Storage* storage, FuriString* manifest_path_output);
 
 #ifdef __cplusplus
 }
