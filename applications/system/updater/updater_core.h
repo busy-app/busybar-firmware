@@ -3,6 +3,8 @@
 #include <stdbool.h>
 #include <stdint.h>
 
+#include <toolbox/update_lib/update_manifest.h>
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -11,19 +13,18 @@ extern "C" {
 typedef struct UpdaterState UpdaterState;
 
 // Allocate and initialize updater state
-UpdaterState* updater_state_alloc(const char* update_path);
+UpdaterState* updater_state_alloc(void);
 
 // Free updater state and resources
 void updater_state_free(UpdaterState* state);
 
 // Load update configuration from update.json in the given folder
-bool updater_load_configuration(UpdaterState* state);
+bool updater_state_init_config(UpdaterState* state, const char* update_manifest_path);
 
 // Validate loaded configuration (target, CRC, file existence)
-bool updater_validate_config(const UpdaterState* state);
+bool updater_state_validate_config(const UpdaterState* state);
 
-// Updater service entry point
-int32_t updater_srv(void* arg);
+const UpdateManifest* updater_state_get_config(const UpdaterState* state);
 
 #ifdef __cplusplus
 }

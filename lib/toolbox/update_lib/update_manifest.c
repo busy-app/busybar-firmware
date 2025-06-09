@@ -1,13 +1,22 @@
-#include "update_util.h"
+#include "update_manifest.h"
 
-#include <toolbox/update_lib/update_util.h>
 #include <cjson/cJSON.h>
 #include <core/string.h>
 #include <furi.h>
 #include <path.h>
 
-UpdaterConfig* updater_config_alloc(void) {
-    UpdaterConfig* config = malloc(sizeof(UpdaterConfig));
+struct UpdateManifest {
+    uint32_t updater_stage_crc32;
+    FuriString* updater_stage;
+    FuriString* updater_resources;
+    FuriString* updater_sil_fw;
+    FuriString* updater_sil_radio_fw;
+    FuriString* updater_dfu;
+    uint8_t target;
+};
+
+UpdateManifest* updater_manifest_alloc(void) {
+    UpdateManifest* config = malloc(sizeof(UpdateManifest));
     if(!config) {
         return NULL;
     }
@@ -21,7 +30,7 @@ UpdaterConfig* updater_config_alloc(void) {
     return config;
 }
 
-void updater_config_free(UpdaterConfig* config) {
+void updater_manifest_free(UpdateManifest* config) {
     if(config) {
         furi_string_free(config->updater_stage);
         furi_string_free(config->updater_resources);
@@ -32,7 +41,7 @@ void updater_config_free(UpdaterConfig* config) {
     }
 }
 
-void updater_config_prefix_paths(UpdaterConfig* config, const char* prefix) {
+void updater_manifest_prefix_paths(UpdateManifest* config, const char* prefix) {
     furi_check(config);
     furi_check(prefix);
     FuriString* temp_path = furi_string_alloc();
@@ -52,7 +61,10 @@ void updater_config_prefix_paths(UpdaterConfig* config, const char* prefix) {
     furi_string_free(temp_path);
 }
 
-bool updater_config_from_memory(UpdaterConfig* config, const char* json_data, size_t json_size) {
+bool updater_manifest_init_from_memory(
+    UpdateManifest* config,
+    const char* json_data,
+    size_t json_size) {
     furi_check(config);
     furi_check(json_data && json_size > 0);
     bool result = false;
@@ -90,7 +102,7 @@ bool updater_config_from_memory(UpdaterConfig* config, const char* json_data, si
     return result;
 }
 
-bool updater_config_from_file(UpdaterConfig* config, File* file) {
+bool updater_manifest_init_from_file(UpdateManifest* config, File* file) {
     furi_check(config);
     furi_check(file);
     size_t file_size = storage_file_size(file);
@@ -106,7 +118,39 @@ bool updater_config_from_file(UpdaterConfig* config, File* file) {
         return false;
     }
     buffer[file_size] = '\0';
-    bool success = updater_config_from_memory(config, buffer, file_size);
+    bool success = updater_manifest_init_from_memory(config, buffer, file_size);
     free(buffer);
     return success;
+}
+
+// Getter implementations
+uint32_t updater_manifest_get_updater_stage_crc32(const UpdateManifest* config) {
+    furi_check(config);
+    return config->updater_stage_crc32;
+}
+
+const FuriString*
+    updater_manifest_get_path(const UpdateManifest* config, UpdateManifestPath field) {
+    furi_check(config);
+    switch(field) {
+    case UpdateManifestPathStage:
+        return config->updater_stage;
+    case UpdateManifestPathResources:
+        return config->updater_resources;
+    case UpdateManifestPathSilFw:
+        return config->updater_sil_fw;
+    case UpdateManifestPathSilRadioFw:
+        return config->updater_sil_radio_fw;
+    case UpdateManifestPathDfu:
+        return config->updater_dfu;
+    default:
+        return NULL;
+    }
+
+    return NULL;
+}
+
+uint8_t updater_manifest_get_target(const UpdateManifest* config) {
+    furi_check(config);
+    return config->target;
 }
