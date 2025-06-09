@@ -148,7 +148,9 @@ static BackDisplayTestApp* back_display_test_app_alloc() {
 
         //  Back display
         {
-            root = gui_layer_get_root_widget(main_layer, GuiDisplayIdBack);
+            GuiLayer* system_layer = gui_get_layer(app->gui, GuiLayerIdSystem);
+
+            root = gui_layer_get_root_widget(system_layer, GuiDisplayIdBack);
             app->canvas = canvas_alloc(root, widget_get_width(root), widget_get_height(root));
         }
     });
