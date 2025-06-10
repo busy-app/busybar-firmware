@@ -11,7 +11,7 @@ App(
     appid="updater",
     name="UpdaterSvc",
     apptype=FlipperAppType.SERVICE,
-    sources=["update_app.c", "update_config.c"],
+    sources=["update_app.c", "update_config.c", "worker/*.c"],
     entry_point="updater_srv",
     requires=[
         "gui",
