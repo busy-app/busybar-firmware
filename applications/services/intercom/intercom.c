@@ -38,6 +38,8 @@ typedef struct {
 } IntercomChannelData;
 
 struct Intercom {
+    FuriThread* rx_thread;
+    FuriSemaphore* sync_semaphore;
     FuriEventLoop* event_loop;
     FuriSemaphore* tx_semaphore;
     FuriEventLoopTimer* tx_timer;
@@ -52,9 +54,16 @@ struct Intercom {
 typedef enum {
     IntercomEventSyncRequested = 1UL << 0,
     IntercomEventFrameSent = 1UL << 1,
-    IntercomEventFrameReceived = 1UL << 2,
-    IntercomEventDataAvailable = 1UL << 3,
+    IntercomEventDataAvailable = 1UL << 2,
 } IntercomEvent;
+
+typedef enum {
+    IntercomThreadFlagFrameReceived = 1UL << 0,
+    IntercomThreadFlagSyncStarted = 1UL << 1,
+    IntercomThreadFlagSyncFinished = 1UL << 2,
+} IntercomThreadFlag;
+
+#define INTERCOM_THREAD_FLAGS_ALL (IntercomThreadFlagFrameReceived | IntercomThreadFlagSyncStarted | IntercomThreadFlagSyncFinished)
 
 // Called in ISR context
 static void intercom_gpio_irq_callback(void* context) {
@@ -89,7 +98,7 @@ static void intercom_serial_rx_callback(
     Intercom* instance = context;
 
     if(event & FuriHalSerialRxEventData) {
-        furi_event_loop_set_custom_event(instance->event_loop, IntercomEventFrameReceived);
+        furi_thread_flags_set(instance->rx_thread, IntercomThreadFlagFrameReceived);
     }
 }
 
@@ -140,7 +149,8 @@ static void intercom_default_error_callback(IntercomError error, void* context) 
 static FURI_ALWAYS_INLINE void intercom_process_sync_requested_event(Intercom* instance) {
     INTERCOM_LOG_D("Sync requested");
 
-    furi_hal_serial_dma_rx_stop(instance->serial);
+    furi_thread_flags_set(furi_thread_get_id(instance->rx_thread), IntercomThreadFlagSyncStarted);
+    furi_check(furi_semaphore_acquire(instance->sync_semaphore, FuriWaitForever) == FuriStatusOk);
 
     if(intercom_sync_serial(instance->serial)) {
 // TODO: Unify function signatures
@@ -154,11 +164,12 @@ static FURI_ALWAYS_INLINE void intercom_process_sync_requested_event(Intercom* i
 #error "Unsupported target"
 #endif
         furi_hal_serial_clear(instance->serial, FuriHalSerialDirectionTxRx);
-        furi_hal_serial_dma_rx_start(
-            instance->serial, (void*)&instance->rx_frame, sizeof(IntercomFrame));
     } else {
         instance->error_callback(IntercomErrorSync, instance->error_callback_context);
     }
+
+    furi_thread_flags_set(furi_thread_get_id(instance->rx_thread), IntercomThreadFlagSyncFinished);
+    furi_check(furi_semaphore_acquire(instance->sync_semaphore, FuriWaitForever) == FuriStatusOk);
 }
 
 static FURI_ALWAYS_INLINE void intercom_send_tx_frame(Intercom* instance) {
@@ -209,12 +220,8 @@ static void intercom_custom_event_callback(uint32_t events, void* context) {
         INTERCOM_LOG_D("IntercomEventFrameSent");
         intercom_process_tx_frame_event(instance);
     }
-    if(events & IntercomEventFrameReceived) {
-        INTERCOM_LOG_D("IntercomEventFrameReceived");
-        intercom_process_rx_frame_event(instance);
-    }
     if(events & IntercomEventDataAvailable) {
-        INTERCOM_LOG_D("IntercomEventData");
+        INTERCOM_LOG_D("IntercomEventDataAvailable");
         intercom_process_tx_data_event(instance);
     }
 }
@@ -226,9 +233,41 @@ static void intercom_tx_timer_callback(void* context) {
     instance->error_callback(IntercomErrorTransmit, instance->error_callback_context);
 }
 
+static int32_t intercom_rx_thread(void* arg) {
+    furi_assert(arg);
+    Intercom* instance = arg;
+
+    for(;;) {
+        const uint32_t flags =
+            furi_thread_flags_wait(INTERCOM_THREAD_FLAGS_ALL, FuriFlagWaitAny, FuriWaitForever);
+        furi_check((flags & FuriFlagError) == 0);
+
+        if(flags & IntercomThreadFlagFrameReceived) {
+            INTERCOM_LOG_D("IntercomThreadFlagFrameReceived");
+            intercom_process_rx_frame_event(instance);
+        }
+        if(flags & IntercomThreadFlagSyncStarted) {
+            INTERCOM_LOG_D("IntercomThreadFlagSyncStarted");
+            furi_hal_serial_dma_rx_stop(instance->serial);
+            furi_check(furi_semaphore_release(instance->sync_semaphore) == FuriStatusOk);
+        }
+        if(flags & IntercomThreadFlagSyncFinished) {
+            INTERCOM_LOG_D("IntercomThreadFlagSyncFinished");
+            furi_hal_serial_dma_rx_start(
+                instance->serial, (void*)&instance->rx_frame, sizeof(IntercomFrame));
+            furi_check(furi_semaphore_release(instance->sync_semaphore) == FuriStatusOk);
+        }
+    }
+
+    return 0;
+}
+
 static Intercom* intercom_alloc(void) {
     Intercom* instance = malloc(sizeof(Intercom));
 
+    instance->rx_thread =
+        furi_thread_alloc_service("IntercomRxSrv", 1024, intercom_rx_thread, instance);
+    instance->sync_semaphore = furi_semaphore_alloc(1, 0);
     instance->event_loop = furi_event_loop_alloc();
     instance->tx_semaphore = furi_semaphore_alloc(1, 1);
     instance->tx_timer = furi_event_loop_timer_alloc(
@@ -244,6 +283,8 @@ static Intercom* intercom_alloc(void) {
     furi_hal_serial_set_hw_flow_control(instance->serial, FuriHalSerialHwFlowControlRtsCts);
     furi_hal_serial_set_callback(
         instance->serial, intercom_serial_tx_callback, intercom_serial_rx_callback, instance);
+    // Start RX thread
+    furi_thread_start(instance->rx_thread);
     // Pulse gpio_xxx_irq pin to request synchronisation procedure
     intercom_sync_request(&INTERCOM_GPIO);
     // Perform initial synchronisation procedure
