@@ -17,6 +17,11 @@
 #define SL_UPDATE_RETRIES  (3)
 #define SL_PROBING_RETRIES (3)
 
+static void updater_cli_progress_callback(uint8_t percentage, void* context) {
+    UNUSED(context);
+    printf("Update progress: %d%%\r", percentage);
+}
+
 static void updater_cli_command_print_usage(void) {
     bool is_debug = furi_hal_nvm_is_flag_set(FuriHalNvmFlagDebug);
     printf("Usage:\r\n");
@@ -26,6 +31,7 @@ static void updater_cli_command_print_usage(void) {
 static bool
     updater_cli_execute(const char* path, bool is_stack_image, uint8_t baud_throttle_ratio) {
     SlUpdater* instance = sl_updater_alloc();
+    sl_updater_set_progress_callback(instance, updater_cli_progress_callback, NULL);
     bool success = sl_updater_run(
         instance,
         path,

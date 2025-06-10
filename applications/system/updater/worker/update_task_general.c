@@ -4,6 +4,9 @@
 #include <toolbox/update_lib/resources/manifest.h>
 #include <toolbox/tar/tar_archive.h>
 #include <toolbox/path.h>
+#include "../sl_updater.h" // For SlUpdater
+#include <toolbox/update_lib/update_manifest.h> // For UpdateManifestPathType and updater_manifest_get_path
+#include "update_task.h" // Added include for UpdateTaskStage enums
 
 #define TAG "UpdateTask"
 
@@ -11,11 +14,22 @@
 #define STM_DFU_PRODUCT_ID  0xDF11
 #define BSB_DFU_DEVICE_CODE 0xFFFF
 
+#define SL_UPDATE_NWP_COMM_TIMEOUT_S 30
+#define SL_UPDATE_M4_COMM_TIMEOUT_S  15
+#define SL_UPDATE_RETRIES            3
+
 static const DfuValidationParams bsb_dfu_params = {
     .device = BSB_DFU_DEVICE_CODE,
     .product = STM_DFU_PRODUCT_ID,
     .vendor = STM_DFU_VENDOR_ID,
 };
+
+static void update_task_sl_updater_progress_callback(uint8_t percentage, void* context) {
+    UpdateTask* update_task = context;
+    // Assuming the current stage is already set (e.g., UpdateTaskStage917RadioWrite)
+    // This callback will update the percentage of that specific stage.
+    update_task_set_progress(update_task, UpdateTaskStageProgress, percentage);
+}
 
 static bool update_task_flash_program_page(
     const uint8_t i_page,
@@ -231,6 +245,66 @@ static bool update_task_handle_resources(UpdateTask* update_task) {
     return success;
 }
 
+static bool update_task_write_917(UpdateTask* update_task, bool use_stack_image) {
+    bool success = false;
+
+    const char* img_type = use_stack_image ? "917 NWP" : "917 FW";
+
+    const UpdateManifest* manifest = update_config_get_manifest(update_task->config);
+
+    const FuriString* firmware_path_fs = updater_manifest_get_path(
+        manifest, use_stack_image ? UpdateManifestPath917Radio : UpdateManifestPath917);
+
+    const char* firmware_path_cstr = furi_string_get_cstr(firmware_path_fs);
+
+    FURI_LOG_I(TAG, "Starting %s update from: %s", img_type, firmware_path_cstr);
+
+    update_task_set_progress(
+        update_task, use_stack_image ? UpdateTaskStage917RadioWrite : UpdateTaskStage917Write, 0);
+
+    SlUpdater* sl_updater = sl_updater_alloc();
+
+    sl_updater_set_progress_callback(
+        sl_updater, update_task_sl_updater_progress_callback, update_task);
+
+    for(int i = 0; i < SL_UPDATE_RETRIES; i++) {
+        FURI_LOG_I(
+            TAG,
+            "Attempt %d/%d for %s update (baud_throttle_ratio: %d)",
+            i + 1,
+            SL_UPDATE_RETRIES,
+            img_type,
+            i);
+
+        if(sl_updater_run(
+               sl_updater,
+               firmware_path_cstr,
+               use_stack_image,
+               use_stack_image ? SL_UPDATE_NWP_COMM_TIMEOUT_S : SL_UPDATE_M4_COMM_TIMEOUT_S,
+               (uint8_t)i)) { // baud_throttle_ratio
+            FURI_LOG_I(TAG, "%s flashed", img_type);
+            success = true;
+            break;
+        } else {
+            FURI_LOG_W(TAG, "%s update attempt %d failed", img_type, i + 1);
+            if(i == SL_UPDATE_RETRIES - 1) {
+                FURI_LOG_E(TAG, "%s update failed after all retries", img_type);
+            }
+        }
+    }
+
+    sl_updater_free(sl_updater);
+
+    if(success) {
+        update_task_set_progress(
+            update_task,
+            use_stack_image ? UpdateTaskStage917RadioWrite : UpdateTaskStage917Write,
+            100);
+    }
+
+    return success;
+}
+
 int32_t update_task_worker_general(void* context) {
     furi_assert(context);
     UpdateTask* update_task = context;
@@ -244,6 +318,14 @@ int32_t update_task_worker_general(void* context) {
             CHECK_RESULT(update_task_write_dfu(update_task));
         }
 
+        if(update_task->state.groups & UpdateTaskStageGroup917Radio) {
+            CHECK_RESULT(update_task_write_917(update_task, true));
+        }
+
+        if(update_task->state.groups & UpdateTaskStageGroup917) {
+            CHECK_RESULT(update_task_write_917(update_task, false));
+        }
+
         if(update_task->state.groups & UpdateTaskStageGroupResources) {
             CHECK_RESULT(update_task_handle_resources(update_task));
         }
@@ -251,6 +333,8 @@ int32_t update_task_worker_general(void* context) {
         update_task_set_progress(update_task, UpdateTaskStageCompleted, 100);
         success = true;
     } while(false);
+
+    furi_hal_power_reset_917(false); // for a good measure
 
     if(!success) {
         update_task_set_progress(update_task, UpdateTaskStageError, 0);

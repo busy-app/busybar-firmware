@@ -47,7 +47,7 @@ static void updater_task_on_progress(
                 updater->stage_label, "Error: %s", status ? status : "Unknown error");
             label_set_text_fmt(updater->progress_label, "Progress: %d%%", stage_pct);
         } else {
-            label_set_text_fmt(updater->stage_label, "Stage: %s", status ? status : "Unknown");
+            label_set_text_fmt(updater->stage_label, "%s", status ? status : "Unknown stage");
             label_set_text_fmt(updater->progress_label, "Progress: %d%%", stage_pct);
         }
     });

@@ -171,19 +171,19 @@ typedef struct {
 static const UpdateTaskStageGroupMap update_task_stage_progress[] = {
     [UpdateTaskStageProgress] = STAGE_DEF(UpdateTaskStageGroupMisc, 0),
 
-    [UpdateTaskStageValidateDFUImage] = STAGE_DEF(UpdateTaskStageGroupFirmware, 33),
-    [UpdateTaskStageFlashWrite] = STAGE_DEF(UpdateTaskStageGroupFirmware, 100),
+    [UpdateTaskStageValidateDFUImage] = STAGE_DEF(UpdateTaskStageGroupFirmware, 20),
+    [UpdateTaskStageFlashWrite] = STAGE_DEF(UpdateTaskStageGroupFirmware, 70),
     [UpdateTaskStageFlashValidate] = STAGE_DEF(UpdateTaskStageGroupFirmware, 20),
 
-    [UpdateTaskStage917Write] = STAGE_DEF(UpdateTaskStageGroup917, 15),
-    [UpdateTaskStage917Install] = STAGE_DEF(UpdateTaskStageGroup917, 25),
+    [UpdateTaskStage917Write] = STAGE_DEF(UpdateTaskStageGroup917, 80),
+    [UpdateTaskStage917Install] = STAGE_DEF(UpdateTaskStageGroup917, 30),
 
-    [UpdateTaskStage917RadioWrite] = STAGE_DEF(UpdateTaskStageGroup917Radio, 40),
-    [UpdateTaskStage917RadioInstall] = STAGE_DEF(UpdateTaskStageGroup917Radio, 30),
+    [UpdateTaskStage917RadioWrite] = STAGE_DEF(UpdateTaskStageGroup917Radio, 250),
+    [UpdateTaskStage917RadioInstall] = STAGE_DEF(UpdateTaskStageGroup917Radio, 70),
 
-    [UpdateTaskStageResourcesFileCleanup] = STAGE_DEF(UpdateTaskStageGroupResources, 100),
-    [UpdateTaskStageResourcesDirCleanup] = STAGE_DEF(UpdateTaskStageGroupResources, 50),
-    [UpdateTaskStageResourcesFileUnpack] = STAGE_DEF(UpdateTaskStageGroupResources, 255),
+    [UpdateTaskStageResourcesFileCleanup] = STAGE_DEF(UpdateTaskStageGroupResources, 10),
+    [UpdateTaskStageResourcesDirCleanup] = STAGE_DEF(UpdateTaskStageGroupResources, 10),
+    [UpdateTaskStageResourcesFileUnpack] = STAGE_DEF(UpdateTaskStageGroupResources, 160),
 
     [UpdateTaskStageCompleted] = STAGE_DEF(UpdateTaskStageGroupMisc, 1),
     [UpdateTaskStageError] = STAGE_DEF(UpdateTaskStageGroupMisc, 1),

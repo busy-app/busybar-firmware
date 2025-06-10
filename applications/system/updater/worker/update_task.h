@@ -21,11 +21,11 @@ typedef enum {
     UpdateTaskStageFlashWrite,
     UpdateTaskStageFlashValidate,
 
-    UpdateTaskStage917Write,
-    UpdateTaskStage917Install,
-
     UpdateTaskStage917RadioWrite,
     UpdateTaskStage917RadioInstall,
+
+    UpdateTaskStage917Write,
+    UpdateTaskStage917Install,
 
     UpdateTaskStageResourcesFileCleanup,
     UpdateTaskStageResourcesDirCleanup,
@@ -43,8 +43,8 @@ inline bool update_stage_is_error(const UpdateTaskStage stage) {
 typedef enum {
     UpdateTaskStageGroupMisc = 0,
     UpdateTaskStageGroupFirmware = 1 << 1,
-    UpdateTaskStageGroup917 = 1 << 2,
-    UpdateTaskStageGroup917Radio = 1 << 3,
+    UpdateTaskStageGroup917Radio = 1 << 2,
+    UpdateTaskStageGroup917 = 1 << 3,
     UpdateTaskStageGroupResources = 1 << 4,
 } UpdateTaskStageGroup;
 

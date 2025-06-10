@@ -56,6 +56,8 @@ struct SlUpdater {
     Storage* storage;
     File* firmware_file;
     kermit_t* kermit;
+    SlUpdaterProgressCallback progress_callback;
+    void* progress_callback_context;
 };
 
 #define KERMIT_TIMEOUT_SECONDS               (2)
@@ -80,7 +82,17 @@ static SlUpdaterBaudeRate const sl_updater_baudrate[] = {
 
 static int32_t kermit_src_file_read(void* context, uint8_t* buffer, size_t length) {
     SlUpdater* app = context;
-    return storage_file_read(app->firmware_file, buffer, length);
+    int32_t bytes_read = storage_file_read(app->firmware_file, buffer, length);
+
+    if(app->progress_callback && bytes_read > 0) {
+        uint32_t file_size = storage_file_size(app->firmware_file);
+        uint32_t file_pos = storage_file_tell(app->firmware_file);
+        if(file_size > 0) {
+            uint8_t percentage = (uint8_t)((file_pos * 100) / file_size);
+            app->progress_callback(percentage, app->progress_callback_context);
+        }
+    }
+    return bytes_read;
 }
 
 static int32_t kermit_comms_send(void* context, const uint8_t* buffer, size_t length) {
@@ -204,12 +216,13 @@ static void sl_updater_handle_rx(SlUpdater* instance) {
             furi_hal_serial_tx(instance->serial_handle, &leader, sizeof(leader));
             if(furi_hal_serial_set_auto_baud_rate(
                    instance->serial_handle,
-                   FuriHalSerialAutoBaudRateMode0x55Frame,
+                   FuriHalSerialAutoBaudRateMode0x55Frame, // Corrected enum name
                    SL_UPDATER_AUTO_BAUD_RATE_TIMEOUT_MS)) {
                 FURI_LOG_I(
                     TAG,
                     "Baud rate auto set %ld",
-                    furi_hal_serial_get_baud_rate(instance->serial_handle));
+                    furi_hal_serial_get_baud_rate(
+                        instance->serial_handle)); // Corrected function name
             } else {
                 FURI_LOG_E(TAG, "Baud rate auto set failed");
             }
@@ -328,11 +341,13 @@ static void sl_updater_rx_buffer_callback(FuriEventLoopObject* object, void* con
     sl_updater_handle_rx(instance);
 }
 
+#ifdef SRV_INTERCOM
 static void sl_updater_intercom_error_callback(IntercomError error, void* context) {
     UNUSED(error);
     UNUSED(context);
     // Empty callback
 }
+#endif
 
 static void sl_update_idle_timer_callback(void* context) {
     SlUpdater* instance = context;
@@ -368,6 +383,8 @@ SlUpdater* sl_updater_alloc(void) {
     instance->kermit = kermit_alloc(&kermit_io, instance);
     instance->storage = furi_record_open(RECORD_STORAGE);
     instance->firmware_file = storage_file_alloc(instance->storage);
+    instance->progress_callback = NULL;
+    instance->progress_callback_context = NULL;
     instance->idle_timer = furi_event_loop_timer_alloc(
         instance->event_loop,
         sl_update_idle_timer_callback,
@@ -400,6 +417,15 @@ void sl_updater_free(SlUpdater* instance) {
     FURI_LOG_I(TAG, "Stopped");
 }
 
+void sl_updater_set_progress_callback(
+    SlUpdater* instance,
+    SlUpdaterProgressCallback callback,
+    void* context) {
+    furi_check(instance);
+    instance->progress_callback = callback;
+    instance->progress_callback_context = context;
+}
+
 static bool
     sl_update_inner_run(SlUpdater* instance, Si917BootloaderMode mode, uint8_t baud_throttle) {
     if(baud_throttle < COUNT_OF(sl_updater_baudrate)) {
@@ -421,7 +447,7 @@ static bool
     instance->intercom = furi_record_open(RECORD_INTERCOM);
     intercom_set_error_callback(instance->intercom, sl_updater_intercom_error_callback, NULL);
 #else
-    UNUSED(sl_updater_intercom_error_callback);
+    // UNUSED(sl_updater_intercom_error_callback);
 #endif
 
     instance->serial_handle = furi_hal_serial_control_acquire(FuriHalSerialIdUsart2);

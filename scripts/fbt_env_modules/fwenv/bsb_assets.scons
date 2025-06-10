@@ -69,7 +69,7 @@ if fwenv.get("IS_BASE_FIRMWARE", False):
     manifest = resources_env.ManifestBuilder(
         "${RESOURCES_ROOT}/Manifest",
         GIT_UNIX_TIMESTAMP=get_git_commit_unix_timestamp(
-            target_dir=fwenv.Dir("${RESOURCES_ROOT}").abspath
+            target_dir=fwenv.Dir("${PROJECT_ROOT}").abspath
         ),
         _EXTRA_DIST=[assets_dir],
     )
