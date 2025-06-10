@@ -42,3 +42,6 @@ void front_display_driver_vsync_trig(void);
 
 // Valid brightness values: [0, BRIGHTNESS_VAL_MAX]
 void front_display_driver_set_brightness(uint8_t brightness);
+
+void front_display_scan_deinit(void);
+void front_display_driver_deinit(void);

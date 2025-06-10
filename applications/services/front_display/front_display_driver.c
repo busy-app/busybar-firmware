@@ -215,6 +215,13 @@ static void octospi_dma_init(FrontDisplayDriver* driver) {
         driver);
 }
 
+static void octospi_dma_deinit(FrontDisplayDriver* driver) {
+    LL_DMA_DisableChannel(GPDMA1, driver->dma_channel);
+    LL_DMA_DeInit(GPDMA1, driver->dma_channel);
+
+    furi_hal_dma_free_gpdma_channel(driver->dma_channel);
+}
+
 static void octospi_init(void) {
     furi_hal_bus_enable(FuriHalBusOCTOSPI1);
     furi_hal_bus_enable(FuriHalBusOCTOSPIM);
@@ -241,20 +248,30 @@ static void octospi_init(void) {
         &gpio_front_display_sdi_ospi_d0,
         GpioModeAltFunctionPushPull,
         GpioPullNo,
-        GpioSpeedLow,
+        GpioSpeedHigh,
         GpioAltFn10OCTOSPI1);
     furi_hal_gpio_init_ex(
         &gpio_front_display_le_ospi_d1,
         GpioModeAltFunctionPushPull,
         GpioPullNo,
-        GpioSpeedLow,
+        GpioSpeedHigh,
         GpioAltFn10OCTOSPI1);
     furi_hal_gpio_init_ex(
         &gpio_front_display_dclk_ospi_clk,
         GpioModeAltFunctionPushPull,
         GpioPullNo,
-        GpioSpeedLow,
+        GpioSpeedHigh,
         GpioAltFn10OCTOSPI1);
+}
+
+static void octospi_deinit(void) {
+    furi_hal_bus_reset(FuriHalBusOCTOSPI1);
+    furi_hal_bus_reset(FuriHalBusOCTOSPIM);
+    furi_hal_bus_disable(FuriHalBusOCTOSPI1);
+    furi_hal_bus_disable(FuriHalBusOCTOSPIM);
+    furi_hal_gpio_init_simple(&gpio_front_display_sdi_ospi_d0, GpioModeInput);
+    furi_hal_gpio_init_simple(&gpio_front_display_le_ospi_d1, GpioModeInput);
+    furi_hal_gpio_init_simple(&gpio_front_display_dclk_ospi_clk, GpioModeInput);
 }
 
 static FURI_ALWAYS_INLINE void led_driver_add_le_cmd(uint8_t* tx_data, LedDriverCommand cmd) {
@@ -486,6 +503,15 @@ void front_display_driver_init(uint8_t initial_brightness) {
     octospi_dma_init(led_driver);
 
     front_display_driver_send_init(led_driver);
+}
+
+void front_display_driver_deinit(void) {
+    if(led_driver) {
+        octospi_dma_deinit(led_driver);
+        octospi_deinit();
+        free(led_driver);
+        led_driver = NULL;
+    }
 }
 
 void front_display_driver_set_update_callback(FrontDisplayCallback callback, void* context) {

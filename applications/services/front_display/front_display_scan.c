@@ -75,8 +75,14 @@ static void gclk_tim_init(void) {
         &gpio_front_display_gclk,
         GpioModeAltFunctionPushPull,
         GpioPullNo,
-        GpioSpeedLow,
+        GpioSpeedHigh,
         GpioAltFn3TIM8);
+}
+
+static void gclk_tim_deinit(void) {
+    furi_hal_bus_reset(FuriHalBusTIM8);
+    furi_hal_bus_disable(FuriHalBusTIM8);
+    furi_hal_gpio_init_simple(&gpio_front_display_gclk, GpioModeInput);
 }
 
 static void scan_tim_init(void) {
@@ -122,8 +128,16 @@ static void scan_tim_init(void) {
         &gpio_front_display_scan_latch,
         GpioModeAltFunctionPushPull,
         GpioPullNo,
-        GpioSpeedLow,
+        GpioSpeedHigh,
         GpioAltFn2TIM5);
+}
+
+static void scan_tim_deinit(void) {
+    furi_hal_bus_reset(FuriHalBusTIM5);
+    furi_hal_bus_disable(FuriHalBusTIM5);
+    furi_hal_gpio_init_simple(&gpio_front_display_scan_latch, GpioModeInput);
+
+    NVIC_DisableIRQ(TIM5_IRQn);
 }
 
 static void spi_dma_init(void) {
@@ -211,6 +225,13 @@ static void spi_dma_init(void) {
     LL_DMA_EnableChannel(GPDMA1, led_scan->dma_channel);
 }
 
+static void spi_dma_deinit(void) {
+    LL_DMA_DisableChannel(GPDMA1, led_scan->dma_channel);
+    LL_DMA_List_DeInit(GPDMA1, led_scan->dma_channel);
+    LL_DMA_DeInit(GPDMA1, led_scan->dma_channel);
+    furi_hal_dma_free_gpdma_channel(led_scan->dma_channel);
+}
+
 static void spi_595_init(void) {
     furi_hal_bus_enable(FuriHalBusSPI2);
     LL_RCC_SetSPIClockSource(LL_RCC_SPI2_CLKSOURCE_SYSCLK);
@@ -237,16 +258,23 @@ static void spi_595_init(void) {
         &gpio_front_display_scan_clk,
         GpioModeAltFunctionPushPull,
         GpioPullNo,
-        GpioSpeedLow,
+        GpioSpeedHigh,
         GpioAltFn5SPI2);
     furi_hal_gpio_init_ex(
         &gpio_front_display_scan_sdi,
         GpioModeAltFunctionPushPull,
         GpioPullNo,
-        GpioSpeedLow,
+        GpioSpeedHigh,
         GpioAltFn3SPI2);
 
     LL_SPI_TransmitData8(SPI2, SCAN_DISABLED);
+}
+
+static void spi_595_deinit(void) {
+    furi_hal_bus_reset(FuriHalBusSPI2);
+    furi_hal_bus_disable(FuriHalBusSPI2);
+    furi_hal_gpio_init_simple(&gpio_front_display_scan_clk, GpioModeInput);
+    furi_hal_gpio_init_simple(&gpio_front_display_scan_sdi, GpioModeInput);
 }
 
 static void scan_dma_tc_irq(void* context) {
@@ -281,6 +309,18 @@ void front_display_scan_init(void) {
     gclk_tim_init();
     spi_595_init();
     spi_dma_init();
+}
+
+void front_display_scan_deinit(void) {
+    if(led_scan) {
+        spi_dma_deinit();
+        spi_595_deinit();
+        gclk_tim_deinit();
+        scan_tim_deinit();
+
+        free(led_scan);
+        led_scan = NULL;
+    }
 }
 
 void front_display_scan_start(void) {
