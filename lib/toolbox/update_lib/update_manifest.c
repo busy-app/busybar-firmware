@@ -13,6 +13,7 @@ struct UpdateManifest {
     FuriString* updater_sil_fw;
     FuriString* updater_sil_radio_fw;
     FuriString* updater_dfu;
+    FuriString* update_name;
     uint8_t target;
 };
 
@@ -27,6 +28,7 @@ UpdateManifest* updater_manifest_alloc(void) {
     config->updater_sil_fw = furi_string_alloc();
     config->updater_sil_radio_fw = furi_string_alloc();
     config->updater_dfu = furi_string_alloc();
+    config->update_name = furi_string_alloc();
     config->target = 0;
     config->version = 0;
     return config;
@@ -39,6 +41,7 @@ void updater_manifest_free(UpdateManifest* config) {
         furi_string_free(config->updater_sil_fw);
         furi_string_free(config->updater_sil_radio_fw);
         furi_string_free(config->updater_dfu);
+        furi_string_free(config->update_name);
         free(config);
     }
 }
@@ -99,6 +102,10 @@ bool updater_manifest_init_from_memory(
         item = cJSON_GetObjectItem(root, "updater_dfu");
         furi_string_set(
             config->updater_dfu,
+            (cJSON_IsString(item) && item->valuestring) ? item->valuestring : "");
+        item = cJSON_GetObjectItem(root, "update_name");
+        furi_string_set(
+            config->update_name,
             (cJSON_IsString(item) && item->valuestring) ? item->valuestring : "");
         result = true;
     } while(false);
@@ -162,4 +169,12 @@ uint8_t updater_manifest_get_target(const UpdateManifest* config) {
 uint32_t updater_manifest_get_version(const UpdateManifest* config) {
     furi_check(config);
     return config->version;
+}
+
+const FuriString* updater_manifest_get_update_name(const UpdateManifest* config) {
+    furi_check(config);
+    if(furi_string_empty(config->update_name)) {
+        return NULL;
+    }
+    return config->update_name;
 }

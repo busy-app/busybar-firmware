@@ -9,7 +9,7 @@ from flipper.app import App
 
 # Bundler for updater package
 # Usage example:
-#   python3 update_bundle.py --stage updater_stage.bin --resources-folder /path/to/resources --sil-fw sil_fw.bin --sil-radio-fw sil_radio_fw.bin --output ./update_folder
+#   python3 update_bundle.py --stage updater_stage.bin --resources /path/to/resources --sil-fw sil_fw.bin --sil-radio-fw sil_radio_fw.bin --output ./update_folder
 
 
 class Main(App):
@@ -17,8 +17,9 @@ class Main(App):
         self.parser.add_argument("--stage", required=False, help="Updater stage file")
         self.parser.add_argument(
             "--resources",
-            required=False,
-            help="Folder to be packed into a TAR archive for resources",
+            help="Path to the folder containing resource files to be included in resources.tar",
+            type=str,
+            default=None,
         )
         self.parser.add_argument(
             "--sil-fw", required=False, help="Updater SIL firmware file"
@@ -27,6 +28,12 @@ class Main(App):
             "--sil-radio-fw", required=False, help="Updater SIL radio firmware file"
         )
         self.parser.add_argument("--dfu", required=False, help="Updater DFU file")
+        self.parser.add_argument(
+            "--update-name",
+            help="Optional short description of the update",
+            type=str,
+            default=None,
+        )
         self.parser.add_argument(
             "--output", required=True, help="Output directory for update bundle"
         )
@@ -43,6 +50,8 @@ class Main(App):
         os.makedirs(args.output, exist_ok=True)
 
         manifest = {"target": args.target, "version": 1}
+        if args.update_name:
+            manifest["update_name"] = args.update_name
 
         # Copy files into output directory if provided
         if args.stage:
@@ -74,12 +83,14 @@ class Main(App):
             sil_fw_dst = os.path.join(args.output, os.path.basename(args.sil_fw))
             shutil.copy2(args.sil_fw, sil_fw_dst)
             manifest["updater_sil_fw"] = os.path.basename(sil_fw_dst)
+
         if args.sil_radio_fw:
             sil_radio_fw_dst = os.path.join(
                 args.output, os.path.basename(args.sil_radio_fw)
             )
             shutil.copy2(args.sil_radio_fw, sil_radio_fw_dst)
             manifest["updater_sil_radio_fw"] = os.path.basename(sil_radio_fw_dst)
+
         if args.dfu:
             dfu_dst = os.path.join(args.output, os.path.basename(args.dfu))
             shutil.copy2(args.dfu, dfu_dst)

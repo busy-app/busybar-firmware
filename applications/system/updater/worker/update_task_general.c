@@ -87,12 +87,10 @@ static bool update_task_write_dfu(UpdateTask* update_task) {
             break;
         }
 
-        // Program DFU
         update_task_set_progress(update_task, UpdateTaskStageFlashWrite, 0);
         page_task.task_cb = &update_task_flash_program_page;
         CHECK_RESULT(dfu_file_process_targets(&page_task, dfu_file, n_targets));
 
-        // Verify DFU
         update_task_set_progress(update_task, UpdateTaskStageFlashValidate, 0);
         page_task.task_cb = &pdate_task_compare_flash;
         CHECK_RESULT(dfu_file_process_targets(&page_task, dfu_file, n_targets));
