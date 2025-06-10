@@ -68,7 +68,9 @@ if fwenv.get("IS_BASE_FIRMWARE", False):
     # Resources & manifest for SD card
     manifest = resources_env.ManifestBuilder(
         "${RESOURCES_ROOT}/Manifest",
-        GIT_UNIX_TIMESTAMP=get_git_commit_unix_timestamp(),
+        GIT_UNIX_TIMESTAMP=get_git_commit_unix_timestamp(
+            target_dir=fwenv.Dir("${RESOURCES_ROOT}").abspath
+        ),
         _EXTRA_DIST=[assets_dir],
     )
     fwenv.Replace(FW_RESOURCES_MANIFEST=manifest)
