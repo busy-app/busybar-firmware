@@ -98,15 +98,7 @@ uint32_t updater_manifest_get_version(const UpdateManifest* config);
 /**
  * @brief Gets the optional update name (short description) from the manifest.
  * @param config Pointer to the UpdateManifest.
- * @return Constant pointer to a FuriString containing the update name, or NULL if not set or empty.
- */
-const FuriString* updater_manifest_get_update_name(const UpdateManifest* config);
-
-/**
- * @brief Get the update name from the manifest.
- *
- * @param[in] config Pointer to the UpdateManifest structure.
- * @return const FuriString* Update name, or an empty string if not set.
+ * @return Constant pointer to a FuriString containing the update name
  */
 const FuriString* updater_manifest_get_update_name(const UpdateManifest* config);
 

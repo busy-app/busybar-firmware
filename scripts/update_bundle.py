@@ -5,6 +5,7 @@ import json
 import shutil
 import zlib
 import tarfile
+import tempfile
 from flipper.app import App
 
 # Bundler for updater package
@@ -34,9 +35,22 @@ class Main(App):
             type=str,
             default=None,
         )
-        self.parser.add_argument(
-            "--output", required=True, help="Output directory for update bundle"
+
+        # Mutually exclusive group for output options
+        output_group = self.parser.add_mutually_exclusive_group(required=True)
+        output_group.add_argument(
+            "--output",
+            help="Output directory for update bundle (creates a folder)",
+            type=str,
+            default=None,
         )
+        output_group.add_argument(
+            "--output-tar",
+            help="Output TAR archive for update bundle (creates a single .tar file)",
+            type=str,
+            default=None,
+        )
+
         self.parser.add_argument(
             "--target",
             required=True,
@@ -47,61 +61,107 @@ class Main(App):
 
     def main(self):
         args = self.args
-        os.makedirs(args.output, exist_ok=True)
+        is_tar_output = args.output_tar is not None
+        temp_dir_path = None
 
-        manifest = {"target": args.target, "version": 1}
-        if args.update_name:
-            manifest["update_name"] = args.update_name
-
-        # Copy files into output directory if provided
-        if args.stage:
-            stage_dst = os.path.join(args.output, os.path.basename(args.stage))
-            shutil.copy2(args.stage, stage_dst)
-            stage_crc32 = self.compute_crc32(stage_dst)
-            manifest["updater_stage_crc32"] = stage_crc32
-            manifest["updater_stage"] = os.path.basename(stage_dst)
-
-        # Handle resources
-        if args.resources:
-            generated_resources_tar_filename = "resources.tar"
-            resources_dst_path = os.path.join(
-                args.output, generated_resources_tar_filename
-            )
-
+        if is_tar_output:
+            # Create a temporary directory to stage files
+            temp_dir_path = tempfile.mkdtemp(prefix="update_bundle_")
             self.logger.info(
-                f"Creating TAR archive for resources from folder: {args.resources}"
+                f"Staging update bundle in temporary directory: {temp_dir_path}"
             )
-            try:
-                self.create_tar_from_folder(resources_dst_path, args.resources)
-                manifest["updater_resources"] = generated_resources_tar_filename
-                self.logger.info(f"Successfully created {resources_dst_path}")
-            except Exception as e:
-                self.logger.error(f"Failed to create TAR from {args.resources}: {e}")
-                return 1  # Indicate an error
+            actual_output_path = temp_dir_path
+        else:
+            # args.output is guaranteed to be set if not args.output_tar
+            actual_output_path = args.output
+            os.makedirs(actual_output_path, exist_ok=True)
 
-        if args.sil_fw:
-            sil_fw_dst = os.path.join(args.output, os.path.basename(args.sil_fw))
-            shutil.copy2(args.sil_fw, sil_fw_dst)
-            manifest["updater_sil_fw"] = os.path.basename(sil_fw_dst)
+        try:
+            manifest = {"target": args.target, "version": 1}
+            if args.update_name:
+                manifest["update_name"] = args.update_name
 
-        if args.sil_radio_fw:
-            sil_radio_fw_dst = os.path.join(
-                args.output, os.path.basename(args.sil_radio_fw)
-            )
-            shutil.copy2(args.sil_radio_fw, sil_radio_fw_dst)
-            manifest["updater_sil_radio_fw"] = os.path.basename(sil_radio_fw_dst)
+            # Copy files into actual_output_path directory if provided
+            if args.stage:
+                stage_basename = os.path.basename(args.stage)
+                stage_dst = os.path.join(actual_output_path, stage_basename)
+                shutil.copy2(args.stage, stage_dst)
+                stage_crc32 = self.compute_crc32(stage_dst)
+                manifest["updater_stage_crc32"] = stage_crc32
+                manifest["updater_stage"] = stage_basename
 
-        if args.dfu:
-            dfu_dst = os.path.join(args.output, os.path.basename(args.dfu))
-            shutil.copy2(args.dfu, dfu_dst)
-            manifest["updater_dfu"] = os.path.basename(dfu_dst)
+            # Handle resources
+            if args.resources:  # args.resources is the input folder for resources
+                generated_resources_tar_filename = "resources.tar"
+                # This is the path *within* the (possibly temporary) output bundle structure
+                resources_bundle_tar_path = os.path.join(
+                    actual_output_path, generated_resources_tar_filename
+                )
 
-        # Write update.json
-        manifest_path = os.path.join(args.output, "update.json")
-        with open(manifest_path, "w") as f:
-            json.dump(manifest, f, indent=4)
-        self.logger.info(f"Update bundle created at {args.output}")
-        return 0
+                self.logger.info(
+                    f"Creating TAR archive for resources from folder: {args.resources} into {resources_bundle_tar_path}"
+                )
+                try:
+                    self.create_tar_from_folder(
+                        resources_bundle_tar_path, args.resources
+                    )
+                    manifest["updater_resources"] = generated_resources_tar_filename
+                    self.logger.info(
+                        f"Successfully created {resources_bundle_tar_path}"
+                    )
+                except Exception as e:
+                    self.logger.error(
+                        f"Failed to create TAR from {args.resources}: {e}"
+                    )
+                    return 1
+
+            if args.sil_fw:
+                sil_fw_basename = os.path.basename(args.sil_fw)
+                sil_fw_dst = os.path.join(actual_output_path, sil_fw_basename)
+                shutil.copy2(args.sil_fw, sil_fw_dst)
+                manifest["updater_sil_fw"] = sil_fw_basename
+
+            if args.sil_radio_fw:
+                sil_radio_fw_basename = os.path.basename(args.sil_radio_fw)
+                sil_radio_fw_dst = os.path.join(
+                    actual_output_path, sil_radio_fw_basename
+                )
+                shutil.copy2(args.sil_radio_fw, sil_radio_fw_dst)
+                manifest["updater_sil_radio_fw"] = sil_radio_fw_basename
+
+            if args.dfu:
+                dfu_basename = os.path.basename(args.dfu)
+                dfu_dst = os.path.join(actual_output_path, dfu_basename)
+                shutil.copy2(args.dfu, dfu_dst)
+                manifest["updater_dfu"] = dfu_basename
+
+            # Write update.json
+            manifest_path = os.path.join(actual_output_path, "update.json")
+            with open(manifest_path, "w") as f:
+                json.dump(manifest, f, indent=4)
+
+            if is_tar_output:
+                self.logger.info(
+                    f"Creating final update bundle TAR archive at: {args.output_tar}"
+                )
+                self.create_tar_from_folder(
+                    args.output_tar, actual_output_path
+                )  # actual_output_path is the temp_dir
+                self.logger.info(
+                    f"Update bundle TAR archive created at {args.output_tar}"
+                )
+            else:
+                self.logger.info(f"Update bundle folder created at {args.output}")
+
+            return 0
+
+        except Exception as e:
+            self.logger.error(f"An error occurred during update bundle creation: {e}")
+            return 1
+        finally:
+            if temp_dir_path:
+                self.logger.info(f"Cleaning up temporary directory: {temp_dir_path}")
+                shutil.rmtree(temp_dir_path)
 
     @staticmethod
     def compute_crc32(filepath):
@@ -129,8 +189,7 @@ class Main(App):
             return tarinfo
 
         if not os.path.isdir(source_dir):
-            self.logger.error(f"Resources folder not found: {source_dir}")
-            raise FileNotFoundError(f"Resources folder not found: {source_dir}")
+            raise FileNotFoundError(f"Source directory not found: {source_dir}")
 
         with tarfile.open(output_filename, "w") as tar:
             self.logger.debug(
