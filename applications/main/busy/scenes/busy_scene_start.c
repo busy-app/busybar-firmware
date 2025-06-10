@@ -42,25 +42,27 @@ static void busy_scene_start_on_enter(void* context) {
         data->front_layout = flex_layout_alloc(instance->front_window, FlexLayoutTypeRow);
 
         data->front_logo = anim_image_alloc(flex_layout_get_base(data->front_layout));
-        anim_image_set_source(data->front_logo, BUSY_ANIM_PATH("A_start_logo_41x16.anim"));
-        anim_image_start(data->front_logo);
+        anim_image_set_source(data->front_logo, BUSY_ANIM_PATH("start_logo_41x16.anim"));
+        anim_image_set_loop(data->front_logo, false);
 
         data->front_menu = anim_menu_alloc(flex_layout_get_base(data->front_layout));
         anim_menu_set_callback(data->front_menu, busy_scene_start_menu_callback, instance);
         anim_menu_set_source(
             data->front_menu,
-            BUSY_ANIM_PATH("A_start_menu_31x16.anim"),
+            BUSY_ANIM_PATH("start_menu_31x16.anim"),
             ANIM_MENU_IDLE_FRAMES,
             ANIM_MENU_TRANSITION_FRAMES);
 
         data->back_layout = flex_layout_alloc(instance->back_window, FlexLayoutTypeColumn);
 
         data->back_header = nav_header_alloc(flex_layout_get_base(data->back_layout));
-        nav_header_set_image(data->back_header, (const void*)&I_header_busy_39x16);
+        nav_header_set_image(data->back_header, BUSY_IMG_PATH("header_busy_39x16.bin"));
 
         data->back_menu = menu_alloc(flex_layout_get_base(data->back_layout));
-        menu_add_item(data->back_menu, "START", NULL, (const void*)&I_start_12x12, 0, NULL, NULL);
-        menu_add_item(data->back_menu, "SETUP", NULL, (const void*)&I_setup_12x12, 0, NULL, NULL);
+        menu_add_item(
+            data->back_menu, "START", NULL, BUSY_IMG_PATH("start_12x12.bin"), 0, NULL, NULL);
+        menu_add_item(
+            data->back_menu, "SETUP", NULL, BUSY_IMG_PATH("setup_12x12.bin"), 0, NULL, NULL);
 
         widget_set_visible(timer_card_get_base(instance->timer_card), false);
     });
@@ -88,7 +90,7 @@ static bool busy_scene_start_on_event(const SceneManagerEvent* event, void* cont
 
     if(event->type == SceneManagerEventTypeCustom) {
         if(event->event == BusySceneStartMenuIndexStart) {
-            busy_prepare_transition(instance, BusyTransitionTypeWhite);
+            busy_prepare_transition(instance, BusyTransitionTypeWhiteSelect);
             scene_manager_next_scene(instance->scene_manager, BusyAppSceneIdOverview);
 
         } else if(event->event == BusySceneStartMenuIndexSetup) {

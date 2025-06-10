@@ -13,7 +13,7 @@ static void busy_scene_overview_run_later_callback(void* context) {
     furi_assert(context);
     BusyApp* instance = context;
 
-    busy_prepare_transition(instance, BusyTransitionTypeBlack);
+    busy_prepare_transition(instance, BusyTransitionTypeBlackMask);
     scene_manager_next_scene(instance->scene_manager, BusyAppSceneIdTimer);
 }
 
@@ -28,7 +28,7 @@ static void busy_scene_overview_on_enter(void* context) {
 
     with_gui(instance->gui, {
         data->front_bg_anim = anim_image_alloc(instance->front_window);
-        anim_image_set_source(data->front_bg_anim, BUSY_ANIM_PATH("A_overview_41x16.anim"));
+        anim_image_set_source(data->front_bg_anim, BUSY_ANIM_PATH("overview_72x16.anim"));
         anim_image_set_loop(data->front_bg_anim, false);
 
         data->front_overview_label = overview_label_alloc(instance->front_window);

@@ -20,6 +20,7 @@ struct AnimImage {
     lv_timer_t* timer;
     uint8_t* canvas_buf;
     File* file;
+    uint32_t frame_rate;
     uint32_t frame_count;
     size_t frame_size;
     uint32_t current_idx;

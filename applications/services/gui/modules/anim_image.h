@@ -91,6 +91,22 @@ void anim_image_start(AnimImage* instance);
  */
 void anim_image_stop(AnimImage* instance);
 
+/**
+ * @brief Get the frame rate of the animation.
+ *
+ * @param[in] instance pointer to the AnimImage instance to be queried
+ * @returns frame rate in frames per second
+ */
+uint32_t anim_image_get_frame_rate(const AnimImage* instance);
+
+/**
+ * @brief Get the total number of frames in the animation.
+ *
+ * @param[in] instance pointer to the AnimImage instance to be queried
+ * @returns total number of frames in the animation
+ */
+uint32_t anim_image_get_frame_count(const AnimImage* instance);
+
 #ifdef __cplusplus
 }
 #endif

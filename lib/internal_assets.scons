@@ -1,0 +1,27 @@
+Import("env")
+
+from SCons.Util import splitext
+
+libenv = env.Clone(FW_LIB_NAME="internal_assets", tools=["bsb_assets"])
+libenv.ApplyLibFlags()
+
+img_header_dir = libenv.Dir("assets_internal")
+
+env.AppendUnique(
+    CPPPATH=[img_header_dir],
+)
+
+image_src_files = env.GlobRecursive("*.png", Dir("#/assets/images/internal"))
+
+sources = []
+
+for f in image_src_files:
+    internal_name = "I_" + splitext(f.name)[0]
+    file_node = libenv.File(internal_name + ".c")
+    sources.append(libenv.ImageConverter(file_node, f, IMAGE_FILE_FORMAT="C", IMAGE_INTERNAL_NAME=internal_name))
+
+libenv.ImageHeaderGenerator(img_header_dir.File("assets_images.h"), sources)
+
+lib = libenv.StaticLibrary("${FW_LIB_NAME}", sources)
+libenv.Install("${LIB_DIST_DIR}", lib)
+Return("lib")
