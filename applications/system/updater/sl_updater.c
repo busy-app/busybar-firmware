@@ -85,11 +85,12 @@ static int32_t kermit_src_file_read(void* context, uint8_t* buffer, size_t lengt
     int32_t bytes_read = storage_file_read(app->firmware_file, buffer, length);
 
     if(app->progress_callback && bytes_read > 0) {
-        uint32_t file_size = storage_file_size(app->firmware_file);
+        uint32_t file_size = storage_file_size(app->firmware_file) + 1;
         uint32_t file_pos = storage_file_tell(app->firmware_file);
         if(file_size > 0) {
             uint8_t percentage = (uint8_t)((file_pos * 100) / file_size);
-            app->progress_callback(percentage, app->progress_callback_context);
+            app->progress_callback(
+                SL_UPDATER_PROGRESS_PHASE_UPLOADING, percentage, app->progress_callback_context);
         }
     }
     return bytes_read;
@@ -293,6 +294,13 @@ static void sl_updater_handle_rx(SlUpdater* instance) {
         } else {
             FURI_LOG_I(TAG, "Kermit upload complete");
             instance->bootloader_state = Si917BootloaderStateWaitInstall;
+
+            if(instance->progress_callback) {
+                instance->progress_callback(
+                    SL_UPDATER_PROGRESS_PHASE_AWAITING_INSTALL,
+                    0,
+                    instance->progress_callback_context);
+            }
         }
         break;
 

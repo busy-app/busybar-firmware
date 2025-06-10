@@ -11,11 +11,21 @@ extern "C" {
 typedef struct SlUpdater SlUpdater;
 
 /**
+ * @brief Enum defining the phases of the SlUpdater progress.
+ */
+typedef enum {
+    SL_UPDATER_PROGRESS_PHASE_UPLOADING, /**< Firmware image is being uploaded */
+    SL_UPDATER_PROGRESS_PHASE_AWAITING_INSTALL, /**< Upload complete, awaiting installation */
+} SlUpdaterProgressPhase;
+
+/**
  * @brief Callback type for reporting firmware update progress.
- * @param percentage The current progress percentage (0-100).
+ * @param phase The current phase of the update process.
+ * @param percentage The current progress percentage (0-100) for the current phase.
  * @param context User-provided context.
  */
-typedef void (*SlUpdaterProgressCallback)(uint8_t percentage, void* context);
+typedef void (
+    *SlUpdaterProgressCallback)(SlUpdaterProgressPhase phase, uint8_t percentage, void* context);
 
 // Allocates and initializes a new SlUpdater instance
 SlUpdater* sl_updater_alloc(void);

@@ -22,11 +22,35 @@ static const DfuValidationParams bsb_dfu_params = {
     .vendor = STM_DFU_VENDOR_ID,
 };
 
-static void update_task_sl_updater_progress_callback(uint8_t percentage, void* context) {
+// This function is declared in update_task_i.h and used throughout this file.
+// We assume its definition allows setting stage and progress.
+// void update_task_set_progress(UpdateTask* update_task, UpdateTaskStage stage, uint8_t stage_progress);
+
+static void update_task_sl_updater_progress_callback(
+    SlUpdaterProgressPhase phase,
+    uint8_t percentage,
+    void* context) {
     UpdateTask* update_task = context;
-    // Assuming the current stage is already set (e.g., UpdateTaskStage917RadioWrite)
-    // This callback will update the percentage of that specific stage.
-    update_task_set_progress(update_task, UpdateTaskStageProgress, percentage);
+    furi_assert(update_task);
+
+    const UpdateTaskState* current_task_state = update_task_get_state(update_task);
+    UpdateTaskStage current_stage = current_task_state->stage;
+
+    switch(phase) {
+    case SL_UPDATER_PROGRESS_PHASE_UPLOADING:
+        // Update progress for the current uploading stage
+        update_task_set_progress(update_task, current_stage, percentage);
+        break;
+    case SL_UPDATER_PROGRESS_PHASE_AWAITING_INSTALL:
+        if(current_stage == UpdateTaskStage917RadioWrite) {
+            update_task_set_progress(update_task, UpdateTaskStage917RadioInstall, 0);
+        } else if(current_stage == UpdateTaskStage917Write) {
+            update_task_set_progress(update_task, UpdateTaskStage917Install, 0);
+        }
+        break;
+    default:
+        break;
+    }
 }
 
 static bool update_task_flash_program_page(

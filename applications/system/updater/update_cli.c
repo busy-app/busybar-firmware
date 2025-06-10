@@ -12,9 +12,19 @@
 #include <toolbox/update_lib/update_config.h>
 #include <toolbox/update_lib/common_vals.h>
 
-static void updater_cli_progress_callback(uint8_t percentage, void* context) {
+static void
+    updater_cli_progress_callback(SlUpdaterProgressPhase phase, uint8_t percentage, void* context) {
     UNUSED(context);
-    printf("Update progress: %d%%\r", percentage);
+    switch(phase) {
+    case SL_UPDATER_PROGRESS_PHASE_UPLOADING:
+        printf("Uploading: %d%%\r", percentage);
+        break;
+    case SL_UPDATER_PROGRESS_PHASE_AWAITING_INSTALL:
+        printf("\nUpload complete. Awaiting installation...\r\n");
+        break;
+    default:
+        break;
+    }
 }
 
 static void updater_cli_command_print_usage(void) {
