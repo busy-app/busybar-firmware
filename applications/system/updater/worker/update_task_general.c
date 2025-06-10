@@ -69,13 +69,15 @@ static bool update_task_write_dfu(UpdateTask* update_task) {
 
     bool success = false;
     do {
+        update_task_set_progress(update_task, UpdateTaskStageReadManifest, 0);
         CHECK_RESULT(update_task_open_file(
             update_task,
             updater_manifest_get_path(
                 update_config_get_manifest(update_task->config), UpdateManifestPathDfu)));
 
+        update_task_set_progress(update_task, UpdateTaskStageValidateDFUImage, 0);
         File* dfu_file = update_task->file;
-        CHECK_RESULT(dfu_file_validate_crc(dfu_file, NULL, NULL));
+        CHECK_RESULT(dfu_file_validate_crc(dfu_file, update_task_file_progress, update_task));
 
         uint8_t n_targets = dfu_file_validate_headers(dfu_file, &bsb_dfu_params);
         FURI_LOG_I(TAG, "DFU targets: %u", n_targets);
