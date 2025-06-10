@@ -180,6 +180,5 @@ extern void furi_hal_interrupt_assert_valid_priority(void);
 
 // #define portASSERT_IF_INTERRUPT_PRIORITY_INVALID() furi_hal_interrupt_assert_valid_priority()
 
-
 // Must be last line of config because of recursion
 #include <core/check.h>

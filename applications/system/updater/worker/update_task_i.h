@@ -1,10 +1,10 @@
 #pragma once
 
 #include "update_task.h"
-#include "../update_config.h"
 
-#include <storage/storage.h>
 #include <furi_hal.h>
+#include <storage/storage.h>
+#include <toolbox/update_lib/update_config.h>
 
 #define UPDATE_TASK_NOERR  0
 #define UPDATE_TASK_FAILED -1

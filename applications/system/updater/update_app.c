@@ -1,21 +1,21 @@
-#include "update_config.h"
-
-#include <toolbox/update_lib/dfu_file.h>
-#include <toolbox/update_lib/update_manifest.h>
-#include <toolbox/update_lib/common_vals.h>
-#include <toolbox/path.h>
+#include "worker/update_task.h"
 
 #include <furi_hal_flash.h>
 #include <furi_hal_power.h>
 #include <furi.h>
 #include <furi_hal_nvm.h>
+
 #include <storage/storage.h>
 
 #include <gui/gui.h>
 #include <gui/modules/flex_layout.h>
 #include <gui/modules/label.h>
 
-#include "worker/update_task.h"
+#include <toolbox/path.h>
+#include <toolbox/update_lib/dfu_file.h>
+#include <toolbox/update_lib/update_manifest.h>
+#include <toolbox/update_lib/common_vals.h>
+#include <toolbox/update_lib/update_config.h>
 
 #define TAG "UpdaterApp"
 

@@ -1,22 +1,20 @@
 #include "update_task_i.h"
+#include "update_task.h"
 
+#include "../sl_updater.h"
+#include "../sl_update_params.h"
+
+#include <toolbox/path.h>
+#include <toolbox/tar/tar_archive.h>
 #include <toolbox/update_lib/dfu_file.h>
 #include <toolbox/update_lib/resources/manifest.h>
-#include <toolbox/tar/tar_archive.h>
-#include <toolbox/path.h>
-#include "../sl_updater.h" // For SlUpdater
-#include <toolbox/update_lib/update_manifest.h> // For UpdateManifestPathType and updater_manifest_get_path
-#include "update_task.h" // Added include for UpdateTaskStage enums
+#include <toolbox/update_lib/update_manifest.h>
 
 #define TAG "UpdateTask"
 
 #define STM_DFU_VENDOR_ID   0x0483
 #define STM_DFU_PRODUCT_ID  0xDF11
 #define BSB_DFU_DEVICE_CODE 0xFFFF
-
-#define SL_UPDATE_NWP_COMM_TIMEOUT_S 30
-#define SL_UPDATE_M4_COMM_TIMEOUT_S  15
-#define SL_UPDATE_RETRIES            3
 
 static const DfuValidationParams bsb_dfu_params = {
     .device = BSB_DFU_DEVICE_CODE,

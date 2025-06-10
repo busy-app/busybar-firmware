@@ -1,5 +1,5 @@
 #include "sl_updater.h"
-#include "update_config.h"
+#include "sl_update_params.h"
 
 #include <furi.h>
 #include <furi_hal_nvm.h>
@@ -9,13 +9,8 @@
 #include <cli/cli.h>
 
 #include <toolbox/args.h>
+#include <toolbox/update_lib/update_config.h>
 #include <toolbox/update_lib/common_vals.h>
-
-#define SL_UPDATE_M4_COMM_TIMEOUT_S  (15)
-#define SL_UPDATE_NWP_COMM_TIMEOUT_S (30)
-
-#define SL_UPDATE_RETRIES  (3)
-#define SL_PROBING_RETRIES (3)
 
 static void updater_cli_progress_callback(uint8_t percentage, void* context) {
     UNUSED(context);
