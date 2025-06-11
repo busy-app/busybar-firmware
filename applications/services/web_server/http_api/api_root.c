@@ -143,6 +143,12 @@ static const HttpHandler handlers_api_root[] = {
         .ctx_free = http_api_audio_free,
         .on_request = http_api_audio_callback,
     },
+    {
+        .uri = "status",
+        .method = "GET",
+        .type = HttpHandlerCustom,
+        .on_request = http_api_status_callback,
+    },
 };
 
 typedef struct {

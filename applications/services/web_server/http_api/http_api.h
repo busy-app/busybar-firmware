@@ -47,6 +47,13 @@ bool http_api_audio_callback(
     struct mg_http_message* msg,
     void* ctx);
 
+// Status
+bool http_api_status_callback(
+    FuriString* path,
+    struct mg_connection* conn,
+    struct mg_http_message* msg,
+    void* ctx);
+
 // WebSocket test
 void* http_websocket_alloc(void);
 void http_websocket_free(void* ctx);
