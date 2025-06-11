@@ -38,7 +38,7 @@ static const HttpHandler handlers_root[] = {
         .type = HttpHandlerDir,
         .path = WEB_ROOT,
         .mime_types_custom = NULL,
-        .extra_headers = NULL,
+        .extra_headers = HEADER_CORS,
     },
 };
 

@@ -164,6 +164,13 @@ bool update_config_write_pointer_file(Storage* storage, const char* manifest_pat
     furi_check(storage);
     furi_check(manifest_path);
 
+    FURI_LOG_D(TAG, "Saving '%s' to pointer file", manifest_path);
+
+    if(!storage_file_exists(storage, manifest_path)) {
+        FURI_LOG_E(TAG, "Manifest path '%s' does not exist", manifest_path);
+        return false;
+    }
+
     bool success = false;
     File* pointer_file = storage_file_alloc(storage);
 

@@ -92,6 +92,56 @@ paths:
               schema:
                 $ref: '#/components/schemas/Error'
 
+  /api/v0/update:
+    post:
+      tags:
+        - System
+      summary: Update firmware
+      description: Uploads a firmware update package (TAR file) and initiates the update process.
+      operationId: updateFirmware
+      parameters:
+        - name: name
+          in: query
+          required: true
+          schema:
+            type: string
+            pattern: '^[a-zA-Z0-9._-]+$'
+          description: Name for the update package. The update will be unpacked to /ext/update/<name>.
+          example: "update_package"
+      requestBody:
+        required: true
+        content:
+          application/octet-stream:
+            schema:
+              type: string
+              format: binary
+              description: Firmware update TAR file.
+      responses:
+        '200':
+          description: Update initiated successfully. The device will reboot.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        '400':
+          description: Invalid parameters, invalid TAR file, or update preparation failed.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '413':
+          description: Update package too large.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Internal server error during update process.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
   /api/v0/assets/upload:
     post:
       tags:

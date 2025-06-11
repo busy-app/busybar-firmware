@@ -30,3 +30,12 @@ bool http_api_audio_callback(struct mg_connection* conn, struct mg_http_message*
 void* http_websocket_alloc(void);
 void http_websocket_free(void* ctx);
 bool http_websocket_callback(struct mg_connection* conn, struct mg_http_message* msg, void* ctx);
+
+// Update API
+void* http_api_update_alloc(void);
+void http_api_update_free(void* ctx);
+bool http_api_update_callback(struct mg_connection* conn, struct mg_http_message* msg, void* ctx);
+bool http_api_update_hdr_callback(
+    struct mg_connection* conn,
+    struct mg_http_message* msg,
+    void* ctx);

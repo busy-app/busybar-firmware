@@ -217,13 +217,12 @@ static void sl_updater_handle_rx(SlUpdater* instance) {
             furi_hal_serial_tx(instance->serial_handle, &leader, sizeof(leader));
             if(furi_hal_serial_set_auto_baud_rate(
                    instance->serial_handle,
-                   FuriHalSerialAutoBaudRateMode0x55Frame, // Corrected enum name
+                   FuriHalSerialAutoBaudRateMode0x55Frame,
                    SL_UPDATER_AUTO_BAUD_RATE_TIMEOUT_MS)) {
                 FURI_LOG_I(
                     TAG,
                     "Baud rate auto set %ld",
-                    furi_hal_serial_get_baud_rate(
-                        instance->serial_handle)); // Corrected function name
+                    furi_hal_serial_get_baud_rate(instance->serial_handle));
             } else {
                 FURI_LOG_E(TAG, "Baud rate auto set failed");
             }
