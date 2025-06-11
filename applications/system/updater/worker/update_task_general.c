@@ -22,10 +22,6 @@ static const DfuValidationParams bsb_dfu_params = {
     .vendor = STM_DFU_VENDOR_ID,
 };
 
-// This function is declared in update_task_i.h and used throughout this file.
-// We assume its definition allows setting stage and progress.
-// void update_task_set_progress(UpdateTask* update_task, UpdateTaskStage stage, uint8_t stage_progress);
-
 static void update_task_sl_updater_progress_callback(
     SlUpdaterProgressPhase phase,
     uint8_t percentage,
@@ -38,8 +34,7 @@ static void update_task_sl_updater_progress_callback(
 
     switch(phase) {
     case SL_UPDATER_PROGRESS_PHASE_UPLOADING:
-        // Update progress for the current uploading stage
-        update_task_set_progress(update_task, current_stage, percentage);
+        update_task_set_progress(update_task, UpdateTaskStageProgress, percentage);
         break;
     case SL_UPDATER_PROGRESS_PHASE_AWAITING_INSTALL:
         if(current_stage == UpdateTaskStage917RadioWrite) {
@@ -303,7 +298,7 @@ static bool update_task_write_917(UpdateTask* update_task, bool use_stack_image)
                firmware_path_cstr,
                use_stack_image,
                use_stack_image ? SL_UPDATE_NWP_COMM_TIMEOUT_S : SL_UPDATE_M4_COMM_TIMEOUT_S,
-               (uint8_t)i)) { // baud_throttle_ratio
+               (uint8_t)i)) {
             FURI_LOG_I(TAG, "%s flashed", img_type);
             success = true;
             break;
