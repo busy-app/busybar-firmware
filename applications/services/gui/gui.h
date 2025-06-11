@@ -68,17 +68,6 @@ void gui_lock(Gui* instance);
 void gui_unlock(Gui* instance);
 
 /**
- * @brief Force a redraw of all displays.
- *
- * This function will cause the GUI to redraw all displays, regardless of whether
- * they are currently visible or not. It is useful for ensuring that the GUI is
- * in a consistent state after making changes to widgets or layers.
- *
- * @param[in,out] instance pointer to the Gui instance
- */
-void gui_force_redraw(Gui* instance);
-
-/**
  * @brief
  */
 GuiLayer* gui_get_layer(Gui* instance, GuiLayerId layer_id);

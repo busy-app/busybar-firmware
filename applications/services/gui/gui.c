@@ -266,19 +266,6 @@ void gui_unlock(Gui* instance) {
     lv_unlock();
 }
 
-void gui_force_redraw(Gui* instance) {
-    furi_check(instance);
-
-    gui_lock(instance);
-    for(GuiDisplayId display_id = 0; display_id < GuiDisplayIdMax; ++display_id) {
-        GuiDisplay* display = &instance->displays[display_id];
-
-        // this will invalidate the whole display
-        lv_display_set_offset(display->lv_display, 0, 0);
-    }
-    gui_unlock(instance);
-}
-
 GuiLayer* gui_get_layer(Gui* instance, GuiLayerId layer_id) {
     furi_check(instance);
     furi_check(layer_id < GuiLayerIdMax);
