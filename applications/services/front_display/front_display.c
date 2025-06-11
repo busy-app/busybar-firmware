@@ -14,8 +14,16 @@
 
 #define FRONT_DISPLAY_FRAME_SIZE (FRONT_DISPLAY_W * FRONT_DISPLAY_H * 3) // RGB888
 
+#define FRONT_DISPLAY_DEBUG_ENABLE
+
+#ifdef FRONT_DISPLAY_DEBUG_ENABLE
+#define FRONT_DISPLAY_DEBUG(...) FURI_LOG_D(TAG, __VA_ARGS__)
+#else
+#define FRONT_DISPLAY_DEBUG(...)
+#endif
+
 struct FrontDisplaySrv {
-    uint8_t sensor_brightness, brightness_override;
+    uint32_t sensor_level, brightness_override;
     Power* power;
     FuriEventLoop* event_loop;
     FuriMessageQueue* message_queue;
@@ -31,6 +39,7 @@ typedef enum {
     FrontDisplayMessageTypeDraw,
     FrontDisplayMessageTypeDrawEnd,
     FrontDisplayMessageTypeBrightness,
+    FrontDisplayMessageTypeLightSensor,
     FrontDisplayMessageTypeOn,
     FrontDisplayMessageTypeOff,
 } FrontDisplayMessageType;
@@ -71,24 +80,6 @@ void front_display_set_brightness(FrontDisplaySrv* instance, uint8_t brightness)
         FuriStatusOk);
 }
 
-static uint8_t front_display_get_brightness(FrontDisplaySrv* instance) {
-    return (instance->brightness_override == FRONT_DISPLAY_BRIGHTNESS_AUTO) ?
-               instance->sensor_brightness :
-               instance->brightness_override;
-}
-
-static uint8_t front_display_light_sensor_level_to_brightness(uint8_t light_level) {
-    uint8_t constrained_light = MIN(light_level, LIGHT_SENSOR_LIGHT_LEVEL_MAX);
-
-    // Apply a non-linear mapping to better match human perception
-    uint8_t brightness = AUTO_BRIGHTNESS_MIN_LEVEL +
-                         ((AUTO_BRIGHTNESS_MAX_LEVEL - AUTO_BRIGHTNESS_MIN_LEVEL) *
-                          constrained_light * constrained_light) /
-                             (LIGHT_SENSOR_LIGHT_LEVEL_MAX * LIGHT_SENSOR_LIGHT_LEVEL_MAX);
-
-    return MIN(MAX(brightness, AUTO_BRIGHTNESS_MIN_LEVEL), AUTO_BRIGHTNESS_MAX_LEVEL);
-}
-
 static void front_display_light_sensor_event(const void* event_message, void* context) {
     furi_assert(event_message);
     furi_assert(context);
@@ -100,8 +91,15 @@ static void front_display_light_sensor_event(const void* event_message, void* co
         return;
     }
 
-    uint8_t brightness = front_display_light_sensor_level_to_brightness(event->light_level);
-    front_display_set_brightness(instance, brightness);
+    FrontDisplayMessage message = {
+        .api_lock = NULL, // No need for API lock here
+        .type = FrontDisplayMessageTypeLightSensor,
+        .brightness = event->light_level,
+    };
+
+    furi_check(
+        furi_message_queue_put(instance->message_queue, &message, FuriWaitForever) ==
+        FuriStatusOk);
 }
 
 static void front_display_update_done_callback(void* context) {
@@ -130,7 +128,7 @@ static void front_display_power_irq_callback(void* context) {
     furi_check(furi_message_queue_put(instance->message_queue, &message, 0) == FuriStatusOk);
 }
 
-static void front_display_power_control_init(FrontDisplaySrv* instance) {
+static void front_display_power_pin_init(FrontDisplaySrv* instance) {
     // Open-drain output with pull-up
     furi_hal_gpio_init(
         &gpio_front_display_power_en, GpioModeInterruptRiseFall, GpioPullUp, GpioSpeedLow);
@@ -162,12 +160,38 @@ static void front_display_power_reset(void) {
     furi_hal_gpio_enable_int_callback(&gpio_front_display_power_en);
 }
 
+static uint8_t front_display_light_sensor_level_to_brightness(uint8_t light_level) {
+    uint8_t constrained_light = MIN(light_level, LIGHT_SENSOR_LIGHT_LEVEL_MAX);
+
+    // Apply a non-linear mapping to better match human perception
+    uint8_t brightness = AUTO_BRIGHTNESS_MIN_LEVEL +
+                         ((AUTO_BRIGHTNESS_MAX_LEVEL - AUTO_BRIGHTNESS_MIN_LEVEL) *
+                          constrained_light * constrained_light) /
+                             (LIGHT_SENSOR_LIGHT_LEVEL_MAX * LIGHT_SENSOR_LIGHT_LEVEL_MAX);
+
+    return MIN(MAX(brightness, AUTO_BRIGHTNESS_MIN_LEVEL), AUTO_BRIGHTNESS_MAX_LEVEL);
+}
+
+static uint32_t front_display_get_brightness(uint32_t brightness_override, uint8_t sensor_level) {
+    if(brightness_override == FRONT_DISPLAY_BRIGHTNESS_AUTO) {
+        return front_display_light_sensor_level_to_brightness(sensor_level);
+    } else {
+        return brightness_override;
+    }
+}
+
 static void front_display_start(FrontDisplaySrv* display) {
     front_display_scan_init();
-    front_display_driver_init(front_display_get_brightness(display));
+    uint32_t brightness =
+        front_display_get_brightness(display->brightness_override, display->sensor_level);
+    front_display_driver_init(brightness);
     front_display_driver_set_update_callback(front_display_update_done_callback, display);
     front_display_scan_start();
     front_display_driver_start();
+
+    // We are sending initializaion sequence via DMA, so we need to wait a bit
+    // TODO: replace with a proper synchronization mechanism
+    furi_delay_ms(5);
 }
 
 static void front_display_stop(void) {
@@ -189,29 +213,49 @@ static void front_display_message_queue_callback(FuriEventLoopObject* object, vo
     switch(message.type) {
     case FrontDisplayMessageTypeDraw:
         furi_check(message.frame_buffer);
-
+        FRONT_DISPLAY_DEBUG("Front display draw request");
         memcpy(display->last_frame, message.frame_buffer, FRONT_DISPLAY_FRAME_SIZE);
 
         if(display->enabled && !display->send_in_progress) {
             display->need_update = false;
             display->send_in_progress = true;
-            front_display_driver_send_frame(message.frame_buffer);
+            front_display_driver_send_frame(display->last_frame);
+            FRONT_DISPLAY_DEBUG("Front display frame sent");
         } else {
             display->need_update = true;
+            FRONT_DISPLAY_DEBUG("Front display frame queued for later");
         }
 
         break;
     case FrontDisplayMessageTypeDrawEnd:
         display->send_in_progress = false;
+        FRONT_DISPLAY_DEBUG("Front display draw end");
         break;
 
+    case FrontDisplayMessageTypeLightSensor:
+        display->sensor_level = message.brightness;
+        {
+            uint32_t brightness =
+                front_display_get_brightness(display->brightness_override, display->sensor_level);
+            FRONT_DISPLAY_DEBUG(
+                "Updating front display brightness to %ld from light sensor", brightness);
+            front_display_driver_set_brightness(brightness);
+        }
+        display->need_update = true;
+        break;
     case FrontDisplayMessageTypeBrightness:
-        front_display_driver_set_brightness(message.brightness);
+        display->brightness_override = message.brightness;
+        {
+            uint32_t brightness =
+                front_display_get_brightness(display->brightness_override, display->sensor_level);
+            FRONT_DISPLAY_DEBUG("Updating front display brightness to %ld", brightness);
+            front_display_driver_set_brightness(brightness);
+        }
         display->need_update = true;
         break;
     case FrontDisplayMessageTypeOn:
         if(!display->enabled) {
-            FURI_LOG_I(TAG, "Turning on front display");
+            FRONT_DISPLAY_DEBUG("Turning on front display");
 
             front_display_power_reset();
             front_display_start(display);
@@ -222,7 +266,7 @@ static void front_display_message_queue_callback(FuriEventLoopObject* object, vo
 
         break;
     case FrontDisplayMessageTypeOff:
-        FURI_LOG_I(TAG, "Turning off front display");
+        FRONT_DISPLAY_DEBUG("Turning off front display");
         front_display_stop();
         display->enabled = false;
         display->send_in_progress = false;
@@ -234,6 +278,7 @@ static void front_display_message_queue_callback(FuriEventLoopObject* object, vo
     }
 
     if(display->enabled && !display->send_in_progress && display->need_update) {
+        FRONT_DISPLAY_DEBUG("Sending queued front display frame");
         display->need_update = false;
         display->send_in_progress = true;
         front_display_driver_send_frame(display->last_frame);
@@ -244,7 +289,7 @@ static FrontDisplaySrv* front_display_alloc(void) {
     FrontDisplaySrv* instance = malloc(sizeof(FrontDisplaySrv));
 
     instance->brightness_override = FRONT_DISPLAY_BRIGHTNESS_AUTO;
-    instance->sensor_brightness = 0;
+    instance->sensor_level = 0;
 
     instance->event_loop = furi_event_loop_alloc();
     instance->message_queue = furi_message_queue_alloc(8, sizeof(FrontDisplayMessage));
@@ -263,7 +308,7 @@ static FrontDisplaySrv* front_display_alloc(void) {
 
     FURI_LOG_I(TAG, "Front Display Service started");
 
-    front_display_power_control_init(instance);
+    front_display_power_pin_init(instance);
     instance->enabled = true;
 
     front_display_start(instance);
