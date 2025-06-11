@@ -20,128 +20,12 @@ struct FrontDisplaySrv {
     FuriEventLoop* event_loop;
     FuriMessageQueue* message_queue;
     FuriPubSub* light_sensor_pubsub;
-    bool is_on;
+    bool enabled;
     bool send_in_progress;
     bool need_update;
 
     uint8_t last_frame[FRONT_DISPLAY_FRAME_SIZE];
 };
-
-// static void front_display_apply_brightness_level(FrontDisplaySrv* instance) {
-//     const uint8_t brightness = (instance->brightness_override == FRONT_DISPLAY_BRIGHTNESS_AUTO) ?
-//                                    instance->sensor_brightness :
-//                                    instance->brightness_override;
-
-//     const FrontDisplaySrvMessage message = {
-//         .type = FrontDisplaySrvMessageTypeBrightness,
-//         .brightness = brightness,
-//     };
-//     front_display_send_message(instance, &message);
-// }
-
-// void front_display_set_brightness(FrontDisplaySrv* instance, uint8_t brightness) {
-//     furi_check(instance);
-
-//     instance->brightness_override = brightness;
-//     front_display_apply_brightness_level(instance);
-// }
-
-// static void front_display_update_done_callback(void* context) {
-//     FrontDisplaySrv* instance = context;
-//     furi_event_loop_set_custom_event(instance->event_loop, FrontDisplaySrvEventUpdateDone);
-// }
-
-// static void front_display_srv_custom_event_callback(uint32_t events, void* context) {
-//     FrontDisplaySrv* instance = context;
-
-//     if(events == FrontDisplaySrvEventMessage) {
-//         const FrontDisplaySrvMessage* message = instance->message;
-//         const FrontDisplaySrvMessageType message_type = message->type;
-
-//         if(message_type == FrontDisplaySrvMessageTypeBrightness) {
-//             front_display_driver_set_brightness(message->brightness);
-//             if(instance->frame_buf_ptr) front_display_driver_send_frame(instance->frame_buf_ptr);
-//             furi_event_flag_set(instance->event_flag, FrontDisplaySrvEventFlagDone);
-//         } else if(message_type == FrontDisplaySrvMessageTypeDraw) {
-//             front_display_driver_send_frame(message->frame_buffer);
-//             furi_event_flag_set(instance->event_flag, FrontDisplaySrvEventFlagDone);
-//             if(instance->frame_buf_ptr == NULL) instance->frame_buf_ptr = message->frame_buffer;
-//         }
-
-//     } else if(events == FrontDisplaySrvEventUpdateDone) {
-//         furi_event_flag_set(instance->event_flag, FrontDisplaySrvEventFlagReady);
-
-//     } else {
-//         furi_crash(TAG ": Multiple events");
-//     }
-// }
-
-// static void front_display_srv_power_event(const void* message, void* context) {
-//     furi_assert(message);
-//     furi_assert(context);
-
-//     const PowerEvent* event = message;
-//     FrontDisplaySrv* instance = context;
-
-//     if(event->type == PowerEventReady) {
-//         furi_semaphore_release(instance->power_ready_sem);
-//     }
-//     // TODO: React on overheat or low power budget by limiting brightness
-// }
-
-// static FrontDisplaySrv* front_display_srv_alloc(void) {
-//     FrontDisplaySrv* instance = malloc(sizeof(FrontDisplaySrv));
-
-//     // Must be first to ensure that power subsystem is OK
-//     instance->power = furi_record_open(RECORD_POWER);
-//     if(!power_is_battery_ready(instance->power)) {
-//         instance->power_ready_sem = furi_semaphore_alloc(1, 0);
-//         furi_pubsub_subscribe(
-//             power_get_pubsub(instance->power), front_display_srv_power_event, instance);
-//         furi_check(
-//             furi_semaphore_acquire(instance->power_ready_sem, FuriWaitForever) == FuriStatusOk);
-//         furi_semaphore_free(instance->power_ready_sem);
-//     }
-
-//     instance->brightness_override = FRONT_DISPLAY_BRIGHTNESS_AUTO;
-//     instance->sensor_brightness = BRIGHTNESS_VAL_MIN;
-//     instance->frame_buf_ptr = NULL;
-
-//     instance->event_loop = furi_event_loop_alloc();
-//     instance->event_flag = furi_event_flag_alloc();
-
-//     furi_event_loop_set_custom_event_callback(
-//         instance->event_loop, front_display_srv_custom_event_callback, instance);
-
-//     furi_hal_gpio_init_simple(&gpio_front_display_power_en, GpioModeOutputPushPull);
-//     furi_hal_gpio_write(&gpio_front_display_power_en, true);
-//     furi_delay_ms(50);
-
-//     front_display_scan_init();
-//     front_display_driver_init(instance->sensor_brightness);
-//     front_display_driver_set_update_callback(front_display_update_done_callback, instance);
-
-//     front_display_scan_start();
-//     front_display_driver_start();
-
-//     instance->light_sensor_pubsub = furi_record_open(RECORD_LIGHT_SENSOR_EVENTS);
-//     furi_pubsub_subscribe(
-//         instance->light_sensor_pubsub, front_display_srv_light_sensor_event, instance);
-
-//     furi_event_flag_set(instance->event_flag, FrontDisplaySrvEventFlagReady);
-
-//     furi_record_create(RECORD_FRONT_DISPLAY, instance);
-//     return instance;
-// }
-
-// int32_t front_display_srv(void* p) {
-//     UNUSED(p);
-
-//     FrontDisplaySrv* instance = front_display_srv_alloc();
-//     furi_event_loop_run(instance->event_loop);
-
-//     return 0;
-// }
 
 typedef enum {
     FrontDisplayMessageTypeDraw,
@@ -220,17 +104,6 @@ static void front_display_light_sensor_event(const void* event_message, void* co
     front_display_set_brightness(instance, brightness);
 }
 
-// static void front_display_power_enable(FrontDisplaySrv* instance, bool enable) {
-//     instance->is_on = enable;
-//     furi_hal_gpio_write(&gpio_front_display_power_en, enable);
-//     if(enable) {
-//         furi_delay_ms(50); // Allow time for the display to power up
-//         front_display_driver_send_cmd_init();
-//         front_display_scan_start();
-//         front_display_driver_start();
-//     }
-// }
-
 static void front_display_update_done_callback(void* context) {
     FrontDisplaySrv* instance = context;
 
@@ -258,6 +131,7 @@ static void front_display_power_irq_callback(void* context) {
 }
 
 static void front_display_power_control_init(FrontDisplaySrv* instance) {
+    // Open-drain output with pull-up
     furi_hal_gpio_init(
         &gpio_front_display_power_en, GpioModeInterruptRiseFall, GpioPullUp, GpioSpeedLow);
     LL_GPIO_SetPinOutputType(
@@ -266,10 +140,39 @@ static void front_display_power_control_init(FrontDisplaySrv* instance) {
         LL_GPIO_OUTPUT_OPENDRAIN);
     LL_GPIO_SetPinMode(
         gpio_front_display_power_en.port, gpio_front_display_power_en.pin, LL_GPIO_MODE_OUTPUT);
+
     furi_hal_gpio_write(&gpio_front_display_power_en, true);
 
     furi_hal_gpio_add_int_callback(
         &gpio_front_display_power_en, front_display_power_irq_callback, instance);
+
+    furi_delay_ms(50); // Stabilize power state
+}
+
+static void front_display_power_reset(void) {
+    // mask the GPIO interrupt to prevent firing disable again
+    furi_hal_gpio_disable_int_callback(&gpio_front_display_power_en);
+
+    furi_hal_gpio_write(&gpio_front_display_power_en, false);
+    furi_delay_ms(50);
+    furi_hal_gpio_write(&gpio_front_display_power_en, true);
+    furi_delay_ms(50); // Allow time for the display to power up
+
+    // re-enable the GPIO interrupt
+    furi_hal_gpio_enable_int_callback(&gpio_front_display_power_en);
+}
+
+static void front_display_start(FrontDisplaySrv* display) {
+    front_display_scan_init();
+    front_display_driver_init(front_display_get_brightness(display));
+    front_display_driver_set_update_callback(front_display_update_done_callback, display);
+    front_display_scan_start();
+    front_display_driver_start();
+}
+
+static void front_display_stop(void) {
+    front_display_scan_deinit();
+    front_display_driver_deinit();
 }
 
 static void front_display_message_queue_callback(FuriEventLoopObject* object, void* context) {
@@ -283,18 +186,18 @@ static void front_display_message_queue_callback(FuriEventLoopObject* object, vo
         furi_crash(TAG ": Failed to get message from queue");
     }
 
-    FURI_LOG_I(TAG, "Processing message type: %d", message.type);
-
     switch(message.type) {
     case FrontDisplayMessageTypeDraw:
         furi_check(message.frame_buffer);
-        if(display->is_on && !display->send_in_progress) {
+
+        memcpy(display->last_frame, message.frame_buffer, FRONT_DISPLAY_FRAME_SIZE);
+
+        if(display->enabled && !display->send_in_progress) {
             display->need_update = false;
             display->send_in_progress = true;
             front_display_driver_send_frame(message.frame_buffer);
         } else {
             display->need_update = true;
-            memcpy(display->last_frame, message.frame_buffer, FRONT_DISPLAY_FRAME_SIZE);
         }
 
         break;
@@ -303,13 +206,26 @@ static void front_display_message_queue_callback(FuriEventLoopObject* object, vo
         break;
 
     case FrontDisplayMessageTypeBrightness:
-        FURI_LOG_I(TAG, "Set brightness: %d", message.brightness);
+        front_display_driver_set_brightness(message.brightness);
+        display->need_update = true;
         break;
     case FrontDisplayMessageTypeOn:
-        FURI_LOG_I(TAG, "Turn display ON");
+        if(!display->enabled) {
+            FURI_LOG_I(TAG, "Turning on front display");
+
+            front_display_power_reset();
+            front_display_start(display);
+
+            display->enabled = true;
+            display->need_update = true; // Force an update after enabling
+        }
+
         break;
     case FrontDisplayMessageTypeOff:
-        FURI_LOG_I(TAG, "Turn display OFF");
+        FURI_LOG_I(TAG, "Turning off front display");
+        front_display_stop();
+        display->enabled = false;
+        display->send_in_progress = false;
         break;
     }
 
@@ -317,7 +233,7 @@ static void front_display_message_queue_callback(FuriEventLoopObject* object, vo
         api_lock_unlock(message.api_lock);
     }
 
-    if(display->is_on && !display->send_in_progress && display->need_update) {
+    if(display->enabled && !display->send_in_progress && display->need_update) {
         display->need_update = false;
         display->send_in_progress = true;
         front_display_driver_send_frame(display->last_frame);
@@ -328,7 +244,7 @@ static FrontDisplaySrv* front_display_alloc(void) {
     FrontDisplaySrv* instance = malloc(sizeof(FrontDisplaySrv));
 
     instance->brightness_override = FRONT_DISPLAY_BRIGHTNESS_AUTO;
-    instance->sensor_brightness = 10;
+    instance->sensor_brightness = 0;
 
     instance->event_loop = furi_event_loop_alloc();
     instance->message_queue = furi_message_queue_alloc(8, sizeof(FrontDisplayMessage));
@@ -347,29 +263,10 @@ static FrontDisplaySrv* front_display_alloc(void) {
 
     FURI_LOG_I(TAG, "Front Display Service started");
 
-    //     furi_hal_gpio_init_simple(&gpio_front_display_power_en, GpioModeOutputPushPull);
-    //     furi_hal_gpio_write(&gpio_front_display_power_en, true);
-    //     furi_delay_ms(50);
-
-    //     front_display_scan_init();
-    //     front_display_driver_init(instance->sensor_brightness);
-    //     front_display_driver_set_update_callback(front_display_update_done_callback, instance);
-
-    //     front_display_scan_start();
-    //     front_display_driver_start();
-
     front_display_power_control_init(instance);
+    instance->enabled = true;
 
-    furi_delay_ms(50);
-    instance->is_on = true;
-
-    furi_delay_ms(50); // Allow time for the display to power up
-
-    front_display_scan_init();
-    front_display_driver_init(front_display_get_brightness(instance));
-    front_display_driver_set_update_callback(front_display_update_done_callback, instance);
-    front_display_scan_start();
-    front_display_driver_start();
+    front_display_start(instance);
 
     instance->light_sensor_pubsub = furi_record_open(RECORD_LIGHT_SENSOR_EVENTS);
     furi_pubsub_subscribe(

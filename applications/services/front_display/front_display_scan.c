@@ -194,10 +194,7 @@ static void spi_dma_init(void) {
     LL_DMA_CreateLinkNode(&dma_node_cfg, &led_scan.dma_link_node);
 
     LL_DMA_ConnectLinkNode(
-        &led_scan.dma_link_node,
-        LL_DMA_CLLR_OFFSET5,
-        &led_scan.dma_link_node,
-        LL_DMA_CLLR_OFFSET5);
+        &led_scan.dma_link_node, LL_DMA_CLLR_OFFSET5, &led_scan.dma_link_node, LL_DMA_CLLR_OFFSET5);
 
     LL_DMA_InitLinkedListTypeDef dma_ll_cfg = {0};
     dma_ll_cfg.Priority = LL_DMA_HIGH_PRIORITY;
@@ -207,8 +204,7 @@ static void spi_dma_init(void) {
 
     LL_DMA_List_Init(GPDMA1, led_scan.dma_channel, &dma_ll_cfg);
 
-    LL_DMA_SetLinkedListBaseAddr(
-        GPDMA1, led_scan.dma_channel, (uint32_t)&led_scan.dma_link_node);
+    LL_DMA_SetLinkedListBaseAddr(GPDMA1, led_scan.dma_channel, (uint32_t)&led_scan.dma_link_node);
     LL_DMA_ConfigLinkUpdate(
         GPDMA1,
         led_scan.dma_channel,
@@ -302,6 +298,7 @@ inline void front_display_scan_data_sync_enable(void) {
 }
 
 void front_display_scan_init(void) {
+    memset(&led_scan, 0, sizeof(FrontDisplayScan));
     memset(led_scan.scan_order_table, SCAN_DISABLED, DISPLAY_BLOCKS);
 
     scan_tim_init();

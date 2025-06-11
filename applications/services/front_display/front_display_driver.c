@@ -495,6 +495,8 @@ void front_display_driver_send_frame(const uint8_t* frame_buf) {
 }
 
 void front_display_driver_init(uint8_t initial_brightness) {
+    memset(&led_driver, 0, sizeof(FrontDisplayDriver));
+
     front_display_index_lut_generate(&led_driver);
     front_display_gamma_lut_generate(led_driver.gamma_lut, DISPLAY_GAMMA, initial_brightness);
 
