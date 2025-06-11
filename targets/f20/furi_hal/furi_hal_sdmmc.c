@@ -2329,53 +2329,119 @@ bool furi_hal_sdmmc_write_blocks(
     uint32_t address,
     uint32_t count,
     size_t timeout_ms) {
+    if(count == 0) {
+        return true;
+    }
     if((address + count) > (sdmmc1.info.logical_block_count)) {
         FURI_LOG_E(TAG, "Address out of range");
         return false;
     }
+
+    const uint32_t CURRENT_BLOCK_SIZE = SD_BLOCKSIZE;
+    // Ensure the temporary buffer is large enough for one block and aligned.
+    uint32_t temp_block_aligned_storage
+        [CURRENT_BLOCK_SIZE / sizeof(uint32_t) + ((CURRENT_BLOCK_SIZE % sizeof(uint32_t)) ? 1 : 0)]
+        __attribute__((aligned(DMA_ALIGNMENT)));
+    uint8_t* temp_aligned_block_ptr = (uint8_t*)temp_block_aligned_storage;
 
     sdmmc_disable_it(
         SDMMC_IT_DATAEND | SDMMC_IT_DCRCFAIL | SDMMC_IT_DTIMEOUT | SDMMC_IT_TXUNDERR |
         SDMMC_IT_RXOVERR);
     sdmmc_clear_static_flags();
 
-    furi_hal_sdmmc_event_clear(SdMmcDmaEventComplete | SdMmcDmaEventError);
     furi_hal_interrupt_set_isr(FuriHalInterruptIdSdMmc1, sdmmc_irq_handler, &sdmmc_dma_context);
 
-    bool status = sdmmc_write_blocks_dma(buffer, address, count);
+    bool write_success = true;
+    const uint8_t* current_user_buffer_ptr = buffer;
+    uint32_t current_sd_block_address = address;
+    uint32_t remaining_blocks = count;
 
-    uint32_t flags =
-        furi_hal_sdmmc_event_wait(SdMmcDmaEventComplete | SdMmcDmaEventError, timeout_ms);
+    while(remaining_blocks > 0) {
+        const uint8_t* dma_target_buffer;
+        uint32_t blocks_in_current_operation;
+
+        if(((uintptr_t)current_user_buffer_ptr % DMA_ALIGNMENT) == 0) {
+            // Current user buffer pointer is aligned. Read as many blocks as possible directly.
+            dma_target_buffer = current_user_buffer_ptr;
+            blocks_in_current_operation = remaining_blocks; // Attempt to read all remaining blocks
+        } else {
+            // Current user buffer pointer is unaligned. Read one block into the temporary aligned buffer.
+            dma_target_buffer = temp_aligned_block_ptr;
+            blocks_in_current_operation = 1;
+        }
+
+        furi_hal_sdmmc_event_clear(SdMmcDmaEventComplete | SdMmcDmaEventError);
+        sdmmc_dma_context.error = FuriHalSdErrorNone; // Clear previous error for this operation
+
+        bool dma_initiated_successfully = sdmmc_write_blocks_dma(
+            dma_target_buffer, current_sd_block_address, blocks_in_current_operation);
+
+        uint32_t dma_event_flags = 0;
+        if(dma_initiated_successfully) {
+            dma_event_flags =
+                furi_hal_sdmmc_event_wait(SdMmcDmaEventComplete | SdMmcDmaEventError, timeout_ms);
+        }
+
+        bool current_operation_successful = dma_initiated_successfully;
+        if(!dma_initiated_successfully) {
+            FURI_LOG_E(
+                TAG,
+                "sdmmc_write_blocks_dma call failed for %lu blocks at 0x%08lx",
+                blocks_in_current_operation,
+                current_sd_block_address);
+            // sdmmc_dma_context.error might not be set by sdmmc_write_blocks_dma itself if it returns false early
+        } else if(
+            (dma_event_flags == FuriFlagErrorTimeout) || (dma_event_flags & SdMmcDmaEventError)) {
+            if(dma_event_flags == FuriFlagErrorTimeout) {
+                FURI_LOG_E(
+                    TAG,
+                    "DMA operation timeout for %lu blocks at 0x%08lx",
+                    blocks_in_current_operation,
+                    current_sd_block_address);
+            } else { // SdMmcDmaEventError
+                FURI_LOG_E(
+                    TAG,
+                    "DMA operation error 0x%08x for %lu blocks at 0x%08lx",
+                    sdmmc_dma_context.error, // Error should be set by IRQ handler
+                    blocks_in_current_operation,
+                    current_sd_block_address);
+            }
+            current_operation_successful = false;
+        }
+
+        if(current_operation_successful) {
+            // If DMA start and event wait were OK, check card transfer state
+            current_operation_successful = sdmmc_wait_for_transfer_state(timeout_ms);
+            if(!current_operation_successful) {
+                FURI_LOG_E(
+                    TAG,
+                    "sdmmc_wait_for_transfer_state failed after DMA for %lu blocks at 0x%08lx",
+                    blocks_in_current_operation,
+                    current_sd_block_address);
+            }
+        } else {
+            write_success = false;
+            // Attempt to clear any pending SDMMC peripheral state from the failed operation
+            sdmmc_disable_it( // Disable specific DMA interrupts on failure
+                SDMMC_IT_DATAEND | SDMMC_IT_DCRCFAIL | SDMMC_IT_DTIMEOUT | SDMMC_IT_TXUNDERR |
+                SDMMC_IT_RXOVERR);
+            sdmmc_clear_static_flags(); // Clear all static flags
+            // Consider if a more specific reset/abort is needed for SDMMC controller here
+            break; // Exit the while loop, cannot continue reliably
+        }
+
+        current_user_buffer_ptr += blocks_in_current_operation * CURRENT_BLOCK_SIZE;
+        current_sd_block_address += blocks_in_current_operation;
+        remaining_blocks -= blocks_in_current_operation;
+    }
 
     furi_hal_interrupt_set_isr(FuriHalInterruptIdSdMmc1, NULL, NULL);
 
-    if((flags == FuriFlagErrorTimeout) || (flags & SdMmcDmaEventError)) {
-        if(flags == FuriFlagErrorTimeout) {
-            FURI_LOG_E(TAG, "sdmmc_write_blocks_dma failed with timeout");
-        } else {
-            FURI_LOG_E(
-                TAG, "sdmmc_write_blocks_dma failed with error 0x%08x", sdmmc_dma_context.error);
-        }
-
-        sdmmc_dma_context.error = FuriHalSdErrorNone;
-        status = false;
-        sdmmc_disable_it(
-            SDMMC_IT_DATAEND | SDMMC_IT_DCRCFAIL | SDMMC_IT_DTIMEOUT | SDMMC_IT_TXUNDERR |
-            SDMMC_IT_RXOVERR);
+    if(!write_success) {
+        sdmmc1.card_alive = false; // Mark card as potentially unusable
     }
 
-    if(status) {
-        status = sdmmc_wait_for_transfer_state(timeout_ms);
-        if(!status) {
-            FURI_LOG_E(TAG, "sdmmc_wait_for_transfer_state failed");
-        }
-    }
-
-    if(!status) {
-        sdmmc1.card_alive = false;
-    }
-
-    return status;
+    return write_success;
 }
 
 bool furi_hal_sdmmc_get_card_info(FuriHalSdInfo* info) {
