@@ -91,8 +91,6 @@ static void sockets_accept_callback(int32_t socket, struct sockaddr* addr, uint8
     UNUSED(ip_version);
 
     const uint32_t socket_bits = (1UL << socket);
-    furi_check(socket_bits);
-
     furi_event_flag_set(socket_srv->accept_event_flag, socket_bits);
 }
 
