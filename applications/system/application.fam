@@ -6,8 +6,6 @@ App(
         "apps_menu",
         "message",
         "system_apps_on_start",
-        # Temp
-        # "updater",
     ],
     targets=["f20", "f21"],
 )

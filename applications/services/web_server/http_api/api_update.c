@@ -367,7 +367,7 @@ bool http_api_update_callback(
 
     // Ensure staging root /ext/update exists
     if(!storage_dir_exists(update_ctx->storage, UPDATE_STAGING_ROOT)) {
-        if(!storage_common_mkdir(update_ctx->storage, UPDATE_STAGING_ROOT)) {
+        if(storage_common_mkdir(update_ctx->storage, UPDATE_STAGING_ROOT) != FSE_OK) {
             FURI_LOG_E(
                 TAG,
                 "on_headers: Failed to create staging root directory: %s",

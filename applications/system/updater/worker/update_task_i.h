@@ -11,7 +11,6 @@
 
 typedef struct UpdateTask {
     UpdateTaskState state;
-    // FuriString* update_path;
     UpdateConfig* config;
     FuriThread* thread;
     Storage* storage;

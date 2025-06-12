@@ -3,8 +3,6 @@
 #include <flipper.h>
 #include <furi.h>
 
-#include <furi_hal_sdmmc.h>
-
 #define TAG "SvcStartup"
 
 void flipper_init_services(void) {

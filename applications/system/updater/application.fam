@@ -18,7 +18,6 @@ App(
         "storage",
         "desktop",
         "loader",
-        # "busy",  # TODO: resolve theme dependency
     ],
     stack_size=2 * 1024,
     order=200,

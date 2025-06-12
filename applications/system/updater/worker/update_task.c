@@ -289,28 +289,16 @@ static void update_task_close_file(UpdateTask* update_task) {
 }
 
 static bool update_task_check_file_exists(UpdateTask* update_task, const FuriString* filename) {
-    furi_assert(update_task);
-    // FuriString* tmp_path;
-    // tmp_path = furi_string_alloc_set(update_task->update_path);
-    // path_append(tmp_path, furi_string_get_cstr(filename));
-    bool exists = storage_file_exists(update_task->storage, furi_string_get_cstr(filename));
-    // furi_string_free(tmp_path);
-    return exists;
+    return storage_file_exists(update_task->storage, furi_string_get_cstr(filename));
 }
 
 bool update_task_open_file(UpdateTask* update_task, const FuriString* filename) {
-    furi_assert(update_task);
     update_task_close_file(update_task);
 
     FURI_LOG_I(TAG, "Opening file: %s", furi_string_get_cstr(filename));
 
-    // FuriString* tmp_path;
-    // tmp_path = furi_string_alloc_set(update_task->update_path);
-    // path_append(tmp_path, furi_string_get_cstr(filename));
-    bool open_success = storage_file_open(
+    return storage_file_open(
         update_task->file, furi_string_get_cstr(filename), FSAM_READ, FSOM_OPEN_EXISTING);
-    // furi_string_free(tmp_path);
-    return open_success;
 }
 
 static void

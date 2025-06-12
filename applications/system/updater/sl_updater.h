@@ -27,11 +27,22 @@ typedef enum {
 typedef void (
     *SlUpdaterProgressCallback)(SlUpdaterProgressPhase phase, uint8_t percentage, void* context);
 
-// Allocates and initializes a new SlUpdater instance
+/**
+ * @brief Allocates and initializes a new SlUpdater instance.
+ * @return Pointer to the newly allocated SlUpdater instance.
+ */
 SlUpdater* sl_updater_alloc(void);
 
-// Runs the updater process. Returns true if the update was successful, false otherwise.
-// Can only be called once per instance.
+/**
+ * @brief Runs the updater process.
+ * @param instance Pointer to the SlUpdater instance.
+ * @param firmware_path Path to the firmware image.
+ * @param is_stack_image True if the image is a stack image, false otherwise.
+ * @param install_timeout_seconds Timeout in seconds for the installation phase.
+ * @param baud_throttle Baud rate throttle value.
+ * @return True if the update was successful, false otherwise.
+ * @note Can only be called once per instance.
+ */
 bool sl_updater_run(
     SlUpdater* instance,
     const char* firmware_path,
@@ -50,9 +61,19 @@ void sl_updater_set_progress_callback(
     SlUpdaterProgressCallback callback,
     void* context);
 
+/**
+ * @brief Probes the device for version information.
+ * @param instance Pointer to the SlUpdater instance.
+ * @param baud_throttle Baud rate throttle value.
+ * @param version Pointer to an FuriString to store the version information.
+ * @return True if probing was successful, false otherwise.
+ */
 bool sl_update_probe(SlUpdater* instance, uint8_t baud_throttle, FuriString* version);
 
-// Frees the SlUpdater instance
+/**
+ * @brief Frees the SlUpdater instance.
+ * @param instance Pointer to the SlUpdater instance to be freed.
+ */
 void sl_updater_free(SlUpdater* instance);
 
 #ifdef __cplusplus
