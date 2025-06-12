@@ -5,7 +5,7 @@
 #define REQUEST_SIZE(T)  (offsetof(SocketRequest, alloc_request) + sizeof(T))
 #define RESPONSE_SIZE(T) (offsetof(SocketResponse, alloc_response) + sizeof(T))
 #define ASYNC_RESPONSE_SIZE(T) \
-    (offsetof(SocketResponse, async_response.send_async_response) + sizeof(T))
+    (offsetof(SocketResponse, async_response.receive_async_response) + sizeof(T))
 
 typedef struct {
 } SocketEmpty;
@@ -25,7 +25,6 @@ static const size_t sockets_response_size[SocketResponseTypeMax] = {
     [SocketResponseTypeAccept] = RESPONSE_SIZE(SocketEmpty),
     [SocketResponseTypeConnect] = RESPONSE_SIZE(SocketEmpty),
     [SocketResponseTypeSend] = RESPONSE_SIZE(SocketSendResponse),
-    [SocketResponseTypeAsyncSend] = ASYNC_RESPONSE_SIZE(SocketSendAsyncResponse),
     [SocketResponseTypeAsyncReceive] = 0, // Special case, size computed dynamically
     [SocketResponseTypeAsyncAccept] = ASYNC_RESPONSE_SIZE(SocketAcceptAsyncResponse),
     [SocketResponseTypeAsyncClose] = ASYNC_RESPONSE_SIZE(SocketCloseAsyncResponse),

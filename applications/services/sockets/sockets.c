@@ -126,13 +126,7 @@ static void sockets_process_async_response(SocketSrv* instance, const SocketResp
 
     SocketEvent event = {0};
 
-    if(response_type == SocketResponseTypeAsyncSend) {
-        const SocketSendAsyncResponse* send_async_response = &async_response->send_async_response;
-
-        event.type = SocketEventTypeSend;
-        event.send.data_size = send_async_response->sent_size;
-
-    } else if(response_type == SocketResponseTypeAsyncReceive) {
+    if(response_type == SocketResponseTypeAsyncReceive) {
         const SocketReceiveAsyncResponse* receive_async_response =
             &async_response->receive_async_response;
 
@@ -171,7 +165,7 @@ static void sockets_intercom_rx_callback(const void* data, size_t data_size, voi
 
     const SocketResponseType response_type = response->type;
 
-    if(response_type < SocketResponseTypeAsyncSend) {
+    if(response_type < SocketResponseTypeAsyncReceive) {
         sockets_process_response(instance, response);
     } else if(response_type < SocketResponseTypeMax) {
         sockets_process_async_response(instance, response);

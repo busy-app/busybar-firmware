@@ -22,19 +22,16 @@ typedef struct Socket Socket;
 
 /** Enumeration of possible socket event types. */
 typedef enum {
-    SocketEventTypeSend, /**< Data has been confirmed by the receiving side */
     SocketEventTypeReceive, /**< Socket has data available for reading */
     SocketEventTypeAccept, /**< A new client connection has been accepted */
     SocketEventTypeClose, /**< The remote side has closed the connection */
+    SocketEventTypeMax, /**< Special value, internal use */
 } SocketEventType;
 
 /** Socket event structure. */
 typedef struct {
     SocketEventType type; /**< Type of the event that has occurred */
     union {
-        struct {
-            uint16_t data_size; /**< Size of the data sent */
-        } send; /**< Send event, currently broken in SL firmware */
         struct {
             const void* data; /**< Pointer to the received data */
             uint16_t data_size; /**< Size of the received data */
