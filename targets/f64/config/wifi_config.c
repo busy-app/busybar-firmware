@@ -43,7 +43,8 @@ const sl_wifi_device_configuration_t wifi_config_client = {
                 (SL_SI91X_CONFIG_FEAT_EXTENTION_VALID | SL_SI91X_EXT_TCP_MAX_RECV_LENGTH),
 #else
             .ext_tcp_ip_feature_bit_map =
-                (SL_SI91X_EXT_TCP_IP_WINDOW_DIV | SL_SI91X_CONFIG_FEAT_EXTENTION_VALID),
+                (SL_SI91X_EXT_TCP_IP_WINDOW_DIV | SL_SI91X_EXT_TCP_IP_TOTAL_SELECTS(10) |
+                 SL_SI91X_CONFIG_FEAT_EXTENTION_VALID),
 #endif
             //!ENABLE_BLE_PROTOCOL in bt_feature_bit_map
             .ble_feature_bit_map =

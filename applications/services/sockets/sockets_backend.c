@@ -19,11 +19,13 @@
 #define UDP_TX_ONLY_SOCKETS             0
 #define UDP_RX_ONLY_SOCKETS             0
 #define TCP_RX_HIGH_PERFORMANCE_SOCKETS 0
-#define TCP_RX_WINDOW_SIZE_CAP          1
-#define TCP_RX_WINDOW_DIV_FACTOR        1
+#define TCP_RX_WINDOW_SIZE_CAP          44
+#define TCP_RX_WINDOW_DIV_FACTOR        44
 
 #define NUM_CLIENTS_PER_SOCKET 1
 #define NUM_REQUEST_HANDLERS   (SocketRequestTypeMax - 1)
+
+#define SOCKET_FLAGS_ALL (0x1FUL)
 
 static const sl_si91x_socket_config_t sockets_backend_config = {
     .total_sockets = TOTAL_SOCKETS,
@@ -40,19 +42,18 @@ static const sl_si91x_socket_config_t sockets_backend_config = {
 
 typedef enum {
     SocketSrvEventRequest = 1UL << 0,
-    SocketSrvEventAsyncRequest = 1UL << 1,
-    SocketSrvEventAsyncResponse = 1UL << 2,
-    SocketSrvEventWifiDeinit = 1UL << 3,
-    SocketSrvEventWifiDown = 1UL << 4,
-    SocketSrvEventWifiUp = 1UL << 5,
+    SocketSrvEventWifiDeinit = 1UL << 1,
+    SocketSrvEventWifiDown = 1UL << 2,
+    SocketSrvEventWifiUp = 1UL << 3,
 } SocketSrvEvent;
 
 struct SocketSrv {
     FuriEventLoop* event_loop;
-    FuriSemaphore* async_semaphore;
+    FuriEventFlag* read_event_flag;
+    FuriEventFlag* accept_event_flag;
     Intercom* intercom;
     SocketRequest request;
-    SocketResponse response[SocketChannelMax];
+    SocketResponse response;
 };
 
 typedef void (*SocketRequestHandler)(const SocketRequest* request, SocketResponse* response);
@@ -69,103 +70,39 @@ static inline void sockets_send_response(SocketSrv* instance, const SocketRespon
     furi_assert(tx_size == response_size);
 }
 
-static void sockets_closed_callback(int socket, uint16_t port, uint32_t bytes_sent) {
-    FURI_LOG_D(TAG, "Close: %lu byte(s) on socket %d, port %hu", bytes_sent, socket, port);
+static void sockets_select_callback(
+    fd_set* read_fds,
+    fd_set* write_fds,
+    fd_set* except_fds,
+    int32_t status) {
+    UNUSED(write_fds);
+    UNUSED(except_fds);
+    UNUSED(status);
 
-    furi_check(
-        furi_semaphore_acquire(socket_srv->async_semaphore, FuriWaitForever) == FuriStatusOk);
+    const uint32_t socket_bits = read_fds->__fds_bits[0];
+    furi_check(socket_bits);
 
-    SocketResponse* response = &socket_srv->response[SocketChannelAsync];
-    response->type = SocketResponseTypeAsyncClose;
-    response->status = SocketStatusOk;
-
-    SocketAsyncResponse* async_response = &response->async_response;
-    async_response->socket_id = socket;
-
-    SocketCloseAsyncResponse* close_async_response = &async_response->close_async_response;
-    close_async_response->port = port;
-    close_async_response->sent_size = bytes_sent;
-
-    furi_event_loop_set_custom_event(socket_srv->event_loop, SocketSrvEventAsyncResponse);
-}
-
-static void sockets_receive_callback(
-    uint32_t socket,
-    uint8_t* buffer,
-    uint32_t length,
-    const sl_si91x_socket_metadata_t* metadata) {
-    UNUSED(metadata);
-
-    FURI_LOG_D(TAG, "Rx: %lu byte(s) on socket %lu", length, socket);
-
-    SocketResponse* response = &socket_srv->response[SocketChannelAsync];
-    SocketAsyncResponse* async_response = &response->async_response;
-    SocketReceiveAsyncResponse* receive_async_response = &async_response->receive_async_response;
-
-    for(size_t total_size = 0; total_size < length;) {
-        const size_t chunk_size = MIN(length - total_size, SOCKET_RECV_DATA_SIZE);
-
-        furi_check(
-            furi_semaphore_acquire(socket_srv->async_semaphore, FuriWaitForever) == FuriStatusOk);
-
-        response->type = SocketResponseTypeAsyncReceive;
-        response->status = SocketStatusOk;
-
-        async_response->socket_id = socket;
-
-        receive_async_response->data_size = chunk_size;
-        memcpy(receive_async_response->data, buffer + total_size, chunk_size);
-        total_size += chunk_size;
-
-        furi_event_loop_set_custom_event(socket_srv->event_loop, SocketSrvEventAsyncResponse);
-    }
-}
-
-static void sockets_send_callback(int32_t socket, uint16_t length) {
-    FURI_LOG_D(TAG, "Tx: %hu byte(s) on socket %ld", length, socket);
-
-    furi_check(
-        furi_semaphore_acquire(socket_srv->async_semaphore, FuriWaitForever) == FuriStatusOk);
-
-    SocketResponse* response = &socket_srv->response[SocketChannelAsync];
-    response->type = SocketResponseTypeAsyncSend;
-    response->status = SocketStatusOk;
-
-    SocketAsyncResponse* async_response = &response->async_response;
-    async_response->socket_id = socket;
-
-    SocketSendAsyncResponse* send_async_response = &async_response->send_async_response;
-    send_async_response->sent_size = length;
-
-    furi_event_loop_set_custom_event(socket_srv->event_loop, SocketSrvEventAsyncResponse);
+    furi_event_flag_set(socket_srv->read_event_flag, socket_bits);
 }
 
 // BUG: params `addr` and `ip_version` do not contain correct data
 static void sockets_accept_callback(int32_t socket, struct sockaddr* addr, uint8_t ip_version) {
     UNUSED(addr);
     UNUSED(ip_version);
-    FURI_LOG_D(TAG, "Ac: client socket %ld", socket);
+
+    const uint32_t socket_bits = (1UL << socket);
+    furi_check(socket_bits);
+
+    furi_event_flag_set(socket_srv->accept_event_flag, socket_bits);
+}
+
+static void sockets_enable_read_events(uint32_t socket_mask) {
+    const int nfds = fls(socket_mask);
+    fd_set read_fds = {.__fds_bits = {socket_mask}};
 
     furi_check(
-        furi_semaphore_acquire(socket_srv->async_semaphore, FuriWaitForever) == FuriStatusOk);
-
-    SocketResponse* response = &socket_srv->response[SocketChannelAsync];
-    response->type = SocketResponseTypeAsyncAccept;
-    response->status = SocketStatusOk;
-
-    SocketAsyncResponse* async_response = &response->async_response;
-    async_response->socket_id = sockets_get_parent(socket);
-    furi_check(async_response->socket_id >= 0);
-
-    const sli_si91x_socket_t* client_socket = sli_si91x_sockets[socket];
-
-    SocketAcceptAsyncResponse* accept_async_response = &async_response->accept_async_response;
-    accept_async_response->client_socket_id = socket;
-    sockets_sockaddr_to_connection_info(
-        (const struct sockaddr*)&client_socket->remote_address,
-        &accept_async_response->connection_info);
-
-    furi_event_loop_set_custom_event(socket_srv->event_loop, SocketSrvEventAsyncResponse);
+        sl_si91x_select(nfds, &read_fds, NULL, NULL, NULL, sockets_select_callback) ==
+        SI91X_NO_ERROR);
 }
 
 static void sockets_alloc_request_handler(const SocketRequest* request, SocketResponse* response) {
@@ -197,8 +134,7 @@ static void sockets_alloc_request_handler(const SocketRequest* request, SocketRe
         furi_crash("Invalid protocol");
     }
 
-    const int socket_id =
-        sl_si91x_socket_async(ip_type, socket_type, socket_protocol, sockets_receive_callback);
+    const int socket_id = sl_si91x_socket(ip_type, socket_type, socket_protocol);
 
     if(socket_id < 0) {
         FURI_LOG_E(TAG, "Failed to allocate socket: %s", strerror(errno));
@@ -206,6 +142,7 @@ static void sockets_alloc_request_handler(const SocketRequest* request, SocketRe
 
     } else {
         FURI_LOG_D(TAG, "Allocated socket with id: %d", socket_id);
+
         response->status = SocketStatusOk;
         alloc_response->socket_id = socket_id;
     }
@@ -283,14 +220,17 @@ static void
     SocketSlAddress sl_address = {0};
     sockets_connection_info_to_sl_address(connection_info, &sl_address);
 
-    const int status =
-        sl_si91x_connect(connect_request->socket_id, &sl_address.address, sl_address.length);
+    const int socket_id = connect_request->socket_id;
+
+    const int status = sl_si91x_connect(socket_id, &sl_address.address, sl_address.length);
 
     if(status < 0) {
         FURI_LOG_E(TAG, "Failed to connect: %s", strerror(errno));
         response->status = SocketStatusError;
 
     } else {
+        sockets_enable_read_events(1UL << socket_id);
+
         FURI_LOG_D(TAG, "Connection successful");
         response->status = SocketStatusOk;
     }
@@ -302,12 +242,8 @@ static void sockets_send_request_handler(const SocketRequest* request, SocketRes
     const SocketSendRequest* send_request = &request->send_request;
     SocketSendResponse* send_response = &response->send_response;
 
-    const int bytes_sent = sl_si91x_send_async(
-        send_request->socket_id,
-        send_request->data,
-        send_request->data_size,
-        0,
-        sockets_send_callback);
+    const int bytes_sent =
+        sl_si91x_send(send_request->socket_id, send_request->data, send_request->data_size, 0);
 
     if(bytes_sent < 0) {
         FURI_LOG_E(TAG, "Failed to send: %s", strerror(errno));
@@ -331,8 +267,6 @@ static void sockets_intercom_rx_callback(const void* data, size_t data_size, voi
     if(request->type < SocketRequestTypeAsyncConfirm) {
         memcpy(&instance->request, data, data_size);
         furi_event_loop_set_custom_event(instance->event_loop, SocketSrvEventRequest);
-    } else {
-        furi_event_loop_set_custom_event(instance->event_loop, SocketSrvEventAsyncRequest);
     }
 }
 
@@ -346,22 +280,103 @@ static void sockets_custom_event_callback(uint32_t events, void* context) {
         const SocketRequestType request_type = request->type;
         furi_check(request_type < SocketRequestTypeAsyncConfirm);
 
-        SocketResponse* response = &instance->response[SocketChannelSync];
+        SocketResponse* response = &instance->response;
         response->type = (SocketResponseType)request->type;
 
         socket_request_handlers[request_type](request, response);
         sockets_send_response(instance, response);
     }
-    if(events & SocketSrvEventAsyncRequest) {
-        furi_check(furi_semaphore_release(instance->async_semaphore) == FuriStatusOk);
-    }
-    if(events & SocketSrvEventAsyncResponse) {
-        SocketResponse* response = &instance->response[SocketChannelAsync];
-        sockets_send_response(instance, response);
-    }
     if(events & SocketSrvEventWifiUp) {
         const sl_status_t status = sl_si91x_config_socket(sockets_backend_config);
         furi_check(status == SL_STATUS_OK);
+    }
+}
+
+static void sockets_read_event_flag_callback(FuriEventLoopObject* object, void* context) {
+    furi_assert(context);
+
+    SocketSrv* instance = context;
+    furi_assert(object == instance->read_event_flag);
+
+    uint32_t socket_bits =
+        furi_event_flag_wait(instance->read_event_flag, SOCKET_FLAGS_ALL, FuriFlagWaitAny, 0);
+    furi_check((socket_bits & FuriFlagError) == 0);
+
+    SocketResponse* response = &socket_srv->response;
+    SocketAsyncResponse* async_response = &response->async_response;
+    SocketReceiveAsyncResponse* receive_async_response = &async_response->receive_async_response;
+
+    for(int socket_id = 0; socket_id < NUMBER_OF_SOCKETS; ++socket_id) {
+        const uint32_t socket_bit = (1UL << socket_id);
+
+        if(socket_bits & socket_bit) {
+            async_response->socket_id = socket_id;
+
+            const int data_size = sl_si91x_recv(
+                socket_id, receive_async_response->data, sizeof(receive_async_response->data), 0);
+
+            if(data_size > 0) {
+                FURI_LOG_D(TAG, "Received %d byte(s) on socket %d", data_size, socket_id);
+
+                response->type = SocketResponseTypeAsyncReceive;
+                response->status = SocketStatusOk;
+
+                receive_async_response->data_size = data_size;
+
+            } else {
+                FURI_LOG_W(TAG, "Receive failed on socket %d", socket_id);
+
+                response->type = SocketResponseTypeAsyncClose;
+                response->status = SocketStatusOk;
+
+                socket_bits &= ~socket_bit;
+            }
+
+            sockets_send_response(instance, response);
+        }
+    }
+
+    if(socket_bits) {
+        sockets_enable_read_events(socket_bits);
+    }
+}
+
+static void sockets_accept_event_flag_callback(FuriEventLoopObject* object, void* context) {
+    furi_assert(context);
+
+    SocketSrv* instance = context;
+    furi_assert(object == instance->accept_event_flag);
+
+    uint32_t socket_bits =
+        furi_event_flag_wait(instance->accept_event_flag, SOCKET_FLAGS_ALL, FuriFlagWaitAny, 0);
+    furi_check((socket_bits & FuriFlagError) == 0);
+
+    SocketResponse* response = &socket_srv->response;
+
+    response->type = SocketResponseTypeAsyncAccept;
+    response->status = SocketStatusOk;
+
+    SocketAsyncResponse* async_response = &response->async_response;
+    SocketAcceptAsyncResponse* accept_async_response = &async_response->accept_async_response;
+
+    for(int socket_id = 0; socket_id < NUMBER_OF_SOCKETS; ++socket_id) {
+        const uint32_t socket_bit = (1UL << socket_id);
+
+        if(socket_bits & socket_bit) {
+            FURI_LOG_D(TAG, "Accepted client socket %d", socket_id);
+
+            async_response->socket_id = sockets_get_parent(socket_id);
+            furi_assert(async_response->socket_id >= 0);
+
+            const sli_si91x_socket_t* client_socket = get_si91x_socket(socket_id);
+            furi_assert(client_socket);
+
+            sockets_sockaddr_to_connection_info(
+                (const struct sockaddr*)&client_socket->remote_address,
+                &accept_async_response->connection_info);
+
+            sockets_send_response(instance, response);
+        }
     }
 }
 
@@ -391,7 +406,8 @@ SocketSrv* sockets_alloc(void) {
     SocketSrv* instance = malloc(sizeof(SocketSrv));
 
     instance->event_loop = furi_event_loop_alloc();
-    instance->async_semaphore = furi_semaphore_alloc(1, 1);
+    instance->read_event_flag = furi_event_flag_alloc();
+    instance->accept_event_flag = furi_event_flag_alloc();
     instance->intercom = furi_record_open(RECORD_INTERCOM);
 
     FuriPubSub* wifi_pubsub = furi_record_open(RECORD_WIFI);
@@ -399,7 +415,19 @@ SocketSrv* sockets_alloc(void) {
         furi_pubsub_subscribe(wifi_pubsub, sockets_wifi_state_callback, instance);
     UNUSED(sub);
 
-    sl_si91x_set_remote_termination_callback(sockets_closed_callback);
+    furi_event_loop_subscribe_event_flag(
+        instance->event_loop,
+        instance->read_event_flag,
+        FuriEventLoopEventIn,
+        sockets_read_event_flag_callback,
+        instance);
+
+    furi_event_loop_subscribe_event_flag(
+        instance->event_loop,
+        instance->accept_event_flag,
+        FuriEventLoopEventIn,
+        sockets_accept_event_flag_callback,
+        instance);
 
     furi_event_loop_set_custom_event_callback(
         instance->event_loop, sockets_custom_event_callback, instance);

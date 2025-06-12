@@ -63,7 +63,9 @@ typedef enum {
     IntercomThreadFlagSyncFinished = 1UL << 2,
 } IntercomThreadFlag;
 
-#define INTERCOM_THREAD_FLAGS_ALL (IntercomThreadFlagFrameReceived | IntercomThreadFlagSyncStarted | IntercomThreadFlagSyncFinished)
+#define INTERCOM_THREAD_FLAGS_ALL                                      \
+    (IntercomThreadFlagFrameReceived | IntercomThreadFlagSyncStarted | \
+     IntercomThreadFlagSyncFinished)
 
 // Called in ISR context
 static void intercom_gpio_irq_callback(void* context) {
