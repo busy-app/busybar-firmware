@@ -1,19 +1,15 @@
 #include "sockets_i.h"
 
 static void sockets_send_message(SocketSrv* instance, SocketSrvMessage* message) {
-    uint32_t flags;
-    // Wait until the Sockets system becomes ready for the next request
-    flags = furi_event_flag_wait(
-        instance->event_flag, SocketSrvFlagReady, FuriFlagWaitAll, FuriWaitForever);
-    furi_check(flags & SocketSrvFlagReady);
+    message->lock = api_lock_alloc_locked();
 
-    instance->message = message;
+    furi_check(
+        furi_semaphore_acquire(instance->access_semaphore, FuriWaitForever) == FuriStatusOk);
+
+    instance->current_message = message;
     furi_event_loop_set_custom_event(instance->event_loop, SocketSrvEventRequest);
 
-    // Wait until a response is received
-    flags = furi_event_flag_wait(
-        instance->event_flag, SocketSrvFlagDone, FuriFlagWaitAll, FuriWaitForever);
-    furi_check(flags & SocketSrvFlagDone);
+    api_lock_wait_unlock_and_free(message->lock);
 }
 
 Socket* socket_alloc(SocketSrv* instance, const SocketInfo* socket_info) {

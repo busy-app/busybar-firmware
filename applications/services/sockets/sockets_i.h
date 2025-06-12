@@ -4,6 +4,8 @@
 #include "sockets_common_i.h"
 
 #include <furi.h>
+#include <api_lock.h>
+
 #include <intercom/intercom.h>
 
 #define SOCKET_COUNT (20)
@@ -46,18 +48,12 @@ typedef struct {
         SocketSrvConnectMessage connect_message;
         SocketSrvSendMessage send_message;
     };
+    FuriApiLock lock;
 } SocketSrvMessage;
 
 typedef enum {
     SocketSrvEventRequest = 1UL << 0,
-    SocketSrvEventResponse = 1UL << 1,
-    SocketSrvEventAsyncResponse = 1UL << 2,
 } SocketSrvEvent;
-
-typedef enum {
-    SocketSrvFlagReady = 1UL << 0,
-    SocketSrvFlagDone = 1UL << 1,
-} SocketSrvFlag;
 
 struct Socket {
     uint8_t id;
@@ -68,10 +64,9 @@ struct Socket {
 
 struct SocketSrv {
     FuriEventLoop* event_loop;
-    FuriEventFlag* event_flag;
+    FuriSemaphore* access_semaphore;
+    SocketSrvMessage* current_message;
     Intercom* intercom;
-    SocketSrvMessage* message;
     SocketRequest request;
-    SocketResponse response[SocketChannelMax];
     Socket* sockets[SOCKET_COUNT];
 };
