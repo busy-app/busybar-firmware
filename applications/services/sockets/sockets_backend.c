@@ -23,7 +23,6 @@
 #define TCP_RX_WINDOW_DIV_FACTOR        44
 
 #define NUM_CLIENTS_PER_SOCKET 1
-#define NUM_REQUEST_HANDLERS   (SocketRequestTypeMax - 1)
 
 #define SOCKET_FLAGS_ALL (0x1FUL)
 
@@ -58,7 +57,7 @@ struct SocketSrv {
 
 typedef void (*SocketRequestHandler)(const SocketRequest* request, SocketResponse* response);
 
-static const SocketRequestHandler socket_request_handlers[NUM_REQUEST_HANDLERS];
+static const SocketRequestHandler socket_request_handlers[SocketRequestTypeMax];
 
 /* Global sockets instance, needed for socket callbacks */
 static SocketSrv* socket_srv;
@@ -262,10 +261,8 @@ static void sockets_intercom_rx_callback(const void* data, size_t data_size, voi
     const SocketRequest* request = data;
     furi_assert(data_size == sockets_get_request_size(request));
 
-    if(request->type < SocketRequestTypeAsyncConfirm) {
-        memcpy(&instance->request, data, data_size);
-        furi_event_loop_set_custom_event(instance->event_loop, SocketSrvEventRequest);
-    }
+    memcpy(&instance->request, data, data_size);
+    furi_event_loop_set_custom_event(instance->event_loop, SocketSrvEventRequest);
 }
 
 static void sockets_custom_event_callback(uint32_t events, void* context) {
@@ -276,7 +273,6 @@ static void sockets_custom_event_callback(uint32_t events, void* context) {
     if(events & SocketSrvEventRequest) {
         const SocketRequest* request = &instance->request;
         const SocketRequestType request_type = request->type;
-        furi_check(request_type < SocketRequestTypeAsyncConfirm);
 
         SocketResponse* response = &instance->response;
         response->type = (SocketResponseType)request->type;
@@ -445,7 +441,7 @@ int32_t sockets_srv(void* arg) {
     return 0;
 }
 
-static const SocketRequestHandler socket_request_handlers[NUM_REQUEST_HANDLERS] = {
+static const SocketRequestHandler socket_request_handlers[SocketRequestTypeMax] = {
     [SocketRequestTypeAlloc] = sockets_alloc_request_handler,
     [SocketRequestTypeFree] = sockets_free_request_handler,
     [SocketRequestTypeAccept] = sockets_accept_request_handler,

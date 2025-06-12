@@ -18,8 +18,6 @@ typedef enum {
     SocketRequestTypeAccept,
     SocketRequestTypeConnect,
     SocketRequestTypeSend,
-    /* Async Requests */
-    SocketRequestTypeAsyncConfirm,
     /* Special value */
     SocketRequestTypeMax,
 } SocketRequestType;

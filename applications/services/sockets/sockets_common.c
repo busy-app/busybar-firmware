@@ -16,7 +16,6 @@ static const size_t sockets_request_size[SocketRequestTypeMax] = {
     [SocketRequestTypeAccept] = REQUEST_SIZE(SocketAcceptRequest),
     [SocketRequestTypeConnect] = REQUEST_SIZE(SocketConnectRequest),
     [SocketRequestTypeSend] = 0, // Special case, size computed dynamically
-    [SocketRequestTypeAsyncConfirm] = REQUEST_SIZE(SocketEmpty),
 };
 
 static const size_t sockets_response_size[SocketResponseTypeMax] = {
