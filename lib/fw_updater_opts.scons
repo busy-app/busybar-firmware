@@ -17,6 +17,8 @@ else:
         RAM_EXEC=True,
         CPPDEFINES=[
             "FURI_RAM_EXEC",
+            # "FATFS_READ_ONLY",
+            # Also may add "VECT_TAB_SRAM"
         ],
     )
     env.Replace(

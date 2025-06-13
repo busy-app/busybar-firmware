@@ -5,10 +5,22 @@ App(
     provides=[
         "apps_menu",
         "message",
-        "sl_update_start",
+        "system_apps_on_start",
     ],
     targets=["f20", "f21"],
 )
+
+
+App(
+    appid="system_apps_on_start",
+    name="On start hooks",
+    apptype=FlipperAppType.METAPACKAGE,
+    provides=[
+        "update_cli_start",
+    ],
+    targets=["f20", "f21"],
+)
+
 
 App(
     appid="system_apps",

@@ -36,7 +36,7 @@ struct FrontDisplayScan {
     uint8_t scan_order_table[DISPLAY_BLOCKS];
 };
 
-static FrontDisplayScan* led_scan;
+static FrontDisplayScan led_scan = {0};
 
 static void scan_dma_tc_irq(void* context);
 
@@ -79,6 +79,12 @@ static void gclk_tim_init(void) {
         GpioAltFn3TIM8);
 }
 
+static void gclk_tim_deinit(void) {
+    furi_hal_bus_reset(FuriHalBusTIM8);
+    furi_hal_bus_disable(FuriHalBusTIM8);
+    furi_hal_gpio_init_simple(&gpio_front_display_gclk, GpioModeInput);
+}
+
 static void scan_tim_init(void) {
     furi_hal_bus_enable(FuriHalBusTIM5);
 
@@ -116,7 +122,7 @@ static void scan_tim_init(void) {
     LL_TIM_ClearFlag_CC1(TIM5);
 
     NVIC_SetPriority(TIM5_IRQn, NVIC_EncodePriority(NVIC_GetPriorityGrouping(), 0, 0));
-    NVIC_EnableIRQ(TIM5_IRQn);
+    NVIC_EnableIRQ(TIM5_IRQn); // TODO: furi_hal_interrupt
 
     furi_hal_gpio_init_ex(
         &gpio_front_display_scan_latch,
@@ -126,8 +132,16 @@ static void scan_tim_init(void) {
         GpioAltFn2TIM5);
 }
 
+static void scan_tim_deinit(void) {
+    furi_hal_bus_reset(FuriHalBusTIM5);
+    furi_hal_bus_disable(FuriHalBusTIM5);
+    furi_hal_gpio_init_simple(&gpio_front_display_scan_latch, GpioModeInput);
+
+    NVIC_DisableIRQ(TIM5_IRQn);
+}
+
 static void spi_dma_init(void) {
-    furi_hal_dma_allocate_gpdma_channel(&led_scan->dma_channel);
+    furi_hal_dma_allocate_gpdma_channel(&led_scan.dma_channel);
 
     LL_DMA_InitNodeTypeDef dma_node_cfg = {0};
 
@@ -171,19 +185,16 @@ static void spi_dma_init(void) {
         (LL_DMA_UPDATE_CTR1 | LL_DMA_UPDATE_CTR2 | LL_DMA_UPDATE_CBR1 | LL_DMA_UPDATE_CSAR |
          LL_DMA_UPDATE_CDAR | LL_DMA_UPDATE_CLLR);
 
-    dma_node_cfg.SrcAddress = (uint32_t)led_scan->scan_order_table;
+    dma_node_cfg.SrcAddress = (uint32_t)led_scan.scan_order_table;
     dma_node_cfg.DestAddress = LL_SPI_DMA_GetTxRegAddr(SPI2);
-    dma_node_cfg.BlkDataLength = sizeof(led_scan->scan_order_table);
+    dma_node_cfg.BlkDataLength = sizeof(led_scan.scan_order_table);
 
     dma_node_cfg.Request = LL_GPDMA1_REQUEST_SPI2_TX;
 
-    LL_DMA_CreateLinkNode(&dma_node_cfg, &led_scan->dma_link_node);
+    LL_DMA_CreateLinkNode(&dma_node_cfg, &led_scan.dma_link_node);
 
     LL_DMA_ConnectLinkNode(
-        &led_scan->dma_link_node,
-        LL_DMA_CLLR_OFFSET5,
-        &led_scan->dma_link_node,
-        LL_DMA_CLLR_OFFSET5);
+        &led_scan.dma_link_node, LL_DMA_CLLR_OFFSET5, &led_scan.dma_link_node, LL_DMA_CLLR_OFFSET5);
 
     LL_DMA_InitLinkedListTypeDef dma_ll_cfg = {0};
     dma_ll_cfg.Priority = LL_DMA_HIGH_PRIORITY;
@@ -191,24 +202,30 @@ static void spi_dma_init(void) {
     dma_ll_cfg.LinkStepMode = LL_DMA_LSM_FULL_EXECUTION;
     dma_ll_cfg.LinkAllocatedPort = LL_DMA_LINK_ALLOCATED_PORT0;
 
-    LL_DMA_List_Init(GPDMA1, led_scan->dma_channel, &dma_ll_cfg);
+    LL_DMA_List_Init(GPDMA1, led_scan.dma_channel, &dma_ll_cfg);
 
-    LL_DMA_SetLinkedListBaseAddr(
-        GPDMA1, led_scan->dma_channel, (uint32_t)&led_scan->dma_link_node);
+    LL_DMA_SetLinkedListBaseAddr(GPDMA1, led_scan.dma_channel, (uint32_t)&led_scan.dma_link_node);
     LL_DMA_ConfigLinkUpdate(
         GPDMA1,
-        led_scan->dma_channel,
+        led_scan.dma_channel,
         (LL_DMA_UPDATE_CTR1 | LL_DMA_UPDATE_CTR2 | LL_DMA_UPDATE_CBR1 | LL_DMA_UPDATE_CSAR |
          LL_DMA_UPDATE_CDAR | LL_DMA_UPDATE_CTR3 | LL_DMA_UPDATE_CBR2 | LL_DMA_UPDATE_CLLR),
-        (uint32_t)&led_scan->dma_link_node);
+        (uint32_t)&led_scan.dma_link_node);
 
     furi_hal_interrupt_set_isr_ex(
-        furi_hal_dma_get_gpdma_interrupt_id(led_scan->dma_channel),
+        furi_hal_dma_get_gpdma_interrupt_id(led_scan.dma_channel),
         FuriHalInterruptPriorityKamiSama,
         scan_dma_tc_irq,
         NULL);
 
-    LL_DMA_EnableChannel(GPDMA1, led_scan->dma_channel);
+    LL_DMA_EnableChannel(GPDMA1, led_scan.dma_channel);
+}
+
+static void spi_dma_deinit(void) {
+    LL_DMA_DisableChannel(GPDMA1, led_scan.dma_channel);
+    LL_DMA_List_DeInit(GPDMA1, led_scan.dma_channel);
+    LL_DMA_DeInit(GPDMA1, led_scan.dma_channel);
+    furi_hal_dma_free_gpdma_channel(led_scan.dma_channel);
 }
 
 static void spi_595_init(void) {
@@ -249,12 +266,19 @@ static void spi_595_init(void) {
     LL_SPI_TransmitData8(SPI2, SCAN_DISABLED);
 }
 
+static void spi_595_deinit(void) {
+    furi_hal_bus_reset(FuriHalBusSPI2);
+    furi_hal_bus_disable(FuriHalBusSPI2);
+    furi_hal_gpio_init_simple(&gpio_front_display_scan_clk, GpioModeInput);
+    furi_hal_gpio_init_simple(&gpio_front_display_scan_sdi, GpioModeInput);
+}
+
 static void scan_dma_tc_irq(void* context) {
     UNUSED(context);
-    if((LL_DMA_IsEnabledIT_TC(GPDMA1, led_scan->dma_channel)) &&
-       (LL_DMA_IsActiveFlag_TC(GPDMA1, led_scan->dma_channel))) {
-        LL_DMA_ClearFlag_TC(GPDMA1, led_scan->dma_channel);
-        LL_DMA_DisableIT_TC(GPDMA1, led_scan->dma_channel);
+    if((LL_DMA_IsEnabledIT_TC(GPDMA1, led_scan.dma_channel)) &&
+       (LL_DMA_IsActiveFlag_TC(GPDMA1, led_scan.dma_channel))) {
+        LL_DMA_ClearFlag_TC(GPDMA1, led_scan.dma_channel);
+        LL_DMA_DisableIT_TC(GPDMA1, led_scan.dma_channel);
         LL_TIM_ClearFlag_CC1(TIM5);
         LL_TIM_EnableIT_CC1(TIM5);
     }
@@ -269,18 +293,25 @@ void TIM5_IRQHandler(void) {
 }
 
 inline void front_display_scan_data_sync_enable(void) {
-    LL_DMA_ClearFlag_TC(GPDMA1, led_scan->dma_channel);
-    LL_DMA_EnableIT_TC(GPDMA1, led_scan->dma_channel);
+    LL_DMA_ClearFlag_TC(GPDMA1, led_scan.dma_channel);
+    LL_DMA_EnableIT_TC(GPDMA1, led_scan.dma_channel);
 }
 
 void front_display_scan_init(void) {
-    led_scan = malloc(sizeof(FrontDisplayScan));
-    memset(led_scan->scan_order_table, SCAN_DISABLED, DISPLAY_BLOCKS);
+    memset(&led_scan, 0, sizeof(FrontDisplayScan));
+    memset(led_scan.scan_order_table, SCAN_DISABLED, DISPLAY_BLOCKS);
 
     scan_tim_init();
     gclk_tim_init();
     spi_595_init();
     spi_dma_init();
+}
+
+void front_display_scan_deinit(void) {
+    spi_dma_deinit();
+    spi_595_deinit();
+    gclk_tim_deinit();
+    scan_tim_deinit();
 }
 
 void front_display_scan_start(void) {
@@ -289,8 +320,8 @@ void front_display_scan_start(void) {
 
 void front_display_scan_output_enable(bool enable) {
     if(enable) {
-        memcpy(led_scan->scan_order_table, display_scan_table, DISPLAY_BLOCKS);
+        memcpy(led_scan.scan_order_table, display_scan_table, DISPLAY_BLOCKS);
     } else {
-        memset(led_scan->scan_order_table, SCAN_DISABLED, DISPLAY_BLOCKS);
+        memset(led_scan.scan_order_table, SCAN_DISABLED, DISPLAY_BLOCKS);
     }
 }

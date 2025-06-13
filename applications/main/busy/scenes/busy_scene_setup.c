@@ -1,13 +1,9 @@
 #include "../busy.h"
-#include "../widgets/nav_header.h"
 
 #include <gui/modules/menu.h>
 #include <gui/modules/anim_image.h>
-#include <gui/modules/flex_layout.h>
 
 typedef struct {
-    FlexLayout* back_layout;
-    NavHeader* back_header;
     Menu* front_menu;
     Menu* back_menu;
 } BusySceneSetup;
@@ -32,13 +28,18 @@ static void busy_scene_setup_on_enter(void* context) {
     BusyApp* instance = context;
     BusySceneSetup* data = scene_manager_get_current_scene_data(instance->scene_manager);
 
+    BusyTimerConfig timer_config;
+    busy_timer_get_config(instance->busy_timer, &timer_config);
+
+    const char* mode_name = busy_timer_get_mode_names()[timer_config.mode];
+
     with_gui(instance->gui, {
         data->front_menu = menu_alloc(instance->front_window);
 
         menu_add_item(
             data->front_menu,
             "TIMER",
-            "Interv",
+            mode_name,
             BUSY_IMG_PATH("timer_8x8.bin"),
             BusySceneSetupMenuIndexTimer,
             busy_scene_setup_menu_callback,
@@ -52,14 +53,9 @@ static void busy_scene_setup_on_enter(void* context) {
             busy_scene_setup_menu_callback,
             instance);
 
-        data->back_layout = flex_layout_alloc(instance->back_window, FlexLayoutTypeColumn);
-        data->back_header = nav_header_alloc(flex_layout_get_base(data->back_layout));
-        nav_header_set_image(data->back_header, BUSY_IMG_PATH("header_busy_39x16.bin"));
-        nav_header_push_location(data->back_header, "SETUP");
-
-        data->back_menu = menu_alloc(flex_layout_get_base(data->back_layout));
+        data->back_menu = menu_alloc(nav_stack_get_base(instance->nav_stack));
         menu_add_item(
-            data->back_menu, "TIMER", "Interval", BUSY_IMG_PATH("timer_12x12.bin"), 0, NULL, NULL);
+            data->back_menu, "TIMER", mode_name, BUSY_IMG_PATH("timer_12x12.bin"), 0, NULL, NULL);
         menu_add_item(
             data->back_menu, "THEME", "", BUSY_IMG_PATH("theme_12x12.bin"), 0, NULL, NULL);
     });
@@ -73,7 +69,7 @@ static void busy_scene_setup_on_exit(void* context) {
 
     with_gui(instance->gui, {
         menu_free(data->front_menu);
-        flex_layout_free(data->back_layout);
+        menu_free(data->back_menu);
     });
 }
 
@@ -85,12 +81,18 @@ static bool busy_scene_setup_on_event(const SceneManagerEvent* event, void* cont
 
     if(event->type == SceneManagerEventTypeCustom) {
         if(event->event == BusySceneSetupMenuIndexTimer) {
+            busy_push_location(instance, "TIMER");
             scene_manager_next_scene(instance->scene_manager, BusyAppSceneIdSetupTimer);
+
         } else if(event->event == BusySceneSetupMenuIndexTheme) {
+            busy_push_location(instance, "THEME");
             scene_manager_next_scene(instance->scene_manager, BusyAppSceneIdSetupTheme);
         }
 
         consumed = true;
+
+    } else if(event->type == SceneManagerEventTypeBack) {
+        busy_pop_location(instance);
     }
 
     return consumed;

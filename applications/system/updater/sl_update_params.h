@@ -1,0 +1,7 @@
+#pragma once
+
+#define SL_UPDATE_M4_COMM_TIMEOUT_S  (15)
+#define SL_UPDATE_NWP_COMM_TIMEOUT_S (30)
+
+#define SL_UPDATE_RETRIES  (3)
+#define SL_PROBING_RETRIES (3)

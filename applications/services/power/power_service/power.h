@@ -47,7 +47,6 @@ typedef struct {
 
     float temperature_charger;
     float temperature_battery;
-    float temperature_battery_celsius;
 
     uint32_t charge_ilim_usb;
     uint32_t charge_ilim_battery;
@@ -87,3 +86,5 @@ void power_set_pd_mode(Power* power, uint32_t voltage_mv);
 
 // TODO: internal API
 void power_on_usb_pd_update(Power* power, uint32_t voltage, uint32_t current);
+
+float power_get_temperature_battery_celsius(float temperature_battery);

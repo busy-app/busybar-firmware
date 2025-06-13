@@ -144,9 +144,13 @@ static BackDisplaySrv* back_display_alloc(void) {
     instance->brightness_override = BACK_DISPLAY_BRIGHTNESS_AUTO;
     instance->sensor_contrast = back_display_sensor_level_to_contrast(0);
 
+#if defined(SRV_LIGHT_SENSOR)
     instance->light_sensor_events = furi_record_open(RECORD_LIGHT_SENSOR_EVENTS);
     furi_pubsub_subscribe(
         instance->light_sensor_events, back_display_light_sensor_event, instance);
+#else
+    UNUSED(back_display_light_sensor_event);
+#endif
 
     furi_event_loop_set_custom_event_callback(
         instance->event_loop, back_display_event_callback, instance);
