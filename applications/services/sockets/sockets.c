@@ -14,6 +14,8 @@ static void sockets_process_request(SocketSrv* instance) {
     SocketRequest* request = &instance->request;
     request->type = request_type;
 
+    // TODO: Refactor to array of handlers of type (const SocketSrvMessage* message, SocketRequest* request)
+
     if(request_type == SocketRequestTypeAlloc) {
         SocketAllocRequest* alloc_request = &request->alloc_request;
         const SocketSrvAllocMessage* alloc_message = &message->alloc_message;
@@ -49,6 +51,16 @@ static void sockets_process_request(SocketSrv* instance) {
         send_request->socket_id = send_message->socket_id;
         send_request->data_size = chunk_size;
         memcpy(send_request->data, send_message->data, chunk_size);
+
+    } else if(request_type == SocketRequestTypeReceive) {
+        SocketReceiveRequest* receive_request = &request->receive_request;
+        const SocketSrvReceiveMessage* receive_message = &message->receive_message;
+
+        // TODO: Receive more than one chunk in one request?
+        const size_t chunk_size = MIN(receive_message->data_size, SOCKET_SEND_DATA_SIZE);
+
+        receive_request->socket_id = receive_message->socket_id;
+        receive_request->data_size = chunk_size;
 
     } else {
         furi_crash("Invalid request type");
@@ -89,6 +101,8 @@ static void sockets_process_response(SocketSrv* instance, const SocketResponse* 
     const SocketResponseType response_type = response->type;
     message->status = response->status;
 
+    // TODO: Refactor to array of handlers
+
     if(message->status == SocketStatusOk) {
         if(response_type == SocketResponseTypeAlloc) {
             SocketSrvAllocMessage* alloc_message = &message->alloc_message;
@@ -105,6 +119,16 @@ static void sockets_process_response(SocketSrv* instance, const SocketResponse* 
 
             if(send_message->sent_size) {
                 *send_message->sent_size = send_response->sent_size;
+            }
+
+        } else if(response_type == SocketResponseTypeReceive) {
+            SocketSrvReceiveMessage* receive_message = &message->receive_message;
+            const SocketReceiveResponse* receive_response = &response->receive_response;
+
+            memcpy(receive_message->data, receive_response->data, receive_response->data_size);
+
+            if(receive_message->received_size) {
+                *receive_message->received_size = receive_response->data_size;
             }
         }
     }
@@ -127,12 +151,7 @@ static void sockets_process_async_response(SocketSrv* instance, const SocketResp
     SocketEvent event = {0};
 
     if(response_type == SocketResponseTypeAsyncReceive) {
-        const SocketReceiveAsyncResponse* receive_async_response =
-            &async_response->receive_async_response;
-
         event.type = SocketEventTypeReceive;
-        event.receive.data = receive_async_response->data;
-        event.receive.data_size = receive_async_response->data_size;
 
     } else if(response_type == SocketResponseTypeAsyncAccept) {
         const SocketAcceptAsyncResponse* accept_async_response =
@@ -144,11 +163,7 @@ static void sockets_process_async_response(SocketSrv* instance, const SocketResp
         event.accept.connection_info = accept_async_response->connection_info;
 
     } else if(response_type == SocketResponseTypeAsyncClose) {
-        const SocketCloseAsyncResponse* close_async_response =
-            &async_response->close_async_response;
-
         event.type = SocketEventTypeClose;
-        event.close.data_size = close_async_response->sent_size;
     }
 
     if(socket->event_callback) {
