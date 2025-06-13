@@ -28,26 +28,28 @@ typedef enum {
     SocketEventTypeMax, /**< Special value, internal use */
 } SocketEventType;
 
+/** Socket accept event structure. */
+typedef struct {
+    Socket* client_socket; /**< Pointer to the created socket */
+    SocketConnectionInfo connection_info; /**< Information relevant to the remote connection */
+} SocketAcceptEvent;
+
 /** Socket event structure. */
 typedef struct {
+    Socket* socket; /**< Pointer to the target socket */
     SocketEventType type; /**< Type of the event that has occurred */
     union {
-        struct {
-            Socket* client_socket; /**< Pointer to the created socket */
-            SocketConnectionInfo
-                connection_info; /**< Information relevant to the remote connection */
-        } accept; /**< Accept event, emitted on new client connection */
+        SocketAcceptEvent accept; /**< Accept event, emitted on new client connection */
     };
 } SocketEvent;
 
 /**
  * @brief Socket event callback function type.
  *
- * @param[in,out] socket Pointer to the socket that has emitted the event
  * @param[in] event Pointer to the event structure with type and data
  * @param[in,out] context Pointer to a user-specific context object
  */
-typedef void (*SocketEventCallback)(Socket* socket, const SocketEvent* event, void* context);
+typedef void (*SocketEventCallback)(const SocketEvent* event, void* context);
 
 /**
  * @brief Create a new socket.

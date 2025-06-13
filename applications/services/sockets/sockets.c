@@ -1,5 +1,9 @@
 #include "sockets_i.h"
 
+static inline SocketEventType sockets_match_response_type(SocketResponseType response_type) {
+    return (SocketEventType)(response_type - SocketResponseTypeAsyncReceive);
+}
+
 static inline void sockets_send_request(SocketSrv* instance, const SocketRequest* request) {
     const size_t request_size = sockets_get_request_size(request);
     const size_t tx_size = intercom_tx(
@@ -148,26 +152,24 @@ static void sockets_process_async_response(SocketSrv* instance, const SocketResp
     Socket* socket = instance->sockets[socket_id];
     furi_assert(socket);
 
-    SocketEvent event = {0};
+    SocketEvent event = {
+        .socket = socket,
+        .type = sockets_match_response_type(response_type),
+    };
 
-    if(response_type == SocketResponseTypeAsyncReceive) {
-        event.type = SocketEventTypeReceive;
-
-    } else if(response_type == SocketResponseTypeAsyncAccept) {
+    if(response_type == SocketResponseTypeAsyncAccept) {
+        SocketAcceptEvent* accept_event = &event.accept;
         const SocketAcceptAsyncResponse* accept_async_response =
             &async_response->accept_async_response;
 
         event.type = SocketEventTypeAccept;
-        event.accept.client_socket =
+        accept_event->client_socket =
             sockets_alloc_socket(instance, accept_async_response->client_socket_id);
-        event.accept.connection_info = accept_async_response->connection_info;
-
-    } else if(response_type == SocketResponseTypeAsyncClose) {
-        event.type = SocketEventTypeClose;
+        accept_event->connection_info = accept_async_response->connection_info;
     }
 
     if(socket->event_callback) {
-        socket->event_callback(socket, &event, socket->callback_context);
+        socket->event_callback(&event, socket->callback_context);
     }
 }
 
