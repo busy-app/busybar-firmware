@@ -5,7 +5,6 @@
 
 #define TAG "SocketsTestApp"
 
-#define RX_BUFFER_SIZE (2048UL)
 #define MAX_CHUNK_SIZE (1014) // Limited by intercom et al
 
 #define WIFI_SSID "Your SSID"
@@ -14,7 +13,7 @@
 
 #define CONNECT_PORT    8080
 #define LISTEN_PORT     8081
-#define CONNECT_ADDRESS 10, 46, 30, 131 // MUST be commas, not dots
+#define CONNECT_ADDRESS 10, 46, 30, 121 // MUST be commas, not dots
 
 typedef enum {
     SocketIndexClient,
@@ -28,63 +27,19 @@ typedef struct {
     SocketSrv* sockets_srv;
     FuriEventLoop* event_loop;
     FuriMessageQueue* event_queue;
-    FuriStreamBuffer* buffers[SocketIndexMax];
     Socket* sockets[SocketIndexMax];
     SocketConnectionInfo bind_info;
+    char buf[MAX_CHUNK_SIZE + 1];
 } SocketsTestApp;
 
-static void sockets_test_app_stream_buffer_callback(FuriEventLoopObject* object, void* context);
-
-static inline FuriStreamBuffer*
-    sockets_test_app_get_buffer_by_socket(const SocketsTestApp* instance, const Socket* socket) {
-    FuriStreamBuffer* ret = NULL;
-
-    for(uint32_t i = 0; i < SocketIndexMax; ++i) {
-        if(socket == instance->sockets[i]) {
-            ret = instance->buffers[i];
-            break;
-        }
-    }
-
-    return ret;
-}
-
-static inline Socket* sockets_test_app_get_socket_by_buffer(
-    const SocketsTestApp* instance,
-    const FuriStreamBuffer* buffer) {
-    Socket* ret = NULL;
-
-    for(uint32_t i = 0; i < SocketIndexMax; ++i) {
-        if(instance->buffers[i] == buffer) {
-            ret = instance->sockets[i];
-            break;
-        }
-    }
-
-    return ret;
-}
-
-static void socket_event_callback(Socket* socket, const SocketEvent* event, void* context) {
-    furi_assert(socket);
+static void socket_event_callback(const SocketEvent* event, void* context) {
     furi_assert(event);
     furi_assert(context);
 
     SocketsTestApp* instance = context;
 
-    // Special case: Do not queue event, put the data in the stream buffer
-    if(event->type == SocketEventTypeReceive) {
-        FuriStreamBuffer* buf = sockets_test_app_get_buffer_by_socket(instance, socket);
-        furi_check(buf, "Invalid stream buffer");
-
-        const size_t data_size = event->receive.data_size;
-        furi_check(
-            furi_stream_buffer_send(buf, event->receive.data, data_size, FuriWaitForever) ==
-            data_size);
-
-    } else {
-        furi_check(
-            furi_message_queue_put(instance->event_queue, event, FuriWaitForever) == FuriStatusOk);
-    }
+    furi_check(
+        furi_message_queue_put(instance->event_queue, event, FuriWaitForever) == FuriStatusOk);
 }
 
 static bool sockets_test_app_init_wifi(SocketsTestApp* instance) {
@@ -141,17 +96,6 @@ static bool sockets_test_app_init_wifi(SocketsTestApp* instance) {
     return success;
 }
 
-static void sockets_test_app_init_rx_buffer(SocketsTestApp* instance, SocketIndex socket_index) {
-    instance->buffers[socket_index] = furi_stream_buffer_alloc(RX_BUFFER_SIZE, 1);
-
-    furi_event_loop_subscribe_stream_buffer(
-        instance->event_loop,
-        instance->buffers[socket_index],
-        FuriEventLoopEventIn,
-        sockets_test_app_stream_buffer_callback,
-        instance);
-}
-
 static bool sockets_test_app_init_client(SocketsTestApp* instance) {
     bool success = false;
 
@@ -174,10 +118,9 @@ static bool sockets_test_app_init_client(SocketsTestApp* instance) {
             break;
         }
 
-        FURI_LOG_I(TAG, "Client socket allocated successfully!");
-
-        sockets_test_app_init_rx_buffer(instance, SocketIndexClient);
         socket_set_event_callback(socket, socket_event_callback, instance);
+
+        FURI_LOG_I(TAG, "Client socket allocated successfully!");
 
         const SocketConnectionInfo connection_info = {
             .port = CONNECT_PORT,
@@ -228,9 +171,9 @@ static bool sockets_test_app_init_server(SocketsTestApp* instance) {
             break;
         }
 
-        FURI_LOG_I(TAG, "Server socket allocated successfully!");
-
         socket_set_event_callback(socket, socket_event_callback, instance);
+
+        FURI_LOG_I(TAG, "Server socket allocated successfully!");
 
         if(socket_accept(socket, &instance->bind_info) != SocketStatusOk) {
             FURI_LOG_E(TAG, "Server start failed");
@@ -261,12 +204,6 @@ static void sockets_test_app_deinit_sockets(SocketsTestApp* instance) {
                 FURI_LOG_E(TAG, "Failed to free socket");
             }
         }
-
-        FuriStreamBuffer* buffer = instance->buffers[i];
-        if(buffer) {
-            furi_event_loop_unsubscribe(instance->event_loop, buffer);
-            furi_stream_buffer_free(buffer);
-        }
     }
 
     furi_record_close(RECORD_SOCKETS);
@@ -291,12 +228,44 @@ static void sockets_test_app_event_queue_callback(FuriEventLoopObject* object, v
     SocketEvent event;
     furi_check(furi_message_queue_get(instance->event_queue, &event, 0) == FuriStatusOk);
 
-    if(event.type == SocketEventTypeSend) {
-        // Won't run
-        FURI_LOG_I(TAG, "%hu bytes confirmed!", event.send.data_size);
+    const SocketEventType event_type = event.type;
 
-    } else if(event.type == SocketEventTypeAccept) {
-        const SocketConnectionInfo* connection_info = &event.accept.connection_info;
+    if(event_type == SocketEventTypeReceive) {
+        FURI_LOG_I(TAG, "Received data available!");
+
+        SocketStatus status;
+
+        do {
+            size_t data_size;
+            status = socket_receive(event.socket, instance->buf, MAX_CHUNK_SIZE, &data_size);
+
+            if(status != SocketStatusOk) {
+                FURI_LOG_E(TAG, "Failed to receive the data");
+                break;
+            }
+
+            instance->buf[data_size] = '\0';
+
+            FURI_LOG_I(TAG, "Data (%zu bytes): %s", data_size, instance->buf);
+
+            status = socket_send(event.socket, instance->buf, data_size, &data_size);
+
+            if(status != SocketStatusOk) {
+                FURI_LOG_E(TAG, "Failed to send %zu bytes", data_size);
+                break;
+            }
+
+            FURI_LOG_D(TAG, "Echo'd %zu bytes!", data_size);
+
+        } while(false);
+
+        if(status != SocketStatusOk) {
+            furi_event_loop_stop(instance->event_loop);
+        }
+
+    } else if(event_type == SocketEventTypeAccept) {
+        const SocketAcceptEvent* accept_event = &event.accept;
+        const SocketConnectionInfo* connection_info = &accept_event->connection_info;
 
         FURI_LOG_I(
             TAG,
@@ -307,42 +276,15 @@ static void sockets_test_app_event_queue_callback(FuriEventLoopObject* object, v
             connection_info->address.v4[3],
             connection_info->port);
 
-        Socket* client_socket = event.accept.client_socket;
+        Socket* client_socket = accept_event->client_socket;
         instance->sockets[SocketIndexRemoteClient] = client_socket;
 
-        sockets_test_app_init_rx_buffer(instance, SocketIndexRemoteClient);
         socket_set_event_callback(client_socket, socket_event_callback, instance);
 
-    } else if(event.type == SocketEventTypeClose) {
+    } else if(event_type == SocketEventTypeClose) {
         FURI_LOG_I(TAG, "Socket closed!");
         furi_event_loop_stop(instance->event_loop);
     }
-}
-
-static void sockets_test_app_stream_buffer_callback(FuriEventLoopObject* object, void* context) {
-    FURI_LOG_I(TAG, "Data received!");
-
-    SocketsTestApp* instance = context;
-    FuriStreamBuffer* buffer = object;
-    Socket* socket = sockets_test_app_get_socket_by_buffer(instance, buffer);
-
-    furi_check(socket, "Invalid socket");
-
-    static char tmp[MAX_CHUNK_SIZE + 1]; // + space for null terminator
-    const size_t rx_size = furi_stream_buffer_receive(buffer, tmp, sizeof(tmp) - 1, 0);
-    furi_check(rx_size);
-
-    // Terminate and print string
-    tmp[rx_size] = 0;
-    FURI_LOG_I(TAG, "Data: %s", tmp);
-
-    size_t tx_size;
-    if((socket_send(socket, tmp, rx_size, &tx_size) != SocketStatusOk) || (tx_size != rx_size)) {
-        FURI_LOG_E(TAG, "Failed to send %zu bytes", tx_size);
-        furi_event_loop_stop(instance->event_loop);
-    }
-
-    FURI_LOG_D(TAG, "Echo'd %zu bytes!", tx_size);
 }
 
 static SocketsTestApp* sockets_test_app_alloc(void) {
@@ -351,7 +293,7 @@ static SocketsTestApp* sockets_test_app_alloc(void) {
     instance->wifi = furi_record_open(RECORD_WIFI);
     instance->sockets_srv = furi_record_open(RECORD_SOCKETS);
     instance->event_loop = furi_event_loop_alloc();
-    instance->event_queue = furi_message_queue_alloc(16, sizeof(SocketEvent));
+    instance->event_queue = furi_message_queue_alloc(8, sizeof(SocketEvent));
 
     furi_event_loop_subscribe_message_queue(
         instance->event_loop,
