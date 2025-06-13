@@ -9,20 +9,20 @@ void furi_hal_debug_enable(void) {
     // Low power mode debug
     LL_DBGMCU_EnableDBGStopMode();
     LL_DBGMCU_EnableDBGStandbyMode();
-    // SWD GPIO
-    furi_hal_gpio_init_ex(
-        &gpio_swdio, GpioModeAltFunctionPushPull, GpioPullUp, GpioSpeedVeryHigh, GpioAltFn0SWJ);
-    furi_hal_gpio_init_ex(
-        &gpio_swclk, GpioModeAltFunctionPushPull, GpioPullDown, GpioSpeedLow, GpioAltFn0SWJ);
+    // // SWD GPIO
+    // furi_hal_gpio_init_ex(
+    //     &gpio_swdio, GpioModeAltFunctionPushPull, GpioPullUp, GpioSpeedVeryHigh, GpioAltFn0SWJ);
+    // furi_hal_gpio_init_ex(
+    //     &gpio_swclk, GpioModeAltFunctionPushPull, GpioPullDown, GpioSpeedLow, GpioAltFn0SWJ);
 }
 
 void furi_hal_debug_disable(void) {
     // Low power mode debug
     LL_DBGMCU_DisableDBGStopMode();
     LL_DBGMCU_DisableDBGStandbyMode();
-    // SWD GPIO
-    furi_hal_gpio_init_simple(&gpio_swdio, GpioModeAnalog);
-    furi_hal_gpio_init_simple(&gpio_swclk, GpioModeAnalog);
+    // // SWD GPIO
+    // furi_hal_gpio_init_simple(&gpio_swdio, GpioModeAnalog);
+    // furi_hal_gpio_init_simple(&gpio_swclk, GpioModeAnalog);
 }
 
 bool furi_hal_debug_is_gdb_session_active(void) {

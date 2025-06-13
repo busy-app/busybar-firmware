@@ -313,9 +313,13 @@ static FrontDisplaySrv* front_display_alloc(void) {
 
     front_display_start(instance);
 
+#if defined(SRV_LIGHT_SENSOR)
     instance->light_sensor_pubsub = furi_record_open(RECORD_LIGHT_SENSOR_EVENTS);
     furi_pubsub_subscribe(
         instance->light_sensor_pubsub, front_display_light_sensor_event, instance);
+#else
+    UNUSED(front_display_light_sensor_event);
+#endif
 
     furi_record_create(RECORD_FRONT_DISPLAY, instance);
     return instance;

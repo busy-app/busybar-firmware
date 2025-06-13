@@ -122,7 +122,7 @@ static void scan_tim_init(void) {
     LL_TIM_ClearFlag_CC1(TIM5);
 
     NVIC_SetPriority(TIM5_IRQn, NVIC_EncodePriority(NVIC_GetPriorityGrouping(), 0, 0));
-    NVIC_EnableIRQ(TIM5_IRQn);
+    NVIC_EnableIRQ(TIM5_IRQn); // TODO: furi_hal_interrupt
 
     furi_hal_gpio_init_ex(
         &gpio_front_display_scan_latch,
