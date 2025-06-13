@@ -79,10 +79,10 @@ static void sockets_select_callback(
     UNUSED(except_fds);
     UNUSED(status);
 
-    const uint32_t socket_bits = read_fds->__fds_bits[0];
-    furi_check(socket_bits);
-
-    furi_event_flag_set(socket_srv->read_event_flag, socket_bits);
+    if(status == SL_STATUS_OK) {
+        const uint32_t socket_bits = read_fds->__fds_bits[0];
+        furi_event_flag_set(socket_srv->read_event_flag, socket_bits);
+    }
 }
 
 // BUG: params `addr` and `ip_version` do not contain correct data
@@ -337,9 +337,11 @@ static void sockets_read_event_flag_callback(FuriEventLoopObject* object, void* 
     SocketAsyncResponse* async_response = &response->async_response;
 
     for(int socket_id = 0; socket_id < NUMBER_OF_SOCKETS; ++socket_id) {
+        // TODO: filter out parent sockets
         const uint32_t socket_bit = (1UL << socket_id);
 
         if(socket_bits & socket_bit) {
+            FURI_LOG_D(TAG, "Rx available on socket %d", socket_id);
             async_response->socket_id = socket_id;
             sockets_send_response(instance, response);
         }
@@ -373,6 +375,8 @@ static void sockets_accept_event_flag_callback(FuriEventLoopObject* object, void
             async_response->socket_id = sockets_get_parent(socket_id);
             furi_assert(async_response->socket_id >= 0);
 
+            accept_async_response->client_socket_id = socket_id;
+
             const sli_si91x_socket_t* client_socket = get_si91x_socket(socket_id);
             furi_assert(client_socket);
 
@@ -381,6 +385,8 @@ static void sockets_accept_event_flag_callback(FuriEventLoopObject* object, void
                 &accept_async_response->connection_info);
 
             sockets_send_response(instance, response);
+
+            sockets_enable_read_events(socket_id);
         }
     }
 }

@@ -162,7 +162,6 @@ static void sockets_process_async_response(SocketSrv* instance, const SocketResp
         const SocketAcceptAsyncResponse* accept_async_response =
             &async_response->accept_async_response;
 
-        event.type = SocketEventTypeAccept;
         accept_event->client_socket =
             sockets_alloc_socket(instance, accept_async_response->client_socket_id);
         accept_event->connection_info = accept_async_response->connection_info;
