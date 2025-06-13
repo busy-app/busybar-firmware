@@ -63,8 +63,7 @@ static void updater_task_on_progress(
         canvas_draw_begin(canvas);
         canvas_clear(canvas);
         canvas_set_fill_color(canvas, failed ? ColorRed : ColorGreen);
-        canvas_set_line_color(
-            canvas, failed ? ColorRed : ColorGreen); // Though likely unused for filled rects
+        canvas_set_line_color(canvas, failed ? ColorRed : ColorGreen);
         canvas_set_line_width(canvas, 1);
 
         uint8_t bar_x = 1;
