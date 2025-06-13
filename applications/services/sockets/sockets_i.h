@@ -39,6 +39,13 @@ typedef struct {
 } SocketSrvSendMessage;
 
 typedef struct {
+    const uint8_t socket_id;
+    void* data;
+    const size_t data_size;
+    size_t* received_size;
+} SocketSrvReceiveMessage;
+
+typedef struct {
     SocketRequestType request_type;
     SocketStatus status;
     union {
@@ -47,6 +54,7 @@ typedef struct {
         SocketSrvAcceptMessage accept_message;
         SocketSrvConnectMessage connect_message;
         SocketSrvSendMessage send_message;
+        SocketSrvReceiveMessage receive_message;
     };
     FuriApiLock lock;
 } SocketSrvMessage;

@@ -118,3 +118,25 @@ SocketStatus socket_send(Socket* socket, const void* data, size_t data_size, siz
     sockets_send_message(instance, &msg);
     return msg.status;
 }
+
+SocketStatus socket_receive(Socket* socket, void* data, size_t data_size, size_t* received_size) {
+    furi_check(socket);
+    furi_check(data);
+
+    SocketSrv* instance = socket->owner;
+    furi_assert(instance);
+
+    SocketSrvMessage msg = {
+        .request_type = SocketRequestTypeReceive,
+        .receive_message =
+            {
+                .socket_id = socket->id,
+                .data = data,
+                .data_size = data_size,
+                .received_size = received_size,
+            },
+    };
+
+    sockets_send_message(instance, &msg);
+    return msg.status;
+}
