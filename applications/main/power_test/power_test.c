@@ -174,7 +174,7 @@ static void power_test_info_update(PowerTest* instance) {
             flags_charger,
             info.voltage_battery / 1000.f,
             info.voltage_usb / 1000.f,
-            info.temperature_battery_celsius);
+            power_get_temperature_battery_celsius(info.temperature_battery));
         label_set_text_fmt(
             instance->label_back,
             "%s %u%% %s%s\n\nBAT: %.2fV %.2fA %.2fC\n\nUSB: %.2fV %.2fA",
@@ -184,7 +184,7 @@ static void power_test_info_update(PowerTest* instance) {
             flags_charger,
             info.voltage_battery / 1000.f,
             info.current_battery / 1000.f,
-            info.temperature_battery_celsius,
+            power_get_temperature_battery_celsius(info.temperature_battery),
             info.voltage_usb / 1000.f,
             info.current_usb / 1000.f);
     });
