@@ -102,12 +102,12 @@ paths:
       parameters:
         - name: name
           in: query
-          required: true
+          required: false
           schema:
             type: string
             pattern: '^[a-zA-Z0-9._-]+$'
           description: Name for the update package. The update will be unpacked to /ext/update/<name>.
-          example: "update_package"
+          example: "firmware"
       requestBody:
         required: true
         content:
