@@ -16,8 +16,6 @@
 
 typedef struct FrontDisplaySrv FrontDisplaySrv;
 
-void front_display_reset(FrontDisplaySrv* instance);
-
 void front_display_draw(FrontDisplaySrv* instance, const uint8_t* buf);
 
 /**
