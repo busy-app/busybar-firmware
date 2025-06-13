@@ -135,7 +135,7 @@ static void front_display_power_pin_init(FrontDisplaySrv* instance) {
     LL_GPIO_SetPinOutputType(
         gpio_front_display_power_en.port,
         gpio_front_display_power_en.pin,
-        LL_GPIO_OUTPUT_OPENDRAIN);
+        LL_GPIO_OUTPUT_PUSHPULL); // TODO: open drain for target f21
     LL_GPIO_SetPinMode(
         gpio_front_display_power_en.port, gpio_front_display_power_en.pin, LL_GPIO_MODE_OUTPUT);
 
