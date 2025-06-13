@@ -44,7 +44,7 @@ void cli_command_factory_reset(PipeSide* pipe, FuriString* args, void* context) 
             cli_command_step_format_emmc();
             cli_command_step_reset_pairing();
             cli_command_step_wifi_ble_restore_default_config();
-            furi_hal_rtc_reset_registers();
+            furi_hal_nvm_reset();
             printf("Done\r\nRebooting...\r\n");
             furi_delay_ms(100);
             Power* pwr = furi_record_open(RECORD_POWER);

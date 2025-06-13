@@ -29,6 +29,10 @@ extern const void __heap_size__; /**< RAM1 Heap size (as symbol address) */
 
 extern const void __free_flash_start__; /**< Free Flash space start */
 
+extern const void __bkp_start__;
+extern const void __bkp_end__;
+extern const void __bkp_size__;
+
 #ifdef __cplusplus
 }
 #endif

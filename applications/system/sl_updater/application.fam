@@ -1,7 +1,0 @@
-App(
-    appid="sl_update",
-    name="update",
-    apptype=FlipperAppType.CLICMD,
-    entry_point="update_command",
-    requires=["storage"],
-)

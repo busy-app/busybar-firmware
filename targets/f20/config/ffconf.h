@@ -27,7 +27,7 @@
 /*-----------------------------------------------------------------------------/
 / Function Configurations
 /-----------------------------------------------------------------------------*/
-#ifdef FURI_RAM_EXEC
+#ifdef FATFS_READ_ONLY
 #define _FS_READONLY 1 /* 0:Read/Write or 1:Read only */
 #else
 #define _FS_READONLY 0 /* 0:Read/Write or 1:Read only */
@@ -58,7 +58,7 @@
 /* This option switches filtered directory read functions, f_findfirst() and
 /  f_findnext(). (0:Disable, 1:Enable 2:Enable with matching altname[] too) */
 
-#ifdef FURI_RAM_EXEC
+#ifdef FATFS_READ_ONLY
 #define _USE_MKFS 0
 #else
 #define _USE_MKFS 1

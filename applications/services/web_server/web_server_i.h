@@ -7,25 +7,34 @@
 
 #define WEB_ROOT APP_ASSETS_PATH("www/")
 
+#define HEADER_CORS              "Access-Control-Allow-Origin: *\r\n"
 #define HEADER_CONTENT_TYPE_JSON "Content-Type: application/json\r\n"
-#define RESPONSE_BODY_OK         "{\"result\":\"OK\"}\n"
+
+#define DEFAULT_JSON_HEADERS HEADER_CORS HEADER_CONTENT_TYPE_JSON
+
+#define RESPONSE_BODY_OK "{\"result\":\"OK\"}\n"
 
 #define _MG_JSON_RESULT(conn, code, body, ...) \
-    mg_http_reply(conn, code, HEADER_CONTENT_TYPE_JSON, body, ##__VA_ARGS__)
+    mg_http_reply(conn, code, DEFAULT_JSON_HEADERS, body, ##__VA_ARGS__)
 
 #define _MG_JSON_ERROR(conn, code, body, ...) \
-    mg_http_reply(conn, code, HEADER_CONTENT_TYPE_JSON, body, ##__VA_ARGS__)
+    mg_http_reply(conn, code, DEFAULT_JSON_HEADERS, body, ##__VA_ARGS__)
 
 #define MG_REPLY_OK(conn)                      _MG_JSON_RESULT(conn, 200, RESPONSE_BODY_OK)
 #define MG_REPLY_OK_BODY(conn, json_body, ...) _MG_JSON_RESULT(conn, 200, json_body, ##__VA_ARGS__)
 
 #define MG_REPLY_ERROR(conn, code, ...) \
     _MG_JSON_ERROR(                     \
-        conn, code, "{\"error\":\"%s\"}\n", M_IF_EMPTY(__VA_ARGS__)("failed", (__VA_ARGS__)))
+        conn, code, "{\"error\":\"%s\"}\n", M_IF_EMPTY(__VA_ARGS__)("failed", __VA_ARGS__))
 
 #define MG_REPLY_BAD_REQUEST(conn) MG_REPLY_ERROR(conn, 400, "Bad Request")
 #define MG_REPLY_NOT_FOUND(conn)   MG_REPLY_ERROR(conn, 404, "Not Found")
 #define MG_REPLY_FORBIDDEN(conn)   MG_REPLY_ERROR(conn, 403, "Forbidden")
+
+#define MG_REPLY_METHOD_NOT_ALLOWED(conn, ...) \
+    MG_REPLY_ERROR(conn, 405, M_IF_EMPTY(__VA_ARGS__)("Method Not Allowed", (__VA_ARGS__)))
+#define MG_REPLY_PAYLOAD_TOO_LARGE(conn, ...) \
+    MG_REPLY_ERROR(conn, 413, M_IF_EMPTY(__VA_ARGS__)("Payload Too Large", (__VA_ARGS__)))
 
 #define _MG_REPLY_INTERNAL_ERROR(conn, msg) MG_REPLY_ERROR(conn, 500, msg)
 #define MG_REPLY_INTERNAL_ERROR(conn, ...) \

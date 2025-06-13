@@ -1,6 +1,7 @@
 #include <fatfs.h>
 #include <furi_hal.h>
 #include <furi_hal_sdmmc.h>
+#include <furi_hal_nvm.h>
 
 #include "storage_ext_sdmmc.h"
 
@@ -42,7 +43,7 @@ static bool sd_mount_card_internal(StorageData* storage) {
             SDError status = f_mount(sd_data->fs, sd_data->path, 1);
 
             if(status == FR_OK || status == FR_NO_FILESYSTEM) {
-#ifndef FURI_RAM_EXEC
+#ifndef FATFS_READ_ONLY
                 FATFS* fs;
                 uint32_t free_clusters;
 
@@ -169,9 +170,9 @@ FS_Error sd_mount_card(StorageData* storage) {
     } else {
         FURI_LOG_I(TAG, "card mounted");
 
-#ifndef FURI_RAM_EXEC
+#ifndef FATFS_READ_ONLY
 #if false
-        if(furi_hal_rtc_is_flag_set(FuriHalRtcFlagStorageFormatInternal)) {
+        if(furi_hal_nvm_is_flag_set(FuriHalNvmFlagStorageFormatInternal)) {
 #endif
         if(false) {
             FURI_LOG_I(TAG, "deleting internal storage directory");
@@ -189,7 +190,7 @@ FS_Error sd_mount_card(StorageData* storage) {
 }
 
 FS_Error sd_format_card(StorageData* storage) {
-#ifdef FURI_RAM_EXEC
+#ifdef FATFS_READ_ONLY
     UNUSED(storage);
     return FSE_NOT_READY;
 #else
@@ -218,7 +219,7 @@ FS_Error sd_format_card(StorageData* storage) {
 }
 
 FS_Error sd_card_info(StorageData* storage, SDInfo* sd_info) {
-#ifndef FURI_RAM_EXEC
+#ifndef FATFS_READ_ONLY
     uint32_t free_clusters, free_sectors, total_sectors;
     FATFS* fs;
 #endif
@@ -231,14 +232,14 @@ FS_Error sd_card_info(StorageData* storage, SDInfo* sd_info) {
     // get fs info
     error = f_getlabel(sd_data->path, sd_info->label, NULL);
     if(error == FR_OK) {
-#ifndef FURI_RAM_EXEC
+#ifndef FATFS_READ_ONLY
         error = f_getfree(sd_data->path, &free_clusters, &fs);
 #endif
     }
 
     if(error == FR_OK) {
         // calculate size
-#ifndef FURI_RAM_EXEC
+#ifndef FATFS_READ_ONLY
         total_sectors = (fs->n_fatent - 2) * fs->csize;
         free_sectors = free_clusters * fs->csize;
 #endif
@@ -248,7 +249,7 @@ FS_Error sd_card_info(StorageData* storage, SDInfo* sd_info) {
         sector_size = fs->ssize;
 #endif
 
-#ifdef FURI_RAM_EXEC
+#ifdef FATFS_READ_ONLY
         sd_info->fs_type = 0;
         sd_info->kb_total = 0;
         sd_info->kb_free = 0;
@@ -410,7 +411,7 @@ static uint32_t
 
 static uint32_t
     storage_ext_file_write(void* ctx, File* file, const void* buff, uint32_t const bytes_to_write) {
-#ifdef FURI_RAM_EXEC
+#ifdef FATFS_READ_ONLY
     UNUSED(ctx);
     UNUSED(file);
     UNUSED(buff);
@@ -454,7 +455,7 @@ static uint64_t storage_ext_file_tell(void* ctx, File* file) {
 }
 
 static bool storage_ext_file_truncate(void* ctx, File* file) {
-#ifdef FURI_RAM_EXEC
+#ifdef FATFS_READ_ONLY
     UNUSED(ctx);
     UNUSED(file);
     return FSE_NOT_READY;
@@ -469,7 +470,7 @@ static bool storage_ext_file_truncate(void* ctx, File* file) {
 }
 
 static bool storage_ext_file_sync(void* ctx, File* file) {
-#ifdef FURI_RAM_EXEC
+#ifdef FATFS_READ_ONLY
     UNUSED(ctx);
     UNUSED(file);
     return FSE_NOT_READY;
@@ -583,7 +584,7 @@ static FS_Error storage_ext_common_stat(void* ctx, const char* path, FileInfo* f
 
 static FS_Error storage_ext_common_remove(void* ctx, const char* path) {
     UNUSED(ctx);
-#ifdef FURI_RAM_EXEC
+#ifdef FATFS_READ_ONLY
     UNUSED(path);
     return FSE_NOT_READY;
 #else
@@ -594,7 +595,7 @@ static FS_Error storage_ext_common_remove(void* ctx, const char* path) {
 
 static FS_Error storage_ext_common_mkdir(void* ctx, const char* path) {
     UNUSED(ctx);
-#ifdef FURI_RAM_EXEC
+#ifdef FATFS_READ_ONLY
     UNUSED(path);
     return FSE_NOT_READY;
 #else
@@ -609,7 +610,7 @@ static FS_Error storage_ext_common_fs_info(
     uint64_t* total_space,
     uint64_t* free_space) {
     UNUSED(fs_path);
-#ifdef FURI_RAM_EXEC
+#ifdef FATFS_READ_ONLY
     UNUSED(ctx);
     UNUSED(total_space);
     UNUSED(free_space);
@@ -645,7 +646,7 @@ static FS_Error storage_ext_common_fs_info(
 }
 
 static bool storage_ext_common_equivalent_path(const char* path1, const char* path2) {
-#ifdef FURI_RAM_EXEC
+#ifdef FATFS_READ_ONLY
     UNUSED(path1);
     UNUSED(path2);
     return false;
@@ -702,6 +703,6 @@ void storage_ext_init(StorageData* storage) {
     sd_presence_changed(storage);
 #ifndef FURI_RAM_EXEC
     // always reset the flag to prevent accidental wipe on SD card insertion
-    // furi_hal_rtc_reset_flag(FuriHalRtcFlagStorageFormatInternal);
+    furi_hal_nvm_reset_flag(FuriHalNvmFlagStorageFormatInternal);
 #endif
 }

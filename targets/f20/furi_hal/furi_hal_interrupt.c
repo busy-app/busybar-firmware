@@ -134,7 +134,10 @@ void furi_hal_interrupt_init() {
 }
 
 void furi_hal_interrupt_set_isr(FuriHalInterruptId index, FuriHalInterruptISR isr, void* context) {
-    furi_hal_interrupt_set_isr_ex(index, FuriHalInterruptPriorityNormal, isr, context);
+    FuriHalInterruptPriority priority = furi_kernel_is_running() ?
+                                            FuriHalInterruptPriorityNormal :
+                                            FuriHalInterruptPriorityKamiSama;
+    furi_hal_interrupt_set_isr_ex(index, priority, isr, context);
 }
 
 void furi_hal_interrupt_set_isr_ex(
@@ -170,12 +173,6 @@ void furi_hal_interrupt_set_isr_ex(
     } else {
         // Post ISR clear
     }
-}
-
-void FuriSysTick_Handler(void) {
-    // FURI_HAL_INTERRUPT_ACCOUNT_START();
-    furi_hal_os_tick();
-    // FURI_HAL_INTERRUPT_ACCOUNT_END();
 }
 
 void SDMMC1_IRQHandler() {
@@ -475,6 +472,12 @@ void DebugMon_Handler() {
 
 void FPU_IRQHandler() {
     furi_crash("FpuFault");
+}
+
+void FuriSysTick_Handler(void) {
+    // FURI_HAL_INTERRUPT_ACCOUNT_START();
+    furi_hal_os_tick();
+    // FURI_HAL_INTERRUPT_ACCOUNT_END();
 }
 
 // Potential space-saver for updater build

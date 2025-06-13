@@ -17,6 +17,11 @@ extern "C" {
 /** ProgressBar opaque structure. */
 typedef struct ProgressBar ProgressBar;
 
+typedef struct {
+    const char* file_path;
+    Color trough_color;
+} ProgressBarPreset;
+
 /**
  * @brief Create a new ProgressBar instance.
  *
@@ -43,22 +48,7 @@ void progress_bar_free(ProgressBar* instance);
  */
 Widget* progress_bar_get_base(ProgressBar* instance);
 
-/**
- * @brief Set the animation file for the bar part.
- *
- * @param[in,out] instance pointer to the ProgressBar instance to be modified
- * @param[in] file_path zero-terminated string containing the full path to the animation file
- * @returns @c true if the file could be loaded, @c false otherwise
- */
-bool progress_bar_set_anim_source(ProgressBar* instance, const char* file_path);
-
-/**
- * @brief Set the fill color for the background trough.
- *
- * @param[in,out] instance pointer to the ProgressBar instance to be modified
- * @param[in] color trough color value
- */
-void progress_bar_set_trough_color(ProgressBar* instance, Color color);
+void progress_bar_set_preset(ProgressBar* instance, const ProgressBarPreset* preset);
 
 /**
  * @brief Set the displayed value.

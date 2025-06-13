@@ -10,6 +10,7 @@
 #include <core/thread.h>
 #include <core/thread_list.h>
 #include <furi_hal.h>
+#include <furi_hal_nvm.h>
 #include <task_control_block.h>
 #include <time.h>
 #include <loader/loader.h>
@@ -20,36 +21,50 @@
 #include <cli/cli_ansi.h>
 #include <firmware_applications_f20/applications.h>
 
-static void cli_command_sysctl_debug(PipeSide* pipe, FuriString* args, void* context) {
-    UNUSED(pipe);
-    UNUSED(context);
 
+static void cli_command_update_debug_mode(void) {
     CliRegistry* registry = furi_record_open(RECORD_CLI);
 
-    if(furi_string_equal_str(args, "0")) {
-        cli_registry_delete_command(registry, "gpio");
-        // cli_registry_delete_command(registry, "sl_echo");
-        cli_registry_delete_command(registry, "factory_reset");
-        printf("Debug disabled.");
-    } else if(furi_string_equal_str(args, "1")) {
+    // Check if debug is enabled
+    if(furi_hal_nvm_is_flag_set(FuriHalNvmFlagDebug)) {
+        // Re-register debug commands
         cli_registry_add_command(
             registry, "gpio", CliCommandFlagParallelSafe, cli_command_gpio, NULL);
         // cli_registry_add_command(registry, "sl_echo", CliCommandFlagParallelSafe, cli_command_sl_echo, NULL);
         cli_registry_add_command(
             registry, "factory_reset", CliCommandFlagParallelSafe, cli_command_factory_reset, NULL);
+    } else {
+        // Remove debug commands
+        cli_registry_delete_command(registry, "gpio");
+        // cli_registry_delete_command(registry, "sl_echo");
+        cli_registry_delete_command(registry, "factory_reset");
+    }
+
+    furi_record_close(RECORD_CLI);
+}
+
+static void cli_command_sysctl_debug(PipeSide* pipe, FuriString* args, void* context) {
+    UNUSED(pipe);
+    UNUSED(context);
+
+    if(furi_string_equal_str(args, "0")) {
+        furi_hal_nvm_reset_flag(FuriHalNvmFlagDebug);
+        printf("Debug disabled.");
+    } else if(furi_string_equal_str(args, "1")) {
+        furi_hal_nvm_set_flag(FuriHalNvmFlagDebug);
         printf("Debug enabled.");
     } else {
         cli_print_usage("sysctl debug", "<1|0>", furi_string_get_cstr(args));
     }
 
-    furi_record_close(RECORD_CLI);
+    cli_command_update_debug_mode();
 }
 
 static void cli_command_sysctl_print_usage() {
     printf("Usage:\r\n");
     printf("sysctl <cmd>\r\n");
     printf("Cmd list:\r\n");
-    printf("\tdebug - enables or disables some debug commands\r\n");
+    printf("\tdebug - enables or disables debug mode\r\n");
 }
 
 static void cli_command_sysctl(PipeSide* pipe, FuriString* args, void* context) {
@@ -300,4 +315,6 @@ void cli_on_system_start(void) {
     CliRegistry* registry = cli_registry_alloc();
     cli_commands_init(registry);
     furi_record_create(RECORD_CLI, registry);
+
+    cli_command_update_debug_mode();
 }
