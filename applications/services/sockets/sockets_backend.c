@@ -185,8 +185,6 @@ static void sockets_bind_request_handler(const SocketRequest* request, SocketRes
         response->status = SocketStatusError;
 
     } else {
-        sockets_enable_read_events(socket_id);
-
         FURI_LOG_D(TAG, "Bound socket with id: %hhu", socket_id);
         response->status = SocketStatusOk;
     }
