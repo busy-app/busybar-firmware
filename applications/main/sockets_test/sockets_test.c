@@ -186,7 +186,7 @@ static bool sockets_test_app_init_tcp_server(SocketsTestApp* instance) {
 
         SocketConnectionInfo bind_info;
         sockets_test_app_wifi_info_to_connection_info(&instance->wifi_info, &bind_info);
-        bind_info.port = CONNECT_PORT;
+        bind_info.port = LISTEN_PORT;
 
         if(socket_bind(socket, &bind_info) != SocketStatusOk) {
             FURI_LOG_E(TAG, "Failed to bind socket");
