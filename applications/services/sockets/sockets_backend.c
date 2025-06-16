@@ -337,13 +337,19 @@ static void sockets_read_event_flag_callback(FuriEventLoopObject* object, void* 
     SocketAsyncResponse* async_response = &response->async_response;
 
     for(int socket_id = 0; socket_id < NUMBER_OF_SOCKETS; ++socket_id) {
-        // TODO: filter out parent sockets
         const uint32_t socket_bit = (1UL << socket_id);
 
         if(socket_bits & socket_bit) {
-            FURI_LOG_D(TAG, "Rx available on socket %d", socket_id);
-            async_response->socket_id = socket_id;
-            sockets_send_response(instance, response);
+            const sli_si91x_socket_t* socket = get_si91x_socket(socket_id);
+            furi_assert(socket);
+
+            // TODO: What about UDP sockets?
+            if(socket->state == CONNECTED) {
+                FURI_LOG_D(TAG, "Rx available on socket %d", socket_id);
+
+                async_response->socket_id = socket_id;
+                sockets_send_response(instance, response);
+            }
         }
     }
 }
