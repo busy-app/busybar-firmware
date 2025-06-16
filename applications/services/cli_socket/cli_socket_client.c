@@ -6,6 +6,8 @@
 #include <cli/cli_commands.h>
 #include <cli/cli_ansi.h>
 
+#include <lwip/tcpip.h>
+
 #define THREAD_STACK_SIZE     (2 * 1024)
 #define PIPE_SZ_PER_DIRECTION 1024U
 // #define CLI_SOCKET_TRACE_ENABLE
@@ -46,6 +48,8 @@ typedef enum {
 // ============
 
 static void cli_socket_client_try_copy_sh2cl(CliSocketClient* client) {
+    LOCK_TCPIP_CORE();
+
     size_t available_in_tcp_buf = tcp_sndbuf(client->socket);
     size_t available_in_pipe = pipe_bytes_available(client->own_pipe);
     size_t batch_sz = MIN(available_in_pipe, available_in_tcp_buf);
@@ -55,20 +59,36 @@ static void cli_socket_client_try_copy_sh2cl(CliSocketClient* client) {
         batch_sz,
         available_in_tcp_buf,
         available_in_pipe);
-    if(!batch_sz) return;
 
-    if(furi_semaphore_release(client->tx_semaphore) != FuriStatusOk) {
-        CLI_SOCKET_TRACE(TAG, DIR_SH_CL ": tx locked");
-        return;
-    }
+    do {
+        if(!batch_sz) break;
 
-    uint8_t buf[batch_sz];
-    furi_check(pipe_receive(client->own_pipe, buf, sizeof(buf)) == sizeof(buf));
+        if(furi_semaphore_release(client->tx_semaphore) != FuriStatusOk) {
+            CLI_SOCKET_TRACE(TAG, DIR_SH_CL ": tx locked");
+            break;
+        }
 
-    uint8_t lwip_flags = TCP_WRITE_FLAG_COPY;
-    if(batch_sz < available_in_pipe) lwip_flags |= TCP_WRITE_FLAG_MORE;
-    furi_check(tcp_write(client->socket, buf, sizeof(buf), lwip_flags) == ERR_OK);
-    furi_check(tcp_output(client->socket) == ERR_OK);
+        uint8_t buf[batch_sz];
+        furi_check(pipe_receive(client->own_pipe, buf, sizeof(buf)) == sizeof(buf));
+
+        uint8_t lwip_flags = TCP_WRITE_FLAG_COPY;
+        if(batch_sz < available_in_pipe) lwip_flags |= TCP_WRITE_FLAG_MORE;
+
+        err_t err;
+        err = tcp_write(client->socket, buf, sizeof(buf), lwip_flags);
+        if(err != ERR_OK) {
+            FURI_LOG_E(TAG, "tcp_write error: %d", err);
+            furi_crash();
+        }
+
+        err = tcp_output(client->socket);
+        if(err != ERR_OK) {
+            FURI_LOG_E(TAG, "tcp_output error: %d", err);
+            furi_crash();
+        }
+    } while(false);
+
+    UNLOCK_TCPIP_CORE();
 }
 
 static void cli_socket_client_try_copy_cl2sh(CliSocketClient* client, struct pbuf* chunk_chain) {
@@ -188,9 +208,11 @@ static void cli_socket_client_thread_init(CliSocketClient* client) {
     pipe_set_callback_context(client->own_pipe, client);
     pipe_set_data_arrived_callback(client->own_pipe, cli_socket_client_data_from_shell, 0);
 
+    LOCK_TCPIP_CORE();
     tcp_arg(client->socket, client);
     tcp_sent(client->socket, cli_socket_client_tcp_tx_done);
     tcp_recv(client->socket, cli_socket_data_from_client);
+    UNLOCK_TCPIP_CORE();
 
     client->main_registry = furi_record_open(RECORD_CLI);
 
@@ -200,8 +222,10 @@ static void cli_socket_client_thread_init(CliSocketClient* client) {
 }
 
 static void cli_socket_client_thread_deinit(CliSocketClient* client) {
+    LOCK_TCPIP_CORE();
     tcp_recv(client->socket, NULL);
     tcp_sent(client->socket, NULL);
+    UNLOCK_TCPIP_CORE();
 
     pipe_detach_from_event_loop(client->own_pipe);
     pipe_free(client->own_pipe);
@@ -218,7 +242,10 @@ static void cli_socket_client_thread_deinit(CliSocketClient* client) {
 
     furi_event_loop_free(client->event_loop);
 
-    furi_check(tcp_close(client->socket) == ERR_OK);
+    LOCK_TCPIP_CORE();
+    err_t close_err = tcp_close(client->socket);
+    UNLOCK_TCPIP_CORE();
+    furi_check(close_err == ERR_OK);
 }
 
 static int32_t cli_socket_client_thread(void* context) {
