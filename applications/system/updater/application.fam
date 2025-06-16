@@ -1,8 +1,9 @@
 App(
-    appid="update_cli_start",
-    apptype=FlipperAppType.STARTUP,
+    appid="update_cli",
+    name="update",
+    apptype=FlipperAppType.CLICMD,
     sources=["update_cli.c", "sl_updater.c", "fkermit.c"],
-    entry_point="update_on_system_start",
+    entry_point="update_cli_command",
     requires=["storage"],
     order=110,
 )

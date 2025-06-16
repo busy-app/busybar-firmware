@@ -1,5 +1,5 @@
 #pragma once
 
-#include <cli/cli.h>
+#include <cli/cli_command.h>
 
-void wifi_rf_test_system_start(void);
+void wifi_rf_test_command(PipeSide* pipe, FuriString* args, void* context);

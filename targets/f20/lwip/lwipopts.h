@@ -82,7 +82,7 @@
 #define ICMP_TTL                               (IP_DEFAULT_TTL)
 #define LWIP_BROADCAST_PING                    1
 #define LWIP_MULTICAST_PING                    1
-#define LWIP_RAW                               0
+#define LWIP_RAW                               1
 #define RAW_TTL                                (IP_DEFAULT_TTL)
 #define LWIP_DHCP                              0
 #define LWIP_DHCP_CHECK_LINK_UP                0

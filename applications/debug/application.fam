@@ -1,0 +1,9 @@
+App(
+    appid="debug_apps",
+    name="Not meant for release firmware",
+    apptype=FlipperAppType.METAPACKAGE,
+    provides=[
+        "unit_tests",
+    ],
+    targets=["f20", "f21", "f64"],
+)

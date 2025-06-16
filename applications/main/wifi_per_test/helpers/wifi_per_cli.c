@@ -1,7 +1,7 @@
 #include "wifi_per_cli.h"
 #include <intercom/intercom.h>
 #include <furi_hal_cortex.h>
-#include <args.h>
+#include <cli/args.h>
 #include <strint.h>
 
 #define TAG                   "WifiPerCli"
