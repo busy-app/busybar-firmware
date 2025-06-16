@@ -185,6 +185,8 @@ static void sockets_bind_request_handler(const SocketRequest* request, SocketRes
         response->status = SocketStatusError;
 
     } else {
+        sockets_enable_read_events(socket_id);
+
         FURI_LOG_D(TAG, "Bound socket with id: %hhu", socket_id);
         response->status = SocketStatusOk;
     }
@@ -353,14 +355,13 @@ static void sockets_read_event_flag_callback(FuriEventLoopObject* object, void* 
             const sli_si91x_socket_t* socket = get_si91x_socket(socket_id);
             furi_assert(socket);
 
-            // TODO: What about UDP sockets?
-            if(socket->state == CONNECTED) {
+            const sli_si91x_bsd_socket_state_t socket_state = socket->state;
+
+            if(socket_state == CONNECTED || socket_state == UDP_UNCONNECTED_READY) {
                 FURI_LOG_D(TAG, "Rx available on socket with id %d", socket_id);
 
                 async_response->socket_id = socket_id;
                 sockets_send_response(instance, response);
-            } else {
-                FURI_LOG_W(TAG, "Socket state: %d", socket->state);
             }
         }
     }
