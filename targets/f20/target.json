@@ -82,7 +82,7 @@
         "*/*.c"
     ],
     "linker_script_flash": "STM32U595xx_FLASH.ld",
-    "linker_script_ram": "STM32U595xx_FLASH.ld",
+    "linker_script_ram": "STM32U595xx_RAM.ld",
     "linker_script_app": "application_ext.ld",
     "sdk_symbols": "api_symbols.csv",
     "variables_sconscript": "fbt_conf/stm32u595_vars.scons",
@@ -136,7 +136,8 @@
         "vscode_project",
         "subl_project",
         "cli",
-        "upload_resources"
+        "upload_resources",
+        "u5_updater"
     ],
     "extra_target_meta": {
         "debug_tags": [

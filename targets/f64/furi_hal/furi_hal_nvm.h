@@ -6,13 +6,13 @@ extern "C" {
 
 typedef enum {
     FuriHalRtcBootModeDummy, //Just to get it to compile
-} FuriHalRtcBootMode;
+} FuriHalNvmBootMode;
 
 /** Get RTC boot mode
  *
  * @return     The RTC boot mode.
  */
-FuriHalRtcBootMode furi_hal_rtc_get_boot_mode(void);
+FuriHalNvmBootMode furi_hal_nvm_get_boot_mode(void);
 
 #ifdef __cplusplus
 }

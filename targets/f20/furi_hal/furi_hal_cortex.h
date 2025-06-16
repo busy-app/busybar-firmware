@@ -61,9 +61,15 @@ void furi_hal_cortex_timer_wait(FuriHalCortexTimer cortex_timer);
  */
 FURI_NORETURN void furi_hal_cortex_system_reset(void);
 
+typedef enum {
+    FuriHalCortexJumpDFU,
+    FuriHalCortexJumpSRAM,
+    FuriHalCortexJumpFlash,
+} FuriHalCortexJumpType;
+
 /** Jump to DFU bootloader
  */
-FURI_NORETURN void furi_hal_cortex_jump_to_dfu(void);
+FURI_NORETURN void furi_hal_cortex_jump(FuriHalCortexJumpType jump_type);
 
 typedef enum {
     FuriHalCortexComp0,

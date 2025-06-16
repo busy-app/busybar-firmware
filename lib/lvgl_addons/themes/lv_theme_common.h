@@ -14,6 +14,7 @@ extern const lv_obj_class_t menu_lvgl_class;
 extern const lv_obj_class_t menu_item_lvgl_class;
 extern const lv_obj_class_t menu_icon_lvgl_class;
 extern const lv_obj_class_t menu_sublabel_lvgl_class;
+extern const lv_obj_class_t menu_arrow_lvgl_class;
 
 // Submenu
 extern const lv_obj_class_t submenu_lvgl_class;
@@ -25,9 +26,10 @@ extern const lv_obj_class_t var_item_list_lvgl_class;
 extern const lv_obj_class_t var_item_lvgl_class;
 extern const lv_obj_class_t var_item_editor_lvgl_class;
 extern const lv_obj_class_t var_item_cursor_lvgl_class;
+extern const lv_obj_class_t var_item_arrow_lvgl_class;
 
-// NavHeader
-extern const lv_obj_class_t nav_header_lvgl_class;
+// NavStack
+extern const lv_obj_class_t nav_stack_lvgl_class;
 
 // TimerCard
 extern const lv_obj_class_t timer_card_lvgl_class;

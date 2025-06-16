@@ -124,19 +124,19 @@ struct FrontDisplayDriver {
     void* callback_context;
 };
 
-static FrontDisplayDriver* led_driver;
+static FrontDisplayDriver led_driver = {0};
 
 // Send VSYNC command the fastest possible way
 void front_display_driver_vsync_trig(void) {
-    if(led_driver->vsync_count < START_VSYNC_COUNT) {
+    if(led_driver.vsync_count < START_VSYNC_COUNT) {
         *(uint8_t*)&OCTOSPI1->DR = (uint8_t)VSYNC_CMD;
-        led_driver->vsync_count++;
+        led_driver.vsync_count++;
     }
 }
 
 // Start OCTOSPI transfer
 inline void front_display_driver_send_buf_start(void) {
-    LL_DMA_EnableChannel(GPDMA1, led_driver->dma_channel);
+    LL_DMA_EnableChannel(GPDMA1, led_driver.dma_channel);
 }
 
 // Prepare OCTOSPI transfer
@@ -215,6 +215,13 @@ static void octospi_dma_init(FrontDisplayDriver* driver) {
         driver);
 }
 
+static void octospi_dma_deinit(FrontDisplayDriver* driver) {
+    LL_DMA_DisableChannel(GPDMA1, driver->dma_channel);
+    LL_DMA_DeInit(GPDMA1, driver->dma_channel);
+
+    furi_hal_dma_free_gpdma_channel(driver->dma_channel);
+}
+
 static void octospi_init(void) {
     furi_hal_bus_enable(FuriHalBusOCTOSPI1);
     furi_hal_bus_enable(FuriHalBusOCTOSPIM);
@@ -241,20 +248,30 @@ static void octospi_init(void) {
         &gpio_front_display_sdi_ospi_d0,
         GpioModeAltFunctionPushPull,
         GpioPullNo,
-        GpioSpeedLow,
+        DISPLAY_GPIO_SPEED,
         GpioAltFn10OCTOSPI1);
     furi_hal_gpio_init_ex(
         &gpio_front_display_le_ospi_d1,
         GpioModeAltFunctionPushPull,
         GpioPullNo,
-        GpioSpeedLow,
+        DISPLAY_GPIO_SPEED,
         GpioAltFn10OCTOSPI1);
     furi_hal_gpio_init_ex(
         &gpio_front_display_dclk_ospi_clk,
         GpioModeAltFunctionPushPull,
         GpioPullNo,
-        GpioSpeedLow,
+        DISPLAY_GPIO_SPEED,
         GpioAltFn10OCTOSPI1);
+}
+
+static void octospi_deinit(void) {
+    furi_hal_bus_reset(FuriHalBusOCTOSPI1);
+    furi_hal_bus_reset(FuriHalBusOCTOSPIM);
+    furi_hal_bus_disable(FuriHalBusOCTOSPI1);
+    furi_hal_bus_disable(FuriHalBusOCTOSPIM);
+    furi_hal_gpio_init_simple(&gpio_front_display_sdi_ospi_d0, GpioModeInput);
+    furi_hal_gpio_init_simple(&gpio_front_display_le_ospi_d1, GpioModeInput);
+    furi_hal_gpio_init_simple(&gpio_front_display_dclk_ospi_clk, GpioModeInput);
 }
 
 static FURI_ALWAYS_INLINE void led_driver_add_le_cmd(uint8_t* tx_data, LedDriverCommand cmd) {
@@ -473,36 +490,42 @@ static void front_display_driver_send_buffer(FrontDisplayDriver* driver) {
 }
 
 void front_display_driver_send_frame(const uint8_t* frame_buf) {
-    led_driver_encode_buffer(led_driver, frame_buf);
-    front_display_driver_send_buffer(led_driver);
+    led_driver_encode_buffer(&led_driver, frame_buf);
+    front_display_driver_send_buffer(&led_driver);
 }
 
 void front_display_driver_init(uint8_t initial_brightness) {
-    led_driver = malloc(sizeof(FrontDisplayDriver));
-    front_display_index_lut_generate(led_driver);
-    front_display_gamma_lut_generate(led_driver->gamma_lut, DISPLAY_GAMMA, initial_brightness);
+    memset(&led_driver, 0, sizeof(FrontDisplayDriver));
+
+    front_display_index_lut_generate(&led_driver);
+    front_display_gamma_lut_generate(led_driver.gamma_lut, DISPLAY_GAMMA, initial_brightness);
 
     octospi_init();
-    octospi_dma_init(led_driver);
+    octospi_dma_init(&led_driver);
 
-    front_display_driver_send_init(led_driver);
+    front_display_driver_send_init(&led_driver);
+}
+
+void front_display_driver_deinit(void) {
+    octospi_dma_deinit(&led_driver);
+    octospi_deinit();
 }
 
 void front_display_driver_set_update_callback(FrontDisplayCallback callback, void* context) {
-    led_driver->load_done_callback = callback;
-    led_driver->callback_context = context;
+    led_driver.load_done_callback = callback;
+    led_driver.callback_context = context;
 }
 
 void front_display_driver_start(void) {
-    led_driver_encode_empty_buffer(led_driver);
+    led_driver_encode_empty_buffer(&led_driver);
 
-    while(led_driver->refresh_count < START_REFRESH_COUNT) {
+    while(led_driver.refresh_count < START_REFRESH_COUNT) {
         // TODO: Replace delay with proper synchronisation
         furi_delay_ms(5);
-        front_display_driver_send_buffer(led_driver);
+        front_display_driver_send_buffer(&led_driver);
     }
 }
 
 void front_display_driver_set_brightness(uint8_t brightness) {
-    front_display_gamma_lut_generate(led_driver->gamma_lut, DISPLAY_GAMMA, brightness);
+    front_display_gamma_lut_generate(led_driver.gamma_lut, DISPLAY_GAMMA, brightness);
 }

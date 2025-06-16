@@ -1,6 +1,6 @@
 /**
  * @file pause_overlay.h
- * @brief A widget that provides a dimmed pause overlay.
+ * @brief A widget that provides a dimmed and blurred pause overlay.
  *
  * Can be used only on the front display.
  */
@@ -41,6 +41,12 @@ void pause_overlay_free(PauseOverlay* instance);
  */
 Widget* pause_overlay_get_base(PauseOverlay* instance);
 
+/**
+ * @brief Show or hide a PauseOverlay instance and play the respective animation.
+ *
+ * @param[in,out] instance pointer to the PauseOverlay instance to be operated on
+ * @param[in] show show the overlay if @c true, hide if @c false
+ */
 void pause_overlay_show(PauseOverlay* instance, bool show);
 
 #ifdef __cplusplus

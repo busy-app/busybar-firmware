@@ -11,6 +11,7 @@
 #include <core/thread.h>
 #include <core/thread_list.h>
 #include <furi_hal.h>
+#include <furi_hal_nvm.h>
 #include <task_control_block.h>
 #include <time.h>
 #include <loader/loader.h>
@@ -58,30 +59,42 @@ void cli_command_help(Cli* cli, FuriString* args, void* context) {
     }
 }
 
-static void cli_command_sysctl_debug(Cli* cli, FuriString* args, void* context) {
-    UNUSED(context);
-
-    if(furi_string_equal_str(args, "0")) {
-        cli_delete_command(cli, "gpio");
-        cli_delete_command(cli, "sl_echo");
-        cli_delete_command(cli, "factory_reset");
-        printf("Debug disabled.");
-    } else if(furi_string_equal_str(args, "1")) {
+static void cli_command_update_debug_mode(Cli* cli) {
+    // Check if debug is enabled
+    if(furi_hal_nvm_is_flag_set(FuriHalNvmFlagDebug)) {
+        // Re-register debug commands
         cli_add_command(cli, "gpio", CliCommandFlagParallelSafe, cli_command_gpio, NULL);
         cli_add_command(cli, "sl_echo", CliCommandFlagParallelSafe, cli_command_sl_echo, NULL);
         cli_add_command(
             cli, "factory_reset", CliCommandFlagParallelSafe, cli_command_factroy_reset, NULL);
+    } else {
+        // Remove debug commands
+        cli_delete_command(cli, "gpio");
+        cli_delete_command(cli, "sl_echo");
+        cli_delete_command(cli, "factory_reset");
+    }
+}
+
+static void cli_command_sysctl_debug(Cli* cli, FuriString* args, void* context) {
+    UNUSED(context);
+
+    if(furi_string_equal_str(args, "0")) {
+        furi_hal_nvm_reset_flag(FuriHalNvmFlagDebug);
+        printf("Debug disabled.");
+    } else if(furi_string_equal_str(args, "1")) {
+        furi_hal_nvm_set_flag(FuriHalNvmFlagDebug);
         printf("Debug enabled.");
     } else {
         cli_print_usage("sysctl debug", "<1|0>", furi_string_get_cstr(args));
     }
+    cli_command_update_debug_mode(cli);
 }
 
 static void cli_command_sysctl_print_usage() {
     printf("Usage:\r\n");
     printf("sysctl <cmd>\r\n");
     printf("Cmd list:\r\n");
-    printf("\tdebug - enables or disables some debug commands\r\n");
+    printf("\tdebug - enables or disables debug mode\r\n");
 }
 
 void cli_command_sysctl(Cli* cli, FuriString* args, void* context) {
@@ -317,4 +330,6 @@ void cli_commands_init(Cli* cli) {
         cli, "light_sensor", CliCommandFlagParallelSafe, cli_command_light_sensor, NULL);
     cli_add_command(cli, "audio", CliCommandFlagParallelSafe, cli_command_audio, NULL);
     cli_add_command(cli, "sl_cli", CliCommandFlagParallelSafe, cli_command_sl_cli, NULL);
+
+    cli_command_update_debug_mode(cli);
 }

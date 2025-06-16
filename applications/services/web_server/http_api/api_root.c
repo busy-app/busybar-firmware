@@ -138,6 +138,12 @@ static const HttpHandler handlers_api_root[] = {
         .ctx_free = http_api_wifi_free,
         .on_request = http_api_wifi_callback,
     },
+    {
+        .uri = "/api/v0/update",
+        .method = "POST",
+        .type = HttpHandlerCustom,
+        .on_headers = http_api_update_callback,
+    },
 };
 
 typedef struct {

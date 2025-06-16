@@ -6,4 +6,5 @@ App(
     stack_size=4096,
     order=80,
     targets=["f20", "f21"],
+    requires=["power_srv"],
 )

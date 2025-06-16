@@ -46,6 +46,7 @@ MEMORY
 {
   RAM (xrw)   : ORIGIN = 0x20000000, LENGTH = 2496K
   SRAM4 (xrw) : ORIGIN = 0x28000000, LENGTH = 16K
+  BKPSRAM (rw) : ORIGIN = 0x40036400, LENGTH = 2K
 }
 
 /* Sections */
@@ -149,10 +150,24 @@ SECTIONS
     . = ALIGN(8);
     PROVIDE ( end = . );
     PROVIDE ( _end = . );
-    . = . + _Min_Heap_Size;
+/*    . = . + _Min_Heap_Size; */
+    __heap_start__ = .;
+    . = ORIGIN(RAM) + LENGTH(RAM) - _Min_Stack_Size;
+    __heap_end__ = .;
+
     . = . + _Min_Stack_Size;
     . = ALIGN(8);
   } >RAM
+
+  /* Store remaining heap size as a symbol address */
+  __heap_size__ = __heap_end__ - __heap_start__;
+
+  /* Store boundaries for BKPSRAM */
+  __bkp_start__ = ORIGIN(BKPSRAM);
+  __bkp_end__ = ORIGIN(BKPSRAM) + LENGTH(BKPSRAM);
+  __bkp_size__ = LENGTH(BKPSRAM);
+
+  /*  NVM_RAM (NOLOAD)        : { *(NVM_RAM) } >BKPSRAM */  
 
   /* Remove information from the compiler libraries */
   /DISCARD/ :

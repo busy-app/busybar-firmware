@@ -35,3 +35,5 @@ bool http_websocket_callback(struct mg_connection* conn, struct mg_http_message*
 void* http_api_wifi_alloc(void);
 void http_api_wifi_free(void* ctx);
 bool http_api_wifi_callback(struct mg_connection* conn, struct mg_http_message* msg, void* ctx);
+// Update API
+bool http_api_update_callback(struct mg_connection* conn, struct mg_http_message* msg, void* ctx);

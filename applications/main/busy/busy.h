@@ -7,6 +7,7 @@
 #include <status_lights/status_lights.h>
 
 #include "busy_timer.h"
+#include "busy_settings.h"
 
 #include "time_macros.h"
 #include "storage_macros.h"
@@ -14,7 +15,10 @@
 #include "helpers/run_later.h"
 #include "scenes/busy_scenes.h"
 
-#include "views/timer_card.h"
+#include "widgets/nav_stack.h"
+#include "widgets/progress_bar.h"
+#include "widgets/timer_card.h"
+#include "widgets/timer_indicator.h"
 #include "widgets/transition_overlay.h"
 
 #define TAG "Busy"
@@ -23,6 +27,7 @@
 
 typedef enum {
     BusyCustomEventTimerTick = 100,
+    BusyCustomEventTimerModeChanged,
     BusyCustomEventTimerStateChanged,
     BusyCustomEventTimerIntervalEnded,
     BusyCustomEventTimerSequenceEnded,
@@ -32,13 +37,14 @@ typedef enum {
     BusyCustomEventTimeDecrement,
     BusyCustomEventStartPressed,
     BusyCustomEventStartReleased,
+    BusyCustomEventStartShortPressed,
 } BusyCustomEvent;
 
 typedef enum {
-    BusyTransitionTypeBlack,
-    BusyTransitionTypeBlackMask,
-    BusyTransitionTypeWhite,
-    BusyTransitionTypeWhiteSelect,
+    BusyTransitionTypeDefault,
+    BusyTransitionTypeAutomatic,
+    BusyTransitionTypeSkip,
+    BusyTransitionTypeSelect,
     BusyTransitionTypeWork,
     BusyTransitionTypeRest,
     BusyTransitionTypeWorkDone,
@@ -52,6 +58,12 @@ typedef enum {
     BusyStatusLightsTypeRest,
     BusyStatusLightsTypeMax,
 } BusyStatusLightsType;
+
+typedef enum {
+    BusyProgressBarTypeWork,
+    BusyProgressBarTypeRest,
+    BusyProgressBarTypeMax,
+} BusyProgressBarType;
 
 typedef struct {
     FuriEventLoop* event_loop;
@@ -68,6 +80,9 @@ typedef struct {
     // Persistent widgets
     TransitionOverlay* transition_overlay;
     TimerCard* timer_card;
+    NavStack* nav_stack;
+    // Application settings
+    BusySettings settings;
 } BusyApp;
 
 void busy_send_custom_event(BusyApp* instance, uint32_t custom_event);
@@ -77,3 +92,7 @@ void busy_prepare_transition(BusyApp* instance, BusyTransitionType type);
 void busy_start_transition(BusyApp* instance);
 
 void busy_set_status_lights(BusyApp* instance, BusyStatusLightsType type);
+
+void busy_push_location(BusyApp* instance, const char* location_name);
+
+void busy_pop_location(BusyApp* instance);
