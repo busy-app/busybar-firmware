@@ -5,5 +5,5 @@ App(
     provides=[
         "unit_tests",
     ],
-    targets=["f20", "f64"],
+    targets=["f20", "f21", "f64"],
 )
