@@ -15,7 +15,8 @@
 typedef enum {
     SocketRequestTypeAlloc,
     SocketRequestTypeFree,
-    SocketRequestTypeAccept,
+    SocketRequestTypeBind,
+    SocketRequestTypeListen,
     SocketRequestTypeConnect,
     SocketRequestTypeSend,
     SocketRequestTypeReceive,
@@ -26,7 +27,8 @@ typedef enum {
 typedef enum {
     SocketResponseTypeAlloc = SocketRequestTypeAlloc,
     SocketResponseTypeFree = SocketRequestTypeFree,
-    SocketResponseTypeAccept = SocketRequestTypeAccept,
+    SocketResponseTypeBind = SocketRequestTypeBind,
+    SocketResponseTypeListen = SocketRequestTypeListen,
     SocketResponseTypeConnect = SocketRequestTypeConnect,
     SocketResponseTypeSend = SocketRequestTypeSend,
     SocketResponseTypeReceive = SocketRequestTypeReceive,
@@ -55,7 +57,11 @@ typedef struct {
 typedef struct {
     uint8_t socket_id;
     SocketConnectionInfo bind_info;
-} SocketAcceptRequest;
+} SocketBindRequest;
+
+typedef struct {
+    uint8_t socket_id;
+} SocketListenRequest;
 
 typedef struct {
     uint8_t socket_id;
@@ -78,7 +84,8 @@ typedef struct {
     union {
         SocketAllocRequest alloc_request;
         SocketFreeRequest free_request;
-        SocketAcceptRequest accept_request;
+        SocketBindRequest bind_request;
+        SocketListenRequest listen_request;
         SocketConnectRequest connect_request;
         SocketSendRequest send_request;
         SocketReceiveRequest receive_request;

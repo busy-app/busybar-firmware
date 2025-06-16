@@ -24,7 +24,11 @@ typedef struct {
 typedef struct {
     const uint8_t socket_id;
     const SocketConnectionInfo* bind_info;
-} SocketSrvAcceptMessage;
+} SocketSrvBindMessage;
+
+typedef struct {
+    const uint8_t socket_id;
+} SocketSrvListenMessage;
 
 typedef struct {
     const uint8_t socket_id;
@@ -51,7 +55,8 @@ typedef struct {
     union {
         SocketSrvAllocMessage alloc_message;
         SocketSrvFreeMessage free_message;
-        SocketSrvAcceptMessage accept_message;
+        SocketSrvBindMessage bind_message;
+        SocketSrvListenMessage listen_message;
         SocketSrvConnectMessage connect_message;
         SocketSrvSendMessage send_message;
         SocketSrvReceiveMessage receive_message;

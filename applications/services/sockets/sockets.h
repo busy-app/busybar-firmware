@@ -85,17 +85,26 @@ SocketStatus
     socket_set_event_callback(Socket* socket, SocketEventCallback callback, void* context);
 
 /**
- * @brief Begin accepting new connections on a socket.
+ * @brief Bind the socket to an address and a port.
  *
- * This function is asynchronous (does not block). The event callback will be called
- * with the appropriate parameters when a remote client requests a connection.
- *
- * @param[in,out] socket Pointer to the socket to be accepting new connections
+ * @param[in,out] socket Pointer to the socket to be bound
  * @param[in] bind_info Pointer to the structure describing the address and port to bind the socket to
  *
  * @returns SocketStatusOk on success, a SocketStatus error code otherwise
  */
-SocketStatus socket_accept(Socket* socket, const SocketConnectionInfo* bind_info);
+SocketStatus socket_bind(Socket* socket, const SocketConnectionInfo* bind_info);
+
+/**
+ * @brief Begin listening for new connections on a socket.
+ *
+ * This function is asynchronous (does not block). The event callback will be called
+ * with the appropriate parameters when a remote client requests a connection.
+ *
+ * @param[in,out] socket Pointer to the socket to listen on
+ *
+ * @returns SocketStatusOk on success, a SocketStatus error code otherwise
+ */
+SocketStatus socket_listen(Socket* socket);
 
 /**
  * @brief Connect to a remote socket.

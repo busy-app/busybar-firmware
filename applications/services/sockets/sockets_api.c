@@ -57,7 +57,7 @@ SocketStatus
     return SocketStatusOk;
 }
 
-SocketStatus socket_accept(Socket* socket, const SocketConnectionInfo* bind_info) {
+SocketStatus socket_bind(Socket* socket, const SocketConnectionInfo* bind_info) {
     furi_check(socket);
     furi_check(bind_info);
 
@@ -65,11 +65,29 @@ SocketStatus socket_accept(Socket* socket, const SocketConnectionInfo* bind_info
     furi_assert(instance);
 
     SocketSrvMessage msg = {
-        .request_type = SocketRequestTypeAccept,
-        .accept_message =
+        .request_type = SocketRequestTypeBind,
+        .bind_message =
             {
                 .socket_id = socket->id,
                 .bind_info = bind_info,
+            },
+    };
+
+    sockets_send_message(instance, &msg);
+    return msg.status;
+}
+
+SocketStatus socket_listen(Socket* socket) {
+    furi_check(socket);
+
+    SocketSrv* instance = socket->owner;
+    furi_assert(instance);
+
+    SocketSrvMessage msg = {
+        .request_type = SocketRequestTypeListen,
+        .listen_message =
+            {
+                .socket_id = socket->id,
             },
     };
 

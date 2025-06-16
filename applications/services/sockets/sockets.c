@@ -32,12 +32,18 @@ static void sockets_process_request(SocketSrv* instance) {
 
         free_request->socket_id = free_message->socket_id;
 
-    } else if(request_type == SocketRequestTypeAccept) {
-        SocketAcceptRequest* accept_request = &request->accept_request;
-        const SocketSrvAcceptMessage* accept_message = &message->accept_message;
+    } else if(request_type == SocketRequestTypeBind) {
+        SocketBindRequest* bind_request = &request->bind_request;
+        const SocketSrvBindMessage* bind_message = &message->bind_message;
 
-        accept_request->socket_id = accept_message->socket_id;
-        accept_request->bind_info = *accept_message->bind_info;
+        bind_request->socket_id = bind_message->socket_id;
+        bind_request->bind_info = *bind_message->bind_info;
+
+    } else if(request_type == SocketRequestTypeListen) {
+        SocketListenRequest* listen_request = &request->listen_request;
+        const SocketSrvListenMessage* listen_message = &message->listen_message;
+
+        listen_request->socket_id = listen_message->socket_id;
 
     } else if(request_type == SocketRequestTypeConnect) {
         SocketConnectRequest* connect_request = &request->connect_request;
