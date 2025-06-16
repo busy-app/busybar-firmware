@@ -225,6 +225,7 @@ void cli_shell_execute_command(CliShell* cli_shell, FuriString* command) {
             printf(
                 ANSI_FG_RED "could not find command `%s`, try `help`" ANSI_RESET,
                 furi_string_get_cstr(command_name));
+            break;
         }
 
 #ifdef CLI_PLATFORM_SUPPORTS_EXT_CMDS
