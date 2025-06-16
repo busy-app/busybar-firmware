@@ -21,7 +21,6 @@
 #include <cli/cli_ansi.h>
 #include <firmware_applications_f20/applications.h>
 
-
 static void cli_command_update_debug_mode(void) {
     CliRegistry* registry = furi_record_open(RECORD_CLI);
 
