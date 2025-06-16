@@ -18,8 +18,6 @@ static void sockets_process_request(SocketSrv* instance) {
     SocketRequest* request = &instance->request;
     request->type = request_type;
 
-    // TODO: Refactor to array of handlers of type (const SocketSrvMessage* message, SocketRequest* request)
-
     if(request_type == SocketRequestTypeAlloc) {
         SocketAllocRequest* alloc_request = &request->alloc_request;
         const SocketSrvAllocMessage* alloc_message = &message->alloc_message;
@@ -111,8 +109,6 @@ static void sockets_process_response(SocketSrv* instance, const SocketResponse* 
     const SocketResponseType response_type = response->type;
     message->status = response->status;
 
-    // TODO: Refactor to array of handlers
-
     if(message->status == SocketStatusOk) {
         if(response_type == SocketResponseTypeAlloc) {
             SocketSrvAllocMessage* alloc_message = &message->alloc_message;
@@ -140,6 +136,9 @@ static void sockets_process_response(SocketSrv* instance, const SocketResponse* 
             if(receive_message->received_size) {
                 *receive_message->received_size = receive_response->data_size;
             }
+
+        } else {
+            /* Do nothing */
         }
     }
 
@@ -171,6 +170,9 @@ static void sockets_process_async_response(SocketSrv* instance, const SocketResp
         accept_event->client_socket =
             sockets_alloc_socket(instance, accept_async_response->client_socket_id);
         accept_event->connection_info = accept_async_response->connection_info;
+
+    } else {
+        /* Do nothing*/
     }
 
     if(socket->event_callback) {
