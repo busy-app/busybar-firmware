@@ -15,6 +15,8 @@ WifiStatus wifi_decode_sl_status(sl_status_t sl_status) {
         status = WifiStatusFailedToInitialize;
     } else if(sl_status == SL_STATUS_SI91X_SCAN_ISSUED_IN_ASSOCIATED_STATE) {
         status = WifiStatusAlreadyConnected;
+    } else if(sl_status == SL_STATUS_SI91X_NO_AP_FOUND) {
+        status = WifiStatusAccessPointNotFound;
     } else {
         // TODO: More error cases
         status = WifiStatusError;
