@@ -101,10 +101,11 @@ SocketStatus socket_bind(Socket* socket, const SocketConnectionInfo* bind_info);
  * with the appropriate parameters when a remote client requests a connection.
  *
  * @param[in,out] socket Pointer to the socket to listen on
+ * @param[in] max_clients Maximum number of connected clients per socket
  *
  * @returns SocketStatusOk on success, a SocketStatus error code otherwise
  */
-SocketStatus socket_listen(Socket* socket);
+SocketStatus socket_listen(Socket* socket, uint8_t max_clients);
 
 /**
  * @brief Connect to a remote socket.

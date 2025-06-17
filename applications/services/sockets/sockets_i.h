@@ -28,6 +28,7 @@ typedef struct {
 
 typedef struct {
     const uint8_t socket_id;
+    const uint8_t num_clients;
 } SocketSrvListenMessage;
 
 typedef struct {

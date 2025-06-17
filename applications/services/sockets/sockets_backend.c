@@ -178,7 +178,7 @@ static void sockets_free_request_handler(const SocketRequest* request, SocketRes
         response->status = SocketStatusError;
 
     } else {
-        FURI_LOG_D(TAG, "Free'd socket with id: %hhu", free_request->socket_id);
+        FURI_LOG_D(TAG, "Freed socket with id: %hhu", free_request->socket_id);
         response->status = SocketStatusOk;
     }
 }
@@ -214,7 +214,7 @@ static void
     int status;
 
     do {
-        status = sl_si91x_listen(socket_id, NUM_CLIENTS_PER_SOCKET);
+        status = sl_si91x_listen(socket_id, listen_request->num_clients);
 
         if(status < 0) {
             FURI_LOG_E(TAG, "Failed to listen: %s", strerror(errno));
