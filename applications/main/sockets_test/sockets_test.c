@@ -14,7 +14,7 @@
 #define CONNECT_PORT    8080
 #define LISTEN_PORT     8081
 #define UDP_PORT        8082
-#define CONNECT_ADDRESS 10, 46, 30, 126 // MUST be commas, not dots
+#define CONNECT_ADDRESS 10, 46, 30, 180 // MUST be commas, not dots
 
 typedef enum {
     SocketIndexTcpClient,
@@ -302,8 +302,6 @@ static void sockets_test_app_event_queue_callback(FuriEventLoopObject* object, v
     const SocketEventType event_type = event.type;
 
     if(event_type == SocketEventTypeReceive) {
-        FURI_LOG_I(TAG, "Received data available!");
-
         SocketStatus status;
 
         do {
@@ -321,8 +319,6 @@ static void sockets_test_app_event_queue_callback(FuriEventLoopObject* object, v
                 FURI_LOG_E(TAG, "Failed to send %zu bytes", data_size);
                 break;
             }
-
-            FURI_LOG_D(TAG, "Echo'd %zu bytes!", data_size);
 
         } while(false);
 
