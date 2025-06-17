@@ -81,14 +81,14 @@ static bool api_wifi_parse_value_from_array(
     const char* const* array,
     size_t length,
     int* result) {
-    bool state = false;
+    bool success = false;
     for(size_t i = 0; i < length; i++) {
         if(!furi_string_equal_str(value_str, array[i])) continue;
         *result = i;
-        state = true;
+        success = true;
         break;
     }
-    return state;
+    return success;
 }
 
 static bool api_wifi_get_security_mode_by_name(const FuriString* name, WifiSecurityMode* mode) {
