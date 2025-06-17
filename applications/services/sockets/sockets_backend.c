@@ -26,6 +26,8 @@
 
 #define SOCKET_FLAGS_ALL (0x1FUL)
 
+#define DONT_CARE_PARAM (0)
+
 static const sl_si91x_socket_config_t sockets_backend_config = {
     .total_sockets = TOTAL_SOCKETS,
     .total_tcp_sockets = TOTAL_TCP_SOCKETS,
@@ -139,15 +141,27 @@ static void sockets_alloc_request_handler(const SocketRequest* request, SocketRe
         furi_crash("Invalid protocol");
     }
 
-    const int socket_id = sl_si91x_socket(ip_type, socket_type, socket_protocol);
+    int socket_id, status = -1;
 
-    if(socket_id < 0) {
+    do {
+        socket_id = sl_si91x_socket(ip_type, socket_type, socket_protocol);
+
+        if(socket_id < 0) {
+            break;
+        }
+
+        const uint16_t mss = SOCKET_RECV_DATA_SIZE;
+        status =
+            sl_si91x_setsockopt(socket_id, DONT_CARE_PARAM, SL_SI91X_SO_MSS, &mss, sizeof(mss));
+
+    } while(false);
+
+    if(status < 0) {
         FURI_LOG_E(TAG, "Failed to allocate socket: %s", strerror(errno));
         response->status = SocketStatusError;
 
     } else {
         FURI_LOG_D(TAG, "Allocated socket with id: %d", socket_id);
-
         response->status = SocketStatusOk;
         alloc_response->socket_id = socket_id;
     }
@@ -252,8 +266,9 @@ static void
 }
 
 static void sockets_send_request_handler(const SocketRequest* request, SocketResponse* response) {
+#ifdef SOCKETS_SLOW_LOGS
     FURI_LOG_D(TAG, "Send");
-
+#endif
     const SocketSendRequest* send_request = &request->send_request;
     SocketSendResponse* send_response = &response->send_response;
 
@@ -266,7 +281,9 @@ static void sockets_send_request_handler(const SocketRequest* request, SocketRes
         send_response->sent_size = 0;
 
     } else {
+#ifdef SOCKETS_SLOW_LOGS
         FURI_LOG_D(TAG, "Successfully sent %d bytes", bytes_sent);
+#endif
         response->status = SocketStatusOk;
         send_response->sent_size = bytes_sent;
     }
@@ -274,8 +291,9 @@ static void sockets_send_request_handler(const SocketRequest* request, SocketRes
 
 static void
     sockets_receive_request_handler(const SocketRequest* request, SocketResponse* response) {
+#ifdef SOCKETS_SLOW_LOGS
     FURI_LOG_D(TAG, "Receive");
-
+#endif
     const SocketReceiveRequest* receive_request = &request->receive_request;
     SocketReceiveResponse* receive_response = &response->receive_response;
 
@@ -289,7 +307,9 @@ static void
         receive_response->data_size = 0;
 
     } else {
+#ifdef SOCKETS_SLOW_LOGS
         FURI_LOG_D(TAG, "Successfully received %d bytes", bytes_received);
+#endif
         response->status = SocketStatusOk;
         receive_response->data_size = bytes_received;
 
@@ -356,8 +376,6 @@ static void sockets_read_event_flag_callback(FuriEventLoopObject* object, void* 
             const sli_si91x_bsd_socket_state_t socket_state = socket->state;
 
             if(socket_state == CONNECTED || socket_state == UDP_UNCONNECTED_READY) {
-                FURI_LOG_D(TAG, "Rx available on socket with id %d", socket_id);
-
                 async_response->socket_id = socket_id;
                 sockets_send_response(instance, response);
             }
