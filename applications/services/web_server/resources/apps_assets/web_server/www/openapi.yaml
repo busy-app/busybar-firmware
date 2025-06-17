@@ -802,7 +802,7 @@ components:
       properties:
         count:
           type: integer
-          example: 2
+          example: 1
         networks:
           type: array
           items:
