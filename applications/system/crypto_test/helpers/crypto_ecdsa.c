@@ -2,6 +2,7 @@
 #include "crypto_common.h"
 
 #include <furi_hal_crypto.h>
+#include <cli/cli_ansi.h>
 
 #define TAG "ECDSA"
 
@@ -40,25 +41,21 @@ static const uint8_t public_key_224[FURI_HAL_CRYPTO_ECDSA_PUB_KEY_SIZE_224] = {
     0x97, 0x2C, 0xBE, 0xAA, 0x1E, 0x06, 0xEB, 0xC8, 0xE1, 0xDD, 0x69, 0xB7, 0x1C, 0xEF, 0xD5,
     0x78, 0xF2, 0xEE, 0xD5, 0x5D, 0x92, 0x2C, 0x71, 0x35, 0xD9, 0xE7, 0xE1};
 
-void crypto_ecdsa_test_wrap_off_custom_sha_mode(
-    CryptoTestApp* app,
-    FuriString* msg,
-    FuriHalCryptoEcdsaMode mode) {
+void crypto_ecdsa_test_wrap_off_custom_sha_mode(FuriHalCryptoEcdsaMode mode) {
     switch(mode) {
     case FuriHalCryptoEcdsaModeSha256:
-        furi_string_printf(msg, "ECDSA SHA256 mode\r\n");
+        printf("ECDSA SHA256 mode\r\n");
         break;
     case FuriHalCryptoEcdsaModeSha384:
-        furi_string_printf(msg, "ECDSA SHA384 mode\r\n");
+        printf("ECDSA SHA384 mode\r\n");
         break;
     case FuriHalCryptoEcdsaModeSha512:
-        furi_string_printf(msg, "ECDSA SHA512 mode\r\n");
+        printf("ECDSA SHA512 mode\r\n");
         break;
 
     default:
         break;
     }
-    crypto_test_app_send_text(app, msg);
 
     uint8_t signature[FURI_HAL_CRYPTO_ECDSA_MAX_SIGNATURE_SIZE] = {0};
     size_t signature_length = FURI_HAL_CRYPTO_ECDSA_MAX_SIGNATURE_SIZE;
@@ -71,41 +68,37 @@ void crypto_ecdsa_test_wrap_off_custom_sha_mode(
         handle, (uint8_t*)input_data, INPUT_MSG_SIZE, signature, &signature_length);
     furi_hal_crypto_ecdsa_deinit(handle);
 
-    crypto_common_print_buffer_hex(app, msg, "Signature =\t", signature, signature_length);
+    crypto_common_print_buffer_hex("Signature =\t", signature, signature_length);
 
     handle = furi_hal_crypto_ecdsa_verify_init(
         mode, (uint8_t*)public_key, FURI_HAL_CRYPTO_ECDSA_PUB_KEY_SIZE_256);
     if(furi_hal_crypto_ecdsa_verify(
            handle, (uint8_t*)input_data, INPUT_MSG_SIZE, signature, signature_length)) {
-        furi_string_printf(msg, "\033[0;32m ECDSA mode success\033[0m\r\n");
-        crypto_test_app_send_text(app, msg);
+        printf(ANSI_FG_GREEN "ECDSA mode success\r\n" ANSI_RESET);
+
     } else {
-        furi_string_printf(msg, "\033[0;31m ECDSA mode failed\033[0m\r\n");
-        crypto_test_app_send_text(app, msg);
+        printf(ANSI_FG_RED " ECDSA mode failed" ANSI_RESET "\r\n");
     }
     furi_hal_crypto_ecdsa_deinit(handle);
 }
 
 void crypto_ecdsa_test_wrap_on_custom_sha_mode(
-    CryptoTestApp* app,
-    FuriString* msg,
     FuriHalCryptoEcdsaMode mode,
     uint8_t* private_key_wrap) {
     switch(mode) {
     case FuriHalCryptoEcdsaModeSha256:
-        furi_string_printf(msg, "ECDSA SHA256 mode\r\n");
+        printf("ECDSA SHA256 mode\r\n");
         break;
     case FuriHalCryptoEcdsaModeSha384:
-        furi_string_printf(msg, "ECDSA SHA384 mode\r\n");
+        printf("ECDSA SHA384 mode\r\n");
         break;
     case FuriHalCryptoEcdsaModeSha512:
-        furi_string_printf(msg, "ECDSA SHA512 mode\r\n");
+        printf("ECDSA SHA512 mode\r\n");
         break;
 
     default:
         break;
     }
-    crypto_test_app_send_text(app, msg);
 
     uint8_t signature[FURI_HAL_CRYPTO_ECDSA_MAX_SIGNATURE_SIZE] = {0};
     size_t signature_length = FURI_HAL_CRYPTO_ECDSA_MAX_SIGNATURE_SIZE;
@@ -118,40 +111,35 @@ void crypto_ecdsa_test_wrap_on_custom_sha_mode(
         handle, (uint8_t*)input_data, INPUT_MSG_SIZE, signature, &signature_length);
     furi_hal_crypto_ecdsa_deinit(handle);
 
-    crypto_common_print_buffer_hex(app, msg, "Signature =\t", signature, signature_length);
+    crypto_common_print_buffer_hex("Signature =\t", signature, signature_length);
 
     handle = furi_hal_crypto_ecdsa_verify_init(
         mode, (uint8_t*)public_key, FURI_HAL_CRYPTO_ECDSA_PUB_KEY_SIZE_256);
     if(furi_hal_crypto_ecdsa_verify(
            handle, (uint8_t*)input_data, INPUT_MSG_SIZE, signature, signature_length)) {
-        furi_string_printf(msg, "\033[0;32m ECDSA mode success\033[0m\r\n");
-        crypto_test_app_send_text(app, msg);
+        printf(ANSI_FG_GREEN " ECDSA mode success" ANSI_RESET "\r\n");
+
     } else {
-        furi_string_printf(msg, "\033[0;31m ECDSA mode failed\033[0m\r\n");
-        crypto_test_app_send_text(app, msg);
+        printf(ANSI_FG_RED " ECDSA mode failed" ANSI_RESET "\r\n");
     }
     furi_hal_crypto_ecdsa_deinit(handle);
 }
 
-void crypto_ecdsa_224_test_wrap_off_custom_sha_mode(
-    CryptoTestApp* app,
-    FuriString* msg,
-    FuriHalCryptoEcdsaMode mode) {
+void crypto_ecdsa_224_test_wrap_off_custom_sha_mode(FuriHalCryptoEcdsaMode mode) {
     switch(mode) {
     case FuriHalCryptoEcdsaModeSha256:
-        furi_string_printf(msg, "ECDSA SHA256 mode\r\n");
+        printf("ECDSA SHA256 mode\r\n");
         break;
     case FuriHalCryptoEcdsaModeSha384:
-        furi_string_printf(msg, "ECDSA SHA384 mode\r\n");
+        printf("ECDSA SHA384 mode\r\n");
         break;
     case FuriHalCryptoEcdsaModeSha512:
-        furi_string_printf(msg, "ECDSA SHA512 mode\r\n");
+        printf("ECDSA SHA512 mode\r\n");
         break;
 
     default:
         break;
     }
-    crypto_test_app_send_text(app, msg);
 
     uint8_t signature[FURI_HAL_CRYPTO_ECDSA_MAX_SIGNATURE_SIZE] = {0};
     size_t signature_length = FURI_HAL_CRYPTO_ECDSA_MAX_SIGNATURE_SIZE;
@@ -164,41 +152,37 @@ void crypto_ecdsa_224_test_wrap_off_custom_sha_mode(
         handle, (uint8_t*)input_data, INPUT_MSG_SIZE, signature, &signature_length);
     furi_hal_crypto_ecdsa_deinit(handle);
 
-    crypto_common_print_buffer_hex(app, msg, "Signature =\t", signature, signature_length);
+    crypto_common_print_buffer_hex("Signature =\t", signature, signature_length);
 
     handle = furi_hal_crypto_ecdsa_verify_init(
         mode, (uint8_t*)public_key_224, FURI_HAL_CRYPTO_ECDSA_PUB_KEY_SIZE_224);
     if(furi_hal_crypto_ecdsa_verify(
            handle, (uint8_t*)input_data, INPUT_MSG_SIZE, signature, signature_length)) {
-        furi_string_printf(msg, "\033[0;32m ECDSA mode success\033[0m\r\n");
-        crypto_test_app_send_text(app, msg);
+        printf(ANSI_FG_GREEN " ECDSA mode success" ANSI_RESET "\r\n");
+
     } else {
-        furi_string_printf(msg, "\033[0;31m ECDSA mode failed\033[0m\r\n");
-        crypto_test_app_send_text(app, msg);
+        printf(ANSI_FG_RED " ECDSA mode failed" ANSI_RESET "\r\n");
     }
     furi_hal_crypto_ecdsa_deinit(handle);
 }
 
 void crypto_ecdsa_224_test_wrap_on_custom_sha_mode(
-    CryptoTestApp* app,
-    FuriString* msg,
     FuriHalCryptoEcdsaMode mode,
     uint8_t* private_key_wrap) {
     switch(mode) {
     case FuriHalCryptoEcdsaModeSha256:
-        furi_string_printf(msg, "ECDSA SHA256 mode\r\n");
+        printf("ECDSA SHA256 mode\r\n");
         break;
     case FuriHalCryptoEcdsaModeSha384:
-        furi_string_printf(msg, "ECDSA SHA384 mode\r\n");
+        printf("ECDSA SHA384 mode\r\n");
         break;
     case FuriHalCryptoEcdsaModeSha512:
-        furi_string_printf(msg, "ECDSA SHA512 mode\r\n");
+        printf("ECDSA SHA512 mode\r\n");
         break;
 
     default:
         break;
     }
-    crypto_test_app_send_text(app, msg);
 
     uint8_t signature[FURI_HAL_CRYPTO_ECDSA_MAX_SIGNATURE_SIZE] = {0};
     size_t signature_length = FURI_HAL_CRYPTO_ECDSA_MAX_SIGNATURE_SIZE;
@@ -211,24 +195,26 @@ void crypto_ecdsa_224_test_wrap_on_custom_sha_mode(
         handle, (uint8_t*)input_data, INPUT_MSG_SIZE, signature, &signature_length);
     furi_hal_crypto_ecdsa_deinit(handle);
 
-    crypto_common_print_buffer_hex(app, msg, "Signature =\t", signature, signature_length);
+    crypto_common_print_buffer_hex("Signature =\t", signature, signature_length);
 
     handle = furi_hal_crypto_ecdsa_verify_init(
         mode, (uint8_t*)public_key_224, FURI_HAL_CRYPTO_ECDSA_PUB_KEY_SIZE_224);
     if(furi_hal_crypto_ecdsa_verify(
            handle, (uint8_t*)input_data, INPUT_MSG_SIZE, signature, signature_length)) {
-        furi_string_printf(msg, "\033[0;32m ECDSA mode success\033[0m\r\n");
-        crypto_test_app_send_text(app, msg);
+        printf(ANSI_FG_GREEN " ECDSA mode success" ANSI_RESET "\r\n");
+
     } else {
-        furi_string_printf(msg, "\033[0;31m ECDSA mode failed\033[0m\r\n");
-        crypto_test_app_send_text(app, msg);
+        printf(ANSI_FG_RED " ECDSA mode failed" ANSI_RESET "\r\n");
     }
     furi_hal_crypto_ecdsa_deinit(handle);
 }
 
-void crypto_ecdsa_test(CryptoTestApp* app, FuriString* msg) {
-    crypto_common_print_buffer_hex(
-        app, msg, "message =\t\t", (uint8_t*)input_data, INPUT_MSG_SIZE);
+void crypto_ecdsa_command(PipeSide* pipe, FuriString* args, void* context) {
+    UNUSED(pipe);
+    UNUSED(args);
+    UNUSED(context);
+
+    crypto_common_print_buffer_hex("message =\t\t", (uint8_t*)input_data, INPUT_MSG_SIZE);
 
     FuriHalCryptoEcdsa* handle = furi_hal_crypto_ecdsa_verify_init(
         FuriHalCryptoEcdsaModeSha256,
@@ -236,58 +222,52 @@ void crypto_ecdsa_test(CryptoTestApp* app, FuriString* msg) {
         FURI_HAL_CRYPTO_ECDSA_PUB_KEY_SIZE_256);
     if(furi_hal_crypto_ecdsa_verify(
            handle, (uint8_t*)input_data, INPUT_MSG_SIZE, signature_test, sizeof(signature_test))) {
-        furi_string_printf(msg, "\033[0;32m ECDSA signature_test success\033[0m\r\n");
-        crypto_test_app_send_text(app, msg);
+        printf(ANSI_FG_GREEN " ECDSA signature_test success" ANSI_RESET "\r\n");
     } else {
-        furi_string_printf(msg, "\033[0;31m ECDSA signature_test failed\033[0m\r\n");
-        crypto_test_app_send_text(app, msg);
+        printf(ANSI_FG_RED " ECDSA signature_test failed" ANSI_RESET "\r\n");
     }
     furi_hal_crypto_ecdsa_deinit(handle);
 
-    furi_string_printf(msg, "\033[0;33mECDSA SECP256R1 key wrap off test\033[0m\r\n");
-    crypto_test_app_send_text(app, msg);
-    crypto_ecdsa_test_wrap_off_custom_sha_mode(app, msg, FuriHalCryptoEcdsaModeSha256);
-    crypto_ecdsa_test_wrap_off_custom_sha_mode(app, msg, FuriHalCryptoEcdsaModeSha384);
-    crypto_ecdsa_test_wrap_off_custom_sha_mode(app, msg, FuriHalCryptoEcdsaModeSha512);
+    printf(ANSI_FG_YELLOW "ECDSA SECP256R1 key wrap off test" ANSI_RESET "\r\n");
 
-    furi_string_printf(msg, "\033[0;33mECDSA SECP256R1 key wrap on test\033[0m\r\n");
-    crypto_test_app_send_text(app, msg);
+    crypto_ecdsa_test_wrap_off_custom_sha_mode(FuriHalCryptoEcdsaModeSha256);
+    crypto_ecdsa_test_wrap_off_custom_sha_mode(FuriHalCryptoEcdsaModeSha384);
+    crypto_ecdsa_test_wrap_off_custom_sha_mode(FuriHalCryptoEcdsaModeSha512);
+
+    printf(ANSI_FG_YELLOW "ECDSA SECP256R1 key wrap on test" ANSI_RESET "\r\n");
+
     uint8_t private_key_wrap[FURI_HAL_CRYPTO_ECDSA_PRIV_KEY_SIZE_256] = {0};
     furi_hal_crypto_wrap_key(
         FURI_HAL_CRYPTO_ECDSA_PRIV_KEY_SIZE_256, (uint8_t*)private_key, private_key_wrap);
     crypto_common_print_buffer_hex(
-        app, msg, "Key =\t\t", (uint8_t*)private_key, FURI_HAL_CRYPTO_ECDSA_PRIV_KEY_SIZE_256);
+        "Key =\t\t", (uint8_t*)private_key, FURI_HAL_CRYPTO_ECDSA_PRIV_KEY_SIZE_256);
     crypto_common_print_buffer_hex(
-        app, msg, "Wrapped key =\t", private_key_wrap, FURI_HAL_CRYPTO_ECDSA_PRIV_KEY_SIZE_256);
-    crypto_ecdsa_test_wrap_on_custom_sha_mode(
-        app, msg, FuriHalCryptoEcdsaModeSha256, private_key_wrap);
-    crypto_ecdsa_test_wrap_on_custom_sha_mode(
-        app, msg, FuriHalCryptoEcdsaModeSha384, private_key_wrap);
-    crypto_ecdsa_test_wrap_on_custom_sha_mode(
-        app, msg, FuriHalCryptoEcdsaModeSha512, private_key_wrap);
+        "Wrapped key =\t", private_key_wrap, FURI_HAL_CRYPTO_ECDSA_PRIV_KEY_SIZE_256);
+    crypto_ecdsa_test_wrap_on_custom_sha_mode(FuriHalCryptoEcdsaModeSha256, private_key_wrap);
+    crypto_ecdsa_test_wrap_on_custom_sha_mode(FuriHalCryptoEcdsaModeSha384, private_key_wrap);
+    crypto_ecdsa_test_wrap_on_custom_sha_mode(FuriHalCryptoEcdsaModeSha512, private_key_wrap);
 
-    furi_string_printf(msg, "\033[0;33mECDSA SECP224R1 key wrap off test\033[0m\r\n");
-    crypto_test_app_send_text(app, msg);
-    crypto_ecdsa_224_test_wrap_off_custom_sha_mode(app, msg, FuriHalCryptoEcdsaModeSha256);
-    crypto_ecdsa_224_test_wrap_off_custom_sha_mode(app, msg, FuriHalCryptoEcdsaModeSha384);
-    crypto_ecdsa_224_test_wrap_off_custom_sha_mode(app, msg, FuriHalCryptoEcdsaModeSha512);
+    printf(ANSI_FG_YELLOW "ECDSA SECP224R1 key wrap off test" ANSI_RESET "\r\n");
 
-    furi_string_printf(msg, "\033[0;33mECDSA SECP256R1 key wrap on test\033[0m\r\n");
-    crypto_test_app_send_text(app, msg);
+    crypto_ecdsa_224_test_wrap_off_custom_sha_mode(FuriHalCryptoEcdsaModeSha256);
+    crypto_ecdsa_224_test_wrap_off_custom_sha_mode(FuriHalCryptoEcdsaModeSha384);
+    crypto_ecdsa_224_test_wrap_off_custom_sha_mode(FuriHalCryptoEcdsaModeSha512);
+
+    printf(ANSI_FG_YELLOW "ECDSA SECP256R1 key wrap on test" ANSI_RESET "\r\n");
+
     uint8_t private_key_wrap_224[FURI_HAL_CRYPTO_ECDSA_PRIV_KEY_SIZE_224] = {0};
     furi_hal_crypto_wrap_key(
         FURI_HAL_CRYPTO_ECDSA_PRIV_KEY_SIZE_224, (uint8_t*)private_key_224, private_key_wrap_224);
     crypto_common_print_buffer_hex(
-        app, msg, "Key =\t\t", (uint8_t*)private_key_224, FURI_HAL_CRYPTO_ECDSA_PRIV_KEY_SIZE_224);
+        "Key =\t\t", (uint8_t*)private_key_224, FURI_HAL_CRYPTO_ECDSA_PRIV_KEY_SIZE_224);
     crypto_common_print_buffer_hex(
-        app, msg, "Wrapped key =\t", private_key_wrap_224, FURI_HAL_CRYPTO_ECDSA_PRIV_KEY_SIZE_224);
+        "Wrapped key =\t", private_key_wrap_224, FURI_HAL_CRYPTO_ECDSA_PRIV_KEY_SIZE_224);
     crypto_ecdsa_224_test_wrap_on_custom_sha_mode(
-        app, msg, FuriHalCryptoEcdsaModeSha256, private_key_wrap_224);
+        FuriHalCryptoEcdsaModeSha256, private_key_wrap_224);
     crypto_ecdsa_224_test_wrap_on_custom_sha_mode(
-        app, msg, FuriHalCryptoEcdsaModeSha384, private_key_wrap_224);
+        FuriHalCryptoEcdsaModeSha384, private_key_wrap_224);
     crypto_ecdsa_224_test_wrap_on_custom_sha_mode(
-        app, msg, FuriHalCryptoEcdsaModeSha512, private_key_wrap_224);
+        FuriHalCryptoEcdsaModeSha512, private_key_wrap_224);
 
-    furi_string_printf(msg, "Crypto ECDSA done\r\n");
-    crypto_test_app_send_text(app, msg);
+    printf("Crypto ECDSA done\r\n");
 }

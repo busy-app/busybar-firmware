@@ -1,5 +1,6 @@
 #pragma once
 #include <furi.h>
+#include <cli/cli_command.h>
 
 bool nvm3_test_init(void);
 void nvm3_test_deinit(void);
@@ -11,4 +12,4 @@ bool nvm3_test_read_counter(uint32_t key, uint32_t* value);
 bool nvm3_test_write_counter(uint32_t key, uint32_t value);
 bool nvm3_test_erase_all(void);
 bool nvm3_test_repack_if_need(void);
-void nvm3_test_print_objects(FuriString* msg);
+void nvm3_test_print_command(PipeSide* pipe, FuriString* args, void* context);

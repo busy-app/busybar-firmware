@@ -4,7 +4,7 @@
 
 #include <audio/audio.h>
 #include <storage/storage.h>
-#include <toolbox/args.h>
+#include <cli/args.h>
 
 typedef enum {
     CliAudioCommandStart,
@@ -17,8 +17,8 @@ static void audio_cli_command_print_usage(void) {
     printf("audio stop\r\n");
 }
 
-void cli_command_audio(Cli* cli, FuriString* args, void* context) {
-    UNUSED(cli);
+void cli_command_audio(PipeSide* pipe, FuriString* args, void* context) {
+    UNUSED(pipe);
     UNUSED(context);
 
     FuriString* str_tmp = furi_string_alloc();

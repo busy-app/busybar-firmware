@@ -6,9 +6,9 @@
 #include <furi_hal_power.h>
 
 #include <storage/storage.h>
-#include <cli/cli.h>
+#include <cli/cli_command.h>
+#include <cli/args.h>
 
-#include <toolbox/args.h>
 #include <toolbox/update_lib/update_config.h>
 #include <toolbox/update_lib/common_vals.h>
 
@@ -100,8 +100,8 @@ static void updater_cli_execute_install(const char* manifest_path) {
     update_config_free(state);
 }
 
-static void updater_cli(Cli* cli, FuriString* args, void* context) {
-    UNUSED(cli);
+void update_cli_command(PipeSide* pipe, FuriString* args, void* context) {
+    UNUSED(pipe);
     UNUSED(context);
     FuriString* cmd = furi_string_alloc();
     FuriString* path = furi_string_alloc();
@@ -155,10 +155,4 @@ static void updater_cli(Cli* cli, FuriString* args, void* context) {
 
     furi_string_free(path);
     furi_string_free(cmd);
-}
-
-void update_on_system_start(void) {
-    Cli* cli = furi_record_open(RECORD_CLI);
-    cli_add_command(cli, "update", CliCommandFlagParallelSafe, updater_cli, NULL);
-    furi_record_close(RECORD_CLI);
 }

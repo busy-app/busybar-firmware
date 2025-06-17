@@ -1,5 +1,5 @@
 #pragma once
 #include <furi.h>
-#include "crypto_test_app.h"
+#include <cli/cli_command.h>
 
-void crypto_ecdsa_test(CryptoTestApp* app, FuriString* msg);
+void crypto_ecdsa_command(PipeSide* pipe, FuriString* args, void* context);

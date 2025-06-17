@@ -1,9 +1,10 @@
 #include "nvm3.h"
+#include "nvm3_test.h"
 
 #include <nvm3.h>
 #include <nvm3_default_config.h>
 
-#include <args.h>
+#include <cli/args.h>
 #include <strint.h>
 
 #define TAG "NVM3"
@@ -112,7 +113,11 @@ bool nvm3_test_repack_if_need(void) {
     return false;
 }
 
-void nvm3_test_print_objects(FuriString* msg) {
+void nvm3_test_print_command(PipeSide* pipe, FuriString* args, void* context) {
+    UNUSED(pipe);
+    UNUSED(args);
+    UNUSED(context);
+
     nvm3_ObjectKey_t keys[NVM3_MAX_OBJECT_COUNT];
     size_t len, objects_count;
     uint32_t type;
@@ -120,8 +125,6 @@ void nvm3_test_print_objects(FuriString* msg) {
     uint32_t counter = 0;
     size_t i;
     uint8_t buffer[NVM3_DEFAULT_MAX_OBJECT_SIZE];
-
-    furi_string_reset(msg);
 
     objects_count = nvm3_enumDeletedObjects(
         NVM3_DEFAULT_HANDLE,
@@ -132,11 +135,11 @@ void nvm3_test_print_objects(FuriString* msg) {
 
     // check for NVM3 stored object count
     if(objects_count == 0) {
-        furi_string_cat_printf(msg, "No deleted objects found\r\n");
+        printf("No deleted objects found\r\n");
     } else {
-        furi_string_cat_printf(msg, "Keys of objects deleted from NVM3:\r\n");
+        printf("Keys of objects deleted from NVM3:\r\n");
         for(i = 0; i < objects_count; i++) {
-            furi_string_cat_printf(msg, "> %lu\r\n", keys[i]);
+            printf("> %lu\r\n", keys[i]);
         }
     }
 
@@ -148,20 +151,20 @@ void nvm3_test_print_objects(FuriString* msg) {
         NVM3_MIN_DATA_KEY,
         NVM3_MAX_DATA_KEY);
     if(objects_count == 0) {
-        furi_string_cat_printf(msg, "No stored objects found\r\n");
+        printf("No stored objects found\r\n");
     } else {
-        furi_string_cat_printf(msg, "Keys and contents of objects stored in NVM3:\r\n");
+        printf("Keys and contents of objects stored in NVM3:\r\n");
         for(i = 0; i < objects_count; i++) {
             nvm3_getObjectInfo(NVM3_DEFAULT_HANDLE, keys[i], &type, &len);
             if(type == NVM3_OBJECTTYPE_DATA) {
                 err = nvm3_readData(NVM3_DEFAULT_HANDLE, keys[i], buffer, len);
                 EFM_ASSERT(ECODE_NVM3_OK == err);
                 buffer[len] = '\0';
-                furi_string_cat_printf(msg, "> %lu: %s\r\n", keys[i], buffer);
+                printf("> %lu: %s\r\n", keys[i], buffer);
             } else if(type == NVM3_OBJECTTYPE_COUNTER) {
                 err = nvm3_readCounter(NVM3_DEFAULT_HANDLE, keys[i], &counter);
                 EFM_ASSERT(ECODE_NVM3_OK == err);
-                furi_string_cat_printf(msg, "> %lu: %lu\r\n", keys[i], counter);
+                printf("> %lu: %lu\r\n", keys[i], counter);
             }
         }
     }

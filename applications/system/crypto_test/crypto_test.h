@@ -1,5 +1,7 @@
 #pragma once
 
-#include <cli/cli.h>
+#include <cli/cli_command.h>
 
-void crypto_test_system_start(void);
+typedef struct CryptoTestApp CryptoTestApp;
+
+void crypto_test_command(PipeSide* pipe, FuriString* args, void* context);

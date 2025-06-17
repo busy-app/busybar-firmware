@@ -1,12 +1,7 @@
 App(
-    appid="nvm3_test_start",
+    appid="nvm3_test",
+    name="nvm3_test",
     targets=["f64"],
-    apptype=FlipperAppType.STARTUP,
-    entry_point="nvm3_test_system_start",
-    sources=[
-        "nvm3_test.c",
-        "helpers/nvm3_test_app.c",
-        "helpers/nvm3_test.c",
-    ],
-    order=40,
+    apptype=FlipperAppType.CLICMD,
+    entry_point="nvm3_test_command",
 )

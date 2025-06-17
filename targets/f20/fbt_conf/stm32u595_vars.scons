@@ -9,6 +9,12 @@ _fw_default_apps_config = {
         "main_apps",
         "system_apps",
     ],
+    "unit_tests": [
+        "basic_services",
+        "system_apps",
+        "main_apps",
+        "debug_apps",
+    ],
 }
 
 fw_apps_configs_option = find_variable_config(VARS, "FIRMWARE_APPS")
@@ -20,3 +26,4 @@ for key, value in _fw_default_apps_config.items():
 fw_appdirs_option = find_variable_config(VARS, "APPDIRS")
 assert isinstance(fw_appdirs_option.default, list)
 fw_appdirs_option.default.extend((("applications/system", False),))
+fw_appdirs_option.default.extend((("applications/debug", False),))
