@@ -37,6 +37,7 @@ static const ApiWifiResponseData wifi_response_data[] = {
     [WifiStatusFailedToInitialize] = {.code = 503, "Failed to initialize"},
     [WifiStatusAlreadyConnected] = {.code = 400, "Already connected"},
     [WifiStatusAccessPointNotFound] = {.code = 400, "Access point not found"},
+    [WifiStatusNotValidForThisCommand] = {.code = 400, "Improper command for current state"},
 };
 
 static const char* const security_modes[WifiSecurityModeMax] = {
