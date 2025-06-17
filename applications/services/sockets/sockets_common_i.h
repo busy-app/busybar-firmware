@@ -61,7 +61,7 @@ typedef struct {
 
 typedef struct {
     uint8_t socket_id;
-    uint8_t num_clients;
+    uint8_t max_clients;
 } SocketListenRequest;
 
 typedef struct {

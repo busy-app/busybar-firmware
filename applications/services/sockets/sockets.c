@@ -42,7 +42,7 @@ static void sockets_process_request(SocketSrv* instance) {
         const SocketSrvListenMessage* listen_message = &message->listen_message;
 
         listen_request->socket_id = listen_message->socket_id;
-        listen_request->num_clients = listen_message->num_clients;
+        listen_request->max_clients = listen_message->max_clients;
 
     } else if(request_type == SocketRequestTypeConnect) {
         SocketConnectRequest* connect_request = &request->connect_request;

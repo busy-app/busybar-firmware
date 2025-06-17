@@ -212,7 +212,7 @@ static void
     int status;
 
     do {
-        status = sl_si91x_listen(socket_id, listen_request->num_clients);
+        status = sl_si91x_listen(socket_id, listen_request->max_clients);
 
         if(status < 0) {
             FURI_LOG_E(TAG, "Failed to listen: %s", strerror(errno));
@@ -373,7 +373,9 @@ static void sockets_read_event_flag_callback(FuriEventLoopObject* object, void* 
 
             const sli_si91x_bsd_socket_state_t socket_state = socket->state;
 
+            FURI_LOG_D(TAG, "Hello there!");
             if(socket_state == CONNECTED || socket_state == UDP_UNCONNECTED_READY) {
+                FURI_LOG_D(TAG, "I am connected!");
                 async_response->socket_id = socket_id;
                 sockets_send_response(instance, response);
             }

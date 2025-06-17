@@ -77,7 +77,7 @@ SocketStatus socket_bind(Socket* socket, const SocketConnectionInfo* bind_info) 
     return msg.status;
 }
 
-SocketStatus socket_listen(Socket* socket, uint8_t num_clients) {
+SocketStatus socket_listen(Socket* socket, uint8_t max_clients) {
     furi_check(socket);
 
     SocketSrv* instance = socket->owner;
@@ -88,7 +88,7 @@ SocketStatus socket_listen(Socket* socket, uint8_t num_clients) {
         .listen_message =
             {
                 .socket_id = socket->id,
-                .num_clients = num_clients,
+                .max_clients = max_clients,
             },
     };
 
