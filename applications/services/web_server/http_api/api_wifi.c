@@ -38,7 +38,7 @@ static const ApiWifiResponseData wifi_response_data[] = {
     [WifiStatusAlreadyConnected] = {.code = 400, "Already connected"},
 };
 
-static const char* security_modes[WifiSecurityModeMax] = {
+static const char* const security_modes[WifiSecurityModeMax] = {
     [WifiSecurityModeOpen] = "Open",
     [WifiSecurityModeWpa] = "WPA",
     [WifiSecurityModeWpa2] = "WPA2",
@@ -52,17 +52,17 @@ static const char* security_modes[WifiSecurityModeMax] = {
     [WifiSecurityModeWpa3TransitionEnterprise] = "WPA2/WPA3 (Enterprise)",
 };
 
-static const char* wifi_ip_method[] = {
+static const char* const wifi_ip_method[] = {
     [WifiIpManagementStatic] = "static",
     [WifiIpManagementDynamic] = "dhcp",
 };
 
-static const char* wifi_ip_type[] = {
+static const char* const wifi_ip_type[] = {
     [WifiIpTypeV4] = "ipv4",
     [WifiIpTypeV6] = "ipv6",
 };
 
-static const char* wifi_state[] = {
+static const char* const wifi_state[] = {
     [WifiStateDeinit] = "disabled",
     [WifiStateDown] = "enabled",
     [WifiStateUp] = "connected",
@@ -75,7 +75,7 @@ static const ApiWifiResponseData* api_wifi_get_response_data_from_status(WifiSta
 
 static bool api_wifi_parse_value_from_array(
     const FuriString* value_str,
-    const char** array,
+    const char* const* array,
     size_t length,
     int* result) {
     bool state = false;
