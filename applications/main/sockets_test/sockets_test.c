@@ -14,7 +14,9 @@
 #define CONNECT_PORT    8080
 #define LISTEN_PORT     8081
 #define UDP_PORT        8082
-#define CONNECT_ADDRESS 10, 46, 30, 180 // MUST be commas, not dots
+#define CONNECT_ADDRESS 10, 46, 30, 175 // MUST be commas, not dots
+
+#define MAX_TCP_CLIENTS 1
 
 typedef enum {
     SocketIndexTcpClient,
@@ -68,8 +70,6 @@ static void sockets_test_app_wifi_info_to_connection_info(
 }
 
 static bool sockets_test_app_init_wifi(SocketsTestApp* instance) {
-    UNUSED(instance);
-
     bool success = false;
 
     do {
@@ -126,15 +126,14 @@ static bool sockets_test_app_init_tcp_client(SocketsTestApp* instance) {
         Socket* socket;
         Socket** socket_slot = &instance->sockets[SocketIndexTcpClient];
 
-        *socket_slot = socket_alloc(instance->sockets_srv, &socket_info);
+        *socket_slot =
+            socket_alloc(instance->sockets_srv, &socket_info, socket_event_callback, instance);
         socket = *socket_slot;
 
         if(socket == NULL) {
             FURI_LOG_E(TAG, "Failed to allocate client socket");
             break;
         }
-
-        socket_set_event_callback(socket, socket_event_callback, instance);
 
         FURI_LOG_I(TAG, "Client socket allocated successfully!");
 
@@ -172,15 +171,14 @@ static bool sockets_test_app_init_tcp_server(SocketsTestApp* instance) {
         Socket* socket;
         Socket** socket_slot = &instance->sockets[SocketIndexTcpServer];
 
-        *socket_slot = socket_alloc(instance->sockets_srv, &socket_info);
+        *socket_slot =
+            socket_alloc(instance->sockets_srv, &socket_info, socket_event_callback, instance);
         socket = *socket_slot;
 
         if(socket == NULL) {
             FURI_LOG_E(TAG, "Failed to allocate Server socket");
             break;
         }
-
-        socket_set_event_callback(socket, socket_event_callback, instance);
 
         FURI_LOG_I(TAG, "Server socket allocated successfully!");
 
@@ -195,7 +193,7 @@ static bool sockets_test_app_init_tcp_server(SocketsTestApp* instance) {
 
         FURI_LOG_I(TAG, "Server socket bound successfully!");
 
-        if(socket_listen(socket) != SocketStatusOk) {
+        if(socket_listen(socket, MAX_TCP_CLIENTS) != SocketStatusOk) {
             FURI_LOG_E(TAG, "Failed to listen on socket");
             break;
         }
@@ -223,15 +221,14 @@ static bool sockets_test_app_init_udp_client_server(SocketsTestApp* instance) {
         Socket* socket;
         Socket** socket_slot = &instance->sockets[SocketIndexUdpClientServer];
 
-        *socket_slot = socket_alloc(instance->sockets_srv, &socket_info);
+        *socket_slot =
+            socket_alloc(instance->sockets_srv, &socket_info, socket_event_callback, instance);
         socket = *socket_slot;
 
         if(socket == NULL) {
             FURI_LOG_E(TAG, "Failed to allocate UDP client/server socket");
             break;
         }
-
-        socket_set_event_callback(socket, socket_event_callback, instance);
 
         FURI_LOG_I(TAG, "UDP client/server socket allocated successfully!");
 
@@ -334,8 +331,6 @@ static void sockets_test_app_event_queue_callback(FuriEventLoopObject* object, v
 
         Socket* client_socket = accept_event->client_socket;
         instance->sockets[SocketIndexTcpRemoteClient] = client_socket;
-
-        socket_set_event_callback(client_socket, socket_event_callback, instance);
 
     } else if(event_type == SocketEventTypeClose) {
         FURI_LOG_I(TAG, "Socket closed!");
