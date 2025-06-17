@@ -14,6 +14,8 @@
 
 typedef struct {
     const SocketInfo* socket_info;
+    SocketEventCallback event_callback;
+    void* callback_context;
     Socket* socket;
 } SocketSrvAllocMessage;
 

@@ -12,7 +12,11 @@ static void sockets_send_message(SocketSrv* instance, SocketSrvMessage* message)
     api_lock_wait_unlock_and_free(message->lock);
 }
 
-Socket* socket_alloc(SocketSrv* instance, const SocketInfo* socket_info) {
+Socket* socket_alloc(
+    SocketSrv* instance,
+    const SocketInfo* socket_info,
+    SocketEventCallback event_callback,
+    void* callback_context) {
     furi_check(instance);
     furi_check(socket_info);
 
@@ -21,6 +25,8 @@ Socket* socket_alloc(SocketSrv* instance, const SocketInfo* socket_info) {
         .alloc_message =
             {
                 .socket_info = socket_info,
+                .event_callback = event_callback,
+                .callback_context = callback_context,
             },
     };
 
@@ -44,17 +50,6 @@ SocketStatus socket_free(Socket* socket) {
 
     sockets_send_message(instance, &msg);
     return msg.status;
-}
-
-// FIXME: Not thread safe...ish
-SocketStatus
-    socket_set_event_callback(Socket* socket, SocketEventCallback callback, void* context) {
-    furi_check(socket);
-
-    socket->event_callback = callback;
-    socket->callback_context = context;
-
-    return SocketStatusOk;
 }
 
 SocketStatus socket_bind(Socket* socket, const SocketConnectionInfo* bind_info) {

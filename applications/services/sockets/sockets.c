@@ -78,15 +78,22 @@ static void sockets_process_request(SocketSrv* instance) {
     sockets_send_request(instance, request);
 }
 
-static Socket* sockets_alloc_socket(SocketSrv* instance, uint8_t socket_id) {
+static Socket* sockets_alloc_socket(
+    SocketSrv* instance,
+    uint8_t socket_id,
+    SocketEventCallback callback,
+    void* context) {
     furi_assert(socket_id < SOCKET_COUNT);
 
     Socket** socket_slot = &instance->sockets[socket_id];
     furi_check(*socket_slot == NULL);
 
     Socket* socket = malloc(sizeof(Socket));
+
     socket->id = socket_id;
     socket->owner = instance;
+    socket->event_callback = callback;
+    socket->callback_context = context;
 
     *socket_slot = socket;
     return socket;
@@ -114,7 +121,11 @@ static void sockets_process_response(SocketSrv* instance, const SocketResponse* 
         if(response_type == SocketResponseTypeAlloc) {
             SocketSrvAllocMessage* alloc_message = &message->alloc_message;
             const SocketAllocResponse* alloc_response = &response->alloc_response;
-            alloc_message->socket = sockets_alloc_socket(instance, alloc_response->socket_id);
+            alloc_message->socket = sockets_alloc_socket(
+                instance,
+                alloc_response->socket_id,
+                alloc_message->event_callback,
+                alloc_message->callback_context);
 
         } else if(response_type == SocketResponseTypeFree) {
             SocketSrvFreeMessage* free_message = &message->free_message;
@@ -168,8 +179,11 @@ static void sockets_process_async_response(SocketSrv* instance, const SocketResp
         const SocketAcceptAsyncResponse* accept_async_response =
             &async_response->accept_async_response;
 
-        accept_event->client_socket =
-            sockets_alloc_socket(instance, accept_async_response->client_socket_id);
+        accept_event->client_socket = sockets_alloc_socket(
+            instance,
+            accept_async_response->client_socket_id,
+            socket->event_callback,
+            socket->callback_context);
         accept_event->connection_info = accept_async_response->connection_info;
 
     } else {

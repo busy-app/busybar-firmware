@@ -56,10 +56,19 @@ typedef void (*SocketEventCallback)(const SocketEvent* event, void* context);
  *
  * @param[in,out] instance Pointer to the SocketSrv service instance
  * @param[in] socket_info Pointer to a structure containing the socket description
+ * @param[in] event_callback Pointer to the function to be called upon socket events
+ * @param[in,out] callback_context Pointer to a user-specific object
+ *
+ * @note Sockets created by accepting connections inherit
+ *       the parent's callback and context
  *
  * @returns Pointer to the allocated socket on success, @c NULL otherwise
  */
-Socket* socket_alloc(SocketSrv* instance, const SocketInfo* socket_info);
+Socket* socket_alloc(
+    SocketSrv* instance,
+    const SocketInfo* socket_info,
+    SocketEventCallback event_callback,
+    void* callback_context);
 
 /**
  * @brief Close and delete an existing socket.
@@ -71,18 +80,6 @@ Socket* socket_alloc(SocketSrv* instance, const SocketInfo* socket_info);
  * @returns SocketStatusOk on success, a SocketStatus error code otherwise
  */
 SocketStatus socket_free(Socket* socket);
-
-/**
- * @brief Set the socket event callback.
- *
- * @param[in,out] socket Pointer to the socket to be modified
- * @param[in] callback Pointer to the callback function
- * @param[in,out] context Pointer to the user-specific context object (will be passed to the callback)
- *
- * @returns SocketStatusOk on success, a SocketStatus error code otherwise
- */
-SocketStatus
-    socket_set_event_callback(Socket* socket, SocketEventCallback callback, void* context);
 
 /**
  * @brief Bind the socket to an address and a port.
