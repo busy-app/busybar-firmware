@@ -22,8 +22,6 @@
 #define TCP_RX_WINDOW_SIZE_CAP          44
 #define TCP_RX_WINDOW_DIV_FACTOR        44
 
-#define NUM_CLIENTS_PER_SOCKET 1
-
 #define SOCKET_FLAGS_ALL (0x1FUL)
 
 #define DONT_CARE_PARAM (0)
