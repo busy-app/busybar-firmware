@@ -166,12 +166,12 @@ bool api_wifi_parse_ip_address(
         const char* address_cstr = furi_string_get_cstr(address_str);
         struct mg_str str = mg_str(address_cstr);
         if(!mg_aton(str, &addr)) {
-            furi_string_printf(error_msg, "Unable to parse \"%s\" as a valid ip", address_cstr);
+            furi_string_printf(error_msg, "Unable to parse %s as a valid ip", address_cstr);
             break;
         }
 
         if(type == WifiIpTypeV4 && addr.is_ip6) {
-            furi_string_printf(error_msg, "Address \"%s\" is not IPv4", address_cstr);
+            furi_string_printf(error_msg, "Address %s is not IPv4", address_cstr);
             break;
         }
 
@@ -217,7 +217,7 @@ static bool api_wifi_mg_json_get_str_key(
         char* mg_str = mg_json_get_str(body, furi_string_get_cstr(output));
 
         if(mg_str == NULL) {
-            furi_string_printf(error_msg, "Key \"%s\" is missing", key);
+            furi_string_printf(error_msg, "Key %s is missing", key);
             furi_string_reset(output);
             break;
         }
@@ -292,8 +292,7 @@ static bool api_wifi_parse_ip_config(
         if(!api_wifi_mg_json_get_str_key(ip_config_json, WIFI_JSON_KEY_IP_METHOD, buf, error_msg))
             break;
         if(!api_wifi_parse_ip_method(buf, &ip_config->mgmt)) {
-            furi_string_printf(
-                error_msg, "\"%s\" is not valid ip_method", furi_string_get_cstr(buf));
+            furi_string_printf(error_msg, "%s is not valid ip_method", furi_string_get_cstr(buf));
             break;
         }
 
@@ -303,8 +302,7 @@ static bool api_wifi_parse_ip_config(
         }
 
         if(!aip_wifi_parse_ip_type(buf, &ip_config->type)) {
-            furi_string_printf(
-                error_msg, "\"%s\" is not valid ip_type", furi_string_get_cstr(buf));
+            furi_string_printf(error_msg, "%s is not valid ip_type", furi_string_get_cstr(buf));
             break;
         }
 
@@ -339,13 +337,13 @@ static bool api_wifi_connect_parse_config(
         if(!api_wifi_mg_json_get_str_key(body, WIFI_JSON_KEY_SECURITY, buf, error_msg)) break;
         if(!api_wifi_get_security_mode_by_name(buf, &credentials->security_mode)) {
             furi_string_printf(
-                error_msg, "\"%s\" is not valid security mode", furi_string_get_cstr(buf));
+                error_msg, "%s is not valid security mode", furi_string_get_cstr(buf));
             break;
         }
 
         struct mg_str ip_config_json = mg_json_get_tok(body, "$." WIFI_JSON_KEY_IP_CONFIG "");
         if(ip_config_json.len == 0) {
-            furi_string_printf(error_msg, "\"%s\" is missing", WIFI_JSON_KEY_IP_CONFIG);
+            furi_string_printf(error_msg, "%s is missing", WIFI_JSON_KEY_IP_CONFIG);
             break;
         }
         if(!api_wifi_parse_ip_config(ip_config_json, ip_config, error_msg)) break;
