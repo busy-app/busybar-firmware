@@ -7,70 +7,6 @@ info:
     name: tbd
 
 paths:
-  /api/v0/led:
-    get:
-      tags:
-        - Hardware
-      summary: Get LED state
-      description: Retrieves the current LED state
-      operationId: getLedState
-      parameters:
-        - name: state
-          in: query
-          required: false
-          schema:
-            type: integer
-            enum: [0, 1]
-          description: LED state (0 for off, 1 for on) - alternative to JSON body
-      responses:
-        '200':
-          description: LED state retrieved successfully
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/LedStateResponse'
-        '500':
-          description: Internal server error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Error'
-    
-    post:
-      tags:
-        - Hardware
-      summary: Set LED state
-      description: Sets the LED state via query parameter or JSON body
-      operationId: setLedState
-      parameters:
-        - name: state
-          in: query
-          required: false
-          schema:
-            type: integer
-            enum: [0, 1]
-          description: LED state (0 for off, 1 for on) - alternative to JSON body
-      requestBody:
-        required: false
-        description: LED state as JSON (alternative to query parameter)
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/LedStateRequest'
-      responses:
-        '200':
-          description: LED state set successfully
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/LedStateResponse'
-        '400':
-          description: Invalid state parameter
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Error'
-
   /api/v0/version:
     get:
       tags:
@@ -811,11 +747,9 @@ components:
 tags:
   - name: System
     description: System information and control
-  - name: Hardware
-    description: Low-level hardware control
+  - name: Wifi
+    description: Allows to operate with Wifi
   - name: Assets
     description: Asset file management and display control
   - name: WebSocket
     description: Real-time communication via WebSocket
-  - name: Wifi
-    description: Allows to operate with Wifi
