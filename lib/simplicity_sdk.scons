@@ -32,6 +32,7 @@ env.Append(
         "SI917",
         "SLI_SI917",
         "SLI_SI917B0",
+        "SLI_SI91X_ENABLE_IPV6",
         # "PRINT_DEBUG_LOG",
         "SIWG917M111MGTBA",
         "SL_CODE_COMPONENT_CORE=core",

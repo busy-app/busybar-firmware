@@ -121,6 +121,12 @@ static void wifi_connect_request_handler(Wifi* instance) {
         const WifiCredentials* credentials = &request->credentials;
         const WifiIpConfig* ip = &request->ip;
 
+        if(instance->state == WifiStateUp) {
+            status = SL_STATUS_SI91X_SCAN_ISSUED_IN_ASSOCIATED_STATE;
+            FURI_LOG_E(TAG, "Wifi already connected");
+            break;
+        }
+
         // Initialise client profile
         sl_net_wifi_client_profile_t profile = {
             .config =
@@ -134,6 +140,14 @@ static void wifi_connect_request_handler(Wifi* instance) {
                     .type = wifi_encode_ip_version(ip->type),
                 },
         };
+
+        if(ip->mgmt == WifiIpManagementStatic) {
+            static_assert(sizeof(sl_net_ipv4_setting_t) == sizeof(WifiIpv4Settings));
+            memcpy(&profile.ip.ip.v4, &ip->ip4, sizeof(WifiIpv4Settings));
+
+            static_assert(sizeof(sl_net_ipv6_setting_t) == sizeof(WifiIpv6Settings));
+            memcpy(&profile.ip.ip.v6, &ip->ip6, sizeof(WifiIpv6Settings));
+        }
 
         wifi_encode_ssid(&profile.config.ssid, credentials->ssid);
 
