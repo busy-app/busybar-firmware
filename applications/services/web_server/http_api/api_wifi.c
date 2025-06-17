@@ -6,11 +6,11 @@
 
 #define WIFI_SCAN_RESULT_COUNT 20U
 
-#define WIFI_JSON_KEY_STATE      "State"
-#define WIFI_JSON_KEY_SECURITY   "Security"
-#define WIFI_JSON_KEY_SSID       "SSID"
-#define WIFI_JSON_KEY_RSSI       "RSSI"
-#define WIFI_JSON_KEY_PASSWORD   "Password"
+#define WIFI_JSON_KEY_STATE      "state"
+#define WIFI_JSON_KEY_SECURITY   "security"
+#define WIFI_JSON_KEY_SSID       "ssid"
+#define WIFI_JSON_KEY_RSSI       "rssi"
+#define WIFI_JSON_KEY_PASSWORD   "password"
 #define WIFI_JSON_KEY_COUNT      "count"
 #define WIFI_JSON_KEY_NETWORKS   "networks"
 #define WIFI_JSON_KEY_IP_CONFIG  "ip_config"

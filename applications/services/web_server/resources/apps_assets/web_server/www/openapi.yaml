@@ -734,29 +734,29 @@ components:
     Network:
       type: object
       properties:
-        SSID:
+        ssid:
           type: string
           example: "42"
-        Security:
+        security:
           $ref: "#/components/schemas/WifiSecurityMethod"
-        RSSI:
+        rssi:
           type: integer
           example: "58"
 
     StatusResponse:
       type: object
       properties:
-        State:
+        state:
           type: string
           example: enabled
           enum:
             - disabled
             - enabled
             - connected
-        SSID:
+        ssid:
           type: string
           example: Your_WIFI_SSID
-        Security:
+        security:
           $ref: "#/components/schemas/WifiSecurityMethod"
         ip_config:
           type: object
@@ -772,13 +772,13 @@ components:
     ConnectRequestConfig:
       type: object
       properties:
-        SSID:
+        ssid:
           type: string
           example: Your_WIFI_SSID
-        Password:
+        password:
           type: string
           example: Your_WIFI_Pass
-        Security:
+        security:
           $ref: "#/components/schemas/WifiSecurityMethod"
         ip_config:
           type: object
