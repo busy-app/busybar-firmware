@@ -1,15 +1,19 @@
+#include "usb_i.h"
+#include "usb_network.h"
+#include "usb_network_settings.h"
+
 #include <furi.h>
+
+#include <tusb.h>
+
 #include <lwip/api.h>
 #include <lwip/init.h>
 #include <lwip/udp.h>
 #include <lwip/tcpip.h>
 #include <lwip/apps/mdns.h>
 #include <lwip/apps/lwiperf.h>
+
 #include <dhserver.h>
-#include <tusb.h>
-#include "usb_i.h"
-#include "usb_network.h"
-#include "usb_network_settings.h"
 
 #define TAG "USB NET"
 
