@@ -69,7 +69,10 @@ static const char* const wifi_state[] = {
 };
 
 static const ApiWifiResponseData* api_wifi_get_response_data_from_status(WifiStatus status) {
-    furi_assert(status < COUNT_OF(wifi_response_data));
+    if(status >= COUNT_OF(wifi_response_data)) {
+        FURI_LOG_W(TAG, "Unknown wifi status: %d, return generic error", status);
+        status = WifiStatusError;
+    }
     return &wifi_response_data[status];
 }
 
