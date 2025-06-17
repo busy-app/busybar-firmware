@@ -1,5 +1,5 @@
 #pragma once
 
-#include "cli_i.h"
+#include <containers/pipe.h>
 
-void cli_command_status_lights(Cli* cli, FuriString* args, void* context);
+void cli_command_status_lights(PipeSide* pipe, FuriString* args, void* context);

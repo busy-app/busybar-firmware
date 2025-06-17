@@ -2,8 +2,10 @@
 
 #include <furi.h>
 #include <furi_hal.h>
-#include <toolbox/args.h>
+#include <cli/args.h>
+#include <cli/cli_command.h>
 #include <toolbox/strint.h>
+#include <containers/pipe.h>
 #include <storage/storage.h>
 
 #include <gui/gui.h>
@@ -29,7 +31,7 @@ static void cli_command_display_print_usage(void) {
     printf("\tbrightness <0-100|auto> - set display brightness value or 'auto'\r\n");
 }
 
-static void cli_action_show(Cli* cli, FuriString* args, GuiDisplayId id) {
+static void cli_action_show(PipeSide* pipe, FuriString* args, GuiDisplayId id) {
     Gui* gui = furi_record_open(RECORD_GUI);
     Storage* storage = furi_record_open(RECORD_STORAGE);
 
@@ -52,7 +54,7 @@ static void cli_action_show(Cli* cli, FuriString* args, GuiDisplayId id) {
         if(!result) {
             printf("Error! Unable to set '%s' as image source", furi_string_get_cstr(args));
         } else {
-            while(!cli_cmd_interrupt_received(cli)) {
+            while(!cli_is_pipe_broken_or_is_etx_next_char(pipe)) {
                 furi_delay_ms(50);
             }
         }
@@ -64,8 +66,8 @@ static void cli_action_show(Cli* cli, FuriString* args, GuiDisplayId id) {
     furi_record_close(RECORD_GUI);
 }
 
-static void cli_action_brightness(Cli* cli, FuriString* args, GuiDisplayId id) {
-    UNUSED(cli);
+static void cli_action_brightness(PipeSide* pipe, FuriString* args, GuiDisplayId id) {
+    UNUSED(pipe);
     do {
         int brightness = 0;
 
@@ -127,7 +129,7 @@ static bool cli_cpmmand_display_get_action(FuriString* args, CliDisplayAction* a
     return result;
 }
 
-void cli_command_display(Cli* cli, FuriString* args, void* context) {
+void cli_command_display(PipeSide* pipe, FuriString* args, void* context) {
     UNUSED(context);
 
     do {
@@ -144,9 +146,9 @@ void cli_command_display(Cli* cli, FuriString* args, void* context) {
         }
 
         if(action == CliDisplayActionShow) {
-            cli_action_show(cli, args, display_id);
+            cli_action_show(pipe, args, display_id);
         } else if(action == CliDisplayActionBrightness) {
-            cli_action_brightness(cli, args, display_id);
+            cli_action_brightness(pipe, args, display_id);
         }
 
     } while(false);

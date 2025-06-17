@@ -28,13 +28,14 @@ static void cli_command_step_wifi_ble_restore_default_config() {
     /// TODO: implement after wifi/ble configs will be implemented
 }
 
-void cli_command_factroy_reset(Cli* cli, FuriString* args, void* context) {
+void cli_command_factory_reset(PipeSide* pipe, FuriString* args, void* context) {
     UNUSED(args);
     UNUSED(context);
     printf("Warning! This will wipe all the data from the device! Are you sure? y/n\r\n");
 
     while(true) {
-        char answer = cli_getc(cli);
+        char answer;
+        if(pipe_receive(pipe, &answer, sizeof(answer)) != sizeof(answer)) break;
         if(answer == 'n' || answer == 'N') {
             printf("\r\nCancelled.");
             break;

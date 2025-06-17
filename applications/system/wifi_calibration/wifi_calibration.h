@@ -1,5 +1,5 @@
 #pragma once
 
-#include <cli/cli.h>
+#include <cli/cli_command.h>
 
-void wifi_calibration_system_start(void);
+void wifi_calibration_command(PipeSide* pipe, FuriString* args, void* context);

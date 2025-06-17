@@ -1,11 +1,7 @@
 App(
-    appid="ble_test_start",
+    appid="ble_test",
+    name="ble_test",
     targets=["f64"],
-    apptype=FlipperAppType.STARTUP,
-    entry_point="ble_test_system_start",
-    sources=[
-        "ble_test.c",
-        "helpers/ble_test_app.c",
-    ],
-    order=40,
+    apptype=FlipperAppType.CLICMD,
+    entry_point="ble_test_command",
 )

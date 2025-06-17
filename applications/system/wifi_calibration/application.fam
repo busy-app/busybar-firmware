@@ -1,11 +1,7 @@
 App(
-    appid="wifi_calibration_start",
+    appid="wifi_calibration",
+    name="wifi_calibration",
     targets=["f64"],
-    apptype=FlipperAppType.STARTUP,
-    entry_point="wifi_calibration_system_start",
-    sources=[
-        "wifi_calibration.c",
-        "helpers/calibration_app.c",
-    ],
-    order=40,
+    apptype=FlipperAppType.CLICMD,
+    entry_point="wifi_calibration_command",
 )
