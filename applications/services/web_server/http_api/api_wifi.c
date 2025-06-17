@@ -116,7 +116,7 @@ static bool aip_wifi_parse_ip_type(FuriString* ip_type_str, WifiIpType* ip_type)
     return result;
 }
 
-static bool api_wifi_get_networks_callaback(
+static bool api_wifi_get_networks_callback(
     struct mg_connection* conn,
     struct mg_http_message* msg,
     void* ctx) {
@@ -357,7 +357,7 @@ static bool api_wifi_connect_parse_config(
 }
 
 static bool
-    api_wifi_connect_callaback(struct mg_connection* conn, struct mg_http_message* msg, void* ctx) {
+    api_wifi_connect_callback(struct mg_connection* conn, struct mg_http_message* msg, void* ctx) {
     UNUSED(ctx);
 
     WifiCredentials credentials = {0};
@@ -391,7 +391,7 @@ static bool
     return true;
 }
 
-static bool api_wifi_disconnect_callaback(
+static bool api_wifi_disconnect_callback(
     struct mg_connection* conn,
     struct mg_http_message* msg,
     void* ctx) {
@@ -412,7 +412,7 @@ static bool api_wifi_disconnect_callaback(
 }
 
 static bool
-    api_wifi_forget_callaback(struct mg_connection* conn, struct mg_http_message* msg, void* ctx) {
+    api_wifi_forget_callback(struct mg_connection* conn, struct mg_http_message* msg, void* ctx) {
     UNUSED(msg);
     UNUSED(ctx);
 
@@ -422,7 +422,7 @@ static bool
 }
 
 static bool
-    api_wifi_enable_callaback(struct mg_connection* conn, struct mg_http_message* msg, void* ctx) {
+    api_wifi_enable_callback(struct mg_connection* conn, struct mg_http_message* msg, void* ctx) {
     UNUSED(ctx);
     UNUSED(msg);
 
@@ -440,7 +440,7 @@ static bool
 }
 
 static bool
-    api_wifi_disable_callaback(struct mg_connection* conn, struct mg_http_message* msg, void* ctx) {
+    api_wifi_disable_callback(struct mg_connection* conn, struct mg_http_message* msg, void* ctx) {
     UNUSED(ctx);
     UNUSED(msg);
 
@@ -457,7 +457,7 @@ static bool
     return true;
 }
 
-static bool api_wifi_get_status_callaback(
+static bool api_wifi_get_status_callback(
     struct mg_connection* conn,
     struct mg_http_message* msg,
     void* ctx) {
@@ -512,43 +512,43 @@ static const HttpHandler handlers_wifi[] = {
         .uri = "/api/v0/wifi/networks",
         .method = "GET",
         .type = HttpHandlerCustom,
-        .on_request = api_wifi_get_networks_callaback,
+        .on_request = api_wifi_get_networks_callback,
     },
     {
         .uri = "/api/v0/wifi/connect",
         .method = "POST",
         .type = HttpHandlerCustom,
-        .on_request = api_wifi_connect_callaback,
+        .on_request = api_wifi_connect_callback,
     },
     {
         .uri = "/api/v0/wifi/disconnect",
         .method = "POST",
         .type = HttpHandlerCustom,
-        .on_request = api_wifi_disconnect_callaback,
+        .on_request = api_wifi_disconnect_callback,
     },
     {
         .uri = "/api/v0/wifi/forget",
         .method = "POST",
         .type = HttpHandlerCustom,
-        .on_request = api_wifi_forget_callaback,
+        .on_request = api_wifi_forget_callback,
     },
     {
         .uri = "/api/v0/wifi/enable",
         .method = "POST",
         .type = HttpHandlerCustom,
-        .on_request = api_wifi_enable_callaback,
+        .on_request = api_wifi_enable_callback,
     },
     {
         .uri = "/api/v0/wifi/disable",
         .method = "POST",
         .type = HttpHandlerCustom,
-        .on_request = api_wifi_disable_callaback,
+        .on_request = api_wifi_disable_callback,
     },
     {
         .uri = "/api/v0/wifi/status",
         .method = "GET",
         .type = HttpHandlerCustom,
-        .on_request = api_wifi_get_status_callaback,
+        .on_request = api_wifi_get_status_callback,
     },
 };
 
