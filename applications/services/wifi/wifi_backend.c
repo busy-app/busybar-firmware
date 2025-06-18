@@ -13,6 +13,8 @@
 
 #define TAG "Wifi"
 
+#define NUM_CONNECTION_ATTEMPTS (3)
+
 typedef enum {
     WifiEventRequest = 1UL << 0,
     WifiEventScanComplete = 1UL << 1,
@@ -175,7 +177,18 @@ static void wifi_connect_request_handler(Wifi* instance) {
         }
 
         // Connect to the network
-        status = sl_net_up(SL_NET_WIFI_CLIENT_INTERFACE, SL_NET_DEFAULT_WIFI_CLIENT_PROFILE_ID);
+        for(uint32_t i = 0; i < NUM_CONNECTION_ATTEMPTS; ++i) {
+            status =
+                sl_net_up(SL_NET_WIFI_CLIENT_INTERFACE, SL_NET_DEFAULT_WIFI_CLIENT_PROFILE_ID);
+
+            if(status == SL_STATUS_OK) {
+                break;
+            }
+
+            if(i < NUM_CONNECTION_ATTEMPTS) {
+                furi_delay_ms(250);
+            }
+        }
 
         if(status != SL_STATUS_OK) {
             FURI_LOG_E(TAG, "Failed to bring Wifi interface UP: %lX", status);
