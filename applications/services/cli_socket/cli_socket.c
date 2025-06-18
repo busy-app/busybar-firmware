@@ -16,10 +16,7 @@ static err_t cli_socket_accept_callback(void* context, struct tcp_pcb* client_so
     }
 
     FURI_LOG_I(
-        TAG,
-        "Accepted from %s:%d",
-        ipaddr_ntoa(&client_socket->remote_ip),
-        client_socket->remote_port);
+        TAG, "Accepted %s:%d", ipaddr_ntoa(&client_socket->remote_ip), client_socket->remote_port);
     cli_socket_client_start(client_socket);
     tcp_accepted(listen_socket);
     return ERR_OK;
