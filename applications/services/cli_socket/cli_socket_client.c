@@ -39,9 +39,12 @@ typedef struct {
 typedef enum {
     CliSocketClientEventTcpTxDone = (1 << 0),
     CliSocketClientEventDisconnected = (1 << 1),
+    CliSocketClientEventShellExit = (1 << 2),
 } CliSocketClientEvent;
 
-#define CliSocketClientEventAll (CliSocketClientEventTcpTxDone | CliSocketClientEventDisconnected)
+#define CliSocketClientEventAll                                         \
+    (CliSocketClientEventTcpTxDone | CliSocketClientEventDisconnected | \
+     CliSocketClientEventShellExit)
 
 // ============
 // Data copying
@@ -49,6 +52,17 @@ typedef enum {
 
 static void cli_socket_client_try_copy_sh2cl(CliSocketClient* client) {
     LOCK_TCPIP_CORE();
+
+    if(client->socket->state != ESTABLISHED) {
+        FURI_LOG_E(
+            TAG,
+            "%s:%d not established: %d",
+            ipaddr_ntoa(&client->socket->remote_ip),
+            client->socket->remote_port,
+            client->socket->state);
+        UNLOCK_TCPIP_CORE();
+        return;
+    }
 
     size_t available_in_tcp_buf = tcp_sndbuf(client->socket);
     size_t available_in_pipe = pipe_bytes_available(client->own_pipe);
@@ -132,6 +146,13 @@ static void cli_socket_client_set_flag(CliSocketClient* client, CliSocketClientE
     furi_check(!(ret & FuriFlagError));
 }
 
+static void cli_socket_client_shell_exit_callback(PipeSide* pipe, void* context) {
+    UNUSED(pipe);
+    CliSocketClient* client = context;
+    CLI_SOCKET_TRACE(TAG, "evt: shell exit");
+    cli_socket_client_set_flag(client, CliSocketClientEventShellExit);
+}
+
 static err_t cli_socket_client_tcp_tx_done(void* context, struct tcp_pcb* socket, uint16_t len) {
     UNUSED(socket);
     UNUSED(len);
@@ -177,7 +198,7 @@ static void cli_socket_client_event(FuriEventLoopObject* object, void* context) 
         furi_semaphore_acquire(client->tx_semaphore, 0);
     }
 
-    if(flags & CliSocketClientEventDisconnected) {
+    if((flags & CliSocketClientEventDisconnected) || (flags & CliSocketClientEventShellExit)) {
         furi_event_loop_stop(client->event_loop);
     }
 }
@@ -207,6 +228,7 @@ static void cli_socket_client_thread_init(CliSocketClient* client) {
     pipe_attach_to_event_loop(client->own_pipe, client->event_loop);
     pipe_set_callback_context(client->own_pipe, client);
     pipe_set_data_arrived_callback(client->own_pipe, cli_socket_client_data_from_shell, 0);
+    pipe_set_broken_callback(client->own_pipe, cli_socket_client_shell_exit_callback, 0);
 
     LOCK_TCPIP_CORE();
     tcp_arg(client->socket, client);
@@ -218,6 +240,7 @@ static void cli_socket_client_thread_init(CliSocketClient* client) {
 
     client->shell =
         cli_shell_alloc(cli_main_motd, NULL, client->shell_pipe, client->main_registry, NULL);
+    cli_shell_free_pipe_on_exit(client->shell);
     cli_shell_start(client->shell);
 }
 
@@ -233,7 +256,6 @@ static void cli_socket_client_thread_deinit(CliSocketClient* client) {
 
     cli_shell_join(client->shell);
     cli_shell_free(client->shell);
-    pipe_free(client->shell_pipe);
 
     furi_record_close(RECORD_CLI);
 
@@ -252,11 +274,20 @@ static int32_t cli_socket_client_thread(void* context) {
     CliSocketClient* client = context;
 
     cli_socket_client_thread_init(client);
-    FURI_LOG_I(TAG, "Started");
+    FURI_LOG_D(
+        TAG,
+        "Started for %s:%d",
+        ipaddr_ntoa(&client->socket->remote_ip),
+        client->socket->remote_port);
+    // FURI_LOG_I(TAG, "Socket state: %d", client->socket->state);
 
     furi_event_loop_run(client->event_loop);
 
-    FURI_LOG_I(TAG, "Stopped");
+    FURI_LOG_D(
+        TAG,
+        "Stopped for %s:%d",
+        ipaddr_ntoa(&client->socket->remote_ip),
+        client->socket->remote_port);
     cli_socket_client_thread_deinit(client);
 
     return 0;
