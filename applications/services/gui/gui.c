@@ -317,3 +317,19 @@ void gui_layer_remove_input_callback(GuiLayer* layer, GuiInputCallback callback)
         }
     }
 }
+
+size_t gui_display_get_frame_buffer_size(Gui* gui, GuiDisplayId display_id) {
+    furi_check(gui);
+    furi_check(display_id < GuiDisplayIdMax);
+
+    return display_id == GuiDisplayIdFront ?
+               FRONT_DRAW_BUFFER_SIZE :
+               back_display_get_width() * back_display_get_height() * BACK_BYTES_PER_PIXEL;
+}
+
+const uint8_t* gui_display_get_frame_buffer(Gui* gui, GuiDisplayId display_id) {
+    furi_check(gui);
+    furi_check(display_id < GuiDisplayIdMax);
+
+    return gui->displays[display_id].draw_buffer;
+}
