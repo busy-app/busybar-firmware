@@ -65,7 +65,7 @@ static void http_event_handler(struct mg_connection* conn, int ev, void* ev_data
                 conn_ctx->raw.on_data(conn, &conn->recv);
             }
         }
-    } else if(ev == MG_EV_WS_MSG) {
+    } else if(ev == MG_EV_WS_MSG || ev == MG_EV_WS_CTL) {
         struct mg_ws_message* ws_msg = (struct mg_ws_message*)ev_data;
         ConnectionContext* conn_ctx = (void*)conn->data;
         if(conn_ctx->ws.on_message) {
