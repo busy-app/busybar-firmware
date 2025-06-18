@@ -7,14 +7,10 @@
 
 #define MAX_CHUNK_SIZE (1014) // Limited by intercom et al
 
-#define WIFI_SSID "Your SSID"
-#define WIFI_PASS "Your passphrase"
-#define WIFI_MODE WifiSecurityModeWpa2
-
 #define CONNECT_PORT    8080
 #define LISTEN_PORT     8081
 #define UDP_PORT        8082
-#define CONNECT_ADDRESS 10, 46, 30, 175 // MUST be commas, not dots
+#define CONNECT_ADDRESS 10, 46, 30, 143 // MUST be commas, not dots
 
 #define MAX_TCP_CLIENTS 1
 
@@ -62,46 +58,37 @@ static void
 static void sockets_test_app_wifi_info_to_connection_info(
     const WifiInfo* wifi_info,
     SocketConnectionInfo* connection_info) {
-    connection_info->ip_type = wifi_info->ip_config.type;
-    memcpy(
-        &connection_info->address,
-        &wifi_info->ip_config.address,
-        sizeof(connection_info->address));
+    const WifiIpType ip_type = wifi_info->ip_config.type;
+    connection_info->ip_type = ip_type;
+
+    if(ip_type == WifiIpTypeV4) {
+        memcpy(
+            &connection_info->address.v4,
+            &wifi_info->ip_config.ip4.address,
+            sizeof(connection_info->address.v4));
+
+    } else if(ip_type == WifiIpTypeV6) {
+        memcpy(
+            &connection_info->address.v6,
+            &wifi_info->ip_config.ip6.local.bytes,
+            sizeof(connection_info->address.v6));
+
+    } else {
+        furi_crash();
+    }
 }
 
-static bool sockets_test_app_init_wifi(SocketsTestApp* instance) {
+static bool sockets_test_app_get_wifi_info(SocketsTestApp* instance) {
     bool success = false;
 
     do {
-        FURI_LOG_I(TAG, "Wifi initialisation start ...");
-
-        if(wifi_init(instance->wifi) != WifiStatusOk) {
-            FURI_LOG_E(TAG, "Failed to init Wifi");
-            break;
-        }
-
-        FURI_LOG_I(TAG, "Wifi initialised!");
-
-        const WifiCredentials credentials = {
-            .ssid = WIFI_SSID,
-            .passphrase = WIFI_PASS,
-            .security_mode = WIFI_MODE,
-        };
-
-        const WifiIpConfig ip_config = {
-            .mgmt = WifiIpManagementDynamic,
-            .type = WifiIpTypeV4,
-        };
-
-        if(wifi_connect(instance->wifi, &credentials, &ip_config) != WifiStatusOk) {
-            FURI_LOG_E(TAG, "Failed to connect to Wifi network");
-            break;
-        }
-
-        FURI_LOG_I(TAG, "Wifi connected to %s!", WIFI_SSID);
-
         if(wifi_get_info(instance->wifi, &instance->wifi_info) != WifiStatusOk) {
             FURI_LOG_E(TAG, "Failed to get Wifi info");
+            break;
+        }
+
+        if(instance->wifi_info.state != WifiStateUp) {
+            FURI_LOG_E(TAG, "Wifi is DOWN, please connect to a network first");
             break;
         }
 
@@ -277,18 +264,6 @@ static void sockets_test_app_deinit_sockets(SocketsTestApp* instance) {
     furi_record_close(RECORD_SOCKETS);
 }
 
-static void sockets_test_app_deinit_wifi(SocketsTestApp* instance) {
-    if(wifi_disconnect(instance->wifi) != WifiStatusOk) {
-        FURI_LOG_E(TAG, "Failed to disconnect Wifi");
-    }
-
-    if(wifi_deinit(instance->wifi) != WifiStatusOk) {
-        FURI_LOG_E(TAG, "Failed to deinit Wifi");
-    }
-
-    furi_record_close(RECORD_WIFI);
-}
-
 static void sockets_test_app_event_queue_callback(FuriEventLoopObject* object, void* context) {
     SocketsTestApp* instance = context;
     furi_assert(object == instance->event_queue);
@@ -315,6 +290,11 @@ static void sockets_test_app_event_queue_callback(FuriEventLoopObject* object, v
             if(status != SocketStatusOk) {
                 FURI_LOG_E(TAG, "Failed to send %zu bytes", data_size);
                 break;
+            }
+
+            if(event.socket == instance->sockets[SocketIndexUdpClientServer]) {
+                instance->tmp_buf[data_size] = 0;
+                FURI_LOG_D(TAG, "UDP Data: %s", instance->tmp_buf);
             }
 
         } while(false);
@@ -357,6 +337,8 @@ static SocketsTestApp* sockets_test_app_alloc(void) {
 }
 
 static void sockets_test_app_free(SocketsTestApp* instance) {
+    furi_record_close(RECORD_WIFI);
+
     furi_event_loop_unsubscribe(instance->event_loop, instance->event_queue);
     furi_message_queue_free(instance->event_queue);
     furi_event_loop_free(instance->event_loop);
@@ -370,7 +352,7 @@ int32_t sockets_test_app(void* arg) {
     SocketsTestApp* instance = sockets_test_app_alloc();
 
     do {
-        if(!sockets_test_app_init_wifi(instance)) break;
+        if(!sockets_test_app_get_wifi_info(instance)) break;
         if(!sockets_test_app_init_tcp_client(instance)) break;
         if(!sockets_test_app_init_tcp_server(instance)) break;
         if(!sockets_test_app_init_udp_client_server(instance)) break;
@@ -380,7 +362,6 @@ int32_t sockets_test_app(void* arg) {
     } while(false);
 
     sockets_test_app_deinit_sockets(instance);
-    sockets_test_app_deinit_wifi(instance);
     sockets_test_app_free(instance);
 
     return 0;
