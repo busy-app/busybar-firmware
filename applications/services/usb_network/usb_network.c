@@ -15,7 +15,7 @@
 
 #include <dhserver.h>
 
-#define TAG "USB NET"
+#define TAG "UsbNet"
 
 #define USB_NET_IPERF
 #define DHCP_ENTRIES_MAX   3
