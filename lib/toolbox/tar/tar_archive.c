@@ -9,7 +9,7 @@
 #define TAG "TarArch"
 
 #define MAX_NAME_LEN    255
-#define FILE_BLOCK_SIZE 512
+#define FILE_BLOCK_SIZE 1024 * 16
 
 #define FILE_OPEN_NTRIES      10
 #define FILE_OPEN_RETRY_DELAY 25
