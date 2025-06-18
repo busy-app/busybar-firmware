@@ -212,6 +212,20 @@ static bool cli_shell_line_input_cr(CliKeyCombo combo, void* context) {
     return true;
 }
 
+static bool cli_shell_line_input_eot(CliKeyCombo combo, void* context) {
+    UNUSED(combo);
+    CliShellLine* line = context;
+    line->about_to_exit = true;
+    printf("^D");
+
+    FuriString* command = furi_string_alloc_set("exit");
+    cli_shell_execute_command(line->shell, command);
+    furi_string_free(command);
+
+    fflush(stdout);
+    return true;
+}
+
 static bool cli_shell_line_input_up_down(CliKeyCombo combo, void* context) {
     CliShellLine* line = context;
     // go up and down in history
@@ -374,6 +388,7 @@ CliShellKeyComboSet cli_shell_line_key_combo_set = {
     .records =
         {
             {{CliModKeyNo, CliKeyETX}, cli_shell_line_input_ctrl_c},
+            {{CliModKeyNo, CliKeyEOT}, cli_shell_line_input_eot},
             {{CliModKeyNo, CliKeyCR}, cli_shell_line_input_cr},
             {{CliModKeyNo, CliKeyUp}, cli_shell_line_input_up_down},
             {{CliModKeyNo, CliKeyDown}, cli_shell_line_input_up_down},
