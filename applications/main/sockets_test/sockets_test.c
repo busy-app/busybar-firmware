@@ -12,8 +12,10 @@
 #define UDP_BIND_PORT (8082)
 #define UDP_SEND_PORT (8083)
 
-#define CONNECT_ADDRESS 10, 46, 30, 143 // MUST be commas, not dots
-#define BIND_ADDRESS    0, 0, 0, 0
+#ifndef SOCKETS_TEST_ADDRESS
+#define SOCKETS_TEST_ADDRESS 10, 46, 30, 143 // MUST be commas, not dots
+#endif
+#define BIND_ADDRESS 0, 0, 0, 0
 
 #define MAX_TCP_CLIENTS 1
 
@@ -120,7 +122,7 @@ static bool sockets_test_app_init_tcp_client(SocketsTestApp* instance) {
         const SocketConnectionInfo connection_info = {
             .port = CONNECT_PORT,
             .ip_type = SocketIpTypeV4,
-            .address.v4 = {CONNECT_ADDRESS},
+            .address.v4 = {SOCKETS_TEST_ADDRESS},
         };
 
         if(socket_connect(socket, &connection_info) != SocketStatusOk) {
@@ -230,7 +232,7 @@ static bool sockets_test_app_init_udp_server(SocketsTestApp* instance) {
         const SocketConnectionInfo connection_info = {
             .port = UDP_SEND_PORT,
             .ip_type = SocketIpTypeV4,
-            .address.v4 = {CONNECT_ADDRESS},
+            .address.v4 = {SOCKETS_TEST_ADDRESS},
         };
 
         // For UDP sockets, connect() sets the address used for send()
