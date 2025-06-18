@@ -7,10 +7,13 @@
 
 #define MAX_CHUNK_SIZE (1014) // Limited by intercom et al
 
-#define CONNECT_PORT    8080
-#define LISTEN_PORT     8081
-#define UDP_PORT        8082
+#define CONNECT_PORT  (8080)
+#define LISTEN_PORT   (8081)
+#define UDP_BIND_PORT (8082)
+#define UDP_SEND_PORT (8083)
+
 #define CONNECT_ADDRESS 10, 46, 30, 143 // MUST be commas, not dots
+#define BIND_ADDRESS    0, 0, 0, 0
 
 #define MAX_TCP_CLIENTS 1
 
@@ -18,7 +21,7 @@ typedef enum {
     SocketIndexTcpClient,
     SocketIndexTcpServer,
     SocketIndexTcpRemoteClient,
-    SocketIndexUdpClientServer,
+    SocketIndexUdpServer,
     SocketIndexMax,
 } SocketIndex;
 
@@ -28,7 +31,6 @@ typedef struct {
     FuriEventLoop* event_loop;
     FuriMessageQueue* event_queue;
     Socket* sockets[SocketIndexMax];
-    WifiInfo wifi_info;
     char tmp_buf[MAX_CHUNK_SIZE];
 } SocketsTestApp;
 
@@ -55,42 +57,33 @@ static void
         info->port);
 }
 
-static void sockets_test_app_wifi_info_to_connection_info(
-    const WifiInfo* wifi_info,
-    SocketConnectionInfo* connection_info) {
-    const WifiIpType ip_type = wifi_info->ip_config.type;
-    connection_info->ip_type = ip_type;
-
-    if(ip_type == WifiIpTypeV4) {
-        memcpy(
-            &connection_info->address.v4,
-            &wifi_info->ip_config.ip4.address,
-            sizeof(connection_info->address.v4));
-
-    } else if(ip_type == WifiIpTypeV6) {
-        memcpy(
-            &connection_info->address.v6,
-            &wifi_info->ip_config.ip6.local.bytes,
-            sizeof(connection_info->address.v6));
-
-    } else {
-        furi_crash();
-    }
-}
-
 static bool sockets_test_app_get_wifi_info(SocketsTestApp* instance) {
     bool success = false;
 
     do {
-        if(wifi_get_info(instance->wifi, &instance->wifi_info) != WifiStatusOk) {
+        WifiInfo wifi_info;
+
+        if(wifi_get_info(instance->wifi, &wifi_info) != WifiStatusOk) {
             FURI_LOG_E(TAG, "Failed to get Wifi info");
             break;
         }
 
-        if(instance->wifi_info.state != WifiStateUp) {
+        if(wifi_info.state != WifiStateUp) {
             FURI_LOG_E(TAG, "Wifi is DOWN, please connect to a network first");
             break;
         }
+
+        FURI_LOG_I(TAG, "Wifi is connected to SSID %s", wifi_info.ssid);
+
+        const WifiIpv4 address = wifi_info.ip_config.ip4.address;
+
+        FURI_LOG_I(
+            TAG,
+            "Device IP address: %hhu.%hhu.%hhu.%hhu",
+            address.bytes[0],
+            address.bytes[1],
+            address.bytes[2],
+            address.bytes[3]);
 
         success = true;
 
@@ -169,9 +162,11 @@ static bool sockets_test_app_init_tcp_server(SocketsTestApp* instance) {
 
         FURI_LOG_I(TAG, "Server socket allocated successfully!");
 
-        SocketConnectionInfo bind_info;
-        sockets_test_app_wifi_info_to_connection_info(&instance->wifi_info, &bind_info);
-        bind_info.port = LISTEN_PORT;
+        const SocketConnectionInfo bind_info = {
+            .port = LISTEN_PORT,
+            .ip_type = SocketIpTypeV4,
+            .address.v4 = {BIND_ADDRESS},
+        };
 
         if(socket_bind(socket, &bind_info) != SocketStatusOk) {
             FURI_LOG_E(TAG, "Failed to bind socket");
@@ -185,7 +180,7 @@ static bool sockets_test_app_init_tcp_server(SocketsTestApp* instance) {
             break;
         }
 
-        sockets_test_app_print_connection_info("Listening on", &bind_info);
+        FURI_LOG_I(TAG, "Listening on port %hu", bind_info.port);
 
         success = true;
 
@@ -194,11 +189,11 @@ static bool sockets_test_app_init_tcp_server(SocketsTestApp* instance) {
     return success;
 }
 
-static bool sockets_test_app_init_udp_client_server(SocketsTestApp* instance) {
+static bool sockets_test_app_init_udp_server(SocketsTestApp* instance) {
     bool success = false;
 
     do {
-        FURI_LOG_I(TAG, "UDP client/server initialisation start ...");
+        FURI_LOG_I(TAG, "UDP server initialisation start ...");
 
         const SocketInfo socket_info = {
             .ip_type = SocketIpTypeV4,
@@ -206,32 +201,34 @@ static bool sockets_test_app_init_udp_client_server(SocketsTestApp* instance) {
         };
 
         Socket* socket;
-        Socket** socket_slot = &instance->sockets[SocketIndexUdpClientServer];
+        Socket** socket_slot = &instance->sockets[SocketIndexUdpServer];
 
         *socket_slot =
             socket_alloc(instance->sockets_srv, &socket_info, socket_event_callback, instance);
         socket = *socket_slot;
 
         if(socket == NULL) {
-            FURI_LOG_E(TAG, "Failed to allocate UDP client/server socket");
+            FURI_LOG_E(TAG, "Failed to allocate UDP server socket");
             break;
         }
 
-        FURI_LOG_I(TAG, "UDP client/server socket allocated successfully!");
+        FURI_LOG_I(TAG, "UDP server socket allocated successfully!");
 
-        SocketConnectionInfo bind_info;
-        sockets_test_app_wifi_info_to_connection_info(&instance->wifi_info, &bind_info);
-        bind_info.port = UDP_PORT;
+        const SocketConnectionInfo bind_info = {
+            .port = UDP_BIND_PORT,
+            .ip_type = SocketIpTypeV4,
+            .address.v4 = {BIND_ADDRESS},
+        };
 
         if(socket_bind(socket, &bind_info) != SocketStatusOk) {
             FURI_LOG_E(TAG, "Failed to bind socket");
             break;
         }
 
-        FURI_LOG_I(TAG, "UDP client/server socket bound successfully!");
+        FURI_LOG_I(TAG, "UDP server socket bound successfully!");
 
         const SocketConnectionInfo connection_info = {
-            .port = UDP_PORT,
+            .port = UDP_SEND_PORT,
             .ip_type = SocketIpTypeV4,
             .address.v4 = {CONNECT_ADDRESS},
         };
@@ -292,11 +289,6 @@ static void sockets_test_app_event_queue_callback(FuriEventLoopObject* object, v
                 break;
             }
 
-            if(event.socket == instance->sockets[SocketIndexUdpClientServer]) {
-                instance->tmp_buf[data_size] = 0;
-                FURI_LOG_D(TAG, "UDP Data: %s", instance->tmp_buf);
-            }
-
         } while(false);
 
         if(status != SocketStatusOk) {
@@ -355,7 +347,7 @@ int32_t sockets_test_app(void* arg) {
         if(!sockets_test_app_get_wifi_info(instance)) break;
         if(!sockets_test_app_init_tcp_client(instance)) break;
         if(!sockets_test_app_init_tcp_server(instance)) break;
-        if(!sockets_test_app_init_udp_client_server(instance)) break;
+        if(!sockets_test_app_init_udp_server(instance)) break;
 
         furi_event_loop_run(instance->event_loop);
 
