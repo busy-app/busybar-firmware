@@ -171,26 +171,28 @@ typedef struct {
 static const UpdateTaskStageGroupMap update_task_stage_progress[] = {
     [UpdateTaskStageProgress] = STAGE_DEF(UpdateTaskStageGroupMisc, 0),
 
-    [UpdateTaskStageValidateDFUImage] = STAGE_DEF(UpdateTaskStageGroupFirmware, 8),
-    [UpdateTaskStageFlashWrite] = STAGE_DEF(UpdateTaskStageGroupFirmware, 35),
-    [UpdateTaskStageFlashValidate] = STAGE_DEF(UpdateTaskStageGroupFirmware, 8),
+    [UpdateTaskStageReadManifest] = STAGE_DEF(UpdateTaskStageGroupPrepare, 5),
 
-    [UpdateTaskStage917Write] = STAGE_DEF(UpdateTaskStageGroup917, 70),
-    [UpdateTaskStage917Install] = STAGE_DEF(UpdateTaskStageGroup917, 8),
+    [UpdateTaskStageValidateDFUImage] = STAGE_DEF(UpdateTaskStageGroupFirmware, 20),
+    [UpdateTaskStageFlashWrite] = STAGE_DEF(UpdateTaskStageGroupFirmware, 20),
+    [UpdateTaskStageFlashValidate] = STAGE_DEF(UpdateTaskStageGroupFirmware, 5),
 
-    [UpdateTaskStage917RadioWrite] = STAGE_DEF(UpdateTaskStageGroup917Radio, 230),
-    [UpdateTaskStage917RadioInstall] = STAGE_DEF(UpdateTaskStageGroup917Radio, 50),
+    [UpdateTaskStage917RadioWrite] = STAGE_DEF(UpdateTaskStageGroup917Radio, 240),
+    [UpdateTaskStage917RadioInstall] = STAGE_DEF(UpdateTaskStageGroup917Radio, 90),
 
-    [UpdateTaskStageResourcesFileCleanup] = STAGE_DEF(UpdateTaskStageGroupResources, 10),
-    [UpdateTaskStageResourcesDirCleanup] = STAGE_DEF(UpdateTaskStageGroupResources, 10),
-    [UpdateTaskStageResourcesFileUnpack] = STAGE_DEF(UpdateTaskStageGroupResources, 160),
+    [UpdateTaskStage917Write] = STAGE_DEF(UpdateTaskStageGroup917, 45),
+    [UpdateTaskStage917Install] = STAGE_DEF(UpdateTaskStageGroup917, 15),
+
+    [UpdateTaskStageResourcesFileCleanup] = STAGE_DEF(UpdateTaskStageGroupResources, 5),
+    [UpdateTaskStageResourcesDirCleanup] = STAGE_DEF(UpdateTaskStageGroupResources, 5),
+    [UpdateTaskStageResourcesFileUnpack] = STAGE_DEF(UpdateTaskStageGroupResources, 18),
 
     [UpdateTaskStageCompleted] = STAGE_DEF(UpdateTaskStageGroupMisc, 1),
     [UpdateTaskStageError] = STAGE_DEF(UpdateTaskStageGroupMisc, 1),
 };
 
 static UpdateTaskStageGroup update_task_get_task_groups(UpdateTask* update_task) {
-    UpdateTaskStageGroup ret = UpdateTaskStageGroupMisc;
+    UpdateTaskStageGroup ret = UpdateTaskStageGroupPrepare;
     const UpdateManifest* manifest = update_config_get_manifest(update_task->config);
 
     if(!furi_string_empty(updater_manifest_get_path(manifest, UpdateManifestPathDfu))) {
