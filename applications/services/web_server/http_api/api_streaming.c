@@ -208,20 +208,20 @@ static void api_streaming_send_frame(struct mg_connection* conn, void* data, siz
     furi_assert(conn);
 
     ConnectionContext* conn_ctx = (void*)conn->data;
-    ApiStreamingCtx* context = conn_ctx->context;
+    ApiStreamingCtx* instance = conn_ctx->context;
 
-    WsClientCtx* client = api_streaming_get_client_by_id(context, conn->id, NULL);
+    WsClientCtx* client = api_streaming_get_client_by_id(instance, conn->id, NULL);
     if(client->state == WsClientStateActive) {
-        // const size_t size = gui_display_get_frame_buffer_size(context->gui, context->display_id);
-        if(furi_mutex_acquire(context->mutex, 10) != FuriStatusOk) {
-            FURI_LOG_W(TAG, "Unable to lock frame");
+        ///TODO: simplify this
+        if(client->display_id !=)
+            if(furi_mutex_acquire(instance->mutex, 10) != FuriStatusOk) {
+                FURI_LOG_W(TAG, "Unable to lock frame");
 
-        } else {
-            mg_ws_send(conn, context->buffer, context->frame_size, WEBSOCKET_OP_BINARY);
-            furi_mutex_release(context->mutex);
-        }
+            } else {
+                mg_ws_send(conn, instance->buffer, instance->frame_size, WEBSOCKET_OP_BINARY);
+                furi_mutex_release(instance->mutex);
+            }
     } else if(client->state == WsClientStateRequestingPing) {
-        // client->state = WsClientStateWaitingPong;
         FURI_LOG_I(TAG, "Requesting ping");
         api_streaming_client_set_state(client, WsClientStateWaitingPong);
         mg_ws_send(conn, data, len, WEBSOCKET_OP_PING);
