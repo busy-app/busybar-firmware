@@ -140,29 +140,23 @@ static inline void api_streaming_client_free(WsClientCtx* client) {
 static void websocket_test_on_open(struct mg_connection* conn) {
     // Get handler context from connection data
     ConnectionContext* conn_ctx = (void*)conn->data;
-    ApiStreamingCtx* context = conn_ctx->context;
-    furi_assert(context);
+    ApiStreamingCtx* instance = conn_ctx->context;
+    furi_assert(instance);
 
-    // Add connection to WebSocket clients list
-    WsClientCtx* ws_client = malloc(sizeof(WsClientCtx));
-    ws_client->conn = conn;
-    ws_client->display_id = GuiDisplayIdMax;
-    ws_client->state = WsClientStateStopped;
-    ws_client->context = context;
-    ws_client->heartbeat_timer =
-        furi_timer_alloc(websocket_test_async_tmr_cb, FuriTimerTypePeriodic, ws_client);
+    WsClientCtx* ws_client = api_streaming_client_alloc(conn);
 
-    if(WsClientsList_empty_p(context->clients)) {
+    if(WsClientsList_empty_p(instance->clients)) {
         FURI_LOG_I(TAG, "Start Thread");
-        context->gui = furi_record_open(RECORD_GUI);
+        instance->gui = furi_record_open(RECORD_GUI);
 
         const size_t size = BUFFER_SIZE;
-        context->buffer = malloc(size);
-        context->stop = false;
-        furi_thread_start(context->thread);
+        instance->buffer = malloc(size);
+        instance->stop = false;
+        furi_thread_start(instance->thread);
     }
 
-    WsClientsList_push_back(context->clients, ws_client);
+    // Add connection to WebSocket clients list
+    WsClientsList_push_back(instance->clients, ws_client);
     furi_timer_start(ws_client->heartbeat_timer, CLIENT_HEARTBEAT_PERIOD_MS);
 
     FURI_LOG_I(TAG, "Add client");
@@ -171,47 +165,33 @@ static void websocket_test_on_open(struct mg_connection* conn) {
 static void websocket_test_on_close(struct mg_connection* conn) {
     // Get handler context from connection data
     ConnectionContext* conn_ctx = (void*)conn->data;
-    ApiStreamingCtx* context = conn_ctx->context;
-    furi_assert(context);
+    ApiStreamingCtx* instance = conn_ctx->context;
+    furi_assert(instance);
 
     // Remove connection from WebSocket clients list
     WsClientsList_it_t it;
-    for(WsClientsList_it(it, context->clients); !WsClientsList_end_p(it); WsClientsList_next(it)) {
-        WsClientCtx* const* it_ptr = WsClientsList_cref(it);
-        WsClientCtx* client = *it_ptr;
-        if(client->conn == conn) {
-            //  furi_timer_free(WsClientsList_cref(it)->test_tmr);
-            WsClientsList_remove(context->clients, it);
-            FURI_LOG_I(TAG, "Free client");
+    WsClientCtx* client = api_streaming_get_client_by_id(instance, conn->id, it);
+    if(client) {
+        FURI_LOG_I(
+            TAG,
+            "Remove [%s] client: %ld",
+            client->display_id == GuiDisplayIdFront ? "FRONT" : "BACK",
+            client->conn->id);
 
-            if(client->display_id == GuiDisplayIdFront)
-                context->front_clients_count--;
-            else if(client->display_id == GuiDisplayIdBack)
-                context->back_clients_count--;
-
-            if(context->front_clients_count > 0 && context->back_clients_count > 0)
-                context->mode = ApiStreamingModeDualScreen;
-            else {
-                context->display_id = (context->front_clients_count > 0) ? GuiDisplayIdFront :
-                                                                           GuiDisplayIdBack;
-                context->mode = ApiStreamingModeSingleScreen;
-            }
-
-            furi_timer_stop(client->heartbeat_timer);
-            furi_timer_free(client->heartbeat_timer);
-            free(client);
-            break;
-        }
+        WsClientsList_remove(instance->clients, it);
+        api_streaming_client_counter_decrement(instance, client->display_id);
+        api_streaming_update_mode(instance);
+        api_streaming_client_free(client);
     }
 
-    if(WsClientsList_empty_p(context->clients)) {
+    if(WsClientsList_empty_p(instance->clients)) {
         FURI_LOG_I(TAG, "stop thread");
-        // furi_check(furi_timer_stop(context->timer) == FuriStatusOk);
-        context->stop = true;
-        furi_thread_join(context->thread);
+        // furi_check(furi_timer_stop(instance->timer) == FuriStatusOk);
+        instance->stop = true;
+        furi_thread_join(instance->thread);
 
         furi_record_close(RECORD_GUI);
-        free(context->buffer);
+        free(instance->buffer);
     }
 
     // Clear connection callbacks
