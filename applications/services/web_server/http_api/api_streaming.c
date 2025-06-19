@@ -99,6 +99,7 @@ static inline void
         instance->back_clients_count--;
 }
 
+static inline void api_streaming_client_set_state(WsClientCtx* client, WsClientState new_state) {
     FURI_LOG_I(TAG, "Client state %d -> %d", client->state, new_state);
     client->state = new_state;
 }
@@ -222,7 +223,7 @@ static void api_streaming_send_frame(struct mg_connection* conn, void* data, siz
     } else if(client->state == WsClientStateRequestingPing) {
         // client->state = WsClientStateWaitingPong;
         FURI_LOG_I(TAG, "Requesting ping");
-        api_streaming_ws_client_set_state(client, WsClientStateWaitingPong);
+        api_streaming_client_set_state(client, WsClientStateWaitingPong);
         mg_ws_send(conn, data, len, WEBSOCKET_OP_PING);
     } else if(client->state == WsClientStateInvalid) {
         mg_close_conn(conn);
@@ -238,11 +239,11 @@ static void websocket_test_on_message(struct mg_connection* conn, struct mg_ws_m
 
     if((ws_msg->flags & WEBSOCKET_OP_PING) == WEBSOCKET_OP_PING) {
         FURI_LOG_I(TAG, "PING");
-        api_streaming_ws_client_set_state(client, WsClientStateActive);
+        api_streaming_client_set_state(client, WsClientStateActive);
         furi_timer_restart(client->heartbeat_timer, CLIENT_HEARTBEAT_PERIOD_MS);
     } else if((ws_msg->flags & WEBSOCKET_OP_PONG) == WEBSOCKET_OP_PONG) {
         FURI_LOG_I(TAG, "PONG");
-        api_streaming_ws_client_set_state(client, WsClientStateActive);
+        api_streaming_client_set_state(client, WsClientStateActive);
         furi_timer_restart(client->heartbeat_timer, CLIENT_HEARTBEAT_PERIOD_MS);
     } else if((ws_msg->flags & WEBSOCKET_OP_TEXT) == WEBSOCKET_OP_TEXT) {
         FURI_LOG_I(TAG, "MSG");
@@ -252,30 +253,11 @@ static void websocket_test_on_message(struct mg_connection* conn, struct mg_ws_m
             FURI_LOG_I(TAG, m);
 
             client->display_id = display_id;
-            // if(instance->mode == ApiStreamingModeIdle) {
-            //     instance->mode = ApiStreamingModeSingleScreen;
-            //     instance->display_id = display_id;
-            // } else if(
-            //     instance->mode == ApiStreamingModeSingleScreen &&
-            //     instance->display_id != display_id) {
-            //     instance->mode = ApiStreamingModeDualScreen;
-            // }
 
-            if(display_id == GuiDisplayIdFront)
-                instance->front_clients_count++;
-            else if(display_id == GuiDisplayIdBack)
-                instance->back_clients_count++;
+            api_streaming_client_counter_increment(instance, display_id);
+            api_streaming_update_mode(instance);
 
-            if(instance->front_clients_count > 0 && instance->back_clients_count > 0)
-                instance->mode = ApiStreamingModeDualScreen;
-            else {
-                instance->display_id = (instance->front_clients_count > 0) ? GuiDisplayIdFront :
-                                                                             GuiDisplayIdBack;
-                instance->mode = ApiStreamingModeSingleScreen;
-            }
-
-            // client->state = WsClientStateActive;
-            api_streaming_ws_client_set_state(client, WsClientStateActive);
+            api_streaming_client_set_state(client, WsClientStateActive);
             mg_ws_send(conn, m, strlen(m), WEBSOCKET_OP_TEXT);
         } else {
             const char* m = "Invalid screen skip";
