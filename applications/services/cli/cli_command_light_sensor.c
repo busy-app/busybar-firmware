@@ -5,8 +5,8 @@
 #include <furi_hal_i2c_config.h>
 #include <furi_hal_light_sensor.h>
 
-void cli_command_light_sensor(Cli* cli, FuriString* args, void* context) {
-    UNUSED(cli);
+void cli_command_light_sensor(PipeSide* pipe, FuriString* args, void* context) {
+    UNUSED(pipe);
     UNUSED(args);
     UNUSED(context);
 

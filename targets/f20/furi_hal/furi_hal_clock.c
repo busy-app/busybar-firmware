@@ -36,7 +36,7 @@ void furi_hal_clock_init(void) {
     // We need to figure out how to properly initialize the clocks
 
     LL_SYSTICK_DisableIT();
-    furi_hal_bus_enable(FuriHalBusPWR);
+    // furi_hal_bus_enable(FuriHalBusPWR); // moved to nvm early init
     furi_hal_bus_enable(FuriHalBusSYSCFG);
 
     // Todo move to furi_hal_bus? furi_hal_cortex?
@@ -52,11 +52,6 @@ void furi_hal_clock_init(void) {
 
     LL_RCC_HSE_Enable();
     while(LL_RCC_HSE_IsReady() != 1) {
-    }
-
-    // Start 32KHz xtal oscillator
-    LL_PWR_EnableBkUpAccess();
-    while(LL_PWR_IsEnabledBkUpAccess() == 0U) {
     }
 
     LL_RCC_LSE_SetDriveCapability(LL_RCC_LSEDRIVE_LOW);

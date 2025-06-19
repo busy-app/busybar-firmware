@@ -24,7 +24,7 @@
 #define MEMP_MEM_MALLOC                        0
 #define MEMP_MEM_INIT                          0
 #define MEM_ALIGNMENT                          4
-#define MEM_SIZE                               16000
+#define MEM_SIZE                               32000
 #define MEMP_OVERFLOW_CHECK                    0
 #define MEMP_SANITY_CHECK                      0
 #define MEM_OVERFLOW_CHECK                     0
@@ -74,7 +74,7 @@
 #define IP_OPTIONS_ALLOWED                     1
 #define IP_REASS_MAXAGE                        15
 #define IP_REASS_MAX_PBUFS                     10
-#define IP_DEFAULT_TTL                         255
+#define IP_DEFAULT_TTL                         64
 #define IP_SOF_BROADCAST                       0
 #define IP_SOF_BROADCAST_RECV                  0
 #define IP_FORWARD_ALLOW_TX_ON_RX_NETIF        0
@@ -82,7 +82,7 @@
 #define ICMP_TTL                               (IP_DEFAULT_TTL)
 #define LWIP_BROADCAST_PING                    1
 #define LWIP_MULTICAST_PING                    1
-#define LWIP_RAW                               0
+#define LWIP_RAW                               1
 #define RAW_TTL                                (IP_DEFAULT_TTL)
 #define LWIP_DHCP                              0
 #define LWIP_DHCP_CHECK_LINK_UP                0
@@ -114,7 +114,7 @@
 #define LWIP_NETBUF_RECVINFO          0
 #define LWIP_TCP                      1
 #define TCP_TTL                       (IP_DEFAULT_TTL)
-#define TCP_WND                       (4 * TCP_MSS)
+#define TCP_WND                       (6 * TCP_MSS)
 #define TCP_MAXRTX                    12
 #define TCP_SYNMAXRTX                 6
 #define TCP_QUEUE_OOSEQ               (LWIP_TCP)
@@ -137,8 +137,8 @@
 #define TCP_WND_UPDATE_THRESHOLD      LWIP_MIN((TCP_WND / 4), (TCP_MSS * 4))
 #define LWIP_EVENT_API                0
 #define LWIP_CALLBACK_API             1
-#define LWIP_WND_SCALE                0
-#define TCP_RCV_SCALE                 0
+#define LWIP_WND_SCALE                1
+#define TCP_RCV_SCALE                 3
 #define LWIP_TCP_PCB_NUM_EXT_ARGS     0
 #define LWIP_ALTCP                    0
 #define LWIP_ALTCP_TLS                0
@@ -162,8 +162,8 @@
 #define LWIP_NETIF_LOOPBACK                 1
 #define LWIP_LOOPBACK_MAX_PBUFS             0
 #define LWIP_NETIF_LOOPBACK_MULTITHREADING  (!NO_SYS)
-/*#define TCPIP_THREAD_NAME               "tcpip_thread"
-#define TCPIP_THREAD_STACKSIZE          0
+#define TCPIP_THREAD_NAME                   "LwipWorker"
+/*#define TCPIP_THREAD_STACKSIZE          0
 #define TCPIP_THREAD_PRIO               1
 #define TCPIP_MBOX_SIZE                 0
 #define LWIP_TCPIP_THREAD_ALIVE()

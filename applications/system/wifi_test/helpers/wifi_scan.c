@@ -7,7 +7,7 @@
 #define TAG "WifiScan"
 
 #define WIFI_SCAN_TIMEOUT 10000
-#define MAX_SCANNED_AP    20
+#define MAX_SCANNED_AP    40
 
 typedef struct {
     sl_wifi_extended_scan_result_parameters_t extended_scan_result;
@@ -17,23 +17,21 @@ typedef struct {
     FuriSemaphore* scan_complete;
 } WifiScan;
 
-static sl_status_t wifi_scan_show_extended_results(WifiScan* instance, FuriString* msg) {
-    furi_string_printf(msg, "%u Scan results:\r\n", *instance->extended_scan_result.result_count);
+static sl_status_t wifi_scan_show_extended_results(WifiScan* instance) {
+    printf("%u Scan results:\r\n", *instance->extended_scan_result.result_count);
 
     if(*instance->extended_scan_result.result_count) {
-        furi_string_cat_printf(msg, "\r\n   %s %24s %s", "SSID", "SECURITY", "NETWORK");
-        furi_string_cat_printf(msg, "%12s %12s %s\r\n", "BSSID", "CHANNEL", "RSSI");
+        printf("\r\n   %s %24s %s", "SSID", "SECURITY", "NETWORK");
+        printf("%12s %12s %s\r\n", "BSSID", "CHANNEL", "RSSI");
 
         for(int a = 0; a < (int)*instance->extended_scan_result.result_count; ++a) {
             uint8_t* bssid = (uint8_t*)&instance->extended_scan_result.scan_results[a].bssid;
-            furi_string_cat_printf(
-                msg,
+            printf(
                 "%-24s %4u,  %4u, ",
                 instance->extended_scan_result.scan_results[a].ssid,
                 instance->extended_scan_result.scan_results[a].security_mode,
                 instance->extended_scan_result.scan_results[a].network_type);
-            furi_string_cat_printf(
-                msg,
+            printf(
                 "  %02x:%02x:%02x:%02x:%02x:%02x, %4u,  -%u\r\n",
                 bssid[0],
                 bssid[1],
@@ -69,7 +67,7 @@ sl_status_t wifi_scan_callback_handler(
     return SL_STATUS_OK;
 }
 
-sl_status_t wifi_scan(FuriString* msg) {
+sl_status_t wifi_scan(void) {
     WifiScan* instance = (WifiScan*)malloc(sizeof(WifiScan));
     instance->scan_complete = furi_semaphore_alloc(1, 0);
     instance->extended_scan_result.scan_results = instance->extended_scan_result_info;
@@ -96,17 +94,16 @@ sl_status_t wifi_scan(FuriString* msg) {
             if(instance->callback_status == SL_STATUS_OK) {
                 status = sl_wifi_get_stored_scan_results(
                     SL_WIFI_CLIENT_2_4GHZ_INTERFACE, &instance->extended_scan_result);
-                wifi_scan_show_extended_results(instance, msg);
+                wifi_scan_show_extended_results(instance);
 
                 //Todo: if you need to add processing of scan results
-
             } else {
                 status = instance->callback_status;
-                furi_string_printf(msg, "WLAN Scan Failed, Error Code : 0x%lX\r\n", status);
+                printf("WLAN Scan Failed, Error Code : 0x%lX\r\n", status);
             }
         } else {
             status = SL_STATUS_TIMEOUT;
-            furi_string_printf(msg, "WLAN Scan Wait Failed, Error Code : 0x%lX\r\n", status);
+            printf("WLAN Scan Wait Failed, Error Code : 0x%lX\r\n", status);
         }
     }
     //Todo: delete the database of scanned points so that it does not take up space in the RAM

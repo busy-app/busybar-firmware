@@ -1,17 +1,8 @@
 App(
-    appid="crypto_test_start",
+    appid="crypto_test",
+    name="crypto_test",
     targets=["f64"],
-    apptype=FlipperAppType.STARTUP,
-    entry_point="crypto_test_system_start",
-    sources=[
-        "crypto_test.c",
-        "helpers/crypto_test_app.c",
-        "helpers/crypto_common.c",
-        "helpers/crypto_aes.c",
-        "helpers/crypto_sha.c",
-        "helpers/crypto_ecdsa.c",
-        "helpers/crypto_hmac.c",
-    ],
-    order=40,
+    apptype=FlipperAppType.CLICMD,
+    entry_point="crypto_test_command",
     stack_size=1024 * 4,
 )

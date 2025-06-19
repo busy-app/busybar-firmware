@@ -9,6 +9,7 @@
 #define BUSY_TIMER_TIME_MIN_S M_TO_S(BUSY_TIMER_TIME_MIN_MN)
 #define BUSY_TIMER_TIME_MAX_S M_TO_S(BUSY_TIMER_TIME_MAX_MN)
 
+#define TIME_DEFAULT_MN      (20)
 #define WORK_TIME_DEFAULT_MN (20)
 #define REST_TIME_DEFAULT_MN (5)
 #define CYCLE_COUNT_DEFAULT  (3)
@@ -66,6 +67,7 @@ struct BusyTimer {
     uint32_t cycles_done;
     BusyTimerConfig config;
     BusyTimerTime time;
+    BusyTimerMode mode;
     BusyTimerState state;
     bool next_state_forced;
 };

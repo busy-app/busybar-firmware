@@ -143,6 +143,7 @@ class FlipperStorage:
 
     def start(self):
         self.port.open()
+        self.read.until(self.CLI_PROMPT)
         self.port.reset_input_buffer()
         # Send a command with a known syntax to make sure the buffer is flushed
         self.send("uptime\r")

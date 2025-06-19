@@ -61,9 +61,9 @@ void flex_layout_set_spacing(FlexLayout* instance, int32_t spacing) {
     lv_obj_t* obj = (lv_obj_t*)instance;
 
     if(lv_obj_get_style_flex_flow(obj, LV_PART_MAIN) & LV_FLEX_FLOW_COLUMN) {
-        lv_obj_set_style_pad_column(obj, spacing, LV_PART_MAIN);
-    } else {
         lv_obj_set_style_pad_row(obj, spacing, LV_PART_MAIN);
+    } else {
+        lv_obj_set_style_pad_column(obj, spacing, LV_PART_MAIN);
     }
 }
 

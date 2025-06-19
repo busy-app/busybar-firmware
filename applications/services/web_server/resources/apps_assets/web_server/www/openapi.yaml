@@ -7,70 +7,6 @@ info:
     name: tbd
 
 paths:
-  /api/v0/led:
-    get:
-      tags:
-        - Hardware
-      summary: Get LED state
-      description: Retrieves the current LED state
-      operationId: getLedState
-      parameters:
-        - name: state
-          in: query
-          required: false
-          schema:
-            type: integer
-            enum: [0, 1]
-          description: LED state (0 for off, 1 for on) - alternative to JSON body
-      responses:
-        "200":
-          description: LED state retrieved successfully
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/LedStateResponse"
-        "500":
-          description: Internal server error
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/Error"
-
-    post:
-      tags:
-        - Hardware
-      summary: Set LED state
-      description: Sets the LED state via query parameter or JSON body
-      operationId: setLedState
-      parameters:
-        - name: state
-          in: query
-          required: false
-          schema:
-            type: integer
-            enum: [0, 1]
-          description: LED state (0 for off, 1 for on) - alternative to JSON body
-      requestBody:
-        required: false
-        description: LED state as JSON (alternative to query parameter)
-        content:
-          application/json:
-            schema:
-              $ref: "#/components/schemas/LedStateRequest"
-      responses:
-        "200":
-          description: LED state set successfully
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/LedStateResponse"
-        "400":
-          description: Invalid state parameter
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/Error"
-
   /api/v0/version:
     get:
       tags:
@@ -79,14 +15,64 @@ paths:
       description: Retrieves firmware version, branch, build date, and commit information
       operationId: getVersion
       responses:
-        "200":
+        '200':
           description: Version information retrieved successfully
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/VersionInfo"
-        "500":
+                $ref: '#/components/schemas/VersionInfo'
+        '500':
           description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /api/v0/update:
+    post:
+      tags:
+        - System
+      summary: Update firmware
+      description: Uploads a firmware update package (TAR file) and initiates the update process.
+      operationId: updateFirmware
+      parameters:
+        - name: name
+          in: query
+          required: false
+          schema:
+            type: string
+            pattern: '^[a-zA-Z0-9._-]+$'
+          description: Name for the update package. The update will be unpacked to /ext/update/<name>.
+          example: "firmware"
+      requestBody:
+        required: true
+        content:
+          application/octet-stream:
+            schema:
+              type: string
+              format: binary
+              description: Firmware update TAR file.
+      responses:
+        '200':
+          description: Update initiated successfully. The device will reboot.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        '400':
+          description: Invalid parameters, invalid TAR file, or update preparation failed.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '413':
+          description: Update package too large.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Internal server error during update process.
           content:
             application/json:
               schema:
@@ -186,7 +172,7 @@ paths:
           required: true
           schema:
             type: string
-            pattern: "^[a-zA-Z0-9._-/]+$"
+            pattern: "^[a-zA-Z0-9._\\-/]+$"
           description: Path for the uploaded file
           example: "/ext/test.png"
       requestBody:
@@ -230,7 +216,7 @@ paths:
           required: true
           schema:
             type: string
-            pattern: "^[a-zA-Z0-9._-/]+$"
+            pattern: "^[a-zA-Z0-9._\\-/]+$"
           description: Path to the file
           example: "/ext/test.png"
       responses:
@@ -262,7 +248,7 @@ paths:
           required: true
           schema:
             type: string
-            pattern: "^[a-zA-Z0-9._-/]+$"
+            pattern: "^[a-zA-Z0-9._\\-/]+$"
           description: Path to the file
           example: "/ext"
       responses:
@@ -292,7 +278,7 @@ paths:
           required: true
           schema:
             type: string
-            pattern: "^[a-zA-Z0-9._-/]+$"
+            pattern: "^[a-zA-Z0-9._\\-/]+$"
           description: Path of a file to remove
           example: "/ext/test.png"
       responses:
@@ -321,7 +307,7 @@ paths:
           required: true
           schema:
             type: string
-            pattern: "^[a-zA-Z0-9._-/]+$"
+            pattern: "^[a-zA-Z0-9._\\-/]+$"
           description: Path to a new directory
           example: "/ext/newdir"
       responses:
@@ -482,6 +468,140 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Error"
+
+  /api/v0/wifi/enable:
+    post:
+      tags:
+        - Wifi
+      description: Enables wifi module
+      parameters: []
+      responses:
+        '200':
+          description: Wifi enabled
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        '400':
+          description: Wifi already enabled
+          content:
+              application/json:
+                schema:
+                  $ref: '#/components/schemas/Error'
+
+  /api/v0/wifi/disable:
+    post:
+      tags:
+        - Wifi
+      description: Disables wifi module
+      parameters: []
+      responses:
+        '200':
+          description: Wifi disabled
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        '400':
+          description: Not initialized
+          content:
+              application/json:
+                schema:
+                  $ref: '#/components/schemas/Error'
+
+  /api/v0/wifi/status:
+    get:
+      tags:
+        - Wifi
+      description: Returns current wifi status
+      parameters: []
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StatusResponse'
+
+  /api/v0/wifi/connect:
+    post:
+      tags:
+        - Wifi
+      description: Attempts to connect to wifi using config
+      parameters: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ConnectRequestConfig"
+      responses:
+        '200':
+          description: Network connection established
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        '400':
+          description: Wifi already connected
+          content:
+              application/json:
+                schema:
+                  $ref: '#/components/schemas/Error'
+
+  /api/v0/wifi/disconnect:
+    post:
+      tags:
+        - Wifi
+      description: Attempts to connect to wifi using config
+      parameters: []
+      responses:
+        '200':
+          description: Network connection terminated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        '400':
+          description: Command issued in an invalid state
+          content:
+              application/json:
+                schema:
+                  $ref: '#/components/schemas/Error'
+
+  /api/v0/wifi/networks:
+    get:
+      tags:
+        - Wifi
+      description: Scans environment for available wifi networks
+      parameters: []
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/NetworkResponse"
+        '400':
+          description: Wifi already connected
+          content:
+              application/json:
+                schema:
+                  $ref: '#/components/schemas/Error'
+    
+  /api/v0/wifi/forget:
+    post:
+      tags:
+        - Wifi
+      description: Forgets saved Wifi config
+      parameters: []
+      responses:
+        '400':
+          description: Not implemented
+          content:
+              application/json:
+                schema:
+                  $ref: '#/components/schemas/Error'
 
 components:
   schemas:
@@ -738,11 +858,116 @@ components:
               pattern: "^[a-zA-Z0-9._/-]+$"
               description: Path to the image file in the app's assets
 
+    WifiSecurityMethod:
+      type: string
+      example: "WPA3"
+      enum:
+        [
+          Open,
+          WPA,
+          WPA2,
+          WEP,
+          WPA (Enterprise),
+          WPA2 (Enterprise),
+          WPA/WPA2,
+          WPA3,
+          WPA2/WPA3,
+          WPA3 (Enterprise),
+          WPA2/WPA3 (Enterprise),
+        ]
+
+    WifiIpMethod:
+      type: string
+      example: "dhcp"
+      enum: ["dhcp", "static"]
+
+    WifiIpType:
+      type: string
+      example: "ipv4"
+      enum: ["ipv4", "ipv6"]
+
+    Network:
+      type: object
+      properties:
+        ssid:
+          type: string
+          example: "42"
+        security:
+          $ref: "#/components/schemas/WifiSecurityMethod"
+        rssi:
+          type: integer
+          example: "58"
+
+    StatusResponse:
+      type: object
+      properties:
+        state:
+          type: string
+          example: enabled
+          enum:
+            - disabled
+            - enabled
+            - connected
+        ssid:
+          type: string
+          example: Your_WIFI_SSID
+        security:
+          $ref: "#/components/schemas/WifiSecurityMethod"
+        ip_config:
+          type: object
+          properties:
+            ip_method:
+              $ref: "#/components/schemas/WifiIpMethod"
+            ip_type:
+              $ref: "#/components/schemas/WifiIpType"
+            address:
+              type: string
+              example: 192.168.50.5
+
+    ConnectRequestConfig:
+      type: object
+      properties:
+        ssid:
+          type: string
+          example: Your_WIFI_SSID
+        password:
+          type: string
+          example: Your_WIFI_Pass
+        security:
+          $ref: "#/components/schemas/WifiSecurityMethod"
+        ip_config:
+          type: object
+          properties:
+            ip_method:
+              $ref: "#/components/schemas/WifiIpMethod"
+            ip_type:
+              $ref: "#/components/schemas/WifiIpType"
+            address:
+              type: string
+              example: 192.168.50.5
+            mask:
+              type: string
+              example: 255.255.255.0
+            gateway:
+              type: string
+              example: 192.168.50.1
+
+    NetworkResponse:
+      type: object
+      properties:
+        count:
+          type: integer
+          example: 1
+        networks:
+          type: array
+          items:
+            $ref: "#/components/schemas/Network"
+
 tags:
   - name: System
     description: System information and control
-  - name: Hardware
-    description: Low-level hardware control
+  - name: Wifi
+    description: Allows to operate with Wifi
   - name: Assets
     description: Asset file management and display control
   - name: WebSocket

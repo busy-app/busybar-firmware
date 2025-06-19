@@ -83,7 +83,9 @@
         "furi",
         "version",
         "toolbox_f64",
-        "firmware_applications_f64"
+        "firmware_applications_f64",
+        "containers",
+        "cli"
     ],
     "fw_modules": [
         "fw_elf",

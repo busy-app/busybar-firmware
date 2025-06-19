@@ -27,4 +27,5 @@ struct AnimImage {
     AnimImageRange current_range;
     AnimImageRange waiting_range;
     bool has_waiting_range;
+    bool is_loaded;
 };

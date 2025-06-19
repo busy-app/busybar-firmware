@@ -11,7 +11,7 @@
 
 #define SETTINGS_FILE EXT_PATH("data/settings/usb_network_settings.json")
 
-#define TAG "USBNet"
+#define TAG "UsbNetCfg"
 
 static FuriString* hostname = NULL;
 
@@ -77,9 +77,6 @@ static bool usb_settings_load(Storage* storage) {
         }
 
         char* buffer = malloc(file_size + 1);
-        if(!buffer) {
-            break;
-        }
 
         if(storage_file_read(file, buffer, file_size) != file_size) {
             break;
@@ -96,6 +93,7 @@ static bool usb_settings_load(Storage* storage) {
             usb_network_ip_from_cjson(&address.netmask, root, "netmask");
         }
         cJSON_Delete(root);
+        free(buffer);
 
     } while(false);
 

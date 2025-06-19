@@ -1,17 +1,21 @@
+#include "usb_i.h"
+#include "usb_network.h"
+#include "usb_network_settings.h"
+
 #include <furi.h>
+
+#include <tusb.h>
+
 #include <lwip/api.h>
 #include <lwip/init.h>
 #include <lwip/udp.h>
 #include <lwip/tcpip.h>
 #include <lwip/apps/mdns.h>
 #include <lwip/apps/lwiperf.h>
-#include <dhserver.h>
-#include <tusb.h>
-#include "usb_i.h"
-#include "usb_network.h"
-#include "usb_network_settings.h"
 
-#define TAG "USB NET"
+#include <dhserver.h>
+
+#define TAG "UsbNet"
 
 #define USB_NET_IPERF
 #define DHCP_ENTRIES_MAX   3
@@ -113,7 +117,16 @@ bool tud_network_recv_cb(const uint8_t* src, uint16_t size) {
         pbuf_header(p, ETH_PAD_SIZE); /* reclaim the padding word */
 #endif
 
-        usb_network->netif->input(p, usb_network->netif);
+        if(usb_network && usb_network->netif) { /* Check if netif is initialized */
+            err_t err = usb_network->netif->input(p, usb_network->netif);
+            if(err != ERR_OK) {
+                FURI_LOG_W(TAG, "netif->input failed with error: %d", err);
+                pbuf_free(p); /* Free pbuf if input failed */
+            }
+        } else {
+            FURI_LOG_E(TAG, "usb_network->netif is NULL in recv_cb");
+            pbuf_free(p); /* Free pbuf as it cannot be processed */
+        }
         tud_network_recv_renew();
     }
 

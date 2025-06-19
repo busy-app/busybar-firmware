@@ -8,6 +8,7 @@
 #define MY_ITEM_CLASS     (&menu_item_lvgl_class)
 #define MY_ICON_CLASS     (&menu_icon_lvgl_class)
 #define MY_SUBLABEL_CLASS (&menu_sublabel_lvgl_class)
+#define MY_ARROW_CLASS    (&menu_arrow_lvgl_class)
 
 #define SCROLL_ANIM_DURATION_MS (0)
 
@@ -31,6 +32,7 @@ const lv_obj_class_t menu_lvgl_class;
 const lv_obj_class_t menu_item_lvgl_class;
 const lv_obj_class_t menu_icon_lvgl_class;
 const lv_obj_class_t menu_sublabel_lvgl_class;
+const lv_obj_class_t menu_arrow_lvgl_class;
 
 // TODO: Make it a universal fix
 static void menu_scroll_event_callback(lv_event_t* event) {
@@ -135,10 +137,12 @@ static void menu_item_lvgl_constructor(const lv_obj_class_t* class_p, lv_obj_t* 
     instance->label = lv_label_create(obj);
     lv_obj_set_flex_grow(instance->label, 1);
 
-    instance->sub_label = lv_label_create(obj);
+    instance->sub_label = lv_obj_class_create_obj(MY_SUBLABEL_CLASS, obj);
+    lv_obj_class_init_obj(instance->sub_label);
+
     lv_label_set_long_mode(instance->sub_label, LV_LABEL_LONG_MODE_CLIP);
 
-    instance->arrow = lv_obj_class_create_obj(MY_SUBLABEL_CLASS, obj);
+    instance->arrow = lv_obj_class_create_obj(MY_ARROW_CLASS, obj);
     lv_obj_class_init_obj(instance->arrow);
 }
 
@@ -211,15 +215,26 @@ void menu_reset(Menu* instance) {
 
 uint32_t menu_get_selected_item_index(const Menu* instance) {
     furi_check(instance);
-    // TODO: For later
-    furi_crash("Not implemented");
+
+    uint32_t ret;
+
+    const lv_obj_t* focused = lv_group_get_focused(instance->group);
+    const uint32_t item_count = lv_group_get_obj_count(instance->group);
+
+    for(ret = 0; ret < item_count; ++ret) {
+        if(focused == lv_group_get_obj_by_index(instance->group, ret)) {
+            break;
+        }
+    }
+
+    return ret;
 }
 
 void menu_set_selected_item_index(Menu* instance, uint32_t index) {
     furi_check(instance);
-    UNUSED(index);
-    // TODO: For later
-    furi_crash("Not implemented");
+    furi_check(index < lv_group_get_obj_count(instance->group));
+
+    lv_group_focus_obj(lv_group_get_obj_by_index(instance->group, index));
 }
 
 // LVGL class descriptors
@@ -254,6 +269,13 @@ const lv_obj_class_t menu_icon_lvgl_class = {
 const lv_obj_class_t menu_sublabel_lvgl_class = {
     .base_class = &lv_label_class,
     .name = "menu-sublabel",
+    .width_def = LV_SIZE_CONTENT,
+    .height_def = LV_SIZE_CONTENT,
+};
+
+const lv_obj_class_t menu_arrow_lvgl_class = {
+    .base_class = &lv_label_class,
+    .name = "menu-arrow",
     .width_def = LV_SIZE_CONTENT,
     .height_def = LV_SIZE_CONTENT,
 };
