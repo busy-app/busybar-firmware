@@ -77,8 +77,8 @@ static inline void api_streaming_update_mode(ApiStreamingCtx* instance) {
     if(instance->front_clients_count > 0 && instance->back_clients_count > 0)
         instance->mode = ApiStreamingModeDualScreen;
     else {
-        instance->display_id = (instance->front_clients_count > 0) ? GuiDisplayIdFront :
-                                                                     GuiDisplayIdBack;
+        // instance->display_id = (instance->front_clients_count > 0) ? GuiDisplayIdFront :
+        //                                                              GuiDisplayIdBack;
         instance->mode = ApiStreamingModeSingleScreen;
     }
 }
@@ -196,12 +196,7 @@ static void websocket_test_on_close(struct mg_connection* conn) {
     WsClientsList_it_t it;
     WsClientCtx* client = api_streaming_get_client_by_id(instance, conn->id, it);
     if(client) {
-        FURI_LOG_I(
-            TAG,
-            "Remove [%s] client: %ld",
-            client->display_id == GuiDisplayIdFront ? "FRONT" : "BACK",
-            client->conn->id);
-
+        FURI_LOG_I(TAG, "Remove client: %ld", client->conn->id);
         WsClientsList_remove(instance->clients, it);
         api_streaming_client_counter_decrement(instance, client->display_id);
         api_streaming_update_mode(instance);
@@ -210,7 +205,6 @@ static void websocket_test_on_close(struct mg_connection* conn) {
 
     if(WsClientsList_empty_p(instance->clients)) {
         FURI_LOG_I(TAG, "stop thread");
-        // furi_check(furi_timer_stop(instance->timer) == FuriStatusOk);
         instance->stop = true;
         furi_thread_join(instance->thread);
 
@@ -264,6 +258,8 @@ static void websocket_test_on_message(struct mg_connection* conn, struct mg_ws_m
     ApiStreamingCtx* instance = conn_ctx->context;
     WsClientCtx* const client = api_streaming_get_client_by_id(instance, conn->id, NULL);
 
+    ///TODO: make some MACRO to check FLAGS
+    ///TODO: squash PING and PONG ifs to a single one
     if((ws_msg->flags & WEBSOCKET_OP_PING) == WEBSOCKET_OP_PING) {
         FURI_LOG_I(TAG, "PING");
         api_streaming_client_set_state(client, WsClientStateActive);
