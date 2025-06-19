@@ -8,7 +8,7 @@
 #define CLIENT_HEARTBEAT_PERIOD_MS (10000)
 
 typedef enum {
-    WsClientStateStopped,
+    WsClientStateIdle,
     WsClientStateActive,
     WsClientStateRequestingPing,
     WsClientStateWaitingPong,
@@ -89,6 +89,10 @@ static inline void
         instance->front_clients_count++;
     else if(display_id == GuiDisplayIdBack)
         instance->back_clients_count++;
+
+    furi_assert(
+        instance->front_clients_count + instance->back_clients_count ==
+        WsClientsList_size(instance->clients));
 }
 
 static inline void
@@ -97,6 +101,25 @@ static inline void
         instance->front_clients_count--;
     else if(display_id == GuiDisplayIdBack)
         instance->back_clients_count--;
+
+    furi_assert(
+        instance->front_clients_count + instance->back_clients_count ==
+        WsClientsList_size(instance->clients));
+}
+
+static inline void
+    api_streaming_client_counter_move(ApiStreamingCtx* instance, GuiDisplayId display_id) {
+    if(display_id == GuiDisplayIdFront) {
+        instance->front_clients_count++;
+        instance->back_clients_count--;
+    } else if(display_id == GuiDisplayIdBack) {
+        instance->back_clients_count++;
+        instance->front_clients_count--;
+    }
+
+    furi_assert(
+        instance->front_clients_count + instance->back_clients_count ==
+        WsClientsList_size(instance->clients));
 }
 
 static inline void api_streaming_client_set_state(WsClientCtx* client, WsClientState new_state) {
@@ -125,7 +148,7 @@ static WsClientCtx* api_streaming_client_alloc(struct mg_connection* conn) {
     WsClientCtx* client = malloc(sizeof(WsClientCtx));
     client->conn = conn;
     client->display_id = GuiDisplayIdMax;
-    client->state = WsClientStateStopped;
+    client->state = WsClientStateIdle;
     client->context = conn->data; //context;
     client->heartbeat_timer = furi_timer_alloc(
         api_streaming_client_heartbeat_timer_callback, FuriTimerTypePeriodic, client);
@@ -247,23 +270,35 @@ static void websocket_test_on_message(struct mg_connection* conn, struct mg_ws_m
         furi_timer_restart(client->heartbeat_timer, CLIENT_HEARTBEAT_PERIOD_MS);
     } else if((ws_msg->flags & WEBSOCKET_OP_TEXT) == WEBSOCKET_OP_TEXT) {
         FURI_LOG_I(TAG, "MSG");
-        GuiDisplayId display_id = mg_json_get_long(ws_msg->data, "$.display", GuiDisplayIdMax);
-        if(display_id < GuiDisplayIdMax) {
-            const char* m = "Start streaming...";
-            FURI_LOG_I(TAG, m);
+        const char* resp;
+        do {
+            GuiDisplayId display_id = mg_json_get_long(ws_msg->data, "$.display", GuiDisplayIdMax);
+            if(display_id >= GuiDisplayIdMax) {
+                resp = "Wrong display value";
+                break;
+            }
+
+            if(client->state == WsClientStateActive && client->display_id == display_id) {
+                resp = "Same screen ignore";
+                break;
+            }
+
+            if(client->state == WsClientStateActive && client->display_id != display_id) {
+                api_streaming_client_counter_move(instance, display_id);
+                resp = "Change screen";
+            } else if(client->state == WsClientStateIdle) {
+                api_streaming_client_counter_increment(instance, display_id);
+                resp = "Start streaming...";
+            } else {
+                resp = "Unknown client state";
+                break;
+            }
 
             client->display_id = display_id;
-
-            api_streaming_client_counter_increment(instance, display_id);
             api_streaming_update_mode(instance);
-
             api_streaming_client_set_state(client, WsClientStateActive);
-            mg_ws_send(conn, m, strlen(m), WEBSOCKET_OP_TEXT);
-        } else {
-            const char* m = "Invalid screen skip";
-            FURI_LOG_W(TAG, m);
-            mg_ws_send(conn, m, strlen(m), WEBSOCKET_OP_TEXT);
-        }
+        } while(false);
+        mg_ws_send(conn, resp, strlen(resp), WEBSOCKET_OP_TEXT);
     }
 }
 
