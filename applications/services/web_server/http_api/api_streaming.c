@@ -34,15 +34,6 @@ typedef struct {
     void* context;
 } WsClientCtx;
 
-// typedef struct {
-//     GuiDisplayId display_id;
-//     uint8_t width;
-//     uint8_t height;
-
-//     uint8_t bytes_per_pixel;
-//     size_t buffer_size;
-// } GuiFrameInfo;
-
 LIST_DEF(WsClientsList, WsClientCtx*, M_POD_OPLIST);
 
 typedef enum {
@@ -88,8 +79,6 @@ static inline void api_streaming_update_mode(ApiStreamingCtx* instance) {
     if(instance->front_clients_count > 0 && instance->back_clients_count > 0)
         instance->mode = ApiStreamingModeDualScreen;
     else {
-        // instance->display_id = (instance->front_clients_count > 0) ? GuiDisplayIdFront :
-        //                                                              GuiDisplayIdBack;
         instance->mode = ApiStreamingModeSingleScreen;
     }
 }
@@ -396,6 +385,7 @@ static int32_t streaming_frame_update_callback(void* context) {
                 mg_wakeup(mgr, client->conn->id, NULL, 0);
         }
 
+        ///TODO: Make this a define
         furi_delay_ms(200);
         api_streaming_update_display_id(instance);
     }
@@ -403,22 +393,24 @@ static int32_t streaming_frame_update_callback(void* context) {
 }
 
 void* http_api_streaming_ws_alloc(void) {
-    ApiStreamingCtx* context = malloc(sizeof(ApiStreamingCtx));
-    WsClientsList_init(context->clients);
+    ApiStreamingCtx* instance = malloc(sizeof(ApiStreamingCtx));
+    WsClientsList_init(instance->clients);
 
-    context->thread =
-        furi_thread_alloc_ex("WsFrameUpd", 1024U, streaming_frame_update_callback, context);
-    context->mutex = furi_mutex_alloc(FuriMutexTypeNormal);
+    ///TODO: Reduce amount of stack per this task
+    instance->thread =
+        furi_thread_alloc_ex("WsFrameUpd", 1024U, streaming_frame_update_callback, instance);
+    instance->mutex = furi_mutex_alloc(FuriMutexTypeNormal);
 
-    return context;
+    return instance;
 }
 
 void http_api_streaming_ws_free(void* ctx) {
     furi_assert(ctx);
-    ApiStreamingCtx* context = ctx;
-    WsClientsList_clear(context->clients);
-    furi_thread_free(context->thread);
-    free(context);
+    ApiStreamingCtx* instance = ctx;
+    WsClientsList_clear(instance->clients);
+    furi_thread_free(instance->thread);
+    furi_mutex_free(instance->mutex);
+    free(instance);
 }
 
 bool http_api_streaming_single_frame_callback(
