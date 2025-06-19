@@ -80,18 +80,21 @@ static void api_streaming_ws_client_set_state(WsClientCtx* client, WsClientState
 }
 
 // Async send from another thread
-void websocket_test_async_tmr_cb(void* ctx) {
+void api_streaming_client_heartbeat_timer_callback(void* ctx) {
     FURI_LOG_I(TAG, "Heartbeat timer");
 
     WsClientCtx* client = ctx;
 
-    struct mg_mgr* mgr = web_srv_get_mgr();
-
+    WsClientState new_state = WsClientStateInvalid;
     if(client->state != WsClientStateWaitingPong && client->state != WsClientStateInvalid) {
-        // client->state = WsClientStateRequestingPing;
-        api_streaming_ws_client_set_state(client, WsClientStateRequestingPing);
-        mg_wakeup(mgr, client->conn->id, NULL, 0);
+        new_state = WsClientStateRequestingPing;
     } else if(client->state == WsClientStateWaitingPong) {
+        new_state = WsClientStateInvalid;
+    }
+
+    api_streaming_client_set_state(client, new_state);
+    mg_wakeup(web_srv_get_mgr(), client->conn->id, NULL, 0);
+}
 
 static WsClientCtx* api_streaming_client_alloc(struct mg_connection* conn) {
     WsClientCtx* client = malloc(sizeof(WsClientCtx));
