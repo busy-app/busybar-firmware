@@ -337,6 +337,23 @@ bool http_api_streaming_ws_callback(
     return success;
 }
 
+static void api_streaming_update_display_id(ApiStreamingCtx* instance) {
+    do {
+        if(furi_mutex_acquire(instance->mutex, 100) != FuriStatusOk) {
+            FURI_LOG_W(TAG, "Unable to lock display_id");
+            break;
+        }
+
+        if(instance->mode == ApiStreamingModeDualScreen) {
+            instance->display_id ^= 1;
+        } else if(instance->mode == ApiStreamingModeSingleScreen) {
+            instance->display_id = (instance->front_clients_count > 0) ? GuiDisplayIdFront :
+                                                                         GuiDisplayIdBack;
+        }
+        furi_mutex_release(instance->mutex);
+    } while(false);
+}
+
 static int32_t streaming_frame_update_callback(void* context) {
     ApiStreamingCtx* instance = context;
 
@@ -355,7 +372,6 @@ static int32_t streaming_frame_update_callback(void* context) {
         instance->frame_size =
             rle_compress(frame, frame_size, instance->buffer, BUFFER_SIZE, blk_size);
 
-        // FURI_LOG_I(TAG, "Size: %d", instance->frame_size);
         gui_unlock(instance->gui);
         furi_mutex_release(instance->mutex);
 
@@ -370,7 +386,7 @@ static int32_t streaming_frame_update_callback(void* context) {
         }
 
         furi_delay_ms(200);
-        if(instance->mode == ApiStreamingModeDualScreen) instance->display_id ^= 1;
+        api_streaming_update_display_id(instance);
     }
     return 0;
 }
