@@ -117,13 +117,14 @@ static bool sockets_test_app_init_tcp_client(SocketsTestApp* instance) {
             break;
         }
 
-        FURI_LOG_I(TAG, "Client socket allocated successfully!");
-
         const SocketConnectionInfo connection_info = {
             .port = CONNECT_PORT,
             .ip_type = SocketIpTypeV4,
             .address.v4 = {SOCKETS_TEST_ADDRESS},
         };
+
+        sockets_test_app_print_connection_info(
+            "Client socket allocated successfully, connecting to", &connection_info);
 
         if(socket_connect(socket, &connection_info) != SocketStatusOk) {
             FURI_LOG_E(TAG, "Connection failed");
