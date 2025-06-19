@@ -39,9 +39,12 @@ typedef struct {
 typedef enum {
     CliSocketClientEventTcpTxDone = (1 << 0),
     CliSocketClientEventDisconnected = (1 << 1),
+    CliSocketClientEventShellExit = (1 << 2),
 } CliSocketClientEvent;
 
-#define CliSocketClientEventAll (CliSocketClientEventTcpTxDone | CliSocketClientEventDisconnected)
+#define CliSocketClientEventAll                                         \
+    (CliSocketClientEventTcpTxDone | CliSocketClientEventDisconnected | \
+     CliSocketClientEventShellExit)
 
 // ============
 // Data copying
@@ -49,6 +52,21 @@ typedef enum {
 
 static void cli_socket_client_try_copy_sh2cl(CliSocketClient* client) {
     LOCK_TCPIP_CORE();
+
+    if(!client->socket || client->socket->state != ESTABLISHED) {
+        if(client->socket) {
+            FURI_LOG_E(
+                TAG,
+                "%s:%d not established: %d",
+                ipaddr_ntoa(&client->socket->remote_ip),
+                client->socket->remote_port,
+                client->socket->state);
+        } else {
+            FURI_LOG_E(TAG, "Socket is null, not copying sh->cl");
+        }
+        UNLOCK_TCPIP_CORE();
+        return;
+    }
 
     size_t available_in_tcp_buf = tcp_sndbuf(client->socket);
     size_t available_in_pipe = pipe_bytes_available(client->own_pipe);
@@ -132,6 +150,22 @@ static void cli_socket_client_set_flag(CliSocketClient* client, CliSocketClientE
     furi_check(!(ret & FuriFlagError));
 }
 
+static void cli_socket_client_tcp_err(void* context, err_t err) {
+    CliSocketClient* client = context;
+    UNUSED(err);
+    CLI_SOCKET_TRACE(TAG, "evt: tcp err %d", err);
+    // pcb is already freed by lwip, so we must not use it
+    client->socket = NULL;
+    cli_socket_client_set_flag(client, CliSocketClientEventDisconnected);
+}
+
+static void cli_socket_client_shell_exit_callback(PipeSide* pipe, void* context) {
+    UNUSED(pipe);
+    CliSocketClient* client = context;
+    CLI_SOCKET_TRACE(TAG, "evt: shell exit");
+    cli_socket_client_set_flag(client, CliSocketClientEventShellExit);
+}
+
 static err_t cli_socket_client_tcp_tx_done(void* context, struct tcp_pcb* socket, uint16_t len) {
     UNUSED(socket);
     UNUSED(len);
@@ -155,7 +189,8 @@ static err_t cli_socket_data_from_client(
         CLI_SOCKET_TRACE(TAG, "evt: " DIR_CL_SH);
         cli_socket_client_try_copy_cl2sh(client, data);
     } else {
-        CLI_SOCKET_TRACE(TAG, "evt: disconnect");
+        // Connection closed by client
+        CLI_SOCKET_TRACE(TAG, "evt: client disconnected");
         cli_socket_client_set_flag(client, CliSocketClientEventDisconnected);
     }
 
@@ -177,7 +212,8 @@ static void cli_socket_client_event(FuriEventLoopObject* object, void* context) 
         furi_semaphore_acquire(client->tx_semaphore, 0);
     }
 
-    if(flags & CliSocketClientEventDisconnected) {
+    if((flags & CliSocketClientEventDisconnected) || (flags & CliSocketClientEventShellExit)) {
+        pipe_set_data_arrived_callback(client->own_pipe, NULL, 0);
         furi_event_loop_stop(client->event_loop);
     }
 }
@@ -207,9 +243,11 @@ static void cli_socket_client_thread_init(CliSocketClient* client) {
     pipe_attach_to_event_loop(client->own_pipe, client->event_loop);
     pipe_set_callback_context(client->own_pipe, client);
     pipe_set_data_arrived_callback(client->own_pipe, cli_socket_client_data_from_shell, 0);
+    pipe_set_broken_callback(client->own_pipe, cli_socket_client_shell_exit_callback, 0);
 
     LOCK_TCPIP_CORE();
     tcp_arg(client->socket, client);
+    tcp_err(client->socket, cli_socket_client_tcp_err);
     tcp_sent(client->socket, cli_socket_client_tcp_tx_done);
     tcp_recv(client->socket, cli_socket_data_from_client);
     UNLOCK_TCPIP_CORE();
@@ -218,22 +256,35 @@ static void cli_socket_client_thread_init(CliSocketClient* client) {
 
     client->shell =
         cli_shell_alloc(cli_main_motd, NULL, client->shell_pipe, client->main_registry, NULL);
+    cli_shell_free_pipe_on_exit(client->shell);
     cli_shell_start(client->shell);
 }
 
 static void cli_socket_client_thread_deinit(CliSocketClient* client) {
     LOCK_TCPIP_CORE();
-    tcp_recv(client->socket, NULL);
-    tcp_sent(client->socket, NULL);
+    if(client->socket) {
+        tcp_arg(client->socket, NULL);
+        tcp_sent(client->socket, NULL);
+        tcp_recv(client->socket, NULL);
+        tcp_err(client->socket, NULL);
+        err_t err = tcp_close(client->socket);
+        if(err != ERR_OK) {
+            FURI_LOG_W(TAG, "tcp_close failed with err %d, aborting", err);
+            tcp_abort(client->socket);
+        }
+        client->socket = NULL;
+    }
     UNLOCK_TCPIP_CORE();
 
+    pipe_set_data_arrived_callback(client->own_pipe, NULL, 0);
+    pipe_set_broken_callback(client->own_pipe, NULL, 0);
     pipe_detach_from_event_loop(client->own_pipe);
     pipe_free(client->own_pipe);
-    furi_semaphore_free(client->tx_semaphore);
 
     cli_shell_join(client->shell);
     cli_shell_free(client->shell);
-    pipe_free(client->shell_pipe);
+
+    furi_semaphore_free(client->tx_semaphore);
 
     furi_record_close(RECORD_CLI);
 
@@ -241,22 +292,28 @@ static void cli_socket_client_thread_deinit(CliSocketClient* client) {
     furi_event_flag_free(client->event_flag);
 
     furi_event_loop_free(client->event_loop);
-
-    LOCK_TCPIP_CORE();
-    err_t close_err = tcp_close(client->socket);
-    UNLOCK_TCPIP_CORE();
-    furi_check(close_err == ERR_OK);
 }
 
 static int32_t cli_socket_client_thread(void* context) {
     CliSocketClient* client = context;
+    furi_check(client && client->socket);
 
     cli_socket_client_thread_init(client);
-    FURI_LOG_I(TAG, "Started");
+    FURI_LOG_D(
+        TAG,
+        "Started for %s:%d",
+        ipaddr_ntoa(&client->socket->remote_ip),
+        client->socket->remote_port);
+
+    CLI_SOCKET_TRACE(TAG, "Socket state: %d", client->socket->state)
 
     furi_event_loop_run(client->event_loop);
 
-    FURI_LOG_I(TAG, "Stopped");
+    FURI_LOG_D(
+        TAG,
+        "Stopped for %s:%d",
+        client->socket ? ipaddr_ntoa(&client->socket->remote_ip) : "NULL",
+        client->socket ? client->socket->remote_port : 0);
     cli_socket_client_thread_deinit(client);
 
     return 0;

@@ -2,7 +2,7 @@
 #include <wifi/wifi.h>
 #include <cjson/cJSON.h>
 
-#define TAG "HTTP WiFi"
+#define TAG "HttpWiFi"
 
 #define WIFI_SCAN_RESULT_COUNT 20U
 
