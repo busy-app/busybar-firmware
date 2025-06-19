@@ -56,17 +56,19 @@ typedef struct {
     uint8_t* buffer;
 } ApiStreamingCtx;
 
-static WsClientCtx*
-    api_streaming_get_ws_client(ApiStreamingCtx* instance, const unsigned long client_id) {
+static WsClientCtx* api_streaming_get_client_by_id(
+    ApiStreamingCtx* instance,
+    const unsigned long client_id,
+    WsClientsList_it_t out_iterator) {
     WsClientsList_it_t it;
     WsClientCtx* client = NULL;
     for(WsClientsList_it(it, instance->clients); !WsClientsList_end_p(it);
         WsClientsList_next(it)) {
         WsClientCtx* const* it_ptr = WsClientsList_cref(it);
         client = *it_ptr;
-        if(client->conn->id == client_id) {
-            break;
-        }
+        if(client->conn->id != client_id) continue;
+        if(out_iterator) WsClientsList_it_set(out_iterator, it);
+        break;
     }
     return client;
 }
@@ -188,7 +190,7 @@ static void api_streaming_send_frame(struct mg_connection* conn, void* data, siz
     ConnectionContext* conn_ctx = (void*)conn->data;
     ApiStreamingCtx* context = conn_ctx->context;
 
-    WsClientCtx* client = api_streaming_get_ws_client(context, conn->id);
+    WsClientCtx* client = api_streaming_get_client_by_id(context, conn->id, NULL);
     if(client->state == WsClientStateActive) {
         // const size_t size = gui_display_get_frame_buffer_size(context->gui, context->display_id);
         if(furi_mutex_acquire(context->mutex, 10) != FuriStatusOk) {
@@ -213,7 +215,7 @@ static void websocket_test_on_message(struct mg_connection* conn, struct mg_ws_m
 
     ConnectionContext* conn_ctx = (void*)conn->data;
     ApiStreamingCtx* instance = conn_ctx->context;
-    WsClientCtx* const client = api_streaming_get_ws_client(instance, conn->id);
+    WsClientCtx* const client = api_streaming_get_client_by_id(instance, conn->id, NULL);
 
     if((ws_msg->flags & WEBSOCKET_OP_PING) == WEBSOCKET_OP_PING) {
         FURI_LOG_I(TAG, "PING");
