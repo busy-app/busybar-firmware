@@ -34,7 +34,7 @@ const sl_wifi_device_configuration_t wifi_config_client = {
             .custom_feature_bit_map =
                 (SL_SI91X_CUSTOM_FEAT_EXTENTION_VALID | SL_SI91X_CUSTOM_FEAT_SOC_CLK_CONFIG_120MHZ),
             .ext_custom_feature_bit_map =
-                (SL_SI91X_EXT_FEAT_XTAL_CLK | MEMORY_CONFIG
+                (SL_SI91X_EXT_FEAT_XTAL_CLK | SL_SI91X_EXT_FEAT_IEEE_80211W | MEMORY_CONFIG
 #ifdef SLI_SI917
                  | SL_SI91X_EXT_FEAT_FRONT_END_SWITCH_PINS_ULP_GPIO_4_5_0
 #endif
