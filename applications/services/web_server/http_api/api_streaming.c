@@ -236,14 +236,18 @@ static void api_streaming_send_frame(struct mg_connection* conn, void* data, siz
     WsClientCtx* client = api_streaming_get_client_by_id(instance, conn->id, NULL);
     if(client->state == WsClientStateActive) {
         ///TODO: simplify this
-        if(client->display_id !=)
-            if(furi_mutex_acquire(instance->mutex, 10) != FuriStatusOk) {
-                FURI_LOG_W(TAG, "Unable to lock frame");
+        if(client->display_id != instance->display_id) {
+            FURI_LOG_W(TAG, "Display mismatch");
+            return;
+        }
 
-            } else {
-                mg_ws_send(conn, instance->buffer, instance->frame_size, WEBSOCKET_OP_BINARY);
-                furi_mutex_release(instance->mutex);
-            }
+        if(furi_mutex_acquire(instance->mutex, 10) != FuriStatusOk) {
+            FURI_LOG_W(TAG, "Unable to lock frame");
+
+        } else {
+            mg_ws_send(conn, instance->buffer, instance->frame_size, WEBSOCKET_OP_BINARY);
+            furi_mutex_release(instance->mutex);
+        }
     } else if(client->state == WsClientStateRequestingPing) {
         FURI_LOG_I(TAG, "Requesting ping");
         api_streaming_client_set_state(client, WsClientStateWaitingPong);
