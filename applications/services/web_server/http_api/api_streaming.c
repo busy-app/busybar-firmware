@@ -92,10 +92,22 @@ void websocket_test_async_tmr_cb(void* ctx) {
         api_streaming_ws_client_set_state(client, WsClientStateRequestingPing);
         mg_wakeup(mgr, client->conn->id, NULL, 0);
     } else if(client->state == WsClientStateWaitingPong) {
-        //client->state = WsClientStateInvalid;
-        api_streaming_ws_client_set_state(client, WsClientStateInvalid);
-        mg_wakeup(mgr, client->conn->id, NULL, 0);
-    }
+
+static WsClientCtx* api_streaming_client_alloc(struct mg_connection* conn) {
+    WsClientCtx* client = malloc(sizeof(WsClientCtx));
+    client->conn = conn;
+    client->display_id = GuiDisplayIdMax;
+    client->state = WsClientStateStopped;
+    client->context = conn->data; //context;
+    client->heartbeat_timer = furi_timer_alloc(
+        api_streaming_client_heartbeat_timer_callback, FuriTimerTypePeriodic, client);
+    return client;
+}
+
+static inline void api_streaming_client_free(WsClientCtx* client) {
+    furi_timer_stop(client->heartbeat_timer);
+    furi_timer_free(client->heartbeat_timer);
+    free(client);
 }
 
 static void websocket_test_on_open(struct mg_connection* conn) {
