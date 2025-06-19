@@ -2,7 +2,18 @@
 #include <gui/gui.h>
 #include <toolbox/rle_encode.h>
 
-#define TAG                        "Stream"
+#define TAG "Stream"
+
+#define STREAM_DEBUG
+
+#ifdef STREAM_DEBUG
+#define STREAM_LOG_D(...) FURI_LOG_D(TAG, __VA_ARGS__)
+#define STREAM_LOG_W(...) FURI_LOG_W(TAG, __VA_ARGS__)
+#else
+#define STREAM_LOG_D(...)
+#define STREAM_LOG_W(...)
+#endif
+
 #define BUFFER_SIZE                (1024U * 14)
 #define MAX_CLIENTS_COUNT          (4)
 #define CLIENT_HEARTBEAT_PERIOD_MS (10000)
@@ -123,13 +134,13 @@ static inline void
 }
 
 static inline void api_streaming_client_set_state(WsClientCtx* client, WsClientState new_state) {
-    FURI_LOG_I(TAG, "Client state %d -> %d", client->state, new_state);
+    STREAM_LOG_D("Client state %d -> %d", client->state, new_state);
     client->state = new_state;
 }
 
 // Async send from another thread
 void api_streaming_client_heartbeat_timer_callback(void* ctx) {
-    FURI_LOG_I(TAG, "Heartbeat timer");
+    STREAM_LOG_D("Heartbeat timer");
 
     WsClientCtx* client = ctx;
 
@@ -170,7 +181,7 @@ static void websocket_test_on_open(struct mg_connection* conn) {
     WsClientCtx* ws_client = api_streaming_client_alloc(conn);
 
     if(WsClientsList_empty_p(instance->clients)) {
-        FURI_LOG_I(TAG, "Start Thread");
+        STREAM_LOG_D("Start Thread");
         instance->gui = furi_record_open(RECORD_GUI);
 
         const size_t size = BUFFER_SIZE;
@@ -183,7 +194,7 @@ static void websocket_test_on_open(struct mg_connection* conn) {
     WsClientsList_push_back(instance->clients, ws_client);
     furi_timer_start(ws_client->heartbeat_timer, CLIENT_HEARTBEAT_PERIOD_MS);
 
-    FURI_LOG_I(TAG, "Add client");
+    STREAM_LOG_D("Add client");
 }
 
 static void websocket_test_on_close(struct mg_connection* conn) {
@@ -196,7 +207,7 @@ static void websocket_test_on_close(struct mg_connection* conn) {
     WsClientsList_it_t it;
     WsClientCtx* client = api_streaming_get_client_by_id(instance, conn->id, it);
     if(client) {
-        FURI_LOG_I(TAG, "Remove client: %ld", client->conn->id);
+        STREAM_LOG_D("Remove client: %ld", client->conn->id);
         WsClientsList_remove(instance->clients, it);
         api_streaming_client_counter_decrement(instance, client->display_id);
         api_streaming_update_mode(instance);
@@ -204,7 +215,7 @@ static void websocket_test_on_close(struct mg_connection* conn) {
     }
 
     if(WsClientsList_empty_p(instance->clients)) {
-        FURI_LOG_I(TAG, "stop thread");
+        STREAM_LOG_D("stop thread");
         instance->stop = true;
         furi_thread_join(instance->thread);
 
@@ -218,7 +229,7 @@ static void websocket_test_on_close(struct mg_connection* conn) {
     conn_ctx->on_close = NULL;
     conn_ctx->on_wakeup = NULL;
 
-    FURI_LOG_I(TAG, "Close");
+    STREAM_LOG_D("Close");
 }
 
 static void api_streaming_send_frame(struct mg_connection* conn, void* data, size_t len) {
@@ -229,21 +240,21 @@ static void api_streaming_send_frame(struct mg_connection* conn, void* data, siz
 
     WsClientCtx* client = api_streaming_get_client_by_id(instance, conn->id, NULL);
     if(client->state == WsClientStateActive) {
-        ///TODO: simplify this
-        if(client->display_id != instance->display_id) {
-            FURI_LOG_W(TAG, "Display mismatch");
-            return;
-        }
+        do {
+            if(client->display_id != instance->display_id) {
+                STREAM_LOG_W("Display mismatch");
+                break;
+            }
 
-        if(furi_mutex_acquire(instance->mutex, 10) != FuriStatusOk) {
-            FURI_LOG_W(TAG, "Unable to lock frame");
-
-        } else {
+            if(furi_mutex_acquire(instance->mutex, 10) != FuriStatusOk) {
+                STREAM_LOG_W("Unable to lock frame");
+                break;
+            }
             mg_ws_send(conn, instance->buffer, instance->frame_size, WEBSOCKET_OP_BINARY);
             furi_mutex_release(instance->mutex);
-        }
+        } while(false);
     } else if(client->state == WsClientStateRequestingPing) {
-        FURI_LOG_I(TAG, "Requesting ping");
+        STREAM_LOG_D("Requesting ping");
         api_streaming_client_set_state(client, WsClientStateWaitingPong);
         mg_ws_send(conn, data, len, WEBSOCKET_OP_PING);
     } else if(client->state == WsClientStateInvalid) {
@@ -261,15 +272,15 @@ static void websocket_test_on_message(struct mg_connection* conn, struct mg_ws_m
     ///TODO: make some MACRO to check FLAGS
     ///TODO: squash PING and PONG ifs to a single one
     if((ws_msg->flags & WEBSOCKET_OP_PING) == WEBSOCKET_OP_PING) {
-        FURI_LOG_I(TAG, "PING");
+        STREAM_LOG_D("PING");
         api_streaming_client_set_state(client, WsClientStateActive);
         furi_timer_restart(client->heartbeat_timer, CLIENT_HEARTBEAT_PERIOD_MS);
     } else if((ws_msg->flags & WEBSOCKET_OP_PONG) == WEBSOCKET_OP_PONG) {
-        FURI_LOG_I(TAG, "PONG");
+        STREAM_LOG_D("PONG");
         api_streaming_client_set_state(client, WsClientStateActive);
         furi_timer_restart(client->heartbeat_timer, CLIENT_HEARTBEAT_PERIOD_MS);
     } else if((ws_msg->flags & WEBSOCKET_OP_TEXT) == WEBSOCKET_OP_TEXT) {
-        FURI_LOG_I(TAG, "MSG");
+        STREAM_LOG_D("MSG");
         const char* resp;
         do {
             GuiDisplayId display_id = mg_json_get_long(ws_msg->data, "$.display", GuiDisplayIdMax);
@@ -340,7 +351,7 @@ bool http_api_streaming_ws_callback(
 static void api_streaming_update_display_id(ApiStreamingCtx* instance) {
     do {
         if(furi_mutex_acquire(instance->mutex, 100) != FuriStatusOk) {
-            FURI_LOG_W(TAG, "Unable to lock display_id");
+            STREAM_LOG_W("Unable to lock display_id");
             break;
         }
 
@@ -359,7 +370,7 @@ static int32_t streaming_frame_update_callback(void* context) {
 
     while(!instance->stop) {
         if(furi_mutex_acquire(instance->mutex, 10) != FuriStatusOk) {
-            FURI_LOG_W(TAG, "Unable to lock in thread");
+            STREAM_LOG_W("Unable to lock in thread");
             continue;
         }
 
