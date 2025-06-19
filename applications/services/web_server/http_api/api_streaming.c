@@ -73,8 +73,32 @@ static WsClientCtx* api_streaming_get_client_by_id(
     return client;
 }
 
-static void api_streaming_ws_client_set_state(WsClientCtx* client, WsClientState new_state) {
-    furi_assert(client);
+static inline void api_streaming_update_mode(ApiStreamingCtx* instance) {
+    if(instance->front_clients_count > 0 && instance->back_clients_count > 0)
+        instance->mode = ApiStreamingModeDualScreen;
+    else {
+        instance->display_id = (instance->front_clients_count > 0) ? GuiDisplayIdFront :
+                                                                     GuiDisplayIdBack;
+        instance->mode = ApiStreamingModeSingleScreen;
+    }
+}
+
+static inline void
+    api_streaming_client_counter_increment(ApiStreamingCtx* instance, GuiDisplayId display_id) {
+    if(display_id == GuiDisplayIdFront)
+        instance->front_clients_count++;
+    else if(display_id == GuiDisplayIdBack)
+        instance->back_clients_count++;
+}
+
+static inline void
+    api_streaming_client_counter_decrement(ApiStreamingCtx* instance, GuiDisplayId display_id) {
+    if(display_id == GuiDisplayIdFront)
+        instance->front_clients_count--;
+    else if(display_id == GuiDisplayIdBack)
+        instance->back_clients_count--;
+}
+
     FURI_LOG_I(TAG, "Client state %d -> %d", client->state, new_state);
     client->state = new_state;
 }
