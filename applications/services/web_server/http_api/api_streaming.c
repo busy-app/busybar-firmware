@@ -1,5 +1,6 @@
 #include "http_api.h"
 #include <gui/gui.h>
+#include <front_display/front_display.h>
 #include <toolbox/rle_encode.h>
 
 #define TAG "Stream"
@@ -12,9 +13,12 @@
 #define STREAM_LOG_W(...)
 #endif
 
-#define MAX_CLIENTS_COUNT          (4)
-#define FRAME_BUFFER_SIZE          (1024U * 14)
-#define FRAME_THREAD_PERIOD_MS     (200)
+#define MAX_CLIENTS_COUNT (4)
+
+#define RAW_BUFFER_SIZE        (6400U)
+#define COMPRESSED_BUFFER_SIZE (RAW_BUFFER_SIZE + 600U)
+
+#define FRAME_THREAD_PERIOD_MS     (100)
 #define CLIENT_HEARTBEAT_PERIOD_MS (10000)
 
 #define WEBSOCKET_FLAG_TEST(flags, test) ((flags & test) == test)
@@ -58,15 +62,17 @@ typedef struct {
     Gui* gui;
     GuiDisplayId display_id;
     size_t frame_size;
-    uint8_t* buffer;
+    uint8_t* compressed_buffer;
+    uint8_t* raw_buffer;
 } ApiStreamingCtx;
 
 static void api_streaming_frame_update_thread_start(ApiStreamingCtx* instance) {
     STREAM_LOG_D("Start thread");
     instance->gui = furi_record_open(RECORD_GUI);
 
-    const size_t size = FRAME_BUFFER_SIZE;
-    instance->buffer = malloc(size);
+    // const size_t size = FRAME_BUFFER_SIZE;
+    instance->raw_buffer = malloc(RAW_BUFFER_SIZE);
+    instance->compressed_buffer = malloc(COMPRESSED_BUFFER_SIZE);
     instance->stop = false;
     furi_thread_start(instance->thread);
 }
@@ -78,7 +84,8 @@ static void api_streaming_frame_update_thread_stop(ApiStreamingCtx* instance) {
     furi_thread_join(instance->thread);
 
     furi_record_close(RECORD_GUI);
-    free(instance->buffer);
+    free(instance->compressed_buffer);
+    free(instance->raw_buffer);
 }
 
 static StreamClientCtx* api_streaming_get_client_by_id(
@@ -251,7 +258,8 @@ static void api_streaming_client_send_frame(struct mg_connection* conn, void* da
                 STREAM_LOG_W("Unable to lock frame");
                 break;
             }
-            mg_ws_send(conn, instance->buffer, instance->frame_size, WEBSOCKET_OP_BINARY);
+            mg_ws_send(
+                conn, instance->compressed_buffer, instance->frame_size, WEBSOCKET_OP_BINARY);
             furi_mutex_release(instance->mutex);
         } while(false);
     } else if(client->state == StreamClientStateRequestingPing) {
@@ -364,6 +372,13 @@ static void api_streaming_update_display_id(ApiStreamingCtx* instance) {
     } while(false);
 }
 
+static void back_buffer_l8_to_l4(uint8_t* dst_l4, const uint8_t* src_l8) {
+    for(uint32_t i = 0; i < RAW_BUFFER_SIZE; ++i) {
+        const uint32_t draw_idx = 2 * i;
+        dst_l4[i] = (src_l8[draw_idx] >> 4) | (src_l8[draw_idx + 1] & 0xF0);
+    }
+}
+
 static int32_t api_streaming_frame_update_thread(void* context) {
     ApiStreamingCtx* instance = context;
 
@@ -374,15 +389,24 @@ static int32_t api_streaming_frame_update_thread(void* context) {
         }
 
         const size_t frame_size =
-            gui_display_get_frame_buffer_size(instance->gui, instance->display_id);
-        const uint8_t blk_size = instance->display_id == GuiDisplayIdFront ? 3 : 2;
+            instance->display_id == GuiDisplayIdFront ? FRONT_DISPLAY_BUF_SIZE : RAW_BUFFER_SIZE;
 
         with_gui(instance->gui, {
             const uint8_t* frame =
                 gui_display_get_frame_buffer(instance->gui, instance->display_id);
-            instance->frame_size =
-                rle_compress(frame, frame_size, instance->buffer, FRAME_BUFFER_SIZE, blk_size);
+            if(instance->display_id == GuiDisplayIdFront)
+                memcpy(instance->raw_buffer, frame, frame_size);
+            else
+                back_buffer_l8_to_l4(instance->raw_buffer, frame);
         });
+
+        const uint8_t blk_size = instance->display_id == GuiDisplayIdFront ? 3 : 2;
+        instance->frame_size = rle_compress(
+            instance->raw_buffer,
+            frame_size,
+            instance->compressed_buffer,
+            COMPRESSED_BUFFER_SIZE,
+            blk_size);
         furi_mutex_release(instance->mutex);
 
         struct mg_mgr* mgr = web_srv_get_mgr();
@@ -397,6 +421,7 @@ static int32_t api_streaming_frame_update_thread(void* context) {
 
         furi_delay_ms(FRAME_THREAD_PERIOD_MS);
         api_streaming_update_display_id(instance);
+        memset(instance->raw_buffer, 0, RAW_BUFFER_SIZE);
     }
     return 0;
 }
@@ -435,19 +460,24 @@ bool http_api_streaming_single_frame_callback(
 
     if(var_len == 1 && (display_str[0] == '0' || display_str[0] == '1')) {
         GuiDisplayId display_id = display_str[0] == '0' ? GuiDisplayIdFront : GuiDisplayIdBack;
-        const size_t size = gui_display_get_frame_buffer_size(gui, display_id);
 
-        uint8_t* frame = malloc(size);
+        const size_t frame_size = display_id == GuiDisplayIdFront ? FRONT_DISPLAY_BUF_SIZE :
+                                                                    RAW_BUFFER_SIZE;
+
+        uint8_t* frame = malloc(frame_size);
 
         with_gui(gui, {
-            FURI_LOG_I(TAG, "Get frame");
             const uint8_t* buf = gui_display_get_frame_buffer(gui, display_id);
-            memcpy(frame, buf, size);
+            if(display_id == GuiDisplayIdFront)
+                memcpy(frame, buf, frame_size);
+            else {
+                back_buffer_l8_to_l4(frame, buf);
+            }
         });
         furi_record_close(RECORD_GUI);
 
         mg_http_reply(
-            conn, 200, "Content-Type: image/bmp\r\n", "%M\r\n", mg_print_base64, size, frame);
+            conn, 200, "Content-Type: image/bmp\r\n", "%M\r\n", mg_print_base64, frame_size, frame);
         free(frame);
     } else
         MG_REPLY_ERROR(conn, 400, "Wrong display");
