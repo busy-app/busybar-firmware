@@ -1,152 +1,4 @@
-#include "wifi.h"
-#include "wifi_common_i.h"
-
-#include <furi.h>
-#include <intercom/intercom.h>
-
-typedef enum {
-    WifiEventRequest = 1UL << 0,
-    WifiEventResponse = 1UL << 1,
-} WifiEvent;
-
-typedef struct {
-    const WifiCredentials* credentials;
-    const WifiIpConfig* ip_config;
-} WifiConnectMessage;
-
-typedef struct {
-    WifiScanResult* data;
-    uint8_t* count;
-    uint8_t max_count;
-} WifiScanMessage;
-
-typedef struct {
-    WifiInfo* info;
-} WifiGetInfoMessage;
-
-typedef struct {
-    WifiRequestType request_type;
-    WifiStatus status;
-    union {
-        WifiConnectMessage connect_message;
-        WifiScanMessage scan_message;
-        WifiGetInfoMessage get_info_message;
-    };
-} WifiMessage;
-
-struct Wifi {
-    FuriEventLoop* event_loop;
-    FuriEventFlag* event_flag;
-    Intercom* intercom;
-    WifiMessage* message;
-    WifiRequest request;
-    WifiResponse response;
-};
-
-static void wifi_send_message(Wifi* instance, WifiMessage* message) {
-    uint32_t flags;
-    // Wait until the Wifi system becomes ready for the next request
-    flags = furi_event_flag_wait(
-        instance->event_flag, WifiEventRequest, FuriFlagWaitAll, FuriWaitForever);
-    furi_check(flags & WifiEventRequest);
-
-    instance->message = message;
-    furi_event_loop_set_custom_event(instance->event_loop, WifiEventRequest);
-
-    // Wait until a response is received
-    flags = furi_event_flag_wait(
-        instance->event_flag, WifiEventResponse, FuriFlagWaitAll, FuriWaitForever);
-    furi_check(flags & WifiEventResponse);
-}
-
-WifiStatus wifi_init(Wifi* instance) {
-    furi_check(instance);
-
-    WifiMessage msg = {
-        .request_type = WifiRequestTypeInit,
-    };
-
-    wifi_send_message(instance, &msg);
-    return msg.status;
-}
-
-WifiStatus wifi_deinit(Wifi* instance) {
-    furi_check(instance);
-
-    WifiMessage msg = {
-        .request_type = WifiRequestTypeDeinit,
-    };
-
-    wifi_send_message(instance, &msg);
-    return msg.status;
-}
-
-WifiStatus wifi_scan(Wifi* instance, WifiScanResult* results, uint8_t* count, uint8_t max_count) {
-    furi_check(instance);
-    furi_check(results);
-    furi_check(count);
-    furi_check(max_count);
-
-    WifiMessage msg = {
-        .request_type = WifiRequestTypeScan,
-        .scan_message =
-            {
-                .data = results,
-                .count = count,
-                .max_count = max_count,
-            },
-    };
-
-    wifi_send_message(instance, &msg);
-    return msg.status;
-}
-
-WifiStatus wifi_connect(
-    Wifi* instance,
-    const WifiCredentials* credentials,
-    const WifiIpConfig* ip_config) {
-    furi_check(instance);
-    furi_check(credentials);
-
-    WifiMessage msg = {
-        .request_type = WifiRequestTypeConnect,
-        .connect_message =
-            {
-                .credentials = credentials,
-                .ip_config = ip_config,
-            },
-    };
-
-    wifi_send_message(instance, &msg);
-    return msg.status;
-}
-
-WifiStatus wifi_disconnect(Wifi* instance) {
-    furi_check(instance);
-
-    WifiMessage msg = {
-        .request_type = WifiRequestTypeDisconnect,
-    };
-
-    wifi_send_message(instance, &msg);
-    return msg.status;
-}
-
-WifiStatus wifi_get_info(Wifi* instance, WifiInfo* info) {
-    furi_check(instance);
-    furi_check(info);
-
-    WifiMessage msg = {
-        .request_type = WifiRequestTypeGetInfo,
-        .get_info_message =
-            {
-                .info = info,
-            },
-    };
-
-    wifi_send_message(instance, &msg);
-    return msg.status;
-}
+#include "wifi_i.h"
 
 static void wifi_intercom_rx_callback(const void* data, size_t data_size, void* context) {
     furi_assert(data_size == sizeof(WifiResponse));
@@ -192,21 +44,27 @@ static void wifi_process_response(const WifiResponse* response, WifiMessage* mes
     }
 
     message->status = status;
+
+    api_lock_unlock(message->lock);
 }
 
 static void wifi_custom_event_callback(uint32_t events, void* context) {
     furi_assert(context);
     Wifi* instance = context;
+    WifiMessage* message = instance->current_message;
 
     if(events == WifiEventRequest) {
         WifiRequest* request = &instance->request;
-        wifi_process_request(request, instance->message);
+        wifi_process_request(request, message);
+
         intercom_tx(
             instance->intercom, IntercomChannelWifi, request, sizeof(WifiRequest), FuriWaitForever);
 
     } else if(events == WifiEventResponse) {
-        wifi_process_response(&instance->response, instance->message);
-        furi_event_flag_set(instance->event_flag, WifiEventRequest | WifiEventResponse);
+        const WifiResponse* response = &instance->response;
+        wifi_process_response(response, message);
+
+        furi_semaphore_release(instance->access_semaphore);
 
     } else {
         furi_crash("Multiple Wifi events");
@@ -217,7 +75,7 @@ static Wifi* wifi_alloc(void) {
     Wifi* instance = malloc(sizeof(Wifi));
 
     instance->event_loop = furi_event_loop_alloc();
-    instance->event_flag = furi_event_flag_alloc();
+    instance->access_semaphore = furi_semaphore_alloc(1, 1);
     instance->intercom = furi_record_open(RECORD_INTERCOM);
 
     furi_event_loop_set_custom_event_callback(
@@ -226,8 +84,6 @@ static Wifi* wifi_alloc(void) {
     intercom_set_rx_callback(
         instance->intercom, IntercomChannelWifi, wifi_intercom_rx_callback, instance);
 
-    // Start receiving requests
-    furi_event_flag_set(instance->event_flag, WifiEventRequest);
     furi_record_create(RECORD_WIFI, instance);
 
     return instance;
