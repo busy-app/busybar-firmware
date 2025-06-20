@@ -110,15 +110,6 @@ void gui_layer_remove_input_callback(GuiLayer* layer, GuiInputCallback callback)
 const uint8_t* gui_display_get_frame_buffer(Gui* instance, GuiDisplayId display_id);
 
 /**
- * @brief Returns size of the frame buffer for requested display
- *
- * @param[in,out] instance pointer to the Gui instance
- * @param[in] display_id identifier of the display which frame buffer size required
- * @return size of the requested frame buffer
- */
-size_t gui_display_get_frame_buffer_size(Gui* instance, GuiDisplayId display_id);
-
-/**
  * @brief Shorthand for automatically locking and unlocking the GUI.
  *
  * @param[in,out] gui pointer to the Gui instance
