@@ -4,8 +4,6 @@
 
 #define TAG "Stream"
 
-#define STREAM_DEBUG
-
 #ifdef STREAM_DEBUG
 #define STREAM_LOG_D(...) FURI_LOG_D(TAG, __VA_ARGS__)
 #define STREAM_LOG_W(...) FURI_LOG_W(TAG, __VA_ARGS__)
@@ -194,15 +192,15 @@ static void api_streaming_client_connection_open(struct mg_connection* conn) {
     ApiStreamingCtx* instance = conn_ctx->context;
     furi_assert(instance);
 
-    StreamClientCtx* ws_client = api_streaming_client_alloc(conn);
+    StreamClientCtx* client = api_streaming_client_alloc(conn);
 
     if(StreamClientsList_empty_p(instance->clients)) {
         api_streaming_frame_update_thread_start(instance);
     }
 
     // Add connection to WebSocket clients list
-    StreamClientsList_push_back(instance->clients, ws_client);
-    furi_timer_start(ws_client->heartbeat_timer, CLIENT_HEARTBEAT_PERIOD_MS);
+    StreamClientsList_push_back(instance->clients, client);
+    furi_timer_start(client->heartbeat_timer, CLIENT_HEARTBEAT_PERIOD_MS);
 
     STREAM_LOG_D("Add client %ld", conn->id);
 }
@@ -337,7 +335,6 @@ bool http_api_streaming_ws_callback(
         conn_ctx->ws.on_open = api_streaming_client_connection_open;
         conn_ctx->on_close = api_streaming_client_connection_close;
         conn_ctx->ws.on_message = api_streaming_client_on_message;
-        // conn_ctx->ws.on_ctrl = websocket_test_on_ctrl;
         conn_ctx->on_wakeup = api_streaming_client_send_frame;
         conn_ctx->context = instance;
 
@@ -380,12 +377,12 @@ static int32_t api_streaming_frame_update_thread(void* context) {
             gui_display_get_frame_buffer_size(instance->gui, instance->display_id);
         const uint8_t blk_size = instance->display_id == GuiDisplayIdFront ? 3 : 2;
 
-        gui_lock(instance->gui);
-        const uint8_t* frame = gui_display_get_frame_buffer(instance->gui, instance->display_id);
-        instance->frame_size =
-            rle_compress(frame, frame_size, instance->buffer, FRAME_BUFFER_SIZE, blk_size);
-
-        gui_unlock(instance->gui);
+        with_gui(instance->gui, {
+            const uint8_t* frame =
+                gui_display_get_frame_buffer(instance->gui, instance->display_id);
+            instance->frame_size =
+                rle_compress(frame, frame_size, instance->buffer, FRAME_BUFFER_SIZE, blk_size);
+        });
         furi_mutex_release(instance->mutex);
 
         struct mg_mgr* mgr = web_srv_get_mgr();
