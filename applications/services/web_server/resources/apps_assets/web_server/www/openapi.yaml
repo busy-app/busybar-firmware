@@ -442,6 +442,7 @@ paths:
     get:
       tags:
        - Streaming
+      summary: Get single frame for required screen      
       parameters:
         - name: display
           in: query
@@ -465,6 +466,27 @@ paths:
                 schema:
                   $ref: '#/components/schemas/Error'
 
+  /api/v0/screen/ws:
+    get:
+      tags:
+        - Streaming
+      summary: Screen streaming WebSocket endpoint
+      description: |
+        WebSocket connection for real-time screen streaming.
+        Upgrade from HTTP to WebSocket protocol is required.
+        After connection client must send desired display id
+        as json {"display": 0}
+      operationId: connectWebSocket
+      responses:
+        '101':
+          description: WebSocket connection established
+        '400':
+          description: Exceed max clients count
+          content:            
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+       
 components:
   schemas:
     LedState:
