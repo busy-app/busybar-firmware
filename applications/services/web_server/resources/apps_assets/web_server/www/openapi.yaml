@@ -294,6 +294,7 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Error"
+
   /api/v0/storage/mkdir:
     post:
       tags:
