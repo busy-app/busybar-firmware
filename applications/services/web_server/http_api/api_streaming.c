@@ -14,8 +14,9 @@
 #define STREAM_LOG_W(...)
 #endif
 
-#define FRAME_BUFFER_SIZE          (1024U * 14)
 #define MAX_CLIENTS_COUNT          (4)
+#define FRAME_BUFFER_SIZE          (1024U * 14)
+#define FRAME_THREAD_PERIOD_MS     (200)
 #define CLIENT_HEARTBEAT_PERIOD_MS (10000)
 
 #define WEBSOCKET_FLAG_TEST(flags, test) ((flags & test) == test)
@@ -397,8 +398,7 @@ static int32_t api_streaming_frame_update_thread(void* context) {
                 mg_wakeup(mgr, client->conn->id, NULL, 0);
         }
 
-        ///TODO: Make this a define
-        furi_delay_ms(200);
+        furi_delay_ms(FRAME_THREAD_PERIOD_MS);
         api_streaming_update_display_id(instance);
     }
     return 0;
