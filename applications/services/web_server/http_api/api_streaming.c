@@ -425,7 +425,6 @@ void http_api_streaming_ws_free(void* ctx) {
     free(instance);
 }
 
-///TODO: Fix me
 bool http_api_streaming_single_frame_callback(
     struct mg_connection* conn,
     struct mg_http_message* msg,
@@ -434,21 +433,26 @@ bool http_api_streaming_single_frame_callback(
     UNUSED(ctx);
     Gui* gui = furi_record_open(RECORD_GUI);
 
-    GuiDisplayId display_id = GuiDisplayIdBack;
-    const size_t size = gui_display_get_frame_buffer_size(gui, display_id);
+    char display_str[2];
+    int var_len = mg_http_get_var(&msg->query, "display", display_str, sizeof(display_str));
 
-    uint8_t* frame = malloc(size);
+    if(var_len == 1 && (display_str[0] == '0' || display_str[0] == '1')) {
+        GuiDisplayId display_id = display_str[0] == '0' ? GuiDisplayIdFront : GuiDisplayIdBack;
+        const size_t size = gui_display_get_frame_buffer_size(gui, display_id);
 
-    with_gui(gui, {
-        const uint8_t* buf = gui_display_get_frame_buffer(gui, display_id);
-        memcpy(frame, buf, size);
-    });
-    furi_record_close(RECORD_GUI);
+        uint8_t* frame = malloc(size);
 
-    mg_http_reply(
-        conn, 200, "Content-Type: image/bmp\r\n", "%M\r\n", mg_print_base64, size, frame);
+        with_gui(gui, {
+            FURI_LOG_I(TAG, "Get frame");
+            const uint8_t* buf = gui_display_get_frame_buffer(gui, display_id);
+            memcpy(frame, buf, size);
+        });
+        furi_record_close(RECORD_GUI);
 
-    free(frame);
-
+        mg_http_reply(
+            conn, 200, "Content-Type: image/bmp\r\n", "%M\r\n", mg_print_base64, size, frame);
+        free(frame);
+    } else
+        MG_REPLY_ERROR(conn, 400, "Wrong display");
     return true;
 }
