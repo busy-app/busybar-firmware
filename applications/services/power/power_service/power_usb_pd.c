@@ -5,7 +5,7 @@
 #include <stm32u5xx_ll_ucpd.h>
 #include <stm32u5xx_ll_pwr.h>
 
-#define TAG "USB PD"
+#define TAG "UsbPD"
 
 // We don't support cable markers, so limit max current to 3A
 #define PD_MAX_CURRENT     3000

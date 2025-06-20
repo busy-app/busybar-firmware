@@ -11,7 +11,7 @@
 
 #define SETTINGS_FILE EXT_PATH("data/settings/usb_network_settings.json")
 
-#define TAG "USBNet"
+#define TAG "UsbNetCfg"
 
 static FuriString* hostname = NULL;
 

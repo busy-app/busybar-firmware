@@ -1,10 +1,7 @@
 App(
     appid="cli_socket",
-    name="CliSocketSrv",
-    apptype=FlipperAppType.SERVICE,
-    entry_point="cli_socket_srv",
+    apptype=FlipperAppType.STARTUP,
+    entry_point="cli_socket_on_system_start",
     cdefines=["SRV_CLI_SOCKET"],
-    stack_size=4 * 1024,
-    order=30,
     targets=["f20", "f21"],
 )

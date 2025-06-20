@@ -18,21 +18,23 @@ const sl_wifi_device_configuration_t wifi_config_client = {
     .boot_option = LOAD_NWP_FW,
     .mac_address = NULL,
     .band = SL_SI91X_WIFI_BAND_2_4GHZ,
-    .region_code = US,
+    .region_code = WORLD_DOMAIN,
     .boot_config =
         {
             .oper_mode = SL_SI91X_CLIENT_MODE,
             .coex_mode = SL_SI91X_WLAN_BLE_MODE,
             .feature_bit_map =
-                (SL_SI91X_FEAT_SECURITY_OPEN | SL_SI91X_FEAT_AGGREGATION |
-                 SL_SI91X_FEAT_ULP_GPIO_BASED_HANDSHAKE | SL_SI91X_FEAT_DEV_TO_HOST_ULP_GPIO_1),
+                (SL_SI91X_FEAT_SECURITY_OPEN | SL_SI91X_FEAT_SECURITY_PSK |
+                 SL_SI91X_FEAT_AGGREGATION | SL_SI91X_FEAT_ULP_GPIO_BASED_HANDSHAKE |
+                 SL_SI91X_FEAT_DEV_TO_HOST_ULP_GPIO_1),
             .tcp_ip_feature_bit_map =
                 (SL_SI91X_TCP_IP_FEAT_DHCPV4_CLIENT | SL_SI91X_TCP_IP_FEAT_EXTENSION_VALID |
-                 SL_SI91X_TCP_IP_FEAT_DNS_CLIENT | SL_SI91X_TCP_IP_FEAT_SSL),
+                 SL_SI91X_TCP_IP_FEAT_DNS_CLIENT | SL_SI91X_TCP_IP_FEAT_SSL |
+                 SL_SI91X_TCP_IP_FEAT_DHCPV6_CLIENT | SL_SI91X_TCP_IP_FEAT_IPV6),
             .custom_feature_bit_map =
                 (SL_SI91X_CUSTOM_FEAT_EXTENTION_VALID | SL_SI91X_CUSTOM_FEAT_SOC_CLK_CONFIG_120MHZ),
             .ext_custom_feature_bit_map =
-                (SL_SI91X_EXT_FEAT_XTAL_CLK | MEMORY_CONFIG
+                (SL_SI91X_EXT_FEAT_XTAL_CLK | SL_SI91X_EXT_FEAT_IEEE_80211W | MEMORY_CONFIG
 #ifdef SLI_SI917
                  | SL_SI91X_EXT_FEAT_FRONT_END_SWITCH_PINS_ULP_GPIO_4_5_0
 #endif
@@ -43,7 +45,8 @@ const sl_wifi_device_configuration_t wifi_config_client = {
                 (SL_SI91X_CONFIG_FEAT_EXTENTION_VALID | SL_SI91X_EXT_TCP_MAX_RECV_LENGTH),
 #else
             .ext_tcp_ip_feature_bit_map =
-                (SL_SI91X_EXT_TCP_IP_WINDOW_DIV | SL_SI91X_CONFIG_FEAT_EXTENTION_VALID),
+                (SL_SI91X_EXT_TCP_IP_WINDOW_DIV | SL_SI91X_EXT_TCP_IP_TOTAL_SELECTS(10) |
+                 SL_SI91X_CONFIG_FEAT_EXTENTION_VALID),
 #endif
             //!ENABLE_BLE_PROTOCOL in bt_feature_bit_map
             .ble_feature_bit_map =

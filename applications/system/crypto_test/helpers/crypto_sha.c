@@ -2,6 +2,7 @@
 #include "crypto_common.h"
 
 #include <furi_hal_crypto.h>
+#include <cli/cli_ansi.h>
 
 #define TAG "SHA"
 
@@ -30,29 +31,22 @@ static const uint8_t digest_out_sha244[FURI_HAL_CRYPTO_SHA224_DIGEST_SIZE] = {
     0xC9, 0x7C, 0xA9, 0xA5, 0x59, 0x85, 0x0C, 0xE9, 0x7A, 0x04, 0xA9, 0x6D, 0xEF, 0x6D,
     0x99, 0xA9, 0xE0, 0xE0, 0xE2, 0xAB, 0x14, 0xE6, 0xB8, 0xDF, 0x26, 0x5F, 0xC0, 0xB3};
 
-void crypto_sha_chek(
-    CryptoTestApp* app,
-    FuriString* msg,
+void crypto_sha_check(
     char* tag,
     const uint8_t* digest,
     const uint8_t* digest_out,
     size_t digest_length) {
-    crypto_common_print_buffer_hex(app, msg, "Message =\t\t", (uint8_t*)message, sizeof(message));
-    crypto_common_print_buffer_hex(app, msg, "Digest =\t\t", digest, digest_length);
-    crypto_common_print_buffer_hex(app, msg, "Expected =\t", digest_out, digest_length);
+    crypto_common_print_buffer_hex("Message =\t\t", (uint8_t*)message, sizeof(message));
+    crypto_common_print_buffer_hex("Digest =\t\t", digest, digest_length);
+    crypto_common_print_buffer_hex("Expected =\t", digest_out, digest_length);
     if(memcmp(digest, digest_out, digest_length) != 0) {
-        furi_string_printf(msg, "\033[0;31m %s mode failed\033[0m\r\n", tag);
-        crypto_test_app_send_text(app, msg);
+        printf(ANSI_FG_RED "%s mode failed" ANSI_RESET "\r\n", tag);
     } else {
-        furi_string_printf(msg, "\033[0;32m %s mode success\033[0m\r\n", tag);
-        crypto_test_app_send_text(app, msg);
+        printf(ANSI_FG_GREEN "%s mode success" ANSI_RESET "\r\n", tag);
     }
 }
 
-void crypto_sha_test_custom_sha_mode(
-    CryptoTestApp* app,
-    FuriString* msg,
-    FuriHalCryptoShaMode sha_mode) {
+void crypto_sha_test_custom_sha_mode(FuriHalCryptoShaMode sha_mode) {
     uint8_t digest[FURI_HAL_CRYPTO_SHA512_DIGEST_SIZE] = {0};
     size_t digest_length = 0;
 
@@ -81,24 +75,19 @@ void crypto_sha_test_custom_sha_mode(
 
     switch(sha_mode) {
     case FuriHalCryptoShaModeSha1:
-        crypto_sha_chek(
-            app, msg, "SHA1", digest, digest_out_sha1, FURI_HAL_CRYPTO_SHA1_DIGEST_SIZE);
+        crypto_sha_check("SHA1", digest, digest_out_sha1, FURI_HAL_CRYPTO_SHA1_DIGEST_SIZE);
         break;
     case FuriHalCryptoShaModeSha256:
-        crypto_sha_chek(
-            app, msg, "SHA256", digest, digest_out_sha256, FURI_HAL_CRYPTO_SHA256_DIGEST_SIZE);
+        crypto_sha_check("SHA256", digest, digest_out_sha256, FURI_HAL_CRYPTO_SHA256_DIGEST_SIZE);
         break;
     case FuriHalCryptoShaModeSha384:
-        crypto_sha_chek(
-            app, msg, "SHA384", digest, digest_out_sha384, FURI_HAL_CRYPTO_SHA384_DIGEST_SIZE);
+        crypto_sha_check("SHA384", digest, digest_out_sha384, FURI_HAL_CRYPTO_SHA384_DIGEST_SIZE);
         break;
     case FuriHalCryptoShaModeSha512:
-        crypto_sha_chek(
-            app, msg, "SHA512", digest, digest_out_sha512, FURI_HAL_CRYPTO_SHA512_DIGEST_SIZE);
+        crypto_sha_check("SHA512", digest, digest_out_sha512, FURI_HAL_CRYPTO_SHA512_DIGEST_SIZE);
         break;
     case FuriHalCryptoShaModeSha244:
-        crypto_sha_chek(
-            app, msg, "SHA224", digest, digest_out_sha244, FURI_HAL_CRYPTO_SHA224_DIGEST_SIZE);
+        crypto_sha_check("SHA224", digest, digest_out_sha244, FURI_HAL_CRYPTO_SHA224_DIGEST_SIZE);
         break;
 
     default:
@@ -106,12 +95,15 @@ void crypto_sha_test_custom_sha_mode(
     }
 }
 
-void crypto_sha_test(CryptoTestApp* app, FuriString* msg) {
-    crypto_sha_test_custom_sha_mode(app, msg, FuriHalCryptoShaModeSha1);
-    crypto_sha_test_custom_sha_mode(app, msg, FuriHalCryptoShaModeSha256);
-    crypto_sha_test_custom_sha_mode(app, msg, FuriHalCryptoShaModeSha384);
-    crypto_sha_test_custom_sha_mode(app, msg, FuriHalCryptoShaModeSha512);
-    crypto_sha_test_custom_sha_mode(app, msg, FuriHalCryptoShaModeSha244);
-    furi_string_printf(msg, "Crypto SHA done\r\n");
-    crypto_test_app_send_text(app, msg);
+void crypto_sha_command(PipeSide* pipe, FuriString* args, void* context) {
+    UNUSED(pipe);
+    UNUSED(args);
+    UNUSED(context);
+
+    crypto_sha_test_custom_sha_mode(FuriHalCryptoShaModeSha1);
+    crypto_sha_test_custom_sha_mode(FuriHalCryptoShaModeSha256);
+    crypto_sha_test_custom_sha_mode(FuriHalCryptoShaModeSha384);
+    crypto_sha_test_custom_sha_mode(FuriHalCryptoShaModeSha512);
+    crypto_sha_test_custom_sha_mode(FuriHalCryptoShaModeSha244);
+    printf("Crypto SHA done\r\n");
 }

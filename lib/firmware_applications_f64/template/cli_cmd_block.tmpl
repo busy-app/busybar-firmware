@@ -1,0 +1,6 @@
+    {
+        .callback = {{ app.entry_point }},
+        .name = "{{ app.name }}",
+        .stack_size = {{ app.stack_size }},
+        .flags = {{ '|'.join(f"CliCommandFlag{flag}" for flag in app.flags) }},
+    }

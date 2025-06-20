@@ -42,10 +42,11 @@ inline bool update_stage_is_error(const UpdateTaskStage stage) {
 
 typedef enum {
     UpdateTaskStageGroupMisc = 0,
-    UpdateTaskStageGroupFirmware = 1 << 1,
-    UpdateTaskStageGroup917Radio = 1 << 2,
-    UpdateTaskStageGroup917 = 1 << 3,
-    UpdateTaskStageGroupResources = 1 << 4,
+    UpdateTaskStageGroupPrepare = 1 << 1,
+    UpdateTaskStageGroupFirmware = 1 << 2,
+    UpdateTaskStageGroup917Radio = 1 << 3,
+    UpdateTaskStageGroup917 = 1 << 4,
+    UpdateTaskStageGroupResources = 1 << 5,
 } UpdateTaskStageGroup;
 
 typedef struct {

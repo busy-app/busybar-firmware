@@ -1,11 +1,7 @@
 App(
-    appid="wifi_rf_test_start",
+    appid="wifi_rf_test",
+    name="wifi_rf_test",
     targets=["f64"],
-    apptype=FlipperAppType.STARTUP,
-    entry_point="wifi_rf_test_system_start",
-    sources=[
-        "wifi_rf_test.c",
-        "helpers/wifi_rf_test_app.c",
-    ],
-    order=40,
+    apptype=FlipperAppType.CLICMD,
+    entry_point="wifi_rf_test_command",
 )

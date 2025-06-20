@@ -1,0 +1,9 @@
+App(
+    appid="cli_intercom",
+    name="CliIntercomSrv",
+    apptype=FlipperAppType.SERVICE,
+    entry_point="cli_intercom_srv",
+    cdefines=["SRV_CLI_INTERCOM"],
+    stack_size=2 * 1024,
+    targets=["f20", "f21", "f64"],
+)
