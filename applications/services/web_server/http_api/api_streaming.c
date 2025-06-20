@@ -18,6 +18,11 @@
 #define MAX_CLIENTS_COUNT          (4)
 #define CLIENT_HEARTBEAT_PERIOD_MS (10000)
 
+#define WEBSOCKET_FLAG_TEST(flags, test) ((flags & test) == test)
+#define WEBSOCKET_PING(flags)            (WEBSOCKET_FLAG_TEST(flags, WEBSOCKET_OP_PING))
+#define WEBSOCKET_PONG(flags)            (WEBSOCKET_FLAG_TEST(flags, WEBSOCKET_OP_PONG))
+#define WEBSOCKET_TEXT(flags)            (WEBSOCKET_FLAG_TEST(flags, WEBSOCKET_OP_TEXT))
+
 typedef enum {
     WsClientStateIdle,
     WsClientStateActive,
@@ -269,15 +274,15 @@ static void websocket_test_on_message(struct mg_connection* conn, struct mg_ws_m
 
     ///TODO: make some MACRO to check FLAGS
     ///TODO: squash PING and PONG ifs to a single one
-    if((ws_msg->flags & WEBSOCKET_OP_PING) == WEBSOCKET_OP_PING) {
+    if(WEBSOCKET_PING(ws_msg->flags)) {
         STREAM_LOG_D("PING");
         api_streaming_client_set_state(client, WsClientStateActive);
         furi_timer_restart(client->heartbeat_timer, CLIENT_HEARTBEAT_PERIOD_MS);
-    } else if((ws_msg->flags & WEBSOCKET_OP_PONG) == WEBSOCKET_OP_PONG) {
+    } else if(WEBSOCKET_PONG(ws_msg->flags)) {
         STREAM_LOG_D("PONG");
         api_streaming_client_set_state(client, WsClientStateActive);
         furi_timer_restart(client->heartbeat_timer, CLIENT_HEARTBEAT_PERIOD_MS);
-    } else if((ws_msg->flags & WEBSOCKET_OP_TEXT) == WEBSOCKET_OP_TEXT) {
+    } else if(WEBSOCKET_TEXT(ws_msg->flags)) {
         STREAM_LOG_D("MSG");
         const char* resp;
         do {
