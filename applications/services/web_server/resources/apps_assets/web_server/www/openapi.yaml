@@ -1,7 +1,7 @@
 openapi: 3.0.3
 info:
-  title: BSB HTTP API
-  description: HTTP API for BSB web server
+  title: Busy Bar HTTP API
+  description: HTTP API for Busy Bar web server
   version: 0.0.1
   contact:
     name: tbd
@@ -15,18 +15,18 @@ paths:
       description: Retrieves firmware version, branch, build date, and commit information
       operationId: getVersion
       responses:
-        '200':
+        "200":
           description: Version information retrieved successfully
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/VersionInfo'
-        '500':
+                $ref: "#/components/schemas/VersionInfo"
+        "500":
           description: Internal server error
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Error'
+                $ref: "#/components/schemas/Error"
 
   /api/v0/update:
     post:
@@ -41,7 +41,7 @@ paths:
           required: false
           schema:
             type: string
-            pattern: '^[a-zA-Z0-9._-]+$'
+            pattern: "^[a-zA-Z0-9._-]+$"
           description: Name for the update package. The update will be unpacked to /ext/update/<name>.
           example: "firmware"
       requestBody:
@@ -53,25 +53,25 @@ paths:
               format: binary
               description: Firmware update TAR file.
       responses:
-        '200':
+        "200":
           description: Update initiated successfully. The device will reboot.
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/SuccessResponse'
-        '400':
+                $ref: "#/components/schemas/SuccessResponse"
+        "400":
           description: Invalid parameters, invalid TAR file, or update preparation failed.
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Error'
-        '413':
+                $ref: "#/components/schemas/Error"
+        "413":
           description: Update package too large.
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Error'
-        '500':
+                $ref: "#/components/schemas/Error"
+        "500":
           description: Internal server error during update process.
           content:
             application/json:
@@ -476,18 +476,18 @@ paths:
       description: Enables wifi module
       parameters: []
       responses:
-        '200':
+        "200":
           description: Wifi enabled
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/SuccessResponse'
-        '400':
+                $ref: "#/components/schemas/SuccessResponse"
+        "400":
           description: Wifi already enabled
           content:
-              application/json:
-                schema:
-                  $ref: '#/components/schemas/Error'
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
 
   /api/v0/wifi/disable:
     post:
@@ -496,18 +496,18 @@ paths:
       description: Disables wifi module
       parameters: []
       responses:
-        '200':
+        "200":
           description: Wifi disabled
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/SuccessResponse'
-        '400':
+                $ref: "#/components/schemas/SuccessResponse"
+        "400":
           description: Not initialized
           content:
-              application/json:
-                schema:
-                  $ref: '#/components/schemas/Error'
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
 
   /api/v0/wifi/status:
     get:
@@ -516,12 +516,12 @@ paths:
       description: Returns current wifi status
       parameters: []
       responses:
-        '200':
+        "200":
           description: OK
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/StatusResponse'
+                $ref: "#/components/schemas/StatusResponse"
 
   /api/v0/wifi/connect:
     post:
@@ -536,18 +536,18 @@ paths:
             schema:
               $ref: "#/components/schemas/ConnectRequestConfig"
       responses:
-        '200':
+        "200":
           description: Network connection established
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/SuccessResponse'
-        '400':
+                $ref: "#/components/schemas/SuccessResponse"
+        "400":
           description: Wifi already connected
           content:
-              application/json:
-                schema:
-                  $ref: '#/components/schemas/Error'
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
 
   /api/v0/wifi/disconnect:
     post:
@@ -556,18 +556,18 @@ paths:
       description: Attempts to connect to wifi using config
       parameters: []
       responses:
-        '200':
+        "200":
           description: Network connection terminated
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/SuccessResponse'
-        '400':
+                $ref: "#/components/schemas/SuccessResponse"
+        "400":
           description: Command issued in an invalid state
           content:
-              application/json:
-                schema:
-                  $ref: '#/components/schemas/Error'
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
 
   /api/v0/wifi/networks:
     get:
@@ -576,19 +576,19 @@ paths:
       description: Scans environment for available wifi networks
       parameters: []
       responses:
-        '200':
+        "200":
           description: OK
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/NetworkResponse"
-        '400':
+        "400":
           description: Wifi already connected
           content:
-              application/json:
-                schema:
-                  $ref: '#/components/schemas/Error'
-    
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
   /api/v0/wifi/forget:
     post:
       tags:
@@ -596,39 +596,15 @@ paths:
       description: Forgets saved Wifi config
       parameters: []
       responses:
-        '400':
+        "400":
           description: Not implemented
           content:
-              application/json:
-                schema:
-                  $ref: '#/components/schemas/Error'
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
 
 components:
   schemas:
-    LedState:
-      type: object
-      properties:
-        state:
-          type: integer
-          enum: [0, 1]
-          description: Current LED state (0 for off, 1 for on)
-      required:
-        - state
-      example:
-        state: 1
-
-    LedStateRequest:
-      type: object
-      properties:
-        state:
-          type: integer
-          enum: [0, 1]
-          description: LED state (0 for off, 1 for on)
-      required:
-        - state
-      example:
-        state: 1
-
     SuccessResponse:
       type: object
       properties:
@@ -639,17 +615,20 @@ components:
       required:
         - result
 
-    LedStateResponse:
-      allOf:
-        - $ref: "#/components/schemas/SuccessResponse"
-        - type: object
-          properties:
-            state:
-              type: integer
-              enum: [0, 1]
-              description: Current LED state (0 for off, 1 for on)
-          required:
-            - state
+    Error:
+      type: object
+      properties:
+        error:
+          type: string
+          description: Error message
+        code:
+          type: integer
+          description: Error code
+      required:
+        - error
+      example:
+        error: "Invalid parameter"
+        code: 400
 
     VersionInfo:
       type: object
@@ -749,21 +728,6 @@ components:
           description: File to upload
       required:
         - file
-
-    Error:
-      type: object
-      properties:
-        error:
-          type: string
-          description: Error message
-        code:
-          type: integer
-          description: Error code
-      required:
-        - error
-      example:
-        error: "Invalid parameter"
-        code: 400
 
     DisplayElements:
       type: object
