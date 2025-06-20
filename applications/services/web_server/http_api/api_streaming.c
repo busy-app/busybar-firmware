@@ -14,7 +14,7 @@
 #define STREAM_LOG_W(...)
 #endif
 
-#define BUFFER_SIZE                (1024U * 14)
+#define FRAME_BUFFER_SIZE          (1024U * 14)
 #define MAX_CLIENTS_COUNT          (4)
 #define CLIENT_HEARTBEAT_PERIOD_MS (10000)
 
@@ -24,22 +24,22 @@
 #define WEBSOCKET_TEXT(flags)            (WEBSOCKET_FLAG_TEST(flags, WEBSOCKET_OP_TEXT))
 
 typedef enum {
-    WsClientStateIdle,
-    WsClientStateActive,
-    WsClientStateRequestingPing,
-    WsClientStateWaitingPong,
-    WsClientStateInvalid,
-} WsClientState;
+    StreamClientStateIdle,
+    StreamClientStateActive,
+    StreamClientStateRequestingPing,
+    StreamClientStateWaitingPong,
+    StreamClientStateInvalid,
+} StreamClientState;
 
 typedef struct {
     struct mg_connection* conn;
     GuiDisplayId display_id;
     FuriTimer* heartbeat_timer;
-    WsClientState state;
+    StreamClientState state;
     void* context;
-} WsClientCtx;
+} StreamClientCtx;
 
-LIST_DEF(WsClientsList, WsClientCtx*, M_POD_OPLIST);
+LIST_DEF(StreamClientsList, StreamClientCtx*, M_POD_OPLIST);
 
 typedef enum {
     ApiStreamingModeIdle,
@@ -48,7 +48,7 @@ typedef enum {
 } ApiStreamingMode;
 
 typedef struct {
-    WsClientsList_t clients;
+    StreamClientsList_t clients;
     uint8_t front_clients_count;
     uint8_t back_clients_count;
     ApiStreamingMode mode;
@@ -58,7 +58,6 @@ typedef struct {
     bool stop;
     Gui* gui;
     GuiDisplayId display_id;
-    ///TODO: think of creating separate buffers for front and back displays, or processing all through one buffer (but it is harder)
     size_t frame_size;
     uint8_t* buffer;
 } ApiStreamingCtx;
@@ -67,7 +66,7 @@ static void api_streaming_frame_update_thread_start(ApiStreamingCtx* instance) {
     STREAM_LOG_D("Start thread");
     instance->gui = furi_record_open(RECORD_GUI);
 
-    const size_t size = BUFFER_SIZE;
+    const size_t size = FRAME_BUFFER_SIZE;
     instance->buffer = malloc(size);
     instance->stop = false;
     furi_thread_start(instance->thread);
@@ -83,18 +82,18 @@ static void api_streaming_frame_update_thread_stop(ApiStreamingCtx* instance) {
     free(instance->buffer);
 }
 
-static WsClientCtx* api_streaming_get_client_by_id(
+static StreamClientCtx* api_streaming_get_client_by_id(
     ApiStreamingCtx* instance,
     const unsigned long client_id,
-    WsClientsList_it_t out_iterator) {
-    WsClientsList_it_t it;
-    WsClientCtx* client = NULL;
-    for(WsClientsList_it(it, instance->clients); !WsClientsList_end_p(it);
-        WsClientsList_next(it)) {
-        WsClientCtx* const* it_ptr = WsClientsList_cref(it);
+    StreamClientsList_it_t out_iterator) {
+    StreamClientsList_it_t it;
+    StreamClientCtx* client = NULL;
+    for(StreamClientsList_it(it, instance->clients); !StreamClientsList_end_p(it);
+        StreamClientsList_next(it)) {
+        StreamClientCtx* const* it_ptr = StreamClientsList_cref(it);
         client = *it_ptr;
         if(client->conn->id != client_id) continue;
-        if(out_iterator) WsClientsList_it_set(out_iterator, it);
+        if(out_iterator) StreamClientsList_it_set(out_iterator, it);
         break;
     }
     return client;
@@ -117,7 +116,7 @@ static inline void
 
     furi_assert(
         instance->front_clients_count + instance->back_clients_count ==
-        WsClientsList_size(instance->clients));
+        StreamClientsList_size(instance->clients));
 }
 
 static inline void
@@ -129,7 +128,7 @@ static inline void
 
     furi_assert(
         instance->front_clients_count + instance->back_clients_count ==
-        WsClientsList_size(instance->clients));
+        StreamClientsList_size(instance->clients));
 }
 
 static inline void
@@ -144,10 +143,11 @@ static inline void
 
     furi_assert(
         instance->front_clients_count + instance->back_clients_count ==
-        WsClientsList_size(instance->clients));
+        StreamClientsList_size(instance->clients));
 }
 
-static inline void api_streaming_client_set_state(WsClientCtx* client, WsClientState new_state) {
+static inline void
+    api_streaming_client_set_state(StreamClientCtx* client, StreamClientState new_state) {
     STREAM_LOG_D("Client state %d -> %d", client->state, new_state);
     client->state = new_state;
 }
@@ -156,73 +156,74 @@ static inline void api_streaming_client_set_state(WsClientCtx* client, WsClientS
 void api_streaming_client_heartbeat_timer_callback(void* ctx) {
     STREAM_LOG_D("Heartbeat timer");
 
-    WsClientCtx* client = ctx;
+    StreamClientCtx* client = ctx;
 
-    WsClientState new_state = WsClientStateInvalid;
-    if(client->state != WsClientStateWaitingPong && client->state != WsClientStateInvalid) {
-        new_state = WsClientStateRequestingPing;
-    } else if(client->state == WsClientStateWaitingPong) {
-        new_state = WsClientStateInvalid;
+    StreamClientState new_state = StreamClientStateInvalid;
+    if(client->state != StreamClientStateWaitingPong &&
+       client->state != StreamClientStateInvalid) {
+        new_state = StreamClientStateRequestingPing;
+    } else if(client->state == StreamClientStateWaitingPong) {
+        new_state = StreamClientStateInvalid;
     }
 
     api_streaming_client_set_state(client, new_state);
     mg_wakeup(web_srv_get_mgr(), client->conn->id, NULL, 0);
 }
 
-static WsClientCtx* api_streaming_client_alloc(struct mg_connection* conn) {
-    WsClientCtx* client = malloc(sizeof(WsClientCtx));
+static StreamClientCtx* api_streaming_client_alloc(struct mg_connection* conn) {
+    StreamClientCtx* client = malloc(sizeof(StreamClientCtx));
     client->conn = conn;
     client->display_id = GuiDisplayIdMax;
-    client->state = WsClientStateIdle;
-    client->context = conn->data; //context;
+    client->state = StreamClientStateIdle;
+    client->context = conn->data;
     client->heartbeat_timer = furi_timer_alloc(
         api_streaming_client_heartbeat_timer_callback, FuriTimerTypePeriodic, client);
     return client;
 }
 
-static inline void api_streaming_client_free(WsClientCtx* client) {
+static inline void api_streaming_client_free(StreamClientCtx* client) {
     furi_timer_stop(client->heartbeat_timer);
     furi_timer_free(client->heartbeat_timer);
     free(client);
 }
 
-static void websocket_test_on_open(struct mg_connection* conn) {
+static void api_streaming_client_connection_open(struct mg_connection* conn) {
     // Get handler context from connection data
     ConnectionContext* conn_ctx = (void*)conn->data;
     ApiStreamingCtx* instance = conn_ctx->context;
     furi_assert(instance);
 
-    WsClientCtx* ws_client = api_streaming_client_alloc(conn);
+    StreamClientCtx* ws_client = api_streaming_client_alloc(conn);
 
-    if(WsClientsList_empty_p(instance->clients)) {
+    if(StreamClientsList_empty_p(instance->clients)) {
         api_streaming_frame_update_thread_start(instance);
     }
 
     // Add connection to WebSocket clients list
-    WsClientsList_push_back(instance->clients, ws_client);
+    StreamClientsList_push_back(instance->clients, ws_client);
     furi_timer_start(ws_client->heartbeat_timer, CLIENT_HEARTBEAT_PERIOD_MS);
 
-    STREAM_LOG_D("Add client");
+    STREAM_LOG_D("Add client %ld", conn->id);
 }
 
-static void websocket_test_on_close(struct mg_connection* conn) {
+static void api_streaming_client_connection_close(struct mg_connection* conn) {
     // Get handler context from connection data
     ConnectionContext* conn_ctx = (void*)conn->data;
     ApiStreamingCtx* instance = conn_ctx->context;
     furi_assert(instance);
 
     // Remove connection from WebSocket clients list
-    WsClientsList_it_t it;
-    WsClientCtx* client = api_streaming_get_client_by_id(instance, conn->id, it);
+    StreamClientsList_it_t it;
+    StreamClientCtx* client = api_streaming_get_client_by_id(instance, conn->id, it);
     if(client) {
         STREAM_LOG_D("Remove client: %ld", client->conn->id);
-        WsClientsList_remove(instance->clients, it);
+        StreamClientsList_remove(instance->clients, it);
         api_streaming_client_counter_decrement(instance, client->display_id);
         api_streaming_update_mode(instance);
         api_streaming_client_free(client);
     }
 
-    if(WsClientsList_empty_p(instance->clients)) {
+    if(StreamClientsList_empty_p(instance->clients)) {
         api_streaming_frame_update_thread_stop(instance);
     }
 
@@ -231,18 +232,16 @@ static void websocket_test_on_close(struct mg_connection* conn) {
     conn_ctx->ws.on_message = NULL;
     conn_ctx->on_close = NULL;
     conn_ctx->on_wakeup = NULL;
-
-    STREAM_LOG_D("Close");
 }
 
-static void api_streaming_send_frame(struct mg_connection* conn, void* data, size_t len) {
+static void api_streaming_client_send_frame(struct mg_connection* conn, void* data, size_t len) {
     furi_assert(conn);
 
     ConnectionContext* conn_ctx = (void*)conn->data;
     ApiStreamingCtx* instance = conn_ctx->context;
 
-    WsClientCtx* client = api_streaming_get_client_by_id(instance, conn->id, NULL);
-    if(client->state == WsClientStateActive) {
+    StreamClientCtx* client = api_streaming_get_client_by_id(instance, conn->id, NULL);
+    if(client->state == StreamClientStateActive) {
         do {
             if(client->display_id != instance->display_id) {
                 STREAM_LOG_W("Display mismatch");
@@ -256,31 +255,30 @@ static void api_streaming_send_frame(struct mg_connection* conn, void* data, siz
             mg_ws_send(conn, instance->buffer, instance->frame_size, WEBSOCKET_OP_BINARY);
             furi_mutex_release(instance->mutex);
         } while(false);
-    } else if(client->state == WsClientStateRequestingPing) {
+    } else if(client->state == StreamClientStateRequestingPing) {
         STREAM_LOG_D("Requesting ping");
-        api_streaming_client_set_state(client, WsClientStateWaitingPong);
+        api_streaming_client_set_state(client, StreamClientStateWaitingPong);
         mg_ws_send(conn, data, len, WEBSOCKET_OP_PING);
-    } else if(client->state == WsClientStateInvalid) {
+    } else if(client->state == StreamClientStateInvalid) {
         mg_close_conn(conn);
     }
 }
 
-static void websocket_test_on_message(struct mg_connection* conn, struct mg_ws_message* ws_msg) {
+static void
+    api_streaming_client_on_message(struct mg_connection* conn, struct mg_ws_message* ws_msg) {
     furi_assert(conn);
 
     ConnectionContext* conn_ctx = (void*)conn->data;
     ApiStreamingCtx* instance = conn_ctx->context;
-    WsClientCtx* const client = api_streaming_get_client_by_id(instance, conn->id, NULL);
+    StreamClientCtx* const client = api_streaming_get_client_by_id(instance, conn->id, NULL);
 
-    ///TODO: make some MACRO to check FLAGS
-    ///TODO: squash PING and PONG ifs to a single one
     if(WEBSOCKET_PING(ws_msg->flags)) {
         STREAM_LOG_D("PING");
-        api_streaming_client_set_state(client, WsClientStateActive);
+        api_streaming_client_set_state(client, StreamClientStateActive);
         furi_timer_restart(client->heartbeat_timer, CLIENT_HEARTBEAT_PERIOD_MS);
     } else if(WEBSOCKET_PONG(ws_msg->flags)) {
         STREAM_LOG_D("PONG");
-        api_streaming_client_set_state(client, WsClientStateActive);
+        api_streaming_client_set_state(client, StreamClientStateActive);
         furi_timer_restart(client->heartbeat_timer, CLIENT_HEARTBEAT_PERIOD_MS);
     } else if(WEBSOCKET_TEXT(ws_msg->flags)) {
         STREAM_LOG_D("MSG");
@@ -292,15 +290,15 @@ static void websocket_test_on_message(struct mg_connection* conn, struct mg_ws_m
                 break;
             }
 
-            if(client->state == WsClientStateActive && client->display_id == display_id) {
+            if(client->state == StreamClientStateActive && client->display_id == display_id) {
                 resp = "Same screen ignore";
                 break;
             }
 
-            if(client->state == WsClientStateActive && client->display_id != display_id) {
+            if(client->state == StreamClientStateActive && client->display_id != display_id) {
                 api_streaming_client_counter_move(instance, display_id);
                 resp = "Change screen";
-            } else if(client->state == WsClientStateIdle) {
+            } else if(client->state == StreamClientStateIdle) {
                 api_streaming_client_counter_increment(instance, display_id);
                 resp = "Start streaming...";
             } else {
@@ -310,7 +308,7 @@ static void websocket_test_on_message(struct mg_connection* conn, struct mg_ws_m
 
             client->display_id = display_id;
             api_streaming_update_mode(instance);
-            api_streaming_client_set_state(client, WsClientStateActive);
+            api_streaming_client_set_state(client, StreamClientStateActive);
         } while(false);
         mg_ws_send(conn, resp, strlen(resp), WEBSOCKET_OP_TEXT);
     }
@@ -328,18 +326,18 @@ bool http_api_streaming_ws_callback(
         bool is_ws_upgrade = (mg_http_get_header(msg, "Sec-WebSocket-Key") != NULL);
         if(!is_ws_upgrade) break;
 
-        if(WsClientsList_size(instance->clients) >= MAX_CLIENTS_COUNT) {
+        if(StreamClientsList_size(instance->clients) >= MAX_CLIENTS_COUNT) {
             MG_REPLY_ERROR(conn, 400, "Exceed max clients count");
             break;
         }
 
         // Assign connection callbacks
         ConnectionContext* conn_ctx = (void*)conn->data;
-        conn_ctx->ws.on_open = websocket_test_on_open;
-        conn_ctx->on_close = websocket_test_on_close;
-        conn_ctx->ws.on_message = websocket_test_on_message;
+        conn_ctx->ws.on_open = api_streaming_client_connection_open;
+        conn_ctx->on_close = api_streaming_client_connection_close;
+        conn_ctx->ws.on_message = api_streaming_client_on_message;
         // conn_ctx->ws.on_ctrl = websocket_test_on_ctrl;
-        conn_ctx->on_wakeup = api_streaming_send_frame;
+        conn_ctx->on_wakeup = api_streaming_client_send_frame;
         conn_ctx->context = instance;
 
         // Upgrade connection to WebSocket
@@ -384,17 +382,17 @@ static int32_t api_streaming_frame_update_thread(void* context) {
         gui_lock(instance->gui);
         const uint8_t* frame = gui_display_get_frame_buffer(instance->gui, instance->display_id);
         instance->frame_size =
-            rle_compress(frame, frame_size, instance->buffer, BUFFER_SIZE, blk_size);
+            rle_compress(frame, frame_size, instance->buffer, FRAME_BUFFER_SIZE, blk_size);
 
         gui_unlock(instance->gui);
         furi_mutex_release(instance->mutex);
 
         struct mg_mgr* mgr = web_srv_get_mgr();
-        WsClientsList_it_t it;
-        for(WsClientsList_it(it, instance->clients); !WsClientsList_end_p(it);
-            WsClientsList_next(it)) {
-            WsClientCtx* const* it_ptr = WsClientsList_cref(it);
-            WsClientCtx* client = *it_ptr;
+        StreamClientsList_it_t it;
+        for(StreamClientsList_it(it, instance->clients); !StreamClientsList_end_p(it);
+            StreamClientsList_next(it)) {
+            StreamClientCtx* const* it_ptr = StreamClientsList_cref(it);
+            StreamClientCtx* client = *it_ptr;
             if(client->display_id == instance->display_id)
                 mg_wakeup(mgr, client->conn->id, NULL, 0);
         }
@@ -408,7 +406,7 @@ static int32_t api_streaming_frame_update_thread(void* context) {
 
 void* http_api_streaming_ws_alloc(void) {
     ApiStreamingCtx* instance = malloc(sizeof(ApiStreamingCtx));
-    WsClientsList_init(instance->clients);
+    StreamClientsList_init(instance->clients);
 
     ///TODO: Reduce amount of stack per this task
     instance->thread =
@@ -421,12 +419,13 @@ void* http_api_streaming_ws_alloc(void) {
 void http_api_streaming_ws_free(void* ctx) {
     furi_assert(ctx);
     ApiStreamingCtx* instance = ctx;
-    WsClientsList_clear(instance->clients);
+    StreamClientsList_clear(instance->clients);
     furi_thread_free(instance->thread);
     furi_mutex_free(instance->mutex);
     free(instance);
 }
 
+///TODO: Fix me
 bool http_api_streaming_single_frame_callback(
     struct mg_connection* conn,
     struct mg_http_message* msg,
