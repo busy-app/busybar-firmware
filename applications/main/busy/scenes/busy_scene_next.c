@@ -99,8 +99,10 @@ static bool busy_scene_next_on_event(const SceneManagerEvent* event, void* conte
 
         if(event->event == BusyCustomEventStartPressed) {
             if(data->front_anim) {
-                anim_image_set_range(
-                    data->front_anim, PRESS_ANIM_BEGIN, PRESS_ANIM_END, false, false);
+                with_gui(instance->gui, {
+                    anim_image_set_range(
+                        data->front_anim, PRESS_ANIM_BEGIN, PRESS_ANIM_END, false, false);
+                });
             }
 
         } else if(event->event == BusyCustomEventStartReleased) {
