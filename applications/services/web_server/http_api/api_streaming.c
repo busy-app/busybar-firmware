@@ -58,6 +58,26 @@ typedef struct {
     uint8_t* buffer;
 } ApiStreamingCtx;
 
+static void api_streaming_frame_update_thread_start(ApiStreamingCtx* instance) {
+    STREAM_LOG_D("Start thread");
+    instance->gui = furi_record_open(RECORD_GUI);
+
+    const size_t size = BUFFER_SIZE;
+    instance->buffer = malloc(size);
+    instance->stop = false;
+    furi_thread_start(instance->thread);
+}
+
+static void api_streaming_frame_update_thread_stop(ApiStreamingCtx* instance) {
+    STREAM_LOG_D("Stop thread");
+
+    instance->stop = true;
+    furi_thread_join(instance->thread);
+
+    furi_record_close(RECORD_GUI);
+    free(instance->buffer);
+}
+
 static WsClientCtx* api_streaming_get_client_by_id(
     ApiStreamingCtx* instance,
     const unsigned long client_id,
@@ -170,13 +190,7 @@ static void websocket_test_on_open(struct mg_connection* conn) {
     WsClientCtx* ws_client = api_streaming_client_alloc(conn);
 
     if(WsClientsList_empty_p(instance->clients)) {
-        STREAM_LOG_D("Start Thread");
-        instance->gui = furi_record_open(RECORD_GUI);
-
-        const size_t size = BUFFER_SIZE;
-        instance->buffer = malloc(size);
-        instance->stop = false;
-        furi_thread_start(instance->thread);
+        api_streaming_frame_update_thread_start(instance);
     }
 
     // Add connection to WebSocket clients list
@@ -204,12 +218,7 @@ static void websocket_test_on_close(struct mg_connection* conn) {
     }
 
     if(WsClientsList_empty_p(instance->clients)) {
-        STREAM_LOG_D("stop thread");
-        instance->stop = true;
-        furi_thread_join(instance->thread);
-
-        furi_record_close(RECORD_GUI);
-        free(instance->buffer);
+        api_streaming_frame_update_thread_stop(instance);
     }
 
     // Clear connection callbacks
@@ -354,7 +363,7 @@ static void api_streaming_update_display_id(ApiStreamingCtx* instance) {
     } while(false);
 }
 
-static int32_t streaming_frame_update_callback(void* context) {
+static int32_t api_streaming_frame_update_thread(void* context) {
     ApiStreamingCtx* instance = context;
 
     while(!instance->stop) {
@@ -398,7 +407,7 @@ void* http_api_streaming_ws_alloc(void) {
 
     ///TODO: Reduce amount of stack per this task
     instance->thread =
-        furi_thread_alloc_ex("WsFrameUpd", 1024U, streaming_frame_update_callback, instance);
+        furi_thread_alloc_ex("FrameUpd", 1024U, api_streaming_frame_update_thread, instance);
     instance->mutex = furi_mutex_alloc(FuriMutexTypeNormal);
 
     return instance;
