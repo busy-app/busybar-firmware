@@ -4,8 +4,8 @@ App(
     apptype=FlipperAppType.SERVICE,
     entry_point="storage_srv",
     stack_size=1024 * 8,
-    order=70,
-    provides=["storage_start"],
+    order=5,
+    provides=["storage_cli"],
     sources=[
         "filesystem_api.c",
         "storage_u5.c",
@@ -21,11 +21,12 @@ App(
 )
 
 App(
-    appid="storage_start",
-    apptype=FlipperAppType.STARTUP,
-    entry_point="storage_on_system_start",
+    appid="storage_cli",
+    name="storage",
+    apptype=FlipperAppType.CLICMD,
+    entry_point="storage_command",
     requires=["storage"],
-    order=90,
     targets=["f20", "f21"],
     sources=["storage_cli_u5.c"],
+    stack_size=1024 * 2,
 )

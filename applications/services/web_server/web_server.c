@@ -38,7 +38,7 @@ static const HttpHandler handlers_root[] = {
         .type = HttpHandlerDir,
         .path = WEB_ROOT,
         .mime_types_custom = NULL,
-        .extra_headers = NULL,
+        .extra_headers = HEADER_CORS,
     },
 };
 
@@ -229,7 +229,7 @@ int32_t web_srv_start(void* p) {
     // mg_log_set(MG_LL_VERBOSE);
     mg_log_set(MG_LL_INFO);
 
-    mg_mgr_init(&srv.mgr); // Inititialise event manager
+    mg_mgr_init(&srv.mgr); // Initialise event manager
     mg_wakeup_init(&srv.mgr);
 
     HttpHandlersList_init(srv.handlers);

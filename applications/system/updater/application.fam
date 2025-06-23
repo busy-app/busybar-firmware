@@ -1,0 +1,24 @@
+App(
+    appid="update_cli",
+    name="update",
+    apptype=FlipperAppType.CLICMD,
+    sources=["update_cli.c", "sl_updater.c", "fkermit.c"],
+    entry_point="update_cli_command",
+    requires=["storage"],
+    order=110,
+)
+
+App(
+    appid="updater",
+    name="UpdaterSvc",
+    apptype=FlipperAppType.SERVICE,
+    sources=["update_app.c", "worker/*.c", "sl_updater.c", "fkermit.c"],
+    entry_point="updater_srv",
+    requires=[
+        "gui",
+        "storage",
+    ],
+    stack_size=2 * 1024,
+    order=200,
+    targets=["f20", "f21"],
+)

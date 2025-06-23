@@ -2,12 +2,12 @@
 #include "wifi_cli_wifi_commands.h"
 
 #include <furi.h>
-#include <args.h>
+#include <cli/args.h>
 #include <strint.h>
 
-void wifi_cli_test_command_wifi_init(Cli* cli, FuriString* args, void* context) {
+void wifi_cli_test_command_wifi_init(PipeSide* pipe, FuriString* args, void* context) {
     UNUSED(context);
-    UNUSED(cli);
+    UNUSED(pipe);
     console_args_t arg = {.arg[0] = 2, .bitmap = 0x7f};
     if(furi_string_size(args)) {
         if(strint_to_uint32(furi_string_get_cstr(args), NULL, &arg.arg[0], 10) !=
@@ -24,9 +24,9 @@ void wifi_cli_test_command_wifi_init(Cli* cli, FuriString* args, void* context) 
     }
 }
 
-void wifi_cli_test_command_wifi_deinit(Cli* cli, FuriString* args, void* context) {
+void wifi_cli_test_command_wifi_deinit(PipeSide* pipe, FuriString* args, void* context) {
     UNUSED(context);
-    UNUSED(cli);
+    UNUSED(pipe);
     UNUSED(args);
 
     sl_status_t status = wifi_deinit_command_handler(NULL);
@@ -35,9 +35,9 @@ void wifi_cli_test_command_wifi_deinit(Cli* cli, FuriString* args, void* context
     }
 }
 
-void wifi_cli_test_command_wifi_scan(Cli* cli, FuriString* args, void* context) {
+void wifi_cli_test_command_wifi_scan(PipeSide* pipe, FuriString* args, void* context) {
     UNUSED(context);
-    UNUSED(cli);
+    UNUSED(pipe);
     UNUSED(args);
     if(furi_string_size(args)) {
         printf("wifi_cli_test wifi_scan not used arg\r\n");
@@ -60,7 +60,7 @@ static void wifi_cli_test_command_print_usage(void) {
     printf("\twifi_scan Start Wi-Fi scanning\r\n");
 }
 
-static void wifi_cli_test_command(Cli* cli, FuriString* args, void* context) {
+void wifi_cli_test_command(PipeSide* pipe, FuriString* args, void* context) {
     FuriString* cmd;
     cmd = furi_string_alloc();
 
@@ -71,15 +71,15 @@ static void wifi_cli_test_command(Cli* cli, FuriString* args, void* context) {
         }
 
         if(furi_string_cmp_str(cmd, "wifi_init") == 0) {
-            wifi_cli_test_command_wifi_init(cli, args, context);
+            wifi_cli_test_command_wifi_init(pipe, args, context);
             break;
         }
         if(furi_string_cmp_str(cmd, "wifi_deinit") == 0) {
-            wifi_cli_test_command_wifi_deinit(cli, args, context);
+            wifi_cli_test_command_wifi_deinit(pipe, args, context);
             break;
         }
         if(furi_string_cmp_str(cmd, "wifi_scan") == 0) {
-            wifi_cli_test_command_wifi_scan(cli, args, context);
+            wifi_cli_test_command_wifi_scan(pipe, args, context);
             break;
         }
 
@@ -87,16 +87,4 @@ static void wifi_cli_test_command(Cli* cli, FuriString* args, void* context) {
     } while(false);
 
     furi_string_free(cmd);
-}
-
-void wifi_cli_test_system_start(void) {
-#ifdef SRV_CLI
-    Cli* cli = furi_record_open(RECORD_CLI);
-
-    cli_add_command(cli, "wifi_cli_test", CliCommandFlagParallelSafe, wifi_cli_test_command, NULL);
-
-    furi_record_close(RECORD_CLI);
-#else
-    UNUSED(wifi_cli_test_command);
-#endif
 }

@@ -1,225 +1,7 @@
-#include "sockets.h"
-#include "sockets_common_i.h"
+#include "sockets_i.h"
 
-#include <furi.h>
-#include <intercom/intercom.h>
-
-#define SOCKET_COUNT (20)
-
-#define TAG "SocketSrv"
-
-typedef struct {
-    const SocketInfo* socket_info;
-    Socket* socket;
-} SocketSrvAllocMessage;
-
-typedef struct {
-    const uint8_t socket_id;
-} SocketSrvFreeMessage;
-
-typedef struct {
-    const uint8_t socket_id;
-    const SocketConnectionInfo* bind_info;
-} SocketSrvAcceptMessage;
-
-typedef struct {
-    const uint8_t socket_id;
-    const SocketConnectionInfo* connection_info;
-} SocketSrvConnectMessage;
-
-typedef struct {
-    const uint8_t socket_id;
-    const void* data;
-    const size_t data_size;
-    size_t* sent_size;
-} SocketSrvSendMessage;
-
-typedef struct {
-    SocketRequestType request_type;
-    SocketStatus status;
-    union {
-        SocketSrvAllocMessage alloc_message;
-        SocketSrvFreeMessage free_message;
-        SocketSrvAcceptMessage accept_message;
-        SocketSrvConnectMessage connect_message;
-        SocketSrvSendMessage send_message;
-    };
-} SocketSrvMessage;
-
-typedef enum {
-    SocketSrvEventRequest = 1UL << 0,
-    SocketSrvEventResponse = 1UL << 1,
-    SocketSrvEventAsyncResponse = 1UL << 2,
-} SocketSrvEvent;
-
-typedef enum {
-    SocketSrvFlagReady = 1UL << 0,
-    SocketSrvFlagDone = 1UL << 1,
-} SocketSrvFlag;
-
-struct Socket {
-    uint8_t id;
-    SocketSrv* owner;
-    SocketEventCallback event_callback;
-    void* callback_context;
-};
-
-struct SocketSrv {
-    FuriEventLoop* event_loop;
-    FuriEventFlag* event_flag;
-    Intercom* intercom;
-    SocketSrvMessage* message;
-    SocketRequest request;
-    SocketResponse response[SocketChannelMax];
-    Socket* sockets[SOCKET_COUNT];
-};
-
-static void sockets_intercom_rx_callback(const void* data, size_t data_size, void* context) {
-    furi_assert(context);
-    SocketSrv* instance = context;
-
-    const SocketResponse* response = data;
-    furi_assert(data_size == sockets_get_response_size(response));
-
-    const SocketResponseType response_type = response->type;
-    SocketResponse* dest_response;
-    uint32_t event;
-
-    if(response_type < SocketResponseTypeAsyncSend) {
-        dest_response = &instance->response[SocketChannelSync];
-        event = SocketSrvEventResponse;
-    } else if(response_type < SocketResponseTypeMax) {
-        dest_response = &instance->response[SocketChannelAsync];
-        event = SocketSrvEventAsyncResponse;
-    } else {
-        furi_crash("Invalid response type");
-    }
-
-    memcpy(dest_response, response, data_size);
-    furi_event_loop_set_custom_event(instance->event_loop, event);
-}
-
-static void sockets_send_message(SocketSrv* instance, SocketSrvMessage* message) {
-    uint32_t flags;
-    // Wait until the Sockets system becomes ready for the next request
-    flags = furi_event_flag_wait(
-        instance->event_flag, SocketSrvFlagReady, FuriFlagWaitAll, FuriWaitForever);
-    furi_check(flags & SocketSrvFlagReady);
-
-    instance->message = message;
-    furi_event_loop_set_custom_event(instance->event_loop, SocketSrvEventRequest);
-
-    // Wait until a response is received
-    flags = furi_event_flag_wait(
-        instance->event_flag, SocketSrvFlagDone, FuriFlagWaitAll, FuriWaitForever);
-    furi_check(flags & SocketSrvFlagDone);
-}
-
-Socket* socket_alloc(SocketSrv* instance, const SocketInfo* socket_info) {
-    furi_check(instance);
-    furi_check(socket_info);
-
-    SocketSrvMessage msg = {
-        .request_type = SocketRequestTypeAlloc,
-        .alloc_message =
-            {
-                .socket_info = socket_info,
-            },
-    };
-
-    sockets_send_message(instance, &msg);
-    return msg.alloc_message.socket;
-}
-
-SocketStatus socket_free(Socket* socket) {
-    furi_check(socket);
-
-    SocketSrv* instance = socket->owner;
-    furi_assert(instance);
-
-    SocketSrvMessage msg = {
-        .request_type = SocketRequestTypeFree,
-        .free_message =
-            {
-                .socket_id = socket->id,
-            },
-    };
-
-    sockets_send_message(instance, &msg);
-    return msg.status;
-}
-
-// FIXME: Not thread safe...ish
-SocketStatus
-    socket_set_event_callback(Socket* socket, SocketEventCallback callback, void* context) {
-    furi_check(socket);
-
-    socket->event_callback = callback;
-    socket->callback_context = context;
-
-    return SocketStatusOk;
-}
-
-SocketStatus socket_accept(Socket* socket, const SocketConnectionInfo* bind_info) {
-    furi_check(socket);
-    furi_check(bind_info);
-
-    SocketSrv* instance = socket->owner;
-    furi_assert(instance);
-
-    SocketSrvMessage msg = {
-        .request_type = SocketRequestTypeAccept,
-        .accept_message =
-            {
-                .socket_id = socket->id,
-                .bind_info = bind_info,
-            },
-    };
-
-    sockets_send_message(instance, &msg);
-    return msg.status;
-}
-
-SocketStatus socket_connect(Socket* socket, const SocketConnectionInfo* connection_info) {
-    furi_check(socket);
-    furi_check(connection_info);
-
-    SocketSrv* instance = socket->owner;
-    furi_assert(instance);
-
-    SocketSrvMessage msg = {
-        .request_type = SocketRequestTypeConnect,
-        .connect_message =
-            {
-                .socket_id = socket->id,
-                .connection_info = connection_info,
-            },
-    };
-
-    sockets_send_message(instance, &msg);
-    return msg.status;
-}
-
-SocketStatus socket_send(Socket* socket, const void* data, size_t data_size, size_t* sent_size) {
-    furi_check(socket);
-    furi_check(data);
-
-    SocketSrv* instance = socket->owner;
-    furi_assert(instance);
-
-    SocketSrvMessage msg = {
-        .request_type = SocketRequestTypeSend,
-        .send_message =
-            {
-                .socket_id = socket->id,
-                .data = data,
-                .data_size = data_size,
-                .sent_size = sent_size,
-            },
-    };
-
-    sockets_send_message(instance, &msg);
-    return msg.status;
+static inline SocketEventType sockets_match_response_type(SocketResponseType response_type) {
+    return (SocketEventType)(response_type - SocketResponseTypeAsyncReceive);
 }
 
 static inline void sockets_send_request(SocketSrv* instance, const SocketRequest* request) {
@@ -230,7 +12,7 @@ static inline void sockets_send_request(SocketSrv* instance, const SocketRequest
 }
 
 static void sockets_process_request(SocketSrv* instance) {
-    const SocketSrvMessage* message = instance->message;
+    const SocketSrvMessage* message = instance->current_message;
     const SocketRequestType request_type = message->request_type;
 
     SocketRequest* request = &instance->request;
@@ -248,12 +30,19 @@ static void sockets_process_request(SocketSrv* instance) {
 
         free_request->socket_id = free_message->socket_id;
 
-    } else if(request_type == SocketRequestTypeAccept) {
-        SocketAcceptRequest* accept_request = &request->accept_request;
-        const SocketSrvAcceptMessage* accept_message = &message->accept_message;
+    } else if(request_type == SocketRequestTypeBind) {
+        SocketBindRequest* bind_request = &request->bind_request;
+        const SocketSrvBindMessage* bind_message = &message->bind_message;
 
-        accept_request->socket_id = accept_message->socket_id;
-        accept_request->bind_info = *accept_message->bind_info;
+        bind_request->socket_id = bind_message->socket_id;
+        bind_request->bind_info = *bind_message->bind_info;
+
+    } else if(request_type == SocketRequestTypeListen) {
+        SocketListenRequest* listen_request = &request->listen_request;
+        const SocketSrvListenMessage* listen_message = &message->listen_message;
+
+        listen_request->socket_id = listen_message->socket_id;
+        listen_request->max_clients = listen_message->max_clients;
 
     } else if(request_type == SocketRequestTypeConnect) {
         SocketConnectRequest* connect_request = &request->connect_request;
@@ -272,22 +61,39 @@ static void sockets_process_request(SocketSrv* instance) {
         send_request->data_size = chunk_size;
         memcpy(send_request->data, send_message->data, chunk_size);
 
-    } else if(request_type >= SocketRequestTypeMax) {
+    } else if(request_type == SocketRequestTypeReceive) {
+        SocketReceiveRequest* receive_request = &request->receive_request;
+        const SocketSrvReceiveMessage* receive_message = &message->receive_message;
+
+        // TODO: Receive more than one chunk in one request?
+        const size_t chunk_size = MIN(receive_message->data_size, SOCKET_SEND_DATA_SIZE);
+
+        receive_request->socket_id = receive_message->socket_id;
+        receive_request->data_size = chunk_size;
+
+    } else {
         furi_crash("Invalid request type");
     }
 
     sockets_send_request(instance, request);
 }
 
-static Socket* sockets_alloc_socket(SocketSrv* instance, uint8_t socket_id) {
+static Socket* sockets_alloc_socket(
+    SocketSrv* instance,
+    uint8_t socket_id,
+    SocketEventCallback callback,
+    void* context) {
     furi_assert(socket_id < SOCKET_COUNT);
 
     Socket** socket_slot = &instance->sockets[socket_id];
     furi_check(*socket_slot == NULL);
 
     Socket* socket = malloc(sizeof(Socket));
+
     socket->id = socket_id;
     socket->owner = instance;
+    socket->event_callback = callback;
+    socket->callback_context = context;
 
     *socket_slot = socket;
     return socket;
@@ -304,9 +110,9 @@ static void sockets_free_socket(SocketSrv* instance, uint8_t socket_id) {
     *socket_slot = NULL;
 }
 
-static void sockets_process_response(SocketSrv* instance) {
-    SocketSrvMessage* message = instance->message;
-    const SocketResponse* response = &instance->response[SocketChannelSync];
+static void sockets_process_response(SocketSrv* instance, const SocketResponse* response) {
+    SocketSrvMessage* message = instance->current_message;
+    furi_assert(message);
 
     const SocketResponseType response_type = response->type;
     message->status = response->status;
@@ -315,7 +121,11 @@ static void sockets_process_response(SocketSrv* instance) {
         if(response_type == SocketResponseTypeAlloc) {
             SocketSrvAllocMessage* alloc_message = &message->alloc_message;
             const SocketAllocResponse* alloc_response = &response->alloc_response;
-            alloc_message->socket = sockets_alloc_socket(instance, alloc_response->socket_id);
+            alloc_message->socket = sockets_alloc_socket(
+                instance,
+                alloc_response->socket_id,
+                alloc_message->event_callback,
+                alloc_message->callback_context);
 
         } else if(response_type == SocketResponseTypeFree) {
             SocketSrvFreeMessage* free_message = &message->free_message;
@@ -328,14 +138,27 @@ static void sockets_process_response(SocketSrv* instance) {
             if(send_message->sent_size) {
                 *send_message->sent_size = send_response->sent_size;
             }
+
+        } else if(response_type == SocketResponseTypeReceive) {
+            SocketSrvReceiveMessage* receive_message = &message->receive_message;
+            const SocketReceiveResponse* receive_response = &response->receive_response;
+
+            memcpy(receive_message->data, receive_response->data, receive_response->data_size);
+
+            if(receive_message->received_size) {
+                *receive_message->received_size = receive_response->data_size;
+            }
+
+        } else {
+            /* Do nothing */
         }
     }
 
-    furi_event_flag_set(instance->event_flag, SocketSrvFlagReady | SocketSrvFlagDone);
+    api_lock_unlock(message->lock);
+    furi_check(furi_semaphore_release(instance->access_semaphore) == FuriStatusOk);
 }
 
-static void sockets_process_async_response(SocketSrv* instance) {
-    const SocketResponse* response = &instance->response[SocketChannelAsync];
+static void sockets_process_async_response(SocketSrv* instance, const SocketResponse* response) {
     const SocketResponseType response_type = response->type;
 
     const SocketAsyncResponse* async_response = &response->async_response;
@@ -346,46 +169,48 @@ static void sockets_process_async_response(SocketSrv* instance) {
     Socket* socket = instance->sockets[socket_id];
     furi_assert(socket);
 
-    SocketEvent event = {0};
+    SocketEvent event = {
+        .socket = socket,
+        .type = sockets_match_response_type(response_type),
+    };
 
-    if(response_type == SocketResponseTypeAsyncSend) {
-        const SocketSendAsyncResponse* send_async_response = &async_response->send_async_response;
-
-        event.type = SocketEventTypeSend;
-        event.send.data_size = send_async_response->sent_size;
-
-    } else if(response_type == SocketResponseTypeAsyncReceive) {
-        const SocketReceiveAsyncResponse* receive_async_response =
-            &async_response->receive_async_response;
-
-        event.type = SocketEventTypeReceive;
-        event.receive.data = receive_async_response->data;
-        event.receive.data_size = receive_async_response->data_size;
-
-    } else if(response_type == SocketResponseTypeAsyncAccept) {
+    if(response_type == SocketResponseTypeAsyncAccept) {
+        SocketAcceptEvent* accept_event = &event.accept;
         const SocketAcceptAsyncResponse* accept_async_response =
             &async_response->accept_async_response;
 
-        event.type = SocketEventTypeAccept;
-        event.accept.client_socket =
-            sockets_alloc_socket(instance, accept_async_response->client_socket_id);
-        event.accept.connection_info = accept_async_response->connection_info;
+        accept_event->client_socket = sockets_alloc_socket(
+            instance,
+            accept_async_response->client_socket_id,
+            socket->event_callback,
+            socket->callback_context);
+        accept_event->connection_info = accept_async_response->connection_info;
 
-    } else if(response_type == SocketResponseTypeAsyncClose) {
-        const SocketCloseAsyncResponse* close_async_response =
-            &async_response->close_async_response;
-
-        event.type = SocketEventTypeClose;
-        event.close.data_size = close_async_response->sent_size;
+    } else {
+        /* Do nothing*/
     }
 
     if(socket->event_callback) {
-        socket->event_callback(socket, &event, socket->callback_context);
+        socket->event_callback(&event, socket->callback_context);
     }
+}
 
-    static const uint8_t confirm_type = SocketRequestTypeAsyncConfirm;
-    // Safe, type length is exactly 1 byte. This is to avoid allocating additional storage.
-    sockets_send_request(instance, (SocketRequest*)&confirm_type);
+static void sockets_intercom_rx_callback(const void* data, size_t data_size, void* context) {
+    furi_assert(context);
+    SocketSrv* instance = context;
+
+    const SocketResponse* response = data;
+    furi_assert(data_size == sockets_get_response_size(response));
+
+    const SocketResponseType response_type = response->type;
+
+    if(response_type < SocketResponseTypeAsyncReceive) {
+        sockets_process_response(instance, response);
+    } else if(response_type < SocketResponseTypeMax) {
+        sockets_process_async_response(instance, response);
+    } else {
+        furi_crash("Invalid response type");
+    }
 }
 
 static void sockets_custom_event_callback(uint32_t events, void* context) {
@@ -395,19 +220,13 @@ static void sockets_custom_event_callback(uint32_t events, void* context) {
     if(events & SocketSrvEventRequest) {
         sockets_process_request(instance);
     }
-    if(events & SocketSrvEventResponse) {
-        sockets_process_response(instance);
-    }
-    if(events & SocketSrvEventAsyncResponse) {
-        sockets_process_async_response(instance);
-    }
 }
 
 SocketSrv* sockets_alloc(void) {
     SocketSrv* instance = malloc(sizeof(SocketSrv));
 
     instance->event_loop = furi_event_loop_alloc();
-    instance->event_flag = furi_event_flag_alloc();
+    instance->access_semaphore = furi_semaphore_alloc(1, 1);
     instance->intercom = furi_record_open(RECORD_INTERCOM);
 
     furi_event_loop_set_custom_event_callback(
@@ -416,8 +235,6 @@ SocketSrv* sockets_alloc(void) {
     intercom_set_rx_callback(
         instance->intercom, IntercomChannelSockets, sockets_intercom_rx_callback, instance);
 
-    // Start receiving requests
-    furi_event_flag_set(instance->event_flag, SocketSrvFlagReady);
     furi_record_create(RECORD_SOCKETS, instance);
 
     return instance;

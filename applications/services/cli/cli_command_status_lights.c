@@ -1,7 +1,8 @@
 #include "cli_command_status_lights.h"
 
 #include <furi/furi.h>
-#include <toolbox/args.h>
+#include <cli/args.h>
+#include <containers/pipe.h>
 #include <status_lights/status_lights.h>
 
 static void cli_command_status_lights_print_usage(void) {
@@ -9,8 +10,8 @@ static void cli_command_status_lights_print_usage(void) {
     printf("status_lights <0-255> <0-255> <0-255>\r\n");
 }
 
-void cli_command_status_lights(Cli* cli, FuriString* args, void* context) {
-    UNUSED(cli);
+void cli_command_status_lights(PipeSide* pipe, FuriString* args, void* context) {
+    UNUSED(pipe);
     UNUSED(context);
 
     int value[3] = {};

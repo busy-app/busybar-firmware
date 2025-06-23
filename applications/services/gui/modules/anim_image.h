@@ -92,6 +92,15 @@ void anim_image_start(AnimImage* instance);
 void anim_image_stop(AnimImage* instance);
 
 /**
+ * @brief Set the animation to the beginning of the current range.
+ *
+ * @note Rewinding will cancel a waiting range if one is present.
+ *
+ * @param[in,out] instance pointer to the AnimImage instance to be rewound
+ */
+void anim_image_rewind(AnimImage* instance);
+
+/**
  * @brief Get the frame rate of the animation.
  *
  * @param[in] instance pointer to the AnimImage instance to be queried

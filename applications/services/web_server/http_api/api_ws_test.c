@@ -1,5 +1,5 @@
 #include "http_api.h"
-#define TAG "WS_TEST"
+#define TAG "WsTest"
 
 typedef struct {
     struct mg_connection* conn;

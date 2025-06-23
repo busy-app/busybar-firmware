@@ -13,6 +13,8 @@
 
 #define TAG "Wifi"
 
+#define NUM_CONNECTION_ATTEMPTS (3)
+
 typedef enum {
     WifiEventRequest = 1UL << 0,
     WifiEventScanComplete = 1UL << 1,
@@ -121,6 +123,12 @@ static void wifi_connect_request_handler(Wifi* instance) {
         const WifiCredentials* credentials = &request->credentials;
         const WifiIpConfig* ip = &request->ip;
 
+        if(instance->state == WifiStateUp) {
+            status = SL_STATUS_SI91X_SCAN_ISSUED_IN_ASSOCIATED_STATE;
+            FURI_LOG_E(TAG, "Wifi already connected");
+            break;
+        }
+
         // Initialise client profile
         sl_net_wifi_client_profile_t profile = {
             .config =
@@ -134,6 +142,14 @@ static void wifi_connect_request_handler(Wifi* instance) {
                     .type = wifi_encode_ip_version(ip->type),
                 },
         };
+
+        if(ip->mgmt == WifiIpManagementStatic) {
+            static_assert(sizeof(sl_net_ipv4_setting_t) == sizeof(WifiIpv4Settings));
+            memcpy(&profile.ip.ip.v4, &ip->ip4, sizeof(WifiIpv4Settings));
+
+            static_assert(sizeof(sl_net_ipv6_setting_t) == sizeof(WifiIpv6Settings));
+            memcpy(&profile.ip.ip.v6, &ip->ip6, sizeof(WifiIpv6Settings));
+        }
 
         wifi_encode_ssid(&profile.config.ssid, credentials->ssid);
 
@@ -161,7 +177,18 @@ static void wifi_connect_request_handler(Wifi* instance) {
         }
 
         // Connect to the network
-        status = sl_net_up(SL_NET_WIFI_CLIENT_INTERFACE, SL_NET_DEFAULT_WIFI_CLIENT_PROFILE_ID);
+        for(uint32_t i = 0; i < NUM_CONNECTION_ATTEMPTS; ++i) {
+            status =
+                sl_net_up(SL_NET_WIFI_CLIENT_INTERFACE, SL_NET_DEFAULT_WIFI_CLIENT_PROFILE_ID);
+
+            if(status == SL_STATUS_OK) {
+                break;
+            }
+
+            if(i < NUM_CONNECTION_ATTEMPTS) {
+                furi_delay_ms(250);
+            }
+        }
 
         if(status != SL_STATUS_OK) {
             FURI_LOG_E(TAG, "Failed to bring Wifi interface UP: %lX", status);

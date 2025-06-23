@@ -8,7 +8,7 @@
 #include <stm32u5xx_ll_dcache.h>
 
 #define FURI_HAL_CORTEX_INSTRUCTIONS_PER_MICROSECOND (SystemCoreClock / 1000000)
-#define ROM_BASE_ADDR                                0x0BF90000
+#define DFU_ROM_BASE_ADDR                            0x0BF90000
 
 void furi_hal_cortex_init_early(void) {
     CoreDebug->DEMCR |= (CoreDebug_DEMCR_TRCENA_Msk | CoreDebug_DEMCR_MON_EN_Msk);
@@ -78,11 +78,22 @@ void furi_hal_cortex_switch(void* address) {
                  : "r3");
 }
 
-FURI_NORETURN void furi_hal_cortex_jump_to_dfu(void) {
+static inline uint32_t furi_hal_cortex_resolve_jump_address(FuriHalCortexJumpType jump_type) {
+    switch(jump_type) {
+    case FuriHalCortexJumpDFU:
+        return DFU_ROM_BASE_ADDR;
+    case FuriHalCortexJumpSRAM:
+        return SRAM1_BASE;
+    case FuriHalCortexJumpFlash:
+        return FLASH_BASE;
+    default:
+        furi_crash("Invalid parameter");
+    }
+}
+
+FURI_NORETURN void furi_hal_cortex_jump(FuriHalCortexJumpType jump_type) {
     // Disable all interrupts
     __disable_irq();
-
-    furi_hal_deinit_early();
 
     // Disable Systick timer
     SysTick->CTRL = 0;
@@ -103,11 +114,11 @@ FURI_NORETURN void furi_hal_cortex_jump_to_dfu(void) {
     LL_ICACHE_Invalidate();
     LL_ICACHE_Disable();
 
-    SCB->VTOR = ROM_BASE_ADDR;
+    SCB->VTOR = furi_hal_cortex_resolve_jump_address(jump_type);
+    furi_hal_cortex_switch((void*)SCB->VTOR);
 
-    furi_hal_cortex_switch((void*)ROM_BASE_ADDR);
-    while(1) {
-    }
+    furi_crash("Jump failed");
+    __builtin_unreachable();
 }
 
 // // Duck ST

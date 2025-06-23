@@ -19,4 +19,6 @@
 
 #define MG_MAX_RECV_SIZE (256 * 1024)
 
-#define MG_IO_SIZE 512 // TODO: increase to 1460 after SDMMC fix, may improve performance
+#define MG_IO_SIZE 1460
+
+// #define MG_ENABLE_TCPIP_PRINT_DEBUG_STATS 1

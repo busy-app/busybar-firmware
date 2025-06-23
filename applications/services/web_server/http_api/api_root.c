@@ -1,78 +1,6 @@
 #include "http_api.h"
 #include <version.h>
 
-typedef struct {
-    bool led_state;
-} ApiLedCtx;
-
-void* http_api_led_alloc(void) {
-    return malloc(sizeof(ApiLedCtx));
-}
-
-void http_api_led_free(void* ctx) {
-    free(ctx);
-}
-
-bool http_api_led_callback(
-    FuriString* path,
-    struct mg_connection* conn,
-    struct mg_http_message* msg,
-    void* ctx) {
-    if(!IS_HTTP_ENDPOINT(path)) return false;
-
-    ApiLedCtx* context = ctx;
-
-    bool success = false;
-
-    if(mg_match(msg->method, mg_str("GET"), NULL)) {
-        if(msg->query.len == 0) {
-            // Get current value
-            success = true;
-        } else {
-            // Set by query string
-            char led_state_str[2];
-            do {
-                int var_len =
-                    mg_http_get_var(&msg->query, "state", led_state_str, sizeof(led_state_str));
-                if(var_len != 1) {
-                    break;
-                }
-                if(led_state_str[0] == '0') {
-                    context->led_state = false;
-                } else if(led_state_str[0] == '1') {
-                    context->led_state = true;
-                } else {
-                    break;
-                }
-                success = true;
-            } while(0);
-        }
-    } else {
-        // Set by JSON post
-        do {
-            struct mg_str led_state_str = mg_json_get_tok(msg->body, "$.state");
-            if(led_state_str.len != 1) {
-                break;
-            }
-            if(led_state_str.buf[0] == '0') {
-                context->led_state = false;
-            } else if(led_state_str.buf[0] == '1') {
-                context->led_state = true;
-            } else {
-                break;
-            }
-            success = true;
-        } while(0);
-    }
-
-    if(success) {
-        MG_REPLY_OK_BODY(conn, "{\"result\":\"OK\",\"state\":%u}\n", context->led_state);
-    } else {
-        MG_REPLY_BAD_REQUEST(conn);
-    }
-    return success;
-}
-
 bool http_api_version_callback(
     FuriString* path,
     struct mg_connection* conn,
@@ -105,14 +33,6 @@ bool http_api_version_callback(
 
 static const HttpHandler handlers_api_root[] = {
     {
-        .uri = "led",
-        .method = "*",
-        .type = HttpHandlerCustom,
-        .ctx_alloc = http_api_led_alloc,
-        .ctx_free = http_api_led_free,
-        .on_request = http_api_led_callback,
-    },
-    {
         .uri = "version",
         .method = "GET",
         .type = HttpHandlerCustom,
@@ -126,6 +46,15 @@ static const HttpHandler handlers_api_root[] = {
         .ctx_free = http_api_assets_free,
         .on_request = http_api_assets_callback,
         .on_headers = http_api_assets_hdr_callback,
+    },
+    {
+        .uri = "storage",
+        .method = "*",
+        .type = HttpHandlerCustom,
+        .ctx_alloc = http_api_storage_alloc,
+        .ctx_free = http_api_storage_free,
+        .on_request = http_api_storage_callback,
+        .on_headers = http_api_storage_hdr_callback,
     },
     {
         .uri = "display",
@@ -148,6 +77,20 @@ static const HttpHandler handlers_api_root[] = {
         .method = "GET",
         .type = HttpHandlerCustom,
         .on_request = http_api_status_callback,
+    },
+    {
+        .uri = "wifi",
+        .method = "*",
+        .type = HttpHandlerCustom,
+        .ctx_alloc = http_api_wifi_alloc,
+        .ctx_free = http_api_wifi_free,
+        .on_request = http_api_wifi_callback,
+    },
+    {
+        .uri = "update",
+        .method = "POST",
+        .type = HttpHandlerCustom,
+        .on_headers = http_api_update_callback,
     },
 };
 
