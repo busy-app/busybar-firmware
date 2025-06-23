@@ -78,7 +78,7 @@ static void wifi_settings_serialize_credentials(cJSON* json, const WifiCredentia
     furi_assert(security_mode < WifiSecurityModeMax);
 
     if(security_mode != WifiSecurityModeOpen) {
-        cJSON_AddStringToObject(credentials_json, CREDENTIALS_SSID_KEY, credentials->passphrase);
+        cJSON_AddStringToObject(credentials_json, CREDENTIALS_PSK_KEY, credentials->passphrase);
     }
 
     const char* security_str = wifi_settings_security_str[security_mode];
