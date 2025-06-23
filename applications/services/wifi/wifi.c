@@ -160,14 +160,21 @@ static int32_t wifi_startup_thread_callback(void* arg) {
             break;
         }
 
-        FURI_LOG_I(TAG, "Enabled");
+        const char* ssid = settings->credentials.ssid;
+
+        if(strlen(ssid) == 0) {
+            FURI_LOG_W(TAG, "No SSID specified");
+            break;
+        }
+
+        FURI_LOG_I(TAG, "Connecting to \"%s\"", ssid);
 
         if(wifi_connect(instance, &settings->credentials, &settings->ip_config) != WifiStatusOk) {
             FURI_LOG_E(TAG, "Failed to connect");
             break;
         }
 
-        FURI_LOG_I(TAG, "Connected");
+        FURI_LOG_I(TAG, "Connected to \"%s\"", ssid);
 
     } while(false);
 
