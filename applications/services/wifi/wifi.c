@@ -12,7 +12,10 @@ static void wifi_intercom_rx_callback(const void* data, size_t data_size, void* 
     furi_event_loop_set_custom_event(instance->event_loop, WifiEventResponse);
 }
 
-static void wifi_process_request(WifiRequest* request, const WifiMessage* message) {
+static void wifi_process_request(Wifi* instance) {
+    const WifiMessage* message = instance->current_message;
+    WifiRequest* request = &instance->request;
+
     const WifiRequestType request_type = message->request_type;
     request->type = request_type;
 
@@ -23,14 +26,36 @@ static void wifi_process_request(WifiRequest* request, const WifiMessage* messag
         connect_request->credentials = *connect_message->credentials;
         connect_request->ip = *connect_message->ip_config;
     }
+
+    intercom_tx(
+        instance->intercom, IntercomChannelWifi, request, sizeof(WifiRequest), FuriWaitForever);
 }
 
-static void wifi_process_response(const WifiResponse* response, WifiMessage* message) {
+static void wifi_process_response(Wifi* instance) {
+    WifiMessage* message = instance->current_message;
+    const WifiResponse* response = &instance->response;
+
     const WifiRequestType request_type = message->request_type;
     const WifiStatus status = response->status;
 
     if(status == WifiStatusOk) {
-        if(request_type == WifiRequestTypeScan) {
+        if(request_type == WifiRequestTypeInit) {
+            WifiSettings* settings = &instance->settings;
+
+            if(!settings->enabled) {
+                instance->settings.enabled = true;
+                wifi_settings_save(settings);
+            }
+
+        } else if(request_type == WifiRequestTypeDeinit) {
+            WifiSettings* settings = &instance->settings;
+
+            if(settings->enabled) {
+                instance->settings.enabled = false;
+                wifi_settings_save(settings);
+            }
+
+        } else if(request_type == WifiRequestTypeScan) {
             const uint8_t results_count =
                 MIN(message->scan_message.max_count, response->scan_results.count);
 
@@ -40,6 +65,15 @@ static void wifi_process_response(const WifiResponse* response, WifiMessage* mes
             memcpy(results_out, results_in, results_count * sizeof(WifiScanResult));
             *message->scan_message.count = results_count;
 
+        } else if(request_type == WifiRequestTypeConnect) {
+            const WifiConnectMessage* connect_message = &message->connect_message;
+            WifiSettings* settings = &instance->settings;
+
+            settings->credentials = *connect_message->credentials;
+            settings->ip_config = *connect_message->ip_config;
+
+            wifi_settings_save(settings);
+
         } else if(request_type == WifiRequestTypeGetInfo) {
             *message->get_info_message.info = response->info;
         }
@@ -48,26 +82,17 @@ static void wifi_process_response(const WifiResponse* response, WifiMessage* mes
     message->status = status;
 
     api_lock_unlock(message->lock);
+    furi_semaphore_release(instance->access_semaphore);
 }
 
 static void wifi_custom_event_callback(uint32_t events, void* context) {
     furi_assert(context);
     Wifi* instance = context;
-    WifiMessage* message = instance->current_message;
 
     if(events == WifiEventRequest) {
-        WifiRequest* request = &instance->request;
-        wifi_process_request(request, message);
-
-        intercom_tx(
-            instance->intercom, IntercomChannelWifi, request, sizeof(WifiRequest), FuriWaitForever);
-
+        wifi_process_request(instance);
     } else if(events == WifiEventResponse) {
-        const WifiResponse* response = &instance->response;
-        wifi_process_response(response, message);
-
-        furi_semaphore_release(instance->access_semaphore);
-
+        wifi_process_response(instance);
     } else {
         furi_crash("Multiple Wifi events");
     }
