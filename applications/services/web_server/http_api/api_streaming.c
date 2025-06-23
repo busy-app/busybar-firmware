@@ -401,22 +401,27 @@ static int32_t api_streaming_frame_update_thread(void* context) {
         });
 
         const uint8_t blk_size = instance->display_id == GuiDisplayIdFront ? 3 : 2;
-        instance->frame_size = rle_compress(
+        bool compress_result = rle_compress(
             instance->raw_buffer,
             frame_size,
             instance->compressed_buffer,
             COMPRESSED_BUFFER_SIZE,
-            blk_size);
+            blk_size,
+            &instance->frame_size);
         furi_mutex_release(instance->mutex);
 
-        struct mg_mgr* mgr = web_srv_get_mgr();
-        StreamClientsList_it_t it;
-        for(StreamClientsList_it(it, instance->clients); !StreamClientsList_end_p(it);
-            StreamClientsList_next(it)) {
-            StreamClientCtx* const* it_ptr = StreamClientsList_cref(it);
-            StreamClientCtx* client = *it_ptr;
-            if(client->display_id == instance->display_id)
-                mg_wakeup(mgr, client->conn->id, NULL, 0);
+        if(compress_result) {
+            struct mg_mgr* mgr = web_srv_get_mgr();
+            StreamClientsList_it_t it;
+            for(StreamClientsList_it(it, instance->clients); !StreamClientsList_end_p(it);
+                StreamClientsList_next(it)) {
+                StreamClientCtx* const* it_ptr = StreamClientsList_cref(it);
+                StreamClientCtx* client = *it_ptr;
+                if(client->display_id == instance->display_id)
+                    mg_wakeup(mgr, client->conn->id, NULL, 0);
+            }
+        } else {
+            STREAM_LOG_W("Compression failed");
         }
 
         furi_delay_ms(FRAME_THREAD_PERIOD_MS);

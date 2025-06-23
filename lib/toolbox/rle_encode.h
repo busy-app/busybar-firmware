@@ -11,12 +11,14 @@
  * @param[in,out]  dest      Pointer to destination buffer
  * @param[in]  dest_len      Total length of dest buffer. Attention! Size of dest buffer must exceed size of src buffer.
  * @param[in]  blk_size      Size of block RLE checks to consider whether it is equal to the next or not.
+ * @param[out] result_len    Actual dest buffer data size.
  *
- * @return Actual dest buffer data size.
+ * @return True if compression finished successfully, otherwise false
  */
-size_t rle_compress(
+bool rle_compress(
     const uint8_t* src,
     size_t src_len,
     uint8_t* dest,
     size_t dest_len,
-    uint8_t blk_size);
+    size_t blk_size,
+    size_t* result_len);

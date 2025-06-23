@@ -47,12 +47,13 @@ static inline size_t
     return nonrepeat_count;
 }
 
-size_t rle_compress(
+bool rle_compress(
     const uint8_t* src,
     size_t src_len,
     uint8_t* dest,
     size_t dest_len,
-    uint8_t blk_size) {
+    size_t blk_size,
+    size_t* result_len) {
     furi_assert(src);
     furi_assert(dest);
     furi_assert(dest_len > src_len);
@@ -62,6 +63,7 @@ size_t rle_compress(
 
     // const uint8_t threshold = 16;
     const uint8_t threshold = 3;
+    bool error = false;
     while(index < src_len) {
         size_t remaining = src_len - index;
         size_t repeat_count = get_repeat_count(src + index, remaining, blk_size);
@@ -73,12 +75,23 @@ size_t rle_compress(
                 get_nonrepeat_count(src + index, remaining, blk_size, threshold);
             uint8_t ctrl_byte = (uint8_t)(non_repeat_count | 0x80);
 
+            size_t byte_size = non_repeat_count * blk_size;
+            if(dest_index + byte_size + 1 >= dest_len) {
+                error = true;
+                break;
+            }
+
             dest[dest_index++] = ctrl_byte;
-            memcpy(dest + dest_index, src + index, non_repeat_count * blk_size);
-            dest_index += non_repeat_count * blk_size;
-            index += non_repeat_count * blk_size;
+            memcpy(dest + dest_index, src + index, byte_size);
+            dest_index += byte_size;
+            index += byte_size;
         } else {
             uint8_t ctrl_byte = (uint8_t)repeat_count;
+
+            if(dest_index + blk_size + 1 >= dest_len) {
+                error = true;
+                break;
+            }
 
             dest[dest_index++] = ctrl_byte;
             memcpy(dest + dest_index, src + index, blk_size);
@@ -87,5 +100,6 @@ size_t rle_compress(
         }
     }
 
-    return dest_index;
+    *result_len = error ? 0 : dest_index;
+    return !error;
 }
