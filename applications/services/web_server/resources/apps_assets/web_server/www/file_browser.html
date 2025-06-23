@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>File Browser</title>
+    <link rel="stylesheet" href="common.css">
+</head>
+
+<body>
+    <div class="container">
+        <h1>File Browser</h1>
+        <div class="breadcrumb" id="breadcrumb"></div>
+        <ul class="file-list" id="fileList"></ul>
+        <div style="margin: 10px 0;">
+            <button id="deleteSelectedBtn" disabled>Delete Selected</button>
+            <button id="downloadSelectedBtn" disabled>Download Selected</button>
+        </div>
+        <div class="upload-area" id="uploadArea">
+            Drag & drop files here to upload
+        </div>
+        <div id="status" class="status" style="display:none;"></div>
+    </div>
+    <script>
+        const fileList = document.getElementById('fileList');
+        const uploadArea = document.getElementById('uploadArea');
+        const statusDiv = document.getElementById('status');
+        const breadcrumb = document.getElementById('breadcrumb');
+        let currentPath = '/ext';
+
+        // On page load, set currentPath from location.hash if present
+        function getHashPath() {
+            if (window.location.hash && window.location.hash.startsWith('#')) {
+                // Remove leading # and decode
+                let hashPath = decodeURIComponent(window.location.hash.slice(1));
+                if (hashPath.startsWith('/ext')) {
+                    return hashPath;
+                }
+            }
+            return '/ext';
+        }
+        currentPath = getHashPath();
+
+        function setPathAndHash(newPath) {
+            // Prevent navigating above /ext
+            if (!newPath.startsWith('/ext')) newPath = '/ext';
+            currentPath = newPath.replace(/\/+/g, '/');
+            window.location.hash = encodeURIComponent(currentPath);
+        }
+
+        function formatSize(bytes) {
+            if (bytes < 1024) return bytes + ' B';
+            if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB';
+            return (bytes / (1024 * 1024)).toFixed(2) + ' MB';
+        }
+
+        function showStatus(msg, type) {
+            statusDiv.textContent = msg;
+            statusDiv.className = 'status ' + type;
+            statusDiv.style.display = 'block';
+            setTimeout(() => { statusDiv.style.display = 'none'; }, 4000);
+        }
+
+        function updateBreadcrumb() {
+            const parts = currentPath.split('/').filter(Boolean);
+            let path = '';
+            breadcrumb.innerHTML = '';
+            // Always start with /ext
+            breadcrumb.innerHTML += '<a href="#" data-path="/ext">/ext</a>';
+            for (let i = 1; i < parts.length; ++i) {
+                path += '/' + parts[i];
+                breadcrumb.innerHTML += '<span class="breadcrumb-sep">›</span>';
+                breadcrumb.innerHTML += '<a href="#" data-path="' + path + '">' + parts[i] + '</a>';
+            }
+            Array.from(breadcrumb.querySelectorAll('a')).forEach(a => {
+                a.onclick = (e) => {
+                    e.preventDefault();
+                    setPathAndHash(a.getAttribute('data-path') || '/ext');
+                    loadFiles();
+                };
+            });
+        }
+
+        async function loadFiles() {
+            fileList.innerHTML = '<li>Loading...</li>';
+            updateBreadcrumb();
+            try {
+                const resp = await fetch(`/api/v0/storage/list?path=${encodeURIComponent(currentPath)}`);
+                if (!resp.ok) throw new Error('Failed to list files');
+                const data = await resp.json();
+                fileList.innerHTML = '';
+                // Add .. element if not at /ext
+                if (currentPath !== '/ext') {
+                    const upPath = currentPath.replace(/\/+$/, '').replace(/\/[^\/]+$/, '') || '/ext';
+                    const upLi = document.createElement('li');
+                    upLi.innerHTML = '<span class="file-type">⬆️</span> <span class="file-name"><a href="#" class="up-link">..</a></span>';
+                    upLi.querySelector('.up-link').onclick = (e) => {
+                        e.preventDefault();
+                        setPathAndHash(upPath);
+                        loadFiles();
+                    };
+                    fileList.appendChild(upLi);
+                }
+                if (!data.list || !data.list.length) {
+                    fileList.innerHTML += '<li style="color:#888;">(Empty directory)</li>';
+                    return;
+                }
+                // Sort: folders first, then files (alphabetically)
+                const sorted = data.list.slice().sort((a, b) => {
+                    if (a.type === b.type) return a.name.localeCompare(b.name);
+                    return a.type === 'dir' ? -1 : 1;
+                });
+                sorted.forEach(item => {
+                    const li = document.createElement('li');
+                    const typeIcon = item.type === 'dir' ? '📁' : '📄';
+                    if (item.type === 'dir') {
+                        li.innerHTML = `<input type="checkbox" class="select-checkbox" data-name="${item.name}" data-type="dir" disabled> <span class="file-type">${typeIcon}</span> <span class="file-name"><a href="#" class="folder-link">${item.name}</a></span>`;
+                    } else {
+                        li.innerHTML = `<input type="checkbox" class="select-checkbox" data-name="${item.name}" data-type="file"> <span class="file-type">${typeIcon}</span> <span class="file-name"><a href="#" class="file-link">${item.name}</a></span>`;
+                    }
+                    if (item.type === 'file' && item.size !== undefined) {
+                        li.innerHTML += `<span class="file-size">${formatSize(item.size)}</span>`;
+                    }
+                    fileList.appendChild(li);
+                });
+                // Add click handlers for folder and file links
+                fileList.querySelectorAll('.folder-link').forEach(link => {
+                    link.onclick = (e) => {
+                        e.preventDefault();
+                        const folder = link.textContent;
+                        if (folder === '..') return; // Prevent '..' from being appended
+                        setPathAndHash((currentPath + '/' + folder).replace(/\/+/g, '/'));
+                        loadFiles();
+                    };
+                });
+                fileList.querySelectorAll('.file-link').forEach(link => {
+                    link.onclick = (e) => {
+                        e.preventDefault();
+                        const filename = link.textContent;
+                        downloadFile(filename);
+                    };
+                });
+                // Enable/disable action buttons based on selection
+                updateActionButtons();
+                fileList.querySelectorAll('.select-checkbox').forEach(cb => {
+                    cb.onchange = updateActionButtons;
+                });
+            } catch (e) {
+                fileList.innerHTML = '<li style="color:#c00;">Error loading files</li>';
+                showStatus('Error: ' + e.message, 'error');
+            }
+        }
+
+        async function downloadFile(filename) {
+            showStatus('Starting download for ' + filename + '...', 'success');
+            const path = (currentPath + '/' + filename).replace(/\/+/g, '/');
+            try {
+                const resp = await fetch(`/api/v0/storage/read?path=${encodeURIComponent(path)}`);
+                if (!resp.ok) throw new Error('Download failed');
+                const blob = await resp.blob();
+                const url = window.URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = filename;
+                document.body.appendChild(a);
+                a.click();
+                a.remove();
+                window.URL.revokeObjectURL(url);
+                showStatus('Downloaded ' + filename, 'success');
+            } catch (e) {
+                showStatus('Download error: ' + e.message, 'error');
+            }
+        }
+
+        function updateActionButtons() {
+            const checkboxes = fileList.querySelectorAll('.select-checkbox[type="checkbox"][data-type="file"]');
+            const anyChecked = Array.from(checkboxes).some(cb => cb.checked);
+            document.getElementById('deleteSelectedBtn').disabled = !anyChecked;
+            document.getElementById('downloadSelectedBtn').disabled = !anyChecked;
+        }
+
+        document.getElementById('deleteSelectedBtn').onclick = async function () {
+            const checkboxes = fileList.querySelectorAll('.select-checkbox[type="checkbox"][data-type="file"]:checked');
+            if (!checkboxes.length) return;
+            if (!confirm(`Delete ${checkboxes.length} file(s)?`)) return;
+            for (const cb of checkboxes) {
+                const filename = cb.getAttribute('data-name');
+                await deleteFile(filename);
+            }
+            loadFiles();
+        };
+
+        document.getElementById('downloadSelectedBtn').onclick = async function () {
+            const checkboxes = fileList.querySelectorAll('.select-checkbox[type="checkbox"][data-type="file"]:checked');
+            if (!checkboxes.length) return;
+            for (const cb of checkboxes) {
+                const filename = cb.getAttribute('data-name');
+                await downloadFile(filename);
+            }
+        };
+
+        async function deleteFile(filename) {
+            const path = (currentPath + '/' + filename).replace(/\/+/g, '/');
+            try {
+                const resp = await fetch(`/api/v0/storage/remove?path=${encodeURIComponent(path)}`, { method: 'DELETE' });
+                if (!resp.ok) {
+                    const err = await resp.json().catch(() => ({}));
+                    throw new Error(err.error || 'Delete failed');
+                }
+                showStatus('Deleted ' + filename, 'success');
+            } catch (e) {
+                showStatus('Delete error: ' + e.message, 'error');
+            }
+        }
+
+        uploadArea.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            uploadArea.classList.add('dragover');
+        });
+        uploadArea.addEventListener('dragleave', (e) => {
+            e.preventDefault();
+            uploadArea.classList.remove('dragover');
+        });
+        uploadArea.addEventListener('drop', async (e) => {
+            e.preventDefault();
+            uploadArea.classList.remove('dragover');
+            const files = Array.from(e.dataTransfer.files);
+            if (!files.length) return;
+            for (const file of files) {
+                await uploadFile(file);
+            }
+            loadFiles();
+        });
+
+        async function uploadFile(file) {
+            const path = (currentPath + '/' + file.name).replace(/\/+/g, '/');
+            showStatus('Uploading ' + file.name + '...', 'success');
+            try {
+                const resp = await fetch(`/api/v0/storage/write?path=${encodeURIComponent(path)}`, {
+                    method: 'POST',
+                    body: file,
+                    headers: { 'Content-Type': 'application/octet-stream' }
+                });
+                if (!resp.ok) {
+                    const err = await resp.json().catch(() => ({}));
+                    throw new Error(err.error || 'Upload failed');
+                }
+                showStatus('Uploaded ' + file.name, 'success');
+            } catch (e) {
+                showStatus('Upload error: ' + e.message, 'error');
+            }
+        }
+
+        // On hash change (user presses back/forward or edits URL), update currentPath and reload
+        window.addEventListener('hashchange', () => {
+            currentPath = getHashPath();
+            loadFiles();
+        });
+
+        // Initial load
+        window.addEventListener('DOMContentLoaded', () => {
+            currentPath = getHashPath();
+            loadFiles();
+        });
+    </script>
+</body>
+
+</html>
