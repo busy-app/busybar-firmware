@@ -17,6 +17,15 @@ bool http_api_assets_hdr_callback(
     struct mg_http_message* msg,
     void* ctx);
 
+// Storage
+void* http_api_storage_alloc(void);
+void http_api_storage_free(void* ctx);
+bool http_api_storage_callback(struct mg_connection* conn, struct mg_http_message* msg, void* ctx);
+bool http_api_storage_hdr_callback(
+    struct mg_connection* conn,
+    struct mg_http_message* msg,
+    void* ctx);
+
 // Display
 void* http_api_display_alloc(void);
 void http_api_display_free(void* ctx);
