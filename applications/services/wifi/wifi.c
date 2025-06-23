@@ -71,6 +71,50 @@ static void wifi_custom_event_callback(uint32_t events, void* context) {
     }
 }
 
+static int32_t wifi_startup_thread_callback(void* arg) {
+    furi_assert(arg);
+    Wifi* instance = arg;
+
+    do {
+        WifiSettings* settings = &instance->settings;
+
+        if(!wifi_settings_load(settings)) {
+            FURI_LOG_W(TAG, "Failed to load settings, using defaults");
+
+            wifi_settings_init_defaults(settings);
+            wifi_settings_save(settings);
+            break;
+        }
+
+        if(!settings->enabled) {
+            break;
+        }
+
+        WifiStatus status;
+
+        status = wifi_init(instance);
+
+        if(status != WifiStatusOk) {
+            break;
+        }
+
+        FURI_LOG_D(TAG, "Enabled");
+
+        status = wifi_connect(instance, &settings->credentials, &settings->ip_config);
+
+        if(status != WifiStatusOk) {
+            break;
+        }
+
+        FURI_LOG_D(TAG, "Connected");
+
+    } while(false);
+
+    furi_record_create(RECORD_WIFI, instance);
+
+    return 0;
+}
+
 static Wifi* wifi_alloc(void) {
     Wifi* instance = malloc(sizeof(Wifi));
 
@@ -84,7 +128,11 @@ static Wifi* wifi_alloc(void) {
     intercom_set_rx_callback(
         instance->intercom, IntercomChannelWifi, wifi_intercom_rx_callback, instance);
 
-    furi_record_create(RECORD_WIFI, instance);
+    FuriThread* startup_thread =
+        furi_thread_alloc_ex("WifiStartup", 1024 + 512, wifi_startup_thread_callback, instance);
+    furi_thread_start(startup_thread);
+
+    // TODO: delete the thread somehow
 
     return instance;
 }

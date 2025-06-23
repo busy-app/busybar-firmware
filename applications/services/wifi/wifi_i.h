@@ -9,6 +9,8 @@
 
 #include <intercom/intercom.h>
 
+#define TAG "WifiSrv"
+
 typedef enum {
     WifiEventRequest = 1UL << 0,
     WifiEventResponse = 1UL << 1,
