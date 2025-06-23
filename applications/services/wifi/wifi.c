@@ -12,6 +12,42 @@ static void wifi_intercom_rx_callback(const void* data, size_t data_size, void* 
     furi_event_loop_set_custom_event(instance->event_loop, WifiEventResponse);
 }
 
+static void wifi_update_enabled(Wifi* instance, bool enabled) {
+    if(instance->settings_applied) {
+        WifiSettings* settings = &instance->settings;
+
+        if(settings->enabled != enabled) {
+            settings->enabled = enabled;
+            wifi_settings_save(settings);
+        }
+    }
+}
+
+static void wifi_update_connection_params(
+    Wifi* instance,
+    const WifiCredentials* credentials,
+    const WifiIpConfig* ip_config) {
+    if(instance->settings_applied) {
+        WifiSettings* settings = &instance->settings;
+
+        bool save_file = false;
+
+        if(memcmp(&settings->credentials, credentials, sizeof(WifiCredentials)) != 0) {
+            settings->credentials = *credentials;
+            save_file = true;
+        }
+
+        if(memcmp(&settings->ip_config, ip_config, sizeof(WifiIpConfig)) != 0) {
+            settings->ip_config = *ip_config;
+            save_file = true;
+        }
+
+        if(save_file) {
+            wifi_settings_save(settings);
+        }
+    }
+}
+
 static void wifi_process_request(Wifi* instance) {
     const WifiMessage* message = instance->current_message;
     WifiRequest* request = &instance->request;
@@ -36,24 +72,16 @@ static void wifi_process_response(Wifi* instance) {
     const WifiResponse* response = &instance->response;
 
     const WifiRequestType request_type = message->request_type;
+    furi_assert(request_type == response->type);
+
     const WifiStatus status = response->status;
 
     if(status == WifiStatusOk) {
         if(request_type == WifiRequestTypeInit) {
-            WifiSettings* settings = &instance->settings;
-
-            if(!settings->enabled) {
-                instance->settings.enabled = true;
-                wifi_settings_save(settings);
-            }
+            wifi_update_enabled(instance, true);
 
         } else if(request_type == WifiRequestTypeDeinit) {
-            WifiSettings* settings = &instance->settings;
-
-            if(settings->enabled) {
-                instance->settings.enabled = false;
-                wifi_settings_save(settings);
-            }
+            wifi_update_enabled(instance, false);
 
         } else if(request_type == WifiRequestTypeScan) {
             const uint8_t results_count =
@@ -67,12 +95,8 @@ static void wifi_process_response(Wifi* instance) {
 
         } else if(request_type == WifiRequestTypeConnect) {
             const WifiConnectMessage* connect_message = &message->connect_message;
-            WifiSettings* settings = &instance->settings;
-
-            settings->credentials = *connect_message->credentials;
-            settings->ip_config = *connect_message->ip_config;
-
-            wifi_settings_save(settings);
+            wifi_update_connection_params(
+                instance, connect_message->credentials, connect_message->ip_config);
 
         } else if(request_type == WifiRequestTypeGetInfo) {
             *message->get_info_message.info = response->info;
@@ -113,30 +137,41 @@ static int32_t wifi_startup_thread_callback(void* arg) {
             break;
         }
 
+        WifiInfo info;
+        if(wifi_get_info(instance, &info) != WifiStatusOk) {
+            FURI_LOG_E(TAG, "Failed to get info");
+            break;
+        }
+
+        if(info.state != WifiStateDeinit) {
+            if(wifi_deinit(instance) != WifiStatusOk) {
+                FURI_LOG_E(TAG, "Failed to deinit");
+                break;
+            }
+        }
+
         if(!settings->enabled) {
+            FURI_LOG_I(TAG, "Disabled in settings");
             break;
         }
 
-        WifiStatus status;
-
-        status = wifi_init(instance);
-
-        if(status != WifiStatusOk) {
+        if(wifi_init(instance) != WifiStatusOk) {
+            FURI_LOG_E(TAG, "Failed to init");
             break;
         }
 
-        FURI_LOG_D(TAG, "Enabled");
+        FURI_LOG_I(TAG, "Enabled");
 
-        status = wifi_connect(instance, &settings->credentials, &settings->ip_config);
-
-        if(status != WifiStatusOk) {
+        if(wifi_connect(instance, &settings->credentials, &settings->ip_config) != WifiStatusOk) {
+            FURI_LOG_E(TAG, "Failed to connect");
             break;
         }
 
-        FURI_LOG_D(TAG, "Connected");
+        FURI_LOG_I(TAG, "Connected");
 
     } while(false);
 
+    instance->settings_applied = true;
     furi_record_create(RECORD_WIFI, instance);
 
     return 0;

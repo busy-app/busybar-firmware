@@ -50,4 +50,5 @@ struct Wifi {
     WifiRequest request;
     WifiResponse response;
     WifiSettings settings;
+    bool settings_applied;
 };
