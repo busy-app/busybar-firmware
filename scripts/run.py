@@ -97,7 +97,7 @@ def run_build_all(args):
     return ret
 
 def run_build_u5(args):
-    cmd = f"./fbt TARGET_HW={U5_TARGET_HW}"
+    cmd = f"./fbt TARGET_HW={U5_TARGET_HW}  updater_bin firmware_dfu resources"
     if args.verbose:
         print("Running:", cmd)
     ret = os.system(cmd)
@@ -112,6 +112,19 @@ def run_build_si(args):
     ret = os.system(cmd)
     if ret != 0:
         print("Build failed for SI917 target with return code:", ret)
+    return ret
+
+def run_build_update_bundle(args):
+    upd_bundle_dir = "upd_bundle"
+    upd_bundle_tar = "upd_bundle.tar"
+    cmd_bundle = f"./scripts/update_bundle.py --target 20 --output {upd_bundle_dir} --stage fbt_layers/fbtng/build/f20-updater-D/updater.bin --dfu fbt_layers/fbtng/build/f20-firmware-D/firmware.dfu --sil-fw  fbt_layers/fbtng/build/f64-firmware-D/firmware.rps --resources fbt_layers/fbtng/build/f20-firmware-D/resources --sil-radio-fw ./lib/wiseconnect/connectivity_firmware/standard/SiWG917-B.2.13.4.1.0.4.rps"
+    cmd_bundle_tar = f"./scripts/update_bundle.py --target 20 --output-tar {upd_bundle_tar} --stage fbt_layers/fbtng/build/f20-updater-D/updater.bin --dfu fbt_layers/fbtng/build/f20-firmware-D/firmware.dfu --sil-fw  fbt_layers/fbtng/build/f64-firmware-D/firmware.rps --resources fbt_layers/fbtng/build/f20-firmware-D/resources --sil-radio-fw ./lib/wiseconnect/connectivity_firmware/standard/SiWG917-B.2.13.4.1.0.4.rps"
+
+    if args.verbose:
+        print("Running:", cmd_bundle)
+    ret = os.system(cmd_bundle)
+    if ret != 0:
+        print("Update bundle build failed with return code:", ret)
     return ret
 
 def main():
@@ -134,7 +147,7 @@ def main():
 
 
     p_build_all = subparsers.add_parser(
-        "build", help="Build all firmware"
+        "build", help="Build all firmwares"
     )
     p_build_all.set_defaults(func=run_build_all)
 
@@ -147,6 +160,11 @@ def main():
         "build-si", help="Build SI917 firmware"
     )
     p_build_si.set_defaults(func=run_build_si)
+
+    p_build_update_bundle = subparsers.add_parser(
+        "build-update-bundle", help="Build update bundle"
+    )
+    p_build_update_bundle.set_defaults(func=run_build_update_bundle)
 
     args = parser.parse_args()
 
@@ -172,3 +190,5 @@ if __name__ == "__main__":
     except Exception as e:
         print(f"Run: Error: {e}", file=sys.stderr)
         sys.exit(3)
+
+# https://flipperzero.atlassian.net/wiki/spaces/BL/pages/29465640962/Firmware+update
