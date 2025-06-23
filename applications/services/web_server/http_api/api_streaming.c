@@ -430,7 +430,6 @@ void* http_api_streaming_ws_alloc(void) {
     ApiStreamingCtx* instance = malloc(sizeof(ApiStreamingCtx));
     StreamClientsList_init(instance->clients);
 
-    ///TODO: Reduce amount of stack per this task
     instance->thread =
         furi_thread_alloc_ex("FrameUpd", 1024U, api_streaming_frame_update_thread, instance);
     instance->mutex = furi_mutex_alloc(FuriMutexTypeNormal);
