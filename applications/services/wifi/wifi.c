@@ -1,5 +1,7 @@
 #include "wifi_i.h"
 
+#define STARTUP_THREAD_STACK_SIZE (1536UL)
+
 static void wifi_intercom_rx_callback(const void* data, size_t data_size, void* context) {
     furi_assert(data_size == sizeof(WifiResponse));
     furi_assert(context);
@@ -115,6 +117,16 @@ static int32_t wifi_startup_thread_callback(void* arg) {
     return 0;
 }
 
+static void
+    wifi_startup_thread_state_callback(FuriThread* thread, FuriThreadState state, void* context) {
+    furi_assert(thread);
+    UNUSED(context);
+
+    if(state == FuriThreadStateStopped) {
+        furi_thread_free(thread);
+    }
+}
+
 static Wifi* wifi_alloc(void) {
     Wifi* instance = malloc(sizeof(Wifi));
 
@@ -128,11 +140,11 @@ static Wifi* wifi_alloc(void) {
     intercom_set_rx_callback(
         instance->intercom, IntercomChannelWifi, wifi_intercom_rx_callback, instance);
 
-    FuriThread* startup_thread =
-        furi_thread_alloc_ex("WifiStartup", 1024 + 512, wifi_startup_thread_callback, instance);
-    furi_thread_start(startup_thread);
+    FuriThread* startup_thread = furi_thread_alloc_ex(
+        "WifiStartup", STARTUP_THREAD_STACK_SIZE, wifi_startup_thread_callback, instance);
 
-    // TODO: delete the thread somehow
+    furi_thread_set_state_callback(startup_thread, wifi_startup_thread_state_callback);
+    furi_thread_start(startup_thread);
 
     return instance;
 }
