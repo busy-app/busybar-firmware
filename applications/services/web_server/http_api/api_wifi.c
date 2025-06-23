@@ -118,11 +118,14 @@ static bool aip_wifi_parse_ip_type(FuriString* ip_type_str, WifiIpType* ip_type)
 }
 
 static bool api_wifi_get_networks_callback(
+    FuriString* path,
     struct mg_connection* conn,
     struct mg_http_message* msg,
     void* ctx) {
     UNUSED(ctx);
     UNUSED(msg);
+
+    if(!IS_HTTP_ENDPOINT(path)) return false;
 
     Wifi* wifi = furi_record_open(RECORD_WIFI);
     WifiScanResult* results = malloc(sizeof(WifiScanResult) * WIFI_SCAN_RESULT_COUNT);
@@ -357,9 +360,14 @@ static bool api_wifi_connect_parse_config(
     return parse_result;
 }
 
-static bool
-    api_wifi_connect_callback(struct mg_connection* conn, struct mg_http_message* msg, void* ctx) {
+static bool api_wifi_connect_callback(
+    FuriString* path,
+    struct mg_connection* conn,
+    struct mg_http_message* msg,
+    void* ctx) {
     UNUSED(ctx);
+
+    if(!IS_HTTP_ENDPOINT(path)) return false;
 
     WifiCredentials credentials = {0};
     WifiIpConfig ip_config = {0};
@@ -393,11 +401,14 @@ static bool
 }
 
 static bool api_wifi_disconnect_callback(
+    FuriString* path,
     struct mg_connection* conn,
     struct mg_http_message* msg,
     void* ctx) {
     UNUSED(msg);
     UNUSED(ctx);
+
+    if(!IS_HTTP_ENDPOINT(path)) return false;
 
     Wifi* wifi = furi_record_open(RECORD_WIFI);
     WifiStatus status = wifi_disconnect(wifi);
@@ -412,20 +423,30 @@ static bool api_wifi_disconnect_callback(
     return true;
 }
 
-static bool
-    api_wifi_forget_callback(struct mg_connection* conn, struct mg_http_message* msg, void* ctx) {
+static bool api_wifi_forget_callback(
+    FuriString* path,
+    struct mg_connection* conn,
+    struct mg_http_message* msg,
+    void* ctx) {
     UNUSED(msg);
     UNUSED(ctx);
+
+    if(!IS_HTTP_ENDPOINT(path)) return false;
 
     ///TODO: implemet after configs
     MG_REPLY_ERROR(conn, 400, "Not implemented");
     return true;
 }
 
-static bool
-    api_wifi_enable_callback(struct mg_connection* conn, struct mg_http_message* msg, void* ctx) {
+static bool api_wifi_enable_callback(
+    FuriString* path,
+    struct mg_connection* conn,
+    struct mg_http_message* msg,
+    void* ctx) {
     UNUSED(ctx);
     UNUSED(msg);
+
+    if(!IS_HTTP_ENDPOINT(path)) return false;
 
     Wifi* wifi = furi_record_open(RECORD_WIFI);
     WifiStatus status = wifi_init(wifi);
@@ -440,10 +461,15 @@ static bool
     return true;
 }
 
-static bool
-    api_wifi_disable_callback(struct mg_connection* conn, struct mg_http_message* msg, void* ctx) {
+static bool api_wifi_disable_callback(
+    FuriString* path,
+    struct mg_connection* conn,
+    struct mg_http_message* msg,
+    void* ctx) {
     UNUSED(ctx);
     UNUSED(msg);
+
+    if(!IS_HTTP_ENDPOINT(path)) return false;
 
     Wifi* wifi = furi_record_open(RECORD_WIFI);
     WifiStatus status = wifi_deinit(wifi);
@@ -459,11 +485,14 @@ static bool
 }
 
 static bool api_wifi_get_status_callback(
+    FuriString* path,
     struct mg_connection* conn,
     struct mg_http_message* msg,
     void* ctx) {
     UNUSED(msg);
     UNUSED(ctx);
+
+    if(!IS_HTTP_ENDPOINT(path)) return false;
 
     WifiInfo info = {0};
     Wifi* wifi = furi_record_open(RECORD_WIFI);
@@ -570,7 +599,11 @@ void http_api_wifi_free(void* ctx) {
     free(context);
 }
 
-bool http_api_wifi_callback(struct mg_connection* conn, struct mg_http_message* msg, void* ctx) {
+bool http_api_wifi_callback(
+    FuriString* path,
+    struct mg_connection* conn,
+    struct mg_http_message* msg,
+    void* ctx) {
     ApiWifiCtx* context = ctx;
-    return http_handle_request(context->handlers, conn, msg);
+    return http_handle_request(path, context->handlers, conn, msg);
 }

@@ -90,7 +90,7 @@ static const HttpHandler handlers_api_root[] = {
         .uri = "update",
         .method = "POST",
         .type = HttpHandlerCustom,
-        .on_headers = http_api_update_callback,
+        .on_headers = http_api_update_hdr_callback,
     },
 };
 

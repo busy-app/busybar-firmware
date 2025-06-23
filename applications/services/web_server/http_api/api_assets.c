@@ -111,14 +111,14 @@ static bool api_assets_upload_headers_callback(
         conn_ctx->raw.on_data = api_assets_upload_data_callback;
         conn_ctx->context = upload_ctx;
 
-        const char* path = furi_string_get_cstr(file_path);
-        if(mg_path_is_sane(mg_str(path))) {
-            http_fs_get()->rm(path); // Delete file if it exists
+        const char* path_temp = furi_string_get_cstr(file_path);
+        if(mg_path_is_sane(mg_str(path_temp))) {
+            http_fs_get()->rm(path_temp); // Delete file if it exists
             FuriString* dir_path = furi_string_alloc();
-            path_extract_dirname(path, dir_path);
+            path_extract_dirname(path_temp, dir_path);
             http_fs_get()->mkd(furi_string_get_cstr(dir_path));
             furi_string_free(dir_path);
-            upload_ctx->file = http_fs_get()->op(path, MG_FS_WRITE); // Open file for writing
+            upload_ctx->file = http_fs_get()->op(path_temp, MG_FS_WRITE); // Open file for writing
         }
 
         if(upload_ctx->file == NULL) {
