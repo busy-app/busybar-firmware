@@ -112,6 +112,13 @@ bool http_api_root_callback(struct mg_connection* conn, struct mg_http_message* 
     return http_handle_request(context->handlers, conn, msg);
 }
 
+bool http_api_options_callback(struct mg_connection* conn, struct mg_http_message* msg, void* ctx) {
+    UNUSED(msg);
+    UNUSED(ctx);
+    MG_REPLY_OPTIONS(conn);
+    return true;
+}
+
 bool http_api_root_hdr_callback(struct mg_connection* conn, struct mg_http_message* msg, void* ctx) {
     ApiRootCtx* context = ctx;
     return http_handle_headers(context->handlers, conn, msg);
