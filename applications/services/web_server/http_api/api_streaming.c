@@ -18,6 +18,7 @@
 #define RAW_BUFFER_SIZE        (6400U)
 #define COMPRESSED_BUFFER_SIZE (RAW_BUFFER_SIZE + 600U)
 
+#define FRAME_MUTEX_TIMEOUT        (10)
 #define FRAME_THREAD_PERIOD_MS     (100)
 #define CLIENT_HEARTBEAT_PERIOD_MS (10000)
 
@@ -357,7 +358,7 @@ bool http_api_streaming_ws_callback(
 
 static void api_streaming_update_display_id(ApiStreamingCtx* instance) {
     do {
-        if(furi_mutex_acquire(instance->mutex, 100) != FuriStatusOk) {
+        if(furi_mutex_acquire(instance->mutex, FRAME_MUTEX_TIMEOUT) != FuriStatusOk) {
             STREAM_LOG_W("Unable to lock display_id");
             break;
         }
@@ -383,7 +384,7 @@ static int32_t api_streaming_frame_update_thread(void* context) {
     ApiStreamingCtx* instance = context;
 
     while(!instance->stop) {
-        if(furi_mutex_acquire(instance->mutex, 10) != FuriStatusOk) {
+        if(furi_mutex_acquire(instance->mutex, FRAME_MUTEX_TIMEOUT) != FuriStatusOk) {
             STREAM_LOG_W("Unable to lock in thread");
             continue;
         }
