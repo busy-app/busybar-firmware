@@ -2,6 +2,7 @@
 #include <furi.h>
 
 #define MAX_BLOCKS_PER_BYTE (127)
+#define RLE_BLOCK_THRESHOLD (3)
 
 static inline size_t get_repeat_count(const uint8_t* data, size_t data_len, size_t blk_size) {
     if(data_len < blk_size) return 0;
@@ -61,7 +62,6 @@ bool rle_compress(
     size_t index = 0;
     size_t dest_index = 0;
 
-    const uint8_t threshold = 3;
     bool error = false;
     while(index < src_len) {
         size_t remaining = src_len - index;
@@ -69,9 +69,9 @@ bool rle_compress(
 
         if(repeat_count == 0) break;
 
-        if(repeat_count < threshold) {
+        if(repeat_count < RLE_BLOCK_THRESHOLD) {
             size_t non_repeat_count =
-                get_nonrepeat_count(src + index, remaining, blk_size, threshold);
+                get_nonrepeat_count(src + index, remaining, blk_size, RLE_BLOCK_THRESHOLD);
             uint8_t ctrl_byte = (uint8_t)(non_repeat_count | 0x80);
 
             size_t byte_size = non_repeat_count * blk_size;
