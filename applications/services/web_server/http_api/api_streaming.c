@@ -71,7 +71,6 @@ static void api_streaming_frame_update_thread_start(ApiStreamingCtx* instance) {
     STREAM_LOG_D("Start thread");
     instance->gui = furi_record_open(RECORD_GUI);
 
-    // const size_t size = FRAME_BUFFER_SIZE;
     instance->raw_buffer = malloc(RAW_BUFFER_SIZE);
     instance->compressed_buffer = malloc(COMPRESSED_BUFFER_SIZE);
     instance->stop = false;

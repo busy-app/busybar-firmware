@@ -61,7 +61,6 @@ bool rle_compress(
     size_t index = 0;
     size_t dest_index = 0;
 
-    // const uint8_t threshold = 16;
     const uint8_t threshold = 3;
     bool error = false;
     while(index < src_len) {
