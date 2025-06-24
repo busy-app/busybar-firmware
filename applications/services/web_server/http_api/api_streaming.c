@@ -458,7 +458,6 @@ bool http_api_streaming_single_frame_callback(
     void* ctx) {
     UNUSED(msg);
     UNUSED(ctx);
-    Gui* gui = furi_record_open(RECORD_GUI);
 
     char display_str[2];
     int var_len = mg_http_get_var(&msg->query, "display", display_str, sizeof(display_str));
@@ -469,6 +468,7 @@ bool http_api_streaming_single_frame_callback(
         const size_t frame_size = display_id == GuiDisplayIdFront ? FRONT_DISPLAY_BUF_SIZE :
                                                                     RAW_BUFFER_SIZE;
 
+        Gui* gui = furi_record_open(RECORD_GUI);
         uint8_t* frame = malloc(frame_size);
 
         with_gui(gui, {
