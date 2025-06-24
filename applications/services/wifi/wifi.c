@@ -69,8 +69,9 @@ static void wifi_process_request(Wifi* instance) {
 
 static void wifi_process_response(Wifi* instance) {
     WifiMessage* message = instance->current_message;
-    const WifiResponse* response = &instance->response;
+    furi_assert(message);
 
+    const WifiResponse* response = &instance->response;
     const WifiRequestType request_type = message->request_type;
     furi_assert(request_type == response->type);
 
@@ -104,8 +105,9 @@ static void wifi_process_response(Wifi* instance) {
     }
 
     message->status = status;
-
     api_lock_unlock(message->lock);
+
+    instance->current_message = NULL;
     furi_semaphore_release(instance->access_semaphore);
 }
 
