@@ -69,7 +69,12 @@ static void wifi_process_request(Wifi* instance) {
 
 static void wifi_process_response(Wifi* instance) {
     WifiMessage* message = instance->current_message;
-    furi_assert(message);
+
+    if(message == NULL) {
+        // BUG: Figure out where the rogue responses come from
+        FURI_LOG_W(TAG, "BUG: Rogue response");
+        return;
+    }
 
     const WifiResponse* response = &instance->response;
     const WifiRequestType request_type = message->request_type;
