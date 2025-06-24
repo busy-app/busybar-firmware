@@ -7,12 +7,17 @@
 
 #define WEB_ROOT APP_ASSETS_PATH("www/")
 
-#define HEADER_CORS              "Access-Control-Allow-Origin: *\r\n"
+#define HEADER_CORS_ORIGIN       "Access-Control-Allow-Origin: *\r\n"
+#define HEADER_CORS_METHODS      "Access-Control-Allow-Methods: GET, POST, PUT, DELETE, OPTIONS\r\n"
+#define HEADER_CORS_HEADERS      "Access-Control-Allow-Headers: *\r\n"
+#define HEADER_CORS              HEADER_CORS_ORIGIN HEADER_CORS_METHODS HEADER_CORS_HEADERS
 #define HEADER_CONTENT_TYPE_JSON "Content-Type: application/json\r\n"
 
 #define DEFAULT_JSON_HEADERS HEADER_CORS HEADER_CONTENT_TYPE_JSON
 
 #define RESPONSE_BODY_OK "{\"result\":\"OK\"}\n"
+
+#define _MG_OPTIONS_RESULT(conn, code) mg_http_reply(conn, code, HEADER_CORS, "")
 
 #define _MG_JSON_RESULT(conn, code, body, ...) \
     mg_http_reply(conn, code, DEFAULT_JSON_HEADERS, body, ##__VA_ARGS__)
@@ -20,6 +25,7 @@
 #define _MG_JSON_ERROR(conn, code, body, ...) \
     mg_http_reply(conn, code, DEFAULT_JSON_HEADERS, body, ##__VA_ARGS__)
 
+#define MG_REPLY_OPTIONS(conn)                 _MG_OPTIONS_RESULT(conn, 200)
 #define MG_REPLY_OK(conn)                      _MG_JSON_RESULT(conn, 200, RESPONSE_BODY_OK)
 #define MG_REPLY_OK_BODY(conn, json_body, ...) _MG_JSON_RESULT(conn, 200, json_body, ##__VA_ARGS__)
 
