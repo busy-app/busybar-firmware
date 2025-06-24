@@ -480,8 +480,7 @@ bool http_api_streaming_single_frame_callback(
         });
         furi_record_close(RECORD_GUI);
 
-        mg_http_reply(
-            conn, 200, "Content-Type: image/bmp\r\n", "%M\r\n", mg_print_base64, frame_size, frame);
+        MG_REPLY_IMAGE(conn, frame, frame_size);
         free(frame);
     } else
         MG_REPLY_ERROR(conn, 400, "Wrong display");
