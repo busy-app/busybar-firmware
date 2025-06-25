@@ -14,6 +14,11 @@ bool http_api_root_hdr_callback(
     struct mg_connection* conn,
     struct mg_http_message* msg,
     void* ctx);
+bool http_api_options_callback(
+    FuriString* path,
+    struct mg_connection* conn,
+    struct mg_http_message* msg,
+    void* ctx);
 
 // Assets
 void* http_api_assets_alloc(void);
@@ -88,6 +93,21 @@ bool http_api_wifi_callback(
 
 // Update API
 bool http_api_update_hdr_callback(
+    FuriString* path,
+    struct mg_connection* conn,
+    struct mg_http_message* msg,
+    void* ctx);
+
+// Streaming
+void* http_api_streaming_ws_alloc(void);
+void http_api_streaming_ws_free(void* ctx);
+bool http_api_streaming_ws_callback(
+    FuriString* path,
+    struct mg_connection* conn,
+    struct mg_http_message* msg,
+    void* ctx);
+
+bool http_api_streaming_single_frame_callback(
     FuriString* path,
     struct mg_connection* conn,
     struct mg_http_message* msg,
