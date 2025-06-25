@@ -34,11 +34,17 @@ typedef struct {
     uint8_t m4_encrypt_firmware   : 1;
     uint8_t r345_6_7              : 2;
 
-    uint8_t _reserved3[8];
+    uint8_t _reserved3[5];
+    uint8_t r350_0_4        : 4;
+    uint8_t disable_ta_jtag : 1;
+    uint8_t r350_6_7        : 2;
+    uint8_t _reserved30[2];
 
-    uint8_t r354_0_4                       : 5;
+    uint8_t r354_0_1                       : 2;
+    uint8_t disable_m4_jtag                : 1;
+    uint8_t r354_3_3                       : 1;
     uint8_t disable_m4_access_frm_tass_sec : 1;
-    uint8_t r354_6_7                       : 2;
+    uint8_t r354_5_7                       : 3;
 
     uint8_t _reserved4[2];
 
@@ -64,6 +70,21 @@ void furi_hal_info_get(PropertyValueCallback out, char sep, void* context) {
 
     FuriString* key = furi_string_alloc();
     FuriString* value = furi_string_alloc();
+
+#define LENGTH_OF_BUFFER 496
+#define MBR_ADDRESS      0x081f0000
+    // uint8_t* data_read_write_buffer = (uint8_t*)malloc(LENGTH_OF_BUFFER);
+    // memcpy((uint8_t*)data_read_write_buffer, (uint8_t*)add, LENGTH_OF_BUFFER);
+    uint8_t* test_mbr = (uint8_t*)MBR_ADDRESS;
+    printf("Key data:\r\n");
+    for(uint32_t i = 0; i < LENGTH_OF_BUFFER; i++) {
+        if((i) % 32 == 0) printf("%08lx: ", i);
+        printf("%02x ", test_mbr[i]);
+        if((i + 1) % 32 == 0) {
+            printf("\r\n");
+        }
+    }
+    printf("\r\n");
 
     PropertyValueContext property_context = {
         .key = key, .value = value, .out = out, .sep = sep, .last = false, .context = context};
@@ -107,7 +128,7 @@ void furi_hal_info_get(PropertyValueCallback out, char sep, void* context) {
             property_value_out(
                 &property_context,
                 NULL,
-                5,
+                4,
                 "917",
                 "firmware",
                 "branch",
@@ -283,14 +304,7 @@ void furi_hal_info_get(PropertyValueCallback out, char sep, void* context) {
             furi_hal_917_mbr->mbr_variant == FURI_HAL_917_MBR_1_6_VERSION ? "1.6 Mb" :
                                                                             "Unknown");
         property_value_out(
-            &property_context,
-            NULL,
-            4,
-            "917",
-            "mbr",
-            "variant",
-            "value",
-            furi_string_get_cstr(ver_name));
+            &property_context, NULL, 3, "917", "mbr", "variant", furi_string_get_cstr(ver_name));
         furi_string_free(ver_name);
 
         property_value_out(
@@ -305,6 +319,24 @@ void furi_hal_info_get(PropertyValueCallback out, char sep, void* context) {
             "tass",
             "sec",
             furi_hal_917_mbr->disable_m4_access_frm_tass_sec ? "true" : "false");
+        property_value_out(
+            &property_context,
+            NULL,
+            4,
+            "917",
+            "disable",
+            "m4",
+            "jtag",
+            furi_hal_917_mbr->disable_m4_jtag ? "true" : "false");
+        property_value_out(
+            &property_context,
+            NULL,
+            4,
+            "917",
+            "disable",
+            "ta",
+            "jtag",
+            furi_hal_917_mbr->disable_ta_jtag ? "true" : "false");
     }
 
     furi_string_free(key);
