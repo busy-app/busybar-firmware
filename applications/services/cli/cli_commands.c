@@ -264,7 +264,7 @@ static void
     cli_command_device_info_callback(const char* key, const char* value, bool last, void* context) {
     UNUSED(last);
     UNUSED(context);
-    printf("%-37s: %s\r\n", key, value);
+    printf("%-30s: %s\r\n", key, value);
 }
 
 static void cli_command_device_info(PipeSide* pipe, FuriString* args, void* context) {

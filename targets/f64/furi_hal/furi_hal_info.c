@@ -3,13 +3,21 @@
 #include <furi_hal_version.h>
 #include <furi.h>
 
-#define FURI_HAL_917_MBR_SIZE                                496
-#define FURI_HAL_917_MBR_ADDRESS                             0x081f0000
-#define FURI_HAL_917_MBR_1_8_VERSION                         0x1F
-#define FURI_HAL_917_MBR_1_6_VERSION                         0x1B
-#define FURI_HAL_917_PACKAGE_TYPE_VALUES_OFFSET_COMMON_FLASH 0x81F0292
-#define FURI_HAL_917_SILICON_REV_VALUES_OFFSET_COMMON_FLASH  0x81F0293
-#define FURI_HAL_917_COMMON_FLASH_IPMU_VALUES_OFFSET         0x81F0258
+#include <sl_net.h>
+#include <sl_wifi.h>
+#include <rsi_bt_common_apis.h>
+
+#include "wifi_config.h"
+
+#define TAG "FuriHalInfo"
+
+#define FURI_HAL_INFO_917_MBR_SIZE                                496
+#define FURI_HAL_INFO_917_MBR_ADDRESS                             0x081f0000
+#define FURI_HAL_INFO_917_MBR_1_8_VERSION                         0x1F
+#define FURI_HAL_INFO_917_MBR_1_6_VERSION                         0x1B
+#define FURI_HAL_INFO_917_PACKAGE_TYPE_VALUES_OFFSET_COMMON_FLASH 0x81F0292
+#define FURI_HAL_INFO_917_SILICON_REV_VALUES_OFFSET_COMMON_FLASH  0x81F0293
+#define FURI_HAL_INFO_917_COMMON_FLASH_IPMU_VALUES_OFFSET         0x81F0258
 
 typedef struct {
     uint8_t _reserved0[337];
@@ -55,12 +63,108 @@ typedef struct {
     uint8_t _reserved6[46];
     uint8_t mbr_variant;
     uint8_t _reserved5[91];
-} FURI_PACKED FuriHal917Mbr;
-static_assert(sizeof(FuriHal917Mbr) == FURI_HAL_917_MBR_SIZE, "failed");
+} FURI_PACKED FuriHalInfo917Mbr;
+static_assert(sizeof(FuriHalInfo917Mbr) == FURI_HAL_INFO_917_MBR_SIZE, "failed");
+
+typedef struct {
+    FuriString* firmware_version;
+    FuriString* mac_ble;
+    FuriString* mac_wifi;
+} FuriHalInfoNwp;
 
 FURI_WEAK void furi_hal_info_get_api_version(uint16_t* major, uint16_t* minor) {
     *major = 0;
     *minor = 0;
+}
+
+FuriHalInfoNwp* furi_hal_info_nwp_alloc(void) {
+    FuriHalInfoNwp* instance = malloc(sizeof(FuriHalInfoNwp));
+    instance->firmware_version = furi_string_alloc();
+    instance->mac_ble = furi_string_alloc();
+    instance->mac_wifi = furi_string_alloc();
+    furi_string_printf(instance->firmware_version, "unknown");
+    furi_string_printf(instance->mac_ble, "unknown");
+    furi_string_printf(instance->mac_wifi, "unknown");
+    return instance;
+}
+
+void furi_hal_info_nwp_free(FuriHalInfoNwp* instance) {
+    furi_check(instance);
+    furi_string_free(instance->firmware_version);
+    furi_string_free(instance->mac_ble);
+    furi_string_free(instance->mac_wifi);
+    free(instance);
+}
+
+void furi_hal_info_get_nwp(FuriHalInfoNwp* instance) {
+    furi_check(instance);
+    bool is_nwp_initialized = false;
+    sl_wifi_firmware_version_t fw_version;
+    sl_mac_address_t mac_addr = {0};
+
+    sl_status_t status =
+        sl_net_init(SL_NET_WIFI_CLIENT_INTERFACE, &wifi_config_client, NULL, NULL);
+    if(status == SL_STATUS_ALREADY_INITIALIZED) {
+        is_nwp_initialized = true;
+    } else if(status != SL_STATUS_OK) {
+        FURI_LOG_E(TAG, "Failed to initialise Wifi: 0x%08lX", status);
+        return;
+    }
+
+    do {
+        status = sl_wifi_get_firmware_version(&fw_version);
+        if(status != SL_STATUS_OK) {
+            FURI_LOG_E(TAG, "Failed to get firmware version: 0x%08lX", status);
+        } else {
+            furi_string_printf(
+                instance->firmware_version,
+                "%x%x.%d.%d.%d.%d.%d.%d",
+                fw_version.chip_id,
+                fw_version.rom_id,
+                fw_version.major,
+                fw_version.minor,
+                fw_version.security_version,
+                fw_version.patch_num,
+                fw_version.customer_id,
+                fw_version.build_num);
+        }
+
+        status = rsi_bt_get_local_device_address((uint8_t*)&mac_addr);
+        if(status != SL_STATUS_OK) {
+            FURI_LOG_E(TAG, "Failed to get local device address: 0x%08lX", status);
+        } else {
+            furi_string_printf(
+                instance->mac_ble,
+                "%02X:%02X:%02X:%02X:%02X:%02X",
+                mac_addr.octet[5],
+                mac_addr.octet[4],
+                mac_addr.octet[3],
+                mac_addr.octet[2],
+                mac_addr.octet[1],
+                mac_addr.octet[0]);
+        }
+        status = sl_wifi_get_mac_address(SL_WIFI_CLIENT_INTERFACE, &mac_addr);
+        if(status != SL_STATUS_OK) {
+            FURI_LOG_E(TAG, "Failed to get WiFi MAC address: 0x%08lX", status);
+        } else {
+            furi_string_printf(
+                instance->mac_wifi,
+                "%02X:%02X:%02X:%02X:%02X:%02X",
+                mac_addr.octet[0],
+                mac_addr.octet[1],
+                mac_addr.octet[2],
+                mac_addr.octet[3],
+                mac_addr.octet[4],
+                mac_addr.octet[5]);
+        }
+    } while(false);
+
+    if(!is_nwp_initialized) {
+        status = sl_net_deinit(SL_NET_WIFI_CLIENT_INTERFACE);
+        if(status != SL_STATUS_OK) {
+            FURI_LOG_E(TAG, "Failed to deinitialise Wifi: 0x%08lX", status);
+        }
+    }
 }
 
 void furi_hal_info_get(PropertyValueCallback out, char sep, void* context) {
@@ -71,24 +175,12 @@ void furi_hal_info_get(PropertyValueCallback out, char sep, void* context) {
     FuriString* key = furi_string_alloc();
     FuriString* value = furi_string_alloc();
 
-#define LENGTH_OF_BUFFER 496
-#define MBR_ADDRESS      0x081f0000
-    // uint8_t* data_read_write_buffer = (uint8_t*)malloc(LENGTH_OF_BUFFER);
-    // memcpy((uint8_t*)data_read_write_buffer, (uint8_t*)add, LENGTH_OF_BUFFER);
-    uint8_t* test_mbr = (uint8_t*)MBR_ADDRESS;
-    printf("Key data:\r\n");
-    for(uint32_t i = 0; i < LENGTH_OF_BUFFER; i++) {
-        if((i) % 32 == 0) printf("%08lx: ", i);
-        printf("%02x ", test_mbr[i]);
-        if((i + 1) % 32 == 0) {
-            printf("\r\n");
-        }
-    }
-    printf("\r\n");
-
     PropertyValueContext property_context = {
         .key = key, .value = value, .out = out, .sep = sep, .last = false, .context = context};
-    FuriHal917Mbr* furi_hal_917_mbr = (FuriHal917Mbr*)FURI_HAL_917_MBR_ADDRESS;
+    FuriHalInfo917Mbr* furi_hal_info_917_mbr = (FuriHalInfo917Mbr*)FURI_HAL_INFO_917_MBR_ADDRESS;
+
+    FuriHalInfoNwp* furi_hal_info_nwp = furi_hal_info_nwp_alloc();
+    furi_hal_info_get_nwp(furi_hal_info_nwp);
 
     // Firmware version
     const Version* firmware_version = furi_hal_version_get_firmware_version();
@@ -206,139 +298,142 @@ void furi_hal_info_get(PropertyValueCallback out, char sep, void* context) {
             "origin",
             "git",
             version_get_git_origin(firmware_version));
-
+        // NWP information
+        property_value_out(
+            &property_context,
+            NULL,
+            3,
+            "917",
+            "mac",
+            "wifi",
+            furi_string_get_cstr(furi_hal_info_nwp->mac_wifi));
+        property_value_out(
+            &property_context,
+            NULL,
+            3,
+            "917",
+            "mac",
+            "ble",
+            furi_string_get_cstr(furi_hal_info_nwp->mac_ble));
+        property_value_out(
+            &property_context,
+            NULL,
+            3,
+            "917",
+            "nwp",
+            "firmware",
+            furi_string_get_cstr(furi_hal_info_nwp->firmware_version));
         // MBR security flags
         property_value_out(
             &property_context,
             NULL,
-            5,
+            3,
             "917",
-            "ta",
-            "anti",
-            "roll",
-            "back",
-            furi_hal_917_mbr->ta_anti_roll_back ? "true" : "false");
+            "nwp",
+            "rollback",
+            furi_hal_info_917_mbr->ta_anti_roll_back ? "true" : "false");
         property_value_out(
             &property_context,
             NULL,
-            5,
+            3,
             "917",
-            "ta",
-            "digital",
+            "nwp",
             "signature",
-            "validation",
-            furi_hal_917_mbr->ta_digital_signature_validation ? "true" : "false");
+            furi_hal_info_917_mbr->ta_digital_signature_validation ? "true" : "false");
         property_value_out(
             &property_context,
             NULL,
-            4,
+            3,
             "917",
-            "ta",
+            "nwp",
             "encrypt",
-            "firmware",
-            furi_hal_917_mbr->ta_encrypt_firmware ? "true" : "false");
+            furi_hal_info_917_mbr->ta_encrypt_firmware ? "true" : "false");
         property_value_out(
             &property_context,
             NULL,
-            4,
+            3,
             "917",
-            "ta",
+            "nwp",
             "secure",
-            "boot",
-            furi_hal_917_mbr->ta_secure_boot_enable ? "true" : "false");
+            furi_hal_info_917_mbr->ta_secure_boot_enable ? "true" : "false");
         property_value_out(
             &property_context,
             NULL,
-            5,
+            3,
             "917",
             "m4",
-            "anti",
-            "roll",
-            "back",
-            furi_hal_917_mbr->m4_anti_roll_back ? "true" : "false");
+            "rollback",
+            furi_hal_info_917_mbr->m4_anti_roll_back ? "true" : "false");
         property_value_out(
             &property_context,
             NULL,
-            5,
+            3,
             "917",
             "m4",
-            "digital",
             "signature",
-            "validation",
-            furi_hal_917_mbr->m4_digital_signature_validation ? "true" : "false");
+            furi_hal_info_917_mbr->m4_digital_signature_validation ? "true" : "false");
         property_value_out(
             &property_context,
             NULL,
-            4,
+            3,
             "917",
             "m4",
             "encrypt",
-            "firmware",
-            furi_hal_917_mbr->m4_encrypt_firmware ? "true" : "false");
+            furi_hal_info_917_mbr->m4_encrypt_firmware ? "true" : "false");
         property_value_out(
             &property_context,
             NULL,
-            4,
+            3,
             "917",
             "m4",
             "secure",
-            "boot",
-            furi_hal_917_mbr->m4_secure_boot_enable ? "true" : "false");
+            furi_hal_info_917_mbr->m4_secure_boot_enable ? "true" : "false");
         property_value_out(
             &property_context,
             NULL,
-            5,
+            3,
             "917",
             "m4",
-            "firmware",
-            "encryption",
-            "mode",
-            furi_hal_917_mbr->m4_fw_encryption_mode ? "true" : "false");
-
+            "encryptionmode",
+            furi_hal_info_917_mbr->m4_fw_encryption_mode ? "true" : "false");
+        property_value_out(
+            &property_context,
+            NULL,
+            3,
+            "917",
+            "m4",
+            "accessfromtass",
+            furi_hal_info_917_mbr->disable_m4_access_frm_tass_sec ? "false" : "true");
+        property_value_out(
+            &property_context,
+            NULL,
+            3,
+            "917",
+            "m4",
+            "jtag",
+            furi_hal_info_917_mbr->disable_m4_jtag ? "false" : "true");
+        property_value_out(
+            &property_context,
+            NULL,
+            3,
+            "917",
+            "nwp",
+            "jtag",
+            furi_hal_info_917_mbr->disable_ta_jtag ? "false" : "true");
         FuriString* ver_name = furi_string_alloc();
         furi_string_printf(
             ver_name,
             "%02X (%s)",
-            furi_hal_917_mbr->mbr_variant,
-            furi_hal_917_mbr->mbr_variant == FURI_HAL_917_MBR_1_8_VERSION ? "1.8 Mb" :
-            furi_hal_917_mbr->mbr_variant == FURI_HAL_917_MBR_1_6_VERSION ? "1.6 Mb" :
-                                                                            "Unknown");
+            furi_hal_info_917_mbr->mbr_variant,
+            furi_hal_info_917_mbr->mbr_variant == FURI_HAL_INFO_917_MBR_1_8_VERSION ? "1.8 Mb" :
+            furi_hal_info_917_mbr->mbr_variant == FURI_HAL_INFO_917_MBR_1_6_VERSION ? "1.6 Mb" :
+                                                                                      "Unknown");
         property_value_out(
             &property_context, NULL, 3, "917", "mbr", "variant", furi_string_get_cstr(ver_name));
         furi_string_free(ver_name);
-
-        property_value_out(
-            &property_context,
-            NULL,
-            7,
-            "917",
-            "disable",
-            "m4",
-            "access",
-            "from",
-            "tass",
-            "sec",
-            furi_hal_917_mbr->disable_m4_access_frm_tass_sec ? "true" : "false");
-        property_value_out(
-            &property_context,
-            NULL,
-            4,
-            "917",
-            "disable",
-            "m4",
-            "jtag",
-            furi_hal_917_mbr->disable_m4_jtag ? "true" : "false");
-        property_value_out(
-            &property_context,
-            NULL,
-            4,
-            "917",
-            "disable",
-            "ta",
-            "jtag",
-            furi_hal_917_mbr->disable_ta_jtag ? "true" : "false");
     }
 
+    furi_hal_info_nwp_free(furi_hal_info_nwp);
     furi_string_free(key);
     furi_string_free(value);
 }
