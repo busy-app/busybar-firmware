@@ -604,6 +604,55 @@ paths:
               schema:
                 $ref: "#/components/schemas/Error"
 
+  /api/v0/screen:
+    get:
+      tags:
+       - Streaming
+      summary: Get single frame for required screen      
+      parameters:
+        - name: display
+          in: query
+          required: true
+          schema:
+            type: number
+            pattern: '^[0-1]{1,1}$'
+          description: Type of the display Front = 0, Back = 1
+          example: 0
+      responses:
+        '200':
+          description: OK
+          content:
+            image/bmp:
+              schema:
+                $ref: "#/components/schemas/ScreenResponse"
+        '400':
+          description: Wrong display
+          content:
+              application/json:
+                schema:
+                  $ref: '#/components/schemas/Error'
+
+  /api/v0/screen/ws:
+    get:
+      tags:
+        - Streaming
+      summary: Screen streaming WebSocket endpoint
+      description: |
+        WebSocket connection for real-time screen streaming.
+        Upgrade from HTTP to WebSocket protocol is required.
+        After connection client must send desired display id
+        as json {"display": 0}
+      operationId: connectWebSocket
+      responses:
+        '101':
+          description: WebSocket connection established
+        '400':
+          description: Exceed max clients count
+          content:            
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+       
 components:
   schemas:
     SuccessResponse:
@@ -927,6 +976,11 @@ components:
           type: array
           items:
             $ref: "#/components/schemas/Network"
+    
+    ScreenResponse:
+      type: string
+      description: Frame for requested display encoded in base64
+      format: base64
 
 tags:
   - name: System
@@ -937,3 +991,5 @@ tags:
     description: Asset file management and display control
   - name: WebSocket
     description: Real-time communication via WebSocket
+  - name: Streaming
+    description: Screen streaming

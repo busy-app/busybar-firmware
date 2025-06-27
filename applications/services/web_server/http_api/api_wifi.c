@@ -29,7 +29,7 @@ typedef struct {
     const char* message;
 } ApiWifiResponseData;
 
-static const ApiWifiResponseData wifi_response_data[] = {
+static const ApiWifiResponseData wifi_response_data[WifiStatusMax] = {
     [WifiStatusOk] = {.code = 200, "OK"},
     [WifiStatusError] = {.code = 500, "Generic error"},
     [WifiStatusNotInitialized] = {.code = 400, "Not initialized"},
@@ -54,17 +54,17 @@ static const char* const security_modes[WifiSecurityModeMax] = {
     [WifiSecurityModeWpa3TransitionEnterprise] = "WPA2/WPA3 (Enterprise)",
 };
 
-static const char* const wifi_ip_method[] = {
+static const char* const wifi_ip_method[WifiIpManagementMax] = {
     [WifiIpManagementStatic] = "static",
     [WifiIpManagementDynamic] = "dhcp",
 };
 
-static const char* const wifi_ip_type[] = {
+static const char* const wifi_ip_type[WifiIpTypeMax] = {
     [WifiIpTypeV4] = "ipv4",
     [WifiIpTypeV6] = "ipv6",
 };
 
-static const char* const wifi_state[] = {
+static const char* const wifi_state[WifiStateMax] = {
     [WifiStateDeinit] = "disabled",
     [WifiStateDown] = "enabled",
     [WifiStateUp] = "connected",
@@ -146,8 +146,14 @@ static bool api_wifi_get_networks_callback(
             cJSON_AddItemToArray(array, item);
         }
 
-        MG_REPLY_OK_BODY(conn, cJSON_Print(response));
+        char* buf = cJSON_Print(response);
+        furi_check(buf);
+
+        MG_REPLY_OK_BODY(conn, buf);
+
         cJSON_Delete(response);
+        free(buf);
+
     } else {
         const ApiWifiResponseData* data = api_wifi_get_response_data_from_status(status);
         MG_REPLY_ERROR(conn, data->code, data->message);
@@ -498,8 +504,14 @@ static bool api_wifi_get_status_callback(
             }
         }
 
-        MG_REPLY_OK_BODY(conn, cJSON_Print(response));
+        char* buf = cJSON_Print(response);
+        furi_check(buf);
+
+        MG_REPLY_OK_BODY(conn, buf);
+
         cJSON_Delete(response);
+        free(buf);
+
     } else {
         const ApiWifiResponseData* data = api_wifi_get_response_data_from_status(status);
         MG_REPLY_ERROR(conn, data->code, data->message);

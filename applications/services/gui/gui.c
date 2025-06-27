@@ -317,3 +317,10 @@ void gui_layer_remove_input_callback(GuiLayer* layer, GuiInputCallback callback)
         }
     }
 }
+
+const uint8_t* gui_display_get_frame_buffer(Gui* gui, GuiDisplayId display_id) {
+    furi_check(gui);
+    furi_check(display_id < GuiDisplayIdMax);
+
+    return gui->displays[display_id].draw_buffer;
+}

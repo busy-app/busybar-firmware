@@ -79,6 +79,20 @@ static const HttpHandler handlers_api_root[] = {
         .type = HttpHandlerCustom,
         .on_headers = http_api_update_callback,
     },
+    {
+        .uri = "/api/v0/screen",
+        .method = "*",
+        .type = HttpHandlerCustom,
+        .on_request = http_api_streaming_single_frame_callback,
+    },
+    {
+        .uri = "/api/v0/screen/ws",
+        .method = "*",
+        .type = HttpHandlerCustom,
+        .ctx_alloc = http_api_streaming_ws_alloc,
+        .ctx_free = http_api_streaming_ws_free,
+        .on_request = http_api_streaming_ws_callback,
+    },
 };
 
 typedef struct {
@@ -110,6 +124,13 @@ bool http_api_root_callback(struct mg_connection* conn, struct mg_http_message* 
         FURI_LOG_I("HTTP API", "Query %.*s", msg->query.len, msg->query.buf);
     }
     return http_handle_request(context->handlers, conn, msg);
+}
+
+bool http_api_options_callback(struct mg_connection* conn, struct mg_http_message* msg, void* ctx) {
+    UNUSED(msg);
+    UNUSED(ctx);
+    MG_REPLY_OPTIONS(conn);
+    return true;
 }
 
 bool http_api_root_hdr_callback(struct mg_connection* conn, struct mg_http_message* msg, void* ctx) {
