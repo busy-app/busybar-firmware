@@ -33,8 +33,8 @@ typedef struct {
 
     uint8_t _reserved1[4];
     uint8_t r343_0_0            : 1;
-    uint8_t ta_encrypt_firmware : 1;
-    uint8_t r343_2_7            : 6;
+    uint8_t ta_encrypt_firmware : 2;
+    uint8_t r343_3_7            : 5;
     uint8_t _reserved2[1];
 
     uint8_t r345_0_3              : 4;
@@ -57,8 +57,8 @@ typedef struct {
     uint8_t _reserved4[2];
 
     uint8_t r357_0_3              : 4;
-    uint8_t m4_fw_encryption_mode : 1;
-    uint8_t r357_5_7              : 3;
+    uint8_t m4_fw_encryption_mode : 2;
+    uint8_t r357_6_7              : 2;
 
     uint8_t _reserved6[46];
     uint8_t mbr_variant;
@@ -77,7 +77,7 @@ FURI_WEAK void furi_hal_info_get_api_version(uint16_t* major, uint16_t* minor) {
     *minor = 0;
 }
 
-FuriHalInfoNwp* furi_hal_info_nwp_alloc(void) {
+static FuriHalInfoNwp* furi_hal_info_nwp_alloc(void) {
     FuriHalInfoNwp* instance = malloc(sizeof(FuriHalInfoNwp));
     instance->firmware_version = furi_string_alloc();
     instance->mac_ble = furi_string_alloc();
@@ -88,7 +88,7 @@ FuriHalInfoNwp* furi_hal_info_nwp_alloc(void) {
     return instance;
 }
 
-void furi_hal_info_nwp_free(FuriHalInfoNwp* instance) {
+static void furi_hal_info_nwp_free(FuriHalInfoNwp* instance) {
     furi_check(instance);
     furi_string_free(instance->firmware_version);
     furi_string_free(instance->mac_ble);
@@ -96,7 +96,7 @@ void furi_hal_info_nwp_free(FuriHalInfoNwp* instance) {
     free(instance);
 }
 
-void furi_hal_info_get_nwp(FuriHalInfoNwp* instance) {
+static void furi_hal_info_get_nwp(FuriHalInfoNwp* instance) {
     furi_check(instance);
     bool is_nwp_initialized = false;
     sl_wifi_firmware_version_t fw_version;
@@ -135,7 +135,7 @@ void furi_hal_info_get_nwp(FuriHalInfoNwp* instance) {
         } else {
             furi_string_printf(
                 instance->mac_ble,
-                "%02X:%02X:%02X:%02X:%02X:%02X",
+                "%02x:%02x:%02x:%02x:%02x:%02x",
                 mac_addr.octet[5],
                 mac_addr.octet[4],
                 mac_addr.octet[3],
@@ -149,7 +149,7 @@ void furi_hal_info_get_nwp(FuriHalInfoNwp* instance) {
         } else {
             furi_string_printf(
                 instance->mac_wifi,
-                "%02X:%02X:%02X:%02X:%02X:%02X",
+                "%02x:%02x:%02x:%02x:%02x:%02x",
                 mac_addr.octet[0],
                 mac_addr.octet[1],
                 mac_addr.octet[2],
@@ -164,6 +164,19 @@ void furi_hal_info_get_nwp(FuriHalInfoNwp* instance) {
         if(status != SL_STATUS_OK) {
             FURI_LOG_E(TAG, "Failed to deinitialise Wifi: 0x%08lX", status);
         }
+    }
+}
+
+char* furi_hal_info_get_encryption_mode(uint8_t encryption_mode) {
+    switch(encryption_mode) {
+    case 0:
+        return "none";
+    case 1:
+        return "ctr";
+    case 2:
+        return "xts";
+    default:
+        return "unknown";
     }
 }
 
@@ -236,16 +249,6 @@ void furi_hal_info_get(PropertyValueCallback out, char sep, void* context) {
                 "branch",
                 version_get_gitbranch(firmware_version));
         }
-
-        property_value_out(
-            &property_context,
-            NULL,
-            4,
-            "917",
-            "firmware",
-            "branch",
-            "num",
-            version_get_gitbranchnum(firmware_version));
         property_value_out(
             &property_context,
             NULL,
@@ -257,11 +260,10 @@ void furi_hal_info_get(PropertyValueCallback out, char sep, void* context) {
         property_value_out(
             &property_context,
             NULL,
-            4,
+            3,
             "917",
             "firmware",
-            "build",
-            "date",
+            "builddate",
             version_get_builddate(firmware_version));
         property_value_out(
             &property_context,
@@ -304,16 +306,16 @@ void furi_hal_info_get(PropertyValueCallback out, char sep, void* context) {
             NULL,
             3,
             "917",
-            "mac",
             "wifi",
+            "mac",
             furi_string_get_cstr(furi_hal_info_nwp->mac_wifi));
         property_value_out(
             &property_context,
             NULL,
             3,
             "917",
-            "mac",
             "ble",
+            "mac",
             furi_string_get_cstr(furi_hal_info_nwp->mac_ble));
         property_value_out(
             &property_context,
@@ -330,7 +332,7 @@ void furi_hal_info_get(PropertyValueCallback out, char sep, void* context) {
             3,
             "917",
             "nwp",
-            "rollback",
+            "antirollback",
             furi_hal_info_917_mbr->ta_anti_roll_back ? "true" : "false");
         property_value_out(
             &property_context,
@@ -347,14 +349,14 @@ void furi_hal_info_get(PropertyValueCallback out, char sep, void* context) {
             "917",
             "nwp",
             "encrypt",
-            furi_hal_info_917_mbr->ta_encrypt_firmware ? "true" : "false");
+            furi_hal_info_get_encryption_mode(furi_hal_info_917_mbr->ta_encrypt_firmware));
         property_value_out(
             &property_context,
             NULL,
             3,
             "917",
             "nwp",
-            "secure",
+            "secureboot",
             furi_hal_info_917_mbr->ta_secure_boot_enable ? "true" : "false");
         property_value_out(
             &property_context,
@@ -362,7 +364,7 @@ void furi_hal_info_get(PropertyValueCallback out, char sep, void* context) {
             3,
             "917",
             "m4",
-            "rollback",
+            "antirollback",
             furi_hal_info_917_mbr->m4_anti_roll_back ? "true" : "false");
         property_value_out(
             &property_context,
@@ -386,7 +388,7 @@ void furi_hal_info_get(PropertyValueCallback out, char sep, void* context) {
             3,
             "917",
             "m4",
-            "secure",
+            "secureboot",
             furi_hal_info_917_mbr->m4_secure_boot_enable ? "true" : "false");
         property_value_out(
             &property_context,
@@ -395,7 +397,7 @@ void furi_hal_info_get(PropertyValueCallback out, char sep, void* context) {
             "917",
             "m4",
             "encryptionmode",
-            furi_hal_info_917_mbr->m4_fw_encryption_mode ? "true" : "false");
+            furi_hal_info_get_encryption_mode(furi_hal_info_917_mbr->m4_fw_encryption_mode));
         property_value_out(
             &property_context,
             NULL,
@@ -410,7 +412,7 @@ void furi_hal_info_get(PropertyValueCallback out, char sep, void* context) {
             3,
             "917",
             "m4",
-            "jtag",
+            "debug",
             furi_hal_info_917_mbr->disable_m4_jtag ? "false" : "true");
         property_value_out(
             &property_context,
@@ -418,16 +420,10 @@ void furi_hal_info_get(PropertyValueCallback out, char sep, void* context) {
             3,
             "917",
             "nwp",
-            "jtag",
+            "debug",
             furi_hal_info_917_mbr->disable_ta_jtag ? "false" : "true");
         FuriString* ver_name = furi_string_alloc();
-        furi_string_printf(
-            ver_name,
-            "%02X (%s)",
-            furi_hal_info_917_mbr->mbr_variant,
-            furi_hal_info_917_mbr->mbr_variant == FURI_HAL_INFO_917_MBR_1_8_VERSION ? "1.8 Mb" :
-            furi_hal_info_917_mbr->mbr_variant == FURI_HAL_INFO_917_MBR_1_6_VERSION ? "1.6 Mb" :
-                                                                                      "Unknown");
+        furi_string_printf(ver_name, "%02x", furi_hal_info_917_mbr->mbr_variant);
         property_value_out(
             &property_context, NULL, 3, "917", "mbr", "variant", furi_string_get_cstr(ver_name));
         furi_string_free(ver_name);
