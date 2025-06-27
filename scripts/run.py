@@ -12,6 +12,8 @@ U5_TARGET_HW = 20
 SI_TARGET_HW = 64
 
 def wait_for_device(device_ip, verbose=False):
+    ts = time.time()
+
     ping_cmd = ['ping', '-c', '1', '-W', '1']  # Unix: -c count, -W timeout (sec)
     if platform.system() == 'Windows':
         ping_cmd = ['ping', '-n', '1', '-w', '1000']  # Windows: -n count, -w timeout (ms)
@@ -33,6 +35,9 @@ def wait_for_device(device_ip, verbose=False):
             print(f"Ping error: {device_ip}: {e}")
             time.sleep(1)
         time.sleep(0.1)
+
+    if verbose:
+        print(f"Device found in {time.time() - ts:.3f} seconds.")
 
 def telnet_config_ensure():
     telnet_cfg_path = os.path.expanduser("~/.telnetrc")
@@ -79,11 +84,7 @@ def run_cli(args):
     if args.verbose:
         print(f"Connecting to {args.device_ip}:{args.device_port}...")
     
-    ts = time.time()
     wait_for_device(args.device_ip, verbose=args.verbose)
-
-    if args.verbose:
-        print(f"Device found in {time.time() - ts:.3f} seconds.")
 
     telnet_config_ensure()
     telnet_launch(args.device_ip, args.device_port)
@@ -122,9 +123,26 @@ def run_build_update_bundle(args):
 
     if args.verbose:
         print("Running:", cmd_bundle)
-    ret = os.system(cmd_bundle)
+    ret = os.system(cmd_bundle_tar)
     if ret != 0:
         print("Update bundle build failed with return code:", ret)
+    return ret
+
+def run_update_via_tar_and_curl(args):
+    if args.device_ip == "ref" or args.device_ip == "r":
+        args.device_ip = DEVICE_IP_REF
+    
+    # curl -vvv "http://${DEVICE_IP}/api/v0/update" --data-binary '@upd_bundle.tar'
+    upd_bundle_tar = "upd_bundle.tar"
+    cmd = f"curl -vvv \"http://{args.device_ip}/api/v0/update\" --data-binary '@{upd_bundle_tar}'"
+    if args.verbose:
+        print("Running:", cmd)
+
+    wait_for_device(args.device_ip, verbose=args.verbose)
+
+    ret = os.system(cmd)
+    if ret != 0:
+        print("Update via tar and curl failed with return code:", ret)
     return ret
 
 def main():
@@ -165,6 +183,12 @@ def main():
         "build-update-bundle", help="Build update bundle"
     )
     p_build_update_bundle.set_defaults(func=run_build_update_bundle)
+
+    p_update_via_tar_and_curl = subparsers.add_parser(
+        "update-curl", help="Update device via tar and curl"
+    )
+    p_update_via_tar_and_curl.add_argument("-d", "--device_ip", help="Device IP", type=str, default=DEVICE_IP)
+    p_update_via_tar_and_curl.set_defaults(func=run_update_via_tar_and_curl)
 
     args = parser.parse_args()
 
