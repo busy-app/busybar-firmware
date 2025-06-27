@@ -1,15 +1,41 @@
 #!/usr/bin/env python3
-
 import os, sys, time
 import subprocess, argparse
 import shutil, platform
 
+from flipper.storage_socket import FlipperStorage
+
+# Device
 DEVICE_IP = "10.0.4.20"
 DEVICE_IP_REF = "10.0.5.20"
 DEVICE_PORT = 23
 
+# Firmware U5:
 U5_TARGET_HW = 20
+
+# Firmware SI917:
 SI_TARGET_HW = 64
+SI_RADIO_FW_PATH = "./lib/wiseconnect/connectivity_firmware/standard/SiWG917-B.2.13.4.1.0.4.rps"    # TODO: auto discover?
+
+# Script settings:
+RUN_ASSETS_DIR = ".run_assets"    # All build outputs will be placed here
+UPDATE_BUNDLE_DIR = os.path.join(RUN_ASSETS_DIR, "upd_bundle")              # Vanilla
+UPDATE_BUNDLE_TAR = os.path.join(RUN_ASSETS_DIR, "upd_bundle.tar")          # .tar, for update via storage.py and HTTP API
+UPDATE_BUNDLE_PROD_DIR = os.path.join(RUN_ASSETS_DIR, "upd_bundle_prod")    # For production line
+
+
+# End of script settings
+
+def subprocess_exec(cmd, verbose=False):
+    if verbose:
+        print("Run:", ' '.join(cmd) if isinstance(cmd, list) else cmd)
+    result = subprocess.run(
+        cmd,
+        stdin=sys.stdin,
+        stdout=sys.stdout,
+        stderr=sys.stderr,
+    )
+    return result.returncode
 
 def wait_for_device(device_ip, verbose=False):
     ts = time.time()
@@ -115,35 +141,140 @@ def run_build_si(args):
         print("Build failed for SI917 target with return code:", ret)
     return ret
 
-def run_build_update_bundle(args):
-    upd_bundle_dir = "upd_bundle"
-    upd_bundle_tar = "upd_bundle.tar"
-    cmd_bundle = f"./scripts/update_bundle.py --target 20 --output {upd_bundle_dir} --stage fbt_layers/fbtng/build/f20-updater-D/updater.bin --dfu fbt_layers/fbtng/build/f20-firmware-D/firmware.dfu --sil-fw  fbt_layers/fbtng/build/f64-firmware-D/firmware.rps --resources fbt_layers/fbtng/build/f20-firmware-D/resources --sil-radio-fw ./lib/wiseconnect/connectivity_firmware/standard/SiWG917-B.2.13.4.1.0.4.rps"
-    cmd_bundle_tar = f"./scripts/update_bundle.py --target 20 --output-tar {upd_bundle_tar} --stage fbt_layers/fbtng/build/f20-updater-D/updater.bin --dfu fbt_layers/fbtng/build/f20-firmware-D/firmware.dfu --sil-fw  fbt_layers/fbtng/build/f64-firmware-D/firmware.rps --resources fbt_layers/fbtng/build/f20-firmware-D/resources --sil-radio-fw ./lib/wiseconnect/connectivity_firmware/standard/SiWG917-B.2.13.4.1.0.4.rps"
+def ensure_run_assets_dir():
+    if not os.path.exists(RUN_ASSETS_DIR):
+        os.makedirs(RUN_ASSETS_DIR)
+    else:
+        if not os.path.isdir(RUN_ASSETS_DIR):
+            print(f"Error: {RUN_ASSETS_DIR} exists but is not a directory.")
+            sys.exit(1)
 
-    if args.verbose:
-        print("Running:", cmd_bundle)
-    ret = os.system(cmd_bundle_tar)
-    if ret != 0:
-        print("Update bundle build failed with return code:", ret)
+def ensure_update_tar(upd_bundle_tar):
+    if not os.path.exists(upd_bundle_tar):
+        print(f"Update bundle tar file '{upd_bundle_tar}' does not exist. Please run './run build-bundles' first.")
+        return False
+    return True
+
+def run_build_update_bundles(args):
+    upd_bundle_dir = UPDATE_BUNDLE_DIR
+    upd_bundle_prod_dir = UPDATE_BUNDLE_PROD_DIR
+    upd_bundle_tar = UPDATE_BUNDLE_TAR
+
+    ensure_run_assets_dir()
+
+    if os.path.exists(upd_bundle_tar):
+        os.remove(upd_bundle_tar)
+    
+    if os.path.exists(upd_bundle_dir):
+        shutil.rmtree(upd_bundle_dir)
+
+    # TODO: check if the firmware builded successfully before running this command?
+    # TODO: production bundle with .elf?
+
+    bundles_cmds = []
+
+    # Update bundle default
+    bundles_cmds.append([
+        "./scripts/update_bundle.py",
+        "--target", f"{U5_TARGET_HW}",
+        "--output", upd_bundle_dir,
+        "--stage", f"fbt_layers/fbtng/build/f{U5_TARGET_HW}-updater-D/updater.bin",
+        "--dfu", f"fbt_layers/fbtng/build/f{U5_TARGET_HW}-firmware-D/firmware.dfu",
+        "--sil-fw", f"fbt_layers/fbtng/build/f{SI_TARGET_HW}-firmware-D/firmware.rps",
+        "--resources", f"fbt_layers/fbtng/build/f{U5_TARGET_HW}-firmware-D/resources",
+        "--sil-radio-fw", f"{SI_RADIO_FW_PATH}"
+    ])
+
+    # Update bundle.tar
+    bundles_cmds.append([
+        "./scripts/update_bundle.py",
+        "--target", f"{U5_TARGET_HW}",
+        "--output-tar", f"{upd_bundle_tar}",
+        "--stage", f"fbt_layers/fbtng/build/f{U5_TARGET_HW}-updater-D/updater.bin",
+        "--dfu", f"fbt_layers/fbtng/build/f{U5_TARGET_HW}-firmware-D/firmware.dfu",
+        "--sil-fw", f"fbt_layers/fbtng/build/f{SI_TARGET_HW}-firmware-D/firmware.rps",
+        "--resources", f"fbt_layers/fbtng/build/f{U5_TARGET_HW}-firmware-D/resources",
+        "--sil-radio-fw", f"{SI_RADIO_FW_PATH}"
+    ])
+
+    # Update bundle for production line
+    bundles_cmds.append([
+        "./scripts/update_bundle.py",
+        "--target", f"{U5_TARGET_HW}",
+        "--output", upd_bundle_prod_dir,
+        "--stage", f"fbt_layers/fbtng/build/f{U5_TARGET_HW}-updater-D/updater.bin",
+        "--dfu", f"fbt_layers/fbtng/build/f{U5_TARGET_HW}-firmware-D/firmware.dfu",
+        "--sil-fw", f"fbt_layers/fbtng/build/f{SI_TARGET_HW}-firmware-D/firmware.rps",
+        "--resources", f"fbt_layers/fbtng/build/f{U5_TARGET_HW}-firmware-D/resources",
+        "--sil-radio-fw", f"{SI_RADIO_FW_PATH}"
+    ])
+    bundles_cmds.append([
+        "cp", "-v",
+        f"fbt_layers/fbtng/build/f{U5_TARGET_HW}-firmware-D/firmware.elf",
+        upd_bundle_prod_dir
+    ])
+
+    for cmd in bundles_cmds:
+        ret = subprocess_exec(cmd, verbose=args.verbose)
+        if ret != 0:
+            print(f"Cmd {cmd} failed with return code:", ret)
+            return ret
     return ret
 
-def run_update_via_tar_and_curl(args):
+def run_wait_for_device(args):
     if args.device_ip == "ref" or args.device_ip == "r":
         args.device_ip = DEVICE_IP_REF
+
+    wait_for_device(args.device_ip, verbose=args.verbose)
+    print(f"Device {args.device_ip} is reachable.")
+    return 0
+
+def run_update_via_http(args):
+    # https://flipperzero.atlassian.net/wiki/spaces/BL/pages/29543628801/Self-update
+    if args.device_ip == "ref" or args.device_ip == "r":
+        args.device_ip = DEVICE_IP_REF
+
+    upd_bundle_tar = UPDATE_BUNDLE_TAR
+    assert ensure_update_tar(upd_bundle_tar) == True
     
-    # curl -vvv "http://${DEVICE_IP}/api/v0/update" --data-binary '@upd_bundle.tar'
-    upd_bundle_tar = "upd_bundle.tar"
-    cmd = f"curl -vvv \"http://{args.device_ip}/api/v0/update\" --data-binary '@{upd_bundle_tar}'"
-    if args.verbose:
-        print("Running:", cmd)
+    # cmd = f"curl -vvv \"http://{args.device_ip}/api/v0/update\" --data-binary '@{upd_bundle_tar}'"
+    cmd = ["curl", "-vvv", f"http://{args.device_ip}/api/v0/update",
+           "--data-binary", f"@{upd_bundle_tar}"]
 
     wait_for_device(args.device_ip, verbose=args.verbose)
 
-    ret = os.system(cmd)
+    ret = subprocess_exec(cmd, verbose=args.verbose)
     if ret != 0:
-        print("Update via tar and curl failed with return code:", ret)
+        print(f"Update via HTTP failed with return code: {ret}")
     return ret
+
+def run_update_via_storage(args):
+    # https://flipperzero.atlassian.net/wiki/spaces/BL/pages/29543628801/Self-update
+    if args.device_ip == "ref" or args.device_ip == "r":
+        args.device_ip = DEVICE_IP_REF
+
+    upd_bundle = UPDATE_BUNDLE_DIR
+    bsb_update_dst = "/ext/tmp/upd_bundle"
+    bsb_update_json = bsb_update_dst + "/update.json"
+    # assert ensure_update_tar(upd_bundle) == True
+    # TODO: ensure that the update bundle exists
+
+    cmd = ["python3", "./scripts/storage.py", "-p", args.device_ip, "send", upd_bundle, bsb_update_dst]
+
+    wait_for_device(args.device_ip, verbose=args.verbose)
+
+    ret = subprocess_exec(cmd, verbose=args.verbose)
+    if ret != 0:
+        print(f"Update via storage.py failed with return code: {ret}")
+
+    cmd_cli = f"update install {bsb_update_json}"
+
+    bsb = FlipperStorage((args.device_ip, args.device_port))
+    print("Sending boot command to the device")
+    bsb.start()
+    bsb.send_and_wait_eol(f"{cmd_cli}\r\n")
+
+    return None
 
 def main():
     # print("cwd:", os.getcwd())
@@ -180,15 +311,30 @@ def main():
     p_build_si.set_defaults(func=run_build_si)
 
     p_build_update_bundle = subparsers.add_parser(
-        "build-update-bundle", help="Build update bundle"
+        "build-bundles", help="Build all bundles: update, production."
     )
-    p_build_update_bundle.set_defaults(func=run_build_update_bundle)
+    p_build_update_bundle.set_defaults(func=run_build_update_bundles)
 
-    p_update_via_tar_and_curl = subparsers.add_parser(
-        "update-curl", help="Update device via tar and curl"
+    p_update_via_http = subparsers.add_parser(
+        "update-http", help="Update device via HTTP API using curl (upd_bundle.tar)"
     )
-    p_update_via_tar_and_curl.add_argument("-d", "--device_ip", help="Device IP", type=str, default=DEVICE_IP)
-    p_update_via_tar_and_curl.set_defaults(func=run_update_via_tar_and_curl)
+    p_update_via_http.add_argument("-d", "--device_ip", help="Device IP", type=str, default=DEVICE_IP)
+    p_update_via_http.add_argument("-p", "--device_port", help="Device Port", type=int, default=DEVICE_PORT)
+    p_update_via_http.set_defaults(func=run_update_via_http)
+
+    p_update_via_storage = subparsers.add_parser(
+        "update-storage", help="Update device via storage.py (update bundle)"
+    )
+    p_update_via_storage.add_argument("-d", "--device_ip", help="Device IP", type=str, default=DEVICE_IP)
+    p_update_via_storage.add_argument("-p", "--device_port", help="Device Port", type=int, default=DEVICE_PORT)
+    p_update_via_storage.set_defaults(func=run_update_via_storage)
+
+    p_wait_for_device = subparsers.add_parser(
+        "wait", help="Just wait for device to be reachable via ping, nothing else"
+    )
+    p_wait_for_device.add_argument("-d", "--device_ip", help="Device IP", type=str, default=DEVICE_IP)
+    p_wait_for_device.set_defaults(func=run_wait_for_device)
+    
 
     args = parser.parse_args()
 
