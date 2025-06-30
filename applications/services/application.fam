@@ -5,7 +5,8 @@ App(
     provides=[
         "audio",
         "storage",
-        "cli",
+        "cli_commands_common",
+        "cli_commands_target_specific",
         "cli_socket",
         "cli_intercom",
         "input",
@@ -33,7 +34,8 @@ App(
     name="Basic services",
     apptype=FlipperAppType.METAPACKAGE,
     provides=[
-        "cli",  # Enabled in "hwtest" fw config (FIRMWARE_APP_SET)
+        "cli_commands_common",
+        "cli_commands_target_specific",
         "input",
     ],
     targets=["f64"],

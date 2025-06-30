@@ -1,8 +1,6 @@
 App(
-    appid="cli",
+    appid="cli_commands_target_specific",
     apptype=FlipperAppType.STARTUP,
     entry_point="cli_on_system_start",
-    cdefines=["SRV_CLI"],
     targets=["f64"],
-    sources=["cli_main_shell.c", "cli_commands.c"],
 )
