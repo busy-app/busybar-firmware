@@ -1,12 +1,21 @@
 App(
+    appid="cli",
+    name="CLI commands",
+    apptype=FlipperAppType.METAPACKAGE,
+    provides=[
+        "cli_commands_common",
+        "cli_commands_target_specific",
+    ],
+)
+
+App(
     appid="basic_services",
     name="Basic services",
     apptype=FlipperAppType.METAPACKAGE,
     provides=[
         "audio",
         "storage",
-        "cli_commands_common",
-        "cli_commands_target_specific",
+        "cli",
         "cli_socket",
         "cli_intercom",
         "input",
@@ -34,8 +43,7 @@ App(
     name="Basic services",
     apptype=FlipperAppType.METAPACKAGE,
     provides=[
-        "cli_commands_common",
-        "cli_commands_target_specific",
+        "cli",
         "input",
     ],
     targets=["f64"],
