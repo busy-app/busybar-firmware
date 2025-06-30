@@ -203,7 +203,7 @@ void furi_hal_info_get(PropertyValueCallback out, char sep, void* context) {
                 &property_context,
                 NULL,
                 4,
-                "917"
+                "sl"
                 "firmware",
                 "commit",
                 "hash",
@@ -213,7 +213,7 @@ void furi_hal_info_get(PropertyValueCallback out, char sep, void* context) {
                 &property_context,
                 NULL,
                 3,
-                "917",
+                "sl",
                 "firmware",
                 "commit",
                 version_get_githash(firmware_version));
@@ -223,7 +223,7 @@ void furi_hal_info_get(PropertyValueCallback out, char sep, void* context) {
             &property_context,
             NULL,
             4,
-            "917",
+            "sl",
             "firmware",
             "commit",
             "dirty",
@@ -234,7 +234,7 @@ void furi_hal_info_get(PropertyValueCallback out, char sep, void* context) {
                 &property_context,
                 NULL,
                 4,
-                "917",
+                "sl",
                 "firmware",
                 "branch",
                 "name",
@@ -244,7 +244,7 @@ void furi_hal_info_get(PropertyValueCallback out, char sep, void* context) {
                 &property_context,
                 NULL,
                 3,
-                "917",
+                "sl",
                 "firmware",
                 "branch",
                 version_get_gitbranch(firmware_version));
@@ -253,7 +253,7 @@ void furi_hal_info_get(PropertyValueCallback out, char sep, void* context) {
             &property_context,
             NULL,
             3,
-            "917",
+            "sl",
             "firmware",
             "version",
             version_get_version(firmware_version));
@@ -261,7 +261,7 @@ void furi_hal_info_get(PropertyValueCallback out, char sep, void* context) {
             &property_context,
             NULL,
             3,
-            "917",
+            "sl",
             "firmware",
             "builddate",
             version_get_builddate(firmware_version));
@@ -269,7 +269,7 @@ void furi_hal_info_get(PropertyValueCallback out, char sep, void* context) {
             &property_context,
             "%d",
             3,
-            "917",
+            "sl",
             "firmware",
             "target",
             version_get_target(firmware_version));
@@ -277,15 +277,15 @@ void furi_hal_info_get(PropertyValueCallback out, char sep, void* context) {
         uint16_t api_version_major, api_version_minor;
         furi_hal_info_get_api_version(&api_version_major, &api_version_minor);
         property_value_out(
-            &property_context, "%d", 4, "917", "firmware", "api", "major", api_version_major);
+            &property_context, "%d", 4, "sl", "firmware", "api", "major", api_version_major);
         property_value_out(
-            &property_context, "%d", 4, "917", "firmware", "api", "minor", api_version_minor);
+            &property_context, "%d", 4, "sl", "firmware", "api", "minor", api_version_minor);
 
         property_value_out(
             &property_context,
             NULL,
             4,
-            "917",
+            "sl",
             "firmware",
             "origin",
             "fork",
@@ -295,7 +295,7 @@ void furi_hal_info_get(PropertyValueCallback out, char sep, void* context) {
             &property_context,
             NULL,
             4,
-            "917",
+            "sl",
             "firmware",
             "origin",
             "git",
@@ -305,7 +305,7 @@ void furi_hal_info_get(PropertyValueCallback out, char sep, void* context) {
             &property_context,
             NULL,
             3,
-            "917",
+            "sl",
             "wifi",
             "mac",
             furi_string_get_cstr(furi_hal_info_nwp->mac_wifi));
@@ -313,7 +313,7 @@ void furi_hal_info_get(PropertyValueCallback out, char sep, void* context) {
             &property_context,
             NULL,
             3,
-            "917",
+            "sl",
             "ble",
             "mac",
             furi_string_get_cstr(furi_hal_info_nwp->mac_ble));
@@ -321,7 +321,7 @@ void furi_hal_info_get(PropertyValueCallback out, char sep, void* context) {
             &property_context,
             NULL,
             3,
-            "917",
+            "sl",
             "nwp",
             "firmware",
             furi_string_get_cstr(furi_hal_info_nwp->firmware_version));
@@ -330,7 +330,7 @@ void furi_hal_info_get(PropertyValueCallback out, char sep, void* context) {
             &property_context,
             NULL,
             3,
-            "917",
+            "sl",
             "nwp",
             "antirollback",
             furi_hal_info_917_mbr->ta_anti_roll_back ? "true" : "false");
@@ -338,7 +338,7 @@ void furi_hal_info_get(PropertyValueCallback out, char sep, void* context) {
             &property_context,
             NULL,
             3,
-            "917",
+            "sl",
             "nwp",
             "signature",
             furi_hal_info_917_mbr->ta_digital_signature_validation ? "true" : "false");
@@ -346,7 +346,7 @@ void furi_hal_info_get(PropertyValueCallback out, char sep, void* context) {
             &property_context,
             NULL,
             3,
-            "917",
+            "sl",
             "nwp",
             "encrypt",
             furi_hal_info_get_encryption_mode(furi_hal_info_917_mbr->ta_encrypt_firmware));
@@ -354,7 +354,7 @@ void furi_hal_info_get(PropertyValueCallback out, char sep, void* context) {
             &property_context,
             NULL,
             3,
-            "917",
+            "sl",
             "nwp",
             "secureboot",
             furi_hal_info_917_mbr->ta_secure_boot_enable ? "true" : "false");
@@ -362,7 +362,7 @@ void furi_hal_info_get(PropertyValueCallback out, char sep, void* context) {
             &property_context,
             NULL,
             3,
-            "917",
+            "sl",
             "m4",
             "antirollback",
             furi_hal_info_917_mbr->m4_anti_roll_back ? "true" : "false");
@@ -370,7 +370,7 @@ void furi_hal_info_get(PropertyValueCallback out, char sep, void* context) {
             &property_context,
             NULL,
             3,
-            "917",
+            "sl",
             "m4",
             "signature",
             furi_hal_info_917_mbr->m4_digital_signature_validation ? "true" : "false");
@@ -378,7 +378,7 @@ void furi_hal_info_get(PropertyValueCallback out, char sep, void* context) {
             &property_context,
             NULL,
             3,
-            "917",
+            "sl",
             "m4",
             "encrypt",
             furi_hal_info_917_mbr->m4_encrypt_firmware ? "true" : "false");
@@ -386,7 +386,7 @@ void furi_hal_info_get(PropertyValueCallback out, char sep, void* context) {
             &property_context,
             NULL,
             3,
-            "917",
+            "sl",
             "m4",
             "secureboot",
             furi_hal_info_917_mbr->m4_secure_boot_enable ? "true" : "false");
@@ -394,7 +394,7 @@ void furi_hal_info_get(PropertyValueCallback out, char sep, void* context) {
             &property_context,
             NULL,
             3,
-            "917",
+            "sl",
             "m4",
             "encryptionmode",
             furi_hal_info_get_encryption_mode(furi_hal_info_917_mbr->m4_fw_encryption_mode));
@@ -402,7 +402,7 @@ void furi_hal_info_get(PropertyValueCallback out, char sep, void* context) {
             &property_context,
             NULL,
             3,
-            "917",
+            "sl",
             "m4",
             "accessfromtass",
             furi_hal_info_917_mbr->disable_m4_access_frm_tass_sec ? "false" : "true");
@@ -410,7 +410,7 @@ void furi_hal_info_get(PropertyValueCallback out, char sep, void* context) {
             &property_context,
             NULL,
             3,
-            "917",
+            "sl",
             "m4",
             "debug",
             furi_hal_info_917_mbr->disable_m4_jtag ? "false" : "true");
@@ -418,14 +418,14 @@ void furi_hal_info_get(PropertyValueCallback out, char sep, void* context) {
             &property_context,
             NULL,
             3,
-            "917",
+            "sl",
             "nwp",
             "debug",
             furi_hal_info_917_mbr->disable_ta_jtag ? "false" : "true");
         FuriString* ver_name = furi_string_alloc();
         furi_string_printf(ver_name, "%02x", furi_hal_info_917_mbr->mbr_variant);
         property_value_out(
-            &property_context, NULL, 3, "917", "mbr", "variant", furi_string_get_cstr(ver_name));
+            &property_context, NULL, 3, "sl", "mbr", "variant", furi_string_get_cstr(ver_name));
         furi_string_free(ver_name);
     }
 

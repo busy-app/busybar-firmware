@@ -1,6 +1,7 @@
 #include <furi_hal_info.h>
 
 #include <furi_hal_version.h>
+#include <stm32u5xx_ll_utils.h>
 #include <furi.h>
 
 FURI_WEAK void furi_hal_info_get_api_version(uint16_t* major, uint16_t* minor) {
@@ -15,6 +16,7 @@ void furi_hal_info_get(PropertyValueCallback out, char sep, void* context) {
 
     FuriString* key = furi_string_alloc();
     FuriString* value = furi_string_alloc();
+    FuriString* temp_str = furi_string_alloc();
 
     PropertyValueContext property_context = {
         .key = key, .value = value, .out = out, .sep = sep, .last = false, .context = context};
@@ -126,10 +128,9 @@ void furi_hal_info_get(PropertyValueCallback out, char sep, void* context) {
             "git",
             version_get_git_origin(firmware_version));
 
-        FuriString* usb_mac = furi_string_alloc();
         const uint8_t* mac = furi_hal_version_get_ble_mac();
         furi_string_printf(
-            usb_mac,
+            temp_str,
             "%02x:%02x:%02x:%02x:%02x:%02x",
             mac[0],
             mac[1],
@@ -138,10 +139,14 @@ void furi_hal_info_get(PropertyValueCallback out, char sep, void* context) {
             mac[4],
             mac[5]);
         property_value_out(
-            &property_context, NULL, 3, "u5", "usb", "mac", furi_string_get_cstr(usb_mac));
-        furi_string_free(usb_mac);
+            &property_context, NULL, 3, "u5", "usb", "mac", furi_string_get_cstr(temp_str));
+        furi_string_printf(
+            temp_str, "%08lx%08lx%08lx", LL_GetUID_Word2(), LL_GetUID_Word1(), LL_GetUID_Word0());
+        property_value_out(
+            &property_context, NULL, 3, "u5", "hardware", "uid", furi_string_get_cstr(temp_str));
     }
 
+    furi_string_free(temp_str);
     furi_string_free(key);
     furi_string_free(value);
 }
