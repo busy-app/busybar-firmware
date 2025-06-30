@@ -4,6 +4,6 @@ App(
     apptype=FlipperAppType.SERVICE,
     entry_point="cli_uart_srv",
     cdefines=["SRV_CLI_UART"],
-    stack_size=4 * 1024,
-    targets=["f20", "f21", "f64"],
+    stack_size=2 * 1024,
+    targets=["f64"],
 )
