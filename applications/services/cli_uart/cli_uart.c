@@ -33,10 +33,7 @@ struct CliUart {
 // Serial callbacks
 // ================
 
-void cli_uart_rx_callback(
-    FuriHalSerialHandle* handle,
-    FuriHalSerialRxEvent event,
-    void* context) {
+void cli_uart_rx_callback(FuriHalSerialHandle* handle, FuriHalSerialRxEvent event, void* context) {
     UNUSED(handle);
     CliUart* cli_uart = context;
 
@@ -92,7 +89,8 @@ static CliUart* cli_uart_alloc(void) {
     pipe_set_callback_context(cli_uart->own_pipe, cli_uart);
     pipe_set_data_arrived_callback(cli_uart->own_pipe, cli_uart_data_from_pipe, 0);
 
-    cli_uart->cli_shell = cli_shell_alloc(cli_main_motd, NULL, pipes.bobs_side, cli_uart->registry, NULL);
+    cli_uart->cli_shell =
+        cli_shell_alloc(cli_main_motd, NULL, pipes.bobs_side, cli_uart->registry, NULL);
     cli_shell_free_pipe_on_exit(cli_uart->cli_shell);
     cli_shell_set_prompt(cli_uart->cli_shell, "917");
     cli_shell_start(cli_uart->cli_shell);
