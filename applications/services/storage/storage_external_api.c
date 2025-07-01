@@ -1,8 +1,8 @@
 #include <core/log.h>
 #include <core/record.h>
-#include "storage.h"
-#include "storage_i.h" // IWYU pragma: keep
-#include "storage_message.h"
+#include <storage/storage.h>
+#include <storage/storage_i.h> // IWYU pragma: keep
+#include <storage/storage_message.h>
 #include <toolbox/stream/file_stream.h>
 #include <toolbox/dir_walk.h>
 #include "toolbox/path.h"
@@ -10,6 +10,10 @@
 #define MAX_NAME_LENGTH  256
 #define MAX_EXT_LEN      16
 #define FILE_BUFFER_SIZE 512
+
+#ifndef SRAM_BASE
+#define SRAM_BASE SRAM1_BASE
+#endif
 
 #define TAG "StorageApi"
 
@@ -493,7 +497,7 @@ FS_Error storage_common_rename(Storage* storage, const char* old_path, const cha
             }
 
             // Cannot rename a directory to itself or to a nested directory
-            if(storage_common_is_subdir(storage, old_path, new_path)) {
+            if(storage_common_equivalent_path(storage, old_path, new_path)) {
                 error = FSE_INVALID_NAME;
                 break;
             }
@@ -846,7 +850,6 @@ bool storage_common_equivalent_path(Storage* storage, const char* path1, const c
 bool storage_common_is_subdir(Storage* storage, const char* parent, const char* child) {
     return storage_internal_equivalent_path(storage, parent, child, true);
 }
-
 /****************** ERROR ******************/
 
 const char* storage_error_get_desc(FS_Error error_id) {

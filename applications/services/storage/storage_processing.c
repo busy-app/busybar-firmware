@@ -1,8 +1,8 @@
-#include <m-list.h>
 #include <m-dict.h>
+#include <m-list.h>
 
-#include "storage_processing.h"
-#include "storage_internal_dirname_i.h"
+#include <storage/storage_internal_dirname_i.h>
+#include <storage/storage_processing.h>
 
 #define TAG "Storage"
 
@@ -20,7 +20,7 @@ _Static_assert(
 #define FS_CALL(_storage, _fn) ret = _storage->fs_api->_fn;
 
 static bool storage_type_is_valid(StorageType type) {
-#ifdef FATFS_READ_ONLY
+#ifdef FURI_RAM_EXEC
     return type == ST_EXT;
 #else
     return type < ST_ERROR;
@@ -427,8 +427,9 @@ static bool
 }
 
 /****************** Raw SD API ******************/
-// TODO FL-3521: think about implementing a custom storage API to split that kind of api linkage
-#include "storages/storage_ext.h"
+// TODO FL-3521: think about implementing a custom storage API to split that
+// kind of api linkage
+#include "storages/storage_ext_sdmmc.h"
 
 static FS_Error storage_process_sd_format(Storage* app) {
     FS_Error ret = FSE_OK;
@@ -475,7 +476,7 @@ static FS_Error storage_process_sd_mount(Storage* app) {
             break;
         }
 
-        ret = sd_mount_card(storage, true);
+        ret = sd_mount_card(storage);
         storage_data_timestamp(storage);
     } while(false);
 
@@ -564,6 +565,46 @@ void storage_process_alias(
             storage_process_common_mkdir(app, int_on_ext_path);
         }
         furi_string_free(int_on_ext_path);
+    }
+}
+
+/****************** SD Presence ******************/
+
+#undef TAG
+#define TAG "StorageProcessing"
+
+void storage_sd_presence_changed(Storage* app) {
+    // TODO: add debounce circuit?
+    furi_delay_ms(10);
+    sd_presence_changed(&app->storage[ST_EXT]);
+
+    // storage not enabled but was enabled (sd card unmount)
+    if(app->storage[ST_EXT].status == StorageStatusNotReady && app->sd_alive == true) {
+        app->sd_alive = false;
+
+        FURI_LOG_I(TAG, "SD card unmount");
+        StorageEvent event = {.type = StorageEventTypeCardUnmount};
+        furi_pubsub_publish(app->pubsub, &event);
+    }
+
+    // storage enabled (or in error state) but was not enabled (sd card mount)
+    if((app->storage[ST_EXT].status == StorageStatusOK ||
+        app->storage[ST_EXT].status == StorageStatusNotMounted ||
+        app->storage[ST_EXT].status == StorageStatusNoFS ||
+        app->storage[ST_EXT].status == StorageStatusNotAccessible ||
+        app->storage[ST_EXT].status == StorageStatusErrorInternal) &&
+       app->sd_alive == false) {
+        app->sd_alive = true;
+
+        if(app->storage[ST_EXT].status == StorageStatusOK) {
+            FURI_LOG_I(TAG, "SD card mount");
+            StorageEvent event = {.type = StorageEventTypeCardMount};
+            furi_pubsub_publish(app->pubsub, &event);
+        } else {
+            FURI_LOG_I(TAG, "SD card mount error");
+            StorageEvent event = {.type = StorageEventTypeCardMountError};
+            furi_pubsub_publish(app->pubsub, &event);
+        }
     }
 }
 
@@ -737,9 +778,9 @@ void storage_process_message_internal(Storage* app, StorageMessage* message) {
     case StorageCommandSDStatus:
         message->return_data->error_value = storage_process_sd_status(app);
         break;
-
-    default:
-        furi_crash();
+    case StorageCommandSDPresenceChanged:
+        storage_sd_presence_changed(app);
+        return;
     }
 
     if(path != NULL) { //-V547
