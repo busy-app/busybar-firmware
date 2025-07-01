@@ -23,7 +23,6 @@ UPDATE_BUNDLE_DIR = os.path.join(RUN_ASSETS_DIR, "upd_bundle")              # Va
 UPDATE_BUNDLE_TAR = os.path.join(RUN_ASSETS_DIR, "upd_bundle.tar")          # .tar, for update via storage.py and HTTP API
 UPDATE_BUNDLE_PROD_DIR = os.path.join(RUN_ASSETS_DIR, "upd_bundle_prod")    # For production line
 
-
 # End of script settings
 
 def subprocess_exec(cmd, verbose=False):
@@ -124,22 +123,12 @@ def run_build_all(args):
     return ret
 
 def run_build_u5(args):
-    cmd = f"./fbt TARGET_HW={U5_TARGET_HW}  updater_bin firmware_dfu resources"
-    if args.verbose:
-        print("Running:", cmd)
-    ret = os.system(cmd)
-    if ret != 0:
-        print("Build failed for U5 target with return code:", ret)
-    return ret
+    cmd = ["./fbt", "TARGET_HW=" + str(U5_TARGET_HW), "updater_bin", "firmware_dfu", "resources"]
+    return subprocess_exec(cmd, verbose=args.verbose)
 
 def run_build_si(args):
-    cmd = f"./fbt TARGET_HW={SI_TARGET_HW}"
-    if args.verbose:
-        print("Running:", cmd)
-    ret = os.system(cmd)
-    if ret != 0:
-        print("Build failed for SI917 target with return code:", ret)
-    return ret
+    cmd = ["./fbt", "TARGET_HW=" + str(SI_TARGET_HW)]
+    return subprocess_exec(cmd, verbose=args.verbose)
 
 def ensure_run_assets_dir():
     if not os.path.exists(RUN_ASSETS_DIR):
@@ -161,15 +150,13 @@ def run_build_update_bundles(args):
     upd_bundle_tar = UPDATE_BUNDLE_TAR
 
     ensure_run_assets_dir()
+    # TODO: check if the firmware builded successfully before running this command?
 
     if os.path.exists(upd_bundle_tar):
         os.remove(upd_bundle_tar)
     
     if os.path.exists(upd_bundle_dir):
         shutil.rmtree(upd_bundle_dir)
-
-    # TODO: check if the firmware builded successfully before running this command?
-    # TODO: production bundle with .elf?
 
     bundles_cmds = []
 
@@ -237,7 +224,6 @@ def run_update_via_http(args):
     upd_bundle_tar = UPDATE_BUNDLE_TAR
     assert ensure_update_tar(upd_bundle_tar) == True
     
-    # cmd = f"curl -vvv \"http://{args.device_ip}/api/v0/update\" --data-binary '@{upd_bundle_tar}'"
     cmd = ["curl", "-vvv", f"http://{args.device_ip}/api/v0/update",
            "--data-binary", f"@{upd_bundle_tar}"]
 
@@ -256,7 +242,6 @@ def run_update_via_storage(args):
     upd_bundle = UPDATE_BUNDLE_DIR
     bsb_update_dst = "/ext/tmp/upd_bundle"
     bsb_update_json = bsb_update_dst + "/update.json"
-    # assert ensure_update_tar(upd_bundle) == True
     # TODO: ensure that the update bundle exists
 
     cmd = ["python3", "./scripts/storage.py", "-p", args.device_ip, "send", upd_bundle, bsb_update_dst]
@@ -265,12 +250,12 @@ def run_update_via_storage(args):
 
     ret = subprocess_exec(cmd, verbose=args.verbose)
     if ret != 0:
-        print(f"Update via storage.py failed with return code: {ret}")
+        print(f"Uploading bundle via storage.py failed with return code: {ret}")
+        return ret
 
+    print(f"Sending boot command to the device {args.device_ip}:{args.device_port}...")
     cmd_cli = f"update install {bsb_update_json}"
-
     bsb = FlipperStorage((args.device_ip, args.device_port))
-    print("Sending boot command to the device")
     bsb.start()
     bsb.send_and_wait_eol(f"{cmd_cli}\r\n")
 
@@ -301,17 +286,17 @@ def main():
     p_build_all.set_defaults(func=run_build_all)
 
     p_build_u5 = subparsers.add_parser(
-        "build-u5", help="Build U5 firmware"
+        "build-u5", help="Build U5 firmware only"
     )
     p_build_u5.set_defaults(func=run_build_u5)
 
     p_build_si = subparsers.add_parser(
-        "build-si", help="Build SI917 firmware"
+        "build-si", help="Build SI917 firmware only"
     )
     p_build_si.set_defaults(func=run_build_si)
 
     p_build_update_bundle = subparsers.add_parser(
-        "build-bundles", help="Build all bundles: update, production."
+        "build-bundles", help="Build all bundles: update, production, etc."
     )
     p_build_update_bundle.set_defaults(func=run_build_update_bundles)
 
@@ -361,4 +346,10 @@ if __name__ == "__main__":
         print(f"Run: Error: {e}", file=sys.stderr)
         sys.exit(3)
 
-# https://flipperzero.atlassian.net/wiki/spaces/BL/pages/29465640962/Firmware+update
+# Info:
+# - https://flipperzero.atlassian.net/wiki/spaces/BL/pages/29465640962/Firmware+update
+
+# TODO:
+# - success build flags for bundles
+# - check if bundle exists before running updates
+# - legacy flash
