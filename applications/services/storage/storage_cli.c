@@ -89,9 +89,7 @@ static void storage_cli_list(PipeSide* pipe, FuriString* path, FuriString* args)
     UNUSED(pipe);
     UNUSED(args);
     if(furi_string_cmp_str(path, "/") == 0) {
-        printf("\t[D] int\r\n");
         printf("\t[D] ext\r\n");
-        printf("\t[D] any\r\n");
     } else {
         Storage* api = furi_record_open(RECORD_STORAGE);
         File* file = storage_file_alloc(api);
