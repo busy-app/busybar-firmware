@@ -209,30 +209,33 @@ static void
     const SocketListenRequest* listen_request = &request->listen_request;
     const uint8_t socket_id = listen_request->socket_id;
 
-    int status;
-
-    do {
-        status = sl_si91x_listen(socket_id, listen_request->max_clients);
-
-        if(status < 0) {
-            FURI_LOG_E(TAG, "Failed to listen: %s", strerror(errno));
-            break;
-        }
-
-        status = sl_si91x_accept_async(socket_id, sockets_accept_callback);
-
-        if(status < 0) {
-            FURI_LOG_E(TAG, "Failed to accept: %s", strerror(errno));
-            break;
-        }
-
-    } while(false);
+    const int status = sl_si91x_listen(socket_id, listen_request->max_clients);
 
     if(status < 0) {
+        FURI_LOG_E(TAG, "Failed to listen: %s", strerror(errno));
         response->status = SocketStatusError;
 
     } else {
         FURI_LOG_D(TAG, "Listening on socket with id: %hhu", socket_id);
+        response->status = SocketStatusOk;
+    }
+}
+
+static void
+    sockets_accept_request_handler(const SocketRequest* request, SocketResponse* response) {
+    FURI_LOG_D(TAG, "Listen");
+
+    const SocketListenRequest* listen_request = &request->listen_request;
+    const uint8_t socket_id = listen_request->socket_id;
+
+    const int status = sl_si91x_accept_async(socket_id, sockets_accept_callback);
+
+    if(status < 0) {
+        FURI_LOG_E(TAG, "Failed to accept: %s", strerror(errno));
+        response->status = SocketStatusError;
+
+    } else {
+        FURI_LOG_D(TAG, "Accepting connections on socket with id: %hhu", socket_id);
         response->status = SocketStatusOk;
     }
 }
@@ -535,6 +538,7 @@ static const SocketRequestHandler socket_request_handlers[SocketRequestTypeMax] 
     [SocketRequestTypeFree] = sockets_free_request_handler,
     [SocketRequestTypeBind] = sockets_bind_request_handler,
     [SocketRequestTypeListen] = sockets_listen_request_handler,
+    [SocketRequestTypeAccept] = sockets_accept_request_handler,
     [SocketRequestTypeConnect] = sockets_connect_request_handler,
     [SocketRequestTypeSend] = sockets_send_request_handler,
     [SocketRequestTypeReceive] = sockets_receive_request_handler,
