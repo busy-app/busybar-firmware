@@ -10,7 +10,6 @@ App(
         "filesystem_api.c",
         "storage.c",
         "storage_external_api.c",
-        "storage_internal_api.c",
         "storage_glue.c",
         "storage_processing.c",
         "storage_sd_api.c",

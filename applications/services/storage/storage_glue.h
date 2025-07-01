@@ -10,9 +10,7 @@ extern "C" {
 
 typedef enum {
     ST_EXT = 0,
-    ST_INT = 1,
-    ST_ANY,
-    ST_ERROR
+    ST_MAX
 } StorageType;
 
 typedef struct StorageData StorageData;

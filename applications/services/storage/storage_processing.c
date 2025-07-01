@@ -8,14 +8,8 @@
 
 #define STORAGE_PATH_PREFIX_LEN 4u
 _Static_assert(
-    sizeof(STORAGE_ANY_PATH_PREFIX) == STORAGE_PATH_PREFIX_LEN + 1,
-    "Any path prefix len mismatch");
-_Static_assert(
     sizeof(STORAGE_EXT_PATH_PREFIX) == STORAGE_PATH_PREFIX_LEN + 1,
     "Ext path prefix len mismatch");
-_Static_assert(
-    sizeof(STORAGE_INT_PATH_PREFIX) == STORAGE_PATH_PREFIX_LEN + 1,
-    "Int path prefix len mismatch");
 
 #define FS_CALL(_storage, _fn) ret = _storage->fs_api->_fn;
 
@@ -23,7 +17,7 @@ static bool storage_type_is_valid(StorageType type) {
 #ifdef FURI_RAM_EXEC
     return type == ST_EXT;
 #else
-    return type < ST_ERROR;
+    return type < ST_MAX;
 #endif
 }
 
@@ -45,21 +39,17 @@ static const char* cstr_path_without_vfs_prefix(FuriString* path) {
 }
 
 static StorageType storage_get_type_by_path(FuriString* path) {
-    StorageType type = ST_ERROR;
+    StorageType type = ST_MAX;
     const char* path_cstr = furi_string_get_cstr(path);
 
     if(furi_string_size(path) > STORAGE_PATH_PREFIX_LEN) {
         if(path_cstr[STORAGE_PATH_PREFIX_LEN] != '/') {
-            return ST_ERROR;
+            return ST_MAX;
         }
     }
 
     if(memcmp(path_cstr, STORAGE_EXT_PATH_PREFIX, strlen(STORAGE_EXT_PATH_PREFIX)) == 0) {
         type = ST_EXT;
-    } else if(memcmp(path_cstr, STORAGE_INT_PATH_PREFIX, strlen(STORAGE_INT_PATH_PREFIX)) == 0) {
-        type = ST_INT;
-    } else if(memcmp(path_cstr, STORAGE_ANY_PATH_PREFIX, strlen(STORAGE_ANY_PATH_PREFIX)) == 0) {
-        type = ST_ANY;
     }
 
     return type;
@@ -69,18 +59,6 @@ static FS_Error storage_get_data(Storage* app, FuriString* path, StorageData** s
     StorageType type = storage_get_type_by_path(path);
 
     if(storage_type_is_valid(type)) {
-        // Any storage phase-out: redirect "/any" to "/ext"
-        if(type == ST_ANY) {
-            FURI_LOG_W(
-                TAG,
-                STORAGE_ANY_PATH_PREFIX " is deprecated, use " STORAGE_EXT_PATH_PREFIX " instead");
-            furi_string_replace_at(
-                path, 0, strlen(STORAGE_EXT_PATH_PREFIX), STORAGE_EXT_PATH_PREFIX);
-            type = ST_EXT;
-        }
-
-        furi_assert(type == ST_EXT);
-
         if(storage_data_status(&app->storage[type]) != StorageStatusOK) {
             return FSE_NOT_READY;
         }
@@ -555,16 +533,6 @@ void storage_process_alias(
             furi_string_get_cstr(apps_assets_path_with_appsid));
 
         furi_string_free(apps_assets_path_with_appsid);
-
-    } else if(furi_string_start_with(path, STORAGE_INT_PATH_PREFIX)) {
-        furi_string_replace_at(
-            path, 0, strlen(STORAGE_INT_PATH_PREFIX), EXT_PATH(STORAGE_INTERNAL_DIR_NAME));
-
-        FuriString* int_on_ext_path = furi_string_alloc_set(EXT_PATH(STORAGE_INTERNAL_DIR_NAME));
-        if(storage_process_common_stat(app, int_on_ext_path, NULL) != FSE_OK) {
-            storage_process_common_mkdir(app, int_on_ext_path);
-        }
-        furi_string_free(int_on_ext_path);
     }
 }
 

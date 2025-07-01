@@ -12,15 +12,11 @@
 extern "C" {
 #endif
 
-#define STORAGE_INT_PATH_PREFIX        "/int"
 #define STORAGE_EXT_PATH_PREFIX        "/ext"
-#define STORAGE_ANY_PATH_PREFIX        "/any"
 #define STORAGE_APP_DATA_PATH_PREFIX   "/data"
 #define STORAGE_APP_ASSETS_PATH_PREFIX "/assets"
 
-#define INT_PATH(path)        STORAGE_INT_PATH_PREFIX "/" path
 #define EXT_PATH(path)        STORAGE_EXT_PATH_PREFIX "/" path
-#define ANY_PATH(path)        STORAGE_ANY_PATH_PREFIX "/" path
 #define APP_DATA_PATH(path)   STORAGE_APP_DATA_PATH_PREFIX "/" path
 #define APP_ASSETS_PATH(path) STORAGE_APP_ASSETS_PATH_PREFIX "/" path
 
@@ -508,30 +504,6 @@ FS_Error storage_sd_info(Storage* storage, SDInfo* info);
  * @return storage status in the form of a numeric error identifier.
  */
 FS_Error storage_sd_status(Storage* storage);
-
-/************ Internal Storage Backup/Restore ************/
-
-typedef void (*StorageNameConverter)(FuriString*);
-
-/**
- * @brief Back up the internal storage contents to a *.tar archive.
- *
- * @param storage pointer to a storage API instance.
- * @param dstname pointer to a zero-terminated string containing the archive file path.
- * @return FSE_OK if the storage was successfully backed up, any other error code on failure.
- */
-FS_Error storage_int_backup(Storage* storage, const char* dstname);
-
-/**
- * @brief Restore the internal storage contents from a *.tar archive.
- *
- * @param storage pointer to a storage API instance.
- * @param dstname pointer to a zero-terminated string containing the archive file path.
- * @param converter pointer to a filename conversion function (may be NULL).
- * @return FSE_OK if the storage was successfully restored, any other error code on failure.
- */
-FS_Error
-    storage_int_restore(Storage* storage, const char* dstname, StorageNameConverter converter);
 
 /***************** Simplified Functions ******************/
 
