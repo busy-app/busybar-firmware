@@ -223,7 +223,7 @@ static void
 
 static void
     sockets_accept_request_handler(const SocketRequest* request, SocketResponse* response) {
-    FURI_LOG_D(TAG, "Listen");
+    FURI_LOG_D(TAG, "Accept");
 
     const SocketListenRequest* listen_request = &request->listen_request;
     const uint8_t socket_id = listen_request->socket_id;
