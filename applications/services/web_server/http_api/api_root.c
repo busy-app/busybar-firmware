@@ -79,6 +79,20 @@ static const HttpHandler handlers_api_root[] = {
         .type = HttpHandlerCustom,
         .on_headers = http_api_update_callback,
     },
+    {
+        .uri = "/api/v0/screen",
+        .method = "*",
+        .type = HttpHandlerCustom,
+        .on_request = http_api_streaming_single_frame_callback,
+    },
+    {
+        .uri = "/api/v0/screen/ws",
+        .method = "*",
+        .type = HttpHandlerCustom,
+        .ctx_alloc = http_api_streaming_ws_alloc,
+        .ctx_free = http_api_streaming_ws_free,
+        .on_request = http_api_streaming_ws_callback,
+    },
 };
 
 typedef struct {

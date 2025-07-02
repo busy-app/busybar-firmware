@@ -1,0 +1,54 @@
+App(
+    appid="cli_commands_common",
+    apptype=FlipperAppType.METAPACKAGE,
+    provides=[
+        "uptime_cmd",
+        "log_cmd",
+        "top_cmd",
+        "free_cmd",
+        "free_blocks_cmd",
+        "echo_cmd",
+    ],
+)
+
+App(
+    appid="uptime_cmd",
+    name="uptime",
+    apptype=FlipperAppType.CLICMD,
+    entry_point="cli_command_uptime",
+)
+
+App(
+    appid="log_cmd",
+    name="log",
+    apptype=FlipperAppType.CLICMD,
+    entry_point="cli_command_log",
+)
+
+App(
+    appid="top_cmd",
+    name="top",
+    apptype=FlipperAppType.CLICMD,
+    entry_point="cli_command_top",
+)
+
+App(
+    appid="free_cmd",
+    name="free",
+    apptype=FlipperAppType.CLICMD,
+    entry_point="cli_command_free",
+)
+
+App(
+    appid="free_blocks_cmd",
+    name="free_blocks",
+    apptype=FlipperAppType.CLICMD,
+    entry_point="cli_command_free_blocks",
+)
+
+App(
+    appid="echo_cmd",
+    name="echo",
+    apptype=FlipperAppType.CLICMD,
+    entry_point="cli_command_echo",
+)

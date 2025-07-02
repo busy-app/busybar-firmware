@@ -48,3 +48,16 @@ bool http_api_wifi_callback(struct mg_connection* conn, struct mg_http_message* 
 
 // Update API
 bool http_api_update_callback(struct mg_connection* conn, struct mg_http_message* msg, void* ctx);
+
+// Streaming
+void* http_api_streaming_ws_alloc(void);
+void http_api_streaming_ws_free(void* ctx);
+bool http_api_streaming_ws_callback(
+    struct mg_connection* conn,
+    struct mg_http_message* msg,
+    void* ctx);
+
+bool http_api_streaming_single_frame_callback(
+    struct mg_connection* conn,
+    struct mg_http_message* msg,
+    void* ctx);

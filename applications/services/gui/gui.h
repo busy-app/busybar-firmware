@@ -101,6 +101,15 @@ void gui_layer_add_input_callback(GuiLayer* layer, GuiInputCallback callback, vo
 void gui_layer_remove_input_callback(GuiLayer* layer, GuiInputCallback callback);
 
 /**
+ * @brief Returns pointer to frame buffer for requested display
+ *
+ * @param[in,out] instance pointer to the Gui instance
+ * @param[in] display_id identifier of the display which frame buffer required
+ * @return pointer to the frame buffer
+ */
+const uint8_t* gui_display_get_frame_buffer(Gui* instance, GuiDisplayId display_id);
+
+/**
  * @brief Shorthand for automatically locking and unlocking the GUI.
  *
  * @param[in,out] gui pointer to the Gui instance
