@@ -72,7 +72,7 @@ static void sockets_process_request(SocketSrv* instance) {
         const SocketSrvReceiveMessage* receive_message = &message->receive_message;
 
         // TODO: Receive more than one chunk in one request?
-        const size_t chunk_size = MIN(receive_message->data_size, SOCKET_SEND_DATA_SIZE);
+        const size_t chunk_size = MIN(receive_message->data_size, SOCKET_RECV_DATA_SIZE);
 
         receive_request->socket_id = receive_message->socket_id;
         receive_request->data_size = chunk_size;
