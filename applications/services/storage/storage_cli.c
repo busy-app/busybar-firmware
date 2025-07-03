@@ -25,64 +25,58 @@ static void storage_cli_info(PipeSide* pipe, FuriString* path, FuriString* args)
     UNUSED(args);
     Storage* api = furi_record_open(RECORD_STORAGE);
 
-    if(furi_string_cmp_str(path, STORAGE_EXT_PATH_PREFIX) == 0) {
-        SDInfo sd_info;
-        FS_Error error = storage_sd_info(api, &sd_info);
+    SDInfo sd_info;
+    FS_Error error = storage_sd_info(api, furi_string_get_cstr(path), &sd_info);
 
-        if(error != FSE_OK) {
-            storage_cli_print_error(error);
-        } else {
-            printf(
-                "Label: %s\r\nType: %s\r\n%luKiB total\r\n%luKiB free\r\n"
-                "%02x%s %s v%i.%i\r\nSN:%04lx %02i/%i\r\n",
-                sd_info.label,
-                sd_api_get_fs_type_text(sd_info.fs_type),
-                sd_info.kb_total,
-                sd_info.kb_free,
-                sd_info.manufacturer_id,
-                sd_info.oem_id,
-                sd_info.product_name,
-                sd_info.product_revision_major,
-                sd_info.product_revision_minor,
-                sd_info.product_serial_number,
-                sd_info.manufacturing_month,
-                sd_info.manufacturing_year);
-        }
+    if(error != FSE_OK) {
+        storage_cli_print_error(error);
     } else {
-        storage_cli_print_usage();
+        printf(
+            "Label: %s\r\nType: %s\r\n%luKiB total\r\n%luKiB free\r\n"
+            "%02x%s %s v%i.%i\r\nSN:%04lx %02i/%i\r\n",
+            sd_info.label,
+            sd_api_get_fs_type_text(sd_info.fs_type),
+            sd_info.kb_total,
+            sd_info.kb_free,
+            sd_info.manufacturer_id,
+            sd_info.oem_id,
+            sd_info.product_name,
+            sd_info.product_revision_major,
+            sd_info.product_revision_minor,
+            sd_info.product_serial_number,
+            sd_info.manufacturing_month,
+            sd_info.manufacturing_year);
     }
-
     furi_record_close(RECORD_STORAGE);
 }
 
 static void storage_cli_format(PipeSide* pipe, FuriString* path, FuriString* args) {
     UNUSED(args);
-    if(furi_string_cmp_str(path, STORAGE_EXT_PATH_PREFIX) == 0) {
-        printf("Formatting SD card, All data will be lost! Are you sure (y/n)?\r\n");
-        while(true) {
-            char answer;
-            if(pipe_receive(pipe, &answer, sizeof(answer)) != sizeof(answer)) break;
-            if(answer == 'y' || answer == 'Y') {
-                Storage* api = furi_record_open(RECORD_STORAGE);
-                printf("Formatting, please wait...\r\n");
 
-                FS_Error error = storage_sd_format(api);
+    printf(
+        "Formatting \"%s\", All data will be lost! Are you sure (y/n)?\r\n",
+        furi_string_get_cstr(path));
+    while(true) {
+        char answer;
+        if(pipe_receive(pipe, &answer, sizeof(answer)) != sizeof(answer)) break;
+        if(answer == 'y' || answer == 'Y') {
+            Storage* api = furi_record_open(RECORD_STORAGE);
+            printf("Formatting, please wait...\r\n");
 
-                if(error != FSE_OK) {
-                    storage_cli_print_error(error);
-                } else {
-                    printf("SD card was successfully formatted.\r\n");
-                }
-                furi_record_close(RECORD_STORAGE);
-                break;
-            } else if(answer == 'n' || answer == 'N') {
-                printf("Cancelled.\r\n");
-                break;
+            FS_Error error = storage_sd_format(api, furi_string_get_cstr(path));
+
+            if(error != FSE_OK) {
+                storage_cli_print_error(error);
+            } else {
+                printf("SD card was successfully formatted.\r\n");
             }
-        };
-    } else {
-        storage_cli_print_usage();
-    }
+            furi_record_close(RECORD_STORAGE);
+            break;
+        } else if(answer == 'n' || answer == 'N') {
+            printf("Cancelled.\r\n");
+            break;
+        }
+    };
 }
 
 static void storage_cli_list(PipeSide* pipe, FuriString* path, FuriString* args) {
@@ -600,7 +594,7 @@ static const StorageCliCommand storage_cli_commands[] = {
     },
     {
         "format",
-        "format filesystem",
+        "format filesystem on specified partition",
         &storage_cli_format,
     },
 };

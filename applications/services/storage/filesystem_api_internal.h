@@ -1,6 +1,7 @@
 #pragma once
 #include <furi.h>
 #include "filesystem_api_defines.h"
+#include "storage_sd_api.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -185,11 +186,19 @@ typedef struct {
     bool (*const equivalent_path)(const char* path1, const char* path2);
 } FS_Common_Api;
 
+typedef struct {
+    FS_Error (*const mount)(void* context);
+    FS_Error (*const unmount)(void* context);
+    FS_Error (*const format)(void* context);
+    FS_Error (*const info)(void* context, SDInfo* sd_info);
+} FS_Storage_Api;
+
 /** Full filesystem api structure */
 typedef struct {
     const FS_File_Api file;
     const FS_Dir_Api dir;
     const FS_Common_Api common;
+    const FS_Storage_Api storage;
 } FS_Api;
 
 #ifdef __cplusplus

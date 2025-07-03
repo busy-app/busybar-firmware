@@ -41,10 +41,6 @@ static void platform_boot_update_sys_deinit(void) {
 static bool platform_boot_update_mount_fs(void) {
     bool success = false;
     do {
-        if(!furi_hal_sdmmc_is_sd_present()) {
-            break;
-        }
-
         if(!furi_hal_sdmmc_init_card()) {
             break;
         }

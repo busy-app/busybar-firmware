@@ -405,70 +405,67 @@ static bool
 }
 
 /****************** Raw SD API ******************/
-// TODO FL-3521: think about implementing a custom storage API to split that
-// kind of api linkage
-#include "storages/storage_ext_sdmmc.h"
 
-static FS_Error storage_process_sd_format(Storage* app) {
-    FS_Error ret = FSE_OK;
-
-    if(storage_data_status(&app->storage[ST_EXT]) == StorageStatusNotReady) {
-        ret = FSE_NOT_READY;
-    } else {
-        ret = sd_format_card(&app->storage[ST_EXT]);
-        storage_data_timestamp(&app->storage[ST_EXT]);
-    }
-
-    return ret;
-}
-
-static FS_Error storage_process_sd_unmount(Storage* app) {
-    FS_Error ret = FSE_OK;
+static FS_Error storage_process_sd_format(Storage* app, FuriString* path) {
+    FS_Error ret;
 
     do {
-        StorageData* storage = &app->storage[ST_EXT];
-        if(storage_data_status(storage) == StorageStatusNotReady) {
-            ret = FSE_NOT_READY;
-            break;
-        }
+        StorageData* storage;
+        ret = storage_get_data(app, path, &storage);
 
-        if(storage_open_files_count(storage)) {
-            ret = FSE_DENIED;
-            break;
-        }
+        if(ret != FSE_OK) break;
 
-        sd_unmount_card(storage);
+        FS_CALL(storage, storage.format(storage));
         storage_data_timestamp(storage);
     } while(false);
 
     return ret;
 }
 
-static FS_Error storage_process_sd_mount(Storage* app) {
-    FS_Error ret = FSE_OK;
+static FS_Error storage_process_sd_unmount(Storage* app, FuriString* path) {
+    FS_Error ret;
 
     do {
-        StorageData* storage = &app->storage[ST_EXT];
-        if(storage_data_status(storage) != StorageStatusNotReady) {
-            ret = FSE_NOT_READY;
-            break;
-        }
+        StorageData* storage;
+        ret = storage_get_data(app, path, &storage);
 
-        ret = sd_mount_card(storage);
+        if(ret != FSE_OK) break;
+
+        FS_CALL(storage, storage.unmount(storage));
         storage_data_timestamp(storage);
     } while(false);
 
     return ret;
 }
 
-static FS_Error storage_process_sd_info(Storage* app, SDInfo* info) {
-    FS_Error ret = FSE_OK;
+static FS_Error storage_process_sd_mount(Storage* app, FuriString* path) {
+    FS_Error ret;
 
-    if(storage_data_status(&app->storage[ST_EXT]) == StorageStatusNotReady) {
-        ret = FSE_NOT_READY;
-    } else {
-        ret = sd_card_info(&app->storage[ST_EXT], info);
-    }
+    do {
+        StorageData* storage;
+        ret = storage_get_data(app, path, &storage);
+
+        if(ret != FSE_OK) break;
+
+        FS_CALL(storage, storage.mount(storage));
+        storage_data_timestamp(storage);
+    } while(false);
+
+    return ret;
+}
+
+static FS_Error storage_process_sd_info(Storage* app, FuriString* path, SDInfo* info) {
+    FS_Error ret;
+
+    do {
+        StorageData* storage;
+        ret = storage_get_data(app, path, &storage);
+
+        if(ret != FSE_OK) break;
+
+        FS_CALL(storage, storage.info(storage, info));
+        storage_data_timestamp(storage);
+    } while(false);
 
     return ret;
 }
@@ -540,43 +537,6 @@ void storage_process_alias(
 
 #undef TAG
 #define TAG "StorageProcessing"
-
-void storage_sd_presence_changed(Storage* app) {
-    // TODO: add debounce circuit?
-    furi_delay_ms(10);
-    sd_presence_changed(&app->storage[ST_EXT]);
-
-    // storage not enabled but was enabled (sd card unmount)
-    if(app->storage[ST_EXT].status == StorageStatusNotReady && app->sd_alive == true) {
-        app->sd_alive = false;
-
-        FURI_LOG_I(TAG, "SD card unmount");
-        StorageEvent event = {.type = StorageEventTypeCardUnmount};
-        furi_pubsub_publish(app->pubsub, &event);
-    }
-
-    // storage enabled (or in error state) but was not enabled (sd card mount)
-    if((app->storage[ST_EXT].status == StorageStatusOK ||
-        app->storage[ST_EXT].status == StorageStatusNotMounted ||
-        app->storage[ST_EXT].status == StorageStatusNoFS ||
-        app->storage[ST_EXT].status == StorageStatusNotAccessible ||
-        app->storage[ST_EXT].status == StorageStatusErrorInternal) &&
-       app->sd_alive == false) {
-        app->sd_alive = true;
-
-        if(app->storage[ST_EXT].status == StorageStatusOK) {
-            FURI_LOG_I(TAG, "SD card mount");
-            StorageEvent event = {.type = StorageEventTypeCardMount};
-            furi_pubsub_publish(app->pubsub, &event);
-        } else {
-            FURI_LOG_I(TAG, "SD card mount error");
-            StorageEvent event = {.type = StorageEventTypeCardMountError};
-            furi_pubsub_publish(app->pubsub, &event);
-        }
-    }
-}
-
-/****************** API calls processing ******************/
 
 void storage_process_message_internal(Storage* app, StorageMessage* message) {
     FuriString* path = NULL;
@@ -731,24 +691,25 @@ void storage_process_message_internal(Storage* app, StorageMessage* message) {
 
     // SD operations
     case StorageCommandSDFormat:
-        message->return_data->error_value = storage_process_sd_format(app);
+        path = furi_string_alloc_set(message->data->path.path);
+        message->return_data->error_value = storage_process_sd_format(app, path);
         break;
     case StorageCommandSDUnmount:
-        message->return_data->error_value = storage_process_sd_unmount(app);
+        path = furi_string_alloc_set(message->data->path.path);
+        message->return_data->error_value = storage_process_sd_unmount(app, path);
         break;
     case StorageCommandSDMount:
-        message->return_data->error_value = storage_process_sd_mount(app);
+        path = furi_string_alloc_set(message->data->path.path);
+        message->return_data->error_value = storage_process_sd_mount(app, path);
         break;
     case StorageCommandSDInfo:
+        path = furi_string_alloc_set(message->data->path.path);
         message->return_data->error_value =
-            storage_process_sd_info(app, message->data->sdinfo.info);
+            storage_process_sd_info(app, path, message->data->sdinfo.info);
         break;
     case StorageCommandSDStatus:
         message->return_data->error_value = storage_process_sd_status(app);
         break;
-    case StorageCommandSDPresenceChanged:
-        storage_sd_presence_changed(app);
-        return;
     }
 
     if(path != NULL) { //-V547

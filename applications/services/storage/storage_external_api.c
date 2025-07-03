@@ -873,42 +873,55 @@ const char* storage_file_get_error_desc(File* file) {
 
 /****************** Raw SD API ******************/
 
-FS_Error storage_sd_format(Storage* storage) {
+FS_Error storage_sd_format(Storage* storage, const char* path) {
     furi_check(storage);
 
     S_API_PROLOGUE;
-    SAData data = {};
+    SAData data = {
+        .path = {
+            .path = path,
+            .thread_id = furi_thread_get_current_id(),
+        }};
     S_API_MESSAGE(StorageCommandSDFormat);
     S_API_EPILOGUE;
     return S_RETURN_ERROR;
 }
 
-FS_Error storage_sd_unmount(Storage* storage) {
+FS_Error storage_sd_unmount(Storage* storage, const char* path) {
     furi_check(storage);
 
     S_API_PROLOGUE;
-    SAData data = {};
+    SAData data = {
+        .path = {
+            .path = path,
+            .thread_id = furi_thread_get_current_id(),
+        }};
     S_API_MESSAGE(StorageCommandSDUnmount);
     S_API_EPILOGUE;
     return S_RETURN_ERROR;
 }
 
-FS_Error storage_sd_mount(Storage* storage) {
+FS_Error storage_sd_mount(Storage* storage, const char* path) {
     furi_check(storage);
 
     S_API_PROLOGUE;
-    SAData data = {};
+    SAData data = {
+        .path = {
+            .path = path,
+            .thread_id = furi_thread_get_current_id(),
+        }};
     S_API_MESSAGE(StorageCommandSDMount);
     S_API_EPILOGUE;
     return S_RETURN_ERROR;
 }
 
-FS_Error storage_sd_info(Storage* storage, SDInfo* info) {
+FS_Error storage_sd_info(Storage* storage, const char* path, SDInfo* info) {
     furi_check(storage);
 
     S_API_PROLOGUE;
     SAData data = {
         .sdinfo = {
+            .path = path,
             .info = info,
         }};
     S_API_MESSAGE(StorageCommandSDInfo);

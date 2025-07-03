@@ -466,7 +466,7 @@ const char* storage_file_get_error_desc(File* file);
  * @param storage pointer to a storage API instance.
  * @return FSE_OK if the card was successfully formatted, any other error code on failure.
  */
-FS_Error storage_sd_format(Storage* storage);
+FS_Error storage_sd_format(Storage* storage, const char* path);
 
 /**
  * @brief Unmount the SD card.
@@ -478,7 +478,7 @@ FS_Error storage_sd_format(Storage* storage);
  * @param storage pointer to a storage API instance.
  * @return FSE_OK if the card was successfully formatted, any other error code on failure.
  */
-FS_Error storage_sd_unmount(Storage* storage);
+FS_Error storage_sd_unmount(Storage* storage, const char* path);
 
 /**
  * @brief Mount the SD card.
@@ -486,7 +486,7 @@ FS_Error storage_sd_unmount(Storage* storage);
  * @param storage pointer to a storage API instance.
  * @return FSE_OK if the card was successfully mounted, any other error code on failure.
  */
-FS_Error storage_sd_mount(Storage* storage);
+FS_Error storage_sd_mount(Storage* storage, const char* path);
 
 /**
  * @brief Get SD card information.
@@ -495,7 +495,7 @@ FS_Error storage_sd_mount(Storage* storage);
  * @param info pointer to the info object to contain the requested information.
  * @return FSE_OK if the info was successfully received, any other error code on failure.
  */
-FS_Error storage_sd_info(Storage* storage, SDInfo* info);
+FS_Error storage_sd_info(Storage* storage, const char* path, SDInfo* info);
 
 /**
  * @brief Get SD card status.

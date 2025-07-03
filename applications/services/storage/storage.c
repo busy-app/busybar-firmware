@@ -27,24 +27,10 @@ Storage* storage_app_alloc(void) {
     return app;
 }
 
-static void storage_api_presence_changed(void* context) {
-    Storage* storage = (Storage*)context;
-    StorageMessage message = {
-        .lock = NULL,
-        .command = StorageCommandSDPresenceChanged,
-        .data = NULL,
-        .return_data = NULL,
-    };
-
-    furi_message_queue_put(storage->message_queue, &message, 0);
-}
-
 int32_t storage_srv(void* p) {
     UNUSED(p);
     Storage* app = storage_app_alloc();
     furi_record_create(RECORD_STORAGE, app);
-
-    furi_hal_sdmmc_set_presence_callback(storage_api_presence_changed, app);
 
     StorageMessage message;
     while(1) {

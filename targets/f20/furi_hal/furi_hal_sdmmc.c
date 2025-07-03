@@ -309,9 +309,6 @@ typedef struct {
 } CardStatus;
 
 typedef struct {
-    FuriHalSdMmcPresentCallback present_callback;
-    void* context;
-
     CardCSDInfo csd;
     CardStatus status;
 
@@ -415,25 +412,6 @@ static void furi_hal_sdmmc_event_set(uint32_t mask) {
     } else {
         sdmmc_dma_context.event_flags |= mask;
     }
-}
-
-// static void furi_hal_sdmmc_present_callback(void* context) {
-//     SdMmc sdmmc = *(SdMmc*)context;
-//     if(sdmmc.present_callback) {
-//         sdmmc.present_callback(sdmmc.context);
-//     }
-// }
-
-void furi_hal_sdmmc_set_presence_callback(FuriHalSdMmcPresentCallback callback, void* context) {
-    sdmmc1.present_callback = callback;
-    sdmmc1.context = context;
-
-    // if(sdmmc1.present_callback) {
-    //     furi_hal_gpio_add_int_callback(
-    //         &gpio_sd_card_detect, furi_hal_sdmmc_present_callback, &sdmmc1);
-    // } else {
-    //     furi_hal_gpio_remove_int_callback(&gpio_sd_card_detect);
-    // }
 }
 
 static void furi_hal_sdmmc_periph_init(void) {

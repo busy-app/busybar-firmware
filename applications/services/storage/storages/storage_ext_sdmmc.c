@@ -20,10 +20,13 @@ typedef FRESULT SDError;
 typedef struct {
     FATFS* fs;
     const char* path;
-    bool sd_was_present;
 } SDData;
 
 static FS_Error storage_ext_parse_error(SDError error);
+
+FS_Error sd_mount_card(StorageData* storage);
+FS_Error sd_unmount_card(StorageData* storage);
+FS_Error sd_format_card(StorageData* storage);
 
 /******************* Core Functions *******************/
 
@@ -33,7 +36,7 @@ static bool sd_mount_card_internal(StorageData* storage) {
     bool bsp_result;
     SDData* sd_data = storage->data;
 
-    while(result == false && counter > 0 && furi_hal_sdmmc_is_sd_present()) {
+    while(result == false && counter > 0) {
         bsp_result = furi_hal_sdmmc_init_card();
 
         if(!bsp_result) {
@@ -87,64 +90,6 @@ static bool sd_mount_card_internal(StorageData* storage) {
     return result;
 }
 
-static bool sd_remove_recursive(const char* path) {
-    SDDir* current_dir = malloc(sizeof(DIR));
-    SDFileInfo* file_info = malloc(sizeof(FILINFO));
-    FuriString* current_path = furi_string_alloc_set(path);
-
-    bool go_deeper = false;
-    SDError status;
-
-    while(true) {
-        status = f_opendir(current_dir, furi_string_get_cstr(current_path));
-        if(status != FR_OK) break;
-
-        while(true) {
-            status = f_readdir(current_dir, file_info);
-            if(status != FR_OK || !strlen(file_info->fname)) break;
-
-            if(file_info->fattrib & AM_DIR) {
-                furi_string_cat_printf(current_path, "/%s", file_info->fname);
-                go_deeper = true;
-                break;
-
-            } else {
-                FuriString* file_path = furi_string_alloc_printf(
-                    "%s/%s", furi_string_get_cstr(current_path), file_info->fname);
-                status = f_unlink(furi_string_get_cstr(file_path));
-                furi_string_free(file_path);
-
-                if(status != FR_OK) break;
-            }
-        }
-
-        status = f_closedir(current_dir);
-        if(status != FR_OK) break;
-
-        if(go_deeper) {
-            go_deeper = false;
-            continue;
-        }
-
-        status = f_unlink(furi_string_get_cstr(current_path));
-        if(status != FR_OK) break;
-
-        if(!furi_string_equal(current_path, path)) {
-            size_t last_char_pos = furi_string_search_rchar(current_path, '/');
-            furi_assert(last_char_pos != FURI_STRING_FAILURE);
-            furi_string_left(current_path, last_char_pos);
-        } else {
-            break;
-        }
-    }
-
-    free(current_dir);
-    free(file_info);
-    furi_string_free(current_path);
-
-    return status == FR_OK;
-}
-
 FS_Error sd_unmount_card(StorageData* storage) {
     SDData* sd_data = storage->data;
     SDError error;
@@ -170,20 +115,7 @@ FS_Error sd_mount_card(StorageData* storage) {
     } else {
         FURI_LOG_I(TAG, "card mounted");
 
-#ifndef FATFS_READ_ONLY
-#if false
-        if(furi_hal_nvm_is_flag_set(FuriHalNvmFlagStorageFormatInternal)) {
-#endif
-        if(false) {
-            FURI_LOG_I(TAG, "deleting internal storage directory");
-            error = sd_remove_recursive(STORAGE_INTERNAL_DIR_NAME) ? FSE_OK : FSE_INTERNAL;
-        } else {
-            error = FSE_OK;
-        }
-#else
-        UNUSED(sd_remove_recursive);
         error = FSE_OK;
-#endif
     }
 
     return error;
@@ -299,30 +231,25 @@ FS_Error sd_card_info(StorageData* storage, SDInfo* sd_info) {
     return storage_ext_parse_error(error);
 }
 
-void sd_presence_changed(StorageData* storage) {
-    SDData* sd_data = storage->data;
+FS_Error storage_ext_mount(void* context) {
+    UNUSED(context);
+    return FSE_NOT_IMPLEMENTED;
+}
 
-    if(sd_data->sd_was_present) {
-        if(furi_hal_sdmmc_is_sd_present()) {
-            FURI_LOG_I(TAG, "card detected");
+FS_Error storage_ext_unmount(void* context) {
+    UNUSED(context);
+    return FSE_NOT_IMPLEMENTED;
+}
 
-            sd_data->sd_was_present = false;
-            sd_mount_card(storage);
+FS_Error storage_ext_format(void* context) {
+    UNUSED(context);
+    return FSE_NOT_IMPLEMENTED;
+}
 
-            if(!furi_hal_sdmmc_is_sd_present()) {
-                FURI_LOG_I(TAG, "card removed while mounting");
-                sd_unmount_card(storage);
-                sd_data->sd_was_present = true;
-            }
-        }
-    } else {
-        if(!furi_hal_sdmmc_is_sd_present()) {
-            FURI_LOG_I(TAG, "card removed");
-            sd_data->sd_was_present = true;
-
-            sd_unmount_card(storage);
-        }
-    }
+FS_Error storage_ext_info(void* context, SDInfo* sd_info) {
+    UNUSED(context);
+    UNUSED(sd_info);
+    return FSE_NOT_IMPLEMENTED;
 }
 
 /****************** Common Functions ******************/
@@ -685,6 +612,13 @@ static const FS_Api fs_api = {
             .fs_info = storage_ext_common_fs_info,
             .equivalent_path = storage_ext_common_equivalent_path,
         },
+    .storage =
+        {
+            .mount = storage_ext_mount,
+            .unmount = storage_ext_unmount,
+            .format = storage_ext_format,
+            .info = storage_ext_info,
+        },
 };
 
 void storage_ext_init(StorageData* storage) {
@@ -693,16 +627,7 @@ void storage_ext_init(StorageData* storage) {
     SDData* sd_data = malloc(sizeof(SDData));
     sd_data->fs = &fatfs_object;
     sd_data->path = "0:/";
-    sd_data->sd_was_present = true;
 
     storage->data = sd_data;
     storage->fs_api = &fs_api;
-
-    // furi_hal_sd_presence_init();
-
-    sd_presence_changed(storage);
-#ifndef FURI_RAM_EXEC
-    // always reset the flag to prevent accidental wipe on SD card insertion
-    furi_hal_nvm_reset_flag(FuriHalNvmFlagStorageFormatInternal);
-#endif
 }

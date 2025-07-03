@@ -90,6 +90,7 @@ typedef struct {
 } SADataFile;
 
 typedef struct {
+    const char* path;
     SDInfo* info;
 } SAInfo;
 
@@ -151,7 +152,6 @@ typedef enum {
     StorageCommandCommonResolvePath,
     StorageCommandSDMount,
     StorageCommandCommonEquivalentPath,
-    StorageCommandSDPresenceChanged,
 } StorageCommand;
 
 typedef struct {
