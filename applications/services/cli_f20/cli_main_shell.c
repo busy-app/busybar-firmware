@@ -1,4 +1,4 @@
-#include "cli_main_shell.h"
+#include <cli/cli_main_shell.h>
 #include <cli/cli_ansi.h>
 #include <version/version.h>
 

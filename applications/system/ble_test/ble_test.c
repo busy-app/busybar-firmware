@@ -205,6 +205,8 @@ void* ble_test_app_start(CliShell* shell) {
             cli_shell_notification_print(instance->shell, instance->msg);
             break;
         } else {
+            rsi_6byte_dev_address_to_ascii(
+                instance->local_dev_addr, instance->rsi_app_resp_get_dev_addr);
             furi_string_printf(instance->msg, "Local device address %s", instance->local_dev_addr);
             cli_shell_notification_print(instance->shell, instance->msg);
         }
