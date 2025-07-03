@@ -1,0 +1,13 @@
+#!/bin/sh
+
+set -euo pipefail
+
+# Get the script path
+SCRIPT_PATH="$(cd "$(dirname "$0")" && pwd -P)"
+
+cd "$SCRIPT_PATH"
+
+# Source the environment setup script
+# . "$SCRIPT_PATH/scripts/toolchain/fbtenv.sh"
+
+exec python3 "$SCRIPT_PATH/scripts/run.py" "$@"

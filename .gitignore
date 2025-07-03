@@ -44,6 +44,8 @@ Brewfile.lock.json
 # SCons
 .sconsign.dblite
 
+# ./run
+/.run_assets
 
 # bundle output
 /dist
