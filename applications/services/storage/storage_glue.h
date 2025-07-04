@@ -61,6 +61,7 @@ struct StorageData {
     StorageStatus status;
     StorageFileList_t files;
     uint32_t timestamp;
+    bool read_only;
 };
 
 bool storage_has_file(const File* file, StorageData* storage_data);
@@ -73,6 +74,9 @@ void storage_push_storage_file(File* file, FuriString* path, StorageData* storag
 bool storage_pop_storage_file(File* file, StorageData* storage);
 
 size_t storage_open_files_count(StorageData* storage);
+
+void storage_set_read_only(StorageData* storage, bool read_only);
+bool storage_is_read_only(StorageData* storage);
 
 #ifdef __cplusplus
 }

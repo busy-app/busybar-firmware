@@ -14,8 +14,10 @@ Storage* storage_app_alloc(void) {
     Storage* app = malloc(sizeof(Storage));
     app->message_queue = furi_message_queue_alloc(8, sizeof(StorageMessage));
     app->pubsub = furi_pubsub_alloc();
-    app->temp_path = furi_string_alloc();
-    furi_string_reserve(app->temp_path, 256);
+    app->path_aliased = furi_string_alloc();
+    app->path_storage = furi_string_alloc();
+    furi_string_reserve(app->path_aliased, 256);
+    furi_string_reserve(app->path_storage, 256);
 
     for(uint8_t i = 0; i < STORAGE_COUNT; i++) {
         storage_data_init(&app->storage[i]);
@@ -25,6 +27,9 @@ Storage* storage_app_alloc(void) {
     storage_ext_init(&app->storage[ST_BKP], ST_BKP);
     storage_ext_init(&app->storage[ST_EXT], ST_EXT);
 
+    storage_set_read_only(&app->storage[ST_BKP], true);
+    storage_set_read_only(&app->storage[ST_EXT], false);
+
     // mount storages
     do {
         FS_Error ret = storage_ext_init_bsp();
@@ -32,6 +37,15 @@ Storage* storage_app_alloc(void) {
             FURI_LOG_E(TAG, "Storage bsp init failed: %d", ret);
             break;
         }
+
+        // ret = storage_ext_mk_partititons();
+        // if(ret != FSE_OK) {
+        //     FURI_LOG_E(
+        //         TAG,
+        //         "Storage partitions creation failed: %s",
+        //         storage_data_status_text(&app->storage[ST_EXT]));
+        //     break;
+        // }
 
         ret = storage_ext_mount(&app->storage[ST_BKP]);
         if(ret != FSE_OK) {

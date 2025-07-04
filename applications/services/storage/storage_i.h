@@ -20,7 +20,9 @@ struct Storage {
     StorageData storage[STORAGE_COUNT];
     FuriPubSub* pubsub;
 
-    FuriString* temp_path;
+    // Temporary paths for file operations
+    FuriString* path_aliased;
+    FuriString* path_storage;
 };
 
 #ifdef __cplusplus

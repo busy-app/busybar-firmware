@@ -52,23 +52,19 @@ static StorageType storage_get_type_by_path(FuriString* path) {
 }
 
 static const char* cstr_storage_path(Storage* app, StorageType type, FuriString* path) {
-    switch(type) {
-    case ST_BKP:
-        furi_string_set(app->temp_path, "0:/");
-        break;
-    case ST_EXT:
-        furi_string_set(app->temp_path, "1:/");
-        break;
-    default:
+    if(type >= ST_MAX) {
         furi_crash("Invalid storage type");
     }
+
+    furi_string_set(
+        app->path_storage, app->storage[type].fs_api->storage.prefix(&app->storage[type]));
 
     const size_t prefix_len = MIN(STORAGE_PATH_PREFIX_LEN, furi_string_size(path));
     const char* clear_path = furi_string_get_cstr(path) + prefix_len;
 
-    furi_string_cat(app->temp_path, clear_path);
+    furi_string_cat(app->path_storage, clear_path);
 
-    return furi_string_get_cstr(app->temp_path);
+    return furi_string_get_cstr(app->path_storage);
 }
 
 static FS_Error storage_get_data(Storage* app, StorageType type, StorageData** storage) {
@@ -564,12 +560,12 @@ void storage_process_message_internal(Storage* app, StorageMessage* message) {
     switch(message->command) {
     // File operations
     case StorageCommandFileOpen:
-        furi_string_set(app->temp_path, message->data->fopen.path);
-        storage_process_alias(app, app->temp_path, message->data->fopen.thread_id, true);
+        furi_string_set(app->path_aliased, message->data->fopen.path);
+        storage_process_alias(app, app->path_aliased, message->data->fopen.thread_id, true);
         message->return_data->bool_value = storage_process_file_open(
             app,
             message->data->fopen.file,
-            app->temp_path,
+            app->path_aliased,
             message->data->fopen.access_mode,
             message->data->fopen.open_mode);
         break;
@@ -620,10 +616,10 @@ void storage_process_message_internal(Storage* app, StorageMessage* message) {
 
     // Dir operations
     case StorageCommandDirOpen:
-        furi_string_set(app->temp_path, message->data->dopen.path);
-        storage_process_alias(app, app->temp_path, message->data->dopen.thread_id, true);
+        furi_string_set(app->path_aliased, message->data->dopen.path);
+        storage_process_alias(app, app->path_aliased, message->data->dopen.thread_id, true);
         message->return_data->bool_value =
-            storage_process_dir_open(app, message->data->dopen.file, app->temp_path);
+            storage_process_dir_open(app, message->data->dopen.file, app->path_aliased);
         break;
     case StorageCommandDirClose:
         message->return_data->bool_value =
@@ -644,33 +640,33 @@ void storage_process_message_internal(Storage* app, StorageMessage* message) {
 
     // Common operations
     case StorageCommandCommonTimestamp:
-        furi_string_set(app->temp_path, message->data->ctimestamp.path);
-        storage_process_alias(app, app->temp_path, message->data->ctimestamp.thread_id, false);
+        furi_string_set(app->path_aliased, message->data->ctimestamp.path);
+        storage_process_alias(app, app->path_aliased, message->data->ctimestamp.thread_id, false);
         message->return_data->error_value = storage_process_common_timestamp(
-            app, app->temp_path, message->data->ctimestamp.timestamp);
+            app, app->path_aliased, message->data->ctimestamp.timestamp);
         break;
     case StorageCommandCommonStat:
-        furi_string_set(app->temp_path, message->data->cstat.path);
-        storage_process_alias(app, app->temp_path, message->data->cstat.thread_id, false);
+        furi_string_set(app->path_aliased, message->data->cstat.path);
+        storage_process_alias(app, app->path_aliased, message->data->cstat.thread_id, false);
         message->return_data->error_value =
-            storage_process_common_stat(app, app->temp_path, message->data->cstat.fileinfo);
+            storage_process_common_stat(app, app->path_aliased, message->data->cstat.fileinfo);
         break;
     case StorageCommandCommonRemove:
-        furi_string_set(app->temp_path, message->data->path.path);
-        storage_process_alias(app, app->temp_path, message->data->path.thread_id, false);
-        message->return_data->error_value = storage_process_common_remove(app, app->temp_path);
+        furi_string_set(app->path_aliased, message->data->path.path);
+        storage_process_alias(app, app->path_aliased, message->data->path.thread_id, false);
+        message->return_data->error_value = storage_process_common_remove(app, app->path_aliased);
         break;
     case StorageCommandCommonMkDir:
-        furi_string_set(app->temp_path, message->data->path.path);
-        storage_process_alias(app, app->temp_path, message->data->path.thread_id, true);
-        message->return_data->error_value = storage_process_common_mkdir(app, app->temp_path);
+        furi_string_set(app->path_aliased, message->data->path.path);
+        storage_process_alias(app, app->path_aliased, message->data->path.thread_id, true);
+        message->return_data->error_value = storage_process_common_mkdir(app, app->path_aliased);
         break;
     case StorageCommandCommonFSInfo:
-        furi_string_set(app->temp_path, message->data->cfsinfo.fs_path);
-        storage_process_alias(app, app->temp_path, message->data->cfsinfo.thread_id, false);
+        furi_string_set(app->path_aliased, message->data->cfsinfo.fs_path);
+        storage_process_alias(app, app->path_aliased, message->data->cfsinfo.thread_id, false);
         message->return_data->error_value = storage_process_common_fs_info(
             app,
-            app->temp_path,
+            app->path_aliased,
             message->data->cfsinfo.total_space,
             message->data->cfsinfo.free_space);
         break;
@@ -714,28 +710,29 @@ void storage_process_message_internal(Storage* app, StorageMessage* message) {
 
     // SD operations
     case StorageCommandSDFormat:
-        furi_string_set(app->temp_path, message->data->path.path);
-        message->return_data->error_value = storage_process_sd_format(app, app->temp_path);
+        furi_string_set(app->path_aliased, message->data->path.path);
+        message->return_data->error_value = storage_process_sd_format(app, app->path_aliased);
         break;
     case StorageCommandSDUnmount:
-        furi_string_set(app->temp_path, message->data->path.path);
-        message->return_data->error_value = storage_process_sd_unmount(app, app->temp_path);
+        furi_string_set(app->path_aliased, message->data->path.path);
+        message->return_data->error_value = storage_process_sd_unmount(app, app->path_aliased);
         break;
     case StorageCommandSDMount:
-        furi_string_set(app->temp_path, message->data->path.path);
-        message->return_data->error_value = storage_process_sd_mount(app, app->temp_path);
+        furi_string_set(app->path_aliased, message->data->path.path);
+        message->return_data->error_value = storage_process_sd_mount(app, app->path_aliased);
         break;
     case StorageCommandSDInfo:
-        furi_string_set(app->temp_path, message->data->path.path);
+        furi_string_set(app->path_aliased, message->data->path.path);
         message->return_data->error_value =
-            storage_process_sd_info(app, app->temp_path, message->data->sdinfo.info);
+            storage_process_sd_info(app, app->path_aliased, message->data->sdinfo.info);
         break;
     case StorageCommandSDStatus:
         message->return_data->error_value = storage_process_sd_status(app);
         break;
     }
 
-    furi_string_set(app->temp_path, "");
+    furi_string_set(app->path_aliased, "");
+    furi_string_set(app->path_storage, "");
 
     api_lock_unlock(message->lock);
 }

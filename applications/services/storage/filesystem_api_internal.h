@@ -191,6 +191,7 @@ typedef struct {
     FS_Error (*const unmount)(void* context);
     FS_Error (*const format)(void* context);
     FS_Error (*const info)(void* context, SDInfo* sd_info);
+    const char* (*const prefix)(void* context);
 } FS_Storage_Api;
 
 /** Full filesystem api structure */

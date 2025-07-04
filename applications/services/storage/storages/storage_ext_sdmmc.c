@@ -657,6 +657,12 @@ static bool storage_ext_common_equivalent_path(const char* path1, const char* pa
 #endif
 }
 
+static const char* storage_ext_prefix(void* context) {
+    StorageData* storage = context;
+    SDData* sd_data = storage->data;
+    return sd_data->path;
+}
+
 /******************* Init Storage *******************/
 static const FS_Api fs_api = {
     .file =
@@ -693,6 +699,7 @@ static const FS_Api fs_api = {
             .unmount = storage_ext_unmount,
             .format = storage_ext_format,
             .info = storage_ext_info,
+            .prefix = storage_ext_prefix,
         },
 };
 
