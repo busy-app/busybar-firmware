@@ -38,14 +38,35 @@ jobs:
           else
             TYPE="other"
           fi
+          echo "FBT_BUILD_TYPE=${BUILD_TYPE}" >> $GITHUB_ENV
+
+      - name: 'Setup build environment'
+        id: setup-env
+        run: |
+          echo "BSB_HARDWARE=20" >> $GITHUB_ENV
+          echo "BSB_SIL_HARDWARE=64" >> $GITHUB_ENV
+          echo "SIL_RADIO_FW_BIN=standard/SiWG917-B.2.13.4.1.0.4.rps" >> $GITHUB_ENV
 
       - name: 'Build the firmware'
         id: build-fw
         run: |
           source ./scripts/toolchain/fbtenv.sh
           export FBT_GIT_SUBMODULE_SHALLOW=1
-          bash ./fbt TARGET_HW=20 $FBT_BUILD_TYPE
-          bash ./fbt TARGET_HW=64 $FBT_BUILD_TYPE
+          bash ./fbt TARGET_HW=${BSB_HARDWARE} $FBT_BUILD_TYPE firmware_dfu updater_bin resources
+          bash ./fbt TARGET_HW=${BSB_SIL_HARDWARE} $FBT_BUILD_TYPE firmware_rps
+
+      - name: 'Build update package (unsigned)'
+        id: build-update
+        run: |
+          source ./scripts/toolchain/fbtenv.sh
+          ./scripts/update_bundle.py \
+            --target ${BSB_HARDWARE} \
+            --output-tar upd_bundle.tar \
+            --stage fbt_layers/fbtng/build/f${BSB_HARDWARE}-updater-D/updater.bin \
+            --dfu fbt_layers/fbtng/build/f${BSB_HARDWARE}-firmware-D/firmware.dfu \
+            --sil-fw fbt_layers/fbtng/build/f${BSB_SIL_HARDWARE}-firmware-D/firmware.rps \
+            --resources fbt_layers/fbtng/build/f${BSB_HARDWARE}-firmware-D/resources \
+            --sil-radio-fw ./lib/wiseconnect/connectivity_firmware/${SIL_RADIO_FW_BIN}
 
       - name: 'Check for uncommitted changes'
         run: |
