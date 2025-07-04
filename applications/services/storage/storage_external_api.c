@@ -764,7 +764,8 @@ FS_Error storage_common_fs_info(
     Storage* storage,
     const char* fs_path,
     uint64_t* total_space,
-    uint64_t* free_space) {
+    uint64_t* free_space,
+    bool* is_read_only) {
     furi_check(storage);
 
     S_API_PROLOGUE;
@@ -774,6 +775,7 @@ FS_Error storage_common_fs_info(
             .fs_path = fs_path,
             .total_space = total_space,
             .free_space = free_space,
+            .is_read_only = is_read_only,
             .thread_id = furi_thread_get_current_id(),
         }};
 

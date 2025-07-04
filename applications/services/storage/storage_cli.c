@@ -340,14 +340,21 @@ static void storage_cli_stat(PipeSide* pipe, FuriString* path, FuriString* args)
         furi_string_cmp_str(path, STORAGE_BACKUP_PATH_PREFIX) == 0) {
         uint64_t total_space;
         uint64_t free_space;
-        FS_Error error =
-            storage_common_fs_info(api, furi_string_get_cstr(path), &total_space, &free_space);
+        bool is_read_only;
+        FS_Error error = storage_common_fs_info(
+            api, furi_string_get_cstr(path), &total_space, &free_space, &is_read_only);
 
         if(error != FSE_OK) {
             storage_cli_print_error(error);
         } else {
+            const char* ro = "";
+            if(is_read_only) {
+                ro = ", read-only";
+            }
+
             printf(
-                "Storage, %luKiB total, %luKiB free\r\n",
+                "Storage%s, %luKiB total, %luKiB free\r\n",
+                ro,
                 (uint32_t)(total_space / 1024),
                 (uint32_t)(free_space / 1024));
         }

@@ -63,6 +63,7 @@ typedef struct {
     const char* fs_path;
     uint64_t* total_space;
     uint64_t* free_space;
+    bool* is_read_only;
     FuriThreadId thread_id;
 } SADataCFSInfo;
 

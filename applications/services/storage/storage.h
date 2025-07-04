@@ -355,7 +355,8 @@ FS_Error storage_common_fs_info(
     Storage* storage,
     const char* fs_path,
     uint64_t* total_space,
-    uint64_t* free_space);
+    uint64_t* free_space,
+    bool* is_read_only);
 
 /**
  * @brief Parse aliases in a path and replace them with the real path.

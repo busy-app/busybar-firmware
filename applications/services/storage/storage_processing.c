@@ -100,19 +100,28 @@ bool storage_process_file_open(
     StorageType type = storage_get_type_by_path(path);
     file->error_id = storage_get_data(app, type, &storage);
 
-    if(file->error_id == FSE_OK) {
+    do {
+        if(file->error_id != FSE_OK) break;
+
         if(storage_path_already_open(path, storage)) {
             file->error_id = FSE_ALREADY_OPEN;
-        } else {
-            if(access_mode & FSAM_WRITE) {
-                storage_data_timestamp(storage);
-            }
-            storage_push_storage_file(file, path, storage);
-
-            const char* path_cstr_no_vfs = cstr_storage_path(app, type, path);
-            FS_CALL(storage, file.open(storage, file, path_cstr_no_vfs, access_mode, open_mode));
+            break;
         }
-    }
+
+        if(access_mode & FSAM_WRITE) {
+            if(storage_is_read_only(storage)) {
+                file->error_id = FSE_DENIED;
+                break;
+            }
+
+            storage_data_timestamp(storage);
+        }
+
+        storage_push_storage_file(file, path, storage);
+
+        const char* path_cstr_no_vfs = cstr_storage_path(app, type, path);
+        FS_CALL(storage, file.open(storage, file, path_cstr_no_vfs, access_mode, open_mode));
+    } while(false);
 
     return ret;
 }
@@ -156,12 +165,21 @@ static uint16_t storage_process_file_write(
     uint16_t ret = 0;
     StorageData* storage = get_storage_by_file(file, app->storage);
 
-    if(storage == NULL) {
-        file->error_id = FSE_INVALID_PARAMETER;
-    } else {
+    do {
+        if(storage == NULL) {
+            file->error_id = FSE_INVALID_PARAMETER;
+            break;
+        }
+
+        if(storage_is_read_only(storage)) {
+            file->error_id = FSE_DENIED;
+            break;
+        }
+
         storage_data_timestamp(storage);
+
         FS_CALL(storage, file.write(storage, file, buff, bytes_to_write));
-    }
+    } while(false);
 
     return ret;
 }
@@ -200,12 +218,20 @@ static bool storage_process_file_truncate(Storage* app, File* file) {
     bool ret = false;
     StorageData* storage = get_storage_by_file(file, app->storage);
 
-    if(storage == NULL) {
-        file->error_id = FSE_INVALID_PARAMETER;
-    } else {
+    do {
+        if(storage == NULL) {
+            file->error_id = FSE_INVALID_PARAMETER;
+            break;
+        }
+
+        if(storage_is_read_only(storage)) {
+            file->error_id = FSE_DENIED;
+            break;
+        }
+
         storage_data_timestamp(storage);
         FS_CALL(storage, file.truncate(storage, file));
-    }
+    } while(false);
 
     return ret;
 }
@@ -214,12 +240,20 @@ static bool storage_process_file_sync(Storage* app, File* file) {
     bool ret = false;
     StorageData* storage = get_storage_by_file(file, app->storage);
 
-    if(storage == NULL) {
-        file->error_id = FSE_INVALID_PARAMETER;
-    } else {
+    do {
+        if(storage == NULL) {
+            file->error_id = FSE_INVALID_PARAMETER;
+            break;
+        }
+
+        if(storage_is_read_only(storage)) {
+            file->error_id = FSE_DENIED;
+            break;
+        }
+
         storage_data_timestamp(storage);
         FS_CALL(storage, file.sync(storage, file));
-    }
+    } while(false);
 
     return ret;
 }
@@ -346,15 +380,22 @@ static FS_Error storage_process_common_stat(Storage* app, FuriString* path, File
 }
 
 static FS_Error storage_process_common_remove(Storage* app, FuriString* path) {
-    StorageData* storage;
-    StorageType type = storage_get_type_by_path(path);
-    FS_Error ret = storage_get_data(app, type, &storage);
+    FS_Error ret;
 
     do {
+        StorageData* storage;
+        StorageType type = storage_get_type_by_path(path);
+        ret = storage_get_data(app, type, &storage);
+
         if(ret != FSE_OK) break;
 
         if(storage_path_already_open(path, storage)) {
             ret = FSE_ALREADY_OPEN;
+            break;
+        }
+
+        if(storage_is_read_only(storage)) {
+            ret = FSE_DENIED;
             break;
         }
 
@@ -366,14 +407,23 @@ static FS_Error storage_process_common_remove(Storage* app, FuriString* path) {
 }
 
 static FS_Error storage_process_common_mkdir(Storage* app, FuriString* path) {
-    StorageData* storage;
-    StorageType type = storage_get_type_by_path(path);
-    FS_Error ret = storage_get_data(app, type, &storage);
+    FS_Error ret;
 
-    if(ret == FSE_OK) {
+    do {
+        StorageData* storage;
+        StorageType type = storage_get_type_by_path(path);
+        ret = storage_get_data(app, type, &storage);
+
+        if(ret != FSE_OK) break;
+
+        if(storage_is_read_only(storage)) {
+            ret = FSE_DENIED;
+            break;
+        }
+
         storage_data_timestamp(storage);
         FS_CALL(storage, common.mkdir(storage, cstr_storage_path(app, type, path)));
-    }
+    } while(false);
 
     return ret;
 }
@@ -382,12 +432,14 @@ static FS_Error storage_process_common_fs_info(
     Storage* app,
     FuriString* path,
     uint64_t* total_space,
-    uint64_t* free_space) {
+    uint64_t* free_space,
+    bool* is_read_only) {
     StorageData* storage;
     StorageType type = storage_get_type_by_path(path);
     FS_Error ret = storage_get_data(app, type, &storage);
 
     if(ret == FSE_OK) {
+        *is_read_only = storage_is_read_only(storage);
         FS_CALL(
             storage,
             common.fs_info(storage, cstr_storage_path(app, type, path), total_space, free_space));
@@ -433,6 +485,11 @@ static FS_Error storage_process_sd_format(Storage* app, FuriString* path) {
 
         if(ret != FSE_OK) break;
 
+        if(storage_is_read_only(storage)) {
+            ret = FSE_DENIED;
+            break;
+        }
+
         FS_CALL(storage, storage.format(storage));
         storage_data_timestamp(storage);
     } while(false);
@@ -449,6 +506,11 @@ static FS_Error storage_process_sd_unmount(Storage* app, FuriString* path) {
         ret = storage_get_data(app, type, &storage);
 
         if(ret != FSE_OK) break;
+
+        if(storage_is_read_only(storage)) {
+            ret = FSE_DENIED;
+            break;
+        }
 
         FS_CALL(storage, storage.unmount(storage));
         storage_data_timestamp(storage);
@@ -467,6 +529,11 @@ static FS_Error storage_process_sd_mount(Storage* app, FuriString* path) {
 
         if(ret != FSE_OK) break;
 
+        if(storage_is_read_only(storage)) {
+            ret = FSE_DENIED;
+            break;
+        }
+
         FS_CALL(storage, storage.mount(storage));
         storage_data_timestamp(storage);
     } while(false);
@@ -483,6 +550,11 @@ static FS_Error storage_process_sd_info(Storage* app, FuriString* path, SDInfo* 
         ret = storage_get_data(app, type, &storage);
 
         if(ret != FSE_OK) break;
+
+        if(storage_is_read_only(storage)) {
+            ret = FSE_DENIED;
+            break;
+        }
 
         FS_CALL(storage, storage.info(storage, info));
         storage_data_timestamp(storage);
@@ -668,7 +740,8 @@ void storage_process_message_internal(Storage* app, StorageMessage* message) {
             app,
             app->path_aliased,
             message->data->cfsinfo.total_space,
-            message->data->cfsinfo.free_space);
+            message->data->cfsinfo.free_space,
+            message->data->cfsinfo.is_read_only);
         break;
     case StorageCommandCommonResolvePath:
         storage_process_alias(
