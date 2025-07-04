@@ -13,9 +13,11 @@ extern "C" {
 #endif
 
 #define STORAGE_EXT_PATH_PREFIX        "/ext"
+#define STORAGE_BACKUP_PATH_PREFIX     "/bkp"
 #define STORAGE_APP_DATA_PATH_PREFIX   "/data"
 #define STORAGE_APP_ASSETS_PATH_PREFIX "/assets"
 
+#define BACKUP_PATH(path)     STORAGE_BACKUP_PATH_PREFIX "/" path
 #define EXT_PATH(path)        STORAGE_EXT_PATH_PREFIX "/" path
 #define APP_DATA_PATH(path)   STORAGE_APP_DATA_PATH_PREFIX "/" path
 #define APP_ASSETS_PATH(path) STORAGE_APP_ASSETS_PATH_PREFIX "/" path

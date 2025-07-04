@@ -6,7 +6,6 @@
 #include "storage_ext_sdmmc.h"
 
 #include <storage/filesystem_api_internal.h>
-#include <storage/storage_internal_dirname_i.h>
 
 typedef FIL SDFile;
 typedef DIR SDDir;
@@ -19,14 +18,14 @@ typedef FRESULT SDError;
 
 typedef struct {
     FATFS* fs;
-    const char* path;
+    char* path;
 } SDData;
 
 static FS_Error storage_ext_parse_error(SDError error);
 
 FS_Error sd_mount_card(StorageData* storage);
 FS_Error sd_unmount_card(StorageData* storage);
-FS_Error sd_format_card(StorageData* storage);
+static FS_Error sd_format_card(StorageData* storage);
 
 /******************* Core Functions *******************/
 
@@ -121,7 +120,7 @@ FS_Error sd_mount_card(StorageData* storage) {
     return error;
 }
 
-FS_Error sd_format_card(StorageData* storage) {
+static FS_Error sd_format_card(StorageData* storage) {
 #ifdef FATFS_READ_ONLY
     UNUSED(storage);
     return FSE_NOT_READY;
@@ -150,7 +149,7 @@ FS_Error sd_format_card(StorageData* storage) {
 #endif
 }
 
-FS_Error sd_card_info(StorageData* storage, SDInfo* sd_info) {
+static FS_Error sd_card_info(StorageData* storage, SDInfo* sd_info) {
 #ifndef FATFS_READ_ONLY
     uint32_t free_clusters, free_sectors, total_sectors;
     FATFS* fs;
@@ -231,25 +230,101 @@ FS_Error sd_card_info(StorageData* storage, SDInfo* sd_info) {
     return storage_ext_parse_error(error);
 }
 
-FS_Error storage_ext_mount(void* context) {
+FS_Error storage_ext_mount(StorageData* storage) {
+    SDData* sd_data = storage->data;
+    FS_Error error = storage_ext_parse_error(f_mount(sd_data->fs, sd_data->path, 1));
+
+    if(error == FSE_OK) {
+        storage->status = StorageStatusOK;
+    }
+
+    return error;
+}
+
+static FS_Error storage_ext_mount_proxy(void* context) {
+    return sd_mount_card((StorageData*)context);
+}
+
+static FS_Error storage_ext_unmount(void* context) {
     UNUSED(context);
     return FSE_NOT_IMPLEMENTED;
 }
 
-FS_Error storage_ext_unmount(void* context) {
-    UNUSED(context);
-    return FSE_NOT_IMPLEMENTED;
+static FS_Error storage_ext_format(void* context) {
+    StorageData* storage = context;
+    return sd_format_card(storage);
 }
 
-FS_Error storage_ext_format(void* context) {
-    UNUSED(context);
-    return FSE_NOT_IMPLEMENTED;
+static FS_Error storage_ext_info(void* context, SDInfo* sd_info) {
+    StorageData* storage = context;
+    return sd_card_info(storage, sd_info);
 }
 
-FS_Error storage_ext_info(void* context, SDInfo* sd_info) {
-    UNUSED(context);
-    UNUSED(sd_info);
-    return FSE_NOT_IMPLEMENTED;
+#include <fatfs/diskio.h>
+
+FS_Error storage_ext_init_bsp(void) {
+    FS_Error error = FSE_NOT_READY;
+    if(furi_hal_sdmmc_init_card()) {
+        error = FSE_OK;
+    }
+
+    return error;
+}
+
+FS_Error storage_ext_mk_partititons(void) {
+    FS_Error error = FSE_OK;
+
+    do {
+        const size_t drive_index = 0;
+
+        uint32_t total_sectors;
+        DRESULT res = disk_ioctl(drive_index, GET_SECTOR_COUNT, &total_sectors);
+        if(res != RES_OK) {
+            FURI_LOG_E(TAG, "disk_ioctl failed: %d", res);
+            error = FSE_INTERNAL;
+            break;
+        }
+
+        const size_t first_partition_size = 256 * 1024 * 1024 / _MAX_SS; // 256 MB
+        const size_t second_partition_size =
+            total_sectors - first_partition_size; // rest of the disk
+
+        const DWORD plist[] = {first_partition_size, second_partition_size, 0, 0}; // 256 MB + rest
+        uint8_t* work_area;
+
+        work_area = malloc(_MAX_SS);
+        FRESULT status = f_fdisk(drive_index, plist, work_area); /* Divide physical drive 0 */
+        free(work_area);
+
+        if(status != FR_OK) {
+            FURI_LOG_E(TAG, "f_fdisk failed: %d", status);
+            error = storage_ext_parse_error(status);
+            break;
+        }
+
+        work_area = malloc(_MAX_SS);
+        status = f_mkfs("0:/", FM_EXFAT, 0, work_area, _MAX_SS);
+        free(work_area);
+
+        if(status != FR_OK) {
+            FURI_LOG_E(TAG, "f_mkfs \"0:/\" failed: %d", status);
+            error = storage_ext_parse_error(status);
+            break;
+        }
+
+        work_area = malloc(_MAX_SS);
+        status = f_mkfs("1:/", FM_EXFAT, 0, work_area, _MAX_SS);
+        free(work_area);
+
+        if(status != FR_OK) {
+            FURI_LOG_E(TAG, "f_mkfs \"1:/\" failed: %d", status);
+            error = storage_ext_parse_error(status);
+            break;
+        }
+
+    } while(false);
+
+    return error;
 }
 
 /****************** Common Functions ******************/
@@ -614,20 +689,22 @@ static const FS_Api fs_api = {
         },
     .storage =
         {
-            .mount = storage_ext_mount,
+            .mount = storage_ext_mount_proxy,
             .unmount = storage_ext_unmount,
             .format = storage_ext_format,
             .info = storage_ext_info,
         },
 };
 
-void storage_ext_init(StorageData* storage) {
-    fatfs_init();
-
+void storage_ext_init(StorageData* storage, size_t logical_unit_number) {
     SDData* sd_data = malloc(sizeof(SDData));
-    sd_data->fs = &fatfs_object;
-    sd_data->path = "0:/";
+    sd_data->fs = malloc(sizeof(FATFS));
+    sd_data->path = malloc(4 * sizeof(char));
 
     storage->data = sd_data;
     storage->fs_api = &fs_api;
+
+    fatfs_init(
+        sd_data->path,
+        logical_unit_number); // Initialize FATFS with the path and logical unit number
 }

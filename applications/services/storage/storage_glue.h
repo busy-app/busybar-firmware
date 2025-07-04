@@ -9,7 +9,8 @@ extern "C" {
 #endif
 
 typedef enum {
-    ST_EXT = 0,
+    ST_BKP = 0,
+    ST_EXT = 1,
     ST_MAX
 } StorageType;
 

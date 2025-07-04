@@ -14,13 +14,39 @@ Storage* storage_app_alloc(void) {
     Storage* app = malloc(sizeof(Storage));
     app->message_queue = furi_message_queue_alloc(8, sizeof(StorageMessage));
     app->pubsub = furi_pubsub_alloc();
+    app->temp_path = furi_string_alloc();
+    furi_string_reserve(app->temp_path, 256);
 
     for(uint8_t i = 0; i < STORAGE_COUNT; i++) {
         storage_data_init(&app->storage[i]);
         storage_data_timestamp(&app->storage[i]);
     }
 
-    storage_ext_init(&app->storage[ST_EXT]);
+    storage_ext_init(&app->storage[ST_BKP], ST_BKP);
+    storage_ext_init(&app->storage[ST_EXT], ST_EXT);
+
+    // mount storages
+    do {
+        FS_Error ret = storage_ext_init_bsp();
+        if(ret != FSE_OK) {
+            FURI_LOG_E(TAG, "Storage bsp init failed: %d", ret);
+            break;
+        }
+
+        ret = storage_ext_mount(&app->storage[ST_BKP]);
+        if(ret != FSE_OK) {
+            FURI_LOG_E(
+                TAG, "Storage mount failed: %s", storage_data_status_text(&app->storage[ST_BKP]));
+            break;
+        }
+
+        ret = storage_ext_mount(&app->storage[ST_EXT]);
+        if(ret != FSE_OK) {
+            FURI_LOG_E(
+                TAG, "Storage mount failed: %s", storage_data_status_text(&app->storage[ST_EXT]));
+            break;
+        }
+    } while(false);
 
     storage_posix_api_init(app);
 

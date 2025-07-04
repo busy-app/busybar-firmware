@@ -1,6 +1,8 @@
 #pragma once
 #include <furi.h>
 #include <toolbox/api_lock.h>
+#include "filesystem_api_defines.h"
+#include "storage_sd_api.h"
 
 #ifdef __cplusplus
 extern "C" {

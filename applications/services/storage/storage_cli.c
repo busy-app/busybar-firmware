@@ -83,6 +83,7 @@ static void storage_cli_list(PipeSide* pipe, FuriString* path, FuriString* args)
     UNUSED(pipe);
     UNUSED(args);
     if(furi_string_cmp_str(path, "/") == 0) {
+        printf("\t[D] bkp\r\n");
         printf("\t[D] ext\r\n");
     } else {
         Storage* api = furi_record_open(RECORD_STORAGE);
@@ -118,6 +119,11 @@ static void storage_cli_list(PipeSide* pipe, FuriString* path, FuriString* args)
 static void storage_cli_tree(PipeSide* pipe, FuriString* path, FuriString* args) {
     UNUSED(args);
     if(furi_string_cmp_str(path, "/") == 0) {
+        printf("\t[D] bkp\r\n");
+        furi_string_set(path, STORAGE_BACKUP_PATH_PREFIX);
+        storage_cli_tree(pipe, path, NULL);
+
+        printf("\t[D] ext\r\n");
         furi_string_set(path, STORAGE_EXT_PATH_PREFIX);
         storage_cli_tree(pipe, path, NULL);
     } else {
@@ -329,7 +335,9 @@ static void storage_cli_stat(PipeSide* pipe, FuriString* path, FuriString* args)
 
     if(furi_string_cmp_str(path, "/") == 0) {
         printf("Storage\r\n");
-    } else if(furi_string_cmp_str(path, STORAGE_EXT_PATH_PREFIX) == 0) {
+    } else if(
+        furi_string_cmp_str(path, STORAGE_EXT_PATH_PREFIX) == 0 ||
+        furi_string_cmp_str(path, STORAGE_BACKUP_PATH_PREFIX) == 0) {
         uint64_t total_space;
         uint64_t free_space;
         FS_Error error =
