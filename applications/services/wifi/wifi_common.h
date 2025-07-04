@@ -6,6 +6,8 @@
 
 #include <stdint.h>
 
+#include <core/pubsub.h>
+
 #ifdef __cplusplus
 extern "C" {
 #endif
