@@ -873,6 +873,21 @@ const char* storage_file_get_error_desc(File* file) {
     return filesystem_api_error_get_desc(file->error_id);
 }
 
+/****************** Backup API ******************/
+
+void storage_backup_readonly(Storage* storage, bool readonly) {
+    furi_check(storage);
+
+    S_API_PROLOGUE;
+    SAData data = {
+        .readonly = {
+            .readonly = readonly,
+        }};
+
+    S_API_MESSAGE(StorageCommandBackupReadOnly);
+    S_API_EPILOGUE;
+} //-V773
+
 /****************** Raw SD API ******************/
 
 FS_Error storage_sd_format(Storage* storage, const char* path) {

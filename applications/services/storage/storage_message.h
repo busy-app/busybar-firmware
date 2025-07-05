@@ -97,6 +97,10 @@ typedef struct {
     SDInfo* info;
 } SAInfo;
 
+typedef struct {
+    bool readonly;
+} SAReadOnly;
+
 typedef union {
     SADataFOpen fopen;
     SADataFRead fread;
@@ -118,6 +122,8 @@ typedef union {
     SADataPath path;
 
     SAInfo sdinfo;
+
+    SAReadOnly readonly;
 } SAData;
 
 typedef union {
@@ -155,6 +161,7 @@ typedef enum {
     StorageCommandCommonResolvePath,
     StorageCommandSDMount,
     StorageCommandCommonEquivalentPath,
+    StorageCommandBackupReadOnly,
 } StorageCommand;
 
 typedef struct {

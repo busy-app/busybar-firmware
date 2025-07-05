@@ -802,6 +802,11 @@ void storage_process_message_internal(Storage* app, StorageMessage* message) {
     case StorageCommandSDStatus:
         message->return_data->error_value = storage_process_sd_status(app);
         break;
+    case StorageCommandBackupReadOnly:
+        StorageData* storage = &app->storage[ST_BKP];
+        storage_set_read_only(storage, message->data->readonly.readonly);
+        message->return_data->bool_value = true;
+        break;
     }
 
     furi_string_set(app->path_aliased, "");
