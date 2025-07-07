@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Input streaming demo</title>
+    <link rel="stylesheet" href="common.css">
+</head>
+
+<body>
+    <div class="container">
+        <h1>Input streaming demo</h1>
+        <div>
+            <button id="btn_open_close">Open/Close</button>
+        </div>
+        <div class="container" style="width: min-content;">
+            <button id="btn_up">⬆️</button>
+            <button id="btn_ok">🆗</button>
+            <button id="btn_down">⬇️</button>
+            <button id="btn_start">▶️</button>
+            <button id="btn_back">🔙</button>
+        </div>
+        <div id="status" class="status" style="display:none;"></div>
+    </div>
+</body>
+<script>
+    var ws;
+    const statusDiv = document.getElementById('status');
+    var btn_open_close = document.getElementById('btn_open_close');
+
+    var btn_up = document.getElementById('btn_up');
+    var btn_ok = document.getElementById('btn_ok');
+    var btn_down = document.getElementById('btn_down');
+    var btn_start = document.getElementById('btn_start');
+    var btn_back = document.getElementById('btn_back');
+
+    function showStatus(msg, type) {
+        statusDiv.textContent = msg;
+        statusDiv.className = 'status ' + type;
+        statusDiv.style.display = 'block';
+        setTimeout(() => { statusDiv.style.display = 'none'; }, 4000);
+    }
+
+    btn_open_close.onclick = function () {
+        if (ws) {
+            ws.close();
+            ws = null;
+            console.log('WebSocket: Connection closing...');
+            return;
+        }
+        // Use wss:// if on https, ws:// otherwise
+        const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+        const wsUrl = `${protocol}//${window.location.host}/api/v0/input`;
+        console.log(`WebSocket: Connecting to ${wsUrl}`);
+        ws = new WebSocket(wsUrl);
+        if (!ws) {
+            console.log('WebSocket: Failed to create WebSocket object.');
+            return;
+        }
+        ws.onopen = function () {
+            console.log('WebSocket: CONNECTION OPENED');
+            showStatus('WebSocket: Connected', 'success');
+        }
+        ws.onerror = function (ev) { console.log('WebSocket: ERROR: ' + JSON.stringify(ev)); } // Log more details on error
+        ws.onclose = function (ev) {
+            console.log(`WebSocket: CONNECTION CLOSED (Code: ${ev.code}, Reason: ${ev.reason || 'N/A'}, Clean: ${ev.wasClean})`);
+            ws = null;
+            showStatus('WebSocket: Connection closed', 'error');
+        }
+    };
+
+    var sendInput = function (key_name, value) {
+        if (!ws || ws.readyState !== WebSocket.OPEN) {
+            showStatus('WebSocket: Not connected', 'error');
+            return;
+        }
+
+        let input_event = {};
+        input_event[key_name] = value;
+
+        console.log('WebSocket: SENT: ' + JSON.stringify(input_event));
+        ws.send(JSON.stringify(input_event));
+    };
+
+    btn_up.onmousedown = function () { sendInput('up', 1); };
+    btn_up.onmouseup = function () { sendInput('up', 0); };
+
+    btn_down.onmousedown = function () { sendInput('down', 1); };
+    btn_down.onmouseup = function () { sendInput('down', 0); };
+
+    btn_ok.onmousedown = function () { sendInput('ok', 1); };
+    btn_ok.onmouseup = function () { sendInput('ok', 0); };
+
+    btn_start.onmousedown = function () { sendInput('start', 1); };
+    btn_start.onmouseup = function () { sendInput('start', 0); };
+
+    btn_back.onmousedown = function () { sendInput('back', 1); };
+    btn_back.onmouseup = function () { sendInput('back', 0); };
+</script>
+
+</html>
