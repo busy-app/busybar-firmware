@@ -155,6 +155,7 @@ typedef enum {
     StorageCommandCommonMkDir,
     StorageCommandCommonFSInfo,
     StorageCommandSDFormat,
+    StorageCommandSDMakePartitions,
     StorageCommandSDUnmount,
     StorageCommandSDInfo,
     StorageCommandSDStatus,

@@ -10,6 +10,8 @@
 
 #define TAG "Storage"
 
+#include <furi_hal.h>
+
 Storage* storage_app_alloc(void) {
     Storage* app = malloc(sizeof(Storage));
     app->message_queue = furi_message_queue_alloc(8, sizeof(StorageMessage));
@@ -38,13 +40,12 @@ Storage* storage_app_alloc(void) {
             break;
         }
 
-        // ret = storage_ext_mk_partititons();
-        // if(ret != FSE_OK) {
-        //     FURI_LOG_E(
-        //         TAG,
-        //         "Storage partitions creation failed: %s",
-        //         storage_data_status_text(&app->storage[ST_EXT]));
-        //     break;
+        // {
+        //     uint8_t buffer[1024] = {0};
+        //     furi_hal_sdmmc_write_blocks(
+        //         buffer, 0, 2, 10000); // dummy write to remove old partitions
+
+        //     furi_crash("remove me");
         // }
 
         ret = storage_ext_mount(&app->storage[ST_BKP]);

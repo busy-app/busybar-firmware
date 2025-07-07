@@ -470,6 +470,35 @@ static bool
 }
 
 /****************** Raw SD API ******************/
+#include "storages/storage_ext_sdmmc.h"
+
+static FS_Error storage_process_sd_mkfs(Storage* app, FuriString* path) {
+    FS_Error ret;
+
+    do {
+        if(furi_string_cmp(path, "/") != 0) {
+            ret = FSE_INVALID_NAME;
+            break;
+        }
+
+        if(storage_is_read_only(&app->storage[ST_BKP])) {
+            ret = FSE_DENIED;
+            break;
+        }
+
+        if(storage_is_read_only(&app->storage[ST_EXT])) {
+            ret = FSE_DENIED;
+            break;
+        }
+
+        ret = storage_ext_mk_partititons();
+
+        storage_data_timestamp(&app->storage[ST_BKP]);
+        storage_data_timestamp(&app->storage[ST_EXT]);
+    } while(false);
+
+    return ret;
+}
 
 static FS_Error storage_process_sd_format(Storage* app, FuriString* path) {
     FS_Error ret;
@@ -781,6 +810,10 @@ void storage_process_message_internal(Storage* app, StorageMessage* message) {
     case StorageCommandSDFormat:
         furi_string_set(app->path_aliased, message->data->path.path);
         message->return_data->error_value = storage_process_sd_format(app, app->path_aliased);
+        break;
+    case StorageCommandSDMakePartitions:
+        furi_string_set(app->path_aliased, message->data->path.path);
+        message->return_data->error_value = storage_process_sd_mkfs(app, app->path_aliased);
         break;
     case StorageCommandSDUnmount:
         furi_string_set(app->path_aliased, message->data->path.path);

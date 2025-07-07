@@ -1,5 +1,6 @@
 #include <furi.h>
 #include <furi_hal.h>
+#include <furi_hal_nvm.h>
 
 #include <toolbox/strint.h>
 #include <cli/cli_command.h>
@@ -48,6 +49,44 @@ static void storage_cli_info(PipeSide* pipe, FuriString* path, FuriString* args)
             sd_info.manufacturing_year);
     }
     furi_record_close(RECORD_STORAGE);
+}
+
+static void storage_cli_mkfs(PipeSide* pipe, FuriString* path, FuriString* args) {
+    UNUSED(args);
+
+    printf(
+        "Creating filesystem on \"%s\". "
+        "All data will be lost and device will be rebooted! "
+        "Are you sure (y/n)?\r\n",
+        furi_string_get_cstr(path));
+    while(true) {
+        char answer;
+        if(pipe_receive(pipe, &answer, sizeof(answer)) != sizeof(answer)) break;
+        if(answer == 'y' || answer == 'Y') {
+            printf("Creating filesystem, please wait...\r\n");
+
+            Storage* api = furi_record_open(RECORD_STORAGE);
+            FS_Error error = storage_sd_make_filesystem(api, furi_string_get_cstr(path));
+            furi_record_close(RECORD_STORAGE);
+
+            if(error != FSE_OK) {
+                storage_cli_print_error(error);
+            } else {
+                printf("Filesystem was successfully created.\r\n");
+
+                furi_hal_nvm_reset();
+                printf("Rebooting...\r\n");
+                furi_delay_ms(100);
+                Power* pwr = furi_record_open(RECORD_POWER);
+                power_reboot(pwr, PowerRebootNormal);
+                furi_record_close(RECORD_POWER);
+            }
+            break;
+        } else if(answer == 'n' || answer == 'N') {
+            printf("Cancelled.\r\n");
+            break;
+        }
+    };
 }
 
 static void storage_cli_format(PipeSide* pipe, FuriString* path, FuriString* args) {
@@ -611,6 +650,11 @@ static const StorageCliCommand storage_cli_commands[] = {
         "format",
         "format filesystem on specified partition",
         &storage_cli_format,
+    },
+    {
+        "mkfs",
+        "create filesystem, path must be \"/\"",
+        &storage_cli_mkfs,
     },
 };
 

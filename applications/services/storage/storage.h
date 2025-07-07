@@ -472,6 +472,18 @@ const char* storage_file_get_error_desc(File* file);
 FS_Error storage_sd_format(Storage* storage, const char* path);
 
 /**
+ * @brief Create a filesystem on the SD card.
+ *
+ * This function is used to create a filesystem on the SD card.
+ * It is typically called after formatting the SD card.
+ *
+ * @param storage pointer to a storage API instance.
+ * @param path pointer to a zero-terminated string containing the path to the SD card.
+ * @return FSE_OK if the filesystem was successfully created, any other error code on failure.
+ */
+FS_Error storage_sd_make_filesystem(Storage* storage, const char* path);
+
+/**
  * @brief Unmount the SD card.
  *
  * These return values have special meaning:

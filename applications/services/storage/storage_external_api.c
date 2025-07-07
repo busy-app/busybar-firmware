@@ -904,6 +904,20 @@ FS_Error storage_sd_format(Storage* storage, const char* path) {
     return S_RETURN_ERROR;
 }
 
+FS_Error storage_sd_make_filesystem(Storage* storage, const char* path) {
+    furi_check(storage);
+
+    S_API_PROLOGUE;
+    SAData data = {
+        .path = {
+            .path = path,
+            .thread_id = furi_thread_get_current_id(),
+        }};
+    S_API_MESSAGE(StorageCommandSDMakePartitions);
+    S_API_EPILOGUE;
+    return S_RETURN_ERROR;
+}
+
 FS_Error storage_sd_unmount(Storage* storage, const char* path) {
     furi_check(storage);
 
