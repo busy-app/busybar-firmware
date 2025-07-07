@@ -4,28 +4,6 @@
 
 #define TAG "HttpStatus"
 
-bool status_get_battery(FuriString* json_str) {
-    Power* power = furi_record_open(RECORD_POWER);
-    PowerInfo info;
-    power_get_info(power, &info);
-    furi_record_close(RECORD_POWER);
-
-    furi_string_cat_printf(json_str, "{");
-
-    if(info.is_charging) {
-        furi_string_cat_printf(
-            json_str, "\"%s\":\"%s\",", "state", (info.is_full_charged) ? "charged" : "charging");
-    } else {
-        furi_string_cat_printf(json_str, "\"%s\":\"%s\",", "state", "discharging");
-    }
-
-    furi_string_cat_printf(json_str, "\"%s\":%u", "level", info.charge);
-
-    furi_string_cat_printf(json_str, "}");
-
-    return true;
-}
-
 bool status_get_system(FuriString* json_str) {
     const Version* firmware_version = version_get();
 
@@ -49,12 +27,55 @@ bool status_get_system(FuriString* json_str) {
     return true;
 }
 
+bool status_get_power(FuriString* json_str) {
+    Power* power = furi_record_open(RECORD_POWER);
+    PowerInfo info;
+    power_get_info(power, &info);
+    furi_record_close(RECORD_POWER);
+
+    furi_string_cat_printf(json_str, "{");
+
+    if(info.is_charging) {
+        furi_string_cat_printf(
+            json_str, "\"%s\":\"%s\",", "state", (info.is_full_charged) ? "charged" : "charging");
+    } else {
+        furi_string_cat_printf(json_str, "\"%s\":\"%s\",", "state", "discharging");
+    }
+
+    furi_string_cat_printf(json_str, "\"%s\":%u,", "battery_charge", info.charge);
+    furi_string_cat_printf(json_str, "\"%s\":%lu,", "battery_voltage", info.voltage_battery);
+    furi_string_cat_printf(json_str, "\"%s\":%ld,", "battery_current", info.current_battery);
+    furi_string_cat_printf(json_str, "\"%s\":%lu", "usb_voltage", info.voltage_usb);
+
+    furi_string_cat_printf(json_str, "}");
+
+    return true;
+}
+
+bool status_get_ble(FuriString* json_str) {
+    Power* power = furi_record_open(RECORD_POWER);
+    PowerInfo info;
+    power_get_info(power, &info);
+    furi_record_close(RECORD_POWER);
+
+    furi_string_cat_printf(json_str, "{");
+
+    furi_string_cat_printf(json_str, "\"%s\":\"%s\"", "state", "not implemented");
+    // TODO: BLE is not implemented
+
+    furi_string_cat_printf(json_str, "}");
+
+    return true;
+}
+
 static const struct {
     char* name;
     bool (*callback)(FuriString* json_str);
 } status_handlers[] = {
     {"system", status_get_system},
-    {"battery", status_get_battery},
+    {"power", status_get_power},
+    // {"wifi", status_get_wifi}, // Implemented in /api/v0/wifi/status
+    {"ble", status_get_ble},
 };
 
 bool http_api_status_callback(
@@ -101,11 +122,7 @@ bool http_api_status_callback(
             bool success = status_handlers[i].callback(json_response);
 
             if(success) {
-                MG_REPLY_OK_BODY(
-                    conn,
-                    "{\"%s\":%s}\n",
-                    status_handlers[i].name,
-                    furi_string_get_cstr(json_response));
+                MG_REPLY_OK_BODY(conn, "%s\n", furi_string_get_cstr(json_response));
             } else {
                 MG_REPLY_INTERNAL_ERROR(conn, "Failed to get status");
             }

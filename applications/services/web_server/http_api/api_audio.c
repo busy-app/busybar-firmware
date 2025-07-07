@@ -77,6 +77,68 @@ static bool api_audio_delete_callback(
     return true;
 }
 
+static bool api_audio_get_volume_callback(
+    FuriString* path,
+    struct mg_connection* conn,
+    struct mg_http_message* msg,
+    void* ctx) {
+    UNUSED(msg);
+    UNUSED(ctx);
+
+    if(!IS_HTTP_ENDPOINT(path)) return false;
+
+    Audio* audio = furi_record_open(RECORD_AUDIO);
+    float volume = audio_get_volume(audio);
+    furi_record_close(RECORD_AUDIO);
+
+    FuriString* json_str = furi_string_alloc_printf("\"volume\":%lu", (uint32_t)(volume * 100.f));
+
+    MG_REPLY_OK_BODY(conn, "{%s}\n", furi_string_get_cstr(json_str));
+    furi_string_free(json_str);
+    return true;
+}
+
+static bool api_audio_set_volume_callback(
+    FuriString* path,
+    struct mg_connection* conn,
+    struct mg_http_message* msg,
+    void* ctx) {
+    UNUSED(msg);
+    UNUSED(ctx);
+
+    if(!IS_HTTP_ENDPOINT(path)) return false;
+
+    bool success = false;
+    do {
+        if(msg->query.len == 0) break;
+
+        char value_str[5];
+        int volume = 0;
+
+        int value_len = mg_http_get_var(&msg->query, "volume", value_str, sizeof(value_str));
+
+        if(value_len <= 0) break;
+
+        int value_num = sscanf(value_str, "%u", &volume);
+
+        if(value_num == 1) {
+            if((volume > 100) || (volume < 0)) break;
+            Audio* audio = furi_record_open(RECORD_AUDIO);
+            audio_set_volume(audio, (float)volume / 100.f);
+            furi_record_close(RECORD_AUDIO);
+            success = true;
+        }
+    } while(0);
+
+    if(success) {
+        MG_REPLY_OK(conn);
+    } else {
+        MG_REPLY_BAD_REQUEST(conn);
+    }
+
+    return true;
+}
+
 static const HttpHandler api_audio_handlers[] = {
     {
         .uri = "play",
@@ -89,6 +151,18 @@ static const HttpHandler api_audio_handlers[] = {
         .method = "DELETE",
         .type = HttpHandlerCustom,
         .on_request = api_audio_delete_callback,
+    },
+    {
+        .uri = "volume",
+        .method = "GET",
+        .type = HttpHandlerCustom,
+        .on_request = api_audio_get_volume_callback,
+    },
+    {
+        .uri = "volume",
+        .method = "POST",
+        .type = HttpHandlerCustom,
+        .on_request = api_audio_set_volume_callback,
     },
 };
 

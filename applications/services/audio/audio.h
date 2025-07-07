@@ -55,6 +55,16 @@ void audio_stop(Audio* instance);
  */
 void audio_set_volume(Audio* instance, float volume);
 
+/**
+ * @brief Get the playback volume.
+ *
+ * The volume is in range 0.0 (mute) to 1.0 (full volume).
+ *
+ * @returns volume value (see above range)
+ *
+ */
+float audio_get_volume(Audio* instance);
+
 #ifdef __cplusplus
 }
 #endif

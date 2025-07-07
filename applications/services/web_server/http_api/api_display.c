@@ -4,10 +4,14 @@
 #include <gui/gui.h>
 #include <toolbox/path.h>
 #include <canvas/canvas.h>
+#include <back_display/back_display.h>
+#include <front_display/front_display.h>
 
 #define TAG "HttpDisplay"
 
 #define DISPLAY_ASSETS_DIR EXT_PATH("assets")
+
+#define DISPLAY_BRIGHTNESS_MAX (100)
 
 static bool api_display_draw_parse_element(
     CanvasElementsArray_t elements_array,
@@ -171,6 +175,107 @@ static bool api_display_delete_callback(
     return true;
 }
 
+static bool api_display_get_brightness_callback(
+    FuriString* path,
+    struct mg_connection* conn,
+    struct mg_http_message* msg,
+    void* ctx) {
+    UNUSED(msg);
+    UNUSED(ctx);
+
+    if(!IS_HTTP_ENDPOINT(path)) return false;
+
+    FuriString* json_str = furi_string_alloc();
+
+    FrontDisplaySrv* front_srv = furi_record_open(RECORD_FRONT_DISPLAY);
+    uint8_t brightness_value = front_display_get_brightness_setting(front_srv);
+    furi_record_close(RECORD_FRONT_DISPLAY);
+
+    if(brightness_value == FRONT_DISPLAY_BRIGHTNESS_AUTO) {
+        furi_string_cat_printf(json_str, "\"front\":\"auto\",");
+    } else {
+        furi_string_cat_printf(json_str, "\"front\":\"%u\",", brightness_value);
+    }
+
+    BackDisplaySrv* back_srv = furi_record_open(RECORD_BACK_DISPLAY);
+    brightness_value = back_display_get_brightness(back_srv);
+    furi_record_close(RECORD_BACK_DISPLAY);
+
+    if(brightness_value == FRONT_DISPLAY_BRIGHTNESS_AUTO) {
+        furi_string_cat_printf(json_str, "\"back\":\"auto\"");
+    } else {
+        furi_string_cat_printf(json_str, "\"back\":\"%u\"", brightness_value);
+    }
+
+    MG_REPLY_OK_BODY(conn, "{%s}\n", furi_string_get_cstr(json_str));
+    furi_string_free(json_str);
+    return true;
+}
+
+static bool api_display_set_brightness_callback(
+    FuriString* path,
+    struct mg_connection* conn,
+    struct mg_http_message* msg,
+    void* ctx) {
+    UNUSED(msg);
+    UNUSED(ctx);
+
+    if(!IS_HTTP_ENDPOINT(path)) return false;
+
+    bool success = false;
+    do {
+        if(msg->query.len == 0) break;
+
+        char front_value_str[5];
+        char back_value_str[5];
+
+        int front_value = 0;
+        int back_value = 0;
+
+        int front_len =
+            mg_http_get_var(&msg->query, "front", front_value_str, sizeof(front_value_str));
+        int back_len =
+            mg_http_get_var(&msg->query, "back", back_value_str, sizeof(back_value_str));
+
+        if((front_len <= 0) && (back_len <= 0)) break;
+
+        if(front_len > 0) {
+            if(strcmp(front_value_str, "auto") == 0) {
+                front_value = FRONT_DISPLAY_BRIGHTNESS_AUTO;
+            } else if(sscanf(front_value_str, "%u", &front_value) == 1) {
+                if(front_value > DISPLAY_BRIGHTNESS_MAX) break;
+            } else {
+                break;
+            }
+            FrontDisplaySrv* srv = furi_record_open(RECORD_FRONT_DISPLAY);
+            front_display_set_brightness(srv, front_value);
+            furi_record_close(RECORD_FRONT_DISPLAY);
+        }
+
+        if(back_len > 0) {
+            if(strcmp(back_value_str, "auto") == 0) {
+                back_value = BACK_DISPLAY_BRIGHTNESS_AUTO;
+            } else if(sscanf(back_value_str, "%u", &back_value) == 1) {
+                if(back_value > DISPLAY_BRIGHTNESS_MAX) break;
+            } else {
+                break;
+            }
+            BackDisplaySrv* srv = furi_record_open(RECORD_BACK_DISPLAY);
+            back_display_set_brightness(srv, back_value);
+            furi_record_close(RECORD_BACK_DISPLAY);
+        }
+        success = true;
+    } while(0);
+
+    if(success) {
+        MG_REPLY_OK(conn);
+    } else {
+        MG_REPLY_BAD_REQUEST(conn);
+    }
+
+    return true;
+}
+
 static const HttpHandler handlers_display[] = {
     {
         .uri = "draw",
@@ -183,6 +288,18 @@ static const HttpHandler handlers_display[] = {
         .method = "DELETE",
         .type = HttpHandlerCustom,
         .on_request = api_display_delete_callback,
+    },
+    {
+        .uri = "brightness",
+        .method = "GET",
+        .type = HttpHandlerCustom,
+        .on_request = api_display_get_brightness_callback,
+    },
+    {
+        .uri = "brightness",
+        .method = "POST",
+        .type = HttpHandlerCustom,
+        .on_request = api_display_set_brightness_callback,
     },
 };
 

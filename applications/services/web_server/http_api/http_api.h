@@ -66,6 +66,15 @@ bool http_api_audio_callback(
     struct mg_http_message* msg,
     void* ctx);
 
+// Input
+void* http_api_input_alloc(void);
+void http_api_input_free(void* ctx);
+bool http_api_input_callback(
+    FuriString* path,
+    struct mg_connection* conn,
+    struct mg_http_message* msg,
+    void* ctx);
+
 // Status
 bool http_api_status_callback(
     FuriString* path,
