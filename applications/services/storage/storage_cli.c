@@ -68,7 +68,7 @@ static void storage_cli_format(PipeSide* pipe, FuriString* path, FuriString* arg
             if(error != FSE_OK) {
                 storage_cli_print_error(error);
             } else {
-                printf("SD card was successfully formatted.\r\n");
+                printf("Patition was successfully formatted.\r\n");
             }
             furi_record_close(RECORD_STORAGE);
             break;
@@ -617,7 +617,7 @@ static const StorageCliCommand storage_cli_commands[] = {
 static void storage_cli_print_usage(void) {
     printf("Usage:\r\n");
     printf("storage <cmd> <path> <args>\r\n");
-    printf("The path must start with /int or /ext\r\n");
+    printf("The path must start with /bkp or /ext\r\n");
     printf("Cmd list:\r\n");
 
     for(size_t i = 0; i < COUNT_OF(storage_cli_commands); ++i) {
