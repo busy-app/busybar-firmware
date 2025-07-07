@@ -2339,11 +2339,13 @@ bool furi_hal_sdmmc_write_blocks(
         uint32_t blocks_in_current_operation;
 
         if(((uintptr_t)current_user_buffer_ptr % DMA_ALIGNMENT) == 0) {
-            // Current user buffer pointer is aligned. Read as many blocks as possible directly.
+            // Current user buffer pointer is aligned. Write as many blocks as possible directly.
             dma_target_buffer = current_user_buffer_ptr;
-            blocks_in_current_operation = remaining_blocks; // Attempt to read all remaining blocks
+            blocks_in_current_operation =
+                remaining_blocks; // Attempt to write all remaining blocks
         } else {
-            // Current user buffer pointer is unaligned. Read one block into the temporary aligned buffer.
+            // Current user buffer pointer is unaligned. Write one block from the temporary aligned buffer.
+            memcpy(temp_aligned_block_ptr, current_user_buffer_ptr, SD_BLOCKSIZE);
             dma_target_buffer = temp_aligned_block_ptr;
             blocks_in_current_operation = 1;
         }
