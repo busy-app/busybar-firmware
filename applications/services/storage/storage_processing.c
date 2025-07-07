@@ -13,11 +13,7 @@ _Static_assert(
 #define FS_CALL(_storage, _fn) ret = _storage->fs_api->_fn;
 
 static bool storage_type_is_valid(StorageType type) {
-#ifdef FURI_RAM_EXEC
-    return type == ST_EXT;
-#else
     return type < ST_MAX;
-#endif
 }
 
 static StorageData* get_storage_by_file(File* file, StorageData* storages) {
