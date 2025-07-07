@@ -107,7 +107,7 @@ static void sockets_enable_read_events(int socket_id) {
 
     furi_check(
         sl_si91x_select(socket_id + 1, &read_fds, NULL, NULL, NULL, sockets_select_callback) ==
-        SI91X_NO_ERROR);
+        SLI_SI91X_NO_ERROR);
 }
 
 static void sockets_alloc_request_handler(const SocketRequest* request, SocketResponse* response) {
@@ -364,11 +364,11 @@ static void sockets_read_event_flag_callback(FuriEventLoopObject* object, void* 
 
     SocketAsyncResponse* async_response = &response->async_response;
 
-    for(int socket_id = 0; socket_id < NUMBER_OF_SOCKETS; ++socket_id) {
+    for(int socket_id = 0; socket_id < SLI_NUMBER_OF_SOCKETS; ++socket_id) {
         const uint32_t socket_bit = (1UL << socket_id);
 
         if(socket_bits & socket_bit) {
-            const sli_si91x_socket_t* socket = get_si91x_socket(socket_id);
+            const sli_si91x_socket_t* socket = sli_get_si91x_socket(socket_id);
             furi_assert(socket);
 
             const sli_si91x_bsd_socket_state_t socket_state = socket->state;
@@ -399,7 +399,7 @@ static void sockets_accept_event_flag_callback(FuriEventLoopObject* object, void
     SocketAsyncResponse* async_response = &response->async_response;
     SocketAcceptAsyncResponse* accept_async_response = &async_response->accept_async_response;
 
-    for(int socket_id = 0; socket_id < NUMBER_OF_SOCKETS; ++socket_id) {
+    for(int socket_id = 0; socket_id < SLI_NUMBER_OF_SOCKETS; ++socket_id) {
         const uint32_t socket_bit = (1UL << socket_id);
 
         if(socket_bits & socket_bit) {
@@ -410,7 +410,7 @@ static void sockets_accept_event_flag_callback(FuriEventLoopObject* object, void
 
             accept_async_response->client_socket_id = socket_id;
 
-            const sli_si91x_socket_t* client_socket = get_si91x_socket(socket_id);
+            const sli_si91x_socket_t* client_socket = sli_get_si91x_socket(socket_id);
             furi_assert(client_socket);
 
             sockets_sockaddr_to_connection_info(
@@ -441,7 +441,7 @@ static void sockets_closed_event_flag_callback(FuriEventLoopObject* object, void
 
     SocketAsyncResponse* async_response = &response->async_response;
 
-    for(int socket_id = 0; socket_id < NUMBER_OF_SOCKETS; ++socket_id) {
+    for(int socket_id = 0; socket_id < SLI_NUMBER_OF_SOCKETS; ++socket_id) {
         const uint32_t socket_bit = (1UL << socket_id);
 
         if(socket_bits & socket_bit) {
