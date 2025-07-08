@@ -60,7 +60,8 @@ static void cli_command_sysctl_debug(PipeSide* pipe, FuriString* args, void* con
     cli_command_update_debug_mode();
 }
 
-static void cli_command_sysctl_bkp_unlock(PipeSide* pipe, FuriString* args, void* context) {
+static void
+    cli_command_sysctl_storage_bkp_unlock(PipeSide* pipe, FuriString* args, void* context) {
     UNUSED(pipe);
     UNUSED(context);
 
@@ -75,7 +76,7 @@ static void cli_command_sysctl_bkp_unlock(PipeSide* pipe, FuriString* args, void
         furi_record_close(RECORD_STORAGE);
         printf("Backup storage unlocked.");
     } else {
-        cli_print_usage("sysctl bkp_unlock", "<1|0>", furi_string_get_cstr(args));
+        cli_print_usage("sysctl storage_bkp_unlock", "<1|0>", furi_string_get_cstr(args));
     }
 }
 
@@ -86,7 +87,7 @@ static void cli_command_sysctl_print_usage() {
     printf("\tdebug - enables or disables debug mode\r\n");
 
     if(furi_hal_nvm_is_flag_set(FuriHalNvmFlagDebug)) {
-        printf("\tbkp_unlock - locks or unlocks backup storage\r\n");
+        printf("\tstorage_bkp_unlock - locks or unlocks backup storage\r\n");
     }
 }
 
@@ -106,8 +107,8 @@ static void cli_command_sysctl(PipeSide* pipe, FuriString* args, void* context) 
         }
 
         if(furi_hal_nvm_is_flag_set(FuriHalNvmFlagDebug)) {
-            if(furi_string_cmp_str(cmd, "bkp_unlock") == 0) {
-                cli_command_sysctl_bkp_unlock(pipe, args, context);
+            if(furi_string_cmp_str(cmd, "storage_bkp_unlock") == 0) {
+                cli_command_sysctl_storage_bkp_unlock(pipe, args, context);
                 break;
             }
         }
