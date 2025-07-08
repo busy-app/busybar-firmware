@@ -121,13 +121,7 @@ void widget_set_scrollbar_mode(Widget* instance, WidgetScrollBarMode scrollbar_m
 
 void widget_set_background_color(Widget* instance, Color color, float opacity) {
     furi_check(instance);
-
-    lv_color_t lvgl_color = {
-        .red = color.r,
-        .green = color.g,
-        .blue = color.b,
-    };
-    lv_obj_set_style_bg_color((lv_obj_t*)instance, lvgl_color, LV_PART_MAIN);
+    lv_obj_set_style_bg_color((lv_obj_t*)instance, TO_LV_COLOR(color), LV_PART_MAIN);
     lv_obj_set_style_bg_opa((lv_obj_t*)instance, (lv_opa_t)(opacity * 255), LV_PART_MAIN);
 }
 
