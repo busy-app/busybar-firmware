@@ -24,7 +24,7 @@ static void storage_benchmark_tree(Storage* storage) {
 
     BENCHMARK_PRINT("Listing /ext directory");
 
-    if(dir_walk_open(dir_walk, "/ext")) {
+    if(dir_walk_open(dir_walk, STORAGE_EXT_PATH_PREFIX)) {
         FileInfo fileinfo;
         while(dir_walk_read(dir_walk, name, &fileinfo) == DirWalkOK) {
             if(file_info_is_dir(&fileinfo)) {

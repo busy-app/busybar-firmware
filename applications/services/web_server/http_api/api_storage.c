@@ -29,7 +29,7 @@ static bool api_storage_parse_parameters(struct mg_str* params_str, FuriString* 
         furi_string_left(file_path, furi_string_size(file_path) - 1);
     }
 
-    return furi_string_start_with(file_path, "/ext");
+    return furi_string_start_with(file_path, STORAGE_EXT_PATH_PREFIX);
 }
 
 static void api_storage_write_data_callback(struct mg_connection* conn, struct mg_iobuf* data) {

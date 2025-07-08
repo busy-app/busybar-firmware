@@ -7,7 +7,7 @@
 static void cli_command_step_format_emmc() {
     Storage* storage = furi_record_open(RECORD_STORAGE);
     printf("Format EMMC...\r\n");
-    FS_Error error = storage_sd_format(storage, "/ext");
+    FS_Error error = storage_sd_format(storage, STORAGE_EXT_PATH_PREFIX);
 
     if(error != FSE_OK) {
         printf("Error: %s", storage_error_get_desc(error));
