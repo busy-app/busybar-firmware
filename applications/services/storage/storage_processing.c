@@ -424,7 +424,7 @@ static FS_Error storage_process_common_mkdir(Storage* app, FuriString* path) {
     return ret;
 }
 
-static FS_Error storage_process_common_fs_info(
+FS_Error storage_process_common_fs_info(
     Storage* app,
     FuriString* path,
     uint64_t* total_space,
@@ -575,11 +575,6 @@ static FS_Error storage_process_sd_info(Storage* app, FuriString* path, SDInfo* 
         ret = storage_get_data(app, type, &storage);
 
         if(ret != FSE_OK) break;
-
-        if(storage_is_read_only(storage)) {
-            ret = FSE_DENIED;
-            break;
-        }
 
         FS_CALL(storage, storage.info(storage, info));
         storage_data_timestamp(storage);

@@ -241,13 +241,23 @@ FS_Error storage_ext_mount(StorageData* storage) {
     return error;
 }
 
-static FS_Error storage_ext_mount_proxy(void* context) {
-    return sd_mount_card((StorageData*)context);
+FS_Error storage_ext_unmount(StorageData* storage) {
+    SDData* sd_data = storage->data;
+    FS_Error error = storage_ext_parse_error(f_mount(0, sd_data->path, 0));
+
+    if(error == FSE_OK) {
+        storage->status = StorageStatusNotReady;
+    }
+
+    return error;
 }
 
-static FS_Error storage_ext_unmount(void* context) {
-    UNUSED(context);
-    return FSE_NOT_IMPLEMENTED;
+static FS_Error storage_ext_mount_proxy(void* context) {
+    return storage_ext_mount((StorageData*)context);
+}
+
+static FS_Error storage_ext_unmount_proxy(void* context) {
+    return storage_ext_unmount((StorageData*)context);
 }
 
 static FS_Error storage_ext_format(void* context) {
@@ -285,11 +295,12 @@ FS_Error storage_ext_mk_partititons(void) {
             break;
         }
 
-        const size_t first_partition_size = 256 * 1024 * 1024 / _MAX_SS; // 256 MB
+        const size_t first_partition_size =
+            STORAGE_FIRST_PARTITION_SIZE_MB * 1024 * 1024 / 512; // size in sectors
         const size_t second_partition_size =
             total_sectors - first_partition_size; // rest of the disk
 
-        const DWORD plist[] = {first_partition_size, second_partition_size, 0, 0}; // 256 MB + rest
+        const DWORD plist[] = {first_partition_size, second_partition_size, 0, 0}; // first + rest
         uint8_t* work_area;
 
         work_area = malloc(_MAX_SS);
@@ -696,7 +707,7 @@ static const FS_Api fs_api = {
     .storage =
         {
             .mount = storage_ext_mount_proxy,
-            .unmount = storage_ext_unmount,
+            .unmount = storage_ext_unmount_proxy,
             .format = storage_ext_format,
             .info = storage_ext_info,
             .prefix = storage_ext_prefix,

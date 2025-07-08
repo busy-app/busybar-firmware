@@ -67,7 +67,7 @@ static const SupervisorWarning supervisor_warnings[] = {
     [SupervisorWarningTypeStorageNoPartitions] =
         {
             .front_text = "No partitions\nPress OK to format",
-            .back_text = "No partitions\nPress OK to format\nDevice will reboot",
+            .back_text = "Incorrect partitions\nPress OK to format\nDevice will reboot",
             .input_locked = true,
             .ok_callback = supervisor_make_filesystem,
         },
@@ -81,7 +81,7 @@ static const SupervisorWarning supervisor_warnings[] = {
     [SupervisorWarningTypeStorageNoExternal] =
         {
             .front_text = "Partition damaged\nPress OK to format",
-            .back_text = "Main part. damaged\nPress OK to format\nDevice will reboot",
+            .back_text = "Main partition damaged\nPress OK to format\nDevice will reboot",
             .input_locked = true,
             .ok_callback = supervisor_format_external,
         },

@@ -12,6 +12,13 @@
 
 #include <furi_hal.h>
 
+extern FS_Error storage_process_common_fs_info(
+    Storage* app,
+    FuriString* path,
+    uint64_t* total_space,
+    uint64_t* free_space,
+    bool* is_read_only);
+
 Storage* storage_app_alloc(void) {
     Storage* app = malloc(sizeof(Storage));
     app->message_queue = furi_message_queue_alloc(8, sizeof(StorageMessage));
@@ -26,11 +33,14 @@ Storage* storage_app_alloc(void) {
         storage_data_timestamp(&app->storage[i]);
     }
 
-    storage_ext_init(&app->storage[ST_BKP], ST_BKP);
-    storage_ext_init(&app->storage[ST_EXT], ST_EXT);
+    StorageData* storage_bkp = &app->storage[ST_BKP];
+    StorageData* storage_ext = &app->storage[ST_EXT];
 
-    storage_set_read_only(&app->storage[ST_BKP], false);
-    storage_set_read_only(&app->storage[ST_EXT], false);
+    storage_ext_init(storage_bkp, ST_BKP);
+    storage_ext_init(storage_ext, ST_EXT);
+
+    storage_set_read_only(storage_bkp, false);
+    storage_set_read_only(storage_ext, false);
 
     // mount storages
     do {
@@ -40,7 +50,7 @@ Storage* storage_app_alloc(void) {
             break;
         }
 
-        // Uncomment this to remove partitions information
+        // // Uncomment this to remove partitions information
         // {
         //     uint8_t buffer[1024] = {0};
         //     furi_hal_sdmmc_write_blocks(
@@ -49,21 +59,52 @@ Storage* storage_app_alloc(void) {
         //     furi_crash("remove me");
         // }
 
-        ret = storage_ext_mount(&app->storage[ST_BKP]);
-        if(ret != FSE_OK) {
-            FURI_LOG_E(
-                TAG, "Storage mount failed: %s", storage_data_status_text(&app->storage[ST_BKP]));
-            break;
+        {
+            ret = storage_ext_mount(storage_bkp);
+            if(ret != FSE_OK) {
+                FURI_LOG_E(TAG, "Backup mount failed: %s", storage_data_status_text(storage_bkp));
+                break;
+            }
+
+            // check if backup partition is valid in terms of size
+            {
+                uint64_t total_space;
+                uint64_t free_space;
+                bool is_read_only;
+
+                FuriString* path = furi_string_alloc_set(STORAGE_BACKUP_PATH_PREFIX);
+                FS_Error error = storage_process_common_fs_info(
+                    app, path, &total_space, &free_space, &is_read_only);
+                furi_string_free(path);
+
+                if(error != FSE_OK) {
+                    FURI_LOG_E(
+                        TAG, "Backup check failed: %s", storage_data_status_text(storage_bkp));
+                    storage_ext_unmount(storage_bkp);
+                    break;
+                }
+
+                if(total_space / (1024 * 1024) > (STORAGE_FIRST_PARTITION_SIZE_MB * 2)) {
+                    FURI_LOG_E(
+                        TAG,
+                        "Backup partition is too big, probably old partition table, size: %lluMiB",
+                        total_space / (1024 * 1024));
+                    storage_ext_unmount(storage_bkp);
+                    break;
+                }
+            }
+
+            // Set backup storage read-only after mount
+            storage_set_read_only(storage_bkp, true);
         }
 
-        // Set backup storage read-only after mount
-        storage_set_read_only(&app->storage[ST_BKP], true);
-
-        ret = storage_ext_mount(&app->storage[ST_EXT]);
-        if(ret != FSE_OK) {
-            FURI_LOG_E(
-                TAG, "Storage mount failed: %s", storage_data_status_text(&app->storage[ST_EXT]));
-            break;
+        {
+            ret = storage_ext_mount(storage_ext);
+            if(ret != FSE_OK) {
+                FURI_LOG_E(
+                    TAG, "External mount failed: %s", storage_data_status_text(storage_ext));
+                break;
+            }
         }
     } while(false);
 
