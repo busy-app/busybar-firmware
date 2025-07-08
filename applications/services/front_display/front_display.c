@@ -302,16 +302,14 @@ static FrontDisplaySrv* front_display_alloc(void) {
         instance);
 
     instance->power = furi_record_open(RECORD_POWER);
-    while(!power_is_battery_ready(instance->power)) {
-        furi_delay_ms(10);
-    }
-
-    FURI_LOG_I(TAG, "Front Display Service started");
 
     front_display_power_pin_init(instance);
     instance->enabled = true;
 
-    front_display_start(instance);
+    // Enable display only if the battery is ready
+    if(power_is_battery_ready(instance->power)) {
+        front_display_start(instance);
+    }
 
 #if defined(SRV_LIGHT_SENSOR)
     instance->light_sensor_pubsub = furi_record_open(RECORD_LIGHT_SENSOR_EVENTS);
@@ -329,6 +327,7 @@ int32_t front_display_srv(void* p) {
     UNUSED(p);
 
     FrontDisplaySrv* instance = front_display_alloc();
+    FURI_LOG_I(TAG, "Front Display Service started");
     furi_event_loop_run(instance->event_loop);
 
     return 0;
