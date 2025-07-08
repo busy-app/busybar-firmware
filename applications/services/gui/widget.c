@@ -119,14 +119,15 @@ void widget_set_scrollbar_mode(Widget* instance, WidgetScrollBarMode scrollbar_m
         scrollbar_mode == WidgetScrollBarModeOff ? NULL : widget_input_callback);
 }
 
-lv_color_t color_to_lvgl(Color color) {
-    return (lv_color_t){.red = color.r, .green = color.g, .blue = color.b};
-}
-
 void widget_set_background_color(Widget* instance, Color color, float opacity) {
     furi_check(instance);
 
-    lv_obj_set_style_bg_color((lv_obj_t*)instance, color_to_lvgl(color), LV_PART_MAIN);
+    lv_color_t lvgl_color = {
+        .red = color.r,
+        .green = color.g,
+        .blue = color.b,
+    };
+    lv_obj_set_style_bg_color((lv_obj_t*)instance, lvgl_color, LV_PART_MAIN);
     lv_obj_set_style_bg_opa((lv_obj_t*)instance, (lv_opa_t)(opacity * 255), LV_PART_MAIN);
 }
 
