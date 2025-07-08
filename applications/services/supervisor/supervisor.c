@@ -101,14 +101,14 @@ static const SupervisorWarning supervisor_warnings[] = {
         },
 };
 
-#define supervisor_warnings_size (sizeof(supervisor_warnings) / sizeof(SupervisorWarning))
+#define SUPERVISOR_WARNINGS_SIZE COUNT_OF(supervisor_warnings)
 
 static_assert(
-    supervisor_warnings_size == SupervisorWarningTypeMax,
+    SUPERVISOR_WARNINGS_SIZE == SupervisorWarningTypeMax,
     "SupervisorWarningType enum must match the number of SupervisorWarning entries");
 
 static_assert(
-    supervisor_warnings_size < 32,
+    SUPERVISOR_WARNINGS_SIZE < 32,
     "SupervisorWarningType enum must fit into a 32-bit integer");
 
 static void supervisor_send_event(Supervisor* instance, SupervisorEventType type) {
@@ -133,7 +133,7 @@ static void supervisor_sub_callback(const void* message, void* context) {
 }
 
 static int32_t supervisor_get_topmost_warning(SupervisorGui* gui) {
-    for(uint32_t i = 0; i < supervisor_warnings_size; ++i) {
+    for(uint32_t i = 0; i < SUPERVISOR_WARNINGS_SIZE; ++i) {
         if((gui->current_warnings & (1 << i)) != 0) {
             return i;
         }
@@ -143,7 +143,7 @@ static int32_t supervisor_get_topmost_warning(SupervisorGui* gui) {
 
 static void
     supervisor_update_warning(SupervisorGui* gui, SupervisorWarningType warning_type, bool add) {
-    furi_check(warning_type < supervisor_warnings_size);
+    furi_check(warning_type < SUPERVISOR_WARNINGS_SIZE);
     const SupervisorWarning* warning = &supervisor_warnings[warning_type];
     with_gui(gui->gui, {
         if(add) {
