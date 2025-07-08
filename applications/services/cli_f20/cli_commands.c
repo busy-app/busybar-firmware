@@ -77,8 +77,6 @@ static void cli_command_sysctl_bkp_unlock(PipeSide* pipe, FuriString* args, void
     } else {
         cli_print_usage("sysctl bkp_unlock", "<1|0>", furi_string_get_cstr(args));
     }
-
-    cli_command_update_debug_mode();
 }
 
 static void cli_command_sysctl_print_usage() {
