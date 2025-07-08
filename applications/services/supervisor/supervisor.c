@@ -160,9 +160,12 @@ static void
 
             GuiLayer* main_layer = gui_get_layer(gui->gui, GuiLayerIdSystem);
 
+            // back display label
             {
                 Widget* root = gui_layer_get_root_widget(main_layer, GuiDisplayIdBack);
-                gui->back_label = label_alloc(root);
+                if(!gui->back_label) {
+                    gui->back_label = label_alloc(root);
+                }
                 Widget* widget = label_get_base(gui->back_label);
 
                 size_t screen_width_half = widget_get_width(root) / 2;
@@ -182,9 +185,12 @@ static void
                 label_set_line_spacing(gui->back_label, 4);
             }
 
+            // front display label
             {
                 Widget* root = gui_layer_get_root_widget(main_layer, GuiDisplayIdFront);
-                gui->front_label = label_alloc(root);
+                if(!gui->front_label) {
+                    gui->front_label = label_alloc(root);
+                }
                 Widget* widget = label_get_base(gui->front_label);
 
                 size_t screen_width_half = widget_get_width(root) / 2;
