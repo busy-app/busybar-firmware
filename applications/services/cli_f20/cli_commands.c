@@ -67,12 +67,12 @@ static void
 
     if(furi_string_equal_str(args, "0")) {
         Storage* storage = furi_record_open(RECORD_STORAGE);
-        storage_backup_readonly(storage, true);
+        storage_backup_set_readonly(storage, true);
         furi_record_close(RECORD_STORAGE);
         printf("Backup storage locked.");
     } else if(furi_string_equal_str(args, "1")) {
         Storage* storage = furi_record_open(RECORD_STORAGE);
-        storage_backup_readonly(storage, false);
+        storage_backup_set_readonly(storage, false);
         furi_record_close(RECORD_STORAGE);
         printf("Backup storage unlocked.");
     } else {

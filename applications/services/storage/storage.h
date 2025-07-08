@@ -350,6 +350,7 @@ FS_Error storage_common_mkdir(Storage* storage, const char* path);
  * @param fs_path pointer to a zero-terminated string containing the path to the storage question.
  * @param total_space pointer to the value to contain the total capacity, in bytes.
  * @param free_space pointer to the value to contain the available space, in bytes.
+ * @param is_read_only pointer to the value to contain the read-only status of the storage.
  * @return FSE_OK if the information has been successfully received, any other error code on failure.
  */
 FS_Error storage_common_fs_info(
@@ -492,6 +493,7 @@ FS_Error storage_sd_make_filesystem(Storage* storage, const char* path);
  * - FSE_DENIED if there are open files on the SD card.
  *
  * @param storage pointer to a storage API instance.
+ * @param path path to the storage that will be unmount.
  * @return FSE_OK if the card was successfully formatted, any other error code on failure.
  */
 FS_Error storage_sd_unmount(Storage* storage, const char* path);
@@ -500,6 +502,7 @@ FS_Error storage_sd_unmount(Storage* storage, const char* path);
  * @brief Mount the SD card.
  *
  * @param storage pointer to a storage API instance.
+ * @param path path to the storage that will be mount.
  * @return FSE_OK if the card was successfully mounted, any other error code on failure.
  */
 FS_Error storage_sd_mount(Storage* storage, const char* path);
@@ -508,6 +511,7 @@ FS_Error storage_sd_mount(Storage* storage, const char* path);
  * @brief Get SD card information.
  *
  * @param storage pointer to a storage API instance.
+ * @param path path to the storage that will be examined.
  * @param info pointer to the info object to contain the requested information.
  * @return FSE_OK if the info was successfully received, any other error code on failure.
  */
@@ -517,6 +521,7 @@ FS_Error storage_sd_info(Storage* storage, const char* path, SDInfo* info);
  * @brief Get SD card status.
  *
  * @param storage pointer to a storage API instance.
+ * @param path path to the storage that will be unmount.
  * @return storage status in the form of a numeric error identifier.
  */
 FS_Error storage_sd_status(Storage* storage, const char* path);

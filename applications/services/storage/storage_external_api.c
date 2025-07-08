@@ -875,7 +875,7 @@ const char* storage_file_get_error_desc(File* file) {
 
 /****************** Backup API ******************/
 
-void storage_backup_readonly(Storage* storage, bool readonly) {
+void storage_backup_set_readonly(Storage* storage, bool readonly) {
     furi_check(storage);
 
     S_API_PROLOGUE;
