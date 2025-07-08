@@ -29,7 +29,7 @@ Storage* storage_app_alloc(void) {
     storage_ext_init(&app->storage[ST_BKP], ST_BKP);
     storage_ext_init(&app->storage[ST_EXT], ST_EXT);
 
-    storage_set_read_only(&app->storage[ST_BKP], true);
+    storage_set_read_only(&app->storage[ST_BKP], false);
     storage_set_read_only(&app->storage[ST_EXT], false);
 
     // mount storages
@@ -40,6 +40,7 @@ Storage* storage_app_alloc(void) {
             break;
         }
 
+        // Uncomment this to remove partitions information
         // {
         //     uint8_t buffer[1024] = {0};
         //     furi_hal_sdmmc_write_blocks(
@@ -54,6 +55,9 @@ Storage* storage_app_alloc(void) {
                 TAG, "Storage mount failed: %s", storage_data_status_text(&app->storage[ST_BKP]));
             break;
         }
+
+        // Set backup storage read-only after mount
+        storage_set_read_only(&app->storage[ST_BKP], true);
 
         ret = storage_ext_mount(&app->storage[ST_EXT]);
         if(ret != FSE_OK) {

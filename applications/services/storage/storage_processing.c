@@ -588,21 +588,30 @@ static FS_Error storage_process_sd_info(Storage* app, FuriString* path, SDInfo* 
     return ret;
 }
 
-static FS_Error storage_process_sd_status(Storage* app) {
+static FS_Error storage_process_sd_status(Storage* app, FuriString* path) {
     FS_Error ret;
-    StorageStatus status = storage_data_status(&app->storage[ST_EXT]);
 
-    switch(status) {
-    case StorageStatusOK:
-        ret = FSE_OK;
-        break;
-    case StorageStatusNotReady:
-        ret = FSE_NOT_READY;
-        break;
-    default:
-        ret = FSE_INTERNAL;
-        break;
-    }
+    do {
+        StorageData* storage;
+        StorageType type = storage_get_type_by_path(path);
+        ret = storage_get_data(app, type, &storage);
+
+        if(ret != FSE_OK) break;
+
+        StorageStatus status = storage_data_status(storage);
+
+        switch(status) {
+        case StorageStatusOK:
+            ret = FSE_OK;
+            break;
+        case StorageStatusNotReady:
+            ret = FSE_NOT_READY;
+            break;
+        default:
+            ret = FSE_INTERNAL;
+            break;
+        }
+    } while(false);
 
     return ret;
 }
@@ -809,27 +818,34 @@ void storage_process_message_internal(Storage* app, StorageMessage* message) {
     // SD operations
     case StorageCommandSDFormat:
         furi_string_set(app->path_aliased, message->data->path.path);
+        storage_process_alias(app, app->path_aliased, message->data->path.thread_id, false);
         message->return_data->error_value = storage_process_sd_format(app, app->path_aliased);
         break;
     case StorageCommandSDMakePartitions:
         furi_string_set(app->path_aliased, message->data->path.path);
+        storage_process_alias(app, app->path_aliased, message->data->path.thread_id, false);
         message->return_data->error_value = storage_process_sd_mkfs(app, app->path_aliased);
         break;
     case StorageCommandSDUnmount:
         furi_string_set(app->path_aliased, message->data->path.path);
+        storage_process_alias(app, app->path_aliased, message->data->path.thread_id, false);
         message->return_data->error_value = storage_process_sd_unmount(app, app->path_aliased);
         break;
     case StorageCommandSDMount:
         furi_string_set(app->path_aliased, message->data->path.path);
+        storage_process_alias(app, app->path_aliased, message->data->path.thread_id, false);
         message->return_data->error_value = storage_process_sd_mount(app, app->path_aliased);
         break;
     case StorageCommandSDInfo:
-        furi_string_set(app->path_aliased, message->data->path.path);
+        furi_string_set(app->path_aliased, message->data->sdinfo.path);
+        storage_process_alias(app, app->path_aliased, message->data->sdinfo.thread_id, false);
         message->return_data->error_value =
             storage_process_sd_info(app, app->path_aliased, message->data->sdinfo.info);
         break;
     case StorageCommandSDStatus:
-        message->return_data->error_value = storage_process_sd_status(app);
+        furi_string_set(app->path_aliased, message->data->path.path);
+        storage_process_alias(app, app->path_aliased, message->data->path.thread_id, false);
+        message->return_data->error_value = storage_process_sd_status(app, app->path_aliased);
         break;
     case StorageCommandBackupReadOnly:
         StorageData* storage = &app->storage[ST_BKP];

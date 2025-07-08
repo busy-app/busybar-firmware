@@ -12,6 +12,7 @@
 extern "C" {
 #endif
 
+#define STORAGE_ROOT_PREFIX            "/"
 #define STORAGE_EXT_PATH_PREFIX        "/ext"
 #define STORAGE_BACKUP_PATH_PREFIX     "/bkp"
 #define STORAGE_APP_DATA_PATH_PREFIX   "/data"
@@ -518,7 +519,7 @@ FS_Error storage_sd_info(Storage* storage, const char* path, SDInfo* info);
  * @param storage pointer to a storage API instance.
  * @return storage status in the form of a numeric error identifier.
  */
-FS_Error storage_sd_status(Storage* storage);
+FS_Error storage_sd_status(Storage* storage, const char* path);
 
 /***************** Simplified Functions ******************/
 

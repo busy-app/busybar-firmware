@@ -95,6 +95,7 @@ typedef struct {
 typedef struct {
     const char* path;
     SDInfo* info;
+    FuriThreadId thread_id;
 } SAInfo;
 
 typedef struct {

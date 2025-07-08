@@ -954,17 +954,22 @@ FS_Error storage_sd_info(Storage* storage, const char* path, SDInfo* info) {
         .sdinfo = {
             .path = path,
             .info = info,
+            .thread_id = furi_thread_get_current_id(),
         }};
     S_API_MESSAGE(StorageCommandSDInfo);
     S_API_EPILOGUE;
     return S_RETURN_ERROR;
 }
 
-FS_Error storage_sd_status(Storage* storage) {
+FS_Error storage_sd_status(Storage* storage, const char* path) {
     furi_check(storage);
 
     S_API_PROLOGUE;
-    SAData data = {};
+    SAData data = {
+        .path = {
+            .path = path,
+            .thread_id = furi_thread_get_current_id(),
+        }};
     S_API_MESSAGE(StorageCommandSDStatus);
     S_API_EPILOGUE;
     return S_RETURN_ERROR;
