@@ -158,7 +158,7 @@ static void storage_benchmark_file(Storage* storage, size_t blocks) {
 }
 
 static void do_storage_benchmark(Storage* storage) {
-    FS_Error err = storage_sd_status(storage);
+    FS_Error err = storage_sd_status(storage, STORAGE_EXT_PATH_PREFIX);
 
     if(err == FSE_OK) {
         FURI_LOG_I(TAG, "SD card is alive");
