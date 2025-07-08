@@ -33,12 +33,18 @@ static void storage_cli_info(PipeSide* pipe, FuriString* path, FuriString* args)
         storage_cli_print_error(error);
     } else {
         printf(
-            "Label: %s\r\nType: %s\r\n%luKiB total\r\n%luKiB free\r\n"
-            "%02x%s %s v%i.%i\r\nSN:%04lx %02i/%i\r\n",
+            "Label: %s\r\n"
+            "Type: %s\r\n"
+            "Total: %luKiB\r\n"
+            "Free: %luKiB\r\n"
+            "Used: %luKiB\r\n"
+            "ID: %02x%s %s v%i.%i\r\n"
+            "SN: %04lx %02i/%i\r\n",
             sd_info.label,
             sd_api_get_fs_type_text(sd_info.fs_type),
             sd_info.kb_total,
             sd_info.kb_free,
+            sd_info.kb_total - sd_info.kb_free,
             sd_info.manufacturer_id,
             sd_info.oem_id,
             sd_info.product_name,
