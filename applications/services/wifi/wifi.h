@@ -89,6 +89,14 @@ WifiStatus wifi_disconnect(Wifi* instance);
  */
 WifiStatus wifi_get_info(Wifi* instance, WifiInfo* info);
 
+/**
+ * @brief Get the Wifi pubsub instance.
+ *
+ * @param[in] instance pointer to the Wifi instance
+ * @returns pointer to the pubsub instance
+ */
+FuriPubSub* wifi_get_pubsub(const Wifi* instance);
+
 #ifdef __cplusplus
 }
 #endif

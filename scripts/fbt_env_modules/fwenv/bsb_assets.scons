@@ -61,18 +61,23 @@ if fwenv.get("IS_BASE_FIRMWARE", False):
             )
         ),
     )
-
     resources_dist.append(swagger_files)
 
-    resources_env = fwenv.Clone(tools=["fbt_resources"])
+    web_frontend = fw_assets_env.Dir("#assets/frontend/.output/public/").rdir()
+
     # Resources & manifest for SD card
+    resources_env = fwenv.Clone(tools=["fbt_resources"])
     manifest = resources_env.ManifestBuilder(
         "${RESOURCES_ROOT}/Manifest",
         GIT_UNIX_TIMESTAMP=get_git_commit_unix_timestamp(
             target_dir=fwenv.Dir("${PROJECT_ROOT}").abspath
         ),
-        _EXTRA_DIST=[assets_dir],
+        _EXTRA_DIST=[
+            assets_dir,
+            (web_frontend, "apps_assets/web_server/www"),
+        ],
     )
     fwenv.Replace(FW_RESOURCES_MANIFEST=manifest)
     Depends(manifest, resources_dist)
+
     Alias("resources", manifest)

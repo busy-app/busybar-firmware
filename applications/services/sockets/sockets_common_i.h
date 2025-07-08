@@ -7,7 +7,7 @@
 #define SOCKET_REQUEST_SIZE_MAX  (1019UL) /* See intercom/intercom_frame.h */
 #define SOCKET_RESPONSE_SIZE_MAX (SOCKET_REQUEST_SIZE_MAX)
 
-#define SOCKET_SEND_DATA_SIZE (SOCKET_REQUEST_SIZE_MAX - 4UL)
+#define SOCKET_SEND_DATA_SIZE (SOCKET_REQUEST_SIZE_MAX - 5UL)
 #define SOCKET_RECV_DATA_SIZE (SOCKET_RESPONSE_SIZE_MAX - 5UL)
 
 #pragma pack(push, 1)
@@ -17,6 +17,7 @@ typedef enum {
     SocketRequestTypeFree,
     SocketRequestTypeBind,
     SocketRequestTypeListen,
+    SocketRequestTypeAccept,
     SocketRequestTypeConnect,
     SocketRequestTypeSend,
     SocketRequestTypeReceive,
@@ -29,6 +30,7 @@ typedef enum {
     SocketResponseTypeFree = SocketRequestTypeFree,
     SocketResponseTypeBind = SocketRequestTypeBind,
     SocketResponseTypeListen = SocketRequestTypeListen,
+    SocketResponseTypeAccept = SocketRequestTypeAccept,
     SocketResponseTypeConnect = SocketRequestTypeConnect,
     SocketResponseTypeSend = SocketRequestTypeSend,
     SocketResponseTypeReceive = SocketRequestTypeReceive,
@@ -66,6 +68,10 @@ typedef struct {
 
 typedef struct {
     uint8_t socket_id;
+} SocketAcceptRequest;
+
+typedef struct {
+    uint8_t socket_id;
     SocketConnectionInfo connection_info;
 } SocketConnectRequest;
 
@@ -87,6 +93,7 @@ typedef struct {
         SocketFreeRequest free_request;
         SocketBindRequest bind_request;
         SocketListenRequest listen_request;
+        SocketAcceptRequest accept_request;
         SocketConnectRequest connect_request;
         SocketSendRequest send_request;
         SocketReceiveRequest receive_request;

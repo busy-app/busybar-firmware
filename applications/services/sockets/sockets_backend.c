@@ -107,7 +107,7 @@ static void sockets_enable_read_events(int socket_id) {
 
     furi_check(
         sl_si91x_select(socket_id + 1, &read_fds, NULL, NULL, NULL, sockets_select_callback) ==
-        SI91X_NO_ERROR);
+        SLI_SI91X_NO_ERROR);
 }
 
 static void sockets_alloc_request_handler(const SocketRequest* request, SocketResponse* response) {
@@ -209,30 +209,33 @@ static void
     const SocketListenRequest* listen_request = &request->listen_request;
     const uint8_t socket_id = listen_request->socket_id;
 
-    int status;
-
-    do {
-        status = sl_si91x_listen(socket_id, listen_request->max_clients);
-
-        if(status < 0) {
-            FURI_LOG_E(TAG, "Failed to listen: %s", strerror(errno));
-            break;
-        }
-
-        status = sl_si91x_accept_async(socket_id, sockets_accept_callback);
-
-        if(status < 0) {
-            FURI_LOG_E(TAG, "Failed to accept: %s", strerror(errno));
-            break;
-        }
-
-    } while(false);
+    const int status = sl_si91x_listen(socket_id, listen_request->max_clients);
 
     if(status < 0) {
+        FURI_LOG_E(TAG, "Failed to listen: %s", strerror(errno));
         response->status = SocketStatusError;
 
     } else {
         FURI_LOG_D(TAG, "Listening on socket with id: %hhu", socket_id);
+        response->status = SocketStatusOk;
+    }
+}
+
+static void
+    sockets_accept_request_handler(const SocketRequest* request, SocketResponse* response) {
+    FURI_LOG_D(TAG, "Accept");
+
+    const SocketListenRequest* listen_request = &request->listen_request;
+    const uint8_t socket_id = listen_request->socket_id;
+
+    const int status = sl_si91x_accept_async(socket_id, sockets_accept_callback);
+
+    if(status < 0) {
+        FURI_LOG_E(TAG, "Failed to accept: %s", strerror(errno));
+        response->status = SocketStatusError;
+
+    } else {
+        FURI_LOG_D(TAG, "Accepting connections on socket with id: %hhu", socket_id);
         response->status = SocketStatusOk;
     }
 }
@@ -364,11 +367,11 @@ static void sockets_read_event_flag_callback(FuriEventLoopObject* object, void* 
 
     SocketAsyncResponse* async_response = &response->async_response;
 
-    for(int socket_id = 0; socket_id < NUMBER_OF_SOCKETS; ++socket_id) {
+    for(int socket_id = 0; socket_id < SLI_NUMBER_OF_SOCKETS; ++socket_id) {
         const uint32_t socket_bit = (1UL << socket_id);
 
         if(socket_bits & socket_bit) {
-            const sli_si91x_socket_t* socket = get_si91x_socket(socket_id);
+            const sli_si91x_socket_t* socket = sli_get_si91x_socket(socket_id);
             furi_assert(socket);
 
             const sli_si91x_bsd_socket_state_t socket_state = socket->state;
@@ -399,7 +402,7 @@ static void sockets_accept_event_flag_callback(FuriEventLoopObject* object, void
     SocketAsyncResponse* async_response = &response->async_response;
     SocketAcceptAsyncResponse* accept_async_response = &async_response->accept_async_response;
 
-    for(int socket_id = 0; socket_id < NUMBER_OF_SOCKETS; ++socket_id) {
+    for(int socket_id = 0; socket_id < SLI_NUMBER_OF_SOCKETS; ++socket_id) {
         const uint32_t socket_bit = (1UL << socket_id);
 
         if(socket_bits & socket_bit) {
@@ -410,7 +413,7 @@ static void sockets_accept_event_flag_callback(FuriEventLoopObject* object, void
 
             accept_async_response->client_socket_id = socket_id;
 
-            const sli_si91x_socket_t* client_socket = get_si91x_socket(socket_id);
+            const sli_si91x_socket_t* client_socket = sli_get_si91x_socket(socket_id);
             furi_assert(client_socket);
 
             sockets_sockaddr_to_connection_info(
@@ -441,7 +444,7 @@ static void sockets_closed_event_flag_callback(FuriEventLoopObject* object, void
 
     SocketAsyncResponse* async_response = &response->async_response;
 
-    for(int socket_id = 0; socket_id < NUMBER_OF_SOCKETS; ++socket_id) {
+    for(int socket_id = 0; socket_id < SLI_NUMBER_OF_SOCKETS; ++socket_id) {
         const uint32_t socket_bit = (1UL << socket_id);
 
         if(socket_bits & socket_bit) {
@@ -535,6 +538,7 @@ static const SocketRequestHandler socket_request_handlers[SocketRequestTypeMax] 
     [SocketRequestTypeFree] = sockets_free_request_handler,
     [SocketRequestTypeBind] = sockets_bind_request_handler,
     [SocketRequestTypeListen] = sockets_listen_request_handler,
+    [SocketRequestTypeAccept] = sockets_accept_request_handler,
     [SocketRequestTypeConnect] = sockets_connect_request_handler,
     [SocketRequestTypeSend] = sockets_send_request_handler,
     [SocketRequestTypeReceive] = sockets_receive_request_handler,
