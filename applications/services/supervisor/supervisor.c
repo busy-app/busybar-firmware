@@ -73,15 +73,15 @@ static const SupervisorWarning supervisor_warnings[] = {
         },
     [SupervisorWarningTypeStorageNoBackup] =
         {
-            .front_text = "Backup damaged\nPress OK to format",
-            .back_text = "Backup partition damaged\nPress OK to format\nDevice will reboot",
+            .front_text = "Backup corrupted\nPress OK to format",
+            .back_text = "Backup partition corrupted\nPress OK to format\nDevice will reboot",
             .input_locked = true,
             .ok_callback = supervisor_format_backup,
         },
     [SupervisorWarningTypeStorageNoExternal] =
         {
-            .front_text = "Partition damaged\nPress OK to format",
-            .back_text = "Main partition damaged\nPress OK to format\nDevice will reboot",
+            .front_text = "Partition corrupted\nPress OK to format",
+            .back_text = "Main partition corrupted\nPress OK to format\nDevice will reboot",
             .input_locked = true,
             .ok_callback = supervisor_format_external,
         },
