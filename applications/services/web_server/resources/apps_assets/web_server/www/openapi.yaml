@@ -2,7 +2,7 @@ openapi: 3.0.3
 info:
   title: Busy Bar HTTP API
   description: HTTP API for Busy Bar web server
-  version: 0.0.1
+  version: 0.1.0
   contact:
     name: tbd
 
@@ -378,6 +378,7 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Error"
+
   /api/v0/display/brightness:
     get:
       tags:
@@ -429,6 +430,7 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Error"
+
   /api/v0/audio/play:
     post:
       tags:
@@ -494,6 +496,7 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Error"
+
   /api/v0/audio/volume:
     get:
       tags:
