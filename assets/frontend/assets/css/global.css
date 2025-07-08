@@ -1,0 +1,57 @@
+@import 'tailwindcss';
+@import "@nuxt/ui";
+
+@theme static {
+  /* orange: '249 115 22', // '249 115 22', */
+  --color-brand: #ff7b37;
+  --color-brand-50: #fff5ed;
+  --color-brand-100: #ffe8d4;
+  --color-brand-200: #ffcda8;
+  --color-brand-300: #ffaa70;
+  --color-brand-400: #ff7b37;
+  --color-brand-500: #ff5c16;
+  --color-brand-600: #f03c06;
+  --color-brand-700: #c72a07;
+  --color-brand-800: #9e220e;
+  --color-brand-900: #7f200f;
+  --color-brand-950: #450c05;
+
+  --font-sans: 'PP Neue Montreal', sans-serif;
+}
+
+:root {
+  --ui-text: var(--color-black);
+}
+
+.dark {
+  --ui-text: var(--color-white);
+}
+
+body {
+  overscroll-behavior: none;
+
+  @apply bg-white dark:bg-[#121212]
+}
+
+input[aria-invalid="true"] {
+  background-color: rgb(239, 68, 68, 0.1);
+}
+
+button {
+  @apply cursor-pointer disabled:cursor-not-allowed aria-disabled:cursor-not-allowed;
+}
+
+@layer utilities {
+  @keyframes -spin {
+    from {
+      transform: rotate(0deg);
+    }
+    to {
+      transform: rotate(-360deg);
+    }
+  }
+
+  .animate-spin {
+    animation: -spin 1s linear infinite; 
+  }
+}
