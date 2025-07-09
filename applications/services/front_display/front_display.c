@@ -80,6 +80,11 @@ void front_display_set_brightness(FrontDisplaySrv* instance, uint8_t brightness)
         FuriStatusOk);
 }
 
+uint8_t front_display_get_brightness_setting(FrontDisplaySrv* instance) {
+    furi_check(instance);
+    return instance->brightness_override;
+}
+
 static void front_display_light_sensor_event(const void* event_message, void* context) {
     furi_assert(event_message);
     furi_assert(context);

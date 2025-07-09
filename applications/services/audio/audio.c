@@ -271,6 +271,11 @@ void audio_set_volume(Audio* instance, float volume) {
     audio_send_message(instance, &msg);
 }
 
+float audio_get_volume(Audio* instance) {
+    furi_check(instance);
+    return instance->volume;
+}
+
 int32_t audio_srv(void* p) {
     UNUSED(p);
 

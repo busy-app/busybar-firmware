@@ -322,10 +322,14 @@ static void
 }
 
 bool http_api_streaming_ws_callback(
+    FuriString* path,
     struct mg_connection* conn,
     struct mg_http_message* msg,
     void* ctx) {
     furi_assert(ctx);
+
+    if(!IS_HTTP_ENDPOINT(path)) return false;
+
     ApiStreamingCtx* instance = ctx;
 
     bool success = false;
@@ -452,11 +456,14 @@ void http_api_streaming_ws_free(void* ctx) {
 }
 
 bool http_api_streaming_single_frame_callback(
+    FuriString* path,
     struct mg_connection* conn,
     struct mg_http_message* msg,
     void* ctx) {
     UNUSED(msg);
     UNUSED(ctx);
+
+    if(!IS_HTTP_ENDPOINT(path)) return false;
 
     char display_str[2];
     int var_len = mg_http_get_var(&msg->query, "display", display_str, sizeof(display_str));

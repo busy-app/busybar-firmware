@@ -44,6 +44,12 @@ static void sockets_process_request(SocketSrv* instance) {
         listen_request->socket_id = listen_message->socket_id;
         listen_request->max_clients = listen_message->max_clients;
 
+    } else if(request_type == SocketRequestTypeAccept) {
+        SocketAcceptRequest* accept_request = &request->accept_request;
+        const SocketSrvAcceptMessage* accept_message = &message->accept_message;
+
+        accept_request->socket_id = accept_message->socket_id;
+
     } else if(request_type == SocketRequestTypeConnect) {
         SocketConnectRequest* connect_request = &request->connect_request;
         const SocketSrvConnectMessage* connect_message = &message->connect_message;
@@ -66,7 +72,7 @@ static void sockets_process_request(SocketSrv* instance) {
         const SocketSrvReceiveMessage* receive_message = &message->receive_message;
 
         // TODO: Receive more than one chunk in one request?
-        const size_t chunk_size = MIN(receive_message->data_size, SOCKET_SEND_DATA_SIZE);
+        const size_t chunk_size = MIN(receive_message->data_size, SOCKET_RECV_DATA_SIZE);
 
         receive_request->socket_id = receive_message->socket_id;
         receive_request->data_size = chunk_size;

@@ -94,15 +94,24 @@ SocketStatus socket_bind(Socket* socket, const SocketConnectionInfo* bind_info);
 /**
  * @brief Begin listening for new connections on a socket.
  *
- * This function is asynchronous (does not block). The event callback will be called
- * with the appropriate parameters when a remote client requests a connection.
- *
  * @param[in,out] socket Pointer to the socket to listen on
  * @param[in] max_clients Maximum number of connected clients per socket
  *
  * @returns SocketStatusOk on success, a SocketStatus error code otherwise
  */
 SocketStatus socket_listen(Socket* socket, uint8_t max_clients);
+
+/**
+ * @brief Begin accepting new connections on a socket.
+ *
+ * This function is asynchronous (does not block). The event callback will be called
+ * with the appropriate parameters when a remote client requests a connection.
+ *
+ * @param[in,out] socket Pointer to the socket to accept connections on
+ *
+ * @returns SocketStatusOk on success, a SocketStatus error code otherwise
+ */
+SocketStatus socket_accept(Socket* socket);
 
 /**
  * @brief Connect to a remote socket.

@@ -45,6 +45,7 @@ typedef struct {
 struct Wifi {
     FuriEventLoop* event_loop;
     FuriSemaphore* access_semaphore;
+    FuriPubSub* pubsub;
     Intercom* intercom;
     WifiMessage* current_message;
     WifiRequest request;

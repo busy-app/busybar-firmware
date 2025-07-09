@@ -185,6 +185,13 @@ static bool sockets_test_app_init_tcp_server(SocketsTestApp* instance) {
 
         FURI_LOG_I(TAG, "Listening on port %hu", bind_info.port);
 
+        if(socket_accept(socket) != SocketStatusOk) {
+            FURI_LOG_E(TAG, "Failed to accept on socket");
+            break;
+        }
+
+        FURI_LOG_I(TAG, "Accepting new client connections");
+
         success = true;
 
     } while(false);

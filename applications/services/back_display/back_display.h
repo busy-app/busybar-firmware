@@ -35,6 +35,15 @@ void back_display_draw(BackDisplaySrv* instance, const uint8_t* data);
 void back_display_set_brightness(BackDisplaySrv* instance, uint8_t brightness);
 
 /**
+ * @brief Get the back display brightness 
+ * 
+ * @param instance Pointer to the FrontDisplaySrv instance
+ * @return Brightness value (BACK_DISPLAY_BRIGHTNESS_MIN to BACK_DISPLAY_BRIGHTNESS_MAX),
+ *                   or BACK_DISPLAY_BRIGHTNESS_AUTO if automatic brightness is enabled
+ */
+uint8_t back_display_get_brightness(BackDisplaySrv* instance);
+
+/**
  * @brief Get the width of the back display.
  *
  * @return the width of the back display

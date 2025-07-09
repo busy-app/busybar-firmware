@@ -2,7 +2,7 @@ openapi: 3.0.3
 info:
   title: Busy Bar HTTP API
   description: HTTP API for Busy Bar web server
-  version: 0.0.1
+  version: 0.1.0
   contact:
     name: tbd
 
@@ -379,6 +379,58 @@ paths:
               schema:
                 $ref: "#/components/schemas/Error"
 
+  /api/v0/display/brightness:
+    get:
+      tags:
+        - Settings
+      summary: Get display brightness
+      description: Get brightness value for displays
+      operationId: getDisplayBrightness
+      responses:
+        "200":
+          description: Information retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DisplayBrightnessInfo"
+    post:
+      tags:
+        - Settings
+      summary: Set display brightness
+      description: |
+        Set brightness for one or both displays
+      operationId: setDisplayBrightness
+      parameters:
+        - name: front
+          in: query
+          required: false
+          schema:
+            type: string
+            pattern: "^[a-zA-Z0-9._-]+$"
+          description: Front display brightness (0-100/auto)
+          example: "auto"
+        - name: back
+          in: query
+          required: false
+          schema:
+            type: string
+            pattern: "^[a-zA-Z0-9._/-]+$"
+          description: Back display brightness (0-100/auto)
+          example: "50"
+      responses:
+        "200":
+          description: Brightness set successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse"
+        "400":
+          description: Invalid request data
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
   /api/v0/audio/play:
     post:
       tags:
@@ -440,6 +492,175 @@ paths:
                 $ref: "#/components/schemas/SuccessResponse"
         "500":
           description: Audio system error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /api/v0/audio/volume:
+    get:
+      tags:
+        - Settings
+      summary: Get audio volume
+      description: Get audio volume value
+      operationId: getAudioVolume
+      responses:
+        "200":
+          description: Information retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AudioVolumeInfo"
+    post:
+      tags:
+        - Settings
+      summary: Set audio volume
+      description: Get audio volume value
+      operationId: setAudioVolume
+      parameters:
+        - name: volume
+          in: query
+          required: true
+          schema:
+            type: number
+          description: Audio volume (0-100)
+          example: "50"
+      responses:
+        "200":
+          description: Volume set successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse"
+        "400":
+          description: Invalid request data
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /api/v0/input:
+    get:
+      tags:
+        - Input
+
+      summary: Input evnts streaming
+      description: Start WebSocket session for input events streaming
+      operationId: connectInputWebSocket
+      responses:
+        "101":
+          description: WebSocket connection established
+        "400":
+          description: WebSocket upgrade failed
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "426":
+          description: Upgrade required
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+    post:
+      tags:
+        - Input
+      summary: Send input event
+      description: Send single key press event
+      operationId: setInputKey
+      parameters:
+        - name: key
+          in: query
+          required: true
+          schema:
+            type: string
+            enum:
+              [
+                "up",
+                "down",
+                "ok",
+                "back",
+                "start",
+                "busy",
+                "status",
+                "off",
+                "apps",
+                "settings",
+              ]
+          description: Key name
+          example: "ok"
+      responses:
+        "200":
+          description: Input event sent successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse"
+        "400":
+          description: Invalid request data
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /api/v0/status:
+    get:
+      tags:
+        - System
+      summary: Get device status
+      description: Get device status
+      operationId: getStatus
+      responses:
+        "200":
+          description: Information retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Status"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /api/v0/status/system:
+    get:
+      tags:
+        - System
+      summary: Get system status
+      description: Get system status
+      operationId: getStatusSystem
+      responses:
+        "200":
+          description: Information retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/StatusSystem"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /api/v0/status/power:
+    get:
+      tags:
+        - System
+      summary: Get power status
+      description: Get system status
+      operationId: getStatusPower
+      responses:
+        "200":
+          description: Information retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/StatusPower"
+        "500":
+          description: Internal server error
           content:
             application/json:
               schema:
@@ -607,30 +828,30 @@ paths:
   /api/v0/screen:
     get:
       tags:
-       - Streaming
-      summary: Get single frame for required screen      
+        - Streaming
+      summary: Get single frame for required screen
       parameters:
         - name: display
           in: query
           required: true
           schema:
             type: number
-            pattern: '^[0-1]{1,1}$'
+            pattern: "^[0-1]{1,1}$"
           description: Type of the display Front = 0, Back = 1
           example: 0
       responses:
-        '200':
+        "200":
           description: OK
           content:
             image/bmp:
               schema:
                 $ref: "#/components/schemas/ScreenResponse"
-        '400':
+        "400":
           description: Wrong display
           content:
-              application/json:
-                schema:
-                  $ref: '#/components/schemas/Error'
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
 
   /api/v0/screen/ws:
     get:
@@ -644,15 +865,15 @@ paths:
         as json {"display": 0}
       operationId: connectWebSocket
       responses:
-        '101':
+        "101":
           description: WebSocket connection established
-        '400':
+        "400":
           description: Exceed max clients count
-          content:            
+          content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Error'
-       
+                $ref: "#/components/schemas/Error"
+
 components:
   schemas:
     SuccessResponse:
@@ -872,6 +1093,71 @@ components:
               pattern: "^[a-zA-Z0-9._/-]+$"
               description: Path to the image file in the app's assets
 
+    DisplayBrightnessInfo:
+      type: object
+      properties:
+        front:
+          type: string
+          description: Front display brightness (0-100/auto)
+          example: "auto"
+        back:
+          type: string
+          description: Back display brightness (0-100/auto)
+          example: "50"
+
+    AudioVolumeInfo:
+      type: object
+      properties:
+        volume:
+          type: number
+          description: Audio volume value (0-100)
+          example: "50"
+
+    Status:
+      type: object
+      properties:
+        system:
+          $ref: "#/components/schemas/StatusSystem"
+        power:
+          $ref: "#/components/schemas/StatusPower"
+
+    StatusSystem:
+      type: object
+      properties:
+        version:
+          type: string
+          description: Firmware version
+          example: "unknown"
+        uptime:
+          type: string
+          description: System uptime
+          example: "00d 00h 04m 13s"
+
+    StatusPower:
+      type: object
+      properties:
+        state:
+          type: string
+          enum: [discharging, charging, charged]
+          description: Power state
+          example: "discharging"
+        battery_charge:
+          type: integer
+          description: Battery charge percent
+          example: 99
+        battery_voltage:
+          type: integer
+          description: Battery voltage in mV
+          example: 4183
+        battery_current:
+          type: integer
+          description: Battery current in mA
+          example: -180
+        usb_voltage:
+          type: integer
+          description: USB voltage in mV
+          example: 4843
+
     WifiSecurityMethod:
       type: string
       example: "WPA3"
@@ -976,7 +1262,7 @@ components:
           type: array
           items:
             $ref: "#/components/schemas/Network"
-    
+
     ScreenResponse:
       type: string
       description: Frame for requested display encoded in base64
@@ -993,3 +1279,7 @@ tags:
     description: Real-time communication via WebSocket
   - name: Streaming
     description: Screen streaming
+  - name: Settings
+    description: Device settings
+  - name: Input
+    description: Input events

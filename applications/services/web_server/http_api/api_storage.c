@@ -84,10 +84,13 @@ static void api_storage_write_close_callback(struct mg_connection* conn) {
 }
 
 static bool api_storage_write_headers_callback(
+    FuriString* path,
     struct mg_connection* conn,
     struct mg_http_message* msg,
     void* ctx) {
     UNUSED(ctx);
+
+    if(!IS_HTTP_ENDPOINT(path)) return false;
 
     FuriString* file_path = furi_string_alloc();
     if(api_storage_parse_parameters(&msg->query, file_path)) {
@@ -104,13 +107,13 @@ static bool api_storage_write_headers_callback(
         conn_ctx->raw.on_data = api_storage_write_data_callback;
         conn_ctx->context = write_ctx;
 
-        const char* path = furi_string_get_cstr(file_path);
-        http_fs_get()->rm(path); // Delete file if it exists
+        const char* path_temp = furi_string_get_cstr(file_path);
+        http_fs_get()->rm(path_temp); // Delete file if it exists
         FuriString* dir_path = furi_string_alloc();
-        path_extract_dirname(path, dir_path);
+        path_extract_dirname(path_temp, dir_path);
         http_fs_get()->mkd(furi_string_get_cstr(dir_path));
         furi_string_free(dir_path);
-        write_ctx->file = http_fs_get()->op(path, MG_FS_WRITE); // Open file for writing
+        write_ctx->file = http_fs_get()->op(path_temp, MG_FS_WRITE); // Open file for writing
 
         if(write_ctx->file == NULL) {
             MG_REPLY_INTERNAL_ERROR(conn, "Failed to open file for writing");
@@ -132,9 +135,14 @@ static bool api_storage_write_headers_callback(
     return true;
 }
 
-static bool
-    api_storage_read_callback(struct mg_connection* conn, struct mg_http_message* msg, void* ctx) {
+static bool api_storage_read_callback(
+    FuriString* path,
+    struct mg_connection* conn,
+    struct mg_http_message* msg,
+    void* ctx) {
     UNUSED(ctx);
+
+    if(!IS_HTTP_ENDPOINT(path)) return false;
 
     FuriString* file_path = furi_string_alloc();
     bool success = false;
@@ -171,10 +179,13 @@ static bool
 }
 
 static bool api_storage_delete_callback(
+    FuriString* path,
     struct mg_connection* conn,
     struct mg_http_message* msg,
     void* ctx) {
     UNUSED(ctx);
+
+    if(!IS_HTTP_ENDPOINT(path)) return false;
 
     FuriString* file_path = furi_string_alloc();
     bool success = false;
@@ -194,9 +205,14 @@ static bool api_storage_delete_callback(
     return true;
 }
 
-static bool
-    api_storage_mkdir_callback(struct mg_connection* conn, struct mg_http_message* msg, void* ctx) {
+static bool api_storage_mkdir_callback(
+    FuriString* path,
+    struct mg_connection* conn,
+    struct mg_http_message* msg,
+    void* ctx) {
     UNUSED(ctx);
+
+    if(!IS_HTTP_ENDPOINT(path)) return false;
 
     FuriString* dir_path = furi_string_alloc();
     bool success = false;
@@ -214,9 +230,14 @@ static bool
     return true;
 }
 
-static bool
-    api_storage_list_callback(struct mg_connection* conn, struct mg_http_message* msg, void* ctx) {
+static bool api_storage_list_callback(
+    FuriString* path,
+    struct mg_connection* conn,
+    struct mg_http_message* msg,
+    void* ctx) {
     UNUSED(ctx);
+
+    if(!IS_HTTP_ENDPOINT(path)) return false;
 
     FuriString* dir_path = furi_string_alloc();
     bool success = false;
@@ -267,31 +288,31 @@ static bool
 
 static const HttpHandler handlers_storage[] = {
     {
-        .uri = "/api/v0/storage/write",
+        .uri = "write",
         .method = "POST",
         .type = HttpHandlerCustom,
         .on_headers = api_storage_write_headers_callback,
     },
     {
-        .uri = "/api/v0/storage/read",
+        .uri = "read",
         .method = "GET",
         .type = HttpHandlerCustom,
         .on_request = api_storage_read_callback,
     },
     {
-        .uri = "/api/v0/storage/remove",
+        .uri = "remove",
         .method = "DELETE",
         .type = HttpHandlerCustom,
         .on_request = api_storage_delete_callback,
     },
     {
-        .uri = "/api/v0/storage/mkdir",
+        .uri = "mkdir",
         .method = "POST",
         .type = HttpHandlerCustom,
         .on_request = api_storage_mkdir_callback,
     },
     {
-        .uri = "/api/v0/storage/list",
+        .uri = "list",
         .method = "GET",
         .type = HttpHandlerCustom,
         .on_request = api_storage_list_callback,
@@ -319,15 +340,20 @@ void http_api_storage_free(void* ctx) {
     free(context);
 }
 
-bool http_api_storage_callback(struct mg_connection* conn, struct mg_http_message* msg, void* ctx) {
-    ApistorageCtx* context = ctx;
-    return http_handle_request(context->handlers, conn, msg);
-}
-
-bool http_api_storage_hdr_callback(
+bool http_api_storage_callback(
+    FuriString* path,
     struct mg_connection* conn,
     struct mg_http_message* msg,
     void* ctx) {
     ApistorageCtx* context = ctx;
-    return http_handle_headers(context->handlers, conn, msg);
+    return http_handle_request(path, context->handlers, conn, msg);
+}
+
+bool http_api_storage_hdr_callback(
+    FuriString* path,
+    struct mg_connection* conn,
+    struct mg_http_message* msg,
+    void* ctx) {
+    ApistorageCtx* context = ctx;
+    return http_handle_headers(path, context->handlers, conn, msg);
 }

@@ -311,13 +311,16 @@ static void http_api_update_on_close_cb(struct mg_connection* conn) {
     }
 }
 
-bool http_api_update_callback(
+bool http_api_update_hdr_callback(
+    FuriString* path,
     struct mg_connection* conn,
     struct mg_http_message* msg,
     void* http_handler_ctx) {
     UNUSED(http_handler_ctx);
     ConnectionContext* conn_ctx = (ConnectionContext*)conn->data;
     HttpUpdateHandlerCtx* update_ctx = NULL;
+
+    if(!IS_HTTP_ENDPOINT(path)) return false;
 
     FURI_LOG_I(
         TAG, "on_headers: Received update request for URI: %.*s", (int)msg->uri.len, msg->uri.buf);
