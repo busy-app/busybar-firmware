@@ -15,12 +15,12 @@ U5_TARGET_HW = 20
 
 # Firmware SI917:
 SI_TARGET_HW = 64
-SI_RADIO_FW_PATH = "./lib/wiseconnect/connectivity_firmware/standard/SiWG917-B.2.13.4.1.0.4.rps"    # TODO: auto discover?
+SI_RADIO_FW_PATH = "./lib/wiseconnect/connectivity_firmware/standard/SiWG917-B.2.14.5.0.0.10.rps"    # TODO: auto discover?
 
 # Script settings:
 RUN_ASSETS_DIR = ".run_assets"    # All build outputs will be placed here
-UPDATE_BUNDLE_DIR = os.path.join(RUN_ASSETS_DIR, "upd_bundle")              # Vanilla
-UPDATE_BUNDLE_TAR = os.path.join(RUN_ASSETS_DIR, "upd_bundle.tar")          # .tar, for update via storage.py and HTTP API
+UPDATE_BUNDLE_DIR = os.path.join(RUN_ASSETS_DIR, "upd_bundle")              # Vanilla, for update via storage.py and CLI
+UPDATE_BUNDLE_TAR = os.path.join(RUN_ASSETS_DIR, "upd_bundle.tar")          # .tar, for update via HTTP API
 UPDATE_BUNDLE_PROD_DIR = os.path.join(RUN_ASSETS_DIR, "upd_bundle_prod")    # For production line
 
 # End of script settings
