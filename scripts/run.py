@@ -282,7 +282,7 @@ def run_flash_u5_dfu(args):
 
     ret = subprocess_exec(cmd, verbose=args.verbose)
     if ret != 0:
-        print("\tPlaese ensure that the device is in DFU mode and try again.")
+        print("\tPlease ensure that the device is in DFU mode and try again.")
         print("\tYou can do it by pressing and holding START/STOP and BACK button for 2 sec,")
         print("\tand then releasing BACK button, and then releasing START/STOP button after 1 sec.")
         print("\tMost possibly after the falsh via DFU you will have to reboot it manually.")
@@ -387,3 +387,4 @@ if __name__ == "__main__":
 # TODO:
 # - success build flags for bundles
 # - check if bundle exists before running updates
+# - readme
