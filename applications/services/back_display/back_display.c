@@ -193,6 +193,11 @@ void back_display_set_brightness(BackDisplaySrv* instance, uint8_t brightness) {
     furi_event_loop_set_custom_event(instance->event_loop, BackDisplayEventLightLevelUpdate);
 }
 
+uint8_t back_display_get_brightness(BackDisplaySrv* instance) {
+    furi_check(instance);
+    return instance->brightness_override;
+}
+
 size_t back_display_get_width(void) {
     return SSD1320_W;
 }

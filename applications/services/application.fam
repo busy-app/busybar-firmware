@@ -30,6 +30,7 @@ App(
         "power_srv",
         "intercom",
         "wifi",
+        "wifi_bridge",
         "sockets",
         "status_lights",
         "light_sensor",
