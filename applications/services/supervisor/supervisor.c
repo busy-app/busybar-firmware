@@ -230,7 +230,9 @@ static bool supervisor_input(const InputEvent* event, void* context) {
             supervisor_send_event(instance, SupervisorEventTypeOKPressed);
             return true;
         }
-    } else if(instance->gui.input_locked) {
+    }
+
+    if(instance->gui.input_locked) {
         return true;
     }
 
