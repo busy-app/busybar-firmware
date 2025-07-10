@@ -91,6 +91,24 @@ SocketStatus socket_listen(Socket* socket, uint8_t max_clients) {
     return msg.status;
 }
 
+SocketStatus socket_accept(Socket* socket) {
+    furi_check(socket);
+
+    SocketSrv* instance = socket->owner;
+    furi_assert(instance);
+
+    SocketSrvMessage msg = {
+        .request_type = SocketRequestTypeAccept,
+        .accept_message =
+            {
+                .socket_id = socket->id,
+            },
+    };
+
+    sockets_send_message(instance, &msg);
+    return msg.status;
+}
+
 SocketStatus socket_connect(Socket* socket, const SocketConnectionInfo* connection_info) {
     furi_check(socket);
     furi_check(connection_info);

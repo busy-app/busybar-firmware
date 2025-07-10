@@ -3006,6 +3006,7 @@ xs:noNamespaceSchemaLocation="CMSIS-SVD_Schema_1_1.xsd">
     </peripheral>
     <peripheral>
       <name>Debug</name>
+      <description>Debug support</description>
       <version>1.0</version>
       <baseAddress>0xE000ED00</baseAddress>
       <access>read-write</access>

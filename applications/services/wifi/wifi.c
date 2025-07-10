@@ -12,6 +12,10 @@ static void wifi_intercom_rx_callback(const void* data, size_t data_size, void* 
     furi_event_loop_set_custom_event(instance->event_loop, WifiEventResponse);
 }
 
+static void wifi_publish_state(const Wifi* instance, WifiState state) {
+    furi_pubsub_publish(instance->pubsub, &state);
+}
+
 static void wifi_update_enabled(Wifi* instance, bool enabled) {
     if(instance->settings_applied) {
         WifiSettings* settings = &instance->settings;
@@ -134,15 +138,7 @@ static int32_t wifi_startup_thread_callback(void* arg) {
     Wifi* instance = arg;
 
     do {
-        WifiSettings* settings = &instance->settings;
-
-        if(!wifi_settings_load(settings)) {
-            FURI_LOG_W(TAG, "Failed to load settings, using defaults");
-
-            wifi_settings_init_defaults(settings);
-            wifi_settings_save(settings);
-            break;
-        }
+        wifi_publish_state(instance, WifiStateDeinit);
 
         WifiInfo info;
         if(wifi_get_info(instance, &info) != WifiStatusOk) {
@@ -157,6 +153,8 @@ static int32_t wifi_startup_thread_callback(void* arg) {
             }
         }
 
+        const WifiSettings* settings = &instance->settings;
+
         if(!settings->enabled) {
             FURI_LOG_I(TAG, "Disabled in settings");
             break;
@@ -166,6 +164,8 @@ static int32_t wifi_startup_thread_callback(void* arg) {
             FURI_LOG_E(TAG, "Failed to init");
             break;
         }
+
+        wifi_publish_state(instance, WifiStateDown);
 
         const char* ssid = settings->credentials.ssid;
 
@@ -183,10 +183,30 @@ static int32_t wifi_startup_thread_callback(void* arg) {
 
         FURI_LOG_I(TAG, "Connected to \"%s\"", ssid);
 
+        if(wifi_get_info(instance, &info) != WifiStatusOk) {
+            FURI_LOG_E(TAG, "Failed to get info");
+            break;
+        }
+
+        const WifiIpConfig* ip_config = &info.ip_config;
+        if(ip_config->type == WifiIpTypeV4) {
+            const WifiIpv4* addr = &ip_config->ip4.address;
+            FURI_LOG_I(
+                TAG,
+                "IP: %hhu.%hhu.%hhu.%hhu",
+                addr->bytes[0],
+                addr->bytes[1],
+                addr->bytes[2],
+                addr->bytes[3]);
+        } else {
+            FURI_LOG_W(TAG, "IPv6 not implemented");
+        }
+
+        wifi_publish_state(instance, info.state);
+
     } while(false);
 
     instance->settings_applied = true;
-    furi_record_create(RECORD_WIFI, instance);
 
     return 0;
 }
@@ -201,11 +221,31 @@ static void
     }
 }
 
+static void wifi_apply_settings(Wifi* instance) {
+    FuriThread* startup_thread = furi_thread_alloc_ex(
+        "WifiStartup", STARTUP_THREAD_STACK_SIZE, wifi_startup_thread_callback, instance);
+
+    furi_thread_set_state_callback(startup_thread, wifi_startup_thread_state_callback);
+    furi_thread_start(startup_thread);
+}
+
+static void wifi_load_settings(Wifi* instance) {
+    WifiSettings* settings = &instance->settings;
+
+    if(!wifi_settings_load(settings)) {
+        FURI_LOG_W(TAG, "Failed to load settings, using defaults");
+
+        wifi_settings_init_defaults(settings);
+        wifi_settings_save(settings);
+    }
+}
+
 static Wifi* wifi_alloc(void) {
     Wifi* instance = malloc(sizeof(Wifi));
 
     instance->event_loop = furi_event_loop_alloc();
     instance->access_semaphore = furi_semaphore_alloc(1, 1);
+    instance->pubsub = furi_pubsub_alloc();
     instance->intercom = furi_record_open(RECORD_INTERCOM);
 
     furi_event_loop_set_custom_event_callback(
@@ -214,13 +254,18 @@ static Wifi* wifi_alloc(void) {
     intercom_set_rx_callback(
         instance->intercom, IntercomChannelWifi, wifi_intercom_rx_callback, instance);
 
-    FuriThread* startup_thread = furi_thread_alloc_ex(
-        "WifiStartup", STARTUP_THREAD_STACK_SIZE, wifi_startup_thread_callback, instance);
+    wifi_load_settings(instance);
 
-    furi_thread_set_state_callback(startup_thread, wifi_startup_thread_state_callback);
-    furi_thread_start(startup_thread);
+    furi_record_create(RECORD_WIFI, instance);
+
+    wifi_apply_settings(instance);
 
     return instance;
+}
+
+FuriPubSub* wifi_get_pubsub(const Wifi* instance) {
+    furi_check(instance);
+    return instance->pubsub;
 }
 
 int32_t wifi_srv(void* arg) {
