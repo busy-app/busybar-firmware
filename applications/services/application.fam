@@ -34,7 +34,7 @@ App(
         "sockets",
         "status_lights",
         "light_sensor",
-        "power_popup",
+        "supervisor",
     ],
     targets=["f20", "f21"],
 )

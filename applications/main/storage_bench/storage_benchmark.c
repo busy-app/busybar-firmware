@@ -24,7 +24,7 @@ static void storage_benchmark_tree(Storage* storage) {
 
     BENCHMARK_PRINT("Listing /ext directory");
 
-    if(dir_walk_open(dir_walk, "/ext")) {
+    if(dir_walk_open(dir_walk, STORAGE_EXT_PATH_PREFIX)) {
         FileInfo fileinfo;
         while(dir_walk_read(dir_walk, name, &fileinfo) == DirWalkOK) {
             if(file_info_is_dir(&fileinfo)) {
@@ -158,7 +158,7 @@ static void storage_benchmark_file(Storage* storage, size_t blocks) {
 }
 
 static void do_storage_benchmark(Storage* storage) {
-    FS_Error err = storage_sd_status(storage);
+    FS_Error err = storage_sd_status(storage, STORAGE_EXT_PATH_PREFIX);
 
     if(err == FSE_OK) {
         FURI_LOG_I(TAG, "SD card is alive");

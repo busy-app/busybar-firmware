@@ -1,0 +1,10 @@
+App(
+    appid="supervisor",
+    name="Supervisor",
+    apptype=FlipperAppType.SERVICE,
+    entry_point="supervisor_start",
+    stack_size=4096,
+    order=70,
+    requires=["power_srv", "storage", "gui"],
+    targets=["f20", "f21"],
+)

@@ -20,6 +20,7 @@
 #include <cli/cli_registry.h>
 #include <cli/cli_ansi.h>
 #include <firmware_applications_f20/applications.h>
+#include <storage/storage_backup.h>
 
 static void cli_command_update_debug_mode(void) {
     CliRegistry* registry = furi_record_open(RECORD_CLI);
@@ -59,11 +60,35 @@ static void cli_command_sysctl_debug(PipeSide* pipe, FuriString* args, void* con
     cli_command_update_debug_mode();
 }
 
+static void
+    cli_command_sysctl_storage_bkp_unlock(PipeSide* pipe, FuriString* args, void* context) {
+    UNUSED(pipe);
+    UNUSED(context);
+
+    if(furi_string_equal_str(args, "0")) {
+        Storage* storage = furi_record_open(RECORD_STORAGE);
+        storage_backup_set_readonly(storage, true);
+        furi_record_close(RECORD_STORAGE);
+        printf("Backup storage locked.");
+    } else if(furi_string_equal_str(args, "1")) {
+        Storage* storage = furi_record_open(RECORD_STORAGE);
+        storage_backup_set_readonly(storage, false);
+        furi_record_close(RECORD_STORAGE);
+        printf("Backup storage unlocked.");
+    } else {
+        cli_print_usage("sysctl storage_bkp_unlock", "<1|0>", furi_string_get_cstr(args));
+    }
+}
+
 static void cli_command_sysctl_print_usage() {
     printf("Usage:\r\n");
     printf("sysctl <cmd>\r\n");
     printf("Cmd list:\r\n");
     printf("\tdebug - enables or disables debug mode\r\n");
+
+    if(furi_hal_nvm_is_flag_set(FuriHalNvmFlagDebug)) {
+        printf("\tstorage_bkp_unlock - locks or unlocks backup storage\r\n");
+    }
 }
 
 static void cli_command_sysctl(PipeSide* pipe, FuriString* args, void* context) {
@@ -80,12 +105,19 @@ static void cli_command_sysctl(PipeSide* pipe, FuriString* args, void* context) 
             cli_command_sysctl_debug(pipe, args, context);
             break;
         }
+
+        if(furi_hal_nvm_is_flag_set(FuriHalNvmFlagDebug)) {
+            if(furi_string_cmp_str(cmd, "storage_bkp_unlock") == 0) {
+                cli_command_sysctl_storage_bkp_unlock(pipe, args, context);
+                break;
+            }
+        }
+
         cli_command_sysctl_print_usage();
     } while(false);
 
     furi_string_free(cmd);
 }
-
 static void
     cli_command_device_info_callback(const char* key, const char* value, bool last, void* context) {
     UNUSED(last);

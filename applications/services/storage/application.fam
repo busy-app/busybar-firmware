@@ -8,11 +8,10 @@ App(
     provides=["storage_cli"],
     sources=[
         "filesystem_api.c",
-        "storage_u5.c",
-        "storage_external_api_u5.c",
-        "storage_internal_api.c",
+        "storage.c",
+        "storage_external_api.c",
         "storage_glue.c",
-        "storage_processing_u5.c",
+        "storage_processing.c",
         "storage_sd_api.c",
         "storage_posix_api.c",
         "storages/storage_ext_sdmmc.c",
@@ -27,6 +26,6 @@ App(
     entry_point="storage_command",
     requires=["storage"],
     targets=["f20", "f21"],
-    sources=["storage_cli_u5.c"],
+    sources=["storage_cli.c"],
     stack_size=1024 * 2,
 )

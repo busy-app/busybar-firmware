@@ -1,100 +1,116 @@
-#include "storage.h"
-#include "storage_i.h"
-#include "storage_message.h"
-#include "storage_processing.h"
+#include <storage/storage.h>
+#include <storage/storage_i.h>
+#include <storage/storage_message.h>
+#include <storage/storage_processing.h>
 #include "storage/storage_glue.h"
-#include "storages/storage_ext.h"
-#include <assets_icons.h>
+#include "storages/storage_ext_sdmmc.h"
+#include "storage_posix_api.h"
 
 #define STORAGE_TICK 1000
 
-#define ICON_SD_MOUNTED &I_SDcardMounted_11x8
-#define ICON_SD_ERROR   &I_SDcardFail_11x8
-
 #define TAG "Storage"
 
-static void storage_app_sd_icon_draw_callback(Canvas* canvas, void* context) {
-    furi_assert(canvas);
-    furi_assert(context);
-    Storage* app = context;
+#include <furi_hal.h>
 
-    // here we don't care about thread race when reading / writing status
-    switch(app->storage[ST_EXT].status) {
-    case StorageStatusNotReady:
-        break;
-    case StorageStatusOK:
-        canvas_draw_icon(canvas, 0, 0, ICON_SD_MOUNTED);
-        break;
-    default:
-        canvas_draw_icon(canvas, 0, 0, ICON_SD_ERROR);
-        break;
-    }
-}
+extern FS_Error storage_process_common_fs_info(
+    Storage* app,
+    FuriString* path,
+    uint64_t* total_space,
+    uint64_t* free_space,
+    bool* is_read_only);
 
 Storage* storage_app_alloc(void) {
     Storage* app = malloc(sizeof(Storage));
     app->message_queue = furi_message_queue_alloc(8, sizeof(StorageMessage));
     app->pubsub = furi_pubsub_alloc();
+    app->path_aliased = furi_string_alloc();
+    app->path_storage = furi_string_alloc();
+    furi_string_reserve(app->path_aliased, 256);
+    furi_string_reserve(app->path_storage, 256);
 
     for(uint8_t i = 0; i < STORAGE_COUNT; i++) {
         storage_data_init(&app->storage[i]);
         storage_data_timestamp(&app->storage[i]);
     }
 
-    storage_ext_init(&app->storage[ST_EXT]);
+    StorageData* storage_bkp = &app->storage[ST_BKP];
+    StorageData* storage_ext = &app->storage[ST_EXT];
 
-    // sd icon gui
-    app->sd_gui.enabled = false;
-    app->sd_gui.view_port = view_port_alloc();
-    view_port_set_width(app->sd_gui.view_port, icon_get_width(ICON_SD_MOUNTED));
-    view_port_draw_callback_set(app->sd_gui.view_port, storage_app_sd_icon_draw_callback, app);
-    view_port_enabled_set(app->sd_gui.view_port, false);
+    storage_ext_init(storage_bkp, ST_BKP);
+    storage_ext_init(storage_ext, ST_EXT);
 
-    Gui* gui = furi_record_open(RECORD_GUI);
-    gui_add_view_port(gui, app->sd_gui.view_port, GuiLayerStatusBarLeft);
-    furi_record_close(RECORD_GUI);
+    storage_set_read_only(storage_bkp, false);
+    storage_set_read_only(storage_ext, false);
+
+    // mount storages
+    do {
+        FS_Error ret = storage_ext_init_bsp();
+        if(ret != FSE_OK) {
+            FURI_LOG_E(TAG, "Storage bsp init failed: %d", ret);
+            break;
+        }
+
+        // // Uncomment this to remove partitions information
+        // {
+        //     uint8_t buffer[1024] = {0};
+        //     furi_hal_sdmmc_write_blocks(
+        //         buffer, 0, 2, 10000); // dummy write to remove old partitions
+
+        //     furi_crash("remove me");
+        // }
+
+        {
+            ret = storage_ext_mount(storage_bkp);
+            if(ret != FSE_OK) {
+                FURI_LOG_E(TAG, "Backup mount failed: %s", storage_data_status_text(storage_bkp));
+                break;
+            }
+
+            // check if backup partition is valid in terms of size
+            {
+                uint64_t total_space;
+                uint64_t free_space;
+                bool is_read_only;
+
+                FuriString* path = furi_string_alloc_set(STORAGE_BACKUP_PATH_PREFIX);
+                FS_Error error = storage_process_common_fs_info(
+                    app, path, &total_space, &free_space, &is_read_only);
+                furi_string_free(path);
+
+                if(error != FSE_OK) {
+                    FURI_LOG_E(
+                        TAG, "Backup check failed: %s", storage_data_status_text(storage_bkp));
+                    storage_ext_unmount(storage_bkp);
+                    break;
+                }
+
+                if(total_space / (1024 * 1024) > (STORAGE_FIRST_PARTITION_SIZE_MB * 2)) {
+                    FURI_LOG_E(
+                        TAG,
+                        "Backup partition is too big, probably old partition table, size: %lluMiB",
+                        total_space / (1024 * 1024));
+                    storage_ext_unmount(storage_bkp);
+                    break;
+                }
+            }
+
+            // Set backup storage read-only after mount
+            storage_set_read_only(storage_bkp, true);
+        }
+
+        {
+            ret = storage_ext_mount(storage_ext);
+            if(ret != FSE_OK) {
+                FURI_LOG_E(
+                    TAG, "External mount failed: %s", storage_data_status_text(storage_ext));
+                break;
+            }
+        }
+    } while(false);
+
+    storage_posix_api_init(app);
 
     return app;
-}
-
-void storage_tick(Storage* app) {
-    for(uint8_t i = 0; i < STORAGE_COUNT; i++) {
-        StorageApi api = app->storage[i].api;
-        if(api.tick != NULL) {
-            api.tick(&app->storage[i]);
-        }
-    }
-
-    // storage not enabled but was enabled (sd card unmount)
-    if(app->storage[ST_EXT].status == StorageStatusNotReady && app->sd_gui.enabled == true) {
-        app->sd_gui.enabled = false;
-        view_port_enabled_set(app->sd_gui.view_port, false);
-
-        FURI_LOG_I(TAG, "SD card unmount");
-        StorageEvent event = {.type = StorageEventTypeCardUnmount};
-        furi_pubsub_publish(app->pubsub, &event);
-    }
-
-    // storage enabled (or in error state) but was not enabled (sd card mount)
-    if((app->storage[ST_EXT].status == StorageStatusOK ||
-        app->storage[ST_EXT].status == StorageStatusNotMounted ||
-        app->storage[ST_EXT].status == StorageStatusNoFS ||
-        app->storage[ST_EXT].status == StorageStatusNotAccessible ||
-        app->storage[ST_EXT].status == StorageStatusErrorInternal) &&
-       app->sd_gui.enabled == false) {
-        app->sd_gui.enabled = true;
-        view_port_enabled_set(app->sd_gui.view_port, true);
-
-        if(app->storage[ST_EXT].status == StorageStatusOK) {
-            FURI_LOG_I(TAG, "SD card mount");
-            StorageEvent event = {.type = StorageEventTypeCardMount};
-            furi_pubsub_publish(app->pubsub, &event);
-        } else {
-            FURI_LOG_I(TAG, "SD card mount error");
-            StorageEvent event = {.type = StorageEventTypeCardMountError};
-            furi_pubsub_publish(app->pubsub, &event);
-        }
-    }
 }
 
 int32_t storage_srv(void* p) {
@@ -104,10 +120,8 @@ int32_t storage_srv(void* p) {
 
     StorageMessage message;
     while(1) {
-        if(furi_message_queue_get(app->message_queue, &message, STORAGE_TICK) == FuriStatusOk) {
+        if(furi_message_queue_get(app->message_queue, &message, FuriWaitForever) == FuriStatusOk) {
             storage_process_message(app, &message);
-        } else {
-            storage_tick(app);
         }
     }
 
