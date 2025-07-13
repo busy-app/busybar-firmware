@@ -38,6 +38,10 @@ export default defineNuxtConfig({
       barUrl: ''
     }
   },
+  experimental: {
+    appManifest: false,
+    buildCache: true
+  },
   compatibilityDate: '2025-05-15',
   eslint: {
     checker: {
