@@ -69,13 +69,32 @@ typedef struct {
 extern "C" {
 #endif
 
-FuriHalCryptoKey* furi_hal_crypto_storage_alloc_key(FuriHalCryptoPartition partition);
-void furi_hal_crypto_storage_free_key(FuriHalCryptoKey* key);
-bool furi_hal_crypto_storage_write_key(FuriHalCryptoKey* key);
-bool furi_hal_crypto_storage_read_key(
-    FuriHalCryptoKey* key,
-    FuriHalCryptoKeyType type,
-    uint32_t id);
+/*
+* Allocate a key structure.
+* @param[in] partition Partition to get the start address of.
+* @return Pointer to the allocated key structure.
+*/
+FuriHalCryptoKey* furi_hal_crypto_storage_alloc(FuriHalCryptoPartition partition);
+
+/*
+* Free the key structure.
+* @param[in] key Pointer to the key structure to free.
+*/
+void furi_hal_crypto_storage_free(FuriHalCryptoKey* key);
+
+/** Write a key to the NWP flash.
+* @param[in] key Pointer to the key
+* @return True if the key was written successfully, false otherwise.
+*/
+bool furi_hal_crypto_storage_write(FuriHalCryptoKey* key);
+
+/** Read a key from the NWP flash.
+* @param[in] key Pointer to the key
+* @param[in] type Type of the key to read.
+* @param[in] id ID of the key to read.
+* @return True if the key was read successfully, false otherwise.
+*/
+bool furi_hal_crypto_storage_read(FuriHalCryptoKey* key, FuriHalCryptoKeyType type, uint32_t id);
 
 #ifdef __cplusplus
 }
