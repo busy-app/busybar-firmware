@@ -44,6 +44,24 @@ export default defineNuxtConfig({
     buildCache: true
   },
   compatibilityDate: '2025-05-15',
+  nitro: {
+    hooks: {
+      'prerender:generate' (route) {
+        console.log(`Generating route: ${route}`);
+        console.log(route);
+        console.log(route.contents);
+        if (route.contents && typeof route.contents === 'string') {
+          // Find the timestamp and set it to 0
+          route.contents = route.contents.replace(
+            /\[\{"prerenderedAt":\d+,"serverRendered":\d+\},(\d+),false\]/g,
+            (match, timestamp) => {
+              return match.replace(timestamp, '0');
+            }
+          );
+        }
+      }
+    }
+  },
   eslint: {
     checker: {
       configType: 'flat'
