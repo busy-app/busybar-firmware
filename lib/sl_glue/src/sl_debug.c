@@ -14,3 +14,9 @@ void sl_debug_log(const char* format, ...) {
 
     va_end(args);
 }
+
+void assertEFM(const char* file, int line) {
+    UNUSED(file);
+    UNUSED(line);
+    furi_crash("AssertEFM");
+}
