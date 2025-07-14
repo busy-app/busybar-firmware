@@ -7,12 +7,72 @@
 #include <strint.h>
 #include "sl_si91x_driver.h"
 
+#include <sl_net.h>
+#include "wifi_config.h"
+
 #define CRYPTO_SIZE_BUF (1024 * 1)
+typedef enum {
+    CryptoCommandNwpIdle,
+    CryptoCommandNwpIsInitialized,
+    CryptoCommandNwpInit,
+} CryptoCommandNwp;
+static CryptoCommandNwp crypto_command_is_nwp_initialized = CryptoCommandNwpIdle;
+
+static bool crypto_command_is_init(void) {
+    bool ret = !(crypto_command_is_nwp_initialized == CryptoCommandNwpIdle);
+    if(!ret) {
+        printf(ANSI_FG_RED
+               "NWP is not initialized, please run 'crypto init' first\r\n" ANSI_RESET);
+    }
+    return ret;
+}
+
+static void crypto_command_init(PipeSide* pipe, FuriString* args, void* context) {
+    UNUSED(pipe);
+    UNUSED(args);
+    UNUSED(context);
+
+    sl_status_t status =
+        sl_net_init(SL_NET_WIFI_CLIENT_INTERFACE, &wifi_config_client, NULL, NULL);
+    if(status == SL_STATUS_ALREADY_INITIALIZED) {
+        crypto_command_is_nwp_initialized = CryptoCommandNwpIsInitialized;
+        printf(ANSI_FG_GREEN "NWP already initialized\r\n" ANSI_RESET);
+    } else if(status == SL_STATUS_OK) {
+        crypto_command_is_nwp_initialized = CryptoCommandNwpInit;
+        printf(ANSI_FG_GREEN "NWP initialized\r\n" ANSI_RESET);
+    } else {
+        printf(ANSI_FG_RED "Failed to initialise NWP: " ANSI_RESET "0x%08lx\r\n", status);
+        crypto_command_is_nwp_initialized = CryptoCommandNwpIdle;
+    }
+}
+
+static void crypto_command_deinit(PipeSide* pipe, FuriString* args, void* context) {
+    UNUSED(pipe);
+    UNUSED(args);
+    UNUSED(context);
+
+    if(crypto_command_is_nwp_initialized == CryptoCommandNwpInit) {
+        sl_status_t status = sl_net_deinit(SL_NET_WIFI_CLIENT_INTERFACE);
+        if(status != SL_STATUS_OK) {
+            printf(ANSI_FG_RED "Failed to deinitialise Wifi: " ANSI_RESET "0x%08lx\r\n", status);
+        } else {
+            printf(ANSI_FG_GREEN "NWP deinitialized\r\n" ANSI_RESET);
+            crypto_command_is_nwp_initialized = CryptoCommandNwpIdle;
+        }
+
+    } else if(crypto_command_is_nwp_initialized == CryptoCommandNwpIsInitialized) {
+        printf(ANSI_FG_GREEN "NWP is already initialized, no need to deinitialize\r\n" ANSI_RESET);
+    } else {
+        printf(ANSI_FG_RED "NWP is not initialized\r\n" ANSI_RESET);
+    }
+}
 
 void crypto_command_wipe(PipeSide* pipe, FuriString* args, void* context) {
     UNUSED(context);
     UNUSED(pipe);
-
+    if(!crypto_command_is_init()) {
+        return;
+    }
     uint16_t partition = FuriHalCryptoPartitionMax;
     bool is_valid = true;
     if(furi_string_size(args)) {
@@ -86,7 +146,9 @@ void crypto_command_wipe(PipeSide* pipe, FuriString* args, void* context) {
 void crypto_command_write(PipeSide* pipe, FuriString* args, void* context) {
     UNUSED(context);
     UNUSED(pipe);
-
+    if(!crypto_command_is_init()) {
+        return;
+    }
     uint32_t temp = 0xFF;
     FuriHalCryptoKey* key = NULL;
     FuriHalCryptoPartition partition = FuriHalCryptoPartitionMax;
@@ -123,7 +185,7 @@ void crypto_command_write(PipeSide* pipe, FuriString* args, void* context) {
         if(parse_err || !args_read_hex_bytes(args, key->data, key->header.size)) {
             cli_print_usage(
                 "crypto write",
-                "<partition><type><flags: in HEX><id: in HEX><size><data: in byte>\r\n",
+                "<partition> <type> <flags: in HEX> <id: in HEX> <size> <data: in byte>\r\n",
                 furi_string_get_cstr(args));
             furi_hal_crypto_storage_free(key);
             return;
@@ -131,7 +193,7 @@ void crypto_command_write(PipeSide* pipe, FuriString* args, void* context) {
     } else {
         cli_print_usage(
             "crypto write",
-            "<partition><type><flags: in HEX><id: in HEX><size><data: in byte>\r\n",
+            "<partition> <type> <flags: in HEX> <id: in HEX> <size> <data: in byte>\r\n",
             furi_string_get_cstr(args));
         return;
     }
@@ -148,8 +210,10 @@ void crypto_command_write(PipeSide* pipe, FuriString* args, void* context) {
 void crypto_command_read(PipeSide* pipe, FuriString* args, void* context) {
     UNUSED(context);
     UNUSED(pipe);
-    UNUSED(args);
 
+    if(!crypto_command_is_init()) {
+        return;
+    }
     FuriHalCryptoKey* key = NULL;
     FuriHalCryptoPartition partition = FuriHalCryptoPartitionMax;
     FuriHalCryptoKeyType type = FuriHalCryptoKeyTypeNone;
@@ -174,14 +238,14 @@ void crypto_command_read(PipeSide* pipe, FuriString* args, void* context) {
         if(parse_err) {
             cli_print_usage(
                 "crypto read",
-                "<partition><type><id: in HEX> Read key from NWP flash.\r\n",
+                "<partition> <type> <id: in HEX> Read key from NWP flash.\r\n",
                 furi_string_get_cstr(args));
             return;
         }
     } else {
         cli_print_usage(
             "crypto read",
-            "<partition><type><id: in HEX> Read key from NWP flash.\r\n",
+            "<partition> <type> <id: in HEX> Read key from NWP flash.\r\n",
             furi_string_get_cstr(args));
         return;
     }
@@ -216,6 +280,9 @@ void crypto_command_dump(PipeSide* pipe, FuriString* args, void* context) {
     UNUSED(context);
     UNUSED(pipe);
     UNUSED(args);
+    if(!crypto_command_is_init()) {
+        return;
+    }
     sl_status_t status = SL_STATUS_FAIL;
     uint32_t address = FURI_HAL_CRYPTO_STORAGE_START_ADDRESS;
     uint8_t* buf = malloc(CRYPTO_SIZE_BUF);
@@ -248,11 +315,13 @@ static void crypto_command_print_usage(void) {
     printf("crypto <cmd> <args>\r\n");
     printf("Cmd list:\r\n");
 
+    printf("\tcrypto init Initialize NWP.\r\n");
     printf("\tcrypto wipe <partition> Clear crypto storage.\r\n");
     printf("\tcrypto dump Dump crypto storage.\r\n");
-    printf("\tcrypto read <partition><type><id: in HEX> Read key from NWP flash.\r\n");
+    printf("\tcrypto read <partition> <type><id: in HEX> Read key from NWP flash.\r\n");
     printf(
-        "\tcrypto write <partition><type><flags: in HEX><id: in HEX><size><data: in Byte> Write key from NWP flash\r\n");
+        "\tcrypto write <partition> <type> <flags: in HEX> <id: in HEX> <size> <data: in Byte> Write key from NWP flash\r\n");
+    printf("\tcrypto deinit Deinitialize NWP.\r\n");
     printf("\t\t<partition> 0-partition_main, 1-partition_user.\r\n");
 }
 
@@ -266,6 +335,14 @@ void crypto_command(PipeSide* pipe, FuriString* args, void* context) {
             break;
         }
 
+        if(furi_string_cmp_str(cmd, "init") == 0) {
+            crypto_command_init(pipe, args, context);
+            break;
+        }
+        if(furi_string_cmp_str(cmd, "deinit") == 0) {
+            crypto_command_deinit(pipe, args, context);
+            break;
+        }
         if(furi_string_cmp_str(cmd, "dump") == 0) {
             crypto_command_dump(pipe, args, context);
             break;

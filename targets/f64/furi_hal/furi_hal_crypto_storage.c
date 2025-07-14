@@ -22,9 +22,13 @@ FuriHalCryptoKey* furi_hal_crypto_storage_alloc(FuriHalCryptoPartition partition
 void furi_hal_crypto_storage_free(FuriHalCryptoKey* key) {
     furi_check(key);
     if(key->data) {
+        memset(key->data, 0, key->length);
+        memset(&key->header, 0, sizeof(FuriHalCryptoKeyHeader));
         free(key->data);
+        key->data = NULL;
     }
     free(key);
+    key = NULL;
 }
 
 static bool furi_hal_crypto_storage_check_key_slot_is_free(
@@ -230,11 +234,7 @@ bool furi_hal_crypto_storage_write(FuriHalCryptoKey* key) {
             FURI_LOG_E(TAG, "Failed to write key\r\n");
         }
     }
-    memset(key_check->data, 0, key_check->length);
-    memset(&key_check->header, 0, sizeof(FuriHalCryptoKeyHeader));
     furi_hal_crypto_storage_free(key_check);
-    key_check = NULL;
-
     return ret;
 }
 
