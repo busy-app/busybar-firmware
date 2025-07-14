@@ -3,8 +3,8 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "build:using_commit_hash": "BUILD_ID=$(git rev-parse HEAD) nuxt generate",
-    "build": "nuxt generate",
+    "build": "BUILD_ID=$(git rev-parse HEAD) nuxt generate",
+    "build:static_build_id": "nuxt generate",
     "dev": "nuxt dev",
     "postinstall": "nuxt prepare",
     "lint": "eslint --ext .js,.ts,.vue --ignore-pattern .gitignore ."
