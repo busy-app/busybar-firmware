@@ -47,9 +47,6 @@ export default defineNuxtConfig({
   nitro: {
     hooks: {
       'prerender:generate' (route) {
-        console.log(`Generating route: ${route}`);
-        console.log(route);
-        console.log(route.contents);
         if (route.contents && typeof route.contents === 'string') {
           // Find the timestamp and set it to 0
           route.contents = route.contents.replace(
