@@ -1,6 +1,7 @@
 // https://nuxt.com/docs/api/configuration/nuxt-config
 export default defineNuxtConfig({
-  buildId: 'bsb-frontend',
+  // use provided build id (e.g. commit hash) or default to a static one
+  buildId: process.env.BUILD_ID || 'bsb-frontend',
   modules: [
     '@nuxt/ui',
     '@nuxt/eslint',
@@ -48,7 +49,7 @@ export default defineNuxtConfig({
     hooks: {
       'prerender:generate' (route) {
         if (route.contents && typeof route.contents === 'string') {
-          // Find the timestamp and set it to 0
+          // find the timestamp and set it to 0
           route.contents = route.contents.replace(
             /\[\{"prerenderedAt":\d+,"serverRendered":\d+\},(\d+),false\]/g,
             (match, timestamp) => {
