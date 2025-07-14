@@ -96,6 +96,12 @@ bool furi_hal_crypto_storage_write(FuriHalCryptoKey* key);
 */
 bool furi_hal_crypto_storage_read(FuriHalCryptoKey* key, FuriHalCryptoKeyType type, uint32_t id);
 
+/** Generate a random buffer of the specified size.
+* @param[out] buf Pointer to the buffer to fill with random data.
+* @param[in] size Size of the buffer to fill.
+* @return True if the buffer was filled successfully, false otherwise.
+*/
+bool furi_hal_crypto_storage_gen_random_buf(uint8_t* buf, size_t size);
 #ifdef __cplusplus
 }
 #endif

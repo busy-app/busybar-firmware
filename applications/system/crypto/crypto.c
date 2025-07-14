@@ -31,7 +31,11 @@ static void crypto_command_init(PipeSide* pipe, FuriString* args, void* context)
     UNUSED(pipe);
     UNUSED(args);
     UNUSED(context);
-
+    if(crypto_command_is_nwp_initialized == CryptoCommandNwpInit ||
+       crypto_command_is_nwp_initialized == CryptoCommandNwpIsInitialized) {
+        printf(ANSI_FG_RED "NWP is already initialized\r\n" ANSI_RESET);
+        return;
+    }
     sl_status_t status =
         sl_net_init(SL_NET_WIFI_CLIENT_INTERFACE, &wifi_config_client, NULL, NULL);
     if(status == SL_STATUS_ALREADY_INITIALIZED) {
@@ -310,6 +314,33 @@ void crypto_command_dump(PipeSide* pipe, FuriString* args, void* context) {
     free(buf);
 }
 
+void crypto_command_gen(PipeSide* pipe, FuriString* args, void* context) {
+    UNUSED(context);
+    UNUSED(pipe);
+    UNUSED(args);
+    if(!crypto_command_is_init()) {
+        return;
+    }
+
+#define SIZE_BUF 48
+
+    uint8_t* buf = malloc(SIZE_BUF);
+    for(uint32_t t = 0; t < 20; t++) {
+        if(!furi_hal_crypto_storage_gen_random_buf(buf, SIZE_BUF)) {
+            printf(ANSI_FG_RED "Failed to generate random buffer\r\n" ANSI_RESET);
+            free(buf);
+            return;
+        }
+        for(size_t i = 0; i < SIZE_BUF; i++) {
+            printf("%02x ", buf[i]);
+        }
+        printf("\r\n");
+    }
+    printf(ANSI_FG_GREEN "Generated random buffer of size %d bytes\r\n" ANSI_RESET, SIZE_BUF);
+    // Use the generated random buffer
+    free(buf);
+}
+
 static void crypto_command_print_usage(void) {
     printf("Usage:\r\n");
     printf("crypto <cmd> <args>\r\n");
@@ -357,6 +388,10 @@ void crypto_command(PipeSide* pipe, FuriString* args, void* context) {
         }
         if(furi_string_cmp_str(cmd, "read") == 0) {
             crypto_command_read(pipe, args, context);
+            break;
+        }
+        if(furi_string_cmp_str(cmd, "gen") == 0) {
+            crypto_command_gen(pipe, args, context);
             break;
         }
 
