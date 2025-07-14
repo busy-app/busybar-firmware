@@ -324,19 +324,19 @@ bool furi_hal_crypto_storage_gen_random_buf(uint8_t* buf, size_t size) {
 
     uint32_t trng_key[TRNG_KEY_SIZE] = {0x16157E2B, 0xA6D2AE28, 0x8815F7AB, 0x3C4FCF09};
     sl_status_t status = SL_STATUS_FAIL;
-    //! This API checks the Entropy of TRNG i.e source for TRNG
+    // This API checks the Entropy of TRNG i.e source for TRNG
     status = sl_si91x_trng_entropy();
     if(status != SL_STATUS_OK) {
         FURI_LOG_E(TAG, "Failed to check TRNG entropy: 0x%08lx\r\n", status);
         return false;
     }
-    //! This API Initializes key which needs to be programmed to TRNG hardware engine
+    // This API Initializes key which needs to be programmed to TRNG hardware engine
     status = sl_si91x_trng_program_key(trng_key, TRNG_KEY_SIZE);
     if(status != SL_STATUS_OK) {
         FURI_LOG_E(TAG, "Failed to program TRNG key: 0x%08lx\r\n", status);
         return false;
     }
-    //! Get Random dwords of desired length
+    // Get Random dwords of desired length
     uint32_t reget_num = 10;
     do {
         status = sl_si91x_trng_get_random_num((uint32_t*)buf, size);

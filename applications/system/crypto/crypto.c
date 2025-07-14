@@ -1,5 +1,6 @@
 #include "crypto.h"
 #include <furi_hal_crypto_storage.h>
+#include <furi_hal_crypto.h>
 
 #include <furi.h>
 #include <cli/args.h>
@@ -321,24 +322,132 @@ void crypto_command_gen(PipeSide* pipe, FuriString* args, void* context) {
     if(!crypto_command_is_init()) {
         return;
     }
+    if(!crypto_command_is_init()) {
+        return;
+    }
+    FuriHalCryptoKey* key = NULL;
+    FuriHalCryptoPartition partition = FuriHalCryptoPartitionMax;
+    FuriHalCryptoKeyType type = FuriHalCryptoKeyTypeNone;
+    FuriHalCryptoKeyFlag flags = FuriHalCryptoKeyFlagNone;
+    uint32_t id = 0;
+    uint32_t temp = 0xFF;
 
-#define SIZE_BUF 48
-
-    uint8_t* buf = malloc(SIZE_BUF);
-    for(uint32_t t = 0; t < 20; t++) {
-        if(!furi_hal_crypto_storage_gen_random_buf(buf, SIZE_BUF)) {
-            printf(ANSI_FG_RED "Failed to generate random buffer\r\n" ANSI_RESET);
-            free(buf);
+    if(furi_string_size(args)) {
+        char* args_cstr = (char*)furi_string_get_cstr(args);
+        StrintParseError parse_err = StrintParseNoError;
+        parse_err |= strint_to_uint32(args_cstr, &args_cstr, &temp, 10);
+        partition = (FuriHalCryptoPartition)temp;
+        if(parse_err || (partition >= FuriHalCryptoPartitionMax)) {
+            cli_print_usage(
+                "crypto gen",
+                "<partition> 0-partition_main, 1-partition_user\r\n",
+                furi_string_get_cstr(args));
             return;
         }
-        for(size_t i = 0; i < SIZE_BUF; i++) {
-            printf("%02x ", buf[i]);
+        parse_err |= strint_to_uint32(args_cstr, &args_cstr, &temp, 10);
+        type = (FuriHalCryptoKeyType)temp;
+        parse_err |= strint_to_uint32(args_cstr, &args_cstr, &temp, 16);
+        flags = (FuriHalCryptoKeyFlag)temp;
+        parse_err |= strint_to_uint32(args_cstr, &args_cstr, &id, 16);
+        if(parse_err) {
+            cli_print_usage(
+                "crypto gen",
+                "<partition> <type> <flags: in HEX> <id: in HEX> Generate key from NWP flash.\r\n",
+                furi_string_get_cstr(args));
+            return;
+        }
+    } else {
+        cli_print_usage(
+            "crypto gen",
+            "<partition> <type> <flags: in HEX> <id: in HEX> Generate key from NWP flash.\r\n",
+            furi_string_get_cstr(args));
+        return;
+    }
+
+    key = furi_hal_crypto_storage_alloc(partition);
+
+    switch(type) {
+    case FuriHalCryptoKeyTypeAes128:
+        key->header.size = FURI_HAL_CRYPTO_AES_KEY_SIZE_128;
+        break;
+    case FuriHalCryptoKeyTypeAes192:
+        key->header.size = FURI_HAL_CRYPTO_AES_KEY_SIZE_192;
+        break;
+    case FuriHalCryptoKeyTypeAes256:
+        key->header.size = FURI_HAL_CRYPTO_AES_KEY_SIZE_256;
+        break;
+    case FuriHalCryptoKeyTypeHmacSha1:
+        key->header.size = FURI_HAL_CRYPTO_HMAC_SHA1_DIGEST_SIZE;
+        break;
+    case FuriHalCryptoKeyTypeHmacSha256:
+        key->header.size = FURI_HAL_CRYPTO_HMAC_SHA256_DIGEST_SIZE;
+        break;
+    case FuriHalCryptoKeyTypeHmacSha384:
+        key->header.size = FURI_HAL_CRYPTO_HMAC_SHA384_DIGEST_SIZE;
+        break;
+    case FuriHalCryptoKeyTypeHmacSha512:
+        key->header.size = FURI_HAL_CRYPTO_HMAC_SHA512_DIGEST_SIZE;
+        break;
+    case FuriHalCryptoKeyTypeEcdsaPriv224:
+        key->header.size = FURI_HAL_CRYPTO_ECDSA_PRIV_KEY_SIZE_224;
+        break;
+    case FuriHalCryptoKeyTypeEcdsaPriv256:
+        key->header.size = FURI_HAL_CRYPTO_ECDSA_PRIV_KEY_SIZE_256;
+        break;
+    default:
+        printf(ANSI_FG_RED "Unsupported key type: %ld\r\n" ANSI_RESET, (uint32_t)type);
+        furi_hal_crypto_storage_free(key);
+        return;
+        break;
+    }
+    key->header.type = type;
+    key->header.flags = flags;
+    key->header.id = id;
+
+    uint8_t* buf = malloc(key->header.size);
+    // Todo add generation asimetric keys
+    if(!furi_hal_crypto_storage_gen_random_buf(buf, key->header.size)) {
+        printf(ANSI_FG_RED "Failed to generate random buffer\r\n" ANSI_RESET);
+        free(buf);
+        furi_hal_crypto_storage_free(key);
+        return;
+    }
+    memcpy(key->data, buf, key->header.size);
+    memset(buf, 0, key->header.size);
+    free(buf);
+
+    furi_hal_crypto_storage_write(key);
+    furi_hal_crypto_storage_free(key);
+
+    // ToDo Log the generated key, delete related code
+    key = furi_hal_crypto_storage_alloc(partition);
+    if(!furi_hal_crypto_storage_read(key, type, id)) {
+        printf("Failed to read key\r\n");
+    } else {
+        printf("Read key from NWP flash partition: %d\r\n", partition);
+        printf("Magic number: %lx\r\n", key->header.magic_number);
+        printf("Key reserved: %d\r\n", key->header.reserved);
+        printf("Key size: %d\r\n", key->header.size);
+        printf("Key type: %ld\r\n", (uint32_t)key->header.type);
+        printf("Key flags: 0x%08lX\r\n", (uint32_t)key->header.flags);
+        printf("Key id: 0x%08lX\r\n", (uint32_t)key->header.id);
+        printf("Key reserved1: 0x%08lX\r\n", (uint32_t)key->header.reserved1);
+        printf("Key crc32: 0x%08lX\r\n", key->header.crc32);
+        printf("Key data:\r\n");
+        for(uint32_t i = 0; i < key->header.size; i++) {
+            if((i) % 32 == 0) printf("%08lx: ", i);
+            printf("%02x ", key->data[i]);
+            if((i + 1) % 32 == 0) {
+                printf("\r\n");
+            }
         }
         printf("\r\n");
     }
-    printf(ANSI_FG_GREEN "Generated random buffer of size %d bytes\r\n" ANSI_RESET, SIZE_BUF);
-    // Use the generated random buffer
-    free(buf);
+    furi_hal_crypto_storage_free(key);
+
+    printf(
+        ANSI_FG_GREEN "Generated key and wrote to NWP flash partition: " ANSI_RESET "%d\r\n",
+        partition);
 }
 
 static void crypto_command_print_usage(void) {
@@ -352,6 +461,8 @@ static void crypto_command_print_usage(void) {
     printf("\tcrypto read <partition> <type><id: in HEX> Read key from NWP flash.\r\n");
     printf(
         "\tcrypto write <partition> <type> <flags: in HEX> <id: in HEX> <size> <data: in Byte> Write key from NWP flash\r\n");
+    printf(
+        "\tcrypto gen <partition> <type> <flags: in HEX> <id: in HEX> Generate key from NWP flash\r\n");
     printf("\tcrypto deinit Deinitialize NWP.\r\n");
     printf("\t\t<partition> 0-partition_main, 1-partition_user.\r\n");
 }
