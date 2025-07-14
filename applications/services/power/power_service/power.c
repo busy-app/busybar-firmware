@@ -326,7 +326,7 @@ Power* power_alloc(void) {
     power->gpio_semaphore = furi_semaphore_alloc(1, 0);
     power->message_queue = furi_message_queue_alloc(4, sizeof(PowerMessage));
     power->input_current_limit = 500;
-    power->charger_current_limit = CHARGE_CURRENT_MAX;
+    power->charger_current_limit = POWER_CHARGE_CURRENT_MAX;
     power->charger_enabled = true;
     power->state.battery_ready = false;
 
@@ -377,7 +377,7 @@ void power_run(Power* power) {
     }
 
     bq25798_set_charge_current_limit(POWER_I2C, power->charger_current_limit);
-    bq25798_set_charge_voltage_limit(POWER_I2C, CHARGE_VOLTAGE);
+    bq25798_set_charge_voltage_limit(POWER_I2C, POWER_CHARGE_VOLTAGE);
     furi_hal_i2c_release(POWER_I2C);
 
     furi_record_create(RECORD_POWER, power);

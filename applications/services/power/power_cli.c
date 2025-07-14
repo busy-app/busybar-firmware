@@ -113,7 +113,7 @@ static void power_cli_charger_current(PipeSide* pipe, FuriString* args) {
     Power* power = furi_record_open(RECORD_POWER);
 
     if(args_read_int_and_trim(args, &value)) {
-        if((value > 0) && (value <= CHARGE_CURRENT_MAX)) {
+        if((value > 0) && (value <= POWER_CHARGE_CURRENT_MAX)) {
             args_error = false;
             power_set_charge_current(power, value);
         }
