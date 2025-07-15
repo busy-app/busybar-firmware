@@ -193,7 +193,7 @@ JsonConfigStatus
 
     if(item) {
         if(cJSON_IsString(item)) {
-            *val = item->string;
+            *val = item->valuestring;
         } else {
             status = JsonConfigStatusMissing;
         }
@@ -325,10 +325,12 @@ JsonConfigStatus
     JsonConfig* cfg = json_config_alloc();
     status = json_config_open(cfg, file_path);
     if(status != JsonConfigStatusError) {
-        status = json_config_read_str(cfg, key, val, val_default);
+        char* str_temp = NULL;
+        status = json_config_read_str(cfg, key, &str_temp, val_default);
+        *val = strdup(str_temp);
     } else {
         if(val_default) {
-            *val = val_default;
+            *val = strdup(val_default);
         }
     }
     json_config_free(cfg);

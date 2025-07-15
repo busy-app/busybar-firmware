@@ -85,7 +85,7 @@ JsonConfigStatus
  * If value is missing, it will be written to default value (if val_default != NULL)
  * @param a pointer to the config instance.
  * @param object name.
- * @param a pointer to store the value.
+ * @param a pointer to store the string, valid untill the json_config_free or the next object modification
  * @param a pointer to default value (set to NULL to bypass default value write).
  * @return Operation status (JsonConfigStatus).
  */
@@ -180,7 +180,7 @@ JsonConfigStatus
  * If value is missing, it will be written to default value (if val_default != NULL)
  * @param a file path string.
  * @param object name.
- * @param a pointer to store the value.
+ * @param a pointer to store the string, you have to free it after use.
  * @param a pointer to default value (set to NULL to bypass default value write).
  * @return Operation status (JsonConfigStatus).
  */
