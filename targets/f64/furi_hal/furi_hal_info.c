@@ -1,0 +1,435 @@
+#include <furi_hal_info.h>
+
+#include <furi_hal_version.h>
+#include <furi.h>
+
+#include <sl_net.h>
+#include <sl_wifi.h>
+#include <rsi_bt_common_apis.h>
+
+#include "wifi_config.h"
+
+#define TAG "FuriHalInfo"
+
+#define FURI_HAL_INFO_917_MBR_SIZE                                496
+#define FURI_HAL_INFO_917_MBR_ADDRESS                             0x081f0000
+#define FURI_HAL_INFO_917_MBR_1_8_VERSION                         0x1F
+#define FURI_HAL_INFO_917_MBR_1_6_VERSION                         0x1B
+#define FURI_HAL_INFO_917_PACKAGE_TYPE_VALUES_OFFSET_COMMON_FLASH 0x81F0292
+#define FURI_HAL_INFO_917_SILICON_REV_VALUES_OFFSET_COMMON_FLASH  0x81F0293
+#define FURI_HAL_INFO_917_COMMON_FLASH_IPMU_VALUES_OFFSET         0x81F0258
+
+typedef struct {
+    uint8_t _reserved0[337];
+
+    uint8_t r337_0_5                        : 6;
+    uint8_t ta_secure_boot_enable           : 1;
+    uint8_t ta_anti_roll_back               : 1;
+
+    uint8_t ta_digital_signature_validation : 1;
+    uint8_t m4_anti_roll_back               : 1;
+    uint8_t m4_digital_signature_validation : 1;
+    uint8_t r338_3_7                        : 5;
+
+    uint8_t _reserved1[4];
+    uint8_t r343_0_0            : 1;
+    uint8_t ta_encrypt_firmware : 2;
+    uint8_t r343_3_7            : 5;
+    uint8_t _reserved2[1];
+
+    uint8_t r345_0_3              : 4;
+    uint8_t m4_secure_boot_enable : 1;
+    uint8_t m4_encrypt_firmware   : 1;
+    uint8_t r345_6_7              : 2;
+
+    uint8_t _reserved3[5];
+    uint8_t r350_0_4        : 4;
+    uint8_t disable_ta_jtag : 1;
+    uint8_t r350_6_7        : 2;
+    uint8_t _reserved30[2];
+
+    uint8_t r354_0_1                       : 2;
+    uint8_t disable_m4_jtag                : 1;
+    uint8_t r354_3_3                       : 1;
+    uint8_t disable_m4_access_frm_tass_sec : 1;
+    uint8_t r354_5_7                       : 3;
+
+    uint8_t _reserved4[2];
+
+    uint8_t r357_0_3              : 4;
+    uint8_t m4_fw_encryption_mode : 2;
+    uint8_t r357_6_7              : 2;
+
+    uint8_t _reserved6[46];
+    uint8_t mbr_variant;
+    uint8_t _reserved5[91];
+} FURI_PACKED FuriHalInfo917Mbr;
+static_assert(sizeof(FuriHalInfo917Mbr) == FURI_HAL_INFO_917_MBR_SIZE, "failed");
+
+typedef struct {
+    FuriString* firmware_version;
+    FuriString* mac_ble;
+    FuriString* mac_wifi;
+} FuriHalInfoNwp;
+
+FURI_WEAK void furi_hal_info_get_api_version(uint16_t* major, uint16_t* minor) {
+    *major = 0;
+    *minor = 0;
+}
+
+static FuriHalInfoNwp* furi_hal_info_nwp_alloc(void) {
+    FuriHalInfoNwp* instance = malloc(sizeof(FuriHalInfoNwp));
+    instance->firmware_version = furi_string_alloc();
+    instance->mac_ble = furi_string_alloc();
+    instance->mac_wifi = furi_string_alloc();
+    furi_string_printf(instance->firmware_version, "unknown");
+    furi_string_printf(instance->mac_ble, "unknown");
+    furi_string_printf(instance->mac_wifi, "unknown");
+    return instance;
+}
+
+static void furi_hal_info_nwp_free(FuriHalInfoNwp* instance) {
+    furi_check(instance);
+    furi_string_free(instance->firmware_version);
+    furi_string_free(instance->mac_ble);
+    furi_string_free(instance->mac_wifi);
+    free(instance);
+}
+
+static void furi_hal_info_get_nwp(FuriHalInfoNwp* instance) {
+    furi_check(instance);
+    bool is_nwp_initialized = false;
+    sl_wifi_firmware_version_t fw_version;
+    sl_mac_address_t mac_addr = {0};
+
+    sl_status_t status =
+        sl_net_init(SL_NET_WIFI_CLIENT_INTERFACE, &wifi_config_client, NULL, NULL);
+    if(status == SL_STATUS_ALREADY_INITIALIZED) {
+        is_nwp_initialized = true;
+    } else if(status != SL_STATUS_OK) {
+        FURI_LOG_E(TAG, "Failed to initialise Wifi: 0x%08lX", status);
+        return;
+    }
+
+    do {
+        status = sl_wifi_get_firmware_version(&fw_version);
+        if(status != SL_STATUS_OK) {
+            FURI_LOG_E(TAG, "Failed to get firmware version: 0x%08lX", status);
+        } else {
+            furi_string_printf(
+                instance->firmware_version,
+                "%x%x.%d.%d.%d.%d.%d.%d",
+                fw_version.chip_id,
+                fw_version.rom_id,
+                fw_version.major,
+                fw_version.minor,
+                fw_version.security_version,
+                fw_version.patch_num,
+                fw_version.customer_id,
+                fw_version.build_num);
+        }
+
+        status = rsi_bt_get_local_device_address((uint8_t*)&mac_addr);
+        if(status != SL_STATUS_OK) {
+            FURI_LOG_E(TAG, "Failed to get local device address: 0x%08lX", status);
+        } else {
+            furi_string_printf(
+                instance->mac_ble,
+                "%02x:%02x:%02x:%02x:%02x:%02x",
+                mac_addr.octet[5],
+                mac_addr.octet[4],
+                mac_addr.octet[3],
+                mac_addr.octet[2],
+                mac_addr.octet[1],
+                mac_addr.octet[0]);
+        }
+        status = sl_wifi_get_mac_address(SL_WIFI_CLIENT_INTERFACE, &mac_addr);
+        if(status != SL_STATUS_OK) {
+            FURI_LOG_E(TAG, "Failed to get WiFi MAC address: 0x%08lX", status);
+        } else {
+            furi_string_printf(
+                instance->mac_wifi,
+                "%02x:%02x:%02x:%02x:%02x:%02x",
+                mac_addr.octet[0],
+                mac_addr.octet[1],
+                mac_addr.octet[2],
+                mac_addr.octet[3],
+                mac_addr.octet[4],
+                mac_addr.octet[5]);
+        }
+    } while(false);
+
+    if(!is_nwp_initialized) {
+        status = sl_net_deinit(SL_NET_WIFI_CLIENT_INTERFACE);
+        if(status != SL_STATUS_OK) {
+            FURI_LOG_E(TAG, "Failed to deinitialise Wifi: 0x%08lX", status);
+        }
+    }
+}
+
+char* furi_hal_info_get_encryption_mode(uint8_t encryption_mode) {
+    switch(encryption_mode) {
+    case 0:
+        return "none";
+    case 1:
+        return "ctr";
+    case 2:
+        return "xts";
+    default:
+        return "unknown";
+    }
+}
+
+void furi_hal_info_get(PropertyValueCallback out, char sep, void* context) {
+    UNUSED(out);
+    UNUSED(sep);
+    UNUSED(context);
+
+    FuriString* key = furi_string_alloc();
+    FuriString* value = furi_string_alloc();
+
+    PropertyValueContext property_context = {
+        .key = key, .value = value, .out = out, .sep = sep, .last = false, .context = context};
+    FuriHalInfo917Mbr* furi_hal_info_917_mbr = (FuriHalInfo917Mbr*)FURI_HAL_INFO_917_MBR_ADDRESS;
+
+    FuriHalInfoNwp* furi_hal_info_nwp = furi_hal_info_nwp_alloc();
+    furi_hal_info_get_nwp(furi_hal_info_nwp);
+
+    // Firmware version
+    const Version* firmware_version = furi_hal_version_get_firmware_version();
+    if(firmware_version) {
+        if(sep == '.') {
+            property_value_out(
+                &property_context,
+                NULL,
+                4,
+                "sl"
+                "firmware",
+                "commit",
+                "hash",
+                version_get_githash(firmware_version));
+        } else {
+            property_value_out(
+                &property_context,
+                NULL,
+                3,
+                "sl",
+                "firmware",
+                "commit",
+                version_get_githash(firmware_version));
+        }
+
+        property_value_out(
+            &property_context,
+            NULL,
+            4,
+            "sl",
+            "firmware",
+            "commit",
+            "dirty",
+            version_get_dirty_flag(firmware_version) ? "true" : "false");
+
+        if(sep == '.') {
+            property_value_out(
+                &property_context,
+                NULL,
+                4,
+                "sl",
+                "firmware",
+                "branch",
+                "name",
+                version_get_gitbranch(firmware_version));
+        } else {
+            property_value_out(
+                &property_context,
+                NULL,
+                3,
+                "sl",
+                "firmware",
+                "branch",
+                version_get_gitbranch(firmware_version));
+        }
+        property_value_out(
+            &property_context,
+            NULL,
+            3,
+            "sl",
+            "firmware",
+            "version",
+            version_get_version(firmware_version));
+        property_value_out(
+            &property_context,
+            NULL,
+            3,
+            "sl",
+            "firmware",
+            "builddate",
+            version_get_builddate(firmware_version));
+        property_value_out(
+            &property_context,
+            "%d",
+            3,
+            "sl",
+            "firmware",
+            "target",
+            version_get_target(firmware_version));
+
+        uint16_t api_version_major, api_version_minor;
+        furi_hal_info_get_api_version(&api_version_major, &api_version_minor);
+        property_value_out(
+            &property_context, "%d", 4, "sl", "firmware", "api", "major", api_version_major);
+        property_value_out(
+            &property_context, "%d", 4, "sl", "firmware", "api", "minor", api_version_minor);
+
+        property_value_out(
+            &property_context,
+            NULL,
+            4,
+            "sl",
+            "firmware",
+            "origin",
+            "fork",
+            version_get_firmware_origin(firmware_version));
+
+        property_value_out(
+            &property_context,
+            NULL,
+            4,
+            "sl",
+            "firmware",
+            "origin",
+            "git",
+            version_get_git_origin(firmware_version));
+        // NWP information
+        property_value_out(
+            &property_context,
+            NULL,
+            3,
+            "sl",
+            "wifi",
+            "mac",
+            furi_string_get_cstr(furi_hal_info_nwp->mac_wifi));
+        property_value_out(
+            &property_context,
+            NULL,
+            3,
+            "sl",
+            "ble",
+            "mac",
+            furi_string_get_cstr(furi_hal_info_nwp->mac_ble));
+        property_value_out(
+            &property_context,
+            NULL,
+            3,
+            "sl",
+            "nwp",
+            "firmware",
+            furi_string_get_cstr(furi_hal_info_nwp->firmware_version));
+        // MBR security flags
+        property_value_out(
+            &property_context,
+            NULL,
+            3,
+            "sl",
+            "nwp",
+            "antirollback",
+            furi_hal_info_917_mbr->ta_anti_roll_back ? "true" : "false");
+        property_value_out(
+            &property_context,
+            NULL,
+            3,
+            "sl",
+            "nwp",
+            "signature",
+            furi_hal_info_917_mbr->ta_digital_signature_validation ? "true" : "false");
+        property_value_out(
+            &property_context,
+            NULL,
+            3,
+            "sl",
+            "nwp",
+            "encrypt",
+            furi_hal_info_get_encryption_mode(furi_hal_info_917_mbr->ta_encrypt_firmware));
+        property_value_out(
+            &property_context,
+            NULL,
+            3,
+            "sl",
+            "nwp",
+            "secureboot",
+            furi_hal_info_917_mbr->ta_secure_boot_enable ? "true" : "false");
+        property_value_out(
+            &property_context,
+            NULL,
+            3,
+            "sl",
+            "m4",
+            "antirollback",
+            furi_hal_info_917_mbr->m4_anti_roll_back ? "true" : "false");
+        property_value_out(
+            &property_context,
+            NULL,
+            3,
+            "sl",
+            "m4",
+            "signature",
+            furi_hal_info_917_mbr->m4_digital_signature_validation ? "true" : "false");
+        property_value_out(
+            &property_context,
+            NULL,
+            3,
+            "sl",
+            "m4",
+            "encrypt",
+            furi_hal_info_917_mbr->m4_encrypt_firmware ? "true" : "false");
+        property_value_out(
+            &property_context,
+            NULL,
+            3,
+            "sl",
+            "m4",
+            "secureboot",
+            furi_hal_info_917_mbr->m4_secure_boot_enable ? "true" : "false");
+        property_value_out(
+            &property_context,
+            NULL,
+            3,
+            "sl",
+            "m4",
+            "encryptionmode",
+            furi_hal_info_get_encryption_mode(furi_hal_info_917_mbr->m4_fw_encryption_mode));
+        property_value_out(
+            &property_context,
+            NULL,
+            3,
+            "sl",
+            "m4",
+            "accessfromtass",
+            furi_hal_info_917_mbr->disable_m4_access_frm_tass_sec ? "false" : "true");
+        property_value_out(
+            &property_context,
+            NULL,
+            3,
+            "sl",
+            "m4",
+            "debug",
+            furi_hal_info_917_mbr->disable_m4_jtag ? "false" : "true");
+        property_value_out(
+            &property_context,
+            NULL,
+            3,
+            "sl",
+            "nwp",
+            "debug",
+            furi_hal_info_917_mbr->disable_ta_jtag ? "false" : "true");
+        FuriString* ver_name = furi_string_alloc();
+        furi_string_printf(ver_name, "%02x", furi_hal_info_917_mbr->mbr_variant);
+        property_value_out(
+            &property_context, NULL, 3, "sl", "mbr", "variant", furi_string_get_cstr(ver_name));
+        furi_string_free(ver_name);
+    }
+
+    furi_hal_info_nwp_free(furi_hal_info_nwp);
+    furi_string_free(key);
+    furi_string_free(value);
+}

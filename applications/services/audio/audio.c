@@ -24,6 +24,7 @@ typedef enum {
 
 typedef enum {
     AudioMessageTypePlayFile,
+    AudioMessageTypeStop,
     AudioMessageTypeSetVolume,
 } AudioMessageType;
 
@@ -160,6 +161,8 @@ static void audio_message_queue_callback(FuriEventLoopObject* object, void* cont
 
     if(msg.type == AudioMessageTypePlayFile) {
         result = audio_handle_play_file(instance, &msg);
+    } else if(msg.type == AudioMessageTypeStop) {
+        instance->should_stop = true;
     } else if(msg.type == AudioMessageTypeSetVolume) {
         instance->volume = msg.volume;
     } else {
@@ -187,6 +190,7 @@ static void audio_custom_event_callback(uint32_t events, void* context) {
 
     } else {
         furi_hal_sai_stop();
+        storage_file_close(instance->file);
     }
 }
 
@@ -245,6 +249,16 @@ bool audio_play_file(Audio* instance, const char* file_name) {
     return result;
 }
 
+void audio_stop(Audio* instance) {
+    furi_check(instance);
+
+    const AudioMessage msg = {
+        .type = AudioMessageTypeStop,
+    };
+
+    audio_send_message(instance, &msg);
+}
+
 void audio_set_volume(Audio* instance, float volume) {
     furi_check(instance);
     furi_check(volume >= AUDIO_VOLUME_MIN && volume <= AUDIO_VOLUME_MAX);
@@ -255,6 +269,11 @@ void audio_set_volume(Audio* instance, float volume) {
     };
 
     audio_send_message(instance, &msg);
+}
+
+float audio_get_volume(Audio* instance) {
+    furi_check(instance);
+    return instance->volume;
 }
 
 int32_t audio_srv(void* p) {

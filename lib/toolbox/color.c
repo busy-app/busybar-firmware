@@ -1,5 +1,7 @@
 #include "color.h"
 
+#include <core/check.h>
+
 // https://stackoverflow.com/questions/24152553/hsv-to-rgb-and-back-without-floating-point-math-in-python
 Color color_hsv_to_rgb(ColorHsv hsv) {
     Color rgb = {};
@@ -58,6 +60,18 @@ Color color_hsv_to_rgb(ColorHsv hsv) {
         rgb.b = q;
         break;
     }
+
+    return rgb;
+}
+
+Color color_hex_to_rgb(uint32_t hex) {
+    furi_check(hex <= 0xFFFFFF);
+
+    Color rgb = {
+        .b = hex & 0xFF,
+        .g = (hex >> 8) & 0xFF,
+        .r = (hex >> 16) & 0xFF,
+    };
 
     return rgb;
 }

@@ -9,7 +9,7 @@
 	url = https://github.com/cesanta/mongoose.git
 [submodule "lib/lwip"]
 	path = lib/lwip
-	url = git://git.savannah.gnu.org/lwip.git
+	url = https://github.com/lwip-tcpip/lwip.git
 [submodule "targets/lib/simplicity_sdk"]
 	path = lib/simplicity_sdk
 	url = https://github.com/SiliconLabs/simplicity_sdk.git
@@ -34,6 +34,7 @@
 [submodule "scripts/toolchain"]
 	path = scripts/toolchain
 	url = https://github.com/flipperdevices/fbtng-bootstrap.git
+	shallow = false
 [submodule "fbt_layers/core_libs"]
 	path = fbt_layers/core_libs
 	url = https://github.com/flipperdevices/fbtng-corelibs.git
@@ -42,10 +43,13 @@
 	url = https://github.com/flipperdevices/fbtng-freertos.git
 [submodule "lib/lvgl"]
 	path = lib/lvgl
-	url = https://github.com/lvgl/lvgl.git
+	url = https://github.com/flipperdevices/lvgl.git
 [submodule "lib/matter_ext"]
 	path = lib/matter_ext
 	url = https://github.com/flipperdevices/silabs_matter_extension.git
-[submodule "lib/matter_zap"]
-	path = lib/matter_zap
-	url = https://github.com/flipperdevices/bsb-matter-zap.git
+[submodule "lib/cjson"]
+	path = lib/cjson
+	url = https://github.com/DaveGamble/cJSON.git
+[submodule "lib/thorvg"]
+	path = lib/thorvg
+	url = https://github.com/thorvg/thorvg.git

@@ -107,10 +107,10 @@
  * - LV_OS_MQX
  * - LV_OS_SDL2
  * - LV_OS_CUSTOM */
-#define LV_USE_OS   LV_OS_NONE
+#define LV_USE_OS   LV_OS_CUSTOM
 
 #if LV_USE_OS == LV_OS_CUSTOM
-    #define LV_OS_CUSTOM_INCLUDE <stdint.h>
+    #define LV_OS_CUSTOM_INCLUDE <lvgl_addons/osal/lv_furi.h>
 #endif
 #if LV_USE_OS == LV_OS_FREERTOS
 	/*
@@ -154,7 +154,7 @@
 /** Stack size of drawing thread.
  * NOTE: If FreeType or ThorVG is enabled, it is recommended to set it to 32KB or more.
  */
-#define LV_DRAW_THREAD_STACK_SIZE    (8 * 1024)         /**< [bytes]*/
+#define LV_DRAW_THREAD_STACK_SIZE    (4 * 1024)         /**< [bytes]*/
 
 #define LV_USE_DRAW_SW 1
 #if LV_USE_DRAW_SW == 1
@@ -314,7 +314,7 @@
 #define LV_USE_DRAW_DMA2D 0
 
 #if LV_USE_DRAW_DMA2D
-    #define LV_DRAW_DMA2D_HAL_INCLUDE "stm32h7xx_hal.h"
+    #define LV_DRAW_DMA2D_HAL_INCLUDE "stm32u5xx.h"
 
     /* if enabled, the user is required to call `lv_draw_dma2d_transfer_complete_interrupt_handler`
      * upon receiving the DMA2D global interrupt
@@ -538,7 +538,7 @@
 #define LV_USE_MATRIX           0
 
 /** Include `lvgl_private.h` in `lvgl.h` to access internal data and functions by default */
-#define LV_USE_PRIVATE_API		0
+#define LV_USE_PRIVATE_API		1
 
 /*==================
  *   FONT USAGE
@@ -590,11 +590,14 @@
 #define LV_FONT_CUSTOM_DECLARE \
     LV_FONT_DECLARE(lv_font_tiny_6) \
     LV_FONT_DECLARE(lv_font_tiny5_8) \
-    LV_FONT_DECLARE(lv_font_haxrcorp4089_16) \
-    LV_FONT_DECLARE(lv_font_pixel_operator_8)
+    LV_FONT_DECLARE(lv_font_cubic_12) \
+    LV_FONT_DECLARE(lv_font_somybmp_7) \
+    LV_FONT_DECLARE(lv_font_ark_numerals_small_10) \
+    LV_FONT_DECLARE(lv_font_ark_numerals_regular_10) \
+    LV_FONT_DECLARE(lv_font_ark_numerals_condensed_10)
 
 /** Always set a default font */
-#define LV_FONT_DEFAULT &lv_font_haxrcorp4089_16
+#define LV_FONT_DEFAULT &lv_font_tiny5_8
 
 /** Enable handling large font and/or fonts with a lot of characters.
  *  The limit depends on the font size, font face and bpp.
@@ -673,7 +676,7 @@
 
 #define LV_USE_BAR        1
 
-#define LV_USE_BUTTON        1
+#define LV_USE_BUTTON        0
 
 #define LV_USE_BUTTONMATRIX  0
 
@@ -717,7 +720,7 @@
 
 #define LV_USE_LINE       0
 
-#define LV_USE_LIST       1
+#define LV_USE_LIST       0
 
 #define LV_USE_LOTTIE     0  /**< Requires: lv_canvas, thorvg */
 
@@ -778,7 +781,7 @@
 #define LV_USE_THEME_SIMPLE 0
 
 /** A theme designed for monochrome displays */
-#define LV_USE_THEME_MONO 1
+#define LV_USE_THEME_MONO 0
 
 /*==================
  * LAYOUTS
@@ -975,12 +978,12 @@
 
     /** 1: Show CPU usage and FPS count.
      *  - Requires `LV_USE_SYSMON = 1` */
-    #define LV_USE_PERF_MONITOR 0
+    #define LV_USE_PERF_MONITOR 1
     #if LV_USE_PERF_MONITOR
         #define LV_USE_PERF_MONITOR_POS LV_ALIGN_BOTTOM_RIGHT
 
         /** 0: Displays performance data on the screen; 1: Prints performance data using log. */
-        #define LV_USE_PERF_MONITOR_LOG_MODE 0
+        #define LV_USE_PERF_MONITOR_LOG_MODE 1
     #endif
 
     /** 1: Show used memory and memory fragmentation.

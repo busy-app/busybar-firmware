@@ -1,12 +1,14 @@
 #include <furi_hal_cortex.h>
-#include <furi_hal_bus.h>
+#include <furi_hal.h>
 #include <furi.h>
 
 #include <stm32u5xx.h>
+#include <stm32u5xx_ll_pwr.h>
 #include <stm32u5xx_ll_icache.h>
 #include <stm32u5xx_ll_dcache.h>
 
 #define FURI_HAL_CORTEX_INSTRUCTIONS_PER_MICROSECOND (SystemCoreClock / 1000000)
+#define DFU_ROM_BASE_ADDR                            0x0BF90000
 
 void furi_hal_cortex_init_early(void) {
     CoreDebug->DEMCR |= (CoreDebug_DEMCR_TRCENA_Msk | CoreDebug_DEMCR_MON_EN_Msk);
@@ -58,6 +60,65 @@ bool furi_hal_cortex_timer_is_expired(FuriHalCortexTimer cortex_timer) {
 void furi_hal_cortex_timer_wait(FuriHalCortexTimer cortex_timer) {
     while(!furi_hal_cortex_timer_is_expired(cortex_timer))
         ;
+}
+
+FURI_NORETURN void furi_hal_cortex_system_reset(void) {
+    NVIC_SystemReset();
+}
+
+void furi_hal_cortex_switch(void* address) {
+    __set_BASEPRI(0);
+    __set_CONTROL(0); // Reset MSP/PSP selection
+    asm volatile("ldr    r3, [%0]    \n"
+                 "msr    msp, r3     \n"
+                 "ldr    r3, [%1]    \n"
+                 "mov    pc, r3      \n"
+                 :
+                 : "r"(address), "r"(address + 0x4)
+                 : "r3");
+}
+
+static inline uint32_t furi_hal_cortex_resolve_jump_address(FuriHalCortexJumpType jump_type) {
+    switch(jump_type) {
+    case FuriHalCortexJumpDFU:
+        return DFU_ROM_BASE_ADDR;
+    case FuriHalCortexJumpSRAM:
+        return SRAM1_BASE;
+    case FuriHalCortexJumpFlash:
+        return FLASH_BASE;
+    default:
+        furi_crash("Invalid parameter");
+    }
+}
+
+FURI_NORETURN void furi_hal_cortex_jump(FuriHalCortexJumpType jump_type) {
+    // Disable all interrupts
+    __disable_irq();
+
+    // Disable Systick timer
+    SysTick->CTRL = 0;
+
+    // Clear Interrupt Enable Register & Interrupt Pending Register
+    for(size_t i = 0; i < 5; i++) {
+        NVIC->ICER[i] = 0xFFFFFFFF;
+        NVIC->ICPR[i] = 0xFFFFFFFF;
+    }
+
+    LL_PWR_EnableUCPDDeadBattery();
+
+#ifdef DCACHE_ENABLE
+    LL_DCACHE_Invalidate(DCACHE1);
+    LL_DCACHE_Disable(DCACHE1);
+#endif
+
+    LL_ICACHE_Invalidate();
+    LL_ICACHE_Disable();
+
+    SCB->VTOR = furi_hal_cortex_resolve_jump_address(jump_type);
+    furi_hal_cortex_switch((void*)SCB->VTOR);
+
+    furi_crash("Jump failed");
+    __builtin_unreachable();
 }
 
 // // Duck ST

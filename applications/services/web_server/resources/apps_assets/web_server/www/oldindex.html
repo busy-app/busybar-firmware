@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Busy Bar WebServer</title>
+    <link rel="stylesheet" href="common.css">
+</head>
+
+<body>
+    <div class="container">
+        <h1>Busy Bar WebServer</h1>
+
+        <div class="links-section">
+            <h2>Navigation</h2>
+            <ul>
+                <li><a href="/docs" target="_blank">API Documentation</a></li>
+                <li><a href="update.html">Firmware Update Page</a></li>
+                <li><a href="file_browser.html">File Browser</a></li>
+                <li><a href="input.html">Input demo</a></li>
+            </ul>
+        </div>
+
+        <details class="websocket-section">
+            <summary>WebSocket Test</summary>
+            <div>
+                <button id="btn_ws">WS open/close</button>
+                <input id="message" type="text" placeholder="Type message" style="width: 20em;" />
+                <button id="btn_ws_send">WS send</button>
+            </div>
+        </details>
+
+        <div style="margin-top: 1em;">Action log:</div>
+        <div id="log"></div>
+    </div>
+</body>
+<script>
+    var E = function (id) { return document.getElementById(id); };
+    var msglog = E('log');
+    var log = text => {
+        const div = document.createElement('div');
+        div.textContent = text;
+        msglog.appendChild(div);
+        // Scroll to bottom
+        msglog.scrollTop = msglog.scrollHeight;
+    };
+
+    var ws;
+    var btn_ws = E('btn_ws');
+    var messageInput = E('message');
+    var btn_ws_send = E('btn_ws_send');
+
+    btn_ws.onclick = function () {
+        if (ws) {
+            ws.close();
+            ws = null;
+            log('WS: Connection closing...');
+            return;
+        }
+        // Use wss:// if on https, ws:// otherwise
+        const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+        const wsUrl = `${protocol}//${window.location.host}/ws_test`;
+        log(`WS: Connecting to ${wsUrl}`);
+        ws = new WebSocket(wsUrl);
+        if (!ws) {
+            log('WS: Failed to create WebSocket object.');
+            return;
+        }
+        ws.onopen = function () { log('WS: CONNECTION OPENED'); }
+        ws.onmessage = function (ev) { log('WS: RECEIVED: ' + ev.data); }
+        ws.onerror = function (ev) { log('WS: ERROR: ' + JSON.stringify(ev)); } // Log more details on error
+        ws.onclose = function (ev) {
+            log(`WS: CONNECTION CLOSED (Code: ${ev.code}, Reason: ${ev.reason || 'N/A'}, Clean: ${ev.wasClean})`);
+            ws = null;
+        }
+    };
+
+    btn_ws_send.onclick = function () {
+        if (!ws || ws.readyState !== WebSocket.OPEN) {
+            log('WS: Not connected or connection not open.');
+            return;
+        }
+        log('WS: SENT: ' + messageInput.value);
+        ws.send(messageInput.value);
+        messageInput.value = ''; // Clear input after sending
+    };
+</script>
+
+</html>

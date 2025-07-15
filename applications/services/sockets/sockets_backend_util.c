@@ -59,10 +59,10 @@ int32_t sockets_get_parent(int32_t socket) {
     sli_si91x_socket_t* socket_p = sli_si91x_sockets[socket];
     furi_assert(socket_p);
 
-    for(uint32_t i = 0; i < NUMBER_OF_SOCKETS; ++i) {
+    for(uint32_t i = 0; i < SLI_NUMBER_OF_SOCKETS; ++i) {
         sli_si91x_socket_t* it = sli_si91x_sockets[i];
 
-        if(!it || it->role != SI91X_SOCKET_TCP_SERVER) {
+        if(!it || it->role != SLI_SI91X_SOCKET_TCP_SERVER) {
             continue;
         }
 

@@ -25,7 +25,7 @@
         "-Wstrict-prototypes"
     ],
     "cpp_flags": [
-        "-std=c++20",
+        "-std=c++14",
         "-fno-rtti",
         "-fno-use-cxa-atexit",
         "-fno-exceptions",
@@ -82,7 +82,7 @@
         "*/*.c"
     ],
     "linker_script_flash": "STM32U595xx_FLASH.ld",
-    "linker_script_ram": "STM32U595xx_FLASH.ld",
+    "linker_script_ram": "STM32U595xx_RAM.ld",
     "linker_script_app": "application_ext.ld",
     "sdk_symbols": "api_symbols.csv",
     "variables_sconscript": "fbt_conf/stm32u595_vars.scons",
@@ -102,11 +102,12 @@
         "print",
         "fatfs",
         "lwip",
+        "cjson",
+        "thorvg",
         "lvgl",
         "lvgl_addons",
         "network",
         "mongoose",
-        "canvas_oled",
         "flipper_format",
         "flipper_application",
         "heatshrink",
@@ -116,14 +117,18 @@
         "furi",
         "drivers",
         "version",
+        "internal_assets",
         "ext_applications",
-        "firmware_applications_f20"
+        "firmware_applications_f20",
+        "cli",
+        "containers"
     ],
     "fw_modules": [
         "fw_elf",
         "fw_artifacts",
         "fw_cdb",
         "sdk_extapps",
+        "bsb_assets",
         "link_builddir"
     ],
     "dist_modules": [
@@ -132,7 +137,9 @@
         "lint",
         "vscode_project",
         "subl_project",
-        "cli"
+        "cli",
+        "upload_resources",
+        "u5_updater"
     ],
     "extra_target_meta": {
         "debug_tags": [

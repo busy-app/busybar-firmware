@@ -1,5 +1,4 @@
 #include "applications.h"
-#include <assets_icons.h>
 
 {%
 from fbt.appmanifest import FlipperApplication, FlipperAppType
@@ -17,6 +16,10 @@ APP_TYPE_MAP = {
         "FlipperInternalOnStartHook",
         "FLIPPER_ON_SYSTEM_START",
     ),
+    FlipperAppType.CLICMD: (
+        "FlipperInternalCommandApplication",
+        "FLIPPER_CLI_COMMANDS",
+    ),
 }
 %}
 
@@ -26,6 +29,8 @@ const char* FLIPPER_AUTORUN_APP_NAME = "{{ autorun_app_name }}";
     {% for app in buildset.get_apps_of_type(apptype): %}
         {% if app.apptype == FlipperAppType.STARTUP: %}
 extern void {{ app.entry_point }}(void);
+        {% :elif app.apptype == FlipperAppType.CLICMD: %}
+extern void {{ app.entry_point }}(PipeSide* pipe, FuriString* args, void* context);
         {% :else: %}
 extern int32_t {{ app.entry_point }}(void* p);
         {% :endif %}
@@ -35,6 +40,8 @@ const {{ entry_type }} {{ entry_block }}[] = {
     {% for app in buildset.get_apps_of_type(apptype): %}
         {% if app.apptype == FlipperAppType.STARTUP: %}
     {{ app.entry_point }},
+        {% :elif app.apptype == FlipperAppType.CLICMD: %}
+{% include("cli_cmd_block.tmpl") %},
         {% :else: %}
 {% include("app_block.tmpl") %},
         {% :endif %}
@@ -64,12 +71,6 @@ const FlipperExternalApplication FLIPPER_EXTERNAL_APPS[] = {
 %}
     {
         .name = "{{ app.name }}",
-        .icon = 
-    {% if app.icon: %}
-            &{{ app.icon }},
-    {% :else: %}
-            NULL,
-    {% :endif %}
         .path = "{{ app_path }}",
     },
 {% :endfor %}

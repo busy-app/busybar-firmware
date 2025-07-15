@@ -26,11 +26,14 @@ env.Append(
         Dir(f"{MCU_INCDIR}/drivers/unified_api/inc").rdir(),
        # Dir(f"{MCU_INCDIR}/drivers/service/clock_manager/inc").rdir(),
         Dir(f"{MCU_INCDIR}/drivers/unified_peripheral_drivers/inc").rdir(), #Todo no matter
+        # Dir(f"{MCU_INCDIR}/core/common/inc").rdir(),
+        # Dir(f"{MCU_INCDIR}/drivers/systemlevel/inc").rdir(),
         Dir(f"{WIRELESS_INCDIR}/sl_net/inc").rdir(),
         Dir(f"{WIRELESS_INCDIR}/inc").rdir(),
         Dir(f"{WIRELESS_INCDIR}/ble/inc").rdir(),
         Dir(f"{WIRELESS_INCDIR}/socket/inc").rdir(),
         Dir(f"{WIRELESS_INCDIR}/ahb_interface/inc").rdir(),
+        Dir(f"{WIRELESS_INCDIR}/firmware_upgrade").rdir(),
         Dir(f"{MCU_INCDIR}/drivers/systemlevel/inc").rdir(),
        # Dir(f"wiseconnect/resources/defaults").rdir(),
        Dir(f"{WISECONNECT_INCDIR}/common/inc").rdir(),
@@ -83,6 +86,7 @@ env.Append(
         "_STRUCT_TIMESPEC",
         "NVM3_LOCK_OVERRIDE",
         "SUPPORT_CPLUSPLUS"
+        "__FREERTOS_OS_WISECONNECT",
     ],
 )
 
@@ -110,6 +114,9 @@ sources = [
    f"{WISECONNECT_DIR}/service/network_manager/src/sl_net_basic_profiles.c",
    f"{WISECONNECT_DIR}/service/network_manager/src/sl_net_credentials.c",
    f"{WISECONNECT_DIR}/service/network_manager/si91x/sl_net_si91x.c",
+#    f"{WISECONNECT_DIR}/service/network_manager/src/sli_net_common_utility.c",
+#    f"{WISECONNECT_DIR}/sli_wifi_command_engine/src/sli_wifi_command_engine.c",
+#    f"{WISECONNECT_DIR}/sli_si91x_wifi_event_handler/src/sli_si91x_wifi_event_handler.c",
    # f"{WIRELESS_DIR}/src/sl_si91x_driver.c",
    # f"{WIRELESS_DIR}/src/sl_rsi_utility.c",
    # f"{WIRELESS_DIR}/ahb_interface/src/rsi_hal_mcu_m4_rom.c",
@@ -128,6 +135,8 @@ sources = [
    # f"{WIRELESS_DIR}/sl_net/src/sl_si91x_net_credentials.c",
    f"{WIRELESS_DIR}/sl_net/src/sl_si91x_net_internal_stack.c",
    # f"{WIRELESS_DIR}/sl_net/src/sl_net_si91x_callback_framework.c",
+#    f"{WIRELESS_DIR}/sl_net/src/sli_net_si91x_utility.c",
+#    f"{WIRELESS_DIR}/firmware_upgrade/firmware_upgradation.c",
    # # SDK BLE Silabs
    # f"{WIRELESS_DIR}/ble/src/rsi_common_apis.c",
    # f"{WIRELESS_DIR}/ble/src/rsi_bt_ble.c",

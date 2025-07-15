@@ -6,6 +6,8 @@
 
 #include <stdint.h>
 
+#include <core/pubsub.h>
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -31,7 +33,14 @@ typedef struct Wifi Wifi;
 typedef enum {
     WifiStatusOk, /**< No error has occurred. */
     WifiStatusError, /**< A generic error has occurred. */
+    WifiStatusNotInitialized, /**< Wifi was not initialized before use. */
+    WifiStatusAlreadyInitialized, /** Wifi has already been initialized. */
+    WifiStatusFailedToInitialize, /** Wifi initialization failed. */
+    WifiStatusAlreadyConnected, /** Wifi has already been connected. */
+    WifiStatusAccessPointNotFound, /** Wifi access point was not found. */
+    WifiStatusNotValidForThisCommand, /** Command issued in an invalid state. */
     // TODO: Add more errors
+    WifiStatusMax, /**< Special value, internal use */
 } WifiStatus;
 
 /** Enumeration of possible states for the Wifi system. */
@@ -39,6 +48,7 @@ typedef enum {
     WifiStateDeinit, /**< The Wifi system is de-initialised. */
     WifiStateDown, /**< The Wifi system is initialised, but no connection is active. */
     WifiStateUp, /**< The Wifi system is initialised, and there is an active connection. */
+    WifiStateMax, /**< Special value, internal use */
 } WifiState;
 
 /** Enumeration of supported security modes. */
@@ -54,7 +64,7 @@ typedef enum {
     WifiSecurityModeWpa3Transition,
     WifiSecurityModeWpa3Enterprise,
     WifiSecurityModeWpa3TransitionEnterprise,
-    WifiSecurityModeMax,
+    WifiSecurityModeMax, /**< Special value, internal use */
 } WifiSecurityMode;
 
 /** Credentials to connect to a Wifi access point. */
@@ -75,22 +85,48 @@ typedef struct {
 typedef enum {
     WifiIpManagementStatic, /**< Static IP address - set manually */
     WifiIpManagementDynamic, /**< Dynamic IP address - set automatically via DHCP */
+    WifiIpManagementMax, /**< Special value, internal use */
 } WifiIpManagement;
 
 /** Enumeration of supported IP protocol types. */
 typedef enum {
     WifiIpTypeV4, /**< IP version 4 */
     WifiIpTypeV6, /**< IP version 6 */
+    WifiIpTypeMax, /**< Special value, internal use */
 } WifiIpType;
+
+/** Union which represents IPv4 as byte sequence and single uint32_t */
+typedef union {
+    uint32_t value; ///< IPv4 address as a uint32_t
+    uint8_t bytes[4]; ///< IPv4 address as uint8_t[4]
+} WifiIpv4;
+
+/** All 3 parts of IPv4. This must match to sl_net_ipv4_setting_t, because memcpy is done between them */
+typedef struct {
+    WifiIpv4 address;
+    WifiIpv4 gateway;
+    WifiIpv4 mask;
+} WifiIpv4Settings;
+
+/** Union which represents IPv6 as byte and uint32_t sequences */
+typedef union {
+    uint32_t value[4]; ///< IPv6 address as a uint32_t[4]
+    uint8_t bytes[16]; ///< IPv6 address as uint8_t[16]
+} WifiIpv6;
+
+/** All 3 parts of IPv6. This must match to sl_net_ipv6_setting_t, because memcpy is done between them */
+typedef struct {
+    WifiIpv6 local;
+    WifiIpv6 global;
+    WifiIpv6 gateway;
+} WifiIpv6Settings;
 
 /** IP configuration structure. */
 typedef struct {
     WifiIpManagement mgmt; /**< Address management method to use */
     WifiIpType type; /**< IP version to use */
-    union {
-        uint8_t v4[4]; /**< Value for IP address v4 */
-        uint8_t v6[16]; /**< Value for IP address v6 */
-    } address; /**< IP address */
+    WifiIpv4Settings ip4;
+    WifiIpv6Settings ip6;
 } WifiIpConfig;
 
 /**

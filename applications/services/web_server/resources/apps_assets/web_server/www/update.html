@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Firmware Update</title>
+    <link rel="stylesheet" href="common.css">
+</head>
+
+<body>
+    <div class="container">
+        <h1>Firmware Update</h1>
+        <form id="updateForm">
+            <div>
+                <label for="packageName">Package Name:</label>
+                <input type="text" id="packageName" name="packageName" value="firmware" required
+                    pattern="^[a-zA-Z0-9._-]+$" title="Alphanumeric, period, underscore, hyphen allowed.">
+            </div>
+            <div>
+                <label for="firmwareFile">Firmware File (.tar):</label>
+                <input type="file" id="firmwareFile" name="firmwareFile" accept=".tar" required>
+            </div>
+            <button type="submit">Upload Firmware</button>
+        </form>
+        <div id="spinner" class="spinner"></div> <!-- Spinner element -->
+        <div id="status"></div>
+    </div>
+
+    <script>
+        document.getElementById('updateForm').addEventListener('submit', async function (event) {
+            event.preventDefault();
+
+            const packageName = document.getElementById('packageName').value;
+            const firmwareFile = document.getElementById('firmwareFile').files[0];
+            const statusDiv = document.getElementById('status');
+            const spinner = document.getElementById('spinner');
+
+            statusDiv.textContent = '';
+            statusDiv.className = '';
+            spinner.style.display = 'none'; // Ensure spinner is hidden initially
+
+            if (!packageName) {
+                statusDiv.textContent = 'Package Name is required.';
+                statusDiv.className = 'error';
+                return;
+            }
+            if (!firmwareFile) {
+                statusDiv.textContent = 'Firmware File is required.';
+                statusDiv.className = 'error';
+                return;
+            }
+
+            const formData = new FormData();
+            formData.append('firmware', firmwareFile); // Key doesn't matter for octet-stream, but useful for FormData
+
+            const url = `/api/v0/update?name=${encodeURIComponent(packageName)}`;
+            statusDiv.textContent = 'Uploading...';
+            spinner.style.display = 'block'; // Show spinner
+
+            try {
+                const response = await fetch(url, {
+                    method: 'POST',
+                    body: firmwareFile, // Send the file directly as the body
+                    headers: {
+                        'Content-Type': 'application/octet-stream'
+                    }
+                });
+
+                const responseData = await response.json();
+
+                if (response.ok) {
+                    statusDiv.textContent = `Success: ${responseData.message || 'Update initiated. Device will reboot.'}`;
+                    statusDiv.className = 'success';
+                } else {
+                    statusDiv.textContent = `Error ${response.status}: ${responseData.error || 'Unknown error occurred.'}`;
+                    statusDiv.className = 'error';
+                }
+            } catch (error) {
+                console.error('Upload error:', error);
+                statusDiv.textContent = 'Upload failed. See console for details.';
+                statusDiv.className = 'error';
+            } finally {
+                spinner.style.display = 'none'; // Hide spinner when done
+            }
+        });
+    </script>
+</body>
+
+</html>

@@ -43,6 +43,7 @@ const IRQn_Type furi_hal_interrupt_irqn[FuriHalInterruptIdMax] = {
     [FuriHalInterruptIdLPDMA1Channel3] = LPDMA1_Channel3_IRQn,
 
     // GPU
+    [FuriHalInterruptIdDMA2D] = DMA2D_IRQn,
     // [FuriHalInterruptIdGPU2D] = GPU2D_IRQn,
     // [FuriHalInterruptIdGPU2DError] = GPU2D_ER_IRQn,
 
@@ -133,7 +134,10 @@ void furi_hal_interrupt_init() {
 }
 
 void furi_hal_interrupt_set_isr(FuriHalInterruptId index, FuriHalInterruptISR isr, void* context) {
-    furi_hal_interrupt_set_isr_ex(index, FuriHalInterruptPriorityNormal, isr, context);
+    FuriHalInterruptPriority priority = furi_kernel_is_running() ?
+                                            FuriHalInterruptPriorityNormal :
+                                            FuriHalInterruptPriorityKamiSama;
+    furi_hal_interrupt_set_isr_ex(index, priority, isr, context);
 }
 
 void furi_hal_interrupt_set_isr_ex(
@@ -253,6 +257,10 @@ void LPDMA1_Channel2_IRQHandler() {
 
 void LPDMA1_Channel3_IRQHandler() {
     furi_hal_interrupt_call(FuriHalInterruptIdLPDMA1Channel3);
+}
+
+void DMA2D_IRQHandler(void) {
+    furi_hal_interrupt_call(FuriHalInterruptIdDMA2D);
 }
 
 void LPUART1_IRQHandler() {
@@ -466,6 +474,12 @@ void FPU_IRQHandler() {
     furi_crash("FpuFault");
 }
 
+void FuriSysTick_Handler(void) {
+    // FURI_HAL_INTERRUPT_ACCOUNT_START();
+    furi_hal_os_tick();
+    // FURI_HAL_INTERRUPT_ACCOUNT_END();
+}
+
 // Potential space-saver for updater build
 const char* furi_hal_interrupt_get_name(uint8_t exception_number) {
     int32_t id = (int32_t)exception_number - 16;
@@ -623,4 +637,14 @@ const char* furi_hal_interrupt_get_name(uint8_t exception_number) {
 uint32_t furi_hal_interrupt_get_time_in_isr_total(void) {
     // return furi_hal_interrupt.counter_time_in_isr_total; // TODO
     return 0;
+}
+
+void furi_hal_interrupt_assert_valid_priority(void) {
+    uint32_t ulCurrentInterrupt = __get_IPSR();
+
+    const uint32_t exti_priority = NVIC_GetPriority(ulCurrentInterrupt - 16);
+    uint32_t group_priority, sub_priority;
+    NVIC_DecodePriority(exti_priority, NVIC_GetPriorityGrouping(), &group_priority, &sub_priority);
+
+    furi_check(group_priority >= configLIBRARY_MAX_SYSCALL_INTERRUPT_PRIORITY);
 }

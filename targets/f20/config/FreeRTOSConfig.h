@@ -46,13 +46,16 @@
 #define configENABLE_BACKWARD_COMPATIBILITY     0
 // #define configUSE_PORT_OPTIMISED_TASK_SELECTION 1
 #define configUSE_PORT_OPTIMISED_TASK_SELECTION 0
-// #define configUSE_TICKLESS_IDLE 2
-#define configUSE_TICKLESS_IDLE                 0
+#define configUSE_TICKLESS_IDLE                 2
 #define configRECORD_STACK_HIGH_ADDRESS         1
 #define configUSE_NEWLIB_REENTRANT              0
 // #define configENABLE_TRUSTZONE 1
 #define configENABLE_TRUSTZONE                  0
 #define configRUN_FREERTOS_SECURE_ONLY          0
+
+#define configENABLE_PAC              0
+#define configASSERT_DEFINED          1
+#define portHAS_ARMV8M_MAIN_EXTENSION 1
 
 /* Defaults to size_t for backward compatibility, but can be changed
    if lengths will always be less than the number of bytes in a size_t. */
@@ -172,6 +175,10 @@ header file. */
         furi_crash("FreeRTOS Assert"); \
     }
 #endif
+
+extern void furi_hal_interrupt_assert_valid_priority(void);
+
+// #define portASSERT_IF_INTERRUPT_PRIORITY_INVALID() furi_hal_interrupt_assert_valid_priority()
 
 // Must be last line of config because of recursion
 #include <core/check.h>

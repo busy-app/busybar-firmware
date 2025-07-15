@@ -1,106 +1,54 @@
-/**
- * @file gui_i.h
- * GUI: main API internals
- */
-
 #pragma once
 
 #include "gui.h"
 
+#include "widget_i.h"
+
 #include <furi.h>
-// #include <furi_hal_rtc.h> // FIXME
-#include <m-array.h>
-#include <stdio.h>
+#include <lvgl.h>
 
-#include <canvas/canvas.h>
-#include <canvas/canvas_i.h>
+#include <front_display/front_display.h>
+#include <back_display/back_display.h>
 
-#include "view_port.h"
-#include "view_port_i.h"
+#include <power/power_service/power.h>
 
-#define GUI_DISPLAY_WIDTH  160
-#define GUI_DISPLAY_HEIGHT 80
+#include <m-list.h>
 
-#define GUI_STATUS_BAR_X               0
-#define GUI_STATUS_BAR_Y               0
-#define GUI_STATUS_BAR_WIDTH           GUI_DISPLAY_WIDTH
-/* 0-1 pixels for upper thin frame
- * 2-9 pixels for icons (battery, sd card, etc)
- * 10-12 pixels for lower bold line */
-#define GUI_STATUS_BAR_HEIGHT          13
-/* icon itself area (battery, sd card, etc) excluding frame.
- * painted 2 pixels below GUI_STATUS_BAR_X.
- */
-#define GUI_STATUS_BAR_WORKAREA_HEIGHT 8
+#define FRONT_W                (FRONT_DISPLAY_W)
+#define FRONT_H                (FRONT_DISPLAY_H)
+#define FRONT_COLOR_FORMAT     (LV_COLOR_FORMAT_RGB888)
+#define FRONT_BYTES_PER_PIXEL  (LV_COLOR_FORMAT_GET_SIZE(FRONT_COLOR_FORMAT))
+#define FRONT_DRAW_BUFFER_SIZE (FRONT_W * FRONT_H * FRONT_BYTES_PER_PIXEL)
 
-#define GUI_WINDOW_X      0
-#define GUI_WINDOW_Y      GUI_STATUS_BAR_HEIGHT
-#define GUI_WINDOW_WIDTH  GUI_DISPLAY_WIDTH
-#define GUI_WINDOW_HEIGHT (GUI_DISPLAY_HEIGHT - GUI_WINDOW_Y)
+#define BACK_COLOR_FORMAT    (LV_COLOR_FORMAT_L8)
+#define BACK_BYTES_PER_PIXEL (LV_COLOR_FORMAT_GET_SIZE(BACK_COLOR_FORMAT))
 
-#define GUI_THREAD_FLAG_DRAW  (1 << 0)
-#define GUI_THREAD_FLAG_INPUT (1 << 1)
-#define GUI_THREAD_FLAG_ALL   (GUI_THREAD_FLAG_DRAW | GUI_THREAD_FLAG_INPUT)
+#define BACK_STATUS_BAR_WIDTH (12)
 
-ARRAY_DEF(ViewPortArray, ViewPort*, M_PTR_OPLIST);
+#define TICK_PERIOD_MS (8)
 
-/** Gui structure */
-struct Gui {
-    // Thread and lock
-    FuriThreadId thread_id;
-    FuriMutex* mutex;
+typedef struct {
+    lv_display_t* lv_display;
+    uint8_t* draw_buffer;
+    void* driver;
+} GuiDisplay;
 
-    // Layers and Canvas
-    bool lockdown;
-    bool direct_draw;
-    ViewPortArray_t layers[GuiLayerMAX];
-    Canvas* canvas;
+typedef struct {
+    GuiInputCallback callback;
+    void* context;
+} GuiInputItem;
 
-    // Input
-    FuriMessageQueue* input_queue;
-    FuriPubSub* input_events;
-    uint32_t ongoing_input;
-    ViewPort* ongoing_input_view_port;
+LIST_DEF(GuiInputItemList, GuiInputItem, M_POD_OPLIST);
+
+struct GuiLayer {
+    GuiInputItemList_t input_list;
+    lv_obj_t* root_objs[GuiDisplayIdMax];
 };
 
-/** Find enabled ViewPort in ViewPortArray
- *
- * @param[in]  array  The ViewPortArray instance
- *
- * @return     ViewPort instance or NULL
- */
-ViewPort* gui_view_port_find_enabled(ViewPortArray_t array);
-
-/** Update GUI, request redraw
- *
- * @param      gui   Gui instance
- */
-void gui_update(Gui* gui);
-
-/** Input event callback
- * 
- * Used to receive input from input service or to inject new input events
- *
- * @param[in]  value  The value pointer (InputEvent*)
- * @param      ctx    The context (Gui instance)
- */
-void gui_input_events_callback(const void* value, void* ctx);
-
-/** Get count of view ports in layer
- *
- * @param      gui        The Gui instance
- * @param[in]  layer      GuiLayer that we want to get count of view ports
- */
-size_t gui_active_view_port_count(Gui* gui, GuiLayer layer);
-
-/** Lock GUI
- *
- * @param      gui   The Gui instance
- */
-void gui_lock(Gui* gui);
-
-/** Unlock GUI
- *
- * @param      gui   The Gui instance
- */
-void gui_unlock(Gui* gui);
+struct Gui {
+    Power* power;
+    FuriEventLoop* event_loop;
+    FuriMessageQueue* input_queue;
+    GuiDisplay displays[GuiDisplayIdMax];
+    GuiLayer layers[GuiLayerIdMax];
+};

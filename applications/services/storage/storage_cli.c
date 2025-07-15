@@ -1,12 +1,13 @@
 #include <furi.h>
+#include <furi_hal.h>
 #include <furi_hal_nvm.h>
-#include <furi_hal_version.h>
 
-#include <cli/cli.h>
-#include <toolbox/args.h>
+#include <toolbox/strint.h>
+#include <cli/cli_command.h>
+#include <cli/cli_ansi.h>
+#include <cli/args.h>
 #include <toolbox/md5_calc.h>
 #include <toolbox/dir_walk.h>
-#include <toolbox/strint.h>
 #include <toolbox/tar/tar_archive.h>
 #include <storage/storage.h>
 #include <storage/storage_sd_api.h>
@@ -20,90 +21,115 @@ static void storage_cli_print_error(FS_Error error) {
     printf("Storage error: %s\r\n", storage_error_get_desc(error));
 }
 
-static void storage_cli_info(Cli* cli, FuriString* path, FuriString* args) {
-    UNUSED(cli);
+static void storage_cli_info(PipeSide* pipe, FuriString* path, FuriString* args) {
+    UNUSED(pipe);
     UNUSED(args);
     Storage* api = furi_record_open(RECORD_STORAGE);
 
-    if(furi_string_cmp_str(path, STORAGE_INT_PATH_PREFIX) == 0) {
-        uint64_t total_space;
-        uint64_t free_space;
-        FS_Error error =
-            storage_common_fs_info(api, STORAGE_INT_PATH_PREFIX, &total_space, &free_space);
+    SDInfo sd_info;
+    FS_Error error = storage_sd_info(api, furi_string_get_cstr(path), &sd_info);
 
-        if(error != FSE_OK) {
-            storage_cli_print_error(error);
-        } else {
-            printf(
-                "Label: %s\r\nType: Virtual\r\n%luKiB total\r\n%luKiB free\r\n",
-                furi_hal_version_get_name_ptr() ? furi_hal_version_get_name_ptr() : "Unknown",
-                (uint32_t)(total_space / 1024),
-                (uint32_t)(free_space / 1024));
-        }
-    } else if(furi_string_cmp_str(path, STORAGE_EXT_PATH_PREFIX) == 0) {
-        SDInfo sd_info;
-        FS_Error error = storage_sd_info(api, &sd_info);
-
-        if(error != FSE_OK) {
-            storage_cli_print_error(error);
-        } else {
-            printf(
-                "Label: %s\r\nType: %s\r\n%luKiB total\r\n%luKiB free\r\n"
-                "%02x%s %s v%i.%i\r\nSN:%04lx %02i/%i\r\n",
-                sd_info.label,
-                sd_api_get_fs_type_text(sd_info.fs_type),
-                sd_info.kb_total,
-                sd_info.kb_free,
-                sd_info.manufacturer_id,
-                sd_info.oem_id,
-                sd_info.product_name,
-                sd_info.product_revision_major,
-                sd_info.product_revision_minor,
-                sd_info.product_serial_number,
-                sd_info.manufacturing_month,
-                sd_info.manufacturing_year);
-        }
+    if(error != FSE_OK) {
+        storage_cli_print_error(error);
     } else {
-        storage_cli_print_usage();
+        printf(
+            "Label: %s\r\n"
+            "Type: %s\r\n"
+            "Total: %luKiB\r\n"
+            "Free: %luKiB\r\n"
+            "Used: %luKiB\r\n"
+            "ID: %02x%s %s v%i.%i\r\n"
+            "SN: %04lx %02i/%i\r\n",
+            sd_info.label,
+            sd_api_get_fs_type_text(sd_info.fs_type),
+            sd_info.kb_total,
+            sd_info.kb_free,
+            sd_info.kb_total - sd_info.kb_free,
+            sd_info.manufacturer_id,
+            sd_info.oem_id,
+            sd_info.product_name,
+            sd_info.product_revision_major,
+            sd_info.product_revision_minor,
+            sd_info.product_serial_number,
+            sd_info.manufacturing_month,
+            sd_info.manufacturing_year);
     }
-
     furi_record_close(RECORD_STORAGE);
 }
 
-static void storage_cli_format(Cli* cli, FuriString* path, FuriString* args) {
+static void storage_cli_mkfs(PipeSide* pipe, FuriString* path, FuriString* args) {
     UNUSED(args);
-    if(furi_string_cmp_str(path, STORAGE_INT_PATH_PREFIX) == 0) {
-        storage_cli_print_error(FSE_NOT_IMPLEMENTED);
-    } else if(furi_string_cmp_str(path, STORAGE_EXT_PATH_PREFIX) == 0) {
-        printf("Formatting SD card, All data will be lost! Are you sure (y/n)?\r\n");
-        char answer = cli_getc(cli);
-        if(answer == 'y' || answer == 'Y') {
-            Storage* api = furi_record_open(RECORD_STORAGE);
-            printf("Formatting, please wait...\r\n");
 
-            FS_Error error = storage_sd_format(api);
+    printf(
+        "Creating filesystem on \"%s\". "
+        "All data will be lost and device will be rebooted! "
+        "Are you sure (y/n)?\r\n",
+        furi_string_get_cstr(path));
+    while(true) {
+        char answer;
+        if(pipe_receive(pipe, &answer, sizeof(answer)) != sizeof(answer)) break;
+        if(answer == 'y' || answer == 'Y') {
+            printf("Creating filesystem, please wait...\r\n");
+
+            Storage* api = furi_record_open(RECORD_STORAGE);
+            FS_Error error = storage_sd_make_filesystem(api, furi_string_get_cstr(path));
+            furi_record_close(RECORD_STORAGE);
 
             if(error != FSE_OK) {
                 storage_cli_print_error(error);
             } else {
-                printf("SD card was successfully formatted.\r\n");
+                printf("Filesystem was successfully created.\r\n");
+
+                furi_hal_nvm_reset();
+                printf("Rebooting...\r\n");
+                furi_delay_ms(100);
+                Power* pwr = furi_record_open(RECORD_POWER);
+                power_reboot(pwr, PowerRebootNormal);
+                furi_record_close(RECORD_POWER);
             }
-            furi_record_close(RECORD_STORAGE);
-        } else {
+            break;
+        } else if(answer == 'n' || answer == 'N') {
             printf("Cancelled.\r\n");
+            break;
         }
-    } else {
-        storage_cli_print_usage();
-    }
+    };
 }
 
-static void storage_cli_list(Cli* cli, FuriString* path, FuriString* args) {
-    UNUSED(cli);
+static void storage_cli_format(PipeSide* pipe, FuriString* path, FuriString* args) {
+    UNUSED(args);
+
+    printf(
+        "Formatting \"%s\", All data will be lost! Are you sure (y/n)?\r\n",
+        furi_string_get_cstr(path));
+    while(true) {
+        char answer;
+        if(pipe_receive(pipe, &answer, sizeof(answer)) != sizeof(answer)) break;
+        if(answer == 'y' || answer == 'Y') {
+            Storage* api = furi_record_open(RECORD_STORAGE);
+            printf("Formatting, please wait...\r\n");
+
+            FS_Error error = storage_sd_format(api, furi_string_get_cstr(path));
+
+            if(error != FSE_OK) {
+                storage_cli_print_error(error);
+            } else {
+                printf("Patition was successfully formatted.\r\n");
+            }
+            furi_record_close(RECORD_STORAGE);
+            break;
+        } else if(answer == 'n' || answer == 'N') {
+            printf("Cancelled.\r\n");
+            break;
+        }
+    };
+}
+
+static void storage_cli_list(PipeSide* pipe, FuriString* path, FuriString* args) {
+    UNUSED(pipe);
     UNUSED(args);
     if(furi_string_cmp_str(path, "/") == 0) {
-        printf("\t[D] int\r\n");
+        printf("\t[D] bkp\r\n");
         printf("\t[D] ext\r\n");
-        printf("\t[D] any\r\n");
     } else {
         Storage* api = furi_record_open(RECORD_STORAGE);
         File* file = storage_file_alloc(api);
@@ -135,13 +161,16 @@ static void storage_cli_list(Cli* cli, FuriString* path, FuriString* args) {
     }
 }
 
-static void storage_cli_tree(Cli* cli, FuriString* path, FuriString* args) {
+static void storage_cli_tree(PipeSide* pipe, FuriString* path, FuriString* args) {
     UNUSED(args);
     if(furi_string_cmp_str(path, "/") == 0) {
-        furi_string_set(path, STORAGE_INT_PATH_PREFIX);
-        storage_cli_tree(cli, path, NULL);
+        printf("\t[D] bkp\r\n");
+        furi_string_set(path, STORAGE_BACKUP_PATH_PREFIX);
+        storage_cli_tree(pipe, path, NULL);
+
+        printf("\t[D] ext\r\n");
         furi_string_set(path, STORAGE_EXT_PATH_PREFIX);
-        storage_cli_tree(cli, path, NULL);
+        storage_cli_tree(pipe, path, NULL);
     } else {
         Storage* api = furi_record_open(RECORD_STORAGE);
         DirWalk* dir_walk = dir_walk_alloc(api);
@@ -177,8 +206,8 @@ static void storage_cli_tree(Cli* cli, FuriString* path, FuriString* args) {
     }
 }
 
-static void storage_cli_read(Cli* cli, FuriString* path, FuriString* args) {
-    UNUSED(cli);
+static void storage_cli_read(PipeSide* pipe, FuriString* path, FuriString* args) {
+    UNUSED(pipe);
     UNUSED(args);
     Storage* api = furi_record_open(RECORD_STORAGE);
     File* file = storage_file_alloc(api);
@@ -209,7 +238,7 @@ static void storage_cli_read(Cli* cli, FuriString* path, FuriString* args) {
     furi_record_close(RECORD_STORAGE);
 }
 
-static void storage_cli_write(Cli* cli, FuriString* path, FuriString* args) {
+static void storage_cli_write(PipeSide* pipe, FuriString* path, FuriString* args) {
     UNUSED(args);
     Storage* api = furi_record_open(RECORD_STORAGE);
     File* file = storage_file_alloc(api);
@@ -223,9 +252,10 @@ static void storage_cli_write(Cli* cli, FuriString* path, FuriString* args) {
         uint32_t read_index = 0;
 
         while(true) {
-            uint8_t symbol = cli_getc(cli);
+            CliKey key;
+            if(pipe_receive(pipe, &key, sizeof(key)) != sizeof(key)) break;
 
-            if(symbol == CliSymbolAsciiETX) {
+            if(key == CliKeyETX) {
                 size_t write_size = read_index % buffer_size;
 
                 if(write_size > 0) {
@@ -238,7 +268,7 @@ static void storage_cli_write(Cli* cli, FuriString* path, FuriString* args) {
                 }
             }
 
-            buffer[read_index % buffer_size] = symbol;
+            buffer[read_index % buffer_size] = key;
             printf("%c", buffer[read_index % buffer_size]);
             fflush(stdout);
             read_index++;
@@ -264,13 +294,14 @@ static void storage_cli_write(Cli* cli, FuriString* path, FuriString* args) {
     furi_record_close(RECORD_STORAGE);
 }
 
-static void storage_cli_read_chunks(Cli* cli, FuriString* path, FuriString* args) {
+static void storage_cli_read_chunks(PipeSide* pipe, FuriString* path, FuriString* args) {
     Storage* api = furi_record_open(RECORD_STORAGE);
     File* file = storage_file_alloc(api);
 
     uint32_t buffer_size;
-    if(strint_to_uint32(furi_string_get_cstr(args), NULL, &buffer_size, 10) !=
-       StrintParseNoError) {
+    int parsed_count = sscanf(furi_string_get_cstr(args), "%lu", &buffer_size);
+
+    if(parsed_count != 1) {
         storage_cli_print_usage();
     } else if(storage_file_open(file, furi_string_get_cstr(path), FSAM_READ, FSOM_OPEN_EXISTING)) {
         uint64_t file_size = storage_file_size(file);
@@ -281,7 +312,8 @@ static void storage_cli_read_chunks(Cli* cli, FuriString* path, FuriString* args
             uint8_t* data = malloc(buffer_size);
             while(file_size > 0) {
                 printf("\r\nReady?\r\n");
-                cli_getc(cli);
+                char response;
+                if(pipe_receive(pipe, &response, sizeof(response)) != sizeof(response)) break;
 
                 size_t read_size = storage_file_read(file, data, buffer_size);
                 for(size_t i = 0; i < read_size; i++) {
@@ -303,31 +335,34 @@ static void storage_cli_read_chunks(Cli* cli, FuriString* path, FuriString* args
     furi_record_close(RECORD_STORAGE);
 }
 
-static void storage_cli_write_chunk(Cli* cli, FuriString* path, FuriString* args) {
+static void storage_cli_write_chunk(PipeSide* pipe, FuriString* path, FuriString* args) {
     Storage* api = furi_record_open(RECORD_STORAGE);
     File* file = storage_file_alloc(api);
 
-    uint32_t buffer_size;
-    if(strint_to_uint32(furi_string_get_cstr(args), NULL, &buffer_size, 10) !=
+    uint32_t need_to_read;
+    if(strint_to_uint32(furi_string_get_cstr(args), NULL, &need_to_read, 10) !=
        StrintParseNoError) {
         storage_cli_print_usage();
     } else {
         if(storage_file_open(file, furi_string_get_cstr(path), FSAM_WRITE, FSOM_OPEN_APPEND)) {
             printf("Ready\r\n");
+            const size_t buffer_size = 1024;
+            uint8_t* buffer = malloc(buffer_size);
 
-            if(buffer_size) {
-                uint8_t* buffer = malloc(buffer_size);
+            while(need_to_read) {
+                size_t to_read_this_time = MIN(buffer_size, need_to_read);
+                size_t read_this_time = pipe_receive(pipe, buffer, to_read_this_time);
+                if(read_this_time != to_read_this_time) break;
 
-                size_t read_bytes = cli_read(cli, buffer, buffer_size);
-
-                size_t written_size = storage_file_write(file, buffer, read_bytes);
-
-                if(written_size != buffer_size) {
+                size_t wrote_this_time = storage_file_write(file, buffer, read_this_time);
+                if(wrote_this_time != read_this_time) {
                     storage_cli_print_error(storage_file_get_error(file));
+                    break;
                 }
-
-                free(buffer);
+                need_to_read -= read_this_time;
             }
+
+            free(buffer);
         } else {
             storage_cli_print_error(storage_file_get_error(file));
         }
@@ -338,8 +373,8 @@ static void storage_cli_write_chunk(Cli* cli, FuriString* path, FuriString* args
     furi_record_close(RECORD_STORAGE);
 }
 
-static void storage_cli_stat(Cli* cli, FuriString* path, FuriString* args) {
-    UNUSED(cli);
+static void storage_cli_stat(PipeSide* pipe, FuriString* path, FuriString* args) {
+    UNUSED(pipe);
     UNUSED(args);
     Storage* api = furi_record_open(RECORD_STORAGE);
 
@@ -347,18 +382,24 @@ static void storage_cli_stat(Cli* cli, FuriString* path, FuriString* args) {
         printf("Storage\r\n");
     } else if(
         furi_string_cmp_str(path, STORAGE_EXT_PATH_PREFIX) == 0 ||
-        furi_string_cmp_str(path, STORAGE_INT_PATH_PREFIX) == 0 ||
-        furi_string_cmp_str(path, STORAGE_ANY_PATH_PREFIX) == 0) {
+        furi_string_cmp_str(path, STORAGE_BACKUP_PATH_PREFIX) == 0) {
         uint64_t total_space;
         uint64_t free_space;
-        FS_Error error =
-            storage_common_fs_info(api, furi_string_get_cstr(path), &total_space, &free_space);
+        bool is_read_only;
+        FS_Error error = storage_common_fs_info(
+            api, furi_string_get_cstr(path), &total_space, &free_space, &is_read_only);
 
         if(error != FSE_OK) {
             storage_cli_print_error(error);
         } else {
+            const char* ro = "";
+            if(is_read_only) {
+                ro = ", read-only";
+            }
+
             printf(
-                "Storage, %luKiB total, %luKiB free\r\n",
+                "Storage%s, %luKiB total, %luKiB free\r\n",
+                ro,
                 (uint32_t)(total_space / 1024),
                 (uint32_t)(free_space / 1024));
         }
@@ -380,8 +421,8 @@ static void storage_cli_stat(Cli* cli, FuriString* path, FuriString* args) {
     furi_record_close(RECORD_STORAGE);
 }
 
-static void storage_cli_timestamp(Cli* cli, FuriString* path, FuriString* args) {
-    UNUSED(cli);
+static void storage_cli_timestamp(PipeSide* pipe, FuriString* path, FuriString* args) {
+    UNUSED(pipe);
     UNUSED(args);
     Storage* api = furi_record_open(RECORD_STORAGE);
 
@@ -397,8 +438,8 @@ static void storage_cli_timestamp(Cli* cli, FuriString* path, FuriString* args) 
     furi_record_close(RECORD_STORAGE);
 }
 
-static void storage_cli_copy(Cli* cli, FuriString* old_path, FuriString* args) {
-    UNUSED(cli);
+static void storage_cli_copy(PipeSide* pipe, FuriString* old_path, FuriString* args) {
+    UNUSED(pipe);
     Storage* api = furi_record_open(RECORD_STORAGE);
     FuriString* new_path;
     new_path = furi_string_alloc();
@@ -418,8 +459,8 @@ static void storage_cli_copy(Cli* cli, FuriString* old_path, FuriString* args) {
     furi_record_close(RECORD_STORAGE);
 }
 
-static void storage_cli_remove(Cli* cli, FuriString* path, FuriString* args) {
-    UNUSED(cli);
+static void storage_cli_remove(PipeSide* pipe, FuriString* path, FuriString* args) {
+    UNUSED(pipe);
     UNUSED(args);
     Storage* api = furi_record_open(RECORD_STORAGE);
     FS_Error error = storage_common_remove(api, furi_string_get_cstr(path));
@@ -431,8 +472,8 @@ static void storage_cli_remove(Cli* cli, FuriString* path, FuriString* args) {
     furi_record_close(RECORD_STORAGE);
 }
 
-static void storage_cli_rename(Cli* cli, FuriString* old_path, FuriString* args) {
-    UNUSED(cli);
+static void storage_cli_rename(PipeSide* pipe, FuriString* old_path, FuriString* args) {
+    UNUSED(pipe);
     Storage* api = furi_record_open(RECORD_STORAGE);
     FuriString* new_path;
     new_path = furi_string_alloc();
@@ -452,8 +493,8 @@ static void storage_cli_rename(Cli* cli, FuriString* old_path, FuriString* args)
     furi_record_close(RECORD_STORAGE);
 }
 
-static void storage_cli_mkdir(Cli* cli, FuriString* path, FuriString* args) {
-    UNUSED(cli);
+static void storage_cli_mkdir(PipeSide* pipe, FuriString* path, FuriString* args) {
+    UNUSED(pipe);
     UNUSED(args);
     Storage* api = furi_record_open(RECORD_STORAGE);
     FS_Error error = storage_common_mkdir(api, furi_string_get_cstr(path));
@@ -465,8 +506,8 @@ static void storage_cli_mkdir(Cli* cli, FuriString* path, FuriString* args) {
     furi_record_close(RECORD_STORAGE);
 }
 
-static void storage_cli_md5(Cli* cli, FuriString* path, FuriString* args) {
-    UNUSED(cli);
+static void storage_cli_md5(PipeSide* pipe, FuriString* path, FuriString* args) {
+    UNUSED(pipe);
     UNUSED(args);
     Storage* api = furi_record_open(RECORD_STORAGE);
     File* file = storage_file_alloc(api);
@@ -492,8 +533,8 @@ static bool tar_extract_file_callback(const char* name, bool is_directory, void*
     return true;
 }
 
-static void storage_cli_extract(Cli* cli, FuriString* old_path, FuriString* args) {
-    UNUSED(cli);
+static void storage_cli_extract(PipeSide* pipe, FuriString* old_path, FuriString* args) {
+    UNUSED(pipe);
     FuriString* new_path = furi_string_alloc();
 
     if(!args_read_probably_quoted_string_and_trim(args, new_path)) {
@@ -527,7 +568,7 @@ static void storage_cli_extract(Cli* cli, FuriString* old_path, FuriString* args
     furi_record_close(RECORD_STORAGE);
 }
 
-typedef void (*StorageCliCommandCallback)(Cli* cli, FuriString* path, FuriString* args);
+typedef void (*StorageCliCommandCallback)(PipeSide* pipe, FuriString* path, FuriString* args);
 
 typedef struct {
     const char* command;
@@ -613,15 +654,20 @@ static const StorageCliCommand storage_cli_commands[] = {
     },
     {
         "format",
-        "format filesystem",
+        "format filesystem on specified partition",
         &storage_cli_format,
+    },
+    {
+        "mkfs",
+        "create filesystem, path must be \"/\"",
+        &storage_cli_mkfs,
     },
 };
 
 static void storage_cli_print_usage(void) {
     printf("Usage:\r\n");
     printf("storage <cmd> <path> <args>\r\n");
-    printf("The path must start with /int or /ext\r\n");
+    printf("The path must start with /bkp or /ext\r\n");
     printf("Cmd list:\r\n");
 
     for(size_t i = 0; i < COUNT_OF(storage_cli_commands); ++i) {
@@ -632,7 +678,7 @@ static void storage_cli_print_usage(void) {
     }
 }
 
-void storage_cli(Cli* cli, FuriString* args, void* context) {
+void storage_command(PipeSide* pipe, FuriString* args, void* context) {
     UNUSED(context);
     FuriString* cmd;
     FuriString* path;
@@ -654,7 +700,7 @@ void storage_cli(Cli* cli, FuriString* args, void* context) {
         for(; i < COUNT_OF(storage_cli_commands); ++i) {
             const StorageCliCommand* command_descr = &storage_cli_commands[i];
             if(furi_string_cmp_str(cmd, command_descr->command) == 0) {
-                command_descr->impl(cli, path, args);
+                command_descr->impl(pipe, path, args);
                 break;
             }
         }
@@ -666,34 +712,4 @@ void storage_cli(Cli* cli, FuriString* args, void* context) {
 
     furi_string_free(path);
     furi_string_free(cmd);
-}
-
-static void storage_cli_factory_reset(Cli* cli, FuriString* args, void* context) {
-    UNUSED(args);
-    UNUSED(context);
-    printf("All data will be lost! Are you sure (y/n)?\r\n");
-    char c = cli_getc(cli);
-    if(c == 'y' || c == 'Y') {
-        printf("Data will be wiped after reboot.\r\n");
-
-        furi_hal_rtc_reset_registers();
-        furi_hal_rtc_set_flag(FuriHalRtcFlagStorageFormatInternal);
-
-        Power* power = furi_record_open(RECORD_POWER);
-        power_reboot(power, PowerBootModeNormal);
-    } else {
-        printf("Safe choice.\r\n");
-    }
-}
-
-void storage_on_system_start(void) {
-#ifdef SRV_CLI
-    Cli* cli = furi_record_open(RECORD_CLI);
-    cli_add_command(cli, RECORD_STORAGE, CliCommandFlagParallelSafe, storage_cli, NULL);
-    cli_add_command(
-        cli, "factory_reset", CliCommandFlagParallelSafe, storage_cli_factory_reset, NULL);
-    furi_record_close(RECORD_CLI);
-#else
-    UNUSED(storage_cli_factory_reset);
-#endif
 }

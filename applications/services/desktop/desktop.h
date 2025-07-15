@@ -28,13 +28,26 @@ typedef struct Desktop Desktop;
  * application. It may be overridden at any point in time by the rotary switch or
  * further calls to this function.
  *
- * @warning The memory passed by the arg pointer MUST be valid at least
- *          till the start of the application (exact lifetime is determined
- *          by the application logic).
+ * @note Both application name and arguments are copied, so they may be deleted
+ *       immediately after calling this function.
  *
  * @param[in,out] instance pointer to the Desktop instance
  * @param[in] name app name or ID to replace the current app with
- * @param[in,out] arg pointer to an arbitrary object
+ * @param[in,out] args pointer to a zero-terminated string containing application arguments
  * @returns true if the request has been scheduled, false otherwise
  */
-bool desktop_replace_current_app(Desktop* instance, const char* name, void* arg);
+bool desktop_replace_current_app(Desktop* instance, const char* name, const char* args);
+
+/**
+ * @brief Pin or unpin the currently running app.
+ *
+ * Calling this function will prevent the Desktop from changing the currently
+ * running app in response to flicking the rotary switch, or, conversely,
+ * enable this behaviour, depending on the pin parameter value.
+ *
+ * @warning This function is intended for testing purposes only.
+ *
+ * @param[in,out] instance pointer to the Desktop instance
+ * @param[in] pin pin current app if true, do not pin if false
+ */
+void desktop_pin_current_app(Desktop* instance, bool pin);

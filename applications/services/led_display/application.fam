@@ -1,9 +1,0 @@
-App(
-    appid="led_display",
-    name="LedDisplaySrv",
-    apptype=FlipperAppType.SERVICE,
-    entry_point="led_display_srv",
-    stack_size=4096,
-    order=80,
-    targets=["f20"],
-)

@@ -1,28 +1,11 @@
 App(
-    appid="basic_services",
-    name="Basic services",
+    appid="cli",
+    name="CLI commands",
     apptype=FlipperAppType.METAPACKAGE,
     provides=[
-        "audio",
-        "storage",
-        "cli",
-        # "gui",
-        "cli_socket",
-        "input",
-        "gui_lvgl",
-        "desktop",
-        "loader",
-        "led_display",
-        "usb_srv",
-        "httpd_test",
-        "power_srv",
-        "intercom",
-        "wifi",
-        "sockets",
-        "status_lights",
-        "light_sensor",
+        "cli_commands_common",
+        "cli_commands_target_specific",
     ],
-    targets=["f20"],
 )
 
 App(
@@ -30,7 +13,38 @@ App(
     name="Basic services",
     apptype=FlipperAppType.METAPACKAGE,
     provides=[
-        # "cli", # Enabled in "hwtest" fw config (FIRMWARE_APP_SET)
+        "audio",
+        "storage",
+        "cli",
+        "cli_socket",
+        "cli_intercom",
+        "input",
+        "gui",
+        "lottie",
+        "desktop",
+        "loader",
+        "front_display",
+        "back_display",
+        "usb_srv",
+        "web_server",
+        "power_srv",
+        "intercom",
+        "wifi",
+        "wifi_bridge",
+        "sockets",
+        "status_lights",
+        "light_sensor",
+        "supervisor",
+    ],
+    targets=["f20", "f21"],
+)
+
+App(
+    appid="basic_services",
+    name="Basic services",
+    apptype=FlipperAppType.METAPACKAGE,
+    provides=[
+        "cli",
         "input",
     ],
     targets=["f64"],
@@ -41,10 +55,11 @@ App(
     name="U5<>917 intercom services",
     apptype=FlipperAppType.METAPACKAGE,
     provides=[
-        "intercom",  # Enabled in default fw config
+        # "intercom",  # Enabled in default fw config
         # "wifi",  # Enabled by "sockets"
         "sockets",
         "status_lights",
+        "cli_intercom",
     ],
     targets=["f64"],
 )

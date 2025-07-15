@@ -1,0 +1,10 @@
+App(
+    appid="front_display",
+    name="FrontDisplaySrv",
+    apptype=FlipperAppType.SERVICE,
+    entry_point="front_display_srv",
+    stack_size=4096,
+    order=80,
+    targets=["f20", "f21"],
+    requires=["power_srv"],
+)

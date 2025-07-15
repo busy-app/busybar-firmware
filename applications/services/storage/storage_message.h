@@ -1,6 +1,8 @@
 #pragma once
 #include <furi.h>
 #include <toolbox/api_lock.h>
+#include "filesystem_api_defines.h"
+#include "storage_sd_api.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -61,6 +63,7 @@ typedef struct {
     const char* fs_path;
     uint64_t* total_space;
     uint64_t* free_space;
+    bool* is_read_only;
     FuriThreadId thread_id;
 } SADataCFSInfo;
 
@@ -90,8 +93,14 @@ typedef struct {
 } SADataFile;
 
 typedef struct {
+    const char* path;
     SDInfo* info;
+    FuriThreadId thread_id;
 } SAInfo;
+
+typedef struct {
+    bool readonly;
+} SAReadOnly;
 
 typedef union {
     SADataFOpen fopen;
@@ -114,6 +123,8 @@ typedef union {
     SADataPath path;
 
     SAInfo sdinfo;
+
+    SAReadOnly readonly;
 } SAData;
 
 typedef union {
@@ -145,13 +156,14 @@ typedef enum {
     StorageCommandCommonMkDir,
     StorageCommandCommonFSInfo,
     StorageCommandSDFormat,
+    StorageCommandSDMakePartitions,
     StorageCommandSDUnmount,
     StorageCommandSDInfo,
     StorageCommandSDStatus,
     StorageCommandCommonResolvePath,
     StorageCommandSDMount,
     StorageCommandCommonEquivalentPath,
-    StorageCommandSDPresenceChanged,
+    StorageCommandBackupReadOnly,
 } StorageCommand;
 
 typedef struct {

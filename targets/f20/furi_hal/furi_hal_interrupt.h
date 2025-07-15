@@ -36,6 +36,7 @@ typedef enum {
     FuriHalInterruptIdLPDMA1Channel3,
 
     // GPU
+    FuriHalInterruptIdDMA2D,
     FuriHalInterruptIdGPU2D,
     FuriHalInterruptIdGPU2DError,
 
@@ -101,6 +102,9 @@ void furi_hal_interrupt_init(void);
  * @param      index    - interrupt ID
  * @param      isr      - your interrupt service routine or use NULL to clear
  * @param      context  - isr context
+ * @warning    All interrupts set by this function use priority FuriHalInterruptPriorityNormal.
+ *             When called before FreeRTOS scheduler is started, this function will
+ *             set the interrupt priority to FuriHalInterruptPriorityKamiSama.
  */
 void furi_hal_interrupt_set_isr(FuriHalInterruptId index, FuriHalInterruptISR isr, void* context);
 
@@ -113,6 +117,8 @@ void furi_hal_interrupt_set_isr(FuriHalInterruptId index, FuriHalInterruptISR is
  * @param      priority  - One of FuriHalInterruptPriority
  * @param      isr       - your interrupt service routine or use NULL to clear
  * @param      context   - isr context
+ * @note       Before FreeRTOS scheduler is started, only ISRs with priority 
+ *             `FuriHalInterruptPriorityKamiSama` will trigger.
  */
 void furi_hal_interrupt_set_isr_ex(
     FuriHalInterruptId index,

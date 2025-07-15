@@ -1,11 +1,6 @@
 App(
-    appid="cli",
-    name="CliSrv",
-    apptype=FlipperAppType.SERVICE,
-    entry_point="cli_srv",
-    cdefines=["SRV_CLI"],
-    stack_size=4 * 1024,
-    order=30,
+    appid="cli_commands_target_specific",
+    apptype=FlipperAppType.STARTUP,
+    entry_point="cli_on_system_start",
     targets=["f64"],
-    conflicts=["intercom"],
 )

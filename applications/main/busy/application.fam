@@ -2,8 +2,10 @@ App(
     appid="busy",
     name="Busy",
     apptype=FlipperAppType.APP,
+    order=5,
     entry_point="busy_app",
-    requires=["gui_lvgl"],
-    stack_size=2 * 1024,
-    targets=["f20"],
+    requires=["gui"],
+    stack_size=4 * 1024,
+    cdefines=["APP_BUSY"],
+    targets=["f20", "f21"],
 )

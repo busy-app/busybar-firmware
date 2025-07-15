@@ -142,7 +142,7 @@ g_pfnVectors:
 	.word	DebugMon_Handler
 	.word	0
 	.word	PendSV_Handler
-	.word	SysTick_Handler
+	.word	FuriSysTick_Handler
 	.word	WWDG_IRQHandler
 	.word	PVD_PVM_IRQHandler
 	.word	RTC_IRQHandler

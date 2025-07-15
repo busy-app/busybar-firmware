@@ -2,12 +2,19 @@ Import("env")
 
 LIB_FOLDER = "lvgl_addons"
 
+FONTS_FOLDER = LIB_FOLDER + "/fonts"
+THEMES_FOLDER = LIB_FOLDER + "/themes"
+STORAGE_FOLDER = LIB_FOLDER + "/fs"
+OSAL_FOLDER = LIB_FOLDER + "/osal"
+
 env.Append(
     CPPPATH=[
         Dir(LIB_FOLDER).srcnode(),
     ],
     LINT_SOURCES=[
-        Dir(LIB_FOLDER).srcnode(),
+        Dir(THEMES_FOLDER).srcnode(),
+        Dir(STORAGE_FOLDER).srcnode(),
+        Dir(OSAL_FOLDER).srcnode(),
     ],
 )
 
@@ -21,9 +28,10 @@ libenv.AppendUnique(
 )
 
 sources = []
-sources += libenv.Glob(LIB_FOLDER + "/fonts/src/*.c", source=True)
-sources += libenv.Glob(LIB_FOLDER + "/themes/*.c", source=True)
-sources += libenv.Glob(LIB_FOLDER + "/fs/*.c", source=True)
+sources += libenv.Glob(FONTS_FOLDER + "/*.c", source=True)
+sources += libenv.Glob(THEMES_FOLDER + "/*.c", source=True)
+sources += libenv.Glob(STORAGE_FOLDER + "/*.c", source=True)
+sources += libenv.Glob(OSAL_FOLDER + "/*.c", source=True)
 
 lib = libenv.StaticLibrary("${FW_LIB_NAME}", sources)
 libenv.Install("${LIB_DIST_DIR}", lib)

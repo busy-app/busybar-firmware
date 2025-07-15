@@ -3,20 +3,28 @@ App(
     name="Basic applications for main menu",
     apptype=FlipperAppType.METAPACKAGE,
     provides=[
-        # "storage_benchmark",
-        # "keypad_test",
+        "storage_benchmark",
         # "crash_test",
         "light_sensor_test",
-        "led_display_test",
+        "front_display_test",
+        "back_display_test",
+        "gui_test",
+        "input_test",
         # "led_indicator",
-        # "power_test",
+        "power_test",
         # "wifi_setup",
         # "sockets_test",
-        # "sl_update_test",
+        "canvas",
+        "animation_player",
+        "lottie_player",
         "busy",
         "dummy",
+        "sound",
+        "ble_per_test",
+        "wifi_per_test",
+        "wifi_adaptive_test",
     ],
-    targets=["f20"],
+    targets=["f20", "f21"],
 )
 
 App(
@@ -24,7 +32,7 @@ App(
     name="On start hooks",
     apptype=FlipperAppType.METAPACKAGE,
     provides=[],
-    targets=["f20"],
+    targets=["f20", "f21"],
 )
 
 App(

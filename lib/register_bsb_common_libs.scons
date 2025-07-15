@@ -1,12 +1,15 @@
 Import("env")
 
 for libname in [
-    "canvas_nema",
+    "internal_assets",
     "drivers",
     "tinyusb",
     "nema_gfx",
-    "canvas_oled",
     "lwip",
+    "cjson",
+    "cli",
+    "containers",
+    "thorvg",
     "lvgl",
     "lvgl_addons",
     "network",

@@ -90,6 +90,8 @@ env.Append(
 
         # "LWIP_NETIF_API=1",
         "PRINT_DEBUG_LOG", #Print debug log NCP to Host
+        "SLI_SI91X_ENABLE_IPV6",
+        # "PRINT_DEBUG_LOG",
         "SIWG917M111MGTBA",
         "SL_CODE_COMPONENT_CORE=core",
         "SL_COMPONENT_CATALOG_PRESENT=1",

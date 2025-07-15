@@ -38,6 +38,13 @@ typedef struct Audio Audio;
 bool audio_play_file(Audio* instance, const char* file_name);
 
 /**
+ * @brief Stop playing current audio from file.
+ *
+ * @param[in,out] instance pointer to the Audio instance
+ */
+void audio_stop(Audio* instance);
+
+/**
  * @brief Set the playback volume.
  *
  * The volume MUST be in range 0.0 (mute) to 1.0 (full volume).
@@ -47,6 +54,16 @@ bool audio_play_file(Audio* instance, const char* file_name);
  *
  */
 void audio_set_volume(Audio* instance, float volume);
+
+/**
+ * @brief Get the playback volume.
+ *
+ * The volume is in range 0.0 (mute) to 1.0 (full volume).
+ *
+ * @returns volume value (see above range)
+ *
+ */
+float audio_get_volume(Audio* instance);
 
 #ifdef __cplusplus
 }

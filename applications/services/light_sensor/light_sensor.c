@@ -5,15 +5,16 @@
 #include <furi_hal_light_sensor.h>
 #include <furi_hal_i2c_config.h>
 
-#include <power_simple/power.h>
+#include <power/power_service/power.h>
 
 #define TAG "LightSensor"
 
 #define LIGHT_SENSOR_I2C (&furi_hal_i2c_handle_1)
 
-#define LIGHT_SENSOR_SAMPLE_INTERVAL_MS        (1000)
-#define LIGHT_SENSOR_LIGHT_LEVEL_MAX_THRESHOLD (1000.0f)
-#define LIGHT_SENSOR_WINDOW_SIZE               (10)
+#define LIGHT_SENSOR_SAMPLE_INTERVAL_MS (1000)
+#define LIGHT_SENSOR_LUX_MIN            (10.0f)
+#define LIGHT_SENSOR_LUX_MAX            (10000.0f)
+#define LIGHT_SENSOR_WINDOW_SIZE        (5)
 
 typedef struct {
     FuriEventLoop* event_loop;
@@ -23,12 +24,18 @@ typedef struct {
     LightSensorData* data;
     uint8_t light_level_previous;
     uint8_t light_level;
+
+    bool sensor_alive;
 } LightSensor;
 
 LightSensor* light_sensor = NULL;
 
 static void light_sensor_timer_callback(void* context) {
     LightSensor* instance = context;
+
+    if(instance->sensor_alive == false) {
+        return;
+    }
 
     float lux = 0.0f;
     bool read_success = furi_hal_light_sensor_read_lux(LIGHT_SENSOR_I2C, &lux);
@@ -57,32 +64,35 @@ static void light_sensor_timer_callback(void* context) {
     }
 }
 
-static LightSensor* light_sensor_alloc(void) {
-    light_sensor = malloc(sizeof(LightSensor));
+LightSensor* light_sensor_alloc() {
+    LightSensor* instance = malloc(sizeof(LightSensor));
 
-    LightSensorDataConfig config = {
+    // Configure light sensor data
+    LightSensorDataConfig data_config = {
         .window_size = LIGHT_SENSOR_WINDOW_SIZE,
         .light_level_max = LIGHT_SENSOR_LIGHT_LEVEL_MAX,
-        .light_level_max_threshold = LIGHT_SENSOR_LIGHT_LEVEL_MAX_THRESHOLD,
+        .lux_min = LIGHT_SENSOR_LUX_MIN,
+        .lux_max = LIGHT_SENSOR_LUX_MAX,
+        .use_logarithmic_mapping = true, // Use logarithmic mapping by default
     };
-    light_sensor->data = light_sensor_data_alloc(&config);
+    instance->data = light_sensor_data_alloc(&data_config);
 
-    light_sensor->light_level_previous = LIGHT_SENSOR_LIGHT_LEVEL_MAX;
-    light_sensor->light_level = LIGHT_SENSOR_LIGHT_LEVEL_MAX;
+    instance->light_level_previous = LIGHT_SENSOR_LIGHT_LEVEL_MAX;
+    instance->light_level = LIGHT_SENSOR_LIGHT_LEVEL_MIN; // This will immediately trigger an event
 
-    light_sensor->event_loop = furi_event_loop_alloc();
-    light_sensor->timer = furi_event_loop_timer_alloc(
-        light_sensor->event_loop,
+    instance->event_loop = furi_event_loop_alloc();
+    instance->timer = furi_event_loop_timer_alloc(
+        instance->event_loop,
         light_sensor_timer_callback,
         FuriEventLoopTimerTypePeriodic,
-        light_sensor);
-    light_sensor->pubsub = furi_pubsub_alloc();
+        instance);
+    instance->pubsub = furi_pubsub_alloc();
 
-    furi_record_create(RECORD_LIGHT_SENSOR_EVENTS, light_sensor->pubsub);
+    furi_record_create(RECORD_LIGHT_SENSOR_EVENTS, instance->pubsub);
 
-    furi_event_loop_timer_start(light_sensor->timer, LIGHT_SENSOR_SAMPLE_INTERVAL_MS);
+    furi_event_loop_timer_start(instance->timer, LIGHT_SENSOR_SAMPLE_INTERVAL_MS);
 
-    return light_sensor;
+    return instance;
 }
 
 int32_t light_sensor_srv(void* p) {
@@ -90,14 +100,14 @@ int32_t light_sensor_srv(void* p) {
 
     // Must be first to ensure that power subsystem is OK
     furi_record_open(RECORD_POWER);
+    LightSensor* instance = light_sensor_alloc();
 
-    bool initialized = furi_hal_light_sensor_init(LIGHT_SENSOR_I2C);
-    if(!initialized) {
+    instance->sensor_alive = furi_hal_light_sensor_init(LIGHT_SENSOR_I2C);
+    if(instance->sensor_alive == false) {
         FURI_LOG_E(TAG, "Failed to initialize light sensor");
-        return -1;
     }
 
-    LightSensor* instance = light_sensor_alloc();
+    light_sensor = instance;
     furi_event_loop_run(instance->event_loop);
 
     return 0;

@@ -55,10 +55,9 @@ int32_t status_lights_srv(void* p) {
     return 0;
 }
 
-void status_lights_send_command(StatusLights* instance, StatusLightsCommand command) {
+void status_lights_send_command(StatusLights* instance, const StatusLightsCommand* command) {
     furi_check(instance);
 
     furi_check(
-        furi_message_queue_put(instance->command_queue, &command, FuriWaitForever) ==
-        FuriStatusOk);
+        furi_message_queue_put(instance->command_queue, command, FuriWaitForever) == FuriStatusOk);
 }

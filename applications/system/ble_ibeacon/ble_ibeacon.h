@@ -1,5 +1,5 @@
 #pragma once
 
-#include <cli/cli.h>
+#include <cli/cli_command.h>
 
-void ble_ibeacon_system_start(void);
+void ble_ibeacon_command(PipeSide* pipe, FuriString* args, void* context);

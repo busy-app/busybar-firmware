@@ -5,6 +5,5 @@ App(
     entry_point="sockets_test_app",
     requires=["gui"],
     stack_size=2 * 1024,
-    fap_category="Debug",
-    targets=["f20"],
+    targets=["f20", "f21"],
 )

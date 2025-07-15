@@ -1,0 +1,681 @@
+#include "var_item_list.h"
+
+#include <gui/widget_i.h>
+
+#include <lvgl/src/core/lv_obj_class_private.h>
+#include <lvgl/src/widgets/label/lv_label_private.h>
+
+#define MY_CLASS        (&var_item_list_lvgl_class)
+#define MY_ITEM_CLASS   (&var_item_lvgl_class)
+#define MY_EDITOR_CLASS (&var_item_editor_lvgl_class)
+#define MY_CURSOR_CLASS (&var_item_cursor_lvgl_class)
+#define MY_ARROW_CLASS  (&var_item_arrow_lvgl_class)
+
+#define SYM_INFINITY        "∞"
+#define SYM_ARROW_LEFT      "◃"
+#define SYM_ARROW_RIGHT     "▹"
+#define SYM_ARROW_LEFT_BIG  "<"
+#define SYM_ARROW_RIGHT_BIG ">"
+
+#define SCROLL_ANIM_DURATION_MS (0)
+
+#define CHECK_RANGE_AND_STEP(min, max, step)                                               \
+    do {                                                                                   \
+        furi_check(max >= min, "Range error: min > max");                                  \
+        furi_check((max - min) % step == 0, "Step error: range must be evenly divisible"); \
+    } while(0)
+
+typedef enum {
+    VarItemTypeSpinbox,
+    VarItemTypeTimebox,
+    VarItemTypeSelector,
+    VarItemTypeSwitch,
+    VarItemTypeMax,
+} VarItemType;
+
+typedef struct {
+    char** text;
+    uint32_t count;
+} VarItemSelectorChoices;
+
+typedef struct {
+    lv_obj_t base;
+    lv_obj_t* arrow_left;
+    lv_obj_t* text;
+    lv_obj_t* arrow_right;
+    int32_t min;
+    int32_t max;
+    int32_t step;
+    int32_t value;
+    uint32_t flags;
+    char* suffix;
+    VarItemSelectorChoices* choices;
+    VarItemChangeCallback callback;
+    void* context;
+    VarItemType type;
+} VarItemEditor;
+
+struct VarItem {
+    lv_obj_t base;
+    lv_obj_t* cursor;
+    lv_obj_t* label;
+    VarItemEditor* editor;
+};
+
+struct VarItemList {
+    Widget base;
+    lv_group_t* group;
+    VarItemEditor* edited;
+};
+
+// Class forward declarations
+
+const lv_obj_class_t var_item_list_lvgl_class;
+const lv_obj_class_t var_item_lvgl_class;
+const lv_obj_class_t var_item_editor_lvgl_class;
+const lv_obj_class_t var_item_cursor_lvgl_class;
+const lv_obj_class_t var_item_arrow_lvgl_class;
+
+// Function prototypes
+
+static void var_item_editor_clear_choices(VarItemEditor* instance);
+
+// LVGL-specific code
+
+// TODO: Make it a universal fix
+static void var_item_list_scroll_event_callback(lv_event_t* event) {
+    const lv_event_code_t code = lv_event_get_code(event);
+
+    if(code == LV_EVENT_SCROLL_BEGIN) {
+        lv_anim_t* anim = lv_event_get_scroll_anim(event);
+        if(anim) anim->duration = SCROLL_ANIM_DURATION_MS;
+    }
+}
+
+// VarItemList
+
+static void var_item_list_lvgl_constructor(const lv_obj_class_t* class_p, lv_obj_t* obj) {
+    LV_UNUSED(class_p);
+
+    lv_obj_set_flex_flow(obj, LV_FLEX_FLOW_COLUMN);
+    lv_obj_add_event_cb(obj, var_item_list_scroll_event_callback, LV_EVENT_SCROLL_BEGIN, NULL);
+
+    VarItemList* instance = (VarItemList*)obj;
+    instance->group = lv_group_create();
+    lv_group_set_wrap(instance->group, false);
+}
+
+static void var_item_list_lvgl_destructor(const lv_obj_class_t* class_p, lv_obj_t* obj) {
+    LV_UNUSED(class_p);
+
+    VarItemList* instance = (VarItemList*)obj;
+    lv_group_delete(instance->group);
+}
+
+// VarItem
+
+static void var_item_lvgl_constructor(const lv_obj_class_t* class_p, lv_obj_t* obj) {
+    LV_UNUSED(class_p);
+
+    lv_obj_set_flex_flow(obj, LV_FLEX_FLOW_ROW);
+
+    lv_obj_remove_flag(obj, LV_OBJ_FLAG_SCROLLABLE);
+    lv_obj_add_flag(obj, LV_OBJ_FLAG_SCROLL_ON_FOCUS);
+
+    VarItem* instance = (VarItem*)obj;
+    instance->cursor = lv_obj_class_create_obj(MY_CURSOR_CLASS, obj);
+    lv_obj_class_init_obj(instance->cursor);
+    lv_label_set_text(instance->cursor, SYM_ARROW_RIGHT);
+
+    instance->label = lv_label_create(obj);
+    lv_obj_set_flex_grow(instance->label, 1);
+    lv_label_set_long_mode(instance->label, LV_LABEL_LONG_MODE_WRAP);
+
+    lv_obj_t* editor = lv_obj_class_create_obj(MY_EDITOR_CLASS, obj);
+    lv_obj_class_init_obj(editor);
+
+    instance->editor = (VarItemEditor*)editor;
+}
+
+static void var_item_lvgl_event(const lv_obj_class_t* class_p, lv_event_t* event) {
+    LV_UNUSED(class_p);
+
+    lv_result_t res = LV_RESULT_OK;
+    res = lv_obj_event_base(MY_ITEM_CLASS, event);
+    if(res != LV_RESULT_OK) return;
+
+    const lv_event_code_t code = lv_event_get_code(event);
+    VarItem* instance = lv_event_get_target(event);
+
+    if(code == LV_EVENT_FOCUSED) {
+        lv_obj_add_state(instance->cursor, LV_STATE_FOCUSED);
+    } else if(code == LV_EVENT_DEFOCUSED) {
+        lv_obj_remove_state(instance->cursor, LV_STATE_FOCUSED);
+    }
+}
+
+// VarItemSpinbox
+
+static void var_item_editor_lvlgl_constructor(const lv_obj_class_t* class_p, lv_obj_t* obj) {
+    LV_UNUSED(class_p);
+
+    lv_obj_remove_flag(obj, LV_OBJ_FLAG_SCROLLABLE);
+    lv_obj_set_flex_flow(obj, LV_FLEX_FLOW_ROW);
+
+    VarItemEditor* instance = (VarItemEditor*)obj;
+
+    instance->arrow_left = lv_obj_class_create_obj(MY_ARROW_CLASS, obj);
+    lv_obj_class_init_obj(instance->arrow_left);
+
+    instance->text = lv_label_create(obj);
+
+    instance->arrow_right = lv_obj_class_create_obj(MY_ARROW_CLASS, obj);
+    lv_obj_class_init_obj(instance->arrow_right);
+
+    if(lv_theme_get_font_normal(obj) == &lv_font_tiny5_8) {
+        lv_label_set_text(instance->arrow_left, SYM_ARROW_LEFT);
+        lv_label_set_text(instance->arrow_right, SYM_ARROW_RIGHT);
+    } else {
+        lv_label_set_text(instance->arrow_left, SYM_ARROW_LEFT_BIG);
+        lv_label_set_text(instance->arrow_right, SYM_ARROW_RIGHT_BIG);
+    }
+}
+
+static void var_item_editor_lvgl_destructor(const lv_obj_class_t* class_p, lv_obj_t* obj) {
+    LV_UNUSED(class_p);
+
+    VarItemEditor* instance = (VarItemEditor*)obj;
+
+    if(instance->suffix) {
+        free(instance->suffix);
+    }
+    if(instance->choices) {
+        var_item_editor_clear_choices(instance);
+    }
+}
+
+// Spinbox private functions
+
+static VarItem* var_item_editor_get_item(const VarItemEditor* instance) {
+    return (VarItem*)lv_obj_get_parent((const lv_obj_t*)instance);
+}
+
+static void var_item_editor_set_range_and_step(
+    VarItemEditor* instance,
+    int32_t min,
+    int32_t max,
+    int32_t step) {
+    instance->min = min;
+    instance->max = max;
+    instance->step = step;
+    instance->value = min;
+}
+
+static void var_item_editor_set_type(VarItemEditor* instance, VarItemType type) {
+    instance->type = type;
+}
+
+static void var_item_editor_set_choices(
+    VarItemEditor* instance,
+    const char* choice_text[],
+    uint32_t choice_count) {
+    furi_assert(instance->type == VarItemTypeSelector);
+    furi_assert(instance->choices == NULL);
+
+    instance->choices = malloc(sizeof(VarItemSelectorChoices));
+    instance->choices->text = malloc(sizeof(char*) * choice_count);
+    instance->choices->count = choice_count;
+
+    for(uint32_t i = 0; i < choice_count; ++i) {
+        instance->choices->text[i] = strdup(choice_text[i]);
+    }
+}
+
+static void var_item_editor_set_choices_key_value(
+    VarItemEditor* instance,
+    const VarItemKeyValue* key_value,
+    uint32_t choice_count) {
+    furi_assert(instance->type == VarItemTypeSelector);
+    furi_assert(instance->choices == NULL);
+
+    instance->choices = malloc(sizeof(VarItemSelectorChoices));
+    instance->choices->text = malloc(sizeof(char*) * choice_count);
+    instance->choices->count = choice_count;
+
+    for(uint32_t i = 0; i < choice_count; ++i) {
+        instance->choices->text[i] = strdup(key_value[i].key);
+    }
+}
+
+static void var_item_editor_clear_choices(VarItemEditor* instance) {
+    furi_assert(instance->choices);
+
+    VarItemSelectorChoices* choices = instance->choices;
+    furi_assert(choices->text);
+    furi_assert(choices->count);
+
+    for(uint32_t i = 0; i < choices->count; ++i) {
+        free(choices->text[i]);
+    }
+
+    free(choices);
+    instance->choices = NULL;
+}
+
+static void var_item_editor_set_suffix(VarItemEditor* instance, const char* suffix) {
+    furi_assert(instance->type != VarItemTypeTimebox && instance->type != VarItemTypeSwitch);
+    furi_assert(instance->suffix == NULL);
+
+    if(suffix) {
+        instance->suffix = strdup(suffix);
+    }
+}
+
+static void var_item_editor_update(VarItemEditor* instance) {
+    lv_obj_t* label = instance->text;
+
+    const bool is_lower_bound = (instance->value == instance->min);
+    const bool is_upper_bound = (instance->value == instance->max);
+
+    const bool is_neg_infinity = is_lower_bound && (instance->flags & VarItemFlagMinIsInf);
+    const bool is_pos_infinity = is_upper_bound && (instance->flags & VarItemFlagMaxIsInf);
+
+    if(is_lower_bound) {
+        lv_obj_add_state(instance->arrow_left, LV_STATE_DISABLED);
+    } else {
+        lv_obj_remove_state(instance->arrow_left, LV_STATE_DISABLED);
+    }
+
+    if(is_upper_bound) {
+        lv_obj_add_state(instance->arrow_right, LV_STATE_DISABLED);
+    } else {
+        lv_obj_remove_state(instance->arrow_right, LV_STATE_DISABLED);
+    }
+
+    if(is_neg_infinity || is_pos_infinity) {
+        lv_label_set_text_fmt(label, "%s", SYM_INFINITY);
+
+    } else if(instance->type == VarItemTypeSpinbox) {
+        if(instance->suffix) {
+            lv_label_set_text_fmt(label, "%ld %s", instance->value, instance->suffix);
+        } else {
+            lv_label_set_text_fmt(label, "%ld", instance->value);
+        }
+
+    } else if(instance->type == VarItemTypeTimebox) {
+        const int32_t hh = instance->value / 60;
+        const int32_t mm = instance->value % 60;
+
+        if(hh == 0) {
+            lv_label_set_text_fmt(label, "%ld m", mm);
+        } else if(mm == 0) {
+            lv_label_set_text_fmt(label, "%ld h", hh);
+        } else {
+            lv_label_set_text_fmt(label, "%ld:%02ld", hh, mm);
+        }
+
+    } else if(instance->type == VarItemTypeSelector) {
+        const VarItemSelectorChoices* choices = instance->choices;
+        const uint32_t index = instance->value;
+
+        furi_check(index < choices->count);
+
+        if(instance->suffix) {
+            lv_label_set_text_fmt(label, "%s %s", choices->text[index], instance->suffix);
+        } else {
+            lv_label_set_text_fmt(label, "%s", choices->text[index]);
+        }
+
+    } else if(instance->type == VarItemTypeSwitch) {
+        lv_label_set_text_fmt(label, "%s", instance->value ? "On" : "Off");
+
+    } else {
+        furi_crash();
+    }
+}
+
+static void var_item_editor_increment(VarItemEditor* instance) {
+    if(instance->value < instance->max) {
+        instance->value += instance->step;
+
+        if(instance->callback) {
+            instance->callback(var_item_editor_get_item(instance), instance->context);
+        }
+
+        var_item_editor_update(instance);
+    }
+}
+
+static void var_item_editor_decrement(VarItemEditor* instance) {
+    if(instance->value > instance->min) {
+        instance->value -= instance->step;
+
+        if(instance->callback) {
+            instance->callback(var_item_editor_get_item(instance), instance->context);
+        }
+
+        var_item_editor_update(instance);
+    }
+}
+
+static void var_item_editor_set_edited(VarItemEditor* instance, bool set) {
+    VarItem* item = (VarItem*)lv_obj_get_parent((lv_obj_t*)instance);
+
+    if(set) {
+        lv_obj_add_state((lv_obj_t*)instance, LV_STATE_EDITED);
+        lv_obj_remove_state((lv_obj_t*)item, LV_STATE_FOCUSED);
+        lv_obj_add_state((lv_obj_t*)item->cursor, LV_STATE_EDITED);
+        lv_obj_remove_state((lv_obj_t*)item->cursor, LV_STATE_FOCUSED);
+
+    } else {
+        lv_obj_remove_state((lv_obj_t*)instance, LV_STATE_EDITED);
+        lv_obj_add_state((lv_obj_t*)item, LV_STATE_FOCUSED);
+        lv_obj_add_state((lv_obj_t*)item->cursor, LV_STATE_FOCUSED);
+        lv_obj_remove_state((lv_obj_t*)item->cursor, LV_STATE_EDITED);
+    }
+}
+
+static bool var_item_list_input_callback(Widget* widget, const InputEvent* event) {
+    VarItemList* instance = (VarItemList*)widget;
+
+    bool consumed = false;
+
+    if(event->type == InputTypeShort) {
+        if(event->key == InputKeyUp) {
+            if(instance->edited) {
+                var_item_editor_increment(instance->edited);
+            } else {
+                lv_group_focus_next(instance->group);
+            }
+
+            consumed = true;
+
+        } else if(event->key == InputKeyDown) {
+            if(instance->edited) {
+                var_item_editor_decrement(instance->edited);
+            } else {
+                lv_group_focus_prev(instance->group);
+            }
+
+            consumed = true;
+
+        } else if(event->key == InputKeyOk || event->key == InputKeyStart) {
+            VarItemEditor* editor = instance->edited;
+
+            if(editor) {
+                var_item_editor_set_edited(editor, false);
+                instance->edited = NULL;
+
+            } else {
+                VarItem* item = (VarItem*)lv_group_get_focused(instance->group);
+                editor = item->editor;
+
+                var_item_editor_set_edited(editor, true);
+                instance->edited = editor;
+            }
+
+            consumed = true;
+
+        } else if(event->key == InputKeyBack) {
+            VarItemEditor* editor = instance->edited;
+
+            if(editor) {
+                var_item_editor_set_edited(editor, false);
+                instance->edited = NULL;
+
+                if(editor->callback) {
+                    editor->callback(var_item_editor_get_item(editor), editor->context);
+                }
+
+                consumed = true;
+            }
+        }
+    }
+
+    return consumed;
+}
+
+static VarItem* var_item_alloc(
+    VarItemList* parent,
+    const char* label,
+    VarItemChangeCallback callback,
+    void* context) {
+    lv_obj_t* obj = lv_obj_class_create_obj(MY_ITEM_CLASS, (lv_obj_t*)parent);
+    lv_obj_class_init_obj(obj);
+
+    lv_group_add_obj(parent->group, obj);
+
+    VarItem* instance = (VarItem*)obj;
+    lv_label_set_text(instance->label, label);
+
+    VarItemEditor* editor = instance->editor;
+    editor->callback = callback;
+    editor->context = context;
+
+    return instance;
+}
+
+// Public API
+
+VarItemList* var_item_list_alloc(Widget* parent) {
+    furi_check(parent);
+
+    lv_obj_t* obj = lv_obj_class_create_obj(MY_CLASS, (lv_obj_t*)parent);
+    lv_obj_class_init_obj(obj);
+
+    VarItemList* instance = (VarItemList*)obj;
+    widget_set_input_feed_callback((Widget*)instance, var_item_list_input_callback);
+
+    return instance;
+}
+
+void var_item_list_free(VarItemList* instance) {
+    furi_check(instance);
+    lv_obj_delete((lv_obj_t*)instance);
+}
+
+Widget* var_item_list_get_base(VarItemList* instance) {
+    furi_check(instance);
+    return (Widget*)instance;
+}
+
+VarItem* var_item_list_add_timebox(
+    VarItemList* instance,
+    const char* label,
+    int32_t min_mn,
+    int32_t max_mn,
+    int32_t step_mn,
+    VarItemChangeCallback callback,
+    void* context) {
+    furi_check(instance);
+    furi_check(label);
+    CHECK_RANGE_AND_STEP(min_mn, max_mn, step_mn);
+
+    VarItem* item = var_item_alloc(instance, label, callback, context);
+
+    var_item_editor_set_type(item->editor, VarItemTypeTimebox);
+    var_item_editor_set_range_and_step(item->editor, min_mn, max_mn, step_mn);
+    var_item_editor_update(item->editor);
+
+    return item;
+}
+
+VarItem* var_item_list_add_spinbox(
+    VarItemList* instance,
+    const char* label,
+    const char* suffix,
+    int32_t min,
+    int32_t max,
+    int32_t step,
+    VarItemChangeCallback callback,
+    void* context) {
+    furi_check(instance);
+    furi_check(label);
+    CHECK_RANGE_AND_STEP(min, max, step);
+
+    VarItem* item = var_item_alloc(instance, label, callback, context);
+
+    var_item_editor_set_type(item->editor, VarItemTypeSpinbox);
+    var_item_editor_set_range_and_step(item->editor, min, max, step);
+    var_item_editor_set_suffix(item->editor, suffix);
+    var_item_editor_update(item->editor);
+
+    return item;
+}
+
+VarItem* var_item_list_add_selector(
+    VarItemList* instance,
+    const char* label,
+    const char* suffix,
+    const char* choice_text[],
+    uint32_t choice_count,
+    VarItemChangeCallback callback,
+    void* context) {
+    furi_check(instance);
+    furi_check(label);
+    furi_check(choice_text);
+    furi_check(choice_count);
+
+    VarItem* item = var_item_alloc(instance, label, callback, context);
+
+    var_item_editor_set_type(item->editor, VarItemTypeSelector);
+    var_item_editor_set_range_and_step(item->editor, 0, choice_count - 1, 1);
+    var_item_editor_set_choices(item->editor, choice_text, choice_count);
+    var_item_editor_set_suffix(item->editor, suffix);
+    var_item_editor_update(item->editor);
+
+    return item;
+}
+
+VarItem* var_item_list_add_selector_key_value(
+    VarItemList* instance,
+    const char* label,
+    const char* suffix,
+    const VarItemKeyValue* choice_key_val,
+    uint32_t choice_count,
+    VarItemChangeCallback callback,
+    void* context) {
+    furi_check(instance);
+    furi_check(label);
+    furi_check(choice_key_val);
+    furi_check(choice_count);
+
+    VarItem* item = var_item_alloc(instance, label, callback, context);
+
+    var_item_editor_set_type(item->editor, VarItemTypeSelector);
+    var_item_editor_set_range_and_step(item->editor, 0, choice_count - 1, 1);
+    var_item_editor_set_choices_key_value(item->editor, choice_key_val, choice_count);
+    var_item_editor_set_suffix(item->editor, suffix);
+    var_item_editor_update(item->editor);
+
+    return item;
+}
+
+VarItem* var_item_list_add_switch(
+    VarItemList* instance,
+    const char* label,
+    VarItemChangeCallback callback,
+    void* context) {
+    furi_check(instance);
+    furi_check(label);
+
+    VarItem* item = var_item_alloc(instance, label, callback, context);
+
+    var_item_editor_set_type(item->editor, VarItemTypeSwitch);
+    var_item_editor_set_range_and_step(item->editor, 0, 1, 1);
+    var_item_editor_update(item->editor);
+
+    return item;
+}
+
+void var_item_set_value(VarItem* item, int32_t value) {
+    furi_check(item);
+
+    VarItemEditor* editor = item->editor;
+    furi_check(value >= editor->min);
+    furi_check(value <= editor->max);
+    furi_check(value % editor->step == 0);
+
+    if(editor->value != value) {
+        editor->value = value;
+        var_item_editor_update(editor);
+    }
+}
+
+void var_item_set_value_key_value(
+    VarItem* item,
+    const VarItemKeyValue* choice_key_val,
+    int32_t value) {
+    furi_check(item);
+
+    VarItemEditor* editor = item->editor;
+    int32_t index = 0x7FFFFFFF;
+    for(int32_t i = editor->min; i <= editor->max; i++) {
+        if(choice_key_val[i].value == value) {
+            index = i;
+            break;
+        }
+    }
+    var_item_set_value(item, index);
+}
+
+int32_t var_item_get_value(const VarItem* item) {
+    furi_check(item);
+
+    const VarItemEditor* editor = item->editor;
+    return editor->value;
+}
+
+void var_item_set_flags(VarItem* item, uint32_t flags) {
+    furi_check(item);
+
+    VarItemEditor* editor = item->editor;
+    editor->flags = flags;
+    var_item_editor_update(editor);
+}
+
+// LVGL classes
+
+const lv_obj_class_t var_item_list_lvgl_class = {
+    .base_class = &widget_lvgl_class,
+    .constructor_cb = var_item_list_lvgl_constructor,
+    .destructor_cb = var_item_list_lvgl_destructor,
+    .name = "widget-var-item-list",
+    .width_def = LV_PCT(100),
+    .height_def = LV_PCT(100),
+    .instance_size = sizeof(VarItemList),
+};
+
+const lv_obj_class_t var_item_lvgl_class = {
+    .base_class = &lv_obj_class,
+    .constructor_cb = var_item_lvgl_constructor,
+    .event_cb = var_item_lvgl_event,
+    .name = "var-item",
+    .width_def = LV_PCT(100),
+    .height_def = LV_SIZE_CONTENT,
+    .instance_size = sizeof(VarItem),
+};
+
+const lv_obj_class_t var_item_editor_lvgl_class = {
+    .base_class = &lv_obj_class,
+    .constructor_cb = var_item_editor_lvlgl_constructor,
+    .destructor_cb = var_item_editor_lvgl_destructor,
+    .name = "var-item-editor",
+    .width_def = LV_SIZE_CONTENT,
+    .height_def = LV_SIZE_CONTENT,
+    .instance_size = sizeof(VarItemEditor),
+};
+
+const lv_obj_class_t var_item_cursor_lvgl_class = {
+    .base_class = &lv_label_class,
+    .name = "var-item-cursor",
+    .width_def = LV_SIZE_CONTENT,
+    .height_def = LV_SIZE_CONTENT,
+};
+
+const lv_obj_class_t var_item_arrow_lvgl_class = {
+    .base_class = &lv_label_class,
+    .name = "var-item-arrow",
+    .width_def = LV_SIZE_CONTENT,
+    .height_def = LV_SIZE_CONTENT,
+};

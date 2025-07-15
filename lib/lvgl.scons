@@ -8,6 +8,7 @@ env.AppendUnique(
     CPPDEFINES=[
         "LV_CONF_INCLUDE_SIMPLE",
     ],
+    FW_NOARCHIVE_LIBS=["stdc++", "m"],
 )
 
 libenv = env.Clone(FW_LIB_NAME="lvgl")
@@ -17,7 +18,7 @@ libenv.AppendUnique(
     CPPFLAGS=[
         "-Wno-redundant-decls",
         "-Wno-type-limits",
-    ]
+    ],
 )
 
 sources = []
@@ -27,6 +28,7 @@ sources += libenv.Glob("lvgl/src/display/*.c", source=True)
 sources += libenv.Glob("lvgl/src/draw/*.c", source=True)
 sources += libenv.Glob("lvgl/src/draw/sw/*.c", source=True)
 sources += libenv.Glob("lvgl/src/draw/sw/blend/*.c", source=True)
+sources += libenv.Glob("lvgl/src/draw/dma2d/*.c", source=True)
 sources += libenv.Glob("lvgl/src/font/*.c", source=True)
 sources += libenv.Glob("lvgl/src/indev/*.c", source=True)
 sources += libenv.Glob("lvgl/src/layouts/*.c", source=True)
@@ -37,6 +39,8 @@ sources += libenv.Glob("lvgl/src/misc/cache/*.c", source=True)
 sources += libenv.Glob("lvgl/src/stdlib/*.c", source=True)
 sources += libenv.Glob("lvgl/src/stdlib/clib/*.c", source=True)
 sources += libenv.Glob("lvgl/src/osal/*.c", source=True)
+sources += libenv.Glob("lvgl/src/others/sysmon/*.c", source=True)
+sources += libenv.Glob("lvgl/src/others/observer/*.c", source=True)
 sources += libenv.Glob("lvgl/src/themes/*.c", source=True)
 sources += libenv.Glob("lvgl/src/themes/*/*.c", source=True)
 sources += libenv.Glob("lvgl/src/tick/*.c", source=True)

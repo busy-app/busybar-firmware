@@ -27,7 +27,7 @@
 /*-----------------------------------------------------------------------------/
 / Function Configurations
 /-----------------------------------------------------------------------------*/
-#ifdef FURI_RAM_EXEC
+#ifdef FATFS_READ_ONLY
 #define _FS_READONLY 1 /* 0:Read/Write or 1:Read only */
 #else
 #define _FS_READONLY 0 /* 0:Read/Write or 1:Read only */
@@ -58,7 +58,7 @@
 /* This option switches filtered directory read functions, f_findfirst() and
 /  f_findnext(). (0:Disable, 1:Enable 2:Enable with matching altname[] too) */
 
-#ifdef FURI_RAM_EXEC
+#ifdef FATFS_READ_ONLY
 #define _USE_MKFS 0
 #else
 #define _USE_MKFS 1
@@ -159,7 +159,7 @@
 / Drive/Volume Configurations
 /----------------------------------------------------------------------------*/
 
-#define _VOLUMES 1
+#define _VOLUMES 2
 /* Number of volumes (logical drives) to be used. */
 
 /* USER CODE BEGIN Volumes */
@@ -172,7 +172,7 @@
 /  the drive ID strings are: A-Z and 0-9. */
 /* USER CODE END Volumes */
 
-#define _MULTI_PARTITION 0 /* 0:Single partition, 1:Multiple partition */
+#define _MULTI_PARTITION 1 /* 0:Single partition, 1:Multiple partition */
 /* This option switches support of multi-partition on a physical drive.
 /  By default (0), each logical drive number is bound to the same physical drive
 /  number and only an FAT volume found on the physical drive will be mounted.

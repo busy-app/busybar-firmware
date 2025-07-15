@@ -1,0 +1,8 @@
+App(
+    appid="unit_tests",
+    name="unit_tests",
+    targets=["f20"],
+    apptype=FlipperAppType.CLICMD,
+    entry_point="unit_tests_cli_command",
+    stack_size=4 * 1024,
+)

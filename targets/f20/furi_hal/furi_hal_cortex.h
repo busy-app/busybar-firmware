@@ -5,6 +5,7 @@
 
 #pragma once
 
+#include <furi.h>
 #include <stdint.h>
 #include <stdbool.h>
 
@@ -55,6 +56,20 @@ bool furi_hal_cortex_timer_is_expired(FuriHalCortexTimer cortex_timer);
  * @param[in]  cortex_timer  The FuriHalCortexTimer
  */
 void furi_hal_cortex_timer_wait(FuriHalCortexTimer cortex_timer);
+
+/** Reset device
+ */
+FURI_NORETURN void furi_hal_cortex_system_reset(void);
+
+typedef enum {
+    FuriHalCortexJumpDFU,
+    FuriHalCortexJumpSRAM,
+    FuriHalCortexJumpFlash,
+} FuriHalCortexJumpType;
+
+/** Jump to DFU bootloader
+ */
+FURI_NORETURN void furi_hal_cortex_jump(FuriHalCortexJumpType jump_type);
 
 typedef enum {
     FuriHalCortexComp0,

@@ -1,0 +1,11 @@
+App(
+    appid="web_server",
+    name="WebSrv",
+    apptype=FlipperAppType.SERVICE,
+    entry_point="web_srv_start",
+    stack_size=8 * 1024,
+    order=70,
+    requires=["usb_srv", "canvas"],
+    targets=["f20", "f21"],
+    resources="resources",
+)

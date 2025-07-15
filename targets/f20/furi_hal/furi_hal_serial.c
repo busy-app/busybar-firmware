@@ -30,6 +30,13 @@ typedef struct {
     uint32_t rx_dma_request;
 } FuriHalSerialResources;
 
+static const uint32_t furi_hal_serial_auto_baundrate_mode[] = {
+    [FuriHalSerialAutoBaudRateModeStartBit] = LL_USART_AUTOBAUD_DETECT_ON_STARTBIT,
+    [FuriHalSerialAutoBaudRateModeFallingEdge] = LL_USART_AUTOBAUD_DETECT_ON_FALLINGEDGE,
+    [FuriHalSerialAutoBaudRateMode0x7FFrame] = LL_USART_AUTOBAUD_DETECT_ON_7F_FRAME,
+    [FuriHalSerialAutoBaudRateMode0x55Frame] = LL_USART_AUTOBAUD_DETECT_ON_55_FRAME,
+};
+
 static const FuriHalSerialResources furi_hal_serial_resources[FuriHalSerialIdMax] = {
     [FuriHalSerialIdUsart1] =
         {
@@ -480,6 +487,39 @@ bool furi_hal_serial_is_baud_rate_supported(FuriHalSerialHandle* handle, uint32_
     return baud_rate >= 10 && baud_rate <= 20000000;
 }
 
+bool furi_hal_serial_set_auto_baud_rate(
+    FuriHalSerialHandle* handle,
+    FuriHalSerialAutoBaudRateMode mode,
+    uint32_t timeout) {
+    furi_check(handle);
+
+    FuriHalSerial* serial = furi_hal_serial[handle->id];
+    USART_TypeDef* periph = serial->periph_ptr;
+    FuriHalCortexTimer wait = furi_hal_cortex_timer_get(timeout * 1000);
+
+    LL_USART_SetAutoBaudRateMode(periph, furi_hal_serial_auto_baundrate_mode[mode]);
+    LL_USART_EnableAutoBaudRate(periph);
+    while(!LL_USART_IsActiveFlag_ABR(periph) && !furi_hal_cortex_timer_is_expired(wait)) {
+        furi_thread_yield();
+    };
+    return !LL_USART_IsActiveFlag_ABRE(periph);
+}
+
+uint32_t furi_hal_serial_get_baud_rate(FuriHalSerialHandle* handle) {
+    furi_check(handle);
+
+    FuriHalSerial* serial = furi_hal_serial[handle->id];
+    furi_check(serial);
+
+    USART_TypeDef* periph = serial->periph_ptr;
+
+    uint32_t prescaler = LL_USART_GetPrescaler(periph);
+    uint32_t over_sampling = LL_USART_GetOverSampling(periph);
+    uint32_t baud_rate = LL_USART_GetBaudRate(periph, SystemCoreClock, prescaler, over_sampling);
+
+    return baud_rate;
+}
+
 void furi_hal_serial_set_baud_rate(FuriHalSerialHandle* handle, uint32_t baud_rate) {
     furi_check(handle);
     furi_check(furi_hal_serial_is_baud_rate_supported(handle, baud_rate));
@@ -780,7 +820,7 @@ void furi_hal_serial_set_transfer_direction(
         direction = LL_USART_DIRECTION_RX;
         furi_hal_gpio_init(gpio_tx, GpioModeAnalog, GpioPullNo, GpioSpeedLow);
         furi_hal_gpio_init_ex(
-            gpio_rx, GpioModeAltFunctionPushPull, GpioPullNo, GpioSpeedHigh, alt_fn);
+            gpio_rx, GpioModeAltFunctionPushPull, GpioPullUp, GpioSpeedHigh, alt_fn);
         break;
 
     case FuriHalSerialDirectionTxRx:
@@ -788,7 +828,7 @@ void furi_hal_serial_set_transfer_direction(
         furi_hal_gpio_init_ex(
             gpio_tx, GpioModeAltFunctionPushPull, GpioPullNo, GpioSpeedHigh, alt_fn);
         furi_hal_gpio_init_ex(
-            gpio_rx, GpioModeAltFunctionPushPull, GpioPullNo, GpioSpeedHigh, alt_fn);
+            gpio_rx, GpioModeAltFunctionPushPull, GpioPullUp, GpioSpeedHigh, alt_fn);
         break;
 
     default:

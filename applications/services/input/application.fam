@@ -6,9 +6,10 @@ App(
     cdefines=["SRV_INPUT"],
     stack_size=1 * 1024,
     order=80,
-    targets=["f20"],
+    targets=["f20", "f21"],
     sources=["input.c"],
     sdk_headers=["input.h"],
+    provides=["input_command"],
 )
 
 App(
@@ -21,4 +22,13 @@ App(
     order=80,
     targets=["f64"],
     sources=["input_f64.c"],
+)
+
+App(
+    appid="input_command",
+    name="input",
+    targets=["f20", "f21"],
+    apptype=FlipperAppType.CLICMD,
+    entry_point="input_cli_command",
+    sources=["input_cli.c"],
 )

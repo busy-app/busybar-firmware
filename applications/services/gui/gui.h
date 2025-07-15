@@ -1,136 +1,126 @@
 /**
  * @file gui.h
- * GUI: main API
+ * @brief GUI system APIs.
  */
-
 #pragma once
 
-#include "view_port.h"
-#include <canvas/canvas.h>
+#include <input/input.h>
+
+#include "widget.h"
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-/** Gui layers */
-typedef enum {
-    GuiLayerDesktop, /**< Desktop layer for internal use. Like fullscreen but with status bar */
-
-    GuiLayerWindow, /**< Window layer, status bar is shown */
-
-    GuiLayerStatusBarLeft, /**< Status bar left-side layer, auto-layout */
-    GuiLayerStatusBarRight, /**< Status bar right-side layer, auto-layout */
-
-    GuiLayerFullscreen, /**< Fullscreen layer, no status bar */
-
-    GuiLayerMAX /**< Don't use or move, special value */
-} GuiLayer;
-
-/** Gui Canvas Commit Callback */
-typedef void (*GuiCanvasCommitCallback)(
-    uint8_t* data,
-    size_t size,
-    CanvasOrientation orientation,
-    void* context);
-
 #define RECORD_GUI "gui"
 
+/** Enumeration of available display identifiers. */
+typedef enum {
+    GuiDisplayIdFront, /**< Front (main display) */
+    GuiDisplayIdBack, /**< Back (greyscale) display */
+    GuiDisplayIdMax, /**< Special value, equal to display number */
+} GuiDisplayId;
+
+/** Enumeration of available layer indentifiers. */
+typedef enum {
+    GuiLayerIdSystem, /**< System layer - for displaying statuses and other persistent info */
+    GuiLayerIdTop, /**< Top layer - for displaying dialog windows and overlays */
+    GuiLayerIdMain, /**< Main layer - for displaying regular applications */
+    GuiLayerIdBottom, /**< Bottom layer - visible only if there is nothing on layers above it */
+    GuiLayerIdMax, /**< Special value, not to be used in application code */
+} GuiLayerId;
+
+/** Gui opaque type declaration. */
 typedef struct Gui Gui;
 
-/** Add view_port to view_port tree
- *
- * @remark     thread safe
- *
- * @param      gui        Gui instance
- * @param      view_port  ViewPort instance
- * @param[in]  layer      GuiLayer where to place view_port
- */
-void gui_add_view_port(Gui* gui, ViewPort* view_port, GuiLayer layer);
+/** GuiLayer opaque type declaration. */
+typedef struct GuiLayer GuiLayer;
 
-/** Remove view_port from rendering tree
+/**
+ * @brief Input callback function type.
  *
- * @remark     thread safe
- *
- * @param      gui        Gui instance
- * @param      view_port  ViewPort instance
+ * @param[in] event pointer to the input event that has occurred
+ * @param[in,out] context pointer to a user-specific object, given upon callback registration
+ * @returns true if the event was consumed (handled) by the recipient, false otherwise
  */
-void gui_remove_view_port(Gui* gui, ViewPort* view_port);
+typedef bool (*GuiInputCallback)(const InputEvent* event, void* context);
 
-/** Send ViewPort to the front
+/**
+ * @brief Lock the GUI system.
  *
- * Places selected ViewPort to the top of the drawing stack
+ * @warning This function MUST be called BEFORE ANY Gui-related function calls.
+ *          Examples include, but not limited to: creating, deleting and modifying of Widgets,
+ *          adding or removing of active widgets, etc.
+ *          Failure to do so will result in possible instabilities and crashes.
  *
- * @param      gui        Gui instance
- * @param      view_port  ViewPort instance
+ * @param[in,out] instance pointer to the Gui instance to lock
  */
-void gui_view_port_send_to_front(Gui* gui, ViewPort* view_port);
+void gui_lock(Gui* instance);
 
-/** Send ViewPort to the back
+/**
+ * @brief Unlock the GUI system.
  *
- * Places selected ViewPort to the bottom of the drawing stack
+ * @warning This function MUST be called AFTER calling gui_lock() and performing the
+ *          required Gui-related calls. Failure to do so will result in Gui lockup.
  *
- * @param      gui        Gui instance
- * @param      view_port  ViewPort instance
+ * @param[in,out] instance pointer to the Gui instance to unlock
  */
-void gui_view_port_send_to_back(Gui* gui, ViewPort* view_port);
+void gui_unlock(Gui* instance);
 
-/** Add gui canvas commit callback
- *
- * This callback will be called upon Canvas commit Callback dispatched from GUI
- * thread and is time critical
- *
- * @param      gui       Gui instance
- * @param      callback  GuiCanvasCommitCallback
- * @param      context   GuiCanvasCommitCallback context
+/**
+ * @brief
  */
-void gui_add_framebuffer_callback(Gui* gui, GuiCanvasCommitCallback callback, void* context);
+GuiLayer* gui_get_layer(Gui* instance, GuiLayerId layer_id);
 
-/** Remove gui canvas commit callback
+/**
+ * @brief Get the root widget of a Layer on a certain display.
  *
- * @param      gui       Gui instance
- * @param      callback  GuiCanvasCommitCallback
- * @param      context   GuiCanvasCommitCallback context
+ * A root widget cannot be moved, resized or used as the input event source.
+ *
+ * @param[in,out] layer pointer to the GuiLayer instance
+ * @param[in] display_id identifier of the display required
+ * @return pointer to the root widget
  */
-void gui_remove_framebuffer_callback(Gui* gui, GuiCanvasCommitCallback callback, void* context);
+Widget* gui_layer_get_root_widget(GuiLayer* layer, GuiDisplayId display_id);
 
-/** Get gui canvas frame buffer size
- * *
- * @param      gui       Gui instance
- * @return     size_t    size of frame buffer in bytes
+/**
+ * @brief Register a callback to report for unhandled input events on a certain layer.
+ *
+ * @param[in,out] layer pointer to the layer to be modified
+ * @param[in] callback pointer to the function to be called upon eligible events
+ * @param[in,out] context pointer to a user-specific object (will be passed to the callback)
  */
-size_t gui_get_framebuffer_size(const Gui* gui);
+void gui_layer_add_input_callback(GuiLayer* layer, GuiInputCallback callback, void* context);
 
-/** Set lockdown mode
+/**
+ * @brief Unregister a previously registered input callback.
  *
- * When lockdown mode is enabled, only GuiLayerDesktop is shown.
- * This feature prevents services from showing sensitive information when flipper is locked.
- *
- * @param      gui       Gui instance
- * @param      lockdown  bool, true if enabled
+ * @param[in,out] layer pointer to the layer to be modified
+ * @param[in] callback pointer to the function to be unregistered
  */
-void gui_set_lockdown(Gui* gui, bool lockdown);
+void gui_layer_remove_input_callback(GuiLayer* layer, GuiInputCallback callback);
 
-/** Acquire Direct Draw lock and get Canvas instance
+/**
+ * @brief Returns pointer to frame buffer for requested display
  *
- * This method return Canvas instance for use in monopoly mode. Direct draw lock
- * disables input and draw call dispatch functions in GUI service. No other
- * applications or services will be able to draw until gui_direct_draw_release
- * call.
- *
- * @param      gui   The graphical user interface
- *
- * @return     Canvas instance
+ * @param[in,out] instance pointer to the Gui instance
+ * @param[in] display_id identifier of the display which frame buffer required
+ * @return pointer to the frame buffer
  */
-Canvas* gui_direct_draw_acquire(Gui* gui);
+const uint8_t* gui_display_get_frame_buffer(Gui* instance, GuiDisplayId display_id);
 
-/** Release Direct Draw Lock
+/**
+ * @brief Shorthand for automatically locking and unlocking the GUI.
  *
- * Release Direct Draw Lock, enables Input and Draw call processing. Canvas
- * acquired in gui_direct_draw_acquire will become invalid after this call.
- *
- * @param      gui   Gui instance
+ * @param[in,out] gui pointer to the Gui instance
+ * @param[in] code the code to execute when the Gui will be in locked state
  */
-void gui_direct_draw_release(Gui* gui);
+#define with_gui(gui, code) \
+    {                       \
+        gui_lock(gui);      \
+        {code};             \
+        gui_unlock(gui);    \
+    }
 
 #ifdef __cplusplus
 }

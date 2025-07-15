@@ -1,72 +1,95 @@
 /**
  * @file menu.h
- * GUI: Menu view module API
+ * @brief Rich menu widget with item icons and sub-labels.
  */
-
 #pragma once
 
-#include <gui/view.h>
+#include <gui/widget.h>
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-/** Menu anonymous structure */
+/** Menu opaque structure. */
 typedef struct Menu Menu;
 
-/** Menu Item Callback */
-typedef void (*MenuItemCallback)(void* context, uint32_t index);
-
-/** Menu allocation and initialization
+/**
+ * @brief Menu item callback function type.
  *
- * @return     Menu instance
+ * @param[in] index index value that the item was created with
+ * @param[in,out] context pointer to a user-specific object
  */
-Menu* menu_alloc(void);
+typedef void (*MenuItemCallback)(uint32_t index, void* context);
 
-/** Free menu
+/**
+ * @brief Create a new Menu instance.
  *
- * @param      menu  Menu instance
+ * @param[in,out] parent pointer to the parent Widget instance
+ *
+ * @returns pointer to the newly created Menu instance
  */
-void menu_free(Menu* menu);
+Menu* menu_alloc(Widget* parent);
 
-/** Get Menu view
+/**
+ * @brief Delete a Menu instance.
  *
- * @param      menu  Menu instance
- *
- * @return     View instance
+ * @param[in,out] instance pointer to the Menu instance to be deleted
  */
-View* menu_get_view(Menu* menu);
+void menu_free(Menu* instance);
 
-/** Add item to menu
+/**
+ * @brief Get a pointer to the base class instance.
  *
- * @param      menu      Menu instance
- * @param      label     menu item string label
- * @param      icon      IconAnimation instance
- * @param      index     menu item index
- * @param      callback  MenuItemCallback instance
- * @param      context   pointer to context
+ * The return value can be used in all Widget methods.
+ *
+ * @param[in,out] instance pointer to the Menu instance to be queried
+ * @returns pointer to the base class instance
+ */
+Widget* menu_get_base(Menu* instance);
+
+/**
+ * @brief Add an item to a Menu instance.
+ *
+ * @param[in,out] instance pointer to the Menu instance to be modified
+ * @param[in] label zero-terminated string containing the item text
+ * @param[in] index item identifier, doesn't have to be unique
+ * @param[in] callback pointer to the function to be called when the item is clicked
+ * @param[in,out] context pointer to a user-specific object, will be passed to callback
  */
 void menu_add_item(
-    Menu* menu,
+    Menu* instance,
     const char* label,
-    const Icon* icon,
+    const char* sub_label,
+    const char* icon_source,
     uint32_t index,
     MenuItemCallback callback,
     void* context);
 
-/** Clean menu
- * @note       this function does not free menu instance
+/**
+ * @brief Remove all items from a Menu instance.
  *
- * @param      menu  Menu instance
+ * @param[in,out] instance pointer to the Menu instance to be modified
  */
-void menu_reset(Menu* menu);
+void menu_reset(Menu* instance);
 
-/** Set current menu item
+/**
+ * @brief Get the index of the selected item in a Menu instance.
  *
- * @param      menu   Menu instance
- * @param      index  The index
+ * @param[in] instance pointer to the Menu instance to be queried
+ *
+ * @returns index of the selected item that was provided when adding it
  */
-void menu_set_selected_item(Menu* menu, uint32_t index);
+uint32_t menu_get_selected_item_index(const Menu* instance);
+
+/**
+ * @brief Select the item in a Menu instance with a matching index
+ *
+ * @note If two or more items share the same index, only the first of them will be selected.
+ *
+ * @param[in,out] instance pointer to the Menu instance to be modified
+ * @param[in] index the index of the item to be selected
+ */
+void menu_set_selected_item_index(Menu* instance, uint32_t index);
 
 #ifdef __cplusplus
 }

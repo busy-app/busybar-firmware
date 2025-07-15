@@ -41,11 +41,7 @@ typedef struct {
 
 typedef void (*FuriHalSdMmcPresentCallback)(void* context);
 
-void furi_hal_sdmmc_init(void);
-
-void furi_hal_sdmmc_set_presence_callback(FuriHalSdMmcPresentCallback callback, void* context);
-
-bool furi_hal_sdmmc_is_sd_present(void);
+void furi_hal_sdmmc_init(bool have_rtos);
 
 bool furi_hal_sdmmc_init_card(void);
 

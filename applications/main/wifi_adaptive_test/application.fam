@@ -1,0 +1,15 @@
+App(
+    appid="wifi_adaptive_test",
+    name="WiFi Adaptive Test",
+    apptype=FlipperAppType.APP,
+    order=90,
+    entry_point="wifi_adaptive_test_app",
+    requires=["gui"],
+    stack_size=2 * 1024,
+    fap_category="Debug",
+    targets=["f20", "f21"],
+    sources=[
+        "wifi_adaptive_test.c",
+        "helpers/wifi_adaptive_cli.c",
+    ],
+)
