@@ -11,6 +11,9 @@ typedef struct Power Power;
 
 #define POWER_CHARGE_CURRENT_MAX 1500 // TODO: was 3300
 #define POWER_CHARGE_VOLTAGE     4200
+#define POWER_VOLTAGE_HYSTERESIS (100)
+#define POWER_VOLTAGE_LOW        (3400)
+#define POWER_VOLTAGE_CRITICAL   (3200)
 
 typedef enum {
     PowerRebootHardware, // Hardware power reboot using charger
@@ -22,11 +25,12 @@ typedef enum {
 } PowerRebootMode;
 
 typedef enum {
-    PowerEventReady,
-    PowerEventBatteryLow,
-    PowerEventBatteryHot,
-    PowerEventChargerConnect,
-    PowerEventChargerDisconnect,
+    PowerEventBatteryNormalStart,
+    PowerEventBatteryNormalStop,
+    PowerEventBatteryLowStart,
+    PowerEventBatteryLowStop,
+    PowerEventBatteryCriticalStart,
+    PowerEventBatteryCriticalStop,
 } PowerEventType;
 
 typedef struct {
