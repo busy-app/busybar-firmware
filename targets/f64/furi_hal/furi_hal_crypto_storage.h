@@ -39,7 +39,6 @@ _Static_assert(sizeof(FuriHalCryptoKeyType) == 4, "Size check for 'FuriHalCrypto
 
 typedef enum {
     FuriHalCryptoKeyFlagWrap = (1 << 0UL),
-    FuriHalCryptoKeyFlagUnwrap = (1 << 1UL),
     FuriHalCryptoKeyFlagNone = 0xFFFFFFFF,
 } FuriHalCryptoKeyFlag;
 _Static_assert(sizeof(FuriHalCryptoKeyFlag) == 4, "Size check for 'FuriHalCryptoKeyFlag' failed.");
@@ -65,6 +64,16 @@ typedef struct {
     FuriHalCryptoPartition partition;
 } FURI_PACKED FuriHalCryptoKey;
 
+typedef enum {
+    FuriHalCryptoStatusOk,
+    FuriHalCryptoStatusFail,
+    FuriHalCryptoStatusFailWrite,
+    FuriHalCryptoStatusStorageFull,
+    FuriHalCryptoStatusDuplicate,
+    FuriHalCryptoStatusNotFound,
+    FuriHalCryptoStatusErrorCrc,
+} FuriHalCryptoStatus;
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -84,24 +93,25 @@ void furi_hal_crypto_storage_free(FuriHalCryptoKey* key);
 
 /** Write a key to the NWP flash.
 * @param[in] key Pointer to the key
-* @return True if the key was written successfully, false otherwise.
+* @return FuriHalCryptoStatus indicating the result of the operation.
 */
-bool furi_hal_crypto_storage_write(FuriHalCryptoKey* key);
+FuriHalCryptoStatus furi_hal_crypto_storage_write(FuriHalCryptoKey* key);
 
 /** Read a key from the NWP flash.
 * @param[in] key Pointer to the key
 * @param[in] type Type of the key to read.
 * @param[in] id ID of the key to read.
-* @return True if the key was read successfully, false otherwise.
+* @return FuriHalCryptoStatus indicating the result of the operation.
 */
-bool furi_hal_crypto_storage_read(FuriHalCryptoKey* key, FuriHalCryptoKeyType type, uint32_t id);
+FuriHalCryptoStatus
+    furi_hal_crypto_storage_read(FuriHalCryptoKey* key, FuriHalCryptoKeyType type, uint32_t id);
 
 /** Generate a random buffer of the specified size.
 * @param[out] buf Pointer to the buffer to fill with random data.
 * @param[in] size Size of the buffer to fill.
-* @return True if the buffer was filled successfully, false otherwise.
+* @return FuriHalCryptoStatus indicating the result of the operation.
 */
-bool furi_hal_crypto_storage_gen_random_buf(uint8_t* buf, size_t size);
+FuriHalCryptoStatus furi_hal_crypto_storage_gen_random_buf(uint8_t* buf, size_t size);
 #ifdef __cplusplus
 }
 #endif
