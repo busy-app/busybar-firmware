@@ -38,6 +38,8 @@ typedef enum {
     SupervisorEventTypeBatteryCriticalStop,
     SupervisorEventTypeBatteryLowStart,
     SupervisorEventTypeBatteryLowStop,
+    SupervisorEventTypeBatteryNotPresent,
+    SupervisorEventTypeBatteryPresent,
     SupervisorEventTypeOKPressed,
 } SupervisorEventType;
 
@@ -92,8 +94,8 @@ static const SupervisorWarning supervisor_warnings[] = {
         },
     [SupervisorWarningTypeBatteryNotReady] =
         {
-            .front_text = "Connect battery\nAnd reset me",
-            .back_text = "Connect battery\nand reset me\n>_<",
+            .front_text = "Battery not present\nConnect battery",
+            .back_text = "Battery not present\nPlease connect battery\n>_<",
             .input_locked = true,
             .ok_callback = NULL,
         },
@@ -152,8 +154,15 @@ static void supervisor_sub_callback(const void* message, void* context) {
     case PowerEventBatteryCriticalStop:
         supervisor_send_event(instance, SupervisorEventTypeBatteryCriticalStop);
         break;
-
-    default:
+    case PowerEventBatteryNotPresent:
+        supervisor_send_event(instance, SupervisorEventTypeBatteryNotPresent);
+        break;
+    case PowerEventBatteryPresent:
+        supervisor_send_event(instance, SupervisorEventTypeBatteryPresent);
+        break;
+    case PowerEventBatteryNormalStart:
+        break;
+    case PowerEventBatteryNormalStop:
         break;
     }
 }
@@ -369,6 +378,14 @@ static void supervisor_process(FuriEventLoopObject* object, void* context) {
     case SupervisorEventTypeBatteryCriticalStop:
         FURI_LOG_I(TAG, "Clearing battery critical warning");
         supervisor_update_warning(&instance->gui, SupervisorWarningTypeBatteryCritical, false);
+        break;
+    case SupervisorEventTypeBatteryNotPresent:
+        FURI_LOG_I(TAG, "Battery not present warning received");
+        supervisor_update_warning(&instance->gui, SupervisorWarningTypeBatteryNotReady, true);
+        break;
+    case SupervisorEventTypeBatteryPresent:
+        FURI_LOG_I(TAG, "Battery present event received");
+        supervisor_update_warning(&instance->gui, SupervisorWarningTypeBatteryNotReady, false);
         break;
     case SupervisorEventTypeOKPressed:
         FURI_LOG_I(TAG, "OK pressed event received");

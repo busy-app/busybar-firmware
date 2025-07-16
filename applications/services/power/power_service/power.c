@@ -471,6 +471,7 @@ void power_run(Power* power) {
         power_pubsub_publish(power, PowerEventBatteryPresent);
         FURI_LOG_I(TAG, "Battery is present");
     } else {
+        power->state.battery_ready = false;
         power_pubsub_publish(power, PowerEventBatteryNotPresent);
         FURI_LOG_I(TAG, "Battery is not present");
     }
