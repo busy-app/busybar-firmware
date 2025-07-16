@@ -368,7 +368,14 @@ static void power_update_info(Power* power) {
 
     if((power->state.battery_ready == false) && (status.vbat_present_stat == true)) {
         power->state.battery_ready = true;
+        power_pubsub_publish(power, PowerEventBatteryPresent);
+        FURI_LOG_I(TAG, "Battery is ready");
+    } else if((power->state.battery_ready == true) && (status.vbat_present_stat == false)) {
+        power->state.battery_ready = false;
+        power_pubsub_publish(power, PowerEventBatteryNotPresent);
+        FURI_LOG_I(TAG, "Battery is not present");
     }
+
     power->state.usb_connected = status.vbus_present;
 
     power->info.is_charging = power_charger_is_charging(status.chg_stat);
@@ -461,6 +468,11 @@ void power_run(Power* power) {
     bq25798_get_charger_status(POWER_I2C, &status);
     if(status.vbat_present_stat) {
         power->state.battery_ready = true;
+        power_pubsub_publish(power, PowerEventBatteryPresent);
+        FURI_LOG_I(TAG, "Battery is present");
+    } else {
+        power_pubsub_publish(power, PowerEventBatteryNotPresent);
+        FURI_LOG_I(TAG, "Battery is not present");
     }
     power->state.pd_initialized = false;
 
