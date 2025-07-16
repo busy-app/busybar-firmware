@@ -9,6 +9,7 @@
 #define TAG "Supervisor"
 
 #define SUPERVISOR_BATTERY_LOW_TIMEOUT_MS 5000
+#define SUPERVISOR_BATTERY_TIME_TO_DIE_S  30
 
 typedef struct Supervisor Supervisor;
 
@@ -26,7 +27,9 @@ typedef struct {
 struct Supervisor {
     FuriEventLoop* event_loop;
     FuriMessageQueue* message_queue;
-    FuriEventLoopTimer* timer;
+    FuriEventLoopTimer* battery_low_timer;
+    FuriEventLoopTimer* battery_critical_timer;
+    size_t battery_critical_counter;
     Power* power;
     Storage* storage;
 
@@ -40,6 +43,7 @@ typedef enum {
     SupervisorEventTypeBatteryLowStop,
     SupervisorEventTypeBatteryNotPresent,
     SupervisorEventTypeBatteryPresent,
+    SupervisorEventTypeTickToDie,
     SupervisorEventTypeOKPressed,
 } SupervisorEventType;
 
@@ -56,11 +60,11 @@ typedef struct {
 
 // if multiple warnings are active, the one with the lowest enum value is shown
 typedef enum {
+    SupervisorWarningTypeBatteryNotReady,
+    SupervisorWarningTypeBatteryCritical, // must be higher than others to power off properly
     SupervisorWarningTypeStorageNoPartitions,
     SupervisorWarningTypeStorageNoBackup,
     SupervisorWarningTypeStorageNoExternal,
-    SupervisorWarningTypeBatteryNotReady,
-    SupervisorWarningTypeBatteryCritical,
     SupervisorWarningTypeBatteryLow,
 
     SupervisorWarningTypeMax, // must be last
@@ -101,8 +105,8 @@ static const SupervisorWarning supervisor_warnings[] = {
         },
     [SupervisorWarningTypeBatteryCritical] =
         {
-            .front_text = "Battery critical\nConnect charger",
-            .back_text = "Battery critical\nPlease connect charger",
+            .front_text = "Connect charger\nPower off in 30 sec.",
+            .back_text = "Battery critical\nPlease connect charger\nPower off in 30 sec.",
             .input_locked = false,
             .ok_callback = NULL,
         },
@@ -167,9 +171,14 @@ static void supervisor_sub_callback(const void* message, void* context) {
     }
 }
 
-static void supervisor_timer_callback(void* context) {
+static void supervisor_timer_bat_low_callback(void* context) {
     Supervisor* instance = context;
     supervisor_send_event(instance, SupervisorEventTypeBatteryLowStop);
+}
+
+static void supervisor_timer_bat_critical_callback(void* context) {
+    Supervisor* instance = context;
+    supervisor_send_event(instance, SupervisorEventTypeTickToDie);
 }
 
 static int32_t supervisor_get_topmost_warning(SupervisorGui* gui) {
@@ -351,6 +360,20 @@ static void supervisor_format_external(Supervisor* supervisor) {
     supervisor_reset();
 }
 
+static void supervisor_update_time_to_die(Supervisor* supervisor, size_t seconds) {
+    SupervisorGui* gui = &supervisor->gui;
+    with_gui(gui->gui, {
+        if(gui->front_label && gui->back_label) {
+            label_set_text_fmt(
+                gui->front_label, "Connect charger\nPower off in %zu sec.", seconds);
+            label_set_text_fmt(
+                gui->back_label,
+                "Battery critical\nPlease connect charger\nPower off in %zu sec.",
+                seconds);
+        }
+    });
+}
+
 static void supervisor_process(FuriEventLoopObject* object, void* context) {
     Supervisor* instance = context;
     furi_assert(object == instance->message_queue);
@@ -364,19 +387,23 @@ static void supervisor_process(FuriEventLoopObject* object, void* context) {
     case SupervisorEventTypeBatteryLowStart:
         FURI_LOG_I(TAG, "Battery low warning received");
         supervisor_update_warning(&instance->gui, SupervisorWarningTypeBatteryLow, true);
-        furi_event_loop_timer_start(instance->timer, SUPERVISOR_BATTERY_LOW_TIMEOUT_MS);
+        furi_event_loop_timer_start(
+            instance->battery_low_timer, SUPERVISOR_BATTERY_LOW_TIMEOUT_MS);
         break;
     case SupervisorEventTypeBatteryLowStop:
         FURI_LOG_I(TAG, "Clearing battery low warning");
-        furi_event_loop_timer_stop(instance->timer); // Stop the timer if it was running
+        furi_event_loop_timer_stop(instance->battery_low_timer);
         supervisor_update_warning(&instance->gui, SupervisorWarningTypeBatteryLow, false);
         break;
     case SupervisorEventTypeBatteryCriticalStart:
         FURI_LOG_I(TAG, "Battery critical warning received");
         supervisor_update_warning(&instance->gui, SupervisorWarningTypeBatteryCritical, true);
+        furi_event_loop_timer_start(instance->battery_critical_timer, 1000); // 1 second interval
+        instance->battery_critical_counter = 0;
         break;
     case SupervisorEventTypeBatteryCriticalStop:
         FURI_LOG_I(TAG, "Clearing battery critical warning");
+        furi_event_loop_timer_stop(instance->battery_critical_timer);
         supervisor_update_warning(&instance->gui, SupervisorWarningTypeBatteryCritical, false);
         break;
     case SupervisorEventTypeBatteryNotPresent:
@@ -392,6 +419,26 @@ static void supervisor_process(FuriEventLoopObject* object, void* context) {
         if(instance->gui.ok_callback) {
             instance->gui.ok_callback(instance);
         }
+        break;
+    case SupervisorEventTypeTickToDie: {
+        size_t topmost_warning_type = supervisor_get_topmost_warning(&instance->gui);
+
+        // with the assumption that only BatteryNotPresent warning has higher priority
+        // this will garantee that we will power off in any other state
+        if(topmost_warning_type == SupervisorWarningTypeBatteryCritical) {
+            instance->battery_critical_counter++;
+
+            supervisor_update_time_to_die(
+                instance, SUPERVISOR_BATTERY_TIME_TO_DIE_S - instance->battery_critical_counter);
+
+            if(instance->battery_critical_counter >= SUPERVISOR_BATTERY_TIME_TO_DIE_S) {
+                FURI_LOG_I(TAG, "Battery critical timeout reached");
+                if(!power_off(instance->power)) {
+                    FURI_LOG_E(TAG, "Power off failed");
+                }
+            }
+        }
+    } break;
     }
 }
 
@@ -401,8 +448,16 @@ int32_t supervisor_start(void* p) {
     Supervisor* instance = malloc(sizeof(Supervisor));
     instance->event_loop = furi_event_loop_alloc();
     instance->message_queue = furi_message_queue_alloc(8, sizeof(SupervisorEvent));
-    instance->timer = furi_event_loop_timer_alloc(
-        instance->event_loop, supervisor_timer_callback, FuriEventLoopTimerTypeOnce, instance);
+    instance->battery_low_timer = furi_event_loop_timer_alloc(
+        instance->event_loop,
+        supervisor_timer_bat_low_callback,
+        FuriEventLoopTimerTypeOnce,
+        instance);
+    instance->battery_critical_timer = furi_event_loop_timer_alloc(
+        instance->event_loop,
+        supervisor_timer_bat_critical_callback,
+        FuriEventLoopTimerTypePeriodic,
+        instance);
     furi_event_loop_subscribe_message_queue(
         instance->event_loop,
         instance->message_queue,
