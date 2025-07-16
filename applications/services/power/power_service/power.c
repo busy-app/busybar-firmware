@@ -1,4 +1,5 @@
 #include "power_i.h"
+#include <toolbox/dsp.h>
 #include <drivers/bq25798/bq25798.h>
 
 #define TAG "Power"
@@ -378,17 +379,30 @@ static void power_update_info(Power* power) {
 
     power->state.usb_connected = status.vbus_present;
 
-    power->info.is_charging = power_charger_is_charging(status.chg_stat);
-    power->info.is_full_charged = power_charger_is_charged(status.chg_stat);
-    power->info.charge =
-        power_get_battery_charge(adc_val.bat_v, adc_val.bat_i, power->info.is_charging);
+    if(power->info.voltage_battery < 2500.0f) {
+        power->info.voltage_battery = adc_val.bat_v;
+    } else {
+        // TODO: tune low pass filter
+        power->info.voltage_battery =
+            dsp_low_pass(adc_val.bat_v, power->info.voltage_battery, 0.90f);
+    }
+
+    FURI_LOG_I(
+        TAG,
+        "Battery voltage: %.3fV, real %.3fV",
+        power->info.voltage_battery / 1000.f,
+        adc_val.bat_v / 1000.f);
 
     power->info.current_battery = adc_val.bat_i;
     power->info.current_usb = adc_val.usb_i;
-    power->info.voltage_battery = adc_val.bat_v;
     power->info.voltage_usb = adc_val.usb_v;
     power->info.temperature_charger = adc_val.temp_charger;
     power->info.temperature_battery = adc_val.temp_bat_pct;
+
+    power->info.is_charging = power_charger_is_charging(status.chg_stat);
+    power->info.is_full_charged = power_charger_is_charged(status.chg_stat);
+    power->info.charge = power_get_battery_charge(
+        power->info.voltage_battery, power->info.current_battery, power->info.is_charging);
 
     power->info.charge_ilim_usb = power->input_current_limit;
     power->info.charge_ilim_battery = power->charger_current_limit;
@@ -415,7 +429,7 @@ static void power_tick_callback(void* context) {
     power_update_info(power);
 }
 
-Power* power_alloc(void) {
+static Power* power_alloc(void) {
     Power* power = malloc(sizeof(Power));
     power->event_loop = furi_event_loop_alloc();
     power->gpio_semaphore = furi_semaphore_alloc(1, 0);
@@ -476,6 +490,7 @@ void power_run(Power* power) {
         FURI_LOG_I(TAG, "Battery is not present");
     }
     power->state.pd_initialized = false;
+    power->info.voltage_battery = 0.0f;
 
     bq25798_set_charge_current_limit(POWER_I2C, power->charger_current_limit);
     bq25798_set_charge_voltage_limit(POWER_I2C, POWER_CHARGE_VOLTAGE);

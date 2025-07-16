@@ -48,8 +48,8 @@ typedef struct {
     int32_t current_battery;
     uint32_t current_usb;
 
-    uint32_t voltage_battery;
-    uint32_t voltage_usb;
+    float voltage_battery;
+    float voltage_usb;
 
     float temperature_charger;
     float temperature_battery;
