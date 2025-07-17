@@ -25,7 +25,7 @@ static const HttpHandler handlers_root[] = {
         .ctx_free = http_api_root_free,
     },
     {
-        .uri = "/api/#",
+        .uri = "/api",
         .method = "OPTIONS",
         .type = HttpHandlerCustom,
         .on_request = http_api_options_callback,
