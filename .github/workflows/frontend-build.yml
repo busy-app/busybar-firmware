@@ -37,7 +37,7 @@ jobs:
         run: pnpm install --frozen-lockfile
 
       - name: Build frontend
-        run: pnpm ci
+        run: pnpm run build/ci
 
       - name: Check output bundle diff
         run: git diff --exit-code || (echo "Output bundle has changed. Please review the changes." && exit 1)
