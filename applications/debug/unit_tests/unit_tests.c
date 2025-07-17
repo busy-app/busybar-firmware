@@ -3,11 +3,17 @@
 #include <cli/cli_command.h>
 #include <cli/cli_ansi.h>
 #include <FreeRTOSConfig.h>
+#include "unit_tests.h"
 
 void unit_tests_cli_command(PipeSide* pipe, FuriString* args, void* context) {
     UNUSED(pipe);
     UNUSED(args);
     UNUSED(context);
+
+    Storage* storage = furi_record_open(RECORD_STORAGE);
+    if(!storage_simply_mkdir(storage, UNIT_TESTS_FOLDER)) {
+        printf("ERROR: Failed to create \"" UNIT_TESTS_FOLDER "\" folder\r\n");
+    }
 
     int32_t heap_before = memmgr_get_free_heap();
     uint32_t time_before = furi_get_tick();
@@ -38,4 +44,9 @@ void unit_tests_cli_command(PipeSide* pipe, FuriString* args, void* context) {
         printf(ANSI_FG_BR_GREEN "PASSED");
     }
     printf(ANSI_RESET "\r\n");
+
+    if(!storage_simply_remove_recursive(storage, UNIT_TESTS_FOLDER)) {
+        printf("ERROR: Failed to remove \"" UNIT_TESTS_FOLDER "\" folder\r\n");
+    }
+    furi_record_close(RECORD_STORAGE);
 }
