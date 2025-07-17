@@ -2,6 +2,7 @@
 #include <stdint.h>
 #include <stdlib.h>
 #include <stdbool.h>
+#include <furi/core/string.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -85,12 +86,15 @@ JsonConfigStatus
  * If value is missing, it will be written to default value (if val_default != NULL)
  * @param a pointer to the config instance.
  * @param object name.
- * @param a pointer to store the string, valid untill the json_config_free or the next object modification
+ * @param a FuriString pointer to valid and allocated string.
  * @param a pointer to default value (set to NULL to bypass default value write).
  * @return Operation status (JsonConfigStatus).
  */
-JsonConfigStatus
-    json_config_read_str(JsonConfig* inst, const char* key, char** val, char* val_default);
+JsonConfigStatus json_config_read_str(
+    JsonConfig* inst,
+    const char* key,
+    FuriString* val,
+    const char* val_default);
 
 /**
  * @brief Write an integer value.
@@ -180,12 +184,15 @@ JsonConfigStatus
  * If value is missing, it will be written to default value (if val_default != NULL)
  * @param a file path string.
  * @param object name.
- * @param a pointer to store the string, you have to free it after use.
+ * @param a FuriString pointer to valid and allocated string.
  * @param a pointer to default value (set to NULL to bypass default value write).
  * @return Operation status (JsonConfigStatus).
  */
-JsonConfigStatus
-    json_config_read_single_str(char* file_path, const char* key, char** val, char* val_default);
+JsonConfigStatus json_config_read_single_str(
+    char* file_path,
+    const char* key,
+    FuriString* val,
+    const char* val_default);
 
 /**
  * @brief Write an integer value - simpler version for a single value.

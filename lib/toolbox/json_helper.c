@@ -181,8 +181,11 @@ JsonConfigStatus
     return status;
 }
 
-JsonConfigStatus
-    json_config_read_str(JsonConfig* inst, const char* key, char** val, char* val_default) {
+JsonConfigStatus json_config_read_str(
+    JsonConfig* inst,
+    const char* key,
+    FuriString* val,
+    const char* val_default) {
     furi_assert(inst);
     furi_assert(inst->root);
     furi_assert(key);
@@ -193,7 +196,7 @@ JsonConfigStatus
 
     if(item) {
         if(cJSON_IsString(item)) {
-            *val = item->valuestring;
+            furi_string_set(val, item->valuestring);
         } else {
             status = JsonConfigStatusMissing;
         }
@@ -203,7 +206,7 @@ JsonConfigStatus
 
     if((status == JsonConfigStatusMissing) && (val_default)) {
         json_config_write_str(inst, key, val_default);
-        *val = val_default;
+        furi_string_set(val, val_default);
     }
 
     return status;
@@ -318,19 +321,20 @@ JsonConfigStatus
     return status;
 }
 
-JsonConfigStatus
-    json_config_read_single_str(char* file_path, const char* key, char** val, char* val_default) {
+JsonConfigStatus json_config_read_single_str(
+    char* file_path,
+    const char* key,
+    FuriString* val,
+    const char* val_default) {
     JsonConfigStatus status = JsonConfigStatusOk;
 
     JsonConfig* cfg = json_config_alloc();
     status = json_config_open(cfg, file_path);
     if(status != JsonConfigStatusError) {
-        char* str_temp = NULL;
-        status = json_config_read_str(cfg, key, &str_temp, val_default);
-        *val = strdup(str_temp);
+        status = json_config_read_str(cfg, key, val, val_default);
     } else {
         if(val_default) {
-            *val = strdup(val_default);
+            furi_string_set(val, val_default);
         }
     }
     json_config_free(cfg);
