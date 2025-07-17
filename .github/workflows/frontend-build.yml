@@ -13,15 +13,16 @@ jobs:
     strategy:
       matrix:
         node-version: [20]
-    defaults:
-      run:
-        shell: bash
-        working-directory: ./assets/frontend
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
         with:
-          fetch-depth: 2
+          fetch-depth: 0
+
+      - name: Copy frontend assets to working directory
+        run: |
+          mkdir -p ci_build
+          cp -r ./assets/frontend/* ci_build/
 
       - name: Install pnpm
         uses: pnpm/action-setup@v4
@@ -37,11 +38,14 @@ jobs:
 
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
+        working-directory: ./ci_build
 
       - name: Build frontend
         run: pnpm run build/ci
+        working-directory: ./ci_build
 
       - name: Check output bundle diff
         run: |
           echo "Build ID: $(git rev-parse HEAD^)"
-          git diff --exit-code || (echo "Output bundle has changed. Please review the changes." && exit 1)
+          diff -r ./.output/public ../assets/frontend/.output/public || (echo "Output bundle has changed. Please review the changes." && exit 1)
+        working-directory: ./ci_build

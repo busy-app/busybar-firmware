@@ -1,0 +1,1 @@
+import{f as e,u as t,c as n,o}from"./entry-728633bfa6b18d21658b69864e0e10271c5fc9fa.js";const i=e({__name:"index",setup(a){return t({title:"BUSY Bar Control Panel",meta:[{name:"description",content:"Set up and control your Busy Bar in the browser"}]}),(r,s)=>(o(),n("div"))}});export{i as default};
