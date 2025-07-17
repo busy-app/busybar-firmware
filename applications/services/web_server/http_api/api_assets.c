@@ -88,10 +88,13 @@ static bool api_assets_upload_parse_parameters(struct mg_str* params_str, FuriSt
 }
 
 static bool api_assets_upload_headers_callback(
+    FuriString* path,
     struct mg_connection* conn,
     struct mg_http_message* msg,
     void* ctx) {
     UNUSED(ctx);
+
+    if(!IS_HTTP_ENDPOINT(path)) return false;
 
     FuriString* file_path = furi_string_alloc();
     if(api_assets_upload_parse_parameters(&msg->query, file_path)) {
@@ -108,14 +111,14 @@ static bool api_assets_upload_headers_callback(
         conn_ctx->raw.on_data = api_assets_upload_data_callback;
         conn_ctx->context = upload_ctx;
 
-        const char* path = furi_string_get_cstr(file_path);
-        if(mg_path_is_sane(mg_str(path))) {
-            http_fs_get()->rm(path); // Delete file if it exists
+        const char* path_temp = furi_string_get_cstr(file_path);
+        if(mg_path_is_sane(mg_str(path_temp))) {
+            http_fs_get()->rm(path_temp); // Delete file if it exists
             FuriString* dir_path = furi_string_alloc();
-            path_extract_dirname(path, dir_path);
+            path_extract_dirname(path_temp, dir_path);
             http_fs_get()->mkd(furi_string_get_cstr(dir_path));
             furi_string_free(dir_path);
-            upload_ctx->file = http_fs_get()->op(path, MG_FS_WRITE); // Open file for writing
+            upload_ctx->file = http_fs_get()->op(path_temp, MG_FS_WRITE); // Open file for writing
         }
 
         if(upload_ctx->file == NULL) {
@@ -138,9 +141,14 @@ static bool api_assets_upload_headers_callback(
     return true;
 }
 
-static bool
-    api_assets_delete_callback(struct mg_connection* conn, struct mg_http_message* msg, void* ctx) {
+static bool api_assets_delete_callback(
+    FuriString* path,
+    struct mg_connection* conn,
+    struct mg_http_message* msg,
+    void* ctx) {
     UNUSED(ctx);
+
+    if(!IS_HTTP_ENDPOINT(path)) return false;
 
     FuriString* dir_path = furi_string_alloc();
     bool success = false;
@@ -175,13 +183,13 @@ static bool
 
 static const HttpHandler handlers_assets[] = {
     {
-        .uri = "/api/v0/assets/upload",
+        .uri = "upload",
         .method = "POST",
         .type = HttpHandlerCustom,
         .on_headers = api_assets_upload_headers_callback,
     },
     {
-        .uri = "/api/v0/assets/upload",
+        .uri = "upload",
         .method = "DELETE",
         .type = HttpHandlerCustom,
         .on_request = api_assets_delete_callback,
@@ -212,15 +220,20 @@ void http_api_assets_free(void* ctx) {
     free(context);
 }
 
-bool http_api_assets_callback(struct mg_connection* conn, struct mg_http_message* msg, void* ctx) {
-    ApiAssetsCtx* context = ctx;
-    return http_handle_request(context->handlers, conn, msg);
-}
-
-bool http_api_assets_hdr_callback(
+bool http_api_assets_callback(
+    FuriString* path,
     struct mg_connection* conn,
     struct mg_http_message* msg,
     void* ctx) {
     ApiAssetsCtx* context = ctx;
-    return http_handle_headers(context->handlers, conn, msg);
+    return http_handle_request(path, context->handlers, conn, msg);
+}
+
+bool http_api_assets_hdr_callback(
+    FuriString* path,
+    struct mg_connection* conn,
+    struct mg_http_message* msg,
+    void* ctx) {
+    ApiAssetsCtx* context = ctx;
+    return http_handle_headers(path, context->handlers, conn, msg);
 }

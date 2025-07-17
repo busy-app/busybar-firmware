@@ -309,9 +309,6 @@ typedef struct {
 } CardStatus;
 
 typedef struct {
-    FuriHalSdMmcPresentCallback present_callback;
-    void* context;
-
     CardCSDInfo csd;
     CardStatus status;
 
@@ -415,25 +412,6 @@ static void furi_hal_sdmmc_event_set(uint32_t mask) {
     } else {
         sdmmc_dma_context.event_flags |= mask;
     }
-}
-
-// static void furi_hal_sdmmc_present_callback(void* context) {
-//     SdMmc sdmmc = *(SdMmc*)context;
-//     if(sdmmc.present_callback) {
-//         sdmmc.present_callback(sdmmc.context);
-//     }
-// }
-
-void furi_hal_sdmmc_set_presence_callback(FuriHalSdMmcPresentCallback callback, void* context) {
-    sdmmc1.present_callback = callback;
-    sdmmc1.context = context;
-
-    // if(sdmmc1.present_callback) {
-    //     furi_hal_gpio_add_int_callback(
-    //         &gpio_sd_card_detect, furi_hal_sdmmc_present_callback, &sdmmc1);
-    // } else {
-    //     furi_hal_gpio_remove_int_callback(&gpio_sd_card_detect);
-    // }
 }
 
 static void furi_hal_sdmmc_periph_init(void) {
@@ -2361,11 +2339,13 @@ bool furi_hal_sdmmc_write_blocks(
         uint32_t blocks_in_current_operation;
 
         if(((uintptr_t)current_user_buffer_ptr % DMA_ALIGNMENT) == 0) {
-            // Current user buffer pointer is aligned. Read as many blocks as possible directly.
+            // Current user buffer pointer is aligned. Write as many blocks as possible directly.
             dma_target_buffer = current_user_buffer_ptr;
-            blocks_in_current_operation = remaining_blocks; // Attempt to read all remaining blocks
+            blocks_in_current_operation =
+                remaining_blocks; // Attempt to write all remaining blocks
         } else {
-            // Current user buffer pointer is unaligned. Read one block into the temporary aligned buffer.
+            // Current user buffer pointer is unaligned. Write one block from the temporary aligned buffer.
+            memcpy(temp_aligned_block_ptr, current_user_buffer_ptr, SD_BLOCKSIZE);
             dma_target_buffer = temp_aligned_block_ptr;
             blocks_in_current_operation = 1;
         }

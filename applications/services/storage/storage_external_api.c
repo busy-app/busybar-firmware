@@ -1,8 +1,8 @@
 #include <core/log.h>
 #include <core/record.h>
-#include "storage.h"
-#include "storage_i.h" // IWYU pragma: keep
-#include "storage_message.h"
+#include <storage/storage.h>
+#include <storage/storage_i.h> // IWYU pragma: keep
+#include <storage/storage_message.h>
 #include <toolbox/stream/file_stream.h>
 #include <toolbox/dir_walk.h>
 #include "toolbox/path.h"
@@ -10,6 +10,10 @@
 #define MAX_NAME_LENGTH  256
 #define MAX_EXT_LEN      16
 #define FILE_BUFFER_SIZE 512
+
+#ifndef SRAM_BASE
+#define SRAM_BASE SRAM1_BASE
+#endif
 
 #define TAG "StorageApi"
 
@@ -493,7 +497,7 @@ FS_Error storage_common_rename(Storage* storage, const char* old_path, const cha
             }
 
             // Cannot rename a directory to itself or to a nested directory
-            if(storage_common_is_subdir(storage, old_path, new_path)) {
+            if(storage_common_equivalent_path(storage, old_path, new_path)) {
                 error = FSE_INVALID_NAME;
                 break;
             }
@@ -760,7 +764,8 @@ FS_Error storage_common_fs_info(
     Storage* storage,
     const char* fs_path,
     uint64_t* total_space,
-    uint64_t* free_space) {
+    uint64_t* free_space,
+    bool* is_read_only) {
     furi_check(storage);
 
     S_API_PROLOGUE;
@@ -770,6 +775,7 @@ FS_Error storage_common_fs_info(
             .fs_path = fs_path,
             .total_space = total_space,
             .free_space = free_space,
+            .is_read_only = is_read_only,
             .thread_id = furi_thread_get_current_id(),
         }};
 
@@ -846,7 +852,6 @@ bool storage_common_equivalent_path(Storage* storage, const char* path1, const c
 bool storage_common_is_subdir(Storage* storage, const char* parent, const char* child) {
     return storage_internal_equivalent_path(storage, parent, child, true);
 }
-
 /****************** ERROR ******************/
 
 const char* storage_error_get_desc(FS_Error error_id) {
@@ -868,56 +873,103 @@ const char* storage_file_get_error_desc(File* file) {
     return filesystem_api_error_get_desc(file->error_id);
 }
 
-/****************** Raw SD API ******************/
+/****************** Backup API ******************/
 
-FS_Error storage_sd_format(Storage* storage) {
+void storage_backup_set_readonly(Storage* storage, bool readonly) {
     furi_check(storage);
 
     S_API_PROLOGUE;
-    SAData data = {};
+    SAData data = {
+        .readonly = {
+            .readonly = readonly,
+        }};
+
+    S_API_MESSAGE(StorageCommandBackupReadOnly);
+    S_API_EPILOGUE;
+} //-V773
+
+/****************** Raw SD API ******************/
+
+FS_Error storage_sd_format(Storage* storage, const char* path) {
+    furi_check(storage);
+
+    S_API_PROLOGUE;
+    SAData data = {
+        .path = {
+            .path = path,
+            .thread_id = furi_thread_get_current_id(),
+        }};
     S_API_MESSAGE(StorageCommandSDFormat);
     S_API_EPILOGUE;
     return S_RETURN_ERROR;
 }
 
-FS_Error storage_sd_unmount(Storage* storage) {
+FS_Error storage_sd_make_filesystem(Storage* storage, const char* path) {
     furi_check(storage);
 
     S_API_PROLOGUE;
-    SAData data = {};
+    SAData data = {
+        .path = {
+            .path = path,
+            .thread_id = furi_thread_get_current_id(),
+        }};
+    S_API_MESSAGE(StorageCommandSDMakePartitions);
+    S_API_EPILOGUE;
+    return S_RETURN_ERROR;
+}
+
+FS_Error storage_sd_unmount(Storage* storage, const char* path) {
+    furi_check(storage);
+
+    S_API_PROLOGUE;
+    SAData data = {
+        .path = {
+            .path = path,
+            .thread_id = furi_thread_get_current_id(),
+        }};
     S_API_MESSAGE(StorageCommandSDUnmount);
     S_API_EPILOGUE;
     return S_RETURN_ERROR;
 }
 
-FS_Error storage_sd_mount(Storage* storage) {
+FS_Error storage_sd_mount(Storage* storage, const char* path) {
     furi_check(storage);
 
     S_API_PROLOGUE;
-    SAData data = {};
+    SAData data = {
+        .path = {
+            .path = path,
+            .thread_id = furi_thread_get_current_id(),
+        }};
     S_API_MESSAGE(StorageCommandSDMount);
     S_API_EPILOGUE;
     return S_RETURN_ERROR;
 }
 
-FS_Error storage_sd_info(Storage* storage, SDInfo* info) {
+FS_Error storage_sd_info(Storage* storage, const char* path, SDInfo* info) {
     furi_check(storage);
 
     S_API_PROLOGUE;
     SAData data = {
         .sdinfo = {
+            .path = path,
             .info = info,
+            .thread_id = furi_thread_get_current_id(),
         }};
     S_API_MESSAGE(StorageCommandSDInfo);
     S_API_EPILOGUE;
     return S_RETURN_ERROR;
 }
 
-FS_Error storage_sd_status(Storage* storage) {
+FS_Error storage_sd_status(Storage* storage, const char* path) {
     furi_check(storage);
 
     S_API_PROLOGUE;
-    SAData data = {};
+    SAData data = {
+        .path = {
+            .path = path,
+            .thread_id = furi_thread_get_current_id(),
+        }};
     S_API_MESSAGE(StorageCommandSDStatus);
     S_API_EPILOGUE;
     return S_RETURN_ERROR;

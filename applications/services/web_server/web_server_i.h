@@ -7,13 +7,15 @@
 
 #define WEB_ROOT APP_ASSETS_PATH("www/")
 
-#define HEADER_CORS_ORIGIN       "Access-Control-Allow-Origin: *\r\n"
-#define HEADER_CORS_METHODS      "Access-Control-Allow-Methods: GET, POST, PUT, DELETE, OPTIONS\r\n"
-#define HEADER_CORS_HEADERS      "Access-Control-Allow-Headers: *\r\n"
-#define HEADER_CORS              HEADER_CORS_ORIGIN HEADER_CORS_METHODS HEADER_CORS_HEADERS
-#define HEADER_CONTENT_TYPE_JSON "Content-Type: application/json\r\n"
+#define HEADER_CORS_ORIGIN        "Access-Control-Allow-Origin: *\r\n"
+#define HEADER_CORS_METHODS       "Access-Control-Allow-Methods: GET, POST, PUT, DELETE, OPTIONS\r\n"
+#define HEADER_CORS_HEADERS       "Access-Control-Allow-Headers: *\r\n"
+#define HEADER_CORS               HEADER_CORS_ORIGIN HEADER_CORS_METHODS HEADER_CORS_HEADERS
+#define HEADER_CONTENT_TYPE_JSON  "Content-Type: application/json\r\n"
+#define HEADER_CONTENT_TYPE_IMAGE "Content-Type: image/bmp\r\n"
 
-#define DEFAULT_JSON_HEADERS HEADER_CORS HEADER_CONTENT_TYPE_JSON
+#define DEFAULT_JSON_HEADERS  HEADER_CORS HEADER_CONTENT_TYPE_JSON
+#define DEFAULT_IMAGE_HEADERS HEADER_CORS HEADER_CONTENT_TYPE_IMAGE
 
 #define RESPONSE_BODY_OK "{\"result\":\"OK\"}\n"
 
@@ -24,6 +26,9 @@
 
 #define _MG_JSON_ERROR(conn, code, body, ...) \
     mg_http_reply(conn, code, DEFAULT_JSON_HEADERS, body, ##__VA_ARGS__)
+
+#define MG_REPLY_IMAGE(conn, image, size) \
+    mg_http_reply(conn, 200, DEFAULT_IMAGE_HEADERS, "%M\r\n", mg_print_base64, size, image)
 
 #define MG_REPLY_OPTIONS(conn)                 _MG_OPTIONS_RESULT(conn, 200)
 #define MG_REPLY_OK(conn)                      _MG_JSON_RESULT(conn, 200, RESPONSE_BODY_OK)
@@ -46,6 +51,8 @@
 #define MG_REPLY_INTERNAL_ERROR(conn, ...) \
     _MG_REPLY_INTERNAL_ERROR(conn, M_IF_EMPTY(__VA_ARGS__)("failed", (__VA_ARGS__)))
 
+#define IS_HTTP_ENDPOINT(path) furi_string_empty(path)
+
 typedef struct {
     char* uri;
     char* method;
@@ -64,8 +71,16 @@ typedef struct {
         struct {
             void* (*ctx_alloc)(void);
             void (*ctx_free)(void*);
-            bool (*on_request)(struct mg_connection* conn, struct mg_http_message* msg, void* ctx);
-            bool (*on_headers)(struct mg_connection* conn, struct mg_http_message* msg, void* ctx);
+            bool (*on_request)(
+                FuriString* path,
+                struct mg_connection* conn,
+                struct mg_http_message* msg,
+                void* ctx);
+            bool (*on_headers)(
+                FuriString* path,
+                struct mg_connection* conn,
+                struct mg_http_message* msg,
+                void* ctx);
         };
     };
 } HttpHandler;
@@ -98,11 +113,13 @@ static_assert(sizeof(ConnectionContext) == MG_DATA_SIZE);
 struct mg_fs* http_fs_get(void);
 
 bool http_handle_request(
+    FuriString* path,
     HttpHandlersList_t handlers,
     struct mg_connection* conn,
     struct mg_http_message* msg);
 
 bool http_handle_headers(
+    FuriString* path,
     HttpHandlersList_t handlers,
     struct mg_connection* conn,
     struct mg_http_message* msg);

@@ -26,3 +26,12 @@ void front_display_draw(FrontDisplaySrv* instance, const uint8_t* buf);
  *                   or FRONT_DISPLAY_BRIGHTNESS_AUTO for automatic brightness adjustment
  */
 void front_display_set_brightness(FrontDisplaySrv* instance, uint8_t brightness);
+
+/**
+ * @brief Get the front display brightness 
+ * 
+ * @param instance Pointer to the FrontDisplaySrv instance
+ * @return Brightness value (FRONT_DISPLAY_BRIGHTNESS_MIN to FRONT_DISPLAY_BRIGHTNESS_MAX),
+ *                   or FRONT_DISPLAY_BRIGHTNESS_AUTO if automatic brightness is enabled
+ */
+uint8_t front_display_get_brightness_setting(FrontDisplaySrv* instance);

@@ -119,6 +119,20 @@ void widget_set_scrollbar_mode(Widget* instance, WidgetScrollBarMode scrollbar_m
         scrollbar_mode == WidgetScrollBarModeOff ? NULL : widget_input_callback);
 }
 
+void widget_set_background_color(Widget* instance, Color color, float opacity) {
+    furi_check(instance);
+    lv_obj_set_style_bg_color((lv_obj_t*)instance, TO_LV_COLOR(color), LV_PART_MAIN);
+    lv_obj_set_style_bg_opa((lv_obj_t*)instance, (lv_opa_t)(opacity * 255), LV_PART_MAIN);
+}
+
+void widget_set_padding(Widget* instance, int32_t left, int32_t right, int32_t top, int32_t bottom) {
+    furi_check(instance);
+    lv_obj_set_style_pad_left((lv_obj_t*)instance, left, LV_PART_MAIN);
+    lv_obj_set_style_pad_right((lv_obj_t*)instance, right, LV_PART_MAIN);
+    lv_obj_set_style_pad_top((lv_obj_t*)instance, top, LV_PART_MAIN);
+    lv_obj_set_style_pad_bottom((lv_obj_t*)instance, bottom, LV_PART_MAIN);
+}
+
 // Private API
 
 void widget_set_input_feed_callback(Widget* instance, WidgetInputFeedCallback callback) {

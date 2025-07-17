@@ -194,17 +194,19 @@ static uint32_t busy_timer_calc_delta(const BusyTimer* instance) {
 }
 
 static bool busy_timer_is_running(const BusyTimer* instance) {
-    return furi_event_loop_timer_is_running(instance->timer);
+    return instance->timer_running;
 }
 
 static void busy_timer_start_timer(BusyTimer* instance) {
     if(instance->mode != BusyTimerModeInfinite) {
         furi_event_loop_timer_start(instance->timer, S_TO_MS(1));
     }
+    instance->timer_running = true;
 }
 
 static void busy_timer_stop_timer(BusyTimer* instance) {
     furi_event_loop_timer_stop(instance->timer);
+    instance->timer_running = false;
 }
 
 static void busy_timer_infinite_to_simple(BusyTimer* instance) {
@@ -394,15 +396,16 @@ static void
 }
 
 static void busy_timer_add_time_message_handler(BusyTimer* instance, BusyTimerMessageData* data) {
+    if(!busy_timer_is_running(instance)) {
+        // Ignore if the timer is not running (paused)
+        return;
+    }
+
     if(instance->mode == BusyTimerModeInfinite) {
         if(data->add_time_mn > 0) {
             // Special case: start a Simple timer
             busy_timer_infinite_to_simple(instance);
         }
-        return;
-
-    } else if(!busy_timer_is_running(instance)) {
-        // Ignore if the timer is not running (paused)
         return;
     }
 

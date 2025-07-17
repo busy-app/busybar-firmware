@@ -1,4 +1,14 @@
 App(
+    appid="cli",
+    name="CLI commands",
+    apptype=FlipperAppType.METAPACKAGE,
+    provides=[
+        "cli_commands_common",
+        "cli_commands_target_specific",
+    ],
+)
+
+App(
     appid="basic_services",
     name="Basic services",
     apptype=FlipperAppType.METAPACKAGE,
@@ -20,10 +30,11 @@ App(
         "power_srv",
         "intercom",
         "wifi",
+        "wifi_bridge",
         "sockets",
         "status_lights",
         "light_sensor",
-        "power_popup",
+        "supervisor",
     ],
     targets=["f20", "f21"],
 )
@@ -33,7 +44,7 @@ App(
     name="Basic services",
     apptype=FlipperAppType.METAPACKAGE,
     provides=[
-        "cli",  # Enabled in "hwtest" fw config (FIRMWARE_APP_SET)
+        "cli",
         "input",
     ],
     targets=["f64"],

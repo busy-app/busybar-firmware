@@ -242,8 +242,8 @@ typedef void* osSemaphoreId_t;
 // /// \details Memory Pool ID identifies the memory pool.
 // typedef void *osMemoryPoolId_t;
 
-// /// \details Message Queue ID identifies the message queue.
-// typedef void *osMessageQueueId_t;
+/// \details Message Queue ID identifies the message queue.
+typedef void *osMessageQueueId_t;
 
 #ifndef TZ_MODULEID_T
 #define TZ_MODULEID_T
@@ -318,15 +318,15 @@ typedef struct {
 //   uint32_t                   mp_size;   ///< size of provided memory for data storage
 // } osMemoryPoolAttr_t;
 
-// /// Attributes structure for message queue.
-// typedef struct {
-//   const char                   *name;   ///< name of the message queue
-//   uint32_t                 attr_bits;   ///< attribute bits
-//   void                      *cb_mem;    ///< memory for control block
-//   uint32_t                   cb_size;   ///< size of provided memory for control block
-//   void                      *mq_mem;    ///< memory for data storage
-//   uint32_t                   mq_size;   ///< size of provided memory for data storage
-// } osMessageQueueAttr_t;
+/// Attributes structure for message queue.
+typedef struct {
+  const char                   *name;   ///< name of the message queue
+  uint32_t                 attr_bits;   ///< attribute bits
+  void                      *cb_mem;    ///< memory for control block
+  uint32_t                   cb_size;   ///< size of provided memory for control block
+  void                      *mq_mem;    ///< memory for data storage
+  uint32_t                   mq_size;   ///< size of provided memory for data storage
+} osMessageQueueAttr_t;
 
 // //  ==== Kernel Management Functions ====
 
@@ -351,7 +351,7 @@ static FURI_ALWAYS_INLINE osKernelState_t osKernelGetState(void) {
     osKernelState_t state;
     uint32_t KernelState = furi_kernel_lock();
 
-    switch(KernelState){
+    switch(KernelState) {
     case 0:
         state = osKernelRunning;
         break;
@@ -833,35 +833,56 @@ static FURI_ALWAYS_INLINE osStatus_t osSemaphoreDelete(osSemaphoreId_t semaphore
 // /// \return status code that indicates the execution status of the function.
 // osStatus_t osMemoryPoolDelete (osMemoryPoolId_t mp_id);
 
-// //  ==== Message Queue Management Functions ====
+//  ==== Message Queue Management Functions ====
 
-// /// Create and Initialize a Message Queue object.
-// /// \param[in]     msg_count     maximum number of messages in queue.
-// /// \param[in]     msg_size      maximum message size in bytes.
-// /// \param[in]     attr          message queue attributes; NULL: default values.
-// /// \return message queue ID for reference by other functions or NULL in case of error.
-// osMessageQueueId_t osMessageQueueNew (uint32_t msg_count, uint32_t msg_size, const osMessageQueueAttr_t *attr);
+/// Create and Initialize a Message Queue object.
+/// \param[in]     msg_count     maximum number of messages in queue.
+/// \param[in]     msg_size      maximum message size in bytes.
+/// \param[in]     attr          message queue attributes; NULL: default values.
+/// \return message queue ID for reference by other functions or NULL in case of error.
+//osMessageQueueId_t osMessageQueueNew (uint32_t msg_count, uint32_t msg_size, const osMessageQueueAttr_t *attr);
+static FURI_ALWAYS_INLINE osMessageQueueId_t
+    osMessageQueueNew(uint32_t msg_count, uint32_t msg_size, const osMessageQueueAttr_t* attr) {
+    UNUSED(attr);
+    return (osMessageQueueId_t)furi_message_queue_alloc(msg_count, msg_size);
+}
 
 // /// Get name of a Message Queue object.
 // /// \param[in]     mq_id         message queue ID obtained by \ref osMessageQueueNew.
 // /// \return name as null-terminated string.
 // const char *osMessageQueueGetName (osMessageQueueId_t mq_id);
 
-// /// Put a Message into a Queue or timeout if Queue is full.
-// /// \param[in]     mq_id         message queue ID obtained by \ref osMessageQueueNew.
-// /// \param[in]     msg_ptr       pointer to buffer with message to put into a queue.
-// /// \param[in]     msg_prio      message priority.
-// /// \param[in]     timeout       \ref CMSIS_RTOS_TimeOutValue or 0 in case of no time-out.
-// /// \return status code that indicates the execution status of the function.
+/// Put a Message into a Queue or timeout if Queue is full.
+/// \param[in]     mq_id         message queue ID obtained by \ref osMessageQueueNew.
+/// \param[in]     msg_ptr       pointer to buffer with message to put into a queue.
+/// \param[in]     msg_prio      message priority.
+/// \param[in]     timeout       \ref CMSIS_RTOS_TimeOutValue or 0 in case of no time-out.
+/// \return status code that indicates the execution status of the function.
 // osStatus_t osMessageQueuePut (osMessageQueueId_t mq_id, const void *msg_ptr, uint8_t msg_prio, uint32_t timeout);
+static FURI_ALWAYS_INLINE osStatus_t osMessageQueuePut(
+    osMessageQueueId_t mq_id,
+    const void* msg_ptr,
+    uint8_t msg_prio,
+    uint32_t timeout) {
+    UNUSED(msg_prio);
+    return (osStatus_t)furi_message_queue_put((FuriMessageQueue*)mq_id, msg_ptr, timeout);
+}
 
-// /// Get a Message from a Queue or timeout if Queue is empty.
-// /// \param[in]     mq_id         message queue ID obtained by \ref osMessageQueueNew.
-// /// \param[out]    msg_ptr       pointer to buffer for message to get from a queue.
-// /// \param[out]    msg_prio      pointer to buffer for message priority or NULL.
-// /// \param[in]     timeout       \ref CMSIS_RTOS_TimeOutValue or 0 in case of no time-out.
-// /// \return status code that indicates the execution status of the function.
+/// Get a Message from a Queue or timeout if Queue is empty.
+/// \param[in]     mq_id         message queue ID obtained by \ref osMessageQueueNew.
+/// \param[out]    msg_ptr       pointer to buffer for message to get from a queue.
+/// \param[out]    msg_prio      pointer to buffer for message priority or NULL.
+/// \param[in]     timeout       \ref CMSIS_RTOS_TimeOutValue or 0 in case of no time-out.
+/// \return status code that indicates the execution status of the function.
 // osStatus_t osMessageQueueGet (osMessageQueueId_t mq_id, void *msg_ptr, uint8_t *msg_prio, uint32_t timeout);
+static FURI_ALWAYS_INLINE osStatus_t osMessageQueueGet(
+    osMessageQueueId_t mq_id,
+    void* msg_ptr,
+    uint8_t* msg_prio,
+    uint32_t timeout) {
+    UNUSED(msg_prio);
+    return (osStatus_t)furi_message_queue_get((FuriMessageQueue*)mq_id, msg_ptr, timeout);
+}
 
 // /// Get maximum number of messages in a Message Queue.
 // /// \param[in]     mq_id         message queue ID obtained by \ref osMessageQueueNew.
@@ -888,10 +909,14 @@ static FURI_ALWAYS_INLINE osStatus_t osSemaphoreDelete(osSemaphoreId_t semaphore
 // /// \return status code that indicates the execution status of the function.
 // osStatus_t osMessageQueueReset (osMessageQueueId_t mq_id);
 
-// /// Delete a Message Queue object.
-// /// \param[in]     mq_id         message queue ID obtained by \ref osMessageQueueNew.
-// /// \return status code that indicates the execution status of the function.
+/// Delete a Message Queue object.
+/// \param[in]     mq_id         message queue ID obtained by \ref osMessageQueueNew.
+/// \return status code that indicates the execution status of the function.
 // osStatus_t osMessageQueueDelete (osMessageQueueId_t mq_id);
+static FURI_ALWAYS_INLINE osStatus_t osMessageQueueDelete(osMessageQueueId_t mq_id) {
+    furi_message_queue_free((FuriMessageQueue*)mq_id);
+    return osOK;
+}
 
 #ifdef __cplusplus
 }

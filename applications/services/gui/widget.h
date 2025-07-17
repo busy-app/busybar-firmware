@@ -184,6 +184,26 @@ void widget_move_to_background(Widget* instance);
  */
 void widget_set_scrollbar_mode(Widget* instance, WidgetScrollBarMode scrollbar_mode);
 
+/**
+ * @brief Set the background color and opacity of a Widget instance.
+ *
+ * @param[in,out] instance pointer to the Widget instance to be modified
+ * @param[in] color new background color
+ * @param[in] opacity new background opacity (0.0 - 1.0)
+ */
+void widget_set_background_color(Widget* instance, Color color, float opacity);
+
+/**
+ * @brief Set the padding for a Widget instance.
+ *
+ * @param[in,out] instance pointer to the Widget instance to be modified
+ * @param[in] left padding on the left side in pixels
+ * @param[in] right padding on the right side in pixels
+ * @param[in] top padding on the top side in pixels
+ * @param[in] bottom padding on the bottom side in pixels
+*/
+void widget_set_padding(Widget* instance, int32_t left, int32_t right, int32_t top, int32_t bottom);
+
 #ifdef __cplusplus
 }
 #endif

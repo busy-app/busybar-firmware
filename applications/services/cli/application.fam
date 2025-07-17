@@ -1,7 +1,0 @@
-App(
-    appid="cli",
-    apptype=FlipperAppType.STARTUP,
-    entry_point="cli_on_system_start",
-    cdefines=["SRV_CLI"],
-    targets=["f20", "f21"],
-)

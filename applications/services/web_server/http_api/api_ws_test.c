@@ -91,7 +91,13 @@ void http_websocket_free(void* ctx) {
     free(context);
 }
 
-bool http_websocket_callback(struct mg_connection* conn, struct mg_http_message* msg, void* ctx) {
+bool http_websocket_callback(
+    FuriString* path,
+    struct mg_connection* conn,
+    struct mg_http_message* msg,
+    void* ctx) {
+    if(!IS_HTTP_ENDPOINT(path)) return false;
+
     furi_assert(ctx);
     WsTestCtx* context = ctx;
 

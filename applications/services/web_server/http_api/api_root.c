@@ -1,9 +1,16 @@
 #include "http_api.h"
 #include <version.h>
 
-bool http_api_version_callback(struct mg_connection* conn, struct mg_http_message* msg, void* ctx) {
+bool http_api_version_callback(
+    FuriString* path,
+    struct mg_connection* conn,
+    struct mg_http_message* msg,
+    void* ctx) {
     UNUSED(msg);
     UNUSED(ctx);
+
+    if(!IS_HTTP_ENDPOINT(path)) return false;
+
     FuriString* ver_str = furi_string_alloc();
     const Version* firmware_version = version_get();
     furi_string_printf(
@@ -26,13 +33,13 @@ bool http_api_version_callback(struct mg_connection* conn, struct mg_http_messag
 
 static const HttpHandler handlers_api_root[] = {
     {
-        .uri = "/api/v0/version",
+        .uri = "version",
         .method = "GET",
         .type = HttpHandlerCustom,
         .on_request = http_api_version_callback,
     },
     {
-        .uri = "/api/v0/assets/*",
+        .uri = "assets",
         .method = "*",
         .type = HttpHandlerCustom,
         .ctx_alloc = http_api_assets_alloc,
@@ -41,7 +48,16 @@ static const HttpHandler handlers_api_root[] = {
         .on_headers = http_api_assets_hdr_callback,
     },
     {
-        .uri = "/api/v0/display/*",
+        .uri = "storage",
+        .method = "*",
+        .type = HttpHandlerCustom,
+        .ctx_alloc = http_api_storage_alloc,
+        .ctx_free = http_api_storage_free,
+        .on_request = http_api_storage_callback,
+        .on_headers = http_api_storage_hdr_callback,
+    },
+    {
+        .uri = "display",
         .method = "*",
         .type = HttpHandlerCustom,
         .ctx_alloc = http_api_display_alloc,
@@ -49,7 +65,7 @@ static const HttpHandler handlers_api_root[] = {
         .on_request = http_api_display_callback,
     },
     {
-        .uri = "/api/v0/audio/*",
+        .uri = "audio",
         .method = "*",
         .type = HttpHandlerCustom,
         .ctx_alloc = http_api_audio_alloc,
@@ -57,7 +73,21 @@ static const HttpHandler handlers_api_root[] = {
         .on_request = http_api_audio_callback,
     },
     {
-        .uri = "/api/v0/wifi/*",
+        .uri = "input",
+        .method = "*",
+        .type = HttpHandlerCustom,
+        .ctx_alloc = http_api_input_alloc,
+        .ctx_free = http_api_input_free,
+        .on_request = http_api_input_callback,
+    },
+    {
+        .uri = "status",
+        .method = "GET",
+        .type = HttpHandlerCustom,
+        .on_request = http_api_status_callback,
+    },
+    {
+        .uri = "wifi",
         .method = "*",
         .type = HttpHandlerCustom,
         .ctx_alloc = http_api_wifi_alloc,
@@ -65,10 +95,24 @@ static const HttpHandler handlers_api_root[] = {
         .on_request = http_api_wifi_callback,
     },
     {
-        .uri = "/api/v0/update",
+        .uri = "update",
         .method = "POST",
         .type = HttpHandlerCustom,
-        .on_headers = http_api_update_callback,
+        .on_headers = http_api_update_hdr_callback,
+    },
+    {
+        .uri = "screen",
+        .method = "*",
+        .type = HttpHandlerCustom,
+        .on_request = http_api_streaming_single_frame_callback,
+    },
+    {
+        .uri = "screen/ws",
+        .method = "*",
+        .type = HttpHandlerCustom,
+        .ctx_alloc = http_api_streaming_ws_alloc,
+        .ctx_free = http_api_streaming_ws_free,
+        .on_request = http_api_streaming_ws_callback,
     },
 };
 
@@ -93,24 +137,37 @@ void http_api_root_free(void* ctx) {
     free(context);
 }
 
-bool http_api_root_callback(struct mg_connection* conn, struct mg_http_message* msg, void* ctx) {
+bool http_api_root_callback(
+    FuriString* path,
+    struct mg_connection* conn,
+    struct mg_http_message* msg,
+    void* ctx) {
     ApiRootCtx* context = ctx;
     FURI_LOG_I(
         "HTTP API", "%.*s %.*s", msg->method.len, msg->method.buf, msg->uri.len, msg->uri.buf);
     if(msg->query.len > 0) {
         FURI_LOG_I("HTTP API", "Query %.*s", msg->query.len, msg->query.buf);
     }
-    return http_handle_request(context->handlers, conn, msg);
+    return http_handle_request(path, context->handlers, conn, msg);
 }
 
-bool http_api_options_callback(struct mg_connection* conn, struct mg_http_message* msg, void* ctx) {
+bool http_api_options_callback(
+    FuriString* path,
+    struct mg_connection* conn,
+    struct mg_http_message* msg,
+    void* ctx) {
+    UNUSED(path);
     UNUSED(msg);
     UNUSED(ctx);
     MG_REPLY_OPTIONS(conn);
     return true;
 }
 
-bool http_api_root_hdr_callback(struct mg_connection* conn, struct mg_http_message* msg, void* ctx) {
+bool http_api_root_hdr_callback(
+    FuriString* path,
+    struct mg_connection* conn,
+    struct mg_http_message* msg,
+    void* ctx) {
     ApiRootCtx* context = ctx;
-    return http_handle_headers(context->handlers, conn, msg);
+    return http_handle_headers(path, context->handlers, conn, msg);
 }

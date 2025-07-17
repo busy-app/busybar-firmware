@@ -6,6 +6,8 @@
 
 #include <stdint.h>
 
+#include <core/pubsub.h>
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -38,6 +40,7 @@ typedef enum {
     WifiStatusAccessPointNotFound, /** Wifi access point was not found. */
     WifiStatusNotValidForThisCommand, /** Command issued in an invalid state. */
     // TODO: Add more errors
+    WifiStatusMax, /**< Special value, internal use */
 } WifiStatus;
 
 /** Enumeration of possible states for the Wifi system. */
@@ -45,6 +48,7 @@ typedef enum {
     WifiStateDeinit, /**< The Wifi system is de-initialised. */
     WifiStateDown, /**< The Wifi system is initialised, but no connection is active. */
     WifiStateUp, /**< The Wifi system is initialised, and there is an active connection. */
+    WifiStateMax, /**< Special value, internal use */
 } WifiState;
 
 /** Enumeration of supported security modes. */
@@ -60,7 +64,7 @@ typedef enum {
     WifiSecurityModeWpa3Transition,
     WifiSecurityModeWpa3Enterprise,
     WifiSecurityModeWpa3TransitionEnterprise,
-    WifiSecurityModeMax,
+    WifiSecurityModeMax, /**< Special value, internal use */
 } WifiSecurityMode;
 
 /** Credentials to connect to a Wifi access point. */
@@ -81,12 +85,14 @@ typedef struct {
 typedef enum {
     WifiIpManagementStatic, /**< Static IP address - set manually */
     WifiIpManagementDynamic, /**< Dynamic IP address - set automatically via DHCP */
+    WifiIpManagementMax, /**< Special value, internal use */
 } WifiIpManagement;
 
 /** Enumeration of supported IP protocol types. */
 typedef enum {
     WifiIpTypeV4, /**< IP version 4 */
     WifiIpTypeV6, /**< IP version 6 */
+    WifiIpTypeMax, /**< Special value, internal use */
 } WifiIpType;
 
 /** Union which represents IPv4 as byte sequence and single uint32_t */

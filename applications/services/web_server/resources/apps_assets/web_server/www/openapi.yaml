@@ -1,8 +1,8 @@
 openapi: 3.0.3
 info:
-  title: BSB HTTP API
-  description: HTTP API for BSB web server
-  version: 0.0.1
+  title: Busy Bar HTTP API
+  description: HTTP API for Busy Bar web server
+  version: 0.1.0
   contact:
     name: tbd
 
@@ -15,18 +15,18 @@ paths:
       description: Retrieves firmware version, branch, build date, and commit information
       operationId: getVersion
       responses:
-        '200':
+        "200":
           description: Version information retrieved successfully
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/VersionInfo'
-        '500':
+                $ref: "#/components/schemas/VersionInfo"
+        "500":
           description: Internal server error
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Error'
+                $ref: "#/components/schemas/Error"
 
   /api/v0/update:
     post:
@@ -41,7 +41,7 @@ paths:
           required: false
           schema:
             type: string
-            pattern: '^[a-zA-Z0-9._-]+$'
+            pattern: "^[a-zA-Z0-9._-]+$"
           description: Name for the update package. The update will be unpacked to /ext/update/<name>.
           example: "firmware"
       requestBody:
@@ -53,30 +53,30 @@ paths:
               format: binary
               description: Firmware update TAR file.
       responses:
-        '200':
+        "200":
           description: Update initiated successfully. The device will reboot.
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/SuccessResponse'
-        '400':
+                $ref: "#/components/schemas/SuccessResponse"
+        "400":
           description: Invalid parameters, invalid TAR file, or update preparation failed.
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Error'
-        '413':
+                $ref: "#/components/schemas/Error"
+        "413":
           description: Update package too large.
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Error'
-        '500':
+                $ref: "#/components/schemas/Error"
+        "500":
           description: Internal server error during update process.
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Error'
+                $ref: "#/components/schemas/Error"
 
   /api/v0/assets/upload:
     post:
@@ -91,7 +91,7 @@ paths:
           required: true
           schema:
             type: string
-            pattern: '^[a-zA-Z0-9._-]+$'
+            pattern: "^[a-zA-Z0-9._-]+$"
           description: Application ID for organizing assets
           example: "my_app"
         - name: file
@@ -99,7 +99,7 @@ paths:
           required: true
           schema:
             type: string
-            pattern: '^[a-zA-Z0-9._-]+$'
+            pattern: "^[a-zA-Z0-9._-]+$"
           description: Filename for the uploaded asset
           example: "data.png"
       requestBody:
@@ -111,25 +111,25 @@ paths:
               format: binary
               description: File data to upload as raw binary content
       responses:
-        '200':
+        "200":
           description: File uploaded successfully
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/SuccessResponse'
-        '400':
+                $ref: "#/components/schemas/SuccessResponse"
+        "400":
           description: Invalid parameters or upload failed
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Error'
-        '413':
+                $ref: "#/components/schemas/Error"
+        "413":
           description: File too large
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Error'
-    
+                $ref: "#/components/schemas/Error"
+
     delete:
       tags:
         - Assets
@@ -142,22 +142,188 @@ paths:
           required: true
           schema:
             type: string
-            pattern: '^[a-zA-Z0-9._-]+$'
+            pattern: "^[a-zA-Z0-9._-]+$"
           description: Application ID whose assets should be deleted
           example: "my_app"
       responses:
-        '200':
+        "200":
           description: Assets deleted successfully
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/SuccessResponse'
-        '400':
+                $ref: "#/components/schemas/SuccessResponse"
+        "400":
           description: Invalid app_id or deletion failed
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Error'
+                $ref: "#/components/schemas/Error"
+
+  /api/v0/storage/write:
+    post:
+      tags:
+        - Storage
+      summary: Upload file to internal storage
+      description: Uploads a file to a specified path
+      operationId: writeStorageFile
+      parameters:
+        - name: path
+          in: query
+          required: true
+          schema:
+            type: string
+            pattern: "^[a-zA-Z0-9._\\-/]+$"
+          description: Path for the uploaded file
+          example: "/ext/test.png"
+      requestBody:
+        required: true
+        content:
+          application/octet-stream:
+            schema:
+              type: string
+              format: binary
+              description: File data to upload as raw binary content
+      responses:
+        "200":
+          description: File uploaded successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse"
+        "400":
+          description: Invalid parameters or upload failed
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "413":
+          description: File too large
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /api/v0/storage/read:
+    get:
+      tags:
+        - Storage
+      summary: Download file from internal storage
+      description: Downloads a file from a specified path
+      operationId: readStorageFile
+      parameters:
+        - name: path
+          in: query
+          required: true
+          schema:
+            type: string
+            pattern: "^[a-zA-Z0-9._\\-/]+$"
+          description: Path to the file
+          example: "/ext/test.png"
+      responses:
+        "200":
+          description: File uploaded successfully
+          content:
+            application/octet-stream:
+              schema:
+                type: string
+                format: binary
+                description: File data as raw binary content
+        "400":
+          description: Invalid parameters or file not exists
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /api/v0/storage/list:
+    get:
+      tags:
+        - Storage
+      summary: List files on internal storage
+      description: Downloads a file from a specified path
+      operationId: listStorageFiles
+      parameters:
+        - name: path
+          in: query
+          required: true
+          schema:
+            type: string
+            pattern: "^[a-zA-Z0-9._\\-/]+$"
+          description: Path to the file
+          example: "/ext"
+      responses:
+        "200":
+          description: Directory contents read successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/StorageList"
+        "400":
+          description: Invalid parameters or directory not exists
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /api/v0/storage/remove:
+    delete:
+      tags:
+        - Storage
+      summary: Remove a file on internal storage
+      description: Removes a file with a specified path
+      operationId: removeStorageFile
+      parameters:
+        - name: path
+          in: query
+          required: true
+          schema:
+            type: string
+            pattern: "^[a-zA-Z0-9._\\-/]+$"
+          description: Path of a file to remove
+          example: "/ext/test.png"
+      responses:
+        "200":
+          description: File deleted successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse"
+        "400":
+          description: Invalid path or deletion failed
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /api/v0/storage/mkdir:
+    post:
+      tags:
+        - Storage
+      summary: Create a directory on internal storage
+      description: Creates a new directory with a specified path
+      operationId: createStorageDir
+      parameters:
+        - name: path
+          in: query
+          required: true
+          schema:
+            type: string
+            pattern: "^[a-zA-Z0-9._\\-/]+$"
+          description: Path to a new directory
+          example: "/ext/newdir"
+      responses:
+        "200":
+          description: Directory created successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse"
+        "400":
+          description: Invalid path or deletion failed
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
 
   /api/v0/display/draw:
     post:
@@ -173,26 +339,26 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/DisplayElements'
+              $ref: "#/components/schemas/DisplayElements"
       responses:
-        '200':
+        "200":
           description: Drawing command executed successfully
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/SuccessResponse'
-        '400':
+                $ref: "#/components/schemas/SuccessResponse"
+        "400":
           description: Invalid drawing data
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Error'
-        '500':
+                $ref: "#/components/schemas/Error"
+        "500":
           description: Display error
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Error'
+                $ref: "#/components/schemas/Error"
     delete:
       tags:
         - Assets
@@ -200,18 +366,70 @@ paths:
       description: Clears the display and stops the Canvas application if running
       operationId: clearDisplay
       responses:
-        '200':
+        "200":
           description: Display cleared successfully
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/SuccessResponse'
-        '500':
+                $ref: "#/components/schemas/SuccessResponse"
+        "500":
           description: Display error
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Error'
+                $ref: "#/components/schemas/Error"
+
+  /api/v0/display/brightness:
+    get:
+      tags:
+        - Settings
+      summary: Get display brightness
+      description: Get brightness value for displays
+      operationId: getDisplayBrightness
+      responses:
+        "200":
+          description: Information retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DisplayBrightnessInfo"
+    post:
+      tags:
+        - Settings
+      summary: Set display brightness
+      description: |
+        Set brightness for one or both displays
+      operationId: setDisplayBrightness
+      parameters:
+        - name: front
+          in: query
+          required: false
+          schema:
+            type: string
+            pattern: "^[a-zA-Z0-9._-]+$"
+          description: Front display brightness (0-100/auto)
+          example: "auto"
+        - name: back
+          in: query
+          required: false
+          schema:
+            type: string
+            pattern: "^[a-zA-Z0-9._/-]+$"
+          description: Back display brightness (0-100/auto)
+          example: "50"
+      responses:
+        "200":
+          description: Brightness set successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse"
+        "400":
+          description: Invalid request data
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
 
   /api/v0/audio/play:
     post:
@@ -228,7 +446,7 @@ paths:
           required: true
           schema:
             type: string
-            pattern: '^[a-zA-Z0-9._-]+$'
+            pattern: "^[a-zA-Z0-9._-]+$"
           description: Application ID for organizing assets
           example: "my_app"
         - name: path
@@ -236,29 +454,29 @@ paths:
           required: true
           schema:
             type: string
-            pattern: '^[a-zA-Z0-9._/-]+$'
+            pattern: "^[a-zA-Z0-9._/-]+$"
           description: Path to audio file within app's assets directory
           example: "data.snd"
       responses:
-        '200':
+        "200":
           description: Audio playback started successfully
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/SuccessResponse'
-        '400':
+                $ref: "#/components/schemas/SuccessResponse"
+        "400":
           description: Invalid file path or file not found
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Error'
-        '500':
+                $ref: "#/components/schemas/Error"
+        "500":
           description: Audio system error
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Error'
-    
+                $ref: "#/components/schemas/Error"
+
     delete:
       tags:
         - Assets
@@ -266,18 +484,187 @@ paths:
       description: Stops any currently playing audio
       operationId: stopAudio
       responses:
-        '200':
+        "200":
           description: Audio playback stopped successfully
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/SuccessResponse'
-        '500':
+                $ref: "#/components/schemas/SuccessResponse"
+        "500":
           description: Audio system error
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Error'
+                $ref: "#/components/schemas/Error"
+
+  /api/v0/audio/volume:
+    get:
+      tags:
+        - Settings
+      summary: Get audio volume
+      description: Get audio volume value
+      operationId: getAudioVolume
+      responses:
+        "200":
+          description: Information retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AudioVolumeInfo"
+    post:
+      tags:
+        - Settings
+      summary: Set audio volume
+      description: Get audio volume value
+      operationId: setAudioVolume
+      parameters:
+        - name: volume
+          in: query
+          required: true
+          schema:
+            type: number
+          description: Audio volume (0-100)
+          example: "50"
+      responses:
+        "200":
+          description: Volume set successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse"
+        "400":
+          description: Invalid request data
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /api/v0/input:
+    get:
+      tags:
+        - Input
+
+      summary: Input evnts streaming
+      description: Start WebSocket session for input events streaming
+      operationId: connectInputWebSocket
+      responses:
+        "101":
+          description: WebSocket connection established
+        "400":
+          description: WebSocket upgrade failed
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "426":
+          description: Upgrade required
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+    post:
+      tags:
+        - Input
+      summary: Send input event
+      description: Send single key press event
+      operationId: setInputKey
+      parameters:
+        - name: key
+          in: query
+          required: true
+          schema:
+            type: string
+            enum:
+              [
+                "up",
+                "down",
+                "ok",
+                "back",
+                "start",
+                "busy",
+                "status",
+                "off",
+                "apps",
+                "settings",
+              ]
+          description: Key name
+          example: "ok"
+      responses:
+        "200":
+          description: Input event sent successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse"
+        "400":
+          description: Invalid request data
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /api/v0/status:
+    get:
+      tags:
+        - System
+      summary: Get device status
+      description: Get device status
+      operationId: getStatus
+      responses:
+        "200":
+          description: Information retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Status"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /api/v0/status/system:
+    get:
+      tags:
+        - System
+      summary: Get system status
+      description: Get system status
+      operationId: getStatusSystem
+      responses:
+        "200":
+          description: Information retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/StatusSystem"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /api/v0/status/power:
+    get:
+      tags:
+        - System
+      summary: Get power status
+      description: Get system status
+      operationId: getStatusPower
+      responses:
+        "200":
+          description: Information retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/StatusPower"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
 
   /ws_test:
     get:
@@ -289,20 +676,20 @@ paths:
         Upgrade from HTTP to WebSocket protocol is required.
       operationId: connectWebSocket
       responses:
-        '101':
+        "101":
           description: WebSocket connection established
-        '400':
+        "400":
           description: WebSocket upgrade failed
-          content:            
+          content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Error'
-        '426':
+                $ref: "#/components/schemas/Error"
+        "426":
           description: Upgrade required
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Error'
+                $ref: "#/components/schemas/Error"
 
   /api/v0/wifi/enable:
     post:
@@ -311,18 +698,18 @@ paths:
       description: Enables wifi module
       parameters: []
       responses:
-        '200':
+        "200":
           description: Wifi enabled
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/SuccessResponse'
-        '400':
+                $ref: "#/components/schemas/SuccessResponse"
+        "400":
           description: Wifi already enabled
           content:
-              application/json:
-                schema:
-                  $ref: '#/components/schemas/Error'
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
 
   /api/v0/wifi/disable:
     post:
@@ -331,18 +718,18 @@ paths:
       description: Disables wifi module
       parameters: []
       responses:
-        '200':
+        "200":
           description: Wifi disabled
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/SuccessResponse'
-        '400':
+                $ref: "#/components/schemas/SuccessResponse"
+        "400":
           description: Not initialized
           content:
-              application/json:
-                schema:
-                  $ref: '#/components/schemas/Error'
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
 
   /api/v0/wifi/status:
     get:
@@ -351,12 +738,12 @@ paths:
       description: Returns current wifi status
       parameters: []
       responses:
-        '200':
+        "200":
           description: OK
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/StatusResponse'
+                $ref: "#/components/schemas/StatusResponse"
 
   /api/v0/wifi/connect:
     post:
@@ -371,18 +758,18 @@ paths:
             schema:
               $ref: "#/components/schemas/ConnectRequestConfig"
       responses:
-        '200':
+        "200":
           description: Network connection established
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/SuccessResponse'
-        '400':
+                $ref: "#/components/schemas/SuccessResponse"
+        "400":
           description: Wifi already connected
           content:
-              application/json:
-                schema:
-                  $ref: '#/components/schemas/Error'
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
 
   /api/v0/wifi/disconnect:
     post:
@@ -391,18 +778,18 @@ paths:
       description: Attempts to connect to wifi using config
       parameters: []
       responses:
-        '200':
+        "200":
           description: Network connection terminated
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/SuccessResponse'
-        '400':
+                $ref: "#/components/schemas/SuccessResponse"
+        "400":
           description: Command issued in an invalid state
           content:
-              application/json:
-                schema:
-                  $ref: '#/components/schemas/Error'
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
 
   /api/v0/wifi/networks:
     get:
@@ -411,19 +798,19 @@ paths:
       description: Scans environment for available wifi networks
       parameters: []
       responses:
-        '200':
+        "200":
           description: OK
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/NetworkResponse"
-        '400':
+        "400":
           description: Wifi already connected
           content:
-              application/json:
-                schema:
-                  $ref: '#/components/schemas/Error'
-    
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
   /api/v0/wifi/forget:
     post:
       tags:
@@ -431,39 +818,64 @@ paths:
       description: Forgets saved Wifi config
       parameters: []
       responses:
-        '400':
+        "400":
           description: Not implemented
           content:
-              application/json:
-                schema:
-                  $ref: '#/components/schemas/Error'
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /api/v0/screen:
+    get:
+      tags:
+        - Streaming
+      summary: Get single frame for required screen
+      parameters:
+        - name: display
+          in: query
+          required: true
+          schema:
+            type: number
+            pattern: "^[0-1]{1,1}$"
+          description: Type of the display Front = 0, Back = 1
+          example: 0
+      responses:
+        "200":
+          description: OK
+          content:
+            image/bmp:
+              schema:
+                $ref: "#/components/schemas/ScreenResponse"
+        "400":
+          description: Wrong display
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /api/v0/screen/ws:
+    get:
+      tags:
+        - Streaming
+      summary: Screen streaming WebSocket endpoint
+      description: |
+        WebSocket connection for real-time screen streaming.
+        Upgrade from HTTP to WebSocket protocol is required.
+        After connection client must send desired display id
+        as json {"display": 0}
+      operationId: connectWebSocket
+      responses:
+        "101":
+          description: WebSocket connection established
+        "400":
+          description: Exceed max clients count
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
 
 components:
   schemas:
-    LedState:
-      type: object
-      properties:
-        state:
-          type: integer
-          enum: [0, 1]
-          description: Current LED state (0 for off, 1 for on)
-      required:
-        - state
-      example:
-        state: 1
-
-    LedStateRequest:
-      type: object
-      properties:
-        state:
-          type: integer
-          enum: [0, 1]
-          description: LED state (0 for off, 1 for on)
-      required:
-        - state
-      example:
-        state: 1
-
     SuccessResponse:
       type: object
       properties:
@@ -474,17 +886,20 @@ components:
       required:
         - result
 
-    LedStateResponse:
-      allOf:
-        - $ref: '#/components/schemas/SuccessResponse'
-        - type: object
-          properties:
-            state:
-              type: integer
-              enum: [0, 1]
-              description: Current LED state (0 for off, 1 for on)
-          required:
-            - state
+    Error:
+      type: object
+      properties:
+        error:
+          type: string
+          description: Error message
+        code:
+          type: integer
+          description: Error code
+      required:
+        - error
+      example:
+        error: "Invalid parameter"
+        code: 400
 
     VersionInfo:
       type: object
@@ -516,6 +931,60 @@ components:
         build_date: "2024-01-01"
         commit_hash: "abc123def456"
 
+    StorageList:
+      type: object
+      properties:
+        list:
+          type: array
+          items:
+            $ref: "#/components/schemas/StorageListElement"
+          description: Array of elements to display
+      required:
+        - list
+      example:
+        list:
+          - type: "file"
+            name: "test.png"
+            size: 65535
+          - type: "dir"
+            name: "assets"
+
+    StorageListElement:
+      type: object
+      required:
+        - type
+        - name
+      properties:
+        type:
+          type: string
+          enum: [file, dir]
+          description: Element type
+        name:
+          type: string
+          pattern: "^[a-zA-Z0-9._/-]+$"
+          description: File or directory name
+      discriminator:
+        propertyName: type
+        mapping:
+          file: "#/components/schemas/StorageFileElement"
+          dir: "#/components/schemas/StorageDirElement"
+
+    StorageFileElement:
+      allOf:
+        - $ref: "#/components/schemas/StorageListElement"
+        - type: object
+          required:
+            - size
+          properties:
+            size:
+              type: integer
+              description: File size in bytes
+
+    StorageDirElement:
+      allOf:
+        - $ref: "#/components/schemas/StorageListElement"
+        - type: object
+
     BinaryUpload:
       type: string
       format: binary
@@ -531,33 +1000,18 @@ components:
       required:
         - file
 
-    Error:
-      type: object
-      properties:
-        error:
-          type: string
-          description: Error message
-        code:
-          type: integer
-          description: Error code
-      required:
-        - error
-      example:
-        error: "Invalid parameter"
-        code: 400
-
     DisplayElements:
       type: object
       properties:
         app_id:
           type: string
-          pattern: '^[a-zA-Z0-9._-]+$'
+          pattern: "^[a-zA-Z0-9._-]+$"
           description: Application ID for organizing assets
           example: "my_app"
         elements:
           type: array
           items:
-            $ref: '#/components/schemas/DisplayElement'
+            $ref: "#/components/schemas/DisplayElement"
           description: Array of elements to display
       required:
         - app_id
@@ -579,7 +1033,7 @@ components:
             x: 0
             y: 0
             display: "back"
-      
+
     DisplayElement:
       type: object
       required:
@@ -613,12 +1067,12 @@ components:
       discriminator:
         propertyName: type
         mapping:
-          text: '#/components/schemas/TextElement'
-          image: '#/components/schemas/ImageElement'
-      
+          text: "#/components/schemas/TextElement"
+          image: "#/components/schemas/ImageElement"
+
     TextElement:
       allOf:
-        - $ref: '#/components/schemas/DisplayElement'
+        - $ref: "#/components/schemas/DisplayElement"
         - type: object
           required:
             - text
@@ -626,18 +1080,83 @@ components:
             text:
               type: string
               description: Text content to display
-            
+
     ImageElement:
       allOf:
-        - $ref: '#/components/schemas/DisplayElement'
+        - $ref: "#/components/schemas/DisplayElement"
         - type: object
           required:
             - path
           properties:
             path:
               type: string
-              pattern: '^[a-zA-Z0-9._/-]+$'
+              pattern: "^[a-zA-Z0-9._/-]+$"
               description: Path to the image file in the app's assets
+
+    DisplayBrightnessInfo:
+      type: object
+      properties:
+        front:
+          type: string
+          description: Front display brightness (0-100/auto)
+          example: "auto"
+        back:
+          type: string
+          description: Back display brightness (0-100/auto)
+          example: "50"
+
+    AudioVolumeInfo:
+      type: object
+      properties:
+        volume:
+          type: number
+          description: Audio volume value (0-100)
+          example: "50"
+
+    Status:
+      type: object
+      properties:
+        system:
+          $ref: "#/components/schemas/StatusSystem"
+        power:
+          $ref: "#/components/schemas/StatusPower"
+
+    StatusSystem:
+      type: object
+      properties:
+        version:
+          type: string
+          description: Firmware version
+          example: "unknown"
+        uptime:
+          type: string
+          description: System uptime
+          example: "00d 00h 04m 13s"
+
+    StatusPower:
+      type: object
+      properties:
+        state:
+          type: string
+          enum: [discharging, charging, charged]
+          description: Power state
+          example: "discharging"
+        battery_charge:
+          type: integer
+          description: Battery charge percent
+          example: 99
+        battery_voltage:
+          type: integer
+          description: Battery voltage in mV
+          example: 4183
+        battery_current:
+          type: integer
+          description: Battery current in mA
+          example: -180
+        usb_voltage:
+          type: integer
+          description: USB voltage in mV
+          example: 4843
 
     WifiSecurityMethod:
       type: string
@@ -744,6 +1263,11 @@ components:
           items:
             $ref: "#/components/schemas/Network"
 
+    ScreenResponse:
+      type: string
+      description: Frame for requested display encoded in base64
+      format: base64
+
 tags:
   - name: System
     description: System information and control
@@ -753,3 +1277,9 @@ tags:
     description: Asset file management and display control
   - name: WebSocket
     description: Real-time communication via WebSocket
+  - name: Streaming
+    description: Screen streaming
+  - name: Settings
+    description: Device settings
+  - name: Input
+    description: Input events
