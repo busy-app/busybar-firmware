@@ -387,12 +387,6 @@ static void power_update_info(Power* power) {
             dsp_low_pass(adc_val.bat_v, power->info.voltage_battery, 0.90f);
     }
 
-    FURI_LOG_I(
-        TAG,
-        "Battery voltage: %.3fV, real %.3fV",
-        power->info.voltage_battery / 1000.f,
-        adc_val.bat_v / 1000.f);
-
     power->info.current_battery = adc_val.bat_i;
     power->info.current_usb = adc_val.usb_i;
     power->info.voltage_usb = adc_val.usb_v;
