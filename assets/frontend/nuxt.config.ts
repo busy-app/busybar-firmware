@@ -1,7 +1,9 @@
+const BUILD_ID = process.env.BUILD_ID || 'bsb-frontend';
+
 // https://nuxt.com/docs/api/configuration/nuxt-config
 export default defineNuxtConfig({
   // use provided build id (e.g. commit hash) or default to a static one
-  buildId: process.env.BUILD_ID || 'bsb-frontend',
+  buildId: BUILD_ID,
   modules: [
     '@nuxt/ui',
     '@nuxt/eslint',
@@ -56,6 +58,21 @@ export default defineNuxtConfig({
               return match.replace(timestamp, '0');
             }
           );
+        }
+      }
+    }
+  },
+  vite: {
+    build: {
+      rollupOptions: {
+        output: {
+          entryFileNames: `_nuxt/[name]-${BUILD_ID}.js`,
+          chunkFileNames: `_nuxt/[name]-${BUILD_ID}.js`,
+          assetFileNames: ({ names, originalFileNames }) => {
+            const name = names[0] || originalFileNames[0];
+            const ext = name.split('.').pop();
+            return `_nuxt/[name]-${BUILD_ID}.${ext}`;
+          }
         }
       }
     }

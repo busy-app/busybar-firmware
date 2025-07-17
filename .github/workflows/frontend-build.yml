@@ -20,6 +20,8 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
 
       - name: Install pnpm
         uses: pnpm/action-setup@v4
@@ -40,4 +42,6 @@ jobs:
         run: pnpm run build/ci
 
       - name: Check output bundle diff
-        run: git diff --exit-code || (echo "Output bundle has changed. Please review the changes." && exit 1)
+        run: |
+          echo "Build ID: $(git rev-parse HEAD^)"
+          git diff --exit-code || (echo "Output bundle has changed. Please review the changes." && exit 1)
