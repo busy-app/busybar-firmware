@@ -3,8 +3,12 @@
 #include <ssd1320/ssd1320.h>
 #include <light_sensor/light_sensor.h>
 #include "back_display.h"
+#include <storage/storage.h>
+#include <json_helper.h>
 
 #define TAG "BackDisplaySrv"
+
+#define DISPLAY_CONFIG_FILE APP_DATA_PATH("config.json")
 
 // Contrast curve parameters
 #define CONTRAST_CURVE_BASE        (1.324264735f)
@@ -24,6 +28,7 @@ typedef enum {
     BackDisplayEventDraw = 1 << 0,
     BackDisplayEventTearing = 1 << 1,
     BackDisplayEventLightLevelUpdate = 1 << 2,
+    BackDisplayEventSaveConfig = 1 << 3,
 } BackDisplayEvent;
 
 struct BackDisplaySrv {
@@ -37,7 +42,8 @@ struct BackDisplaySrv {
     bool dirty;
 
     FuriPubSub* light_sensor_events;
-    uint8_t sensor_contrast, brightness_override;
+    uint8_t sensor_contrast;
+    int brightness_override;
 };
 
 static uint8_t back_display_sensor_level_to_contrast(uint8_t level) {
@@ -121,6 +127,11 @@ static void back_display_event_callback(uint32_t events, void* context) {
     if(events & BackDisplayEventLightLevelUpdate) {
         back_display_update_brightness(instance);
     }
+
+    if(events & BackDisplayEventSaveConfig) {
+        json_config_write_single_int(
+            DISPLAY_CONFIG_FILE, "brightness", instance->brightness_override);
+    }
 }
 
 static void back_display_tearing_callback(void* context) {
@@ -141,7 +152,10 @@ static BackDisplaySrv* back_display_alloc(void) {
     instance->draw_buffer = instance->data[1];
     instance->dirty = false;
 
-    instance->brightness_override = BACK_DISPLAY_BRIGHTNESS_AUTO;
+    int default_brightness = BACK_DISPLAY_BRIGHTNESS_AUTO;
+    json_config_read_single_int(
+        DISPLAY_CONFIG_FILE, "brightness", &instance->brightness_override, &default_brightness);
+
     instance->sensor_contrast = back_display_sensor_level_to_contrast(0);
 
 #if defined(SRV_LIGHT_SENSOR)
@@ -190,7 +204,8 @@ void back_display_set_brightness(BackDisplaySrv* instance, uint8_t brightness) {
     furi_check(instance);
 
     instance->brightness_override = brightness;
-    furi_event_loop_set_custom_event(instance->event_loop, BackDisplayEventLightLevelUpdate);
+    furi_event_loop_set_custom_event(
+        instance->event_loop, BackDisplayEventLightLevelUpdate | BackDisplayEventSaveConfig);
 }
 
 uint8_t back_display_get_brightness(BackDisplaySrv* instance) {
