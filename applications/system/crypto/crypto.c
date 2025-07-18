@@ -11,13 +11,7 @@
 #include <sl_net.h>
 #include "wifi_config.h"
 
-#define CRYPTO_SIZE_BUF (1024 * 1)
-typedef enum {
-    CryptoCommandNwpIdle,
-    CryptoCommandNwpIsInitialized,
-    CryptoCommandNwpInit,
-} CryptoCommandNwp;
-static CryptoCommandNwp crypto_command_is_nwp_initialized = CryptoCommandNwpIdle;
+#include "furi_hal_nwp.h"
 
 static void crypto_command_show_status(FuriHalCryptoStatus status, const char* name) {
     switch(status) {
@@ -49,7 +43,7 @@ static void crypto_command_show_status(FuriHalCryptoStatus status, const char* n
 }
 
 static bool crypto_command_is_init(void) {
-    bool ret = !(crypto_command_is_nwp_initialized == CryptoCommandNwpIdle);
+    bool ret = furi_hal_nwp_is_init();
     if(!ret) {
         printf(ANSI_FG_RED
                "NWP is not initialized, please run 'crypto init' first\r\n" ANSI_RESET);
@@ -61,22 +55,11 @@ static void crypto_command_init(PipeSide* pipe, FuriString* args, void* context)
     UNUSED(pipe);
     UNUSED(args);
     UNUSED(context);
-    if(crypto_command_is_nwp_initialized == CryptoCommandNwpInit ||
-       crypto_command_is_nwp_initialized == CryptoCommandNwpIsInitialized) {
-        printf(ANSI_FG_RED "NWP is already initialized\r\n" ANSI_RESET);
-        return;
-    }
-    sl_status_t status =
-        sl_net_init(SL_NET_WIFI_CLIENT_INTERFACE, &wifi_config_client, NULL, NULL);
-    if(status == SL_STATUS_ALREADY_INITIALIZED) {
-        crypto_command_is_nwp_initialized = CryptoCommandNwpIsInitialized;
-        printf(ANSI_FG_GREEN "NWP already initialized\r\n" ANSI_RESET);
-    } else if(status == SL_STATUS_OK) {
-        crypto_command_is_nwp_initialized = CryptoCommandNwpInit;
+
+    if(furi_hal_nwp_init()) {
         printf(ANSI_FG_GREEN "NWP initialized\r\n" ANSI_RESET);
     } else {
-        printf(ANSI_FG_RED "Failed to initialise NWP: " ANSI_RESET "0x%08lx\r\n", status);
-        crypto_command_is_nwp_initialized = CryptoCommandNwpIdle;
+        printf(ANSI_FG_RED "Failed to initialize NWP\r\n" ANSI_RESET);
     }
 }
 
@@ -85,20 +68,7 @@ static void crypto_command_deinit(PipeSide* pipe, FuriString* args, void* contex
     UNUSED(args);
     UNUSED(context);
 
-    if(crypto_command_is_nwp_initialized == CryptoCommandNwpInit) {
-        sl_status_t status = sl_net_deinit(SL_NET_WIFI_CLIENT_INTERFACE);
-        if(status != SL_STATUS_OK) {
-            printf(ANSI_FG_RED "Failed to deinitialise Wifi: " ANSI_RESET "0x%08lx\r\n", status);
-        } else {
-            printf(ANSI_FG_GREEN "NWP deinitialized\r\n" ANSI_RESET);
-            crypto_command_is_nwp_initialized = CryptoCommandNwpIdle;
-        }
-
-    } else if(crypto_command_is_nwp_initialized == CryptoCommandNwpIsInitialized) {
-        printf(ANSI_FG_GREEN "NWP is already initialized, no need to deinitialize\r\n" ANSI_RESET);
-    } else {
-        printf(ANSI_FG_RED "NWP is not initialized\r\n" ANSI_RESET);
-    }
+    furi_hal_nwp_deinit();
 }
 
 void crypto_command_wipe(PipeSide* pipe, FuriString* args, void* context) {
@@ -319,7 +289,7 @@ void crypto_command_dump(PipeSide* pipe, FuriString* args, void* context) {
     }
     sl_status_t status = SL_STATUS_FAIL;
     uint32_t address = FURI_HAL_CRYPTO_STORAGE_START_ADDRESS;
-    uint8_t* buf = malloc(CRYPTO_SIZE_BUF);
+    uint8_t* buf = malloc(1024);
 
     for(uint32_t i = FURI_HAL_CRYPTO_STORAGE_START_ADDRESS;
         i < FURI_HAL_CRYPTO_STORAGE_END_ADDRESS;
