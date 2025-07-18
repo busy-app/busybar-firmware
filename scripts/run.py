@@ -18,7 +18,7 @@ U5_TARGET_HW = 21
 
 # Firmware SI917:
 SI_TARGET_HW = 64
-SI_RADIO_FW_PATH = "./lib/wiseconnect/connectivity_firmware/standard/SiWG917-B.2.14.5.0.0.10.rps"    # TODO: auto discover?
+SI_RADIO_FW_PATH = "./lib/wiseconnect/connectivity_firmware/standard"
 
 # Script settings:
 RUN_ASSETS_DIR = ".run_assets"    # All build outputs will be placed here
@@ -62,7 +62,6 @@ def update_bundle_get():
     return None
 
 def serial_ports_discover(verbose = False):
-    """List available serial ports."""
     ports = list_ports.comports()
     if verbose:
         for port in ports:
@@ -182,10 +181,29 @@ def ensure_update_tar(upd_bundle_tar):
         return False
     return True
 
+def discover_si917_NWP_rps_path():
+    dir = SI_RADIO_FW_PATH
+
+    if not os.path.exists(dir):
+        print(f"Error: SI917 TA RPS path '{dir}' does not exist.")
+        return None
+    
+    rps_files = [f for f in os.listdir(dir) if f.endswith('.rps')]
+    if not rps_files:
+        print(f"Error: No RPS files found in '{dir}'.")
+        return None
+    if len(rps_files) > 1:
+        print(f"Error: Multiple RPS files found in '{dir}': {rps_files}. Please specify the correct one.")
+        return None
+    
+    return os.path.join(dir, rps_files[0])
+
 def run_build_update_bundles(args):
     upd_bundle_dir = UPDATE_BUNDLE_DIR
     upd_bundle_prod_dir = UPDATE_BUNDLE_PROD_DIR
     upd_bundle_tar = UPDATE_BUNDLE_TAR
+
+    upd_si917_ta_rps = discover_si917_NWP_rps_path()
 
     ensure_run_assets_dir()
     # TODO: check if the firmware builded successfully before running this command?
@@ -207,7 +225,7 @@ def run_build_update_bundles(args):
         "--dfu", f"fbt_layers/fbtng/build/f{U5_TARGET_HW}-firmware-D/firmware.dfu",
         "--sil-fw", f"fbt_layers/fbtng/build/f{SI_TARGET_HW}-firmware-D/firmware.rps",
         "--resources", f"fbt_layers/fbtng/build/f{U5_TARGET_HW}-firmware-D/resources",
-        "--sil-radio-fw", f"{SI_RADIO_FW_PATH}"
+        "--sil-radio-fw", upd_si917_ta_rps
     ])
 
     # Update bundle.tar
@@ -219,7 +237,7 @@ def run_build_update_bundles(args):
         "--dfu", f"fbt_layers/fbtng/build/f{U5_TARGET_HW}-firmware-D/firmware.dfu",
         "--sil-fw", f"fbt_layers/fbtng/build/f{SI_TARGET_HW}-firmware-D/firmware.rps",
         "--resources", f"fbt_layers/fbtng/build/f{U5_TARGET_HW}-firmware-D/resources",
-        "--sil-radio-fw", f"{SI_RADIO_FW_PATH}"
+        "--sil-radio-fw", upd_si917_ta_rps
     ])
 
     # Update bundle for production line
@@ -231,7 +249,7 @@ def run_build_update_bundles(args):
         "--dfu", f"fbt_layers/fbtng/build/f{U5_TARGET_HW}-firmware-D/firmware.dfu",
         "--sil-fw", f"fbt_layers/fbtng/build/f{SI_TARGET_HW}-firmware-D/firmware.rps",
         "--resources", f"fbt_layers/fbtng/build/f{U5_TARGET_HW}-firmware-D/resources",
-        "--sil-radio-fw", f"{SI_RADIO_FW_PATH}"
+        "--sil-radio-fw", upd_si917_ta_rps
     ])
     bundles_cmds.append([
         "cp", "-v",
