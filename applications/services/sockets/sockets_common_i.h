@@ -21,6 +21,10 @@ typedef enum {
     SocketRequestTypeConnect,
     SocketRequestTypeSend,
     SocketRequestTypeReceive,
+    SocketRequestTypeGetSockName,
+    SocketRequestTypeGetPeerName,
+    SocketRequestTypeSetSockOpt,
+    SocketRequestTypeGetSockOpt,
     /* Special value */
     SocketRequestTypeMax,
 } SocketRequestType;
@@ -34,6 +38,10 @@ typedef enum {
     SocketResponseTypeConnect = SocketRequestTypeConnect,
     SocketResponseTypeSend = SocketRequestTypeSend,
     SocketResponseTypeReceive = SocketRequestTypeReceive,
+    SocketResponseTypeGetSockName = SocketRequestTypeGetSockName,
+    SocketResponseTypeGetPeerName = SocketRequestTypeGetPeerName,
+    SocketResponseTypeSetSockOpt = SocketRequestTypeSetSockOpt,
+    SocketResponseTypeGetSockOpt = SocketRequestTypeGetSockOpt,
     /* Async responses */
     SocketResponseTypeAsyncReceive,
     SocketResponseTypeAsyncAccept,
@@ -49,21 +57,17 @@ typedef enum {
 } SocketChannel;
 
 typedef struct {
-    SocketInfo socket_info;
-} SocketAllocRequest;
-
-typedef struct {
     uint8_t socket_id;
 } SocketFreeRequest;
 
 typedef struct {
     uint8_t socket_id;
-    SocketConnectionInfo bind_info;
+    // SocketConnectionInfo bind_info;
 } SocketBindRequest;
 
 typedef struct {
     uint8_t socket_id;
-    uint8_t max_clients;
+    uint8_t backlog;
 } SocketListenRequest;
 
 typedef struct {
@@ -72,7 +76,7 @@ typedef struct {
 
 typedef struct {
     uint8_t socket_id;
-    SocketConnectionInfo connection_info;
+    // SocketConnectionInfo connection_info;
 } SocketConnectRequest;
 
 typedef struct {
@@ -88,8 +92,8 @@ typedef struct {
 
 typedef struct {
     uint8_t type;
+    uint8_t socket_id;
     union {
-        SocketAllocRequest alloc_request;
         SocketFreeRequest free_request;
         SocketBindRequest bind_request;
         SocketListenRequest listen_request;
@@ -115,7 +119,6 @@ typedef struct {
 
 typedef struct {
     uint8_t client_socket_id;
-    SocketConnectionInfo connection_info;
 } SocketAcceptAsyncResponse;
 
 typedef struct {

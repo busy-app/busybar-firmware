@@ -8,66 +8,94 @@
 
 #include <intercom/intercom.h>
 
-#define SOCKET_COUNT (20)
-
 #define TAG "SocketSrv"
 
 typedef struct {
-    const SocketInfo* socket_info;
-    SocketEventCallback event_callback;
-    void* callback_context;
-    Socket* socket;
+    const int domain;
+    const int type;
+    const int protocol;
+    int* fd;
 } SocketSrvAllocMessage;
 
 typedef struct {
-    const uint8_t socket_id;
-} SocketSrvFreeMessage;
+} SocketSrvCloseMessage;
 
 typedef struct {
-    const uint8_t socket_id;
-    const SocketConnectionInfo* bind_info;
+    const struct sockaddr* const name;
+    const socklen_t namelen;
 } SocketSrvBindMessage;
 
 typedef struct {
-    const uint8_t socket_id;
-    const uint8_t max_clients;
+    const int backlog;
 } SocketSrvListenMessage;
 
 typedef struct {
-    const uint8_t socket_id;
+    struct sockaddr* addr;
+    socklen_t* addrlen;
 } SocketSrvAcceptMessage;
 
 typedef struct {
-    const uint8_t socket_id;
-    const SocketConnectionInfo* connection_info;
+    const struct sockaddr* const name;
+    const socklen_t namelen;
 } SocketSrvConnectMessage;
 
 typedef struct {
-    const uint8_t socket_id;
-    const void* data;
-    const size_t data_size;
-    size_t* sent_size;
+    const void* const dataptr;
+    const size_t size;
+    const int flags;
+    const struct sockaddr* const to;
+    const socklen_t tolen;
 } SocketSrvSendMessage;
 
 typedef struct {
-    const uint8_t socket_id;
-    void* data;
-    const size_t data_size;
-    size_t* received_size;
+    void* const mem;
+    const size_t len;
+    const int flags;
+    struct sockaddr* const from;
+    socklen_t* const fromlen;
 } SocketSrvReceiveMessage;
 
 typedef struct {
-    SocketRequestType request_type;
-    SocketStatus status;
+    struct sockaddr* const name;
+    socklen_t* const namelen;
+} SocketSrvGetSockNameMessage;
+
+typedef struct {
+    struct sockaddr* const name;
+    socklen_t* const namelen;
+} SocketSrvGetPeerNameMessage;
+
+typedef struct {
+    const int level;
+    const int optname;
+    void* const optval;
+    socklen_t* const optlen;
+} SocketSrvGetSockOptMessage;
+
+typedef struct {
+    const int level;
+    const int optname;
+    const void* const optval;
+    const socklen_t optlen;
+} SocketSrvSetSockOptMessage;
+
+typedef struct {
+    const SocketRequestType request_type;
+    const int socket_fd;
+    ssize_t status;
     union {
         SocketSrvAllocMessage alloc_message;
-        SocketSrvFreeMessage free_message;
+        SocketSrvCloseMessage close_message;
         SocketSrvBindMessage bind_message;
         SocketSrvListenMessage listen_message;
         SocketSrvAcceptMessage accept_message;
         SocketSrvConnectMessage connect_message;
         SocketSrvSendMessage send_message;
         SocketSrvReceiveMessage receive_message;
+        SocketSrvGetSockNameMessage getsockname_message;
+        SocketSrvGetPeerNameMessage getpeername_message;
+        SocketSrvGetSockOptMessage getsockopt_message;
+        SocketSrvSetSockOptMessage setsockopt_message;
     };
     FuriApiLock lock;
 } SocketSrvMessage;
@@ -76,18 +104,10 @@ typedef enum {
     SocketSrvEventRequest = 1UL << 0,
 } SocketSrvEvent;
 
-struct Socket {
-    uint8_t id;
-    SocketSrv* owner;
-    SocketEventCallback event_callback;
-    void* callback_context;
-};
-
 struct SocketSrv {
     FuriEventLoop* event_loop;
     FuriSemaphore* access_semaphore;
     SocketSrvMessage* current_message;
     Intercom* intercom;
     SocketRequest request;
-    Socket* sockets[SOCKET_COUNT];
 };

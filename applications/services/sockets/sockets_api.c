@@ -1,6 +1,9 @@
 #include "sockets_i.h"
 
-static void sockets_send_message(SocketSrv* instance, SocketSrvMessage* message) {
+static void sockets_send_message(SocketSrvMessage* message) {
+    extern SocketSrv* instance;
+    furi_check(instance);
+
     message->lock = api_lock_alloc_locked();
 
     furi_check(
@@ -12,163 +15,221 @@ static void sockets_send_message(SocketSrv* instance, SocketSrvMessage* message)
     api_lock_wait_unlock_and_free(message->lock);
 }
 
-Socket* socket_alloc(
-    SocketSrv* instance,
-    const SocketInfo* socket_info,
-    SocketEventCallback event_callback,
-    void* callback_context) {
-    furi_check(instance);
-    furi_check(socket_info);
-
+int sl_socket(int domain, int type, int protocol) {
     SocketSrvMessage msg = {
         .request_type = SocketRequestTypeAlloc,
         .alloc_message =
             {
-                .socket_info = socket_info,
-                .event_callback = event_callback,
-                .callback_context = callback_context,
+                .domain = domain,
+                .type = type,
+                .protocol = protocol,
             },
     };
 
-    sockets_send_message(instance, &msg);
-    return msg.alloc_message.socket;
-}
-
-SocketStatus socket_free(Socket* socket) {
-    furi_check(socket);
-
-    SocketSrv* instance = socket->owner;
-    furi_assert(instance);
-
-    SocketSrvMessage msg = {
-        .request_type = SocketRequestTypeFree,
-        .free_message =
-            {
-                .socket_id = socket->id,
-            },
-    };
-
-    sockets_send_message(instance, &msg);
+    sockets_send_message(&msg);
     return msg.status;
 }
 
-SocketStatus socket_bind(Socket* socket, const SocketConnectionInfo* bind_info) {
-    furi_check(socket);
-    furi_check(bind_info);
-
-    SocketSrv* instance = socket->owner;
-    furi_assert(instance);
-
+int sl_bind(int s, const struct sockaddr* name, socklen_t namelen) {
     SocketSrvMessage msg = {
         .request_type = SocketRequestTypeBind,
-        .bind_message =
-            {
-                .socket_id = socket->id,
-                .bind_info = bind_info,
-            },
-    };
+        .socket_fd = s,
+        .bind_message = {
+            .name = name,
+            .namelen = namelen,
+        }};
 
-    sockets_send_message(instance, &msg);
+    sockets_send_message(&msg);
     return msg.status;
 }
 
-SocketStatus socket_listen(Socket* socket, uint8_t max_clients) {
-    furi_check(socket);
-
-    SocketSrv* instance = socket->owner;
-    furi_assert(instance);
-
+int sl_getsockname(int s, struct sockaddr* name, socklen_t* namelen) {
     SocketSrvMessage msg = {
-        .request_type = SocketRequestTypeListen,
-        .listen_message =
+        .request_type = SocketRequestTypeGetSockName,
+        .socket_fd = s,
+        .getsockname_message =
             {
-                .socket_id = socket->id,
-                .max_clients = max_clients,
+                .name = name,
+                .namelen = namelen,
             },
     };
 
-    sockets_send_message(instance, &msg);
+    sockets_send_message(&msg);
     return msg.status;
 }
 
-SocketStatus socket_accept(Socket* socket) {
-    furi_check(socket);
-
-    SocketSrv* instance = socket->owner;
-    furi_assert(instance);
-
-    SocketSrvMessage msg = {
-        .request_type = SocketRequestTypeAccept,
-        .accept_message =
-            {
-                .socket_id = socket->id,
-            },
-    };
-
-    sockets_send_message(instance, &msg);
-    return msg.status;
-}
-
-SocketStatus socket_connect(Socket* socket, const SocketConnectionInfo* connection_info) {
-    furi_check(socket);
-    furi_check(connection_info);
-
-    SocketSrv* instance = socket->owner;
-    furi_assert(instance);
-
+int sl_connect(int s, const struct sockaddr* name, socklen_t namelen) {
     SocketSrvMessage msg = {
         .request_type = SocketRequestTypeConnect,
-        .connect_message =
-            {
-                .socket_id = socket->id,
-                .connection_info = connection_info,
-            },
-    };
+        .socket_fd = s,
+        .connect_message = {
+            .name = name,
+            .namelen = namelen,
+        }};
 
-    sockets_send_message(instance, &msg);
+    sockets_send_message(&msg);
     return msg.status;
 }
 
-SocketStatus socket_send(Socket* socket, const void* data, size_t data_size, size_t* sent_size) {
-    furi_check(socket);
-    furi_check(data);
+int sl_getpeername(int s, struct sockaddr* name, socklen_t* namelen) {
+    SocketSrvMessage msg = {
+        .request_type = SocketRequestTypeGetPeerName,
+        .socket_fd = s,
+        .getpeername_message =
+            {
+                .name = name,
+                .namelen = namelen,
+            },
+    };
 
-    SocketSrv* instance = socket->owner;
-    furi_assert(instance);
+    sockets_send_message(&msg);
+    return msg.status;
+}
 
+ssize_t sl_send(int s, const void* dataptr, size_t size, int flags) {
     SocketSrvMessage msg = {
         .request_type = SocketRequestTypeSend,
+        .socket_fd = s,
         .send_message =
             {
-                .socket_id = socket->id,
-                .data = data,
-                .data_size = data_size,
-                .sent_size = sent_size,
+                .dataptr = dataptr,
+                .size = size,
+                .flags = flags,
             },
     };
 
-    sockets_send_message(instance, &msg);
+    sockets_send_message(&msg);
     return msg.status;
 }
 
-SocketStatus socket_receive(Socket* socket, void* data, size_t data_size, size_t* received_size) {
-    furi_check(socket);
-    furi_check(data);
-
-    SocketSrv* instance = socket->owner;
-    furi_assert(instance);
-
+ssize_t sl_recv(int s, void* mem, size_t len, int flags) {
     SocketSrvMessage msg = {
         .request_type = SocketRequestTypeReceive,
+        .socket_fd = s,
         .receive_message =
             {
-                .socket_id = socket->id,
-                .data = data,
-                .data_size = data_size,
-                .received_size = received_size,
+                .mem = mem,
+                .len = len,
+                .flags = flags,
             },
     };
 
-    sockets_send_message(instance, &msg);
+    sockets_send_message(&msg);
+    return msg.status;
+}
+
+ssize_t sl_sendto(
+    int s,
+    const void* dataptr,
+    size_t size,
+    int flags,
+    const struct sockaddr* to,
+    socklen_t tolen) {
+    SocketSrvMessage msg = {
+        .request_type = SocketRequestTypeSend,
+        .socket_fd = s,
+        .send_message =
+            {
+                .dataptr = dataptr,
+                .size = size,
+                .flags = flags,
+                .to = to,
+                .tolen = tolen,
+            },
+    };
+
+    sockets_send_message(&msg);
+    return msg.status;
+}
+
+ssize_t
+    sl_recvfrom(int s, void* mem, size_t len, int flags, struct sockaddr* from, socklen_t* fromlen) {
+    SocketSrvMessage msg = {
+        .request_type = SocketRequestTypeReceive,
+        .socket_fd = s,
+        .receive_message =
+            {
+                .mem = mem,
+                .len = len,
+                .flags = flags,
+                .from = from,
+                .fromlen = fromlen,
+            },
+    };
+
+    sockets_send_message(&msg);
+    return msg.status;
+}
+
+int sl_getsockopt(int s, int level, int optname, void* optval, socklen_t* optlen) {
+    SocketSrvMessage msg = {
+        .request_type = SocketRequestTypeGetSockOpt,
+        .socket_fd = s,
+        .getsockopt_message =
+            {
+                .level = level,
+                .optname = optname,
+                .optval = optval,
+                .optlen = optlen,
+            },
+    };
+
+    sockets_send_message(&msg);
+    return msg.status;
+}
+
+int sl_setsockopt(int s, int level, int optname, const void* optval, socklen_t optlen) {
+    SocketSrvMessage msg = {
+        .request_type = SocketRequestTypeSetSockOpt,
+        .socket_fd = s,
+        .setsockopt_message =
+            {
+                .level = level,
+                .optname = optname,
+                .optval = optval,
+                .optlen = optlen,
+            },
+    };
+
+    sockets_send_message(&msg);
+    return msg.status;
+}
+
+int sl_listen(int s, int backlog) {
+    SocketSrvMessage msg = {
+        .request_type = SocketRequestTypeListen,
+        .socket_fd = s,
+        .listen_message =
+            {
+                .backlog = backlog,
+            },
+    };
+
+    sockets_send_message(&msg);
+    return msg.status;
+}
+
+int sl_accept(int s, struct sockaddr* addr, socklen_t* addrlen) {
+    SocketSrvMessage msg = {
+        .request_type = SocketRequestTypeAccept,
+        .socket_fd = s,
+        .accept_message =
+            {
+                .addr = addr,
+                .addrlen = addrlen,
+            },
+    };
+
+    sockets_send_message(&msg);
+    return msg.status;
+}
+
+int sl_close(int s) {
+    SocketSrvMessage msg = {
+        .request_type = SocketRequestTypeFree,
+        .socket_fd = s,
+    };
+
+    sockets_send_message(&msg);
     return msg.status;
 }
