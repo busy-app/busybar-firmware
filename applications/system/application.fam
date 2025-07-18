@@ -18,6 +18,7 @@ App(
     apptype=FlipperAppType.METAPACKAGE,
     provides=[
         "update_cli",
+        "crypto_backup",
     ],
     targets=["f20", "f21"],
 )
@@ -55,6 +56,8 @@ App(
     appid="system_apps_on_start",
     name="On start hooks",
     apptype=FlipperAppType.METAPACKAGE,
-    provides=[],
+    provides=[
+        "crypto_backup_server",
+    ],
     targets=["f64"],
 )

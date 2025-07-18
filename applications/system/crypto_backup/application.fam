@@ -1,0 +1,21 @@
+App(
+    appid="crypto_backup",
+    name="crypto_backup",
+    targets=["f20", "f21"],
+    apptype=FlipperAppType.CLICMD,
+    entry_point="crypto_backup_client_command",
+    stack_size=1024 * 2,
+    sources=["crypto_backup_client.c"],
+)
+
+App(
+    appid="crypto_backup_server",
+    name="crypto_backup_server",
+    apptype=FlipperAppType.STARTUP,
+    entry_point="crypto_backup_server_init",
+    requires=["intercom"],
+    stack_size=1 * 1024,
+    order=80,
+    targets=["f64"],
+    sources=["crypto_backup_server.c"],
+)
