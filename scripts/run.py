@@ -26,6 +26,12 @@ UPDATE_BUNDLE_DIR = os.path.join(RUN_ASSETS_DIR, "upd_bundle")              # Va
 UPDATE_BUNDLE_TAR = os.path.join(RUN_ASSETS_DIR, "upd_bundle.tar")          # .tar, for update via HTTP API
 UPDATE_BUNDLE_PROD_DIR = os.path.join(RUN_ASSETS_DIR, "upd_bundle_prod")    # For production line
 
+CLEAN_DIRS_TO_CLEAN_BUILD = [
+    RUN_ASSETS_DIR,
+    "fbt_layers/fbtng/build",
+    "fbt_layers/fbtng/.sconsign.dblite"
+]
+
 # End of script settings
 
 def subprocess_exec(cmd, verbose=False):
@@ -264,6 +270,27 @@ def run_build_update_bundles(args):
             return ret
     return ret
 
+def run_clean(args):
+    ret = 0
+    for dir in CLEAN_DIRS_TO_CLEAN_BUILD:
+        if os.path.exists(dir):
+            if os.path.isdir(dir):
+                shutil.rmtree(dir)
+                print(f"Removed directory: {dir}")
+            else:
+                os.remove(dir)
+                print(f"Removed file: {dir}")
+        else:
+            print(f"Directory or file not found: {dir}")
+            ret = 1
+    
+    if ret == 0:
+        print("Cleaned all specified directories and files.")
+    else:
+        print("Some directories or files were not found.")
+    
+    return ret
+
 def run_wait_for_device(args):
     if args.device_ip == "ref" or args.device_ip == "r":
         args.device_ip = DEVICE_IP_REF
@@ -461,6 +488,11 @@ def main():
         "build-bundles", help="Build all bundles: update, production, etc."
     )
     p_build_update_bundle.set_defaults(func=run_build_update_bundles)
+
+    p_clean = subparsers.add_parser(
+        "clean", help="Clean build directories and assets to start from scratch"
+    )
+    p_clean.set_defaults(func=run_clean)
 
     p_flash_u5_dfu = subparsers.add_parser(
         "flash-u5-dfu", help="Flash U5 firmware via DFU"
