@@ -11,7 +11,7 @@ DEVICE_IP_REF = "10.0.5.20"
 DEVICE_PORT = 23
 
 # Firmware U5:
-U5_TARGET_HW = 20
+U5_TARGET_HW = 21
 
 # Firmware SI917:
 SI_TARGET_HW = 64
@@ -388,3 +388,7 @@ if __name__ == "__main__":
 # - success build flags for bundles
 # - check if bundle exists before running updates
 # - readme
+# - colorlog
+# - cleaning up run assets dir automatically before build
+# - clean fbt_layers/fbtng/build, .sconsign.dblite # shlex remove?
+# - Update si917 firmware (2 отдельно)
