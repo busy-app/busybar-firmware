@@ -2,6 +2,9 @@
 import os, sys, time
 import subprocess, argparse
 import shutil, platform
+import json
+
+from serial.tools import list_ports
 
 from flipper.storage_socket import FlipperStorage
 
@@ -35,6 +38,36 @@ def subprocess_exec(cmd, verbose=False):
         stderr=sys.stderr,
     )
     return result.returncode
+
+def update_bundle_get():
+    upd_bundle_json = os.path.join(UPDATE_BUNDLE_DIR, "update.json")
+    if not os.path.exists(upd_bundle_json):
+        print(f"Update bundle JSON file '{upd_bundle_json}' does not exist. Please run './run build' first.")
+        return None
+    
+    try:
+        with open(upd_bundle_json, 'r') as f:
+            data = json.load(f)
+            return data
+    except json.JSONDecodeError as e:
+        print(f"Error decoding JSON from {upd_bundle_json}: {e}")
+        return None
+    except FileNotFoundError:
+        print(f"File not found: {upd_bundle_json}")
+        return None
+    except Exception as e:
+        print(f"Unexpected error reading {upd_bundle_json}: {e}")
+        return None
+    
+    return None
+
+def serial_ports_discover(verbose = False):
+    """List available serial ports."""
+    ports = list_ports.comports()
+    if verbose:
+        for port in ports:
+            print(f"{port.device} \t{port.description} {port.hwid}")
+    return [port.device for port in ports]
 
 def wait_for_device(device_ip, verbose=False):
     ts = time.time()
@@ -289,6 +322,67 @@ def run_flash_u5_dfu(args):
         print(f"Flashing U5 DFU failed with return code: {ret}")
     return ret
 
+def run_flash_si_uart(args):
+    if args.serial_port is None:
+        print("Warning: Serial port for SI917 is not specified. Use -s or --serial_port option.")
+        serial_ports = serial_ports_discover()
+        if serial_ports:
+            print("Available serial ports:")
+            serial_ports_discover(True)
+
+            args.serial_port = serial_ports[-1] if serial_ports else None
+
+            if args.serial_port is None:
+                print("Error: No serial ports found. Please connect the device and try again.")
+                return 1
+            else:
+                print(f"Using the last available serial port: {args.serial_port}")
+
+    bundle_data = update_bundle_get()
+    if bundle_data is None:
+        print("Error: Update bundle data is not available. Please run './run build' first.")
+        return 2
+
+    cmd = [
+        "python3", "./scripts/flashrps.py",
+        "-p", args.serial_port,
+        "-t", "m4",
+        os.path.join(UPDATE_BUNDLE_DIR, bundle_data["updater_sil_fw"])
+    ]
+
+    return subprocess_exec(cmd, verbose=args.verbose)
+    
+
+def run_flash_si_nwp_uart(args):
+    if args.serial_port is None:
+        print("Warning: Serial port for SI917 is not specified. Use -s or --serial_port option.")
+        serial_ports = serial_ports_discover()
+        if serial_ports:
+            print("Available serial ports:")
+            serial_ports_discover(True)
+
+            args.serial_port = serial_ports[-1] if serial_ports else None
+
+            if args.serial_port is None:
+                print("Error: No serial ports found. Please connect the device and try again.")
+                return 1
+            else:
+                print(f"Using the last available serial port: {args.serial_port}")
+
+    bundle_data = update_bundle_get()
+    if bundle_data is None:
+        print("Error: Update bundle data is not available. Please run './run build' first.")
+        return 2
+
+    cmd = [
+        "python3", "./scripts/flashrps.py",
+        "-p", args.serial_port,
+        "-t", "ta",
+        os.path.join(UPDATE_BUNDLE_DIR, bundle_data["updater_sil_radio_fw"])
+    ]
+
+    return subprocess_exec(cmd, verbose=args.verbose)
+
 def main():
     # print("cwd:", os.getcwd())
     parser = argparse.ArgumentParser(description="Runner")
@@ -334,6 +428,22 @@ def main():
     p_flash_u5_dfu.add_argument("-d", "--device_ip", help="Device IP", type=str, default=DEVICE_IP)
     p_flash_u5_dfu.add_argument("-p", "--device_port", help="Device Port", type=int, default=DEVICE_PORT)
     p_flash_u5_dfu.set_defaults(func=run_flash_u5_dfu)
+
+    p_flash_si_uart = subparsers.add_parser(
+        "flash-si-uart", help="Flash SI917 firmware via UART"
+    )
+    p_flash_si_uart.add_argument("-s", "--serial_port", help="Serial port for SI917", type=str, default=None, required=False)
+    p_flash_si_uart.add_argument("-f", "--firmware_path", help="Path to the SI917 firmware .rps file", type=str, default=None, required=False)
+    p_flash_si_uart.set_defaults(func=run_flash_si_uart)
+
+    p_flash_si_nwp_uart = subparsers.add_parser(
+        "flash-si-nwp-uart", help="Flash SI917 NWP firmware via UART"
+    )
+    p_flash_si_nwp_uart.add_argument("-s", "--serial_port", help="Serial port for SI917", type=str, default=None, required=False)
+    p_flash_si_nwp_uart.add_argument(
+        "-f", "--firmware_path", help="Path to the SI917 NWP firmware .rps file", type=str, default=None, required=False
+    )
+    p_flash_si_nwp_uart.set_defaults(func=run_flash_si_nwp_uart)
 
     p_update_via_http = subparsers.add_parser(
         "update-http", help="Update device via HTTP API using curl (upd_bundle.tar)"
@@ -383,20 +493,3 @@ if __name__ == "__main__":
 
 # Info:
 # - https://flipperzero.atlassian.net/wiki/spaces/BL/pages/29465640962/Firmware+update
-
-# TODO:
-# - success build flags for bundles
-# - check if bundle exists before running updates
-# - readme
-
-# env
-# python3 /Users/lomalkin/_repoz/bsb-firmware/scripts/flashrps.py -p /dev/cu.usbmodem2121301 fbt_layers/fbtng/build/f64-firmware-D/firmware.rps
-# 2nd?
-
-# ./fbt TARGET_HW=20 resources_upload
-
-# ./scripts/flashrps.py -p /dev/cu.usbmodem2121301 -t ta ./lib/wiseconnect/connectivity_firmware/standard/SiWG917-B.2.14.5.0.0.10.rps
-
-
-# ./scripts/flashrps.py -p /dev/cu.usbmodem101 -t ta ./lib/wiseconnect/connectivity_firmware/standard/SiWG917-B.2.13.4.1.0.4.rps 
-
