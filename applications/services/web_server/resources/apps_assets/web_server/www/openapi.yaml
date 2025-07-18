@@ -27,6 +27,56 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Error"
+  /api/v0/access:
+    get:
+      tags:
+        - Settings
+      summary: HTTP API access over Wi-Fi configuration get
+      description: HTTP API access over Wi-Fi configuration get
+      operationId: getHttpAccess
+      responses:
+        "200":
+          description: Information retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HttpAccessInfo"
+    post:
+      tags:
+        - Settings
+      summary: HTTP API access over Wi-Fi configuration set
+      description: HTTP API access over Wi-Fi configuration set
+      operationId: setHttpAccess
+      parameters:
+        - name: mode
+          in: query
+          required: true
+          schema:
+            type: string
+            enum: ["disabled", "enabled", "key"]
+          description: Access mode
+          example: "key"
+        - name: key
+          in: query
+          required: true
+          schema:
+            type: string
+            pattern: "^[0-9]+$"
+          description: Access key (4-10 digits len)
+          example: "12345678"
+      responses:
+        "200":
+          description: Set successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse"
+        "400":
+          description: Invalid request data
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
 
   /api/v0/update:
     post:
@@ -930,6 +980,19 @@ components:
         version: "1.0.0"
         build_date: "2024-01-01"
         commit_hash: "abc123def456"
+
+    HttpAccessInfo:
+      type: object
+      properties:
+        mode:
+          type: string
+          enum: ["disabled", "enabled", "key"]
+          description: Access mode
+          example: "key"
+        key_valid:
+          type: bool
+          description: Access key was set and is valid
+          example: true
 
     StorageList:
       type: object

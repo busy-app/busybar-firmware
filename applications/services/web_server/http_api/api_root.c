@@ -1,5 +1,18 @@
 #include "http_api.h"
 #include <version.h>
+#include <json_helper.h>
+
+#define ACCESS_CFG_FILE APP_DATA_PATH("access.json")
+
+typedef struct {
+    HttpHandlersList_t handlers;
+    enum {
+        ApiAccessDisabled = 0,
+        ApiAccessEnabled,
+        ApiAccessKeyRequired,
+    } access_mode;
+    FuriString* acces_key;
+} ApiRootCtx;
 
 bool http_api_version_callback(
     FuriString* path,
@@ -29,6 +42,113 @@ bool http_api_version_callback(
     furi_string_free(ver_str);
 
     return true;
+}
+
+static bool http_api_access_get_callback(ApiRootCtx* context, struct mg_connection* conn) {
+    FuriString* json_str = furi_string_alloc();
+
+    char* acces_mode_str = "disabled";
+    if(context->access_mode == ApiAccessEnabled) {
+        acces_mode_str = "enabled";
+    } else if(context->access_mode == ApiAccessKeyRequired) {
+        acces_mode_str = "key";
+    }
+    furi_string_cat_printf(json_str, "\"mode\":\"%s\",", acces_mode_str);
+
+    size_t key_len = furi_string_size(context->acces_key);
+    bool key_valid = (key_len > 4) && (key_len < 10);
+    furi_string_cat_printf(json_str, "\"key_valid\":%s", key_valid ? "true" : "false");
+
+    MG_REPLY_OK_BODY(conn, "{%s}\n", furi_string_get_cstr(json_str));
+    furi_string_free(json_str);
+    return true;
+}
+
+static bool http_api_access_set_callback(
+    ApiRootCtx* context,
+    struct mg_connection* conn,
+    struct mg_http_message* msg) {
+    bool success = false;
+    do {
+        if(msg->query.len == 0) break;
+
+        char mode_str[11];
+        uint8_t access_mode;
+        char access_key[12];
+
+        int mode_len = mg_http_get_var(&msg->query, "mode", mode_str, sizeof(mode_str));
+        int key_len = mg_http_get_var(&msg->query, "key", access_key, sizeof(access_key));
+
+        if(mode_len <= 0) break;
+
+        if(mode_len > 0) {
+            if(strcmp(mode_str, "disabled") == 0) {
+                access_mode = ApiAccessDisabled;
+            } else if(strcmp(mode_str, "enabled") == 0) {
+                access_mode = ApiAccessEnabled;
+            } else if(strcmp(mode_str, "key") == 0) {
+                access_mode = ApiAccessKeyRequired;
+                if(key_len <= 0) break;
+            } else {
+                break;
+            }
+        }
+
+        if(key_len > 0) {
+            if((key_len < 4) || (key_len > 10)) {
+                break;
+            }
+            furi_string_set(context->acces_key, access_key);
+            json_config_write_single_str(
+                ACCESS_CFG_FILE, "access_key", furi_string_get_cstr(context->acces_key));
+        }
+        context->access_mode = access_mode;
+        json_config_write_single_int(ACCESS_CFG_FILE, "access_mode", context->access_mode);
+        success = true;
+    } while(0);
+
+    if(success) {
+        MG_REPLY_OK(conn);
+    } else {
+        MG_REPLY_BAD_REQUEST(conn);
+    }
+
+    return true;
+}
+
+static bool http_api_access_callback(
+    ApiRootCtx* context,
+    struct mg_connection* conn,
+    struct mg_http_message* msg) {
+    if(mg_match(msg->method, mg_str("GET"), NULL)) {
+        return http_api_access_get_callback(context, conn);
+    } else if(mg_match(msg->method, mg_str("POST"), NULL)) {
+        return http_api_access_set_callback(context, conn, msg);
+    }
+    return false;
+}
+
+static bool http_api_is_access_allowed(
+    ApiRootCtx* context,
+    struct mg_connection* conn,
+    struct mg_http_message* msg) {
+    int is_ip_allowed = mg_check_ip_acl(mg_str("+0.0.0.0/0,-127.0.0.1"), &conn->rem);
+    if(is_ip_allowed == 0) {
+        if(context->access_mode == ApiAccessEnabled) {
+            return true;
+        } else if(context->access_mode == ApiAccessKeyRequired) {
+            furi_assert(context->acces_key);
+            struct mg_str* header_key = mg_http_get_header(msg, "Bearer");
+            if(header_key != NULL) {
+                struct mg_str access_key = mg_str(furi_string_get_cstr(context->acces_key));
+                if(mg_strcmp(*header_key, access_key) == 0) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+    return (is_ip_allowed == 1);
 }
 
 static const HttpHandler handlers_api_root[] = {
@@ -116,10 +236,6 @@ static const HttpHandler handlers_api_root[] = {
     },
 };
 
-typedef struct {
-    HttpHandlersList_t handlers;
-} ApiRootCtx;
-
 void* http_api_root_alloc(void) {
     ApiRootCtx* context = malloc(sizeof(ApiRootCtx));
     HttpHandlersList_init(context->handlers);
@@ -127,6 +243,26 @@ void* http_api_root_alloc(void) {
     for(size_t i = COUNT_OF(handlers_api_root); i > 0; i--) {
         http_handler_add(context->handlers, &handlers_api_root[i - 1]);
     }
+
+    context->acces_key = furi_string_alloc();
+
+    JsonConfig* cfg = json_config_alloc();
+    JsonConfigStatus status = json_config_open(cfg, ACCESS_CFG_FILE);
+    if(status != JsonConfigStatusError) {
+        int access_mode = 0;
+        int access_mode_default = ApiAccessDisabled;
+        json_config_read_int(cfg, "access_mode", &access_mode, &access_mode_default);
+        context->access_mode = access_mode;
+        status = json_config_read_str(cfg, "access_key", context->acces_key, NULL);
+        size_t key_len = furi_string_size(context->acces_key);
+        if((status == JsonConfigStatusMissing) || (key_len < 4) || (key_len > 10)) {
+            context->access_mode = ApiAccessDisabled;
+        }
+    } else {
+        context->access_mode = ApiAccessDisabled;
+    }
+    json_config_free(cfg);
+
     return context;
 }
 
@@ -134,6 +270,7 @@ void http_api_root_free(void* ctx) {
     furi_assert(ctx);
     ApiRootCtx* context = ctx;
     HttpHandlersList_clear(context->handlers);
+    furi_string_free(context->acces_key);
     free(context);
 }
 
@@ -148,7 +285,17 @@ bool http_api_root_callback(
     if(msg->query.len > 0) {
         FURI_LOG_I("HTTP API", "Query %.*s", msg->query.len, msg->query.buf);
     }
-    return http_handle_request(path, context->handlers, conn, msg);
+    if(http_api_is_access_allowed(context, conn, msg)) {
+        if(furi_string_equal(path, "access")) {
+            return http_api_access_callback(context, conn, msg);
+        } else {
+            return http_handle_request(path, context->handlers, conn, msg);
+        }
+
+    } else {
+        MG_REPLY_FORBIDDEN(conn);
+        return true;
+    }
 }
 
 bool http_api_options_callback(
