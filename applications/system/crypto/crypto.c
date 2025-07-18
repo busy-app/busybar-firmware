@@ -86,7 +86,7 @@ void crypto_command_wipe(PipeSide* pipe, FuriString* args, void* context) {
         if(parse_err) {
             is_valid = false;
         }
-        if(partition > FuriHalCryptoPartitionMax) {
+        if(partition >= FuriHalCryptoPartitionMax) {
             is_valid = false;
         }
     } else {
@@ -95,7 +95,7 @@ void crypto_command_wipe(PipeSide* pipe, FuriString* args, void* context) {
     if(!is_valid) {
         cli_print_usage(
             "crypto wipe",
-            "<partition> 0-partition_main, 1-partition_user, 2-partition_all\r\n",
+            "<partition> 0-partition_main, 1-partition_user\r\n",
             furi_string_get_cstr(args));
         return;
     }
@@ -132,15 +132,15 @@ void crypto_command_wipe(PipeSide* pipe, FuriString* args, void* context) {
             printf(ANSI_FG_GREEN "Wipe NWP flash partition_user\r\n" ANSI_RESET);
         }
         break;
-    case FuriHalCryptoPartitionMax: // Wipe all partitions
-        status = sl_si91x_command_to_write_common_flash(
-            FURI_HAL_CRYPTO_STORAGE_START_ADDRESS, NULL, FURI_HAL_CRYPTO_STORAGE_END_ADDRESS, 1);
-        if(status != SL_STATUS_OK) {
-            printf(ANSI_FG_RED "Failed to wipe NWP flash all: " ANSI_RESET "0x%08lx\r\n", status);
-        } else {
-            printf(ANSI_FG_GREEN "Wipe NWP flash all\r\n" ANSI_RESET);
-        }
-        break;
+    // case FuriHalCryptoPartitionMax: // Wipe all partitions
+    //     status = sl_si91x_command_to_write_common_flash(
+    //         FURI_HAL_CRYPTO_STORAGE_START_ADDRESS, NULL, FURI_HAL_CRYPTO_STORAGE_END_ADDRESS, 1);
+    //     if(status != SL_STATUS_OK) {
+    //         printf(ANSI_FG_RED "Failed to wipe NWP flash all: " ANSI_RESET "0x%08lx\r\n", status);
+    //     } else {
+    //         printf(ANSI_FG_GREEN "Wipe NWP flash all\r\n" ANSI_RESET);
+    //     }
+    //     break;
     default:
         furi_crash();
         return;
@@ -259,15 +259,15 @@ void crypto_command_read(PipeSide* pipe, FuriString* args, void* context) {
 
     if(status == FuriHalCryptoStatusOk) {
         printf("Read key from NWP flash partition: %d\r\n", partition);
-        printf("Magic number: 0x%08lx\r\n", key->header.magic_number);
-        printf("Key reserved: 0x%04X\r\n", key->header.reserved);
-        printf("Key size: %d\r\n", key->header.size);
-        printf("Key type: %ld\r\n", (uint32_t)key->header.type);
-        printf("Key flags: 0x%08lX\r\n", (uint32_t)key->header.flags);
-        printf("Key id: 0x%08lX\r\n", (uint32_t)key->header.id);
-        printf("Key reserved1: 0x%08lX\r\n", (uint32_t)key->header.reserved1);
-        printf("Key crc32: 0x%08lX\r\n", key->header.crc32);
-        printf("Key data:\r\n");
+        printf("magic_number: 0x%08lx\r\n", key->header.magic_number);
+        printf("key_reserved: 0x%04X\r\n", key->header.reserved);
+        printf("key_size: %d\r\n", key->header.size);
+        printf("key_type: %ld\r\n", (uint32_t)key->header.type);
+        printf("key_flags: 0x%08lX\r\n", (uint32_t)key->header.flags);
+        printf("key_id: 0x%08lX\r\n", (uint32_t)key->header.id);
+        printf("key_reserved1: 0x%08lX\r\n", (uint32_t)key->header.reserved1);
+        printf("key_crc32: 0x%08lX\r\n", key->header.crc32);
+        printf("key_data:\r\n");
         for(uint32_t i = 0; i < key->header.size; i++) {
             if((i) % 32 == 0) printf("%08lx: ", i);
             printf("%02x ", key->data[i]);
@@ -300,7 +300,7 @@ void crypto_command_dump(PipeSide* pipe, FuriString* args, void* context) {
             free(buf);
             return;
         }
-        printf(ANSI_FG_GREEN "Read data from NWP flash address: " ANSI_RESET "0x%08lX\r\n", i);
+        printf(ANSI_FG_GREEN "Read data from NWP flash address: " ANSI_RESET "0x%08lx\r\n", i);
 
         for(uint32_t ii = 0; ii < 1024; ii++) {
             if((ii) % 32 == 0) printf("%08lx: ", address);
@@ -321,9 +321,7 @@ void crypto_command_gen(PipeSide* pipe, FuriString* args, void* context) {
     if(!crypto_command_is_init()) {
         return;
     }
-    if(!crypto_command_is_init()) {
-        return;
-    }
+
     FuriHalCryptoKey* key = NULL;
     FuriHalCryptoPartition partition = FuriHalCryptoPartitionMax;
     FuriHalCryptoKeyType type = FuriHalCryptoKeyTypeNone;
@@ -432,15 +430,15 @@ void crypto_command_gen(PipeSide* pipe, FuriString* args, void* context) {
     status = furi_hal_crypto_storage_read(key, type, id);
     if(status == FuriHalCryptoStatusOk) {
         printf("Read key from NWP flash partition: %d\r\n", partition);
-        printf("Magic number: 0x%08lx\r\n", key->header.magic_number);
-        printf("Key reserved: 0x%04X\r\n", key->header.reserved);
-        printf("Key size: %d\r\n", key->header.size);
-        printf("Key type: %ld\r\n", (uint32_t)key->header.type);
-        printf("Key flags: 0x%08lX\r\n", (uint32_t)key->header.flags);
-        printf("Key id: 0x%08lX\r\n", (uint32_t)key->header.id);
-        printf("Key reserved1: 0x%08lX\r\n", (uint32_t)key->header.reserved1);
-        printf("Key crc32: 0x%08lX\r\n", key->header.crc32);
-        printf("Key data:\r\n");
+        printf("magic_number: 0x%08lx\r\n", key->header.magic_number);
+        printf("key_reserved: 0x%04X\r\n", key->header.reserved);
+        printf("key_size: %d\r\n", key->header.size);
+        printf("key_type: %ld\r\n", (uint32_t)key->header.type);
+        printf("key_flags: 0x%08lX\r\n", (uint32_t)key->header.flags);
+        printf("key_id: 0x%08lX\r\n", (uint32_t)key->header.id);
+        printf("key_reserved1: 0x%08lX\r\n", (uint32_t)key->header.reserved1);
+        printf("key_crc32: 0x%08lX\r\n", key->header.crc32);
+        printf("key_data:\r\n");
         for(uint32_t i = 0; i < key->header.size; i++) {
             if((i) % 32 == 0) printf("%08lx: ", i);
             printf("%02x ", key->data[i]);
