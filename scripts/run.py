@@ -14,7 +14,7 @@ DEVICE_IP_REF = "10.0.5.20"
 DEVICE_PORT = 23
 
 # Firmware U5:
-U5_TARGET_HW = 21
+U5_TARGET_HW = 20   # Default, can be overridden by -t / --target option.
 
 # Firmware SI917:
 SI_TARGET_HW = 64
@@ -160,7 +160,7 @@ def run_build_all(args):
 
 
 def run_build_u5(args):
-    cmd = ["./fbt", "TARGET_HW=" + str(U5_TARGET_HW), "updater_bin", "firmware_dfu", "resources"]
+    cmd = ["./fbt", "TARGET_HW=" + str(args.target), "updater_bin", "firmware_dfu", "resources"]
     return subprocess_exec(cmd, verbose=args.verbose)
 
 def run_build_si(args):
@@ -219,41 +219,41 @@ def run_build_update_bundles(args):
     # Update bundle default
     bundles_cmds.append([
         "./scripts/update_bundle.py",
-        "--target", f"{U5_TARGET_HW}",
+        "--target", f"{args.target}",
         "--output", upd_bundle_dir,
-        "--stage", f"fbt_layers/fbtng/build/f{U5_TARGET_HW}-updater-D/updater.bin",
-        "--dfu", f"fbt_layers/fbtng/build/f{U5_TARGET_HW}-firmware-D/firmware.dfu",
+        "--stage", f"fbt_layers/fbtng/build/f{args.target}-updater-D/updater.bin",
+        "--dfu", f"fbt_layers/fbtng/build/f{args.target}-firmware-D/firmware.dfu",
         "--sil-fw", f"fbt_layers/fbtng/build/f{SI_TARGET_HW}-firmware-D/firmware.rps",
-        "--resources", f"fbt_layers/fbtng/build/f{U5_TARGET_HW}-firmware-D/resources",
+        "--resources", f"fbt_layers/fbtng/build/f{args.target}-firmware-D/resources",
         "--sil-radio-fw", upd_si917_ta_rps
     ])
 
     # Update bundle.tar
     bundles_cmds.append([
         "./scripts/update_bundle.py",
-        "--target", f"{U5_TARGET_HW}",
+        "--target", f"{args.target}",
         "--output-tar", f"{upd_bundle_tar}",
-        "--stage", f"fbt_layers/fbtng/build/f{U5_TARGET_HW}-updater-D/updater.bin",
-        "--dfu", f"fbt_layers/fbtng/build/f{U5_TARGET_HW}-firmware-D/firmware.dfu",
+        "--stage", f"fbt_layers/fbtng/build/f{args.target}-updater-D/updater.bin",
+        "--dfu", f"fbt_layers/fbtng/build/f{args.target}-firmware-D/firmware.dfu",
         "--sil-fw", f"fbt_layers/fbtng/build/f{SI_TARGET_HW}-firmware-D/firmware.rps",
-        "--resources", f"fbt_layers/fbtng/build/f{U5_TARGET_HW}-firmware-D/resources",
+        "--resources", f"fbt_layers/fbtng/build/f{args.target}-firmware-D/resources",
         "--sil-radio-fw", upd_si917_ta_rps
     ])
 
     # Update bundle for production line
     bundles_cmds.append([
         "./scripts/update_bundle.py",
-        "--target", f"{U5_TARGET_HW}",
+        "--target", f"{args.target}",
         "--output", upd_bundle_prod_dir,
-        "--stage", f"fbt_layers/fbtng/build/f{U5_TARGET_HW}-updater-D/updater.bin",
-        "--dfu", f"fbt_layers/fbtng/build/f{U5_TARGET_HW}-firmware-D/firmware.dfu",
+        "--stage", f"fbt_layers/fbtng/build/f{args.target}-updater-D/updater.bin",
+        "--dfu", f"fbt_layers/fbtng/build/f{args.target}-firmware-D/firmware.dfu",
         "--sil-fw", f"fbt_layers/fbtng/build/f{SI_TARGET_HW}-firmware-D/firmware.rps",
-        "--resources", f"fbt_layers/fbtng/build/f{U5_TARGET_HW}-firmware-D/resources",
+        "--resources", f"fbt_layers/fbtng/build/f{args.target}-firmware-D/resources",
         "--sil-radio-fw", upd_si917_ta_rps
     ])
     bundles_cmds.append([
         "cp", "-v",
-        f"fbt_layers/fbtng/build/f{U5_TARGET_HW}-firmware-D/firmware.elf",
+        f"fbt_layers/fbtng/build/f{args.target}-firmware-D/firmware.elf",
         upd_bundle_prod_dir
     ])
 
@@ -326,7 +326,7 @@ def run_resources_upload(args):
     print("\tIf uploading process stuck, ensure that there are no app running on the device (e.g. Busy).")
     print("\tIn that case you can switch Mode Selector to another position.")
 
-    cmd = ["./fbt", f"TARGET_HW={U5_TARGET_HW}", "resources_upload"]
+    cmd = ["./fbt", f"TARGET_HW={args.target}", "resources_upload"]
 
     wait_for_device(args.device_ip, verbose=args.verbose)
     ret = subprocess_exec(cmd, verbose=args.verbose)
@@ -424,6 +424,9 @@ def main():
     # print("cwd:", os.getcwd())
     parser = argparse.ArgumentParser(description="Runner")
     # parser.add_argument("-v", "--verbose", help="Verbose", action="store_true")
+    
+    parser.add_argument("-t", "--target", help="Target hardware", type=int, default=U5_TARGET_HW, action="store", choices=[20, 21])
+    
     parser.parse_known_args()
 
     subparsers = parser.add_subparsers(
