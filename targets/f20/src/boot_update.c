@@ -16,10 +16,16 @@
 #define MAX_CONFIG_FILE_SIZE (2 * 1024)
 #define MAX_STAGE_FILE_SIZE  (2 * 1024 * 1024)
 
-#define FS_MOUNT_POINT    "/"
-#define POINTER_FILE_PATH FS_MOUNT_POINT UPDATE_POINTER_FILE_NAME
+#define BKP_MOUNT_POINT   "0:/"
+#define EXT_MOUNT_POINT   "1:/"
+#define POINTER_FILE_PATH EXT_MOUNT_POINT UPDATE_POINTER_FILE_NAME
 
-static FATFS* pfs = NULL;
+typedef struct {
+    FATFS fs;
+    char path[MAX_PATH_LEN];
+} MountPoint;
+
+static MountPoint* mount_point[_VOLUMES];
 
 static void platform_boot_update_sys_init(void) {
     furi_hal_mpu_init();
@@ -27,45 +33,51 @@ static void platform_boot_update_sys_init(void) {
     furi_hal_interrupt_init();
     furi_hal_sdmmc_init(false);
 
-    fatfs_init();
+    // It is strictly necessary to init partitions in this specific order
+    mount_point[0] = malloc(sizeof(MountPoint));
+    strncpy(mount_point[0]->path, BKP_MOUNT_POINT, sizeof(mount_point[0]->path));
+    fatfs_init(mount_point[0]->path, 0);
+
+    mount_point[1] = malloc(sizeof(MountPoint));
+    strncpy(mount_point[1]->path, EXT_MOUNT_POINT, sizeof(mount_point[1]->path));
+    fatfs_init(mount_point[1]->path, 1);
 }
 
 static void platform_boot_update_sys_deinit(void) {
-    if(pfs) {
-        f_mount(NULL, FS_MOUNT_POINT, 1);
-        free(pfs);
-        pfs = NULL;
-    }
+    f_mount(NULL, EXT_MOUNT_POINT, 1);
+    f_mount(NULL, BKP_MOUNT_POINT, 1);
+
+    free(mount_point[0]);
+    mount_point[0] = NULL;
+
+    free(mount_point[1]);
+    mount_point[1] = NULL;
 }
 
 static bool platform_boot_update_mount_fs(void) {
     bool success = false;
     do {
-        if(!furi_hal_sdmmc_is_sd_present()) {
-            break;
-        }
+        DWORD free_clst;
+        FATFS* ret_fs;
 
         if(!furi_hal_sdmmc_init_card()) {
             break;
         }
 
-        pfs = malloc(sizeof(FATFS));
-        if(!pfs) {
+        if(f_mount(&mount_point[0]->fs, mount_point[0]->path, 1) != FR_OK) {
             break;
         }
-        memset(pfs, 0, sizeof(FATFS));
-        if(f_mount(pfs, FS_MOUNT_POINT, 1) != FR_OK) {
-            free(pfs);
-            pfs = NULL;
+
+        if(f_mount(&mount_point[1]->fs, mount_point[1]->path, 1) != FR_OK) {
             break;
         }
 
         // Check if the filesystem is valid
-        DWORD free_clst;
-        if(f_getfree(FS_MOUNT_POINT, &free_clst, &pfs) != FR_OK) {
-            f_mount(NULL, FS_MOUNT_POINT, 1); // Unmount the filesystem
-            free(pfs);
-            pfs = NULL;
+        if(f_getfree(BKP_MOUNT_POINT, &free_clst, &ret_fs) != FR_OK) {
+            break;
+        }
+
+        if(f_getfree(EXT_MOUNT_POINT, &free_clst, &ret_fs) != FR_OK) {
             break;
         }
 
@@ -96,7 +108,11 @@ static FuriString* platform_boot_read_manifest_path(const char* pointer_file_pat
         relative_path_buffer[bytes_read_fatfs] = '\0'; // Null-terminate the string
         manifest_path = furi_string_alloc_set(relative_path_buffer);
         if(furi_string_start_with(manifest_path, STORAGE_EXT_PATH_PREFIX)) {
-            furi_string_right(manifest_path, strlen(STORAGE_EXT_PATH_PREFIX));
+            furi_string_replace_at(
+                manifest_path, 0, strlen(STORAGE_EXT_PATH_PREFIX), EXT_MOUNT_POINT);
+        } else if(furi_string_start_with(manifest_path, STORAGE_BACKUP_PATH_PREFIX)) {
+            furi_string_replace_at(
+                manifest_path, 0, strlen(STORAGE_BACKUP_PATH_PREFIX), BKP_MOUNT_POINT);
         }
     } while(false);
     f_close(&f_pointer_file);

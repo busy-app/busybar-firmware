@@ -5,9 +5,12 @@
 #include <power/power_service/power.h>
 #include <light_sensor/light_sensor.h>
 
+#include <storage/storage.h>
+#include <json_helper.h>
+
 #define TAG "FrontDisplaySrv"
 
-#define REFRESH_PERIOD_MS (100)
+#define DISPLAY_CONFIG_FILE APP_DATA_PATH("config.json")
 
 #define AUTO_BRIGHTNESS_MIN_LEVEL (25)
 #define AUTO_BRIGHTNESS_MAX_LEVEL (100)
@@ -23,7 +26,8 @@
 #endif
 
 struct FrontDisplaySrv {
-    uint32_t sensor_level, brightness_override;
+    uint32_t sensor_level;
+    int brightness_override;
     Power* power;
     FuriEventLoop* event_loop;
     FuriMessageQueue* message_queue;
@@ -250,6 +254,8 @@ static void front_display_message_queue_callback(FuriEventLoopObject* object, vo
         break;
     case FrontDisplayMessageTypeBrightness:
         display->brightness_override = message.brightness;
+        json_config_write_single_int(
+            DISPLAY_CONFIG_FILE, "brightness", display->brightness_override);
         {
             uint32_t brightness =
                 front_display_get_brightness(display->brightness_override, display->sensor_level);
@@ -293,7 +299,10 @@ static void front_display_message_queue_callback(FuriEventLoopObject* object, vo
 static FrontDisplaySrv* front_display_alloc(void) {
     FrontDisplaySrv* instance = malloc(sizeof(FrontDisplaySrv));
 
-    instance->brightness_override = FRONT_DISPLAY_BRIGHTNESS_AUTO;
+    int default_brightness = FRONT_DISPLAY_BRIGHTNESS_AUTO;
+    json_config_read_single_int(
+        DISPLAY_CONFIG_FILE, "brightness", &instance->brightness_override, &default_brightness);
+
     instance->sensor_level = 0;
 
     instance->event_loop = furi_event_loop_alloc();
@@ -307,16 +316,14 @@ static FrontDisplaySrv* front_display_alloc(void) {
         instance);
 
     instance->power = furi_record_open(RECORD_POWER);
-    while(!power_is_battery_ready(instance->power)) {
-        furi_delay_ms(10);
-    }
-
-    FURI_LOG_I(TAG, "Front Display Service started");
 
     front_display_power_pin_init(instance);
     instance->enabled = true;
 
-    front_display_start(instance);
+    // Enable display only if the battery is ready
+    if(power_is_battery_ready(instance->power)) {
+        front_display_start(instance);
+    }
 
 #if defined(SRV_LIGHT_SENSOR)
     instance->light_sensor_pubsub = furi_record_open(RECORD_LIGHT_SENSOR_EVENTS);
@@ -334,6 +341,7 @@ int32_t front_display_srv(void* p) {
     UNUSED(p);
 
     FrontDisplaySrv* instance = front_display_alloc();
+    FURI_LOG_I(TAG, "Front Display Service started");
     furi_event_loop_run(instance->event_loop);
 
     return 0;

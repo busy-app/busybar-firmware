@@ -12,15 +12,14 @@
 extern "C" {
 #endif
 
-#define STORAGE_INT_PATH_PREFIX        "/int"
+#define STORAGE_ROOT_PREFIX            "/"
 #define STORAGE_EXT_PATH_PREFIX        "/ext"
-#define STORAGE_ANY_PATH_PREFIX        "/any"
+#define STORAGE_BACKUP_PATH_PREFIX     "/bkp"
 #define STORAGE_APP_DATA_PATH_PREFIX   "/data"
 #define STORAGE_APP_ASSETS_PATH_PREFIX "/assets"
 
-#define INT_PATH(path)        STORAGE_INT_PATH_PREFIX "/" path
+#define BACKUP_PATH(path)     STORAGE_BACKUP_PATH_PREFIX "/" path
 #define EXT_PATH(path)        STORAGE_EXT_PATH_PREFIX "/" path
-#define ANY_PATH(path)        STORAGE_ANY_PATH_PREFIX "/" path
 #define APP_DATA_PATH(path)   STORAGE_APP_DATA_PATH_PREFIX "/" path
 #define APP_ASSETS_PATH(path) STORAGE_APP_ASSETS_PATH_PREFIX "/" path
 
@@ -351,13 +350,15 @@ FS_Error storage_common_mkdir(Storage* storage, const char* path);
  * @param fs_path pointer to a zero-terminated string containing the path to the storage question.
  * @param total_space pointer to the value to contain the total capacity, in bytes.
  * @param free_space pointer to the value to contain the available space, in bytes.
+ * @param is_read_only pointer to the value to contain the read-only status of the storage.
  * @return FSE_OK if the information has been successfully received, any other error code on failure.
  */
 FS_Error storage_common_fs_info(
     Storage* storage,
     const char* fs_path,
     uint64_t* total_space,
-    uint64_t* free_space);
+    uint64_t* free_space,
+    bool* is_read_only);
 
 /**
  * @brief Parse aliases in a path and replace them with the real path.
@@ -470,7 +471,19 @@ const char* storage_file_get_error_desc(File* file);
  * @param storage pointer to a storage API instance.
  * @return FSE_OK if the card was successfully formatted, any other error code on failure.
  */
-FS_Error storage_sd_format(Storage* storage);
+FS_Error storage_sd_format(Storage* storage, const char* path);
+
+/**
+ * @brief Create a filesystem on the SD card.
+ *
+ * This function is used to create a filesystem on the SD card.
+ * It is typically called after formatting the SD card.
+ *
+ * @param storage pointer to a storage API instance.
+ * @param path pointer to a zero-terminated string containing the path to the SD card.
+ * @return FSE_OK if the filesystem was successfully created, any other error code on failure.
+ */
+FS_Error storage_sd_make_filesystem(Storage* storage, const char* path);
 
 /**
  * @brief Unmount the SD card.
@@ -480,58 +493,38 @@ FS_Error storage_sd_format(Storage* storage);
  * - FSE_DENIED if there are open files on the SD card.
  *
  * @param storage pointer to a storage API instance.
+ * @param path path to the storage that will be unmount.
  * @return FSE_OK if the card was successfully formatted, any other error code on failure.
  */
-FS_Error storage_sd_unmount(Storage* storage);
+FS_Error storage_sd_unmount(Storage* storage, const char* path);
 
 /**
  * @brief Mount the SD card.
  *
  * @param storage pointer to a storage API instance.
+ * @param path path to the storage that will be mount.
  * @return FSE_OK if the card was successfully mounted, any other error code on failure.
  */
-FS_Error storage_sd_mount(Storage* storage);
+FS_Error storage_sd_mount(Storage* storage, const char* path);
 
 /**
  * @brief Get SD card information.
  *
  * @param storage pointer to a storage API instance.
+ * @param path path to the storage that will be examined.
  * @param info pointer to the info object to contain the requested information.
  * @return FSE_OK if the info was successfully received, any other error code on failure.
  */
-FS_Error storage_sd_info(Storage* storage, SDInfo* info);
+FS_Error storage_sd_info(Storage* storage, const char* path, SDInfo* info);
 
 /**
  * @brief Get SD card status.
  *
  * @param storage pointer to a storage API instance.
+ * @param path path to the storage that will be unmount.
  * @return storage status in the form of a numeric error identifier.
  */
-FS_Error storage_sd_status(Storage* storage);
-
-/************ Internal Storage Backup/Restore ************/
-
-typedef void (*StorageNameConverter)(FuriString*);
-
-/**
- * @brief Back up the internal storage contents to a *.tar archive.
- *
- * @param storage pointer to a storage API instance.
- * @param dstname pointer to a zero-terminated string containing the archive file path.
- * @return FSE_OK if the storage was successfully backed up, any other error code on failure.
- */
-FS_Error storage_int_backup(Storage* storage, const char* dstname);
-
-/**
- * @brief Restore the internal storage contents from a *.tar archive.
- *
- * @param storage pointer to a storage API instance.
- * @param dstname pointer to a zero-terminated string containing the archive file path.
- * @param converter pointer to a filename conversion function (may be NULL).
- * @return FSE_OK if the storage was successfully restored, any other error code on failure.
- */
-FS_Error
-    storage_int_restore(Storage* storage, const char* dstname, StorageNameConverter converter);
+FS_Error storage_sd_status(Storage* storage, const char* path);
 
 /***************** Simplified Functions ******************/
 

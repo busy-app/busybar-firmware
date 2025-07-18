@@ -388,7 +388,15 @@ if __name__ == "__main__":
 # - success build flags for bundles
 # - check if bundle exists before running updates
 # - readme
-# - colorlog
-# - cleaning up run assets dir automatically before build
-# - clean fbt_layers/fbtng/build, .sconsign.dblite # shlex remove?
-# - Update si917 firmware (2 отдельно)
+
+# env
+# python3 /Users/lomalkin/_repoz/bsb-firmware/scripts/flashrps.py -p /dev/cu.usbmodem2121301 fbt_layers/fbtng/build/f64-firmware-D/firmware.rps
+# 2nd?
+
+# ./fbt TARGET_HW=20 resources_upload
+
+# ./scripts/flashrps.py -p /dev/cu.usbmodem2121301 -t ta ./lib/wiseconnect/connectivity_firmware/standard/SiWG917-B.2.14.5.0.0.10.rps
+
+
+# ./scripts/flashrps.py -p /dev/cu.usbmodem101 -t ta ./lib/wiseconnect/connectivity_firmware/standard/SiWG917-B.2.13.4.1.0.4.rps 
+

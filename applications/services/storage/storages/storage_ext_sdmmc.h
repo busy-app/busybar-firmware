@@ -7,12 +7,14 @@
 extern "C" {
 #endif
 
-void storage_ext_init(StorageData* storage);
-FS_Error sd_mount_card(StorageData* storage);
-FS_Error sd_unmount_card(StorageData* storage);
-FS_Error sd_format_card(StorageData* storage);
-FS_Error sd_card_info(StorageData* storage, SDInfo* sd_info);
-void sd_presence_changed(StorageData* storage);
+#define STORAGE_FIRST_PARTITION_SIZE_MB (256)
+
+void storage_ext_init(StorageData* storage, size_t logical_unit_number);
+
+FS_Error storage_ext_init_bsp(void);
+FS_Error storage_ext_mk_partititons(void);
+FS_Error storage_ext_mount(StorageData* storage);
+FS_Error storage_ext_unmount(StorageData* storage);
 
 #ifdef __cplusplus
 }

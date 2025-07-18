@@ -156,3 +156,11 @@ size_t storage_open_files_count(StorageData* storage) {
     size_t count = StorageFileList_size(storage->files);
     return count;
 }
+
+void storage_set_read_only(StorageData* storage, bool read_only) {
+    storage->read_only = read_only;
+}
+
+bool storage_is_read_only(StorageData* storage) {
+    return storage->read_only;
+}
