@@ -299,6 +299,25 @@ def run_update_via_storage(args):
 
     return None
 
+def run_resources_upload(args):
+    if args.device_ip == "ref" or args.device_ip == "r":
+        args.device_ip = DEVICE_IP_REF
+
+    print(f"Uploading resources to the device {args.device_ip}:{args.device_port}...")
+
+    print("\tIf uploading process stuck, ensure that there are no app running on the device (e.g. Busy).")
+    print("\tIn that case you can switch Mode Selector to another position.")
+
+    cmd = ["./fbt", f"TARGET_HW={U5_TARGET_HW}", "resources_upload"]
+
+    wait_for_device(args.device_ip, verbose=args.verbose)
+    ret = subprocess_exec(cmd, verbose=args.verbose)
+    if ret != 0:
+        print(f"Resources upload failed with return code: {ret}")
+    
+    return ret
+    
+
 def run_flash_u5_dfu(args):
     if args.device_ip == "ref" or args.device_ip == "r":
         args.device_ip = DEVICE_IP_REF
@@ -458,6 +477,13 @@ def main():
     p_update_via_storage.add_argument("-d", "--device_ip", help="Device IP", type=str, default=DEVICE_IP)
     p_update_via_storage.add_argument("-p", "--device_port", help="Device Port", type=int, default=DEVICE_PORT)
     p_update_via_storage.set_defaults(func=run_update_via_storage)
+
+    p_resources_upload = subparsers.add_parser(
+        "resources-upload", help="Upload resources to the device via storage.py"
+    )
+    p_resources_upload.add_argument("-d", "--device_ip", help="Device IP", type=str, default=DEVICE_IP)
+    p_resources_upload.add_argument("-p", "--device_port", help="Device Port", type=int, default=DEVICE_PORT)
+    p_resources_upload.set_defaults(func=run_resources_upload)
 
     p_wait_for_device = subparsers.add_parser(
         "wait", help="Just wait for device to be reachable via ping, nothing else"
