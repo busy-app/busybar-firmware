@@ -12,7 +12,7 @@ typedef enum {
 } FuriHalNwp;
 static FuriHalNwp furi_hal_nwp_is_nwp_initialized = FuriHalNwpIdle;
 
-bool furi_hal_nwp_is_init(void) {
+bool furi_hal_nwp_is_initialized(void) {
     return !(furi_hal_nwp_is_nwp_initialized == FuriHalNwpIdle);
 }
 

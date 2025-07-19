@@ -21,29 +21,75 @@ typedef struct {
 
 static CryptoBackupServer crypto_backup_server;
 
+static void crypto_backup_server_tx(CryptoBackupServer* instance, CryptoBackupEvent* event_tx) {
+    furi_check(instance);
+    furi_check(event_tx);
+
+    size_t tx_size = intercom_tx(
+        instance->intercom,
+        IntercomChannelCryptoBackup,
+        event_tx,
+        sizeof(CryptoBackupEvent),
+        FuriWaitForever);
+    furi_check(tx_size == sizeof(CryptoBackupEvent), "Failed to send data");
+}
+
 static int32_t crypto_backup_server_thread_callback(void* context) {
     furi_assert(context);
     CryptoBackupServer* instance = context;
     FURI_LOG_D(TAG, "Start");
 
-    if(!furi_hal_nwp_init()) {
-        FURI_LOG_E(TAG, "NWP is not initialized");
-        return 0;
-    }
-
     CryptoBackupEvent* event_rx = (CryptoBackupEvent*)instance->buffer;
     furi_assert(event_rx);
+    sl_status_t status = SL_STATUS_FAIL;
     CryptoBackupEvent* event_tx = malloc(sizeof(CryptoBackupEvent));
     FURI_LOG_D(TAG, "Cmd: %d", event_rx->cmd);
 
-    if(event_rx->cmd == CryptoBackupCmdGet) {
-        //uint8_t* buf = malloc(CRYPTO_BACKUP_SERVER_READ_BUFFER_SIZE);
-        event_tx->cmd = CryptoBackupCmdGet;
+    switch(event_rx->cmd) {
+    case CryptoBackupCmdWrite:
+        FURI_LOG_D(TAG, "Set command received");
+
+        if(!furi_hal_nwp_is_initialized()) {
+            FURI_LOG_E(TAG, "NWP is not initialized");
+            event_tx->cmd = CryptoBackupCmdNack;
+            crypto_backup_server_tx(instance, event_tx);
+            break;
+        }
+
+        event_tx->cmd = CryptoBackupCmdAsk;
+        event_tx->data_size = 0;
+
+        status = sl_si91x_command_to_write_common_flash(
+            event_rx->address + FURI_HAL_CRYPTO_STORAGE_START_ADDRESS,
+            event_rx->data,
+            event_rx->data_size,
+            0);
+        if(status != SL_STATUS_OK) {
+            FURI_LOG_E(TAG, "Failed to write to NWP flash: 0x%08lx", status);
+            event_tx->cmd = CryptoBackupCmdNack;
+        }
+        crypto_backup_server_tx(instance, event_tx);
+
+        break;
+    case CryptoBackupCmdRead:
+        FURI_LOG_D(TAG, "Get command received");
+
+        event_tx->data_size = 0;
+        if(!furi_hal_nwp_is_initialized()) {
+            FURI_LOG_E(TAG, "NWP is not initialized");
+            event_tx->cmd = CryptoBackupCmdNack;
+            crypto_backup_server_tx(instance, event_tx);
+            break;
+        }
+        event_tx->cmd = CryptoBackupCmdAsk;
+        crypto_backup_server_tx(instance, event_tx);
+        // ToDo add some delay to avoid flooding
+        furi_delay_ms(10);
+
+        event_tx->cmd = CryptoBackupCmdRead;
         event_tx->data_size = CRYPTO_BACKUP_COMMON_BUFFER_SIZE;
 
         uint8_t counter = 0;
-        sl_status_t status = SL_STATUS_FAIL;
-
         for(uint32_t i = FURI_HAL_CRYPTO_STORAGE_START_ADDRESS;
             i < FURI_HAL_CRYPTO_STORAGE_END_ADDRESS;
             i += CRYPTO_BACKUP_COMMON_BUFFER_SIZE) {
@@ -53,13 +99,7 @@ static int32_t crypto_backup_server_thread_callback(void* context) {
                 FURI_LOG_E(TAG, "Failed to read from NWP flash: 0x%08lx", status);
                 break;
             }
-            size_t tx_size = intercom_tx(
-                instance->intercom,
-                IntercomChannelCryptoBackup,
-                event_tx,
-                sizeof(CryptoBackupEvent),
-                FuriWaitForever);
-            furi_check(tx_size == sizeof(CryptoBackupEvent), "Failed to send data");
+            crypto_backup_server_tx(instance, event_tx);
             FURI_LOG_T(
                 TAG,
                 "Transmitted %d packets, %ld  bytes",
@@ -68,17 +108,51 @@ static int32_t crypto_backup_server_thread_callback(void* context) {
             // ToDo add some delay to avoid flooding
             furi_delay_ms(10);
         }
+        break;
+    case CryptoBackupCmdNwpInit:
+        FURI_LOG_D(TAG, "NWP Init command received");
+        event_tx->cmd = CryptoBackupCmdAsk;
 
-    } else if(event_rx->cmd == CryptoBackupCmdSet) {
-        FURI_LOG_D(TAG, "Set command received");
-        // Handle set command logic here
-    } else {
+        event_tx->data_size = 0;
+        if(!furi_hal_nwp_init()) {
+            FURI_LOG_E(TAG, "NWP is not initialized");
+            event_tx->cmd = CryptoBackupCmdNack;
+        }
+        crypto_backup_server_tx(instance, event_tx);
+        break;
+    case CryptoBackupCmdNwpDeinit:
+        FURI_LOG_D(TAG, "NWP Deinit command received");
+        event_tx->cmd = CryptoBackupCmdAsk;
+        event_tx->data_size = 0;
+
+        furi_hal_nwp_deinit();
+
+        crypto_backup_server_tx(instance, event_tx);
+        break;
+    case CryptoBackupCmdUserDataWipe:
+        FURI_LOG_D(TAG, "User Data Wipe command received");
+        event_tx->cmd = CryptoBackupCmdAsk;
+        event_tx->data_size = 0;
+
+        status = sl_si91x_command_to_write_common_flash(
+            FURI_HAL_CRYPTO_STORAGE_START_ADDRESS, NULL, FURI_HAL_CRYPTO_STORAGE_END_ADDRESS, 1);
+        if(status != SL_STATUS_OK) {
+            FURI_LOG_E(TAG, "Failed to wipe NWP flash: 0x%08lx", status);
+            event_tx->cmd = CryptoBackupCmdNack;
+        } else {
+            FURI_LOG_D(TAG, "Wiped NWP flash");
+        }
+        crypto_backup_server_tx(instance, event_tx);
+        break;
+
+    default:
         FURI_LOG_E(TAG, "Unknown command: %d", event_rx->cmd);
+        event_tx->cmd = CryptoBackupCmdError;
+        event_tx->data_size = 0;
+        break;
     }
 
     free(event_tx);
-
-    furi_hal_nwp_deinit();
 
     FURI_LOG_D(TAG, "Stopping thread");
 

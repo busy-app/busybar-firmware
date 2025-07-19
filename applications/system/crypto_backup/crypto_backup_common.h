@@ -9,8 +9,11 @@ static_assert(
     "User data size must be a multiple of buffer size");
 
 typedef enum {
-    CryptoBackupCmdGet,
-    CryptoBackupCmdSet,
+    CryptoBackupCmdRead,
+    CryptoBackupCmdWrite,
+    CryptoBackupCmdNwpInit,
+    CryptoBackupCmdNwpDeinit,
+    CryptoBackupCmdUserDataWipe,
     CryptoBackupCmdAsk,
     CryptoBackupCmdNack,
     CryptoBackupCmdMax,
@@ -19,10 +22,11 @@ typedef enum {
 
 typedef struct FURI_PACKED {
     CryptoBackupCmd cmd; /**< Command type */
+    uint32_t address; /**< Address for the command */
     uint32_t data_size; /**< Size of the data to be sent or received */
     uint8_t data[CRYPTO_BACKUP_COMMON_BUFFER_SIZE]; /**< Pointer to the data buffer */
 } CryptoBackupEvent;
 
 static_assert(
-    sizeof(CryptoBackupEvent) == CRYPTO_BACKUP_COMMON_BUFFER_SIZE + 8,
+    sizeof(CryptoBackupEvent) == CRYPTO_BACKUP_COMMON_BUFFER_SIZE + 12,
     "CryptoBackupEvent size mismatch");

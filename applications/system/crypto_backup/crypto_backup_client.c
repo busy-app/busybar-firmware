@@ -4,6 +4,7 @@
 #include <furi.h>
 #include <cli/args.h>
 #include <cli/cli_ansi.h>
+#include <cli/cli_status.h>
 #include <intercom/intercom.h>
 
 #include <storage/storage_backup.h>
@@ -25,7 +26,8 @@ typedef struct {
 typedef struct {
     Intercom* intercom;
     FuriStreamBuffer* rx_buffer;
-    FuriThread* thread;
+    CryptoBackupCmd cmd;
+    FuriSemaphore* access_semaphore;
 } CryptoBackup;
 
 static bool crypto_backup_client_file_write(uint8_t* data, size_t data_size) {
@@ -111,88 +113,241 @@ static void crypto_backup_client_rx_callback(const void* data, size_t data_size,
 
     CryptoBackup* instance = context;
     CryptoBackupEvent* event_rx = (CryptoBackupEvent*)data;
-
-    furi_check(
-        furi_stream_buffer_send(
-            instance->rx_buffer, event_rx->data, event_rx->data_size, FuriWaitForever) ==
-        event_rx->data_size);
+    instance->cmd = event_rx->cmd;
+    switch(event_rx->cmd) {
+    case CryptoBackupCmdAsk:
+        // Handle ask command
+        break;
+    case CryptoBackupCmdNack:
+        // Handle nack command
+        break;
+    case CryptoBackupCmdRead:
+        // Handle get command
+        furi_check(
+            furi_stream_buffer_send(
+                instance->rx_buffer, event_rx->data, event_rx->data_size, FuriWaitForever) ==
+            event_rx->data_size);
+        break;
+    case CryptoBackupCmdWrite:
+        // Handle set command
+        break;
+    default:
+        furi_crash();
+        break;
+    }
+    furi_semaphore_release(instance->access_semaphore);
 }
 
-// static void crypto_backup_client_data_tx(uint8_t* data, size_t data_size, CryptoBackup* instance) {
-//     furi_check(data);
-//     furi_check(data_size);
-//     furi_check(instance);
+static void crypto_backup_client_data_tx(CryptoBackup* instance, CryptoBackupEvent* event) {
+    size_t tx_size = intercom_tx(
+        instance->intercom,
+        IntercomChannelCryptoBackup,
+        event,
+        sizeof(CryptoBackupEvent),
+        FuriWaitForever);
+    furi_check(tx_size == sizeof(CryptoBackupEvent), "Failed to send data");
+}
 
-//     const size_t tx_size = intercom_tx(
-//         instance->intercom, IntercomChannelCryptoBackup, data, data_size, FuriWaitForever);
-//     furi_assert(tx_size == data_size);
-// }
-
-static bool crypto_backup_client_get_917_user_data(uint8_t* data, size_t data_size) {
-    furi_check(data);
-    furi_check(data_size == CRYPTO_BACKUP_COMMON_USERDATA_SIZE);
-
-    bool ret = false;
+static CryptoBackup* crypto_backup_client_init() {
     CryptoBackup* instance = malloc(sizeof(CryptoBackup));
+    instance->access_semaphore = furi_semaphore_alloc(1, 0);
     instance->intercom = furi_record_open(RECORD_INTERCOM);
     intercom_set_rx_callback(
         instance->intercom,
         IntercomChannelCryptoBackup,
         crypto_backup_client_rx_callback,
         instance);
-    instance->rx_buffer = furi_stream_buffer_alloc(data_size, 1);
+    instance->rx_buffer = furi_stream_buffer_alloc(CRYPTO_BACKUP_COMMON_USERDATA_SIZE, 1);
+    return instance;
+}
 
-    CryptoBackupEvent event = {.cmd = CryptoBackupCmdGet, .data_size = 0};
-
-    size_t tx_size = intercom_tx(
-        instance->intercom,
-        IntercomChannelCryptoBackup,
-        &event,
-        sizeof(CryptoBackupEvent),
-        FuriWaitForever);
-    furi_check(tx_size == sizeof(CryptoBackupEvent), "Failed to send data");
-
-    uint8_t percent = 0;
-    int32_t timeout = CRYPTO_BACKUP_TIMEOUT;
-
-    while((furi_stream_buffer_bytes_available(instance->rx_buffer) < data_size) && (timeout > 0)) {
-        furi_delay_ms(100);
-        percent =
-            (uint8_t)((furi_stream_buffer_bytes_available(instance->rx_buffer) * 100) / data_size);
-        printf("\rProgress: %d%%, timeout: %ld s ", percent, timeout / 1000);
-        fflush(stdout);
-        timeout -= 100;
-    }
-
-    if(furi_stream_buffer_bytes_available(instance->rx_buffer) == data_size) {
-        printf("\rProgress: 100%% ");
-        fflush(stdout);
-
-        printf("\r\n");
-
-        size_t rx_size =
-            furi_stream_buffer_receive(instance->rx_buffer, data, data_size, FuriWaitForever);
-        if(rx_size != data_size) {
-            printf(
-                ANSI_FG_RED
-                "Error: Failed to receive all data, received only %d bytes\r\n" ANSI_RESET,
-                rx_size);
-        } else {
-            ret = true;
-        }
-
-    } else {
-        printf(
-            "\r\n" ANSI_FG_RED
-            "Error: Failed to receive all data, received only %d bytes\r\n" ANSI_RESET,
-            furi_stream_buffer_bytes_available(instance->rx_buffer));
-    }
-
+static void crypto_backup_client_deinit(CryptoBackup* instance) {
+    furi_check(instance);
     intercom_set_rx_callback(instance->intercom, IntercomChannelCryptoBackup, NULL, NULL);
     furi_record_close(RECORD_INTERCOM);
+    furi_semaphore_free(instance->access_semaphore);
     furi_stream_buffer_free(instance->rx_buffer);
     free(instance);
     instance = NULL;
+}
+
+static bool crypto_backup_client_read_917_user_data(uint8_t* data, size_t data_size) {
+    furi_check(data);
+    furi_check(data_size == CRYPTO_BACKUP_COMMON_USERDATA_SIZE);
+
+    bool ret = false;
+    CryptoBackup* instance = crypto_backup_client_init();
+
+    do {
+        // initialize the NWP
+        CryptoBackupEvent event = {.cmd = CryptoBackupCmdNwpInit, .data_size = 0, .address = 0};
+        crypto_backup_client_data_tx(instance, &event);
+        // wait for the NWP to be initialized
+        if(furi_semaphore_acquire(instance->access_semaphore, CRYPTO_BACKUP_TIMEOUT) !=
+           FuriStatusOk) {
+            printf(ANSI_FG_RED "Error: NWP initialization timeout\r\n" ANSI_RESET);
+            break;
+        }
+        if(instance->cmd != CryptoBackupCmdAsk) {
+            printf(ANSI_FG_RED "Error: NWP initialization failed\r\n" ANSI_RESET);
+            break;
+        }
+        // read the user data
+        event.cmd = CryptoBackupCmdRead;
+        crypto_backup_client_data_tx(instance, &event);
+        // wait for the user data to be received
+        if(furi_semaphore_acquire(instance->access_semaphore, CRYPTO_BACKUP_TIMEOUT) !=
+           FuriStatusOk) {
+            printf(ANSI_FG_RED "Error: User data read timeout\r\n" ANSI_RESET);
+            break;
+        }
+        if(instance->cmd != CryptoBackupCmdAsk) {
+            printf(ANSI_FG_RED "Error: User data read failed\r\n" ANSI_RESET);
+            break;
+        }
+
+        uint8_t percent = 0;
+        int32_t timeout = CRYPTO_BACKUP_TIMEOUT;
+
+        while((furi_stream_buffer_bytes_available(instance->rx_buffer) < data_size) &&
+              (timeout > 0)) {
+            furi_delay_ms(100);
+            percent = (uint8_t)((furi_stream_buffer_bytes_available(instance->rx_buffer) * 100) /
+                                data_size);
+            printf("\rProgress: %d%%, timeout: %ld s ", percent, timeout / 1000);
+            fflush(stdout);
+            timeout -= 100;
+        }
+        furi_semaphore_acquire(instance->access_semaphore, CRYPTO_BACKUP_TIMEOUT);
+        // deinit the NWP
+        event.cmd = CryptoBackupCmdNwpDeinit;
+        crypto_backup_client_data_tx(instance, &event);
+        if(furi_semaphore_acquire(instance->access_semaphore, CRYPTO_BACKUP_TIMEOUT) !=
+           FuriStatusOk) {
+            printf("\r\n" ANSI_FG_RED "Error: NWP deinitialization timeout\r\n" ANSI_RESET);
+            break;
+        }
+        if(instance->cmd != CryptoBackupCmdAsk) {
+            printf("\r\n" ANSI_FG_RED "Error: NWP deinitialization failed\r\n" ANSI_RESET);
+            break;
+        }
+
+        if(furi_stream_buffer_bytes_available(instance->rx_buffer) == data_size) {
+            printf("\rProgress: 100%% ");
+            fflush(stdout);
+
+            printf("\r\n");
+
+            size_t rx_size =
+                furi_stream_buffer_receive(instance->rx_buffer, data, data_size, FuriWaitForever);
+            if(rx_size != data_size) {
+                printf(
+                    ANSI_FG_RED
+                    "Error: Failed to receive all data, received only %d bytes\r\n" ANSI_RESET,
+                    rx_size);
+            } else {
+                ret = true;
+            }
+
+        } else {
+            printf(
+                ANSI_FG_RED
+                "Error: Failed to receive all data, received only %d bytes\r\n" ANSI_RESET,
+                furi_stream_buffer_bytes_available(instance->rx_buffer));
+        }
+    } while(false);
+
+    crypto_backup_client_deinit(instance);
+    return ret;
+}
+
+static bool crypto_backup_client_write_917_user_data(uint8_t* data, size_t data_size) {
+    furi_check(data);
+    furi_check(data_size == CRYPTO_BACKUP_COMMON_USERDATA_SIZE);
+
+    bool ret = false;
+    CryptoBackup* instance = crypto_backup_client_init();
+
+    do {
+        // initialize the NWP
+        CryptoBackupEvent event = {.cmd = CryptoBackupCmdNwpInit, .data_size = 0, .address = 0};
+        crypto_backup_client_data_tx(instance, &event);
+        // wait for the NWP to be initialized
+        if(furi_semaphore_acquire(instance->access_semaphore, CRYPTO_BACKUP_TIMEOUT) !=
+           FuriStatusOk) {
+            printf(ANSI_FG_RED "Error: NWP initialization timeout\r\n" ANSI_RESET);
+            break;
+        }
+        if(instance->cmd != CryptoBackupCmdAsk) {
+            printf(ANSI_FG_RED "Error: NWP initialization failed\r\n" ANSI_RESET);
+            break;
+        }
+
+        // wipe the user data
+        event.cmd = CryptoBackupCmdUserDataWipe;
+        crypto_backup_client_data_tx(instance, &event);
+        if(furi_semaphore_acquire(instance->access_semaphore, CRYPTO_BACKUP_TIMEOUT) !=
+           FuriStatusOk) {
+            printf(ANSI_FG_RED "Error: User data wipe timeout\r\n" ANSI_RESET);
+            break;
+        }
+        if(instance->cmd != CryptoBackupCmdAsk) {
+            printf(ANSI_FG_RED "Error: User data wipe failed\r\n" ANSI_RESET);
+            break;
+        }
+
+        // write the user data
+        event.cmd = CryptoBackupCmdWrite;
+        event.data_size = CRYPTO_BACKUP_COMMON_BUFFER_SIZE;
+        size_t offset = 0;
+        uint8_t percent = 0;
+        bool write_error = true;
+        while(offset < data_size) {
+            size_t chunk_size = (data_size - offset > CRYPTO_BACKUP_COMMON_BUFFER_SIZE) ?
+                                    CRYPTO_BACKUP_COMMON_BUFFER_SIZE :
+                                    data_size - offset;
+            event.address = offset;
+            memcpy(event.data, data + offset, chunk_size);
+            crypto_backup_client_data_tx(instance, &event);
+            // wait for the user data to be set
+            if(furi_semaphore_acquire(instance->access_semaphore, CRYPTO_BACKUP_TIMEOUT) !=
+               FuriStatusOk) {
+                printf(ANSI_FG_RED "Error: User data write timeout\r\n" ANSI_RESET);
+                break;
+            }
+            if(instance->cmd != CryptoBackupCmdAsk) {
+                printf(ANSI_FG_RED "Error: User data write failed\r\n" ANSI_RESET);
+                break;
+            }
+            percent = (uint8_t)((offset + chunk_size) * 100 / data_size);
+            printf("\rProgress: %d%%, write: %u bytes ", percent, offset);
+            fflush(stdout);
+            offset += chunk_size;
+        }
+        if(offset == data_size) {
+            printf("\rProgress: 100%%, write: %u bytes\r\n", offset);
+            write_error = false;
+        }
+
+        // deinit the NWP
+        event.cmd = CryptoBackupCmdNwpDeinit;
+        crypto_backup_client_data_tx(instance, &event);
+        if(furi_semaphore_acquire(instance->access_semaphore, CRYPTO_BACKUP_TIMEOUT) !=
+           FuriStatusOk) {
+            printf("\r\n" ANSI_FG_RED "Error: NWP deinitialization timeout\r\n" ANSI_RESET);
+            break;
+        }
+        if(instance->cmd != CryptoBackupCmdAsk) {
+            printf("\r\n" ANSI_FG_RED "Error: NWP deinitialization failed\r\n" ANSI_RESET);
+            break;
+        }
+
+        if(!write_error) {
+            ret = true;
+        }
+    } while(false);
+
+    crypto_backup_client_deinit(instance);
     return ret;
 }
 
@@ -203,17 +358,17 @@ void crypto_backup_client_create(PipeSide* pipe, FuriString* args, void* context
 
     uint8_t* buf = malloc(CRYPTO_BACKUP_COMMON_USERDATA_SIZE);
 
-    if(crypto_backup_client_get_917_user_data(buf, CRYPTO_BACKUP_COMMON_USERDATA_SIZE)) {
+    if(crypto_backup_client_read_917_user_data(buf, CRYPTO_BACKUP_COMMON_USERDATA_SIZE)) {
         if(crypto_backup_client_file_write(buf, CRYPTO_BACKUP_COMMON_USERDATA_SIZE)) {
             printf(
-                ANSI_FG_GREEN "Data successfully written to %s\r\n" ANSI_RESET,
+                ANSI_FG_GREEN "Data successfully created to %s\r\n" ANSI_RESET,
                 CRYPTO_BACKUP_FILE_PATH);
-            printf("RET: 0\r\n");
+            printf(CLI_STATUS_OK);
         } else {
             printf(
-                ANSI_FG_RED "Error: Failed to write data to %s\r\n" ANSI_RESET,
+                ANSI_FG_RED "Error: Failed to create to %s\r\n" ANSI_RESET,
                 CRYPTO_BACKUP_FILE_PATH);
-            printf("RET: 1\r\n");
+            printf(CLI_STATUS_ERROR);
         }
     }
 
@@ -229,18 +384,18 @@ void crypto_backup_client_remove(PipeSide* pipe, FuriString* args, void* context
             printf(
                 ANSI_FG_GREEN "File %s removed successfully\r\n" ANSI_RESET,
                 CRYPTO_BACKUP_FILE_PATH);
-            printf("RET: 0\r\n");
+            printf(CLI_STATUS_OK);
         } else {
             printf(
                 ANSI_FG_RED "Error: Failed to remove file %s\r\n" ANSI_RESET,
                 CRYPTO_BACKUP_FILE_PATH);
-            printf("RET: 1\r\n");
+            printf(CLI_STATUS_ERROR);
         }
     } else {
         printf(
             ANSI_FG_RED
             "Deleting this file in the future may result in the device not functioning properly.\r\n" ANSI_RESET);
-        printf("RET: 1\r\n");
+        printf(CLI_STATUS_ERROR);
         return;
     }
 }
@@ -253,22 +408,22 @@ void crypto_backup_client_restore(PipeSide* pipe, FuriString* args, void* contex
     uint8_t* buf = malloc(CRYPTO_BACKUP_COMMON_USERDATA_SIZE);
 
     if(crypto_backup_client_file_read(buf, CRYPTO_BACKUP_COMMON_USERDATA_SIZE)) {
-        printf(
-            ANSI_FG_GREEN "Data successfully read from %s\r\n" ANSI_RESET,
-            CRYPTO_BACKUP_FILE_PATH);
-        printf("RET: 0\r\n");
-
-        for(size_t i = 0; i < CRYPTO_BACKUP_COMMON_USERDATA_SIZE; i++) {
-            printf("%02x ", buf[i]);
-            if((i + 1) % 32 == 0) {
-                printf("\r\n");
-            }
+        if(crypto_backup_client_write_917_user_data(buf, CRYPTO_BACKUP_COMMON_USERDATA_SIZE)) {
+            printf(
+                ANSI_FG_GREEN "Data successfully restored to %s\r\n" ANSI_RESET,
+                CRYPTO_BACKUP_NWP_PATH);
+            printf(CLI_STATUS_OK);
+        } else {
+            printf(
+                ANSI_FG_RED "Error: Failed to restore data to %s\r\n" ANSI_RESET,
+                CRYPTO_BACKUP_NWP_PATH);
+            printf(CLI_STATUS_ERROR);
         }
     } else {
         printf(
             ANSI_FG_RED "Error: Failed to read data from %s\r\n" ANSI_RESET,
             CRYPTO_BACKUP_FILE_PATH);
-        printf("RET: 1\r\n");
+        printf(CLI_STATUS_ERROR);
     }
 
     free(buf);
@@ -283,9 +438,9 @@ void crypto_backup_client_verify(PipeSide* pipe, FuriString* args, void* context
     uint8_t* buf = malloc(CRYPTO_BACKUP_COMMON_USERDATA_SIZE);
 
     do {
-        if(!crypto_backup_client_get_917_user_data(
+        if(!crypto_backup_client_read_917_user_data(
                buf_reference, CRYPTO_BACKUP_COMMON_USERDATA_SIZE)) {
-            printf(ANSI_FG_RED "Error: Failed to get user data\r\n" ANSI_RESET);
+            printf(ANSI_FG_RED "Error: Failed to read user data\r\n" ANSI_RESET);
             break;
         }
         if(!crypto_backup_client_file_read(buf, CRYPTO_BACKUP_COMMON_USERDATA_SIZE)) {
@@ -303,11 +458,15 @@ void crypto_backup_client_verify(PipeSide* pipe, FuriString* args, void* context
     free(buf_reference);
 
     if(ret) {
-        printf(ANSI_FG_GREEN "Data verification successful\r\n" ANSI_RESET);
-        printf("RET: 0\r\n");
+        printf(
+            ANSI_FG_GREEN "Data verification successful to %s\r\n" ANSI_RESET,
+            CRYPTO_BACKUP_NWP_PATH);
+        printf(CLI_STATUS_OK);
     } else {
-        printf(ANSI_FG_RED "Error: Data verification failed\r\n" ANSI_RESET);
-        printf("RET: 1\r\n");
+        printf(
+            ANSI_FG_RED "Error: Data verification failed to %s\r\n" ANSI_RESET,
+            CRYPTO_BACKUP_NWP_PATH);
+        printf(CLI_STATUS_ERROR);
     }
 }
 

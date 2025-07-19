@@ -43,7 +43,7 @@ static void crypto_command_show_status(FuriHalCryptoStatus status, const char* n
 }
 
 static bool crypto_command_is_init(void) {
-    bool ret = furi_hal_nwp_is_init();
+    bool ret = furi_hal_nwp_is_initialized();
     if(!ret) {
         printf(ANSI_FG_RED
                "NWP is not initialized, please run 'crypto init' first\r\n" ANSI_RESET);
