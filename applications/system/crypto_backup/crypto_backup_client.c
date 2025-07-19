@@ -411,12 +411,12 @@ void crypto_backup_client_restore(PipeSide* pipe, FuriString* args, void* contex
         if(crypto_backup_client_write_917_user_data(buf, CRYPTO_BACKUP_COMMON_USERDATA_SIZE)) {
             printf(
                 ANSI_FG_GREEN "Data successfully restored to %s\r\n" ANSI_RESET,
-                CRYPTO_BACKUP_NWP_PATH);
+                CRYPTO_BACKUP_FILE_PATH);
             printf(CLI_STATUS_OK);
         } else {
             printf(
                 ANSI_FG_RED "Error: Failed to restore data to %s\r\n" ANSI_RESET,
-                CRYPTO_BACKUP_NWP_PATH);
+                CRYPTO_BACKUP_FILE_PATH);
             printf(CLI_STATUS_ERROR);
         }
     } else {
@@ -460,12 +460,12 @@ void crypto_backup_client_verify(PipeSide* pipe, FuriString* args, void* context
     if(ret) {
         printf(
             ANSI_FG_GREEN "Data verification successful to %s\r\n" ANSI_RESET,
-            CRYPTO_BACKUP_NWP_PATH);
+            CRYPTO_BACKUP_FILE_PATH);
         printf(CLI_STATUS_OK);
     } else {
         printf(
             ANSI_FG_RED "Error: Data verification failed to %s\r\n" ANSI_RESET,
-            CRYPTO_BACKUP_NWP_PATH);
+            CRYPTO_BACKUP_FILE_PATH);
         printf(CLI_STATUS_ERROR);
     }
 }
