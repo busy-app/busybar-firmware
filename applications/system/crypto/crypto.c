@@ -5,6 +5,7 @@
 #include <furi.h>
 #include <cli/args.h>
 #include <cli/cli_ansi.h>
+#include <cli/cli_status.h>
 #include <strint.h>
 #include "sl_si91x_driver.h"
 
@@ -19,26 +20,31 @@ static void crypto_command_show_status(FuriHalCryptoStatus status, const char* n
         printf(ANSI_FG_GREEN "Key %s successfully\r\n" ANSI_RESET, name);
         break;
     case FuriHalCryptoStatusFail:
-        printf(ANSI_FG_RED "Failed to %s key: " ANSI_RESET "Fail\r\n", name);
+        printf(ANSI_FG_RED "Error: Failed to %s key " ANSI_RESET "Fail\r\n", name);
         break;
     case FuriHalCryptoStatusFailWrite:
-        printf(ANSI_FG_RED "Failed to %s key: " ANSI_RESET "Write error\r\n", name);
+        printf(ANSI_FG_RED "Error: Failed to %s key " ANSI_RESET "Write error\r\n", name);
         break;
     case FuriHalCryptoStatusStorageFull:
-        printf(ANSI_FG_RED "Failed to %s key: " ANSI_RESET "Storage full\r\n", name);
+        printf(ANSI_FG_RED "Error: Failed to %s key " ANSI_RESET "Storage full\r\n", name);
         break;
     case FuriHalCryptoStatusDuplicate:
-        printf(ANSI_FG_RED "Failed to %s key: " ANSI_RESET "Duplicate key\r\n", name);
+        printf(ANSI_FG_RED "Error: Failed to %s key " ANSI_RESET "Duplicate key\r\n", name);
         break;
     case FuriHalCryptoStatusNotFound:
-        printf(ANSI_FG_RED "Failed to %s key: " ANSI_RESET "Key not found\r\n", name);
+        printf(ANSI_FG_RED "Error: Failed to %s key " ANSI_RESET "Key not found\r\n", name);
         break;
     case FuriHalCryptoStatusErrorCrc:
-        printf(ANSI_FG_RED "Failed to %s key: " ANSI_RESET "CRC error\r\n", name);
+        printf(ANSI_FG_RED "Error: Failed to %s key " ANSI_RESET "CRC error\r\n", name);
         break;
     default:
-        printf(ANSI_FG_RED "Failed to %s key: " ANSI_RESET "Unknown error\r\n", name);
+        printf(ANSI_FG_RED "Error: Failed to %s key " ANSI_RESET "Unknown error\r\n", name);
         break;
+    }
+    if(status != FuriHalCryptoStatusOk) {
+        printf(CLI_STATUS_ERROR);
+    } else {
+        printf(CLI_STATUS_OK);
     }
 }
 
@@ -46,7 +52,8 @@ static bool crypto_command_is_init(void) {
     bool ret = furi_hal_nwp_is_initialized();
     if(!ret) {
         printf(ANSI_FG_RED
-               "NWP is not initialized, please run 'crypto init' first\r\n" ANSI_RESET);
+               "Error: NWP is not initialized, please run 'crypto init' first\r\n" ANSI_RESET);
+        printf(CLI_STATUS_ERROR);
     }
     return ret;
 }
@@ -58,8 +65,10 @@ static void crypto_command_init(PipeSide* pipe, FuriString* args, void* context)
 
     if(furi_hal_nwp_init()) {
         printf(ANSI_FG_GREEN "NWP initialized\r\n" ANSI_RESET);
+        printf(CLI_STATUS_OK);
     } else {
-        printf(ANSI_FG_RED "Failed to initialize NWP\r\n" ANSI_RESET);
+        printf(ANSI_FG_RED "Error: Failed to initialize NWP\r\n" ANSI_RESET);
+        printf(CLI_STATUS_ERROR);
     }
 }
 
@@ -69,6 +78,7 @@ static void crypto_command_deinit(PipeSide* pipe, FuriString* args, void* contex
     UNUSED(context);
 
     furi_hal_nwp_deinit();
+    printf(CLI_STATUS_OK);
 }
 
 void crypto_command_wipe(PipeSide* pipe, FuriString* args, void* context) {
@@ -97,6 +107,7 @@ void crypto_command_wipe(PipeSide* pipe, FuriString* args, void* context) {
             "crypto wipe",
             "<partition> 0-partition_main, 1-partition_user\r\n",
             furi_string_get_cstr(args));
+        printf(CLI_STATUS_ERROR);
         return;
     }
 
@@ -111,10 +122,13 @@ void crypto_command_wipe(PipeSide* pipe, FuriString* args, void* context) {
             1);
         if(status != SL_STATUS_OK) {
             printf(
-                ANSI_FG_RED "Failed to wipe NWP flash partition_main: " ANSI_RESET "0x%08lx\r\n",
+                ANSI_FG_RED "Error: Failed to wipe NWP flash partition_main: " ANSI_RESET
+                            "0x%08lx\r\n",
                 status);
+            printf(CLI_STATUS_ERROR);
         } else {
             printf(ANSI_FG_GREEN "Wipe NWP flash partition_main\r\n" ANSI_RESET);
+            printf(CLI_STATUS_OK);
         }
         break;
     case FuriHalCryptoPartitionUser:
@@ -126,24 +140,17 @@ void crypto_command_wipe(PipeSide* pipe, FuriString* args, void* context) {
             1);
         if(status != SL_STATUS_OK) {
             printf(
-                ANSI_FG_RED "Failed to wipe NWP flash partition_user: " ANSI_RESET "0x%08lx\r\n",
+                ANSI_FG_RED "Error: Failed to wipe NWP flash partition_user: " ANSI_RESET
+                            "0x%08lx\r\n",
                 status);
+            printf(CLI_STATUS_ERROR);
         } else {
             printf(ANSI_FG_GREEN "Wipe NWP flash partition_user\r\n" ANSI_RESET);
+            printf(CLI_STATUS_OK);
         }
         break;
-    // case FuriHalCryptoPartitionMax: // Wipe all partitions
-    //     status = sl_si91x_command_to_write_common_flash(
-    //         FURI_HAL_CRYPTO_STORAGE_START_ADDRESS, NULL, FURI_HAL_CRYPTO_STORAGE_END_ADDRESS, 1);
-    //     if(status != SL_STATUS_OK) {
-    //         printf(ANSI_FG_RED "Failed to wipe NWP flash all: " ANSI_RESET "0x%08lx\r\n", status);
-    //     } else {
-    //         printf(ANSI_FG_GREEN "Wipe NWP flash all\r\n" ANSI_RESET);
-    //     }
-    //     break;
     default:
         furi_crash();
-        return;
     }
 }
 
@@ -167,6 +174,7 @@ void crypto_command_write(PipeSide* pipe, FuriString* args, void* context) {
                 "crypto write",
                 "<partition> 0-partition_main, 1-partition_user\r\n",
                 furi_string_get_cstr(args));
+            printf(CLI_STATUS_ERROR);
             return;
         }
 
@@ -181,6 +189,7 @@ void crypto_command_write(PipeSide* pipe, FuriString* args, void* context) {
         if(!parse_err && (key->header.size > key->length)) {
             cli_print_usage("crypto write", "<size> of range\r\n", furi_string_get_cstr(args));
             furi_hal_crypto_storage_free(key);
+            printf(CLI_STATUS_ERROR);
             return;
         }
 
@@ -192,6 +201,7 @@ void crypto_command_write(PipeSide* pipe, FuriString* args, void* context) {
                 "<partition> <type> <flags: in HEX> <id: in HEX> <size> <data: in byte>\r\n",
                 furi_string_get_cstr(args));
             furi_hal_crypto_storage_free(key);
+            printf(CLI_STATUS_ERROR);
             return;
         }
     } else {
@@ -199,6 +209,7 @@ void crypto_command_write(PipeSide* pipe, FuriString* args, void* context) {
             "crypto write",
             "<partition> <type> <flags: in HEX> <id: in HEX> <size> <data: in byte>\r\n",
             furi_string_get_cstr(args));
+        printf(CLI_STATUS_ERROR);
         return;
     }
     furi_check(key);
@@ -233,6 +244,7 @@ void crypto_command_read(PipeSide* pipe, FuriString* args, void* context) {
                 "crypto read",
                 "<partition> 0-partition_main, 1-partition_user\r\n",
                 furi_string_get_cstr(args));
+            printf(CLI_STATUS_ERROR);
             return;
         }
         parse_err |= strint_to_uint32(args_cstr, &args_cstr, &temp, 10);
@@ -243,6 +255,7 @@ void crypto_command_read(PipeSide* pipe, FuriString* args, void* context) {
                 "crypto read",
                 "<partition> <type> <id: in HEX> Read key from NWP flash.\r\n",
                 furi_string_get_cstr(args));
+            printf(CLI_STATUS_ERROR);
             return;
         }
     } else {
@@ -250,15 +263,15 @@ void crypto_command_read(PipeSide* pipe, FuriString* args, void* context) {
             "crypto read",
             "<partition> <type> <id: in HEX> Read key from NWP flash.\r\n",
             furi_string_get_cstr(args));
+        printf(CLI_STATUS_ERROR);
         return;
     }
 
     key = furi_hal_crypto_storage_alloc(partition);
     FuriHalCryptoStatus status = furi_hal_crypto_storage_read(key, type, id);
-    crypto_command_show_status(status, "read");
 
     if(status == FuriHalCryptoStatusOk) {
-        printf("Read key from NWP flash partition: %d\r\n", partition);
+        printf("read_partition: %d\r\n", partition);
         printf("magic_number: 0x%08lx\r\n", key->header.magic_number);
         printf("key_reserved: 0x%04X\r\n", key->header.reserved);
         printf("key_size: %d\r\n", key->header.size);
@@ -277,6 +290,8 @@ void crypto_command_read(PipeSide* pipe, FuriString* args, void* context) {
         }
         printf("\r\n");
     }
+
+    crypto_command_show_status(status, "read");
     furi_hal_crypto_storage_free(key);
 }
 
@@ -296,8 +311,11 @@ void crypto_command_dump(PipeSide* pipe, FuriString* args, void* context) {
         i += 1024) {
         status = sl_si91x_command_to_read_common_flash(i, 1024, buf);
         if(status != SL_STATUS_OK) {
-            printf(ANSI_FG_RED "Failed to read from NWP flash: " ANSI_RESET "0x%08lx\r\n", status);
+            printf(
+                ANSI_FG_RED "Error: Failed to read from NWP flash: " ANSI_RESET "0x%08lx\r\n",
+                status);
             free(buf);
+            printf(CLI_STATUS_ERROR);
             return;
         }
         printf(ANSI_FG_GREEN "Read data from NWP flash address: " ANSI_RESET "0x%08lx\r\n", i);
@@ -312,6 +330,7 @@ void crypto_command_dump(PipeSide* pipe, FuriString* args, void* context) {
         }
     }
     free(buf);
+    printf(CLI_STATUS_OK);
 }
 
 void crypto_command_gen(PipeSide* pipe, FuriString* args, void* context) {
@@ -339,6 +358,7 @@ void crypto_command_gen(PipeSide* pipe, FuriString* args, void* context) {
                 "crypto gen",
                 "<partition> 0-partition_main, 1-partition_user\r\n",
                 furi_string_get_cstr(args));
+            printf(CLI_STATUS_ERROR);
             return;
         }
         parse_err |= strint_to_uint32(args_cstr, &args_cstr, &temp, 10);
@@ -351,6 +371,7 @@ void crypto_command_gen(PipeSide* pipe, FuriString* args, void* context) {
                 "crypto gen",
                 "<partition> <type> <flags: in HEX> <id: in HEX> Generate key from NWP flash.\r\n",
                 furi_string_get_cstr(args));
+            printf(CLI_STATUS_ERROR);
             return;
         }
     } else {
@@ -358,6 +379,7 @@ void crypto_command_gen(PipeSide* pipe, FuriString* args, void* context) {
             "crypto gen",
             "<partition> <type> <flags: in HEX> <id: in HEX> Generate key from NWP flash.\r\n",
             furi_string_get_cstr(args));
+        printf(CLI_STATUS_ERROR);
         return;
     }
 
@@ -392,8 +414,9 @@ void crypto_command_gen(PipeSide* pipe, FuriString* args, void* context) {
         key->header.size = FURI_HAL_CRYPTO_ECDSA_PRIV_KEY_SIZE_256;
         break;
     default:
-        printf(ANSI_FG_RED "Unsupported key type: %ld\r\n" ANSI_RESET, (uint32_t)type);
+        printf(ANSI_FG_RED "Error: Unsupported key type: %ld\r\n" ANSI_RESET, (uint32_t)type);
         furi_hal_crypto_storage_free(key);
+        printf(CLI_STATUS_ERROR);
         return;
         break;
     }
@@ -407,7 +430,9 @@ void crypto_command_gen(PipeSide* pipe, FuriString* args, void* context) {
 
     FuriHalCryptoStatus status = furi_hal_crypto_storage_gen_random_buf(buf, key->header.size);
     if(status != FuriHalCryptoStatusOk) {
-        printf(ANSI_FG_RED "Failed to generate random buffer: " ANSI_RESET "%d\r\n", status);
+        printf(
+            ANSI_FG_RED "Error: Failed to generate random buffer: " ANSI_RESET "%d\r\n", status);
+        printf(CLI_STATUS_ERROR);
         free(buf);
         furi_hal_crypto_storage_free(key);
         return;
@@ -418,41 +443,14 @@ void crypto_command_gen(PipeSide* pipe, FuriString* args, void* context) {
     free(buf);
 
     status = furi_hal_crypto_storage_write(key);
+    if(status == FuriHalCryptoStatusOk) {
+        printf(ANSI_FG_GREEN "Generated key successfully\r\n" ANSI_RESET);
+    } else {
+        printf(ANSI_FG_RED "Error: Failed to generate key" ANSI_RESET "\r\n");
+    }
+
     crypto_command_show_status(status, "write");
     furi_hal_crypto_storage_free(key);
-
-    // ToDo Log the generated key, delete related code
-    if(status != FuriHalCryptoStatusOk) {
-        return;
-    }
-    key = furi_hal_crypto_storage_alloc(partition);
-
-    status = furi_hal_crypto_storage_read(key, type, id);
-    if(status == FuriHalCryptoStatusOk) {
-        printf("Read key from NWP flash partition: %d\r\n", partition);
-        printf("magic_number: 0x%08lx\r\n", key->header.magic_number);
-        printf("key_reserved: 0x%04X\r\n", key->header.reserved);
-        printf("key_size: %d\r\n", key->header.size);
-        printf("key_type: %ld\r\n", (uint32_t)key->header.type);
-        printf("key_flags: 0x%08lX\r\n", (uint32_t)key->header.flags);
-        printf("key_id: 0x%08lX\r\n", (uint32_t)key->header.id);
-        printf("key_reserved1: 0x%08lX\r\n", (uint32_t)key->header.reserved1);
-        printf("key_crc32: 0x%08lX\r\n", key->header.crc32);
-        printf("key_data:\r\n");
-        for(uint32_t i = 0; i < key->header.size; i++) {
-            if((i) % 32 == 0) printf("%08lx: ", i);
-            printf("%02x ", key->data[i]);
-            if((i + 1) % 32 == 0) {
-                printf("\r\n");
-            }
-        }
-        printf("\r\n");
-    }
-    furi_hal_crypto_storage_free(key);
-
-    printf(
-        ANSI_FG_GREEN "Generated key and wrote to NWP flash partition: " ANSI_RESET "%d\r\n",
-        partition);
 }
 
 static void crypto_command_print_usage(void) {
