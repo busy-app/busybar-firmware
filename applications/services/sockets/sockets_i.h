@@ -1,6 +1,5 @@
 #pragma once
 
-#include "sockets.h"
 #include "sockets_common_i.h"
 
 #include <furi.h>
@@ -16,9 +15,6 @@ typedef struct {
     const int protocol;
     int* fd;
 } SocketSrvAllocMessage;
-
-typedef struct {
-} SocketSrvCloseMessage;
 
 typedef struct {
     const struct sockaddr* const name;
@@ -85,7 +81,6 @@ typedef struct {
     ssize_t status;
     union {
         SocketSrvAllocMessage alloc_message;
-        SocketSrvCloseMessage close_message;
         SocketSrvBindMessage bind_message;
         SocketSrvListenMessage listen_message;
         SocketSrvAcceptMessage accept_message;
@@ -100,14 +95,10 @@ typedef struct {
     FuriApiLock lock;
 } SocketSrvMessage;
 
-typedef enum {
-    SocketSrvEventRequest = 1UL << 0,
-} SocketSrvEvent;
-
 struct SocketSrv {
-    FuriEventLoop* event_loop;
-    FuriSemaphore* access_semaphore;
-    SocketSrvMessage* current_message;
+    // FuriEventLoop* event_loop;
+    // FuriSemaphore* access_semaphore;
+    // SocketSrvMessage* current_message;
     Intercom* intercom;
-    SocketRequest request;
+    // SocketRequest request;
 };

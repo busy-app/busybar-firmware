@@ -4,15 +4,17 @@ static void sockets_send_message(SocketSrvMessage* message) {
     extern SocketSrv* instance;
     furi_check(instance);
 
-    message->lock = api_lock_alloc_locked();
+    UNUSED(message);
 
-    furi_check(
-        furi_semaphore_acquire(instance->access_semaphore, FuriWaitForever) == FuriStatusOk);
-
-    instance->current_message = message;
-    furi_event_loop_set_custom_event(instance->event_loop, SocketSrvEventRequest);
-
-    api_lock_wait_unlock_and_free(message->lock);
+    // message->lock = api_lock_alloc_locked();
+    //
+    // furi_check(
+    //     furi_semaphore_acquire(instance->access_semaphore, FuriWaitForever) == FuriStatusOk);
+    //
+    // instance->current_message = message;
+    // furi_event_loop_set_custom_event(instance->event_loop, SocketSrvEventRequest);
+    //
+    // api_lock_wait_unlock_and_free(message->lock);
 }
 
 int sl_socket(int domain, int type, int protocol) {

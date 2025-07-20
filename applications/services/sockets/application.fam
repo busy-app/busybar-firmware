@@ -1,9 +1,9 @@
 App(
     appid="sockets",
     name="SocketSrv",
-    apptype=FlipperAppType.SERVICE,
-    entry_point="sockets_srv",
-    stack_size=2 * 1024,
+    apptype=FlipperAppType.STARTUP,
+    entry_point="sockets_on_system_start",
+    # stack_size=2 * 1024,
     order=100,
     targets=["f20", "f21"],
     requires=["wifi"],
