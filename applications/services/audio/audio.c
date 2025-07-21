@@ -6,6 +6,7 @@
 #include <api_lock.h>
 
 #include <storage/storage.h>
+#include <json_helper.h>
 
 #define TAG "Audio"
 
@@ -15,6 +16,8 @@
 #define AUDIO_VOLUME_MIN     (0.0F)
 #define AUDIO_VOLUME_MAX     (1.0F)
 #define AUDIO_VOLUME_DEFAULT (AUDIO_VOLUME_MAX)
+
+#define AUDIO_CONFIG_FILE APP_DATA_PATH("audio.json")
 
 typedef enum {
     AudioBufferIndexPing = (1UL << FuriHalSaiEventHalfTransfer),
@@ -165,6 +168,7 @@ static void audio_message_queue_callback(FuriEventLoopObject* object, void* cont
         instance->should_stop = true;
     } else if(msg.type == AudioMessageTypeSetVolume) {
         instance->volume = msg.volume;
+        json_config_write_single_number(AUDIO_CONFIG_FILE, "volume", instance->volume);
     } else {
         furi_crash("Invalid message type");
     }
@@ -210,7 +214,10 @@ static Audio* audio_alloc(void) {
     instance->message_queue = furi_message_queue_alloc(AUDIO_MAX_MESSAGES, sizeof(AudioMessage));
     instance->storage = furi_record_open(RECORD_STORAGE);
     instance->file = storage_file_alloc(instance->storage);
-    instance->volume = AUDIO_VOLUME_DEFAULT;
+
+    float default_volume = AUDIO_VOLUME_DEFAULT;
+    json_config_read_single_number(
+        AUDIO_CONFIG_FILE, "volume", &instance->volume, &default_volume);
 
     furi_event_loop_subscribe_message_queue(
         instance->event_loop,
