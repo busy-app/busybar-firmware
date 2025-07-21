@@ -3,7 +3,7 @@
 #define TAG "IntercomSrv"
 
 #define INTERCOM_TX_TIMEOUT_MS                 (1000UL)
-#define INTERCOM_INITIAL_SYNC_RETRY_LOCKOUT_MS (1000UL)
+#define INTERCOM_INITIAL_SYNC_RETRY_LOCKOUT_MS (500UL)
 
 #ifdef INTERCOM_DEBUG
 #define INTERCOM_LOG_D(...) FURI_LOG_D(TAG, __VA_ARGS__)
@@ -52,11 +52,6 @@ struct Intercom {
     IntercomErrorCallback error_callback;
     void* error_callback_context;
 };
-
-typedef enum {
-    IntercomSyncRequestExternal,
-    IntercomSyncRequestInitial,
-} IntercomSyncRequest;
 
 typedef enum {
     IntercomEventSyncRequested = 1UL << 0,
@@ -159,7 +154,7 @@ static void intercom_default_error_callback(IntercomError error, void* context) 
     }
 }
 
-static bool intercom_try_sync(Intercom* instance, IntercomSyncRequest source) {
+static bool intercom_try_sync(Intercom* instance) {
     INTERCOM_LOG_D("Sync requested");
 
     FuriStatus expected_acq_status = instance->is_initial_sync_done ? FuriStatusOk :
@@ -185,8 +180,9 @@ static bool intercom_try_sync(Intercom* instance, IntercomSyncRequest source) {
         instance->is_initial_sync_done = true;
         furi_check(furi_semaphore_release(instance->tx_semaphore) == FuriStatusOk);
     } else {
-        if(source == IntercomSyncRequestExternal)
+        if(instance->is_initial_sync_done) {
             instance->error_callback(IntercomErrorSync, instance->error_callback_context);
+        }
     }
 
     furi_thread_flags_set(furi_thread_get_id(instance->rx_thread), IntercomThreadFlagSyncFinished);
@@ -237,7 +233,7 @@ static void intercom_custom_event_callback(uint32_t events, void* context) {
     Intercom* instance = context;
     if(events & IntercomEventSyncRequested) {
         INTERCOM_LOG_D("IntercomEventSyncRequested");
-        intercom_try_sync(instance, IntercomSyncRequestExternal);
+        intercom_try_sync(instance);
     }
     if(events & IntercomEventFrameSent) {
         INTERCOM_LOG_D("IntercomEventFrameSent");
@@ -313,7 +309,7 @@ static Intercom* intercom_alloc(void) {
 
     while(1) {
         intercom_sync_request(&INTERCOM_GPIO);
-        if(intercom_try_sync(instance, IntercomSyncRequestInitial)) break;
+        if(intercom_try_sync(instance)) break;
 
         FURI_LOG_E(
             TAG,
