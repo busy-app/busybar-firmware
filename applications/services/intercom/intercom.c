@@ -2,7 +2,8 @@
 
 #define TAG "IntercomSrv"
 
-#define INTERCOM_TX_TIMEOUT_MS (1000UL)
+#define INTERCOM_TX_TIMEOUT_MS                 (1000UL)
+#define INTERCOM_INITIAL_SYNC_RETRY_LOCKOUT_MS (1000UL)
 
 #ifdef INTERCOM_DEBUG
 #define INTERCOM_LOG_D(...) FURI_LOG_D(TAG, __VA_ARGS__)
@@ -40,6 +41,7 @@ typedef struct {
 struct Intercom {
     FuriThread* rx_thread;
     FuriSemaphore* sync_semaphore;
+    bool is_initial_sync_done;
     FuriEventLoop* event_loop;
     FuriSemaphore* tx_semaphore;
     FuriEventLoopTimer* tx_timer;
@@ -50,6 +52,11 @@ struct Intercom {
     IntercomErrorCallback error_callback;
     void* error_callback_context;
 };
+
+typedef enum {
+    IntercomSyncRequestExternal,
+    IntercomSyncRequestInitial,
+} IntercomSyncRequest;
 
 typedef enum {
     IntercomEventSyncRequested = 1UL << 0,
@@ -138,8 +145,7 @@ static void intercom_default_error_callback(IntercomError error, void* context) 
 #endif
 
     if(error == IntercomErrorSync) {
-        // TODO can't crash since 917 might not be flashed. Think what we really need to do
-        // furi_crash("Other side not in sync");
+        furi_crash("Externally requested sync failed");
 
     } else if(error == IntercomErrorFraming) {
         intercom_dump_frame(&instance->rx_frame);
@@ -153,14 +159,19 @@ static void intercom_default_error_callback(IntercomError error, void* context) 
     }
 }
 
-static FURI_ALWAYS_INLINE void intercom_process_sync_requested_event(Intercom* instance) {
+static bool intercom_try_sync(Intercom* instance, IntercomSyncRequest source) {
     INTERCOM_LOG_D("Sync requested");
+
+    FuriStatus expected_acq_status = instance->is_initial_sync_done ? FuriStatusOk :
+                                                                      FuriStatusErrorResource;
+    furi_check(furi_semaphore_acquire(instance->tx_semaphore, 0) == expected_acq_status);
 
     furi_thread_flags_set(furi_thread_get_id(instance->rx_thread), IntercomThreadFlagSyncStarted);
     furi_check(furi_semaphore_acquire(instance->sync_semaphore, FuriWaitForever) == FuriStatusOk);
 
-    if(intercom_sync_serial(instance->serial)) {
-// TODO: Unify function signatures
+    bool result = intercom_sync_serial(instance->serial);
+    if(result) {
+        // TODO: Unify function signatures
 #if defined(TARGET_F20)
         furi_hal_gpio_init_simple(&INTERCOM_GPIO, GpioModeInterruptFall);
         furi_hal_gpio_add_int_callback(&INTERCOM_GPIO, intercom_gpio_irq_callback, instance);
@@ -171,12 +182,17 @@ static FURI_ALWAYS_INLINE void intercom_process_sync_requested_event(Intercom* i
 #error "Unsupported target"
 #endif
         furi_hal_serial_clear(instance->serial, FuriHalSerialDirectionTxRx);
+        instance->is_initial_sync_done = true;
+        furi_check(furi_semaphore_release(instance->tx_semaphore) == FuriStatusOk);
     } else {
-        instance->error_callback(IntercomErrorSync, instance->error_callback_context);
+        if(source == IntercomSyncRequestExternal)
+            instance->error_callback(IntercomErrorSync, instance->error_callback_context);
     }
 
     furi_thread_flags_set(furi_thread_get_id(instance->rx_thread), IntercomThreadFlagSyncFinished);
     furi_check(furi_semaphore_acquire(instance->sync_semaphore, FuriWaitForever) == FuriStatusOk);
+
+    return result;
 }
 
 static FURI_ALWAYS_INLINE void intercom_send_tx_frame(Intercom* instance) {
@@ -221,7 +237,7 @@ static void intercom_custom_event_callback(uint32_t events, void* context) {
     Intercom* instance = context;
     if(events & IntercomEventSyncRequested) {
         INTERCOM_LOG_D("IntercomEventSyncRequested");
-        intercom_process_sync_requested_event(instance);
+        intercom_try_sync(instance, IntercomSyncRequestExternal);
     }
     if(events & IntercomEventFrameSent) {
         INTERCOM_LOG_D("IntercomEventFrameSent");
@@ -276,7 +292,7 @@ static Intercom* intercom_alloc(void) {
         furi_thread_alloc_service("IntercomRxSrv", 1024, intercom_rx_thread, instance);
     instance->sync_semaphore = furi_semaphore_alloc(1, 0);
     instance->event_loop = furi_event_loop_alloc();
-    instance->tx_semaphore = furi_semaphore_alloc(1, 1);
+    instance->tx_semaphore = furi_semaphore_alloc(1, 0);
     instance->tx_timer = furi_event_loop_timer_alloc(
         instance->event_loop, intercom_tx_timer_callback, FuriEventLoopTimerTypeOnce, instance);
     instance->serial = furi_hal_serial_control_acquire(INTERCOM_SERIAL);
@@ -290,14 +306,22 @@ static Intercom* intercom_alloc(void) {
     furi_hal_serial_set_hw_flow_control(instance->serial, FuriHalSerialHwFlowControlRtsCts);
     furi_hal_serial_set_callback(
         instance->serial, intercom_serial_tx_callback, intercom_serial_rx_callback, instance);
-    // Start RX thread
     furi_thread_start(instance->rx_thread);
-    // Pulse gpio_xxx_irq pin to request synchronisation procedure
-    intercom_sync_request(&INTERCOM_GPIO);
-    // Perform initial synchronisation procedure
-    intercom_process_sync_requested_event(instance);
 
+    // dont't hold up the rest of the system
     furi_record_create(RECORD_INTERCOM, instance);
+
+    while(1) {
+        intercom_sync_request(&INTERCOM_GPIO);
+        if(intercom_try_sync(instance, IntercomSyncRequestInitial)) break;
+
+        FURI_LOG_E(
+            TAG,
+            "Initial sync failed, retrying in %ld ms",
+            INTERCOM_INITIAL_SYNC_RETRY_LOCKOUT_MS);
+        furi_delay_ms(INTERCOM_INITIAL_SYNC_RETRY_LOCKOUT_MS);
+    }
+
     return instance;
 }
 
