@@ -17,7 +17,7 @@ static void flex_event_callback(const lv_obj_class_t* class_p, lv_event_t* e) {
     if(code == LV_EVENT_CHILD_CREATED) {
         lv_obj_t* target = lv_event_get_target_obj(e);
 
-        if(!lv_obj_check_type(target, &flex_layout_lvgl_class)) return;
+        if(!lv_obj_check_type(target, MY_CLASS)) return;
 
         lv_flex_flow_t flex =
             lv_obj_get_style_flex_flow(lv_event_get_current_target_obj(e), LV_PART_MAIN);
