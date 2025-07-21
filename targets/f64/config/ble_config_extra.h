@@ -1,6 +1,6 @@
 // /*******************************************************************************
 // * @file  ble_config.h
-// * @brief 
+// * @brief
 // *******************************************************************************
 // * # License
 // * <b>Copyright 2023 Silicon Laboratories Inc. www.silabs.com</b>
@@ -16,8 +16,6 @@
 // ******************************************************************************/
 
 #pragma once
-
-
 
 // #ifndef BLE_CONFIG_H
 // #define BLE_CONFIG_H
@@ -97,8 +95,8 @@
 //  * */
 // #define UNDIR_CONN 0x80
 
-// /* Advertising will be visible(discoverable) to the particular device 
-//  * mentioned in RSI_BLE_ADV_DIR_ADDR only. 
+// /* Advertising will be visible(discoverable) to the particular device
+//  * mentioned in RSI_BLE_ADV_DIR_ADDR only.
 //  * Scanning and Connection will be accepted from that device only.
 //  * */
 // #define DIR_CONN 0x81
@@ -114,8 +112,8 @@
 //  * */
 // #define UNDIR_NON_CONN 0x83
 
-// /* Advertising will be visible(discoverable) to the particular device 
-//  * mentioned in RSI_BLE_ADV_DIR_ADDR only. 
+// /* Advertising will be visible(discoverable) to the particular device
+//  * mentioned in RSI_BLE_ADV_DIR_ADDR only.
 //  * Scanning and Connection will be accepted from that device only.
 //  * */
 // #define DIR_CONN_LOW_DUTY_CYCLE 0x84
@@ -180,7 +178,7 @@
 // //! Remote device bd address
 // #define RSI_BLE_REMOTE_DEV_ADDR "00:12:45:AB:1D:32"
 // //! Remote device name
-#define RSI_REMOTE_DEVICE_NAME  "Note10"
+#define RSI_REMOTE_DEVICE_NAME "Note10"
 
 // //! connection update params
 #define CONN_INTERVAL_MIN 0x08
@@ -212,8 +210,8 @@
 // #define DLE_ON 1
 
 // #if DLE_ON
-#define DLE_BUFFER_MODE      1
-#define DLE_BUFFER_COUNT     25 // Should be less than RSI_BLE_NUM_CONN_EVENTS
+#define DLE_BUFFER_MODE  1
+#define DLE_BUFFER_COUNT 25 // Should be less than RSI_BLE_NUM_CONN_EVENTS
 // #define RSI_BLE_MAX_DATA_LEN 232
 // #else
 // #define DLE_BUFFER_MODE      0

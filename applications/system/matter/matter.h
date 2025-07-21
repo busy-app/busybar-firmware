@@ -1,5 +1,5 @@
 #pragma once
 
-#include <cli/cli.h>
+#include <containers/pipe.h>
 
-void matter_system_start(void);
+void matter_command(PipeSide* pipe, FuriString* args, void* context);

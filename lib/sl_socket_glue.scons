@@ -20,8 +20,6 @@ sources = [
     f"{SL_SOCKET_GLUE_DIR}/src/sys/ioctl.c",
     f"{SL_SOCKET_GLUE_DIR}/src/net/if.c",
     f"{SL_SOCKET_GLUE_DIR}/src/ifaddrs.c",
-    # f"{SL_SOCKET_GLUE_DIR}/src/arpa/inet_ntop.c",
-    # f"{SL_SOCKET_GLUE_DIR}/src/arpa/inet_pton.c",
     f"{SL_SOCKET_GLUE_DIR}/src/arpa/inet.c",
 ]
 

@@ -26,7 +26,8 @@ env.Append(
         Dir(f"{LIB_INCDIR}/third_party/matter_sdk/src/app").rdir(),
         Dir(f"{LIB_INCDIR}/third_party/matter_sdk/src/app/reporting").rdir(),
         Dir(f"{LIB_INCDIR}/third_party/matter_sdk/src/include/platform").rdir(),
-        Dir(f"{LIB_INCDIR}/third_party/matter_support/matter/mbedtls/tinycrypt/inc").rdir(),
+        Dir(f"{LIB_INCDIR}/third_party/matter_support/tinycrypt/inc").rdir(),
+        Dir(f"{LIB_INCDIR}/third_party/matter_support/provision").rdir(),
 
         # Dir(f"{LIB_ZAP_INCDIR}/zap-generated").rdir(),
         # Dir(f"{LIB_ZAP_INCDIR}/zap-generated/app-common/zap-generated").rdir(),
@@ -128,7 +129,7 @@ env.Append(
         "CHIP_HAVE_CONFIG_H=1",
     ],
     LIBPATH=[
-        Dir(f"{LIB_FOLDER}/third_party/matter_support/matter/provision/lib/").srcnode(),
+        Dir(f"{LIB_FOLDER}/third_party/matter_support/provision/libs/").srcnode(),
     ],
     FW_LIBS=[
         "stdc++",
@@ -226,6 +227,7 @@ libenv.AppendUnique(
         "SL_WFX_CONFIG_SCAN=1",
         "SL_WIFI=1",
         "SL_WIFI_COMPONENT_INCLUDED=1",
+        "SL_WIFI_USE_SOCKETS=1",
 
         "SLI_SI917=1",
         "SLI_SI917B0=1",
@@ -468,8 +470,8 @@ sources = [
     f"{LIB_FOLDER}/third_party/matter_sdk/src/inet/InetInterfaceImplDefault.cpp",
     f"{LIB_FOLDER}/third_party/matter_sdk/src/inet/UDPEndPoint.cpp",
     # f"{LIB_FOLDER}/third_party/matter_sdk/src/inet/UDPEndPointImplLwIP.cpp",
-    # f"{LIB_FOLDER}/third_party/matter_sdk/src/inet/UDPEndPointImplSockets.cpp",
-    f"{LIB_FOLDER}/src/sl_platform/UDPEndPointImplSlSockets.cpp",
+    f"{LIB_FOLDER}/third_party/matter_sdk/src/inet/UDPEndPointImplSockets.cpp",
+    # f"{LIB_FOLDER}/src/sl_platform/UDPEndPointImplSlSockets.cpp",
     f"{LIB_FOLDER}/third_party/matter_sdk/src/lib/address_resolve/AddressResolve.cpp",
     f"{LIB_FOLDER}/third_party/matter_sdk/src/lib/address_resolve/AddressResolve_DefaultImpl.cpp",
     f"{LIB_FOLDER}/third_party/matter_sdk/src/lib/asn1/ASN1Error.cpp",
@@ -590,8 +592,8 @@ sources = [
     f"{LIB_FOLDER}/third_party/matter_sdk/src/platform/silabs/platformAbstraction/WiseMcuSpam.cpp",
     #f"{LIB_FOLDER}/third_party/matter_sdk/src/platform/silabs/rs911x/BLEManagerImpl.cpp",
     #f"{LIB_FOLDER}/third_party/matter_sdk/src/platform/silabs/rs911x/wfx_sl_ble_init.cpp",
-    # f"{LIB_FOLDER}/third_party/matter_sdk/src/platform/silabs/wifi/SiWx/WifiInterface.cpp",
-    f"{LIB_FOLDER}/src/patch/WifiInterface.cpp",
+    f"{LIB_FOLDER}/third_party/matter_sdk/src/platform/silabs/wifi/SiWx/WifiInterface.cpp",
+    # f"{LIB_FOLDER}/src/patch/WifiInterface.cpp",
     f"{LIB_FOLDER}/third_party/matter_sdk/src/platform/silabs/wifi/WifiInterfaceAbstraction.cpp",
     f"{LIB_FOLDER}/third_party/matter_sdk/src/platform/silabs/wifi/wiseconnect-abstraction/WiseconnectInterfaceAbstraction.cpp",
     f"{LIB_FOLDER}/third_party/matter_sdk/src/protocols/Protocols.cpp",
@@ -632,7 +634,8 @@ sources = [
     f"{LIB_FOLDER}/third_party/matter_sdk/src/system/SystemClock.cpp",
     f"{LIB_FOLDER}/third_party/matter_sdk/src/system/SystemError.cpp",
     f"{LIB_FOLDER}/third_party/matter_sdk/src/system/SystemLayer.cpp",
-    f"{LIB_FOLDER}/third_party/matter_sdk/src/system/SystemLayerImplFreeRTOS.cpp", # TODO: THIS
+    # f"{LIB_FOLDER}/third_party/matter_sdk/src/system/SystemLayerImplFreeRTOS.cpp", # TODO: THIS
+    f"{LIB_FOLDER}/third_party/matter_sdk/src/system/SystemLayerImplFreeRTOSSockets.cpp",
     # f"{LIB_FOLDER}/src/patch/SystemLayerImplFreeRTOS.cpp",
     f"{LIB_FOLDER}/third_party/matter_sdk/src/system/SystemMutex.cpp",
     f"{LIB_FOLDER}/third_party/matter_sdk/src/system/SystemPacketBuffer.cpp",
@@ -652,10 +655,10 @@ sources = [
     #f"{LIB_FOLDER}/third_party/matter_sdk/src/transport/raw/BLE.cpp",
     f"{LIB_FOLDER}/third_party/matter_sdk/src/transport/raw/MessageHeader.cpp",
     f"{LIB_FOLDER}/third_party/matter_sdk/src/transport/raw/UDP.cpp",
-    f"{LIB_FOLDER}/third_party/matter_support/matter/mbedtls/tinycrypt/src/ecc.c",
-    f"{LIB_FOLDER}/third_party/matter_support/matter/mbedtls/tinycrypt/src/ecc_dh.c",
-    f"{LIB_FOLDER}/third_party/matter_support/matter/mbedtls/tinycrypt/src/ecc_dsa.c",
-    f"{LIB_FOLDER}/third_party/matter_support/matter/mbedtls/tinycrypt/src/tinycrypt_util.c",
+    f"{LIB_FOLDER}/third_party/matter_support/tinycrypt/src/ecc.c",
+    f"{LIB_FOLDER}/third_party/matter_support/tinycrypt/src/ecc_dh.c",
+    f"{LIB_FOLDER}/third_party/matter_support/tinycrypt/src/ecc_dsa.c",
+    f"{LIB_FOLDER}/third_party/matter_support/tinycrypt/src/tinycrypt_util.c",
     # f"{LIB_FOLDER}/third_party/matter_sdk/src/platform/silabs/wifi/lwip-support/dhcp_client.cpp",
     # f"{LIB_FOLDER}/third_party/matter_sdk/src/platform/silabs/wifi/lwip-support/lwip_netif.cpp",
 

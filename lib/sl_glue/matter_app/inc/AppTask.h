@@ -75,4 +75,6 @@ private:
      * @return CHIP_ERROR
      */
     CHIP_ERROR Init();
+
+    CHIP_ERROR AppInit();
 };

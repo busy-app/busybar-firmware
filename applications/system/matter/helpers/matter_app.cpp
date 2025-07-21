@@ -6,7 +6,7 @@
 #include <app/clusters/switch-server/switch-server.h>
 //#include <app-common/zap-generated/attributes/Accessors.h>
 
-constexpr chip::EndpointId kLightSwitchEndpoint   = 1;
+constexpr chip::EndpointId kLightSwitchEndpoint = 1;
 constexpr chip::EndpointId kGenericSwitchEndpoint = 2;
 
 void matter_app_init(void) {
@@ -20,7 +20,7 @@ void matter_factory_reset(void) {
 
 void matter_button_press(void) {
     chip::app::Clusters::SwitchServer::Instance().OnInitialPress(kGenericSwitchEndpoint, 1);
-    
+
     // uint8_t currentPosition = 1;
 
     // // Set new attribute value
@@ -42,6 +42,6 @@ void matter_button_release(void) {
     // chip::app::Clusters::SwitchServer::Instance().OnShortRelease(chip::kInvalidEndpointId, previousPosition);
 }
 
-void matter_basic_commissioning_window (void){
+void matter_basic_commissioning_window(void) {
     BaseApplication::DoProvisioningBasicCommissioningWindow();
 }

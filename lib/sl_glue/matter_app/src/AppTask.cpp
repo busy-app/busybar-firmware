@@ -94,6 +94,11 @@ CHIP_ERROR AppTask::Init()
     return err;
 }
 
+CHIP_ERROR AppTask::AppInit()
+{
+    return CHIP_NO_ERROR;
+}
+
 CHIP_ERROR AppTask::StartAppTask()
 {
     return BaseApplication::StartAppTask(AppTaskMain);

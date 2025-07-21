@@ -233,7 +233,7 @@ uint8_t Si917_BLE_REGION_BASED_LP_CHAIN_10DBM_OFFSET_XX[128] = {//{{{
 #define RSI_FEATURE_BIT_MAP                   \
     (SL_SI91X_FEAT_ULP_GPIO_BASED_HANDSHAKE | \
      SL_SI91X_FEAT_DEV_TO_HOST_ULP_GPIO_1) //! To set wlan feature select bit map
-#define RSI_TCP_IP_FEATURE_BIT_MAP 0 //! TCP/IP feature select bitmap for selecting TCP/IP features
+// #define RSI_TCP_IP_FEATURE_BIT_MAP 0 //! TCP/IP feature select bitmap for selecting TCP/IP features
 #define RSI_CUSTOM_FEATURE_BIT_MAP \
     SL_SI91X_CUSTOM_FEAT_EXTENTION_VALID //! To set custom feature select bit map
 #define RSI_EXT_TCPIP_FEATURE_BITMAP 0

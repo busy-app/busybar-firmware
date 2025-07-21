@@ -538,6 +538,9 @@ static FURI_ALWAYS_INLINE osStatus_t osThreadJoin(osThreadId_t thread_id) {
 
 // /// Terminate execution of current running thread.
 // __NO_RETURN void osThreadExit (void);
+static FURI_ALWAYS_INLINE void osThreadExit (void) {
+    furi_thread_abort_current();
+}
 
 /// Terminate execution of a thread.
 /// \param[in]     thread_id     thread ID obtained by \ref osThreadNew or \ref osThreadGetId.

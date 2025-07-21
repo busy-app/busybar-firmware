@@ -41,6 +41,7 @@ App(
         "ble_test",
         "ble_usart_echo",
         "crypto_test",
+        "matter",
         "nvm3_test",
         "wifi_calibration",
         "wifi_cli_test",

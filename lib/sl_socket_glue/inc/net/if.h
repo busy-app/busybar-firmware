@@ -6,9 +6,9 @@
 extern "C" {
 #endif
 
-#define NET_IF_SIWX917_INTERFACE_NAME "wlan"
+#define NET_IF_SIWX917_INTERFACE_NAME "slsgwlan"
 #define NET_IF_SIWX917_INTERFACE_INDEX 1
-#define IF_NAMESIZE 8
+#define IF_NAMESIZE 10
 
 // https://linux.die.net/man/3/if_nameindex
 struct if_nameindex {

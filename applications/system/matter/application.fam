@@ -1,12 +1,8 @@
 App(
-    appid="matter_start",
+    appid="matter",
+    name="matter",
     targets=["f64"],
-    apptype=FlipperAppType.STARTUP,
-    entry_point="matter_system_start",
+    apptype=FlipperAppType.CLICMD,
+    entry_point="matter_command",
     stack_size=2 * 1024,
-    sources=[
-        "matter.c",
-        "helpers/matter_app.cpp",
-    ],
-    order=40,
 )
