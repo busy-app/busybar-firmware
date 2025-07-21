@@ -53,6 +53,12 @@ typedef struct {
     };
 } PowerMessage;
 
+typedef enum {
+    PowerBatteryStateNormal,
+    PowerBatteryStateLow,
+    PowerBatteryStateCritical,
+} PowerBatteryState;
+
 struct Power {
     FuriEventLoop* event_loop;
     FuriMessageQueue* message_queue;
@@ -63,12 +69,14 @@ struct Power {
         bool charger_alive;
         bool battery_ready;
         bool usb_connected;
+        bool pd_initialized;
     } state;
     PowerInfo info;
     PowerPdInfo pd_info;
     uint32_t input_current_limit;
     uint32_t charger_current_limit;
     bool charger_enabled;
+    PowerBatteryState battery_state;
 };
 
 PowerUsbPd* power_usb_pd_alloc(FuriMessageQueue** pd_queue);
