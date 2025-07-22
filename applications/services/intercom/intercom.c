@@ -33,6 +33,8 @@
 #error "Unsupported target"
 #endif
 
+#define INTERCOM_MAGIC_DELAY (100UL)
+
 typedef struct {
     IntercomRxCallback rx_callback;
     void* callback_context;
@@ -178,6 +180,8 @@ static bool intercom_try_sync(Intercom* instance) {
 #endif
         furi_hal_serial_clear(instance->serial, FuriHalSerialDirectionTxRx);
         instance->is_initial_sync_done = true;
+        // TODO find proper enterprose delay value
+        furi_delay_ms(INTERCOM_MAGIC_DELAY);
         furi_check(furi_semaphore_release(instance->tx_semaphore) == FuriStatusOk);
     } else {
         if(instance->is_initial_sync_done) {
