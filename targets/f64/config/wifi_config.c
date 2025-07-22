@@ -29,7 +29,6 @@ const sl_wifi_device_configuration_t wifi_config_client = {
                  SL_SI91X_FEAT_DEV_TO_HOST_ULP_GPIO_1),
             .tcp_ip_feature_bit_map =
                 (SL_SI91X_TCP_IP_FEAT_DHCPV4_CLIENT | SL_SI91X_TCP_IP_FEAT_EXTENSION_VALID |
-                 SL_SI91X_TCP_IP_FEAT_DNS_CLIENT | SL_SI91X_TCP_IP_FEAT_SSL |
                  SL_SI91X_TCP_IP_FEAT_DHCPV6_CLIENT | SL_SI91X_TCP_IP_FEAT_IPV6),
             .custom_feature_bit_map =
                 (SL_SI91X_CUSTOM_FEAT_EXTENTION_VALID | SL_SI91X_CUSTOM_FEAT_SOC_CLK_CONFIG_120MHZ),
