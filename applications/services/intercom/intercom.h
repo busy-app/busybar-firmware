@@ -40,7 +40,7 @@ typedef enum {
  * @brief Enumeration of possible errors.
  */
 typedef enum {
-    IntercomErrorSync, /**< Failed to synchronise with the other side */
+    IntercomErrorSync, /**< Other side has requested synchronization, which failed */
     IntercomErrorFraming, /**< Invalid frame (incorrect structure or checksum) */
     IntercomErrorTransmit, /**< Transmission has been inhibited for too long by HW */
 } IntercomError;
