@@ -644,20 +644,37 @@ void furi_hal_serial_set_callback(
     serial->callback_context = context;
 }
 
-void furi_hal_serial_tx(FuriHalSerialHandle* handle, const uint8_t* buffer, size_t buffer_size) {
+size_t furi_hal_serial_tx(
+    FuriHalSerialHandle* handle,
+    const uint8_t* buffer,
+    size_t buffer_size,
+    uint32_t timeout) {
     furi_check(handle);
+    furi_check(buffer);
+    furi_check(buffer_size);
 
+    bool wait_forever = timeout == FuriWaitForever;
+
+    size_t transmitted = 0;
+    FuriHalCortexTimer timer = furi_hal_cortex_timer_get(wait_forever ? 1 : (timeout * 1000));
     USART_TypeDef* periph = furi_hal_serial_resources[handle->id].periph;
 
     while(buffer_size > 0) {
-        while(!LL_USART_IsActiveFlag_TXE_TXFNF(periph))
-            ;
+        bool timed_out = furi_hal_cortex_timer_is_expired(timer);
+        while(!LL_USART_IsActiveFlag_TXE_TXFNF(periph) && (wait_forever || !timed_out)) {
+            timed_out = furi_hal_cortex_timer_is_expired(timer);
+        }
+
+        if(!wait_forever && timed_out) break;
 
         LL_USART_TransmitData8(periph, *buffer);
 
         buffer++;
         buffer_size--;
+        transmitted++;
     }
+
+    return transmitted;
 }
 
 bool furi_hal_serial_tx_wait_complete(FuriHalSerialHandle* handle, uint32_t timeout) {

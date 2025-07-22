@@ -79,7 +79,7 @@ void power_charge_enable(Power* power, bool enable) {
 
 void power_set_charge_current(Power* power, uint32_t current_ma) {
     furi_check(power);
-    furi_check(current_ma <= CHARGE_CURRENT_MAX);
+    furi_check(current_ma <= POWER_CHARGE_CURRENT_MAX);
 
     int32_t param = current_ma;
 
