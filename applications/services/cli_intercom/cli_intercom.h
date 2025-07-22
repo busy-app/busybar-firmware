@@ -18,6 +18,7 @@ typedef struct CliIntercom CliIntercom;
 typedef enum {
     CliIntercomSpawnStatusOk,
     CliIntercomSpawnStatusChannelTaken, //<! Shell is already spawned and hasn't exited yet
+    CliIntercomSpawnStatusTimeout,
 } CliIntercomSpawnStatus;
 
 #if defined(STM32U595xx)
