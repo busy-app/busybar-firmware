@@ -2,24 +2,11 @@
 #include "crypto_common.h"
 
 #include <cli/cli_ansi.h>
-//top#include <sl_mbedtls.h>
+#include <furi_hal_crypto.h>
 #include "psa/crypto.h"
 #include "sl_si91x_psa_wrap.h"
 
 #define TAG "Crypto_MbedTLS_EDSA"
-
-#define PUBLIC_KEY_SIZE_P192R1       49
-#define PUBLIC_KEY_SIZE_P224R1       57
-#define PUBLIC_KEY_SIZE_P256R1       65
-#define PRIVATE_KEY_SIZE_P192R1      24
-#define PRIVATE_KEY_SIZE_P224R1      28
-#define PRIVATE_KEY_SIZE_P256R1      32
-#define SIGNATURE_SIZE_P192R1        48
-#define SIGNATURE_SIZE_P224R1        56
-#define SIGNATURE_SIZE_P256R1        64
-#define PRIVATE_KEY_SIZE_P192R1_BITS 192
-#define PRIVATE_KEY_SIZE_P224R1_BITS 224
-#define PRIVATE_KEY_SIZE_P256R1_BITS 256
 
 #define WRAP_INPUT_KEYS     1 // Enable this if the input private key needs to be wrapped before use
 #define IMPORT_WRAPPED_KEYS 0 // Enable this if the input key is wrapped
@@ -29,16 +16,11 @@ static const unsigned char input_data[] = {0x24, 0x8d, 0x6a, 0x61, 0xd2, 0x06, 0
                                            0xa3, 0x3c, 0xe4, 0x59, 0x64, 0xff, 0x21, 0x67,
                                            0xf6, 0xec, 0xed, 0xd4, 0x19, 0xdb, 0x06, 0xc1};
 
-// static const unsigned char private_key[] = {0x95, 0xCD, 0x3A, 0x36, 0x25, 0xD6, 0xF6, 0x06,
-//                                             0xBD, 0xC8, 0x64, 0x77, 0x8D, 0x4A, 0xA6, 0x50,
-//                                             0xC2, 0xD7, 0x9A, 0x05, 0x94, 0xDD, 0x10, 0xCF,
-//                                             0x4C, 0x47, 0x4B, 0x83, 0xD2, 0x87, 0x0D, 0x1A};
-
-static const uint8_t private_key[] = {0x41, 0x9c, 0x9c, 0x80, 0x33, 0x6c, 0x40, 0x1f,
-                                      0xd2, 0x06, 0x49, 0x59, 0x8b, 0xb6, 0x5f, 0xb3,
-                                      0xd8, 0xd8, 0xef, 0xd5, 0xeb, 0x4a, 0xe1, 0xe8,
-                                      0x8a, 0x63, 0x36, 0x81, 0xcb, 0x0a, 0x21, 0x07};
-static const uint8_t public_key_check[] = {
+static const uint8_t private_key[FURI_HAL_CRYPTO_ECDSA_PRIV_KEY_SIZE_256] = {
+    0x41, 0x9c, 0x9c, 0x80, 0x33, 0x6c, 0x40, 0x1f, 0xd2, 0x06, 0x49,
+    0x59, 0x8b, 0xb6, 0x5f, 0xb3, 0xd8, 0xd8, 0xef, 0xd5, 0xeb, 0x4a,
+    0xe1, 0xe8, 0x8a, 0x63, 0x36, 0x81, 0xcb, 0x0a, 0x21, 0x07};
+static const uint8_t public_key_check[FURI_HAL_CRYPTO_ECDSA_PUB_KEY_SIZE_256] = {
     0x04, 0xb6, 0xcd, 0x40, 0x84, 0x9a, 0xf6, 0xc4, 0xc2, 0x2b, 0x57, 0x99, 0x86,
     0xa7, 0x7d, 0xfa, 0x19, 0x61, 0xaa, 0xe2, 0x6e, 0x60, 0xe6, 0x83, 0x82, 0x11,
     0xeb, 0xe5, 0xd1, 0x40, 0x79, 0x22, 0x25, 0xe4, 0x12, 0x40, 0xfe, 0x30, 0xec,
@@ -52,9 +34,9 @@ void crypto_mbedtls_edsa_command(PipeSide* pipe, FuriString* args, void* context
 
     //sl_mbedtls_init();
 
-    uint8_t public_key[PUBLIC_KEY_SIZE_P256R1]; // Uncompressed point format
+    uint8_t public_key[FURI_HAL_CRYPTO_ECDSA_PUB_KEY_SIZE_256]; // Uncompressed point format
     size_t pubkey_len;
-    uint8_t signature_buf[SIGNATURE_SIZE_P256R1]; // DER format
+    uint8_t signature_buf[FURI_HAL_CRYPTO_ECDSA_MAX_SIGNATURE_SIZE]; // DER format
     size_t signature_len;
 
     psa_status_t ret;
@@ -77,7 +59,8 @@ void crypto_mbedtls_edsa_command(PipeSide* pipe, FuriString* args, void* context
     key_attr = psa_key_attributes_init();
     psa_set_key_type(&key_attr, PSA_KEY_TYPE_ECC_KEY_PAIR(PSA_ECC_FAMILY_SECP_R1));
     psa_set_key_bits(
-        &key_attr, PRIVATE_KEY_SIZE_P256R1_BITS); // Set PRIVATE_KEY_SIZE_P192R1_BITS for secp192r1
+        &key_attr,
+        FURI_HAL_CRYPTO_ECDSA_PRIV_KEY_SIZE_256_BITS); // Set PRIVATE_KEY_SIZE_P192R1_BITS for secp192r1
     psa_set_key_usage_flags(&key_attr, PSA_KEY_USAGE_SIGN_MESSAGE | PSA_KEY_USAGE_VERIFY_MESSAGE);
     psa_set_key_algorithm(&key_attr, PSA_ALG_ECDSA(PSA_ALG_SHA_256));
 
@@ -126,7 +109,8 @@ void crypto_mbedtls_edsa_command(PipeSide* pipe, FuriString* args, void* context
     key_attr = psa_key_attributes_init();
     psa_set_key_type(&key_attr, PSA_KEY_TYPE_ECC_KEY_PAIR(PSA_ECC_FAMILY_SECP_R1));
     psa_set_key_bits(
-        &key_attr, PRIVATE_KEY_SIZE_P256R1_BITS); // Set PRIVATE_KEY_SIZE_P192R1_BITS for secp192r1
+        &key_attr,
+        FURI_HAL_CRYPTO_ECDSA_PRIV_KEY_SIZE_256_BITS); // Set PRIVATE_KEY_SIZE_P192R1_BITS for secp192r1
     psa_set_key_usage_flags(&key_attr, PSA_KEY_USAGE_SIGN_MESSAGE | PSA_KEY_USAGE_VERIFY_MESSAGE);
     psa_set_key_algorithm(&key_attr, PSA_ALG_ECDSA(PSA_ALG_SHA_256));
 #if WRAP_INPUT_KEYS
@@ -160,7 +144,9 @@ void crypto_mbedtls_edsa_command(PipeSide* pipe, FuriString* args, void* context
         &signature_len);
 
     if(ret != PSA_SUCCESS) {
-        printf(ANSI_FG_RED "Sign Message with Private key Failed with error: %ld\r\n" ANSI_RESET, ret);
+        printf(
+            ANSI_FG_RED "Sign Message with Private key Failed with error: %ld\r\n" ANSI_RESET,
+            ret);
     } else {
         printf(ANSI_FG_GREEN "Sign Message with Private Key Success\r\n" ANSI_RESET);
     }
@@ -198,7 +184,10 @@ void crypto_mbedtls_edsa_command(PipeSide* pipe, FuriString* args, void* context
         signature_buf,
         signature_len);
     if(ret != PSA_SUCCESS) {
-        printf(ANSI_FG_RED "Signature Verification with Public Key failed with error: %ld\r\n" ANSI_RESET, ret);
+        printf(
+            ANSI_FG_RED
+            "Signature Verification with Public Key failed with error: %ld\r\n" ANSI_RESET,
+            ret);
     } else {
         printf(ANSI_FG_GREEN "Signature Verification with Public Key Success\r\n" ANSI_RESET);
     }
