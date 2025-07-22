@@ -175,7 +175,11 @@ FuriHalCryptoStatus furi_hal_crypto_storage_write(FuriHalCryptoKey* key) {
     uint32_t address_start = 0;
     FuriHalCryptoStatus ret = furi_hal_crypto_storage_search_clean_place(key, &address_start);
     if(ret == FuriHalCryptoStatusDuplicate) {
-        FURI_LOG_E(TAG, "Key with type %d and id %ld already exists", key->header.type, key->header.id);
+        FURI_LOG_E(
+            TAG,
+            "Key with type %d and id 0x%08lx already exists",
+            key->header.type,
+            key->header.id);
         return ret;
     } else if(ret == FuriHalCryptoStatusStorageFull) {
         FURI_LOG_E(TAG, "No free space for key storage");
