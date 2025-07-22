@@ -9,6 +9,9 @@
 
 #define TAG "Crypto"
 
+uint8_t wrap_iv[] =
+    {0x30, 0x31, 0x32, 0x33, 0x34, 0x35, 0x36, 0x37, 0x38, 0x39, 0x41, 0x42, 0x43, 0x44, 0x45, 0x46};
+
 //#################### AES ####################
 struct FuriHalCryptoAes {
     sl_si91x_aes_config_t config;
@@ -48,7 +51,10 @@ FuriHalCryptoAes* furi_hal_crypto_aes_init(
         break;
     }
     handle->config.key_config.b0.key_slot = 0;
-    handle->config.key_config.b0.wrap_iv_mode = SL_SI91X_WRAP_IV_ECB_MODE;
+    handle->config.key_config.b0.wrap_iv_mode = SL_SI91X_WRAP_IV_CBC_MODE;
+    if(handle->config.key_config.b0.wrap_iv_mode == SL_SI91X_WRAP_IV_CBC_MODE) {
+        memcpy(handle->config.key_config.b0.wrap_iv, wrap_iv, SL_SI91X_IV_SIZE);
+    }
     memcpy(handle->config.key_config.b0.key_buffer, key, handle->config.key_config.b0.key_size);
 
     if(wrapping_mode == FuriHalCryptoWrappingModeOff) {
@@ -172,7 +178,10 @@ FuriHalCryptoEcdsa* furi_hal_crypto_ecdsa_sign_init(
         handle->config.key_config.b0.key_type = SL_SI91X_WRAPPED_KEY;
         handle->config.private_key_length =
             SL_SI91X_ECDSA_PRIV_KEY_SIZE_256; // wrapped key is of fixed output size 32;
-        handle->config.key_config.b0.wrap_iv_mode = SL_SI91X_WRAP_IV_ECB_MODE;
+        handle->config.key_config.b0.wrap_iv_mode = SL_SI91X_WRAP_IV_CBC_MODE;
+        if(handle->config.key_config.b0.wrap_iv_mode == SL_SI91X_WRAP_IV_CBC_MODE) {
+            memcpy(handle->config.key_config.b0.wrap_iv, wrap_iv, SL_SI91X_IV_SIZE);
+        }
     }
     handle->config.key_config.b0.key_size = 0;
     handle->config.key_config.b0.key_slot = 0;
@@ -288,7 +297,10 @@ FuriHalCryptoHmac* furi_hal_crypto_hmac_init(
         handle->config.key_config.B0.key_type = SL_SI91X_TRANSPARENT_KEY;
     } else {
         handle->config.key_config.B0.key_type = SL_SI91X_WRAPPED_KEY;
-        handle->config.key_config.B0.wrap_iv_mode = SL_SI91X_WRAP_IV_ECB_MODE;
+        handle->config.key_config.B0.wrap_iv_mode = SL_SI91X_WRAP_IV_CBC_MODE;
+        if(handle->config.key_config.B0.wrap_iv_mode == SL_SI91X_WRAP_IV_CBC_MODE) {
+            memcpy(handle->config.key_config.B0.wrap_iv, wrap_iv, SL_SI91X_IV_SIZE);
+        }
     }
     handle->config.key_config.B0.key_size = key_size;
     handle->config.key_config.B0.key = key;
@@ -343,10 +355,13 @@ void furi_hal_crypto_hmac_wrap_key(
     furi_check(wrap_config != NULL, "Failed to allocate memory for wrap config");
     wrap_config->key_type = SL_SI91X_TRANSPARENT_KEY;
     wrap_config->key_size = key_size;
-    wrap_config->wrap_iv_mode = SL_SI91X_WRAP_IV_ECB_MODE;
+    wrap_config->wrap_iv_mode = SL_SI91X_WRAP_IV_CBC_MODE;
     wrap_config->padding = (1 << 0); //SL_SI91X_HMAC_PADDING;
     wrap_config->hmac_sha_mode = furi_hal_crypto_hmac_sha_mode[hmac_sha_mode];
 
+    if(wrap_config->wrap_iv_mode == SL_SI91X_WRAP_IV_CBC_MODE) {
+        memcpy(wrap_config->wrap_iv, wrap_iv, SL_SI91X_IV_SIZE);
+    }
     //memset(wrapped_key, 0, *wrapped_key_size);
     memcpy(wrap_config->key_buffer, key, wrap_config->key_size);
 
@@ -404,11 +419,17 @@ void furi_hal_crypto_wrap_key(uint32_t key_size, uint8_t* key, uint8_t* wrapped_
     //sl_si91x_wrap_config_t - size 1432 bytes
     sl_si91x_wrap_config_t* wrap_config = malloc(sizeof(sl_si91x_wrap_config_t));
     furi_check(wrap_config != NULL, "Failed to allocate memory for wrap config");
+
     wrap_config->key_type = SL_SI91X_TRANSPARENT_KEY;
     wrap_config->key_size = key_size;
-    wrap_config->wrap_iv_mode = SL_SI91X_WRAP_IV_ECB_MODE;
+    wrap_config->wrap_iv_mode = SL_SI91X_WRAP_IV_CBC_MODE;
     wrap_config->padding = 0;
+
     memcpy(wrap_config->key_buffer, key, wrap_config->key_size);
+    if(wrap_config->wrap_iv_mode == SL_SI91X_WRAP_IV_CBC_MODE) {
+        memcpy(wrap_config->wrap_iv, wrap_iv, SL_SI91X_IV_SIZE);
+    }
+
     sl_status_t status = sl_si91x_wrap(wrap_config, wrapped_key);
     furi_check(key_size == wrap_config->key_size, "Invalid key size");
     free(wrap_config);
