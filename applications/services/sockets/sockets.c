@@ -2,170 +2,71 @@
 
 static SocketSrv* instance;
 
-// static inline SocketEventType sockets_match_response_type(SocketResponseType response_type) {
-//     return (SocketEventType)(response_type - SocketResponseTypeAsyncReceive);
-// }
-//
-// static inline void sockets_send_request(SocketSrv* instance, const SocketRequest* request) {
-//     const size_t request_size = sockets_get_request_size(request);
-//     const size_t tx_size = intercom_tx(
-//         instance->intercom, IntercomChannelSockets, request, request_size, FuriWaitForever);
-//     furi_check(tx_size == request_size);
-// }
-//
-// static void sockets_process_request(SocketSrv* instance) {
-//     const SocketSrvMessage* message = instance->current_message;
-//     const SocketRequestType request_type = message->request_type;
-//
-//     SocketRequest* request = &instance->request;
-//     request->type = request_type;
-//
-//     if(request_type == SocketRequestTypeAlloc) {
-//         SocketAllocRequest* alloc_request = &request->alloc_request;
-//         const SocketSrvAllocMessage* alloc_message = &message->alloc_message;
-//
-//         alloc_request->socket_info = *alloc_message->socket_info;
-//
-//     } else if(request_type == SocketRequestTypeFree) {
-//         SocketFreeRequest* free_request = &request->free_request;
-//         const SocketSrvFreeMessage* free_message = &message->free_message;
-//
-//         free_request->socket_id = free_message->socket_id;
-//
-//     } else if(request_type == SocketRequestTypeBind) {
-//         SocketBindRequest* bind_request = &request->bind_request;
-//         const SocketSrvBindMessage* bind_message = &message->bind_message;
-//
-//         bind_request->socket_id = bind_message->socket_id;
-//         bind_request->bind_info = *bind_message->bind_info;
-//
-//     } else if(request_type == SocketRequestTypeListen) {
-//         SocketListenRequest* listen_request = &request->listen_request;
-//         const SocketSrvListenMessage* listen_message = &message->listen_message;
-//
-//         listen_request->socket_id = listen_message->socket_id;
-//         listen_request->max_clients = listen_message->max_clients;
-//
-//     } else if(request_type == SocketRequestTypeAccept) {
-//         SocketAcceptRequest* accept_request = &request->accept_request;
-//         const SocketSrvAcceptMessage* accept_message = &message->accept_message;
-//
-//         accept_request->socket_id = accept_message->socket_id;
-//
-//     } else if(request_type == SocketRequestTypeConnect) {
-//         SocketConnectRequest* connect_request = &request->connect_request;
-//         const SocketSrvConnectMessage* connect_message = &message->connect_message;
-//
-//         connect_request->socket_id = connect_message->socket_id;
-//         connect_request->connection_info = *connect_message->connection_info;
-//
-//     } else if(request_type == SocketRequestTypeSend) {
-//         SocketSendRequest* send_request = &request->send_request;
-//         const SocketSrvSendMessage* send_message = &message->send_message;
-//
-//         const size_t chunk_size = MIN(send_message->data_size, SOCKET_SEND_DATA_SIZE);
-//
-//         send_request->socket_id = send_message->socket_id;
-//         send_request->data_size = chunk_size;
-//         memcpy(send_request->data, send_message->data, chunk_size);
-//
-//     } else if(request_type == SocketRequestTypeReceive) {
-//         SocketReceiveRequest* receive_request = &request->receive_request;
-//         const SocketSrvReceiveMessage* receive_message = &message->receive_message;
-//
-//         // TODO: Receive more than one chunk in one request?
-//         const size_t chunk_size = MIN(receive_message->data_size, SOCKET_RECV_DATA_SIZE);
-//
-//         receive_request->socket_id = receive_message->socket_id;
-//         receive_request->data_size = chunk_size;
-//
-//     } else {
-//         furi_crash("Invalid request type");
-//     }
-//
-//     sockets_send_request(instance, request);
-// }
-//
-// static Socket* sockets_alloc_socket(
-//     SocketSrv* instance,
-//     uint8_t socket_id,
-//     SocketEventCallback callback,
-//     void* context) {
-//     furi_assert(socket_id < SOCKET_COUNT);
-//
-//     Socket** socket_slot = &instance->sockets[socket_id];
-//     furi_check(*socket_slot == NULL);
-//
-//     Socket* socket = malloc(sizeof(Socket));
-//
-//     socket->id = socket_id;
-//     socket->owner = instance;
-//     socket->event_callback = callback;
-//     socket->callback_context = context;
-//
-//     *socket_slot = socket;
-//     return socket;
-// }
-//
-// static void sockets_free_socket(SocketSrv* instance, uint8_t socket_id) {
-//     furi_assert(socket_id < SOCKET_COUNT);
-//
-//     Socket** socket_slot = &instance->sockets[socket_id];
-//     Socket* socket = *socket_slot;
-//     furi_check(socket);
-//     free(socket);
-//
-//     *socket_slot = NULL;
-// }
-//
-// static void sockets_process_response(SocketSrv* instance, const SocketResponse* response) {
-//     SocketSrvMessage* message = instance->current_message;
-//     furi_assert(message);
-//
-//     const SocketResponseType response_type = response->type;
-//     message->status = response->status;
-//
-//     if(message->status == SocketStatusOk) {
-//         if(response_type == SocketResponseTypeAlloc) {
-//             SocketSrvAllocMessage* alloc_message = &message->alloc_message;
-//             const SocketAllocResponse* alloc_response = &response->alloc_response;
-//             alloc_message->socket = sockets_alloc_socket(
-//                 instance,
-//                 alloc_response->socket_id,
-//                 alloc_message->event_callback,
-//                 alloc_message->callback_context);
-//
-//         } else if(response_type == SocketResponseTypeFree) {
-//             SocketSrvFreeMessage* free_message = &message->free_message;
-//             sockets_free_socket(instance, free_message->socket_id);
-//
-//         } else if(response_type == SocketResponseTypeSend) {
-//             SocketSrvSendMessage* send_message = &message->send_message;
-//             const SocketSendResponse* send_response = &response->send_response;
-//
-//             if(send_message->sent_size) {
-//                 *send_message->sent_size = send_response->sent_size;
-//             }
-//
-//         } else if(response_type == SocketResponseTypeReceive) {
-//             SocketSrvReceiveMessage* receive_message = &message->receive_message;
-//             const SocketReceiveResponse* receive_response = &response->receive_response;
-//
-//             memcpy(receive_message->data, receive_response->data, receive_response->data_size);
-//
-//             if(receive_message->received_size) {
-//                 *receive_message->received_size = receive_response->data_size;
-//             }
-//
-//         } else {
-//             /* Do nothing */
-//         }
-//     }
-//
-//     api_lock_unlock(message->lock);
-//     furi_check(furi_semaphore_release(instance->access_semaphore) == FuriStatusOk);
-// }
-//
+static void sockets_process_response(const SocketResponse* response) {
+    const SocketResponseType response_type = response->type;
+    const ssize_t status = response->status;
+
+    if(status >= 0) {
+        const SocketReturnParams* ret = &instance->ret;
+
+        if(response_type == SocketResponseTypeReceive) {
+            const SocketReceiveResponse* recv_response = &response->receive_response;
+            const SocketRecvParams* recv_params = &ret->recv_params;
+
+            memcpy(recv_params->mem, recv_response->data, status);
+
+            if(recv_params->from) {
+                memcpy(recv_params->from, &recv_response->from, recv_response->fromlen);
+                *recv_params->fromlen = recv_response->fromlen;
+            }
+
+        } else if(response_type == SocketResponseTypeGetPeerName) {
+            const SocketGetPeerNameResponse* getpeername_response =
+                &response->getpeername_response;
+            const SocketGetPeerNameParams* getpeername_params = &ret->getpeername_params;
+
+            if(getpeername_params->name) {
+                memcpy(
+                    getpeername_params->name,
+                    &getpeername_response->name,
+                    getpeername_response->namelen);
+                *getpeername_params->namelen = getpeername_response->namelen;
+            }
+
+        } else if(response_type == SocketResponseTypeGetSockName) {
+            const SocketGetSockNameResponse* getsockname_response =
+                &response->getsockname_response;
+            const SocketGetSockNameParams* getsockname_params = &ret->getsockname_params;
+
+            if(getsockname_params->name) {
+                memcpy(
+                    getsockname_params->name,
+                    &getsockname_response->name,
+                    getsockname_response->namelen);
+                *getsockname_params->namelen = getsockname_response->namelen;
+            }
+
+        } else if(response_type == SocketResponseTypeGetSockOpt) {
+            const SocketGetSockOptResponse* getsockopt_response = &response->getsockopt_response;
+            const SocketGetSockOptParams* getsockopt_params = &ret->getsockopt_params;
+
+            if(getsockopt_params->optval) {
+                memcpy(
+                    getsockopt_params->optval,
+                    &getsockopt_response->optval,
+                    getsockopt_response->optlen);
+                *getsockopt_params->optlen = getsockopt_response->optlen;
+            }
+
+        } else {
+            // Do nothing
+        }
+    }
+
+    instance->status = status;
+    furi_check(furi_semaphore_release(instance->response_semaphore));
+}
+
 // static void sockets_process_async_response(SocketSrv* instance, const SocketResponse* response) {
 //     const SocketResponseType response_type = response->type;
 //
@@ -204,33 +105,343 @@ static SocketSrv* instance;
 // }
 //
 static void sockets_intercom_rx_callback(const void* data, size_t data_size, void* context) {
-    furi_assert(context);
-    SocketSrv* instance = context;
-    UNUSED(instance);
+    UNUSED(context);
 
     const SocketResponse* response = data;
     furi_assert(data_size == sockets_get_response_size(response));
 
     const SocketResponseType response_type = response->type;
 
-    if(response_type < SocketResponseTypeAsyncReceive) {
-        //         sockets_process_response(instance, response);
+    if(response_type < SocketResponseTypeAsyncAccept) {
+        sockets_process_response(response);
     } else if(response_type < SocketResponseTypeMax) {
+        furi_crash("Async responses not implemented");
         //         sockets_process_async_response(instance, response);
     } else {
         furi_crash("Invalid response type");
     }
 }
 
-SocketSrv* sockets_alloc(void) {
+static void sockets_lock(void) {
+    furi_check(
+        furi_semaphore_acquire(instance->access_semaphore, FuriWaitForever) == FuriStatusOk);
+}
+
+static void sockets_unlock(void) {
+    furi_check(furi_semaphore_release(instance->access_semaphore) == FuriStatusOk);
+}
+
+static void sockets_send_request(void) {
+    const SocketRequest* request = &instance->request;
+
+    const size_t request_size = sockets_get_request_size(request);
+    const size_t tx_size = intercom_tx(
+        instance->intercom, IntercomChannelSockets, request, request_size, FuriWaitForever);
+    furi_check(tx_size == request_size);
+}
+
+static ssize_t sockets_wait_for_response(void) {
+    furi_semaphore_acquire(instance->response_semaphore, FuriWaitForever);
+    return instance->status;
+}
+
+int sl_socket(int domain, int type, int protocol) {
+    furi_check(instance);
+    sockets_lock();
+
+    SocketRequest* request = &instance->request;
+    request->type = SocketRequestTypeAlloc;
+
+    SocketAllocRequest* alloc_request = &request->alloc_request;
+    alloc_request->domain = domain;
+    alloc_request->type = type;
+    alloc_request->protocol = protocol;
+
+    sockets_send_request();
+    const ssize_t status = sockets_wait_for_response();
+
+    sockets_unlock();
+    return status;
+}
+
+int sl_bind(int s, const struct sockaddr* name, socklen_t namelen) {
+    furi_check(instance);
+    sockets_lock();
+
+    SocketRequest* request = &instance->request;
+    request->type = SocketRequestTypeBind;
+    request->socket_id = s;
+
+    SocketBindRequest* bind_request = &request->bind_request;
+    memcpy(&bind_request->name, name, namelen);
+    bind_request->namelen = namelen;
+
+    sockets_send_request();
+    const ssize_t status = sockets_wait_for_response();
+
+    sockets_unlock();
+    return status;
+}
+
+int sl_getsockname(int s, struct sockaddr* name, socklen_t* namelen) {
+    furi_check(instance);
+    sockets_lock();
+
+    SocketRequest* request = &instance->request;
+    request->type = SocketRequestTypeGetSockName;
+    request->socket_id = s;
+
+    SocketReturnParams* ret = &instance->ret;
+    // TODO: is type necessary here?
+
+    SocketGetSockNameParams* getsockname_params = &ret->getsockname_params;
+    getsockname_params->name = name;
+    getsockname_params->namelen = namelen;
+
+    sockets_send_request();
+    const ssize_t status = sockets_wait_for_response();
+
+    sockets_unlock();
+    return status;
+}
+
+int sl_connect(int s, const struct sockaddr* name, socklen_t namelen) {
+    furi_check(instance);
+    sockets_lock();
+
+    SocketRequest* request = &instance->request;
+    request->type = SocketRequestTypeConnect;
+    request->socket_id = s;
+
+    SocketConnectRequest* connect_request = &request->connect_request;
+    memcpy(&connect_request->name, name, namelen);
+    connect_request->namelen = namelen;
+
+    sockets_send_request();
+    const ssize_t status = sockets_wait_for_response();
+
+    sockets_unlock();
+    return status;
+}
+
+int sl_getpeername(int s, struct sockaddr* name, socklen_t* namelen) {
+    furi_check(instance);
+    sockets_lock();
+
+    SocketRequest* request = &instance->request;
+    request->type = SocketRequestTypeGetPeerName;
+    request->socket_id = s;
+
+    SocketReturnParams* ret = &instance->ret;
+    // TODO: is type necessary here?
+
+    SocketGetPeerNameParams* getpeername_params = &ret->getpeername_params;
+    getpeername_params->name = name;
+    getpeername_params->namelen = namelen;
+
+    sockets_send_request();
+    const ssize_t status = sockets_wait_for_response();
+
+    sockets_unlock();
+    return status;
+}
+
+ssize_t sl_send(int s, const void* dataptr, size_t size, int flags) {
+    return sl_sendto(s, dataptr, size, flags, NULL, 0);
+}
+
+ssize_t sl_recv(int s, void* mem, size_t len, int flags) {
+    return sl_recvfrom(s, mem, len, flags, NULL, NULL);
+}
+
+ssize_t sl_sendto(
+    int s,
+    const void* dataptr,
+    size_t size,
+    int flags,
+    const struct sockaddr* to,
+    socklen_t tolen) {
+    UNUSED(flags);
+    furi_check(instance);
+
+    sockets_lock();
+
+    SocketRequest* request = &instance->request;
+    request->type = SocketRequestTypeSend;
+    request->socket_id = s;
+
+    SocketSendRequest* send_request = &request->send_request;
+    const uint16_t send_size = MIN(size, sizeof(send_request->data));
+
+    memcpy(send_request->data, dataptr, send_size);
+    send_request->size = send_size;
+
+    if(to != NULL) {
+        memcpy(&send_request->to, to, tolen);
+    }
+
+    send_request->tolen = tolen;
+
+    sockets_send_request();
+    const ssize_t status = sockets_wait_for_response();
+
+    sockets_unlock();
+    return status;
+}
+
+ssize_t
+    sl_recvfrom(int s, void* mem, size_t len, int flags, struct sockaddr* from, socklen_t* fromlen) {
+    UNUSED(flags);
+    furi_check(instance);
+    furi_check(mem);
+
+    sockets_lock();
+
+    SocketRequest* request = &instance->request;
+    // TODO: How to differentiate recv/recvfrom?
+    request->type = SocketRequestTypeReceive;
+    request->socket_id = s;
+
+    SocketReceiveRequest* recv_request = &request->receive_request;
+    recv_request->len = len;
+
+    SocketReturnParams* ret = &instance->ret;
+    // TODO: is type necessary here?
+
+    SocketRecvParams* recv_params = &ret->recv_params;
+    recv_params->mem = mem;
+    recv_params->from = from;
+    recv_params->fromlen = fromlen;
+
+    sockets_send_request();
+    const ssize_t status = sockets_wait_for_response();
+
+    sockets_unlock();
+    return status;
+}
+
+int sl_getsockopt(int s, int level, int optname, void* optval, socklen_t* optlen) {
+    furi_check(instance);
+    sockets_lock();
+
+    SocketRequest* request = &instance->request;
+    request->type = SocketRequestTypeGetSockOpt;
+    request->socket_id = s;
+
+    SocketGetSockOptRequest* getsockopt_request = &request->getsockopt_request;
+    getsockopt_request->level = level;
+    getsockopt_request->optname = optname;
+
+    SocketReturnParams* ret = &instance->ret;
+    // TODO: is type necessary here?
+
+    SocketGetSockOptParams* getsockopt_params = &ret->getsockopt_params;
+    getsockopt_params->optval = optval;
+    getsockopt_params->optlen = optlen;
+
+    sockets_send_request();
+    const ssize_t status = sockets_wait_for_response();
+
+    sockets_unlock();
+    return status;
+}
+
+int sl_setsockopt(int s, int level, int optname, const void* optval, socklen_t optlen) {
+    furi_check(instance);
+    sockets_lock();
+
+    SocketRequest* request = &instance->request;
+    request->type = SocketRequestTypeSetSockOpt;
+    request->socket_id = s;
+
+    SocketSetSockOptRequest* setsockopt_request = &request->setsockopt_request;
+    setsockopt_request->level = level;
+    setsockopt_request->optname = optname;
+
+    if(optval != NULL) {
+        furi_assert(optlen <= sizeof(setsockopt_request->optval));
+        memcpy(&setsockopt_request->optval, optval, optlen);
+    }
+
+    setsockopt_request->optlen = optlen;
+
+    sockets_send_request();
+    const ssize_t status = sockets_wait_for_response();
+
+    sockets_unlock();
+    return status;
+}
+
+int sl_listen(int s, int backlog) {
+    furi_check(instance);
+
+    sockets_lock();
+
+    SocketRequest* request = &instance->request;
+    request->type = SocketRequestTypeListen;
+    request->socket_id = s;
+
+    SocketListenRequest* listen_request = &request->listen_request;
+    listen_request->backlog = backlog;
+
+    sockets_send_request();
+    const ssize_t status = sockets_wait_for_response();
+
+    sockets_unlock();
+    return status;
+}
+
+int sl_accept(int s, struct sockaddr* addr, socklen_t* addrlen) {
+    furi_check(instance);
+
+    sockets_lock();
+
+    SocketRequest* request = &instance->request;
+    request->type = SocketRequestTypeAccept;
+    request->socket_id = s;
+
+    SocketReturnParams* ret = &instance->ret;
+    // TODO: is type necessary here?
+
+    // TODO: These params should go to a separate cell
+    SocketAcceptParams* accept_params = &ret->accept_params;
+    accept_params->addr = addr;
+    accept_params->addrlen = addrlen;
+
+    sockets_send_request();
+    const ssize_t status = sockets_wait_for_response();
+
+    sockets_unlock();
+
+    // TODO: Wait for async accept signal
+    furi_crash("Accept not implemented");
+    return status;
+}
+
+int sl_close(int s) {
+    furi_check(instance);
+
+    sockets_lock();
+
+    SocketRequest* request = &instance->request;
+    request->type = SocketRequestTypeFree;
+    request->socket_id = s;
+
+    sockets_send_request();
+    const ssize_t status = sockets_wait_for_response();
+
+    sockets_unlock();
+    return status;
+}
+
+static SocketSrv* sockets_alloc(void) {
     SocketSrv* instance = malloc(sizeof(SocketSrv));
-    //     instance->access_semaphore = furi_semaphore_alloc(1, 1);
+    instance->access_semaphore = furi_semaphore_alloc(1, 1);
+    instance->response_semaphore = furi_semaphore_alloc(1, 0);
     instance->intercom = furi_record_open(RECORD_INTERCOM);
 
     intercom_set_rx_callback(
         instance->intercom, IntercomChannelSockets, sockets_intercom_rx_callback, instance);
-
-    //     furi_record_create(RECORD_SOCKETS, instance);
 
     return instance;
 }

@@ -1,5 +1,6 @@
 #pragma once
 
+#include "sockets.h"
 #include "sockets_common.h"
 
 #include <stddef.h>
@@ -43,18 +44,11 @@ typedef enum {
     SocketResponseTypeSetSockOpt = SocketRequestTypeSetSockOpt,
     SocketResponseTypeGetSockOpt = SocketRequestTypeGetSockOpt,
     /* Async responses */
-    SocketResponseTypeAsyncReceive,
     SocketResponseTypeAsyncAccept,
-    SocketResponseTypeAsyncClose,
+    SocketResponseTypeAsyncSelect,
     /* Special value */
     SocketResponseTypeMax,
 } SocketResponseType;
-
-// typedef enum {
-//     SocketChannelSync,
-//     SocketChannelAsync,
-//     SocketChannelMax,
-// } SocketChannel;
 
 typedef struct {
     int32_t domain;
@@ -90,7 +84,6 @@ typedef struct {
 typedef struct {
     int32_t level;
     int32_t optname;
-    uint32_t optlen;
 } SocketGetSockOptRequest;
 
 typedef struct {
@@ -110,6 +103,8 @@ typedef struct {
         SocketConnectRequest connect_request;
         SocketSendRequest send_request;
         SocketReceiveRequest receive_request;
+        SocketGetSockOptRequest getsockopt_request;
+        SocketSetSockOptRequest setsockopt_request;
     };
 } SocketRequest;
 
@@ -136,11 +131,16 @@ typedef struct {
 
 typedef struct {
     uint8_t dummy;
+} SocketSelectAsyncResponse;
+
+typedef struct {
+    uint8_t dummy;
 } SocketAcceptAsyncResponse;
 
 typedef struct {
     uint8_t socket_id;
     union {
+        SocketSelectAsyncResponse select_async_response;
         SocketAcceptAsyncResponse accept_async_response;
     };
 } SocketAsyncResponse;

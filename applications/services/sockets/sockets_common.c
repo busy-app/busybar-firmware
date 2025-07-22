@@ -19,6 +19,10 @@ static const size_t sockets_request_size[SocketRequestTypeMax] = {
     [SocketRequestTypeConnect] = REQUEST_SIZE(SocketConnectRequest),
     [SocketRequestTypeSend] = 0, // Special case, size computed dynamically
     [SocketRequestTypeReceive] = REQUEST_SIZE(SocketReceiveRequest),
+    [SocketRequestTypeGetSockName] = REQUEST_SIZE(SocketEmpty),
+    [SocketRequestTypeGetPeerName] = REQUEST_SIZE(SocketEmpty),
+    [SocketRequestTypeSetSockOpt] = REQUEST_SIZE(SocketSetSockOptRequest),
+    [SocketRequestTypeGetSockOpt] = REQUEST_SIZE(SocketGetSockOptRequest),
 };
 
 static const size_t sockets_response_size[SocketResponseTypeMax] = {
@@ -30,9 +34,12 @@ static const size_t sockets_response_size[SocketResponseTypeMax] = {
     [SocketResponseTypeConnect] = RESPONSE_SIZE(SocketEmpty),
     [SocketResponseTypeSend] = RESPONSE_SIZE(SocketEmpty),
     [SocketResponseTypeReceive] = 0, // Special case, size computed dynamically
-    [SocketResponseTypeAsyncReceive] = ASYNC_RESPONSE_SIZE(SocketEmpty),
+    [SocketResponseTypeGetSockName] = RESPONSE_SIZE(SocketGetSockNameResponse),
+    [SocketResponseTypeGetPeerName] = RESPONSE_SIZE(SocketGetPeerNameResponse),
+    [SocketResponseTypeSetSockOpt] = RESPONSE_SIZE(SocketEmpty),
+    [SocketResponseTypeGetSockOpt] = RESPONSE_SIZE(SocketGetSockOptResponse),
     [SocketResponseTypeAsyncAccept] = ASYNC_RESPONSE_SIZE(SocketAcceptAsyncResponse),
-    [SocketResponseTypeAsyncClose] = ASYNC_RESPONSE_SIZE(SocketEmpty),
+    [SocketResponseTypeAsyncSelect] = ASYNC_RESPONSE_SIZE(SocketSelectAsyncResponse),
 };
 
 size_t sockets_get_request_size(const SocketRequest* request) {
