@@ -43,9 +43,10 @@ bool status_get_power(FuriString* json_str) {
     }
 
     furi_string_cat_printf(json_str, "\"%s\":%u,", "battery_charge", info.charge);
-    furi_string_cat_printf(json_str, "\"%s\":%lu,", "battery_voltage", info.voltage_battery);
+    furi_string_cat_printf(
+        json_str, "\"%s\":%lu,", "battery_voltage", (uint32_t)info.voltage_battery);
     furi_string_cat_printf(json_str, "\"%s\":%ld,", "battery_current", info.current_battery);
-    furi_string_cat_printf(json_str, "\"%s\":%lu", "usb_voltage", info.voltage_usb);
+    furi_string_cat_printf(json_str, "\"%s\":%lu", "usb_voltage", (uint32_t)info.voltage_usb);
 
     furi_string_cat_printf(json_str, "}");
 
