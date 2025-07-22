@@ -61,7 +61,7 @@ static void cli_uart_data_from_pipe(PipeSide* pipe, void* context) {
 
     uint8_t buffer[to_transfer];
     furi_check(pipe_receive(pipe, buffer, to_transfer) == to_transfer);
-    furi_hal_serial_tx(cli_uart->uart_handle, buffer, to_transfer);
+    furi_hal_serial_tx(cli_uart->uart_handle, buffer, to_transfer, FuriWaitForever);
 }
 
 // ============
