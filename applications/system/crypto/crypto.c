@@ -48,6 +48,52 @@ static void crypto_command_show_status(FuriHalCryptoStatus status, const char* n
     }
 }
 
+static const char* crypto_command_show_type(FuriHalCryptoKeyType type) {
+    switch(type) {
+    case FuriHalCryptoKeyTypeAes128:
+        return "FuriHalCryptoKeyTypeAes128";
+    case FuriHalCryptoKeyTypeAes192:
+        return "FuriHalCryptoKeyTypeAes192";
+    case FuriHalCryptoKeyTypeAes256:
+        return "FuriHalCryptoKeyTypeAes256";
+        break;
+    case FuriHalCryptoKeyTypeHmacSha1:
+        return "FuriHalCryptoKeyTypeHmacSha1";
+    case FuriHalCryptoKeyTypeHmacSha256:
+        return "FuriHalCryptoKeyTypeHmacSha256";
+    case FuriHalCryptoKeyTypeHmacSha384:
+        return "FuriHalCryptoKeyTypeHmacSha384";
+        break;
+    case FuriHalCryptoKeyTypeHmacSha512:
+        return "FuriHalCryptoKeyTypeHmacSha512";
+    case FuriHalCryptoKeyTypeEcdsaPriv224:
+        return "FuriHalCryptoKeyTypeEcdsaPriv224";
+    case FuriHalCryptoKeyTypeEcdsaPriv256:
+        return "FuriHalCryptoKeyTypeEcdsaPriv256";
+        break;
+    case FuriHalCryptoKeyTypeEcdsaPub224:
+        return "FuriHalCryptoKeyTypeEcdsaPub224";
+    case FuriHalCryptoKeyTypeEcdsaPub256:
+        return "FuriHalCryptoKeyTypeEcdsaPub256";
+    case FuriHalCryptoKeyTypeMatterDAC:
+        return "FuriHalCryptoKeyTypeMatterDAC";
+        break;
+    case FuriHalCryptoKeyTypeMatterPAI:
+        return "FuriHalCryptoKeyTypeMatterPAI";
+    case FuriHalCryptoKeyTypeMatterCD:
+        return "FuriHalCryptoKeyTypeMatterCD";
+    case FuriHalCryptoKeyTypeMatterVID_PID:
+        return "FuriHalCryptoKeyTypeMatterVID_PID";
+        break;
+    case FuriHalCryptoKeyTypeMatterSPAKE2:
+        return "FuriHalCryptoKeyTypeMatterSPAKE2";
+        break;
+    default:
+        return "Unknown type";
+        break;
+    }
+}
+
 static bool crypto_command_is_init(void) {
     bool ret = furi_hal_nwp_is_initialized();
     if(!ret) {
@@ -271,11 +317,12 @@ void crypto_command_read(PipeSide* pipe, FuriString* args, void* context) {
     FuriHalCryptoStatus status = furi_hal_crypto_storage_read(key, type, id);
 
     if(status == FuriHalCryptoStatusOk) {
-        printf("read_partition: %d\r\n", partition);
+        printf("partition: %d\r\n", partition);
         printf("magic_number: 0x%08lx\r\n", key->header.magic_number);
         printf("key_reserved: 0x%04X\r\n", key->header.reserved);
         printf("key_size: %d\r\n", key->header.size);
         printf("key_type: %ld\r\n", (uint32_t)key->header.type);
+        printf("key_type_name: %s\r\n", crypto_command_show_type(key->header.type));
         printf("key_flags: 0x%08lX\r\n", (uint32_t)key->header.flags);
         printf("key_id: 0x%08lX\r\n", (uint32_t)key->header.id);
         printf("key_reserved1: 0x%08lX\r\n", (uint32_t)key->header.reserved1);
@@ -336,7 +383,6 @@ void crypto_command_dump(PipeSide* pipe, FuriString* args, void* context) {
 void crypto_command_gen(PipeSide* pipe, FuriString* args, void* context) {
     UNUSED(context);
     UNUSED(pipe);
-    UNUSED(args);
     if(!crypto_command_is_init()) {
         return;
     }
@@ -453,6 +499,56 @@ void crypto_command_gen(PipeSide* pipe, FuriString* args, void* context) {
     furi_hal_crypto_storage_free(key);
 }
 
+void crypto_command_list(PipeSide* pipe, FuriString* args, void* context) {
+    UNUSED(context);
+    UNUSED(pipe);
+    if(!crypto_command_is_init()) {
+        return;
+    }
+
+    FuriHalCryptoKey* key = NULL;
+    FuriHalCryptoPartition partition = FuriHalCryptoPartitionMax;
+    uint32_t temp = 0xFF;
+
+    if(furi_string_size(args)) {
+        char* args_cstr = (char*)furi_string_get_cstr(args);
+        StrintParseError parse_err = StrintParseNoError;
+        parse_err |= strint_to_uint32(args_cstr, &args_cstr, &temp, 10);
+        partition = (FuriHalCryptoPartition)temp;
+        if(parse_err || (partition >= FuriHalCryptoPartitionMax)) {
+            cli_print_usage(
+                "crypto list",
+                "<partition> 0-partition_main, 1-partition_user\r\n",
+                furi_string_get_cstr(args));
+            printf(CLI_STATUS_ERROR);
+            return;
+        }
+        if(parse_err) {
+            cli_print_usage(
+                "crypto list",
+                "<partition> List keys from NWP flash.\r\n",
+                furi_string_get_cstr(args));
+            printf(CLI_STATUS_ERROR);
+            return;
+        }
+    } else {
+        cli_print_usage(
+            "crypto list",
+            "<partition> List keys from NWP flash.\r\n",
+            furi_string_get_cstr(args));
+        printf(CLI_STATUS_ERROR);
+        return;
+    }
+
+    key = furi_hal_crypto_storage_alloc(partition);
+    printf("\t<part>\t<type>\t<id>\r\n");
+    while(furi_hal_crypto_storage_get_next_key(key) == FuriHalCryptoStatusOk) {
+        printf("key:\t%d\t%d\t0x%08lX\r\n", key->partition, key->header.type, key->header.id);
+    }
+
+    furi_hal_crypto_storage_free(key);
+}
+
 static void crypto_command_print_usage(void) {
     printf("Usage:\r\n");
     printf("crypto <cmd> <args>\r\n");
@@ -466,6 +562,7 @@ static void crypto_command_print_usage(void) {
         "\tcrypto write <partition> <type> <id: in HEX> <flags: in HEX> <size> <data: in Byte> Write key from NWP flash\r\n");
     printf(
         "\tcrypto gen <partition> <type> <id: in HEX> <flags: in HEX> Generate key from NWP flash\r\n");
+    printf("\tcrypto list <partition> List keys from NWP flash\r\n");
     printf("\tcrypto deinit Deinitialize NWP.\r\n");
     printf("\t\t<partition> 0-partition_main, 1-partition_user.\r\n");
 }
@@ -506,6 +603,10 @@ void crypto_command(PipeSide* pipe, FuriString* args, void* context) {
         }
         if(furi_string_cmp_str(cmd, "gen") == 0) {
             crypto_command_gen(pipe, args, context);
+            break;
+        }
+        if(furi_string_cmp_str(cmd, "list") == 0) {
+            crypto_command_list(pipe, args, context);
             break;
         }
 

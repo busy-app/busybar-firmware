@@ -10,6 +10,7 @@
 
 #define FURI_HAL_CRYPTO_STORAGE_MAGIC_NUMBER_KEY (0x464c4950UL) // "FLIP"
 #define FURI_HAL_CRYPTO_STORAGE_DATA_SIZE_MAX    (996UL) // Maximum data size for keys
+#define FURI_HAL_CRYPTO_KEY_ADDRESS_INIT         (0xFFFFFFFFUL)
 
 FuriHalCryptoKey* furi_hal_crypto_storage_alloc(FuriHalCryptoPartition partition) {
     FuriHalCryptoKey* key = malloc(sizeof(FuriHalCryptoKey));
@@ -17,6 +18,7 @@ FuriHalCryptoKey* furi_hal_crypto_storage_alloc(FuriHalCryptoPartition partition
     key->header.reserved = 0xFFFF;
     key->header.reserved1 = 0xFFFFFFFF;
     key->partition = partition;
+    key->address = FURI_HAL_CRYPTO_KEY_ADDRESS_INIT;
     key->length = FURI_HAL_CRYPTO_STORAGE_DATA_SIZE_MAX;
     key->data = malloc(key->length);
     return key;
@@ -258,6 +260,8 @@ FuriHalCryptoStatus furi_hal_crypto_storage_write(FuriHalCryptoKey* key) {
         }
     }
     furi_hal_crypto_storage_free(key_check);
+
+    key->address = address_start;
     return ret;
 }
 
@@ -334,6 +338,67 @@ FuriHalCryptoStatus
             ret = FuriHalCryptoStatusErrorCrc;
         }
     }
+    key->address = address_start;
+    return ret;
+}
+
+FuriHalCryptoStatus furi_hal_crypto_storage_get_next_key(FuriHalCryptoKey* key) {
+    furi_check(key);
+    furi_check(key->header.magic_number == FURI_HAL_CRYPTO_STORAGE_MAGIC_NUMBER_KEY);
+
+    FuriHalCryptoStatus ret = FuriHalCryptoStatusFail;
+    uint32_t address_start = 0;
+    uint32_t address_end = 0;
+
+    switch(key->partition) {
+    case FuriHalCryptoPartitionMain:
+        if(key->address == FURI_HAL_CRYPTO_KEY_ADDRESS_INIT) {
+            key->address = FURI_HAL_CRYPTO_STORAGE_PARTITION_MAIN_START_ADDRESS;
+        } else {
+            address_start = key->address + sizeof(FuriHalCryptoKeyHeader) + key->header.size;
+        }
+        address_end = FURI_HAL_CRYPTO_STORAGE_PARTITION_MAIN_END_ADDRESS;
+        break;
+    case FuriHalCryptoPartitionUser:
+        if(key->address == FURI_HAL_CRYPTO_KEY_ADDRESS_INIT) {
+            address_start = FURI_HAL_CRYPTO_STORAGE_PARTITION_USER_START_ADDRESS;
+        } else {
+            address_start = key->address + sizeof(FuriHalCryptoKeyHeader) + key->header.size;
+        }
+        address_end = FURI_HAL_CRYPTO_STORAGE_PARTITION_USER_END_ADDRESS;
+        break;
+    default:
+        FURI_LOG_E(TAG, "Unsupported partition for key storage: %d", key->partition);
+        furi_crash();
+    }
+
+    if((address_start + sizeof(FuriHalCryptoKeyHeader)) > address_end) {
+        ret = FuriHalCryptoStatusStorageFull;
+    }
+
+    FuriHalCryptoKeyHeader* header_key = malloc(sizeof(FuriHalCryptoKeyHeader));
+    do {
+        sl_status_t status = sl_si91x_command_to_read_common_flash(
+            address_start, sizeof(FuriHalCryptoKeyHeader), (uint8_t*)header_key);
+        if(status != SL_STATUS_OK) {
+            FURI_LOG_E(TAG, "Failed to read from NWP flash: 0x%08lx\r\n", status);
+            break;
+        }
+        if(header_key->magic_number == FURI_HAL_CRYPTO_STORAGE_MAGIC_NUMBER_KEY) {
+            // Read the key data
+            ret = furi_hal_crypto_storage_read_address(key, address_start);
+            if(ret == FuriHalCryptoStatusOk) {
+                key->address = address_start;
+            }
+        } else if(header_key->magic_number == 0xFFFFFFFF) {
+            // No more keys found
+            ret = FuriHalCryptoStatusNotFound;
+        } else {
+            furi_crash();
+        }
+    } while(false);
+
+    free(header_key);
 
     return ret;
 }
