@@ -1,6 +1,8 @@
 name: Build frontend, check output bundle diff
 on:
   pull_request:
+    paths:
+      - 'assets/frontend/**'
 
 jobs:
   build:
