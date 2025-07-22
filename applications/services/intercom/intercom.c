@@ -131,6 +131,14 @@ static void intercom_dump_frame(const IntercomFrame* frame) {
     furi_string_free(tmp);
 }
 
+static void intercom_unrecoverable_error(const char* message) {
+    // TODO: Implement error notifications
+    while(true) {
+        FURI_LOG_E(TAG, message);
+        furi_delay_ms(5000);
+    }
+}
+
 static void intercom_default_error_callback(IntercomError error, void* context) {
     furi_assert(context);
 
@@ -142,17 +150,14 @@ static void intercom_default_error_callback(IntercomError error, void* context) 
 #endif
 
     if(error == IntercomErrorSync) {
-        furi_crash("Externally requested sync failed");
-
+        intercom_unrecoverable_error("Externally requested sync failed");
     } else if(error == IntercomErrorFraming) {
         intercom_dump_frame(&instance->rx_frame);
-        furi_crash("Corrupted frame received");
-
+        intercom_unrecoverable_error("Corrupted frame received");
     } else if(error == IntercomErrorTransmit) {
-        furi_crash("Other side has died");
-
+        intercom_unrecoverable_error("Other side has died");
     } else {
-        furi_crash();
+        intercom_unrecoverable_error("Unknown error");
     }
 }
 
