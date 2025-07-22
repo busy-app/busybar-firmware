@@ -542,11 +542,27 @@ void crypto_command_list(PipeSide* pipe, FuriString* args, void* context) {
 
     key = furi_hal_crypto_storage_alloc(partition);
     printf("\t<part>\t<type>\t<id>\r\n");
-    while(furi_hal_crypto_storage_get_next_key(key) == FuriHalCryptoStatusOk) {
-        printf("key:\t%d\t%d\t0x%08lX\r\n", key->partition, key->header.type, key->header.id);
-    }
+    bool read_next = true;
+    FuriHalCryptoStatus status = FuriHalCryptoStatusFail;
+    do {
+        status = furi_hal_crypto_storage_get_next_key(key);
+        if(status == FuriHalCryptoStatusOk) {
+            printf("key:\t%d\t%d\t0x%08lX\r\n", key->partition, key->header.type, key->header.id);
+            read_next = true;
+        } else if(status == FuriHalCryptoStatusNotFound || status == FuriHalCryptoStatusStorageFull) {
+            read_next = false;
+        } else {
+            crypto_command_show_status(status, "read");
+            read_next = false;
+        }
+    } while(read_next);
 
     furi_hal_crypto_storage_free(key);
+    if(status == FuriHalCryptoStatusNotFound || status == FuriHalCryptoStatusStorageFull) {
+        printf(CLI_STATUS_OK);
+    } else {
+        printf(CLI_STATUS_ERROR);
+    }
 }
 
 static void crypto_command_print_usage(void) {
