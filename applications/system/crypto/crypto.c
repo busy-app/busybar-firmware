@@ -123,8 +123,13 @@ static void crypto_command_deinit(PipeSide* pipe, FuriString* args, void* contex
     UNUSED(args);
     UNUSED(context);
 
-    furi_hal_nwp_deinit();
-    printf(CLI_STATUS_OK);
+    if(furi_hal_nwp_deinit()) {
+        printf(ANSI_FG_GREEN "NWP deinitialized\r\n" ANSI_RESET);
+        printf(CLI_STATUS_OK);
+    } else {
+        printf(ANSI_FG_RED "Error: Failed to deinitialize NWP\r\n" ANSI_RESET);
+        printf(CLI_STATUS_ERROR);
+    }
 }
 
 void crypto_command_wipe(PipeSide* pipe, FuriString* args, void* context) {
