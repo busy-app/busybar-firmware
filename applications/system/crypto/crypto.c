@@ -182,9 +182,9 @@ void crypto_command_write(PipeSide* pipe, FuriString* args, void* context) {
 
         parse_err |= strint_to_uint32(args_cstr, &args_cstr, &temp, 10);
         key->header.type = (FuriHalCryptoKeyType)temp;
+        parse_err |= strint_to_uint32(args_cstr, &args_cstr, &key->header.id, 16);
         parse_err |= strint_to_uint32(args_cstr, &args_cstr, &temp, 16);
         key->header.flags = (FuriHalCryptoKeyFlag)temp;
-        parse_err |= strint_to_uint32(args_cstr, &args_cstr, &key->header.id, 16);
         parse_err |= strint_to_uint16(args_cstr, &args_cstr, &key->header.size, 10);
         if(!parse_err && (key->header.size > key->length)) {
             cli_print_usage("crypto write", "<size> of range\r\n", furi_string_get_cstr(args));
@@ -198,7 +198,7 @@ void crypto_command_write(PipeSide* pipe, FuriString* args, void* context) {
         if(parse_err || !args_read_hex_bytes(args, key->data, key->header.size)) {
             cli_print_usage(
                 "crypto write",
-                "<partition> <type> <flags: in HEX> <id: in HEX> <size> <data: in byte>\r\n",
+                "<partition> <type> <id: in HEX> <flags: in HEX> <size> <data: in byte>\r\n",
                 furi_string_get_cstr(args));
             furi_hal_crypto_storage_free(key);
             printf(CLI_STATUS_ERROR);
@@ -207,7 +207,7 @@ void crypto_command_write(PipeSide* pipe, FuriString* args, void* context) {
     } else {
         cli_print_usage(
             "crypto write",
-            "<partition> <type> <flags: in HEX> <id: in HEX> <size> <data: in byte>\r\n",
+            "<partition> <type> <id: in HEX> <flags: in HEX> <size> <data: in byte>\r\n",
             furi_string_get_cstr(args));
         printf(CLI_STATUS_ERROR);
         return;
@@ -363,13 +363,13 @@ void crypto_command_gen(PipeSide* pipe, FuriString* args, void* context) {
         }
         parse_err |= strint_to_uint32(args_cstr, &args_cstr, &temp, 10);
         type = (FuriHalCryptoKeyType)temp;
+        parse_err |= strint_to_uint32(args_cstr, &args_cstr, &id, 16);
         parse_err |= strint_to_uint32(args_cstr, &args_cstr, &temp, 16);
         flags = (FuriHalCryptoKeyFlag)temp;
-        parse_err |= strint_to_uint32(args_cstr, &args_cstr, &id, 16);
         if(parse_err) {
             cli_print_usage(
                 "crypto gen",
-                "<partition> <type> <flags: in HEX> <id: in HEX> Generate key from NWP flash.\r\n",
+                "<partition> <type> <id: in HEX> <flags: in HEX> Generate key from NWP flash.\r\n",
                 furi_string_get_cstr(args));
             printf(CLI_STATUS_ERROR);
             return;
@@ -377,7 +377,7 @@ void crypto_command_gen(PipeSide* pipe, FuriString* args, void* context) {
     } else {
         cli_print_usage(
             "crypto gen",
-            "<partition> <type> <flags: in HEX> <id: in HEX> Generate key from NWP flash.\r\n",
+            "<partition> <type> <id: in HEX> <flags: in HEX> Generate key from NWP flash.\r\n",
             furi_string_get_cstr(args));
         printf(CLI_STATUS_ERROR);
         return;
@@ -461,11 +461,11 @@ static void crypto_command_print_usage(void) {
     printf("\tcrypto init Initialize NWP.\r\n");
     printf("\tcrypto wipe <partition> Clear crypto storage.\r\n");
     printf("\tcrypto dump Dump crypto storage.\r\n");
-    printf("\tcrypto read <partition> <type><id: in HEX> Read key from NWP flash.\r\n");
+    printf("\tcrypto read <partition> <type> <id: in HEX> Read key from NWP flash.\r\n");
     printf(
-        "\tcrypto write <partition> <type> <flags: in HEX> <id: in HEX> <size> <data: in Byte> Write key from NWP flash\r\n");
+        "\tcrypto write <partition> <type> <id: in HEX> <flags: in HEX> <size> <data: in Byte> Write key from NWP flash\r\n");
     printf(
-        "\tcrypto gen <partition> <type> <flags: in HEX> <id: in HEX> Generate key from NWP flash\r\n");
+        "\tcrypto gen <partition> <type> <id: in HEX> <flags: in HEX> Generate key from NWP flash\r\n");
     printf("\tcrypto deinit Deinitialize NWP.\r\n");
     printf("\t\t<partition> 0-partition_main, 1-partition_user.\r\n");
 }
