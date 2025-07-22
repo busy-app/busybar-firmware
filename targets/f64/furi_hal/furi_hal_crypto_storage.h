@@ -62,6 +62,7 @@ typedef struct {
     uint16_t length;
     uint8_t* data;
     FuriHalCryptoPartition partition;
+    uint32_t address; // Address in NWP flash where the key is stored
 } FURI_PACKED FuriHalCryptoKey;
 
 typedef enum {
@@ -105,6 +106,12 @@ FuriHalCryptoStatus furi_hal_crypto_storage_write(FuriHalCryptoKey* key);
 */
 FuriHalCryptoStatus
     furi_hal_crypto_storage_read(FuriHalCryptoKey* key, FuriHalCryptoKeyType type, uint32_t id);
+
+/** Get the next key in the storage.
+* @param[in] key Pointer to the key structure to fill with the next key.
+* @return FuriHalCryptoStatus indicating the result of the operation.
+*/
+FuriHalCryptoStatus furi_hal_crypto_storage_get_next_key(FuriHalCryptoKey* key);
 
 /** Generate a random buffer of the specified size.
 * @param[out] buf Pointer to the buffer to fill with random data.
