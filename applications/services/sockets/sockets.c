@@ -2,6 +2,19 @@
 
 static SocketSrv* instance;
 
+// Si917 sockets require port number in host byte order
+static void sockets_fixup_port_number(struct sockaddr* name) {
+    const sa_family_t family = name->sa_family;
+    if(family == AF_INET) {
+        struct sockaddr_in* name4 = (struct sockaddr_in*)name;
+        name4->sin_port = ntohs(name4->sin_port);
+    } else if(family == AF_INET6) {
+        // TODO: Ipv6
+    } else {
+        furi_crash();
+    }
+}
+
 static void sockets_process_response(const SocketResponse* response) {
     const SocketResponseType response_type = response->type;
     const ssize_t status = response->status;
@@ -18,6 +31,7 @@ static void sockets_process_response(const SocketResponse* response) {
             if(recv_params->from) {
                 memcpy(recv_params->from, &recv_response->from, recv_response->fromlen);
                 *recv_params->fromlen = recv_response->fromlen;
+                sockets_fixup_port_number(recv_params->from);
             }
 
         } else if(response_type == SocketResponseTypeGetPeerName) {
@@ -64,7 +78,7 @@ static void sockets_process_response(const SocketResponse* response) {
     }
 
     instance->status = status;
-    furi_check(furi_semaphore_release(instance->response_semaphore));
+    furi_check(furi_semaphore_release(instance->response_semaphore) == FuriStatusOk);
 }
 
 // static void sockets_process_async_response(SocketSrv* instance, const SocketResponse* response) {
@@ -217,6 +231,8 @@ int sl_connect(int s, const struct sockaddr* name, socklen_t namelen) {
     memcpy(&connect_request->name, name, namelen);
     connect_request->namelen = namelen;
 
+    sockets_fixup_port_number(&connect_request->name);
+
     sockets_send_request();
     const ssize_t status = sockets_wait_for_response();
 
@@ -278,6 +294,7 @@ ssize_t sl_sendto(
 
     if(to != NULL) {
         memcpy(&send_request->to, to, tolen);
+        sockets_fixup_port_number(&send_request->to);
     }
 
     send_request->tolen = tolen;
@@ -304,6 +321,7 @@ ssize_t
 
     SocketReceiveRequest* recv_request = &request->receive_request;
     recv_request->len = len;
+    recv_request->include_from = (from != NULL);
 
     SocketReturnParams* ret = &instance->ret;
     // TODO: is type necessary here?

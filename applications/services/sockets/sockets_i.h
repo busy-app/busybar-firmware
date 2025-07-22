@@ -3,7 +3,6 @@
 #include "sockets_common_i.h"
 
 #include <furi.h>
-#include <api_lock.h>
 
 #include <intercom/intercom.h>
 
@@ -92,7 +91,7 @@ typedef struct {
         SocketSrvGetSockOptMessage getsockopt_message;
         SocketSrvSetSockOptMessage setsockopt_message;
     };
-    FuriApiLock lock;
+    // FuriApiLock lock;
 } SocketSrvMessage;
 
 // TODO: Concept testing

@@ -334,6 +334,43 @@ static bool sockets_test_tcp_client(SocketsTestApp* instance) {
 
         int status;
 
+        struct sockaddr_in name;
+        name.sin_family = AF_INET;
+        name.sin_port = htons(CONNECT_PORT);
+        lwip_inet_pton(AF_INET, "10.46.30.122", &name.sin_addr);
+
+        status = sl_connect(client_socket, (struct sockaddr*)&name, sizeof(name));
+
+        if(status < 0) {
+            FURI_LOG_E(TAG, "Failed to connect client socket");
+        }
+
+        const char* message = "Hello there!\r\n";
+
+        status = sl_send(client_socket, message, strlen(message), 0);
+
+        if(status < 0) {
+            FURI_LOG_E(TAG, "Failed to send data");
+        }
+
+        char buf[256] = {};
+
+        struct sockaddr_in from;
+        socklen_t fromlen;
+
+        status =
+            sl_recvfrom(client_socket, buf, sizeof(buf), 0, (struct sockaddr*)&from, &fromlen);
+
+        if(status < 0) {
+            FURI_LOG_E(TAG, "Failed to receive data");
+        }
+
+        FURI_LOG_I(TAG, "Received data (%zd bytes): %s", status, buf);
+
+        lwip_inet_ntop(AF_INET, &from.sin_addr, buf, fromlen);
+
+        FURI_LOG_I(TAG, "From: %s:%hu", buf, ntohs(from.sin_port));
+
         status = sl_close(client_socket);
 
         if(status < 0) {

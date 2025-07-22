@@ -13,12 +13,12 @@ typedef struct {
     socklen_t length;
 } SocketSlAddress;
 
-void sockets_connection_info_to_sl_address(
-    const SocketConnectionInfo* connection_info,
-    SocketSlAddress* sl_address);
-
-void sockets_sockaddr_to_connection_info(
-    const struct sockaddr* sock_addr,
-    SocketConnectionInfo* connection_info);
+// void sockets_connection_info_to_sl_address(
+//     const SocketConnectionInfo* connection_info,
+//     SocketSlAddress* sl_address);
+//
+// void sockets_sockaddr_to_connection_info(
+//     const struct sockaddr* sock_addr,
+//     SocketConnectionInfo* connection_info);
 
 int32_t sockets_get_parent(int32_t socket);

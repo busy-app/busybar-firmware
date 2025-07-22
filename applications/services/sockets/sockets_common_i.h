@@ -79,6 +79,7 @@ typedef struct {
 
 typedef struct {
     uint16_t len;
+    uint8_t include_from;
 } SocketReceiveRequest;
 
 typedef struct {
@@ -131,24 +132,24 @@ typedef struct {
 
 typedef struct {
     uint8_t dummy;
-} SocketSelectAsyncResponse;
+} SocketAcceptAsyncResponse;
 
 typedef struct {
     uint8_t dummy;
-} SocketAcceptAsyncResponse;
+} SocketSelectAsyncResponse;
 
 typedef struct {
     uint8_t socket_id;
     union {
-        SocketSelectAsyncResponse select_async_response;
         SocketAcceptAsyncResponse accept_async_response;
+        SocketSelectAsyncResponse select_async_response;
     };
 } SocketAsyncResponse;
 
 typedef struct {
     uint8_t type;
     int16_t status;
-    int8_t errno;
+    int8_t _errno;
     union {
         SocketReceiveResponse receive_response;
         SocketGetPeerNameResponse getpeername_response;
