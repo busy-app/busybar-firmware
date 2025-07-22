@@ -113,11 +113,11 @@ static bool furi_hal_flash_program_quad_word_remainder(
         *(volatile uint64_t*)(current_qword_addr) = dword_val1;
         *(volatile uint64_t*)(current_qword_addr + 8) = dword_val2;
 
-        // 6. Wait until BSY is set
+        // 6. Wait until WDW is cleared
         timer = furi_hal_cortex_timer_get(FURI_HAL_FLASH_PROGRAM_TIMEOUT_US);
-        while(!(FLASH->NSSR & FLASH_NSSR_BSY)) {
+        while(FLASH->NSSR & FLASH_NSSR_WDW) {
             if(furi_hal_cortex_timer_is_expired(timer)) {
-                furi_crash("BSY not set: QW write");
+                furi_crash("WDW timeout: QW write");
                 return false;
             }
         }
@@ -247,6 +247,43 @@ void furi_hal_flash_program_page(const uint8_t page, const uint8_t* data, uint16
 
     furi_hal_flash_lock();
     FURI_CRITICAL_EXIT();
+}
+
+bool furi_hal_flash_program_otp(const uint32_t base, const uint8_t* data, uint16_t length) {
+    furi_assert(base >= FLASH_OTP_BASE);
+    furi_assert((base + length) < (FLASH_OTP_BASE + FLASH_OTP_SIZE));
+    furi_assert((base & 0xF) == 0);
+    furi_assert(data);
+
+    // Check if OTP area is empty
+    for(uint32_t* ptr = (uint32_t*)base; ptr < (uint32_t*)(base + length); ptr++) {
+        if(*ptr != 0xFFFFFFFF) {
+            return false;
+        }
+    }
+
+    FURI_CRITICAL_ENTER();
+    furi_hal_flash_unlock();
+
+    uint16_t bytes_programmed_total = 0;
+
+    // Ensure BWR is clear for single programming operations. PG will be set per quad-word.
+    FLASH->NSCR &= ~FLASH_NSCR_BWR;
+
+    if(!furi_hal_flash_program_quad_word_remainder(base, &bytes_programmed_total, data, length)) {
+        // This path should ideally not be reached if furi_crash halts execution.
+        furi_hal_flash_lock();
+        FURI_CRITICAL_EXIT();
+        return false;
+    }
+
+    // Final cleanup: Ensure BWR and PG bits are clear.
+    FLASH->NSCR &= ~(FLASH_NSCR_BWR | FLASH_NSCR_PG);
+
+    furi_hal_flash_lock();
+    FURI_CRITICAL_EXIT();
+
+    return true;
 }
 
 // RM0456, 7.3.6 "Flash main memory erase sequences"
