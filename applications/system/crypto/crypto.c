@@ -398,6 +398,7 @@ void crypto_command_gen(PipeSide* pipe, FuriString* args, void* context) {
     FuriHalCryptoKeyFlag flags = FuriHalCryptoKeyFlagNone;
     uint32_t id = 0;
     uint32_t temp = 0xFF;
+    bool asimetric_key = false;
 
     if(furi_string_size(args)) {
         char* args_cstr = (char*)furi_string_get_cstr(args);
@@ -460,9 +461,11 @@ void crypto_command_gen(PipeSide* pipe, FuriString* args, void* context) {
         break;
     case FuriHalCryptoKeyTypeEcdsaPriv224:
         key->header.size = FURI_HAL_CRYPTO_ECDSA_PRIV_KEY_SIZE_224;
+        asimetric_key = true;
         break;
     case FuriHalCryptoKeyTypeEcdsaPriv256:
         key->header.size = FURI_HAL_CRYPTO_ECDSA_PRIV_KEY_SIZE_256;
+        asimetric_key = true;
         break;
     default:
         printf(ANSI_FG_RED "Error: Unsupported key type: %ld\r\n" ANSI_RESET, (uint32_t)type);
@@ -493,14 +496,28 @@ void crypto_command_gen(PipeSide* pipe, FuriString* args, void* context) {
     memset(buf, 0, key->header.size);
     free(buf);
 
-    status = furi_hal_crypto_storage_write(key);
-    if(status == FuriHalCryptoStatusOk) {
-        printf(ANSI_FG_GREEN "Generated key successfully\r\n" ANSI_RESET);
-    } else {
-        printf(ANSI_FG_RED "Error: Failed to generate key" ANSI_RESET "\r\n");
-    }
+    do {
+        if(asimetric_key) {
+            // For asymmetric keys, we need to generate public key
+            status = furi_hal_crypto_storage_gen_asimetric_pub_key(key);
+            if(status != FuriHalCryptoStatusOk) {
+                printf(ANSI_FG_RED "Error: Failed to generate public key" ANSI_RESET "\r\n");
+                break;
+            }
+            printf(ANSI_FG_GREEN "Generated public key successfully\r\n" ANSI_RESET);
+        }
+
+        status = furi_hal_crypto_storage_write(key);
+        if(status == FuriHalCryptoStatusOk) {
+            printf(ANSI_FG_GREEN "Generated private key successfully\r\n" ANSI_RESET);
+        } else {
+            printf(ANSI_FG_RED "Error: Failed to generate private key" ANSI_RESET "\r\n");
+        }
+
+    } while(false);
 
     crypto_command_show_status(status, "write");
+
     furi_hal_crypto_storage_free(key);
 }
 

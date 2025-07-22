@@ -5,6 +5,7 @@
 #include <toolbox_f64/crc32_calc.h>
 
 #include <sl_si91x_trng.h>
+#include <psa/crypto.h>
 
 #define TAG "FuriHalCryptoStorage"
 
@@ -173,7 +174,13 @@ FuriHalCryptoStatus furi_hal_crypto_storage_write(FuriHalCryptoKey* key) {
 
     uint32_t address_start = 0;
     FuriHalCryptoStatus ret = furi_hal_crypto_storage_search_clean_place(key, &address_start);
-    if(ret != FuriHalCryptoStatusOk) {
+    if(ret == FuriHalCryptoStatusDuplicate) {
+        FURI_LOG_E(TAG, "Key with type %d and id %ld already exists", key->header.type, key->header.id);
+        return ret;
+    } else if(ret == FuriHalCryptoStatusStorageFull) {
+        FURI_LOG_E(TAG, "No free space for key storage");
+        return ret;
+    } else if(ret != FuriHalCryptoStatusOk) {
         FURI_LOG_E(TAG, "Failed to find a clean place for key storage: %d", ret);
         return ret;
     }
@@ -401,6 +408,85 @@ FuriHalCryptoStatus furi_hal_crypto_storage_get_next_key(FuriHalCryptoKey* key) 
     free(header_key);
 
     return ret;
+}
+
+FuriHalCryptoStatus furi_hal_crypto_storage_gen_asimetric_pub_key(FuriHalCryptoKey* key) {
+    furi_check(key);
+    furi_check(key->header.magic_number == FURI_HAL_CRYPTO_STORAGE_MAGIC_NUMBER_KEY);
+    furi_check(
+        key->header.type == FuriHalCryptoKeyTypeEcdsaPriv224 ||
+        key->header.type == FuriHalCryptoKeyTypeEcdsaPriv256);
+
+    FuriHalCryptoKey* pub_key = furi_hal_crypto_storage_alloc(key->partition);
+
+    psa_status_t ret;
+    psa_key_id_t key_id;
+    psa_key_attributes_t key_attr;
+    size_t pubkey_len;
+    FuriHalCryptoStatus status = FuriHalCryptoStatusFail;
+
+    do {
+        ret = psa_crypto_init();
+        if(ret != PSA_SUCCESS) {
+            FURI_LOG_E(TAG, "PSA crypto library initialization failed with error: %ld", ret);
+            break;
+        } else {
+            FURI_LOG_D(TAG, "PSA crypto library initialization Success");
+        }
+        // Set up attributes for a volatile private key
+        key_attr = psa_key_attributes_init();
+        psa_set_key_type(&key_attr, PSA_KEY_TYPE_ECC_KEY_PAIR(PSA_ECC_FAMILY_SECP_R1));
+
+        if(key->header.type == FuriHalCryptoKeyTypeEcdsaPriv224) {
+            psa_set_key_bits(&key_attr, FURI_HAL_CRYPTO_ECDSA_PRIV_KEY_SIZE_224_BITS);
+            pub_key->header.size = FURI_HAL_CRYPTO_ECDSA_PUB_KEY_SIZE_224; // Get size in bytes
+            pub_key->header.type = FuriHalCryptoKeyTypeEcdsaPub224;
+        } else if(key->header.type == FuriHalCryptoKeyTypeEcdsaPriv256) {
+            psa_set_key_bits(&key_attr, FURI_HAL_CRYPTO_ECDSA_PRIV_KEY_SIZE_256_BITS);
+            pub_key->header.size = FURI_HAL_CRYPTO_ECDSA_PUB_KEY_SIZE_256; // Get size in bytes
+            pub_key->header.type = FuriHalCryptoKeyTypeEcdsaPub256;
+        }
+        pub_key->header.id = key->header.id;
+        pub_key->header.flags = key->header.flags &
+                                ~FuriHalCryptoKeyFlagWrap; // Clear wrap flag for public key
+
+        psa_set_key_usage_flags(
+            &key_attr, PSA_KEY_USAGE_SIGN_MESSAGE | PSA_KEY_USAGE_VERIFY_MESSAGE);
+        psa_set_key_algorithm(&key_attr, PSA_ALG_ECDSA(PSA_ALG_SHA_256));
+
+        // Import a private key
+        ret = psa_import_key(&key_attr, key->data, key->header.size, &key_id);
+        if(ret != PSA_SUCCESS) {
+            FURI_LOG_E(TAG, "Import Key failed with error: status %ld", ret);
+            break;
+        } else {
+            FURI_LOG_D(TAG, "Import Key success");
+        }
+
+        // Export a public key from a volatile private key
+        ret = psa_export_public_key(key_id, pub_key->data, pub_key->header.size, &pubkey_len);
+        if(ret != PSA_SUCCESS) {
+            FURI_LOG_E(TAG, "Exporting a Public Key from Private key Failed with error: %ld", ret);
+            break;
+        } else {
+            FURI_LOG_D(TAG, "Export Public Key from Private Key Success");
+        }
+
+        furi_check(pubkey_len == pub_key->header.size);
+
+        // Destroy the private key
+        ret = psa_destroy_key(key_id);
+        if(ret != PSA_SUCCESS) {
+            FURI_LOG_E(TAG, "Destroy Key failed with error : %ld", ret);
+            break;
+        } else {
+            FURI_LOG_D(TAG, "Destroy Key Success");
+        }
+
+        status = furi_hal_crypto_storage_write(pub_key);
+    } while(false);
+    free(pub_key);
+    return status;
 }
 
 FuriHalCryptoStatus furi_hal_crypto_storage_gen_random_buf(uint8_t* buf, size_t size) {

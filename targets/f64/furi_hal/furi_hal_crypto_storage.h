@@ -113,6 +113,12 @@ FuriHalCryptoStatus
 */
 FuriHalCryptoStatus furi_hal_crypto_storage_get_next_key(FuriHalCryptoKey* key);
 
+/** Generate an asymmetric public key from a private key.
+* @param[in] key Pointer to the private key.
+* @return FuriHalCryptoStatus indicating the result of the operation.
+*/
+FuriHalCryptoStatus furi_hal_crypto_storage_gen_asimetric_pub_key(FuriHalCryptoKey* key);
+
 /** Generate a random buffer of the specified size.
 * @param[out] buf Pointer to the buffer to fill with random data.
 * @param[in] size Size of the buffer to fill.
