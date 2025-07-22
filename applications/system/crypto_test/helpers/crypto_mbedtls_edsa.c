@@ -9,14 +9,14 @@
 #define TAG "Crypto_MbedTLS_EDSA"
 
 #define WRAP_INPUT_KEYS     1 // Enable this if the input private key needs to be wrapped before use
-#define IMPORT_WRAPPED_KEYS 0 // Enable this if the input key is wrapped
+#define IMPORT_WRAPPED_KEYS 1 // Enable this if the input key is wrapped
 
 static const unsigned char input_data[] = {0x24, 0x8d, 0x6a, 0x61, 0xd2, 0x06, 0x38, 0xb8,
                                            0xe5, 0xc0, 0x26, 0x93, 0x0c, 0x3e, 0x60, 0x39,
                                            0xa3, 0x3c, 0xe4, 0x59, 0x64, 0xff, 0x21, 0x67,
                                            0xf6, 0xec, 0xed, 0xd4, 0x19, 0xdb, 0x06, 0xc1};
 
-static const uint8_t private_key[FURI_HAL_CRYPTO_ECDSA_PRIV_KEY_SIZE_256] = {
+static const uint8_t private_key_init[FURI_HAL_CRYPTO_ECDSA_PRIV_KEY_SIZE_256] = {
     0x41, 0x9c, 0x9c, 0x80, 0x33, 0x6c, 0x40, 0x1f, 0xd2, 0x06, 0x49,
     0x59, 0x8b, 0xb6, 0x5f, 0xb3, 0xd8, 0xd8, 0xef, 0xd5, 0xeb, 0x4a,
     0xe1, 0xe8, 0x8a, 0x63, 0x36, 0x81, 0xcb, 0x0a, 0x21, 0x07};
@@ -27,13 +27,19 @@ static const uint8_t public_key_check[FURI_HAL_CRYPTO_ECDSA_PUB_KEY_SIZE_256] = 
     0x63, 0x88, 0xab, 0x35, 0xaf, 0xb6, 0x34, 0xd8, 0x76, 0x03, 0xef, 0x81, 0xb8,
     0x11, 0x7d, 0x90, 0x43, 0xf6, 0x7e, 0x0a, 0x73, 0x01, 0xbd, 0x48, 0x5e, 0x7f};
 
+void crypto_mbedtls_edsa_wrap(uint8_t* key, size_t key_size, uint8_t* wrapped_key) {
+    furi_check(key_size == FURI_HAL_CRYPTO_ECDSA_PRIV_KEY_SIZE_256);
+    furi_hal_crypto_wrap_key(FURI_HAL_CRYPTO_ECDSA_PRIV_KEY_SIZE_256, key, wrapped_key);
+}
+
+//sli_si91x_crypto_wrap_key(key, key_size, SL_SI91X_WRAP_IV_CBC_MODE, WRAP_IV);
+
 void crypto_mbedtls_edsa_command(PipeSide* pipe, FuriString* args, void* context) {
     UNUSED(pipe);
     UNUSED(args);
     UNUSED(context);
 
-    //sl_mbedtls_init();
-
+    uint8_t private_key[FURI_HAL_CRYPTO_ECDSA_PRIV_KEY_SIZE_256]; // Uncompressed point format
     uint8_t public_key[FURI_HAL_CRYPTO_ECDSA_PUB_KEY_SIZE_256]; // Uncompressed point format
     size_t pubkey_len;
     uint8_t signature_buf[FURI_HAL_CRYPTO_ECDSA_MAX_SIGNATURE_SIZE]; // DER format
@@ -42,6 +48,8 @@ void crypto_mbedtls_edsa_command(PipeSide* pipe, FuriString* args, void* context
     psa_status_t ret;
     psa_key_id_t key_id;
     psa_key_attributes_t key_attr;
+
+    memcpy(private_key, private_key_init, sizeof(private_key_init));
 
     /* psa crypto library initialization */
     ret = psa_crypto_init();
@@ -118,13 +126,24 @@ void crypto_mbedtls_edsa_command(PipeSide* pipe, FuriString* args, void* context
         &key_attr,
         PSA_KEY_LIFETIME_FROM_PERSISTENCE_AND_LOCATION(
             PSA_KEY_PERSISTENCE_VOLATILE, PSA_KEY_VOLATILE_PERSISTENT_WRAP_IMPORT));
+
 #elif IMPORT_WRAPPED_KEYS
+    uint8_t wrapped_key[FURI_HAL_CRYPTO_ECDSA_PRIV_KEY_SIZE_256];
+    memset(wrapped_key, 0, sizeof(wrapped_key));
+    crypto_mbedtls_edsa_wrap(private_key, sizeof(private_key), wrapped_key);
+    memcpy(private_key, wrapped_key, sizeof(wrapped_key));
+
+    printf("Wrapped Key: ");
+    for(uint32_t i = 0; i < sizeof(private_key); i++) {
+        printf("%02X ", private_key[i]);
+    }
+    printf("\r\n");
+
     psa_set_key_lifetime(
         &key_attr,
         PSA_KEY_LIFETIME_FROM_PERSISTENCE_AND_LOCATION(
             PSA_KEY_PERSISTENCE_VOLATILE, PSA_KEY_VOLATILE_PERSISTENT_WRAPPED));
 #endif
-
     // Import a private key
     ret = psa_import_key(&key_attr, private_key, sizeof(private_key), &key_id);
     if(ret != PSA_SUCCESS) {
