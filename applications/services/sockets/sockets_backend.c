@@ -318,6 +318,50 @@ static ssize_t
     return status;
 }
 
+static ssize_t
+    sockets_setsockopt_request_handler(const SocketRequest* request, SocketResponse* response) {
+    UNUSED(response);
+    FURI_LOG_D(TAG, "setsockopt");
+
+    const SocketSetSockOptRequest* setsockopt_request = &request->setsockopt_request;
+    const int status = setsockopt(
+        request->socket_id,
+        setsockopt_request->level,
+        setsockopt_request->optname,
+        &setsockopt_request->optval,
+        setsockopt_request->optlen);
+
+    if(status < 0) {
+        FURI_LOG_E(TAG, "setsockopt failed: %s", strerror(errno));
+    }
+
+    return status;
+}
+
+static ssize_t
+    sockets_getsockopt_request_handler(const SocketRequest* request, SocketResponse* response) {
+    FURI_LOG_D(TAG, "getsockopt");
+
+    const SocketGetSockOptRequest* getsockopt_request = &request->getsockopt_request;
+    SocketGetSockOptResponse* getsockopt_response = &response->getsockopt_response;
+
+    socklen_t optlen;
+    const int status = getsockopt(
+        request->socket_id,
+        getsockopt_request->level,
+        getsockopt_request->optname,
+        &getsockopt_response->optval,
+        &optlen);
+
+    getsockopt_response->optlen = optlen;
+
+    if(status < 0) {
+        FURI_LOG_E(TAG, "getsockopt failed: %s", strerror(errno));
+    }
+
+    return status;
+}
+
 static void sockets_intercom_rx_callback(const void* data, size_t data_size, void* context) {
     furi_assert(context);
     SocketSrv* instance = context;
@@ -543,7 +587,6 @@ static const SocketRequestHandler socket_request_handlers[SocketRequestTypeMax] 
     [SocketRequestTypeReceive] = sockets_recv_request_handler,
     [SocketRequestTypeGetSockName] = sockets_getsockname_request_handler,
     [SocketRequestTypeGetPeerName] = sockets_getpeername_request_handler,
-    // TODO: Additional handlers
-    [SocketRequestTypeSetSockOpt] = NULL,
-    [SocketRequestTypeGetSockOpt] = NULL,
+    [SocketRequestTypeSetSockOpt] = sockets_setsockopt_request_handler,
+    [SocketRequestTypeGetSockOpt] = sockets_getsockopt_request_handler,
 };
