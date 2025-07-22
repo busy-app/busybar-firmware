@@ -45,6 +45,7 @@ static void sockets_process_response(const SocketResponse* response) {
                     &getpeername_response->name,
                     getpeername_response->namelen);
                 *getpeername_params->namelen = getpeername_response->namelen;
+                sockets_fixup_port_number(getpeername_params->name);
             }
 
         } else if(response_type == SocketResponseTypeGetSockName) {
@@ -58,6 +59,7 @@ static void sockets_process_response(const SocketResponse* response) {
                     &getsockname_response->name,
                     getsockname_response->namelen);
                 *getsockname_params->namelen = getsockname_response->namelen;
+                sockets_fixup_port_number(getsockname_params->name);
             }
 
         } else if(response_type == SocketResponseTypeGetSockOpt) {

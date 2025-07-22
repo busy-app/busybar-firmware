@@ -29,7 +29,6 @@ typedef enum {
 
 typedef struct {
     Wifi* wifi;
-    // SocketSrv* sockets_srv;
     // FuriEventLoop* event_loop;
     // FuriMessageQueue* event_queue;
     // Socket* sockets[SocketIndexMax];
@@ -320,6 +319,28 @@ typedef struct {
 //     }
 // }
 
+static void sockets_test_print_sockaddr(
+    const struct sockaddr* name,
+    socklen_t namelen,
+    const char* message) {
+    char buf[32] = {0};
+
+    in_port_t port;
+
+    if(name->sa_family == AF_INET) {
+        const struct sockaddr_in* name4 = (struct sockaddr_in*)name;
+        lwip_inet_ntop(AF_INET, &name4->sin_addr, buf, namelen);
+        port = ntohs(name4->sin_port);
+
+    } else if(name->sa_family == AF_INET6) {
+        furi_crash("Ipv6 not implemented");
+    } else {
+        furi_crash();
+    }
+
+    FURI_LOG_I(TAG, "%s%s:%hu", message, buf, port);
+}
+
 static bool sockets_test_tcp_client(SocketsTestApp* instance) {
     UNUSED(instance);
 
@@ -334,12 +355,12 @@ static bool sockets_test_tcp_client(SocketsTestApp* instance) {
 
         int status;
 
-        struct sockaddr_in name;
-        name.sin_family = AF_INET;
-        name.sin_port = htons(CONNECT_PORT);
-        lwip_inet_pton(AF_INET, "10.46.30.122", &name.sin_addr);
+        struct sockaddr_in connect_name;
+        connect_name.sin_family = AF_INET;
+        connect_name.sin_port = htons(CONNECT_PORT);
+        lwip_inet_pton(AF_INET, "10.46.30.122", &connect_name.sin_addr);
 
-        status = sl_connect(client_socket, (struct sockaddr*)&name, sizeof(name));
+        status = sl_connect(client_socket, (struct sockaddr*)&connect_name, sizeof(connect_name));
 
         if(status < 0) {
             FURI_LOG_E(TAG, "Failed to connect client socket");
@@ -353,23 +374,34 @@ static bool sockets_test_tcp_client(SocketsTestApp* instance) {
             FURI_LOG_E(TAG, "Failed to send data");
         }
 
-        char buf[256] = {};
+        struct sockaddr name;
+        socklen_t namelen;
 
-        struct sockaddr_in from;
-        socklen_t fromlen;
-
-        status =
-            sl_recvfrom(client_socket, buf, sizeof(buf), 0, (struct sockaddr*)&from, &fromlen);
+        status = sl_recvfrom(
+            client_socket, instance->tmp_buf, sizeof(instance->tmp_buf), 0, &name, &namelen);
 
         if(status < 0) {
             FURI_LOG_E(TAG, "Failed to receive data");
         }
 
-        FURI_LOG_I(TAG, "Received data (%zd bytes): %s", status, buf);
+        FURI_LOG_I(TAG, "Received data (%zd bytes): %.*s", status, status, instance->tmp_buf);
+        sockets_test_print_sockaddr(&name, namelen, "From: ");
 
-        lwip_inet_ntop(AF_INET, &from.sin_addr, buf, fromlen);
+        status = sl_getsockname(client_socket, &name, &namelen);
 
-        FURI_LOG_I(TAG, "From: %s:%hu", buf, ntohs(from.sin_port));
+        if(status < 0) {
+            FURI_LOG_E(TAG, "Failed to get socket name");
+        }
+
+        sockets_test_print_sockaddr(&name, namelen, "getsockname(): ");
+
+        status = sl_getpeername(client_socket, &name, &namelen);
+
+        if(status < 0) {
+            FURI_LOG_E(TAG, "Failed to get peer name");
+        }
+
+        sockets_test_print_sockaddr(&name, namelen, "gepeername(): ");
 
         status = sl_close(client_socket);
 
