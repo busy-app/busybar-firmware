@@ -105,10 +105,8 @@ static void sockets_accept_callback(int32_t socket, struct sockaddr* addr, uint8
 static ssize_t
     sockets_socket_request_handler(const SocketRequest* request, SocketResponse* response) {
     UNUSED(response);
-    FURI_LOG_D(TAG, "socket");
 
     const SocketAllocRequest* alloc_request = &request->alloc_request;
-
     int socket_id, status = -1;
 
     do {
@@ -126,10 +124,8 @@ static ssize_t
 
     } while(false);
 
-    if(status < 0) {
-        FURI_LOG_E(TAG, "socket failed: %s", strerror(errno));
-    } else {
-        FURI_LOG_D(TAG, "socket success: %d", socket_id);
+    if(status >= 0) {
+        FURI_LOG_D(TAG, "new socket with fd: %d", socket_id);
     }
 
     return status;
@@ -138,95 +134,46 @@ static ssize_t
 static ssize_t
     sockets_close_request_handler(const SocketRequest* request, SocketResponse* response) {
     UNUSED(response);
-    FURI_LOG_D(TAG, "close");
 
-    const int status = close(request->socket_id);
-
-    if(status < 0) {
-        FURI_LOG_E(TAG, "close failed: %s", strerror(errno));
-    } else {
-        FURI_LOG_D(TAG, "close success: %hhu", request->socket_id);
-    }
-
-    return status;
+    return close(request->socket_id);
 }
 
 static ssize_t
     sockets_bind_request_handler(const SocketRequest* request, SocketResponse* response) {
     UNUSED(response);
-    FURI_LOG_D(TAG, "bind");
 
     const SocketBindRequest* bind_request = &request->bind_request;
-    const int status = bind(request->socket_id, &bind_request->name, bind_request->namelen);
-
-    if(status < 0) {
-        FURI_LOG_E(TAG, "bind failed: %s", strerror(errno));
-    } else {
-        FURI_LOG_D(TAG, "bind success: %hhu", request->socket_id);
-    }
-
-    return status;
+    return bind(request->socket_id, &bind_request->name, bind_request->namelen);
 }
 
 static ssize_t
     sockets_listen_request_handler(const SocketRequest* request, SocketResponse* response) {
     UNUSED(response);
-    FURI_LOG_D(TAG, "listen");
 
     const SocketListenRequest* listen_request = &request->listen_request;
-    const int status = listen(request->socket_id, listen_request->backlog);
-
-    if(status < 0) {
-        FURI_LOG_E(TAG, "listen failed: %s", strerror(errno));
-    } else {
-        FURI_LOG_D(TAG, "listen success: %hhu", request->socket_id);
-    }
-
-    return status;
+    return listen(request->socket_id, listen_request->backlog);
 }
 
 static ssize_t
     sockets_accept_request_handler(const SocketRequest* request, SocketResponse* response) {
     UNUSED(response);
-    FURI_LOG_D(TAG, "accept");
 
-    const int status = sl_si91x_accept_async(request->socket_id, sockets_accept_callback);
-
-    if(status < 0) {
-        FURI_LOG_E(TAG, "accept failed: %s", strerror(errno));
-    } else {
-        FURI_LOG_D(TAG, "accept success: %hhu", request->socket_id);
-    }
-
-    return status;
+    return sl_si91x_accept_async(request->socket_id, sockets_accept_callback);
 }
 
 static ssize_t
     sockets_connect_request_handler(const SocketRequest* request, SocketResponse* response) {
     UNUSED(response);
-    FURI_LOG_D(TAG, "connect");
 
     const SocketConnectRequest* connect_request = &request->connect_request;
-    const int status =
-        connect(request->socket_id, &connect_request->name, connect_request->namelen);
-
-    if(status < 0) {
-        FURI_LOG_E(TAG, "connect failed: %s", strerror(errno));
-    } else {
-        FURI_LOG_D(TAG, "connect success: %hhu", request->socket_id);
-    }
-
-    return status;
+    return connect(request->socket_id, &connect_request->name, connect_request->namelen);
 }
 
 static ssize_t
     sockets_send_request_handler(const SocketRequest* request, SocketResponse* response) {
     UNUSED(response);
-#ifdef SOCKETS_SLOW_LOGS
-    FURI_LOG_D(TAG, "send");
-#endif
-    const SocketSendRequest* send_request = &request->send_request;
 
+    const SocketSendRequest* send_request = &request->send_request;
     ssize_t bytes_sent;
 
     if(send_request->tolen) {
@@ -240,23 +187,16 @@ static ssize_t
     } else {
         bytes_sent = send(request->socket_id, send_request->data, send_request->size, 0);
     }
-
-    if(bytes_sent < 0) {
-        FURI_LOG_E(TAG, "send failed: %s", strerror(errno));
-    } else {
 #ifdef SOCKETS_SLOW_LOGS
-        FURI_LOG_D(TAG, "send success: %d bytes", bytes_sent);
-#endif
+    if(bytes_sent > 0) {
+        FURI_LOG_D(TAG, "bytes sent: %d", bytes_sent);
     }
-
+#endif
     return bytes_sent;
 }
 
 static ssize_t
     sockets_recv_request_handler(const SocketRequest* request, SocketResponse* response) {
-#ifdef SOCKETS_SLOW_LOGS
-    FURI_LOG_D(TAG, "recv");
-#endif
     const SocketReceiveRequest* receive_request = &request->receive_request;
     SocketReceiveResponse* receive_response = &response->receive_response;
 
@@ -276,72 +216,43 @@ static ssize_t
     } else {
         bytes_received = recv(request->socket_id, receive_response->data, receive_request->len, 0);
     }
-
-    if(bytes_received < 0) {
-        FURI_LOG_E(TAG, "recv failed: %s", strerror(errno));
-    } else {
 #ifdef SOCKETS_SLOW_LOGS
-        FURI_LOG_D(TAG, "recv success: %d bytes", bytes_received);
-#endif
+    if(bytes_received > 0) {
+        FURI_LOG_D(TAG, "bytes received: %d", bytes_received);
     }
-
+#endif
     return bytes_received;
 }
 
 static ssize_t
     sockets_getsockname_request_handler(const SocketRequest* request, SocketResponse* response) {
-    FURI_LOG_D(TAG, "getsockname");
-
     SocketGetSockNameResponse* getsockname_response = &response->getsockname_response;
-    const int status = getsockname(
+    return getsockname(
         request->socket_id, &getsockname_response->name, &getsockname_response->namelen);
-
-    if(status < 0) {
-        FURI_LOG_E(TAG, "getsockname failed: %s", strerror(errno));
-    }
-
-    return status;
 }
 
 static ssize_t
     sockets_getpeername_request_handler(const SocketRequest* request, SocketResponse* response) {
-    FURI_LOG_D(TAG, "getpeername");
-
     SocketGetPeerNameResponse* getpeername_response = &response->getpeername_response;
-    const int status = getpeername(
+    return getpeername(
         request->socket_id, &getpeername_response->name, &getpeername_response->namelen);
-
-    if(status < 0) {
-        FURI_LOG_E(TAG, "getpeername failed: %s", strerror(errno));
-    }
-
-    return status;
 }
 
 static ssize_t
     sockets_setsockopt_request_handler(const SocketRequest* request, SocketResponse* response) {
     UNUSED(response);
-    FURI_LOG_D(TAG, "setsockopt");
 
     const SocketSetSockOptRequest* setsockopt_request = &request->setsockopt_request;
-    const int status = setsockopt(
+    return setsockopt(
         request->socket_id,
         setsockopt_request->level,
         setsockopt_request->optname,
         &setsockopt_request->optval,
         setsockopt_request->optlen);
-
-    if(status < 0) {
-        FURI_LOG_E(TAG, "setsockopt failed: %s", strerror(errno));
-    }
-
-    return status;
 }
 
 static ssize_t
     sockets_getsockopt_request_handler(const SocketRequest* request, SocketResponse* response) {
-    FURI_LOG_D(TAG, "getsockopt");
-
     const SocketGetSockOptRequest* getsockopt_request = &request->getsockopt_request;
     SocketGetSockOptResponse* getsockopt_response = &response->getsockopt_response;
 
@@ -354,11 +265,6 @@ static ssize_t
         &optlen);
 
     getsockopt_response->optlen = optlen;
-
-    if(status < 0) {
-        FURI_LOG_E(TAG, "getsockopt failed: %s", strerror(errno));
-    }
-
     return status;
 }
 
@@ -383,9 +289,17 @@ static void sockets_custom_event_callback(uint32_t events, void* context) {
         const SocketRequestType request_type = request->type;
 
         SocketResponse* response = &instance->response;
-        response->type = (SocketResponseType)request->type;
+        response->type = (SocketResponseType)request_type;
+
+        FURI_LOG_D(TAG, "%s fd: %d", sockets_get_request_name(request_type), request->socket_id);
+
         response->status = socket_request_handlers[request_type](request, response);
         response->_errno = errno;
+
+        if(response->status < 0) {
+            FURI_LOG_E(
+                TAG, "%s failed: %s", sockets_get_request_name(request_type), strerror(errno));
+        }
 
         sockets_send_response(instance, response);
     }

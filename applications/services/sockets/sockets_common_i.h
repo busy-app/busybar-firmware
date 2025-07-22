@@ -166,3 +166,5 @@ _Static_assert(sizeof(SocketResponse) <= SOCKET_RESPONSE_SIZE_MAX);
 
 size_t sockets_get_request_size(const SocketRequest* request);
 size_t sockets_get_response_size(const SocketResponse* response);
+
+const char* sockets_get_request_name(SocketRequestType request_type);

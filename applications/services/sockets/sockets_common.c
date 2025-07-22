@@ -42,6 +42,21 @@ static const size_t sockets_response_size[SocketResponseTypeMax] = {
     [SocketResponseTypeAsyncSelect] = ASYNC_RESPONSE_SIZE(SocketSelectAsyncResponse),
 };
 
+static const char* sockets_request_names[SocketRequestTypeMax] = {
+    [SocketRequestTypeAlloc] = "socket",
+    [SocketRequestTypeFree] = "close",
+    [SocketRequestTypeBind] = "bind",
+    [SocketRequestTypeListen] = "listen",
+    [SocketRequestTypeAccept] = "accept",
+    [SocketRequestTypeConnect] = "connect",
+    [SocketRequestTypeSend] = "send",
+    [SocketRequestTypeReceive] = "recv",
+    [SocketRequestTypeGetSockName] = "getsockname",
+    [SocketRequestTypeGetPeerName] = "getpeername",
+    [SocketRequestTypeSetSockOpt] = "setsockopt",
+    [SocketRequestTypeGetSockOpt] = "getsockopt",
+};
+
 size_t sockets_get_request_size(const SocketRequest* request) {
     const uint8_t request_type = request->type;
     furi_assert(request_type < SocketRequestTypeMax);
@@ -78,4 +93,9 @@ size_t sockets_get_response_size(const SocketResponse* response) {
     }
 
     return response_size;
+}
+
+const char* sockets_get_request_name(SocketRequestType request_type) {
+    furi_assert(request_type < SocketRequestTypeMax);
+    return sockets_request_names[request_type];
 }
