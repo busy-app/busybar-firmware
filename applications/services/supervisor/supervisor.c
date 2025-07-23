@@ -169,12 +169,12 @@ static void supervisor_intercom_callback(const void* message, void* context) {
     furi_assert(message);
     furi_assert(context);
 
-    const IntercomPubSubMessage* pubsub_message = message;
+    const IntercomEvent* event = message;
     Supervisor* instance = context;
 
-    if(pubsub_message->type == IntercomPubSubTypeError) {
+    if(event->type == IntercomEventTypeError) {
         supervisor_send_event_with_message(
-            instance, SupervisorEventTypeIntercomError, pubsub_message->message);
+            instance, SupervisorEventTypeIntercomError, event->message);
     }
 }
 

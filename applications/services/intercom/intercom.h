@@ -46,15 +46,15 @@ typedef enum {
 } IntercomError;
 
 typedef enum {
-    IntercomPubSubTypeError, /**< Error event */
-} IntercomPubSubType;
+    IntercomEventTypeError, /**< Error event */
+} IntercomEventType;
 
 typedef struct {
-    IntercomPubSubType type; /**< Type of the event */
+    IntercomEventType type; /**< Type of the event */
     union {
         const char* message; /**< Optional message, if applicable */
     };
-} IntercomPubSubMessage;
+} IntercomEvent;
 
 /**
  * @brief Receive callback function type.
