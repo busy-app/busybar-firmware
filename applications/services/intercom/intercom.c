@@ -33,6 +33,8 @@
 #error "Unsupported target"
 #endif
 
+#define INTERCOM_MAGIC_DELAY (100UL)
+
 typedef struct {
     IntercomRxCallback rx_callback;
     void* callback_context;
@@ -129,6 +131,14 @@ static void intercom_dump_frame(const IntercomFrame* frame) {
     furi_string_free(tmp);
 }
 
+static void intercom_unrecoverable_error(const char* message) {
+    // TODO: Implement error notifications
+    while(true) {
+        FURI_LOG_E(TAG, message);
+        furi_delay_ms(5000);
+    }
+}
+
 static void intercom_default_error_callback(IntercomError error, void* context) {
     furi_assert(context);
 
@@ -140,17 +150,14 @@ static void intercom_default_error_callback(IntercomError error, void* context) 
 #endif
 
     if(error == IntercomErrorSync) {
-        furi_crash("Externally requested sync failed");
-
+        intercom_unrecoverable_error("Externally requested sync failed");
     } else if(error == IntercomErrorFraming) {
         intercom_dump_frame(&instance->rx_frame);
-        furi_crash("Corrupted frame received");
-
+        intercom_unrecoverable_error("Corrupted frame received");
     } else if(error == IntercomErrorTransmit) {
-        furi_crash("Other side has died");
-
+        intercom_unrecoverable_error("Other side has died");
     } else {
-        furi_crash();
+        intercom_unrecoverable_error("Unknown error");
     }
 }
 
@@ -178,6 +185,8 @@ static bool intercom_try_sync(Intercom* instance) {
 #endif
         furi_hal_serial_clear(instance->serial, FuriHalSerialDirectionTxRx);
         instance->is_initial_sync_done = true;
+        // TODO find proper enterprose delay value
+        furi_delay_ms(INTERCOM_MAGIC_DELAY);
         furi_check(furi_semaphore_release(instance->tx_semaphore) == FuriStatusOk);
     } else {
         if(instance->is_initial_sync_done) {

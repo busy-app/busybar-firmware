@@ -2,6 +2,7 @@
     "inherit": "f20",
     "sources": [
         "*/*.c",
+        "f20:!furi_hal/furi_hal_display.c",
         "f20:!furi_hal/furi_hal_resources_pins.c",
         "f20:!furi_hal/furi_hal_version_device.c"
     ]
