@@ -66,6 +66,10 @@ typedef struct {
 } SocketListenRequest;
 
 typedef struct {
+    uint32_t addrlen;
+} SocketAcceptRequest;
+
+typedef struct {
     struct sockaddr name;
     uint32_t namelen;
 } SocketConnectRequest;
@@ -101,6 +105,7 @@ typedef struct {
         SocketAllocRequest alloc_request;
         SocketBindRequest bind_request;
         SocketListenRequest listen_request;
+        SocketAcceptRequest accept_request;
         SocketConnectRequest connect_request;
         SocketSendRequest send_request;
         SocketReceiveRequest receive_request;
@@ -114,6 +119,11 @@ typedef struct {
     uint8_t fromlen;
     uint8_t data[SOCKET_RECV_DATA_SIZE];
 } SocketReceiveResponse;
+
+typedef struct {
+    struct sockaddr addr;
+    uint32_t addrlen;
+} SocketAcceptResponse;
 
 typedef struct {
     struct sockaddr name;
@@ -131,7 +141,8 @@ typedef struct {
 } SocketGetSockOptResponse;
 
 typedef struct {
-    uint8_t dummy;
+    struct sockaddr addr;
+    uint32_t addrlen;
 } SocketAcceptAsyncResponse;
 
 typedef struct {
@@ -152,6 +163,7 @@ typedef struct {
     int8_t _errno;
     union {
         SocketReceiveResponse receive_response;
+        SocketAcceptResponse accept_response;
         SocketGetPeerNameResponse getpeername_response;
         SocketGetSockNameResponse getsockname_response;
         SocketGetSockOptResponse getsockopt_response;

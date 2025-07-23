@@ -34,6 +34,16 @@ static void sockets_process_response(const SocketResponse* response) {
                 sockets_fixup_port_number(recv_params->from);
             }
 
+        } else if(response_type == SocketResponseTypeAccept) {
+            const SocketAcceptResponse* accept_response = &response->accept_response;
+            const SocketAcceptParams* accept_params = &ret->accept_params;
+
+            if(accept_params->addr) {
+                memcpy(accept_params->addr, &accept_response->addr, accept_response->addrlen);
+                *accept_params->addrlen = accept_response->addrlen;
+                sockets_fixup_port_number(accept_params->addr);
+            }
+
         } else if(response_type == SocketResponseTypeGetPeerName) {
             const SocketGetPeerNameResponse* getpeername_response =
                 &response->getpeername_response;
@@ -80,6 +90,8 @@ static void sockets_process_response(const SocketResponse* response) {
     }
 
     instance->status = status;
+    instance->saved_errno = response->_errno;
+
     furi_check(furi_semaphore_release(instance->response_semaphore) == FuriStatusOk);
 }
 
@@ -158,6 +170,10 @@ static void sockets_send_request(void) {
 
 static ssize_t sockets_wait_for_response(void) {
     furi_semaphore_acquire(instance->response_semaphore, FuriWaitForever);
+
+    // TODO: Better errno?
+    errno = instance->saved_errno;
+
     return instance->status;
 }
 
@@ -191,6 +207,8 @@ int sl_bind(int s, const struct sockaddr* name, socklen_t namelen) {
     SocketBindRequest* bind_request = &request->bind_request;
     memcpy(&bind_request->name, name, namelen);
     bind_request->namelen = namelen;
+
+    sockets_fixup_port_number(&bind_request->name);
 
     sockets_send_request();
     const ssize_t status = sockets_wait_for_response();
@@ -420,10 +438,12 @@ int sl_accept(int s, struct sockaddr* addr, socklen_t* addrlen) {
     request->type = SocketRequestTypeAccept;
     request->socket_id = s;
 
+    SocketAcceptRequest* accept_request = &request->accept_request;
+    accept_request->addrlen = *addrlen;
+
     SocketReturnParams* ret = &instance->ret;
     // TODO: is type necessary here?
 
-    // TODO: These params should go to a separate cell
     SocketAcceptParams* accept_params = &ret->accept_params;
     accept_params->addr = addr;
     accept_params->addrlen = addrlen;
@@ -432,9 +452,6 @@ int sl_accept(int s, struct sockaddr* addr, socklen_t* addrlen) {
     const ssize_t status = sockets_wait_for_response();
 
     sockets_unlock();
-
-    // TODO: Wait for async accept signal
-    furi_crash("Accept not implemented");
     return status;
 }
 
