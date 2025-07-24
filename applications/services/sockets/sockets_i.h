@@ -121,6 +121,12 @@ typedef struct {
 } SocketGetSockOptParams;
 
 typedef struct {
+    fd_set* readset;
+    fd_set* writeset;
+    fd_set* exceptset;
+} SocketSelectParams;
+
+typedef struct {
     SocketRequestType request_type;
     union {
         SocketAcceptParams accept_params;
@@ -128,6 +134,7 @@ typedef struct {
         SocketGetSockNameParams getsockname_params;
         SocketGetPeerNameParams getpeername_params;
         SocketGetSockOptParams getsockopt_params;
+        SocketSelectParams select_params;
     };
 } SocketReturnParams;
 

@@ -67,20 +67,23 @@ static inline void sockets_send_response(SocketSrv* instance, const SocketRespon
     furi_assert(tx_size == response_size);
 }
 
-// static void sockets_select_callback(
-//     fd_set* read_fds,
-//     fd_set* write_fds,
-//     fd_set* except_fds,
-//     int32_t status) {
-//     UNUSED(write_fds);
-//     UNUSED(except_fds);
-//     UNUSED(status);
-//
-//     if(status == SL_STATUS_OK) {
-//         const uint32_t socket_bits = read_fds->__fds_bits[0];
-//         furi_event_flag_set(socket_srv->read_event_flag, socket_bits);
-//     }
-// }
+static void sockets_select_callback(
+    fd_set* read_fds,
+    fd_set* write_fds,
+    fd_set* except_fds,
+    int32_t status) {
+    UNUSED(write_fds);
+    UNUSED(except_fds);
+    UNUSED(status);
+
+    if(status == SL_STATUS_OK) {
+        const uint32_t read_bits = *(uint32_t*)read_fds;
+        FURI_LOG_I(TAG, "Sockets ready for reading: %lX", read_bits);
+        // furi_event_flag_set(socket_srv->read_event_flag, socket_bits);
+    } else {
+        FURI_LOG_E(TAG, "Select Failed");
+    }
+}
 
 static ssize_t
     sockets_socket_request_handler(const SocketRequest* request, SocketResponse* response) {
@@ -253,6 +256,34 @@ static ssize_t
     return status;
 }
 
+static ssize_t
+    sockets_select_request_handler(const SocketRequest* request, SocketResponse* response) {
+    const SocketSelectRequest* select_request = &request->select_request;
+    SocketSelectResponse* select_response = &response->select_response;
+
+    select_response->readset = select_request->readset;
+    select_response->writeset = select_request->writeset;
+
+    fd_set* readset = (fd_set*)(select_request->readset ? &select_response->readset : NULL);
+    fd_set* writeset = (fd_set*)(select_request->writeset ? &select_response->writeset : NULL);
+
+    struct timeval timeout = {
+        .tv_sec = select_request->timeout.sec,
+        .tv_usec = select_request->timeout.usec,
+    };
+
+    FURI_LOG_D(
+        TAG,
+        "SELECT maxfdp1: %lu, readset: %lX, timeout: %lus",
+        select_request->maxfdp1,
+        select_request->readset,
+        timeout.tv_sec);
+
+    // return select(select_request->maxfdp1, readset, writeset, NULL, &timeout);
+    return sl_si91x_select(
+        select_request->maxfdp1, readset, writeset, NULL, NULL, sockets_select_callback);
+}
+
 static void sockets_intercom_rx_callback(const void* data, size_t data_size, void* context) {
     furi_assert(context);
     SocketSrv* instance = context;
@@ -356,4 +387,5 @@ static const SocketRequestHandler socket_request_handlers[SocketRequestTypeMax] 
     [SocketRequestTypeGetPeerName] = sockets_getpeername_request_handler,
     [SocketRequestTypeSetSockOpt] = sockets_setsockopt_request_handler,
     [SocketRequestTypeGetSockOpt] = sockets_getsockopt_request_handler,
+    [SocketRequestTypeSelect] = sockets_select_request_handler,
 };

@@ -351,6 +351,7 @@ static bool sockets_test_tcp_client(SocketsTestApp* instance) {
 
         if(client_socket < 0) {
             FURI_LOG_E(TAG, "Failed to create client socket");
+            break;
         }
 
         int status;
@@ -358,20 +359,22 @@ static bool sockets_test_tcp_client(SocketsTestApp* instance) {
         struct sockaddr_in connect_name;
         connect_name.sin_family = AF_INET;
         connect_name.sin_port = htons(CONNECT_PORT);
-        lwip_inet_pton(AF_INET, "10.46.30.122", &connect_name.sin_addr);
+        lwip_inet_pton(AF_INET, "10.46.30.158", &connect_name.sin_addr);
 
         status = sl_connect(client_socket, (struct sockaddr*)&connect_name, sizeof(connect_name));
 
         if(status < 0) {
             FURI_LOG_E(TAG, "Failed to connect client socket");
+            break;
         }
 
-        const char* message = "Hello there!\r\n";
+        const char* message = "Hello from TCP client!\r\n";
 
         status = sl_send(client_socket, message, strlen(message), 0);
 
         if(status < 0) {
             FURI_LOG_E(TAG, "Failed to send data");
+            break;
         }
 
         struct sockaddr name;
@@ -382,6 +385,7 @@ static bool sockets_test_tcp_client(SocketsTestApp* instance) {
 
         if(status < 0) {
             FURI_LOG_E(TAG, "Failed to receive data");
+            break;
         }
 
         FURI_LOG_I(TAG, "Received data (%zd bytes): %.*s", status, status, instance->tmp_buf);
@@ -391,6 +395,7 @@ static bool sockets_test_tcp_client(SocketsTestApp* instance) {
 
         if(status < 0) {
             FURI_LOG_E(TAG, "Failed to get socket name");
+            break;
         }
 
         sockets_test_print_sockaddr(&name, namelen, "getsockname(): ");
@@ -399,6 +404,7 @@ static bool sockets_test_tcp_client(SocketsTestApp* instance) {
 
         if(status < 0) {
             FURI_LOG_E(TAG, "Failed to get peer name");
+            break;
         }
 
         sockets_test_print_sockaddr(&name, namelen, "gepeername(): ");
@@ -407,6 +413,103 @@ static bool sockets_test_tcp_client(SocketsTestApp* instance) {
 
         if(status < 0) {
             FURI_LOG_E(TAG, "Failed to close client socket");
+            break;
+        }
+
+        success = true;
+
+    } while(false);
+
+    return success;
+}
+
+static bool sockets_test_tcp_server(SocketsTestApp* instance) {
+    UNUSED(instance);
+
+    bool success = false;
+
+    do {
+        const int server_socket = sl_socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
+
+        if(server_socket < 0) {
+            FURI_LOG_E(TAG, "Failed to create server socket");
+            break;
+        }
+
+        int status;
+
+        const struct sockaddr_in listen_name = {
+            .sin_family = AF_INET,
+            .sin_port = htons(LISTEN_PORT),
+        };
+
+        status = sl_bind(server_socket, (struct sockaddr*)&listen_name, sizeof(listen_name));
+
+        if(status < 0) {
+            FURI_LOG_E(TAG, "Failed to bind server socket");
+            break;
+        }
+
+        status = sl_listen(server_socket, MAX_TCP_CLIENTS);
+
+        if(status < 0) {
+            FURI_LOG_E(TAG, "Failed to listen on server socket");
+            break;
+        }
+
+        fd_set readset;
+        FD_ZERO(&readset);
+        FD_SET(server_socket, &readset);
+
+        struct timeval timeout = {
+            .tv_sec = 20,
+        };
+
+        status = sl_select(server_socket + 1, &readset, NULL, NULL, &timeout);
+
+        if(status < 0) {
+            FURI_LOG_E(TAG, "Failed to select");
+            break;
+        }
+
+        FURI_LOG_D(TAG, "Select OK");
+        break;
+
+        struct sockaddr remote_name;
+        socklen_t remote_namelen = sizeof(remote_name);
+
+        status = sl_accept(server_socket, &remote_name, &remote_namelen);
+
+        if(status < 0) {
+            FURI_LOG_E(TAG, "Failed to accept");
+            break;
+        }
+
+        sockets_test_print_sockaddr(&remote_name, remote_namelen, "Accepted connection from: ");
+
+        const int remote_client_socket = status;
+
+        const char* message = "Hello from TCP server!\r\n";
+
+        status = sl_send(remote_client_socket, message, strlen(message), 0);
+
+        if(status < 0) {
+            FURI_LOG_E(TAG, "Failed to send to remote client");
+            break;
+        }
+
+        status = sl_close(remote_client_socket);
+
+        if(status < 0) {
+            FURI_LOG_E(TAG, "Failed to close remote client socket");
+            break;
+        }
+
+        status = sl_close(server_socket);
+
+        if(status < 0) {
+            FURI_LOG_E(TAG, "Failed to close server socket");
+            break;
         }
 
         success = true;
@@ -435,7 +538,11 @@ int32_t sockets_test_app(void* arg) {
     SocketsTestApp* instance = sockets_test_app_alloc();
 
     do {
-        if(!sockets_test_tcp_client(instance)) {
+        UNUSED(sockets_test_tcp_client);
+        // if(!sockets_test_tcp_client(instance)) {
+        //     break;
+        // }
+        if(!sockets_test_tcp_server(instance)) {
             break;
         }
 

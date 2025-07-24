@@ -45,7 +45,6 @@ int sl_accept(int s, struct sockaddr* addr, socklen_t* addrlen);
 
 int sl_close(int s);
 
-// TODO: move to its own header?
 int sl_select(
     int maxfdp1,
     fd_set* readset,

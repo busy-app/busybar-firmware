@@ -26,6 +26,7 @@ typedef enum {
     SocketRequestTypeGetPeerName,
     SocketRequestTypeSetSockOpt,
     SocketRequestTypeGetSockOpt,
+    SocketRequestTypeSelect,
     /* Special value */
     SocketRequestTypeMax,
 } SocketRequestType;
@@ -43,6 +44,7 @@ typedef enum {
     SocketResponseTypeGetPeerName = SocketRequestTypeGetPeerName,
     SocketResponseTypeSetSockOpt = SocketRequestTypeSetSockOpt,
     SocketResponseTypeGetSockOpt = SocketRequestTypeGetSockOpt,
+    SocketResponseTypeSelect = SocketRequestTypeSelect,
     /* Async responses */
     SocketResponseTypeAsyncAccept,
     SocketResponseTypeAsyncSelect,
@@ -99,6 +101,17 @@ typedef struct {
 } SocketSetSockOptRequest;
 
 typedef struct {
+    uint32_t maxfdp1;
+    uint32_t readset;
+    uint32_t writeset;
+    uint32_t exceptset;
+    struct {
+        uint32_t sec;
+        uint32_t usec;
+    } timeout;
+} SocketSelectRequest;
+
+typedef struct {
     uint8_t type;
     uint8_t socket_id;
     union {
@@ -111,6 +124,7 @@ typedef struct {
         SocketReceiveRequest receive_request;
         SocketGetSockOptRequest getsockopt_request;
         SocketSetSockOptRequest setsockopt_request;
+        SocketSelectRequest select_request;
     };
 } SocketRequest;
 
@@ -141,6 +155,12 @@ typedef struct {
 } SocketGetSockOptResponse;
 
 typedef struct {
+    uint32_t readset;
+    uint32_t writeset;
+    uint32_t exceptset;
+} SocketSelectResponse;
+
+typedef struct {
     struct sockaddr addr;
     uint32_t addrlen;
 } SocketAcceptAsyncResponse;
@@ -167,6 +187,7 @@ typedef struct {
         SocketGetPeerNameResponse getpeername_response;
         SocketGetSockNameResponse getsockname_response;
         SocketGetSockOptResponse getsockopt_response;
+        SocketSelectResponse select_response;
         SocketAsyncResponse async_response;
     };
 } SocketResponse;

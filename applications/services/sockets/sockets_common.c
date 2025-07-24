@@ -23,6 +23,7 @@ static const size_t sockets_request_size[SocketRequestTypeMax] = {
     [SocketRequestTypeGetPeerName] = REQUEST_SIZE(SocketEmpty),
     [SocketRequestTypeSetSockOpt] = REQUEST_SIZE(SocketSetSockOptRequest),
     [SocketRequestTypeGetSockOpt] = REQUEST_SIZE(SocketGetSockOptRequest),
+    [SocketRequestTypeSelect] = REQUEST_SIZE(SocketSelectRequest),
 };
 
 static const size_t sockets_response_size[SocketResponseTypeMax] = {
@@ -38,6 +39,7 @@ static const size_t sockets_response_size[SocketResponseTypeMax] = {
     [SocketResponseTypeGetPeerName] = RESPONSE_SIZE(SocketGetPeerNameResponse),
     [SocketResponseTypeSetSockOpt] = RESPONSE_SIZE(SocketEmpty),
     [SocketResponseTypeGetSockOpt] = RESPONSE_SIZE(SocketGetSockOptResponse),
+    [SocketResponseTypeSelect] = RESPONSE_SIZE(SocketSelectResponse),
     [SocketResponseTypeAsyncAccept] = ASYNC_RESPONSE_SIZE(SocketAcceptAsyncResponse),
     [SocketResponseTypeAsyncSelect] = ASYNC_RESPONSE_SIZE(SocketSelectAsyncResponse),
 };
@@ -55,6 +57,7 @@ static const char* sockets_request_names[SocketRequestTypeMax] = {
     [SocketRequestTypeGetPeerName] = "getpeername",
     [SocketRequestTypeSetSockOpt] = "setsockopt",
     [SocketRequestTypeGetSockOpt] = "getsockopt",
+    [SocketRequestTypeSelect] = "select",
 };
 
 size_t sockets_get_request_size(const SocketRequest* request) {

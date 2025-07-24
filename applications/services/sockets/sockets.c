@@ -84,6 +84,24 @@ static void sockets_process_response(const SocketResponse* response) {
                 *getsockopt_params->optlen = getsockopt_response->optlen;
             }
 
+        } else if(response_type == SocketResponseTypeSelect) {
+            const SocketSelectResponse* select_response = &response->select_response;
+            const SocketSelectParams* select_params = &ret->select_params;
+
+            if(select_params->readset) {
+                memcpy(
+                    select_params->readset,
+                    &select_response->readset,
+                    sizeof(select_response->readset));
+            }
+
+            if(select_params->writeset) {
+                memcpy(
+                    select_params->writeset,
+                    &select_response->writeset,
+                    sizeof(select_response->writeset));
+            }
+
         } else {
             // Do nothing
         }
@@ -447,6 +465,59 @@ int sl_accept(int s, struct sockaddr* addr, socklen_t* addrlen) {
     SocketAcceptParams* accept_params = &ret->accept_params;
     accept_params->addr = addr;
     accept_params->addrlen = addrlen;
+
+    sockets_send_request();
+    const ssize_t status = sockets_wait_for_response();
+
+    sockets_unlock();
+    return status;
+}
+
+int sl_select(
+    int maxfdp1,
+    fd_set* readset,
+    fd_set* writeset,
+    fd_set* exceptset,
+    struct timeval* timeout) {
+    furi_check(instance);
+
+    sockets_lock();
+
+    SocketRequest* request = &instance->request;
+    request->type = SocketRequestTypeSelect;
+    request->socket_id = 0;
+
+    SocketSelectRequest* select_request = &request->select_request;
+    select_request->maxfdp1 = maxfdp1;
+
+    if(readset) {
+        memcpy(&select_request->readset, readset, sizeof(select_request->readset));
+    } else {
+        memset(&select_request->readset, 0, sizeof(select_request->readset));
+    }
+
+    if(writeset) {
+        memcpy(&select_request->writeset, writeset, sizeof(select_request->writeset));
+    } else {
+        memset(&select_request->writeset, 0, sizeof(select_request->writeset));
+    }
+
+    if(exceptset) {
+        memcpy(&select_request->exceptset, exceptset, sizeof(select_request->exceptset));
+    } else {
+        memset(&select_request->exceptset, 0, sizeof(select_request->exceptset));
+    }
+
+    select_request->timeout.sec = timeout->tv_sec;
+    select_request->timeout.usec = timeout->tv_usec;
+
+    SocketReturnParams* ret = &instance->ret;
+    // TODO: is type necessary here?
+
+    SocketSelectParams* select_params = &ret->select_params;
+    select_params->readset = readset;
+    select_params->writeset = writeset;
+    select_params->exceptset = exceptset;
 
     sockets_send_request();
     const ssize_t status = sockets_wait_for_response();
