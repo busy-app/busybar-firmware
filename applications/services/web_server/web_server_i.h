@@ -105,6 +105,7 @@ typedef union {
         void (*on_close)(struct mg_connection* conn);
         void (*on_wakeup)(struct mg_connection* conn, void* data, size_t len);
         void* context;
+        void* service_handle;
     };
     uint8_t data[MG_DATA_SIZE];
 } ConnectionContext;

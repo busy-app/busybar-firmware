@@ -192,6 +192,10 @@ int32_t input_srv(void* p) {
         state->pin = pin;
         state->level = input_get_pin_level(pin);
 
+        if(state->level) {
+            input_send(instance, state->pin, InputActionPress);
+        }
+
         furi_hal_gpio_add_int_callback(pin->gpio, pin->cond, input_isr_key, instance);
     }
 

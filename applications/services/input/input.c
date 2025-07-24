@@ -1,7 +1,9 @@
 #include "input.h"
 #include "input_common.h"
+#include "input_common_i.h"
 
 #include <furi.h>
+#include <toolbox/api_lock.h>
 
 #ifdef SRV_INTERCOM
 #include <intercom/intercom.h>
@@ -13,21 +15,38 @@
 #define INPUT_KEY_PRESS(key)   (1UL << key)
 #define INPUT_KEY_RELEASE(key) (1UL << (key + InputKeyMAX))
 
+#define INPUT_REQUEST_QUEUE_SIZE 4
+
 /** Input pin state */
 typedef struct {
     FuriEventLoopTimer* press_timer;
     volatile uint32_t sequence;
     InputKey key;
     volatile uint8_t press_counter;
+    Input* input;
 } InputPinState;
 
 /** Input state */
-typedef struct {
+struct Input {
     FuriPubSub* event_pubsub;
     FuriEventLoop* event_loop;
+    FuriMessageQueue* request_queue;
     InputPinState* pin_states;
     volatile uint32_t sequence;
-} Input;
+    InputAbsoluteState absolute_state;
+};
+
+typedef enum {
+    InputRequestTypeGetAbsState,
+} InputRequestType;
+
+typedef struct {
+    InputRequestType type;
+    FuriApiLock lock;
+    union {
+        InputAbsoluteState abs_state;
+    };
+} InputRequest;
 
 const char* input_get_key_name(InputKey key) {
     switch(key) {
@@ -77,23 +96,35 @@ const char* input_get_type_name(InputType type) {
     }
 }
 
-static Input* input = NULL;
+#define INPUT_BUTTON_RANGE_START InputKeyOk
+#define INPUT_BUTTON_RANGE_END   InputKeyStart
+#define INPUT_SWITCH_RANGE_START InputKeyBusy
+#define INPUT_SWITCH_RANGE_END   InputKeySettings
 
-void input_key_press(InputKey key) {
-    furi_event_loop_set_custom_event(input->event_loop, INPUT_KEY_PRESS(key));
-}
+static void input_update_absolute_state(Input* input, InputEvent* event) {
+    InputKey key = event->key;
+    InputType type = event->type;
+    furi_check(type == InputTypePress || type == InputTypeRelease);
 
-void input_key_release(InputKey key) {
-    furi_event_loop_set_custom_event(input->event_loop, INPUT_KEY_RELEASE(key));
-}
+    if(key >= INPUT_BUTTON_RANGE_START && key <= INPUT_BUTTON_RANGE_END) {
+        size_t offset = key - INPUT_BUTTON_RANGE_START;
+        InputButton* buttons = &input->absolute_state.buttons;
+        size_t button_value = type == InputTypePress;
+        *buttons = (*buttons & ~(1 << offset)) | (button_value << offset);
 
-void input_key_toggle(InputKey key) {
-    furi_event_loop_set_custom_event(
-        input->event_loop, INPUT_KEY_PRESS(key) | INPUT_KEY_RELEASE(key));
+    } else if(key >= INPUT_SWITCH_RANGE_START && key <= INPUT_SWITCH_RANGE_END) {
+        if(type == InputTypePress) {
+            input->absolute_state.switch_position = key - INPUT_SWITCH_RANGE_START;
+        }
+
+    } else {
+        // not an absolute control
+    }
 }
 
 static void input_press_timer_callback(void* context) {
     InputPinState* state = context;
+    Input* input = state->input;
 
     InputEvent event;
 
@@ -134,6 +165,7 @@ static void input_custom_event_callback(uint32_t events, void* context) {
 
             furi_event_loop_timer_start(state->press_timer, INPUT_PRESS_TICKS);
 
+            input_update_absolute_state(input, &event);
             furi_pubsub_publish(input->event_pubsub, &event);
         }
 
@@ -150,6 +182,7 @@ static void input_custom_event_callback(uint32_t events, void* context) {
             state->press_counter = 0;
             event.type = InputTypeRelease;
 
+            input_update_absolute_state(input, &event);
             furi_pubsub_publish(input->event_pubsub, &event);
         }
     }
@@ -160,34 +193,61 @@ static void input_intercom_rx_callback(const void* data, size_t data_size, void*
     furi_assert(context);
     furi_assert(data_size == sizeof(InputCommonEvent));
 
+    Input* input = context;
     const InputCommonEvent* event = data;
 
     if(event->device == InputDeviceButton) {
         const InputKey key = event->button_event.button + InputKeyOk;
 
         if(event->button_event.action == InputActionPress) {
-            input_key_press(key);
+            input_key_press(input, key);
         } else {
-            input_key_release(key);
+            input_key_release(input, key);
         }
 
     } else if(event->device == InputDeviceSwitch) {
         const InputKey key = event->switch_position + InputKeyBusy;
-        input_key_toggle(key);
+        input_key_toggle(input, key);
 
     } else if(event->device == InputDeviceEncoder) {
         const InputKey key = event->encoder_delta > 0 ? InputKeyUp : InputKeyDown;
-        input_key_toggle(key);
+        input_key_toggle(input, key);
     }
 }
 #endif
 
+static void input_request_handler(FuriEventLoopObject* object, void* context) {
+    FuriMessageQueue* queue = object;
+    Input* input = context;
+
+    InputRequest* request;
+    furi_check(furi_message_queue_get(queue, &request, 0) == FuriStatusOk);
+
+    if(request->type == InputRequestTypeGetAbsState) {
+        request->abs_state = input->absolute_state;
+
+    } else {
+        furi_crash();
+    }
+
+    api_lock_unlock(request->lock);
+}
+
 int32_t input_srv(void* p) {
     UNUSED(p);
 
-    input = malloc(sizeof(Input));
+    Input* input = malloc(sizeof(Input));
     input->event_pubsub = furi_pubsub_alloc();
     input->event_loop = furi_event_loop_alloc();
+
+    input->request_queue =
+        furi_message_queue_alloc(INPUT_REQUEST_QUEUE_SIZE, sizeof(InputRequest*));
+    furi_event_loop_subscribe_message_queue(
+        input->event_loop,
+        input->request_queue,
+        FuriEventLoopEventIn,
+        input_request_handler,
+        input);
 
     furi_record_create(RECORD_INPUT_EVENTS, input->event_pubsub);
 
@@ -196,6 +256,7 @@ int32_t input_srv(void* p) {
     for(size_t i = 0; i < InputKeyMAX; i++) {
         InputPinState* state = &input->pin_states[i];
 
+        state->input = input;
         state->key = i;
         state->press_timer = furi_event_loop_timer_alloc(
             input->event_loop, input_press_timer_callback, FuriEventLoopTimerTypePeriodic, state);
@@ -210,7 +271,46 @@ int32_t input_srv(void* p) {
     intercom_set_rx_callback(intercom, IntercomChannelInput, input_intercom_rx_callback, input);
 #endif
 
+    furi_record_create(RECORD_INPUT, input);
+
     furi_event_loop_run(input->event_loop);
 
     return 0;
+}
+
+// ==========
+// Public API
+// ==========
+
+void input_key_press(Input* input, InputKey key) {
+    furi_check(input);
+    furi_event_loop_set_custom_event(input->event_loop, INPUT_KEY_PRESS(key));
+}
+
+void input_key_release(Input* input, InputKey key) {
+    furi_check(input);
+    furi_event_loop_set_custom_event(input->event_loop, INPUT_KEY_RELEASE(key));
+}
+
+void input_key_toggle(Input* input, InputKey key) {
+    furi_check(input);
+    furi_event_loop_set_custom_event(
+        input->event_loop, INPUT_KEY_PRESS(key) | INPUT_KEY_RELEASE(key));
+}
+
+// TODO: generalize this synchronous request pattern in a common lib
+static void input_synchronous_request(Input* input, InputRequest* request) {
+    furi_check(input);
+    request->lock = api_lock_alloc_locked();
+    furi_check(
+        furi_message_queue_put(input->request_queue, &request, FuriWaitForever) == FuriStatusOk);
+    api_lock_wait_unlock_and_free(request->lock);
+}
+
+InputAbsoluteState input_get_absolute_state(Input* input) {
+    InputRequest request = {
+        .type = InputRequestTypeGetAbsState,
+    };
+    input_synchronous_request(input, &request);
+    return request.abs_state;
 }

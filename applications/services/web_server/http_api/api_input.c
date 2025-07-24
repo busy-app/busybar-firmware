@@ -36,7 +36,8 @@ static void input_websocket_on_close(struct mg_connection* conn) {
     InputKeyState* keys_context = conn_ctx->context;
     for(size_t i = 0; i < COUNT_OF(input_keys); i++) {
         if(keys_context->state[i]) {
-            input_key_release(keys_context->key[i]);
+            Input* input = conn_ctx->service_handle;
+            input_key_release(input, keys_context->key[i]);
             keys_context->state[i] = false;
         }
     }
@@ -47,6 +48,7 @@ static void input_websocket_on_close(struct mg_connection* conn) {
     conn_ctx->on_close = NULL;
     conn_ctx->on_wakeup = NULL;
     conn_ctx->context = NULL;
+    furi_record_close(RECORD_INPUT);
 
     FURI_LOG_I(TAG, "WS close");
 }
@@ -72,12 +74,14 @@ static void input_websocket_on_message(struct mg_connection* conn, struct mg_ws_
         if(key_val == 0) {
             if(keys_context->state[i] == true) {
                 keys_context->state[i] = false;
-                input_key_release(input_keys[i].key);
+                Input* input = conn_ctx->service_handle;
+                input_key_release(input, input_keys[i].key);
             }
         } else if(key_val == 1) {
             if(keys_context->state[i] == false) {
                 keys_context->state[i] = true;
-                input_key_press(input_keys[i].key);
+                Input* input = conn_ctx->service_handle;
+                input_key_press(input, input_keys[i].key);
             }
         }
     }
@@ -92,13 +96,15 @@ bool http_api_input_callback(
 
     if(!IS_HTTP_ENDPOINT(path)) return false;
 
+    ConnectionContext* conn_ctx = (void*)conn->data;
+
     if(mg_match(msg->method, mg_str("GET"), NULL) &&
        (mg_http_get_header(msg, "Sec-WebSocket-Key") != NULL)) {
         // Upgrade to WebSocket
-        ConnectionContext* conn_ctx = (void*)conn->data;
         conn_ctx->ws.on_message = input_websocket_on_message;
         conn_ctx->on_close = input_websocket_on_close;
         conn_ctx->context = ctx;
+        conn_ctx->service_handle = furi_record_open(RECORD_INPUT);
         mg_ws_upgrade(conn, msg, NULL);
         return true;
     } else if(mg_match(msg->method, mg_str("POST"), NULL)) {
@@ -113,7 +119,8 @@ bool http_api_input_callback(
 
             for(size_t i = 0; i < COUNT_OF(input_keys); i++) {
                 if(strncmp(input_keys[i].name, key_name, var_len) == 0) {
-                    input_key_toggle(input_keys[i].key);
+                    Input* input = conn_ctx->service_handle;
+                    input_key_toggle(input, input_keys[i].key);
                     success = true;
                     break;
                 }
