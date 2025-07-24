@@ -204,6 +204,17 @@ void widget_set_background_color(Widget* instance, Color color, float opacity);
 */
 void widget_set_padding(Widget* instance, int32_t left, int32_t right, int32_t top, int32_t bottom);
 
+/**
+ * @brief Set the margin for a Widget instance.
+ *
+ * @param[in,out] instance pointer to the Widget instance to be modified
+ * @param[in] left margin on the left side in pixels
+ * @param[in] right margin on the right side in pixels
+ * @param[in] top margin on the top side in pixels
+ * @param[in] bottom margin on the bottom side in pixels
+*/
+void widget_set_margin(Widget* instance, int32_t left, int32_t right, int32_t top, int32_t bottom);
+
 #ifdef __cplusplus
 }
 #endif
