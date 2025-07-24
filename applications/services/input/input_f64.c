@@ -2,6 +2,7 @@
 
 #include <furi_hal_qei.h>
 #include <furi_hal_resources.h>
+#include "input_common_i.h"
 
 #ifdef SRV_INTERCOM
 #include <intercom/intercom.h>
