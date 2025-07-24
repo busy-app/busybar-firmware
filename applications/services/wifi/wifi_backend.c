@@ -4,6 +4,7 @@
 #include <intercom/intercom.h>
 
 #include <sl_net.h>
+#include <sl_net_for_lwip.h>
 #include <sl_wifi.h>
 #include <sl_si91x_driver.h>
 #include <sl_wifi_callback_framework.h>
@@ -33,6 +34,8 @@ typedef void (*WifiRequestHandler)(Wifi* instance);
 
 static const WifiRequestHandler wifi_request_handlers[WifiRequestTypeMax];
 
+static sl_net_wifi_lwip_context_t wifi_client_context;
+
 static inline void wifi_send_response(Wifi* instance) {
     const size_t tx_size = intercom_tx(
         instance->intercom,
@@ -56,7 +59,8 @@ static void wifi_init_request_handler(Wifi* instance) {
     sl_status_t status;
 
     do {
-        status = sl_net_init(SL_NET_WIFI_CLIENT_INTERFACE, &wifi_config_client, NULL, NULL);
+        status = sl_net_init(
+            SL_NET_WIFI_CLIENT_INTERFACE, &wifi_config_client, &wifi_client_context, NULL);
 
         if(status != SL_STATUS_OK) {
             FURI_LOG_E(TAG, "Failed to initialise Wifi: %lX", status);
