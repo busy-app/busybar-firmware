@@ -23,10 +23,20 @@ typedef enum {
  * @brief Enumeration of available buttons.
  */
 typedef enum {
-    InputButtonOk = (1 << 0),
-    InputButtonBack = (1 << 1),
-    InputButtonStart = (1 << 2),
+    InputButtonOk,
+    InputButtonBack,
+    InputButtonStart,
+    InputButtonMAX, /**< Special value for internal use */
 } InputButton;
+
+/**
+ * @brief Bitmask of available buttons.
+ */
+typedef enum {
+    InputButtonMaskOk = (1 << InputButtonOk),
+    InputButtonMaskBack = (1 << InputButtonBack),
+    InputButtonMaskStart = (1 << InputButtonStart),
+} InputButtonMask;
 
 /**
  * @brief Enumeration of possible button actions.
@@ -52,7 +62,7 @@ typedef enum {
  * @brief State of all absolute controls (i.e. buttons and the mode switch)
  */
 typedef struct {
-    InputButton buttons; /**< Bitmask of buttons that are currently pressed */
+    InputButtonMask buttons; /**< Bitmask of buttons that are currently pressed */
     InputSwitchPosition switch_position; /**< Current mode switch position */
 } InputAbsoluteState;
 

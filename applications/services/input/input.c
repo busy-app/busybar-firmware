@@ -108,7 +108,7 @@ static void input_update_absolute_state(Input* input, InputEvent* event) {
 
     if(key >= INPUT_BUTTON_RANGE_START && key <= INPUT_BUTTON_RANGE_END) {
         size_t offset = key - INPUT_BUTTON_RANGE_START;
-        InputButton* buttons = &input->absolute_state.buttons;
+        InputButtonMask* buttons = &input->absolute_state.buttons;
         size_t button_value = type == InputTypePress;
         *buttons = (*buttons & ~(1 << offset)) | (button_value << offset);
 
