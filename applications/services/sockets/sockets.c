@@ -85,6 +85,13 @@ static void sockets_process_response(const SocketResponse* response) {
                     sizeof(select_response->writeset));
             }
 
+            if(select_params->exceptset) {
+                memcpy(
+                    select_params->exceptset,
+                    &select_response->exceptset,
+                    sizeof(select_response->exceptset));
+            }
+
         } else {
             // Do nothing
         }
