@@ -11,6 +11,9 @@
 #define SOCKET_SEND_DATA_SIZE (SOCKET_REQUEST_SIZE_MAX - 21UL)
 #define SOCKET_RECV_DATA_SIZE (SOCKET_RESPONSE_SIZE_MAX - 21UL)
 
+#define SOCKET_OPTION_SIZE_MAX (8UL)
+#define SOCKET_FDSET_SIZE_MAX  (8UL)
+
 #pragma pack(push, 1)
 
 typedef enum {
@@ -97,14 +100,14 @@ typedef struct {
     int32_t level;
     int32_t optname;
     uint32_t optlen;
-    uint32_t optval;
+    uint8_t optval[SOCKET_OPTION_SIZE_MAX];
 } SocketSetSockOptRequest;
 
 typedef struct {
     uint32_t maxfdp1;
-    uint64_t readset;
-    uint64_t writeset;
-    uint64_t exceptset;
+    uint8_t readset[SOCKET_FDSET_SIZE_MAX];
+    uint8_t writeset[SOCKET_FDSET_SIZE_MAX];
+    uint8_t exceptset[SOCKET_FDSET_SIZE_MAX];
     struct {
         uint32_t sec;
         uint32_t usec;
@@ -151,13 +154,13 @@ typedef struct {
 
 typedef struct {
     uint32_t optlen;
-    uint32_t optval;
+    uint8_t optval[SOCKET_OPTION_SIZE_MAX];
 } SocketGetSockOptResponse;
 
 typedef struct {
-    uint64_t readset;
-    uint64_t writeset;
-    uint64_t exceptset;
+    uint8_t readset[SOCKET_FDSET_SIZE_MAX];
+    uint8_t writeset[SOCKET_FDSET_SIZE_MAX];
+    uint8_t exceptset[SOCKET_FDSET_SIZE_MAX];
 } SocketSelectResponse;
 
 typedef struct {
