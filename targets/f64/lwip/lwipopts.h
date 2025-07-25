@@ -62,7 +62,7 @@
 #define TCPIP_THREAD_NAME                  "LwipWorker"
 
 #define LWIP_SOCKET             1
-#define MEMP_NUM_NETCONN        (4)
+#define MEMP_NUM_NETCONN        (10)
 #define DEFAULT_ACCEPTMBOX_SIZE 2 // TODO: check value
 #define MEMP_NUM_TCP_PCB        5
 //########

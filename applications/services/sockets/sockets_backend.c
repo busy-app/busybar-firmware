@@ -1,43 +1,11 @@
 #include "sockets_common_i.h"
 
 #include <furi.h>
-#include <wifi/wifi_common.h>
 #include <intercom/intercom.h>
-
-#include <sl_si91x_socket.h>
-#include <sl_si91x_socket_utility.h>
-
-#include "sockets_backend_util.h"
 
 #define TAG "SocketSrv"
 
-#define TOTAL_SOCKETS                   (TOTAL_TCP_SOCKETS + TOTAL_UDP_SOCKETS)
-#define TOTAL_TCP_SOCKETS               7
-#define TOTAL_UDP_SOCKETS               3
-#define TCP_TX_ONLY_SOCKETS             0
-#define TCP_RX_ONLY_SOCKETS             0
-#define UDP_TX_ONLY_SOCKETS             0
-#define UDP_RX_ONLY_SOCKETS             0
-#define TCP_RX_HIGH_PERFORMANCE_SOCKETS 0
-#define TCP_RX_WINDOW_SIZE_CAP          44
-#define TCP_RX_WINDOW_DIV_FACTOR        44
-
 #define SOCKET_FLAGS_ALL (0x1FUL)
-
-#define DONT_CARE_PARAM (0)
-
-static const sl_si91x_socket_config_t sockets_backend_config = {
-    .total_sockets = TOTAL_SOCKETS,
-    .total_tcp_sockets = TOTAL_TCP_SOCKETS,
-    .total_udp_sockets = TOTAL_UDP_SOCKETS,
-    .tcp_tx_only_sockets = TCP_TX_ONLY_SOCKETS,
-    .tcp_rx_only_sockets = TCP_RX_ONLY_SOCKETS,
-    .udp_tx_only_sockets = UDP_TX_ONLY_SOCKETS,
-    .udp_rx_only_sockets = UDP_RX_ONLY_SOCKETS,
-    .tcp_rx_high_performance_sockets = TCP_RX_HIGH_PERFORMANCE_SOCKETS,
-    .tcp_rx_window_size_cap = TCP_RX_WINDOW_SIZE_CAP,
-    .tcp_rx_window_div_factor = TCP_RX_WINDOW_DIV_FACTOR,
-};
 
 typedef enum {
     SocketSrvEventRequest = 1UL << 0,
@@ -67,24 +35,6 @@ static inline void sockets_send_response(SocketSrv* instance, const SocketRespon
     furi_assert(tx_size == response_size);
 }
 
-static void sockets_select_callback(
-    fd_set* read_fds,
-    fd_set* write_fds,
-    fd_set* except_fds,
-    int32_t status) {
-    UNUSED(write_fds);
-    UNUSED(except_fds);
-    UNUSED(status);
-
-    if(status == SL_STATUS_OK) {
-        const uint32_t read_bits = *(uint32_t*)read_fds;
-        FURI_LOG_I(TAG, "Sockets ready for reading: %lX", read_bits);
-        // furi_event_flag_set(socket_srv->read_event_flag, socket_bits);
-    } else {
-        FURI_LOG_E(TAG, "Select Failed");
-    }
-}
-
 static ssize_t
     sockets_socket_request_handler(const SocketRequest* request, SocketResponse* response) {
     UNUSED(response);
@@ -98,13 +48,6 @@ static ssize_t
         if(socket_id < 0) {
             break;
         }
-
-        //         const uint16_t mss = SOCKET_RECV_DATA_SIZE;
-        //         status = setsockopt(socket_id, SOL_SOCKET, SL_SO_MSS, &mss, sizeof(mss));
-        //
-        //         if(status < 0) {
-        //             break;
-        //         }
 
         status = socket_id;
 
@@ -129,7 +72,11 @@ static ssize_t
     UNUSED(response);
 
     const SocketBindRequest* bind_request = &request->bind_request;
-    return bind(request->socket_id, &bind_request->name, bind_request->namelen);
+    // Needed to align the &name pointer to 4 bytes
+    struct sockaddr name;
+    memcpy(&name, &bind_request->name, bind_request->namelen);
+
+    return bind(request->socket_id, &name, bind_request->namelen);
 }
 
 static ssize_t
@@ -154,7 +101,12 @@ static ssize_t
     UNUSED(response);
 
     const SocketConnectRequest* connect_request = &request->connect_request;
-    return connect(request->socket_id, &connect_request->name, connect_request->namelen);
+
+    // Needed to align the &name pointer to 4 bytes
+    struct sockaddr name;
+    memcpy(&name, &connect_request->name, connect_request->namelen);
+
+    return connect(request->socket_id, &name, connect_request->namelen);
 }
 
 static ssize_t
@@ -261,27 +213,26 @@ static ssize_t
     const SocketSelectRequest* select_request = &request->select_request;
     SocketSelectResponse* select_response = &response->select_response;
 
-    select_response->readset = select_request->readset;
-    select_response->writeset = select_request->writeset;
+    // Sets must be aligned to 4 bytes
+    fd_set readset, writeset, exceptset;
 
-    fd_set* readset = (fd_set*)(select_request->readset ? &select_response->readset : NULL);
-    fd_set* writeset = (fd_set*)(select_request->writeset ? &select_response->writeset : NULL);
+    memcpy(&readset, &select_request->readset, sizeof(readset));
+    memcpy(&writeset, &select_request->writeset, sizeof(writeset));
+    memcpy(&exceptset, &select_request->exceptset, sizeof(exceptset));
 
     struct timeval timeout = {
         .tv_sec = select_request->timeout.sec,
         .tv_usec = select_request->timeout.usec,
     };
 
-    FURI_LOG_D(
-        TAG,
-        "SELECT maxfdp1: %lu, readset: %lX, timeout: %lus",
-        select_request->maxfdp1,
-        select_request->readset,
-        timeout.tv_sec);
+    const ssize_t status =
+        select(select_request->maxfdp1, &readset, &writeset, &exceptset, &timeout);
 
-    // return select(select_request->maxfdp1, readset, writeset, NULL, &timeout);
-    return sl_si91x_select(
-        select_request->maxfdp1, readset, writeset, NULL, NULL, sockets_select_callback);
+    memcpy(&select_response->readset, &readset, sizeof(select_request->readset));
+    memcpy(&select_response->writeset, &writeset, sizeof(select_request->writeset));
+    memcpy(&select_response->exceptset, &exceptset, sizeof(select_request->exceptset));
+
+    return status;
 }
 
 static void sockets_intercom_rx_callback(const void* data, size_t data_size, void* context) {
@@ -319,32 +270,6 @@ static void sockets_custom_event_callback(uint32_t events, void* context) {
 
         sockets_send_response(instance, response);
     }
-    if(events & SocketSrvEventWifiUp) {
-        const sl_status_t status = sl_si91x_config_socket(sockets_backend_config);
-        furi_check(status == SL_STATUS_OK);
-    }
-}
-
-static void sockets_wifi_state_callback(const void* message, void* context) {
-    furi_assert(message);
-    furi_assert(context);
-
-    const WifiState state = *(WifiState*)message;
-    SocketSrv* instance = context;
-
-    uint32_t event;
-
-    if(state == WifiStateDeinit) {
-        event = SocketSrvEventWifiDeinit;
-    } else if(state == WifiStateDown) {
-        event = SocketSrvEventWifiDown;
-    } else if(state == WifiStateUp) {
-        event = SocketSrvEventWifiUp;
-    } else {
-        furi_crash("Invalid Wifi state");
-    }
-
-    furi_event_loop_set_custom_event(instance->event_loop, event);
 }
 
 SocketSrv* sockets_alloc(void) {
@@ -352,9 +277,6 @@ SocketSrv* sockets_alloc(void) {
 
     instance->event_loop = furi_event_loop_alloc();
     instance->intercom = furi_record_open(RECORD_INTERCOM);
-
-    FuriPubSub* wifi_pubsub = furi_record_open(RECORD_WIFI);
-    furi_pubsub_subscribe(wifi_pubsub, sockets_wifi_state_callback, instance);
 
     furi_event_loop_set_custom_event_callback(
         instance->event_loop, sockets_custom_event_callback, instance);

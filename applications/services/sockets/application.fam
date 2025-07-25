@@ -24,7 +24,6 @@ App(
     requires=["wifi"],
     sources=[
         "sockets_backend.c",
-        "sockets_backend_util.c",
         "sockets_common.c",
     ],
 )

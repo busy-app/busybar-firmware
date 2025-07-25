@@ -2,19 +2,6 @@
 
 static SocketSrv* instance;
 
-// Si917 sockets require port number in host byte order
-static void sockets_fixup_port_number(struct sockaddr* name) {
-    const sa_family_t family = name->sa_family;
-    if(family == AF_INET) {
-        struct sockaddr_in* name4 = (struct sockaddr_in*)name;
-        name4->sin_port = ntohs(name4->sin_port);
-    } else if(family == AF_INET6) {
-        // TODO: Ipv6
-    } else {
-        furi_crash();
-    }
-}
-
 static void sockets_process_response(const SocketResponse* response) {
     const SocketResponseType response_type = response->type;
     const ssize_t status = response->status;
@@ -31,7 +18,6 @@ static void sockets_process_response(const SocketResponse* response) {
             if(recv_params->from) {
                 memcpy(recv_params->from, &recv_response->from, recv_response->fromlen);
                 *recv_params->fromlen = recv_response->fromlen;
-                sockets_fixup_port_number(recv_params->from);
             }
 
         } else if(response_type == SocketResponseTypeAccept) {
@@ -41,7 +27,6 @@ static void sockets_process_response(const SocketResponse* response) {
             if(accept_params->addr) {
                 memcpy(accept_params->addr, &accept_response->addr, accept_response->addrlen);
                 *accept_params->addrlen = accept_response->addrlen;
-                sockets_fixup_port_number(accept_params->addr);
             }
 
         } else if(response_type == SocketResponseTypeGetPeerName) {
@@ -55,7 +40,6 @@ static void sockets_process_response(const SocketResponse* response) {
                     &getpeername_response->name,
                     getpeername_response->namelen);
                 *getpeername_params->namelen = getpeername_response->namelen;
-                sockets_fixup_port_number(getpeername_params->name);
             }
 
         } else if(response_type == SocketResponseTypeGetSockName) {
@@ -69,7 +53,6 @@ static void sockets_process_response(const SocketResponse* response) {
                     &getsockname_response->name,
                     getsockname_response->namelen);
                 *getsockname_params->namelen = getsockname_response->namelen;
-                sockets_fixup_port_number(getsockname_params->name);
             }
 
         } else if(response_type == SocketResponseTypeGetSockOpt) {
@@ -226,8 +209,6 @@ int sl_bind(int s, const struct sockaddr* name, socklen_t namelen) {
     memcpy(&bind_request->name, name, namelen);
     bind_request->namelen = namelen;
 
-    sockets_fixup_port_number(&bind_request->name);
-
     sockets_send_request();
     const ssize_t status = sockets_wait_for_response();
 
@@ -269,8 +250,6 @@ int sl_connect(int s, const struct sockaddr* name, socklen_t namelen) {
     memcpy(&connect_request->name, name, namelen);
     connect_request->namelen = namelen;
 
-    sockets_fixup_port_number(&connect_request->name);
-
     sockets_send_request();
     const ssize_t status = sockets_wait_for_response();
 
@@ -300,14 +279,6 @@ int sl_getpeername(int s, struct sockaddr* name, socklen_t* namelen) {
     return status;
 }
 
-ssize_t sl_send(int s, const void* dataptr, size_t size, int flags) {
-    return sl_sendto(s, dataptr, size, flags, NULL, 0);
-}
-
-ssize_t sl_recv(int s, void* mem, size_t len, int flags) {
-    return sl_recvfrom(s, mem, len, flags, NULL, NULL);
-}
-
 ssize_t sl_sendto(
     int s,
     const void* dataptr,
@@ -332,7 +303,6 @@ ssize_t sl_sendto(
 
     if(to != NULL) {
         memcpy(&send_request->to, to, tolen);
-        sockets_fixup_port_number(&send_request->to);
     }
 
     send_request->tolen = tolen;
@@ -374,6 +344,14 @@ ssize_t
 
     sockets_unlock();
     return status;
+}
+
+ssize_t sl_send(int s, const void* dataptr, size_t size, int flags) {
+    return sl_sendto(s, dataptr, size, flags, NULL, 0);
+}
+
+ssize_t sl_recv(int s, void* mem, size_t len, int flags) {
+    return sl_recvfrom(s, mem, len, flags, NULL, NULL);
 }
 
 int sl_getsockopt(int s, int level, int optname, void* optval, socklen_t* optlen) {

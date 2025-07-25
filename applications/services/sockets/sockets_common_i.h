@@ -1,6 +1,6 @@
 #pragma once
 
-#include "sockets.h"
+// #include "sockets.h"
 #include "sockets_common.h"
 
 #include <stddef.h>
@@ -102,9 +102,9 @@ typedef struct {
 
 typedef struct {
     uint32_t maxfdp1;
-    uint32_t readset;
-    uint32_t writeset;
-    uint32_t exceptset;
+    uint64_t readset;
+    uint64_t writeset;
+    uint64_t exceptset;
     struct {
         uint32_t sec;
         uint32_t usec;
@@ -155,9 +155,9 @@ typedef struct {
 } SocketGetSockOptResponse;
 
 typedef struct {
-    uint32_t readset;
-    uint32_t writeset;
-    uint32_t exceptset;
+    uint64_t readset;
+    uint64_t writeset;
+    uint64_t exceptset;
 } SocketSelectResponse;
 
 typedef struct {
