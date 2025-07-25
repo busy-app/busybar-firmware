@@ -6,12 +6,15 @@
 
 #include <sl_si91x_trng.h>
 #include <psa/crypto.h>
+#include <mbedtls/x509_crt.h>
+#include <mbedtls/x509_csr.h>
 
 #define TAG "FuriHalCryptoStorage"
 
 #define FURI_HAL_CRYPTO_STORAGE_MAGIC_NUMBER_KEY (0x464c4950UL) // "FLIP"
 #define FURI_HAL_CRYPTO_STORAGE_DATA_SIZE_MAX    (996UL) // Maximum data size for keys
 #define FURI_HAL_CRYPTO_KEY_ADDRESS_INIT         (0xFFFFFFFFUL)
+#define FURI_HAL_CRYPTO_CSR_BUFFER_SIZE_MAX      (2048UL)
 
 FuriHalCryptoKey* furi_hal_crypto_storage_alloc(FuriHalCryptoPartition partition) {
     FuriHalCryptoKey* key = malloc(sizeof(FuriHalCryptoKey));
@@ -423,16 +426,17 @@ FuriHalCryptoStatus furi_hal_crypto_storage_gen_asimetric_pub_key(FuriHalCryptoK
 
     FuriHalCryptoKey* pub_key = furi_hal_crypto_storage_alloc(key->partition);
 
-    psa_status_t ret;
+    psa_status_t psa_status;
     psa_key_id_t key_id;
     psa_key_attributes_t key_attr;
     size_t pubkey_len;
     FuriHalCryptoStatus status = FuriHalCryptoStatusFail;
 
     do {
-        ret = psa_crypto_init();
-        if(ret != PSA_SUCCESS) {
-            FURI_LOG_E(TAG, "PSA crypto library initialization failed with error: %ld", ret);
+        psa_status = psa_crypto_init();
+        if(psa_status != PSA_SUCCESS) {
+            FURI_LOG_E(
+                TAG, "PSA crypto library initialization failed with error: %ld", psa_status);
             break;
         } else {
             FURI_LOG_D(TAG, "PSA crypto library initialization Success");
@@ -459,18 +463,20 @@ FuriHalCryptoStatus furi_hal_crypto_storage_gen_asimetric_pub_key(FuriHalCryptoK
         psa_set_key_algorithm(&key_attr, PSA_ALG_ECDSA(PSA_ALG_SHA_256));
 
         // Import a private key
-        ret = psa_import_key(&key_attr, key->data, key->header.size, &key_id);
-        if(ret != PSA_SUCCESS) {
-            FURI_LOG_E(TAG, "Import Key failed with error: status %ld", ret);
+        psa_status = psa_import_key(&key_attr, key->data, key->header.size, &key_id);
+        if(psa_status != PSA_SUCCESS) {
+            FURI_LOG_E(TAG, "Import Key failed with error: status %ld", psa_status);
             break;
         } else {
             FURI_LOG_D(TAG, "Import Key success");
         }
 
         // Export a public key from a volatile private key
-        ret = psa_export_public_key(key_id, pub_key->data, pub_key->header.size, &pubkey_len);
-        if(ret != PSA_SUCCESS) {
-            FURI_LOG_E(TAG, "Exporting a Public Key from Private key Failed with error: %ld", ret);
+        psa_status =
+            psa_export_public_key(key_id, pub_key->data, pub_key->header.size, &pubkey_len);
+        if(psa_status != PSA_SUCCESS) {
+            FURI_LOG_E(
+                TAG, "Exporting a Public Key from Private key Failed with error: %ld", psa_status);
             break;
         } else {
             FURI_LOG_D(TAG, "Export Public Key from Private Key Success");
@@ -479,9 +485,9 @@ FuriHalCryptoStatus furi_hal_crypto_storage_gen_asimetric_pub_key(FuriHalCryptoK
         furi_check(pubkey_len == pub_key->header.size);
 
         // Destroy the private key
-        ret = psa_destroy_key(key_id);
-        if(ret != PSA_SUCCESS) {
-            FURI_LOG_E(TAG, "Destroy Key failed with error : %ld", ret);
+        psa_status = psa_destroy_key(key_id);
+        if(psa_status != PSA_SUCCESS) {
+            FURI_LOG_E(TAG, "Destroy Key failed with error : %ld", psa_status);
             break;
         } else {
             FURI_LOG_D(TAG, "Destroy Key Success");
@@ -490,6 +496,103 @@ FuriHalCryptoStatus furi_hal_crypto_storage_gen_asimetric_pub_key(FuriHalCryptoK
         status = furi_hal_crypto_storage_write(pub_key);
     } while(false);
     free(pub_key);
+    return status;
+}
+
+FuriHalCryptoStatus
+    furi_hal_crypto_storage_gen_csr_der_ecdsa256(FuriHalCryptoKey* key, const char* subject_name) {
+    furi_check(key);
+    furi_check(key->header.magic_number == FURI_HAL_CRYPTO_STORAGE_MAGIC_NUMBER_KEY);
+    furi_check(
+        key->header.type == FuriHalCryptoKeyTypeEcdsaPriv256 &&
+        key->header.size == FURI_HAL_CRYPTO_ECDSA_PRIV_KEY_SIZE_256 &&
+        (key->header.flags & FuriHalCryptoKeyFlagWrap) == 0);
+
+    FuriHalCryptoKey* csr_der_key = furi_hal_crypto_storage_alloc(key->partition);
+    psa_key_id_t key_id;
+    mbedtls_pk_context key_ctx;
+    mbedtls_x509write_csr csr_ctx;
+    int csr_der_status = 0;
+
+    size_t max_size = FURI_HAL_CRYPTO_CSR_BUFFER_SIZE_MAX;
+    uint8_t* buffer = malloc(max_size);
+    psa_key_attributes_t key_attr;
+    FuriHalCryptoStatus status = FuriHalCryptoStatusFail;
+    psa_status_t psa_status;
+
+    do {
+        psa_status = psa_crypto_init();
+        if(psa_status != PSA_SUCCESS) {
+            FURI_LOG_E(
+                TAG, "PSA crypto library initialization failed with error: %ld", psa_status);
+            break;
+        } else {
+            FURI_LOG_D(TAG, "PSA crypto library initialization Success");
+        }
+
+        // import key
+        key_attr = psa_key_attributes_init();
+        psa_set_key_type(&key_attr, PSA_KEY_TYPE_ECC_KEY_PAIR(PSA_ECC_FAMILY_SECP_R1));
+        psa_set_key_bits(&key_attr, FURI_HAL_CRYPTO_ECDSA_PRIV_KEY_SIZE_256_BITS);
+        psa_set_key_algorithm(&key_attr, PSA_ALG_ECDSA(PSA_ALG_SHA_256));
+        psa_set_key_usage_flags(
+            &key_attr,
+            PSA_KEY_USAGE_SIGN_HASH | PSA_KEY_USAGE_VERIFY_HASH | PSA_KEY_USAGE_SIGN_MESSAGE |
+                PSA_KEY_USAGE_VERIFY_MESSAGE);
+
+        // Import a private key
+        psa_status = psa_import_key(&key_attr, key->data, key->header.size, &key_id);
+        if(psa_status != PSA_SUCCESS) {
+            FURI_LOG_E(TAG, "Import Key failed with error: status %ld", psa_status);
+            break;
+        } else {
+            FURI_LOG_D(TAG, "Import Key success");
+        }
+
+        // Generate CSR
+        mbedtls_x509write_csr_init(&csr_ctx);
+        csr_der_status = mbedtls_x509write_csr_set_subject_name(&csr_ctx, subject_name);
+        if(csr_der_status != 0) {
+            FURI_LOG_E(TAG, "Failed to set subject name for CSR: %d", csr_der_status);
+            break;
+        } else {
+            FURI_LOG_D(TAG, "Subject name set for CSR: %s", subject_name);
+        }
+        mbedtls_x509write_csr_set_md_alg(&csr_ctx, MBEDTLS_MD_SHA256);
+        mbedtls_pk_init(&key_ctx);
+        csr_der_status = mbedtls_pk_setup_opaque(&key_ctx, key_id);
+        if(csr_der_status != 0) {
+            FURI_LOG_E(TAG, "Failed to setup key context for CSR: %d", csr_der_status);
+            break;
+        } else {
+            FURI_LOG_D(TAG, "Key context setup for CSR");
+        }
+        mbedtls_x509write_csr_set_key(&csr_ctx, &key_ctx);
+        int len_or_err =
+            mbedtls_x509write_csr_der(&csr_ctx, (uint8_t*)buffer, max_size, NULL, NULL);
+        if(len_or_err < 0) {
+            FURI_LOG_E(TAG, "Failed to generate CSR DER: %d", len_or_err);
+            break;
+        } else {
+            FURI_LOG_D(TAG, "CSR DER generated successfully");
+        }
+
+        csr_der_key->header.size = len_or_err;
+        csr_der_key->header.type = FuriHalCryptoKeyTypeCsrDerEcdsa256;
+        csr_der_key->header.id = key->header.id;
+
+        memcpy(csr_der_key->data, buffer + (max_size - len_or_err), len_or_err);
+
+        status = furi_hal_crypto_storage_write(csr_der_key);
+
+    } while(false);
+
+    mbedtls_x509write_csr_free(&csr_ctx);
+    mbedtls_pk_free(&key_ctx);
+    psa_destroy_key(key_id);
+    free(buffer);
+    furi_hal_crypto_storage_free(csr_der_key);
+
     return status;
 }
 

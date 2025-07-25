@@ -88,6 +88,12 @@ static const char* crypto_command_show_type(FuriHalCryptoKeyType type) {
     case FuriHalCryptoKeyTypeMatterSPAKE2:
         return "FuriHalCryptoKeyTypeMatterSPAKE2";
         break;
+    case FuriHalCryptoKeyTypeCsrDerEcdsa256:
+        return "FuriHalCryptoKeyTypeCsrDerEcdsa256";
+        break;
+    case FuriHalCryptoKeyTypeCstDerEcdsa256:
+        return "FuriHalCryptoKeyTypeCstDerEcdsa256";
+        break;
     default:
         return "Unknown type";
         break;
@@ -480,8 +486,6 @@ void crypto_command_gen(PipeSide* pipe, FuriString* args, void* context) {
 
     uint8_t* buf = malloc(key->header.size);
 
-    // Todo add generation asimetric keys
-
     FuriHalCryptoStatus status = furi_hal_crypto_storage_gen_random_buf(buf, key->header.size);
     if(status != FuriHalCryptoStatusOk) {
         printf(
@@ -507,6 +511,119 @@ void crypto_command_gen(PipeSide* pipe, FuriString* args, void* context) {
             printf(ANSI_FG_GREEN "Generated public key successfully\r\n" ANSI_RESET);
         }
 
+        status = furi_hal_crypto_storage_write(key);
+        if(status == FuriHalCryptoStatusOk) {
+            printf(ANSI_FG_GREEN "Generated private key successfully\r\n" ANSI_RESET);
+        } else {
+            printf(ANSI_FG_RED "Error: Failed to generate private key" ANSI_RESET "\r\n");
+        }
+
+    } while(false);
+
+    crypto_command_show_status(status, "write");
+
+    furi_hal_crypto_storage_free(key);
+}
+
+void crypto_command_gen_csr(PipeSide* pipe, FuriString* args, void* context) {
+    UNUSED(context);
+    UNUSED(pipe);
+    if(!crypto_command_is_init()) {
+        return;
+    }
+
+    FuriHalCryptoKey* key = NULL;
+    FuriHalCryptoPartition partition = FuriHalCryptoPartitionMax;
+    FuriHalCryptoKeyType type = FuriHalCryptoKeyTypeEcdsaPriv256;
+    FuriHalCryptoKeyFlag flags = FuriHalCryptoKeyFlagNone;
+    uint32_t id = 0;
+    uint32_t temp = 0xFF;
+
+    if(furi_string_size(args)) {
+        char* args_cstr = (char*)furi_string_get_cstr(args);
+        StrintParseError parse_err = StrintParseNoError;
+        parse_err |= strint_to_uint32(args_cstr, &args_cstr, &temp, 10);
+        partition = (FuriHalCryptoPartition)temp;
+        if(parse_err || (partition >= FuriHalCryptoPartitionMax)) {
+            cli_print_usage(
+                "crypto gen",
+                "<partition> 0-partition_main, 1-partition_user\r\n",
+                furi_string_get_cstr(args));
+            printf(CLI_STATUS_ERROR);
+            return;
+        }
+        parse_err |= strint_to_uint32(args_cstr, &args_cstr, &id, 16);
+        parse_err |= strint_to_uint32(args_cstr, &args_cstr, &temp, 16);
+        flags = (FuriHalCryptoKeyFlag)temp;
+        furi_string_printf(args, "%s", args_cstr);
+        furi_string_trim(args);
+        if(parse_err) {
+            cli_print_usage(
+                "crypto gen",
+                "<partition> <id: in HEX> <flags: in HEX> <subject_name> Generate CSR from NWP flash.\r\n",
+                furi_string_get_cstr(args));
+            printf(CLI_STATUS_ERROR);
+            return;
+        }
+    } else {
+        cli_print_usage(
+            "crypto gen",
+            "<partition> <id: in HEX> <flags: in HEX> <subject_name> Generate CSR from NWP flash.\r\n",
+            furi_string_get_cstr(args));
+        printf(CLI_STATUS_ERROR);
+        return;
+    }
+
+    key = furi_hal_crypto_storage_alloc(partition);
+
+    key->header.type = type;
+    key->header.flags = flags;
+    key->header.id = id;
+    key->header.size =
+        FURI_HAL_CRYPTO_ECDSA_PRIV_KEY_SIZE_256; // CSR is generated from private key
+    if(furi_string_size(args) == 0) {
+        printf(ANSI_FG_YELLOW
+               "Warning: Subject name is required for CSR generation\r\n" ANSI_RESET);
+        furi_string_set(args, "CN=Default Subject, O=Default Org, C=Default Country");
+        printf("Using default subject name: %s\r\n", furi_string_get_cstr(args));
+    }
+
+    uint8_t* buf = malloc(key->header.size);
+
+    // Generate random buffer for private key
+    FuriHalCryptoStatus status = furi_hal_crypto_storage_gen_random_buf(buf, key->header.size);
+    if(status != FuriHalCryptoStatusOk) {
+        printf(
+            ANSI_FG_RED "Error: Failed to generate random buffer: " ANSI_RESET "%d\r\n", status);
+        printf(CLI_STATUS_ERROR);
+        free(buf);
+        furi_hal_crypto_storage_free(key);
+        return;
+    }
+
+    memcpy(key->data, buf, key->header.size);
+    memset(buf, 0, key->header.size);
+    free(buf);
+
+    do {
+        //generate public key
+        status = furi_hal_crypto_storage_gen_asimetric_pub_key(key);
+        if(status != FuriHalCryptoStatusOk) {
+            printf(ANSI_FG_RED "Error: Failed to generate public key" ANSI_RESET "\r\n");
+            break;
+        }
+        printf(ANSI_FG_GREEN "Generated public key successfully\r\n" ANSI_RESET);
+
+        //generate CSR
+        status = furi_hal_crypto_storage_gen_csr_der_ecdsa256(key, furi_string_get_cstr(args));
+        if(status != FuriHalCryptoStatusOk) {
+            printf(ANSI_FG_RED "Error: Failed to generate CSR" ANSI_RESET "\r\n");
+            break;
+        }
+        printf(ANSI_FG_GREEN "Generated CSR successfully\r\n" ANSI_RESET);
+
+        // ToDo: Wrap the private key for CSR
+        key->header.flags |= FuriHalCryptoKeyFlagWrap; // Set wrap flag for CSR
         status = furi_hal_crypto_storage_write(key);
         if(status == FuriHalCryptoStatusOk) {
             printf(ANSI_FG_GREEN "Generated private key successfully\r\n" ANSI_RESET);
@@ -600,6 +717,8 @@ static void crypto_command_print_usage(void) {
         "\tcrypto write <partition> <type> <id: in HEX> <flags: in HEX> <size> <data: in Byte> Write key from NWP flash\r\n");
     printf(
         "\tcrypto gen <partition> <type> <id: in HEX> <flags: in HEX> Generate key from NWP flash\r\n");
+    printf(
+        "\tcrypto gen_csr <partition> <id: in HEX> <flags: in HEX> <subject_name> Generate CSR from NWP flash\r\n");
     printf("\tcrypto list <partition> List keys from NWP flash\r\n");
     printf("\tcrypto deinit Deinitialize NWP.\r\n");
     printf("\t\t<partition> 0-partition_main, 1-partition_user.\r\n");
@@ -641,6 +760,10 @@ void crypto_command(PipeSide* pipe, FuriString* args, void* context) {
         }
         if(furi_string_cmp_str(cmd, "gen") == 0) {
             crypto_command_gen(pipe, args, context);
+            break;
+        }
+        if(furi_string_cmp_str(cmd, "gen_csr") == 0) {
+            crypto_command_gen_csr(pipe, args, context);
             break;
         }
         if(furi_string_cmp_str(cmd, "list") == 0) {

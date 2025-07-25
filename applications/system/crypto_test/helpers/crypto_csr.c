@@ -46,7 +46,7 @@ void crypto_csr_command(PipeSide* pipe, FuriString* args, void* context) {
     // import key
     key_attr = psa_key_attributes_init();
     psa_set_key_type(&key_attr, PSA_KEY_TYPE_ECC_KEY_PAIR(PSA_ECC_FAMILY_SECP_R1));
-    psa_set_key_bits(&key_attr, 256);
+    psa_set_key_bits(&key_attr, FURI_HAL_CRYPTO_ECDSA_PRIV_KEY_SIZE_256_BITS);
     psa_set_key_algorithm(&key_attr, PSA_ALG_ECDSA(PSA_ALG_SHA_256));
     psa_set_key_usage_flags(
         &key_attr,

@@ -28,6 +28,10 @@ typedef enum {
     FuriHalCryptoKeyTypeEcdsaPriv256,
     FuriHalCryptoKeyTypeEcdsaPub224,
     FuriHalCryptoKeyTypeEcdsaPub256,
+
+    FuriHalCryptoKeyTypeCsrDerEcdsa256,
+    FuriHalCryptoKeyTypeCstDerEcdsa256,
+
     FuriHalCryptoKeyTypeMatterDAC,
     FuriHalCryptoKeyTypeMatterPAI,
     FuriHalCryptoKeyTypeMatterCD,
@@ -118,6 +122,14 @@ FuriHalCryptoStatus furi_hal_crypto_storage_get_next_key(FuriHalCryptoKey* key);
 * @return FuriHalCryptoStatus indicating the result of the operation.
 */
 FuriHalCryptoStatus furi_hal_crypto_storage_gen_asimetric_pub_key(FuriHalCryptoKey* key);
+
+/** Generate a CSR in DER format for ECDSA 256.
+* @param[in] key Pointer to the private key.
+* @param[in] subject_name Subject name for the CSR.
+* @return FuriHalCryptoStatus indicating the result of the operation.
+*/
+FuriHalCryptoStatus
+    furi_hal_crypto_storage_gen_csr_der_ecdsa256(FuriHalCryptoKey* key, const char* subject_name);
 
 /** Generate a random buffer of the specified size.
 * @param[out] buf Pointer to the buffer to fill with random data.
