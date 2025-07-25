@@ -94,6 +94,14 @@ typedef struct {
 } SocketReceiveRequest;
 
 typedef struct {
+    uint32_t namelen;
+} SocketGetPeerNameRequest;
+
+typedef struct {
+    uint32_t namelen;
+} SocketGetSockNameRequest;
+
+typedef struct {
     int32_t level;
     int32_t optname;
 } SocketGetSockOptRequest;
@@ -132,6 +140,8 @@ typedef struct {
         SocketConnectRequest connect_request;
         SocketSendRequest send_request;
         SocketReceiveRequest receive_request;
+        SocketGetSockNameRequest getsockname_request;
+        SocketGetPeerNameRequest getpeername_request;
         SocketGetSockOptRequest getsockopt_request;
         SocketSetSockOptRequest setsockopt_request;
         SocketSelectRequest select_request;

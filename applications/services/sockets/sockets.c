@@ -231,6 +231,9 @@ int sl_getsockname(int s, struct sockaddr* name, socklen_t* namelen) {
     request->type = SocketRequestTypeGetSockName;
     request->socket_id = s;
 
+    SocketGetSockNameRequest* getsockname_requst = &request->getsockname_request;
+    getsockname_requst->namelen = *namelen;
+
     SocketReturnParams* ret = &instance->ret;
     // TODO: is type necessary here?
 
@@ -271,6 +274,9 @@ int sl_getpeername(int s, struct sockaddr* name, socklen_t* namelen) {
     SocketRequest* request = &instance->request;
     request->type = SocketRequestTypeGetPeerName;
     request->socket_id = s;
+
+    SocketGetPeerNameRequest* getpeername_requst = &request->getpeername_request;
+    getpeername_requst->namelen = *namelen;
 
     SocketReturnParams* ret = &instance->ret;
     // TODO: is type necessary here?

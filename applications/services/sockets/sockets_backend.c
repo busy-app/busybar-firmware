@@ -166,14 +166,22 @@ static ssize_t
 
 static ssize_t
     sockets_getsockname_request_handler(const SocketRequest* request, SocketResponse* response) {
+    const SocketGetSockNameRequest* getsockname_request = &request->getsockname_request;
     SocketGetSockNameResponse* getsockname_response = &response->getsockname_response;
+
+    getsockname_response->namelen = getsockname_request->namelen;
+
     return getsockname(
         request->socket_id, &getsockname_response->name, &getsockname_response->namelen);
 }
 
 static ssize_t
     sockets_getpeername_request_handler(const SocketRequest* request, SocketResponse* response) {
+    const SocketGetPeerNameRequest* getpeername_request = &request->getpeername_request;
     SocketGetPeerNameResponse* getpeername_response = &response->getpeername_response;
+
+    getpeername_response->namelen = getpeername_request->namelen;
+
     return getpeername(
         request->socket_id, &getpeername_response->name, &getpeername_response->namelen);
 }
@@ -266,8 +274,9 @@ static void sockets_custom_event_callback(uint32_t events, void* context) {
         SocketResponse* response = &instance->response;
         response->type = (SocketResponseType)request_type;
 
+#ifdef SOCKETS_SLOW_LOGS
         FURI_LOG_D(TAG, "%s fd: %d", sockets_get_request_name(request_type), request->socket_id);
-
+#endif
         response->status = socket_request_handlers[request_type](request, response);
         response->_errno = errno;
 
