@@ -14,6 +14,7 @@
 #include "helpers/crypto_ecdsa.h"
 #include "helpers/crypto_hmac.h"
 #include "helpers/crypto_mbedtls_edsa.h"
+#include "helpers/crypto_csr.h"
 
 #include <cli/args.h>
 #include <cli/cli_command.h>
@@ -91,6 +92,7 @@ void crypto_test_command(PipeSide* pipe, FuriString* args, void* context) {
     cli_registry_add_command(registry, "sha", CliCommandFlagDefault, crypto_sha_command, NULL);
     cli_registry_add_command(
         registry, "mbedtls_edsa", CliCommandFlagDefault, crypto_mbedtls_edsa_command, NULL);
+    cli_registry_add_command(registry, "csr", CliCommandFlagDefault, crypto_csr_command, NULL);
 
     CliShell* shell = cli_shell_alloc(crypto_test_motd, NULL, pipe, registry, NULL);
     cli_shell_set_prompt(shell, "crypto_test");

@@ -55,7 +55,8 @@ void crypto_mbedtls_edsa_command(PipeSide* pipe, FuriString* args, void* context
     ret = psa_crypto_init();
     if(ret != PSA_SUCCESS) {
         printf(
-            ANSI_FG_RED "PSA crypto library initialization failed with error: %ld\r\n" ANSI_RESET,
+            ANSI_FG_RED
+            "PSA crypto library initialization failed with error: 0x%08lX\r\n" ANSI_RESET,
             ret);
     } else {
         printf(ANSI_FG_GREEN "PSA crypto library initialization Success\r\n" ANSI_RESET);
@@ -75,7 +76,7 @@ void crypto_mbedtls_edsa_command(PipeSide* pipe, FuriString* args, void* context
     // Import a private key
     ret = psa_import_key(&key_attr, private_key, sizeof(private_key), &key_id);
     if(ret != PSA_SUCCESS) {
-        printf(ANSI_FG_RED "Import Key failed with error: status %ld\r\n" ANSI_RESET, ret);
+        printf(ANSI_FG_RED "Import Key failed with error: status 0x%08lX\r\n" ANSI_RESET, ret);
     } else {
         printf(ANSI_FG_GREEN "Import Key success\r\n" ANSI_RESET);
     }
@@ -85,7 +86,7 @@ void crypto_mbedtls_edsa_command(PipeSide* pipe, FuriString* args, void* context
     if(ret != PSA_SUCCESS) {
         printf(
             ANSI_FG_RED
-            "Exporting a Public Key from Private key Failed with error: %ld\r\n" ANSI_RESET,
+            "Exporting a Public Key from Private key Failed with error: 0x%08lX\r\n" ANSI_RESET,
             ret);
     } else {
         printf(ANSI_FG_GREEN "Export Public Key from Private Key Success\r\n" ANSI_RESET);
@@ -94,7 +95,7 @@ void crypto_mbedtls_edsa_command(PipeSide* pipe, FuriString* args, void* context
     // Destroy the private key
     ret = psa_destroy_key(key_id);
     if(ret != PSA_SUCCESS) {
-        printf(ANSI_FG_RED "Destroy Key failed with error : %ld\r\n" ANSI_RESET, ret);
+        printf(ANSI_FG_RED "Destroy Key failed with error : 0x%08lX\r\n" ANSI_RESET, ret);
     } else {
         printf(ANSI_FG_GREEN "Destroy Key Success\r\n" ANSI_RESET);
     }
@@ -147,7 +148,7 @@ void crypto_mbedtls_edsa_command(PipeSide* pipe, FuriString* args, void* context
     // Import a private key
     ret = psa_import_key(&key_attr, private_key, sizeof(private_key), &key_id);
     if(ret != PSA_SUCCESS) {
-        printf(ANSI_FG_RED "Import Key failed with error: status %ld\r\n" ANSI_RESET, ret);
+        printf(ANSI_FG_RED "Import Key failed with error: status 0x%08lX\r\n" ANSI_RESET, ret);
     } else {
         printf(ANSI_FG_GREEN "Import Key success\r\n" ANSI_RESET);
     }
@@ -164,7 +165,7 @@ void crypto_mbedtls_edsa_command(PipeSide* pipe, FuriString* args, void* context
 
     if(ret != PSA_SUCCESS) {
         printf(
-            ANSI_FG_RED "Sign Message with Private key Failed with error: %ld\r\n" ANSI_RESET,
+            ANSI_FG_RED "Sign Message with Private key Failed with error: 0x%08lX\r\n" ANSI_RESET,
             ret);
     } else {
         printf(ANSI_FG_GREEN "Sign Message with Private Key Success\r\n" ANSI_RESET);
@@ -173,7 +174,7 @@ void crypto_mbedtls_edsa_command(PipeSide* pipe, FuriString* args, void* context
     // Destroy the wrapped/plain private key
     ret = psa_destroy_key(key_id);
     if(ret != PSA_SUCCESS) {
-        printf(ANSI_FG_RED "Destroy Key failed with error : %ld\r\n" ANSI_RESET, ret);
+        printf(ANSI_FG_RED "Destroy Key failed with error : 0x%08lX\r\n" ANSI_RESET, ret);
     } else {
         printf(ANSI_FG_GREEN "Destroy Key Success\r\n" ANSI_RESET);
     }
@@ -189,7 +190,7 @@ void crypto_mbedtls_edsa_command(PipeSide* pipe, FuriString* args, void* context
     // Import public key
     ret = psa_import_key(&key_attr, public_key, sizeof(public_key), &key_id);
     if(ret != PSA_SUCCESS) {
-        printf(ANSI_FG_RED "Import Public Key failed with error : %ld\r\n" ANSI_RESET, ret);
+        printf(ANSI_FG_RED "Import Public Key failed with error : 0x%08lX\r\n" ANSI_RESET, ret);
     } else {
         printf(ANSI_FG_GREEN "Import Public Key Success\r\n" ANSI_RESET);
     }
@@ -205,7 +206,7 @@ void crypto_mbedtls_edsa_command(PipeSide* pipe, FuriString* args, void* context
     if(ret != PSA_SUCCESS) {
         printf(
             ANSI_FG_RED
-            "Signature Verification with Public Key failed with error: %ld\r\n" ANSI_RESET,
+            "Signature Verification with Public Key failed with error: 0x%08lX\r\n" ANSI_RESET,
             ret);
     } else {
         printf(ANSI_FG_GREEN "Signature Verification with Public Key Success\r\n" ANSI_RESET);
@@ -214,7 +215,7 @@ void crypto_mbedtls_edsa_command(PipeSide* pipe, FuriString* args, void* context
     // Destroy public key
     ret = psa_destroy_key(key_id);
     if(ret != PSA_SUCCESS) {
-        printf(ANSI_FG_RED "Destroy Key failed with error : %ld\r\n" ANSI_RESET, ret);
+        printf(ANSI_FG_RED "Destroy Key failed with error : 0x%08lX\r\n" ANSI_RESET, ret);
     } else {
         printf(ANSI_FG_GREEN "Destroy Key Success\r\n" ANSI_RESET);
     }
