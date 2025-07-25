@@ -52,6 +52,8 @@ int sl_select(
     fd_set* exceptset,
     struct timeval* timeout);
 
+int sl_fcntl(int s, int cmd, int val);
+
 #ifdef __cplusplus
 }
 #endif

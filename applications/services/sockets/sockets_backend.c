@@ -235,6 +235,14 @@ static ssize_t
     return status;
 }
 
+static ssize_t
+    sockets_fcntl_request_handler(const SocketRequest* request, SocketResponse* response) {
+    UNUSED(response);
+
+    const SocketFcntlRequest* fcntl_request = &request->fcntl_request;
+    return fcntl(request->socket_id, fcntl_request->cmd, fcntl_request->val);
+}
+
 static void sockets_intercom_rx_callback(const void* data, size_t data_size, void* context) {
     furi_assert(context);
     SocketSrv* instance = context;
@@ -310,4 +318,5 @@ static const SocketRequestHandler socket_request_handlers[SocketRequestTypeMax] 
     [SocketRequestTypeSetSockOpt] = sockets_setsockopt_request_handler,
     [SocketRequestTypeGetSockOpt] = sockets_getsockopt_request_handler,
     [SocketRequestTypeSelect] = sockets_select_request_handler,
+    [SocketRequestTypeFcntl] = sockets_fcntl_request_handler,
 };

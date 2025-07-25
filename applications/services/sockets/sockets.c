@@ -520,6 +520,26 @@ int sl_close(int s) {
     return status;
 }
 
+int sl_fcntl(int s, int cmd, int val) {
+    furi_check(instance);
+
+    sockets_lock();
+
+    SocketRequest* request = &instance->request;
+    request->type = SocketRequestTypeFcntl;
+    request->socket_id = s;
+
+    SocketFcntlRequest* fcntl_request = &request->fcntl_request;
+    fcntl_request->cmd = cmd;
+    fcntl_request->val = val;
+
+    sockets_send_request();
+    const ssize_t status = sockets_wait_for_response();
+
+    sockets_unlock();
+    return status;
+}
+
 static SocketSrv* sockets_alloc(void) {
     SocketSrv* instance = malloc(sizeof(SocketSrv));
     instance->access_semaphore = furi_semaphore_alloc(1, 1);

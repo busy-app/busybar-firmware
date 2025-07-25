@@ -30,6 +30,7 @@ typedef enum {
     SocketRequestTypeSetSockOpt,
     SocketRequestTypeGetSockOpt,
     SocketRequestTypeSelect,
+    SocketRequestTypeFcntl,
     /* Special value */
     SocketRequestTypeMax,
 } SocketRequestType;
@@ -48,6 +49,7 @@ typedef enum {
     SocketResponseTypeSetSockOpt = SocketRequestTypeSetSockOpt,
     SocketResponseTypeGetSockOpt = SocketRequestTypeGetSockOpt,
     SocketResponseTypeSelect = SocketRequestTypeSelect,
+    SocketResponseTypeFcntl = SocketRequestTypeFcntl,
     /* Async responses */
     SocketResponseTypeAsyncAccept,
     SocketResponseTypeAsyncSelect,
@@ -115,6 +117,11 @@ typedef struct {
 } SocketSelectRequest;
 
 typedef struct {
+    int32_t cmd;
+    int32_t val;
+} SocketFcntlRequest;
+
+typedef struct {
     uint8_t type;
     uint8_t socket_id;
     union {
@@ -128,6 +135,7 @@ typedef struct {
         SocketGetSockOptRequest getsockopt_request;
         SocketSetSockOptRequest setsockopt_request;
         SocketSelectRequest select_request;
+        SocketFcntlRequest fcntl_request;
     };
 } SocketRequest;
 

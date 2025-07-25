@@ -24,6 +24,7 @@ static const size_t sockets_request_size[SocketRequestTypeMax] = {
     [SocketRequestTypeSetSockOpt] = REQUEST_SIZE(SocketSetSockOptRequest),
     [SocketRequestTypeGetSockOpt] = REQUEST_SIZE(SocketGetSockOptRequest),
     [SocketRequestTypeSelect] = REQUEST_SIZE(SocketSelectRequest),
+    [SocketRequestTypeFcntl] = REQUEST_SIZE(SocketFcntlRequest),
 };
 
 static const size_t sockets_response_size[SocketResponseTypeMax] = {
@@ -40,6 +41,7 @@ static const size_t sockets_response_size[SocketResponseTypeMax] = {
     [SocketResponseTypeSetSockOpt] = RESPONSE_SIZE(SocketEmpty),
     [SocketResponseTypeGetSockOpt] = RESPONSE_SIZE(SocketGetSockOptResponse),
     [SocketResponseTypeSelect] = RESPONSE_SIZE(SocketSelectResponse),
+    [SocketResponseTypeFcntl] = RESPONSE_SIZE(SocketEmpty),
     [SocketResponseTypeAsyncAccept] = ASYNC_RESPONSE_SIZE(SocketAcceptAsyncResponse),
     [SocketResponseTypeAsyncSelect] = ASYNC_RESPONSE_SIZE(SocketSelectAsyncResponse),
 };
@@ -58,6 +60,7 @@ static const char* sockets_request_names[SocketRequestTypeMax] = {
     [SocketRequestTypeSetSockOpt] = "setsockopt",
     [SocketRequestTypeGetSockOpt] = "getsockopt",
     [SocketRequestTypeSelect] = "select",
+    [SocketRequestTypeFcntl] = "fcntl",
 };
 
 size_t sockets_get_request_size(const SocketRequest* request) {
