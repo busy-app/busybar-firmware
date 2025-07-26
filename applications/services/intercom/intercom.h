@@ -6,6 +6,7 @@
 
 #include <stddef.h>
 #include <stdint.h>
+#include <furi/core/pubsub.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -39,10 +40,21 @@ typedef enum {
  * @brief Enumeration of possible errors.
  */
 typedef enum {
-    IntercomErrorSync, /**< Failed to synchronise with the other side */
+    IntercomErrorSync, /**< Other side has requested synchronization, which failed */
     IntercomErrorFraming, /**< Invalid frame (incorrect structure or checksum) */
     IntercomErrorTransmit, /**< Transmission has been inhibited for too long by HW */
 } IntercomError;
+
+typedef enum {
+    IntercomEventTypeError, /**< Error event */
+} IntercomEventType;
+
+typedef struct {
+    IntercomEventType type; /**< Type of the event */
+    union {
+        const char* message; /**< Optional message, if applicable */
+    };
+} IntercomEvent;
 
 /**
  * @brief Receive callback function type.
@@ -70,23 +82,28 @@ void intercom_set_rx_callback(
     void* context);
 
 /**
- * @brief Error callback function type.
- *
- * @param[in] error Error identifier from the IntercomError enumeration
- * @param[in,out] context Pointer to a user-specified context object
- */
-typedef void (*IntercomErrorCallback)(IntercomError error, void* context);
-
-/**
- * @brief Set a callback function for occurred errors.
- *
- * @note If no callback is set, a default handler will be used that would crash on any error.
+ * @brief Enable error handling. 
+ *        If enabled, the Intercom service will call the error callback and can crash on errors.
  *
  * @param[in,out] instance Pointer to the Intercom instance
- * @param[in] callback Pointer to the function to be called upon error
- * @param[in,out] context Pointer to a user-specified object (will be passed to the callback)
  */
-void intercom_set_error_callback(Intercom* instance, IntercomErrorCallback callback, void* context);
+void intercom_error_handling_enable(Intercom* instance);
+
+/**
+ * @brief Disable error handling.
+ *        If disabled, the Intercom service will not call the error callback and will not crash on errors.
+ *
+ * @param[in,out] instance Pointer to the Intercom instance
+ */
+void intercom_error_handling_disable(Intercom* instance);
+
+/**
+ * @brief Get the Intercom PubSub instance.
+ *
+ * @param[in,out] instance Pointer to the Intercom instance
+ * @returns Pointer to the FuriPubSub instance
+ */
+FuriPubSub* intercom_get_pubsub(Intercom* instance);
 
 /**
  * @brief Transmit data through Intercom.

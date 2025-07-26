@@ -6,7 +6,8 @@
 #define INTERCOM_SYNC_INTERVAL_1_MS (5UL)
 #define INTERCOM_SYNC_INTERVAL_2_MS (1UL)
 
-#define INTERCOM_SYNC_TIMEOUT_MS (10000UL)
+#define INTERCOM_SYNC_CHAR_TIMEOUT_MS (1000UL)
+#define INTERCOM_SYNC_TIMEOUT_MS      (1000UL)
 
 typedef struct {
     uint8_t leader;
@@ -47,8 +48,11 @@ static bool
 
     while(furi_get_tick() - start_time < furi_ms_to_ticks(INTERCOM_SYNC_TIMEOUT_MS)) {
         if(send_leader) {
-            furi_hal_serial_tx(serial, &sequence->leader, 1);
-            if(!furi_hal_serial_tx_wait_complete(serial, INTERCOM_SYNC_TIMEOUT_MS)) {
+            if(furi_hal_serial_tx(serial, &sequence->leader, 1, INTERCOM_SYNC_CHAR_TIMEOUT_MS) !=
+               1) {
+                break;
+            }
+            if(!furi_hal_serial_tx_wait_complete(serial, INTERCOM_SYNC_CHAR_TIMEOUT_MS)) {
                 break;
             }
             // If repeat_leader is false, then the leader is sent only once

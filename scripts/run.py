@@ -213,6 +213,8 @@ def run_build_update_bundles(args):
 
     upd_si917_ta_rps = discover_si917_NWP_rps_path()
 
+    upd_si917_ta_rps = discover_si917_NWP_rps_path()
+
     ensure_run_assets_dir()
     # TODO: check if the firmware builded successfully before running this command?
 

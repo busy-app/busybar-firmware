@@ -104,7 +104,7 @@ bool bh1730_read_lux(FuriHalI2cBusHandle* handle, float* value) {
     }
 
     uint16_t adc0_val = (data_buf[1] << 8) | data_buf[0];
-    uint16_t adc1_val = (data_buf[3] << 8) | data_buf[1];
+    uint16_t adc1_val = (data_buf[3] << 8) | data_buf[2];
     uint8_t gain = 1;
 
     float itime_ms = (2.8f * 964.f * (256.f - BH1730_ITIME_VAL)) / 1000.f;
