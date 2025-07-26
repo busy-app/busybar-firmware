@@ -30,7 +30,7 @@ typedef enum {
     FuriHalCryptoKeyTypeEcdsaPub256,
 
     FuriHalCryptoKeyTypeCsrDerEcdsa256,
-    FuriHalCryptoKeyTypeCstDerEcdsa256,
+    FuriHalCryptoKeyTypeCrtDerEcdsa256,
 
     FuriHalCryptoKeyTypeMatterDAC,
     FuriHalCryptoKeyTypeMatterPAI,

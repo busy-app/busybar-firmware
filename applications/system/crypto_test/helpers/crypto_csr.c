@@ -2,12 +2,19 @@
 
 #include <mbedtls/x509_crt.h>
 #include <mbedtls/x509_csr.h>
+#include <mbedtls/oid.h>
+#include <mbedtls/asn1write.h>
 #include <psa/crypto.h>
 
 #include <furi_hal_crypto.h>
 #include <cli/cli_ansi.h>
 
 #define TAG "Crypto_CSR"
+
+#define MATTER_X509_EXTENSIONS 1
+
+#define MATTER_VID_OID "1.3.6.1.4.1.37244.2.1"
+#define MATTER_PID_OID "1.3.6.1.4.1.37244.2.2"
 
 static const uint8_t private_key[FURI_HAL_CRYPTO_ECDSA_PRIV_KEY_SIZE_256] = {
     0xb4, 0x0f, 0x54, 0xf1, 0x50, 0x15, 0xc3, 0x3c, 0xfd, 0xea, 0xa6,
@@ -17,6 +24,43 @@ static const uint8_t private_key[FURI_HAL_CRYPTO_ECDSA_PRIV_KEY_SIZE_256] = {
 void crypto_csr_wrap(uint8_t* key, size_t key_size, uint8_t* wrapped_key) {
     furi_check(key_size == FURI_HAL_CRYPTO_ECDSA_PRIV_KEY_SIZE_256);
     furi_hal_crypto_wrap_key(FURI_HAL_CRYPTO_ECDSA_PRIV_KEY_SIZE_256, key, wrapped_key);
+}
+
+void crypto_csr_command_add_extension(
+    void* csr_ctx,
+    const char* oid,
+    size_t oid_len,
+    const char* value,
+    size_t value_len) {
+    mbedtls_asn1_buf vid_oid = {.p = NULL, .len = 0, .tag = MBEDTLS_ASN1_NULL};
+    //mbedtls_x509_san_list* san_list = malloc(sizeof(mbedtls_x509_san_list));
+    //san_list->next = NULL;
+
+    mbedtls_oid_from_numeric_string(&vid_oid, oid, oid_len);
+
+    // san_list->node.type = MBEDTLS_X509_SAN_UNIFORM_RESOURCE_IDENTIFIER; // Example type
+    // san_list->node.san.unstructured_name.p = (unsigned char*)value;
+    // san_list->node.san.unstructured_name.len = value_len;
+    // san_list->node.san.unstructured_name.tag = MBEDTLS_ASN1_PRINTABLE_STRING;
+
+    // int ret=mbedtls_x509write_csr_set_subject_alternative_name(csr_ctx, san_list);
+    // if(ret != 0) {
+    //     printf(ANSI_FG_RED "Failed to set subject alternative name: %d\r\n" ANSI_RESET, ret);
+    // } else {
+    //     printf(ANSI_FG_GREEN "Subject alternative name set successfully\r\n" ANSI_RESET);
+    // }
+
+    mbedtls_x509write_csr_set_extension(
+        csr_ctx,
+        (const char*)vid_oid.p,
+        vid_oid.len,
+        0, // Не критичное расширение
+        (unsigned char*)value,
+        value_len);
+
+    free(vid_oid.p);
+    vid_oid.p = NULL;
+    vid_oid.len = 0;
 }
 
 void crypto_csr_command(PipeSide* pipe, FuriString* args, void* context) {
@@ -74,18 +118,29 @@ void crypto_csr_command(PipeSide* pipe, FuriString* args, void* context) {
         subject_name,
         sizeof(subject_name),
         "CN=%s,VID=%04X,PID=%04X",
-        common_name,
-        vendor_id,
-        product_id);
+        "Matter Light #1",
+        0x1049,
+        0x8005);
 #else
-    snprintf(
-        subject_name,
-        sizeof(subject_name),
-        "CN=%s,serialNumber=%s,commonName=%s",
-        "test",
-        "12345",
-        "11test111");
+    snprintf(subject_name, sizeof(subject_name), "CN=%s", "Matter Light #1");
 #endif
+
+    // crypto_csr_command_add_extension(
+    //     &csr_ctx,
+    //     MATTER_VID_OID,
+    //     sizeof(MATTER_VID_OID) - 1,
+    //     "1234",
+    //     strlen("1234")); // Example of adding a vendor ID extension
+    // crypto_csr_command_add_extension(
+    //     &csr_ctx,
+    //     MATTER_PID_OID,
+    //     sizeof(MATTER_PID_OID) - 1,
+    //     "PID=5678",
+    //     strlen("PID=5678")); // Example of adding a product ID extension
+
+    printf("Subject name: %s\r\n", subject_name);
+
+    // Set subject name
 
     int err = mbedtls_x509write_csr_set_subject_name(&csr_ctx, subject_name);
     if(err != 0) {
@@ -93,6 +148,13 @@ void crypto_csr_command(PipeSide* pipe, FuriString* args, void* context) {
     } else {
         printf(ANSI_FG_GREEN "Subject name set to: %s\r\n" ANSI_RESET, subject_name);
     }
+
+    // err = mbedtls_x509write_csr_set_subject_alternative_name(&csr_ctx, "DNS:example.com");
+    // if(err != 0) {
+    //     printf(ANSI_FG_RED "Failed to set subject alternative name: %d\r\n" ANSI_RESET, err);
+    // } else {
+    //     printf(ANSI_FG_GREEN "Subject alternative name set to: DNS:example.com\r\n" ANSI_RESET);
+    // }
 
     // 3 set algorithm
     mbedtls_x509write_csr_set_md_alg(&csr_ctx, MBEDTLS_MD_SHA256);

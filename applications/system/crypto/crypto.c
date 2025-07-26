@@ -91,8 +91,8 @@ static const char* crypto_command_show_type(FuriHalCryptoKeyType type) {
     case FuriHalCryptoKeyTypeCsrDerEcdsa256:
         return "FuriHalCryptoKeyTypeCsrDerEcdsa256";
         break;
-    case FuriHalCryptoKeyTypeCstDerEcdsa256:
-        return "FuriHalCryptoKeyTypeCstDerEcdsa256";
+    case FuriHalCryptoKeyTypeCrtDerEcdsa256:
+        return "FuriHalCryptoKeyTypeCrtDerEcdsa256";
         break;
     default:
         return "Unknown type";
