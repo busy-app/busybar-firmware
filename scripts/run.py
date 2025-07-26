@@ -206,8 +206,10 @@ def discover_si917_NWP_rps_path():
 
 def run_build_update_bundles(args):
     upd_bundle_dir = UPDATE_BUNDLE_DIR
-    upd_bundle_prod_dir = UPDATE_BUNDLE_PROD_DIR
     upd_bundle_tar = UPDATE_BUNDLE_TAR
+    # For production line only
+    upd_bundle_prod_dir = UPDATE_BUNDLE_PROD_DIR
+    recovery_bundle_dir = os.path.join(UPDATE_BUNDLE_PROD_DIR, "recovery")
 
     upd_si917_ta_rps = discover_si917_NWP_rps_path()
 
@@ -219,6 +221,9 @@ def run_build_update_bundles(args):
     
     if os.path.exists(upd_bundle_dir):
         shutil.rmtree(upd_bundle_dir)
+
+    if os.path.exists(upd_bundle_prod_dir):
+        shutil.rmtree(upd_bundle_prod_dir)
 
     bundles_cmds = []
 
@@ -250,7 +255,7 @@ def run_build_update_bundles(args):
     bundles_cmds.append([
         "./scripts/update_bundle.py",
         "--target", f"{args.target}",
-        "--output", upd_bundle_prod_dir,
+        "--output", recovery_bundle_dir,
         "--stage", f"fbt_layers/fbtng/build/f{args.target}-updater-D/updater.bin",
         "--dfu", f"fbt_layers/fbtng/build/f{args.target}-firmware-D/firmware.dfu",
         "--sil-fw", f"fbt_layers/fbtng/build/f{SI_TARGET_HW}-firmware-D/firmware.rps",
