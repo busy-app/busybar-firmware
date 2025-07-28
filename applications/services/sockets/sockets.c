@@ -341,7 +341,7 @@ ssize_t
     request->socket_id = s;
 
     SocketReceiveRequest* recv_request = &request->receive_request;
-    recv_request->len = len;
+    recv_request->len = MIN(len, sizeof(((SocketReceiveResponse*)0)->data));
     recv_request->include_from = (from != NULL);
 
     SocketReturnParams* ret = &instance->ret;
