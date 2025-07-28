@@ -1,5 +1,5 @@
 #include "sockets_backend_util.h"
-
+#include <furi.h>
 #include <sl_si91x_socket_utility.h>
 
 void sockets_connection_info_to_sl_address(
