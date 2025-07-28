@@ -46,6 +46,7 @@ struct Audio {
     FuriMessageQueue* message_queue;
     Storage* storage;
     File* file;
+    FuriPubSub* event_pubsub;
     int16_t buffer[AUDIO_BUFFER_DEPTH];
     float volume;
     bool should_stop;
@@ -167,8 +168,12 @@ static void audio_message_queue_callback(FuriEventLoopObject* object, void* cont
     } else if(msg.type == AudioMessageTypeStop) {
         instance->should_stop = true;
     } else if(msg.type == AudioMessageTypeSetVolume) {
-        instance->volume = msg.volume;
+        instance->volume = msg.set_volume;
+
         json_config_write_single_number(AUDIO_CONFIG_FILE, "volume", instance->volume);
+
+        AudioEvent pub_event = {.type = AudioEventVolumeUpdate};
+        furi_pubsub_publish(instance->event_pubsub, &pub_event);
     } else {
         furi_crash("Invalid message type");
     }
@@ -232,6 +237,8 @@ static Audio* audio_alloc(void) {
     furi_hal_sai_set_buffer(instance->buffer, COUNT_OF(instance->buffer));
     furi_hal_sai_set_callback(audio_sai_callback, instance);
 
+    instance->event_pubsub = furi_pubsub_alloc();
+
     // TODO: Create record only when MMC has been mounted
     furi_record_create(RECORD_AUDIO, instance);
 
@@ -291,4 +298,9 @@ int32_t audio_srv(void* p) {
     furi_event_loop_run(instance->event_loop);
 
     return 0;
+}
+
+FuriPubSub* audio_get_pubsub(Audio* audio) {
+    furi_check(audio);
+    return audio->event_pubsub;
 }
