@@ -117,7 +117,7 @@ void crypto_csr_command(PipeSide* pipe, FuriString* args, void* context) {
     snprintf(
         subject_name,
         sizeof(subject_name),
-        "CN=%s, Mvid:%04X, Mpid:%04X",
+        "CN=%s Mvid:%04X Mpid:%04X",
         "Matter Light #1",
         0x1049,
         0x8005);
