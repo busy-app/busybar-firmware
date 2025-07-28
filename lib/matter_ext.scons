@@ -471,6 +471,7 @@ sources = [
     f"{LIB_FOLDER}/third_party/matter_sdk/src/inet/UDPEndPoint.cpp",
     # f"{LIB_FOLDER}/third_party/matter_sdk/src/inet/UDPEndPointImplLwIP.cpp",
     f"{LIB_FOLDER}/third_party/matter_sdk/src/inet/UDPEndPointImplSockets.cpp",
+    f"{LIB_FOLDER}/third_party/matter_sdk/src/inet/UDPEndPointImplSlSockets.cpp",
     # f"{LIB_FOLDER}/src/sl_platform/UDPEndPointImplSlSockets.cpp",
     f"{LIB_FOLDER}/third_party/matter_sdk/src/lib/address_resolve/AddressResolve.cpp",
     f"{LIB_FOLDER}/third_party/matter_sdk/src/lib/address_resolve/AddressResolve_DefaultImpl.cpp",

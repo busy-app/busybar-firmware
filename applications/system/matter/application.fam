@@ -4,5 +4,5 @@ App(
     targets=["f64"],
     apptype=FlipperAppType.CLICMD,
     entry_point="matter_command",
-    stack_size=2 * 1024,
+    stack_size=4 * 1024,
 )
