@@ -29,6 +29,7 @@ typedef enum {
     AudioMessageTypePlayFile,
     AudioMessageTypeStop,
     AudioMessageTypeSetVolume,
+    AudioMessageTypeGetVolume,
 } AudioMessageType;
 
 typedef struct {
@@ -36,8 +37,9 @@ typedef struct {
     FuriApiLock lock;
     bool* result;
     union {
+        float* get_volume;
         const char* file_name;
-        float volume;
+        float set_volume;
     };
 } AudioMessage;
 
@@ -174,6 +176,9 @@ static void audio_message_queue_callback(FuriEventLoopObject* object, void* cont
 
         AudioEvent pub_event = {.type = AudioEventVolumeUpdate};
         furi_pubsub_publish(instance->event_pubsub, &pub_event);
+    } else if(msg.type == AudioMessageTypeGetVolume) {
+        furi_assert(msg.get_volume);
+        memcpy(msg.get_volume, &(instance->volume), sizeof(instance->volume));
     } else {
         furi_crash("Invalid message type");
     }
@@ -279,7 +284,7 @@ void audio_set_volume(Audio* instance, float volume) {
 
     const AudioMessage msg = {
         .type = AudioMessageTypeSetVolume,
-        .volume = volume,
+        .set_volume = volume,
     };
 
     audio_send_message(instance, &msg);
@@ -287,7 +292,17 @@ void audio_set_volume(Audio* instance, float volume) {
 
 float audio_get_volume(Audio* instance) {
     furi_check(instance);
-    return instance->volume;
+
+    float volume;
+    AudioMessage msg = {
+        .type = AudioMessageTypeGetVolume,
+        .get_volume = &volume,
+        .lock = api_lock_alloc_locked(),
+    };
+
+    audio_send_message(instance, &msg);
+
+    return volume;
 }
 
 int32_t audio_srv(void* p) {
