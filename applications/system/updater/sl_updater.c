@@ -111,7 +111,7 @@ static int32_t kermit_comms_send(void* context, const uint8_t* buffer, size_t le
     furi_string_free(str);
 #endif
 
-    furi_hal_serial_tx(app->serial_handle, buffer, length);
+    furi_hal_serial_tx(app->serial_handle, buffer, length, FuriWaitForever);
     return length;
 }
 
@@ -175,7 +175,7 @@ static void sl_updater_handle_rx(SlUpdater* instance) {
     case Si917BootloaderStateInit:
         if(sl_updater_check_rx_for(instance, "Enter 'U'")) {
             const uint8_t leader = 'U';
-            furi_hal_serial_tx(instance->serial_handle, &leader, sizeof(leader));
+            furi_hal_serial_tx(instance->serial_handle, &leader, sizeof(leader), FuriWaitForever);
             FURI_LOG_I(TAG, "Leader sent: %c", leader);
             instance->bootloader_state = Si917BootloaderStateBoot;
         }
@@ -189,7 +189,8 @@ static void sl_updater_handle_rx(SlUpdater* instance) {
         } else {
             if(sl_updater_check_rx_for(instance, "Change UART Baud Rate\r\n")) {
                 const uint8_t choice = 'b';
-                furi_hal_serial_tx(instance->serial_handle, &choice, sizeof(choice));
+                furi_hal_serial_tx(
+                    instance->serial_handle, &choice, sizeof(choice), FuriWaitForever);
                 FURI_LOG_I(TAG, "UART Baud Rate change request sent: %c", choice);
                 instance->bootloader_state = Si917BootloaderStateChangeBaudRate;
             }
@@ -201,7 +202,8 @@ static void sl_updater_handle_rx(SlUpdater* instance) {
             furi_hal_serial_tx(
                 instance->serial_handle,
                 (uint8_t*)sl_updater_baudrate[instance->baud_throttle].choice,
-                1);
+                1,
+                FuriWaitForever);
             FURI_LOG_I(
                 TAG,
                 "UART Baud Rate speed request sent: %s",
@@ -214,7 +216,7 @@ static void sl_updater_handle_rx(SlUpdater* instance) {
                 "Reference baud set %ld",
                 furi_hal_serial_get_baud_rate(instance->serial_handle));
             const uint8_t leader = 'U';
-            furi_hal_serial_tx(instance->serial_handle, &leader, sizeof(leader));
+            furi_hal_serial_tx(instance->serial_handle, &leader, sizeof(leader), FuriWaitForever);
             if(furi_hal_serial_set_auto_baud_rate(
                    instance->serial_handle,
                    FuriHalSerialAutoBaudRateMode0x55Frame,
@@ -232,7 +234,7 @@ static void sl_updater_handle_rx(SlUpdater* instance) {
 
     case Si917BootloaderStateChangeBaudRateNewLeader:
         const uint8_t leader = 'U';
-        furi_hal_serial_tx(instance->serial_handle, &leader, sizeof(leader));
+        furi_hal_serial_tx(instance->serial_handle, &leader, sizeof(leader), FuriWaitForever);
         FURI_LOG_I(TAG, "New Leader sent: %c", leader);
         // fall through
 
@@ -250,7 +252,8 @@ static void sl_updater_handle_rx(SlUpdater* instance) {
         if(sl_updater_check_rx_for(instance, "Enter Next Command")) {
             furi_delay_ms(10);
             const uint8_t image_type = instance->is_stack_image ? 'B' : '4';
-            furi_hal_serial_tx(instance->serial_handle, &image_type, sizeof(image_type));
+            furi_hal_serial_tx(
+                instance->serial_handle, &image_type, sizeof(image_type), FuriWaitForever);
 
             FURI_LOG_I(TAG, "Image type set to: %c", image_type);
             instance->bootloader_state = Si917BootloaderStateSetImageSlot;
@@ -262,7 +265,8 @@ static void sl_updater_handle_rx(SlUpdater* instance) {
                                                         "Enter M4 Image No(1-f)";
         if(sl_updater_check_rx_for(instance, needle)) {
             const uint8_t image_slot = instance->is_stack_image ? '0' : '1';
-            furi_hal_serial_tx(instance->serial_handle, &image_slot, sizeof(image_slot));
+            furi_hal_serial_tx(
+                instance->serial_handle, &image_slot, sizeof(image_slot), FuriWaitForever);
 
             FURI_LOG_I(TAG, "Image slot set to: %c", image_slot);
             instance->bootloader_state = Si917BootloaderStateKermitInit;
@@ -347,14 +351,6 @@ static void sl_updater_rx_buffer_callback(FuriEventLoopObject* object, void* con
 
     sl_updater_handle_rx(instance);
 }
-
-#ifdef SRV_INTERCOM
-static void sl_updater_intercom_error_callback(IntercomError error, void* context) {
-    UNUSED(error);
-    UNUSED(context);
-    // Empty callback
-}
-#endif
 
 static void sl_update_idle_timer_callback(void* context) {
     SlUpdater* instance = context;
@@ -452,7 +448,7 @@ static bool
 #ifdef SRV_INTERCOM
     // Prevent crashes
     instance->intercom = furi_record_open(RECORD_INTERCOM);
-    intercom_set_error_callback(instance->intercom, sl_updater_intercom_error_callback, NULL);
+    intercom_error_handling_disable(instance->intercom);
 #else
     // UNUSED(sl_updater_intercom_error_callback);
 #endif
@@ -467,7 +463,7 @@ static bool
     furi_hal_power_reset_917(true);
 
     const uint8_t leader = 0;
-    furi_hal_serial_tx(instance->serial_handle, &leader, sizeof(leader));
+    furi_hal_serial_tx(instance->serial_handle, &leader, sizeof(leader), FuriWaitForever);
 
     furi_event_loop_run(instance->event_loop);
 
@@ -477,7 +473,7 @@ static bool
 
 #ifdef SRV_INTERCOM
     // TODO: The ability to reset intercom
-    intercom_set_error_callback(instance->intercom, NULL, NULL);
+    intercom_error_handling_enable(instance->intercom);
     furi_record_close(RECORD_INTERCOM);
 #endif
 

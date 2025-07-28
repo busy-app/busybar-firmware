@@ -1,6 +1,7 @@
 #include "front_display_test_app_i.h"
 
 #include <furi.h>
+#include <furi_hal_display.h>
 
 #define TAG "FrontDisplayTest"
 
@@ -74,7 +75,7 @@ static void
         instance->color = (instance->color == 0) ? FrontDisplayTestColorNum - 1 :
                                                    instance->color - 1;
     } else if(event == FrontDisplayTestAppEventDisplayPower) {
-        furi_hal_gpio_write(&gpio_front_display_power_en, 0);
+        furi_hal_display_power_disable();
     } else if(event == FrontDisplayTestAppEventExit) {
         furi_event_loop_stop(instance->event_loop);
     }

@@ -131,16 +131,24 @@ void furi_hal_serial_set_callback(
 /* Blocking API */
 
 /**
- * Transmit data over the serial interface.
+ * Put data into the UART transmit FIFO buffer
  *
  * @param handle Pointer to the serial handle.
  * @param buffer Pointer to the data buffer.
  * @param buffer_size Size of the data buffer.
+ * @param timeout Timeout in milliseconds, or `FuriWaitForever`.
+ * 
+ * @return Number of bytes put into the buffer within the specified timeout
  */
-void furi_hal_serial_tx(FuriHalSerialHandle* handle, const uint8_t* buffer, size_t buffer_size);
+size_t furi_hal_serial_tx(
+    FuriHalSerialHandle* handle,
+    const uint8_t* buffer,
+    size_t buffer_size,
+    uint32_t timeout);
 
 /**
- * Wait for the transmission to complete.
+ * Wait for the UART transmit FIFO buffer to empty, meaning all bytes have been
+ * transmitted
  *
  * @param handle Pointer to the serial handle.
  * @param timeout Timeout in milliseconds.
