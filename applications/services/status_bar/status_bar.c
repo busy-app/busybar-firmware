@@ -1,6 +1,7 @@
 #include "status_bar.h"
 #include "storage_macros.h"
 
+#include "widgets/audio_status_indicator.h"
 #include "widgets/battery_status_indicator.h"
 
 #include <lvgl.h>
@@ -10,6 +11,7 @@
 #include <gui/modules/flex_layout.h>
 
 #include <power/power_service/power.h>
+#include <audio/audio.h>
 
 #define TAG "StatusBar"
 
@@ -19,12 +21,16 @@ struct StatusBar {
     FuriEventLoop* event_loop;
     Gui* gui;
     Power* power;
+    Audio* audio;
+    AudioStatusIndicator* audio_status_indicator;
     BatteryStatusIndicator* battery_status_indicator;
 };
 
 typedef enum {
     StatusBarUpdateEventPowerChargingState = 1 << 0,
     StatusBarUpdateEventPowerCharge = 1 << 1,
+
+    StatusBarUpdateEventAudioVolume = 1 << 2,
 
     StatusBarUpdateEventAnyPower = StatusBarUpdateEventPowerChargingState |
                                    StatusBarUpdateEventPowerCharge
@@ -54,13 +60,30 @@ static void power_events_callback(const void* message, void* context) {
     furi_event_loop_set_custom_event(instance->event_loop, update_event);
 }
 
+static void audio_events_callback(const void* message, void* context) {
+    furi_assert(message);
+    furi_assert(context);
+
+    AudioEvent* event = (AudioEvent*)message;
+    StatusBar* instance = context;
+
+    if(event->type == AudioEventVolumeUpdate) {
+        furi_event_loop_set_custom_event(instance->event_loop, StatusBarUpdateEventAudioVolume);
+    }
+}
+
 static void status_bar_custom_event_callback(uint32_t events, void* context) {
     StatusBar* instance = context;
     PowerInfo* power_info = NULL;
+    float audio_volume;
 
     if(READ_BIT(events, StatusBarUpdateEventAnyPower)) {
         power_info = alloca(sizeof(*power_info));
         power_get_info(instance->power, power_info);
+    }
+
+    if(READ_BIT(events, StatusBarUpdateEventAudioVolume)) {
+        audio_volume = audio_get_volume(instance->audio);
     }
 
     with_gui(instance->gui, {
@@ -75,6 +98,10 @@ static void status_bar_custom_event_callback(uint32_t events, void* context) {
                 (power_info->is_full_charged) ? BATTERY_STATUS_INDICATOR_MAX_CHARGE :
                                                 power_info->charge);
         }
+
+        if(READ_BIT(events, StatusBarUpdateEventAudioVolume)) {
+            audio_status_indicator_set_volume(instance->audio_status_indicator, audio_volume);
+        }
     })
 }
 
@@ -84,9 +111,12 @@ static StatusBar* status_bar_alloc(void) {
     instance->event_loop = furi_event_loop_alloc();
     instance->gui = furi_record_open(RECORD_GUI);
     instance->power = furi_record_open(RECORD_POWER);
+    instance->audio = furi_record_open(RECORD_AUDIO);
 
     PowerInfo power_info;
     power_get_info(instance->power, &power_info);
+
+    float audio_volume = audio_get_volume(instance->audio);
 
     with_gui(instance->gui, {
         GuiLayer* system_layer = gui_get_layer(instance->gui, GuiLayerIdSystem);
@@ -108,10 +138,11 @@ static StatusBar* status_bar_alloc(void) {
         widget_set_margin(image_get_base(wifi), 0, 0, 2, 2);
         widget_set_size(image_get_base(wifi), LV_SIZE_CONTENT, LV_SIZE_CONTENT);
 
-        Image* volume = image_alloc(flex_layout_get_base(status_bar));
-        image_set_source(volume, STATUS_BAR_IMG_PATH("sound_on_8x8.bin"));
-        widget_set_margin(image_get_base(volume), 0, 0, 2, 2);
-        widget_set_size(image_get_base(volume), LV_SIZE_CONTENT, LV_SIZE_CONTENT);
+        instance->audio_status_indicator =
+            audio_status_indicator_alloc(flex_layout_get_base(status_bar));
+        widget_set_margin(
+            audio_status_indicator_get_base(instance->audio_status_indicator), 0, 0, 2, 2);
+        audio_status_indicator_set_volume(instance->audio_status_indicator, audio_volume);
 
         Image* usb = image_alloc(flex_layout_get_base(status_bar));
         image_set_source(usb, STATUS_BAR_IMG_PATH("usb_8x8.bin"));
@@ -136,6 +167,7 @@ static StatusBar* status_bar_alloc(void) {
         instance->event_loop, status_bar_custom_event_callback, instance);
 
     furi_pubsub_subscribe(power_get_pubsub(instance->power), power_events_callback, instance);
+    furi_pubsub_subscribe(audio_get_pubsub(instance->audio), audio_events_callback, instance);
 
     furi_record_create(RECORD_STATUS_BAR, instance);
     return instance;
