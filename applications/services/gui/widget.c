@@ -141,6 +141,12 @@ void widget_set_margin(Widget* instance, int32_t left, int32_t right, int32_t to
     lv_obj_set_style_margin_bottom((lv_obj_t*)instance, bottom, LV_PART_MAIN);
 }
 
+void widget_add_flag(Widget* instance, uint32_t flag) {
+    furi_check(instance);
+
+    lv_obj_add_flag((lv_obj_t*)instance, (lv_obj_flag_t)flag);
+}
+
 // Private API
 
 void widget_set_input_feed_callback(Widget* instance, WidgetInputFeedCallback callback) {

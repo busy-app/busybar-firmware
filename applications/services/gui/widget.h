@@ -215,6 +215,14 @@ void widget_set_padding(Widget* instance, int32_t left, int32_t right, int32_t t
 */
 void widget_set_margin(Widget* instance, int32_t left, int32_t right, int32_t top, int32_t bottom);
 
+/**
+ * @brief Add a flag to the Widget instance.
+ *
+ * @param[in,out] instance pointer to the Widget instance to be modified.
+ * @param[in] flag flag value to add (bitmask).
+ */
+void widget_add_flag(Widget* instance, uint32_t flag);
+
 #ifdef __cplusplus
 }
 #endif
