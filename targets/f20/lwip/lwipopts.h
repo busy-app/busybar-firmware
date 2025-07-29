@@ -185,7 +185,7 @@
 // #define LWIP_COMPAT_SOCKETS                 1 /* 0..2 */
 // #define LWIP_POSIX_SOCKETS_IO_NAMES         1
 // #define LWIP_SOCKET_OFFSET                  0
-#define LWIP_TCP_KEEPALIVE                  0
+#define LWIP_TCP_KEEPALIVE                  1
 #define LWIP_SO_SNDTIMEO                    0
 #define LWIP_SO_RCVTIMEO                    0
 #define LWIP_SO_SNDRCVTIMEO_NONSTANDARD     0
