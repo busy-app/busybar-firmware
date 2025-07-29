@@ -8,10 +8,8 @@
 
 #define STARTUP_THREAD_STACK_SIZE (1536UL)
 
-#define MAX_DATA_LEN           (1019UL) // Limited by Intercom
-#define WIRELESS_HWADDR_LEN    (6UL)
-#define WIRELESS_ETHERTYPE_LEN (2UL)
-#define WIRELESS_MTU           (MAX_DATA_LEN - (2UL * WIRELESS_HWADDR_LEN) - WIRELESS_ETHERTYPE_LEN)
+#define MAX_DATA_LEN (1019UL) // Limited by Intercom
+#define WIRELESS_MTU (MAX_DATA_LEN - SIZEOF_ETH_HDR + ETH_PAD_SIZE)
 
 static err_t wifi_link_output(struct netif* netif, struct pbuf* p) {
     Wifi* instance = netif->state;
