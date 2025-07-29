@@ -34,7 +34,7 @@ typedef void (*WifiRequestHandler)(Wifi* instance);
 
 static const WifiRequestHandler wifi_request_handlers[WifiRequestTypeMax];
 
-static sl_net_wifi_lwip_context_t wifi_client_context;
+// static sl_net_wifi_lwip_context_t wifi_client_context;
 
 static inline void wifi_send_response(Wifi* instance) {
     const size_t tx_size = intercom_tx(
@@ -60,12 +60,30 @@ static void wifi_init_request_handler(Wifi* instance) {
 
     do {
         status = sl_net_init(
-            SL_NET_WIFI_CLIENT_INTERFACE, &wifi_config_client, &wifi_client_context, NULL);
+            SL_NET_WIFI_CLIENT_INTERFACE, &wifi_config_client, instance->intercom, NULL);
 
         if(status != SL_STATUS_OK) {
             FURI_LOG_E(TAG, "Failed to initialise Wifi: %lX", status);
             break;
         }
+
+        sl_mac_address_t mac_addr;
+        status = sl_wifi_get_mac_address(SL_WIFI_CLIENT_INTERFACE, &mac_addr);
+
+        if(status != SL_STATUS_OK) {
+            FURI_LOG_E(TAG, "Failed to get MAC address: %lX", status);
+            break;
+        }
+
+        FURI_LOG_I(
+            TAG,
+            "MAC address: %2X:%2X:%2X:%2X:%2X:%2X",
+            mac_addr.octet[0],
+            mac_addr.octet[1],
+            mac_addr.octet[2],
+            mac_addr.octet[3],
+            mac_addr.octet[4],
+            mac_addr.octet[5]);
 
         wifi_set_state(instance, WifiStateDown);
 
@@ -282,6 +300,11 @@ static void wifi_intercom_rx_callback(const void* data, size_t data_size, void* 
     furi_event_loop_set_custom_event(instance->event_loop, WifiEventRequest);
 }
 
+static void wifi_net_intercom_rx_callback(const void* data, size_t data_size, void* context) {
+    UNUSED(context);
+    sl_wifi_send_raw_data_frame(SL_WIFI_CLIENT_INTERFACE, data, data_size);
+}
+
 static void wifi_prepare_scan_response(WifiResponse* response) {
     uint16_t results_count = 0;
 
@@ -379,6 +402,9 @@ static Wifi* wifi_alloc(void) {
         instance->event_loop, wifi_custom_event_callback, instance);
     intercom_set_rx_callback(
         instance->intercom, IntercomChannelWifi, wifi_intercom_rx_callback, instance);
+
+    intercom_set_rx_callback(
+        instance->intercom, IntercomChannelSockets, wifi_net_intercom_rx_callback, instance);
 
     furi_record_create(RECORD_WIFI, instance->event_pubsub);
 

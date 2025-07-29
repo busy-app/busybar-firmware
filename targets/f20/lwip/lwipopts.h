@@ -35,7 +35,7 @@
 #define LWIP_ALLOW_MEM_FREE_FROM_OTHER_CONTEXT 0
 #define MEMP_NUM_PBUF                          16
 #define MEMP_NUM_RAW_PCB                       4
-#define MEMP_NUM_UDP_PCB                       4
+#define MEMP_NUM_UDP_PCB                       8
 #define MEMP_NUM_TCP_PCB                       8
 #define MEMP_NUM_TCP_PCB_LISTEN                8
 #define MEMP_NUM_TCP_SEG                       16
@@ -84,7 +84,7 @@
 #define LWIP_MULTICAST_PING                    1
 #define LWIP_RAW                               1
 #define RAW_TTL                                (IP_DEFAULT_TTL)
-#define LWIP_DHCP                              0
+#define LWIP_DHCP                              1
 #define LWIP_DHCP_CHECK_LINK_UP                0
 #define LWIP_DHCP_BOOTP_FILE                   0
 #define LWIP_DHCP_GET_NTP_SRV                  0

@@ -31,7 +31,7 @@ App(
         "intercom",
         "wifi",
         # "wifi_bridge",
-        "sockets",
+        # "sockets",
         "status_lights",
         "light_sensor",
         "supervisor",
@@ -56,8 +56,8 @@ App(
     apptype=FlipperAppType.METAPACKAGE,
     provides=[
         # "intercom",  # Enabled in default fw config
-        # "wifi",  # Enabled by "sockets"
-        "sockets",
+        "wifi",  # Enabled by "sockets"
+        # "sockets",
         "status_lights",
         "cli_intercom",
     ],

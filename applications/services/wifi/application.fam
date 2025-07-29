@@ -19,5 +19,5 @@ App(
     order=100,
     targets=["f64"],
     requires=["intercom"],
-    sources=["wifi_backend.c", "wifi_backend_util.c"],
+    sources=["wifi_backend.c", "wifi_backend_net.c", "wifi_backend_util.c"],
 )

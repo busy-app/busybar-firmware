@@ -7,6 +7,8 @@
 
 #include <api_lock.h>
 
+#include <lwip/netif.h>
+
 #include <intercom/intercom.h>
 
 #define TAG "WifiSrv"
@@ -48,6 +50,7 @@ struct Wifi {
     FuriPubSub* pubsub;
     Intercom* intercom;
     WifiMessage* current_message;
+    struct netif netif;
     WifiRequest request;
     WifiResponse response;
     WifiSettings settings;
