@@ -8,21 +8,22 @@
 
 #define STARTUP_THREAD_STACK_SIZE (1536UL)
 
+#define MAX_DATA_LEN           (1019UL) // Limited by Intercom
+#define WIRELESS_HWADDR_LEN    (6UL)
+#define WIRELESS_ETHERTYPE_LEN (2UL)
+#define WIRELESS_MTU           (MAX_DATA_LEN - (2UL * WIRELESS_HWADDR_LEN) - WIRELESS_ETHERTYPE_LEN)
+
 static err_t wifi_link_output(struct netif* netif, struct pbuf* p) {
     Wifi* instance = netif->state;
     furi_assert(instance);
-
-    // FURI_LOG_W(TAG, "%s", __PRETTY_FUNCTION__);
 
 #if(ETH_PAD_SIZE != 0)
     pbuf_header(p, -ETH_PAD_SIZE); /* drop the padding word */
 #endif
 
     const size_t tx_size = intercom_tx(
-        instance->intercom, IntercomChannelSockets, p->payload, p->len, FuriWaitForever);
+        instance->intercom, IntercomChannelWifiData, p->payload, p->len, FuriWaitForever);
     furi_check(tx_size == p->len);
-
-    // FURI_LOG_I(TAG, "Link output: %zu bytes", tx_size);
 
 #if(ETH_PAD_SIZE != 0)
     pbuf_header(p, ETH_PAD_SIZE); /* reclaim the padding word */
@@ -32,10 +33,9 @@ static err_t wifi_link_output(struct netif* netif, struct pbuf* p) {
 }
 
 static err_t wifi_init_netif(struct netif* netif) {
-    FURI_LOG_I(TAG, "%s", __PRETTY_FUNCTION__);
     furi_assert(netif);
 
-    netif->mtu = 1019 - 14;
+    netif->mtu = WIRELESS_MTU;
     netif->flags = NETIF_FLAG_BROADCAST | NETIF_FLAG_ETHARP | NETIF_FLAG_IGMP;
     netif->name[0] = 'W';
     netif->name[1] = 'L';
@@ -47,7 +47,6 @@ static err_t wifi_init_netif(struct netif* netif) {
 }
 
 static void wifi_enable_netif(void* arg) {
-    FURI_LOG_I(TAG, "%s", __PRETTY_FUNCTION__);
     furi_assert(arg);
     Wifi* instance = arg;
 
@@ -63,7 +62,6 @@ static void wifi_enable_netif(void* arg) {
 }
 
 static void wifi_add_netif(void* arg) {
-    FURI_LOG_I(TAG, "%s", __PRETTY_FUNCTION__);
     furi_assert(arg);
     Wifi* instance = arg;
 
@@ -89,8 +87,6 @@ static void wifi_add_netif(void* arg) {
 static void wifi_net_intercom_rx_callback(const void* data, size_t data_size, void* context) {
     furi_assert(context);
     Wifi* instance = context;
-
-    // FURI_LOG_D(TAG, "RX: %zu bytes", data_size);
 
     size_t size = data_size;
     const void* src = data;
@@ -401,7 +397,7 @@ static Wifi* wifi_alloc(void) {
         instance->intercom, IntercomChannelWifi, wifi_intercom_rx_callback, instance);
 
     intercom_set_rx_callback(
-        instance->intercom, IntercomChannelSockets, wifi_net_intercom_rx_callback, instance);
+        instance->intercom, IntercomChannelWifiData, wifi_net_intercom_rx_callback, instance);
 
     wifi_load_settings(instance);
 

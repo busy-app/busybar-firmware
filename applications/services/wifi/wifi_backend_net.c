@@ -12,6 +12,9 @@
 #include <intercom/intercom.h>
 #include <wifi/wifi_common_i.h>
 
+#define LWIP_FRAME_ALIGNMENT (60U)
+#define ETHERTYPE_IPV6       (0xDD86)
+
 static Intercom* intercom;
 
 sl_status_t sl_net_wifi_ap_init(
@@ -77,15 +80,12 @@ sl_status_t sl_net_wifi_client_up(sl_net_interface_t interface, sl_net_profile_i
     sl_status_t status;
 
     do {
-        // Load profile and connect here
-        sl_net_wifi_client_profile_t profile = {0};
-
-        // Connect to the Wi-Fi network
         if(profile_id == SL_NET_AUTO_JOIN) {
-            // status = sli_handle_auto_join(interface, &profile);
-            furi_crash("SL_NET_AUTO_JOIN");
+            furi_crash("SL_NET_AUTO_JOIN"); // TODO: What is this for?
             break;
         }
+
+        sl_net_wifi_client_profile_t profile = {0};
 
         status = sl_net_get_profile(SL_NET_WIFI_CLIENT_INTERFACE, profile_id, &profile);
         if(status != SL_STATUS_OK) {
@@ -112,13 +112,17 @@ sl_status_t
     sl_si91x_host_process_data_frame(sl_wifi_interface_t interface, sl_wifi_buffer_t* buffer) {
     UNUSED(interface);
 
-    sl_wifi_system_packet_t* pkt = sl_si91x_host_get_buffer_data(buffer, 0, NULL);
+    const sl_wifi_system_packet_t* pkt = sl_si91x_host_get_buffer_data(buffer, 0, NULL);
+    const uint16_t ethertype = *((const uint16_t*)&pkt->data[12]);
 
-    const size_t len = MAX(pkt->length, 60);
-
-    const size_t tx_size =
-        intercom_tx(intercom, IntercomChannelSockets, pkt->data, len, FuriWaitForever);
-    furi_check(tx_size == len);
+    if(ethertype == ETHERTYPE_IPV6) {
+        // TODO: forward to matter
+    } else {
+        const size_t len = MAX(pkt->length, LWIP_FRAME_ALIGNMENT);
+        const size_t tx_size =
+            intercom_tx(intercom, IntercomChannelWifiData, pkt->data, len, FuriWaitForever);
+        furi_check(tx_size == len);
+    }
 
     return SL_STATUS_OK;
 }

@@ -34,8 +34,6 @@ typedef void (*WifiRequestHandler)(Wifi* instance);
 
 static const WifiRequestHandler wifi_request_handlers[WifiRequestTypeMax];
 
-// static sl_net_wifi_lwip_context_t wifi_client_context;
-
 static inline void wifi_send_response(Wifi* instance) {
     const size_t tx_size = intercom_tx(
         instance->intercom,
@@ -404,7 +402,7 @@ static Wifi* wifi_alloc(void) {
         instance->intercom, IntercomChannelWifi, wifi_intercom_rx_callback, instance);
 
     intercom_set_rx_callback(
-        instance->intercom, IntercomChannelSockets, wifi_net_intercom_rx_callback, instance);
+        instance->intercom, IntercomChannelWifiData, wifi_net_intercom_rx_callback, instance);
 
     furi_record_create(RECORD_WIFI, instance->event_pubsub);
 
