@@ -89,7 +89,7 @@ env.Append(
         # "LWIP_DHCP=1",
 
         # "LWIP_NETIF_API=1",
-        "PRINT_DEBUG_LOG", #Print debug log NCP to Host
+        # "PRINT_DEBUG_LOG", #Print debug log NCP to Host
         "SLI_SI91X_ENABLE_IPV6",
         # "PRINT_DEBUG_LOG",
         "SIWG917M111MGTBA",
