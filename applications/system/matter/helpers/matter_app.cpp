@@ -4,7 +4,7 @@
 #include <MatterConfig.h>
 #include <BaseApplication.h>
 #include <app/clusters/switch-server/switch-server.h>
-//#include <app-common/zap-generated/attributes/Accessors.h>
+#include <app-common/zap-generated/attributes/Accessors.h>
 
 constexpr chip::EndpointId kLightSwitchEndpoint = 1;
 constexpr chip::EndpointId kGenericSwitchEndpoint = 2;
@@ -19,27 +19,28 @@ void matter_factory_reset(void) {
 }
 
 void matter_button_press(void) {
-    chip::app::Clusters::SwitchServer::Instance().OnInitialPress(kGenericSwitchEndpoint, 1);
+    // chip::app::Clusters::SwitchServer::Instance().OnInitialPress(kGenericSwitchEndpoint, 1);
 
-    // uint8_t currentPosition = 1;
+    uint8_t currentPosition = 1;
 
-    // // Set new attribute value
-    // chip::app::Clusters::Switch::Attributes::CurrentPosition::Set(chip::kInvalidEndpointId, currentPosition);
+    // Set new attribute value
+    chip::app::Clusters::Switch::Attributes::CurrentPosition::Set(kGenericSwitchEndpoint, currentPosition);
 
-    // // Trigger event
-    // chip::app::Clusters::SwitchServer::Instance().OnInitialPress(chip::kInvalidEndpointId, currentPosition);
+    // Trigger event
+    chip::app::Clusters::SwitchServer::Instance().OnInitialPress(kGenericSwitchEndpoint, currentPosition);
 }
 
 void matter_button_release(void) {
-    chip::app::Clusters::SwitchServer::Instance().OnShortRelease(kGenericSwitchEndpoint, 1);
-    // uint8_t previousPosition = 1;
-    // uint8_t currentPosition  = 0;
+    // chip::app::Clusters::SwitchServer::Instance().OnShortRelease(kGenericSwitchEndpoint, 1);
 
-    // // Set new attribute value
-    // chip::app::Clusters::Switch::Attributes::CurrentPosition::Set(chip::kInvalidEndpointId, currentPosition);
+    uint8_t previousPosition = 1;
+    uint8_t currentPosition  = 0;
 
-    // // Trigger event
-    // chip::app::Clusters::SwitchServer::Instance().OnShortRelease(chip::kInvalidEndpointId, previousPosition);
+    // Set new attribute value
+    chip::app::Clusters::Switch::Attributes::CurrentPosition::Set(kGenericSwitchEndpoint, currentPosition);
+
+    // Trigger event
+    chip::app::Clusters::SwitchServer::Instance().OnShortRelease(kGenericSwitchEndpoint, previousPosition);
 }
 
 void matter_basic_commissioning_window(void) {
