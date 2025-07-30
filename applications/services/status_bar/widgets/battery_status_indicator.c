@@ -86,7 +86,7 @@ void battery_status_indicator_set_charge_amount(BatteryStatusIndicator* instance
 
     lv_bar_set_value(instance->charge_level_bar, charge, LV_ANIM_OFF);
 
-    char text[snprintf(NULL, 0, "%u", UINT8_MAX) + 1];
+    char text[snprintf(NULL, 0, "%u", BATTERY_STATUS_INDICATOR_MAX_CHARGE) + 1];
     size_t characters_count = snprintf(text, sizeof(text), "%u", charge);
 
     int32_t letter_space;
