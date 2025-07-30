@@ -1,6 +1,7 @@
 #include "status_bar.h"
 #include "storage_macros.h"
 
+#include "widgets/wifi_status_indicator.h"
 #include "widgets/audio_status_indicator.h"
 #include "widgets/usb_status_indicator.h"
 #include "widgets/battery_status_indicator.h"
@@ -23,6 +24,7 @@ struct StatusBar {
     Gui* gui;
     Power* power;
     Audio* audio;
+    WifiStatusIndicator* wifi_status_indicator;
     AudioStatusIndicator* audio_status_indicator;
     UsbStatusIndicator* usb_status_indicator;
     BatteryStatusIndicator* battery_status_indicator;
@@ -152,10 +154,10 @@ static StatusBar* status_bar_alloc(void) {
         widget_set_margin(image_get_base(ble), 0, 0, 2, 2);
         widget_set_size(image_get_base(ble), LV_SIZE_CONTENT, LV_SIZE_CONTENT);
 
-        Image* wifi = image_alloc(flex_layout_get_base(status_bar));
-        image_set_source(wifi, STATUS_BAR_IMG_PATH("wifi_8x8.bin"));
-        widget_set_margin(image_get_base(wifi), 0, 0, 2, 2);
-        widget_set_size(image_get_base(wifi), LV_SIZE_CONTENT, LV_SIZE_CONTENT);
+        instance->wifi_status_indicator =
+            wifi_status_indicator_alloc(flex_layout_get_base(status_bar));
+        widget_set_margin(
+            wifi_status_indicator_get_base(instance->wifi_status_indicator), 0, 0, 2, 2);
 
         instance->audio_status_indicator =
             audio_status_indicator_alloc(flex_layout_get_base(status_bar));
