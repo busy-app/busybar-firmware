@@ -34,7 +34,7 @@ typedef enum {
     PowerEventBatteryNotPresent,
     PowerEventBatteryPresent,
     PowerEventChargingStateUpdate,
-    PowerEventChargeUpdate,
+    PowerEventChargeAmountUpdate,
     PowerEventUsbConnectionStateUpdate,
 } PowerEventType;
 

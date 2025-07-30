@@ -33,14 +33,14 @@ struct StatusBar {
 
 typedef enum {
     StatusBarUpdateEventPowerChargingState = 1 << 0,
-    StatusBarUpdateEventPowerCharge = 1 << 1,
+    StatusBarUpdateEventPowerChargeAmount = 1 << 1,
 
     StatusBarUpdateEventAudioVolume = 1 << 2,
 
     StatusBarUpdateEventUsbConnectionState = 1 << 3,
 
     StatusBarUpdateEventAnyPower = StatusBarUpdateEventPowerChargingState |
-                                   StatusBarUpdateEventPowerCharge
+                                   StatusBarUpdateEventPowerChargeAmount
 } StatusBarUpdateEvent;
 
 static void power_events_callback(const void* message, void* context) {
@@ -56,8 +56,8 @@ static void power_events_callback(const void* message, void* context) {
         update_event = StatusBarUpdateEventPowerChargingState;
         break;
 
-    case PowerEventChargeUpdate:
-        update_event = StatusBarUpdateEventPowerCharge;
+    case PowerEventChargeAmountUpdate:
+        update_event = StatusBarUpdateEventPowerChargeAmount;
         break;
 
     case PowerEventUsbConnectionStateUpdate:
@@ -108,10 +108,10 @@ static void status_bar_custom_event_callback(uint32_t events, void* context) {
                 instance->battery_status_indicator, power_info->is_charging);
         }
 
-        if(READ_BIT(events, StatusBarUpdateEventPowerCharge)) {
+        if(READ_BIT(events, StatusBarUpdateEventPowerChargeAmount)) {
             battery_status_indicator_set_charge_amount(
                 instance->battery_status_indicator,
-                (power_info->is_full_charged) ? BATTERY_STATUS_INDICATOR_MAX_CHARGE :
+                (power_info->is_full_charged) ? BATTERY_STATUS_INDICATOR_MAX_CHARGE_AMOUNT :
                                                 power_info->charge);
         }
 

@@ -6,7 +6,7 @@
 extern "C" {
 #endif
 
-#define BATTERY_STATUS_INDICATOR_MAX_CHARGE 100
+#define BATTERY_STATUS_INDICATOR_MAX_CHARGE_AMOUNT 100
 
 typedef struct BatteryStatusIndicator BatteryStatusIndicator;
 

@@ -40,7 +40,7 @@ static void
     lv_obj_set_style_pad_bottom(instance->charge_level_bar, 2, LV_PART_MAIN);
     lv_obj_set_style_pad_right(instance->charge_level_bar, 2, LV_PART_MAIN);
     lv_obj_set_style_pad_left(instance->charge_level_bar, 2, LV_PART_MAIN);
-    lv_bar_set_range(instance->charge_level_bar, 0, BATTERY_STATUS_INDICATOR_MAX_CHARGE);
+    lv_bar_set_range(instance->charge_level_bar, 0, BATTERY_STATUS_INDICATOR_MAX_CHARGE_AMOUNT);
 
     instance->is_charging_state_image = lv_image_create(instance->charge_level_bar);
     lv_obj_center(instance->is_charging_state_image);
@@ -82,11 +82,11 @@ Widget* battery_status_indicator_get_base(BatteryStatusIndicator* instance) {
 
 void battery_status_indicator_set_charge_amount(BatteryStatusIndicator* instance, uint8_t charge) {
     furi_assert(instance);
-    furi_assert(charge <= BATTERY_STATUS_INDICATOR_MAX_CHARGE);
+    furi_assert(charge <= BATTERY_STATUS_INDICATOR_MAX_CHARGE_AMOUNT);
 
     lv_bar_set_value(instance->charge_level_bar, charge, LV_ANIM_OFF);
 
-    char text[snprintf(NULL, 0, "%u", BATTERY_STATUS_INDICATOR_MAX_CHARGE) + 1];
+    char text[snprintf(NULL, 0, "%u", BATTERY_STATUS_INDICATOR_MAX_CHARGE_AMOUNT) + 1];
     size_t characters_count = snprintf(text, sizeof(text), "%u", charge);
 
     int32_t letter_space;

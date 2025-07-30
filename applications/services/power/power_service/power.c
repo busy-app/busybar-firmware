@@ -412,7 +412,7 @@ static void power_update_info(Power* power) {
     power->info.charge = charge;
 
     if(charge != previous_charge) {
-        PowerEvent pub_event = {.type = PowerEventChargeUpdate};
+        PowerEvent pub_event = {.type = PowerEventChargeAmountUpdate};
         furi_pubsub_publish(power->event_pubsub, &pub_event);
     }
 
