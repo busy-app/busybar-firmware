@@ -1,13 +1,17 @@
 #include "front_display_i.h"
 
 #include <furi.h>
+#include <furi_hal_display.h>
 #include <toolbox/api_lock.h>
 #include <power/power_service/power.h>
 #include <light_sensor/light_sensor.h>
 
+#include <storage/storage.h>
+#include <json_helper.h>
+
 #define TAG "FrontDisplaySrv"
 
-#define REFRESH_PERIOD_MS (100)
+#define DISPLAY_CONFIG_FILE APP_DATA_PATH("config.json")
 
 #define AUTO_BRIGHTNESS_MIN_LEVEL (25)
 #define AUTO_BRIGHTNESS_MAX_LEVEL (100)
@@ -23,7 +27,8 @@
 #endif
 
 struct FrontDisplaySrv {
-    uint32_t sensor_level, brightness_override;
+    uint32_t sensor_level;
+    int brightness_override;
     Power* power;
     FuriEventLoop* event_loop;
     FuriMessageQueue* message_queue;
@@ -123,7 +128,7 @@ static void front_display_power_irq_callback(void* context) {
     FrontDisplaySrv* instance = context;
     UNUSED(instance);
 
-    bool power_state = furi_hal_gpio_read(&gpio_front_display_power_en);
+    bool power_state = furi_hal_display_power_pin_read();
 
     FrontDisplayMessage message = {
         .api_lock = NULL, // No need for API lock here
@@ -134,35 +139,26 @@ static void front_display_power_irq_callback(void* context) {
 }
 
 static void front_display_power_pin_init(FrontDisplaySrv* instance) {
-    // Open-drain output with pull-up
-    furi_hal_gpio_init(
-        &gpio_front_display_power_en, GpioModeInterruptRiseFall, GpioPullUp, GpioSpeedLow);
-    LL_GPIO_SetPinOutputType(
-        gpio_front_display_power_en.port,
-        gpio_front_display_power_en.pin,
-        LL_GPIO_OUTPUT_PUSHPULL); // TODO: open drain for target f21
-    LL_GPIO_SetPinMode(
-        gpio_front_display_power_en.port, gpio_front_display_power_en.pin, LL_GPIO_MODE_OUTPUT);
+    furi_hal_display_power_pin_init();
 
-    furi_hal_gpio_write(&gpio_front_display_power_en, true);
+    furi_hal_display_power_enable();
 
-    furi_hal_gpio_add_int_callback(
-        &gpio_front_display_power_en, front_display_power_irq_callback, instance);
+    furi_hal_display_power_pin_attach_callback(front_display_power_irq_callback, instance);
 
     furi_delay_ms(50); // Stabilize power state
 }
 
 static void front_display_power_reset(void) {
     // mask the GPIO interrupt to prevent firing disable again
-    furi_hal_gpio_disable_int_callback(&gpio_front_display_power_en);
+    furi_hal_display_power_pin_interrupt_disable();
 
-    furi_hal_gpio_write(&gpio_front_display_power_en, false);
+    furi_hal_display_power_disable();
     furi_delay_ms(50);
-    furi_hal_gpio_write(&gpio_front_display_power_en, true);
+    furi_hal_display_power_enable();
     furi_delay_ms(50); // Allow time for the display to power up
 
     // re-enable the GPIO interrupt
-    furi_hal_gpio_enable_int_callback(&gpio_front_display_power_en);
+    furi_hal_display_power_pin_interrupt_enable();
 }
 
 static uint8_t front_display_light_sensor_level_to_brightness(uint8_t light_level) {
@@ -250,6 +246,8 @@ static void front_display_message_queue_callback(FuriEventLoopObject* object, vo
         break;
     case FrontDisplayMessageTypeBrightness:
         display->brightness_override = message.brightness;
+        json_config_write_single_int(
+            DISPLAY_CONFIG_FILE, "brightness", display->brightness_override);
         {
             uint32_t brightness =
                 front_display_get_brightness(display->brightness_override, display->sensor_level);
@@ -293,7 +291,10 @@ static void front_display_message_queue_callback(FuriEventLoopObject* object, vo
 static FrontDisplaySrv* front_display_alloc(void) {
     FrontDisplaySrv* instance = malloc(sizeof(FrontDisplaySrv));
 
-    instance->brightness_override = FRONT_DISPLAY_BRIGHTNESS_AUTO;
+    int default_brightness = FRONT_DISPLAY_BRIGHTNESS_AUTO;
+    json_config_read_single_int(
+        DISPLAY_CONFIG_FILE, "brightness", &instance->brightness_override, &default_brightness);
+
     instance->sensor_level = 0;
 
     instance->event_loop = furi_event_loop_alloc();

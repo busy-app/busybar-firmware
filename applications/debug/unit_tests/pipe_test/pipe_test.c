@@ -2,7 +2,7 @@
  * @file pipe_test.c
  */
 
-#include "../minunit.h"
+#include "../unit_tests.h"
 #include <containers/pipe.h>
 #include <containers/pipe_util.h>
 

@@ -3,7 +3,7 @@
  * @brief Tests the tests. These tests tests should pass the tests.
  */
 
-#include "../minunit.h"
+#include "../unit_tests.h"
 
 MU_TEST(test_test_basic) {
     mu_assert_int_eq(1, 1);

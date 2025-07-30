@@ -5,10 +5,12 @@
 #include <gui/modules/label.h>
 #include <storage/storage.h>
 #include <storage/storage_backup.h>
+#include <intercom/intercom.h>
 
 #define TAG "Supervisor"
 
-// TODO: battery low, overheat
+#define SUPERVISOR_BATTERY_LOW_TIMEOUT_MS 5000
+#define SUPERVISOR_BATTERY_TIME_TO_DIE_S  30
 
 typedef struct Supervisor Supervisor;
 
@@ -26,19 +28,33 @@ typedef struct {
 struct Supervisor {
     FuriEventLoop* event_loop;
     FuriMessageQueue* message_queue;
+    FuriEventLoopTimer* battery_low_timer;
+    FuriEventLoopTimer* battery_critical_timer;
+    size_t battery_critical_counter;
     Power* power;
     Storage* storage;
+    Intercom* intercom;
 
     SupervisorGui gui;
 };
 
 typedef enum {
-    SupervisorEventTypeBatteryLow,
+    SupervisorEventTypeBatteryCriticalStart,
+    SupervisorEventTypeBatteryCriticalStop,
+    SupervisorEventTypeBatteryLowStart,
+    SupervisorEventTypeBatteryLowStop,
+    SupervisorEventTypeBatteryNotPresent,
+    SupervisorEventTypeBatteryPresent,
+    SupervisorEventTypeTickToDie,
+    SupervisorEventTypeIntercomError,
     SupervisorEventTypeOKPressed,
 } SupervisorEventType;
 
 typedef struct {
     SupervisorEventType type;
+    union {
+        FuriString* message; // must be deallocated by the receiver
+    };
 } SupervisorEvent;
 
 typedef struct {
@@ -50,11 +66,13 @@ typedef struct {
 
 // if multiple warnings are active, the one with the lowest enum value is shown
 typedef enum {
+    SupervisorWarningTypeBatteryNotReady,
+    SupervisorWarningTypeBatteryCritical, // must be higher than others to power off properly
     SupervisorWarningTypeStorageNoPartitions,
     SupervisorWarningTypeStorageNoBackup,
     SupervisorWarningTypeStorageNoExternal,
-    SupervisorWarningTypeBatteryNotReady,
     SupervisorWarningTypeBatteryLow,
+    SupervisorWarningTypeIntercomError, // must be last
 
     SupervisorWarningTypeMax, // must be last
 } SupervisorWarningType;
@@ -87,15 +105,29 @@ static const SupervisorWarning supervisor_warnings[] = {
         },
     [SupervisorWarningTypeBatteryNotReady] =
         {
-            .front_text = "Connect battery\nAnd reset me",
-            .back_text = "Connect battery\nand reset me\n>_<",
+            .front_text = "Battery not present\nConnect battery",
+            .back_text = "Battery not present\nPlease connect battery\n>_<",
             .input_locked = true,
+            .ok_callback = NULL,
+        },
+    [SupervisorWarningTypeBatteryCritical] =
+        {
+            .front_text = "Connect charger\nPower off in 30 sec.",
+            .back_text = "Battery critical\nPlease connect charger\nPower off in 30 sec.",
+            .input_locked = false,
             .ok_callback = NULL,
         },
     [SupervisorWarningTypeBatteryLow] =
         {
             .front_text = "Battery low",
             .back_text = "Battery low",
+            .input_locked = false,
+            .ok_callback = NULL,
+        },
+    [SupervisorWarningTypeIntercomError] =
+        {
+            .front_text = "Intercom error\nUpdate firmware",
+            .back_text = "Intercom error\nPlease update firmware",
             .input_locked = true,
             .ok_callback = NULL,
         },
@@ -120,16 +152,73 @@ static void supervisor_send_event(Supervisor* instance, SupervisorEventType type
         furi_message_queue_put(instance->message_queue, &event, FuriWaitForever) == FuriStatusOk);
 }
 
-static void supervisor_sub_callback(const void* message, void* context) {
+static void supervisor_send_event_with_message(
+    Supervisor* instance,
+    SupervisorEventType type,
+    const char* message) {
+    furi_check(instance);
+    SupervisorEvent event;
+    event.type = type;
+    event.message = furi_string_alloc_set(message);
+
+    furi_check(
+        furi_message_queue_put(instance->message_queue, &event, FuriWaitForever) == FuriStatusOk);
+}
+
+static void supervisor_intercom_callback(const void* message, void* context) {
+    furi_assert(message);
+    furi_assert(context);
+
+    const IntercomEvent* event = message;
+    Supervisor* instance = context;
+
+    if(event->type == IntercomEventTypeError) {
+        supervisor_send_event_with_message(
+            instance, SupervisorEventTypeIntercomError, event->message);
+    }
+}
+
+static void supervisor_power_callback(const void* message, void* context) {
     furi_assert(message);
     furi_assert(context);
 
     const PowerEvent* event = message;
     Supervisor* instance = context;
 
-    if(event->type == PowerEventBatteryLow) {
-        supervisor_send_event(instance, SupervisorEventTypeBatteryLow);
+    switch(event->type) {
+    case PowerEventBatteryLowStart:
+        supervisor_send_event(instance, SupervisorEventTypeBatteryLowStart);
+        break;
+    case PowerEventBatteryLowStop:
+        supervisor_send_event(instance, SupervisorEventTypeBatteryLowStop);
+        break;
+    case PowerEventBatteryCriticalStart:
+        supervisor_send_event(instance, SupervisorEventTypeBatteryCriticalStart);
+        break;
+    case PowerEventBatteryCriticalStop:
+        supervisor_send_event(instance, SupervisorEventTypeBatteryCriticalStop);
+        break;
+    case PowerEventBatteryNotPresent:
+        supervisor_send_event(instance, SupervisorEventTypeBatteryNotPresent);
+        break;
+    case PowerEventBatteryPresent:
+        supervisor_send_event(instance, SupervisorEventTypeBatteryPresent);
+        break;
+    case PowerEventBatteryNormalStart:
+        break;
+    case PowerEventBatteryNormalStop:
+        break;
     }
+}
+
+static void supervisor_timer_bat_low_callback(void* context) {
+    Supervisor* instance = context;
+    supervisor_send_event(instance, SupervisorEventTypeBatteryLowStop);
+}
+
+static void supervisor_timer_bat_critical_callback(void* context) {
+    Supervisor* instance = context;
+    supervisor_send_event(instance, SupervisorEventTypeTickToDie);
 }
 
 static int32_t supervisor_get_topmost_warning(SupervisorGui* gui) {
@@ -144,7 +233,6 @@ static int32_t supervisor_get_topmost_warning(SupervisorGui* gui) {
 static void
     supervisor_update_warning(SupervisorGui* gui, SupervisorWarningType warning_type, bool add) {
     furi_check(warning_type < SUPERVISOR_WARNINGS_SIZE);
-    const SupervisorWarning* warning = &supervisor_warnings[warning_type];
     with_gui(gui->gui, {
         if(add) {
             gui->current_warnings |= (1 << warning_type);
@@ -155,6 +243,8 @@ static void
         int32_t topmost_warning_type = supervisor_get_topmost_warning(gui);
 
         if(topmost_warning_type >= 0) {
+            const SupervisorWarning* warning = &supervisor_warnings[topmost_warning_type];
+
             gui->input_locked = warning->input_locked;
             gui->ok_callback = warning->ok_callback;
 
@@ -210,10 +300,16 @@ static void
             }
         } else {
             // No warnings, remove labels
-            label_free(gui->front_label);
-            label_free(gui->back_label);
-            gui->front_label = NULL;
-            gui->back_label = NULL;
+            if(gui->front_label) {
+                label_free(gui->front_label);
+                gui->front_label = NULL;
+            }
+
+            if(gui->back_label) {
+                label_free(gui->back_label);
+                gui->back_label = NULL;
+            }
+
             gui->input_locked = false;
             gui->ok_callback = NULL;
         }
@@ -304,6 +400,20 @@ static void supervisor_format_external(Supervisor* supervisor) {
     supervisor_reset();
 }
 
+static void supervisor_update_time_to_die(Supervisor* supervisor, size_t seconds) {
+    SupervisorGui* gui = &supervisor->gui;
+    with_gui(gui->gui, {
+        if(gui->front_label && gui->back_label) {
+            label_set_text_fmt(
+                gui->front_label, "Connect charger\nPower off in %zu sec.", seconds);
+            label_set_text_fmt(
+                gui->back_label,
+                "Battery critical\nPlease connect charger\nPower off in %zu sec.",
+                seconds);
+        }
+    });
+}
+
 static void supervisor_process(FuriEventLoopObject* object, void* context) {
     Supervisor* instance = context;
     furi_assert(object == instance->message_queue);
@@ -314,17 +424,75 @@ static void supervisor_process(FuriEventLoopObject* object, void* context) {
     }
 
     switch(event.type) {
-    case SupervisorEventTypeBatteryLow:
-        FURI_LOG_I(TAG, "Battery low event received");
-        if(!instance->gui.input_locked) {
-            supervisor_update_warning(&instance->gui, SupervisorWarningTypeBatteryLow, true);
-        }
+    case SupervisorEventTypeBatteryLowStart:
+        FURI_LOG_I(TAG, "Battery low warning received");
+        supervisor_update_warning(&instance->gui, SupervisorWarningTypeBatteryLow, true);
+        furi_event_loop_timer_start(
+            instance->battery_low_timer, SUPERVISOR_BATTERY_LOW_TIMEOUT_MS);
+        break;
+    case SupervisorEventTypeBatteryLowStop:
+        FURI_LOG_I(TAG, "Clearing battery low warning");
+        furi_event_loop_timer_stop(instance->battery_low_timer);
+        supervisor_update_warning(&instance->gui, SupervisorWarningTypeBatteryLow, false);
+        break;
+    case SupervisorEventTypeBatteryCriticalStart:
+        FURI_LOG_I(TAG, "Battery critical warning received");
+        supervisor_update_warning(&instance->gui, SupervisorWarningTypeBatteryCritical, true);
+        furi_event_loop_timer_start(instance->battery_critical_timer, 1000); // 1 second interval
+        instance->battery_critical_counter = 0;
+        break;
+    case SupervisorEventTypeBatteryCriticalStop:
+        FURI_LOG_I(TAG, "Clearing battery critical warning");
+        furi_event_loop_timer_stop(instance->battery_critical_timer);
+        supervisor_update_warning(&instance->gui, SupervisorWarningTypeBatteryCritical, false);
+        break;
+    case SupervisorEventTypeBatteryNotPresent:
+        FURI_LOG_I(TAG, "Battery not present warning received");
+        supervisor_update_warning(&instance->gui, SupervisorWarningTypeBatteryNotReady, true);
+        break;
+    case SupervisorEventTypeBatteryPresent:
+        FURI_LOG_I(TAG, "Battery present event received");
+        supervisor_update_warning(&instance->gui, SupervisorWarningTypeBatteryNotReady, false);
         break;
     case SupervisorEventTypeOKPressed:
         FURI_LOG_I(TAG, "OK pressed event received");
         if(instance->gui.ok_callback) {
             instance->gui.ok_callback(instance);
         }
+        break;
+    case SupervisorEventTypeTickToDie: {
+        size_t topmost_warning_type = supervisor_get_topmost_warning(&instance->gui);
+
+        // with the assumption that only BatteryNotPresent warning has higher priority
+        // this will garantee that we will power off in any other state
+        if(topmost_warning_type == SupervisorWarningTypeBatteryCritical) {
+            instance->battery_critical_counter++;
+
+            supervisor_update_time_to_die(
+                instance, SUPERVISOR_BATTERY_TIME_TO_DIE_S - instance->battery_critical_counter);
+
+            if(instance->battery_critical_counter >= SUPERVISOR_BATTERY_TIME_TO_DIE_S) {
+                FURI_LOG_I(TAG, "Battery critical timeout reached");
+                if(!power_off(instance->power)) {
+                    FURI_LOG_E(TAG, "Power off failed");
+                }
+            }
+        }
+    } break;
+    case SupervisorEventTypeIntercomError: {
+        FURI_LOG_E(TAG, "Intercom error received: %s", furi_string_get_cstr(event.message));
+        supervisor_update_warning(&instance->gui, SupervisorWarningTypeIntercomError, true);
+        size_t topmost_warning_type = supervisor_get_topmost_warning(&instance->gui);
+        if(topmost_warning_type == SupervisorWarningTypeIntercomError) {
+            with_gui(instance->gui.gui, {
+                label_set_text_fmt(
+                    instance->gui.back_label,
+                    "Intercom error\nPlease update firmware\n\"%s\"",
+                    furi_string_get_cstr(event.message));
+            });
+        }
+        furi_string_free(event.message);
+    } break;
     }
 }
 
@@ -334,6 +502,16 @@ int32_t supervisor_start(void* p) {
     Supervisor* instance = malloc(sizeof(Supervisor));
     instance->event_loop = furi_event_loop_alloc();
     instance->message_queue = furi_message_queue_alloc(8, sizeof(SupervisorEvent));
+    instance->battery_low_timer = furi_event_loop_timer_alloc(
+        instance->event_loop,
+        supervisor_timer_bat_low_callback,
+        FuriEventLoopTimerTypeOnce,
+        instance);
+    instance->battery_critical_timer = furi_event_loop_timer_alloc(
+        instance->event_loop,
+        supervisor_timer_bat_critical_callback,
+        FuriEventLoopTimerTypePeriodic,
+        instance);
     furi_event_loop_subscribe_message_queue(
         instance->event_loop,
         instance->message_queue,
@@ -343,10 +521,13 @@ int32_t supervisor_start(void* p) {
 
     instance->power = furi_record_open(RECORD_POWER);
 
-    UNUSED(supervisor_sub_callback);
-
     instance->gui.gui = furi_record_open(RECORD_GUI);
     instance->storage = furi_record_open(RECORD_STORAGE);
+    instance->intercom = furi_record_open(RECORD_INTERCOM);
+
+    furi_pubsub_subscribe(power_get_pubsub(instance->power), supervisor_power_callback, instance);
+    furi_pubsub_subscribe(
+        intercom_get_pubsub(instance->intercom), supervisor_intercom_callback, instance);
 
     gui_layer_add_input_callback(
         gui_get_layer(instance->gui.gui, GuiLayerIdSystem), supervisor_input, instance);

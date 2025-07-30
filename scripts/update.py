@@ -140,6 +140,7 @@ class UpdaterMain(App):
 
     def _upload_file(self, file_path):
         remote_path = str(Path("/ext") / Path(file_path).name)
+        remote_path = Path(remote_path).as_posix()
         FlipperStorageOperations(self.storage).recursive_send(
             remote_path, file_path, True
         )

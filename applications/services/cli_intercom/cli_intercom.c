@@ -9,6 +9,8 @@
 #define TAG "CliIntercom"
 // #define CLI_INTERCOM_TRACE_ENABLE
 
+#define CLI_INTERCOM_TIMEOUT (100UL)
+
 #define PIPE_SZ_PER_DIRECTION 1024
 #define MSG_Q_SIZE            4
 #define RX_STREAM_SIZE        (4 * CLI_INTERCOM_MAX_PAYLOAD_LEN)
@@ -60,35 +62,46 @@ static void cli_intercom_data_from_pipe(PipeSide* pipe, void* context);
 // Protocol handling
 // =================
 
-static void
-    cli_intercom_send_protocol(CliIntercom* cli_intercom, const uint8_t* data, size_t size) {
-    furi_check(
-        intercom_tx(cli_intercom->intercom, IntercomChannelCli, data, size, FuriWaitForever) ==
-        size);
+// Return true on success
+static bool cli_intercom_send_protocol(
+    CliIntercom* cli_intercom,
+    const uint8_t* data,
+    size_t size,
+    uint32_t timeout) {
+    size_t tx_bytes = intercom_tx(
+        cli_intercom->intercom,
+        IntercomChannelCli,
+        data,
+        size,
+        timeout ? timeout : FuriWaitForever);
+    return tx_bytes == size;
 }
 
-static void
-    cli_intercom_send_protocol_status(CliIntercom* cli_intercom, CliIntercomMessageType type) {
+static bool cli_intercom_send_protocol_status(
+    CliIntercom* cli_intercom,
+    CliIntercomMessageType type,
+    uint32_t timeout) {
     CLI_INTERCOM_TRACE(TAG, "OutStatus type=%d", type);
     furi_assert(type < CliIntercomMessageTypeStatusMAX);
     uint8_t message[] = {
         cli_intercom_construct_status(type, 0),
     };
-    cli_intercom_send_protocol(cli_intercom, message, sizeof(message));
+    return cli_intercom_send_protocol(cli_intercom, message, sizeof(message), timeout);
 }
 
-static void cli_intercom_send_protocol_payload(
+static bool cli_intercom_send_protocol_payload(
     CliIntercom* cli_intercom,
     CliIntercomMessageType type,
     const uint8_t* payload,
-    size_t payload_size) {
+    size_t payload_size,
+    uint32_t timeout) {
     CLI_INTERCOM_TRACE(TAG, "OutPayload type=%d len=%zu", type, payload_size);
     furi_assert(type < CliIntercomMessageTypeMAX);
     furi_assert(type >= CliIntercomMessageTypeStatusMAX);
     uint8_t message[payload_size + 1];
     message[0] = cli_intercom_construct_status(type, payload_size);
     memcpy(message + 1, payload, payload_size);
-    cli_intercom_send_protocol(cli_intercom, message, sizeof(message));
+    return cli_intercom_send_protocol(cli_intercom, message, sizeof(message), timeout);
 }
 
 static void
@@ -220,8 +233,12 @@ static void cli_intercom_do_api_spawn(CliIntercom* cli_intercom, CliIntercomInte
 
         cli_intercom_attach_own_pipe(cli_intercom, event->pipe);
 
-        cli_intercom_send_protocol_status(cli_intercom, CliIntercomMessageTypeSpawn);
-        *event->spawn_status = CliIntercomSpawnStatusOk;
+        if(!cli_intercom_send_protocol_status(
+               cli_intercom, CliIntercomMessageTypeSpawn, CLI_INTERCOM_TIMEOUT)) {
+            *event->spawn_status = CliIntercomSpawnStatusTimeout;
+        } else {
+            *event->spawn_status = CliIntercomSpawnStatusOk;
+        }
     } while(0);
 
     api_lock_unlock(event->api_lock);
@@ -277,13 +294,14 @@ static void cli_intercom_data_from_pipe(PipeSide* pipe, void* context) {
     uint8_t buffer[to_transfer];
     furi_check(pipe_receive(pipe, buffer, sizeof(buffer)) == sizeof(buffer));
     cli_intercom_send_protocol_payload(
-        cli_intercom, CliIntercomMessageTypeData, buffer, sizeof(buffer));
+        cli_intercom, CliIntercomMessageTypeData, buffer, sizeof(buffer), 0);
 }
 
 static void cli_intercom_pipe_broken(PipeSide* pipe, void* context) {
     UNUSED(pipe);
     CliIntercom* cli_intercom = context;
-    cli_intercom_send_protocol_status(cli_intercom, CliIntercomMessageTypeDisconnect);
+    cli_intercom_send_protocol_status(
+        cli_intercom, CliIntercomMessageTypeDisconnect, CLI_INTERCOM_TIMEOUT);
     cli_intercom_detach_own_pipe(cli_intercom);
     cli_intercom_free_shell(cli_intercom);
 }
