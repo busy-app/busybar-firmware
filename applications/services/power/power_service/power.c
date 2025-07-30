@@ -60,7 +60,16 @@ static void power_on_interrupt(FuriEventLoopObject* object, void* context) {
         if(status.vbus_present) {
             bq25798_set_input_current_limit(POWER_I2C, power->input_current_limit);
         }
-        power->state.usb_connected = status.vbus_present;
+
+        bool is_usb_connected = !!status.vbus_present;
+        bool was_usb_connected = power->state.usb_connected;
+
+        if(is_usb_connected != was_usb_connected) {
+            PowerEvent pub_event = {.type = PowerEventUsbConnectionStateUpdate};
+            furi_pubsub_publish(power->event_pubsub, &pub_event);
+        }
+
+        power->state.usb_connected = is_usb_connected;
     }
 
     // ADC can be disabled by internal BQ25798 mechanism
@@ -498,6 +507,7 @@ void power_run(Power* power) {
 
     Bq25798ChargerStatus status = {0};
     bq25798_get_charger_status(POWER_I2C, &status);
+    power->state.usb_connected = !!status.vbus_present;
     if(status.vbat_present_stat) {
         power->state.battery_ready = true;
         power_pubsub_publish(power, PowerEventBatteryPresent);

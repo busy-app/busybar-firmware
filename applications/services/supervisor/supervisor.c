@@ -211,6 +211,8 @@ static void supervisor_power_callback(const void* message, void* context) {
     case PowerEventChargingStateUpdate:
         /* fall-through */
     case PowerEventChargeUpdate:
+        /* fall-through */
+    case PowerEventUsbConnectionStateUpdate:
         break;
     }
 }
