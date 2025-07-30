@@ -4,7 +4,6 @@
 #include <intercom/intercom.h>
 
 #include <sl_net.h>
-#include <sl_net_for_lwip.h>
 #include <sl_wifi.h>
 #include <sl_si91x_driver.h>
 #include <sl_wifi_callback_framework.h>

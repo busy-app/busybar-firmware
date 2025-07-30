@@ -52,8 +52,7 @@
     "include_paths": [
         "config",
         "furi_hal",
-        "inc",
-        "lwip"
+        "inc"
     ],
     "env_setup_scripts": [
         "#/bsb_common_env_init.scons",

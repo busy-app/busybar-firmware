@@ -9,13 +9,6 @@ FREERTOS_INCDIR = f"#/lib/{FREERTOS_DIR}"
 WISECONNECT_DIR = "wiseconnect/components"
 WISECONNECT_INCDIR = f"#/lib/{WISECONNECT_DIR}"
 
-UTIL_DIR = f"{SDK_DIR}/util"
-
-THIRDPARTY_DIR = f"{UTIL_DIR}/third_party"
-
-LWIP_DIR = f"{THIRDPARTY_DIR}/lwip/lwip/src"
-LWIP_INCDIR = f"#/lib/{LWIP_DIR}/include"
-
 env.Append(
     CPPPATH=[
         Dir(f"{SDK_INCDIR}/platform/common/inc").rdir(),
@@ -33,8 +26,6 @@ env.Append(
         Dir(f"{SDK_INCDIR}/platform/emdrv/common/inc").rdir(),
         Dir(f"{SDK_INCDIR}/platform/emdrv/nvm3/inc").rdir(),
         Dir(f"{SDK_INCDIR}/platform/emdrv/nvm3/config").rdir(),
-        # lwIP
-        Dir(LWIP_INCDIR).rdir(),
     ],
     CPPDEFINES=[
         # SDK Wifi Silabs
@@ -48,12 +39,7 @@ env.Append(
         "configNUM_SDK_THREAD_LOCAL_STORAGE_POINTERS=2",
         "configNUM_USER_THREAD_LOCAL_STORAGE_POINTERS=0",
         "FLASH_PAGE_SIZE=4096",
-        # lwIP
-        "LWIP_IPV4=1",
-        "LWIP_IPV6=1",
-        "LWIP_NETIF_API=1",
         # Debug Logging
-        # "LWIP_DEBUG=1",
         # "PRINT_DEBUG_LOG",
     ],
 )
@@ -73,53 +59,6 @@ sources = [
     f"{SDK_DIR}/platform/emdrv/nvm3/src/nvm3_object.c",
     f"{SDK_DIR}/platform/emdrv/nvm3/src/nvm3_page.c",
     f"{SDK_DIR}/platform/emdrv/nvm3/src/nvm3_utils.c",
-    # lwIP
-    f"{LWIP_DIR}/api/api_lib.c",
-    f"{LWIP_DIR}/api/api_msg.c",
-    f"{LWIP_DIR}/api/err.c",
-    f"{LWIP_DIR}/api/if_api.c",
-    f"{LWIP_DIR}/api/netbuf.c",
-    f"{LWIP_DIR}/api/netdb.c",
-    f"{LWIP_DIR}/api/netifapi.c",
-    f"{LWIP_DIR}/api/sockets.c",
-    f"{LWIP_DIR}/api/tcpip.c",
-    f"{LWIP_DIR}/core/altcp.c",
-    f"{LWIP_DIR}/core/altcp_alloc.c",
-    f"{LWIP_DIR}/core/altcp_tcp.c",
-    f"{LWIP_DIR}/core/def.c",
-    f"{LWIP_DIR}/core/dns.c",
-    f"{LWIP_DIR}/core/inet_chksum.c",
-    f"{LWIP_DIR}/core/init.c",
-    f"{LWIP_DIR}/core/ip.c",
-    f"{LWIP_DIR}/core/mem.c",
-    f"{LWIP_DIR}/core/memp.c",
-    f"{LWIP_DIR}/core/netif.c",
-    f"{LWIP_DIR}/core/pbuf.c",
-    f"{LWIP_DIR}/core/raw.c",
-    f"{LWIP_DIR}/core/stats.c",
-    f"{LWIP_DIR}/core/sys.c",
-    f"{LWIP_DIR}/core/tcp.c",
-    f"{LWIP_DIR}/core/tcp_in.c",
-    f"{LWIP_DIR}/core/tcp_out.c",
-    f"{LWIP_DIR}/core/timeouts.c",
-    f"{LWIP_DIR}/core/udp.c",
-    f"{LWIP_DIR}/core/ipv4/autoip.c",
-    f"{LWIP_DIR}/core/ipv4/dhcp.c",
-    f"{LWIP_DIR}/core/ipv4/etharp.c",
-    f"{LWIP_DIR}/core/ipv4/icmp.c",
-    f"{LWIP_DIR}/core/ipv4/igmp.c",
-    f"{LWIP_DIR}/core/ipv4/ip4.c",
-    f"{LWIP_DIR}/core/ipv4/ip4_addr.c",
-    f"{LWIP_DIR}/core/ipv4/ip4_frag.c",
-    f"{LWIP_DIR}/core/ipv6/ethip6.c",
-    f"{LWIP_DIR}/core/ipv6/icmp6.c",
-    f"{LWIP_DIR}/core/ipv6/inet6.c",
-    f"{LWIP_DIR}/core/ipv6/ip6.c",
-    f"{LWIP_DIR}/core/ipv6/ip6_addr.c",
-    f"{LWIP_DIR}/core/ipv6/ip6_frag.c",
-    f"{LWIP_DIR}/core/ipv6/mld6.c",
-    f"{LWIP_DIR}/core/ipv6/nd6.c",
-    f"{LWIP_DIR}/netif/ethernet.c",
 ]
 
 lib = libenv.StaticLibrary("${FW_LIB_NAME}", sources)

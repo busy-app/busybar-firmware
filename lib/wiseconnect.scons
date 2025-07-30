@@ -66,8 +66,6 @@ env.Append(
         "SLI_SI91X_ENABLE_BLE",
         "SL_SI91X_ENABLE_LITTLE_ENDIAN=1",
         "__FREERTOS_OS_WISECONNECT",
-        # lwIP
-        # "SLI_SI91X_LWIP_HOSTED_NETWORK_STACK",
     ],
 )
 
@@ -91,7 +89,6 @@ sources = [
     f"{WISECONNECT_DIR}/protocol/wifi/src/sl_wifi_callback_framework.c",
     f"{WISECONNECT_DIR}/protocol/wifi/src/sl_wifi_basic_credentials.c",
     f"{WISECONNECT_DIR}/service/network_manager/src/sl_net.c",
-    # f"{WISECONNECT_DIR}/service/network_manager/src/sl_net_for_lwip.c",
     f"{WISECONNECT_DIR}/service/network_manager/src/sl_net_basic_profiles.c",
     f"{WISECONNECT_DIR}/service/network_manager/src/sl_net_credentials.c",
     f"{WISECONNECT_DIR}/service/network_manager/src/sli_net_common_utility.c",
