@@ -89,8 +89,7 @@ static void wifi_add_netif_callback(void* arg) {
     ip_addr_set_zero_ip4(&gateway);
 
     netif_add(netif, &ip, &netmask, &gateway, instance, wifi_init_netif_callback, tcpip_input);
-
-    // netif_set_default(netif);
+    netif_set_default(netif);
 }
 
 static void wifi_net_intercom_rx_callback(const void* data, size_t data_size, void* context) {

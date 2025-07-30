@@ -337,6 +337,7 @@ err_t dhserv_init(const dhcp_config_t *c)
 	pcb = udp_new();
 	if (pcb == NULL)
 		return ERR_MEM;
+	udp_bind_netif(pcb, c->netif);
 	err = udp_bind(pcb, IP_ADDR_ANY, c->port);
 	if (err != ERR_OK)
 	{
