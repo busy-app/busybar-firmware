@@ -139,7 +139,7 @@ bool http_api_root_callback(
     if(msg->query.len > 0) {
         FURI_LOG_I("HTTP API", "Query %.*s", msg->query.len, msg->query.buf);
     }
-    struct mg_str* header_semver = mg_http_get_header(msg, "SemVer");
+    struct mg_str* header_semver = mg_http_get_header(msg, "X-API-Sem-Ver");
     if(header_semver) {
         uint8_t major_ver;
         const uint8_t api_ver[] = API_VERSION;
