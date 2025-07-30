@@ -1,13 +1,27 @@
 #include "matter_app.h"
 
 //#include <sl_mbedtls.h>
+#include <furi.h>
 #include <MatterConfig.h>
 #include <BaseApplication.h>
-#include <app/clusters/switch-server/switch-server.h>
+// #include <app/clusters/occupancy-sensor-server/occupancy-sensor-server.h>
+#include <app/clusters/occupancy-sensor-server/occupancy-hal.h>
 #include <app-common/zap-generated/attributes/Accessors.h>
+// #include <app/PluginApplicationCallbacks.h>
 
-constexpr chip::EndpointId kLightSwitchEndpoint = 1;
-constexpr chip::EndpointId kGenericSwitchEndpoint = 2;
+#define TAG "MatterApp"
+
+using namespace chip;
+using namespace chip::app::Clusters;
+
+constexpr EndpointId kModeEndpoint = 1;
+constexpr EndpointId kOccupancyEndpoint = 2;
+
+HalOccupancySensorType halOccupancyGetSensorType(EndpointId endpoint) {
+    FURI_LOG_D(TAG, "Initializing occupancy HAL");
+    furi_check(endpoint == kOccupancyEndpoint);
+    return HAL_OCCUPANCY_SENSOR_TYPE_PHYSICAL;
+}
 
 void matter_app_init(void) {
     //sl_mbedtls_init();
@@ -19,28 +33,25 @@ void matter_factory_reset(void) {
 }
 
 void matter_button_press(void) {
-    // chip::app::Clusters::SwitchServer::Instance().OnInitialPress(kGenericSwitchEndpoint, 1);
+    FURI_LOG_D(TAG, "BUSY mode");
 
-    uint8_t currentPosition = 1;
+    DeviceLayer::PlatformMgr().LockChipStack();
+    halOccupancyStateChangedCallback(kOccupancyEndpoint, HAL_OCCUPANCY_STATE_OCCUPIED);
+    DeviceLayer::PlatformMgr().UnlockChipStack();
 
-    // Set new attribute value
-    chip::app::Clusters::Switch::Attributes::CurrentPosition::Set(kGenericSwitchEndpoint, currentPosition);
-
-    // Trigger event
-    chip::app::Clusters::SwitchServer::Instance().OnInitialPress(kGenericSwitchEndpoint, currentPosition);
+    // using namespace OccupancySensing;
+    // Attributes::Occupancy::Set(kOccupancyEndpoint, OccupancyBitmap::kOccupied);
 }
 
 void matter_button_release(void) {
-    // chip::app::Clusters::SwitchServer::Instance().OnShortRelease(kGenericSwitchEndpoint, 1);
+    FURI_LOG_D(TAG, "REST mode");
 
-    uint8_t previousPosition = 1;
-    uint8_t currentPosition  = 0;
+    DeviceLayer::PlatformMgr().LockChipStack();
+    halOccupancyStateChangedCallback(kOccupancyEndpoint, HAL_OCCUPANCY_STATE_UNOCCUPIED);
+    DeviceLayer::PlatformMgr().UnlockChipStack();
 
-    // Set new attribute value
-    chip::app::Clusters::Switch::Attributes::CurrentPosition::Set(kGenericSwitchEndpoint, currentPosition);
-
-    // Trigger event
-    chip::app::Clusters::SwitchServer::Instance().OnShortRelease(kGenericSwitchEndpoint, previousPosition);
+    // using namespace OccupancySensing;
+    // Attributes::Occupancy::Set(kOccupancyEndpoint, 0);
 }
 
 void matter_basic_commissioning_window(void) {

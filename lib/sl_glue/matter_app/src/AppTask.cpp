@@ -26,7 +26,7 @@
 #include "AppEvent.h"
 #include "BindingHandler.h"
 #include "LEDWidget.h"
-#include "LightSwitchMgr.h"
+// #include "LightSwitchMgr.h"
 #ifdef DISPLAY_ENABLED
 #include "lcd.h"
 #ifdef QR_CODE_ENABLED
@@ -71,7 +71,7 @@ AppTask AppTask::sAppTask;
 CHIP_ERROR AppTask::Init()
 {
     CHIP_ERROR err = CHIP_NO_ERROR;
-    chip::DeviceLayer::Silabs::GetPlatform().SetButtonsCb(LightSwitchMgr::ButtonEventHandler);
+    // chip::DeviceLayer::Silabs::GetPlatform().SetButtonsCb(LightSwitchMgr::ButtonEventHandler);
 
 #ifdef DISPLAY_ENABLED
     GetLCD().Init((uint8_t *) "Light Switch");
@@ -84,12 +84,19 @@ CHIP_ERROR AppTask::Init()
         appError(err);
     }
 
-    err = LightSwitchMgr::GetInstance().Init(kLightSwitchEndpoint, kGenericSwitchEndpoint);
-    if (err != CHIP_NO_ERROR)
+    CHIP_ERROR error = InitBindingHandler();
+    if (error != CHIP_NO_ERROR)
     {
-        SILABS_LOG("LightSwitchMgr Init failed!");
-        appError(err);
+        SILABS_LOG("InitBindingHandler() failed!");
+        appError(error);
     }
+
+    // err = LightSwitchMgr::GetInstance().Init(kLightSwitchEndpoint, kGenericSwitchEndpoint);
+    // if (err != CHIP_NO_ERROR)
+    // {
+    //     SILABS_LOG("LightSwitchMgr Init failed!");
+    //     appError(err);
+    // }
 
     return err;
 }
