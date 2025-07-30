@@ -2,6 +2,7 @@
 #include "storage_macros.h"
 
 #include "widgets/audio_status_indicator.h"
+#include "widgets/usb_status_indicator.h"
 #include "widgets/battery_status_indicator.h"
 
 #include <lvgl.h>
@@ -23,6 +24,7 @@ struct StatusBar {
     Power* power;
     Audio* audio;
     AudioStatusIndicator* audio_status_indicator;
+    UsbStatusIndicator* usb_status_indicator;
     BatteryStatusIndicator* battery_status_indicator;
 };
 
@@ -31,6 +33,8 @@ typedef enum {
     StatusBarUpdateEventPowerCharge = 1 << 1,
 
     StatusBarUpdateEventAudioVolume = 1 << 2,
+
+    StatusBarUpdateEventUsbConnectionState = 1 << 3,
 
     StatusBarUpdateEventAnyPower = StatusBarUpdateEventPowerChargingState |
                                    StatusBarUpdateEventPowerCharge
@@ -51,6 +55,10 @@ static void power_events_callback(const void* message, void* context) {
 
     case PowerEventChargeUpdate:
         update_event = StatusBarUpdateEventPowerCharge;
+        break;
+
+    case PowerEventUsbConnectionStateUpdate:
+        update_event = StatusBarUpdateEventUsbConnectionState;
         break;
 
     default:
@@ -75,6 +83,7 @@ static void audio_events_callback(const void* message, void* context) {
 static void status_bar_custom_event_callback(uint32_t events, void* context) {
     StatusBar* instance = context;
     PowerInfo* power_info = NULL;
+    bool is_usb_connected;
     float audio_volume;
 
     if(READ_BIT(events, StatusBarUpdateEventAnyPower)) {
@@ -84,6 +93,10 @@ static void status_bar_custom_event_callback(uint32_t events, void* context) {
 
     if(READ_BIT(events, StatusBarUpdateEventAudioVolume)) {
         audio_volume = audio_get_volume(instance->audio);
+    }
+
+    if(READ_BIT(events, StatusBarUpdateEventUsbConnectionState)) {
+        is_usb_connected = power_is_usb_connected(instance->power);
     }
 
     with_gui(instance->gui, {
@@ -97,6 +110,11 @@ static void status_bar_custom_event_callback(uint32_t events, void* context) {
                 instance->battery_status_indicator,
                 (power_info->is_full_charged) ? BATTERY_STATUS_INDICATOR_MAX_CHARGE :
                                                 power_info->charge);
+        }
+
+        if(READ_BIT(events, StatusBarUpdateEventUsbConnectionState)) {
+            usb_status_indicator_set_connection_state(
+                instance->usb_status_indicator, is_usb_connected);
         }
 
         if(READ_BIT(events, StatusBarUpdateEventAudioVolume)) {
@@ -116,6 +134,7 @@ static StatusBar* status_bar_alloc(void) {
     PowerInfo power_info;
     power_get_info(instance->power, &power_info);
 
+    bool is_usb_connected = power_is_usb_connected(instance->power);
     float audio_volume = audio_get_volume(instance->audio);
 
     with_gui(instance->gui, {
@@ -144,10 +163,12 @@ static StatusBar* status_bar_alloc(void) {
             audio_status_indicator_get_base(instance->audio_status_indicator), 0, 0, 2, 2);
         audio_status_indicator_set_volume(instance->audio_status_indicator, audio_volume);
 
-        Image* usb = image_alloc(flex_layout_get_base(status_bar));
-        image_set_source(usb, STATUS_BAR_IMG_PATH("usb_8x8.bin"));
-        widget_set_margin(image_get_base(usb), 0, 0, 2, 2);
-        widget_set_size(image_get_base(usb), LV_SIZE_CONTENT, LV_SIZE_CONTENT);
+        instance->usb_status_indicator =
+            usb_status_indicator_alloc(flex_layout_get_base(status_bar));
+        widget_set_margin(
+            usb_status_indicator_get_base(instance->usb_status_indicator), 0, 0, 2, 2);
+        usb_status_indicator_set_connection_state(
+            instance->usb_status_indicator, is_usb_connected);
 
         instance->battery_status_indicator =
             battery_status_indicator_alloc(flex_layout_get_base(status_bar));
