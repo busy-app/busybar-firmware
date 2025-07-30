@@ -76,3 +76,6 @@ node_modules/
 
 .fbt
 .vscode
+
+# Frontend
+assets/frontend-build/nitro.json

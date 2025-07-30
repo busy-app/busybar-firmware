@@ -1,3 +1,5 @@
+import { resolve } from 'path';
+
 const BUILD_ID = process.env.BUILD_ID || 'bsb-frontend';
 
 // https://nuxt.com/docs/api/configuration/nuxt-config
@@ -48,6 +50,9 @@ export default defineNuxtConfig({
   },
   compatibilityDate: '2025-05-15',
   nitro: {
+    output: {
+      dir: resolve(__dirname, '../frontend-build')
+    },
     hooks: {
       'prerender:generate' (route) {
         if (route.contents && typeof route.contents === 'string') {
