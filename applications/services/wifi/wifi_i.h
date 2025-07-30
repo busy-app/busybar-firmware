@@ -56,3 +56,9 @@ struct Wifi {
     WifiSettings settings;
     bool settings_applied;
 };
+
+void wifi_net_init(Wifi* instance);
+
+void wifi_net_up(Wifi* instance);
+
+void wifi_net_down(Wifi* instance);

@@ -7,7 +7,12 @@ App(
     order=100,
     targets=["f20", "f21"],
     requires=["intercom"],
-    sources=["wifi.c", "wifi_api.c", "wifi_settings.c"],
+    sources=[
+        "wifi.c",
+        "wifi_api.c",
+        "wifi_net.c",
+        "wifi_settings.c",
+    ],
 )
 
 App(
@@ -19,5 +24,9 @@ App(
     order=100,
     targets=["f64"],
     requires=["intercom"],
-    sources=["wifi_backend.c", "wifi_backend_net.c", "wifi_backend_util.c"],
+    sources=[
+        "wifi_backend.c",
+        "wifi_backend_net.c",
+        "wifi_backend_util.c",
+    ],
 )
