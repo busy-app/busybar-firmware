@@ -135,7 +135,8 @@ static void cli_command_device_info(PipeSide* pipe, FuriString* args, void* cont
     UNUSED(context);
 
     furi_hal_info_get(cli_command_device_info_callback, '_', NULL);
-    cli_command_sl_cli_send_command_get_response(pipe, "device_info");
+    bool sl_cli_command_status = cli_command_sl_cli_send_command_get_response(pipe, "device_info");
+    printf("%-30s: %s\r\n", "sl_intercom_status", sl_cli_command_status ? "ok" : "error");
 }
 
 static void cli_commands_init(CliRegistry* registry) {

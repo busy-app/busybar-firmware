@@ -1,4 +1,5 @@
 #include "power_i.h"
+#include <toolbox/dsp.h>
 #include <drivers/bq25798/bq25798.h>
 
 #define TAG "Power"
@@ -162,7 +163,9 @@ static void power_handle_pd_update(Power* power, uint32_t voltage, uint32_t curr
 
     // TODO: check capabilities before
     if((voltage == 5000) && (pd_capabilities.cap_number > 1)) {
-        power_usb_pd_request_power(power->usb_pd, 9000, 0); // Request 9v, max current
+        if(power->state.pd_initialized) {
+            power_usb_pd_request_power(power->usb_pd, 9000, 0);
+        }
     }
 
     furi_hal_i2c_acquire(POWER_I2C);
@@ -214,7 +217,7 @@ static void power_message_callback(FuriEventLoopObject* object, void* context) {
         memcpy(msg.pd_info, &(power->pd_info), sizeof(PowerPdInfo));
         break;
     case PowerMessageTypePdRequest:
-        if(power->state.battery_ready) {
+        if(power->state.battery_ready && power->state.pd_initialized) {
             power_usb_pd_request_power(power->usb_pd, *(msg.param_int), 0);
         }
         break;
@@ -230,11 +233,84 @@ static void power_message_callback(FuriEventLoopObject* object, void* context) {
     }
 }
 
-static void power_battery_ready(Power* power) {
-    FURI_LOG_I(TAG, "Battery ready, initializing PD");
-    power_usb_pd_start(power->usb_pd);
-    PowerEvent pub_event = {.type = PowerEventReady};
-    furi_pubsub_publish(power->event_pubsub, &pub_event);
+static void power_pubsub_publish(Power* power, PowerEventType type) {
+    PowerEvent event = {.type = type};
+    furi_pubsub_publish(power->event_pubsub, &event);
+}
+
+static const char* power_battery_state_to_string(PowerBatteryState state) {
+    switch(state) {
+    case PowerBatteryStateNormal:
+        return "Normal";
+    case PowerBatteryStateLow:
+        return "Low";
+    case PowerBatteryStateCritical:
+        return "Critical";
+    default:
+        return "Unknown";
+    }
+}
+
+static void power_battery_state_transition(Power* power, PowerBatteryState state) {
+    if(power->battery_state != state) {
+        FURI_LOG_D(
+            TAG,
+            "Battery state transition: %s -> %s",
+            power_battery_state_to_string(power->battery_state),
+            power_battery_state_to_string(state));
+
+        switch(power->battery_state) {
+        case PowerBatteryStateNormal:
+            power_pubsub_publish(power, PowerEventBatteryNormalStop);
+            break;
+        case PowerBatteryStateLow:
+            power_pubsub_publish(power, PowerEventBatteryLowStop);
+            break;
+        case PowerBatteryStateCritical:
+            power_pubsub_publish(power, PowerEventBatteryCriticalStop);
+            break;
+        }
+
+        power->battery_state = state;
+
+        switch(power->battery_state) {
+        case PowerBatteryStateNormal:
+            power_pubsub_publish(power, PowerEventBatteryNormalStart);
+            break;
+        case PowerBatteryStateLow:
+            power_pubsub_publish(power, PowerEventBatteryLowStart);
+            break;
+        case PowerBatteryStateCritical:
+            power_pubsub_publish(power, PowerEventBatteryCriticalStart);
+            break;
+        }
+    }
+}
+
+static void power_process_battery_state(Power* power, uint32_t voltage_mv, bool charging) {
+    if(charging) {
+        power_battery_state_transition(power, PowerBatteryStateNormal);
+    } else {
+        if(power->battery_state == PowerBatteryStateNormal) {
+            if(voltage_mv < (POWER_VOLTAGE_CRITICAL - POWER_VOLTAGE_HYSTERESIS)) {
+                power_battery_state_transition(power, PowerBatteryStateCritical);
+            } else if(voltage_mv < (POWER_VOLTAGE_LOW - POWER_VOLTAGE_HYSTERESIS)) {
+                power_battery_state_transition(power, PowerBatteryStateLow);
+            }
+        } else if(power->battery_state == PowerBatteryStateLow) {
+            if(voltage_mv > (POWER_VOLTAGE_LOW + POWER_VOLTAGE_HYSTERESIS)) {
+                power_battery_state_transition(power, PowerBatteryStateNormal);
+            } else if(voltage_mv < (POWER_VOLTAGE_CRITICAL - POWER_VOLTAGE_HYSTERESIS)) {
+                power_battery_state_transition(power, PowerBatteryStateCritical);
+            }
+        } else if(power->battery_state == PowerBatteryStateCritical) {
+            if(voltage_mv > (POWER_VOLTAGE_LOW + POWER_VOLTAGE_HYSTERESIS)) {
+                power_battery_state_transition(power, PowerBatteryStateNormal);
+            } else if(voltage_mv > (POWER_VOLTAGE_CRITICAL + POWER_VOLTAGE_HYSTERESIS)) {
+                power_battery_state_transition(power, PowerBatteryStateLow);
+            }
+        }
+    }
 }
 
 static bool power_charger_is_charging(Bq25798ChargerStatusChargeStat status) {
@@ -293,25 +369,52 @@ static void power_update_info(Power* power) {
 
     if((power->state.battery_ready == false) && (status.vbat_present_stat == true)) {
         power->state.battery_ready = true;
-        power_battery_ready(power);
+        power_pubsub_publish(power, PowerEventBatteryPresent);
+        FURI_LOG_I(TAG, "Battery is ready");
+    } else if((power->state.battery_ready == true) && (status.vbat_present_stat == false)) {
+        power->state.battery_ready = false;
+        power_pubsub_publish(power, PowerEventBatteryNotPresent);
+        FURI_LOG_I(TAG, "Battery is not present");
     }
+
     power->state.usb_connected = status.vbus_present;
 
-    power->info.is_charging = power_charger_is_charging(status.chg_stat);
-    power->info.is_full_charged = power_charger_is_charged(status.chg_stat);
-    power->info.charge =
-        power_get_battery_charge(adc_val.bat_v, adc_val.bat_i, power->info.is_charging);
+    if(power->info.voltage_battery < 2500.0f) {
+        power->info.voltage_battery = adc_val.bat_v;
+    } else {
+        // TODO: tune low pass filter
+        power->info.voltage_battery =
+            dsp_low_pass(adc_val.bat_v, power->info.voltage_battery, 0.90f);
+    }
 
     power->info.current_battery = adc_val.bat_i;
     power->info.current_usb = adc_val.usb_i;
-    power->info.voltage_battery = adc_val.bat_v;
     power->info.voltage_usb = adc_val.usb_v;
     power->info.temperature_charger = adc_val.temp_charger;
     power->info.temperature_battery = adc_val.temp_bat_pct;
 
+    power->info.is_charging = power_charger_is_charging(status.chg_stat);
+    power->info.is_full_charged = power_charger_is_charged(status.chg_stat);
+    power->info.charge = power_get_battery_charge(
+        power->info.voltage_battery, power->info.current_battery, power->info.is_charging);
+
     power->info.charge_ilim_usb = power->input_current_limit;
     power->info.charge_ilim_battery = power->charger_current_limit;
     power->info.charge_enabled = power->charger_enabled;
+
+    // do not init USB PD if we dont need it
+    if(status.chg_stat == Bq25798ChargerStatusChargeStatFast ||
+       status.chg_stat == Bq25798ChargerStatusChargeStatTaper ||
+       status.chg_stat == Bq25798ChargerStatusChargeStatTopOff ||
+       status.chg_stat == Bq25798ChargerStatusChargeStatTermination) {
+        if(!power->state.pd_initialized) {
+            FURI_LOG_I(TAG, "Initializing USB PD");
+            power->state.pd_initialized = true;
+            power_usb_pd_start(power->usb_pd);
+        }
+    }
+
+    power_process_battery_state(power, power->info.voltage_battery, power->info.is_charging);
 }
 
 static void power_tick_callback(void* context) {
@@ -320,13 +423,13 @@ static void power_tick_callback(void* context) {
     power_update_info(power);
 }
 
-Power* power_alloc(void) {
+static Power* power_alloc(void) {
     Power* power = malloc(sizeof(Power));
     power->event_loop = furi_event_loop_alloc();
     power->gpio_semaphore = furi_semaphore_alloc(1, 0);
     power->message_queue = furi_message_queue_alloc(4, sizeof(PowerMessage));
     power->input_current_limit = 500;
-    power->charger_current_limit = CHARGE_CURRENT_MAX;
+    power->charger_current_limit = POWER_CHARGE_CURRENT_MAX;
     power->charger_enabled = true;
     power->state.battery_ready = false;
 
@@ -373,11 +476,18 @@ void power_run(Power* power) {
     bq25798_get_charger_status(POWER_I2C, &status);
     if(status.vbat_present_stat) {
         power->state.battery_ready = true;
-        power_battery_ready(power);
+        power_pubsub_publish(power, PowerEventBatteryPresent);
+        FURI_LOG_I(TAG, "Battery is present");
+    } else {
+        power->state.battery_ready = false;
+        power_pubsub_publish(power, PowerEventBatteryNotPresent);
+        FURI_LOG_I(TAG, "Battery is not present");
     }
+    power->state.pd_initialized = false;
+    power->info.voltage_battery = 0.0f;
 
     bq25798_set_charge_current_limit(POWER_I2C, power->charger_current_limit);
-    bq25798_set_charge_voltage_limit(POWER_I2C, CHARGE_VOLTAGE);
+    bq25798_set_charge_voltage_limit(POWER_I2C, POWER_CHARGE_VOLTAGE);
     furi_hal_i2c_release(POWER_I2C);
 
     furi_record_create(RECORD_POWER, power);

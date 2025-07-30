@@ -7,6 +7,7 @@
 #include <core/common_defines.h>
 #include <furi.h>
 #include <furi_hal_cortex.h>
+#include <furi_hal_bits.h>
 
 #include "stm32u5xx.h"
 
@@ -22,6 +23,18 @@ static void furi_hal_flash_unlock() {
     FLASH->NSKEYR = 0x45670123U;
     FLASH->NSKEYR = 0xCDEF89ABU;
     furi_check(!(FLASH->NSCR & FLASH_NSCR_LOCK));
+}
+
+static void furi_hal_flash_ob_unlock() {
+    // must be called after unlocking flash
+    furi_check(!(FLASH->NSCR & FLASH_NSCR_LOCK));
+
+    // Unlock option bytes
+    // RM0456, 7.4.2 "Option-byte programming"
+    furi_check(FLASH->NSCR & FLASH_NSCR_OPTLOCK);
+    FLASH->OPTKEYR = 0x08192A3BU;
+    FLASH->OPTKEYR = 0x4C5D6E7FU;
+    furi_check(!(FLASH->NSCR & FLASH_NSCR_OPTLOCK));
 }
 
 static void furi_hal_flash_lock() {
@@ -334,4 +347,50 @@ void furi_hal_flash_erase(const uint8_t page) {
 
     furi_hal_flash_lock();
     FURI_CRITICAL_EXIT();
+}
+
+void furi_hal_flash_init(void) {
+    // check that PA15_PUPEN is 0 and restore if necessary
+    if(furi_hal_bits_is_set(FLASH->OPTR, FLASH_OPTR_PA15_PUPEN)) {
+        FuriHalCortexTimer timer = furi_hal_cortex_timer_get(FURI_HAL_FLASH_BUSY_WAIT_TIMEOUT_US);
+
+        FURI_CRITICAL_ENTER();
+        // Check that no flash memory operation is on going
+        while(furi_hal_bits_is_set(FLASH->NSSR, FLASH_NSSR_BSY)) {
+            if(furi_hal_cortex_timer_is_expired(timer)) {
+                furi_crash("BSY timeout");
+            }
+        }
+
+        // Clear OPTLOCK with the clearing sequence
+        furi_hal_flash_unlock();
+        furi_hal_flash_ob_unlock();
+
+        // Clear PA15 PUPEN bit in option bytes
+        furi_hal_bits_clear(&FLASH->OPTR, FLASH_OPTR_PA15_PUPEN);
+
+        // Start option byte programming
+        furi_hal_bits_set(&FLASH->NSCR, FLASH_NSCR_OPTSTRT);
+
+        // Wait for the operation to complete
+        while(furi_hal_bits_is_set(FLASH->NSSR, FLASH_NSSR_BSY)) {
+            if(furi_hal_cortex_timer_is_expired(timer)) {
+                furi_crash("BSY timeout: programming option bytes");
+            }
+        }
+
+        // Check for option byte programming errors
+        furi_check(furi_hal_bits_is_not_set(FLASH->NSSR, FLASH_NSSR_OPTWERR));
+        furi_check(furi_hal_bits_is_not_set(FLASH->NSSR, FLASH_NSSR_PGSERR));
+
+        // Load the new option bytes
+        furi_hal_bits_set(&FLASH->NSCR, FLASH_NSCR_OBL_LAUNCH);
+
+        // OPTLOCK is set when flash is locked
+        furi_hal_flash_lock();
+
+        FURI_CRITICAL_EXIT();
+
+        furi_check(furi_hal_bits_is_not_set(FLASH->OPTR, FLASH_OPTR_PA15_PUPEN));
+    }
 }
