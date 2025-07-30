@@ -387,6 +387,28 @@ static void power_update_info(Power* power) {
             dsp_low_pass(adc_val.bat_v, power->info.voltage_battery, 0.90f);
     }
 
+    bool is_charging = power_charger_is_charging(status.chg_stat);
+    bool was_charging = power->info.is_charging;
+
+    power->info.is_charging = is_charging;
+
+    if(is_charging != was_charging) {
+        PowerEvent pub_event = {.type = PowerEventChargingStateUpdate};
+        furi_pubsub_publish(power->event_pubsub, &pub_event);
+    }
+
+    uint8_t charge = power_get_battery_charge(adc_val.bat_v, adc_val.bat_i, is_charging);
+    uint8_t previous_charge = power->info.charge;
+
+    power->info.charge = charge;
+
+    if(charge != previous_charge) {
+        PowerEvent pub_event = {.type = PowerEventChargeUpdate};
+        furi_pubsub_publish(power->event_pubsub, &pub_event);
+    }
+
+    power->info.is_full_charged = power_charger_is_charged(status.chg_stat);
+
     power->info.current_battery = adc_val.bat_i;
     power->info.current_usb = adc_val.usb_i;
     power->info.voltage_usb = adc_val.usb_v;
@@ -432,6 +454,8 @@ static Power* power_alloc(void) {
     power->charger_current_limit = POWER_CHARGE_CURRENT_MAX;
     power->charger_enabled = true;
     power->state.battery_ready = false;
+    power->info.is_charging = false;
+    power->info.charge = 0;
 
     furi_event_loop_subscribe_message_queue(
         power->event_loop,

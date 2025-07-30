@@ -205,8 +205,12 @@ static void supervisor_power_callback(const void* message, void* context) {
         supervisor_send_event(instance, SupervisorEventTypeBatteryPresent);
         break;
     case PowerEventBatteryNormalStart:
-        break;
+        /* fall-through */
     case PowerEventBatteryNormalStop:
+        /* fall-through */
+    case PowerEventChargingStateUpdate:
+        /* fall-through */
+    case PowerEventChargeUpdate:
         break;
     }
 }
