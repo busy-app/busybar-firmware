@@ -36,7 +36,6 @@ void furi_hal_crypto_storage_free(FuriHalCryptoKey* key) {
         key->data = NULL;
     }
     free(key);
-    key = NULL;
 }
 
 static FuriHalCryptoStatus furi_hal_crypto_storage_check_key_slot_is_free(
