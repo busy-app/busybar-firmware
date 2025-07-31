@@ -1,7 +1,7 @@
 /*******************************************************************************
  * Size: 8 px
  * Bpp: 1
- * Opts: --bpp 1 --size 8 --no-compress --font Tiny5-Regular.ttf --symbols ▶▹◃∞ --range 32-127 --format lvgl -o lv_font_tiny5_8.c
+ * Opts: --bpp 1 --size 8 --no-compress --font .\BSB_Tiny5-Regular.ttf --symbols ▶▹◃∞ --range 32-127 --format lvgl -o lv_font_tiny5_8.c
  ******************************************************************************/
 
 #ifdef LV_LVGL_H_INCLUDE_SIMPLE
