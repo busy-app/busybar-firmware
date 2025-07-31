@@ -17,7 +17,7 @@ static void flex_event_callback(const lv_obj_class_t* class_p, lv_event_t* e) {
     if(code == LV_EVENT_CHILD_CREATED) {
         lv_obj_t* target = lv_event_get_target_obj(e);
 
-        if(!lv_obj_check_type(target, &flex_layout_lvgl_class)) return;
+        if(!lv_obj_check_type(target, MY_CLASS)) return;
 
         lv_flex_flow_t flex =
             lv_obj_get_style_flex_flow(lv_event_get_current_target_obj(e), LV_PART_MAIN);
@@ -65,6 +65,23 @@ void flex_layout_set_spacing(FlexLayout* instance, int32_t spacing) {
     } else {
         lv_obj_set_style_pad_column(obj, spacing, LV_PART_MAIN);
     }
+}
+
+void flex_layout_set_align(
+    FlexLayout* instance,
+    FlexLayoutAlign main_place_align,
+    FlexLayoutAlign cross_place_align,
+    FlexLayoutAlign track_cross_place_align) {
+    furi_check(instance);
+    furi_check(main_place_align < FlexLayoutAlignMax);
+    furi_check(cross_place_align < FlexLayoutAlignMax);
+    furi_check(track_cross_place_align < FlexLayoutAlignMax);
+
+    lv_obj_set_flex_align(
+        (lv_obj_t*)instance,
+        (lv_flex_align_t)main_place_align,
+        (lv_flex_align_t)cross_place_align,
+        (lv_flex_align_t)track_cross_place_align);
 }
 
 void flex_layout_set_wrap(FlexLayout* instance, bool wrap) {

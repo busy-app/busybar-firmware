@@ -2,17 +2,17 @@ openapi: 3.0.3
 info:
   title: Busy Bar HTTP API
   description: HTTP API for Busy Bar web server
-  version: 0.1.0
+  version: 0.2.0
   contact:
     name: tbd
 
 paths:
-  /api/v0/version:
+  /api/version:
     get:
       tags:
         - System
-      summary: Get firmware version information
-      description: Retrieves firmware version, branch, build date, and commit information
+      summary: Get API version information
+      description: Retrieves api version
       operationId: getVersion
       responses:
         "200":
@@ -78,7 +78,7 @@ paths:
               schema:
                 $ref: "#/components/schemas/Error"
 
-  /api/v0/update:
+  /api/update:
     post:
       tags:
         - System
@@ -128,7 +128,7 @@ paths:
               schema:
                 $ref: "#/components/schemas/Error"
 
-  /api/v0/assets/upload:
+  /api/assets/upload:
     post:
       tags:
         - Assets
@@ -209,7 +209,7 @@ paths:
               schema:
                 $ref: "#/components/schemas/Error"
 
-  /api/v0/storage/write:
+  /api/storage/write:
     post:
       tags:
         - Storage
@@ -253,7 +253,7 @@ paths:
               schema:
                 $ref: "#/components/schemas/Error"
 
-  /api/v0/storage/read:
+  /api/storage/read:
     get:
       tags:
         - Storage
@@ -285,7 +285,7 @@ paths:
               schema:
                 $ref: "#/components/schemas/Error"
 
-  /api/v0/storage/list:
+  /api/storage/list:
     get:
       tags:
         - Storage
@@ -315,7 +315,7 @@ paths:
               schema:
                 $ref: "#/components/schemas/Error"
 
-  /api/v0/storage/remove:
+  /api/storage/remove:
     delete:
       tags:
         - Storage
@@ -345,7 +345,7 @@ paths:
               schema:
                 $ref: "#/components/schemas/Error"
 
-  /api/v0/storage/mkdir:
+  /api/storage/mkdir:
     post:
       tags:
         - Storage
@@ -375,7 +375,7 @@ paths:
               schema:
                 $ref: "#/components/schemas/Error"
 
-  /api/v0/display/draw:
+  /api/display/draw:
     post:
       tags:
         - Assets
@@ -429,7 +429,7 @@ paths:
               schema:
                 $ref: "#/components/schemas/Error"
 
-  /api/v0/display/brightness:
+  /api/display/brightness:
     get:
       tags:
         - Settings
@@ -481,7 +481,7 @@ paths:
               schema:
                 $ref: "#/components/schemas/Error"
 
-  /api/v0/audio/play:
+  /api/audio/play:
     post:
       tags:
         - Assets
@@ -547,7 +547,7 @@ paths:
               schema:
                 $ref: "#/components/schemas/Error"
 
-  /api/v0/audio/volume:
+  /api/audio/volume:
     get:
       tags:
         - Settings
@@ -589,7 +589,7 @@ paths:
               schema:
                 $ref: "#/components/schemas/Error"
 
-  /api/v0/input:
+  /api/input:
     get:
       tags:
         - Input
@@ -653,7 +653,7 @@ paths:
               schema:
                 $ref: "#/components/schemas/Error"
 
-  /api/v0/status:
+  /api/status:
     get:
       tags:
         - System
@@ -674,7 +674,7 @@ paths:
               schema:
                 $ref: "#/components/schemas/Error"
 
-  /api/v0/status/system:
+  /api/status/system:
     get:
       tags:
         - System
@@ -695,7 +695,7 @@ paths:
               schema:
                 $ref: "#/components/schemas/Error"
 
-  /api/v0/status/power:
+  /api/status/power:
     get:
       tags:
         - System
@@ -741,7 +741,7 @@ paths:
               schema:
                 $ref: "#/components/schemas/Error"
 
-  /api/v0/wifi/enable:
+  /api/wifi/enable:
     post:
       tags:
         - Wifi
@@ -761,7 +761,7 @@ paths:
               schema:
                 $ref: "#/components/schemas/Error"
 
-  /api/v0/wifi/disable:
+  /api/wifi/disable:
     post:
       tags:
         - Wifi
@@ -781,7 +781,7 @@ paths:
               schema:
                 $ref: "#/components/schemas/Error"
 
-  /api/v0/wifi/status:
+  /api/wifi/status:
     get:
       tags:
         - Wifi
@@ -795,7 +795,7 @@ paths:
               schema:
                 $ref: "#/components/schemas/StatusResponse"
 
-  /api/v0/wifi/connect:
+  /api/wifi/connect:
     post:
       tags:
         - Wifi
@@ -821,7 +821,7 @@ paths:
               schema:
                 $ref: "#/components/schemas/Error"
 
-  /api/v0/wifi/disconnect:
+  /api/wifi/disconnect:
     post:
       tags:
         - Wifi
@@ -841,7 +841,7 @@ paths:
               schema:
                 $ref: "#/components/schemas/Error"
 
-  /api/v0/wifi/networks:
+  /api/wifi/networks:
     get:
       tags:
         - Wifi
@@ -861,7 +861,7 @@ paths:
               schema:
                 $ref: "#/components/schemas/Error"
 
-  /api/v0/wifi/forget:
+  /api/wifi/forget:
     post:
       tags:
         - Wifi
@@ -875,7 +875,7 @@ paths:
               schema:
                 $ref: "#/components/schemas/Error"
 
-  /api/v0/screen:
+  /api/screen:
     get:
       tags:
         - Streaming
@@ -903,7 +903,7 @@ paths:
               schema:
                 $ref: "#/components/schemas/Error"
 
-  /api/v0/screen/ws:
+  /api/screen/ws:
     get:
       tags:
         - Streaming
@@ -954,32 +954,14 @@ components:
     VersionInfo:
       type: object
       properties:
-        branch:
+        api_semver:
           type: string
-          description: Git branch name
-          example: "main"
-        version:
-          type: string
-          description: Firmware version
-          example: "1.0.0"
-        build_date:
-          type: string
-          description: Build date
-          example: "2024-01-01"
-        commit_hash:
-          type: string
-          description: Git commit hash (may include -dirty suffix)
-          example: "abc123def456-dirty"
+          description: Api SemVer
+          example: "0.0.0"
       required:
-        - branch
-        - version
-        - build_date
-        - commit_hash
+        - api_semver
       example:
-        branch: "main"
-        version: "1.0.0"
-        build_date: "2024-01-01"
-        commit_hash: "abc123def456"
+        api_semver: "0.0.0"
 
     HttpAccessInfo:
       type: object
@@ -1187,10 +1169,22 @@ components:
     StatusSystem:
       type: object
       properties:
+        branch:
+          type: string
+          description: Git branch name
+          example: "main"
         version:
           type: string
           description: Firmware version
-          example: "unknown"
+          example: "1.0.0"
+        build_date:
+          type: string
+          description: Build date
+          example: "2024-01-01"
+        commit_hash:
+          type: string
+          description: Git commit hash (may include -dirty suffix)
+          example: "abc123def456-dirty"
         uptime:
           type: string
           description: System uptime

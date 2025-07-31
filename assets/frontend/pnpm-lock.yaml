@@ -9,8 +9,8 @@ importers:
   .:
     dependencies:
       '@busy-app/busy-lib':
-        specifier: ^0.0.4
-        version: 0.0.4
+        specifier: ^0.0.6
+        version: 0.0.6
       '@nuxt/eslint':
         specifier: 1.4.1
         version: 1.4.1(@typescript-eslint/utils@8.34.1(eslint@9.29.0(jiti@2.4.2))(typescript@5.8.3))(@vue/compiler-sfc@3.5.17)(eslint@9.29.0(jiti@2.4.2))(magicast@0.3.5)(typescript@5.8.3)(vite-plugin-eslint2@5.0.3(eslint@9.29.0(jiti@2.4.2))(rollup@4.44.0)(vite@6.3.5(@types/node@24.0.3)(jiti@2.4.2)(lightningcss@1.30.1)(terser@5.43.1)(yaml@2.8.0)))(vite@6.3.5(@types/node@24.0.3)(jiti@2.4.2)(lightningcss@1.30.1)(terser@5.43.1)(yaml@2.8.0))
@@ -188,8 +188,8 @@ packages:
     resolution: {integrity: sha512-ETyHEk2VHHvl9b9jZP5IHPavHYk57EhanlRRuae9XCpb/j5bDCbPPMOBfCWhnl/7EDJz0jEMCi/RhccCE8r1+Q==}
     engines: {node: '>=6.9.0'}
 
-  '@busy-app/busy-lib@0.0.4':
-    resolution: {integrity: sha512-J5Pjhq+M9hYw9OtFJlO4WLOtn92FJ5PzhdyyHjeF1nDTIog0AC4WwN/UawSchkOn0E1NvgM0T5PyKR8XempONg==}
+  '@busy-app/busy-lib@0.0.6':
+    resolution: {integrity: sha512-q8jAYyT+WG7OeX9lGXARAswYe0CnGIFdtgkz0DBa35ynWHgPd7do1n1kuu1Mb0lksbP1u77QrMPXvieCEfjCsA==}
     engines: {node: '>=18'}
 
   '@capsizecss/metrics@3.5.0':
@@ -4957,7 +4957,7 @@ snapshots:
       '@babel/helper-string-parser': 7.27.1
       '@babel/helper-validator-identifier': 7.27.1
 
-  '@busy-app/busy-lib@0.0.4':
+  '@busy-app/busy-lib@0.0.6':
     dependencies:
       openapi-fetch: 0.14.0
 
