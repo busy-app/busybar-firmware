@@ -87,20 +87,8 @@ void battery_status_indicator_set_charge_amount(BatteryStatusIndicator* instance
     lv_bar_set_value(instance->charge_level_bar, charge, LV_ANIM_OFF);
 
     char text[snprintf(NULL, 0, "%u", BATTERY_STATUS_INDICATOR_MAX_CHARGE_AMOUNT) + 1];
-    size_t characters_count = snprintf(text, sizeof(text), "%u", charge);
-
-    int32_t letter_space;
-    if(characters_count % 2 == 0) {
-        const lv_font_t* font =
-            lv_obj_get_style_text_font(instance->charge_level_label, LV_PART_MAIN);
-        int32_t text_width = lv_text_get_width(text, characters_count, font, 0);
-        letter_space = (text_width % 2 == 0) ? 1 : 0;
-    } else {
-        letter_space = 0;
-    }
-
+    snprintf(text, sizeof(text), "%u", charge);
     lv_label_set_text(instance->charge_level_label, text);
-    lv_obj_set_style_text_letter_space(instance->charge_level_label, letter_space, LV_PART_MAIN);
 }
 
 void battery_status_indicator_set_charging_state(
