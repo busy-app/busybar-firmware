@@ -30,6 +30,7 @@ static FURI_ALWAYS_INLINE void furi_hal_nwp_unlock(void) {
 }
 
 static FURI_ALWAYS_INLINE void furi_hal_nwp_mutex_init(void) {
+    furi_check(furi_hal_nwp_is_nwp_initialized.mutex == NULL);
     furi_hal_nwp_is_nwp_initialized.mutex = furi_mutex_alloc(FuriMutexTypeNormal);
     furi_check(furi_hal_nwp_is_nwp_initialized.mutex != NULL);
 }

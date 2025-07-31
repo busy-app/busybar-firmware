@@ -9,7 +9,7 @@
 #include <furi_hal_crypto.h>
 #include <cli/cli_ansi.h>
 
-#define TAG "Crypto_CSR"
+#define TAG "CryptoCSR"
 
 #define MATTER_X509_EXTENSIONS 1
 

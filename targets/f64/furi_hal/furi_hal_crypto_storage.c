@@ -1,4 +1,3 @@
-
 #include <furi_hal_crypto_storage.h>
 #include <furi_hal_crypto.h>
 #include <sl_si91x_driver.h>
@@ -43,13 +42,13 @@ void furi_hal_crypto_storage_free(FuriHalCryptoKey* key) {
 static FuriHalCryptoStatus furi_hal_crypto_storage_check_key_slot_is_free(
     FuriHalCryptoKey* key,
     uint32_t address_start,
-    uint32_t address_end) {
+    uint32_t address_max) {
     furi_assert(key);
 
     sl_status_t status = SL_STATUS_FAIL;
     FuriHalCryptoStatus ret = FuriHalCryptoStatusFail;
     // Calculate the size for writing the key
-    if((address_start + key->header.size + sizeof(FuriHalCryptoKeyHeader)) > address_end) {
+    if((address_start + key->header.size + sizeof(FuriHalCryptoKeyHeader)) > address_max) {
         FURI_LOG_E(TAG, "Key exceeds storage limits");
         return FuriHalCryptoStatusStorageFull;
     }
@@ -82,20 +81,20 @@ static FuriHalCryptoStatus furi_hal_crypto_storage_check_key_slot_is_free(
 }
 
 static FuriHalCryptoStatus
-    furi_hal_crypto_storage_search_clean_place(FuriHalCryptoKey* key, uint32_t* address) {
+    furi_hal_crypto_storage_find_empty_slot(FuriHalCryptoKey* key, uint32_t* address) {
     furi_assert(key);
 
     FuriHalCryptoStatus ret = FuriHalCryptoStatusFail;
     uint32_t address_start = 0;
-    uint32_t address_end = 0;
+    uint32_t address_max = 0;
     switch(key->partition) {
     case FuriHalCryptoPartitionMain:
         address_start = FURI_HAL_CRYPTO_STORAGE_PARTITION_MAIN_START_ADDRESS;
-        address_end = FURI_HAL_CRYPTO_STORAGE_PARTITION_MAIN_END_ADDRESS;
+        address_max = FURI_HAL_CRYPTO_STORAGE_PARTITION_MAIN_END_ADDRESS;
         break;
     case FuriHalCryptoPartitionUser:
         address_start = FURI_HAL_CRYPTO_STORAGE_PARTITION_USER_START_ADDRESS;
-        address_end = FURI_HAL_CRYPTO_STORAGE_PARTITION_USER_END_ADDRESS;
+        address_max = FURI_HAL_CRYPTO_STORAGE_PARTITION_USER_END_ADDRESS;
         break;
     default:
         FURI_LOG_E(TAG, "Unsupported partition for key storage: %d", key->partition);
@@ -105,7 +104,7 @@ static FuriHalCryptoStatus
     FuriHalCryptoKeyHeader* header_key = malloc(sizeof(FuriHalCryptoKeyHeader));
     sl_status_t status = SL_STATUS_FAIL;
 
-    while((address_start + sizeof(FuriHalCryptoKeyHeader)) <= address_end) {
+    while((address_start + sizeof(FuriHalCryptoKeyHeader)) <= address_max) {
         // Read the header of the key at the current address
         status = sl_si91x_command_to_read_common_flash(
             address_start, sizeof(FuriHalCryptoKeyHeader), (uint8_t*)header_key);
@@ -132,12 +131,12 @@ static FuriHalCryptoStatus
         }
     }
 
-    if((address_start + sizeof(FuriHalCryptoKeyHeader)) > address_end) {
+    if((address_start + sizeof(FuriHalCryptoKeyHeader)) >= address_max) {
         ret = FuriHalCryptoStatusStorageFull;
     }
 
     if(ret == FuriHalCryptoStatusOk) {
-        ret = furi_hal_crypto_storage_check_key_slot_is_free(key, address_start, address_end);
+        ret = furi_hal_crypto_storage_check_key_slot_is_free(key, address_start, address_max);
         if(ret == FuriHalCryptoStatusOk) {
             *address = address_start;
         }
@@ -176,7 +175,7 @@ FuriHalCryptoStatus furi_hal_crypto_storage_write(FuriHalCryptoKey* key) {
     furi_check(key->header.magic_number == FURI_HAL_CRYPTO_STORAGE_MAGIC_NUMBER_KEY);
 
     uint32_t address_start = 0;
-    FuriHalCryptoStatus ret = furi_hal_crypto_storage_search_clean_place(key, &address_start);
+    FuriHalCryptoStatus ret = furi_hal_crypto_storage_find_empty_slot(key, &address_start);
     if(ret == FuriHalCryptoStatusDuplicate) {
         FURI_LOG_E(
             TAG,
@@ -266,9 +265,8 @@ FuriHalCryptoStatus furi_hal_crypto_storage_write(FuriHalCryptoKey* key) {
     ret = furi_hal_crypto_storage_read_address(key_check, address_start);
 
     if(ret == FuriHalCryptoStatusOk) {
-        if(!(memcmp(&key->header, &key_check->header, sizeof(FuriHalCryptoKeyHeader)) &&
-             !(memcmp(key->data, key_check->data, key->length)))) {
-        } else {
+        if((memcmp(&key->header, &key_check->header, sizeof(FuriHalCryptoKeyHeader)) ||
+            (memcmp(key->data, key_check->data, key->length)))) {
             FURI_LOG_E(TAG, "Failed to write key\r\n");
             ret = FuriHalCryptoStatusFailWrite;
         }
@@ -285,16 +283,16 @@ FuriHalCryptoStatus
 
     FuriHalCryptoStatus ret = FuriHalCryptoStatusFail;
     uint32_t address_start = 0;
-    uint32_t address_end = 0;
+    uint32_t address_max = 0;
 
     switch(key->partition) {
     case FuriHalCryptoPartitionMain:
         address_start = FURI_HAL_CRYPTO_STORAGE_PARTITION_MAIN_START_ADDRESS;
-        address_end = FURI_HAL_CRYPTO_STORAGE_PARTITION_MAIN_END_ADDRESS;
+        address_max = FURI_HAL_CRYPTO_STORAGE_PARTITION_MAIN_END_ADDRESS;
         break;
     case FuriHalCryptoPartitionUser:
         address_start = FURI_HAL_CRYPTO_STORAGE_PARTITION_USER_START_ADDRESS;
-        address_end = FURI_HAL_CRYPTO_STORAGE_PARTITION_USER_END_ADDRESS;
+        address_max = FURI_HAL_CRYPTO_STORAGE_PARTITION_USER_END_ADDRESS;
         break;
     default:
         FURI_LOG_E(TAG, "Unsupported partition for key storage: %d", key->partition);
@@ -304,7 +302,7 @@ FuriHalCryptoStatus
     FuriHalCryptoKeyHeader* header_key = malloc(sizeof(FuriHalCryptoKeyHeader));
     sl_status_t status = SL_STATUS_FAIL;
 
-    while((address_start + sizeof(FuriHalCryptoKeyHeader)) <= address_end) {
+    while((address_start + sizeof(FuriHalCryptoKeyHeader)) <= address_max) {
         // Read the header of the key at the current address
         status = sl_si91x_command_to_read_common_flash(
             address_start, sizeof(FuriHalCryptoKeyHeader), (uint8_t*)header_key);
@@ -333,7 +331,7 @@ FuriHalCryptoStatus
         }
     }
 
-    if((address_start + sizeof(FuriHalCryptoKeyHeader)) > address_end) {
+    if((address_start + sizeof(FuriHalCryptoKeyHeader)) >= address_max) {
         ret = FuriHalCryptoStatusNotFound; // No matching key found
     }
 
@@ -362,7 +360,7 @@ FuriHalCryptoStatus furi_hal_crypto_storage_get_next_key(FuriHalCryptoKey* key) 
 
     FuriHalCryptoStatus ret = FuriHalCryptoStatusFail;
     uint32_t address_start = 0;
-    uint32_t address_end = 0;
+    uint32_t address_max = 0;
 
     switch(key->partition) {
     case FuriHalCryptoPartitionMain:
@@ -371,7 +369,7 @@ FuriHalCryptoStatus furi_hal_crypto_storage_get_next_key(FuriHalCryptoKey* key) 
         } else {
             address_start = key->address + sizeof(FuriHalCryptoKeyHeader) + key->header.size;
         }
-        address_end = FURI_HAL_CRYPTO_STORAGE_PARTITION_MAIN_END_ADDRESS;
+        address_max = FURI_HAL_CRYPTO_STORAGE_PARTITION_MAIN_END_ADDRESS;
         break;
     case FuriHalCryptoPartitionUser:
         if(key->address == FURI_HAL_CRYPTO_KEY_ADDRESS_INIT) {
@@ -379,14 +377,14 @@ FuriHalCryptoStatus furi_hal_crypto_storage_get_next_key(FuriHalCryptoKey* key) 
         } else {
             address_start = key->address + sizeof(FuriHalCryptoKeyHeader) + key->header.size;
         }
-        address_end = FURI_HAL_CRYPTO_STORAGE_PARTITION_USER_END_ADDRESS;
+        address_max = FURI_HAL_CRYPTO_STORAGE_PARTITION_USER_END_ADDRESS;
         break;
     default:
         FURI_LOG_E(TAG, "Unsupported partition for key storage: %d", key->partition);
         furi_crash();
     }
 
-    if((address_start + sizeof(FuriHalCryptoKeyHeader)) > address_end) {
+    if((address_start + sizeof(FuriHalCryptoKeyHeader)) >= address_max) {
         ret = FuriHalCryptoStatusStorageFull;
     }
 

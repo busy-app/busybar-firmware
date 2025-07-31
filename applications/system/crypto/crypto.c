@@ -52,36 +52,46 @@ static const char* crypto_command_show_type(FuriHalCryptoKeyType type) {
     switch(type) {
     case FuriHalCryptoKeyTypeAes128:
         return "FuriHalCryptoKeyTypeAes128";
+        break;
     case FuriHalCryptoKeyTypeAes192:
         return "FuriHalCryptoKeyTypeAes192";
+        break;
     case FuriHalCryptoKeyTypeAes256:
         return "FuriHalCryptoKeyTypeAes256";
         break;
     case FuriHalCryptoKeyTypeHmacSha1:
         return "FuriHalCryptoKeyTypeHmacSha1";
+        break;
     case FuriHalCryptoKeyTypeHmacSha256:
         return "FuriHalCryptoKeyTypeHmacSha256";
+        break;
     case FuriHalCryptoKeyTypeHmacSha384:
         return "FuriHalCryptoKeyTypeHmacSha384";
         break;
     case FuriHalCryptoKeyTypeHmacSha512:
         return "FuriHalCryptoKeyTypeHmacSha512";
+        break;
     case FuriHalCryptoKeyTypeEcdsaPriv224:
         return "FuriHalCryptoKeyTypeEcdsaPriv224";
+        break;
     case FuriHalCryptoKeyTypeEcdsaPriv256:
         return "FuriHalCryptoKeyTypeEcdsaPriv256";
         break;
     case FuriHalCryptoKeyTypeEcdsaPub224:
         return "FuriHalCryptoKeyTypeEcdsaPub224";
+        break;
     case FuriHalCryptoKeyTypeEcdsaPub256:
         return "FuriHalCryptoKeyTypeEcdsaPub256";
+        break;
     case FuriHalCryptoKeyTypeMatterDAC:
         return "FuriHalCryptoKeyTypeMatterDAC";
         break;
     case FuriHalCryptoKeyTypeMatterPAI:
         return "FuriHalCryptoKeyTypeMatterPAI";
+        break;
     case FuriHalCryptoKeyTypeMatterCD:
         return "FuriHalCryptoKeyTypeMatterCD";
+        break;
     case FuriHalCryptoKeyTypeMatterVID_PID:
         return "FuriHalCryptoKeyTypeMatterVID_PID";
         break;

@@ -6,7 +6,7 @@
 #include <psa/crypto.h>
 #include <sl_si91x_psa_wrap.h>
 
-#define TAG "Crypto_MbedTLS_EDSA"
+#define TAG "CryptoMbedTLSEDSA"
 
 #define WRAP_INPUT_KEYS     0 // Enable this if the input private key needs to be wrapped before use
 #define IMPORT_WRAPPED_KEYS 1 // Enable this if the input key is wrapped
