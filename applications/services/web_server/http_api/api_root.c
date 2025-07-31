@@ -2,6 +2,8 @@
 #include <version.h>
 #include <json_helper.h>
 
+#define TAG "HttpApi"
+
 #define ACCESS_CFG_FILE APP_DATA_PATH("access.json")
 
 typedef struct {
@@ -11,7 +13,7 @@ typedef struct {
         ApiAccessEnabled,
         ApiAccessKeyRequired,
     } access_mode;
-    FuriString* acces_key;
+    FuriString* access_key;
 } ApiRootCtx;
 
 bool http_api_version_callback(
@@ -47,15 +49,15 @@ bool http_api_version_callback(
 static bool http_api_access_get_callback(ApiRootCtx* context, struct mg_connection* conn) {
     FuriString* json_str = furi_string_alloc();
 
-    char* acces_mode_str = "disabled";
+    char* access_mode_str = "disabled";
     if(context->access_mode == ApiAccessEnabled) {
-        acces_mode_str = "enabled";
+        access_mode_str = "enabled";
     } else if(context->access_mode == ApiAccessKeyRequired) {
-        acces_mode_str = "key";
+        access_mode_str = "key";
     }
-    furi_string_cat_printf(json_str, "\"mode\":\"%s\",", acces_mode_str);
+    furi_string_cat_printf(json_str, "\"mode\":\"%s\",", access_mode_str);
 
-    size_t key_len = furi_string_size(context->acces_key);
+    size_t key_len = furi_string_size(context->access_key);
     bool key_valid = (key_len > 4) && (key_len < 10);
     furi_string_cat_printf(json_str, "\"key_valid\":%s", key_valid ? "true" : "false");
 
@@ -98,9 +100,9 @@ static bool http_api_access_set_callback(
             if((key_len < 4) || (key_len > 10)) {
                 break;
             }
-            furi_string_set(context->acces_key, access_key);
+            furi_string_set(context->access_key, access_key);
             json_config_write_single_str(
-                ACCESS_CFG_FILE, "access_key", furi_string_get_cstr(context->acces_key));
+                ACCESS_CFG_FILE, "access_key", furi_string_get_cstr(context->access_key));
         }
         context->access_mode = access_mode;
         json_config_write_single_int(ACCESS_CFG_FILE, "access_mode", context->access_mode);
@@ -137,10 +139,10 @@ static bool http_api_is_access_allowed(
         if(context->access_mode == ApiAccessEnabled) {
             return true;
         } else if(context->access_mode == ApiAccessKeyRequired) {
-            furi_assert(context->acces_key);
+            furi_assert(context->access_key);
             struct mg_str* header_key = mg_http_get_header(msg, "Bearer");
             if(header_key != NULL) {
-                struct mg_str access_key = mg_str(furi_string_get_cstr(context->acces_key));
+                struct mg_str access_key = mg_str(furi_string_get_cstr(context->access_key));
                 if(mg_strcmp(*header_key, access_key) == 0) {
                     return true;
                 }
@@ -244,7 +246,7 @@ void* http_api_root_alloc(void) {
         http_handler_add(context->handlers, &handlers_api_root[i - 1]);
     }
 
-    context->acces_key = furi_string_alloc();
+    context->access_key = furi_string_alloc();
 
     JsonConfig* cfg = json_config_alloc();
     JsonConfigStatus status = json_config_open(cfg, ACCESS_CFG_FILE);
@@ -253,8 +255,8 @@ void* http_api_root_alloc(void) {
         int access_mode_default = ApiAccessDisabled;
         json_config_read_int(cfg, "access_mode", &access_mode, &access_mode_default);
         context->access_mode = access_mode;
-        status = json_config_read_str(cfg, "access_key", context->acces_key, NULL);
-        size_t key_len = furi_string_size(context->acces_key);
+        status = json_config_read_str(cfg, "access_key", context->access_key, NULL);
+        size_t key_len = furi_string_size(context->access_key);
         if((status == JsonConfigStatusMissing) || (key_len < 4) || (key_len > 10)) {
             context->access_mode = ApiAccessDisabled;
         }
@@ -270,7 +272,7 @@ void http_api_root_free(void* ctx) {
     furi_assert(ctx);
     ApiRootCtx* context = ctx;
     HttpHandlersList_clear(context->handlers);
-    furi_string_free(context->acces_key);
+    furi_string_free(context->access_key);
     free(context);
 }
 
@@ -280,10 +282,9 @@ bool http_api_root_callback(
     struct mg_http_message* msg,
     void* ctx) {
     ApiRootCtx* context = ctx;
-    FURI_LOG_I(
-        "HTTP API", "%.*s %.*s", msg->method.len, msg->method.buf, msg->uri.len, msg->uri.buf);
+    FURI_LOG_D(TAG, "%.*s %.*s", msg->method.len, msg->method.buf, msg->uri.len, msg->uri.buf);
     if(msg->query.len > 0) {
-        FURI_LOG_I("HTTP API", "Query %.*s", msg->query.len, msg->query.buf);
+        FURI_LOG_D(TAG, "Query %.*s", msg->query.len, msg->query.buf);
     }
     if(http_api_is_access_allowed(context, conn, msg)) {
         if(furi_string_equal(path, "access")) {
