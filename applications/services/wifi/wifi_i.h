@@ -59,6 +59,8 @@ struct Wifi {
 
 void wifi_net_init(Wifi* instance);
 
+void wifi_net_set_hw_address(Wifi* instance, const WifiHardwareAddress* addr);
+
 void wifi_net_up(Wifi* instance);
 
 void wifi_net_down(Wifi* instance);

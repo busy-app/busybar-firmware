@@ -41,5 +41,6 @@ typedef struct {
     union {
         WifiScanResults scan_results;
         WifiInfo info;
+        WifiHardwareAddress hw_address;
     };
 } WifiResponse;

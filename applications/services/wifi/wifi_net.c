@@ -74,19 +74,11 @@ static void wifi_add_netif_callback(void* arg) {
     furi_assert(arg);
     Wifi* instance = arg;
 
+    const ip_addr_t ip = {0};
+    const ip_addr_t netmask = {0};
+    const ip4_addr_t gateway = {0};
+
     struct netif* netif = &instance->netif;
-
-    // TODO: get hwaddr dynamically
-    static const uint8_t hwaddr[ETH_HWADDR_LEN] = {0x8C, 0x8B, 0x48, 0x33, 0xE0, 0x44};
-
-    netif->hwaddr_len = sizeof(netif->hwaddr);
-    memcpy(netif->hwaddr, hwaddr, sizeof(netif->hwaddr));
-
-    ip_addr_t ip, netmask, gateway;
-
-    ip_addr_set_zero_ip4(&ip);
-    ip_addr_set_zero_ip4(&netmask);
-    ip_addr_set_zero_ip4(&gateway);
 
     netif_add(netif, &ip, &netmask, &gateway, instance, wifi_init_netif_callback, tcpip_input);
     netif_set_default(netif);
@@ -141,6 +133,13 @@ void wifi_net_init(Wifi* instance) {
 
     intercom_set_rx_callback(
         instance->intercom, IntercomChannelWifiData, wifi_net_intercom_rx_callback, instance);
+}
+
+void wifi_net_set_hw_address(Wifi* instance, const WifiHardwareAddress* addr) {
+    struct netif* netif = &instance->netif;
+
+    netif->hwaddr_len = ETH_HWADDR_LEN;
+    memcpy(netif->hwaddr, addr, ETH_HWADDR_LEN);
 }
 
 void wifi_net_up(Wifi* instance) {

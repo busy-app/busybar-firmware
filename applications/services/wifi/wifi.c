@@ -76,7 +76,7 @@ static void wifi_process_response(Wifi* instance) {
 
     if(message == NULL) {
         // BUG: Figure out where the rogue responses come from
-        FURI_LOG_W(TAG, "BUG: Rogue response");
+        FURI_LOG_W(TAG, "BUG: Rogue response of type %d", instance->response.type);
         return;
     }
 
@@ -88,9 +88,13 @@ static void wifi_process_response(Wifi* instance) {
 
     if(status == WifiStatusOk) {
         if(request_type == WifiRequestTypeInit) {
+            wifi_net_set_hw_address(instance, &response->hw_address);
+
             wifi_update_enabled(instance, true);
 
         } else if(request_type == WifiRequestTypeDeinit) {
+            wifi_net_down(instance);
+
             wifi_update_enabled(instance, false);
 
         } else if(request_type == WifiRequestTypeScan) {

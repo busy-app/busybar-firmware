@@ -64,23 +64,13 @@ static void wifi_init_request_handler(Wifi* instance) {
             break;
         }
 
-        sl_mac_address_t mac_addr;
-        status = sl_wifi_get_mac_address(SL_WIFI_CLIENT_INTERFACE, &mac_addr);
+        WifiHardwareAddress* hw_address = &instance->response.hw_address;
+        status = sl_wifi_get_mac_address(SL_WIFI_CLIENT_INTERFACE, (sl_mac_address_t*)hw_address);
 
         if(status != SL_STATUS_OK) {
             FURI_LOG_E(TAG, "Failed to get MAC address: %lX", status);
             break;
         }
-
-        FURI_LOG_I(
-            TAG,
-            "MAC address: %2X:%2X:%2X:%2X:%2X:%2X",
-            mac_addr.octet[0],
-            mac_addr.octet[1],
-            mac_addr.octet[2],
-            mac_addr.octet[3],
-            mac_addr.octet[4],
-            mac_addr.octet[5]);
 
         wifi_set_state(instance, WifiStateDown);
 
