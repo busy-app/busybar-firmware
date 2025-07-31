@@ -41,7 +41,7 @@
 #define MG_REPLY_BAD_REQUEST(conn)     MG_REPLY_ERROR(conn, 400, "Bad Request")
 #define MG_REPLY_NOT_FOUND(conn)       MG_REPLY_ERROR(conn, 404, "Not Found")
 #define MG_REPLY_FORBIDDEN(conn)       MG_REPLY_ERROR(conn, 403, "Forbidden")
-#define MG_REPLY_INVALID_VERSION(conn) MG_REPLY_ERROR(conn, 405, "Invalid API version")
+#define MG_REPLY_INVALID_VERSION(conn) MG_REPLY_ERROR(conn, 405, "Incompatible API version")
 
 #define MG_REPLY_METHOD_NOT_ALLOWED(conn, ...) \
     MG_REPLY_ERROR(conn, 405, M_IF_EMPTY(__VA_ARGS__)("Method Not Allowed", (__VA_ARGS__)))
