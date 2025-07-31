@@ -6,6 +6,9 @@ info:
   contact:
     name: tbd
 
+security:
+  - ApiKeyAuth: []
+
 paths:
   /api/version:
     get:
@@ -27,7 +30,8 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Error"
-  /api/v0/access:
+
+  /api/access:
     get:
       tags:
         - Settings
@@ -925,6 +929,12 @@ paths:
                 $ref: "#/components/schemas/Error"
 
 components:
+  securitySchemes:
+    ApiKeyAuth:
+      type: apiKey
+      in: header
+      name: Bearer
+
   schemas:
     SuccessResponse:
       type: object
