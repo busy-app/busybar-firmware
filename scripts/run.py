@@ -313,9 +313,14 @@ def run_update_via_http(args):
 
     upd_bundle_tar = UPDATE_BUNDLE_TAR
     assert ensure_update_tar(upd_bundle_tar) == True
-    
-    cmd = ["curl", "-vvv", f"http://{args.device_ip}/api/v0/update",
-           "--data-binary", f"@{upd_bundle_tar}"]
+
+    cmd = [
+        "curl",
+        "-vvv",
+        f"http://{args.device_ip}/api/update",
+        "--data-binary",
+        f"@{upd_bundle_tar}",
+    ]
 
     wait_for_device(args.device_ip, verbose=args.verbose)
 
@@ -366,9 +371,9 @@ def run_resources_upload(args):
     ret = subprocess_exec(cmd, verbose=args.verbose)
     if ret != 0:
         print(f"Resources upload failed with return code: {ret}")
-    
+
     return ret
-    
+
 
 def run_flash_u5_dfu(args):
     if args.device_ip == "ref" or args.device_ip == "r":
@@ -422,7 +427,7 @@ def run_flash_si_uart(args):
     ]
 
     return subprocess_exec(cmd, verbose=args.verbose)
-    
+
 
 def run_flash_si_nwp_uart(args):
     if args.serial_port is None:

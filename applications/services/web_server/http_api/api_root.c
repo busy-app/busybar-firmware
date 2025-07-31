@@ -12,18 +12,9 @@ bool http_api_version_callback(
     if(!IS_HTTP_ENDPOINT(path)) return false;
 
     FuriString* ver_str = furi_string_alloc();
-    const Version* firmware_version = version_get();
-    furi_string_printf(
-        ver_str,
-        "\"branch\":\"%s\",\"version\":\"%s\",\"build_date\":\"%s\",",
-        version_get_gitbranch(firmware_version),
-        version_get_version(firmware_version),
-        version_get_builddate(firmware_version));
-    furi_string_cat_printf(
-        ver_str,
-        "\"commit_hash\":\"%s%s\"",
-        version_get_githash(firmware_version),
-        version_get_dirty_flag(firmware_version) ? "-dirty" : "");
+    const uint8_t api_ver[] = API_VERSION;
+
+    furi_string_printf(ver_str, "\"api_semver\":\"%u.%u.%u\"", api_ver[0], api_ver[1], api_ver[2]);
 
     MG_REPLY_OK_BODY(conn, "{%s}\n", furi_string_get_cstr(ver_str));
     furi_string_free(ver_str);
@@ -147,6 +138,27 @@ bool http_api_root_callback(
         "HTTP API", "%.*s %.*s", msg->method.len, msg->method.buf, msg->uri.len, msg->uri.buf);
     if(msg->query.len > 0) {
         FURI_LOG_I("HTTP API", "Query %.*s", msg->query.len, msg->query.buf);
+    }
+    struct mg_str* header_semver = mg_http_get_header(msg, "X-API-Sem-Ver");
+    if(header_semver) {
+        uint8_t major_ver;
+        const uint8_t api_ver[] = API_VERSION;
+
+        struct mg_str major_ver_str;
+        if(!mg_span(*header_semver, &major_ver_str, NULL, '.')) {
+            MG_REPLY_BAD_REQUEST(conn);
+            return true;
+        }
+
+        if(!mg_str_to_num(major_ver_str, 10, &major_ver, sizeof(major_ver))) {
+            MG_REPLY_BAD_REQUEST(conn);
+            return true;
+        }
+
+        if(major_ver != api_ver[0]) {
+            MG_REPLY_INVALID_VERSION(conn);
+            return true;
+        }
     }
     return http_handle_request(path, context->handlers, conn, msg);
 }
