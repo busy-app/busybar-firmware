@@ -352,14 +352,6 @@ static void sl_updater_rx_buffer_callback(FuriEventLoopObject* object, void* con
     sl_updater_handle_rx(instance);
 }
 
-#ifdef SRV_INTERCOM
-static void sl_updater_intercom_error_callback(IntercomError error, void* context) {
-    UNUSED(error);
-    UNUSED(context);
-    // Empty callback
-}
-#endif
-
 static void sl_update_idle_timer_callback(void* context) {
     SlUpdater* instance = context;
     if(instance->bootloader_state == Si917BootloaderStateWaitInstall) {
@@ -456,7 +448,7 @@ static bool
 #ifdef SRV_INTERCOM
     // Prevent crashes
     instance->intercom = furi_record_open(RECORD_INTERCOM);
-    intercom_set_error_callback(instance->intercom, sl_updater_intercom_error_callback, NULL);
+    intercom_error_handling_disable(instance->intercom);
 #else
     // UNUSED(sl_updater_intercom_error_callback);
 #endif
@@ -481,7 +473,7 @@ static bool
 
 #ifdef SRV_INTERCOM
     // TODO: The ability to reset intercom
-    intercom_set_error_callback(instance->intercom, NULL, NULL);
+    intercom_error_handling_enable(instance->intercom);
     furi_record_close(RECORD_INTERCOM);
 #endif
 
