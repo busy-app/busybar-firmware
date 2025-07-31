@@ -15,8 +15,6 @@
 #define LWIP_FRAME_ALIGNMENT (60U)
 #define ETHERTYPE_IPV6       (0xDD86)
 
-#define MAX_RX_DATA_LEN (1019UL)
-
 static Intercom* intercom;
 
 sl_status_t sl_net_wifi_ap_init(
@@ -119,15 +117,11 @@ sl_status_t
 
     if(ethertype == ETHERTYPE_IPV6) {
         // TODO: forward to matter
-
     } else {
         const size_t len = MAX(pkt->length, LWIP_FRAME_ALIGNMENT);
-        // Drop oversize packets that wouldn't fit into a single Intercom transaction
-        if(len <= MAX_RX_DATA_LEN) {
-            const size_t tx_size =
-                intercom_tx(intercom, IntercomChannelWifiData, pkt->data, len, FuriWaitForever);
-            furi_check(tx_size == len);
-        }
+        const size_t tx_size =
+            intercom_tx(intercom, IntercomChannelWifiData, pkt->data, len, FuriWaitForever);
+        furi_check(tx_size == len);
     }
 
     return SL_STATUS_OK;
