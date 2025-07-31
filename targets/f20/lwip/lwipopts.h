@@ -155,7 +155,7 @@
 #define LWIP_NETIF_LINK_CALLBACK            0
 #define LWIP_NETIF_REMOVE_CALLBACK          0
 #define LWIP_NETIF_HWADDRHINT               0
-#define LWIP_NETIF_TX_SINGLE_PBUF           0
+#define LWIP_NETIF_TX_SINGLE_PBUF           1
 #define LWIP_NUM_NETIF_CLIENT_DATA          10
 #define LWIP_HAVE_LOOPIF                    (LWIP_NETIF_LOOPBACK && !LWIP_SINGLE_NETIF)
 #define LWIP_LOOPIF_MULTICAST               0
