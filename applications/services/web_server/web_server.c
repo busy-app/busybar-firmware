@@ -16,7 +16,7 @@ static WebServer srv = {0};
 
 static const HttpHandler handlers_root[] = {
     {
-        .uri = "/api/v0",
+        .uri = "/api",
         .method = "*",
         .type = HttpHandlerCustom,
         .on_request = http_api_root_callback,

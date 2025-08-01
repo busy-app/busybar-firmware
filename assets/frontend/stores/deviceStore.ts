@@ -21,7 +21,7 @@ export const useDeviceStore = defineStore('device', () => {
   });
 
   async function updateDeviceVersion (throwError: boolean = false) {
-    const deviceVersion = await $fetch<deviceVersion>(`${barUrl}/api/v0/version`, { timeout: 3000 })
+    const deviceVersion = await $fetch<deviceVersion>(`${barUrl}/api/version`, { timeout: 3000 })
       .then(response => {
         if (!response || typeof response !== 'object') {
           throw new Error('Empty response');
@@ -58,7 +58,7 @@ export const useDeviceStore = defineStore('device', () => {
 
   async function uploadFirmware () {
     const xhr = new XMLHttpRequest();
-    xhr.open('POST', `${barUrl}/api/v0/update?name=${update.value.firmwareBundleName}`);
+    xhr.open('POST', `${barUrl}/api/update?name=${update.value.firmwareBundleName}`);
     xhr.setRequestHeader('Content-Type', 'application/octet-stream');
 
     xhr.upload.onprogress = event => {
