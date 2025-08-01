@@ -60,7 +60,16 @@ static void power_on_interrupt(FuriEventLoopObject* object, void* context) {
         if(status.vbus_present) {
             bq25798_set_input_current_limit(POWER_I2C, power->input_current_limit);
         }
-        power->state.usb_connected = status.vbus_present;
+
+        bool is_usb_connected = !!status.vbus_present;
+        bool was_usb_connected = power->state.usb_connected;
+
+        if(is_usb_connected != was_usb_connected) {
+            PowerEvent pub_event = {.type = PowerEventUsbConnectionStateUpdate};
+            furi_pubsub_publish(power->event_pubsub, &pub_event);
+        }
+
+        power->state.usb_connected = is_usb_connected;
     }
 
     // ADC can be disabled by internal BQ25798 mechanism
@@ -387,6 +396,28 @@ static void power_update_info(Power* power) {
             dsp_low_pass(adc_val.bat_v, power->info.voltage_battery, 0.90f);
     }
 
+    bool is_charging = power_charger_is_charging(status.chg_stat);
+    bool was_charging = power->info.is_charging;
+
+    power->info.is_charging = is_charging;
+
+    if(is_charging != was_charging) {
+        PowerEvent pub_event = {.type = PowerEventChargingStateUpdate};
+        furi_pubsub_publish(power->event_pubsub, &pub_event);
+    }
+
+    uint8_t charge = power_get_battery_charge(adc_val.bat_v, adc_val.bat_i, is_charging);
+    uint8_t previous_charge = power->info.charge;
+
+    power->info.charge = charge;
+
+    if(charge != previous_charge) {
+        PowerEvent pub_event = {.type = PowerEventChargeAmountUpdate};
+        furi_pubsub_publish(power->event_pubsub, &pub_event);
+    }
+
+    power->info.is_full_charged = power_charger_is_charged(status.chg_stat);
+
     power->info.current_battery = adc_val.bat_i;
     power->info.current_usb = adc_val.usb_i;
     power->info.voltage_usb = adc_val.usb_v;
@@ -432,6 +463,8 @@ static Power* power_alloc(void) {
     power->charger_current_limit = POWER_CHARGE_CURRENT_MAX;
     power->charger_enabled = true;
     power->state.battery_ready = false;
+    power->info.is_charging = false;
+    power->info.charge = 0;
 
     furi_event_loop_subscribe_message_queue(
         power->event_loop,
@@ -474,6 +507,7 @@ void power_run(Power* power) {
 
     Bq25798ChargerStatus status = {0};
     bq25798_get_charger_status(POWER_I2C, &status);
+    power->state.usb_connected = !!status.vbus_present;
     if(status.vbat_present_stat) {
         power->state.battery_ready = true;
         power_pubsub_publish(power, PowerEventBatteryPresent);

@@ -63,7 +63,7 @@ if fwenv.get("IS_BASE_FIRMWARE", False):
     )
     resources_dist.append(swagger_files)
 
-    web_frontend = fw_assets_env.Dir("#assets/frontend/.output/public/").rdir()
+    web_frontend = fw_assets_env.Dir("#assets/frontend-build/public/").rdir()
 
     # Resources & manifest for SD card
     resources_env = fwenv.Clone(tools=["fbt_resources"])

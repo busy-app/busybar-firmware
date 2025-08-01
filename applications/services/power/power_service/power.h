@@ -33,6 +33,9 @@ typedef enum {
     PowerEventBatteryCriticalStop,
     PowerEventBatteryNotPresent,
     PowerEventBatteryPresent,
+    PowerEventChargingStateUpdate,
+    PowerEventChargeAmountUpdate,
+    PowerEventUsbConnectionStateUpdate,
 } PowerEventType;
 
 typedef struct {

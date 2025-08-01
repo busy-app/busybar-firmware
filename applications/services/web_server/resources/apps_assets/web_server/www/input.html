@@ -51,7 +51,7 @@
         }
         // Use wss:// if on https, ws:// otherwise
         const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-        const wsUrl = `${protocol}//${window.location.host}/api/v0/input`;
+        const wsUrl = `${protocol}//${window.location.host}/api/input`;
         console.log(`WebSocket: Connecting to ${wsUrl}`);
         ws = new WebSocket(wsUrl);
         if (!ws) {
