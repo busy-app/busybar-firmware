@@ -46,15 +46,28 @@ static void wifi_enable_netif_callback(void* arg) {
     furi_assert(arg);
     Wifi* instance = arg;
 
+    const WifiIpConfig* ip_config = &instance->settings.ip_config;
+    const WifiIpManagement mgmt = ip_config->mgmt;
+
     struct netif* netif = &instance->netif;
+
+    if(mgmt == WifiIpManagementStatic) {
+        const WifiIpv4Settings* ip4_settings = &ip_config->ip4;
+
+        netif->ip_addr.addr = ip4_settings->address.value;
+        netif->netmask.addr = ip4_settings->mask.value;
+        netif->gw.addr = ip4_settings->gateway.value;
+    }
 
     netif_set_link_up(netif);
     netif_set_up(netif);
 
-    const err_t err = dhcp_start(netif);
+    if(mgmt == WifiIpManagementDynamic) {
+        const err_t err = dhcp_start(netif);
 
-    if(err != ERR_OK) {
-        FURI_LOG_E(TAG, "DHCP error: %d", err);
+        if(err != ERR_OK) {
+            FURI_LOG_E(TAG, "DHCP error: %d", err);
+        }
     }
 }
 
@@ -144,16 +157,30 @@ void wifi_net_up(Wifi* instance) {
     tcpip_callback(wifi_enable_netif_callback, instance);
 
     struct netif* netif = &instance->netif;
+    const WifiIpConfig* ip_config = &instance->settings.ip_config;
 
-    while(!dhcp_supplied_address(netif)) {
-        FURI_LOG_I(TAG, "Waiting for IP address...");
-        furi_delay_ms(1000);
+    if(ip_config->mgmt == WifiIpManagementDynamic) {
+        while(!dhcp_supplied_address(netif)) {
+            FURI_LOG_D(TAG, "Waiting for IP address...");
+            furi_delay_ms(1000);
+        }
     }
-
-    const uint8_t* addr = (void*)&netif->ip_addr;
-    FURI_LOG_I(TAG, "IP address: %hhu.%hhu.%hhu.%hhu", addr[0], addr[1], addr[2], addr[3]);
 }
 
 void wifi_net_down(Wifi* instance) {
     tcpip_callback(wifi_disable_netif_callback, instance);
+}
+
+void wifi_net_get_ip_config(Wifi* instance, WifiIpConfig* ip_config) {
+    const WifiIpConfig* cfg = &instance->settings.ip_config;
+
+    ip_config->type = cfg->type;
+    ip_config->mgmt = cfg->mgmt;
+
+    WifiIpv4Settings* settings = &ip_config->ip4;
+    const struct netif* netif = &instance->netif;
+
+    settings->address.value = netif->ip_addr.addr;
+    settings->mask.value = netif->netmask.addr;
+    settings->gateway.value = netif->gw.addr;
 }

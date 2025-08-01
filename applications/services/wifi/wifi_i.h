@@ -64,3 +64,5 @@ void wifi_net_set_hw_address(Wifi* instance, const WifiHardwareAddress* addr);
 void wifi_net_up(Wifi* instance);
 
 void wifi_net_down(Wifi* instance);
+
+void wifi_net_get_ip_config(Wifi* instance, WifiIpConfig* ip_config);

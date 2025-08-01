@@ -109,17 +109,20 @@ static void wifi_process_response(Wifi* instance) {
 
         } else if(request_type == WifiRequestTypeConnect) {
             const WifiConnectMessage* connect_message = &message->connect_message;
+            const WifiIpConfig* ip_config = connect_message->ip_config;
+
+            wifi_update_connection_params(instance, connect_message->credentials, ip_config);
 
             wifi_net_up(instance);
-
-            wifi_update_connection_params(
-                instance, connect_message->credentials, connect_message->ip_config);
 
         } else if(request_type == WifiRequestTypeDisconnect) {
             wifi_net_down(instance);
 
         } else if(request_type == WifiRequestTypeGetInfo) {
-            *message->get_info_message.info = response->info;
+            WifiInfo* info = message->get_info_message.info;
+            *info = response->info;
+
+            wifi_net_get_ip_config(instance, &info->ip_config);
         }
     }
 
