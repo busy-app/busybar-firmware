@@ -528,14 +528,6 @@ void crypto_command_list(PipeSide* pipe, FuriString* args, void* context) {
             printf(CLI_STATUS_ERROR);
             return;
         }
-        if(parse_err) {
-            cli_print_usage(
-                "crypto list",
-                "<partition> List keys from NWP flash.\r\n",
-                furi_string_get_cstr(args));
-            printf(CLI_STATUS_ERROR);
-            return;
-        }
     } else {
         cli_print_usage(
             "crypto list",
