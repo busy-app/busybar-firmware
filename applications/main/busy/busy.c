@@ -115,8 +115,6 @@ static BusyApp* busy_alloc(void) {
         busy_event_queue_callback,
         instance);
 
-    // TODO: Implement audio settings
-    audio_set_volume(instance->audio, .5F);
     busy_set_status_lights(instance, BusyStatusLightsTypeOff);
 
     scene_manager_next_scene(instance->scene_manager, BusyAppSceneIdStart);
