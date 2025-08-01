@@ -126,6 +126,7 @@ static bool http_api_is_access_allowed(
     struct mg_connection* conn,
     struct mg_http_message* msg) {
     int is_ip_allowed = mg_check_ip_acl(mg_str("+0.0.0.0/0,-127.0.0.1"), &conn->rem);
+    is_ip_allowed = true; // FIXME: change IP rule for wifi connection
     if(is_ip_allowed == 0) {
         if(context->access_mode == ApiAccessEnabled) {
             return true;

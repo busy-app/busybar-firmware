@@ -66,6 +66,7 @@
         "driver",
         "st_abomination",
         "lwip",
+        "mongoose",
         "usb"
     ],
     "env_setup_scripts": [
