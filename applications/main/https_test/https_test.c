@@ -5,7 +5,7 @@
 
 #define TAG "HttpsTest"
 
-#define HTTP_URL "https://example.com"
+#define HTTP_URL "https://www.example.com/"
 
 typedef struct {
     UsbNetwork* usbnet;
