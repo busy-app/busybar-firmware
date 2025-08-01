@@ -76,15 +76,12 @@ sl_status_t sl_net_wifi_client_deinit(sl_net_interface_t interface) {
 
 sl_status_t sl_net_wifi_client_up(sl_net_interface_t interface, sl_net_profile_id_t profile_id) {
     UNUSED(interface);
+    // TODO: What is SL_NET_AUTO_JOIN for?
+    furi_check(profile_id != SL_NET_AUTO_JOIN);
 
     sl_status_t status;
 
     do {
-        if(profile_id == SL_NET_AUTO_JOIN) {
-            furi_crash("SL_NET_AUTO_JOIN"); // TODO: What is this for?
-            break;
-        }
-
         sl_net_wifi_client_profile_t profile = {0};
 
         status = sl_net_get_profile(SL_NET_WIFI_CLIENT_INTERFACE, profile_id, &profile);
@@ -94,9 +91,6 @@ sl_status_t sl_net_wifi_client_up(sl_net_interface_t interface, sl_net_profile_i
 
         status =
             sl_wifi_connect(SL_WIFI_CLIENT_INTERFACE, &profile.config, SLI_WIFI_CONNECT_TIMEOUT);
-        if(status != SL_STATUS_OK) {
-            break;
-        }
 
     } while(false);
 
