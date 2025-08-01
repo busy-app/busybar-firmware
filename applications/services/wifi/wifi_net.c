@@ -63,11 +63,7 @@ static void wifi_enable_netif_callback(void* arg) {
     netif_set_up(netif);
 
     if(mgmt == WifiIpManagementDynamic) {
-        const err_t err = dhcp_start(netif);
-
-        if(err != ERR_OK) {
-            FURI_LOG_E(TAG, "DHCP error: %d", err);
-        }
+        furi_check(dhcp_start(netif) == ERR_OK);
     }
 }
 
@@ -161,7 +157,7 @@ void wifi_net_up(Wifi* instance) {
 
     if(ip_config->mgmt == WifiIpManagementDynamic) {
         while(!dhcp_supplied_address(netif)) {
-            FURI_LOG_D(TAG, "Waiting for IP address...");
+            FURI_LOG_D(TAG, "Waiting for IP configuration...");
             furi_delay_ms(1000);
         }
     }
