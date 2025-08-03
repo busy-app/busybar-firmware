@@ -33,13 +33,15 @@ static void input_websocket_on_close(struct mg_connection* conn) {
     ConnectionContext* conn_ctx = (void*)conn->data;
 
     // Release all held keys
+    Input* input = furi_record_open(RECORD_INPUT);
     InputKeyState* keys_context = conn_ctx->context;
     for(size_t i = 0; i < COUNT_OF(input_keys); i++) {
         if(keys_context->state[i]) {
-            input_key_release(keys_context->key[i]);
+            input_key_release(input, keys_context->key[i]);
             keys_context->state[i] = false;
         }
     }
+    furi_record_close(RECORD_INPUT);
 
     // Clear connection callbacks
     conn_ctx->ws.on_open = NULL;
@@ -64,6 +66,8 @@ static void input_websocket_on_message(struct mg_connection* conn, struct mg_ws_
         return;
     }
 
+    Input* input = furi_record_open(RECORD_INPUT);
+
     for(size_t i = 0; i < COUNT_OF(input_keys); i++) {
         char key_name_token[KEY_NAME_LEN_MAX + 2];
         snprintf(key_name_token, sizeof(key_name_token), "$.%s", input_keys[i].name);
@@ -72,15 +76,17 @@ static void input_websocket_on_message(struct mg_connection* conn, struct mg_ws_
         if(key_val == 0) {
             if(keys_context->state[i] == true) {
                 keys_context->state[i] = false;
-                input_key_release(input_keys[i].key);
+                input_key_release(input, input_keys[i].key);
             }
         } else if(key_val == 1) {
             if(keys_context->state[i] == false) {
                 keys_context->state[i] = true;
-                input_key_press(input_keys[i].key);
+                input_key_press(input, input_keys[i].key);
             }
         }
     }
+
+    furi_record_close(RECORD_INPUT);
 }
 
 bool http_api_input_callback(
@@ -92,10 +98,11 @@ bool http_api_input_callback(
 
     if(!IS_HTTP_ENDPOINT(path)) return false;
 
+    ConnectionContext* conn_ctx = (void*)conn->data;
+
     if(mg_match(msg->method, mg_str("GET"), NULL) &&
        (mg_http_get_header(msg, "Sec-WebSocket-Key") != NULL)) {
         // Upgrade to WebSocket
-        ConnectionContext* conn_ctx = (void*)conn->data;
         conn_ctx->ws.on_message = input_websocket_on_message;
         conn_ctx->on_close = input_websocket_on_close;
         conn_ctx->context = ctx;
@@ -111,13 +118,15 @@ bool http_api_input_callback(
             int var_len = mg_http_get_var(&msg->query, "key", key_name, sizeof(key_name));
             if(var_len <= 0) break;
 
+            Input* input = furi_record_open(RECORD_INPUT);
             for(size_t i = 0; i < COUNT_OF(input_keys); i++) {
                 if(strncmp(input_keys[i].name, key_name, var_len) == 0) {
-                    input_key_toggle(input_keys[i].key);
+                    input_key_toggle(input, input_keys[i].key);
                     success = true;
                     break;
                 }
             }
+            furi_record_close(RECORD_INPUT);
         } while(0);
         if(success) {
             MG_REPLY_OK(conn);
