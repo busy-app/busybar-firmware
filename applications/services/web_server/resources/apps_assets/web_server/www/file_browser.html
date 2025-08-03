@@ -86,7 +86,7 @@
             fileList.innerHTML = '<li>Loading...</li>';
             updateBreadcrumb();
             try {
-                const resp = await fetch(`/api/v0/storage/list?path=${encodeURIComponent(currentPath)}`);
+                const resp = await fetch(`/api/storage/list?path=${encodeURIComponent(currentPath)}`);
                 if (!resp.ok) throw new Error('Failed to list files');
                 const data = await resp.json();
                 fileList.innerHTML = '';
@@ -156,7 +156,7 @@
             showStatus('Starting download for ' + filename + '...', 'success');
             const path = (currentPath + '/' + filename).replace(/\/+/g, '/');
             try {
-                const resp = await fetch(`/api/v0/storage/read?path=${encodeURIComponent(path)}`);
+                const resp = await fetch(`/api/storage/read?path=${encodeURIComponent(path)}`);
                 if (!resp.ok) throw new Error('Download failed');
                 const blob = await resp.blob();
                 const url = window.URL.createObjectURL(blob);
@@ -203,7 +203,7 @@
         async function deleteFile(filename) {
             const path = (currentPath + '/' + filename).replace(/\/+/g, '/');
             try {
-                const resp = await fetch(`/api/v0/storage/remove?path=${encodeURIComponent(path)}`, { method: 'DELETE' });
+                const resp = await fetch(`/api/storage/remove?path=${encodeURIComponent(path)}`, { method: 'DELETE' });
                 if (!resp.ok) {
                     const err = await resp.json().catch(() => ({}));
                     throw new Error(err.error || 'Delete failed');
@@ -237,7 +237,7 @@
             const path = (currentPath + '/' + file.name).replace(/\/+/g, '/');
             showStatus('Uploading ' + file.name + '...', 'success');
             try {
-                const resp = await fetch(`/api/v0/storage/write?path=${encodeURIComponent(path)}`, {
+                const resp = await fetch(`/api/storage/write?path=${encodeURIComponent(path)}`, {
                     method: 'POST',
                     body: file,
                     headers: { 'Content-Type': 'application/octet-stream' }

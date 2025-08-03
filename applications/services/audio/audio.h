@@ -6,6 +6,8 @@
  */
 #pragma once
 
+#include <furi.h>
+
 #include <stdint.h>
 #include <stdbool.h>
 
@@ -18,6 +20,16 @@ extern "C" {
 
 /** Audio opaque type declaration. */
 typedef struct Audio Audio;
+
+typedef enum {
+    AudioEventVolumeUpdate,
+} AudioEventType;
+
+typedef struct {
+    AudioEventType type;
+} AudioEvent;
+
+FuriPubSub* audio_get_pubsub(Audio* audio);
 
 /**
  * @brief Play an audio file from storage.

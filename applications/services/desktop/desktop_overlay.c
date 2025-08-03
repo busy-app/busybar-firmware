@@ -4,19 +4,14 @@
 #include <lvgl.h>
 
 #include <storage/storage.h>
-#include <gui/modules/image.h>
 
 #define TAG "DesktopOverlay"
 
 #define OVERLAY_ANIM_TIME_MS (100)
 
-#define DESKTOP_ASSETS_PATH(path) EXT_PATH("apps_assets/desktop") "/" path
-#define DESKTOP_IMG_PATH(path)    DESKTOP_ASSETS_PATH("images") "/" path
-
 struct DesktopOverlay {
     Gui* gui;
     Widget* dimmer;
-    Image* status_bar;
     bool show_requested;
 };
 
@@ -53,11 +48,6 @@ DesktopOverlay* desktop_overlay_alloc(Gui* gui) {
         // TODO: Decide on the color and opacity API
         lv_obj_set_style_bg_opa((lv_obj_t*)instance->dimmer, LV_OPA_TRANSP, LV_PART_MAIN);
         lv_obj_set_style_bg_color((lv_obj_t*)instance->dimmer, lv_color_black(), LV_PART_MAIN);
-
-        root = gui_layer_get_root_widget(system_layer, GuiDisplayIdBack);
-        instance->status_bar = image_alloc(root);
-        image_set_source(instance->status_bar, DESKTOP_IMG_PATH("status_bar_dummy_12x80.bin"));
-        widget_set_align(image_get_base(instance->status_bar), AlignRightMid);
     });
 
     return instance;

@@ -206,8 +206,12 @@ def discover_si917_NWP_rps_path():
 
 def run_build_update_bundles(args):
     upd_bundle_dir = UPDATE_BUNDLE_DIR
-    upd_bundle_prod_dir = UPDATE_BUNDLE_PROD_DIR
     upd_bundle_tar = UPDATE_BUNDLE_TAR
+    # For production line only
+    upd_bundle_prod_dir = UPDATE_BUNDLE_PROD_DIR
+    recovery_bundle_dir = os.path.join(UPDATE_BUNDLE_PROD_DIR, "recovery")
+
+    upd_si917_ta_rps = discover_si917_NWP_rps_path()
 
     upd_si917_ta_rps = discover_si917_NWP_rps_path()
 
@@ -219,6 +223,9 @@ def run_build_update_bundles(args):
     
     if os.path.exists(upd_bundle_dir):
         shutil.rmtree(upd_bundle_dir)
+
+    if os.path.exists(upd_bundle_prod_dir):
+        shutil.rmtree(upd_bundle_prod_dir)
 
     bundles_cmds = []
 
@@ -250,7 +257,7 @@ def run_build_update_bundles(args):
     bundles_cmds.append([
         "./scripts/update_bundle.py",
         "--target", f"{args.target}",
-        "--output", upd_bundle_prod_dir,
+        "--output", recovery_bundle_dir,
         "--stage", f"fbt_layers/fbtng/build/f{args.target}-updater-D/updater.bin",
         "--dfu", f"fbt_layers/fbtng/build/f{args.target}-firmware-D/firmware.dfu",
         "--sil-fw", f"fbt_layers/fbtng/build/f{SI_TARGET_HW}-firmware-D/firmware.rps",
@@ -306,9 +313,14 @@ def run_update_via_http(args):
 
     upd_bundle_tar = UPDATE_BUNDLE_TAR
     assert ensure_update_tar(upd_bundle_tar) == True
-    
-    cmd = ["curl", "-vvv", f"http://{args.device_ip}/api/v0/update",
-           "--data-binary", f"@{upd_bundle_tar}"]
+
+    cmd = [
+        "curl",
+        "-vvv",
+        f"http://{args.device_ip}/api/update",
+        "--data-binary",
+        f"@{upd_bundle_tar}",
+    ]
 
     wait_for_device(args.device_ip, verbose=args.verbose)
 
@@ -359,9 +371,9 @@ def run_resources_upload(args):
     ret = subprocess_exec(cmd, verbose=args.verbose)
     if ret != 0:
         print(f"Resources upload failed with return code: {ret}")
-    
+
     return ret
-    
+
 
 def run_flash_u5_dfu(args):
     if args.device_ip == "ref" or args.device_ip == "r":
@@ -415,7 +427,7 @@ def run_flash_si_uart(args):
     ]
 
     return subprocess_exec(cmd, verbose=args.verbose)
-    
+
 
 def run_flash_si_nwp_uart(args):
     if args.serial_port is None:

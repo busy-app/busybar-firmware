@@ -1,0 +1,10 @@
+App(
+    appid="status_bar",
+    name="StatusBarSrv",
+    apptype=FlipperAppType.SERVICE,
+    entry_point="status_bar_srv",
+    stack_size=1024 * 2,
+    order=85,
+    targets=["f20", "f21"],
+    requires=["gui", "storage", "power_srv", "audio"],
+)

@@ -3,13 +3,14 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "build": "nuxt generate",
+    "build": "pnpx nuxi cleanup && BUILD_ID=$(git -C \"$(git rev-parse --show-toplevel)\" log -1 --pretty=format:%H -- assets/frontend) nuxt generate",
+    "build/ci": "BUILD_ID=$(git -C \"$(git rev-parse --show-toplevel)\" log -1 --pretty=format:%H -- assets/frontend) nuxt generate",
     "dev": "nuxt dev",
     "postinstall": "nuxt prepare",
     "lint": "eslint --ext .js,.ts,.vue --ignore-pattern .gitignore ."
   },
   "dependencies": {
-    "@busy-app/busy-lib": "^0.0.4",
+    "@busy-app/busy-lib": "^0.0.6",
     "@nuxt/eslint": "1.4.1",
     "@nuxt/ui": "3.1.3",
     "@pinia/nuxt": "^0.10.0",

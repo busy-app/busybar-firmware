@@ -54,7 +54,7 @@
             const formData = new FormData();
             formData.append('firmware', firmwareFile); // Key doesn't matter for octet-stream, but useful for FormData
 
-            const url = `/api/v0/update?name=${encodeURIComponent(packageName)}`;
+            const url = `/api/update?name=${encodeURIComponent(packageName)}`;
             statusDiv.textContent = 'Uploading...';
             spinner.style.display = 'block'; // Show spinner
 

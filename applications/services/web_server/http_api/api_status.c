@@ -9,14 +9,22 @@ bool status_get_system(FuriString* json_str) {
 
     furi_string_cat_printf(json_str, "{");
 
+    furi_string_cat_printf(json_str, "\"version\":\"%s\",", version_get_version(firmware_version));
     furi_string_cat_printf(
-        json_str, "\"%s\":\"%s\",", "version", version_get_version(firmware_version));
+        json_str,
+        "\"branch\":\"%s\",\"build_date\":\"%s\",",
+        version_get_gitbranch(firmware_version),
+        version_get_builddate(firmware_version));
+    furi_string_cat_printf(
+        json_str,
+        "\"commit_hash\":\"%s%s\",",
+        version_get_githash(firmware_version),
+        version_get_dirty_flag(firmware_version) ? "-dirty" : "");
 
     uint32_t uptime = furi_get_tick() / furi_kernel_get_tick_frequency();
     furi_string_cat_printf(
         json_str,
-        "\"%s\":\"%02lud %02luh %02lum %02lus\"",
-        "uptime",
+        "\"uptime\":\"%02lud %02luh %02lum %02lus\"",
         uptime / 60 / 60 / 24,
         uptime / 60 / 60,
         uptime / 60 % 60,
@@ -75,7 +83,7 @@ static const struct {
 } status_handlers[] = {
     {"system", status_get_system},
     {"power", status_get_power},
-    // {"wifi", status_get_wifi}, // Implemented in /api/v0/wifi/status
+    // {"wifi", status_get_wifi}, // Implemented in /api/wifi/status
     {"ble", status_get_ble},
 };
 
