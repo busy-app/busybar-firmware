@@ -5,15 +5,19 @@
 #pragma once
 
 #include <furi_hal_resources.h>
+#include "input_common.h"
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
+#define RECORD_INPUT        "input"
 #define RECORD_INPUT_EVENTS "input_events"
 
 #define INPUT_SEQUENCE_SOURCE_HARDWARE (0U)
 #define INPUT_SEQUENCE_SOURCE_SOFTWARE (1U)
+
+typedef struct Input Input;
 
 /** Input Types
  * Some of them are physical events and some logical
@@ -50,25 +54,38 @@ const char* input_get_type_name(InputType type);
 /**
  * @brief Set the pressed state of a key
  * 
- * @param key 
+ * @param [in] input Input instance
+ * @param [in] key   Key
  */
-void input_key_press(InputKey key);
+void input_key_press(Input* input, InputKey key);
 
 /**
  * @brief Set the released state of a key
  * 
- * @param key 
+ * @param [in] input Input instance
+ * @param [in] key   Key
  */
-void input_key_release(InputKey key);
+void input_key_release(Input* input, InputKey key);
 
 /**
  * @brief Toggle the state of a key
  *
  * Set the pressed and the released state of a key in a quick succession
  *
- * @param key
+ * @param [in] input Input instance
+ * @param [in] key   Key
  */
-void input_key_toggle(InputKey key);
+void input_key_toggle(Input* input, InputKey key);
+
+/**
+ * @brief Gets the state of all absolute controls, i.e. the buttons and the mode
+ *        switch
+ * 
+ * @param [in] input Input instance
+ * 
+ * @returns State of all absolute controls
+ */
+InputAbsoluteState input_get_absolute_state(Input* input);
 
 #ifdef __cplusplus
 }
