@@ -2,6 +2,7 @@
 
 #include <furi_hal_qei.h>
 #include <furi_hal_resources.h>
+#include "input_common_i.h"
 
 #ifdef SRV_INTERCOM
 #include <intercom/intercom.h>
@@ -11,7 +12,7 @@
 
 #define INPUT_DEBOUNCE_TIMEOUT 2
 #define INPUT_DEBOUNCE_TICKS   10
-#define INPUT_QUEUE_SIZE       15
+#define INPUT_QUEUE_SIZE       32
 
 #ifdef INPUT_DEBUG
 #define INPUT_LOG(...) FURI_LOG_D(TAG, __VA_ARGS__)
@@ -191,6 +192,10 @@ int32_t input_srv(void* p) {
 
         state->pin = pin;
         state->level = input_get_pin_level(pin);
+
+        if(state->level) {
+            input_send(instance, state->pin, InputActionPress);
+        }
 
         furi_hal_gpio_add_int_callback(pin->gpio, pin->cond, input_isr_key, instance);
     }

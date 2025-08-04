@@ -253,7 +253,7 @@ void crypto_ecdsa_command(PipeSide* pipe, FuriString* args, void* context) {
     crypto_ecdsa_224_test_wrap_off_custom_sha_mode(FuriHalCryptoEcdsaModeSha384);
     crypto_ecdsa_224_test_wrap_off_custom_sha_mode(FuriHalCryptoEcdsaModeSha512);
 
-    printf(ANSI_FG_YELLOW "ECDSA SECP256R1 key wrap on test" ANSI_RESET "\r\n");
+    printf(ANSI_FG_YELLOW "ECDSA SECP224R1 key wrap on test" ANSI_RESET "\r\n");
 
     uint8_t private_key_wrap_224[FURI_HAL_CRYPTO_ECDSA_PRIV_KEY_SIZE_224] = {0};
     furi_hal_crypto_wrap_key(

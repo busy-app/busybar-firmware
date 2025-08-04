@@ -16,7 +16,7 @@ static WebServer srv = {0};
 
 static const HttpHandler handlers_root[] = {
     {
-        .uri = "/api/v0",
+        .uri = "/api",
         .method = "*",
         .type = HttpHandlerCustom,
         .on_request = http_api_root_callback,
@@ -323,6 +323,12 @@ void mg_log(const char* fmt, ...) {
     furi_string_cat_str(string, "\r\n");
     furi_log_puts(furi_string_get_cstr(string));
     furi_string_free(string);
+}
+
+bool mg_random(void* buf, size_t len) {
+    // TODO: furi_hal_random
+    memset(buf, 0xa5, len);
+    return true;
 }
 
 int _gettimeofday(struct timeval* tv, void* tz) {

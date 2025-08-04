@@ -48,6 +48,7 @@ typedef struct dhcp_entry
 
 typedef struct dhcp_config
 {
+	struct netif* netif;
 	ip4_addr_t    router;
 	uint16_t      port;
 	ip4_addr_t    dns;

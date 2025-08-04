@@ -22,6 +22,17 @@ typedef enum {
     FlexLayoutTypeMax, /**< Special value, not to be used in user code */
 } FlexLayoutType;
 
+/** Enumeration of possible alignment types.  */
+typedef enum {
+    FlexLayoutAlignStart, /**< Align children to the start of the axis */
+    FlexLayoutAlignEnd, /**< Align children to the end of the axis */
+    FlexLayoutAlignCenter, /**< Center children along the axis */
+    FlexLayoutAlignSpaceEvenly, /**< Distribute children evenly, with equal space between all items and edges */
+    FlexLayoutAlignSpaceAround, /**< Distribute children with equal space around each item */
+    FlexLayoutAlignSpaceBetween, /**< Distribute children with equal space between items, but no space at the edges */
+    FlexLayoutAlignMax, /**< Special value, not to be used in user code */
+} FlexLayoutAlign;
+
 /**
  * @brief Create a new FlexLayout instance.
  *
@@ -56,6 +67,20 @@ Widget* flex_layout_get_base(FlexLayout* instance);
  * @param[in] spacing spacing between elements, in pixels
  */
 void flex_layout_set_spacing(FlexLayout* instance, int32_t spacing);
+
+/**
+ * @brief set the alignment options for the FlexLayout.
+ *
+ * @param[in,out] instance pointer to the FlexLayout instance to be modified.
+ * @param[in] main_place_align alignment of children along the main axis (e.g., start, end, center, space evenly, etc.).
+ * @param[in] cross_place_align alignment of children along the cross axis.
+ * @param[in] track_cross_place_align alignment of tracks along the cross axis (used for multi-line layouts).
+ */
+void flex_layout_set_align(
+    FlexLayout* instance,
+    FlexLayoutAlign main_place_align,
+    FlexLayoutAlign cross_place_align,
+    FlexLayoutAlign track_cross_place_align);
 
 /**
  * @brief Set the wrap behaviour of a FlexLayout instance.
