@@ -46,7 +46,8 @@ void furi_hal_random_init(void) {
     furi_hal_bus_enable(FuriHalBusRNG);
     LL_RCC_SetRNGClockSource(LL_RCC_RNG_CLKSOURCE_HSI48);
     furi_hal_rng_mutex = furi_mutex_alloc(FuriMutexTypeNormal);
-    LL_RNG_Enable(RNG);
+
+    srand(furi_hal_random_get());
 }
 
 uint32_t furi_hal_random_get(void) {
@@ -70,16 +71,4 @@ void furi_hal_random_fill_buf(uint8_t* buf, uint32_t len) {
     }
 
     furi_hal_random_disable();
-}
-
-void srand(unsigned seed) {
-    UNUSED(seed);
-}
-
-int rand(void) {
-    return furi_hal_random_get() & RAND_MAX;
-}
-
-long random(void) {
-    return furi_hal_random_get() & RAND_MAX;
 }
