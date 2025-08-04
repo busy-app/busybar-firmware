@@ -3,6 +3,7 @@
 #include <furi.h>
 
 #include <gui/gui.h>
+#include <gui/modules/nav_stack.h>
 #include <audio/audio.h>
 #include <status_lights/status_lights.h>
 
@@ -15,7 +16,6 @@
 #include "helpers/run_later.h"
 #include "scenes/busy_scenes.h"
 
-#include "widgets/nav_stack.h"
 #include "widgets/progress_bar.h"
 #include "widgets/timer_card.h"
 #include "widgets/timer_indicator.h"
