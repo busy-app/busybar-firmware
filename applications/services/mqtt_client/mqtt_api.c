@@ -40,6 +40,15 @@ static const struct {
     {"audio/volume", MethodPost},
 
     {"input", MethodPost},
+
+    {"assets/upload", MethodPost},
+    {"assets/upload", MethodDelete},
+
+    {"storage/write", MethodPost},
+    {"storage/read", MethodGet},
+    {"storage/list", MethodGet},
+    {"storage/delete", MethodDelete},
+    {"storage/mkdir", MethodPost},
 };
 
 bool mqtt_parse_topic(struct mg_str* topic, FuriString* http_req, FuriString* response_topic) {

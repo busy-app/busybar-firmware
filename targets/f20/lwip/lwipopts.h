@@ -36,8 +36,8 @@
 #define MEMP_NUM_PBUF                          16
 #define MEMP_NUM_RAW_PCB                       4
 #define MEMP_NUM_UDP_PCB                       4
-#define MEMP_NUM_TCP_PCB                       8
-#define MEMP_NUM_TCP_PCB_LISTEN                8
+#define MEMP_NUM_TCP_PCB                       16
+#define MEMP_NUM_TCP_PCB_LISTEN                16
 #define MEMP_NUM_TCP_SEG                       16
 #define MEMP_NUM_ALTCP_PCB                     MEMP_NUM_TCP_PCB
 #define MEMP_NUM_REASSDATA                     5

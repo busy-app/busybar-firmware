@@ -29,25 +29,16 @@ static void mqtt_http_handler(struct mg_connection* conn, int ev, void* ev_data)
     furi_assert(http_ctx);
 
     if(ev == MG_EV_CONNECT) {
+        mg_printf(
+            conn,
+            "%s HTTP/1.1\r\n"
+            "Content-Type: application/json\r\n"
+            "Content-Length: %ld\r\n"
+            "\r\n",
+            furi_string_get_cstr(http_ctx->http_request),
+            http_ctx->request_len);
         if(http_ctx->request_len > 0) {
-            mg_printf(
-                conn,
-                "%s HTTP/1.1\r\n"
-                "Content-Type: application/json\r\n"
-                "Content-Length: %ld\r\n"
-                "\r\n"
-                "%s\n",
-                furi_string_get_cstr(http_ctx->http_request),
-                http_ctx->request_len,
-                http_ctx->request_data);
-        } else {
-            mg_printf(
-                conn,
-                "%s HTTP/1.1\r\n"
-                "Content-Type: application/json\r\n"
-                "Content-Length: 0\r\n"
-                "\r\n",
-                furi_string_get_cstr(http_ctx->http_request));
+            mg_send(conn, http_ctx->request_data, http_ctx->request_len);
         }
     } else if(ev == MG_EV_HTTP_MSG) {
         struct mg_http_message* msg = (struct mg_http_message*)ev_data;
