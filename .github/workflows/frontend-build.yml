@@ -1,0 +1,49 @@
+name: Build frontend, check output bundle diff
+on:
+  pull_request:
+    paths:
+      - 'assets/frontend/**'
+
+jobs:
+  build:
+    runs-on: ubuntu-22.04
+    strategy:
+      matrix:
+        node-version: [20]
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          ref: ${{ github.event.pull_request.head.sha }}
+
+      - name: Copy frontend assets to working directory
+        run: |
+          mkdir -p ci_build
+          cp -r ./assets/frontend/* ci_build/
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10
+
+      - name: Use Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache-dependency-path: assets/frontend/pnpm-lock.yaml
+          cache: 'pnpm'
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+        working-directory: ./ci_build
+
+      - name: Build frontend
+        run: pnpm run build/ci
+        working-directory: ./ci_build
+
+      - name: Check output bundle diff
+        run: |
+          echo "Build ID: $(git -C "$(git rev-parse --show-toplevel)" log -1 --pretty=format:%H -- assets/frontend)"
+          diff -r ../frontend-build/public ../assets/frontend-build/public || (echo "Build output for the latest commit is different from the committed bundle! Have you run 'pnpm build'?" && exit 1)
+        working-directory: ./ci_build

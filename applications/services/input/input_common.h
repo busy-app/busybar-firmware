@@ -30,7 +30,16 @@ typedef enum {
 } InputButton;
 
 /**
- * @brief Enumeration of possible button acitons.
+ * @brief Bitmask of available buttons.
+ */
+typedef enum {
+    InputButtonMaskOk = (1 << InputButtonOk),
+    InputButtonMaskBack = (1 << InputButtonBack),
+    InputButtonMaskStart = (1 << InputButtonStart),
+} InputButtonMask;
+
+/**
+ * @brief Enumeration of possible button actions.
  */
 typedef enum {
     InputActionPress, /**< A button has been pressed */
@@ -50,19 +59,12 @@ typedef enum {
 } InputSwitchPosition;
 
 /**
- * @brief Input event coming from the input controller chip.
+ * @brief State of all absolute controls (i.e. buttons and the mode switch)
  */
 typedef struct {
-    InputDevice device; /**< Identifier of the device that emitted the event */
-    union {
-        struct {
-            InputButton button; /**< Identifier of the button interacted with */
-            InputAction action; /**< Button action that occurred */
-        } button_event; /**< Button event */
-        InputSwitchPosition switch_position; /**< New mode switch position */
-        int16_t encoder_delta; /**< Speed and direction of encoder rotation */
-    };
-} InputCommonEvent;
+    InputButtonMask buttons; /**< Bitmask of buttons that are currently pressed */
+    InputSwitchPosition switch_position; /**< Current mode switch position */
+} InputAbsoluteState;
 
 #ifdef __cplusplus
 }

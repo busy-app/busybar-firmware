@@ -145,7 +145,6 @@ sources = [
     f"{WIRELESS_DIR}/crypto/wrap/src/sl_si91x_psa_wrap.c",
     f"{WIRELESS_DIR}/crypto/wrap/src/sl_si91x_wrap.c",
     f"{WISECONNECT_DIR}/device/silabs/si91x/wireless/crypto/src/sli_si91x_crypto_driver_functions.c",
-
     # NVM3
     f"{MCU_DIR}/drivers/service/nvm3/src/sl_si91x_common_flash_intf.c",
     f"{MCU_DIR}/drivers/service/nvm3/src/sl_si91x_nvm3_hal_flash.c",

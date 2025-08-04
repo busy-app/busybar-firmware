@@ -2,10 +2,8 @@
 #include "desktop_overlay.h"
 
 #include <furi.h>
-#include <furi_hal_nvm.h>
 
 #include <input/input.h>
-#include <input/input_common.h>
 
 #include <loader/loader.h>
 #include <gui/gui.h>
@@ -156,7 +154,6 @@ static void desktop_handle_switch_update(Desktop* instance) {
 // Called after the app has been started, due to rotary switch interaction or programmatically
 static void desktop_handle_switch_finished(Desktop* instance) {
     FURI_LOG_D(TAG, "Switch interaction finished");
-    furi_hal_nvm_store_switch_pos(instance->switch_pos);
 
     desktop_overlay_hide(instance->overlay);
 }
@@ -319,8 +316,9 @@ static Desktop* desktop_alloc(void) {
     Gui* gui = furi_record_open(RECORD_GUI);
     instance->overlay = desktop_overlay_alloc(gui);
 
+    Input* input = furi_record_open(RECORD_INPUT);
     instance->current_request = desktop_start_request_alloc();
-    instance->switch_pos = furi_hal_nvm_get_switch_pos();
+    instance->switch_pos = input_get_absolute_state(input).switch_position;
 
     furi_event_loop_subscribe_message_queue(
         instance->event_loop,

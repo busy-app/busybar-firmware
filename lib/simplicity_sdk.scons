@@ -83,7 +83,6 @@ env.Append(
         "SLI_SECURE_KEY_STORAGE_DEVICE_SI91X=1",
         "SLI_SHA_DEVICE_SI91X=1",
         "SLI_TRNG_DEVICE_SI91X=1",
-
     ],
 )
 
