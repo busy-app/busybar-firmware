@@ -933,7 +933,7 @@ components:
     ApiKeyAuth:
       type: apiKey
       in: header
-      name: Bearer
+      name: X-API-Token
 
   schemas:
     SuccessResponse:

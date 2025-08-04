@@ -485,7 +485,7 @@ class RpsFlasher:
 
         while True:
             try:
-                self.__put_device_to_bootloader()
+                # self.__put_device_to_bootloader()
                 self.__wait_for_menu()
                 break
 

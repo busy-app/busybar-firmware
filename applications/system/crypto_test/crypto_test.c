@@ -80,17 +80,10 @@ void* crypto_test_app_start(CliShell* shell) {
         status = sl_net_init(
             SL_NET_WIFI_CLIENT_INTERFACE, &client_configuration_use_crypto, NULL, NULL);
         if(status != SL_STATUS_OK) {
-            furi_string_printf(
-                crypto_test_app_instance->msg,
-                ANSI_FG_RED "Failed to start Wi-Fi client interface: 0x%lx" ANSI_RESET,
+            printf(
+                ANSI_FG_RED "Failed to start Wi-Fi client interface: 0x%08lx\r\n" ANSI_RESET,
                 status);
-            cli_shell_notification_print(
-                crypto_test_app_instance->shell, crypto_test_app_instance->msg);
             break;
-        } else {
-            furi_string_printf(crypto_test_app_instance->msg, "Wi-Fi initialization successful");
-            cli_shell_notification_print(
-                crypto_test_app_instance->shell, crypto_test_app_instance->msg);
         }
         FURI_LOG_D(TAG, "Wi-Fi initialization successful");
         crypto_test_app_instance->state = CryptoTestStateWifiInit;
@@ -139,11 +132,14 @@ void crypto_test_command(PipeSide* pipe, FuriString* args, void* context) {
 
     CliShell* shell = cli_shell_alloc(crypto_test_motd, NULL, pipe, registry, NULL);
     cli_shell_set_prompt(shell, "crypto_test");
-
-    cli_shell_start(shell);
     CryptoTestApp* app = crypto_test_app_start(shell);
-    cli_shell_join(shell);
-    crypto_test_app_stop(app);
+    if(app) {
+        cli_shell_start(shell);
+        cli_shell_join(shell);
+        crypto_test_app_stop(app);
+    } else {
+        printf(ANSI_FG_RED "Failed to start crypto test app" ANSI_RESET "\r\n");
+    }
 
     cli_shell_free(shell);
     cli_registry_free(registry);
