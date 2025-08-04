@@ -132,7 +132,7 @@ static bool http_api_is_access_allowed(
             return true;
         } else if(context->access_mode == ApiAccessKeyRequired) {
             furi_assert(context->access_key);
-            struct mg_str* header_key = mg_http_get_header(msg, "Bearer");
+            struct mg_str* header_key = mg_http_get_header(msg, "X-API-Token");
             if(header_key != NULL) {
                 struct mg_str access_key = mg_str(furi_string_get_cstr(context->access_key));
                 if(mg_strcmp(*header_key, access_key) == 0) {
@@ -143,6 +143,31 @@ static bool http_api_is_access_allowed(
         return false;
     }
     return (is_ip_allowed == 1);
+}
+
+static bool http_api_is_version_allowed(struct mg_connection* conn, struct mg_http_message* msg) {
+    struct mg_str* header_semver = mg_http_get_header(msg, "X-API-Sem-Ver");
+    if(header_semver) {
+        uint8_t major_ver;
+        const uint8_t api_ver[] = API_VERSION;
+
+        struct mg_str major_ver_str;
+        if(!mg_span(*header_semver, &major_ver_str, NULL, '.')) {
+            MG_REPLY_BAD_REQUEST(conn);
+            return false;
+        }
+
+        if(!mg_str_to_num(major_ver_str, 10, &major_ver, sizeof(major_ver))) {
+            MG_REPLY_BAD_REQUEST(conn);
+            return false;
+        }
+
+        if(major_ver != api_ver[0]) {
+            MG_REPLY_INVALID_VERSION(conn);
+            return false;
+        }
+    }
+    return true;
 }
 
 static const HttpHandler handlers_api_root[] = {
@@ -278,35 +303,9 @@ bool http_api_root_callback(
     if(msg->query.len > 0) {
         FURI_LOG_D(TAG, "Query %.*s", msg->query.len, msg->query.buf);
     }
-    if(http_api_is_access_allowed(context, conn, msg)) {
-        if(furi_string_equal(path, "access")) {
-            return http_api_access_callback(context, conn, msg);
-        }
-    } else {
-        MG_REPLY_FORBIDDEN(conn);
-        return true;
-    }
 
-    struct mg_str* header_semver = mg_http_get_header(msg, "X-API-Sem-Ver");
-    if(header_semver) {
-        uint8_t major_ver;
-        const uint8_t api_ver[] = API_VERSION;
-
-        struct mg_str major_ver_str;
-        if(!mg_span(*header_semver, &major_ver_str, NULL, '.')) {
-            MG_REPLY_BAD_REQUEST(conn);
-            return true;
-        }
-
-        if(!mg_str_to_num(major_ver_str, 10, &major_ver, sizeof(major_ver))) {
-            MG_REPLY_BAD_REQUEST(conn);
-            return true;
-        }
-
-        if(major_ver != api_ver[0]) {
-            MG_REPLY_INVALID_VERSION(conn);
-            return true;
-        }
+    if(furi_string_equal(path, "access")) {
+        return http_api_access_callback(context, conn, msg);
     }
     return http_handle_request(path, context->handlers, conn, msg);
 }
@@ -329,5 +328,25 @@ bool http_api_root_hdr_callback(
     struct mg_http_message* msg,
     void* ctx) {
     ApiRootCtx* context = ctx;
+    FURI_LOG_D(TAG, "%.*s %.*s", msg->method.len, msg->method.buf, msg->uri.len, msg->uri.buf);
+    if(msg->query.len > 0) {
+        FURI_LOG_D(TAG, "Query %.*s", msg->query.len, msg->query.buf);
+    }
+
+    if(!http_api_is_access_allowed(context, conn, msg)) {
+        MG_REPLY_FORBIDDEN(conn);
+        mg_iobuf_del(&conn->recv, 0, msg->head.len);
+        conn->pfn = NULL;
+        conn->is_draining = 1;
+        return true;
+    }
+
+    if(!http_api_is_version_allowed(conn, msg)) {
+        mg_iobuf_del(&conn->recv, 0, msg->head.len);
+        conn->pfn = NULL;
+        conn->is_draining = 1;
+        return true;
+    }
+
     return http_handle_headers(path, context->handlers, conn, msg);
 }

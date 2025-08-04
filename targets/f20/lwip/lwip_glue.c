@@ -273,6 +273,9 @@ void lwip_glue_log(const char* fmt, ...) {
 
     furi_string_trim(string, "\r\n");
 
-    FURI_LOG_D(TAG, "%s", furi_string_get_cstr(string));
+    if(!furi_string_empty(string)) {
+        FURI_LOG_D(TAG, "%s", furi_string_get_cstr(string));
+    }
+
     furi_string_free(string);
 }

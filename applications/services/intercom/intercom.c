@@ -304,7 +304,7 @@ static Intercom* intercom_alloc(void) {
     Intercom* instance = malloc(sizeof(Intercom));
 
     instance->rx_thread =
-        furi_thread_alloc_service("IntercomRxSrv", 1024, intercom_rx_thread, instance);
+        furi_thread_alloc_service("IntercomRxSrv", 2048, intercom_rx_thread, instance);
     instance->sync_semaphore = furi_semaphore_alloc(1, 0);
     instance->event_loop = furi_event_loop_alloc();
     instance->tx_semaphore = furi_semaphore_alloc(1, 0);

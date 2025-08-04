@@ -1,0 +1,9 @@
+App(
+    appid="crypto",
+    name="crypto",
+    targets=["f64"],
+    apptype=FlipperAppType.CLICMD,
+    entry_point="crypto_command",
+    stack_size=1024 * 4,
+    sources=["crypto.c"],
+)

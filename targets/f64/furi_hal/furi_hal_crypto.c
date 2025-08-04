@@ -339,18 +339,19 @@ void furi_hal_crypto_hmac_wrap_key(
     furi_assert(wrapped_key);
     furi_check(key_size <= SL_SI91X_WRAP_KEY_BUFFER_SIZE);
     //sl_si91x_wrap_config_t - size 1432 bytes
-    sl_si91x_wrap_config_t wrap_config = {0};
-    wrap_config.key_type = SL_SI91X_TRANSPARENT_KEY;
-    wrap_config.key_size = key_size;
-    wrap_config.wrap_iv_mode = SL_SI91X_WRAP_IV_ECB_MODE;
-    wrap_config.padding = (1 << 0); //SL_SI91X_HMAC_PADDING;
-    wrap_config.hmac_sha_mode = furi_hal_crypto_hmac_sha_mode[hmac_sha_mode];
+    sl_si91x_wrap_config_t* wrap_config = malloc(sizeof(sl_si91x_wrap_config_t));
+    wrap_config->key_type = SL_SI91X_TRANSPARENT_KEY;
+    wrap_config->key_size = key_size;
+    wrap_config->wrap_iv_mode = SL_SI91X_WRAP_IV_ECB_MODE;
+    wrap_config->padding = (1 << 0); //SL_SI91X_HMAC_PADDING;
+    wrap_config->hmac_sha_mode = furi_hal_crypto_hmac_sha_mode[hmac_sha_mode];
 
     //memset(wrapped_key, 0, *wrapped_key_size);
-    memcpy(wrap_config.key_buffer, key, wrap_config.key_size);
+    memcpy(wrap_config->key_buffer, key, wrap_config->key_size);
 
-    sl_status_t status = sl_si91x_wrap(&wrap_config, wrapped_key);
-    *wrapped_key_size = wrap_config.key_size;
+    sl_status_t status = sl_si91x_wrap(wrap_config, wrapped_key);
+    *wrapped_key_size = wrap_config->key_size;
+    free(wrap_config);
 
     if(status != SL_STATUS_OK) {
         FURI_LOG_E(TAG, "Failed to wrap key: 0x%08lX", status);
@@ -400,13 +401,16 @@ void furi_hal_crypto_wrap_key(uint32_t key_size, uint8_t* key, uint8_t* wrapped_
     furi_assert(wrapped_key);
     furi_check(key_size <= SL_SI91X_WRAP_KEY_BUFFER_SIZE);
     //sl_si91x_wrap_config_t - size 1432 bytes
-    sl_si91x_wrap_config_t wrap_config = {0};
-    wrap_config.key_type = SL_SI91X_TRANSPARENT_KEY;
-    wrap_config.key_size = key_size;
-    wrap_config.wrap_iv_mode = SL_SI91X_WRAP_IV_ECB_MODE;
-    wrap_config.padding = 0;
-    memcpy(wrap_config.key_buffer, key, wrap_config.key_size);
-    sl_status_t status = sl_si91x_wrap(&wrap_config, wrapped_key);
+    sl_si91x_wrap_config_t* wrap_config = malloc(sizeof(sl_si91x_wrap_config_t));
+    wrap_config->key_type = SL_SI91X_TRANSPARENT_KEY;
+    wrap_config->key_size = key_size;
+    wrap_config->wrap_iv_mode = SL_SI91X_WRAP_IV_ECB_MODE;
+    wrap_config->padding = 0;
+    memcpy(wrap_config->key_buffer, key, wrap_config->key_size);
+    sl_status_t status = sl_si91x_wrap(wrap_config, wrapped_key);
+    furi_check(key_size == wrap_config->key_size, "Invalid key size");
+    free(wrap_config);
+
     if(status != SL_STATUS_OK) {
         FURI_LOG_E(TAG, "Failed to wrap key: 0x%08lX", status);
         furi_crash("Failed to wrap key");

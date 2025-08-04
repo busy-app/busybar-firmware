@@ -5,6 +5,7 @@
 #include "cli_command_audio.h"
 #include "cli_command_sl_cli.h"
 #include "cli_command_factory_reset.h"
+#include "cli_command_otp.h"
 
 #include <core/thread.h>
 #include <core/thread_list.h>
@@ -33,11 +34,14 @@ static void cli_command_update_debug_mode(void) {
         // cli_registry_add_command(registry, "sl_echo", CliCommandFlagParallelSafe, cli_command_sl_echo, NULL);
         cli_registry_add_command(
             registry, "factory_reset", CliCommandFlagParallelSafe, cli_command_factory_reset, NULL);
+        cli_registry_add_command(
+            registry, "otp", CliCommandFlagParallelSafe, cli_command_otp, NULL);
     } else {
         // Remove debug commands
         cli_registry_delete_command(registry, "gpio");
         // cli_registry_delete_command(registry, "sl_echo");
         cli_registry_delete_command(registry, "factory_reset");
+        cli_registry_delete_command(registry, "otp");
     }
 
     furi_record_close(RECORD_CLI);
