@@ -31,7 +31,6 @@ typedef struct {
     lv_style_t submenu_cursor;
     lv_style_t var_item;
     lv_style_t var_item_editor;
-    lv_style_t nav_stack;
     lv_style_t timer_card;
 } my_theme_styles_t;
 
@@ -115,9 +114,6 @@ static void style_init(my_theme_t* theme) {
     lv_style_set_bg_opa(&theme->styles.scrollbar, LV_OPA_COVER);
     lv_style_set_bg_color(&theme->styles.scrollbar, COLOR_FG_FOCUSED);
     lv_style_set_width(&theme->styles.scrollbar, SCROLLBAR_WIDTH);
-
-    lv_style_init(&theme->styles.nav_stack);
-    lv_style_set_pad_row(&theme->styles.nav_stack, 2);
 
     lv_style_init(&theme->styles.timer_card);
     lv_style_set_bg_opa(&theme->styles.timer_card, LV_OPA_COVER);
@@ -203,10 +199,6 @@ static void theme_apply_callback(lv_theme_t* th, lv_obj_t* obj) {
         lv_obj_add_style(obj, &theme->styles.menu_arrow, LV_PART_MAIN | LV_STATE_DISABLED);
 
 #ifndef FURI_RAM_EXEC
-    } else if(lv_obj_check_type(obj, &nav_stack_lvgl_class)) {
-        lv_obj_add_style(obj, &theme->styles.normal, LV_PART_MAIN);
-        lv_obj_add_style(obj, &theme->styles.nav_stack, LV_PART_MAIN);
-
     } else if(lv_obj_check_type(obj, &timer_card_lvgl_class)) {
         lv_obj_add_style(obj, &theme->styles.timer_card, LV_PART_MAIN);
 #endif
