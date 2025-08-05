@@ -1,7 +1,4 @@
-#include "wifi_common_i.h"
-
-#include <furi.h>
-#include <intercom/intercom.h>
+#include "wifi_backend_i.h"
 
 #include <sl_net.h>
 #include <sl_wifi.h>
@@ -11,23 +8,12 @@
 #include "wifi_config.h"
 #include "wifi_backend_util.h"
 
-#define TAG "Wifi"
-
 #define NUM_CONNECTION_ATTEMPTS (3)
 
 typedef enum {
     WifiEventRequest = 1UL << 0,
     WifiEventScanComplete = 1UL << 1,
 } WifiEvent;
-
-struct Wifi {
-    FuriEventLoop* event_loop;
-    FuriPubSub* event_pubsub;
-    Intercom* intercom;
-    WifiRequest request;
-    WifiResponse response;
-    WifiState state;
-};
 
 typedef void (*WifiRequestHandler)(Wifi* instance);
 
@@ -56,8 +42,7 @@ static void wifi_init_request_handler(Wifi* instance) {
     sl_status_t status;
 
     do {
-        status = sl_net_init(
-            SL_NET_WIFI_CLIENT_INTERFACE, &wifi_config_client, instance->intercom, NULL);
+        status = sl_net_init(SL_NET_WIFI_CLIENT_INTERFACE, &wifi_config_client, instance, NULL);
 
         if(status != SL_STATUS_OK) {
             FURI_LOG_E(TAG, "Failed to initialise Wifi: %lX", status);
@@ -379,7 +364,6 @@ static sl_status_t wifi_scan_callback(
 
 static Wifi* wifi_alloc(void) {
     Wifi* instance = malloc(sizeof(Wifi));
-    sl_wifi_set_scan_callback(wifi_scan_callback, instance);
 
     instance->event_loop = furi_event_loop_alloc();
     instance->event_pubsub = furi_pubsub_alloc();
@@ -392,6 +376,10 @@ static Wifi* wifi_alloc(void) {
 
     intercom_set_rx_callback(
         instance->intercom, IntercomChannelWifiData, wifi_net_intercom_rx_callback, instance);
+
+    sl_wifi_set_scan_callback(wifi_scan_callback, instance);
+
+    wifi_net_lwip_init(instance);
 
     furi_record_create(RECORD_WIFI, instance->event_pubsub);
 
