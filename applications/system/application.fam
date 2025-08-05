@@ -46,7 +46,7 @@ App(
         "wifi_calibration",
         "wifi_cli_test",
         "wifi_rf_test",
-        "wifi_test_cli",
+        # "wifi_test_cli",
         "crypto",
     ],
     targets=["f64"],

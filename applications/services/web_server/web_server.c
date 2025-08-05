@@ -325,6 +325,12 @@ void mg_log(const char* fmt, ...) {
     furi_string_free(string);
 }
 
+bool mg_random(void* buf, size_t len) {
+    // TODO: furi_hal_random
+    memset(buf, 0xa5, len);
+    return true;
+}
+
 int _gettimeofday(struct timeval* tv, void* tz) {
     uint64_t now = mg_now();
     (void)tz;

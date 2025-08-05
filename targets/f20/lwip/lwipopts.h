@@ -35,10 +35,10 @@
 #define LWIP_ALLOW_MEM_FREE_FROM_OTHER_CONTEXT 0
 #define MEMP_NUM_PBUF                          16
 #define MEMP_NUM_RAW_PCB                       4
-#define MEMP_NUM_UDP_PCB                       4
+#define MEMP_NUM_UDP_PCB                       8
 #define MEMP_NUM_TCP_PCB                       8
 #define MEMP_NUM_TCP_PCB_LISTEN                8
-#define MEMP_NUM_TCP_SEG                       16
+#define MEMP_NUM_TCP_SEG                       32
 #define MEMP_NUM_ALTCP_PCB                     MEMP_NUM_TCP_PCB
 #define MEMP_NUM_REASSDATA                     5
 #define MEMP_NUM_FRAG_PBUF                     15
@@ -84,7 +84,7 @@
 #define LWIP_MULTICAST_PING                    1
 #define LWIP_RAW                               1
 #define RAW_TTL                                (IP_DEFAULT_TTL)
-#define LWIP_DHCP                              0
+#define LWIP_DHCP                              1
 #define LWIP_DHCP_CHECK_LINK_UP                0
 #define LWIP_DHCP_BOOTP_FILE                   0
 #define LWIP_DHCP_GET_NTP_SRV                  0
@@ -155,7 +155,7 @@
 #define LWIP_NETIF_LINK_CALLBACK            0
 #define LWIP_NETIF_REMOVE_CALLBACK          0
 #define LWIP_NETIF_HWADDRHINT               0
-#define LWIP_NETIF_TX_SINGLE_PBUF           0
+#define LWIP_NETIF_TX_SINGLE_PBUF           1
 #define LWIP_NUM_NETIF_CLIENT_DATA          10
 #define LWIP_HAVE_LOOPIF                    (LWIP_NETIF_LOOPBACK && !LWIP_SINGLE_NETIF)
 #define LWIP_LOOPIF_MULTICAST               0
@@ -185,7 +185,7 @@
 // #define LWIP_COMPAT_SOCKETS                 1 /* 0..2 */
 // #define LWIP_POSIX_SOCKETS_IO_NAMES         1
 // #define LWIP_SOCKET_OFFSET                  0
-#define LWIP_TCP_KEEPALIVE                  0
+#define LWIP_TCP_KEEPALIVE                  1
 #define LWIP_SO_SNDTIMEO                    0
 #define LWIP_SO_RCVTIMEO                    0
 #define LWIP_SO_SNDRCVTIMEO_NONSTANDARD     0
