@@ -52,6 +52,7 @@
     "include_paths": [
         "config",
         "furi_hal",
+        "lwip",
         "inc"
     ],
     "env_setup_scripts": [
@@ -74,6 +75,7 @@
         "lib_base",
         "mlib",
         "cmsis",
+        "lwip",
         "sl_glue",
         "simplicity_sdk",
         "wiseconnect",
