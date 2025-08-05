@@ -53,7 +53,7 @@ static void busy_scene_setup_on_enter(void* context) {
             busy_scene_setup_menu_callback,
             instance);
 
-        data->back_menu = menu_alloc(nav_stack_get_base(instance->nav_stack));
+        data->back_menu = menu_alloc(instance->back_window);
         menu_add_item(
             data->back_menu, "TIMER", mode_name, BUSY_IMG_PATH("timer_12x12.bin"), 0, NULL, NULL);
         menu_add_item(

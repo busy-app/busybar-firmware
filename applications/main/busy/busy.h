@@ -3,7 +3,8 @@
 #include <furi.h>
 
 #include <gui/gui.h>
-#include <gui/modules/nav_stack.h>
+#include <gui/modules/nav_bar.h>
+#include <gui/modules/flex_layout.h>
 #include <audio/audio.h>
 #include <status_lights/status_lights.h>
 
@@ -74,13 +75,14 @@ typedef struct {
     StatusLights* status_lights;
     Audio* audio;
     Gui* gui;
-    // Application windows
+    // Containers & application windows
     Widget* front_window;
+    FlexLayout* back_container;
     Widget* back_window;
     // Persistent widgets
     TransitionOverlay* transition_overlay;
     TimerCard* timer_card;
-    NavStack* nav_stack;
+    NavBar* nav_bar;
     // Application settings
     BusySettings settings;
 } BusyApp;

@@ -1,6 +1,8 @@
 #include "busy.h"
 #include "busy_presets.h"
 
+#define BUSY_NAV_BAR_HEIGHT 20
+
 static void busy_input_queue_callback(FuriEventLoopObject* object, void* context) {
     furi_assert(context);
 
@@ -80,25 +82,33 @@ static BusyApp* busy_alloc(void) {
         GuiLayer* layer = gui_get_layer(instance->gui, GuiLayerIdMain);
         gui_layer_add_input_callback(layer, busy_gui_input_callback, instance);
 
-        Widget* root;
         // Create application window on Front display
-        root = gui_layer_get_root_widget(layer, GuiDisplayIdFront);
-        instance->front_window = widget_alloc(root);
+        Widget* front_root = gui_layer_get_root_widget(layer, GuiDisplayIdFront);
+        instance->front_window = widget_alloc(front_root);
 
         // Create persistent widgets on Front display
-        instance->transition_overlay = transition_overlay_alloc(root);
+        instance->transition_overlay = transition_overlay_alloc(front_root);
         transition_overlay_set_pressed_widget(
             instance->transition_overlay, instance->front_window);
 
-        // Create application window on Back display
-        root = gui_layer_get_root_widget(layer, GuiDisplayIdBack);
-        instance->back_window = widget_alloc(root);
+        // Create container on Back display
+        Widget* back_root = gui_layer_get_root_widget(layer, GuiDisplayIdBack);
+        instance->back_container = flex_layout_alloc(back_root, FlexLayoutTypeColumn);
+        flex_layout_set_spacing(instance->back_container, 2);
 
         // Create persistent widgets on Back display
-        instance->nav_stack = nav_stack_alloc(instance->back_window);
-        nav_stack_set_image(instance->nav_stack, BUSY_IMG_PATH("header_busy_39x16.bin"));
+        instance->nav_bar = nav_bar_alloc(flex_layout_get_base(instance->back_container));
+        widget_set_height(nav_bar_get_base(instance->nav_bar), BUSY_NAV_BAR_HEIGHT);
+        widget_set_padding(nav_bar_get_base(instance->nav_bar), 2, 2, 0, 0);
+        nav_bar_set_header_image(instance->nav_bar, BUSY_IMG_PATH("header_busy_39x16.bin"));
+        flex_layout_set_child_widget_grow(
+            instance->back_container, nav_bar_get_base(instance->nav_bar), 0);
 
-        instance->timer_card = timer_card_alloc(instance->back_window);
+        // Create application window on Back display
+        instance->back_window = widget_alloc(flex_layout_get_base(instance->back_container));
+        flex_layout_set_child_widget_grow(instance->back_container, instance->back_window, 1);
+
+        instance->timer_card = timer_card_alloc(back_root);
     });
 
     furi_event_loop_subscribe_message_queue(
@@ -135,7 +145,7 @@ static void busy_free(BusyApp* instance) {
         transition_overlay_free(instance->transition_overlay);
 
         widget_free(instance->front_window);
-        widget_free(instance->back_window);
+        flex_layout_free(instance->back_container);
     });
 
     furi_record_close(RECORD_STATUS_LIGHTS);
@@ -195,11 +205,11 @@ void busy_push_location(BusyApp* instance, const char* location_name) {
     furi_assert(instance);
     furi_assert(location_name);
 
-    with_gui(instance->gui, { nav_stack_push_location(instance->nav_stack, location_name); });
+    with_gui(instance->gui, { nav_bar_push_location(instance->nav_bar, location_name); });
 }
 
 void busy_pop_location(BusyApp* instance) {
     furi_assert(instance);
 
-    with_gui(instance->gui, { nav_stack_pop_location(instance->nav_stack); });
+    with_gui(instance->gui, { nav_bar_pop_location(instance->nav_bar); });
 }
