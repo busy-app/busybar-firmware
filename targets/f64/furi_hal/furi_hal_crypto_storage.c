@@ -414,7 +414,7 @@ FuriHalCryptoStatus furi_hal_crypto_storage_get_next_key(FuriHalCryptoKey* key) 
     return ret;
 }
 
-FuriHalCryptoStatus furi_hal_crypto_storage_gen_asimetric_pub_key(FuriHalCryptoKey* key) {
+FuriHalCryptoStatus furi_hal_crypto_storage_gen_asymmetric_pub_key(FuriHalCryptoKey* key) {
     furi_check(key);
     furi_check(key->header.magic_number == FURI_HAL_CRYPTO_STORAGE_MAGIC_NUMBER_KEY);
     furi_check(

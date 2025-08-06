@@ -121,7 +121,7 @@ FuriHalCryptoStatus furi_hal_crypto_storage_get_next_key(FuriHalCryptoKey* key);
 * @param[in] key Pointer to the private key.
 * @return FuriHalCryptoStatus indicating the result of the operation.
 */
-FuriHalCryptoStatus furi_hal_crypto_storage_gen_asimetric_pub_key(FuriHalCryptoKey* key);
+FuriHalCryptoStatus furi_hal_crypto_storage_gen_asymmetric_pub_key(FuriHalCryptoKey* key);
 
 /** Generate a CSR in DER format for ECDSA 256.
 * @param[in] key Pointer to the private key.
