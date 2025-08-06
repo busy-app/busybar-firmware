@@ -13,12 +13,10 @@
 
 #define SEND_ADDR_HOST_PART (50)
 #define UDP_SEND_SIZE       (977U) // Limited by Intercom
-#define UDP_SEND_PORT       (8080)
+#define UDP_SEND_PORT       (5000)
 
 typedef enum {
     WifiAdaptiveTestCustomEventExit = (1UL << 0),
-    WifiAdaptiveTestCustomEventStartTest = (1UL << 1),
-    WifiAdaptiveTestCustomEventStopTest = (1UL << 2),
 } WifiAdaptiveTestCustomEvent;
 
 typedef struct {
@@ -45,13 +43,6 @@ static bool wifi_adaptive_test_input_callback(const InputEvent* event, void* con
                 instance->event_loop, WifiAdaptiveTestCustomEventExit);
             consumed = true;
         }
-
-    } else if(event->type == InputTypeLong) {
-        if(event->key == InputKeyStart) {
-            furi_event_loop_set_custom_event(
-                instance->event_loop, WifiAdaptiveTestCustomEventStartTest);
-            consumed = true;
-        }
     }
 
     return consumed;
@@ -64,12 +55,6 @@ static void wifi_adaptive_test_custom_event_callback(uint32_t events, void* cont
     if(events & WifiAdaptiveTestCustomEventExit) {
         instance->stop_worker = true;
         furi_event_loop_stop(instance->event_loop);
-    }
-
-    if(events & WifiAdaptiveTestCustomEventStartTest) {
-    }
-
-    if(events & WifiAdaptiveTestCustomEventStopTest) {
     }
 }
 
@@ -104,6 +89,8 @@ static int32_t wifi_adaptive_test_worker(void* arg) {
                 FURI_LOG_E(TAG, "UDP tx error: %s", strerror(errno));
                 break;
             }
+            // Prevent deadlocks
+            furi_thread_yield();
         }
 
         close(udp);
