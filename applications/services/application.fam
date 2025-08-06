@@ -45,6 +45,7 @@ App(
     provides=[
         "cli",
         "input",
+        "wifi",
     ],
     targets=["f64"],
 )
@@ -55,7 +56,7 @@ App(
     apptype=FlipperAppType.METAPACKAGE,
     provides=[
         # "intercom",  # Enabled in default fw config
-        "wifi",
+        #"wifi",
         "status_lights",
         "cli_intercom",
     ],
