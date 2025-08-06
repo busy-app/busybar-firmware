@@ -185,7 +185,7 @@ static int32_t ble_per_cli_worker_thread(void* context) {
                 } else if(data[i] != '\n' && data[i] != 0x1B) {
                     furi_string_push_back(instance->rx_msg, data[i]);
                 } else {
-                    //FURI_LOG_I(TAG, "Parsed args: %s", furi_string_get_cstr(instance->rx_msg));
+                    FURI_LOG_I(TAG, "Parsed args: %s", furi_string_get_cstr(instance->rx_msg));
                     if(ble_per_cli_parse_msg(instance->rx_msg, " ")) {
                         ble_per_test_update(
                             instance->app_handle,

@@ -942,6 +942,7 @@ static int32_t ble_per_test_app_thread_callback(void* context) {
     FuriString* msg = furi_string_alloc();
     while(!instance->exit) {
         rsi_bt_per_stats(BT_PER_STATS_CMD_ID, &instance->per_stats);
+
         if(instance->state == BLEPerTestStateTx) {
             furi_string_printf(
                 msg,
