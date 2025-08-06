@@ -4,7 +4,7 @@
 #include <furi_hal_crypto.h>
 #include <cli/cli_ansi.h>
 
-#define TAG "ECDSA"
+#define TAG "CryptoECDSA"
 
 #define INPUT_MSG_SIZE 32
 static const uint8_t input_data[INPUT_MSG_SIZE] = {0x24, 0x8d, 0x6a, 0x61, 0xd2, 0x06, 0x38, 0xb8,

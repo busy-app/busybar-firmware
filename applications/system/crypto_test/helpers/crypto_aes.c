@@ -4,7 +4,7 @@
 #include <furi_hal_crypto.h>
 #include <cli/cli_ansi.h>
 
-#define TAG "Crypto_AES"
+#define TAG "CryptoAES"
 
 #define BUFFER_SIZE 128
 

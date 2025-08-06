@@ -1,6 +1,7 @@
 #include "http_api.h"
 #include <version.h>
 #include <json_helper.h>
+#include <usb_network/usb_network.h>
 
 #define TAG "HttpApi"
 
@@ -125,8 +126,11 @@ static bool http_api_is_access_allowed(
     ApiRootCtx* context,
     struct mg_connection* conn,
     struct mg_http_message* msg) {
-    int is_ip_allowed = mg_check_ip_acl(mg_str("+0.0.0.0/0,-127.0.0.1"), &conn->rem);
-    if(is_ip_allowed == 0) {
+    UsbNetwork* usb_network = furi_record_open(RECORD_USB_NETWORK);
+    bool is_usb_addr = usb_network_is_dhcp_addr(usb_network, conn->rem.ip);
+    furi_record_close(RECORD_USB_NETWORK);
+
+    if(!is_usb_addr) {
         if(context->access_mode == ApiAccessEnabled) {
             return true;
         } else if(context->access_mode == ApiAccessKeyRequired) {
@@ -139,9 +143,8 @@ static bool http_api_is_access_allowed(
                 }
             }
         }
-        return false;
     }
-    return (is_ip_allowed == 1);
+    return is_usb_addr;
 }
 
 static bool http_api_is_version_allowed(struct mg_connection* conn, struct mg_http_message* msg) {
