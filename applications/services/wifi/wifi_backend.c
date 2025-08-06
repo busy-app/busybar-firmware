@@ -368,6 +368,7 @@ static Wifi* wifi_alloc(void) {
     instance->event_loop = furi_event_loop_alloc();
     instance->event_pubsub = furi_pubsub_alloc();
     instance->intercom = furi_record_open(RECORD_INTERCOM);
+    instance->tcpip_lock = furi_semaphore_alloc(1, 0);
 
     furi_event_loop_set_custom_event_callback(
         instance->event_loop, wifi_custom_event_callback, instance);
@@ -379,7 +380,7 @@ static Wifi* wifi_alloc(void) {
 
     sl_wifi_set_scan_callback(wifi_scan_callback, instance);
 
-    wifi_net_lwip_init(instance);
+    wifi_net_tcpip_init(instance);
 
     furi_record_create(RECORD_WIFI, instance->event_pubsub);
 

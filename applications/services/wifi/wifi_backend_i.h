@@ -13,10 +13,11 @@ struct Wifi {
     FuriEventLoop* event_loop;
     FuriPubSub* event_pubsub;
     Intercom* intercom;
+    FuriSemaphore* tcpip_lock;
     struct netif netif;
     WifiRequest request;
     WifiResponse response;
     WifiState state;
 };
 
-void wifi_net_lwip_init(Wifi* instance);
+void wifi_net_tcpip_init(Wifi* instance);

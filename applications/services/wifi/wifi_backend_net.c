@@ -20,9 +20,24 @@
 
 static Wifi* instance;
 
+// Tcpip thread synchronisation
+
+static void wifi_net_tcpip_unlock(void) {
+    furi_check(furi_semaphore_release(instance->tcpip_lock) == FuriStatusOk);
+}
+
+static void wifi_net_tcpip_wait_unlock(void) {
+    furi_check(furi_semaphore_acquire(instance->tcpip_lock, FuriWaitForever) == FuriStatusOk);
+}
+
+static void wifi_net_tcpip_callback(tcpip_callback_fn callback, void* context) {
+    tcpip_callback(callback, context);
+    wifi_net_tcpip_wait_unlock();
+}
+
 // Hosted Lwip stack
 
-static err_t wifi_net_lwip_output_callback(struct netif* netif, struct pbuf* p) {
+static err_t wifi_net_tcpip_output_callback(struct netif* netif, struct pbuf* p) {
     UNUSED(netif);
 
     const sl_status_t status =
@@ -31,14 +46,14 @@ static err_t wifi_net_lwip_output_callback(struct netif* netif, struct pbuf* p) 
     return status != SL_STATUS_OK ? ERR_IF : ERR_OK;
 }
 
-static err_t wifi_net_lwip_netif_init_callback(struct netif* netif) {
+static err_t wifi_net_tcpip_netif_init_callback(struct netif* netif) {
     furi_assert(netif);
 
     netif->name[0] = 'W';
     netif->name[1] = 'L';
 
     netif->output_ip6 = ethip6_output;
-    netif->linkoutput = wifi_net_lwip_output_callback;
+    netif->linkoutput = wifi_net_tcpip_output_callback;
 
     netif->mtu = MAX_TRANSFER_UNIT;
     netif->flags = NETIF_FLAG_BROADCAST | NETIF_FLAG_ETHARP | NETIF_FLAG_IGMP | NETIF_FLAG_MLD6;
@@ -46,7 +61,7 @@ static err_t wifi_net_lwip_netif_init_callback(struct netif* netif) {
     return ERR_OK;
 }
 
-static void wifi_net_lwip_input(const uint8_t* data, uint16_t data_len) {
+static void wifi_net_tcpip_input(const uint8_t* data, uint16_t data_len) {
     furi_check(instance);
 
     struct netif* netif = &instance->netif;
@@ -87,42 +102,62 @@ static void wifi_net_intercom_input(const uint8_t* data, uint16_t data_len) {
     furi_check(tx_size == data_len);
 }
 
-static void wifi_net_lwip_netif_up(void) {
+static void wifi_net_tcpip_netif_up_callback(void* context) {
+    furi_assert(context);
+
+    const sl_mac_address_t* mac_addr = context;
     struct netif* netif = &instance->netif;
 
-    sl_mac_address_t mac_addr;
-    furi_check(sl_wifi_get_mac_address(SL_WIFI_CLIENT_INTERFACE, &mac_addr) == SL_STATUS_OK);
-
     netif->hwaddr_len = ETH_HWADDR_LEN;
-    memcpy(netif->hwaddr, mac_addr.octet, ETH_HWADDR_LEN);
+    memcpy(netif->hwaddr, mac_addr, ETH_HWADDR_LEN);
 
     netif_set_up(netif);
     netif_set_link_up(netif);
+
     netif_set_ip6_autoconfig_enabled(netif, 1);
     netif_create_ip6_linklocal_address(netif, 1);
 
-    FURI_LOG_I(TAG, "IPv6 address: %s", ip6addr_ntoa(&netif->ip6_addr[0]));
+    FURI_LOG_I(TAG, "IPv6 link-local addr: %s", ip6addr_ntoa(&netif->ip6_addr[0]));
+
+    wifi_net_tcpip_unlock();
 }
 
-static void wifi_net_lwip_netif_down(void) {
+static void wifi_net_tcpip_netif_down_callback(void* context) {
+    UNUSED(context);
+
     struct netif* netif = &instance->netif;
 
     netif_set_link_down(netif);
     netif_set_down(netif);
+
+    wifi_net_tcpip_unlock();
+}
+
+static void wifi_net_tcpip_init_callback(void* context) {
+    UNUSED(context);
+    wifi_net_tcpip_unlock();
+}
+
+static void wifi_net_tcpip_add_netif_callback(void* context) {
+    UNUSED(context);
+
+    struct netif* netif = &instance->netif;
+    netif_add(netif, NULL, wifi_net_tcpip_netif_init_callback, tcpip_input);
+    netif_set_default(netif);
+
+    wifi_net_tcpip_unlock();
 }
 
 // Private API
 
-void wifi_net_lwip_init(Wifi* wifi) {
+void wifi_net_tcpip_init(Wifi* wifi) {
     // TODO: Is it possible to store the instance not in a global variable?
     instance = wifi;
 
-    tcpip_init(NULL, NULL);
+    tcpip_init(wifi_net_tcpip_init_callback, NULL);
+    wifi_net_tcpip_wait_unlock();
 
-    struct netif* netif = &instance->netif;
-
-    netif_add(netif, NULL, wifi_net_lwip_netif_init_callback, tcpip_input);
-    netif_set_default(netif);
+    wifi_net_tcpip_callback(wifi_net_tcpip_add_netif_callback, NULL);
 }
 
 // Public API
@@ -195,7 +230,13 @@ sl_status_t sl_net_wifi_client_up(sl_net_interface_t interface, sl_net_profile_i
             break;
         }
 
-        wifi_net_lwip_netif_up();
+        sl_mac_address_t mac_addr;
+        status = sl_wifi_get_mac_address(SL_WIFI_CLIENT_INTERFACE, &mac_addr);
+        if(status != SL_STATUS_OK) {
+            break;
+        }
+
+        wifi_net_tcpip_callback(wifi_net_tcpip_netif_up_callback, &mac_addr);
 
     } while(false);
 
@@ -206,7 +247,8 @@ sl_status_t sl_net_wifi_client_down(sl_net_interface_t interface) {
     furi_check(instance);
     UNUSED(interface);
 
-    wifi_net_lwip_netif_down();
+    wifi_net_tcpip_callback(wifi_net_tcpip_netif_down_callback, NULL);
+
     return sl_wifi_disconnect(SL_WIFI_CLIENT_INTERFACE);
 }
 
@@ -222,7 +264,7 @@ sl_status_t
     const uint16_t ethertype = *((const uint16_t*)&data[12]);
 
     if(ethertype == ETHERTYPE_IPV6) {
-        wifi_net_lwip_input(data, data_len);
+        wifi_net_tcpip_input(data, data_len);
     } else {
         wifi_net_intercom_input(data, data_len);
     }
