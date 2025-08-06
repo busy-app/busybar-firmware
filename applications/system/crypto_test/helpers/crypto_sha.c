@@ -4,7 +4,7 @@
 #include <furi_hal_crypto.h>
 #include <cli/cli_ansi.h>
 
-#define TAG "SHA"
+#define TAG "CryptoSHA"
 
 static const uint8_t message[] =
     "abcdefghbcdefghicdefghijdefghijkefghijklfghijklmghijklmnhijklmnoijklmnopjklmnopqklmnopqrlmnopqrsmnopqrstnopqrstu";
