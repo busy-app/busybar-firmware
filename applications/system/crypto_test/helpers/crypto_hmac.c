@@ -4,7 +4,7 @@
 #include <furi_hal_crypto.h>
 #include <cli/cli_ansi.h>
 
-#define TAG "HMAC"
+#define TAG "CryptoHMAC"
 
 static const uint8_t key_hmac[] = {0xaa, 0xaa, 0xaa, 0xaa, 0xaa, 0xaa, 0xaa, 0xaa, 0xaa, 0xaa,
                                    0xaa, 0xaa, 0xaa, 0xaa, 0xaa, 0xaa, 0xaa, 0xaa, 0xaa, 0xaa,
@@ -47,8 +47,8 @@ void crypto_hmac_check(
     const uint8_t* digest,
     const uint8_t* digest_out,
     size_t digest_length) {
-    crypto_common_print_buffer_hex("Message =\t\t", (uint8_t*)message, sizeof(message));
-    crypto_common_print_buffer_hex("Digest =\t\t", digest, digest_length);
+    crypto_common_print_buffer_hex("Message =\t", (uint8_t*)message, sizeof(message));
+    crypto_common_print_buffer_hex("Digest =\t", digest, digest_length);
     crypto_common_print_buffer_hex("Expected =\t", digest_out, digest_length);
     if(memcmp(digest, digest_out, digest_length) != 0) {
         printf(ANSI_FG_RED "%s mode failed" ANSI_RESET "\r\n", tag);
