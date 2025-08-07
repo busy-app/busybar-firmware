@@ -36,8 +36,8 @@ _flash_size = 0x1fe000;
 
 MEMORY {
     FLASH (rx)  : ORIGIN = _flash_address_start, LENGTH = _flash_size
-    RAM   (rwx) : ORIGIN = 0x000000c, LENGTH = 0x3fbf4
-    UDMA0 (rwx) : ORIGIN = 0x003fc00, LENGTH = 0x400
+    RAM   (rwx) : ORIGIN = 0x000000c, LENGTH = 0x4fbf4
+    UDMA0 (rwx) : ORIGIN = 0x004fc00, LENGTH = 0x400
 }
 
 SECTIONS {
