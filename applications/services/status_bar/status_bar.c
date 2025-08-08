@@ -142,8 +142,8 @@ static StatusBar* status_bar_alloc(void) {
         FlexLayout* status_bar = flex_layout_alloc(root, FlexLayoutTypeColumn);
         widget_set_align(flex_layout_get_base(status_bar), AlignRightMid);
         widget_set_width(flex_layout_get_base(status_bar), BACK_STATUS_BAR_WIDTH);
-        widget_set_padding(flex_layout_get_base(status_bar), 0, 0, 4, 1);
-        flex_layout_set_spacing(status_bar, 4);
+        widget_set_padding(flex_layout_get_base(status_bar), 0, 0, 2, 1);
+        flex_layout_set_spacing(status_bar, 3);
         flex_layout_set_align(
             status_bar, FlexLayoutAlignStart, FlexLayoutAlignCenter, FlexLayoutAlignCenter);
 
