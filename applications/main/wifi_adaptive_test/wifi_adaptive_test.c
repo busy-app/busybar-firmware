@@ -3,6 +3,8 @@
 
 #include <gui/gui.h>
 #include <gui/modules/label.h>
+#include <gui/modules/image.h>
+#include <storage/storage.h>
 #include <gui/modules/flex_layout.h>
 #include <gui/modules/var_item_list.h>
 
@@ -10,6 +12,8 @@
 #include <usb_network/usb_network.h>
 
 #define TAG "WifiAdaptiveTest"
+
+#define IMAGE_FRONT_PATH EXT_PATH("apps_assets/busy/images/header_busy_39x16.bin")
 
 #define SEND_ADDR_HOST_PART (50)
 #define UDP_SEND_SIZE       (977U) // Limited by Intercom
@@ -28,6 +32,7 @@ typedef struct {
     WifiIpv4 local_addr;
     WifiIpv4 remote_addr;
     bool stop_worker;
+    Image* image_front;
 } WifiAdaptiveTest;
 
 static bool wifi_adaptive_test_input_callback(const InputEvent* event, void* context) {
@@ -127,6 +132,13 @@ static WifiAdaptiveTest* wifi_adaptive_test_alloc(void) {
         label_set_text(instance->label, "Waiting for Wifi ...");
 
         widget_set_align(label_get_base(instance->label), AlignCenter);
+
+        // GuiDisplayIdFront
+        Widget* root_front = gui_layer_get_root_widget(main_layer, GuiDisplayIdFront);
+        instance->image_front = image_alloc(root_front);
+        image_set_source(instance->image_front, IMAGE_FRONT_PATH);
+        widget_set_align(image_get_base(instance->image_front), AlignCenter);
+
     });
 
     FuriString* message = furi_string_alloc();
@@ -185,6 +197,7 @@ static void wifi_adaptive_test_free(WifiAdaptiveTest* instance) {
         GuiLayer* main_layer = gui_get_layer(instance->gui, GuiLayerIdMain);
         gui_layer_remove_input_callback(main_layer, wifi_adaptive_test_input_callback);
         label_free(instance->label);
+        image_free(instance->image_front);
     });
 
     furi_event_loop_free(instance->event_loop);
