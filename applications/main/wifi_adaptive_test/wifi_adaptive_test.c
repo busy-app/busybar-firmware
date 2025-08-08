@@ -138,7 +138,6 @@ static WifiAdaptiveTest* wifi_adaptive_test_alloc(void) {
         instance->image_front = image_alloc(root_front);
         image_set_source(instance->image_front, IMAGE_FRONT_PATH);
         widget_set_align(image_get_base(instance->image_front), AlignCenter);
-
     });
 
     FuriString* message = furi_string_alloc();
