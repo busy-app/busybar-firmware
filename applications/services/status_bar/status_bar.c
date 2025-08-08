@@ -142,30 +142,23 @@ static StatusBar* status_bar_alloc(void) {
         FlexLayout* status_bar = flex_layout_alloc(root, FlexLayoutTypeColumn);
         widget_set_align(flex_layout_get_base(status_bar), AlignRightMid);
         widget_set_width(flex_layout_get_base(status_bar), BACK_STATUS_BAR_WIDTH);
-        widget_set_padding(flex_layout_get_base(status_bar), 0, 0, 2, 1);
+        widget_set_padding(flex_layout_get_base(status_bar), 0, 0, 4, 1);
+        flex_layout_set_spacing(status_bar, 4);
         flex_layout_set_align(
             status_bar, FlexLayoutAlignStart, FlexLayoutAlignCenter, FlexLayoutAlignCenter);
 
         instance->ble_status_indicator =
             ble_status_indicator_alloc(flex_layout_get_base(status_bar));
-        widget_set_margin(
-            ble_status_indicator_get_base(instance->ble_status_indicator), 0, 0, 2, 2);
 
         instance->wifi_status_indicator =
             wifi_status_indicator_alloc(flex_layout_get_base(status_bar));
-        widget_set_margin(
-            wifi_status_indicator_get_base(instance->wifi_status_indicator), 0, 0, 2, 2);
 
         instance->audio_status_indicator =
             audio_status_indicator_alloc(flex_layout_get_base(status_bar));
-        widget_set_margin(
-            audio_status_indicator_get_base(instance->audio_status_indicator), 0, 0, 2, 2);
         audio_status_indicator_set_volume(instance->audio_status_indicator, audio_volume);
 
         instance->usb_status_indicator =
             usb_status_indicator_alloc(flex_layout_get_base(status_bar));
-        widget_set_margin(
-            usb_status_indicator_get_base(instance->usb_status_indicator), 0, 0, 2, 2);
         usb_status_indicator_set_connection_state(
             instance->usb_status_indicator, is_usb_connected);
 
