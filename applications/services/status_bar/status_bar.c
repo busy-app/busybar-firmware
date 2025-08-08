@@ -171,9 +171,8 @@ static StatusBar* status_bar_alloc(void) {
 
         instance->battery_status_indicator =
             battery_status_indicator_alloc(flex_layout_get_base(status_bar));
-        widget_add_flag(
-            battery_status_indicator_get_base(instance->battery_status_indicator),
-            LV_OBJ_FLAG_IGNORE_LAYOUT);
+        widget_set_ignore_layout(
+            battery_status_indicator_get_base(instance->battery_status_indicator), true);
         widget_set_align(
             battery_status_indicator_get_base(instance->battery_status_indicator), AlignBottomMid);
         battery_status_indicator_set_error_state(instance->battery_status_indicator, false);
