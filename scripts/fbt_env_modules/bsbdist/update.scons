@@ -1,0 +1,140 @@
+Import("U5_ENV", "SIL_ENV", "DIST_ENV")
+
+dist_env = DIST_ENV
+u5_env = U5_ENV
+sil_env = SIL_ENV
+
+update_tar = dist_env.Command(
+    u5_env["FW_ENV"].File("${BUILD_DIR}/update_${F_TARGET_HW}.tar"),
+    None,
+    [
+        [
+            "$PYTHON",
+            dist_env.Real("#scripts/update_bundle.py"),
+            "--target",
+            u5_env.subst("$TARGET_HW"),
+            "--output-tar",
+            "$TARGET",
+            "--stage",
+            u5_env["UPD_ENV"]["FW_BIN"][0],
+            "--dfu",
+            u5_env["FW_ENV"]["FW_DFU"][0],
+            "--resources",
+            u5_env["FW_ENV"]["RESOURCES_ROOT"],
+            "--sil-fw",
+            sil_env["FW_ENV"]["FW_RPS"][0],
+            "--sil-radio-fw",
+            dist_env.Real(sil_env["SI917_NWP_STACK"]),  # FIXME
+        ]
+    ],
+)
+
+Depends(
+    update_tar,
+    [
+        u5_env["UPD_ENV"]["FW_BIN"],
+        u5_env["FW_ENV"]["FW_DFU"],
+        u5_env["FW_ENV"]["FW_RESOURCES_MANIFEST"],
+        sil_env["FW_ENV"]["FW_RPS"],
+    ],
+)
+
+dist_flavor = "".join(
+    ["C" if u5_env["COMPACT"] else "", "D" if u5_env["DEBUG"] else ""]
+)
+
+dist_dir_path = "${PROJECT_ROOT}/dist/${F_TARGET_HW}"
+if dist_flavor:
+    dist_dir_path += f"-{dist_flavor}"
+
+dist_dir = u5_env.Dir(dist_dir_path)
+
+installs = []
+installs.extend(
+    (
+        InstallAs(
+            dist_dir.File(
+                u5_env.subst("busybar-${F_TARGET_HW}-update-${DIST_SUFFIX}.tar")
+            ),
+            update_tar,
+        ),
+        # U5 firmware artifacts
+        InstallAs(
+            dist_dir.File(
+                u5_env.subst("busybar-${F_TARGET_HW}-firmware-${DIST_SUFFIX}.elf")
+            ),
+            u5_env["FW_ENV"]["FW_ELF"][0],
+        ),
+        InstallAs(
+            dist_dir.File(
+                u5_env.subst("busybar-${F_TARGET_HW}-firmware-${DIST_SUFFIX}.dfu")
+            ),
+            u5_env["FW_ENV"]["FW_DFU"][0],
+        ),
+        InstallAs(
+            dist_dir.File(
+                u5_env.subst("busybar-${F_TARGET_HW}-firmware-${DIST_SUFFIX}.bin")
+            ),
+            u5_env["FW_ENV"]["FW_BIN"][0],
+        ),
+        # Updater artifacts
+        InstallAs(
+            dist_dir.File(
+                u5_env.subst("busybar-${F_TARGET_HW}-updater-${DIST_SUFFIX}.elf")
+            ),
+            u5_env["UPD_ENV"]["FW_ELF"][0],
+        ),
+        InstallAs(
+            dist_dir.File(
+                u5_env.subst("busybar-${F_TARGET_HW}-updater-${DIST_SUFFIX}.dfu")
+            ),
+            u5_env["UPD_ENV"]["FW_DFU"][0],
+        ),
+        InstallAs(
+            dist_dir.File(
+                u5_env.subst("busybar-${F_TARGET_HW}-updater-${DIST_SUFFIX}.bin")
+            ),
+            u5_env["UPD_ENV"]["FW_BIN"][0],
+        ),
+        # Silabs artifacts
+        InstallAs(
+            dist_dir.File(
+                u5_env.subst("busybar-${F_TARGET_HW}-sil_firmware-${DIST_SUFFIX}.rps")
+            ),
+            sil_env["FW_ENV"]["FW_RPS"][0],
+        ),
+        InstallAs(
+            dist_dir.File(
+                u5_env.subst("busybar-${F_TARGET_HW}-sil_firmware-${DIST_SUFFIX}.elf")
+            ),
+            sil_env["FW_ENV"]["FW_ELF"][0],
+        ),
+        InstallAs(
+            dist_dir.File(
+                u5_env.subst("busybar-${F_TARGET_HW}-sil_nwp-${DIST_SUFFIX}.elf")
+            ),
+            sil_env["FW_ENV"]["SI917_NWP_STACK"],
+        ),
+    )
+)
+
+zip_env = dist_env.Clone(tools=["zip"])
+installs.append(
+    zip_env.Zip(
+        dist_dir.File(
+            u5_env.subst("busybar-${F_TARGET_HW}-resources-${DIST_SUFFIX}.zip")
+        ),
+        u5_env["FW_ENV"]["RESOURCES_ROOT"],
+        ZIPROOT=u5_env["FW_ENV"]["RESOURCES_ROOT"],
+    )
+)
+
+
+Default(installs)
+
+dist_env.Alias(
+    "update_bundle",
+    update_tar,
+)
+
+dist_env.Alias("dist", installs)

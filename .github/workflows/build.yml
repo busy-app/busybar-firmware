@@ -14,6 +14,10 @@ env:
 jobs:
   main:
     runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        u5_target: [20, 21]
     steps:
       - name: 'Checkout code'
         uses: actions/checkout@v4
@@ -34,40 +38,39 @@ jobs:
             TYPE="pull"
           elif [[ "${{ github.ref }}" == "refs/tags/"* ]]; then
             TYPE="tag"
-            BUILD_TYPE='DEBUG=0 COMPACT=1'
+            # BUILD_TYPE='DEBUG=0 COMPACT=1' # TODO: To be enabled later
           else
             TYPE="other"
           fi
-          echo "FBT_BUILD_TYPE=${BUILD_TYPE}" >> $GITHUB_ENV
+          python3 scripts/get_env.py "--event_file=${{ github.event_path }}" "--type=$TYPE" || cat "${{ github.event_path }}"
+          echo "event_type=$TYPE" >> $GITHUB_OUTPUT
+          echo "FBT_BUILD_TYPE=$BUILD_TYPE" >> $GITHUB_ENV
+          echo "U5_TARGET_HW=$(echo "${{ matrix.u5_target }}" | sed 's/f//')" >> $GITHUB_ENV
 
-      - name: 'Setup build environment'
-        id: setup-env
-        run: |
-          echo "BSB_HARDWARE=20" >> $GITHUB_ENV
-          echo "BSB_SIL_HARDWARE=64" >> $GITHUB_ENV
-          echo "SIL_RADIO_FW_BIN=standard/SiWG917-B.2.13.4.1.0.4.rps" >> $GITHUB_ENV
-
-      - name: 'Build the firmware'
+      - name: 'Build update package (unsigned)'
         id: build-fw
         run: |
           source ./scripts/toolchain/fbtenv.sh
           export FBT_GIT_SUBMODULE_SHALLOW=1
-          bash ./fbt TARGET_HW=${BSB_HARDWARE} $FBT_BUILD_TYPE firmware_dfu updater_bin resources
-          bash ./fbt TARGET_HW=${BSB_SIL_HARDWARE} $FBT_BUILD_TYPE firmware_rps
-
-      - name: 'Build update package (unsigned)'
-        id: build-update
-        run: |
-          source ./scripts/toolchain/fbtenv.sh
-          ./scripts/update_bundle.py \
-            --target ${BSB_HARDWARE} \
-            --output-tar upd_bundle.tar \
-            --stage fbt_layers/fbtng/build/f${BSB_HARDWARE}-updater-D/updater.bin \
-            --dfu fbt_layers/fbtng/build/f${BSB_HARDWARE}-firmware-D/firmware.dfu \
-            --sil-fw fbt_layers/fbtng/build/f${BSB_SIL_HARDWARE}-firmware-D/firmware.rps \
-            --resources fbt_layers/fbtng/build/f${BSB_HARDWARE}-firmware-D/resources \
-            --sil-radio-fw ./lib/wiseconnect/connectivity_firmware/${SIL_RADIO_FW_BIN}
+          bash ./fbt U5_TARGET_HW=${U5_TARGET_HW} $FBT_BUILD_TYPE dist
 
       - name: 'Check for uncommitted changes'
         run: |
           git diff --exit-code
+
+      - name: 'Copy build artifacts'
+        run: |
+          rm -rf artifacts
+          mkdir -p artifacts
+          cp -v dist/f${U5_TARGET_HW}-*/* artifacts/
+
+      - name: 'Upload build artifacts'
+        if: ${{ !github.event.pull_request.head.repo.fork }}
+        id: build-update
+        run: |
+          FILES=$(for ARTIFACT in $(find artifacts -maxdepth 1 -not -type d); do echo "-F files=@${ARTIFACT}"; done)
+          echo curl --fail -L -H "Token: ${{ secrets.INDEXER_TOKEN }}" \
+              -F "branch=${BRANCH_NAME}" \
+              -F "version_token=${COMMIT_SHA}" \
+              ${FILES[@]} \
+              "${{ secrets.INDEXER_URL }}"/busybar-firmware/uploadfiles
