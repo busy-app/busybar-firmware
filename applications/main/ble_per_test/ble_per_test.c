@@ -5,9 +5,13 @@
 #include <gui/gui.h>
 #include <gui/modules/var_item_list.h>
 #include <gui/modules/label.h>
+#include <gui/modules/image.h>
+#include <storage/storage.h>
 #include "helpers/ble_per_cli.h"
 
 #define TAG "BlePerTest"
+
+#define IMAGE_FRONT_PATH EXT_PATH("apps_assets/busy/images/header_busy_39x16.bin")
 
 typedef enum {
     BlePerTestCustomEventExit = (1UL << 0),
@@ -31,6 +35,7 @@ struct BlePerTest {
     Label* label;
     BlePerCliSettings settings;
     BLEPerTestState test_state;
+    Image* image_front;
 };
 
 static const char* ble_per_test_mode_text[] = {
@@ -299,6 +304,12 @@ static BlePerTest* ble_per_test_alloc(void) {
         label_set_text(instance->label, "BlePerTest");
         widget_set_pos(label_get_base(instance->label), 10, 0);
 
+        // GuiDisplayIdFront
+        Widget* root_front = gui_layer_get_root_widget(main_layer, GuiDisplayIdFront);
+        instance->image_front = image_alloc(root_front);
+        image_set_source(instance->image_front, IMAGE_FRONT_PATH);
+        widget_set_align(image_get_base(instance->image_front), AlignCenter);
+
         VarItem* item;
         item = var_item_list_add_selector_key_value(
             instance->var_list,
@@ -393,6 +404,7 @@ static void ble_per_test_free(BlePerTest* instance) {
         label_free(instance->label);
         label_free(instance->label_status);
         var_item_list_free(instance->var_list);
+        image_free(instance->image_front);
     });
 
     furi_record_close(RECORD_GUI);

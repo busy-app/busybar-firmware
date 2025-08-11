@@ -212,6 +212,17 @@ static void usb_network_init_netif(void* arg) {
 #endif
 }
 
+bool usb_network_is_dhcp_addr(UsbNetwork* usb_network, uint8_t* addr) {
+    furi_assert(usb_network);
+    furi_assert(addr);
+    for(uint8_t i = 0; i < DHCP_ENTRIES_MAX; i++) {
+        if(memcmp(&usb_network->dhcp_entries[i].addr.addr, addr, 4) == 0) {
+            return true;
+        }
+    }
+    return false;
+}
+
 void usb_network_thread_init(UsbNetwork* usb_network) {
     UNUSED(usb_network);
     netconn_thread_init();

@@ -143,37 +143,29 @@ static StatusBar* status_bar_alloc(void) {
         widget_set_align(flex_layout_get_base(status_bar), AlignRightMid);
         widget_set_width(flex_layout_get_base(status_bar), BACK_STATUS_BAR_WIDTH);
         widget_set_padding(flex_layout_get_base(status_bar), 0, 0, 2, 1);
+        flex_layout_set_spacing(status_bar, 3);
         flex_layout_set_align(
             status_bar, FlexLayoutAlignStart, FlexLayoutAlignCenter, FlexLayoutAlignCenter);
 
         instance->ble_status_indicator =
             ble_status_indicator_alloc(flex_layout_get_base(status_bar));
-        widget_set_margin(
-            ble_status_indicator_get_base(instance->ble_status_indicator), 0, 0, 2, 2);
 
         instance->wifi_status_indicator =
             wifi_status_indicator_alloc(flex_layout_get_base(status_bar));
-        widget_set_margin(
-            wifi_status_indicator_get_base(instance->wifi_status_indicator), 0, 0, 2, 2);
 
         instance->audio_status_indicator =
             audio_status_indicator_alloc(flex_layout_get_base(status_bar));
-        widget_set_margin(
-            audio_status_indicator_get_base(instance->audio_status_indicator), 0, 0, 2, 2);
         audio_status_indicator_set_volume(instance->audio_status_indicator, audio_volume);
 
         instance->usb_status_indicator =
             usb_status_indicator_alloc(flex_layout_get_base(status_bar));
-        widget_set_margin(
-            usb_status_indicator_get_base(instance->usb_status_indicator), 0, 0, 2, 2);
         usb_status_indicator_set_connection_state(
             instance->usb_status_indicator, is_usb_connected);
 
         instance->battery_status_indicator =
             battery_status_indicator_alloc(flex_layout_get_base(status_bar));
-        widget_add_flag(
-            battery_status_indicator_get_base(instance->battery_status_indicator),
-            LV_OBJ_FLAG_IGNORE_LAYOUT);
+        widget_set_ignore_layout(
+            battery_status_indicator_get_base(instance->battery_status_indicator), true);
         widget_set_align(
             battery_status_indicator_get_base(instance->battery_status_indicator), AlignBottomMid);
         battery_status_indicator_set_error_state(instance->battery_status_indicator, false);

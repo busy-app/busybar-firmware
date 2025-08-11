@@ -2,4 +2,4 @@
 #include <furi.h>
 #include <cli/cli_command.h>
 
-void crypto_aes_command(PipeSide* pipe, FuriString* args, void* context);
+void crypto_mbedtls_edsa_command(PipeSide* pipe, FuriString* args, void* context);
