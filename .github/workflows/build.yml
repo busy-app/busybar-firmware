@@ -72,7 +72,7 @@ jobs:
         id: build-update
         run: |
           FILES=$(for ARTIFACT in $(find artifacts -maxdepth 1 -not -type d); do echo "-F files=@${ARTIFACT}"; done)
-          echo curl --fail -L -H "Token: ${{ secrets.INDEXER_TOKEN }}" \
+          curl --fail -L -H "Token: ${{ secrets.INDEXER_TOKEN }}" \
               -F "branch=${BRANCH_NAME}" \
               -F "version_token=${COMMIT_SHA}" \
               ${FILES[@]} \
