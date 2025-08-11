@@ -10,6 +10,7 @@ on:
 
 env:
   FBT_GIT_SUBMODULE_SHALLOW: 0
+  DEFAULT_TARGET: 21
 
 jobs:
   main:
@@ -28,14 +29,13 @@ jobs:
 
       - name: 'Update submodules'
         run: |
-          git submodule update --init --recursive --jobs=$(nproc) scripts/toolchain lib/lwip lib/matter_ext || cat /home/runner/work/bsb-firmware/bsb-firmware/.git/modules/lib/matter_ext/lfs/logs/*
+          git submodule update --init --recursive --jobs=$(nproc) scripts/toolchain lib/lwip lib/matter_ext fbt_layers/fbtng || cat /home/runner/work/bsb-firmware/bsb-firmware/.git/modules/lib/matter_ext/lfs/logs/*
 
       - name: 'Get commit details'
         id: names
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          git submodule update --init fbt_layers/fbtng
           BUILD_TYPE='DEBUG=1 COMPACT=0'
           if [[ ${{ github.event_name }} == 'pull_request' ]]; then
             TYPE="pull"
@@ -68,7 +68,7 @@ jobs:
           cp -v dist/f${U5_TARGET_HW}-*/* artifacts/
 
       - name: 'Upload build artifacts'
-        if: ${{ !github.event.pull_request.head.repo.fork }}
+        if: ${{ !github.event.pull_request.head.repo.fork && steps.build-fw.outcome == 'success' }} 
         id: build-update
         run: |
           FILES=$(for ARTIFACT in $(find artifacts -maxdepth 1 -not -type d); do echo "-F files=@${ARTIFACT}"; done)
@@ -77,3 +77,32 @@ jobs:
               -F "version_token=${COMMIT_SHA}" \
               ${FILES[@]} \
               "${{ secrets.INDEXER_URL }}"/busybar-firmware/uploadfiles
+
+      - name: Handle u5 map files
+        if: ${{ !github.event.pull_request.head.repo.fork && steps.build-fw.outcome == 'success'  && matrix.u5_target == env.DEFAULT_TARGET}}
+        run: |
+          rm -rf map_analyser_files
+          mkdir -p map_analyser_files
+          mv -v fbt_layers/fbtng/build/f${U5_TARGET_HW}-firmware*/fw_elf/*.elf* map_analyser_files
+          # Remove updater files - not needed for map analysis
+          rm -f fbt_layers/fbtng/build/f${U5_TARGET_HW}-updater*/fw_elf/*.elf*
+          source scripts/toolchain/fbtenv.sh
+          python3 scripts/map_analyse_upload.py \
+              "--elf_file=map_analyser_files/firmware.elf" \
+              "--map_file=map_analyser_files/firmware.elf.map" \
+              "--analyser_url=${{ secrets.U5_ANALYSER_URL }}" \
+              "--analyser_token=${{ secrets.U5_ANALYSER_TOKEN }}";
+
+      - name: Handle silabs map files
+        if: ${{ !github.event.pull_request.head.repo.fork && steps.build-fw.outcome == 'success' && matrix.u5_target == env.DEFAULT_TARGET }}
+        run: |
+          rm -rf map_analyser_files
+          mkdir -p map_analyser_files
+          mv -v fbt_layers/fbtng/build/*/fw_elf/*.elf* map_analyser_files
+          source scripts/toolchain/fbtenv.sh
+          python3 scripts/map_analyse_upload.py \
+              "--elf_file=map_analyser_files/firmware.elf" \
+              "--map_file=map_analyser_files/firmware.elf.map" \
+              "--analyser_url=${{ secrets.SIL_ANALYSER_URL }}" \
+              "--analyser_token=${{ secrets.SIL_ANALYSER_TOKEN }}";
+
