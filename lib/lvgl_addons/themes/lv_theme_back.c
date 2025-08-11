@@ -168,6 +168,10 @@ static void theme_apply_callback(lv_theme_t* th, lv_obj_t* obj) {
         lv_obj_add_style(obj, &theme->styles.menu_icon, LV_PART_MAIN);
         lv_obj_add_style(obj, &theme->styles.inverted, LV_PART_MAIN | LV_STATE_FOCUSED);
 
+    } else if(lv_obj_check_type(obj, &menu_sublabel_lvgl_class)) {
+        lv_obj_add_style(obj, &theme->styles.transparent, LV_PART_MAIN);
+        lv_obj_add_style(obj, &theme->styles.inverted, LV_PART_MAIN | LV_STATE_FOCUSED);
+
     } else if(lv_obj_check_type(obj, &menu_arrow_lvgl_class)) {
         lv_obj_add_style(obj, &theme->styles.menu_arrow, LV_PART_MAIN);
         lv_obj_add_style(obj, &theme->styles.transparent, LV_PART_MAIN);
