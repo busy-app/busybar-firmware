@@ -21,7 +21,7 @@ static void usb_status_indicator_lvgl_constructor(const lv_obj_class_t* class_p,
 
     instance->usb_image = lv_image_create(obj);
     lv_obj_center(instance->usb_image);
-    lv_image_set_src(instance->usb_image, STATUS_BAR_IMG_PATH("usb_8x8.bin"));
+    lv_image_set_src(instance->usb_image, STATUS_BAR_IMG_PATH("usb_8x12.bin"));
 }
 
 /* Public API */

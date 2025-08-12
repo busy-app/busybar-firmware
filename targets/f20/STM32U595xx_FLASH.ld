@@ -168,6 +168,11 @@ SECTIONS
 
   /*  NVM_RAM (NOLOAD)        : { *(NVM_RAM) } >BKPSRAM */
 
+  .free_flash(DSECT) : {
+      __free_flash_start__ = .;
+      . = ORIGIN(FLASH) + LENGTH(FLASH);
+  } >FLASH
+
   /* Remove information from the compiler libraries */
   /*
   /DISCARD/ :
