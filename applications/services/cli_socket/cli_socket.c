@@ -31,10 +31,11 @@ static void cli_socket_init_callback(void* context) {
     struct tcp_pcb* listen_socket = tcp_listen(server_socket);
     tcp_arg(listen_socket, listen_socket);
     tcp_accept(listen_socket, cli_socket_accept_callback);
+
+    FURI_LOG_I(TAG, "Started");
 }
 
 void cli_socket_on_system_start(void) {
     furi_record_open(RECORD_NETWORK);
-    FURI_LOG_I(TAG, "Started");
     tcpip_callback(cli_socket_init_callback, NULL);
 }
