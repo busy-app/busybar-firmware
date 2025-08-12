@@ -188,9 +188,8 @@ static bool ble_per_test_input_callback(const InputEvent* event, void* context) 
                     instance->event_loop, BlePerTestCustomEventStopTest);
             } else {
                 furi_event_loop_set_custom_event(instance->event_loop, BlePerTestCustomEventExit);
+                instance->exit_on_back = true;
             }
-
-            instance->exit_on_back = true;
             consumed = true;
         }
 
@@ -245,7 +244,6 @@ static void ble_per_test_custom_event_callback(uint32_t events, void* context) {
             } else {
                 FURI_LOG_E(TAG, "Init test failed");
                 ble_per_cli_stop();
-                //ble_per_cli_deinit();
                 instance->test_state = BLEPerTestStateStop;
             }
         } else {
