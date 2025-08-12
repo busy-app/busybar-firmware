@@ -185,7 +185,7 @@ static int32_t ble_per_cli_worker_thread(void* context) {
                 } else if(data[i] != '\n' && data[i] != 0x1B) {
                     furi_string_push_back(instance->rx_msg, data[i]);
                 } else {
-                    //FURI_LOG_I(TAG, "Parsed args: %s", furi_string_get_cstr(instance->rx_msg));
+                    FURI_LOG_I(TAG, "Parsed args: %s", furi_string_get_cstr(instance->rx_msg));
                     if(ble_per_cli_parse_msg(instance->rx_msg, " ")) {
                         ble_per_test_update(
                             instance->app_handle,
@@ -254,9 +254,7 @@ static int32_t ble_per_cli_thread_event_loop_callback(void* context) {
     return 0;
 }
 
-bool ble_per_cli_start(BlePerTest* app_handle, BlePerCliSettings settings) {
-    UNUSED(settings);
-
+bool ble_per_cli_init(BlePerTest* app_handle) {
     bool ret = false;
     if(ble_per_cli_instance != NULL) {
         return ret;
@@ -303,51 +301,62 @@ bool ble_per_cli_start(BlePerTest* app_handle, BlePerCliSettings settings) {
     };
 
     if(ble_per_cli_stats[BlePerCliStatsCmdTypeStartApp].value) {
-        //set settings
-        furi_string_printf(
-            msg, "%s %d\r\n", ble_per_cli_cmd[BlePerCliCmdTypeSetChannel].cmd, settings.channel);
-        furi_string_cat_printf(
-            msg, "%s %d\r\n", ble_per_cli_cmd[BlePerCliCmdTypeSetPhyRate].cmd, settings.rate);
-        furi_string_cat_printf(
-            msg,
-            "%s %d\r\n",
-            ble_per_cli_cmd[BlePerCliCmdTypeSetPayloadLen].cmd,
-            settings.payload_len);
-        furi_string_cat_printf(
-            msg,
-            "%s %d\r\n",
-            ble_per_cli_cmd[BlePerCliCmdTypeSetPayloadType].cmd,
-            settings.payload_type);
-        furi_string_cat_printf(
-            msg, "%s %d\r\n", ble_per_cli_cmd[BlePerCliCmdTypeSetMode].cmd, settings.mode_work);
-        furi_string_cat_printf(
-            msg, "%s %d\r\n", ble_per_cli_cmd[BlePerCliCmdTypeSetHopping].cmd, settings.hopping);
-        furi_string_cat_printf(
-            msg, "%s %d\r\n", ble_per_cli_cmd[BlePerCliCmdTypeSetTxPower].cmd, settings.tx_power);
-
-        if(settings.mode == BLEPerCliSettingsModeTx) {
-            furi_string_cat_printf(msg, "%s\r\n", ble_per_cli_cmd[BlePerCliCmdTypeModeTx].cmd);
-        } else if(settings.mode == BLEPerCliSettingsModeRx) {
-            furi_string_cat_printf(msg, "%s\r\n", ble_per_cli_cmd[BlePerCliCmdTypeModeRx].cmd);
-        } else {
-            furi_crash("Invalid mode");
-        }
-
-        ble_per_cli_data_tx((uint8_t*)furi_string_get_cstr(msg), furi_string_utf8_length(msg));
-        FURI_LOG_D(TAG, "%s", furi_string_get_cstr(msg));
-
-        ble_per_test_update(
-            app_handle,
-            ble_per_cli_stats[BlePerCliStatsCmdTypeTxDones].value,
-            ble_per_cli_stats[BlePerCliStatsCmdTypeCrcFailCnt].value,
-            ble_per_cli_stats[BlePerCliStatsCmdTypeCrcPassCnt].value,
-            ble_per_cli_stats[BlePerCliStatsCmdTypeRssi].value);
-
         ret = true;
     }
 
     furi_string_free(msg);
     return ret;
+}
+
+void ble_per_cli_start(BlePerCliSettings settings) {
+    if(ble_per_cli_instance == NULL) {
+        return;
+    }
+    FuriString* msg = furi_string_alloc();
+
+    //reset stats
+    for(size_t i = 0; i < BlePerCliStatsCmdMax; i++) {
+        ble_per_cli_stats[i].value = 0;
+    }
+
+    //set settings
+    furi_string_printf(
+        msg, "%s %d\r\n", ble_per_cli_cmd[BlePerCliCmdTypeSetChannel].cmd, settings.channel);
+    furi_string_cat_printf(
+        msg, "%s %d\r\n", ble_per_cli_cmd[BlePerCliCmdTypeSetPhyRate].cmd, settings.rate);
+    furi_string_cat_printf(
+        msg, "%s %d\r\n", ble_per_cli_cmd[BlePerCliCmdTypeSetPayloadLen].cmd, settings.payload_len);
+    furi_string_cat_printf(
+        msg,
+        "%s %d\r\n",
+        ble_per_cli_cmd[BlePerCliCmdTypeSetPayloadType].cmd,
+        settings.payload_type);
+    furi_string_cat_printf(
+        msg, "%s %d\r\n", ble_per_cli_cmd[BlePerCliCmdTypeSetMode].cmd, settings.mode_work);
+    furi_string_cat_printf(
+        msg, "%s %d\r\n", ble_per_cli_cmd[BlePerCliCmdTypeSetHopping].cmd, settings.hopping);
+    furi_string_cat_printf(
+        msg, "%s %d\r\n", ble_per_cli_cmd[BlePerCliCmdTypeSetTxPower].cmd, settings.tx_power);
+
+    if(settings.mode == BLEPerCliSettingsModeTx) {
+        furi_string_cat_printf(msg, "%s\r\n", ble_per_cli_cmd[BlePerCliCmdTypeModeTx].cmd);
+    } else if(settings.mode == BLEPerCliSettingsModeRx) {
+        furi_string_cat_printf(msg, "%s\r\n", ble_per_cli_cmd[BlePerCliCmdTypeModeRx].cmd);
+    } else {
+        furi_crash("Invalid mode");
+    }
+
+    ble_per_cli_data_tx((uint8_t*)furi_string_get_cstr(msg), furi_string_utf8_length(msg));
+    FURI_LOG_D(TAG, "%s", furi_string_get_cstr(msg));
+
+    ble_per_test_update(
+        ble_per_cli_instance->app_handle,
+        ble_per_cli_stats[BlePerCliStatsCmdTypeTxDones].value,
+        ble_per_cli_stats[BlePerCliStatsCmdTypeCrcFailCnt].value,
+        ble_per_cli_stats[BlePerCliStatsCmdTypeCrcPassCnt].value,
+        ble_per_cli_stats[BlePerCliStatsCmdTypeRssi].value);
+
+    furi_string_free(msg);
 }
 
 void ble_per_cli_stop(void) {
@@ -359,8 +368,16 @@ void ble_per_cli_stop(void) {
     furi_string_printf(msg, "%s\r\n", ble_per_cli_cmd[BlePerCliCmdTypeModeTxRxStop].cmd);
     ble_per_cli_data_tx((uint8_t*)furi_string_get_cstr(msg), furi_string_utf8_length(msg));
     FURI_LOG_D(TAG, "%s", furi_string_get_cstr(msg));
-
     furi_delay_ms(500); //wait for the app to stop
+    furi_string_free(msg);
+}
+
+void ble_per_cli_deinit(void) {
+    if(ble_per_cli_instance == NULL) {
+        return;
+    }
+
+    FuriString* msg = furi_string_alloc();
 
     furi_string_printf(msg, "%s\r\n", ble_per_cli_cmd[BlePerCliCmdTypeEndApp].cmd);
     ble_per_cli_data_tx((uint8_t*)furi_string_get_cstr(msg), furi_string_utf8_length(msg));
@@ -379,4 +396,8 @@ void ble_per_cli_stop(void) {
     furi_stream_buffer_free(ble_per_cli_instance->rx_buffer);
     free(ble_per_cli_instance);
     ble_per_cli_instance = NULL;
+}
+
+bool ble_per_cli_is_running(void) {
+    return ble_per_cli_instance != NULL;
 }
