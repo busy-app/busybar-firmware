@@ -8,10 +8,11 @@
 #include <gui/modules/image.h>
 #include <storage/storage.h>
 #include "helpers/ble_per_cli.h"
+#include <power/power_service/power.h>
 
 #define TAG "BlePerTest"
 
-#define IMAGE_FRONT_PATH EXT_PATH("apps_assets/debug/images/LabTestFrontDisplay.bin")
+#define IMAGE_FRONT_PATH EXT_PATH("apps_assets/debug/images/lab_test_front_display_72x16.bin")
 
 typedef enum {
     BlePerTestCustomEventExit = (1UL << 0),
@@ -183,8 +184,13 @@ static bool ble_per_test_input_callback(const InputEvent* event, void* context) 
 
     if(event->type == InputTypeShort) {
         if(event->key == InputKeyBack) {
-            furi_event_loop_set_custom_event(instance->event_loop, BlePerTestCustomEventExit);
-            instance->exit_on_back = true;
+            if(instance->test_state == BLEPerTestStateRunning) {
+                furi_event_loop_set_custom_event(
+                    instance->event_loop, BlePerTestCustomEventStopTest);
+            } else {
+                furi_event_loop_set_custom_event(instance->event_loop, BlePerTestCustomEventExit);
+                instance->exit_on_back = true;
+            }
             consumed = true;
         }
 
@@ -215,10 +221,10 @@ static void ble_per_test_custom_event_callback(uint32_t events, void* context) {
 
     if(events & BlePerTestCustomEventExit) {
         if(instance->exit_on_back) {
-            if(instance->test_state != BLEPerTestStateStop) {
-                FURI_LOG_I(TAG, "Stop test");
+            FURI_LOG_I(TAG, "Exit test");
+            if(ble_per_cli_is_running()) {
                 ble_per_cli_stop();
-                instance->test_state = BLEPerTestStateStop;
+                ble_per_cli_deinit();
             }
             furi_event_loop_stop(instance->event_loop);
         }
@@ -226,17 +232,29 @@ static void ble_per_test_custom_event_callback(uint32_t events, void* context) {
 
     if(events & BlePerTestCustomEventStartTest) {
         furi_check(instance->test_state == BLEPerTestStateLoading);
-        if(ble_per_cli_start(instance, instance->settings)) {
+
+        if(!ble_per_cli_is_running()) {
+            if(ble_per_cli_init(instance)) {
+                FURI_LOG_I(TAG, "Init test");
+                ble_per_cli_start(instance->settings);
+                with_gui(instance->gui, {
+                    widget_set_visible(var_item_list_get_base(instance->var_list), false);
+                    widget_set_visible(label_get_base(instance->label_status), true);
+                });
+                instance->test_state = BLEPerTestStateRunning;
+            } else {
+                FURI_LOG_E(TAG, "Init test failed");
+                ble_per_cli_stop();
+                instance->test_state = BLEPerTestStateStop;
+            }
+        } else {
             FURI_LOG_I(TAG, "Start test");
+            ble_per_cli_start(instance->settings);
             with_gui(instance->gui, {
                 widget_set_visible(var_item_list_get_base(instance->var_list), false);
                 widget_set_visible(label_get_base(instance->label_status), true);
             });
             instance->test_state = BLEPerTestStateRunning;
-        } else {
-            FURI_LOG_E(TAG, "Start test failed");
-            ble_per_cli_stop();
-            instance->test_state = BLEPerTestStateStop;
         }
     }
 
@@ -418,6 +436,11 @@ int32_t ble_per_test_app(void* arg) {
     BlePerTest* instance = ble_per_test_alloc();
     furi_event_loop_run(instance->event_loop);
     ble_per_test_free(instance);
+
+    // TODO fix after 917 NWP survive 2nd core reinit
+    Power* power = furi_record_open(RECORD_POWER);
+    power_reboot(power, PowerRebootNormal);
+    furi_record_close(RECORD_POWER);
 
     return 0;
 }

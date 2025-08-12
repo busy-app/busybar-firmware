@@ -13,7 +13,7 @@
 
 #define TAG "WifiAdaptiveTest"
 
-#define IMAGE_FRONT_PATH EXT_PATH("apps_assets/debug/images/LabTestFrontDisplay.bin")
+#define IMAGE_FRONT_PATH EXT_PATH("apps_assets/debug/images/lab_test_front_display_72x16.bin")
 
 #define SEND_ADDR_HOST_PART (50)
 #define UDP_SEND_SIZE       (977U) // Limited by Intercom

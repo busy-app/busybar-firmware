@@ -11,7 +11,7 @@
 
 #define TAG "WifiPerTest"
 
-#define IMAGE_FRONT_PATH EXT_PATH("apps_assets/debug/images/LabTestFrontDisplay.bin")
+#define IMAGE_FRONT_PATH EXT_PATH("apps_assets/debug/images/lab_test_front_display_72x16.bin")
 
 typedef enum {
     WifiPerTestCustomEventExit = (1UL << 0),
@@ -148,8 +148,13 @@ static bool wifi_per_test_input_callback(const InputEvent* event, void* context)
 
     if(event->type == InputTypeShort) {
         if(event->key == InputKeyBack) {
-            furi_event_loop_set_custom_event(instance->event_loop, WifiPerTestCustomEventExit);
-            instance->exit_on_back = true;
+            if(instance->test_state == WifiPerTestStateRunning) {
+                furi_event_loop_set_custom_event(
+                    instance->event_loop, WifiPerTestCustomEventStopTest);
+            } else {
+                furi_event_loop_set_custom_event(instance->event_loop, WifiPerTestCustomEventExit);
+                instance->exit_on_back = true;
+            }
             consumed = true;
         }
 
