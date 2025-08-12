@@ -1,7 +1,7 @@
 #pragma once
 #include <furi.h>
 #include <mongoose.h>
-#include <usb_network/usb_network.h>
+#include <network/network.h>
 #include <storage/storage.h>
 #include <m-list.h>
 

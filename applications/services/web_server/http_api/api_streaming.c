@@ -37,8 +37,8 @@ typedef enum {
 
 typedef struct {
     struct mg_connection* conn;
+    struct mg_timer* heartbeat_timer;
     GuiDisplayId display_id;
-    FuriTimer* heartbeat_timer;
     StreamClientState state;
     void* context;
 } StreamClientCtx;
@@ -182,14 +182,18 @@ static StreamClientCtx* api_streaming_client_alloc(struct mg_connection* conn) {
     client->display_id = GuiDisplayIdMax;
     client->state = StreamClientStateIdle;
     client->context = conn->data;
-    client->heartbeat_timer = furi_timer_alloc(
-        api_streaming_client_heartbeat_timer_callback, FuriTimerTypePeriodic, client);
+    client->heartbeat_timer = mg_timer_add(
+        conn->mgr,
+        CLIENT_HEARTBEAT_PERIOD_MS,
+        MG_TIMER_REPEAT,
+        api_streaming_client_heartbeat_timer_callback,
+        client);
     return client;
 }
 
 static inline void api_streaming_client_free(StreamClientCtx* client) {
-    furi_timer_stop(client->heartbeat_timer);
-    furi_timer_free(client->heartbeat_timer);
+    mg_timer_free(&client->conn->mgr->timers, client->heartbeat_timer);
+    free(client->heartbeat_timer);
     free(client);
 }
 
@@ -207,7 +211,6 @@ static void api_streaming_client_connection_open(struct mg_connection* conn) {
 
     // Add connection to WebSocket clients list
     StreamClientsList_push_back(instance->clients, client);
-    furi_timer_start(client->heartbeat_timer, CLIENT_HEARTBEAT_PERIOD_MS);
 
     STREAM_LOG_D("Add client %ld", conn->id);
 }
@@ -282,11 +285,11 @@ static void
     if(WEBSOCKET_PING(ws_msg->flags)) {
         STREAM_LOG_D("PING");
         api_streaming_client_set_state(client, StreamClientStateActive);
-        furi_timer_restart(client->heartbeat_timer, CLIENT_HEARTBEAT_PERIOD_MS);
+        client->heartbeat_timer->expire = mg_now() + CLIENT_HEARTBEAT_PERIOD_MS;
     } else if(WEBSOCKET_PONG(ws_msg->flags)) {
         STREAM_LOG_D("PONG");
         api_streaming_client_set_state(client, StreamClientStateActive);
-        furi_timer_restart(client->heartbeat_timer, CLIENT_HEARTBEAT_PERIOD_MS);
+        client->heartbeat_timer->expire = mg_now() + CLIENT_HEARTBEAT_PERIOD_MS;
     } else if(WEBSOCKET_TEXT(ws_msg->flags)) {
         STREAM_LOG_D("MSG");
         const char* resp;
@@ -386,6 +389,9 @@ static void back_buffer_l8_to_l4(uint8_t* dst_l4, const uint8_t* src_l8) {
 static int32_t api_streaming_frame_update_thread(void* context) {
     ApiStreamingCtx* instance = context;
 
+    Network* network = furi_record_open(RECORD_NETWORK);
+    network_init_current_thread(network);
+
     while(!instance->stop) {
         if(furi_mutex_acquire(instance->mutex, FRAME_MUTEX_TIMEOUT) != FuriStatusOk) {
             STREAM_LOG_W("Unable to lock in thread");
@@ -432,6 +438,10 @@ static int32_t api_streaming_frame_update_thread(void* context) {
         api_streaming_update_display_id(instance);
         memset(instance->raw_buffer, 0, RAW_BUFFER_SIZE);
     }
+
+    network_deinit_current_thread(network);
+    furi_record_close(RECORD_NETWORK);
+
     return 0;
 }
 

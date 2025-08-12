@@ -1,5 +1,7 @@
 #include "wifi_i.h"
 
+#include <network/network.h>
+
 #define STARTUP_THREAD_STACK_SIZE (1536UL)
 
 static void wifi_intercom_rx_callback(const void* data, size_t data_size, void* context) {
@@ -260,6 +262,8 @@ static Wifi* wifi_alloc(void) {
     instance->access_semaphore = furi_semaphore_alloc(1, 1);
     instance->pubsub = furi_pubsub_alloc();
     instance->intercom = furi_record_open(RECORD_INTERCOM);
+
+    furi_record_open(RECORD_NETWORK);
 
     furi_event_loop_set_custom_event_callback(
         instance->event_loop, wifi_custom_event_callback, instance);

@@ -9,7 +9,7 @@
 #include <gui/modules/var_item_list.h>
 
 #include <wifi/wifi.h>
-#include <usb_network/usb_network.h>
+#include <network/network.h>
 
 #define TAG "WifiAdaptiveTest"
 
@@ -69,8 +69,8 @@ static int32_t wifi_adaptive_test_worker(void* arg) {
 
     FURI_LOG_I(TAG, "Worker started");
 
-    UsbNetwork* usbnet = furi_record_open(RECORD_USB_NETWORK);
-    usb_network_thread_init(usbnet);
+    Network* network = furi_record_open(RECORD_NETWORK);
+    network_init_current_thread(network);
 
     do {
         const int udp = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
@@ -94,16 +94,14 @@ static int32_t wifi_adaptive_test_worker(void* arg) {
                 FURI_LOG_E(TAG, "UDP tx error: %s", strerror(errno));
                 break;
             }
-            // Prevent deadlocks
-            furi_thread_yield();
         }
 
         close(udp);
 
     } while(false);
 
-    usb_network_thread_cleanup(usbnet);
-    furi_record_close(RECORD_USB_NETWORK);
+    network_deinit_current_thread(network);
+    furi_record_close(RECORD_NETWORK);
 
     FURI_LOG_I(TAG, "Worker stopped");
 
