@@ -11,7 +11,7 @@
 
 #define TAG "BlePerTest"
 
-#define IMAGE_FRONT_PATH EXT_PATH("apps_assets/debug/images/LabTestFrontDisplay.bin")
+#define IMAGE_FRONT_PATH EXT_PATH("apps_assets/debug/images/lab_test_front_display_72x16.bin")
 
 typedef enum {
     BlePerTestCustomEventExit = (1UL << 0),
