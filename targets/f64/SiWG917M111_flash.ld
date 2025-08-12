@@ -100,10 +100,16 @@ SECTIONS {
         *(EXCLUDE_FILE(*crtend?.o *crtend.o) .dtors)
         *(SORT(.dtors.*))
         *(.dtors)
-        *(.rodata*)
-
         KEEP(*(.eh_frame*))
     } > FLASH
+
+    .rodata : {
+        . = ALIGN(4);
+        __rodata_start__ = .;
+        *(.rodata*)
+        . = ALIGN(4);
+        __rodata_end__ = .;
+    }
 
     .ARM.extab : {
         *(.ARM.extab* .gnu.linkonce.armextab.*)
@@ -245,7 +251,12 @@ SECTIONS {
     .nvm (DSECT) : {
         KEEP(*(.simee*))
     } > FLASH
-    
+
+    .free_flash(DSECT) : {
+        __free_flash_start__ = .;
+        . = ORIGIN(FLASH) + LENGTH(FLASH);
+    } >FLASH
+
     linker_nvm_end = __main_flash_end__ - 4096;
     linker_nvm_begin = linker_nvm_end - SIZEOF(.nvm);
     linker_nvm_size = SIZEOF(.nvm);

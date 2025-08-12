@@ -3,7 +3,7 @@ distenv, firmware_env = DIST_ENV, FW_ENV
 
 # Depends: fwenv.resources
 
-# print('BUILD_TARGETS', BUILD_TARGETS)
+# print("BUILD_TARGETS", BUILD_TARGETS)
 
 distenv.SetDefault(
     UPDATE_BUNDLE_DIR="#dist/${DIST_DIR}/${F_TARGET_HW}-update-${DIST_SUFFIX}",
