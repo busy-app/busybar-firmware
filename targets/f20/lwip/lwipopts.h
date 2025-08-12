@@ -309,4 +309,10 @@
 
 #define LWIP_PERF 0
 
+void sys_mark_tcpip_thread(void);
+#define LWIP_MARK_TCPIP_THREAD() sys_mark_tcpip_thread()
+
+void sys_check_core_locking(void);
+#define LWIP_ASSERT_CORE_LOCKED() sys_check_core_locking()
+
 #endif /* __LWIPOPTS_H__ */
