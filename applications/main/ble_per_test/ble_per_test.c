@@ -8,6 +8,7 @@
 #include <gui/modules/image.h>
 #include <storage/storage.h>
 #include "helpers/ble_per_cli.h"
+#include <power/power_service/power.h>
 
 #define TAG "BlePerTest"
 
@@ -435,6 +436,11 @@ int32_t ble_per_test_app(void* arg) {
     BlePerTest* instance = ble_per_test_alloc();
     furi_event_loop_run(instance->event_loop);
     ble_per_test_free(instance);
+
+    // TODO fix after 917 NWP survive 2nd core reinit
+    Power* power = furi_record_open(RECORD_POWER);
+    power_reboot(power, PowerRebootNormal);
+    furi_record_close(RECORD_POWER);
 
     return 0;
 }
