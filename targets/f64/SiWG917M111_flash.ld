@@ -70,6 +70,7 @@ SECTIONS {
             *timer.o
             *furi_hal_interrupt.o
             *furi_hal_os.o
+            *kernel.o
             /* Wiseconnect */
             *rsi_hal_mcu_m4_ram.o
             *rsi_hal_mcu_m4_rom.o
@@ -158,6 +159,7 @@ SECTIONS {
         *timer.o(.text*)
         *furi_hal_interrupt.o(.text*)
         *furi_hal_os.o(.text*)
+        *kernel.o(.text*)
         /* Wiseconnect */
         *rsi_hal_mcu_m4_ram.o(.text*)
         *rsi_hal_mcu_m4_rom.o(.text*)
