@@ -45,7 +45,7 @@
 #define MEMP_NUM_ARP_QUEUE                     30
 #define MEMP_NUM_IGMP_GROUP                    8
 #define MEMP_NUM_SYS_TIMEOUT                   (LWIP_NUM_SYS_TIMEOUT_INTERNAL + 4)
-#define MEMP_NUM_NETBUF                        16
+#define MEMP_NUM_NETBUF                        32
 #define MEMP_NUM_NETCONN                       20
 #define MEMP_NUM_SELECT_CB                     8
 #define MEMP_NUM_TCPIP_MSG_API                 32
