@@ -4,11 +4,11 @@
 #define LWIP_IP_ACCEPT_UDP_PORT(p) ((p) == PP_NTOHS(67))
 
 #define TCPIP_THREAD_STACKSIZE    4096
-#define TCPIP_MBOX_SIZE           6
-#define DEFAULT_RAW_RECVMBOX_SIZE 6
-#define DEFAULT_UDP_RECVMBOX_SIZE 6
-#define DEFAULT_TCP_RECVMBOX_SIZE 6
-#define DEFAULT_ACCEPTMBOX_SIZE   6
+#define TCPIP_MBOX_SIZE           32
+#define DEFAULT_RAW_RECVMBOX_SIZE 16
+#define DEFAULT_UDP_RECVMBOX_SIZE 16
+#define DEFAULT_TCP_RECVMBOX_SIZE 16
+#define DEFAULT_ACCEPTMBOX_SIZE   16
 
 #define LWIP_MDNS_RESPONDER 1
 
@@ -24,7 +24,7 @@
 #define MEMP_MEM_MALLOC                        0
 #define MEMP_MEM_INIT                          0
 #define MEM_ALIGNMENT                          4
-#define MEM_SIZE                               32000
+#define MEM_SIZE                               64000
 #define MEMP_OVERFLOW_CHECK                    0
 #define MEMP_SANITY_CHECK                      0
 #define MEM_OVERFLOW_CHECK                     0
@@ -33,26 +33,26 @@
 #define MEM_USE_POOLS_TRY_BIGGER_POOL          0
 #define MEMP_USE_CUSTOM_POOLS                  0
 #define LWIP_ALLOW_MEM_FREE_FROM_OTHER_CONTEXT 0
-#define MEMP_NUM_PBUF                          16
+#define MEMP_NUM_PBUF                          32
 #define MEMP_NUM_RAW_PCB                       4
 #define MEMP_NUM_UDP_PCB                       8
 #define MEMP_NUM_TCP_PCB                       8
 #define MEMP_NUM_TCP_PCB_LISTEN                8
 #define MEMP_NUM_TCP_SEG                       32
 #define MEMP_NUM_ALTCP_PCB                     MEMP_NUM_TCP_PCB
-#define MEMP_NUM_REASSDATA                     5
-#define MEMP_NUM_FRAG_PBUF                     15
+#define MEMP_NUM_REASSDATA                     16
+#define MEMP_NUM_FRAG_PBUF                     16
 #define MEMP_NUM_ARP_QUEUE                     30
 #define MEMP_NUM_IGMP_GROUP                    8
 #define MEMP_NUM_SYS_TIMEOUT                   (LWIP_NUM_SYS_TIMEOUT_INTERNAL + 4)
-#define MEMP_NUM_NETBUF                        8
+#define MEMP_NUM_NETBUF                        16
 #define MEMP_NUM_NETCONN                       20
-#define MEMP_NUM_SELECT_CB                     4
-#define MEMP_NUM_TCPIP_MSG_API                 8
-#define MEMP_NUM_TCPIP_MSG_INPKT               8
+#define MEMP_NUM_SELECT_CB                     8
+#define MEMP_NUM_TCPIP_MSG_API                 32
+#define MEMP_NUM_TCPIP_MSG_INPKT               32
 #define MEMP_NUM_NETDB                         1
 #define MEMP_NUM_LOCALHOSTLIST                 1
-#define PBUF_POOL_SIZE                         16
+#define PBUF_POOL_SIZE                         32
 #define MEMP_NUM_API_MSG                       MEMP_NUM_TCPIP_MSG_API
 #define MEMP_NUM_DNS_API_MSG                   MEMP_NUM_TCPIP_MSG_API
 #define MEMP_NUM_SOCKET_SETGETSOCKOPT_DATA     MEMP_NUM_TCPIP_MSG_API
@@ -73,7 +73,7 @@
 #define IP_FRAG                                1
 #define IP_OPTIONS_ALLOWED                     1
 #define IP_REASS_MAXAGE                        15
-#define IP_REASS_MAX_PBUFS                     10
+#define IP_REASS_MAX_PBUFS                     16
 #define IP_DEFAULT_TTL                         64
 #define IP_SOF_BROADCAST                       0
 #define IP_SOF_BROADCAST_RECV                  0
@@ -163,28 +163,11 @@
 #define LWIP_LOOPBACK_MAX_PBUFS             0
 #define LWIP_NETIF_LOOPBACK_MULTITHREADING  (!NO_SYS)
 #define TCPIP_THREAD_NAME                   "LwipWorker"
-/*#define TCPIP_THREAD_STACKSIZE          0
-#define TCPIP_THREAD_PRIO               1
-#define TCPIP_MBOX_SIZE                 0
-#define LWIP_TCPIP_THREAD_ALIVE()
-#define SLIPIF_THREAD_NAME              "slipif_loop"
-#define SLIPIF_THREAD_STACKSIZE         0
-#define SLIPIF_THREAD_PRIO              1
-#define DEFAULT_THREAD_NAME             "lwIP"
-#define DEFAULT_THREAD_STACKSIZE        0
-#define DEFAULT_THREAD_PRIO             1
-#define DEFAULT_RAW_RECVMBOX_SIZE       0
-#define DEFAULT_UDP_RECVMBOX_SIZE       0
-#define DEFAULT_TCP_RECVMBOX_SIZE       0
-#define DEFAULT_ACCEPTMBOX_SIZE         0*/
 #define LWIP_NETCONN                        1
 #define LWIP_TCPIP_TIMEOUT                  0
 #define LWIP_NETCONN_SEM_PER_THREAD         1
 #define LWIP_NETCONN_FULLDUPLEX             1
 #define LWIP_SOCKET                         1
-// #define LWIP_COMPAT_SOCKETS                 1 /* 0..2 */
-// #define LWIP_POSIX_SOCKETS_IO_NAMES         1
-// #define LWIP_SOCKET_OFFSET                  0
 #define LWIP_TCP_KEEPALIVE                  1
 #define LWIP_SO_SNDTIMEO                    0
 #define LWIP_SO_RCVTIMEO                    0
