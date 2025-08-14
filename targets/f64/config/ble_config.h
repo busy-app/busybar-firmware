@@ -210,7 +210,7 @@
 #if DLE_ON
 #define DLE_BUFFER_MODE      1
 #define DLE_BUFFER_COUNT     25 // Should be less than RSI_BLE_NUM_CONN_EVENTS
-#define RSI_BLE_MAX_DATA_LEN 232
+#define RSI_BLE_MAX_DATA_LEN RSI_DEV_ATT_LEN
 #else
 #define DLE_BUFFER_MODE      0
 #define DLE_BUFFER_COUNT     2 // Should be less than RSI_BLE_NUM_CONN_EVENTS

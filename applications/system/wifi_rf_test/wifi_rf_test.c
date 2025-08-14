@@ -129,6 +129,8 @@ typedef struct {
     uint16_t max_receive_stats_count;
 
     sl_si91x_request_tx_test_info_t tx_test_info;
+    bool msg_send;
+    FuriThread* thread;
 } WifiRfTestApp;
 
 void wifi_rf_test_app_stop(void* app_handle);
@@ -245,18 +247,20 @@ static sl_status_t wifi_rf_test_stats_receive_handler(
             return SL_STATUS_OK;
         }
 
-        furi_string_printf(instance->msg, "WIFI STATS Recieved packet# %d", instance->stats_count);
+        furi_string_printf(
+            instance->msg, "WIFI STATS Recieved packet# %d\r\n", instance->stats_count);
 
         furi_string_cat_printf(
             instance->msg,
             "Rx Stats\r\n"
-            "  crc_fail_cnt: %d\r\n"
-            "  crc_pass_cnt: %d\r\n"
-            "  rssi: -%d",
+            "crc_fail_cnt: %d\r\n"
+            "crc_pass_cnt: %d\r\n"
+            "rssi: -%d",
             result->crc_fail,
             result->crc_pass,
             result->cal_rssi);
-        cli_shell_notification_print(instance->shell, instance->msg);
+
+        instance->msg_send = true;
 
         float p = result->crc_pass;
         float f = result->crc_fail;
@@ -272,9 +276,9 @@ static sl_status_t wifi_rf_test_stats_receive_handler(
         instance->total_crc_fail += result->crc_fail;
 
         if(instance->stats_count == instance->max_receive_stats_count) {
-            furi_string_printf(
+            furi_string_cat_printf(
                 instance->msg,
-                "CRC Average pass%% = %.6f,         CRC Average fail%% = %.6f\r\n",
+                "\r\nCRC Average pass%% = %.6f,         CRC Average fail%% = %.6f\r\n",
                 (double)instance->pass_avg / instance->max_receive_stats_count,
                 (double)instance->fail_avg / instance->max_receive_stats_count);
 
@@ -283,7 +287,8 @@ static sl_status_t wifi_rf_test_stats_receive_handler(
                 "Total : total_crc_pass %d, total_crc_fail %d",
                 instance->total_crc_pass,
                 instance->total_crc_fail);
-            cli_shell_notification_print(instance->shell, instance->msg);
+
+            instance->msg_send = true;
 
             instance->pass_avg = 0;
             instance->fail_avg = 0;
@@ -414,7 +419,7 @@ static void wifi_rf_test_set_channel_command(PipeSide* pipe, FuriString* args, v
     uint8_t arg;
     if(wifi_rf_test_generic_command_guard(instance, args, WifiTestStateIdle, 1, 14, &arg)) {
         size_t frequency = 2407 + (5 * (size_t)arg);
-        instance->tx_test_info.rate = arg;
+        instance->tx_test_info.channel = arg;
         printf("Channel set: %zu MHz\r\n", frequency);
     }
 }
@@ -430,6 +435,63 @@ static void wifi_rf_test_set_mode_command(PipeSide* pipe, FuriString* args, void
     }
 }
 
+// ############Wifi RF Test App Show status############################ #
+static int32_t wifi_rf_test_app_thread_callback(void* context) {
+    WifiRfTestApp* instance = (WifiRfTestApp*)context;
+    while(instance->stats_count <= instance->max_receive_stats_count + 1 && !instance->exit) {
+        if(instance->msg_send) {
+            cli_shell_notification_print(instance->shell, instance->msg);
+            instance->msg_send = false;
+        }
+        furi_thread_yield();
+        if(instance->stats_count == instance->max_receive_stats_count + 1 &&
+           instance->callback_status != SL_STATUS_IN_PROGRESS) {
+            if(instance->msg_send) {
+                cli_shell_notification_print(instance->shell, instance->msg);
+                instance->msg_send = false;
+            }
+            printf("Stop Statistics Report\r\n");
+
+            sl_wifi_stop_statistic_report(SL_WIFI_CLIENT_INTERFACE);
+
+            printf("Start Statistic Report Success\r\n");
+            instance->state = WifiTestStateIdle;
+            break;
+        }
+    }
+
+    instance->stats_count = 0;
+    instance->callback_status = SL_STATUS_OK;
+    instance->total_crc_pass = 0;
+    instance->total_crc_fail = 0;
+    instance->pass_avg = 0;
+    instance->fail_avg = 0;
+
+    return 0;
+}
+
+static void wifi_rf_test_app_thread_state_callback(
+    FuriThread* thread,
+    FuriThreadState state,
+    void* context) {
+    furi_assert(thread);
+    UNUSED(context);
+
+    if(state == FuriThreadStateStopped) {
+        furi_thread_free(thread);
+        FURI_LOG_I(TAG, "Stop");
+    }
+}
+
+void wifi_rf_test_app_show_status_start(void* app_handle) {
+    WifiRfTestApp* instance = (WifiRfTestApp*)app_handle;
+    instance->thread = furi_thread_alloc_ex(
+        "WifiRfTestShowStatus", 2048, wifi_rf_test_app_thread_callback, instance);
+    instance->exit = false;
+    furi_thread_set_state_callback(instance->thread, wifi_rf_test_app_thread_state_callback);
+    furi_thread_start(instance->thread);
+}
+
 static void wifi_rf_test_rx_command(PipeSide* pipe, FuriString* args, void* context) {
     UNUSED(pipe);
     char* args_cstr = (char*)furi_string_get_cstr(args);
@@ -439,6 +501,11 @@ static void wifi_rf_test_rx_command(PipeSide* pipe, FuriString* args, void* cont
         sl_si91x_transmit_test_stop();
         printf("Transmit test stop Success\r\n");
         instance->state = WifiTestStateIdle;
+    }
+
+    if(instance->state == WifiTestStateReceive) {
+        printf("Receive test already enabled\r\n");
+        return;
     }
 
     instance->state = WifiTestStateReceive;
@@ -467,36 +534,8 @@ static void wifi_rf_test_rx_command(PipeSide* pipe, FuriString* args, void* cont
             instance->callback_status = SL_STATUS_IN_PROGRESS;
 
             printf("Receive Statistics...\r\n");
-
-            do {
-                while(instance->stats_count <= instance->max_receive_stats_count + 1 &&
-                      !instance->exit) {
-                    furi_thread_yield();
-                    if(instance->stats_count == instance->max_receive_stats_count + 1 &&
-                       instance->callback_status != SL_STATUS_IN_PROGRESS) {
-                        printf("Stop Statistics Report\r\n");
-
-                        sl_wifi_stop_statistic_report(SL_WIFI_CLIENT_INTERFACE);
-
-                        printf("Start Statistic Report Success\r\n");
-                        instance->state = WifiTestStateIdle;
-                        break;
-                    }
-                }
-            } while(0);
-            status = instance->callback_status;
+            wifi_rf_test_app_show_status_start(instance);
         }
-        if(status != SL_STATUS_OK) {
-            printf(
-                ANSI_FG_RED "Start Statistic Report Failed, Error Code : 0x%lX\r\n" ANSI_RESET,
-                status);
-        }
-        instance->stats_count = 0;
-        instance->callback_status = SL_STATUS_OK;
-        instance->total_crc_pass = 0;
-        instance->total_crc_fail = 0;
-        instance->pass_avg = 0;
-        instance->fail_avg = 0;
     }
 
     printf(

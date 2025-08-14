@@ -73,12 +73,14 @@ static bool usb_settings_load(Storage* storage) {
 
         size_t file_size = storage_file_size(file);
         if(file_size == 0) {
+            FURI_LOG_W(TAG, "Settings file size is 0");
             break;
         }
 
         char* buffer = malloc(file_size + 1);
 
         if(storage_file_read(file, buffer, file_size) != file_size) {
+            FURI_LOG_W(TAG, "Failed to read settings file");
             break;
         }
 
@@ -91,6 +93,8 @@ static bool usb_settings_load(Storage* storage) {
             furi_string_from_cjson(hostname, root, "hostname");
             usb_network_ip_from_cjson(&address.ip, root, "ip");
             usb_network_ip_from_cjson(&address.netmask, root, "netmask");
+        } else {
+            FURI_LOG_W(TAG, "Failed to parse settings file");
         }
         cJSON_Delete(root);
         free(buffer);

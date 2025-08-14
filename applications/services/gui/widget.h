@@ -83,6 +83,22 @@ void widget_set_visible(Widget* instance, bool visible);
 bool widget_is_visible(const Widget* instance);
 
 /**
+ * @brief Make widget ignore layout (e.g. flex layout).
+ *
+ * @param[in,out] instance pointer to the Widget instance to be modified
+ * @param[in] igonre_layout make the Widget @p instance igonre layout if true, otherwise acknowledge it
+ */
+void widget_set_ignore_layout(Widget* instance, bool igonre_layout);
+
+/**
+ * @brief Check if a Widget instance ignores layout.
+ *
+ * @param[in] instance pointer to the Widget instance to be queried
+ * @returns @c true if widget @p instance ignores layout, @c false otherwise
+ */
+bool widget_does_ignore_layout(const Widget* instance);
+
+/**
  * @brief Set the Widget width.
  *
  * @param[in,out] instance pointer to the Widget instance to be modified
@@ -214,14 +230,6 @@ void widget_set_padding(Widget* instance, int32_t left, int32_t right, int32_t t
  * @param[in] bottom margin on the bottom side in pixels
 */
 void widget_set_margin(Widget* instance, int32_t left, int32_t right, int32_t top, int32_t bottom);
-
-/**
- * @brief Add a flag to the Widget instance.
- *
- * @param[in,out] instance pointer to the Widget instance to be modified.
- * @param[in] flag flag value to add (bitmask).
- */
-void widget_add_flag(Widget* instance, uint32_t flag);
 
 #ifdef __cplusplus
 }
