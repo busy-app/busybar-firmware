@@ -15,6 +15,8 @@
 
 #include <dhserver.h>
 
+#include <network/network.h>
+
 #define TAG "UsbNet"
 
 #define USB_NET_IPERF
@@ -144,12 +146,6 @@ uint16_t tud_network_xmit_cb(uint8_t* dst, void* ref, uint16_t arg) {
 void tud_network_init_cb(void) {
 }
 
-static void usb_network_lwip_start_callback(void* arg) {
-    furi_assert(arg);
-    FuriSemaphore* lwip_start_sem = arg;
-    furi_semaphore_release(lwip_start_sem);
-}
-
 static void usb_network_init_netif(void* arg) {
     UNUSED(arg);
 
@@ -223,26 +219,12 @@ bool usb_network_is_dhcp_addr(UsbNetwork* usb_network, uint8_t* addr) {
     return false;
 }
 
-void usb_network_thread_init(UsbNetwork* usb_network) {
-    UNUSED(usb_network);
-    netconn_thread_init();
-}
-
-void usb_network_thread_cleanup(UsbNetwork* usb_network) {
-    UNUSED(usb_network);
-    netconn_thread_cleanup();
-}
-
 void usb_network_init(void) {
     usb_network_settings_init();
 
-    FuriSemaphore* lwip_start_sem = furi_semaphore_alloc(1, 0);
-    tcpip_init(usb_network_lwip_start_callback, lwip_start_sem);
-    furi_check(furi_semaphore_acquire(lwip_start_sem, FuriWaitForever) == FuriStatusOk);
-    furi_semaphore_free(lwip_start_sem);
+    furi_record_open(RECORD_NETWORK);
 
     usb_network = malloc(sizeof(UsbNetwork));
-
     tcpip_callback(usb_network_init_netif, NULL);
 
     furi_record_create(RECORD_USB_NETWORK, usb_network);
