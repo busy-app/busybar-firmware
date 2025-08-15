@@ -1,6 +1,6 @@
 #include <furi.h>
 #include <lwip/tcp.h>
-#include <usb_network/usb_network.h>
+#include <network/network.h>
 #include "cli_socket_client.h"
 
 #include <lwip/tcpip.h>
@@ -22,16 +22,20 @@ static err_t cli_socket_accept_callback(void* context, struct tcp_pcb* client_so
     return ERR_OK;
 }
 
-void cli_socket_on_system_start(void) {
-    furi_record_open(RECORD_USB_NETWORK);
-    FURI_LOG_I(TAG, "Started");
+static void cli_socket_init_callback(void* context) {
+    UNUSED(context);
 
-    LOCK_TCPIP_CORE();
     struct tcp_pcb* server_socket = tcp_new();
     furi_check(tcp_bind(server_socket, IP_ADDR_ANY, CLI_SOCKET_PORT) == ERR_OK);
 
     struct tcp_pcb* listen_socket = tcp_listen(server_socket);
     tcp_arg(listen_socket, listen_socket);
     tcp_accept(listen_socket, cli_socket_accept_callback);
-    UNLOCK_TCPIP_CORE();
+
+    FURI_LOG_I(TAG, "Started");
+}
+
+void cli_socket_on_system_start(void) {
+    furi_record_open(RECORD_NETWORK);
+    tcpip_callback(cli_socket_init_callback, NULL);
 }

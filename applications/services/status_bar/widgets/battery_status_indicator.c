@@ -54,7 +54,8 @@ static void
     instance->charge_level_label = lv_label_create(obj);
     lv_obj_set_style_margin_top(instance->charge_level_label, 1, LV_PART_MAIN);
     lv_obj_set_style_pad_left(instance->charge_level_label, 1, LV_PART_MAIN);
-    lv_obj_set_style_text_font(instance->charge_level_label, &lv_font_tiny5_8, LV_PART_MAIN);
+    lv_obj_set_style_text_font(
+        instance->charge_level_label, lv_theme_get_font_small(obj), LV_PART_MAIN);
     lv_obj_set_style_text_color(instance->charge_level_label, lv_color_white(), LV_PART_MAIN);
 }
 

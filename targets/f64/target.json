@@ -46,6 +46,8 @@
         "-Wl,--wrap,_calloc_r",
         "-Wl,--wrap,_realloc_r",
         "-Wl,--wrap,_write_r"
+        "-Xlinker",
+        "-Map=${TARGET}.map"
     ],
     "defines": [
         "_GNU_SOURCE"

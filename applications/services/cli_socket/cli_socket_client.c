@@ -27,6 +27,7 @@ typedef struct {
     struct tcp_pcb* socket;
 
     // Allocated in thread
+    FuriSemaphore* tcpip_semaphore;
     FuriSemaphore* tx_semaphore;
     FuriEventLoop* event_loop;
     PipeSide* own_pipe;
@@ -47,11 +48,24 @@ typedef enum {
      CliSocketClientEventShellExit)
 
 // ============
+// Thread synchronisation
+// ============
+
+static void cli_socket_client_tcpip_unlock(CliSocketClient* client) {
+    furi_check(furi_semaphore_release(client->tcpip_semaphore) == FuriStatusOk);
+}
+
+static void cli_socket_client_wait_tcpip_unlock(CliSocketClient* client) {
+    furi_check(furi_semaphore_acquire(client->tcpip_semaphore, FuriWaitForever) == FuriStatusOk);
+}
+
+// ============
 // Data copying
 // ============
 
-static void cli_socket_client_try_copy_sh2cl(CliSocketClient* client) {
-    LOCK_TCPIP_CORE();
+static void cli_socket_client_try_copy_sh2cl(void* context) {
+    furi_assert(context);
+    CliSocketClient* client = context;
 
     if(!client->socket || client->socket->state != ESTABLISHED) {
         if(client->socket) {
@@ -64,7 +78,8 @@ static void cli_socket_client_try_copy_sh2cl(CliSocketClient* client) {
         } else {
             FURI_LOG_E(TAG, "Socket is null, not copying sh->cl");
         }
-        UNLOCK_TCPIP_CORE();
+
+        cli_socket_client_tcpip_unlock(client);
         return;
     }
 
@@ -106,7 +121,7 @@ static void cli_socket_client_try_copy_sh2cl(CliSocketClient* client) {
         }
     } while(false);
 
-    UNLOCK_TCPIP_CORE();
+    cli_socket_client_tcpip_unlock(client);
 }
 
 static void cli_socket_client_try_copy_cl2sh(CliSocketClient* client, struct pbuf* chunk_chain) {
@@ -222,7 +237,20 @@ static void cli_socket_client_data_from_shell(PipeSide* pipe, void* context) {
     UNUSED(pipe);
     CliSocketClient* client = context;
     CLI_SOCKET_TRACE(TAG, "evt: " DIR_SH_CL);
-    cli_socket_client_try_copy_sh2cl(client);
+    tcpip_callback(cli_socket_client_try_copy_sh2cl, client);
+    cli_socket_client_wait_tcpip_unlock(client);
+}
+
+static void cli_socket_client_init_callback(void* context) {
+    furi_assert(context);
+    CliSocketClient* client = context;
+
+    tcp_arg(client->socket, client);
+    tcp_err(client->socket, cli_socket_client_tcp_err);
+    tcp_sent(client->socket, cli_socket_client_tcp_tx_done);
+    tcp_recv(client->socket, cli_socket_data_from_client);
+
+    cli_socket_client_tcpip_unlock(client);
 }
 
 static void cli_socket_client_thread_init(CliSocketClient* client) {
@@ -236,6 +264,7 @@ static void cli_socket_client_thread_init(CliSocketClient* client) {
         cli_socket_client_event,
         client);
 
+    client->tcpip_semaphore = furi_semaphore_alloc(1, 0);
     client->tx_semaphore = furi_semaphore_alloc(1, 0);
     PipeSideBundle pipes = pipe_alloc(PIPE_SZ_PER_DIRECTION, 1);
     client->own_pipe = pipes.alices_side;
@@ -245,12 +274,8 @@ static void cli_socket_client_thread_init(CliSocketClient* client) {
     pipe_set_data_arrived_callback(client->own_pipe, cli_socket_client_data_from_shell, 0);
     pipe_set_broken_callback(client->own_pipe, cli_socket_client_shell_exit_callback, 0);
 
-    LOCK_TCPIP_CORE();
-    tcp_arg(client->socket, client);
-    tcp_err(client->socket, cli_socket_client_tcp_err);
-    tcp_sent(client->socket, cli_socket_client_tcp_tx_done);
-    tcp_recv(client->socket, cli_socket_data_from_client);
-    UNLOCK_TCPIP_CORE();
+    tcpip_callback(cli_socket_client_init_callback, client);
+    cli_socket_client_wait_tcpip_unlock(client);
 
     client->main_registry = furi_record_open(RECORD_CLI);
 
@@ -260,8 +285,10 @@ static void cli_socket_client_thread_init(CliSocketClient* client) {
     cli_shell_start(client->shell);
 }
 
-static void cli_socket_client_thread_deinit(CliSocketClient* client) {
-    LOCK_TCPIP_CORE();
+static void cli_socket_client_deinit_callback(void* context) {
+    furi_assert(context);
+    CliSocketClient* client = context;
+
     if(client->socket) {
         tcp_arg(client->socket, NULL);
         tcp_sent(client->socket, NULL);
@@ -274,7 +301,13 @@ static void cli_socket_client_thread_deinit(CliSocketClient* client) {
         }
         client->socket = NULL;
     }
-    UNLOCK_TCPIP_CORE();
+
+    cli_socket_client_tcpip_unlock(client);
+}
+
+static void cli_socket_client_thread_deinit(CliSocketClient* client) {
+    tcpip_callback(cli_socket_client_deinit_callback, client);
+    cli_socket_client_wait_tcpip_unlock(client);
 
     pipe_set_data_arrived_callback(client->own_pipe, NULL, 0);
     pipe_set_broken_callback(client->own_pipe, NULL, 0);
@@ -285,6 +318,7 @@ static void cli_socket_client_thread_deinit(CliSocketClient* client) {
     cli_shell_free(client->shell);
 
     furi_semaphore_free(client->tx_semaphore);
+    furi_semaphore_free(client->tcpip_semaphore);
 
     furi_record_close(RECORD_CLI);
 

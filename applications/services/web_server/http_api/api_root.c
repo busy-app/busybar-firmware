@@ -255,6 +255,14 @@ static const HttpHandler handlers_api_root[] = {
         .ctx_free = http_api_streaming_ws_free,
         .on_request = http_api_streaming_ws_callback,
     },
+    {
+        .uri = "ble",
+        .method = "*",
+        .type = HttpHandlerCustom,
+        .ctx_alloc = http_api_ble_alloc,
+        .ctx_free = http_api_ble_free,
+        .on_request = http_api_ble_callback,
+    },
 };
 
 void* http_api_root_alloc(void) {

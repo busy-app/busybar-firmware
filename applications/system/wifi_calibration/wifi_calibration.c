@@ -526,7 +526,7 @@ static void calibration_set_power_command(PipeSide* pipe, FuriString* args, void
 static void calibration_set_rate_command(PipeSide* pipe, FuriString* args, void* context) {
     UNUSED(pipe);
     CalibApp* instance = context;
-    uint16_t rate;
+    uint16_t rate = 0;
     if(calibration_generic_enum_arg_command_guard(args, calib_rate_options, &rate)) {
         tx_test_info.rate = rate;
         calibration_app_flow_transmit_tx(instance);
