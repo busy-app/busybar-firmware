@@ -18,7 +18,7 @@ void LogV(const char* module, uint8_t category, const char* fmt, va_list args) {
         } else if(category == kLogCategory_Detail) {
             level = FuriLogLevelDebug;
         } else {
-            level = FuriLogLevelDefault;
+            level = FuriLogLevelInfo;
         }
 
         furi_string_printf(message, "\b[%s] ", module);

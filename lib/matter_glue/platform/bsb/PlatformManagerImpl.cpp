@@ -108,7 +108,7 @@ CHIP_ERROR PlatformManagerImpl::_InitChipStack(void) {
     //
     // exit:
     //     return err;
-    return CHIP_ERROR_NOT_IMPLEMENTED;
+    return CHIP_NO_ERROR;
 }
 
 // void PlatformManagerImpl::UpdateOperationalHours(System::Layer * systemLayer, void * appState)

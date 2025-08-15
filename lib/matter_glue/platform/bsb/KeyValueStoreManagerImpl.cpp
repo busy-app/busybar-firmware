@@ -199,7 +199,10 @@ CHIP_ERROR KeyValueStoreManagerImpl::_Get(
     // }
     //
     // return err;
-    return CHIP_ERROR_UNSUPPORTED_CHIP_FEATURE;
+
+    // TODO: This function is needed quite early on
+    FURI_LOG_D(__FUNCTION__, "key: %s size: %zu offset: %zu", key, value_size, offset_bytes);
+    return CHIP_ERROR_PERSISTED_STORAGE_VALUE_NOT_FOUND;
 }
 
 CHIP_ERROR KeyValueStoreManagerImpl::_Put(const char* key, const void* value, size_t value_size) {
@@ -226,7 +229,10 @@ CHIP_ERROR KeyValueStoreManagerImpl::_Put(const char* key, const void* value, si
     // }
     // Platform::MemoryFree(prefixedData);
     // return err;
-    return CHIP_ERROR_UNSUPPORTED_CHIP_FEATURE;
+
+    // TODO: This function is needed quite early on
+    FURI_LOG_D(__FUNCTION__, "key: %s size: %zu", key, value_size);
+    return CHIP_NO_ERROR;
 }
 
 CHIP_ERROR KeyValueStoreManagerImpl::_Delete(const char* key) {
@@ -246,7 +252,9 @@ CHIP_ERROR KeyValueStoreManagerImpl::_Delete(const char* key) {
     // }
     //
     // return err;
-    return CHIP_ERROR_UNSUPPORTED_CHIP_FEATURE;
+    // TODO: Implement this function
+    FURI_LOG_D(__FUNCTION__, "key: %s ", key);
+    return CHIP_NO_ERROR;
 }
 
 // void KeyValueStoreManagerImpl::ErasePartition(void)

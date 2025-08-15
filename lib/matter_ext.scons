@@ -85,6 +85,7 @@ libenv.AppendUnique(
 sources = [
     f"{MATTER_SDK_DIR}/src/access/AccessControl.cpp",
     f"{MATTER_SDK_DIR}/src/access/AccessRestrictionProvider.cpp",
+    f"{MATTER_SDK_DIR}/src/access/examples/ExampleAccessControlDelegate.cpp",
 
     f"{MATTER_SDK_DIR}/src/app/AttributeAccessInterfaceRegistry.cpp",
     f"{MATTER_SDK_DIR}/src/app/AttributePathExpandIterator-Ember.cpp",
