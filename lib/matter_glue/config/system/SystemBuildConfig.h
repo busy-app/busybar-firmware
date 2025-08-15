@@ -1,0 +1,30 @@
+#pragma once
+
+#define CONFIG_DEVICE_LAYER                         1
+#define CHIP_SYSTEM_CONFIG_TEST                     0
+#define CHIP_WITH_NLFAULTINJECTION                  0
+#define CHIP_SYSTEM_CONFIG_USE_DISPATCH             0
+#define CHIP_SYSTEM_CONFIG_USE_LWIP                 1
+#define CHIP_SYSTEM_CONFIG_USE_SOCKETS              0
+#define CHIP_SYSTEM_CONFIG_USE_OPEN_THREAD_ENDPOINT 0
+#define CHIP_SYSTEM_CONFIG_USE_NETWORK_FRAMEWORK    0
+#define CHIP_SYSTEM_CONFIG_POSIX_LOCKING            0
+#define CHIP_SYSTEM_CONFIG_USE_FREERTOS_SOCKETS     0
+#define CHIP_SYSTEM_CONFIG_FREERTOS_LOCKING         0
+#define CHIP_SYSTEM_CONFIG_MBED_LOCKING             0
+#define CHIP_SYSTEM_CONFIG_NO_LOCKING               1
+#define CHIP_SYSTEM_CONFIG_PROVIDE_STATISTICS       1
+#define HAVE_CLOCK_GETTIME                          0
+#define HAVE_CLOCK_SETTIME                          0
+#define HAVE_GETTIMEOFDAY                           0
+#define HAVE_SYS_TIME_H                             0
+#define HAVE_NETINET_ICMP6_H                        1
+#define HAVE_ICMP6_FILTER                           1
+#define CONFIG_HAVE_VCBPRINTF                       0
+#define CONFIG_HAVE_VSNPRINTF_EX                    0
+#define HAVE_SYS_SOCKET_H                           (CHIP_SYSTEM_CONFIG_USE_SOCKETS)
+// #define CHIP_PROJECT_CONFIG_INCLUDE                 <CHIPProjectConfig.h>
+#define CHIP_PLATFORM_CONFIG_INCLUDE                <platform/bsb/CHIPPlatformConfig.h>
+// #define SYSTEM_PROJECT_CONFIG_INCLUDE               <CHIPProjectConfig.h>
+#define SYSTEM_PLATFORM_CONFIG_INCLUDE              <platform/bsb/SystemPlatformConfig.h>
+#define CHIP_SYSTEM_LAYER_IMPL_CONFIG_FILE          <platform/bsb/SystemLayerImplFuri.h>

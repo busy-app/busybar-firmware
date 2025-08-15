@@ -26,15 +26,7 @@
 #ifndef __LWIPOPTS_H__
 #define __LWIPOPTS_H__
 
-#if CHIP_HAVE_CONFIG_H
-#include <lwip/lwip_buildconfig.h>
-#endif
-
 #include <stdlib.h>
-
-#if(SL_MATTER_GN_BUILD == 0)
-// #include "sl_matter_wifi_config.h" // TODO: Re-enable when matter is available
-#endif // SL_MATTER_GN_BUILD
 
 #define NO_SYS               0
 #define MEM_ALIGNMENT        (4)
@@ -42,8 +34,8 @@
 #define LWIP_TIMEVAL_PRIVATE (0)
 #if 1
 #define MEM_LIBC_MALLOC (1)
-#define mem_clib_free   vPortFree
-#define mem_clib_malloc pvPortMalloc
+#define mem_clib_free   free
+#define mem_clib_malloc malloc
 #else
 #define MEM_LIBC_MALLOC (0)
 #endif

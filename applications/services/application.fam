@@ -45,6 +45,7 @@ App(
     provides=[
         "cli",
         "input",
+        "matter",
     ],
     targets=["f64"],
 )

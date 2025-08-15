@@ -44,7 +44,8 @@
         "-Wl,--wrap,_malloc_r",
         "-Wl,--wrap,_free_r",
         "-Wl,--wrap,_calloc_r",
-        "-Wl,--wrap,_realloc_r"
+        "-Wl,--wrap,_realloc_r",
+        "-Wl,--wrap,_write_r"
     ],
     "defines": [
         "_GNU_SOURCE"
@@ -79,6 +80,7 @@
         "sl_glue",
         "simplicity_sdk",
         "wiseconnect",
+        "matter_ext",
         "freertos",
         "print",
         "targets",

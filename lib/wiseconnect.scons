@@ -67,6 +67,8 @@ env.Append(
         "SLI_SI91X_ENABLE_BLE",
         "SL_SI91X_ENABLE_LITTLE_ENDIAN=1",
         "__FREERTOS_OS_WISECONNECT",
+        # Matter compatibility
+        "NVM3_LOCK_OVERRIDE",
     ],
 )
 

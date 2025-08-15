@@ -1,0 +1,9 @@
+App(
+    appid="matter",
+    name="MatterSrv",
+    apptype=FlipperAppType.SERVICE,
+    entry_point="matter_srv",
+    stack_size=4 * 1024,
+    order=200,
+    targets=["f64"],
+)
