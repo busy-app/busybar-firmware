@@ -69,6 +69,8 @@ env.Append(
         "__FREERTOS_OS_WISECONNECT",
         # Matter compatibility
         "NVM3_LOCK_OVERRIDE",
+        # Call static class constructors
+        "SUPPORT_CPLUSPLUS",
     ],
 )
 
