@@ -462,8 +462,10 @@ sources = [
     f"{MATTER_SUPPORT_DIR}/tinycrypt/src/tinycrypt_util.c",
 
     f"{MATTER_GLUE_DIR}/platform/bsb/CHIPCryptoPALTinyCrypt.cpp",
+    f"{MATTER_GLUE_DIR}/platform/bsb/CommissionableDataProviderImpl.cpp",
     f"{MATTER_GLUE_DIR}/platform/bsb/ConfigurationManagerImpl.cpp",
     f"{MATTER_GLUE_DIR}/platform/bsb/ConnectivityManagerImpl_WIFI.cpp",
+    f"{MATTER_GLUE_DIR}/platform/bsb/DeviceInstanceInfoProviderImpl.cpp",
     f"{MATTER_GLUE_DIR}/platform/bsb/DiagnosticDataProviderImpl.cpp",
     f"{MATTER_GLUE_DIR}/platform/bsb/GenericPlatformManagerImplFuri.cpp",
     f"{MATTER_GLUE_DIR}/platform/bsb/KeyValueStoreManagerImpl.cpp",

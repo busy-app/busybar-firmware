@@ -6,7 +6,12 @@
 #pragma GCC diagnostic ignored "-Wmissing-field-initializers"
 
 #include <platform/PlatformManager.h>
+#include <platform/CommissionableDataProvider.h>
+
 #include <app/server/Server.h>
+
+#include <platform/bsb/CommissionableDataProviderImpl.hpp>
+#include <platform/bsb/DeviceInstanceInfoProviderImpl.hpp>
 
 #define TAG "MatterSrv"
 
@@ -29,6 +34,12 @@ int matter_srv(void* arg) {
         if(err != CHIP_NO_ERROR) {
             break;
         }
+
+        auto* di = new chip::DeviceLayer::DeviceInstanceInfoProviderImpl();
+        chip::DeviceLayer::SetDeviceInstanceInfoProvider(di);
+
+        auto* cd = new chip::DeviceLayer::CommissionableDataProviderImpl();
+        chip::DeviceLayer::SetCommissionableDataProvider(cd);
 
         chip::CommonCaseDeviceServerInitParams init_params;
         err = init_params.InitializeStaticResourcesBeforeServerInit();
