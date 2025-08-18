@@ -72,6 +72,13 @@ CHIP_ERROR GenericPlatformManagerImpl_Furi<ImplClass>::_InitChipStack(void) {
         furi_message_queue_reset(mChipEventQueue);
     }
 
+    if(mEventLoop == NULL) {
+        mEventLoop = furi_event_loop_alloc();
+
+        furi_event_loop_subscribe_message_queue(
+            mEventLoop, mChipEventQueue, FuriEventLoopEventIn, ChipEventQueueCallback, this);
+    }
+
     //     mShouldRunEventLoop.store(false);
 
 #if defined(CHIP_DEVICE_CONFIG_ENABLE_BG_EVENT_PROCESSING) && \
@@ -160,7 +167,8 @@ CHIP_ERROR GenericPlatformManagerImpl_Furi<ImplClass>::_PostEvent(const ChipDevi
 
 template <class ImplClass>
 void GenericPlatformManagerImpl_Furi<ImplClass>::_RunEventLoop(void) {
-    furi_crash(__PRETTY_FUNCTION__);
+    furi_event_loop_run(mEventLoop);
+
     // CHIP_ERROR err;
     // ChipDeviceEvent event;
     //
@@ -407,6 +415,24 @@ CHIP_ERROR GenericPlatformManagerImpl_Furi<ImplClass>::_StopEventLoopTask(void) 
     // mShouldRunEventLoop.store(false);
     // return CHIP_NO_ERROR;
     return CHIP_ERROR_NOT_IMPLEMENTED;
+}
+
+template <class ImplClass>
+void GenericPlatformManagerImpl_Furi<ImplClass>::ChipEventQueueCallback(
+    FuriEventLoopObject* object,
+    void* context) {
+    furi_assert(object);
+    furi_assert(context);
+
+    auto* chipEventQueue = static_cast<FuriMessageQueue*>(object);
+
+    ChipDeviceEvent event;
+
+    while(furi_message_queue_get(chipEventQueue, &event, 0) == FuriStatusOk) {
+        ChipLogDetail(DeviceLayer, "Event type: %hu", event.Type);
+        // FIXME: Make this compile
+        // mgr->Impl()->DispatchEvent(&event);
+    }
 }
 
 // Fully instantiate the generic implementation class in whatever compilation unit includes this file.

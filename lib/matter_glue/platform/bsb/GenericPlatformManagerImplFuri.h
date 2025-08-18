@@ -33,18 +33,6 @@
 
 #include <platform/internal/GenericPlatformManagerImpl.h>
 
-// #if defined(ESP_PLATFORM)
-// #include "freertos/FreeRTOS.h"
-// #include "freertos/queue.h"
-// #include "freertos/semphr.h"
-// #include "freertos/task.h"
-// #else
-// #include "FreeRTOS.h"
-// #include "queue.h"
-// #include "semphr.h"
-// #include "task.h"
-// #endif
-
 #include <atomic>
 
 namespace chip {
@@ -64,6 +52,7 @@ class GenericPlatformManagerImpl_Furi : public GenericPlatformManagerImpl<ImplCl
 protected:
     //     TimeOut_t mNextTimerBaseTime;
     //     TickType_t mNextTimerDurationTicks;
+    FuriEventLoop* mEventLoop = NULL;
     FuriMutex* mChipStackLock = NULL;
     FuriMessageQueue* mChipEventQueue = NULL;
     //     TaskHandle_t mEventLoopTask      = NULL;
@@ -105,9 +94,11 @@ protected:
 private:
     // ===== Private members for use by this class only.
 
-    // inline ImplClass * Impl() { return static_cast<ImplClass *>(this); }
-    //
-    // static void EventLoopTaskMain(void * arg);
+    inline ImplClass* Impl() {
+        return static_cast<ImplClass*>(this);
+    }
+
+    static void ChipEventQueueCallback(FuriEventLoopObject* object, void* context);
 
     // #if defined(CHIP_CONFIG_FREERTOS_USE_STATIC_QUEUE) && CHIP_CONFIG_FREERTOS_USE_STATIC_QUEUE
     //     uint8_t mEventQueueBuffer[CHIP_DEVICE_CONFIG_MAX_EVENT_QUEUE_SIZE * sizeof(ChipDeviceEvent)];

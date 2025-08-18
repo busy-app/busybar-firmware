@@ -59,18 +59,18 @@ class PlatformManagerImpl final
     //     // which are used in both Matter and OT threads.
     //     static int uECC_RNG_Function(uint8_t * dest, unsigned int size);
     // #endif // SL_MBEDTLS_USE_TINYCRYPT
-    //
-    //     // Allow the generic implementation base class to call helper methods on
-    //     // this class.
-    // #ifndef DOXYGEN_SHOULD_SKIP_THIS
-    //     // friend Internal::GenericPlatformManagerImpl_FreeRTOS<PlatformManagerImpl>;
-    // #endif
-    //
-    // public:
-    //     // ===== Platform-specific members that may be accessed directly by the application.
-    //
+
+    // Allow the generic implementation base class to call helper methods on
+    // this class.
+#ifndef DOXYGEN_SHOULD_SKIP_THIS
+    friend Internal::GenericPlatformManagerImpl_Furi<PlatformManagerImpl>;
+#endif
+
+public:
+    // ===== Platform-specific members that may be accessed directly by the application.
+
     //     System::Clock::Timestamp GetStartTime() { return mStartTime; }
-    //
+
 private:
     //     // ===== Members for internal use
     //
