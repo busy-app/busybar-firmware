@@ -64,11 +64,11 @@ class GenericPlatformManagerImpl_Furi : public GenericPlatformManagerImpl<ImplCl
 protected:
     //     TimeOut_t mNextTimerBaseTime;
     //     TickType_t mNextTimerDurationTicks;
-    //     SemaphoreHandle_t mChipStackLock = NULL;
-    //     QueueHandle_t mChipEventQueue    = NULL;
+    FuriMutex* mChipStackLock = NULL;
+    FuriMessageQueue* mChipEventQueue = NULL;
     //     TaskHandle_t mEventLoopTask      = NULL;
     //     bool mChipTimerActive;
-    //
+
     // #if defined(CHIP_DEVICE_CONFIG_ENABLE_BG_EVENT_PROCESSING) && CHIP_DEVICE_CONFIG_ENABLE_BG_EVENT_PROCESSING
     //     QueueHandle_t mBackgroundEventQueue   = NULL;
     //     TaskHandle_t mBackgroundEventLoopTask = NULL;

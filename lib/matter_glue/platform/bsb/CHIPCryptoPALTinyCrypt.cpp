@@ -59,17 +59,7 @@
 #include <lib/support/SafePointerCast.h>
 #include <lib/support/logging/CHIPLogging.h>
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
-#if defined(SLI_SI91X_MCU_INTERFACE)
-#include <sl_si91x_trng.h>
-#endif // SLI_SI91X_MCU_INTERFACE
-
-#ifdef __cplusplus
-}
-#endif
+#include <furi_hal_random.h>
 
 namespace chip {
 namespace Crypto {
@@ -103,10 +93,6 @@ typedef struct {
     uint8_t private_key[NUM_ECC_BYTES];
     uint8_t public_key[2 * NUM_ECC_BYTES];
 } mbedtls_uecc_keypair;
-
-#if !(SLI_SI91X_MCU_INTERFACE)
-static EntropyContext gsEntropyContext;
-#endif // !(SLI_SI91X_MCU_INTERFACE)
 
 void _log_mbedTLS_error(int error_code) {
     if(error_code != 0 && error_code != UECC_SUCCESS) {
@@ -506,71 +492,19 @@ exit:
 
     return error;
 }
-#if !(SLI_SI91X_MCU_INTERFACE)
-static EntropyContext* get_entropy_context() {
-    if(!gsEntropyContext.mInitialized) {
-        mbedtls_entropy_init(&gsEntropyContext.mEntropy);
-        mbedtls_ctr_drbg_init(&gsEntropyContext.mDRBGCtxt);
 
-        gsEntropyContext.mInitialized = true;
-    }
-
-    return &gsEntropyContext;
-}
-
-static mbedtls_ctr_drbg_context* get_drbg_context() {
-    EntropyContext* const context = get_entropy_context();
-
-    mbedtls_ctr_drbg_context* const drbgCtxt = &context->mDRBGCtxt;
-
-    if(!context->mDRBGSeeded) {
-        const int status =
-            mbedtls_ctr_drbg_seed(drbgCtxt, mbedtls_entropy_func, &context->mEntropy, nullptr, 0);
-        if(status != 0) {
-            _log_mbedTLS_error(status);
-            return nullptr;
-        }
-
-        context->mDRBGSeeded = true;
-    }
-
-    return drbgCtxt;
-}
-#endif // !SLI_SI91X_MCU_INTERFACE
 CHIP_ERROR add_entropy_source(entropy_source fn_source, void* p_source, size_t threshold) {
-#if SLI_SI91X_MCU_INTERFACE
-    // SiWx917 has its hardware based generator
-    (void)fn_source;
-    (void)p_source;
-    (void)threshold;
-#else
-    VerifyOrReturnError(fn_source != nullptr, CHIP_ERROR_INVALID_ARGUMENT);
-
-    EntropyContext* const entropy_ctxt = get_entropy_context();
-    VerifyOrReturnError(entropy_ctxt != nullptr, CHIP_ERROR_INTERNAL);
-
-    const int result = mbedtls_entropy_add_source(
-        &entropy_ctxt->mEntropy, fn_source, p_source, threshold, MBEDTLS_ENTROPY_SOURCE_STRONG);
-    VerifyOrReturnError(result == 0, CHIP_ERROR_INTERNAL);
-#endif // SLI_SI91X_MCU_INTERFACE
+    UNUSED(fn_source);
+    UNUSED(p_source);
+    UNUSED(threshold);
     return CHIP_NO_ERROR;
 }
 
 CHIP_ERROR DRBG_get_bytes(uint8_t* out_buffer, const size_t out_length) {
     VerifyOrReturnError(out_buffer != nullptr, CHIP_ERROR_INVALID_ARGUMENT);
     VerifyOrReturnError(out_length > 0, CHIP_ERROR_INVALID_ARGUMENT);
-#if SLI_SI91X_MCU_INTERFACE
-    sl_status_t status;
-    status = sl_si91x_trng_get_random_num(reinterpret_cast<uint32_t*>(out_buffer), out_length);
-    VerifyOrReturnError(status == SL_STATUS_OK, CHIP_ERROR_RANDOM_DATA_UNAVAILABLE);
-#else
-    mbedtls_ctr_drbg_context* const drbg_ctxt = get_drbg_context();
-    VerifyOrReturnError(drbg_ctxt != nullptr, CHIP_ERROR_INTERNAL);
 
-    const int result = mbedtls_ctr_drbg_random(drbg_ctxt, Uint8::to_uchar(out_buffer), out_length);
-    VerifyOrReturnError(result == 0, CHIP_ERROR_INTERNAL);
-#endif // SLI_SI91X_MCU_INTERFACE
-
+    furi_hal_random_fill_buf(out_buffer, out_length);
     return CHIP_NO_ERROR;
 }
 

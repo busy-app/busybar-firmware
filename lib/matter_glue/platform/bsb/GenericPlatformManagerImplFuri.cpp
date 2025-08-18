@@ -42,8 +42,8 @@ namespace Internal {
 
 template <class ImplClass>
 CHIP_ERROR GenericPlatformManagerImpl_Furi<ImplClass>::_InitChipStack(void) {
-    //     CHIP_ERROR err = CHIP_NO_ERROR;
-    //
+    CHIP_ERROR err = CHIP_NO_ERROR;
+
     //     vTaskSetTimeOutState(&mNextTimerBaseTime);
     //     mNextTimerDurationTicks = 0;
     //     // TODO: This nulling out of mEventLoopTask should happen when we shut down
@@ -53,80 +53,57 @@ CHIP_ERROR GenericPlatformManagerImpl_Furi<ImplClass>::_InitChipStack(void) {
     //     mBackgroundEventLoopTask = NULL;
     // #endif
     //     mChipTimerActive = false;
-    //
-    //     // We support calling Shutdown followed by InitChipStack, because some tests
-    //     // do that.  To keep things simple for existing consumers, we keep not
-    //     // destroying our lock and queue in shutdown, but rather check whether they
-    //     // already exist here before trying to create them.
-    //
-    //     if (mChipStackLock == NULL)
-    //     {
-    // #if defined(CHIP_CONFIG_Furi_USE_STATIC_SEMAPHORE) && CHIP_CONFIG_Furi_USE_STATIC_SEMAPHORE
-    //         mChipStackLock = xSemaphoreCreateMutexStatic(&mChipStackLockMutex);
-    // #else
-    //         mChipStackLock  = xSemaphoreCreateMutex();
-    // #endif
-    //
-    //         if (mChipStackLock == NULL)
-    //         {
-    //             ChipLogError(DeviceLayer, "Failed to create CHIP stack lock");
-    //             ExitNow(err = CHIP_ERROR_NO_MEMORY);
-    //         }
-    //     }
-    //
-    //     if (mChipEventQueue == NULL)
-    //     {
-    // #if defined(CHIP_CONFIG_Furi_USE_STATIC_QUEUE) && CHIP_CONFIG_Furi_USE_STATIC_QUEUE
-    //         mChipEventQueue = xQueueCreateStatic(CHIP_DEVICE_CONFIG_MAX_EVENT_QUEUE_SIZE, sizeof(ChipDeviceEvent), mEventQueueBuffer,
-    //                                              &mEventQueueStruct);
-    // #else
-    //         mChipEventQueue = xQueueCreate(CHIP_DEVICE_CONFIG_MAX_EVENT_QUEUE_SIZE, sizeof(ChipDeviceEvent));
-    // #endif
-    //         if (mChipEventQueue == NULL)
-    //         {
-    //             ChipLogError(DeviceLayer, "Failed to allocate CHIP main event queue");
-    //             ExitNow(err = CHIP_ERROR_NO_MEMORY);
-    //         }
-    //     }
-    //     else
-    //     {
-    //         // Clear out any events that might be stuck in the queue, so we start
-    //         // with a clean slate, as if we had just re-created the queue.
-    //         xQueueReset(mChipEventQueue);
-    //     }
-    //
+
+    // We support calling Shutdown followed by InitChipStack, because some tests
+    // do that.  To keep things simple for existing consumers, we keep not
+    // destroying our lock and queue in shutdown, but rather check whether they
+    // already exist here before trying to create them.
+
+    if(mChipStackLock == NULL) {
+        mChipStackLock = furi_mutex_alloc(FuriMutexTypeNormal);
+    }
+
+    if(mChipEventQueue == NULL) {
+        mChipEventQueue = furi_message_queue_alloc(
+            CHIP_DEVICE_CONFIG_MAX_EVENT_QUEUE_SIZE, sizeof(ChipDeviceEvent));
+    } else {
+        // Clear out any events that might be stuck in the queue, so we start
+        // with a clean slate, as if we had just re-created the queue.
+        furi_message_queue_reset(mChipEventQueue);
+    }
+
     //     mShouldRunEventLoop.store(false);
-    //
-    // #if defined(CHIP_DEVICE_CONFIG_ENABLE_BG_EVENT_PROCESSING) && CHIP_DEVICE_CONFIG_ENABLE_BG_EVENT_PROCESSING
-    //     if (mBackgroundEventQueue == NULL)
-    //     {
-    // #if defined(CHIP_CONFIG_Furi_USE_STATIC_QUEUE) && CHIP_CONFIG_Furi_USE_STATIC_QUEUE
-    //         mBackgroundEventQueue = xQueueCreateStatic(CHIP_DEVICE_CONFIG_BG_MAX_EVENT_QUEUE_SIZE, sizeof(ChipDeviceEvent),
-    //                                                    mBackgroundQueueBuffer, &mBackgroundQueueStruct);
-    // #else
-    //         mBackgroundEventQueue = xQueueCreate(CHIP_DEVICE_CONFIG_BG_MAX_EVENT_QUEUE_SIZE, sizeof(ChipDeviceEvent));
-    // #endif
-    //         if (mBackgroundEventQueue == NULL)
-    //         {
-    //             ChipLogError(DeviceLayer, "Failed to allocate CHIP background event queue");
-    //             ExitNow(err = CHIP_ERROR_NO_MEMORY);
-    //         }
-    //     }
-    //     else
-    //     {
-    //         xQueueReset(mBackgroundEventQueue);
-    //     }
-    //
-    //     mShouldRunBackgroundEventLoop.store(false);
-    // #endif
-    //
-    //     // Call up to the base class _InitChipStack() to perform the bulk of the initialization.
-    //     err = GenericPlatformManagerImpl<ImplClass>::_InitChipStack();
-    //     SuccessOrExit(err);
-    //
-    // exit:
-    //     return err;
-    return CHIP_ERROR_NOT_IMPLEMENTED;
+
+#if defined(CHIP_DEVICE_CONFIG_ENABLE_BG_EVENT_PROCESSING) && \
+    CHIP_DEVICE_CONFIG_ENABLE_BG_EVENT_PROCESSING
+//     if (mBackgroundEventQueue == NULL)
+//     {
+// #if defined(CHIP_CONFIG_Furi_USE_STATIC_QUEUE) && CHIP_CONFIG_Furi_USE_STATIC_QUEUE
+//         mBackgroundEventQueue = xQueueCreateStatic(CHIP_DEVICE_CONFIG_BG_MAX_EVENT_QUEUE_SIZE, sizeof(ChipDeviceEvent),
+//                                                    mBackgroundQueueBuffer, &mBackgroundQueueStruct);
+// #else
+//         mBackgroundEventQueue = xQueueCreate(CHIP_DEVICE_CONFIG_BG_MAX_EVENT_QUEUE_SIZE, sizeof(ChipDeviceEvent));
+// #endif
+//         if (mBackgroundEventQueue == NULL)
+//         {
+//             ChipLogError(DeviceLayer, "Failed to allocate CHIP background event queue");
+//             ExitNow(err = CHIP_ERROR_NO_MEMORY);
+//         }
+//     }
+//     else
+//     {
+//         xQueueReset(mBackgroundEventQueue);
+//     }
+//
+//     mShouldRunBackgroundEventLoop.store(false);
+#endif
+
+    // Call up to the base class _InitChipStack() to perform the bulk of the initialization.
+    err = GenericPlatformManagerImpl<ImplClass>::_InitChipStack();
+    SuccessOrExit(err);
+
+exit:
+    return err;
 }
 
 template <class ImplClass>
@@ -167,18 +144,18 @@ bool GenericPlatformManagerImpl_Furi<ImplClass>::_IsChipStackLockedByCurrentThre
 
 template <class ImplClass>
 CHIP_ERROR GenericPlatformManagerImpl_Furi<ImplClass>::_PostEvent(const ChipDeviceEvent* event) {
-    // if (mChipEventQueue == NULL)
-    // {
-    //     return CHIP_ERROR_INTERNAL;
-    // }
-    // BaseType_t status = xQueueSend(mChipEventQueue, event, 1);
-    // if (status != pdTRUE)
-    // {
-    //     ChipLogError(DeviceLayer, "Failed to post event to CHIP Platform event queue");
-    //     return CHIP_ERROR(chip::ChipError::Range::kOS, status);
-    // }
-    // return CHIP_NO_ERROR;
-    return CHIP_ERROR_NOT_IMPLEMENTED;
+    if(mChipEventQueue == NULL) {
+        return CHIP_ERROR_INTERNAL;
+    }
+
+    const FuriStatus status = furi_message_queue_put(mChipEventQueue, event, 1);
+
+    if(status != FuriStatusOk) {
+        ChipLogError(DeviceLayer, "Failed to post event to CHIP Platform event queue");
+        return CHIP_ERROR(chip::ChipError::Range::kOS, status);
+    }
+
+    return CHIP_NO_ERROR;
 }
 
 template <class ImplClass>

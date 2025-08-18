@@ -75,7 +75,7 @@ static int app_entropy_source(void* data, unsigned char* output, size_t len, siz
 #endif // !SLI_SI91X_MCU_INTERFACE
 #endif // SL_MBEDTLS_USE_TINYCRYPT
 CHIP_ERROR PlatformManagerImpl::_InitChipStack(void) {
-    //     CHIP_ERROR err;
+    CHIP_ERROR err;
     //     // Initialize the configuration system.
     //     err = chip::DeviceLayer::PersistedStorage::KeyValueStoreMgrImpl().Init();
     //     SuccessOrExit(err);
@@ -97,18 +97,17 @@ CHIP_ERROR PlatformManagerImpl::_InitChipStack(void) {
     //     // VerifyOrExit((&rngMutexHandle != nullptr), err = CHIP_ERROR_NO_MEMORY);
     //     uECC_set_rng(PlatformManagerImpl::uECC_RNG_Function);
     // #endif // SL_MBEDTLS_USE_TINYCRYPT
-    //
-    //     // Call _InitChipStack() on the generic implementation base class
-    //     // to finish the initialization process.
-    //     err = Internal::GenericPlatformManagerImpl_Furi<PlatformManagerImpl>::_InitChipStack();
-    //     SuccessOrExit(err);
-    //
+
+    // Call _InitChipStack() on the generic implementation base class
+    // to finish the initialization process.
+    err = Internal::GenericPlatformManagerImpl_Furi<PlatformManagerImpl>::_InitChipStack();
+    SuccessOrExit(err);
+
     //     // Start timer to increment TotalOperationalHours every hour
     //     SystemLayer().StartTimer(System::Clock::Seconds32(kSecondsPerHour), UpdateOperationalHours, NULL);
-    //
-    // exit:
-    //     return err;
-    return CHIP_NO_ERROR;
+
+exit:
+    return err;
 }
 
 // void PlatformManagerImpl::UpdateOperationalHours(System::Layer * systemLayer, void * appState)
