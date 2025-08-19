@@ -6,6 +6,7 @@
 
 #include <furi.h>
 #include <intercom/intercom.h>
+#include <network/network.h>
 
 #define TAG "Wifi"
 

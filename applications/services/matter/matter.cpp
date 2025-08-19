@@ -13,6 +13,9 @@
 #include <platform/bsb/CommissionableDataProviderImpl.hpp>
 #include <platform/bsb/DeviceInstanceInfoProviderImpl.hpp>
 
+#include <network/network.h>
+#include <wifi/wifi_common.h>
+
 #define TAG "MatterSrv"
 
 extern "C" {
@@ -21,6 +24,13 @@ int matter_srv(void* arg);
 
 int matter_srv(void* arg) {
     UNUSED(arg);
+
+    auto* network = static_cast<Network*>(furi_record_open(RECORD_NETWORK));
+    network_init_current_thread(network);
+
+    // TODO: react to Wifi events
+    auto* wifi_pubsub = static_cast<FuriPubSub*>(furi_record_open(RECORD_WIFI));
+    UNUSED(wifi_pubsub);
 
     CHIP_ERROR err;
 

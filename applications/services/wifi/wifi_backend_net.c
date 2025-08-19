@@ -133,11 +133,6 @@ static void wifi_net_tcpip_netif_down_callback(void* context) {
     wifi_net_tcpip_unlock();
 }
 
-static void wifi_net_tcpip_init_callback(void* context) {
-    UNUSED(context);
-    wifi_net_tcpip_unlock();
-}
-
 static void wifi_net_tcpip_add_netif_callback(void* context) {
     UNUSED(context);
 
@@ -153,10 +148,6 @@ static void wifi_net_tcpip_add_netif_callback(void* context) {
 void wifi_net_tcpip_init(Wifi* wifi) {
     // TODO: Is it possible to store the instance not in a global variable?
     instance = wifi;
-
-    tcpip_init(wifi_net_tcpip_init_callback, NULL);
-    wifi_net_tcpip_wait_unlock();
-
     wifi_net_tcpip_callback(wifi_net_tcpip_add_netif_callback, NULL);
 }
 

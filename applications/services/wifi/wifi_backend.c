@@ -370,6 +370,8 @@ static Wifi* wifi_alloc(void) {
     instance->intercom = furi_record_open(RECORD_INTERCOM);
     instance->tcpip_lock = furi_semaphore_alloc(1, 0);
 
+    furi_record_open(RECORD_NETWORK);
+
     furi_event_loop_set_custom_event_callback(
         instance->event_loop, wifi_custom_event_callback, instance);
     intercom_set_rx_callback(

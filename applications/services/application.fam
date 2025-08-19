@@ -47,6 +47,7 @@ App(
     provides=[
         "cli",
         "input",
+        "network",
         "wifi",
         "matter",
     ],
