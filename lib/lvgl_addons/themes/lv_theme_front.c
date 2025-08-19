@@ -17,6 +17,7 @@ typedef struct {
     lv_style_t screen;
     lv_style_t normal;
     lv_style_t focused;
+    lv_style_t disabled;
     lv_style_t transparent;
     lv_style_t scrollbar;
     lv_style_t menu_item;
@@ -29,6 +30,9 @@ typedef struct {
     lv_style_t timer_label;
     lv_style_t margin_right;
     lv_style_t app_title_card;
+    lv_style_t slider_view;
+    lv_style_t slider_view_image;
+    lv_style_t slider_view_text_container;
 } my_theme_styles_t;
 
 typedef struct {
@@ -49,6 +53,10 @@ static void style_init(my_theme_t* theme) {
     lv_style_init(&theme->styles.focused);
     lv_style_set_text_opa(&theme->styles.focused, LV_OPA_COVER);
     lv_style_set_text_color(&theme->styles.focused, COLOR_FG_FOCUSED);
+
+    lv_style_init(&theme->styles.disabled);
+    lv_style_set_text_opa(&theme->styles.disabled, LV_OPA_50);
+    lv_style_set_image_opa(&theme->styles.disabled, LV_OPA_50);
 
     lv_style_init(&theme->styles.transparent);
     lv_style_set_bg_opa(&theme->styles.transparent, LV_OPA_TRANSP);
@@ -93,6 +101,20 @@ static void style_init(my_theme_t* theme) {
     lv_style_init(&theme->styles.app_title_card);
     lv_style_set_pad_column(&theme->styles.app_title_card, 2);
     lv_style_set_text_font(&theme->styles.app_title_card, &lv_font_ark_regular_10);
+
+    lv_style_init(&theme->styles.slider_view);
+    lv_style_set_pad_all(&theme->styles.slider_view, 1);
+
+    lv_style_init(&theme->styles.slider_view_image);
+    lv_style_set_align(&theme->styles.slider_view_image, LV_ALIGN_LEFT_MID);
+    lv_style_set_translate_x(&theme->styles.slider_view_image, 1);
+    lv_style_set_translate_y(&theme->styles.slider_view_image, -1);
+
+    lv_style_init(&theme->styles.slider_view_text_container);
+    lv_style_set_pad_column(&theme->styles.slider_view_text_container, 3);
+    lv_style_set_align(&theme->styles.slider_view_text_container, LV_ALIGN_RIGHT_MID);
+    lv_style_set_translate_x(&theme->styles.slider_view_text_container, -1);
+    lv_style_set_text_font(&theme->styles.slider_view_text_container, &lv_font_ark_regular_10);
 }
 
 static void theme_apply_callback(lv_theme_t* th, lv_obj_t* obj) {
@@ -186,6 +208,18 @@ static void theme_apply_callback(lv_theme_t* th, lv_obj_t* obj) {
     } else if(lv_obj_check_type(obj, &app_title_card_lvgl_class)) {
         lv_obj_add_style(obj, &theme->styles.app_title_card, LV_PART_MAIN);
 
+    } else if(lv_obj_check_type(obj, &slider_view_lvgl_class)) {
+        lv_obj_add_style(obj, &theme->styles.slider_view, LV_PART_MAIN);
+
+    } else if(lv_obj_check_type(obj, &slider_view_image_lvgl_class)) {
+        lv_obj_add_style(obj, &theme->styles.slider_view_image, LV_PART_MAIN);
+
+    } else if(lv_obj_check_type(obj, &slider_view_text_container_lvgl_class)) {
+        lv_obj_add_style(obj, &theme->styles.slider_view_text_container, LV_PART_MAIN);
+
+    } else if(lv_obj_check_type(obj, &slider_view_arrow_label_lvgl_class)) {
+        lv_obj_add_style(obj, &theme->styles.disabled, LV_PART_MAIN | LV_STATE_DISABLED);
+#endif
     }
 }
 

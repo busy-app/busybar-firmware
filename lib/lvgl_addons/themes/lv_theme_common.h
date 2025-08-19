@@ -37,3 +37,10 @@ extern const lv_obj_class_t timer_label_lvgl_class;
 // AppTitleCard
 extern const lv_obj_class_t app_title_card_lvgl_class;
 extern const lv_obj_class_t app_title_card_label_lvgl_class;
+
+// SliderView
+extern const lv_obj_class_t slider_view_lvgl_class;
+extern const lv_obj_class_t slider_view_bar_lvgl_class;
+extern const lv_obj_class_t slider_view_image_lvgl_class;
+extern const lv_obj_class_t slider_view_text_container_lvgl_class;
+extern const lv_obj_class_t slider_view_arrow_label_lvgl_class;
