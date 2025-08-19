@@ -76,7 +76,7 @@ CHIP_ERROR GenericPlatformManagerImpl_Furi<ImplClass>::_InitChipStack(void) {
         mEventLoop = furi_event_loop_alloc();
 
         furi_event_loop_subscribe_message_queue(
-            mEventLoop, mChipEventQueue, FuriEventLoopEventIn, ChipEventQueueCallback, this);
+            mEventLoop, mChipEventQueue, FuriEventLoopEventIn, ChipEventQueueCallback, NULL);
     }
 
     //     mShouldRunEventLoop.store(false);
@@ -421,17 +421,16 @@ template <class ImplClass>
 void GenericPlatformManagerImpl_Furi<ImplClass>::ChipEventQueueCallback(
     FuriEventLoopObject* object,
     void* context) {
-    furi_assert(object);
-    furi_assert(context);
+    UNUSED(context);
 
-    auto* chipEventQueue = static_cast<FuriMessageQueue*>(object);
+    auto& mgrImpl = PlatformMgrImpl();
+    furi_assert(object == mgrImpl.mChipEventQueue);
 
     ChipDeviceEvent event;
 
-    while(furi_message_queue_get(chipEventQueue, &event, 0) == FuriStatusOk) {
-        ChipLogDetail(DeviceLayer, "Event type: %hu", event.Type);
-        // FIXME: Make this compile
-        // mgr->Impl()->DispatchEvent(&event);
+    while(furi_message_queue_get(mgrImpl.mChipEventQueue, &event, 0) == FuriStatusOk) {
+        // Same as PlatformManager::DispatchEvent, but w/o the need to modify the library code
+        mgrImpl._DispatchEvent(&event);
     }
 }
 

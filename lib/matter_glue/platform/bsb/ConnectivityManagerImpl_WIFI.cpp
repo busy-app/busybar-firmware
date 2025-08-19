@@ -79,63 +79,64 @@ exit:
 void ConnectivityManagerImpl::_OnPlatformEvent(const ChipDeviceEvent* event) {
     // Forward the event to the generic base classes as needed.
     // Handle Wfx wifi events...
-    if(event->Type == DeviceEventType::kWFXSystemEvent) {
-        // if (event->Platform.WFXSystemEvent.eventBase == WIFI_EVENT)
-        // {
-        //     switch (event->Platform.WFXSystemEvent.data.genericMsgEvent.header.id)
-        //     {
-        //     case SL_WFX_STARTUP_IND_ID:
-        //         ChipLogProgress(DeviceLayer, "WIFI_EVENT_STA_START");
-        //         DriveStationState();
-        //         break;
-        //     case SL_WFX_CONNECT_IND_ID:
-        //         ChipLogProgress(DeviceLayer, "WIFI_EVENT_STA_CONNECTED");
-        //         if (mWiFiStationState == kWiFiStationState_Connecting)
-        //         {
-        //             if (event->Platform.WFXSystemEvent.data.connectEvent.body.status == 0)
-        //             {
-        //                 ChangeWiFiStationState(kWiFiStationState_Connecting_Succeeded);
-        //             }
-        //             else
-        //             {
-        //                 ChangeWiFiStationState(kWiFiStationState_Connecting_Failed);
-        //             }
-        //         }
-        //         DriveStationState();
-        //         break;
-        //     case SL_WFX_DISCONNECT_IND_ID:
-        //         ChipLogProgress(DeviceLayer, "WIFI_EVENT_STA_DISCONNECTED");
-        //         if (mWiFiStationState == kWiFiStationState_Connecting)
-        //         {
-        //             ChangeWiFiStationState(kWiFiStationState_Connecting_Failed);
-        //         }
-        //         DriveStationState();
-        //         break;
-        //     default:
-        //         break;
-        //     }
-        // }
-        // else if (event->Platform.WFXSystemEvent.eventBase == IP_EVENT)
-        // {
-        //     switch (event->Platform.WFXSystemEvent.data.genericMsgEvent.header.id)
-        //     {
-        //     case IP_EVENT_STA_GOT_IP:
-        //         ChipLogProgress(DeviceLayer, "IP_EVENT_STA_GOT_IP");
-        //         UpdateInternetConnectivityState();
-        //         break;
-        //     case IP_EVENT_STA_LOST_IP:
-        //         ChipLogProgress(DeviceLayer, "IP_EVENT_STA_LOST_IP");
-        //         UpdateInternetConnectivityState();
-        //         break;
-        //     case IP_EVENT_GOT_IP6:
-        //         ChipLogProgress(DeviceLayer, "IP_EVENT_GOT_IP6");
-        //         UpdateInternetConnectivityState();
-        //         break;
-        //     default:
-        //         break;
-        //     }
-        // }
-    }
+    ChipLogDetail(DeviceLayer, "Platform event of type %hu", event->Type);
+    // if(event->Type == DeviceEventType::kWFXSystemEvent) {
+    // if (event->Platform.WFXSystemEvent.eventBase == WIFI_EVENT)
+    // {
+    //     switch (event->Platform.WFXSystemEvent.data.genericMsgEvent.header.id)
+    //     {
+    //     case SL_WFX_STARTUP_IND_ID:
+    //         ChipLogProgress(DeviceLayer, "WIFI_EVENT_STA_START");
+    //         DriveStationState();
+    //         break;
+    //     case SL_WFX_CONNECT_IND_ID:
+    //         ChipLogProgress(DeviceLayer, "WIFI_EVENT_STA_CONNECTED");
+    //         if (mWiFiStationState == kWiFiStationState_Connecting)
+    //         {
+    //             if (event->Platform.WFXSystemEvent.data.connectEvent.body.status == 0)
+    //             {
+    //                 ChangeWiFiStationState(kWiFiStationState_Connecting_Succeeded);
+    //             }
+    //             else
+    //             {
+    //                 ChangeWiFiStationState(kWiFiStationState_Connecting_Failed);
+    //             }
+    //         }
+    //         DriveStationState();
+    //         break;
+    //     case SL_WFX_DISCONNECT_IND_ID:
+    //         ChipLogProgress(DeviceLayer, "WIFI_EVENT_STA_DISCONNECTED");
+    //         if (mWiFiStationState == kWiFiStationState_Connecting)
+    //         {
+    //             ChangeWiFiStationState(kWiFiStationState_Connecting_Failed);
+    //         }
+    //         DriveStationState();
+    //         break;
+    //     default:
+    //         break;
+    //     }
+    // }
+    // else if (event->Platform.WFXSystemEvent.eventBase == IP_EVENT)
+    // {
+    //     switch (event->Platform.WFXSystemEvent.data.genericMsgEvent.header.id)
+    //     {
+    //     case IP_EVENT_STA_GOT_IP:
+    //         ChipLogProgress(DeviceLayer, "IP_EVENT_STA_GOT_IP");
+    //         UpdateInternetConnectivityState();
+    //         break;
+    //     case IP_EVENT_STA_LOST_IP:
+    //         ChipLogProgress(DeviceLayer, "IP_EVENT_STA_LOST_IP");
+    //         UpdateInternetConnectivityState();
+    //         break;
+    //     case IP_EVENT_GOT_IP6:
+    //         ChipLogProgress(DeviceLayer, "IP_EVENT_GOT_IP6");
+    //         UpdateInternetConnectivityState();
+    //         break;
+    //     default:
+    //         break;
+    //     }
+    // }
+    // }
 }
 
 ConnectivityManager::WiFiStationMode ConnectivityManagerImpl::_GetWiFiStationMode(void) {

@@ -48,6 +48,10 @@ class PlatformManagerImpl final
     // the implementation methods provided by this class.
     friend PlatformManager;
 
+    // Allow the generic implementation base class to call helper methods on
+    // this class.
+    friend Internal::GenericPlatformManagerImpl_Furi<PlatformManagerImpl>;
+
     // #if defined(SL_MBEDTLS_USE_TINYCRYPT)
     //     // Since the RNG callback will be called from multiple threads,
     //     // use this mutex to lock/unlock the call to Matter RNG API, which
@@ -59,12 +63,6 @@ class PlatformManagerImpl final
     //     // which are used in both Matter and OT threads.
     //     static int uECC_RNG_Function(uint8_t * dest, unsigned int size);
     // #endif // SL_MBEDTLS_USE_TINYCRYPT
-
-    // Allow the generic implementation base class to call helper methods on
-    // this class.
-#ifndef DOXYGEN_SHOULD_SKIP_THIS
-    friend Internal::GenericPlatformManagerImpl_Furi<PlatformManagerImpl>;
-#endif
 
 public:
     // ===== Platform-specific members that may be accessed directly by the application.

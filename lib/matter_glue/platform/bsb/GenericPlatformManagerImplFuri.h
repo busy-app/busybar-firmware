@@ -100,34 +100,11 @@ private:
 
     static void ChipEventQueueCallback(FuriEventLoopObject* object, void* context);
 
-    // #if defined(CHIP_CONFIG_FREERTOS_USE_STATIC_QUEUE) && CHIP_CONFIG_FREERTOS_USE_STATIC_QUEUE
-    //     uint8_t mEventQueueBuffer[CHIP_DEVICE_CONFIG_MAX_EVENT_QUEUE_SIZE * sizeof(ChipDeviceEvent)];
-    //     StaticQueue_t mEventQueueStruct;
-    // #endif
-    // #if defined(CHIP_CONFIG_FREERTOS_USE_STATIC_TASK) && CHIP_CONFIG_FREERTOS_USE_STATIC_TASK
-    //     StackType_t mEventLoopStack[CHIP_DEVICE_CONFIG_CHIP_TASK_STACK_SIZE / sizeof(StackType_t)];
-    //     StaticTask_t mEventLoopTaskStruct;
-    // #endif
-    //
     //     std::atomic<bool> mShouldRunEventLoop;
     //
     // #if defined(CHIP_DEVICE_CONFIG_ENABLE_BG_EVENT_PROCESSING) && CHIP_DEVICE_CONFIG_ENABLE_BG_EVENT_PROCESSING
     //     static void BackgroundEventLoopTaskMain(void * arg);
-    //
-    // #if defined(CHIP_CONFIG_FREERTOS_USE_STATIC_QUEUE) && CHIP_CONFIG_FREERTOS_USE_STATIC_QUEUE
-    //     uint8_t mBackgroundQueueBuffer[CHIP_DEVICE_CONFIG_BG_MAX_EVENT_QUEUE_SIZE * sizeof(ChipDeviceEvent)];
-    //     StaticQueue_t mBackgroundQueueStruct;
-    // #endif
-    // #if defined(CHIP_CONFIG_FREERTOS_USE_STATIC_TASK) && CHIP_CONFIG_FREERTOS_USE_STATIC_TASK
-    //     StackType_t mBackgroundEventLoopStack[CHIP_DEVICE_CONFIG_BG_TASK_STACK_SIZE / sizeof(StackType_t)];
-    //     StaticTask_t mBackgroundEventLoopTaskStruct;
-    // #endif
-    //
     //     std::atomic<bool> mShouldRunBackgroundEventLoop;
-    // #endif
-    //
-    // #if defined(CHIP_CONFIG_FREERTOS_USE_STATIC_SEMAPHORE) && CHIP_CONFIG_FREERTOS_USE_STATIC_SEMAPHORE
-    //     StaticSemaphore_t mChipStackLockMutex;
     // #endif
 };
 
