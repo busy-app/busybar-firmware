@@ -6,6 +6,7 @@
 #include "cli_command_sl_cli.h"
 #include "cli_command_factory_reset.h"
 #include "cli_command_otp.h"
+#include "cli_command_rtc.h"
 
 #include <core/thread.h>
 #include <core/thread_list.h>
@@ -156,7 +157,8 @@ static void cli_commands_init(CliRegistry* registry) {
         registry, "audio", CliCommandFlagParallelSafe, cli_command_audio, NULL);
     cli_registry_add_command(
         registry, "sl_cli", CliCommandFlagParallelSafe, cli_command_sl_cli, NULL);
-
+    cli_registry_add_command(
+        registry, "date", CliCommandFlagParallelSafe, cli_command_rtc_date, NULL);
     // commands from `.fam`s
     for(size_t i = 0; i < FLIPPER_CLI_COMMANDS_COUNT; i++) {
         const FlipperInternalCommandApplication* command = &FLIPPER_CLI_COMMANDS[i];
