@@ -30,6 +30,7 @@ CHIP_ERROR CommissionableDataProviderImpl::GetSpake2pVerifier(
     MutableByteSpan& verifierBuf,
     size_t& outVerifierLen) {
     ChipLogDetail(DeviceLayer, "%s", __PRETTY_FUNCTION__);
+    outVerifierLen = verifierBuf.size();
     return CHIP_NO_ERROR;
 }
 

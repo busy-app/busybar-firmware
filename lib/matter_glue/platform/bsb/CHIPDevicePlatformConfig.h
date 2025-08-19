@@ -31,6 +31,8 @@
 
 #define CHIP_DEVICE_CONFIG_ENABLE_WIFI_AP 0
 
+#define CHIP_DEVICE_CONFIG_ENABLE_WIFI_STATION 0
+
 /**
  * CHIP_DEVICE_CONFIG_DEVICE_SOFTWARE_VERSION_STRING
  *
@@ -83,13 +85,13 @@
  *  @brief Fallback value for the basic information cluster's Vendor name attribute
  *   if the actual vendor name is not provisioned in the device memory.
  */
-#define CHIP_DEVICE_CONFIG_TEST_VENDOR_NAME "Silabs"
+#define CHIP_DEVICE_CONFIG_TEST_VENDOR_NAME "Flipper Devices"
 
 /**
  *  @brief Fallback value for the basic information cluster's product name attribute
  *   if the actual vendor name is not provisioned in the device memory.
  */
-#define CHIP_DEVICE_CONFIG_TEST_PRODUCT_NAME "SL_Sample"
+#define CHIP_DEVICE_CONFIG_TEST_PRODUCT_NAME "Busy Status Bar"
 #endif // CHIP_DEVICE_CONFIG_ENABLE_TEST_SETUP_PARAMS
 
 #ifndef CHIP_DEVICE_CONFIG_ENABLE_CHIPOBLE
@@ -153,6 +155,4 @@
 #endif // SL_ICD_ENABLED
 
 // FIXME just for testing
-#define CHIP_DEVICE_CONFIG_ENABLE_PAIRING_AUTOSTART 0
-
-#define CHIP_DEVICE_CONFIG_ENABLE_WIFI_STATION 0
+// #define CHIP_DEVICE_CONFIG_ENABLE_PAIRING_AUTOSTART 0
