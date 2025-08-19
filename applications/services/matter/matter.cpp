@@ -18,13 +18,21 @@
 
 #define TAG "MatterSrv"
 
-extern "C" {
-int matter_srv(void* arg);
-}
+using namespace chip;
+using namespace Platform;
+using namespace DeviceLayer;
 
-int matter_srv(void* arg) {
-    UNUSED(arg);
+class MatterSrv {
+public:
+    CHIP_ERROR init(void);
 
+private:
+    DeviceInstanceInfoProviderImpl m_device_instance_info_provifer;
+    CommissionableDataProviderImpl m_commissionable_data_provider;
+    CommonCaseDeviceServerInitParams m_server_init_params;
+};
+
+CHIP_ERROR MatterSrv::init(void) {
     auto* network = static_cast<Network*>(furi_record_open(RECORD_NETWORK));
     network_init_current_thread(network);
 
@@ -35,37 +43,47 @@ int matter_srv(void* arg) {
     CHIP_ERROR err;
 
     do {
-        err = chip::Platform::MemoryInit();
+        err = MemoryInit();
         if(err != CHIP_NO_ERROR) {
             break;
         }
 
-        err = chip::DeviceLayer::PlatformMgr().InitChipStack();
+        err = PlatformMgr().InitChipStack();
         if(err != CHIP_NO_ERROR) {
             break;
         }
 
-        auto* di = new chip::DeviceLayer::DeviceInstanceInfoProviderImpl();
-        chip::DeviceLayer::SetDeviceInstanceInfoProvider(di);
+        SetDeviceInstanceInfoProvider(&m_device_instance_info_provifer);
+        SetCommissionableDataProvider(&m_commissionable_data_provider);
 
-        auto* cd = new chip::DeviceLayer::CommissionableDataProviderImpl();
-        chip::DeviceLayer::SetCommissionableDataProvider(cd);
-
-        chip::CommonCaseDeviceServerInitParams init_params;
-        err = init_params.InitializeStaticResourcesBeforeServerInit();
+        err = m_server_init_params.InitializeStaticResourcesBeforeServerInit();
         if(err != CHIP_NO_ERROR) {
             break;
         }
 
-        err = chip::Server::GetInstance().Init(init_params);
+        err = Server::GetInstance().Init(m_server_init_params);
         if(err != CHIP_NO_ERROR) {
             break;
         }
 
     } while(false);
 
+    return err;
+}
+
+extern "C" {
+int matter_srv(void* arg);
+}
+
+int matter_srv(void* arg) {
+    UNUSED(arg);
+
+    MatterSrv* instance = new MatterSrv;
+    const CHIP_ERROR err = instance->init();
+
     if(err == CHIP_NO_ERROR) {
-        chip::DeviceLayer::PlatformMgr().RunEventLoop();
+        PlatformMgr().RunEventLoop();
+
     } else {
         FURI_LOG_E(TAG, "Failed to start: 0x%lx", err.AsInteger());
         furi_thread_suspend(furi_thread_get_current_id());
