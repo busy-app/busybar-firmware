@@ -53,6 +53,8 @@ CHIP_ERROR MatterSrv::init(void) {
             break;
         }
 
+        StackLock lock;
+
         SetDeviceInstanceInfoProvider(&m_device_instance_info_provifer);
         SetCommissionableDataProvider(&m_commissionable_data_provider);
 
