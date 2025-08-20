@@ -44,15 +44,16 @@ template <class ImplClass>
 CHIP_ERROR GenericPlatformManagerImpl_Furi<ImplClass>::_InitChipStack(void) {
     CHIP_ERROR err = CHIP_NO_ERROR;
 
-    //     vTaskSetTimeOutState(&mNextTimerBaseTime);
-    //     mNextTimerDurationTicks = 0;
-    //     // TODO: This nulling out of mEventLoopTask should happen when we shut down
-    //     // the task, not here!
-    //     mEventLoopTask = NULL;
-    // #if defined(CHIP_DEVICE_CONFIG_ENABLE_BG_EVENT_PROCESSING) && CHIP_DEVICE_CONFIG_ENABLE_BG_EVENT_PROCESSING
-    //     mBackgroundEventLoopTask = NULL;
-    // #endif
-    //     mChipTimerActive = false;
+    vTaskSetTimeOutState(&mNextTimerBaseTime);
+    mNextTimerDurationTicks = 0;
+    // TODO: This nulling out of mEventLoopTask should happen when we shut down
+    // the task, not here!
+    mEventLoopTask = NULL;
+#if defined(CHIP_DEVICE_CONFIG_ENABLE_BG_EVENT_PROCESSING) && \
+    CHIP_DEVICE_CONFIG_ENABLE_BG_EVENT_PROCESSING
+    mBackgroundEventLoopTask = NULL;
+#endif
+    mChipTimerActive = false;
 
     // We support calling Shutdown followed by InitChipStack, because some tests
     // do that.  To keep things simple for existing consumers, we keep not
@@ -75,14 +76,7 @@ CHIP_ERROR GenericPlatformManagerImpl_Furi<ImplClass>::_InitChipStack(void) {
         furi_message_queue_reset(mChipEventQueue);
     }
 
-    if(mEventLoop == NULL) {
-        mEventLoop = furi_event_loop_alloc();
-
-        furi_event_loop_subscribe_message_queue(
-            mEventLoop, mChipEventQueue, FuriEventLoopEventIn, ChipEventQueueCallback, NULL);
-    }
-
-    //     mShouldRunEventLoop.store(false);
+    mShouldRunEventLoop.store(false);
 
 #if defined(CHIP_DEVICE_CONFIG_ENABLE_BG_EVENT_PROCESSING) && \
     CHIP_DEVICE_CONFIG_ENABLE_BG_EVENT_PROCESSING
@@ -162,80 +156,76 @@ CHIP_ERROR GenericPlatformManagerImpl_Furi<ImplClass>::_PostEvent(const ChipDevi
 
 template <class ImplClass>
 void GenericPlatformManagerImpl_Furi<ImplClass>::_RunEventLoop(void) {
-    furi_event_loop_run(mEventLoop);
+    CHIP_ERROR err;
+    ChipDeviceEvent event;
 
-    // CHIP_ERROR err;
-    // ChipDeviceEvent event;
-    //
-    // // Lock the CHIP stack.
-    // StackLock lock;
-    //
-    // bool oldShouldRunEventLoop = false;
-    // if (!mShouldRunEventLoop.compare_exchange_strong(oldShouldRunEventLoop /* expected */, true /* desired */))
-    // {
-    //     ChipLogError(DeviceLayer, "Error trying to run the event loop while it is already running");
-    //     return;
-    // }
-    //
-    // while (mShouldRunEventLoop.load())
-    // {
-    //     TickType_t waitTime;
-    //
-    //     // If one or more CHIP timers are active...
-    //     if (mChipTimerActive)
-    //     {
-    //         // Adjust the base time and remaining duration for the next scheduled timer based on the
-    //         // amount of time that has elapsed since it was started.
-    //         // IF the timer's expiration time has already arrived...
-    //         if (xTaskCheckForTimeOut(&mNextTimerBaseTime, &mNextTimerDurationTicks) == pdTRUE)
-    //         {
-    //             // Reset the 'timer active' flag.  This will be set to true again by _StartChipTimer()
-    //             // if there are further timers beyond the expired one that are still active.
-    //             mChipTimerActive = false;
-    //
-    //             // Call into the system layer to dispatch the callback functions for all timers
-    //             // that have expired.
-    //             err = static_cast<System::LayerImpl &>(DeviceLayer::SystemLayer()).HandlePlatformTimer();
-    //             if (err != CHIP_NO_ERROR)
-    //             {
-    //                 ChipLogError(DeviceLayer, "Error handling CHIP timers: %" CHIP_ERROR_FORMAT, err.Format());
-    //             }
-    //
-    //             // When processing the event queue below, do not wait if the queue is empty.  Instead
-    //             // immediately loop around and process timers again
-    //             waitTime = 0;
-    //         }
-    //
-    //         // If there is still time before the next timer expires, arrange to wait on the event queue
-    //         // until that timer expires.
-    //         else
-    //         {
-    //             waitTime = mNextTimerDurationTicks;
-    //         }
-    //     }
-    //
-    //     // Otherwise no CHIP timers are active, so wait indefinitely for an event to arrive on the event
-    //     // queue.
-    //     else
-    //     {
-    //         waitTime = portMAX_DELAY;
-    //     }
-    //
-    //     BaseType_t eventReceived = pdFALSE;
-    //     {
-    //         // Unlock the CHIP stack, allowing other threads to enter CHIP while
-    //         // the event loop thread is sleeping.
-    //         StackUnlock unlock;
-    //         eventReceived = xQueueReceive(mChipEventQueue, &event, waitTime);
-    //     }
-    //
-    //     // If an event was received, dispatch it and continue until the queue is empty.
-    //     while (eventReceived == pdTRUE)
-    //     {
-    //         Impl()->DispatchEvent(&event);
-    //         eventReceived = xQueueReceive(mChipEventQueue, &event, 0);
-    //     }
-    // }
+    // Lock the CHIP stack.
+    StackLock lock;
+
+    bool oldShouldRunEventLoop = false;
+    if(!mShouldRunEventLoop.compare_exchange_strong(
+           oldShouldRunEventLoop /* expected */, true /* desired */)) {
+        ChipLogError(
+            DeviceLayer, "Error trying to run the event loop while it is already running");
+        return;
+    }
+
+    while(mShouldRunEventLoop.load()) {
+        TickType_t waitTime;
+
+        // If one or more CHIP timers are active...
+        if(mChipTimerActive) {
+            // Adjust the base time and remaining duration for the next scheduled timer based on the
+            // amount of time that has elapsed since it was started.
+            // IF the timer's expiration time has already arrived...
+            if(xTaskCheckForTimeOut(&mNextTimerBaseTime, &mNextTimerDurationTicks) == pdTRUE) {
+                // Reset the 'timer active' flag.  This will be set to true again by _StartChipTimer()
+                // if there are further timers beyond the expired one that are still active.
+                mChipTimerActive = false;
+
+                // Call into the system layer to dispatch the callback functions for all timers
+                // that have expired.
+                err = static_cast<System::LayerImpl&>(DeviceLayer::SystemLayer())
+                          .HandlePlatformTimer();
+                if(err != CHIP_NO_ERROR) {
+                    ChipLogError(
+                        DeviceLayer,
+                        "Error handling CHIP timers: %" CHIP_ERROR_FORMAT,
+                        err.Format());
+                }
+
+                // When processing the event queue below, do not wait if the queue is empty.  Instead
+                // immediately loop around and process timers again
+                waitTime = 0;
+            }
+
+            // If there is still time before the next timer expires, arrange to wait on the event queue
+            // until that timer expires.
+            else {
+                waitTime = mNextTimerDurationTicks;
+            }
+        }
+
+        // Otherwise no CHIP timers are active, so wait indefinitely for an event to arrive on the event
+        // queue.
+        else {
+            waitTime = FuriWaitForever;
+        }
+
+        FuriStatus eventReceived;
+        {
+            // Unlock the CHIP stack, allowing other threads to enter CHIP while
+            // the event loop thread is sleeping.
+            StackUnlock unlock;
+            eventReceived = furi_message_queue_get(mChipEventQueue, &event, waitTime);
+        }
+
+        // If an event was received, dispatch it and continue until the queue is empty.
+        while(eventReceived == FuriStatusOk) {
+            PlatformMgrImpl()._DispatchEvent(&event);
+            eventReceived = furi_message_queue_get(mChipEventQueue, &event, 0);
+        }
+    }
 }
 
 template <class ImplClass>
@@ -369,21 +359,19 @@ void GenericPlatformManagerImpl_Furi<ImplClass>::BackgroundEventLoopTaskMain(voi
 template <class ImplClass>
 CHIP_ERROR
     GenericPlatformManagerImpl_Furi<ImplClass>::_StartChipTimer(System::Clock::Timeout delay) {
-    // mChipTimerActive = true;
-    // vTaskSetTimeOutState(&mNextTimerBaseTime);
-    // mNextTimerDurationTicks = pdMS_TO_TICKS(System::Clock::Milliseconds64(delay).count());
-    //
-    // // If the platform timer is being updated by a thread other than the event loop thread,
-    // // trigger the event loop thread to recalculate its wait time by posting a no-op event
-    // // to the event queue.
-    // if (xTaskGetCurrentTaskHandle() != mEventLoopTask)
-    // {
-    //     ChipDeviceEvent noop{ .Type = DeviceEventType::kNoOp };
-    //     ReturnErrorOnFailure(Impl()->PostEvent(&noop));
-    // }
-    //
-    // return CHIP_NO_ERROR;
-    return CHIP_ERROR_NOT_IMPLEMENTED;
+    mChipTimerActive = true;
+    vTaskSetTimeOutState(&mNextTimerBaseTime);
+    mNextTimerDurationTicks = pdMS_TO_TICKS(System::Clock::Milliseconds64(delay).count());
+
+    // If the platform timer is being updated by a thread other than the event loop thread,
+    // trigger the event loop thread to recalculate its wait time by posting a no-op event
+    // to the event queue.
+    if(furi_thread_get_current() != mEventLoopTask) {
+        ChipDeviceEvent noop{.Type = DeviceEventType::kNoOp};
+        ReturnErrorOnFailure(Impl()->PostEvent(&noop));
+    }
+
+    return CHIP_NO_ERROR;
 }
 
 // template <class ImplClass>
@@ -407,28 +395,8 @@ void GenericPlatformManagerImpl_Furi<ImplClass>::_Shutdown(void) {
 
 template <class ImplClass>
 CHIP_ERROR GenericPlatformManagerImpl_Furi<ImplClass>::_StopEventLoopTask(void) {
-    // mShouldRunEventLoop.store(false);
-    // return CHIP_NO_ERROR;
-    return CHIP_ERROR_NOT_IMPLEMENTED;
-}
-
-template <class ImplClass>
-void GenericPlatformManagerImpl_Furi<ImplClass>::ChipEventQueueCallback(
-    FuriEventLoopObject* object,
-    void* context) {
-    UNUSED(context);
-
-    StackLock lock;
-
-    auto& mgrImpl = PlatformMgrImpl();
-    furi_assert(object == mgrImpl.mChipEventQueue);
-
-    ChipDeviceEvent event;
-
-    while(furi_message_queue_get(mgrImpl.mChipEventQueue, &event, 0) == FuriStatusOk) {
-        // Same as PlatformManager::DispatchEvent, but w/o the need to modify the library code
-        mgrImpl._DispatchEvent(&event);
-    }
+    mShouldRunEventLoop.store(false);
+    return CHIP_NO_ERROR;
 }
 
 // Fully instantiate the generic implementation class in whatever compilation unit includes this file.

@@ -27,6 +27,9 @@
 
 #include <lib/support/TimeUtils.h>
 
+#include <FreeRTOS.h>
+#include <task.h>
+
 namespace chip {
 namespace System {
 namespace Clock {
@@ -35,11 +38,29 @@ namespace Internal {
 ClockImpl gClockImpl;
 } // namespace Internal
 
-static uint64_t sBootTimeUS = 0;
+namespace {
 
-// TODO: Implement a monotonic non-overflowing 64bit tick
+uint64_t sBootTimeUS = 0;
+
+BaseType_t sNumOfOverflows;
+
+} // unnamed namespace
+
+// TODO: Necessary FURI abstractions
 static uint64_t get_ticks_since_boot(void) {
-    return furi_get_tick();
+    TimeOut_t timeOut;
+
+    if(FURI_IS_IRQ_MODE()) {
+        timeOut.xTimeOnEntering = xTaskGetTickCountFromISR();
+        timeOut.xOverflowCount = sNumOfOverflows;
+
+    } else {
+        vTaskSetTimeOutState(&timeOut);
+        sNumOfOverflows = timeOut.xOverflowCount;
+    }
+
+    return static_cast<uint64_t>(timeOut.xTimeOnEntering) +
+           (static_cast<uint64_t>(timeOut.xOverflowCount) << 32);
 }
 
 Clock::Microseconds64 ClockImpl::GetMonotonicMicroseconds64(void) {

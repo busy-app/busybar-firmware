@@ -33,6 +33,9 @@
 
 #include <platform/internal/GenericPlatformManagerImpl.h>
 
+#include <FreeRTOS.h>
+#include <task.h>
+
 #include <atomic>
 
 namespace chip {
@@ -50,13 +53,13 @@ namespace Internal {
 template <class ImplClass>
 class GenericPlatformManagerImpl_Furi : public GenericPlatformManagerImpl<ImplClass> {
 protected:
-    //     TimeOut_t mNextTimerBaseTime;
-    //     TickType_t mNextTimerDurationTicks;
+    TimeOut_t mNextTimerBaseTime;
+    TickType_t mNextTimerDurationTicks;
+    bool mChipTimerActive;
+
     FuriThread* mEventLoopTask = NULL;
-    FuriEventLoop* mEventLoop = NULL;
     FuriMutex* mChipStackLock = NULL;
     FuriMessageQueue* mChipEventQueue = NULL;
-    //     bool mChipTimerActive;
 
     // #if defined(CHIP_DEVICE_CONFIG_ENABLE_BG_EVENT_PROCESSING) && CHIP_DEVICE_CONFIG_ENABLE_BG_EVENT_PROCESSING
     //     QueueHandle_t mBackgroundEventQueue   = NULL;
@@ -98,10 +101,8 @@ private:
         return static_cast<ImplClass*>(this);
     }
 
-    static void ChipEventQueueCallback(FuriEventLoopObject* object, void* context);
+    std::atomic<bool> mShouldRunEventLoop;
 
-    //     std::atomic<bool> mShouldRunEventLoop;
-    //
     // #if defined(CHIP_DEVICE_CONFIG_ENABLE_BG_EVENT_PROCESSING) && CHIP_DEVICE_CONFIG_ENABLE_BG_EVENT_PROCESSING
     //     static void BackgroundEventLoopTaskMain(void * arg);
     //     std::atomic<bool> mShouldRunBackgroundEventLoop;

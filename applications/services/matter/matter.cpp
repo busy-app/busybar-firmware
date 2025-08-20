@@ -40,6 +40,10 @@ CHIP_ERROR MatterSrv::init(void) {
     auto* wifi_pubsub = static_cast<FuriPubSub*>(furi_record_open(RECORD_WIFI));
     UNUSED(wifi_pubsub);
 
+    // FIXME: commissioning doesn't work if not connected to a network first
+    FURI_LOG_I(TAG, "Waiting 10s for Wifi to connect...");
+    furi_delay_ms(10000);
+
     CHIP_ERROR err;
 
     do {
