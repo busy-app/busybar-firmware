@@ -36,6 +36,7 @@ App(
         "supervisor",
         "ble",
         "network",
+        "sntp",
     ],
     targets=["f20", "f21"],
 )

@@ -2,11 +2,13 @@
 
 #include <mongoose.h>
 #include <usb_network/usb_network.h>
+#include <wifi/wifi.h>
+#include <network/network.h>
 
 #define TAG "SntpTest"
 
 typedef struct {
-    UsbNetwork* usbnet;
+    Network* network;
     struct mg_mgr mgr;
     bool done;
 } SntpTestApp;
@@ -30,8 +32,8 @@ static void sntp_test_client_callback(struct mg_connection* c, int ev, void* ev_
 static SntpTestApp* sntp_test_alloc(void) {
     SntpTestApp* instance = malloc(sizeof(SntpTestApp));
 
-    instance->usbnet = furi_record_open(RECORD_USB_NETWORK);
-    usb_network_thread_init(instance->usbnet);
+    instance->network = furi_record_open(RECORD_NETWORK);
+    network_init_current_thread(instance->network);
 
     mg_mgr_init(&instance->mgr);
     mg_sntp_connect(&instance->mgr, NULL, sntp_test_client_callback, instance);
@@ -42,8 +44,8 @@ static SntpTestApp* sntp_test_alloc(void) {
 static void sntp_test_free(SntpTestApp* instance) {
     mg_mgr_free(&instance->mgr);
 
-    usb_network_thread_cleanup(instance->usbnet);
-    furi_record_close(RECORD_USB_NETWORK);
+    network_deinit_current_thread(instance->network);
+    furi_record_close(RECORD_NETWORK);
 
     free(instance);
 }
