@@ -8,10 +8,10 @@
 
 #define SCROLLBAR_WIDTH (0)
 
-#define MENU_ITEM_PAD_HOR (1)
+#define MENU_ITEM_PAD_HOR (0)
 #define MENU_ITEM_PAD_VER (0)
 
-#define MENU_SUBLABEL_MAX_WIDTH (22)
+#define MENU_SUBLABEL_MAX_WIDTH (26)
 
 typedef struct {
     lv_style_t screen;
@@ -96,7 +96,7 @@ static void style_init(my_theme_t* theme) {
     lv_style_set_width(&theme->styles.scrollbar, SCROLLBAR_WIDTH);
 
     lv_style_init(&theme->styles.margin_right);
-    lv_style_set_margin_right(&theme->styles.margin_right, 4);
+    lv_style_set_margin_right(&theme->styles.margin_right, 2);
 
     lv_style_init(&theme->styles.app_title_card);
     lv_style_set_pad_column(&theme->styles.app_title_card, 2);
