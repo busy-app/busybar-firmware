@@ -222,7 +222,7 @@ void GenericPlatformManagerImpl_Furi<ImplClass>::_RunEventLoop(void) {
 
         // If an event was received, dispatch it and continue until the queue is empty.
         while(eventReceived == FuriStatusOk) {
-            PlatformMgrImpl()._DispatchEvent(&event);
+            Impl()->_DispatchEvent(&event);
             eventReceived = furi_message_queue_get(mChipEventQueue, &event, 0);
         }
     }
