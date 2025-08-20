@@ -35,79 +35,29 @@ namespace Internal {
 ClockImpl gClockImpl;
 } // namespace Internal
 
-namespace {
+static uint64_t sBootTimeUS = 0;
 
-// constexpr uint32_t kTicksOverflowShift = (configUSE_16_BIT_TICKS) ? 16 : 32;
-
-uint64_t sBootTimeUS = 0;
-
-#ifdef __CORTEX_M
-// BaseType_t sNumOfOverflows;
-#endif
-} // unnamed namespace
-
-/**
- * Returns the number of FreeRTOS ticks since the system booted.
- *
- * NOTE: The default implementation of this function uses FreeRTOS's
- * vTaskSetTimeOutState() function to get the total number of ticks,
- * irrespective of tick counter overflows.  Unfortunately, this function cannot
- * be called in interrupt context, no equivalent ISR function exists, and
- * FreeRTOS provides no portable way of determining whether a function is being
- * called in an interrupt context.  Adaptations that need to use the Chip
- * Get/SetClock methods from within an interrupt handler must override this
- * function with a suitable alternative that works on the target platform.  The
- * provided version is safe to call on ARM Cortex platforms with CMSIS
- * libraries.
- */
-
-uint64_t FreeRTOSTicksSinceBoot(void) __attribute__((weak));
-
-uint64_t FreeRTOSTicksSinceBoot(void) {
-    //     TimeOut_t timeOut;
-    //
-    // #ifdef __CORTEX_M
-    //     if (SCB->ICSR & SCB_ICSR_VECTACTIVE_Msk) // running in an interrupt context
-    //     {
-    //         // Note that sNumOverflows may be quite stale, and under those
-    //         // circumstances, the function may violate monotonicity guarantees
-    //         timeOut.xTimeOnEntering = xTaskGetTickCountFromISR();
-    //         timeOut.xOverflowCount  = sNumOfOverflows;
-    //     }
-    //     else
-    //     {
-    // #endif
-    //
-    //         vTaskSetTimeOutState(&timeOut);
-    //
-    // #ifdef __CORTEX_M
-    //         // BaseType_t is supposed to be atomic
-    //         sNumOfOverflows = timeOut.xOverflowCount;
-    //     }
-    // #endif
-    //
-    //     return static_cast<uint64_t>(timeOut.xTimeOnEntering) + (static_cast<uint64_t>(timeOut.xOverflowCount) << kTicksOverflowShift);
-    return 0;
+// TODO: Implement a monotonic non-overflowing 64bit tick
+static uint64_t get_ticks_since_boot(void) {
+    return furi_get_tick();
 }
 
 Clock::Microseconds64 ClockImpl::GetMonotonicMicroseconds64(void) {
-    // return Clock::Microseconds64((FreeRTOSTicksSinceBoot() * kMicrosecondsPerSecond) / configTICK_RATE_HZ);
-    return Clock::Microseconds64(0);
+    return Clock::Microseconds64(
+        (get_ticks_since_boot() * kMicrosecondsPerSecond) / furi_kernel_get_tick_frequency());
 }
 
 Clock::Milliseconds64 ClockImpl::GetMonotonicMilliseconds64(void) {
-    // return Clock::Milliseconds64((FreeRTOSTicksSinceBoot() * kMillisecondsPerSecond) / configTICK_RATE_HZ);
-    return Clock::Milliseconds64(0);
+    return Clock::Milliseconds64(
+        (get_ticks_since_boot() * kMillisecondsPerSecond) / furi_kernel_get_tick_frequency());
 }
 
 uint64_t GetClock_Monotonic(void) {
-    // return (FreeRTOSTicksSinceBoot() * kMicrosecondsPerSecond) / configTICK_RATE_HZ;
-    return 0;
+    return (get_ticks_since_boot() * kMicrosecondsPerSecond) / furi_kernel_get_tick_frequency();
 }
 
 uint64_t GetClock_MonotonicMS(void) {
-    // return (FreeRTOSTicksSinceBoot() * kMillisecondsPerSecond) / configTICK_RATE_HZ;
-    return 0;
+    return (get_ticks_since_boot() * kMillisecondsPerSecond) / furi_kernel_get_tick_frequency();
 }
 
 uint64_t GetClock_MonotonicHiRes(void) {
