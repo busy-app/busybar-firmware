@@ -8,7 +8,7 @@
 
 #define SCROLLBAR_WIDTH (0)
 
-#define MENU_ITEM_PAD_HOR (2)
+#define MENU_ITEM_PAD_HOR (1)
 #define MENU_ITEM_PAD_VER (0)
 
 #define MENU_SUBLABEL_MAX_WIDTH (22)
@@ -74,7 +74,7 @@ static void style_init(my_theme_t* theme) {
     lv_style_set_max_width(&theme->styles.menu_sublabel, MENU_SUBLABEL_MAX_WIDTH);
 
     lv_style_init(&theme->styles.menu_arrow);
-    lv_style_set_pad_left(&theme->styles.menu_arrow, 3);
+    lv_style_set_pad_left(&theme->styles.menu_arrow, 1);
 
     lv_style_init(&theme->styles.submenu);
     lv_style_set_pad_row(&theme->styles.submenu, 1);
