@@ -58,6 +58,9 @@ CHIP_ERROR GenericPlatformManagerImpl_Furi<ImplClass>::_InitChipStack(void) {
     // do that.  To keep things simple for existing consumers, we keep not
     // destroying our lock and queue in shutdown, but rather check whether they
     // already exist here before trying to create them.
+    if(mEventLoopTask == NULL) {
+        mEventLoopTask = furi_thread_get_current();
+    }
 
     if(mChipStackLock == NULL) {
         mChipStackLock = furi_mutex_alloc(FuriMutexTypeNormal);
@@ -115,37 +118,29 @@ exit:
 
 template <class ImplClass>
 void GenericPlatformManagerImpl_Furi<ImplClass>::_LockChipStack(void) {
-    // xSemaphoreTake(mChipStackLock, portMAX_DELAY);
+    furi_check(furi_mutex_acquire(mChipStackLock, FuriWaitForever) == FuriStatusOk);
 }
 
 template <class ImplClass>
 bool GenericPlatformManagerImpl_Furi<ImplClass>::_TryLockChipStack(void) {
-    // return xSemaphoreTake(mChipStackLock, 0) == pdTRUE;
-    return false;
+    return furi_mutex_acquire(mChipStackLock, 0) == FuriStatusOk;
 }
 
 template <class ImplClass>
 void GenericPlatformManagerImpl_Furi<ImplClass>::_UnlockChipStack(void) {
-    // xSemaphoreGive(mChipStackLock);
+    furi_check(furi_mutex_release(mChipStackLock) == FuriStatusOk);
 }
 
 #if CHIP_STACK_LOCK_TRACKING_ENABLED
 template <class ImplClass>
 bool GenericPlatformManagerImpl_Furi<ImplClass>::_IsChipStackLockedByCurrentThread() const {
-    // We can't check for INCLUDE_xTaskGetCurrentTaskHandle because it's often
-    // _not_ set, but xTaskGetCurrentTaskHandle works anyway because
-    // configUSE_MUTEXES is set.  So in practice, xTaskGetCurrentTaskHandle can
-    // be assumed to be available here.
-#if INCLUDE_xSemaphoreGetMutexHolder != 1
-#error Must either set INCLUDE_xSemaphoreGetMutexHolder = 1 in FuriConfig.h or set chip_stack_lock_tracking = "none" in Matter gn configuration.
-#endif
     // If we have not started our event loop yet, return true because in that
     // case we can't be racing against the (not yet started) event loop.
     //
     // Similarly, if mChipStackLock has not been created yet, might as well
     // return true.
     return (mEventLoopTask == nullptr) || (mChipStackLock == nullptr) ||
-           (xSemaphoreGetMutexHolder(mChipStackLock) == xTaskGetCurrentTaskHandle());
+           (furi_mutex_get_owner(mChipStackLock) == furi_thread_get_current());
 }
 #endif // CHIP_STACK_LOCK_TRACKING_ENABLED
 
@@ -422,6 +417,8 @@ void GenericPlatformManagerImpl_Furi<ImplClass>::ChipEventQueueCallback(
     FuriEventLoopObject* object,
     void* context) {
     UNUSED(context);
+
+    StackLock lock;
 
     auto& mgrImpl = PlatformMgrImpl();
     furi_assert(object == mgrImpl.mChipEventQueue);
