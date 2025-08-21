@@ -25,9 +25,10 @@ static void settings_scene_debug_apps_on_enter(void* context) {
         FuriString* app_name = furi_string_alloc();
 
         for(GuiDisplayId display = 0; display < GuiDisplayIdMax; display++) {
-            Widget* window = (display == GuiDisplayIdFront) ? app->front_scene_window : app->back_scene_window;
+            Widget* window = (display == GuiDisplayIdFront) ? app->front_scene_window :
+                                                              app->back_scene_window;
             scene->submenus[display] = submenu_alloc(window);
-            
+
             for(uint32_t i = 0; i < FLIPPER_DEBUG_APPS_COUNT; i++) {
                 const FlipperInternalApplication* debug_app = &FLIPPER_DEBUG_APPS[i];
                 SubmenuItemCallback callback = settings_scene_debug_apps_submenu_item_callback;
@@ -41,7 +42,8 @@ static void settings_scene_debug_apps_on_enter(void* context) {
                     furi_crash();
                 }
 
-                submenu_add_item(scene->submenus[display], furi_string_get_cstr(app_name), i, callback, app);
+                submenu_add_item(
+                    scene->submenus[display], furi_string_get_cstr(app_name), i, callback, app);
             }
         }
 
