@@ -21,18 +21,27 @@ static void sntp_time_update_callback(struct mg_connection* c, int ev, void* ev_
 
     if(ev == MG_EV_SNTP_TIME) {
         const time_t time = *(time_t*)ev_data / 1000; // Get rid of milliseconds
-
-        char tmp[32];
-        strftime(tmp, sizeof(tmp), "%Y-%m-%d %H:%M:%S", gmtime(&time));
-
-        FURI_LOG_I(TAG, "Exact UTC time: %s", tmp);
-
+        DateTime datetime_temp, datetime;
+        furi_hal_rtc_get_datetime(&datetime_temp);
         // Update the RTC with the received time
-        DateTime datetime;
         datetime_timestamp_to_datetime(
             time + SNTP_TIME_UPDATE_TIMEZONE_CALCULATION(SNTP_TIME_UPDATE_SET_TIMEZONE),
             &datetime);
         furi_hal_rtc_set_datetime(&datetime);
+
+        suseconds_t tv_usec = *(time_t*)ev_data % 1000;
+
+        char tmp[48];
+        strftime(tmp, sizeof(tmp), "%Y-%m-%d %H:%M:%S", gmtime(&time));
+        snprintf(tmp + strlen(tmp), sizeof(tmp) - strlen(tmp), ".%03d", (int)tv_usec);
+
+        FURI_LOG_I(TAG, "Exact UTC time: %s", tmp);
+
+        // Log the time adjustment from RTC
+        const time_t time_temp =
+            datetime_datetime_to_timestamp(&datetime_temp) -
+            SNTP_TIME_UPDATE_TIMEZONE_CALCULATION(SNTP_TIME_UPDATE_SET_TIMEZONE);
+        FURI_LOG_I(TAG, "Time adjustment from RTC: %+d seconds", (int)time - (int)time_temp);
 
         *sntp_time_update_done |= SntpTimeUpdateStatusSuccess;
 

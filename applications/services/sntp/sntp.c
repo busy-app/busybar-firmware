@@ -16,6 +16,10 @@ typedef enum {
     SntpStatusTimeout,
 } SntpStatus;
 
+typedef enum {
+    SntpCustomEventSuccess = (1 << 0),
+} SntpCustomEvent;
+
 struct Sntp {
     FuriEventLoop* event_loop;
     FuriEventLoopTimer* timer;
@@ -53,9 +57,7 @@ static void sntp_timer_callback(void* context) {
         }
         break;
     case SntpStatusSuccess:
-        FURI_LOG_I(TAG, "SNTP time update successful");
         instance->status = SntpStatusIdle;
-        furi_event_loop_timer_start(instance->timer, SNTP_INTERVAL_MINUTES);
         break;
     default:
         FURI_LOG_E(TAG, "SNTP time update failed with status: %d", instance->status);
@@ -67,6 +69,18 @@ static void sntp_timer_callback(void* context) {
 void sntp_status_update(Sntp* instance, bool success) {
     furi_assert(instance);
     instance->status = success ? SntpStatusSuccess : SntpStatusError;
+    furi_event_loop_set_custom_event(
+        instance->event_loop, SntpStatusIdle); // Reset status to idle after update
+}
+
+static void sntp_custom_event_callback(uint32_t events, void* context) {
+    Sntp* instance = context;
+
+    if(events & SntpCustomEventSuccess) {
+        FURI_LOG_I(TAG, "SNTP time update successful");
+        instance->status = SntpStatusIdle;
+        furi_event_loop_timer_start(instance->timer, SNTP_INTERVAL_MINUTES);
+    }
 }
 
 Sntp* sntp_alloc() {
@@ -76,6 +90,9 @@ Sntp* sntp_alloc() {
     instance->event_loop = furi_event_loop_alloc();
     instance->timer = furi_event_loop_timer_alloc(
         instance->event_loop, sntp_timer_callback, FuriEventLoopTimerTypePeriodic, instance);
+
+    furi_event_loop_set_custom_event_callback(
+        instance->event_loop, sntp_custom_event_callback, instance);
 
     furi_event_loop_timer_start(instance->timer, SNTP_REBOOT_INTERVAL_MINUTES);
 
