@@ -24,6 +24,17 @@ static constexpr uint8_t sSpake2pVerifierDummy[] = {
 namespace chip {
 namespace DeviceLayer {
 
+class CommissionableDataProviderImpl : public CommissionableDataProvider {
+public:
+    CHIP_ERROR GetSetupDiscriminator(uint16_t& setupDiscriminator) override;
+    CHIP_ERROR SetSetupDiscriminator(uint16_t setupDiscriminator) override;
+    CHIP_ERROR GetSpake2pIterationCount(uint32_t& iterationCount) override;
+    CHIP_ERROR GetSpake2pSalt(MutableByteSpan& saltBuf) override;
+    CHIP_ERROR GetSpake2pVerifier(MutableByteSpan& verifierBuf, size_t& outVerifierLen) override;
+    CHIP_ERROR GetSetupPasscode(uint32_t& setupPasscode) override;
+    CHIP_ERROR SetSetupPasscode(uint32_t setupPasscode) override;
+};
+
 CHIP_ERROR CommissionableDataProviderImpl::GetSetupDiscriminator(uint16_t& setupDiscriminator) {
     setupDiscriminator = sSetupDiscriminatorDummy;
     return CHIP_NO_ERROR;
@@ -69,6 +80,13 @@ CHIP_ERROR CommissionableDataProviderImpl::SetSetupPasscode(uint32_t setupPassco
     ChipLogDetail(DeviceLayer, "%s", __PRETTY_FUNCTION__);
     return CHIP_ERROR_NOT_IMPLEMENTED;
 }
+
+namespace BSB {
+CommissionableDataProvider* GetCommissionableDataProvider(void) {
+    static CommissionableDataProviderImpl provider;
+    return &provider;
+}
+} // namespace BSB
 
 } // namespace DeviceLayer
 } // namespace Chip

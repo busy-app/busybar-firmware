@@ -6,7 +6,6 @@
 #pragma GCC diagnostic ignored "-Wmissing-field-initializers"
 
 #include <platform/PlatformManager.h>
-#include <platform/CommissionableDataProvider.h>
 #include <credentials/examples/DeviceAttestationCredsExample.h>
 
 #include <app/server/Server.h>
@@ -29,8 +28,6 @@ public:
     CHIP_ERROR init(void);
 
 private:
-    DeviceInstanceInfoProviderImpl m_device_instance_info_provifer;
-    CommissionableDataProviderImpl m_commissionable_data_provider;
     CommonCaseDeviceServerInitParams m_server_init_params;
 };
 
@@ -62,8 +59,8 @@ CHIP_ERROR MatterSrv::init(void) {
         StackLock lock;
 
         SetDeviceAttestationCredentialsProvider(Examples::GetExampleDACProvider());
-        SetDeviceInstanceInfoProvider(&m_device_instance_info_provifer);
-        SetCommissionableDataProvider(&m_commissionable_data_provider);
+        SetDeviceInstanceInfoProvider(BSB::GetDeviceInstanceInfoProvider());
+        SetCommissionableDataProvider(BSB::GetCommissionableDataProvider());
 
         err = m_server_init_params.InitializeStaticResourcesBeforeServerInit();
         if(err != CHIP_NO_ERROR) {
