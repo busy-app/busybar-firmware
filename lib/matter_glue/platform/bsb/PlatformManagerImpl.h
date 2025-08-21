@@ -52,17 +52,17 @@ class PlatformManagerImpl final
     // this class.
     friend Internal::GenericPlatformManagerImpl_Furi<PlatformManagerImpl>;
 
-    // #if defined(SL_MBEDTLS_USE_TINYCRYPT)
-    //     // Since the RNG callback will be called from multiple threads,
-    //     // use this mutex to lock/unlock the call to Matter RNG API, which
-    //     // uses some global variables.
-    //     static osMutexId_t rngMutexHandle;
-    //
-    //     // Callback used by tinycrypt to generate random numbers.
-    //     // It must be set before calling any sign operations,
-    //     // which are used in both Matter and OT threads.
-    //     static int uECC_RNG_Function(uint8_t * dest, unsigned int size);
-    // #endif // SL_MBEDTLS_USE_TINYCRYPT
+#if defined(SL_MBEDTLS_USE_TINYCRYPT)
+    // Since the RNG callback will be called from multiple threads,
+    // use this mutex to lock/unlock the call to Matter RNG API, which
+    // uses some global variables.
+    static FuriMutex* rngMutexHandle;
+
+    // Callback used by tinycrypt to generate random numbers.
+    // It must be set before calling any sign operations,
+    // which are used in both Matter and OT threads.
+    static int uECC_RNG_Function(uint8_t* dest, unsigned int size);
+#endif // SL_MBEDTLS_USE_TINYCRYPT
 
 public:
     // ===== Platform-specific members that may be accessed directly by the application.

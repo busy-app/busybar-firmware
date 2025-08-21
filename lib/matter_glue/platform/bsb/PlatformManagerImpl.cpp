@@ -29,6 +29,10 @@
 #include <platform/KeyValueStoreManager.h>
 #include <platform/PlatformManager.h>
 
+#include <lib/support/CHIPPlatformMemory.h>
+
+#include <mbedtls/platform.h>
+
 #include "DiagnosticDataProviderImpl.h"
 
 #if defined(SL_MBEDTLS_USE_TINYCRYPT)
@@ -47,16 +51,15 @@ namespace DeviceLayer {
 PlatformManagerImpl PlatformManagerImpl::sInstance;
 
 #if defined(SL_MBEDTLS_USE_TINYCRYPT)
-// osMutexId_t PlatformManagerImpl::rngMutexHandle = nullptr;
-//
-// int PlatformManagerImpl::uECC_RNG_Function(uint8_t * dest, unsigned int size)
-// {
-//     osMutexAcquire(rngMutexHandle, osWaitForever);
-//     int res = (chip::Crypto::DRBG_get_bytes(dest, size) == CHIP_NO_ERROR) ? size : 0;
-//     osMutexRelease(rngMutexHandle);
-//
-//     return res;
-// }
+FuriMutex* PlatformManagerImpl::rngMutexHandle = nullptr;
+
+int PlatformManagerImpl::uECC_RNG_Function(uint8_t* dest, unsigned int size) {
+    furi_mutex_acquire(rngMutexHandle, FuriWaitForever);
+    const int res = (chip::Crypto::DRBG_get_bytes(dest, size) == CHIP_NO_ERROR) ? size : 0;
+    furi_mutex_release(rngMutexHandle);
+
+    return res;
+}
 
 #if !(SLI_SI91X_MCU_INTERFACE)
 static void app_get_random(uint8_t* aOutput, size_t aLen) {
@@ -79,24 +82,14 @@ CHIP_ERROR PlatformManagerImpl::_InitChipStack(void) {
     //     // Initialize the configuration system.
     //     err = chip::DeviceLayer::PersistedStorage::KeyValueStoreMgrImpl().Init();
     //     SuccessOrExit(err);
-    //
-    // #if CHIP_SYSTEM_CONFIG_USE_LWIP && !defined(SLI_SI91X_MCU_INTERFACE) && !defined(EXP_BOARD)
-    //     // Initialize LwIP.
-    //     tcpip_init(NULL, NULL);
-    // #endif // CHIP_SYSTEM_CONFIG_USE_LWIP && !defined(SLI_SI91X_MCU_INTERFACE) && !defined(EXP_BOARD)
-    //
-    //     // ReturnErrorOnFailure(System::Clock::InitClock_RealTime());
-    //
-    // #if defined(SL_MBEDTLS_USE_TINYCRYPT)
-    // #if !(SLI_SI91X_MCU_INTERFACE)
-    //     // 16 : Threshold value
-    //     ReturnErrorOnFailure(chip::Crypto::add_entropy_source(app_entropy_source, NULL, 16));
-    // #endif // !SLI_SI91X_MCU_INTERFACE
-    //     /* Set RNG function for tinycrypt operations. */
-    //     rngMutexHandle = osMutexNew(nullptr);
-    //     // VerifyOrExit((&rngMutexHandle != nullptr), err = CHIP_ERROR_NO_MEMORY);
-    //     uECC_set_rng(PlatformManagerImpl::uECC_RNG_Function);
-    // #endif // SL_MBEDTLS_USE_TINYCRYPT
+
+    // ReturnErrorOnFailure(System::Clock::InitClock_RealTime());
+
+#if defined(SL_MBEDTLS_USE_TINYCRYPT)
+    /* Set RNG function for tinycrypt operations. */
+    rngMutexHandle = furi_mutex_alloc(FuriMutexTypeNormal);
+    uECC_set_rng(PlatformManagerImpl::uECC_RNG_Function);
+#endif // SL_MBEDTLS_USE_TINYCRYPT
 
     // Call _InitChipStack() on the generic implementation base class
     // to finish the initialization process.
