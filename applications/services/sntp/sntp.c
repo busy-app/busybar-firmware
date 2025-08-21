@@ -70,7 +70,7 @@ void sntp_status_update(Sntp* instance, bool success) {
     furi_assert(instance);
     instance->status = success ? SntpStatusSuccess : SntpStatusError;
     furi_event_loop_set_custom_event(
-        instance->event_loop, SntpStatusIdle); // Reset status to idle after update
+        instance->event_loop, SntpCustomEventSuccess); // Reset status to idle after update
 }
 
 static void sntp_custom_event_callback(uint32_t events, void* context) {
