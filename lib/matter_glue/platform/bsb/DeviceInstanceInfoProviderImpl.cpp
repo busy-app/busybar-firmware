@@ -1,5 +1,7 @@
 #include "DeviceInstanceInfoProviderImpl.hpp"
 
+#include <platform/CHIPDeviceConfig.h>
+
 namespace chip {
 namespace DeviceLayer {
 
@@ -20,26 +22,26 @@ public:
 };
 
 CHIP_ERROR DeviceInstanceInfoProviderImpl::GetVendorName(char* buf, size_t bufSize) {
-    static const char* const vendorName = "Flipper Devices";
+    static const char* const vendorName = CHIP_DEVICE_CONFIG_DEVICE_VENDOR_NAME;
     strncpy(buf, vendorName, bufSize);
 
     return (bufSize > strlen(vendorName)) ? CHIP_NO_ERROR : CHIP_ERROR_BUFFER_TOO_SMALL;
 }
 
 CHIP_ERROR DeviceInstanceInfoProviderImpl::GetVendorId(uint16_t& vendorId) {
-    vendorId = 0xCAFE;
+    vendorId = CHIP_DEVICE_CONFIG_DEVICE_VENDOR_ID;
     return CHIP_NO_ERROR;
 }
 
 CHIP_ERROR DeviceInstanceInfoProviderImpl::GetProductName(char* buf, size_t bufSize) {
-    static const char* const productName = "Busy Statusbar";
+    static const char* const productName = CHIP_DEVICE_CONFIG_DEVICE_PRODUCT_NAME;
     strncpy(buf, productName, bufSize);
 
     return (bufSize > strlen(productName)) ? CHIP_NO_ERROR : CHIP_ERROR_BUFFER_TOO_SMALL;
 }
 
 CHIP_ERROR DeviceInstanceInfoProviderImpl::GetProductId(uint16_t& productId) {
-    productId = 0xCACA;
+    productId = CHIP_DEVICE_CONFIG_DEVICE_PRODUCT_ID;
     return CHIP_NO_ERROR;
 }
 
@@ -80,12 +82,13 @@ CHIP_ERROR DeviceInstanceInfoProviderImpl::GetManufacturingDate(
 }
 
 CHIP_ERROR DeviceInstanceInfoProviderImpl::GetHardwareVersion(uint16_t& hardwareVersion) {
-    hardwareVersion = 0;
+    hardwareVersion = CHIP_DEVICE_CONFIG_DEFAULT_DEVICE_HARDWARE_VERSION;
     return CHIP_NO_ERROR;
 }
 
 CHIP_ERROR DeviceInstanceInfoProviderImpl::GetHardwareVersionString(char* buf, size_t bufSize) {
-    static const char* const versionString = "4269";
+    static const char* const versionString =
+        CHIP_DEVICE_CONFIG_DEFAULT_DEVICE_HARDWARE_VERSION_STRING;
     strncpy(buf, versionString, bufSize);
 
     return (bufSize > strlen(versionString)) ? CHIP_NO_ERROR : CHIP_ERROR_BUFFER_TOO_SMALL;
