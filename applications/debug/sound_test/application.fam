@@ -1,0 +1,10 @@
+App(
+    appid="sound",
+    name="Sound",
+    apptype=FlipperAppType.DEBUG,
+    order=60,
+    entry_point="sound_app",
+    requires=["gui"],
+    stack_size=2 * 1024,
+    targets=["f20", "f21"],
+)

@@ -3,7 +3,31 @@ App(
     name="Not meant for release firmware",
     apptype=FlipperAppType.METAPACKAGE,
     provides=[
-        "unit_tests",
+        "storage_benchmark",
+        # "crash_test",
+        "light_sensor_test",
+        "front_display_test",
+        "back_display_test",
+        "gui_test",
+        "input_test",
+        # "led_indicator",
+        "power_test",
+        # "https_test",
+        # "sntp_test",
+        "dummy",
+        "sound",
+        "ble_per_test",
+        "wifi_per_test",
+        "wifi_adaptive_test",
     ],
-    targets=["f20", "f21", "f64"],
+    targets=["f20", "f21"],
+)
+
+App(
+    appid="debug_apps",
+    name="Not meant for release firmware",
+    apptype=FlipperAppType.METAPACKAGE,
+    provides=[
+    ],
+    targets=["f64"],
 )

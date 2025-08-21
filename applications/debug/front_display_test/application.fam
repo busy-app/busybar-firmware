@@ -1,0 +1,10 @@
+App(
+    appid="front_display_test",
+    name="FrontDisplayTest",
+    apptype=FlipperAppType.DEBUG,
+    order=40,
+    entry_point="front_display_test_app",
+    requires=["gui"],
+    stack_size=2 * 1024,
+    targets=["f20", "f21"],
+)

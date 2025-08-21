@@ -1,0 +1,10 @@
+App(
+    appid="power_test",
+    name="Power",
+    apptype=FlipperAppType.DEBUG,
+    order=100,
+    entry_point="power_test_app",
+    requires=["gui"],
+    stack_size=2 * 1024,
+    targets=["f20", "f21"],
+)

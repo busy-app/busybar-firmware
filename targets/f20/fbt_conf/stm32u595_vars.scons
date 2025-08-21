@@ -8,12 +8,14 @@ _fw_default_apps_config = {
         "basic_services",
         "main_apps",
         "system_apps",
+        "debug_apps",
     ],
     "unit_tests": [
         "basic_services",
         "system_apps",
         "main_apps",
         "debug_apps",
+        "unit_tests",
     ],
 }
 
