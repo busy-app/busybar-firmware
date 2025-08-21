@@ -30,10 +30,6 @@
 // #include "SilabsConfig.h"
 // #include <platform/silabs/platformAbstraction/SilabsPlatform.h>
 
-#if CHIP_DEVICE_CONFIG_ENABLE_WIFI_STATION
-// #include <platform/silabs/wifi/WifiInterfaceAbstraction.h>
-#endif
-
 namespace chip {
 namespace DeviceLayer {
 
@@ -68,8 +64,9 @@ void ConfigurationManagerImpl::InitiateFactoryReset() {
 }
 
 CHIP_ERROR ConfigurationManagerImpl::GetRebootCount(uint32_t& rebootCount) {
+    rebootCount = 0;
     // return SilabsConfig::ReadConfigValue(SilabsConfig::kConfigKey_BootCount, rebootCount);
-    return CHIP_ERROR_NOT_IMPLEMENTED;
+    return CHIP_NO_ERROR;
 }
 
 CHIP_ERROR ConfigurationManagerImpl::IncreaseBootCount(void) {
@@ -81,10 +78,11 @@ CHIP_ERROR ConfigurationManagerImpl::IncreaseBootCount(void) {
     // }
     //
     // return SilabsConfig::WriteConfigValue(SilabsConfig::kConfigKey_BootCount, bootCount + 1);
-    return CHIP_ERROR_NOT_IMPLEMENTED;
+    return CHIP_NO_ERROR;
 }
 
 CHIP_ERROR ConfigurationManagerImpl::GetBootReason(uint32_t& bootReason) {
+    bootReason = to_underlying(BootReasonType::kUnspecified);
     //     // rebootCause is obtained at bootup.
     //     BootReasonType matterBootCause;
     //     // [[maybe_unused]] uint32_t rebootCause = Silabs::GetPlatform().GetRebootCause();
@@ -138,11 +136,11 @@ CHIP_ERROR ConfigurationManagerImpl::GetBootReason(uint32_t& bootReason) {
     // #endif
     //
     //     bootReason = to_underlying(matterBootCause);
-    // return CHIP_NO_ERROR;
-    return CHIP_ERROR_NOT_IMPLEMENTED;
+    return CHIP_NO_ERROR;
 }
 
 CHIP_ERROR ConfigurationManagerImpl::GetTotalOperationalHours(uint32_t& totalOperationalHours) {
+    totalOperationalHours = 100500;
     // if (!SilabsConfig::ConfigValueExists(SilabsConfig::kConfigKey_TotalOperationalHours))
     // {
     //     totalOperationalHours = 0;
@@ -150,12 +148,12 @@ CHIP_ERROR ConfigurationManagerImpl::GetTotalOperationalHours(uint32_t& totalOpe
     // }
     //
     // return SilabsConfig::ReadConfigValue(SilabsConfig::kConfigKey_TotalOperationalHours, totalOperationalHours);
-    return CHIP_ERROR_NOT_IMPLEMENTED;
+    return CHIP_NO_ERROR;
 }
 
 CHIP_ERROR ConfigurationManagerImpl::StoreTotalOperationalHours(uint32_t totalOperationalHours) {
     // return SilabsConfig::WriteConfigValue(SilabsConfig::kConfigKey_TotalOperationalHours, totalOperationalHours);
-    return CHIP_ERROR_NOT_IMPLEMENTED;
+    return CHIP_NO_ERROR;
 }
 
 CHIP_ERROR ConfigurationManagerImpl::ReadPersistedStorageValue(
@@ -174,7 +172,7 @@ CHIP_ERROR ConfigurationManagerImpl::ReadPersistedStorageValue(
     //
     // exit:
     //     return err;
-    return CHIP_ERROR_NOT_IMPLEMENTED;
+    return CHIP_ERROR_NOT_FOUND;
 }
 
 CHIP_ERROR ConfigurationManagerImpl::WritePersistedStorageValue(
@@ -193,22 +191,22 @@ CHIP_ERROR ConfigurationManagerImpl::WritePersistedStorageValue(
     //
     // exit:
     //     return err;
-    return CHIP_ERROR_NOT_IMPLEMENTED;
+    return CHIP_NO_ERROR;
 }
 
 CHIP_ERROR ConfigurationManagerImpl::ReadConfigValue(Key key, bool& val) {
-    return CHIP_ERROR_NOT_IMPLEMENTED;
     // return SilabsConfig::ReadConfigValue(key, val);
+    return CHIP_ERROR_NOT_FOUND;
 }
 
 CHIP_ERROR ConfigurationManagerImpl::ReadConfigValue(Key key, uint32_t& val) {
-    return CHIP_ERROR_NOT_IMPLEMENTED;
     // return SilabsConfig::ReadConfigValue(key, val);
+    return CHIP_ERROR_NOT_FOUND;
 }
 
 CHIP_ERROR ConfigurationManagerImpl::ReadConfigValue(Key key, uint64_t& val) {
-    return CHIP_ERROR_NOT_IMPLEMENTED;
     // return SilabsConfig::ReadConfigValue(key, val);
+    return CHIP_ERROR_NOT_FOUND;
 }
 
 CHIP_ERROR ConfigurationManagerImpl::ReadConfigValueStr(
@@ -216,8 +214,8 @@ CHIP_ERROR ConfigurationManagerImpl::ReadConfigValueStr(
     char* buf,
     size_t bufSize,
     size_t& outLen) {
-    return CHIP_ERROR_NOT_IMPLEMENTED;
     // return SilabsConfig::ReadConfigValueStr(key, buf, bufSize, outLen);
+    return CHIP_ERROR_NOT_FOUND;
 }
 
 CHIP_ERROR ConfigurationManagerImpl::ReadConfigValueBin(
@@ -225,39 +223,39 @@ CHIP_ERROR ConfigurationManagerImpl::ReadConfigValueBin(
     uint8_t* buf,
     size_t bufSize,
     size_t& outLen) {
-    return CHIP_ERROR_NOT_IMPLEMENTED;
     // return SilabsConfig::ReadConfigValueBin(key, buf, bufSize, outLen);
+    return CHIP_ERROR_NOT_FOUND;
 }
 
 CHIP_ERROR ConfigurationManagerImpl::WriteConfigValue(Key key, bool val) {
-    return CHIP_ERROR_NOT_IMPLEMENTED;
     // return SilabsConfig::WriteConfigValue(key, val);
+    return CHIP_NO_ERROR;
 }
 
 CHIP_ERROR ConfigurationManagerImpl::WriteConfigValue(Key key, uint32_t val) {
-    return CHIP_ERROR_NOT_IMPLEMENTED;
     // return SilabsConfig::WriteConfigValue(key, val);
+    return CHIP_NO_ERROR;
 }
 
 CHIP_ERROR ConfigurationManagerImpl::WriteConfigValue(Key key, uint64_t val) {
-    return CHIP_ERROR_NOT_IMPLEMENTED;
     // return SilabsConfig::WriteConfigValue(key, val);
+    return CHIP_NO_ERROR;
 }
 
 CHIP_ERROR ConfigurationManagerImpl::WriteConfigValueStr(Key key, const char* str) {
-    return CHIP_ERROR_NOT_IMPLEMENTED;
     // return SilabsConfig::WriteConfigValueStr(key, str);
+    return CHIP_NO_ERROR;
 }
 
 CHIP_ERROR ConfigurationManagerImpl::WriteConfigValueStr(Key key, const char* str, size_t strLen) {
-    return CHIP_ERROR_NOT_IMPLEMENTED;
     // return SilabsConfig::WriteConfigValueStr(key, str, strLen);
+    return CHIP_NO_ERROR;
 }
 
 CHIP_ERROR
 ConfigurationManagerImpl::WriteConfigValueBin(Key key, const uint8_t* data, size_t dataLen) {
-    return CHIP_ERROR_NOT_IMPLEMENTED;
     // return SilabsConfig::WriteConfigValueBin(key, data, dataLen);
+    return CHIP_NO_ERROR;
 }
 
 void ConfigurationManagerImpl::RunConfigUnitTest(void) {

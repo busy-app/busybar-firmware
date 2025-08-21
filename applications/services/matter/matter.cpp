@@ -7,6 +7,7 @@
 
 #include <platform/PlatformManager.h>
 #include <platform/CommissionableDataProvider.h>
+#include <credentials/examples/DeviceAttestationCredsExample.h>
 
 #include <app/server/Server.h>
 
@@ -19,6 +20,7 @@
 #define TAG "MatterSrv"
 
 using namespace chip;
+using namespace Credentials;
 using namespace Platform;
 using namespace DeviceLayer;
 
@@ -59,6 +61,7 @@ CHIP_ERROR MatterSrv::init(void) {
 
         StackLock lock;
 
+        SetDeviceAttestationCredentialsProvider(Examples::GetExampleDACProvider());
         SetDeviceInstanceInfoProvider(&m_device_instance_info_provifer);
         SetCommissionableDataProvider(&m_commissionable_data_provider);
 
