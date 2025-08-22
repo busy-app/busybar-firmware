@@ -1,6 +1,6 @@
 #pragma once
 
-#include "../scene_manager.h"
+#include <gui/scene_manager.h>
 
 typedef enum {
     BusyAppSceneIdStart,

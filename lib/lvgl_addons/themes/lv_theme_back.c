@@ -1,10 +1,11 @@
 #include "lv_theme_back.h"
 #include "lv_theme_common.h"
 
-#define COLOR_BG_NORMAL  lv_color_black()
-#define COLOR_FG_NORMAL  lv_color_hex(0xAAAAAA)
-#define COLOR_BG_FOCUSED lv_color_black()
-#define COLOR_FG_FOCUSED lv_color_white()
+#define COLOR_BG_NORMAL   lv_color_black()
+#define COLOR_FG_NORMAL   lv_color_hex(0xAAAAAA)
+#define COLOR_BG_FOCUSED  lv_color_black()
+#define COLOR_FG_FOCUSED  lv_color_white()
+#define COLOR_FG_DISABLED lv_color_hex(0x444444)
 
 #define SCROLLBAR_WIDTH (3)
 
@@ -20,6 +21,7 @@ typedef struct {
     lv_style_t screen;
     lv_style_t normal;
     lv_style_t focused;
+    lv_style_t disabled;
     lv_style_t inverted;
     lv_style_t transparent;
     lv_style_t scrollbar;
@@ -31,8 +33,12 @@ typedef struct {
     lv_style_t submenu_cursor;
     lv_style_t var_item;
     lv_style_t var_item_editor;
-    lv_style_t nav_stack;
     lv_style_t timer_card;
+    lv_style_t app_title_card;
+    lv_style_t app_title_card_label;
+    lv_style_t slider_view;
+    lv_style_t slider_view_bar;
+    lv_style_t slider_view_text_container;
 } my_theme_styles_t;
 
 typedef struct {
@@ -53,6 +59,10 @@ static void style_init(my_theme_t* theme) {
     lv_style_init(&theme->styles.focused);
     lv_style_set_text_opa(&theme->styles.focused, LV_OPA_COVER);
     lv_style_set_text_color(&theme->styles.focused, COLOR_FG_FOCUSED);
+
+    lv_style_init(&theme->styles.disabled);
+    lv_style_set_text_opa(&theme->styles.disabled, LV_OPA_COVER);
+    lv_style_set_text_color(&theme->styles.disabled, COLOR_FG_DISABLED);
 
     lv_style_init(&theme->styles.inverted);
     lv_style_set_bg_opa(&theme->styles.inverted, LV_OPA_COVER);
@@ -116,9 +126,6 @@ static void style_init(my_theme_t* theme) {
     lv_style_set_bg_color(&theme->styles.scrollbar, COLOR_FG_FOCUSED);
     lv_style_set_width(&theme->styles.scrollbar, SCROLLBAR_WIDTH);
 
-    lv_style_init(&theme->styles.nav_stack);
-    lv_style_set_pad_row(&theme->styles.nav_stack, 2);
-
     lv_style_init(&theme->styles.timer_card);
     lv_style_set_bg_opa(&theme->styles.timer_card, LV_OPA_COVER);
     lv_style_set_bg_color(&theme->styles.timer_card, COLOR_FG_FOCUSED);
@@ -126,6 +133,33 @@ static void style_init(my_theme_t* theme) {
     lv_style_set_pad_ver(&theme->styles.timer_card, 4);
     lv_style_set_translate_y(&theme->styles.timer_card, 2);
     lv_style_set_radius(&theme->styles.timer_card, MENU_ITEM_RADIUS);
+
+    lv_style_init(&theme->styles.app_title_card);
+    lv_style_set_pad_column(&theme->styles.app_title_card, 6);
+    lv_style_set_text_font(&theme->styles.app_title_card, &lv_font_ark_regular_20);
+
+    lv_style_init(&theme->styles.app_title_card_label);
+    lv_style_set_translate_y(&theme->styles.app_title_card_label, 2);
+
+    lv_style_init(&theme->styles.slider_view);
+    lv_style_set_margin_right(&theme->styles.slider_view, 4);
+    lv_style_set_pad_row(&theme->styles.slider_view, 6);
+    lv_style_set_layout(&theme->styles.slider_view, LV_LAYOUT_FLEX);
+    lv_style_set_flex_flow(&theme->styles.slider_view, LV_FLEX_FLOW_COLUMN_REVERSE);
+    lv_style_set_flex_main_place(&theme->styles.slider_view, LV_FLEX_ALIGN_START);
+    lv_style_set_flex_cross_place(&theme->styles.slider_view, LV_FLEX_ALIGN_CENTER);
+
+    lv_style_init(&theme->styles.slider_view_bar);
+    lv_style_set_margin_hor(&theme->styles.slider_view_bar, 4);
+    lv_style_set_margin_top(&theme->styles.slider_view_bar, -2);
+    lv_style_set_radius(&theme->styles.slider_view_bar, 4);
+    lv_style_set_height(&theme->styles.slider_view_bar, 12);
+    lv_style_set_bg_opa(&theme->styles.slider_view_bar, LV_OPA_COVER);
+    lv_style_set_bg_color(&theme->styles.slider_view_bar, COLOR_FG_DISABLED);
+
+    lv_style_init(&theme->styles.slider_view_text_container);
+    lv_style_set_pad_column(&theme->styles.slider_view_text_container, 3);
+    lv_style_set_text_font(&theme->styles.slider_view_text_container, theme->base.font_normal);
 }
 
 static void theme_apply_callback(lv_theme_t* th, lv_obj_t* obj) {
@@ -161,6 +195,10 @@ static void theme_apply_callback(lv_theme_t* th, lv_obj_t* obj) {
 
     } else if(lv_obj_check_type(obj, &menu_icon_lvgl_class)) {
         lv_obj_add_style(obj, &theme->styles.menu_icon, LV_PART_MAIN);
+        lv_obj_add_style(obj, &theme->styles.inverted, LV_PART_MAIN | LV_STATE_FOCUSED);
+
+    } else if(lv_obj_check_type(obj, &menu_sublabel_lvgl_class)) {
+        lv_obj_add_style(obj, &theme->styles.transparent, LV_PART_MAIN);
         lv_obj_add_style(obj, &theme->styles.inverted, LV_PART_MAIN | LV_STATE_FOCUSED);
 
     } else if(lv_obj_check_type(obj, &menu_arrow_lvgl_class)) {
@@ -203,12 +241,26 @@ static void theme_apply_callback(lv_theme_t* th, lv_obj_t* obj) {
         lv_obj_add_style(obj, &theme->styles.menu_arrow, LV_PART_MAIN | LV_STATE_DISABLED);
 
 #ifndef FURI_RAM_EXEC
-    } else if(lv_obj_check_type(obj, &nav_stack_lvgl_class)) {
-        lv_obj_add_style(obj, &theme->styles.normal, LV_PART_MAIN);
-        lv_obj_add_style(obj, &theme->styles.nav_stack, LV_PART_MAIN);
-
     } else if(lv_obj_check_type(obj, &timer_card_lvgl_class)) {
         lv_obj_add_style(obj, &theme->styles.timer_card, LV_PART_MAIN);
+
+    } else if(lv_obj_check_type(obj, &app_title_card_lvgl_class)) {
+        lv_obj_add_style(obj, &theme->styles.app_title_card, LV_PART_MAIN);
+
+    } else if(lv_obj_check_type(obj, &app_title_card_label_lvgl_class)) {
+        lv_obj_add_style(obj, &theme->styles.app_title_card_label, LV_PART_MAIN);
+
+    } else if(lv_obj_check_type(obj, &slider_view_lvgl_class)) {
+        lv_obj_add_style(obj, &theme->styles.slider_view, LV_PART_MAIN);
+
+    } else if(lv_obj_check_type(obj, &slider_view_bar_lvgl_class)) {
+        lv_obj_add_style(obj, &theme->styles.slider_view_bar, LV_PART_MAIN);
+
+    } else if(lv_obj_check_type(obj, &slider_view_text_container_lvgl_class)) {
+        lv_obj_add_style(obj, &theme->styles.slider_view_text_container, LV_PART_MAIN);
+
+    } else if(lv_obj_check_type(obj, &slider_view_arrow_label_lvgl_class)) {
+        lv_obj_add_style(obj, &theme->styles.disabled, LV_PART_MAIN | LV_STATE_DISABLED);
 #endif
     }
 }
