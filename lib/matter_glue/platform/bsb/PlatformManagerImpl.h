@@ -58,29 +58,28 @@ class PlatformManagerImpl final
 public:
     // ===== Platform-specific members that may be accessed directly by the application.
 
-    //     System::Clock::Timestamp GetStartTime() { return mStartTime; }
+    System::Clock::Timestamp GetStartTime() {
+        return mStartTime;
+    }
 
 private:
-    //     // ===== Members for internal use
-    //
-    //     static void UpdateOperationalHours(System::Layer * systemLayer, void * appState);
-    //
-    //     // ===== Methods that implement the PlatformManager abstract interface.
-    //
+    // ===== Members for internal use
+
+    static void UpdateOperationalHours(System::Layer* systemLayer, void* appState);
+
+    // ===== Methods that implement the PlatformManager abstract interface.
+
     CHIP_ERROR _InitChipStack(void);
-    //     void _Shutdown(void);
-    //
-    //     // ===== Members for internal use by the following friends.
-    //
+    void _Shutdown(void);
+
+    // ===== Members for internal use by the following friends.
+
     friend PlatformManager& PlatformMgr(void);
     friend PlatformManagerImpl& PlatformMgrImpl(void);
-    //     friend class Internal::BLEManagerImpl;
-    //
-    //     System::Clock::Timestamp mStartTime = System::Clock::kZero;
+
+    System::Clock::Timestamp mStartTime = System::Clock::kZero;
 
     static PlatformManagerImpl sInstance;
-
-    // using Internal::GenericPlatformManagerImpl_FreeRTOS<PlatformManagerImpl>::PostEventFromISR;
 };
 
 /**

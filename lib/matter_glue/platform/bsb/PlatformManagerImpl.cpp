@@ -34,6 +34,7 @@
 #include <mbedtls/platform.h>
 
 #include "DiagnosticDataProviderImpl.h"
+#include "SystemTimeSupport.h"
 
 #if defined(SL_MBEDTLS_USE_TINYCRYPT)
 #include "tinycrypt/ecc.h"
@@ -64,7 +65,7 @@ CHIP_ERROR PlatformManagerImpl::_InitChipStack(void) {
     err = chip::DeviceLayer::PersistedStorage::KeyValueStoreMgrImpl().Init();
     SuccessOrExit(err);
 
-    // ReturnErrorOnFailure(System::Clock::InitClock_RealTime());
+    ReturnErrorOnFailure(System::Clock::InitClock_RealTime());
 
 #if defined(SL_MBEDTLS_USE_TINYCRYPT)
     /* Set RNG function for tinycrypt operations. */
@@ -77,32 +78,32 @@ CHIP_ERROR PlatformManagerImpl::_InitChipStack(void) {
     err = Internal::GenericPlatformManagerImpl_Furi<PlatformManagerImpl>::_InitChipStack();
     SuccessOrExit(err);
 
+    PlatformMgr().LockChipStack();
     // Start timer to increment TotalOperationalHours every hour
-    // SystemLayer().StartTimer(System::Clock::Seconds32(kSecondsPerHour), UpdateOperationalHours, NULL);
+    SystemLayer().StartTimer(
+        System::Clock::Seconds32(kSecondsPerHour), UpdateOperationalHours, NULL);
+    PlatformMgr().UnlockChipStack();
 
 exit:
     return err;
 }
 
-// void PlatformManagerImpl::UpdateOperationalHours(System::Layer * systemLayer, void * appState)
-// {
-//     uint32_t totalOperationalHours = 0;
-//
-//     if (ConfigurationMgr().GetTotalOperationalHours(totalOperationalHours) == CHIP_NO_ERROR)
-//     {
-//         ConfigurationMgr().StoreTotalOperationalHours(totalOperationalHours + 1);
-//     }
-//     else
-//     {
-//         ChipLogError(DeviceLayer, "Failed to get total operational hours of the Node");
-//     }
-//
-//     SystemLayer().StartTimer(System::Clock::Seconds32(kSecondsPerHour), UpdateOperationalHours, NULL);
-// }
-// void PlatformManagerImpl::_Shutdown()
-// {
-// Internal::GenericPlatformManagerImpl_FreeRTOS<PlatformManagerImpl>::_Shutdown();
-// }
+void PlatformManagerImpl::UpdateOperationalHours(System::Layer* systemLayer, void* appState) {
+    uint32_t totalOperationalHours = 0;
+
+    if(ConfigurationMgr().GetTotalOperationalHours(totalOperationalHours) == CHIP_NO_ERROR) {
+        ConfigurationMgr().StoreTotalOperationalHours(totalOperationalHours + 1);
+    } else {
+        ChipLogError(DeviceLayer, "Failed to get total operational hours of the Node");
+    }
+
+    SystemLayer().StartTimer(
+        System::Clock::Seconds32(kSecondsPerHour), UpdateOperationalHours, NULL);
+}
+
+void PlatformManagerImpl::_Shutdown() {
+    Internal::GenericPlatformManagerImpl_Furi<PlatformManagerImpl>::_Shutdown();
+}
 
 } // namespace DeviceLayer
 } // namespace chip

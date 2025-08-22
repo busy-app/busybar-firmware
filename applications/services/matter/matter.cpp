@@ -77,6 +77,10 @@ CHIP_ERROR MatterSrv::init(void) {
         BSB::GetDeviceInfoProvider()->SetStorageDelegate(
             &Server::GetInstance().GetPersistentStorage());
 
+        PlatformMgr().ScheduleWork([](intptr_t arg) {
+            Server::GetInstance().GetCommissioningWindowManager().OpenBasicCommissioningWindow();
+        });
+
     } while(false);
 
     return err;

@@ -46,13 +46,11 @@ CHIP_ERROR GenericPlatformManagerImpl_Furi<ImplClass>::_InitChipStack(void) {
 
     vTaskSetTimeOutState(&mNextTimerBaseTime);
     mNextTimerDurationTicks = 0;
+
     // TODO: This nulling out of mEventLoopTask should happen when we shut down
     // the task, not here!
     mEventLoopTask = NULL;
-#if defined(CHIP_DEVICE_CONFIG_ENABLE_BG_EVENT_PROCESSING) && \
-    CHIP_DEVICE_CONFIG_ENABLE_BG_EVENT_PROCESSING
-    mBackgroundEventLoopTask = NULL;
-#endif
+
     mChipTimerActive = false;
 
     // We support calling Shutdown followed by InitChipStack, because some tests
