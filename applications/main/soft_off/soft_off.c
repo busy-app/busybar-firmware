@@ -25,7 +25,8 @@ int32_t soft_off_app(void* arg) {
     back_display_sleep_mode(back_display, true);
 
     FuriSemaphore* exit_semaphore = furi_semaphore_alloc(1, 0);
-    furi_thread_set_signal_callback(furi_thread_get_current(), soft_off_signal_callback, exit_semaphore);
+    furi_thread_set_signal_callback(
+        furi_thread_get_current(), soft_off_signal_callback, exit_semaphore);
     furi_check(furi_semaphore_acquire(exit_semaphore, FuriWaitForever) == FuriStatusOk);
 
     back_display_sleep_mode(back_display, false);
