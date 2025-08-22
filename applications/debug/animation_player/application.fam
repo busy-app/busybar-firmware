@@ -1,7 +1,7 @@
 App(
     appid="animation_player",
     name="AnimationPlayer",
-    apptype=FlipperAppType.APP,
+    apptype=FlipperAppType.DEBUG,
     order=10,
     entry_point="animation_player_app",
     requires=["gui"],

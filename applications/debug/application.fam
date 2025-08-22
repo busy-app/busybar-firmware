@@ -19,6 +19,8 @@ App(
         "ble_per_test",
         "wifi_per_test",
         "wifi_adaptive_test",
+        "animation_player",
+        "lottie_player",
     ],
     targets=["f20", "f21"],
 )
