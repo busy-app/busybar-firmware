@@ -35,7 +35,6 @@ typedef struct {
     func_ptr migrationFunc;
 } migrationData_t;
 
-#define COUNT_OF(A) (sizeof(A) / sizeof((A)[0]))
 static migrationData_t migrationTable[] = {
     {.migrationGroup = 1, .migrationFunc = MigrateKvsMap},
     {.migrationGroup = 2, .migrationFunc = MigrateDacProvider},

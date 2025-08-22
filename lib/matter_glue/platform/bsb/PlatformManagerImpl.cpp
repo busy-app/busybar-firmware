@@ -39,10 +39,6 @@
 #include "tinycrypt/ecc.h"
 #endif // SL_MBEDTLS_USE_TINYCRYPT
 
-#if CHIP_SYSTEM_CONFIG_USE_LWIP
-#include <lwip/tcpip.h>
-#endif // CHIP_SYSTEM_CONFIG_USE_LWIP
-
 using namespace chip::DeviceLayer::Internal;
 
 namespace chip {
@@ -60,23 +56,8 @@ int PlatformManagerImpl::uECC_RNG_Function(uint8_t* dest, unsigned int size) {
 
     return res;
 }
-
-#if !(SLI_SI91X_MCU_INTERFACE)
-static void app_get_random(uint8_t* aOutput, size_t aLen) {
-    VerifyOrReturn(aOutput != nullptr);
-    for(size_t i = 0; i < aLen; i++) {
-        aOutput[i] = rand();
-    }
-}
-
-static int app_entropy_source(void* data, unsigned char* output, size_t len, size_t* olen) {
-    app_get_random(reinterpret_cast<uint8_t*>(output), static_cast<uint16_t>(len));
-    *olen = len;
-
-    return 0;
-}
-#endif // !SLI_SI91X_MCU_INTERFACE
 #endif // SL_MBEDTLS_USE_TINYCRYPT
+
 CHIP_ERROR PlatformManagerImpl::_InitChipStack(void) {
     CHIP_ERROR err;
     // Initialize the configuration system.
@@ -125,80 +106,3 @@ exit:
 
 } // namespace DeviceLayer
 } // namespace chip
-
-#if CHIP_DEVICE_CONFIG_ENABLE_WIFI_STATION
-// This function needs to be global so it can be used from the platform implementation without depending on the platfrom itself.
-// This is a workaround to avoid a circular dependency.
-/*
-void HandleWFXSystemEvent(wfx_event_base_t eventBase, sl_wfx_generic_message_t * eventData)
-{
-    using namespace chip;
-    using namespace chip::DeviceLayer;
-
-    ChipDeviceEvent event;
-    memset(&event, 0, sizeof(event));
-    event.Type                              = DeviceEventType::kWFXSystemEvent;
-    event.Platform.WFXSystemEvent.eventBase = eventBase;
-
-    if (eventBase == WIFI_EVENT)
-    {
-        switch (eventData->header.id)
-        {
-        case SL_WFX_STARTUP_IND_ID:
-            memcpy(&event.Platform.WFXSystemEvent.data.startupEvent, eventData,
-                   sizeof(event.Platform.WFXSystemEvent.data.startupEvent));
-            break;
-        case SL_WFX_CONNECT_IND_ID:
-            memcpy(&event.Platform.WFXSystemEvent.data.connectEvent, eventData,
-                   sizeof(event.Platform.WFXSystemEvent.data.connectEvent));
-            break;
-        case SL_WFX_DISCONNECT_IND_ID:
-            memcpy(&event.Platform.WFXSystemEvent.data.disconnectEvent, eventData,
-                   sizeof(event.Platform.WFXSystemEvent.data.disconnectEvent));
-            break;
-        // case SL_WFX_RECEIVED_IND_ID:
-        //     memcpy(&event.Platform.WFXSystemEvent.data.receivedEvent, eventData,
-        //            sizeof(event.Platform.WFXSystemEvent.data.receivedEvent));
-        //     break;
-        // case SL_WFX_GENERIC_IND_ID:
-        //     memcpy(&event.Platform.WFXSystemEvent.data.genericEvent, eventData,
-        //            sizeof(event.Platform.WFXSystemEvent.data.genericEvent));
-        //     break;
-        // case SL_WFX_EXCEPTION_IND_ID:
-        //     memcpy(&event.Platform.WFXSystemEvent.data.exceptionEvent, eventData,
-        //            sizeof(event.Platform.WFXSystemEvent.data.exceptionEvent));
-        //     break;
-        // case SL_WFX_ERROR_IND_ID:
-        //     memcpy(&event.Platform.WFXSystemEvent.data.errorEvent, eventData,
-        //            sizeof(event.Platform.WFXSystemEvent.data.errorEvent));
-        //     break;
-        default:
-            break;
-        }
-    }
-    else if (eventBase == IP_EVENT)
-    {
-        switch (eventData->header.id)
-        {
-        case IP_EVENT_STA_GOT_IP:
-            memcpy(&event.Platform.WFXSystemEvent.data.genericMsgEvent, eventData,
-                   sizeof(event.Platform.WFXSystemEvent.data.genericMsgEvent));
-            break;
-        case IP_EVENT_GOT_IP6:
-            memcpy(&event.Platform.WFXSystemEvent.data.genericMsgEvent, eventData,
-                   sizeof(event.Platform.WFXSystemEvent.data.genericMsgEvent));
-            break;
-        case IP_EVENT_STA_LOST_IP:
-            memcpy(&event.Platform.WFXSystemEvent.data.genericMsgEvent, eventData,
-                   sizeof(event.Platform.WFXSystemEvent.data.genericMsgEvent));
-            break;
-        default:
-            break;
-        }
-    }
-
-    // TODO: We should add error processing here
-    (void) PlatformMgr().PostEvent(&event);
-}
-*/
-#endif // CHIP_DEVICE_CONFIG_ENABLE_WIFI_STATION

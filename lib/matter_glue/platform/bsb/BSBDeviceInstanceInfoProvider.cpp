@@ -1,4 +1,4 @@
-#include "DeviceInstanceInfoProviderImpl.hpp"
+#include "BSBDeviceInstanceInfoProvider.hpp"
 
 #include <platform/CHIPDeviceConfig.h>
 

@@ -11,8 +11,8 @@
 #include <app/server/Server.h>
 
 #include <platform/bsb/BSBDeviceInfoProvider.hpp>
-#include <platform/bsb/CommissionableDataProviderImpl.hpp>
-#include <platform/bsb/DeviceInstanceInfoProviderImpl.hpp>
+#include <platform/bsb/BSBCommissionableDataProvider.hpp>
+#include <platform/bsb/BSBDeviceInstanceInfoProvider.hpp>
 
 #include <network/network.h>
 #include <wifi/wifi_common.h>

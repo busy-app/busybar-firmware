@@ -1,4 +1,4 @@
-#include "CommissionableDataProviderImpl.hpp"
+#include "BSBCommissionableDataProvider.hpp"
 
 #include <platform/CHIPDeviceConfig.h>
 #include <crypto/CHIPCryptoPAL.h>
