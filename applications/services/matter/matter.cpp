@@ -24,6 +24,35 @@ using namespace Credentials;
 using namespace Platform;
 using namespace DeviceLayer;
 
+static void matter_wait_for_network(void) {
+    FURI_LOG_I(TAG, "Waiting for network...");
+
+    auto* network = static_cast<Network*>(furi_record_open(RECORD_NETWORK));
+    network_init_current_thread(network);
+
+    auto* wifi_pubsub = static_cast<FuriPubSub*>(furi_record_open(RECORD_WIFI));
+
+    FuriSemaphore* wifi_sem = furi_semaphore_alloc(1, 0);
+
+    furi_pubsub_subscribe(
+        wifi_pubsub,
+        [](const void* message, void* context) {
+            const auto state = *(static_cast<const WifiState*>(message));
+
+            if(state == WifiStateUp) {
+                auto* wifi_sem = static_cast<FuriSemaphore*>(context);
+                furi_semaphore_release(wifi_sem);
+            }
+        },
+        wifi_sem);
+
+    furi_semaphore_acquire(wifi_sem, FuriWaitForever);
+    furi_semaphore_free(wifi_sem);
+
+    // TODO: Find out why it doesn't work if connecting right away
+    furi_delay_ms(3000);
+}
+
 class MatterSrv {
 public:
     CHIP_ERROR init(void);
@@ -33,16 +62,8 @@ private:
 };
 
 CHIP_ERROR MatterSrv::init(void) {
-    auto* network = static_cast<Network*>(furi_record_open(RECORD_NETWORK));
-    network_init_current_thread(network);
-
-    // TODO: react to Wifi events
-    auto* wifi_pubsub = static_cast<FuriPubSub*>(furi_record_open(RECORD_WIFI));
-    UNUSED(wifi_pubsub);
-
-    // FIXME: commissioning doesn't work if not connected to a network first
-    FURI_LOG_I(TAG, "Waiting 10s for Wifi to connect...");
-    furi_delay_ms(10000);
+    // TODO: Implement proper network handling
+    matter_wait_for_network();
 
     CHIP_ERROR err;
 
@@ -77,7 +98,10 @@ CHIP_ERROR MatterSrv::init(void) {
         BSB::GetDeviceInfoProvider()->SetStorageDelegate(
             &Server::GetInstance().GetPersistentStorage());
 
+        // TODO: Implement pairing controls
+        // Always opening a commission window now
         PlatformMgr().ScheduleWork([](intptr_t arg) {
+            UNUSED(arg);
             Server::GetInstance().GetCommissioningWindowManager().OpenBasicCommissioningWindow();
         });
 
