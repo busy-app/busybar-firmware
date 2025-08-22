@@ -83,6 +83,10 @@ env.Append(
         "SLI_SECURE_KEY_STORAGE_DEVICE_SI91X=1",
         "SLI_SHA_DEVICE_SI91X=1",
         "SLI_TRNG_DEVICE_SI91X=1",
+        # Matter compatibility
+        "NVM3_DEFAULT_MAX_OBJECT_SIZE=4092",
+        "NVM3_DEFAULT_NVM_SIZE=40960",
+        "FLASH_PAGE_SIZE=4096",
     ],
 )
 

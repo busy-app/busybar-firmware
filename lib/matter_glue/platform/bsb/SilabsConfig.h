@@ -28,8 +28,8 @@
 #include <platform/CHIPDeviceError.h>
 
 #ifndef SL_COMMON_TOKEN_MANAGER_ENABLE_DYNAMIC_TOKENS
-// #include "nvm3.h"
-// #include "nvm3_hal_flash.h"
+#include "nvm3.h"
+#include "nvm3_hal_flash.h"
 #else
 #include <sl_token_manager_defines.h>
 #endif
@@ -157,6 +157,8 @@ public:
         SilabsConfigKey(kMatterFactory_KeyBase, 0x17);
     static constexpr Key kConfigKey_HardwareVersion =
         SilabsConfigKey(kMatterFactory_KeyBase, 0x18);
+    static constexpr Key kConfigKey_SoftwareVersionString =
+        SilabsConfigKey(kMatterFactory_KeyBase, 0x19);
     // kConfigKey_PersistentUniqueId is the inputkey in the generating of the Rotating Device ID
     // SHALL NOT be the same as the UniqueID attribute exposed in the Basic Information cluster.
     static constexpr Key kConfigKey_PersistentUniqueId =

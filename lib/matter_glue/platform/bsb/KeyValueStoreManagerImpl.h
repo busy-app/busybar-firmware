@@ -37,7 +37,7 @@ namespace PersistedStorage {
 
 class KeyValueStoreManagerImpl final : public KeyValueStoreManager {
 public:
-    // CHIP_ERROR Init(void);
+    CHIP_ERROR Init(void);
     CHIP_ERROR _Put(const char* key, const void* value, size_t value_size);
     CHIP_ERROR _Get(
         const char* key,
@@ -46,26 +46,39 @@ public:
         size_t* read_bytes_size = nullptr,
         size_t offset = 0) const;
     CHIP_ERROR _Delete(const char* key);
-    // void ErasePartition(void);
-    //
-    // static constexpr size_t kMaxEntries = KVS_MAX_ENTRIES;
-    //
-    // static void ForceKeyMapSave();
-    // static void KvsMapMigration();
+    void ErasePartition(void);
+
+    static constexpr size_t kMaxEntries = KVS_MAX_ENTRIES;
+
+    static void ForceKeyMapSave();
+    static void KvsMapMigration();
 
 private:
-    // static void OnScheduledKeyMapSave(System::Layer * systemLayer, void * appState);
-    //
-    // void ScheduleKeyMapSave(void);
-    // bool IsValidKvsNvm3Key(const uint32_t nvm3Key) const;
-    // uint16_t hashKvsKeyString(const char * key) const;
-    // CHIP_ERROR MapKvsKeyToNvm3(const char * key, uint16_t hash, uint32_t & nvm3Key, bool isSlotNeeded = false) const;
+    static KeyValueStoreManagerImpl sInstance;
+
+    static void OnScheduledKeyMapSave(System::Layer* systemLayer, void* appState);
+
+    /**
+     * @brief Cleans up unused keys in the key-value store.
+     *
+     * This function iterates over the key map and removes shadow keys (keys that
+     * no longer have corresponding entries in NVM). It ensures that the key map
+     * remains consistent and frees up space for new entries.
+     */
+    static int32_t KvsKeyMapCleanup(void* argument);
+
+    void ScheduleKeyMapSave(void);
+    bool IsValidKvsNvm3Key(const uint32_t nvm3Key) const;
+    uint16_t hashKvsKeyString(const char* key) const;
+    CHIP_ERROR MapKvsKeyToNvm3(
+        const char* key,
+        uint16_t hash,
+        uint32_t& nvm3Key,
+        bool isSlotNeeded = false) const;
 
     //  ===== Members for internal use by the following friends.
     friend KeyValueStoreManager& KeyValueStoreMgr();
     friend KeyValueStoreManagerImpl& KeyValueStoreMgrImpl();
-
-    static KeyValueStoreManagerImpl sInstance;
 };
 
 /**
@@ -82,7 +95,7 @@ inline KeyValueStoreManager& KeyValueStoreMgr(void) {
  * Returns the platform-specific implementation of the KeyValueStoreManager singleton object.
  *
  * Chip applications can use this to gain access to features of the KeyValueStoreManager
- * that are specific to the ESP32 platform.
+ * that are specific to the Silabs platform.
  */
 inline KeyValueStoreManagerImpl& KeyValueStoreMgrImpl(void) {
     return KeyValueStoreManagerImpl::sInstance;

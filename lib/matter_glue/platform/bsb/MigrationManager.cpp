@@ -16,9 +16,9 @@
  */
 
 #include "MigrationManager.h"
-#include "SilabsConfig.h"
-
 #include <platform/CHIPDeviceLayer.h>
+
+#include "SilabsConfig.h"
 #include <stdio.h>
 
 using namespace ::chip::DeviceLayer::Internal;
@@ -35,6 +35,7 @@ typedef struct {
     func_ptr migrationFunc;
 } migrationData_t;
 
+#define COUNT_OF(A) (sizeof(A) / sizeof((A)[0]))
 static migrationData_t migrationTable[] = {
     {.migrationGroup = 1, .migrationFunc = MigrateKvsMap},
     {.migrationGroup = 2, .migrationFunc = MigrateDacProvider},

@@ -58,7 +58,7 @@ CHIP_ERROR DeviceInstanceInfoProviderImpl::GetProductURL(char* buf, size_t bufSi
 }
 
 CHIP_ERROR DeviceInstanceInfoProviderImpl::GetProductLabel(char* buf, size_t bufSize) {
-    static const char* const productLabel = "No idea";
+    static const char* const productLabel = "Busy Status Bar";
     strncpy(buf, productLabel, bufSize - 1);
     return CHIP_NO_ERROR;
 }

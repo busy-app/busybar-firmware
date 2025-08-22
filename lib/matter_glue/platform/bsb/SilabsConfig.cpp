@@ -25,32 +25,29 @@
 
 #include <lib/core/CHIPEncoding.h>
 #include <lib/support/CodeUtils.h>
+#include <platform/internal/testing/ConfigUnitTest.h>
+#include <platform/silabs/CHIPDevicePlatformConfig.h>
 
 #include <nvm3.h>
 #include <nvm3_default.h>
 #include <nvm3_hal_flash.h>
 #include <nvm3_lock.h>
 
-#include "CHIPDevicePlatformConfig.h"
-
 // Substitute the GSDK weak nvm3_lockBegin and nvm3_lockEnd
 // for an application controlled re-entrance protection
-static SemaphoreHandle_t nvm3_Sem;
-static StaticSemaphore_t nvm3_SemStruct;
+static FuriSemaphore* nvm3_Sem;
 
 void nvm3_lockBegin(void) {
     if(nvm3_Sem == NULL) {
-        nvm3_Sem = xSemaphoreCreateBinaryStatic(&nvm3_SemStruct);
-        xSemaphoreGive(nvm3_Sem);
+        nvm3_Sem = furi_semaphore_alloc(1, 1);
     }
 
-    VerifyOrDie(nvm3_Sem != NULL);
-    xSemaphoreTake(nvm3_Sem, portMAX_DELAY);
+    furi_semaphore_acquire(nvm3_Sem, FuriWaitForever);
 }
 
 void nvm3_lockEnd(void) {
     VerifyOrDie(nvm3_Sem != NULL);
-    xSemaphoreGive(nvm3_Sem);
+    furi_semaphore_release(nvm3_Sem);
 }
 
 namespace chip {
@@ -116,12 +113,11 @@ CHIP_ERROR WriteConfigValueHelper(SilabsConfig::Key key, const T& val) {
 
 CHIP_ERROR SilabsConfig::Init() {
     // nvm3_Sem is created in nvm3_lockBegin()
-
     return MapNvm3Error(nvm3_open(nvm3_defaultHandle, nvm3_defaultInit));
 }
 
 void SilabsConfig::DeInit() {
-    vSemaphoreDelete(nvm3_Sem);
+    furi_semaphore_free(nvm3_Sem);
     nvm3_close(nvm3_defaultHandle);
 }
 

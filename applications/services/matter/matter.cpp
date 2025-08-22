@@ -10,6 +10,7 @@
 
 #include <app/server/Server.h>
 
+#include <platform/bsb/BSBDeviceInfoProvider.hpp>
 #include <platform/bsb/CommissionableDataProviderImpl.hpp>
 #include <platform/bsb/DeviceInstanceInfoProviderImpl.hpp>
 
@@ -58,7 +59,6 @@ CHIP_ERROR MatterSrv::init(void) {
 
         StackLock lock;
 
-        SetDeviceAttestationCredentialsProvider(Examples::GetExampleDACProvider());
         SetDeviceInstanceInfoProvider(BSB::GetDeviceInstanceInfoProvider());
         SetCommissionableDataProvider(BSB::GetCommissionableDataProvider());
 
@@ -71,6 +71,12 @@ CHIP_ERROR MatterSrv::init(void) {
         if(err != CHIP_NO_ERROR) {
             break;
         }
+
+        BSB::GetDeviceInfoProvider()->SetStorageDelegate(
+            &Server::GetInstance().GetPersistentStorage());
+        SetDeviceInfoProvider(BSB::GetDeviceInfoProvider());
+
+        SetDeviceAttestationCredentialsProvider(Examples::GetExampleDACProvider());
 
     } while(false);
 

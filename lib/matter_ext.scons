@@ -30,9 +30,9 @@ ZAP_GENERATED_INCDIR = f"#/lib/{ZAP_GENERATED_DIR}"
 env.Append(
     CPPPATH=[
         # Matter extension
+        Dir(f"{MATTER_SDK_INCDIR}/examples/providers").rdir(),
         Dir(f"{MATTER_SDK_INCDIR}/src").rdir(),
         Dir(f"{MATTER_SDK_INCDIR}/src/include").rdir(),
-        # Dir(f"{MATTER_SUPPORT_INCDIR}/provision").rdir(),
         Dir(f"{MATTER_SUPPORT_INCDIR}/tinycrypt/inc").rdir(),
         Dir(f"{THIRD_PARTY_INCDIR}/nlio/include").rdir(),
         Dir(f"{THIRD_PARTY_INCDIR}/nlassert/include").rdir(),
@@ -83,6 +83,8 @@ libenv.AppendUnique(
 )
 
 sources = [
+    f"{MATTER_SDK_DIR}/examples/providers/DeviceInfoProviderImpl.cpp",
+
     f"{MATTER_SDK_DIR}/src/access/AccessControl.cpp",
     f"{MATTER_SDK_DIR}/src/access/AccessRestrictionProvider.cpp",
     f"{MATTER_SDK_DIR}/src/access/examples/ExampleAccessControlDelegate.cpp",
@@ -123,7 +125,6 @@ sources = [
     f"{MATTER_SDK_DIR}/src/app/clusters/bindings/bindings.cpp",
     f"{MATTER_SDK_DIR}/src/app/clusters/bindings/PendingNotificationMap.cpp",
     f"{MATTER_SDK_DIR}/src/app/clusters/descriptor/descriptor.cpp",
-    # f"{MATTER_SDK_DIR}/src/app/clusters/diagnostic-logs-server/BDXDiagnosticLogsProvider.cpp",
     f"{MATTER_SDK_DIR}/src/app/clusters/diagnostic-logs-server/diagnostic-logs-server.cpp",
     f"{MATTER_SDK_DIR}/src/app/clusters/ethernet-network-diagnostics-server/ethernet-network-diagnostics-server.cpp",
     f"{MATTER_SDK_DIR}/src/app/clusters/fixed-label-server/fixed-label-server.cpp",
@@ -138,13 +139,8 @@ sources = [
     f"{MATTER_SDK_DIR}/src/app/clusters/network-commissioning/network-commissioning.cpp",
     f"{MATTER_SDK_DIR}/src/app/clusters/on-off-server/on-off-server.cpp",
     f"{MATTER_SDK_DIR}/src/app/clusters/operational-credentials-server/operational-credentials-server.cpp",
-    # f"{MATTER_SDK_DIR}/src/app/clusters/ota-requestor/BDXDownloader.cpp",
     f"{MATTER_SDK_DIR}/src/app/clusters/ota-requestor/DefaultOTARequestor.cpp",
-    # f"{MATTER_SDK_DIR}/src/app/clusters/ota-requestor/DefaultOTARequestorDriver.cpp",
-    # f"{MATTER_SDK_DIR}/src/app/clusters/ota-requestor/DefaultOTARequestorStorage.cpp",
-    # f"{MATTER_SDK_DIR}/src/app/clusters/ota-requestor/ExtendedOTARequestorDriver.cpp",
     f"{MATTER_SDK_DIR}/src/app/clusters/ota-requestor/ota-requestor-server.cpp",
-    # f"{MATTER_SDK_DIR}/src/app/clusters/ota-requestor/OTATestEventTriggerHandler.cpp",
     f"{MATTER_SDK_DIR}/src/app/clusters/scenes-server/ExtensionFieldSetsImpl.cpp",
     f"{MATTER_SDK_DIR}/src/app/clusters/scenes-server/SceneHandlerImpl.cpp",
     f"{MATTER_SDK_DIR}/src/app/clusters/scenes-server/scenes-server.cpp",
@@ -165,9 +161,6 @@ sources = [
     f"{MATTER_SDK_DIR}/src/app/data-model/PreEncodedValue.cpp",
 
     f"{MATTER_SDK_DIR}/src/app/icd/server/ICDConfigurationData.cpp",
-    # f"{MATTER_SDK_DIR}/src/app/icd/server/ICDManager.cpp",
-    # f"{MATTER_SDK_DIR}/src/app/icd/server/ICDMonitoringTable.cpp",
-    # f"{MATTER_SDK_DIR}/src/app/icd/server/ICDNotifier.cpp",
 
     f"{MATTER_SDK_DIR}/src/app/MessageDef/ArrayBuilder.cpp",
     f"{MATTER_SDK_DIR}/src/app/MessageDef/ArrayParser.cpp",
@@ -332,20 +325,6 @@ sources = [
     f"{MATTER_SDK_DIR}/src/lib/dnssd/ServiceNaming.cpp",
     f"{MATTER_SDK_DIR}/src/lib/dnssd/TxtFields.cpp",
 
-    # f"{MATTER_SDK_DIR}/src/lib/shell/commands/Config.cpp",
-    # f"{MATTER_SDK_DIR}/src/lib/shell/commands/Device.cpp",
-    # f"{MATTER_SDK_DIR}/src/lib/shell/commands/Dns.cpp",
-    # f"{MATTER_SDK_DIR}/src/lib/shell/commands/Help.cpp",
-    # f"{MATTER_SDK_DIR}/src/lib/shell/commands/Meta.cpp",
-    # f"{MATTER_SDK_DIR}/src/lib/shell/commands/OnboardingCodes.cpp",
-    # f"{MATTER_SDK_DIR}/src/lib/shell/commands/Ota.cpp",
-    # f"{MATTER_SDK_DIR}/src/lib/shell/commands/Stat.cpp",
-    # f"{MATTER_SDK_DIR}/src/lib/shell/commands/WiFi.cpp",
-    # f"{MATTER_SDK_DIR}/src/lib/shell/CommandSet.cpp",
-    # f"{MATTER_SDK_DIR}/src/lib/shell/Engine.cpp",
-    # f"{MATTER_SDK_DIR}/src/lib/shell/MainLoopDefault.cpp",
-    # f"{MATTER_SDK_DIR}/src/lib/shell/streamer.cpp",
-
     f"{MATTER_SDK_DIR}/src/lib/support/Base64.cpp",
     f"{MATTER_SDK_DIR}/src/lib/support/BufferReader.cpp",
     f"{MATTER_SDK_DIR}/src/lib/support/BufferWriter.cpp",
@@ -393,15 +372,6 @@ sources = [
     f"{MATTER_SDK_DIR}/src/platform/RuntimeOptionsProvider.cpp",
     f"{MATTER_SDK_DIR}/src/platform/SingletonConfigurationManager.cpp",
 
-    f"{MATTER_SDK_DIR}/src/protocols/bdx/BdxMessages.cpp",
-    # f"{MATTER_SDK_DIR}/src/protocols/bdx/BdxTransferDiagnosticLog.cpp",
-    # f"{MATTER_SDK_DIR}/src/protocols/bdx/BdxTransferProxyDiagnosticLog.cpp",
-    f"{MATTER_SDK_DIR}/src/protocols/bdx/BdxTransferServer.cpp",
-    f"{MATTER_SDK_DIR}/src/protocols/bdx/BdxTransferSession.cpp",
-    f"{MATTER_SDK_DIR}/src/protocols/bdx/BdxUri.cpp",
-    f"{MATTER_SDK_DIR}/src/protocols/bdx/StatusCode.cpp",
-    f"{MATTER_SDK_DIR}/src/protocols/bdx/TransferFacilitator.cpp",
-
     f"{MATTER_SDK_DIR}/src/protocols/echo/EchoClient.cpp",
     f"{MATTER_SDK_DIR}/src/protocols/echo/EchoServer.cpp",
 
@@ -424,15 +394,6 @@ sources = [
     f"{MATTER_SDK_DIR}/src/protocols/secure_channel/UnsolicitedStatusHandler.cpp",
     f"{MATTER_SDK_DIR}/src/protocols/user_directed_commissioning/UserDirectedCommissioningClient.cpp",
     f"{MATTER_SDK_DIR}/src/protocols/user_directed_commissioning/UserDirectedCommissioningServer.cpp",
-
-    # f"{MATTER_SDK_DIR}/src/setup_payload/Base38Decode.cpp",
-    # f"{MATTER_SDK_DIR}/src/setup_payload/Base38Encode.cpp",
-    # f"{MATTER_SDK_DIR}/src/setup_payload/ManualSetupPayloadGenerator.cpp",
-    # f"{MATTER_SDK_DIR}/src/setup_payload/ManualSetupPayloadParser.cpp",
-    # f"{MATTER_SDK_DIR}/src/setup_payload/QRCodeSetupPayloadGenerator.cpp",
-    # f"{MATTER_SDK_DIR}/src/setup_payload/QRCodeSetupPayloadParser.cpp",
-    # f"{MATTER_SDK_DIR}/src/setup_payload/SetupPayload.cpp",
-    # f"{MATTER_SDK_DIR}/src/setup_payload/SetupPayloadHelper.cpp",
 
     f"{MATTER_SDK_DIR}/src/system/SystemClock.cpp",
     f"{MATTER_SDK_DIR}/src/system/SystemError.cpp",
@@ -461,6 +422,7 @@ sources = [
     f"{MATTER_SUPPORT_DIR}/tinycrypt/src/ecc.c",
     f"{MATTER_SUPPORT_DIR}/tinycrypt/src/tinycrypt_util.c",
 
+    f"{MATTER_GLUE_DIR}/platform/bsb/BSBDeviceInfoProvider.cpp",
     f"{MATTER_GLUE_DIR}/platform/bsb/CHIPCryptoPALTinyCrypt.cpp",
     f"{MATTER_GLUE_DIR}/platform/bsb/CommissionableDataProviderImpl.cpp",
     f"{MATTER_GLUE_DIR}/platform/bsb/ConfigurationManagerImpl.cpp",
@@ -472,11 +434,9 @@ sources = [
     f"{MATTER_GLUE_DIR}/platform/bsb/Logging.cpp",
     f"{MATTER_GLUE_DIR}/platform/bsb/MigrationManager.cpp",
     f"{MATTER_GLUE_DIR}/platform/bsb/PlatformManagerImpl.cpp",
+    f"{MATTER_GLUE_DIR}/platform/bsb/SilabsConfig.cpp",
     f"{MATTER_GLUE_DIR}/platform/bsb/SystemLayerImplFuri.cpp",
     f"{MATTER_GLUE_DIR}/platform/bsb/SystemTimeSupport.cpp",
-
-    # f"{MATTER_GLUE_DIR}/platform/bsb/SilabsConfig.cpp",
-    # f"{MATTER_GLUE_DIR}/platform/bsb/streamer_silabs.cpp",
 
     f"{ZAP_GENERATED_DIR}/app/callback-stub.cpp",
     f"{ZAP_GENERATED_DIR}/app/cluster-init-callback.cpp",

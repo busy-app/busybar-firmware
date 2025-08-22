@@ -25,7 +25,8 @@
 #pragma once
 
 #include <platform/internal/GenericConfigurationManagerImpl.h>
-#include <platform/bsb/SilabsConfig.h>
+
+#include "SilabsConfig.h"
 
 namespace chip {
 namespace DeviceLayer {
@@ -39,13 +40,11 @@ public:
     // This returns an instance of this class.
     static ConfigurationManagerImpl& GetDefaultInstance();
 
-    CHIP_ERROR GetBootReason(uint32_t& bootReason) override;
-    CHIP_ERROR GetRebootCount(uint32_t& rebootCount) override;
+    CHIP_ERROR GetBootReason(uint32_t& bootReason);
+    CHIP_ERROR GetRebootCount(uint32_t& rebootCount);
     CHIP_ERROR IncreaseBootCount(void);
-    CHIP_ERROR GetTotalOperationalHours(uint32_t& totalOperationalHours) override;
-    CHIP_ERROR StoreTotalOperationalHours(uint32_t totalOperationalHours) override;
-
-    // void ClearThreadStack();
+    CHIP_ERROR GetTotalOperationalHours(uint32_t& totalOperationalHours);
+    CHIP_ERROR StoreTotalOperationalHours(uint32_t totalOperationalHours);
 
 private:
     // ===== Members that implement the ConfigurationManager public interface.
@@ -78,7 +77,7 @@ private:
     void RunConfigUnitTest(void) override;
 
     // ===== Private members reserved for use by this class only.
-    // static void DoFactoryReset(intptr_t arg);
+    static void DoFactoryReset(intptr_t arg);
 };
 
 #ifndef SL_WIFI
