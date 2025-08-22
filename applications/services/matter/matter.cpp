@@ -59,8 +59,10 @@ CHIP_ERROR MatterSrv::init(void) {
 
         StackLock lock;
 
+        SetDeviceInfoProvider(BSB::GetDeviceInfoProvider());
         SetDeviceInstanceInfoProvider(BSB::GetDeviceInstanceInfoProvider());
         SetCommissionableDataProvider(BSB::GetCommissionableDataProvider());
+        SetDeviceAttestationCredentialsProvider(Examples::GetExampleDACProvider());
 
         err = m_server_init_params.InitializeStaticResourcesBeforeServerInit();
         if(err != CHIP_NO_ERROR) {
@@ -74,9 +76,6 @@ CHIP_ERROR MatterSrv::init(void) {
 
         BSB::GetDeviceInfoProvider()->SetStorageDelegate(
             &Server::GetInstance().GetPersistentStorage());
-        SetDeviceInfoProvider(BSB::GetDeviceInfoProvider());
-
-        SetDeviceAttestationCredentialsProvider(Examples::GetExampleDACProvider());
 
     } while(false);
 

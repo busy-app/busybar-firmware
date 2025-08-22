@@ -80,11 +80,10 @@ private:
     static void DoFactoryReset(intptr_t arg);
 };
 
-#ifndef SL_WIFI
+// TODO: This causes a random MAC address to be generated, but works fine otherwise
 inline CHIP_ERROR ConfigurationManagerImpl::GetPrimaryWiFiMACAddress(uint8_t* buf) {
     return CHIP_ERROR_UNSUPPORTED_CHIP_FEATURE;
 }
-#endif /* SL_WIFI */
 
 /**
  * Returns the platform-specific implementation of the ConfigurationManager object.

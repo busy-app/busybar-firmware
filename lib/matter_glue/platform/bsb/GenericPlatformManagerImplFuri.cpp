@@ -78,30 +78,6 @@ CHIP_ERROR GenericPlatformManagerImpl_Furi<ImplClass>::_InitChipStack(void) {
 
     mShouldRunEventLoop.store(false);
 
-#if defined(CHIP_DEVICE_CONFIG_ENABLE_BG_EVENT_PROCESSING) && \
-    CHIP_DEVICE_CONFIG_ENABLE_BG_EVENT_PROCESSING
-//     if (mBackgroundEventQueue == NULL)
-//     {
-// #if defined(CHIP_CONFIG_Furi_USE_STATIC_QUEUE) && CHIP_CONFIG_Furi_USE_STATIC_QUEUE
-//         mBackgroundEventQueue = xQueueCreateStatic(CHIP_DEVICE_CONFIG_BG_MAX_EVENT_QUEUE_SIZE, sizeof(ChipDeviceEvent),
-//                                                    mBackgroundQueueBuffer, &mBackgroundQueueStruct);
-// #else
-//         mBackgroundEventQueue = xQueueCreate(CHIP_DEVICE_CONFIG_BG_MAX_EVENT_QUEUE_SIZE, sizeof(ChipDeviceEvent));
-// #endif
-//         if (mBackgroundEventQueue == NULL)
-//         {
-//             ChipLogError(DeviceLayer, "Failed to allocate CHIP background event queue");
-//             ExitNow(err = CHIP_ERROR_NO_MEMORY);
-//         }
-//     }
-//     else
-//     {
-//         xQueueReset(mBackgroundEventQueue);
-//     }
-//
-//     mShouldRunBackgroundEventLoop.store(false);
-#endif
-
     // Call up to the base class _InitChipStack() to perform the bulk of the initialization.
     err = GenericPlatformManagerImpl<ImplClass>::_InitChipStack();
     SuccessOrExit(err);
@@ -230,131 +206,14 @@ void GenericPlatformManagerImpl_Furi<ImplClass>::_RunEventLoop(void) {
 
 template <class ImplClass>
 CHIP_ERROR GenericPlatformManagerImpl_Furi<ImplClass>::_StartEventLoopTask(void) {
-    // #if defined(CHIP_CONFIG_Furi_USE_STATIC_TASK) && CHIP_CONFIG_Furi_USE_STATIC_TASK
-    //     mEventLoopTask = xTaskCreateStatic(EventLoopTaskMain, CHIP_DEVICE_CONFIG_CHIP_TASK_NAME, ArraySize(mEventLoopStack), this,
-    //                                        CHIP_DEVICE_CONFIG_CHIP_TASK_PRIORITY, mEventLoopStack, &mEventLoopTaskStruct);
-    // #else
-    //     xTaskCreate(EventLoopTaskMain, CHIP_DEVICE_CONFIG_CHIP_TASK_NAME, CHIP_DEVICE_CONFIG_CHIP_TASK_STACK_SIZE / sizeof(StackType_t),
-    //                 this, CHIP_DEVICE_CONFIG_CHIP_TASK_PRIORITY, &mEventLoopTask);
-    // #endif
-    //     return (mEventLoopTask != NULL) ? CHIP_NO_ERROR : CHIP_ERROR_NO_MEMORY;
-    return CHIP_ERROR_NOT_IMPLEMENTED;
+    return CHIP_NO_ERROR;
 }
-
-// template <class ImplClass>
-// void GenericPlatformManagerImpl_Furi<ImplClass>::EventLoopTaskMain(void * arg)
-// {
-//     ChipLogDetail(DeviceLayer, "CHIP event task running");
-//     static_cast<GenericPlatformManagerImpl_Furi<ImplClass> *>(arg)->Impl()->RunEventLoop();
-//     // TODO: At this point, should we not
-//     // vTaskDelete(static_cast<GenericPlatformManagerImpl_Furi<ImplClass> *>(arg)->mEventLoopTask)?
-//     // Or somehow get our caller to do it once this thread is joined?
-// }
 
 template <class ImplClass>
 CHIP_ERROR GenericPlatformManagerImpl_Furi<ImplClass>::_PostBackgroundEvent(
     const ChipDeviceEvent* event) {
-#if defined(CHIP_DEVICE_CONFIG_ENABLE_BG_EVENT_PROCESSING) && \
-    CHIP_DEVICE_CONFIG_ENABLE_BG_EVENT_PROCESSING
-    if(mBackgroundEventQueue == NULL) {
-        return CHIP_ERROR_INTERNAL;
-    }
-    if(!(event->Type == DeviceEventType::kCallWorkFunct ||
-         event->Type == DeviceEventType::kNoOp)) {
-        return CHIP_ERROR_INVALID_ARGUMENT;
-    }
-    auto status = xQueueSendToBack(mBackgroundEventQueue, event, 1);
-    if(status != pdTRUE) {
-        ChipLogError(DeviceLayer, "Failed to post event to CHIP background event queue");
-        return CHIP_ERROR_NO_MEMORY;
-    }
-    return CHIP_NO_ERROR;
-#else
-    // Use foreground event loop for background events
     return _PostEvent(event);
-#endif
 }
-
-template <class ImplClass>
-void GenericPlatformManagerImpl_Furi<ImplClass>::_RunBackgroundEventLoop(void) {
-#if defined(CHIP_DEVICE_CONFIG_ENABLE_BG_EVENT_PROCESSING) && \
-    CHIP_DEVICE_CONFIG_ENABLE_BG_EVENT_PROCESSING
-    bool oldShouldRunBackgroundEventLoop = false;
-    if(!mShouldRunBackgroundEventLoop.compare_exchange_strong(
-           oldShouldRunBackgroundEventLoop /* expected */, true /* desired */)) {
-        ChipLogError(
-            DeviceLayer,
-            "Error trying to run the background event loop while it is already running");
-        return;
-    }
-
-    while(mShouldRunBackgroundEventLoop.load()) {
-        ChipDeviceEvent event;
-        auto eventReceived = xQueueReceive(mBackgroundEventQueue, &event, portMAX_DELAY) == pdTRUE;
-        while(eventReceived) {
-            Impl()->DispatchEvent(&event);
-            eventReceived = xQueueReceive(mBackgroundEventQueue, &event, portMAX_DELAY) == pdTRUE;
-        }
-    }
-#else
-    // Use foreground event loop for background events
-#endif
-}
-
-template <class ImplClass>
-CHIP_ERROR GenericPlatformManagerImpl_Furi<ImplClass>::_StartBackgroundEventLoopTask(void) {
-#if defined(CHIP_DEVICE_CONFIG_ENABLE_BG_EVENT_PROCESSING) && \
-    CHIP_DEVICE_CONFIG_ENABLE_BG_EVENT_PROCESSING
-#if defined(CHIP_CONFIG_Furi_USE_STATIC_TASK) && CHIP_CONFIG_Furi_USE_STATIC_TASK
-    mBackgroundEventLoopTask = xTaskCreateStatic(
-        BackgroundEventLoopTaskMain,
-        CHIP_DEVICE_CONFIG_BG_TASK_NAME,
-        ArraySize(mBackgroundEventLoopStack),
-        this,
-        CHIP_DEVICE_CONFIG_BG_TASK_PRIORITY,
-        mBackgroundEventLoopStack,
-        &mBackgroundEventLoopTaskStruct);
-#else
-    xTaskCreate(
-        BackgroundEventLoopTaskMain,
-        CHIP_DEVICE_CONFIG_BG_TASK_NAME,
-        CHIP_DEVICE_CONFIG_BG_TASK_STACK_SIZE / sizeof(StackType_t),
-        this,
-        CHIP_DEVICE_CONFIG_BG_TASK_PRIORITY,
-        &mBackgroundEventLoopTask);
-#endif
-    return (mBackgroundEventLoopTask != NULL) ? CHIP_NO_ERROR : CHIP_ERROR_NO_MEMORY;
-#else
-    // Use foreground event loop for background events
-    return CHIP_NO_ERROR;
-#endif
-}
-
-template <class ImplClass>
-CHIP_ERROR GenericPlatformManagerImpl_Furi<ImplClass>::_StopBackgroundEventLoopTask(void) {
-#if defined(CHIP_DEVICE_CONFIG_ENABLE_BG_EVENT_PROCESSING) && \
-    CHIP_DEVICE_CONFIG_ENABLE_BG_EVENT_PROCESSING
-    bool oldShouldRunBackgroundEventLoop = true;
-    if(mShouldRunBackgroundEventLoop.compare_exchange_strong(
-           oldShouldRunBackgroundEventLoop /* expected */, false /* desired */)) {
-        ChipDeviceEvent noop{.Type = DeviceEventType::kNoOp};
-        xQueueSendToBack(mBackgroundEventQueue, &noop, 0);
-    }
-    return CHIP_NO_ERROR;
-#else
-    // Use foreground event loop for background events
-    return CHIP_NO_ERROR;
-#endif
-}
-
-#if defined(CHIP_DEVICE_CONFIG_ENABLE_BG_EVENT_PROCESSING) && \
-    CHIP_DEVICE_CONFIG_ENABLE_BG_EVENT_PROCESSING
-template <class ImplClass>
-void GenericPlatformManagerImpl_Furi<ImplClass>::BackgroundEventLoopTaskMain(void* arg) {
-    ChipLogDetail(DeviceLayer, "CHIP background task running");
-    static_cast<GenericPlatformManagerImpl_Furi<ImplClass>*>(arg)->Impl()->RunBackgroundEventLoop();
-}
-#endif
 
 template <class ImplClass>
 CHIP_ERROR
@@ -373,20 +232,6 @@ CHIP_ERROR
 
     return CHIP_NO_ERROR;
 }
-
-// template <class ImplClass>
-// void GenericPlatformManagerImpl_Furi<ImplClass>::PostEventFromISR(const ChipDeviceEvent * event, BaseType_t & yieldRequired)
-// {
-//     yieldRequired = pdFALSE;
-//
-//     if (mChipEventQueue != NULL)
-//     {
-//         if (!xQueueSendFromISR(mChipEventQueue, event, &yieldRequired))
-//         {
-//             ChipLogError(DeviceLayer, "Failed to post event to CHIP Platform event queue");
-//         }
-//     }
-// }
 
 template <class ImplClass>
 void GenericPlatformManagerImpl_Furi<ImplClass>::_Shutdown(void) {

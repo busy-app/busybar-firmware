@@ -193,16 +193,6 @@ void ConfigurationManagerImpl::DoFactoryReset(intptr_t arg) {
     // TODO: Implement factory reset procedure
 }
 
-#ifdef SL_WIFI
-CHIP_ERROR ConfigurationManagerImpl::GetPrimaryWiFiMACAddress(uint8_t* buf) {
-    sl_wfx_mac_address_t macaddr;
-    wfx_get_wifi_mac_addr(SL_WFX_STA_INTERFACE, &macaddr);
-    memcpy(buf, &macaddr.octet[0], sizeof(macaddr.octet));
-
-    return CHIP_NO_ERROR;
-}
-#endif
-
 ConfigurationManager& ConfigurationMgrImpl() {
     return ConfigurationManagerImpl::GetDefaultInstance();
 }

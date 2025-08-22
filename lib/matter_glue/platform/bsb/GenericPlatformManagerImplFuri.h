@@ -42,14 +42,6 @@ namespace chip {
 namespace DeviceLayer {
 namespace Internal {
 
-/**
- * Provides a generic implementation of PlatformManager features that works on FreeRTOS platforms.
- *
- * This template contains implementations of select features from the PlatformManager abstract
- * interface that are suitable for use on FreeRTOS-based platforms.  It is intended to be inherited
- * (directly or indirectly) by the PlatformManagerImpl class, which also appears as the template's
- * ImplClass parameter.
- */
 template <class ImplClass>
 class GenericPlatformManagerImpl_Furi : public GenericPlatformManagerImpl<ImplClass> {
 protected:
@@ -60,13 +52,6 @@ protected:
     FuriThread* mEventLoopTask = NULL;
     FuriMutex* mChipStackLock = NULL;
     FuriMessageQueue* mChipEventQueue = NULL;
-
-    // #if defined(CHIP_DEVICE_CONFIG_ENABLE_BG_EVENT_PROCESSING) && CHIP_DEVICE_CONFIG_ENABLE_BG_EVENT_PROCESSING
-    //     QueueHandle_t mBackgroundEventQueue   = NULL;
-    //     TaskHandle_t mBackgroundEventLoopTask = NULL;
-    // #endif
-
-    // ===== Methods that implement the PlatformManager abstract interface.
 
     CHIP_ERROR _InitChipStack();
 
@@ -86,27 +71,13 @@ protected:
 #endif
 
     CHIP_ERROR _PostBackgroundEvent(const ChipDeviceEvent* event);
-    void _RunBackgroundEventLoop(void);
-    CHIP_ERROR _StartBackgroundEventLoopTask(void);
-    CHIP_ERROR _StopBackgroundEventLoopTask();
-
-    // ===== Methods available to the implementation subclass.
-
-    // void PostEventFromISR(const ChipDeviceEvent * event, BaseType_t & yieldRequired);
 
 private:
-    // ===== Private members for use by this class only.
-
     inline ImplClass* Impl() {
         return static_cast<ImplClass*>(this);
     }
 
     std::atomic<bool> mShouldRunEventLoop;
-
-    // #if defined(CHIP_DEVICE_CONFIG_ENABLE_BG_EVENT_PROCESSING) && CHIP_DEVICE_CONFIG_ENABLE_BG_EVENT_PROCESSING
-    //     static void BackgroundEventLoopTaskMain(void * arg);
-    //     std::atomic<bool> mShouldRunBackgroundEventLoop;
-    // #endif
 };
 
 // Instruct the compiler to instantiate the template only when explicitly told to do so.
