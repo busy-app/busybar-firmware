@@ -24,6 +24,7 @@ App(
         "ble_per_test",
         "wifi_per_test",
         "wifi_adaptive_test",
+        "clock",
     ],
     targets=["f20", "f21"],
 )
