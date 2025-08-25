@@ -47,6 +47,17 @@ typedef enum {
     WidgetScrollBarModeCount /**< Special value, not to be used in application code */
 } WidgetScrollBarMode;
 
+/** Enumeration of possible blend modes for widget */
+typedef enum {
+    WidgetBlendModeNormal, /**< Simply mix according to the opacity value */
+    WidgetBlendModeAdditive, /**< Add the respective color channels */
+    WidgetBlendModeSubtractive, /**< Subtract the foreground from the background */
+    WidgetBlendModeMultiply, /**< Multiply the foreground and background */
+    WidgetBlendModeDifference, /**< Absolute difference between foreground and background */
+
+    WidgetBlendModesCount /**< Special value, not to be used in application code */
+} WidgetBlendMode;
+
 /**
  * @brief Create a new widget instance.
  *
@@ -230,6 +241,22 @@ void widget_set_padding(Widget* instance, int32_t left, int32_t right, int32_t t
  * @param[in] bottom margin on the bottom side in pixels
 */
 void widget_set_margin(Widget* instance, int32_t left, int32_t right, int32_t top, int32_t bottom);
+
+/**
+ * @brief Set the blend mode for a Widget instance.
+ *
+ * @param[in,out] instance pointer to the Widget instance to be modified
+ * @param[in] blend_mode new blend mode from the WidgetBlendMode enumeration
+ */
+void widget_set_blend_mode(Widget* instance, WidgetBlendMode blend_mode);
+
+/**
+ * @brief Get the blend mode for a Widget instance.
+ *
+ * @param[in] instance pointer to the Widget instance to be queried
+ * @returns current blend mode from the WidgetBlendMode enumeration
+ */
+WidgetBlendMode widget_get_blend_mode(const Widget* instance);
 
 #ifdef __cplusplus
 }

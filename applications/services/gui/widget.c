@@ -151,6 +151,17 @@ void widget_set_margin(Widget* instance, int32_t left, int32_t right, int32_t to
     lv_obj_set_style_margin_bottom((lv_obj_t*)instance, bottom, LV_PART_MAIN);
 }
 
+void widget_set_blend_mode(Widget* instance, WidgetBlendMode blend_mode) {
+    furi_check(instance);
+    furi_check(blend_mode < WidgetBlendModesCount);
+    lv_obj_set_style_blend_mode(TO_LV_OBJ(instance), (lv_blend_mode_t)blend_mode, LV_PART_MAIN);
+}
+
+WidgetBlendMode widget_get_blend_mode(const Widget* instance) {
+    furi_check(instance);
+    return (WidgetBlendMode)lv_obj_get_style_blend_mode(TO_LV_OBJ(instance), LV_PART_MAIN);
+}
+
 // Private API
 
 void widget_set_input_feed_callback(Widget* instance, WidgetInputFeedCallback callback) {
