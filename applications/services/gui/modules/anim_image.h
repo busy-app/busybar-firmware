@@ -13,6 +13,9 @@ extern "C" {
 /** AnimImage opaque structure. */
 typedef struct AnimImage AnimImage;
 
+/** Callback function type for animation end events. */
+typedef void (*AnimImageCallback)(AnimImage* instance, void* context);
+
 /**
  * @brief Create a new AnimImage instance.
  *
@@ -115,6 +118,17 @@ uint32_t anim_image_get_frame_rate(const AnimImage* instance);
  * @returns total number of frames in the animation
  */
 uint32_t anim_image_get_frame_count(const AnimImage* instance);
+
+/**
+ * @brief Set a callback function to be called when a non-looping animation ends.
+ *
+ * The callback will be called when an animation with loop parameter equal to @c false completes.
+ *
+ * @param[in,out] instance pointer to the AnimImage instance to be modified
+ * @param[in] callback pointer to the callback function, or NULL to disable
+ * @param[in] context pointer to user data passed to the callback function
+ */
+void anim_image_set_callback(AnimImage* instance, AnimImageCallback callback, void* context);
 
 #ifdef __cplusplus
 }

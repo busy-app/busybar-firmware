@@ -125,6 +125,10 @@ static void anim_image_update(AnimImage* instance) {
             if(!had_waiting_range && !instance->current_range.loop) {
                 lv_timer_pause(instance->timer);
                 storage_file_close(instance->file);
+
+                if(instance->callback) {
+                    instance->callback(instance, instance->callback_context);
+                }
             }
         }
 
@@ -375,6 +379,12 @@ uint32_t anim_image_get_frame_rate(const AnimImage* instance) {
 uint32_t anim_image_get_frame_count(const AnimImage* instance) {
     furi_check(instance);
     return instance->frame_count;
+}
+
+void anim_image_set_callback(AnimImage* instance, AnimImageCallback callback, void* context) {
+    furi_check(instance);
+    instance->callback = callback;
+    instance->callback_context = context;
 }
 
 // LVGL class descriptor

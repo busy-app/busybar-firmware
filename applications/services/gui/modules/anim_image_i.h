@@ -21,6 +21,8 @@ struct AnimImage {
     uint8_t* canvas_buf;
     char* file_path;
     File* file;
+    AnimImageCallback callback;
+    void* callback_context;
     uint32_t frame_rate;
     uint32_t frame_count;
     size_t frame_size;
