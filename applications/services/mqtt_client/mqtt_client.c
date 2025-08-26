@@ -1,5 +1,5 @@
 #include "mqtt_i.h"
-#include <usb_network/usb_network.h>
+#include <network/network.h>
 #include <storage/storage.h>
 
 #define TAG "MqttClient"
@@ -250,8 +250,8 @@ int32_t mqtt_client_start(void* p) {
         furi_thread_suspend(furi_thread_get_current_id());
     }
 
-    UsbNetwork* usb_network = furi_record_open(RECORD_USB_NETWORK);
-    usb_network_thread_init(usb_network);
+    Network* network = furi_record_open(RECORD_NETWORK);
+    network_init_current_thread(network);
 
     mg_mgr_init(&mqtt->mgr); // Initialise event manager
 
@@ -271,8 +271,8 @@ int32_t mqtt_client_start(void* p) {
     // Cleanup
     mg_mgr_free(&mqtt->mgr);
 
-    usb_network_thread_cleanup(usb_network);
-    furi_record_close(RECORD_USB_NETWORK);
+    network_deinit_current_thread(network);
+    furi_record_close(RECORD_NETWORK);
 
     free(mqtt);
 
