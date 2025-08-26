@@ -38,7 +38,7 @@ static void busy_scene_setup_on_enter(void* context) {
 
         menu_add_item(
             data->front_menu,
-            "TIMER",
+            "Timer",
             mode_name,
             BUSY_IMG_PATH("timer_8x8.bin"),
             BusySceneSetupMenuIndexTimer,
@@ -46,14 +46,14 @@ static void busy_scene_setup_on_enter(void* context) {
             instance);
         menu_add_item(
             data->front_menu,
-            "THEME",
+            "Theme",
             "",
             BUSY_IMG_PATH("theme_8x8.bin"),
             BusySceneSetupMenuIndexTheme,
             busy_scene_setup_menu_callback,
             instance);
 
-        data->back_menu = menu_alloc(nav_stack_get_base(instance->nav_stack));
+        data->back_menu = menu_alloc(instance->back_window);
         menu_add_item(
             data->back_menu, "TIMER", mode_name, BUSY_IMG_PATH("timer_12x12.bin"), 0, NULL, NULL);
         menu_add_item(

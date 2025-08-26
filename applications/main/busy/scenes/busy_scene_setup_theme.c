@@ -18,8 +18,9 @@ static void busy_scene_setup_theme_on_enter(void* context) {
         label_set_text(data->front_label, "Not Implemented");
         widget_set_align(label_get_base(data->front_label), AlignCenter);
 
-        data->back_label = label_alloc(nav_stack_get_base(instance->nav_stack));
+        data->back_label = label_alloc(instance->back_window);
         label_set_text(data->back_label, "Not Implemented");
+        widget_set_align(label_get_base(data->back_label), AlignCenter);
     });
 }
 

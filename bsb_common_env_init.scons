@@ -1,3 +1,5 @@
+from pathlib import Path
+
 Import("env")
 
 SConscript(
@@ -12,3 +14,9 @@ env.AppendUnique(
 
 # Temporary workaround
 env.Replace(PROJECT_ROOT=Dir("../..").srcnode())
+
+
+# Register all modules in fbt_env_modules as dist and fw env components
+for dist_module in env.Glob("#/scripts/fbt_env_modules/bsbdist/*.scons"):
+    module_basename = Path(dist_module.name).stem
+    env.RegisterComponent(f"bsbdist_{module_basename}", dist_module.srcnode())
