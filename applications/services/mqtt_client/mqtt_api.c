@@ -1,8 +1,6 @@
 #include "mqtt_i.h"
 
-#define TAG                 "MqttApi"
-#define MQTT_TOPIC_PREFIX   "api/"
-#define HTTP_URI_API_PREFIX "/api/"
+#define TAG "MqttApi"
 
 typedef enum {
     MethodGet = 0,

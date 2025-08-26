@@ -1,4 +1,5 @@
 #include <furi.h>
+#include <furi_hal_random.h>
 #include <mongoose.h>
 
 uint64_t mg_millis(void) {
@@ -68,13 +69,6 @@ int _gettimeofday(struct timeval* tv, void* tz) {
 }
 
 bool mg_random(void* buf, size_t len) {
-    bool success = false;
-    unsigned char* p = (unsigned char*)buf;
-
-    if(success == false) {
-        // TODO: true random
-        while(len--)
-            *p++ = (unsigned char)(rand() & 255);
-    }
-    return success;
+    furi_hal_random_fill_buf(buf, len);
+    return true;
 }

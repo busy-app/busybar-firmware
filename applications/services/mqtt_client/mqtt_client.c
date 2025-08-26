@@ -1,19 +1,22 @@
 #include "mqtt_i.h"
 #include <usb_network/usb_network.h>
+#include <storage/storage.h>
 
 #define TAG "MqttClient"
 
-#define MQTT_SERVER_ADDR     "mqtt://10.0.4.21:1883"
-#define MQTT_ROOT_TOPIC      "api/#"
-#define MQTT_RECONNECT_DELAY (2000)
-#define MQTT_QOS             (2)
-#define HTTP_HOST            "http://127.0.0.1"
+#define CERT_FILE_CA_BUNDLE    APP_DATA_PATH("ca_bundle.crt")
+#define CERT_FILE_INTERMEDIATE APP_DATA_PATH("signing-ca.crt")
+#define CERT_FILE_DEVICE       APP_DATA_PATH("device.crt")
+#define CERT_FILE_DEVICE_KEY   APP_DATA_PATH("device.key")
 
 typedef struct {
     struct mg_mgr mgr;
     struct mg_timer reconnect_delay_timer;
     struct mg_connection* conn;
     bool conn_established;
+    char* ca_bundle;
+    char* device_cert;
+    char* device_key;
 } MqttClient;
 
 typedef struct {
@@ -98,12 +101,24 @@ static void mqtt_event_handler(struct mg_connection* conn, int ev, void* ev_data
     MqttClient* mqtt = conn->fn_data;
     furi_assert(mqtt);
 
-    if(ev == MG_EV_MQTT_OPEN) {
+    if(ev == MG_EV_CONNECT) {
+        const struct mg_str name = mg_url_host(MQTT_SERVER_ADDR);
+        const struct mg_tls_opts opts = {
+            .name = name,
+            .ca = mg_str(mqtt->ca_bundle),
+            .cert = mg_str(mqtt->device_cert),
+            .key = mg_str(mqtt->device_key),
+            // .skip_verification = 1,
+        };
+        mg_tls_init(conn, &opts);
+    } else if(ev == MG_EV_TLS_HS) {
+        FURI_LOG_I(TAG, "TLS handshake done!");
+    } else if(ev == MG_EV_MQTT_OPEN) {
         int* conn_code = (int*)ev_data;
         if(*conn_code == 0) {
             FURI_LOG_D(TAG, "MQTT Connected");
             const struct mg_mqtt_opts sub_opts = {
-                .topic = mg_str(MQTT_ROOT_TOPIC), .qos = MQTT_QOS};
+                .topic = mg_str(MQTT_SUBSCRIBE_TOPIC), .qos = MQTT_QOS};
             mg_mqtt_sub(conn, &sub_opts);
         } else {
             FURI_LOG_E(TAG, "MQTT Connect error, code 0x%02X", *conn_code);
@@ -124,13 +139,13 @@ static void mqtt_event_handler(struct mg_connection* conn, int ev, void* ev_data
         if(msg->cmd == MQTT_CMD_SUBACK) {
             mqtt->conn_established = true;
         }
-        FURI_LOG_T(TAG, "MQTT CMD: %u", msg->cmd);
+        FURI_LOG_D(TAG, "MQTT CMD: %u", msg->cmd);
     } else if(ev == MG_EV_MQTT_MSG) {
         struct mg_mqtt_message* msg = (struct mg_mqtt_message*)ev_data;
         if(msg->qos == MQTT_QOS) {
             mqtt_on_message(mqtt, &msg->topic, &msg->data);
         }
-        FURI_LOG_T(
+        FURI_LOG_D(
             TAG,
             "MQTT MSG QOS%u %.*s : %.*s",
             msg->qos,
@@ -149,17 +164,91 @@ static void mqtt_reconnect_callback(void* data) {
 
     FURI_LOG_D(TAG, "Connecting to %s ...", MQTT_SERVER_ADDR);
     const struct mg_mqtt_opts opts = {
-        .user = mg_str_s("user"),
-        .pass = mg_str_s("pass"),
+        .user = mg_str_s("device_test"),
+        .pass = mg_str_s(""),
         .clean = true,
     };
     mqtt->conn = mg_mqtt_connect(&mqtt->mgr, MQTT_SERVER_ADDR, &opts, mqtt_event_handler, mqtt);
+}
+
+static bool mqtt_client_load_certs(MqttClient* mqtt) {
+    bool success = false;
+    Storage* storage = furi_record_open(RECORD_STORAGE);
+    File* file = storage_file_alloc(storage);
+
+    do {
+        uint64_t file_size = 0;
+        if(!storage_file_open(file, CERT_FILE_CA_BUNDLE, FSAM_READ, FSOM_OPEN_EXISTING)) {
+            FURI_LOG_E(TAG, "CA bundle file error: %s", storage_file_get_error_desc(file));
+            break;
+        }
+        file_size = storage_file_size(file);
+        mqtt->ca_bundle = malloc(file_size);
+        if(storage_file_read(file, mqtt->ca_bundle, file_size) != file_size) {
+            FURI_LOG_E(TAG, "CA bundle file read error");
+            break;
+        }
+        storage_file_close(file);
+
+        FileInfo file_info;
+        if(storage_common_stat(storage, CERT_FILE_INTERMEDIATE, &file_info) != FSE_OK) {
+            FURI_LOG_E(TAG, "Intermediate cert file error");
+            break;
+        }
+        uint64_t int_cert_size = file_info.size;
+
+        if(!storage_file_open(file, CERT_FILE_DEVICE, FSAM_READ, FSOM_OPEN_EXISTING)) {
+            FURI_LOG_E(TAG, "Device cert file error: %s", storage_file_get_error_desc(file));
+            break;
+        }
+        file_size = storage_file_size(file);
+        mqtt->device_cert = malloc(int_cert_size + file_size);
+        if(storage_file_read(file, mqtt->device_cert, file_size) != file_size) {
+            FURI_LOG_E(TAG, "Device cert file read error");
+            break;
+        }
+        storage_file_close(file);
+
+        if(!storage_file_open(file, CERT_FILE_INTERMEDIATE, FSAM_READ, FSOM_OPEN_EXISTING)) {
+            FURI_LOG_E(TAG, "Intermediate cert file error: %s", storage_file_get_error_desc(file));
+            break;
+        }
+        if(storage_file_read(file, &(mqtt->device_cert[file_size]), int_cert_size) !=
+           int_cert_size) {
+            FURI_LOG_E(TAG, "Intermediate cert file read error");
+            break;
+        }
+        storage_file_close(file);
+
+        if(!storage_file_open(file, CERT_FILE_DEVICE_KEY, FSAM_READ, FSOM_OPEN_EXISTING)) {
+            FURI_LOG_E(TAG, "Device key file error: %s", storage_file_get_error_desc(file));
+            break;
+        }
+        file_size = storage_file_size(file);
+        mqtt->device_key = malloc(file_size);
+        if(storage_file_read(file, mqtt->device_key, file_size) != file_size) {
+            FURI_LOG_E(TAG, "Device key file read error");
+            break;
+        }
+        storage_file_close(file);
+
+        success = true;
+    } while(0);
+
+    storage_file_free(file);
+    furi_record_close(RECORD_STORAGE);
+    return success;
 }
 
 int32_t mqtt_client_start(void* p) {
     UNUSED(p);
     MqttClient* mqtt = malloc(sizeof(MqttClient));
     mqtt->conn = NULL;
+
+    if(!mqtt_client_load_certs(mqtt)) {
+        FURI_LOG_E(TAG, "Certificates load error");
+        furi_thread_suspend(furi_thread_get_current_id());
+    }
 
     UsbNetwork* usb_network = furi_record_open(RECORD_USB_NETWORK);
     usb_network_thread_init(usb_network);
