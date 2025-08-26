@@ -207,11 +207,7 @@ static void busy_scene_setup_timer_on_enter(void* context) {
 
     with_gui(instance->gui, {
         data->containers[GuiDisplayIdFront].list = var_item_list_alloc(instance->front_window);
-        data->containers[GuiDisplayIdBack].list =
-            var_item_list_alloc(nav_stack_get_base(instance->nav_stack));
-
-        VarItemList* back_list = data->containers[GuiDisplayIdBack].list;
-        widget_set_height(var_item_list_get_base(back_list), 58);
+        data->containers[GuiDisplayIdBack].list = var_item_list_alloc(instance->back_window);
 
         for(GuiDisplayId id = 0; id < GuiDisplayIdMax; ++id) {
             busy_scene_setup_fill_var_item_list(data, id);
