@@ -229,8 +229,9 @@ bool http_handle_headers(
 
 int32_t web_srv_start(void* p) {
     UNUSED(p);
-    UsbNetwork* usb_network = furi_record_open(RECORD_USB_NETWORK);
-    usb_network_thread_init(usb_network);
+
+    Network* network = furi_record_open(RECORD_NETWORK);
+    network_init_current_thread(network);
 
     // mg_log_set(MG_LL_VERBOSE);
     mg_log_set(MG_LL_INFO);
@@ -257,8 +258,8 @@ int32_t web_srv_start(void* p) {
     // Cleanup
     mg_mgr_free(&srv.mgr);
 
-    usb_network_thread_cleanup(usb_network);
-    furi_record_close(RECORD_USB_NETWORK);
+    network_deinit_current_thread(network);
+    furi_record_close(RECORD_NETWORK);
 
     return 0;
 }
@@ -323,6 +324,12 @@ void mg_log(const char* fmt, ...) {
     furi_string_cat_str(string, "\r\n");
     furi_log_puts(furi_string_get_cstr(string));
     furi_string_free(string);
+}
+
+bool mg_random(void* buf, size_t len) {
+    // TODO: furi_hal_random
+    memset(buf, 0xa5, len);
+    return true;
 }
 
 int _gettimeofday(struct timeval* tv, void* tz) {

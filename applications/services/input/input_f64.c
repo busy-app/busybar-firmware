@@ -12,7 +12,7 @@
 
 #define INPUT_DEBOUNCE_TIMEOUT 2
 #define INPUT_DEBOUNCE_TICKS   10
-#define INPUT_QUEUE_SIZE       15
+#define INPUT_QUEUE_SIZE       32
 
 #ifdef INPUT_DEBUG
 #define INPUT_LOG(...) FURI_LOG_D(TAG, __VA_ARGS__)

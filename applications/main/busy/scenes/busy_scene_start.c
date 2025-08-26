@@ -37,7 +37,7 @@ static void busy_scene_start_on_enter(void* context) {
 
     with_gui(instance->gui, {
         widget_set_visible(timer_card_get_base(instance->timer_card), false);
-        widget_set_visible(nav_stack_get_base(instance->nav_stack), true);
+        widget_set_visible(nav_bar_get_base(instance->nav_bar), true);
 
         data->front_layout = flex_layout_alloc(instance->front_window, FlexLayoutTypeRow);
 
@@ -53,7 +53,7 @@ static void busy_scene_start_on_enter(void* context) {
             ANIM_MENU_IDLE_FRAMES,
             ANIM_MENU_TRANSITION_FRAMES);
 
-        data->back_menu = menu_alloc(nav_stack_get_base(instance->nav_stack));
+        data->back_menu = menu_alloc(instance->back_window);
         menu_add_item(
             data->back_menu, "START", NULL, BUSY_IMG_PATH("start_12x12.bin"), 0, NULL, NULL);
         menu_add_item(
@@ -84,7 +84,7 @@ static bool busy_scene_start_on_event(const SceneManagerEvent* event, void* cont
     if(event->type == SceneManagerEventTypeCustom) {
         if(event->event == BusySceneStartMenuIndexStart) {
             with_gui(instance->gui, {
-                widget_set_visible(nav_stack_get_base(instance->nav_stack), false);
+                widget_set_visible(nav_bar_get_base(instance->nav_bar), false);
                 widget_set_visible(timer_card_get_base(instance->timer_card), true);
 
                 timer_card_show_header(instance->timer_card, false);

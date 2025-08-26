@@ -1,0 +1,74 @@
+def _instantiate_vars():
+    return SConscript("site_scons/commandline.scons")
+
+
+commandline_vars = _instantiate_vars()
+
+commandline_vars.AddVariables(
+    ("SIL_TARGET_HW", "Target definition for Silabs chip", "64"),
+    ("U5_TARGET_HW", "Target definition for STM32U5 chip", "20"),
+)
+
+###################
+
+
+def ConfigureBsbDistTargets(env, u5_env, sil_env):
+    for dist_module in [
+        "update",
+    ]:
+        dist_script = env.GetComponent(f"bsbdist_{dist_module}")
+        env.SConscript(
+            dist_script,
+            exports={
+                "DIST_ENV": env,
+                "U5_ENV": u5_env,
+                "SIL_ENV": sil_env,
+            },
+        )
+
+
+##################
+
+project_env = Environment(tools=[], variables=commandline_vars)
+if project_env.subst("$TARGET_HW") == "":
+    SetOption("fullenv", True)
+    # print("No target specified, building project")
+    sil_dist = SConscript(
+        "#target_dist.scons",
+        exports={
+            "TARGET_BUILD_OPTS": {
+                "COMMANDLINE_VARS": _instantiate_vars(),
+                "TARGET_OVERRIDES": {
+                    "TARGET_HW": project_env.subst("$SIL_TARGET_HW"),
+                },
+                "SKIP_TARGET_DIST": True,
+            },
+        },
+    )
+
+    u5_dist = SConscript(
+        "#target_dist.scons",
+        exports={
+            "TARGET_BUILD_OPTS": {
+                "COMMANDLINE_VARS": _instantiate_vars(),
+                "TARGET_OVERRIDES": {
+                    "TARGET_HW": project_env.subst("$U5_TARGET_HW"),
+                },
+                # "SKIP_TARGET_DIST": True,
+            }
+        },
+    )
+
+    ConfigureBsbDistTargets(u5_dist, u5_dist, sil_dist)
+
+
+else:
+    # print(f"Target specified, building just for it")
+    SConscript(
+        "#target_dist.scons",
+        exports={
+            "TARGET_BUILD_OPTS": {
+                "COMMANDLINE_VARS": _instantiate_vars(),
+            }
+        },
+    )

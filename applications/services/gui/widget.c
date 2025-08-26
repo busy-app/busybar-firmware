@@ -54,6 +54,16 @@ bool widget_is_visible(const Widget* instance) {
     return !lv_obj_has_flag(TO_LV_OBJ(instance), LV_OBJ_FLAG_HIDDEN);
 }
 
+void widget_set_ignore_layout(Widget* instance, bool igonre_layout) {
+    furi_check(instance);
+    lv_obj_update_flag(TO_LV_OBJ(instance), LV_OBJ_FLAG_IGNORE_LAYOUT, igonre_layout);
+}
+
+bool widget_does_ignore_layout(const Widget* instance) {
+    furi_check(instance);
+    return lv_obj_has_flag(TO_LV_OBJ(instance), LV_OBJ_FLAG_IGNORE_LAYOUT);
+}
+
 void widget_set_width(Widget* instance, int32_t width) {
     furi_check(instance);
     lv_obj_set_width((lv_obj_t*)instance, width);
@@ -139,12 +149,6 @@ void widget_set_margin(Widget* instance, int32_t left, int32_t right, int32_t to
     lv_obj_set_style_margin_right((lv_obj_t*)instance, right, LV_PART_MAIN);
     lv_obj_set_style_margin_top((lv_obj_t*)instance, top, LV_PART_MAIN);
     lv_obj_set_style_margin_bottom((lv_obj_t*)instance, bottom, LV_PART_MAIN);
-}
-
-void widget_add_flag(Widget* instance, uint32_t flag) {
-    furi_check(instance);
-
-    lv_obj_add_flag((lv_obj_t*)instance, (lv_obj_flag_t)flag);
 }
 
 // Private API

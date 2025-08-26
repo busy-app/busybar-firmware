@@ -1,12 +1,15 @@
 #include <furi.h>
+
 #include <lwip/debug.h>
 #include <lwip/sys.h>
 #include <lwip/mem.h>
 #include <lwip/stats.h>
+#include <lwip/tcpip.h>
 
 #define TAG "LwipGlue"
 
-static FuriMutex* lwip_protect_mutex = NULL;
+static FuriThread* lwip_tcpip_thread;
+static FuriMutex* lwip_protect_mutex;
 
 /* Initialize this module (see description in sys.h) */
 void sys_init(void) {
@@ -263,6 +266,24 @@ void sys_arch_netconn_sem_free(void) {
     }
 }
 
+void sys_mark_tcpip_thread(void) {
+    lwip_tcpip_thread = furi_thread_get_current();
+}
+
+void sys_check_core_locking(void) {
+    LWIP_ASSERT("Function called from an ISR", !FURI_IS_ISR());
+    if(lwip_tcpip_thread != NULL) {
+        const FuriThread* current_thread = furi_thread_get_current();
+#if LWIP_TCPIP_CORE_LOCKING
+        LWIP_ASSERT(
+            "Function called without core lock",
+            current_thread == furi_mutex_get_owner(lock_tcpip_core.mut));
+#else /* LWIP_TCPIP_CORE_LOCKING */
+        LWIP_ASSERT("Function called from wrong thread", current_thread == lwip_tcpip_thread);
+#endif /* LWIP_TCPIP_CORE_LOCKING */
+    }
+}
+
 void lwip_glue_log(const char* fmt, ...) {
     FuriString* string = furi_string_alloc();
 
@@ -273,6 +294,9 @@ void lwip_glue_log(const char* fmt, ...) {
 
     furi_string_trim(string, "\r\n");
 
-    FURI_LOG_D(TAG, "%s", furi_string_get_cstr(string));
+    if(!furi_string_empty(string)) {
+        FURI_LOG_D(TAG, "%s", furi_string_get_cstr(string));
+    }
+
     furi_string_free(string);
 }

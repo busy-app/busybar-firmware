@@ -28,9 +28,10 @@ typedef struct Intercom Intercom;
 typedef enum {
     IntercomChannelInput, /**< Input handling */
     IntercomChannelWifi, /**< Wireless network handling */
-    IntercomChannelSockets, /**< Network sockets handling */
+    IntercomChannelWifiData, /**< Wireless network data handling */
     IntercomChannelStatusLights, /**< Status lights handling */
     IntercomChannelCli, /**< Command line interface handling */
+    IntercomChannelBle, /**< BLE handling */
     IntercomChannelCryptoBackup, /**< Crypto backup handling */
     /* Add more channels here as needed */
     IntercomChannelDebug = 15, /**< Testing, debugging, etc */

@@ -646,7 +646,8 @@ void ble_per_test_app_stop(void* app_handle) {
         free(instance);
         instance = NULL;
     }
-    sl_wifi_deinit();
+    sl_status_t status = sl_wifi_deinit();
+    FURI_LOG_I(TAG, "Wi-Fi deinit status: 0x%08lX", status);
 }
 
 static void ble_per_test_tx_cmd(PipeSide* pipe, FuriString* args, void* context) {
@@ -941,20 +942,21 @@ static int32_t ble_per_test_app_thread_callback(void* context) {
     FuriString* msg = furi_string_alloc();
     while(!instance->exit) {
         rsi_bt_per_stats(BT_PER_STATS_CMD_ID, &instance->per_stats);
+
         if(instance->state == BLEPerTestStateTx) {
             furi_string_printf(
                 msg,
                 "Tx Stats\r\n"
-                "  tx_dones: %d",
+                "tx_dones: %d",
                 instance->per_stats.tx_dones);
             cli_shell_notification_print(instance->shell, msg);
         } else if(instance->state == BLEPerTestStateRx) {
             furi_string_printf(
                 msg,
                 "Rx Stats\r\n"
-                "  crc_fail_cnt: %d\r\n"
-                "  crc_pass_cnt: %d\r\n"
-                "  rssi: %d",
+                "crc_fail_cnt: %d\r\n"
+                "crc_pass_cnt: %d\r\n"
+                "rssi: %d",
                 instance->per_stats.crc_fail_cnt,
                 instance->per_stats.crc_pass_cnt,
                 instance->per_stats.rssi);

@@ -1,40 +1,39 @@
 #include <furi.h>
-
-#include "wifi_adaptive_test_i.h"
+#include <lwip/sockets.h>
 
 #include <gui/gui.h>
-#include <gui/modules/var_item_list.h>
 #include <gui/modules/label.h>
+#include <gui/modules/image.h>
+#include <storage/storage.h>
 #include <gui/modules/flex_layout.h>
-#include "helpers/wifi_adaptive_cli.h"
+#include <gui/modules/var_item_list.h>
+
+#include <wifi/wifi.h>
+#include <network/network.h>
 
 #define TAG "WifiAdaptiveTest"
 
-#define UDP_SERVER_IP "192.168.1.2"
+#define IMAGE_FRONT_PATH EXT_PATH("apps_assets/debug/images/lab_test_front_display_72x16.bin")
+
+#define SEND_ADDR_HOST_PART (50)
+#define UDP_SEND_SIZE       (977U) // Limited by Intercom
+#define UDP_SEND_PORT       (5000)
 
 typedef enum {
     WifiAdaptiveTestCustomEventExit = (1UL << 0),
-    WifiAdaptiveTestCustomEventStartTest = (1UL << 1),
-    WifiAdaptiveTestCustomEventStopTest = (1UL << 2),
 } WifiAdaptiveTestCustomEvent;
 
-typedef enum {
-    WifiAdaptiveTestStateStop,
-    WifiAdaptiveTestStateLoading,
-    WifiAdaptiveTestStateRunning,
-    WifiAdaptiveTestStateStoping,
-} WifiAdaptiveTestState;
-
-struct WifiAdaptiveTest {
+typedef struct {
+    FuriThread* worker_thread;
     FuriEventLoop* event_loop;
     Gui* gui;
-    Label* label_status;
-    bool exit_on_back;
-    FlexLayout* flex;
     Label* label;
-    WifiAdaptiveCliSettings settings;
-    WifiAdaptiveTestState test_state;
-};
+    uint8_t send_buf[UDP_SEND_SIZE];
+    WifiIpv4 local_addr;
+    WifiIpv4 remote_addr;
+    bool stop_worker;
+    Image* image_front;
+} WifiAdaptiveTest;
 
 static bool wifi_adaptive_test_input_callback(const InputEvent* event, void* context) {
     furi_assert(event);
@@ -47,27 +46,10 @@ static bool wifi_adaptive_test_input_callback(const InputEvent* event, void* con
         if(event->key == InputKeyBack) {
             furi_event_loop_set_custom_event(
                 instance->event_loop, WifiAdaptiveTestCustomEventExit);
-            instance->exit_on_back = true;
-            consumed = true;
-        }
-
-    } else if(event->type == InputTypeLong) {
-        if(event->key == InputKeyStart) {
-            if(instance->test_state == WifiAdaptiveTestStateRunning) {
-                furi_event_loop_set_custom_event(
-                    instance->event_loop, WifiAdaptiveTestCustomEventStopTest);
-            } else if(instance->test_state == WifiAdaptiveTestStateStop) {
-                furi_event_loop_set_custom_event(
-                    instance->event_loop, WifiAdaptiveTestCustomEventStartTest);
-                instance->test_state = WifiAdaptiveTestStateLoading;
-            }
             consumed = true;
         }
     }
 
-    if(instance->test_state != WifiAdaptiveTestStateStop) {
-        consumed = true;
-    }
     return consumed;
 }
 
@@ -76,75 +58,67 @@ static void wifi_adaptive_test_custom_event_callback(uint32_t events, void* cont
     WifiAdaptiveTest* instance = context;
 
     if(events & WifiAdaptiveTestCustomEventExit) {
-        if(instance->exit_on_back) {
-            if(instance->test_state != WifiAdaptiveTestStateStop) {
-                FURI_LOG_I(TAG, "Stop test");
-                wifi_adaptive_cli_stop();
-                instance->test_state = WifiAdaptiveTestStateStop;
+        instance->stop_worker = true;
+        furi_event_loop_stop(instance->event_loop);
+    }
+}
+
+static int32_t wifi_adaptive_test_worker(void* arg) {
+    furi_assert(arg);
+    WifiAdaptiveTest* instance = arg;
+
+    FURI_LOG_I(TAG, "Worker started");
+
+    Network* network = furi_record_open(RECORD_NETWORK);
+    network_init_current_thread(network);
+
+    do {
+        const int udp = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
+
+        if(udp < 0) {
+            FURI_LOG_E(TAG, "Failed to create socket: %s", strerror(errno));
+            break;
+        }
+
+        const struct sockaddr_in to = {
+            .sin_family = AF_INET,
+            .sin_port = htons(UDP_SEND_PORT),
+            .sin_addr.s_addr = instance->remote_addr.value,
+        };
+
+        while(!instance->stop_worker) {
+            const ssize_t sent_size = sendto(
+                udp, instance->send_buf, UDP_SEND_SIZE, 0, (struct sockaddr*)&to, sizeof(to));
+
+            if(sent_size < 0) {
+                FURI_LOG_E(TAG, "UDP tx error: %s", strerror(errno));
+                break;
             }
-            furi_event_loop_stop(instance->event_loop);
         }
-    }
 
-    if(events & WifiAdaptiveTestCustomEventStartTest) {
-        furi_check(instance->test_state == WifiAdaptiveTestStateLoading);
-        if(wifi_adaptive_cli_start(instance, instance->settings)) {
-            FURI_LOG_I(TAG, "Start test");
-            instance->test_state = WifiAdaptiveTestStateRunning;
-        } else {
-            FURI_LOG_E(TAG, "Start test failed");
-            wifi_adaptive_cli_stop();
-            instance->test_state = WifiAdaptiveTestStateStop;
-        }
-    }
+        close(udp);
 
-    if(events & WifiAdaptiveTestCustomEventStopTest) {
-        furi_check(instance->test_state == WifiAdaptiveTestStateRunning);
-        instance->test_state = WifiAdaptiveTestStateStoping;
-        FURI_LOG_I(TAG, "Stop test");
-        wifi_adaptive_cli_stop();
-        instance->test_state = WifiAdaptiveTestStateStop;
-    }
-}
+    } while(false);
 
-void wifi_adaptive_test_update(
-    WifiAdaptiveTest* instance,
-    WifiAdaptiveTestStatus sratus,
-    FuriString* sta_ip_addr_str) {
-    FuriString* str = furi_string_alloc();
+    network_deinit_current_thread(network);
+    furi_record_close(RECORD_NETWORK);
 
-    if(sratus == WifiAdaptiveTestStatusConnected) {
-        furi_string_printf(str, "Connected to AP\nIP: %s", furi_string_get_cstr(sta_ip_addr_str));
-    } else if(sratus == WifiAdaptiveTestStatusConnecting) {
-        furi_string_printf(str, "Connecting to AP");
-    } else if(sratus == WifiAdaptiveTestStatusDisconnected) {
-        furi_string_printf(str, "Disconnected from AP");
-    } else if(sratus == WifiAdaptiveTestStatusError) {
-        furi_string_printf(str, "Error connecting to AP");
-    } else {
-        furi_crash();
-    }
+    FURI_LOG_I(TAG, "Worker stopped");
 
-    with_gui(instance->gui, {
-        label_set_text(instance->label_status, furi_string_get_cstr(str));
-    });
-    furi_string_free(str);
-}
-
-void wifi_adaptive_test_set_default_settings(WifiAdaptiveTest* instance) {
-    instance->settings.ip = UDP_SERVER_IP;
+    return 0;
 }
 
 static WifiAdaptiveTest* wifi_adaptive_test_alloc(void) {
     WifiAdaptiveTest* instance = malloc(sizeof(WifiAdaptiveTest));
 
-    wifi_adaptive_test_set_default_settings(instance);
-
     instance->event_loop = furi_event_loop_alloc();
     instance->gui = furi_record_open(RECORD_GUI);
+    instance->worker_thread =
+        furi_thread_alloc_ex("WifiAdaptiveTestWorker", 4096, wifi_adaptive_test_worker, instance);
 
-    furi_event_loop_set_custom_event_callback(
-        instance->event_loop, wifi_adaptive_test_custom_event_callback, instance);
+    for(uint32_t i = 0; i < UDP_SEND_SIZE; ++i) {
+        instance->send_buf[i] = i % 0xFF;
+    }
 
     with_gui(instance->gui, {
         GuiLayer* main_layer = gui_get_layer(instance->gui, GuiLayerIdMain);
@@ -152,41 +126,82 @@ static WifiAdaptiveTest* wifi_adaptive_test_alloc(void) {
 
         Widget* back_screen = gui_layer_get_root_widget(main_layer, GuiDisplayIdBack);
 
-        //FLEX
-        instance->flex = flex_layout_alloc(back_screen, FlexLayoutTypeColumn);
-        instance->label = label_alloc(flex_layout_get_base(instance->flex));
-        widget_set_scrollbar_mode(label_get_base(instance->label), WidgetScrollBarModeAuto);
-        label_set_text(
-            instance->label,
-            "WifiAdaptiveTest plz create ap\n"
-            "SSID: Zyxel24\n"
-            "PASS: 1qa2wszz\n"
-            "set static ip " UDP_SERVER_IP " on your PC\n"
-            "start \"iperf.exe -s -u -p 5001 -i 1\"");
-        instance->label_status = label_alloc(flex_layout_get_base(instance->flex));
-        flex_layout_set_child_widget_grow(instance->flex, label_get_base(instance->label), 5);
-        flex_layout_set_child_widget_grow(
-            instance->flex, label_get_base(instance->label_status), 1);
+        instance->label = label_alloc(back_screen);
+        label_set_text(instance->label, "Waiting for Wifi ...");
+
+        widget_set_align(label_get_base(instance->label), AlignCenter);
+
+        // GuiDisplayIdFront
+        Widget* root_front = gui_layer_get_root_widget(main_layer, GuiDisplayIdFront);
+        instance->image_front = image_alloc(root_front);
+        image_set_source(instance->image_front, IMAGE_FRONT_PATH);
+        widget_set_align(image_get_base(instance->image_front), AlignCenter);
     });
 
-    wifi_adaptive_test_update(instance, WifiAdaptiveTestStatusDisconnected, NULL);
+    FuriString* message = furi_string_alloc();
+
+    Wifi* wifi = furi_record_open(RECORD_WIFI);
+
+    WifiInfo wifi_info;
+    const WifiStatus status = wifi_get_info(wifi, &wifi_info);
+
+    if(status != WifiStatusOk) {
+        furi_string_printf(message, "Wifi error: %d", status);
+
+    } else if(wifi_info.state != WifiStateUp) {
+        furi_string_set(message, "Please connect to AP\nand restart the app");
+
+    } else {
+        WifiIpv4* local_addr = &instance->local_addr;
+        WifiIpv4* remote_addr = &instance->remote_addr;
+
+        *local_addr = wifi_info.ip_config.ip4.address;
+        *remote_addr = instance->local_addr;
+
+        remote_addr->bytes[3] = SEND_ADDR_HOST_PART;
+
+        furi_string_printf(
+            message,
+            "Device address:\n%hhu.%hhu.%hhu.%hhu\n\n"
+            "Target address:\n%hhu.%hhu.%hhu.%hhu",
+            local_addr->bytes[0],
+            local_addr->bytes[1],
+            local_addr->bytes[2],
+            local_addr->bytes[3],
+            remote_addr->bytes[0],
+            remote_addr->bytes[1],
+            remote_addr->bytes[2],
+            remote_addr->bytes[3]);
+
+        furi_thread_start(instance->worker_thread);
+    }
+
+    with_gui(instance->gui, { label_set_text(instance->label, furi_string_get_cstr(message)); });
+
+    furi_string_free(message);
+
+    furi_event_loop_set_custom_event_callback(
+        instance->event_loop, wifi_adaptive_test_custom_event_callback, instance);
 
     return instance;
 }
 
 static void wifi_adaptive_test_free(WifiAdaptiveTest* instance) {
+    furi_thread_join(instance->worker_thread);
+    furi_thread_free(instance->worker_thread);
+
     with_gui(instance->gui, {
         GuiLayer* main_layer = gui_get_layer(instance->gui, GuiLayerIdMain);
         gui_layer_remove_input_callback(main_layer, wifi_adaptive_test_input_callback);
         label_free(instance->label);
-        label_free(instance->label_status);
-        flex_layout_free(instance->flex);
+        image_free(instance->image_front);
     });
-
-    furi_record_close(RECORD_GUI);
 
     furi_event_loop_free(instance->event_loop);
     free(instance);
+
+    furi_record_close(RECORD_WIFI);
+    furi_record_close(RECORD_GUI);
 }
 
 int32_t wifi_adaptive_test_app(void* arg) {

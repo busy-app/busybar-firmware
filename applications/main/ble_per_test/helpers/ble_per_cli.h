@@ -19,5 +19,8 @@ typedef enum {
     BLEPerCliSettingsModeRx,
 } BLEPerCliSettingsMode;
 
-bool ble_per_cli_start(BlePerTest* app_hendle, BlePerCliSettings settings);
+bool ble_per_cli_init(BlePerTest* app_handle);
+void ble_per_cli_start(BlePerCliSettings settings);
 void ble_per_cli_stop(void);
+void ble_per_cli_deinit(void);
+bool ble_per_cli_is_running(void);

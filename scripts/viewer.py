@@ -13,7 +13,9 @@ class Main(App):
     ANIM_DEVICE_PATH = "/ext/animations"
 
     def init(self):
-        self.parser.add_argument("-a", "--address", help="IP address or hostname", default="auto")
+        self.parser.add_argument(
+            "-a", "--address", help="IP address or hostname", default="auto"
+        )
 
         self.subparsers = self.parser.add_subparsers(help="sub-command help")
 
@@ -21,7 +23,9 @@ class Main(App):
             "anim", help="Start an animation on the device"
         )
         self.parser_anim.add_argument("source_dir", help="Source directory")
-        self.parser_anim.add_argument("-f", "--fps", help="Animation FPS", type=int, default=60)
+        self.parser_anim.add_argument(
+            "-f", "--fps", help="Animation FPS", type=int, default=60
+        )
         self.parser_anim.set_defaults(func=self.anim)
 
         self.parser_lottie = self.subparsers.add_parser(
@@ -36,13 +40,13 @@ class Main(App):
             device_anim_path = os.path.join(self.ANIM_DEVICE_PATH, self.ANIM_FILE_NAME)
 
             self.logger.info("Processing source files")
-            animation = BusyBarAnimation(self.args.source_dir, self.args.fps, local_anim_path)
+            animation = BusyBarAnimation(
+                self.args.source_dir, self.args.fps, local_anim_path
+            )
             animation.process_images()
 
             with FlipperStorage(self._get_address()) as storage:
                 # TODO: Common CLI library for everything that uses it
-                self.logger.info("Closing currently running app")
-                storage.send_and_wait_prompt("loader kill\r")
 
                 self.logger.info("Uploading animation")
                 FlipperStorageOperations(storage).recursive_send(
@@ -63,8 +67,6 @@ class Main(App):
             device_anim_path = os.path.join(self.ANIM_DEVICE_PATH, lottie_file_name)
 
             # TODO: Common CLI library for everything that uses it
-            self.logger.info("Closing currently running app")
-            storage.send_and_wait_prompt("loader kill\r")
 
             self.logger.info("Uploading animation")
             FlipperStorageOperations(storage).recursive_send(

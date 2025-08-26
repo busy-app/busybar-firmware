@@ -1,5 +1,7 @@
 #include "wifi_i.h"
 
+#include <network/network.h>
+
 #define STARTUP_THREAD_STACK_SIZE (1536UL)
 
 static void wifi_intercom_rx_callback(const void* data, size_t data_size, void* context) {
@@ -76,7 +78,7 @@ static void wifi_process_response(Wifi* instance) {
 
     if(message == NULL) {
         // BUG: Figure out where the rogue responses come from
-        FURI_LOG_W(TAG, "BUG: Rogue response");
+        FURI_LOG_W(TAG, "BUG: Rogue response of type %d", instance->response.type);
         return;
     }
 
@@ -88,9 +90,13 @@ static void wifi_process_response(Wifi* instance) {
 
     if(status == WifiStatusOk) {
         if(request_type == WifiRequestTypeInit) {
+            wifi_net_set_hw_address(instance, &response->hw_address);
+
             wifi_update_enabled(instance, true);
 
         } else if(request_type == WifiRequestTypeDeinit) {
+            wifi_net_down(instance);
+
             wifi_update_enabled(instance, false);
 
         } else if(request_type == WifiRequestTypeScan) {
@@ -105,11 +111,20 @@ static void wifi_process_response(Wifi* instance) {
 
         } else if(request_type == WifiRequestTypeConnect) {
             const WifiConnectMessage* connect_message = &message->connect_message;
-            wifi_update_connection_params(
-                instance, connect_message->credentials, connect_message->ip_config);
+            const WifiIpConfig* ip_config = connect_message->ip_config;
+
+            wifi_update_connection_params(instance, connect_message->credentials, ip_config);
+
+            wifi_net_up(instance);
+
+        } else if(request_type == WifiRequestTypeDisconnect) {
+            wifi_net_down(instance);
 
         } else if(request_type == WifiRequestTypeGetInfo) {
-            *message->get_info_message.info = response->info;
+            WifiInfo* info = message->get_info_message.info;
+            *info = response->info;
+
+            wifi_net_get_ip_config(instance, &info->ip_config);
         }
     }
 
@@ -248,6 +263,8 @@ static Wifi* wifi_alloc(void) {
     instance->pubsub = furi_pubsub_alloc();
     instance->intercom = furi_record_open(RECORD_INTERCOM);
 
+    furi_record_open(RECORD_NETWORK);
+
     furi_event_loop_set_custom_event_callback(
         instance->event_loop, wifi_custom_event_callback, instance);
 
@@ -255,6 +272,8 @@ static Wifi* wifi_alloc(void) {
         instance->intercom, IntercomChannelWifi, wifi_intercom_rx_callback, instance);
 
     wifi_load_settings(instance);
+
+    wifi_net_init(instance);
 
     furi_record_create(RECORD_WIFI, instance);
 

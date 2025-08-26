@@ -56,10 +56,19 @@ static void wifi_init_request_handler(Wifi* instance) {
     sl_status_t status;
 
     do {
-        status = sl_net_init(SL_NET_WIFI_CLIENT_INTERFACE, &wifi_config_client, NULL, NULL);
+        status = sl_net_init(
+            SL_NET_WIFI_CLIENT_INTERFACE, &wifi_config_client, instance->intercom, NULL);
 
         if(status != SL_STATUS_OK) {
             FURI_LOG_E(TAG, "Failed to initialise Wifi: %lX", status);
+            break;
+        }
+
+        WifiHardwareAddress* hw_address = &instance->response.hw_address;
+        status = sl_wifi_get_mac_address(SL_WIFI_CLIENT_INTERFACE, (sl_mac_address_t*)hw_address);
+
+        if(status != SL_STATUS_OK) {
+            FURI_LOG_E(TAG, "Failed to get MAC address: %lX", status);
             break;
         }
 
@@ -278,6 +287,11 @@ static void wifi_intercom_rx_callback(const void* data, size_t data_size, void* 
     furi_event_loop_set_custom_event(instance->event_loop, WifiEventRequest);
 }
 
+static void wifi_net_intercom_rx_callback(const void* data, size_t data_size, void* context) {
+    UNUSED(context);
+    sl_wifi_send_raw_data_frame(SL_WIFI_CLIENT_INTERFACE, data, data_size);
+}
+
 static void wifi_prepare_scan_response(WifiResponse* response) {
     uint16_t results_count = 0;
 
@@ -375,6 +389,9 @@ static Wifi* wifi_alloc(void) {
         instance->event_loop, wifi_custom_event_callback, instance);
     intercom_set_rx_callback(
         instance->intercom, IntercomChannelWifi, wifi_intercom_rx_callback, instance);
+
+    intercom_set_rx_callback(
+        instance->intercom, IntercomChannelWifiData, wifi_net_intercom_rx_callback, instance);
 
     furi_record_create(RECORD_WIFI, instance->event_pubsub);
 

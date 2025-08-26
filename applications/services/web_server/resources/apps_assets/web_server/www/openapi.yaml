@@ -928,6 +928,34 @@ paths:
               schema:
                 $ref: "#/components/schemas/Error"
 
+  /api/ble/enable:
+    post:
+      tags:
+        - Ble
+      description: Enables ble module
+      parameters: []
+      responses:
+        "200":
+          description: Ble enabled
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse"
+
+  /api/ble/disable:
+    post:
+      tags:
+        - Ble
+      description: Disables ble module
+      parameters: []
+      responses:
+        "200":
+          description: Ble disabled
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse"
+
 components:
   securitySchemes:
     ApiKeyAuth:
@@ -1350,3 +1378,5 @@ tags:
     description: Device settings
   - name: Input
     description: Input events
+  - name: Ble
+    description: Allows to operate with BLE

@@ -129,6 +129,11 @@ typedef struct {
     WifiIpv6Settings ip6;
 } WifiIpConfig;
 
+/** Hardware (MAC) address structure. */
+typedef struct {
+    uint8_t bytes[6]; /**< Hardware address value */
+} WifiHardwareAddress;
+
 /**
  * @brief Wifi information structure.
  *

@@ -5,9 +5,13 @@
 #include <gui/gui.h>
 #include <gui/modules/var_item_list.h>
 #include <gui/modules/label.h>
+#include <gui/modules/image.h>
+#include <storage/storage.h>
 #include "helpers/wifi_per_cli.h"
 
 #define TAG "WifiPerTest"
+
+#define IMAGE_FRONT_PATH EXT_PATH("apps_assets/debug/images/lab_test_front_display_72x16.bin")
 
 typedef enum {
     WifiPerTestCustomEventExit = (1UL << 0),
@@ -31,6 +35,7 @@ struct WifiPerTest {
     Label* label;
     WifiPerCliSettings settings;
     WifiPerTestState test_state;
+    Image* image_front;
 };
 
 static const char* wifi_per_test_mode_text[] = {
@@ -143,8 +148,13 @@ static bool wifi_per_test_input_callback(const InputEvent* event, void* context)
 
     if(event->type == InputTypeShort) {
         if(event->key == InputKeyBack) {
-            furi_event_loop_set_custom_event(instance->event_loop, WifiPerTestCustomEventExit);
-            instance->exit_on_back = true;
+            if(instance->test_state == WifiPerTestStateRunning) {
+                furi_event_loop_set_custom_event(
+                    instance->event_loop, WifiPerTestCustomEventStopTest);
+            } else {
+                furi_event_loop_set_custom_event(instance->event_loop, WifiPerTestCustomEventExit);
+                instance->exit_on_back = true;
+            }
             consumed = true;
         }
 
@@ -259,6 +269,12 @@ static WifiPerTest* wifi_per_test_alloc(void) {
         label_set_text(instance->label, "WifiPerTest");
         widget_set_pos(label_get_base(instance->label), 10, 0);
 
+        // GuiDisplayIdFront
+        Widget* root_front = gui_layer_get_root_widget(main_layer, GuiDisplayIdFront);
+        instance->image_front = image_alloc(root_front);
+        image_set_source(instance->image_front, IMAGE_FRONT_PATH);
+        widget_set_align(image_get_base(instance->image_front), AlignCenter);
+
         VarItem* item;
         item = var_item_list_add_selector(
             instance->var_list,
@@ -323,6 +339,7 @@ static void wifi_per_test_free(WifiPerTest* instance) {
         label_free(instance->label);
         label_free(instance->label_status);
         var_item_list_free(instance->var_list);
+        image_free(instance->image_front);
     });
 
     furi_record_close(RECORD_GUI);

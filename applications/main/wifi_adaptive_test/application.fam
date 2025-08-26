@@ -8,8 +8,4 @@ App(
     stack_size=2 * 1024,
     fap_category="Debug",
     targets=["f20", "f21"],
-    sources=[
-        "wifi_adaptive_test.c",
-        "helpers/wifi_adaptive_cli.c",
-    ],
 )
