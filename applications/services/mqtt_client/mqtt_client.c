@@ -4,10 +4,10 @@
 
 #define TAG "MqttClient"
 
-#define CERT_FILE_CA_BUNDLE    APP_DATA_PATH("ca_bundle.crt")
-#define CERT_FILE_INTERMEDIATE APP_DATA_PATH("signing-ca.crt")
-#define CERT_FILE_DEVICE       APP_DATA_PATH("device.crt")
-#define CERT_FILE_DEVICE_KEY   APP_DATA_PATH("device.key")
+#define CERT_FILE_CA_BUNDLE    APP_ASSETS_PATH("ca_bundle.crt")
+#define CERT_FILE_INTERMEDIATE APP_ASSETS_PATH("signing-ca.crt")
+#define CERT_FILE_DEVICE       APP_ASSETS_PATH("device.crt")
+#define CERT_FILE_DEVICE_KEY   APP_ASSETS_PATH("device.key")
 
 typedef struct {
     struct mg_mgr mgr;
