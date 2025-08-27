@@ -40,6 +40,7 @@ struct Desktop {
     DesktopOverlay* overlay;
     DesktopStartRequest* current_request;
     InputSwitchPosition switch_pos;
+    DesktopSwitchDirection switch_direction;
     bool pin_current_app;
 };
 
@@ -141,7 +142,12 @@ static bool desktop_enqueue_start_request(Desktop* instance, const char* name, c
 static void desktop_handle_switch_start(Desktop* instance) {
     FURI_LOG_D(TAG, "Switch interaction started");
 
-    desktop_overlay_show(instance->overlay);
+    DesktopOverlayTransitionType transition_type =
+        (instance->switch_direction == DesktopSwitchDirectionUp) ?
+            DesktopOverlayTransitionTypeUp :
+            DesktopOverlayTransitionTypeDown;
+
+    desktop_overlay_show(instance->overlay, transition_type);
 }
 
 // Called on each new position of the rotary switch if steady state has not been reached
@@ -155,7 +161,13 @@ static void desktop_handle_switch_update(Desktop* instance) {
 static void desktop_handle_switch_finished(Desktop* instance) {
     FURI_LOG_D(TAG, "Switch interaction finished");
 
-    desktop_overlay_hide(instance->overlay);
+    DesktopOverlayTransitionType transition_type =
+        (instance->switch_pos == InputSwitchPositionOff) ? DesktopOverlayTransitionTypeNone :
+        (instance->switch_direction == DesktopSwitchDirectionUp) ?
+                                                           DesktopOverlayTransitionTypeUp :
+                                                           DesktopOverlayTransitionTypeDown;
+
+    desktop_overlay_hide(instance->overlay, transition_type);
 }
 
 // Check if desktop_handle_switch_start() should be called
@@ -224,12 +236,18 @@ static void desktop_input_queue_callback(FuriEventLoopObject* object, void* cont
     Desktop* instance = context;
     furi_assert(instance->input_queue == object);
 
-    if(desktop_should_handle_switch_start(instance)) {
-        desktop_handle_switch_start(instance);
-    }
+    InputSwitchPosition next_switch_pos;
+    while(furi_message_queue_get(instance->input_queue, &next_switch_pos, 0) == FuriStatusOk) {
+        instance->switch_direction = (next_switch_pos > instance->switch_pos) ?
+                                         DesktopSwitchDirectionDown :
+                                         DesktopSwitchDirectionUp;
 
-    while(furi_message_queue_get(instance->input_queue, &instance->switch_pos, 0) ==
-          FuriStatusOk) {
+        if(desktop_should_handle_switch_start(instance)) {
+            desktop_handle_switch_start(instance);
+        }
+
+        instance->switch_pos = next_switch_pos;
+
         desktop_handle_switch_update(instance);
     }
 
@@ -313,12 +331,12 @@ static Desktop* desktop_alloc(void) {
     instance->error_message = furi_string_alloc();
     instance->loader = furi_record_open(RECORD_LOADER);
 
-    Gui* gui = furi_record_open(RECORD_GUI);
-    instance->overlay = desktop_overlay_alloc(gui);
-
     Input* input = furi_record_open(RECORD_INPUT);
     instance->current_request = desktop_start_request_alloc();
     instance->switch_pos = input_get_absolute_state(input).switch_position;
+
+    Gui* gui = furi_record_open(RECORD_GUI);
+    instance->overlay = desktop_overlay_alloc(gui);
 
     furi_event_loop_subscribe_message_queue(
         instance->event_loop,
@@ -371,6 +389,12 @@ void desktop_pin_current_app(Desktop* instance, bool pin) {
     furi_check(instance);
 
     instance->pin_current_app = pin;
+}
+
+DesktopSwitchDirection desctop_get_switch_direction(Desktop* instance) {
+    furi_check(instance);
+
+    return instance->switch_direction;
 }
 
 int32_t desktop_srv(void* arg) {

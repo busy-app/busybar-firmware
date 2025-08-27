@@ -22,6 +22,16 @@
 typedef struct Desktop Desktop;
 
 /**
+ * @brief Direction of rotary switch movement.
+ */
+typedef enum {
+    DesktopSwitchDirectionUp, /**< Switch moved up */
+    DesktopSwitchDirectionDown, /**< Switch moved down */
+
+    DesktopSwitchDirectionsCount,
+} DesktopSwitchDirection;
+
+/**
  * @brief Request the Desktop service to replace the currently running app.
  *
  * Calling this function will merely schedule the request, not actually start the
@@ -51,3 +61,16 @@ bool desktop_replace_current_app(Desktop* instance, const char* name, const char
  * @param[in] pin pin current app if true, do not pin if false
  */
 void desktop_pin_current_app(Desktop* instance, bool pin);
+
+/**
+ * @brief Get the direction of the last rotary switch movement.
+ *
+ * Returns the direction the rotary switch was last moved in, which is used
+ * The direction is calculated based on comparing the previous switch position
+ * with the new position.
+ *
+ * @param[in] instance pointer to the Desktop instance
+ * @returns DesktopSwitchDirectionUp if switch was last moved up,
+ *          DesktopSwitchDirectionDown if switch was last moved down
+ */
+DesktopSwitchDirection desctop_get_switch_direction(Desktop* instance);
