@@ -21,6 +21,9 @@ jobs:
       matrix:
         u5_target: [20, 21]
     steps:
+      - name: 'Wipe workspace'
+        run: find ./ -mount -maxdepth 1 -exec rm -rf {} \;
+
       - name: 'Checkout code'
         uses: actions/checkout@v4
         with:
