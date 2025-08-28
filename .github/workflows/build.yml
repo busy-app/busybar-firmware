@@ -11,6 +11,7 @@ on:
 env:
   FBT_GIT_SUBMODULE_SHALLOW: 0
   DEFAULT_TARGET: 21
+  FBT_TOOLCHAIN_PATH: /runner/_work
 
 jobs:
   main:
