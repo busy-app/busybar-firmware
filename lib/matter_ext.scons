@@ -31,16 +31,13 @@ env.Append(
     CPPPATH=[
         # Matter extension
         Dir(f"{MATTER_SDK_INCDIR}/examples/providers").rdir(),
-        Dir(f"{MATTER_SDK_INCDIR}/src").rdir(),
         Dir(f"{MATTER_SDK_INCDIR}/src/include").rdir(),
         Dir(f"{MATTER_SUPPORT_INCDIR}/tinycrypt/inc").rdir(),
         Dir(f"{THIRD_PARTY_INCDIR}/nlio/include").rdir(),
         Dir(f"{THIRD_PARTY_INCDIR}/nlassert/include").rdir(),
-
         # Matter platform glue
         Dir(f"{MATTER_GLUE_INCDIR}").rdir(),
         Dir(f"{MATTER_GLUE_INCDIR}/config").rdir(),
-
         # ZAP generated files
         Dir(f"{ZAP_GENERATED_INCDIR}").rdir(),
         Dir(f"{ZAP_INCDIR}").rdir(),
@@ -60,12 +57,17 @@ env.Append(
     ],
 )
 
+env.Prepend(
+    CPPPATH=[
+        # This conflicts with applications/services/ble otherwise and needs to be first
+        Dir(f"{MATTER_SDK_INCDIR}/src").rdir(),
+    ]
+)
+
 libenv = env.Clone(FW_LIB_NAME="matter_ext")
 libenv.ApplyLibFlags()
 
 libenv.AppendUnique(
-    CPPPATH=[
-    ],
     CPPFLAGS=[
         "-Wno-error",
         "-Wno-unused-variable",
