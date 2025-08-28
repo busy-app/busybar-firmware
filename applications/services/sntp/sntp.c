@@ -2,7 +2,7 @@
 #include <wifi/wifi.h>
 #include "sntp_time_update.h"
 
-#define TAG "Sntp"
+#define TAG "SntpSvc"
 
 #define SNTP_INTERVAL_MINUTES_TO_MS(x) ((x) * 60 * 1000)
 #define SNTP_REBOOT_INTERVAL_MINUTES   SNTP_INTERVAL_MINUTES_TO_MS(5) // 5 minutes

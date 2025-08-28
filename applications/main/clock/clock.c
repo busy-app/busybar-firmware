@@ -16,6 +16,7 @@ typedef struct {
     FuriEventLoopTimer* timer;
     Gui* gui;
     Label* labels[GuiDisplayIdMax];
+    FuriString* time_string;
 } Clock;
 
 static bool clock_input_callback(const InputEvent* event, void* context) {
@@ -44,16 +45,14 @@ static void clock_custom_event_callback(uint32_t events, void* context) {
     }
 }
 
-char* clock_get_time_string(Clock* instance) {
+const char* clock_get_time_string(Clock* instance) {
     furi_assert(instance);
     UNUSED(instance);
     DateTime date_time;
     furi_hal_rtc_get_datetime(&date_time);
 
-    static char time_string[32];
-    snprintf(
-        time_string,
-        sizeof(time_string),
+    furi_string_printf(
+        instance->time_string,
         "   %02d:%02d:%02d\n%02d-%02d-%04d",
         date_time.hour,
         date_time.minute,
@@ -61,7 +60,7 @@ char* clock_get_time_string(Clock* instance) {
         date_time.day,
         date_time.month,
         date_time.year);
-    return time_string;
+    return furi_string_get_cstr(instance->time_string);
 }
 
 static void clock_timer_callback(void* context) {
@@ -81,6 +80,7 @@ static Clock* clock_alloc(void) {
     instance->event_loop = furi_event_loop_alloc();
     instance->timer = furi_event_loop_timer_alloc(
         instance->event_loop, clock_timer_callback, FuriEventLoopTimerTypePeriodic, instance);
+    instance->time_string = furi_string_alloc();
 
     instance->gui = furi_record_open(RECORD_GUI);
 
@@ -122,6 +122,7 @@ static void clock_free(Clock* instance) {
     furi_event_loop_timer_stop(instance->timer);
     furi_event_loop_timer_free(instance->timer);
     furi_event_loop_free(instance->event_loop);
+    furi_string_free(instance->time_string);
     free(instance);
 }
 
