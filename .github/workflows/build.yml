@@ -113,7 +113,7 @@ jobs:
         with:
           issue-number: ${{ github.event.pull_request.number }}
           comment-author: 'github-actions[bot]'
-          body-includes: 'Compiled ${{ matrix.u5_target }} firmware for commit'              
+          body-includes: 'Compiled f${{ matrix.u5_target }} firmware for commit'              
 
       - name: 'Create or update comment'
         if: ${{ !github.event.pull_request.head.repo.fork && matrix.u5_target == env.DEFAULT_TARGET && github.event.pull_request }}

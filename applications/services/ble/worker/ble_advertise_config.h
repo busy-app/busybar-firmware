@@ -26,10 +26,16 @@ typedef struct FURI_PACKED {
 } BleAdvertiseLocalName;
 
 typedef struct FURI_PACKED {
+    BleAdvertiseHeader header;
+    uint16_t data;
+} BleAdvertiseServiceClassUUID;
+
+typedef struct FURI_PACKED {
     BleAdvertiseByteData flags;
     BleAdvertiseWordData appearance;
     BleAdvertiseLocalName local_name;
     BleAdvertiseWordData manufacturer;
+    BleAdvertiseServiceClassUUID service_class;
 } BleAdvertiseConfig;
 
 extern const BleAdvertiseConfig advertise_config;
