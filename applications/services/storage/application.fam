@@ -4,7 +4,7 @@ App(
     apptype=FlipperAppType.SERVICE,
     entry_point="storage_srv",
     stack_size=1024 * 8,
-    order=5,
+    order=10,
     provides=["storage_cli"],
     sources=[
         "filesystem_api.c",

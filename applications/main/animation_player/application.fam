@@ -2,7 +2,7 @@ App(
     appid="animation_player",
     name="AnimationPlayer",
     apptype=FlipperAppType.APP,
-    order=10,
+    order=40,
     entry_point="animation_player_app",
     requires=["gui"],
     stack_size=2 * 1024,

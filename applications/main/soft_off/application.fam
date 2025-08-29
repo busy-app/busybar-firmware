@@ -1,8 +1,7 @@
 App(
     appid="soft_off",
     name="Software Power Off",
-    apptype=FlipperAppType.APP,
-    order=60,
+    apptype=FlipperAppType.SYSTEM,
     entry_point="soft_off_app",
     requires=["gui"],
     stack_size=2 * 1024,

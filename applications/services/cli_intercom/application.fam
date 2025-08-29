@@ -6,4 +6,5 @@ App(
     cdefines=["SRV_CLI_INTERCOM"],
     stack_size=2 * 1024,
     targets=["f20", "f21", "f64"],
+    order=1,
 )

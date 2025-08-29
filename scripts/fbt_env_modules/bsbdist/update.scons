@@ -119,15 +119,14 @@ installs.extend(
 )
 
 zip_env = dist_env.Clone(tools=["zip"])
-installs.append(
-    zip_env.Zip(
-        dist_dir.File(
-            u5_env.subst("busybar-${F_TARGET_HW}-resources-${DIST_SUFFIX}.zip")
-        ),
-        u5_env["FW_ENV"]["RESOURCES_ROOT"],
-        ZIPROOT=u5_env["FW_ENV"]["RESOURCES_ROOT"],
-    )
+resources_zip = zip_env.Zip(
+    dist_dir.File(u5_env.subst("busybar-${F_TARGET_HW}-resources-${DIST_SUFFIX}.zip")),
+    u5_env["FW_ENV"]["RESOURCES_ROOT"],
+    ZIPROOT=u5_env["FW_ENV"]["RESOURCES_ROOT"],
 )
+Depends(resources_zip, u5_env["FW_ENV"]["FW_RESOURCES_MANIFEST"])
+Alias("resources_dist", resources_zip)
+installs.append(resources_zip)
 
 
 Default(installs)

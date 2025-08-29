@@ -5,7 +5,7 @@ App(
     entry_point="loader_srv",
     cdefines=["SRV_LOADER"],
     stack_size=2 * 1024,
-    order=90,
+    order=120,
     targets=["f20", "f21"],
     sources=["loader.c"],
     provides=["loader_cmd"],
@@ -18,5 +18,4 @@ App(
     entry_point="loader_cli_command",
     requires=["loader"],
     sources=["loader_cli.c"],
-    order=90,
 )

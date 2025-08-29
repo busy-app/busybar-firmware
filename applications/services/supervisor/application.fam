@@ -4,7 +4,7 @@ App(
     apptype=FlipperAppType.SERVICE,
     entry_point="supervisor_start",
     stack_size=4096,
-    order=70,
+    order=50,
     requires=["power_srv", "storage", "gui"],
     targets=["f20", "f21"],
 )
