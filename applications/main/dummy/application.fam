@@ -1,8 +1,7 @@
 App(
     appid="dummy",
     name="Dummy",
-    apptype=FlipperAppType.APP,
-    order=60,
+    apptype=FlipperAppType.SYSTEM,
     entry_point="dummy_app",
     requires=["gui"],
     stack_size=2 * 1024,

@@ -7,5 +7,5 @@ App(
     stack_size=32 * 1024,
     targets=["f20", "f21"],
     requires=["gui", "storage"],
-    order=900,
+    order=210,
 )

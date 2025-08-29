@@ -4,7 +4,7 @@ App(
     apptype=FlipperAppType.SERVICE,
     entry_point="mqtt_client_start",
     stack_size=8 * 1024,
-    order=70,
+    order=160,
     requires=["web_server"],
     targets=["f20", "f21"],
 )
