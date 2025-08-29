@@ -51,7 +51,7 @@ export default defineNuxtConfig({
   compatibilityDate: '2025-05-15',
   nitro: {
     output: {
-      dir: resolve(__dirname, '../frontend-build')
+      dir: process.env.NODE_ENV === 'development' ? resolve(__dirname, 'dist') : resolve(__dirname, '../frontend-build')
     },
     hooks: {
       'prerender:generate' (route) {
