@@ -8,7 +8,7 @@
 
 #define MG_ARCH                     MG_ARCH_CUSTOM
 #define MG_TLS                      MG_TLS_MBED
-#define MG_MBEDTLS_DEBUG_LEVEL      0 // Set to 4 for verbose mbedtls debug
+#define MG_MBEDTLS_DEBUG_LEVEL      4 // Set to 4 for verbose mbedtls debug
 #define MG_ENABLE_LWIP              1
 #define MG_ENABLE_SOCKET            1
 #define MG_ENABLE_TCPIP             0

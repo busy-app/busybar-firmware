@@ -27,7 +27,7 @@ App(
         "back_display",
         "usb_srv",
         "web_server",
-        "mqtt_client",
+        #"mqtt_client",
         "power_srv",
         "intercom",
         "wifi",
