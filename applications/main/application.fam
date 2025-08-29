@@ -6,6 +6,7 @@ App(
         "canvas",
         # "wifi_setup",
         "busy",
+        "soft_off",
     ],
     targets=["f20", "f21"],
 )
