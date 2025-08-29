@@ -114,6 +114,7 @@ static void anim_image_update(AnimImage* instance) {
         lv_obj_invalidate(instance->canvas);
 
         if(++instance->current_idx > instance->current_range.end_idx) {
+            bool had_waiting_range = instance->has_waiting_range;
             if(instance->has_waiting_range) {
                 instance->has_waiting_range = false;
                 instance->current_range = instance->waiting_range;
@@ -121,8 +122,9 @@ static void anim_image_update(AnimImage* instance) {
 
             instance->current_idx = instance->current_range.begin_idx;
 
-            if(!instance->current_range.loop) {
+            if(!had_waiting_range && !instance->current_range.loop) {
                 lv_timer_pause(instance->timer);
+                storage_file_close(instance->file);
             }
         }
 
