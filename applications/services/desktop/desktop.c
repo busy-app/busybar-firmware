@@ -148,6 +148,7 @@ static void desktop_handle_switch_start(Desktop* instance) {
             DesktopOverlayTransitionTypeDown;
 
     desktop_overlay_show(instance->overlay, transition_type);
+    loader_send_custom_signal(instance->loader, FuriSignalAboutToExit, NULL);
 }
 
 // Called on each new position of the rotary switch if steady state has not been reached
