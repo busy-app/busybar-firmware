@@ -6,6 +6,7 @@ env.Append(
     ],
     CCFLAGS=[
         "-Wno-double-promotion",  # TODO:
+        "-Wno-redundant-decls",
     ],
 )
 
