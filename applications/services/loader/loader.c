@@ -124,6 +124,25 @@ bool loader_get_application_name(Loader* loader, FuriString* name) {
     return result.value;
 }
 
+bool loader_send_custom_signal(Loader* loader, uint32_t signal, void* arg) {
+    furi_check(loader);
+    furi_check(signal >= FuriSignalCustom);
+
+    LoaderMessageBoolResult result;
+
+    LoaderMessage message = {
+        .type = LoaderMessageTypeSendCustomSignal,
+        .api_lock = api_lock_alloc_locked(),
+        .custom_signal = {.signal = signal, .arg = arg},
+        .bool_value = &result,
+    };
+
+    furi_message_queue_put(loader->queue, &message, FuriWaitForever);
+    api_lock_wait_unlock_and_free(message.api_lock);
+
+    return result.value;
+}
+
 // implementation
 
 static bool loader_is_locked_internal(const Loader* loader) {
@@ -394,6 +413,15 @@ static void loader_do_get_application_name(Loader* loader, const LoaderMessage* 
     }
 }
 
+static void loader_do_send_custom_signal(Loader* loader, const LoaderMessage* message) {
+    message->bool_value->value = false;
+
+    if(loader_is_application_running(loader)) {
+        message->bool_value->value = furi_thread_signal(
+            loader->app.thread, message->custom_signal.signal, message->custom_signal.arg);
+    }
+}
+
 static void loader_message_queue_callback(FuriEventLoopObject* object, void* context) {
     furi_assert(context);
     Loader* loader = context;
@@ -488,4 +516,5 @@ static const LoaderMessageHandler loader_handlers[LoaderMessageTypeMax] = {
     [LoaderMessageTypeUnlock] = loader_unlock_handler,
     [LoaderMessageTypeIsLocked] = loader_is_locked_handler,
     [LoaderMessageTypeGetApplicationName] = loader_do_get_application_name,
+    [LoaderMessageTypeSendCustomSignal] = loader_do_send_custom_signal,
 };

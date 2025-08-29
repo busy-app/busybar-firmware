@@ -83,6 +83,15 @@ FuriPubSub* loader_get_pubsub(Loader* instance);
  */
 bool loader_get_application_name(Loader* instance, FuriString* name);
 
+/**
+ * @brief Send a custom signal to the currently running application
+ * @param[in] instance pointer to the loader instance
+ * @param[in] signal custom signal value
+ * @param[in] arg optional argument to pass with the signal
+ * @return true if signal was sent and consumed, false otherwise
+ */
+bool loader_send_custom_signal(Loader* instance, uint32_t signal, void* arg);
+
 #ifdef __cplusplus
 }
 #endif
