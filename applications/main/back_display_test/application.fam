@@ -2,7 +2,7 @@ App(
     appid="back_display_test",
     name="BackDisplayTest",
     apptype=FlipperAppType.APP,
-    order=50,
+    order=120,
     entry_point="back_display_test",
     requires=["gui"],
     stack_size=4 * 1024,

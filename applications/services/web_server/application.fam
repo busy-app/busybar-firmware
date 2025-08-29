@@ -4,7 +4,7 @@ App(
     apptype=FlipperAppType.SERVICE,
     entry_point="web_srv_start",
     stack_size=8 * 1024,
-    order=70,
+    order=170,
     requires=["usb_srv", "canvas"],
     targets=["f20", "f21"],
     resources="resources",

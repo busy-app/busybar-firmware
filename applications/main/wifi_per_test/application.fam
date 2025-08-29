@@ -2,7 +2,7 @@ App(
     appid="wifi_per_test",
     name="WiFi PER Test",
     apptype=FlipperAppType.APP,
-    order=80,
+    order=150,
     entry_point="wifi_per_test_app",
     requires=["gui"],
     stack_size=2 * 1024,
