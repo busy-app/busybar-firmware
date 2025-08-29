@@ -2,7 +2,7 @@ App(
     appid="light_sensor_test",
     name="LightSensorTest",
     apptype=FlipperAppType.DEBUG,
-    order=30,
+    order=100,
     entry_point="light_sensor_test_app",
     requires=["gui"],
     stack_size=2 * 1024,

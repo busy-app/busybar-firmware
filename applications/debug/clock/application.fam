@@ -2,7 +2,7 @@ App(
     appid="clock",
     name="Clock",
     apptype=FlipperAppType.DEBUG,
-    order=10,
+    order=20,
     entry_point="clock_app",
     requires=["gui"],
     stack_size=2 * 1024,

@@ -2,7 +2,7 @@ App(
     appid="ble_per_test",
     name="Ble PER Test",
     apptype=FlipperAppType.DEBUG,
-    order=70,
+    order=140,
     entry_point="ble_per_test_app",
     requires=["gui"],
     stack_size=2 * 1024,
