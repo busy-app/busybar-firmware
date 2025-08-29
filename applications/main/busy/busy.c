@@ -146,6 +146,7 @@ static void busy_free(BusyApp* instance) {
 
         widget_free(instance->front_window);
         flex_layout_free(instance->back_container);
+        timer_card_free(instance->timer_card);
     });
 
     furi_record_close(RECORD_STATUS_LIGHTS);
