@@ -97,5 +97,15 @@ export default defineNuxtConfig({
         commaDangle: 'never'
       }
     }
+  },
+  icon: {
+    clientBundle: {
+      // scan all components in the project and include icons in the client bundle
+      scan: true,
+      // include all custom collections in the client bundle
+      includeCustomCollections: true,
+      // guard for uncompressed bundle size, will fail the build if exceeds
+      sizeLimitKb: 1024
+    }
   }
 });
