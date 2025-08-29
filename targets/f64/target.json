@@ -45,6 +45,7 @@
         "-Wl,--wrap,_free_r",
         "-Wl,--wrap,_calloc_r",
         "-Wl,--wrap,_realloc_r",
+        "-Wl,--wrap,_write_r",
         "-Xlinker",
         "-Map=${TARGET}.map"
     ],
@@ -54,6 +55,7 @@
     "include_paths": [
         "config",
         "furi_hal",
+        "lwip",
         "inc"
     ],
     "env_setup_scripts": [
@@ -76,9 +78,11 @@
         "lib_base",
         "mlib",
         "cmsis",
+        "lwip",
         "sl_glue",
         "simplicity_sdk",
         "wiseconnect",
+        "matter_ext",
         "freertos",
         "print",
         "targets",
