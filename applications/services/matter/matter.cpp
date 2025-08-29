@@ -17,6 +17,9 @@
 #include <network/network.h>
 #include <wifi/wifi_common.h>
 
+#include <nvm3_default.h>
+#include <nvm3_generic.h>
+
 #define TAG "MatterSrv"
 
 using namespace chip;
@@ -78,6 +81,12 @@ CHIP_ERROR MatterSrv::init(void) {
             break;
         }
 
+        // TODO: Implement factory reset procedure & controls
+#ifdef MATTER_FACTORY_RESET
+        FURI_LOG_D(TAG, "Resetting configuration...");
+        nvm3_eraseAll(nvm3_defaultHandle);
+        FURI_LOG_D(TAG, "Configuration was reset");
+#endif
         StackLock lock;
 
         SetDeviceInfoProvider(BSB::GetDeviceInfoProvider());
