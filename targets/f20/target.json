@@ -68,7 +68,9 @@
         "driver",
         "st_abomination",
         "lwip",
-        "usb"
+        "mongoose",
+        "usb",
+        "mbedtls"
     ],
     "env_setup_scripts": [
         "#/bsb_common_env_init.scons",

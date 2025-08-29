@@ -126,11 +126,14 @@ static bool http_api_is_access_allowed(
     ApiRootCtx* context,
     struct mg_connection* conn,
     struct mg_http_message* msg) {
+    uint8_t* ip = conn->rem.ip;
     UsbNetwork* usb_network = furi_record_open(RECORD_USB_NETWORK);
-    bool is_usb_addr = usb_network_is_dhcp_addr(usb_network, conn->rem.ip);
+    bool is_usb_addr = usb_network_is_dhcp_addr(usb_network, ip);
     furi_record_close(RECORD_USB_NETWORK);
 
-    if(!is_usb_addr) {
+    bool is_localhost = (ip[0] == 127) && (ip[1] == 0) && (ip[2] == 0) && (ip[3] == 1);
+
+    if(!is_usb_addr && !is_localhost) {
         if(context->access_mode == ApiAccessEnabled) {
             return true;
         } else if(context->access_mode == ApiAccessKeyRequired) {
@@ -143,8 +146,9 @@ static bool http_api_is_access_allowed(
                 }
             }
         }
+        return false;
     }
-    return is_usb_addr;
+    return true;
 }
 
 static bool http_api_is_version_allowed(struct mg_connection* conn, struct mg_http_message* msg) {
