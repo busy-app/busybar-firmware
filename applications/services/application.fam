@@ -49,7 +49,9 @@ App(
     provides=[
         "cli",
         "input",
+        "network",
         "wifi",
+        "matter",
     ],
     targets=["f64"],
 )

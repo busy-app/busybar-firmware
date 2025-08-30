@@ -1,0 +1,43 @@
+/*
+ *
+ *    Copyright (c) 2021 Project CHIP Authors
+ *    All rights reserved.
+ *
+ *    Licensed under the Apache License, Version 2.0 (the "License");
+ *    you may not use this file except in compliance with the License.
+ *    You may obtain a copy of the License at
+ *
+ *        http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *    Unless required by applicable law or agreed to in writing, software
+ *    distributed under the License is distributed on an "AS IS" BASIS,
+ *    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *    See the License for the specific language governing permissions and
+ *    limitations under the License.
+ */
+
+#include <platform/ConnectivityManager.h>
+
+#include <platform/internal/GenericConnectivityManagerImpl_UDP.ipp>
+
+#if INET_CONFIG_ENABLE_TCP_ENDPOINT
+#include <platform/internal/GenericConnectivityManagerImpl_TCP.ipp>
+#endif
+
+namespace chip {
+namespace DeviceLayer {
+
+/** Singleton instance of the ConnectivityManager implementation object.
+ */
+ConnectivityManagerImpl ConnectivityManagerImpl::sInstance;
+
+CHIP_ERROR ConnectivityManagerImpl::_Init(void) {
+    return CHIP_NO_ERROR;
+}
+
+void ConnectivityManagerImpl::_OnPlatformEvent(const ChipDeviceEvent* event) {
+    ChipLogDetail(DeviceLayer, "Platform event of type %hu", event->Type);
+}
+
+} // namespace DeviceLayer
+} // namespace chip

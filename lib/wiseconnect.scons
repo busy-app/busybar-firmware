@@ -59,7 +59,7 @@ env.Append(
         "SLI_SI91X_MCU_CONFIG_RADIO_BOARD_BASE_VER",
         "SLI_SI91X_MCU_CONFIG_RADIO_BOARD_VER2",
         # SDK Wifi Silabs
-        "SL_SI91X_SI917_RAM_MEM_CONFIG=2",
+        "SL_SI91X_SI917_RAM_MEM_CONFIG=3",
         "SL_WIFI_COMPONENT_INCLUDED=1",
         "SLI_SI91X_ENABLE_OS",
         "ENABLE_DEBUG_MODULE",  # This is for debug power down mode
@@ -67,6 +67,10 @@ env.Append(
         "SLI_SI91X_ENABLE_BLE",
         "SL_SI91X_ENABLE_LITTLE_ENDIAN=1",
         "__FREERTOS_OS_WISECONNECT",
+        # Matter compatibility
+        "NVM3_LOCK_OVERRIDE",
+        # Call static class constructors
+        "SUPPORT_CPLUSPLUS",
     ],
 )
 
