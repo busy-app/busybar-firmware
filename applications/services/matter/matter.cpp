@@ -34,7 +34,7 @@ static void matter_wait_for_network(void) {
 
     FuriSemaphore* wifi_sem = furi_semaphore_alloc(1, 0);
 
-    FuriPubSubSubscription* sub = furi_pubsub_subscribe(
+    furi_pubsub_subscribe(
         wifi_pubsub,
         [](const void* message, void* context) {
             const auto state = *(static_cast<const WifiState*>(message));
