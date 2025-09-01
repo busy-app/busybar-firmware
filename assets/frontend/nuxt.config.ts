@@ -51,7 +51,7 @@ export default defineNuxtConfig({
   compatibilityDate: '2025-05-15',
   nitro: {
     output: {
-      dir: resolve(__dirname, '../frontend-build')
+      dir: process.env.NODE_ENV === 'development' ? resolve(__dirname, 'dist') : resolve(__dirname, '../frontend-build')
     },
     hooks: {
       'prerender:generate' (route) {
@@ -96,6 +96,51 @@ export default defineNuxtConfig({
         braceStyle: '1tbs',
         commaDangle: 'never'
       }
+    }
+  },
+  icon: {
+    clientBundle: {
+      icons: [
+        'tabler:arrow-left',
+        'tabler:arrow-right',
+        'tabler:check',
+        'tabler:chevrons-left',
+        'tabler:chevrons-right',
+        'tabler:chevron-down',
+        'tabler:chevron-left',
+        'tabler:chevron-right',
+        'tabler:chevron-up',
+        'tabler:x',
+        'tabler:dots',
+        'tabler:external-link',
+        'tabler:folder',
+        'tabler:folder-open',
+        'tabler:refresh',
+        'tabler:minus',
+        'tabler:plus',
+        'tabler:search',
+        'tabler:moon-filled',
+        'tabler:sun-filled',
+        'tabler:usb',
+        'tabler:upload',
+        'tabler:file-upload',
+        'tabler:eye-exclamation',
+        'tabler:wifi',
+        'tabler:wifi-off',
+        'tabler:wifi-0',
+        'tabler:wifi-1',
+        'tabler:wifi-2',
+        'tabler:bluetooth',
+        'tabler:lock-open',
+        'tabler:lock',
+        'tabler:plane-departure',
+        'tabler:login-2',
+        'tabler:alert-triangle-filled'
+      ],
+      // include all custom collections in the client bundle
+      includeCustomCollections: true,
+      // guard for uncompressed bundle size, will fail the build if exceeds
+      sizeLimitKb: 1024
     }
   }
 });
