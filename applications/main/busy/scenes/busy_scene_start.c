@@ -12,7 +12,7 @@
 
 #define ENTER_ANIM_START       8
 #define ENTER_ANIM_END         0
-#define ENTER_ANIM_DURATION_MS 165
+#define ENTER_ANIM_DURATION_MS 135
 
 #define EXIT_ANIM_START       0
 #define EXIT_ANIM_END         8
