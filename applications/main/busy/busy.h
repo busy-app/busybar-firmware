@@ -86,6 +86,7 @@ typedef struct {
     NavBar* nav_bar;
     // Application settings
     BusySettings settings;
+    // Config, for custom modes
     BusyConfig config;
 } BusyApp;
 
