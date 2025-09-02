@@ -33,23 +33,6 @@
 #include <nvm3_hal_flash.h>
 #include <nvm3_lock.h>
 
-// Substitute the GSDK weak nvm3_lockBegin and nvm3_lockEnd
-// for an application controlled re-entrance protection
-static FuriSemaphore* nvm3_Sem;
-
-void nvm3_lockBegin(void) {
-    if(nvm3_Sem == NULL) {
-        nvm3_Sem = furi_semaphore_alloc(1, 1);
-    }
-
-    furi_semaphore_acquire(nvm3_Sem, FuriWaitForever);
-}
-
-void nvm3_lockEnd(void) {
-    VerifyOrDie(nvm3_Sem != NULL);
-    furi_semaphore_release(nvm3_Sem);
-}
-
 namespace chip {
 namespace DeviceLayer {
 namespace Internal {
@@ -117,7 +100,6 @@ CHIP_ERROR SilabsConfig::Init() {
 }
 
 void SilabsConfig::DeInit() {
-    furi_semaphore_free(nvm3_Sem);
     nvm3_close(nvm3_defaultHandle);
 }
 
