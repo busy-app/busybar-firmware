@@ -24,6 +24,8 @@ typedef struct {
     TitleCard* back_card;
 
     FuriEventLoopTimer* timer;
+
+    bool is_not_first_enter;
 } SettingsSceneStart;
 
 static bool settings_scene_start_input_callback(const InputEvent* event, void* context) {
@@ -79,13 +81,21 @@ static void settings_scene_start_on_enter(void* context) {
         anim_title_card_set_title(data->front_card, "SETTINGS");
         anim_title_card_set_icon(
             data->front_card, SETTINGS_ANIM_PATH("settings_front_13x13.anim"));
-        anim_title_card_run_title_anim(
-            data->front_card,
-            ENTER_TEXT_ANIM_START,
-            ENTER_TEXT_ANIM_END,
-            ENTER_TEXT_ANIM_DURATION_MS);
-        anim_title_card_run_icon_anim(
-            data->front_card, ENTER_IMAGE_ANIM_START, ENTER_IMAGE_ANIM_END);
+
+        if(data->is_not_first_enter) {
+            anim_title_card_run_icon_anim(
+                data->front_card, ENTER_IMAGE_ANIM_END, ENTER_IMAGE_ANIM_END);
+        } else {
+            anim_title_card_run_title_anim(
+                data->front_card,
+                ENTER_TEXT_ANIM_START,
+                ENTER_TEXT_ANIM_END,
+                ENTER_TEXT_ANIM_DURATION_MS);
+            anim_title_card_run_icon_anim(
+                data->front_card, ENTER_IMAGE_ANIM_START, ENTER_IMAGE_ANIM_END);
+
+            data->is_not_first_enter = true;
+        }
 
         data->back_card = title_card_alloc(instance->back_scene_window);
         title_card_set_title(data->back_card, "SETTINGS");
