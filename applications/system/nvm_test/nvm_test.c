@@ -1,10 +1,6 @@
-#include "nvm3_test.h"
-
-#include <furi.h>
-#include <strint.h>
+#include "nvm_test.h"
 
 #include <cli/args.h>
-#include <cli/cli_ansi.h>
 #include <cli/shell/cli_shell.h>
 
 #include <nvm/nvm.h>
@@ -38,7 +34,7 @@ void nvm_test_app_free(NvmTestApp* instance) {
     free(instance);
 }
 
-void nvm3_test_test_command(PipeSide* pipe, FuriString* args, void* context) {
+void nvm_test_test_command(PipeSide* pipe, FuriString* args, void* context) {
     UNUSED(pipe);
     UNUSED(args);
 
@@ -124,7 +120,7 @@ void nvm3_test_test_command(PipeSide* pipe, FuriString* args, void* context) {
     } while(false);
 }
 
-static void nvm3_test_write_command(PipeSide* pipe, FuriString* args, void* context) {
+static void nvm_test_write_command(PipeSide* pipe, FuriString* args, void* context) {
     UNUSED(pipe);
 
     furi_assert(context);
@@ -170,7 +166,7 @@ static void nvm3_test_write_command(PipeSide* pipe, FuriString* args, void* cont
     } while(false);
 }
 
-static void nvm3_test_read_command(PipeSide* pipe, FuriString* args, void* context) {
+static void nvm_test_read_command(PipeSide* pipe, FuriString* args, void* context) {
     UNUSED(pipe);
 
     furi_assert(context);
@@ -211,7 +207,7 @@ static void nvm3_test_read_command(PipeSide* pipe, FuriString* args, void* conte
     } while(false);
 }
 
-static void nvm3_test_del_command(PipeSide* pipe, FuriString* args, void* context) {
+static void nvm_test_del_command(PipeSide* pipe, FuriString* args, void* context) {
     UNUSED(pipe);
 
     furi_assert(context);
@@ -241,7 +237,7 @@ static void nvm3_test_del_command(PipeSide* pipe, FuriString* args, void* contex
     } while(false);
 }
 
-static void nvm3_test_erase_command(PipeSide* pipe, FuriString* args, void* context) {
+static void nvm_test_erase_command(PipeSide* pipe, FuriString* args, void* context) {
     UNUSED(pipe);
     UNUSED(args);
 
@@ -257,18 +253,18 @@ static void nvm3_test_erase_command(PipeSide* pipe, FuriString* args, void* cont
     }
 }
 
-static void nvm3_test_motd(void* context) {
+static void nvm_test_motd(void* context) {
     UNUSED(context);
-    printf("\r\n+-----------------------------+\r\n");
-    printf("| Welcome to nvm3 test shell! |\r\n");
-    printf("+-----------------------------+\r\n\r\n");
+    printf("\r\n+----------------------------+\r\n");
+    printf("| Welcome to nvm test shell! |\r\n");
+    printf("+----------------------------+\r\n\r\n");
     printf(
         "Read the manual: https://docs.silabs.com/gecko-platform/latest/platform-driver/nvm3\r\n");
     printf(
         "Read the manual: https://docs.silabs.com/gecko-platform/3.0/driver/api/group-nvm3\r\n");
 }
 
-void nvm3_test_command(PipeSide* pipe, FuriString* args, void* context) {
+void nvm_test_command(PipeSide* pipe, FuriString* args, void* context) {
     UNUSED(args);
     UNUSED(context);
 
@@ -276,17 +272,17 @@ void nvm3_test_command(PipeSide* pipe, FuriString* args, void* context) {
     CliRegistry* registry = cli_registry_alloc();
 
     cli_registry_add_command(
-        registry, "read", CliCommandFlagDefault, nvm3_test_read_command, instance);
+        registry, "read", CliCommandFlagDefault, nvm_test_read_command, instance);
     cli_registry_add_command(
-        registry, "write", CliCommandFlagDefault, nvm3_test_write_command, instance);
+        registry, "write", CliCommandFlagDefault, nvm_test_write_command, instance);
     cli_registry_add_command(
-        registry, "del", CliCommandFlagDefault, nvm3_test_del_command, instance);
+        registry, "del", CliCommandFlagDefault, nvm_test_del_command, instance);
     cli_registry_add_command(
-        registry, "test", CliCommandFlagDefault, nvm3_test_test_command, instance);
+        registry, "test", CliCommandFlagDefault, nvm_test_test_command, instance);
     cli_registry_add_command(
-        registry, "erase", CliCommandFlagDefault, nvm3_test_erase_command, instance);
+        registry, "erase", CliCommandFlagDefault, nvm_test_erase_command, instance);
 
-    CliShell* shell = cli_shell_alloc(nvm3_test_motd, NULL, pipe, registry, NULL);
+    CliShell* shell = cli_shell_alloc(nvm_test_motd, NULL, pipe, registry, NULL);
     cli_shell_set_prompt(shell, "nvm_test");
 
     cli_shell_start(shell);

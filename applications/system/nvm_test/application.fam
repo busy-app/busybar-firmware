@@ -1,8 +1,8 @@
 App(
-    appid="nvm3_test",
-    name="nvm3_test",
+    appid="nvm_test",
+    name="nvm_test",
     apptype=FlipperAppType.CLICMD,
-    entry_point="nvm3_test_command",
+    entry_point="nvm_test_command",
     targets=["f64"],
     requires=["nvm"],
 )
