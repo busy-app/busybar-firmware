@@ -2,7 +2,8 @@
 #include "settings_scenes.h"
 #include "../storage_macros.h"
 
-#include <gui/modules/app_title_card.h>
+#include <gui/modules/title_card.h>
+#include <gui/modules/anim_title_card.h>
 
 #define ENTER_IMAGE_ANIM_START 0
 #define ENTER_IMAGE_ANIM_END   59
@@ -19,8 +20,8 @@
 #define EXIT_TEXT_ANIM_DURATION_MS 135
 
 typedef struct {
-    AppTitleCard* front_card;
-    AppTitleCard* back_card;
+    AnimTitleCard* front_card;
+    TitleCard* back_card;
 } SettingsSceneStart;
 
 static bool settings_scene_start_input_callback(const InputEvent* event, void* context) {
@@ -63,21 +64,21 @@ static void settings_scene_start_on_enter(void* context) {
         GuiLayer* layer = gui_get_layer(instance->gui, GuiLayerIdMain);
         gui_layer_add_input_callback(layer, settings_scene_start_input_callback, instance);
 
-        data->front_card = app_title_card_alloc(instance->front_scene_window, true);
-        app_title_card_set_text(data->front_card, "SETTINGS");
-        app_title_card_set_image(
+        data->front_card = anim_title_card_alloc(instance->front_scene_window);
+        anim_title_card_set_title(data->front_card, "SETTINGS");
+        anim_title_card_set_icon(
             data->front_card, SETTINGS_ANIM_PATH("settings_front_13x13.anim"));
-        app_title_card_run_text_anim(
+        anim_title_card_run_title_anim(
             data->front_card,
             ENTER_TEXT_ANIM_START,
             ENTER_TEXT_ANIM_END,
             ENTER_TEXT_ANIM_DURATION_MS);
-        app_title_card_run_image_anim(
+        anim_title_card_run_icon_anim(
             data->front_card, ENTER_IMAGE_ANIM_START, ENTER_IMAGE_ANIM_END);
 
-        data->back_card = app_title_card_alloc(instance->back_scene_window, false);
-        app_title_card_set_text(data->back_card, "SETTINGS");
-        app_title_card_set_image(data->back_card, SETTINGS_IMG_PATH("settings_back_18x18.bin"));
+        data->back_card = title_card_alloc(instance->back_scene_window);
+        title_card_set_title(data->back_card, "SETTINGS");
+        title_card_set_icon(data->back_card, SETTINGS_IMG_PATH("settings_back_18x18.bin"));
 
         widget_set_visible(nav_bar_get_base(instance->back_nav_bar), false);
     });
@@ -93,17 +94,17 @@ static void settings_scene_start_on_exit(void* context) {
         GuiLayer* layer = gui_get_layer(instance->gui, GuiLayerIdMain);
         gui_layer_remove_input_callback(layer, settings_scene_start_input_callback);
 
-        app_title_card_free(data->front_card);
-        app_title_card_free(data->back_card);
+        anim_title_card_free(data->front_card);
+        title_card_free(data->back_card);
     });
 }
 
 static void settings_scene_start_run_exit_animations(SettingsApp* instance) {
     SettingsSceneStart* data = scene_manager_get_current_scene_data(instance->scene_manager);
     with_gui(instance->gui, {
-        app_title_card_run_text_anim(
+        anim_title_card_run_title_anim(
             data->front_card, EXIT_TEXT_ANIM_START, EXIT_TEXT_ANIM_END, EXIT_TEXT_ANIM_DURATION_MS);
-        app_title_card_run_image_anim(
+        anim_title_card_run_icon_anim(
             data->front_card, EXIT_IMAGE_ANIM_START, EXIT_IMAGE_ANIM_END);
     });
 }
