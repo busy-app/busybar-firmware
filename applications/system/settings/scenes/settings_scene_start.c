@@ -22,6 +22,8 @@
 typedef struct {
     AnimTitleCard* front_card;
     TitleCard* back_card;
+
+    FuriEventLoopTimer* timer;
 } SettingsSceneStart;
 
 static bool settings_scene_start_input_callback(const InputEvent* event, void* context) {
@@ -54,6 +56,15 @@ static bool settings_scene_start_input_callback(const InputEvent* event, void* c
     return consumed;
 }
 
+void settings_scene_start_timer_callback(void* context) {
+    furi_assert(context);
+
+    SettingsApp* instance = context;
+    SettingsSceneStart* data = scene_manager_get_current_scene_data(instance->scene_manager);
+
+    anim_title_card_run_background_anim(data->front_card);
+}
+
 static void settings_scene_start_on_enter(void* context) {
     furi_assert(context);
 
@@ -82,6 +93,14 @@ static void settings_scene_start_on_enter(void* context) {
 
         widget_set_visible(nav_bar_get_base(instance->back_nav_bar), false);
     });
+
+    data->timer = furi_event_loop_timer_alloc(
+        instance->event_loop,
+        settings_scene_start_timer_callback,
+        FuriEventLoopTimerTypePeriodic,
+        instance);
+
+    furi_event_loop_timer_start(data->timer, 5000);
 }
 
 static void settings_scene_start_on_exit(void* context) {
@@ -93,6 +112,8 @@ static void settings_scene_start_on_exit(void* context) {
     with_gui(instance->gui, {
         GuiLayer* layer = gui_get_layer(instance->gui, GuiLayerIdMain);
         gui_layer_remove_input_callback(layer, settings_scene_start_input_callback);
+
+        furi_event_loop_timer_free(data->timer);
 
         anim_title_card_free(data->front_card);
         title_card_free(data->back_card);
