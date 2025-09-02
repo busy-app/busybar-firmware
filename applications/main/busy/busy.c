@@ -56,21 +56,14 @@ static bool busy_gui_input_callback(const InputEvent* event, void* context) {
     return consumed;
 }
 
-static BusyApp* busy_alloc(const char* config_path) {
+static BusyApp* busy_alloc(void) {
     BusyApp* instance = malloc(sizeof(BusyApp));
-
-    if(config_path == NULL) {
-        FURI_LOG_I(TAG, "Loading default config");
-        instance->config = busy_config_default;
-    } else {
-        furi_crash("TODO: Implement config loading");
-    }
 
     instance->event_loop = furi_event_loop_alloc();
     instance->input_queue = furi_message_queue_alloc(8, sizeof(InputEvent));
     instance->event_queue = furi_message_queue_alloc(8, sizeof(uint32_t));
     instance->scene_manager = scene_manager_alloc(busy_scenes, BusyAppSceneIdMax, instance);
-    instance->busy_timer = busy_timer_alloc(&instance->config.default_timer_config);
+    instance->busy_timer = busy_timer_alloc();
     instance->status_lights = furi_record_open(RECORD_STATUS_LIGHTS);
     instance->audio = furi_record_open(RECORD_AUDIO);
     instance->gui = furi_record_open(RECORD_GUI);
@@ -169,9 +162,9 @@ static void busy_free(BusyApp* instance) {
 }
 
 int32_t busy_app(void* arg) {
-    const char* config_path = arg;
+    UNUSED(arg);
 
-    BusyApp* instance = busy_alloc(config_path);
+    BusyApp* instance = busy_alloc();
     furi_event_loop_run(instance->event_loop);
     busy_free(instance);
 

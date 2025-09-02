@@ -9,7 +9,6 @@
 #include <status_lights/status_lights.h>
 
 #include "busy_timer.h"
-#include "busy_config.h"
 #include "busy_settings.h"
 
 #include "time_macros.h"
@@ -86,8 +85,6 @@ typedef struct {
     NavBar* nav_bar;
     // Application settings
     BusySettings settings;
-    // Config, for custom modes
-    BusyConfig config;
 } BusyApp;
 
 void busy_send_custom_event(BusyApp* instance, uint32_t custom_event);
