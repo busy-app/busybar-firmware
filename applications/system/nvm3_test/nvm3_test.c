@@ -13,6 +13,7 @@
 
 #define COUNTER_INIT_VAL (5UL)
 #define COUNTER_INC_MAX  (3UL)
+#define MAX_DATA_LEN     (100UL)
 
 typedef struct {
     Nvm* nvm;
@@ -123,6 +124,123 @@ void nvm3_test_test_command(PipeSide* pipe, FuriString* args, void* context) {
     } while(false);
 }
 
+static void nvm3_test_write_command(PipeSide* pipe, FuriString* args, void* context) {
+    UNUSED(pipe);
+
+    furi_assert(context);
+    NvmTestApp* instance = context;
+
+    static const char* usage = "Usage: write <key> <hex data>\r\n";
+
+    do {
+        uint32_t key;
+        if(!args_read_int_and_trim(args, (int*)&key)) {
+            printf("%s", usage);
+            break;
+        }
+
+        const size_t arg_len = args_get_first_word_length(args);
+
+        if(arg_len < 2 || arg_len % 2) {
+            printf("%s", usage);
+            break;
+        }
+
+        const size_t data_len = arg_len / 2;
+
+        if(data_len > MAX_DATA_LEN) {
+            printf("Data too long: %zu > %lu\r\n", data_len, MAX_DATA_LEN);
+            break;
+        }
+
+        uint8_t data[MAX_DATA_LEN];
+
+        if(!args_read_hex_bytes(args, data, data_len)) {
+            printf("%s", usage);
+            break;
+        }
+
+        if(!nvm_write(instance->nvm, key, data, data_len)) {
+            printf("Failed to write %zu bytes to key 0x%lX\r\n", data_len, key);
+            break;
+        }
+
+        printf("Wrote %zu bytes to key 0x%lX\r\n", data_len, key);
+
+    } while(false);
+}
+
+static void nvm3_test_read_command(PipeSide* pipe, FuriString* args, void* context) {
+    UNUSED(pipe);
+
+    furi_assert(context);
+    NvmTestApp* instance = context;
+
+    static const char* usage = "Usage: read <key>\r\n";
+
+    do {
+        uint32_t key;
+        if(!args_read_int_and_trim(args, (int*)&key)) {
+            printf("%s", usage);
+            break;
+        }
+
+        size_t data_len;
+        if(!nvm_exists(instance->nvm, key, &data_len)) {
+            printf("Failed to find key 0x%lX\r\n", key);
+            break;
+        }
+
+        data_len = MIN(data_len, MAX_DATA_LEN);
+
+        uint8_t data[MAX_DATA_LEN];
+
+        if(!nvm_read(instance->nvm, key, data, data_len)) {
+            printf("Failed to read %zu bytes from key 0x%lX\r\n", data_len, key);
+            break;
+        }
+
+        printf("Read %zu bytes: ", data_len);
+
+        for(uint32_t i = 0; i < data_len; ++i) {
+            printf("%hhX", data[i]);
+        }
+
+        printf("\r\n");
+
+    } while(false);
+}
+
+static void nvm3_test_del_command(PipeSide* pipe, FuriString* args, void* context) {
+    UNUSED(pipe);
+
+    furi_assert(context);
+    NvmTestApp* instance = context;
+
+    static const char* usage = "Usage: del <key>\r\n";
+
+    do {
+        uint32_t key;
+        if(!args_read_int_and_trim(args, (int*)&key)) {
+            printf("%s", usage);
+            break;
+        }
+
+        if(!nvm_exists(instance->nvm, key, NULL)) {
+            printf("Failed to find key 0x%lX\r\n", key);
+            break;
+        }
+
+        if(!nvm_delete(instance->nvm, key)) {
+            printf("Failed to delete key 0x%lX\r\n", key);
+            break;
+        }
+
+        printf("Deleted key 0x%lX\r\n", key);
+
+    } while(false);
+}
+
 static void nvm3_test_erase_command(PipeSide* pipe, FuriString* args, void* context) {
     UNUSED(pipe);
     UNUSED(args);
@@ -130,10 +248,10 @@ static void nvm3_test_erase_command(PipeSide* pipe, FuriString* args, void* cont
     furi_assert(context);
     NvmTestApp* instance = context;
 
-    printf("Erasing nvm storage\r\n");
+    printf("Erasing nvm storage...\r\n");
 
     if(nvm_erase_all(instance->nvm)) {
-        printf("nvm storage erased successfully\r\n");
+        printf("Successfully erased nvm storage\r\n");
     } else {
         printf("Failed to erase nvm storage\r\n");
     }
@@ -158,9 +276,13 @@ void nvm3_test_command(PipeSide* pipe, FuriString* args, void* context) {
     CliRegistry* registry = cli_registry_alloc();
 
     cli_registry_add_command(
+        registry, "read", CliCommandFlagDefault, nvm3_test_read_command, instance);
+    cli_registry_add_command(
+        registry, "write", CliCommandFlagDefault, nvm3_test_write_command, instance);
+    cli_registry_add_command(
+        registry, "del", CliCommandFlagDefault, nvm3_test_del_command, instance);
+    cli_registry_add_command(
         registry, "test", CliCommandFlagDefault, nvm3_test_test_command, instance);
-    // cli_registry_add_command(
-    //     registry, "print", CliCommandFlagDefault, nvm3_test_print_command, instance);
     cli_registry_add_command(
         registry, "erase", CliCommandFlagDefault, nvm3_test_erase_command, instance);
 
