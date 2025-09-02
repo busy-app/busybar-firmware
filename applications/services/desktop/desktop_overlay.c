@@ -71,7 +71,7 @@ DesktopOverlay* desktop_overlay_alloc(Gui* gui) {
         widget_set_visible(anim_image_get_base(instance->switch_anim_image), false);
         anim_image_set_source(
             instance->switch_anim_image, DESKTOP_ANIM_PATH("switch_effect_transition_72x16.anim"));
-        anim_image_set_callback(
+        anim_image_set_completed_callback(
             instance->switch_anim_image, desktop_overlay_anim_image_completed_callback, instance);
         anim_image_stop(instance->switch_anim_image);
 
@@ -81,7 +81,7 @@ DesktopOverlay* desktop_overlay_alloc(Gui* gui) {
             anim_image_get_base(instance->mask_anim_image), WidgetBlendModeMultiply);
         anim_image_set_source(
             instance->mask_anim_image, DESKTOP_ANIM_PATH("hosizontal_mask_transition_72x16.anim"));
-        anim_image_set_callback(
+        anim_image_set_completed_callback(
             instance->mask_anim_image, desktop_overlay_anim_image_completed_callback, instance);
         anim_image_stop(instance->mask_anim_image);
     });

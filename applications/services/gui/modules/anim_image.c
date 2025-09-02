@@ -103,6 +103,11 @@ static void anim_image_update(AnimImage* instance) {
             }
         }
 
+        if(instance->frame_callback && instance->current_idx == instance->frame_callback_idx) {
+            instance->frame_callback_idx =
+                instance->frame_callback(instance, instance->frame_callback_context);
+        }
+
         size_t bytes_read =
             storage_file_read(instance->file, instance->canvas_buf, instance->frame_size);
 
@@ -126,8 +131,8 @@ static void anim_image_update(AnimImage* instance) {
                 lv_timer_pause(instance->timer);
                 storage_file_close(instance->file);
 
-                if(instance->callback) {
-                    instance->callback(instance, instance->callback_context);
+                if(instance->completed_callback) {
+                    instance->completed_callback(instance, instance->completed_callback_context);
                 }
             }
         }
@@ -381,10 +386,24 @@ uint32_t anim_image_get_frame_count(const AnimImage* instance) {
     return instance->frame_count;
 }
 
-void anim_image_set_callback(AnimImage* instance, AnimImageCallback callback, void* context) {
+void anim_image_set_frame_callback(
+    AnimImage* instance,
+    uint32_t frame_idx,
+    AnimImageFrameCallback callback,
+    void* context) {
     furi_check(instance);
-    instance->callback = callback;
-    instance->callback_context = context;
+    instance->frame_callback_idx = frame_idx;
+    instance->frame_callback = callback;
+    instance->frame_callback_context = context;
+}
+
+void anim_image_set_completed_callback(
+    AnimImage* instance,
+    AnimImageCompletedCallback callback,
+    void* context) {
+    furi_check(instance);
+    instance->completed_callback = callback;
+    instance->completed_callback_context = context;
 }
 
 // LVGL class descriptor
