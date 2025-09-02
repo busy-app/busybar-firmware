@@ -24,7 +24,7 @@
         "-std=gnu2x"
     ],
     "cpp_flags": [
-        "-std=c++20",
+        "-std=gnu++17",
         "-fno-rtti",
         "-fno-use-cxa-atexit",
         "-fno-exceptions",
