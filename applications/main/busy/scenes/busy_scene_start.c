@@ -5,14 +5,26 @@
 #include <gui/modules/anim_image.h>
 #include <gui/modules/flex_layout.h>
 
+#include <lvgl.h>
+
 #define ANIM_MENU_IDLE_FRAMES       (120)
 #define ANIM_MENU_TRANSITION_FRAMES (10)
+
+#define ENTER_ANIM_START       8
+#define ENTER_ANIM_END         0
+#define ENTER_ANIM_DURATION_MS 165
+
+#define EXIT_ANIM_START       0
+#define EXIT_ANIM_END         8
+#define EXIT_ANIM_DURATION_MS 135
 
 typedef struct {
     FlexLayout* front_layout;
     AnimImage* front_logo;
     AnimMenu* front_menu;
     Menu* back_menu;
+
+    bool is_not_first_enter;
 } BusySceneStart;
 
 typedef enum {
@@ -27,6 +39,25 @@ static void busy_scene_start_menu_callback(uint32_t index, void* context) {
 
     BusyApp* instance = context;
     busy_send_custom_event(instance, index);
+}
+
+static void busy_scene_start_anim_exec_callback(void* var, int32_t value) {
+    lv_obj_set_style_translate_x(var, value, LV_PART_MAIN);
+}
+
+static void busy_scene_start_run_animation(
+    BusyApp* instance,
+    int32_t start,
+    int32_t stop,
+    uint32_t duration) {
+    lv_anim_t anim;
+    lv_anim_init(&anim);
+    lv_anim_set_var(&anim, instance->front_window);
+    lv_anim_set_values(&anim, start, stop);
+    lv_anim_set_duration(&anim, duration);
+    lv_anim_set_path_cb(&anim, lv_anim_path_linear);
+    lv_anim_set_exec_cb(&anim, busy_scene_start_anim_exec_callback);
+    lv_anim_start(&anim);
 }
 
 static void busy_scene_start_on_enter(void* context) {
@@ -58,6 +89,12 @@ static void busy_scene_start_on_enter(void* context) {
             data->back_menu, "START", NULL, BUSY_IMG_PATH("start_12x12.bin"), 0, NULL, NULL);
         menu_add_item(
             data->back_menu, "SETUP", NULL, BUSY_IMG_PATH("setup_12x12.bin"), 0, NULL, NULL);
+
+        if(!data->is_not_first_enter) {
+            busy_scene_start_run_animation(
+                instance, ENTER_ANIM_START, ENTER_ANIM_END, ENTER_ANIM_DURATION_MS);
+            data->is_not_first_enter = true;
+        }
     });
 
     busy_start_transition(instance);
@@ -105,6 +142,11 @@ static bool busy_scene_start_on_event(const SceneManagerEvent* event, void* cont
         } else if(event->event == BusySceneStartMenuIndexSetup) {
             busy_push_location(instance, "SETUP");
             scene_manager_next_scene(instance->scene_manager, BusyAppSceneIdSetup);
+        } else if(event->event == BusyCustomEventAboutToExit) {
+            with_gui(instance->gui, {
+                busy_scene_start_run_animation(
+                    instance, EXIT_ANIM_START, EXIT_ANIM_END, EXIT_ANIM_DURATION_MS);
+            });
         }
 
         consumed = true;
