@@ -47,7 +47,6 @@ static void matter_wait_for_network(void) {
         wifi_sem);
 
     furi_semaphore_acquire(wifi_sem, FuriWaitForever);
-    furi_semaphore_free(wifi_sem);
 
     // TODO: Find out why it doesn't work if connecting right away
     furi_delay_ms(3000);
@@ -62,6 +61,9 @@ private:
 };
 
 CHIP_ERROR MatterSrv::init(void) {
+    // TODO: Implement proper network handling
+    matter_wait_for_network();
+
     CHIP_ERROR err;
 
     do {
@@ -74,9 +76,6 @@ CHIP_ERROR MatterSrv::init(void) {
         if(err != CHIP_NO_ERROR) {
             break;
         }
-
-        // TODO: Implement proper network handling
-        matter_wait_for_network();
 
         StackLock lock;
 
