@@ -78,7 +78,7 @@ typedef struct {
 
 typedef void (*BusyTimerCallback)(const BusyTimerEvent* event, void* context);
 
-BusyTimer* busy_timer_alloc(void);
+BusyTimer* busy_timer_alloc(BusyTimerConfig* config);
 
 void busy_timer_free(BusyTimer* instance);
 

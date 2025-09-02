@@ -8,17 +8,6 @@ typedef void (*const BusyTimerMessageHandler)(BusyTimer* instance, BusyTimerMess
 
 static const BusyTimerMessageHandler busy_timer_message_handlers[];
 
-static const BusyTimerConfig busy_timer_config_default = {
-    .mode = BusyTimerModeInterval,
-    .time_mn = TIME_DEFAULT_MN,
-    .work_time_mn = WORK_TIME_DEFAULT_MN,
-    .rest_time_mn = REST_TIME_DEFAULT_MN,
-    .cycle_count = CYCLE_COUNT_DEFAULT,
-    .enable_intervals = ENABLE_INTERVALS_DEFAULT,
-    .enable_autostart = ENABLE_AUTOSTART_DEFAULT,
-    .enable_demo_mode = ENABLE_SPEED_DEFAULT,
-};
-
 static const char* busy_timer_mode_names[BusyTimerModeMax] = {
     [BusyTimerModeInfinite] = "Off",
     [BusyTimerModeSimple] = "Simple",
@@ -287,7 +276,6 @@ static int32_t busy_timer_thread(void* arg) {
     instance->timer = furi_event_loop_timer_alloc(
         instance->event_loop, busy_timer_callback, FuriEventLoopTimerTypePeriodic, instance);
     instance->message_queue = furi_message_queue_alloc(1, sizeof(BusyTimerMessage));
-    instance->config = busy_timer_config_default;
 
     furi_event_loop_subscribe_message_queue(
         instance->event_loop,
@@ -309,8 +297,9 @@ static int32_t busy_timer_thread(void* arg) {
 
 // Public API
 
-BusyTimer* busy_timer_alloc(void) {
+BusyTimer* busy_timer_alloc(BusyTimerConfig* config) {
     BusyTimer* instance = malloc(sizeof(BusyTimer));
+    instance->config = *config;
 
     instance->thread = furi_thread_alloc_ex(TAG, 1024, busy_timer_thread, instance);
     furi_thread_start(instance->thread);
