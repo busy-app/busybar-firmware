@@ -28,10 +28,12 @@ static uint32_t anim_title_card_background_frame_callback(AnimImage* anim_image,
 static void anim_title_card_background_completed_callback(AnimImage* anim_image, void* context);
 
 static const AnimTitleCardBackgroundAnimFrame background_anim_frames[] = {
-    {.next_frame_idx = 18, .offset = 1}, /* 6 frame */
-    {.next_frame_idx = 32, .offset = 0}, /* 18 frame */
-    {.next_frame_idx = 40, .offset = 1}, /* 32 frame */
-    {.next_frame_idx = 6, .offset = 0}, /* 40 frame */
+    {.next_frame_idx = 6, .offset = 1}, /* 2 frame */
+    {.next_frame_idx = 8, .offset = 2}, /* 6 frame */
+    {.next_frame_idx = 12, .offset = 1}, /* 8 frame */
+    {.next_frame_idx = 24, .offset = 0}, /* 12 frame */
+    {.next_frame_idx = 30, .offset = 1}, /* 24 frame */
+    {.next_frame_idx = 2, .offset = 0}, /* 30 frame */
 };
 
 /* LVGL-specific code */
