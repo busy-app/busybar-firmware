@@ -3,26 +3,25 @@
 #include <mongoose.h>
 #include <wifi/wifi.h>
 #include <network/network.h>
+#include <mongoose_glue.h>
 
 #define TAG "HttpsTest"
 
-//#define HTTP_URL "https://www.example.com:443/"
-#define HTTP_URL "http://www.example.com:8080/"
+//#define HTTP_URL "https://www.example.com/"
+#define HTTP_URL "https://www.example.com/"
 //#define HTTP_URL "https://www.example.org/"
-//#define HTTP_URL "https://192.168.10.2:443/"
-//#define HTTP_URL "https://portal6400.ru:443/"
-//#define HTTP_URL "https://letsencrypt.org:443/"
-//#define HTTP_URL "https://gmail.com:443/"
-//#define HTTP_URL "https://ya.ru:443/"
-//#define HTTP_URL "https://mail.ru:443/"
+//#define HTTP_URL "https://192.168.10.2/"
+//#define HTTP_URL "https://portal6400.ru/"
+//#define HTTP_URL "https://letsencrypt.org/"
+//#define HTTP_URL "https://gmail.com/"
+//#define HTTP_URL "https://ya.ru/"
+//#define HTTP_URL "https://mail.ru/"
 
 typedef struct {
     Network* network;
     struct mg_mgr mgr;
     bool done;
 } HttpTestApp;
-
-const struct mg_fs* http_fs_get(void);
 
 static void http_test_mg_handler(struct mg_connection* connection, int event, void* event_data) {
     UNUSED(event_data);
@@ -36,7 +35,7 @@ static void http_test_mg_handler(struct mg_connection* connection, int event, vo
 
         if(mg_url_is_ssl(HTTP_URL)) {
             const struct mg_tls_opts opts = {
-                .ca = mg_file_read((struct mg_fs*)http_fs_get(), "/ext/ca_bundle.crt"),
+                .ca = mg_file_read(http_fs_get(), "/ext/ca_bundle.crt"),
                 .name = name};
             mg_tls_init(connection, &opts);
         }
