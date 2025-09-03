@@ -21,15 +21,16 @@ extern "C" {
 
 /**
  * @brief Enumeration of available Nvm key ranges.
+ *
+ * @warning Keys 0x0-0xFFFF are reserved, do not use
+ * @warning Keys 0x87000-0x87FFF are reserved, do not use
  */
 typedef enum {
-    NvmKeyRangeMin = 0xFFFFUL, /**< Keys 0x0-0xFFFF (inclusive) are reserved for Matter */
-    NvmKeyRangeUser1Min, /**< Free to use key range 1 start (inclusive) */
+    NvmKeyRangeMin = 0x0UL, /**< Minimum key value (inclusive) */
+    NvmKeyRangeUser1Min = 0x10000UL, /**< Free to use key range 1 start (inclusive) */
     /* Add more key ranges here */
-    NvmKeyRangeMatterMin = 0x87200UL, /**< Additional key range reserved for Matter (start) */
-    NvmKeyRangeMatterMax =
-        0x87FFFUL, /**< Additional key range reserved for Matter (end, inclusive) */
-    NvmKeyRangeUser2Min, /**< Free to use key range 2 start (inclusive) */
+    NvmKeyRangeUser1Max = 0x87000UL, /**< Free to use key range 1 end (non-inclusive) */
+    NvmKeyRangeUser2Min = 0x88000UL, /**< Free to use key range 2 start (inclusive) */
     /* Add more key ranges here */
     NvmKeyRangeMax = 0x1000000UL, /**< Maximum key value (non-inclusive) */
 } NvmKeyRange;
