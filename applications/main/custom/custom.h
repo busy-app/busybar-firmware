@@ -24,36 +24,14 @@
 #define TOTAL_TIME_LOW_THR_MN (15)
 
 typedef enum {
-    CustomCustomEventTimerTick = 100,
-    // CustomCustomEventTimerModeChanged,
-    // CustomCustomEventTimerStateChanged,
-    // CustomCustomEventTimerIntervalEnded,
-    // CustomCustomEventTimerSequenceEnded,
-    // CustomCustomEventTimerToggle,
-    // CustomCustomEventTimerSkip,
-    // CustomCustomEventTimeIncrement,
-    // CustomCustomEventTimeDecrement,
-    // CustomCustomEventStartPressed,
-    // CustomCustomEventStartReleased,
-    // CustomCustomEventStartShortPressed,
-} CustomCustomEvent;
-
-typedef enum {
     CustomTransitionTypeDefault,
-    // CustomTransitionTypeAutomatic,
-    // CustomTransitionTypeSkip,
     CustomTransitionTypeSelect,
-    // CustomTransitionTypeWork,
-    // CustomTransitionTypeRest,
-    // CustomTransitionTypeWorkDone,
-    // CustomTransitionTypeRestDone,
     CustomTransitionTypeMax,
 } CustomTransitionType;
 
 typedef enum {
     CustomStatusLightsTypeOff,
     CustomStatusLightsTypeWork,
-    // CustomStatusLightsTypeRest,
     CustomStatusLightsTypeMax,
 } CustomStatusLightsType;
 
