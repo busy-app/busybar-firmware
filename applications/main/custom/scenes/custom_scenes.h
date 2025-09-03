@@ -5,7 +5,6 @@
 typedef enum {
     CustomAppSceneIdStart,
     CustomAppSceneIdTimer,
-    // CustomAppSceneIdNext,
     CustomAppSceneIdSetup,
     CustomAppSceneIdSetupTheme,
     CustomAppSceneIdMax,
