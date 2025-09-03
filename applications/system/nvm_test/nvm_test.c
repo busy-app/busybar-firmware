@@ -16,7 +16,7 @@ typedef struct {
 } NvmTestApp;
 
 enum {
-    NvmTestKeyData = NvmKeyUser1Min,
+    NvmTestKeyData = NvmKeyRangeUser1Min,
     NvmTestKeyCounter,
 };
 
