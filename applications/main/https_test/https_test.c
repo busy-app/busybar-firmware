@@ -31,13 +31,13 @@ static void http_test_mg_handler(struct mg_connection* connection, int event, vo
 
     if(event == MG_EV_CONNECT) {
         const struct mg_str name = mg_url_host(HTTP_URL);
-        //const struct mg_tls_opts opts = {.ca = mg_str_s(s_ca2), .name = name};
 
         if(mg_url_is_ssl(HTTP_URL)) {
-            const struct mg_tls_opts opts = {
-                .ca = mg_file_read(http_fs_get(), "/ext/ca_bundle.crt"),
-                .name = name};
+            struct mg_str ca_data =
+                mg_file_read((struct mg_fs*)http_fs_get(), "/ext/ca_bundle.crt");
+            const struct mg_tls_opts opts = {.ca = ca_data, .name = name};
             mg_tls_init(connection, &opts);
+            free(ca_data.buf);
         }
 
         mg_printf(

@@ -46,9 +46,11 @@ static void curl_mg_handler(struct mg_connection* connection, int event, void* e
         const struct mg_str name = mg_url_host(furi_string_get_cstr(instance->url));
 
         if(mg_url_is_ssl(furi_string_get_cstr(instance->url))) {
-            const struct mg_tls_opts opts = {
-                .ca = mg_file_read(http_fs_get(), CURL_CA_BUNDLE_PATH), .name = name};
+            struct mg_str ca_data =
+                mg_file_read((struct mg_fs*)http_fs_get(), "/ext/ca_bundle.crt");
+            const struct mg_tls_opts opts = {.ca = ca_data, .name = name};
             mg_tls_init(connection, &opts);
+            free(ca_data.buf);
         }
 
         mg_printf(
