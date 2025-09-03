@@ -1,11 +1,10 @@
 #include <furi.h>
 #include <cli/args.h>
 #include <cli/cli_ansi.h>
+#include <wifi/wifi_common.h>
 #include <intercom/intercom.h>
 
-#include "sl_si91x_driver.h"
-#include <furi_hal_nwp.h>
-
+#include <sl_si91x_driver.h>
 #include <furi_hal_crypto_storage.h>
 
 #include "crypto_backup_common.h"
@@ -39,6 +38,8 @@ static int32_t crypto_backup_server_thread_callback(void* context) {
     CryptoBackupServer* instance = context;
     FURI_LOG_D(TAG, "Start");
 
+    furi_record_open(RECORD_WIFI);
+
     CryptoBackupEvent* event_rx = (CryptoBackupEvent*)instance->buffer;
     furi_assert(event_rx);
     sl_status_t status = SL_STATUS_FAIL;
@@ -48,13 +49,6 @@ static int32_t crypto_backup_server_thread_callback(void* context) {
     switch(event_rx->cmd) {
     case CryptoBackupCmdWrite:
         FURI_LOG_D(TAG, "Set command received");
-
-        if(!furi_hal_nwp_is_initialized()) {
-            FURI_LOG_E(TAG, "NWP is not initialized");
-            event_tx->cmd = CryptoBackupCmdNack;
-            crypto_backup_server_tx(instance, event_tx);
-            break;
-        }
 
         event_tx->cmd = CryptoBackupCmdAsk;
         event_tx->data_size = 0;
@@ -75,12 +69,6 @@ static int32_t crypto_backup_server_thread_callback(void* context) {
         FURI_LOG_D(TAG, "Get command received");
 
         event_tx->data_size = 0;
-        if(!furi_hal_nwp_is_initialized()) {
-            FURI_LOG_E(TAG, "NWP is not initialized");
-            event_tx->cmd = CryptoBackupCmdNack;
-            crypto_backup_server_tx(instance, event_tx);
-            break;
-        }
         event_tx->cmd = CryptoBackupCmdAsk;
         crypto_backup_server_tx(instance, event_tx);
         // ToDo add some delay to avoid flooding
@@ -109,24 +97,17 @@ static int32_t crypto_backup_server_thread_callback(void* context) {
             furi_delay_ms(10);
         }
         break;
+    // TODO: Remove below 2 commands from client and from here
     case CryptoBackupCmdNwpInit:
         FURI_LOG_D(TAG, "NWP Init command received");
         event_tx->cmd = CryptoBackupCmdAsk;
-
         event_tx->data_size = 0;
-        if(!furi_hal_nwp_init()) {
-            FURI_LOG_E(TAG, "NWP is not initialized");
-            event_tx->cmd = CryptoBackupCmdNack;
-        }
         crypto_backup_server_tx(instance, event_tx);
         break;
     case CryptoBackupCmdNwpDeinit:
         FURI_LOG_D(TAG, "NWP Deinit command received");
         event_tx->cmd = CryptoBackupCmdAsk;
         event_tx->data_size = 0;
-
-        furi_hal_nwp_deinit();
-
         crypto_backup_server_tx(instance, event_tx);
         break;
     case CryptoBackupCmdUserDataWipe:
@@ -155,6 +136,8 @@ static int32_t crypto_backup_server_thread_callback(void* context) {
     free(event_tx);
 
     FURI_LOG_D(TAG, "Stopping thread");
+
+    furi_record_close(RECORD_WIFI);
 
     return 0;
 }
