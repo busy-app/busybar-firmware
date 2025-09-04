@@ -67,10 +67,27 @@ static void wifi_deinit_request_handler(Wifi* instance) {
 
     // sl_net_deinit() should never be called now
 
-    wifi_set_state(instance, WifiStateDeinit);
+    sl_status_t status;
+
+    do {
+        if(instance->state == WifiStateUp) {
+            status = sl_net_down(SL_NET_WIFI_CLIENT_INTERFACE);
+
+            if(status != SL_STATUS_OK) {
+                FURI_LOG_E(TAG, "Failed to bring Wifi interface DOWN: %lX", status);
+                break;
+            }
+
+            wifi_set_state(instance, WifiStateDown);
+        }
+
+        wifi_set_state(instance, WifiStateDeinit);
+        status = SL_STATUS_OK;
+
+    } while(false);
 
     WifiResponse* response = &instance->response;
-    response->status = WifiStatusOk;
+    response->status = wifi_decode_sl_status(status);
 
     wifi_send_response(instance);
 }
