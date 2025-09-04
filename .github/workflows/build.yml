@@ -11,15 +11,19 @@ on:
 env:
   FBT_GIT_SUBMODULE_SHALLOW: 0
   DEFAULT_TARGET: 21
+  FBT_TOOLCHAIN_PATH: /runner/_work
 
 jobs:
   main:
-    runs-on: ubuntu-latest
+    runs-on: BsbShell
     strategy:
       fail-fast: false
       matrix:
         u5_target: [20, 21]
     steps:
+      - name: 'Wipe workspace'
+        run: find ./ -mount -maxdepth 1 -exec rm -rf {} \;
+
       - name: 'Checkout code'
         uses: actions/checkout@v4
         with:
@@ -29,7 +33,7 @@ jobs:
 
       - name: 'Update submodules'
         run: |
-          git submodule update --init --recursive --jobs=$(nproc) scripts/toolchain lib/lwip lib/matter_ext fbt_layers/fbtng || cat /home/runner/work/bsb-firmware/bsb-firmware/.git/modules/lib/matter_ext/lfs/logs/*
+          git submodule update --init --recursive --jobs=$(nproc) scripts/toolchain fbt_layers/fbtng || cat /home/runner/work/bsb-firmware/bsb-firmware/.git/modules/lib/matter_ext/lfs/logs/*
 
       - name: 'Get commit details'
         id: names
@@ -46,7 +50,7 @@ jobs:
             TYPE="other"
           fi
           echo "event_type=$TYPE" >> $GITHUB_OUTPUT
-          python3 fbt_layers/fbtng/scripts/get_env.py "--event_file=${{ github.event_path }}" "--type=$TYPE" || cat "${{ github.event_path }}"
+          python3 fbt_layers/fbtng/scripts/get_env.py "--event_file=${{ github.event_path }}" "--type=$TYPE" || (cat "${{ github.event_path }}" && exit 1)
           echo "FBT_BUILD_TYPE=$BUILD_TYPE" >> $GITHUB_ENV
           echo "U5_TARGET_HW=$(echo "${{ matrix.u5_target }}" | sed 's/f//')" >> $GITHUB_ENV
 

@@ -1,0 +1,11 @@
+App(
+    appid="custom",
+    name="Custom",
+    apptype=FlipperAppType.APP,
+    order=15,
+    entry_point="custom_app",
+    requires=["gui"],
+    stack_size=4 * 1024,
+    cdefines=["APP_CUSTOM"],
+    targets=["f20", "f21"],
+)

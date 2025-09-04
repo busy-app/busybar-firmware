@@ -2,7 +2,7 @@ App(
     appid="lottie_player",
     name="Lottie Player",
     apptype=FlipperAppType.APP,
-    order=15,
+    order=50,
     entry_point="lottie_player_app",
     requires=["gui"],
     stack_size=4 * 1024,

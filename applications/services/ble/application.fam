@@ -4,7 +4,7 @@ App(
     apptype=FlipperAppType.SERVICE,
     entry_point="ble_srv",
     stack_size=4 * 1024,
-    order=100,
+    order=140,
     targets=["f64"],
     requires=["intercom"],
     sources=[
@@ -27,7 +27,7 @@ App(
     apptype=FlipperAppType.SERVICE,
     entry_point="ble_srv",
     stack_size=2 * 1024,
-    order=100,
+    order=140,
     targets=["f20", "f21"],
     requires=["intercom"],
     sources=[
