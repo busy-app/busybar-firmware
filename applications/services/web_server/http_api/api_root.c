@@ -6,6 +6,7 @@
 #define TAG "HttpApi"
 
 #define ACCESS_CFG_FILE    APP_DATA_PATH("access.json")
+#define ACCESS_KEY_LEN_MIN 4
 #define ACCESS_KEY_LEN_MAX 10
 
 typedef struct {
@@ -51,7 +52,7 @@ static bool http_api_access_get_callback(ApiRootCtx* context, struct mg_connecti
     furi_string_cat_printf(json_str, "\"mode\":\"%s\",", access_mode_str);
 
     size_t key_len = furi_string_size(context->access_key);
-    bool key_valid = (key_len > 4) && (key_len < 10);
+    bool key_valid = (key_len > ACCESS_KEY_LEN_MIN) && (key_len < ACCESS_KEY_LEN_MAX);
     furi_string_cat_printf(json_str, "\"key_valid\":%s", key_valid ? "true" : "false");
 
     MG_REPLY_OK_BODY(conn, "{%s}\n", furi_string_get_cstr(json_str));
@@ -90,7 +91,7 @@ static bool http_api_access_set_callback(
         }
 
         if(key_len > 0) {
-            if((key_len < 4) || (key_len > ACCESS_KEY_LEN_MAX)) {
+            if((key_len < ACCESS_KEY_LEN_MIN) || (key_len > ACCESS_KEY_LEN_MAX)) {
                 break;
             }
             furi_string_set(context->access_key, access_key);
@@ -323,7 +324,7 @@ void* http_api_root_alloc(void) {
         context->access_mode = access_mode;
         status = json_config_read_str(cfg, "access_key", context->access_key, NULL);
         size_t key_len = furi_string_size(context->access_key);
-        if((status == JsonConfigStatusMissing) || (key_len < 4) ||
+        if((status == JsonConfigStatusMissing) || (key_len < ACCESS_KEY_LEN_MIN) ||
            (key_len > ACCESS_KEY_LEN_MAX)) {
             context->access_mode = ApiAccessDisabled;
         }
