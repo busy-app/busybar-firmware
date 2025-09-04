@@ -5,5 +5,5 @@ App(
     apptype=FlipperAppType.CLICMD,
     entry_point="curl_command",
     stack_size=1024 * 10,
-    sources=["curl.c"],
+    sources=["curl.c", "helpers/curl_client.c"],
 )

@@ -13,7 +13,7 @@ App(
         # "led_indicator",
         "power_test",
         # "wifi_setup",
-        "https_test",
+        # "https_test",
         # "sntp_test",
         "canvas",
         "animation_player",
