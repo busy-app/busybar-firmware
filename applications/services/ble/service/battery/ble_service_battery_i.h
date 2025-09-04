@@ -7,14 +7,14 @@
 
 typedef union FURI_PACKED {
     struct FURI_PACKED {
-        uint8_t battery_present         : 1;
-        uint8_t wired_source_present    : 2;
-        uint8_t wireless_source_present : 2;
-        uint8_t battery_charge_state    : 2;
-        uint8_t battery_charge_level    : 2;
-        uint8_t charging_type           : 3;
-        uint8_t charging_fault_reason   : 3;
-        uint8_t rfu                     : 1;
+        uint16_t battery_present         : 1;
+        uint16_t wired_source_present    : 2;
+        uint16_t wireless_source_present : 2;
+        uint16_t battery_charge_state    : 2;
+        uint16_t battery_charge_level    : 2;
+        uint16_t charging_type           : 3;
+        uint16_t charging_fault_reason   : 3;
+        uint16_t rfu                     : 1;
     } fields;
     uint16_t value;
 } BatteryPowerState;
