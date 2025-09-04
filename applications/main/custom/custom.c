@@ -3,6 +3,25 @@
 
 #define CUSTOM_NAV_BAR_HEIGHT 20
 
+static bool custom_thread_signal_callback(uint32_t signal, void* arg, void* context) {
+    UNUSED(arg);
+
+    CustomApp* instance = context;
+
+    switch(signal) {
+    case FuriSignalExit:
+        furi_event_loop_stop(instance->event_loop);
+        return true;
+
+    case FuriSignalAboutToExit:
+        custom_send_custom_event(instance, CustomCustomEventAboutToExit);
+        return true;
+
+    default:
+        return false;
+    }
+}
+
 static void custom_input_queue_callback(FuriEventLoopObject* object, void* context) {
     furi_assert(context);
 
@@ -66,6 +85,7 @@ static CustomApp* custom_alloc(void) {
     instance->status_lights = furi_record_open(RECORD_STATUS_LIGHTS);
     instance->audio = furi_record_open(RECORD_AUDIO);
     instance->gui = furi_record_open(RECORD_GUI);
+    instance->desktop = furi_record_open(RECORD_DESKTOP);
 
     with_gui(instance->gui, {
         GuiLayer* layer = gui_get_layer(instance->gui, GuiLayerIdMain);
@@ -136,6 +156,7 @@ static void custom_free(CustomApp* instance) {
         flex_layout_free(instance->back_container);
     });
 
+    furi_record_close(RECORD_DESKTOP);
     furi_record_close(RECORD_STATUS_LIGHTS);
     furi_record_close(RECORD_AUDIO);
     furi_record_close(RECORD_GUI);
@@ -153,6 +174,8 @@ int32_t custom_app(void* arg) {
     UNUSED(arg);
 
     CustomApp* instance = custom_alloc();
+    furi_thread_set_signal_callback(
+        furi_thread_get_current(), custom_thread_signal_callback, instance);
     furi_event_loop_run(instance->event_loop);
     custom_free(instance);
 
