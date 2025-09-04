@@ -1,12 +1,12 @@
-#include "busy.h"
-#include "busy_presets.h"
+#include "custom.h"
+#include "custom_presets.h"
 
-#define BUSY_NAV_BAR_HEIGHT 20
+#define CUSTOM_NAV_BAR_HEIGHT 20
 
-static void busy_input_queue_callback(FuriEventLoopObject* object, void* context) {
+static void custom_input_queue_callback(FuriEventLoopObject* object, void* context) {
     furi_assert(context);
 
-    BusyApp* instance = context;
+    CustomApp* instance = context;
     furi_assert(instance->input_queue == object);
 
     InputEvent event;
@@ -22,10 +22,10 @@ static void busy_input_queue_callback(FuriEventLoopObject* object, void* context
     }
 }
 
-static void busy_event_queue_callback(FuriEventLoopObject* object, void* context) {
+static void custom_event_queue_callback(FuriEventLoopObject* object, void* context) {
     furi_assert(context);
 
-    BusyApp* instance = context;
+    CustomApp* instance = context;
     furi_assert(instance->event_queue == object);
 
     uint32_t event;
@@ -34,13 +34,13 @@ static void busy_event_queue_callback(FuriEventLoopObject* object, void* context
     }
 }
 
-static bool busy_gui_input_callback(const InputEvent* event, void* context) {
+static bool custom_gui_input_callback(const InputEvent* event, void* context) {
     furi_assert(event);
     furi_assert(context);
 
     bool consumed = false;
 
-    BusyApp* instance = context;
+    CustomApp* instance = context;
 
     if(event->type == InputTypeShort) {
         if(event->key == InputKeyBack) {
@@ -56,31 +56,20 @@ static bool busy_gui_input_callback(const InputEvent* event, void* context) {
     return consumed;
 }
 
-static BusyApp* busy_alloc(void) {
-    BusyApp* instance = malloc(sizeof(BusyApp));
+static CustomApp* custom_alloc(void) {
+    CustomApp* instance = malloc(sizeof(CustomApp));
 
     instance->event_loop = furi_event_loop_alloc();
     instance->input_queue = furi_message_queue_alloc(8, sizeof(InputEvent));
     instance->event_queue = furi_message_queue_alloc(8, sizeof(uint32_t));
-    instance->scene_manager = scene_manager_alloc(busy_scenes, BusyAppSceneIdMax, instance);
-    instance->busy_timer = busy_timer_alloc();
+    instance->scene_manager = scene_manager_alloc(custom_scenes, CustomAppSceneIdMax, instance);
     instance->status_lights = furi_record_open(RECORD_STATUS_LIGHTS);
     instance->audio = furi_record_open(RECORD_AUDIO);
     instance->gui = furi_record_open(RECORD_GUI);
 
-    if(!busy_settings_load(&instance->settings)) {
-        FURI_LOG_W(TAG, "Loading default settings");
-        // Get default timer config
-        busy_timer_get_config(instance->busy_timer, &instance->settings.timer_config);
-        busy_settings_save(&instance->settings);
-
-    } else {
-        busy_timer_set_config(instance->busy_timer, &instance->settings.timer_config);
-    }
-
     with_gui(instance->gui, {
         GuiLayer* layer = gui_get_layer(instance->gui, GuiLayerIdMain);
-        gui_layer_add_input_callback(layer, busy_gui_input_callback, instance);
+        gui_layer_add_input_callback(layer, custom_gui_input_callback, instance);
 
         // Create application window on Front display
         Widget* front_root = gui_layer_get_root_widget(layer, GuiDisplayIdFront);
@@ -98,9 +87,9 @@ static BusyApp* busy_alloc(void) {
 
         // Create persistent widgets on Back display
         instance->nav_bar = nav_bar_alloc(flex_layout_get_base(instance->back_container));
-        widget_set_height(nav_bar_get_base(instance->nav_bar), BUSY_NAV_BAR_HEIGHT);
+        widget_set_height(nav_bar_get_base(instance->nav_bar), CUSTOM_NAV_BAR_HEIGHT);
         widget_set_padding(nav_bar_get_base(instance->nav_bar), 2, 2, 0, 0);
-        nav_bar_set_header_image(instance->nav_bar, BUSY_IMG_PATH("header_busy_39x16.bin"));
+        nav_bar_set_header_image(instance->nav_bar, CUSTOM_IMG_PATH("header_custom_42x16.bin"));
         flex_layout_set_child_widget_grow(
             instance->back_container, nav_bar_get_base(instance->nav_bar), 0);
 
@@ -115,32 +104,31 @@ static BusyApp* busy_alloc(void) {
         instance->event_loop,
         instance->input_queue,
         FuriEventLoopEventIn,
-        busy_input_queue_callback,
+        custom_input_queue_callback,
         instance);
 
     furi_event_loop_subscribe_message_queue(
         instance->event_loop,
         instance->event_queue,
         FuriEventLoopEventIn,
-        busy_event_queue_callback,
+        custom_event_queue_callback,
         instance);
 
-    busy_set_status_lights(instance, BusyStatusLightsTypeOff);
+    custom_set_status_lights(instance, CustomStatusLightsTypeOff);
 
-    scene_manager_next_scene(instance->scene_manager, BusyAppSceneIdStart);
+    scene_manager_next_scene(instance->scene_manager, CustomAppSceneIdStart);
 
     return instance;
 }
 
-static void busy_free(BusyApp* instance) {
-    busy_set_status_lights(instance, BusyStatusLightsTypeOff);
+static void custom_free(CustomApp* instance) {
+    custom_set_status_lights(instance, CustomStatusLightsTypeOff);
 
     scene_manager_free(instance->scene_manager);
-    busy_timer_free(instance->busy_timer);
 
     with_gui(instance->gui, {
         GuiLayer* layer = gui_get_layer(instance->gui, GuiLayerIdMain);
-        gui_layer_remove_input_callback(layer, busy_gui_input_callback);
+        gui_layer_remove_input_callback(layer, custom_gui_input_callback);
 
         transition_overlay_free(instance->transition_overlay);
 
@@ -161,54 +149,54 @@ static void busy_free(BusyApp* instance) {
     free(instance);
 }
 
-int32_t busy_app(void* arg) {
+int32_t custom_app(void* arg) {
     UNUSED(arg);
 
-    BusyApp* instance = busy_alloc();
+    CustomApp* instance = custom_alloc();
     furi_event_loop_run(instance->event_loop);
-    busy_free(instance);
+    custom_free(instance);
 
     return 0;
 }
 
-void busy_send_custom_event(BusyApp* instance, uint32_t custom_event) {
+void custom_send_custom_event(CustomApp* instance, uint32_t custom_event) {
     furi_assert(instance);
     furi_check(
         furi_message_queue_put(instance->event_queue, &custom_event, FuriWaitForever) ==
         FuriStatusOk);
 }
 
-void busy_prepare_transition(BusyApp* instance, BusyTransitionType type) {
+void custom_prepare_transition(CustomApp* instance, CustomTransitionType type) {
     furi_assert(instance);
-    furi_assert(type < BusyTransitionTypeMax);
+    furi_assert(type < CustomTransitionTypeMax);
 
     with_gui(instance->gui, {
-        transition_overlay_set_preset(instance->transition_overlay, &busy_transitions[type]);
+        transition_overlay_set_preset(instance->transition_overlay, &custom_transitions[type]);
         transition_overlay_show(instance->transition_overlay);
     });
 }
 
-void busy_start_transition(BusyApp* instance) {
+void custom_start_transition(CustomApp* instance) {
     furi_assert(instance);
 
     with_gui(instance->gui, { transition_overlay_start(instance->transition_overlay); });
 }
 
-void busy_set_status_lights(BusyApp* instance, BusyStatusLightsType type) {
+void custom_set_status_lights(CustomApp* instance, CustomStatusLightsType type) {
     furi_assert(instance);
-    furi_assert(type < BusyStatusLightsTypeMax);
+    furi_assert(type < CustomStatusLightsTypeMax);
 
-    status_lights_send_command(instance->status_lights, &busy_status_lights[type]);
+    status_lights_send_command(instance->status_lights, &custom_status_lights[type]);
 }
 
-void busy_push_location(BusyApp* instance, const char* location_name) {
+void custom_push_location(CustomApp* instance, const char* location_name) {
     furi_assert(instance);
     furi_assert(location_name);
 
     with_gui(instance->gui, { nav_bar_push_location(instance->nav_bar, location_name); });
 }
 
-void busy_pop_location(BusyApp* instance) {
+void custom_pop_location(CustomApp* instance) {
     furi_assert(instance);
 
     with_gui(instance->gui, { nav_bar_pop_location(instance->nav_bar); });
