@@ -63,12 +63,13 @@ static AboutApp* about_alloc(void) {
             widget_set_size(window, widget_get_width(root), widget_get_height(root));
 
             Label* label = label_alloc(window);
+            label_set_line_spacing(label, 2);
             label_set_text_fmt(
                 label,
-                "Firmware version:\n%s\n"
-                "Git branch:\n%s\n"
-                "Git commit:\n%s\n"
-                "Build date:\n%s",
+                "Firmware version:\n %s\n"
+                "Git branch:\n %s\n"
+                "Git commit:\n %s\n"
+                "Build date:\n %s",
                 version_get_version(NULL),
                 version_get_gitbranch(NULL),
                 version_get_githash(NULL),
