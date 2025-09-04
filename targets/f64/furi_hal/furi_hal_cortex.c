@@ -43,6 +43,10 @@ void furi_hal_cortex_timer_wait(FuriHalCortexTimer cortex_timer) {
         ;
 }
 
+FURI_NORETURN void furi_hal_cortex_system_reset(void) {
+    NVIC_SystemReset();
+}
+
 void furi_hal_cortex_comp_enable(
     FuriHalCortexComp comp,
     FuriHalCortexCompFunction function,

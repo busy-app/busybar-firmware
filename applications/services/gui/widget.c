@@ -54,9 +54,9 @@ bool widget_is_visible(const Widget* instance) {
     return !lv_obj_has_flag(TO_LV_OBJ(instance), LV_OBJ_FLAG_HIDDEN);
 }
 
-void widget_set_ignore_layout(Widget* instance, bool igonre_layout) {
+void widget_set_ignore_layout(Widget* instance, bool ignore_layout) {
     furi_check(instance);
-    lv_obj_update_flag(TO_LV_OBJ(instance), LV_OBJ_FLAG_IGNORE_LAYOUT, igonre_layout);
+    lv_obj_update_flag(TO_LV_OBJ(instance), LV_OBJ_FLAG_IGNORE_LAYOUT, ignore_layout);
 }
 
 bool widget_does_ignore_layout(const Widget* instance) {

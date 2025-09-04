@@ -97,9 +97,9 @@ bool widget_is_visible(const Widget* instance);
  * @brief Make widget ignore layout (e.g. flex layout).
  *
  * @param[in,out] instance pointer to the Widget instance to be modified
- * @param[in] igonre_layout make the Widget @p instance igonre layout if true, otherwise acknowledge it
+ * @param[in] ignore_layout make the Widget @p instance ignore layout if true, otherwise acknowledge it
  */
-void widget_set_ignore_layout(Widget* instance, bool igonre_layout);
+void widget_set_ignore_layout(Widget* instance, bool ignore_layout);
 
 /**
  * @brief Check if a Widget instance ignores layout.
