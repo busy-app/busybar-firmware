@@ -740,21 +740,10 @@ static FURI_ALWAYS_INLINE osStatus_t osEventFlagsDelete(osEventFlagsId_t ef_id) 
 /// Create and Initialize a Mutex object.
 /// \param[in]     attr          mutex attributes; NULL: default values.
 /// \return mutex ID for reference by other functions or NULL in case of error.
-//osMutexId_t osMutexNew (const osMutexAttr_t *attr);
 static FURI_ALWAYS_INLINE osMutexId_t osMutexNew(const osMutexAttr_t* attr) {
-    UNUSED(attr);
-    //furi_check((attr == NULL), "osMutexNew: attr != NULL Check");
-
-    //if(attr == NULL) {
-        if(attr->attr_bits & osMutexRecursive) {
-            return (osEventFlagsId_t)furi_mutex_alloc(FuriMutexTypeRecursive);
-        }
-
-        return (osEventFlagsId_t)furi_mutex_alloc(FuriMutexTypeNormal);
-       
-    //}
-    //furi_crash("osMutexNew: attr != NULL Check");
-   // return NULL;
+    const uint32_t attr_bits = attr ? attr->attr_bits : 0;
+    const FuriMutexType type = attr_bits & osMutexRecursive ? FuriMutexTypeRecursive : FuriMutexTypeNormal;
+    return (osMutexId_t)furi_mutex_alloc(type);
 }
 
 // /// Get name of a Mutex object.

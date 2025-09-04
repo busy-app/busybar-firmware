@@ -7,7 +7,7 @@
 typedef enum {
     SettingsSceneMainMenuIndexSound,
     SettingsSceneMainMenuIndexBrightness,
-    SettingsSceneMainMenuIndexDebug,
+    SettingsSceneMainMenuIndexDebugApps,
 
     SettingsSceneMainMenuIndexesCount,
 } SettingsSceneMainMenuIndex;
@@ -66,10 +66,10 @@ static void settings_scene_main_on_enter(void* context) {
             instance);
         menu_add_item(
             data->front_menu,
-            "Apps debug",
+            "Debug apps",
             NULL,
             SETTINGS_IMG_PATH("debug_front_7x7.bin"),
-            SettingsSceneMainMenuIndexDebug,
+            SettingsSceneMainMenuIndexDebugApps,
             settings_scene_setup_menu_callback,
             instance);
 
@@ -93,10 +93,10 @@ static void settings_scene_main_on_enter(void* context) {
             instance);
         menu_add_item(
             data->back_menu,
-            "APPS DEBUG",
+            "DEBUG APPS",
             NULL,
             SETTINGS_IMG_PATH("debug_back_12x12.bin"),
-            SettingsSceneMainMenuIndexDebug,
+            SettingsSceneMainMenuIndexDebugApps,
             NULL,
             instance);
 
@@ -132,6 +132,11 @@ static bool settings_scene_main_on_event(const SceneManagerEvent* event, void* c
         case SettingsSceneMainMenuIndexBrightness:
             settings_push_location(instance, "BRIGHTNESS");
             scene_manager_next_scene(instance->scene_manager, SettingsAppSceneIdBrightness);
+            break;
+
+        case SettingsSceneMainMenuIndexDebugApps:
+            settings_push_location(instance, "DEBUG APPS");
+            scene_manager_next_scene(instance->scene_manager, SettingsAppSceneIdDebugApps);
             break;
 
         default:
