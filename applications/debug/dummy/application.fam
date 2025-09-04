@@ -4,6 +4,7 @@ App(
     apptype=FlipperAppType.DEBUG,
     entry_point="dummy_app",
     requires=["gui"],
+    order=200,
     stack_size=2 * 1024,
     targets=["f20", "f21"],
 )

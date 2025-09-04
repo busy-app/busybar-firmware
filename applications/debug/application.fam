@@ -20,6 +20,7 @@ App(
         "wifi_per_test",
         "wifi_adaptive_test",
         "animation_player",
+        "lottie_player",
         "clock",
     ],
     targets=["f20", "f21"],
