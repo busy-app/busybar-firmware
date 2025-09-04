@@ -392,7 +392,7 @@ void desktop_pin_current_app(Desktop* instance, bool pin) {
     instance->pin_current_app = pin;
 }
 
-DesktopSwitchDirection desctop_get_switch_direction(Desktop* instance) {
+DesktopSwitchDirection desktop_get_switch_direction(Desktop* instance) {
     furi_check(instance);
 
     return instance->switch_direction;

@@ -73,4 +73,4 @@ void desktop_pin_current_app(Desktop* instance, bool pin);
  * @returns DesktopSwitchDirectionUp if switch was last moved up,
  *          DesktopSwitchDirectionDown if switch was last moved down
  */
-DesktopSwitchDirection desctop_get_switch_direction(Desktop* instance);
+DesktopSwitchDirection desktop_get_switch_direction(Desktop* instance);
