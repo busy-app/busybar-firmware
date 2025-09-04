@@ -92,6 +92,7 @@ static lv_obj_t* gui_get_layer_root(Gui* instance, GuiDisplayId display_id, GuiL
         furi_crash();
     }
 
+    lv_obj_remove_flag(layer, LV_OBJ_FLAG_SCROLLABLE);
     return layer;
 }
 
