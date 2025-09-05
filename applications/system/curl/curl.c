@@ -24,8 +24,8 @@ void curl_url(PipeSide* pipe, FuriString* url, FuriString* args, void* context) 
         furi_string_set(url, url_temp);
         furi_string_free(url_temp);
     }
-
-    CurlClient* instance = curl_client_alloc(url);
+    FuriString * path = furi_string_alloc_printf("%s", "downloaded_file.bin");
+    CurlClient* instance = curl_client_alloc(url, path);
     curl_client_run(instance);
 
     const char spin[] = "|/-\\";
@@ -48,8 +48,8 @@ void curl_url(PipeSide* pipe, FuriString* url, FuriString* args, void* context) 
     //     printf(ANSI_FG_RED "Request failed\r\n" ANSI_RESET);
     //     printf("%s\r\n", furi_string_get_cstr(instance->response));
     // }
-
     curl_client_free(instance);
+    furi_string_free(path);
 }
 
 static void curl_command_print_usage(void) {
