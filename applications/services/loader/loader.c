@@ -124,9 +124,8 @@ bool loader_get_application_name(Loader* loader, FuriString* name) {
     return result.value;
 }
 
-bool loader_send_custom_signal(Loader* loader, uint32_t signal, void* arg) {
+bool loader_send_signal(Loader* loader, uint32_t signal, void* arg) {
     furi_check(loader);
-    furi_check(signal >= FuriSignalCustom);
 
     LoaderMessageBoolResult result;
 
