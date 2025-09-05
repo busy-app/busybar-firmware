@@ -1,0 +1,9 @@
+App(
+    appid="fetch",
+    name="fetch",
+    targets=["f20", "f21"],
+    apptype=FlipperAppType.CLICMD,
+    entry_point="fetch_command",
+    stack_size=1024 * 2,
+    sources=["fetch.c", "helpers/fetch_client.c"],
+)
