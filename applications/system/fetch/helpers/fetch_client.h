@@ -4,30 +4,14 @@
 
 typedef struct FetchClient FetchClient;
 
-typedef enum {
-    FetchClientEventNone = 0,
-    FetchClientEventRawData,
-    FetchClientEventProgress,
-    FetchClientEventDone,
-} FetchClientEvent;
+typedef void (*FetchClientCallbackRawData)(uint8_t* data, size_t data_size, void* context);
+typedef void (*FetchClientCallbackHeader)(uint8_t* data, size_t data_size, void* context);
+typedef void (*FetchClientCallbackError)(const char* error, void* context);
 
-typedef struct {
-    union {
-        struct {
-            uint8_t* data;
-            size_t size;
-        } raw;
-        struct {
-            size_t total_file_size;
-            size_t received_file_size;
-        } progress;
-    };
-} FetchClientData;
-
-typedef void (*FetchClientCallback)(FetchClientEvent event, FetchClientData* data, void* context);
-
-FetchClient* fetch_client_alloc(FuriString* url, FuriString* file_path);
+FetchClient* fetch_client_alloc(FuriString* url);
 void fetch_client_free(FetchClient* instance);
 void fetch_client_run(FetchClient* instance);
 bool fetch_client_is_done(FetchClient* instance);
-void fetch_client_set_callback(FetchClient* instance, FetchClientCallback callback, void* context);
+void fetch_client_set_callback_raw_data(FetchClient* instance, FetchClientCallbackRawData callback, void* context);
+void fetch_client_set_callback_header(FetchClient* instance, FetchClientCallbackHeader callback, void* context);
+void fetch_client_set_callback_error(FetchClient* instance, FetchClientCallbackError callback, void* context);

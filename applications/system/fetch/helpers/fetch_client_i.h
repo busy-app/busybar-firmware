@@ -12,6 +12,7 @@
 #define FETCH_CLIENT_THREAD_STACK_SIZE (1024 * 10) // 10 KB
 #define MAX_UPLOAD_FILE_SIZE           (40 * 1024 * 1024) // User-set: 40MB
 
+/*
 #define HEADER_CORS_ORIGIN        "Access-Control-Allow-Origin: *\r\n"
 #define HEADER_CORS_METHODS       "Access-Control-Allow-Methods: GET, POST, PUT, DELETE, OPTIONS\r\n"
 #define HEADER_CORS_HEADERS       "Access-Control-Allow-Headers: *\r\n"
@@ -58,7 +59,7 @@
     _MG_REPLY_INTERNAL_ERROR(conn, M_IF_EMPTY(__VA_ARGS__)("failed", (__VA_ARGS__)))
 
 #define IS_HTTP_ENDPOINT(path) furi_string_empty(path)
-
+*/
 typedef union {
     struct {
         union {

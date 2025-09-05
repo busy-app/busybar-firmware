@@ -12,42 +12,38 @@
 #include <network/network.h>
 
 #define TAG "Fetch"
-// static void fetch_client_callback(FetchClientEvent event, FetchClientData* data, void* context) {
-//     FetchClient* instance = context;
-//     furi_assert(instance);
 
-//     switch(event) {
-//     case FetchClientEventRawData:
-//         if(data && data->raw.data && data->raw.size) {
-//             // Process raw data chunk
-//             // For example, print the size of the received chunk
+typedef struct {
+    FuriStreamBuffer* buffer_rx;
+    FetchClient* fetch_client;
+} Fetch;
 
-//             for(size_t i = 0; i < data->raw.size; i++) {
-//                 if(!data->raw.data[i]) {
-//                     printf(" [00] ");
-//                 } else {
-//                     printf("%c", data->raw.data[i]);
-//                 }
-//                 fflush(stdout);
-//             }
-//         }
-//         break;
-//     case FetchClientEventProgress:
-//         if(data) {
-//             printf(
-//                 "Download progress: %zu/%zu bytes\r\n",
-//                 data->progress.received_file_size,
-//                 data->progress.total_file_size);
-//         }
-//         break;
-//     case FetchClientEventDone:
-//         // Handle completion event
-//         printf("Fetch operation completed\r\n");
-//         break;
-//     default:
-//         break;
-//     }
-// }
+static void fetch_client_callback_raw_data(uint8_t* data, size_t data_size, void* context) {
+    furi_assert(context);
+    Fetch* instance = context;
+    furi_assert(instance);
+    furi_stream_buffer_send(instance->buffer_rx, data, data_size, FuriWaitForever);
+}
+
+static void fetch_client_callback_header(uint8_t* data, size_t data_size, void* context) {
+    furi_assert(context);
+    Fetch* instance = context;
+    furi_stream_buffer_send(instance->buffer_rx, data, data_size, FuriWaitForever);
+}
+
+static void fetch_client_callback_error(const char* error, void* context) {
+    furi_assert(context);
+    Fetch* instance = context;
+    furi_assert(instance);
+    FuriString* error_str =
+        furi_string_alloc_printf(ANSI_FG_RED "Error: " ANSI_RESET "%s\r\n", error);
+    furi_stream_buffer_send(
+        instance->buffer_rx,
+        (uint8_t*)furi_string_get_cstr(error_str),
+        furi_string_size(error_str),
+        FuriWaitForever);
+    furi_string_free(error_str);
+}
 
 void fetch_url(PipeSide* pipe, FuriString* url, FuriString* args, void* context) {
     UNUSED(context);
@@ -61,35 +57,62 @@ void fetch_url(PipeSide* pipe, FuriString* url, FuriString* args, void* context)
         furi_string_free(url_temp);
     }
 
-    
     FuriString* path = furi_string_alloc();
     args_read_string_and_trim(args, path);
 
-    FetchClient* instance = fetch_client_alloc(url, path);
-    //fetch_client_set_callback(instance, fetch_client_callback, instance);
-    fetch_client_run(instance);
+    Fetch* instance = malloc(sizeof(Fetch));
+    instance->buffer_rx = furi_stream_buffer_alloc(2048, 1);
 
-    // const char spin[] = "|/-\\";
-    // uint8_t i = 0;
-    while(!fetch_client_is_done(instance)) {
-        // printf("\rWaiting... %c", spin[i]);
-        // fflush(stdout);
-        // i = (i + 1) % 4;
-        // furi_delay_ms(200);
+    instance->fetch_client = fetch_client_alloc(url);
+    fetch_client_set_callback_raw_data(
+        instance->fetch_client, fetch_client_callback_raw_data, instance);
+
+    fetch_client_set_callback_header(
+        instance->fetch_client, fetch_client_callback_header, instance);
+
+    fetch_client_set_callback_error(instance->fetch_client, fetch_client_callback_error, instance);
+
+    fetch_client_run(instance->fetch_client);
+
+    const char spin[] = "|/-\\";
+    uint8_t i = 0;
+    uint8_t flag_waiting = 1;
+    while(!fetch_client_is_done(instance->fetch_client) ||
+          furi_stream_buffer_bytes_available(instance->buffer_rx)) {
+        if(!furi_stream_buffer_bytes_available(instance->buffer_rx) && flag_waiting) {
+            printf("\rWaiting... %c", spin[i]);
+            fflush(stdout);
+            i = (i + 1) % 4;
+            furi_delay_ms(200);
+            continue;
+        }
+
+        if(flag_waiting) {
+            printf("\r                      \r");
+            flag_waiting = 0;
+        }
+
+        furi_delay_ms(200);
+        while(furi_stream_buffer_bytes_available(instance->buffer_rx)) {
+            uint8_t buffer[256];
+            size_t bytes_read =
+                furi_stream_buffer_receive(instance->buffer_rx, buffer, sizeof(buffer), 0);
+            if(bytes_read > 0) {
+                for(size_t i = 0; i < bytes_read; i++) {
+                    if(!buffer[i]) {
+                        printf(" [00] ");
+                    } else {
+                        printf("%c", buffer[i]);
+                    }
+                    fflush(stdout);
+                }
+            }
+        }
     }
-    // printf("\r                      \r");
+    printf("\r\n");
 
-    // if(instance->event == MG_EV_HTTP_MSG) {
-    //     printf(ANSI_FG_GREEN "Request succeeded\r\n" ANSI_RESET);
-    //     printf("%s\r\n", furi_string_get_cstr(instance->response));
-    //     if(instance->data_body && instance->data_body_size) {
-    //         printf("%.*s\r\n", (int)instance->data_body_size, instance->data_body);
-    //     }
-    // } else if(instance->event == MG_EV_ERROR) {
-    //     printf(ANSI_FG_RED "Request failed\r\n" ANSI_RESET);
-    //     printf("%s\r\n", furi_string_get_cstr(instance->response));
-    // }
-    fetch_client_free(instance);
+    fetch_client_free(instance->fetch_client);
+    furi_stream_buffer_free(instance->buffer_rx);
     furi_string_free(path);
 }
 
@@ -101,8 +124,6 @@ static void fetch_command_print_usage(void) {
 
 void fetch_command(PipeSide* pipe, FuriString* args, void* context) {
     FuriString* url = furi_string_alloc();
-    //FuriString* path = furi_string_alloc();
-
     do {
         if(!args_read_string_and_trim(args, url)) {
             fetch_command_print_usage();
@@ -111,7 +132,5 @@ void fetch_command(PipeSide* pipe, FuriString* args, void* context) {
             fetch_url(pipe, url, args, context);
         }
     } while(false);
-
-    //furi_string_free(path);
     furi_string_free(url);
 }
