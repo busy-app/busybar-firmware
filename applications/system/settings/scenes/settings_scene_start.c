@@ -62,7 +62,7 @@ static bool settings_scene_start_input_callback(const InputEvent* event, void* c
     return consumed;
 }
 
-void settings_scene_start_timer_callback(void* context) {
+static void settings_scene_start_timer_callback(void* context) {
     furi_assert(context);
 
     SettingsApp* instance = context;
