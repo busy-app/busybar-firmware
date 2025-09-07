@@ -6,7 +6,7 @@
 
 #define TAG "FetchClient"
 
-#define FETCH_CLIENT_DEBUG
+//#define FETCH_CLIENT_DEBUG
 
 #ifdef FETCH_CLIENT_DEBUG
 #define FETCH_CLIENT_INFO(...)  FURI_LOG_I(__VA_ARGS__)
@@ -23,15 +23,21 @@ struct FetchClient {
     bool done;
     bool is_working;
     FuriString* url;
+    FetchClientStatus status;
 
-    size_t total_file_size; // Expected total size from Content-Length
-    size_t received_file_size; // Bytes received so far
+    uint32_t time_started_raw;
+    uint32_t time_started_download;
+    size_t delta_received_bytes;
+    uint32_t count_receive_packets;
+
     FetchClientCallbackRawData callback_raw_data;
     void* context_raw_data;
     FetchClientCallbackHeader callback_header;
     void* context_header;
     FetchClientCallbackError callback_error;
     void* context_error;
+    FetchClientCallbackStatus callback_status;
+    void* context_status;
 };
 
 static void fetch_client_on_close(struct mg_connection* conn) {
@@ -39,6 +45,14 @@ static void fetch_client_on_close(struct mg_connection* conn) {
     FetchClient* instance = (FetchClient*)conn_ctx->context;
 
     FETCH_CLIENT_INFO(TAG, "on_close");
+
+    instance->status.speed_kbytes_per_sec =
+        (float_t)instance->status.received_download_size / 1024.0f /
+        ((furi_get_tick() - instance->time_started_download + 1) / 1000.0f);
+
+    if(instance->callback_status) {
+        instance->callback_status(instance->status, instance->context_status);
+    }
 
     // Clear callbacks
     conn_ctx->raw.on_data = NULL;
@@ -53,7 +67,7 @@ static void fetch_client_update_on_data_cb(struct mg_connection* conn, struct mg
     size_t data_len = io->len;
 
     // Not downloading, just consume
-    FETCH_CLIENT_INFO(TAG, "on_data: Received %zu bytes", data_len);
+    FURI_LOG_I(TAG, "on_data: Received %zu bytes", data_len);
     // #ifdef FETCH_CLIENT_DEBUG
     //     if(data_len) {
     //         for(size_t i = 0; i < data_len; i++) {
@@ -67,8 +81,26 @@ static void fetch_client_update_on_data_cb(struct mg_connection* conn, struct mg
     //     }
 
     // #endif
+
+    instance->status.received_download_size += data_len;
+    instance->delta_received_bytes += data_len;
+    instance->count_receive_packets++;
+
+    if((instance->count_receive_packets % 12) == 0) {
+        instance->status.speed_kbytes_per_sec =
+            (float_t)instance->delta_received_bytes / 1024.0f /
+            ((furi_get_tick() - instance->time_started_raw + 1) / 1000.0f);
+
+        instance->time_started_raw = furi_get_tick();
+
+        if(instance->callback_status) {
+            instance->callback_status(instance->status, instance->context_status);
+        }
+        instance->delta_received_bytes = 0;
+    }
+
     if(instance->callback_raw_data) {
-        instance->callback_raw_data((uint8_t*)io->buf, data_len, instance->context_raw_data);
+        instance->callback_raw_data((uint8_t*)io->buf, io->len, instance->context_raw_data);
     }
 
     mg_iobuf_del(io, 0, io->len); // Consume all data from buffer
@@ -82,8 +114,10 @@ void fetch_client_switching_to_raw_protocol(
     conn_ctx->context = instance;
 
     FETCH_CLIENT_INFO(TAG, "body size: %d", (int)msg->body.len);
+    instance->time_started_raw = furi_get_tick();
+    instance->time_started_download = instance->time_started_raw;
 
-    if((int)msg->body.len != -1) instance->total_file_size = msg->body.len;
+    if((int)msg->body.len != -1) instance->status.total_download_size = msg->body.len;
 
     // Set up raw data handlers
     conn_ctx->raw.on_data = fetch_client_update_on_data_cb;
@@ -91,6 +125,7 @@ void fetch_client_switching_to_raw_protocol(
 
     // if(instance->is_downloading) {
     mg_iobuf_del(&conn->recv, 0, msg->head.len); // Delete HTTP headers
+
     // }
     conn->pfn = NULL; // Silence HTTP protocol handler, we'll use MG_EV_READ
 }
@@ -232,8 +267,9 @@ FetchClient* fetch_client_alloc(FuriString* url) {
     instance->url = furi_string_alloc_printf("%s", furi_string_get_cstr(url));
 
     instance->done = false;
-    instance->total_file_size = 0;
-    instance->received_file_size = 0;
+    instance->status.total_download_size = 0;
+    instance->status.received_download_size = 0;
+    instance->status.speed_kbytes_per_sec = 0.0f;
 
     instance->is_working = true;
 
@@ -289,4 +325,13 @@ void fetch_client_set_callback_error(
     furi_check(instance);
     instance->callback_error = callback;
     instance->context_error = context;
+}
+
+void fetch_client_set_callback_status(
+    FetchClient* instance,
+    FetchClientCallbackStatus callback,
+    void* context) {
+    furi_check(instance);
+    instance->callback_status = callback;
+    instance->context_status = context;
 }

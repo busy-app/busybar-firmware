@@ -16,22 +16,23 @@
 typedef struct {
     FuriStreamBuffer* buffer_rx;
     FetchClient* fetch_client;
+    FuriMessageQueue* status_queue;
 } Fetch;
 
-static void fetch_client_callback_raw_data(uint8_t* data, size_t data_size, void* context) {
+void fetch_client_callback_raw_data(uint8_t* data, size_t data_size, void* context) {
     furi_assert(context);
     Fetch* instance = context;
     furi_assert(instance);
     furi_stream_buffer_send(instance->buffer_rx, data, data_size, FuriWaitForever);
 }
 
-static void fetch_client_callback_header(uint8_t* data, size_t data_size, void* context) {
+void fetch_client_callback_header(uint8_t* data, size_t data_size, void* context) {
     furi_assert(context);
     Fetch* instance = context;
     furi_stream_buffer_send(instance->buffer_rx, data, data_size, FuriWaitForever);
 }
 
-static void fetch_client_callback_error(const char* error, void* context) {
+void fetch_client_callback_error(const char* error, void* context) {
     furi_assert(context);
     Fetch* instance = context;
     furi_assert(instance);
@@ -43,6 +44,13 @@ static void fetch_client_callback_error(const char* error, void* context) {
         furi_string_size(error_str),
         FuriWaitForever);
     furi_string_free(error_str);
+}
+
+void fetch_client_callback_status(FetchClientStatus status, void* context) {
+    furi_assert(context);
+    Fetch* instance = context;
+    furi_assert(instance);
+    furi_message_queue_put(instance->status_queue, &status, FuriWaitForever);
 }
 
 void fetch_url(PipeSide* pipe, FuriString* url, FuriString* args, void* context) {
@@ -63,27 +71,63 @@ void fetch_url(PipeSide* pipe, FuriString* url, FuriString* args, void* context)
     Fetch* instance = malloc(sizeof(Fetch));
     instance->buffer_rx = furi_stream_buffer_alloc(2048, 1);
 
-    instance->fetch_client = fetch_client_alloc(url);
-    fetch_client_set_callback_raw_data(
-        instance->fetch_client, fetch_client_callback_raw_data, instance);
+    instance->status_queue = furi_message_queue_alloc(10, sizeof(FetchClientStatus));
 
-    fetch_client_set_callback_header(
-        instance->fetch_client, fetch_client_callback_header, instance);
+    instance->fetch_client = fetch_client_alloc(url);
+    // fetch_client_set_callback_raw_data(
+    //     instance->fetch_client, fetch_client_callback_raw_data, instance);
+
+    // fetch_client_set_callback_header(
+    //     instance->fetch_client, fetch_client_callback_header, instance);
 
     fetch_client_set_callback_error(instance->fetch_client, fetch_client_callback_error, instance);
+
+    fetch_client_set_callback_status(
+        instance->fetch_client, fetch_client_callback_status, instance);
 
     fetch_client_run(instance->fetch_client);
 
     const char spin[] = "|/-\\";
     uint8_t i = 0;
     uint8_t flag_waiting = 1;
+    FetchClientStatus status;
+
     while(!fetch_client_is_done(instance->fetch_client) ||
           furi_stream_buffer_bytes_available(instance->buffer_rx)) {
+        if(furi_message_queue_get(instance->status_queue, &status, 200) == FuriStatusOk) {
+            flag_waiting = 0;
+            if(status.total_download_size) {
+                printf(
+                    ANSI_BG_GREEN ANSI_FG_BLACK "\rDownloaded: [%3d%%]" ANSI_RESET " [",
+                    (int)((status.received_download_size * 100) / status.total_download_size));
+                size_t bars = (status.received_download_size * 20) / status.total_download_size;
+                for(size_t i = 0; i < bars; i++) {
+                    printf("=");
+                }
+                for(size_t i = bars; i < 20; i++) {
+                    printf(" ");
+                }
+                printf(
+                    "] %8.2f kB/s, %zukB/%zukB        ",
+                    status.speed_kbytes_per_sec,
+                    status.received_download_size / 1024,
+                    status.total_download_size / 1024);
+                fflush(stdout);
+            } else {
+                printf(
+                    ANSI_BG_GREEN ANSI_FG_BLACK "\rDownloaded:" ANSI_RESET
+                                                "Speed: %8.2f kB/s, Total: %zu kB        ",
+                    status.speed_kbytes_per_sec,
+                    status.received_download_size / 1024);
+                fflush(stdout);
+            }
+            continue;
+        }
+
         if(!furi_stream_buffer_bytes_available(instance->buffer_rx) && flag_waiting) {
             printf("\rWaiting... %c", spin[i]);
             fflush(stdout);
             i = (i + 1) % 4;
-            furi_delay_ms(200);
             continue;
         }
 
@@ -92,7 +136,6 @@ void fetch_url(PipeSide* pipe, FuriString* url, FuriString* args, void* context)
             flag_waiting = 0;
         }
 
-        furi_delay_ms(200);
         while(furi_stream_buffer_bytes_available(instance->buffer_rx)) {
             uint8_t buffer[256];
             size_t bytes_read =
@@ -113,6 +156,7 @@ void fetch_url(PipeSide* pipe, FuriString* url, FuriString* args, void* context)
 
     fetch_client_free(instance->fetch_client);
     furi_stream_buffer_free(instance->buffer_rx);
+    furi_message_queue_free(instance->status_queue);
     furi_string_free(path);
 }
 
