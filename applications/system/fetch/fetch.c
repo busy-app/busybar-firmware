@@ -1,5 +1,6 @@
 #include "fetch.h"
 #include "helpers/fetch_client.h"
+#include "helpers/fetch_file_save.h"
 
 #include <furi.h>
 #include <cli/args.h>
@@ -17,22 +18,35 @@ typedef struct {
     FuriStreamBuffer* buffer_rx;
     FetchClient* fetch_client;
     FuriMessageQueue* status_queue;
+    FetchFileSave* file_save;
+    bool error;
 } Fetch;
 
-void fetch_client_callback_raw_data(uint8_t* data, size_t data_size, void* context) {
+static void fetch_client_callback_raw_data(uint8_t* data, size_t data_size, void* context) {
     furi_assert(context);
     Fetch* instance = context;
     furi_assert(instance);
     furi_stream_buffer_send(instance->buffer_rx, data, data_size, FuriWaitForever);
 }
 
-void fetch_client_callback_header(uint8_t* data, size_t data_size, void* context) {
+static void fetch_client_callback_file_write_data(uint8_t* data, size_t data_size, void* context) {
+    furi_assert(context);
+    Fetch* instance = context;
+    furi_assert(instance->file_save);
+    if(data_size > 0) {
+        fetch_file_save_write(instance->file_save, data, data_size);
+    } else {
+        FURI_LOG_W(TAG, "No data received for file write");
+    }
+}
+
+static void fetch_client_callback_header(uint8_t* data, size_t data_size, void* context) {
     furi_assert(context);
     Fetch* instance = context;
     furi_stream_buffer_send(instance->buffer_rx, data, data_size, FuriWaitForever);
 }
 
-void fetch_client_callback_error(const char* error, void* context) {
+static void fetch_client_callback_error(const char* error, void* context) {
     furi_assert(context);
     Fetch* instance = context;
     furi_assert(instance);
@@ -44,6 +58,7 @@ void fetch_client_callback_error(const char* error, void* context) {
         furi_string_size(error_str),
         FuriWaitForever);
     furi_string_free(error_str);
+    instance->error = true;
 }
 
 void fetch_client_callback_status(FetchClientStatus status, void* context) {
@@ -74,16 +89,35 @@ void fetch_url(PipeSide* pipe, FuriString* url, FuriString* args, void* context)
     instance->status_queue = furi_message_queue_alloc(10, sizeof(FetchClientStatus));
 
     instance->fetch_client = fetch_client_alloc(url);
-    // fetch_client_set_callback_raw_data(
-    //     instance->fetch_client, fetch_client_callback_raw_data, instance);
 
-    // fetch_client_set_callback_header(
-    //     instance->fetch_client, fetch_client_callback_header, instance);
+    if(furi_string_size(path)) {
+        instance->file_save = fetch_file_save_alloc(path);
+        if(!instance->file_save) {
+            printf(
+                ANSI_FG_RED "Error: Failed to open file %s\r\n" ANSI_RESET,
+                furi_string_get_cstr(path));
+            fetch_client_free(instance->fetch_client);
+            furi_stream_buffer_free(instance->buffer_rx);
+            furi_message_queue_free(instance->status_queue);
+            furi_string_free(path);
+            free(instance);
+            return;
+        }
+
+        fetch_client_set_callback_raw_data(
+            instance->fetch_client, fetch_client_callback_file_write_data, instance);
+
+        fetch_client_set_callback_status(
+            instance->fetch_client, fetch_client_callback_status, instance);
+
+    } else {
+        fetch_client_set_callback_raw_data(
+            instance->fetch_client, fetch_client_callback_raw_data, instance);
+        fetch_client_set_callback_header(
+            instance->fetch_client, fetch_client_callback_header, instance);
+    }
 
     fetch_client_set_callback_error(instance->fetch_client, fetch_client_callback_error, instance);
-
-    fetch_client_set_callback_status(
-        instance->fetch_client, fetch_client_callback_status, instance);
 
     fetch_client_run(instance->fetch_client);
 
@@ -153,6 +187,22 @@ void fetch_url(PipeSide* pipe, FuriString* url, FuriString* args, void* context)
         }
     }
     printf("\r\n");
+
+    // If saving to file, close and report
+    if(instance->file_save) {
+        if(!instance->error) {
+            printf(
+                ANSI_FG_GREEN "File successfully saved to %s\r\n" ANSI_RESET,
+                furi_string_get_cstr(path));
+        } else {
+            fetch_file_save_remove(instance->file_save);
+            printf(
+                ANSI_FG_RED "Error: Failed to save file to %s\r\n" ANSI_RESET,
+                furi_string_get_cstr(path));
+        }
+        fetch_file_save_free(instance->file_save);
+        instance->file_save = NULL;
+    }
 
     fetch_client_free(instance->fetch_client);
     furi_stream_buffer_free(instance->buffer_rx);

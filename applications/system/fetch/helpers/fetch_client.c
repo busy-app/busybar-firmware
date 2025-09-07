@@ -123,10 +123,7 @@ void fetch_client_switching_to_raw_protocol(
     conn_ctx->raw.on_data = fetch_client_update_on_data_cb;
     conn_ctx->on_close = fetch_client_on_close;
 
-    // if(instance->is_downloading) {
     mg_iobuf_del(&conn->recv, 0, msg->head.len); // Delete HTTP headers
-
-    // }
     conn->pfn = NULL; // Silence HTTP protocol handler, we'll use MG_EV_READ
 }
 
