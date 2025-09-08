@@ -123,18 +123,18 @@
 #define MBEDTLS_SHA384_C
 #define MBEDTLS_SHA512_C
 
-//Проверка имени хоста (Hostname verification)
+//Hostname verification
 #define MBEDTLS_X509_CHECK_HOSTNAME
-//Проверка расширений сертификата
+//Certificate extension checks
 #define MBEDTLS_X509_CHECK_EXTENDED_KEY_USAGE
 #define MBEDTLS_X509_CHECK_KEY_USAGE
-//Полная поддержка PK
+//Full PK support
 #define MBEDTLS_PK_WRITE_C
 #define MBEDTLS_PK_PARSE_C
-//Дополнительные опции верификации
-#define MBEDTLS_X509_CRL_PARSE_C    // Для проверки списков отозванных сертификатов
-#define MBEDTLS_X509_CSR_PARSE_C    // Для анализа запросов на сертификаты
-//Bключение SNI (Server Name Indication)
+//Additional verification options
+#define MBEDTLS_X509_CRL_PARSE_C // For checking certificate revocation lists
+#define MBEDTLS_X509_CSR_PARSE_C // For parsing certificate requests
+//Enable SNI (Server Name Indication)
 #define MBEDTLS_SSL_SERVER_NAME_INDICATION
 
 #define MBEDTLS_ERROR_C
