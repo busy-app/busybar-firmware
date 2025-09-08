@@ -31,13 +31,10 @@ struct FetchClient {
     uint32_t count_receive_packets;
 
     FetchClientCallbackRawData callback_raw_data;
-    void* context_raw_data;
     FetchClientCallbackHeader callback_header;
-    void* context_header;
     FetchClientCallbackError callback_error;
-    void* context_error;
     FetchClientCallbackStatus callback_status;
-    void* context_status;
+    void* context;
 };
 
 static void fetch_client_on_close(struct mg_connection* conn) {
@@ -51,7 +48,7 @@ static void fetch_client_on_close(struct mg_connection* conn) {
         ((furi_get_tick() - instance->time_started_download + 1) / 1000.0f);
 
     if(instance->callback_status) {
-        instance->callback_status(instance->status, instance->context_status);
+        instance->callback_status(instance->status, instance->context);
     }
 
     // Clear callbacks
@@ -94,13 +91,13 @@ static void fetch_client_update_on_data_cb(struct mg_connection* conn, struct mg
         instance->time_started_raw = furi_get_tick();
 
         if(instance->callback_status) {
-            instance->callback_status(instance->status, instance->context_status);
+            instance->callback_status(instance->status, instance->context);
         }
         instance->delta_received_bytes = 0;
     }
 
     if(instance->callback_raw_data) {
-        instance->callback_raw_data((uint8_t*)io->buf, io->len, instance->context_raw_data);
+        instance->callback_raw_data((uint8_t*)io->buf, io->len, instance->context);
     }
 
     mg_iobuf_del(io, 0, io->len); // Consume all data from buffer
@@ -177,8 +174,7 @@ static void fetch_client_mg_handler(struct mg_connection* conn, int event, void*
         furi_string_free(path);
 
         if(instance->callback_header) {
-            instance->callback_header(
-                (uint8_t*)msg->head.buf, msg->head.len, instance->context_header);
+            instance->callback_header((uint8_t*)msg->head.buf, msg->head.len, instance->context);
         }
 
         fetch_client_switching_to_raw_protocol(conn, msg);
@@ -205,7 +201,7 @@ static void fetch_client_mg_handler(struct mg_connection* conn, int event, void*
         FETCH_CLIENT_ERROR(TAG, "Error occurred: %s", (char*)ev_data);
 
         if(instance->callback_error) {
-            instance->callback_error((const char*)ev_data, instance->context_error);
+            instance->callback_error((const char*)ev_data, instance->context);
         }
 
         instance->done = true;
@@ -297,38 +293,27 @@ bool fetch_client_is_done(FetchClient* instance) {
     return !instance->is_working;
 }
 
-void fetch_client_set_callback_raw_data(
-    FetchClient* instance,
-    FetchClientCallbackRawData callback,
-    void* context) {
+void fetch_client_set_context(FetchClient* instance, void* context) {
+    furi_check(instance);
+    instance->context = context;
+}
+
+void fetch_client_set_callback_raw_data(FetchClient* instance, FetchClientCallbackRawData callback) {
     furi_check(instance);
     instance->callback_raw_data = callback;
-    instance->context_raw_data = context;
 }
 
-void fetch_client_set_callback_header(
-    FetchClient* instance,
-    FetchClientCallbackHeader callback,
-    void* context) {
+void fetch_client_set_callback_header(FetchClient* instance, FetchClientCallbackHeader callback) {
     furi_check(instance);
     instance->callback_header = callback;
-    instance->context_header = context;
 }
 
-void fetch_client_set_callback_error(
-    FetchClient* instance,
-    FetchClientCallbackError callback,
-    void* context) {
+void fetch_client_set_callback_error(FetchClient* instance, FetchClientCallbackError callback) {
     furi_check(instance);
     instance->callback_error = callback;
-    instance->context_error = context;
 }
 
-void fetch_client_set_callback_status(
-    FetchClient* instance,
-    FetchClientCallbackStatus callback,
-    void* context) {
+void fetch_client_set_callback_status(FetchClient* instance, FetchClientCallbackStatus callback) {
     furi_check(instance);
     instance->callback_status = callback;
-    instance->context_status = context;
 }

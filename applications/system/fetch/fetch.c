@@ -84,11 +84,12 @@ void fetch_url(PipeSide* pipe, FuriString* url, FuriString* args, void* context)
     args_read_string_and_trim(args, path);
 
     Fetch* instance = malloc(sizeof(Fetch));
-    instance->buffer_rx = furi_stream_buffer_alloc(2048, 1);
+    instance->buffer_rx = furi_stream_buffer_alloc(1024 * 4, 1);
 
     instance->status_queue = furi_message_queue_alloc(10, sizeof(FetchClientStatus));
 
     instance->fetch_client = fetch_client_alloc(url);
+    fetch_client_set_context(instance->fetch_client, instance);
 
     if(furi_string_size(path)) {
         instance->file_save = fetch_file_save_alloc(path);
@@ -105,19 +106,16 @@ void fetch_url(PipeSide* pipe, FuriString* url, FuriString* args, void* context)
         }
 
         fetch_client_set_callback_raw_data(
-            instance->fetch_client, fetch_client_callback_file_write_data, instance);
+            instance->fetch_client, fetch_client_callback_file_write_data);
 
-        fetch_client_set_callback_status(
-            instance->fetch_client, fetch_client_callback_status, instance);
+        fetch_client_set_callback_status(instance->fetch_client, fetch_client_callback_status);
 
     } else {
-        fetch_client_set_callback_raw_data(
-            instance->fetch_client, fetch_client_callback_raw_data, instance);
-        fetch_client_set_callback_header(
-            instance->fetch_client, fetch_client_callback_header, instance);
+        fetch_client_set_callback_raw_data(instance->fetch_client, fetch_client_callback_raw_data);
+        fetch_client_set_callback_header(instance->fetch_client, fetch_client_callback_header);
     }
 
-    fetch_client_set_callback_error(instance->fetch_client, fetch_client_callback_error, instance);
+    fetch_client_set_callback_error(instance->fetch_client, fetch_client_callback_error);
 
     fetch_client_run(instance->fetch_client);
 
@@ -131,6 +129,12 @@ void fetch_url(PipeSide* pipe, FuriString* url, FuriString* args, void* context)
         if(furi_message_queue_get(instance->status_queue, &status, 200) == FuriStatusOk) {
             flag_waiting = 0;
             if(status.total_download_size) {
+                char* dimension = "B";
+                if(status.total_download_size > 2048) {
+                    status.received_download_size /= 1024;
+                    status.total_download_size /= 1024;
+                    dimension = "kB";
+                }
                 printf(
                     ANSI_BG_GREEN ANSI_FG_BLACK "\rDownloaded: [%3d%%]" ANSI_RESET " [",
                     (int)((status.received_download_size * 100) / status.total_download_size));
@@ -142,15 +146,17 @@ void fetch_url(PipeSide* pipe, FuriString* url, FuriString* args, void* context)
                     printf(" ");
                 }
                 printf(
-                    "] %8.2f kB/s, %zukB/%zukB        ",
+                    "] %8.2f kB/s, %zu%s/%zu%s        ",
                     status.speed_kbytes_per_sec,
-                    status.received_download_size / 1024,
-                    status.total_download_size / 1024);
+                    status.received_download_size,
+                    dimension,
+                    status.total_download_size,
+                    dimension);
                 fflush(stdout);
             } else {
                 printf(
-                    ANSI_BG_GREEN ANSI_FG_BLACK "\rDownloaded:" ANSI_RESET
-                                                "Speed: %8.2f kB/s, Total: %zu kB        ",
+                    ANSI_BG_GREEN ANSI_FG_BLACK "\rDownloaded: " ANSI_RESET
+                                                "%8.2fkB/s, Total: %zukB        ",
                     status.speed_kbytes_per_sec,
                     status.received_download_size / 1024);
                 fflush(stdout);
@@ -176,8 +182,8 @@ void fetch_url(PipeSide* pipe, FuriString* url, FuriString* args, void* context)
                 furi_stream_buffer_receive(instance->buffer_rx, buffer, sizeof(buffer), 0);
             if(bytes_read > 0) {
                 for(size_t i = 0; i < bytes_read; i++) {
-                    if(!buffer[i]) {
-                        printf(" [00] ");
+                    if(buffer[i] < 0x10 && (buffer[i] != '\r') && (buffer[i] != '\n')) {
+                        printf(" [%02x] ", buffer[i]);
                     } else {
                         printf("%c", buffer[i]);
                     }

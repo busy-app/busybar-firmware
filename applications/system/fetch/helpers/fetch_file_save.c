@@ -4,8 +4,8 @@
 
 struct FetchFileSave {
     Storage* storage;
-    File* temp_file_handle; // File handle for the temp file being written
-    FuriString* file_path; // Path to the temporary file being saved
+    File* file_handle;
+    FuriString* file_path;
 };
 
 #define TAG "FetchFileSave"
@@ -18,10 +18,8 @@ FetchFileSave* fetch_file_save_alloc(FuriString* file_path) {
     bool ret = false;
 
     instance->storage = furi_record_open(RECORD_STORAGE);
-    // instance->file_path = furi_string_alloc_printf(
-    //     "%s/%s", STORAGE_EXT_PATH_PREFIX, furi_string_get_cstr(file_path));
     instance->file_path = furi_string_alloc_printf("%s", furi_string_get_cstr(file_path));
-    instance->temp_file_handle = storage_file_alloc(instance->storage);
+    instance->file_handle = storage_file_alloc(instance->storage);
 
     FuriString* path = furi_string_alloc();
 
@@ -54,7 +52,7 @@ FetchFileSave* fetch_file_save_alloc(FuriString* file_path) {
 
         // Create and open file for writing
         if(!storage_file_open(
-               instance->temp_file_handle,
+               instance->file_handle,
                furi_string_get_cstr(instance->file_path),
                FSAM_WRITE,
                FSOM_CREATE_ALWAYS)) {
@@ -81,10 +79,10 @@ void fetch_file_save_free(FetchFileSave* instance) {
     furi_check(instance->storage);
     furi_check(instance->file_path);
 
-    if(storage_file_is_open(instance->temp_file_handle)) {
-        storage_file_close(instance->temp_file_handle);
+    if(storage_file_is_open(instance->file_handle)) {
+        storage_file_close(instance->file_handle);
     }
-    storage_file_free(instance->temp_file_handle);
+    storage_file_free(instance->file_handle);
 
     furi_string_free(instance->file_path);
     furi_record_close(RECORD_STORAGE);
@@ -97,12 +95,12 @@ bool fetch_file_save_write(FetchFileSave* instance, uint8_t* data, size_t size) 
     furi_check(data);
     furi_check(size > 0);
 
-    if(!storage_file_is_open(instance->temp_file_handle)) {
+    if(!storage_file_is_open(instance->file_handle)) {
         FURI_LOG_E(TAG, "File is not open for writing");
         return false;
     }
 
-    size_t written = storage_file_write(instance->temp_file_handle, data, size);
+    size_t written = storage_file_write(instance->file_handle, data, size);
     if(written != size) {
         FURI_LOG_E(TAG, "Failed to write all data to file. Wrote %zu of %zu", written, size);
         return false;
@@ -116,8 +114,8 @@ void fetch_file_save_remove(FetchFileSave* instance) {
     furi_check(instance->storage);
     furi_check(instance->file_path);
 
-    if(storage_file_is_open(instance->temp_file_handle)) {
-        storage_file_close(instance->temp_file_handle);
+    if(storage_file_is_open(instance->file_handle)) {
+        storage_file_close(instance->file_handle);
     }
 
     if(storage_file_exists(instance->storage, furi_string_get_cstr(instance->file_path))) {
