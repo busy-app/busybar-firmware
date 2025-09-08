@@ -61,26 +61,11 @@ static void fetch_client_update_on_data_cb(struct mg_connection* conn, struct mg
     ConnectionContext* conn_ctx = (ConnectionContext*)conn->data;
     FetchClient* instance = (FetchClient*)conn_ctx->context;
     furi_assert(instance);
-    size_t data_len = io->len;
 
-    // Not downloading, just consume
-    FURI_LOG_I(TAG, "on_data: Received %zu bytes", data_len);
-    // #ifdef FETCH_CLIENT_DEBUG
-    //     if(data_len) {
-    //         for(size_t i = 0; i < data_len; i++) {
-    //             if(!io->buf[i]) {
-    //                 FURI_LOG_RAW_I(" [00] ");
-    //             } else {
-    //                 FURI_LOG_RAW_I("%c", io->buf[i]);
-    //             }
-    //         }
-    //         FURI_LOG_RAW_I("\r\n");
-    //     }
+    FETCH_CLIENT_INFO(TAG, "on_data: Received %zu bytes", io->len);
 
-    // #endif
-
-    instance->status.received_download_size += data_len;
-    instance->delta_received_bytes += data_len;
+    instance->status.received_download_size += io->len;
+    instance->delta_received_bytes += io->len;
     instance->count_receive_packets++;
 
     if((instance->count_receive_packets % 12) == 0) {
@@ -140,7 +125,7 @@ static void fetch_client_mg_handler(struct mg_connection* conn, int event, void*
 
         mg_printf(
             conn,
-            "GET %s HTTP/1.0\r\nHost: %.*s\r\nUser-Agent: %s\r\n\r\n",
+            "GET %s HTTP/1.0\r\nHost: %.*s\r\nUser-Agent: %s\r\nAccept: */*\r\n\r\n",
             mg_url_uri(furi_string_get_cstr(instance->url)),
             name.len,
             name.buf,
@@ -155,11 +140,7 @@ static void fetch_client_mg_handler(struct mg_connection* conn, int event, void*
             FETCH_CLIENT_INFO(TAG, "Data received: %.*s", (int)msg->message.len, msg->message.buf);
             FETCH_CLIENT_INFO(TAG, "path: %s", furi_string_get_cstr(path));
 
-            //bool result = http_handle_request(path, context->handlers, conn, msg);
             furi_string_free(path);
-            // if(!result) {
-            //     MG_REPLY_BAD_REQUEST(conn);
-            // }
         }
 
         conn->is_draining = 1;
@@ -168,7 +149,7 @@ static void fetch_client_mg_handler(struct mg_connection* conn, int event, void*
     } else if(event == MG_EV_HTTP_HDRS) {
         struct mg_http_message* msg = (struct mg_http_message*)ev_data;
         FuriString* path = furi_string_alloc_printf("%.*s", msg->uri.len, msg->uri.buf);
-        //http_handle_headers(path, context->handlers, conn, msg);
+
         FETCH_CLIENT_INFO(TAG, "Headers received: %.*s", (int)msg->message.len, msg->message.buf);
         FETCH_CLIENT_INFO(TAG, "path: %s", furi_string_get_cstr(path));
         furi_string_free(path);
@@ -228,8 +209,6 @@ static int32_t fetch_client_thread_callback(void* context) {
     FetchClient* instance = context;
     FETCH_CLIENT_INFO(TAG, "Start");
 
-    uint32_t start_time = furi_get_tick();
-
     instance->network = furi_record_open(RECORD_NETWORK);
     network_init_current_thread(instance->network);
 #ifdef FETCH_CLIENT_DEBUG
@@ -247,8 +226,6 @@ static int32_t fetch_client_thread_callback(void* context) {
 
     network_deinit_current_thread(instance->network);
     furi_record_close(RECORD_NETWORK);
-
-    FURI_LOG_I(TAG, "Thread duration: %lu ms", furi_get_tick() - start_time);
 
     FETCH_CLIENT_INFO(TAG, "Stopping thread");
 
