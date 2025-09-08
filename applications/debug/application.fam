@@ -3,6 +3,7 @@ App(
     name="Not meant for release firmware",
     apptype=FlipperAppType.METAPACKAGE,
     provides=[
+        "about",
         "storage_benchmark",
         # "crash_test",
         "light_sensor_test",
