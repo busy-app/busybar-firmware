@@ -138,7 +138,7 @@ static void fetch_client_mg_handler(struct mg_connection* conn, int event, void*
             FuriString* path = furi_string_alloc_printf("%.*s", msg->uri.len, msg->uri.buf);
 
             FETCH_CLIENT_INFO(TAG, "Data received: %.*s", (int)msg->message.len, msg->message.buf);
-            FETCH_CLIENT_INFO(TAG, "path: %s", furi_string_get_cstr(path));
+            FETCH_CLIENT_INFO(TAG, "Path: %s", furi_string_get_cstr(path));
 
             furi_string_free(path);
         }
@@ -151,7 +151,7 @@ static void fetch_client_mg_handler(struct mg_connection* conn, int event, void*
         FuriString* path = furi_string_alloc_printf("%.*s", msg->uri.len, msg->uri.buf);
 
         FETCH_CLIENT_INFO(TAG, "Headers received: %.*s", (int)msg->message.len, msg->message.buf);
-        FETCH_CLIENT_INFO(TAG, "path: %s", furi_string_get_cstr(path));
+        FETCH_CLIENT_INFO(TAG, "Path: %s", furi_string_get_cstr(path));
         furi_string_free(path);
 
         if(instance->callback_header) {
