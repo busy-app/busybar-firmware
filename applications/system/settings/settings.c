@@ -164,9 +164,10 @@ int32_t settings_app(void* arg) {
     UNUSED(arg);
 
     SettingsApp* instance = settings_alloc();
-    furi_thread_set_signal_callback(
-        furi_thread_get_current(), settings_thread_signal_callback, instance);
+    FuriThread* thread = furi_thread_get_current();
+    furi_thread_set_signal_callback(thread, settings_thread_signal_callback, instance);
     furi_event_loop_run(instance->event_loop);
+    furi_thread_set_signal_callback(thread, NULL, NULL);
     settings_free(instance);
 
     return 0;

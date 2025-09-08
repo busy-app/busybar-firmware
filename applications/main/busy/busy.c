@@ -184,9 +184,10 @@ int32_t busy_app(void* arg) {
     UNUSED(arg);
 
     BusyApp* instance = busy_alloc();
-    furi_thread_set_signal_callback(
-        furi_thread_get_current(), busy_thread_signal_callback, instance);
+    FuriThread* thread = furi_thread_get_current();
+    furi_thread_set_signal_callback(thread, busy_thread_signal_callback, instance);
     furi_event_loop_run(instance->event_loop);
+    furi_thread_set_signal_callback(thread, NULL, NULL);
     busy_free(instance);
 
     return 0;
