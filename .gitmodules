@@ -53,3 +53,6 @@
 [submodule "lib/thorvg"]
 	path = lib/thorvg
 	url = https://github.com/thorvg/thorvg.git
+[submodule "lib/matter_zap"]
+	path = lib/matter_zap
+	url = https://github.com/flipperdevices/bsb-matter-zap.git

@@ -21,6 +21,11 @@ const BleAdvertiseConfig advertise_config = {
             .header = {.type = 0xFF, .length = 3},
             .data = 0x0E29,
         },
+    .service_class =
+        {
+            .header = {.type = 0x02, .length = 3},
+            .data = 0x308A,
+        },
 };
 
 static_assert(sizeof(advertise_config) <= BLE_ADVERTISE_PACKET_MAX_SIZE);

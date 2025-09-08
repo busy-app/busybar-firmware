@@ -1,0 +1,63 @@
+name: 'Updater tests'
+
+on:
+  workflow_call:
+    inputs:
+      branch_name:
+        required: true
+        type: string
+      commit_sha:
+        required: true
+        type: string
+      update_url:
+        required: false
+        type: string
+      default_target:
+        required: false
+        type: string
+        default: '21'
+
+jobs:
+  run_units_on_bench:
+    runs-on: BusyBarTest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
+          ref: ${{ inputs.commit_sha }}
+
+      - name: 'Update submodules'
+        run: |
+          git submodule update --init --recursive --jobs=$(nproc) scripts/toolchain fbt_layers/fbtng
+
+      - name: 'Download update package'
+        run: |
+          echo "Using URL: $URL"
+          URL="https://update.flipperzero.one/builds/busybar-firmware/${{ inputs.update_url }}"
+          curl --fail -L -o busybar-f${{ inputs.default_target }}-update.tar "$URL"
+          mkdir -p update_bundle
+          tar -xf busybar-f${{ inputs.default_target }}-update.tar -C update_bundle
+
+      - name: 'Flash firmware'
+        id: flashing
+        timeout-minutes: 20
+        run: |
+          set -euo pipefail
+          source scripts/toolchain/fbtenv.sh
+          python3 scripts/storage.py -p 10.0.4.20 send update_bundle /ext/tmp/upd_bundle
+          expect -c 'spawn telnet 10.0.4.20 23; expect ">:"; send "update install /ext/tmp/upd_bundle/update.json\r\r"; interact'
+          sleep 1
+          python3 scripts/testops.py wait -t 240
+
+      - name: 'Update to the firmware from PR'
+        id: updating
+        if: steps.flashing.outcome == 'success'
+        timeout-minutes: 20
+        run: |
+          set -euo pipefail
+          source scripts/toolchain/fbtenv.sh
+          python3 scripts/storage.py -p 10.0.4.20 send update_bundle /ext/tmp/upd_bundle
+          expect -c 'spawn telnet 10.0.4.20 23; expect ">:"; send "update install /ext/tmp/upd_bundle/update.json\r\r"; interact'
+          sleep 1
+          python3 scripts/testops.py wait -t 240

@@ -27,6 +27,7 @@ App(
         "back_display",
         "usb_srv",
         "web_server",
+        "mqtt_client",
         "power_srv",
         "intercom",
         "wifi",
@@ -36,6 +37,7 @@ App(
         "supervisor",
         "ble",
         "network",
+        "sntp",
     ],
     targets=["f20", "f21"],
 )
@@ -47,7 +49,9 @@ App(
     provides=[
         "cli",
         "input",
+        "network",
         "wifi",
+        "matter",
     ],
     targets=["f64"],
 )

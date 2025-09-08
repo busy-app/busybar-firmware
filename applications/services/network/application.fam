@@ -2,5 +2,4 @@ App(
     appid="network",
     apptype=FlipperAppType.STARTUP,
     entry_point="network_on_system_start",
-    targets=["f20", "f21"],
 )

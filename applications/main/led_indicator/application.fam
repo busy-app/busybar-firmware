@@ -1,9 +1,0 @@
-App(
-    appid="led_indicator",
-    name="LED indicator",
-    apptype=FlipperAppType.APP,
-    entry_point="led_indicator_test",
-    stack_size=1024 * 4,
-    order=60,
-    targets=["f20", "f21"],
-)

@@ -20,18 +20,23 @@ static void api_assets_upload_data_callback(struct mg_connection* conn, struct m
 
     bool do_close_file = false;
 
+    if(upload_ctx->file == NULL) {
+        return;
+    }
+
     if((data->len > 0) && (upload_ctx->file)) {
         // Write file chunk
-        if(http_fs_get()->wr(upload_ctx->file, data->buf, data->len) != data->len) {
+        size_t write_len = MIN(data->len, upload_ctx->len_remain);
+        if(http_fs_get()->wr(upload_ctx->file, data->buf, write_len) != write_len) {
             FURI_LOG_E(TAG, "Failed to write file chunk");
             MG_REPLY_INTERNAL_ERROR(conn, "Failed to write file chunk");
             do_close_file = true;
         } else {
-            upload_ctx->len_remain -= data->len;
+            upload_ctx->len_remain -= write_len;
             FURI_LOG_T(
                 TAG,
                 "Wrote %zu bytes to file, remaining %zu bytes",
-                data->len,
+                write_len,
                 upload_ctx->len_remain);
         }
     }

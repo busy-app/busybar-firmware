@@ -4,7 +4,7 @@ App(
     apptype=FlipperAppType.SERVICE,
     entry_point="wifi_srv",
     stack_size=4 * 1024,
-    order=100,
+    order=110,
     targets=["f20", "f21"],
     requires=["intercom"],
     sources=[
@@ -21,7 +21,7 @@ App(
     apptype=FlipperAppType.SERVICE,
     entry_point="wifi_srv",
     stack_size=4 * 1024,
-    order=100,
+    order=110,
     targets=["f64"],
     requires=["intercom"],
     sources=[
