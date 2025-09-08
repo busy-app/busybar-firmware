@@ -112,7 +112,7 @@ jobs:
 
       - name: Load cached venv
         id: cached-poetry-dependencies
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: .venv
           key: venv-${{ runner.os }}-${{ matrix.python-version }}-${{ hashFiles('**/poetry.lock') }}
@@ -159,7 +159,7 @@ jobs:
           ALLURE_TESTOPS_TOKEN: ${{ secrets.ALLURE_TESTOPS_TOKEN }}
 
       - name: Upload test results as artifacts
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: test-results-${{ matrix.test-suite }}-${{ github.run_number }}
           path: |
@@ -176,7 +176,7 @@ jobs:
 
       - name: Upload Allure report as artifact
         if: always()
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: allure-report-${{ matrix.test-suite }}-${{ github.run_number }}
           path: allure-report/
@@ -192,7 +192,7 @@ jobs:
 
     steps:
     - name: Download test results
-      uses: actions/download-artifact@v3
+      uses: actions/download-artifact@v4
       with:
         pattern: test-results-*-${{ github.run_number }}
         merge-multiple: true
