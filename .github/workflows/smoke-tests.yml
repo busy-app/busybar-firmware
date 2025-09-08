@@ -44,13 +44,12 @@ on:
   schedule:
     - cron: '0 2 * * *'
 
-  # Run on pull requests
-  pull_request:
-    branches: [ main, develop ]
-
   # Run on pushes to main and develop
   push:
-    branches: [ main, develop ]
+    branches:
+      - dev
+    tags:
+      - '*'
 
 jobs:
   run_units_on_bench:
