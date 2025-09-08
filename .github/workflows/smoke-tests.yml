@@ -44,10 +44,10 @@ on:
   schedule:
     - cron: '0 2 * * *'
 
-  # Run on pushes to main and develop
   push:
     branches:
       - dev
+      - doom/testops-integration-tests # TODO: delete after undrafting!
     tags:
       - '*'
 
