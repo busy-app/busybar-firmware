@@ -1,5 +1,5 @@
 #include "../apps_menu_i.h"
-#include "apps_menu_scenes.h"
+#include "../storage_macros.h"
 
 #include <gui/modules/image.h>
 #include <gui/modules/label.h>
@@ -23,7 +23,8 @@ static void apps_menu_scene_main_on_enter(void* context) {
         // front:
 
         scene->front_placeholder = image_alloc(app->front_scene_window);
-        image_set_source(scene->front_placeholder, APPS_MENU_IMG("apps_placeholder_front_49x16"));
+        image_set_source(
+            scene->front_placeholder, APPS_MENU_IMG_PATH("apps_placeholder_front_49x16.bin"));
         Widget* front_placeholder_base = image_get_base(scene->front_placeholder);
         widget_set_align(front_placeholder_base, AlignCenter);
 
@@ -36,7 +37,8 @@ static void apps_menu_scene_main_on_enter(void* context) {
         // back:
 
         scene->back_placeholder = image_alloc(app->back_scene_window);
-        image_set_source(scene->back_placeholder, APPS_MENU_IMG("apps_placeholder_back_98x44"));
+        image_set_source(
+            scene->back_placeholder, APPS_MENU_IMG_PATH("apps_placeholder_back_98x44.bin"));
         Widget* back_placeholder_base = image_get_base(scene->back_placeholder);
         widget_set_align(back_placeholder_base, AlignTopMid);
         widget_set_padding(back_placeholder_base, 0, 0, 4, 0);
