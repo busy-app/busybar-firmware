@@ -21,9 +21,10 @@ typedef struct {
 } AppsMenuSceneStart;
 
 typedef enum {
-    AppsMenuSceneStartInOutAnimTypeNone,
     AppsMenuSceneStartInOutAnimTypeEnter,
-    AppsMenuSceneStartInOutAnimTypeExit
+    AppsMenuSceneStartInOutAnimTypeExit,
+
+    AppsMenuSceneStartInOutAnimTypeNone
 } AppsMenuSceneStartInOutAnimType;
 
 typedef struct {

@@ -26,26 +26,26 @@ typedef enum {
 } CustomSceneStartMenuIndex;
 
 typedef enum {
-    CustomSceneStartAnimationTypeEnter,
-    CustomSceneStartAnimationTypeExit
-} CustomSceneStartAnimationType;
+    CustomSceneStartInOutAnimTypeEnter,
+    CustomSceneStartInOutAnimTypeExit
+} CustomSceneStartInOutAnimType;
 
 typedef struct {
     int32_t start;
-    int32_t end;
+    int32_t stop;
     uint32_t duration;
-} CustomSceneStartAnimationInfo;
+} CustomSceneStartInOutAnimInfo;
 
-static const CustomSceneStartAnimationInfo animation_infos[][DesktopSwitchDirectionsCount] = {
-    [CustomSceneStartAnimationTypeEnter] =
+static const CustomSceneStartInOutAnimInfo in_out_anim_infos[][DesktopSwitchDirectionsCount] = {
+    [CustomSceneStartInOutAnimTypeEnter] =
         {
-            [DesktopSwitchDirectionUp] = {.start = 8, .end = 0, .duration = 135},
-            [DesktopSwitchDirectionDown] = {.start = -8, .end = 0, .duration = 135},
+            [DesktopSwitchDirectionUp] = {.start = 8, .stop = 0, .duration = 135},
+            [DesktopSwitchDirectionDown] = {.start = -8, .stop = 0, .duration = 135},
         },
-    [CustomSceneStartAnimationTypeExit] =
+    [CustomSceneStartInOutAnimTypeExit] =
         {
-            [DesktopSwitchDirectionUp] = {.start = 0, .end = -8, .duration = 135},
-            [DesktopSwitchDirectionDown] = {.start = 0, .end = 8, .duration = 135},
+            [DesktopSwitchDirectionUp] = {.start = 0, .stop = -8, .duration = 135},
+            [DesktopSwitchDirectionDown] = {.start = 0, .stop = 8, .duration = 135},
         },
 };
 
@@ -62,15 +62,15 @@ static void custom_scene_start_anim_exec_callback(void* var, int32_t value) {
 }
 
 static void
-    custom_scene_start_run_animation(CustomApp* instance, CustomSceneStartAnimationType type) {
-    const CustomSceneStartAnimationInfo* animation_info =
-        &animation_infos[type][desktop_get_switch_direction(instance->desktop)];
+    custom_scene_start_run_in_out_anim(CustomApp* instance, CustomSceneStartInOutAnimType type) {
+    const CustomSceneStartInOutAnimInfo* anim_info =
+        &in_out_anim_infos[type][desktop_get_switch_direction(instance->desktop)];
 
     lv_anim_t anim;
     lv_anim_init(&anim);
     lv_anim_set_var(&anim, instance->front_window);
-    lv_anim_set_values(&anim, animation_info->start, animation_info->end);
-    lv_anim_set_duration(&anim, animation_info->duration);
+    lv_anim_set_values(&anim, anim_info->start, anim_info->stop);
+    lv_anim_set_duration(&anim, anim_info->duration);
     lv_anim_set_path_cb(&anim, lv_anim_path_linear);
     lv_anim_set_exec_cb(&anim, custom_scene_start_anim_exec_callback);
     lv_anim_start(&anim);
@@ -107,7 +107,7 @@ static void custom_scene_start_on_enter(void* context) {
             data->back_menu, "SETUP", NULL, CUSTOM_IMG_PATH("setup_12x12.bin"), 0, NULL, NULL);
 
         if(!data->is_not_first_enter) {
-            custom_scene_start_run_animation(instance, CustomSceneStartAnimationTypeEnter);
+            custom_scene_start_run_in_out_anim(instance, CustomSceneStartInOutAnimTypeEnter);
             data->is_not_first_enter = true;
         }
     });
@@ -150,7 +150,7 @@ static bool custom_scene_start_on_event(const SceneManagerEvent* event, void* co
             scene_manager_next_scene(instance->scene_manager, CustomAppSceneIdSetup);
         } else if(event->event == CustomCustomEventAboutToExit) {
             with_gui(instance->gui, {
-                custom_scene_start_run_animation(instance, CustomSceneStartAnimationTypeExit);
+                custom_scene_start_run_in_out_anim(instance, CustomSceneStartInOutAnimTypeExit);
             });
         }
 

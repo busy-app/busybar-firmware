@@ -5,20 +5,6 @@
 #include <gui/modules/title_card.h>
 #include <gui/modules/anim_title_card.h>
 
-#define ENTER_IMAGE_ANIM_START 0
-#define ENTER_IMAGE_ANIM_END   59
-
-#define ENTER_TEXT_ANIM_START       -8
-#define ENTER_TEXT_ANIM_END         0
-#define ENTER_TEXT_ANIM_DURATION_MS 165
-
-#define EXIT_IMAGE_ANIM_START 60
-#define EXIT_IMAGE_ANIM_END   67
-
-#define EXIT_TEXT_ANIM_START       0
-#define EXIT_TEXT_ANIM_END         -8
-#define EXIT_TEXT_ANIM_DURATION_MS 135
-
 #define STANDBY_ANIM_INITIAL_DELAY_MS 1000
 #define STANDBY_ANIM_DELAY_MS         5000
 
@@ -31,6 +17,41 @@ typedef struct {
     bool is_not_first_enter;
     bool is_timer_initial_run;
 } SettingsSceneStart;
+
+typedef enum {
+    SettingsSceneStartInOutAnimTypeEnter,
+    SettingsSceneStartInOutAnimTypeExit,
+
+    SettingsSceneStartInOutAnimTypeNone
+} SettingsSceneStartInOutAnimType;
+
+typedef struct {
+    int32_t title_start;
+    int32_t title_stop;
+    uint32_t title_duration;
+
+    uint32_t icon_start;
+    uint32_t icon_stop;
+} SettingsSceneStartInOutAnimInfo;
+
+static const SettingsSceneStartInOutAnimInfo in_out_anim_infos[] = {
+    [SettingsSceneStartInOutAnimTypeEnter] =
+        {
+            .title_start = -8,
+            .title_stop = 0,
+            .title_duration = 165,
+            .icon_start = 0,
+            .icon_stop = 59,
+        },
+    [SettingsSceneStartInOutAnimTypeExit] =
+        {
+            .title_start = 0,
+            .title_stop = -8,
+            .title_duration = 135,
+            .icon_start = 60,
+            .icon_stop = 67,
+        },
+};
 
 static bool settings_scene_start_input_callback(const InputEvent* event, void* context) {
     furi_assert(event);
@@ -68,10 +89,31 @@ static void settings_scene_start_timer_callback(void* context) {
     SettingsApp* instance = context;
     SettingsSceneStart* data = scene_manager_get_current_scene_data(instance->scene_manager);
 
-    anim_title_card_run_background_anim(data->front_card);
+    with_gui(instance->gui, { anim_title_card_run_background_anim(data->front_card); });
 
     if(data->is_timer_initial_run) {
         furi_event_loop_timer_start(data->timer, STANDBY_ANIM_DELAY_MS);
+    }
+}
+
+static void settings_scene_start_run_in_out_anim(
+    SettingsApp* instance,
+    SettingsSceneStartInOutAnimType type) {
+    SettingsSceneStart* data = scene_manager_get_current_scene_data(instance->scene_manager);
+
+    if(type != SettingsSceneStartInOutAnimTypeNone) {
+        const SettingsSceneStartInOutAnimInfo* anim_info = &in_out_anim_infos[type];
+
+        anim_title_card_run_title_anim(
+            data->front_card,
+            anim_info->title_start,
+            anim_info->title_stop,
+            anim_info->title_duration);
+        anim_title_card_run_icon_anim(
+            data->front_card, anim_info->icon_start, anim_info->icon_stop);
+    } else {
+        anim_title_card_run_icon_anim(
+            data->front_card, in_out_anim_infos->icon_stop, in_out_anim_infos->icon_stop);
     }
 }
 
@@ -91,16 +133,9 @@ static void settings_scene_start_on_enter(void* context) {
             data->front_card, SETTINGS_ANIM_PATH("settings_front_13x13.anim"));
 
         if(data->is_not_first_enter) {
-            anim_title_card_run_icon_anim(
-                data->front_card, ENTER_IMAGE_ANIM_END, ENTER_IMAGE_ANIM_END);
+            settings_scene_start_run_in_out_anim(instance, SettingsSceneStartInOutAnimTypeNone);
         } else {
-            anim_title_card_run_title_anim(
-                data->front_card,
-                ENTER_TEXT_ANIM_START,
-                ENTER_TEXT_ANIM_END,
-                ENTER_TEXT_ANIM_DURATION_MS);
-            anim_title_card_run_icon_anim(
-                data->front_card, ENTER_IMAGE_ANIM_START, ENTER_IMAGE_ANIM_END);
+            settings_scene_start_run_in_out_anim(instance, SettingsSceneStartInOutAnimTypeEnter);
 
             data->is_not_first_enter = true;
         }
@@ -139,22 +174,12 @@ static void settings_scene_start_on_exit(void* context) {
     });
 }
 
-static void settings_scene_start_run_exit_animations(SettingsApp* instance) {
-    SettingsSceneStart* data = scene_manager_get_current_scene_data(instance->scene_manager);
-    with_gui(instance->gui, {
-        anim_title_card_run_title_anim(
-            data->front_card, EXIT_TEXT_ANIM_START, EXIT_TEXT_ANIM_END, EXIT_TEXT_ANIM_DURATION_MS);
-        anim_title_card_run_icon_anim(
-            data->front_card, EXIT_IMAGE_ANIM_START, EXIT_IMAGE_ANIM_END);
-    });
-}
-
 static bool settings_scene_start_on_event(const SceneManagerEvent* event, void* context) {
     furi_assert(context);
+
     SettingsApp* instance = context;
 
     bool consumed = false;
-
     if(event->type == SceneManagerEventTypeCustom) {
         switch(event->event) {
         case SettingsCustomEventShortPressed:
@@ -163,7 +188,10 @@ static bool settings_scene_start_on_event(const SceneManagerEvent* event, void* 
             break;
 
         case SettingsCustomEventAboutToExit:
-            settings_scene_start_run_exit_animations(instance);
+            with_gui(instance->gui, {
+                settings_scene_start_run_in_out_anim(
+                    instance, SettingsSceneStartInOutAnimTypeExit);
+            });
             consumed = true;
             break;
 
