@@ -5,21 +5,22 @@ Provides easy way to run tests and upload to Allure TestOps on Windows, macOS, a
 """
 
 import argparse
-import subprocess
-import sys
-import os
 import logging
+import os
 import platform
 import shutil
+import subprocess
+import sys
 from datetime import datetime
 from pathlib import Path
+
 from dotenv import load_dotenv
 
 # Setup logging for runner
 logging.basicConfig(
     level=logging.INFO,
-    format='%(asctime)s - %(levelname)s - %(message)s',
-    handlers=[logging.StreamHandler(sys.stdout)]
+    format="%(asctime)s - %(levelname)s - %(message)s",
+    handlers=[logging.StreamHandler(sys.stdout)],
 )
 
 logger = logging.getLogger(__name__)
@@ -29,15 +30,17 @@ def get_system_info():
     """Get system information for cross-platform compatibility"""
     system = platform.system().lower()
     return {
-        'system': system,
-        'is_windows': system == 'windows',
-        'is_macos': system == 'darwin',
-        'is_linux': system == 'linux',
-        'shell': 'cmd' if system == 'windows' else 'bash'
+        "system": system,
+        "is_windows": system == "windows",
+        "is_macos": system == "darwin",
+        "is_linux": system == "linux",
+        "shell": "cmd" if system == "windows" else "bash",
     }
 
 
-def run_command(cmd, description="", capture_output=True, stream_output=False, shell=None):
+def run_command(
+    cmd, description="", capture_output=True, stream_output=False, shell=None
+):
     """Run a shell command with cross-platform support"""
     if description:
         logger.info(f"🔄 {description}")
@@ -45,12 +48,12 @@ def run_command(cmd, description="", capture_output=True, stream_output=False, s
     # Determine shell based on system
     sys_info = get_system_info()
     if shell is None:
-        shell = sys_info['is_windows']
+        shell = sys_info["is_windows"]
 
     try:
         if stream_output:
             # Stream output in real-time for test execution
-            if sys_info['is_windows']:
+            if sys_info["is_windows"]:
                 # Windows command handling
                 process = subprocess.Popen(
                     cmd,
@@ -58,7 +61,7 @@ def run_command(cmd, description="", capture_output=True, stream_output=False, s
                     stdout=subprocess.PIPE,
                     stderr=subprocess.STDOUT,
                     universal_newlines=True,
-                    bufsize=1
+                    bufsize=1,
                 )
             else:
                 # Unix-like systems (macOS, Linux)
@@ -68,12 +71,12 @@ def run_command(cmd, description="", capture_output=True, stream_output=False, s
                     stdout=subprocess.PIPE,
                     stderr=subprocess.STDOUT,
                     universal_newlines=True,
-                    bufsize=1
+                    bufsize=1,
                 )
 
             output_lines = []
             for line in process.stdout:
-                print(line, end='')  # Print to console immediately
+                print(line, end="")  # Print to console immediately
                 output_lines.append(line)
 
             process.wait()
@@ -85,14 +88,16 @@ def run_command(cmd, description="", capture_output=True, stream_output=False, s
             return True
         else:
             # Regular capture for non-test commands
-            result = subprocess.run(cmd, shell=shell, check=True, capture_output=capture_output, text=True)
+            result = subprocess.run(
+                cmd, shell=shell, check=True, capture_output=capture_output, text=True
+            )
             if result.stdout and capture_output:
                 logger.info(result.stdout)
             return True
 
     except subprocess.CalledProcessError as e:
         logger.error(f"❌ Error: {e}")
-        if hasattr(e, 'stderr') and e.stderr:
+        if hasattr(e, "stderr") and e.stderr:
             logger.error(f"Error details: {e.stderr}")
         return False
     except FileNotFoundError as e:
@@ -106,7 +111,7 @@ def check_dependencies():
 
     # Check Poetry
     try:
-        result = subprocess.run(['poetry', '--version'], capture_output=True, text=True)
+        result = subprocess.run(["poetry", "--version"], capture_output=True, text=True)
         if result.returncode == 0:
             logger.info(f"✅ Poetry found: {result.stdout.strip()}")
         else:
@@ -123,7 +128,9 @@ def check_dependencies():
     if python_version.major == 3 and python_version.minor >= 9:
         logger.info(f"✅ Python version: {sys.version}")
     else:
-        logger.error(f"❌ Python 3.9+ required, found {python_version.major}.{python_version.minor}")
+        logger.error(
+            f"❌ Python 3.9+ required, found {python_version.major}.{python_version.minor}"
+        )
         return False
 
     return True
@@ -136,7 +143,7 @@ def setup_allure_cli():
 
     # Check if allure is already available
     try:
-        result = subprocess.run(['allure', '--version'], capture_output=True, text=True)
+        result = subprocess.run(["allure", "--version"], capture_output=True, text=True)
         if result.returncode == 0:
             logger.info(f"Allure already installed: {result.stdout.strip()}")
             return True
@@ -144,11 +151,11 @@ def setup_allure_cli():
         pass
 
     # Install Allure based on OS
-    if sys_info['is_macos']:
+    if sys_info["is_macos"]:
         logger.info("Installing Allure via Homebrew...")
         return run_command("brew install allure", "Installing Allure on macOS")
 
-    elif sys_info['is_linux']:
+    elif sys_info["is_linux"]:
         logger.info("Installing Allure via download...")
         install_cmd = """
         curl -o allure-commandline.tgz -L https://repo.maven.apache.org/maven2/io/qameta/allure/allure-commandline/2.24.0/allure-commandline-2.24.0.tgz
@@ -159,9 +166,11 @@ def setup_allure_cli():
         """
         return run_command(install_cmd, "Installing Allure on Linux")
 
-    elif sys_info['is_windows']:
+    elif sys_info["is_windows"]:
         logger.info("Please install Allure manually on Windows")
-        logger.info("Download from: https://github.com/allure-framework/allure2/releases")
+        logger.info(
+            "Download from: https://github.com/allure-framework/allure2/releases"
+        )
         logger.info("Or use Scoop: scoop install allure")
         return False
 
@@ -171,7 +180,9 @@ def setup_allure_cli():
 def check_allurectl():
     """Check if allurectl is available"""
     try:
-        result = subprocess.run(['allurectl', '--version'], capture_output=True, text=True)
+        result = subprocess.run(
+            ["allurectl", "--version"], capture_output=True, text=True
+        )
         if result.returncode == 0:
             logger.info(f"AllureCtl found: {result.stdout.strip()}")
             return True
@@ -244,9 +255,9 @@ def upload_to_testops(launch_name):
     """Upload results to Allure TestOps"""
     logger.info("Uploading results to Allure TestOps...")
 
-    testops_url = os.getenv('ALLURE_TESTOPS_URL', "https://flipper.testops.cloud")
-    testops_token = os.getenv('ALLURE_TESTOPS_TOKEN')
-    project_id = os.getenv('ALLURE_PROJECT_ID', "232")
+    testops_url = os.getenv("ALLURE_TESTOPS_URL", "https://flipper.testops.cloud")
+    testops_token = os.getenv("ALLURE_TESTOPS_TOKEN")
+    project_id = os.getenv("ALLURE_PROJECT_ID", "232")
 
     if not testops_token:
         logger.error("ALLURE_TESTOPS_TOKEN not found in environment")
@@ -257,11 +268,17 @@ def upload_to_testops(launch_name):
 
     # Build upload command with proper escaping
     upload_cmd = [
-        'allurectl', 'upload', 'allure-results',
-        '--endpoint', testops_url,
-        '--token', testops_token,
-        '--project-id', project_id,
-        '--launch-name', launch_name
+        "allurectl",
+        "upload",
+        "allure-results",
+        "--endpoint",
+        testops_url,
+        "--token",
+        testops_token,
+        "--project-id",
+        project_id,
+        "--launch-name",
+        launch_name,
     ]
 
     try:
@@ -285,7 +302,9 @@ def generate_local_report():
         return False
 
     # Generate report
-    if not run_command("allure generate allure-results -o allure-report --clean", "Generating report"):
+    if not run_command(
+        "allure generate allure-results -o allure-report --clean", "Generating report"
+    ):
         logger.error("Failed to generate Allure report")
         return False
 
@@ -300,7 +319,9 @@ def generate_local_report():
     except KeyboardInterrupt:
         logger.info("Report server stopped")
     except subprocess.CalledProcessError:
-        logger.warning("Could not start report server, but files are generated in allure-report/")
+        logger.warning(
+            "Could not start report server, but files are generated in allure-report/"
+        )
 
         # Try to open report directly
         report_path = Path("allure-report/index.html").absolute()
@@ -316,48 +337,38 @@ def main():
         "--suite",
         choices=["all", "cli", "frontend"],
         default="all",
-        help="Test suite to run (default: all)"
+        help="Test suite to run (default: all)",
     )
     parser.add_argument(
-        "--upload",
-        action="store_true",
-        help="Upload results to Allure TestOps"
+        "--upload", action="store_true", help="Upload results to Allure TestOps"
     )
     parser.add_argument(
-        "--report",
-        action="store_true",
-        help="Generate and serve local Allure report"
+        "--report", action="store_true", help="Generate and serve local Allure report"
     )
     parser.add_argument(
-        "--launch-name",
-        type=str,
-        help="Custom launch name for TestOps"
+        "--launch-name", type=str, help="Custom launch name for TestOps"
     )
     parser.add_argument(
         "--markers",
         type=str,
-        help="Run tests with specific markers (e.g., 'story_commands_check')"
+        help="Run tests with specific markers (e.g., 'story_commands_check')",
     )
     parser.add_argument(
-        "--verbose", "-v",
-        action="store_true",
-        help="Verbose test output"
+        "--verbose", "-v", action="store_true", help="Verbose test output"
     )
     parser.add_argument(
         "--log-level",
         choices=["DEBUG", "INFO", "WARNING", "ERROR"],
         default="INFO",
-        help="Logging level for tests"
+        help="Logging level for tests",
     )
     parser.add_argument(
         "--quiet-runner",
         action="store_true",
-        help="Don't show live test output (capture mode)"
+        help="Don't show live test output (capture mode)",
     )
     parser.add_argument(
-        "--skip-deps-check",
-        action="store_true",
-        help="Skip dependency checking"
+        "--skip-deps-check", action="store_true", help="Skip dependency checking"
     )
 
     args = parser.parse_args()
@@ -400,7 +411,7 @@ def main():
         pytest_cmd,
         f"Executing {args.suite} test suite",
         capture_output=False,
-        stream_output=stream_tests
+        stream_output=stream_tests,
     )
 
     logger.info("=" * 80)

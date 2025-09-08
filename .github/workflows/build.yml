@@ -11,15 +11,22 @@ on:
 env:
   FBT_GIT_SUBMODULE_SHALLOW: 0
   DEFAULT_TARGET: 21
+  FBT_TOOLCHAIN_PATH: /runner/_work
 
 jobs:
   main:
-    runs-on: ubuntu-latest
+    runs-on: BsbShell
     strategy:
       fail-fast: false
       matrix:
         u5_target: [20, 21]
+    outputs:
+      default_target: ${{ env.DEFAULT_TARGET }}
+      update_url: ${{ steps.set-url.outputs.update_url }}
     steps:
+      - name: 'Wipe workspace'
+        run: find ./ -mount -maxdepth 1 -exec rm -rf {} \;
+
       - name: 'Checkout code'
         uses: actions/checkout@v4
         with:
@@ -29,7 +36,7 @@ jobs:
 
       - name: 'Update submodules'
         run: |
-          git submodule update --init --recursive --jobs=$(nproc) scripts/toolchain lib/lwip lib/matter_ext fbt_layers/fbtng || cat /home/runner/work/bsb-firmware/bsb-firmware/.git/modules/lib/matter_ext/lfs/logs/*
+          git submodule update --init --recursive --jobs=$(nproc) scripts/toolchain fbt_layers/fbtng || cat /home/runner/work/bsb-firmware/bsb-firmware/.git/modules/lib/matter_ext/lfs/logs/*
 
       - name: 'Get commit details'
         id: names
@@ -41,12 +48,11 @@ jobs:
             TYPE="pull"
           elif [[ "${{ github.ref }}" == "refs/tags/"* ]]; then
             TYPE="tag"
-            # BUILD_TYPE='DEBUG=0 COMPACT=1' # TODO: To be enabled later
           else
             TYPE="other"
           fi
           echo "event_type=$TYPE" >> $GITHUB_OUTPUT
-          python3 fbt_layers/fbtng/scripts/get_env.py "--event_file=${{ github.event_path }}" "--type=$TYPE" || cat "${{ github.event_path }}"
+          python3 fbt_layers/fbtng/scripts/get_env.py "--event_file=${{ github.event_path }}" "--type=$TYPE" || (cat "${{ github.event_path }}" && exit 1)
           echo "FBT_BUILD_TYPE=$BUILD_TYPE" >> $GITHUB_ENV
           echo "U5_TARGET_HW=$(echo "${{ matrix.u5_target }}" | sed 's/f//')" >> $GITHUB_ENV
 
@@ -68,7 +74,7 @@ jobs:
           cp -v dist/f${U5_TARGET_HW}-*/* artifacts/
 
       - name: 'Upload build artifacts'
-        if: ${{ !github.event.pull_request.head.repo.fork && steps.build-fw.outcome == 'success' }} 
+        if: ${{ !github.event.pull_request.head.repo.fork && steps.build-fw.outcome == 'success' }}
         id: build-update
         run: |
           FILES=$(for ARTIFACT in $(find artifacts -maxdepth 1 -not -type d); do echo "-F files=@${ARTIFACT}"; done)
@@ -84,7 +90,6 @@ jobs:
           rm -rf map_analyser_files
           mkdir -p map_analyser_files
           mv -v fbt_layers/fbtng/build/f${U5_TARGET_HW}-firmware*/fw_elf/*.elf* map_analyser_files
-          # Remove updater files - not needed for map analysis
           rm -f fbt_layers/fbtng/build/f${U5_TARGET_HW}-updater*/fw_elf/*.elf*
           source scripts/toolchain/fbtenv.sh
           python3 scripts/map_analyse_upload.py \
@@ -113,7 +118,7 @@ jobs:
         with:
           issue-number: ${{ github.event.pull_request.number }}
           comment-author: 'github-actions[bot]'
-          body-includes: 'Compiled ${{ matrix.u5_target }} firmware for commit'              
+          body-includes: 'Compiled f${{ matrix.u5_target }} firmware for commit'
 
       - name: 'Create or update comment'
         if: ${{ !github.event.pull_request.head.repo.fork && matrix.u5_target == env.DEFAULT_TARGET && github.event.pull_request }}
@@ -127,3 +132,19 @@ jobs:
             - [📊 Sil Size report](https://fw-reports-sil-bsb.flipp.dev/?branch=${{steps.names.outputs.branch_name}})
             - [📊 U5 Size report](https://fw-reports-bsb.flipp.dev/?branch=${{steps.names.outputs.branch_name}})
           edit-mode: replace
+
+      - name: 'Set update URL output for default target'
+        id: set-url
+        if: ${{ matrix.u5_target == env.DEFAULT_TARGET }}
+        run: |
+          echo "update_url=${{ steps.names.outputs.branch_name }}/busybar-f${{ matrix.u5_target }}-update-${{ steps.names.outputs.suffix }}.tar" >> "$GITHUB_OUTPUT"
+
+  updater-tests:
+    needs: main
+    if: ${{ needs.main.result == 'success' && needs.main.outputs.update_url != '' }}
+    uses: ./.github/workflows/updater_test.yml
+    with:
+      branch_name: ${{ github.head_ref || github.ref_name }}
+      commit_sha: ${{ github.sha }}
+      update_url: ${{ needs.main.outputs.update_url }}
+      default_target: ${{ needs.main.outputs.default_target }}

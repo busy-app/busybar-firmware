@@ -79,3 +79,43 @@ node_modules/
 
 # Frontend
 assets/frontend-build/nitro.json
+
+# Testing & Test Automation
+poetry.lock
+.pytest_cache/
+.coverage
+.coverage.*
+coverage.xml
+*.cover
+*.py,cover
+.hypothesis/
+htmlcov/
+
+# Allure Test Reports
+allure-results/
+allure-report/
+.allure/
+
+# Test Artifacts
+test-results*.xml
+test-reports/
+screenshots/
+videos/
+*.log
+logs/
+
+# Temporary files
+*.tmp
+*.temp
+.cache/
+
+# Local test configuration
+.env.local
+.env.production
+
+# Generated files
+requirements.txt
+
+# Backup files
+*.backup
+*.bak

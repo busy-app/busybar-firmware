@@ -1,0 +1,225 @@
+name: 'Smoke tests'
+
+on:
+  workflow_call:
+    inputs:
+      branch_name:
+        required: true
+        type: string
+      commit_sha:
+        required: true
+        type: string
+      update_url:
+        required: false
+        type: string
+      default_target:
+        required: false
+        type: string
+        default: '21'
+
+  # Manual trigger
+  workflow_dispatch:
+    inputs:
+      test_suite:
+        description: 'Test suite to run'
+        required: true
+        default: 'all'
+        type: choice
+        options:
+        - all
+        - cli
+        - frontend
+      upload_to_testops:
+        description: 'Upload results to Allure TestOps'
+        required: false
+        default: true
+        type: boolean
+      launch_name:
+        description: 'Custom launch name for TestOps'
+        required: false
+        default: 'GitHub Actions Run'
+        type: string
+
+  # Scheduled runs (daily at 2 AM UTC)
+  schedule:
+    - cron: '0 2 * * *'
+
+  # Run on pull requests
+  pull_request:
+    branches: [ main, develop ]
+
+  # Run on pushes to main and develop
+  push:
+    branches: [ main, develop ]
+
+jobs:
+  run_units_on_bench:
+    name: Run BSB Tests
+    runs-on: BusyBarTest
+
+    strategy:
+      matrix:
+        python-version: [ 3.11 ]
+        test-suite: [ all, cli, frontend ]
+        include:
+          - test-suite: all
+            markers: ""
+          - test-suite: cli
+            markers: "-m cli"
+          - test-suite: frontend
+            markers: "-m frontend"
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
+          ref: ${{ inputs.commit_sha }}
+
+      - name: 'Update submodules'
+        run: |
+          git submodule update --init --recursive --jobs=$(nproc) scripts/toolchain fbt_layers/fbtng
+
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Install Poetry
+        uses: snok/install-poetry@v1
+        with:
+          version: latest
+          virtualenvs-create: true
+          virtualenvs-in-project: true
+
+      - name: 'Download update package'
+        run: |
+          echo "Using URL: $URL"
+          URL="https://update.flipperzero.one/builds/busybar-firmware/${{ inputs.update_url }}"
+          curl --fail -L -o busybar-f${{ inputs.default_target }}-update.tar "$URL"
+          mkdir -p update_bundle
+          tar -xf busybar-f${{ inputs.default_target }}-update.tar -C update_bundle
+
+      - name: 'Flash firmware'
+        id: flashing
+        timeout-minutes: 20
+        run: |
+          set -euo pipefail
+          source scripts/toolchain/fbtenv.sh
+          python3 scripts/storage.py -p 10.0.4.20 send update_bundle /ext/tmp/upd_bundle
+          expect -c 'spawn telnet 10.0.4.20 23; expect ">:"; send "update install /ext/tmp/upd_bundle/update.json\r\r"; interact'
+          sleep 1
+          python3 scripts/testops.py wait -t 240
+
+      - name: Load cached venv
+        id: cached-poetry-dependencies
+        uses: actions/cache@v3
+        with:
+          path: .venv
+          key: venv-${{ runner.os }}-${{ matrix.python-version }}-${{ hashFiles('**/poetry.lock') }}
+
+      - name: Install dependencies
+        if: steps.cached-poetry-dependencies.outputs.cache-hit != 'true'
+        run: poetry install --no-interaction
+
+      - name: Install dependencies (cached)
+        if: steps.cached-poetry-dependencies.outputs.cache-hit == 'true'
+        run: poetry install --no-interaction
+
+      - name: Run setup verification
+        run: |
+          poetry run python setup.py
+        env:
+          CLI_HOST: ${{ secrets.CLI_HOST || 'busybar.local' }}
+          CLI_PORT: ${{ secrets.CLI_PORT || '23' }}
+          WEB_BASE_URL: ${{ secrets.WEB_BASE_URL || 'http://10.0.4.20/' }}
+
+      - name: Run tests
+        run: |
+          poetry run pytest tests/ ${{ matrix.markers }} -v \
+            --alluredir=allure-results \
+            --clean-alluredir \
+            --tb=short \
+            --junitxml=test-results.xml
+        env:
+          CLI_HOST: ${{ secrets.CLI_HOST || 'busybar.local' }}
+          CLI_PORT: ${{ secrets.CLI_PORT || '23' }}
+          WEB_BASE_URL: ${{ secrets.WEB_BASE_URL || 'http://10.0.4.20/' }}
+          LOG_LEVEL: INFO
+          LOG_TO_FILE: true
+
+      - name: Upload test results to Allure TestOps
+        if: ${{ github.event.inputs.upload_to_testops != 'false' && github.event_name == 'workflow_dispatch' || github.event_name == 'schedule' }}
+        run: |
+          poetry run allurectl upload allure-results \
+            --token ${{ secrets.ALLURE_TESTOPS_TOKEN }} \
+            --endpoint ${{ vars.ALLURE_TESTOPS_URL || 'https://flipper.testops.cloud' }} \
+            --project-id ${{ vars.ALLURE_PROJECT_ID || '232' }} \
+            --launch-name "${{ github.event.inputs.launch_name || 'GitHub Actions - ${{ github.workflow }} - ${{ github.sha }}' }}"
+        env:
+          ALLURE_TESTOPS_TOKEN: ${{ secrets.ALLURE_TESTOPS_TOKEN }}
+
+      - name: Upload test results as artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: test-results-${{ matrix.test-suite }}-${{ github.run_number }}
+          path: |
+            allure-results/
+            test-results.xml
+            logs/
+          retention-days: 30
+
+      - name: Generate Allure report
+        if: always()
+        run: |
+          poetry run allure generate allure-results --clean -o allure-report
+        continue-on-error: true
+
+      - name: Upload Allure report as artifact
+        if: always()
+        uses: actions/upload-artifact@v3
+        with:
+          name: allure-report-${{ matrix.test-suite }}-${{ github.run_number }}
+          path: allure-report/
+          retention-days: 30
+
+
+  # Separate job for manual upload to TestOps
+  upload-testops:
+    name: Upload to Allure TestOps
+    runs-on: self-hosted
+    needs: run_units_on_bench
+    if: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.upload_to_testops == 'true' }}
+
+    steps:
+    - name: Download test results
+      uses: actions/download-artifact@v3
+      with:
+        pattern: test-results-*-${{ github.run_number }}
+        merge-multiple: true
+
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: 3.11
+
+    - name: Install Poetry
+      uses: snok/install-poetry@v1
+      with:
+        version: latest
+
+    - name: Install dependencies
+      run: poetry install --no-interaction
+
+    - name: Upload to Allure TestOps
+      run: |
+        poetry run allurectl upload allure-results \
+          --token ${{ secrets.ALLURE_TESTOPS_TOKEN }} \
+          --endpoint ${{ vars.ALLURE_TESTOPS_URL || 'https://flipper.testops.cloud' }} \
+          --project-id ${{ vars.ALLURE_PROJECT_ID || '232' }} \
+          --launch-name "${{ github.event.inputs.launch_name || 'GitHub Actions - ${{ github.workflow }} - ${{ github.sha }}' }}"
+      env:
+        ALLURE_TESTOPS_TOKEN: ${{ secrets.ALLURE_TESTOPS_TOKEN }}

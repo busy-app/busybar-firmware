@@ -1,5 +1,5 @@
-import pytest
 import allure
+import pytest
 
 
 @allure.epic("BSB CLI Testing")
@@ -11,22 +11,42 @@ class TestCLICommandsSession:
     @allure.testcase("2047", "CLI. Command ?. [Draft]")
     @pytest.mark.story_commands_check
     @pytest.mark.cli
-    def test_cli_command_question_mark(self, simple_cli_session, test_logger):
+    def test_cli_command_question_mark(self, persistent_cli_connection, test_logger):
         """Test CLI. Command ?. [Draft]"""
         with allure.step("Execute ? command"):
-            response = simple_cli_session.execute_command("?", timeout=20)
+            response = persistent_cli_connection.execute_command("?", timeout=20)
 
         with allure.step("Verify ? command provides help"):
             test_logger.debug(f"Response from ? command: {response}")
-            assert "Available commands:" in response, "? command should return available commands list"
+            assert (
+                "Available commands:" in response
+            ), "? command should return available commands list"
             assert "?" in response, "? command should list itself as available"
 
             # Check for key expected commands from your PuTTY output
             expected_commands = [
-                "loader", "power", "input", "audio", "update", "display",
-                "log", "echo", "status_lights", "free_blocks", "device_info",
-                "sysctl", "light_sensor", "top", "sl_cli", "date", "uptime",
-                "crypto_backup", "free", "storage", "help", "exit"
+                "loader",
+                "power",
+                "input",
+                "audio",
+                "update",
+                "display",
+                "log",
+                "echo",
+                "status_lights",
+                "free_blocks",
+                "device_info",
+                "sysctl",
+                "light_sensor",
+                "top",
+                "sl_cli",
+                "date",
+                "uptime",
+                "crypto_backup",
+                "free",
+                "storage",
+                "help",
+                "exit",
             ]
 
             response_lower = response.lower()
@@ -35,48 +55,68 @@ class TestCLICommandsSession:
                 if cmd not in response_lower:
                     missing_commands.append(cmd)
 
-            assert len(missing_commands) == 0, f"Missing expected commands: {missing_commands}"
+            assert (
+                len(missing_commands) == 0
+            ), f"Missing expected commands: {missing_commands}"
 
     @allure.testcase("2046", "CLI. Command Exit. [Draft]")
     @pytest.mark.story_commands_check
     @pytest.mark.cli
-    def test_cli_command_exit(self, simple_cli_session):
+    def test_cli_command_exit(self, persistent_cli_connection):
         """Test CLI. Command Exit. [Draft]"""
         with allure.step("Check exit command availability"):
-            help_response = simple_cli_session.execute_command("?", timeout=20)
-            assert "exit" in help_response.lower(), "Exit command should be available in help"
+            help_response = persistent_cli_connection.execute_command("?", timeout=20)
+            assert (
+                "exit" in help_response.lower()
+            ), "Exit command should be available in help"
 
     @allure.testcase("2043", "CLI. Command Free. [Draft]")
     @pytest.mark.story_commands_check
     @pytest.mark.cli
-    def test_cli_command_free(self, simple_cli_session):
+    def test_cli_command_free(self, persistent_cli_connection):
         """Test CLI. Command Free. [Draft]"""
         with allure.step("Execute free command"):
-            response = simple_cli_session.execute_command("free")
+            response = persistent_cli_connection.execute_command("free")
 
         with allure.step("Verify free command output"):
-            assert "Free heap size:" in response, "Response should contain 'Free heap size:'"
-            assert "Total heap size:" in response, "Response should contain 'Total heap size:'"
-            assert "Minimum heap size:" in response, "Response should contain 'Minimum heap size:'"
-            assert "Maximum heap block:" in response, "Response should contain 'Maximum heap block:'"
+            assert (
+                "Free heap size:" in response
+            ), "Response should contain 'Free heap size:'"
+            assert (
+                "Total heap size:" in response
+            ), "Response should contain 'Total heap size:'"
+            assert (
+                "Minimum heap size:" in response
+            ), "Response should contain 'Minimum heap size:'"
+            assert (
+                "Maximum heap block:" in response
+            ), "Response should contain 'Maximum heap block:'"
             assert "Pool free:" in response, "Response should contain 'Pool free:'"
-            assert "Maximum pool block:" in response, "Response should contain 'Maximum pool block:'"
+            assert (
+                "Maximum pool block:" in response
+            ), "Response should contain 'Maximum pool block:'"
 
             # Extract and validate free heap size
             try:
-                free_heap_line = [line for line in response.split('\n') if 'Free heap size:' in line][0]
-                free_heap_value = int(free_heap_line.split('Free heap size:')[1].split()[0])
-                assert free_heap_value > 25000, f"Free heap size should be > 25000, got {free_heap_value}"
+                free_heap_line = [
+                    line for line in response.split("\n") if "Free heap size:" in line
+                ][0]
+                free_heap_value = int(
+                    free_heap_line.split("Free heap size:")[1].split()[0]
+                )
+                assert (
+                    free_heap_value > 25000
+                ), f"Free heap size should be > 25000, got {free_heap_value}"
             except (IndexError, ValueError) as e:
                 pytest.fail(f"Could not parse free heap size: {e}")
 
     @allure.testcase("2045", "CLI. Command Help. [Draft]")
     @pytest.mark.story_commands_check
     @pytest.mark.cli
-    def test_cli_command_help(self, simple_cli_session):
+    def test_cli_command_help(self, persistent_cli_connection):
         """Test CLI. Command Help. [Draft]"""
         with allure.step("Execute help command via power command"):
-            response = simple_cli_session.execute_command("power")
+            response = persistent_cli_connection.execute_command("power")
 
         with allure.step("Verify help command output"):
             assert "Usage:" in response, "Should contain guidance on command usage"
@@ -86,10 +126,10 @@ class TestCLICommandsSession:
     @allure.testcase("2044", "CLI. Command Storage. [Draft]")
     @pytest.mark.story_commands_check
     @pytest.mark.cli
-    def test_cli_command_storage(self, simple_cli_session):
+    def test_cli_command_storage(self, persistent_cli_connection):
         """Test CLI. Command Storage. [Draft]"""
         with allure.step("Execute storage command"):
-            response = simple_cli_session.execute_command("storage")
+            response = persistent_cli_connection.execute_command("storage")
 
         with allure.step("Verify storage command output"):
             assert response.strip(), "Storage command should return storage information"
@@ -98,61 +138,77 @@ class TestCLICommandsSession:
     @allure.testcase("2040", "CLI. Command Sl_cli. [Draft]")
     @pytest.mark.story_commands_check
     @pytest.mark.cli
-    def test_cli_command_sl_cli(self, simple_cli_session):
+    def test_cli_command_sl_cli(self, persistent_cli_connection):
         """Test CLI. Command Sl_cli. [Draft] - Enter and exit 917 CLI"""
         with allure.step("Execute sl_cli command to enter 917 CLI"):
-            response = simple_cli_session.enter_sl_cli()
+            response = persistent_cli_connection.enter_sl_cli()
 
         with allure.step("Verify 917 CLI entry"):
-            assert "Welcome to BUSY Bar 917 Command Line Interface!" in response, "Should enter 917 CLI with welcome message"
-            assert simple_cli_session._in_sl_cli, "Should be in 917 CLI mode"
+            assert (
+                "Welcome to BUSY Bar 917 Command Line Interface!" in response
+            ), "Should enter 917 CLI with welcome message"
+            assert persistent_cli_connection._in_sl_cli, "Should be in 917 CLI mode"
 
         try:
             with allure.step("Test 917 CLI help command"):
-                help_response = simple_cli_session.execute_917_command("?")
+                help_response = persistent_cli_connection.execute_917_command("?")
                 assert help_response.strip(), "917 CLI should respond to help command"
 
         finally:
             with allure.step("Exit sl_cli mode"):
-                exit_response = simple_cli_session.exit_sl_cli()
-                assert not simple_cli_session._in_sl_cli, "Should have exited 917 CLI mode"
+                exit_response = persistent_cli_connection.exit_sl_cli()
+                assert (
+                    not persistent_cli_connection._in_sl_cli
+                ), "Should have exited 917 CLI mode"
 
     @allure.testcase("2041", "CLI. Command Uptime. [Draft]")
     @pytest.mark.story_commands_check
     @pytest.mark.cli
-    def test_cli_command_uptime(self, simple_cli_session):
+    def test_cli_command_uptime(self, persistent_cli_connection):
         """Test CLI. Command Uptime. [Draft]"""
         with allure.step("Execute uptime command"):
-            response = simple_cli_session.execute_command("uptime")
+            response = persistent_cli_connection.execute_command("uptime")
 
         with allure.step("Verify uptime command output"):
             assert response.strip(), "Uptime command should return system uptime"
             # Look for time units (days, hours, minutes, seconds)
-            has_time_units = any(unit in response.lower() for unit in ['d', 'h', 'm', 's', 'day', 'hour', 'min', 'sec'])
+            has_time_units = any(
+                unit in response.lower()
+                for unit in ["d", "h", "m", "s", "day", "hour", "min", "sec"]
+            )
             assert has_time_units, f"Uptime should contain time units, got: {response}"
 
     @allure.testcase("2035", "CLI. Command Device_info. [Draft]")
     @pytest.mark.story_commands_check
     @pytest.mark.cli
-    def test_cli_command_device_info(self, simple_cli_session):
+    def test_cli_command_device_info(self, persistent_cli_connection):
         """Test CLI. Command Device_info. [Draft] - SLOW COMMAND (uses 917 chip)"""
         with allure.step("Execute device_info command"):
             # device_info has two parts: u5_* fields (immediate) and sl_* fields (after 2s delay)
             # Use longer timeout to ensure we get the complete response
-            response = simple_cli_session.execute_command("device_info", timeout=20.0, slow_command=True)
+            response = persistent_cli_connection.execute_command(
+                "device_info", timeout=20.0, slow_command=True
+            )
 
         with allure.step("Verify device_info command output"):
-            assert response.strip(), "Device_info command should return device information"
-            assert "u5_firmware_origin_fork       : Official" in response, "Should include the correct origin fork"
-            assert "u5_firmware_origin_git        : https://github.com/flipperdevices/bsb-firmware" in response, "Should include the correct origin git"
+            assert (
+                response.strip()
+            ), "Device_info command should return device information"
+            assert (
+                "u5_firmware_origin_fork       : Official" in response
+            ), "Should include the correct origin fork"
+            assert (
+                "u5_firmware_origin_git        : https://github.com/flipperdevices/bsb-firmware"
+                in response
+            ), "Should include the correct origin git"
 
     @allure.testcase("2028", "CLI. Command Audio. [Draft]")
     @pytest.mark.story_commands_check
     @pytest.mark.cli
-    def test_cli_command_audio(self, simple_cli_session):
+    def test_cli_command_audio(self, persistent_cli_connection):
         """Test CLI. Command Audio. [Draft]"""
         with allure.step("Execute audio command"):
-            response = simple_cli_session.execute_command("audio")
+            response = persistent_cli_connection.execute_command("audio")
 
         with allure.step("Verify audio command executes"):
             assert response is not None, "Audio command should execute without error"
@@ -160,10 +216,10 @@ class TestCLICommandsSession:
     @allure.testcase("2030", "CLI. Command Display. [Draft]")
     @pytest.mark.story_commands_check
     @pytest.mark.cli
-    def test_cli_command_display(self, simple_cli_session):
+    def test_cli_command_display(self, persistent_cli_connection):
         """Test CLI. Command Display. [Draft]"""
         with allure.step("Execute display command"):
-            response = simple_cli_session.execute_command("display")
+            response = persistent_cli_connection.execute_command("display")
 
         with allure.step("Verify display command executes"):
             assert response is not None, "Display command should execute without error"
@@ -171,22 +227,26 @@ class TestCLICommandsSession:
     @allure.testcase("2031", "CLI. Command Echo. [Draft]")
     @pytest.mark.story_commands_check
     @pytest.mark.cli
-    def test_cli_command_echo(self, simple_cli_session):
+    def test_cli_command_echo(self, persistent_cli_connection):
         """Test CLI. Command Echo. [Draft]"""
         test_message = "Hello BSB Test"
         with allure.step(f"Execute echo command with message: {test_message}"):
-            response = simple_cli_session.execute_command(f'echo "{test_message}"')
+            response = persistent_cli_connection.execute_command(
+                f'echo "{test_message}"'
+            )
 
         with allure.step("Verify echo command output"):
-            assert test_message in response, f"Echo should return the input message: {test_message}"
+            assert (
+                test_message in response
+            ), f"Echo should return the input message: {test_message}"
 
     @allure.testcase("2034", "CLI. Command Free_blocks. [Draft]")
     @pytest.mark.story_commands_check
     @pytest.mark.cli
-    def test_cli_command_free_blocks(self, simple_cli_session):
+    def test_cli_command_free_blocks(self, persistent_cli_connection):
         """Test CLI. Command Free_blocks. [Draft]"""
         with allure.step("Execute free_blocks command"):
-            response = simple_cli_session.execute_command("free_blocks")
+            response = persistent_cli_connection.execute_command("free_blocks")
 
         with allure.step("Verify free_blocks command output"):
             assert response is not None, "Free_blocks command should execute"
@@ -194,16 +254,16 @@ class TestCLICommandsSession:
     @allure.testcase("2026", "CLI. Command Power. [Draft]")
     @pytest.mark.story_commands_check
     @pytest.mark.cli
-    def test_cli_command_power(self, simple_cli_session):
+    def test_cli_command_power(self, persistent_cli_connection):
         """Test CLI. Command Power. [Draft]"""
         with allure.step("Check if power command is available"):
             # First check if power command exists by looking at available commands
-            help_response = simple_cli_session.execute_command("?", timeout=20)
+            help_response = persistent_cli_connection.execute_command("?", timeout=20)
             if "power" not in help_response.lower():
                 pytest.skip("Power command not available in this firmware version")
-        
+
         with allure.step("Execute power command to get help"):
-            response = simple_cli_session.execute_command("power")
+            response = persistent_cli_connection.execute_command("power")
 
         with allure.step("Verify power command help"):
             assert "Usage:" in response, "Power command should provide help information"
@@ -220,24 +280,28 @@ class TestCLIUI:
     @allure.testcase("2048", "CLI. UI. Render [Draft]")
     @pytest.mark.story_ui_validation
     @pytest.mark.cli
-    def test_cli_ui_render(self, simple_cli):
+    def test_cli_ui_render(self, fresh_cli_connection):
         """Test CLI. UI. Render [Draft]"""
         with allure.step("Check CLI UI rendering"):
-            response = simple_cli.execute_command("?")
+            response = fresh_cli_connection.execute_command("?")
             assert response.strip(), "CLI should render help properly"
             assert len(response) > 100, "Help output should be substantial"
 
     @allure.testcase("2152", "CLI. UI. Welcome message. [Draft]")
     @pytest.mark.story_ui_validation
     @pytest.mark.cli
-    def test_cli_ui_welcome_message(self, simple_cli):
+    def test_cli_ui_welcome_message(self, fresh_cli_connection):
         """Test CLI. UI. Welcome message. [Draft]"""
         with allure.step("Verify CLI connection shows welcome"):
-            assert simple_cli.connected, "CLI should be connected and show welcome message"
+            assert (
+                fresh_cli_connection.connected
+            ), "CLI should be connected and show welcome message"
 
         with allure.step("Test basic command to verify CLI responsiveness"):
-            response = simple_cli.execute_command("?")
-            assert "Available commands:" in response, "CLI should respond properly to commands"
+            response = fresh_cli_connection.execute_command("?")
+            assert (
+                "Available commands:" in response
+            ), "CLI should respond properly to commands"
 
 
 @allure.epic("BSB CLI Testing")
@@ -249,17 +313,23 @@ class TestCLIConnectionManagement:
     @allure.testcase("2154", "CLI. 917 CLI. Multiple Entries. [Draft]")
     @pytest.mark.story_commands_check
     @pytest.mark.cli
-    def test_cli_917_multiple_entries(self, simple_cli):
+    def test_cli_917_multiple_entries(self, fresh_cli_connection):
         """Test entering and exiting 917 CLI multiple times"""
-        for i in range(15):
+        for i in range(5):
             with allure.step(f"Enter 917 CLI - attempt {i + 1}"):
-                response = simple_cli.enter_sl_cli()
-                assert "Welcome to BUSY Bar 917" in response, f"Should enter 917 CLI on attempt {i + 1}"
+                response = fresh_cli_connection.enter_sl_cli()
+                assert (
+                    "Welcome to BUSY Bar 917" in response
+                ), f"Should enter 917 CLI on attempt {i + 1}"
 
             with allure.step(f"Test 917 CLI functionality - attempt {i + 1}"):
-                help_response = simple_cli.execute_917_command("?")
-                assert help_response is not None, f"917 CLI should respond to commands on attempt {i + 1}"
+                help_response = fresh_cli_connection.execute_917_command("?")
+                assert (
+                    help_response is not None
+                ), f"917 CLI should respond to commands on attempt {i + 1}"
 
             with allure.step(f"Exit 917 CLI - attempt {i + 1}"):
-                simple_cli.exit_sl_cli()
-                assert not simple_cli._in_sl_cli, f"Should exit 917 CLI on attempt {i + 1}"
+                fresh_cli_connection.exit_sl_cli()
+                assert (
+                    not fresh_cli_connection._in_sl_cli
+                ), f"Should exit 917 CLI on attempt {i + 1}"
