@@ -1,4 +1,5 @@
 #include "../settings.h"
+#include "../models/brightness.h"
 #include "settings_scenes.h"
 #include "../storage_macros.h"
 
@@ -36,12 +37,11 @@ static void settings_scene_main_on_enter(void* context) {
     sprintf(volume_text, "%u%%", volume);
 
     const char* brightness_text;
-    uint8_t brightness = back_display_get_brightness(instance->back_display);
-    if(brightness == BACK_DISPLAY_BRIGHTNESS_AUTO) {
+    if(settings_brightness_get_mode(instance) == SettingsBrightnessModeAuto) {
         brightness_text = "Auto";
     } else {
         char* text = alloca(snprintf(NULL, 0, "%u%%", UINT8_MAX) + 1);
-        sprintf(text, "%u%%", brightness);
+        sprintf(text, "%u%%", settings_brightness_get(instance));
         brightness_text = text;
     }
 
