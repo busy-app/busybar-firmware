@@ -15,6 +15,8 @@ typedef enum {
 typedef struct {
     Menu* front_menu;
     Menu* back_menu;
+
+    size_t menu_idx;
 } SettingsSceneMain;
 
 static void settings_scene_setup_menu_callback(uint32_t index, void* context) {
@@ -73,6 +75,8 @@ static void settings_scene_main_on_enter(void* context) {
             settings_scene_setup_menu_callback,
             instance);
 
+        menu_set_selected_item_index(data->front_menu, data->menu_idx);
+
         data->back_menu = menu_alloc(instance->back_scene_window);
 
         menu_add_item(
@@ -100,6 +104,7 @@ static void settings_scene_main_on_enter(void* context) {
             NULL,
             instance);
 
+        menu_set_selected_item_index(data->back_menu, data->menu_idx);
         widget_set_visible(nav_bar_get_base(instance->back_nav_bar), true);
     });
 }
@@ -118,11 +123,14 @@ static void settings_scene_main_on_exit(void* context) {
 
 static bool settings_scene_main_on_event(const SceneManagerEvent* event, void* context) {
     furi_assert(context);
+
     SettingsApp* instance = context;
+    SettingsSceneMain* data = scene_manager_get_current_scene_data(instance->scene_manager);
 
     bool consumed = false;
-
     if(event->type == SceneManagerEventTypeCustom) {
+        data->menu_idx = event->event;
+
         switch(event->event) {
         case SettingsSceneMainMenuIndexSound:
             settings_push_location(instance, "SOUND");
@@ -144,6 +152,8 @@ static bool settings_scene_main_on_event(const SceneManagerEvent* event, void* c
         }
 
         consumed = true;
+    } else if(event->type == SceneManagerEventTypeBack) {
+        data->menu_idx = 0;
     }
 
     return consumed;
