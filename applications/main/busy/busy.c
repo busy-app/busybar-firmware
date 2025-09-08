@@ -108,7 +108,7 @@ static BusyApp* busy_alloc(void) {
         instance->back_window = widget_alloc(flex_layout_get_base(instance->back_container));
         flex_layout_set_child_widget_grow(instance->back_container, instance->back_window, 1);
 
-        instance->timer_card = timer_card_alloc(back_root);
+        instance->timer_card = timer_card_alloc(flex_layout_get_base(instance->back_container));
     });
 
     furi_event_loop_subscribe_message_queue(

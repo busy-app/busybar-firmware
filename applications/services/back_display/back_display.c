@@ -29,6 +29,7 @@ typedef enum {
     BackDisplayEventTearing = 1 << 1,
     BackDisplayEventLightLevelUpdate = 1 << 2,
     BackDisplayEventSaveConfig = 1 << 3,
+    BackDisplayEventUpdateSleep = 1 << 4,
 } BackDisplayEvent;
 
 struct BackDisplaySrv {
@@ -42,8 +43,11 @@ struct BackDisplaySrv {
     bool dirty;
 
     FuriPubSub* light_sensor_events;
+
+    FuriMutex* property_mutex;
     uint8_t sensor_contrast;
     int brightness_override;
+    size_t sleep_holders;
 };
 
 static uint8_t back_display_sensor_level_to_contrast(uint8_t level) {
@@ -76,12 +80,12 @@ static uint8_t back_display_brightness_to_contrast(uint8_t brightness) {
 }
 
 static void back_display_update_brightness(BackDisplaySrv* instance) {
-    uint8_t constrast_level = instance->sensor_contrast;
+    uint8_t contrast_level = instance->sensor_contrast;
     if(instance->brightness_override != BACK_DISPLAY_BRIGHTNESS_AUTO) {
-        constrast_level = back_display_brightness_to_contrast(instance->brightness_override);
+        contrast_level = back_display_brightness_to_contrast(instance->brightness_override);
     }
 
-    ssd1320_set_contrast(constrast_level);
+    ssd1320_set_contrast(contrast_level);
 }
 
 static void back_display_light_sensor_event(const void* message, void* context) {
@@ -95,7 +99,10 @@ static void back_display_light_sensor_event(const void* message, void* context) 
         return;
     }
 
+    furi_check(furi_mutex_acquire(instance->property_mutex, FuriWaitForever) == FuriStatusOk);
     instance->sensor_contrast = back_display_sensor_level_to_contrast(event->light_level);
+    furi_check(furi_mutex_release(instance->property_mutex) == FuriStatusOk);
+
     furi_event_loop_set_custom_event(instance->event_loop, BackDisplayEventLightLevelUpdate);
 }
 
@@ -124,14 +131,22 @@ static void back_display_event_callback(uint32_t events, void* context) {
         }
     }
 
+    furi_check(furi_mutex_acquire(instance->property_mutex, FuriWaitForever) == FuriStatusOk);
+
     if(events & BackDisplayEventLightLevelUpdate) {
         back_display_update_brightness(instance);
+    }
+
+    if(events & BackDisplayEventUpdateSleep) {
+        ssd1320_sleep_mode(instance->sleep_holders > 0);
     }
 
     if(events & BackDisplayEventSaveConfig) {
         json_config_write_single_int(
             DISPLAY_CONFIG_FILE, "brightness", instance->brightness_override);
     }
+
+    furi_check(furi_mutex_release(instance->property_mutex) == FuriStatusOk);
 }
 
 static void back_display_tearing_callback(void* context) {
@@ -151,6 +166,8 @@ static BackDisplaySrv* back_display_alloc(void) {
     instance->send_buffer = instance->data[0];
     instance->draw_buffer = instance->data[1];
     instance->dirty = false;
+
+    instance->property_mutex = furi_mutex_alloc(FuriMutexTypeNormal);
 
     int default_brightness = BACK_DISPLAY_BRIGHTNESS_AUTO;
     json_config_read_single_int(
@@ -200,10 +217,28 @@ void back_display_draw(BackDisplaySrv* instance, const uint8_t* data) {
     furi_event_loop_set_custom_event(instance->event_loop, BackDisplayEventDraw);
 }
 
+void back_display_sleep_mode(BackDisplaySrv* instance, bool sleep) {
+    furi_check(instance);
+
+    furi_check(furi_mutex_acquire(instance->property_mutex, FuriWaitForever) == FuriStatusOk);
+    if(sleep) {
+        instance->sleep_holders++;
+    } else {
+        instance->sleep_holders--;
+    }
+    furi_check(furi_mutex_release(instance->property_mutex) == FuriStatusOk);
+
+    furi_event_loop_set_custom_event(
+        instance->event_loop, BackDisplayEventUpdateSleep | BackDisplayEventSaveConfig);
+}
+
 void back_display_set_brightness(BackDisplaySrv* instance, uint8_t brightness) {
     furi_check(instance);
 
+    furi_check(furi_mutex_acquire(instance->property_mutex, FuriWaitForever) == FuriStatusOk);
     instance->brightness_override = brightness;
+    furi_check(furi_mutex_release(instance->property_mutex) == FuriStatusOk);
+
     furi_event_loop_set_custom_event(
         instance->event_loop, BackDisplayEventLightLevelUpdate | BackDisplayEventSaveConfig);
 }

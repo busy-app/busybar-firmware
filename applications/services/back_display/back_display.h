@@ -26,6 +26,23 @@ typedef struct BackDisplaySrv BackDisplaySrv;
 void back_display_draw(BackDisplaySrv* instance, const uint8_t* data);
 
 /**
+ * @brief Controls the display's power setting
+ * 
+ * @note This configuration will not be persisted across reboots. The display is
+ * always turned on on power up.
+ * 
+ * @warning This function counts how many apps are currently keeping sleep
+ * active, and only puts the display out of it once the count reaches zero. A
+ * call to this function with the value of `false` is thus not guaranteed to
+ * pull the display out of sleep.
+ * 
+ * @param instance back display service instance
+ * @param sleep `true` if the display is to be put into sleep (turned off),
+ *              `false` if it is to be put out of sleep (turned on)
+ */
+void back_display_sleep_mode(BackDisplaySrv* instance, bool sleep);
+
+/**
  * @brief Set the back display brightness 
  * 
  * @param instance Pointer to the FrontDisplaySrv instance

@@ -40,6 +40,8 @@ static void label_event_callback(const lv_obj_class_t* class_p, lv_event_t* even
 static void label_lvgl_constructor(const lv_obj_class_t* class_p, lv_obj_t* obj) {
     UNUSED(class_p);
 
+    lv_obj_remove_flag(obj, LV_OBJ_FLAG_SCROLLABLE);
+
     Label* instance = (Label*)obj;
     instance->label = lv_label_create(obj);
     instance->text = furi_string_alloc();

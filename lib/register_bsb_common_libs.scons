@@ -30,6 +30,7 @@ for libname in [
     "sl_glue",
     "simplicity_sdk",
     "wiseconnect",
+    "matter_ext",
     "toolbox_f64",
     "firmware_applications_f64",
 ]:

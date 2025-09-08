@@ -1,0 +1,10 @@
+App(
+    appid="sntp",
+    name="SntpSrv",
+    apptype=FlipperAppType.SERVICE,
+    entry_point="sntp_srv",
+    stack_size=1024 * 1,
+    order=150,
+    targets=["f20", "f21"],
+    cdefines=["SRV_SNTP"],
+)
