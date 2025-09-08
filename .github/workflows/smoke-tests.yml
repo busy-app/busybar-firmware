@@ -40,16 +40,17 @@ on:
         default: 'GitHub Actions Run'
         type: string
 
-  # Scheduled runs (daily at 2 AM UTC)
-  schedule:
-    - cron: '0 2 * * *'
-
-  push:
-    branches:
-      - dev
-      - doom/testops-integration-tests # TODO: delete after undrafting!
-    tags:
-      - '*'
+# removed to see if trigger in build will work
+#  # Scheduled runs (daily at 2 AM UTC)
+#  schedule:
+#    - cron: '0 2 * * *'
+#
+#  push:
+#    branches:
+#      - dev
+#      - doom/testops-integration-tests # TODO: delete after undrafting!
+#    tags:
+#      - '*'
 
 jobs:
   run_units_on_bench:
