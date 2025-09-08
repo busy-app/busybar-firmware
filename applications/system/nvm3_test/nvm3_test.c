@@ -44,7 +44,7 @@ void* nvm3_test_app_start(CliShell* shell) {
     do {
         status = sl_net_init(
             SL_NET_WIFI_CLIENT_INTERFACE, &sl_wifi_default_concurrent_configuration, NULL, NULL);
-        if(status != SL_STATUS_OK) {
+        if((status != SL_STATUS_OK) && (status != SL_STATUS_ALREADY_INITIALIZED)) {
             furi_string_printf(
                 nvm3_test_app_instance->msg,
                 ANSI_FG_RED "Failed to start Wi-Fi client interface: 0x%lx" ANSI_RESET,
@@ -67,10 +67,6 @@ void* nvm3_test_app_start(CliShell* shell) {
         nvm3_test_app_instance->state = NVM3TestStateInit;
     } while(0);
 
-    if(status != SL_STATUS_OK) {
-        nvm3_test_app_stop(nvm3_test_app_instance);
-        return NULL;
-    }
     return (void*)nvm3_test_app_instance;
 }
 
@@ -191,6 +187,20 @@ void nvm3_test_test_command(PipeSide* pipe, FuriString* args, void* context) {
     } while(false);
 }
 
+static void nvm3_test_erase_command(PipeSide* pipe, FuriString* args, void* context) {
+    UNUSED(pipe);
+    UNUSED(args);
+    UNUSED(context);
+
+    printf("Erasing nvm storage\r\n");
+
+    if(nvm3_test_erase_all()) {
+        printf("nvm storage erased successfully\r\n");
+    } else {
+        printf("Failed to erase nvm storage\r\n");
+    }
+}
+
 static void nvm3_test_motd(void* context) {
     UNUSED(context);
     printf("\r\n+-----------------------------+\r\n");
@@ -211,6 +221,8 @@ void nvm3_test_command(PipeSide* pipe, FuriString* args, void* context) {
         registry, "test", CliCommandFlagDefault, nvm3_test_test_command, NULL);
     cli_registry_add_command(
         registry, "print", CliCommandFlagDefault, nvm3_test_print_command, NULL);
+    cli_registry_add_command(
+        registry, "erase", CliCommandFlagDefault, nvm3_test_erase_command, NULL);
 
     CliShell* shell = cli_shell_alloc(nvm3_test_motd, NULL, pipe, registry, NULL);
     cli_shell_set_prompt(shell, "crypto_test");

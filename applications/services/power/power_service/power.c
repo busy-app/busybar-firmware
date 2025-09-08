@@ -335,16 +335,17 @@ static bool power_charger_is_charged(Bq25798ChargerStatusChargeStat status) {
 }
 
 static void power_update_info(Power* power) {
-    UNUSED(power);
+    furi_assert(power);
+
     furi_hal_i2c_acquire(POWER_I2C);
     Bq25798ChargerStatus status = {0};
-    assert(bq25798_get_charger_status(POWER_I2C, &status) == true);
+    furi_check(bq25798_get_charger_status(POWER_I2C, &status));
 
-    assert(bq25798_get_charger_fault(POWER_I2C, &power->info.debug.charger_fault) == true);
-    memcpy(&power->info.debug.charger_status, &status, sizeof(Bq25798ChargerStatus));
+    furi_check(bq25798_get_charger_fault(POWER_I2C, &power->info.debug.charger_fault));
+    power->info.debug.charger_status = status;
 
     Bq25798AdcValues adc_val = {0};
-    assert(bq25798_get_adc_values(POWER_I2C, &adc_val) == true);
+    furi_check(bq25798_get_adc_values(POWER_I2C, &adc_val));
 
     furi_hal_i2c_release(POWER_I2C);
 

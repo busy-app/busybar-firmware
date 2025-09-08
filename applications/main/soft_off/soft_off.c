@@ -29,6 +29,9 @@ int32_t soft_off_app(void* arg) {
         furi_thread_get_current(), soft_off_signal_callback, exit_semaphore);
     furi_check(furi_semaphore_acquire(exit_semaphore, FuriWaitForever) == FuriStatusOk);
 
+    furi_thread_set_signal_callback(furi_thread_get_current(), NULL, NULL);
+    furi_semaphore_free(exit_semaphore);
+
     back_display_sleep_mode(back_display, false);
 
     furi_record_close(RECORD_BACK_DISPLAY);

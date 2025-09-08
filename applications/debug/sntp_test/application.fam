@@ -1,0 +1,10 @@
+App(
+    appid="sntp_test",
+    name="SNTP Test",
+    apptype=FlipperAppType.DEBUG,
+    order=0,
+    entry_point="sntp_test_app",
+    requires=[],
+    stack_size=4 * 1024,
+    targets=["f20", "f21"],
+)
