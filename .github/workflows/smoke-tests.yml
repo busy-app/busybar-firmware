@@ -59,7 +59,8 @@ jobs:
     strategy:
       matrix:
         python-version: [ 3.11 ]
-        test-suite: [ all, cli, frontend ]
+        # Only run the selected test suite for manual triggers, default to 'all' for other triggers
+        test-suite: ${{ github.event_name == 'workflow_dispatch' && fromJSON(format('["{0}"]', github.event.inputs.test_suite)) || fromJSON('["all"]') }}
         include:
           - test-suite: all
             markers: ""
@@ -181,7 +182,6 @@ jobs:
           name: allure-report-${{ matrix.test-suite }}-${{ github.run_number }}
           path: allure-report/
           retention-days: 30
-
 
   # Separate job for manual upload to TestOps
   upload-testops:
