@@ -110,7 +110,7 @@ static void mqtt_event_handler(struct mg_connection* conn, int ev, void* ev_data
             .key = mg_str(mqtt->device_key),
             // .skip_verification = 1,
         };
-        mg_tls_init(conn, &opts);
+        mqtt_tls_init(conn, &opts);
     } else if(ev == MG_EV_TLS_HS) {
         FURI_LOG_I(TAG, "TLS handshake done!");
     } else if(ev == MG_EV_MQTT_OPEN) {
@@ -202,6 +202,9 @@ static bool mqtt_client_load_certs(MqttClient* mqtt) {
             break;
         }
         file_size = storage_file_size(file);
+
+        // TODO: read device cert from 917
+        // TODO: verify key on 917
         mqtt->device_cert = malloc(int_cert_size + file_size);
         if(storage_file_read(file, mqtt->device_cert, file_size) != file_size) {
             FURI_LOG_E(TAG, "Device cert file read error");

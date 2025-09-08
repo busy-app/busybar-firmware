@@ -14,3 +14,5 @@
 #define HTTP_URI_API_PREFIX "/api/"
 
 bool mqtt_parse_topic(struct mg_str* topic, FuriString* http_req, FuriString* response_topic);
+
+void mqtt_tls_init(struct mg_connection* conn, const struct mg_tls_opts* opts);

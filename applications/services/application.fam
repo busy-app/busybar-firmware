@@ -38,6 +38,7 @@ App(
         "ble",
         "network",
         "sntp",
+        "tls_crypto",
     ],
     targets=["f20", "f21"],
 )
@@ -62,10 +63,11 @@ App(
     apptype=FlipperAppType.METAPACKAGE,
     provides=[
         # "intercom",  # Enabled in default fw config
-        #"wifi",
+        # "wifi",
         "status_lights",
         "cli_intercom",
-        "ble"
+        "ble",
+        "tls_crypto_server",
     ],
     targets=["f64"],
 )

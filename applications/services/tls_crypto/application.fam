@@ -1,0 +1,21 @@
+App(
+    appid="tls_crypto",
+    name="tls_crypto",
+    targets=["f20", "f21"],
+    apptype=FlipperAppType.STARTUP,
+    entry_point="tls_crypto_client_init",
+    stack_size=1024 * 4,
+    sources=["tls_crypto_client.c"],
+)
+
+App(
+    appid="tls_crypto_server",
+    name="tls_crypto_server",
+    apptype=FlipperAppType.SERVICE,
+    entry_point="tls_crypto_server_init",
+    requires=["intercom"],
+    stack_size=1 * 1024,
+    order=80,
+    targets=["f64"],
+    sources=["tls_crypto_server.c"],
+)
