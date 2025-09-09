@@ -5,3 +5,4 @@
 #define SETTINGS_ASSETS_PATH(path) EXT_PATH("apps_assets/settings") "/" path
 #define SETTINGS_IMG_PATH(path)    SETTINGS_ASSETS_PATH("images") "/" path
 #define SETTINGS_SOUND_PATH(path)  SETTINGS_ASSETS_PATH("sounds") "/" path
+#define SETTINGS_ANIM_PATH(path)   SETTINGS_ASSETS_PATH("animations") "/" path

@@ -11,6 +11,12 @@
 #include <gui/modules/nav_bar.h>
 #include <gui/modules/flex_layout.h>
 
+typedef enum {
+    SettingsCustomEventShortPressed,
+    SettingsCustomEventMenuItemClick,
+    SettingsCustomEventAboutToExit
+} SettingsCustomEvent;
+
 typedef struct SettingsApp {
     FuriEventLoop* event_loop;
     FuriMessageQueue* input_queue;

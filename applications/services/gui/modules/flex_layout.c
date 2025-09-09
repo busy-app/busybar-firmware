@@ -67,23 +67,6 @@ void flex_layout_set_spacing(FlexLayout* instance, int32_t spacing) {
     }
 }
 
-void flex_layout_set_align(
-    FlexLayout* instance,
-    FlexLayoutAlign main_place_align,
-    FlexLayoutAlign cross_place_align,
-    FlexLayoutAlign track_cross_place_align) {
-    furi_check(instance);
-    furi_check(main_place_align < FlexLayoutAlignMax);
-    furi_check(cross_place_align < FlexLayoutAlignMax);
-    furi_check(track_cross_place_align < FlexLayoutAlignMax);
-
-    lv_obj_set_flex_align(
-        (lv_obj_t*)instance,
-        (lv_flex_align_t)main_place_align,
-        (lv_flex_align_t)cross_place_align,
-        (lv_flex_align_t)track_cross_place_align);
-}
-
 void flex_layout_set_wrap(FlexLayout* instance, bool wrap) {
     furi_check(instance);
 
