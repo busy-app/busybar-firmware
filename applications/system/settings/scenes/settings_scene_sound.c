@@ -1,4 +1,5 @@
 #include "../settings.h"
+#include "../models/volume.h"
 #include "../widgets/slider_view.h"
 #include "../storage_macros.h"
 
@@ -32,12 +33,13 @@ static void settings_scene_sound_on_enter(void* context) {
     SettingsApp* instance = context;
     SettingsSceneSound* data = scene_manager_get_current_scene_data(instance->scene_manager);
 
-    uint8_t volume = roundf(100.f * audio_get_volume(instance->audio));
+    uint8_t volume = settings_volume_get(instance);
 
     with_gui(instance->gui, {
         data->front_slider = slider_view_alloc(instance->front_scene_window);
-        slider_view_set_range(data->front_slider, 0, 100);
-        slider_view_set_step(data->front_slider, 5);
+        slider_view_set_range(
+            data->front_slider, SETTINGS_VOLUME_RANGE_MIN, SETTINGS_VOLUME_RANGE_MAX);
+        slider_view_set_step(data->front_slider, SETTINGS_VOLUME_STEP);
         slider_view_set_value(data->front_slider, volume);
         slider_view_set_suffix(data->front_slider, "%");
         slider_view_set_bar_gradient(
@@ -50,8 +52,9 @@ static void settings_scene_sound_on_enter(void* context) {
             data->front_slider, settings_scene_sound_slider_view_callback, instance);
 
         data->back_slider = slider_view_alloc(instance->back_scene_window);
-        slider_view_set_range(data->back_slider, 0, 100);
-        slider_view_set_step(data->back_slider, 5);
+        slider_view_set_range(
+            data->back_slider, SETTINGS_VOLUME_RANGE_MIN, SETTINGS_VOLUME_RANGE_MAX);
+        slider_view_set_step(data->back_slider, SETTINGS_VOLUME_STEP);
         slider_view_set_value(data->back_slider, volume);
         slider_view_set_suffix(data->back_slider, "%");
         slider_view_add_level_image(
@@ -84,7 +87,7 @@ static bool settings_scene_sound_on_event(const SceneManagerEvent* event, void* 
             SettingsSceneSound* data =
                 scene_manager_get_current_scene_data(instance->scene_manager);
 
-            audio_set_volume(instance->audio, .01f * data->slider_value);
+            settings_volume_set(instance, data->slider_value);
             audio_play_file(instance->audio, SETTINGS_SOUND_PATH("volume_change.snd"));
 
             consumed = true;

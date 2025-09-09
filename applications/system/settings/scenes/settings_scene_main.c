@@ -1,5 +1,6 @@
 #include "../settings.h"
 #include "../models/brightness.h"
+#include "../models/volume.h"
 #include "settings_scenes.h"
 #include "../storage_macros.h"
 
@@ -65,8 +66,8 @@ static void settings_scene_main_on_enter(void* context) {
     SettingsApp* instance = context;
     SettingsSceneMain* data = scene_manager_get_current_scene_data(instance->scene_manager);
 
+    uint8_t volume = settings_volume_get(instance);
     char volume_text[snprintf(NULL, 0, "%u%%", UINT8_MAX) + 1];
-    uint8_t volume = roundf(100.f * audio_get_volume(instance->audio));
     sprintf(volume_text, "%u%%", volume);
 
     const char* brightness_text;
