@@ -11,7 +11,7 @@ static uint8_t settings_brightness_to_model(uint8_t brightness, uint8_t min, uin
     uint8_t input_range = max - min;
     uint8_t output_range = SETTINGS_BRIGHTNESS_RANGE_MAX - SETTINGS_BRIGHTNESS_RANGE_MIN;
 
-    return CLOSEST_MULTIPLE_OF(
+    return CEILING_MULTIPLE_OF(
         SETTINGS_BRIGHTNESS_RANGE_MIN +
             ((CLAMP(brightness, max, min) - min) * output_range) / input_range,
         SETTINGS_BRIGHTNESS_STEP);

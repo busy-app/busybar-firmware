@@ -2,7 +2,7 @@
 #include "common.h"
 
 static uint8_t settings_volume_to_model(float volume) {
-    return CLOSEST_MULTIPLE_OF((uint32_t)(volume * 100.f), SETTINGS_VOLUME_STEP);
+    return CEILING_MULTIPLE_OF((uint32_t)(volume * 100.f), SETTINGS_VOLUME_STEP);
 }
 
 static float settings_volume_from_model(uint8_t volume) {
