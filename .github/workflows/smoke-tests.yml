@@ -160,9 +160,14 @@ jobs:
         run: |
           cd tests
           allurectl upload allure-results \
+            --token ${{ secrets.ALLURE_TESTOPS_TOKEN }} \
+            --endpoint ${{ vars.ALLURE_TESTOPS_URL || 'https://flipper.testops.cloud' }} \
+            --project-id ${{ vars.ALLURE_PROJECT_ID || '232' }} \
             --launch-name "${{ github.event.inputs.launch_name || format('GitHub Actions - {0} - {1}', github.workflow, github.sha) }}"
         env:
           ALLURE_TESTOPS_TOKEN: ${{ secrets.ALLURE_TESTOPS_TOKEN }}
+          ALLURE_TESTOPS_URL: ${{ secrets.ALLURE_TESTOPS_URL }}
+          ALLURE_PROJECT_ID: ${{ secrets.ALLURE_PROJECT_ID }}
 
       - name: Upload test results as artifacts
         uses: actions/upload-artifact@v4
