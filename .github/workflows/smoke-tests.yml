@@ -183,7 +183,7 @@ jobs:
           # Try the upload
           allurectl upload allure-results \
             --endpoint "https://flipper.testops.cloud" \
-            --token "${{ secrets.ALLURE_TESTOPS_TOKEN }}" \
+            --token "${{ env.ALLURE_TOKEN }}" \
             --project-id "232" \
             --launch-name "GitHub Actions - ${{ github.workflow }} - ${{ github.sha }}"
           
@@ -195,6 +195,8 @@ jobs:
           else
             echo "Upload failed with exit code: $exit_code"
           fi
+        env:
+          ALLURE_TOKEN: ${{ secrets.ALLURE_TESTOPS_TOKEN }}
 
       - name: Upload test results as artifacts
         uses: actions/upload-artifact@v4
