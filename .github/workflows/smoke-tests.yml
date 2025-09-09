@@ -142,7 +142,7 @@ jobs:
         env:
           CLI_HOST: ${{ secrets.CLI_HOST || '10.0.4.20' }} #was busybar.local
           CLI_PORT: ${{ secrets.CLI_PORT || '23' }}
-          WEB_BASE_URL: ${{ secrets.WEB_BASE_URL || 'http://10.0.4.20/' }}
+          WEB_BASE_URL: ${{ secrets.WEB_BASE_URL || 'http://10.0.4.20' }}
           LOG_LEVEL: INFO
           LOG_TO_FILE: true
 

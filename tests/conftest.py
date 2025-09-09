@@ -39,7 +39,7 @@ def test_logger(request) -> logging.Logger:
 @pytest.fixture(scope="session")
 def web_base_url() -> str:
     """Base URL for web frontend tests"""
-    return os.getenv("WEB_BASE_URL", "http://10.0.4.20/")
+    return os.getenv("WEB_BASE_URL", "http://10.0.4.20")
 
 
 @pytest.fixture
