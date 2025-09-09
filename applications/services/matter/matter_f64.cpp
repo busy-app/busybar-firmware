@@ -53,6 +53,7 @@ static MatterSrv* matter_global_srv;
  */
 static const EndpointId matter_endpoint_ids[MatterVirtualDeviceMAX] = {
     [MatterVirtualDeviceSwitch1] = 1,
+    [MatterVirtualDeviceSwitch2] = 2,
 };
 
 /**
@@ -61,6 +62,7 @@ static const EndpointId matter_endpoint_ids[MatterVirtualDeviceMAX] = {
 static const MatterVirtualDevice matter_device_ids[] = {
     [0] = MatterVirtualDeviceMAX, // reserved
     [1] = MatterVirtualDeviceSwitch1,
+    [2] = MatterVirtualDeviceSwitch2,
 };
 
 /**
@@ -72,6 +74,7 @@ static void matter_apply_new_device_state(MatterVirtualDeviceState* state) {
 
     switch(state->device) {
     case MatterVirtualDeviceSwitch1:
+    case MatterVirtualDeviceSwitch2:
         OnOff::Attributes::OnOff::Set(matter_endpoint_ids[state->device], state->bool_val);
         break;
 
@@ -147,7 +150,8 @@ void MatterPostAttributeChangeCallback(
     case MatterVirtualDeviceMAX:
         return;
 
-    case MatterVirtualDeviceSwitch1: {
+    case MatterVirtualDeviceSwitch1:
+    case MatterVirtualDeviceSwitch2: {
         if(!(cluster == OnOff::Id && attribute == OnOff::Attributes::OnOff::Id)) return;
         matter_send_state_update(
             matter_global_srv,
@@ -165,7 +169,8 @@ void MatterPostAttributeChangeCallback(
  */
 static void matter_send_current_state(MatterSrv* matter, MatterVirtualDevice device) {
     switch(device) {
-    case MatterVirtualDeviceSwitch1: {
+    case MatterVirtualDeviceSwitch1:
+    case MatterVirtualDeviceSwitch2: {
         MatterVirtualDeviceState state = {
             .device = device,
             .bool_val = false /* to be filled */,
@@ -261,6 +266,7 @@ CHIP_ERROR MatterSrv::init(void) {
 
         intercom_set_rx_callback(this->intercom, IntercomChannelMatter, matter_handle_frame, this);
         matter_send_current_state(this, MatterVirtualDeviceSwitch1);
+        matter_send_current_state(this, MatterVirtualDeviceSwitch2);
     } while(false);
 
     return err;

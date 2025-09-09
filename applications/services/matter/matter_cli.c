@@ -30,6 +30,7 @@ static void matter_cli_cmd_set(PipeSide* pipe, FuriString* args, void* context) 
 
     static const char* const device_names[MatterVirtualDeviceMAX] = {
         [MatterVirtualDeviceSwitch1] = "switch1",
+        [MatterVirtualDeviceSwitch2] = "switch2",
     };
     static const char* const switch_states[2] = {
         "off",
@@ -50,7 +51,7 @@ static void matter_cli_cmd_set(PipeSide* pipe, FuriString* args, void* context) 
 
         for(MatterVirtualDevice device = 0; device < MatterVirtualDeviceMAX; device++) {
             if(furi_string_cmpi_str(arg, device_names[device]) == 0) {
-                state.device = MatterVirtualDeviceSwitch1;
+                state.device = device;
                 break;
             }
         }
@@ -64,7 +65,8 @@ static void matter_cli_cmd_set(PipeSide* pipe, FuriString* args, void* context) 
         bool did_parse_state = false;
 
         switch(state.device) {
-        case MatterVirtualDeviceSwitch1: {
+        case MatterVirtualDeviceSwitch1:
+        case MatterVirtualDeviceSwitch2: {
             for(size_t i = 0; i < COUNT_OF(switch_states); i++) {
                 if(furi_string_cmpi_str(arg, switch_states[i]) == 0) {
                     state.bool_val = (bool)i;
@@ -112,6 +114,7 @@ static void matter_cli_format_device_state(
     UNUSED(matter_cli);
     static const char* const device_names[MatterVirtualDeviceMAX] = {
         [MatterVirtualDeviceSwitch1] = "Switch 1",
+        [MatterVirtualDeviceSwitch2] = "Switch 2",
     };
     static const char* const switch_states[2] = {
         ANSI_FG_RED "off" ANSI_RESET,
@@ -124,6 +127,7 @@ static void matter_cli_format_device_state(
 
     switch(state->device) {
     case MatterVirtualDeviceSwitch1:
+    case MatterVirtualDeviceSwitch2:
         furi_string_cat_str(out, switch_states[state->bool_val]);
         break;
 
@@ -164,10 +168,8 @@ static void matter_cli_motd(void* context) {
     MatterCli* matter_cli = context;
 
     printf("\r\n");
-    printf(ANSI_FG_BLACK ANSI_BG_BR_WHITE);
-    printf("   ↓  Matter  \r\n");
-    printf("  ↗ ↖ CLI     \r\n");
-    printf(ANSI_RESET);
+    printf(ANSI_FG_BLACK ANSI_BG_BR_WHITE "   ↓  Matter  " ANSI_RESET "\r\n");
+    printf(ANSI_FG_BLACK ANSI_BG_BR_WHITE "  ↗ ↖ CLI     " ANSI_RESET "\r\n");
     printf("\r\n");
 
     printf("Virtual device state:\r\n");
