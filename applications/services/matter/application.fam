@@ -21,7 +21,21 @@ App(
     order=250,
     targets=["f20", "f21"],
     requires=["intercom"],
+    provides=["matter_cli"],
     sources=[
         "matter.c",
+    ],
+)
+
+App(
+    appid="matter_cli",
+    name="matter",
+    apptype=FlipperAppType.CLICMD,
+    entry_point="matter_cli_command",
+    stack_size=2 * 1024,
+    targets=["f20", "f21"],
+    requires=["matter"],
+    sources=[
+        "matter_cli.c",
     ],
 )
