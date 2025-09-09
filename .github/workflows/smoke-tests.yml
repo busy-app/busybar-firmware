@@ -116,14 +116,14 @@ jobs:
 
       - name: Install dependencies
         run: |
-          python -m pip install --upgrade pip
+          python3 -m pip install --upgrade pip
           pip install -r tests/requirements.txt
 
 
       - name: Run setup verification
         run: |
           cd tests
-          python setup.py
+          python3 setup.py
         env:
           CLI_HOST: ${{ secrets.CLI_HOST || 'busybar.local' }}
           CLI_PORT: ${{ secrets.CLI_PORT || '23' }}
@@ -132,7 +132,7 @@ jobs:
       - name: Run tests
         run: |
           cd tests
-          python -m pytest . ${{ matrix.markers }} -v \
+          python3 -m pytest . ${{ matrix.markers }} -v \
             --alluredir=allure-results \
             --clean-alluredir \
             --tb=short \
@@ -207,7 +207,7 @@ jobs:
 
     - name: Install dependencies
       run: |
-        python -m pip install --upgrade pip
+        python3 -m pip install --upgrade pip
         pip install -r tests/requirements.txt
 
     - name: Upload to Allure TestOps
