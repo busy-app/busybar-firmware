@@ -36,7 +36,6 @@ markers = [
     "cli: marks tests as CLI command tests",
     "frontend: marks tests as web frontend tests",
     "ui_validation: marks tests as UI validation",
-    "ui_interaction: marks tests as UI interaction tests",
     "interface_status: marks tests as interface status tests",
     "commands_check: marks tests as command validation",
     "mqtt: marks tests as MQTT functionality",
