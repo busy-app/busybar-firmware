@@ -5,18 +5,25 @@
 #define FRONT_SLIDER_GRADIENT_START ((Color)COLOR_MAKE_HEX(0x104224))
 #define FRONT_SLIDER_GRADIENT_STOP  ((Color)COLOR_MAKE_HEX(0x16A34A))
 
+typedef enum {
+    SceneCustomEventVolumeChanged = SettingsCustomEventSceneEventsStart,
+} SceneCustomEvent;
+
 typedef struct {
     SliderView* front_slider;
     SliderView* back_slider;
+
+    _Atomic uint32_t slider_value;
 } SettingsSceneSound;
 
 static void settings_scene_sound_slider_view_callback(int32_t value, void* context) {
     furi_assert(context);
-    furi_assert(value <= 100);
 
     SettingsApp* instance = context;
+    SettingsSceneSound* data = scene_manager_get_current_scene_data(instance->scene_manager);
 
-    settings_send_custom_event(instance, value);
+    data->slider_value = value;
+    settings_send_custom_event(instance, SceneCustomEventVolumeChanged);
 }
 
 static void settings_scene_sound_on_enter(void* context) {
@@ -73,10 +80,15 @@ static bool settings_scene_sound_on_event(const SceneManagerEvent* event, void* 
 
     bool consumed = false;
     if(event->type == SceneManagerEventTypeCustom) {
-        audio_set_volume(instance->audio, .01f * event->event);
-        audio_play_file(instance->audio, SETTINGS_SOUND_PATH("volume_change.snd"));
+        if(event->event == SceneCustomEventVolumeChanged) {
+            SettingsSceneSound* data =
+                scene_manager_get_current_scene_data(instance->scene_manager);
 
-        consumed = true;
+            audio_set_volume(instance->audio, .01f * data->slider_value);
+            audio_play_file(instance->audio, SETTINGS_SOUND_PATH("volume_change.snd"));
+
+            consumed = true;
+        }
     } else if(event->type == SceneManagerEventTypeBack) {
         settings_pop_location(instance);
     }

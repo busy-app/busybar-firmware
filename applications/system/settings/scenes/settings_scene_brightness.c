@@ -6,9 +6,9 @@
 #define MANUAL_BRIGHTNESS_DEFAULT_VALUE 50
 
 typedef enum {
-    SettingsBrightnessCustomEventModeChanged,
-    SettingsBrightnessCustomEventBrightnessChanged,
-} SettingsBrightnessCustomEvent;
+    SceneCustomEventModeChanged = SettingsCustomEventSceneEventsStart,
+    SceneCustomEventBrightnessChanged,
+} SceneCustomEvent;
 
 typedef enum {
     VarItemListIdBrightness,
@@ -54,7 +54,7 @@ static void settings_scene_brightness_mode_changed_callback(VarItem* item, void*
 
     data->mode = var_item_get_value(item);
     settings_scene_brightness_filter_items(data);
-    settings_send_custom_event(instance, SettingsBrightnessCustomEventModeChanged);
+    settings_send_custom_event(instance, SceneCustomEventModeChanged);
 }
 
 static void settings_scene_brightness_changed_callback(VarItem* item, void* context) {
@@ -65,7 +65,7 @@ static void settings_scene_brightness_changed_callback(VarItem* item, void* cont
     SettingsSceneBrightness* data = scene_manager_get_current_scene_data(instance->scene_manager);
 
     data->brightness = var_item_get_value(item);
-    settings_send_custom_event(instance, SettingsBrightnessCustomEventBrightnessChanged);
+    settings_send_custom_event(instance, SceneCustomEventBrightnessChanged);
 }
 
 static void settings_scene_brightness_fill_var_item_list(
@@ -137,12 +137,14 @@ static bool settings_scene_brightness_on_event(const SceneManagerEvent* event, v
     furi_assert(context);
 
     SettingsApp* instance = context;
-    SettingsSceneBrightness* data = scene_manager_get_current_scene_data(instance->scene_manager);
 
     bool consumed = false;
     if(event->type == SceneManagerEventTypeCustom) {
+        SettingsSceneBrightness* data =
+            scene_manager_get_current_scene_data(instance->scene_manager);
+
         switch(event->event) {
-        case SettingsBrightnessCustomEventModeChanged:
+        case SceneCustomEventModeChanged:
             if(data->mode == SettingsBrightnessModeAuto) {
                 settings_brightness_set_auto_mode(instance);
             } else {
@@ -151,7 +153,7 @@ static bool settings_scene_brightness_on_event(const SceneManagerEvent* event, v
             consumed = true;
             break;
 
-        case SettingsBrightnessCustomEventBrightnessChanged:
+        case SceneCustomEventBrightnessChanged:
             settings_brightness_set(instance, data->brightness);
             consumed = true;
             break;
