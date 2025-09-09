@@ -86,6 +86,6 @@ bool tls_crypto_client_sign(
 int32_t tls_crypto_client_init(void* arg) {
     UNUSED(arg);
     // TODO: service?
-    FURI_LOG_E(TAG, "Hello, world!");
+    FURI_LOG_D(TAG, "Hello, world!");
     return 0;
 }

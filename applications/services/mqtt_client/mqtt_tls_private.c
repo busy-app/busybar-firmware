@@ -20,21 +20,6 @@ static void tls_debug_cb(void* ctx, int lev, const char* file, int line, const c
     FURI_LOG_I(TAG, "%lu %d %.*s", ((struct mg_connection*)ctx)->id, lev, len, str);
 }
 
-#define TLS_CRYPTO_DATA_SIZE_MAX 128
-
-typedef enum {
-    TlsCryptoSignRequest,
-    TlsCryptoSignResponse,
-    TlsCryptoError = 0xFFFFFFFF, /**< Special value for error handling */
-} TlsCryptoCmd;
-
-typedef struct FURI_PACKED {
-    TlsCryptoCmd cmd; /**< Command type */
-    uint8_t key_slot;
-    size_t data_size;
-    uint8_t data[TLS_CRYPTO_DATA_SIZE_MAX];
-} TlsCryptoSignMessage;
-
 static const char priv_key[] = "-----BEGIN EC PRIVATE KEY-----\n"
                                "MHcCAQEEIB7FooM2FmMvHm2eO/bkpAf+4cOpu/pledOBmU7IuF+5oAoGCCqGSM49\n"
                                "AwEHoUQDQgAEV06XdA1WR0mDHEGd4EVl+aBcO8uKG51nawvLS+JWlBpvJyLs1wC3\n"
