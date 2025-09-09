@@ -131,7 +131,7 @@ verify:
 	@echo "📊 Allure version:" && poetry run allure --version 2>/dev/null || echo "⚠️  Allure not installed"
 	@echo ""
 	@echo "🔌 Testing imports..."
-	@poetry run python -c "import telnetlib, requests, allure; from bs4 import BeautifulSoup; print('✓ All imports successful')" || echo "❌ Import test failed"
+	@poetry run python -c "import telnetlib, requests, allure; print('✓ All imports successful')" || echo "❌ Import test failed"
 	@echo ""
 	@echo "🔧 Testing CLI fixture..."
 	@poetry run python -c "from conftest import CLIFixture; cli = CLIFixture(); print('✓ CLI fixture OK')" || echo "❌ CLI fixture test failed"

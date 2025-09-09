@@ -92,7 +92,7 @@ def test_cli_connection():
             tn.write(b"help\r\n")
             response = tn.read_until(b">: ", timeout=5.0)
             response_str = response.decode("utf-8", errors="ignore")
-            
+
             if response_str:
                 logger.info("✓ CLI command execution working")
 
@@ -107,12 +107,15 @@ def test_cli_connection():
         logger.error(f"✗ CLI connection failed: {e}")
         return False
 
+
 def test_web_connection():
     """Test web frontend connection"""
     if not requests:
-        logger.error("✗ requests library not available. Please install dependencies first.")
+        logger.error(
+            "✗ requests library not available. Please install dependencies first."
+        )
         return False
-        
+
     if load_dotenv:
         load_dotenv()
 

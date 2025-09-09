@@ -113,7 +113,7 @@ def pytest_configure(config):
 class SimpleCLIConnection:
     """Simple CLI connection using standard telnetlib"""
 
-    #TODO: fix env load here
+    # TODO: fix env load here
     def __init__(self, host: str = "10.0.4.20", port: int = 23):
         self.host = host
         self.port = port
@@ -390,10 +390,12 @@ def pytest_runtest_teardown(item, nextitem):
 
 def pytest_collection_modifyitems(config, items):
     """Modify test items"""
-    for item in items:
-        if "cli" in str(item.fspath):
-            item.add_marker(pytest.mark.cli)
-            item.add_marker(pytest.mark.feature_cli)
-        elif "frontend" in str(item.fspath):
-            item.add_marker(pytest.mark.frontend)
-            item.add_marker(pytest.mark.feature_web_frontend)
+    pass
+    # TODO: add mark handling or remove them from tests itself
+    # for item in items:
+    #     if "cli" in str(item.fspath):
+    #         item.add_marker(pytest.mark.cli)
+    #         item.add_marker(pytest.mark.feature_cli)
+    #     elif "frontend" in str(item.fspath):
+    #         item.add_marker(pytest.mark.frontend)
+    #         item.add_marker(pytest.mark.feature_web_frontend)
