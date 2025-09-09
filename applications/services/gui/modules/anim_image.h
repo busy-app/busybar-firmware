@@ -14,6 +14,16 @@ extern "C" {
 typedef struct AnimImage AnimImage;
 
 /**
+ * @brief Callback function type called when a non-looping animation completes.
+ */
+typedef void (*AnimImageCompletedCallback)(AnimImage* instance, void* context);
+
+/**
+ * @brief Callback function type called when a specific frame is reached during animation.
+ */
+typedef uint32_t (*AnimImageFrameCallback)(AnimImage* instance, void* context);
+
+/**
  * @brief Create a new AnimImage instance.
  *
  * @param[in,out] parent pointer to the parent Widget instance
@@ -115,6 +125,32 @@ uint32_t anim_image_get_frame_rate(const AnimImage* instance);
  * @returns total number of frames in the animation
  */
 uint32_t anim_image_get_frame_count(const AnimImage* instance);
+
+/**
+ * @brief Set a callback function to be called when a specific animation frame is reached.
+ * 
+ * @param[in,out] instance pointer to the AnimImage instance to be modified
+ * @param[in] frame_idx the frame index at which to trigger the callback
+ * @param[in] callback pointer to the callback function, or NULL to disable
+ * @param[in] context pointer to user data passed to the callback function
+ */
+void anim_image_set_frame_callback(
+    AnimImage* instance,
+    uint32_t frame_idx,
+    AnimImageFrameCallback callback,
+    void* context);
+
+/**
+ * @brief Set a callback function to be called when a non-looping animation ends.
+ *
+ * @param[in,out] instance pointer to the AnimImage instance to be modified
+ * @param[in] callback pointer to the callback function, or NULL to disable
+ * @param[in] context pointer to user data passed to the callback function
+ */
+void anim_image_set_completed_callback(
+    AnimImage* instance,
+    AnimImageCompletedCallback callback,
+    void* context);
 
 #ifdef __cplusplus
 }

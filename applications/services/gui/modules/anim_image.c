@@ -4,6 +4,8 @@
 
 #include <assets_images.h>
 
+#include <string.h>
+
 #define TAG "AnimImage"
 
 #define ANIM_IMAGE_FILE_MAGIC     (0x69)
@@ -55,21 +57,55 @@ void anim_image_lvgl_destructor(const lv_obj_class_t* class_p, lv_obj_t* obj) {
         free(instance->canvas_buf);
     }
 
+    if(instance->file_path) {
+        free(instance->file_path);
+    }
+
     storage_file_free(instance->file);
     furi_record_close(RECORD_STORAGE);
 }
 
 // Implementation
 
+static bool anim_image_seek_file(AnimImage* instance) {
+    const size_t offset =
+        sizeof(AnimImageFileHeader) + instance->current_idx * instance->frame_size;
+    bool is_success = storage_file_seek(instance->file, offset, true);
+
+    if(!is_success) {
+        FURI_LOG_E(TAG, "Failed to seek file %s", instance->file_path);
+    }
+
+    return is_success;
+}
+
+static bool anim_image_open_file(AnimImage* instance) {
+    bool is_success =
+        storage_file_open(instance->file, instance->file_path, FSAM_READ, FSOM_OPEN_EXISTING);
+
+    if(!is_success) {
+        FURI_LOG_E(TAG, "Failed to open file %s", instance->file_path);
+    }
+
+    return is_success;
+}
+
+static bool anim_image_ensure_file_ready(AnimImage* instance) {
+    return storage_file_is_open(instance->file) ||
+           (anim_image_open_file(instance) && anim_image_seek_file(instance));
+}
+
 static void anim_image_update(AnimImage* instance) {
     do {
         if(instance->current_idx == instance->current_range.begin_idx) {
-            const size_t offset = sizeof(AnimImageFileHeader) +
-                                  instance->current_range.begin_idx * instance->frame_size;
-            if(!storage_file_seek(instance->file, offset, true)) {
-                FURI_LOG_E(TAG, "Failed to seek animation file");
+            if(!anim_image_seek_file(instance)) {
                 break;
             }
+        }
+
+        if(instance->frame_callback && instance->current_idx == instance->frame_callback_idx) {
+            instance->frame_callback_idx =
+                instance->frame_callback(instance, instance->frame_callback_context);
         }
 
         size_t bytes_read =
@@ -83,6 +119,7 @@ static void anim_image_update(AnimImage* instance) {
         lv_obj_invalidate(instance->canvas);
 
         if(++instance->current_idx > instance->current_range.end_idx) {
+            bool had_waiting_range = instance->has_waiting_range;
             if(instance->has_waiting_range) {
                 instance->has_waiting_range = false;
                 instance->current_range = instance->waiting_range;
@@ -90,8 +127,13 @@ static void anim_image_update(AnimImage* instance) {
 
             instance->current_idx = instance->current_range.begin_idx;
 
-            if(!instance->current_range.loop) {
+            if(!had_waiting_range && !instance->current_range.loop) {
                 lv_timer_pause(instance->timer);
+                storage_file_close(instance->file);
+
+                if(instance->completed_callback) {
+                    instance->completed_callback(instance, instance->completed_callback_context);
+                }
             }
         }
 
@@ -185,7 +227,8 @@ static void anim_image_set_range_internal(
         anim_image_update(instance);
     }
 
-    if(lv_timer_get_paused(instance->timer)) {
+    if(instance->current_idx < instance->current_range.end_idx &&
+       lv_timer_get_paused(instance->timer)) {
         lv_timer_resume(instance->timer);
     }
 }
@@ -225,6 +268,15 @@ bool anim_image_set_source(AnimImage* instance, const char* file_path) {
 
     instance->is_loaded = false;
 
+    if(instance->file_path) {
+        free(instance->file_path);
+        instance->file_path = NULL;
+    }
+
+    if(file_path) {
+        instance->file_path = strdup(file_path);
+    }
+
     AnimImageFileHeader header;
 
     do {
@@ -232,8 +284,7 @@ bool anim_image_set_source(AnimImage* instance, const char* file_path) {
             storage_file_close(instance->file);
         }
 
-        if(!storage_file_open(instance->file, file_path, FSAM_READ, FSOM_OPEN_EXISTING)) {
-            FURI_LOG_E(TAG, "Failed to open file %s", file_path);
+        if(!anim_image_open_file(instance)) {
             break;
         }
 
@@ -287,7 +338,7 @@ void anim_image_set_range(
     furi_check(instance);
     furi_check(begin <= end);
 
-    if(instance->is_loaded) {
+    if(instance->is_loaded && anim_image_ensure_file_ready(instance)) {
         anim_image_set_range_internal(instance, begin, end, loop, wait_end);
     }
 }
@@ -300,7 +351,7 @@ void anim_image_set_loop(AnimImage* instance, bool set) {
 void anim_image_start(AnimImage* instance) {
     furi_check(instance);
 
-    if(instance->is_loaded) {
+    if(instance->is_loaded && anim_image_ensure_file_ready(instance)) {
         lv_timer_resume(instance->timer);
     }
 }
@@ -310,6 +361,10 @@ void anim_image_stop(AnimImage* instance) {
 
     if(instance->is_loaded) {
         lv_timer_pause(instance->timer);
+
+        if(storage_file_is_open(instance->file)) {
+            storage_file_close(instance->file);
+        }
     }
 }
 
@@ -330,6 +385,26 @@ uint32_t anim_image_get_frame_rate(const AnimImage* instance) {
 uint32_t anim_image_get_frame_count(const AnimImage* instance) {
     furi_check(instance);
     return instance->frame_count;
+}
+
+void anim_image_set_frame_callback(
+    AnimImage* instance,
+    uint32_t frame_idx,
+    AnimImageFrameCallback callback,
+    void* context) {
+    furi_check(instance);
+    instance->frame_callback_idx = frame_idx;
+    instance->frame_callback = callback;
+    instance->frame_callback_context = context;
+}
+
+void anim_image_set_completed_callback(
+    AnimImage* instance,
+    AnimImageCompletedCallback callback,
+    void* context) {
+    furi_check(instance);
+    instance->completed_callback = callback;
+    instance->completed_callback_context = context;
 }
 
 // LVGL class descriptor
