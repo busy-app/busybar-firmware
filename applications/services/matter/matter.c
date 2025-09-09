@@ -26,9 +26,10 @@ struct MatterSrv {
 static void matter_send_state_update(MatterSrv* matter, MatterVirtualDeviceState state) {
     MatterEvent event = {
         .type = MatterEventTypeStateUpdate,
-        .update = {
-            .new_state = state,
-        },
+        .update =
+            {
+                .new_state = state,
+            },
     };
     furi_pubsub_publish(matter->pubsub, &event);
 }
@@ -69,7 +70,10 @@ static void matter_handle_frame(FuriEventLoopObject* object, void* context) {
 }
 
 static void matter_send_frame(MatterSrv* matter, const MatterIntercomFrame* frame) {
-    furi_check(intercom_tx(matter->intercom, IntercomChannelMatter, frame, sizeof(*frame), FuriWaitForever) == sizeof(*frame));
+    furi_check(
+        intercom_tx(
+            matter->intercom, IntercomChannelMatter, frame, sizeof(*frame), FuriWaitForever) ==
+        sizeof(*frame));
 }
 
 // ==========
@@ -110,9 +114,10 @@ static void matter_handle_api_request(FuriEventLoopObject* object, void* context
         matter->device_state[request->device] = request->state;
         MatterIntercomFrame frame = {
             .type = MatterIntercomFrameTypeRequest,
-            .request = {
-                .req_state = request->state,
-            },
+            .request =
+                {
+                    .req_state = request->state,
+                },
         };
         matter_send_frame(matter, &frame);
         break;
@@ -132,7 +137,8 @@ static void matter_handle_api_request(FuriEventLoopObject* object, void* context
 
 static void matter_synchronous_request(MatterSrv* matter, MatterApiRequest* request) {
     request->lock = api_lock_alloc_locked();
-    furi_check(furi_message_queue_put(matter->request_queue, &request, FuriWaitForever) == FuriStatusOk);
+    furi_check(
+        furi_message_queue_put(matter->request_queue, &request, FuriWaitForever) == FuriStatusOk);
     api_lock_wait_unlock_and_free(request->lock);
 }
 
@@ -179,15 +185,22 @@ MatterSrv* matter_srv_alloc(void) {
     matter->event_loop = furi_event_loop_alloc();
 
     matter->frame_queue = furi_message_queue_alloc(FRAME_Q_SIZE, sizeof(MatterIntercomFrame));
-    furi_event_loop_subscribe_message_queue(matter->event_loop, matter->frame_queue, FuriEventLoopEventIn, matter_handle_frame, matter);
+    furi_event_loop_subscribe_message_queue(
+        matter->event_loop, matter->frame_queue, FuriEventLoopEventIn, matter_handle_frame, matter);
 
     matter->request_queue = furi_message_queue_alloc(REQUEST_Q_SIZE, sizeof(MatterApiRequest*));
-    furi_event_loop_subscribe_message_queue(matter->event_loop, matter->request_queue, FuriEventLoopEventIn, matter_handle_api_request, matter);
+    furi_event_loop_subscribe_message_queue(
+        matter->event_loop,
+        matter->request_queue,
+        FuriEventLoopEventIn,
+        matter_handle_api_request,
+        matter);
 
     matter->pubsub = furi_pubsub_alloc();
 
     matter->intercom = furi_record_open(RECORD_INTERCOM);
-    intercom_set_rx_callback(matter->intercom, IntercomChannelMatter, matter_forward_frame_to_thread, matter);
+    intercom_set_rx_callback(
+        matter->intercom, IntercomChannelMatter, matter_forward_frame_to_thread, matter);
 
     furi_record_create(RECORD_MATTER, matter);
     return matter;

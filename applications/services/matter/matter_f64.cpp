@@ -95,11 +95,13 @@ static void matter_handle_frame(const void* data, size_t data_size, void* contex
         auto* dup_state = new MatterVirtualDeviceState;
         memcpy(dup_state, &frame->request.req_state, sizeof(*dup_state));
 
-        PlatformMgr().ScheduleWork([](intptr_t context) {
-            auto* dup_state = (MatterVirtualDeviceState*)context;
-            matter_apply_new_device_state(dup_state);
-            delete dup_state;
-        }, (intptr_t)dup_state);
+        PlatformMgr().ScheduleWork(
+            [](intptr_t context) {
+                auto* dup_state = (MatterVirtualDeviceState*)context;
+                matter_apply_new_device_state(dup_state);
+                delete dup_state;
+            },
+            (intptr_t)dup_state);
 
     } else if(frame->type == MatterIntercomFrameTypeReset) {
         FURI_LOG_D(TAG, "Reset frame");
@@ -116,11 +118,15 @@ static void matter_handle_frame(const void* data, size_t data_size, void* contex
 static void matter_send_state_update(MatterSrv* matter, MatterVirtualDeviceState state) {
     MatterIntercomFrame frame = {
         .type = MatterIntercomFrameTypeUpdate,
-        .update = {
-            .new_state = state,
-        },
+        .update =
+            {
+                .new_state = state,
+            },
     };
-    furi_check(intercom_tx(matter->intercom, IntercomChannelMatter, &frame, sizeof(frame), FuriWaitForever) == sizeof(frame));
+    furi_check(
+        intercom_tx(
+            matter->intercom, IntercomChannelMatter, &frame, sizeof(frame), FuriWaitForever) ==
+        sizeof(frame));
 }
 
 /**
@@ -128,26 +134,27 @@ static void matter_send_state_update(MatterSrv* matter, MatterVirtualDeviceState
  * @note Overrides an `__attribute__((weak))` stub callback in the Matter SDK
  */
 void MatterPostAttributeChangeCallback(
-    const chip::app::ConcreteAttributePath& attributePath, 
-    uint8_t type, 
+    const chip::app::ConcreteAttributePath& attributePath,
+    uint8_t type,
     uint16_t size,
-    uint8_t* value)
-{
+    uint8_t* value) {
     EndpointId endpoint = attributePath.mEndpointId;
     ClusterId cluster = attributePath.mClusterId;
     AttributeId attribute = attributePath.mAttributeId;
     MatterVirtualDevice device = matter_device_ids[endpoint];
 
-    switch(device){
+    switch(device) {
     case MatterVirtualDeviceMAX:
         return;
 
     case MatterVirtualDeviceSwitch1: {
         if(!(cluster == OnOff::Id && attribute == OnOff::Attributes::OnOff::Id)) return;
-        matter_send_state_update(matter_global_srv, (MatterVirtualDeviceState){
-            .device = device,
-            .bool_val = (bool)(*value),
-        });
+        matter_send_state_update(
+            matter_global_srv,
+            (MatterVirtualDeviceState){
+                .device = device,
+                .bool_val = (bool)(*value),
+            });
         break;
     }
     }
@@ -157,7 +164,7 @@ void MatterPostAttributeChangeCallback(
  * @brief Sends the current state to f20
  */
 static void matter_send_current_state(MatterSrv* matter, MatterVirtualDevice device) {
-    switch(device){
+    switch(device) {
     case MatterVirtualDeviceSwitch1: {
         MatterVirtualDeviceState state = {
             .device = device,

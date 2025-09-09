@@ -105,7 +105,10 @@ static void matter_cli_cmd_reset(PipeSide* pipe, FuriString* args, void* context
 // Utilities
 // =========
 
-static void matter_cli_format_device_state(MatterCli* matter_cli, FuriString* out, const MatterVirtualDeviceState* state) {
+static void matter_cli_format_device_state(
+    MatterCli* matter_cli,
+    FuriString* out,
+    const MatterVirtualDeviceState* state) {
     UNUSED(matter_cli);
     static const char* const device_names[MatterVirtualDeviceMAX] = {
         [MatterVirtualDeviceSwitch1] = "Switch 1",
@@ -184,7 +187,8 @@ static MatterCli* matter_cli_alloc(PipeSide* pipe) {
 
     matter_cli->matter = furi_record_open(RECORD_MATTER);
     matter_cli->commands = cli_registry_alloc();
-    matter_cli->shell = cli_shell_alloc(matter_cli_motd, matter_cli, pipe, matter_cli->commands, NULL);
+    matter_cli->shell =
+        cli_shell_alloc(matter_cli_motd, matter_cli, pipe, matter_cli->commands, NULL);
     cli_shell_set_prompt(matter_cli->shell, "matter");
 
     FuriPubSub* pubsub = matter_get_pubsub(matter_cli->matter);
@@ -207,11 +211,21 @@ static void matter_cli_free(MatterCli* matter_cli) {
 void matter_cli_command(PipeSide* pipe, FuriString* args, void* context) {
     UNUSED(args);
     UNUSED(context);
-    
+
     MatterCli* matter_cli = matter_cli_alloc(pipe);
 
-    cli_registry_add_command(matter_cli->commands, "set", CliCommandFlagParallelSafe | CliCommandFlagUseShellThread, matter_cli_cmd_set, matter_cli);
-    cli_registry_add_command(matter_cli->commands, "reset", CliCommandFlagParallelSafe | CliCommandFlagUseShellThread, matter_cli_cmd_reset, matter_cli);
+    cli_registry_add_command(
+        matter_cli->commands,
+        "set",
+        CliCommandFlagParallelSafe | CliCommandFlagUseShellThread,
+        matter_cli_cmd_set,
+        matter_cli);
+    cli_registry_add_command(
+        matter_cli->commands,
+        "reset",
+        CliCommandFlagParallelSafe | CliCommandFlagUseShellThread,
+        matter_cli_cmd_reset,
+        matter_cli);
 
     cli_shell_start(matter_cli->shell);
     cli_shell_join(matter_cli->shell);
