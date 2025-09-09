@@ -2,7 +2,7 @@
 
 #include <furi.h>
 
-#define BLE_LOCAL_NAME                "Busybar"
+#define BLE_LOCAL_NAME                "BUSY Bar"
 #define BLE_ADVERTISE_PACKET_MAX_SIZE (32)
 
 typedef struct FURI_PACKED {

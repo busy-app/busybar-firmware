@@ -1,37 +1,57 @@
 #include "desktop_overlay.h"
+#include "storage_macros.h"
 
 #include <furi.h>
 #include <lvgl.h>
 
-#include <storage/storage.h>
+#include <gui/modules/anim_image.h>
 
 #define TAG "DesktopOverlay"
 
-#define OVERLAY_ANIM_TIME_MS (100)
+#define FADE_OUT_ANIM_TIME_MS 135
+
+typedef struct {
+    uint32_t begin;
+    uint32_t end;
+} DesctopOverlayFrameRange;
 
 struct DesktopOverlay {
     Gui* gui;
-    Widget* dimmer;
+    Widget* fade_out_widget;
+    AnimImage* switch_anim_image;
+    AnimImage* mask_anim_image;
+
+    DesktopOverlayTransitionType show_transition_type;
     bool show_requested;
 };
 
-static void desktop_overlay_anim_callback(void* var, int32_t value) {
-    lv_obj_set_style_bg_opa(var, value, LV_PART_MAIN);
+static const DesctopOverlayFrameRange switch_anim_frame_ranges[] = {
+    [DesktopOverlayTransitionTypeUp] = {.begin = 0, .end = 7},
+    [DesktopOverlayTransitionTypeDown] = {.begin = 8, .end = 15},
+};
+
+static const DesctopOverlayFrameRange mask_anim_frame_ranges[] = {
+    [DesktopOverlayTransitionTypeUp] = {.begin = 15, .end = 29},
+    [DesktopOverlayTransitionTypeDown] = {.begin = 0, .end = 14},
+};
+
+static void desktop_overlay_anim_image_completed_callback(AnimImage* anim, void* context) {
+    UNUSED(context);
+    widget_set_visible(anim_image_get_base(anim), false);
 }
 
-static void desktop_overlay_start_anim(DesktopOverlay* instance, int32_t end) {
-    with_gui(instance->gui, {
-        lv_anim_t anim;
-        lv_anim_init(&anim);
-        lv_anim_set_var(&anim, instance->dimmer);
-        // TODO: Decide on the color and opacity API
-        lv_anim_set_values(
-            &anim, lv_obj_get_style_bg_opa((lv_obj_t*)instance->dimmer, LV_PART_MAIN), end);
-        lv_anim_set_duration(&anim, OVERLAY_ANIM_TIME_MS);
-        lv_anim_set_exec_cb(&anim, desktop_overlay_anim_callback);
-        lv_anim_set_path_cb(&anim, lv_anim_path_ease_in_out);
-        lv_anim_start(&anim);
-    });
+static void desktop_overlay_fade_out_anim_completed_callback(lv_anim_t* anim) {
+    DesktopOverlay* instance = lv_anim_get_user_data(anim);
+
+    const DesctopOverlayFrameRange* range =
+        &switch_anim_frame_ranges[instance->show_transition_type];
+
+    widget_set_visible(anim_image_get_base(instance->switch_anim_image), true);
+    anim_image_set_range(instance->switch_anim_image, range->begin, range->end, false, false);
+}
+
+static void desktop_overlay_fade_out_anim_exec_callback(void* var, int32_t value) {
+    lv_obj_set_style_bg_opa(var, value, LV_PART_MAIN);
 }
 
 DesktopOverlay* desktop_overlay_alloc(Gui* gui) {
@@ -39,27 +59,79 @@ DesktopOverlay* desktop_overlay_alloc(Gui* gui) {
     instance->gui = gui;
 
     with_gui(instance->gui, {
-        GuiLayer* system_layer = gui_get_layer(instance->gui, GuiLayerIdSystem);
+        GuiLayer* layer = gui_get_layer(instance->gui, GuiLayerIdSystem);
+        Widget* root = gui_layer_get_root_widget(layer, GuiDisplayIdFront);
 
-        Widget* root;
+        instance->fade_out_widget = widget_alloc(root);
+        widget_set_visible(instance->fade_out_widget, false);
+        lv_obj_set_style_bg_color(
+            (lv_obj_t*)instance->fade_out_widget, lv_color_black(), LV_PART_MAIN);
 
-        root = gui_layer_get_root_widget(system_layer, GuiDisplayIdFront);
-        instance->dimmer = widget_alloc(root);
-        // TODO: Decide on the color and opacity API
-        lv_obj_set_style_bg_opa((lv_obj_t*)instance->dimmer, LV_OPA_TRANSP, LV_PART_MAIN);
-        lv_obj_set_style_bg_color((lv_obj_t*)instance->dimmer, lv_color_black(), LV_PART_MAIN);
+        instance->switch_anim_image = anim_image_alloc(root);
+        widget_set_visible(anim_image_get_base(instance->switch_anim_image), false);
+        anim_image_set_source(
+            instance->switch_anim_image, DESKTOP_ANIM_PATH("switch_effect_transition_72x16.anim"));
+        anim_image_set_completed_callback(
+            instance->switch_anim_image, desktop_overlay_anim_image_completed_callback, instance);
+        anim_image_stop(instance->switch_anim_image);
+
+        instance->mask_anim_image = anim_image_alloc(root);
+        widget_set_visible(anim_image_get_base(instance->mask_anim_image), false);
+        widget_set_blend_mode(
+            anim_image_get_base(instance->mask_anim_image), WidgetBlendModeMultiply);
+        anim_image_set_source(
+            instance->mask_anim_image, DESKTOP_ANIM_PATH("hosizontal_mask_transition_72x16.anim"));
+        anim_image_set_completed_callback(
+            instance->mask_anim_image, desktop_overlay_anim_image_completed_callback, instance);
+        anim_image_stop(instance->mask_anim_image);
     });
+
+    instance->show_requested = false;
 
     return instance;
 }
 
-void desktop_overlay_show(DesktopOverlay* instance) {
-    desktop_overlay_start_anim(instance, LV_OPA_COVER);
+void desktop_overlay_show(DesktopOverlay* instance, DesktopOverlayTransitionType type) {
+    furi_check(type < DesktopOverlayTransitionTypesCount);
+
+    if(type != DesktopOverlayTransitionTypeNone) {
+        instance->show_transition_type = type;
+
+        with_gui(instance->gui, {
+            widget_set_visible(instance->fade_out_widget, true);
+
+            lv_anim_t fade_out_anim;
+            lv_anim_init(&fade_out_anim);
+            lv_anim_set_user_data(&fade_out_anim, instance);
+            lv_anim_set_var(&fade_out_anim, instance->fade_out_widget);
+            lv_anim_set_values(&fade_out_anim, LV_OPA_TRANSP, LV_OPA_COVER);
+            lv_anim_set_duration(&fade_out_anim, FADE_OUT_ANIM_TIME_MS);
+            lv_anim_set_path_cb(&fade_out_anim, lv_anim_path_ease_in_out);
+            lv_anim_set_exec_cb(&fade_out_anim, desktop_overlay_fade_out_anim_exec_callback);
+            lv_anim_set_completed_cb(
+                &fade_out_anim, desktop_overlay_fade_out_anim_completed_callback);
+            lv_anim_start(&fade_out_anim);
+        });
+    }
+
     instance->show_requested = true;
 }
 
-void desktop_overlay_hide(DesktopOverlay* instance) {
-    desktop_overlay_start_anim(instance, LV_OPA_TRANSP);
+void desktop_overlay_hide(DesktopOverlay* instance, DesktopOverlayTransitionType type) {
+    furi_check(type < DesktopOverlayTransitionTypesCount);
+
+    with_gui(instance->gui, {
+        widget_set_visible(instance->fade_out_widget, false);
+
+        if(type != DesktopOverlayTransitionTypeNone) {
+            const DesctopOverlayFrameRange* range = &mask_anim_frame_ranges[type];
+
+            widget_set_visible(anim_image_get_base(instance->mask_anim_image), true);
+            anim_image_set_range(
+                instance->mask_anim_image, range->begin, range->end, false, false);
+        }
+    });
+
     instance->show_requested = false;
 }
 
