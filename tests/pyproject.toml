@@ -16,12 +16,12 @@ python-dotenv = "^1.0.0"
 structlog = "^23.1.0"
 colorlog = "^6.7.0"
 pytest-asyncio = ">=0.20,<0.24"
+beautifulsoup4 = "^4.13.5"
 
 [tool.poetry.group.dev.dependencies]
 black = "^23.0.0"
 flake8 = "^6.0.0"
 pytest-cov = "^4.1.0"
-beautifulsoup4 = "^4.13.5"
 
 [build-system]
 requires = ["poetry-core"]
