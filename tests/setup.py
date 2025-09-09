@@ -4,16 +4,23 @@ BSB Test Automation Setup Script
 Helps initialize the project and verify connections
 """
 
-import asyncio
 import logging
 import os
 import subprocess
 import sys
+import telnetlib
+import time
 from pathlib import Path
 
-import requests
-import telnetlib3
-from dotenv import load_dotenv
+try:
+    import requests
+except ImportError:
+    requests = None
+
+try:
+    from dotenv import load_dotenv
+except ImportError:
+    load_dotenv = None
 
 # Setup basic logging for setup script
 logging.basicConfig(
@@ -59,9 +66,10 @@ def setup_environment():
         return False
 
 
-async def test_cli_connection():
+def test_cli_connection():
     """Test CLI connection"""
-    load_dotenv()
+    if load_dotenv:
+        load_dotenv()
 
     host = os.getenv("CLI_HOST", "busybar.local")
     port = int(os.getenv("CLI_PORT", "23"))
@@ -69,48 +77,44 @@ async def test_cli_connection():
     logger.info(f"🔌 Testing CLI connection to {host}:{port}...")
 
     try:
-        reader, writer = await asyncio.wait_for(
-            telnetlib3.open_connection(host, port), timeout=10.0
-        )
+        # Create telnet connection
+        tn = telnetlib.Telnet(host, port, timeout=10)
 
-        # Read welcome message
-        welcome = await asyncio.wait_for(reader.read(2048), timeout=5.0)
+        # Read welcome message until we see prompt
+        welcome = tn.read_until(b">: ", timeout=5.0)
+        welcome_str = welcome.decode("utf-8", errors="ignore")
 
-        if "Welcome to BUSY Bar" in welcome:
+        if "Welcome to BUSY Bar" in welcome_str:
             logger.info("✓ CLI connection successful!")
             logger.info("✓ BUSY Bar welcome message received")
 
             # Test a simple command
-            writer.write("help\n")
-            await writer.drain()
-
-            response = await asyncio.wait_for(reader.read(1024), timeout=5.0)
-            if response:
+            tn.write(b"help\r\n")
+            response = tn.read_until(b">: ", timeout=5.0)
+            response_str = response.decode("utf-8", errors="ignore")
+            
+            if response_str:
                 logger.info("✓ CLI command execution working")
 
-            writer.close()
-            try:
-                await writer.wait_closed()
-            except AttributeError:
-                # telnetlib3 TelnetWriterUnicode doesn't have wait_closed method
-                pass
+            tn.close()
             return True
         else:
-            logger.warning(f"⚠️  Unexpected welcome message: {welcome[:100]}...")
+            logger.warning(f"⚠️  Unexpected welcome message: {welcome_str[:100]}...")
+            tn.close()
             return False
 
-    except asyncio.TimeoutError:
-        logger.error("✗ CLI connection timeout")
-        logger.error(f"  Check if device is accessible at {host}:{port}")
-        return False
     except Exception as e:
         logger.error(f"✗ CLI connection failed: {e}")
         return False
 
-
 def test_web_connection():
     """Test web frontend connection"""
-    load_dotenv()
+    if not requests:
+        logger.error("✗ requests library not available. Please install dependencies first.")
+        return False
+        
+    if load_dotenv:
+        load_dotenv()
 
     base_url = os.getenv("WEB_BASE_URL", "http://10.0.4.20/")
 
@@ -177,7 +181,8 @@ def create_test_directories():
 
 def check_allure_testops_config():
     """Check Allure TestOps configuration"""
-    load_dotenv()
+    if load_dotenv:
+        load_dotenv()
 
     testops_url = os.getenv("ALLURE_TESTOPS_URL")
     testops_token = os.getenv("ALLURE_TESTOPS_TOKEN")
@@ -211,7 +216,7 @@ def check_github_actions_setup():
     return False
 
 
-async def main():
+def main():
     """Main setup function"""
     logger.info("🚀 BSB Test Automation Setup")
     logger.info("=" * 40)
@@ -234,7 +239,7 @@ async def main():
     logger.info("\n🔍 Testing Connections")
     logger.info("-" * 30)
 
-    cli_ok = await test_cli_connection()
+    cli_ok = test_cli_connection()
     web_ok = test_web_connection()
 
     # Check configurations
@@ -264,4 +269,4 @@ async def main():
 
 
 if __name__ == "__main__":
-    asyncio.run(main())
+    main()

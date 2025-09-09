@@ -60,15 +60,13 @@ jobs:
     strategy:
       matrix:
         python-version: [ 3.11 ]
-        # Only run the selected test suite for manual triggers, default to 'all' for other triggers
+        # For workflow_dispatch: run selected test suite
+        # For workflow_call and other triggers: always run 'all'
         test-suite: ${{ github.event_name == 'workflow_dispatch' && fromJSON(format('["{0}"]', github.event.inputs.test_suite)) || fromJSON('["all"]') }}
-        include:
-          - test-suite: all
-            markers: ""
-          - test-suite: cli
-            markers: "-m cli"
-          - test-suite: frontend
-            markers: "-m frontend"
+
+    env:
+      # Set markers based on test suite
+      PYTEST_MARKERS: ${{ matrix.test-suite == 'cli' && '-m cli' || (matrix.test-suite == 'frontend' && '-m frontend' || '') }}
 
     steps:
       - name: Checkout code
@@ -119,7 +117,6 @@ jobs:
           python3 -m pip install --upgrade pip
           pip install -r tests/requirements.txt
 
-
       - name: Run setup verification
         run: |
           cd tests
@@ -132,7 +129,7 @@ jobs:
       - name: Run tests
         run: |
           cd tests
-          python3 -m pytest . ${{ matrix.markers }} -v \
+          python3 -m pytest . ${{ env.PYTEST_MARKERS }} -v \
             --alluredir=allure-results \
             --clean-alluredir \
             --tb=short \
@@ -161,9 +158,9 @@ jobs:
         with:
           name: test-results-${{ matrix.test-suite }}-${{ github.run_number }}
           path: |
-            allure-results/
-            test-results.xml
-            logs/
+            tests/allure-results/
+            tests/test-results.xml
+            tests/logs/
           retention-days: 30
 
       - name: Generate Allure report
@@ -178,7 +175,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: allure-report-${{ matrix.test-suite }}-${{ github.run_number }}
-          path: allure-report/
+          path: tests/allure-report/
           retention-days: 30
 
   # Separate job for manual upload to TestOps
