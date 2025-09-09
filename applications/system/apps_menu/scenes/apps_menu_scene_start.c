@@ -1,12 +1,81 @@
 #include "../apps_menu_i.h"
+#include "../storage_macros.h"
 #include "apps_menu_scenes.h"
 
-#include <gui/modules/app_title_card.h>
+#include <gui/modules/title_card.h>
+#include <gui/modules/anim_title_card.h>
+
+#include <lvgl.h>
+
+#define STANDBY_ANIM_INITIAL_DELAY_MS 1000
+#define STANDBY_ANIM_DELAY_MS         5000
 
 typedef struct {
-    AppTitleCard* front_card;
-    AppTitleCard* back_card;
+    AnimTitleCard* front_card;
+    TitleCard* back_card;
+
+    FuriEventLoopTimer* timer;
+
+    bool is_not_first_enter;
+    bool is_timer_initial_run;
 } AppsMenuSceneStart;
+
+typedef enum {
+    AppsMenuSceneStartInOutAnimTypeEnter,
+    AppsMenuSceneStartInOutAnimTypeExit,
+
+    AppsMenuSceneStartInOutAnimTypeNone
+} AppsMenuSceneStartInOutAnimType;
+
+typedef struct {
+    int32_t title_start;
+    int32_t title_stop;
+    uint32_t title_duration;
+
+    uint32_t icon_start;
+    uint32_t icon_stop;
+} AppsMenuSceneStartInOutAnimInfo;
+
+static const AppsMenuSceneStartInOutAnimInfo in_out_anim_infos[][DesktopSwitchDirectionsCount] = {
+    [AppsMenuSceneStartInOutAnimTypeEnter] =
+        {
+            [DesktopSwitchDirectionUp] =
+                {
+                    .title_start = 8,
+                    .title_stop = 0,
+                    .title_duration = 165,
+                    .icon_start = 0,
+                    .icon_stop = 59,
+                },
+            [DesktopSwitchDirectionDown] =
+                {
+                    .title_start = -8,
+                    .title_stop = 0,
+                    .title_duration = 165,
+                    .icon_start = 0,
+                    .icon_stop = 59,
+                },
+        },
+    [AppsMenuSceneStartInOutAnimTypeExit] =
+        {
+            [DesktopSwitchDirectionUp] =
+                {
+                    .title_start = 0,
+                    .title_stop = -8,
+                    .title_duration = 135,
+                    .icon_start = 60,
+                    .icon_stop = 67,
+                },
+            [DesktopSwitchDirectionDown] =
+                {
+                    .title_start = 0,
+                    .title_stop = 8,
+                    .title_duration = 135,
+                    .icon_start = 60,
+                    .icon_stop = 67,
+                },
+        },
+};
 
 static bool apps_menu_scene_start_input_callback(const InputEvent* event, void* context) {
     furi_assert(event);
@@ -37,25 +106,72 @@ static bool apps_menu_scene_start_input_callback(const InputEvent* event, void* 
     return consumed;
 }
 
+static void apps_menu_scene_start_timer_callback(void* context) {
+    furi_assert(context);
+
+    AppsMenu* app = context;
+    AppsMenuSceneStart* scene = scene_manager_get_current_scene_data(app->scene_manager);
+
+    with_gui(app->gui, { anim_title_card_run_background_anim(scene->front_card); });
+
+    if(scene->is_timer_initial_run) {
+        furi_event_loop_timer_start(scene->timer, STANDBY_ANIM_DELAY_MS);
+    }
+}
+
+static void apps_menu_start_run_in_out_anim(AppsMenu* app, AppsMenuSceneStartInOutAnimType type) {
+    AppsMenuSceneStart* scene = scene_manager_get_current_scene_data(app->scene_manager);
+
+    if(type != AppsMenuSceneStartInOutAnimTypeNone) {
+        const AppsMenuSceneStartInOutAnimInfo* anim_info =
+            &in_out_anim_infos[type][desktop_get_switch_direction(app->desktop)];
+
+        anim_title_card_run_title_anim(
+            scene->front_card,
+            anim_info->title_start,
+            anim_info->title_stop,
+            anim_info->title_duration);
+        anim_title_card_run_icon_anim(
+            scene->front_card, anim_info->icon_start, anim_info->icon_stop);
+    } else {
+        anim_title_card_run_icon_anim(
+            scene->front_card, (*in_out_anim_infos)->icon_stop, (*in_out_anim_infos)->icon_stop);
+    }
+}
+
 static void apps_menu_scene_start_on_enter(void* context) {
     furi_assert(context);
     AppsMenu* app = context;
     AppsMenuSceneStart* scene = scene_manager_get_current_scene_data(app->scene_manager);
 
     with_gui(app->gui, {
-        widget_set_visible(nav_bar_get_base(app->back_nav_bar), false);
-
         GuiLayer* layer = gui_get_layer(app->gui, GuiLayerIdMain);
         gui_layer_add_input_callback(layer, apps_menu_scene_start_input_callback, app);
 
-        scene->front_card = app_title_card_alloc(app->front_scene_window);
-        app_title_card_set_text(scene->front_card, "APPS");
-        app_title_card_set_image(scene->front_card, APPS_MENU_IMG("apps_menu_front_13x13"));
+        scene->front_card = anim_title_card_alloc(app->front_scene_window);
+        anim_title_card_set_title(scene->front_card, "APPS");
+        anim_title_card_set_icon(
+            scene->front_card, APPS_MENU_ANIM_PATH("apps_menu_front_13x13.anim"));
 
-        scene->back_card = app_title_card_alloc(app->back_scene_window);
-        app_title_card_set_text(scene->back_card, "APPS");
-        app_title_card_set_image(scene->back_card, APPS_MENU_IMG("apps_menu_back_18x18"));
+        if(scene->is_not_first_enter) {
+            apps_menu_start_run_in_out_anim(app, AppsMenuSceneStartInOutAnimTypeNone);
+        } else {
+            apps_menu_start_run_in_out_anim(app, AppsMenuSceneStartInOutAnimTypeEnter);
+            scene->is_not_first_enter = true;
+        }
+
+        scene->back_card = title_card_alloc(app->back_scene_window);
+        title_card_set_title(scene->back_card, "APPS");
+        title_card_set_icon(scene->back_card, APPS_MENU_IMG_PATH("apps_menu_back_18x18.bin"));
+
+        widget_set_visible(nav_bar_get_base(app->back_nav_bar), false);
     });
+
+    scene->is_timer_initial_run = true;
+    scene->timer = furi_event_loop_timer_alloc(
+        app->event_loop, apps_menu_scene_start_timer_callback, FuriEventLoopTimerTypePeriodic, app);
+
+    furi_event_loop_timer_start(scene->timer, STANDBY_ANIM_INITIAL_DELAY_MS);
 }
 
 static void apps_menu_scene_start_on_exit(void* context) {
@@ -67,10 +183,10 @@ static void apps_menu_scene_start_on_exit(void* context) {
         GuiLayer* layer = gui_get_layer(app->gui, GuiLayerIdMain);
         gui_layer_remove_input_callback(layer, apps_menu_scene_start_input_callback);
 
-        app_title_card_free(scene->front_card);
-        app_title_card_free(scene->back_card);
-        scene->front_card = NULL;
-        scene->back_card = NULL;
+        furi_event_loop_timer_free(scene->timer);
+
+        anim_title_card_free(scene->front_card);
+        title_card_free(scene->back_card);
     });
 }
 
@@ -81,8 +197,21 @@ static bool apps_menu_scene_start_on_event(const SceneManagerEvent* event, void*
     bool consumed = false;
 
     if(event->type == SceneManagerEventTypeCustom) {
-        if(event->event == AppsMenuCustomEventLaunchMain) {
+        switch(event->event) {
+        case AppsMenuCustomEventLaunchMain:
             scene_manager_next_scene(app->scene_manager, AppsMenuSceneIdMain);
+            consumed = true;
+            break;
+
+        case AppsMenuCustomEventAboutToExit:
+            with_gui(app->gui, {
+                apps_menu_start_run_in_out_anim(app, AppsMenuSceneStartInOutAnimTypeExit);
+            });
+            consumed = true;
+            break;
+
+        default:
+            break;
         }
 
         consumed = true;

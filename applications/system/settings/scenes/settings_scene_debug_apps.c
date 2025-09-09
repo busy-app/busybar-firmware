@@ -7,12 +7,18 @@
 typedef struct {
     Submenu* submenus[GuiDisplayIdMax];
     Desktop* desktop;
+
+    _Atomic size_t menu_idx;
 } SettingsSceneDebugApps;
 
 static void settings_scene_debug_apps_submenu_item_callback(uint32_t index, void* context) {
     furi_assert(context);
+
     SettingsApp* app = context;
-    settings_send_custom_event(app, index);
+    SettingsSceneDebugApps* scene = scene_manager_get_current_scene_data(app->scene_manager);
+
+    scene->menu_idx = index;
+    settings_send_custom_event(app, SettingsCustomEventMenuItemClick);
 }
 
 static void settings_scene_debug_apps_on_enter(void* context) {
@@ -69,21 +75,21 @@ static void settings_scene_debug_apps_on_exit(void* context) {
 
 static bool settings_scene_debug_apps_on_event(const SceneManagerEvent* event, void* context) {
     furi_assert(context);
+
     SettingsApp* app = context;
     SettingsSceneDebugApps* scene = scene_manager_get_current_scene_data(app->scene_manager);
 
     bool consumed = false;
-
     if(event->type == SceneManagerEventTypeCustom) {
-        uint32_t app_index = event->event;
-        furi_check(app_index < FLIPPER_DEBUG_APPS_COUNT);
-        const FlipperInternalApplication* app = &FLIPPER_DEBUG_APPS[app_index];
+        if(event->event == SettingsCustomEventMenuItemClick) {
+            const FlipperInternalApplication* app = &FLIPPER_DEBUG_APPS[scene->menu_idx];
 
-        // TODO: make the launched app use our navbar
-        // TODO: return to the Settings app in the same state
-        desktop_replace_current_app(scene->desktop, app->name, NULL);
+            // TODO: make the launched app use our navbar
+            // TODO: return to the Settings app in the same state
+            desktop_replace_current_app(scene->desktop, app->name, NULL);
 
-        consumed = true;
+            consumed = true;
+        }
 
     } else if(event->type == SceneManagerEventTypeBack) {
         settings_pop_location(app);
