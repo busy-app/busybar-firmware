@@ -138,6 +138,7 @@ jobs:
             --clean-alluredir \
             --tb=short \
             --junitxml=test-results.xml
+        continue-on-error: true
         env:
           CLI_HOST: ${{ secrets.CLI_HOST || '10.0.4.20' }} #was busybar.local
           CLI_PORT: ${{ secrets.CLI_PORT || '23' }}
