@@ -113,7 +113,8 @@ def pytest_configure(config):
 class SimpleCLIConnection:
     """Simple CLI connection using standard telnetlib"""
 
-    def __init__(self, host: str = "busybar.local", port: int = 23):
+    #TODO: fix env load here
+    def __init__(self, host: str = "10.0.4.20", port: int = 23):
         self.host = host
         self.port = port
         self.tn: Optional[telnetlib.Telnet] = None

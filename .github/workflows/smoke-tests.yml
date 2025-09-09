@@ -145,15 +145,21 @@ jobs:
           LOG_LEVEL: INFO
           LOG_TO_FILE: true
 
+#setup is temporary
+      - name: Setup allurectl
+        if: ${{ (github.event_name == 'workflow_call' && inputs.upload_to_testops) || (github.event_name == 'workflow_dispatch' && github.event.inputs.upload_to_testops != 'false') || github.event_name == 'schedule' }}
+        uses: allure-framework/setup-allurectl@v1
+        with:
+          allure-endpoint: ${{ vars.ALLURE_TESTOPS_URL || 'https://flipper.testops.cloud' }}
+          allure-token: ${{ secrets.ALLURE_TESTOPS_TOKEN }}
+          allure-project-id: ${{ vars.ALLURE_PROJECT_ID || '232' }}
+
       - name: Upload test results to Allure TestOps
-        if: ${{ github.event.inputs.upload_to_testops != 'false' && github.event_name == 'workflow_dispatch' || github.event_name == 'schedule' }}
+        if: ${{ (github.event_name == 'workflow_call' && inputs.upload_to_testops) || (github.event_name == 'workflow_dispatch' && github.event.inputs.upload_to_testops != 'false') || github.event_name == 'schedule' }}
         run: |
           cd tests
           allurectl upload allure-results \
-            --token ${{ secrets.ALLURE_TESTOPS_TOKEN }} \
-            --endpoint ${{ vars.ALLURE_TESTOPS_URL || 'https://flipper.testops.cloud' }} \
-            --project-id ${{ vars.ALLURE_PROJECT_ID || '232' }} \
-            --launch-name "${{ github.event.inputs.launch_name || 'GitHub Actions - ${{ github.workflow }} - ${{ github.sha }}' }}"
+            --launch-name "${{ github.event.inputs.launch_name || format('GitHub Actions - {0} - {1}', github.workflow, github.sha) }}"
         env:
           ALLURE_TESTOPS_TOKEN: ${{ secrets.ALLURE_TESTOPS_TOKEN }}
 
