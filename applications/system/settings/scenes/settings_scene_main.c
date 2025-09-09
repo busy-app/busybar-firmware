@@ -69,7 +69,7 @@ static void settings_scene_main_on_enter(void* context) {
         menu_add_item(
             data->front_menu,
             "Debug apps",
-            NULL,
+            "",
             SETTINGS_IMG_PATH("debug_front_7x7.bin"),
             SettingsSceneMainMenuIndexDebugApps,
             settings_scene_setup_menu_callback,

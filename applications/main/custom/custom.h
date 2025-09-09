@@ -5,6 +5,7 @@
 #include <gui/gui.h>
 #include <gui/modules/nav_bar.h>
 #include <gui/modules/flex_layout.h>
+#include <desktop/desktop.h>
 #include <audio/audio.h>
 #include <status_lights/status_lights.h>
 
@@ -22,6 +23,10 @@
 #define TAG "Custom"
 
 #define TOTAL_TIME_LOW_THR_MN (15)
+
+typedef enum {
+    CustomCustomEventAboutToExit = 100
+} CustomCustomEvent;
 
 typedef enum {
     CustomTransitionTypeDefault,
@@ -42,6 +47,7 @@ typedef struct {
     SceneManager* scene_manager;
     StatusLights* status_lights;
     Audio* audio;
+    Desktop* desktop;
     Gui* gui;
     // Containers & application windows
     Widget* front_window;
