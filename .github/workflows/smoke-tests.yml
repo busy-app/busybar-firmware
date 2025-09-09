@@ -146,7 +146,7 @@ jobs:
           LOG_LEVEL: INFO
           LOG_TO_FILE: true
 
-#setup is temporary
+      #setup is temporary
       - name: Setup allurectl
         if: ${{ github.event_name != 'workflow_dispatch' || github.event.inputs.upload_to_testops != 'false' }}
         uses: allure-framework/setup-allurectl@v1
@@ -157,15 +157,17 @@ jobs:
 
       - name: Upload test results to Allure TestOps
         if: ${{ github.event_name != 'workflow_dispatch' || github.event.inputs.upload_to_testops != 'false' }}
+        env:
+          ALLURE_TESTOPS_TOKEN: ${{ secrets.ALLURE_TESTOPS_TOKEN }}
         run: |
           cd tests
           echo "Attempting upload with command:"
-          echo "allurectl upload allure-results --endpoint https://flipper.testops.cloud --token ${{ secrets.ALLURE_TESTOPS_TOKEN }} --project-id 232 --launch-name 'GitHub Actions - ${{ github.workflow }} - ${{ github.sha }}'"
+          echo "allurectl upload allure-results --endpoint https://flipper.testops.cloud --token ***** --project-id 232 --launch-name 'GitHub Actions - ${{ github.workflow }} - ${{ github.sha }}'"
           
-          # Try the upload TODO: CHECK COMMIT HISTORY, TOKEN IS HERE NOT BECAUSE I WANTED IT TO. Repo is private, we decided to keep it, ultil merges
+          # Try the upload
           allurectl upload allure-results \
             --endpoint "https://flipper.testops.cloud" \
-            --token "abc8bca9-126a-4c52-ad26-fd89529f1c4d" \
+            --token "$ALLURE_TESTOPS_TOKEN" \
             --project-id "232" \
             --launch-name "GitHub Actions - ${{ github.workflow }} - ${{ github.sha }}"
           
@@ -176,7 +178,9 @@ jobs:
             echo "View results: https://flipper.testops.cloud/project/232"
           else
             echo "Upload failed with exit code: $exit_code"
+            exit $exit_code
           fi
+
 
       - name: Upload test results as artifacts
         uses: actions/upload-artifact@v4
