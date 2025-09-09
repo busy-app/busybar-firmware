@@ -155,19 +155,33 @@ jobs:
           allure-token: ${{ secrets.ALLURE_TESTOPS_TOKEN }}
           allure-project-id: ${{ vars.ALLURE_PROJECT_ID || '232' }}
 
+      - name: Debug before upload
+        if: ${{ github.event_name != 'workflow_dispatch' || github.event.inputs.upload_to_testops != 'false' }}
+        run: |
+          cd tests
+          echo "=== Directory check ==="
+          pwd
+          ls -la
+          echo "=== Allure results check ==="
+          ls -la allure-results/ || echo "allure-results directory not found"
+          echo "=== Network test ==="
+          curl -I https://flipper.testops.cloud || echo "Cannot reach endpoint"
+          echo "=== Token test (first 5 chars) ==="
+          echo "${ALLURE_TESTOPS_TOKEN:0:5}..."
+          echo "${{ vars.ALLURE_TESTOPS_URL || 'https://flipper.testops.cloud' }}"
+          echo "${{ vars.ALLURE_PROJECT_ID || '232' }}"
+        env:
+          ALLURE_TESTOPS_TOKEN: ${{ secrets.ALLURE_TESTOPS_TOKEN }}
+
       - name: Upload test results to Allure TestOps
         if: ${{ github.event_name != 'workflow_dispatch' || github.event.inputs.upload_to_testops != 'false' }}
         run: |
           cd tests
           allurectl upload allure-results \
-            --token ${{ secrets.ALLURE_TESTOPS_TOKEN }} \
-            --endpoint ${{ vars.ALLURE_TESTOPS_URL || 'https://flipper.testops.cloud' }} \
-            --project-id ${{ vars.ALLURE_PROJECT_ID || '232' }} \
-            --launch-name "${{ github.event.inputs.launch_name || format('GitHub Actions - {0} - {1}', github.workflow, github.sha) }}"
-        env:
-          ALLURE_TESTOPS_TOKEN: ${{ secrets.ALLURE_TESTOPS_TOKEN }}
-          ALLURE_TESTOPS_URL: ${{ secrets.ALLURE_TESTOPS_URL }}
-          ALLURE_PROJECT_ID: ${{ secrets.ALLURE_PROJECT_ID }}
+            --token "${{ secrets.ALLURE_TESTOPS_TOKEN }}" \
+            --endpoint "https://flipper.testops.cloud" \
+            --project-id "232" \
+            --launch-name "GitHub Actions - ${{ github.workflow }} - ${{ github.sha }}"
 
       - name: Upload test results as artifacts
         uses: actions/upload-artifact@v4
