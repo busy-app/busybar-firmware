@@ -128,12 +128,12 @@ static bool settings_scene_sound_on_event(const SceneManagerEvent* event, void* 
 
             consumed = true;
             break;
+        }
 
         case SceneCustomEventBackPressed:
             scene_manager_handle_back_event(instance->scene_manager);
             consumed = true;
             break;
-        }
 
         default:
             break;
