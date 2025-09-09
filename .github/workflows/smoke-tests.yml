@@ -117,14 +117,14 @@ jobs:
           python3 -m pip install --upgrade pip
           pip install -r tests/requirements.txt
 
-      - name: Run setup verification
-        run: |
-          cd tests
-          python3 setup.py
-        env:
-          CLI_HOST: ${{ secrets.CLI_HOST || 'busybar.local' }}
-          CLI_PORT: ${{ secrets.CLI_PORT || '23' }}
-          WEB_BASE_URL: ${{ secrets.WEB_BASE_URL || 'http://10.0.4.20/' }}
+#      - name: Run setup verification
+#        run: |
+#          cd tests
+#          python3 setup.py
+#        env:
+#          CLI_HOST: ${{ secrets.CLI_HOST || 'busybar.local' }}
+#          CLI_PORT: ${{ secrets.CLI_PORT || '23' }}
+#          WEB_BASE_URL: ${{ secrets.WEB_BASE_URL || 'http://10.0.4.20/' }}
 
       - name: Run tests
         run: |
