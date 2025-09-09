@@ -7,6 +7,8 @@
 
 #define TAG "HttpsTest"
 
+#define CA_BUNDLE_PATH EXT_PATH("apps_assets/ca/cacert.pem")
+
 //#define HTTP_URL "https://www.example.com/"
 #define HTTP_URL "https://www.example.com/"
 //#define HTTP_URL "https://www.example.org/"
@@ -33,8 +35,7 @@ static void http_test_mg_handler(struct mg_connection* connection, int event, vo
         const struct mg_str name = mg_url_host(HTTP_URL);
 
         if(mg_url_is_ssl(HTTP_URL)) {
-            struct mg_str ca_data =
-                mg_file_read((struct mg_fs*)http_fs_get(), "/ext/ca_bundle.crt");
+            struct mg_str ca_data = mg_file_read((struct mg_fs*)http_fs_get(), "CA_BUNDLE_PATH");
             const struct mg_tls_opts opts = {.ca = ca_data, .name = name};
             mg_tls_init(connection, &opts);
             free(ca_data.buf);
@@ -67,8 +68,6 @@ static HttpTestApp* http_test_alloc(void) {
 
     instance->network = furi_record_open(RECORD_NETWORK);
     network_init_current_thread(instance->network);
-
-    mg_log_set(MG_LL_VERBOSE);
 
     mg_mgr_init(&instance->mgr);
     mg_http_connect(&instance->mgr, HTTP_URL, http_test_mg_handler, instance);

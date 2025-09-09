@@ -2,9 +2,9 @@ App(
     appid="https_test",
     name="HTTPS Test",
     apptype=FlipperAppType.DEBUG,
-    order=0,
+    order=60,
     entry_point="https_test_app",
     requires=[],
-    stack_size=10 * 1024,
+    stack_size=8 * 1024,
     targets=["f20", "f21"],
 )

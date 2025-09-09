@@ -6,10 +6,10 @@
 #include <mongoose.h>
 #include <mongoose_glue.h>
 
-#define FETCH_CLIENT_CA_BUNDLE_PATH "/ext/apps_assets/ca/cacert.pem"
+#define FETCH_CLIENT_CA_BUNDLE_PATH EXT_PATH("apps_assets/ca/cacert.pem")
 #define FETCH_CLIENT_USER_AGENT \
     "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36"
-#define FETCH_CLIENT_THREAD_STACK_SIZE (1024 * 10) // 10 KB
+#define FETCH_CLIENT_THREAD_STACK_SIZE (1024 * 8) // 8 KB
 
 typedef union {
     struct {

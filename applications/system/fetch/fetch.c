@@ -88,7 +88,7 @@ void fetch_url(PipeSide* pipe, FuriString* url, FuriString* args, void* context)
 
     instance->status_queue = furi_message_queue_alloc(10, sizeof(FetchClientStatus));
 
-    instance->fetch_client = fetch_client_alloc(url);
+    instance->fetch_client = fetch_client_alloc();
     fetch_client_set_context(instance->fetch_client, instance);
 
     if(furi_string_size(path)) {
@@ -117,17 +117,17 @@ void fetch_url(PipeSide* pipe, FuriString* url, FuriString* args, void* context)
 
     fetch_client_set_callback_error(instance->fetch_client, fetch_client_callback_error);
 
-    fetch_client_run(instance->fetch_client);
+    fetch_client_run(instance->fetch_client, url);
 
-    const char spin[] = "|/-\\";
-    uint8_t i = 0;
-    uint8_t flag_waiting = 1;
+    const char spin_chars[] = "|/-\\";
+    uint8_t spin_chars_index = 0;
+    bool flag_waiting_recive_data = true;
     FetchClientStatus status;
 
-    while(!fetch_client_is_done(instance->fetch_client) ||
+    while(!fetch_client_is_processing_done(instance->fetch_client) ||
           furi_stream_buffer_bytes_available(instance->buffer_rx)) {
         if(furi_message_queue_get(instance->status_queue, &status, 200) == FuriStatusOk) {
-            flag_waiting = 0;
+            flag_waiting_recive_data = false;
             if(status.total_download_size) {
                 char* dimension = "B";
                 if(status.total_download_size > 2048) {
@@ -147,7 +147,7 @@ void fetch_url(PipeSide* pipe, FuriString* url, FuriString* args, void* context)
                 }
                 printf(
                     "] %8.2f kB/s, %zu%s/%zu%s        ",
-                    status.speed_kbytes_per_sec,
+                    (float)status.speed_bytes_per_sec / 1024.0f,
                     status.received_download_size,
                     dimension,
                     status.total_download_size,
@@ -157,23 +157,23 @@ void fetch_url(PipeSide* pipe, FuriString* url, FuriString* args, void* context)
                 printf(
                     ANSI_BG_GREEN ANSI_FG_BLACK "\rDownloaded: " ANSI_RESET
                                                 "%8.2fkB/s, Total: %zukB        ",
-                    status.speed_kbytes_per_sec,
+                    (float)status.speed_bytes_per_sec / 1024.0f,
                     status.received_download_size / 1024);
                 fflush(stdout);
             }
             continue;
         }
 
-        if(!furi_stream_buffer_bytes_available(instance->buffer_rx) && flag_waiting) {
-            printf("\rWaiting... %c", spin[i]);
+        if(!furi_stream_buffer_bytes_available(instance->buffer_rx) && flag_waiting_recive_data) {
+            printf("\rWaiting... %c", spin_chars[spin_chars_index]);
             fflush(stdout);
-            i = (i + 1) % 4;
+            spin_chars_index = (spin_chars_index + 1) % 4;
             continue;
         }
 
-        if(flag_waiting) {
+        if(flag_waiting_recive_data) {
             printf("\r                      \r");
-            flag_waiting = 0;
+            flag_waiting_recive_data = false;
         }
 
         while(furi_stream_buffer_bytes_available(instance->buffer_rx)) {

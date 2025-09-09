@@ -21,12 +21,12 @@ struct FetchClient {
     Network* network;
     struct mg_mgr mgr;
     bool done;
-    bool is_working;
+    bool is_processing;
     FuriString* url;
     FetchClientStatus status;
 
-    uint32_t time_started_raw;
-    uint32_t time_started_download;
+    uint32_t started_raw_ticks;
+    uint32_t started_download_ticks;
     size_t delta_received_bytes;
     uint32_t count_receive_packets;
 
@@ -43,9 +43,10 @@ static void fetch_client_on_close(struct mg_connection* conn) {
 
     FETCH_CLIENT_INFO(TAG, "on_close");
 
-    instance->status.speed_kbytes_per_sec =
-        (float_t)instance->status.received_download_size / 1024.0f /
-        ((furi_get_tick() - instance->time_started_download + 1) / 1000.0f);
+    instance->status.speed_bytes_per_sec =
+        (uint32_t)((float)instance->status.received_download_size /
+                   ((furi_get_tick() - instance->started_download_ticks + 1) /
+                    furi_kernel_get_tick_frequency()));
 
     if(instance->callback_status) {
         instance->callback_status(instance->status, instance->context);
@@ -69,11 +70,12 @@ static void fetch_client_update_on_data_cb(struct mg_connection* conn, struct mg
     instance->count_receive_packets++;
 
     if((instance->count_receive_packets % 12) == 0) {
-        instance->status.speed_kbytes_per_sec =
-            (float_t)instance->delta_received_bytes / 1024.0f /
-            ((furi_get_tick() - instance->time_started_raw + 1) / 1000.0f);
+        instance->status.speed_bytes_per_sec =
+            (uint32_t)((float)instance->delta_received_bytes /
+                       ((furi_get_tick() - instance->started_raw_ticks + 1) /
+                        (float)furi_kernel_get_tick_frequency()));
 
-        instance->time_started_raw = furi_get_tick();
+        instance->started_raw_ticks = furi_get_tick();
 
         if(instance->callback_status) {
             instance->callback_status(instance->status, instance->context);
@@ -96,8 +98,8 @@ void fetch_client_switching_to_raw_protocol(
     conn_ctx->context = instance;
 
     FETCH_CLIENT_INFO(TAG, "body size: %d", (int)msg->body.len);
-    instance->time_started_raw = furi_get_tick();
-    instance->time_started_download = instance->time_started_raw;
+    instance->started_raw_ticks = furi_get_tick();
+    instance->started_download_ticks = instance->started_raw_ticks;
 
     if((int)msg->body.len != -1) instance->status.total_download_size = msg->body.len;
 
@@ -200,7 +202,8 @@ static void
     if(state == FuriThreadStateStopped) {
         furi_thread_free(thread);
         FETCH_CLIENT_INFO(TAG, "Stop");
-        instance->is_working = false;
+        instance->is_processing = false;
+        instance->thread = NULL;
     }
 }
 
@@ -232,30 +235,35 @@ static int32_t fetch_client_thread_callback(void* context) {
     return 0;
 }
 
-FetchClient* fetch_client_alloc(FuriString* url) {
+FetchClient* fetch_client_alloc(void) {
     FetchClient* instance = malloc(sizeof(FetchClient));
-    instance->url = furi_string_alloc_printf("%s", furi_string_get_cstr(url));
 
-    instance->done = false;
+    instance->url = NULL;
     instance->status.total_download_size = 0;
     instance->status.received_download_size = 0;
-    instance->status.speed_kbytes_per_sec = 0.0f;
-
-    instance->is_working = true;
+    instance->status.speed_bytes_per_sec = 0;
+    instance->is_processing = false;
+    instance->done = false;
+    instance->thread = NULL;
 
     return instance;
 }
 
 void fetch_client_free(FetchClient* instance) {
     furi_check(instance);
+    furi_check(!instance->is_processing);
 
     furi_string_free(instance->url);
     free(instance);
 }
 
-void fetch_client_run(FetchClient* instance) {
+void fetch_client_run(FetchClient* instance, FuriString* url) {
     furi_check(instance);
+    furi_check(!instance->is_processing);
 
+    instance->url = furi_string_alloc_set(furi_string_get_cstr(url));
+
+    instance->is_processing = true;
     instance->thread = furi_thread_alloc_ex(
         "FetchClient", FETCH_CLIENT_THREAD_STACK_SIZE, fetch_client_thread_callback, instance);
     furi_thread_set_state_context(instance->thread, instance);
@@ -265,9 +273,9 @@ void fetch_client_run(FetchClient* instance) {
     furi_thread_start(instance->thread);
 }
 
-bool fetch_client_is_done(FetchClient* instance) {
+bool fetch_client_is_processing_done(FetchClient* instance) {
     furi_check(instance);
-    return !instance->is_working;
+    return !instance->is_processing;
 }
 
 void fetch_client_set_context(FetchClient* instance, void* context) {

@@ -18,7 +18,7 @@ FetchFileSave* fetch_file_save_alloc(FuriString* file_path) {
     bool ret = false;
 
     instance->storage = furi_record_open(RECORD_STORAGE);
-    instance->file_path = furi_string_alloc_printf("%s", furi_string_get_cstr(file_path));
+    instance->file_path = furi_string_alloc_set(furi_string_get_cstr(file_path));
     instance->file_handle = storage_file_alloc(instance->storage);
 
     FuriString* path = furi_string_alloc();
@@ -71,6 +71,7 @@ FetchFileSave* fetch_file_save_alloc(FuriString* file_path) {
         return NULL;
     }
 
+    furi_string_free(path);
     return instance;
 }
 
