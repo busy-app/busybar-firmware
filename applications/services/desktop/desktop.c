@@ -332,12 +332,12 @@ static Desktop* desktop_alloc(void) {
     instance->error_message = furi_string_alloc();
     instance->loader = furi_record_open(RECORD_LOADER);
 
+    Gui* gui = furi_record_open(RECORD_GUI);
+    instance->overlay = desktop_overlay_alloc(gui);
+
     Input* input = furi_record_open(RECORD_INPUT);
     instance->current_request = desktop_start_request_alloc();
     instance->switch_pos = input_get_absolute_state(input).switch_position;
-
-    Gui* gui = furi_record_open(RECORD_GUI);
-    instance->overlay = desktop_overlay_alloc(gui);
 
     furi_event_loop_subscribe_message_queue(
         instance->event_loop,
