@@ -13,7 +13,7 @@
 
 typedef enum {
     SettingsCustomEventShortPressed,
-
+    SettingsCustomEventMenuItemClick,
     SettingsCustomEventAboutToExit
 } SettingsCustomEvent;
 
