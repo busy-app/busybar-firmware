@@ -148,7 +148,7 @@ jobs:
 
 #setup is temporary
       - name: Setup allurectl
-        if: ${{ (github.event_name == 'workflow_call' && inputs.upload_to_testops) || (github.event_name == 'workflow_dispatch' && github.event.inputs.upload_to_testops != 'false') || github.event_name == 'schedule' }}
+        if: ${{ github.event_name != 'workflow_dispatch' || github.event.inputs.upload_to_testops != 'false' }}
         uses: allure-framework/setup-allurectl@v1
         with:
           allure-endpoint: ${{ vars.ALLURE_TESTOPS_URL || 'https://flipper.testops.cloud' }}
@@ -156,7 +156,7 @@ jobs:
           allure-project-id: ${{ vars.ALLURE_PROJECT_ID || '232' }}
 
       - name: Upload test results to Allure TestOps
-        if: ${{ (github.event_name == 'workflow_call' && inputs.upload_to_testops) || (github.event_name == 'workflow_dispatch' && github.event.inputs.upload_to_testops != 'false') || github.event_name == 'schedule' }}
+        if: ${{ github.event_name != 'workflow_dispatch' || github.event.inputs.upload_to_testops != 'false' }}
         run: |
           cd tests
           allurectl upload allure-results \
