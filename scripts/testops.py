@@ -1,5 +1,4 @@
 #!/usr/bin/env python3
-# -*- coding: utf-8 -*-
 """
 BusyBar Operations Tool (class-based commands)
 
@@ -175,6 +174,7 @@ class BusyBarDevice:
         re.compile(r"Version:\s*([^\n\r]+)", re.IGNORECASE),
         re.compile(r"\bv(?P<v>\d+\.\d+\.\d+(?:\.\d+)?)\b", re.IGNORECASE),
     )
+    _STATUS_RE = re.compile(r"^\s*Status:\s*([A-Za-z]+)\b", re.IGNORECASE | re.MULTILINE)
 
     def __init__(self, config: BusyBarConfig):
         self.config = config
@@ -239,10 +239,29 @@ class BusyBarDevice:
             res = tn.run(cmd, timeout=timeout)
             return res.ok, (res.stdout or "(Update command sent successfully, no immediate output)")
 
+    def run_unit_tests(self, timeout: int) -> Tuple[bool, str]:
+        """
+        Run device 'unit_tests' and return (passed, full_output_or_message).
+        passed=True -> tests passed (Status: PASSED or 'PASSED' token detected)
+        """
+        with self._telnet(timeout=timeout) as tn:
+            res = tn.run("unit_tests", timeout=timeout)
+            out = res.stdout
 
-# ----------------------------
-# Waiter (reachability checks)
-# ----------------------------
+            # Prefer explicit "Status: X"
+            m = self._STATUS_RE.search(out)
+            if m:
+                status = m.group(1).upper()
+                if status == "PASSED":
+                    return True, "PASSED"
+                return False, out
+
+            # Fallback heuristic if explicit status is absent
+            if re.search(r"\bPASSED\b", out):
+                return True, "PASSED"
+
+            return False, out
+
 
 class BusyBarWaiter:
     def __init__(self):
@@ -290,7 +309,6 @@ class BusyBarWaiter:
                 self._logger.info(f"No response yet... (elapsed {elapsed}s).")
 
             time.sleep(2)
-
 
 class BusyBarTestOps:
     """
@@ -365,9 +383,18 @@ class BusyBarTestOps:
         p_upd.add_argument("--update-timeout", type=int, default=120, help="Update timeout in seconds (default: 120)")
         p_upd.set_defaults(func=self._cmd_update_bundle)
 
-        return parser
+        p_tests = subparsers.add_parser(
+            "unit-tests",
+            help="Run on-device unit_tests and report PASSED or full output",
+            description="Runs 'unit_tests' via telnet; prints 'PASSED' if tests passed else prints full output",
+            aliases=["unit_tests", "tests"],
+        )
+        p_tests.add_argument("--host", default=os.getenv("BUSYBAR_IP", "10.0.4.20"), help="Device IP/host")
+        p_tests.add_argument("--telnet-port", type=int, default=23, help="Telnet port (default: 23)")
+        p_tests.add_argument("-t", "--timeout", type=int, default=120, help="Timeout in seconds (default: 120)")
+        p_tests.set_defaults(func=self._cmd_unit_tests)
 
-    # ---- Helpers to instantiate per-command config/device
+        return parser
 
     @staticmethod
     def _make_device_from_args(host: str, telnet_port: int, timeout: int) -> BusyBarDevice:
@@ -376,8 +403,6 @@ class BusyBarTestOps:
             telnet=TelnetSettings(host=host, port=telnet_port, timeout=timeout),
         )
         return BusyBarDevice(config)
-
-    # ---- Command handlers (now methods)
 
     def _cmd_wait(self, args: argparse.Namespace) -> int:
         waiter = BusyBarWaiter()
@@ -405,6 +430,16 @@ class BusyBarTestOps:
         ok, msg = device.update_bundle(bundle_path=args.bundle_path, timeout=args.update_timeout)
         print(msg if msg else "(Update command sent successfully, no immediate output)")
         return 0 if ok else 1
+
+    def _cmd_unit_tests(self, args: argparse.Namespace) -> int:
+        device = self._make_device_from_args(args.host, args.telnet_port, args.timeout)
+        passed, output = device.run_unit_tests(timeout=args.timeout)
+        if passed:
+            print("PASSED")
+            return 0
+        # Not passed or status unknown: print full output
+        print(output if output else "(No output received)")
+        return 1
 
 
 # ----------------------------
