@@ -19,7 +19,13 @@ struct AnimImage {
     lv_obj_t* canvas;
     lv_timer_t* timer;
     uint8_t* canvas_buf;
+    char* file_path;
     File* file;
+    AnimImageCompletedCallback completed_callback;
+    void* completed_callback_context;
+    uint32_t frame_callback_idx;
+    AnimImageFrameCallback frame_callback;
+    void* frame_callback_context;
     uint32_t frame_rate;
     uint32_t frame_count;
     size_t frame_size;

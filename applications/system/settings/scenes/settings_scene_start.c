@@ -2,16 +2,56 @@
 #include "settings_scenes.h"
 #include "../storage_macros.h"
 
-#include <gui/modules/app_title_card.h>
+#include <gui/modules/title_card.h>
+#include <gui/modules/anim_title_card.h>
+
+#define STANDBY_ANIM_INITIAL_DELAY_MS 1000
+#define STANDBY_ANIM_DELAY_MS         5000
 
 typedef struct {
-    AppTitleCard* front_card;
-    AppTitleCard* back_card;
+    AnimTitleCard* front_card;
+    TitleCard* back_card;
+
+    FuriEventLoopTimer* timer;
+
+    bool is_not_first_enter;
+    bool is_timer_initial_run;
 } SettingsSceneStart;
 
 typedef enum {
-    SettingsStartCustomEventShortPressed
-} SettingsStartCustomEvent;
+    SettingsSceneStartInOutAnimTypeEnter,
+    SettingsSceneStartInOutAnimTypeExit,
+
+    SettingsSceneStartInOutAnimTypeNone
+} SettingsSceneStartInOutAnimType;
+
+typedef struct {
+    int32_t title_start;
+    int32_t title_stop;
+    uint32_t title_duration;
+
+    uint32_t icon_start;
+    uint32_t icon_stop;
+} SettingsSceneStartInOutAnimInfo;
+
+static const SettingsSceneStartInOutAnimInfo in_out_anim_infos[] = {
+    [SettingsSceneStartInOutAnimTypeEnter] =
+        {
+            .title_start = -8,
+            .title_stop = 0,
+            .title_duration = 165,
+            .icon_start = 0,
+            .icon_stop = 59,
+        },
+    [SettingsSceneStartInOutAnimTypeExit] =
+        {
+            .title_start = 0,
+            .title_stop = -8,
+            .title_duration = 135,
+            .icon_start = 60,
+            .icon_stop = 67,
+        },
+};
 
 static bool settings_scene_start_input_callback(const InputEvent* event, void* context) {
     furi_assert(event);
@@ -20,14 +60,14 @@ static bool settings_scene_start_input_callback(const InputEvent* event, void* c
     SettingsApp* instance = context;
 
     bool consumed = false;
-    SettingsStartCustomEvent custom_event;
+    SettingsCustomEvent custom_event;
 
     if(event->type == InputTypeShort) {
         switch(event->key) {
         case InputKeyStart:
         /* fall-through */
         case InputKeyOk:
-            custom_event = SettingsStartCustomEventShortPressed;
+            custom_event = SettingsCustomEventShortPressed;
             consumed = true;
             break;
 
@@ -43,6 +83,40 @@ static bool settings_scene_start_input_callback(const InputEvent* event, void* c
     return consumed;
 }
 
+static void settings_scene_start_timer_callback(void* context) {
+    furi_assert(context);
+
+    SettingsApp* instance = context;
+    SettingsSceneStart* data = scene_manager_get_current_scene_data(instance->scene_manager);
+
+    with_gui(instance->gui, { anim_title_card_run_background_anim(data->front_card); });
+
+    if(data->is_timer_initial_run) {
+        furi_event_loop_timer_start(data->timer, STANDBY_ANIM_DELAY_MS);
+    }
+}
+
+static void settings_scene_start_run_in_out_anim(
+    SettingsApp* instance,
+    SettingsSceneStartInOutAnimType type) {
+    SettingsSceneStart* data = scene_manager_get_current_scene_data(instance->scene_manager);
+
+    if(type != SettingsSceneStartInOutAnimTypeNone) {
+        const SettingsSceneStartInOutAnimInfo* anim_info = &in_out_anim_infos[type];
+
+        anim_title_card_run_title_anim(
+            data->front_card,
+            anim_info->title_start,
+            anim_info->title_stop,
+            anim_info->title_duration);
+        anim_title_card_run_icon_anim(
+            data->front_card, anim_info->icon_start, anim_info->icon_stop);
+    } else {
+        anim_title_card_run_icon_anim(
+            data->front_card, in_out_anim_infos->icon_stop, in_out_anim_infos->icon_stop);
+    }
+}
+
 static void settings_scene_start_on_enter(void* context) {
     furi_assert(context);
 
@@ -53,16 +127,34 @@ static void settings_scene_start_on_enter(void* context) {
         GuiLayer* layer = gui_get_layer(instance->gui, GuiLayerIdMain);
         gui_layer_add_input_callback(layer, settings_scene_start_input_callback, instance);
 
-        data->front_card = app_title_card_alloc(instance->front_scene_window);
-        app_title_card_set_text(data->front_card, "SETTINGS");
-        app_title_card_set_image(data->front_card, SETTINGS_IMG_PATH("settings_front_13x13.bin"));
+        data->front_card = anim_title_card_alloc(instance->front_scene_window);
+        anim_title_card_set_title(data->front_card, "SETTINGS");
+        anim_title_card_set_icon(
+            data->front_card, SETTINGS_ANIM_PATH("settings_front_13x13.anim"));
 
-        data->back_card = app_title_card_alloc(instance->back_scene_window);
-        app_title_card_set_text(data->back_card, "SETTINGS");
-        app_title_card_set_image(data->back_card, SETTINGS_IMG_PATH("settings_back_18x18.bin"));
+        if(data->is_not_first_enter) {
+            settings_scene_start_run_in_out_anim(instance, SettingsSceneStartInOutAnimTypeNone);
+        } else {
+            settings_scene_start_run_in_out_anim(instance, SettingsSceneStartInOutAnimTypeEnter);
+
+            data->is_not_first_enter = true;
+        }
+
+        data->back_card = title_card_alloc(instance->back_scene_window);
+        title_card_set_title(data->back_card, "SETTINGS");
+        title_card_set_icon(data->back_card, SETTINGS_IMG_PATH("settings_back_18x18.bin"));
 
         widget_set_visible(nav_bar_get_base(instance->back_nav_bar), false);
     });
+
+    data->is_timer_initial_run = true;
+    data->timer = furi_event_loop_timer_alloc(
+        instance->event_loop,
+        settings_scene_start_timer_callback,
+        FuriEventLoopTimerTypePeriodic,
+        instance);
+
+    furi_event_loop_timer_start(data->timer, STANDBY_ANIM_INITIAL_DELAY_MS);
 }
 
 static void settings_scene_start_on_exit(void* context) {
@@ -75,23 +167,37 @@ static void settings_scene_start_on_exit(void* context) {
         GuiLayer* layer = gui_get_layer(instance->gui, GuiLayerIdMain);
         gui_layer_remove_input_callback(layer, settings_scene_start_input_callback);
 
-        app_title_card_free(data->front_card);
-        app_title_card_free(data->back_card);
+        furi_event_loop_timer_free(data->timer);
+
+        anim_title_card_free(data->front_card);
+        title_card_free(data->back_card);
     });
 }
 
 static bool settings_scene_start_on_event(const SceneManagerEvent* event, void* context) {
     furi_assert(context);
+
     SettingsApp* instance = context;
 
     bool consumed = false;
-
     if(event->type == SceneManagerEventTypeCustom) {
-        if(event->event == SettingsStartCustomEventShortPressed) {
+        switch(event->event) {
+        case SettingsCustomEventShortPressed:
             scene_manager_next_scene(instance->scene_manager, SettingsAppSceneIdMain);
-        }
+            consumed = true;
+            break;
 
-        consumed = true;
+        case SettingsCustomEventAboutToExit:
+            with_gui(instance->gui, {
+                settings_scene_start_run_in_out_anim(
+                    instance, SettingsSceneStartInOutAnimTypeExit);
+            });
+            consumed = true;
+            break;
+
+        default:
+            break;
+        }
     }
 
     return consumed;
