@@ -38,6 +38,7 @@ App(
         "ble",
         "network",
         "sntp",
+        "matter",
     ],
     targets=["f20", "f21"],
 )

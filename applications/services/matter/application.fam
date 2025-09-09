@@ -6,4 +6,22 @@ App(
     stack_size=8 * 1024,
     order=200,
     targets=["f64"],
+    requires=["intercom"],
+    sources=[
+        "matter_f64.cpp",
+    ],
+)
+
+App(
+    appid="matter",
+    name="MatterSrv",
+    apptype=FlipperAppType.SERVICE,
+    entry_point="matter_srv",
+    stack_size=4 * 1024,
+    order=250,
+    targets=["f20", "f21"],
+    requires=["intercom"],
+    sources=[
+        "matter.c",
+    ],
 )
