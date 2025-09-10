@@ -39,6 +39,7 @@ typedef enum {
     BusyCustomEventStartPressed,
     BusyCustomEventStartReleased,
     BusyCustomEventStartShortPressed,
+    BusyCustomEventAboutToExit
 } BusyCustomEvent;
 
 typedef enum {
