@@ -115,20 +115,14 @@ jobs:
         run: |
           echo "update_url=${{ steps.names.outputs.branch_name }}/busybar-f${{ matrix.u5_target }}-update-${{ steps.names.outputs.suffix }}.tar" >> "$GITHUB_OUTPUT"
 
-      - name: Trigger updater tests
-        if: ${{ matrix.u5_target == env.DEFAULT_TARGET }}
+
+      - name: Trigger "Updater tests" when u5_target == 21
+        if: ${{ matrix.u5_target == 21 }}
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          curl -X POST \
-            -H "Authorization: token ${{ secrets.REPO_PAT }}" \
-            -H "Accept: application/vnd.github+json" \
-            https://api.github.com/repos/${{ github.repository }}/dispatches \
-            -d @- <<'EOF'
-          {
-            "event_type": "run-updater-tests",
-            "client_payload": {
-              "update_url": "${{ steps.set-url.outputs.update_url }}",
-              "default_target": "${{ env.DEFAULT_TARGET }}",
-              "sha": "${{ github.sha }}"
-            }
-          }
-          EOF
+          gh workflow run "Updater tests" \
+            --ref "${{ github.head_ref || github.ref_name }}" \
+            -f default_target=${{ env.DEFAULT_TARGET }} \
+            -f sha=${{ github.sha }} \
+            -f update_url="${{ steps.set-url.outputs.update_url }}"

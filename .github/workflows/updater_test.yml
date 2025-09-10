@@ -1,14 +1,26 @@
 name: 'Updater tests'
 
 on:
-  repository_dispatch:
-    types: [run-updater-tests]
+  workflow_dispatch:
+    inputs:
+      default_target:
+        description: Default U5 target
+        required: true
+        type: string
+      sha:
+        description: Commit SHA to test
+        required: true
+        type: string
+      update_url:
+        description: URL of the produced update tar
+        required: true
+        type: string
 
 permissions:
   contents: read
 
 env:
-  DEFAULT_TARGET: ${{ github.event.client_payload.default_target }}
+  DEFAULT_TARGET: ${{ github.event.inputs.default_target }}
 
 jobs:
   run_units_on_bench:
@@ -17,7 +29,7 @@ jobs:
       - name: Checkout code at the build’s commit
         uses: actions/checkout@v4
         with:
-          ref: ${{ github.event.client_payload.sha }}
+          ref: ${{ github.event.inputs.sha }}
           fetch-depth: 2
 
       - name: Update submodules
@@ -27,9 +39,9 @@ jobs:
       - name: Download update package
         run: |
           set -euo pipefail
-          URL="${{ github.event.client_payload.update_url }}"
+          URL="https://update.flipperzero.one/builds/busybar-firmware/${{ github.event.inputs.update_url }}"
           echo "Using URL: $URL"
-          curl --fail --retry 6 --retry-all-errors -L -o "busybar-f${DEFAULT_TARGET}-update.tar" "$URL"
+          curl --fail --retry 6 -L -o "busybar-f${{ env.DEFAULT_TARGET }}-update.tar" "$URL"
           mkdir -p update_bundle
           tar -xf "busybar-f${{ env.DEFAULT_TARGET }}-update.tar" -C update_bundle
 
