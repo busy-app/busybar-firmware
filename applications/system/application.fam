@@ -21,6 +21,7 @@ App(
     provides=[
         "update_cli",
         "crypto_backup",
+        "fetch",
     ],
     targets=["f20", "f21"],
 )
