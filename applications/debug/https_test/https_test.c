@@ -1,5 +1,7 @@
 #include <furi.h>
 
+#include <storage/storage.h>
+
 #include <mongoose.h>
 #include <wifi/wifi.h>
 #include <network/network.h>
