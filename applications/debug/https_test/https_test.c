@@ -35,7 +35,7 @@ static void http_test_mg_handler(struct mg_connection* connection, int event, vo
         const struct mg_str name = mg_url_host(HTTP_URL);
 
         if(mg_url_is_ssl(HTTP_URL)) {
-            struct mg_str ca_data = mg_file_read((struct mg_fs*)http_fs_get(), "CA_BUNDLE_PATH");
+            struct mg_str ca_data = mg_file_read((struct mg_fs*)http_fs_get(), CA_BUNDLE_PATH);
             const struct mg_tls_opts opts = {.ca = ca_data, .name = name};
             mg_tls_init(connection, &opts);
             free(ca_data.buf);

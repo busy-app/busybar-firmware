@@ -121,13 +121,13 @@ void fetch_url(PipeSide* pipe, FuriString* url, FuriString* args, void* context)
 
     const char spin_chars[] = "|/-\\";
     uint8_t spin_chars_index = 0;
-    bool flag_waiting_recive_data = true;
+    bool flag_waiting_receive_data = true;
     FetchClientStatus status;
 
     while(!fetch_client_is_processing_done(instance->fetch_client) ||
           furi_stream_buffer_bytes_available(instance->buffer_rx)) {
         if(furi_message_queue_get(instance->status_queue, &status, 200) == FuriStatusOk) {
-            flag_waiting_recive_data = false;
+            flag_waiting_receive_data = false;
             if(status.total_download_size) {
                 char* dimension = "B";
                 if(status.total_download_size > 2048) {
@@ -164,16 +164,16 @@ void fetch_url(PipeSide* pipe, FuriString* url, FuriString* args, void* context)
             continue;
         }
 
-        if(!furi_stream_buffer_bytes_available(instance->buffer_rx) && flag_waiting_recive_data) {
+        if(!furi_stream_buffer_bytes_available(instance->buffer_rx) && flag_waiting_receive_data) {
             printf("\rWaiting... %c", spin_chars[spin_chars_index]);
             fflush(stdout);
             spin_chars_index = (spin_chars_index + 1) % 4;
             continue;
         }
 
-        if(flag_waiting_recive_data) {
+        if(flag_waiting_receive_data) {
             printf("\r                      \r");
-            flag_waiting_recive_data = false;
+            flag_waiting_receive_data = false;
         }
 
         while(furi_stream_buffer_bytes_available(instance->buffer_rx)) {
@@ -219,7 +219,7 @@ void fetch_url(PipeSide* pipe, FuriString* url, FuriString* args, void* context)
 static void fetch_command_print_usage(void) {
     printf("Usage:\r\n");
     printf(
-        "\tfetch <url> [path]\t : url - http(s)://example.com[:port], path - local file path to save response\r\n");
+        "\tfetch <url> [path]\t : url - http(s)://example.com[:port], path - /ext or /bkp /local file path to save response\r\n");
 }
 
 void fetch_command(PipeSide* pipe, FuriString* args, void* context) {

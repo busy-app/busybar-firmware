@@ -26,7 +26,25 @@ FetchFileSave* fetch_file_save_alloc(FuriString* file_path) {
     do {
         // Ensure staging directory exists
         path_extract_dirname(furi_string_get_cstr(instance->file_path), path);
-        if(furi_string_cmp_str(path, STORAGE_EXT_PATH_PREFIX)) {
+
+        if(!(strncmp(
+                 furi_string_get_cstr(path),
+                 STORAGE_EXT_PATH_PREFIX,
+                 strlen(STORAGE_EXT_PATH_PREFIX)) == 0 ||
+             strncmp(
+                 furi_string_get_cstr(path),
+                 STORAGE_BACKUP_PATH_PREFIX,
+                 strlen(STORAGE_BACKUP_PATH_PREFIX)) == 0)) {
+            FURI_LOG_E(
+                TAG,
+                "File path must be within %s or %s: %s",
+                STORAGE_EXT_PATH_PREFIX,
+                STORAGE_BACKUP_PATH_PREFIX,
+                furi_string_get_cstr(path));
+            break;
+        }
+        if(!(furi_string_cmp_str(path, STORAGE_EXT_PATH_PREFIX) ||
+             furi_string_cmp_str(path, STORAGE_BACKUP_PATH_PREFIX))) {
             if(!storage_dir_exists(instance->storage, furi_string_get_cstr(path))) {
                 if(storage_common_mkdir(instance->storage, furi_string_get_cstr(path)) != FSE_OK) {
                     FURI_LOG_E(
