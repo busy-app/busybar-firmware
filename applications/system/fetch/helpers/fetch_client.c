@@ -118,9 +118,25 @@ static FURI_ALWAYS_INLINE void
     if(mg_url_is_ssl(furi_string_get_cstr(instance->url))) {
         struct mg_str ca_data =
             mg_file_read((struct mg_fs*)http_fs_get(), FETCH_CLIENT_CA_BUNDLE_PATH);
-        const struct mg_tls_opts opts = {.ca = ca_data, .name = name};
-        mg_tls_init(conn, &opts);
-        free(ca_data.buf);
+
+        if(ca_data.buf != NULL && ca_data.len > 0) {
+            const struct mg_tls_opts opts = {.ca = ca_data, .name = name};
+            mg_tls_init(conn, &opts);
+            free(ca_data.buf);
+        } else {
+            FETCH_CLIENT_ERROR(
+                TAG, "Failed to read CA bundle from %s", FETCH_CLIENT_CA_BUNDLE_PATH);
+            if(instance->callback_error) {
+                instance->callback_error(
+                    "Failed to read CA certificate bundle", instance->context);
+            }
+            // Free the buffer if it was allocated but empty
+            if(ca_data.buf != NULL) {
+                free(ca_data.buf);
+            }
+            conn->is_draining = 1;
+            return;
+        }
     }
 
     mg_printf(

@@ -36,9 +36,20 @@ static void http_test_mg_handler(struct mg_connection* connection, int event, vo
 
         if(mg_url_is_ssl(HTTP_URL)) {
             struct mg_str ca_data = mg_file_read((struct mg_fs*)http_fs_get(), CA_BUNDLE_PATH);
-            const struct mg_tls_opts opts = {.ca = ca_data, .name = name};
-            mg_tls_init(connection, &opts);
-            free(ca_data.buf);
+
+            if(ca_data.buf != NULL && ca_data.len > 0) {
+                const struct mg_tls_opts opts = {.ca = ca_data, .name = name};
+                mg_tls_init(connection, &opts);
+                free(ca_data.buf);
+            } else {
+                FURI_LOG_E(TAG, "Failed to read CA bundle from %s", CA_BUNDLE_PATH);
+                // Free the buffer if it was allocated but empty
+                if(ca_data.buf != NULL) {
+                    free(ca_data.buf);
+                }
+                connection->is_draining = 1;
+                return;
+            }
         }
 
         mg_printf(
