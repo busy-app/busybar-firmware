@@ -144,8 +144,6 @@ static StatusBar* status_bar_alloc(void) {
         widget_set_width(flex_layout_get_base(status_bar), BACK_STATUS_BAR_WIDTH);
         widget_set_padding(flex_layout_get_base(status_bar), 0, 0, 2, 1);
         flex_layout_set_spacing(status_bar, 3);
-        flex_layout_set_align(
-            status_bar, FlexLayoutAlignStart, FlexLayoutAlignCenter, FlexLayoutAlignCenter);
 
         instance->ble_status_indicator =
             ble_status_indicator_alloc(flex_layout_get_base(status_bar));
