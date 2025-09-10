@@ -13,7 +13,7 @@ App(
         "input_test",
         # "led_indicator",
         "power_test",
-        # "https_test",
+        "https_test",
         # "sntp_test",
         "dummy",
         "sound",

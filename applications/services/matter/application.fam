@@ -6,7 +6,11 @@ App(
     stack_size=8 * 1024,
     order=200,
     targets=["f64"],
-    requires=["intercom"],
+    requires=[
+        "intercom",
+        "wifi",
+        "nvm",
+    ],
     sources=[
         "matter_f64.cpp",
     ],

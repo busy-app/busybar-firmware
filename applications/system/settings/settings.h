@@ -12,9 +12,9 @@
 #include <gui/modules/flex_layout.h>
 
 typedef enum {
-    SettingsCustomEventShortPressed,
-    SettingsCustomEventMenuItemClick,
-    SettingsCustomEventAboutToExit
+    SettingsCustomEventAboutToExit,
+
+    SettingsCustomEventSceneEventsStart
 } SettingsCustomEvent;
 
 typedef struct SettingsApp {

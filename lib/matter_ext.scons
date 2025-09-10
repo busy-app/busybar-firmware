@@ -72,6 +72,8 @@ libenv.AppendUnique(
         "-Wno-error",
         "-Wno-unused-variable",
         "-Wno-unused-parameter",
+        "-Wno-maybe-uninitialized",
+        "-Wno-deprecated-declarations",
         "-Wno-missing-field-initializers",
     ],
     CPPDEFINES=[

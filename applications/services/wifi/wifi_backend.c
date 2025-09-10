@@ -42,12 +42,7 @@ static void wifi_init_request_handler(Wifi* instance) {
     sl_status_t status;
 
     do {
-        status = sl_net_init(SL_NET_WIFI_CLIENT_INTERFACE, &wifi_config_client, instance, NULL);
-
-        if(status != SL_STATUS_OK) {
-            FURI_LOG_E(TAG, "Failed to initialise Wifi: %lX", status);
-            break;
-        }
+        // sl_net_init() is now called inside wifi_alloc()
 
         WifiHardwareAddress* hw_address = &instance->response.hw_address;
         status = sl_wifi_get_mac_address(SL_WIFI_CLIENT_INTERFACE, (sl_mac_address_t*)hw_address);
@@ -70,17 +65,24 @@ static void wifi_init_request_handler(Wifi* instance) {
 static void wifi_deinit_request_handler(Wifi* instance) {
     FURI_LOG_D(TAG, "Deinit");
 
+    // sl_net_deinit() should never be called now
+
     sl_status_t status;
 
     do {
-        status = sl_net_deinit(SL_NET_WIFI_CLIENT_INTERFACE);
+        if(instance->state == WifiStateUp) {
+            status = sl_net_down(SL_NET_WIFI_CLIENT_INTERFACE);
 
-        if(status != SL_STATUS_OK) {
-            FURI_LOG_E(TAG, "Failed to deinitialise Wifi: %lX", status);
-            break;
+            if(status != SL_STATUS_OK) {
+                FURI_LOG_E(TAG, "Failed to bring Wifi interface DOWN: %lX", status);
+                break;
+            }
+
+            wifi_set_state(instance, WifiStateDown);
         }
 
         wifi_set_state(instance, WifiStateDeinit);
+        status = SL_STATUS_OK;
 
     } while(false);
 
@@ -362,6 +364,23 @@ static sl_status_t wifi_scan_callback(
     return ret;
 }
 
+static sl_status_t wifi_init_driver(Wifi* instance) {
+    sl_status_t status;
+
+    do {
+        status = sl_net_init(SL_NET_WIFI_CLIENT_INTERFACE, &wifi_config_client, NULL, NULL);
+
+        if(status != SL_STATUS_OK) {
+            break;
+        }
+
+        status = sl_wifi_set_scan_callback(wifi_scan_callback, instance);
+
+    } while(false);
+
+    return status;
+}
+
 static Wifi* wifi_alloc(void) {
     Wifi* instance = malloc(sizeof(Wifi));
 
@@ -376,13 +395,16 @@ static Wifi* wifi_alloc(void) {
         instance->event_loop, wifi_custom_event_callback, instance);
     intercom_set_rx_callback(
         instance->intercom, IntercomChannelWifi, wifi_intercom_rx_callback, instance);
-
     intercom_set_rx_callback(
         instance->intercom, IntercomChannelWifiData, wifi_net_intercom_rx_callback, instance);
 
-    sl_wifi_set_scan_callback(wifi_scan_callback, instance);
-
     wifi_net_tcpip_init(instance);
+
+    const sl_status_t status = wifi_init_driver(instance);
+
+    if(status != SL_STATUS_OK) {
+        FURI_LOG_E(TAG, "Failed to initialise Wifi: %lX", status);
+    }
 
     furi_record_create(RECORD_WIFI, instance->event_pubsub);
 

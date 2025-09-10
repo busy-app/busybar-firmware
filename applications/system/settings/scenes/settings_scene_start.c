@@ -8,6 +8,10 @@
 #define STANDBY_ANIM_INITIAL_DELAY_MS 1000
 #define STANDBY_ANIM_DELAY_MS         5000
 
+typedef enum {
+    SceneCustomEventStartOrOkClicked = SettingsCustomEventSceneEventsStart,
+} SceneCustomEvent;
+
 typedef struct {
     AnimTitleCard* front_card;
     TitleCard* back_card;
@@ -60,14 +64,14 @@ static bool settings_scene_start_input_callback(const InputEvent* event, void* c
     SettingsApp* instance = context;
 
     bool consumed = false;
-    SettingsCustomEvent custom_event;
+    SceneCustomEvent custom_event;
 
     if(event->type == InputTypeShort) {
         switch(event->key) {
         case InputKeyStart:
         /* fall-through */
         case InputKeyOk:
-            custom_event = SettingsCustomEventShortPressed;
+            custom_event = SceneCustomEventStartOrOkClicked;
             consumed = true;
             break;
 
@@ -182,7 +186,7 @@ static bool settings_scene_start_on_event(const SceneManagerEvent* event, void* 
     bool consumed = false;
     if(event->type == SceneManagerEventTypeCustom) {
         switch(event->event) {
-        case SettingsCustomEventShortPressed:
+        case SceneCustomEventStartOrOkClicked:
             scene_manager_next_scene(instance->scene_manager, SettingsAppSceneIdMain);
             consumed = true;
             break;
