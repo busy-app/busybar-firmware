@@ -212,6 +212,19 @@ JsonConfigStatus json_config_read_str(
     return status;
 }
 
+// TODO: unit tests
+JsonConfigStatus json_config_delete(JsonConfig* inst, const char* key) {
+    furi_assert(inst);
+    furi_assert(inst->root);
+    furi_assert(key);
+    JsonConfigStatus status = JsonConfigStatusOk;
+
+    cJSON_DeleteItemFromObject(inst->root, key);
+    inst->write_pending = true;
+
+    return status;
+}
+
 JsonConfigStatus json_config_write_int(JsonConfig* inst, const char* key, int val) {
     furi_assert(inst);
     furi_assert(inst->root);

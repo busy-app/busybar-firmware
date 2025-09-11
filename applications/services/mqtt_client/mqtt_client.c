@@ -1,6 +1,9 @@
 #include "mqtt_i.h"
 #include <network/network.h>
 #include <storage/storage.h>
+#include <json_helper.h>
+#include <furi_hal_random.h>
+#include <furi_hal_info.h>
 
 #define TAG "MqttClient"
 
@@ -9,93 +12,87 @@
 #define CERT_FILE_DEVICE       APP_ASSETS_PATH("device.crt")
 #define CERT_FILE_DEVICE_KEY   APP_ASSETS_PATH("device.key")
 
-typedef struct {
-    struct mg_mgr mgr;
-    struct mg_timer reconnect_delay_timer;
-    struct mg_connection* conn;
-    bool conn_established;
-    char* ca_bundle;
-    char* device_cert;
-    char* device_key;
-} MqttClient;
-
-typedef struct {
-    MqttClient* mqtt;
-    FuriString* response_topic;
-    FuriString* http_request;
-    char* request_data;
-    size_t request_len;
-} MqttHttpContext;
-
-static void mqtt_http_handler(struct mg_connection* conn, int ev, void* ev_data) {
-    MqttHttpContext* http_ctx = conn->fn_data;
-    furi_assert(http_ctx);
-
-    if(ev == MG_EV_CONNECT) {
-        mg_printf(
-            conn,
-            "%s HTTP/1.1\r\n"
-            "Content-Type: application/json\r\n"
-            "Content-Length: %ld\r\n"
-            "\r\n",
-            furi_string_get_cstr(http_ctx->http_request),
-            http_ctx->request_len);
-        if(http_ctx->request_len > 0) {
-            mg_send(conn, http_ctx->request_data, http_ctx->request_len);
-        }
-    } else if(ev == MG_EV_HTTP_MSG) {
-        struct mg_http_message* msg = (struct mg_http_message*)ev_data;
-        FURI_LOG_T(TAG, "HTTP resp: %.*s", (int)msg->body.len, msg->body.buf);
-
-        if((http_ctx->mqtt->conn_established) && (http_ctx->mqtt->conn)) {
-            struct mg_mqtt_opts pub_opts = {
-                .topic = mg_str(furi_string_get_cstr(http_ctx->response_topic)),
-                .message = msg->body,
-                .qos = MQTT_QOS,
-                .retain = false,
-            };
-            mg_mqtt_pub(http_ctx->mqtt->conn, &pub_opts);
-        } else {
-            FURI_LOG_W(TAG, "MQTT died before response is sent");
-        }
-        conn->is_draining = 1;
-    } else if(ev == MG_EV_CLOSE) {
-        FURI_LOG_T(TAG, "HTTP close");
-
-        furi_string_free(http_ctx->response_topic);
-        furi_string_free(http_ctx->http_request);
-        if(http_ctx->request_data) {
-            free(http_ctx->request_data);
-        }
-        free(http_ctx);
-        conn->fn_data = NULL;
-    }
-}
-
-static void mqtt_on_message(MqttClient* mqtt, struct mg_str* topic, struct mg_str* message) {
-    FuriString* http_req = furi_string_alloc();
-    FuriString* resp_topic = furi_string_alloc();
-    if(!mqtt_parse_topic(topic, http_req, resp_topic)) {
-        FURI_LOG_W(TAG, "Unknown topic %.*s", topic->len, topic->buf);
-        furi_string_free(http_req);
-        furi_string_free(resp_topic);
-        return;
-    }
-
-    MqttHttpContext* http_ctx = malloc(sizeof(MqttHttpContext));
-    http_ctx->mqtt = mqtt;
-    http_ctx->response_topic = resp_topic;
-    http_ctx->http_request = http_req;
-    http_ctx->request_len = message->len;
-    if(http_ctx->request_len > 0) {
-        http_ctx->request_data = malloc(message->len);
-        memcpy(http_ctx->request_data, message->buf, message->len);
-    }
-
-    mg_http_connect(&mqtt->mgr, HTTP_HOST, mqtt_http_handler, http_ctx);
-}
+#define SESSION_FILE APP_DATA_PATH("session.json")
 
 static void mqtt_reconnect_callback(void* data);
+
+static void mqtt_device_subscribe(MqttClient* mqtt) {
+    FuriString* topic = furi_string_alloc_printf(
+        "%s/%s/down/%s/#",
+        MQTT_DEVICE_ROOT_TOPIC,
+        furi_string_get_cstr(mqtt->device_serial),
+        MQTT_API_VERSION);
+    const struct mg_mqtt_opts sub_opts = {
+        .topic = mg_str(furi_string_get_cstr(topic)), .qos = MQTT_QOS};
+    mg_mqtt_sub(mqtt->conn, &sub_opts);
+
+    furi_string_free(topic);
+}
+
+static void mqtt_device_request_pin(MqttClient* mqtt) {
+    FuriString* topic = furi_string_alloc_printf(
+        "%s/%s/up/%s/link/request",
+        MQTT_DEVICE_ROOT_TOPIC,
+        furi_string_get_cstr(mqtt->device_serial),
+        MQTT_API_VERSION);
+    const struct mg_mqtt_opts pub_opts = {
+        .topic = mg_str(furi_string_get_cstr(topic)),
+        .message = mg_str("{}"),
+        .qos = MQTT_QOS,
+        .retain = false,
+    };
+    mg_mqtt_pub(mqtt->conn, &pub_opts);
+
+    furi_string_free(topic);
+}
+
+static void
+    mqtt_device_on_message(MqttClient* mqtt, FuriString* topic_str, struct mg_str* message) {
+    UNUSED(mqtt);
+    // FURI_LOG_W(TAG, "%s: %.*s", furi_string_get_cstr(topic_str), message->len, message->buf);
+    if(furi_string_end_with(topic_str, "/down/v1/link/otp")) {
+        char* pin = mg_json_get_str(*message, "$.code");
+        if(pin) {
+            FURI_LOG_I(TAG, "Link PIN: %s", pin);
+        }
+    } else if(furi_string_end_with(topic_str, "/down/v1/link/token")) {
+        char* session_id = mg_json_get_str(*message, "$.session_id");
+        char* token = mg_json_get_str(*message, "$.token");
+        if(session_id && token) {
+            FURI_LOG_I(TAG, "Link done!");
+
+            JsonConfig* cfg = json_config_alloc();
+            JsonConfigStatus status = json_config_open(cfg, SESSION_FILE);
+            furi_assert(status != JsonConfigStatusError);
+            json_config_write_str(cfg, "sesson_id", session_id);
+            json_config_write_str(cfg, "token", token);
+            json_config_free(cfg);
+
+            furi_string_set(mqtt->session_id, session_id);
+            furi_string_set(mqtt->link_token, token);
+            mqtt->is_linked = true;
+
+            // Close MQTT connection to reconnect with new token
+            mqtt->conn->is_draining = 1;
+        }
+    }
+}
+
+static void
+    mqtt_on_message(MqttClient* mqtt, uint8_t qos, struct mg_str* topic, struct mg_str* message) {
+    UNUSED(qos);
+    // TODO: check QOS, serial/session_id
+
+    FuriString* topic_str = furi_string_alloc_printf("%.*s", topic->len, topic->buf);
+
+    if(furi_string_start_with(topic_str, MQTT_DEVICE_ROOT_TOPIC)) {
+        mqtt_device_on_message(mqtt, topic_str, message);
+    } else if(furi_string_start_with(topic_str, MQTT_API_ROOT_TOPIC)) {
+        mqtt_api_on_message(mqtt, topic_str, message);
+    }
+
+    furi_string_free(topic_str);
+}
 
 static void mqtt_event_handler(struct mg_connection* conn, int ev, void* ev_data) {
     MqttClient* mqtt = conn->fn_data;
@@ -108,7 +105,6 @@ static void mqtt_event_handler(struct mg_connection* conn, int ev, void* ev_data
             .ca = mg_str(mqtt->ca_bundle),
             .cert = mg_str(mqtt->device_cert),
             .key = mg_str(mqtt->device_key),
-            // .skip_verification = 1,
         };
         mg_tls_init(conn, &opts);
     } else if(ev == MG_EV_TLS_HS) {
@@ -117,14 +113,16 @@ static void mqtt_event_handler(struct mg_connection* conn, int ev, void* ev_data
         int* conn_code = (int*)ev_data;
         if(*conn_code == 0) {
             FURI_LOG_D(TAG, "MQTT Connected");
-            const struct mg_mqtt_opts sub_opts = {
-                .topic = mg_str(MQTT_SUBSCRIBE_TOPIC), .qos = MQTT_QOS};
-            mg_mqtt_sub(conn, &sub_opts);
+            if(mqtt->is_linked) {
+                mqtt_api_subscribe(mqtt);
+            } else {
+                mqtt_device_subscribe(mqtt);
+            }
         } else {
             FURI_LOG_E(TAG, "MQTT Connect error, code 0x%02X", *conn_code);
         }
     } else if(ev == MG_EV_CLOSE) {
-        FURI_LOG_E(TAG, "MQTT Connection close");
+        FURI_LOG_W(TAG, "MQTT Connection close");
         mqtt->conn_established = false;
         mqtt->conn = NULL;
         mg_timer_init(
@@ -137,14 +135,28 @@ static void mqtt_event_handler(struct mg_connection* conn, int ev, void* ev_data
     } else if(ev == MG_EV_MQTT_CMD) {
         struct mg_mqtt_message* msg = (struct mg_mqtt_message*)ev_data;
         if(msg->cmd == MQTT_CMD_SUBACK) {
-            mqtt->conn_established = true;
+            // Get SUBACK Reason Code from MQTT packet
+            size_t packet_len = msg->dgram.len;
+            uint8_t sub_reason = msg->dgram.buf[packet_len - 1];
+            FURI_LOG_D(TAG, "MQTT SUBACK: 0x%02X", sub_reason);
+
+            if(sub_reason <= 2) {
+                mqtt->conn_established = true;
+                if(!mqtt->is_linked) {
+                    mqtt_device_request_pin(mqtt);
+                }
+            } else {
+                FURI_LOG_E(TAG, "Subscribe error 0x%02X", sub_reason);
+                conn->is_draining = 1;
+            }
+
+        } else {
+            FURI_LOG_D(TAG, "MQTT CMD: %u", msg->cmd);
         }
-        FURI_LOG_D(TAG, "MQTT CMD: %u", msg->cmd);
     } else if(ev == MG_EV_MQTT_MSG) {
         struct mg_mqtt_message* msg = (struct mg_mqtt_message*)ev_data;
-        if(msg->qos == MQTT_QOS) {
-            mqtt_on_message(mqtt, &msg->topic, &msg->data);
-        }
+        mqtt_on_message(mqtt, msg->qos, &msg->topic, &msg->data);
+
         FURI_LOG_D(
             TAG,
             "MQTT MSG QOS%u %.*s : %.*s",
@@ -163,12 +175,56 @@ static void mqtt_reconnect_callback(void* data) {
     mg_timer_free(&mqtt->mgr.timers, &mqtt->reconnect_delay_timer);
 
     FURI_LOG_D(TAG, "Connecting to %s ...", MQTT_SERVER_ADDR);
+
+    FuriString* username =
+        furi_string_alloc_printf("BusyBar device %s", furi_string_get_cstr(mqtt->device_serial));
+
     const struct mg_mqtt_opts opts = {
-        .user = mg_str_s("device_test"),
-        .pass = mg_str_s(""),
+        .client_id = mg_str(furi_string_get_cstr(mqtt->client_id)),
+        .user = mg_str(furi_string_get_cstr(username)),
+        .pass = mg_str(furi_string_get_cstr(mqtt->link_token)),
         .clean = true,
     };
     mqtt->conn = mg_mqtt_connect(&mqtt->mgr, MQTT_SERVER_ADDR, &opts, mqtt_event_handler, mqtt);
+
+    furi_string_free(username);
+}
+
+static void mqtt_client_load_session(MqttClient* mqtt) {
+    mqtt->is_linked = false;
+    mqtt->client_id = furi_string_alloc();
+    mqtt->session_id = furi_string_alloc();
+    mqtt->link_token = furi_string_alloc();
+
+    JsonConfig* cfg = json_config_alloc();
+    JsonConfigStatus status = json_config_open(cfg, SESSION_FILE);
+    furi_assert(status != JsonConfigStatusError);
+
+    do {
+        status = json_config_read_str(cfg, "client_id", mqtt->client_id, NULL);
+        if(status == JsonConfigStatusMissing) {
+            uint32_t random_id[2];
+            furi_hal_random_fill_buf((uint8_t*)random_id, sizeof(random_id));
+            furi_string_printf(mqtt->client_id, "busybar-%08lx%08lx", random_id[0], random_id[1]);
+            json_config_write_str(cfg, "client_id", furi_string_get_cstr(mqtt->client_id));
+            break;
+        }
+        status = json_config_read_str(cfg, "sesson_id", mqtt->session_id, NULL);
+        if(status == JsonConfigStatusMissing) break;
+
+        status = json_config_read_str(cfg, "token", mqtt->link_token, NULL);
+        if(status == JsonConfigStatusMissing) break;
+
+        mqtt->is_linked = true;
+    } while(0);
+
+    if(!mqtt->is_linked) {
+        json_config_delete(cfg, "sesson_id");
+        json_config_delete(cfg, "token");
+        FURI_LOG_W(TAG, "Session data is missing, resetting session");
+    }
+
+    json_config_free(cfg);
 }
 
 static bool mqtt_client_load_certs(MqttClient* mqtt) {
@@ -208,6 +264,7 @@ static bool mqtt_client_load_certs(MqttClient* mqtt) {
             break;
         }
         storage_file_close(file);
+        // TODO: verify CN?
 
         if(!storage_file_open(file, CERT_FILE_INTERMEDIATE, FSAM_READ, FSOM_OPEN_EXISTING)) {
             FURI_LOG_E(TAG, "Intermediate cert file error: %s", storage_file_get_error_desc(file));
@@ -245,10 +302,15 @@ int32_t mqtt_client_start(void* p) {
     MqttClient* mqtt = malloc(sizeof(MqttClient));
     mqtt->conn = NULL;
 
+    mqtt->device_serial = furi_string_alloc();
+    furi_hal_info_get_serial(mqtt->device_serial);
+
     if(!mqtt_client_load_certs(mqtt)) {
         FURI_LOG_E(TAG, "Certificates load error");
         furi_thread_suspend(furi_thread_get_current_id());
     }
+
+    mqtt_client_load_session(mqtt);
 
     Network* network = furi_record_open(RECORD_NETWORK);
     network_init_current_thread(network);

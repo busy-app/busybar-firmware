@@ -4,13 +4,28 @@
 #include <mongoose.h>
 
 #define MQTT_SERVER_ADDR     "mqtts://mqtt.cloud.dev.busy.app:8883"
-#define MQTT_ROOT_TOPIC      "api"
-#define MQTT_SUBSCRIBE_TOPIC MQTT_ROOT_TOPIC "/#"
-#define MQTT_TOPIC_PREFIX    MQTT_ROOT_TOPIC "/"
 #define MQTT_RECONNECT_DELAY (2000)
 #define MQTT_QOS             (2)
+#define MQTT_API_VERSION     "v1"
 
-#define HTTP_HOST           "http://127.0.0.1"
-#define HTTP_URI_API_PREFIX "/api/"
+#define MQTT_DEVICE_ROOT_TOPIC "devices"
+#define MQTT_API_ROOT_TOPIC    "sessions"
 
-bool mqtt_parse_topic(struct mg_str* topic, FuriString* http_req, FuriString* response_topic);
+typedef struct {
+    struct mg_mgr mgr;
+    struct mg_timer reconnect_delay_timer;
+    struct mg_connection* conn;
+    bool conn_established;
+    bool is_linked;
+    char* ca_bundle;
+    char* device_cert;
+    char* device_key;
+    FuriString* device_serial;
+    FuriString* client_id;
+    FuriString* session_id;
+    FuriString* link_token;
+} MqttClient;
+
+void mqtt_api_subscribe(MqttClient* mqtt);
+
+void mqtt_api_on_message(MqttClient* mqtt, FuriString* topic_str, struct mg_str* message);

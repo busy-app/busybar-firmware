@@ -24,6 +24,12 @@ void furi_hal_info_get_api_version(uint16_t* major, uint16_t* minor);
   */
 void furi_hal_info_get(PropertyValueCallback callback, char sep, void* context);
 
+/** Get device serial number
+  *
+  * @param[in]  serial     a string to store the value
+  */
+void furi_hal_info_get_serial(FuriString* serial);
+
 #ifdef __cplusplus
 }
 #endif

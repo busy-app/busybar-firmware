@@ -150,3 +150,8 @@ void furi_hal_info_get(PropertyValueCallback out, char sep, void* context) {
     furi_string_free(key);
     furi_string_free(value);
 }
+
+void furi_hal_info_get_serial(FuriString* serial) {
+    furi_string_printf(
+        serial, "%08lx%08lx%08lx", LL_GetUID_Word2(), LL_GetUID_Word1(), LL_GetUID_Word0());
+}
