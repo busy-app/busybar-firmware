@@ -1,6 +1,7 @@
 #pragma once
 #include <furi.h>
 #include <mongoose.h>
+#include <mongoose_glue.h>
 #include <network/network.h>
 #include <storage/storage.h>
 #include <m-list.h>
@@ -110,8 +111,6 @@ typedef union {
     uint8_t data[MG_DATA_SIZE];
 } ConnectionContext;
 static_assert(sizeof(ConnectionContext) == MG_DATA_SIZE);
-
-struct mg_fs* http_fs_get(void);
 
 bool http_handle_request(
     FuriString* path,
