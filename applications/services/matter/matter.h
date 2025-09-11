@@ -1,6 +1,6 @@
 /**
  * @file matter.h
- * API for Matter service on f20.
+ * API for Matter service on u5.
  */
 
 #pragma once

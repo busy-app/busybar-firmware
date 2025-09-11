@@ -45,7 +45,7 @@ private:
 static MatterSrv* matter_global_srv;
 
 // ======================
-// Communication with f20
+// Communication with u5
 // ======================
 
 /**
@@ -113,7 +113,7 @@ static void matter_handle_frame(const void* data, size_t data_size, void* contex
 }
 
 /**
- * @brief Notifies f20 about an updated state 
+ * @brief Notifies u5 about an updated state 
  */
 static void matter_send_state_update(MatterSrv* matter, MatterVirtualDeviceState state) {
     MatterIntercomFrame frame = {
@@ -161,7 +161,7 @@ void MatterPostAttributeChangeCallback(
 }
 
 /**
- * @brief Sends the current state to f20
+ * @brief Sends the current state to u5
  */
 static void matter_send_current_state(MatterSrv* matter, MatterVirtualDevice device) {
     switch(device) {

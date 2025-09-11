@@ -35,7 +35,7 @@ static void matter_send_state_update(MatterSrv* matter, MatterVirtualDeviceState
 }
 
 // ======================
-// Communication with f64
+// Communication with 917
 // ======================
 
 static void matter_forward_frame_to_thread(const void* data, size_t data_size, void* context) {

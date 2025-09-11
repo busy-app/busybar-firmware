@@ -41,9 +41,9 @@ typedef struct {
 // =============
 
 typedef enum {
-    MatterIntercomFrameTypeUpdate, //<! Notification about updated state. Direction: f64->f20
-    MatterIntercomFrameTypeRequest, //<! Request to change state. Direction: f20->f64
-    MatterIntercomFrameTypeReset, //<! Factory reset. Direction: f20->f64
+    MatterIntercomFrameTypeUpdate, //<! Notification about updated state. Direction: 917->u5
+    MatterIntercomFrameTypeRequest, //<! Request to change state. Direction: u5->917
+    MatterIntercomFrameTypeReset, //<! Factory reset. Direction: u5->917
 } MatterIntercomFrameType;
 
 typedef struct {
