@@ -75,7 +75,6 @@ rsi_error_t furi_hal_qspi_flash_clk_config(
     }
 
     /*disabling the clocks*/
-    //clk_peripheral_clk_disable(pCLK, QSPI_CLK);
     pCLK->CLK_ENABLE_CLEAR_REG2 = QSPI_CLK_ENABLE;
     pCLK->CLK_ENABLE_CLEAR_REG3 = (QSPI_CLK_ONEHOT_ENABLE | QSPI_M4_SOC_SYNC);
     /*Select clock MUX*/
@@ -134,7 +133,7 @@ rsi_error_t furi_hal_qspi_flash_clk_config(
         pCLK->CLK_CONFIG_REG1_b.QSPI_CLK_SWALLOW_SEL = swalloEn ? ENABLE : DISABLE;
         pCLK->CLK_CONFIG_REG2_b.QSPI_ODD_DIV_SEL = OddDivEn ? ENABLE : DISABLE;
     }
-    //clk_peripheral_clk_enable(pCLK, QSPI_CLK, ENABLE_STATIC_CLK);
+    /*enabling the clocks*/
     pCLK->CLK_ENABLE_SET_REG2 = (QSPI_CLK_ENABLE | QSPI_HCLK_ENABLE);
     pCLK->CLK_ENABLE_SET_REG3 = QSPI_CLK_ONEHOT_ENABLE;
     return errorCode;
