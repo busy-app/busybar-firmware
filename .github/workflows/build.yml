@@ -109,6 +109,28 @@ jobs:
               "--analyser_url=${{ secrets.SIL_ANALYSER_URL }}" \
               "--analyser_token=${{ secrets.SIL_ANALYSER_TOKEN }}";
 
+      - name: 'Find previous comment'
+        if: ${{ !github.event.pull_request.head.repo.fork && matrix.u5_target == env.DEFAULT_TARGET && github.event.pull_request }}
+        uses: peter-evans/find-comment@v3
+        id: find-comment
+        with:
+          issue-number: ${{ github.event.pull_request.number }}
+          comment-author: 'github-actions[bot]'
+          body-includes: 'Compiled f${{ matrix.u5_target }} firmware for commit'
+
+      - name: 'Create or update comment'
+        if: ${{ !github.event.pull_request.head.repo.fork && matrix.u5_target == env.DEFAULT_TARGET && github.event.pull_request }}
+        uses: peter-evans/create-or-update-comment@v4
+        with:
+          comment-id: ${{ steps.find-comment.outputs.comment-id }}
+          issue-number: ${{ github.event.pull_request.number }}
+          body: |
+            **Compiled f${{ matrix.u5_target }} firmware for commit `${{steps.names.outputs.commit_sha}}`:**
+            - [📦 Update package](https://update.flipperzero.one/builds/busybar-firmware/${{steps.names.outputs.branch_name}}/busybar-f${{matrix.u5_target}}-update-${{steps.names.outputs.suffix}}.tar)
+            - [📊 Sil Size report](https://fw-reports-sil-bsb.flipp.dev/?branch=${{steps.names.outputs.branch_name}})
+            - [📊 U5 Size report](https://fw-reports-bsb.flipp.dev/?branch=${{steps.names.outputs.branch_name}})
+          edit-mode: replace
+
       - name: 'Set update URL output for default target'
         id: set-url
         if: ${{ matrix.u5_target == env.DEFAULT_TARGET }}
@@ -116,8 +138,8 @@ jobs:
           echo "update_url=${{ steps.names.outputs.branch_name }}/busybar-f${{ matrix.u5_target }}-update-${{ steps.names.outputs.suffix }}.tar" >> "$GITHUB_OUTPUT"
 
 
-      - name: Trigger "Updater tests" when u5_target == 21
-        if: ${{ matrix.u5_target == 21 }}
+      - name: Trigger "Updater tests"
+        if: ${{ matrix.u5_target == env.DEFAULT_TARGET }}
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
