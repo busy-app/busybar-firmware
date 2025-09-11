@@ -658,13 +658,12 @@ static void crypto_command_print_usage(void) {
     printf("\tcrypto dump Dump crypto storage.\r\n");
     printf("\tcrypto read <partition> <type> <id: in HEX> Read key from NWP flash.\r\n");
     printf(
-        "\tcrypto write <partition> <type> <id: in HEX> <flags: in HEX> <size> <data: in Byte> Write key from NWP flash\r\n");
+        "\tcrypto write <partition> <type> <id: in HEX> <flags: in HEX> <size> <data: in Byte> Write key to NWP flash\r\n");
     printf(
         "\tcrypto gen <partition> <type> <id: in HEX> <flags: in HEX> Generate key from NWP flash\r\n");
     printf(
         "\tcrypto gen_csr <partition> <id: in HEX> <flags: in HEX> <subject_name> Generate CSR from NWP flash\r\n");
     printf("\tcrypto list <partition> List keys from NWP flash\r\n");
-    printf("\tcrypto deinit Deinitialize NWP.\r\n");
     printf("\t\t<partition> 0-partition_main, 1-partition_user.\r\n");
 }
 
