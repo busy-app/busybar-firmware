@@ -56,7 +56,7 @@ static void http_test_mg_handler(struct mg_connection* connection, int event, vo
 
         mg_printf(
             connection,
-            "GET %s HTTP/1.1\r\nHost: %.*s\r\n\r\n",
+            "GET %s HTTP/1.0\r\nHost: %.*s\r\n\r\n",
             mg_url_uri(HTTP_URL),
             name.len,
             name.buf);

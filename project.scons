@@ -6,7 +6,7 @@ commandline_vars = _instantiate_vars()
 
 commandline_vars.AddVariables(
     ("SIL_TARGET_HW", "Target definition for Silabs chip", "64"),
-    ("U5_TARGET_HW", "Target definition for STM32U5 chip", "20"),
+    ("U5_TARGET_HW", "Target definition for STM32U5 chip", "21"),
 )
 
 ###################
