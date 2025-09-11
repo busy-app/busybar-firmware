@@ -14,7 +14,7 @@ DEVICE_IP_REF = "10.0.5.20"
 DEVICE_PORT = 23
 
 # Firmware U5:
-U5_TARGET_HW = 20   # Default, can be overridden by -t / --target option.
+U5_TARGET_HW = 21   # Default, can be overridden by -t / --target option.
 
 # Firmware SI917:
 SI_TARGET_HW = 64
