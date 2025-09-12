@@ -71,7 +71,6 @@ void fetch_client_callback_status(FetchClientStatus status, void* context) {
 void fetch_url(PipeSide* pipe, FuriString* url, FuriString* args, void* context) {
     UNUSED(context);
     UNUSED(pipe);
-    UNUSED(args);
 
     size_t pos = furi_string_search_str(url, "://", 0);
     if(pos == FURI_STRING_FAILURE) {
