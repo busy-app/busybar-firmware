@@ -256,9 +256,6 @@ sources = [
     f"{MATTER_SDK_DIR}/src/credentials/CHIPCertToX509.cpp",
     f"{MATTER_SDK_DIR}/src/credentials/DeviceAttestationConstructor.cpp",
     f"{MATTER_SDK_DIR}/src/credentials/DeviceAttestationCredsProvider.cpp",
-    f"{MATTER_SDK_DIR}/src/credentials/examples/DeviceAttestationCredsExample.cpp",
-    f"{MATTER_SDK_DIR}/src/credentials/examples/ExampleDACs.cpp",
-    f"{MATTER_SDK_DIR}/src/credentials/examples/ExamplePAI.cpp",
     f"{MATTER_SDK_DIR}/src/credentials/FabricTable.cpp",
     f"{MATTER_SDK_DIR}/src/credentials/GenerateChipX509Cert.cpp",
     f"{MATTER_SDK_DIR}/src/credentials/GroupDataProviderImpl.cpp",
@@ -427,6 +424,7 @@ sources = [
     f"{MATTER_SUPPORT_DIR}/tinycrypt/src/tinycrypt_util.c",
 
     f"{MATTER_GLUE_DIR}/platform/bsb/BSBCommissionableDataProvider.cpp",
+    f"{MATTER_GLUE_DIR}/platform/bsb/BSBDeviceAttestationCredsProvider.cpp",
     f"{MATTER_GLUE_DIR}/platform/bsb/BSBDeviceInfoProvider.cpp",
     f"{MATTER_GLUE_DIR}/platform/bsb/BSBDeviceInstanceInfoProvider.cpp",
     f"{MATTER_GLUE_DIR}/platform/bsb/CHIPCryptoPALTinyCrypt.cpp",
