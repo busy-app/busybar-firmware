@@ -210,7 +210,8 @@ void custom_set_status_lights(CustomApp* instance, CustomStatusLightsType type) 
     furi_assert(instance);
     furi_assert(type < CustomStatusLightsTypeMax);
 
-    status_lights_send_command(instance->status_lights, &custom_status_lights[type]);
+    const CustomStatusLightsPreset* preset = &custom_status_lights[type];
+    status_lights_run_preset(instance->status_lights, preset->preset, preset->color);
 }
 
 void custom_push_location(CustomApp* instance, const char* location_name) {
