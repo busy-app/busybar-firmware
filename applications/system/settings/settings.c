@@ -92,6 +92,7 @@ static SettingsApp* settings_alloc(void) {
     instance->audio = furi_record_open(RECORD_AUDIO);
     instance->front_display = furi_record_open(RECORD_FRONT_DISPLAY);
     instance->back_display = furi_record_open(RECORD_BACK_DISPLAY);
+    instance->status_lights = furi_record_open(RECORD_STATUS_LIGHTS);
 
     with_gui(instance->gui, {
         GuiLayer* layer = gui_get_layer(instance->gui, GuiLayerIdMain);
@@ -150,6 +151,7 @@ static void settings_free(SettingsApp* instance) {
     furi_record_close(RECORD_AUDIO);
     furi_record_close(RECORD_FRONT_DISPLAY);
     furi_record_close(RECORD_BACK_DISPLAY);
+    furi_record_close(RECORD_STATUS_LIGHTS);
 
     furi_event_loop_unsubscribe(instance->event_loop, instance->input_queue);
     furi_event_loop_unsubscribe(instance->event_loop, instance->event_queue);
