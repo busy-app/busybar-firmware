@@ -96,7 +96,7 @@ CHIP_ERROR DeviceInstanceInfoProviderImpl::GetHardwareVersionString(char* buf, s
 
 CHIP_ERROR
 DeviceInstanceInfoProviderImpl::GetRotatingDeviceIdUniqueId(MutableByteSpan& uniqueIdSpan) {
-    UNUSED(uniqueIdSpan);
+    uniqueIdSpan.reduce_size(0);
     return CHIP_NO_ERROR;
 }
 

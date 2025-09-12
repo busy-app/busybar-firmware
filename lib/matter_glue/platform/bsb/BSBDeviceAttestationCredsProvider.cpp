@@ -42,7 +42,7 @@ static CHIP_ERROR LoadCryptoStorageItem(
             break;
         }
 
-        err = CopySpanToMutableSpan(ByteSpan{key->data, key->length}, out_buf);
+        err = CopySpanToMutableSpan(ByteSpan{key->data, key->header.size}, out_buf);
 
     } while(false);
 
@@ -52,7 +52,8 @@ static CHIP_ERROR LoadCryptoStorageItem(
 }
 
 CHIP_ERROR BSBDACProvider::GetCertificationDeclaration(MutableByteSpan& out_cd_buffer) {
-    // TODO: Certification declaration can only be obtained after certification?
+    // TODO: chip-cert is necessary to generate certification declaration
+    // commissioning is not functional without this data
     out_cd_buffer.reduce_size(0);
     return CHIP_NO_ERROR;
 }
@@ -99,12 +100,14 @@ CHIP_ERROR BSBDACProvider::SignWithDeviceAttestationKey(
         const bool sign_success = furi_hal_crypto_ecdsa_sign(
             handle, message_to_sign.data(), message_to_sign.size(), signature, &signature_length);
 
-        if(sign_success) {
-            err =
-                CopySpanToMutableSpan(ByteSpan{signature, signature_length}, out_signature_buffer);
+        furi_hal_crypto_ecdsa_deinit(handle);
+
+        if(!sign_success) {
+            ChipLogError(Crypto, "Failed to sign with device attestation key");
+            break;
         }
 
-        furi_hal_crypto_ecdsa_deinit(handle);
+        err = CopySpanToMutableSpan(ByteSpan{signature, signature_length}, out_signature_buffer);
 
     } while(false);
 
