@@ -3,6 +3,7 @@
 #include "scenes/settings_scenes.h"
 
 #define SETTINGS_NAV_BAR_HEIGHT 20
+#define SETTINGS_MATTER_Q_SIZE  1
 
 static bool settings_thread_signal_callback(uint32_t signal, void* arg, void* context) {
     UNUSED(arg);
@@ -79,6 +80,49 @@ static bool settings_gui_input_callback(const InputEvent* event, void* context) 
     return consumed;
 }
 
+static void settings_forward_matter_event_to_thread(const void* message, void* context) {
+    furi_check(message);
+    furi_assert(context);
+    const MatterEvent* event = message;
+    SettingsApp* app = context;
+
+    furi_check(furi_message_queue_put(app->matter_queue, event, FuriWaitForever) == FuriStatusOk);
+}
+
+static void settings_matter_event(FuriEventLoopObject* object, void* context) {
+    furi_assert(object);
+    furi_assert(context);
+    FuriMessageQueue* queue = object;
+    SettingsApp* app = context;
+    furi_assert(queue == app->matter_queue);
+
+    MatterEvent event;
+    furi_check(furi_message_queue_get(queue, &event, 0) == FuriStatusOk);
+
+    if(event.type == MatterEventTypeCommissioning) {
+        MatterCommissioningStatus status = event.commissioning.status;
+        SettingsAppSceneId scene = scene_manager_get_current_scene_id(app->scene_manager);
+
+        if(status == MatterCommissioningStatusStarted &&
+           scene == SettingsAppSceneIdMatterPairing) {
+            scene_manager_replace_current_scene(
+                app->scene_manager, SettingsAppSceneIdMatterCommissionStart);
+
+        } else if(
+            status == MatterCommissioningStatusFailed &&
+            scene == SettingsAppSceneIdMatterCommissionStart) {
+            scene_manager_replace_current_scene(
+                app->scene_manager, SettingsAppSceneIdMatterCommissionFail);
+
+        } else if(
+            status == MatterCommissioningStatusComplete &&
+            scene == SettingsAppSceneIdMatterCommissionStart) {
+            scene_manager_replace_current_scene(
+                app->scene_manager, SettingsAppSceneIdMatterCommissionDone);
+        }
+    }
+}
+
 static SettingsApp* settings_alloc(void) {
     SettingsApp* instance = malloc(sizeof(SettingsApp));
 
@@ -132,10 +176,26 @@ static SettingsApp* settings_alloc(void) {
 
     scene_manager_next_scene(instance->scene_manager, SettingsAppSceneIdStart);
 
+    instance->matter_queue = furi_message_queue_alloc(SETTINGS_MATTER_Q_SIZE, sizeof(MatterEvent));
+    furi_event_loop_subscribe_message_queue(
+        instance->event_loop,
+        instance->matter_queue,
+        FuriEventLoopEventIn,
+        settings_matter_event,
+        instance);
+    instance->matter = furi_record_open(RECORD_MATTER);
+    instance->matter_subscription = furi_pubsub_subscribe(
+        matter_get_pubsub(instance->matter), settings_forward_matter_event_to_thread, instance);
+
     return instance;
 }
 
 static void settings_free(SettingsApp* instance) {
+    furi_pubsub_unsubscribe(matter_get_pubsub(instance->matter), instance->matter_subscription);
+    furi_record_close(RECORD_MATTER);
+    furi_event_loop_unsubscribe(instance->event_loop, instance->matter_queue);
+    furi_message_queue_free(instance->matter_queue);
+
     scene_manager_free(instance->scene_manager);
 
     with_gui(instance->gui, {

@@ -6,6 +6,7 @@
 #include <audio/audio.h>
 #include <back_display/back_display.h>
 #include <front_display/front_display.h>
+#include <matter/matter.h>
 
 #include <gui/scene_manager.h>
 #include <gui/modules/nav_bar.h>
@@ -27,6 +28,10 @@ typedef struct SettingsApp {
     Audio* audio;
     FrontDisplaySrv* front_display;
     BackDisplaySrv* back_display;
+
+    MatterSrv* matter;
+    FuriPubSubSubscription* matter_subscription;
+    FuriMessageQueue* matter_queue;
 
     Widget* front_scene_window;
 
