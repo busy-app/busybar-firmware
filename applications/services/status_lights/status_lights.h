@@ -4,7 +4,7 @@
  */
 #pragma once
 
-#include "status_lights_common.h"
+#include "status_lights_common_public.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -17,13 +17,13 @@ extern "C" {
  */
 #define RECORD_STATUS_LIGHTS "status_lights"
 
-/**
- * @brief Send command to Status Lights
- *
- * @param instance  pointer to a StatusLights instance
- * @param command   pointer to a StatusLightsCommand to send
- */
-void status_lights_send_command(StatusLights* instance, const StatusLightsCommand* command);
+#define STATUS_LIGHTS_BRIGHTNESS_MIN (0)
+#define STATUS_LIGHTS_BRIGHTNESS_MAX (100)
+
+void status_lights_run_preset(StatusLights* instance, StatusLightsPreset preset, Color color);
+
+void status_lights_set_brightness(StatusLights* instance, uint8_t brightness);
+uint8_t status_lights_get_brightness(StatusLights* instance);
 
 #ifdef __cplusplus
 }

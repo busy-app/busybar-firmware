@@ -1,10 +1,12 @@
-#include "status_lights_common.h"
+#include "status_lights_common_private.h"
 #include "status_lights_preset_defs.h"
 
 #include <furi/furi.h>
 #include <furi_hal_pwm.h>
 
 #include <intercom/intercom.h>
+
+typedef void (*CommandHandler)(StatusLights* instance, const StatusLightsCommand* command);
 
 struct StatusLights {
     FuriEventLoop* event_loop;
@@ -14,47 +16,31 @@ struct StatusLights {
 
     StatusLightsGenericPreset* preset_instance;
     const StatusLightsPresetBase* preset_api;
+
+    Color active_color;
+    float brightness;
 };
+
+static const CommandHandler command_handlers[];
 
 static void status_lights_run_pattern(void* context) {
     furi_assert(context);
 
     StatusLights* instance = context;
+
     furi_check(instance->preset_instance);
     furi_check(instance->preset_api);
 
-    Color color = {};
+    Color color;
     instance->preset_api->run(instance->preset_instance, &color);
+    instance->active_color = color;
+
+    float brightness = instance->brightness;
+    color.r *= brightness;
+    color.g *= brightness;
+    color.b *= brightness;
+
     furi_hal_pwm_set_rgb(color.r, color.g, color.b);
-}
-
-static void status_lights_execute_command(StatusLights* instance, StatusLightsCommand command) {
-    furi_check(command.preset < StatusLightsPresetMax);
-
-    if(instance->preset_instance) {
-        furi_assert(instance->preset_api);
-
-        instance->preset_api->free(instance->preset_instance);
-        instance->preset_instance = NULL;
-
-        furi_event_loop_timer_stop(instance->timer);
-    }
-
-    instance->preset_api = status_lights_preset_list[command.preset];
-
-    if(instance->preset_api) {
-        furi_check(instance->preset_api->period_ms > 0);
-
-        furi_hal_pwm_start();
-
-        instance->preset_instance = instance->preset_api->alloc(&command.color);
-
-        furi_event_loop_timer_start(instance->timer, instance->preset_api->period_ms);
-        status_lights_run_pattern(instance);
-
-    } else {
-        furi_hal_pwm_stop();
-    }
 }
 
 static void status_lights_message_queue_callback(FuriEventLoopObject* object, void* context) {
@@ -64,7 +50,7 @@ static void status_lights_message_queue_callback(FuriEventLoopObject* object, vo
     StatusLightsCommand command;
     furi_check(furi_message_queue_get(instance->command_queue, &command, 0) == FuriStatusOk);
 
-    status_lights_execute_command(instance, command);
+    command_handlers[command.id](instance, &command);
 }
 
 static void status_lights_intercom_rx_callback(const void* data, size_t data_size, void* context) {
@@ -111,3 +97,57 @@ int32_t status_lights_srv(void* p) {
 
     return 0;
 }
+
+static void
+    status_lights_do_run_preset(StatusLights* instance, const StatusLightsCommand* command) {
+    furi_check(command->as_run_preset.preset < StatusLightsPresetsCount);
+
+    if(instance->preset_instance) {
+        furi_assert(instance->preset_api);
+
+        instance->preset_api->free(instance->preset_instance);
+        instance->preset_instance = NULL;
+
+        furi_event_loop_timer_stop(instance->timer);
+    }
+
+    instance->preset_api = status_lights_preset_list[command->as_run_preset.preset];
+
+    if(instance->preset_api) {
+        furi_check(instance->preset_api->period_ms > 0);
+
+        furi_hal_pwm_start();
+
+        instance->preset_instance = instance->preset_api->alloc(&command->as_run_preset.color);
+
+        furi_event_loop_timer_start(instance->timer, instance->preset_api->period_ms);
+        status_lights_run_pattern(instance);
+
+    } else {
+        furi_hal_pwm_stop();
+    }
+}
+
+static void
+    status_lights_do_set_brightness(StatusLights* instance, const StatusLightsCommand* command) {
+    furi_check(command->as_set_brightness.brightness >= 0.f);
+    furi_check(command->as_set_brightness.brightness <= 1.f);
+
+    instance->brightness = command->as_set_brightness.brightness;
+
+    if(instance->preset_api) {
+        Color color = COLOR_MAKE_RGB(
+            instance->active_color.r * instance->brightness,
+            instance->active_color.g * instance->brightness,
+            instance->active_color.b * instance->brightness);
+
+        furi_hal_pwm_set_rgb(color.r, color.g, color.b);
+    }
+}
+
+static const CommandHandler command_handlers[] = {
+    [StatusLightsCommandIdRunPreset] = status_lights_do_run_preset,
+    [StatusLightsCommandIdSetBrightness] = status_lights_do_set_brightness,
+};
+
+static_assert(COUNT_OF(command_handlers) == StatusLightsCommandIdsCount);

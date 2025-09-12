@@ -1,6 +1,6 @@
 /**
- * @file status_lights_common.h
- * @brief Common definitions for Status Lights.
+ * @file status_lights_common_public.h
+ * @brief Common public definitions for Status Lights.
  */
 #pragma once
 
@@ -20,14 +20,8 @@ typedef enum {
     StatusLightsPresetFade, /**< White fade pattern */
     StatusLightsPresetRainbowGradient, /**< Rainbow gradient pattern */
 
-    StatusLightsPresetMax, /**< Number of presets */
+    StatusLightsPresetsCount, /**< Number of presets */
 } StatusLightsPreset;
-
-/** Status lights command */
-typedef struct {
-    StatusLightsPreset preset; /**< Preset pattern */
-    Color color; /**< Color value */
-} StatusLightsCommand;
 
 #ifdef __cplusplus
 }
