@@ -44,8 +44,12 @@ SettingsBrightnessMode settings_brightness_get_mode(SettingsApp* instance) {
 
 void settings_brightness_set(SettingsApp* instance, uint8_t brightness) {
     furi_assert(instance);
+
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wtype-limits"
     furi_assert(brightness >= SETTINGS_BRIGHTNESS_RANGE_MIN);
     furi_assert(brightness <= SETTINGS_BRIGHTNESS_RANGE_MAX);
+#pragma GCC diagnostic pop
 
     uint8_t back_brightness = settings_brightness_from_model(
         brightness, BACK_BRIGHTNESS_RANGE_MIN, BACK_BRIGHTNESS_RANGE_MAX);

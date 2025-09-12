@@ -60,6 +60,7 @@ int32_t status_lights_srv(void* p) {
 
 void status_lights_run_preset(StatusLights* instance, StatusLightsPreset preset, Color color) {
     furi_check(instance);
+    furi_check(preset < StatusLightsPresetsCount);
 
     StatusLightsCommand command = {
         .id = StatusLightsCommandIdRunPreset,
@@ -77,6 +78,12 @@ void status_lights_run_preset(StatusLights* instance, StatusLightsPreset preset,
 
 void status_lights_set_brightness(StatusLights* instance, uint8_t brightness) {
     furi_check(instance);
+
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wtype-limits"
+    furi_check(brightness >= STATUS_LIGHTS_BRIGHTNESS_MIN);
+    furi_check(brightness <= STATUS_LIGHTS_BRIGHTNESS_MAX);
+#pragma GCC diagnostic pop
 
     instance->brightness = brightness;
 
