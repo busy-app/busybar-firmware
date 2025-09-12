@@ -33,6 +33,16 @@ typedef struct {
     };
 } MatterVirtualDeviceState;
 
+/**
+ * @brief Node commissioning (onboarding) status
+ */
+typedef enum {
+    MatterCommissioningStatusStarted,
+    MatterCommissioningStatusComplete,
+    MatterCommissioningStatusFailed,
+    MatterCommissioningStatusMAX,
+} MatterCommissioningStatus;
+
 #ifdef __cplusplus
 }
 #endif

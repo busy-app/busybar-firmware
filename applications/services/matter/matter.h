@@ -20,7 +20,8 @@ typedef struct MatterSrv MatterSrv;
  * @brief Type of service event
  */
 typedef enum {
-    MatterEventTypeStateUpdate, // <! State of a virtual device changed
+    MatterEventTypeStateUpdate, //<! State of a virtual device changed
+    MatterEventTypeCommissioning, //<! Started, completed or failed commissioning
 } MatterEventType;
 
 /**
@@ -31,12 +32,20 @@ typedef struct {
 } MatterUpdateEvent;
 
 /**
+ * @brief Event of type `MatterEventTypeCommissioning`
+ */
+typedef struct {
+    MatterCommissioningStatus status;
+} MatterCommissioningEvent;
+
+/**
  * @brief Complete service event
  */
 typedef struct {
     MatterEventType type;
     union {
         MatterUpdateEvent update;
+        MatterCommissioningEvent commissioning;
     };
 } MatterEvent;
 
@@ -74,7 +83,18 @@ void matter_set_state(MatterSrv* matter, MatterVirtualDeviceState state);
  */
 void matter_factory_reset(MatterSrv* matter);
 
-// TODO: matter_enable_commissioning
+/**
+ * @brief Enables Matter commissioning
+ * 
+ * @param[in] matter Service instance
+ * @param[out] qr_code String to fill with onboarding QR code payload
+ * @param[out] manual_code String to fill with manual pairing code
+ * 
+ * @returns Time (in seconds) that commissioning has been enabled for.
+ *          0 indicates an error.
+ */
+size_t
+    matter_enable_commissioning(MatterSrv* matter, FuriString* qr_code, FuriString* manual_code);
 
 #ifdef __cplusplus
 }
