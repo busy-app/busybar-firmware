@@ -25,7 +25,7 @@ export default defineAppConfig({
       neutral: 'zinc'
     },
     container: {
-      base: 'max-w-[1920px]'
+      base: 'p-0 sm:p-0 lg:p-0'
     },
     badge: {
       compoundVariants: [

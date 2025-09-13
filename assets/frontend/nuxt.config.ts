@@ -99,6 +99,10 @@ export default defineNuxtConfig({
     }
   },
   icon: {
+    customCollections: [{
+      prefix: 'busy',
+      dir: './assets/icons'
+    }],
     clientBundle: {
       icons: [
         'tabler:arrow-left',

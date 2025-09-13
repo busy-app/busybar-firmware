@@ -2,29 +2,20 @@
 @import "@nuxt/ui";
 
 @theme static {
-  /* orange: '249 115 22', // '249 115 22', */
-  --color-brand: #ff7b37;
-  --color-brand-50: #fff5ed;
-  --color-brand-100: #ffe8d4;
-  --color-brand-200: #ffcda8;
-  --color-brand-300: #ffaa70;
-  --color-brand-400: #ff7b37;
-  --color-brand-500: #ff5c16;
-  --color-brand-600: #f03c06;
-  --color-brand-700: #c72a07;
-  --color-brand-800: #9e220e;
-  --color-brand-900: #7f200f;
-  --color-brand-950: #450c05;
-
   --font-sans: 'PP Neue Montreal', sans-serif;
 }
 
 :root {
   --ui-text: var(--color-black);
+  --ui-container: 1440px;
 }
 
 .dark {
   --ui-text: var(--color-white);
+}
+
+.muted {
+  color: var(--ui-color-neutral-500);
 }
 
 body {
