@@ -1,5 +1,5 @@
 <template>
-  <div class="absolute w-40 flex flex-col gap-2">
+  <div class="sticky top-4 w-40 self-start flex flex-col gap-2">
     <div
       v-for="item in items"
       :key="item.value"
