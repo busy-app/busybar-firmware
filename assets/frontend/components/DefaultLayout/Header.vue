@@ -16,16 +16,71 @@
         <div class="text-muted">10.0.4.20</div>
       </div>
     </div>
-    <div class="absolute left-1/2 -translate-x-1/2">BUSY Bar</div>
-    <div>
-      <UButton
-        icon="i-tabler-login-2"
-        size="lg"
-        square
-        color="neutral"
-        variant="soft"
-        class="rounded-full"
-      />
+
+    <div class="absolute left-1/2 -translate-x-1/2">
+      <UDropdownMenu
+        :items="[
+          {
+            label: 'Rename',
+            icon: 'i-tabler-wifi'
+          },
+          {
+            label: 'Restart',
+            icon: 'i-tabler-wifi'
+          }
+        ]"
+        :content="{
+          align: 'start',
+          side: 'bottom',
+          sideOffset: 8
+        }"
+        :ui="{
+          content: 'w-24'
+        }"
+      >
+        <UButton
+          label="BUSY Bar"
+          size="lg"
+          trailing-icon="i-tabler-chevron-down"
+          color="neutral"
+          variant="ghost"
+          class="text-xl"
+        />
+      </UDropdownMenu>
+    </div>
+
+    <div class="flex gap-4 items-center">
+      <UDropdownMenu
+        :items="[
+          {
+            label: 'Lock',
+            icon: 'i-tabler-wifi'
+          },
+          {
+            label: 'Log in to BUSY Cloud',
+            icon: 'i-tabler-login-2'
+          }
+        ]"
+        :content="{
+          align: 'end',
+          side: 'bottom',
+          sideOffset: 8
+        }"
+        :ui="{
+          content: 'w-48'
+        }"
+      >
+        <UButton
+          icon="i-tabler-login-2"
+          size="lg"
+          square
+          color="neutral"
+          variant="soft"
+          class="rounded-full"
+        />
+      </UDropdownMenu>
+
+      <ToggleTheme />
     </div>
   </nav>
 </template>

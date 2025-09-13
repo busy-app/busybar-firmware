@@ -4,7 +4,7 @@
       <DefaultLayoutHeader />
       <DefaultLayoutPreview class="pb-10" />
       <div class="w-full relative grid grid-cols-[160px_auto_160px]">
-        <DefaultLayoutSidebar />
+        <DefaultLayoutTabs />
         <div class="w-full max-w-[688px] mx-auto">
           <slot />
         </div>

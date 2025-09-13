@@ -7,7 +7,10 @@
       footer: 'p-4 sm:p-6'
     }"
   >
-    <template #header>
+    <template
+      v-if="headerExists"
+      #header
+    >
       <div class="w-full flex justify-between items-center">
         <div class="flex items-center gap-4">
           <div
@@ -22,34 +25,48 @@
 
           <div>
             <div class="text-xl">{{ title }}</div>
-            <slot name="description" />
+            <div
+              v-if="subtitle && !$slots.subtitle"
+              class="text-muted"
+            >
+              {{ subtitle }}
+            </div>
+            <slot name="subtitle" />
           </div>
         </div>
 
-        <div class="flex items-center gap-4">
+        <div class="flex items-center gap-2">
           <slot name="actions" />
         </div>
       </div>
     </template>
 
-    <div
+    <template
       v-if="$slots.default"
-      class="flex flex-col gap-1 rounded-group"
+      #default
     >
       <div
-        v-for="(child, i) in $slots.default()"
-        :key="child.key ?? i"
-        class="bg-elevated/75 p-4 rounded-xl"
+        class="flex flex-col gap-1 rounded-group"
+        :class="headerExists ? '' : 'mt-4 sm:mt-6'"
       >
-        <component :is="child" />
+        <div
+          v-for="(child, i) in $slots.default()"
+          :key="child.key ?? i"
+          class="bg-elevated/75 p-4 rounded-xl"
+        >
+          <component :is="child" />
+        </div>
       </div>
-    </div>
+    </template>
   </UCard>
 </template>
 
 <script setup lang="ts">
-defineProps({
-  title: String,
-  icon: String
-});
+const props = defineProps<{
+  title?: string;
+  subtitle?: string;
+  icon?: string;
+}>();
+
+const headerExists = !!(props.title || props.subtitle || props.icon || useSlots().subtitle || useSlots().actions);
 </script>
