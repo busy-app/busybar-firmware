@@ -1,33 +1,123 @@
 <template>
   <SectionCard>
-    <div class="grid grid-cols-2 gap-y-3">
-      <div
-        v-for="[property, value] in Object.entries({
-          'Version': 'V1.2-26070',
-          'Build date': '9 Jun 2025',
-          'Language': 'English',
-          'Timezone': 'UTC+0'
-        })"
-        :key="property"
-        class="flex"
-      >
-        <div class="w-[120px] text-muted">{{ property }}</div>
-        <div>{{ value }}</div>
+    <div class="grid grid-cols-2 divide-x divide-neutral-300/30 dark:divide-neutral-700/30 p-2">
+      <div class="flex flex-col gap-8 pr-6">
+        <div class="flex justify-between items-center">
+          <UIcon
+            name="i-tabler-wifi"
+            class="size-7"
+          />
+
+          <UButton
+            label="Mute"
+            icon="i-tabler-wifi-off"
+            variant="subtle"
+            color="neutral"
+            class="rounded-full"
+          />
+        </div>
+
+        <div class="flex flex-col gap-2.5">
+          <div class="flex justify-between items-center">
+            <div class="text-lg font-medium">Sound</div>
+            <div class="text-muted">55%</div>
+          </div>
+
+          <USlider
+            :default-value="55"
+            :ui="{
+              root: '',
+              track: 'h-[14px]',
+              range: 'rounded-r-none',
+              thumb: 'bg-primary ring-4 ring-white size-[6px] focus-visible:outline-none'
+            }"
+          />
+        </div>
+      </div>
+
+      <div class="flex flex-col gap-8 pl-6">
+        <div class="flex justify-between items-center">
+          <UIcon
+            name="i-tabler-wifi"
+            class="size-7"
+          />
+
+          <UButton
+            label="Auto"
+            icon="i-tabler-wifi-off"
+            variant="subtle"
+            color="neutral"
+            class="rounded-full"
+          />
+        </div>
+
+        <div class="flex flex-col gap-2.5">
+          <div class="flex justify-between items-center">
+            <div class="text-lg font-medium">Brightness</div>
+            <div class="text-muted">80%</div>
+          </div>
+
+          <USlider
+            :default-value="80"
+            :ui="{
+              root: '',
+              track: 'h-[14px]',
+              range: 'rounded-r-none',
+              thumb: 'bg-primary ring-4 ring-white size-[6px] focus-visible:outline-none'
+            }"
+          />
+        </div>
       </div>
     </div>
-    <div class="grid grid-cols-2 gap-y-3">
-      <div
-        v-for="[property, value] in Object.entries({
-          'Version': 'V1.2-26070',
-          'Build date': '9 Jun 2025',
-          'Language': 'English',
-          'Timezone': 'UTC+0'
-        })"
-        :key="property"
-        class="flex"
-      >
-        <div class="w-[120px] text-muted">{{ property }}</div>
-        <div>{{ value }}</div>
+
+    <div class="flex flex-col gap-4">
+      <div class="flex items-center gap-2.5">
+        <UIcon
+          name="i-tabler-alert-triangle-filled"
+          class="size-6"
+        />
+        <div class="font-medium">Device</div>
+      </div>
+      <div class="grid grid-cols-2 gap-y-3">
+        <div
+          v-for="[property, value] in Object.entries({
+            'Version': 'V1.2-26070',
+            'Build date': '9 Jun 2025',
+            'Language': 'English',
+            'Timezone': 'UTC+0'
+          })"
+          :key="property"
+          class="flex"
+        >
+          <div class="w-[120px] text-muted">{{ property }}</div>
+          <div>{{ value }}</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="flex flex-col gap-4">
+      <div class="flex items-center gap-2.5">
+        <UIcon
+          name="i-tabler-lock-open"
+          class="size-6"
+        />
+        <div class="font-medium">Hardware</div>
+      </div>
+      <div class="grid grid-cols-2 gap-y-3">
+        <div
+          v-for="[property, value] in Object.entries({
+            'Main display resolution': '72×16 (LED)',
+            'Central MCU': 'STM32U5M',
+            'Main display refresh rate': '60 Hz',
+            'Wireless MCU': 'Silicon Labs SiWG917',
+            'RAM size': '2.5 MB'
+          })"
+          :key="property"
+          class="flex"
+        >
+          <div class="w-[120px] text-muted">{{ property }}</div>
+          <div>{{ value }}</div>
+        </div>
       </div>
     </div>
   </SectionCard>
