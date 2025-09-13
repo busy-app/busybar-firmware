@@ -21,7 +21,7 @@ export default defineAppConfig({
       search: 'i-tabler-search'
     },
     colors: {
-      primary: 'sky',
+      primary: 'blue',
       neutral: 'zinc'
     },
     container: {

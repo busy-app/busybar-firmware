@@ -13,7 +13,7 @@
           />
           Connected
         </div>
-        <div class="muted">10.0.4.20</div>
+        <div class="text-muted">10.0.4.20</div>
       </div>
     </div>
     <div class="absolute left-1/2 -translate-x-1/2">BUSY Bar</div>

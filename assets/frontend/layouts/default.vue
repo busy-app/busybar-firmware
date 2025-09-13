@@ -1,9 +1,14 @@
 <template>
   <div class="w-screen min-h-screen px-4 sm:px-6 py-4">
-    <UContainer class="">
+    <UContainer>
       <DefaultLayoutHeader />
       <DefaultLayoutPreview class="pb-10" />
-      <slot />
+      <div class="w-full relative">
+        <DefaultLayoutSidebar />
+        <div class="w-full max-w-[688px] mx-auto">
+          <slot />
+        </div>
+      </div>
     </UContainer>
   </div>
 </template>

@@ -16,7 +16,7 @@
     </div>
     <img
       src="~/assets/images/front-screen-pixel-grid.png"
-      class="w-[360px] absolute top-[calc(50%-20px)] left-1/2 transform -translate-x-1/2 z-[3]"
+      class="w-[360px] absolute top-[calc(50%-32px)] left-1/2 transform -translate-x-1/2 z-[3]"
     >
   </div>
 </template>
