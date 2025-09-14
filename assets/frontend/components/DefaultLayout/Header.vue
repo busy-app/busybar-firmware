@@ -22,11 +22,13 @@
         :items="[
           {
             label: 'Rename',
-            icon: 'i-tabler-wifi'
+            icon: 'i-tabler-wifi',
+            onSelect: () => { nameModel = ''; showRenameModal = true; }
           },
           {
             label: 'Restart',
-            icon: 'i-tabler-wifi'
+            icon: 'i-tabler-wifi',
+            onSelect: () => { showRestartModal = true; }
           }
         ]"
         :content="{
@@ -35,7 +37,7 @@
           sideOffset: 8
         }"
         :ui="{
-          content: 'w-24'
+          content: 'w-36'
         }"
       >
         <UButton
@@ -47,6 +49,74 @@
           class="text-xl"
         />
       </UDropdownMenu>
+
+      <UModal
+        v-model:open="showRenameModal"
+        title="Rename device"
+        :ui="{
+          content: 'max-w-[360px] divide-none',
+          header: 'pb-0'
+        }"
+      >
+        <template #header>
+          <div class="text-xl">Rename device</div>
+        </template>
+
+        <template #body>
+          <UInput
+            v-model="nameModel"
+            size="xl"
+            variant="soft"
+          />
+
+          <div class="flex justify-end gap-2 mt-8">
+            <UButton
+              label="Cancel"
+              variant="ghost"
+              :disabled="loading.rename"
+              @click="showRenameModal = false"
+            />
+            <UButton
+              label="Rename"
+              :loading="loading.rename"
+              class="px-3 py-2.5 rounded-full"
+              @click="updateDeviceName"
+            />
+          </div>
+        </template>
+      </UModal>
+
+      <UModal
+        v-model:open="showRestartModal"
+        title="Restart BUSY Bar?"
+        :ui="{
+          content: 'max-w-[360px] divide-none',
+          header: 'pb-0'
+        }"
+      >
+        <template #header>
+          <div class="text-xl">Rename device</div>
+        </template>
+
+        <template #body>
+          Web control will be back after the reboot.
+
+          <div class="flex justify-end gap-2 mt-8">
+            <UButton
+              label="Cancel"
+              variant="ghost"
+              :disabled="loading.restart"
+              @click="showRestartModal = false"
+            />
+            <UButton
+              label="Restart"
+              :loading="loading.restart"
+              class="px-3 py-2.5 rounded-full"
+              @click="restartDevice"
+            />
+          </div>
+        </template>
+      </UModal>
     </div>
 
     <div class="flex gap-4 items-center">
@@ -86,4 +156,37 @@
 </template>
 
 <script setup lang="ts">
+const showRenameModal = ref(false);
+const nameModel = ref('');
+
+const showRestartModal = ref(false);
+
+const loading = ref({
+  rename: false,
+  restart: false
+});
+
+async function updateDeviceName () {
+  loading.value.rename = true;
+  try {
+    await new Promise(resolve => setTimeout(resolve, 2000));
+  } catch {
+    //
+  } finally {
+    loading.value.rename = false;
+    showRenameModal.value = false;
+  }
+}
+
+async function restartDevice () {
+  loading.value.restart = true;
+  try {
+    await new Promise(resolve => setTimeout(resolve, 2000));
+  } catch {
+    //
+  } finally {
+    loading.value.restart = false;
+    showRestartModal.value = false;
+  }
+}
 </script>
