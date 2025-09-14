@@ -23,6 +23,8 @@
             />
           </div>
 
+          <slot name="leading-actions" />
+
           <div>
             <div class="text-xl">{{ title }}</div>
             <div
@@ -42,10 +44,11 @@
     </template>
 
     <template
-      v-if="$slots.default"
+      v-if="bodyExists"
       #default
     >
       <div
+        v-if="$slots.default"
         class="flex flex-col gap-1 rounded-group"
         :class="headerExists ? '' : 'mt-4 sm:mt-6'"
       >
@@ -57,6 +60,10 @@
           <component :is="child" />
         </div>
       </div>
+
+      <template v-if="$slots['raw-body']">
+        <slot name="raw-body" />
+      </template>
     </template>
   </UCard>
 </template>
@@ -69,4 +76,5 @@ const props = defineProps<{
 }>();
 
 const headerExists = !!(props.title || props.subtitle || props.icon || useSlots().subtitle || useSlots().actions);
+const bodyExists = !!(useSlots().default || useSlots()['raw-body']);
 </script>
