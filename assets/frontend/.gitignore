@@ -18,6 +18,7 @@ logs
 .fleet
 .idea
 .eslintcache
+todo.md
 
 # Local env files
 .env
