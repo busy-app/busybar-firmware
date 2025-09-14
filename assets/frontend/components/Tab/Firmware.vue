@@ -22,7 +22,7 @@
       />
     </template>
 
-    <div class="grid grid-cols-2 gap-y-3">
+    <div class="grid sm:grid-cols-2 gap-y-3">
       <div
         v-for="[property, value] in Object.entries({
           'Version': 'V1.2-26070',
@@ -34,10 +34,10 @@
         class="flex"
       >
         <div class="w-[120px] text-muted">{{ property }}</div>
-        <div>{{ value }}</div>
+        <div class="max-w-[140px] md:max-w-[180px] text-ellipsis overflow-hidden">{{ value }}</div>
       </div>
     </div>
-    <div class="grid grid-cols-2 gap-y-3">
+    <div class="grid sm:grid-cols-2 gap-y-3">
       <div
         v-for="[property, value] in Object.entries({
           'Version': 'V1.2-26070',
@@ -49,7 +49,7 @@
         class="flex"
       >
         <div class="w-[120px] text-muted">{{ property }}</div>
-        <div>{{ value }}</div>
+        <div class="max-w-[140px] md:max-w-[180px] text-ellipsis overflow-hidden">{{ value }}</div>
       </div>
     </div>
   </SectionCard>

@@ -1,5 +1,5 @@
 <template>
-  <div class="sticky top-4 w-40 self-start flex flex-col gap-2">
+  <div class="max-w-screen xl:sticky xl:top-4 xl:w-40 xl:self-start flex xl:flex-col gap-2 overflow-scroll px-4 sm:px-0">
     <div
       v-for="tab in tabStore.tabOptions"
       :key="tab.value"

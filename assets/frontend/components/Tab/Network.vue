@@ -93,13 +93,14 @@
       <div>IP Address</div>
       <UButton
         variant="link"
+        color="neutral"
         trailing-icon="i-tabler-external-link"
         class="px-0"
       >
-        <span class="underline">192.168.1.42</span>
+        <span>192.168.1.42</span>
       </UButton>
     </div>
-    <div class="grid grid-cols-2 gap-y-3">
+    <div class="grid sm:grid-cols-2 gap-y-3">
       <div
         v-for="[property, value] in Object.entries({
           'Name': 'Keenetic-6436',
@@ -113,7 +114,7 @@
         class="flex"
       >
         <div class="w-[120px] text-muted">{{ property }}</div>
-        <div>{{ value }}</div>
+        <div class="max-w-[140px] md:max-w-[180px] text-ellipsis overflow-hidden">{{ value }}</div>
       </div>
     </div>
   </SectionCard>

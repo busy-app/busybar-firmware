@@ -5,7 +5,7 @@
         name="i-busy-bar-logo"
         class="w-[70px] h-[28px]"
       />
-      <div class="hidden sm:flex items-center gap-2">
+      <div class="hidden md:flex items-center gap-2">
         <div class="flex items-center gap-1">
           <UIcon
             name="i-tabler-usb"

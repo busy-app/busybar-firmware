@@ -1,7 +1,7 @@
 <template>
   <SectionCard>
-    <div class="grid grid-cols-2 divide-x divide-neutral-300/30 dark:divide-neutral-700/30 p-2">
-      <div class="flex flex-col gap-8 pr-6">
+    <div class="grid sm:grid-cols-2 divide-y sm:divide-x divide-neutral-300/30 dark:divide-neutral-700/30 p-2">
+      <div class="flex flex-col gap-8 pb-6 sm:pb-0 sm:pr-6">
         <div class="flex justify-between items-center">
           <UIcon
             name="i-tabler-wifi"
@@ -35,7 +35,7 @@
         </div>
       </div>
 
-      <div class="flex flex-col gap-8 pl-6">
+      <div class="flex flex-col gap-8 pt-6 sm:pt-0 sm:pl-6">
         <div class="flex justify-between items-center">
           <UIcon
             name="i-tabler-wifi"
@@ -78,7 +78,7 @@
         />
         <div class="font-medium">Device</div>
       </div>
-      <div class="grid grid-cols-2 gap-y-3">
+      <div class="grid sm:grid-cols-2 gap-y-3">
         <div
           v-for="[property, value] in Object.entries({
             'Version': 'V1.2-26070',
@@ -90,7 +90,7 @@
           class="flex"
         >
           <div class="w-[120px] text-muted">{{ property }}</div>
-          <div>{{ value }}</div>
+          <div class="max-w-[140px] md:max-w-[180px] text-ellipsis overflow-hidden">{{ value }}</div>
         </div>
       </div>
     </div>
@@ -103,7 +103,7 @@
         />
         <div class="font-medium">Hardware</div>
       </div>
-      <div class="grid grid-cols-2 gap-y-3">
+      <div class="grid sm:grid-cols-2 gap-y-3">
         <div
           v-for="[property, value] in Object.entries({
             'Main display resolution': '72×16 (LED)',
@@ -116,7 +116,7 @@
           class="flex"
         >
           <div class="w-[120px] text-muted">{{ property }}</div>
-          <div>{{ value }}</div>
+          <div class="max-w-[140px] md:max-w-[180px] text-ellipsis overflow-hidden">{{ value }}</div>
         </div>
       </div>
     </div>
