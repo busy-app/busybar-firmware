@@ -88,6 +88,34 @@
         }"
       />
     </template>
+
+    <div class="flex justify-between items-center">
+      <div>IP Address</div>
+      <UButton
+        variant="link"
+        trailing-icon="i-tabler-external-link"
+        class="px-0"
+      >
+        <span class="underline">192.168.1.42</span>
+      </UButton>
+    </div>
+    <div class="grid grid-cols-2 gap-y-3">
+      <div
+        v-for="[property, value] in Object.entries({
+          'Name': 'Keenetic-6436',
+          'Signal strength': '-61 dBm',
+          'Channel': '6 (2.4 GHz)',
+          'BSSID': 'FA:BA:BA:F0:FA:FA',
+          'Security': 'WPA2',
+          'Standard': '802.11ac'
+        })"
+        :key="property"
+        class="flex"
+      >
+        <div class="w-[120px] text-muted">{{ property }}</div>
+        <div>{{ value }}</div>
+      </div>
+    </div>
   </SectionCard>
 
   <SectionCard
