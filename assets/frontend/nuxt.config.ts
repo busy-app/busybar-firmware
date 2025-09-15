@@ -125,6 +125,8 @@ export default defineNuxtConfig({
         'ri:download-cloud-line',
         'ri:exchange-2-line',
         'ri:external-link-line',
+        'ri:eye-line',
+        'ri:eye-off-line',
         'ri:file-copy-line',
         'ri:folder-2-line',
         'ri:folder-open-line',
