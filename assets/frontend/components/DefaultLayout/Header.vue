@@ -21,22 +21,17 @@
       <UDropdownMenu
         :items="[
           {
-            label: 'Lock down',
-            icon: 'i-ri-lock-fill'
+            label: 'Rename',
+            icon: 'i-ri-pencil-line',
+            onSelect: () => {
+              nameModel = '';
+              showRenameModal = true;
+            }
           },
           {
-            label: 'Password',
-            icon: 'i-ri-lock-password-line',
-            children: [
-              {
-                label: 'Change password',
-                icon: 'i-ri-pencil-line'
-              },
-              {
-                label: 'Forgot password?',
-                icon: 'i-ri-question-line'
-              }
-            ]
+            label: 'Restart',
+            icon: 'i-ri-restart-line',
+            onSelect: () => { showRestartModal = true; }
           }
         ]"
         :content="{
