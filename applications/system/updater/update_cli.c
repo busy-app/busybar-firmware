@@ -20,14 +20,6 @@
 #define UPDATE_STAGING_ROOT ("/update")
 #define UPDATE_TAR_TMP      ("/upload.tar")
 
-// Helper to clean up a directory recursively (remains the same)
-static void cleanup_directory_recursive(Storage* storage, const char* path) {
-    if(storage_dir_exists(storage, path)) {
-        FURI_LOG_I(TAG, "Cleaning up directory recursively: %s", path);
-        storage_simply_remove_recursive(storage, path);
-    }
-}
-
 static void
     updater_cli_progress_callback(SlUpdaterProgressPhase phase, uint8_t percentage, void* context) {
     UNUSED(context);
@@ -135,7 +127,13 @@ static void updater_cli_execute_install_tar(const char* path) {
 
     FURI_LOG_D(TAG, "Final staging path: %s", furi_string_get_cstr(final_staging_path));
 
-    cleanup_directory_recursive(storage, furi_string_get_cstr(final_staging_path));
+    if(storage_dir_exists(storage, furi_string_get_cstr(final_staging_path))) {
+        FURI_LOG_I(
+            TAG,
+            "Cleaning up directory recursively: %s",
+            furi_string_get_cstr(final_staging_path));
+        storage_simply_remove_recursive(storage, furi_string_get_cstr(final_staging_path));
+    }
 
     do {
         // 1. Create staging directory
