@@ -135,7 +135,7 @@
         :primary-action-props="{
           label: 'Set password',
           loading: loading.password,
-          disabled: newPasswordValidation !== '',
+          disabled: newPasswordValidation !== '' || passwordModel.new === '',
           onClick: setPassword
         }"
         :secondary-action-props="{
@@ -183,7 +183,7 @@
         :primary-action-props="{
           label: 'Update password',
           loading: loading.password,
-          disabled: newPasswordValidation !== '' || currentPasswordValidation !== '',
+          disabled: newPasswordValidation !== '' || currentPasswordValidation !== '' || passwordModel.current === '' || passwordModel.new === '',
           onClick: setPassword
         }"
         :secondary-action-props="{
@@ -249,6 +249,54 @@
           </UFormField>
         </template>
       </ModalGeneric>
+
+      <ModalGeneric
+        v-model:open="showRemovePasswordModal"
+        title="Remove password"
+        description="If the password is not set, anyone on the same Wi-Fi network will be able to access the device via this page."
+        wide
+        :primary-action-props="{
+          label: 'Remove password',
+          loading: loading.password,
+          disabled: currentPasswordValidation !== '' || passwordModel.current === '',
+          onClick: removePassword
+        }"
+        :secondary-action-props="{
+          label: 'Cancel',
+          variant: 'ghost',
+          disabled: loading.password,
+          onClick: () => { showRemovePasswordModal = false; }
+        }"
+      >
+        <template #body>
+          <UFormField
+            label="Current password"
+            :error="currentPasswordValidation"
+          >
+            <UInput
+              v-model="passwordModel.current"
+              size="xl"
+              variant="soft"
+              :type="passwordModel.showCurrent ? 'text' : 'password'"
+              placeholder="Enter password"
+            >
+              <template #trailing>
+                <UButton
+                  :icon="passwordModel.showCurrent ? 'i-ri-eye-off-line' : 'i-ri-eye-line'"
+                  variant="ghost"
+                  color="neutral"
+                  square
+                  class="rounded-full"
+                  :ui="{
+                    leadingIcon: 'size-6 text-muted'
+                  }"
+                  @click="passwordModel.showCurrent = !passwordModel.showCurrent"
+                />
+              </template>
+            </UInput>
+          </UFormField>
+        </template>
+      </ModalGeneric>
     </div>
   </nav>
 </template>
@@ -283,7 +331,12 @@ const passwordSetItems = [
       },
       {
         label: 'Remove',
-        icon: 'i-ri-lock-unlock-line'
+        icon: 'i-ri-lock-unlock-line',
+        onSelect: () => {
+          passwordModel.value.current = '';
+          passwordModel.value.currentWrong = false;
+          showRemovePasswordModal.value = true;
+        }
       }
     ]
   }
@@ -378,6 +431,7 @@ async function restartDevice () {
 
 const showSetPasswordModal = ref(false);
 const showUpdatePasswordModal = ref(false);
+const showRemovePasswordModal = ref(false);
 const passwordModel = ref({
   current: '',
   showCurrent: false,
@@ -409,5 +463,14 @@ async function setPassword () {
   loading.value.password = false;
   showSetPasswordModal.value = false;
   showUpdatePasswordModal.value = false;
+}
+
+async function removePassword () {
+  loading.value.password = true;
+  await deviceStore.setHttpAPIAccess('enabled');
+  deviceStore.httpAPIAccess = await deviceStore.fetchHttpAPIAccess();
+  httpApiAccess.value = deviceStore.httpAPIAccess;
+  loading.value.password = false;
+  showRemovePasswordModal.value = false;
 }
 </script>
