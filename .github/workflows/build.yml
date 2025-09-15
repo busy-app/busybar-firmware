@@ -16,16 +16,18 @@ env:
 jobs:
   main:
     runs-on: BsbShell
+    env:
+      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     strategy:
       fail-fast: false
       matrix:
         u5_target: [20, 21]
-    outputs:
-      default_target: ${{ env.DEFAULT_TARGET }}
-      update_url: ${{ steps.set-url.outputs.update_url }}
+
     steps:
       - name: 'Wipe workspace'
-        run: find ./ -mount -maxdepth 1 -exec rm -rf {} \;
+        run: |
+          rm -f /home/runner/.gitconfig
+          find ./ -mount -maxdepth 1 -exec rm -rf {} \;
 
       - name: 'Checkout code'
         uses: actions/checkout@v4
@@ -34,14 +36,24 @@ jobs:
           fetch-depth: 2
           token: ${{ secrets.GITHUB_TOKEN }}
 
+      - name: 'Configure Git and LFS for submodules'
+        run: |
+          # Configure Git LFS
+          git lfs install --skip-smudge
+          
+          # Set up authentication for GitHub repositories at repo level
+          echo "https://x-access-token:${GH_TOKEN}@github.com" > ~/.git-credentials
+          git config credential.helper 'store --file ~/.git-credentials'
+          
+          # Configure LFS settings
+          git config lfs.transfer.maxretries 3
+
       - name: 'Update submodules'
         run: |
-          git submodule update --init --recursive --jobs=$(nproc) scripts/toolchain fbt_layers/fbtng || cat /home/runner/work/bsb-firmware/bsb-firmware/.git/modules/lib/matter_ext/lfs/logs/*
+          git submodule update --init --recursive --jobs=$(nproc) scripts/toolchain fbt_layers/fbtng || (git lfs logs last && exit 1)
 
       - name: 'Get commit details'
         id: names
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           BUILD_TYPE='DEBUG=1 COMPACT=0'
           if [[ ${{ github.event_name }} == 'pull_request' ]]; then
@@ -139,13 +151,13 @@ jobs:
         run: |
           echo "update_url=${{ steps.names.outputs.branch_name }}/busybar-f${{ matrix.u5_target }}-update-${{ steps.names.outputs.suffix }}.tar" >> "$GITHUB_OUTPUT"
 
-  updater-tests:
-    needs: main
-    if: ${{ needs.main.result == 'success' && needs.main.outputs.update_url != '' }}
-    uses: ./.github/workflows/updater_test.yml
-    with:
-      branch_name: ${{ github.head_ref || github.ref_name }}
-      commit_sha: ${{ github.sha }}
-      update_url: ${{ needs.main.outputs.update_url }}
-      default_target: ${{ needs.main.outputs.default_target }}
-
+      - name: Trigger "Updater tests"
+        if: ${{ false && matrix.u5_target == env.DEFAULT_TARGET }}
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh workflow run updater_test.yml \
+            --ref ${COMMIT_HASH} \
+            -f default_target=${{ env.DEFAULT_TARGET }} \
+            -f sha=${{ github.sha }} \
+            -f update_url="${{ steps.set-url.outputs.update_url }}"

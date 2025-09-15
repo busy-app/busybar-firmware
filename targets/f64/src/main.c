@@ -22,7 +22,7 @@ int main(void) {
 
     furi_hal_init_early();
 
-    FuriThread* main_thread = furi_thread_alloc_ex("Init", 1024, init_task, NULL);
+    FuriThread* main_thread = furi_thread_alloc_ex("Init", 1024 * 2, init_task, NULL);
     furi_thread_start(main_thread);
 
     furi_run();

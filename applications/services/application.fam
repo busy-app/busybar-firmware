@@ -52,6 +52,7 @@ App(
         "input",
         "network",
         "wifi",
+        "nvm",
         "matter",
     ],
     targets=["f64"],

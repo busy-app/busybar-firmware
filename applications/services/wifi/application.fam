@@ -6,7 +6,10 @@ App(
     stack_size=4 * 1024,
     order=110,
     targets=["f20", "f21"],
-    requires=["intercom"],
+    requires=[
+        "intercom",
+        "network",
+    ],
     sources=[
         "wifi.c",
         "wifi_api.c",
@@ -23,7 +26,10 @@ App(
     stack_size=4 * 1024,
     order=110,
     targets=["f64"],
-    requires=["intercom"],
+    requires=[
+        "intercom",
+        "network",
+    ],
     sources=[
         "wifi_backend.c",
         "wifi_backend_net.c",

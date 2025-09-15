@@ -126,7 +126,7 @@ static void matter_cli_format_device_state(
     furi_string_cat_str(out, ": ");
 
     switch(state->device) {
-    case MatterVirtualDeviceSwitch1:
+    case MatterVirtualDeviceSwitch1
     case MatterVirtualDeviceSwitch2:
         furi_string_cat_str(out, switch_states[state->bool_val]);
         break;

@@ -74,6 +74,7 @@ static bool anim_image_seek_file(AnimImage* instance) {
 
     if(!is_success) {
         FURI_LOG_E(TAG, "Failed to seek file %s", instance->file_path);
+        storage_file_close(instance->file);
     }
 
     return is_success;
@@ -85,6 +86,7 @@ static bool anim_image_open_file(AnimImage* instance) {
 
     if(!is_success) {
         FURI_LOG_E(TAG, "Failed to open file %s", instance->file_path);
+        storage_file_close(instance->file);
     }
 
     return is_success;
@@ -113,6 +115,7 @@ static void anim_image_update(AnimImage* instance) {
 
         if(bytes_read != instance->frame_size) {
             FURI_LOG_E(TAG, "Failed to read a frame from file");
+            storage_file_close(instance->file);
             break;
         }
 
@@ -323,6 +326,7 @@ bool anim_image_set_source(AnimImage* instance, const char* file_path) {
         anim_image_set_range_internal(instance, 0, header.frame_count - 1, true, false);
 
     } else {
+        storage_file_close(instance->file);
         anim_image_set_placeholder(instance);
     }
 

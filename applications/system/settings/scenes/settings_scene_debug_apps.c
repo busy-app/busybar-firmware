@@ -4,6 +4,10 @@
 #include <desktop/desktop.h>
 #include <gui/modules/submenu.h>
 
+typedef enum {
+    SceneCustomEventMenuItemClicked = SettingsCustomEventSceneEventsStart,
+} SceneCustomEvent;
+
 typedef struct {
     Submenu* submenus[GuiDisplayIdMax];
     Desktop* desktop;
@@ -18,7 +22,7 @@ static void settings_scene_debug_apps_submenu_item_callback(uint32_t index, void
     SettingsSceneDebugApps* scene = scene_manager_get_current_scene_data(app->scene_manager);
 
     scene->menu_idx = index;
-    settings_send_custom_event(app, SettingsCustomEventMenuItemClick);
+    settings_send_custom_event(app, SceneCustomEventMenuItemClicked);
 }
 
 static void settings_scene_debug_apps_on_enter(void* context) {
@@ -77,11 +81,12 @@ static bool settings_scene_debug_apps_on_event(const SceneManagerEvent* event, v
     furi_assert(context);
 
     SettingsApp* app = context;
-    SettingsSceneDebugApps* scene = scene_manager_get_current_scene_data(app->scene_manager);
 
     bool consumed = false;
     if(event->type == SceneManagerEventTypeCustom) {
-        if(event->event == SettingsCustomEventMenuItemClick) {
+        if(event->event == SceneCustomEventMenuItemClicked) {
+            SettingsSceneDebugApps* scene =
+                scene_manager_get_current_scene_data(app->scene_manager);
             const FlipperInternalApplication* app = &FLIPPER_DEBUG_APPS[scene->menu_idx];
 
             // TODO: make the launched app use our navbar
