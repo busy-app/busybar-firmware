@@ -9,7 +9,13 @@ env:
 jobs:
   lint_sources_check_submodules:
     runs-on: ubuntu-latest
+    env:
+      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     steps:
+      - name: 'List git config'
+        run: |
+          git config --list --show-origin
+
       - name: 'Checkout code'
         uses: actions/checkout@v4
         with:
@@ -19,7 +25,7 @@ jobs:
 
       - name: 'Update submodules'
         run: |
-          git submodule update --init --recursive --jobs=$(nproc) scripts/toolchain lib/lwip lib/matter_ext
+          git submodule update --init --recursive --jobs=$(nproc) scripts/toolchain lib/lwip lib/matter_ext || (git lfs logs last && exit 1)
 
       - name: 'Check C/C++ code formatting for f20'
         id: syntax_check_cpp

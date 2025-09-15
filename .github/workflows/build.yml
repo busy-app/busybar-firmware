@@ -16,14 +16,22 @@ env:
 jobs:
   main:
     runs-on: BsbShell
+    env:
+      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     strategy:
       fail-fast: false
       matrix:
         u5_target: [20, 21]
 
     steps:
+      - name: 'List git config'
+        run: |
+          git config --list --show-origin
+
       - name: 'Wipe workspace'
-        run: find ./ -mount -maxdepth 1 -exec rm -rf {} \;
+        run: |
+          rm -f /home/runner/.gitconfig
+          find ./ -mount -maxdepth 1 -exec rm -rf {} \;
 
       - name: 'Checkout code'
         uses: actions/checkout@v4
@@ -31,26 +39,27 @@ jobs:
           ref: ${{ github.sha }}
           fetch-depth: 2
           token: ${{ secrets.GITHUB_TOKEN }}
-          submodules: false
 
-      - name: 'Configure Git credentials for submodules'
+      - name: 'Configure Git and LFS for submodules'
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          git config --global url."https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/".insteadOf "https://github.com/"
-          git config --global credential.helper store
+          # Configure Git LFS
+          git lfs install --skip-smudge
           
-      - name: 'Configure Git LFS'
-        run: |
-          git lfs install --system
-          git config --global lfs.https://github.com/flipperdevices/silabs_matter_extension.git/info/lfs.access basic
+          # Set up authentication for GitHub repositories at repo level
+          echo "https://x-access-token:${GITHUB_TOKEN}@github.com" > ~/.git-credentials
+          git config credential.helper 'store --file ~/.git-credentials'
+          
+          # Configure LFS settings
+          git config lfs.transfer.maxretries 3
 
-      - name: 'Update core submodules'
+      - name: 'Update submodules'
         run: |
-          git submodule update --init --recursive --jobs=$(nproc) scripts/toolchain fbt_layers/fbtng
+          git submodule update --init --recursive --jobs=$(nproc) scripts/toolchain fbt_layers/fbtng || (git lfs logs last && exit 1)
 
       - name: 'Get commit details'
         id: names
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           BUILD_TYPE='DEBUG=1 COMPACT=0'
           if [[ ${{ github.event_name }} == 'pull_request' ]]; then
@@ -150,7 +159,7 @@ jobs:
 
 
       - name: Trigger "Updater tests"
-        if: ${{ false || matrix.u5_target == env.DEFAULT_TARGET }}
+        if: ${{ matrix.u5_target == env.DEFAULT_TARGET }}
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
