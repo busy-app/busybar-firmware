@@ -135,7 +135,7 @@
         :primary-action-props="{
           label: 'Set password',
           loading: loading.password,
-          disabled: passwordValidation !== '',
+          disabled: newPasswordValidation !== '',
           onClick: setPassword
         }"
         :secondary-action-props="{
@@ -148,7 +148,82 @@
         <template #body>
           <UFormField
             label="Password"
-            :error="passwordValidation"
+            :error="newPasswordValidation"
+          >
+            <UInput
+              v-model="passwordModel.new"
+              size="xl"
+              variant="soft"
+              :type="passwordModel.showNew ? 'text' : 'password'"
+              placeholder="From 4 to 10 digits"
+            >
+              <template #trailing>
+                <UButton
+                  :icon="passwordModel.showNew ? 'i-ri-eye-off-line' : 'i-ri-eye-line'"
+                  variant="ghost"
+                  color="neutral"
+                  square
+                  class="rounded-full"
+                  :ui="{
+                    leadingIcon: 'size-6 text-muted'
+                  }"
+                  @click="passwordModel.showNew = !passwordModel.showNew"
+                />
+              </template>
+            </UInput>
+          </UFormField>
+        </template>
+      </ModalGeneric>
+
+      <ModalGeneric
+        v-model:open="showUpdatePasswordModal"
+        title="Change password"
+        description="Enter current and new passwords. Remember your password, as a forgotten one cannot be recovered, but only reset via a wired connection."
+        wide
+        :primary-action-props="{
+          label: 'Update password',
+          loading: loading.password,
+          disabled: newPasswordValidation !== '' || currentPasswordValidation !== '',
+          onClick: setPassword
+        }"
+        :secondary-action-props="{
+          label: 'Cancel',
+          variant: 'ghost',
+          disabled: loading.password,
+          onClick: () => { showUpdatePasswordModal = false; }
+        }"
+      >
+        <template #body>
+          <UFormField
+            label="Current password"
+            :error="currentPasswordValidation"
+          >
+            <UInput
+              v-model="passwordModel.current"
+              size="xl"
+              variant="soft"
+              :type="passwordModel.showCurrent ? 'text' : 'password'"
+              placeholder="Enter password"
+            >
+              <template #trailing>
+                <UButton
+                  :icon="passwordModel.showCurrent ? 'i-ri-eye-off-line' : 'i-ri-eye-line'"
+                  variant="ghost"
+                  color="neutral"
+                  square
+                  class="rounded-full"
+                  :ui="{
+                    leadingIcon: 'size-6 text-muted'
+                  }"
+                  @click="passwordModel.showCurrent = !passwordModel.showCurrent"
+                />
+              </template>
+            </UInput>
+          </UFormField>
+
+          <UFormField
+            label="New password"
+            :error="newPasswordValidation"
           >
             <UInput
               v-model="passwordModel.new"
@@ -198,7 +273,13 @@ const passwordSetItems = [
     children: [
       {
         label: 'Change',
-        icon: 'i-ri-pencil-line'
+        icon: 'i-ri-pencil-line',
+        onSelect: () => {
+          passwordModel.value.current = '';
+          passwordModel.value.currentWrong = false;
+          passwordModel.value.new = '';
+          showUpdatePasswordModal.value = true;
+        }
       },
       {
         label: 'Remove',
@@ -296,13 +377,15 @@ async function restartDevice () {
 }
 
 const showSetPasswordModal = ref(false);
+const showUpdatePasswordModal = ref(false);
 const passwordModel = ref({
   current: '',
   showCurrent: false,
+  currentWrong: false,
   new: '',
   showNew: false
 });
-const passwordValidation = computed(() => {
+const newPasswordValidation = computed(() => {
   return passwordModel.value.new !== ''
     && (
       /[^0-9]/.test(passwordModel.value.new)
@@ -314,6 +397,9 @@ const passwordValidation = computed(() => {
             : ''
     );
 });
+const currentPasswordValidation = computed(() => {
+  return passwordModel.value.currentWrong ? 'Incorrect password. Try again.' : '';
+});
 
 async function setPassword () {
   loading.value.password = true;
@@ -322,5 +408,6 @@ async function setPassword () {
   httpApiAccess.value = deviceStore.httpAPIAccess;
   loading.value.password = false;
   showSetPasswordModal.value = false;
+  showUpdatePasswordModal.value = false;
 }
 </script>
