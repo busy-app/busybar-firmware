@@ -80,7 +80,7 @@ export const useDeviceStore = defineStore('device', () => {
 
   async function getApiVersion (): Promise<ApiVersion | undefined> {
     if (apiVersion.value === undefined) {
-      return await fetchApiVersion();
+      apiVersion.value = await fetchApiVersion();
     }
     return apiVersion.value;
   }
@@ -116,7 +116,7 @@ export const useDeviceStore = defineStore('device', () => {
 
   async function getDeviceStatus (): Promise<DeviceStatus | undefined> {
     if (deviceStatus.value === undefined) {
-      return await fetchDeviceStatus();
+      deviceStatus.value = await fetchDeviceStatus();
     }
     return deviceStatus.value;
   }
@@ -178,7 +178,7 @@ export const useDeviceStore = defineStore('device', () => {
   const httpAPIAccess = ref<HttpAPIAccess | undefined>(undefined);
 
   async function fetchHttpAPIAccess (): Promise<HttpAPIAccess | undefined> {
-    const access = await $fetch<HttpAPIAccess>(`${barUrl}/api/http_api/access`, { timeout: 3000 })
+    const access = await $fetch<HttpAPIAccess>(`${barUrl}/api/access`, { timeout: 3000 })
       .then(response => {
         if (!response || typeof response !== 'object') {
           throw new Error('Empty response');
@@ -205,7 +205,7 @@ export const useDeviceStore = defineStore('device', () => {
 
   async function getHttpAPIAccess (): Promise<HttpAPIAccess | undefined> {
     if (httpAPIAccess.value === undefined) {
-      return await fetchHttpAPIAccess();
+      httpAPIAccess.value = await fetchHttpAPIAccess();
     }
     return httpAPIAccess.value;
   }
@@ -219,9 +219,9 @@ export const useDeviceStore = defineStore('device', () => {
       payload['key'] = key;
     }
 
-    return await $fetch(`${barUrl}/api/http_api/access`, {
+    return await $fetch(`${barUrl}/api/access`, {
       method: 'POST',
-      body: payload
+      query: payload
     })
       .then(async () => {
         httpAPIAccess.value = await fetchHttpAPIAccess();
@@ -277,7 +277,7 @@ export const useDeviceStore = defineStore('device', () => {
 
   async function getDisplayBrightness (): Promise<DisplayBrightness | undefined> {
     if (displayBrightness.value === undefined) {
-      return await fetchDisplayBrightness();
+      displayBrightness.value = await fetchDisplayBrightness();
     }
     return displayBrightness.value;
   }
@@ -285,7 +285,7 @@ export const useDeviceStore = defineStore('device', () => {
   async function setDisplayBrightness (brightness: DisplayBrightness): Promise<boolean> {
     return await $fetch(`${barUrl}/api/display/brightness`, {
       method: 'POST',
-      body: brightness
+      query: brightness
     })
       .then(() => {
         displayBrightness.value = brightness;
@@ -336,7 +336,7 @@ export const useDeviceStore = defineStore('device', () => {
 
   async function getAudioVolume (): Promise<AudioVolume | undefined> {
     if (audio.value === undefined) {
-      return await fetchAudioVolume();
+      audio.value = await fetchAudioVolume();
     }
     return audio.value;
   }
