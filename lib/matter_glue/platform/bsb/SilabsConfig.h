@@ -27,12 +27,7 @@
 #include <functional>
 #include <platform/CHIPDeviceError.h>
 
-#ifndef SL_COMMON_TOKEN_MANAGER_ENABLE_DYNAMIC_TOKENS
-#include "nvm3.h"
-#include "nvm3_hal_flash.h"
-#else
-#include <sl_token_manager_defines.h>
-#endif
+#include <nvm/nvm.h>
 
 #ifndef KVS_MAX_ENTRIES
 #define KVS_MAX_ENTRIES 255 // Available key slot count for Kvs Key mapping.
@@ -50,18 +45,6 @@ namespace chip {
 namespace DeviceLayer {
 namespace Internal {
 
-/**
- *
- * This implementation uses the Silicon Labs Silabs NVM3 flash data storage library
- * as the underlying storage layer.
- *
- * NOTE: This class is designed to be mixed-in to the concrete subclass of the
- * GenericConfigurationManagerImpl<> template.  When used this way, the class
- * naturally provides implementations for the delegated members referenced by
- * the template class (e.g. the ReadConfigValue() method).
- */
-
-#ifndef SL_COMMON_TOKEN_MANAGER_ENABLE_DYNAMIC_TOKENS
 // Silabs NVM3 objects use a 20-bit number,
 // NVM3 Key 19:16 Stack region
 // NVM3 Key 15:0 Available NVM3 keys 0x0000 -> 0xFFFF.
@@ -71,36 +54,18 @@ namespace Internal {
 // '72' = the sub region group base offset (Factory, Config, Counter or KVS)
 // '01' = the id offset inside the group.
 inline constexpr uint32_t kUserNvm3KeyDomainLoLimit =
-    0x000000U; // User Domain NVM3 Key Range lower limit
+    NvmKeyRangeMin; // User Domain NVM3 Key Range lower limit
 inline constexpr uint32_t kUserNvm3KeyDomainHiLimit =
-    0x00FFFFU; // User Domain NVM3 Key Range Maximum limit
-inline constexpr uint32_t kMatterNvm3KeyDomain = 0x087000U; // Matter specific NVM3 range
+    NvmKeyRangeUser1Min - 1U; // User Domain NVM3 Key Range Maximum limit
+inline constexpr uint32_t kMatterNvm3KeyDomain = NvmKeyRangeUser1Max; // Matter specific NVM3 range
 constexpr inline uint32_t SilabsConfigKey(uint8_t keyBaseOffset, uint8_t id) {
     return kMatterNvm3KeyDomain | static_cast<uint32_t>(keyBaseOffset) << 8 | id;
 }
-#else
-
-inline constexpr uint32_t kUserNvm3KeyDomainLoLimit = SL_TOKEN_NVM3_REGION_USER;
-inline constexpr uint32_t kUserNvm3KeyDomainHiLimit = SL_TOKEN_NVM3_REGION_ZIGBEE - 1;
-
-// Only keep the MSBs of the Matter Region. The LSB of the region is determined by the keyBaseOffset.
-// with SilabsConfigKey Helper function.
-inline constexpr uint32_t kMatterNvm3KeyDomain = (SL_TOKEN_NVM3_REGION_MATTER & 0xFFFF000);
-
-constexpr inline uint32_t SilabsConfigKey(uint8_t keyBaseOffset, uint8_t id) {
-    return SL_TOKEN_TYPE_NVM3 | kMatterNvm3KeyDomain | static_cast<uint32_t>(keyBaseOffset) << 8 |
-           id;
-}
-
-constexpr inline uint32_t SilabsSecureTokenKey(uint8_t keyBaseOffset, uint8_t id) {
-    return SL_TOKEN_TYPE_STATIC_SECURE | static_cast<uint32_t>(keyBaseOffset) << 8 | id;
-}
-#endif
 
 inline constexpr uint32_t kMatterNvm3KeyLoLimit =
-    0x087200U; // Do not modify without Silabs GSDK team approval
+    kMatterNvm3KeyDomain + 200U; // Do not modify without Silabs GSDK team approval
 inline constexpr uint32_t kMatterNvm3KeyHiLimit =
-    0x087FFFU; // Do not modify without Silabs GSDK team approval
+    NvmKeyRangeUser2Min - 1U; // Do not modify without Silabs GSDK team approval
 
 class SilabsConfig {
 public:
@@ -292,10 +257,13 @@ public:
     static void RunConfigUnitTest(void);
     static void RepackNvm3Flash(void);
 
-protected:
-    using ForEachRecordFunct = std::function<CHIP_ERROR(const Key& nvm3Key, const size_t& length)>;
-    static CHIP_ERROR
-        ForEachRecord(Key firstKey, Key lastKey, bool addNewRecord, ForEachRecordFunct funct);
+private:
+    template <typename T>
+    static CHIP_ERROR ReadConfigValueHelper(Key key, T& val);
+    template <typename T>
+    static CHIP_ERROR WriteConfigValueHelper(Key key, const T& val);
+
+    static Nvm* mNvmInstance;
 };
 
 } // namespace Internal

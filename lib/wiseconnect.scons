@@ -77,6 +77,12 @@ env.Append(
 libenv = env.Clone(FW_LIB_NAME="wiseconnect")
 libenv.ApplyLibFlags()
 
+libenv.AppendUnique(
+    CPPFLAGS=[
+        "-Wno-deprecated-declarations",
+    ],
+)
+
 sources = [
     f"{MCU_DIR}/core/chip/src/system_si91x.c",
     f"{MCU_DIR}/core/chip/src/startup_si91x.c",

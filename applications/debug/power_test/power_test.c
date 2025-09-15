@@ -324,7 +324,19 @@ void power_test_free(PowerTest* instance) {
         GuiLayer* main_layer = gui_get_layer(instance->gui, GuiLayerIdMain);
         gui_layer_remove_input_callback(main_layer, power_test_input_callback);
     });
-    power_test_menu_exit(instance);
+
+    switch(instance->scene) {
+    case PowerTestSceneCanvas:
+        power_test_canvas_exit(instance);
+        /* fall-through */
+    case PowerTestSceneInfo:
+        power_test_info_exit(instance);
+        break;
+
+    case PowerTestSceneMenu:
+        power_test_menu_exit(instance);
+        break;
+    }
 
     furi_record_close(RECORD_GUI);
 

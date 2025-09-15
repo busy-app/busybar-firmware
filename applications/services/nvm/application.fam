@@ -1,0 +1,8 @@
+App(
+    appid="nvm",
+    apptype=FlipperAppType.STARTUP,
+    entry_point="nvm_on_system_start",
+    order=120,
+    targets=["f64"],
+    requires=["wifi"],
+)
