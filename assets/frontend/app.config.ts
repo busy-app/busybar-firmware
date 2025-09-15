@@ -21,7 +21,7 @@ export default defineAppConfig({
       search: 'i-ri-search-line'
     },
     colors: {
-      primary: 'blue',
+      primary: 'brand',
       neutral: 'zinc'
     },
     container: {

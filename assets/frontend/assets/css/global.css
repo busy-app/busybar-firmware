@@ -2,6 +2,19 @@
 @import "@nuxt/ui";
 
 @theme static {
+  --color-brand: #2B7FFF;
+  --color-brand-50: #EAF2FF;
+  --color-brand-100: #D5E5FF;
+  --color-brand-200: #AACCFF;
+  --color-brand-300: #80B2FF;
+  --color-brand-400: #5599FF;
+  --color-brand-500: #2B7FFF;
+  --color-brand-600: #2266CC;
+  --color-brand-700: #1A4C99;
+  --color-brand-800: #113366;
+  --color-brand-900: #091933;
+  --color-brand-950: #050F20;
+
   --font-sans: 'Inter', sans-serif;
 }
 
