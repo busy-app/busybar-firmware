@@ -1,5 +1,7 @@
 #pragma once
 #include <furi.h>
+#include <storage/storage.h>
+#include <storage/filesystem_api_defines.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -72,6 +74,17 @@ void path_concat(const char* path, const char* suffix, FuriString* out_path);
  * @return false 
  */
 bool path_contains_only_ascii(const char* path);
+
+/**
+ * @brief Recursively create directories for the given path.
+ * 
+ * If any part of the path already exists, it will be skipped.
+ * 
+ * @param storage pointer to a storage API instance.
+ * @param path pointer to a zero-terminated string containing the directory path.
+ * @return FSE_OK if the directory was created or already exists, any other error code on failure.
+ */
+FS_Error path_recursive_create_dir(Storage* storage, const char* path);
 
 #ifdef __cplusplus
 }

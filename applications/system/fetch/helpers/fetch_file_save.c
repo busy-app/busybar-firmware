@@ -43,16 +43,12 @@ FetchFileSave* fetch_file_save_alloc(FuriString* file_path) {
                 furi_string_get_cstr(path));
             break;
         }
-        if(!(furi_string_cmp_str(path, STORAGE_EXT_PATH_PREFIX) ||
-             furi_string_cmp_str(path, STORAGE_BACKUP_PATH_PREFIX))) {
-            if(!storage_dir_exists(instance->storage, furi_string_get_cstr(path))) {
-                if(storage_common_mkdir(instance->storage, furi_string_get_cstr(path)) != FSE_OK) {
-                    FURI_LOG_E(
-                        TAG,
-                        "Failed to create staging root directory: %s",
-                        furi_string_get_cstr(path));
-                    break;
-                }
+        if(!(!furi_string_cmp_str(path, STORAGE_EXT_PATH_PREFIX) ||
+             !furi_string_cmp_str(path, STORAGE_BACKUP_PATH_PREFIX))) {
+            if(path_recursive_create_dir(instance->storage, furi_string_get_cstr(path)) !=
+               FSE_OK) {
+                FURI_LOG_E(TAG, "Failed to create directory: %s", furi_string_get_cstr(path));
+                break;
             }
         }
 
