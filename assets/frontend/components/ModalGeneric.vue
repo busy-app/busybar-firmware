@@ -18,8 +18,10 @@
     </template>
 
     <template #body>
-      <template v-if="!$slots.body">{{ props.description }}</template>
-      <slot name="body" />
+      <div class="flex flex-col gap-6">
+        <div v-if="props.description">{{ props.description }}</div>
+        <slot name="body" />
+      </div>
 
       <template v-if="$slots.actions">
         <slot name="actions" />
@@ -47,7 +49,7 @@ import type { ButtonProps } from '@nuxt/ui';
 
 const props = defineProps<{
   title: string;
-  description: string;
+  description?: string;
   primaryActionProps?: ButtonProps;
   secondaryActionProps?: ButtonProps;
   showCloseButton?: boolean;

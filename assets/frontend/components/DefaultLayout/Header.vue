@@ -53,7 +53,6 @@
       <ModalGeneric
         v-model:open="showRenameModal"
         title="Rename device"
-        description="Enter a new name for your BUSY Bar."
         :primary-action-props="{
           label: 'Rename',
           loading: loading.rename,
