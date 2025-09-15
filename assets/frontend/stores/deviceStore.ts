@@ -1,10 +1,46 @@
 import { defineStore } from 'pinia';
 
-export interface deviceVersion {
+export interface ApiVersion {
+  api_semver: string;
+}
+
+export interface SystemStatus {
   branch: string;
   version: string;
   build_date: string;
   commit_hash: string;
+}
+
+export interface PowerStatus {
+  state: string;
+  battery_charge: number;
+  battery_voltage: number;
+  battery_current: number;
+  usb_voltage: number;
+}
+
+export interface BleStatus {
+  state: string;
+}
+
+export interface DeviceStatus {
+  system: SystemStatus;
+  power: PowerStatus;
+  ble: BleStatus;
+}
+
+export interface HttpAPIAccess {
+  mode: 'key' | 'disabled' | 'enabled';
+  key_valid: boolean;
+}
+
+export interface DisplayBrightness {
+  front: 'auto' | number;
+  back: 'auto' | number;
+}
+
+export interface AudioVolume {
+  volume: number;
 }
 
 export type UpdateStage = 'idle' | 'uploading' | 'unpacking' | 'updating' | 'error';
@@ -13,42 +49,327 @@ export const useDeviceStore = defineStore('device', () => {
   const barUrl = useRuntimeConfig().public.barUrl;
   const toast = useToast();
 
-  const version = ref<deviceVersion>({
-    branch: '',
-    version: '',
-    build_date: '',
-    commit_hash: ''
-  });
+  // API version
+  const apiVersion = ref<ApiVersion | undefined>(undefined);
 
-  async function updateDeviceVersion (throwError: boolean = false) {
-    const deviceVersion = await $fetch<deviceVersion>(`${barUrl}/api/version`, { timeout: 3000 })
+  async function fetchApiVersion (): Promise<ApiVersion | undefined> {
+    const version = await $fetch<ApiVersion>(`${barUrl}/api/version`, { timeout: 3000 })
       .then(response => {
         if (!response || typeof response !== 'object') {
           throw new Error('Empty response');
         }
-        console.log('Device version fetched:', response);
+        console.log('API version fetched:', response);
+        apiVersion.value = response;
+        return response;
+      })
+      .catch(error => {
+        console.error('Error fetching API version:', error);
+        toast.add({
+          id: 'api-version-error',
+          title: 'Failed to fetch API version',
+          description: error.message || genericErrorMessage,
+          icon: 'i-ri-alert-line',
+          color: 'error',
+          duration: 10000
+        });
+        return undefined;
+      });
+
+    return version;
+  }
+
+  async function getApiVersion (): Promise<ApiVersion | undefined> {
+    if (apiVersion.value === undefined) {
+      return await fetchApiVersion();
+    }
+    return apiVersion.value;
+  }
+
+  // Device status
+  const deviceStatus = ref<DeviceStatus | undefined>(undefined);
+
+  async function fetchDeviceStatus (): Promise<DeviceStatus | undefined> {
+    const status = await $fetch<DeviceStatus>(`${barUrl}/api/status`, { timeout: 3000 })
+      .then(response => {
+        if (!response || typeof response !== 'object') {
+          throw new Error('Empty response');
+        }
+        console.log('Device status fetched:', response);
+        deviceStatus.value = response;
+        return response;
+      })
+      .catch(error => {
+        console.error('Error fetching device status:', error);
+        toast.add({
+          id: 'device-status-error',
+          title: 'Failed to fetch device status',
+          description: error.message || genericErrorMessage,
+          icon: 'i-ri-alert-line',
+          color: 'error',
+          duration: 10000
+        });
+        return undefined;
+      });
+
+    return status;
+  }
+
+  async function getDeviceStatus (): Promise<DeviceStatus | undefined> {
+    if (deviceStatus.value === undefined) {
+      return await fetchDeviceStatus();
+    }
+    return deviceStatus.value;
+  }
+
+  async function fetchSystemStatus (throwError: boolean = false): Promise<SystemStatus | undefined> {
+    const systemStatus = await $fetch<SystemStatus>(`${barUrl}/api/status/system`, { timeout: 3000 })
+      .then(response => {
+        if (!response || typeof response !== 'object') {
+          throw new Error('Empty response');
+        }
+        console.log('System status fetched:', response);
         return response;
       })
       .catch(error => {
         if (throwError) {
           throw error;
         }
-        console.error('Error fetching device version:', error);
+        console.error('Error fetching system status:', error);
         toast.add({
-          id: 'device-version-error',
-          title: 'Failed to fetch device version',
-          description: error.message || 'Unknown error. Check your connection and try again.',
+          id: 'system-status-error',
+          title: 'Failed to fetch system status',
+          description: error.message || genericErrorMessage,
           icon: 'i-ri-alert-line',
           color: 'error',
           duration: 10000
         });
-        return version.value;
+        return undefined;
       });
-    version.value = deviceVersion;
+
+    return systemStatus;
+  }
+
+  async function fetchPowerStatus (): Promise<PowerStatus | undefined> {
+    const powerStatus = await $fetch<PowerStatus>(`${barUrl}/api/status/power`, { timeout: 3000 })
+      .then(response => {
+        if (!response || typeof response !== 'object') {
+          throw new Error('Empty response');
+        }
+        console.log('Device power status fetched:', response);
+        return response;
+      })
+      .catch(error => {
+        console.error('Error fetching device power status:', error);
+        toast.add({
+          id: 'device-power-error',
+          title: 'Failed to fetch device power status',
+          description: error.message || genericErrorMessage,
+          icon: 'i-ri-alert-line',
+          color: 'error',
+          duration: 10000
+        });
+        return undefined;
+      });
+
+    return powerStatus;
+  }
+
+  // HTTP API
+  const httpAPIAccess = ref<HttpAPIAccess | undefined>(undefined);
+
+  async function fetchHttpAPIAccess (): Promise<HttpAPIAccess | undefined> {
+    const access = await $fetch<HttpAPIAccess>(`${barUrl}/api/http_api/access`, { timeout: 3000 })
+      .then(response => {
+        if (!response || typeof response !== 'object') {
+          throw new Error('Empty response');
+        }
+        console.log('HTTP API access fetched:', response);
+        httpAPIAccess.value = response;
+        return response;
+      })
+      .catch(error => {
+        console.error('Error fetching HTTP API access:', error);
+        toast.add({
+          id: 'http-api-access-error',
+          title: 'Failed to fetch HTTP API access',
+          description: error.message || genericErrorMessage,
+          icon: 'i-ri-alert-line',
+          color: 'error',
+          duration: 10000
+        });
+        return undefined;
+      });
+
+    return access;
+  }
+
+  async function getHttpAPIAccess (): Promise<HttpAPIAccess | undefined> {
+    if (httpAPIAccess.value === undefined) {
+      return await fetchHttpAPIAccess();
+    }
+    return httpAPIAccess.value;
+  }
+
+  async function setHttpAPIAccess (mode: 'key' | 'disabled' | 'enabled', key?: string): Promise<boolean> {
+    const payload = { mode } as { mode: 'key' | 'disabled' | 'enabled'; key?: string };
+    if (mode === 'key') {
+      if (!key) {
+        throw new Error('Password not provided');
+      }
+      payload['key'] = key;
+    }
+
+    return await $fetch(`${barUrl}/api/http_api/access`, {
+      method: 'POST',
+      body: payload
+    })
+      .then(async () => {
+        httpAPIAccess.value = await fetchHttpAPIAccess();
+        return true;
+      })
+      .catch(error => {
+        console.error('Error setting HTTP API access:', error);
+        toast.add({
+          id: 'http-api-access-set-error',
+          title: 'Failed to set HTTP API access',
+          description: error.message || genericErrorMessage,
+          icon: 'i-ri-alert-line',
+          color: 'error',
+          duration: 10000
+        });
+        return false;
+      });
+  }
+
+  // Display brightness
+  const displayBrightness = ref<DisplayBrightness | undefined>(undefined);
+
+  async function fetchDisplayBrightness (): Promise<DisplayBrightness | undefined> {
+    interface APIDisplayBrightness {
+      front: 'auto' | string;
+      back: 'auto' | string;
+    }
+    const brightness = await $fetch<APIDisplayBrightness>(`${barUrl}/api/display/brightness`, { timeout: 3000 })
+      .then(response => {
+        if (!response || typeof response !== 'object') {
+          throw new Error('Empty response');
+        }
+        console.log('Display brightness fetched:', response);
+        const frontParsed = response.front === 'auto' ? 'auto' : Number(response.front);
+        const backParsed = response.back === 'auto' ? 'auto' : Number(response.back);
+        return { front: frontParsed, back: backParsed } as DisplayBrightness;
+      })
+      .catch(error => {
+        console.error('Error fetching display brightness:', error);
+        toast.add({
+          id: 'display-brightness-error',
+          title: 'Failed to fetch display brightness',
+          description: error.message || genericErrorMessage,
+          icon: 'i-ri-alert-line',
+          color: 'error',
+          duration: 10000
+        });
+        return undefined;
+      });
+
+    return brightness;
+  }
+
+  async function getDisplayBrightness (): Promise<DisplayBrightness | undefined> {
+    if (displayBrightness.value === undefined) {
+      return await fetchDisplayBrightness();
+    }
+    return displayBrightness.value;
+  }
+
+  async function setDisplayBrightness (brightness: DisplayBrightness): Promise<boolean> {
+    return await $fetch(`${barUrl}/api/display/brightness`, {
+      method: 'POST',
+      body: brightness
+    })
+      .then(() => {
+        displayBrightness.value = brightness;
+        return true;
+      })
+      .catch(error => {
+        console.error('Error setting display brightness:', error);
+        toast.add({
+          id: 'display-brightness-set-error',
+          title: 'Failed to set display brightness',
+          description: error.message || genericErrorMessage,
+          icon: 'i-ri-alert-line',
+          color: 'error',
+          duration: 10000
+        });
+        return false;
+      });
+  }
+
+  // Audio volume
+  const audio = ref<AudioVolume | undefined>(undefined);
+
+  async function fetchAudioVolume (): Promise<AudioVolume | undefined> {
+    const volume = await $fetch<AudioVolume>(`${barUrl}/api/audio/volume`, { timeout: 3000 })
+      .then(response => {
+        if (!response || typeof response !== 'object') {
+          throw new Error('Empty response');
+        }
+        console.log('Audio volume fetched:', response);
+        audio.value = response;
+        return response;
+      })
+      .catch(error => {
+        console.error('Error fetching audio volume:', error);
+        toast.add({
+          id: 'audio-volume-error',
+          title: 'Failed to fetch audio volume',
+          description: error.message || genericErrorMessage,
+          icon: 'i-ri-alert-line',
+          color: 'error',
+          duration: 10000
+        });
+        return undefined;
+      });
+
+    return volume;
+  }
+
+  async function getAudioVolume (): Promise<AudioVolume | undefined> {
+    if (audio.value === undefined) {
+      return await fetchAudioVolume();
+    }
+    return audio.value;
+  }
+
+  async function setAudioVolume (volume: number): Promise<boolean> {
+    return await $fetch(`${barUrl}/api/audio/volume`, {
+      method: 'POST',
+      query: { volume }
+    })
+      .then(() => {
+        if (audio.value) {
+          audio.value.volume = volume;
+        } else {
+          audio.value = { volume };
+        }
+        return true;
+      })
+      .catch(error => {
+        console.error('Error setting audio volume:', error);
+        toast.add({
+          id: 'audio-volume-set-error',
+          title: 'Failed to set audio volume',
+          description: error.message || genericErrorMessage,
+          icon: 'i-ri-alert-line',
+          color: 'error',
+          duration: 10000
+        });
+        return false;
+      });
   }
 
   // Firmware update
-  const update = ref({
+  const firmwareUpdate = ref({
     firmwareBundleName: 'firmware',
     firmwareFile: null as File | null,
     stage: 'idle' as UpdateStage,
@@ -58,15 +379,15 @@ export const useDeviceStore = defineStore('device', () => {
 
   async function uploadFirmware () {
     const xhr = new XMLHttpRequest();
-    xhr.open('POST', `${barUrl}/api/update?name=${update.value.firmwareBundleName}`);
+    xhr.open('POST', `${barUrl}/api/update?name=${firmwareUpdate.value.firmwareBundleName}`);
     xhr.setRequestHeader('Content-Type', 'application/octet-stream');
 
     xhr.upload.onprogress = event => {
       if (event.lengthComputable) {
-        update.value.progress = Math.round((event.loaded / event.total) * 100);
+        firmwareUpdate.value.progress = Math.round((event.loaded / event.total) * 100);
 
-        if (update.value.progress === 100) {
-          update.value.stage = 'unpacking';
+        if (firmwareUpdate.value.progress === 100) {
+          firmwareUpdate.value.stage = 'unpacking';
         }
       } else {
         console.log(`Uploaded ${event.loaded} bytes`);
@@ -75,7 +396,7 @@ export const useDeviceStore = defineStore('device', () => {
 
     xhr.onload = () => {
       if (xhr.status >= 200 && xhr.status < 400) {
-        update.value.stage = 'updating';
+        firmwareUpdate.value.stage = 'updating';
         toast.add({
           title: 'Update initiated',
           description: 'The device will reboot to apply the update. Pay attention to the front screen.',
@@ -85,7 +406,7 @@ export const useDeviceStore = defineStore('device', () => {
         });
       } else {
         console.error('Upload failed:', xhr.status, xhr.responseText);
-        update.value.stage = 'error';
+        firmwareUpdate.value.stage = 'error';
         toast.add({
           title: 'Update failed',
           description: `Error ${xhr.status}: ${xhr.responseText}`,
@@ -93,13 +414,13 @@ export const useDeviceStore = defineStore('device', () => {
           color: 'error',
           duration: 10000
         });
-        update.value.error = `Error ${xhr.status}: ${xhr.responseText}`;
+        firmwareUpdate.value.error = `Error ${xhr.status}: ${xhr.responseText}`;
       }
     };
 
-    update.value.stage = 'uploading' as UpdateStage;
-    update.value.progress = 0;
-    xhr.send(update.value.firmwareFile);
+    firmwareUpdate.value.stage = 'uploading' as UpdateStage;
+    firmwareUpdate.value.progress = 0;
+    xhr.send(firmwareUpdate.value.firmwareFile);
 
     await new Promise<void>(resolve => {
       xhr.onloadend = () => {
@@ -107,17 +428,40 @@ export const useDeviceStore = defineStore('device', () => {
       };
     });
 
-    update.value.firmwareFile = null;
-    if (update.value.stage !== 'error') {
-      update.value.stage = 'updating' as UpdateStage;
-      update.value.progress = 0;
+    firmwareUpdate.value.firmwareFile = null;
+    if (firmwareUpdate.value.stage !== 'error') {
+      firmwareUpdate.value.stage = 'updating' as UpdateStage;
+      firmwareUpdate.value.progress = 0;
     }
   }
 
   return {
-    version,
-    updateDeviceVersion,
-    update,
+    apiVersion,
+    fetchApiVersion,
+    getApiVersion,
+
+    deviceStatus,
+    fetchSystemStatus,
+    fetchPowerStatus,
+    fetchDeviceStatus,
+    getDeviceStatus,
+
+    httpAPIAccess,
+    fetchHttpAPIAccess,
+    getHttpAPIAccess,
+    setHttpAPIAccess,
+
+    displayBrightness,
+    fetchDisplayBrightness,
+    getDisplayBrightness,
+    setDisplayBrightness,
+
+    audio,
+    fetchAudioVolume,
+    getAudioVolume,
+    setAudioVolume,
+
+    firmwareUpdate,
     uploadFirmware
   };
 });

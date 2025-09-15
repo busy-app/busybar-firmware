@@ -64,7 +64,7 @@ export const useWifiStore = defineStore('wifi', () => {
         toast.add({
           id: 'wifi-status-error',
           title: 'Failed to fetch WiFi state',
-          description: error.message || 'Unknown error. Check your connection and try again.',
+          description: error.message || genericErrorMessage,
           icon: 'i-ri-alert-line',
           color: 'error',
           duration: 10000
@@ -87,7 +87,7 @@ export const useWifiStore = defineStore('wifi', () => {
         toast.add({
           id: 'wifi-enable-error',
           title: 'Failed to enable WiFi',
-          description: error.message || 'Unknown error. Check your connection and try again.',
+          description: error.message || genericErrorMessage,
           icon: 'i-ri-alert-line',
           color: 'error',
           duration: 10000
@@ -107,7 +107,7 @@ export const useWifiStore = defineStore('wifi', () => {
         toast.add({
           id: 'wifi-disable-error',
           title: 'Failed to disable WiFi',
-          description: error.message || 'Unknown error. Check your connection and try again.',
+          description: error.message || genericErrorMessage,
           icon: 'i-ri-alert-line',
           color: 'error',
           duration: 10000
@@ -133,7 +133,7 @@ export const useWifiStore = defineStore('wifi', () => {
         toast.add({
           id: 'wifi-networks-error',
           title: 'Failed to fetch WiFi networks',
-          description: error.message || 'Unknown error. Check your connection and try again.',
+          description: error.message || genericErrorMessage,
           icon: 'i-ri-alert-line',
           color: 'error',
           duration: 10000
@@ -152,7 +152,7 @@ export const useWifiStore = defineStore('wifi', () => {
         toast.add({
           id: 'wifi-connect-error',
           title: 'Failed to connect to WiFi',
-          description: error.message || 'Unknown error. Check your connection and try again.',
+          description: error.message || genericErrorMessage,
           icon: 'i-ri-alert-line',
           color: 'error',
           duration: 10000
@@ -170,7 +170,7 @@ export const useWifiStore = defineStore('wifi', () => {
         toast.add({
           id: 'wifi-disconnect-error',
           title: 'Failed to disconnect from WiFi',
-          description: error.message || 'Unknown error. Check your connection and try again.',
+          description: error.message || genericErrorMessage,
           icon: 'i-ri-alert-line',
           color: 'error',
           duration: 10000
@@ -188,7 +188,7 @@ export const useWifiStore = defineStore('wifi', () => {
         toast.add({
           id: 'wifi-forget-error',
           title: 'Failed to forget WiFi network',
-          description: error.message || 'Unknown error. Check your connection and try again.',
+          description: error.message || genericErrorMessage,
           icon: 'i-ri-alert-line',
           color: 'error',
           duration: 10000
