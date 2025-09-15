@@ -2,10 +2,10 @@
   <UModal
     :title="props.title"
     :ui="{
-      content: 'max-w-[360px] divide-none',
+      content: `${props.wide ? 'max-w-[640px]' : 'max-w-[360px]'} divide-none`,
       description: 'hidden',
-      header: 'pb-0 sm:pt-0',
-      body: 'pt-1 sm:pt-1',
+      header: 'min-h-20',
+      body: 'pt-0 sm:pt-0',
       close: showCloseButton ? 'flex top-5 end-5' :'hidden'
     }"
   >
@@ -53,5 +53,6 @@ const props = defineProps<{
   primaryActionProps?: ButtonProps;
   secondaryActionProps?: ButtonProps;
   showCloseButton?: boolean;
+  wide?: boolean;
 }>();
 </script>
