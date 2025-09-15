@@ -169,6 +169,7 @@ jobs:
     needs: main
     if: ${{ needs.main.result == 'success' && needs.main.outputs.update_url != '' }}
     uses: ./.github/workflows/smoke-tests.yml
+    secrets: inherit
     with:
       branch_name: ${{ github.head_ref || github.ref_name }}
       commit_sha: ${{ github.sha }}
