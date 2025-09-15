@@ -223,5 +223,6 @@ onBeforeUnmount(() => {
 canvas {
   display: block;
   background-color: transparent;
+  border-radius: 2px;
 }
 </style>
