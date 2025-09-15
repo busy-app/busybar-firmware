@@ -12,9 +12,10 @@ from crypto_storage import CryptoStorage
 
 class Main(App):
     PART_MAIN = 0
+    KEY_TYPE_PK = 8
     KEY_TYPE_DAC = 13
     KEY_TYPE_PAI = 14
-    KEY_TYPE_PK = 8
+    KEY_TYPE_CD = 15
     KEY_ID_DEFAULT = 0
 
     def init(self):
@@ -33,6 +34,13 @@ class Main(App):
         )
         self.pai_parser.add_argument("filename", help="PAI file (.pem or .der format)")
         self.pai_parser.set_defaults(func=self.provision_pai)
+
+        # CD command
+        self.cd_parser = self.subparsers.add_parser(
+            "cd", help="Provision product cerfification declaration (CD)"
+        )
+        self.cd_parser.add_argument("filename", help="CD file (.der format)")
+        self.cd_parser.set_defaults(func=self.provision_cd)
 
         # Private key command
         self.pk_parser = self.subparsers.add_parser(
@@ -96,6 +104,11 @@ class Main(App):
     def provision_pai(self):
         data = self.read_cert_file(self.args.filename)
         self.write_data(self.KEY_TYPE_PAI, data)
+
+    @CatchExceptions
+    def provision_cd(self):
+        data = self.read_cert_file(self.args.filename)
+        self.write_data(self.KEY_TYPE_CD, data)
 
     @CatchExceptions
     def provision_private_key(self):

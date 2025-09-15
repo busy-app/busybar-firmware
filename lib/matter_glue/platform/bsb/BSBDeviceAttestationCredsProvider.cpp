@@ -2,6 +2,8 @@
 
 #include <lib/support/Span.h>
 
+#include <crypto/CHIPCryptoPAL.h>
+
 #include <furi_hal_crypto.h>
 #include <furi_hal_crypto_storage.h>
 
@@ -44,6 +46,14 @@ static CHIP_ERROR LoadCryptoStorageItem(
 
         err = CopySpanToMutableSpan(ByteSpan{key->data, key->header.size}, out_buf);
 
+        if(!CHIP_ERROR::IsSuccess(err)) {
+            ChipLogError(
+                Crypto,
+                "Failed to copy %d bytes to output of %zu bytes",
+                key->header.size,
+                out_buf.size());
+        }
+
     } while(false);
 
     furi_hal_crypto_storage_free(key);
@@ -52,10 +62,7 @@ static CHIP_ERROR LoadCryptoStorageItem(
 }
 
 CHIP_ERROR BSBDACProvider::GetCertificationDeclaration(MutableByteSpan& out_cd_buffer) {
-    // TODO: chip-cert is necessary to generate certification declaration
-    // commissioning is not functional without this data
-    out_cd_buffer.reduce_size(0);
-    return CHIP_NO_ERROR;
+    return LoadCryptoStorageItem(FuriHalCryptoKeyTypeMatterCD, 0, out_cd_buffer);
 }
 
 CHIP_ERROR BSBDACProvider::GetFirmwareInformation(MutableByteSpan& out_firmware_info_buffer) {
@@ -80,8 +87,8 @@ CHIP_ERROR BSBDACProvider::SignWithDeviceAttestationKey(
     FuriHalCryptoKey* key = furi_hal_crypto_storage_alloc(FuriHalCryptoPartitionMain);
 
     do {
-        FuriHalCryptoStatus status;
-        status = furi_hal_crypto_storage_read(key, FuriHalCryptoKeyTypeEcdsaPriv256, 0);
+        const FuriHalCryptoStatus status =
+            furi_hal_crypto_storage_read(key, FuriHalCryptoKeyTypeEcdsaPriv256, 0);
 
         if(status != FuriHalCryptoStatusOk) {
             ChipLogError(Crypto, "Failed to read device private key: 0x%X", status);
@@ -89,7 +96,7 @@ CHIP_ERROR BSBDACProvider::SignWithDeviceAttestationKey(
         }
 
         uint8_t signature[FURI_HAL_CRYPTO_ECDSA_MAX_SIGNATURE_SIZE] = {0};
-        size_t signature_length = sizeof(signature);
+        size_t signature_length = 0;
 
         FuriHalCryptoEcdsa* handle = furi_hal_crypto_ecdsa_sign_init(
             FuriHalCryptoEcdsaModeSha256,
@@ -107,7 +114,10 @@ CHIP_ERROR BSBDACProvider::SignWithDeviceAttestationKey(
             break;
         }
 
-        err = CopySpanToMutableSpan(ByteSpan{signature, signature_length}, out_signature_buffer);
+        err = chip::Crypto::EcdsaAsn1SignatureToRaw(
+            chip::Crypto::kP256_FE_Length,
+            ByteSpan{signature, signature_length},
+            out_signature_buffer);
 
     } while(false);
 

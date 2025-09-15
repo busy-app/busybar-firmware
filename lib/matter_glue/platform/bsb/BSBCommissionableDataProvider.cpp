@@ -10,12 +10,13 @@
 // Generated with: $ SetupPayload.py generate -d 3840 -p 20202021 --vendor-id 5514 --product-id 32769 -cf 0 -dm 2
 
 #define SETUP_DISCRIMINATOR (3840)
-#define SETUP_PASSCODE (20202021)
+#define SETUP_PASSCODE      (20202021)
 
 // Generated with: spake2p.py gen-verifier -p 20202021 -s U1BBS0UyUCBLZXkgU2FsdA== -i 1000
 #define SPAKE2P_ITERATION_COUNT (1000)
-#define SPAKE2P_SALT "U1BBS0UyUCBLZXkgU2FsdA=="
-#define SPAKE2P_VERIFIER "uWFwqugDNGiEck/po7KHwwMwwqZgN10XuyBajPGuyzUEV/iree4lOrao5GuwnlQ65CJzbeUB49s31EH+NEkg0JVI5MGCQGMMT/SRPFNRODm3wH/MBiehuFc6FJ/NH6Rmzw=="
+#define SPAKE2P_SALT            "U1BBS0UyUCBLZXkgU2FsdA=="
+#define SPAKE2P_VERIFIER \
+    "uWFwqugDNGiEck/po7KHwwMwwqZgN10XuyBajPGuyzUEV/iree4lOrao5GuwnlQ65CJzbeUB49s31EH+NEkg0JVI5MGCQGMMT/SRPFNRODm3wH/MBiehuFc6FJ/NH6Rmzw=="
 
 namespace chip {
 namespace DeviceLayer {
