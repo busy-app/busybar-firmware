@@ -139,7 +139,7 @@ jobs:
 
 
       - name: Trigger "Updater tests"
-        if: ${{ matrix.u5_target == env.DEFAULT_TARGET }}
+        if: ${{ false || matrix.u5_target == env.DEFAULT_TARGET }}
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
