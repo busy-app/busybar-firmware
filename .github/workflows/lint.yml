@@ -12,16 +12,24 @@ jobs:
     env:
       GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     steps:
-      - name: 'List git config'
-        run: |
-          git config --list --show-origin
-
       - name: 'Checkout code'
         uses: actions/checkout@v4
         with:
           ref: ${{ github.sha }}
           fetch-depth: 2
           token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: 'Configure Git and LFS for submodules'
+        run: |
+          # Configure Git LFS
+          git lfs install --skip-smudge
+          
+          # Set up authentication for GitHub repositories at repo level
+          echo "https://x-access-token:${GH_TOKEN}@github.com" > ~/.git-credentials
+          git config credential.helper 'store --file ~/.git-credentials'
+          
+          # Configure LFS settings
+          git config lfs.transfer.maxretries 3
 
       - name: 'Update submodules'
         run: |
