@@ -16,6 +16,9 @@ env:
 jobs:
   main:
     runs-on: BsbShell
+    outputs:
+      update_url: ${{ steps.set-url.outputs.update_url }}
+      default_target: ${{ env.DEFAULT_TARGET }}
     env:
       GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     strategy:
