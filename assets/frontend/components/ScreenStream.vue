@@ -3,7 +3,7 @@
     <div class="device-image">
       <img
         src="~/assets/images/busybar-device.png"
-        class="w-[388px]"
+        class="w-[310px] sm:w-[385px]"
       >
     </div>
     <div class="canvas-container">
@@ -14,10 +14,6 @@
         class="aspect-[72/16]"
       />
     </div>
-    <img
-      src="~/assets/images/front-screen-pixel-grid.png"
-      class="w-[360px] absolute top-[calc(50%-32px)] left-1/2 transform -translate-x-1/2 z-[3]"
-    >
   </div>
 </template>
 
@@ -35,10 +31,26 @@ const originalDimensions = computed(() => {
     : { width: 160, height: 80 }; // back screen
 });
 
+const windowWidth = ref(window.innerWidth);
+onMounted(() => {
+  const handleResize = () => {
+    windowWidth.value = window.innerWidth;
+    if (windowWidth.value > 640 && scaleFactor.value !== 5) {
+      scaleFactor.value = 5;
+    } else if (windowWidth.value <= 640 && scaleFactor.value !== 4) {
+      scaleFactor.value = 4;
+    }
+  };
+  window.addEventListener('resize', handleResize);
+  // Clean up on unmount
+  onBeforeUnmount(() => {
+    window.removeEventListener('resize', handleResize);
+  });
+});
 // scale the canvas
-const scaleFactor = 5;
-const canvasWidth = computed(() => originalDimensions.value.width * scaleFactor);
-const canvasHeight = computed(() => originalDimensions.value.height * scaleFactor);
+const scaleFactor = ref(windowWidth.value > 640 ? 5 : 4);
+const canvasWidth = computed(() => originalDimensions.value.width * scaleFactor.value);
+const canvasHeight = computed(() => originalDimensions.value.height * scaleFactor.value);
 
 function generateGrayscalePalette (): Array<[number, number, number]> {
   const palette: Array<[number, number, number]> = [];
@@ -70,7 +82,12 @@ function dataCallback (data: Uint8Array) {
       imageData.data[offset] = data[i + 2]; // r
       imageData.data[offset + 1] = data[i + 1]; // g
       imageData.data[offset + 2] = data[i]; // b
-      imageData.data[offset + 3] = 255; // a
+      // If r, g, and b are all 0, set alpha to 0 (transparent), else 255 (opaque)
+      if (data[i + 2] === 0 && data[i + 1] === 0 && data[i] === 0) {
+        imageData.data[offset + 3] = 0; // transparent
+      } else {
+        imageData.data[offset + 3] = 255; // opaque
+      }
     }
   } else {
     for (let i = 0; i < data.length; i++) {
@@ -104,6 +121,29 @@ function dataCallback (data: Uint8Array) {
       canvasWidth.value,
       canvasHeight.value
     );
+
+    const gap = scaleFactor.value;
+    ctx.save();
+    ctx.strokeStyle = 'black';
+    ctx.lineWidth = 1;
+
+    // Vertical lines
+    for (let x = 0; x <= canvasWidth.value; x += gap) {
+      ctx.beginPath();
+      ctx.moveTo(x + 0.5, 0);
+      ctx.lineTo(x + 0.5, canvasHeight.value);
+      ctx.stroke();
+    }
+
+    // Horizontal lines
+    for (let y = 0; y <= canvasHeight.value; y += gap) {
+      ctx.beginPath();
+      ctx.moveTo(0, y + 0.5);
+      ctx.lineTo(canvasWidth.value, y + 0.5);
+      ctx.stroke();
+    }
+
+    ctx.restore();
   }
 }
 
@@ -159,8 +199,8 @@ onBeforeUnmount(() => {
 
 .canvas-container {
   position: absolute;
-  top: calc(50% + 20px);
-  left: 50%;
+  top: calc(50% + 8px);
+  left: calc(50% - 1px);
   transform: translate(-50%, -50%);
   z-index: 2;
 }
