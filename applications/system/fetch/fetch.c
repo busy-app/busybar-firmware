@@ -68,10 +68,11 @@ void fetch_client_callback_status(FetchClientStatus status, void* context) {
     furi_message_queue_put(instance->status_queue, &status, FuriWaitForever);
 }
 
-void fetch_url(PipeSide* pipe, FuriString* url, FuriString* args, void* context) {
+bool fetch_url(PipeSide* pipe, FuriString* url, FuriString* args, void* context) {
     UNUSED(context);
     UNUSED(pipe);
 
+    bool ret = false;
     size_t pos = furi_string_search_str(url, "://", 0);
     if(pos == FURI_STRING_FAILURE) {
         FuriString* url_temp = furi_string_alloc_printf("http://%s", furi_string_get_cstr(url));
@@ -83,8 +84,8 @@ void fetch_url(PipeSide* pipe, FuriString* url, FuriString* args, void* context)
     args_read_string_and_trim(args, path);
 
     Fetch* instance = malloc(sizeof(Fetch));
+    instance->error = false;
     instance->buffer_rx = furi_stream_buffer_alloc(1024 * 4, 1);
-
     instance->status_queue = furi_message_queue_alloc(10, sizeof(FetchClientStatus));
 
     instance->fetch_client = fetch_client_alloc();
@@ -101,7 +102,7 @@ void fetch_url(PipeSide* pipe, FuriString* url, FuriString* args, void* context)
             furi_message_queue_free(instance->status_queue);
             furi_string_free(path);
             free(instance);
-            return;
+            return ret;
         }
 
         fetch_client_set_callback_raw_data(
@@ -199,6 +200,7 @@ void fetch_url(PipeSide* pipe, FuriString* url, FuriString* args, void* context)
             printf(
                 ANSI_FG_GREEN "File successfully saved to %s\r\n" ANSI_RESET,
                 furi_string_get_cstr(path));
+            ret = true;
         } else {
             fetch_file_save_remove(instance->file_save);
             printf(
@@ -213,6 +215,15 @@ void fetch_url(PipeSide* pipe, FuriString* url, FuriString* args, void* context)
     furi_stream_buffer_free(instance->buffer_rx);
     furi_message_queue_free(instance->status_queue);
     furi_string_free(path);
+    return ret;
+}
+
+bool fetch_download_file(FuriString* url, FuriString* path) {
+    FuriString* path_temp = furi_string_alloc();
+    furi_string_set(path_temp, path);
+    bool result = fetch_url(NULL, url, path_temp, NULL);
+    furi_string_free(path_temp);
+    return result;
 }
 
 static void fetch_command_print_usage(void) {

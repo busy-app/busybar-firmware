@@ -118,14 +118,14 @@ static void updater_cli_execute_install(const char* manifest_path) {
     update_config_free(state);
 }
 
-static void updater_cli_execute_install_tar(const char* file_name) {
-    printf("Installing update bundle from: %s\r\n", file_name);
+static void updater_cli_execute_install_tar(const char* path) {
+    printf("Installing update bundle from: %s\r\n", path);
 
     UpdateConfig* state = update_config_alloc();
     Storage* storage = furi_record_open(RECORD_STORAGE);
 
     FuriString* file_path = furi_string_alloc();
-    path_extract_dirname(file_name, file_path);
+    path_extract_dirname(path, file_path);
 
     FuriString* final_staging_path = furi_string_alloc();
     path_concat(furi_string_get_cstr(file_path), UPDATE_STAGING_ROOT, final_staging_path);
@@ -155,7 +155,7 @@ static void updater_cli_execute_install_tar(const char* file_name) {
         printf("Unpacking TAR contents to: %s\r\n", furi_string_get_cstr(final_staging_path));
         TarArchive* tar = tar_archive_alloc(storage);
         bool unpack_success = false;
-        if(tar_archive_open(tar, file_name, TarOpenModeRead)) {
+        if(tar_archive_open(tar, path, TarOpenModeRead)) {
             if(tar_archive_unpack_to(tar, furi_string_get_cstr(final_staging_path), NULL)) {
                 unpack_success = true;
             } else {
@@ -168,8 +168,8 @@ static void updater_cli_execute_install_tar(const char* file_name) {
                     furi_string_get_cstr(final_staging_path));
             }
         } else {
-            FURI_LOG_E(TAG, "Failed to open TAR file %s", file_name);
-            printf(ANSI_FG_RED "Failed to open TAR file %s\r\n" ANSI_RESET, file_name);
+            FURI_LOG_E(TAG, "Failed to open TAR file %s", path);
+            printf(ANSI_FG_RED "Failed to open TAR file %s\r\n" ANSI_RESET, path);
         }
 
         tar_archive_free(tar);
@@ -238,13 +238,10 @@ static void updater_cli_execute_install_web(const char* link) {
     FuriString* file_path = furi_string_alloc();
     path_concat(STORAGE_EXT_PATH_PREFIX, UPDATE_STAGING_ROOT, file_path);
     path_concat(furi_string_get_cstr(file_path), UPDATE_TAR_TMP, file_path);
-    fetch_url(NULL, url, file_path, NULL);
+    if(fetch_download_file(url, file_path)) {
+        updater_cli_execute_install_tar(furi_string_get_cstr(file_path));
+    }
     furi_string_free(url);
-
-    furi_string_reset(file_path);
-    path_concat(STORAGE_EXT_PATH_PREFIX, UPDATE_STAGING_ROOT, file_path);
-    path_concat(furi_string_get_cstr(file_path), UPDATE_TAR_TMP, file_path);
-    updater_cli_execute_install_tar(furi_string_get_cstr(file_path));
     furi_string_free(file_path);
 }
 
