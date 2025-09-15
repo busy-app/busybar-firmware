@@ -22,7 +22,7 @@ export default defineAppConfig({
     },
     colors: {
       primary: 'brand',
-      neutral: 'zinc'
+      neutral: 'neutral'
     },
     container: {
       base: 'p-0 sm:p-0 lg:p-0'
