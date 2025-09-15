@@ -11,18 +11,19 @@ export const useTabStore = defineStore('tabs', () => {
   const tabOptions: TabOption[] = [
     {
       label: 'Network',
-      icon: 'i-tabler-wifi',
-      activeIcon: 'i-tabler-wifi-off',
+      icon: 'i-ri-signal-tower-fill',
+      activeIcon: 'i-ri-signal-tower-fill',
       value: 'network'
     },
     {
       label: 'Firmware',
-      icon: 'i-tabler-file-upload',
+      icon: 'i-ri-cpu-line',
       value: 'firmware'
     },
     {
       label: 'Settings',
-      icon: 'i-tabler-bluetooth',
+      icon: 'i-ri-settings-line',
+      activeIcon: 'i-ri-settings-fill',
       value: 'settings'
     }
   ];

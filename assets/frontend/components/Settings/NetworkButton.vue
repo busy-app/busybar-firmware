@@ -23,7 +23,7 @@
       </div>
 
       <UIcon
-        name="i-tabler-chevron-right"
+        name="i-ri-arrow-right-s-line"
         class="h-4 w-4"
       />
     </div>

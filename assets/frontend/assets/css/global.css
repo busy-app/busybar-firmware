@@ -56,10 +56,6 @@ button {
     }
   }
 
-  .animate-spin {
-    animation: -spin 1s linear infinite; 
-  }
-
   .ring { --glass-ring-width: 1px; }
   .ring-0 { --glass-ring-width: 0; }
   .ring-1 { --glass-ring-width: 1px; }

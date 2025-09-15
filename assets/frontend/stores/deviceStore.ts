@@ -38,7 +38,7 @@ export const useDeviceStore = defineStore('device', () => {
           id: 'device-version-error',
           title: 'Failed to fetch device version',
           description: error.message || 'Unknown error. Check your connection and try again.',
-          icon: 'i-tabler-alert-triangle-filled',
+          icon: 'i-ri-alert-line',
           color: 'error',
           duration: 10000
         });
@@ -79,7 +79,7 @@ export const useDeviceStore = defineStore('device', () => {
         toast.add({
           title: 'Update initiated',
           description: 'The device will reboot to apply the update. Pay attention to the front screen.',
-          icon: 'i-tabler-check',
+          icon: 'i-ri-check-line',
           color: 'success',
           duration: 10000
         });
@@ -89,7 +89,7 @@ export const useDeviceStore = defineStore('device', () => {
         toast.add({
           title: 'Update failed',
           description: `Error ${xhr.status}: ${xhr.responseText}`,
-          icon: 'i-tabler-alert-triangle-filled',
+          icon: 'i-ri-alert-line',
           color: 'error',
           duration: 10000
         });

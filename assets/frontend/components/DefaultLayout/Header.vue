@@ -8,7 +8,7 @@
       <div class="hidden md:flex items-center gap-2">
         <div class="flex items-center gap-1">
           <UIcon
-            name="i-tabler-usb"
+            name="i-ri-usb-line"
             class="w-[18px] h-[22px]"
           />
           Connected
@@ -22,12 +22,12 @@
         :items="[
           {
             label: 'Rename',
-            icon: 'i-tabler-wifi',
+            icon: 'i-ri-pencil-line',
             onSelect: () => { nameModel = ''; showRenameModal = true; }
           },
           {
             label: 'Restart',
-            icon: 'i-tabler-wifi',
+            icon: 'i-ri-reset-left-line',
             onSelect: () => { showRestartModal = true; }
           }
         ]"
@@ -43,7 +43,7 @@
         <UButton
           label="BUSY Bar"
           size="lg"
-          trailing-icon="i-tabler-chevron-down"
+          trailing-icon="i-ri-arrow-down-s-fill"
           color="neutral"
           variant="ghost"
           class="text-xl"
@@ -125,19 +125,19 @@
           [
             {
               label: 'Lock down',
-              icon: 'i-tabler-wifi'
+              icon: 'i-ri-lock-fill'
             },
             {
               label: 'Password',
-              icon: 'i-tabler-login-2',
+              icon: 'i-ri-lock-password-line',
               children: [
                 {
                   label: 'Change password',
-                  icon: 'i-tabler-key'
+                  icon: 'i-ri-pencil-line'
                 },
                 {
-                  label: 'Forgot password',
-                  icon: 'i-tabler-help-circle'
+                  label: 'Forgot password?',
+                  icon: 'i-ri-question-line'
                 }
               ]
             }
@@ -145,14 +145,14 @@
           [
             {
               label: 'Sign in to BUSY Account',
-              icon: 'i-tabler-wifi',
+              icon: 'i-ri-account-circle-fill',
               slot: 'signin' as const
             }
           ],
           [
             {
               label: `${colorMode.value === 'dark' ? 'Light' : 'Dark'} theme`,
-              icon: colorMode.value === 'dark' ? 'i-tabler-sun-filled' : 'i-tabler-moon-filled',
+              icon: colorMode.value === 'dark' ? 'i-ri-sun-line' : 'i-ri-moon-line',
               onSelect: () => colorMode.preference = colorMode.value === 'dark' ? 'light' : 'dark'
             }
           ]
@@ -166,7 +166,7 @@
         }"
       >
         <UButton
-          icon="i-tabler-login-2"
+          icon="i-busy-user-fill"
           size="lg"
           square
           color="neutral"
@@ -175,7 +175,7 @@
         />
         <template #signin-trailing>
           <UIcon
-            name="i-tabler-external-link"
+            name="i-ri-external-link-line"
             class="shrink-0 size-5 ml-4"
           />
         </template>

@@ -2,12 +2,12 @@
   <SectionCard
     title="Firmware"
     subtitle="V1.2-26070"
-    icon="i-tabler-wifi"
+    icon="i-ri-cpu-line"
   >
     <template #actions>
       <UButton
         label="Update from file"
-        icon="i-tabler-cloud-upload"
+        icon="i-ri-upload-2-line"
         variant="link"
         :ui="{
           base: 'px-2.5 py-2 rounded-full'
@@ -15,14 +15,14 @@
       />
       <UButton
         label="Update"
-        icon="i-tabler-cloud-upload"
+        icon="i-ri-download-cloud-line"
         :ui="{
           base: 'px-2.5 py-2 rounded-full'
         }"
       />
     </template>
 
-    <div class="grid sm:grid-cols-2 gap-y-3">
+    <div class="grid sm:grid-cols-2 gap-y-3 gap-x-1">
       <div
         v-for="[property, value] in Object.entries({
           'Version': 'V1.2-26070',
@@ -37,7 +37,7 @@
         <div class="max-w-[140px] md:max-w-[180px] text-ellipsis overflow-hidden">{{ value }}</div>
       </div>
     </div>
-    <div class="grid sm:grid-cols-2 gap-y-3">
+    <div class="grid sm:grid-cols-2 gap-y-3 gap-x-1">
       <div
         v-for="[property, value] in Object.entries({
           'Version': 'V1.2-26070',

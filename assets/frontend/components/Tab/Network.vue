@@ -2,7 +2,7 @@
   <SectionCard
     title="Wi-Fi"
     subtitle="Disconnected"
-    icon="i-tabler-wifi"
+    icon="i-ri-signal-wifi-line"
   >
     <template #actions>
       <UButton
@@ -19,7 +19,7 @@
   >
     <template #leading-actions>
       <UButton
-        icon="i-tabler-arrow-left"
+        icon="i-ri-arrow-left-line"
         variant="ghost"
         color="neutral"
         square
@@ -35,7 +35,7 @@
         :delay-duration="0"
       >
         <UButton
-          icon="i-tabler-plus"
+          icon="i-ri-add-line"
           variant="ghost"
           color="neutral"
           square
@@ -54,12 +54,12 @@
           class="flex gap-2 items-center px-2.5 py-2.5 cursor-pointer hover:bg-elevated rounded-xl"
         >
           <UIcon
-            name="i-tabler-wifi"
+            name="i-ri-signal-wifi-3-fill"
             class="size-6 text-muted"
           />
           <div class="grow">Keenetic-6436</div>
           <UIcon
-            name="i-tabler-lock"
+            name="i-ri-lock-line"
             class="size-6 text-muted"
           />
         </div>
@@ -69,7 +69,7 @@
 
   <SectionCard
     title="Keenetic-6436"
-    icon="i-tabler-wifi"
+    icon="i-ri-signal-wifi-fill"
   >
     <template #subtitle>
       <div class="flex items-center gap-2 text-green-500">
@@ -91,16 +91,14 @@
 
     <div class="flex justify-between items-center">
       <div>IP Address</div>
-      <UButton
+      <CopyButton
+        text="192.168.1.42"
         variant="link"
         color="neutral"
-        trailing-icon="i-tabler-external-link"
         class="px-0"
-      >
-        <span>192.168.1.42</span>
-      </UButton>
+      />
     </div>
-    <div class="grid sm:grid-cols-2 gap-y-3">
+    <div class="grid sm:grid-cols-2 gap-y-3 gap-x-1">
       <div
         v-for="[property, value] in Object.entries({
           'Name': 'Keenetic-6436',
@@ -121,16 +119,19 @@
 
   <SectionCard
     title="HTTP API"
-    icon="i-tabler-wifi-off"
+    icon="i-ri-exchange-2-line"
   >
     <div class="flex justify-between items-center">
       <div>Over USB</div>
       <UButton
         variant="link"
-        trailing-icon="i-tabler-external-link"
         class="px-0"
       >
         <span class="underline">http://10.04.20/docs</span>
+        <UIcon
+          name="i-ri-external-link-line"
+          class="size-4"
+        />
       </UButton>
     </div>
     <div class="flex flex-col gap-1">
