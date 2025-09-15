@@ -163,7 +163,7 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          gh workflow run "Updater tests" \
+          gh workflow run updater-test.yml \
             --ref "${{ github.head_ref || github.ref_name }}" \
             -f default_target=${{ env.DEFAULT_TARGET }} \
             -f sha=${{ github.sha }} \
