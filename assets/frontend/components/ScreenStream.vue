@@ -122,6 +122,7 @@ function dataCallback (data: Uint8Array) {
       canvasHeight.value
     );
 
+    // Draw grid
     const gap = scaleFactor.value;
     ctx.save();
     ctx.strokeStyle = 'black';
@@ -142,6 +143,20 @@ function dataCallback (data: Uint8Array) {
       ctx.lineTo(canvasWidth.value, y + 0.5);
       ctx.stroke();
     }
+
+    // Apply darkening to very dark pixels
+    const imgData = ctx.getImageData(0, 0, canvasWidth.value, canvasHeight.value);
+    const d = imgData.data;
+    for (let i = 0; i < d.length; i += 4) {
+      // Calculate perceived brightness (0=black, 255=white)
+      const brightness = 0.299 * d[i] + 0.587 * d[i + 1] + 0.114 * d[i + 2];
+      // For very dark pixels (brightness <= 10), apply a fade to black
+      if (brightness <= 10) {
+        // Linear fade: black (0) = 0 alpha, 51 = 0.2 alpha, up to 255 = 1 alpha
+        d[i + 3] = Math.round(255 * ((brightness - 0) / (51 - 0)) * 0.2);
+      }
+    }
+    ctx.putImageData(imgData, 0, 0);
 
     ctx.restore();
   }
