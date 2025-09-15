@@ -43,33 +43,9 @@ jobs:
           git lfs install --system
           git config --global lfs.https://github.com/flipperdevices/silabs_matter_extension.git/info/lfs.access basic
 
-      - name: 'Update submodules with retry'
+      - name: 'Update core submodules'
         run: |
-          git submodule update --init --recursive --jobs=$(nproc) scripts/toolchain fbt_layers/fbtng || cat /home/runner/work/bsb-firmware/bsb-firmware/.git/modules/lib/matter_ext/lfs/logs/*
-          # set -e
-          # retry_count=0
-          # max_retries=3
-          
-          # until [ $retry_count -ge $max_retries ]; do
-          #   echo "Attempt $((retry_count + 1)) of $max_retries"
-          #   if git submodule update --init --recursive --jobs=$(nproc) scripts/toolchain fbt_layers/fbtng; then
-          #     echo "Submodule update successful"
-          #     break
-          #   else
-          #     retry_count=$((retry_count + 1))
-          #     if [ $retry_count -lt $max_retries ]; then
-          #       echo "Submodule update failed, retrying in 10 seconds..."
-          #       sleep 10
-          #       # Clean up any partial state
-          #       git submodule foreach --recursive git clean -fdx || true
-          #       git submodule foreach --recursive git reset --hard || true
-          #     else
-          #       echo "All retry attempts failed. Dumping LFS logs:"
-          #       cat /home/runner/work/bsb-firmware/bsb-firmware/.git/modules/lib/matter_ext/lfs/logs/* || true
-          #       exit 1
-          #     fi
-          #   fi
-          # done
+          git submodule update --init --recursive --jobs=$(nproc) scripts/toolchain fbt_layers/fbtng
 
       - name: 'Get commit details'
         id: names
