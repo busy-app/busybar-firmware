@@ -172,7 +172,7 @@ function stopCallback () {
 
 onMounted(() => {
   if (canvasRef.value) {
-    canvasCtx.value = canvasRef.value.getContext('2d');
+    canvasCtx.value = canvasRef.value.getContext('2d', { willReadFrequently: true });
 
     if (canvasCtx.value) {
       canvasCtx.value.imageSmoothingEnabled = false;
