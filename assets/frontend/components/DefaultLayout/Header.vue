@@ -130,48 +130,47 @@
       <ModalGeneric
         v-model:open="showSetPasswordModal"
         title="Set password"
+        description="This password will be asked each time you open this page with a BUSY Bar connected via Wi-Fi. Remember your password, as a forgotten one cannot be recovered, but only reset via a wired connection."
+        wide
         :primary-action-props="{
           label: 'Set password',
-          loading: loading.setPassword,
-          disabled: setPasswordModel.password === '' || setPasswordModel.password !== setPasswordModel.confirmPassword,
+          loading: loading.password,
+          disabled: passwordValidation !== '',
           onClick: setPassword
         }"
         :secondary-action-props="{
           label: 'Cancel',
           variant: 'ghost',
-          disabled: loading.setPassword,
+          disabled: loading.password,
           onClick: () => { showSetPasswordModal = false; }
         }"
       >
         <template #body>
           <UFormField
-            label="New password, (4-10 digits)"
-            :error="setPasswordModel.password !== ''
-              && (
-                /[^0-9]/.test(setPasswordModel.password)
-                  ? 'Invalid password (only digits allowed)'
-                  : setPasswordModel.password.length > 10
-                    ? 'Password too long'
-                    : setPasswordModel.password.length < 4 && setPasswordModel.password !== ''
-                      ? 'Password too short'
-                      : ''
-              )"
+            label="Password"
+            :error="passwordValidation"
           >
             <UInput
-              v-model="setPasswordModel.password"
+              v-model="passwordModel.new"
               size="xl"
               variant="soft"
-            />
-          </UFormField>
-          <UFormField
-            label="Confirm new password"
-            :error="setPasswordModel.password !== setPasswordModel.confirmPassword && setPasswordModel.confirmPassword !== '' ? 'Passwords do not match' : ''"
-          >
-            <UInput
-              v-model="setPasswordModel.confirmPassword"
-              size="xl"
-              variant="soft"
-            />
+              :type="passwordModel.showNew ? 'text' : 'password'"
+              placeholder="From 4 to 10 digits"
+            >
+              <template #trailing>
+                <UButton
+                  :icon="passwordModel.showNew ? 'i-ri-eye-off-line' : 'i-ri-eye-line'"
+                  variant="ghost"
+                  color="neutral"
+                  square
+                  class="rounded-full"
+                  :ui="{
+                    leadingIcon: 'size-6 text-muted'
+                  }"
+                  @click="passwordModel.showNew = !passwordModel.showNew"
+                />
+              </template>
+            </UInput>
           </UFormField>
         </template>
       </ModalGeneric>
@@ -214,8 +213,7 @@ const passwordUnsetItems = [
     label: 'Set password',
     icon: 'i-ri-lock-password-line',
     onSelect: () => {
-      setPasswordModel.value.password = '';
-      setPasswordModel.value.confirmPassword = '';
+      passwordModel.value.new = '';
       showSetPasswordModal.value = true;
     }
   }
@@ -270,7 +268,7 @@ const showRestartModal = ref(false);
 const loading = ref({
   rename: false,
   restart: false,
-  setPassword: false
+  password: false
 });
 
 async function updateDeviceName () {
@@ -298,17 +296,31 @@ async function restartDevice () {
 }
 
 const showSetPasswordModal = ref(false);
-const setPasswordModel = ref({
-  password: '',
-  confirmPassword: ''
+const passwordModel = ref({
+  current: '',
+  showCurrent: false,
+  new: '',
+  showNew: false
+});
+const passwordValidation = computed(() => {
+  return passwordModel.value.new !== ''
+    && (
+      /[^0-9]/.test(passwordModel.value.new)
+        ? 'Invalid password (only digits allowed)'
+        : passwordModel.value.new.length > 10
+          ? 'Password too long'
+          : passwordModel.value.new.length < 4 && passwordModel.value.new !== ''
+            ? 'Password too short'
+            : ''
+    );
 });
 
 async function setPassword () {
-  loading.value.setPassword = true;
-  await deviceStore.setHttpAPIAccess('key', setPasswordModel.value.password);
+  loading.value.password = true;
+  await deviceStore.setHttpAPIAccess('key', passwordModel.value.new);
   deviceStore.httpAPIAccess = await deviceStore.fetchHttpAPIAccess();
   httpApiAccess.value = deviceStore.httpAPIAccess;
-  loading.value.setPassword = false;
+  loading.value.password = false;
   showSetPasswordModal.value = false;
 }
 </script>
