@@ -13,7 +13,7 @@
           />
           Connected
         </div>
-        <div class="text-muted">10.0.4.20</div>
+        <div class="text-muted">{{ host }}</div>
       </div>
     </div>
 
@@ -50,73 +50,47 @@
         />
       </UDropdownMenu>
 
-      <UModal
+      <ModalGeneric
         v-model:open="showRenameModal"
         title="Rename device"
-        :ui="{
-          content: 'max-w-[360px] divide-none',
-          header: 'pb-0'
+        description="Enter a new name for your BUSY Bar."
+        :primary-action-props="{
+          label: 'Rename',
+          loading: loading.rename,
+          onClick: updateDeviceName
+        }"
+        :secondary-action-props="{
+          label: 'Cancel',
+          variant: 'ghost',
+          disabled: loading.rename,
+          onClick: () => { showRenameModal = false; }
         }"
       >
-        <template #header>
-          <div class="text-xl">Rename device</div>
-        </template>
-
         <template #body>
           <UInput
             v-model="nameModel"
             size="xl"
             variant="soft"
           />
-
-          <div class="flex justify-end gap-2 mt-8">
-            <UButton
-              label="Cancel"
-              variant="ghost"
-              :disabled="loading.rename"
-              @click="showRenameModal = false"
-            />
-            <UButton
-              label="Rename"
-              :loading="loading.rename"
-              class="px-3 py-2.5 rounded-full"
-              @click="updateDeviceName"
-            />
-          </div>
         </template>
-      </UModal>
+      </ModalGeneric>
 
-      <UModal
+      <ModalGeneric
         v-model:open="showRestartModal"
         title="Restart BUSY Bar?"
-        :ui="{
-          content: 'max-w-[360px] divide-none',
-          header: 'pb-0'
+        description="Web control will be back after the reboot."
+        :primary-action-props="{
+          label: 'Restart',
+          loading: loading.restart,
+          onClick: restartDevice
         }"
-      >
-        <template #header>
-          <div class="text-xl">Rename device</div>
-        </template>
-
-        <template #body>
-          Web control will be back after the reboot.
-
-          <div class="flex justify-end gap-2 mt-8">
-            <UButton
-              label="Cancel"
-              variant="ghost"
-              :disabled="loading.restart"
-              @click="showRestartModal = false"
-            />
-            <UButton
-              label="Restart"
-              :loading="loading.restart"
-              class="px-3 py-2.5 rounded-full"
-              @click="restartDevice"
-            />
-          </div>
-        </template>
-      </UModal>
+        :secondary-action-props="{
+          label: 'Cancel',
+          variant: 'ghost',
+          disabled: loading.restart,
+          onClick: () => { showRestartModal = false; }
+        }"
+      />
     </div>
 
     <div class="flex gap-4 items-center">
@@ -191,6 +165,8 @@ const nameModel = ref('');
 const showRestartModal = ref(false);
 
 const colorMode = useColorMode();
+
+const host = location.hostname;
 
 const loading = ref({
   rename: false,
