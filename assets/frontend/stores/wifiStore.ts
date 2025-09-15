@@ -47,11 +47,9 @@ export const useWifiStore = defineStore('wifi', () => {
   const barUrl = useRuntimeConfig().public.barUrl;
   const toast = useToast();
 
-  const wifi = ref<wifiState>({
-    state: 'disabled'
-  });
+  const wifi = ref<wifiState | undefined>(undefined);
 
-  async function updateWifiState () {
+  async function fetchWifiState (): Promise<wifiState | undefined> {
     const state = await $fetch<wifiState>(`${barUrl}/api/wifi/status`)
       .then(response => {
         if (!response || typeof response !== 'object') {
@@ -69,10 +67,17 @@ export const useWifiStore = defineStore('wifi', () => {
           color: 'error',
           duration: 10000
         });
-        return wifi.value;
+        return undefined;
       });
 
-    wifi.value = state;
+    return state;
+  }
+
+  async function getWifiState (): Promise<wifiState | undefined> {
+    if (wifi.value === undefined) {
+      wifi.value = await fetchWifiState();
+    }
+    return wifi.value;
   }
 
   async function enableWifi () {
@@ -80,7 +85,7 @@ export const useWifiStore = defineStore('wifi', () => {
       method: 'POST'
     })
       .then(() => {
-        wifi.value.state = 'enabled';
+        wifi.value = { state: 'enabled' };
       })
       .catch(error => {
         console.error('Error enabling WiFi:', error);
@@ -96,11 +101,14 @@ export const useWifiStore = defineStore('wifi', () => {
   }
 
   async function disableWifi () {
+    if (wifi.value === undefined || wifi.value.state === 'disabled') {
+      return;
+    }
     await $fetch(`${barUrl}/api/wifi/disable`, {
       method: 'POST'
     })
       .then(() => {
-        wifi.value.state = 'disabled';
+        wifi.value = { state: 'disabled' };
       })
       .catch(error => {
         console.error('Error disabling WiFi:', error);
@@ -199,7 +207,8 @@ export const useWifiStore = defineStore('wifi', () => {
 
   return {
     wifi,
-    updateWifiState,
+    fetchWifiState,
+    getWifiState,
     enableWifi,
     disableWifi,
     listWifiNetworks,
