@@ -33,6 +33,7 @@
         <UButton
           v-bind="props.secondaryActionProps"
           variant="ghost"
+          color="neutral"
           class="px-3 py-2.5 rounded-full"
         />
         <UButton
