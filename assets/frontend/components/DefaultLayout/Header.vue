@@ -122,14 +122,40 @@
     <div class="flex gap-4 items-center">
       <UDropdownMenu
         :items="[
-          {
-            label: 'Lock',
-            icon: 'i-tabler-wifi'
-          },
-          {
-            label: 'Log in to BUSY Cloud',
-            icon: 'i-tabler-login-2'
-          }
+          [
+            {
+              label: 'Lock down',
+              icon: 'i-tabler-wifi'
+            },
+            {
+              label: 'Password',
+              icon: 'i-tabler-login-2',
+              children: [
+                {
+                  label: 'Change password',
+                  icon: 'i-tabler-key'
+                },
+                {
+                  label: 'Forgot password',
+                  icon: 'i-tabler-help-circle'
+                }
+              ]
+            }
+          ],
+          [
+            {
+              label: 'Sign in to BUSY Account',
+              icon: 'i-tabler-wifi',
+              slot: 'signin' as const
+            }
+          ],
+          [
+            {
+              label: `${colorMode.value === 'dark' ? 'Light' : 'Dark'} theme`,
+              icon: colorMode.value === 'dark' ? 'i-tabler-sun-filled' : 'i-tabler-moon-filled',
+              onSelect: () => colorMode.preference = colorMode.value === 'dark' ? 'light' : 'dark'
+            }
+          ]
         ]"
         :content="{
           align: 'end',
@@ -137,7 +163,6 @@
           sideOffset: 8
         }"
         :ui="{
-          content: 'w-48'
         }"
       >
         <UButton
@@ -148,9 +173,13 @@
           variant="soft"
           class="rounded-full"
         />
+        <template #signin-trailing>
+          <UIcon
+            name="i-tabler-external-link"
+            class="shrink-0 size-5 ml-4"
+          />
+        </template>
       </UDropdownMenu>
-
-      <ToggleTheme />
     </div>
   </nav>
 </template>
@@ -160,6 +189,8 @@ const showRenameModal = ref(false);
 const nameModel = ref('');
 
 const showRestartModal = ref(false);
+
+const colorMode = useColorMode();
 
 const loading = ref({
   rename: false,
