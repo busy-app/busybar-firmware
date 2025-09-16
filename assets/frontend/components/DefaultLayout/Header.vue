@@ -156,7 +156,7 @@
             >
               <template #trailing>
                 <UButton
-                  :icon="passwordModel.showNew ? 'i-ri-eye-off-line' : 'i-ri-eye-line'"
+                  :icon="passwordModel.showNew ? 'i-ri-eye-close-line' : 'i-ri-eye-line'"
                   variant="ghost"
                   color="neutral"
                   square
@@ -205,7 +205,7 @@
             >
               <template #trailing>
                 <UButton
-                  :icon="passwordModel.showCurrent ? 'i-ri-eye-off-line' : 'i-ri-eye-line'"
+                  :icon="passwordModel.showCurrent ? 'i-ri-eye-close-line' : 'i-ri-eye-line'"
                   variant="ghost"
                   color="neutral"
                   square
@@ -233,7 +233,7 @@
             >
               <template #trailing>
                 <UButton
-                  :icon="passwordModel.showNew ? 'i-ri-eye-off-line' : 'i-ri-eye-line'"
+                  :icon="passwordModel.showNew ? 'i-ri-eye-close-line' : 'i-ri-eye-line'"
                   variant="ghost"
                   color="neutral"
                   square
@@ -282,7 +282,7 @@
             >
               <template #trailing>
                 <UButton
-                  :icon="passwordModel.showCurrent ? 'i-ri-eye-off-line' : 'i-ri-eye-line'"
+                  :icon="passwordModel.showCurrent ? 'i-ri-eye-close-line' : 'i-ri-eye-line'"
                   variant="ghost"
                   color="neutral"
                   square
