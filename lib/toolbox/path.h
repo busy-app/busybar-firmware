@@ -81,10 +81,10 @@ bool path_contains_only_ascii(const char* path);
  * If any part of the path already exists, it will be skipped.
  * 
  * @param storage pointer to a storage API instance.
- * @param path pointer to a zero-terminated string containing the directory path.
- * @return FSE_OK if the directory was created or already exists, any other error code on failure.
+ * @param path pointer to a zero-terminated string containing the path in question.
+ * @return FSE_OK if the directories were successfully created or already exist, any other error code on failure.
  */
-FS_Error path_recursive_create_dir(Storage* storage, const char* path);
+FS_Error path_recursive_create_dir(Storage* storage, FuriString* path);
 
 #ifdef __cplusplus
 }
