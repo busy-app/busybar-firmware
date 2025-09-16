@@ -38,10 +38,13 @@ export default defineAppConfig({
     },
     button: {
       slots: {
-        base: 'rounded-lg cursor-pointer'
+        base: 'rounded-full cursor-pointer'
       },
       variants: {
         size: {
+          md: {
+            base: 'px-3 py-2.5'
+          },
           xl: {
             base: 'py-3'
           }
