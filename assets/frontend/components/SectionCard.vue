@@ -48,12 +48,12 @@
       #default
     >
       <div
-        v-if="$slots.default"
+        v-if="!isEmptySlot('default')"
         class="flex flex-col gap-1 rounded-group"
         :class="headerExists ? '' : 'mt-4 sm:mt-6'"
       >
         <div
-          v-for="(child, i) in $slots.default()"
+          v-for="(child, i) in $slots.default!()"
           :key="child.key ?? i"
           class="bg-elevated/75 p-4 rounded-xl"
         >
