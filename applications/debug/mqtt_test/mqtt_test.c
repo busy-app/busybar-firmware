@@ -211,6 +211,13 @@ static void mqtt_test_app_free(MqttTestApp* instance) {
     with_gui(instance->gui, {
         GuiLayer* main_layer = gui_get_layer(instance->gui, GuiLayerIdMain);
         gui_layer_remove_input_callback(main_layer, mqtt_test_app_input_callback);
+
+        label_free(instance->label_id);
+        label_free(instance->label_message);
+        label_free(instance->label_status);
+
+        label_free(instance->front_label);
+
         flex_layout_free(instance->flex);
     });
 
