@@ -286,7 +286,10 @@ export const useDeviceStore = defineStore('device', () => {
   async function setDisplayBrightness (brightness: DisplayBrightness): Promise<boolean> {
     return await $fetch(`${barUrl}/api/display/brightness`, {
       method: 'POST',
-      query: brightness
+      query: {
+        front: String(brightness.front),
+        back: String(brightness.back)
+      }
     })
       .then(() => {
         displayBrightness.value = brightness;
