@@ -59,6 +59,7 @@
         :primary-action-props="{
           label: 'Rename',
           loading: loading.rename,
+          disabled: nameModel.trim() === '',
           onClick: updateDeviceName
         }"
         :secondary-action-props="{
@@ -147,6 +148,7 @@
           >
             <UInput
               v-model="passwordModel.new"
+              v-maska="'##########'"
               size="xl"
               variant="soft"
               :type="passwordModel.showNew ? 'text' : 'password'"
@@ -195,6 +197,7 @@
           >
             <UInput
               v-model="passwordModel.current"
+              v-maska="'##########'"
               size="xl"
               variant="soft"
               :type="passwordModel.showCurrent ? 'text' : 'password'"
@@ -222,6 +225,7 @@
           >
             <UInput
               v-model="passwordModel.new"
+              v-maska="'##########'"
               size="xl"
               variant="soft"
               :type="passwordModel.showNew ? 'text' : 'password'"
@@ -270,6 +274,7 @@
           >
             <UInput
               v-model="passwordModel.current"
+              v-maska="'##########'"
               size="xl"
               variant="soft"
               :type="passwordModel.showCurrent ? 'text' : 'password'"
@@ -297,6 +302,8 @@
 </template>
 
 <script setup lang="ts">
+import { vMaska } from 'maska/vue';
+
 const deviceStore = useDeviceStore();
 
 const colorMode = useColorMode();
