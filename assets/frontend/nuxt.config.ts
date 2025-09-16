@@ -32,7 +32,6 @@ export default defineNuxtConfig({
     }
   },
   css: [
-    '@/assets/css/fonts.css',
     '@/assets/css/typography.css',
     '@/assets/css/global.css'
   ],
