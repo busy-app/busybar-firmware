@@ -254,7 +254,7 @@ const stage = computed(() => deviceStore.firmwareUpdate.stage);
 
 const firmwareFileModel = ref<File | null>(null);
 
-const indeterminateProgressModel = 75;
+const indeterminateProgressModel = ref(75);
 
 function reload () {
   location.reload();
