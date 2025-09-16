@@ -212,7 +212,6 @@ JsonConfigStatus json_config_read_str(
     return status;
 }
 
-// TODO: unit tests
 JsonConfigStatus json_config_delete(JsonConfig* inst, const char* key) {
     furi_assert(inst);
     furi_assert(inst->root);
