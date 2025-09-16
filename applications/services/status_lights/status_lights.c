@@ -1,48 +1,197 @@
 #include "status_lights.h"
 #include "status_lights_common_private.h"
 
-#include <furi/furi.h>
+#include <toolbox/api_lock.h>
 
 #include <intercom/intercom.h>
+#include <light_sensor/light_sensor.h>
+
+#define AUTO_BRIGHTNESS_MIN_LEVEL (1)
+#define AUTO_BRIGHTNESS_MAX_LEVEL (100)
 
 struct StatusLights {
     FuriEventLoop* event_loop;
-    FuriMessageQueue* command_queue;
+    FuriMessageQueue* message_queue;
     Intercom* intercom;
 
-    _Atomic uint8_t brightness;
+    uint8_t light_level;
+    uint8_t brightness;
 };
 
-static void status_lights_command_callback(FuriEventLoopObject* object, void* context) {
-    StatusLights* instance = context;
-    furi_check(object == instance->command_queue);
+typedef enum {
+    StatusLightsMessageTypeSetBrightness,
+    StatusLightsMessageTypeGetBrightness,
+    StatusLightsMessageTypeSetRunPreset,
+    StatusLightsMessageTypeLightSensorUpdate,
 
-    StatusLightsCommand command;
-    furi_check(
-        furi_message_queue_get(instance->command_queue, &command, FuriWaitForever) ==
-        FuriStatusOk);
+    StatusLightsMessageTypesCount,
+} StatusLightsMessageType;
 
+typedef struct {
+    FuriApiLock api_lock;
+    StatusLightsMessageType type;
+    union {
+        struct {
+            uint8_t brightness;
+        } as_set_brightness;
+
+        struct {
+            uint8_t* brightness;
+        } as_get_brightness;
+
+        struct {
+            StatusLightsPreset preset;
+            Color color;
+        } as_run_preset;
+
+        struct {
+            uint8_t light_level;
+        } as_light_sensor_update;
+    };
+} StatusLightsMessage;
+
+typedef void (*MessageHandler)(StatusLights* instance, StatusLightsMessage* message);
+
+static const MessageHandler message_handlers[];
+
+static uint8_t status_lights_light_sensor_level_to_brightness(uint8_t light_level) {
+    uint8_t brightness =
+        AUTO_BRIGHTNESS_MIN_LEVEL +
+        ((AUTO_BRIGHTNESS_MAX_LEVEL - AUTO_BRIGHTNESS_MIN_LEVEL) * light_level * light_level) /
+            (LIGHT_SENSOR_LIGHT_LEVEL_MAX * LIGHT_SENSOR_LIGHT_LEVEL_MAX);
+
+    return CLAMP(brightness, AUTO_BRIGHTNESS_MAX_LEVEL, AUTO_BRIGHTNESS_MIN_LEVEL);
+}
+
+static void status_lights_send_command(StatusLights* instance, StatusLightsCommand* command) {
     size_t tx_size = intercom_tx(
         instance->intercom,
         IntercomChannelStatusLights,
-        &command,
-        sizeof(StatusLightsCommand),
+        command,
+        sizeof(*command),
         FuriWaitForever);
 
-    furi_check(tx_size == sizeof(StatusLightsCommand), "Failed to send data");
+    furi_check(tx_size == sizeof(*command), "Failed to send data");
+}
+
+static void status_lights_do_set_brightness(StatusLights* instance, StatusLightsMessage* message) {
+    instance->brightness = message->as_set_brightness.brightness;
+
+    StatusLightsCommand command = {
+        .id = StatusLightsCommandIdSetBrightness,
+        .as_set_brightness =
+            {
+                .brightness = 0.01f * ((instance->brightness == STATUS_LIGHTS_BRIGHTNESS_AUTO) ?
+                                           status_lights_light_sensor_level_to_brightness(
+                                               instance->light_level) :
+                                           instance->brightness),
+            },
+    };
+
+    status_lights_send_command(instance, &command);
+}
+
+static void status_lights_do_get_brightness(StatusLights* instance, StatusLightsMessage* message) {
+    *message->as_get_brightness.brightness = instance->brightness;
+}
+
+static void status_lights_do_run_preset(StatusLights* instance, StatusLightsMessage* message) {
+    StatusLightsCommand command = {
+        .id = StatusLightsCommandIdRunPreset,
+        .as_run_preset =
+            {
+                .preset = message->as_run_preset.preset,
+                .color = message->as_run_preset.color,
+            },
+    };
+
+    status_lights_send_command(instance, &command);
+}
+
+static void
+    status_lights_on_light_sensor_event(StatusLights* instance, StatusLightsMessage* message) {
+    instance->light_level = message->as_light_sensor_update.light_level;
+
+    if(instance->brightness == STATUS_LIGHTS_BRIGHTNESS_AUTO) {
+        StatusLightsCommand command = {
+            .id = StatusLightsCommandIdSetBrightness,
+            .as_set_brightness =
+                {
+                    .brightness = 0.01f * status_lights_light_sensor_level_to_brightness(
+                                              instance->light_level),
+                },
+        };
+
+        status_lights_send_command(instance, &command);
+    }
+}
+
+static void status_lights_message_callback(FuriEventLoopObject* object, void* context) {
+    furi_assert(context);
+
+    StatusLights* instance = context;
+
+    furi_assert(object == instance->message_queue);
+
+    StatusLightsMessage message;
+    furi_check(
+        furi_message_queue_get(instance->message_queue, &message, FuriWaitForever) ==
+        FuriStatusOk);
+
+    message_handlers[message.type](instance, &message);
+
+    if(message.api_lock) {
+        api_lock_unlock(message.api_lock);
+    }
+}
+
+static void status_lights_light_sensor_event(const void* event_message, void* context) {
+    furi_assert(event_message);
+    furi_assert(context);
+
+    StatusLights* instance = context;
+
+    const LightSensorEvent* event = event_message;
+    if(event->type == LightSensorEventTypeLightLevelChanged) {
+        StatusLightsMessage message = {
+            .api_lock = NULL,
+            .type = StatusLightsMessageTypeLightSensorUpdate,
+            .as_light_sensor_update =
+                {
+                    .light_level = event->light_level,
+                },
+        };
+
+        furi_check(
+            furi_message_queue_put(instance->message_queue, &message, FuriWaitForever) ==
+            FuriStatusOk);
+    }
 }
 
 static StatusLights* status_lights_alloc() {
-    StatusLights* instance = malloc(sizeof(StatusLights));
+    StatusLights* instance = malloc(sizeof(*instance));
+
+    instance->brightness = STATUS_LIGHTS_BRIGHTNESS_AUTO;
+    instance->light_level = 0;
+
     instance->event_loop = furi_event_loop_alloc();
-    instance->command_queue = furi_message_queue_alloc(8, sizeof(StatusLightsCommand));
+    instance->message_queue = furi_message_queue_alloc(8, sizeof(StatusLightsMessage));
     furi_event_loop_subscribe_message_queue(
         instance->event_loop,
-        instance->command_queue,
+        instance->message_queue,
         FuriEventLoopEventIn,
-        status_lights_command_callback,
+        status_lights_message_callback,
         instance);
     instance->intercom = furi_record_open(RECORD_INTERCOM);
+
+#if defined(SRV_LIGHT_SENSOR)
+    FuriPubSub* light_sensor_pubsub = furi_record_open(RECORD_LIGHT_SENSOR_EVENTS);
+    furi_pubsub_subscribe(light_sensor_pubsub, status_lights_light_sensor_event, instance);
+#else
+    UNUSED(status_lights_light_sensor_event);
+#endif
+
+    status_lights_set_brightness(instance, instance->brightness);
 
     furi_record_create(RECORD_STATUS_LIGHTS, instance);
 
@@ -62,8 +211,9 @@ void status_lights_run_preset(StatusLights* instance, StatusLightsPreset preset,
     furi_check(instance);
     furi_check(preset < StatusLightsPresetsCount);
 
-    StatusLightsCommand command = {
-        .id = StatusLightsCommandIdRunPreset,
+    StatusLightsMessage message = {
+        .api_lock = NULL,
+        .type = StatusLightsMessageTypeSetRunPreset,
         .as_run_preset =
             {
                 .preset = preset,
@@ -72,7 +222,7 @@ void status_lights_run_preset(StatusLights* instance, StatusLightsPreset preset,
     };
 
     furi_check(
-        furi_message_queue_put(instance->command_queue, &command, FuriWaitForever) ==
+        furi_message_queue_put(instance->message_queue, &message, FuriWaitForever) ==
         FuriStatusOk);
 }
 
@@ -81,27 +231,53 @@ void status_lights_set_brightness(StatusLights* instance, uint8_t brightness) {
 
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wtype-limits"
-    furi_check(brightness >= STATUS_LIGHTS_BRIGHTNESS_MIN);
-    furi_check(brightness <= STATUS_LIGHTS_BRIGHTNESS_MAX);
+    furi_check(
+        brightness == STATUS_LIGHTS_BRIGHTNESS_AUTO ||
+        (brightness >= STATUS_LIGHTS_BRIGHTNESS_MIN &&
+         brightness <= STATUS_LIGHTS_BRIGHTNESS_MAX));
 #pragma GCC diagnostic pop
 
-    instance->brightness = brightness;
-
-    StatusLightsCommand command = {
-        .id = StatusLightsCommandIdSetBrightness,
+    StatusLightsMessage message = {
+        .api_lock = NULL,
+        .type = StatusLightsMessageTypeSetBrightness,
         .as_set_brightness =
             {
-                .brightness = brightness * 0.01f,
+                .brightness = brightness,
             },
     };
 
     furi_check(
-        furi_message_queue_put(instance->command_queue, &command, FuriWaitForever) ==
+        furi_message_queue_put(instance->message_queue, &message, FuriWaitForever) ==
         FuriStatusOk);
 }
 
 uint8_t status_lights_get_brightness(StatusLights* instance) {
     furi_check(instance);
 
-    return instance->brightness;
+    uint8_t brightness;
+    StatusLightsMessage message = {
+        .api_lock = api_lock_alloc_locked(),
+        .type = StatusLightsMessageTypeGetBrightness,
+        .as_get_brightness =
+            {
+                .brightness = &brightness,
+            },
+    };
+
+    furi_check(
+        furi_message_queue_put(instance->message_queue, &message, FuriWaitForever) ==
+        FuriStatusOk);
+
+    api_lock_wait_unlock_and_free(message.api_lock);
+
+    return brightness;
 }
+
+static const MessageHandler message_handlers[] = {
+    [StatusLightsMessageTypeSetBrightness] = status_lights_do_set_brightness,
+    [StatusLightsMessageTypeGetBrightness] = status_lights_do_get_brightness,
+    [StatusLightsMessageTypeSetRunPreset] = status_lights_do_run_preset,
+    [StatusLightsMessageTypeLightSensorUpdate] = status_lights_on_light_sensor_event,
+};
+
+static_assert(COUNT_OF(message_handlers) == StatusLightsMessageTypesCount);

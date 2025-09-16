@@ -17,8 +17,9 @@ extern "C" {
  */
 #define RECORD_STATUS_LIGHTS "status_lights"
 
-#define STATUS_LIGHTS_BRIGHTNESS_MIN (0)
-#define STATUS_LIGHTS_BRIGHTNESS_MAX (100)
+#define STATUS_LIGHTS_BRIGHTNESS_MIN  (0)
+#define STATUS_LIGHTS_BRIGHTNESS_MAX  (100)
+#define STATUS_LIGHTS_BRIGHTNESS_AUTO (255)
 
 void status_lights_run_preset(StatusLights* instance, StatusLightsPreset preset, Color color);
 
