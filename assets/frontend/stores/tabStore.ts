@@ -33,4 +33,4 @@ export const useTabStore = defineStore('tabs', () => {
     tabOptions,
     currentTab
   };
-});
+}, { persist: true });
