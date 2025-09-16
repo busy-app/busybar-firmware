@@ -44,7 +44,7 @@ export interface AudioVolume {
   volume: number;
 }
 
-export type UpdateStage = 'idle' | 'uploading' | 'unpacking' | 'updating' | 'error';
+export type UpdateStage = 'idle' | 'uploading' | 'unpacking' | 'updating' | 'success' | 'error';
 
 export const useDeviceStore = defineStore('device', () => {
   const barUrl = useRuntimeConfig().public.barUrl;
