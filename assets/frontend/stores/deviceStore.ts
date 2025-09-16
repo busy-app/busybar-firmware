@@ -67,7 +67,7 @@ export const useDeviceStore = defineStore('device', () => {
         toast.add({
           id: 'api-version-error',
           title: 'Failed to fetch API version',
-          description: error.message || genericErrorMessage,
+          description: error.data?.error || genericErrorMessage,
           icon: 'i-ri-alert-line',
           color: 'error',
           duration: 10000
@@ -103,7 +103,7 @@ export const useDeviceStore = defineStore('device', () => {
         toast.add({
           id: 'device-status-error',
           title: 'Failed to fetch device status',
-          description: error.message || genericErrorMessage,
+          description: error.data?.error || genericErrorMessage,
           icon: 'i-ri-alert-line',
           color: 'error',
           duration: 10000
@@ -138,7 +138,7 @@ export const useDeviceStore = defineStore('device', () => {
         toast.add({
           id: 'system-status-error',
           title: 'Failed to fetch system status',
-          description: error.message || genericErrorMessage,
+          description: error.data?.error || genericErrorMessage,
           icon: 'i-ri-alert-line',
           color: 'error',
           duration: 10000
@@ -163,7 +163,7 @@ export const useDeviceStore = defineStore('device', () => {
         toast.add({
           id: 'device-power-error',
           title: 'Failed to fetch device power status',
-          description: error.message || genericErrorMessage,
+          description: error.data?.error || genericErrorMessage,
           icon: 'i-ri-alert-line',
           color: 'error',
           duration: 10000
@@ -192,7 +192,7 @@ export const useDeviceStore = defineStore('device', () => {
         toast.add({
           id: 'http-api-access-error',
           title: 'Failed to fetch HTTP API access',
-          description: error.message || genericErrorMessage,
+          description: error.data?.error || genericErrorMessage,
           icon: 'i-ri-alert-line',
           color: 'error',
           duration: 10000
@@ -232,7 +232,7 @@ export const useDeviceStore = defineStore('device', () => {
         toast.add({
           id: 'http-api-access-set-error',
           title: 'Failed to set HTTP API access',
-          description: error.message || genericErrorMessage,
+          description: error.data?.error || genericErrorMessage,
           icon: 'i-ri-alert-line',
           color: 'error',
           duration: 10000
@@ -264,7 +264,7 @@ export const useDeviceStore = defineStore('device', () => {
         toast.add({
           id: 'display-brightness-error',
           title: 'Failed to fetch display brightness',
-          description: error.message || genericErrorMessage,
+          description: error.data?.error || genericErrorMessage,
           icon: 'i-ri-alert-line',
           color: 'error',
           duration: 10000
@@ -296,7 +296,7 @@ export const useDeviceStore = defineStore('device', () => {
         toast.add({
           id: 'display-brightness-set-error',
           title: 'Failed to set display brightness',
-          description: error.message || genericErrorMessage,
+          description: error.data?.error || genericErrorMessage,
           icon: 'i-ri-alert-line',
           color: 'error',
           duration: 10000
@@ -323,7 +323,7 @@ export const useDeviceStore = defineStore('device', () => {
         toast.add({
           id: 'audio-volume-error',
           title: 'Failed to fetch audio volume',
-          description: error.message || genericErrorMessage,
+          description: error.data?.error || genericErrorMessage,
           icon: 'i-ri-alert-line',
           color: 'error',
           duration: 10000
@@ -359,7 +359,7 @@ export const useDeviceStore = defineStore('device', () => {
         toast.add({
           id: 'audio-volume-set-error',
           title: 'Failed to set audio volume',
-          description: error.message || genericErrorMessage,
+          description: error.data?.error || genericErrorMessage,
           icon: 'i-ri-alert-line',
           color: 'error',
           duration: 10000

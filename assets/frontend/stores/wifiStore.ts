@@ -1,6 +1,6 @@
 import { defineStore } from 'pinia';
 
-type WifiSecurity =
+export type WifiSecurity =
   | 'Open'
   | 'WPA'
   | 'WPA2'
@@ -30,17 +30,19 @@ export type WifiNetwork = {
   rssi: number;
 };
 
+export interface WifiConnectIPConfig {
+  ip_method: 'dhcp' | 'static';
+  ip_type: 'ipv4' | 'ipv6';
+  address?: string;
+  mask?: string;
+  gateway?: string;
+}
+
 export type WifiConnectOptions = {
   ssid: string;
   password?: string;
   security: WifiSecurity;
-  ip_config: {
-    ip_method: 'dhcp' | 'static';
-    ip_type: 'ipv4' | 'ipv6';
-    address?: string;
-    mask?: string;
-    gateway?: string;
-  };
+  ip_config: WifiConnectIPConfig;
 };
 
 export const useWifiStore = defineStore('wifi', () => {
@@ -62,7 +64,7 @@ export const useWifiStore = defineStore('wifi', () => {
         toast.add({
           id: 'wifi-status-error',
           title: 'Failed to fetch WiFi state',
-          description: error.message || genericErrorMessage,
+          description: error.data?.error || genericErrorMessage,
           icon: 'i-ri-alert-line',
           color: 'error',
           duration: 10000
@@ -92,7 +94,7 @@ export const useWifiStore = defineStore('wifi', () => {
         toast.add({
           id: 'wifi-enable-error',
           title: 'Failed to enable WiFi',
-          description: error.message || genericErrorMessage,
+          description: error.data?.error || genericErrorMessage,
           icon: 'i-ri-alert-line',
           color: 'error',
           duration: 10000
@@ -115,7 +117,7 @@ export const useWifiStore = defineStore('wifi', () => {
         toast.add({
           id: 'wifi-disable-error',
           title: 'Failed to disable WiFi',
-          description: error.message || genericErrorMessage,
+          description: error.data?.error || genericErrorMessage,
           icon: 'i-ri-alert-line',
           color: 'error',
           duration: 10000
@@ -134,6 +136,17 @@ export const useWifiStore = defineStore('wifi', () => {
         if (!response || !Array.isArray(response.networks)) {
           throw new Error('Failed to fetch WiFi networks');
         }
+        // dedupe networks by SSID, keeping the one with the highest signal level
+        response.networks = response.networks.reduce<WifiNetwork[]>((acc, curr) => {
+          const existing = acc.find(n => n.ssid === curr.ssid);
+          if (!existing) {
+            acc.push(curr);
+          } else if (curr.rssi > existing.rssi) {
+            const index = acc.indexOf(existing);
+            acc[index] = curr;
+          }
+          return acc;
+        }, []);
         return response.networks;
       })
       .catch(error => {
@@ -141,7 +154,7 @@ export const useWifiStore = defineStore('wifi', () => {
         toast.add({
           id: 'wifi-networks-error',
           title: 'Failed to fetch WiFi networks',
-          description: error.message || genericErrorMessage,
+          description: error.data?.error || genericErrorMessage,
           icon: 'i-ri-alert-line',
           color: 'error',
           duration: 10000
@@ -160,7 +173,7 @@ export const useWifiStore = defineStore('wifi', () => {
         toast.add({
           id: 'wifi-connect-error',
           title: 'Failed to connect to WiFi',
-          description: error.message || genericErrorMessage,
+          description: error.data?.error || genericErrorMessage,
           icon: 'i-ri-alert-line',
           color: 'error',
           duration: 10000
@@ -178,7 +191,7 @@ export const useWifiStore = defineStore('wifi', () => {
         toast.add({
           id: 'wifi-disconnect-error',
           title: 'Failed to disconnect from WiFi',
-          description: error.message || genericErrorMessage,
+          description: error.data?.error || genericErrorMessage,
           icon: 'i-ri-alert-line',
           color: 'error',
           duration: 10000
@@ -196,7 +209,7 @@ export const useWifiStore = defineStore('wifi', () => {
         toast.add({
           id: 'wifi-forget-error',
           title: 'Failed to forget WiFi network',
-          description: error.message || genericErrorMessage,
+          description: error.data?.error || genericErrorMessage,
           icon: 'i-ri-alert-line',
           color: 'error',
           duration: 10000
