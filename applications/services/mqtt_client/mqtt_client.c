@@ -14,7 +14,22 @@
 
 #define SESSION_FILE APP_DATA_PATH("session.json")
 
-static void mqtt_reconnect_callback(void* data);
+static void mqtt_connect_callback(void* data);
+
+static void mqtt_wifi_event_callback(const void* message, void* context) {
+    MqttClient* mqtt = context;
+    furi_assert(mqtt);
+
+    WifiState wifi_event = *(WifiState*)message;
+
+    MqttClientMessage msg = {
+        .type = MqttClientMessageWifiStateChange,
+        .wifi_state = wifi_event,
+        .lock = NULL,
+    };
+
+    mg_wakeup(&mqtt->mgr, mqtt->wakeup_conn_id, &msg, sizeof(MqttClientMessage));
+}
 
 static void mqtt_status_change_event(MqttClient* mqtt, MqttClientStatus status) {
     mqtt->status = status;
@@ -55,7 +70,6 @@ static void mqtt_device_request_pin(MqttClient* mqtt) {
 static void
     mqtt_device_on_message(MqttClient* mqtt, FuriString* topic_str, struct mg_str* message) {
     UNUSED(mqtt);
-    // FURI_LOG_W(TAG, "%s: %.*s", furi_string_get_cstr(topic_str), message->len, message->buf);
     if(furi_string_end_with(topic_str, "/down/v1/link/otp")) {
         char* pin = mg_json_get_str(*message, "$.code");
         if(pin) {
@@ -85,6 +99,7 @@ static void
 
             // Close MQTT connection to reconnect with new token
             mqtt->conn->is_draining = 1;
+            mqtt->fast_reconnect = true;
         }
     }
 }
@@ -136,13 +151,21 @@ static void mqtt_event_handler(struct mg_connection* conn, int ev, void* ev_data
         FURI_LOG_W(TAG, "MQTT Connection close");
         mqtt_status_change_event(mqtt, MqttClientStatusNotConnected);
         mqtt->conn = NULL;
-        mg_timer_init(
-            &mqtt->mgr.timers,
-            &mqtt->reconnect_delay_timer,
-            MQTT_RECONNECT_DELAY,
-            MG_TIMER_ONCE,
-            mqtt_reconnect_callback,
-            mqtt);
+        if(mqtt->is_wifi_up) {
+            if(mqtt->fast_reconnect) {
+                mqtt->fast_reconnect = false;
+                mqtt_connect_callback(mqtt);
+            } else {
+                mg_timer_init(
+                    &mqtt->mgr.timers,
+                    &mqtt->reconnect_delay_timer,
+                    MQTT_RECONNECT_DELAY,
+                    MG_TIMER_ONCE,
+                    mqtt_connect_callback,
+                    mqtt);
+            }
+        }
+
     } else if(ev == MG_EV_MQTT_CMD) {
         struct mg_mqtt_message* msg = (struct mg_mqtt_message*)ev_data;
         if(msg->cmd == MQTT_CMD_SUBACK) {
@@ -179,7 +202,7 @@ static void mqtt_event_handler(struct mg_connection* conn, int ev, void* ev_data
     }
 }
 
-static void mqtt_reconnect_callback(void* data) {
+static void mqtt_connect_callback(void* data) {
     MqttClient* mqtt = data;
     furi_assert(mqtt);
 
@@ -321,6 +344,16 @@ static void mqtt_conn_wakeup_callback(struct mg_connection* conn, int ev, void* 
     MqttClientMessage* msg = (MqttClientMessage*)(msg_data->buf);
 
     switch(msg->type) {
+    case MqttClientMessageWifiStateChange:
+        if(msg->wifi_state == WifiStateUp) {
+            if((!mqtt->is_wifi_up) && (mqtt->conn == NULL)) {
+                mqtt_connect_callback(mqtt);
+            }
+            mqtt->is_wifi_up = true;
+        } else if(msg->wifi_state == WifiStateDown) {
+            mqtt->is_wifi_up = false;
+        }
+        break;
     case MqttClientMessageGetStatus:
         *(msg->status) = mqtt->status;
         break;
@@ -335,6 +368,7 @@ static void mqtt_conn_wakeup_callback(struct mg_connection* conn, int ev, void* 
     case MqttClientMessageUnlink:
         if(mqtt->conn) {
             mqtt->conn->is_draining = 1;
+            mqtt->fast_reconnect = true;
         }
         Storage* storage = furi_record_open(RECORD_STORAGE);
         storage_common_remove(storage, SESSION_FILE);
@@ -387,13 +421,21 @@ int32_t mqtt_client_start(void* p) {
     mqtt->event_pubsub = furi_pubsub_alloc();
     furi_record_create(RECORD_MQTT, mqtt);
 
-    if(mqtt->status != MqttClientStatusError) {
+    mqtt->wifi = furi_record_open(RECORD_WIFI);
+    mqtt->wifi_event_sub =
+        furi_pubsub_subscribe(wifi_get_pubsub(mqtt->wifi), mqtt_wifi_event_callback, mqtt);
+
+    WifiInfo wifi_info;
+    wifi_get_info(mqtt->wifi, &wifi_info);
+    mqtt->is_wifi_up = (wifi_info.state == WifiStateUp);
+
+    if((mqtt->status != MqttClientStatusError) && (mqtt->is_wifi_up)) {
         mg_timer_init(
             &mqtt->mgr.timers,
             &mqtt->reconnect_delay_timer,
             MQTT_RECONNECT_DELAY,
             MG_TIMER_ONCE | MG_TIMER_RUN_NOW,
-            mqtt_reconnect_callback,
+            mqtt_connect_callback,
             mqtt);
     }
 
@@ -401,14 +443,5 @@ int32_t mqtt_client_start(void* p) {
     while(1) {
         mg_mgr_poll(&mqtt->mgr, 1000);
     }
-
-    // Cleanup
-    mg_mgr_free(&mqtt->mgr);
-
-    network_deinit_current_thread(network);
-    furi_record_close(RECORD_NETWORK);
-
-    free(mqtt);
-
     return 0;
 }
