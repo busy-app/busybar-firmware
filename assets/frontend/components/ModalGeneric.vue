@@ -6,7 +6,7 @@
       description: 'hidden',
       header: 'min-h-20',
       body: 'pt-0 sm:pt-0 overflow-y-scroll',
-      close: showCloseButton ? 'flex top-5 end-5' :'hidden'
+      close: showCloseButton ? 'flex top-6 end-5' :'hidden'
     }"
   >
     <template #title>
@@ -27,18 +27,16 @@
         <slot name="actions" />
       </template>
       <div
-        v-else
+        v-else-if="!props.noActions"
         class="flex justify-end gap-2 mt-8"
       >
         <UButton
           v-bind="props.secondaryActionProps"
           variant="ghost"
           color="neutral"
-          class="px-3 py-2.5 rounded-full"
         />
         <UButton
           v-bind="props.primaryActionProps"
-          class="px-3 py-2.5 rounded-full"
         />
       </div>
     </template>
@@ -55,5 +53,6 @@ const props = defineProps<{
   secondaryActionProps?: ButtonProps;
   showCloseButton?: boolean;
   wide?: boolean;
+  noActions?: boolean;
 }>();
 </script>
