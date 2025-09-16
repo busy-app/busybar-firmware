@@ -29,7 +29,8 @@
           'Build date': system?.build_date,
           'Branch': system?.branch,
           'Commit hash': system?.commit_hash,
-          'Uptime': system?.uptime
+          'Uptime': system?.uptime,
+          'API version': deviceStore.apiVersion?.api_semver
         })"
         :key="property"
         class="flex"
