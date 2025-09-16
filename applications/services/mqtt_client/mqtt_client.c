@@ -1,4 +1,4 @@
-#include "mqtt_i.h"
+#include "mqtt_client_i.h"
 #include <network/network.h>
 #include <storage/storage.h>
 #include <json_helper.h>
@@ -15,6 +15,12 @@
 #define SESSION_FILE APP_DATA_PATH("session.json")
 
 static void mqtt_reconnect_callback(void* data);
+
+static void mqtt_status_change_event(MqttClient* mqtt, MqttClientStatus status) {
+    mqtt->status = status;
+    MqttClientEvent pub_event = {.type = MqttClientEventStatusChange, .status = status};
+    furi_pubsub_publish(mqtt->event_pubsub, &pub_event);
+}
 
 static void mqtt_device_subscribe(MqttClient* mqtt) {
     FuriString* topic = furi_string_alloc_printf(
@@ -54,6 +60,8 @@ static void
         char* pin = mg_json_get_str(*message, "$.code");
         if(pin) {
             FURI_LOG_I(TAG, "Link PIN: %s", pin);
+            MqttClientEvent pub_event = {.type = MqttClientEventLinkPin, .link = {.pin = pin}};
+            furi_pubsub_publish(mqtt->event_pubsub, &pub_event);
         }
     } else if(furi_string_end_with(topic_str, "/down/v1/link/token")) {
         char* session_id = mg_json_get_str(*message, "$.session_id");
@@ -71,6 +79,9 @@ static void
             furi_string_set(mqtt->session_id, session_id);
             furi_string_set(mqtt->link_token, token);
             mqtt->is_linked = true;
+
+            MqttClientEvent pub_event = {.type = MqttClientEventLinkDone};
+            furi_pubsub_publish(mqtt->event_pubsub, &pub_event);
 
             // Close MQTT connection to reconnect with new token
             mqtt->conn->is_draining = 1;
@@ -108,11 +119,11 @@ static void mqtt_event_handler(struct mg_connection* conn, int ev, void* ev_data
         };
         mg_tls_init(conn, &opts);
     } else if(ev == MG_EV_TLS_HS) {
-        FURI_LOG_I(TAG, "TLS handshake done!");
+        FURI_LOG_D(TAG, "TLS handshake done!");
     } else if(ev == MG_EV_MQTT_OPEN) {
         int* conn_code = (int*)ev_data;
         if(*conn_code == 0) {
-            FURI_LOG_D(TAG, "MQTT Connected");
+            FURI_LOG_I(TAG, "MQTT Connected");
             if(mqtt->is_linked) {
                 mqtt_api_subscribe(mqtt);
             } else {
@@ -123,7 +134,7 @@ static void mqtt_event_handler(struct mg_connection* conn, int ev, void* ev_data
         }
     } else if(ev == MG_EV_CLOSE) {
         FURI_LOG_W(TAG, "MQTT Connection close");
-        mqtt->conn_established = false;
+        mqtt_status_change_event(mqtt, MqttClientStatusNotConnected);
         mqtt->conn = NULL;
         mg_timer_init(
             &mqtt->mgr.timers,
@@ -141,15 +152,15 @@ static void mqtt_event_handler(struct mg_connection* conn, int ev, void* ev_data
             FURI_LOG_D(TAG, "MQTT SUBACK: 0x%02X", sub_reason);
 
             if(sub_reason <= 2) {
-                mqtt->conn_established = true;
                 if(!mqtt->is_linked) {
-                    mqtt_device_request_pin(mqtt);
+                    mqtt_status_change_event(mqtt, MqttClientStatusConnectedNotLinked);
+                } else {
+                    mqtt_status_change_event(mqtt, MqttClientStatusConnectedLinked);
                 }
             } else {
                 FURI_LOG_E(TAG, "Subscribe error 0x%02X", sub_reason);
                 conn->is_draining = 1;
             }
-
         } else {
             FURI_LOG_D(TAG, "MQTT CMD: %u", msg->cmd);
         }
@@ -184,6 +195,7 @@ static void mqtt_reconnect_callback(void* data) {
         .user = mg_str(furi_string_get_cstr(username)),
         .pass = mg_str(furi_string_get_cstr(mqtt->link_token)),
         .clean = true,
+        .version = 5,
     };
     mqtt->conn = mg_mqtt_connect(&mqtt->mgr, MQTT_SERVER_ADDR, &opts, mqtt_event_handler, mqtt);
 
@@ -192,9 +204,6 @@ static void mqtt_reconnect_callback(void* data) {
 
 static void mqtt_client_load_session(MqttClient* mqtt) {
     mqtt->is_linked = false;
-    mqtt->client_id = furi_string_alloc();
-    mqtt->session_id = furi_string_alloc();
-    mqtt->link_token = furi_string_alloc();
 
     JsonConfig* cfg = json_config_alloc();
     JsonConfigStatus status = json_config_open(cfg, SESSION_FILE);
@@ -219,9 +228,11 @@ static void mqtt_client_load_session(MqttClient* mqtt) {
     } while(0);
 
     if(!mqtt->is_linked) {
+        furi_string_reset(mqtt->session_id);
+        furi_string_reset(mqtt->link_token);
         json_config_delete(cfg, "sesson_id");
         json_config_delete(cfg, "token");
-        FURI_LOG_W(TAG, "Session data is missing, resetting session");
+        FURI_LOG_W(TAG, "Session data reset");
     }
 
     json_config_free(cfg);
@@ -297,17 +308,67 @@ static bool mqtt_client_load_certs(MqttClient* mqtt) {
     return success;
 }
 
+static void mqtt_conn_wakeup_callback(struct mg_connection* conn, int ev, void* ev_data) {
+    if(ev != MG_EV_WAKEUP) return;
+    MqttClient* mqtt = conn->fn_data;
+    furi_assert(mqtt);
+
+    struct mg_str* msg_data = ev_data;
+
+    furi_assert(msg_data->buf);
+    furi_assert(msg_data->len == sizeof(MqttClientMessage));
+
+    MqttClientMessage* msg = (MqttClientMessage*)(msg_data->buf);
+
+    switch(msg->type) {
+    case MqttClientMessageGetStatus:
+        *(msg->status) = mqtt->status;
+        break;
+    case MqttClientMessageRequestPin:
+        if(mqtt->status == MqttClientStatusConnectedNotLinked) {
+            mqtt_device_request_pin(mqtt);
+            *(msg->bool_param) = true;
+        } else {
+            *(msg->bool_param) = false;
+        }
+        break;
+    case MqttClientMessageUnlink:
+        if(mqtt->conn) {
+            mqtt->conn->is_draining = 1;
+        }
+        Storage* storage = furi_record_open(RECORD_STORAGE);
+        storage_common_remove(storage, SESSION_FILE);
+        furi_record_close(RECORD_STORAGE);
+
+        mqtt_client_load_session(mqtt);
+
+        break;
+    case MqttClientMessageGetSessionId:
+        furi_string_set(msg->str_param, mqtt->session_id);
+        break;
+    }
+
+    if(msg->lock) {
+        api_lock_unlock(msg->lock);
+    }
+}
+
 int32_t mqtt_client_start(void* p) {
     UNUSED(p);
     MqttClient* mqtt = malloc(sizeof(MqttClient));
     mqtt->conn = NULL;
+    mqtt->status = MqttClientStatusNotConnected;
 
     mqtt->device_serial = furi_string_alloc();
     furi_hal_info_get_serial(mqtt->device_serial);
 
+    mqtt->client_id = furi_string_alloc();
+    mqtt->session_id = furi_string_alloc();
+    mqtt->link_token = furi_string_alloc();
+
     if(!mqtt_client_load_certs(mqtt)) {
         FURI_LOG_E(TAG, "Certificates load error");
-        furi_thread_suspend(furi_thread_get_current_id());
+        mqtt->status = MqttClientStatusError;
     }
 
     mqtt_client_load_session(mqtt);
@@ -317,13 +378,24 @@ int32_t mqtt_client_start(void* p) {
 
     mg_mgr_init(&mqtt->mgr); // Initialise event manager
 
-    mg_timer_init(
-        &mqtt->mgr.timers,
-        &mqtt->reconnect_delay_timer,
-        MQTT_RECONNECT_DELAY,
-        MG_TIMER_ONCE | MG_TIMER_RUN_NOW,
-        mqtt_reconnect_callback,
-        mqtt);
+    mg_wakeup_init(&mqtt->mgr);
+    // Create a dummy connection only for wakeup event
+    struct mg_connection* dummy_conn =
+        mg_wrapfd(&mqtt->mgr, MG_INVALID_SOCKET, mqtt_conn_wakeup_callback, mqtt);
+    mqtt->wakeup_conn_id = dummy_conn->id;
+
+    mqtt->event_pubsub = furi_pubsub_alloc();
+    furi_record_create(RECORD_MQTT, mqtt);
+
+    if(mqtt->status != MqttClientStatusError) {
+        mg_timer_init(
+            &mqtt->mgr.timers,
+            &mqtt->reconnect_delay_timer,
+            MQTT_RECONNECT_DELAY,
+            MG_TIMER_ONCE | MG_TIMER_RUN_NOW,
+            mqtt_reconnect_callback,
+            mqtt);
+    }
 
     // Event loop
     while(1) {

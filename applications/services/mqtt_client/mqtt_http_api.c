@@ -1,4 +1,4 @@
-#include "mqtt_i.h"
+#include "mqtt_client_i.h"
 
 #define TAG "MqttApi"
 
@@ -150,7 +150,7 @@ static void mqtt_api_http_handler(struct mg_connection* conn, int ev, void* ev_d
         struct mg_http_message* msg = (struct mg_http_message*)ev_data;
         FURI_LOG_T(TAG, "HTTP resp: %.*s", (int)msg->body.len, msg->body.buf);
 
-        if((http_ctx->mqtt->conn_established) && (http_ctx->mqtt->conn)) {
+        if(http_ctx->mqtt->conn) {
             struct mg_mqtt_opts pub_opts = {
                 .topic = mg_str(furi_string_get_cstr(http_ctx->response_topic)),
                 .message = msg->body,
