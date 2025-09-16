@@ -1,7 +1,7 @@
 #include "brightness.h"
 #include "common.h"
 
-#define BACK_BRIGHTNESS_RANGE_MIN 0
+#define BACK_BRIGHTNESS_RANGE_MIN 5
 #define BACK_BRIGHTNESS_RANGE_MAX 100
 
 #define FRONT_BRIGHTNESS_RANGE_MIN 25
@@ -32,6 +32,7 @@ void settings_brightness_set_auto_mode(SettingsApp* instance) {
 
     back_display_set_brightness(instance->back_display, BACK_DISPLAY_BRIGHTNESS_AUTO);
     front_display_set_brightness(instance->front_display, FRONT_DISPLAY_BRIGHTNESS_AUTO);
+    status_lights_set_brightness(instance->status_lights, STATUS_LIGHTS_BRIGHTNESS_AUTO);
 }
 
 SettingsBrightnessMode settings_brightness_get_mode(SettingsApp* instance) {
