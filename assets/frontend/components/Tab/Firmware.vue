@@ -1,7 +1,7 @@
 <template>
   <SectionCard
     title="Firmware"
-    subtitle="V1.2-26070"
+    :subtitle="system?.version === 'unknown' ? `${system.branch} ${system.commit_hash}` : system?.version"
     icon="i-ri-cpu-line"
   >
     <template #actions>
@@ -25,25 +25,11 @@
     <div class="grid sm:grid-cols-2 gap-y-3 gap-x-1">
       <div
         v-for="[property, value] in Object.entries({
-          'Version': 'V1.2-26070',
-          'Build date': '9 Jun 2025',
-          'Language': 'English',
-          'Timezone': 'UTC+0'
-        })"
-        :key="property"
-        class="flex"
-      >
-        <div class="w-[120px] text-muted">{{ property }}</div>
-        <div class="max-w-[140px] md:max-w-[180px] text-ellipsis overflow-hidden">{{ value }}</div>
-      </div>
-    </div>
-    <div class="grid sm:grid-cols-2 gap-y-3 gap-x-1">
-      <div
-        v-for="[property, value] in Object.entries({
-          'Version': 'V1.2-26070',
-          'Build date': '9 Jun 2025',
-          'Language': 'English',
-          'Timezone': 'UTC+0'
+          'Version': system?.version,
+          'Build date': system?.build_date,
+          'Branch': system?.branch,
+          'Commit hash': system?.commit_hash,
+          'Uptime': system?.uptime
         })"
         :key="property"
         class="flex"
@@ -54,3 +40,14 @@
     </div>
   </SectionCard>
 </template>
+
+<script setup lang="ts">
+const deviceStore = useDeviceStore();
+
+const system = computed(() => deviceStore.deviceStatus?.system);
+
+onMounted(async () => {
+  await deviceStore.getApiVersion();
+  await deviceStore.getDeviceStatus();
+});
+</script>
