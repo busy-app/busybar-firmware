@@ -75,6 +75,11 @@ const props = defineProps<{
   icon?: string;
 }>();
 
-const headerExists = !!(props.title || props.subtitle || props.icon || useSlots().subtitle || useSlots().actions);
-const bodyExists = !!(useSlots().default || useSlots()['raw-body']);
+const headerExists = !!(props.title || props.subtitle || props.icon || isEmptySlot('subtitle') || isEmptySlot('leading-actions') || isEmptySlot('actions'));
+const bodyExists = computed(() => isEmptySlot('default') === false || isEmptySlot('raw-body') === false);
+
+function isEmptySlot (slotName: string): boolean {
+  const slot = useSlots()[slotName]?.();
+  return !(slot && slot.length && slot.some(vnode => vnode.children && vnode.children !== 'v-if' && vnode.children.length));
+}
 </script>
