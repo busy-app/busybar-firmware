@@ -9,6 +9,7 @@ export interface SystemStatus {
   version: string;
   build_date: string;
   commit_hash: string;
+  uptime: string;
 }
 
 export interface PowerStatus {
