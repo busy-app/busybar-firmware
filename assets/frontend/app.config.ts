@@ -13,12 +13,14 @@ export default defineAppConfig({
       close: 'i-ri-close-line',
       ellipsis: 'i-ri-more-fill',
       external: 'i-ri-external-link-line',
+      file: 'i-ri-file-2-line',
       folder: 'i-ri-folder-2-line',
       folderOpen: 'i-ri-folder-open-line',
       loading: 'i-busy-loader',
       minus: 'i-ri-subtract-fill',
       plus: 'i-ri-add-fill',
-      search: 'i-ri-search-line'
+      search: 'i-ri-search-line',
+      upload: 'i-ri-upload-2-line'
     },
     colors: {
       primary: 'brand',
