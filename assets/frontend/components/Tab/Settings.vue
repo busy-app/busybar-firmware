@@ -13,25 +13,28 @@
             icon="i-ri-volume-mute-line"
             variant="subtle"
             size="sm"
-            color="neutral"
+            :color="mute.isMuted ? 'primary' : 'neutral'"
             class="rounded-full"
+            @click="mute.isMuted ? onUpdateAudioSlider(mute.volumeBeforeMute) : setVolumeToMute()"
           />
         </div>
 
         <div class="flex flex-col gap-2.5">
           <div class="flex justify-between items-center">
             <div class="text-lg font-medium">Sound</div>
-            <div class="text-muted">55%</div>
+            <div class="text-muted">{{ volumeNumber }}%</div>
           </div>
 
           <USlider
-            :default-value="55"
+            v-model="nextVolumeNumber"
+            :default-value="volumeNumber"
             :ui="{
               root: '',
               track: 'h-[14px]',
-              range: 'rounded-r-none',
-              thumb: 'bg-primary ring-4 ring-white size-[6px] focus-visible:outline-none'
+              range: `${mute.isMuted ? 'bg-neutral' : 'bg-primary'} rounded-r-none`,
+              thumb: `${mute.isMuted ? 'bg-neutral' : 'bg-primary'} ring-4 ring-white size-[6px] focus-visible:outline-none`
             }"
+            @update:model-value="onUpdateAudioSlider"
           />
         </div>
       </div>
@@ -48,25 +51,28 @@
             icon="i-ri-input-method-line"
             variant="subtle"
             size="sm"
-            color="neutral"
+            :color="isBrightnessAuto ? 'primary' : 'neutral'"
             class="rounded-full"
+            @click="isBrightnessAuto ? onUpdateBrightnessSlider(50) : setBrightnessToAuto()"
           />
         </div>
 
         <div class="flex flex-col gap-2.5">
           <div class="flex justify-between items-center">
             <div class="text-lg font-medium">Brightness</div>
-            <div class="text-muted">80%</div>
+            <div class="text-muted">{{ brightnessNumber }}%</div>
           </div>
 
           <USlider
-            :default-value="80"
+            v-model="nextBrightnessNumber"
+            :default-value="brightnessNumber"
             :ui="{
               root: '',
               track: 'h-[14px]',
-              range: 'rounded-r-none',
-              thumb: 'bg-primary ring-4 ring-white size-[6px] focus-visible:outline-none'
+              range: `${isBrightnessAuto ? 'bg-neutral' : 'bg-primary'} rounded-r-none`,
+              thumb: `${isBrightnessAuto ? 'bg-neutral' : 'bg-primary'} ring-4 ring-white size-[6px] focus-visible:outline-none`
             }"
+            @update:model-value="onUpdateBrightnessSlider"
           />
         </div>
       </div>
@@ -124,3 +130,132 @@
     </div>
   </SectionCard>
 </template>
+
+<script setup lang="ts">
+const deviceStore = useDeviceStore();
+
+const loading = ref({
+  audio: false,
+  brightness: false
+});
+
+async function refreshAudioVolume () {
+  loading.value.audio = true;
+  deviceStore.audio = await deviceStore.getAudioVolume();
+  loading.value.audio = false;
+}
+
+const nextVolumeNumber = ref<number | undefined>(undefined);
+const volumeNumber = computed(() => {
+  if (mute.value.isMuted) {
+    return mute.value.volumeBeforeMute;
+  } else {
+    return deviceStore.audio?.volume === undefined ? 50 : deviceStore.audio?.volume;
+  }
+});
+const mute = ref({
+  isMuted: false,
+  volumeBeforeMute: 50
+});
+
+function onUpdateAudioSlider (value: number | number[]) {
+  nextVolumeNumber.value = Array.isArray(value) ? value[0] : value;
+  if (loading.value.audio === true) {
+    return;
+  }
+  setAudioVolume();
+}
+
+async function setAudioVolume () {
+  if (loading.value.audio || nextVolumeNumber.value === undefined) {
+    return;
+  }
+  mute.value.isMuted = false;
+
+  loading.value.audio = true;
+  const v = nextVolumeNumber.value;
+  nextVolumeNumber.value = undefined;
+
+  await deviceStore.setAudioVolume(v);
+  deviceStore.audio = { volume: v };
+
+  setTimeout(() => {
+    loading.value.audio = false;
+    if (nextVolumeNumber.value !== undefined) {
+      setAudioVolume();
+    }
+  }, 250);
+}
+
+async function setVolumeToMute () {
+  loading.value.audio = true;
+  mute.value.volumeBeforeMute = volumeNumber.value;
+  await deviceStore.setAudioVolume(0);
+  mute.value.isMuted = true;
+  loading.value.audio = false;
+}
+
+async function refreshDisplayBrightness () {
+  loading.value.brightness = true;
+  deviceStore.displayBrightness = await deviceStore.getDisplayBrightness();
+  loading.value.brightness = false;
+}
+
+const nextBrightnessNumber = ref<number | undefined>(undefined);
+const brightnessNumber = computed(() => isNaN(Number(deviceStore.displayBrightness?.front)) ? 50 : Number(deviceStore.displayBrightness?.front));
+const isBrightnessAuto = computed(() => deviceStore.displayBrightness?.front === 'auto');
+
+function onUpdateBrightnessSlider (value: number | number[]) {
+  nextBrightnessNumber.value = Array.isArray(value) ? value[0] : value;
+  if (loading.value.brightness === true) {
+    return;
+  }
+  setDisplayBrightness();
+}
+
+async function setDisplayBrightness () {
+  if (loading.value.brightness || nextBrightnessNumber.value === undefined) {
+    return;
+  }
+
+  loading.value.brightness = true;
+  const b = nextBrightnessNumber.value;
+  nextBrightnessNumber.value = undefined;
+
+  await deviceStore.setDisplayBrightness({
+    front: b,
+    back: b
+  });
+  deviceStore.displayBrightness = {
+    front: b,
+    back: b
+  };
+
+  setTimeout(() => {
+    loading.value.brightness = false;
+    if (nextBrightnessNumber.value !== undefined) {
+      setDisplayBrightness();
+    }
+  }, 250);
+}
+
+async function setBrightnessToAuto () {
+  loading.value.brightness = true;
+  await deviceStore.setDisplayBrightness({
+    front: 'auto',
+    back: 'auto'
+  });
+  deviceStore.displayBrightness = {
+    front: 'auto',
+    back: 'auto'
+  };
+  nextBrightnessNumber.value = 50;
+  loading.value.brightness = false;
+}
+
+onMounted(async () => {
+  await deviceStore.getDeviceStatus();
+  await refreshAudioVolume();
+  await refreshDisplayBrightness();
+});
+</script>
