@@ -2,7 +2,6 @@
   <div
     class="va-progress-circle"
     :style="rootStyle"
-    :class="rootClass"
   >
     <svg
       class="va-progress-circle__wrapper"
@@ -47,7 +46,6 @@
 const props = defineProps({
   size: { type: String, default: '24px' },
   modelValue: { type: [Number, String], default: 0 },
-  indeterminate: { type: Boolean, default: false },
   thickness: { type: [Number, String], default: 0.3 },
   color: { type: String, default: '#6A7282' },
   trackColor: { type: String, default: '' }
@@ -64,18 +62,9 @@ const rootStyle = computed(() => ({
   height: props.size
 }));
 
-const rootClass = computed(() => ({
-  'va-progress-circle--indeterminate': props.indeterminate
-}));
-
 const clamp = (value: number, min: number, max: number) => {
   return Math.min(Math.max(value, min), max);
 };
-
-watch(() => props.modelValue, newValue => {
-  console.warn(`[VaProgressCircle]: modelValue is ${newValue}`);
-  console.log(dasharray.value, dashoffset.value);
-});
 </script>
 
 <style>
