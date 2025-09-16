@@ -1,10 +1,14 @@
 #include "status_lights.h"
 #include "status_lights_common_private.h"
 
-#include <toolbox/api_lock.h>
-
 #include <intercom/intercom.h>
 #include <light_sensor/light_sensor.h>
+#include <storage/storage.h>
+
+#include <api_lock.h>
+#include <json_helper.h>
+
+#define STATUS_LIGHTS_CONFIG_FILE APP_DATA_PATH("config.json")
 
 #define AUTO_BRIGHTNESS_MIN_LEVEL (1)
 #define AUTO_BRIGHTNESS_MAX_LEVEL (100)
@@ -76,6 +80,8 @@ static void status_lights_send_command(StatusLights* instance, StatusLightsComma
 
 static void status_lights_do_set_brightness(StatusLights* instance, StatusLightsMessage* message) {
     instance->brightness = message->as_set_brightness.brightness;
+
+    json_config_write_single_int(STATUS_LIGHTS_CONFIG_FILE, "brightness", instance->brightness);
 
     StatusLightsCommand command = {
         .id = StatusLightsCommandIdSetBrightness,
@@ -191,7 +197,14 @@ static StatusLights* status_lights_alloc() {
     UNUSED(status_lights_light_sensor_event);
 #endif
 
-    status_lights_set_brightness(instance, instance->brightness);
+    int stored_brightness;
+    json_config_read_single_int(
+        STATUS_LIGHTS_CONFIG_FILE,
+        "brightness",
+        &stored_brightness,
+        &(int){STATUS_LIGHTS_BRIGHTNESS_AUTO});
+
+    status_lights_set_brightness(instance, stored_brightness);
 
     furi_record_create(RECORD_STATUS_LIGHTS, instance);
 
