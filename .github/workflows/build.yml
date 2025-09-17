@@ -16,6 +16,8 @@ env:
 jobs:
   main:
     runs-on: BsbShell
+    env:
+      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     strategy:
       fail-fast: false
       matrix:
