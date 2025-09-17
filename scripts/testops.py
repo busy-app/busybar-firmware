@@ -7,12 +7,15 @@ Usage:
   python testops.py get-version [--host HOST] [--telnet-port PORT] [-t TIMEOUT]
   python testops.py power [COMMAND ...] [--host HOST] [--telnet-port PORT] [-t TIMEOUT]
   python testops.py update-bundle PATH.json [--host HOST] [--telnet-port PORT] [--update-timeout SECONDS]
+  python testops.py unit-tests [--host HOST] [--telnet-port PORT] [-t TIMEOUT]
+  python testops.py device_info [--host HOST] [--telnet-port PORT] [-t TIMEOUT]
 
 Environment:
   BUSYBAR_IP   Default host if --host is not provided (default: 10.0.4.20)
   BUSIBAR_PORT Default port if --port is not provided (default: 23)
   LOG_LEVEL    Logging level name (e.g., INFO, DEBUG). Default: INFO
 """
+
 import argparse
 import dataclasses
 import logging
@@ -23,7 +26,9 @@ import subprocess
 import sys
 import telnetlib
 import time
+from time import sleep
 from typing import List, Optional, Tuple
+
 
 def _setup_root_logger() -> logging.Logger:
     level_name = os.getenv("LOG_LEVEL", "INFO").upper()
@@ -48,7 +53,7 @@ class TelnetSettings:
     timeout: int = 10  # seconds
     prompt_patterns: Tuple[re.Pattern, ...] = dataclasses.field(
         default_factory=lambda: (
-            re.compile(rb">:"),       # '>:'
+            re.compile(rb">:"),  # '>:'
         )
     )
 
@@ -65,6 +70,7 @@ class CommandResult:
     command: str
     stdout: str
     duration_sec: float
+
 
 class TelnetClient:
     def __init__(self, settings: TelnetSettings, logger: Optional[logging.Logger] = None):
@@ -86,7 +92,8 @@ class TelnetClient:
 
     def connect(self) -> None:
         try:
-            self._logger.debug(f"Connecting to {self.settings.host}:{self.settings.port} (timeout={self.settings.timeout})")
+            self._logger.debug(
+                f"Connecting to {self.settings.host}:{self.settings.port} (timeout={self.settings.timeout})")
             self._tn = telnetlib.Telnet(self.settings.host, self.settings.port, timeout=self.settings.timeout)
             self._welcome = self._read_until_prompt(timeout=3.0)
         except Exception as e:
@@ -115,16 +122,21 @@ class TelnetClient:
         self._logger.debug(f">> {command}")
         self._tn.write(command.encode("utf-8") + b"\r\n")
 
-    def run(self, command: str, timeout: Optional[float] = None) -> CommandResult:
+    def run(self, command: str, timeout: Optional[float] = 10) -> CommandResult:
         if not self._tn:
             raise RuntimeError("Telnet not connected")
 
         start = time.perf_counter()
         self.sendline(command)
-        raw = self._read_until_prompt(timeout=timeout or self.settings.timeout)
+        try:
+            raw = self._read_until_prompt(timeout=timeout or self.settings.timeout)
+        except TimeoutError as e:
+            self._logger.error(f"Timeout waiting for command '{command}' to complete: {e}")
+            return CommandResult(ok=False, command=command, stdout="", duration_sec=time.perf_counter() - start)
         duration = time.perf_counter() - start
         cleaned = self._clean_command_output(raw, command)
         self._logger.debug(f"<< {cleaned.strip()}")
+        end = time.perf_counter()
         return CommandResult(ok=True, command=command, stdout=cleaned, duration_sec=duration)
 
     def _read_until_prompt(self, timeout: float) -> bytes:
@@ -164,6 +176,125 @@ class TelnetClient:
 
         return "\n".join(lines)
 
+    def run_until_pattern(self, command: str, pattern: str, timeout: float, error_patterns: list = None) -> CommandResult:
+        """
+        Send a command and wait for a specific pattern in the output instead of waiting for prompt.
+        Useful for commands that don't return to prompt (like update commands).
+
+        Args:
+            command: The command to send
+            pattern: The text pattern to wait for in the output
+            timeout: Maximum time to wait for the pattern
+            error_patterns: List of error patterns that should cause immediate failure
+
+        Returns:
+            CommandResult with ok=True if pattern found, ok=False if timeout or error pattern found
+        """
+        if not self._tn:
+            raise RuntimeError("Telnet not connected")
+
+        start = time.perf_counter()
+        self.sendline(command)
+
+        accumulated = b""
+        pattern_bytes = pattern.encode("utf-8")
+        error_patterns_bytes = [err.encode("utf-8") for err in (error_patterns or [])]
+
+        while time.perf_counter() - start < timeout:
+            try:
+                # Read any available data without blocking
+                data = self._tn.read_very_eager()
+                if data:
+                    accumulated += data
+                    self._logger.debug(f"Read: {data.decode('utf-8', errors='ignore')}")
+
+                    # Check for error patterns first
+                    for error_pattern in error_patterns_bytes:
+                        if error_pattern in accumulated:
+                            duration = time.perf_counter() - start
+                            cleaned = self._clean_command_output(accumulated, command)
+                            self._logger.error(f"Error pattern '{error_pattern.decode('utf-8')}' found after {duration:.2f}s")
+                            return CommandResult(ok=False, command=command, stdout=cleaned, duration_sec=duration)
+
+                    # Check if we found the success pattern
+                    if pattern_bytes in accumulated:
+                        duration = time.perf_counter() - start
+                        cleaned = self._clean_command_output(accumulated, command)
+                        self._logger.info(f"Pattern '{pattern}' found after {duration:.2f}s")
+                        return CommandResult(ok=True, command=command, stdout=cleaned, duration_sec=duration)
+
+                time.sleep(0.1)  # Small delay to avoid busy waiting
+            except Exception as e:
+                self._logger.debug(f"Error reading data: {e}")
+                break
+
+        # Timeout occurred
+        duration = time.perf_counter() - start
+        cleaned = self._clean_command_output(accumulated, command) if accumulated else ""
+        self._logger.warning(f"Pattern '{pattern}' not found within {timeout}s timeout")
+        return CommandResult(ok=False, command=command, stdout=cleaned, duration_sec=duration)
+
+
+    def run_interactive(self, command: str, responses: dict, timeout: float = None) -> CommandResult:
+        """
+        Run a command that requires interactive responses.
+
+        Args:
+            command: The initial command to send
+            responses: Dict mapping expected prompts (as regex patterns) to responses
+            timeout: Overall timeout for the entire interaction
+
+        Returns:
+            CommandResult with accumulated output
+        """
+        if not self._tn:
+            raise RuntimeError("Telnet not connected")
+
+        start = time.perf_counter()
+        timeout = timeout or self.settings.timeout
+        self.sendline(command)
+
+        accumulated = b""
+
+        # Compile response patterns
+        response_patterns = [(re.compile(pattern.encode('utf-8')), response)
+                             for pattern, response in responses.items()]
+
+        while time.perf_counter() - start < timeout:
+            try:
+                data = self._tn.read_very_eager()
+                if data:
+                    accumulated += data
+                    decoded = accumulated.decode('utf-8', errors='ignore')
+                    self._logger.debug(f"Read: {data.decode('utf-8', errors='ignore')}")
+
+                    for pattern, response in response_patterns:
+                        if pattern.search(accumulated):
+                            self._logger.info(f"Found prompt pattern, sending: {response}")
+                            self.sendline(response)
+                            # Remove this pattern from list after responding
+                            response_patterns.remove((pattern, response))
+                            break
+
+                    # Check if we're back at the main prompt (command complete)
+                    for prompt_pattern in self.settings.prompt_patterns:
+                        if prompt_pattern.search(accumulated):
+                            duration = time.perf_counter() - start
+                            cleaned = self._clean_command_output(accumulated, command)
+                            self._logger.info(f"Command completed after {duration:.2f}s")
+                            return CommandResult(ok=True, command=command, stdout=cleaned, duration_sec=duration)
+
+                time.sleep(0.1)
+            except Exception as e:
+                self._logger.error(f"Error during interactive command: {e}")
+                break
+
+        duration = time.perf_counter() - start
+        cleaned = self._clean_command_output(accumulated, command) if accumulated else ""
+        self._logger.warning(f"Interactive command timed out after {timeout}s")
+        return CommandResult(ok=False, command=command, stdout=cleaned, duration_sec=duration)
+
+
 class BusyBarDevice:
     """
     High-level device operations executed via a TelnetClient transport.
@@ -174,7 +305,7 @@ class BusyBarDevice:
         re.compile(r"Version:\s*([^\n\r]+)", re.IGNORECASE),
         re.compile(r"\bv(?P<v>\d+\.\d+\.\d+(?:\.\d+)?)\b", re.IGNORECASE),
     )
-    _STATUS_RE = re.compile(r"^\s*Status:\s*([A-Za-z]+)\b", re.IGNORECASE | re.MULTILINE)
+    _STATUS_RE = re.compile(r"^\s*Status:\s*(?:\x1b\[[0-9;]*m)?([A-Za-z]+)(?:\x1b\[[0-9;]*m)?\b", re.IGNORECASE | re.MULTILINE)
 
     def __init__(self, config: BusyBarConfig):
         self.config = config
@@ -228,16 +359,35 @@ class BusyBarDevice:
             res = tn.run(cmd, timeout=timeout)
             return res.ok, (res.stdout or "(Command executed successfully, no output)")
 
-    def update_bundle(self, bundle_path: str, timeout: int) -> Tuple[bool, str]:
+    def update_bundle(self, bundle_path: str, timeout: int = 10) -> Tuple[bool, str]:
         """
-        Runs 'update install <bundle.json>' and waits for prompt again.
+        Runs 'update install <bundle.json>' and waits for 'Updater configuration valid' message.
+        Returns immediately with error if 'Failed to load updater configuration: Manifest path invalid' is detected.
+        Closes connection immediately after seeing success message since device won't return to prompt.
         """
         cmd = f"update install {bundle_path}"
         with self._telnet(timeout=timeout) as tn:
             _ = tn.read_welcome()
             self._logger.info(f"Executing: {cmd}")
-            res = tn.run(cmd, timeout=timeout)
-            return res.ok, (res.stdout or "(Update command sent successfully, no immediate output)")
+
+            # Define error patterns that should cause immediate failure
+            error_patterns = [
+                "Failed to load updater configuration: Manifest path invalid"
+            ]
+
+            # Use the method with error pattern detection
+            res = tn.run_until_pattern(cmd, "Updater configuration valid", timeout=timeout, error_patterns=error_patterns)
+
+            if res.ok:
+                return True, res.stdout if res.stdout else "Update initiated successfully - 'Updater configuration valid' detected"
+            else:
+                # Check if the error was due to invalid manifest path
+                if "Failed to load updater configuration: Manifest path invalid" in res.stdout:
+                    return False, f"Update failed: Invalid manifest path. Output: {res.stdout}"
+                elif res.stdout:
+                    return False, f"Update command failed or timed out. Output: {res.stdout}"
+                else:
+                    return False, "Update command timed out with no output"
 
     def run_unit_tests(self, timeout: int) -> Tuple[bool, str]:
         """
@@ -253,14 +403,63 @@ class BusyBarDevice:
             if m:
                 status = m.group(1).upper()
                 if status == "PASSED":
-                    return True, "PASSED"
+                    return True, out  # Return full output even when passed
                 return False, out
 
             # Fallback heuristic if explicit status is absent
             if re.search(r"\bPASSED\b", out):
-                return True, "PASSED"
+                return True, out  # Return full output even when passed
 
             return False, out
+
+    def get_device_info(self, timeout: int) -> Tuple[bool, str]:
+        """
+        Runs 'device_info' and returns the output.
+        """
+        with self._telnet(timeout=timeout) as tn:
+            res = tn.run("device_info", timeout=timeout)
+            return res.ok, (res.stdout or "(No output received)")
+
+    def uptime(self, timeout: int) -> Tuple[bool, str]:
+        """
+        Runs 'uptime' and returns the output.
+        """
+        with self._telnet(timeout=timeout) as tn:
+            res = tn.run("uptime", timeout=timeout)
+            return res.ok, (res.stdout or "(No output received)")
+
+    def storage_format(self, path: str = "/ext", timeout: int = 30) -> Tuple[bool, str]:
+        """
+        Format storage partition with confirmation.
+
+        Args:
+            path: Path to format (default: /ext)
+            timeout: Timeout in seconds (default: 30)
+
+        Returns:
+            Tuple of (success, output_message)
+        """
+        cmd = f"storage format {path}"
+
+        # Define expected prompts and responses
+        responses = {
+            r"Are you sure \(y/n\)\?": "y"
+        }
+
+        with self._telnet(timeout=timeout) as tn:
+            _ = tn.read_welcome()
+            self._logger.info(f"Executing: {cmd}")
+
+            res = tn.run_interactive(cmd, responses, timeout=timeout)
+
+            if res.ok:
+                # Check for success message in output
+                if "successfully formatted" in res.stdout.lower():
+                    return True, res.stdout
+                else:
+                    return False, f"Format command completed but success not confirmed. Output: {res.stdout}"
+            else:
+                return False, f"Format command failed or timed out. Output: {res.stdout}"
 
 
 class BusyBarWaiter:
@@ -289,6 +488,7 @@ class BusyBarWaiter:
             return False
 
     def wait_for_busybar(self, host: str, port: int, timeout: int) -> bool:
+        sleep(2)  # Initial wait to avoid immediate success
         start = time.time()
         self._logger.info(f"Waiting for BusyBar at {host}:{port} (timeout {timeout}s)...")
 
@@ -310,6 +510,7 @@ class BusyBarWaiter:
 
             time.sleep(2)
 
+
 class BusyBarTestOps:
     """
     Encapsulates ALL CLI command logic and wiring.
@@ -318,6 +519,8 @@ class BusyBarTestOps:
 
     def __init__(self) -> None:
         self._logger = LOG.getChild("ops")
+        self.default_host = os.getenv("BUSYBAR_IP", "10.0.4.20")
+        self.default_port = int(os.getenv("BUSYBAR_TELNET_PORT", "23"))
 
     def build_parser(self) -> argparse.ArgumentParser:
         parser = argparse.ArgumentParser(
@@ -332,7 +535,6 @@ class BusyBarTestOps:
             required=True,
         )
 
-        # wait
         p_wait = subparsers.add_parser(
             "wait",
             help="Wait for BusyBar to come online",
@@ -340,7 +542,7 @@ class BusyBarTestOps:
         )
         p_wait.add_argument(
             "--host",
-            default=os.getenv("BUSYBAR_IP", "10.0.4.20"),
+            default=self.default_host,
             help="BusyBar IP address or hostname",
             dest="host",
         )
@@ -354,32 +556,32 @@ class BusyBarTestOps:
             help="Get firmware version from device via telnet",
             description="Connect to device via telnet and extract firmware version from welcome message",
         )
-        p_ver.add_argument("--host", default=os.getenv("BUSYBAR_IP", "10.0.4.20"), help="Device IP/host")
-        p_ver.add_argument("--telnet-port", type=int, default=23, help="Telnet port (default: 23)")
+        p_ver.add_argument("--host", default=self.default_host, help="Device IP/host")
+        p_ver.add_argument("--telnet-port", type=int, default=self.default_port, help="Telnet port (default: 23)")
         p_ver.add_argument("-t", "--timeout", type=int, default=10, help="Connection timeout in seconds (default: 10)")
         p_ver.set_defaults(func=self._cmd_get_version)
 
-        # power
         p_power = subparsers.add_parser(
             "power",
             help="Execute power-related commands on device",
             description="Execute power commands (info, off, reboot, boot, ch, ch_current, pd_info, pd_set) via telnet",
         )
-        p_power.add_argument("power_cmd", nargs="*", help='Power command and arguments (e.g., "reboot", "ch on", "pd_info")')
-        p_power.add_argument("--host", default=os.getenv("BUSYBAR_IP", "10.0.4.20"), help="Device IP/host")
-        p_power.add_argument("--telnet-port", type=int, default=23, help="Telnet port (default: 23)")
-        p_power.add_argument("-t", "--timeout", type=int, default=10, help="Connection timeout in seconds (default: 10)")
+        p_power.add_argument("power_cmd", nargs="*",
+                             help='Power command and arguments (e.g., "reboot", "ch on", "pd_info")')
+        p_power.add_argument("--host", default=self.default_host, help="Device IP/host")
+        p_power.add_argument("--telnet-port", type=int, default=self.default_port, help="Telnet port (default: 23)")
+        p_power.add_argument("-t", "--timeout", type=int, default=10,
+                             help="Connection timeout in seconds (default: 10)")
         p_power.set_defaults(func=self._cmd_power)
 
-        # update-bundle
         p_upd = subparsers.add_parser(
             "update-bundle",
             help="Update firmware with bundle file",
             description="Execute firmware update with specified bundle file via telnet",
         )
-        p_upd.add_argument("bundle_path", help="Path to the bundle.json file")
-        p_upd.add_argument("--host", default=os.getenv("BUSYBAR_IP", "10.0.4.20"), help="Device IP/host")
-        p_upd.add_argument("--telnet-port", type=int, default=23, help="Telnet port (default: 23)")
+        p_upd.add_argument("bundle_path", default="/ext/tmp/upd_bundle", help="Path to the bundle.json file")
+        p_upd.add_argument("--host", default=self.default_host, help="Device IP/host")
+        p_upd.add_argument("--telnet-port", type=int, default=self.default_port, help="Telnet port (default: 23)")
         p_upd.add_argument("--update-timeout", type=int, default=120, help="Update timeout in seconds (default: 120)")
         p_upd.set_defaults(func=self._cmd_update_bundle)
 
@@ -389,10 +591,64 @@ class BusyBarTestOps:
             description="Runs 'unit_tests' via telnet; prints 'PASSED' if tests passed else prints full output",
             aliases=["unit_tests", "tests"],
         )
-        p_tests.add_argument("--host", default=os.getenv("BUSYBAR_IP", "10.0.4.20"), help="Device IP/host")
-        p_tests.add_argument("--telnet-port", type=int, default=23, help="Telnet port (default: 23)")
+        p_tests.add_argument("--host", default=self.default_host, help="Device IP/host")
+        p_tests.add_argument("--telnet-port", type=int, default=self.default_port, help="Telnet port (default: 23)")
         p_tests.add_argument("-t", "--timeout", type=int, default=120, help="Timeout in seconds (default: 120)")
         p_tests.set_defaults(func=self._cmd_unit_tests)
+
+        p_devinfo = subparsers.add_parser(
+            "device_info",
+            help="Get device information via telnet",
+            description="Runs 'device_info' command via telnet and prints the output",
+            aliases=["device-info", "info"],
+        )
+        p_devinfo.add_argument("--host", default=self.default_host, help="Device IP/host")
+        p_devinfo.add_argument("--telnet-port", type=int, default=self.default_port, help="Telnet port (default: 23)")
+        p_devinfo.add_argument("-t", "--timeout", type=int, default=10, help="Timeout in seconds (default: 10)")
+        p_devinfo.set_defaults(func=self._cmd_device_info)
+
+        p_sanity = subparsers.add_parser(
+            "sanity-check",
+            help="Perform a sanity check on the device",
+            description="Checks device_info and version for expected fields",
+            aliases=["sanity", "check"],
+        )
+        p_sanity.add_argument("--host", default=self.default_host, help="Device IP/host")
+        p_sanity.add_argument("--telnet-port", type=int, default=self.default_port, help="Telnet port (default: 23)")
+        p_sanity.add_argument("-t", "--timeout", type=int, default=10, help="Timeout in seconds (default: 10)")
+        p_sanity.set_defaults(func=self._cmd_sanity_check)
+
+        p_uptime = subparsers.add_parser(
+            "uptime",
+            help="Get device uptime via telnet",
+            description="Runs 'uptime' command via telnet and prints the output",
+            aliases=["up"],
+        )
+        p_uptime.add_argument("--host", default=self.default_host, help="Device IP/host")
+        p_uptime.add_argument("--telnet-port", type=int, default=self.default_port, help="Telnet port (default: 23)")
+        p_uptime.add_argument("-t", "--timeout", type=int, default=10, help="Timeout in seconds (default: 10)")
+        p_uptime.set_defaults(func=self._cmd_uptime)
+
+        p_format = subparsers.add_parser(
+            "storage-format",
+            help="Format storage partition (with automatic confirmation)",
+            description="Executes 'storage format' command and automatically confirms the operation",
+            aliases=["format"],
+        )
+        p_format.add_argument(
+            "--path",
+            default="/ext",
+            help="Path to format (default: /ext)"
+        )
+        p_format.add_argument("--host", default=self.default_host, help="Device IP/host")
+        p_format.add_argument("--telnet-port", type=int, default=self.default_port, help="Telnet port (default: 23)")
+        p_format.add_argument("-t", "--timeout", type=int, default=30, help="Timeout in seconds (default: 30)")
+        p_format.add_argument(
+            "--no-confirm",
+            action="store_true",
+            help="Skip confirmation prompt (for testing - not recommended)"
+        )
+        p_format.set_defaults(func=self._cmd_storage_format)
 
         return parser
 
@@ -434,17 +690,64 @@ class BusyBarTestOps:
     def _cmd_unit_tests(self, args: argparse.Namespace) -> int:
         device = self._make_device_from_args(args.host, args.telnet_port, args.timeout)
         passed, output = device.run_unit_tests(timeout=args.timeout)
-        if passed:
-            print("PASSED")
-            return 0
-        # Not passed or status unknown: print full output
         print(output if output else "(No output received)")
-        return 1
+        return 0 if passed else 1
 
+    def _cmd_device_info(self, args: argparse.Namespace) -> int:
+        device = self._make_device_from_args(args.host, args.telnet_port, args.timeout)
+        ok, msg = device.get_device_info(timeout=args.timeout)
+        print(msg if msg else "(No output received)")
+        return 0 if ok else 1
 
-# ----------------------------
-# Main
-# ----------------------------
+    def _cmd_sanity_check(self, args: argparse.Namespace) -> int:
+        device = self._make_device_from_args(args.host, args.telnet_port, args.timeout)
+        ok, msg = device.get_device_info(timeout=args.timeout)
+        if not ok:
+            return 1
+
+        u5_commit = re.search(r"u5_firmware_commit\s*:\s*([0-9a-fA-F]+)", msg or "")
+        print(f"U5 commit: {u5_commit.group(1)}" if u5_commit else "(u5 commit not found)")
+
+        sl_commit = re.search(r"sl_firmware_commit\s*:\s*([0-9a-fA-F]+)", msg or "")
+        print(f"SL commit: {sl_commit.group(1)}" if sl_commit else "(sl commit not found)")
+
+        sl_intercom_ok = re.search(r"sl_intercom_status\s*:\s*ok", msg or "", re.IGNORECASE)
+        print(f"{sl_intercom_ok.group(0)}" if sl_intercom_ok else "(sl intercom status not OK)")
+
+        if ok and not (u5_commit and sl_commit and sl_intercom_ok):
+            print("Sanity check failed: missing expected fields", file=sys.stderr)
+            return 1
+        return 0
+
+    def _cmd_uptime(self, args: argparse.Namespace) -> int:
+        device = self._make_device_from_args(args.host, args.telnet_port, args.timeout)
+        ok, msg = device.uptime(timeout=args.timeout)
+        if not ok:
+            print("Failed to get uptime", file=sys.stderr)
+            return 1
+        print(msg if msg else "(No output received)")
+        return 0
+
+    def _cmd_storage_format(self, args: argparse.Namespace) -> int:
+        if not args.no_confirm:
+            print(f"WARNING: This will format {args.path} and ALL DATA WILL BE LOST!")
+            response = input("Are you sure you want to continue? (yes/no): ")
+            if response.lower() != "yes":
+                print("Format cancelled by user")
+                return 1
+
+        device = self._make_device_from_args(args.host, args.telnet_port, args.timeout)
+        ok, msg = device.storage_format(path=args.path, timeout=args.timeout)
+
+        if ok:
+            print(f"Successfully formatted {args.path}")
+            print(msg)
+            return 0
+        else:
+            print(f"Failed to format {args.path}", file=sys.stderr)
+            print(msg, file=sys.stderr)
+            return 1
+
 
 def main() -> int:
     ops = BusyBarTestOps()
