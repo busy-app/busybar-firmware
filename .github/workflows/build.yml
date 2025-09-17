@@ -150,7 +150,7 @@ jobs:
         id: set-url
         if: ${{ matrix.u5_target == env.DEFAULT_TARGET }}
         run: |
-          echo "update_url=${{ steps.names.outputs.branch_name }}/busybar-f${{ matrix.u5_target }}-update-${{ steps.names.outputs.suffix }}.tar" >> "$GITHUB_OUTPUT
+          echo "update_url=${{ steps.names.outputs.branch_name }}/busybar-f${{ matrix.u5_target }}-update-${{ steps.names.outputs.suffix }}.tar" >> "$GITHUB_OUTPUT"
 
 
   updater-tests:
