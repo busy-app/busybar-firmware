@@ -51,16 +51,6 @@ void progress_bar_set_value(ProgressBar* instance, int32_t value) {
     lv_obj_set_size(instance->bar, LV_PCT(value), LV_PCT(100));
 }
 
-void progress_bar_set_color(ProgressBar* instance, Color color) {
-    furi_check(instance);
-    lv_obj_set_style_bg_color(instance->bar, TO_LV_COLOR(color), LV_PART_MAIN);
-}
-
-void progress_bar_set_color_background(ProgressBar* instance, Color color) {
-    furi_check(instance);
-    lv_obj_set_style_bg_color(TO_LV_OBJ(instance), TO_LV_COLOR(color), LV_PART_MAIN);
-}
-
 void progress_bar_set_size(ProgressBar* instance, uint16_t width, uint16_t height) {
     furi_check(instance);
     lv_obj_set_size(TO_LV_OBJ(instance), width, height);

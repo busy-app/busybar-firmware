@@ -173,7 +173,7 @@ static void settings_scene_fw_update_on_enter(void* context) {
         data->bar_front = progress_bar_alloc(root_front);
         widget_set_pos(progress_bar_get_base(data->bar_front), 2, 10);
         progress_bar_set_size(data->bar_front, 68, 5);
-        progress_bar_set_color(data->bar_front, (Color)COLOR_MAKE_RGB(0, 200, 30));
+        //progress_bar_set_color(data->bar_front, (Color)COLOR_MAKE_RGB(0, 200, 30));
 
         // data->fw_loader = settings_fw_loader_alloc();
         // settings_fw_loader_set_status_callback(

@@ -49,22 +49,6 @@ Widget* progress_bar_get_base(ProgressBar* instance);
 void progress_bar_set_value(ProgressBar* instance, int32_t value);
 
 /**
- * @brief Set the color of the ProgressBar.
- *
- * @param[in,out] instance pointer to the ProgressBar instance to be modified
- * @param[in] color ProgressBar color
- */
-void progress_bar_set_color(ProgressBar* instance, Color color);
-
-/**
- * @brief Set the background color of the ProgressBar.
- *
- * @param[in,out] instance pointer to the ProgressBar instance to be modified
- * @param[in] color Background color
- */
-void progress_bar_set_color_background(ProgressBar* instance, Color color);
-
-/**
  * @brief Set the size of the ProgressBar.
  *
  * @param[in,out] instance pointer to the ProgressBar instance to be modified
