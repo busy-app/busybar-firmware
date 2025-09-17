@@ -84,6 +84,40 @@ void label_set_text(Label* instance, const char* text) {
     lv_label_set_text_static(instance->label, furi_string_get_cstr(instance->text));
 }
 
+void label_set_text_color(Label* instance, Color color) {
+    furi_check(instance);
+    lv_color_t lv_color = lv_color_make(color.r, color.g, color.b);
+    lv_obj_set_style_text_color((lv_obj_t*)instance->label, lv_color, LV_PART_MAIN);
+}
+
+void label_set_text_font_size(Label* instance, LabelFontSize size) {
+    furi_check(instance);
+
+    switch(size) {
+    case LabelFontSizeSmall:
+        lv_obj_set_style_text_font(
+            (lv_obj_t*)instance->label,
+            lv_theme_get_font_small((lv_obj_t*)instance->label),
+            LV_PART_MAIN);
+        break;
+    case LabelFontSizeNormal:
+        lv_obj_set_style_text_font(
+            (lv_obj_t*)instance->label,
+            lv_theme_get_font_normal((lv_obj_t*)instance->label),
+            LV_PART_MAIN);
+        break;
+    case LabelFontSizeLarge:
+        lv_obj_set_style_text_font(
+            (lv_obj_t*)instance->label,
+            lv_theme_get_font_large((lv_obj_t*)instance->label),
+            LV_PART_MAIN);
+        break;
+    default:
+        furi_check(false);
+        return;
+    }
+}
+
 void label_set_text_fmt(Label* instance, const char* fmt, ...) {
     furi_check(instance);
     furi_check(fmt);
