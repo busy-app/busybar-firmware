@@ -5,9 +5,12 @@
 #include <gui/modules/image.h>
 #include <gui/modules/bar.h>
 
+#include "../helpers/settings_fw_loader.h"
+
 typedef enum {
     SceneCustomEventVolumeChanged = SettingsCustomEventSceneEventsStart,
-    SceneCustomEventBackPressed
+    SceneCustomEventBackPressed,
+    SceneCustomEventUpdateStatus,
 } SceneCustomEvent;
 
 typedef struct {
@@ -22,17 +25,22 @@ typedef struct {
 
     uint8_t bar_volume;
 
+    SettingsFwLoader* fw_loader;
+    FuriString* fw_status;
+
 } SettingsSceneFwUpdate;
 
 static void settings_scene_fw_update_scene_update(SettingsApp* instance) {
     furi_assert(instance);
     SettingsSceneFwUpdate* data = scene_manager_get_current_scene_data(instance->scene_manager);
     furi_assert(data);
-
-    bar_set_value(data->bar_front, data->bar_volume);
-    bar_set_value(data->bar_back, data->bar_volume);
-    label_set_text_fmt(data->label_status_front, "Downloading      %d%%", data->bar_volume);
-    label_set_text_fmt(data->label_status_back, "Downloading (%d%%)", data->bar_volume);
+    with_gui(instance->gui, {
+        bar_set_value(data->bar_front, data->bar_volume);
+        bar_set_value(data->bar_back, data->bar_volume);
+        label_set_text_fmt(data->label_status_front, "Downloading      %d%%", data->bar_volume);
+        label_set_text_fmt(data->label_status_back, "Downloading (%d%%)", data->bar_volume);
+        label_set_text(data->label_fw_name_download, furi_string_get_cstr(data->fw_status));
+    });
 }
 
 static bool settings_scene_fw_update_input_callback(const InputEvent* event, void* context) {
@@ -44,14 +52,21 @@ static bool settings_scene_fw_update_input_callback(const InputEvent* event, voi
 
     bool consumed = false;
     SceneCustomEvent custom_event;
+    UNUSED(custom_event);
     if(event->type == InputTypeShort) {
         switch(event->key) {
         case InputKeyStart:
         /* fall-through */
         case InputKeyOk:
-            custom_event = SceneCustomEventBackPressed;
+            // custom_event = SceneCustomEventBackPressed;
+            // consumed = true;
+            // settings_send_custom_event(instance, custom_event);
+
+            settings_fw_loader_run(
+                data->fw_loader,
+                "https://update.flipperzero.one/builds/busybar-firmware/dev/busybar-f21-update-dev-16092025-9128816b.tar");
+
             consumed = true;
-            settings_send_custom_event(instance, custom_event);
             break;
         case InputKeyUp:
             data->bar_volume++;
@@ -76,12 +91,45 @@ static bool settings_scene_fw_update_input_callback(const InputEvent* event, voi
     return consumed;
 }
 
+static void settings_scene_fw_status_callback(SettingsFwLoaderStatus status, void* context) {
+    furi_assert(context);
+    SettingsApp* app_instance = context;
+    SettingsSceneFwUpdate* data =
+        scene_manager_get_current_scene_data(app_instance->scene_manager);
+    furi_assert(data);
+
+    SceneCustomEvent custom_event = SceneCustomEventUpdateStatus;
+
+    uint8_t download_procent =
+        (uint8_t)((status.received_download_size * 100) / status.total_download_size);
+
+    data->bar_volume = download_procent;
+
+    char* dimension = "B";
+    if(status.total_download_size > 2048) {
+        status.received_download_size /= 1024;
+        status.total_download_size /= 1024;
+        dimension = "kB";
+    }
+
+    furi_string_printf(
+        data->fw_status,
+        "%8.2f kB/s, %zu%s/%zu%s",
+        (float)status.speed_bytes_per_sec / 1024.0f,
+        status.received_download_size,
+        dimension,
+        status.total_download_size,
+        dimension);
+
+    settings_send_custom_event(app_instance, custom_event);
+}
+
 static void settings_scene_fw_update_on_enter(void* context) {
     furi_assert(context);
 
     SettingsApp* instance = context;
     SettingsSceneFwUpdate* data = scene_manager_get_current_scene_data(instance->scene_manager);
-
+    data->fw_status = furi_string_alloc();
     with_gui(instance->gui, {
         GuiLayer* layer = gui_get_layer(instance->gui, GuiLayerIdMain);
         gui_layer_add_input_callback(layer, settings_scene_fw_update_input_callback, instance);
@@ -89,7 +137,7 @@ static void settings_scene_fw_update_on_enter(void* context) {
         // GuiDisplayIdBack
         Widget* root_back = gui_layer_get_root_widget(layer, GuiDisplayIdBack);
         data->label_status_back = label_alloc(root_back);
-        label_set_text(data->label_status_back, "Downloading (27%)");
+        label_set_text(data->label_status_back, "Downloading (0%)");
         widget_set_pos(label_get_base(data->label_status_back), 22, 23);
 
         data->bar_back = bar_alloc(root_back);
@@ -113,14 +161,18 @@ static void settings_scene_fw_update_on_enter(void* context) {
         // GuiDisplayIdFront
         Widget* root_front = gui_layer_get_root_widget(layer, GuiDisplayIdFront);
         data->label_status_front = label_alloc(root_front);
-        label_set_text_color(data->label_status_front, (Color){255, 127, 0});
-        label_set_text(data->label_status_front, "Downloading      27%");
+        //label_set_text_color(data->label_status_front, (Color){255, 127, 0});
+        label_set_text(data->label_status_front, "Downloading      0%");
         widget_set_pos(label_get_base(data->label_status_front), 1, 0);
 
         data->bar_front = bar_alloc(root_front);
         widget_set_pos(bar_get_base(data->bar_front), 2, 10);
         bar_set_size(data->bar_front, 68, 5);
         bar_set_color(data->bar_front, (Color){0, 200, 30});
+
+        data->fw_loader = settings_fw_loader_alloc();
+        settings_fw_loader_set_status_callback(
+            data->fw_loader, settings_scene_fw_status_callback, instance);
     });
 }
 
@@ -141,7 +193,9 @@ static void settings_scene_fw_update_on_exit(void* context) {
         label_free(data->label_fw_name_download);
         label_free(data->label_fw_current_version);
         bar_free(data->bar_front);
+        settings_fw_loader_free(data->fw_loader);
     });
+    furi_string_free(data->fw_status);
 }
 
 static bool settings_scene_fw_update_on_event(const SceneManagerEvent* event, void* context) {
@@ -165,6 +219,10 @@ static bool settings_scene_fw_update_on_event(const SceneManagerEvent* event, vo
 
         case SceneCustomEventBackPressed:
             scene_manager_handle_back_event(instance->scene_manager);
+            consumed = true;
+            break;
+        case SceneCustomEventUpdateStatus:
+            settings_scene_fw_update_scene_update(instance);
             consumed = true;
             break;
 

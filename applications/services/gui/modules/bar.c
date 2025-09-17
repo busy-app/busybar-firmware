@@ -55,8 +55,6 @@ Widget* bar_get_base(Bar* instance) {
     return (Widget*)instance;
 }
 
-// LVGL class descriptor
-
 void bar_set_value(Bar* instance, int32_t value) {
     furi_check(instance);
     lv_bar_set_value(instance->bar, value, LV_ANIM_OFF);
@@ -74,6 +72,8 @@ void bar_set_size(Bar* instance, uint16_t width, uint16_t height) {
     lv_obj_set_size(instance->background, width, height);
     lv_obj_set_size(instance->bar, width, height);
 }
+
+// LVGL class descriptor
 
 const lv_obj_class_t bar_lvgl_class = {
     .base_class = &widget_lvgl_class,

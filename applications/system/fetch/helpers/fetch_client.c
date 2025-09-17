@@ -237,7 +237,7 @@ static void fetch_client_mg_handler(struct mg_connection* conn, int event, void*
     }
 }
 
-//########## Tread callbacks ##########
+//########## Thread callbacks ##########
 static void
     fetch_client_thread_state_callback(FuriThread* thread, FuriThreadState state, void* context) {
     furi_assert(thread);
