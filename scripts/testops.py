@@ -488,7 +488,7 @@ class BusyBarWaiter:
             return False
 
     def wait_for_busybar(self, host: str, port: int, timeout: int) -> bool:
-        sleep(1)  # Initial wait to avoid immediate success
+        sleep(2)  # Initial wait to avoid immediate success
         start = time.time()
         self._logger.info(f"Waiting for BusyBar at {host}:{port} (timeout {timeout}s)...")
 
