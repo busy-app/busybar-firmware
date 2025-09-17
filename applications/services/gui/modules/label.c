@@ -86,8 +86,7 @@ void label_set_text(Label* instance, const char* text) {
 
 void label_set_text_color(Label* instance, Color color) {
     furi_check(instance);
-    lv_color_t lv_color = lv_color_make(color.r, color.g, color.b);
-    lv_obj_set_style_text_color((lv_obj_t*)instance->label, lv_color, LV_PART_MAIN);
+    lv_obj_set_style_text_color((lv_obj_t*)instance->label, TO_LV_COLOR(color), LV_PART_MAIN);
 }
 
 void label_set_text_font_size(Label* instance, LabelFontSize size) {

@@ -48,3 +48,7 @@ extern const lv_obj_class_t slider_view_bar_lvgl_class;
 extern const lv_obj_class_t slider_view_image_lvgl_class;
 extern const lv_obj_class_t slider_view_text_container_lvgl_class;
 extern const lv_obj_class_t slider_view_arrow_label_lvgl_class;
+
+// ProgressBar
+extern const lv_obj_class_t progress_bar_lvgl_class;
+extern const lv_obj_class_t progress_bar_fill_lvgl_class;

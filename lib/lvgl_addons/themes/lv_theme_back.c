@@ -39,6 +39,8 @@ typedef struct {
     lv_style_t slider_view;
     lv_style_t slider_view_bar;
     lv_style_t slider_view_text_container;
+    lv_style_t progress_bar;
+    lv_style_t progress_bar_fill;
 } my_theme_styles_t;
 
 typedef struct {
@@ -160,6 +162,15 @@ static void style_init(my_theme_t* theme) {
     lv_style_init(&theme->styles.slider_view_text_container);
     lv_style_set_pad_column(&theme->styles.slider_view_text_container, 3);
     lv_style_set_text_font(&theme->styles.slider_view_text_container, theme->base.font_normal);
+
+    lv_style_init(&theme->styles.progress_bar);
+    lv_style_set_bg_opa(&theme->styles.progress_bar, LV_OPA_20);
+    lv_style_set_radius(&theme->styles.progress_bar, 3);
+
+    lv_style_init(&theme->styles.progress_bar_fill);
+    lv_style_set_bg_opa(&theme->styles.progress_bar_fill, LV_OPA_COVER);
+    lv_style_set_bg_color(&theme->styles.progress_bar_fill, COLOR_FG_FOCUSED);
+    lv_style_set_radius(&theme->styles.progress_bar_fill, 3);
 }
 
 static void theme_apply_callback(lv_theme_t* th, lv_obj_t* obj) {
@@ -262,6 +273,12 @@ static void theme_apply_callback(lv_theme_t* th, lv_obj_t* obj) {
 
     } else if(lv_obj_check_type(obj, &slider_view_arrow_label_lvgl_class)) {
         lv_obj_add_style(obj, &theme->styles.disabled, LV_PART_MAIN | LV_STATE_DISABLED);
+
+    } else if(lv_obj_check_type(obj, &progress_bar_lvgl_class)) {
+        lv_obj_add_style(obj, &theme->styles.progress_bar, LV_PART_MAIN);
+        
+    } else if(lv_obj_check_type(obj, &progress_bar_fill_lvgl_class)) {
+        lv_obj_add_style(obj, &theme->styles.progress_bar_fill, LV_PART_MAIN);
 #endif
     }
 }

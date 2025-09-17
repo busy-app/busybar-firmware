@@ -2,15 +2,16 @@
 
 #include <gui/widget_i.h>
 
-#define MY_CLASS (&progress_bar_lvgl_class)
+#define MY_CLASS      (&progress_bar_lvgl_class)
+#define MY_FILL_CLASS (&progress_bar_fill_lvgl_class)
 
 struct ProgressBar {
     Widget base;
     lv_obj_t* bar;
-    lv_obj_t* background;
 };
 
 const lv_obj_class_t progress_bar_lvgl_class;
+const lv_obj_class_t progress_bar_fill_lvgl_class;
 
 // LVGL-specific functions
 
@@ -19,18 +20,8 @@ static void progress_bar_lvgl_constructor(const lv_obj_class_t* class_p, lv_obj_
 
     ProgressBar* instance = (ProgressBar*)obj;
 
-    instance->background = lv_obj_create(obj);
-    lv_obj_set_size(instance->background, 70, 5);
-    lv_obj_set_style_bg_opa(instance->background, LV_OPA_20, 0);
-    lv_obj_set_style_radius(instance->background, 3, 0);
-    lv_obj_align(instance->background, LV_ALIGN_CENTER, 0, 0);
-
-    instance->bar = lv_bar_create(obj);
-    lv_obj_set_size(instance->bar, 70, 5);
-    lv_obj_set_style_bg_opa(instance->bar, LV_OPA_COVER, LV_PART_INDICATOR);
-    lv_obj_set_style_radius(instance->bar, 3, LV_PART_INDICATOR);
-    lv_bar_set_value(instance->bar, 0, LV_ANIM_OFF);
-    lv_obj_align(instance->bar, LV_ALIGN_CENTER, 0, 0);
+    instance->bar = lv_obj_class_create_obj(MY_FILL_CLASS, obj);
+    lv_obj_class_init_obj(instance->bar);
 }
 
 // Public API
@@ -57,25 +48,22 @@ Widget* progress_bar_get_base(ProgressBar* instance) {
 
 void progress_bar_set_value(ProgressBar* instance, int32_t value) {
     furi_check(instance);
-    lv_bar_set_value(instance->bar, value, LV_ANIM_OFF);
+    lv_obj_set_size(instance->bar, LV_PCT(value), LV_PCT(100));
 }
 
 void progress_bar_set_color(ProgressBar* instance, Color color) {
     furi_check(instance);
-    lv_color_t lv_color = lv_color_make(color.r, color.g, color.b);
-    lv_obj_set_style_bg_color(instance->bar, lv_color, LV_PART_INDICATOR);
+    lv_obj_set_style_bg_color(instance->bar, TO_LV_COLOR(color), LV_PART_MAIN);
 }
 
 void progress_bar_set_color_background(ProgressBar* instance, Color color) {
     furi_check(instance);
-    lv_color_t lv_color = lv_color_make(color.r, color.g, color.b);
-    lv_obj_set_style_bg_color(instance->background, lv_color, 0);
+    lv_obj_set_style_bg_color(TO_LV_OBJ(instance), TO_LV_COLOR(color), LV_PART_MAIN);
 }
 
 void progress_bar_set_size(ProgressBar* instance, uint16_t width, uint16_t height) {
     furi_check(instance);
-    lv_obj_set_size(instance->background, width, height);
-    lv_obj_set_size(instance->bar, width, height);
+    lv_obj_set_size(TO_LV_OBJ(instance), width, height);
 }
 
 // LVGL class descriptor
@@ -83,8 +71,15 @@ void progress_bar_set_size(ProgressBar* instance, uint16_t width, uint16_t heigh
 const lv_obj_class_t progress_bar_lvgl_class = {
     .base_class = &widget_lvgl_class,
     .constructor_cb = progress_bar_lvgl_constructor,
-    .name = "widget-bar",
-    .width_def = LV_SIZE_CONTENT,
-    .height_def = LV_SIZE_CONTENT,
+    .name = "widget-progress-bar",
+    .width_def = 70,
+    .height_def = 5,
     .instance_size = sizeof(ProgressBar),
+};
+
+const lv_obj_class_t progress_bar_fill_lvgl_class = {
+    .base_class = &lv_obj_class,
+    .name = "widget-progress-bar-fill",
+    .width_def = LV_PCT(0),
+    .height_def = LV_PCT(100),
 };

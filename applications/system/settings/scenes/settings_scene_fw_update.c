@@ -34,12 +34,13 @@ static void settings_scene_fw_update_scene_update(SettingsApp* instance) {
     furi_assert(instance);
     SettingsSceneFwUpdate* data = scene_manager_get_current_scene_data(instance->scene_manager);
     furi_assert(data);
+    FURI_LOG_I("Firmware Update", "Progress: %d%%", data->bar_volume);
     with_gui(instance->gui, {
         progress_bar_set_value(data->bar_front, data->bar_volume);
         progress_bar_set_value(data->bar_back, data->bar_volume);
         label_set_text_fmt(data->label_status_front, "Downloading      %d%%", data->bar_volume);
         label_set_text_fmt(data->label_status_back, "Downloading (%d%%)", data->bar_volume);
-        label_set_text(data->label_fw_name_download, furi_string_get_cstr(data->fw_status));
+        //label_set_text(data->label_fw_name_download, furi_string_get_cstr(data->fw_status));
     });
 }
 
@@ -62,25 +63,27 @@ static bool settings_scene_fw_update_input_callback(const InputEvent* event, voi
             // consumed = true;
             // settings_send_custom_event(instance, custom_event);
 
-            settings_fw_loader_run(
-                data->fw_loader,
-                "https://update.flipperzero.one/builds/busybar-firmware/dev/busybar-f21-update-dev-16092025-9128816b.tar");
+            // settings_fw_loader_run(
+            //     data->fw_loader,
+            //     "https://update.flipperzero.one/builds/busybar-firmware/dev/busybar-f21-update-dev-16092025-9128816b.tar");
 
-            consumed = true;
-            break;
+            // consumed = true;
+            // break;
         case InputKeyUp:
+            FURI_LOG_I("1", "Progress: %d%%", data->bar_volume);
             data->bar_volume++;
-            if(data->bar_volume > 99) {
-                data->bar_volume = 99;
+            if(data->bar_volume > 100) {
+                data->bar_volume = 100;
             }
-            settings_scene_fw_update_scene_update(instance);
+            custom_event = SceneCustomEventUpdateStatus;
             consumed = true;
             break;
         case InputKeyDown:
+            FURI_LOG_I("2", "Progress: %d%%", data->bar_volume);
             if(data->bar_volume > 0) {
                 data->bar_volume--;
             }
-            settings_scene_fw_update_scene_update(instance);
+            custom_event = SceneCustomEventUpdateStatus;
             consumed = true;
             break;
         default:
@@ -88,10 +91,13 @@ static bool settings_scene_fw_update_input_callback(const InputEvent* event, voi
         }
     }
 
+    if(consumed) {
+        settings_send_custom_event(instance, custom_event);
+    }
     return consumed;
 }
 
-static void settings_scene_fw_status_callback(SettingsFwLoaderStatus status, void* context) {
+void settings_scene_fw_status_callback(SettingsFwLoaderStatus status, void* context) {
     furi_assert(context);
     SettingsApp* app_instance = context;
     SettingsSceneFwUpdate* data =
@@ -161,18 +167,17 @@ static void settings_scene_fw_update_on_enter(void* context) {
         // GuiDisplayIdFront
         Widget* root_front = gui_layer_get_root_widget(layer, GuiDisplayIdFront);
         data->label_status_front = label_alloc(root_front);
-        //label_set_text_color(data->label_status_front, (Color){255, 127, 0});
         label_set_text(data->label_status_front, "Downloading      0%");
         widget_set_pos(label_get_base(data->label_status_front), 1, 0);
 
         data->bar_front = progress_bar_alloc(root_front);
         widget_set_pos(progress_bar_get_base(data->bar_front), 2, 10);
         progress_bar_set_size(data->bar_front, 68, 5);
-        progress_bar_set_color(data->bar_front, (Color){0, 200, 30});
+        progress_bar_set_color(data->bar_front, (Color)COLOR_MAKE_RGB(0, 200, 30));
 
-        data->fw_loader = settings_fw_loader_alloc();
-        settings_fw_loader_set_status_callback(
-            data->fw_loader, settings_scene_fw_status_callback, instance);
+        // data->fw_loader = settings_fw_loader_alloc();
+        // settings_fw_loader_set_status_callback(
+        //     data->fw_loader, settings_scene_fw_status_callback, instance);
     });
 }
 
@@ -193,7 +198,7 @@ static void settings_scene_fw_update_on_exit(void* context) {
         label_free(data->label_fw_name_download);
         label_free(data->label_fw_current_version);
         progress_bar_free(data->bar_front);
-        settings_fw_loader_free(data->fw_loader);
+        // settings_fw_loader_free(data->fw_loader);
     });
     furi_string_free(data->fw_status);
 }
