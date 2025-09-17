@@ -16,6 +16,9 @@ env:
 jobs:
   main:
     runs-on: BsbShell
+    outputs:
+      update_url: ${{ steps.set-url.outputs.update_url }}
+      default_target: ${{ env.DEFAULT_TARGET }}
     env:
       GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     strategy:
@@ -166,6 +169,7 @@ jobs:
     needs: main
     if: ${{ needs.main.result == 'success' && needs.main.outputs.update_url != '' }}
     uses: ./.github/workflows/smoke-tests.yml
+    secrets: inherit
     with:
       branch_name: ${{ github.head_ref || github.ref_name }}
       commit_sha: ${{ github.sha }}

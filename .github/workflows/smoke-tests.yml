@@ -151,31 +151,29 @@ jobs:
         if: ${{ github.event_name != 'workflow_dispatch' || github.event.inputs.upload_to_testops != 'false' }}
         uses: allure-framework/setup-allurectl@v1
         with:
-          allure-endpoint: ${{ vars.ALLURE_TESTOPS_URL || 'https://flipper.testops.cloud' }}
+          allure-endpoint: ${{ secrets.ALLURE_TESTOPS_URL }}
           allure-token: ${{ secrets.ALLURE_TESTOPS_TOKEN }}
-          allure-project-id: ${{ vars.ALLURE_PROJECT_ID || '232' }}
+          allure-project-id: ${{ secrets.ALLURE_PROJECT_ID }}
 
       - name: Upload test results to Allure TestOps
         if: ${{ github.event_name != 'workflow_dispatch' || github.event.inputs.upload_to_testops != 'false' }}
-        env:
-          ALLURE_TESTOPS_TOKEN: ${{ secrets.ALLURE_TESTOPS_TOKEN }}
         run: |
           cd tests
           echo "Attempting upload with command:"
-          echo "allurectl upload allure-results --endpoint https://flipper.testops.cloud --token ***** --project-id 232 --launch-name 'GitHub Actions - ${{ github.workflow }} - ${{ github.sha }}'"
+          echo "allurectl upload allure-results --endpoint https://flipper.testops.cloud --token ${{ secrets.ALLURE_TESTOPS_TOKEN }} --project-id 232 --launch-name 'GitHub Actions - ${{ github.workflow }} - ${{ github.sha }}'"
           
           # Try the upload
           allurectl upload allure-results \
-            --endpoint "https://flipper.testops.cloud" \
-            --token "$ALLURE_TESTOPS_TOKEN" \
-            --project-id "232" \
+            --endpoint "${{ secrets.ALLURE_TESTOPS_URL }}" \
+            --token "${{ secrets.ALLURE_TESTOPS_TOKEN }}" \
+            --project-id "${{ secrets.ALLURE_PROJECT_ID }}" \
             --launch-name "GitHub Actions - ${{ github.workflow }} - ${{ github.sha }}"
           
           # Check the exit code
           exit_code=$?
           if [ $exit_code -eq 0 ]; then
             echo "Upload successful!"
-            echo "View results: https://flipper.testops.cloud/project/232"
+            echo "View results: ${{ secrets.ALLURE_TESTOPS_URL }}/project/${{ secrets.ALLURE_PROJECT_ID }}"
           else
             echo "Upload failed with exit code: $exit_code"
             exit $exit_code
@@ -255,8 +253,8 @@ jobs:
       run: |
         allurectl upload allure-results \
           --token ${{ secrets.ALLURE_TESTOPS_TOKEN }} \
-          --endpoint ${{ vars.ALLURE_TESTOPS_URL || 'https://flipper.testops.cloud' }} \
-          --project-id ${{ vars.ALLURE_PROJECT_ID || '232' }} \
+          --endpoint ${{ secrets.ALLURE_TESTOPS_URL }} \
+          --project-id ${{ secrets.ALLURE_PROJECT_ID }} \
           --launch-name "${{ github.event.inputs.launch_name || 'GitHub Actions - ${{ github.workflow }} - ${{ github.sha }}' }}"
       env:
         ALLURE_TESTOPS_TOKEN: ${{ secrets.ALLURE_TESTOPS_TOKEN }}
