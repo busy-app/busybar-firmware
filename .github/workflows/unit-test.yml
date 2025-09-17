@@ -1,0 +1,81 @@
+name: 'Unit tests'
+
+on:
+  push:
+    branches:
+      - dev
+    tags:
+      - '*'
+  pull_request:
+
+permissions:
+  contents: read
+  checks: write
+
+env:
+  FBT_GIT_SUBMODULE_SHALLOW: 0
+  DEFAULT_TARGET: 21
+  FBT_TOOLCHAIN_PATH: /runner/_work
+
+jobs:
+  main:
+    runs-on: BusyBarTest
+    steps:
+
+      - name: 'Checkout code'
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+          fetch-depth: 2
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: 'Configure Git and LFS for submodules'
+        run: |
+          # Configure Git LFS
+          git lfs install --skip-smudge
+
+          # Set up authentication for GitHub repositories at repo level
+          echo "https://x-access-token:${GH_TOKEN}@github.com" > ~/.git-credentials
+          git config credential.helper 'store --file ~/.git-credentials'
+
+          # Configure LFS settings
+          git config lfs.transfer.maxretries 3
+
+      - name: 'Update submodules'
+        run: |
+          git submodule update --init --recursive --jobs=$(nproc) scripts/toolchain fbt_layers/fbtng || (git lfs logs last && exit 1)
+
+      - name: 'Build unit test firmware'
+        run: |
+          set -euo pipefail
+          source ./scripts/toolchain/fbtenv.sh
+          export FBT_GIT_SUBMODULE_SHALLOW=1
+          bash ./fbt FIRMWARE_APP_SET=unit_tests --with-updater
+
+      - name: 'Flash unit tests firmware'
+        if: success()
+        timeout-minutes: 20
+        run: |
+          set -euo pipefail
+          source scripts/toolchain/fbtenv.sh
+          python3 scripts/testops.py format --no-confirm
+          mkdir -p update_bundle
+          tar -xf dist/f${{ env.DEFAULT_TARGET }}-D/busybar-f${{ env.DEFAULT_TARGET }}-update-local.tar -C update_bundle
+          python3 scripts/storage.py -p 10.0.4.20 send update_bundle /ext/tmp/upd_bundle
+          python3 scripts/testops.py update-bundle /ext/tmp/upd_bundle/update.json
+          python3 scripts/testops.py wait -t 240
+
+      - name: 'Check that both cores are available (post-flash)'
+        if: steps.flashing.outcome == 'success'
+        run: |
+          set -euo pipefail
+          source scripts/toolchain/fbtenv.sh
+          python3 scripts/testops.py sanity
+
+      - name: 'Run units'
+        id: flashing
+        timeout-minutes: 20
+        run: |
+          set -euo pipefail
+          source scripts/toolchain/fbtenv.sh
+          python3 scripts/testops.py unit-tests
