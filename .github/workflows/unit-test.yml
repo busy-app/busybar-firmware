@@ -54,6 +54,7 @@ jobs:
 
       - name: 'Flash unit tests firmware'
         if: success()
+        id: flashing
         timeout-minutes: 20
         run: |
           set -euo pipefail
