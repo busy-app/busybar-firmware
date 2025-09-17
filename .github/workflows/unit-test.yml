@@ -55,7 +55,7 @@ jobs:
       - name: 'Flash unit tests firmware'
         if: success()
         id: flashing
-        timeout-minutes: 20
+        timeout-minutes: 10
         run: |
           set -euo pipefail
           source scripts/toolchain/fbtenv.sh
@@ -74,8 +74,7 @@ jobs:
           python3 scripts/testops.py sanity
 
       - name: 'Run units'
-        id: flashing
-        timeout-minutes: 20
+        timeout-minutes: 2
         run: |
           set -euo pipefail
           source scripts/toolchain/fbtenv.sh
