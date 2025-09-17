@@ -111,13 +111,13 @@ const StatusLightsCommand busy_status_lights[BusyStatusLightsTypeMax] = {
         },
 };
 
-const ProgressBarPreset busy_progress_bar[BusyProgressBarTypeMax] = {
-    [BusyProgressBarTypeWork] =
+const TimerBarPreset busy_progress_bar[BusyTimerBarTypeMax] = {
+    [BusyTimerBarTypeWork] =
         {
             .file_path = BUSY_ANIM_PATH("progress_bar_busy_71x1.anim"),
             .trough_color = COLOR_MAKE_HEX(0x4A0000),
         },
-    [BusyProgressBarTypeRest] =
+    [BusyTimerBarTypeRest] =
         {
             .file_path = BUSY_ANIM_PATH("progress_bar_rest_71x1.anim"),
             .trough_color = COLOR_MAKE_HEX(0x003B28),

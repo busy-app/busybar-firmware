@@ -3,7 +3,7 @@
 #include "../storage_macros.h"
 #include <gui/modules/label.h>
 #include <gui/modules/image.h>
-#include <gui/modules/bar.h>
+#include <gui/modules/progress_bar.h>
 
 #include "../helpers/settings_fw_loader.h"
 
@@ -16,12 +16,12 @@ typedef enum {
 typedef struct {
     Label* label_status_back;
     Image* image_back;
-    Bar* bar_back;
+    ProgressBar* bar_back;
     Label* label_fw_name_download;
     Label* label_fw_current_version;
 
     Label* label_status_front;
-    Bar* bar_front;
+    ProgressBar* bar_front;
 
     uint8_t bar_volume;
 
@@ -35,8 +35,8 @@ static void settings_scene_fw_update_scene_update(SettingsApp* instance) {
     SettingsSceneFwUpdate* data = scene_manager_get_current_scene_data(instance->scene_manager);
     furi_assert(data);
     with_gui(instance->gui, {
-        bar_set_value(data->bar_front, data->bar_volume);
-        bar_set_value(data->bar_back, data->bar_volume);
+        progress_bar_set_value(data->bar_front, data->bar_volume);
+        progress_bar_set_value(data->bar_back, data->bar_volume);
         label_set_text_fmt(data->label_status_front, "Downloading      %d%%", data->bar_volume);
         label_set_text_fmt(data->label_status_back, "Downloading (%d%%)", data->bar_volume);
         label_set_text(data->label_fw_name_download, furi_string_get_cstr(data->fw_status));
@@ -140,9 +140,9 @@ static void settings_scene_fw_update_on_enter(void* context) {
         label_set_text(data->label_status_back, "Downloading (0%)");
         widget_set_pos(label_get_base(data->label_status_back), 22, 23);
 
-        data->bar_back = bar_alloc(root_back);
-        widget_set_pos(bar_get_base(data->bar_back), 7, 40);
-        bar_set_size(data->bar_back, 132, 5);
+        data->bar_back = progress_bar_alloc(root_back);
+        widget_set_pos(progress_bar_get_base(data->bar_back), 7, 40);
+        progress_bar_set_size(data->bar_back, 132, 5);
 
         data->label_fw_name_download = label_alloc(root_back);
         label_set_text_font_size(data->label_fw_name_download, LabelFontSizeSmall);
@@ -165,10 +165,10 @@ static void settings_scene_fw_update_on_enter(void* context) {
         label_set_text(data->label_status_front, "Downloading      0%");
         widget_set_pos(label_get_base(data->label_status_front), 1, 0);
 
-        data->bar_front = bar_alloc(root_front);
-        widget_set_pos(bar_get_base(data->bar_front), 2, 10);
-        bar_set_size(data->bar_front, 68, 5);
-        bar_set_color(data->bar_front, (Color){0, 200, 30});
+        data->bar_front = progress_bar_alloc(root_front);
+        widget_set_pos(progress_bar_get_base(data->bar_front), 2, 10);
+        progress_bar_set_size(data->bar_front, 68, 5);
+        progress_bar_set_color(data->bar_front, (Color){0, 200, 30});
 
         data->fw_loader = settings_fw_loader_alloc();
         settings_fw_loader_set_status_callback(
@@ -188,11 +188,11 @@ static void settings_scene_fw_update_on_exit(void* context) {
 
         label_free(data->label_status_back);
         image_free(data->image_back);
-        bar_free(data->bar_back);
+        progress_bar_free(data->bar_back);
         label_free(data->label_status_front);
         label_free(data->label_fw_name_download);
         label_free(data->label_fw_current_version);
-        bar_free(data->bar_front);
+        progress_bar_free(data->bar_front);
         settings_fw_loader_free(data->fw_loader);
     });
     furi_string_free(data->fw_status);
