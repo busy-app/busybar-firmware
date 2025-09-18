@@ -102,14 +102,14 @@ Widget* lottie_animation_get_base(LottieAnimation* instance) {
     return (Widget*)instance;
 }
 
-bool lottie_animation_set_source(LottieAnimation* instance, const char* file_path) {
+bool lottie_animation_set_source(LottieAnimation* instance, const char* file_path, uint32_t fps) {
     furi_check(instance);
     furi_check(file_path);
 
     bool success = false;
 
     do {
-        if(!lottie_service_task_set_source(instance->lottie_task, file_path)) break;
+        if(!lottie_service_task_set_source(instance->lottie_task, file_path, fps)) break;
 
         LottieServiceTaskInfo task_info;
         if(!lottie_service_task_get_info(instance->lottie_task, &task_info)) break;

@@ -70,9 +70,10 @@ void lottie_service_task_free(LottieServiceTask* task);
  *
  * @param[in,out] task pointer to a LottieServiceTask instance to be modified
  * @param[in] file_path zero-terminated string containing a full path to the file
+ * @param[in] fps frames per second for the animation, 0 to use the default from the file
  * @returns true if the file was successfully loaded, false otherwise
  */
-bool lottie_service_task_set_source(LottieServiceTask* task, const char* file_path);
+bool lottie_service_task_set_source(LottieServiceTask* task, const char* file_path, uint32_t fps);
 
 /**
  * @brief Override a Lottie slot.

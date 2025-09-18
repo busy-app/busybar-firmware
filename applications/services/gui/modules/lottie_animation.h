@@ -44,9 +44,10 @@ Widget* lottie_animation_get_base(LottieAnimation* instance);
  *
  * @param[in,out] instance pointer to the LottieAnimation instance to be modified
  * @param[in] file_path zero-terminated string containing the full path to animation file
+ * @param[in] fps frames per second for the animation, 0 to use the default from the file
  * @returns true if the source was successfully set, false otherwise
  */
-bool lottie_animation_set_source(LottieAnimation* instance, const char* file_path);
+bool lottie_animation_set_source(LottieAnimation* instance, const char* file_path, uint32_t fps);
 
 /**
  * @brief Override a slot in a Lottie animation.

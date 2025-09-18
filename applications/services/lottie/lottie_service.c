@@ -39,6 +39,7 @@ typedef struct {
 typedef struct {
     LottieServiceTask* task;
     const char* file_path;
+    uint32_t fps;
 } LottieServiceSetSourceRequest;
 
 typedef struct {
@@ -210,11 +211,15 @@ static void lottie_service_task_set_source_handler(
 
         task->max_frame = num_frames - 1.F;
 
-        float duration_s;
-        res = tvg_animation_get_duration(task->tvg_anim, &duration_s);
-        if(res != TVG_RESULT_SUCCESS) break;
+        if(request->set_source.fps > 0) {
+            task->fps = request->set_source.fps;
+        } else {
+            float duration_s;
+            res = tvg_animation_get_duration(task->tvg_anim, &duration_s);
+            if(res != TVG_RESULT_SUCCESS) break;
 
-        task->fps = num_frames / duration_s;
+            task->fps = num_frames / duration_s;
+        }
 
         lottie_service_task_init_draw_buffer(task, width, height);
 
@@ -358,7 +363,7 @@ void lottie_service_task_free(LottieServiceTask* task) {
     lottie_service_send_message(task->owner, &message);
 }
 
-bool lottie_service_task_set_source(LottieServiceTask* task, const char* file_path) {
+bool lottie_service_task_set_source(LottieServiceTask* task, const char* file_path, uint32_t fps) {
     furi_check(task);
     furi_check(file_path);
 
@@ -370,6 +375,7 @@ bool lottie_service_task_set_source(LottieServiceTask* task, const char* file_pa
             {
                 .task = task,
                 .file_path = file_path,
+                .fps = fps,
             },
         .result.boolean = &result,
     };
