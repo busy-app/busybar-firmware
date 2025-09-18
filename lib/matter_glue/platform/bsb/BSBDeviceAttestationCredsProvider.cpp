@@ -84,44 +84,46 @@ CHIP_ERROR BSBDACProvider::SignWithDeviceAttestationKey(
     MutableByteSpan& out_signature_buffer) {
     CHIP_ERROR err = CHIP_ERROR_INTERNAL;
 
-    FuriHalCryptoKey* key = furi_hal_crypto_storage_alloc(FuriHalCryptoPartitionMain);
+    FuriHalCryptoKey* private_key = furi_hal_crypto_storage_alloc(FuriHalCryptoPartitionMain);
 
     do {
-        const FuriHalCryptoStatus status =
-            furi_hal_crypto_storage_read(key, FuriHalCryptoKeyTypeEcdsaPriv256, 0);
+        const FuriHalCryptoStatus crypto_status =
+            furi_hal_crypto_storage_read(private_key, FuriHalCryptoKeyTypeEcdsaPriv256, 0);
 
-        if(status != FuriHalCryptoStatusOk) {
-            ChipLogError(Crypto, "Failed to read device private key: 0x%X", status);
+        if(crypto_status != FuriHalCryptoStatusOk) {
+            ChipLogError(Crypto, "Failed to read device private key: 0x%X", crypto_status);
             break;
         }
 
-        uint8_t signature[FURI_HAL_CRYPTO_ECDSA_MAX_SIGNATURE_SIZE] = {0};
-        size_t signature_length = 0;
+        const FuriHalCryptoWrappingMode wrap_mode =
+            private_key->header.flags & FuriHalCryptoKeyFlagWrap ? FuriHalCryptoWrappingModeOn :
+                                                                   FuriHalCryptoWrappingModeOff;
 
-        FuriHalCryptoEcdsa* handle = furi_hal_crypto_ecdsa_sign_init(
+        FuriHalCryptoEcdsa* ecdsa = furi_hal_crypto_ecdsa_sign_init(
             FuriHalCryptoEcdsaModeSha256,
-            key->data,
+            private_key->data,
             FURI_HAL_CRYPTO_ECDSA_PRIV_KEY_SIZE_256,
-            FuriHalCryptoWrappingModeOff);
+            wrap_mode);
+
+        uint8_t asn1_sig[FURI_HAL_CRYPTO_ECDSA_MAX_SIGNATURE_SIZE] = {0};
+        size_t asn1_sig_len = 0;
 
         const bool sign_success = furi_hal_crypto_ecdsa_sign(
-            handle, message_to_sign.data(), message_to_sign.size(), signature, &signature_length);
+            ecdsa, message_to_sign.data(), message_to_sign.size(), asn1_sig, &asn1_sig_len);
 
-        furi_hal_crypto_ecdsa_deinit(handle);
+        furi_hal_crypto_ecdsa_deinit(ecdsa);
 
         if(!sign_success) {
-            ChipLogError(Crypto, "Failed to sign with device attestation key");
+            ChipLogError(Crypto, "Failed to sign message with device private key");
             break;
         }
 
-        err = chip::Crypto::EcdsaAsn1SignatureToRaw(
-            chip::Crypto::kP256_FE_Length,
-            ByteSpan{signature, signature_length},
-            out_signature_buffer);
+        err = Crypto::EcdsaAsn1SignatureToRaw(
+            Crypto::kP256_FE_Length, ByteSpan{asn1_sig, asn1_sig_len}, out_signature_buffer);
 
     } while(false);
 
-    furi_hal_crypto_storage_free(key);
+    furi_hal_crypto_storage_free(private_key);
 
     return err;
 }

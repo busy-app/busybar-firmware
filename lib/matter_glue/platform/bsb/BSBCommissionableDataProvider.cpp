@@ -6,10 +6,10 @@
 
 // TODO: Do not hardcode the below values
 
-// Setup code: https://project-chip.github.io/connectedhomeip/qrcode.html?data=MT:YNDA042C00KA0648G00
-// Generated with: $ SetupPayload.py generate -d 3840 -p 20202021 --vendor-id 5514 --product-id 32769 -cf 0 -dm 2
+// Setup code: https://project-chip.github.io/connectedhomeip/qrcode.html?data=MT:YNDA0M.R02-10648G00
+// Generated with: $ SetupPayload.py generate -d 1234 -p 20202021 --vendor-id 5514 --product-id 0001 -cf 0 -dm 2
 
-#define SETUP_DISCRIMINATOR (3840)
+#define SETUP_DISCRIMINATOR (1234)
 #define SETUP_PASSCODE      (20202021)
 
 // Generated with: spake2p.py gen-verifier -p 20202021 -s U1BBS0UyUCBLZXkgU2FsdA== -i 1000

@@ -71,21 +71,18 @@ class Main(App):
 
         if ext == ".der":
             with open(filename, "rb") as fd:
-                data = fd.read()
+                key = serialization.load_der_private_key(
+                    fd.read(), None, default_backend()
+                )
         elif ext == ".pem":
             with open(filename, "rb") as fd:
                 key = serialization.load_pem_private_key(
                     fd.read(), None, default_backend()
                 )
-                data = key.private_bytes(
-                    serialization.Encoding.DER,
-                    serialization.PrivateFormat.TraditionalOpenSSL,
-                    serialization.NoEncryption(),
-                )
         else:
             raise Exception("Please choose a .pem or .der file")
 
-        return data
+        return key.private_numbers().private_value.to_bytes(32, "big")
 
     def write_data(self, key_type: int, data: bytes):
         with CryptoStorage(self.get_portname()) as storage:
