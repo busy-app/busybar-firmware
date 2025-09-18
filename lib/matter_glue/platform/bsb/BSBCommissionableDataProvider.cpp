@@ -1,18 +1,6 @@
 #include "BSBCommissionableDataProvider.hpp"
 
-#include <platform/CHIPDeviceConfig.h>
-#include <crypto/CHIPCryptoPAL.h>
-#include <lib/support/Base64.h>
-
 #include "CryptoStorage.hpp"
-
-// Setup code: https://project-chip.github.io/connectedhomeip/qrcode.html?data=MT:YNDA0M.R02-10648G00
-// Generated with: $ SetupPayload.py generate -d 1234 -p 20202021 --vendor-id 5514 --product-id 0001 -cf 0 -dm 2
-
-// TODO: Do not hardcode the below values
-
-#define SETUP_DISCRIMINATOR (1234)
-#define SETUP_PASSCODE      (20202021)
 
 #define SPAKE2P_ITERATION_COUNT (1000)
 
@@ -33,13 +21,14 @@ public:
 };
 
 CHIP_ERROR CommissionableDataProviderImpl::GetSetupDiscriminator(uint16_t& setupDiscriminator) {
-    setupDiscriminator = SETUP_DISCRIMINATOR;
-    return CHIP_NO_ERROR;
+    auto out_buf = MutableByteSpan{
+        reinterpret_cast<uint8_t*>(&setupDiscriminator), sizeof(setupDiscriminator)};
+    return LoadCryptoStorageItem(FuriHalCryptoKeyTypeMatterDiscriminator, 0, out_buf);
 }
 
 CHIP_ERROR CommissionableDataProviderImpl::SetSetupDiscriminator(uint16_t setupDiscriminator) {
     UNUSED(setupDiscriminator);
-    return CHIP_NO_ERROR;
+    return CHIP_ERROR_NOT_IMPLEMENTED;
 }
 
 CHIP_ERROR CommissionableDataProviderImpl::GetSpake2pIterationCount(uint32_t& iterationCount) {
@@ -61,13 +50,13 @@ CHIP_ERROR CommissionableDataProviderImpl::GetSpake2pVerifier(
 }
 
 CHIP_ERROR CommissionableDataProviderImpl::GetSetupPasscode(uint32_t& setupPasscode) {
-    setupPasscode = SETUP_PASSCODE;
-    return CHIP_NO_ERROR;
+    auto out_buf =
+        MutableByteSpan{reinterpret_cast<uint8_t*>(&setupPasscode), sizeof(setupPasscode)};
+    return LoadCryptoStorageItem(FuriHalCryptoKeyTypeMatterPasscode, 0, out_buf);
 }
 
 CHIP_ERROR CommissionableDataProviderImpl::SetSetupPasscode(uint32_t setupPasscode) {
     UNUSED(setupPasscode);
-    ChipLogDetail(DeviceLayer, "%s", __PRETTY_FUNCTION__);
     return CHIP_ERROR_NOT_IMPLEMENTED;
 }
 

@@ -82,6 +82,22 @@ class Main(App):
         )
         self.spake2_parser.set_defaults(func=self.provision_spake2)
 
+        # Setup command
+        self.setup_parser = self.subparsers.add_parser(
+            "setup", help="Provision setup discriminator"
+        )
+        self.setup_parser.add_argument(
+            "-d",
+            "--discriminator",
+            required=True,
+            type=int,
+            help="Setup discriminator value",
+        )
+        self.setup_parser.add_argument(
+            "-p", "--passcode", required=True, type=int, help="Setup passcode value"
+        )
+        self.setup_parser.set_defaults(func=self.provision_setup_params)
+
     def read_cert_file(self, filename: str) -> bytes:
         _, ext = os.path.splitext(filename)
 
@@ -167,6 +183,13 @@ class Main(App):
         salt, verifier = self.generate_spake2_values(self.args.passcode)
         self.write_data(KeyType.SPAKE2_SALT, salt)
         self.write_data(KeyType.SPAKE2_VERIFIER, verifier)
+
+    @CatchExceptions
+    def provision_setup_params(self):
+        discriminator_bytes = struct.pack("<H", self.args.discriminator)
+        self.write_data(KeyType.DISCRIMINATOR, discriminator_bytes)
+        passcode_bytes = struct.pack("<I", self.args.passcode)
+        self.write_data(KeyType.PASSCODE, passcode_bytes)
 
     def get_portname(self):
         return ("10.0.4.20", 23)
