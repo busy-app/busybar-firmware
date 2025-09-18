@@ -1,23 +1,45 @@
 #!/usr/bin/env python3
 
 import os
+import struct
+import hashlib
+
+from enum import IntEnum
+
+from random import randbytes
 
 from cryptography import x509
 from cryptography.hazmat.backends import default_backend
 from cryptography.hazmat.primitives import serialization
 
+from ecdsa.curves import NIST256p
+
 from flipper.app import App, CatchExceptions
 from crypto_storage import CryptoStorage
 
 
-class Main(App):
-    PART_MAIN = 0
-    KEY_TYPE_PK = 8
-    KEY_TYPE_DAC = 13
-    KEY_TYPE_PAI = 14
-    KEY_TYPE_CD = 15
-    KEY_ID_DEFAULT = 0
+class Partition(IntEnum):
+    MAIN = 0
+    USER = 1
 
+
+class KeyType(IntEnum):
+    PRIVATE_KEY = 8
+    DAC = 13
+    PAI = 14
+    CD = 15
+    VID_PID = 16
+    SPAKE2_SALT = 17
+    SPAKE2_VERIFIER = 18
+    DISCRIMINATOR = 19
+    PASSCODE = 20
+
+
+class KeyID(IntEnum):
+    DEFAULT = 0
+
+
+class Main(App):
     def init(self):
         self.subparsers = self.parser.add_subparsers(help="sub-command help")
 
@@ -50,6 +72,15 @@ class Main(App):
             "filename", help="Private key file (.pem or .der format)"
         )
         self.pk_parser.set_defaults(func=self.provision_private_key)
+
+        # SPAKE2 command
+        self.spake2_parser = self.subparsers.add_parser(
+            "spake2", help="Generate and provision SPAKE2 values"
+        )
+        self.spake2_parser.add_argument(
+            "passcode", type=int, help="Passcode for device pairing"
+        )
+        self.spake2_parser.set_defaults(func=self.provision_spake2)
 
     def read_cert_file(self, filename: str) -> bytes:
         _, ext = os.path.splitext(filename)
@@ -84,10 +115,29 @@ class Main(App):
 
         return key.private_numbers().private_value.to_bytes(32, "big")
 
+    def generate_spake2_values(self, passcode: int) -> tuple[bytes, bytes]:
+        num_iter = 1000
+        salt = randbytes(32)
+        ws_len = NIST256p.baselen + 8
+
+        ws = hashlib.pbkdf2_hmac(
+            "sha256", struct.pack("<I", passcode), salt, num_iter, ws_len * 2
+        )
+
+        w0 = int.from_bytes(ws[:ws_len], byteorder="big") % NIST256p.order
+        w1 = int.from_bytes(ws[ws_len:], byteorder="big") % NIST256p.order
+        L = NIST256p.generator * w1
+
+        verifier = w0.to_bytes(NIST256p.baselen, byteorder="big") + L.to_bytes(
+            "uncompressed"
+        )
+
+        return (salt, verifier)
+
     def write_data(self, key_type: int, data: bytes):
         with CryptoStorage(self.get_portname()) as storage:
             ret = storage.write_key(
-                self.PART_MAIN, key_type, self.KEY_ID_DEFAULT, 0, len(data), data.hex()
+                Partition.MAIN, key_type, KeyID.DEFAULT, 0, len(data), data.hex()
             )
         if ret != 0:
             raise Exception(f"write_key failed with error {ret}")
@@ -95,22 +145,28 @@ class Main(App):
     @CatchExceptions
     def provision_dac(self):
         data = self.read_cert_file(self.args.filename)
-        self.write_data(self.KEY_TYPE_DAC, data)
+        self.write_data(KeyType.DAC, data)
 
     @CatchExceptions
     def provision_pai(self):
         data = self.read_cert_file(self.args.filename)
-        self.write_data(self.KEY_TYPE_PAI, data)
+        self.write_data(KeyType.PAI, data)
 
     @CatchExceptions
     def provision_cd(self):
         data = self.read_cert_file(self.args.filename)
-        self.write_data(self.KEY_TYPE_CD, data)
+        self.write_data(KeyType.CD, data)
 
     @CatchExceptions
     def provision_private_key(self):
         data = self.read_key_file(self.args.filename)
-        self.write_data(self.KEY_TYPE_PK, data)
+        self.write_data(KeyType.PRIVATE_KEY, data)
+
+    @CatchExceptions
+    def provision_spake2(self):
+        salt, verifier = self.generate_spake2_values(self.args.passcode)
+        self.write_data(KeyType.SPAKE2_SALT, salt)
+        self.write_data(KeyType.SPAKE2_VERIFIER, verifier)
 
     def get_portname(self):
         return ("10.0.4.20", 23)

@@ -430,6 +430,7 @@ sources = [
     f"{MATTER_GLUE_DIR}/platform/bsb/CHIPCryptoPALTinyCrypt.cpp",
     f"{MATTER_GLUE_DIR}/platform/bsb/ConfigurationManagerImpl.cpp",
     f"{MATTER_GLUE_DIR}/platform/bsb/ConnectivityManagerImpl.cpp",
+    f"{MATTER_GLUE_DIR}/platform/bsb/CryptoStorage.cpp",
     f"{MATTER_GLUE_DIR}/platform/bsb/DiagnosticDataProviderImpl.cpp",
     f"{MATTER_GLUE_DIR}/platform/bsb/GenericPlatformManagerImplFuri.cpp",
     f"{MATTER_GLUE_DIR}/platform/bsb/KeyValueStoreManagerImpl.cpp",

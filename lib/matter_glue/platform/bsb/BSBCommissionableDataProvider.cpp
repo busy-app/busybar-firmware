@@ -4,22 +4,22 @@
 #include <crypto/CHIPCryptoPAL.h>
 #include <lib/support/Base64.h>
 
-// TODO: Do not hardcode the below values
+#include "CryptoStorage.hpp"
 
 // Setup code: https://project-chip.github.io/connectedhomeip/qrcode.html?data=MT:YNDA0M.R02-10648G00
 // Generated with: $ SetupPayload.py generate -d 1234 -p 20202021 --vendor-id 5514 --product-id 0001 -cf 0 -dm 2
 
+// TODO: Do not hardcode the below values
+
 #define SETUP_DISCRIMINATOR (1234)
 #define SETUP_PASSCODE      (20202021)
 
-// Generated with: spake2p.py gen-verifier -p 20202021 -s U1BBS0UyUCBLZXkgU2FsdA== -i 1000
 #define SPAKE2P_ITERATION_COUNT (1000)
-#define SPAKE2P_SALT            "U1BBS0UyUCBLZXkgU2FsdA=="
-#define SPAKE2P_VERIFIER \
-    "uWFwqugDNGiEck/po7KHwwMwwqZgN10XuyBajPGuyzUEV/iree4lOrao5GuwnlQ65CJzbeUB49s31EH+NEkg0JVI5MGCQGMMT/SRPFNRODm3wH/MBiehuFc6FJ/NH6Rmzw=="
 
 namespace chip {
 namespace DeviceLayer {
+
+using namespace BSB;
 
 class CommissionableDataProviderImpl : public CommissionableDataProvider {
 public:
@@ -48,49 +48,16 @@ CHIP_ERROR CommissionableDataProviderImpl::GetSpake2pIterationCount(uint32_t& it
 }
 
 CHIP_ERROR CommissionableDataProviderImpl::GetSpake2pSalt(MutableByteSpan& saltBuf) {
-    static constexpr size_t maxBase64Len =
-        BASE64_ENCODED_LEN(chip::Crypto::kSpake2p_Max_PBKDF_Salt_Length) + 1;
-
-    char saltB64[maxBase64Len] = {0};
-
-    const size_t saltB64Len = strlen(SPAKE2P_SALT);
-    ReturnErrorCodeIf(saltB64Len > sizeof(saltB64), CHIP_ERROR_BUFFER_TOO_SMALL);
-
-    memcpy(saltB64, SPAKE2P_SALT, saltB64Len);
-
-    size_t saltLen = chip::Base64Decode32(
-        saltB64, static_cast<uint32_t>(saltB64Len), reinterpret_cast<uint8_t*>(saltB64));
-
-    ReturnErrorCodeIf(saltLen > saltBuf.size(), CHIP_ERROR_BUFFER_TOO_SMALL);
-    memcpy(saltBuf.data(), saltB64, saltLen);
-    saltBuf.reduce_size(saltLen);
-
-    return CHIP_NO_ERROR;
+    return LoadCryptoStorageItem(FuriHalCryptoKeyTypeMatterSPAKE2Salt, 0, saltBuf);
 }
 
 CHIP_ERROR CommissionableDataProviderImpl::GetSpake2pVerifier(
     MutableByteSpan& verifierBuf,
     size_t& outVerifierLen) {
-    static constexpr size_t maxBase64Len =
-        BASE64_ENCODED_LEN(chip::Crypto::kSpake2p_VerifierSerialized_Length) + 1;
-
-    char verifierB64[maxBase64Len] = {0};
-
-    const size_t verifierB64Len = strlen(SPAKE2P_VERIFIER);
-    ReturnErrorCodeIf(verifierB64Len > sizeof(verifierB64), CHIP_ERROR_BUFFER_TOO_SMALL);
-
-    memcpy(verifierB64, SPAKE2P_VERIFIER, verifierB64Len);
-
-    outVerifierLen = chip::Base64Decode32(
-        verifierB64,
-        static_cast<uint32_t>(verifierB64Len),
-        reinterpret_cast<uint8_t*>(verifierB64));
-
-    ReturnErrorCodeIf(outVerifierLen > verifierBuf.size(), CHIP_ERROR_BUFFER_TOO_SMALL);
-    memcpy(verifierBuf.data(), verifierB64, outVerifierLen);
-    verifierBuf.reduce_size(outVerifierLen);
-
-    return CHIP_NO_ERROR;
+    const auto err =
+        LoadCryptoStorageItem(FuriHalCryptoKeyTypeMatterSPAKE2Verifier, 0, verifierBuf);
+    outVerifierLen = verifierBuf.size();
+    return err;
 }
 
 CHIP_ERROR CommissionableDataProviderImpl::GetSetupPasscode(uint32_t& setupPasscode) {
