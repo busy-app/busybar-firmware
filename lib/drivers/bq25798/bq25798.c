@@ -145,8 +145,8 @@ bool bq25798_set_cfg(FuriHalI2cBusHandle* handle) {
 
     Bq25798Reg18NtcControl1 ntc_cfg1_temp = {
         .TS_COOL = TsCool_5,
-        .TS_WARM = TsWarm_55,
-        .BHOT = BHot_60,
+        .TS_WARM = TsWarm_50,
+        .BHOT = BHot_55,
         .BCOLD = BCold_n10,
         .TS_IGNORE = 0,
     };
