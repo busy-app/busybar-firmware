@@ -276,7 +276,7 @@ static void theme_apply_callback(lv_theme_t* th, lv_obj_t* obj) {
 
     } else if(lv_obj_check_type(obj, &progress_bar_lvgl_class)) {
         lv_obj_add_style(obj, &theme->styles.progress_bar, LV_PART_MAIN);
-        
+
     } else if(lv_obj_check_type(obj, &progress_bar_fill_lvgl_class)) {
         lv_obj_add_style(obj, &theme->styles.progress_bar_fill, LV_PART_MAIN);
 #endif
