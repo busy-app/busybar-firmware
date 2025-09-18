@@ -108,7 +108,7 @@ static void settings_scene_main_on_enter(void* context) {
             data->front_menu,
             "FW Update",
             "",
-            SETTINGS_IMG_PATH("fw_update_7x7.bin"),
+            SETTINGS_IMG_PATH("fw_update_8x8.bin"),
             SettingsSceneMainMenuIndexFwUpdate,
             settings_scene_setup_menu_callback,
             instance);

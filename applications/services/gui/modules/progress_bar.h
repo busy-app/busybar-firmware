@@ -48,15 +48,6 @@ Widget* progress_bar_get_base(ProgressBar* instance);
 */
 void progress_bar_set_value(ProgressBar* instance, int32_t value);
 
-/**
- * @brief Set the size of the ProgressBar.
- *
- * @param[in,out] instance pointer to the ProgressBar instance to be modified
- * @param[in] width ProgressBar width in pixels
- * @param[in] height ProgressBar height in pixels
- */
-void progress_bar_set_size(ProgressBar* instance, uint16_t width, uint16_t height);
-
 #ifdef __cplusplus
 }
 #endif

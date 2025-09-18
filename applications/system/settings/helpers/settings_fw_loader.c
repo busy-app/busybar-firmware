@@ -1,9 +1,13 @@
 #include "settings_fw_loader.h"
 
+#include <storage/storage.h>
+#include <wifi/wifi.h>
 #include <applications/system/fetch/helpers/fetch_client.h>
 #include <applications/system/fetch/helpers/fetch_file_save.h>
 
 #define TAG "SettingsFwLoader"
+
+#define SETTINGS_FW_LOADER_FILE_PATH EXT_PATH("update/upload.tar")
 
 struct SettingsFwLoader {
     FuriThread* thread;
@@ -12,11 +16,13 @@ struct SettingsFwLoader {
     FetchClient* fetch_client;
     FetchFileSave* file_save;
     FuriMessageQueue* status_queue;
-    FuriStreamBuffer* error_msg;
+    FuriStreamBuffer* state_msg;
     bool error;
 
     SettingsFwLoaderCallbackStatus callback_status;
-    void* context;
+    void* context_status;
+    SettingsFwLoaderCallbackState callback_state;
+    void* context_state;
 };
 
 SettingsFwLoader* settings_fw_loader_alloc(void) {
@@ -24,7 +30,7 @@ SettingsFwLoader* settings_fw_loader_alloc(void) {
     instance->url = furi_string_alloc();
     instance->is_processing_semaphore = furi_semaphore_alloc(1, 1);
     instance->status_queue = furi_message_queue_alloc(10, sizeof(FetchClientStatus));
-    instance->error_msg = furi_stream_buffer_alloc(512, 1);
+    instance->state_msg = furi_stream_buffer_alloc(512, 1);
     instance->thread = NULL;
     return instance;
 }
@@ -35,11 +41,52 @@ void settings_fw_loader_free(SettingsFwLoader* instance) {
     furi_message_queue_free(instance->status_queue);
     furi_string_free(instance->url);
     furi_semaphore_free(instance->is_processing_semaphore);
-    furi_stream_buffer_free(instance->error_msg);
+    furi_stream_buffer_free(instance->state_msg);
     free(instance);
 }
 
-//########## Thread callbacks ##########
+static bool settings_fw_loader_is_connected(SettingsFwLoader* instance) {
+    furi_assert(instance);
+    UNUSED(instance);
+
+    bool ret = false;
+    Wifi* wifi = furi_record_open(RECORD_WIFI);
+    WifiInfo wifi_info;
+    const WifiStatus status = wifi_get_info(wifi, &wifi_info);
+
+    if(status != WifiStatusOk) {
+        FURI_LOG_D(TAG, "Failed to get Wifi info: %d", status);
+    } else if(wifi_info.state != WifiStateUp) {
+        FURI_LOG_D(TAG, "Wifi is not connected");
+    } else {
+        FURI_LOG_D(TAG, "Wifi is connected");
+        ret = true;
+    }
+    furi_record_close(RECORD_WIFI);
+    return ret;
+}
+
+static int32_t settings_fw_loader_check_wifi_connected(SettingsFwLoader* instance) {
+    furi_assert(instance);
+    bool ret = true;
+    FuriString* state_str = furi_string_alloc_printf("Wait on connecting to WiFi...");
+    if(instance->callback_state) {
+        instance->callback_state(state_str, instance->context_state);
+    }
+
+    if(!settings_fw_loader_is_connected(instance)) {
+        instance->error = true;
+        furi_string_printf(state_str, "Not connected to WiFi");
+        if(instance->callback_state) {
+            instance->callback_state(state_str, instance->context_state);
+        }
+        ret = false;
+    }
+    furi_string_free(state_str);
+    return ret;
+}
+
+//########## Thread ##########
 
 static void
     settings_fw_loader_callback_file_write_data(uint8_t* data, size_t data_size, void* context) {
@@ -60,17 +107,17 @@ void settings_fw_loader_callback_status(FetchClientStatus status, void* context)
     furi_message_queue_put(instance->status_queue, &status, FuriWaitForever);
 }
 
-static void settings_fw_loader_callback_error(const char* error, void* context) {
+static void settings_fw_loader_callback_state(const char* error, void* context) {
     furi_assert(context);
     SettingsFwLoader* instance = context;
     furi_assert(instance);
-    FuriString* error_str = furi_string_alloc_printf("Error: %s\r\n", error);
+    FuriString* state_str = furi_string_alloc_printf("Error: %s\r\n", error);
     furi_stream_buffer_send(
-        instance->error_msg,
-        (uint8_t*)furi_string_get_cstr(error_str),
-        furi_string_size(error_str),
+        instance->state_msg,
+        (uint8_t*)furi_string_get_cstr(state_str),
+        furi_string_size(state_str),
         FuriWaitForever);
-    furi_string_free(error_str);
+    furi_string_free(state_str);
     instance->error = true;
 }
 
@@ -94,7 +141,11 @@ static int32_t settings_fw_loader_thread_callback(void* context) {
     SettingsFwLoader* instance = context;
     FURI_LOG_D(TAG, "Start");
 
-    FuriString* path = furi_string_alloc_printf("/ext/update/upload.tar");
+    if(!settings_fw_loader_check_wifi_connected(instance)) {
+        return 0;
+    }
+
+    FuriString* path = furi_string_alloc_printf(SETTINGS_FW_LOADER_FILE_PATH);
     FuriString* url = instance->url;
     instance->fetch_client = fetch_client_alloc();
     fetch_client_set_context(instance->fetch_client, instance);
@@ -110,13 +161,13 @@ static int32_t settings_fw_loader_thread_callback(void* context) {
         instance->fetch_client, settings_fw_loader_callback_file_write_data);
     fetch_client_set_callback_status(instance->fetch_client, settings_fw_loader_callback_status);
 
-    fetch_client_set_callback_error(instance->fetch_client, settings_fw_loader_callback_error);
+    fetch_client_set_callback_error(instance->fetch_client, settings_fw_loader_callback_state);
 
     fetch_client_run(instance->fetch_client, url);
 
     FetchClientStatus status;
     while(!fetch_client_is_processing_done(instance->fetch_client) ||
-          furi_stream_buffer_bytes_available(instance->error_msg)) {
+          furi_stream_buffer_bytes_available(instance->state_msg)) {
         if(furi_message_queue_get(instance->status_queue, &status, 200) == FuriStatusOk) {
             FURI_LOG_D(
                 TAG,
@@ -130,15 +181,21 @@ static int32_t settings_fw_loader_thread_callback(void* context) {
                     .received_download_size = status.received_download_size,
                     .speed_bytes_per_sec = status.speed_bytes_per_sec,
                 };
-                instance->callback_status(status_converted, instance->context);
+                instance->callback_status(status_converted, instance->context_status);
             }
         }
-        while(furi_stream_buffer_bytes_available(instance->error_msg)) {
+        while(furi_stream_buffer_bytes_available(instance->state_msg)) {
             uint8_t buffer[128];
             size_t bytes_read =
-                furi_stream_buffer_receive(instance->error_msg, buffer, sizeof(buffer), 0);
+                furi_stream_buffer_receive(instance->state_msg, buffer, sizeof(buffer), 0);
             if(bytes_read > 0) {
                 FURI_LOG_E(TAG, "Error: %.*s", (int)bytes_read, buffer);
+                if(instance->callback_state) {
+                    FuriString* state_str =
+                        furi_string_alloc_printf("%.*s", (int)bytes_read, buffer);
+                    instance->callback_state(state_str, instance->context_state);
+                    furi_string_free(state_str);
+                }
             }
         }
     }
@@ -163,7 +220,11 @@ static int32_t settings_fw_loader_thread_callback(void* context) {
 
 void settings_fw_loader_run(SettingsFwLoader* instance, const char* url) {
     furi_check(instance);
-    furi_check(!furi_semaphore_get_space(instance->is_processing_semaphore));
+
+    if(furi_semaphore_get_space(instance->is_processing_semaphore)) {
+        FURI_LOG_W(TAG, "FW Loader is already running");
+        return;
+    }
 
     furi_semaphore_acquire(instance->is_processing_semaphore, FuriWaitForever);
     furi_string_set(instance->url, url);
@@ -188,5 +249,14 @@ void settings_fw_loader_set_status_callback(
     void* context) {
     furi_check(instance);
     instance->callback_status = callback;
-    instance->context = context;
+    instance->context_status = context;
+}
+
+void settings_fw_loader_set_state_callback(
+    SettingsFwLoader* instance,
+    SettingsFwLoaderCallbackState callback,
+    void* context) {
+    furi_check(instance);
+    instance->callback_state = callback;
+    instance->context_state = context;
 }

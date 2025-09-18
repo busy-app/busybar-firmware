@@ -11,16 +11,21 @@ typedef enum {
     SceneCustomEventVolumeChanged = SettingsCustomEventSceneEventsStart,
     SceneCustomEventBackPressed,
     SceneCustomEventUpdateStatus,
+    SceneCustomEventDownloadStarted,
+    SceneCustomEventDownloadFinished,
+    SceneCustomEventErrorOccurred,
 } SceneCustomEvent;
 
 typedef struct {
     Label* label_status_back;
+    Label* label_status_back_percent;
     Image* image_back;
     ProgressBar* bar_back;
     Label* label_fw_name_download;
     Label* label_fw_current_version;
 
     Label* label_status_front;
+    Label* label_status_front_percent;
     ProgressBar* bar_front;
 
     uint8_t bar_volume;
@@ -34,14 +39,22 @@ static void settings_scene_fw_update_scene_update(SettingsApp* instance) {
     furi_assert(instance);
     SettingsSceneFwUpdate* data = scene_manager_get_current_scene_data(instance->scene_manager);
     furi_assert(data);
-    FURI_LOG_I("Firmware Update", "Progress: %d%%", data->bar_volume);
     with_gui(instance->gui, {
         progress_bar_set_value(data->bar_front, data->bar_volume);
         progress_bar_set_value(data->bar_back, data->bar_volume);
-        label_set_text_fmt(data->label_status_front, "Downloading      %d%%", data->bar_volume);
-        label_set_text_fmt(data->label_status_back, "Downloading (%d%%)", data->bar_volume);
-        //label_set_text(data->label_fw_name_download, furi_string_get_cstr(data->fw_status));
+        label_set_text_fmt(data->label_status_front_percent, "%d%%", data->bar_volume);
+        label_set_text_fmt(data->label_status_back_percent, "%d%%", data->bar_volume);
+        label_set_text(data->label_fw_name_download, furi_string_get_cstr(data->fw_status));
     });
+}
+
+static void settings_scene_fw_update_start_download(SettingsApp* instance) {
+    furi_assert(instance);
+    SettingsSceneFwUpdate* data = scene_manager_get_current_scene_data(instance->scene_manager);
+    furi_assert(data);
+    settings_fw_loader_run(
+        data->fw_loader,
+        "https://update.flipperzero.one/builds/busybar-firmware/dev/busybar-f21-update-dev-16092025-9128816b.tar");
 }
 
 static bool settings_scene_fw_update_input_callback(const InputEvent* event, void* context) {
@@ -59,18 +72,11 @@ static bool settings_scene_fw_update_input_callback(const InputEvent* event, voi
         case InputKeyStart:
         /* fall-through */
         case InputKeyOk:
-            // custom_event = SceneCustomEventBackPressed;
-            // consumed = true;
-            // settings_send_custom_event(instance, custom_event);
-
-            // settings_fw_loader_run(
-            //     data->fw_loader,
-            //     "https://update.flipperzero.one/builds/busybar-firmware/dev/busybar-f21-update-dev-16092025-9128816b.tar");
-
-            // consumed = true;
-            // break;
+            custom_event = SceneCustomEventDownloadStarted;
+            data->bar_volume = 0;
+            consumed = true;
+            break;
         case InputKeyUp:
-            FURI_LOG_I("1", "Progress: %d%%", data->bar_volume);
             data->bar_volume++;
             if(data->bar_volume > 100) {
                 data->bar_volume = 100;
@@ -79,7 +85,6 @@ static bool settings_scene_fw_update_input_callback(const InputEvent* event, voi
             consumed = true;
             break;
         case InputKeyDown:
-            FURI_LOG_I("2", "Progress: %d%%", data->bar_volume);
             if(data->bar_volume > 0) {
                 data->bar_volume--;
             }
@@ -97,19 +102,17 @@ static bool settings_scene_fw_update_input_callback(const InputEvent* event, voi
     return consumed;
 }
 
-void settings_scene_fw_status_callback(SettingsFwLoaderStatus status, void* context) {
+static void settings_scene_fw_status_callback(SettingsFwLoaderStatus status, void* context) {
     furi_assert(context);
     SettingsApp* app_instance = context;
     SettingsSceneFwUpdate* data =
         scene_manager_get_current_scene_data(app_instance->scene_manager);
     furi_assert(data);
 
-    SceneCustomEvent custom_event = SceneCustomEventUpdateStatus;
-
-    uint8_t download_procent =
+    uint8_t download_percent =
         (uint8_t)((status.received_download_size * 100) / status.total_download_size);
 
-    data->bar_volume = download_procent;
+    data->bar_volume = download_percent;
 
     char* dimension = "B";
     if(status.total_download_size > 2048) {
@@ -127,7 +130,19 @@ void settings_scene_fw_status_callback(SettingsFwLoaderStatus status, void* cont
         status.total_download_size,
         dimension);
 
-    settings_send_custom_event(app_instance, custom_event);
+    settings_send_custom_event(app_instance, SceneCustomEventUpdateStatus);
+}
+
+static void settings_scene_fw_update_state_callback(FuriString* error, void* context) {
+    furi_assert(context);
+    SettingsApp* app_instance = context;
+    SettingsSceneFwUpdate* data =
+        scene_manager_get_current_scene_data(app_instance->scene_manager);
+    furi_assert(data);
+
+    // Show error message
+    furi_string_set(data->fw_status, error);
+    settings_send_custom_event(app_instance, SceneCustomEventUpdateStatus);
 }
 
 static void settings_scene_fw_update_on_enter(void* context) {
@@ -142,42 +157,61 @@ static void settings_scene_fw_update_on_enter(void* context) {
 
         // GuiDisplayIdBack
         Widget* root_back = gui_layer_get_root_widget(layer, GuiDisplayIdBack);
-        data->label_status_back = label_alloc(root_back);
-        label_set_text(data->label_status_back, "Downloading (0%)");
-        widget_set_pos(label_get_base(data->label_status_back), 22, 23);
+        FlexLayout* layout_back = flex_layout_alloc(root_back, FlexLayoutTypeColumn);
+        Widget* label_container_back = widget_alloc(flex_layout_get_base(layout_back));
+        widget_set_padding(flex_layout_get_base(layout_back), 7, 7, 21, 6);
+        flex_layout_set_spacing(layout_back, 7);
+        widget_set_height_content(label_container_back);
 
-        data->bar_back = progress_bar_alloc(root_back);
-        widget_set_pos(progress_bar_get_base(data->bar_back), 7, 40);
-        progress_bar_set_size(data->bar_back, 132, 5);
+        data->label_status_back = label_alloc(label_container_back);
+        label_set_text(data->label_status_back, "Downloading");
+        widget_set_padding(label_get_base(data->label_status_back), 0, 38 + 10, 0, 0);
+        widget_set_align(label_get_base(data->label_status_back), AlignRightMid);
 
-        data->label_fw_name_download = label_alloc(root_back);
+        data->label_status_back_percent = label_alloc(label_container_back);
+        label_set_text(data->label_status_back_percent, "0%");
+        widget_set_padding(label_get_base(data->label_status_back_percent), 0, 10, 0, 0);
+        widget_set_align(label_get_base(data->label_status_back_percent), AlignRightMid);
+
+        data->image_back = image_alloc(label_container_back);
+        image_set_source(data->image_back, SETTINGS_IMG_PATH("download_12x12.bin"));
+
+        data->bar_back = progress_bar_alloc(flex_layout_get_base(layout_back));
+        widget_set_height(progress_bar_get_base(data->bar_back), 4);
+
+        data->label_fw_name_download = label_alloc(flex_layout_get_base(layout_back));
         label_set_text_font_size(data->label_fw_name_download, LabelFontSizeSmall);
-        label_set_text(data->label_fw_name_download, "Firmware Name....tar");
-        widget_set_pos(label_get_base(data->label_fw_name_download), 7, 52);
+        label_set_text(data->label_fw_name_download, "Press OK to update");
 
-        data->label_fw_current_version = label_alloc(root_back);
+        data->label_fw_current_version = label_alloc(flex_layout_get_base(layout_back));
         label_set_text_font_size(data->label_fw_current_version, LabelFontSizeSmall);
-        label_set_text(data->label_fw_current_version, "Current Version: 1.0.0");
-        widget_set_pos(label_get_base(data->label_fw_current_version), 7, 69);
-
-        data->image_back = image_alloc(root_back);
-        image_set_source(data->image_back, SETTINGS_IMG_PATH("fw_update_12x12.bin"));
-        widget_set_pos(image_get_base(data->image_back), 7, 23);
+        label_set_text(data->label_fw_current_version, "Current version: 0.0.2");
 
         // GuiDisplayIdFront
         Widget* root_front = gui_layer_get_root_widget(layer, GuiDisplayIdFront);
-        data->label_status_front = label_alloc(root_front);
-        label_set_text(data->label_status_front, "Downloading      0%");
-        widget_set_pos(label_get_base(data->label_status_front), 1, 0);
+        FlexLayout* layout_front = flex_layout_alloc(root_front, FlexLayoutTypeColumn);
+        Widget* label_container_front = widget_alloc(flex_layout_get_base(layout_front));
+        widget_set_padding(flex_layout_get_base(layout_front), 2, 2, 1, 2);
+        flex_layout_set_spacing(layout_front, 2);
+        widget_set_height_content(label_container_front);
 
-        data->bar_front = progress_bar_alloc(root_front);
-        widget_set_pos(progress_bar_get_base(data->bar_front), 2, 10);
-        progress_bar_set_size(data->bar_front, 68, 5);
-        //progress_bar_set_color(data->bar_front, (Color)COLOR_MAKE_RGB(0, 200, 30));
+        data->label_status_front = label_alloc(label_container_front);
+        label_set_text(data->label_status_front, "Downloading");
+        widget_set_align(label_get_base(data->label_status_front), AlignLeftMid);
 
-        // data->fw_loader = settings_fw_loader_alloc();
-        // settings_fw_loader_set_status_callback(
-        //     data->fw_loader, settings_scene_fw_status_callback, instance);
+        data->label_status_front_percent = label_alloc(label_container_front);
+        label_set_text(data->label_status_front_percent, "0%");
+        widget_set_align(label_get_base(data->label_status_front_percent), AlignRightMid);
+
+        data->bar_front = progress_bar_alloc(flex_layout_get_base(layout_front));
+        widget_set_height(progress_bar_get_base(data->bar_front), 4);
+
+        // FwLoader
+        data->fw_loader = settings_fw_loader_alloc();
+        settings_fw_loader_set_status_callback(
+            data->fw_loader, settings_scene_fw_status_callback, instance);
+        settings_fw_loader_set_state_callback(
+            data->fw_loader, settings_scene_fw_update_state_callback, instance);
     });
 }
 
@@ -192,13 +226,15 @@ static void settings_scene_fw_update_on_exit(void* context) {
         gui_layer_remove_input_callback(layer, settings_scene_fw_update_input_callback);
 
         label_free(data->label_status_back);
+        label_free(data->label_status_back_percent);
         image_free(data->image_back);
         progress_bar_free(data->bar_back);
         label_free(data->label_status_front);
+        label_free(data->label_status_front_percent);
         label_free(data->label_fw_name_download);
         label_free(data->label_fw_current_version);
         progress_bar_free(data->bar_front);
-        // settings_fw_loader_free(data->fw_loader);
+        settings_fw_loader_free(data->fw_loader);
     });
     furi_string_free(data->fw_status);
 }
@@ -228,6 +264,10 @@ static bool settings_scene_fw_update_on_event(const SceneManagerEvent* event, vo
             break;
         case SceneCustomEventUpdateStatus:
             settings_scene_fw_update_scene_update(instance);
+            consumed = true;
+            break;
+        case SceneCustomEventDownloadStarted:
+            settings_scene_fw_update_start_download(instance);
             consumed = true;
             break;
 
