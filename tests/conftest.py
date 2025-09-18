@@ -70,6 +70,29 @@ def web_session() -> requests.Session:
     return session
 
 
+@pytest.fixture
+def api_session(web_session) -> requests.Session:
+    """API session with proper headers for API testing"""
+    # Add API-specific headers - only Accept, not Content-Type
+    # Content-Type will be set appropriately per request
+    web_session.headers.update({
+        'Accept': 'application/json',
+    })
+    return web_session
+
+
+@pytest.fixture
+def api_auth_session(web_session) -> requests.Session:
+    """API session with authentication headers"""
+    # TODO: Add X-API-Token header when authentication is required
+    # Content-Type will be set appropriately per request
+    web_session.headers.update({
+        'Accept': 'application/json',
+        # 'X-API-Token': 'test-token'  # Uncomment when auth is implemented
+    })
+    return web_session
+
+
 def pytest_configure(config):
     """Pytest configuration"""
     logger.info("Configuring pytest")
@@ -93,6 +116,7 @@ def pytest_configure(config):
     markers = [
         "cli: CLI command tests",
         "frontend: Web frontend tests",
+        "api: API endpoint tests",
         "story_commands_check: Commands Check story",
         "story_ui_validation: UI validation story",
         "story_ui_interaction: UI interaction story",
