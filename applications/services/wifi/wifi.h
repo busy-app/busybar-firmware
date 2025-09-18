@@ -38,7 +38,7 @@ WifiStatus wifi_deinit(Wifi* instance);
  * @brief Scan for available Wifi access points nearby.
  *
  * The array pointed to by the results parameter MUST be allocated by the user code.
- * Naturally, it is also responsibe for freeing the array when it is no longer needed.
+ * Naturally, it is also responsible for freeing the array when it is no longer needed.
  *
  * @note The Wifi system MUST be initialised before calling this function.
  *
