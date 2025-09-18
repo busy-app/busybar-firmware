@@ -461,6 +461,10 @@ class FlipperStorageOperations:
         if do_upload:
             self.logger.info(f'Sending "{local_file_path}" to "{flipper_file_path}"')
             self.storage.send_file(local_file_path, flipper_file_path)
+        else:
+            self.logger.info(
+                f'Skipping "{local_file_path}", already exists and identical'
+            )
 
     # make directory with exist check
     def mkpath(self, flipper_dir_path: str):
