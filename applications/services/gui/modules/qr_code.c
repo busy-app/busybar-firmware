@@ -52,7 +52,7 @@ void qr_code_set_data(QRCode* instance, const char* data) {
     furi_check(instance);
     furi_check(data);
 
-    lv_qrcode_update(instance->qr_code, data, strlen(data));
+    furi_check(lv_qrcode_update(instance->qr_code, data, strlen(data)) == LV_RESULT_OK);
 }
 
 // LVGL class descriptor

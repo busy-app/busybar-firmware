@@ -44,6 +44,8 @@ Widget* qr_code_get_base(QRCode* instance);
  * 
  * @param[in,out] instance pointer to the QRCode instance to be modified
  * @param[in] size Size of one side of the code (width and height)
+ * 
+ * @warning must be called before `qr_code_set_data`.
  */
 void qr_code_set_size(QRCode* instance, int32_t size);
 
@@ -52,6 +54,8 @@ void qr_code_set_size(QRCode* instance, int32_t size);
  *
  * @param[in,out] instance pointer to the QRCode instance to be modified
  * @param[in] file_path zero-terminated string containing the text to be shown
+ * 
+ * @warning `qr_code_set_size` must have been called beforehand.
  */
 void qr_code_set_data(QRCode* instance, const char* data);
 
