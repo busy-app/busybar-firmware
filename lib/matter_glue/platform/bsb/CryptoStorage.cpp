@@ -8,6 +8,27 @@ namespace chip {
 namespace DeviceLayer {
 namespace BSB {
 
+static CHIP_ERROR TranslateFuriHalCryptoStatus(FuriHalCryptoStatus status) {
+    switch(status) {
+    case FuriHalCryptoStatusOk:
+        return CHIP_NO_ERROR;
+    case FuriHalCryptoStatusFail:
+        return CHIP_ERROR_PERSISTED_STORAGE_FAILED;
+    case FuriHalCryptoStatusFailWrite:
+        return CHIP_ERROR_WRITE_FAILED;
+    case FuriHalCryptoStatusStorageFull:
+        return CHIP_ERROR_NO_MEMORY;
+    case FuriHalCryptoStatusDuplicate:
+        return CHIP_ERROR_DUPLICATE_KEY_ID;
+    case FuriHalCryptoStatusNotFound:
+        return CHIP_ERROR_PERSISTED_STORAGE_VALUE_NOT_FOUND;
+    case FuriHalCryptoStatusErrorCrc:
+        return CHIP_ERROR_INTEGRITY_CHECK_FAILED;
+    default:
+        return CHIP_ERROR_INTERNAL;
+    }
+}
+
 CHIP_ERROR LoadCryptoStorageItem(
     FuriHalCryptoKeyType key_type,
     uint32_t key_id,
@@ -17,8 +38,7 @@ CHIP_ERROR LoadCryptoStorageItem(
     FuriHalCryptoKey* key = furi_hal_crypto_storage_alloc(FuriHalCryptoPartitionMain);
 
     do {
-        FuriHalCryptoStatus status;
-        status = furi_hal_crypto_storage_read(key, key_type, key_id);
+        const FuriHalCryptoStatus status = furi_hal_crypto_storage_read(key, key_type, key_id);
 
         if(status != FuriHalCryptoStatusOk) {
             ChipLogError(
@@ -27,6 +47,7 @@ CHIP_ERROR LoadCryptoStorageItem(
                 key_type,
                 key_id,
                 status);
+            err = TranslateFuriHalCryptoStatus(status);
             break;
         }
 
