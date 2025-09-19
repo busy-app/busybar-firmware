@@ -9,7 +9,7 @@
 
 #include <matter/matter.h>
 
-#define WIFI_HELP_URL "https://example.org"
+#define WIFI_HELP_URL "https://docs.busy.app/bar/basics/connect-wifi"
 
 typedef struct {
     struct {
