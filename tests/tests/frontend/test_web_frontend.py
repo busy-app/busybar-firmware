@@ -6,13 +6,13 @@ import requests
 from bs4 import BeautifulSoup
 
 
-@allure.epic("BSB Web Frontend Testing")
 @allure.feature("5. Web Frontend")
 @allure.story("Basic connectivity")
 class TestWebFrontendBasic:
     """Basic smoke tests - HTML page and API documentation"""
 
-    @allure.testcase("2001", "BSB Front. HTTP Server Response")
+    @allure.id("2728")
+    @allure.title("BSB Front. HTTP Server Response")
     @pytest.mark.frontend
     def test_http_server_responds(self, web_session, web_base_url):
         """Test that the HTTP server responds with valid HTML"""
@@ -39,7 +39,8 @@ class TestWebFrontendBasic:
             app_container = soup.find("div", {"id": "__nuxt"})
             assert app_container is not None, "Missing Nuxt app container"
 
-    @allure.testcase("2002", "BSB Front. API Documentation Available")
+    @allure.id("2729")
+    @allure.title("BSB Front. API Documentation Available")
     @pytest.mark.frontend
     def test_api_docs_available(self, web_session, web_base_url):
         """Test that Swagger API documentation is accessible"""
@@ -63,7 +64,8 @@ class TestWebFrontendBasic:
             swagger_container = soup.find("div", {"id": "swagger-ui"})
             assert swagger_container is not None, "Missing Swagger UI container"
 
-    @allure.testcase("2003", "BSB Front. OpenAPI Spec Available")
+    @allure.id("2730")
+    @allure.title("BSB Front. OpenAPI Spec Available")
     @pytest.mark.frontend
     def test_openapi_spec_available(self, web_session, web_base_url):
         """Test that OpenAPI specification is accessible"""
@@ -82,13 +84,13 @@ class TestWebFrontendBasic:
             assert "paths:" in content, "Should contain API paths"
 
 
-@allure.epic("BSB Web Frontend Testing")
 @allure.feature("5. Web Frontend")
 @allure.story("API endpoints")
 class TestWebFrontendAPI:
     """Test actual API endpoints from the documentation"""
 
-    @allure.testcase("2010", "BSB API. Version Endpoint")
+    @allure.id("2731")
+    @allure.title("BSB API. Version Endpoint")
     @pytest.mark.frontend
     def test_api_version_endpoint(self, web_session, web_base_url):
         """Test /api/version endpoint responds"""
@@ -113,7 +115,8 @@ class TestWebFrontendAPI:
             except ValueError:
                 pytest.fail("Response is not valid JSON")
 
-    @allure.testcase("2011", "BSB API. Status Endpoint")
+    @allure.id("2732")
+    @allure.title("BSB API. Status Endpoint")
     @pytest.mark.frontend
     def test_api_status_endpoint(self, web_session, web_base_url):
         """Test /api/status endpoint responds"""
@@ -137,7 +140,8 @@ class TestWebFrontendAPI:
             except ValueError:
                 pytest.fail("Response is not valid JSON")
 
-    @allure.testcase("2012", "BSB API. WiFi Status Endpoint")
+    @allure.id("2733")
+    @allure.title("BSB API. WiFi Status Endpoint")
     @pytest.mark.frontend
     def test_api_wifi_status_endpoint(self, web_session, web_base_url):
         """Test /api/wifi/status endpoint responds"""
@@ -164,7 +168,8 @@ class TestWebFrontendAPI:
                 except ValueError:
                     pytest.fail("Response is not valid JSON")
 
-    @allure.testcase("2013", "BSB API. System Status Endpoint")
+    @allure.id("2734")
+    @allure.title("BSB API. System Status Endpoint")
     @pytest.mark.frontend
     def test_api_system_status_endpoint(self, web_session, web_base_url):
         """Test /api/status/system endpoint responds"""
@@ -193,13 +198,13 @@ class TestWebFrontendAPI:
                     pytest.fail("Response is not valid JSON")
 
 
-@allure.epic("BSB Web Frontend Testing")
 @allure.feature("5. Web Frontend")
 @allure.story("Error handling")
 class TestWebFrontendErrorHandling:
     """Test error handling and edge cases"""
 
-    @allure.testcase("2020", "BSB Front. 404 Handling")
+    @allure.id("2735")
+    @allure.title("BSB Front. 404 Handling")
     @pytest.mark.frontend
     def test_404_handling(self, web_session, web_base_url):
         """Test that non-existent paths return 404"""
@@ -210,7 +215,8 @@ class TestWebFrontendErrorHandling:
                 response.status_code == 404
             ), f"Expected 404, got {response.status_code}"
 
-    @allure.testcase("2021", "BSB Front. Invalid API Path")
+    @allure.id("2736")
+    @allure.title("BSB Front. Invalid API Path")
     @pytest.mark.frontend
     def test_invalid_api_path(self, web_session, web_base_url):
         """Test invalid API endpoint returns appropriate error"""
@@ -222,7 +228,8 @@ class TestWebFrontendErrorHandling:
                 405,
             ], f"Expected 404/405, got {response.status_code}"
 
-    @allure.testcase("2022", "BSB Front. Malicious Query Parameters")
+    @allure.id("2737")
+    @allure.title("BSB Front. Malicious Query Parameters")
     @pytest.mark.frontend
     def test_malicious_query_parameters(self, web_session, web_base_url):
         """Test that server handles malicious query parameters gracefully"""
@@ -246,11 +253,12 @@ class TestWebFrontendErrorHandling:
                     response.status_code < 500
                 ), f"Server error with param {malicious_param[:20]}: {response.status_code}"
 
+    @allure.id("2738")
     @pytest.mark.parametrize(
         "endpoint",
         ["/api/version", "/api/status", "/api/wifi/status", "/docs/", "/openapi.yaml"],
     )
-    @allure.testcase("2023", "BSB Front. Response Time Test")
+    @allure.title("BSB Front. Response Time Test")
     @pytest.mark.frontend
     def test_response_times(self, web_session, web_base_url, endpoint):
         """Test that API endpoints respond within reasonable time"""
@@ -276,13 +284,13 @@ class TestWebFrontendErrorHandling:
             )
 
 
-@allure.epic("BSB Web Frontend Testing")
 @allure.feature("5. Web Frontend")
 @allure.story("Integration")
 class TestWebFrontendIntegration:
     """Integration tests - multiple components working together"""
 
-    @allure.testcase("2030", "BSB Front. Complete Stack Test")
+    @allure.id("2739")
+    @allure.title("BSB Front. Complete Stack Test")
     @pytest.mark.frontend
     def test_complete_stack_functional(self, web_session, web_base_url):
         """Test that web interface, API docs, and core API endpoints all work together"""

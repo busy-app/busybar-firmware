@@ -138,16 +138,24 @@ Use pytest markers to filter and organize tests:
 - `cli` - CLI command tests
 - `frontend` - Web frontend tests
 
-**By Story:**
-- `story_commands_check` - Commands Check story
-- `story_ui_validation` - UI validation story  
-- `story_ui_interaction` - UI interaction story
-- `story_interface_status` - Interface status story
-- `story_mqtt` - MQTT story (mostly skipped/draft)
+[//]: # (**By Story:**)
 
-**By Feature:**
-- `feature_cli` - Feature 6. CLI
-- `feature_web_frontend` - Feature 5. Web Frontend
+[//]: # (- `story_commands_check` - Commands Check story)
+
+[//]: # (- `story_ui_validation` - UI validation story  )
+
+[//]: # (- `story_ui_interaction` - UI interaction story)
+
+[//]: # (- `story_interface_status` - Interface status story)
+
+[//]: # (- `story_mqtt` - MQTT story &#40;mostly skipped/draft&#41;)
+
+[//]: # ()
+[//]: # (**By Feature:**)
+
+[//]: # (- `feature_cli` - Feature 6. CLI)
+
+[//]: # (- `feature_web_frontend` - Feature 5. Web Frontend)
 
 **Special Markers:**
 - `connection_test` - Tests requiring fresh connections

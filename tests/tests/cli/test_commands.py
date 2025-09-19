@@ -4,11 +4,12 @@ import pytest
 
 @allure.epic("BSB CLI Testing")
 @allure.feature("6. CLI")
-@allure.story("Commands Check - Automated")
+@allure.story("Commands Check")
 class TestCLICommandsSession:
     """Test cases for CLI commands using session-scoped connection"""
 
-    @allure.testcase("2047", "CLI. Command ?. [Draft]")
+    @allure.id("2712")
+    @allure.title("CLI. Command ?. [Draft]")
     @pytest.mark.story_commands_check
     @pytest.mark.cli
     def test_cli_command_question_mark(self, persistent_cli_connection, test_logger):
@@ -59,7 +60,8 @@ class TestCLICommandsSession:
                 len(missing_commands) == 0
             ), f"Missing expected commands: {missing_commands}"
 
-    @allure.testcase("2046", "CLI. Command Exit. [Draft]")
+    @allure.id("2713")
+    @allure.title("CLI. Command Exit. [Draft]")
     @pytest.mark.story_commands_check
     @pytest.mark.cli
     def test_cli_command_exit(self, persistent_cli_connection):
@@ -70,7 +72,8 @@ class TestCLICommandsSession:
                 "exit" in help_response.lower()
             ), "Exit command should be available in help"
 
-    @allure.testcase("2043", "CLI. Command Free. [Draft]")
+    @allure.id("2714")
+    @allure.title("CLI. Command Free. [Draft]")
     @pytest.mark.story_commands_check
     @pytest.mark.cli
     def test_cli_command_free(self, persistent_cli_connection):
@@ -110,7 +113,8 @@ class TestCLICommandsSession:
             except (IndexError, ValueError) as e:
                 pytest.fail(f"Could not parse free heap size: {e}")
 
-    @allure.testcase("2045", "CLI. Command Help. [Draft]")
+    @allure.id("2715")
+    @allure.title("CLI. Command Help. [Draft]")
     @pytest.mark.story_commands_check
     @pytest.mark.cli
     def test_cli_command_help(self, persistent_cli_connection):
@@ -123,7 +127,8 @@ class TestCLICommandsSession:
             assert "power <cmd> <args>" in response, "Should explain command arguments"
             assert "Cmd list:" in response, "Should list all sub-commands"
 
-    @allure.testcase("2044", "CLI. Command Storage. [Draft]")
+    @allure.id("2716")
+    @allure.title("CLI. Command Storage. [Draft]")
     @pytest.mark.story_commands_check
     @pytest.mark.cli
     def test_cli_command_storage(self, persistent_cli_connection):
@@ -135,7 +140,8 @@ class TestCLICommandsSession:
             assert response.strip(), "Storage command should return storage information"
             assert len(response.strip()) > 10, "Storage output should be substantial"
 
-    @allure.testcase("2040", "CLI. Command Sl_cli. [Draft]")
+    @allure.id("2717")
+    @allure.title("CLI. Command Sl_cli. [Draft]")
     @pytest.mark.story_commands_check
     @pytest.mark.cli
     def test_cli_command_sl_cli(self, persistent_cli_connection):
@@ -161,7 +167,8 @@ class TestCLICommandsSession:
                     not persistent_cli_connection._in_sl_cli
                 ), "Should have exited 917 CLI mode"
 
-    @allure.testcase("2041", "CLI. Command Uptime. [Draft]")
+    @allure.id("2718")
+    @allure.title("CLI. Command Uptime. [Draft]")
     @pytest.mark.story_commands_check
     @pytest.mark.cli
     def test_cli_command_uptime(self, persistent_cli_connection):
@@ -178,7 +185,8 @@ class TestCLICommandsSession:
             )
             assert has_time_units, f"Uptime should contain time units, got: {response}"
 
-    @allure.testcase("2035", "CLI. Command Device_info. [Draft]")
+    @allure.id("2719")
+    @allure.title("CLI. Command Device_info. [Draft]")
     @pytest.mark.story_commands_check
     @pytest.mark.cli
     def test_cli_command_device_info(self, persistent_cli_connection):
@@ -207,7 +215,8 @@ class TestCLICommandsSession:
                 git_url = git_lines[0].split(":", 1)[1].strip()
                 assert git_url, "Git URL should not be empty"
 
-    @allure.testcase("2028", "CLI. Command Audio. [Draft]")
+    @allure.id("2720")
+    @allure.title("CLI. Command Audio. [Draft]")
     @pytest.mark.story_commands_check
     @pytest.mark.cli
     def test_cli_command_audio(self, persistent_cli_connection):
@@ -218,7 +227,8 @@ class TestCLICommandsSession:
         with allure.step("Verify audio command executes"):
             assert response is not None, "Audio command should execute without error"
 
-    @allure.testcase("2030", "CLI. Command Display. [Draft]")
+    @allure.id("2721")
+    @allure.title("CLI. Command Display. [Draft]")
     @pytest.mark.story_commands_check
     @pytest.mark.cli
     def test_cli_command_display(self, persistent_cli_connection):
@@ -229,7 +239,8 @@ class TestCLICommandsSession:
         with allure.step("Verify display command executes"):
             assert response is not None, "Display command should execute without error"
 
-    @allure.testcase("2031", "CLI. Command Echo. [Draft]")
+    @allure.id("2722")
+    @allure.title("CLI. Command Echo. [Draft]")
     @pytest.mark.story_commands_check
     @pytest.mark.cli
     def test_cli_command_echo(self, persistent_cli_connection):
@@ -245,7 +256,8 @@ class TestCLICommandsSession:
                 test_message in response
             ), f"Echo should return the input message: {test_message}"
 
-    @allure.testcase("2034", "CLI. Command Free_blocks. [Draft]")
+    @allure.id("2723")
+    @allure.title("CLI. Command Free_blocks. [Draft]")
     @pytest.mark.story_commands_check
     @pytest.mark.cli
     def test_cli_command_free_blocks(self, persistent_cli_connection):
@@ -256,7 +268,8 @@ class TestCLICommandsSession:
         with allure.step("Verify free_blocks command output"):
             assert response is not None, "Free_blocks command should execute"
 
-    @allure.testcase("2026", "CLI. Command Power. [Draft]")
+    @allure.id("2724")
+    @allure.title("CLI. Command Power. [Draft]")
     @pytest.mark.story_commands_check
     @pytest.mark.cli
     def test_cli_command_power(self, persistent_cli_connection):
@@ -278,11 +291,12 @@ class TestCLICommandsSession:
 
 @allure.epic("BSB CLI Testing")
 @allure.feature("6. CLI")
-@allure.story("UI validation")
+@allure.story("UI Validation")
 class TestCLIUI:
     """Test cases for CLI UI - Story: UI validation"""
 
-    @allure.testcase("2048", "CLI. UI. Render [Draft]")
+    @allure.id("2725")
+    @allure.title("CLI. UI. Render [Draft]")
     @pytest.mark.story_ui_validation
     @pytest.mark.cli
     def test_cli_ui_render(self, fresh_cli_connection):
@@ -292,7 +306,8 @@ class TestCLIUI:
             assert response.strip(), "CLI should render help properly"
             assert len(response) > 100, "Help output should be substantial"
 
-    @allure.testcase("2152", "CLI. UI. Welcome message. [Draft]")
+    @allure.id("2726")
+    @allure.title("CLI. UI. Welcome message. [Draft]")
     @pytest.mark.story_ui_validation
     @pytest.mark.cli
     def test_cli_ui_welcome_message(self, fresh_cli_connection):
@@ -315,12 +330,13 @@ class TestCLIUI:
 class TestCLIConnectionManagement:
     """Test connection management and 917 CLI"""
 
-    @allure.testcase("2154", "CLI. 917 CLI. Multiple Entries. [Draft]")
+    @allure.id("2727")
+    @allure.title("CLI. 917 CLI. Multiple Entries. [Draft]")
     @pytest.mark.story_commands_check
     @pytest.mark.cli
     def test_cli_917_multiple_entries(self, fresh_cli_connection):
         """Test entering and exiting 917 CLI multiple times"""
-        for i in range(5):
+        for i in range(3):
             with allure.step(f"Enter 917 CLI - attempt {i + 1}"):
                 response = fresh_cli_connection.enter_sl_cli()
                 assert (

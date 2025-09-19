@@ -15,6 +15,30 @@ from utils.logging_config import (TestLogContext, get_cli_logger,
 
 load_dotenv()
 
+# Validate critical environment variables
+def validate_environment():
+    """Validate that critical environment variables are available"""
+    required_vars = {
+        "CLI_HOST": os.getenv("CLI_HOST"),
+        "CLI_PORT": os.getenv("CLI_PORT"), 
+        "WEB_BASE_URL": os.getenv("WEB_BASE_URL")
+    }
+    
+    missing_vars = [var for var, value in required_vars.items() if not value]
+    if missing_vars:
+        print(f"Warning: Missing environment variables: {', '.join(missing_vars)}")
+        print("Using default values. Check your .env file if tests fail.")
+    
+    # Log current configuration
+    print(f"Test Configuration:")
+    print(f"  CLI_HOST: {os.getenv('CLI_HOST', 'Not set (will use default)')}")
+    print(f"  CLI_PORT: {os.getenv('CLI_PORT', 'Not set (will use default)')}")
+    print(f"  WEB_BASE_URL: {os.getenv('WEB_BASE_URL', 'Not set (will use default)')}")
+    print(f"  LOG_LEVEL: {os.getenv('LOG_LEVEL', 'INFO')}")
+
+# Validate environment on import
+validate_environment()
+
 # Setup logging
 logger = setup_logging(
     log_level=os.getenv("LOG_LEVEL", "INFO"),
@@ -137,10 +161,9 @@ def pytest_configure(config):
 class SimpleCLIConnection:
     """Simple CLI connection using standard telnetlib"""
 
-    # TODO: fix env load here
-    def __init__(self, host: str = "10.0.4.20", port: int = 23):
-        self.host = host
-        self.port = port
+    def __init__(self, host: str = None, port: int = None):
+        self.host = host or os.getenv("CLI_HOST", "10.0.4.20")
+        self.port = int(port or os.getenv("CLI_PORT", "23"))
         self.tn: Optional[telnetlib.Telnet] = None
         self.connected = False
         self.logger = get_cli_logger()

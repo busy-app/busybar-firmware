@@ -95,6 +95,7 @@ htmlcov/
 allure-results/
 allure-report/
 .allure/
+tests/allure-results-upload
 
 # Test Artifacts
 test-results*.xml
