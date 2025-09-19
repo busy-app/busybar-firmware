@@ -35,11 +35,9 @@ typedef enum {
     FuriHalCryptoKeyTypeMatterDAC,
     FuriHalCryptoKeyTypeMatterPAI,
     FuriHalCryptoKeyTypeMatterCD,
-    FuriHalCryptoKeyTypeMatterVID_PID,
-    FuriHalCryptoKeyTypeMatterSPAKE2Salt,
-    FuriHalCryptoKeyTypeMatterSPAKE2Verifier,
-    FuriHalCryptoKeyTypeMatterDiscriminator,
-    FuriHalCryptoKeyTypeMatterPasscode,
+    FuriHalCryptoKeyTypeMatterSetup,
+    FuriHalCryptoKeyTypeMatterDeviceInfo,
+
     FuriHalCryptoKeyTypeNone = 0xFFFFFFFF,
 } FuriHalCryptoKeyType;
 _Static_assert(sizeof(FuriHalCryptoKeyType) == 4, "Size check for 'FuriHalCryptoKeyType' failed.");

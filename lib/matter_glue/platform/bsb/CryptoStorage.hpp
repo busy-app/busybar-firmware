@@ -8,14 +8,21 @@ namespace chip {
 namespace DeviceLayer {
 namespace BSB {
 
+template <typename T>
+constexpr MutableByteSpan ToMutableByteSpan(T& data) {
+    return {reinterpret_cast<uint8_t*>(&data), sizeof(data)};
+}
+
+MutableByteSpan ToMutableByteSpan(char* buf, size_t bufSize);
+
 CHIP_ERROR
-LoadCryptoStorageItem(FuriHalCryptoKeyType key_type, uint32_t key_id, MutableByteSpan& out_buf);
+LoadCryptoStorageKey(FuriHalCryptoKeyType key_type, uint32_t key_id, MutableByteSpan& out_span);
 
 CHIP_ERROR SignWithECDSA256Key(
     FuriHalCryptoKeyType key_type,
     uint32_t key_id,
     const ByteSpan& message,
-    MutableByteSpan& out_buf);
+    MutableByteSpan& out_span);
 
 } // namespace BSB
 } // namespace DeviceLayer

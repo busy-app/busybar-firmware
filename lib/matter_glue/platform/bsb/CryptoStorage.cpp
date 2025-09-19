@@ -29,37 +29,26 @@ static CHIP_ERROR TranslateFuriHalCryptoStatus(FuriHalCryptoStatus status) {
     }
 }
 
-CHIP_ERROR LoadCryptoStorageItem(
+MutableByteSpan ToMutableByteSpan(char* buf, size_t bufSize) {
+    return {reinterpret_cast<uint8_t*>(buf), bufSize};
+}
+
+CHIP_ERROR LoadCryptoStorageKey(
     FuriHalCryptoKeyType key_type,
     uint32_t key_id,
-    MutableByteSpan& out_buf) {
-    CHIP_ERROR err = CHIP_ERROR_INTERNAL;
+    MutableByteSpan& out_span) {
+    CHIP_ERROR err;
 
     FuriHalCryptoKey* key = furi_hal_crypto_storage_alloc(FuriHalCryptoPartitionMain);
 
     do {
-        const FuriHalCryptoStatus status = furi_hal_crypto_storage_read(key, key_type, key_id);
+        err = TranslateFuriHalCryptoStatus(furi_hal_crypto_storage_read(key, key_type, key_id));
 
-        if(status != FuriHalCryptoStatusOk) {
-            ChipLogError(
-                Crypto,
-                "Failed to read item with type %d and id %lu: 0x%X",
-                key_type,
-                key_id,
-                status);
-            err = TranslateFuriHalCryptoStatus(status);
+        if(!CHIP_ERROR::IsSuccess(err)) {
             break;
         }
 
-        err = CopySpanToMutableSpan(ByteSpan{key->data, key->header.size}, out_buf);
-
-        if(!CHIP_ERROR::IsSuccess(err)) {
-            ChipLogError(
-                Crypto,
-                "Failed to copy %d bytes to output of %zu bytes",
-                key->header.size,
-                out_buf.size());
-        }
+        err = CopySpanToMutableSpan(ByteSpan{key->data, key->header.size}, out_span);
 
     } while(false);
 
@@ -72,17 +61,16 @@ CHIP_ERROR SignWithECDSA256Key(
     FuriHalCryptoKeyType key_type,
     uint32_t key_id,
     const ByteSpan& message,
-    MutableByteSpan& out_buf) {
-    CHIP_ERROR err = CHIP_ERROR_INTERNAL;
+    MutableByteSpan& out_span) {
+    CHIP_ERROR err;
 
     FuriHalCryptoKey* private_key = furi_hal_crypto_storage_alloc(FuriHalCryptoPartitionMain);
 
     do {
-        const FuriHalCryptoStatus crypto_status =
-            furi_hal_crypto_storage_read(private_key, key_type, key_id);
+        err = TranslateFuriHalCryptoStatus(
+            furi_hal_crypto_storage_read(private_key, key_type, key_id));
 
-        if(crypto_status != FuriHalCryptoStatusOk) {
-            ChipLogError(Crypto, "Failed to read device private key: 0x%X", crypto_status);
+        if(!CHIP_ERROR::IsSuccess(err)) {
             break;
         }
 
@@ -106,11 +94,12 @@ CHIP_ERROR SignWithECDSA256Key(
 
         if(!sign_success) {
             ChipLogError(Crypto, "Failed to sign message with device private key");
+            err = CHIP_ERROR_INTERNAL;
             break;
         }
 
         err = Crypto::EcdsaAsn1SignatureToRaw(
-            Crypto::kP256_FE_Length, ByteSpan{asn1_sig, asn1_sig_len}, out_buf);
+            Crypto::kP256_FE_Length, ByteSpan{asn1_sig, asn1_sig_len}, out_span);
 
     } while(false);
 

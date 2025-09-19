@@ -20,7 +20,7 @@ public:
 };
 
 CHIP_ERROR BSBDACProvider::GetCertificationDeclaration(MutableByteSpan& out_cd_buffer) {
-    return LoadCryptoStorageItem(FuriHalCryptoKeyTypeMatterCD, 0, out_cd_buffer);
+    return LoadCryptoStorageKey(FuriHalCryptoKeyTypeMatterCD, 0, out_cd_buffer);
 }
 
 CHIP_ERROR BSBDACProvider::GetFirmwareInformation(MutableByteSpan& out_firmware_info_buffer) {
@@ -30,11 +30,11 @@ CHIP_ERROR BSBDACProvider::GetFirmwareInformation(MutableByteSpan& out_firmware_
 }
 
 CHIP_ERROR BSBDACProvider::GetDeviceAttestationCert(MutableByteSpan& out_dac_buffer) {
-    return LoadCryptoStorageItem(FuriHalCryptoKeyTypeMatterDAC, 0, out_dac_buffer);
+    return LoadCryptoStorageKey(FuriHalCryptoKeyTypeMatterDAC, 0, out_dac_buffer);
 }
 
 CHIP_ERROR BSBDACProvider::GetProductAttestationIntermediateCert(MutableByteSpan& out_pai_buffer) {
-    return LoadCryptoStorageItem(FuriHalCryptoKeyTypeMatterPAI, 0, out_pai_buffer);
+    return LoadCryptoStorageKey(FuriHalCryptoKeyTypeMatterPAI, 0, out_pai_buffer);
 }
 
 CHIP_ERROR BSBDACProvider::SignWithDeviceAttestationKey(

@@ -91,14 +91,11 @@ static const char* crypto_command_show_type(FuriHalCryptoKeyType type) {
     case FuriHalCryptoKeyTypeMatterCD:
         return "FuriHalCryptoKeyTypeMatterCD";
         break;
-    case FuriHalCryptoKeyTypeMatterVID_PID:
-        return "FuriHalCryptoKeyTypeMatterVID_PID";
+    case FuriHalCryptoKeyTypeMatterSetup:
+        return "FuriHalCryptoKeyTypeMatterSetup";
         break;
-    case FuriHalCryptoKeyTypeMatterSPAKE2Salt:
-        return "FuriHalCryptoKeyTypeMatterSPAKE2Salt";
-        break;
-    case FuriHalCryptoKeyTypeMatterSPAKE2Verifier:
-        return "FuriHalCryptoKeyTypeMatterSPAKE2Verifier";
+    case FuriHalCryptoKeyTypeMatterDeviceInfo:
+        return "FuriHalCryptoKeyTypeMatterDeviceInfo";
         break;
     case FuriHalCryptoKeyTypeCsrDerEcdsa256:
         return "FuriHalCryptoKeyTypeCsrDerEcdsa256";

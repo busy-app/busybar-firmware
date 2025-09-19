@@ -2,10 +2,20 @@
 
 #include "CryptoStorage.hpp"
 
-#define SPAKE2P_ITERATION_COUNT (1000)
-
 namespace chip {
 namespace DeviceLayer {
+
+namespace KeyId {
+
+enum {
+    SPAKE2PSalt,
+    SPAKE2PVerifier,
+    SPAKE2PIterCount,
+    SetupDiscriminator,
+    SetupPasscode,
+};
+
+}; // namespace KeyId
 
 using namespace BSB;
 
@@ -21,9 +31,9 @@ public:
 };
 
 CHIP_ERROR CommissionableDataProviderImpl::GetSetupDiscriminator(uint16_t& setupDiscriminator) {
-    auto out_buf = MutableByteSpan{
-        reinterpret_cast<uint8_t*>(&setupDiscriminator), sizeof(setupDiscriminator)};
-    return LoadCryptoStorageItem(FuriHalCryptoKeyTypeMatterDiscriminator, 0, out_buf);
+    auto out_span = ToMutableByteSpan(setupDiscriminator);
+    return LoadCryptoStorageKey(
+        FuriHalCryptoKeyTypeMatterSetup, KeyId::SetupDiscriminator, out_span);
 }
 
 CHIP_ERROR CommissionableDataProviderImpl::SetSetupDiscriminator(uint16_t setupDiscriminator) {
@@ -32,27 +42,27 @@ CHIP_ERROR CommissionableDataProviderImpl::SetSetupDiscriminator(uint16_t setupD
 }
 
 CHIP_ERROR CommissionableDataProviderImpl::GetSpake2pIterationCount(uint32_t& iterationCount) {
-    iterationCount = SPAKE2P_ITERATION_COUNT;
-    return CHIP_NO_ERROR;
+    auto out_span = ToMutableByteSpan(iterationCount);
+    return LoadCryptoStorageKey(
+        FuriHalCryptoKeyTypeMatterSetup, KeyId::SPAKE2PIterCount, out_span);
 }
 
 CHIP_ERROR CommissionableDataProviderImpl::GetSpake2pSalt(MutableByteSpan& saltBuf) {
-    return LoadCryptoStorageItem(FuriHalCryptoKeyTypeMatterSPAKE2Salt, 0, saltBuf);
+    return LoadCryptoStorageKey(FuriHalCryptoKeyTypeMatterSetup, KeyId::SPAKE2PSalt, saltBuf);
 }
 
 CHIP_ERROR CommissionableDataProviderImpl::GetSpake2pVerifier(
     MutableByteSpan& verifierBuf,
     size_t& outVerifierLen) {
     const auto err =
-        LoadCryptoStorageItem(FuriHalCryptoKeyTypeMatterSPAKE2Verifier, 0, verifierBuf);
+        LoadCryptoStorageKey(FuriHalCryptoKeyTypeMatterSetup, KeyId::SPAKE2PVerifier, verifierBuf);
     outVerifierLen = verifierBuf.size();
     return err;
 }
 
 CHIP_ERROR CommissionableDataProviderImpl::GetSetupPasscode(uint32_t& setupPasscode) {
-    auto out_buf =
-        MutableByteSpan{reinterpret_cast<uint8_t*>(&setupPasscode), sizeof(setupPasscode)};
-    return LoadCryptoStorageItem(FuriHalCryptoKeyTypeMatterPasscode, 0, out_buf);
+    auto out_span = ToMutableByteSpan(setupPasscode);
+    return LoadCryptoStorageKey(FuriHalCryptoKeyTypeMatterSetup, KeyId::SetupPasscode, out_span);
 }
 
 CHIP_ERROR CommissionableDataProviderImpl::SetSetupPasscode(uint32_t setupPasscode) {
