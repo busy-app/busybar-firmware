@@ -48,3 +48,6 @@ extern const lv_obj_class_t slider_view_bar_lvgl_class;
 extern const lv_obj_class_t slider_view_image_lvgl_class;
 extern const lv_obj_class_t slider_view_text_container_lvgl_class;
 extern const lv_obj_class_t slider_view_arrow_label_lvgl_class;
+
+// Rect
+extern const lv_obj_class_t rect_lvgl_class;

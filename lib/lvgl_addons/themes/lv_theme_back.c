@@ -17,6 +17,8 @@
 
 #define SUBMENU_ITEM_PAD_COL (3)
 
+#define RECT_RADIUS (4)
+
 typedef struct {
     lv_style_t screen;
     lv_style_t normal;
@@ -39,6 +41,7 @@ typedef struct {
     lv_style_t slider_view;
     lv_style_t slider_view_bar;
     lv_style_t slider_view_text_container;
+    lv_style_t rect;
 } my_theme_styles_t;
 
 typedef struct {
@@ -160,6 +163,11 @@ static void style_init(my_theme_t* theme) {
     lv_style_init(&theme->styles.slider_view_text_container);
     lv_style_set_pad_column(&theme->styles.slider_view_text_container, 3);
     lv_style_set_text_font(&theme->styles.slider_view_text_container, theme->base.font_normal);
+
+    lv_style_init(&theme->styles.rect);
+    lv_style_set_bg_opa(&theme->styles.rect, LV_OPA_COVER);
+    lv_style_set_bg_color(&theme->styles.rect, COLOR_FG_FOCUSED);
+    lv_style_set_radius(&theme->styles.rect, RECT_RADIUS);
 }
 
 static void theme_apply_callback(lv_theme_t* th, lv_obj_t* obj) {
@@ -262,6 +270,9 @@ static void theme_apply_callback(lv_theme_t* th, lv_obj_t* obj) {
 
     } else if(lv_obj_check_type(obj, &slider_view_arrow_label_lvgl_class)) {
         lv_obj_add_style(obj, &theme->styles.disabled, LV_PART_MAIN | LV_STATE_DISABLED);
+
+    } else if(lv_obj_check_type(obj, &rect_lvgl_class)) {
+        lv_obj_add_style(obj, &theme->styles.rect, LV_PART_MAIN);
 #endif
     }
 }
@@ -272,8 +283,8 @@ lv_theme_t* lv_theme_back_alloc(lv_display_t* disp) {
 
     theme->base.disp = disp;
     theme->base.font_small = &lv_font_tiny5_8;
-    theme->base.font_normal = &lv_font_cubic_12;
-    theme->base.font_large = &lv_font_cubic_12;
+    theme->base.font_normal = &lv_font_ark_regular_10;
+    theme->base.font_large = &lv_font_ark_regular_10;
     theme->base.apply_cb = theme_apply_callback;
 
     style_init(theme);
