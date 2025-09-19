@@ -115,6 +115,7 @@ jobs:
           LOG_TO_FILE: true
 
       - name: Setup allurectl
+        if: always()
         uses: allure-framework/setup-allurectl@v1
         with:
           allure-endpoint: ${{ secrets.ALLURE_TESTOPS_URL }}
@@ -122,6 +123,7 @@ jobs:
           allure-project-id: ${{ secrets.ALLURE_PROJECT_ID }}
 
       - name: Upload test results to Allure TestOps
+        if: always()
         run: |
           cd tests
           echo "Attempting upload with command:"
@@ -145,6 +147,7 @@ jobs:
           fi
 
       - name: Configure AWS CLI
+        if: always()
         uses: aws-actions/configure-aws-credentials@v4
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
@@ -152,6 +155,7 @@ jobs:
           aws-region: eu-central-1
 
       - name: Upload test results to S3
+        if: always()
         run: |
           cd tests
           # Create unique path for this test run with project prefix
