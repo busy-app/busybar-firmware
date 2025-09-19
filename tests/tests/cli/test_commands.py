@@ -210,7 +210,11 @@ class TestCLICommandsSession:
                 "u5_firmware_origin_git" in response
             ), "Should include firmware origin git information"
             # Optionally verify it contains a git URL format
-            git_lines = [line for line in response.split("\n") if "u5_firmware_origin_git" in line]
+            git_lines = [
+                line
+                for line in response.split("\n")
+                if "u5_firmware_origin_git" in line
+            ]
             if git_lines:
                 git_url = git_lines[0].split(":", 1)[1].strip()
                 assert git_url, "Git URL should not be empty"

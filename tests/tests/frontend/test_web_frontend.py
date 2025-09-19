@@ -2,7 +2,6 @@ import time
 
 import allure
 import pytest
-import requests
 from bs4 import BeautifulSoup
 
 

@@ -15,26 +15,28 @@ from utils.logging_config import (TestLogContext, get_cli_logger,
 
 load_dotenv()
 
+
 # Validate critical environment variables
 def validate_environment():
     """Validate that critical environment variables are available"""
     required_vars = {
         "CLI_HOST": os.getenv("CLI_HOST"),
-        "CLI_PORT": os.getenv("CLI_PORT"), 
-        "WEB_BASE_URL": os.getenv("WEB_BASE_URL")
+        "CLI_PORT": os.getenv("CLI_PORT"),
+        "WEB_BASE_URL": os.getenv("WEB_BASE_URL"),
     }
-    
+
     missing_vars = [var for var, value in required_vars.items() if not value]
     if missing_vars:
         print(f"Warning: Missing environment variables: {', '.join(missing_vars)}")
         print("Using default values. Check your .env file if tests fail.")
-    
+
     # Log current configuration
     print(f"Test Configuration:")
     print(f"  CLI_HOST: {os.getenv('CLI_HOST', 'Not set (will use default)')}")
     print(f"  CLI_PORT: {os.getenv('CLI_PORT', 'Not set (will use default)')}")
     print(f"  WEB_BASE_URL: {os.getenv('WEB_BASE_URL', 'Not set (will use default)')}")
     print(f"  LOG_LEVEL: {os.getenv('LOG_LEVEL', 'INFO')}")
+
 
 # Validate environment on import
 validate_environment()
@@ -99,9 +101,11 @@ def api_session(web_session) -> requests.Session:
     """API session with proper headers for API testing"""
     # Add API-specific headers - only Accept, not Content-Type
     # Content-Type will be set appropriately per request
-    web_session.headers.update({
-        'Accept': 'application/json',
-    })
+    web_session.headers.update(
+        {
+            "Accept": "application/json",
+        }
+    )
     return web_session
 
 
@@ -110,10 +114,12 @@ def api_auth_session(web_session) -> requests.Session:
     """API session with authentication headers"""
     # TODO: Add X-API-Token header when authentication is required
     # Content-Type will be set appropriately per request
-    web_session.headers.update({
-        'Accept': 'application/json',
-        # 'X-API-Token': 'test-token'  # Uncomment when auth is implemented
-    })
+    web_session.headers.update(
+        {
+            "Accept": "application/json",
+            # 'X-API-Token': 'test-token'  # Uncomment when auth is implemented
+        }
+    )
     return web_session
 
 
