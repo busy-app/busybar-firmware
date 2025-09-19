@@ -6,7 +6,7 @@ import hashlib
 
 from enum import IntEnum
 
-from random import randbytes
+from random import randbytes, randint
 
 from cryptography import x509
 from cryptography.hazmat.backends import default_backend
@@ -28,15 +28,34 @@ class KeyType(IntEnum):
     DAC = 13
     PAI = 14
     CD = 15
-    VID_PID = 16
-    SPAKE2_SALT = 17
-    SPAKE2_VERIFIER = 18
-    DISCRIMINATOR = 19
-    PASSCODE = 20
+    SETUP = 16
+    DEVICE_INFO = 17
 
 
 class KeyID(IntEnum):
     DEFAULT = 0
+
+
+class SetupKeyID(IntEnum):
+    SPAKE2P_SALT = 0
+    SPAKE2P_VERIFIER = 1
+    SPAKE2P_ITER_COUNT = 2
+    DISCRIMINATOR = 3
+    PASSCODE = 4
+
+
+class DeviceInfoKeyID(IntEnum):
+    VENDOR_ID = 0
+    PRODUCT_ID = 1
+    VENDOR_NAME = 2
+    PRODUCT_NAME = 3
+    PART_NUMBER = 4
+    PRODUCT_URL = 5
+    PRODUCT_LABEL = 6
+    SERIAL_NUMBER = 7
+    MANUFACTURING_DATE = 8
+    HARDWARE_VERSION = 9
+    HARDWARE_VERSION_STRING = 10
 
 
 class Main(App):
@@ -72,15 +91,6 @@ class Main(App):
             "filename", help="Private key file (.pem or .der format)"
         )
         self.pk_parser.set_defaults(func=self.provision_private_key)
-
-        # SPAKE2 command
-        self.spake2_parser = self.subparsers.add_parser(
-            "spake2", help="Generate and provision SPAKE2 values"
-        )
-        self.spake2_parser.add_argument(
-            "passcode", type=int, help="Passcode for device pairing"
-        )
-        self.spake2_parser.set_defaults(func=self.provision_spake2)
 
         # Setup command
         self.setup_parser = self.subparsers.add_parser(
@@ -131,13 +141,14 @@ class Main(App):
 
         return key.private_numbers().private_value.to_bytes(32, "big")
 
-    def generate_spake2_values(self, passcode: int) -> tuple[bytes, bytes]:
-        num_iter = 1000
-        salt = randbytes(32)
+    def generate_spake2_values(
+        self, passcode: int, iter_count: int
+    ) -> tuple[bytes, bytes]:
+        salt = randbytes(randint(16, 32))  # Salt must be between 16 and 32 bytes long
         ws_len = NIST256p.baselen + 8
 
         ws = hashlib.pbkdf2_hmac(
-            "sha256", struct.pack("<I", passcode), salt, num_iter, ws_len * 2
+            "sha256", struct.pack("<I", passcode), salt, iter_count, ws_len * 2
         )
 
         w0 = int.from_bytes(ws[:ws_len], byteorder="big") % NIST256p.order
@@ -150,46 +161,47 @@ class Main(App):
 
         return (salt, verifier)
 
-    def write_data(self, key_type: int, data: bytes):
+    def write_data(self, key_type: int, data: dict[int, bytes]):
         with CryptoStorage(self.get_portname()) as storage:
-            ret = storage.write_key(
-                Partition.MAIN, key_type, KeyID.DEFAULT, 0, len(data), data.hex()
-            )
-        if ret != 0:
-            raise Exception(f"write_key failed with error {ret}")
+            for key_id, key_value in data.items():
+                ret = storage.write_key(
+                    Partition.MAIN, key_type, key_id, 0, len(key_value), key_value.hex()
+                )
+                if ret != 0:
+                    raise Exception(f"write_key failed with error {ret}")
 
     @CatchExceptions
     def provision_dac(self):
-        data = self.read_cert_file(self.args.filename)
+        data = {KeyID.DEFAULT: self.read_cert_file(self.args.filename)}
         self.write_data(KeyType.DAC, data)
 
     @CatchExceptions
     def provision_pai(self):
-        data = self.read_cert_file(self.args.filename)
+        data = {KeyID.DEFAULT: self.read_cert_file(self.args.filename)}
         self.write_data(KeyType.PAI, data)
 
     @CatchExceptions
     def provision_cd(self):
-        data = self.read_cert_file(self.args.filename)
+        data = {KeyID.DEFAULT: self.read_cert_file(self.args.filename)}
         self.write_data(KeyType.CD, data)
 
     @CatchExceptions
     def provision_private_key(self):
-        data = self.read_key_file(self.args.filename)
+        data = {KeyID.DEFAULT: self.read_key_file(self.args.filename)}
         self.write_data(KeyType.PRIVATE_KEY, data)
 
     @CatchExceptions
-    def provision_spake2(self):
-        salt, verifier = self.generate_spake2_values(self.args.passcode)
-        self.write_data(KeyType.SPAKE2_SALT, salt)
-        self.write_data(KeyType.SPAKE2_VERIFIER, verifier)
-
-    @CatchExceptions
     def provision_setup_params(self):
-        discriminator_bytes = struct.pack("<H", self.args.discriminator)
-        self.write_data(KeyType.DISCRIMINATOR, discriminator_bytes)
-        passcode_bytes = struct.pack("<I", self.args.passcode)
-        self.write_data(KeyType.PASSCODE, passcode_bytes)
+        iter_count = 1000
+        salt, verifier = self.generate_spake2_values(self.args.passcode, iter_count)
+        data = {
+            SetupKeyID.SPAKE2P_SALT: salt,
+            SetupKeyID.SPAKE2P_VERIFIER: verifier,
+            SetupKeyID.SPAKE2P_ITER_COUNT: struct.pack("<I", iter_count),
+            SetupKeyID.DISCRIMINATOR: struct.pack("<H", self.args.discriminator),
+            SetupKeyID.PASSCODE: struct.pack("<I", self.args.passcode),
+        }
+        self.write_data(KeyType.SETUP, data)
 
     def get_portname(self):
         return ("10.0.4.20", 23)
