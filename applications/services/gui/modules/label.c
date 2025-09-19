@@ -116,6 +116,33 @@ void label_set_long_content_mode(Label* instance, LabelLongContentMode mode, uin
     lv_obj_set_style_anim_time((lv_obj_t*)instance->label, duration, LV_PART_MAIN);
 }
 
+void label_set_color(Label* instance, LabelColor color) {
+    furi_check(instance);
+
+    static const uint32_t color_options[LabelColorMAX] = {
+        [LabelColorWhite] = 0xffffff,
+        [LabelColorGrey] = 0x777777,
+        [LabelColorBlack] = 0x000000,
+    };
+
+    lv_obj_t* obj = (lv_obj_t*)instance;
+    lv_obj_set_style_text_color(obj, lv_color_hex(color_options[color]), LV_PART_MAIN);
+}
+
+void label_set_font(Label* instance, LabelFont font) {
+    furi_check(instance);
+
+    static const lv_font_t* const font_options[LabelFontMAX] = {
+        [LabelFontNumerals] = &lv_font_ark_numerals_condensed_10,
+        [LabelFontSmall] = &lv_font_ark_regular_10,
+        [LabelFontMedium] = &lv_font_ark_regular_12,
+        [LabelFontBig] = &lv_font_ark_regular_20,
+    };
+
+    lv_obj_t* obj = (lv_obj_t*)instance;
+    lv_obj_set_style_text_font(obj, font_options[font], LV_PART_MAIN);
+}
+
 // LVGL class descriptor
 
 const lv_obj_class_t label_lvgl_class = {
