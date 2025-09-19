@@ -37,16 +37,16 @@ class Partition(IntEnum):
 
 
 class KeyType(IntEnum):
-    PRIVATE_KEY = 8
-    DAC = 13
-    PAI = 14
-    CD = 15
-    SETUP = 16
-    DEVICE_INFO = 17
+    ATTESTATION = 13
+    SETUP = 14
+    DEVICE_INFO = 15
 
 
-class KeyID(IntEnum):
-    DEFAULT = 0
+class AttestationKeyId(IntEnum):
+    KEY = 0
+    DAC = 1
+    PAI = 2
+    CD = 3
 
 
 class SetupKeyID(IntEnum):
@@ -75,35 +75,30 @@ class Main(App):
     def init(self):
         self.subparsers = self.parser.add_subparsers(help="sub-command help")
 
-        # DAC command
-        self.dac_parser = self.subparsers.add_parser(
-            "dac", help="Provision device attestation certificate (DAC)"
+        # Attest command
+        self.attest_parser = self.subparsers.add_parser(
+            "attest", help="Provision device attestation files"
         )
-        self.dac_parser.add_argument("filename", help="DAC file (.pem or .der format)")
-        self.dac_parser.set_defaults(func=self.provision_dac)
+        self.attest_parser.add_argument(
+            "--key", required=True, help="Private key file (.pem or .der format)"
+        )
+        self.attest_parser.add_argument(
+            "--dac",
+            required=True,
+            help="DAC (Device Attestation Ceritificate) file (.pem or .der format)",
+        )
+        self.attest_parser.add_argument(
+            "--pai",
+            required=True,
+            help="PAI (Product Attestation Intermediate) file (.pem or .der format)",
+        )
+        self.attest_parser.add_argument(
+            "--cd",
+            required=True,
+            help="CD (Certification Declaration) file (.der format)",
+        )
 
-        # PAI command
-        self.pai_parser = self.subparsers.add_parser(
-            "pai", help="Provision product attestation intermediate cert (PAI)"
-        )
-        self.pai_parser.add_argument("filename", help="PAI file (.pem or .der format)")
-        self.pai_parser.set_defaults(func=self.provision_pai)
-
-        # CD command
-        self.cd_parser = self.subparsers.add_parser(
-            "cd", help="Provision product cerfification declaration (CD)"
-        )
-        self.cd_parser.add_argument("filename", help="CD file (.der format)")
-        self.cd_parser.set_defaults(func=self.provision_cd)
-
-        # Private key command
-        self.pk_parser = self.subparsers.add_parser(
-            "pk", help="Provision device attestation private key"
-        )
-        self.pk_parser.add_argument(
-            "filename", help="Private key file (.pem or .der format)"
-        )
-        self.pk_parser.set_defaults(func=self.provision_private_key)
+        self.attest_parser.set_defaults(func=self.provision_attestation_files)
 
         # Setup command
         self.setup_parser = self.subparsers.add_parser(
@@ -248,24 +243,14 @@ class Main(App):
                     raise Exception(f"write_key failed with error {ret}")
 
     @CatchExceptions
-    def provision_dac(self):
-        data = {KeyID.DEFAULT: self.read_cert_file(self.args.filename)}
-        self.write_data(KeyType.DAC, data)
-
-    @CatchExceptions
-    def provision_pai(self):
-        data = {KeyID.DEFAULT: self.read_cert_file(self.args.filename)}
-        self.write_data(KeyType.PAI, data)
-
-    @CatchExceptions
-    def provision_cd(self):
-        data = {KeyID.DEFAULT: self.read_cert_file(self.args.filename)}
-        self.write_data(KeyType.CD, data)
-
-    @CatchExceptions
-    def provision_private_key(self):
-        data = {KeyID.DEFAULT: self.read_key_file(self.args.filename)}
-        self.write_data(KeyType.PRIVATE_KEY, data)
+    def provision_attestation_files(self):
+        data = {
+            AttestationKeyId.KEY: self.read_key_file(self.args.key),
+            AttestationKeyId.DAC: self.read_cert_file(self.args.dac),
+            AttestationKeyId.PAI: self.read_cert_file(self.args.pai),
+            AttestationKeyId.CD: self.read_cert_file(self.args.cd),
+        }
+        self.write_data(KeyType.ATTESTATION, data)
 
     @CatchExceptions
     def provision_setup_params(self):

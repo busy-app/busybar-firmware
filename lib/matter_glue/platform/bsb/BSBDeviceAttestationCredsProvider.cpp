@@ -6,6 +6,17 @@ namespace chip {
 namespace Credentials {
 namespace BSB {
 
+namespace KeyId {
+
+enum {
+    PK,
+    DAC,
+    PAI,
+    CD,
+};
+
+}; // namespace KeyId
+
 using namespace DeviceLayer::BSB;
 
 class BSBDACProvider : public DeviceAttestationCredentialsProvider {
@@ -20,7 +31,7 @@ public:
 };
 
 CHIP_ERROR BSBDACProvider::GetCertificationDeclaration(MutableByteSpan& out_cd_buffer) {
-    return LoadCryptoStorageKey(FuriHalCryptoKeyTypeMatterCD, 0, out_cd_buffer);
+    return LoadCryptoStorageKey(FuriHalCryptoKeyTypeMatterAttestation, KeyId::CD, out_cd_buffer);
 }
 
 CHIP_ERROR BSBDACProvider::GetFirmwareInformation(MutableByteSpan& out_firmware_info_buffer) {
@@ -30,18 +41,18 @@ CHIP_ERROR BSBDACProvider::GetFirmwareInformation(MutableByteSpan& out_firmware_
 }
 
 CHIP_ERROR BSBDACProvider::GetDeviceAttestationCert(MutableByteSpan& out_dac_buffer) {
-    return LoadCryptoStorageKey(FuriHalCryptoKeyTypeMatterDAC, 0, out_dac_buffer);
+    return LoadCryptoStorageKey(FuriHalCryptoKeyTypeMatterAttestation, KeyId::DAC, out_dac_buffer);
 }
 
 CHIP_ERROR BSBDACProvider::GetProductAttestationIntermediateCert(MutableByteSpan& out_pai_buffer) {
-    return LoadCryptoStorageKey(FuriHalCryptoKeyTypeMatterPAI, 0, out_pai_buffer);
+    return LoadCryptoStorageKey(FuriHalCryptoKeyTypeMatterAttestation, KeyId::PAI, out_pai_buffer);
 }
 
 CHIP_ERROR BSBDACProvider::SignWithDeviceAttestationKey(
     const ByteSpan& message_to_sign,
     MutableByteSpan& out_signature_buffer) {
     return SignWithECDSA256Key(
-        FuriHalCryptoKeyTypeEcdsaPriv256, 0, message_to_sign, out_signature_buffer);
+        FuriHalCryptoKeyTypeMatterAttestation, KeyId::PK, message_to_sign, out_signature_buffer);
 }
 
 DeviceAttestationCredentialsProvider* GetDeviceAttestationCredentialsProvider(void) {

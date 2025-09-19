@@ -82,14 +82,8 @@ static const char* crypto_command_show_type(FuriHalCryptoKeyType type) {
     case FuriHalCryptoKeyTypeEcdsaPub256:
         return "FuriHalCryptoKeyTypeEcdsaPub256";
         break;
-    case FuriHalCryptoKeyTypeMatterDAC:
-        return "FuriHalCryptoKeyTypeMatterDAC";
-        break;
-    case FuriHalCryptoKeyTypeMatterPAI:
-        return "FuriHalCryptoKeyTypeMatterPAI";
-        break;
-    case FuriHalCryptoKeyTypeMatterCD:
-        return "FuriHalCryptoKeyTypeMatterCD";
+    case FuriHalCryptoKeyTypeMatterAttestation:
+        return "FuriHalCryptoKeyTypeMatterAttestation";
         break;
     case FuriHalCryptoKeyTypeMatterSetup:
         return "FuriHalCryptoKeyTypeMatterSetup";

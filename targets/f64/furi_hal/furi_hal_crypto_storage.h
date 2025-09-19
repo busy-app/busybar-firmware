@@ -32,9 +32,7 @@ typedef enum {
     FuriHalCryptoKeyTypeCsrDerEcdsa256,
     FuriHalCryptoKeyTypeCrtDerEcdsa256,
 
-    FuriHalCryptoKeyTypeMatterDAC,
-    FuriHalCryptoKeyTypeMatterPAI,
-    FuriHalCryptoKeyTypeMatterCD,
+    FuriHalCryptoKeyTypeMatterAttestation,
     FuriHalCryptoKeyTypeMatterSetup,
     FuriHalCryptoKeyTypeMatterDeviceInfo,
 
