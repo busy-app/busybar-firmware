@@ -7,7 +7,6 @@
 
 #include <busy/widgets/pause_overlay.h>
 #include <busy/widgets/progress_bar.h>
-#include <busy/widgets/timer_indicator.h>
 #include <busy/widgets/timer_label.h>
 
 #define COUNTDOWN_THRESHOLD_S (3)
@@ -16,7 +15,7 @@
 
 typedef struct {
     FlexLayout* front_flex;
-    TimerIndicator* timer_indicator;
+    AnimImage* image;
 } CustomSceneTimer;
 
 static bool custom_scene_timer_input_callback(const InputEvent* event, void* context) {
@@ -45,15 +44,15 @@ static void custom_scene_timer_on_enter(void* context) {
         data->front_flex = flex_layout_alloc(instance->front_window, FlexLayoutTypeRow);
         flex_layout_set_spacing(data->front_flex, 2);
 
-        data->timer_indicator = timer_indicator_alloc(flex_layout_get_base(data->front_flex));
-        timer_indicator_set_anim_sources(data->timer_indicator, &custom_indicator_anim_sources);
+        data->image = anim_image_alloc(flex_layout_get_base(data->front_flex));
+        anim_image_set_source(data->image, CUSTOM_ANIM_PATH("keepout_label_72x16.anim"));
+        anim_image_set_loop(data->image, true);
 
         widget_set_visible(timer_card_get_base(instance->timer_card), true);
         timer_card_show_header(instance->timer_card, true);
     });
 
     custom_set_status_lights(instance, CustomStatusLightsTypeWork);
-    timer_indicator_set_state(data->timer_indicator, TimerIndicatorStateWorkBig);
 
     custom_start_transition(instance);
 }
