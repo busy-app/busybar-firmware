@@ -5,8 +5,8 @@ import struct
 import hashlib
 
 from enum import IntEnum
-
-from random import randbytes, randint
+from datetime import datetime
+from random import randbytes
 
 from cryptography import x509
 from cryptography.hazmat.backends import default_backend
@@ -16,6 +16,19 @@ from ecdsa.curves import NIST256p
 
 from flipper.app import App, CatchExceptions
 from crypto_storage import CryptoStorage
+
+
+def auto_int(x):
+    return int(x, 0)
+
+
+def to_terminated(s: str) -> bytes:
+    return s.encode("ascii") + b"\x00"
+
+
+def pack_current_date() -> bytes:
+    now = datetime.today()
+    return struct.pack("<HBB", now.year, now.month, now.day)
 
 
 class Partition(IntEnum):
@@ -94,7 +107,17 @@ class Main(App):
 
         # Setup command
         self.setup_parser = self.subparsers.add_parser(
-            "setup", help="Provision setup discriminator"
+            "setup", help="Provision setup parameters"
+        )
+        self.setup_parser.add_argument(
+            "-l", "--salt-length", type=int, default=32, help="SPAKE2 salt length"
+        )
+        self.setup_parser.add_argument(
+            "-i",
+            "--iteration-count",
+            type=int,
+            default=1000,
+            help="SPAKE2 iterarion count",
         )
         self.setup_parser.add_argument(
             "-d",
@@ -107,6 +130,60 @@ class Main(App):
             "-p", "--passcode", required=True, type=int, help="Setup passcode value"
         )
         self.setup_parser.set_defaults(func=self.provision_setup_params)
+
+        # Device Info command
+        self.info_parser = self.subparsers.add_parser(
+            "info", help="Provision device info"
+        )
+        self.info_parser.add_argument(
+            "--vid", type=auto_int, default=0x158A, help="Numeric vendor ID"
+        )
+        self.info_parser.add_argument(
+            "--pid", type=auto_int, default=0x001, help="Numeric product ID"
+        )
+        self.info_parser.add_argument(
+            "--vendor-name",
+            type=str,
+            default="Flipper Devices Inc",
+            help="Vendor name string",
+        )
+        self.info_parser.add_argument(
+            "--product-name",
+            type=str,
+            default="Busy Status Bar",
+            help="Product name string",
+        )
+        self.info_parser.add_argument(
+            "--part-number", type=str, default="BSB0001", help="Product part number"
+        )
+        self.info_parser.add_argument(
+            "--product-url",
+            type=str,
+            default="https://busy.bar",
+            help="Product homepage",
+        )
+        self.info_parser.add_argument(
+            "--product-label",
+            type=str,
+            default="Busy",
+            help="Product label (shown in app)",
+        )
+        self.info_parser.add_argument(
+            "--serial-number",
+            type=str,
+            default="1234567890",
+            help="Device serial number",
+        )
+        self.info_parser.add_argument(
+            "--hardware-version", type=int, default=0, help="Device hardware version"
+        )
+        self.info_parser.add_argument(
+            "--hardware-version-string",
+            type=str,
+            default="Version 0",
+            help="Device hardware version string",
+        )
+        self.info_parser.set_defaults(func=self.provision_info)
 
     def read_cert_file(self, filename: str) -> bytes:
         _, ext = os.path.splitext(filename)
@@ -142,9 +219,9 @@ class Main(App):
         return key.private_numbers().private_value.to_bytes(32, "big")
 
     def generate_spake2_values(
-        self, passcode: int, iter_count: int
+        self, passcode: int, salt_len: int, iter_count: int
     ) -> tuple[bytes, bytes]:
-        salt = randbytes(randint(16, 32))  # Salt must be between 16 and 32 bytes long
+        salt = randbytes(salt_len)
         ws_len = NIST256p.baselen + 8
 
         ws = hashlib.pbkdf2_hmac(
@@ -192,16 +269,38 @@ class Main(App):
 
     @CatchExceptions
     def provision_setup_params(self):
-        iter_count = 1000
-        salt, verifier = self.generate_spake2_values(self.args.passcode, iter_count)
+        salt, verifier = self.generate_spake2_values(
+            self.args.passcode, self.args.salt_length, self.args.iteration_count
+        )
         data = {
             SetupKeyID.SPAKE2P_SALT: salt,
             SetupKeyID.SPAKE2P_VERIFIER: verifier,
-            SetupKeyID.SPAKE2P_ITER_COUNT: struct.pack("<I", iter_count),
+            SetupKeyID.SPAKE2P_ITER_COUNT: struct.pack("<I", self.args.iteration_count),
             SetupKeyID.DISCRIMINATOR: struct.pack("<H", self.args.discriminator),
             SetupKeyID.PASSCODE: struct.pack("<I", self.args.passcode),
         }
         self.write_data(KeyType.SETUP, data)
+
+    @CatchExceptions
+    def provision_info(self):
+        data = {
+            DeviceInfoKeyID.VENDOR_ID: struct.pack("<H", self.args.vid),
+            DeviceInfoKeyID.PRODUCT_ID: struct.pack("<H", self.args.pid),
+            DeviceInfoKeyID.VENDOR_NAME: to_terminated(self.args.vendor_name),
+            DeviceInfoKeyID.PRODUCT_NAME: to_terminated(self.args.product_name),
+            DeviceInfoKeyID.PART_NUMBER: to_terminated(self.args.part_number),
+            DeviceInfoKeyID.PRODUCT_URL: to_terminated(self.args.product_url),
+            DeviceInfoKeyID.PRODUCT_LABEL: to_terminated(self.args.product_label),
+            DeviceInfoKeyID.SERIAL_NUMBER: to_terminated(self.args.serial_number),
+            DeviceInfoKeyID.MANUFACTURING_DATE: pack_current_date(),
+            DeviceInfoKeyID.HARDWARE_VERSION: struct.pack(
+                "<H", self.args.hardware_version
+            ),
+            DeviceInfoKeyID.HARDWARE_VERSION_STRING: to_terminated(
+                self.args.hardware_version_string
+            ),
+        }
+        self.write_data(KeyType.DEVICE_INFO, data)
 
     def get_portname(self):
         return ("10.0.4.20", 23)
