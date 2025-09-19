@@ -2,7 +2,7 @@
 #include "storage_macros.h"
 #include "scenes/settings_scenes.h"
 
-#define SETTINGS_NAV_BAR_HEIGHT 20
+#define SETTINGS_NAV_BAR_HEIGHT 16
 #define SETTINGS_MATTER_Q_SIZE  1
 
 static bool settings_thread_signal_callback(uint32_t signal, void* arg, void* context) {
@@ -80,47 +80,75 @@ static bool settings_gui_input_callback(const InputEvent* event, void* context) 
     return consumed;
 }
 
-static void settings_forward_matter_event_to_thread(const void* message, void* context) {
+static void settings_handle_matter_event(const void* message, void* context) {
     furi_check(message);
     furi_assert(context);
     const MatterEvent* event = message;
     SettingsApp* app = context;
 
-    furi_check(furi_message_queue_put(app->matter_queue, event, FuriWaitForever) == FuriStatusOk);
+    SettingsCustomEvent our_event;
+    bool do_send_event = false;
+
+    if(event->type == MatterEventTypeCommissioning) {
+        MatterCommissioningStatus status = event->commissioning.status;
+
+        static const SettingsCustomEvent event_table[MatterCommissioningStatusMAX] = {
+            [MatterCommissioningStatusStarted] = SettingsCustomEventMatterCommStart,
+            [MatterCommissioningStatusComplete] = SettingsCustomEventMatterCommComplete,
+            [MatterCommissioningStatusFailed] = SettingsCustomEventMatterCommFail,
+        };
+
+        our_event = event_table[status];
+        do_send_event = true;
+    }
+
+    if(do_send_event)
+        furi_check(
+            furi_message_queue_put(app->ext_evt_queue, &our_event, FuriWaitForever) ==
+            FuriStatusOk);
 }
 
-static void settings_matter_event(FuriEventLoopObject* object, void* context) {
+static void settings_handle_wifi_event(const void* message, void* context) {
+    furi_check(message);
+    furi_assert(context);
+    WifiState event = *(const WifiState*)message;
+    SettingsApp* app = context;
+
+    SettingsCustomEvent our_event;
+    bool do_send_event = false;
+
+    if(event == WifiStateUp) {
+        our_event = SettingsCustomEventWifiAvailable;
+        do_send_event = true;
+    } else {
+        our_event = SettingsCustomEventWifiUnavailable;
+        do_send_event = true;
+    }
+
+    if(do_send_event)
+        furi_check(
+            furi_message_queue_put(app->ext_evt_queue, &our_event, FuriWaitForever) ==
+            FuriStatusOk);
+}
+
+static void settings_ext_event(FuriEventLoopObject* object, void* context) {
     furi_assert(object);
     furi_assert(context);
     FuriMessageQueue* queue = object;
     SettingsApp* app = context;
-    furi_assert(queue == app->matter_queue);
+    furi_assert(queue == app->ext_evt_queue);
 
-    MatterEvent event;
+    SettingsCustomEvent event;
     furi_check(furi_message_queue_get(queue, &event, 0) == FuriStatusOk);
 
-    if(event.type == MatterEventTypeCommissioning) {
-        MatterCommissioningStatus status = event.commissioning.status;
-        SettingsAppSceneId scene = scene_manager_get_current_scene_id(app->scene_manager);
-
-        if(status == MatterCommissioningStatusStarted &&
-           scene == SettingsAppSceneIdMatterPairing) {
-            scene_manager_replace_current_scene(
-                app->scene_manager, SettingsAppSceneIdMatterCommissionStart);
-
-        } else if(
-            status == MatterCommissioningStatusFailed &&
-            scene == SettingsAppSceneIdMatterCommissionStart) {
-            scene_manager_replace_current_scene(
-                app->scene_manager, SettingsAppSceneIdMatterCommissionFail);
-
-        } else if(
-            status == MatterCommissioningStatusComplete &&
-            scene == SettingsAppSceneIdMatterCommissionStart) {
-            scene_manager_replace_current_scene(
-                app->scene_manager, SettingsAppSceneIdMatterCommissionDone);
-        }
+    // TODO: PubSub with state tracking :(
+    if(event == SettingsCustomEventWifiAvailable) {
+        app->is_wifi_available = true;
+    } else if(event == SettingsCustomEventWifiUnavailable) {
+        app->is_wifi_available = false;
     }
+
+    settings_send_custom_event(app, event);
 }
 
 static SettingsApp* settings_alloc(void) {
@@ -146,14 +174,13 @@ static SettingsApp* settings_alloc(void) {
 
         Widget* back_root = gui_layer_get_root_widget(layer, GuiDisplayIdBack);
         instance->back_container = flex_layout_alloc(back_root, FlexLayoutTypeColumn);
-        flex_layout_set_spacing(instance->back_container, 2);
 
         instance->back_nav_bar = nav_bar_alloc(flex_layout_get_base(instance->back_container));
         nav_bar_set_header_image(
             instance->back_nav_bar, SETTINGS_IMG_PATH("settings_back_7x7.bin"));
         nav_bar_set_header_text(instance->back_nav_bar, "SETTINGS");
         widget_set_height(nav_bar_get_base(instance->back_nav_bar), SETTINGS_NAV_BAR_HEIGHT);
-        widget_set_padding(nav_bar_get_base(instance->back_nav_bar), 6, 6, 0, 0);
+        widget_set_padding(nav_bar_get_base(instance->back_nav_bar), 2, 2, 0, 0);
 
         instance->back_scene_window = widget_alloc(flex_layout_get_base(instance->back_container));
         flex_layout_set_child_widget_grow(
@@ -176,25 +203,35 @@ static SettingsApp* settings_alloc(void) {
 
     scene_manager_next_scene(instance->scene_manager, SettingsAppSceneIdStart);
 
-    instance->matter_queue = furi_message_queue_alloc(SETTINGS_MATTER_Q_SIZE, sizeof(MatterEvent));
+    instance->ext_evt_queue =
+        furi_message_queue_alloc(SETTINGS_MATTER_Q_SIZE, sizeof(SettingsCustomEvent));
     furi_event_loop_subscribe_message_queue(
         instance->event_loop,
-        instance->matter_queue,
+        instance->ext_evt_queue,
         FuriEventLoopEventIn,
-        settings_matter_event,
+        settings_ext_event,
         instance);
+
     instance->matter = furi_record_open(RECORD_MATTER);
     instance->matter_subscription = furi_pubsub_subscribe(
-        matter_get_pubsub(instance->matter), settings_forward_matter_event_to_thread, instance);
+        matter_get_pubsub(instance->matter), settings_handle_matter_event, instance);
+
+    instance->wifi = furi_record_open(RECORD_WIFI);
+    instance->wifi_subscription = furi_pubsub_subscribe(
+        wifi_get_pubsub(instance->wifi), settings_handle_wifi_event, instance);
 
     return instance;
 }
 
 static void settings_free(SettingsApp* instance) {
+    furi_pubsub_unsubscribe(wifi_get_pubsub(instance->wifi), instance->wifi_subscription);
+    furi_record_close(RECORD_WIFI);
+
     furi_pubsub_unsubscribe(matter_get_pubsub(instance->matter), instance->matter_subscription);
     furi_record_close(RECORD_MATTER);
-    furi_event_loop_unsubscribe(instance->event_loop, instance->matter_queue);
-    furi_message_queue_free(instance->matter_queue);
+
+    furi_event_loop_unsubscribe(instance->event_loop, instance->ext_evt_queue);
+    furi_message_queue_free(instance->ext_evt_queue);
 
     scene_manager_free(instance->scene_manager);
 

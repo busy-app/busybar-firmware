@@ -49,7 +49,7 @@ static const NextSceneParameters next_scenes_parameters[] = {
         },
     [SettingsSceneMainMenuIndexMatter] =
         {
-            .nav_bar_entry = "MATTER",
+            .nav_bar_entry = "SMART HOME",
             .scene_id = SettingsAppSceneIdMatter,
         },
 };
@@ -114,9 +114,9 @@ static void settings_scene_main_on_enter(void* context) {
             instance);
         menu_add_item(
             data->front_menu,
-            "Matter",
+            "Smart home",
             "",
-            SETTINGS_IMG_PATH("matter_front_7x7.bin"),
+            SETTINGS_IMG_PATH("house_front_7x7.bin"),
             SettingsSceneMainMenuIndexMatter,
             settings_scene_setup_menu_callback,
             instance);
@@ -151,9 +151,9 @@ static void settings_scene_main_on_enter(void* context) {
             instance);
         menu_add_item(
             data->back_menu,
-            "MATTER",
+            "SMART HOME",
             NULL,
-            SETTINGS_IMG_PATH("matter_back_12x12.bin"),
+            SETTINGS_IMG_PATH("house_back_12x12.bin"),
             SettingsSceneMainMenuIndexMatter,
             NULL,
             instance);
