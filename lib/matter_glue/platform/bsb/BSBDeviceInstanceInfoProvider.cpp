@@ -69,7 +69,7 @@ CHIP_ERROR DeviceInstanceInfoProviderImpl::GetProductName(char* buf, size_t bufS
 
 CHIP_ERROR DeviceInstanceInfoProviderImpl::GetProductId(uint16_t& productId) {
     auto out_span = ToMutableByteSpan(productId);
-    return LoadCryptoStorageKey(FuriHalCryptoKeyTypeMatterDeviceInfo, KeyId::VendorId, out_span);
+    return LoadCryptoStorageKey(FuriHalCryptoKeyTypeMatterDeviceInfo, KeyId::ProductId, out_span);
 }
 
 CHIP_ERROR DeviceInstanceInfoProviderImpl::GetPartNumber(char* buf, size_t bufSize) {
