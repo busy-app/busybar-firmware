@@ -68,7 +68,11 @@
           :ui="{
             base: 'p-3 rounded-full'
           }"
-          @click="showConnectModal = true"
+          @click="() => {
+            initConnectModel();
+            connectToExistingNetwork = false;
+            showConnectModal = true;
+          }"
         />
       </UTooltip>
     </template>
@@ -127,10 +131,19 @@
         <div
           v-for="network in networks"
           :key="network.ssid"
-          class="flex gap-2 items-center px-2.5 py-2.5 cursor-pointer hover:bg-elevated rounded-xl"
+          class="flex gap-2 items-center px-2.5 py-2.5 hover:bg-elevated rounded-xl"
+          :class="loading.connect ? 'cursor-wait' : 'cursor-pointer'"
           @click="() => {
+            if (loading.connect) {
+              return;
+            }
+            initConnectModel();
             connectModel.ssid = network.ssid;
+            if (network.security === 'Open') {
+              return connectToNetwork();
+            }
             connectModel.security = network.security;
+            connectToExistingNetwork = true;
             showConnectModal = true;
           }"
         >
@@ -139,16 +152,23 @@
             class="size-6 text-muted"
           />
           <div class="grow">{{ network.ssid }}</div>
-          <UTooltip
-            v-if="network.security !== 'Open'"
-            :text="network.security"
-            :delay-duration="0"
-          >
-            <UIcon
-              name="i-ri-lock-line"
-              class="size-6 text-muted"
-            />
-          </UTooltip>
+          <UIcon
+            v-if="loading.connect && connectModel.ssid === network.ssid"
+            name="i-busy-loader"
+            class="size-6 text-muted animate-spin"
+          />
+          <template v-else>
+            <UTooltip
+              v-if="network.security !== 'Open'"
+              :text="network.security"
+              :delay-duration="0"
+            >
+              <UIcon
+                name="i-ri-lock-line"
+                class="size-6 text-muted"
+              />
+            </UTooltip>
+          </template>
         </div>
       </div>
     </template>
@@ -156,8 +176,8 @@
 
   <ModalGeneric
     v-model:open="showConnectModal"
-    title="Add Wi-Fi Network"
-    description="Enter the name and security type of the network you want to connect to."
+    :title="connectToExistingNetwork ? `Connect to ${connectModel.ssid}` : 'Add network'"
+    :description="connectToExistingNetwork ? 'Enter the network security password.' : 'Enter the name and security type of the network you want to connect to.'"
     wide
     :primary-action-props="{
       label: 'Connect',
@@ -173,43 +193,46 @@
     }"
   >
     <template #body>
-      <UFormField label="Network name">
-        <UInput
-          v-model="connectModel.ssid"
-          size="xl"
-          variant="soft"
-        />
-      </UFormField>
-      <UFormField label="Security">
-        <USelect
-          v-model="connectModel.security"
-          :items="[
-            'Open',
-            'WPA',
-            'WPA2',
-            'WEP',
-            'WPA Enterprise',
-            'WPA2 Enterprise',
-            'WPA WPA2 Mixed',
-            'WPA3',
-            'WPA3 Transition',
-            'WPA3 Enterprise',
-            'WPA3 Transition Enterprise'
-          ]"
-          size="xl"
-          variant="soft"
-          class="w-full"
-        />
-      </UFormField>
+      <template v-if="!connectToExistingNetwork">
+        <UFormField label="Network name">
+          <UInput
+            v-model="connectModel.ssid"
+            size="xl"
+            variant="soft"
+          />
+        </UFormField>
+        <UFormField label="Security">
+          <USelect
+            v-model="connectModel.security"
+            :items="[
+              'Open',
+              'WPA',
+              'WPA2',
+              'WEP',
+              'WPA Enterprise',
+              'WPA2 Enterprise',
+              'WPA WPA2 Mixed',
+              'WPA3',
+              'WPA3 Transition',
+              'WPA3 Enterprise',
+              'WPA3 Transition Enterprise'
+            ]"
+            size="xl"
+            variant="soft"
+            class="w-full"
+          />
+        </UFormField>
+      </template>
       <UFormField
         v-if="connectModel.security !== 'Open'"
-        label="Password"
+        :label="connectToExistingNetwork ? '' : 'Password'"
       >
         <UInput
           v-model="connectModel.password"
           size="xl"
           variant="soft"
           :type="showPassword ? 'text' : 'password'"
+          :placeholder="connectToExistingNetwork ? 'Password' : ''"
         >
           <template #trailing>
             <UButton
@@ -349,6 +372,7 @@ async function listWifiNetworks () {
 
 const showConnectModal = ref(false);
 const showPassword = ref(false);
+const connectToExistingNetwork = ref(false);
 const connectModel = ref({
   ssid: '',
   security: 'Open' as WifiSecurity,
@@ -361,6 +385,20 @@ const connectModel = ref({
     gateway: ''
   } as WifiConnectIPConfig
 });
+const initConnectModel = () => {
+  connectModel.value = {
+    ssid: '',
+    security: 'Open',
+    password: '',
+    ip_config: {
+      ip_method: 'dhcp',
+      ip_type: 'ipv4',
+      address: '',
+      mask: '',
+      gateway: ''
+    }
+  };
+};
 
 async function connectToNetwork () {
   if (!connectModel.value.ssid) {
