@@ -41,6 +41,7 @@
         :ui="{
           base: 'px-2.5 py-2 rounded-full'
         }"
+        class="justify-center sm:justify-start"
         :loading="loading.state || loading.list"
         @click="listWifiNetworks"
       />
@@ -52,6 +53,7 @@
         :ui="{
           base: 'px-2.5 py-2 rounded-full'
         }"
+        class="justify-center sm:justify-start"
         :loading="loading.forget"
         @click="forgetNetwork"
       />
@@ -68,6 +70,7 @@
           :ui="{
             base: 'p-3 rounded-full'
           }"
+          class="justify-center sm:justify-start"
           @click="() => {
             initConnectModel();
             connectToExistingNetwork = false;
@@ -607,6 +610,9 @@ function wifiIconByRssi (rssi: number): string {
   return 'i-ri-signal-wifi-1-fill';
 }
 
+const httpApiSwitchModel = ref(false);
+const showEnableHttpApiModal = ref(false);
+
 watch(() => deviceStore.httpAPIAccess, access => {
   if (!access) {
     return;
@@ -617,9 +623,6 @@ watch(() => deviceStore.httpAPIAccess, access => {
     httpApiSwitchModel.value = false;
   }
 }, { immediate: true, deep: true });
-
-const httpApiSwitchModel = ref(false);
-const showEnableHttpApiModal = ref(false);
 
 async function handleHttpApiToggle (value: boolean) {
   if (!value) {

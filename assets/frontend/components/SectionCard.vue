@@ -11,8 +11,10 @@
       v-if="headerExists"
       #header
     >
-      <div class="w-full flex justify-between items-center">
+      <div class="w-full flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div class="flex items-center gap-4">
+          <slot name="leading-actions" />
+
           <div
             v-if="icon"
             class="size-14 rounded-full bg-elevated p-[14px]"
@@ -22,8 +24,6 @@
               class="size-7"
             />
           </div>
-
-          <slot name="leading-actions" />
 
           <div>
             <div class="text-xl">{{ title }}</div>
@@ -37,7 +37,7 @@
           </div>
         </div>
 
-        <div class="flex items-center gap-2">
+        <div class="w-full sm:w-fit flex flex-col sm:flex-row items-stretch sm:items-end gap-2">
           <slot name="actions" />
         </div>
       </div>

@@ -12,6 +12,7 @@
         :ui="{
           base: 'px-2.5 py-2 rounded-full'
         }"
+        class="justify-center sm:justify-start"
         @click="initFirmwareUpdateFromFile"
       />
 
@@ -215,6 +216,7 @@
         :ui="{
           base: 'px-2.5 py-2 rounded-full'
         }"
+        class="justify-center sm:justify-start"
       />
     </template>
 
