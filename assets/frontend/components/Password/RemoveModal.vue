@@ -30,6 +30,7 @@
           variant="soft"
           :type="pms.passwordModel.showCurrent ? 'text' : 'password'"
           placeholder="Enter password"
+          @update:model-value="pms.passwordModel.currentWrong = false"
         >
           <template #trailing>
             <UButton
