@@ -46,13 +46,14 @@ export type WifiConnectOptions = {
 };
 
 export const useWifiStore = defineStore('wifi', () => {
-  const barUrl = useRuntimeConfig().public.barUrl;
   const toast = useToast();
+
+  const apiRequest = useApiStore().apiRequest;
 
   const wifi = ref<wifiState | undefined>(undefined);
 
   async function fetchWifiState (): Promise<wifiState | undefined> {
-    const state = await $fetch<wifiState>(`${barUrl}/api/wifi/status`)
+    const state = await apiRequest<wifiState>('/api/wifi/status')
       .then(response => {
         if (!response || typeof response !== 'object') {
           throw new Error('Empty response');
@@ -83,7 +84,7 @@ export const useWifiStore = defineStore('wifi', () => {
   }
 
   async function enableWifi () {
-    await $fetch(`${barUrl}/api/wifi/enable`, {
+    await apiRequest('/api/wifi/enable', {
       method: 'POST'
     })
       .then(() => {
@@ -106,7 +107,7 @@ export const useWifiStore = defineStore('wifi', () => {
     if (wifi.value === undefined || wifi.value.state === 'disabled') {
       return;
     }
-    await $fetch(`${barUrl}/api/wifi/disable`, {
+    await apiRequest('/api/wifi/disable', {
       method: 'POST'
     })
       .then(() => {
@@ -131,7 +132,7 @@ export const useWifiStore = defineStore('wifi', () => {
       networks: WifiNetwork[];
     }
 
-    return await $fetch<WifiNetworkListResponse>(`${barUrl}/api/wifi/networks`)
+    return await apiRequest<WifiNetworkListResponse>('/api/wifi/networks')
       .then(response => {
         if (!response || !Array.isArray(response.networks)) {
           throw new Error('Failed to fetch WiFi networks');
@@ -164,7 +165,7 @@ export const useWifiStore = defineStore('wifi', () => {
   }
 
   async function connectToWifiNetwork (options: WifiConnectOptions) {
-    return await $fetch(`${barUrl}/api/wifi/connect`, {
+    return await apiRequest('/api/wifi/connect', {
       method: 'POST',
       body: options
     })
@@ -183,7 +184,7 @@ export const useWifiStore = defineStore('wifi', () => {
   }
 
   async function disconnectFromWifiNetwork () {
-    return await $fetch(`${barUrl}/api/wifi/disconnect`, {
+    return await apiRequest('/api/wifi/disconnect', {
       method: 'POST'
     })
       .catch(error => {
@@ -201,7 +202,7 @@ export const useWifiStore = defineStore('wifi', () => {
   }
 
   async function forgetSavedWifiNetwork () {
-    return await $fetch(`${barUrl}/api/wifi/forget`, {
+    return await apiRequest('/api/wifi/forget', {
       method: 'POST'
     })
       .catch(error => {

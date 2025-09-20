@@ -129,6 +129,7 @@
 <script setup lang="ts">
 const deviceStore = useDeviceStore();
 const pms = usePasswordModalStore();
+const apiStore = useApiStore();
 
 const colorMode = useColorMode();
 
@@ -139,7 +140,8 @@ const httpApiAccess = ref(await deviceStore.getHttpAPIAccess());
 const passwordSetItems = [
   {
     label: 'Lock down',
-    icon: 'i-ri-lock-fill'
+    icon: 'i-ri-lock-fill',
+    onSelect: () => lockDown
   },
   {
     label: 'Password',
@@ -254,5 +256,10 @@ async function restartDevice () {
     loading.value.restart = false;
     showRestartModal.value = false;
   }
+}
+
+async function lockDown () {
+  apiStore.apiKey = null;
+  await navigateTo('/login');
 }
 </script>

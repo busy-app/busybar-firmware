@@ -47,14 +47,15 @@ export interface AudioVolume {
 export type UpdateStage = 'idle' | 'uploading' | 'unpacking' | 'updating' | 'success' | 'error';
 
 export const useDeviceStore = defineStore('device', () => {
-  const barUrl = useRuntimeConfig().public.barUrl;
   const toast = useToast();
+
+  const apiRequest = useApiStore().apiRequest;
 
   // API version
   const apiVersion = ref<ApiVersion | undefined>(undefined);
 
   async function fetchApiVersion (): Promise<ApiVersion | undefined> {
-    const version = await $fetch<ApiVersion>(`${barUrl}/api/version`, { timeout: 3000 })
+    const version = await apiRequest<ApiVersion>('/api/version', { timeout: 3000 })
       .then(response => {
         if (!response || typeof response !== 'object') {
           throw new Error('Empty response');
@@ -94,7 +95,7 @@ export const useDeviceStore = defineStore('device', () => {
   const deviceStatus = ref<DeviceStatus | undefined>(undefined);
 
   async function fetchDeviceStatus (): Promise<DeviceStatus | undefined> {
-    const status = await $fetch<DeviceStatus>(`${barUrl}/api/status`, { timeout: 3000 })
+    const status = await apiRequest<DeviceStatus>('/api/status', { timeout: 3000 })
       .then(response => {
         if (!response || typeof response !== 'object') {
           throw new Error('Empty response');
@@ -131,7 +132,7 @@ export const useDeviceStore = defineStore('device', () => {
   }
 
   async function fetchSystemStatus (throwError: boolean = false): Promise<SystemStatus | undefined> {
-    const systemStatus = await $fetch<SystemStatus>(`${barUrl}/api/status/system`, { timeout: 3000 })
+    const systemStatus = await apiRequest<SystemStatus>('/api/status/system', { timeout: 3000 })
       .then(response => {
         if (!response || typeof response !== 'object') {
           throw new Error('Empty response');
@@ -163,7 +164,7 @@ export const useDeviceStore = defineStore('device', () => {
   }
 
   async function fetchPowerStatus (): Promise<PowerStatus | undefined> {
-    const powerStatus = await $fetch<PowerStatus>(`${barUrl}/api/status/power`, { timeout: 3000 })
+    const powerStatus = await apiRequest<PowerStatus>('/api/status/power', { timeout: 3000 })
       .then(response => {
         if (!response || typeof response !== 'object') {
           throw new Error('Empty response');
@@ -195,7 +196,7 @@ export const useDeviceStore = defineStore('device', () => {
   const httpAPIAccess = ref<HttpAPIAccess | undefined>(undefined);
 
   async function fetchHttpAPIAccess (): Promise<HttpAPIAccess | undefined> {
-    const access = await $fetch<HttpAPIAccess>(`${barUrl}/api/access`, { timeout: 3000 })
+    const access = await apiRequest<HttpAPIAccess>('/api/access', { timeout: 3000 })
       .then(response => {
         if (!response || typeof response !== 'object') {
           throw new Error('Empty response');
@@ -240,7 +241,7 @@ export const useDeviceStore = defineStore('device', () => {
       payload['key'] = key;
     }
 
-    return await $fetch(`${barUrl}/api/access`, {
+    return await apiRequest('/api/access', {
       method: 'POST',
       query: payload
     })
@@ -270,7 +271,7 @@ export const useDeviceStore = defineStore('device', () => {
       front: 'auto' | string;
       back: 'auto' | string;
     }
-    const brightness = await $fetch<APIDisplayBrightness>(`${barUrl}/api/display/brightness`, { timeout: 3000 })
+    const brightness = await apiRequest<APIDisplayBrightness>('/api/display/brightness', { timeout: 3000 })
       .then(response => {
         if (!response || typeof response !== 'object') {
           throw new Error('Empty response');
@@ -308,7 +309,7 @@ export const useDeviceStore = defineStore('device', () => {
   }
 
   async function setDisplayBrightness (brightness: DisplayBrightness): Promise<boolean> {
-    return await $fetch(`${barUrl}/api/display/brightness`, {
+    return await apiRequest('/api/display/brightness', {
       method: 'POST',
       query: {
         front: String(brightness.front),
@@ -337,7 +338,7 @@ export const useDeviceStore = defineStore('device', () => {
   const audio = ref<AudioVolume | undefined>(undefined);
 
   async function fetchAudioVolume (): Promise<AudioVolume | undefined> {
-    const volume = await $fetch<AudioVolume>(`${barUrl}/api/audio/volume`, { timeout: 3000 })
+    const volume = await apiRequest<AudioVolume>('/api/audio/volume', { timeout: 3000 })
       .then(response => {
         if (!response || typeof response !== 'object') {
           throw new Error('Empty response');
@@ -374,7 +375,7 @@ export const useDeviceStore = defineStore('device', () => {
   }
 
   async function setAudioVolume (volume: number): Promise<boolean> {
-    return await $fetch(`${barUrl}/api/audio/volume`, {
+    return await apiRequest('/api/audio/volume', {
       method: 'POST',
       query: { volume }
     })
@@ -411,7 +412,7 @@ export const useDeviceStore = defineStore('device', () => {
 
   async function uploadFirmware () {
     const xhr = new XMLHttpRequest();
-    xhr.open('POST', `${barUrl}/api/update?name=${firmwareUpdate.value.firmwareBundleName}`);
+    xhr.open('POST', `/api/update?name=${firmwareUpdate.value.firmwareBundleName}`);
     xhr.setRequestHeader('Content-Type', 'application/octet-stream');
 
     xhr.upload.onprogress = event => {
