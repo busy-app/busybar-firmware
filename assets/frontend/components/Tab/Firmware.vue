@@ -41,6 +41,7 @@
             class: 'hidden'
           } : {}
         "
+        @close:prevent="stage === 'success' ? reload() : null"
       >
         <template #body>
           <template v-if="stage === 'idle'">
