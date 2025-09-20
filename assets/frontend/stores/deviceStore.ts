@@ -63,7 +63,11 @@ export const useDeviceStore = defineStore('device', () => {
         apiVersion.value = response;
         return response;
       })
-      .catch(error => {
+      .catch(async error => {
+        if (error.data?.error === 'Forbidden') {
+          await navigateTo('/login');
+          return undefined;
+        }
         console.error('Error fetching API version:', error);
         toast.add({
           id: 'api-version-error',
@@ -99,7 +103,11 @@ export const useDeviceStore = defineStore('device', () => {
         deviceStatus.value = response;
         return response;
       })
-      .catch(error => {
+      .catch(async error => {
+        if (error.data?.error === 'Forbidden') {
+          await navigateTo('/login');
+          return undefined;
+        }
         console.error('Error fetching device status:', error);
         toast.add({
           id: 'device-status-error',
@@ -131,9 +139,13 @@ export const useDeviceStore = defineStore('device', () => {
         console.log('System status fetched:', response);
         return response;
       })
-      .catch(error => {
+      .catch(async error => {
         if (throwError) {
           throw error;
+        }
+        if (error.data?.error === 'Forbidden') {
+          await navigateTo('/login');
+          return undefined;
         }
         console.error('Error fetching system status:', error);
         toast.add({
@@ -159,7 +171,11 @@ export const useDeviceStore = defineStore('device', () => {
         console.log('Device power status fetched:', response);
         return response;
       })
-      .catch(error => {
+      .catch(async error => {
+        if (error.data?.error === 'Forbidden') {
+          await navigateTo('/login');
+          return undefined;
+        }
         console.error('Error fetching device power status:', error);
         toast.add({
           id: 'device-power-error',
@@ -188,7 +204,11 @@ export const useDeviceStore = defineStore('device', () => {
         httpAPIAccess.value = response;
         return response;
       })
-      .catch(error => {
+      .catch(async error => {
+        if (error.data?.error === 'Forbidden') {
+          await navigateTo('/login');
+          return undefined;
+        }
         console.error('Error fetching HTTP API access:', error);
         toast.add({
           id: 'http-api-access-error',
@@ -260,7 +280,11 @@ export const useDeviceStore = defineStore('device', () => {
         const backParsed = response.back === 'auto' ? 'auto' : Number(response.back);
         return { front: frontParsed, back: backParsed } as DisplayBrightness;
       })
-      .catch(error => {
+      .catch(async error => {
+        if (error.data?.error === 'Forbidden') {
+          await navigateTo('/login');
+          return undefined;
+        }
         console.error('Error fetching display brightness:', error);
         toast.add({
           id: 'display-brightness-error',
@@ -322,7 +346,11 @@ export const useDeviceStore = defineStore('device', () => {
         audio.value = response;
         return response;
       })
-      .catch(error => {
+      .catch(async error => {
+        if (error.data?.error === 'Forbidden') {
+          await navigateTo('/login');
+          return undefined;
+        }
         console.error('Error fetching audio volume:', error);
         toast.add({
           id: 'audio-volume-error',
