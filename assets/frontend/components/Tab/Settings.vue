@@ -4,7 +4,7 @@
       <div class="flex flex-col gap-8 pb-6 sm:pb-0 sm:pr-6">
         <div class="flex justify-between items-center">
           <UIcon
-            name="i-ri-volume-up-line"
+            :name="mute.isMuted ? 'i-ri-volume-mute-line' : 'i-ri-volume-up-line'"
             class="size-7"
           />
 
@@ -42,7 +42,7 @@
       <div class="flex flex-col gap-8 pt-6 sm:pt-0 sm:pl-6">
         <div class="flex justify-between items-center">
           <UIcon
-            name="i-ri-sun-line"
+            :name="isBrightnessAuto ? 'i-busy-brightness-auto' : 'i-ri-sun-line'"
             class="size-7"
           />
 
