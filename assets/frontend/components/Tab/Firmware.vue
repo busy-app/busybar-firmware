@@ -224,9 +224,7 @@
           'Version': system?.version,
           'Build date': system?.build_date,
           'Branch': system?.branch,
-          'Commit hash': system?.commit_hash,
-          'Uptime': system?.uptime,
-          'API version': deviceStore.apiVersion?.api_semver
+          'Commit hash': system?.commit_hash
         })"
         :key="property"
         class="flex"
@@ -247,7 +245,7 @@ const loading = ref({
 });
 
 const system = computed(() => deviceStore.deviceStatus?.system);
-const fwVersionPolifilled = computed(() => system.value?.version === 'unknown' ? `${system.value.branch}-${system.value.commit_hash}` : system.value?.version);
+const fwVersionPolifilled = computed(() => system.value?.version === 'unknown' ? `${system.value.branch} ${system.value.commit_hash}` : system.value?.version);
 
 const showUpdateModal = ref(false);
 const stage = computed(() => deviceStore.firmwareUpdate.stage);

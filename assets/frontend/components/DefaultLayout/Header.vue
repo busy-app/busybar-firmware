@@ -17,7 +17,7 @@
       </div>
     </div>
 
-    <div class="absolute left-1/2 -translate-x-1/2">
+    <div class="hidden absolute left-1/2 -translate-x-1/2">
       <UDropdownMenu
         :items="[
           {

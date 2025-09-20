@@ -89,10 +89,10 @@
       <div class="grid sm:grid-cols-2 gap-y-3 gap-x-1">
         <div
           v-for="[property, value] in Object.entries({
-            'Version': 'V1.2-26070',
-            'Build date': '9 Jun 2025',
-            'Language': 'English',
-            'Timezone': 'UTC+0'
+            'Firmware': fwVersionPolifilled,
+            'Build date': system?.build_date,
+            'Uptime': system?.uptime,
+            'API version': deviceStore.apiVersion?.api_semver
           })"
           :key="property"
           class="flex"
@@ -134,6 +134,9 @@
 <script setup lang="ts">
 const deviceStore = useDeviceStore();
 
+const system = computed(() => deviceStore.deviceStatus?.system);
+const fwVersionPolifilled = computed(() => system.value?.version === 'unknown' ? `${system.value.branch} ${system.value.commit_hash}` : system.value?.version);
+
 const loading = ref({
   audio: false,
   brightness: false
@@ -158,7 +161,7 @@ const mute = ref({
   volumeBeforeMute: 50
 });
 
-function onUpdateAudioSlider (value: number | number[]) {
+function onUpdateAudioSlider (value: number | number[] | undefined) {
   nextVolumeNumber.value = Array.isArray(value) ? value[0] : value;
   if (loading.value.audio === true) {
     return;
@@ -205,7 +208,7 @@ const nextBrightnessNumber = ref<number | undefined>(undefined);
 const brightnessNumber = computed(() => isNaN(Number(deviceStore.displayBrightness?.front)) ? 50 : Number(deviceStore.displayBrightness?.front));
 const isBrightnessAuto = computed(() => deviceStore.displayBrightness?.front === 'auto');
 
-function onUpdateBrightnessSlider (value: number | number[]) {
+function onUpdateBrightnessSlider (value: number | number[] | undefined) {
   nextBrightnessNumber.value = Array.isArray(value) ? value[0] : value;
   if (loading.value.brightness === true) {
     return;
