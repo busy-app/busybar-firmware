@@ -343,7 +343,7 @@
       </UButton>
     </div>
     <div class="flex flex-col gap-1">
-      <div class="flex justify-between items-center">
+      <div class="flex justify-between items-center gap-y-4 gap-x-6">
         <div>Over Wi-Fi</div>
         <UButton
           v-if="connected"
@@ -366,7 +366,7 @@
         Connect to a Wi-Fi network to enable access to HTTP API over Wi-Fi
       </div>
       <template v-else>
-        <div class="flex justify-between items-center mt-3">
+        <div class="flex justify-between items-center gap-y-4 gap-x-6 mt-3">
           <div class="flex flex-col gap-1">
             <div>HTTP API access</div>
             <div class="text-sm text-muted">Send requests and control BUSY Bar when connected via Wi-Fi</div>

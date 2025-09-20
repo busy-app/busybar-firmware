@@ -258,6 +258,7 @@ async function setBrightnessToAuto () {
 
 onMounted(async () => {
   await deviceStore.getDeviceStatus();
+  await deviceStore.getApiVersion();
   await refreshAudioVolume();
   await refreshDisplayBrightness();
 });
