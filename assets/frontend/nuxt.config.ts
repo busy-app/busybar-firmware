@@ -108,6 +108,7 @@ export default defineNuxtConfig({
         'ri:add-fill',
         'ri:add-line',
         'ri:alert-line',
+        'ri:alert-fill',
         'ri:arrow-down-s-fill',
         'ri:arrow-left-double-fill',
         'ri:arrow-left-line',
