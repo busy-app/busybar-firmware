@@ -91,6 +91,11 @@ export default defineAppConfig({
           }
         }
       }
+    },
+    switch: {
+      slots: {
+        thumb: 'bg-white dark:bg-white'
+      }
     }
   }
 });
