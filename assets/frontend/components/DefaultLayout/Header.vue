@@ -173,6 +173,8 @@ const passwordUnsetItems = [
     label: 'Set password',
     icon: 'i-ri-lock-password-line',
     onSelect: () => {
+      pms.passwordModel.current = '';
+      pms.passwordModel.currentWrong = false;
       pms.passwordModel.new = '';
       pms.showSetPasswordModal = true;
     }
