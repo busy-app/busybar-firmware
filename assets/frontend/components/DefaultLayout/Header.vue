@@ -122,189 +122,13 @@
           />
         </template>
       </UDropdownMenu>
-
-      <ModalGeneric
-        v-model:open="showSetPasswordModal"
-        title="Set password"
-        description="This password will be asked each time you open this page with a BUSY Bar connected via Wi-Fi. Remember your password, as a forgotten one cannot be recovered, but only reset via a wired connection."
-        wide
-        :primary-action-props="{
-          label: 'Set password',
-          loading: loading.password,
-          disabled: newPasswordValidation !== '' || passwordModel.new === '',
-          onClick: setPassword
-        }"
-        :secondary-action-props="{
-          label: 'Cancel',
-          variant: 'ghost',
-          disabled: loading.password,
-          onClick: () => { showSetPasswordModal = false; }
-        }"
-      >
-        <template #body>
-          <UFormField
-            label="Password"
-            :error="newPasswordValidation"
-          >
-            <UInput
-              v-model="passwordModel.new"
-              v-maska="'##########'"
-              size="xl"
-              variant="soft"
-              :type="passwordModel.showNew ? 'text' : 'password'"
-              placeholder="From 4 to 10 digits"
-            >
-              <template #trailing>
-                <UButton
-                  :icon="passwordModel.showNew ? 'i-ri-eye-close-line' : 'i-ri-eye-line'"
-                  variant="ghost"
-                  color="neutral"
-                  square
-                  class="rounded-full"
-                  :ui="{
-                    leadingIcon: 'size-6 text-muted'
-                  }"
-                  @click="passwordModel.showNew = !passwordModel.showNew"
-                />
-              </template>
-            </UInput>
-          </UFormField>
-        </template>
-      </ModalGeneric>
-
-      <ModalGeneric
-        v-model:open="showUpdatePasswordModal"
-        title="Change password"
-        description="Enter current and new passwords. Remember your password, as a forgotten one cannot be recovered, but only reset via a wired connection."
-        wide
-        :primary-action-props="{
-          label: 'Update password',
-          loading: loading.password,
-          disabled: newPasswordValidation !== '' || currentPasswordValidation !== '' || passwordModel.current === '' || passwordModel.new === '',
-          onClick: setPassword
-        }"
-        :secondary-action-props="{
-          label: 'Cancel',
-          variant: 'ghost',
-          disabled: loading.password,
-          onClick: () => { showUpdatePasswordModal = false; }
-        }"
-      >
-        <template #body>
-          <UFormField
-            label="Current password"
-            :error="currentPasswordValidation"
-          >
-            <UInput
-              v-model="passwordModel.current"
-              v-maska="'##########'"
-              size="xl"
-              variant="soft"
-              :type="passwordModel.showCurrent ? 'text' : 'password'"
-              placeholder="Enter password"
-            >
-              <template #trailing>
-                <UButton
-                  :icon="passwordModel.showCurrent ? 'i-ri-eye-close-line' : 'i-ri-eye-line'"
-                  variant="ghost"
-                  color="neutral"
-                  square
-                  class="rounded-full"
-                  :ui="{
-                    leadingIcon: 'size-6 text-muted'
-                  }"
-                  @click="passwordModel.showCurrent = !passwordModel.showCurrent"
-                />
-              </template>
-            </UInput>
-          </UFormField>
-
-          <UFormField
-            label="New password"
-            :error="newPasswordValidation"
-          >
-            <UInput
-              v-model="passwordModel.new"
-              v-maska="'##########'"
-              size="xl"
-              variant="soft"
-              :type="passwordModel.showNew ? 'text' : 'password'"
-              placeholder="From 4 to 10 digits"
-            >
-              <template #trailing>
-                <UButton
-                  :icon="passwordModel.showNew ? 'i-ri-eye-close-line' : 'i-ri-eye-line'"
-                  variant="ghost"
-                  color="neutral"
-                  square
-                  class="rounded-full"
-                  :ui="{
-                    leadingIcon: 'size-6 text-muted'
-                  }"
-                  @click="passwordModel.showNew = !passwordModel.showNew"
-                />
-              </template>
-            </UInput>
-          </UFormField>
-        </template>
-      </ModalGeneric>
-
-      <ModalGeneric
-        v-model:open="showRemovePasswordModal"
-        title="Remove password"
-        description="If the password is not set, anyone on the same Wi-Fi network will be able to access the device via this page."
-        wide
-        :primary-action-props="{
-          label: 'Remove password',
-          loading: loading.password,
-          disabled: currentPasswordValidation !== '' || passwordModel.current === '',
-          onClick: removePassword
-        }"
-        :secondary-action-props="{
-          label: 'Cancel',
-          variant: 'ghost',
-          disabled: loading.password,
-          onClick: () => { showRemovePasswordModal = false; }
-        }"
-      >
-        <template #body>
-          <UFormField
-            label="Current password"
-            :error="currentPasswordValidation"
-          >
-            <UInput
-              v-model="passwordModel.current"
-              v-maska="'##########'"
-              size="xl"
-              variant="soft"
-              :type="passwordModel.showCurrent ? 'text' : 'password'"
-              placeholder="Enter password"
-            >
-              <template #trailing>
-                <UButton
-                  :icon="passwordModel.showCurrent ? 'i-ri-eye-close-line' : 'i-ri-eye-line'"
-                  variant="ghost"
-                  color="neutral"
-                  square
-                  class="rounded-full"
-                  :ui="{
-                    leadingIcon: 'size-6 text-muted'
-                  }"
-                  @click="passwordModel.showCurrent = !passwordModel.showCurrent"
-                />
-              </template>
-            </UInput>
-          </UFormField>
-        </template>
-      </ModalGeneric>
     </div>
   </nav>
 </template>
 
 <script setup lang="ts">
-import { vMaska } from 'maska/vue';
-
 const deviceStore = useDeviceStore();
+const pms = usePasswordModalStore();
 
 const colorMode = useColorMode();
 
@@ -325,19 +149,19 @@ const passwordSetItems = [
         label: 'Change',
         icon: 'i-ri-pencil-line',
         onSelect: () => {
-          passwordModel.value.current = '';
-          passwordModel.value.currentWrong = false;
-          passwordModel.value.new = '';
-          showUpdatePasswordModal.value = true;
+          pms.passwordModel.current = '';
+          pms.passwordModel.currentWrong = false;
+          pms.passwordModel.new = '';
+          pms.showUpdatePasswordModal = true;
         }
       },
       {
         label: 'Remove',
         icon: 'i-ri-lock-unlock-line',
         onSelect: () => {
-          passwordModel.value.current = '';
-          passwordModel.value.currentWrong = false;
-          showRemovePasswordModal.value = true;
+          pms.passwordModel.current = '';
+          pms.passwordModel.currentWrong = false;
+          pms.showRemovePasswordModal = true;
         }
       }
     ]
@@ -349,8 +173,8 @@ const passwordUnsetItems = [
     label: 'Set password',
     icon: 'i-ri-lock-password-line',
     onSelect: () => {
-      passwordModel.value.new = '';
-      showSetPasswordModal.value = true;
+      pms.passwordModel.new = '';
+      pms.showSetPasswordModal = true;
     }
   }
 ];
@@ -403,8 +227,7 @@ const showRestartModal = ref(false);
 
 const loading = ref({
   rename: false,
-  restart: false,
-  password: false
+  restart: false
 });
 
 async function updateDeviceName () {
@@ -429,50 +252,5 @@ async function restartDevice () {
     loading.value.restart = false;
     showRestartModal.value = false;
   }
-}
-
-const showSetPasswordModal = ref(false);
-const showUpdatePasswordModal = ref(false);
-const showRemovePasswordModal = ref(false);
-const passwordModel = ref({
-  current: '',
-  showCurrent: false,
-  currentWrong: false,
-  new: '',
-  showNew: false
-});
-const newPasswordValidation = computed(() => {
-  return passwordModel.value.new !== ''
-    && (
-      /[^0-9]/.test(passwordModel.value.new)
-        ? 'Invalid password (only digits allowed)'
-        : passwordModel.value.new.length > 10
-          ? 'Password too long'
-          : passwordModel.value.new.length < 4 && passwordModel.value.new !== ''
-            ? 'Password too short'
-            : ''
-    );
-});
-const currentPasswordValidation = computed(() => {
-  return passwordModel.value.currentWrong ? 'Incorrect password. Try again.' : '';
-});
-
-async function setPassword () {
-  loading.value.password = true;
-  await deviceStore.setHttpAPIAccess('key', passwordModel.value.new);
-  deviceStore.httpAPIAccess = await deviceStore.fetchHttpAPIAccess();
-  httpApiAccess.value = deviceStore.httpAPIAccess;
-  loading.value.password = false;
-  showSetPasswordModal.value = false;
-  showUpdatePasswordModal.value = false;
-}
-
-async function removePassword () {
-  loading.value.password = true;
-  await deviceStore.setHttpAPIAccess('enabled');
-  deviceStore.httpAPIAccess = await deviceStore.fetchHttpAPIAccess();
-  httpApiAccess.value = deviceStore.httpAPIAccess;
-  loading.value.password = false;
-  showRemovePasswordModal.value = false;
 }
 </script>
