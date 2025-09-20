@@ -78,13 +78,21 @@
       class="flex justify-between items-center"
     >
       <div>IP Address</div>
-      <CopyButton
-        v-if="wifiStore.wifi?.ip_config?.address"
-        :text="wifiStore.wifi?.ip_config?.address"
-        variant="link"
-        color="neutral"
-        class="px-0"
-      />
+      <template v-if="wifiStore.wifi?.ip_config?.address">
+        <CopyButton
+          v-if="copyAvailable"
+          :text="wifiStore.wifi?.ip_config?.address"
+          variant="link"
+          color="neutral"
+          class="px-0"
+        />
+        <div
+          v-else
+          class="text-sm text-muted"
+        >
+          {{ wifiStore.wifi?.ip_config?.address }}
+        </div>
+      </template>
       <div
         v-else
         class="text-sm text-muted"
