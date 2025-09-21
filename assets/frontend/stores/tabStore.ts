@@ -33,4 +33,9 @@ export const useTabStore = defineStore('tabs', () => {
     tabOptions,
     currentTab
   };
-}, { persist: true });
+}, {
+  persist: {
+    key: 'tabStore',
+    storage: piniaPluginPersistedstate.localStorage()
+  }
+});
