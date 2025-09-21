@@ -31,13 +31,15 @@
             label: 'Cancel',
             color: 'neutral',
             onClick: reload
+          } : stage === 'error' ? {
+            class: 'hidden'
           } : {}
         "
         :secondary-action-props="
           stage === 'idle' ? {
             label: 'Cancel',
             onClick: () => { showUpdateModal = false; firmwareFileModel = null; }
-          } : stage === 'uploading' ? {
+          } : stage === 'uploading' || stage === 'error' ? {
             class: 'hidden'
           } : {}
         "
