@@ -29,7 +29,14 @@ export const usePasswordModalStore = defineStore('passwordModal', () => {
     );
   });
   const currentPasswordValidation = computed(() => {
-    return (passwordModel.value.currentWrong ? 'Incorrect password. Try again.' : undefined) as string | undefined;
+    const key = useApiStore().apiKey;
+    if (key && passwordModel.value.current !== key) {
+      return 'Incorrect password. Try again.' as string;
+    }
+    if (passwordModel.value.currentWrong) {
+      return 'Incorrect password. Try again.' as string;
+    }
+    return undefined;
   });
 
   async function setPassword () {
