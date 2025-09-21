@@ -21,7 +21,7 @@ export const useApiStore = defineStore('apiStore', () => {
     };
 
     if (apiKey.value) {
-      headers['X-API-Key'] = apiKey.value;
+      headers['X-API-Token'] = apiKey.value;
     }
 
     return $fetch(path, {
