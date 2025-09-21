@@ -211,14 +211,14 @@
         </template>
       </ModalGeneric>
 
-      <UButton
+      <!-- <UButton
         label="Update"
         icon="i-ri-download-cloud-line"
         :ui="{
           base: 'px-2.5 py-2 rounded-full'
         }"
         class="justify-center sm:justify-start"
-      />
+      /> -->
     </template>
 
     <div class="grid sm:grid-cols-2 gap-y-3 gap-x-1">
