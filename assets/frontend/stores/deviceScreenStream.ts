@@ -3,6 +3,7 @@ import { ScreenStream, DeviceScreen } from '@busy-app/busy-lib';
 
 export const useDeviceScreenStreamStore = defineStore('deviceScreenStream', () => {
   const barUrl = useRuntimeConfig().public.barUrl;
+  const apiKey = useApiStore().apiKey;
 
   const currentScreen = ref<DeviceScreen>(DeviceScreen.FRONT);
 
@@ -20,6 +21,7 @@ export const useDeviceScreenStreamStore = defineStore('deviceScreenStream', () =
   ) {
     screenStream.value = new ScreenStream({
       mode: 'local',
+      apiKey: apiKey || '',
       barUrl,
       deviceScreen
     });
