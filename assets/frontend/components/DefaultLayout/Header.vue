@@ -17,6 +17,28 @@
       </div>
     </div>
 
+    <!-- temp -->
+    <div class="absolute left-1/2 -translate-x-1/2 flex items-center gap-4">
+      <div class="text-xl">BUSY Bar</div>
+      <div
+        v-if="power"
+        class="flex items-center gap-1.5"
+      >
+        <div class="relative flex">
+          <UIcon
+            :name="power?.state === 'charging' ? 'i-busy-battery-charging' : batteryIcon()"
+            class="size-6"
+          />
+          <UIcon
+            v-if="power?.state === 'charging'"
+            name="i-busy-charging-lightning"
+            class="absolute size-6"
+          />
+        </div>
+        <div>{{ power?.battery_charge }}%</div>
+      </div>
+    </div>
+
     <div class="hidden absolute left-1/2 -translate-x-1/2">
       <UDropdownMenu
         :items="[
@@ -261,5 +283,19 @@ async function restartDevice () {
 async function lockDown () {
   apiStore.apiKey = null;
   await navigateTo('/login');
+}
+
+// temp
+const power = computed(() => deviceStore.deviceStatus?.power);
+
+function batteryIcon (): string {
+  const charge = power.value?.battery_charge || 0;
+  if (charge >= 75) {
+    return 'i-ri-battery-fill';
+  }
+  if (charge >= 30) {
+    return 'i-ri-battery-low-line';
+  }
+  return 'i-ri-battery-line';
 }
 </script>

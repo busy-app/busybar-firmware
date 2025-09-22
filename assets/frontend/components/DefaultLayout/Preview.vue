@@ -2,7 +2,7 @@
   <div class="w-full flex flex-col items-center">
     <ScreenStream class="py-6" />
 
-    <div class="max-w-screen overflow-auto">
+    <div class="hidden max-w-screen overflow-auto">
       <div class="w-fit flex items-center justify-center gap-6 px-4">
         <!-- <UpdateButton /> -->
 
