@@ -1,3 +1,4 @@
+#include "status_lights_backend.h"
 #include "status_lights_common_private.h"
 #include "status_lights_preset_defs.h"
 
@@ -5,6 +6,8 @@
 #include <furi_hal_pwm.h>
 
 #include <intercom/intercom.h>
+
+#define DEFAULT_BRIGHTNESS 1.f
 
 typedef void (*CommandHandler)(StatusLights* instance, const StatusLightsCommand* command);
 
@@ -66,6 +69,9 @@ static void status_lights_intercom_rx_callback(const void* data, size_t data_siz
 
 static StatusLights* status_lights_alloc() {
     StatusLights* instance = malloc(sizeof(StatusLights));
+
+    instance->brightness = DEFAULT_BRIGHTNESS;
+
     instance->event_loop = furi_event_loop_alloc();
     instance->command_queue = furi_message_queue_alloc(8, sizeof(StatusLightsCommand));
     furi_event_loop_subscribe_message_queue(
@@ -143,6 +149,24 @@ static void
 
         furi_hal_pwm_set_rgb(color.r, color.g, color.b);
     }
+}
+
+void status_lights_run_preset(StatusLights* instance, StatusLightsPreset preset, Color color) {
+    furi_check(instance);
+    furi_check(preset < StatusLightsPresetsCount);
+
+    StatusLightsCommand command = {
+        .id = StatusLightsCommandIdRunPreset,
+        .as_run_preset =
+            {
+                .preset = preset,
+                .color = color,
+            },
+    };
+
+    furi_check(
+        furi_message_queue_put(instance->command_queue, &command, FuriWaitForever) ==
+        FuriStatusOk);
 }
 
 static const CommandHandler command_handlers[] = {
