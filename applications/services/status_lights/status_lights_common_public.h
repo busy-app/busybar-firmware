@@ -19,6 +19,7 @@ typedef enum {
     StatusLightsPresetStaticColor, /**< Static color */
     StatusLightsPresetFade, /**< White fade pattern */
     StatusLightsPresetRainbowGradient, /**< Rainbow gradient pattern */
+    StatusLightsPresetBlink, /**< Blink pattern */
 
     StatusLightsPresetsCount, /**< Number of presets */
 } StatusLightsPreset;
