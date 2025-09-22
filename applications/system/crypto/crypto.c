@@ -20,13 +20,14 @@ static void crypto_command_show_status(
     furi_assert(name);
 
     const FuriHalCryptoKeyHeader* header = &key->header;
+    const FuriHalCryptoPartition key_part = key->partition;
     const FuriHalCryptoKeyType key_type = header->type;
     const uint32_t key_id = header->id;
 
     if(status == FuriHalCryptoStatusOk) {
-        printf("Key %d:%lX %s SUCCESS\r\n" CLI_STATUS_OK, key_type, key_id, name);
+        printf("Key %d:%d:%lX %s SUCCESS\r\n" CLI_STATUS_OK, key_part, key_type, key_id, name);
     } else {
-        printf("Key %d:%lX %s ERROR: ", key_type, key_id, name);
+        printf("Key %d:%d:%lX %s ERROR: ", key_part, key_type, key_id, name);
 
         switch(status) {
         case FuriHalCryptoStatusFail:
