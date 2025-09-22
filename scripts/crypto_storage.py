@@ -66,8 +66,15 @@ class CryptoStorage(Cli):
         return ret
 
     def _parse_response(self, data: bytes) -> tuple[str, int]:
+        """
+        Regex explanation:
+            - Skip the first line (command echo): ".+\n"
+            - Capture all lines before return code: "(^(?s:.)+)"
+            - Skip the last newline before return code: "\n"
+            - Capture the return code: "RET: (\\d+)"
+        """
         match = re.search(
-            "(^.+)^.*RET: (\\d+)", data.decode("ascii"), re.DOTALL | re.MULTILINE
+            ".+\n(^(?s:.)+)\nRET: (\\d+)", data.decode("ascii"), re.MULTILINE
         )
 
         if not match:
