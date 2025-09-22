@@ -93,7 +93,7 @@
 #define LOCAL_DEV_ADDR_LEN   18 // Length of the local device address
 
 #define GAIN_TABLE_AND_MAX_POWER_UPDATE_ENABLE \
-    0 //! To update gain table and max tx power and offsets
+    1 //! To update gain table and max tx power and offsets
 
 #if GAIN_TABLE_AND_MAX_POWER_UPDATE_ENABLE
 
@@ -112,10 +112,10 @@
 //! structure for the MAXPOWER
 uint8_t Si917_BLE_REGION_BASED_MAXPOWER_XX[16] = {//{{{
 	// BLE Max Power Index,
-	FCC,        16,
+	FCC,        10,
 	ETSI,       8,
 	TELEC,      10,
-	WORLDWIDE,  16,
+	WORLDWIDE,  10,
 	KCC,        10,
 };//}}}
 
