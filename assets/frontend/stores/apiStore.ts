@@ -1,12 +1,5 @@
 import { defineStore } from 'pinia';
 
-export interface TabOption {
-  label: string;
-  icon: string;
-  activeIcon?: string;
-  value: string;
-}
-
 export const useApiStore = defineStore('apiStore', () => {
   const barUrl = useRuntimeConfig().public.barUrl;
   const apiKey = ref<string | null>(null);
