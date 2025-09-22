@@ -77,6 +77,9 @@ CHIP_ERROR SignWithECDSA256Key(
         const FuriHalCryptoWrappingMode wrap_mode =
             private_key->header.flags & FuriHalCryptoKeyFlagWrap ? FuriHalCryptoWrappingModeOn :
                                                                    FuriHalCryptoWrappingModeOff;
+        if(wrap_mode == FuriHalCryptoWrappingModeOff) {
+            ChipLogDetail(Crypto, "WARNING: Using unwrapped private key");
+        }
 
         FuriHalCryptoEcdsa* ecdsa = furi_hal_crypto_ecdsa_sign_init(
             FuriHalCryptoEcdsaModeSha256,

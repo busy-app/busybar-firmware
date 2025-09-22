@@ -4,7 +4,7 @@ import os
 import struct
 import hashlib
 
-from enum import IntEnum
+from enum import IntEnum, IntFlag
 from datetime import datetime
 from random import randbytes
 
@@ -40,6 +40,11 @@ class KeyType(IntEnum):
     ATTESTATION = 13
     SETUP = 14
     DEVICE_INFO = 15
+
+
+class WriteFlag(IntFlag):
+    NONE = 0
+    WRAP = 1
 
 
 class AttestationKeyId(IntEnum):
@@ -96,6 +101,11 @@ class Main(App):
             "--cd",
             required=True,
             help="CD (Certification Declaration) file (.der format)",
+        )
+        self.attest_parser.add_argument(
+            "--wrap-private-key",
+            action="store_true",
+            help="Wrap private key with device internal key",
         )
 
         self.attest_parser.set_defaults(func=self.provision_attestation_files)
@@ -233,11 +243,17 @@ class Main(App):
 
         return (salt, verifier)
 
-    def write_data(self, key_type: int, data: dict[int, bytes]):
+    def write_data(self, key_type: int, data: dict[int, bytes], wrap=False):
         with CryptoStorage(self.get_portname()) as storage:
             for key_id, key_value in data.items():
+                flags = WriteFlag.WRAP if wrap else WriteFlag.NONE
                 ret = storage.write_key(
-                    Partition.MAIN, key_type, key_id, 0, len(key_value), key_value.hex()
+                    Partition.MAIN,
+                    key_type,
+                    key_id,
+                    flags,
+                    len(key_value),
+                    key_value.hex(),
                 )
                 if ret != 0:
                     raise Exception(f"write_key failed with error {ret}")
