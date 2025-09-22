@@ -1,12 +1,3 @@
 #pragma once
 
-#define CHIP_DEVICE_CONFIG_DEVICE_VENDOR_NAME "Flipper Devices Inc"
-
-#define CHIP_DEVICE_CONFIG_DEVICE_VENDOR_ID 0x158A
-
-// TODO: replace with real values
-#define CHIP_DEVICE_CONFIG_DEVICE_PRODUCT_NAME "Busy Status Bar"
-
-#define CHIP_DEVICE_CONFIG_DEVICE_PRODUCT_ID 0x0001
-
-#define CHIP_DEVICE_CONFIG_DEVICE_TYPE 0x10A
+// This file intentionally left blank
