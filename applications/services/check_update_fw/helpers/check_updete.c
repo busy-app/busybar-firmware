@@ -46,6 +46,7 @@ static int32_t check_update_thread_callback(void* context) {
         FURI_LOG_W(TAG, "Update ID found: %s", parse_update_get_id(parser));
         FURI_LOG_W(TAG, "Update version found: %s", parse_update_get_version(parser));
         FURI_LOG_W(TAG, "Update found: %s", parse_update_get_url(parser));
+        FURI_LOG_W(TAG, "Update SHA256 found: %s", parse_update_get_sha256(parser));    
         status |= CheckUpdateStatusSuccess;
     } else {
         FURI_LOG_E(TAG, "Failed to parse update JSON");

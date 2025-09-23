@@ -18,6 +18,7 @@
 #define PARSE_UPDATE_BRANCH_VERSIONS_FILES_URL    "url"
 #define PARSE_UPDATE_BRANCH_VERSIONS_FILES_TARGET "target"
 #define PARSE_UPDATE_BRANCH_VERSIONS_FILES_TYPE   "type"
+#define PARSE_UPDATE_BRANCH_VERSIONS_FILES_SHA256 "sha256"
 
 //ToDo add define target
 #define PARSE_UPDATE_BRANCH_TARGET_FOUND       "f21"
@@ -27,6 +28,7 @@ struct ParseUpdateJson {
     FuriString* url;
     FuriString* id;
     FuriString* version;
+    FuriString* sha256;
     const char* branch_id;
     const char* file_path;
 };
@@ -111,13 +113,21 @@ static bool parse_update_parse_json(cJSON* json, ParseUpdateJson* instance) {
                         continue;
                     }
 
+                    cJSON* sha256 =
+                        cJSON_GetObjectItem(file, PARSE_UPDATE_BRANCH_VERSIONS_FILES_SHA256);
+                    if(!cJSON_IsString(sha256)) {
+                        continue;
+                    }
+
                     furi_string_set(instance->id, id->valuestring);
                     furi_string_set(instance->version, id_version->valuestring);
                     furi_string_set(instance->url, url->valuestring);
+                    furi_string_set(instance->sha256, sha256->valuestring);
 
                     FURI_LOG_D(TAG, "Found update ID: %s", id->valuestring);
                     FURI_LOG_D(TAG, "Found update version: %s", id_version->valuestring);
                     FURI_LOG_D(TAG, "Found update URL: %s", url->valuestring);
+                    FURI_LOG_D(TAG, "Found update SHA256: %s", sha256->valuestring);
 
                     success = true;
                     break;
@@ -176,6 +186,7 @@ ParseUpdateJson* parse_update_init() {
     instance->url = furi_string_alloc();
     instance->id = furi_string_alloc();
     instance->version = furi_string_alloc();
+    instance->sha256 = furi_string_alloc();
     return instance;
 }
 
@@ -183,6 +194,7 @@ void parse_update_free(ParseUpdateJson* instance) {
     furi_string_free(instance->url);
     furi_string_free(instance->id);
     furi_string_free(instance->version);
+    furi_string_free(instance->sha256);
     free(instance);
 }
 
@@ -203,4 +215,8 @@ const char* parse_update_get_id(ParseUpdateJson* instance) {
 
 const char* parse_update_get_version(ParseUpdateJson* instance) {
     return furi_string_get_cstr(instance->version);
+}
+
+const char* parse_update_get_sha256(ParseUpdateJson* instance) {
+    return furi_string_get_cstr(instance->sha256);
 }
