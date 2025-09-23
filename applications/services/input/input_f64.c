@@ -24,6 +24,7 @@
 
 typedef enum {
     InputEventFlagActivity = 1 << 0,
+    InputEventFlagIntercomSync = 1 << 1,
 } InputEventFlag;
 
 typedef struct {
@@ -46,6 +47,7 @@ typedef struct {
 
 struct Input {
     FuriPubSub* event_pubsub;
+    FuriPubSub* intercom_pubsub;
     FuriEventLoop* event_loop;
     FuriMessageQueue* input_queue;
     FuriEventLoopTimer* debounce_timer;
@@ -57,9 +59,25 @@ struct Input {
     InputAbsoluteState absolute_state;
 };
 
+static void input_send(Input* instance, const InputPin* pin, InputAction input_action);
+
 static void input_isr_key(void* context) {
     Input* instance = context;
     furi_event_loop_set_custom_event(instance->event_loop, InputEventFlagActivity);
+}
+
+static void input_intercom_events_callback(const void* message, void* context) {
+    furi_assert(message);
+    furi_assert(context);
+
+    const IntercomEvent* event = message;
+    Input* instance = context;
+
+    if(event->type == IntercomEventTypeSyncStateChanged) {
+        if(event->is_in_sync) {
+            furi_event_loop_set_custom_event(instance->event_loop, InputEventFlagIntercomSync);
+        }
+    }
 }
 
 static void input_custom_event_callback(uint32_t events, void* context) {
@@ -69,6 +87,14 @@ static void input_custom_event_callback(uint32_t events, void* context) {
     if(events & InputEventFlagActivity) {
         if(!furi_event_loop_timer_is_running(instance->debounce_timer)) {
             furi_event_loop_timer_start(instance->debounce_timer, INPUT_DEBOUNCE_TIMEOUT);
+        }
+    } else if(events & InputEventFlagIntercomSync) {
+        for(size_t i = 0; i < input_pins_count; i++) {
+            InputKeyState* state = &instance->key_states[i];
+
+            if(state->level) {
+                input_send(instance, instance->key_states[i].pin, InputActionPress);
+            }
         }
     }
 }
@@ -204,13 +230,14 @@ static void input_queue_callback(FuriEventLoopObject* object, void* context) {
 #endif
 
 #ifdef SRV_INTERCOM
-    furi_check(
-        intercom_tx(
-            instance->intercom,
-            IntercomChannelInput,
-            &event,
-            sizeof(InputCommonEvent),
-            FuriWaitForever) == sizeof(InputCommonEvent));
+    while(intercom_is_in_sync(instance->intercom)) {
+        size_t sent_size = intercom_tx(
+            instance->intercom, IntercomChannelInput, &event, sizeof(InputCommonEvent), 100);
+
+        if(sent_size == sizeof(InputCommonEvent)) {
+            break;
+        }
+    }
 #endif
 }
 
@@ -248,6 +275,9 @@ int32_t input_srv(void* p) {
 
         furi_hal_gpio_add_int_callback(pin->gpio, pin->cond, input_isr_key, instance);
     }
+
+    instance->intercom_pubsub = intercom_get_pubsub(instance->intercom);
+    furi_pubsub_subscribe(instance->intercom_pubsub, input_intercom_events_callback, instance);
 
     furi_event_loop_set_custom_event_callback(
         instance->event_loop, input_custom_event_callback, instance);
