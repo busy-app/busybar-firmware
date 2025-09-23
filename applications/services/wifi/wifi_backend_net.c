@@ -103,7 +103,7 @@ static void wifi_net_intercom_input(const uint8_t* data, uint16_t data_len) {
     furi_check(tx_size == data_len);
 }
 
-static void wifi_net_tcpip_netif_status_callback(struct netif *netif) {
+static void wifi_net_tcpip_netif_status_callback(struct netif* netif) {
     uint8_t addr_state = netif_ip6_addr_state(netif, 0);
     FURI_LOG_D(TAG, "netif ipv6 addr status changed: 0x%02x", addr_state);
 
@@ -240,9 +240,10 @@ sl_status_t sl_net_wifi_client_up(sl_net_interface_t interface, sl_net_profile_i
         wifi_net_tcpip_callback(wifi_net_tcpip_netif_up_callback, &mac_addr);
 
         netif_set_status_callback(netif, wifi_net_tcpip_netif_status_callback);
-        FuriStatus status = furi_semaphore_acquire(instance->ip6_addr_valid, furi_ms_to_ticks(IP_VALIDITY_AWAIT_MS));
+        FuriStatus status = furi_semaphore_acquire(
+            instance->ip6_addr_valid, furi_ms_to_ticks(IP_VALIDITY_AWAIT_MS));
         netif_set_status_callback(netif, NULL);
-        
+
         if(status == FuriStatusErrorTimeout) {
             FURI_LOG_E(TAG, "IPv6 DAD resolution failed in %d ms", IP_VALIDITY_AWAIT_MS);
             status = SL_STATUS_TIMEOUT;
