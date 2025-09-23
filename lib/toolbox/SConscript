@@ -38,6 +38,10 @@ env.Append(
         File("md5_calc.h"),
         File("varint.h"),
         File("strint.h"),
+        File("fetch/fetch_client.h"),
+        File("fetch/fetch_file_save.h"),
+        File("fetch/fetch_loader.h"),
+        File("update_fw_tar.h"),
     ],
 )
 

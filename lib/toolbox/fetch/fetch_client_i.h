@@ -3,7 +3,7 @@
 
 #include <wifi/wifi.h>
 #include <network/network.h>
-#include <mongoose.h>
+#include <lib/mongoose/mongoose.h>
 #include <mongoose_glue.h>
 
 #define FETCH_CLIENT_CA_BUNDLE_PATH EXT_PATH("apps_assets/ca/cacert.pem")

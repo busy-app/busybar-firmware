@@ -5,7 +5,9 @@
 #include <gui/modules/image.h>
 #include <gui/modules/progress_bar.h>
 
-#include "../helpers/settings_fw_loader.h"
+#include <toolbox/fetch/fetch_loader.h>
+
+#define SETTINGS_FW_FILE_PATH EXT_PATH("update/upload.tar")
 
 typedef enum {
     SceneCustomEventVolumeChanged = SettingsCustomEventSceneEventsStart,
@@ -30,7 +32,7 @@ typedef struct {
 
     uint8_t bar_volume;
 
-    SettingsFwLoader* fw_loader;
+    FetchLoader* fw_loader;
     FuriString* fw_status;
 
 } SettingsSceneFwUpdate;
@@ -52,9 +54,10 @@ static void settings_scene_fw_update_start_download(SettingsApp* instance) {
     furi_assert(instance);
     SettingsSceneFwUpdate* data = scene_manager_get_current_scene_data(instance->scene_manager);
     furi_assert(data);
-    settings_fw_loader_run(
+    fetch_loader_run(
         data->fw_loader,
-        "https://update.flipperzero.one/builds/busybar-firmware/dev/busybar-f21-update-dev-16092025-9128816b.tar");
+        "https://update.flipperzero.one/builds/busybar-firmware/dev/busybar-f21-update-dev-23092025-cb76191e.tar",
+        SETTINGS_FW_FILE_PATH);
 }
 
 static bool settings_scene_fw_update_input_callback(const InputEvent* event, void* context) {
@@ -102,7 +105,7 @@ static bool settings_scene_fw_update_input_callback(const InputEvent* event, voi
     return consumed;
 }
 
-static void settings_scene_fw_status_callback(SettingsFwLoaderStatus status, void* context) {
+static void settings_scene_fw_status_callback(FetchLoaderStatus status, void* context) {
     furi_assert(context);
     SettingsApp* app_instance = context;
     SettingsSceneFwUpdate* data =
@@ -207,10 +210,10 @@ static void settings_scene_fw_update_on_enter(void* context) {
         widget_set_height(progress_bar_get_base(data->bar_front), 4);
 
         // FwLoader
-        data->fw_loader = settings_fw_loader_alloc();
-        settings_fw_loader_set_status_callback(
+        data->fw_loader = fetch_loader_alloc();
+        fetch_loader_set_status_callback(
             data->fw_loader, settings_scene_fw_status_callback, instance);
-        settings_fw_loader_set_state_callback(
+        fetch_loader_set_state_callback(
             data->fw_loader, settings_scene_fw_update_state_callback, instance);
     });
 }
@@ -234,7 +237,7 @@ static void settings_scene_fw_update_on_exit(void* context) {
         label_free(data->label_fw_name_download);
         label_free(data->label_fw_current_version);
         progress_bar_free(data->bar_front);
-        settings_fw_loader_free(data->fw_loader);
+        fetch_loader_free(data->fw_loader);
     });
     furi_string_free(data->fw_status);
 }
