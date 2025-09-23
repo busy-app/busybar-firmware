@@ -6,6 +6,7 @@
 #include <gui/modules/progress_bar.h>
 
 #include <toolbox/fetch/fetch_loader.h>
+#include <toolbox/update_fw_tar.h>
 
 #define SETTINGS_FW_FILE_PATH EXT_PATH("update/upload.tar")
 
@@ -14,7 +15,7 @@ typedef enum {
     SceneCustomEventBackPressed,
     SceneCustomEventUpdateStatus,
     SceneCustomEventDownloadStarted,
-    SceneCustomEventDownloadFinished,
+    SceneCustomEventDownloadDone,
     SceneCustomEventErrorOccurred,
 } SceneCustomEvent;
 
@@ -148,6 +149,16 @@ static void settings_scene_fw_update_state_callback(FuriString* error, void* con
     settings_send_custom_event(app_instance, SceneCustomEventUpdateStatus);
 }
 
+static void settings_scene_fw_update_done_callback(void* context) {
+    furi_assert(context);
+    SettingsApp* app_instance = context;
+    SettingsSceneFwUpdate* data =
+        scene_manager_get_current_scene_data(app_instance->scene_manager);
+    furi_assert(data);
+
+    settings_send_custom_event(app_instance, SceneCustomEventDownloadDone);
+}
+
 static void settings_scene_fw_update_on_enter(void* context) {
     furi_assert(context);
 
@@ -215,6 +226,8 @@ static void settings_scene_fw_update_on_enter(void* context) {
             data->fw_loader, settings_scene_fw_status_callback, instance);
         fetch_loader_set_state_callback(
             data->fw_loader, settings_scene_fw_update_state_callback, instance);
+        fetch_loader_set_done_callback(
+            data->fw_loader, settings_scene_fw_update_done_callback, instance);
     });
 }
 
@@ -273,6 +286,12 @@ static bool settings_scene_fw_update_on_event(const SceneManagerEvent* event, vo
             settings_scene_fw_update_start_download(instance);
             consumed = true;
             break;
+        case SceneCustomEventDownloadDone: {
+            // TODO: add scene to show "Success" or "Error"
+            update_fw_tar(SETTINGS_FW_FILE_PATH);
+            consumed = true;
+            break;
+        }
 
         default:
             break;

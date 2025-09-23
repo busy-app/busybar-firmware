@@ -15,6 +15,7 @@ typedef struct {
 
 typedef void (*FetchLoaderCallbackStatus)(FetchLoaderStatus status, void* context);
 typedef void (*FetchLoaderCallbackState)(FuriString* state, void* context);
+typedef void (*FetchLoaderCallbackDone)(void* context);
 
 FetchLoader* fetch_loader_alloc(void);
 void fetch_loader_free(FetchLoader* instance);
@@ -27,6 +28,10 @@ void fetch_loader_set_status_callback(
 void fetch_loader_set_state_callback(
     FetchLoader* instance,
     FetchLoaderCallbackState callback,
+    void* context);
+void fetch_loader_set_done_callback(
+    FetchLoader* instance,
+    FetchLoaderCallbackDone callback,
     void* context);
 
 #ifdef __cplusplus

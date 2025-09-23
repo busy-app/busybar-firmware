@@ -22,6 +22,8 @@ struct FetchLoader {
     void* context_status;
     FetchLoaderCallbackState callback_state;
     void* context_state;
+    FetchLoaderCallbackDone callback_done;
+    void* context_done;
 };
 
 FetchLoader* fetch_loader_alloc(void) {
@@ -89,8 +91,7 @@ static int32_t fetch_loader_check_wifi_connected(FetchLoader* instance) {
 
 //########## Thread ##########
 
-static void
-    fetch_loader_callback_file_write_data(uint8_t* data, size_t data_size, void* context) {
+static void fetch_loader_callback_file_write_data(uint8_t* data, size_t data_size, void* context) {
     furi_assert(context);
     FetchLoader* instance = context;
     furi_assert(instance->file_save);
@@ -122,10 +123,8 @@ static void fetch_loader_callback_state(const char* error, void* context) {
     instance->error = true;
 }
 
-static void fetch_loader_thread_state_callback(
-    FuriThread* thread,
-    FuriThreadState state,
-    void* context) {
+static void
+    fetch_loader_thread_state_callback(FuriThread* thread, FuriThreadState state, void* context) {
     furi_assert(thread);
     FetchLoader* instance = context;
 
@@ -134,6 +133,9 @@ static void fetch_loader_thread_state_callback(
         FURI_LOG_D(TAG, "Stop");
         furi_semaphore_release(instance->is_processing_semaphore);
         instance->thread = NULL;
+        if(instance->callback_done) {
+            instance->callback_done(instance->context_done);
+        }
     }
 }
 
@@ -219,7 +221,7 @@ static int32_t fetch_loader_thread_callback(void* context) {
     return 0;
 }
 
-void fetch_loader_run(FetchLoader* instance, const char* url , const char* path) {
+void fetch_loader_run(FetchLoader* instance, const char* url, const char* path) {
     furi_check(instance);
 
     if(furi_semaphore_get_space(instance->is_processing_semaphore)) {
@@ -230,8 +232,8 @@ void fetch_loader_run(FetchLoader* instance, const char* url , const char* path)
     furi_semaphore_acquire(instance->is_processing_semaphore, FuriWaitForever);
     furi_string_set(instance->url, url);
     furi_string_set(instance->path, path);
-    instance->thread = furi_thread_alloc_ex(
-        "FetchLoader", 2048, fetch_loader_thread_callback, instance);
+    instance->thread =
+        furi_thread_alloc_ex("FetchLoader", 2048, fetch_loader_thread_callback, instance);
     furi_thread_set_state_context(instance->thread, instance);
     furi_thread_set_state_callback(instance->thread, fetch_loader_thread_state_callback);
 
@@ -261,4 +263,13 @@ void fetch_loader_set_state_callback(
     furi_check(instance);
     instance->callback_state = callback;
     instance->context_state = context;
+}
+
+void fetch_loader_set_done_callback(
+    FetchLoader* instance,
+    FetchLoaderCallbackDone callback,
+    void* context) {
+    furi_check(instance);
+    instance->callback_done = callback;
+    instance->context_done = context;
 }
