@@ -57,4 +57,4 @@ typedef struct {
 } MqttClientMessage;
 
 void mqtt_api_subscribe(MqttClient* mqtt);
-void mqtt_api_on_message(MqttClient* mqtt, FuriString* topic_str, struct mg_str* message);
+void mqtt_api_on_message(MqttClient* mqtt, FuriString* topic_str, struct mg_mqtt_message* msg);

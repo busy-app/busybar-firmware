@@ -4,6 +4,7 @@
 
 #define HTTP_HOST           "http://127.0.0.1"
 #define HTTP_URI_API_PREFIX "/api/"
+#define HTTP_CONN_TIMEOUT   5
 
 typedef enum {
     MethodGet = 0,
@@ -13,12 +14,11 @@ typedef enum {
 } MqttApiMethod;
 
 static const struct {
-    char* mqtt_name;
     char* http_name;
 } mqtt_api_methods[] = {
-    [MethodGet] = {"/get", "GET"},
-    [MethodPost] = {"/post", "POST"},
-    [MethodDelete] = {"/delete", "DELETE"},
+    [MethodGet] = {"GET"},
+    [MethodPost] = {"POST"},
+    [MethodDelete] = {"DELETE"},
 };
 
 static const struct {
@@ -52,32 +52,30 @@ static const struct {
     {"storage/mkdir", MethodPost},
 };
 
-static bool mqtt_api_parse_topic(
-    MqttClient* mqtt,
-    FuriString* topic_str,
-    FuriString* http_req,
-    FuriString* response_topic) {
-    furi_assert(topic_str);
-    furi_assert(http_req);
-    furi_assert(response_topic);
+static bool mqtt_api_http_check_request(struct mg_str* msg) {
+    struct mg_http_message http_msg;
+    if(mg_http_parse(msg->buf, msg->len, &http_msg) < 0) {
+        return false;
+    }
+    struct mg_str uri_mask = http_msg.uri;
+    size_t prefix_len = strlen(HTTP_URI_API_PREFIX);
+
+    if(uri_mask.len < prefix_len) return false;
+    if(strncmp(uri_mask.buf, HTTP_URI_API_PREFIX, prefix_len) != 0) return false;
+
+    uri_mask.buf += prefix_len;
+    uri_mask.len -= prefix_len;
+
+    if(uri_mask.buf[uri_mask.len - 1] == '/') {
+        uri_mask.len -= 1;
+    }
+
     bool success = false;
-
-    // sessions/<session_id>/down/v1/#
-
-    FuriString* topic = furi_string_alloc_set(topic_str);
-    size_t prefix_len =
-        strlen(MQTT_API_ROOT_TOPIC) + 1 + furi_string_size(mqtt->session_id) + strlen("/down/v1/");
-    furi_string_right(topic, prefix_len);
-
     for(size_t i = 0; i < COUNT_OF(mqtt_api_table); i++) {
-        if(furi_string_start_with(topic, mqtt_api_table[i].name)) {
-            size_t method_offset = strlen(mqtt_api_table[i].name);
-            const char* method_str = furi_string_get_cstr(topic) + method_offset;
+        if(mg_strcmp(uri_mask, mg_str(mqtt_api_table[i].name)) == 0) {
             MqttApiMethod method = MethodUnknown;
-            size_t method_len = 0;
             for(size_t i = 0; i < COUNT_OF(mqtt_api_methods); i++) {
-                method_len = strlen(mqtt_api_methods[i].mqtt_name);
-                if(strncmp(mqtt_api_methods[i].mqtt_name, method_str, method_len) == 0) {
+                if(mg_strcmp(http_msg.method, mg_str(mqtt_api_methods[i].http_name)) == 0) {
                     method = i;
                     break;
                 }
@@ -85,49 +83,20 @@ static bool mqtt_api_parse_topic(
             if((method == MethodUnknown) || (method != mqtt_api_table[i].method)) {
                 continue;
             }
-            furi_string_right(topic, method_offset + method_len);
-
-            if(furi_string_size(topic) > 1) {
-                furi_string_right(topic, 1);
-                furi_string_printf(
-                    http_req,
-                    "%s %s%s?%s",
-                    mqtt_api_methods[method].http_name,
-                    HTTP_URI_API_PREFIX,
-                    mqtt_api_table[i].name,
-                    furi_string_get_cstr(topic));
-            } else {
-                furi_string_printf(
-                    http_req,
-                    "%s %s%s",
-                    mqtt_api_methods[method].http_name,
-                    HTTP_URI_API_PREFIX,
-                    mqtt_api_table[i].name);
-            }
-
-            furi_string_printf(
-                response_topic,
-                "%s/%s/up/%s/%s%s",
-                MQTT_API_ROOT_TOPIC,
-                furi_string_get_cstr(mqtt->session_id),
-                MQTT_API_VERSION,
-                mqtt_api_table[i].name,
-                mqtt_api_methods[method].mqtt_name);
-
             success = true;
         }
     }
 
-    furi_string_free(topic);
     return success;
 }
 
 typedef struct {
     MqttClient* mqtt;
     FuriString* response_topic;
-    FuriString* http_request;
+    FuriString* cor_data;
     char* request_data;
     size_t request_len;
+    uint32_t poll_cnt;
 } MqttHttpContext;
 
 static void mqtt_api_http_handler(struct mg_connection* conn, int ev, void* ev_data) {
@@ -135,27 +104,25 @@ static void mqtt_api_http_handler(struct mg_connection* conn, int ev, void* ev_d
     furi_assert(http_ctx);
 
     if(ev == MG_EV_CONNECT) {
-        mg_printf(
-            conn,
-            "%s HTTP/1.1\r\n"
-            "Content-Type: application/json\r\n"
-            "Content-Length: %ld\r\n"
-            "\r\n",
-            furi_string_get_cstr(http_ctx->http_request),
-            http_ctx->request_len);
-        if(http_ctx->request_len > 0) {
-            mg_send(conn, http_ctx->request_data, http_ctx->request_len);
-        }
+        mg_send(conn, http_ctx->request_data, http_ctx->request_len);
     } else if(ev == MG_EV_HTTP_MSG) {
         struct mg_http_message* msg = (struct mg_http_message*)ev_data;
         FURI_LOG_T(TAG, "HTTP resp: %.*s", (int)msg->body.len, msg->body.buf);
 
         if(http_ctx->mqtt->conn) {
+            struct mg_mqtt_prop props[] = {
+                {
+                    .id = MQTT_PROP_CORRELATION_DATA,
+                    .val = mg_str(furi_string_get_cstr(http_ctx->cor_data)),
+                },
+            };
             struct mg_mqtt_opts pub_opts = {
                 .topic = mg_str(furi_string_get_cstr(http_ctx->response_topic)),
-                .message = msg->body,
+                .message = msg->message,
                 .qos = MQTT_QOS,
                 .retain = false,
+                .props = props,
+                .num_props = COUNT_OF(props),
             };
             mg_mqtt_pub(http_ctx->mqtt->conn, &pub_opts);
         } else {
@@ -166,12 +133,20 @@ static void mqtt_api_http_handler(struct mg_connection* conn, int ev, void* ev_d
         FURI_LOG_T(TAG, "HTTP close");
 
         furi_string_free(http_ctx->response_topic);
-        furi_string_free(http_ctx->http_request);
+        furi_string_free(http_ctx->cor_data);
         if(http_ctx->request_data) {
             free(http_ctx->request_data);
         }
         free(http_ctx);
         conn->fn_data = NULL;
+    } else if(ev == MG_EV_POLL) {
+        if(http_ctx->poll_cnt > 0) {
+            http_ctx->poll_cnt--;
+            if(http_ctx->poll_cnt == 0) {
+                FURI_LOG_E(TAG, "HTTP timeout");
+                conn->is_draining = 1;
+            }
+        }
     }
 }
 
@@ -179,7 +154,7 @@ void mqtt_api_subscribe(MqttClient* mqtt) {
     furi_assert(mqtt->conn);
 
     FuriString* topic = furi_string_alloc_printf(
-        "%s/%s/down/%s/#",
+        "%s/%s/down/%s/http-request",
         MQTT_API_ROOT_TOPIC,
         furi_string_get_cstr(mqtt->session_id),
         MQTT_API_VERSION);
@@ -190,25 +165,52 @@ void mqtt_api_subscribe(MqttClient* mqtt) {
     furi_string_free(topic);
 }
 
-void mqtt_api_on_message(MqttClient* mqtt, FuriString* topic_str, struct mg_str* message) {
-    FuriString* http_req = furi_string_alloc();
-    FuriString* resp_topic = furi_string_alloc();
-    if(!mqtt_api_parse_topic(mqtt, topic_str, http_req, resp_topic)) {
+void mqtt_api_on_message(MqttClient* mqtt, FuriString* topic_str, struct mg_mqtt_message* msg) {
+    if(!furi_string_end_with(topic_str, "http-request")) {
         FURI_LOG_W(TAG, "Unknown topic %s", furi_string_get_cstr(topic_str));
-        furi_string_free(http_req);
+        return;
+    }
+
+    if(!mqtt_api_http_check_request(&msg->data)) {
+        FURI_LOG_W(TAG, "Bad request");
+        return;
+    }
+
+    FuriString* cor_data = furi_string_alloc();
+    FuriString* resp_topic = furi_string_alloc();
+    struct mg_mqtt_prop prop;
+    size_t prop_ofs = 0;
+    do {
+        memset(&prop, 0, sizeof(struct mg_mqtt_prop));
+        prop_ofs = mg_mqtt_next_prop(msg, &prop, prop_ofs);
+        if(prop_ofs <= 0) break;
+
+        if(prop.id == MQTT_PROP_RESPONSE_TOPIC) {
+            if(prop.val.len > 0) {
+                furi_string_printf(resp_topic, "%.*s", prop.val.len, prop.val.buf);
+            }
+        } else if(prop.id == MQTT_PROP_CORRELATION_DATA) {
+            if(prop.val.len > 0) {
+                furi_string_printf(cor_data, "%.*s", prop.val.len, prop.val.buf);
+            }
+        }
+    } while(prop_ofs > 0);
+
+    if((furi_string_empty(cor_data)) || (furi_string_empty(resp_topic))) {
+        FURI_LOG_W(TAG, "Missing msg properties");
+        furi_string_free(cor_data);
         furi_string_free(resp_topic);
         return;
     }
 
     MqttHttpContext* http_ctx = malloc(sizeof(MqttHttpContext));
     http_ctx->mqtt = mqtt;
+    http_ctx->poll_cnt = HTTP_CONN_TIMEOUT;
     http_ctx->response_topic = resp_topic;
-    http_ctx->http_request = http_req;
-    http_ctx->request_len = message->len;
-    if(http_ctx->request_len > 0) {
-        http_ctx->request_data = malloc(message->len);
-        memcpy(http_ctx->request_data, message->buf, message->len);
-    }
+    http_ctx->cor_data = cor_data;
+    http_ctx->request_len = msg->data.len;
+    http_ctx->request_data = malloc(http_ctx->request_len);
+    memcpy(http_ctx->request_data, msg->data.buf, http_ctx->request_len);
 
     mg_http_connect(&mqtt->mgr, HTTP_HOST, mqtt_api_http_handler, http_ctx);
 }
