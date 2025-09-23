@@ -134,9 +134,6 @@ static bool parse_update_parse_json(cJSON* json, ParseUpdateJson* instance) {
                 }
             }
         }
-
-        success = true;
-
     } while(false);
 
     return success;
