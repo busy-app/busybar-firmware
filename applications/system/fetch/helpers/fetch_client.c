@@ -45,7 +45,7 @@ static void fetch_client_on_close(struct mg_connection* conn) {
 
     instance->status.speed_bytes_per_sec =
         (uint32_t)((float)instance->status.received_download_size /
-                   ((furi_get_tick() - instance->started_download_ticks + 1) /
+                   ((float)(furi_get_tick() - instance->started_download_ticks + 1) /
                     furi_kernel_get_tick_frequency()));
 
     if(instance->callback_status) {
@@ -72,8 +72,8 @@ static void fetch_client_update_on_data_cb(struct mg_connection* conn, struct mg
     if((instance->count_receive_packets % 12) == 0) {
         instance->status.speed_bytes_per_sec =
             (uint32_t)((float)instance->delta_received_bytes /
-                       ((furi_get_tick() - instance->started_raw_ticks + 1) /
-                        (float)furi_kernel_get_tick_frequency()));
+                       ((float)(furi_get_tick() - instance->started_raw_ticks + 1) /
+                        furi_kernel_get_tick_frequency()));
 
         instance->started_raw_ticks = furi_get_tick();
 
