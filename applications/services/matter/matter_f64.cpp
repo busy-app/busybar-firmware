@@ -183,42 +183,11 @@ static void matter_send_current_state(MatterSrv* matter, MatterVirtualDevice dev
 // Service setup
 // =============
 
-static void matter_wait_for_network(void) {
-    FURI_LOG_I(TAG, "Waiting for network...");
-
-    auto* network = static_cast<Network*>(furi_record_open(RECORD_NETWORK));
-    network_init_current_thread(network);
-
-    auto* wifi_pubsub = static_cast<FuriPubSub*>(furi_record_open(RECORD_WIFI));
-
-    FuriSemaphore* wifi_sem = furi_semaphore_alloc(1, 0);
-
-    furi_pubsub_subscribe(
-        wifi_pubsub,
-        [](const void* message, void* context) {
-            const auto state = *(static_cast<const WifiState*>(message));
-
-            if(state == WifiStateUp) {
-                auto* wifi_sem = static_cast<FuriSemaphore*>(context);
-                furi_semaphore_release(wifi_sem);
-            }
-        },
-        wifi_sem);
-
-    furi_semaphore_acquire(wifi_sem, FuriWaitForever);
-
-    // TODO: Find out why it doesn't work if connecting right away
-    furi_delay_ms(3000);
-}
-
 MatterSrv::MatterSrv(void) {
     this->intercom = static_cast<Intercom*>(furi_record_open(RECORD_INTERCOM));
 }
 
 CHIP_ERROR MatterSrv::init(void) {
-    // TODO: Implement proper network handling
-    matter_wait_for_network();
-
     CHIP_ERROR err;
 
     do {
