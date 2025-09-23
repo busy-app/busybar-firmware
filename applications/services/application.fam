@@ -54,6 +54,7 @@ App(
         "wifi",
         "nvm",
         "matter",
+        "startup_dfu_hook"
     ],
     targets=["f64"],
 )
