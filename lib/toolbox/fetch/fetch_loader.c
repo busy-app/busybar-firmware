@@ -157,7 +157,6 @@ static int32_t fetch_loader_thread_callback(void* context) {
         FURI_LOG_E(TAG, "Failed to open file %s", furi_string_get_cstr(path));
         furi_crash();
         fetch_client_free(instance->fetch_client);
-        furi_string_free(path);
         return 0;
     }
     fetch_client_set_callback_raw_data(
@@ -215,7 +214,6 @@ static int32_t fetch_loader_thread_callback(void* context) {
     instance->file_save = NULL;
     fetch_client_free(instance->fetch_client);
     instance->fetch_client = NULL;
-    furi_string_free(path);
     FURI_LOG_D(TAG, "Stopping thread");
 
     return 0;

@@ -7,8 +7,14 @@
 
 #include <toolbox/fetch/fetch_loader.h>
 #include <toolbox/update_fw_tar.h>
+#include <json_helper.h>
 
-#define SETTINGS_FW_FILE_PATH EXT_PATH("update/upload.tar")
+#define SETTINGS_FW_FILE_PATH                 EXT_PATH("update/upload.tar")
+#define SETTINGS_FW_CONFIG_FILE               EXT_PATH("apps_data/check_update_fw/config.json")
+#define CHECK_UPDATE_JSON_CURRENT_VERSION     "current_version"
+#define CHECK_UPDATE_JSON_NEW_VERSION         "new_version"
+#define CHECK_UPDATE_JSON_NEW_FIRMWARE_URL    "new_firmware_url"
+#define CHECK_UPDATE_JSON_NEW_FIRMWARE_SHA256 "new_firmware_sha256"
 
 typedef enum {
     SceneCustomEventVolumeChanged = SettingsCustomEventSceneEventsStart,
@@ -35,6 +41,9 @@ typedef struct {
 
     FetchLoader* fw_loader;
     FuriString* fw_status;
+    FuriString* fw_url;
+    FuriString* fw_sha256;
+    FuriString* new_fw_version;
 
 } SettingsSceneFwUpdate;
 
@@ -55,10 +64,10 @@ static void settings_scene_fw_update_start_download(SettingsApp* instance) {
     furi_assert(instance);
     SettingsSceneFwUpdate* data = scene_manager_get_current_scene_data(instance->scene_manager);
     furi_assert(data);
-    fetch_loader_run(
-        data->fw_loader,
-        "https://update.flipperzero.one/builds/busybar-firmware/dev/busybar-f21-update-dev-23092025-cb76191e.tar",
-        SETTINGS_FW_FILE_PATH);
+    if(furi_string_size(data->fw_url)) {
+        fetch_loader_run(
+            data->fw_loader, furi_string_get_cstr(data->fw_url), SETTINGS_FW_FILE_PATH);
+    }
 }
 
 static bool settings_scene_fw_update_input_callback(const InputEvent* event, void* context) {
@@ -159,12 +168,55 @@ static void settings_scene_fw_update_done_callback(void* context) {
     settings_send_custom_event(app_instance, SceneCustomEventDownloadDone);
 }
 
+static void settings_scene_fw_update_check(void* context) {
+    furi_assert(context);
+    SettingsApp* instance = context;
+    SettingsSceneFwUpdate* data = scene_manager_get_current_scene_data(instance->scene_manager);
+
+    FuriString* current_version = furi_string_alloc();
+    FuriString* new_version = furi_string_alloc();
+    json_config_read_single_str(
+        SETTINGS_FW_CONFIG_FILE, CHECK_UPDATE_JSON_CURRENT_VERSION, current_version, "0.0.0");
+    json_config_read_single_str(
+        SETTINGS_FW_CONFIG_FILE, CHECK_UPDATE_JSON_NEW_VERSION, new_version, "unknown");
+
+    if(furi_string_cmp(current_version, new_version) != 0) {
+        // New version available
+        furi_string_set(data->fw_status, "New version, press OK to update");
+        json_config_read_single_str(
+            SETTINGS_FW_CONFIG_FILE, CHECK_UPDATE_JSON_NEW_FIRMWARE_URL, data->fw_url, "");
+        json_config_read_single_str(
+            SETTINGS_FW_CONFIG_FILE, CHECK_UPDATE_JSON_NEW_FIRMWARE_SHA256, data->fw_sha256, "");
+        furi_string_set(data->new_fw_version, new_version);
+
+        FURI_LOG_W("TAG", "New FW version available: %s", furi_string_get_cstr(new_version));
+        FURI_LOG_W("TAG", "FW URL: %s", furi_string_get_cstr(data->fw_url));
+        FURI_LOG_W("TAG", "FW SHA256: %s", furi_string_get_cstr(data->fw_sha256));
+        //settings_scene_fw_update_start_download(NULL);
+    } else {
+        furi_string_set(data->fw_status, "No new version");
+    }
+    with_gui(instance->gui, {
+        label_set_text_fmt(
+            data->label_fw_current_version,
+            "Current version: %s",
+            furi_string_get_cstr(current_version));
+        label_set_text(data->label_fw_name_download, furi_string_get_cstr(data->fw_status));
+    });
+
+    furi_string_free(current_version);
+    furi_string_free(new_version);
+}
+
 static void settings_scene_fw_update_on_enter(void* context) {
     furi_assert(context);
 
     SettingsApp* instance = context;
     SettingsSceneFwUpdate* data = scene_manager_get_current_scene_data(instance->scene_manager);
     data->fw_status = furi_string_alloc();
+    data->fw_url = furi_string_alloc();
+    data->fw_sha256 = furi_string_alloc();
+    data->new_fw_version = furi_string_alloc();
     with_gui(instance->gui, {
         GuiLayer* layer = gui_get_layer(instance->gui, GuiLayerIdMain);
         gui_layer_add_input_callback(layer, settings_scene_fw_update_input_callback, instance);
@@ -229,6 +281,7 @@ static void settings_scene_fw_update_on_enter(void* context) {
         fetch_loader_set_done_callback(
             data->fw_loader, settings_scene_fw_update_done_callback, instance);
     });
+    settings_scene_fw_update_check(instance);
 }
 
 static void settings_scene_fw_update_on_exit(void* context) {
@@ -253,20 +306,20 @@ static void settings_scene_fw_update_on_exit(void* context) {
         fetch_loader_free(data->fw_loader);
     });
     furi_string_free(data->fw_status);
+    furi_string_free(data->fw_url);
+    furi_string_free(data->fw_sha256);
+    furi_string_free(data->new_fw_version);
 }
 
 static bool settings_scene_fw_update_on_event(const SceneManagerEvent* event, void* context) {
     furi_assert(context);
 
     SettingsApp* instance = context;
-
+    SettingsSceneFwUpdate* data = scene_manager_get_current_scene_data(instance->scene_manager);
     bool consumed = false;
     if(event->type == SceneManagerEventTypeCustom) {
         switch(event->event) {
         case SceneCustomEventVolumeChanged: {
-            SettingsSceneFwUpdate* data =
-                scene_manager_get_current_scene_data(instance->scene_manager);
-            UNUSED(data);
             //settings_volume_set(instance, data->volume);
             audio_play_file(instance->audio, SETTINGS_SOUND_PATH("volume_change.snd"));
 
@@ -288,7 +341,15 @@ static bool settings_scene_fw_update_on_event(const SceneManagerEvent* event, vo
             break;
         case SceneCustomEventDownloadDone: {
             // TODO: add scene to show "Success" or "Error"
-            update_fw_tar(SETTINGS_FW_FILE_PATH);
+            if(furi_string_size(data->new_fw_version)) {
+                // update current version in config
+                json_config_write_single_str(
+                    SETTINGS_FW_CONFIG_FILE,
+                    CHECK_UPDATE_JSON_CURRENT_VERSION,
+                    furi_string_get_cstr(data->new_fw_version));
+                update_fw_tar(SETTINGS_FW_FILE_PATH);
+            }
+
             consumed = true;
             break;
         }

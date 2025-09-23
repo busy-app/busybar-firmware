@@ -6,9 +6,9 @@
 
 #define CHECK_UPDATE_FW_INTERVAL_MINUTES_TO_MS(x) ((x) * 60 * 1000)
 #define CHECK_UPDATE_FW_REBOOT_INTERVAL_MINUTES \
-    5000 //CHECK_UPDATE_FW_INTERVAL_MINUTES_TO_MS(5) // 5 minutes
+    10000 //CHECK_UPDATE_FW_INTERVAL_MINUTES_TO_MS(5) // 5 minutes
 #define CHECK_UPDATE_FW_INTERVAL_MINUTES \
-    5000 //CHECK_UPDATE_FW_INTERVAL_MINUTES_TO_MS(180) // 3 hour
+    60000 //CHECK_UPDATE_FW_INTERVAL_MINUTES_TO_MS(180) // 3 hour
 
 typedef enum {
     CheckUpdateFwStatusIdle = 0,
@@ -16,6 +16,7 @@ typedef enum {
     CheckUpdateFwStatusError,
     CheckUpdateFwStatusNotConnected,
     CheckUpdateFwStatusTimeout,
+    CheckUpdateFwStatusInProgress,
 } CheckUpdateFwStatus;
 
 typedef enum {
@@ -55,12 +56,17 @@ static void check_update_fw_timer_callback(void* context) {
     switch(instance->status) {
     case CheckUpdateFwStatusIdle:
         if(check_update_fw_check_wifi_connected(instance)) {
-            FURI_LOG_D(TAG, "Update started");
+            FURI_LOG_W(TAG, "Update started");
+            instance->status = CheckUpdateFwStatusInProgress;
             check_update_startup(instance);
+            
         }
         break;
     case CheckUpdateFwStatusSuccess:
         instance->status = CheckUpdateFwStatusIdle;
+        break;
+    case CheckUpdateFwStatusInProgress:
+        FURI_LOG_W(TAG, "Update in progress...");
         break;
     default:
         FURI_LOG_E(TAG, "Update failed with status: %d", instance->status);

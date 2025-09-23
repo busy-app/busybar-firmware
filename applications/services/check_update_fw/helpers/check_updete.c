@@ -4,21 +4,31 @@
 #include <furi.h>
 #include <storage/storage.h>
 #include <json_helper.h>
+#include <toolbox/fetch/fetch_loader.h>
 
 #define TAG "CheckUpdate"
 
-#define CHECK_UPDATE_SETTINGS_FILE APP_DATA_PATH("config.json")
-#define CHECK_UPDATE_JSON_FILE     EXT_PATH("update/up.json")
+#define CHECK_UPDATE_SETTINGS_FILE EXT_PATH("apps_data/check_update_fw/config.json")
+#define CHECK_UPDATE_JSON_FILE     EXT_PATH("update/directory.json")
 
 #define CHECK_UPDATE_JSON_URL_DEFAULT \
     "https://update.flipperzero.one/busybar-firmware/directory.json"
 #define CHECK_UPDATE_JSON_CHANNEL_ID_DEFAULT "development"
+#define CHECK_UPDATE_JSON_VERSION_DEFAULT    "unknown"
+
+#define CHECK_UPDATE_JSON_URL_DIRECTORY       "url_directory_json"
+#define CHECK_UPDATE_JSON_CURRENT_CHANNEL     "current_channel"
+#define CHECK_UPDATE_JSON_CURRENT_VERSION     "current_version"
+#define CHECK_UPDATE_JSON_NEW_VERSION         "new_version"
+#define CHECK_UPDATE_JSON_NEW_FIRMWARE_URL    "new_firmware_url"
+#define CHECK_UPDATE_JSON_NEW_FIRMWARE_SHA256 "new_firmware_sha256"
 
 typedef enum {
     CheckUpdateStatusSuccess = (1UL << 1),
     CheckUpdateStatusError = (1UL << 2),
     CheckUpdateStatusDone = (1UL << 3),
     CheckUpdateStatusNoNewVersion = (1UL << 4),
+    CheckUpdateStatusNewVersion = (1UL << 5),
 } CheckUpdateStatus;
 
 typedef struct {
@@ -29,42 +39,81 @@ typedef struct {
 
 static int32_t check_update_thread_callback(void* context) {
     furi_assert(context);
+    FURI_LOG_D(TAG, "Start");
 
     CheckUpdateFw* instance = context;
+    UNUSED(instance);
 
     CheckUpdate* update = malloc(sizeof(CheckUpdate));
     update->url = furi_string_alloc();
     update->id = furi_string_alloc();
     update->version = furi_string_alloc();
 
-    // Load config
-    json_config_read_single_str(
-        CHECK_UPDATE_SETTINGS_FILE, "url", update->url, CHECK_UPDATE_JSON_URL_DEFAULT);
-    json_config_read_single_str(
-        CHECK_UPDATE_SETTINGS_FILE,
-        "current_channel",
-        update->id,
-        CHECK_UPDATE_JSON_CHANNEL_ID_DEFAULT);
-    json_config_read_single_str(
-        CHECK_UPDATE_SETTINGS_FILE, "current_version", update->version, "unknown");
-
     CheckUpdateStatus status = 0;
 
-    FURI_LOG_D(TAG, "Start");
-    //TODO add downloading the file from the internet
+    // Load config
+    if(json_config_read_single_str(
+           CHECK_UPDATE_SETTINGS_FILE,
+           CHECK_UPDATE_JSON_URL_DIRECTORY,
+           update->url,
+           CHECK_UPDATE_JSON_URL_DEFAULT) == JsonConfigStatusMissing) {
+        FURI_LOG_W(TAG, "No URL found, using default");
+        json_config_write_single_str(
+            CHECK_UPDATE_SETTINGS_FILE,
+            CHECK_UPDATE_JSON_URL_DIRECTORY,
+            CHECK_UPDATE_JSON_URL_DEFAULT);
+    }
+    if(json_config_read_single_str(
+           CHECK_UPDATE_SETTINGS_FILE,
+           CHECK_UPDATE_JSON_CURRENT_CHANNEL,
+           update->id,
+           CHECK_UPDATE_JSON_CHANNEL_ID_DEFAULT) == JsonConfigStatusMissing) {
+        FURI_LOG_W(TAG, "No channel ID found, using default");
+        json_config_write_single_str(
+            CHECK_UPDATE_SETTINGS_FILE,
+            CHECK_UPDATE_JSON_CURRENT_CHANNEL,
+            CHECK_UPDATE_JSON_CHANNEL_ID_DEFAULT);
+    }
+    if(json_config_read_single_str(
+           CHECK_UPDATE_SETTINGS_FILE,
+           CHECK_UPDATE_JSON_CURRENT_VERSION,
+           update->version,
+           CHECK_UPDATE_JSON_VERSION_DEFAULT) == JsonConfigStatusMissing) {
+        FURI_LOG_W(TAG, "No current version found, using default");
+        json_config_write_single_str(
+            CHECK_UPDATE_SETTINGS_FILE,
+            CHECK_UPDATE_JSON_CURRENT_VERSION,
+            CHECK_UPDATE_JSON_VERSION_DEFAULT);
+    }
+
+    //load directory.json
+    FetchLoader* directory_json = fetch_loader_alloc();
+    fetch_loader_run(directory_json, furi_string_get_cstr(update->url), CHECK_UPDATE_JSON_FILE);
+    while(!fetch_loader_is_processing_done(directory_json)) {
+        furi_delay_ms(100);
+    }
+    fetch_loader_free(directory_json);
 
     ParseUpdateJson* parser = parse_update_init();
     if(parse_update_json(parser, CHECK_UPDATE_JSON_FILE, furi_string_get_cstr(update->id))) {
-        FURI_LOG_W(TAG, "Update ID found: %s", parse_update_get_id(parser));
-        FURI_LOG_W(TAG, "Update version found: %s", parse_update_get_version(parser));
-        FURI_LOG_W(TAG, "Update found: %s", parse_update_get_url(parser));
-        FURI_LOG_W(TAG, "Update SHA256 found: %s", parse_update_get_sha256(parser));
-
         if(strcmp(furi_string_get_cstr(update->version), parse_update_get_version(parser)) != 0) {
             FURI_LOG_I(TAG, "New version available: %s", parse_update_get_version(parser));
-            //TODO add downloading the file from the internet
-            //TODO add checking sha256
-            status |= CheckUpdateStatusSuccess;
+            json_config_write_single_str(
+                CHECK_UPDATE_SETTINGS_FILE,
+                CHECK_UPDATE_JSON_NEW_VERSION,
+                parse_update_get_version(parser));
+
+            json_config_write_single_str(
+                CHECK_UPDATE_SETTINGS_FILE,
+                CHECK_UPDATE_JSON_NEW_FIRMWARE_URL,
+                parse_update_get_url(parser));
+
+            json_config_write_single_str(
+                CHECK_UPDATE_SETTINGS_FILE,
+                CHECK_UPDATE_JSON_NEW_FIRMWARE_SHA256,
+                parse_update_get_sha256(parser));
+
+            status |= CheckUpdateStatusNewVersion;
         } else {
             FURI_LOG_I(TAG, "No new version available");
             status |= CheckUpdateStatusNoNewVersion;
@@ -74,12 +123,11 @@ static int32_t check_update_thread_callback(void* context) {
         FURI_LOG_E(TAG, "Failed to parse update JSON");
         status |= CheckUpdateStatusError;
     }
+
     parse_update_free(parser);
 
-    if(status & CheckUpdateStatusSuccess) {
-        check_update_fw_status_update(instance, true);
-    }
-
+    // TODO: add status processing
+    UNUSED(status);
     FURI_LOG_D(TAG, "Stopping thread");
 
     free(update->url);
@@ -92,11 +140,12 @@ static int32_t check_update_thread_callback(void* context) {
 static void
     check_update_thread_state_callback(FuriThread* thread, FuriThreadState state, void* context) {
     furi_assert(thread);
-    UNUSED(context);
+    CheckUpdateFw* instance = context;
 
     if(state == FuriThreadStateStopped) {
         furi_thread_free(thread);
         FURI_LOG_D(TAG, "Stop");
+        check_update_fw_status_update(instance, true);
     }
 }
 
@@ -104,6 +153,7 @@ void check_update_startup(void* context) {
     furi_assert(context);
     FuriThread* startup_thread =
         furi_thread_alloc_ex("CheckUpdate", 1024 * 2, check_update_thread_callback, context);
+    furi_thread_set_state_context(startup_thread, context);
     furi_thread_set_state_callback(startup_thread, check_update_thread_state_callback);
     FURI_LOG_D(TAG, "Starting thread");
 
