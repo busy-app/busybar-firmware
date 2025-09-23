@@ -158,7 +158,7 @@ static bool audio_handle_play_file(Audio* instance, const AudioMessage* msg) {
 static void audio_message_queue_callback(FuriEventLoopObject* object, void* context) {
     furi_assert(context);
     Audio* instance = context;
-    furi_assert(object = instance->message_queue);
+    furi_assert(object == instance->message_queue);
 
     AudioMessage msg;
     furi_check(furi_message_queue_get(instance->message_queue, &msg, 0) == FuriStatusOk);

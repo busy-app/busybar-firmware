@@ -155,6 +155,8 @@ static bool custom_scene_start_on_event(const SceneManagerEvent* event, void* co
         }
 
         consumed = true;
+    } else if(event->type == SceneManagerEventTypeBack) {
+        consumed = true;
     }
 
     return consumed;
