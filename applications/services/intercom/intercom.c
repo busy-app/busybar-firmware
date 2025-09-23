@@ -50,6 +50,7 @@ struct Intercom {
     FuriPubSub* pubsub;
     bool is_initial_sync_done;
     bool error_handling_disabled;
+    _Atomic bool is_in_sync;
     IntercomChannelData channels[IntercomChannelMax];
     IntercomFrame tx_frame;
     IntercomFrame rx_frame;
@@ -131,6 +132,17 @@ static void intercom_dump_frame(const IntercomFrame* frame) {
     furi_string_free(tmp);
 }
 
+static void intercom_publish_sync_state_change(Intercom* instance, bool is_in_sync) {
+    if(is_in_sync != instance->is_in_sync) {
+        IntercomEvent pubsub_message = {
+            .type = IntercomEventTypeSyncStateChanged,
+            .is_in_sync = is_in_sync,
+        };
+        furi_pubsub_publish(instance->pubsub, &pubsub_message);
+        instance->is_in_sync = is_in_sync;
+    }
+}
+
 static void intercom_unrecoverable_error(Intercom* instance, const char* message) {
     while(true) {
         IntercomEvent pubsub_message = {
@@ -160,13 +172,17 @@ static void intercom_error_handler(IntercomError error, void* context) {
 #endif
 
     if(error == IntercomErrorSync) {
+        intercom_publish_sync_state_change(instance, false);
         intercom_unrecoverable_error(instance, "Externally requested sync failed");
     } else if(error == IntercomErrorFraming) {
         intercom_dump_frame(&instance->rx_frame);
+        intercom_publish_sync_state_change(instance, false);
         intercom_unrecoverable_error(instance, "Corrupted frame received");
     } else if(error == IntercomErrorTransmit) {
+        intercom_publish_sync_state_change(instance, false);
         intercom_unrecoverable_error(instance, "Other side has died");
     } else {
+        intercom_publish_sync_state_change(instance, false);
         intercom_unrecoverable_error(instance, "Unknown error");
     }
 }
@@ -194,7 +210,10 @@ static bool intercom_try_sync(Intercom* instance) {
 #error "Unsupported target"
 #endif
         furi_hal_serial_clear(instance->serial, FuriHalSerialDirectionTxRx);
+
+        intercom_publish_sync_state_change(instance, true);
         instance->is_initial_sync_done = true;
+
         // TODO find proper enterprose delay value
         furi_delay_ms(INTERCOM_MAGIC_DELAY);
         furi_check(furi_semaphore_release(instance->tx_semaphore) == FuriStatusOk);
@@ -408,6 +427,11 @@ void intercom_error_handling_disable(Intercom* instance) {
 FuriPubSub* intercom_get_pubsub(Intercom* instance) {
     furi_check(instance);
     return instance->pubsub;
+}
+
+bool intercom_is_in_sync(Intercom* instance) {
+    furi_check(instance);
+    return instance->is_in_sync;
 }
 
 int32_t intercom_srv(void* arg) {
