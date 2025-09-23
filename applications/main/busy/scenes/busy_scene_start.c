@@ -154,6 +154,8 @@ static bool busy_scene_start_on_event(const SceneManagerEvent* event, void* cont
         }
 
         consumed = true;
+    } else if(event->type == SceneManagerEventTypeBack) {
+        consumed = true;
     }
 
     return consumed;

@@ -32,10 +32,7 @@ static void busy_input_queue_callback(FuriEventLoopObject* object, void* context
     while(furi_message_queue_get(instance->input_queue, &event, 0) == FuriStatusOk) {
         if(event.type == InputTypeShort) {
             if(event.key == InputKeyBack) {
-                if(!scene_manager_handle_back_event(instance->scene_manager)) {
-                    furi_event_loop_stop(instance->event_loop);
-                    break;
-                }
+                scene_manager_handle_back_event(instance->scene_manager);
             }
         }
     }

@@ -213,7 +213,7 @@ static bool apps_menu_scene_start_on_event(const SceneManagerEvent* event, void*
         default:
             break;
         }
-
+    } else if(event->type == SceneManagerEventTypeBack) {
         consumed = true;
     }
 
