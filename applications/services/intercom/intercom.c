@@ -133,7 +133,8 @@ static void intercom_dump_frame(const IntercomFrame* frame) {
 }
 
 static void intercom_publish_sync_state_change(Intercom* instance, bool is_in_sync) {
-    if(is_in_sync != instance->is_in_sync) {
+    /* Repetitive desyncs are useless, while resyncs can be used in some contexts. */
+    if(is_in_sync || instance->is_in_sync) {
         IntercomEvent pubsub_message = {
             .type = IntercomEventTypeSyncStateChanged,
             .is_in_sync = is_in_sync,
