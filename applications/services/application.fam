@@ -39,6 +39,7 @@ App(
         "network",
         "sntp",
         "matter",
+        "check_update_fw",
     ],
     targets=["f20", "f21"],
 )
