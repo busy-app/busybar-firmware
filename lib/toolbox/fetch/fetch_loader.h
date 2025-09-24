@@ -19,7 +19,8 @@ typedef void (*FetchLoaderCallbackDone)(void* context);
 
 FetchLoader* fetch_loader_alloc(void);
 void fetch_loader_free(FetchLoader* instance);
-void fetch_loader_run(FetchLoader* instance, const char* url , const char* path);
+void fetch_loader_forced_done(FetchLoader* instance);
+void fetch_loader_run(FetchLoader* instance, const char* url, const char* path);
 bool fetch_loader_is_processing_done(FetchLoader* instance);
 void fetch_loader_set_status_callback(
     FetchLoader* instance,

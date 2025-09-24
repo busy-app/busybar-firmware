@@ -8,7 +8,7 @@
 #define CHECK_UPDATE_FW_REBOOT_INTERVAL_MINUTES \
     10000 //CHECK_UPDATE_FW_INTERVAL_MINUTES_TO_MS(5) // 5 minutes
 #define CHECK_UPDATE_FW_INTERVAL_MINUTES \
-    60000 //CHECK_UPDATE_FW_INTERVAL_MINUTES_TO_MS(180) // 3 hour
+    180000 //CHECK_UPDATE_FW_INTERVAL_MINUTES_TO_MS(180) // 3 hour
 
 typedef enum {
     CheckUpdateFwStatusIdle = 0,
@@ -59,7 +59,6 @@ static void check_update_fw_timer_callback(void* context) {
             FURI_LOG_W(TAG, "Update started");
             instance->status = CheckUpdateFwStatusInProgress;
             check_update_startup(instance);
-            
         }
         break;
     case CheckUpdateFwStatusSuccess:

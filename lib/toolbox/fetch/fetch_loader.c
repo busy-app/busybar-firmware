@@ -17,6 +17,7 @@ struct FetchLoader {
     FuriMessageQueue* status_queue;
     FuriStreamBuffer* state_msg;
     bool error;
+    bool exit;
 
     FetchLoaderCallbackStatus callback_status;
     void* context_status;
@@ -34,18 +35,39 @@ FetchLoader* fetch_loader_alloc(void) {
     instance->status_queue = furi_message_queue_alloc(10, sizeof(FetchClientStatus));
     instance->state_msg = furi_stream_buffer_alloc(512, 1);
     instance->thread = NULL;
+    instance->error = false;
+    instance->exit = false;
     return instance;
 }
 
 void fetch_loader_free(FetchLoader* instance) {
     furi_check(instance);
     furi_check(!furi_semaphore_get_space(instance->is_processing_semaphore));
+
     furi_message_queue_free(instance->status_queue);
     furi_string_free(instance->url);
     furi_string_free(instance->path);
     furi_semaphore_free(instance->is_processing_semaphore);
     furi_stream_buffer_free(instance->state_msg);
     free(instance);
+}
+
+void fetch_loader_forced_done(FetchLoader* instance) {
+    furi_check(instance);
+    if(!fetch_client_is_processing_done(instance->fetch_client)) {
+        fetch_client_forced_done(instance->fetch_client);
+        uint32_t timeout = 50;
+        FURI_LOG_D(TAG, "Waiting for fetch client to stop...");
+        instance->exit = true;
+        while(furi_semaphore_get_space(instance->is_processing_semaphore) && timeout--) {
+            furi_delay_ms(100);
+            FURI_LOG_D(TAG, "Waiting stop...");
+        }
+        if(timeout == 0) {
+            FURI_LOG_E(TAG, "Timeout waiting for fetch loader to stop");
+            furi_crash();
+        }
+    }
 }
 
 static bool fetch_loader_is_connected(FetchLoader* instance) {
@@ -202,11 +224,11 @@ static int32_t fetch_loader_thread_callback(void* context) {
         }
     }
 
-    if(!instance->error) {
+    if(!instance->error && !instance->exit) {
         FURI_LOG_D(TAG, "Firmware download complete to %s", furi_string_get_cstr(path));
     } else {
         fetch_file_save_remove(instance->file_save);
-        FURI_LOG_E(TAG, "Error occurred during firmware download");
+        FURI_LOG_E(TAG, "Error occurred during download");
     }
 
     // exit thread when done

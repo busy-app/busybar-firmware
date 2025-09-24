@@ -1,7 +1,6 @@
 #include "check_update.h"
 #include "../check_update_fw.h"
 #include "parse_update_json.h"
-#include <furi.h>
 #include <storage/storage.h>
 #include <json_helper.h>
 #include <toolbox/fetch/fetch_loader.h>
@@ -158,4 +157,57 @@ void check_update_startup(void* context) {
     FURI_LOG_D(TAG, "Starting thread");
 
     furi_thread_start(startup_thread);
+}
+
+bool check_update_is_new_version(void) {
+    FuriString* current_version = furi_string_alloc();
+    FuriString* new_version = furi_string_alloc();
+
+    json_config_read_single_str(
+        CHECK_UPDATE_SETTINGS_FILE,
+        CHECK_UPDATE_JSON_CURRENT_VERSION,
+        current_version,
+        CHECK_UPDATE_JSON_VERSION_DEFAULT);
+    json_config_read_single_str(
+        CHECK_UPDATE_SETTINGS_FILE,
+        CHECK_UPDATE_JSON_NEW_VERSION,
+        new_version,
+        CHECK_UPDATE_JSON_VERSION_DEFAULT);
+
+    bool ret = (furi_string_cmp(current_version, new_version) != 0);
+
+    furi_string_free(current_version);
+    furi_string_free(new_version);
+    return ret;
+}
+
+void check_update_get_current_version(FuriString* current_version) {
+    json_config_read_single_str(
+        CHECK_UPDATE_SETTINGS_FILE,
+        CHECK_UPDATE_JSON_CURRENT_VERSION,
+        current_version,
+        CHECK_UPDATE_JSON_VERSION_DEFAULT);
+}
+
+void check_update_get_new_version(FuriString* new_version) {
+    json_config_read_single_str(
+        CHECK_UPDATE_SETTINGS_FILE,
+        CHECK_UPDATE_JSON_NEW_VERSION,
+        new_version,
+        CHECK_UPDATE_JSON_VERSION_DEFAULT);
+}
+
+void check_update_get_new_firmware_url(FuriString* url) {
+    json_config_read_single_str(
+        CHECK_UPDATE_SETTINGS_FILE, CHECK_UPDATE_JSON_NEW_FIRMWARE_URL, url, "");
+}
+
+void check_update_get_new_firmware_sha256(FuriString* sha256) {
+    json_config_read_single_str(
+        CHECK_UPDATE_SETTINGS_FILE, CHECK_UPDATE_JSON_NEW_FIRMWARE_SHA256, sha256, "");
+}
+
+void check_update_set_current_version(const char* version) {
+    json_config_write_single_str(
+        CHECK_UPDATE_SETTINGS_FILE, CHECK_UPDATE_JSON_CURRENT_VERSION, version);
 }
