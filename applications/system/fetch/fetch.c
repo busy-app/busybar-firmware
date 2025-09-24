@@ -5,12 +5,6 @@
 #include <furi.h>
 #include <cli/args.h>
 #include <cli/cli_ansi.h>
-#include <cli/cli_status.h>
-
-#include <mongoose.h>
-#include <mongoose_glue.h>
-#include <wifi/wifi.h>
-#include <network/network.h>
 
 #define TAG "Fetch"
 
