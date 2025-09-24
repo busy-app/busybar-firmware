@@ -21,7 +21,7 @@
 #define PARSE_UPDATE_BRANCH_VERSIONS_FILES_SHA256 "sha256"
 
 //ToDo add define target
-#define PARSE_UPDATE_BRANCH_TARGET_FOUND       "f21"
+#define PARSE_UPDATE_BRANCH_TARGET_FOUND       "f21" //furi_hal_version_get_hw_target(void)
 #define PARSE_UPDATE_BRANCH_FILE_NAME_FW_FOUND "update_tar"
 
 struct ParseUpdateJson {

@@ -42,6 +42,7 @@ env.Append(
         File("fetch/fetch_file_save.h"),
         File("fetch/fetch_loader.h"),
         File("update_fw_tar.h"),
+        File("sha256_calc.h"),
     ],
 )
 

@@ -54,6 +54,8 @@ void fetch_loader_free(FetchLoader* instance) {
 
 void fetch_loader_forced_done(FetchLoader* instance) {
     furi_check(instance);
+
+    //todo: wait connect WiFi 
     if(!fetch_client_is_processing_done(instance->fetch_client)) {
         fetch_client_forced_done(instance->fetch_client);
         uint32_t timeout = 50;

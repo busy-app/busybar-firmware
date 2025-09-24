@@ -8,15 +8,16 @@
 #include <toolbox/fetch/fetch_loader.h>
 #include <toolbox/update_fw_tar.h>
 #include <applications/services/check_update_fw/helpers/check_update.h>
+#include <toolbox/sha256_calc.h>
 
 #define SETTINGS_FW_FILE_PATH EXT_PATH("update/upload.tar")
 
 typedef enum {
-    SceneCustomEventVolumeChanged = SettingsCustomEventSceneEventsStart,
-    SceneCustomEventBackPressed,
+    SceneCustomEventBackPressed = SettingsCustomEventSceneEventsStart,
     SceneCustomEventUpdateStatus,
     SceneCustomEventDownloadStarted,
     SceneCustomEventDownloadDone,
+    SceneCustomEventInstallationStarted,
     SceneCustomEventErrorOccurred,
 } SceneCustomEvent;
 
@@ -163,6 +164,8 @@ static void settings_scene_fw_update_done_callback(void* context) {
     SettingsSceneFwUpdate* data = scene_manager_get_current_scene_data(instance->scene_manager);
     furi_assert(data);
 
+    furi_string_set(data->fw_status, "Checking sha256...");
+
     settings_send_custom_event(instance, SceneCustomEventDownloadDone);
 }
 
@@ -190,6 +193,52 @@ static void settings_scene_fw_update_check(void* context) {
             furi_string_get_cstr(data->fw_info.fw_current_version));
     });
     settings_send_custom_event(instance, SceneCustomEventUpdateStatus);
+}
+
+static void settings_scene_fw_update_check_sha256(void* context) {
+    furi_assert(context);
+    SettingsApp* instance = context;
+    SettingsSceneFwUpdate* data = scene_manager_get_current_scene_data(instance->scene_manager);
+    furi_assert(data);
+    if(data->fw_info.is_new_version) {
+        FuriString* sha256_calc = furi_string_alloc();
+        FS_Error file_error = FSE_OK;
+        Storage* storage = furi_record_open(RECORD_STORAGE);
+        File* file = storage_file_alloc(storage);
+        bool is_ok = false;
+
+        sha256_string_calc_file(file, SETTINGS_FW_FILE_PATH, sha256_calc, &file_error);
+
+        storage_file_free(file);
+        furi_record_close(RECORD_STORAGE);
+
+        FURI_LOG_W("TAG", "Calculated sha256: %s", furi_string_get_cstr(sha256_calc));
+        FURI_LOG_W("TAG", "Expected   sha256: %s", furi_string_get_cstr(data->fw_info.fw_sha256));
+
+        if((file_error == FSE_OK) &&
+           (furi_string_cmp(sha256_calc, data->fw_info.fw_sha256) == 0)) {
+            furi_string_set(data->fw_status, "Installing...");
+            is_ok = true;
+        } else {
+            furi_string_set(data->fw_status, "Error: sha256 mismatch");
+        }
+
+        furi_string_free(sha256_calc);
+
+        if(is_ok) {
+            settings_send_custom_event(instance, SceneCustomEventInstallationStarted);
+        }
+        settings_send_custom_event(instance, SceneCustomEventErrorOccurred);
+    }
+}
+
+static void settings_scene_fw_update_install(void* context) {
+    furi_assert(context);
+
+    SettingsApp* instance = context;
+    SettingsSceneFwUpdate* data = scene_manager_get_current_scene_data(instance->scene_manager);
+    check_update_set_current_version(furi_string_get_cstr(data->fw_info.new_fw_version));
+    update_fw_tar(SETTINGS_FW_FILE_PATH);
 }
 
 static void settings_scene_fw_update_on_enter(void* context) {
@@ -291,7 +340,9 @@ static void settings_scene_fw_update_on_exit(void* context) {
         label_free(data->label_fw_current_version);
         progress_bar_free(data->bar_front);
     });
-    fetch_loader_forced_done(data->fw_loader);
+    if(!fetch_loader_is_processing_done(data->fw_loader)) {
+        fetch_loader_forced_done(data->fw_loader);
+    }
     fetch_loader_set_status_callback(data->fw_loader, NULL, NULL);
     fetch_loader_set_state_callback(data->fw_loader, NULL, NULL);
     fetch_loader_set_done_callback(data->fw_loader, NULL, NULL);
@@ -308,17 +359,10 @@ static bool settings_scene_fw_update_on_event(const SceneManagerEvent* event, vo
 
     SettingsApp* instance = context;
     SettingsSceneFwUpdate* data = scene_manager_get_current_scene_data(instance->scene_manager);
+    UNUSED(data);
     bool consumed = false;
     if(event->type == SceneManagerEventTypeCustom) {
         switch(event->event) {
-        case SceneCustomEventVolumeChanged: {
-            //settings_volume_set(instance, data->volume);
-            audio_play_file(instance->audio, SETTINGS_SOUND_PATH("volume_change.snd"));
-
-            consumed = true;
-            break;
-        }
-
         case SceneCustomEventBackPressed:
             scene_manager_handle_back_event(instance->scene_manager);
             consumed = true;
@@ -331,17 +375,20 @@ static bool settings_scene_fw_update_on_event(const SceneManagerEvent* event, vo
             settings_scene_fw_update_start_download(instance);
             consumed = true;
             break;
-        case SceneCustomEventDownloadDone: {
-            // TODO: add scene to show "Success" or "Error"
-            if(data->fw_info.is_new_version) {
-                check_update_set_current_version(
-                    furi_string_get_cstr(data->fw_info.new_fw_version));
-                update_fw_tar(SETTINGS_FW_FILE_PATH);
-            }
-
+        case SceneCustomEventDownloadDone:
+            settings_scene_fw_update_scene_update(instance);
+            settings_scene_fw_update_check_sha256(instance);
             consumed = true;
             break;
-        }
+        case SceneCustomEventErrorOccurred:
+            settings_scene_fw_update_scene_update(instance);
+            consumed = true;
+            break;
+        case SceneCustomEventInstallationStarted:
+            settings_scene_fw_update_scene_update(instance);
+            settings_scene_fw_update_install(instance);
+            consumed = true;
+            break;
 
         default:
             break;
