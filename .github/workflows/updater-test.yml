@@ -17,15 +17,21 @@ on:
         type: string
         default: '21'
 
+permissions:
+  contents: read
+
+env:
+  DEFAULT_TARGET: ${{ github.event.inputs.default_target }}
+
 jobs:
-  run_units_on_bench:
+  main:
     runs-on: BusyBarTest
     steps:
-      - name: Checkout code
+      - name: 'Checkout code at the build’s commit'
         uses: actions/checkout@v4
         with:
-          fetch-depth: 2
           ref: ${{ inputs.commit_sha }}
+          fetch-depth: 2
 
       - name: 'Update submodules'
         run: |
@@ -33,11 +39,12 @@ jobs:
 
       - name: 'Download update package'
         run: |
-          echo "Using URL: $URL"
+          set -euo pipefail
           URL="https://update.flipperzero.one/builds/busybar-firmware/${{ inputs.update_url }}"
-          curl --fail -L -o busybar-f${{ inputs.default_target }}-update.tar "$URL"
+          echo "Using URL: $URL"
+          curl --fail -L -o busybar-f${{ env.DEFAULT_TARGET }}-update.tar "$URL"
           mkdir -p update_bundle
-          tar -xf busybar-f${{ inputs.default_target }}-update.tar -C update_bundle
+          tar -xf busybar-f${{ env.DEFAULT_TARGET }}-update.tar -C update_bundle
 
       - name: 'Flash firmware'
         id: flashing
@@ -45,12 +52,19 @@ jobs:
         run: |
           set -euo pipefail
           source scripts/toolchain/fbtenv.sh
+          python3 scripts/testops.py format --no-confirm
           python3 scripts/storage.py -p 10.0.4.20 send update_bundle /ext/tmp/upd_bundle
-          expect -c 'spawn telnet 10.0.4.20 23; expect ">:"; send "update install /ext/tmp/upd_bundle/update.json\r\r"; interact'
-          sleep 1
+          python3 scripts/testops.py update-bundle /ext/tmp/upd_bundle/update.json
           python3 scripts/testops.py wait -t 240
 
-      - name: 'Update to the firmware from PR'
+      - name: 'Check that both cores are available (post-flash)'
+        if: steps.flashing.outcome == 'success'
+        run: |
+          set -euo pipefail
+          source scripts/toolchain/fbtenv.sh
+          python3 scripts/testops.py sanity
+
+      - name: 'Update again to PR firmware'
         id: updating
         if: steps.flashing.outcome == 'success'
         timeout-minutes: 20
@@ -58,6 +72,12 @@ jobs:
           set -euo pipefail
           source scripts/toolchain/fbtenv.sh
           python3 scripts/storage.py -p 10.0.4.20 send update_bundle /ext/tmp/upd_bundle
-          expect -c 'spawn telnet 10.0.4.20 23; expect ">:"; send "update install /ext/tmp/upd_bundle/update.json\r\r"; interact'
-          sleep 1
+          python3 scripts/testops.py update-bundle /ext/tmp/upd_bundle/update.json
           python3 scripts/testops.py wait -t 240
+
+      - name: 'Check that both cores are available (post-flash)'
+        if: steps.flashing.outcome == 'success'
+        run: |
+          set -euo pipefail
+          source scripts/toolchain/fbtenv.sh
+          python3 scripts/testops.py sanity

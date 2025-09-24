@@ -34,6 +34,7 @@ typedef enum {
     IntercomChannelBle, /**< BLE handling */
     IntercomChannelCryptoBackup, /**< Crypto backup handling */
     IntercomChannelTlsCrypto, /**< TLS Crypto handling */
+    IntercomChannelMatter, /**< Matter smart home protocol */
     /* Add more channels here as needed */
     IntercomChannelDebug = 15, /**< Testing, debugging, etc */
     IntercomChannelMax, /**< Special value for internal use */

@@ -39,6 +39,7 @@ App(
         "network",
         "sntp",
         "tls_crypto",
+        "matter",
     ],
     targets=["f20", "f21"],
 )
@@ -52,6 +53,7 @@ App(
         "input",
         "network",
         "wifi",
+        "nvm",
         "matter",
     ],
     targets=["f64"],
