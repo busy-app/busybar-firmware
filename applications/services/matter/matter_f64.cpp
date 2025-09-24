@@ -6,7 +6,6 @@
 #pragma GCC diagnostic ignored "-Wmissing-field-initializers"
 
 #include <platform/PlatformManager.h>
-#include <credentials/examples/DeviceAttestationCredsExample.h>
 
 #include <app/server/Server.h>
 #include <app/clusters/on-off-server/on-off-server.h>
@@ -15,6 +14,7 @@
 #include <platform/bsb/BSBDeviceInfoProvider.hpp>
 #include <platform/bsb/BSBCommissionableDataProvider.hpp>
 #include <platform/bsb/BSBDeviceInstanceInfoProvider.hpp>
+#include <platform/bsb/BSBDeviceAttestationCredsProvider.hpp>
 
 #include <network/network.h>
 #include <wifi/wifi_common.h>
@@ -239,10 +239,11 @@ CHIP_ERROR MatterSrv::init(void) {
 
         StackLock lock;
 
-        SetDeviceInfoProvider(BSB::GetDeviceInfoProvider());
-        SetDeviceInstanceInfoProvider(BSB::GetDeviceInstanceInfoProvider());
-        SetCommissionableDataProvider(BSB::GetCommissionableDataProvider());
-        SetDeviceAttestationCredentialsProvider(Examples::GetExampleDACProvider());
+        SetDeviceInfoProvider(DeviceLayer::BSB::GetDeviceInfoProvider());
+        SetDeviceInstanceInfoProvider(DeviceLayer::BSB::GetDeviceInstanceInfoProvider());
+        SetCommissionableDataProvider(DeviceLayer::BSB::GetCommissionableDataProvider());
+        SetDeviceAttestationCredentialsProvider(
+            Credentials::BSB::GetDeviceAttestationCredentialsProvider());
 
         err = m_server_init_params.InitializeStaticResourcesBeforeServerInit();
         if(err != CHIP_NO_ERROR) {
@@ -254,7 +255,7 @@ CHIP_ERROR MatterSrv::init(void) {
             break;
         }
 
-        BSB::GetDeviceInfoProvider()->SetStorageDelegate(
+        DeviceLayer::BSB::GetDeviceInfoProvider()->SetStorageDelegate(
             &Server::GetInstance().GetPersistentStorage());
 
         // TODO: Implement pairing controls
