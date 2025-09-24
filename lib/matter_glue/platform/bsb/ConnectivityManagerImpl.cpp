@@ -81,25 +81,5 @@ void ConnectivityManagerImpl::_OnPlatformEvent(const ChipDeviceEvent* event) {
     ChipLogDetail(DeviceLayer, "Platform event of type %hu", event->Type);
 }
 
-WiFiStationMode ConnectivityManagerImpl::_GetWiFiStationMode(void) {
-    return kWiFiStationMode_ApplicationControlled;
-}
-
-bool ConnectivityManagerImpl::_IsWiFiStationEnabled(void) {
-    return true;
-}
-
-bool ConnectivityManagerImpl::_IsWiFiStationApplicationControlled(void) {
-    return true;
-}
-
-bool ConnectivityManagerImpl::_IsWiFiStationConnected(void) {
-    return mIsConnected;
-}
-
-bool ConnectivityManagerImpl::_IsWiFiStationProvisioned(void) {
-    return true; // TODO: figure out whether pullin an actual value is necessary
-}
-
 } // namespace DeviceLayer
 } // namespace chip

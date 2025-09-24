@@ -50,12 +50,7 @@ private:
     // ===== Members that implement the ConnectivityManager abstract interface.
     CHIP_ERROR _Init(void);
     void _OnPlatformEvent(const ChipDeviceEvent* event);
-    using Flags = GenericConnectivityManagerImpl_WiFi::ConnectivityFlags;
-    WiFiStationMode _GetWiFiStationMode(void);
-    bool _IsWiFiStationEnabled(void);
-    bool _IsWiFiStationApplicationControlled(void);
     bool _IsWiFiStationConnected(void);
-    bool _IsWiFiStationProvisioned(void);
 
     // ===== Members for internal use by the following friends.
     friend ConnectivityManager& ConnectivityMgr(void);
