@@ -15,6 +15,7 @@ struct Wifi {
     FuriPubSub* event_pubsub;
     Intercom* intercom;
     FuriSemaphore* tcpip_lock;
+    FuriSemaphore* ip6_addr_valid;
     struct netif netif;
     WifiRequest request;
     WifiResponse response;

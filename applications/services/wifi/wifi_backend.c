@@ -388,6 +388,7 @@ static Wifi* wifi_alloc(void) {
     instance->event_pubsub = furi_pubsub_alloc();
     instance->intercom = furi_record_open(RECORD_INTERCOM);
     instance->tcpip_lock = furi_semaphore_alloc(1, 0);
+    instance->ip6_addr_valid = furi_semaphore_alloc(1, 0);
 
     furi_record_open(RECORD_NETWORK);
 

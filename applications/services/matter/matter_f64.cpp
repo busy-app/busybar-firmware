@@ -6,7 +6,6 @@
 #pragma GCC diagnostic ignored "-Wmissing-field-initializers"
 
 #include <platform/PlatformManager.h>
-#include <credentials/examples/DeviceAttestationCredsExample.h>
 
 #include <app/server/Server.h>
 #include <app/server/OnboardingCodesUtil.h>
@@ -16,6 +15,7 @@
 #include <platform/bsb/BSBDeviceInfoProvider.hpp>
 #include <platform/bsb/BSBCommissionableDataProvider.hpp>
 #include <platform/bsb/BSBDeviceInstanceInfoProvider.hpp>
+#include <platform/bsb/BSBDeviceAttestationCredsProvider.hpp>
 
 #include <network/network.h>
 #include <wifi/wifi_common.h>
@@ -93,6 +93,7 @@ static void matter_send_frame(MatterSrv* matter, const MatterIntercomFrame* fram
  */
 static const EndpointId matter_endpoint_ids[MatterVirtualDeviceMAX] = {
     [MatterVirtualDeviceSwitch1] = 1,
+    [MatterVirtualDeviceSwitch2] = 2,
 };
 
 /**
@@ -101,6 +102,7 @@ static const EndpointId matter_endpoint_ids[MatterVirtualDeviceMAX] = {
 static const MatterVirtualDevice matter_device_ids[] = {
     [0] = MatterVirtualDeviceMAX, // reserved
     [1] = MatterVirtualDeviceSwitch1,
+    [2] = MatterVirtualDeviceSwitch2,
 };
 
 /**
@@ -112,6 +114,7 @@ static void matter_apply_new_device_state(MatterVirtualDeviceState* state) {
 
     switch(state->device) {
     case MatterVirtualDeviceSwitch1:
+    case MatterVirtualDeviceSwitch2:
         OnOff::Attributes::OnOff::Set(matter_endpoint_ids[state->device], state->bool_val);
         break;
 
@@ -210,7 +213,8 @@ void MatterPostAttributeChangeCallback(
     case MatterVirtualDeviceMAX:
         return;
 
-    case MatterVirtualDeviceSwitch1: {
+    case MatterVirtualDeviceSwitch1:
+    case MatterVirtualDeviceSwitch2: {
         if(!(cluster == OnOff::Id && attribute == OnOff::Attributes::OnOff::Id)) return;
         matter_send_state_update(
             matter_global_srv,
@@ -228,7 +232,8 @@ void MatterPostAttributeChangeCallback(
  */
 static void matter_send_current_state(MatterSrv* matter, MatterVirtualDevice device) {
     switch(device) {
-    case MatterVirtualDeviceSwitch1: {
+    case MatterVirtualDeviceSwitch1:
+    case MatterVirtualDeviceSwitch2: {
         MatterVirtualDeviceState state = {
             .device = device,
             .bool_val = false /* to be filled */,
@@ -290,42 +295,11 @@ static void matter_device_event(const ChipDeviceEvent* event, intptr_t arg) {
     }
 }
 
-static void matter_wait_for_network(void) {
-    FURI_LOG_I(TAG, "Waiting for network...");
-
-    auto* network = static_cast<Network*>(furi_record_open(RECORD_NETWORK));
-    network_init_current_thread(network);
-
-    auto* wifi_pubsub = static_cast<FuriPubSub*>(furi_record_open(RECORD_WIFI));
-
-    FuriSemaphore* wifi_sem = furi_semaphore_alloc(1, 0);
-
-    furi_pubsub_subscribe(
-        wifi_pubsub,
-        [](const void* message, void* context) {
-            const auto state = *(static_cast<const WifiState*>(message));
-
-            if(state == WifiStateUp) {
-                auto* wifi_sem = static_cast<FuriSemaphore*>(context);
-                furi_semaphore_release(wifi_sem);
-            }
-        },
-        wifi_sem);
-
-    furi_semaphore_acquire(wifi_sem, FuriWaitForever);
-
-    // TODO: Find out why it doesn't work if connecting right away
-    furi_delay_ms(3000);
-}
-
 MatterSrv::MatterSrv(void) {
     this->intercom = static_cast<Intercom*>(furi_record_open(RECORD_INTERCOM));
 }
 
 CHIP_ERROR MatterSrv::init(void) {
-    // TODO: Implement proper network handling
-    matter_wait_for_network();
-
     CHIP_ERROR err;
 
     do {
@@ -341,10 +315,11 @@ CHIP_ERROR MatterSrv::init(void) {
 
         StackLock lock;
 
-        SetDeviceInfoProvider(BSB::GetDeviceInfoProvider());
-        SetDeviceInstanceInfoProvider(BSB::GetDeviceInstanceInfoProvider());
-        SetCommissionableDataProvider(BSB::GetCommissionableDataProvider());
-        SetDeviceAttestationCredentialsProvider(Examples::GetExampleDACProvider());
+        SetDeviceInfoProvider(DeviceLayer::BSB::GetDeviceInfoProvider());
+        SetDeviceInstanceInfoProvider(DeviceLayer::BSB::GetDeviceInstanceInfoProvider());
+        SetCommissionableDataProvider(DeviceLayer::BSB::GetCommissionableDataProvider());
+        SetDeviceAttestationCredentialsProvider(
+            Credentials::BSB::GetDeviceAttestationCredentialsProvider());
 
         err = m_server_init_params.InitializeStaticResourcesBeforeServerInit();
         if(err != CHIP_NO_ERROR) {
@@ -356,13 +331,14 @@ CHIP_ERROR MatterSrv::init(void) {
             break;
         }
 
-        BSB::GetDeviceInfoProvider()->SetStorageDelegate(
+        DeviceLayer::BSB::GetDeviceInfoProvider()->SetStorageDelegate(
             &Server::GetInstance().GetPersistentStorage());
 
         PlatformMgr().AddEventHandler(matter_device_event, (intptr_t)this);
 
         intercom_set_rx_callback(this->intercom, IntercomChannelMatter, matter_handle_frame, this);
         matter_send_current_state(this, MatterVirtualDeviceSwitch1);
+        matter_send_current_state(this, MatterVirtualDeviceSwitch2);
     } while(false);
 
     return err;

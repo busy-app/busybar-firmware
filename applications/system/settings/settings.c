@@ -35,12 +35,7 @@ static void settings_input_queue_callback(FuriEventLoopObject* object, void* con
     while(furi_message_queue_get(instance->input_queue, &event, 0) == FuriStatusOk) {
         if(event.type == InputTypeShort) {
             if(event.key == InputKeyBack) {
-                SettingsAppSceneId current_scene_id =
-                    scene_manager_get_current_scene_id(instance->scene_manager);
-
-                if(current_scene_id != SettingsAppSceneIdStart) {
-                    scene_manager_handle_back_event(instance->scene_manager);
-                }
+                scene_manager_handle_back_event(instance->scene_manager);
             }
         }
     }
