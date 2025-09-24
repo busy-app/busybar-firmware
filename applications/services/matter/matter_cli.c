@@ -19,7 +19,7 @@ typedef struct {
 
 static void matter_cli_cmd_set_print_usage(void) {
     printf("Usage: set <device> <state>\r\n");
-    printf("  device: switch1\r\n");
+    printf("  device: switch1|switch2\r\n");
     printf("  state: on|off\r\n");
 }
 
