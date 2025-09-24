@@ -1,0 +1,9 @@
+App(
+    appid="hello",
+    name="Hello Message",
+    apptype=FlipperAppType.SYSTEM,
+    entry_point="hello_app",
+    requires=["gui"],
+    stack_size=2 * 1024,
+    targets=["f20", "f21"],
+)
