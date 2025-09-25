@@ -90,8 +90,13 @@ jobs:
 
       - name: 'Calculate hashsums for artifacts'
         working-directory: artifacts
+        shell: bash
         run: |
-          find . -type f -exec sha256sum {} \; > sha256sum_f${U5_TARGET_HW}.txt
+          find . -maxdepth 1 -type f -printf '%f\0' \
+            | LC_ALL=C sort -z \
+            | xargs -0 sha256sum \
+            > sha256sum_f${U5_TARGET_HW}.txt
+          
 
       - name: 'Upload build artifacts'
         if: ${{ !github.event.pull_request.head.repo.fork && steps.build-fw.outcome == 'success' }}
