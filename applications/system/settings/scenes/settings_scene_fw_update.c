@@ -47,6 +47,8 @@ typedef struct {
     FuriString* fw_status;
 
     FirmwareUpdateInfo fw_info;
+    CheckUpdate* check_update;
+
 } SettingsSceneFwUpdate;
 
 static void settings_scene_fw_update_scene_update(SettingsApp* instance) {
@@ -169,30 +171,34 @@ static void settings_scene_fw_update_done_callback(void* context) {
     settings_send_custom_event(instance, SceneCustomEventDownloadDone);
 }
 
-static void settings_scene_fw_update_check(void* context) {
+static void settings_scene_fw_update_check(CheckUpdateStatus status, void* context) {
     furi_assert(context);
     SettingsApp* instance = context;
     SettingsSceneFwUpdate* data = scene_manager_get_current_scene_data(instance->scene_manager);
 
-    check_update_get_current_version(data->fw_info.fw_current_version);
+    if(status & CheckUpdateStatusError) {
+        furi_string_set(data->fw_status, "Error occurred");
+        data->fw_info.is_new_version = false;
+        settings_send_custom_event(instance, SceneCustomEventErrorOccurred);
+        return;
+    }
 
-    if(check_update_is_new_version()) {
+    if(status & CheckUpdateStatusNoNewVersion) {
+        furi_string_set(data->fw_status, "No new version");
+        data->fw_info.is_new_version = false;
+        settings_send_custom_event(instance, SceneCustomEventUpdateStatus);
+        return;
+    }
+
+    if(status & CheckUpdateStatusNewVersion) {
         check_update_get_new_version(data->fw_info.new_fw_version);
         check_update_get_new_firmware_url(data->fw_info.fw_url);
         check_update_get_new_firmware_sha256(data->fw_info.fw_sha256);
 
         furi_string_set(data->fw_status, "New version, press OK to update");
         data->fw_info.is_new_version = true;
-    } else {
-        furi_string_set(data->fw_status, "No new version");
+        settings_send_custom_event(instance, SceneCustomEventUpdateStatus);
     }
-    with_gui(instance->gui, {
-        label_set_text_fmt(
-            data->label_fw_current_version,
-            "Current version: %s",
-            furi_string_get_cstr(data->fw_info.fw_current_version));
-    });
-    settings_send_custom_event(instance, SceneCustomEventUpdateStatus);
 }
 
 static void settings_scene_fw_update_check_sha256(void* context) {
@@ -237,7 +243,7 @@ static void settings_scene_fw_update_install(void* context) {
 
     SettingsApp* instance = context;
     SettingsSceneFwUpdate* data = scene_manager_get_current_scene_data(instance->scene_manager);
-    check_update_set_current_version(furi_string_get_cstr(data->fw_info.new_fw_version));
+    UNUSED(data);
     update_fw_tar(SETTINGS_FW_FILE_PATH);
 }
 
@@ -246,6 +252,14 @@ static void settings_scene_fw_update_on_enter(void* context) {
 
     SettingsApp* instance = context;
     SettingsSceneFwUpdate* data = scene_manager_get_current_scene_data(instance->scene_manager);
+    // Init data
+    data->fw_status = furi_string_alloc();
+    data->fw_info.fw_url = furi_string_alloc();
+    data->fw_info.fw_sha256 = furi_string_alloc();
+    data->fw_info.new_fw_version = furi_string_alloc();
+    data->fw_info.fw_current_version = furi_string_alloc();
+    data->bar_volume = 0;
+    check_update_get_current_version(data->fw_info.fw_current_version);
 
     with_gui(instance->gui, {
         GuiLayer* layer = gui_get_layer(instance->gui, GuiLayerIdMain);
@@ -277,11 +291,14 @@ static void settings_scene_fw_update_on_enter(void* context) {
 
         data->label_fw_name_download = label_alloc(flex_layout_get_base(layout_back));
         label_set_text_font_size(data->label_fw_name_download, LabelFontSizeSmall);
-        label_set_text(data->label_fw_name_download, "Press OK to update");
+        label_set_text(data->label_fw_name_download, "Checking for update...");
 
         data->label_fw_current_version = label_alloc(flex_layout_get_base(layout_back));
         label_set_text_font_size(data->label_fw_current_version, LabelFontSizeSmall);
-        label_set_text(data->label_fw_current_version, "Current version: 0.0.2");
+        label_set_text_fmt(
+            data->label_fw_current_version,
+            "Current version: %s",
+            furi_string_get_cstr(data->fw_info.fw_current_version));
 
         // GuiDisplayIdFront
         Widget* root_front = gui_layer_get_root_widget(layer, GuiDisplayIdFront);
@@ -302,13 +319,7 @@ static void settings_scene_fw_update_on_enter(void* context) {
         data->bar_front = progress_bar_alloc(flex_layout_get_base(layout_front));
         widget_set_height(progress_bar_get_base(data->bar_front), 4);
     });
-    // Init data
-    data->fw_status = furi_string_alloc();
-    data->fw_info.fw_url = furi_string_alloc();
-    data->fw_info.fw_sha256 = furi_string_alloc();
-    data->fw_info.new_fw_version = furi_string_alloc();
-    data->fw_info.fw_current_version = furi_string_alloc();
-    data->bar_volume = 0;
+
     // FwLoader
     data->fw_loader = fetch_loader_alloc();
     fetch_loader_set_status_callback(data->fw_loader, settings_scene_fw_status_callback, instance);
@@ -317,7 +328,11 @@ static void settings_scene_fw_update_on_enter(void* context) {
     fetch_loader_set_done_callback(
         data->fw_loader, settings_scene_fw_update_done_callback, instance);
     // Check for update
-    settings_scene_fw_update_check(instance);
+    data->check_update = check_update_init();
+    check_update_set_callback_done(data->check_update, settings_scene_fw_update_check, instance);
+
+    check_update_startup(data->check_update);
+    //settings_scene_fw_update_check(instance);
 }
 
 static void settings_scene_fw_update_on_exit(void* context) {
@@ -340,6 +355,13 @@ static void settings_scene_fw_update_on_exit(void* context) {
         label_free(data->label_fw_current_version);
         progress_bar_free(data->bar_front);
     });
+    // Free check update
+    while(!check_update_is_processing_done(data->check_update)) {
+        furi_delay_ms(100);
+    }
+    check_update_free(data->check_update);
+
+    // Free fw loader
     if(!fetch_loader_is_processing_done(data->fw_loader)) {
         fetch_loader_forced_done(data->fw_loader);
     }
@@ -347,6 +369,8 @@ static void settings_scene_fw_update_on_exit(void* context) {
     fetch_loader_set_state_callback(data->fw_loader, NULL, NULL);
     fetch_loader_set_done_callback(data->fw_loader, NULL, NULL);
     fetch_loader_free(data->fw_loader);
+
+    // Free data
     furi_string_free(data->fw_status);
     furi_string_free(data->fw_info.fw_url);
     furi_string_free(data->fw_info.fw_sha256);

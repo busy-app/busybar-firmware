@@ -27,6 +27,8 @@ struct CheckUpdateFw {
     FuriEventLoop* event_loop;
     FuriEventLoopTimer* timer;
     CheckUpdateFwStatus status;
+    CheckUpdate* check_update;
+    FuriPubSub* event_pubsub;
 };
 
 static bool check_update_fw_check_wifi_connected(CheckUpdateFw* instance) {
@@ -58,7 +60,7 @@ static void check_update_fw_timer_callback(void* context) {
         if(check_update_fw_check_wifi_connected(instance)) {
             FURI_LOG_W(TAG, "Update started");
             instance->status = CheckUpdateFwStatusInProgress;
-            check_update_startup(instance);
+            check_update_startup(instance->check_update);
         }
         break;
     case CheckUpdateFwStatusSuccess:
@@ -74,9 +76,21 @@ static void check_update_fw_timer_callback(void* context) {
     }
 }
 
-void check_update_fw_status_update(CheckUpdateFw* instance, bool success) {
+void check_update_fw_status_update(CheckUpdateStatus status, void* context) {
+    CheckUpdateFw* instance = context;
     furi_assert(instance);
-    instance->status = success ? CheckUpdateFwStatusSuccess : CheckUpdateFwStatusError;
+
+    if(status & CheckUpdateStatusError) {
+        instance->status = CheckUpdateFwStatusError;
+        FURI_LOG_E(TAG, "Update error occurred");
+    } else if(status & CheckUpdateStatusNoNewVersion) {
+        FURI_LOG_I(TAG, "No new version available");
+    } else if(status & CheckUpdateStatusNewVersion) {
+        FURI_LOG_I(TAG, "New version available");
+        CheckUpdateFwEvent pub_event = {.type = CheckUpdateFwEventNewVersion};
+        furi_pubsub_publish(instance->event_pubsub, &pub_event);
+    }
+
     furi_event_loop_set_custom_event(
         instance->event_loop,
         CheckUpdateFwCustomEventSuccess); // Reset status to idle after update
@@ -103,11 +117,17 @@ CheckUpdateFw* check_update_fw_alloc() {
         FuriEventLoopTimerTypePeriodic,
         instance);
 
+    instance->check_update = check_update_init();
+    check_update_set_callback_done(
+        instance->check_update, check_update_fw_status_update, instance);
+
     furi_event_loop_set_custom_event_callback(
         instance->event_loop, check_update_fw_custom_event_callback, instance);
 
     furi_event_loop_timer_start(instance->timer, CHECK_UPDATE_FW_REBOOT_INTERVAL_MINUTES);
 
+    instance->event_pubsub = furi_pubsub_alloc();
+    furi_record_create(RECORD_CHECK_UPDATE_FW, instance);
     return instance;
 }
 
@@ -120,4 +140,9 @@ int32_t check_update_fw_srv(void* p) {
 
     furi_crash();
     return 0;
+}
+
+FuriPubSub* check_update_fw_get_pubsub(CheckUpdateFw* instance) {
+    furi_check(instance);
+    return instance->event_pubsub;
 }
