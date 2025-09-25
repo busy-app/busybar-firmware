@@ -8,7 +8,7 @@ App(
         "busy",
         "custom",
         "soft_off",
-        "hello",
+        "power_on",
     ],
     targets=["f20", "f21"],
 )
