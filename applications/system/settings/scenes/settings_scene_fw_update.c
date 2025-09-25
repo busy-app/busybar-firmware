@@ -323,7 +323,7 @@ static void settings_scene_fw_update_on_enter(void* context) {
         data->fw_loader, settings_scene_fw_update_state_callback, instance);
     fetch_loader_set_done_callback(
         data->fw_loader, settings_scene_fw_update_done_callback, instance);
-   
+
     data->check_update_fw_subscription = furi_pubsub_subscribe(
         check_update_fw_get_pubsub(data->check_update_fw),
         settings_scene_fw_update_check,
