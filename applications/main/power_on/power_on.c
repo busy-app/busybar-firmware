@@ -9,6 +9,8 @@
 #include <front_display/front_display.h>
 #include <power/power_service/power.h>
 
+#define TAG "PowerON"
+
 #define POWER_ON_APP_TIMEOUT_MIN (15)
 
 #define MIN_TO_MS(minutes) (minutes * 60U * 1000U)
@@ -93,13 +95,27 @@ static void power_on_app_free(PowerOnApp* instance) {
     free(instance);
 }
 
+static inline bool power_on_done_flag_present(PowerOnApp* instance) {
+    return storage_file_exists(instance->storage, POWER_ON_DONE_PATH);
+}
+
+static inline void power_on_done_flag_create(PowerOnApp* instance) {
+    File* file = storage_file_alloc(instance->storage);
+
+    if(!storage_file_open(file, POWER_ON_DONE_PATH, FSAM_WRITE, FSOM_CREATE_ALWAYS))
+        FURI_LOG_W(TAG, "Failed to create file");
+
+    storage_file_close(file);
+    storage_file_free(file);
+}
+
 int32_t power_on_app(void* arg) {
     UNUSED(arg);
 
     PowerOnApp* instance = power_on_app_alloc();
 
     do {
-        if(storage_file_exists(instance->storage, POWER_ON_DONE_PATH)) break;
+        if(power_on_done_flag_present(instance)) break;
 
         back_display_sleep_mode(instance->back_display, true);
 
@@ -127,14 +143,7 @@ int32_t power_on_app(void* arg) {
 
         if(flags & PowerOnAppThreadFlagExitToMenu) {
             furi_timer_stop(instance->back_to_transport_timer);
-
-            File* file = storage_file_alloc(instance->storage);
-
-            if(!storage_file_open(file, POWER_ON_DONE_PATH, FSAM_WRITE, FSOM_CREATE_ALWAYS))
-                FURI_LOG_W("Power on", "Failed to create file");
-
-            storage_file_close(file);
-            storage_file_free(file);
+            power_on_done_flag_create(instance);
         }
 
         with_gui(instance->gui, {
