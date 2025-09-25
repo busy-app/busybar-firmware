@@ -30,7 +30,7 @@ ZAP_GENERATED_INCDIR = f"#/lib/{ZAP_GENERATED_DIR}"
 env.Append(
     CPPPATH=[
         # Matter extension
-        Dir(f"{MATTER_SDK_INCDIR}/examples/providers").rdir(),
+        # Dir(f"{MATTER_SDK_INCDIR}/examples/providers").rdir(),
         Dir(f"{MATTER_SDK_INCDIR}/src/include").rdir(),
         Dir(f"{MATTER_SUPPORT_INCDIR}/tinycrypt/inc").rdir(),
         Dir(f"{THIRD_PARTY_INCDIR}/nlio/include").rdir(),
@@ -87,8 +87,6 @@ libenv.AppendUnique(
 )
 
 sources = [
-    f"{MATTER_SDK_DIR}/examples/providers/DeviceInfoProviderImpl.cpp",
-
     f"{MATTER_SDK_DIR}/src/access/AccessControl.cpp",
     f"{MATTER_SDK_DIR}/src/access/AccessRestrictionProvider.cpp",
     f"{MATTER_SDK_DIR}/src/access/examples/ExampleAccessControlDelegate.cpp",
@@ -414,6 +412,7 @@ sources = [
     f"{MATTER_GLUE_DIR}/platform/bsb/ConfigurationManagerImpl.cpp",
     f"{MATTER_GLUE_DIR}/platform/bsb/ConnectivityManagerImpl.cpp",
     f"{MATTER_GLUE_DIR}/platform/bsb/CryptoStorage.cpp",
+    f"{MATTER_GLUE_DIR}/platform/bsb/DeviceInfoProviderImpl.cpp",
     f"{MATTER_GLUE_DIR}/platform/bsb/DiagnosticDataProviderImpl.cpp",
     f"{MATTER_GLUE_DIR}/platform/bsb/GenericPlatformManagerImplFuri.cpp",
     f"{MATTER_GLUE_DIR}/platform/bsb/KeyValueStoreManagerImpl.cpp",
