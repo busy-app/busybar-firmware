@@ -7,7 +7,8 @@
 
 #include <toolbox/fetch/fetch_loader.h>
 #include <toolbox/update_fw_tar.h>
-#include <applications/services/check_update_fw/helpers/check_update.h>
+//#include <applications/services/check_update_fw/helpers/check_update.h>
+#include <applications/services/check_update_fw/check_update_fw.h>
 #include <toolbox/sha256_calc.h>
 
 #define SETTINGS_FW_FILE_PATH EXT_PATH("update/upload.tar")
@@ -47,7 +48,9 @@ typedef struct {
     FuriString* fw_status;
 
     FirmwareUpdateInfo fw_info;
-    CheckUpdate* check_update;
+    //CheckUpdate* check_update;
+    CheckUpdateFw* check_update_fw;
+    FuriPubSubSubscription* check_update_fw_subscription;
 
 } SettingsSceneFwUpdate;
 
@@ -171,34 +174,31 @@ static void settings_scene_fw_update_done_callback(void* context) {
     settings_send_custom_event(instance, SceneCustomEventDownloadDone);
 }
 
-static void settings_scene_fw_update_check(CheckUpdateStatus status, void* context) {
+static void settings_scene_fw_update_check(const void* message, void* context) {
+    CheckUpdateFwEvent* status = (CheckUpdateFwEvent*)message;
+    furi_assert(status);
     furi_assert(context);
     SettingsApp* instance = context;
     SettingsSceneFwUpdate* data = scene_manager_get_current_scene_data(instance->scene_manager);
 
-    if(status & CheckUpdateStatusError) {
-        furi_string_set(data->fw_status, "Error occurred");
-        data->fw_info.is_new_version = false;
-        settings_send_custom_event(instance, SceneCustomEventErrorOccurred);
-        return;
-    }
-
-    if(status & CheckUpdateStatusNoNewVersion) {
+    switch(status->type) {
+    case CheckUpdateFwEventNoNewVersion:
         furi_string_set(data->fw_status, "No new version");
         data->fw_info.is_new_version = false;
-        settings_send_custom_event(instance, SceneCustomEventUpdateStatus);
-        return;
-    }
-
-    if(status & CheckUpdateStatusNewVersion) {
-        check_update_get_new_version(data->fw_info.new_fw_version);
-        check_update_get_new_firmware_url(data->fw_info.fw_url);
-        check_update_get_new_firmware_sha256(data->fw_info.fw_sha256);
+        break;
+    case CheckUpdateFwEventNewVersion:
+        check_update_fw_get_new_version(data->check_update_fw, data->fw_info.new_fw_version);
+        check_update_fw_get_new_firmware_url(data->check_update_fw, data->fw_info.fw_url);
+        check_update_fw_get_new_firmware_sha256(data->check_update_fw, data->fw_info.fw_sha256);
 
         furi_string_set(data->fw_status, "New version, press OK to update");
         data->fw_info.is_new_version = true;
-        settings_send_custom_event(instance, SceneCustomEventUpdateStatus);
+
+        break;
+    default:
+        break;
     }
+    settings_send_custom_event(instance, SceneCustomEventUpdateStatus);
 }
 
 static void settings_scene_fw_update_check_sha256(void* context) {
@@ -217,9 +217,6 @@ static void settings_scene_fw_update_check_sha256(void* context) {
 
         storage_file_free(file);
         furi_record_close(RECORD_STORAGE);
-
-        FURI_LOG_W("TAG", "Calculated sha256: %s", furi_string_get_cstr(sha256_calc));
-        FURI_LOG_W("TAG", "Expected   sha256: %s", furi_string_get_cstr(data->fw_info.fw_sha256));
 
         if((file_error == FSE_OK) &&
            (furi_string_cmp(sha256_calc, data->fw_info.fw_sha256) == 0)) {
@@ -259,7 +256,8 @@ static void settings_scene_fw_update_on_enter(void* context) {
     data->fw_info.new_fw_version = furi_string_alloc();
     data->fw_info.fw_current_version = furi_string_alloc();
     data->bar_volume = 0;
-    check_update_get_current_version(data->fw_info.fw_current_version);
+    data->check_update_fw = furi_record_open(RECORD_CHECK_UPDATE_FW);
+    check_update_fw_get_current_version(data->check_update_fw, data->fw_info.fw_current_version);
 
     with_gui(instance->gui, {
         GuiLayer* layer = gui_get_layer(instance->gui, GuiLayerIdMain);
@@ -328,10 +326,14 @@ static void settings_scene_fw_update_on_enter(void* context) {
     fetch_loader_set_done_callback(
         data->fw_loader, settings_scene_fw_update_done_callback, instance);
     // Check for update
-    data->check_update = check_update_init();
-    check_update_set_callback_done(data->check_update, settings_scene_fw_update_check, instance);
-
-    check_update_startup(data->check_update);
+    //data->check_update = check_update_init();
+    //check_update_set_callback_done(data->check_update, settings_scene_fw_update_check, instance);
+    data->check_update_fw_subscription = furi_pubsub_subscribe(
+        check_update_fw_get_pubsub(data->check_update_fw),
+        settings_scene_fw_update_check,
+        instance);
+    check_update_fw_startup(data->check_update_fw);
+    //check_update_startup(data->check_update);
     //settings_scene_fw_update_check(instance);
 }
 
@@ -355,11 +357,15 @@ static void settings_scene_fw_update_on_exit(void* context) {
         label_free(data->label_fw_current_version);
         progress_bar_free(data->bar_front);
     });
-    // Free check update
-    while(!check_update_is_processing_done(data->check_update)) {
-        furi_delay_ms(100);
-    }
-    check_update_free(data->check_update);
+    // // Free check update
+    // while(!check_update_is_processing_done(data->check_update)) {
+    //     furi_delay_ms(100);
+    // }
+    // check_update_free(data->check_update);
+
+    furi_pubsub_unsubscribe(
+        check_update_fw_get_pubsub(data->check_update_fw), data->check_update_fw_subscription);
+    furi_record_close(RECORD_CHECK_UPDATE_FW);
 
     // Free fw loader
     if(!fetch_loader_is_processing_done(data->fw_loader)) {

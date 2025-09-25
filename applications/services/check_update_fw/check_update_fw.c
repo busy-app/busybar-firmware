@@ -17,6 +17,7 @@ typedef enum {
     CheckUpdateFwStatusNotConnected,
     CheckUpdateFwStatusTimeout,
     CheckUpdateFwStatusInProgress,
+    CheckUpdateFwStatusCheckWifi,
 } CheckUpdateFwStatus;
 
 typedef enum {
@@ -57,6 +58,7 @@ static void check_update_fw_timer_callback(void* context) {
 
     switch(instance->status) {
     case CheckUpdateFwStatusIdle:
+        instance->status = CheckUpdateFwStatusCheckWifi;
         if(check_update_fw_check_wifi_connected(instance)) {
             FURI_LOG_W(TAG, "Update started");
             instance->status = CheckUpdateFwStatusInProgress;
@@ -69,6 +71,9 @@ static void check_update_fw_timer_callback(void* context) {
     case CheckUpdateFwStatusInProgress:
         FURI_LOG_W(TAG, "Update in progress...");
         break;
+    case CheckUpdateFwStatusCheckWifi:
+        FURI_LOG_W(TAG, "Checking WiFi connection...");
+        break;
     default:
         FURI_LOG_E(TAG, "Update failed with status: %d", instance->status);
         instance->status = CheckUpdateFwStatusIdle;
@@ -79,17 +84,18 @@ static void check_update_fw_timer_callback(void* context) {
 void check_update_fw_status_update(CheckUpdateStatus status, void* context) {
     CheckUpdateFw* instance = context;
     furi_assert(instance);
-
+    CheckUpdateFwEvent pub_event = {.type = CheckUpdateFwEventError};
     if(status & CheckUpdateStatusError) {
         instance->status = CheckUpdateFwStatusError;
         FURI_LOG_E(TAG, "Update error occurred");
     } else if(status & CheckUpdateStatusNoNewVersion) {
         FURI_LOG_I(TAG, "No new version available");
+        pub_event.type = CheckUpdateFwEventNoNewVersion;
     } else if(status & CheckUpdateStatusNewVersion) {
         FURI_LOG_I(TAG, "New version available");
-        CheckUpdateFwEvent pub_event = {.type = CheckUpdateFwEventNewVersion};
-        furi_pubsub_publish(instance->event_pubsub, &pub_event);
+        pub_event.type = CheckUpdateFwEventNewVersion;
     }
+    furi_pubsub_publish(instance->event_pubsub, &pub_event);
 
     furi_event_loop_set_custom_event(
         instance->event_loop,
@@ -145,4 +151,43 @@ int32_t check_update_fw_srv(void* p) {
 FuriPubSub* check_update_fw_get_pubsub(CheckUpdateFw* instance) {
     furi_check(instance);
     return instance->event_pubsub;
+}
+
+void check_update_fw_startup(CheckUpdateFw* instance) {
+    furi_check(instance);
+    check_update_fw_timer_callback(instance);
+}
+
+bool check_update_fw_is_new_version(CheckUpdateFw* instance) {
+    furi_check(instance);
+    UNUSED(instance);
+    return check_update_is_new_version();
+}
+
+void check_update_fw_get_current_version(CheckUpdateFw* instance, FuriString* current_version) {
+    furi_check(instance);
+    furi_check(current_version);
+    UNUSED(instance);
+    check_update_get_current_version(current_version);
+}
+
+void check_update_fw_get_new_version(CheckUpdateFw* instance, FuriString* new_version) {
+    furi_check(instance);
+    furi_check(new_version);
+    UNUSED(instance);
+    check_update_get_new_version(new_version);
+}
+
+void check_update_fw_get_new_firmware_url(CheckUpdateFw* instance, FuriString* url) {
+    furi_check(instance);
+    furi_check(url);
+    UNUSED(instance);
+    check_update_get_new_firmware_url(url);
+}
+
+void check_update_fw_get_new_firmware_sha256(CheckUpdateFw* instance, FuriString* sha256) {
+    furi_check(instance);
+    furi_check(sha256);
+    UNUSED(instance);
+    check_update_get_new_firmware_sha256(sha256);
 }
