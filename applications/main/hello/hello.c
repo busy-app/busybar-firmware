@@ -18,6 +18,7 @@
 
 #define HELLO_ASSETS_PATH(path) EXT_PATH("apps_assets/power_on") "/" path
 #define HELLO_ANIM_PATH(path)   HELLO_ASSETS_PATH("animations") "/" path
+#define HELLO_DONE_PATH         HELLO_ASSETS_PATH("done.txt")
 
 typedef enum {
     HelloAppThreadFlagExitToMenu = 1 << 0,
@@ -32,6 +33,7 @@ typedef struct {
     BackDisplaySrv* back_display;
     Input* input;
     Power* power;
+    Storage* storage;
 
     FuriThread* thread;
     FuriTimer* back_to_transport_timer;
@@ -69,6 +71,7 @@ static HelloApp* hello_app_alloc() {
     instance->back_display = furi_record_open(RECORD_BACK_DISPLAY);
     instance->input = furi_record_open(RECORD_INPUT);
     instance->power = furi_record_open(RECORD_POWER);
+    instance->storage = furi_record_open(RECORD_STORAGE);
 
     instance->thread = furi_thread_get_current();
     instance->back_to_transport_timer =
@@ -79,6 +82,7 @@ static HelloApp* hello_app_alloc() {
 }
 
 static void hello_app_free(HelloApp* instance) {
+    furi_record_close(RECORD_STORAGE);
     furi_record_close(RECORD_POWER);
     furi_record_close(RECORD_INPUT);
     furi_record_close(RECORD_BACK_DISPLAY);
@@ -94,40 +98,49 @@ int32_t hello_app(void* arg) {
 
     HelloApp* instance = hello_app_alloc();
 
-    back_display_sleep_mode(instance->back_display, true);
+    do {
+        if(storage_file_exists(instance->storage, HELLO_DONE_PATH)) break;
 
-    AnimImage* anim_image;
-    with_gui(instance->gui, {
-        GuiLayer* layer = gui_get_layer(instance->gui, GuiLayerIdMain);
-        gui_layer_add_input_callback(layer, hello_input_callback, instance);
-        Widget* root = gui_layer_get_root_widget(layer, GuiDisplayIdFront);
+        back_display_sleep_mode(instance->back_display, true);
 
-        anim_image = anim_image_alloc(root);
-        anim_image_set_source(anim_image, HELLO_ANIM_PATH("power_on_72x16.anim"));
-        anim_image_set_range(
-            anim_image,
-            HELLO_ANIMATION_LOOP_START_FRAME,
-            HELLO_ANIMATION_LOOP_END_FRAME,
-            true,
-            true);
-    });
+        AnimImage* anim_image;
+        with_gui(instance->gui, {
+            GuiLayer* layer = gui_get_layer(instance->gui, GuiLayerIdMain);
+            gui_layer_add_input_callback(layer, hello_input_callback, instance);
+            Widget* root = gui_layer_get_root_widget(layer, GuiDisplayIdFront);
 
-    uint32_t flags = furi_thread_flags_wait(HELLO_APP_FLAGS, FuriFlagWaitAny, FuriWaitForever);
-    if(flags & HelloAppThreadFlagExitToTransportMode) {
-        power_off(instance->power);
-    }
+            anim_image = anim_image_alloc(root);
+            anim_image_set_source(anim_image, HELLO_ANIM_PATH("power_on_72x16.anim"));
+            anim_image_set_range(
+                anim_image,
+                HELLO_ANIMATION_LOOP_START_FRAME,
+                HELLO_ANIMATION_LOOP_END_FRAME,
+                true,
+                true);
+        });
 
-    if(flags & HelloAppThreadFlagExitToMenu) {
-        furi_timer_stop(instance->back_to_transport_timer);
-    }
+        uint32_t flags = furi_thread_flags_wait(HELLO_APP_FLAGS, FuriFlagWaitAny, FuriWaitForever);
+        if(flags & HelloAppThreadFlagExitToTransportMode) {
+            power_off(instance->power);
+        }
 
-    with_gui(instance->gui, {
-        anim_image_free(anim_image);
-        GuiLayer* layer = gui_get_layer(instance->gui, GuiLayerIdMain);
-        gui_layer_remove_input_callback(layer, hello_input_callback);
-    });
+        if(flags & HelloAppThreadFlagExitToMenu) {
+            furi_timer_stop(instance->back_to_transport_timer);
 
-    back_display_sleep_mode(instance->back_display, false);
+            File* file = storage_file_alloc(instance->storage);
+            storage_file_open(file, HELLO_DONE_PATH, FSAM_WRITE, FSOM_CREATE_ALWAYS);
+            storage_file_close(file);
+            storage_file_free(file);
+        }
+
+        with_gui(instance->gui, {
+            anim_image_free(anim_image);
+            GuiLayer* layer = gui_get_layer(instance->gui, GuiLayerIdMain);
+            gui_layer_remove_input_callback(layer, hello_input_callback);
+        });
+
+        back_display_sleep_mode(instance->back_display, false);
+    } while(false);
 
     hello_app_free(instance);
     return 0;
