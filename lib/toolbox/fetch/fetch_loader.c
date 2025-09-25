@@ -96,7 +96,7 @@ static bool fetch_loader_is_connected(FetchLoader* instance) {
 static int32_t fetch_loader_check_wifi_connected(FetchLoader* instance) {
     furi_assert(instance);
     bool ret = true;
-    FuriString* state_str = furi_string_alloc_printf("Wait on connecting to WiFi...");
+    FuriString* state_str = furi_string_alloc_printf("Connecting to server...");
     if(instance->callback_state) {
         instance->callback_state(state_str, instance->context_state);
     }
