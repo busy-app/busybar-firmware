@@ -4,6 +4,8 @@
 #include <storage/storage.h>
 #include <mbedtls/sha256.h>
 
+#define SHA256_MAX_SIZE_CHUNK 1024 * 32 //32kb
+
 bool sha256_calc_file(File* file, const char* path, unsigned char output[32], FS_Error* file_error) {
     if(!storage_file_open(file, path, FSAM_READ, FSOM_OPEN_EXISTING)) {
         if(file_error != NULL) {
@@ -12,7 +14,7 @@ bool sha256_calc_file(File* file, const char* path, unsigned char output[32], FS
         return false;
     }
 
-    const size_t size_to_read = 512;
+    const size_t size_to_read = SHA256_MAX_SIZE_CHUNK;
     uint8_t* data = malloc(size_to_read);
     bool result = true;
 
