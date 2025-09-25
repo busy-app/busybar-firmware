@@ -5,6 +5,7 @@
 #include <json_helper.h>
 #include <toolbox/fetch/fetch_loader.h>
 #include <furi_hal_version.h>
+#include <toolbox/path.h>
 
 #define TAG "CheckUpdate"
 
@@ -134,13 +135,30 @@ static void
     }
 }
 
+static void check_update_checking_folder(CheckUpdate* instance) {
+    UNUSED(instance);
+    Storage* storage = furi_record_open(RECORD_STORAGE);
+    FuriString* path = furi_string_alloc();
+    path_extract_dirname(CHECK_UPDATE_SETTINGS_FILE, path);
+
+    if(path_recursive_create_dir(storage, path) != FSE_OK) {
+        FURI_LOG_E(TAG, "Failed to create directory: %s", furi_string_get_cstr(path));
+    }
+
+    furi_string_free(path);
+    furi_record_close(RECORD_STORAGE);
+}
+
 CheckUpdate* check_update_init() {
     CheckUpdate* instance = malloc(sizeof(CheckUpdate));
+
     instance->thread = NULL;
     instance->url = furi_string_alloc();
     instance->id = furi_string_alloc();
     instance->version = furi_string_alloc();
     instance->is_processing_semaphore = furi_semaphore_alloc(1, 1);
+
+    check_update_checking_folder(instance);
     return instance;
 }
 
