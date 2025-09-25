@@ -7,7 +7,6 @@
 
 #include <toolbox/fetch/fetch_loader.h>
 #include <toolbox/update_fw_tar.h>
-//#include <applications/services/check_update_fw/helpers/check_update.h>
 #include <applications/services/check_update_fw/check_update_fw.h>
 #include <toolbox/sha256_calc.h>
 
@@ -48,7 +47,6 @@ typedef struct {
     FuriString* fw_status;
 
     FirmwareUpdateInfo fw_info;
-    //CheckUpdate* check_update;
     CheckUpdateFw* check_update_fw;
     FuriPubSubSubscription* check_update_fw_subscription;
 
@@ -325,16 +323,12 @@ static void settings_scene_fw_update_on_enter(void* context) {
         data->fw_loader, settings_scene_fw_update_state_callback, instance);
     fetch_loader_set_done_callback(
         data->fw_loader, settings_scene_fw_update_done_callback, instance);
-    // Check for update
-    //data->check_update = check_update_init();
-    //check_update_set_callback_done(data->check_update, settings_scene_fw_update_check, instance);
+   
     data->check_update_fw_subscription = furi_pubsub_subscribe(
         check_update_fw_get_pubsub(data->check_update_fw),
         settings_scene_fw_update_check,
         instance);
     check_update_fw_startup(data->check_update_fw);
-    //check_update_startup(data->check_update);
-    //settings_scene_fw_update_check(instance);
 }
 
 static void settings_scene_fw_update_on_exit(void* context) {
@@ -357,11 +351,6 @@ static void settings_scene_fw_update_on_exit(void* context) {
         label_free(data->label_fw_current_version);
         progress_bar_free(data->bar_front);
     });
-    // // Free check update
-    // while(!check_update_is_processing_done(data->check_update)) {
-    //     furi_delay_ms(100);
-    // }
-    // check_update_free(data->check_update);
 
     furi_pubsub_unsubscribe(
         check_update_fw_get_pubsub(data->check_update_fw), data->check_update_fw_subscription);
