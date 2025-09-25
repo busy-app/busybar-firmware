@@ -30,7 +30,6 @@ ZAP_GENERATED_INCDIR = f"#/lib/{ZAP_GENERATED_DIR}"
 env.Append(
     CPPPATH=[
         # Matter extension
-        # Dir(f"{MATTER_SDK_INCDIR}/examples/providers").rdir(),
         Dir(f"{MATTER_SDK_INCDIR}/src/include").rdir(),
         Dir(f"{MATTER_SUPPORT_INCDIR}/tinycrypt/inc").rdir(),
         Dir(f"{THIRD_PARTY_INCDIR}/nlio/include").rdir(),
