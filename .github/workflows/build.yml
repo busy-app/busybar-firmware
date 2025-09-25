@@ -87,7 +87,11 @@ jobs:
           rm -rf artifacts
           mkdir -p artifacts
           cp -v dist/f${U5_TARGET_HW}-*/* artifacts/
-          sha256sum artifacts/* > artifacts/sha256sum_f${U5_TARGET_HW}.txt
+
+      - name: 'Calculate hashsums for artifacts'
+        working-directory: artifacts
+        run: |
+          find . -type f -exec sha256sum {} \; > sha256sum_f${U5_TARGET_HW}.txt
 
       - name: 'Upload build artifacts'
         if: ${{ !github.event.pull_request.head.repo.fork && steps.build-fw.outcome == 'success' }}
