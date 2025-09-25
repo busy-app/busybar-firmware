@@ -23,14 +23,6 @@
 #define CHECK_UPDATE_JSON_NEW_FIRMWARE_URL    "new_firmware_url"
 #define CHECK_UPDATE_JSON_NEW_FIRMWARE_SHA256 "new_firmware_sha256"
 
-// typedef enum {
-//     CheckUpdateStatusSuccess = (1UL << 1),
-//     CheckUpdateStatusError = (1UL << 2),
-//     CheckUpdateStatusDone = (1UL << 3),
-//     CheckUpdateStatusNoNewVersion = (1UL << 4),
-//     CheckUpdateStatusNewVersion = (1UL << 5),
-// } CheckUpdateStatus;
-
 struct CheckUpdate {
     FuriThread* thread;
     FuriString* url;

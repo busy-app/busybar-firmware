@@ -70,7 +70,7 @@ static void fetch_client_update_on_data_cb(struct mg_connection* conn, struct mg
     instance->delta_received_bytes += io->len;
     instance->count_receive_packets++;
 
-    if((instance->count_receive_packets % 12) == 0) {
+    if((instance->count_receive_packets % (12 * 8)) == 0) {
         instance->status.speed_bytes_per_sec =
             (uint32_t)((float)instance->delta_received_bytes /
                        ((float)(furi_get_tick() - instance->started_raw_ticks + 1) /
