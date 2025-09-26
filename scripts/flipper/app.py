@@ -4,6 +4,19 @@ import sys
 import colorlog
 
 
+def CatchExceptions(func):
+    def wrapper(*args, **kwargs):
+        try:
+            func(*args, **kwargs)
+            return 0
+        except Exception as e:
+            print(f"Error: {e}")
+            # raise  # uncomment to debug
+            return 1
+
+    return wrapper
+
+
 class App:
     def __init__(self, no_exit=False):
         # Argument Parser
