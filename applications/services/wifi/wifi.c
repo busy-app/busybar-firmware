@@ -14,17 +14,6 @@ static void wifi_intercom_rx_callback(const void* data, size_t data_size, void* 
     furi_event_loop_set_custom_event(instance->event_loop, WifiEventResponse);
 }
 
-// static void wifi_update_enabled(Wifi* instance, bool enabled) {
-//     if(instance->settings_applied) {
-//         WifiSettings* settings = &instance->settings;
-//
-//         if(settings->enabled != enabled) {
-//             settings->enabled = enabled;
-//             wifi_settings_save(settings);
-//         }
-//     }
-// }
-
 static void wifi_update_connection_params(
     Wifi* instance,
     const WifiCredentials* credentials,
@@ -100,7 +89,6 @@ static void wifi_process_response(Wifi* instance) {
             const WifiIpConfig* ip_config = connect_message->ip_config;
 
             wifi_update_connection_params(instance, connect_message->credentials, ip_config);
-
             wifi_net_up(instance);
 
         } else if(request_type == WifiRequestTypeDisconnect) {
@@ -167,16 +155,10 @@ static int32_t wifi_startup_thread_callback(void* arg) {
         wifi_load_settings(instance);
 
         const WifiSettings* settings = &instance->settings;
-
-        if(!settings->enabled) {
-            FURI_LOG_I(TAG, "Disabled in settings");
-            break;
-        }
-
         const char* ssid = settings->credentials.ssid;
 
         if(strlen(ssid) == 0) {
-            FURI_LOG_W(TAG, "No SSID specified");
+            FURI_LOG_I(TAG, "No SSID specified");
             break;
         }
 
