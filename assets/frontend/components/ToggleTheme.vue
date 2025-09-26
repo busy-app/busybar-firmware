@@ -13,8 +13,8 @@ const toggleModel = ref(isDark.value);
 
 <template>
   <USwitch
-    checked-icon="i-tabler-moon-filled"
-    unchecked-icon="i-tabler-sun-filled"
+    checked-icon="i-ri-moon-line"
+    unchecked-icon="i-ri-sun-line"
     :model-value="toggleModel"
     :ui="{
       base: 'data-[state=unchecked]:bg-neutral-200'
