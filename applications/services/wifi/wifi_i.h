@@ -34,12 +34,17 @@ typedef struct {
 } WifiGetInfoMessage;
 
 typedef struct {
+    WifiHardwareAddress* hw_address;
+} WifiGetHwAddressMessage;
+
+typedef struct {
     WifiRequestType request_type;
     WifiStatus status;
     union {
         WifiConnectMessage connect_message;
         WifiScanMessage scan_message;
         WifiGetInfoMessage get_info_message;
+        WifiGetHwAddressMessage get_hw_address_message;
     };
     FuriApiLock lock;
 } WifiMessage;
@@ -47,7 +52,6 @@ typedef struct {
 struct Wifi {
     FuriEventLoop* event_loop;
     FuriSemaphore* access_semaphore;
-    FuriPubSub* pubsub;
     Intercom* intercom;
     WifiMessage* current_message;
     struct netif netif;
@@ -57,9 +61,7 @@ struct Wifi {
     bool settings_applied;
 };
 
-void wifi_net_init(Wifi* instance);
-
-void wifi_net_set_hw_address(Wifi* instance, const WifiHardwareAddress* addr);
+void wifi_net_init(Wifi* instance, const WifiHardwareAddress* addr);
 
 void wifi_net_up(Wifi* instance);
 
