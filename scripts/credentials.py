@@ -90,7 +90,7 @@ class Main(App):
         self.attest_parser.add_argument(
             "--dac",
             required=True,
-            help="DAC (Device Attestation Ceritificate) file (.pem or .der format)",
+            help="DAC (Device Attestation Certificate) file (.pem or .der format)",
         )
         self.attest_parser.add_argument(
             "--pai",
