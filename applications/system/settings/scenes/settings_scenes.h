@@ -17,6 +17,7 @@ typedef enum {
 
     SettingsAppSceneIdConnectWifi,
     SettingsAppSceneIdReboot,
+    SettingsAppSceneIdAccount,
 
     SettingsAppSceneIdsCount
 } SettingsAppSceneId;

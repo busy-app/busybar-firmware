@@ -14,6 +14,7 @@ extern const Scene settings_scene_matter_commission_done;
 
 extern const Scene settings_scene_connect_wifi;
 extern const Scene settings_scene_reboot;
+extern const Scene settings_scene_account;
 
 const Scene* const settings_scenes[SettingsAppSceneIdsCount] = {
     [SettingsAppSceneIdStart] = &settings_scene_start,
@@ -30,4 +31,5 @@ const Scene* const settings_scenes[SettingsAppSceneIdsCount] = {
 
     [SettingsAppSceneIdConnectWifi] = &settings_scene_connect_wifi,
     [SettingsAppSceneIdReboot] = &settings_scene_reboot,
+    [SettingsAppSceneIdAccount] = &settings_scene_account,
 };

@@ -13,6 +13,7 @@ typedef enum {
 typedef enum {
     SettingsSceneMainMenuIndexSound,
     SettingsSceneMainMenuIndexBrightness,
+    SettingsSceneMainMenuIndexAccount,
     SettingsSceneMainMenuIndexDebugApps,
     SettingsSceneMainMenuIndexMatter,
 
@@ -51,6 +52,11 @@ static const NextSceneParameters next_scenes_parameters[] = {
         {
             .nav_bar_entry = "SMART HOME",
             .scene_id = SettingsAppSceneIdMatter,
+        },
+    [SettingsSceneMainMenuIndexAccount] =
+        {
+            .nav_bar_entry = "ACCOUNT",
+            .scene_id = SettingsAppSceneIdAccount,
         },
 };
 
@@ -106,6 +112,14 @@ static void settings_scene_main_on_enter(void* context) {
             instance);
         menu_add_item(
             data->front_menu,
+            "Account",
+            NULL,
+            SETTINGS_IMG_PATH("account_front_8x8.bin"),
+            SettingsSceneMainMenuIndexAccount,
+            settings_scene_setup_menu_callback,
+            instance);
+        menu_add_item(
+            data->front_menu,
             "Debug apps",
             "",
             SETTINGS_IMG_PATH("debug_front_7x7.bin"),
@@ -139,6 +153,14 @@ static void settings_scene_main_on_enter(void* context) {
             brightness_text,
             SETTINGS_IMG_PATH("brightness_back_12x12.bin"),
             SettingsSceneMainMenuIndexBrightness,
+            NULL,
+            instance);
+        menu_add_item(
+            data->back_menu,
+            "ACCOUNT",
+            NULL,
+            SETTINGS_IMG_PATH("account_back_12x12.bin"),
+            SettingsSceneMainMenuIndexAccount,
             NULL,
             instance);
         menu_add_item(
