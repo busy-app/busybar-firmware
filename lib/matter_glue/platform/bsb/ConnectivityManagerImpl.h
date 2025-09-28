@@ -25,7 +25,9 @@
 #endif
 #include <platform/internal/GenericConnectivityManagerImpl_NoBLE.h>
 #include <platform/internal/GenericConnectivityManagerImpl_NoThread.h>
-#include <platform/internal/GenericConnectivityManagerImpl_NoWiFi.h>
+#include <platform/internal/GenericConnectivityManagerImpl_WiFi.h>
+
+#include <wifi/wifi.h>
 
 namespace chip {
 namespace DeviceLayer {
@@ -39,7 +41,7 @@ class ConnectivityManagerImpl final
 #endif
       public Internal::GenericConnectivityManagerImpl_NoBLE<ConnectivityManagerImpl>,
       public Internal::GenericConnectivityManagerImpl_NoThread<ConnectivityManagerImpl>,
-      public Internal::GenericConnectivityManagerImpl_NoWiFi<ConnectivityManagerImpl> {
+      public Internal::GenericConnectivityManagerImpl_WiFi<ConnectivityManagerImpl> {
     // Allow the ConnectivityManager interface class to delegate method calls to
     // the implementation methods provided by this class.
     friend class ConnectivityManager;
@@ -48,12 +50,18 @@ private:
     // ===== Members that implement the ConnectivityManager abstract interface.
     CHIP_ERROR _Init(void);
     void _OnPlatformEvent(const ChipDeviceEvent* event);
+    bool _IsWiFiStationConnected(void);
 
     // ===== Members for internal use by the following friends.
     friend ConnectivityManager& ConnectivityMgr(void);
     friend ConnectivityManagerImpl& ConnectivityMgrImpl(void);
 
     static ConnectivityManagerImpl sInstance;
+
+    static void WifiEvent(const void* message, void* context);
+    FuriPubSub* mWifiPubSub;
+    FuriPubSubSubscription* mPubSubSub;
+    bool mIsConnected;
 };
 
 /**

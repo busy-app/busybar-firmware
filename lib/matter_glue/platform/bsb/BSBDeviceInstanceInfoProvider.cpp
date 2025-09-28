@@ -1,9 +1,39 @@
 #include "BSBDeviceInstanceInfoProvider.hpp"
 
-#include <platform/CHIPDeviceConfig.h>
+#include "CryptoStorage.hpp"
 
 namespace chip {
 namespace DeviceLayer {
+
+namespace KeyId {
+
+enum {
+    VendorId,
+    ProductId,
+    VendorName,
+    ProductName,
+    PartNumber,
+    ProductUrl,
+    ProductLabel,
+    SerialNumber,
+    ManufacturingDate,
+    HardwareVersion,
+    HardwareVersionString,
+};
+
+}; // namespace KeyId
+
+#pragma pack(push, 1)
+struct ManufacturingDate {
+    uint16_t year;
+    uint8_t month;
+    uint8_t day;
+};
+#pragma pack(pop)
+
+static_assert(sizeof(ManufacturingDate) == 4, "Invalid ManufacturingDate size");
+
+using namespace BSB;
 
 class DeviceInstanceInfoProviderImpl : public DeviceInstanceInfoProvider {
 public:
@@ -22,81 +52,81 @@ public:
 };
 
 CHIP_ERROR DeviceInstanceInfoProviderImpl::GetVendorName(char* buf, size_t bufSize) {
-    static const char* const vendorName = CHIP_DEVICE_CONFIG_DEVICE_VENDOR_NAME;
-    strncpy(buf, vendorName, bufSize);
-
-    return (bufSize > strlen(vendorName)) ? CHIP_NO_ERROR : CHIP_ERROR_BUFFER_TOO_SMALL;
+    auto out_span = ToMutableByteSpan(buf, bufSize);
+    return LoadCryptoStorageKey(FuriHalCryptoKeyTypeMatterDeviceInfo, KeyId::VendorName, out_span);
 }
 
 CHIP_ERROR DeviceInstanceInfoProviderImpl::GetVendorId(uint16_t& vendorId) {
-    vendorId = CHIP_DEVICE_CONFIG_DEVICE_VENDOR_ID;
-    return CHIP_NO_ERROR;
+    auto out_span = ToMutableByteSpan(vendorId);
+    return LoadCryptoStorageKey(FuriHalCryptoKeyTypeMatterDeviceInfo, KeyId::VendorId, out_span);
 }
 
 CHIP_ERROR DeviceInstanceInfoProviderImpl::GetProductName(char* buf, size_t bufSize) {
-    static const char* const productName = CHIP_DEVICE_CONFIG_DEVICE_PRODUCT_NAME;
-    strncpy(buf, productName, bufSize);
-
-    return (bufSize > strlen(productName)) ? CHIP_NO_ERROR : CHIP_ERROR_BUFFER_TOO_SMALL;
+    auto out_span = ToMutableByteSpan(buf, bufSize);
+    return LoadCryptoStorageKey(
+        FuriHalCryptoKeyTypeMatterDeviceInfo, KeyId::ProductName, out_span);
 }
 
 CHIP_ERROR DeviceInstanceInfoProviderImpl::GetProductId(uint16_t& productId) {
-    productId = CHIP_DEVICE_CONFIG_DEVICE_PRODUCT_ID;
-    return CHIP_NO_ERROR;
+    auto out_span = ToMutableByteSpan(productId);
+    return LoadCryptoStorageKey(FuriHalCryptoKeyTypeMatterDeviceInfo, KeyId::ProductId, out_span);
 }
 
 CHIP_ERROR DeviceInstanceInfoProviderImpl::GetPartNumber(char* buf, size_t bufSize) {
-    static const char* const partNumber = "BSB0001";
-    strncpy(buf, partNumber, bufSize - 1);
-    return CHIP_NO_ERROR;
+    auto out_span = ToMutableByteSpan(buf, bufSize);
+    return LoadCryptoStorageKey(FuriHalCryptoKeyTypeMatterDeviceInfo, KeyId::PartNumber, out_span);
 }
 
 CHIP_ERROR DeviceInstanceInfoProviderImpl::GetProductURL(char* buf, size_t bufSize) {
-    static const char* const productUrl = "https://busy.bar";
-    strncpy(buf, productUrl, bufSize - 1);
-    return CHIP_NO_ERROR;
+    auto out_span = ToMutableByteSpan(buf, bufSize);
+    return LoadCryptoStorageKey(FuriHalCryptoKeyTypeMatterDeviceInfo, KeyId::ProductUrl, out_span);
 }
 
 CHIP_ERROR DeviceInstanceInfoProviderImpl::GetProductLabel(char* buf, size_t bufSize) {
-    static const char* const productLabel = "Busy";
-    strncpy(buf, productLabel, bufSize - 1);
-    return CHIP_NO_ERROR;
+    auto out_span = ToMutableByteSpan(buf, bufSize);
+    return LoadCryptoStorageKey(
+        FuriHalCryptoKeyTypeMatterDeviceInfo, KeyId::ProductLabel, out_span);
 }
 
 CHIP_ERROR DeviceInstanceInfoProviderImpl::GetSerialNumber(char* buf, size_t bufSize) {
-    static const char* const serialNumber = "1234567890";
-    strncpy(buf, serialNumber, bufSize);
-
-    return (bufSize > strlen(serialNumber)) ? CHIP_NO_ERROR : CHIP_ERROR_BUFFER_TOO_SMALL;
+    auto out_span = ToMutableByteSpan(buf, bufSize);
+    return LoadCryptoStorageKey(
+        FuriHalCryptoKeyTypeMatterDeviceInfo, KeyId::SerialNumber, out_span);
 }
 
 CHIP_ERROR DeviceInstanceInfoProviderImpl::GetManufacturingDate(
     uint16_t& year,
     uint8_t& month,
     uint8_t& day) {
-    year = 2025;
-    month = 8;
-    day = 18;
+    ManufacturingDate date;
+    auto out_span = ToMutableByteSpan(date);
+    const auto err = LoadCryptoStorageKey(
+        FuriHalCryptoKeyTypeMatterDeviceInfo, KeyId::ManufacturingDate, out_span);
 
-    return CHIP_NO_ERROR;
+    if(CHIP_ERROR::IsSuccess(err)) {
+        year = date.year;
+        month = date.month;
+        day = date.day;
+    }
+
+    return err;
 }
 
 CHIP_ERROR DeviceInstanceInfoProviderImpl::GetHardwareVersion(uint16_t& hardwareVersion) {
-    hardwareVersion = CHIP_DEVICE_CONFIG_DEFAULT_DEVICE_HARDWARE_VERSION;
-    return CHIP_NO_ERROR;
+    auto out_span = ToMutableByteSpan(hardwareVersion);
+    return LoadCryptoStorageKey(
+        FuriHalCryptoKeyTypeMatterDeviceInfo, KeyId::HardwareVersion, out_span);
 }
 
 CHIP_ERROR DeviceInstanceInfoProviderImpl::GetHardwareVersionString(char* buf, size_t bufSize) {
-    static const char* const versionString =
-        CHIP_DEVICE_CONFIG_DEFAULT_DEVICE_HARDWARE_VERSION_STRING;
-    strncpy(buf, versionString, bufSize);
-
-    return (bufSize > strlen(versionString)) ? CHIP_NO_ERROR : CHIP_ERROR_BUFFER_TOO_SMALL;
+    auto out_span = ToMutableByteSpan(buf, bufSize);
+    return LoadCryptoStorageKey(
+        FuriHalCryptoKeyTypeMatterDeviceInfo, KeyId::HardwareVersionString, out_span);
 }
 
 CHIP_ERROR
 DeviceInstanceInfoProviderImpl::GetRotatingDeviceIdUniqueId(MutableByteSpan& uniqueIdSpan) {
-    UNUSED(uniqueIdSpan);
+    uniqueIdSpan.reduce_size(0);
     return CHIP_NO_ERROR;
 }
 

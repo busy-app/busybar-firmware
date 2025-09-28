@@ -67,7 +67,7 @@
  * Production builds shall set to 0 or remove this option
  */
 #ifndef CHIP_DEVICE_CONFIG_ENABLE_TEST_SETUP_PARAMS
-#define CHIP_DEVICE_CONFIG_ENABLE_TEST_SETUP_PARAMS 1
+#define CHIP_DEVICE_CONFIG_ENABLE_TEST_SETUP_PARAMS 0
 #endif
 
 /**
