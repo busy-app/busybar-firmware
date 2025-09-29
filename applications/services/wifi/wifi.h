@@ -20,6 +20,8 @@ extern "C" {
  * The array pointed to by the results parameter MUST be allocated by the user code.
  * Naturally, it is also responsibe for freeing the array when it is no longer needed.
  *
+ * @note Scanning is only possible when the Wifi is disconnected from a network.
+ *
  * @param[in,out] instance pointer to the Wifi instance
  * @param[out] results pointer to the array to contain the scan results
  * @param[out] result_count pointer to the variable to contain the result count

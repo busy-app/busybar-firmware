@@ -14,28 +14,39 @@ static void wifi_intercom_rx_callback(const void* data, size_t data_size, void* 
     furi_event_loop_set_custom_event(instance->event_loop, WifiEventResponse);
 }
 
-static void wifi_update_connection_params(
+static void wifi_save_default_settings(Wifi* instance) {
+    WifiSettings* settings = &instance->settings;
+    wifi_settings_init_defaults(settings);
+    wifi_settings_save(settings);
+}
+
+static void wifi_load_settings(Wifi* instance) {
+    if(!wifi_settings_load(&instance->settings)) {
+        FURI_LOG_W(TAG, "Failed to load settings, using defaults");
+        wifi_save_default_settings(instance);
+    }
+}
+
+static void wifi_update_settings(
     Wifi* instance,
     const WifiCredentials* credentials,
     const WifiIpConfig* ip_config) {
-    if(instance->settings_applied) {
-        WifiSettings* settings = &instance->settings;
+    WifiSettings* settings = &instance->settings;
 
-        bool save_file = false;
+    bool save_file = false;
 
-        if(memcmp(&settings->credentials, credentials, sizeof(WifiCredentials)) != 0) {
-            settings->credentials = *credentials;
-            save_file = true;
-        }
+    if(memcmp(&settings->credentials, credentials, sizeof(WifiCredentials)) != 0) {
+        settings->credentials = *credentials;
+        save_file = true;
+    }
 
-        if(memcmp(&settings->ip_config, ip_config, sizeof(WifiIpConfig)) != 0) {
-            settings->ip_config = *ip_config;
-            save_file = true;
-        }
+    if(memcmp(&settings->ip_config, ip_config, sizeof(WifiIpConfig)) != 0) {
+        settings->ip_config = *ip_config;
+        save_file = true;
+    }
 
-        if(save_file) {
-            wifi_settings_save(settings);
-        }
+    if(save_file) {
+        wifi_settings_save(settings);
     }
 }
 
@@ -88,11 +99,12 @@ static void wifi_process_response(Wifi* instance) {
             const WifiConnectMessage* connect_message = &message->connect_message;
             const WifiIpConfig* ip_config = connect_message->ip_config;
 
-            wifi_update_connection_params(instance, connect_message->credentials, ip_config);
+            wifi_update_settings(instance, connect_message->credentials, ip_config);
             wifi_net_up(instance);
 
         } else if(request_type == WifiRequestTypeDisconnect) {
             wifi_net_down(instance);
+            wifi_save_default_settings(instance);
 
         } else if(request_type == WifiRequestTypeGetInfo) {
             WifiInfo* info = message->get_info_message.info;
@@ -126,17 +138,6 @@ static void wifi_custom_event_callback(uint32_t events, void* context) {
     }
 }
 
-static void wifi_load_settings(Wifi* instance) {
-    WifiSettings* settings = &instance->settings;
-
-    if(!wifi_settings_load(settings)) {
-        FURI_LOG_W(TAG, "Failed to load settings, using defaults");
-
-        wifi_settings_init_defaults(settings);
-        wifi_settings_save(settings);
-    }
-}
-
 static int32_t wifi_startup_thread_callback(void* arg) {
     furi_assert(arg);
     Wifi* instance = arg;
@@ -150,9 +151,9 @@ static int32_t wifi_startup_thread_callback(void* arg) {
 
         wifi_net_init(instance, &hw_address);
 
-        furi_record_create(RECORD_WIFI, instance);
-
         wifi_load_settings(instance);
+
+        furi_record_create(RECORD_WIFI, instance);
 
         const WifiSettings* settings = &instance->settings;
         const char* ssid = settings->credentials.ssid;
@@ -188,8 +189,6 @@ static int32_t wifi_startup_thread_callback(void* arg) {
             addr->bytes[3]);
 
     } while(false);
-
-    instance->settings_applied = true;
 
     return 0;
 }

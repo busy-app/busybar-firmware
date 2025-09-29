@@ -58,7 +58,6 @@ struct Wifi {
     WifiRequest request;
     WifiResponse response;
     WifiSettings settings;
-    bool settings_applied;
 };
 
 void wifi_net_init(Wifi* instance, const WifiHardwareAddress* addr);
