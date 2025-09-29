@@ -1,20 +1,11 @@
 #include "../../settings.h"
 #include "../../storage_macros.h"
-
-#include <gui/modules/image.h>
-#include <gui/modules/label.h>
+#include "../../widgets/status_view.h"
 
 #include <matter/matter.h>
 
 typedef struct {
-    struct {
-        Image* cross;
-        Label* message;
-    } front;
-    struct {
-        Image* cross;
-        Label* message;
-    } back;
+    StatusView* statuses[GuiDisplayIdMax];
 } SettingsSceneCommissionFail;
 
 static void settings_scene_matter_commission_fail_on_enter(void* context) {
@@ -22,34 +13,23 @@ static void settings_scene_matter_commission_fail_on_enter(void* context) {
     SettingsApp* app = context;
     SettingsSceneCommissionFail* scene = scene_manager_get_current_scene_data(app->scene_manager);
 
+    Widget* const windows[GuiDisplayIdMax] = {
+        [GuiDisplayIdFront] = app->front_scene_window,
+        [GuiDisplayIdBack] = app->back_scene_window,
+    };
+
+    static const char* const images[GuiDisplayIdMax] = {
+        [GuiDisplayIdFront] = SETTINGS_IMG_PATH("cross_front_7x7.bin"),
+        [GuiDisplayIdBack] = SETTINGS_IMG_PATH("cross_back_10x11.bin"),
+    };
+
     with_gui(app->gui, {
         widget_set_visible(nav_bar_get_base(app->back_nav_bar), true);
 
-        /* front */ {
-            scene->front.cross = image_alloc(app->front_scene_window);
-            image_set_source(scene->front.cross, SETTINGS_IMG_PATH("cross_front_7x7.bin"));
-            Widget* spinner_base = image_get_base(scene->front.cross);
-            widget_set_align(spinner_base, AlignLeftMid);
-
-            scene->front.message = label_alloc(app->front_scene_window);
-            label_set_text(scene->front.message, "Can't connect");
-            Widget* message_base = label_get_base(scene->front.message);
-            widget_set_align(message_base, AlignLeftMid);
-            widget_set_pos(message_base, 10, 0);
-        }
-
-        /* back */ {
-            scene->back.cross = image_alloc(app->back_scene_window);
-            image_set_source(scene->back.cross, SETTINGS_IMG_PATH("cross_back_10x11.bin"));
-            Widget* spinner_base = image_get_base(scene->back.cross);
-            widget_set_align(spinner_base, AlignCenter);
-            widget_set_pos(spinner_base, 0, -8);
-
-            scene->back.message = label_alloc(app->back_scene_window);
-            label_set_text(scene->back.message, "Can't connect");
-            Widget* message_base = label_get_base(scene->back.message);
-            widget_set_align(message_base, AlignCenter);
-            widget_set_pos(message_base, 0, 8);
+        for(GuiDisplayId disp = 0; disp < GuiDisplayIdMax; disp++) {
+            scene->statuses[disp] = status_view_alloc(windows[disp]);
+            status_view_set_icon(scene->statuses[disp], images[disp]);
+            status_view_set_header(scene->statuses[disp], "Cannot connect");
         }
     });
 }
@@ -60,12 +40,9 @@ static void settings_scene_matter_commission_fail_on_exit(void* context) {
     SettingsSceneCommissionFail* scene = scene_manager_get_current_scene_data(app->scene_manager);
 
     with_gui(app->gui, {
-        // front:
-        label_free(scene->front.message);
-        image_free(scene->front.cross);
-        // back:
-        label_free(scene->back.message);
-        image_free(scene->back.cross);
+        for(GuiDisplayId disp = 0; disp < GuiDisplayIdMax; disp++) {
+            status_view_free(scene->statuses[disp]);
+        }
     });
 }
 
@@ -78,7 +55,6 @@ static bool
     UNUSED(app);
 
     bool consumed = false;
-
     return consumed;
 }
 

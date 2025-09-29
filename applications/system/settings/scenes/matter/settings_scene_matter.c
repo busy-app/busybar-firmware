@@ -83,7 +83,8 @@ static bool settings_scene_matter_on_event(const SceneManagerEvent* event, void*
             if(scene->menu_idx == SceneSubmenuIndexPairing) {
                 scene_manager_next_scene(app->scene_manager, SettingsAppSceneIdMatterPairing);
             } else if(scene->menu_idx == SceneSubmenuIndexReset) {
-                scene_manager_next_scene(app->scene_manager, SettingsAppSceneIdMatterReset);
+                matter_factory_reset(app->matter);
+                scene_manager_next_scene(app->scene_manager, SettingsAppSceneIdReboot);
             } else {
                 furi_crash();
             }

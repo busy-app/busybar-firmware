@@ -3,34 +3,16 @@
 #include "../settings_scenes.h"
 #include "matter_scenes_common.h"
 
-#include <gui/modules/flex_layout.h>
-#include <gui/modules/label.h>
-#include <gui/modules/image.h>
-#include <gui/modules/rect.h>
-#include <gui/modules/qr_code.h>
+#include "../../widgets/matter_code_view.h"
+#include "../../widgets/status_view.h"
 
 #include <matter/matter.h>
 
 typedef struct {
     bool ui_initialized;
 
-    struct {
-        Image* info_icon;
-        Label* label;
-    } front;
-
-    struct {
-        Rect* card;
-
-        Image* logo;
-        Label* wordmark;
-
-        FlexLayout* man_code_layout;
-        Label* man_code_title;
-        Label* man_code;
-
-        QRCode* qr_code;
-    } back;
+    StatusView* front_prompt;
+    MatterCodeView* back_codes;
 } SettingsSceneMatterPairing;
 
 typedef enum {
@@ -58,67 +40,15 @@ static void settings_scene_matter_pairing_on_enter(void* context) {
     with_gui(app->gui, {
         widget_set_visible(nav_bar_get_base(app->back_nav_bar), true);
 
-        /* front */ {
-            scene->front.info_icon = image_alloc(app->front_scene_window);
-            image_set_source(scene->front.info_icon, SETTINGS_IMG_PATH("info_front_7x7.bin"));
-            Widget* info_icon_base = image_get_base(scene->front.info_icon);
-            widget_set_align(info_icon_base, AlignLeftMid);
+        scene->front_prompt = status_view_alloc(app->front_scene_window);
+        status_view_set_icon(scene->front_prompt, SETTINGS_IMG_PATH("info_front_7x7.bin"));
+        status_view_set_header(scene->front_prompt, "Look at back\nscreen");
 
-            scene->front.label = label_alloc(app->front_scene_window);
-            label_set_text(scene->front.label, "Look at back\nscreen");
-            Widget* label_base = label_get_base(scene->front.label);
-            widget_set_align(label_base, AlignLeftMid);
-            widget_set_pos(label_base, 10, 0);
-        }
-
-        /* back */ {
-            scene->back.card = rect_alloc(app->back_scene_window);
-            Widget* card_base = rect_get_base(scene->back.card);
-            widget_set_padding(card_base, 4, 6, 6, 6);
-            widget_set_size(card_base, 146, 64);
-
-            /* logo */ {
-                scene->back.logo = image_alloc(card_base);
-                image_set_source(scene->back.logo, SETTINGS_IMG_PATH("matter_back_14x14.bin"));
-                Widget* image_base = image_get_base(scene->back.logo);
-                widget_set_align(image_base, AlignTopLeft);
-
-                scene->back.wordmark = label_alloc(card_base);
-                label_set_text(scene->back.wordmark, "matter");
-                label_set_font(scene->back.wordmark, LabelFontMedium);
-                label_set_color(scene->back.wordmark, LabelColorBlack);
-                Widget* wordmark_base = label_get_base(scene->back.wordmark);
-                widget_set_align(wordmark_base, AlignTopLeft);
-                widget_set_pos(wordmark_base, 19, 1);
-            }
-
-            /* manual code */ {
-                scene->back.man_code_layout = flex_layout_alloc(card_base, FlexLayoutTypeColumn);
-                flex_layout_set_align(
-                    scene->back.man_code_layout,
-                    FlexLayoutAlignEnd,
-                    FlexLayoutAlignStart,
-                    FlexLayoutAlignStart);
-                flex_layout_set_spacing(scene->back.man_code_layout, 1);
-                Widget* layout_base = flex_layout_get_base(scene->back.man_code_layout);
-                widget_set_align(layout_base, AlignBottomLeft);
-
-                scene->back.man_code_title = label_alloc(layout_base);
-                label_set_text(scene->back.man_code_title, "Manual code");
-                label_set_color(scene->back.man_code_title, LabelColorGrey);
-
-                scene->back.man_code = label_alloc(layout_base);
-                label_set_text(scene->back.man_code, furi_string_get_cstr(man_code));
-                label_set_color(scene->back.man_code, LabelColorBlack);
-                label_set_font(scene->back.man_code, LabelFontNumerals);
-            }
-
-            scene->back.qr_code = qr_code_alloc(card_base);
-            qr_code_set_size(scene->back.qr_code, 50);
-            qr_code_set_data(scene->back.qr_code, furi_string_get_cstr(qr_code));
-            Widget* qr_base = qr_code_get_base(scene->back.qr_code);
-            widget_set_align(qr_base, AlignRightMid);
-        }
+        scene->back_codes = matter_code_view_alloc(app->back_scene_window);
+        matter_code_view_set_logo_path(
+            scene->back_codes, SETTINGS_IMG_PATH("matter_back_14x14.bin"));
+        matter_code_view_set_codes(
+            scene->back_codes, furi_string_get_cstr(qr_code), furi_string_get_cstr(man_code));
     });
 
     scene->ui_initialized = true;
@@ -135,21 +65,8 @@ static void settings_scene_matter_pairing_on_exit(void* context) {
     if(!scene->ui_initialized) return;
 
     with_gui(app->gui, {
-        // front:
-        label_free(scene->front.label);
-        image_free(scene->front.info_icon);
-
-        // back:
-        qr_code_free(scene->back.qr_code);
-
-        label_free(scene->back.man_code);
-        label_free(scene->back.man_code_title);
-        flex_layout_free(scene->back.man_code_layout);
-
-        label_free(scene->back.wordmark);
-        image_free(scene->back.logo);
-
-        rect_free(scene->back.card);
+        status_view_free(scene->front_prompt);
+        matter_code_view_free(scene->back_codes);
     });
 }
 

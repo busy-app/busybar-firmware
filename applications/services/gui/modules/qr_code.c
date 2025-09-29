@@ -2,14 +2,16 @@
 
 #include <gui/widget_i.h>
 
-#define MY_CLASS (&qr_code_lvgl_class)
+#define MY_CARD_CLASS (&qr_code_card_lvgl_class)
+#define MY_QR_CLASS   (&qr_code_qr_lvgl_class)
 
 struct QRCode {
     Widget base;
     lv_obj_t* qr_code;
 };
 
-const lv_obj_class_t qr_code_lvgl_class;
+const lv_obj_class_t qr_code_card_lvgl_class;
+const lv_obj_class_t qr_code_qr_lvgl_class;
 
 // LVGL-specific functions
 
@@ -17,7 +19,8 @@ static void qr_code_lvgl_constructor(const lv_obj_class_t* class_p, lv_obj_t* ob
     UNUSED(class_p);
 
     QRCode* instance = (QRCode*)obj;
-    instance->qr_code = lv_qrcode_create(obj);
+    instance->qr_code = lv_obj_class_create_obj(MY_QR_CLASS, obj);
+    lv_obj_class_init_obj(instance->qr_code);
 }
 
 // Public API
@@ -25,7 +28,7 @@ static void qr_code_lvgl_constructor(const lv_obj_class_t* class_p, lv_obj_t* ob
 QRCode* qr_code_alloc(Widget* parent) {
     furi_check(parent);
 
-    lv_obj_t* obj = lv_obj_class_create_obj(MY_CLASS, (lv_obj_t*)parent);
+    lv_obj_t* obj = lv_obj_class_create_obj(MY_CARD_CLASS, (lv_obj_t*)parent);
     lv_obj_class_init_obj(obj);
 
     QRCode* instance = (QRCode*)obj;
@@ -57,11 +60,18 @@ void qr_code_set_data(QRCode* instance, const char* data) {
 
 // LVGL class descriptor
 
-const lv_obj_class_t qr_code_lvgl_class = {
+const lv_obj_class_t qr_code_card_lvgl_class = {
     .base_class = &widget_lvgl_class,
     .constructor_cb = qr_code_lvgl_constructor,
     .name = "widget-qr_code",
     .width_def = LV_SIZE_CONTENT,
     .height_def = LV_SIZE_CONTENT,
     .instance_size = sizeof(QRCode),
+};
+
+const lv_obj_class_t qr_code_qr_lvgl_class = {
+    .base_class = &lv_qrcode_class,
+    .name = "qr_code-qr",
+    .width_def = LV_SIZE_CONTENT,
+    .height_def = LV_SIZE_CONTENT,
 };
