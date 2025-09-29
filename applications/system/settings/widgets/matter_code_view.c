@@ -107,7 +107,8 @@ static void matter_code_view_lvgl_constructor(const lv_obj_class_t* class_p, lv_
     lv_obj_class_init_obj(instance->man_code);
     lv_obj_set_style_align(instance->man_code, LV_ALIGN_BOTTOM_LEFT, LV_PART_MAIN);
     lv_obj_set_style_text_color(instance->man_code, TEXT_COLOR, LV_PART_MAIN);
-    lv_obj_set_style_text_font(instance->man_code, &lv_font_ark_numerals_condensed_10, LV_PART_MAIN);
+    lv_obj_set_style_text_font(
+        instance->man_code, &lv_font_ark_numerals_condensed_10, LV_PART_MAIN);
 
     instance->qr_code = lv_obj_class_create_obj(MY_QR_CODE_CLASS, obj);
     lv_obj_class_init_obj(instance->qr_code);

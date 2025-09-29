@@ -219,7 +219,6 @@ static void theme_apply_callback(lv_theme_t* th, lv_obj_t* obj) {
         lv_obj_add_style(obj, &theme->styles.focused, LV_PART_MAIN);
         lv_obj_add_style(obj, &theme->styles.scrollbar, LV_PART_SCROLLBAR);
 
-
     } else if(lv_obj_check_type(obj, &menu_lvgl_class)) {
         lv_obj_add_style(obj, &theme->styles.menu, LV_PART_MAIN);
         lv_obj_add_style(obj, &theme->styles.scrollbar, LV_PART_SCROLLBAR);
@@ -242,7 +241,6 @@ static void theme_apply_callback(lv_theme_t* th, lv_obj_t* obj) {
         lv_obj_add_style(obj, &theme->styles.transparent, LV_PART_MAIN);
         lv_obj_add_style(obj, &theme->styles.inverted, LV_PART_MAIN | LV_STATE_FOCUSED);
 
-
     } else if(lv_obj_check_type(obj, &submenu_lvgl_class)) {
         lv_obj_add_style(obj, &theme->styles.menu, LV_PART_MAIN);
         lv_obj_add_style(obj, &theme->styles.scrollbar, LV_PART_SCROLLBAR);
@@ -254,7 +252,6 @@ static void theme_apply_callback(lv_theme_t* th, lv_obj_t* obj) {
 
     } else if(lv_obj_check_type(obj, &submenu_cursor_lvgl_class)) {
         lv_obj_add_style(obj, &theme->styles.submenu_cursor, LV_PART_MAIN);
-
 
     } else if(lv_obj_check_type(obj, &var_item_list_lvgl_class)) {
         lv_obj_add_style(obj, &theme->styles.menu, LV_PART_MAIN);
@@ -278,22 +275,18 @@ static void theme_apply_callback(lv_theme_t* th, lv_obj_t* obj) {
         lv_obj_add_style(obj, &theme->styles.menu_arrow, LV_PART_MAIN);
         lv_obj_add_style(obj, &theme->styles.menu_arrow, LV_PART_MAIN | LV_STATE_DISABLED);
 
-
 #ifndef FURI_RAM_EXEC
     } else if(lv_obj_check_type(obj, &timer_card_lvgl_class)) {
         lv_obj_add_style(obj, &theme->styles.timer_card, LV_PART_MAIN);
 
-        
     } else if(lv_obj_check_type(obj, &title_card_lvgl_class)) {
         lv_obj_add_style(obj, &theme->styles.title_card, LV_PART_MAIN);
 
     } else if(lv_obj_check_type(obj, &title_card_label_lvgl_class)) {
         lv_obj_add_style(obj, &theme->styles.title_card_label, LV_PART_MAIN);
 
-
     } else if(lv_obj_check_type(obj, &qr_code_card_lvgl_class)) {
         lv_obj_add_style(obj, &theme->styles.qr_code_card, LV_PART_MAIN);
-
 
     } else if(lv_obj_check_type(obj, &slider_view_lvgl_class)) {
         lv_obj_add_style(obj, &theme->styles.slider_view, LV_PART_MAIN);
@@ -307,7 +300,6 @@ static void theme_apply_callback(lv_theme_t* th, lv_obj_t* obj) {
     } else if(lv_obj_check_type(obj, &slider_view_arrow_label_lvgl_class)) {
         lv_obj_add_style(obj, &theme->styles.disabled, LV_PART_MAIN | LV_STATE_DISABLED);
 
-        
     } else if(lv_obj_check_type(obj, &status_view_lvgl_class)) {
         lv_obj_add_style(obj, &theme->styles.normal, LV_PART_MAIN);
 
