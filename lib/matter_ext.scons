@@ -75,6 +75,7 @@ libenv.AppendUnique(
         "-Wno-maybe-uninitialized",
         "-Wno-deprecated-declarations",
         "-Wno-missing-field-initializers",
+        "-Wno-psabi",
     ],
     CPPDEFINES=[
         "CHIP_CRYPTO_PLATFORM=1",
