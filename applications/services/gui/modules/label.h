@@ -34,21 +34,6 @@ typedef enum {
     LabelLongContentModeCount /**< Count of possible choices*/
 } LabelLongContentMode;
 
-typedef enum {
-    LabelColorWhite,
-    LabelColorGrey,
-    LabelColorBlack,
-    LabelColorMAX,
-} LabelColor;
-
-typedef enum {
-    LabelFontNumerals,
-    LabelFontSmall,
-    LabelFontMedium,
-    LabelFontBig,
-    LabelFontMAX,
-} LabelFont;
-
 /**
  * @brief Create a new Label instance.
  *
@@ -117,22 +102,6 @@ void label_set_text_align(Label* instance, TextAlign align);
  * @param[in] duration defines animation speed in scrollable modes
  */
 void label_set_long_content_mode(Label* instance, LabelLongContentMode mode, uint32_t duration);
-
-/**
- * @brief Set label color.
- * 
- * @param[in,out] instance pointer to the Label instance to be modified
- * @param[in] color new color for label
- */
-void label_set_color(Label* instance, LabelColor color);
-
-/**
- * @brief Set label font.
- * 
- * @param[in,out] instance pointer to the Label instance to be modified
- * @param[in] font new font for label
- */
-void label_set_font(Label* instance, LabelFont font);
 
 #ifdef __cplusplus
 }
