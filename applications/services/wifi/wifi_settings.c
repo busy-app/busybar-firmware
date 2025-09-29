@@ -10,7 +10,6 @@
 #define WIFI_SETTINGS_CURRENT_VERSION (0)
 
 #define VERSION_KEY "version"
-#define ENABLED_KEY "enabled"
 
 #define CREDENTIALS_KEY "credentials"
 
@@ -414,14 +413,6 @@ static bool wifi_settings_parse(cJSON* json, WifiSettings* settings) {
             break;
         }
 
-        item = cJSON_GetObjectItem(json, ENABLED_KEY);
-
-        if(!cJSON_IsBool(item)) {
-            break;
-        }
-
-        settings->enabled = cJSON_IsTrue(item);
-
         item = cJSON_GetObjectItem(json, CREDENTIALS_KEY);
 
         if(!wifi_settings_parse_credentials(item, &settings->credentials)) {
@@ -503,7 +494,6 @@ bool wifi_settings_save(const WifiSettings* settings) {
         cJSON* root = cJSON_CreateObject();
 
         cJSON_AddNumberToObject(root, VERSION_KEY, WIFI_SETTINGS_CURRENT_VERSION);
-        cJSON_AddBoolToObject(root, ENABLED_KEY, settings->enabled);
 
         wifi_settings_serialize_credentials(root, &settings->credentials);
         wifi_settings_serialize_ip_config(root, &settings->ip_config);
