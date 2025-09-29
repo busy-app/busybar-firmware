@@ -132,10 +132,10 @@ static CustomApp* custom_alloc(void) {
         custom_event_queue_callback,
         instance);
 
+    scene_manager_next_scene(instance->scene_manager, CustomAppSceneIdStart);
+
     custom_set_status_lights(instance, CustomStatusLightsTypeOff);
     custom_set_matter(instance, false);
-
-    scene_manager_next_scene(instance->scene_manager, CustomAppSceneIdStart);
 
     return instance;
 }
