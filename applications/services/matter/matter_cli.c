@@ -125,6 +125,19 @@ static void matter_cli_cmd_comm(PipeSide* pipe, FuriString* args, void* context)
     furi_string_free(man_code);
 }
 
+static void matter_cli_cmd_fabrics(PipeSide* pipe, FuriString* args, void* context) {
+    UNUSED(pipe);
+    UNUSED(args);
+    furi_assert(context);
+    MatterCli* matter_cli = context;
+
+    if(matter_is_commissioned(matter_cli->matter)) {
+        printf("device is commissioned to one or more fabrics\r\n");
+    } else {
+        printf("device is not commissioned to any fabric\r\n");
+    }
+}
+
 // =========
 // Utilities
 // =========
@@ -264,6 +277,12 @@ void matter_cli_command(PipeSide* pipe, FuriString* args, void* context) {
         "comm",
         CliCommandFlagParallelSafe | CliCommandFlagUseShellThread,
         matter_cli_cmd_comm,
+        matter_cli);
+    cli_registry_add_command(
+        matter_cli->commands,
+        "fabrics",
+        CliCommandFlagParallelSafe | CliCommandFlagUseShellThread,
+        matter_cli_cmd_fabrics,
         matter_cli);
 
     cli_shell_start(matter_cli->shell);
