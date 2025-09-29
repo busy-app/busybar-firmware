@@ -10,11 +10,13 @@ typedef enum {
 
 typedef enum {
     SceneCustomEventMenuItemClicked = SettingsCustomEventSceneEventsStart,
+    SceneCustomEventSwitchToPairing,
 } SceneCustomEvent;
 
 typedef struct {
     Submenu* submenus[GuiDisplayIdMax];
 
+    bool ui_initialized;
     _Atomic size_t menu_idx;
 } SettingsSceneMatter;
 
@@ -32,6 +34,13 @@ static void settings_scene_matter_on_enter(void* context) {
     furi_assert(context);
     SettingsApp* app = context;
     SettingsSceneMatter* scene = scene_manager_get_current_scene_data(app->scene_manager);
+
+    scene->ui_initialized = false;
+
+    if(!matter_is_commissioned(app->matter)) {
+        settings_send_custom_event(app, SceneCustomEventSwitchToPairing);
+        return;
+    }
 
     with_gui(app->gui, {
         widget_set_visible(nav_bar_get_base(app->back_nav_bar), true);
@@ -56,12 +65,16 @@ static void settings_scene_matter_on_enter(void* context) {
                 app);
         }
     });
+
+    scene->ui_initialized = true;
 }
 
 static void settings_scene_matter_on_exit(void* context) {
     furi_assert(context);
     SettingsApp* app = context;
     SettingsSceneMatter* scene = scene_manager_get_current_scene_data(app->scene_manager);
+
+    if(!scene->ui_initialized) return;
 
     with_gui(app->gui, {
         for(GuiDisplayId display = 0; display < GuiDisplayIdMax; display++) {
@@ -89,6 +102,11 @@ static bool settings_scene_matter_on_event(const SceneManagerEvent* event, void*
                 furi_crash();
             }
 
+            consumed = true;
+
+        } else if(event->event == SceneCustomEventSwitchToPairing) {
+            scene_manager_replace_current_scene(
+                app->scene_manager, SettingsAppSceneIdMatterPairing);
             consumed = true;
         }
 

@@ -16,6 +16,7 @@ struct MatterSrv {
     FuriPubSub* pubsub;
 
     MatterVirtualDeviceState device_state[MatterVirtualDeviceMAX];
+    uint8_t commissioned_fabrics;
 
     Intercom* intercom;
 };
@@ -101,6 +102,9 @@ static void matter_handle_frame(FuriEventLoopObject* object, void* context) {
         };
         furi_pubsub_publish(matter->pubsub, &event);
 
+    } else if(frame.type == MatterIntercomFrameTypeFabricCountUpdate) {
+        matter->commissioned_fabrics = frame.fabric_count.fabric_count;
+
     } else {
         furi_crash();
     }
@@ -122,6 +126,7 @@ typedef enum {
     MatterApiRequestTypeSetState,
     MatterApiRequestTypeReset,
     MatterApiRequestTypeCommission,
+    MatterApiRequestTypeGetFabricCount,
 } MatterApiRequestType;
 
 typedef struct {
@@ -132,6 +137,7 @@ typedef struct {
     FuriString* qr_code;
     FuriString* manual_code;
     size_t window_duration;
+    uint8_t fabric_count;
 } MatterApiRequest;
 
 static void matter_handle_api_request(FuriEventLoopObject* object, void* context) {
@@ -201,6 +207,11 @@ static void matter_handle_api_request(FuriEventLoopObject* object, void* context
 
         break;
     }
+
+    case MatterApiRequestTypeGetFabricCount: {
+        request->fabric_count = matter->commissioned_fabrics;
+        break;
+    }
     }
 
     api_lock_unlock(request->lock);
@@ -256,6 +267,15 @@ size_t
     };
     matter_synchronous_request(matter, &request);
     return request.window_duration;
+}
+
+bool matter_is_commissioned(MatterSrv* matter) {
+    furi_check(matter);
+    MatterApiRequest request = {
+        .type = MatterApiRequestTypeGetFabricCount,
+    };
+    matter_synchronous_request(matter, &request);
+    return request.fabric_count > 0;
 }
 
 // =============

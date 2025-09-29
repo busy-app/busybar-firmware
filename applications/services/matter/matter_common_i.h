@@ -48,6 +48,13 @@ typedef struct {
 } MatterIntercomCommissionFrame;
 
 /**
+ * @brief Number of commissioned fabrics
+ */
+typedef struct {
+    uint8_t fabric_count;
+} MatterIntercomFabricCountUpdateFrame;
+
+/**
  * @brief Pairing codes
  */
 typedef struct {
@@ -72,6 +79,8 @@ typedef enum {
     MatterIntercomFrameTypeCommission, //<! Enter commissioning mode. Direction: u5->917
     MatterIntercomFrameTypePairingCodes, //<! Pairing codes. Direction: 917->u5
     MatterIntercomFrameTypeCommissionStatus, //<! Commissioning status update. Direction: 917->u5
+
+    MatterIntercomFrameTypeFabricCountUpdate, // <! Commissioned fabric count. Direction: 917->u5
 } MatterIntercomFrameType;
 
 typedef struct {
@@ -84,6 +93,7 @@ typedef struct {
         MatterIntercomCommissionFrame commission;
         MatterIntercomPairingCodesFrame codes;
         MatterIntercomCommissionStatusFrame commission_status;
+        MatterIntercomFabricCountUpdateFrame fabric_count;
     };
 } MatterIntercomFrame;
 

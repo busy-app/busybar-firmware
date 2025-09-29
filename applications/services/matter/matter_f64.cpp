@@ -196,6 +196,21 @@ static void matter_send_state_update(MatterSrv* matter, MatterVirtualDeviceState
 }
 
 /**
+ * @brief Sends current count of commissioned fabrics to u5
+ * @warning Requires Matter stack to be locked
+ */
+static void matter_send_fabric_count_update(MatterSrv* matter) {
+    MatterIntercomFrame frame = {
+        .type = MatterIntercomFrameTypeFabricCountUpdate,
+        .fabric_count =
+            {
+                .fabric_count = Server::GetInstance().GetFabricTable().FabricCount(),
+            },
+    };
+    matter_send_frame(matter, &frame);
+}
+
+/**
  * @brief Receives updates about cluster attribute changes in the Matter stack
  * @note Overrides an `__attribute__((weak))` stub callback in the Matter SDK
  */
@@ -292,6 +307,7 @@ static void matter_device_event(const ChipDeviceEvent* event, intptr_t arg) {
                 },
         };
         matter_send_frame(matter, &frame);
+        matter_send_fabric_count_update(matter);
     }
 }
 
@@ -339,6 +355,7 @@ CHIP_ERROR MatterSrv::init(void) {
         intercom_set_rx_callback(this->intercom, IntercomChannelMatter, matter_handle_frame, this);
         matter_send_current_state(this, MatterVirtualDeviceSwitch1);
         matter_send_current_state(this, MatterVirtualDeviceSwitch2);
+        matter_send_fabric_count_update(this);
     } while(false);
 
     return err;

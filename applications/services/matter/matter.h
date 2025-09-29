@@ -96,6 +96,14 @@ void matter_factory_reset(MatterSrv* matter);
 size_t
     matter_enable_commissioning(MatterSrv* matter, FuriString* qr_code, FuriString* manual_code);
 
+/**
+ * @brief Determines whether the device is commissioned into at least one Matter
+ *        fabric
+ * 
+ * @param[in] matter Service instance
+ */
+bool matter_is_commissioned(MatterSrv* matter);
+
 #ifdef __cplusplus
 }
 #endif
