@@ -10,6 +10,11 @@
 #define MY_MAN_CODE_CLASS  (&matter_code_view_man_code_lvgl_class)
 #define MY_QR_CODE_CLASS   (&matter_code_view_qr_code_lvgl_class)
 
+#define CARD_RADIUS     (4)
+#define MAN_TITLE_COLOR lv_color_hex(0x444444)
+#define BG_COLOR        lv_color_white()
+#define TEXT_COLOR      lv_color_black()
+
 struct MatterCodeView {
     Widget base;
     lv_obj_t* logo;
@@ -35,6 +40,10 @@ MatterCodeView* matter_code_view_alloc(Widget* parent) {
 
     lv_obj_t* obj = lv_obj_class_create_obj(MY_CLASS, TO_LV_OBJ(parent));
     lv_obj_class_init_obj(obj);
+    lv_obj_set_style_radius(obj, CARD_RADIUS, LV_PART_MAIN);
+    lv_obj_set_style_pad_all(obj, 6, LV_PART_MAIN);
+    lv_obj_set_style_bg_opa(obj, LV_OPA_COVER, LV_PART_MAIN);
+    lv_obj_set_style_bg_color(obj, BG_COLOR, LV_PART_MAIN);
 
     MatterCodeView* instance = (MatterCodeView*)obj;
     return instance;
@@ -77,20 +86,32 @@ static void matter_code_view_lvgl_constructor(const lv_obj_class_t* class_p, lv_
 
     instance->logo = lv_obj_class_create_obj(MY_LOGO_CLASS, obj);
     lv_obj_class_init_obj(instance->logo);
+    lv_obj_set_style_align(instance->logo, LV_ALIGN_TOP_LEFT, LV_PART_MAIN);
 
     instance->wordmark = lv_obj_class_create_obj(MY_WORDMARK_CLASS, obj);
     lv_obj_class_init_obj(instance->wordmark);
     lv_label_set_text(instance->wordmark, "matter");
+    lv_obj_set_style_align(instance->wordmark, LV_ALIGN_TOP_LEFT, LV_PART_MAIN);
+    lv_obj_set_style_x(instance->wordmark, 19, LV_PART_MAIN);
+    lv_obj_set_style_text_color(instance->wordmark, TEXT_COLOR, LV_PART_MAIN);
+    lv_obj_set_style_text_font(instance->wordmark, &lv_font_ark_regular_12, LV_PART_MAIN);
 
     instance->man_title = lv_obj_class_create_obj(MY_MAN_TITLE_CLASS, obj);
     lv_obj_class_init_obj(instance->man_title);
     lv_label_set_text(instance->man_title, "Manual code");
+    lv_obj_set_style_align(instance->man_title, LV_ALIGN_BOTTOM_LEFT, LV_PART_MAIN);
+    lv_obj_set_style_y(instance->man_title, -11, LV_PART_MAIN);
+    lv_obj_set_style_text_color(instance->man_title, MAN_TITLE_COLOR, LV_PART_MAIN);
 
     instance->man_code = lv_obj_class_create_obj(MY_MAN_CODE_CLASS, obj);
     lv_obj_class_init_obj(instance->man_code);
+    lv_obj_set_style_align(instance->man_code, LV_ALIGN_BOTTOM_LEFT, LV_PART_MAIN);
+    lv_obj_set_style_text_color(instance->man_code, TEXT_COLOR, LV_PART_MAIN);
+    lv_obj_set_style_text_font(instance->man_code, &lv_font_ark_numerals_condensed_10, LV_PART_MAIN);
 
     instance->qr_code = lv_obj_class_create_obj(MY_QR_CODE_CLASS, obj);
     lv_obj_class_init_obj(instance->qr_code);
+    lv_obj_set_style_align(instance->qr_code, LV_ALIGN_RIGHT_MID, LV_PART_MAIN);
 }
 
 const lv_obj_class_t matter_code_view_lvgl_class = {

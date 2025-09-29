@@ -57,11 +57,3 @@ extern const lv_obj_class_t status_view_lvgl_class;
 extern const lv_obj_class_t status_view_icon_lvgl_class;
 extern const lv_obj_class_t status_view_header_lvgl_class;
 extern const lv_obj_class_t status_view_additional_text_lvgl_class;
-
-// MatterCodeView
-extern const lv_obj_class_t matter_code_view_lvgl_class;
-extern const lv_obj_class_t matter_code_view_logo_lvgl_class;
-extern const lv_obj_class_t matter_code_view_wordmark_lvgl_class;
-extern const lv_obj_class_t matter_code_view_man_title_lvgl_class;
-extern const lv_obj_class_t matter_code_view_man_code_lvgl_class;
-extern const lv_obj_class_t matter_code_view_qr_code_lvgl_class;
