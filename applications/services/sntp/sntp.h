@@ -1,6 +1,8 @@
 #pragma once
 
-#include <furi/furi.h>
+#include "sntp_settings.h"
+
+#include <furi.h>
 
 typedef struct Sntp Sntp;
 
@@ -9,6 +11,10 @@ extern "C" {
 #endif
 
 void sntp_status_update(Sntp* instance, bool success);
+
+const SntpSettings* sntp_get_settings(const Sntp* instance);
+
+bool sntp_set_settings(Sntp* instance, const SntpSettings* settings);
 
 #ifdef __cplusplus
 }

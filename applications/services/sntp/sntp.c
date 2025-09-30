@@ -1,12 +1,11 @@
 #include "sntp.h"
-#include <wifi/wifi.h>
 #include "sntp_time_update.h"
+
+#include <wifi/wifi.h>
 
 #define TAG "SntpSvc"
 
-#define SNTP_INTERVAL_MINUTES_TO_MS(x) ((x) * 60 * 1000)
-#define SNTP_REBOOT_INTERVAL_MINUTES   SNTP_INTERVAL_MINUTES_TO_MS(5) // 5 minutes
-#define SNTP_INTERVAL_MINUTES          SNTP_INTERVAL_MINUTES_TO_MS(180) // 3 hour
+#define SNTP_S_TO_MS(x) ((x) * 1000)
 
 typedef enum {
     SntpStatusIdle = 0,
@@ -24,6 +23,7 @@ struct Sntp {
     FuriEventLoop* event_loop;
     FuriEventLoopTimer* timer;
     SntpStatus status;
+    SntpSettings settings;
 };
 
 static bool sntp_check_wifi_connected(Sntp* instance) {
@@ -79,7 +79,8 @@ static void sntp_custom_event_callback(uint32_t events, void* context) {
     if(events & SntpCustomEventSuccess) {
         FURI_LOG_I(TAG, "SNTP time update successful");
         instance->status = SntpStatusIdle;
-        furi_event_loop_timer_start(instance->timer, SNTP_INTERVAL_MINUTES);
+        furi_event_loop_timer_start(
+            instance->timer, SNTP_S_TO_MS(instance->settings.auto_interval));
     }
 }
 
@@ -94,9 +95,38 @@ Sntp* sntp_alloc() {
     furi_event_loop_set_custom_event_callback(
         instance->event_loop, sntp_custom_event_callback, instance);
 
-    furi_event_loop_timer_start(instance->timer, SNTP_REBOOT_INTERVAL_MINUTES);
+    sntp_settings_load(&instance->settings);
+
+    furi_event_loop_timer_start(instance->timer, SNTP_S_TO_MS(instance->settings.boot_interval));
 
     return instance;
+}
+
+const SntpSettings* sntp_get_settings(const Sntp* instance) {
+    furi_check(instance);
+    return &instance->settings;
+}
+
+bool sntp_set_settings(Sntp* instance, const SntpSettings* settings) {
+    furi_check(instance);
+    furi_check(settings);
+
+    bool is_success = sntp_settings_save(settings) && sntp_settings_load(&instance->settings);
+
+    if(is_success) {
+        if(instance->settings.is_enabled) {
+            uint32_t interval = (instance->status == SntpStatusSuccess) ?
+                                    instance->settings.auto_interval :
+                                    instance->settings.boot_interval;
+
+            furi_event_loop_pend_callback(instance->event_loop, sntp_timer_callback, instance);
+            furi_event_loop_timer_start(instance->timer, SNTP_S_TO_MS(interval));
+        } else {
+            furi_event_loop_timer_stop(instance->timer);
+        }
+    }
+
+    return is_success;
 }
 
 int32_t sntp_srv(void* p) {
