@@ -7,8 +7,7 @@
 
 #define TAG "SntpTimeUpdate"
 
-#define SNTP_TIME_UPDATE_SET_TIMEZONE            (4) // Set timezone offset in hours
-#define SNTP_TIME_UPDATE_TIMEZONE_CALCULATION(x) ((x) * 60 * 60) // Convert hours to seconds
+#define SNTP_H_TO_S(x) ((x) * 60 * 60)
 
 typedef enum {
     SntpTimeUpdateStatusSuccess = (1UL << 1),
@@ -16,17 +15,22 @@ typedef enum {
     SntpTimeUpdateStatusDone = (1UL << 3),
 } SntpTimeUpdateStatus;
 
+typedef struct {
+    int timezone_offset;
+    SntpTimeUpdateStatus status;
+} SntpTimeUpdateContext;
+
 static void sntp_time_update_callback(struct mg_connection* c, int ev, void* ev_data) {
-    SntpTimeUpdateStatus* sntp_time_update_done = c->fn_data;
+    SntpTimeUpdateContext* context = c->fn_data;
 
     if(ev == MG_EV_SNTP_TIME) {
         const time_t time = *(time_t*)ev_data / 1000; // Get rid of milliseconds
         DateTime datetime_temp, datetime;
         furi_hal_rtc_get_datetime(&datetime_temp);
+
         // Update the RTC with the received time
-        datetime_timestamp_to_datetime(
-            time + SNTP_TIME_UPDATE_TIMEZONE_CALCULATION(SNTP_TIME_UPDATE_SET_TIMEZONE),
-            &datetime);
+        const time_t timezone_offset_seconds = SNTP_H_TO_S(context->timezone_offset);
+        datetime_timestamp_to_datetime(time + timezone_offset_seconds, &datetime);
         furi_hal_rtc_set_datetime(&datetime);
 
         suseconds_t tv_usec = *(time_t*)ev_data % 1000;
@@ -39,14 +43,13 @@ static void sntp_time_update_callback(struct mg_connection* c, int ev, void* ev_
 
         // Log the time adjustment from RTC
         const time_t time_temp =
-            datetime_datetime_to_timestamp(&datetime_temp) -
-            SNTP_TIME_UPDATE_TIMEZONE_CALCULATION(SNTP_TIME_UPDATE_SET_TIMEZONE);
+            datetime_datetime_to_timestamp(&datetime_temp) - timezone_offset_seconds;
         FURI_LOG_I(TAG, "Time adjustment from RTC: %+d seconds", (int)time - (int)time_temp);
 
-        *sntp_time_update_done |= SntpTimeUpdateStatusSuccess;
+        context->status |= SntpTimeUpdateStatusSuccess;
 
     } else if(ev == MG_EV_CLOSE) {
-        *sntp_time_update_done |= SntpTimeUpdateStatusDone;
+        context->status |= SntpTimeUpdateStatusDone;
     }
 }
 
@@ -54,9 +57,12 @@ static int32_t sntp_time_update_thread_callback(void* context) {
     furi_assert(context);
 
     Sntp* instance = context;
+    const SntpSettings* settings = sntp_get_settings(instance);
 
     struct mg_mgr mgr;
-    SntpTimeUpdateStatus status = 0;
+    SntpTimeUpdateContext update_context = {
+        .timezone_offset = settings->timezone_offset,
+    };
 
     FURI_LOG_D(TAG, "Start");
 
@@ -64,16 +70,17 @@ static int32_t sntp_time_update_thread_callback(void* context) {
     network_init_current_thread(network);
 
     mg_mgr_init(&mgr);
-    mg_sntp_connect(&mgr, NULL, sntp_time_update_callback, &status);
+    mg_sntp_connect(&mgr, settings->server_name, sntp_time_update_callback, &update_context);
 
-    while(!(status & SntpTimeUpdateStatusDone)) {
+    while(!(update_context.status & SntpTimeUpdateStatusDone)) {
         mg_mgr_poll(&mgr, 1000);
     }
+
     mg_mgr_free(&mgr);
     network_deinit_current_thread(network);
     furi_record_close(RECORD_NETWORK);
 
-    if(status & SntpTimeUpdateStatusSuccess) {
+    if(update_context.status & SntpTimeUpdateStatusSuccess) {
         sntp_status_update(instance, true);
     }
 
