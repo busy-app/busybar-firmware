@@ -45,7 +45,8 @@ void ConnectivityManagerImpl::WifiEvent(const void* message, void* context) {
 
     StackLock lock;
     ChipDeviceEvent event;
-    ConnectivityChange change = (state == WifiStateUp) ? kConnectivity_Established : kConnectivity_Lost;
+    ConnectivityChange change = (state == WifiStateUp) ? kConnectivity_Established :
+                                                         kConnectivity_Lost;
     self->mIsConnected = state == WifiStateUp;
 
     event.Type = DeviceEventType::kWiFiConnectivityChange;
@@ -59,7 +60,9 @@ void ConnectivityManagerImpl::WifiEvent(const void* message, void* context) {
     PlatformMgr().PostEventOrDie(&event);
 
     event.Type = DeviceEventType::kInterfaceIpAddressChanged;
-    event.InterfaceIpAddressChanged.Type = (state == WifiStateUp) ? InterfaceIpChangeType::kIpV6_Assigned : InterfaceIpChangeType::kIpV6_Lost;
+    event.InterfaceIpAddressChanged.Type = (state == WifiStateUp) ?
+                                               InterfaceIpChangeType::kIpV6_Assigned :
+                                               InterfaceIpChangeType::kIpV6_Lost;
     PlatformMgr().PostEventOrDie(&event);
 
     event.Type = DeviceEventType::kDnssdRestartNeeded;
