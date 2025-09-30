@@ -45,9 +45,8 @@ typedef enum {
 
 /** Enumeration of possible states for the Wifi system. */
 typedef enum {
-    WifiStateDeinit, /**< The Wifi system is de-initialised. */
-    WifiStateDown, /**< The Wifi system is initialised, but no connection is active. */
-    WifiStateUp, /**< The Wifi system is initialised, and there is an active connection. */
+    WifiStateDown, /**< The Wifi system is in disconnected state */
+    WifiStateUp, /**< The Wifi system is in connected state */
     WifiStateMax, /**< Special value, internal use */
 } WifiState;
 
