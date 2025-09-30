@@ -1,15 +1,41 @@
 #include "mqtt_i.h"
+#include <mbedtls/ssl.h>
+#include <mbedtls/pk.h>
 #include <mbedtls/library/pk_wrap.h>
+#include <mbedtls/entropy.h>
+#include <mbedtls/ctr_drbg.h>
+#include <mbedtls/ecdsa.h>
+#include <mbedtls/ecp.h>
+#include <mbedtls/error.h>
 #include <tls_crypto/tls_crypto_client.h>
 
 #define TAG "MqttTls"
 
-#define TLS_DEBUG_LEVEL 2
+#define TLS_DEBUG_LEVEL 4
 #define TLS_KEY_SLOT    0
+
+static void print_hex(const uint8_t* buf, size_t len) {
+    FuriString* hex_str = furi_string_alloc();
+    for(size_t i = 0; i < len; i++) {
+        furi_string_cat_printf(hex_str, "%02x", buf[i]);
+        if(i % 50 == 49) {
+            furi_string_cat_printf(hex_str, "\r\n");
+        }
+    }
+    FURI_LOG_I(TAG, "%s", furi_string_get_cstr(hex_str));
+    furi_string_free(hex_str);
+}
 
 static int tls_random(void* ctx, unsigned char* buf, size_t len) {
     UNUSED(ctx);
     mg_random(buf, len);
+    return 0;
+}
+
+static int tls_entropy(void* data, unsigned char* output, size_t len, size_t* olen) {
+    UNUSED(data);
+    mg_random(output, len);
+    *olen = len;
     return 0;
 }
 
@@ -70,6 +96,94 @@ static bool tls_sign(
     return success;
 }
 
+const uint8_t ec_private_key[] = {0x1e, 0xc5, 0xa2, 0x83, 0x36, 0x16, 0x63, 0x2f, 0x1e, 0x6d, 0x9e,
+                                  0x3b, 0xf6, 0xe4, 0xa4, 0x07, 0xfe, 0xe1, 0xc3, 0xa9, 0xbb, 0xfa,
+                                  0x65, 0x79, 0xd3, 0x81, 0x99, 0x4e, 0xc8, 0xb8, 0x5f, 0xb9};
+
+static bool tls_sign_plain(
+    uint8_t key_slot,
+    const uint8_t* hash,
+    size_t hash_len,
+    uint8_t* sign_buf,
+    size_t sign_buf_size,
+    size_t* sign_len) {
+    if(key_slot != TLS_KEY_SLOT) {
+        return false;
+    }
+
+    int ret = 0;
+    bool success = false;
+
+    mbedtls_ecp_keypair keypair;
+    mbedtls_entropy_context entropy;
+    mbedtls_ctr_drbg_context ctr_drbg;
+
+    mbedtls_ecp_keypair_init(&keypair);
+    mbedtls_entropy_init(&entropy);
+    mbedtls_ctr_drbg_init(&ctr_drbg);
+
+    const char* pers = "ecdsa_sign";
+
+    do {
+        if((ret = mbedtls_entropy_add_source(
+                &entropy,
+                tls_entropy,
+                NULL,
+                MBEDTLS_ENTROPY_BLOCK_SIZE,
+                MBEDTLS_ENTROPY_SOURCE_STRONG)) != 0) {
+            FURI_LOG_E(TAG, "mbedtls_entropy_add_source -%04X", -ret);
+            break;
+        }
+
+        if((ret = mbedtls_ctr_drbg_seed(
+                &ctr_drbg,
+                mbedtls_entropy_func,
+                &entropy,
+                (const unsigned char*)pers,
+                strlen(pers))) != 0) {
+            FURI_LOG_E(TAG, "mbedtls_ctr_drbg_seed -%04X", -ret);
+            break;
+        }
+
+        if((ret = mbedtls_ecp_group_load(&keypair.grp, MBEDTLS_ECP_DP_SECP256R1)) != 0) {
+            FURI_LOG_E(TAG, "mbedtls_ecp_group_load -%04X", -ret);
+            break;
+        }
+
+        if((ret = mbedtls_mpi_read_binary(&keypair.d, ec_private_key, sizeof(ec_private_key))) !=
+           0) {
+            FURI_LOG_E(TAG, "mbedtls_mpi_read_binary -%04X", -ret);
+            break;
+        }
+
+        // if((ret = mbedtls_ecp_mul(
+        //         &ecdsa.private_grp,
+        //         &ecdsa.private_Q,
+        //         &ecdsa.private_d,
+        //         &ecdsa.private_grp.G,
+        //         mbedtls_ctr_drbg_random,
+        //         &ctr_drbg)) != 0) {
+        //     break;
+        // }
+
+        if((ret = mbedtls_ecdsa_write_signature(
+                &keypair,
+                MBEDTLS_MD_SHA256,
+                hash,
+                hash_len,
+                sign_buf,
+                sign_buf_size,
+                sign_len,
+                mbedtls_ctr_drbg_random,
+                &ctr_drbg)) != 0) {
+            FURI_LOG_E(TAG, "mbedtls_ecdsa_write_signature -%04X", -ret);
+            break;
+        }
+    } while(0);
+
+    return success;
+}
+
 static int tls_pk_sign_wrap(
     mbedtls_pk_context* pk,
     mbedtls_md_type_t md_alg,
@@ -83,11 +197,38 @@ static int tls_pk_sign_wrap(
     UNUSED(pk);
     UNUSED(f_rng);
     UNUSED(p_rng);
-    if(md_alg != MBEDTLS_MD_SHA256) {
-        return MBEDTLS_ERR_SSL_FEATURE_UNAVAILABLE;
+    UNUSED(md_alg);
+    // if(md_alg != MBEDTLS_MD_SHA256) {
+    //     return MBEDTLS_ERR_SSL_FEATURE_UNAVAILABLE;
+    // }
+
+    FURI_LOG_I(TAG, "alg %u hash %u", md_alg, hash_len);
+    print_hex(hash, hash_len);
+    // furi_log_hexdump(FuriLogLevelInfo, TAG, hash, hash_len);
+
+    bool success = true;
+
+    if(1) {
+        tls_crypto_client_sign(TLS_KEY_SLOT, hash, hash_len, sig, sig_size, sig_len);
+        FURI_LOG_I(TAG, "917 sign len %u", *sig_len);
+        print_hex(sig, *sig_len);
+        // furi_log_hexdump(FuriLogLevelInfo, TAG, sig, *sig_len);
     }
-    // bool success = tls_crypto_client_sign(TLS_KEY_SLOT, hash, hash_len, sig, sig_size, sig_len);
-    bool success = tls_sign(TLS_KEY_SLOT, hash, hash_len, sig, sig_size, sig_len);
+
+    if(1) {
+        tls_sign_plain(TLS_KEY_SLOT, hash, hash_len, sig, sig_size, sig_len);
+        FURI_LOG_I(TAG, "plain sign len %u", *sig_len);
+        print_hex(sig, *sig_len);
+        // furi_log_hexdump(FuriLogLevelInfo, TAG, sig, *sig_len);
+    }
+
+    if(1) {
+        tls_sign(TLS_KEY_SLOT, hash, hash_len, sig, sig_size, sig_len);
+        FURI_LOG_I(TAG, "check sign len %u", *sig_len);
+        print_hex(sig, *sig_len);
+        // furi_log_hexdump(FuriLogLevelInfo, TAG, sig, *sig_len);
+    }
+
     return (success ? 0 : MBEDTLS_ERR_SSL_INTERNAL_ERROR);
 }
 
@@ -101,7 +242,7 @@ static int tls_pk_can_do(mbedtls_pk_type_t type) {
 }
 
 static const mbedtls_pk_info_t tls_pk_wrap = {
-    .type = MBEDTLS_PK_ECDSA,
+    .type = MBEDTLS_PK_ECKEY,
     .name = "ECDSA_917",
     .get_bitlen = tls_pk_get_bitlen,
     .can_do = tls_pk_can_do,
@@ -179,25 +320,31 @@ void mqtt_tls_init(struct mg_connection* conn, const struct mg_tls_opts* opts) {
         }
         mbedtls_ssl_conf_rng(&tls->conf, tls_random, conn);
 
-        if(opts->ca.len == 0 || mg_strcmp(opts->ca, mg_str("*")) == 0) {
-            // NOTE: MBEDTLS_SSL_VERIFY_NONE is not supported for TLS1.3 on client side
-            // See https://github.com/Mbed-TLS/mbedtls/issues/7075
-            mbedtls_ssl_conf_authmode(&tls->conf, MBEDTLS_SSL_VERIFY_NONE);
-        } else {
-            if(tls_load_cert(opts->ca, &tls->ca) == false) {
-                break;
-            }
-            mbedtls_ssl_conf_ca_chain(&tls->conf, &tls->ca, NULL);
-            if(conn->is_client && opts->name.buf != NULL && opts->name.buf[0] != '\0') {
-                char* host = mg_mprintf("%.*s", opts->name.len, opts->name.buf);
-                mbedtls_ssl_set_hostname(&tls->ssl, host);
-                free(host);
-            }
-            mbedtls_ssl_conf_authmode(&tls->conf, MBEDTLS_SSL_VERIFY_REQUIRED);
+        // Force TLS 1.3
+        mbedtls_ssl_conf_min_tls_version(&tls->conf, MBEDTLS_SSL_VERSION_TLS1_3);
+        mbedtls_ssl_conf_max_tls_version(&tls->conf, MBEDTLS_SSL_VERSION_TLS1_3);
+
+        // ALPN
+        const char* alpn_list[] = {"mqtt", NULL};
+        mbedtls_ssl_conf_alpn_protocols(&tls->conf, alpn_list);
+
+        if(tls_load_cert(opts->ca, &tls->ca) == false) {
+            break;
         }
+        mbedtls_ssl_conf_ca_chain(&tls->conf, &tls->ca, NULL);
+        if(conn->is_client && opts->name.buf != NULL && opts->name.buf[0] != '\0') {
+            char* host = mg_mprintf("%.*s", opts->name.len, opts->name.buf);
+            mbedtls_ssl_set_hostname(&tls->ssl, host);
+            free(host);
+        }
+        mbedtls_ssl_conf_authmode(&tls->conf, MBEDTLS_SSL_VERIFY_REQUIRED);
         if(!tls_load_cert(opts->cert, &tls->cert)) {
             break;
         }
+
+        // mbedtls_pk_setup(&tls->pk, mbedtls_pk_info_from_type(MBEDTLS_PK_ECKEY));
+        // mbedtls_pk_set_sign_func(&tls->pk, sign_test);
+        // mbedtls_pk_set_ctx(&tls->pk, NULL);
         tls->pk.pk_info = &tls_pk_wrap;
 
         ret = mbedtls_ssl_conf_own_cert(&tls->conf, &tls->cert, &tls->pk);

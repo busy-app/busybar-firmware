@@ -223,17 +223,17 @@ static bool mqtt_client_load_certs(MqttClient* mqtt) {
         }
         storage_file_close(file);
 
-        if(!storage_file_open(file, CERT_FILE_DEVICE_KEY, FSAM_READ, FSOM_OPEN_EXISTING)) {
-            FURI_LOG_E(TAG, "Device key file error: %s", storage_file_get_error_desc(file));
-            break;
-        }
-        file_size = storage_file_size(file);
-        mqtt->device_key = malloc(file_size);
-        if(storage_file_read(file, mqtt->device_key, file_size) != file_size) {
-            FURI_LOG_E(TAG, "Device key file read error");
-            break;
-        }
-        storage_file_close(file);
+        // if(!storage_file_open(file, CERT_FILE_DEVICE_KEY, FSAM_READ, FSOM_OPEN_EXISTING)) {
+        //     FURI_LOG_E(TAG, "Device key file error: %s", storage_file_get_error_desc(file));
+        //     break;
+        // }
+        // file_size = storage_file_size(file);
+        // mqtt->device_key = malloc(file_size);
+        // if(storage_file_read(file, mqtt->device_key, file_size) != file_size) {
+        //     FURI_LOG_E(TAG, "Device key file read error");
+        //     break;
+        // }
+        // storage_file_close(file);
 
         success = true;
     } while(0);

@@ -1,6 +1,5 @@
 #include <furi.h>
 #include <intercom/intercom.h>
-#include <mbedtls/library/pk_wrap.h>
 #include <furi_hal_crypto.h>
 #include <furi_hal_crypto_storage.h>
 
@@ -14,17 +13,9 @@ typedef struct {
     FuriMessageQueue* command_queue;
 } TlsCryptoServer;
 
-static const char priv_key[] = "-----BEGIN EC PRIVATE KEY-----\n"
-                               "MHcCAQEEIB7FooM2FmMvHm2eO/bkpAf+4cOpu/pledOBmU7IuF+5oAoGCCqGSM49\n"
-                               "AwEHoUQDQgAEV06XdA1WR0mDHEGd4EVl+aBcO8uKG51nawvLS+JWlBpvJyLs1wC3\n"
-                               "gCI0cTPazzzx5PhoH7rzE44q9v4MvI6QIg==\n"
-                               "-----END EC PRIVATE KEY-----\n";
-
-static int tls_crypto_random(void* ctx, unsigned char* buf, size_t len) {
-    UNUSED(ctx);
-    FuriHalCryptoStatus status = furi_hal_crypto_storage_gen_random_buf(buf, len);
-    return (status == FuriHalCryptoStatusOk) ? 0 : 1;
-}
+const uint8_t ec_private_key[] = {0x1e, 0xc5, 0xa2, 0x83, 0x36, 0x16, 0x63, 0x2f, 0x1e, 0x6d, 0x9e,
+                                  0x3b, 0xf6, 0xe4, 0xa4, 0x07, 0xfe, 0xe1, 0xc3, 0xa9, 0xbb, 0xfa,
+                                  0x65, 0x79, 0xd3, 0x81, 0x99, 0x4e, 0xc8, 0xb8, 0x5f, 0xb9};
 
 static void tls_crypto_server_sign(
     TlsCryptoServer* instance,
@@ -33,40 +24,27 @@ static void tls_crypto_server_sign(
     size_t hash_len) {
     furi_check(instance);
 
+    FURI_LOG_E(TAG, "Sign start");
+
     TlsCryptoSignMessage* sign_resp = malloc(sizeof(TlsCryptoSignMessage));
     sign_resp->cmd = TlsCryptoSignResponse;
     sign_resp->key_slot = key_slot;
 
-    int ret = 0;
-    bool success = false;
-    mbedtls_pk_context sign_pk;
-    mbedtls_pk_init(&sign_pk);
-    do {
-        ret = mbedtls_pk_parse_key(
-            &sign_pk, (uint8_t*)priv_key, sizeof(priv_key), NULL, 0, tls_crypto_random, NULL);
-        if(ret != 0) {
-            FURI_LOG_E(TAG, "Key load err -%04X", -ret);
-            break;
-        }
-        ret = mbedtls_pk_sign(
-            &sign_pk,
-            MBEDTLS_MD_SHA256,
-            hash,
-            hash_len,
-            sign_resp->data,
-            sizeof(sign_resp->data),
-            &sign_resp->data_size,
-            tls_crypto_random,
-            NULL);
-        if(ret != 0) {
-            FURI_LOG_E(TAG, "Sign err -%04X", -ret);
-            break;
-        }
-        success = true;
-    } while(0);
-    mbedtls_pk_free(&sign_pk);
+    FuriHalCryptoEcdsa* sign_ctx = furi_hal_crypto_ecdsa_sign_init(
+        FuriHalCryptoEcdsaModeSha256,
+        (uint8_t*)ec_private_key,
+        FURI_HAL_CRYPTO_ECDSA_PRIV_KEY_SIZE_256,
+        FuriHalCryptoWrappingModeOff);
+
+    size_t signature_len = sizeof(sign_resp->data);
+    bool success =
+        furi_hal_crypto_ecdsa_sign(sign_ctx, hash, hash_len, sign_resp->data, &signature_len);
+    sign_resp->data_size = signature_len;
+
+    furi_hal_crypto_ecdsa_deinit(sign_ctx);
 
     if(success) {
+        FURI_LOG_E(TAG, "Sign done");
         size_t tx_size = intercom_tx(
             instance->intercom,
             IntercomChannelTlsCrypto,
@@ -75,6 +53,7 @@ static void tls_crypto_server_sign(
             FuriWaitForever);
         furi_check(tx_size == sizeof(TlsCryptoSignMessage), "Failed to send data");
     } else {
+        FURI_LOG_E(TAG, "Sign error");
         TlsCryptoErrorMessage error_msg = {.cmd = TlsCryptoError};
         size_t tx_size = intercom_tx(
             instance->intercom,
