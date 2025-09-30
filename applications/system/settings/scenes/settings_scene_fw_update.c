@@ -178,11 +178,11 @@ static void settings_scene_fw_update_check(const void* message, void* context) {
     furi_assert(context);
     SettingsApp* instance = context;
     SettingsSceneFwUpdate* data = scene_manager_get_current_scene_data(instance->scene_manager);
+    data->fw_info.is_new_version = false;
 
     switch(status->type) {
     case CheckUpdateFwEventNoNewVersion:
         furi_string_set(data->fw_status, "No new version");
-        data->fw_info.is_new_version = false;
         break;
     case CheckUpdateFwEventNewVersion:
         check_update_fw_get_new_version(data->check_update_fw, data->fw_info.new_fw_version);
@@ -192,6 +192,12 @@ static void settings_scene_fw_update_check(const void* message, void* context) {
         furi_string_set(data->fw_status, "New version, press OK to update");
         data->fw_info.is_new_version = true;
 
+        break;
+    case CheckUpdateFwEventError:
+        furi_string_set(data->fw_status, "Error checking update");
+        break;
+    case CheckUpdateFwEventNoWifiConnection:
+        furi_string_set(data->fw_status, "No WiFi connection");
         break;
     default:
         break;

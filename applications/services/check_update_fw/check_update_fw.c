@@ -6,9 +6,8 @@
 
 #define CHECK_UPDATE_FW_INTERVAL_MINUTES_TO_MS(x) ((x) * 60 * 1000)
 #define CHECK_UPDATE_FW_REBOOT_INTERVAL_MINUTES \
-    10000 //CHECK_UPDATE_FW_INTERVAL_MINUTES_TO_MS(5) // 5 minutes
-#define CHECK_UPDATE_FW_INTERVAL_MINUTES \
-    180000 //CHECK_UPDATE_FW_INTERVAL_MINUTES_TO_MS(180) // 3 hour
+    CHECK_UPDATE_FW_INTERVAL_MINUTES_TO_MS(1) // 1 minute
+#define CHECK_UPDATE_FW_INTERVAL_MINUTES CHECK_UPDATE_FW_INTERVAL_MINUTES_TO_MS(5 * 60) // 5 hour
 
 typedef enum {
     CheckUpdateFwStatusIdle = 0,
@@ -35,7 +34,6 @@ struct CheckUpdateFw {
 static bool check_update_fw_check_wifi_connected(CheckUpdateFw* instance) {
     furi_assert(instance);
     UNUSED(instance);
-
     bool ret = false;
     Wifi* wifi = furi_record_open(RECORD_WIFI);
     WifiInfo wifi_info;
@@ -55,30 +53,7 @@ static bool check_update_fw_check_wifi_connected(CheckUpdateFw* instance) {
 
 static void check_update_fw_timer_callback(void* context) {
     CheckUpdateFw* instance = context;
-
-    switch(instance->status) {
-    case CheckUpdateFwStatusIdle:
-        instance->status = CheckUpdateFwStatusCheckWifi;
-        if(check_update_fw_check_wifi_connected(instance)) {
-            FURI_LOG_W(TAG, "Update started");
-            instance->status = CheckUpdateFwStatusInProgress;
-            check_update_startup(instance->check_update);
-        }
-        break;
-    case CheckUpdateFwStatusSuccess:
-        instance->status = CheckUpdateFwStatusIdle;
-        break;
-    case CheckUpdateFwStatusInProgress:
-        FURI_LOG_W(TAG, "Update in progress...");
-        break;
-    case CheckUpdateFwStatusCheckWifi:
-        FURI_LOG_W(TAG, "Checking WiFi connection...");
-        break;
-    default:
-        FURI_LOG_E(TAG, "Update failed with status: %d", instance->status);
-        instance->status = CheckUpdateFwStatusIdle;
-        break;
-    }
+    check_update_fw_startup(instance);
 }
 
 void check_update_fw_status_update(CheckUpdateStatus status, void* context) {
@@ -99,7 +74,7 @@ void check_update_fw_status_update(CheckUpdateStatus status, void* context) {
 
     furi_event_loop_set_custom_event(
         instance->event_loop,
-        CheckUpdateFwCustomEventSuccess); // Reset status to idle after update
+        CheckUpdateFwCustomEventSuccess);
 }
 
 static void check_update_fw_custom_event_callback(uint32_t events, void* context) {
@@ -155,7 +130,34 @@ FuriPubSub* check_update_fw_get_pubsub(CheckUpdateFw* instance) {
 
 void check_update_fw_startup(CheckUpdateFw* instance) {
     furi_check(instance);
-    check_update_fw_timer_callback(instance);
+    switch(instance->status) {
+    case CheckUpdateFwStatusIdle:
+        instance->status = CheckUpdateFwStatusCheckWifi;
+        if(check_update_fw_check_wifi_connected(instance)) {
+            FURI_LOG_I(TAG, "Update started");
+            instance->status = CheckUpdateFwStatusInProgress;
+            check_update_startup(instance->check_update);
+        } else {
+            instance->status = CheckUpdateFwStatusIdle;
+            FURI_LOG_W(TAG, "No WiFi connection");
+            CheckUpdateFwEvent pub_event = {.type = CheckUpdateFwEventNoWifiConnection};
+            furi_pubsub_publish(instance->event_pubsub, &pub_event);
+        }
+        break;
+    case CheckUpdateFwStatusSuccess:
+        instance->status = CheckUpdateFwStatusIdle;
+        break;
+    case CheckUpdateFwStatusInProgress:
+        FURI_LOG_W(TAG, "Update in progress...");
+        break;
+    case CheckUpdateFwStatusCheckWifi:
+        FURI_LOG_W(TAG, "Checking WiFi connection...");
+        break;
+    default:
+        FURI_LOG_E(TAG, "Update failed with status: %d", instance->status);
+        instance->status = CheckUpdateFwStatusIdle;
+        break;
+    }
 }
 
 bool check_update_fw_is_new_version(CheckUpdateFw* instance) {

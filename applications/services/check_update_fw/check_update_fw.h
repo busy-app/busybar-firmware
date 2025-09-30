@@ -13,6 +13,7 @@ typedef struct CheckUpdateFw CheckUpdateFw;
 typedef enum {
     CheckUpdateFwEventNewVersion,
     CheckUpdateFwEventNoNewVersion,
+    CheckUpdateFwEventNoWifiConnection,
     CheckUpdateFwEventError,
 } CheckUpdateFwEventType;
 
