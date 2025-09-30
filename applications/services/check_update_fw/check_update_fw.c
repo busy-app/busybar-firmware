@@ -72,9 +72,7 @@ void check_update_fw_status_update(CheckUpdateStatus status, void* context) {
     }
     furi_pubsub_publish(instance->event_pubsub, &pub_event);
 
-    furi_event_loop_set_custom_event(
-        instance->event_loop,
-        CheckUpdateFwCustomEventSuccess);
+    furi_event_loop_set_custom_event(instance->event_loop, CheckUpdateFwCustomEventSuccess);
 }
 
 static void check_update_fw_custom_event_callback(uint32_t events, void* context) {
