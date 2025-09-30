@@ -4,7 +4,7 @@ App(
     apptype=FlipperAppType.SERVICE,
     entry_point="check_update_fw_srv",
     stack_size=1024 * 1,
-    order=170,
+    order=180,
     targets=["f20", "f21"],
     cdefines=["SRV_CHECK_UPDATE_FW"],
 )
