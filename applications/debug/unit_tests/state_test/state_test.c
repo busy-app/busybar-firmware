@@ -51,9 +51,9 @@ MU_TEST(state_test_moon) {
             mu_assert_int_eq(phase, stored_phase);
         }
 
-        sub_count = CLAMP(day, sub_limit, 0ul)
+        sub_count = CLAMP(day, sub_limit, 0ul);
 
-            for(size_t i = 0; i < CLAMP(sub_count + 1, sub_limit, 0ul); i++) {
+        for(size_t i = 0; i < CLAMP(sub_count + 1, sub_limit, 0ul); i++) {
             MoonPhase stored_phase;
             furi_state_get(subs[i], &stored_phase);
             mu_assert_int_eq(phase, stored_phase);
