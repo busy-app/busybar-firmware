@@ -21,6 +21,8 @@ typedef enum {
     SettingsCustomEventMatterCommComplete,
     SettingsCustomEventMatterCommFail,
 
+    SettingsCustomEventRequiredWifiNotAvailable,
+
     SettingsCustomEventSceneEventsStart,
 } SettingsCustomEvent;
 
@@ -52,3 +54,5 @@ void settings_send_custom_event(SettingsApp* instance, uint32_t event);
 void settings_push_location(SettingsApp* instance, const char* location_name);
 
 void settings_pop_location(SettingsApp* instance);
+
+bool settings_check_wifi_connectivity(SettingsApp* instance);

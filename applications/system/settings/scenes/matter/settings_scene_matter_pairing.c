@@ -15,21 +15,13 @@ typedef struct {
     MatterCodeView* back_codes;
 } SettingsSceneMatterPairing;
 
-typedef enum {
-    SettingsSceneEventSwitchToConnectWifi = SettingsCustomEventSceneEventsStart,
-} SettingsSceneEvent;
-
 static void settings_scene_matter_pairing_on_enter(void* context) {
     furi_assert(context);
     SettingsApp* app = context;
     SettingsSceneMatterPairing* scene = scene_manager_get_current_scene_data(app->scene_manager);
 
     scene->ui_initialized = false;
-
-    if(!(wifi_poller_get_state(app->wifi) & WifiPollerStateLinkUp)) {
-        settings_send_custom_event(app, SettingsSceneEventSwitchToConnectWifi);
-        return;
-    }
+    if(!settings_check_wifi_connectivity(app)) return;
 
     FuriString* qr_code = furi_string_alloc();
     FuriString* man_code = furi_string_alloc();
@@ -81,10 +73,8 @@ static bool settings_scene_matter_pairing_on_event(const SceneManagerEvent* even
             consumed = matter_scene_replace_current(app, event->event);
             if(consumed) break;
 
-            if(event->event == SettingsSceneEventSwitchToConnectWifi) {
-                scene_manager_next_scene(app->scene_manager, SettingsAppSceneIdConnectWifi);
-                consumed = true;
-            }
+        } else if(event->type == SceneManagerEventTypeBack) {
+            settings_pop_location(app);
         }
     } while(0);
 

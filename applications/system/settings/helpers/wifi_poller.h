@@ -3,6 +3,10 @@
 /**
  * @file wifi_poller.h
  * Repeatedly queries Wi-Fi state and keeps track of it.
+ * 
+ * @warning DO NOT USE THIS HELPER. It is a temporary solution for a systemic
+ *          problem that will be fixed in the near future, after which it will
+ *          be removed. If I catch you using this helper, I will get sad.
  */
 
 #include <furi.h>

@@ -50,7 +50,11 @@ static void settings_event_queue_callback(FuriEventLoopObject* object, void* con
 
     uint32_t event;
     while(furi_message_queue_get(instance->event_queue, &event, 0) == FuriStatusOk) {
-        scene_manager_handle_custom_event(instance->scene_manager, event);
+        if(event == SettingsCustomEventRequiredWifiNotAvailable) {
+            scene_manager_next_scene(instance->scene_manager, SettingsAppSceneIdConnectWifi);
+        } else {
+            scene_manager_handle_custom_event(instance->scene_manager, event);
+        }
     }
 }
 
@@ -250,4 +254,15 @@ void settings_pop_location(SettingsApp* instance) {
     furi_assert(instance);
 
     with_gui(instance->gui, { nav_bar_pop_location(instance->back_nav_bar); });
+}
+
+bool settings_check_wifi_connectivity(SettingsApp* instance) {
+    furi_assert(instance);
+
+    if(wifi_poller_get_state(instance->wifi) & WifiPollerStateLinkUp) {
+        return true;
+    } else {
+        settings_send_custom_event(instance, SettingsCustomEventRequiredWifiNotAvailable);
+        return false;
+    }
 }
