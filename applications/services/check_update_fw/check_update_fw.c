@@ -1,13 +1,10 @@
 #include "check_update_fw.h"
+#include "check_update_fw_i.h"
 #include <wifi/wifi.h>
 #include "helpers/check_update.h"
+#include <json_helper.h>
 
 #define TAG "CheckUpdateFwSvc"
-
-#define CHECK_UPDATE_FW_INTERVAL_MINUTES_TO_MS(x) ((x) * 60 * 1000)
-#define CHECK_UPDATE_FW_REBOOT_INTERVAL_MINUTES \
-    CHECK_UPDATE_FW_INTERVAL_MINUTES_TO_MS(1) // 1 minute
-#define CHECK_UPDATE_FW_INTERVAL_MINUTES CHECK_UPDATE_FW_INTERVAL_MINUTES_TO_MS(5 * 60) // 5 hour
 
 typedef enum {
     CheckUpdateFwStatusIdle = 0,
@@ -29,6 +26,7 @@ struct CheckUpdateFw {
     CheckUpdateFwStatus status;
     CheckUpdate* check_update;
     FuriPubSub* event_pubsub;
+    int examination_interval;
 };
 
 static bool check_update_fw_check_wifi_connected(CheckUpdateFw* instance) {
@@ -81,7 +79,7 @@ static void check_update_fw_custom_event_callback(uint32_t events, void* context
     if(events & CheckUpdateFwCustomEventSuccess) {
         FURI_LOG_I(TAG, "Update successful");
         instance->status = CheckUpdateFwStatusIdle;
-        furi_event_loop_timer_start(instance->timer, CHECK_UPDATE_FW_INTERVAL_MINUTES);
+        furi_event_loop_timer_start(instance->timer, instance->examination_interval);
     }
 }
 
@@ -103,7 +101,36 @@ CheckUpdateFw* check_update_fw_alloc() {
     furi_event_loop_set_custom_event_callback(
         instance->event_loop, check_update_fw_custom_event_callback, instance);
 
-    furi_event_loop_timer_start(instance->timer, CHECK_UPDATE_FW_REBOOT_INTERVAL_MINUTES);
+    // Load config
+    int reboot_examination_interval = 0;
+    int reboot_examination_interval_default =
+        CHECK_UPDATE_FW_JSON_REBOOT_EXAMINATION_INTERVAL_DEFAULT;
+    int examination_interval_default = CHECK_UPDATE_FW_JSON_EXAMINATION_INTERVAL_DEFAULT;
+
+    if(json_config_read_single_int(
+           CHECK_UPDATE_FW_SETTINGS_FILE,
+           CHECK_UPDATE_FW_JSON_REBOOT_EXAMINATION_INTERVAL,
+           &reboot_examination_interval,
+           &reboot_examination_interval_default) == JsonConfigStatusMissing) {
+        FURI_LOG_W(TAG, "No reboot examination interval found, using default");
+        json_config_write_single_int(
+            CHECK_UPDATE_FW_SETTINGS_FILE,
+            CHECK_UPDATE_FW_JSON_REBOOT_EXAMINATION_INTERVAL,
+            CHECK_UPDATE_FW_JSON_REBOOT_EXAMINATION_INTERVAL_DEFAULT);
+    }
+    if(json_config_read_single_int(
+           CHECK_UPDATE_FW_SETTINGS_FILE,
+           CHECK_UPDATE_FW_JSON_EXAMINATION_INTERVAL,
+           &instance->examination_interval,
+           &examination_interval_default) == JsonConfigStatusMissing) {
+        FURI_LOG_W(TAG, "No examination interval found, using default");
+        json_config_write_single_int(
+            CHECK_UPDATE_FW_SETTINGS_FILE,
+            CHECK_UPDATE_FW_JSON_EXAMINATION_INTERVAL,
+            CHECK_UPDATE_FW_JSON_EXAMINATION_INTERVAL_DEFAULT);
+    }
+
+    furi_event_loop_timer_start(instance->timer, reboot_examination_interval);
 
     instance->event_pubsub = furi_pubsub_alloc();
     furi_record_create(RECORD_CHECK_UPDATE_FW, instance);

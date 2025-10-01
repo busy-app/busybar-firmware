@@ -1,7 +1,6 @@
 #include "check_update.h"
-#include "../check_update_fw.h"
+#include "../check_update_fw_i.h"
 #include "parse_update_json.h"
-#include <storage/storage.h>
 #include <json_helper.h>
 #include <toolbox/fetch/fetch_loader.h>
 #include <furi_hal_version.h>
@@ -9,16 +8,11 @@
 
 #define TAG "CheckUpdate"
 
-#define CHECK_UPDATE_SETTINGS_FILE EXT_PATH("apps_data/check_update_fw/config.json")
-#define CHECK_UPDATE_JSON_FILE     EXT_PATH("update/directory.json")
+#define CHECK_UPDATE_DATA_FILE APP_DATA_PATH("data.json")
+#define CHECK_UPDATE_JSON_FILE EXT_PATH("update/directory.json")
 
-#define CHECK_UPDATE_JSON_URL_DEFAULT \
-    "https://update.flipperzero.one/busybar-firmware/directory.json"
-#define CHECK_UPDATE_JSON_CHANNEL_ID_DEFAULT "development"
-#define CHECK_UPDATE_JSON_VERSION_DEFAULT    "unknown"
+#define CHECK_UPDATE_JSON_VERSION_DEFAULT "unknown"
 
-#define CHECK_UPDATE_JSON_URL_DIRECTORY       "url_directory_json"
-#define CHECK_UPDATE_JSON_CURRENT_CHANNEL     "current_channel"
 #define CHECK_UPDATE_JSON_NEW_VERSION         "new_version"
 #define CHECK_UPDATE_JSON_NEW_FIRMWARE_URL    "new_firmware_url"
 #define CHECK_UPDATE_JSON_NEW_FIRMWARE_SHA256 "new_firmware_sha256"
@@ -38,7 +32,7 @@ static void check_update_checking_folder(CheckUpdate* instance) {
     UNUSED(instance);
     Storage* storage = furi_record_open(RECORD_STORAGE);
     FuriString* path = furi_string_alloc();
-    path_extract_dirname(CHECK_UPDATE_SETTINGS_FILE, path);
+    path_extract_dirname(CHECK_UPDATE_FW_SETTINGS_FILE, path);
 
     if(path_recursive_create_dir(storage, path) != FSE_OK) {
         FURI_LOG_E(TAG, "Failed to create directory: %s", furi_string_get_cstr(path));
@@ -58,26 +52,26 @@ static int32_t check_update_thread_callback(void* context) {
 
     // Load config
     if(json_config_read_single_str(
-           CHECK_UPDATE_SETTINGS_FILE,
-           CHECK_UPDATE_JSON_URL_DIRECTORY,
+           CHECK_UPDATE_FW_SETTINGS_FILE,
+           CHECK_UPDATE_FW_JSON_URL_DIRECTORY,
            instance->url,
-           CHECK_UPDATE_JSON_URL_DEFAULT) == JsonConfigStatusMissing) {
+           CHECK_UPDATE_FW_JSON_URL_DEFAULT) == JsonConfigStatusMissing) {
         FURI_LOG_W(TAG, "No URL found, using default");
         json_config_write_single_str(
-            CHECK_UPDATE_SETTINGS_FILE,
-            CHECK_UPDATE_JSON_URL_DIRECTORY,
-            CHECK_UPDATE_JSON_URL_DEFAULT);
+            CHECK_UPDATE_FW_SETTINGS_FILE,
+            CHECK_UPDATE_FW_JSON_URL_DIRECTORY,
+            CHECK_UPDATE_FW_JSON_URL_DEFAULT);
     }
     if(json_config_read_single_str(
-           CHECK_UPDATE_SETTINGS_FILE,
-           CHECK_UPDATE_JSON_CURRENT_CHANNEL,
+           CHECK_UPDATE_FW_SETTINGS_FILE,
+           CHECK_UPDATE_FW_JSON_CURRENT_CHANNEL,
            instance->id,
-           CHECK_UPDATE_JSON_CHANNEL_ID_DEFAULT) == JsonConfigStatusMissing) {
+           CHECK_UPDATE_FW_JSON_CHANNEL_ID_DEFAULT) == JsonConfigStatusMissing) {
         FURI_LOG_W(TAG, "No channel ID found, using default");
         json_config_write_single_str(
-            CHECK_UPDATE_SETTINGS_FILE,
-            CHECK_UPDATE_JSON_CURRENT_CHANNEL,
-            CHECK_UPDATE_JSON_CHANNEL_ID_DEFAULT);
+            CHECK_UPDATE_FW_SETTINGS_FILE,
+            CHECK_UPDATE_FW_JSON_CURRENT_CHANNEL,
+            CHECK_UPDATE_FW_JSON_CHANNEL_ID_DEFAULT);
     }
     check_update_get_current_version(instance->version);
 
@@ -95,17 +89,17 @@ static int32_t check_update_thread_callback(void* context) {
            0) {
             FURI_LOG_I(TAG, "New version available: %s", parse_update_get_version(parser));
             json_config_write_single_str(
-                CHECK_UPDATE_SETTINGS_FILE,
+                CHECK_UPDATE_DATA_FILE,
                 CHECK_UPDATE_JSON_NEW_VERSION,
                 parse_update_get_version(parser));
 
             json_config_write_single_str(
-                CHECK_UPDATE_SETTINGS_FILE,
+                CHECK_UPDATE_DATA_FILE,
                 CHECK_UPDATE_JSON_NEW_FIRMWARE_URL,
                 parse_update_get_url(parser));
 
             json_config_write_single_str(
-                CHECK_UPDATE_SETTINGS_FILE,
+                CHECK_UPDATE_DATA_FILE,
                 CHECK_UPDATE_JSON_NEW_FIRMWARE_SHA256,
                 parse_update_get_sha256(parser));
 
@@ -197,7 +191,7 @@ bool check_update_is_new_version(void) {
 
     check_update_get_current_version(current_version);
     json_config_read_single_str(
-        CHECK_UPDATE_SETTINGS_FILE,
+        CHECK_UPDATE_DATA_FILE,
         CHECK_UPDATE_JSON_NEW_VERSION,
         new_version,
         CHECK_UPDATE_JSON_VERSION_DEFAULT);
@@ -220,7 +214,7 @@ void check_update_get_current_version(FuriString* current_version) {
 
 void check_update_get_new_version(FuriString* new_version) {
     json_config_read_single_str(
-        CHECK_UPDATE_SETTINGS_FILE,
+        CHECK_UPDATE_DATA_FILE,
         CHECK_UPDATE_JSON_NEW_VERSION,
         new_version,
         CHECK_UPDATE_JSON_VERSION_DEFAULT);
@@ -228,10 +222,10 @@ void check_update_get_new_version(FuriString* new_version) {
 
 void check_update_get_new_firmware_url(FuriString* url) {
     json_config_read_single_str(
-        CHECK_UPDATE_SETTINGS_FILE, CHECK_UPDATE_JSON_NEW_FIRMWARE_URL, url, "");
+        CHECK_UPDATE_DATA_FILE, CHECK_UPDATE_JSON_NEW_FIRMWARE_URL, url, "");
 }
 
 void check_update_get_new_firmware_sha256(FuriString* sha256) {
     json_config_read_single_str(
-        CHECK_UPDATE_SETTINGS_FILE, CHECK_UPDATE_JSON_NEW_FIRMWARE_SHA256, sha256, "");
+        CHECK_UPDATE_DATA_FILE, CHECK_UPDATE_JSON_NEW_FIRMWARE_SHA256, sha256, "");
 }

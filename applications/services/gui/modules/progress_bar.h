@@ -1,5 +1,5 @@
 /**
- * @file ProgressBar.h
+ * @file progress_bar.h
  * @brief A widget that displays a static ProgressBar.
  */
 #pragma once

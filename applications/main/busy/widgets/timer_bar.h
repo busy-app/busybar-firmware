@@ -1,5 +1,5 @@
 /**
- * @file progress_bar.h
+ * @file timer_bar.h
  * @brief A widget that shows the remaining time.
  *
  * Can be used only on the front display.
