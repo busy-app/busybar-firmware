@@ -13,6 +13,18 @@ typedef struct {
     FuriMessageQueue* command_queue;
 } TlsCryptoServer;
 
+static void print_hex(const uint8_t* buf, size_t len) {
+    FuriString* hex_str = furi_string_alloc();
+    for(size_t i = 0; i < len; i++) {
+        furi_string_cat_printf(hex_str, "%02x", buf[i]);
+        if(i % 50 == 49) {
+            furi_string_cat_printf(hex_str, "\r\n");
+        }
+    }
+    FURI_LOG_I(TAG, "%s", furi_string_get_cstr(hex_str));
+    furi_string_free(hex_str);
+}
+
 const uint8_t ec_private_key[] = {0x1e, 0xc5, 0xa2, 0x83, 0x36, 0x16, 0x63, 0x2f, 0x1e, 0x6d, 0x9e,
                                   0x3b, 0xf6, 0xe4, 0xa4, 0x07, 0xfe, 0xe1, 0xc3, 0xa9, 0xbb, 0xfa,
                                   0x65, 0x79, 0xd3, 0x81, 0x99, 0x4e, 0xc8, 0xb8, 0x5f, 0xb9};
@@ -24,7 +36,8 @@ static void tls_crypto_server_sign(
     size_t hash_len) {
     furi_check(instance);
 
-    FURI_LOG_E(TAG, "Sign start");
+    FURI_LOG_E(TAG, "Sign start len %u", hash_len);
+    print_hex(hash, hash_len);
 
     TlsCryptoSignMessage* sign_resp = malloc(sizeof(TlsCryptoSignMessage));
     sign_resp->cmd = TlsCryptoSignResponse;
@@ -44,7 +57,9 @@ static void tls_crypto_server_sign(
     furi_hal_crypto_ecdsa_deinit(sign_ctx);
 
     if(success) {
-        FURI_LOG_E(TAG, "Sign done");
+        FURI_LOG_E(TAG, "Sign done len %u", sign_resp->data_size);
+        print_hex(sign_resp->data, sign_resp->data_size);
+
         size_t tx_size = intercom_tx(
             instance->intercom,
             IntercomChannelTlsCrypto,

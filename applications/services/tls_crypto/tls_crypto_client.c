@@ -59,7 +59,7 @@ bool tls_crypto_client_sign(
         if(instance->sign_msg.cmd == TlsCryptoSignResponse) {
             furi_assert(instance->sign_msg.key_slot == key_slot);
             size_t resp_sign_len = instance->sign_msg.data_size;
-            FURI_LOG_E(TAG, "TlsCryptoSignResponse len:%u", resp_sign_len);
+            FURI_LOG_D(TAG, "TlsCryptoSignResponse len:%u", resp_sign_len);
             furi_assert(sign_buf_size >= resp_sign_len);
             memcpy(sign_buf, instance->sign_msg.data, resp_sign_len);
             if(sign_len) {

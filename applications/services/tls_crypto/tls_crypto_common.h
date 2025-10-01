@@ -2,7 +2,7 @@
 
 #include <furi.h>
 
-#define TLS_CRYPTO_DATA_SIZE_MAX 128
+#define TLS_CRYPTO_DATA_SIZE_MAX 256
 
 typedef enum {
     TlsCryptoSignRequest,
