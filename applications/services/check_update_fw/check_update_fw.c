@@ -3,8 +3,11 @@
 #include <wifi/wifi.h>
 #include "helpers/check_update.h"
 #include <json_helper.h>
+#include <api_lock.h>
 
 #define TAG "CheckUpdateFwSvc"
+
+#define CHECK_UPDATE_FW_MAX_MESSAGES (8)
 
 typedef enum {
     CheckUpdateFwStatusIdle = 0,
@@ -17,6 +20,24 @@ typedef enum {
 } CheckUpdateFwStatus;
 
 typedef enum {
+    CheckUpdateFwMessageTypeStartup,
+    CheckUpdateFwMessageTypeIsNewVersion,
+    CheckUpdateFwMessageTypeGetCurrentVersion,
+    CheckUpdateFwMessageTypeGetNewVersion,
+    CheckUpdateFwMessageTypeGetNewFirmwareUrl,
+    CheckUpdateFwMessageTypeGetNewFirmwareSha256,
+} CheckUpdateFwMessageType;
+
+typedef struct {
+    CheckUpdateFwMessageType type;
+    FuriApiLock lock;
+    bool* result;
+    union {
+        FuriString* str_data;
+    };
+} CheckUpdateFwMessage;
+
+typedef enum {
     CheckUpdateFwCustomEventSuccess = (1 << 0),
 } CheckUpdateFwCustomEvent;
 
@@ -26,8 +47,19 @@ struct CheckUpdateFw {
     CheckUpdateFwStatus status;
     CheckUpdate* check_update;
     FuriPubSub* event_pubsub;
+    FuriMessageQueue* message_queue;
     int examination_interval;
 };
+
+static void
+    check_update_fw_send_message(CheckUpdateFw* instance, const CheckUpdateFwMessage* message) {
+    furi_check(
+        furi_message_queue_put(instance->message_queue, message, FuriWaitForever) == FuriStatusOk);
+
+    if(message->lock) {
+        api_lock_wait_unlock_and_free(message->lock);
+    }
+}
 
 static bool check_update_fw_check_wifi_connected(CheckUpdateFw* instance) {
     furi_assert(instance);
@@ -49,9 +81,84 @@ static bool check_update_fw_check_wifi_connected(CheckUpdateFw* instance) {
     return ret;
 }
 
+static void check_update_fw_run(CheckUpdateFw* instance) {
+    furi_check(instance);
+    switch(instance->status) {
+    case CheckUpdateFwStatusIdle:
+        instance->status = CheckUpdateFwStatusCheckWifi;
+        if(check_update_fw_check_wifi_connected(instance)) {
+            FURI_LOG_I(TAG, "Update started");
+            instance->status = CheckUpdateFwStatusInProgress;
+            check_update_startup(instance->check_update);
+        } else {
+            instance->status = CheckUpdateFwStatusIdle;
+            FURI_LOG_W(TAG, "No WiFi connection");
+            CheckUpdateFwEvent pub_event = {.type = CheckUpdateFwEventNoWifiConnection};
+            furi_pubsub_publish(instance->event_pubsub, &pub_event);
+        }
+        break;
+    case CheckUpdateFwStatusSuccess:
+        instance->status = CheckUpdateFwStatusIdle;
+        break;
+    case CheckUpdateFwStatusInProgress:
+        FURI_LOG_W(TAG, "Update in progress...");
+        break;
+    case CheckUpdateFwStatusCheckWifi:
+        FURI_LOG_W(TAG, "Checking WiFi connection...");
+        break;
+    default:
+        FURI_LOG_E(TAG, "Update failed with status: %d", instance->status);
+        instance->status = CheckUpdateFwStatusIdle;
+        break;
+    }
+}
+
+static void check_update_fw_message_queue_callback(FuriEventLoopObject* object, void* context) {
+    furi_assert(context);
+    CheckUpdateFw* instance = context;
+    furi_assert(object == instance->message_queue);
+
+    CheckUpdateFwMessage msg;
+    furi_check(furi_message_queue_get(instance->message_queue, &msg, 0) == FuriStatusOk);
+
+    bool result = false;
+
+    switch(msg.type) {
+    case CheckUpdateFwMessageTypeStartup:
+        check_update_fw_run(instance);
+        break;
+    case CheckUpdateFwMessageTypeIsNewVersion:
+        result = check_update_is_new_version();
+        break;
+    case CheckUpdateFwMessageTypeGetCurrentVersion:
+        check_update_get_current_version(msg.str_data);
+        break;
+    case CheckUpdateFwMessageTypeGetNewVersion:
+        check_update_get_new_version(msg.str_data);
+        break;
+    case CheckUpdateFwMessageTypeGetNewFirmwareUrl:
+        check_update_get_new_firmware_url(msg.str_data);
+        break;
+    case CheckUpdateFwMessageTypeGetNewFirmwareSha256:
+        check_update_get_new_firmware_sha256(msg.str_data);
+        break;
+    default:
+        FURI_LOG_E(TAG, "Unknown message type: %d", msg.type);
+        furi_crash("Invalid message type");
+        break;
+    }
+
+    if(msg.result) {
+        *msg.result = result;
+    }
+    if(msg.lock) {
+        api_lock_unlock(msg.lock);
+    }
+}
+
 static void check_update_fw_timer_callback(void* context) {
     CheckUpdateFw* instance = context;
-    check_update_fw_startup(instance);
+    check_update_fw_run(instance);
 }
 
 void check_update_fw_status_update(CheckUpdateStatus status, void* context) {
@@ -88,6 +195,16 @@ CheckUpdateFw* check_update_fw_alloc() {
 
     instance->status = CheckUpdateFwStatusIdle;
     instance->event_loop = furi_event_loop_alloc();
+    instance->message_queue =
+        furi_message_queue_alloc(CHECK_UPDATE_FW_MAX_MESSAGES, sizeof(CheckUpdateFwMessage));
+
+    furi_event_loop_subscribe_message_queue(
+        instance->event_loop,
+        instance->message_queue,
+        FuriEventLoopEventIn,
+        check_update_fw_message_queue_callback,
+        instance);
+
     instance->timer = furi_event_loop_timer_alloc(
         instance->event_loop,
         check_update_fw_timer_callback,
@@ -155,66 +272,77 @@ FuriPubSub* check_update_fw_get_pubsub(CheckUpdateFw* instance) {
 
 void check_update_fw_startup(CheckUpdateFw* instance) {
     furi_check(instance);
-    switch(instance->status) {
-    case CheckUpdateFwStatusIdle:
-        instance->status = CheckUpdateFwStatusCheckWifi;
-        if(check_update_fw_check_wifi_connected(instance)) {
-            FURI_LOG_I(TAG, "Update started");
-            instance->status = CheckUpdateFwStatusInProgress;
-            check_update_startup(instance->check_update);
-        } else {
-            instance->status = CheckUpdateFwStatusIdle;
-            FURI_LOG_W(TAG, "No WiFi connection");
-            CheckUpdateFwEvent pub_event = {.type = CheckUpdateFwEventNoWifiConnection};
-            furi_pubsub_publish(instance->event_pubsub, &pub_event);
-        }
-        break;
-    case CheckUpdateFwStatusSuccess:
-        instance->status = CheckUpdateFwStatusIdle;
-        break;
-    case CheckUpdateFwStatusInProgress:
-        FURI_LOG_W(TAG, "Update in progress...");
-        break;
-    case CheckUpdateFwStatusCheckWifi:
-        FURI_LOG_W(TAG, "Checking WiFi connection...");
-        break;
-    default:
-        FURI_LOG_E(TAG, "Update failed with status: %d", instance->status);
-        instance->status = CheckUpdateFwStatusIdle;
-        break;
-    }
+
+    const CheckUpdateFwMessage msg = {
+        .type = CheckUpdateFwMessageTypeStartup,
+    };
+
+    check_update_fw_send_message(instance, &msg);
 }
 
 bool check_update_fw_is_new_version(CheckUpdateFw* instance) {
     furi_check(instance);
-    UNUSED(instance);
-    return check_update_is_new_version();
+
+    bool result;
+
+    const CheckUpdateFwMessage msg = {
+        .type = CheckUpdateFwMessageTypeIsNewVersion,
+        .lock = api_lock_alloc_locked(),
+        .result = &result,
+    };
+
+    check_update_fw_send_message(instance, &msg);
+
+    return result;
 }
 
 void check_update_fw_get_current_version(CheckUpdateFw* instance, FuriString* current_version) {
     furi_check(instance);
     furi_check(current_version);
-    UNUSED(instance);
-    check_update_get_current_version(current_version);
+
+    const CheckUpdateFwMessage msg = {
+        .type = CheckUpdateFwMessageTypeGetCurrentVersion,
+        .lock = api_lock_alloc_locked(),
+        .str_data = current_version,
+    };
+
+    check_update_fw_send_message(instance, &msg);
 }
 
 void check_update_fw_get_new_version(CheckUpdateFw* instance, FuriString* new_version) {
     furi_check(instance);
     furi_check(new_version);
-    UNUSED(instance);
-    check_update_get_new_version(new_version);
+
+    const CheckUpdateFwMessage msg = {
+        .type = CheckUpdateFwMessageTypeGetNewVersion,
+        .lock = api_lock_alloc_locked(),
+        .str_data = new_version,
+    };
+
+    check_update_fw_send_message(instance, &msg);
 }
 
 void check_update_fw_get_new_firmware_url(CheckUpdateFw* instance, FuriString* url) {
     furi_check(instance);
     furi_check(url);
-    UNUSED(instance);
-    check_update_get_new_firmware_url(url);
+
+    const CheckUpdateFwMessage msg = {
+        .type = CheckUpdateFwMessageTypeGetNewFirmwareUrl,
+        .lock = api_lock_alloc_locked(),
+        .str_data = url,
+    };
+    check_update_fw_send_message(instance, &msg);
 }
 
 void check_update_fw_get_new_firmware_sha256(CheckUpdateFw* instance, FuriString* sha256) {
     furi_check(instance);
     furi_check(sha256);
-    UNUSED(instance);
-    check_update_get_new_firmware_sha256(sha256);
+
+    const CheckUpdateFwMessage msg = {
+        .type = CheckUpdateFwMessageTypeGetNewFirmwareSha256,
+        .lock = api_lock_alloc_locked(),
+        .str_data = sha256,
+    };
+
+    check_update_fw_send_message(instance, &msg);
 }
