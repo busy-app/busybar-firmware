@@ -57,11 +57,12 @@ static int32_t sntp_time_update_thread_callback(void* context) {
     furi_assert(context);
 
     Sntp* instance = context;
-    const SntpSettings* settings = sntp_get_settings(instance);
+    SntpSettings settings;
+    sntp_get_settings(instance, &settings);
 
     struct mg_mgr mgr;
     SntpTimeUpdateContext update_context = {
-        .timezone_offset = settings->timezone_offset,
+        .timezone_offset = settings.timezone_offset,
     };
 
     FURI_LOG_D(TAG, "Start");
@@ -70,7 +71,7 @@ static int32_t sntp_time_update_thread_callback(void* context) {
     network_init_current_thread(network);
 
     mg_mgr_init(&mgr);
-    mg_sntp_connect(&mgr, settings->server_name, sntp_time_update_callback, &update_context);
+    mg_sntp_connect(&mgr, settings.server_name, sntp_time_update_callback, &update_context);
 
     while(!(update_context.status & SntpTimeUpdateStatusDone)) {
         mg_mgr_poll(&mgr, 1000);

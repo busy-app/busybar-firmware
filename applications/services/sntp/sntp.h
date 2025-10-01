@@ -14,7 +14,7 @@ extern "C" {
 
 void sntp_status_update(Sntp* instance, bool success);
 
-const SntpSettings* sntp_get_settings(const Sntp* instance);
+void sntp_get_settings(const Sntp* instance, SntpSettings* settings);
 
 bool sntp_set_settings(Sntp* instance, const SntpSettings* settings);
 

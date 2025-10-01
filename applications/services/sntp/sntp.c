@@ -2,10 +2,13 @@
 #include "sntp_time_update.h"
 
 #include <wifi/wifi.h>
+#include <api_lock.h>
 
 #define TAG "SntpSvc"
 
 #define SNTP_S_TO_MS(x) ((x) * 1000)
+
+#define SNTP_MAX_MESSAGES (4)
 
 typedef enum {
     SntpStatusIdle = 0,
@@ -19,9 +22,25 @@ typedef enum {
     SntpCustomEventSuccess = (1 << 0),
 } SntpCustomEvent;
 
+typedef enum {
+    SntpMessageTypeGetSettings,
+    SntpMessageTypeSetSettings,
+} SntpMessageType;
+
+typedef struct {
+    SntpMessageType type;
+    FuriApiLock lock;
+    bool* result;
+    union {
+        SntpSettings* get_settings;
+        const SntpSettings* set_settings;
+    };
+} SntpMessage;
+
 struct Sntp {
     FuriEventLoop* event_loop;
     FuriEventLoopTimer* timer;
+    FuriMessageQueue* message_queue;
     SntpStatus status;
     SntpSettings settings;
 };
@@ -73,6 +92,53 @@ void sntp_status_update(Sntp* instance, bool success) {
         instance->event_loop, SntpCustomEventSuccess); // Reset status to idle after update
 }
 
+static void sntp_message_queue_callback(FuriEventLoopObject* object, void* context) {
+    UNUSED(object);
+
+    furi_assert(context);
+    Sntp* instance = context;
+
+    SntpMessage message;
+    furi_check(furi_message_queue_get(instance->message_queue, &message, 0) == FuriStatusOk);
+
+    bool result = false;
+    switch(message.type) {
+    case SntpMessageTypeGetSettings:
+        *message.get_settings = instance->settings;
+        result = true;
+        break;
+
+    case SntpMessageTypeSetSettings:
+        result = sntp_settings_save(message.set_settings) &&
+                 sntp_settings_load(&instance->settings);
+
+        if(result) {
+            if(instance->settings.is_enabled) {
+                uint32_t interval = (instance->status == SntpStatusSuccess) ?
+                                        instance->settings.auto_interval :
+                                        instance->settings.boot_interval;
+
+                furi_event_loop_pend_callback(instance->event_loop, sntp_timer_callback, instance);
+                furi_event_loop_timer_start(instance->timer, SNTP_S_TO_MS(interval));
+            } else {
+                furi_event_loop_timer_stop(instance->timer);
+            }
+        }
+        break;
+
+    default:
+        furi_crash("Invalid message type");
+    }
+
+    if(message.result) {
+        *message.result = result;
+    }
+
+    if(message.lock) {
+        api_lock_unlock(message.lock);
+    }
+}
+
 static void sntp_custom_event_callback(uint32_t events, void* context) {
     Sntp* instance = context;
 
@@ -84,13 +150,30 @@ static void sntp_custom_event_callback(uint32_t events, void* context) {
     }
 }
 
+static void sntp_send_message(Sntp* instance, const SntpMessage* message) {
+    furi_check(
+        furi_message_queue_put(instance->message_queue, message, FuriWaitForever) == FuriStatusOk);
+
+    if(message->lock) {
+        api_lock_wait_unlock_and_free(message->lock);
+    }
+}
+
 Sntp* sntp_alloc() {
     Sntp* instance = malloc(sizeof(Sntp));
 
     instance->status = SntpStatusIdle;
     instance->event_loop = furi_event_loop_alloc();
+    instance->message_queue = furi_message_queue_alloc(SNTP_MAX_MESSAGES, sizeof(SntpMessage));
     instance->timer = furi_event_loop_timer_alloc(
         instance->event_loop, sntp_timer_callback, FuriEventLoopTimerTypePeriodic, instance);
+
+    furi_event_loop_subscribe_message_queue(
+        instance->event_loop,
+        instance->message_queue,
+        FuriEventLoopEventIn,
+        sntp_message_queue_callback,
+        instance);
 
     furi_event_loop_set_custom_event_callback(
         instance->event_loop, sntp_custom_event_callback, instance);
@@ -104,31 +187,34 @@ Sntp* sntp_alloc() {
     return instance;
 }
 
-const SntpSettings* sntp_get_settings(const Sntp* instance) {
+void sntp_get_settings(const Sntp* instance, SntpSettings* settings) {
     furi_check(instance);
-    return &instance->settings;
+    furi_check(settings);
+
+    const SntpMessage message = {
+        .type = SntpMessageTypeGetSettings,
+        .get_settings = settings,
+        .lock = api_lock_alloc_locked(),
+    };
+
+    sntp_send_message((Sntp*)instance, &message);
 }
 
 bool sntp_set_settings(Sntp* instance, const SntpSettings* settings) {
     furi_check(instance);
     furi_check(settings);
 
-    bool is_success = sntp_settings_save(settings) && sntp_settings_load(&instance->settings);
+    bool result;
+    const SntpMessage message = {
+        .type = SntpMessageTypeSetSettings,
+        .set_settings = settings,
+        .lock = api_lock_alloc_locked(),
+        .result = &result,
+    };
 
-    if(is_success) {
-        if(instance->settings.is_enabled) {
-            uint32_t interval = (instance->status == SntpStatusSuccess) ?
-                                    instance->settings.auto_interval :
-                                    instance->settings.boot_interval;
+    sntp_send_message(instance, &message);
 
-            furi_event_loop_pend_callback(instance->event_loop, sntp_timer_callback, instance);
-            furi_event_loop_timer_start(instance->timer, SNTP_S_TO_MS(interval));
-        } else {
-            furi_event_loop_timer_stop(instance->timer);
-        }
-    }
-
-    return is_success;
+    return result;
 }
 
 int32_t sntp_srv(void* p) {
