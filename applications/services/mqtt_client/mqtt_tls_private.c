@@ -11,20 +11,8 @@
 
 #define TAG "MqttTls"
 
-#define TLS_DEBUG_LEVEL 2
+#define TLS_DEBUG_LEVEL 0
 #define TLS_KEY_SLOT    0
-
-static void print_hex(const uint8_t* buf, size_t len) {
-    FuriString* hex_str = furi_string_alloc();
-    for(size_t i = 0; i < len; i++) {
-        furi_string_cat_printf(hex_str, "%02x", buf[i]);
-        if(i % 50 == 49) {
-            furi_string_cat_printf(hex_str, "\r\n");
-        }
-    }
-    FURI_LOG_I(TAG, "%s", furi_string_get_cstr(hex_str));
-    furi_string_free(hex_str);
-}
 
 static int tls_random(void* ctx, unsigned char* buf, size_t len) {
     UNUSED(ctx);
@@ -59,13 +47,7 @@ static int tls_pk_sign_full(
         FURI_LOG_E(TAG, "Unsupported MD algorithm 0x%02X", md_alg);
         return MBEDTLS_ERR_SSL_FEATURE_UNAVAILABLE;
     }
-    FURI_LOG_W(TAG, "alg %u data %u sig %u", md_alg, data_len, sig_size);
-    print_hex(data, data_len);
-
     bool success = tls_crypto_client_sign(TLS_KEY_SLOT, data, data_len, sig, sig_size, sig_len);
-    FURI_LOG_I(TAG, "917 sign len %u", *sig_len);
-    print_hex(sig, *sig_len);
-
     return (success ? 0 : MBEDTLS_ERR_SSL_INTERNAL_ERROR);
 }
 
