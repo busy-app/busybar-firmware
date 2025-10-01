@@ -35,15 +35,20 @@ using namespace Transport;
 using namespace chip::app::Clusters;
 using namespace chip::System::Clock;
 
+class BsbFabricTableDelegate : public FabricTable::Delegate {
+    void OnFabricRemoved(const FabricTable& fabricTable, FabricIndex fabricIndex) override;
+};
+
 class MatterSrv {
 public:
     MatterSrv(void);
     CHIP_ERROR init(void);
 
-    Intercom* intercom;
+    Intercom* m_intercom;
 
 private:
     CommonCaseDeviceServerInitParams m_server_init_params;
+    BsbFabricTableDelegate m_fabric_delegate;
 };
 
 // sorry - the MatterPostAttributeChangeCallback can't accept any context
@@ -84,7 +89,7 @@ static void matter_hyphenate_manual_code(char* buffer, size_t buf_size) {
 static void matter_send_frame(MatterSrv* matter, const MatterIntercomFrame* frame) {
     furi_check(
         intercom_tx(
-            matter->intercom, IntercomChannelMatter, frame, sizeof(*frame), FuriWaitForever) ==
+            matter->m_intercom, IntercomChannelMatter, frame, sizeof(*frame), FuriWaitForever) ==
         sizeof(*frame));
 }
 
@@ -266,6 +271,14 @@ static void matter_send_current_state(MatterSrv* matter, MatterVirtualDevice dev
 // Service setup
 // =============
 
+void BsbFabricTableDelegate::OnFabricRemoved(
+    const FabricTable& fabricTable,
+    FabricIndex fabricIndex) {
+    UNUSED(fabricTable);
+    UNUSED(fabricIndex);
+    matter_send_fabric_count_update(matter_global_srv);
+}
+
 static void matter_device_event(const ChipDeviceEvent* event, intptr_t arg) {
     auto matter = (MatterSrv*)arg;
 
@@ -312,7 +325,7 @@ static void matter_device_event(const ChipDeviceEvent* event, intptr_t arg) {
 }
 
 MatterSrv::MatterSrv(void) {
-    this->intercom = static_cast<Intercom*>(furi_record_open(RECORD_INTERCOM));
+    this->m_intercom = static_cast<Intercom*>(furi_record_open(RECORD_INTERCOM));
 }
 
 CHIP_ERROR MatterSrv::init(void) {
@@ -351,8 +364,9 @@ CHIP_ERROR MatterSrv::init(void) {
             &Server::GetInstance().GetPersistentStorage());
 
         PlatformMgr().AddEventHandler(matter_device_event, (intptr_t)this);
+        Server::GetInstance().GetFabricTable().AddFabricDelegate(&m_fabric_delegate);
 
-        intercom_set_rx_callback(this->intercom, IntercomChannelMatter, matter_handle_frame, this);
+        intercom_set_rx_callback(m_intercom, IntercomChannelMatter, matter_handle_frame, this);
         matter_send_current_state(this, MatterVirtualDeviceSwitch1);
         matter_send_current_state(this, MatterVirtualDeviceSwitch2);
         matter_send_fabric_count_update(this);
