@@ -28,27 +28,11 @@ struct CheckUpdate {
     void* context;
 };
 
-static void check_update_checking_folder(CheckUpdate* instance) {
-    UNUSED(instance);
-    Storage* storage = furi_record_open(RECORD_STORAGE);
-    FuriString* path = furi_string_alloc();
-    path_extract_dirname(CHECK_UPDATE_FW_SETTINGS_FILE, path);
-
-    if(path_recursive_create_dir(storage, path) != FSE_OK) {
-        FURI_LOG_E(TAG, "Failed to create directory: %s", furi_string_get_cstr(path));
-    }
-
-    furi_string_free(path);
-    furi_record_close(RECORD_STORAGE);
-}
-
 static int32_t check_update_thread_callback(void* context) {
     furi_assert(context);
     FURI_LOG_D(TAG, "Start");
     CheckUpdate* instance = context;
     instance->status = 0;
-
-    check_update_checking_folder(instance);
 
     // Load config
     if(json_config_read_single_str(
