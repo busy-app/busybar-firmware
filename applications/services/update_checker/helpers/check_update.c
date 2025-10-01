@@ -1,5 +1,4 @@
 #include "check_update.h"
-#include "../check_update_fw_i.h"
 #include "parse_update_json.h"
 #include <json_helper.h>
 #include <toolbox/fetch/fetch_loader.h>
@@ -122,7 +121,7 @@ void check_update_set_json_url(CheckUpdate* instance, const char* url) {
 
 void check_update_set_channel_id(CheckUpdate* instance, const char* channel_id) {
     furi_assert(instance);
-    furi_check(channel_id );
+    furi_check(channel_id);
     furi_string_set_str(instance->channel_id, channel_id);
 }
 
@@ -135,7 +134,7 @@ void check_update_set_callback_done(
     instance->context = context;
 }
 
-void check_update_startup(CheckUpdate* instance) {
+void check_update_run(CheckUpdate* instance) {
     furi_assert(instance);
     furi_check(!furi_semaphore_get_space(instance->is_processing_semaphore));
     furi_semaphore_acquire(instance->is_processing_semaphore, FuriWaitForever);

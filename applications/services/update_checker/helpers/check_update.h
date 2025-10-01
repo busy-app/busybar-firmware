@@ -24,7 +24,7 @@ void check_update_set_callback_done(
     CheckUpdate* instance,
     CheckUpdateCallbackDone callback,
     void* context);
-void check_update_startup(CheckUpdate* instance);
+void check_update_run(CheckUpdate* instance);
 bool check_update_is_processing_done(CheckUpdate* instance);
 
 void check_update_set_json_url(CheckUpdate* instance, const char* url);
