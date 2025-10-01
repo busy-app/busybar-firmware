@@ -99,6 +99,8 @@ Sntp* sntp_alloc() {
 
     furi_event_loop_timer_start(instance->timer, SNTP_S_TO_MS(instance->settings.boot_interval));
 
+    furi_record_create(RECORD_SNTP, instance);
+
     return instance;
 }
 

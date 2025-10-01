@@ -4,6 +4,8 @@
 
 #include <furi.h>
 
+#define RECORD_SNTP "sntp"
+
 typedef struct Sntp Sntp;
 
 #ifdef __cplusplus
