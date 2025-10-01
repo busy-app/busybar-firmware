@@ -1,6 +1,5 @@
 #include "check_update.h"
 #include "parse_update_json.h"
-#include <json_helper.h>
 #include <toolbox/fetch/fetch_loader.h>
 #include <furi_hal_version.h>
 #include <toolbox/path.h>
