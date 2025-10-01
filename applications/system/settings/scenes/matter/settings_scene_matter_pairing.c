@@ -16,8 +16,8 @@ typedef struct {
 } SettingsSceneMatterPairing;
 
 typedef enum {
-    SettingsSceneMatterPairingEventSwitchToConnectWifi = SettingsCustomEventSceneEventsStart,
-} SettingsSceneMatterPairingEvent;
+    SettingsSceneEventSwitchToConnectWifi = SettingsCustomEventSceneEventsStart,
+} SettingsSceneEvent;
 
 static void settings_scene_matter_pairing_on_enter(void* context) {
     furi_assert(context);
@@ -26,8 +26,8 @@ static void settings_scene_matter_pairing_on_enter(void* context) {
 
     scene->ui_initialized = false;
 
-    if(!app->is_wifi_available) {
-        settings_send_custom_event(app, SettingsSceneMatterPairingEventSwitchToConnectWifi);
+    if(!(wifi_poller_get_state(app->wifi) & WifiPollerStateLinkUp)) {
+        settings_send_custom_event(app, SettingsSceneEventSwitchToConnectWifi);
         return;
     }
 
@@ -81,9 +81,8 @@ static bool settings_scene_matter_pairing_on_event(const SceneManagerEvent* even
             consumed = matter_scene_replace_current(app, event->event);
             if(consumed) break;
 
-            if(event->event == SettingsSceneMatterPairingEventSwitchToConnectWifi) {
-                scene_manager_replace_current_scene(
-                    app->scene_manager, SettingsAppSceneIdConnectWifi);
+            if(event->event == SettingsSceneEventSwitchToConnectWifi) {
+                scene_manager_next_scene(app->scene_manager, SettingsAppSceneIdConnectWifi);
                 consumed = true;
             }
         }

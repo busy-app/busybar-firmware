@@ -7,11 +7,12 @@
 #include <back_display/back_display.h>
 #include <front_display/front_display.h>
 #include <matter/matter.h>
-#include <wifi/wifi.h>
 
 #include <gui/scene_manager.h>
 #include <gui/modules/nav_bar.h>
 #include <gui/modules/flex_layout.h>
+
+#include "helpers/wifi_poller.h"
 
 typedef enum {
     SettingsCustomEventAboutToExit,
@@ -19,9 +20,6 @@ typedef enum {
     SettingsCustomEventMatterCommStart,
     SettingsCustomEventMatterCommComplete,
     SettingsCustomEventMatterCommFail,
-
-    SettingsCustomEventWifiAvailable,
-    SettingsCustomEventWifiUnavailable,
 
     SettingsCustomEventSceneEventsStart,
 } SettingsCustomEvent;
@@ -40,9 +38,7 @@ typedef struct SettingsApp {
 
     MatterSrv* matter;
     FuriPubSubSubscription* matter_subscription;
-    Wifi* wifi;
-    FuriPubSubSubscription* wifi_subscription;
-    bool is_wifi_available;
+    WifiPoller* wifi;
 
     Widget* front_scene_window;
 

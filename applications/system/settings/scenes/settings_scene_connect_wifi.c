@@ -1,5 +1,6 @@
 #include "../settings.h"
 #include "../storage_macros.h"
+#include "settings_scenes.h"
 
 #include <gui/modules/flex_layout.h>
 #include <gui/modules/label.h>
@@ -21,12 +22,27 @@ typedef struct {
         Label* connect_message;
         QRCode* help_url;
     } back;
-} SettingsSceneDebugApps;
+} SettingsSceneConntextWifi;
+
+typedef enum {
+    SettingsSceneEventWifiAppeared = SettingsCustomEventSceneEventsStart,
+} SettingsSceneEvent;
+
+static void settings_scene_connect_wifi_poller_event(void* context, WifiPollerState state) {
+    furi_assert(context);
+    SettingsApp* app = context;
+
+    if(state & WifiPollerStateLinkUp) {
+        settings_send_custom_event(app, SettingsSceneEventWifiAppeared);
+    }
+}
 
 static void settings_scene_connect_wifi_on_enter(void* context) {
     furi_assert(context);
     SettingsApp* app = context;
-    SettingsSceneDebugApps* scene = scene_manager_get_current_scene_data(app->scene_manager);
+    SettingsSceneConntextWifi* scene = scene_manager_get_current_scene_data(app->scene_manager);
+
+    wifi_poller_set_callback(app->wifi, settings_scene_connect_wifi_poller_event, app);
 
     with_gui(app->gui, {
         widget_set_visible(nav_bar_get_base(app->back_nav_bar), true);
@@ -68,7 +84,9 @@ static void settings_scene_connect_wifi_on_enter(void* context) {
 static void settings_scene_connect_wifi_on_exit(void* context) {
     furi_assert(context);
     SettingsApp* app = context;
-    SettingsSceneDebugApps* scene = scene_manager_get_current_scene_data(app->scene_manager);
+    SettingsSceneConntextWifi* scene = scene_manager_get_current_scene_data(app->scene_manager);
+
+    wifi_poller_set_callback(app->wifi, NULL, NULL);
 
     with_gui(app->gui, {
         // front:
@@ -86,8 +104,19 @@ static bool settings_scene_connect_wifi_on_event(const SceneManagerEvent* event,
     SettingsApp* app = context;
 
     bool consumed = false;
-    UNUSED(app);
-    UNUSED(event);
+
+    if(event->type == SceneManagerEventTypeCustom) {
+        if(event->event == SettingsSceneEventWifiAppeared) {
+            furi_check(scene_manager_previous_scene(app->scene_manager));
+            consumed = true;
+        }
+
+    } else if(event->type == SceneManagerEventTypeBack) {
+        settings_pop_location(app);
+        furi_check(scene_manager_search_and_switch_to_previous_scene(
+            app->scene_manager, SettingsAppSceneIdMain));
+        consumed = true;
+    }
 
     return consumed;
 }
@@ -96,5 +125,5 @@ const Scene settings_scene_connect_wifi = {
     .enter_callback = settings_scene_connect_wifi_on_enter,
     .exit_callback = settings_scene_connect_wifi_on_exit,
     .event_callback = settings_scene_connect_wifi_on_event,
-    .data_size = sizeof(SettingsSceneDebugApps),
+    .data_size = sizeof(SettingsSceneConntextWifi),
 };

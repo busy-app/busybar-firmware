@@ -103,29 +103,6 @@ static void settings_handle_matter_event(const void* message, void* context) {
             FuriStatusOk);
 }
 
-static void settings_handle_wifi_event(const void* message, void* context) {
-    furi_check(message);
-    furi_assert(context);
-    WifiState event = *(const WifiState*)message;
-    SettingsApp* app = context;
-
-    SettingsCustomEvent our_event;
-    bool do_send_event = false;
-
-    if(event == WifiStateUp) {
-        our_event = SettingsCustomEventWifiAvailable;
-        do_send_event = true;
-    } else {
-        our_event = SettingsCustomEventWifiUnavailable;
-        do_send_event = true;
-    }
-
-    if(do_send_event)
-        furi_check(
-            furi_message_queue_put(app->ext_evt_queue, &our_event, FuriWaitForever) ==
-            FuriStatusOk);
-}
-
 static void settings_ext_event(FuriEventLoopObject* object, void* context) {
     furi_assert(object);
     furi_assert(context);
@@ -135,13 +112,6 @@ static void settings_ext_event(FuriEventLoopObject* object, void* context) {
 
     SettingsCustomEvent event;
     furi_check(furi_message_queue_get(queue, &event, 0) == FuriStatusOk);
-
-    // TODO: PubSub with state tracking :(
-    if(event == SettingsCustomEventWifiAvailable) {
-        app->is_wifi_available = true;
-    } else if(event == SettingsCustomEventWifiUnavailable) {
-        app->is_wifi_available = false;
-    }
 
     settings_send_custom_event(app, event);
 }
@@ -211,16 +181,13 @@ static SettingsApp* settings_alloc(void) {
     instance->matter_subscription = furi_pubsub_subscribe(
         matter_get_pubsub(instance->matter), settings_handle_matter_event, instance);
 
-    instance->wifi = furi_record_open(RECORD_WIFI);
-    instance->wifi_subscription = furi_pubsub_subscribe(
-        wifi_get_pubsub(instance->wifi), settings_handle_wifi_event, instance);
+    instance->wifi = wifi_poller_alloc();
 
     return instance;
 }
 
 static void settings_free(SettingsApp* instance) {
-    furi_pubsub_unsubscribe(wifi_get_pubsub(instance->wifi), instance->wifi_subscription);
-    furi_record_close(RECORD_WIFI);
+    wifi_poller_free(instance->wifi);
 
     furi_pubsub_unsubscribe(matter_get_pubsub(instance->matter), instance->matter_subscription);
     furi_record_close(RECORD_MATTER);
