@@ -8,20 +8,16 @@
 
 #define TAG "CheckUpdate"
 
-#define CHECK_UPDATE_DATA_FILE APP_DATA_PATH("data.json")
 #define CHECK_UPDATE_JSON_FILE EXT_PATH("update/directory.json")
-
-#define CHECK_UPDATE_JSON_VERSION_DEFAULT "unknown"
-
-#define CHECK_UPDATE_JSON_NEW_VERSION         "new_version"
-#define CHECK_UPDATE_JSON_NEW_FIRMWARE_URL    "new_firmware_url"
-#define CHECK_UPDATE_JSON_NEW_FIRMWARE_SHA256 "new_firmware_sha256"
 
 struct CheckUpdate {
     FuriThread* thread;
-    FuriString* url;
-    FuriString* id;
-    FuriString* version;
+    FuriString* json_url;
+    FuriString* channel_id;
+    FuriString* current_firmware_version;
+    FuriString* new_firmware_version;
+    FuriString* new_firmware_url;
+    FuriString* new_firmware_sha256;
     CheckUpdateStatus status;
     FuriSemaphore* is_processing_semaphore;
     CheckUpdateCallbackDone callback_done;
@@ -34,58 +30,29 @@ static int32_t check_update_thread_callback(void* context) {
     CheckUpdate* instance = context;
     instance->status = 0;
 
-    // Load config
-    if(json_config_read_single_str(
-           CHECK_UPDATE_FW_SETTINGS_FILE,
-           CHECK_UPDATE_FW_JSON_URL_DIRECTORY,
-           instance->url,
-           CHECK_UPDATE_FW_JSON_URL_DEFAULT) == JsonConfigStatusMissing) {
-        FURI_LOG_W(TAG, "No URL found, using default");
-        json_config_write_single_str(
-            CHECK_UPDATE_FW_SETTINGS_FILE,
-            CHECK_UPDATE_FW_JSON_URL_DIRECTORY,
-            CHECK_UPDATE_FW_JSON_URL_DEFAULT);
-    }
-    if(json_config_read_single_str(
-           CHECK_UPDATE_FW_SETTINGS_FILE,
-           CHECK_UPDATE_FW_JSON_CURRENT_CHANNEL,
-           instance->id,
-           CHECK_UPDATE_FW_JSON_CHANNEL_ID_DEFAULT) == JsonConfigStatusMissing) {
-        FURI_LOG_W(TAG, "No channel ID found, using default");
-        json_config_write_single_str(
-            CHECK_UPDATE_FW_SETTINGS_FILE,
-            CHECK_UPDATE_FW_JSON_CURRENT_CHANNEL,
-            CHECK_UPDATE_FW_JSON_CHANNEL_ID_DEFAULT);
-    }
-    check_update_get_current_version(instance->version);
+    furi_check(furi_string_size(instance->channel_id) != 0);
+    furi_check(furi_string_size(instance->json_url) != 0);
+    check_update_get_current_version(instance, instance->current_firmware_version);
 
     //load directory.json
     FetchLoader* directory_json = fetch_loader_alloc();
-    fetch_loader_run(directory_json, furi_string_get_cstr(instance->url), CHECK_UPDATE_JSON_FILE);
+    fetch_loader_run(
+        directory_json, furi_string_get_cstr(instance->json_url), CHECK_UPDATE_JSON_FILE);
     while(!fetch_loader_is_processing_done(directory_json)) {
         furi_delay_ms(100);
     }
     fetch_loader_free(directory_json);
 
     ParseUpdateJson* parser = parse_update_init();
-    if(parse_update_json(parser, CHECK_UPDATE_JSON_FILE, furi_string_get_cstr(instance->id))) {
-        if(strcmp(furi_string_get_cstr(instance->version), parse_update_get_version(parser)) !=
-           0) {
+    if(parse_update_json(
+           parser, CHECK_UPDATE_JSON_FILE, furi_string_get_cstr(instance->channel_id))) {
+        if(strcmp(
+               furi_string_get_cstr(instance->current_firmware_version),
+               parse_update_get_version(parser)) != 0) {
             FURI_LOG_I(TAG, "New version available: %s", parse_update_get_version(parser));
-            json_config_write_single_str(
-                CHECK_UPDATE_DATA_FILE,
-                CHECK_UPDATE_JSON_NEW_VERSION,
-                parse_update_get_version(parser));
-
-            json_config_write_single_str(
-                CHECK_UPDATE_DATA_FILE,
-                CHECK_UPDATE_JSON_NEW_FIRMWARE_URL,
-                parse_update_get_url(parser));
-
-            json_config_write_single_str(
-                CHECK_UPDATE_DATA_FILE,
-                CHECK_UPDATE_JSON_NEW_FIRMWARE_SHA256,
-                parse_update_get_sha256(parser));
+            furi_string_set_str(instance->new_firmware_version, parse_update_get_version(parser));
+            furi_string_set_str(instance->new_firmware_url, parse_update_get_url(parser));
+            furi_string_set_str(instance->new_firmware_sha256, parse_update_get_sha256(parser));
 
             instance->status |= CheckUpdateStatusNewVersion;
         } else {
@@ -125,9 +92,12 @@ CheckUpdate* check_update_init() {
     CheckUpdate* instance = malloc(sizeof(CheckUpdate));
 
     instance->thread = NULL;
-    instance->url = furi_string_alloc();
-    instance->id = furi_string_alloc();
-    instance->version = furi_string_alloc();
+    instance->json_url = furi_string_alloc();
+    instance->channel_id = furi_string_alloc();
+    instance->current_firmware_version = furi_string_alloc();
+    instance->new_firmware_version = furi_string_alloc_printf("unknown");
+    instance->new_firmware_url = furi_string_alloc();
+    instance->new_firmware_sha256 = furi_string_alloc();
     instance->is_processing_semaphore = furi_semaphore_alloc(1, 1);
     return instance;
 }
@@ -135,11 +105,25 @@ CheckUpdate* check_update_init() {
 void check_update_free(CheckUpdate* instance) {
     furi_assert(instance);
     furi_check(!furi_semaphore_get_space(instance->is_processing_semaphore));
-    furi_string_free(instance->url);
-    furi_string_free(instance->id);
-    furi_string_free(instance->version);
+    furi_string_free(instance->json_url);
+    furi_string_free(instance->channel_id);
+    furi_string_free(instance->current_firmware_version);
+    furi_string_free(instance->new_firmware_version);
+    furi_string_free(instance->new_firmware_url);
+    furi_string_free(instance->new_firmware_sha256);
     furi_semaphore_free(instance->is_processing_semaphore);
     free(instance);
+}
+
+void check_update_set_json_url(CheckUpdate* instance, const char* url) {
+    furi_assert(instance);
+    furi_string_set_str(instance->json_url, url);
+}
+
+void check_update_set_channel_id(CheckUpdate* instance, const char* channel_id) {
+    furi_assert(instance);
+    furi_check(channel_id );
+    furi_string_set_str(instance->channel_id, channel_id);
 }
 
 void check_update_set_callback_done(
@@ -169,47 +153,35 @@ bool check_update_is_processing_done(CheckUpdate* instance) {
     return !furi_semaphore_get_space(instance->is_processing_semaphore);
 }
 
-bool check_update_is_new_version(void) {
-    FuriString* current_version = furi_string_alloc();
-    FuriString* new_version = furi_string_alloc();
+bool check_update_is_new_version(CheckUpdate* instance) {
+    furi_check(instance);
 
-    check_update_get_current_version(current_version);
-    json_config_read_single_str(
-        CHECK_UPDATE_DATA_FILE,
-        CHECK_UPDATE_JSON_NEW_VERSION,
-        new_version,
-        CHECK_UPDATE_JSON_VERSION_DEFAULT);
-
-    bool ret = (furi_string_cmp(current_version, new_version) != 0);
-
-    furi_string_free(current_version);
-    furi_string_free(new_version);
-    return ret;
+    return (
+        furi_string_cmp(instance->current_firmware_version, instance->new_firmware_version) != 0);
 }
 
-void check_update_get_current_version(FuriString* current_version) {
+void check_update_get_current_version(CheckUpdate* instance, FuriString* current_firmware_version) {
+    furi_check(instance);
+    UNUSED(current_firmware_version);
     const Version* firmware_version = furi_hal_version_get_firmware_version();
     if(strcmp(version_get_version(firmware_version), "unknown") == 0) {
-        furi_string_set_str(current_version, version_get_githash(firmware_version));
+        furi_string_set_str(current_firmware_version, version_get_githash(firmware_version));
     } else {
-        furi_string_set_str(current_version, version_get_version(firmware_version));
+        furi_string_set_str(current_firmware_version, version_get_version(firmware_version));
     }
 }
 
-void check_update_get_new_version(FuriString* new_version) {
-    json_config_read_single_str(
-        CHECK_UPDATE_DATA_FILE,
-        CHECK_UPDATE_JSON_NEW_VERSION,
-        new_version,
-        CHECK_UPDATE_JSON_VERSION_DEFAULT);
+void check_update_get_new_version(CheckUpdate* instance, FuriString* new_firmware_version) {
+    furi_check(instance);
+    furi_string_set(new_firmware_version, instance->new_firmware_version);
 }
 
-void check_update_get_new_firmware_url(FuriString* url) {
-    json_config_read_single_str(
-        CHECK_UPDATE_DATA_FILE, CHECK_UPDATE_JSON_NEW_FIRMWARE_URL, url, "");
+void check_update_get_new_firmware_url(CheckUpdate* instance, FuriString* url) {
+    furi_check(instance);
+    furi_string_set(url, instance->new_firmware_url);
 }
 
-void check_update_get_new_firmware_sha256(FuriString* sha256) {
-    json_config_read_single_str(
-        CHECK_UPDATE_DATA_FILE, CHECK_UPDATE_JSON_NEW_FIRMWARE_SHA256, sha256, "");
+void check_update_get_new_firmware_sha256(CheckUpdate* instance, FuriString* sha256) {
+    furi_check(instance);
+    furi_string_set(sha256, instance->new_firmware_sha256);
 }

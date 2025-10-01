@@ -49,6 +49,7 @@ struct CheckUpdateFw {
     FuriPubSub* event_pubsub;
     FuriMessageQueue* message_queue;
     int examination_interval;
+    int reboot_examination_interval;
 };
 
 static void
@@ -128,19 +129,19 @@ static void check_update_fw_message_queue_callback(FuriEventLoopObject* object, 
         check_update_fw_run(instance);
         break;
     case CheckUpdateFwMessageTypeIsNewVersion:
-        result = check_update_is_new_version();
+        result = check_update_is_new_version(instance->check_update);
         break;
     case CheckUpdateFwMessageTypeGetCurrentVersion:
-        check_update_get_current_version(msg.str_data);
+        check_update_get_current_version(instance->check_update, msg.str_data);
         break;
     case CheckUpdateFwMessageTypeGetNewVersion:
-        check_update_get_new_version(msg.str_data);
+        check_update_get_new_version(instance->check_update, msg.str_data);
         break;
     case CheckUpdateFwMessageTypeGetNewFirmwareUrl:
-        check_update_get_new_firmware_url(msg.str_data);
+        check_update_get_new_firmware_url(instance->check_update, msg.str_data);
         break;
     case CheckUpdateFwMessageTypeGetNewFirmwareSha256:
-        check_update_get_new_firmware_sha256(msg.str_data);
+        check_update_get_new_firmware_sha256(instance->check_update, msg.str_data);
         break;
     default:
         FURI_LOG_E(TAG, "Unknown message type: %d", msg.type);
@@ -159,6 +160,69 @@ static void check_update_fw_message_queue_callback(FuriEventLoopObject* object, 
 static void check_update_fw_timer_callback(void* context) {
     CheckUpdateFw* instance = context;
     check_update_fw_run(instance);
+}
+
+static void check_update_fw_load_config(CheckUpdateFw* instance) {
+    furi_assert(instance);
+
+    int reboot_examination_interval_default =
+        CHECK_UPDATE_FW_JSON_REBOOT_EXAMINATION_INTERVAL_DEFAULT;
+    int examination_interval_default = CHECK_UPDATE_FW_JSON_EXAMINATION_INTERVAL_DEFAULT;
+
+    FuriString* json_url = furi_string_alloc_printf(CHECK_UPDATE_FW_JSON_URL_DEFAULT);
+    FuriString* channel_id = furi_string_alloc_printf(CHECK_UPDATE_FW_JSON_CHANNEL_ID_DEFAULT);
+
+    if(json_config_read_single_int(
+           CHECK_UPDATE_FW_SETTINGS_FILE,
+           CHECK_UPDATE_FW_JSON_REBOOT_EXAMINATION_INTERVAL,
+           &instance->reboot_examination_interval,
+           &reboot_examination_interval_default) == JsonConfigStatusMissing) {
+        FURI_LOG_W(TAG, "No reboot examination interval found, using default");
+        json_config_write_single_int(
+            CHECK_UPDATE_FW_SETTINGS_FILE,
+            CHECK_UPDATE_FW_JSON_REBOOT_EXAMINATION_INTERVAL,
+            CHECK_UPDATE_FW_JSON_REBOOT_EXAMINATION_INTERVAL_DEFAULT);
+    }
+    if(json_config_read_single_int(
+           CHECK_UPDATE_FW_SETTINGS_FILE,
+           CHECK_UPDATE_FW_JSON_EXAMINATION_INTERVAL,
+           &instance->examination_interval,
+           &examination_interval_default) == JsonConfigStatusMissing) {
+        FURI_LOG_W(TAG, "No examination interval found, using default");
+        json_config_write_single_int(
+            CHECK_UPDATE_FW_SETTINGS_FILE,
+            CHECK_UPDATE_FW_JSON_EXAMINATION_INTERVAL,
+            CHECK_UPDATE_FW_JSON_EXAMINATION_INTERVAL_DEFAULT);
+    }
+
+    if(json_config_read_single_str(
+           CHECK_UPDATE_FW_SETTINGS_FILE,
+           CHECK_UPDATE_FW_JSON_URL_DIRECTORY,
+           json_url,
+           CHECK_UPDATE_FW_JSON_URL_DEFAULT) == JsonConfigStatusMissing) {
+        FURI_LOG_W(TAG, "No JSON URL found, using default");
+        json_config_write_single_str(
+            CHECK_UPDATE_FW_SETTINGS_FILE,
+            CHECK_UPDATE_FW_JSON_URL_DIRECTORY,
+            CHECK_UPDATE_FW_JSON_URL_DEFAULT);
+    }
+
+    if(json_config_read_single_str(
+           CHECK_UPDATE_FW_SETTINGS_FILE,
+           CHECK_UPDATE_FW_JSON_CURRENT_CHANNEL,
+           channel_id,
+           CHECK_UPDATE_FW_JSON_CHANNEL_ID_DEFAULT) == JsonConfigStatusMissing) {
+        FURI_LOG_W(TAG, "No channel ID found, using default");
+        json_config_write_single_str(
+            CHECK_UPDATE_FW_SETTINGS_FILE,
+            CHECK_UPDATE_FW_JSON_CURRENT_CHANNEL,
+            CHECK_UPDATE_FW_JSON_CHANNEL_ID_DEFAULT);
+    }
+
+    check_update_set_json_url(instance->check_update, furi_string_get_cstr(json_url));
+    check_update_set_channel_id(instance->check_update, furi_string_get_cstr(channel_id));
+    furi_string_free(json_url);
+    furi_string_free(channel_id);
 }
 
 void check_update_fw_status_update(CheckUpdateStatus status, void* context) {
@@ -194,6 +258,7 @@ CheckUpdateFw* check_update_fw_alloc() {
     CheckUpdateFw* instance = malloc(sizeof(CheckUpdateFw));
 
     instance->status = CheckUpdateFwStatusIdle;
+    instance->check_update = check_update_init();
     instance->event_loop = furi_event_loop_alloc();
     instance->message_queue =
         furi_message_queue_alloc(CHECK_UPDATE_FW_MAX_MESSAGES, sizeof(CheckUpdateFwMessage));
@@ -211,43 +276,15 @@ CheckUpdateFw* check_update_fw_alloc() {
         FuriEventLoopTimerTypePeriodic,
         instance);
 
-    instance->check_update = check_update_init();
     check_update_set_callback_done(
         instance->check_update, check_update_fw_status_update, instance);
 
     furi_event_loop_set_custom_event_callback(
         instance->event_loop, check_update_fw_custom_event_callback, instance);
 
-    // Load config
-    int reboot_examination_interval = 0;
-    int reboot_examination_interval_default =
-        CHECK_UPDATE_FW_JSON_REBOOT_EXAMINATION_INTERVAL_DEFAULT;
-    int examination_interval_default = CHECK_UPDATE_FW_JSON_EXAMINATION_INTERVAL_DEFAULT;
+    check_update_fw_load_config(instance);
 
-    if(json_config_read_single_int(
-           CHECK_UPDATE_FW_SETTINGS_FILE,
-           CHECK_UPDATE_FW_JSON_REBOOT_EXAMINATION_INTERVAL,
-           &reboot_examination_interval,
-           &reboot_examination_interval_default) == JsonConfigStatusMissing) {
-        FURI_LOG_W(TAG, "No reboot examination interval found, using default");
-        json_config_write_single_int(
-            CHECK_UPDATE_FW_SETTINGS_FILE,
-            CHECK_UPDATE_FW_JSON_REBOOT_EXAMINATION_INTERVAL,
-            CHECK_UPDATE_FW_JSON_REBOOT_EXAMINATION_INTERVAL_DEFAULT);
-    }
-    if(json_config_read_single_int(
-           CHECK_UPDATE_FW_SETTINGS_FILE,
-           CHECK_UPDATE_FW_JSON_EXAMINATION_INTERVAL,
-           &instance->examination_interval,
-           &examination_interval_default) == JsonConfigStatusMissing) {
-        FURI_LOG_W(TAG, "No examination interval found, using default");
-        json_config_write_single_int(
-            CHECK_UPDATE_FW_SETTINGS_FILE,
-            CHECK_UPDATE_FW_JSON_EXAMINATION_INTERVAL,
-            CHECK_UPDATE_FW_JSON_EXAMINATION_INTERVAL_DEFAULT);
-    }
-
-    furi_event_loop_timer_start(instance->timer, reboot_examination_interval);
+    furi_event_loop_timer_start(instance->timer, instance->reboot_examination_interval);
 
     instance->event_pubsub = furi_pubsub_alloc();
     furi_record_create(RECORD_CHECK_UPDATE_FW, instance);
