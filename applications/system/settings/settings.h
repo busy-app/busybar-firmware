@@ -31,7 +31,6 @@ typedef struct SettingsApp {
     FuriMessageQueue* input_queue;
     FuriMessageQueue* event_queue;
     SceneManager* scene_manager;
-    FuriMessageQueue* ext_evt_queue;
 
     Gui* gui;
     Audio* audio;

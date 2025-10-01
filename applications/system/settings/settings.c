@@ -101,23 +101,7 @@ static void settings_handle_matter_event(const void* message, void* context) {
         do_send_event = true;
     }
 
-    if(do_send_event)
-        furi_check(
-            furi_message_queue_put(app->ext_evt_queue, &our_event, FuriWaitForever) ==
-            FuriStatusOk);
-}
-
-static void settings_ext_event(FuriEventLoopObject* object, void* context) {
-    furi_assert(object);
-    furi_assert(context);
-    FuriMessageQueue* queue = object;
-    SettingsApp* app = context;
-    furi_assert(queue == app->ext_evt_queue);
-
-    SettingsCustomEvent event;
-    furi_check(furi_message_queue_get(queue, &event, 0) == FuriStatusOk);
-
-    settings_send_custom_event(app, event);
+    if(do_send_event) settings_send_custom_event(app, our_event);
 }
 
 static SettingsApp* settings_alloc(void) {
@@ -172,15 +156,6 @@ static SettingsApp* settings_alloc(void) {
 
     scene_manager_next_scene(instance->scene_manager, SettingsAppSceneIdStart);
 
-    instance->ext_evt_queue =
-        furi_message_queue_alloc(SETTINGS_MATTER_Q_SIZE, sizeof(SettingsCustomEvent));
-    furi_event_loop_subscribe_message_queue(
-        instance->event_loop,
-        instance->ext_evt_queue,
-        FuriEventLoopEventIn,
-        settings_ext_event,
-        instance);
-
     instance->matter = furi_record_open(RECORD_MATTER);
     instance->matter_subscription = furi_pubsub_subscribe(
         matter_get_pubsub(instance->matter), settings_handle_matter_event, instance);
@@ -195,9 +170,6 @@ static void settings_free(SettingsApp* instance) {
 
     furi_pubsub_unsubscribe(matter_get_pubsub(instance->matter), instance->matter_subscription);
     furi_record_close(RECORD_MATTER);
-
-    furi_event_loop_unsubscribe(instance->event_loop, instance->ext_evt_queue);
-    furi_message_queue_free(instance->ext_evt_queue);
 
     scene_manager_free(instance->scene_manager);
 
