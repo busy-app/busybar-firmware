@@ -88,24 +88,17 @@ void device_name_get(DeviceName* instance, FuriString* name) {
 
     furi_mutex_acquire(instance->lock, FuriWaitForever);
     Storage* storage = furi_record_open(RECORD_STORAGE);
-    do {
-        if(!storage_file_exists(storage, NAME_FILE_PATH)) {
-            furi_string_set_str(name, DEFAULT_NAME);
-            FURI_LOG_I(TAG, "Default name used");
 
-            if(!device_name_save_config(storage, name)) {
-                FURI_LOG_W(TAG, "Unable to save");
-            }
-            break;
-        }
+    if(!storage_file_exists(storage, NAME_FILE_PATH) || !device_name_read_config(storage, name)) {
+        furi_string_set_str(name, DEFAULT_NAME);
+        FURI_LOG_I(TAG, "Default name used");
 
-        if(!device_name_read_config(storage, name)) {
-            furi_string_set_str(name, DEFAULT_NAME);
-            FURI_LOG_W(TAG, "Default name used");
+        if(!device_name_save_config(storage, name)) {
+            FURI_LOG_E(TAG, "Failed to save name");
         }
-    } while(false);
+    }
+
     furi_record_close(RECORD_STORAGE);
-
     furi_mutex_release(instance->lock);
 }
 
