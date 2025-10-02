@@ -100,7 +100,7 @@ void device_name_get(DeviceName* instance, FuriString* name) {
     furi_mutex_release(instance->lock);
 }
 
-void device_name_set(DeviceName* instance, FuriString* name) {
+bool device_name_set(DeviceName* instance, FuriString* name) {
     furi_assert(instance);
     furi_assert(name);
 
@@ -115,6 +115,7 @@ void device_name_set(DeviceName* instance, FuriString* name) {
     furi_record_close(RECORD_STORAGE);
 
     furi_mutex_release(instance->lock);
+    return true;
 }
 
 int device_name_startup(void* arg) {
