@@ -28,17 +28,17 @@ static bool device_name_save_config(Storage* storage, FuriString* name) {
     File* file = storage_file_alloc(storage);
     do {
         if(!settings_dir_create_if_not_exist(storage)) {
-            FURI_LOG_W("Name", "Unable to create settings dir");
+            FURI_LOG_W(TAG, "Unable to create settings dir");
             break;
         }
 
         if(!storage_file_open(file, NAME_FILE_PATH, FSAM_WRITE, FSOM_CREATE_ALWAYS)) {
-            FURI_LOG_W("Name", "Unable to create name file");
+            FURI_LOG_W(TAG, "Unable to create name file");
             break;
         }
 
         if(!storage_file_write(file, furi_string_get_cstr(name), furi_string_size(name))) {
-            FURI_LOG_W("Name", "Unable to write name");
+            FURI_LOG_W(TAG, "Unable to write name");
         } else
             result = true;
     } while(false);
@@ -52,7 +52,7 @@ static bool device_name_read_config(Storage* storage, FuriString* name) {
     File* file = storage_file_alloc(storage);
     do {
         if(!storage_file_open(file, NAME_FILE_PATH, FSAM_READ, FSOM_OPEN_EXISTING)) {
-            FURI_LOG_W("Name", "Unable to open file config");
+            FURI_LOG_W(TAG, "Unable to open file config");
             break;
         }
 
@@ -62,7 +62,7 @@ static bool device_name_read_config(Storage* storage, FuriString* name) {
         buf[name_size] = 0;
 
         if(!storage_file_read(file, buf, name_size)) {
-            FURI_LOG_W("Name", "Unable to read name from file");
+            FURI_LOG_W(TAG, "Unable to read name from file");
         } else
             result = true;
 
@@ -82,17 +82,17 @@ void device_name_get(DeviceName* instance, FuriString* name) {
     do {
         if(!storage_file_exists(storage, NAME_FILE_PATH)) {
             furi_string_set_str(name, DEFAULT_NAME);
-            FURI_LOG_I("Name", "Default name used");
+            FURI_LOG_I(TAG, "Default name used");
 
             if(!device_name_save_config(storage, name)) {
-                FURI_LOG_W("Name", "Unable to save");
+                FURI_LOG_W(TAG, "Unable to save");
             }
             break;
         }
 
         if(!device_name_read_config(storage, name)) {
             furi_string_set_str(name, DEFAULT_NAME);
-            FURI_LOG_W("Name", "Default name used");
+            FURI_LOG_W(TAG, "Default name used");
         }
     } while(false);
     furi_record_close(RECORD_STORAGE);
@@ -108,9 +108,9 @@ void device_name_set(DeviceName* instance, FuriString* name) {
 
     Storage* storage = furi_record_open(RECORD_STORAGE);
     if(!device_name_save_config(storage, name)) {
-        FURI_LOG_W("Name", "Failed to save name");
+        FURI_LOG_W(TAG, "Failed to save name");
     } else
-        FURI_LOG_I("Name", "New name: %s", furi_string_get_cstr(name));
+        FURI_LOG_I(TAG, "New name: %s", furi_string_get_cstr(name));
 
     furi_record_close(RECORD_STORAGE);
 
