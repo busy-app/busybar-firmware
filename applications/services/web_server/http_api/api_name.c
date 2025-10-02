@@ -31,7 +31,11 @@ bool http_api_name_callback(
 
     if(mg_match(msg->method, mg_str("GET"), NULL)) {
         FuriString* name = furi_string_alloc();
-        DEVICE_NAME_GET(name);
+
+        DeviceName* dev_name = furi_record_open(RECORD_DEVICE_NAME);
+        device_name_get(dev_name, name);
+        furi_record_close(RECORD_DEVICE_NAME);
+
         MG_REPLY_OK_BODY(conn, "{\"name\":\"%s\"}\n", furi_string_get_cstr(name));
         furi_string_free(name);
     } else if(mg_match(msg->method, mg_str("POST"), NULL)) {
@@ -46,9 +50,17 @@ bool http_api_name_callback(
                 MG_REPLY_BAD_REQUEST(conn);
                 break;
             }
-            DEVICE_NAME_SET(name);
-            MG_REPLY_OK(conn);
+
+            DeviceName* dev_name = furi_record_open(RECORD_DEVICE_NAME);
+            bool result = device_name_set(dev_name, name);
+            furi_record_close(RECORD_DEVICE_NAME);
+
+            if(result)
+                MG_REPLY_OK(conn);
+            else
+                MG_REPLY_BAD_REQUEST(conn);
         } while(false);
+
         furi_string_free(name);
     } else
         MG_REPLY_BAD_REQUEST(conn);
