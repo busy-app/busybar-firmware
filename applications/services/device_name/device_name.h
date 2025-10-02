@@ -7,4 +7,4 @@
 typedef struct DeviceName DeviceName;
 
 void device_name_get(DeviceName* instance, FuriString* name);
-bool device_name_set(DeviceName* instance, FuriString* name);
+bool device_name_set(DeviceName* instance, FuriString* name, FuriString* error);

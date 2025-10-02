@@ -40,28 +40,25 @@ bool http_api_name_callback(
         furi_string_free(name);
     } else if(mg_match(msg->method, mg_str("POST"), NULL)) {
         FuriString* name = furi_string_alloc();
+        FuriString* error = furi_string_alloc();
         do {
             if(!http_api_name_parse(msg->body.buf, name)) {
                 MG_REPLY_BAD_REQUEST(conn);
                 break;
             }
 
-            if(furi_string_empty(name)) {
-                MG_REPLY_BAD_REQUEST(conn);
-                break;
-            }
-
             DeviceName* dev_name = furi_record_open(RECORD_DEVICE_NAME);
-            bool result = device_name_set(dev_name, name);
+            bool result = device_name_set(dev_name, name, error);
             furi_record_close(RECORD_DEVICE_NAME);
 
             if(result)
                 MG_REPLY_OK(conn);
             else
-                MG_REPLY_BAD_REQUEST(conn);
+                MG_REPLY_ERROR(conn, 400, furi_string_get_cstr(error));
         } while(false);
 
         furi_string_free(name);
+        furi_string_free(error);
     } else
         MG_REPLY_METHOD_NOT_ALLOWED(conn);
 

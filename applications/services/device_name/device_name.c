@@ -12,6 +12,11 @@
 #define SETTINGS_PATH  EXT_PATH("apps_data/settings")
 #define NAME_FILE_PATH SETTINGS_PATH "/name.txt"
 
+#define DEVICE_NAME_SET_ERROR(error, text)          \
+    ({                                              \
+        if(error) furi_string_set_str(error, text); \
+    })
+
 struct DeviceName {
     FuriMutex* lock;
 };
@@ -100,22 +105,31 @@ void device_name_get(DeviceName* instance, FuriString* name) {
     furi_mutex_release(instance->lock);
 }
 
-bool device_name_set(DeviceName* instance, FuriString* name) {
+bool device_name_set(DeviceName* instance, FuriString* name, FuriString* error) {
     furi_assert(instance);
     furi_assert(name);
 
+    bool result = false;
     furi_mutex_acquire(instance->lock, FuriWaitForever);
 
-    Storage* storage = furi_record_open(RECORD_STORAGE);
-    if(!device_name_save_config(storage, name)) {
-        FURI_LOG_W(TAG, "Failed to save name");
-    } else
-        FURI_LOG_I(TAG, "New name: %s", furi_string_get_cstr(name));
+    do {
+        if(furi_string_empty(name)) {
+            DEVICE_NAME_SET_ERROR(error, "Name is empty");
+            break;
+        }
 
-    furi_record_close(RECORD_STORAGE);
+        Storage* storage = furi_record_open(RECORD_STORAGE);
+        if(device_name_save_config(storage, name)) {
+            FURI_LOG_I(TAG, "New name: %s", furi_string_get_cstr(name));
+            result = true;
+        } else {
+            DEVICE_NAME_SET_ERROR(error, "Failed to save name");
+        }
+        furi_record_close(RECORD_STORAGE);
+    } while(false);
 
     furi_mutex_release(instance->lock);
-    return true;
+    return result;
 }
 
 int device_name_startup(void* arg) {
