@@ -62,8 +62,12 @@ static bool device_name_read_config(Storage* storage, FuriString* name) {
         }
 
         uint64_t file_size = storage_file_size(file);
-        size_t name_size = MIN(file_size, MAX_NAME_LENGTH) + 1;
-        char* buf = malloc(name_size);
+        if(file_size == 0) {
+            FURI_LOG_W(TAG, "File is empty");
+            break;
+        }
+        size_t name_size = MIN(file_size, MAX_NAME_LENGTH);
+        char* buf = malloc(name_size + 1);
         buf[name_size] = 0;
 
         if(!storage_file_read(file, buf, name_size)) {
