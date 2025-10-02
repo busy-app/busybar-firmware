@@ -16,7 +16,7 @@
 #define MIN_TO_MS(minutes) (minutes * 60U * 1000U)
 
 #define POWER_ON_ANIMATION_LOOP_START_FRAME (90)
-#define POWER_ON_ANIMATION_LOOP_END_FRAME   (630)
+#define POWER_ON_ANIMATION_LOOP_END_FRAME   (329)
 
 #define POWER_ON_ANIM_PATH(path) APP_ASSETS_PATH("animations") "/" path
 #define POWER_ON_DONE_PATH       APP_DATA_PATH("done.txt")
