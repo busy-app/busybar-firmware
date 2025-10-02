@@ -63,7 +63,7 @@ bool http_api_name_callback(
 
         furi_string_free(name);
     } else
-        MG_REPLY_BAD_REQUEST(conn);
+        MG_REPLY_METHOD_NOT_ALLOWED(conn);
 
     return true;
 }
