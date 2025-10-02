@@ -114,6 +114,12 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/SuccessResponse"
+        "400":
+          description: Invalid name parameter, or failed to store new name
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
       
 
   /api/update:
