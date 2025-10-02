@@ -44,8 +44,10 @@ static bool device_name_save_config(Storage* storage, FuriString* name) {
 
         if(!storage_file_write(file, furi_string_get_cstr(name), furi_string_size(name))) {
             FURI_LOG_W(TAG, "Unable to write name");
-        } else
-            result = true;
+            break;
+        }
+
+        result = true;
     } while(false);
     storage_file_free(file);
 
