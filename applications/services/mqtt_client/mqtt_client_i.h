@@ -6,11 +6,11 @@
 #include <wifi/wifi.h>
 #include "mqtt_client.h"
 
-#define MQTT_SERVER_ADDR     "mqtts://mqtt.cloud.dev.busy.app:8883"
+#define MQTT_SERVER_ADDR         "mqtts://mqtt.cloud.dev.busy.app:8883"
 #define MQTT_RECONNECT_DELAY_MIN (2000)
 #define MQTT_RECONNECT_DELAY_MAX (60000)
-#define MQTT_QOS             (2)
-#define MQTT_API_VERSION     "v1"
+#define MQTT_QOS                 (2)
+#define MQTT_API_VERSION         "v1"
 
 #define MQTT_DEVICE_ROOT_TOPIC "devices"
 #define MQTT_API_ROOT_TOPIC    "sessions"

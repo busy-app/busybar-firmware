@@ -248,11 +248,11 @@ static void mqtt_client_load_session(MqttClient* mqtt) {
         }
         status = json_config_read_str(cfg, "session_id", mqtt->session_id, NULL);
         if(status == JsonConfigStatusMissing) break;
-        if (furi_string_empty(mqtt->session_id)) break;
+        if(furi_string_empty(mqtt->session_id)) break;
 
         status = json_config_read_str(cfg, "token", mqtt->link_token, NULL);
         if(status == JsonConfigStatusMissing) break;
-        if (furi_string_empty(mqtt->link_token)) break;
+        if(furi_string_empty(mqtt->link_token)) break;
 
         mqtt->is_linked = true;
     } while(0);
