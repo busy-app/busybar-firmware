@@ -7,7 +7,8 @@
 #include "mqtt_client.h"
 
 #define MQTT_SERVER_ADDR     "mqtts://mqtt.cloud.dev.busy.app:8883"
-#define MQTT_RECONNECT_DELAY (2000)
+#define MQTT_RECONNECT_DELAY_MIN (2000)
+#define MQTT_RECONNECT_DELAY_MAX (60000)
 #define MQTT_QOS             (2)
 #define MQTT_API_VERSION     "v1"
 
@@ -20,8 +21,9 @@ struct MqttClient {
 
     FuriPubSub* event_pubsub;
     struct mg_mgr mgr;
-    struct mg_timer reconnect_delay_timer;
     struct mg_connection* conn;
+    struct mg_timer reconnect_delay_timer;
+    uint32_t reconnect_delay;
     unsigned long wakeup_conn_id;
 
     MqttClientStatus status;

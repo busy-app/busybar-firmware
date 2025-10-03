@@ -3,7 +3,7 @@
 #include <storage/storage.h>
 #include <json_helper.h>
 #include <furi_hal_random.h>
-#include <furi_hal_info.h>
+#include <furi_hal_version.h>
 
 #define TAG "MqttClient"
 
@@ -69,7 +69,6 @@ static void mqtt_device_request_pin(MqttClient* mqtt) {
 
 static void
     mqtt_device_on_message(MqttClient* mqtt, FuriString* topic_str, struct mg_str* message) {
-    UNUSED(mqtt);
     if(furi_string_end_with(topic_str, "/down/v1/link/otp")) {
         char* pin = mg_json_get_str(*message, "$.code");
         if(pin) {
@@ -86,7 +85,7 @@ static void
             JsonConfig* cfg = json_config_alloc();
             JsonConfigStatus status = json_config_open(cfg, SESSION_FILE);
             furi_assert(status != JsonConfigStatusError);
-            json_config_write_str(cfg, "sesson_id", session_id);
+            json_config_write_str(cfg, "session_id", session_id);
             json_config_write_str(cfg, "token", token);
             json_config_free(cfg);
 
@@ -101,6 +100,8 @@ static void
             mqtt->conn->is_draining = 1;
             mqtt->fast_reconnect = true;
         }
+        if(session_id) free(session_id);
+        if(token) free(token);
     }
 }
 
@@ -157,10 +158,14 @@ static void mqtt_event_handler(struct mg_connection* conn, int ev, void* ev_data
                 mg_timer_init(
                     &mqtt->mgr.timers,
                     &mqtt->reconnect_delay_timer,
-                    MQTT_RECONNECT_DELAY,
+                    mqtt->reconnect_delay,
                     MG_TIMER_ONCE,
                     mqtt_connect_callback,
                     mqtt);
+                mqtt->reconnect_delay *= 2;
+                if(mqtt->reconnect_delay > MQTT_RECONNECT_DELAY_MAX) {
+                    mqtt->reconnect_delay = MQTT_RECONNECT_DELAY_MAX;
+                }
             }
         }
 
@@ -172,12 +177,13 @@ static void mqtt_event_handler(struct mg_connection* conn, int ev, void* ev_data
             uint8_t sub_reason = msg->dgram.buf[packet_len - 1];
             FURI_LOG_D(TAG, "MQTT SUBACK: 0x%02X", sub_reason);
 
-            if(sub_reason <= 2) {
+            if(sub_reason == MQTT_QOS) {
                 if(!mqtt->is_linked) {
                     mqtt_status_change_event(mqtt, MqttClientStatusConnectedNotLinked);
                 } else {
                     mqtt_status_change_event(mqtt, MqttClientStatusConnectedLinked);
                 }
+                mqtt->reconnect_delay = MQTT_RECONNECT_DELAY_MIN;
             } else {
                 FURI_LOG_E(TAG, "Subscribe error 0x%02X", sub_reason);
                 conn->is_draining = 1;
@@ -240,11 +246,13 @@ static void mqtt_client_load_session(MqttClient* mqtt) {
             json_config_write_str(cfg, "client_id", furi_string_get_cstr(mqtt->client_id));
             break;
         }
-        status = json_config_read_str(cfg, "sesson_id", mqtt->session_id, NULL);
+        status = json_config_read_str(cfg, "session_id", mqtt->session_id, NULL);
         if(status == JsonConfigStatusMissing) break;
+        if (furi_string_empty(mqtt->session_id)) break;
 
         status = json_config_read_str(cfg, "token", mqtt->link_token, NULL);
         if(status == JsonConfigStatusMissing) break;
+        if (furi_string_empty(mqtt->link_token)) break;
 
         mqtt->is_linked = true;
     } while(0);
@@ -252,7 +260,7 @@ static void mqtt_client_load_session(MqttClient* mqtt) {
     if(!mqtt->is_linked) {
         furi_string_reset(mqtt->session_id);
         furi_string_reset(mqtt->link_token);
-        json_config_delete(cfg, "sesson_id");
+        json_config_delete(cfg, "session_id");
         json_config_delete(cfg, "token");
         FURI_LOG_W(TAG, "Session data reset");
     }
@@ -393,7 +401,7 @@ int32_t mqtt_client_start(void* p) {
     mqtt->status = MqttClientStatusNotConnected;
 
     mqtt->device_serial = furi_string_alloc();
-    furi_hal_info_get_serial(mqtt->device_serial);
+    furi_hal_version_get_uid_str(mqtt->device_serial);
 
     mqtt->client_id = furi_string_alloc();
     mqtt->session_id = furi_string_alloc();
@@ -430,11 +438,13 @@ int32_t mqtt_client_start(void* p) {
 
     mqtt->is_wifi_up = true; // TODO: wifi events
 
+    mqtt->reconnect_delay = MQTT_RECONNECT_DELAY_MIN;
+
     if((mqtt->status != MqttClientStatusError) && (mqtt->is_wifi_up)) {
         mg_timer_init(
             &mqtt->mgr.timers,
             &mqtt->reconnect_delay_timer,
-            MQTT_RECONNECT_DELAY,
+            mqtt->reconnect_delay,
             MG_TIMER_ONCE | MG_TIMER_RUN_NOW,
             mqtt_connect_callback,
             mqtt);

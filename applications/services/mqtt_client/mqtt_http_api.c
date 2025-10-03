@@ -4,7 +4,7 @@
 
 #define HTTP_HOST           "http://127.0.0.1"
 #define HTTP_URI_API_PREFIX "/api/"
-#define HTTP_CONN_TIMEOUT   5
+#define HTTP_CONN_TIMEOUT   5 // In polling periods (1000ms)
 
 typedef enum {
     MethodGet = 0,
@@ -74,9 +74,10 @@ static bool mqtt_api_http_check_request(struct mg_str* msg) {
     for(size_t i = 0; i < COUNT_OF(mqtt_api_table); i++) {
         if(mg_strcmp(uri_mask, mg_str(mqtt_api_table[i].name)) == 0) {
             MqttApiMethod method = MethodUnknown;
-            for(size_t i = 0; i < COUNT_OF(mqtt_api_methods); i++) {
-                if(mg_strcmp(http_msg.method, mg_str(mqtt_api_methods[i].http_name)) == 0) {
-                    method = i;
+            for(size_t method_id = 0; method_id < COUNT_OF(mqtt_api_methods); method_id++) {
+                if(mg_strcmp(http_msg.method, mg_str(mqtt_api_methods[method_id].http_name)) ==
+                   0) {
+                    method = method_id;
                     break;
                 }
             }
@@ -143,6 +144,7 @@ static void mqtt_api_http_handler(struct mg_connection* conn, int ev, void* ev_d
         if(http_ctx->poll_cnt > 0) {
             http_ctx->poll_cnt--;
             if(http_ctx->poll_cnt == 0) {
+                // Should never happen with correct HTTP request
                 FURI_LOG_E(TAG, "HTTP timeout");
                 conn->is_draining = 1;
             }
