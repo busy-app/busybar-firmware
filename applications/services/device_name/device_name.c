@@ -7,14 +7,14 @@
 
 #define DEFAULT_NAME "BUSY Bar"
 
-#define MAX_NAME_LENGTH (10UL)
+#define MAX_NAME_LENGTH (10U)
 
 #define SETTINGS_PATH  EXT_PATH("apps_data/settings")
 #define NAME_FILE_PATH SETTINGS_PATH "/name.txt"
 
-#define DEVICE_NAME_SET_ERROR(error, text)          \
-    ({                                              \
-        if(error) furi_string_set_str(error, text); \
+#define DEVICE_NAME_SET_ERROR(error, format, ...)                   \
+    ({                                                              \
+        if(error) furi_string_printf(error, format, ##__VA_ARGS__); \
     })
 
 struct DeviceName {
@@ -46,7 +46,6 @@ static bool device_name_save_config(Storage* storage, FuriString* name) {
             FURI_LOG_W(TAG, "Unable to write name");
             break;
         }
-
         result = true;
     } while(false);
     storage_file_free(file);
@@ -114,6 +113,11 @@ bool device_name_set(DeviceName* instance, FuriString* name, FuriString* error) 
     do {
         if(furi_string_empty(name)) {
             DEVICE_NAME_SET_ERROR(error, "Name is empty");
+            break;
+        }
+
+        if(furi_string_size(name) > MAX_NAME_LENGTH) {
+            DEVICE_NAME_SET_ERROR(error, "Name exceeds %d symbols", MAX_NAME_LENGTH);
             break;
         }
 
