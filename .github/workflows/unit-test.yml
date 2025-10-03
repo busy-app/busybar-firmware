@@ -172,6 +172,8 @@ jobs:
           fi
 
           echo "Test results uploaded to: $S3_PATH"
+        continue-on-error: true
+
 
       - name: Set up Java (required for Allure report generation)
         if: always()
