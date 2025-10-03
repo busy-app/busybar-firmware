@@ -282,17 +282,20 @@ jobs:
           echo "- [All Tests - Latest](https://flipper-aws-qa-tests.s3.eu-central-1.amazonaws.com/bsb/allure-reports/all/latest/index.html)" >> $GITHUB_STEP_SUMMARY
 
       - name: Install Playwright automation dependencies
+        if: always()
         run: |
           cd scripts/testing/playwright-automation
           python3 -m pip install --upgrade pip
           pip install -r requirements.txt
           
       - name: Install Playwright browsers
+        if: always()
         run: |
           cd scripts/testing/playwright-automation
           playwright install chromium firefox webkit
           
       - name: Run Playwright automation tests (All Browsers)
+        if: always()
         run: |
           cd scripts/testing/playwright-automation
           python3 -m pytest -m ui \
