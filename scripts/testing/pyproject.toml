@@ -35,6 +35,7 @@ asyncio_mode = "auto"
 markers = [
     "cli: marks tests as CLI command tests",
     "frontend: marks tests as web frontend tests",
+    "ui: marks tests as UI automation tests (Playwright)",
     "ui_validation: marks tests as UI validation",
     "interface_status: marks tests as interface status tests",
     "commands_check: marks tests as command validation",

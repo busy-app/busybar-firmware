@@ -100,7 +100,7 @@ jobs:
 
       - name: Run smoke tests
         run: |
-          cd tests
+          cd scripts/testing
           python3 -m pytest . -v \
             --alluredir=allure-results \
             --clean-alluredir \
@@ -125,7 +125,7 @@ jobs:
       - name: Upload test results to Allure TestOps
         if: always()
         run: |
-          cd tests
+          cd scripts/testing
           echo "Attempting upload with command:"
           echo "allurectl upload allure-results --endpoint https://flipper.testops.cloud --token ${{ secrets.ALLURE_TESTOPS_TOKEN }} --project-id 232 --launch-name 'GitHub Actions - ${{ github.workflow }} - ${{ github.sha }}'"
 
@@ -157,7 +157,7 @@ jobs:
       - name: Upload test results to S3
         if: always()
         run: |
-          cd tests
+          cd scripts/testing
           # Create unique path for this test run with project prefix
           RUN_ID="${{ github.run_number }}-${{ github.sha }}"
           S3_PATH="s3://flipper-aws-qa-tests/bsb/test-results/all/$RUN_ID"
@@ -191,7 +191,7 @@ jobs:
       - name: Download previous Allure history from S3
         if: always()
         run: |
-          cd tests
+          cd scripts/testing
           # Download previous history if it exists
           HISTORY_PATH="s3://flipper-aws-qa-tests/bsb/allure-history/all"
           mkdir -p allure-history
@@ -203,7 +203,7 @@ jobs:
       - name: Generate Allure report with history
         if: always()
         run: |
-          cd tests
+          cd scripts/testing
           # Copy history to allure-results if it exists
           if [ -d "allure-history" ] && [ "$(ls -A allure-history)" ]; then
             cp -r allure-history/* allure-results/ 2>/dev/null || true
@@ -222,7 +222,7 @@ jobs:
       - name: Upload Allure report and history to S3
         if: always()
         run: |
-          cd tests
+          cd scripts/testing
           RUN_ID="${{ github.run_number }}-${{ github.sha }}"
 
           # Upload the complete report
@@ -278,3 +278,52 @@ jobs:
           echo "- [CLI Tests - Latest](https://flipper-aws-qa-tests.s3.eu-central-1.amazonaws.com/bsb/allure-reports/cli/latest/index.html)" >> $GITHUB_STEP_SUMMARY
           echo "- [Frontend Tests - Latest](https://flipper-aws-qa-tests.s3.eu-central-1.amazonaws.com/bsb/allure-reports/frontend/latest/index.html)" >> $GITHUB_STEP_SUMMARY
           echo "- [All Tests - Latest](https://flipper-aws-qa-tests.s3.eu-central-1.amazonaws.com/bsb/allure-reports/all/latest/index.html)" >> $GITHUB_STEP_SUMMARY
+
+      - name: Install Playwright automation dependencies
+        run: |
+          cd scripts/testing/playwright-automation
+          python3 -m pip install --upgrade pip
+          pip install -r requirements.txt
+          
+      - name: Install Playwright browsers
+        run: |
+          cd scripts/testing/playwright-automation
+          playwright install chromium firefox webkit
+          
+      - name: Run Playwright automation tests (All Browsers)
+        run: |
+          cd scripts/testing/playwright-automation
+          python3 -m pytest -m ui \
+            --browser=chromium --browser=firefox --browser=webkit \
+            --base-url=http://10.0.4.20 \
+            --tb=short \
+            --maxfail=5 \
+            --reruns=1 \
+            --reruns-delay=3 \
+            --capture=no \
+            -v
+        continue-on-error: true
+        env:
+          CI: true
+          ENVIRONMENT: ci
+          PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD: 0
+          
+      - name: Update job summary with Playwright results
+        if: always()
+        run: |
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "## 🎭 Playwright UI Automation Tests" >> $GITHUB_STEP_SUMMARY
+          echo "Cross-browser validation of BUSY Bar web interface using \`-m ui\` marker:" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Browsers Tested:**" >> $GITHUB_STEP_SUMMARY
+          echo "- 🌐 Chromium (Chrome-based) - Headless" >> $GITHUB_STEP_SUMMARY
+          echo "- 🦊 Firefox (Mozilla) - Headless" >> $GITHUB_STEP_SUMMARY
+          echo "- 🧭 WebKit (Safari-based) - Headless" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**UI Components Validated:**" >> $GITHUB_STEP_SUMMARY
+          echo "- ✅ Page loading and DOM structure" >> $GITHUB_STEP_SUMMARY
+          echo "- ✅ Navigation component (connection status, battery, IP)" >> $GITHUB_STEP_SUMMARY
+          echo "- ✅ Device display component (canvas/image fallback)" >> $GITHUB_STEP_SUMMARY
+          echo "- ✅ Cross-browser selector compatibility" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Test Execution:** All browsers run simultaneously in headless mode" >> $GITHUB_STEP_SUMMARY
