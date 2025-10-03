@@ -12,8 +12,8 @@
 #define MENU_PAD_ALL (2)
 
 #define MENU_ITEM_RADIUS  (4)
-#define MENU_ITEM_PAD_HOR (4)
-#define MENU_ITEM_PAD_VER (4)
+#define MENU_ITEM_PAD_HOR (3)
+#define MENU_ITEM_PAD_VER (2)
 
 #define SUBMENU_ITEM_PAD_COL (3)
 
@@ -105,6 +105,7 @@ static void style_init(my_theme_t* theme) {
     lv_style_set_pad_top(&theme->styles.menu_item, MENU_ITEM_PAD_VER);
     lv_style_set_pad_bottom(&theme->styles.menu_item, MENU_ITEM_PAD_VER - 1);
     lv_style_set_radius(&theme->styles.menu_item, MENU_ITEM_RADIUS);
+    lv_style_set_flex_cross_place(&theme->styles.menu_item, LV_FLEX_ALIGN_CENTER);
 
     lv_style_init(&theme->styles.menu_icon);
     lv_style_set_margin_right(&theme->styles.menu_icon, 6);
