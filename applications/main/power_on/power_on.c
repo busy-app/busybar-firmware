@@ -117,18 +117,26 @@ int32_t power_on_app(void* arg) {
     do {
         if(power_on_done_flag_present(instance)) break;
 
-        back_display_sleep_mode(instance->back_display, true);
-
-        AnimImage* anim_image;
+        AnimImage *front_anim, *back_anim;
         with_gui(instance->gui, {
             GuiLayer* layer = gui_get_layer(instance->gui, GuiLayerIdMain);
             gui_layer_add_input_callback(layer, power_on_input_callback, instance);
-            Widget* root = gui_layer_get_root_widget(layer, GuiDisplayIdFront);
+            Widget* front = gui_layer_get_root_widget(layer, GuiDisplayIdFront);
+            Widget* back = gui_layer_get_root_widget(layer, GuiDisplayIdBack);
 
-            anim_image = anim_image_alloc(root);
-            anim_image_set_source(anim_image, POWER_ON_ANIM_PATH("power_on_72x16.anim"));
+            front_anim = anim_image_alloc(front);
+            anim_image_set_source(front_anim, POWER_ON_ANIM_PATH("front_power_on_72x16.anim"));
             anim_image_set_range(
-                anim_image,
+                front_anim,
+                POWER_ON_ANIMATION_LOOP_START_FRAME,
+                POWER_ON_ANIMATION_LOOP_END_FRAME,
+                true,
+                true);
+
+            back_anim = anim_image_alloc(back);
+            anim_image_set_source(back_anim, POWER_ON_ANIM_PATH("back_power_on_160x80.anim"));
+            anim_image_set_range(
+                back_anim,
                 POWER_ON_ANIMATION_LOOP_START_FRAME,
                 POWER_ON_ANIMATION_LOOP_END_FRAME,
                 true,
@@ -147,12 +155,12 @@ int32_t power_on_app(void* arg) {
         }
 
         with_gui(instance->gui, {
-            anim_image_free(anim_image);
+            anim_image_free(front_anim);
+            anim_image_free(back_anim);
             GuiLayer* layer = gui_get_layer(instance->gui, GuiLayerIdMain);
             gui_layer_remove_input_callback(layer, power_on_input_callback);
         });
 
-        back_display_sleep_mode(instance->back_display, false);
     } while(false);
 
     power_on_app_free(instance);
