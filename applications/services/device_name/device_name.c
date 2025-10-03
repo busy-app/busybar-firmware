@@ -7,7 +7,7 @@
 
 #define DEFAULT_NAME "BUSY Bar"
 
-#define MAX_NAME_LENGTH (10U)
+#define MAX_NAME_LENGTH (20U)
 
 #define SETTINGS_PATH  EXT_PATH("apps_data/settings")
 #define NAME_FILE_PATH SETTINGS_PATH "/name.txt"
