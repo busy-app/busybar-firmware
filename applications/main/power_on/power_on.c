@@ -109,6 +109,14 @@ static inline void power_on_done_flag_create(PowerOnApp* instance) {
     storage_file_free(file);
 }
 
+static AnimImage* power_on_animation_alloc(Widget* widget, const char* anim_path) {
+    AnimImage* anim = anim_image_alloc(widget);
+    anim_image_set_source(anim, anim_path);
+    anim_image_set_range(
+        anim, POWER_ON_ANIMATION_LOOP_START_FRAME, POWER_ON_ANIMATION_LOOP_END_FRAME, true, true);
+    return anim;
+}
+
 int32_t power_on_app(void* arg) {
     UNUSED(arg);
 
@@ -122,25 +130,12 @@ int32_t power_on_app(void* arg) {
             GuiLayer* layer = gui_get_layer(instance->gui, GuiLayerIdMain);
             gui_layer_add_input_callback(layer, power_on_input_callback, instance);
             Widget* front = gui_layer_get_root_widget(layer, GuiDisplayIdFront);
+            front_anim =
+                power_on_animation_alloc(front, POWER_ON_ANIM_PATH("front_power_on_72x16.anim"));
+
             Widget* back = gui_layer_get_root_widget(layer, GuiDisplayIdBack);
-
-            front_anim = anim_image_alloc(front);
-            anim_image_set_source(front_anim, POWER_ON_ANIM_PATH("front_power_on_72x16.anim"));
-            anim_image_set_range(
-                front_anim,
-                POWER_ON_ANIMATION_LOOP_START_FRAME,
-                POWER_ON_ANIMATION_LOOP_END_FRAME,
-                true,
-                true);
-
-            back_anim = anim_image_alloc(back);
-            anim_image_set_source(back_anim, POWER_ON_ANIM_PATH("back_power_on_160x80.anim"));
-            anim_image_set_range(
-                back_anim,
-                POWER_ON_ANIMATION_LOOP_START_FRAME,
-                POWER_ON_ANIMATION_LOOP_END_FRAME,
-                true,
-                true);
+            back_anim =
+                power_on_animation_alloc(back, POWER_ON_ANIM_PATH("back_power_on_160x80.anim"));
         });
 
         uint32_t flags =
@@ -160,7 +155,6 @@ int32_t power_on_app(void* arg) {
             GuiLayer* layer = gui_get_layer(instance->gui, GuiLayerIdMain);
             gui_layer_remove_input_callback(layer, power_on_input_callback);
         });
-
     } while(false);
 
     power_on_app_free(instance);
