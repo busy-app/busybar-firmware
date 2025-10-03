@@ -16,20 +16,20 @@
 
 static void mqtt_connect_callback(void* data);
 
-static void mqtt_wifi_event_callback(const void* message, void* context) {
-    MqttClient* mqtt = context;
-    furi_assert(mqtt);
+// static void mqtt_wifi_event_callback(const void* message, void* context) {
+//     MqttClient* mqtt = context;
+//     furi_assert(mqtt);
 
-    WifiState wifi_event = *(WifiState*)message;
+//     WifiState wifi_event = *(WifiState*)message;
 
-    MqttClientMessage msg = {
-        .type = MqttClientMessageWifiStateChange,
-        .wifi_state = wifi_event,
-        .lock = NULL,
-    };
+//     MqttClientMessage msg = {
+//         .type = MqttClientMessageWifiStateChange,
+//         .wifi_state = wifi_event,
+//         .lock = NULL,
+//     };
 
-    mg_wakeup(&mqtt->mgr, mqtt->wakeup_conn_id, &msg, sizeof(MqttClientMessage));
-}
+//     mg_wakeup(&mqtt->mgr, mqtt->wakeup_conn_id, &msg, sizeof(MqttClientMessage));
+// }
 
 static void mqtt_status_change_event(MqttClient* mqtt, MqttClientStatus status) {
     mqtt->status = status;
@@ -420,13 +420,15 @@ int32_t mqtt_client_start(void* p) {
     mqtt->event_pubsub = furi_pubsub_alloc();
     furi_record_create(RECORD_MQTT, mqtt);
 
-    mqtt->wifi = furi_record_open(RECORD_WIFI);
-    mqtt->wifi_event_sub =
-        furi_pubsub_subscribe(wifi_get_pubsub(mqtt->wifi), mqtt_wifi_event_callback, mqtt);
+    // mqtt->wifi = furi_record_open(RECORD_WIFI);
+    // mqtt->wifi_event_sub =
+    //     furi_pubsub_subscribe(wifi_get_pubsub(mqtt->wifi), mqtt_wifi_event_callback, mqtt);
 
-    WifiInfo wifi_info;
-    wifi_get_info(mqtt->wifi, &wifi_info);
-    mqtt->is_wifi_up = (wifi_info.state == WifiStateUp);
+    // WifiInfo wifi_info;
+    // wifi_get_info(mqtt->wifi, &wifi_info);
+    // mqtt->is_wifi_up = (wifi_info.state == WifiStateUp);
+
+    mqtt->is_wifi_up = true; // TODO: wifi events
 
     if((mqtt->status != MqttClientStatusError) && (mqtt->is_wifi_up)) {
         mg_timer_init(
