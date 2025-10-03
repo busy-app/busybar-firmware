@@ -58,6 +58,15 @@ typedef void (*MessageHandler)(StatusLights* instance, StatusLightsMessage* mess
 
 static const MessageHandler message_handlers[];
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wtype-limits"
+static inline bool status_lights_is_valid_brightness(uint8_t brightness) {
+    return brightness == STATUS_LIGHTS_BRIGHTNESS_AUTO ||
+           (brightness >= STATUS_LIGHTS_BRIGHTNESS_MIN &&
+            brightness <= STATUS_LIGHTS_BRIGHTNESS_MAX);
+}
+#pragma GCC diagnostic pop
+
 static uint8_t status_lights_light_sensor_level_to_brightness(uint8_t light_level) {
     uint8_t brightness =
         AUTO_BRIGHTNESS_MIN_LEVEL +
@@ -204,7 +213,10 @@ static StatusLights* status_lights_alloc() {
         &stored_brightness,
         &(int){STATUS_LIGHTS_BRIGHTNESS_AUTO});
 
-    status_lights_set_brightness(instance, stored_brightness);
+    status_lights_set_brightness(
+        instance,
+        (status_lights_is_valid_brightness(stored_brightness)) ? stored_brightness :
+                                                                 STATUS_LIGHTS_BRIGHTNESS_AUTO);
 
     furi_record_create(RECORD_STATUS_LIGHTS, instance);
 
@@ -241,14 +253,7 @@ void status_lights_run_preset(StatusLights* instance, StatusLightsPreset preset,
 
 void status_lights_set_brightness(StatusLights* instance, uint8_t brightness) {
     furi_check(instance);
-
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wtype-limits"
-    furi_check(
-        brightness == STATUS_LIGHTS_BRIGHTNESS_AUTO ||
-        (brightness >= STATUS_LIGHTS_BRIGHTNESS_MIN &&
-         brightness <= STATUS_LIGHTS_BRIGHTNESS_MAX));
-#pragma GCC diagnostic pop
+    furi_check(status_lights_is_valid_brightness(brightness));
 
     StatusLightsMessage message = {
         .api_lock = NULL,
