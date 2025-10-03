@@ -1,6 +1,6 @@
 #include "BSBDeviceInfoProvider.hpp"
 
-#include <DeviceInfoProviderImpl.h>
+#include "DeviceInfoProviderImpl.h"
 
 namespace chip {
 namespace DeviceLayer {

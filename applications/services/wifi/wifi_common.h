@@ -45,9 +45,8 @@ typedef enum {
 
 /** Enumeration of possible states for the Wifi system. */
 typedef enum {
-    WifiStateDeinit, /**< The Wifi system is de-initialised. */
-    WifiStateDown, /**< The Wifi system is initialised, but no connection is active. */
-    WifiStateUp, /**< The Wifi system is initialised, and there is an active connection. */
+    WifiStateDown, /**< The Wifi system is in disconnected state */
+    WifiStateUp, /**< The Wifi system is in connected state */
     WifiStateMax, /**< Special value, internal use */
 } WifiState;
 
@@ -142,7 +141,7 @@ typedef struct {
 typedef struct {
     char ssid[SSID_MAX_LEN]; /**< Access point name (SSID) */
     WifiSecurityMode securiy_mode; /**< Type of protection used by the current access point */
-    WifiIpConfig ip_config; /**< Current IP confituration */
+    WifiIpConfig ip_config; /**< Current IP configuration */
     WifiState state; /**< State of the Wifi system */
 } WifiInfo;
 
