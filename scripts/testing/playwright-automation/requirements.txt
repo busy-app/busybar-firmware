@@ -1,0 +1,41 @@
+# Core Testing Framework
+pytest==8.4.2
+pytest-playwright==0.7.1
+playwright==1.55.0
+pytest-asyncio==0.23.6
+pytest-base-url==2.1.0
+
+# Allure Reporting
+allure-pytest==2.13.5
+allure-python-commons==2.13.5
+
+# Test Utilities
+pytest-xdist==3.6.1  # Parallel test execution
+pytest-rerunfailures==16.0.1  # Retry flaky tests
+pytest-timeout==2.3.1  # Test timeouts
+pytest-html==4.1.1  # Backup HTML reports
+pytest-metadata==3.1.1  # Test metadata
+pytest-mock==3.14.0  # Mocking support
+pytest-cov==5.0.0  # Coverage reports
+
+# Environment & Configuration
+python-dotenv==1.0.1
+pydantic==2.11.9  # Config validation
+pydantic-settings==2.11.0
+
+# Utilities
+faker==30.3.0  # Test data generation
+requests==2.32.3  # API testing if needed
+Pillow==10.4.0  # Image comparison (used in screenshot.py)
+
+# Logging & Debugging
+colorlog==6.8.2  # Used in logger.py
+colorama==2.0.4  # Colorlog dependency
+rich==14.1.0  # Beautiful terminal output (used in logger.py)
+
+# Development & Code Quality (optional but recommended)
+black==24.8.0
+pylint==3.3.1
+mypy==1.11.2
+pre-commit==3.8.0
+ipython==8.18.1  # Interactive shell for debugging
