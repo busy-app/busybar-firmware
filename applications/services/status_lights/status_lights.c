@@ -37,6 +37,7 @@ typedef struct {
     union {
         struct {
             uint8_t brightness;
+            bool do_save;
         } as_set_brightness;
 
         struct {
@@ -90,7 +91,10 @@ static void status_lights_send_command(StatusLights* instance, StatusLightsComma
 static void status_lights_do_set_brightness(StatusLights* instance, StatusLightsMessage* message) {
     instance->brightness = message->as_set_brightness.brightness;
 
-    json_config_write_single_int(STATUS_LIGHTS_CONFIG_FILE, "brightness", instance->brightness);
+    if(message->as_set_brightness.do_save) {
+        json_config_write_single_int(
+            STATUS_LIGHTS_CONFIG_FILE, "brightness", instance->brightness);
+    }
 
     StatusLightsCommand command = {
         .id = StatusLightsCommandIdSetBrightness,
@@ -213,10 +217,21 @@ static StatusLights* status_lights_alloc() {
         &stored_brightness,
         &(int){STATUS_LIGHTS_BRIGHTNESS_AUTO});
 
-    status_lights_set_brightness(
-        instance,
-        (status_lights_is_valid_brightness(stored_brightness)) ? stored_brightness :
-                                                                 STATUS_LIGHTS_BRIGHTNESS_AUTO);
+    StatusLightsMessage message = {
+        .api_lock = NULL,
+        .type = StatusLightsMessageTypeSetBrightness,
+        .as_set_brightness =
+            {
+                .brightness = (status_lights_is_valid_brightness(stored_brightness)) ?
+                                  stored_brightness :
+                                  STATUS_LIGHTS_BRIGHTNESS_AUTO,
+                .do_save = false,
+            },
+    };
+
+    furi_check(
+        furi_message_queue_put(instance->message_queue, &message, FuriWaitForever) ==
+        FuriStatusOk);
 
     furi_record_create(RECORD_STATUS_LIGHTS, instance);
 
@@ -261,6 +276,7 @@ void status_lights_set_brightness(StatusLights* instance, uint8_t brightness) {
         .as_set_brightness =
             {
                 .brightness = brightness,
+                .do_save = true,
             },
     };
 
