@@ -6,6 +6,6 @@ App(
     cdefines=["SRV_GUI"],
     stack_size=8 * 1024,
     targets=["f20", "f21"],
-    requires=["front_display", "back_display"],
+    requires=["front_display", "back_display", "l10n"],
     order=200,
 )

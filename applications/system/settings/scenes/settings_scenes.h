@@ -7,6 +7,7 @@ typedef enum {
     SettingsAppSceneIdMain,
     SettingsAppSceneIdSound,
     SettingsAppSceneIdBrightness,
+    SettingsAppSceneIdLanguage,
     SettingsAppSceneIdDebugApps,
 
     SettingsAppSceneIdsCount

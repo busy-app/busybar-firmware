@@ -1,0 +1,9 @@
+App(
+    appid="l10n",
+    name="L10nSrv",
+    apptype=FlipperAppType.SERVICE,
+    entry_point="l10n_srv",
+    cdefines=["SRV_L10N"],
+    stack_size=2 * 1024,
+    targets=["f20", "f21"],
+)

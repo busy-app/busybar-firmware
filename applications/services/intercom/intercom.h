@@ -46,6 +46,7 @@ typedef enum {
     IntercomErrorSync, /**< Other side has requested synchronization, which failed */
     IntercomErrorFraming, /**< Invalid frame (incorrect structure or checksum) */
     IntercomErrorTransmit, /**< Transmission has been inhibited for too long by HW */
+    IntercomErrorMax, /**< Do not use */
 } IntercomError;
 
 typedef enum {
@@ -55,7 +56,7 @@ typedef enum {
 typedef struct {
     IntercomEventType type; /**< Type of the event */
     union {
-        const char* message; /**< Optional message, if applicable */
+        IntercomError error; /**< Error for `IntercomEventTypeError` */
     };
 } IntercomEvent;
 

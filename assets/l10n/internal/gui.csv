@@ -1,0 +1,6 @@
+key,en-US,ru-RU
+var_item.time_box.mn,%d m,%d м
+var_item.time_box.hr,%d h,%d ч
+var_item.time_box.other,%d:%02d,%d:%02d
+var_item.switch.on,On,Вкл
+var_item.switch.off,Off,Выкл

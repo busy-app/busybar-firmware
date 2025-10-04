@@ -33,14 +33,20 @@ static void busy_scene_setup_on_enter(void* context) {
     BusyTimerConfig timer_config;
     busy_timer_get_config(instance->busy_timer, &timer_config);
 
-    const char* mode_name = busy_timer_get_mode_names()[timer_config.mode];
+    static const L10nKey mode_names[BusyTimerModeMax] = {
+        [BusyTimerModeInfinite] = L10N_KEY_BUSY_SETUP_TIMER_MODE_INFINITE,
+        [BusyTimerModeSimple] = L10N_KEY_BUSY_SETUP_TIMER_MODE_SIMPLE,
+        [BusyTimerModeInterval] = L10N_KEY_BUSY_SETUP_TIMER_MODE_INTERVAL,
+    };
+
+    char* mode_name = strdup(l10n_get(instance->l10n, mode_names[timer_config.mode]));
 
     with_gui(instance->gui, {
         data->front_menu = menu_alloc(instance->front_window);
 
         menu_add_item(
             data->front_menu,
-            "Timer",
+            l10n_get(instance->l10n, L10N_KEY_BUSY_SETUP_TIMER_TITLE_FRONT),
             mode_name,
             BUSY_IMG_PATH("timer_8x8.bin"),
             BusySceneSetupMenuIndexTimer,
@@ -48,8 +54,8 @@ static void busy_scene_setup_on_enter(void* context) {
             instance);
         menu_add_item(
             data->front_menu,
-            "Theme",
-            "",
+            l10n_get(instance->l10n, L10N_KEY_BUSY_SETUP_THEME_TITLE_FRONT),
+            NULL,
             BUSY_IMG_PATH("theme_8x8.bin"),
             BusySceneSetupMenuIndexTheme,
             busy_scene_setup_menu_callback,
@@ -59,12 +65,26 @@ static void busy_scene_setup_on_enter(void* context) {
 
         data->back_menu = menu_alloc(instance->back_window);
         menu_add_item(
-            data->back_menu, "TIMER", mode_name, BUSY_IMG_PATH("timer_12x12.bin"), 0, NULL, NULL);
+            data->back_menu,
+            l10n_get(instance->l10n, L10N_KEY_BUSY_SETUP_TIMER_TITLE_BACK),
+            mode_name,
+            BUSY_IMG_PATH("timer_12x12.bin"),
+            0,
+            NULL,
+            NULL);
         menu_add_item(
-            data->back_menu, "THEME", "", BUSY_IMG_PATH("theme_12x12.bin"), 0, NULL, NULL);
+            data->back_menu,
+            l10n_get(instance->l10n, L10N_KEY_BUSY_SETUP_THEME_TITLE_BACK),
+            NULL,
+            BUSY_IMG_PATH("theme_12x12.bin"),
+            0,
+            NULL,
+            NULL);
 
         menu_set_selected_item_index(data->back_menu, data->menu_idx);
     });
+
+    free(mode_name);
 }
 
 static void busy_scene_setup_on_exit(void* context) {
@@ -90,11 +110,13 @@ static bool busy_scene_setup_on_event(const SceneManagerEvent* event, void* cont
         data->menu_idx = event->event;
 
         if(event->event == BusySceneSetupMenuIndexTimer) {
-            busy_push_location(instance, "TIMER");
+            busy_push_location(
+                instance, l10n_get(instance->l10n, L10N_KEY_BUSY_SETUP_TIMER_TITLE_NAVBAR));
             scene_manager_next_scene(instance->scene_manager, BusyAppSceneIdSetupTimer);
 
         } else if(event->event == BusySceneSetupMenuIndexTheme) {
-            busy_push_location(instance, "THEME");
+            busy_push_location(
+                instance, l10n_get(instance->l10n, L10N_KEY_BUSY_SETUP_THEME_TITLE_NAVBAR));
             scene_manager_next_scene(instance->scene_manager, BusyAppSceneIdSetupTheme);
         }
 

@@ -11,7 +11,7 @@
 #define COLOR_INACTIVE_HEX CONCATENATE(0x, COLOR_INACTIVE)
 #define COLOR_ACTIVE_HEX   CONCATENATE(0x, COLOR_ACTIVE)
 
-ARRAY_DEF(LocationStack, const char*, M_CSTR_OPLIST);
+ARRAY_DEF(LocationStack, FuriString*, FURI_STRING_OPLIST);
 
 struct NavBar {
     Widget base;
@@ -71,11 +71,13 @@ static void nav_bar_update_breadcrumbs(NavBar* instance) {
         LocationStack_it_t it;
         LocationStack_it(it, instance->locations);
         for(; !LocationStack_last_p(it); LocationStack_next(it)) {
-            furi_string_cat_printf(text, ">  %s  ", *LocationStack_cref(it));
+            furi_string_cat_printf(text, ">  %s  ", furi_string_get_cstr(*LocationStack_cref(it)));
         }
 
         furi_string_cat_printf(
-            text, ">  #" TOSTRING(COLOR_ACTIVE) " %s #", *LocationStack_cref(it));
+            text,
+            ">  #" TOSTRING(COLOR_ACTIVE) " %s #",
+            furi_string_get_cstr(*LocationStack_cref(it)));
 
         lv_label_set_text(instance->breadcrumbs_label, furi_string_get_cstr(text));
         lv_obj_remove_flag(instance->breadcrumbs_label, LV_OBJ_FLAG_HIDDEN);
@@ -137,7 +139,9 @@ void nav_bar_push_location(NavBar* instance, const char* location_name) {
     furi_check(instance);
     furi_check(location_name);
 
-    LocationStack_push_back(instance->locations, location_name);
+    FuriString* location_fstr = furi_string_alloc_set_str(location_name);
+    LocationStack_push_back(instance->locations, location_fstr);
+    furi_string_free(location_fstr);
     nav_bar_update_breadcrumbs(instance);
 }
 

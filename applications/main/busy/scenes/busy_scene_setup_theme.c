@@ -15,11 +15,13 @@ static void busy_scene_setup_theme_on_enter(void* context) {
 
     with_gui(instance->gui, {
         data->front_label = label_alloc(instance->front_window);
-        label_set_text(data->front_label, "Not Implemented");
+        label_set_text(
+            data->front_label, l10n_get(instance->l10n, L10N_KEY_BUSY_TEMP_NOT_IMPLEMENTED_FRONT));
         widget_set_align(label_get_base(data->front_label), AlignCenter);
 
         data->back_label = label_alloc(instance->back_window);
-        label_set_text(data->back_label, "Not Implemented");
+        label_set_text(
+            data->back_label, l10n_get(instance->l10n, L10N_KEY_BUSY_TEMP_NOT_IMPLEMENTED_BACK));
         widget_set_align(label_get_base(data->back_label), AlignCenter);
     });
 }

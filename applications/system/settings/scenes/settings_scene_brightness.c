@@ -29,13 +29,6 @@ typedef struct {
     _Atomic uint8_t brightness;
 } SettingsSceneBrightness;
 
-static const char* brightness_mode_names[] = {
-    [SettingsBrightnessModeManual] = "Manual",
-    [SettingsBrightnessModeAuto] = "Auto",
-};
-
-static_assert(COUNT_OF(brightness_mode_names) == SettingsBrightnessModesCount);
-
 static void settings_scene_brightness_filter_items(SettingsSceneBrightness* data) {
     const bool show_brightness = (data->mode == SettingsBrightnessModeManual);
 
@@ -74,12 +67,24 @@ static void settings_scene_brightness_fill_var_item_list(
     bool do_set_callbacks) {
     SettingsSceneBrightness* data = scene_manager_get_current_scene_data(instance->scene_manager);
 
+    char brightness_mode_names[SettingsBrightnessModeCount][64] = {{0}, {0}};
+    strcpy(
+        brightness_mode_names[SettingsBrightnessModeManual],
+        l10n_get(instance->l10n, L10N_KEY_SETTINGS_BRIGHTNESS_MODE_MANUAL));
+    strcpy(
+        brightness_mode_names[SettingsBrightnessModeAuto],
+        l10n_get(instance->l10n, L10N_KEY_SETTINGS_BRIGHTNESS_MODE_AUTO));
+    const char* brightness_modes[SettingsBrightnessModeCount] = {
+        brightness_mode_names[0],
+        brightness_mode_names[1],
+    };
+
     VarItem* mode_item = var_item_list_add_selector(
         container->list,
-        "Mode",
+        l10n_get(instance->l10n, L10N_KEY_SETTINGS_BRIGHTNESS_MODE),
         NULL,
-        brightness_mode_names,
-        COUNT_OF(brightness_mode_names),
+        brightness_modes,
+        SettingsBrightnessModeCount,
         (do_set_callbacks) ? settings_scene_brightness_mode_changed_callback : NULL,
         instance);
 
@@ -87,7 +92,7 @@ static void settings_scene_brightness_fill_var_item_list(
 
     VarItem* brightness_item = var_item_list_add_spinbox(
         container->list,
-        "Level",
+        l10n_get(instance->l10n, L10N_KEY_SETTINGS_BRIGHTNESS_LEVEL),
         "%",
         SETTINGS_BRIGHTNESS_RANGE_MIN,
         SETTINGS_BRIGHTNESS_RANGE_MAX,

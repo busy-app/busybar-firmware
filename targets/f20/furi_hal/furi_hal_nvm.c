@@ -23,6 +23,7 @@ typedef struct {
     FuriHalNvmBootMode boot_mode;
     uint32_t fault_data;
     uint32_t switch_pos;
+    uint32_t locale;
 } NvmData;
 
 _Static_assert(FuriHalNvmFlagCount <= 32, "Too many NVM flags defined!");
@@ -97,4 +98,12 @@ void furi_hal_nvm_store_switch_pos(uint32_t pos) {
 
 uint32_t furi_hal_nvm_get_switch_pos(void) {
     return nvm_storage->switch_pos;
+}
+
+void furi_hal_nvm_set_locale(uint32_t value) {
+    nvm_storage->locale = value;
+}
+
+uint32_t furi_hal_nvm_get_locale(void) {
+    return nvm_storage->locale;
 }

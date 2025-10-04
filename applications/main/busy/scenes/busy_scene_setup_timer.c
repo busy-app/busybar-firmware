@@ -3,13 +3,13 @@
 #include <gui/modules/var_item_list.h>
 
 typedef enum {
-    // Timer Mode is not included becaue it is always shown
+    // Timer Mode is not included because it is always shown
     VarItemListIdTime,
     VarItemListIdWork,
     VarItemListIdRest,
     VarItemListIdCycles,
     VarItemListIdAutostart,
-    // Demo Mode is not included becaue it is always shown
+    // Demo Mode is not included because it is always shown
     VarItemListIdMax,
 } VarItemListId;
 
@@ -21,6 +21,7 @@ typedef struct {
 typedef struct {
     VarItemListContainer containers[GuiDisplayIdMax];
     BusyTimerConfig timer_config;
+    L10nContext* l10n;
 } BusySceneSetupTimer;
 
 static void busy_scene_setup_timer_filter_items(BusySceneSetupTimer* data) {
@@ -110,11 +111,27 @@ static void
     VarItemListId item_id = 0;
     VarItem* item;
 
+    char timer_mode_names[BusyTimerModeMax][64] = {{0}, {0}, {0}};
+    strcpy(
+        timer_mode_names[BusyTimerModeInfinite],
+        l10n_get(data->l10n, L10N_KEY_BUSY_SETUP_TIMER_MODE_INFINITE));
+    strcpy(
+        timer_mode_names[BusyTimerModeInterval],
+        l10n_get(data->l10n, L10N_KEY_BUSY_SETUP_TIMER_MODE_INTERVAL));
+    strcpy(
+        timer_mode_names[BusyTimerModeSimple],
+        l10n_get(data->l10n, L10N_KEY_BUSY_SETUP_TIMER_MODE_SIMPLE));
+    const char* timer_modes[BusyTimerModeMax] = {
+        timer_mode_names[0],
+        timer_mode_names[1],
+        timer_mode_names[2],
+    };
+
     item = var_item_list_add_selector(
         container->list,
-        "Mode",
+        l10n_get(data->l10n, L10N_KEY_BUSY_SETUP_TIMER_MODE),
         NULL,
-        busy_timer_get_mode_names(),
+        timer_modes,
         BusyTimerModeMax,
         set_cb ? busy_scene_setup_timer_mode_changed_callback : NULL,
         data);
@@ -125,7 +142,7 @@ static void
 
     item = var_item_list_add_timebox(
         container->list,
-        "Time",
+        l10n_get(data->l10n, L10N_KEY_BUSY_SETUP_TIMER_TIME),
         BUSY_TIMER_TIME_MIN_MN,
         BUSY_TIMER_TIME_MAX_MN,
         BUSY_TIMER_TIME_INCREMENT_MN,
@@ -138,7 +155,7 @@ static void
 
     item = var_item_list_add_timebox(
         container->list,
-        "Work",
+        l10n_get(data->l10n, L10N_KEY_BUSY_SETUP_TIMER_WORK),
         BUSY_TIMER_WORK_TIME_MIN_MN,
         BUSY_TIMER_WORK_TIME_MAX_MN,
         BUSY_TIMER_TIME_INCREMENT_MN,
@@ -151,7 +168,7 @@ static void
 
     item = var_item_list_add_timebox(
         container->list,
-        "Rest",
+        l10n_get(data->l10n, L10N_KEY_BUSY_SETUP_TIMER_REST),
         BUSY_TIMER_REST_TIME_MIN_MN,
         BUSY_TIMER_REST_TIME_MAX_MN,
         BUSY_TIMER_TIME_INCREMENT_MN,
@@ -164,7 +181,7 @@ static void
 
     item = var_item_list_add_spinbox(
         container->list,
-        "Cycles",
+        l10n_get(data->l10n, L10N_KEY_BUSY_SETUP_TIMER_CYCLES),
         NULL,
         BUSY_TIMER_CYCLE_COUNT_MIN,
         BUSY_TIMER_CYCLE_COUNT_MAX,
@@ -178,7 +195,7 @@ static void
 
     item = var_item_list_add_switch(
         container->list,
-        "Autostart",
+        l10n_get(data->l10n, L10N_KEY_BUSY_SETUP_TIMER_AUTOSTART),
         set_cb ? busy_scene_setup_timer_autostart_changed_callback : NULL,
         data);
 
@@ -188,7 +205,7 @@ static void
 
     item = var_item_list_add_switch(
         container->list,
-        "Demo mode",
+        l10n_get(data->l10n, L10N_KEY_BUSY_SETUP_TIMER_DEMO_MODE),
         set_cb ? busy_scene_setup_timer_demo_mode_changed_callback : NULL,
         data);
 
@@ -204,6 +221,7 @@ static void busy_scene_setup_timer_on_enter(void* context) {
     BusySceneSetupTimer* data = scene_manager_get_current_scene_data(instance->scene_manager);
 
     data->timer_config = instance->settings.timer_config;
+    data->l10n = instance->l10n;
 
     with_gui(instance->gui, {
         data->containers[GuiDisplayIdFront].list = var_item_list_alloc(instance->front_window);

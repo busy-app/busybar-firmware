@@ -1,0 +1,24 @@
+key,en-US,ru-RU
+temp.not_implemented.front,Not Implemented,Не реализовано
+temp.not_implemented.back,Not Implemented,Не реализовано
+title.navbar,BUSY,BUSY
+start.start,START,ПУСК
+start.setup,SETUP,НАСТРОЙКИ
+setup.title.back,SETUP,НАСТРОЙКИ
+setup.title.navbar,SETUP,НАСТРОЙКИ
+setup.timer.title.front,Timer,Таймер
+setup.timer.title.back,TIMER,ТАЙМЕР
+setup.timer.title.navbar,TIMER,ТАЙМЕР
+setup.timer.mode,Mode,Режим
+setup.timer.mode.infinite,Off,Выкл
+setup.timer.mode.simple,Simple,Простой
+setup.timer.mode.interval,Interval,Интрвл
+setup.timer.time,Timer,Время
+setup.timer.work,Work,Работа
+setup.timer.rest,Rest,Отдых
+setup.timer.cycles,Cycles,Циклов
+setup.timer.autostart,Autostart,Автопуск
+setup.timer.demo_mode,Demo mode,Демо
+setup.theme.title.front,Theme,Тема
+setup.theme.title.back,THEME,ТЕМА
+setup.theme.title.navbar,THEME,ТЕМА

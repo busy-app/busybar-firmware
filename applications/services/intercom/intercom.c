@@ -1,6 +1,7 @@
 #include "intercom_i.h"
 
-#define TAG "IntercomSrv"
+#define TAG    "IntercomSrv"
+#define APP_ID "intercom"
 
 #define INTERCOM_TX_TIMEOUT_MS                 (1000UL)
 #define INTERCOM_INITIAL_SYNC_RETRY_LOCKOUT_MS (500UL)
@@ -48,6 +49,7 @@ struct Intercom {
     FuriEventLoopTimer* tx_timer;
     FuriHalSerialHandle* serial;
     FuriPubSub* pubsub;
+
     bool is_initial_sync_done;
     bool error_handling_disabled;
     IntercomChannelData channels[IntercomChannelMax];
@@ -131,15 +133,21 @@ static void intercom_dump_frame(const IntercomFrame* frame) {
     furi_string_free(tmp);
 }
 
-static void intercom_unrecoverable_error(Intercom* instance, const char* message) {
+static void intercom_unrecoverable_error(Intercom* instance, IntercomError error) {
     while(true) {
         IntercomEvent pubsub_message = {
             .type = IntercomEventTypeError,
-            .message = message,
+            .error = error,
+        };
+
+        static const char* const debug_error_names[IntercomErrorMax] = {
+            [IntercomErrorSync] = "Externally requested sync failed",
+            [IntercomErrorFraming] = "Framing error",
+            [IntercomErrorTransmit] = "TX inhibited for too long",
         };
 
         furi_pubsub_publish(instance->pubsub, &pubsub_message);
-        FURI_LOG_E(TAG, message);
+        FURI_LOG_E(TAG, debug_error_names[error]);
         furi_delay_ms(5000);
     }
 }
@@ -160,14 +168,14 @@ static void intercom_error_handler(IntercomError error, void* context) {
 #endif
 
     if(error == IntercomErrorSync) {
-        intercom_unrecoverable_error(instance, "Externally requested sync failed");
+        intercom_unrecoverable_error(instance, error);
     } else if(error == IntercomErrorFraming) {
         intercom_dump_frame(&instance->rx_frame);
-        intercom_unrecoverable_error(instance, "Corrupted frame received");
+        intercom_unrecoverable_error(instance, error);
     } else if(error == IntercomErrorTransmit) {
-        intercom_unrecoverable_error(instance, "Other side has died");
+        intercom_unrecoverable_error(instance, error);
     } else {
-        intercom_unrecoverable_error(instance, "Unknown error");
+        furi_crash();
     }
 }
 

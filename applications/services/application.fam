@@ -37,6 +37,7 @@ App(
         "supervisor",
         "ble",
         "network",
+        "l10n",
         "sntp",
         "matter",
         "device_name",

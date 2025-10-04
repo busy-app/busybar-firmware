@@ -1,0 +1,72 @@
+key,en-US,ru-RU
+warning.storage.no_partitions.front,"No partitions
+Press OK to format","Нет разделов
+Нажмите ОК для форматирования"
+warning.storage.no_partitions.back,"Incorrect partitions
+Press OK to format
+Device will reboot","Неправильные разделы
+Нажмите ОК для форматирования
+Устройство перезагрузится"
+warning.storage.no_backup.front,"Backup corrupted
+Press OK to format","Бэкап повреждён
+Нажмите ОК для форматирования"
+warning.storage.no_backup.back,"Backup partition corrupted
+Press OK to format
+Device will reboot","Бэкап-раздел повреждён
+Нажмите ОК для форматирования
+Устройство перезагрузится"
+warning.storage.no_external.front,"Partition corrupted
+Press OK to format","Раздел повреждён
+Нажмите ОК для форматир."
+warning.storage.no_external.back,"Main partition corrupted
+Press OK to format
+Device will reboot","Основной раздел повреждён
+Нажмите ОК для форматирования
+Устройство перезагрузится"
+warning.battery.not_ready.front,"Battery not present
+Connect battery","Нет аккумулятора
+Подключите аккумулятор"
+warning.battery.not_ready.back,"Battery not present
+Please connect battery
+>_<","Нет аккумулятора
+Пожалуйста, подключите аккумулятор
+&_&"
+warning.battery.critical.front,"Connect charger
+Power off in %zu sec.","Подключите зарядку
+Отключение через %zu сек."
+warning.battery.critical.back,"Battery critical
+Please connect charger
+Power off in %zu sec.","Критичный уровень заряда
+Пожалуйста, подключите зарядку
+Отключение через %zu сек."
+warning.battery.low.front,Battery low,Низкий уровень заряда
+warning.battery.low.back,Battery low,Низкий уровень заряда
+warning.intercom.front,"Intercom error
+Update firmware","Ошибка коммуникации
+Обновите прошивку"
+warning.intercom.back,"Intercom error
+Please update firmware
+'%s'","Ошибка коммуникации
+Пожалуйста, обновите прошивку
+'%s'"
+warning.intercom.sync,Externally requested sync failed,Запрошенная извне синхронизация не удалась
+warning.intercom.framing,Corrupted frame received,Получен повреждённый пакет
+warning.intercom.transmit,Other side has died,Другая сторона умерла
+make_filesystem.progress.front,"Creating filesystem...
+Please wait","Создание файловой системы...
+Пожалуйста, подождите"
+make_filesystem.progress.back,"Creating filesystem...
+Please wait","Создание файловой системы...
+Пожалуйста, подождите"
+format_backup.progress.front,"Formatting backup...
+Please wait","Форматирование бэкапа...
+Пожалуйста, подождите"
+format_backup.progress.back,"Formatting backup partition...
+Please wait","Форматирование бэкап-раздела...
+Пожалуйста, подождите"
+format_ext.progress.front,"Formatting external...
+Please wait","Форматирование внешнего...
+Пожалуйста, подождите"
+format_ext.progress.back,"Formatting external partition...
+Please wait","Форматирование внешнего раздела...
+Пожалуйста, подождите"

@@ -1,6 +1,10 @@
 #include "var_item_list.h"
 
 #include <gui/widget_i.h>
+#include <gui/gui.h>
+#include <gui/gui_i.h>
+#include <l10n/l10n.h>
+#include <l10n_keys/gui.h>
 
 #include <lvgl/src/core/lv_obj_class_private.h>
 #include <lvgl/src/widgets/label/lv_label_private.h>
@@ -53,6 +57,7 @@ typedef struct {
     VarItemChangeCallback callback;
     void* context;
     VarItemType type;
+    L10nContext* l10n;
 } VarItemEditor;
 
 struct VarItem {
@@ -306,13 +311,16 @@ static void var_item_editor_update(VarItemEditor* instance) {
         const int32_t hh = instance->value / 60;
         const int32_t mm = instance->value % 60;
 
+        const char* text;
         if(hh == 0) {
-            lv_label_set_text_fmt(label, "%ld m", mm);
+            text = l10n_get(instance->l10n, L10N_KEY_GUI_VAR_ITEM_TIME_BOX_MN((int)mm));
         } else if(mm == 0) {
-            lv_label_set_text_fmt(label, "%ld h", hh);
+            text = l10n_get(instance->l10n, L10N_KEY_GUI_VAR_ITEM_TIME_BOX_HR((int)hh));
         } else {
-            lv_label_set_text_fmt(label, "%ld:%02ld", hh, mm);
+            text =
+                l10n_get(instance->l10n, L10N_KEY_GUI_VAR_ITEM_TIME_BOX_OTHER((int)hh, (int)mm));
         }
+        lv_label_set_text(label, text);
 
     } else if(instance->type == VarItemTypeSelector) {
         const VarItemSelectorChoices* choices = instance->choices;
@@ -327,7 +335,10 @@ static void var_item_editor_update(VarItemEditor* instance) {
         }
 
     } else if(instance->type == VarItemTypeSwitch) {
-        lv_label_set_text_fmt(label, "%s", instance->value ? "On" : "Off");
+        const char* text = l10n_get(
+            instance->l10n,
+            instance->value ? L10N_KEY_GUI_VAR_ITEM_SWITCH_ON : L10N_KEY_GUI_VAR_ITEM_SWITCH_OFF);
+        lv_label_set_text(label, text);
 
     } else {
         furi_crash();
@@ -451,6 +462,11 @@ static VarItem* var_item_alloc(
     VarItemEditor* editor = instance->editor;
     editor->callback = callback;
     editor->context = context;
+
+    // TODO: is there a better way to get the Gui handle?
+    Gui* gui = furi_record_open(RECORD_GUI);
+    editor->l10n = gui_get_l10n_context(gui);
+    furi_record_close(RECORD_GUI);
 
     return instance;
 }

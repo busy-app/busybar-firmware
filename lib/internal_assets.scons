@@ -5,22 +5,52 @@ from SCons.Util import splitext
 libenv = env.Clone(FW_LIB_NAME="internal_assets", tools=["bsb_assets"])
 libenv.ApplyLibFlags()
 
-img_header_dir = libenv.Dir("assets_internal")
-
-env.AppendUnique(
-    CPPPATH=[img_header_dir],
-)
-
-image_src_files = env.GlobRecursive("*.png", Dir("#/assets/images/internal"))
-
 sources = []
 
-for f in image_src_files:
-    internal_name = "I_" + splitext(f.name)[0]
-    file_node = libenv.File(internal_name + ".c")
-    sources.append(libenv.ImageConverter(file_node, f, IMAGE_FILE_FORMAT="C", IMAGE_INTERNAL_NAME=internal_name))
+assets_dir = libenv.Dir("assets_internal")
 
-libenv.ImageHeaderGenerator(img_header_dir.File("assets_images.h"), sources)
+env.AppendUnique(
+    CPPPATH=[assets_dir],
+)
+libenv.AppendUnique(
+    CPPPATH=[assets_dir],
+)
+
+def process_images():
+    global env, libenv
+    src_files = env.GlobRecursive("*.png", Dir("#/assets/images/internal"))
+
+    for f in src_files:
+        internal_name = "I_" + splitext(f.name)[0]
+        file_node = libenv.File(internal_name + ".c")
+        sources.append(libenv.ImageConverter(file_node, f, IMAGE_FILE_FORMAT="C", IMAGE_INTERNAL_NAME=internal_name))
+
+    libenv.ImageHeaderGenerator(assets_dir.File("assets_images.h"), sources)
+
+def process_locales():
+    global env, libenv
+    internal_apps = env.GlobRecursive("*.csv", Dir("#/assets/l10n/internal"))
+    external_apps = env.GlobRecursive("*.csv", Dir("#/assets/l10n/external"))
+    all_apps = internal_apps + external_apps
+
+    key_dir = assets_dir.Dir("l10n_keys")
+    for locale_file in all_apps:
+        app_name = splitext(locale_file.name)[0]
+        key_header = key_dir.File(f"{app_name}.h")
+        libenv.LocaleConverter(key_header, locale_file, LOCALE_FORMAT="key_header")
+
+    for locale_file in internal_apps:
+        app_name = splitext(locale_file.name)[0]
+        app_tables = libenv.File(f"{app_name}_l10n_tables.c")
+        sources.append(libenv.LocaleConverter(app_tables, locale_file, LOCALE_FORMAT="internal_tables"))
+
+    # FIXME:
+    sources.append(libenv.LocaleConverter(libenv.File(f"internal_l10n_index.c"), internal_apps[0], LOCALE_FORMAT="internal_index"))
+
+    # external locales are converted in `bsb_assets.scons`
+
+process_images()
+process_locales()
 
 lib = libenv.StaticLibrary("${FW_LIB_NAME}", sources)
 libenv.Install("${LIB_DIST_DIR}", lib)

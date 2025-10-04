@@ -132,7 +132,8 @@ static void settings_scene_start_on_enter(void* context) {
         gui_layer_add_input_callback(layer, settings_scene_start_input_callback, instance);
 
         data->front_card = anim_title_card_alloc(instance->front_scene_window);
-        anim_title_card_set_title(data->front_card, "SETTINGS");
+        anim_title_card_set_title(
+            data->front_card, l10n_get(instance->l10n, L10N_KEY_SETTINGS_TITLE_FRONT));
         anim_title_card_set_icon(
             data->front_card, SETTINGS_ANIM_PATH("settings_front_13x13.anim"));
 
@@ -145,7 +146,8 @@ static void settings_scene_start_on_enter(void* context) {
         }
 
         data->back_card = title_card_alloc(instance->back_scene_window);
-        title_card_set_title(data->back_card, "SETTINGS");
+        title_card_set_title(
+            data->back_card, l10n_get(instance->l10n, L10N_KEY_SETTINGS_TITLE_BACK));
         title_card_set_icon(data->back_card, SETTINGS_IMG_PATH("settings_back_18x18.bin"));
 
         widget_set_visible(nav_bar_get_base(instance->back_nav_bar), false);

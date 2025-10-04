@@ -12,6 +12,8 @@
 
 #include <power/power_service/power.h>
 
+#include <l10n/l10n.h>
+
 #include <m-list.h>
 
 #define FRONT_W                (FRONT_DISPLAY_W)
@@ -51,4 +53,11 @@ struct Gui {
     FuriMessageQueue* input_queue;
     GuiDisplay displays[GuiDisplayIdMax];
     GuiLayer layers[GuiLayerIdMax];
+    L10nSrv* l10n_srv;
+    L10nContext* l10n;
 };
+
+/**
+ * @brief Gets the GUI localization context
+ */
+L10nContext* gui_get_l10n_context(Gui* gui);

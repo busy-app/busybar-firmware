@@ -83,6 +83,10 @@ static SettingsApp* settings_alloc(void) {
     instance->scene_manager =
         scene_manager_alloc(settings_scenes, COUNT_OF(settings_scenes), instance);
 
+    instance->l10n_service = furi_record_open(RECORD_L10N);
+    instance->l10n =
+        l10n_context_open(instance->l10n_service, SETTINGS_ASSETS_PATH("l10n"), L10nSourceStorage);
+
     instance->gui = furi_record_open(RECORD_GUI);
     instance->audio = furi_record_open(RECORD_AUDIO);
     instance->front_display = furi_record_open(RECORD_FRONT_DISPLAY);
@@ -102,7 +106,8 @@ static SettingsApp* settings_alloc(void) {
         instance->back_nav_bar = nav_bar_alloc(flex_layout_get_base(instance->back_container));
         nav_bar_set_header_image(
             instance->back_nav_bar, SETTINGS_IMG_PATH("settings_back_7x7.bin"));
-        nav_bar_set_header_text(instance->back_nav_bar, "SETTINGS");
+        nav_bar_set_header_text(
+            instance->back_nav_bar, l10n_get(instance->l10n, L10N_KEY_SETTINGS_TITLE_NAVBAR));
         widget_set_height(nav_bar_get_base(instance->back_nav_bar), SETTINGS_NAV_BAR_HEIGHT);
         widget_set_padding(nav_bar_get_base(instance->back_nav_bar), 6, 6, 0, 0);
 
@@ -145,6 +150,9 @@ static void settings_free(SettingsApp* instance) {
     furi_record_close(RECORD_AUDIO);
     furi_record_close(RECORD_FRONT_DISPLAY);
     furi_record_close(RECORD_BACK_DISPLAY);
+
+    l10n_context_close(instance->l10n);
+    furi_record_close(RECORD_L10N);
 
     furi_event_loop_unsubscribe(instance->event_loop, instance->input_queue);
     furi_event_loop_unsubscribe(instance->event_loop, instance->event_queue);

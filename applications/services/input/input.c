@@ -308,6 +308,8 @@ static void input_synchronous_request(Input* input, InputRequest* request) {
 }
 
 InputAbsoluteState input_get_absolute_state(Input* input) {
+    // TODO: block until we finish receiving absolute state
+    furi_delay_ms(700);
     InputRequest request = {
         .type = InputRequestTypeGetAbsState,
     };

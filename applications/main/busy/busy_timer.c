@@ -31,11 +31,17 @@ static const char* busy_timer_state_names[BusyTimerStateMax] = {
     [BusyTimerStateRest] = "Rest",
 };
 
+/**
+ * For debug only, not localized!
+ */
 static const char* busy_timer_get_state_name(BusyTimerState state) {
     furi_assert(state < BusyTimerStateMax);
     return busy_timer_state_names[state];
 }
 
+/**
+ * For debug only, not localized!
+ */
 static const char* busy_timer_get_mode_name(BusyTimerMode mode) {
     furi_assert(mode < BusyTimerModeMax);
     return busy_timer_mode_names[mode];
@@ -326,10 +332,6 @@ void busy_timer_free(BusyTimer* instance) {
     furi_thread_free(instance->thread);
 
     free(instance);
-}
-
-const char** busy_timer_get_mode_names(void) {
-    return busy_timer_mode_names;
 }
 
 // Message handlers

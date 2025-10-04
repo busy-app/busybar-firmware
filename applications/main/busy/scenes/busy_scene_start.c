@@ -92,9 +92,21 @@ static void busy_scene_start_on_enter(void* context) {
 
         data->back_menu = menu_alloc(instance->back_window);
         menu_add_item(
-            data->back_menu, "START", NULL, BUSY_IMG_PATH("start_12x12.bin"), 0, NULL, NULL);
+            data->back_menu,
+            l10n_get(instance->l10n, L10N_KEY_BUSY_START_START),
+            NULL,
+            BUSY_IMG_PATH("start_12x12.bin"),
+            0,
+            NULL,
+            NULL);
         menu_add_item(
-            data->back_menu, "SETUP", NULL, BUSY_IMG_PATH("setup_12x12.bin"), 0, NULL, NULL);
+            data->back_menu,
+            l10n_get(instance->l10n, L10N_KEY_BUSY_START_SETUP),
+            NULL,
+            BUSY_IMG_PATH("setup_12x12.bin"),
+            0,
+            NULL,
+            NULL);
 
         if(!data->is_not_first_enter) {
             busy_scene_start_run_in_out_anim(instance, BusySceneStartInOutAnimTypeEnter);
@@ -145,7 +157,8 @@ static bool busy_scene_start_on_event(const SceneManagerEvent* event, void* cont
             }
 
         } else if(event->event == BusySceneStartMenuIndexSetup) {
-            busy_push_location(instance, "SETUP");
+            busy_push_location(
+                instance, l10n_get(instance->l10n, L10N_KEY_BUSY_SETUP_TITLE_NAVBAR));
             scene_manager_next_scene(instance->scene_manager, BusyAppSceneIdSetup);
         } else if(event->event == BusyCustomEventAboutToExit) {
             with_gui(instance->gui, {

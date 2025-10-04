@@ -13,6 +13,7 @@ typedef enum {
 typedef enum {
     SettingsSceneMainMenuIndexSound,
     SettingsSceneMainMenuIndexBrightness,
+    SettingsSceneMainMenuIndexLanguage,
     SettingsSceneMainMenuIndexDebugApps,
 
     SettingsSceneMainMenuIndexesCount,
@@ -26,24 +27,29 @@ typedef struct {
 } SettingsSceneMain;
 
 typedef struct {
-    const char* nav_bar_entry;
+    L10nKey nav_bar_key;
     SettingsAppSceneId scene_id;
 } NextSceneParameters;
 
 static const NextSceneParameters next_scenes_parameters[] = {
     [SettingsSceneMainMenuIndexSound] =
         {
-            .nav_bar_entry = "SOUND",
+            .nav_bar_key = L10N_KEY_SETTINGS_MAIN_SOUND_BACK,
             .scene_id = SettingsAppSceneIdSound,
         },
     [SettingsSceneMainMenuIndexBrightness] =
         {
-            .nav_bar_entry = "BRIGHTNESS",
+            .nav_bar_key = L10N_KEY_SETTINGS_MAIN_BRIGHTNESS_BACK,
             .scene_id = SettingsAppSceneIdBrightness,
+        },
+    [SettingsSceneMainMenuIndexLanguage] =
+        {
+            .nav_bar_key = L10N_KEY_SETTINGS_MAIN_LANGUAGE_BACK,
+            .scene_id = SettingsAppSceneIdLanguage,
         },
     [SettingsSceneMainMenuIndexDebugApps] =
         {
-            .nav_bar_entry = "DEBUG",
+            .nav_bar_key = L10N_KEY_SETTINGS_MAIN_DEBUG_APPS_BACK,
             .scene_id = SettingsAppSceneIdDebugApps,
         },
 };
@@ -70,13 +76,12 @@ static void settings_scene_main_on_enter(void* context) {
     char volume_text[snprintf(NULL, 0, "%u%%", UINT8_MAX) + 1];
     sprintf(volume_text, "%u%%", volume);
 
-    const char* brightness_text;
+    char brightness_text[32];
     if(settings_brightness_get_mode(instance) == SettingsBrightnessModeAuto) {
-        brightness_text = "Auto";
+        strcpy(brightness_text, l10n_get(instance->l10n, L10N_KEY_SETTINGS_BRIGHTNESS_MODE_AUTO));
     } else {
-        char* text = alloca(snprintf(NULL, 0, "%u%%", UINT8_MAX) + 1);
-        sprintf(text, "%u%%", settings_brightness_get(instance));
-        brightness_text = text;
+        uint8_t brightness = settings_brightness_get(instance);
+        snprintf(brightness_text, sizeof(brightness_text), "%u%%", brightness);
     }
 
     with_gui(instance->gui, {
@@ -84,7 +89,7 @@ static void settings_scene_main_on_enter(void* context) {
 
         menu_add_item(
             data->front_menu,
-            "Sound",
+            l10n_get(instance->l10n, L10N_KEY_SETTINGS_MAIN_SOUND_FRONT),
             volume_text,
             SETTINGS_IMG_PATH("sound_front_7x7.bin"),
             SettingsSceneMainMenuIndexSound,
@@ -92,7 +97,7 @@ static void settings_scene_main_on_enter(void* context) {
             instance);
         menu_add_item(
             data->front_menu,
-            "Brightness",
+            l10n_get(instance->l10n, L10N_KEY_SETTINGS_MAIN_BRIGHTNESS_FRONT),
             brightness_text,
             SETTINGS_IMG_PATH("brightness_front_7x7.bin"),
             SettingsSceneMainMenuIndexBrightness,
@@ -100,8 +105,16 @@ static void settings_scene_main_on_enter(void* context) {
             instance);
         menu_add_item(
             data->front_menu,
-            "Debug apps",
-            "",
+            l10n_get(instance->l10n, L10N_KEY_SETTINGS_MAIN_LANGUAGE_FRONT),
+            NULL,
+            SETTINGS_IMG_PATH("language_front_7x7.bin"),
+            SettingsSceneMainMenuIndexLanguage,
+            settings_scene_setup_menu_callback,
+            instance);
+        menu_add_item(
+            data->front_menu,
+            l10n_get(instance->l10n, L10N_KEY_SETTINGS_MAIN_DEBUG_APPS_FRONT),
+            NULL,
             SETTINGS_IMG_PATH("debug_front_7x7.bin"),
             SettingsSceneMainMenuIndexDebugApps,
             settings_scene_setup_menu_callback,
@@ -113,7 +126,7 @@ static void settings_scene_main_on_enter(void* context) {
 
         menu_add_item(
             data->back_menu,
-            "SOUND",
+            l10n_get(instance->l10n, L10N_KEY_SETTINGS_MAIN_SOUND_BACK),
             volume_text,
             SETTINGS_IMG_PATH("sound_on_back_12x12.bin"),
             SettingsSceneMainMenuIndexSound,
@@ -121,7 +134,7 @@ static void settings_scene_main_on_enter(void* context) {
             instance);
         menu_add_item(
             data->back_menu,
-            "BRIGHTNESS",
+            l10n_get(instance->l10n, L10N_KEY_SETTINGS_MAIN_BRIGHTNESS_BACK),
             brightness_text,
             SETTINGS_IMG_PATH("brightness_back_12x12.bin"),
             SettingsSceneMainMenuIndexBrightness,
@@ -129,7 +142,15 @@ static void settings_scene_main_on_enter(void* context) {
             instance);
         menu_add_item(
             data->back_menu,
-            "DEBUG APPS",
+            l10n_get(instance->l10n, L10N_KEY_SETTINGS_MAIN_LANGUAGE_BACK),
+            NULL,
+            SETTINGS_IMG_PATH("language_back_12x12.bin"),
+            SettingsSceneMainMenuIndexLanguage,
+            NULL,
+            instance);
+        menu_add_item(
+            data->back_menu,
+            l10n_get(instance->l10n, L10N_KEY_SETTINGS_MAIN_DEBUG_APPS_BACK),
             NULL,
             SETTINGS_IMG_PATH("debug_back_12x12.bin"),
             SettingsSceneMainMenuIndexDebugApps,
@@ -167,7 +188,8 @@ static bool settings_scene_main_on_event(const SceneManagerEvent* event, void* c
             const NextSceneParameters* next_scene_parameters =
                 &next_scenes_parameters[data->menu_idx];
 
-            settings_push_location(instance, next_scene_parameters->nav_bar_entry);
+            const char* nav_bar = l10n_get(instance->l10n, next_scene_parameters->nav_bar_key);
+            settings_push_location(instance, nav_bar);
             scene_manager_next_scene(instance->scene_manager, next_scene_parameters->scene_id);
 
             consumed = true;

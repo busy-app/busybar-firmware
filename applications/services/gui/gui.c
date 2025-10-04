@@ -4,7 +4,8 @@
 #include <lvgl_addons/themes/lv_theme_front.h>
 #include <lvgl_addons/themes/lv_theme_back.h>
 
-#define TAG "Gui"
+#define TAG    "Gui"
+#define APP_ID "gui"
 
 static void
     gui_flush_front_callback(lv_display_t* lv_display, const lv_area_t* area, uint8_t* px_map) {
@@ -227,6 +228,9 @@ static Gui* gui_alloc(void) {
     instance->event_loop = furi_event_loop_alloc();
     instance->input_queue = furi_message_queue_alloc(16, sizeof(InputEvent));
 
+    instance->l10n_srv = furi_record_open(RECORD_L10N);
+    instance->l10n = l10n_context_open(instance->l10n_srv, APP_ID, L10nSourceFlash);
+
     furi_event_loop_subscribe_message_queue(
         instance->event_loop,
         instance->input_queue,
@@ -324,4 +328,10 @@ const uint8_t* gui_display_get_frame_buffer(Gui* gui, GuiDisplayId display_id) {
     furi_check(display_id < GuiDisplayIdMax);
 
     return gui->displays[display_id].draw_buffer;
+}
+
+// Private API functions
+
+L10nContext* gui_get_l10n_context(Gui* gui) {
+    return gui->l10n;
 }

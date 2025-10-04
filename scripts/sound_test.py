@@ -14,7 +14,7 @@ class Main(App):
     def init(self):         
         self.parser.add_argument("source_path", help="Source path")
         self.parser.add_argument("result_path", help="Result path")
-        self.parser.add_argument("-u", dest="update", help="Update bundle on bsb after convertion is done", action='store_true')        
+        self.parser.add_argument("-u", dest="update", help="Update bundle on bsb after conversion is done", action='store_true')        
         self.parser.set_defaults(func=self.main)
         
     def convert(self, source_file_path, dest_file_path):

@@ -143,7 +143,7 @@ CliAnsiParserResult cli_ansi_parser_feed(CliAnsiParser* parser, char c);
  * As a user of the ANSI parser API, you are responsible for calling this
  * function some time after the last character was fed into the parser. The
  * recommended timeout is about 10 ms. The exact value does not matter as long
- * as it is small enough for the user not notice a delay, but big enough that
+ * as it is small enough for the user not to notice a delay, but big enough that
  * when a terminal is sending an escape sequence, this function does not get
  * called in between the characters of the sequence.
  */

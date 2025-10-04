@@ -10,7 +10,7 @@ typedef enum {
     SettingsBrightnessModeManual,
     SettingsBrightnessModeAuto,
 
-    SettingsBrightnessModesCount,
+    SettingsBrightnessModeCount,
 } SettingsBrightnessMode;
 
 void settings_brightness_set_auto_mode(SettingsApp* instance);
