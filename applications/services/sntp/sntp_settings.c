@@ -52,8 +52,8 @@ static void sntp_load_int_setting(JsonConfig* config, const SntpSetting* setting
     JsonConfigStatus read_status =
         json_config_read_int(config, setting->name, &read_value, setting->default_value);
 
-    if(read_status == JsonConfigStatusMissing) {
-        FURI_LOG_W(TAG, "Missing %s setting, loading default", setting->name);
+    if(read_status != JsonConfigStatusOk) {
+        FURI_LOG_W(TAG, "Failed to load %s setting, using default", setting->name);
     } else if(setting->is_value_valid && !setting->is_value_valid(&read_value)) {
         FURI_LOG_W(TAG, "Invalid %s setting, loading default", setting->name);
         read_value = *(const int*)setting->default_value;
@@ -82,8 +82,8 @@ static void sntp_load_string_setting(JsonConfig* config, const SntpSetting* sett
         json_config_read_str(config, setting->name, read_value, setting->default_value);
     const char* _read_value = furi_string_get_cstr(read_value);
 
-    if(read_status == JsonConfigStatusMissing) {
-        FURI_LOG_W(TAG, "Missing %s setting, loading default", setting->name);
+    if(read_status != JsonConfigStatusOk) {
+        FURI_LOG_W(TAG, "Failed to load %s setting, using default", setting->name);
     } else if(setting->is_value_valid && !setting->is_value_valid(_read_value)) {
         FURI_LOG_W(TAG, "Invalid %s setting, loading default", setting->name);
         _read_value = setting->default_value;
@@ -111,8 +111,8 @@ static void sntp_load_bool_setting(JsonConfig* config, const SntpSetting* settin
     JsonConfigStatus read_status =
         json_config_read_bool(config, setting->name, &read_value, setting->default_value);
 
-    if(read_status == JsonConfigStatusMissing) {
-        FURI_LOG_W(TAG, "Missing %s setting, loading default", setting->name);
+    if(read_status != JsonConfigStatusOk) {
+        FURI_LOG_W(TAG, "Failed to load %s setting, using default", setting->name);
     } else if(setting->is_value_valid && !setting->is_value_valid(&read_value)) {
         FURI_LOG_W(TAG, "Invalid %s setting, loading default", setting->name);
         read_value = *(const bool*)setting->default_value;
