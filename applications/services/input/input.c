@@ -1,6 +1,5 @@
 #include "input.h"
-#include "input_common.h"
-#include "input_common_i.h"
+#include "input_common_f64.h"
 
 #include <furi.h>
 #include <toolbox/api_lock.h>
