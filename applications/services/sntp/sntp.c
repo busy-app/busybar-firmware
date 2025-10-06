@@ -115,8 +115,8 @@ static void sntp_message_queue_callback(FuriEventLoopObject* object, void* conte
         if(result) {
             if(instance->settings.is_enabled) {
                 uint32_t interval = (instance->status == SntpStatusSuccess) ?
-                                        instance->settings.auto_interval :
-                                        instance->settings.boot_interval;
+                                        instance->settings.background_sync_interval :
+                                        instance->settings.boot_delay;
 
                 furi_event_loop_pend_callback(instance->event_loop, sntp_timer_callback, instance);
                 furi_event_loop_timer_start(instance->timer, SNTP_S_TO_MS(interval));
@@ -146,7 +146,7 @@ static void sntp_custom_event_callback(uint32_t events, void* context) {
         FURI_LOG_I(TAG, "SNTP time update successful");
         instance->status = SntpStatusIdle;
         furi_event_loop_timer_start(
-            instance->timer, SNTP_S_TO_MS(instance->settings.auto_interval));
+            instance->timer, SNTP_S_TO_MS(instance->settings.background_sync_interval));
     }
 }
 
@@ -180,7 +180,7 @@ Sntp* sntp_alloc() {
 
     sntp_settings_load(&instance->settings);
 
-    furi_event_loop_timer_start(instance->timer, SNTP_S_TO_MS(instance->settings.boot_interval));
+    furi_event_loop_timer_start(instance->timer, SNTP_S_TO_MS(instance->settings.boot_delay));
 
     furi_record_create(RECORD_SNTP, instance);
 

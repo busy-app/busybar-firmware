@@ -71,7 +71,7 @@ static int32_t sntp_time_update_thread_callback(void* context) {
     network_init_current_thread(network);
 
     mg_mgr_init(&mgr);
-    mg_sntp_connect(&mgr, settings.server_name, sntp_time_update_callback, &update_context);
+    mg_sntp_connect(&mgr, settings.server_address, sntp_time_update_callback, &update_context);
 
     while(!(update_context.status & SntpTimeUpdateStatusDone)) {
         mg_mgr_poll(&mgr, 1000);
