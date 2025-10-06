@@ -4,6 +4,8 @@
 #include <furi/furi.h>
 #include <furi_hal_pwm.h>
 
+#include <math.h>
+
 #include <intercom/intercom.h>
 
 typedef void (*CommandHandler)(StatusLights* instance, const StatusLightsCommand* command);
@@ -23,6 +25,30 @@ struct StatusLights {
 
 static const CommandHandler command_handlers[];
 
+static uint8_t status_lights_scale_component(uint8_t component, float brightness) {
+    if(component == 0) {
+        return 0;
+    }
+
+    float constrained = CLAMP(brightness, 1.0f, 0.0f);
+
+    /* gamma tuned so 5% brightness becomes the first visible step */
+    const float gamma = 2.08f;
+    float pwm_scale = powf(constrained, gamma);
+
+    float scaled = (float)component * pwm_scale;
+
+    return (uint8_t)CLAMP(scaled + 0.5f, 255.0f, 0.0f);
+}
+
+static void status_lights_apply_brightness(Color* color, float brightness) {
+    furi_assert(color);
+
+    color->r = status_lights_scale_component(color->r, brightness);
+    color->g = status_lights_scale_component(color->g, brightness);
+    color->b = status_lights_scale_component(color->b, brightness);
+}
+
 static void status_lights_run_pattern(void* context) {
     furi_assert(context);
 
@@ -31,16 +57,14 @@ static void status_lights_run_pattern(void* context) {
     furi_check(instance->preset_instance);
     furi_check(instance->preset_api);
 
-    Color color;
-    instance->preset_api->run(instance->preset_instance, &color);
-    instance->active_color = color;
+    Color base_color;
+    instance->preset_api->run(instance->preset_instance, &base_color);
+    instance->active_color = base_color;
 
-    float brightness = instance->brightness;
-    color.r *= brightness;
-    color.g *= brightness;
-    color.b *= brightness;
+    Color scaled_color = base_color;
+    status_lights_apply_brightness(&scaled_color, instance->brightness);
 
-    furi_hal_pwm_set_rgb(color.r, color.g, color.b);
+    furi_hal_pwm_set_rgb(scaled_color.r, scaled_color.g, scaled_color.b);
 }
 
 static void status_lights_message_queue_callback(FuriEventLoopObject* object, void* context) {
@@ -66,6 +90,10 @@ static void status_lights_intercom_rx_callback(const void* data, size_t data_siz
 
 static StatusLights* status_lights_alloc() {
     StatusLights* instance = malloc(sizeof(StatusLights));
+    instance->preset_instance = NULL;
+    instance->preset_api = NULL;
+    instance->active_color = (Color){0};
+    instance->brightness = 1.0f;
     instance->event_loop = furi_event_loop_alloc();
     instance->command_queue = furi_message_queue_alloc(8, sizeof(StatusLightsCommand));
     furi_event_loop_subscribe_message_queue(
@@ -136,12 +164,10 @@ static void
     instance->brightness = command->as_set_brightness.brightness;
 
     if(instance->preset_api) {
-        Color color = COLOR_MAKE_RGB(
-            instance->active_color.r * instance->brightness,
-            instance->active_color.g * instance->brightness,
-            instance->active_color.b * instance->brightness);
+        Color scaled_color = instance->active_color;
+        status_lights_apply_brightness(&scaled_color, instance->brightness);
 
-        furi_hal_pwm_set_rgb(color.r, color.g, color.b);
+        furi_hal_pwm_set_rgb(scaled_color.r, scaled_color.g, scaled_color.b);
     }
 }
 

@@ -8,10 +8,12 @@
 #include <api_lock.h>
 #include <json_helper.h>
 
+#define TAG "StatusLights"
+
 #define STATUS_LIGHTS_CONFIG_FILE APP_DATA_PATH("config.json")
 
-#define AUTO_BRIGHTNESS_MIN_LEVEL (1)
-#define AUTO_BRIGHTNESS_MAX_LEVEL (100)
+#define AUTO_BRIGHTNESS_MIN_LEVEL (5)
+#define AUTO_BRIGHTNESS_MAX_LEVEL (90)
 
 struct StatusLights {
     FuriEventLoop* event_loop;
@@ -69,12 +71,18 @@ static inline bool status_lights_is_valid_brightness(uint8_t brightness) {
 #pragma GCC diagnostic pop
 
 static uint8_t status_lights_light_sensor_level_to_brightness(uint8_t light_level) {
-    uint8_t brightness =
-        AUTO_BRIGHTNESS_MIN_LEVEL +
-        ((AUTO_BRIGHTNESS_MAX_LEVEL - AUTO_BRIGHTNESS_MIN_LEVEL) * light_level * light_level) /
-            (LIGHT_SENSOR_LIGHT_LEVEL_MAX * LIGHT_SENSOR_LIGHT_LEVEL_MAX);
-
-    return CLAMP(brightness, AUTO_BRIGHTNESS_MAX_LEVEL, AUTO_BRIGHTNESS_MIN_LEVEL);
+    uint8_t brightness = AUTO_BRIGHTNESS_MIN_LEVEL +
+                         ((AUTO_BRIGHTNESS_MAX_LEVEL - AUTO_BRIGHTNESS_MIN_LEVEL) * light_level) /
+                             LIGHT_SENSOR_LIGHT_LEVEL_MAX;
+    uint8_t clamped_level =
+        CLAMP(brightness, AUTO_BRIGHTNESS_MAX_LEVEL, AUTO_BRIGHTNESS_MIN_LEVEL);
+    FURI_LOG_D(
+        TAG,
+        "Light level: %d (clamped %d), brightness: %u",
+        light_level,
+        clamped_level,
+        brightness);
+    return clamped_level;
 }
 
 static void status_lights_send_command(StatusLights* instance, StatusLightsCommand* command) {
