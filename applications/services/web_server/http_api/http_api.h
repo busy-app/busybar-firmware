@@ -132,3 +132,10 @@ bool http_api_ble_callback(
     struct mg_connection* conn,
     struct mg_http_message* msg,
     void* ctx);
+
+// Name
+bool http_api_name_callback(
+    FuriString* path,
+    struct mg_connection* conn,
+    struct mg_http_message* msg,
+    void* ctx);

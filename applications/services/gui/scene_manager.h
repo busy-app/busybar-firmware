@@ -63,6 +63,8 @@ bool scene_manager_has_previous_scene(const SceneManager* instance, uint32_t sce
 
 bool scene_manager_search_and_switch_to_previous_scene(SceneManager* instance, uint32_t scene_id);
 
+bool scene_manager_replace_current_scene(SceneManager* instance, uint32_t scene_id);
+
 #ifdef __cplusplus
 }
 #endif

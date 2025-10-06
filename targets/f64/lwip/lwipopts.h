@@ -84,7 +84,8 @@
 // TODO: not sure why this is disabled
 #define LWIP_NETIF_LOOPBACK (0)
 
-#define LWIP_NETIF_API (1)
+#define LWIP_NETIF_API             (1)
+#define LWIP_NETIF_STATUS_CALLBACK (1)
 
 #define MEMP_NUM_NETCONN (0)
 

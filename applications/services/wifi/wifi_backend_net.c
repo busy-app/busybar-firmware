@@ -17,6 +17,7 @@
 #define LWIP_FRAME_ALIGNMENT (60U)
 #define ETHERTYPE_IPV6       (0xDD86)
 #define MAX_TRANSFER_UNIT    (1500U)
+#define IP_VALIDITY_AWAIT_MS (5000U)
 
 static Wifi* instance;
 
@@ -102,6 +103,15 @@ static void wifi_net_intercom_input(const uint8_t* data, uint16_t data_len) {
     furi_check(tx_size == data_len);
 }
 
+static void wifi_net_tcpip_netif_status_callback(struct netif* netif) {
+    uint8_t addr_state = netif_ip6_addr_state(netif, 0);
+    FURI_LOG_D(TAG, "netif ipv6 addr status changed: 0x%02x", addr_state);
+
+    if(ip6_addr_isvalid(addr_state)) {
+        furi_check(furi_semaphore_release(instance->ip6_addr_valid) == FuriStatusOk);
+    }
+}
+
 static void wifi_net_tcpip_netif_up_callback(void* context) {
     furi_assert(context);
 
@@ -116,8 +126,6 @@ static void wifi_net_tcpip_netif_up_callback(void* context) {
 
     netif_set_ip6_autoconfig_enabled(netif, 1);
     netif_create_ip6_linklocal_address(netif, 1);
-
-    FURI_LOG_I(TAG, "IPv6 link-local addr: %s", ip6addr_ntoa(&netif->ip6_addr[0]));
 
     wifi_net_tcpip_unlock();
 }
@@ -207,6 +215,8 @@ sl_status_t sl_net_wifi_client_up(sl_net_interface_t interface, sl_net_profile_i
 
     sl_status_t status;
 
+    struct netif* netif = &instance->netif;
+
     do {
         sl_net_wifi_client_profile_t profile = {0};
 
@@ -228,6 +238,20 @@ sl_status_t sl_net_wifi_client_up(sl_net_interface_t interface, sl_net_profile_i
         }
 
         wifi_net_tcpip_callback(wifi_net_tcpip_netif_up_callback, &mac_addr);
+
+        netif_set_status_callback(netif, wifi_net_tcpip_netif_status_callback);
+        FuriStatus status = furi_semaphore_acquire(
+            instance->ip6_addr_valid, furi_ms_to_ticks(IP_VALIDITY_AWAIT_MS));
+        netif_set_status_callback(netif, NULL);
+
+        if(status == FuriStatusErrorTimeout) {
+            FURI_LOG_E(TAG, "IPv6 DAD resolution failed in %d ms", IP_VALIDITY_AWAIT_MS);
+            status = SL_STATUS_TIMEOUT;
+            break;
+        }
+        furi_check(!(status & FuriStatusError));
+
+        FURI_LOG_I(TAG, "IPv6 link-local addr: %s", ip6addr_ntoa(netif_ip6_addr(netif, 0)));
 
     } while(false);
 

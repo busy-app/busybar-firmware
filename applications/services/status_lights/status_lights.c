@@ -8,10 +8,12 @@
 #include <api_lock.h>
 #include <json_helper.h>
 
+#define TAG "StatusLights"
+
 #define STATUS_LIGHTS_CONFIG_FILE APP_DATA_PATH("config.json")
 
-#define AUTO_BRIGHTNESS_MIN_LEVEL (1)
-#define AUTO_BRIGHTNESS_MAX_LEVEL (100)
+#define AUTO_BRIGHTNESS_MIN_LEVEL (5)
+#define AUTO_BRIGHTNESS_MAX_LEVEL (90)
 
 struct StatusLights {
     FuriEventLoop* event_loop;
@@ -37,6 +39,7 @@ typedef struct {
     union {
         struct {
             uint8_t brightness;
+            bool do_save;
         } as_set_brightness;
 
         struct {
@@ -58,13 +61,28 @@ typedef void (*MessageHandler)(StatusLights* instance, StatusLightsMessage* mess
 
 static const MessageHandler message_handlers[];
 
-static uint8_t status_lights_light_sensor_level_to_brightness(uint8_t light_level) {
-    uint8_t brightness =
-        AUTO_BRIGHTNESS_MIN_LEVEL +
-        ((AUTO_BRIGHTNESS_MAX_LEVEL - AUTO_BRIGHTNESS_MIN_LEVEL) * light_level * light_level) /
-            (LIGHT_SENSOR_LIGHT_LEVEL_MAX * LIGHT_SENSOR_LIGHT_LEVEL_MAX);
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wtype-limits"
+static inline bool status_lights_is_valid_brightness(uint8_t brightness) {
+    return brightness == STATUS_LIGHTS_BRIGHTNESS_AUTO ||
+           (brightness >= STATUS_LIGHTS_BRIGHTNESS_MIN &&
+            brightness <= STATUS_LIGHTS_BRIGHTNESS_MAX);
+}
+#pragma GCC diagnostic pop
 
-    return CLAMP(brightness, AUTO_BRIGHTNESS_MAX_LEVEL, AUTO_BRIGHTNESS_MIN_LEVEL);
+static uint8_t status_lights_light_sensor_level_to_brightness(uint8_t light_level) {
+    uint8_t brightness = AUTO_BRIGHTNESS_MIN_LEVEL +
+                         ((AUTO_BRIGHTNESS_MAX_LEVEL - AUTO_BRIGHTNESS_MIN_LEVEL) * light_level) /
+                             LIGHT_SENSOR_LIGHT_LEVEL_MAX;
+    uint8_t clamped_level =
+        CLAMP(brightness, AUTO_BRIGHTNESS_MAX_LEVEL, AUTO_BRIGHTNESS_MIN_LEVEL);
+    FURI_LOG_D(
+        TAG,
+        "Light level: %d (clamped %d), brightness: %u",
+        light_level,
+        clamped_level,
+        brightness);
+    return clamped_level;
 }
 
 static void status_lights_send_command(StatusLights* instance, StatusLightsCommand* command) {
@@ -81,7 +99,10 @@ static void status_lights_send_command(StatusLights* instance, StatusLightsComma
 static void status_lights_do_set_brightness(StatusLights* instance, StatusLightsMessage* message) {
     instance->brightness = message->as_set_brightness.brightness;
 
-    json_config_write_single_int(STATUS_LIGHTS_CONFIG_FILE, "brightness", instance->brightness);
+    if(message->as_set_brightness.do_save) {
+        json_config_write_single_int(
+            STATUS_LIGHTS_CONFIG_FILE, "brightness", instance->brightness);
+    }
 
     StatusLightsCommand command = {
         .id = StatusLightsCommandIdSetBrightness,
@@ -241,14 +262,7 @@ void status_lights_run_preset(StatusLights* instance, StatusLightsPreset preset,
 
 void status_lights_set_brightness(StatusLights* instance, uint8_t brightness) {
     furi_check(instance);
-
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wtype-limits"
-    furi_check(
-        brightness == STATUS_LIGHTS_BRIGHTNESS_AUTO ||
-        (brightness >= STATUS_LIGHTS_BRIGHTNESS_MIN &&
-         brightness <= STATUS_LIGHTS_BRIGHTNESS_MAX));
-#pragma GCC diagnostic pop
+    furi_check(status_lights_is_valid_brightness(brightness));
 
     StatusLightsMessage message = {
         .api_lock = NULL,
@@ -256,6 +270,7 @@ void status_lights_set_brightness(StatusLights* instance, uint8_t brightness) {
         .as_set_brightness =
             {
                 .brightness = brightness,
+                .do_save = true,
             },
     };
 
