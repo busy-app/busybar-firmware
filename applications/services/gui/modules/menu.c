@@ -125,6 +125,7 @@ static void menu_item_lvgl_constructor(const lv_obj_class_t* class_p, lv_obj_t* 
     UNUSED(class_p);
 
     lv_obj_set_flex_flow(obj, LV_FLEX_FLOW_ROW);
+    lv_obj_set_style_flex_cross_place(obj, LV_FLEX_ALIGN_CENTER, LV_PART_MAIN);
 
     lv_obj_remove_flag(obj, LV_OBJ_FLAG_SCROLLABLE);
     lv_obj_add_flag(obj, LV_OBJ_FLAG_SCROLL_ON_FOCUS);

@@ -2,6 +2,9 @@
  * Size: 10 px
  * Bpp: 1
  * Opts: --bpp 1 --size 10 --no-compress --font .\BSB_Ark_BusyAppFont_Regular.ttf --symbols ▶▹◃∞ --range 32-127 --format lvgl -o lv_font_ark_regular_10.c
+ * @warning IMPORTANT: the space character (" ") is manually modified to increase its width.
+ *          When regenerating, manually adjust the second element of the `glyph_dsc` array:
+ *          change `adv_w` from `16` to `96`.
  ******************************************************************************/
 
 #ifdef LV_LVGL_H_INCLUDE_SIMPLE
@@ -325,7 +328,7 @@ static LV_ATTRIBUTE_LARGE_CONST const uint8_t glyph_bitmap[] = {
 
 static const lv_font_fmt_txt_glyph_dsc_t glyph_dsc[] = {
     {.bitmap_index = 0, .adv_w = 0, .box_w = 0, .box_h = 0, .ofs_x = 0, .ofs_y = 0} /* id = 0 reserved */,
-    {.bitmap_index = 0, .adv_w = 16, .box_w = 1, .box_h = 1, .ofs_x = 0, .ofs_y = 0},
+    {.bitmap_index = 0, .adv_w = 96, .box_w = 1, .box_h = 1, .ofs_x = 0, .ofs_y = 0},
     {.bitmap_index = 1, .adv_w = 64, .box_w = 1, .box_h = 7, .ofs_x = 1, .ofs_y = 0},
     {.bitmap_index = 2, .adv_w = 96, .box_w = 3, .box_h = 2, .ofs_x = 1, .ofs_y = 5},
     {.bitmap_index = 3, .adv_w = 96, .box_w = 5, .box_h = 7, .ofs_x = 0, .ofs_y = 0},
