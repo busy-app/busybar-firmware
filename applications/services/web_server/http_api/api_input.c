@@ -17,7 +17,7 @@ static const struct {
     {"back", InputKeyBack},
     {"start", InputKeyStart},
     {"busy", InputKeyBusy},
-    {"status", InputKeyStatus},
+    {"custom", InputKeyCustom},
     {"off", InputKeyOff},
     {"apps", InputKeyApps},
     {"settings", InputKeySettings},

@@ -66,8 +66,8 @@ const char* input_get_key_name(InputKey key) {
         return "InputKeyStart";
     case InputKeyBusy:
         return "InputKeyBusy";
-    case InputKeyStatus:
-        return "InputKeyStatus";
+    case InputKeyCustom:
+        return "InputKeyCustom";
     case InputKeyOff:
         return "InputKeyOff";
     case InputKeyApps:
