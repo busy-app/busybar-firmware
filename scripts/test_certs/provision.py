@@ -26,13 +26,64 @@ import argparse
 import subprocess
 import sys
 import os
+import secrets
 from pathlib import Path
+
+
+def _disallowed_passcode(s: str) -> bool:
+    """Heuristic disallowed passcodes per common Matter guidance.
+
+    This rejects trivial/weak values while keeping the spec's intent that the
+    initial randomness is 27 bits before any rejection.
+
+    Rules:
+      - All digits identical (e.g., 00000000, 11111111, ...)
+      - Common sequential patterns (ascending/descending)
+    """
+    # All digits same
+    if len(set(s)) == 1:
+        return True
+    # Common sequences
+    sequences = {
+        "01234567",
+        "12345678",
+        "23456789",
+        "34567890",
+        "98765432",
+        "87654321",
+        "76543210",
+    }
+    if s in sequences:
+        return True
+    return False
+
+
+def _gen_random_passcode() -> str:
+    """Generate an 8-digit decimal passcode from a 27-bit random seed.
+
+    The seed is sampled with 27 bits of entropy, then mapped into the 8-digit
+    decimal space by modulo reduction; values matching disallowed patterns are
+    rejected and re-sampled, preserving the 27-bit initial entropy requirement.
+    """
+    while True:
+        seed = secrets.randbits(27)  # 27 bits of entropy as required
+        code = seed % 100_000_000  # map to 8-digit decimal space
+        s = f"{code:08d}"
+        if _disallowed_passcode(s):
+            continue
+        return s
+
+
+def _rand_12bit_str() -> str:
+    """Return decimal string of a random 12-bit value (0..4095)."""
+    return str(secrets.randbelow(1 << 12))
+
 
 REPO_ROOT_MARKER = "scripts"
 DEFAULT_VENDOR_ID = "158A"
 DEFAULT_PRODUCT_ID = "0001"
-DEFAULT_PASSCODE = "20202021"
-DEFAULT_DISCRIMINATOR = "1234"
+DEFAULT_PASSCODE = _gen_random_passcode()
+DEFAULT_DISCRIMINATOR = _rand_12bit_str()
 DEFAULT_CERTS_DIR = "scripts/test_certs/matter"
 
 # Relative paths used by original script
@@ -277,6 +328,7 @@ def main():
             desc="provision device info",
         )
 
+    print(f"Passcode: {args.passcode}, Descriminator: {args.discriminator}")
     print("Provisioning complete.")
 
 
