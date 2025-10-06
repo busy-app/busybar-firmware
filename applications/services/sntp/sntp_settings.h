@@ -1,3 +1,7 @@
+/**
+ * @file sntp_settings.h
+ * @brief SNTP service settings and configuration.
+ */
 #pragma once
 
 #include <stdint.h>
@@ -21,12 +25,15 @@
 
 #define SNTP_IS_ENABLED_DEFAULT true
 
+/**
+ * @brief SNTP service settings structure.
+ */
 typedef struct {
-    int timezone_offset;
-    int background_sync_interval;
-    int boot_delay;
-    char server_address[SNTP_SERVER_ADDRESS_MAX_LEN];
-    bool is_enabled;
+    int timezone_offset; /**< Timezone offset from UTC in hours (range: -12 to +12) */
+    int background_sync_interval; /**< Interval between automatic syncs in seconds */
+    int boot_delay; /**< Delay after boot before first sync in seconds */
+    char server_address[SNTP_SERVER_ADDRESS_MAX_LEN]; /**< SNTP server address (URL) */
+    bool is_enabled; /**< Whether SNTP service is enabled */
 } SntpSettings;
 
 bool sntp_settings_load(SntpSettings* settings);
