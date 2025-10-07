@@ -21,7 +21,7 @@ typedef enum {
     GuiDisplayIdMax, /**< Special value, equal to display number */
 } GuiDisplayId;
 
-/** Enumeration of available layer indentifiers. */
+/** Enumeration of available layer identifiers. */
 typedef enum {
     GuiLayerIdSystem, /**< System layer - for displaying statuses and other persistent info */
     GuiLayerIdTop, /**< Top layer - for displaying dialog windows and overlays */
@@ -29,6 +29,20 @@ typedef enum {
     GuiLayerIdBottom, /**< Bottom layer - visible only if there is nothing on layers above it */
     GuiLayerIdMax, /**< Special value, not to be used in application code */
 } GuiLayerId;
+
+/** Available fonts */
+typedef enum {
+    GuiFontArkNumeralsCondensed10,
+    GuiFontArkNumeralsRegular10,
+    GuiFontArkNumeralsSmall10,
+    GuiFontArkRegular10,
+    GuiFontArkRegular20,
+    GuiFontCubic12,
+    GuiFontSomybmp7,
+    GuiFontTiny6,
+    GuiFontTiny5_8,
+    GuiFontMax,
+} GuiFont;
 
 /** Gui opaque type declaration. */
 typedef struct Gui Gui;
