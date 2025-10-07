@@ -199,7 +199,7 @@ static void wifi_get_info_request_handler(Wifi* instance) {
         wifi_decode_ssid(info->ssid, &config->ssid);
         wifi_decode_ip_config(&info->ip_config, &profile.ip);
 
-        info->securiy_mode = wifi_decode_security_mode(config->security);
+        info->security_mode = wifi_decode_security_mode(config->security);
 
     } while(false);
 
