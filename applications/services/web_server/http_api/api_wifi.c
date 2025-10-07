@@ -65,7 +65,6 @@ static const char* const wifi_ip_type[WifiIpTypeMax] = {
 };
 
 static const char* const wifi_state[WifiStateMax] = {
-    [WifiStateDeinit] = "disabled",
     [WifiStateDown] = "enabled",
     [WifiStateUp] = "connected",
 };
@@ -454,16 +453,8 @@ static bool api_wifi_enable_callback(
 
     if(!IS_HTTP_ENDPOINT(path)) return false;
 
-    Wifi* wifi = furi_record_open(RECORD_WIFI);
-    WifiStatus status = wifi_init(wifi);
-    furi_record_close(RECORD_WIFI);
-
-    const ApiWifiResponseData* data = api_wifi_get_response_data_from_status(status);
-    if(data->code == 200)
-        MG_REPLY_OK(conn);
-    else
-        MG_REPLY_ERROR(conn, data->code, data->message);
-
+    // TODO: Remove this method
+    MG_REPLY_ERROR(conn, 400, "Not implemented");
     return true;
 }
 
@@ -477,16 +468,8 @@ static bool api_wifi_disable_callback(
 
     if(!IS_HTTP_ENDPOINT(path)) return false;
 
-    Wifi* wifi = furi_record_open(RECORD_WIFI);
-    WifiStatus status = wifi_deinit(wifi);
-    furi_record_close(RECORD_WIFI);
-
-    const ApiWifiResponseData* data = api_wifi_get_response_data_from_status(status);
-    if(data->code == 200)
-        MG_REPLY_OK(conn);
-    else
-        MG_REPLY_ERROR(conn, data->code, data->message);
-
+    // TODO: Remove this method
+    MG_REPLY_ERROR(conn, 400, "Not implemented");
     return true;
 }
 
@@ -513,7 +496,7 @@ static bool api_wifi_get_status_callback(
         if(info.state == WifiStateUp) {
             cJSON_AddStringToObject(response, WIFI_JSON_KEY_SSID, info.ssid);
 
-            const char* security_mode = security_modes[info.securiy_mode];
+            const char* security_mode = security_modes[info.security_mode];
             cJSON_AddStringToObject(response, WIFI_JSON_KEY_SECURITY, security_mode);
 
             if(info.state == WifiStateUp) {

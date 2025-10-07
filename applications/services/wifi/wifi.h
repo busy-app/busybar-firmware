@@ -15,32 +15,12 @@ extern "C" {
 #endif
 
 /**
- * @brief Initialise the Wifi system.
- *
- * @note The Wifi system MUST NOT be initialised when calling this function.
- *
- * @param[in,out] instance pointer to the Wifi instance
- * @returns WifiStatusOk on success, error code otherwise
- */
-WifiStatus wifi_init(Wifi* instance);
-
-/**
- * @brief Deinitialise the Wifi system.
- *
- * @note The Wifi system MUST be initialised before calling this function.
- *
- * @param[in,out] instance pointer to the Wifi instance
- * @returns WifiStatusOk on success, error code otherwise
- */
-WifiStatus wifi_deinit(Wifi* instance);
-
-/**
  * @brief Scan for available Wifi access points nearby.
  *
  * The array pointed to by the results parameter MUST be allocated by the user code.
- * Naturally, it is also responsibe for freeing the array when it is no longer needed.
+ * Naturally, it is also responsible for freeing the array when it is no longer needed.
  *
- * @note The Wifi system MUST be initialised before calling this function.
+ * @note Scanning is only possible when the Wifi is disconnected from a network.
  *
  * @param[in,out] instance pointer to the Wifi instance
  * @param[out] results pointer to the array to contain the scan results
@@ -57,8 +37,6 @@ WifiStatus wifi_scan(
 /**
  * @brief Connect to an access point using the specified configuration.
  *
- * @note The Wifi system MUST be initialised before calling this function.
- *
  * @param[in,out] instance pointer to the Wifi instance
  * @param[in] credentials pointer to the structure containing the connection credentials
  * @param[in] ip_config pointer to the structure containing the connection configuration
@@ -70,8 +48,6 @@ WifiStatus
 /**
  * @brief Disconnect from the access point.
  *
- * @note The Wifi interface MUST be UP when calling this function.
- *
  * @param[in,out] instance pointer to the Wifi instance
  * @returns WifiStatusOk on success, error code otherwise
  */
@@ -80,9 +56,6 @@ WifiStatus wifi_disconnect(Wifi* instance);
 /**
  * @brief Get the information about current state of the Wifi system.
  *
- * This function can be called at any time. However, if the state value is NOT WifiStateUp,
- * then the values of all other fields are invalid.
- *
  * @param[in,out] instance pointer to the Wifi instance
  * @param[out] info pointer to the structure to contain the information
  * @returns WifiStatusOk on success, error code otherwise
@@ -90,12 +63,13 @@ WifiStatus wifi_disconnect(Wifi* instance);
 WifiStatus wifi_get_info(Wifi* instance, WifiInfo* info);
 
 /**
- * @brief Get the Wifi pubsub instance.
+ * @brief Get the hardware address of the Wifi physical interface.
  *
- * @param[in] instance pointer to the Wifi instance
- * @returns pointer to the pubsub instance
+ * @param[in,out] instance pointer to the Wifi instance
+ * @param[out] info pointer to the structure to contain the hardware address
+ * @returns WifiStatusOk on success, error code otherwise
  */
-FuriPubSub* wifi_get_pubsub(const Wifi* instance);
+WifiStatus wifi_get_hw_address(Wifi* instance, WifiHardwareAddress* hw_address);
 
 #ifdef __cplusplus
 }

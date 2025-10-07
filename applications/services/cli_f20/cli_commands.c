@@ -23,6 +23,7 @@
 #include <cli/cli_ansi.h>
 #include <firmware_applications_f20/applications.h>
 #include <storage/storage_backup.h>
+#include <device_name/device_name.h>
 
 static void cli_command_update_debug_mode(void) {
     CliRegistry* registry = furi_record_open(RECORD_CLI);
@@ -130,11 +131,21 @@ static void
     printf("%-30s: %s\r\n", key, value);
 }
 
+static void cli_command_device_info_print_name() {
+    FuriString* name = furi_string_alloc();
+    DeviceName* device_name = furi_record_open(RECORD_DEVICE_NAME);
+    device_name_get(device_name, name);
+    cli_command_device_info_callback("name", furi_string_get_cstr(name), false, NULL);
+    furi_record_close(RECORD_DEVICE_NAME);
+    furi_string_free(name);
+}
+
 static void cli_command_device_info(PipeSide* pipe, FuriString* args, void* context) {
     UNUSED(pipe);
     UNUSED(args);
     UNUSED(context);
 
+    cli_command_device_info_print_name();
     furi_hal_info_get(cli_command_device_info_callback, '_', NULL);
     bool sl_cli_command_status = cli_command_sl_cli_send_command_get_response(pipe, "device_info");
     printf("%-30s: %s\r\n", "sl_intercom_status", sl_cli_command_status ? "ok" : "error");

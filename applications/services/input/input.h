@@ -4,8 +4,9 @@
  */
 #pragma once
 
-#include <furi_hal_resources.h>
 #include "input_common.h"
+
+#include <furi_hal_resources.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -16,8 +17,6 @@ extern "C" {
 
 #define INPUT_SEQUENCE_SOURCE_HARDWARE (0U)
 #define INPUT_SEQUENCE_SOURCE_SOFTWARE (1U)
-
-typedef struct Input Input;
 
 /** Input Types
  * Some of them are physical events and some logical

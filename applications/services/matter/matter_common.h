@@ -16,6 +16,7 @@ extern "C" {
  */
 typedef enum {
     MatterVirtualDeviceSwitch1, //<! Switch 1. State type: bool
+    MatterVirtualDeviceSwitch2, //<! Switch 2. State type: bool
     // TODO: Switch2
     MatterVirtualDeviceMAX, //<! Do not use
 } MatterVirtualDevice;
@@ -32,6 +33,16 @@ typedef struct {
         bool bool_val;
     };
 } MatterVirtualDeviceState;
+
+/**
+ * @brief Node commissioning (onboarding) status
+ */
+typedef enum {
+    MatterCommissioningStatusStarted,
+    MatterCommissioningStatusComplete,
+    MatterCommissioningStatusFailed,
+    MatterCommissioningStatusMAX,
+} MatterCommissioningStatus;
 
 #ifdef __cplusplus
 }

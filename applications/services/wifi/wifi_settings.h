@@ -7,7 +7,6 @@
 typedef struct {
     WifiCredentials credentials;
     WifiIpConfig ip_config;
-    bool enabled;
 } WifiSettings;
 
 void wifi_settings_init_defaults(WifiSettings* settings);
