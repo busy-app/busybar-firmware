@@ -12,6 +12,7 @@
 typedef enum {
     SntpSettingIdxTimezone,
     SntpSettingIdxBackgroundSyncInterval,
+    SntpSettingIdxRetrySyncInterval,
     SntpSettingIdxBootDelay,
     SntpSettingIdxServerAddress,
     SntpSettingIdxIsEnabled,
@@ -157,6 +158,13 @@ static bool is_background_sync_interval_valid(const void* background_sync_interv
            _background_sync_interval <= SNTP_BACKGROUND_SYNC_INTERVAL_MAX;
 }
 
+static bool is_retry_sync_interval_valid(const void* retry_sync_interval) {
+    int _retry_sync_interval = *(const int*)retry_sync_interval;
+
+    return _retry_sync_interval >= SNTP_RETRY_SYNC_INTERVAL_MIN &&
+           _retry_sync_interval <= SNTP_RETRY_SYNC_INTERVAL_MAX;
+}
+
 static bool is_boot_delay_valid(const void* boot_delay) {
     int _boot_delay = *(const int*)boot_delay;
 
@@ -180,6 +188,7 @@ bool sntp_settings_load(SntpSettings* settings) {
         sntp_load_setting(config, SntpSettingIdxTimezone, &settings->timezone_offset);
         sntp_load_setting(
             config, SntpSettingIdxBackgroundSyncInterval, &settings->background_sync_interval);
+        sntp_load_setting(config, SntpSettingIdxRetrySyncInterval, &settings->retry_sync_interval);
         sntp_load_setting(config, SntpSettingIdxBootDelay, &settings->boot_delay);
         sntp_load_setting(config, SntpSettingIdxServerAddress, &settings->server_address);
         sntp_load_setting(config, SntpSettingIdxIsEnabled, &settings->is_enabled);
@@ -200,6 +209,7 @@ bool sntp_settings_save(const SntpSettings* settings) {
         sntp_save_setting(config, SntpSettingIdxTimezone, &settings->timezone_offset);
         sntp_save_setting(
             config, SntpSettingIdxBackgroundSyncInterval, &settings->background_sync_interval);
+        sntp_save_setting(config, SntpSettingIdxRetrySyncInterval, &settings->retry_sync_interval);
         sntp_save_setting(config, SntpSettingIdxBootDelay, &settings->boot_delay);
         sntp_save_setting(config, SntpSettingIdxServerAddress, &settings->server_address);
         sntp_save_setting(config, SntpSettingIdxIsEnabled, &settings->is_enabled);
@@ -223,6 +233,13 @@ static const SntpSetting settings[] = {
             .name = "background_sync_interval",
             .default_value = &(const int){SNTP_BACKGROUND_SYNC_INTERVAL_DEFAULT},
             .is_value_valid = is_background_sync_interval_valid,
+            .type = SntpSettingTypeInt,
+        },
+    [SntpSettingIdxRetrySyncInterval] =
+        {
+            .name = "retry_sync_interval",
+            .default_value = &(const int){SNTP_RETRY_SYNC_INTERVAL_DEFAULT},
+            .is_value_valid = is_retry_sync_interval_valid,
             .type = SntpSettingTypeInt,
         },
     [SntpSettingIdxBootDelay] =
