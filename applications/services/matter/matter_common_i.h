@@ -25,14 +25,14 @@ extern "C" {
  * @brief Notification about updated state
  */
 typedef struct {
-    MatterVirtualDeviceState new_state;
+    bool state;
 } MatterIntercomUpdateFrame;
 
 /**
  * @brief Request to change state
  */
 typedef struct {
-    MatterVirtualDeviceState req_state;
+    bool switch_state;
 } MatterIntercomRequestFrame;
 
 /**

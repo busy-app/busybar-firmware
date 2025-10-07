@@ -226,12 +226,7 @@ void busy_set_status_lights(BusyApp* instance, BusyStatusLightsType type) {
 }
 
 void busy_set_matter(BusyApp* instance, bool switch_state) {
-    furi_assert(instance);
-    MatterVirtualDeviceState device_state = {
-        .device = MatterVirtualDeviceSwitch1,
-        .bool_val = switch_state,
-    };
-    matter_set_state(instance->matter, device_state);
+    matter_set_switch_state(instance->matter, switch_state);
 }
 
 void busy_push_location(BusyApp* instance, const char* location_name) {

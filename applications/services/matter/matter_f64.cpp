@@ -35,6 +35,8 @@ using namespace Transport;
 using namespace chip::app::Clusters;
 using namespace chip::System::Clock;
 
+static constexpr EndpointId onOffEndpointId = 1;
+
 class BsbFabricTableDelegate : public FabricTable::Delegate {
     void OnFabricRemoved(const FabricTable& fabricTable, FabricIndex fabricIndex) override;
 };
@@ -94,41 +96,6 @@ static void matter_send_frame(MatterSrv* matter, const MatterIntercomFrame* fram
 }
 
 /**
- * @brief Maps `MatterVirtualDevice` to `EndpointId`
- */
-static const EndpointId matter_endpoint_ids[MatterVirtualDeviceMAX] = {
-    [MatterVirtualDeviceSwitch1] = 1,
-    [MatterVirtualDeviceSwitch2] = 2,
-};
-
-/**
- * @brief Maps `EndpointId` to `MatterVirtualDevice`
- */
-static const MatterVirtualDevice matter_device_ids[] = {
-    [0] = MatterVirtualDeviceMAX, // reserved
-    [1] = MatterVirtualDeviceSwitch1,
-    [2] = MatterVirtualDeviceSwitch2,
-};
-
-/**
- * @brief Updates cluster attributes in the Matter stack to match our
- * representation of the state
- */
-static void matter_apply_new_device_state(MatterVirtualDeviceState* state) {
-    furi_assert(state);
-
-    switch(state->device) {
-    case MatterVirtualDeviceSwitch1:
-    case MatterVirtualDeviceSwitch2:
-        OnOff::Attributes::OnOff::Set(matter_endpoint_ids[state->device], state->bool_val);
-        break;
-
-    case MatterVirtualDeviceMAX:
-        furi_crash();
-    }
-}
-
-/**
  * @brief Handles an intercom frame
  */
 static void matter_handle_frame(const void* data, size_t data_size, void* context) {
@@ -140,16 +107,13 @@ static void matter_handle_frame(const void* data, size_t data_size, void* contex
 
     if(frame->type == MatterIntercomFrameTypeRequest) {
         FURI_LOG_D(TAG, "Request frame");
-        auto* dup_state = new MatterVirtualDeviceState;
-        memcpy(dup_state, &frame->request.req_state, sizeof(*dup_state));
 
-        PlatformMgr().ScheduleWork(
-            [](intptr_t context) {
-                auto* dup_state = (MatterVirtualDeviceState*)context;
-                matter_apply_new_device_state(dup_state);
-                delete dup_state;
-            },
-            (intptr_t)dup_state);
+        const auto workFn =
+            frame->request.switch_state ?
+                [](intptr_t arg) { OnOff::Attributes::OnOff::Set(onOffEndpointId, true); } :
+                [](intptr_t arg) { OnOff::Attributes::OnOff::Set(onOffEndpointId, false); };
+
+        PlatformMgr().ScheduleWork(workFn, 0);
 
     } else if(frame->type == MatterIntercomFrameTypeReset) {
         FURI_LOG_D(TAG, "Reset frame");
@@ -158,14 +122,12 @@ static void matter_handle_frame(const void* data, size_t data_size, void* contex
     } else if(frame->type == MatterIntercomFrameTypeCommission) {
         FURI_LOG_D(TAG, "Commission frame");
 
-        size_t duration = MATTER_COMMISSION_TIME_SECONDS;
         PlatformMgr().ScheduleWork(
             [](intptr_t arg) {
-                auto duration = static_cast<size_t>(arg);
                 Server::GetInstance().GetCommissioningWindowManager().OpenBasicCommissioningWindow(
-                    Seconds32(duration));
+                    Seconds32(MATTER_COMMISSION_TIME_SECONDS));
             },
-            static_cast<intptr_t>(duration));
+            0);
 
         MatterIntercomFrame frame = {
             .type = MatterIntercomFrameTypePairingCodes,
@@ -189,12 +151,11 @@ static void matter_handle_frame(const void* data, size_t data_size, void* contex
 /**
  * @brief Notifies u5 about an updated state 
  */
-static void matter_send_state_update(MatterSrv* matter, MatterVirtualDeviceState state) {
+static void matter_send_state_update(MatterSrv* matter, bool state) {
     MatterIntercomFrame frame = {
-        .type = MatterIntercomFrameTypeUpdate,
         .update =
             {
-                .new_state = state,
+                .state = state,
             },
     };
     matter_send_frame(matter, &frame);
@@ -227,43 +188,21 @@ void MatterPostAttributeChangeCallback(
     EndpointId endpoint = attributePath.mEndpointId;
     ClusterId cluster = attributePath.mClusterId;
     AttributeId attribute = attributePath.mAttributeId;
-    MatterVirtualDevice device = matter_device_ids[endpoint];
 
-    switch(device) {
-    case MatterVirtualDeviceMAX:
-        return;
-
-    case MatterVirtualDeviceSwitch1:
-    case MatterVirtualDeviceSwitch2: {
-        if(!(cluster == OnOff::Id && attribute == OnOff::Attributes::OnOff::Id)) return;
-        matter_send_state_update(
-            matter_global_srv,
-            (MatterVirtualDeviceState){
-                .device = device,
-                .bool_val = (bool)(*value),
-            });
-        break;
-    }
+    if(cluster == OnOff::Id && attribute == OnOff::Attributes::OnOff::Id) {
+        matter_send_state_update(matter_global_srv, static_cast<bool>(*value));
     }
 }
 
 /**
  * @brief Sends the current state to u5
  */
-static void matter_send_current_state(MatterSrv* matter, MatterVirtualDevice device) {
-    switch(device) {
-    case MatterVirtualDeviceSwitch1:
-    case MatterVirtualDeviceSwitch2: {
-        MatterVirtualDeviceState state = {
-            .device = device,
-            .bool_val = false /* to be filled */,
-        };
-        OnOff::Attributes::OnOff::Get(matter_endpoint_ids[device], &state.bool_val);
-        break;
-    }
+static void matter_send_current_state(MatterSrv* matter) {
+    bool state;
 
-    default:
-        furi_crash();
+    if(OnOff::Attributes::OnOff::Get(onOffEndpointId, &state) ==
+       Protocols::InteractionModel::Status::Success) {
+        matter_send_state_update(matter, state);
     }
 }
 
@@ -367,9 +306,10 @@ CHIP_ERROR MatterSrv::init(void) {
         Server::GetInstance().GetFabricTable().AddFabricDelegate(&m_fabric_delegate);
 
         intercom_set_rx_callback(m_intercom, IntercomChannelMatter, matter_handle_frame, this);
-        matter_send_current_state(this, MatterVirtualDeviceSwitch1);
-        matter_send_current_state(this, MatterVirtualDeviceSwitch2);
+
+        matter_send_current_state(this);
         matter_send_fabric_count_update(this);
+
     } while(false);
 
     return err;
@@ -382,15 +322,15 @@ int matter_srv(void* arg);
 int matter_srv(void* arg) {
     UNUSED(arg);
 
-    MatterSrv* instance = new MatterSrv;
-    matter_global_srv = instance;
-    const CHIP_ERROR err = instance->init();
+    matter_global_srv = new MatterSrv;
+
+    const auto err = matter_global_srv->init();
 
     if(err == CHIP_NO_ERROR) {
         PlatformMgr().RunEventLoop();
 
     } else {
-        FURI_LOG_E(TAG, "Failed to start: 0x%lx", err.AsInteger());
+        FURI_LOG_E(TAG, "Failed to start: 0x%lx", err.Format());
         furi_thread_suspend(furi_thread_get_current_id());
     }
 

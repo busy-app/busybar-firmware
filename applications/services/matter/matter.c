@@ -14,11 +14,10 @@ struct MatterSrv {
     FuriMessageQueue* frame_queue;
     FuriMessageQueue* request_queue;
     FuriPubSub* pubsub;
-
-    MatterVirtualDeviceState device_state[MatterVirtualDeviceMAX];
-    uint8_t commissioned_fabrics;
-
     Intercom* intercom;
+
+    bool switch_state;
+    uint8_t commissioned_fabrics;
 };
 
 // =========
@@ -80,13 +79,12 @@ static void matter_handle_frame(FuriEventLoopObject* object, void* context) {
 
     if(frame.type == MatterIntercomFrameTypeUpdate) {
         MatterIntercomUpdateFrame* update = &frame.update;
-        MatterVirtualDeviceState state = update->new_state;
-        matter->device_state[state.device] = state;
+        matter->switch_state = update->state;
         MatterEvent event = {
             .type = MatterEventTypeStateUpdate,
             .update =
                 {
-                    .new_state = state,
+                    .switch_state = update->state,
                 },
         };
         furi_pubsub_publish(matter->pubsub, &event);
@@ -132,11 +130,10 @@ typedef enum {
 typedef struct {
     FuriApiLock lock;
     MatterApiRequestType type;
-    MatterVirtualDevice device;
-    MatterVirtualDeviceState state;
     FuriString* qr_code;
     FuriString* manual_code;
     size_t window_duration;
+    bool switch_state;
     uint8_t fabric_count;
 } MatterApiRequest;
 
@@ -153,18 +150,16 @@ static void matter_handle_api_request(FuriEventLoopObject* object, void* context
 
     switch(request->type) {
     case MatterApiRequestTypeGetState: {
-        request->state = matter->device_state[request->device];
+        request->switch_state = matter->switch_state;
         break;
     }
 
     case MatterApiRequestTypeSetState: {
-        matter->device_state[request->device] = request->state;
+        matter->switch_state = request->switch_state;
+
         MatterIntercomFrame frame = {
             .type = MatterIntercomFrameTypeRequest,
-            .request =
-                {
-                    .req_state = request->state,
-                },
+            .request.switch_state = request->switch_state,
         };
         matter_send_frame(matter, &frame);
         break;
@@ -229,22 +224,20 @@ FuriPubSub* matter_get_pubsub(MatterSrv* matter) {
     return matter->pubsub;
 }
 
-MatterVirtualDeviceState matter_get_state(MatterSrv* matter, MatterVirtualDevice device) {
+bool matter_get_switch_state(MatterSrv* matter) {
     furi_check(matter);
     MatterApiRequest request = {
         .type = MatterApiRequestTypeGetState,
-        .device = device,
     };
     matter_synchronous_request(matter, &request);
-    return request.state;
+    return request.switch_state;
 }
 
-void matter_set_state(MatterSrv* matter, MatterVirtualDeviceState state) {
+void matter_set_switch_state(MatterSrv* matter, bool state) {
     furi_check(matter);
     MatterApiRequest request = {
         .type = MatterApiRequestTypeSetState,
-        .state = state,
-        .device = state.device,
+        .switch_state = state,
     };
     matter_synchronous_request(matter, &request);
 }

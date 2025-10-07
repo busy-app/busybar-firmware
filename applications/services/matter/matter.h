@@ -5,7 +5,6 @@
 
 #pragma once
 
-#include <furi.h>
 #include "matter_common.h"
 
 #ifdef __cplusplus
@@ -28,7 +27,7 @@ typedef enum {
  * @brief Event of type `MatterEventTypeStateUpdate`
  */
 typedef struct {
-    MatterVirtualDeviceState new_state;
+    bool switch_state;
 } MatterUpdateEvent;
 
 /**
@@ -66,7 +65,7 @@ FuriPubSub* matter_get_pubsub(MatterSrv* matter);
  * 
  * @returns Current state of the queried device
  */
-MatterVirtualDeviceState matter_get_state(MatterSrv* matter, MatterVirtualDevice device);
+bool matter_get_switch_state(MatterSrv* matter);
 
 /**
  * @brief Sets the state of a virtual Matter device
@@ -74,7 +73,7 @@ MatterVirtualDeviceState matter_get_state(MatterSrv* matter, MatterVirtualDevice
  * @param[in] matter Service instance
  * @param[in] state Virtual device selector along with its state
  */
-void matter_set_state(MatterSrv* matter, MatterVirtualDeviceState state);
+void matter_set_switch_state(MatterSrv* matter, bool state);
 
 /**
  * @brief Deletes all Matter data

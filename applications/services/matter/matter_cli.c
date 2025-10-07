@@ -13,80 +13,53 @@ typedef struct {
     FuriPubSubSubscription* subscription;
 } MatterCli;
 
+static const char* const switch_states[2] = {
+    "OFF",
+    "ON",
+};
+
+static const char* const switch_state_colors[2] = {
+    ANSI_FG_RED,
+    ANSI_FG_GREEN,
+};
+
 // ============
 // Sub-commands
 // ============
 
 static void matter_cli_cmd_set_print_usage(void) {
-    printf("Usage: set <device> <state>\r\n");
-    printf("  device: switch1|switch2\r\n");
+    printf("Usage: switch <state>\r\n");
     printf("  state: on|off\r\n");
 }
 
-static void matter_cli_cmd_set(PipeSide* pipe, FuriString* args, void* context) {
+static void matter_cli_cmd_switch(PipeSide* pipe, FuriString* args, void* context) {
     UNUSED(pipe);
     furi_assert(context);
     MatterCli* matter_cli = context;
 
-    static const char* const device_names[MatterVirtualDeviceMAX] = {
-        [MatterVirtualDeviceSwitch1] = "switch1",
-        [MatterVirtualDeviceSwitch2] = "switch2",
-    };
-    static const char* const switch_states[2] = {
-        "off",
-        "on",
-    };
-
-    MatterVirtualDeviceState state;
-
     FuriString* arg = furi_string_alloc();
 
     do {
-        // parse device name
-
+        // parse device state
         if(!args_read_string_and_trim(args, arg)) {
             matter_cli_cmd_set_print_usage();
             break;
         }
 
-        for(MatterVirtualDevice device = 0; device < MatterVirtualDeviceMAX; device++) {
-            if(furi_string_cmpi_str(arg, device_names[device]) == 0) {
-                state.device = device;
+        size_t i;
+        for(i = 0; i < COUNT_OF(switch_states); i++) {
+            if(furi_string_cmpi(arg, switch_states[i]) == 0) {
                 break;
             }
         }
 
-        // parse device state
-
-        if(!args_read_string_and_trim(args, arg)) {
-            matter_cli_cmd_set_print_usage();
-            break;
-        }
-        bool did_parse_state = false;
-
-        switch(state.device) {
-        case MatterVirtualDeviceSwitch1:
-        case MatterVirtualDeviceSwitch2: {
-            for(size_t i = 0; i < COUNT_OF(switch_states); i++) {
-                if(furi_string_cmpi_str(arg, switch_states[i]) == 0) {
-                    state.bool_val = (bool)i;
-                    did_parse_state = true;
-                    break;
-                }
-            }
-            break;
-        }
-
-        case MatterVirtualDeviceMAX:
-            furi_crash();
-        }
-
-        if(!did_parse_state) {
+        if(i == COUNT_OF(switch_states)) {
             matter_cli_cmd_set_print_usage();
             break;
         }
 
-        matter_set_state(matter_cli->matter, state);
+        matter_set_switch_state(matter_cli->matter, i);
+
     } while(0);
 
     furi_string_free(arg);
@@ -142,33 +115,13 @@ static void matter_cli_cmd_fabrics(PipeSide* pipe, FuriString* args, void* conte
 // Utilities
 // =========
 
-static void matter_cli_format_device_state(
-    MatterCli* matter_cli,
-    FuriString* out,
-    const MatterVirtualDeviceState* state) {
+static void matter_cli_format_switch_state(MatterCli* matter_cli, FuriString* out, bool state) {
     UNUSED(matter_cli);
-    static const char* const device_names[MatterVirtualDeviceMAX] = {
-        [MatterVirtualDeviceSwitch1] = "Switch 1",
-        [MatterVirtualDeviceSwitch2] = "Switch 2",
-    };
-    static const char* const switch_states[2] = {
-        ANSI_FG_RED "off" ANSI_RESET,
-        ANSI_FG_GREEN "on" ANSI_RESET,
-    };
 
-    furi_string_reset(out);
-    furi_string_cat_str(out, device_names[state->device]);
-    furi_string_cat_str(out, ": ");
+    const char* const state_name = switch_states[state];
+    const char* const state_color = switch_state_colors[state];
 
-    switch(state->device) {
-    case MatterVirtualDeviceSwitch1:
-    case MatterVirtualDeviceSwitch2:
-        furi_string_cat_str(out, switch_states[state->bool_val]);
-        break;
-
-    case MatterVirtualDeviceMAX:
-        furi_crash();
-    }
+    furi_string_cat_printf(out, "Switch: %s%s%s", state_color, state_name, ANSI_RESET);
 }
 
 static void matter_cli_print_event(const void* message, void* context) {
@@ -181,11 +134,7 @@ static void matter_cli_print_event(const void* message, void* context) {
 
     do {
         if(event->type == MatterEventTypeStateUpdate) {
-            furi_string_printf(notification, "State update: ");
-            FuriString* state = furi_string_alloc();
-            matter_cli_format_device_state(matter_cli, state, &event->update.new_state);
-            furi_string_cat(notification, state);
-            furi_string_free(state);
+            matter_cli_format_switch_state(matter_cli, notification, event->update.switch_state);
 
         } else if(event->type == MatterEventTypeCommissioning) {
             furi_string_set_str(notification, "Commissioning status: ");
@@ -216,14 +165,11 @@ static void matter_cli_motd(void* context) {
     printf(ANSI_FG_BLACK ANSI_BG_BR_WHITE "  ↗ ↖ CLI     " ANSI_RESET "\r\n");
     printf("\r\n");
 
-    printf("Virtual device state:\r\n");
     FuriString* formatted_state = furi_string_alloc();
 
-    for(MatterVirtualDevice device = 0; device < MatterVirtualDeviceMAX; device++) {
-        MatterVirtualDeviceState state = matter_get_state(matter_cli->matter, device);
-        matter_cli_format_device_state(matter_cli, formatted_state, &state);
-        printf("  %s\r\n", furi_string_get_cstr(formatted_state));
-    }
+    matter_cli_format_switch_state(
+        matter_cli, formatted_state, matter_get_switch_state(matter_cli->matter));
+    printf("  %s\r\n", furi_string_get_cstr(formatted_state));
 
     furi_string_free(formatted_state);
 }
@@ -262,9 +208,9 @@ void matter_cli_command(PipeSide* pipe, FuriString* args, void* context) {
 
     cli_registry_add_command(
         matter_cli->commands,
-        "set",
+        "switch",
         CliCommandFlagParallelSafe | CliCommandFlagUseShellThread,
-        matter_cli_cmd_set,
+        matter_cli_cmd_switch,
         matter_cli);
     cli_registry_add_command(
         matter_cli->commands,
