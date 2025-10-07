@@ -240,10 +240,9 @@ void widget_set_scrollbar_mode(Widget* instance, WidgetScrollBarMode scrollbar_m
  * @brief Set the background color and opacity of a Widget instance.
  *
  * @param[in,out] instance pointer to the Widget instance to be modified
- * @param[in] color new background color
- * @param[in] opacity new background opacity (0.0 - 1.0)
+ * @param[in] color new background color including opacity
  */
-void widget_set_background_color(Widget* instance, Color color, float opacity);
+void widget_set_background_color(Widget* instance, Color color);
 
 /**
  * @brief Set the padding for a Widget instance.

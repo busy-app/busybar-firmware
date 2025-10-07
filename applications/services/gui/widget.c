@@ -152,10 +152,10 @@ void widget_set_scrollbar_mode(Widget* instance, WidgetScrollBarMode scrollbar_m
     lv_obj_set_scrollbar_mode((lv_obj_t*)instance, (lv_scrollbar_mode_t)scrollbar_mode);
 }
 
-void widget_set_background_color(Widget* instance, Color color, float opacity) {
+void widget_set_background_color(Widget* instance, Color color) {
     furi_check(instance);
     lv_obj_set_style_bg_color((lv_obj_t*)instance, TO_LV_COLOR(color), LV_PART_MAIN);
-    lv_obj_set_style_bg_opa((lv_obj_t*)instance, (lv_opa_t)(opacity * 255), LV_PART_MAIN);
+    lv_obj_set_style_bg_opa((lv_obj_t*)instance, (lv_opa_t)(color.a), LV_PART_MAIN);
 }
 
 void widget_set_padding(Widget* instance, int32_t left, int32_t right, int32_t top, int32_t bottom) {
