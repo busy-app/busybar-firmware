@@ -119,6 +119,9 @@ static void settings_scene_brightness_on_enter(void* context) {
 
         settings_scene_brightness_filter_items(data);
     });
+
+    Color color = COLOR_MAKE_RGB(0xFF, 0xFF, 0xFF);
+    status_lights_run_preset(instance->status_lights, StatusLightsPresetStaticColor, color);
 }
 
 static void settings_scene_brightness_on_exit(void* context) {
@@ -131,6 +134,8 @@ static void settings_scene_brightness_on_exit(void* context) {
         var_item_list_free(data->front_container.list);
         var_item_list_free(data->back_container.list);
     });
+
+    status_lights_run_preset(instance->status_lights, StatusLightsPresetOff, (Color){});
 }
 
 static bool settings_scene_brightness_on_event(const SceneManagerEvent* event, void* context) {
