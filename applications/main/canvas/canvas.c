@@ -232,6 +232,8 @@ static bool canvas_element_update(CanvasApp* canvas, const CanvasElement* elemen
                 widget.text = label_alloc(root);
             }
             label_set_text(widget.text, element->text.text_str);
+            label_set_font(widget.text, element->text.font);
+            label_set_color(widget.text, element->text.color);
             widget_set_pos(label_get_base(widget.text), element->x, element->y);
         }
     });

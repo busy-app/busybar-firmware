@@ -26,6 +26,8 @@ typedef struct {
         } image;
         struct {
             char* text_str;
+            GuiFont font;
+            Color color;
         } text;
     };
 } CanvasElement;

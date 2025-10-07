@@ -1106,8 +1106,10 @@ components:
             timeout: 5
             type: "text"
             text: "Hello, world!"
-            x: 0
-            y: 0
+            x: 1
+            y: 2
+            font: cubic_12
+            color: "#AAFF00FF"
             display: "front"
           - id: "1"
             timeout: 6
@@ -1163,6 +1165,25 @@ components:
             text:
               type: string
               description: Text content to display
+            font:
+              type: string
+              description: One of the available fonts to display the text in
+              enum:
+                - numerals_condensed_10
+                - numerals_regular_10
+                - numerals_small_10
+                - ark_regular_10
+                - ark_regular_20
+                - cubic_12
+                - sonybmp_7
+                - tiny_6
+                - tiny5_8
+              default: tiny5_8
+            color:
+              type: string
+              description: "Color to display the text in, in #RRGGBBAA format"
+              pattern: "^#[a-fA-F0-9]{8}$"
+              default: "#FFFFFFFF"
 
     ImageElement:
       allOf:

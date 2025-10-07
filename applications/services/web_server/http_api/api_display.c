@@ -13,6 +13,82 @@
 
 #define DISPLAY_BRIGHTNESS_MAX (100)
 
+static bool api_display_draw_parse_text_element(
+    CanvasElement* canvas_element,
+    const char* app_id,
+    struct mg_str json_element) {
+    UNUSED(app_id);
+    bool result = false;
+    do {
+        canvas_element->type = CanvasElementTypeText;
+        canvas_element->text.text_str = mg_json_get_str(json_element, "$.text");
+        if(!canvas_element->text.text_str) break;
+
+        canvas_element->text.font = GuiFontTiny5_8;
+        canvas_element->text.color = (Color)COLOR_MAKE_HEXA(0xFFFFFFFF);
+
+        char* font_name = mg_json_get_str(json_element, "$.font");
+        if(font_name) {
+            static const char* const font_names[GuiFontMax] = {
+                [GuiFontArkNumeralsCondensed10] = "numerals_condensed_10",
+                [GuiFontArkNumeralsRegular10] = "numerals_regular_10",
+                [GuiFontArkNumeralsSmall10] = "numerals_small_10",
+                [GuiFontArkRegular10] = "ark_regular_10",
+                [GuiFontArkRegular20] = "ark_regular_20",
+                [GuiFontCubic12] = "cubic_12",
+                [GuiFontSomybmp7] = "sonybmp_7",
+                [GuiFontTiny6] = "tiny_6",
+                [GuiFontTiny5_8] = "tiny5_8",
+            };
+            canvas_element->text.font = GuiFontMax;
+            for(GuiFont i = 0; i < GuiFontMax; i++) {
+                if(strcmp(font_names[i], font_name) == 0) {
+                    canvas_element->text.font = i;
+                    break;
+                }
+            }
+            free(font_name);
+            if(canvas_element->text.font == GuiFontMax) break;
+        }
+
+        char* color_hex = mg_json_get_str(json_element, "$.color");
+        if(color_hex) {
+            bool color_parsed = color_parse_hexa_string(color_hex, &canvas_element->text.color);
+            free(color_hex);
+            if(!color_parsed) break;
+        }
+
+        result = true;
+    } while(0);
+    return result;
+}
+
+static bool api_display_draw_parse_image_element(
+    CanvasElement* canvas_element,
+    const char* app_id,
+    struct mg_str json_element) {
+    bool result = false;
+    do {
+        canvas_element->type = CanvasElementTypeImage;
+        char* image_file = mg_json_get_str(json_element, "$.path");
+        if(!image_file) break;
+        canvas_element->image.file_path =
+            furi_string_alloc_printf("%s/%s/%s", DISPLAY_ASSETS_DIR, app_id, image_file);
+
+        free(image_file);
+        result = true;
+    } while(0);
+    return result;
+}
+
+typedef bool (
+    *ApiDisplayElementTypeParser)(CanvasElement*, const char* app_id, struct mg_str element);
+
+typedef struct {
+    const char* type;
+    ApiDisplayElementTypeParser parser;
+} ApiDisplayElementTypeAssoc;
+
 static bool api_display_draw_parse_element(
     CanvasElementsArray_t elements_array,
     char* app_id,
@@ -52,21 +128,16 @@ static bool api_display_draw_parse_element(
 
         element_type = mg_json_get_str(element, "$.type");
         if(!element_type) break;
-        if(strcmp(element_type, "image") == 0) {
-            canvas_element->type = CanvasElementTypeImage;
-            char* image_file = mg_json_get_str(element, "$.path");
-            if(!image_file) break;
-            canvas_element->image.file_path =
-                furi_string_alloc_printf("%s/%s/%s", DISPLAY_ASSETS_DIR, app_id, image_file);
 
-            free(image_file);
-            success = true;
-        } else if(strcmp(element_type, "text") == 0) {
-            canvas_element->type = CanvasElementTypeText;
-            canvas_element->text.text_str = mg_json_get_str(element, "$.text");
-            if(!canvas_element->text.text_str) break;
-
-            success = true;
+        static const ApiDisplayElementTypeAssoc element_parsers[] = {
+            {"text", api_display_draw_parse_text_element},
+            {"image", api_display_draw_parse_image_element}};
+        for(size_t i = 0; i < COUNT_OF(element_parsers); i++) {
+            const ApiDisplayElementTypeAssoc* association = &element_parsers[i];
+            if(strcmp(element_type, association->type) == 0) {
+                success = association->parser(canvas_element, app_id, element);
+                break;
+            }
         }
     } while(0);
 

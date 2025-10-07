@@ -5,6 +5,7 @@
 #pragma once
 
 #include <gui/widget.h>
+#include <gui/gui.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -107,7 +108,7 @@ void label_set_long_content_mode(Label* instance, LabelLongContentMode mode, uin
  * @brief Set color of label text.
  * 
  * @param[in,out] instance pointer to the Label instance to be modified
- * @param[in] color what set the text color to
+ * @param[in] color what to set the text color to
  */
 void label_set_color(Label* instance, Color color);
 
@@ -115,7 +116,7 @@ void label_set_color(Label* instance, Color color);
  * @brief Set font of label text.
  * 
  * @param[in,out] instance pointer to the Label instance to be modified
- * @param[in] font what set the font to
+ * @param[in] font what to set the font to
  */
 void label_set_font(Label* instance, GuiFont font);
 
