@@ -62,6 +62,7 @@ struct SlUpdater {
 
 #define KERMIT_TIMEOUT_SECONDS               (2)
 #define SL_UPDATER_AUTO_BAUD_RATE_TIMEOUT_MS (13000U) // 13s
+#define EVENT_LOOP_TICK_PERIOD_MS            (100)
 
 typedef struct {
     const char* choice;
@@ -369,6 +370,24 @@ static void sl_update_idle_timer_callback(void* context) {
     furi_event_loop_stop(instance->event_loop);
 }
 
+static void sl_updater_tick(void* context) {
+    SlUpdater* instance = context;
+
+    if(instance->bootloader_state == Si917BootloaderStateWaitInstall) {
+        size_t expected_interval = furi_ms_to_ticks(instance->install_timeout_seconds * 1000);
+        size_t interval = furi_event_loop_timer_get_interval(instance->idle_timer);
+        if(interval != expected_interval) return;
+
+        size_t remaining = furi_event_loop_timer_get_remaining_time(instance->idle_timer);
+        size_t passed = interval - remaining;
+
+        instance->progress_callback(
+            SL_UPDATER_PROGRESS_PHASE_AWAITING_INSTALL,
+            (passed * 100) / interval,
+            instance->progress_callback_context);
+    }
+}
+
 SlUpdater* sl_updater_alloc(void) {
     FURI_LOG_I(TAG, "Starting");
 
@@ -399,6 +418,12 @@ SlUpdater* sl_updater_alloc(void) {
         instance->rx_buffer,
         FuriEventLoopEventIn,
         sl_updater_rx_buffer_callback,
+        instance);
+
+    furi_event_loop_tick_set(
+        instance->event_loop,
+        furi_ms_to_ticks(EVENT_LOOP_TICK_PERIOD_MS),
+        sl_updater_tick,
         instance);
 
     return instance;
