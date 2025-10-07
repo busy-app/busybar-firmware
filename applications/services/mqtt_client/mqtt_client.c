@@ -239,7 +239,7 @@ static void mqtt_client_load_session(MqttClient* mqtt) {
 
     do {
         status = json_config_read_str(cfg, "client_id", mqtt->client_id, NULL);
-        if(status == JsonConfigStatusMissing) {
+        if((status == JsonConfigStatusMissing) || (furi_string_empty(mqtt->client_id))) {
             uint32_t random_id[2];
             furi_hal_random_fill_buf((uint8_t*)random_id, sizeof(random_id));
             furi_string_printf(mqtt->client_id, "busybar-%08lx%08lx", random_id[0], random_id[1]);
