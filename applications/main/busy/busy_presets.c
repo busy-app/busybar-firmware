@@ -94,7 +94,7 @@ const TransitionOverlayPreset busy_transitions[BusyTransitionTypeMax] = {
         },
 };
 
-const StatusLightsCommand busy_status_lights[BusyStatusLightsTypeMax] = {
+const BusyStatusLightsPreset busy_status_lights[BusyStatusLightsTypeMax] = {
     [BusyStatusLightsTypeOff] =
         {
             .preset = StatusLightsPresetOff,
