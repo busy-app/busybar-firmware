@@ -105,11 +105,11 @@ static void matter_handle_frame(const void* data, size_t data_size, void* contex
     const auto* frame = static_cast<const MatterIntercomFrame*>(data);
     auto* matter = static_cast<MatterSrv*>(context);
 
-    if(frame->type == MatterIntercomFrameTypeRequest) {
-        FURI_LOG_D(TAG, "Request frame");
+    if(frame->type == MatterIntercomFrameTypeSwitchState) {
+        FURI_LOG_D(TAG, "SwitchState frame");
 
         const auto workFn =
-            frame->request.switch_state ?
+            frame->switch_state.value ?
                 [](intptr_t arg) { OnOff::Attributes::OnOff::Set(onOffEndpointId, true); } :
                 [](intptr_t arg) { OnOff::Attributes::OnOff::Set(onOffEndpointId, false); };
 
@@ -153,9 +153,9 @@ static void matter_handle_frame(const void* data, size_t data_size, void* contex
  */
 static void matter_send_state_update(MatterSrv* matter, bool state) {
     MatterIntercomFrame frame = {
-        .update =
+        .switch_state =
             {
-                .state = state,
+                .value = state,
             },
     };
     matter_send_frame(matter, &frame);

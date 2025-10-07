@@ -19,16 +19,16 @@ typedef struct MatterSrv MatterSrv;
  * @brief Type of service event
  */
 typedef enum {
-    MatterEventTypeStateUpdate, //<! State of a virtual device changed
+    MatterEventTypeSwitchState, //<! Switch state updated
     MatterEventTypeCommissioning, //<! Started, completed or failed commissioning
 } MatterEventType;
 
 /**
- * @brief Event of type `MatterEventTypeStateUpdate`
+ * @brief Event of type `MatterEventTypeSwitchState`
  */
 typedef struct {
-    bool switch_state;
-} MatterUpdateEvent;
+    bool value;
+} MatterSwitchStateEvent;
 
 /**
  * @brief Event of type `MatterEventTypeCommissioning`
@@ -43,7 +43,7 @@ typedef struct {
 typedef struct {
     MatterEventType type;
     union {
-        MatterUpdateEvent update;
+        MatterSwitchStateEvent switch_state;
         MatterCommissioningEvent commissioning;
     };
 } MatterEvent;
@@ -58,20 +58,19 @@ typedef struct {
 FuriPubSub* matter_get_pubsub(MatterSrv* matter);
 
 /**
- * @brief Gets the state of a virtual Matter device
+ * @brief Gets the state of the Matter switch
  * 
  * @param[in] matter Service instance
- * @param[in] device Virtual device selector
  * 
- * @returns Current state of the queried device
+ * @returns Current state of the Matter switch
  */
 bool matter_get_switch_state(MatterSrv* matter);
 
 /**
- * @brief Sets the state of a virtual Matter device
+ * @brief Sets the state of the Matter switch
  * 
  * @param[in] matter Service instance
- * @param[in] state Virtual device selector along with its state
+ * @param[in] state Desired Matter switch state
  */
 void matter_set_switch_state(MatterSrv* matter, bool state);
 

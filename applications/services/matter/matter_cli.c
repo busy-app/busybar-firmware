@@ -133,8 +133,8 @@ static void matter_cli_print_event(const void* message, void* context) {
     FuriString* notification = furi_string_alloc();
 
     do {
-        if(event->type == MatterEventTypeStateUpdate) {
-            matter_cli_format_switch_state(matter_cli, notification, event->update.switch_state);
+        if(event->type == MatterEventTypeSwitchState) {
+            matter_cli_format_switch_state(matter_cli, notification, event->switch_state.value);
 
         } else if(event->type == MatterEventTypeCommissioning) {
             furi_string_set_str(notification, "Commissioning status: ");
