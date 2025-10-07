@@ -6,6 +6,7 @@
 #pragma once
 
 #include <stdint.h>
+#include <stdbool.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -30,8 +31,11 @@ extern "C" {
 /**
  * @brief Converts an `0xRRGGBBAA` representation into a color
  */
-#define COLOR_MAKE_HEXA(hexa) \
-    {.a = (hexa) & 0xFF, .b = ((hexa) >> 8) & 0xFF, .g = ((hexa) >> 16) & 0xFF, r = ((hexa) >> 24) & 0xFF}
+#define COLOR_MAKE_HEXA(hexa)    \
+    {.a = (hexa) & 0xFF,         \
+     .b = ((hexa) >> 8) & 0xFF,  \
+     .g = ((hexa) >> 16) & 0xFF, \
+     .r = ((hexa) >> 24) & 0xFF}
 
 /** RGB color structure */
 typedef struct {
@@ -70,11 +74,21 @@ Color color_hex_to_rgb(uint32_t hex);
 /**
  * @brief Convert a HEX `0xRRGGBBAA` representation to an RGB color
  *
- * @param hex Hex value to convert (`0xRRGGBBAA`)
+ * @param hexa Hex value to convert (`0xRRGGBBAA`)
  *
  * @return Color structure
  */
 Color color_hexa_to_rgb(uint32_t hexa);
+
+/**
+ * @brief Convert a HEX `"#RRGGBBAA"` representation to an RGB color
+ * 
+ * @param[in] hexa Hex value to convert (`"#RRGGBBAA"`)
+ * @param[out] color_out Color structure to fill
+ * 
+ * @return Parsing status (`true` = success)
+ */
+bool color_parse_hexa_string(const char* hexa, Color* color_out);
 
 #ifdef __cplusplus
 }

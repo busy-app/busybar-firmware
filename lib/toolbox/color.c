@@ -1,6 +1,7 @@
 #include "color.h"
 
 #include <core/check.h>
+#include "strint.h"
 
 // https://stackoverflow.com/questions/24152553/hsv-to-rgb-and-back-without-floating-point-math-in-python
 Color color_hsv_to_rgb(ColorHsv hsv) {
@@ -86,4 +87,15 @@ Color color_hexa_to_rgb(uint32_t hexa) {
     };
 
     return rgb;
+}
+
+bool color_parse_hexa_string(const char* hexa, Color* color_out) {
+    if(strlen(hexa) != strlen("#RRGGBBAA")) return false;
+    hexa++;
+
+    uint32_t hexa_int;
+    if(strint_to_uint32(hexa, NULL, &hexa_int, 16) != StrintParseNoError) return false;
+
+    *color_out = color_hexa_to_rgb(hexa_int);
+    return true;
 }
