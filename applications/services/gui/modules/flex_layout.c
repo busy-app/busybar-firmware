@@ -97,6 +97,27 @@ void flex_layout_set_reverse(FlexLayout* instance, bool reverse) {
     lv_obj_set_flex_flow(obj, flow);
 }
 
+void flex_layout_set_align(
+    FlexLayout* instance,
+    FlexLayoutAlign main,
+    FlexLayoutAlign cross,
+    FlexLayoutAlign track_cross) {
+    furi_check(instance);
+    furi_check(cross < FlexLayoutAlignSpaceEvenly);
+
+    static lv_flex_align_t align_lut[] = {
+        [FlexLayoutAlignStart] = LV_FLEX_ALIGN_START,
+        [FlexLayoutAlignEnd] = LV_FLEX_ALIGN_END,
+        [FlexLayoutAlignCenter] = LV_FLEX_ALIGN_CENTER,
+        [FlexLayoutAlignSpaceEvenly] = LV_FLEX_ALIGN_SPACE_EVENLY,
+        [FlexLayoutAlignSpaceAround] = LV_FLEX_ALIGN_SPACE_AROUND,
+        [FlexLayoutAlignSpaceBetween] = LV_FLEX_ALIGN_SPACE_BETWEEN,
+    };
+
+    lv_obj_t* obj = (lv_obj_t*)instance;
+    lv_obj_set_flex_align(obj, align_lut[main], align_lut[cross], align_lut[track_cross]);
+}
+
 void flex_layout_set_child_widget_grow(FlexLayout* instance, Widget* child, uint8_t grow) {
     furi_check(instance);
     furi_check(child);

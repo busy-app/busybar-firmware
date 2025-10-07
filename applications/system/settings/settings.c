@@ -2,7 +2,8 @@
 #include "storage_macros.h"
 #include "scenes/settings_scenes.h"
 
-#define SETTINGS_NAV_BAR_HEIGHT 20
+#define SETTINGS_NAV_BAR_HEIGHT 16
+#define SETTINGS_MATTER_Q_SIZE  1
 
 static bool settings_thread_signal_callback(uint32_t signal, void* arg, void* context) {
     UNUSED(arg);
@@ -49,7 +50,11 @@ static void settings_event_queue_callback(FuriEventLoopObject* object, void* con
 
     uint32_t event;
     while(furi_message_queue_get(instance->event_queue, &event, 0) == FuriStatusOk) {
-        scene_manager_handle_custom_event(instance->scene_manager, event);
+        if(event == SettingsCustomEventRequiredWifiNotAvailable) {
+            scene_manager_next_scene(instance->scene_manager, SettingsAppSceneIdConnectWifi);
+        } else {
+            scene_manager_handle_custom_event(instance->scene_manager, event);
+        }
     }
 }
 
@@ -74,6 +79,31 @@ static bool settings_gui_input_callback(const InputEvent* event, void* context) 
     return consumed;
 }
 
+static void settings_handle_matter_event(const void* message, void* context) {
+    furi_check(message);
+    furi_assert(context);
+    const MatterEvent* event = message;
+    SettingsApp* app = context;
+
+    SettingsCustomEvent our_event;
+    bool do_send_event = false;
+
+    if(event->type == MatterEventTypeCommissioning) {
+        MatterCommissioningStatus status = event->commissioning.status;
+
+        static const SettingsCustomEvent event_table[MatterCommissioningStatusMAX] = {
+            [MatterCommissioningStatusStarted] = SettingsCustomEventMatterCommStart,
+            [MatterCommissioningStatusComplete] = SettingsCustomEventMatterCommComplete,
+            [MatterCommissioningStatusFailed] = SettingsCustomEventMatterCommFail,
+        };
+
+        our_event = event_table[status];
+        do_send_event = true;
+    }
+
+    if(do_send_event) settings_send_custom_event(app, our_event);
+}
+
 static SettingsApp* settings_alloc(void) {
     SettingsApp* instance = malloc(sizeof(SettingsApp));
 
@@ -87,6 +117,7 @@ static SettingsApp* settings_alloc(void) {
     instance->audio = furi_record_open(RECORD_AUDIO);
     instance->front_display = furi_record_open(RECORD_FRONT_DISPLAY);
     instance->back_display = furi_record_open(RECORD_BACK_DISPLAY);
+    instance->status_lights = furi_record_open(RECORD_STATUS_LIGHTS);
 
     with_gui(instance->gui, {
         GuiLayer* layer = gui_get_layer(instance->gui, GuiLayerIdMain);
@@ -97,14 +128,13 @@ static SettingsApp* settings_alloc(void) {
 
         Widget* back_root = gui_layer_get_root_widget(layer, GuiDisplayIdBack);
         instance->back_container = flex_layout_alloc(back_root, FlexLayoutTypeColumn);
-        flex_layout_set_spacing(instance->back_container, 2);
 
         instance->back_nav_bar = nav_bar_alloc(flex_layout_get_base(instance->back_container));
         nav_bar_set_header_image(
             instance->back_nav_bar, SETTINGS_IMG_PATH("settings_back_7x7.bin"));
         nav_bar_set_header_text(instance->back_nav_bar, "SETTINGS");
         widget_set_height(nav_bar_get_base(instance->back_nav_bar), SETTINGS_NAV_BAR_HEIGHT);
-        widget_set_padding(nav_bar_get_base(instance->back_nav_bar), 6, 6, 0, 0);
+        widget_set_padding(nav_bar_get_base(instance->back_nav_bar), 2, 2, 0, 0);
 
         instance->back_scene_window = widget_alloc(flex_layout_get_base(instance->back_container));
         flex_layout_set_child_widget_grow(
@@ -127,10 +157,21 @@ static SettingsApp* settings_alloc(void) {
 
     scene_manager_next_scene(instance->scene_manager, SettingsAppSceneIdStart);
 
+    instance->matter = furi_record_open(RECORD_MATTER);
+    instance->matter_subscription = furi_pubsub_subscribe(
+        matter_get_pubsub(instance->matter), settings_handle_matter_event, instance);
+
+    instance->wifi = wifi_poller_alloc();
+
     return instance;
 }
 
 static void settings_free(SettingsApp* instance) {
+    wifi_poller_free(instance->wifi);
+
+    furi_pubsub_unsubscribe(matter_get_pubsub(instance->matter), instance->matter_subscription);
+    furi_record_close(RECORD_MATTER);
+
     scene_manager_free(instance->scene_manager);
 
     with_gui(instance->gui, {
@@ -145,6 +186,7 @@ static void settings_free(SettingsApp* instance) {
     furi_record_close(RECORD_AUDIO);
     furi_record_close(RECORD_FRONT_DISPLAY);
     furi_record_close(RECORD_BACK_DISPLAY);
+    furi_record_close(RECORD_STATUS_LIGHTS);
 
     furi_event_loop_unsubscribe(instance->event_loop, instance->input_queue);
     furi_event_loop_unsubscribe(instance->event_loop, instance->event_queue);
@@ -186,4 +228,15 @@ void settings_pop_location(SettingsApp* instance) {
     furi_assert(instance);
 
     with_gui(instance->gui, { nav_bar_pop_location(instance->back_nav_bar); });
+}
+
+bool settings_check_wifi_connectivity(SettingsApp* instance) {
+    furi_assert(instance);
+
+    if(wifi_poller_get_state(instance->wifi) & WifiPollerStateLinkUp) {
+        return true;
+    } else {
+        settings_send_custom_event(instance, SettingsCustomEventRequiredWifiNotAvailable);
+        return false;
+    }
 }

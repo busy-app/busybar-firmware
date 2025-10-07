@@ -52,7 +52,7 @@ JsonConfigStatus json_config_open(JsonConfig* inst, const char* file_path);
  * @return Operation status (JsonConfigStatus).
  */
 JsonConfigStatus
-    json_config_read_int(JsonConfig* inst, const char* key, int* val, int* val_default);
+    json_config_read_int(JsonConfig* inst, const char* key, int* val, const int* val_default);
 
 /**
  * @brief Read a number (float) value.
@@ -64,8 +64,11 @@ JsonConfigStatus
  * @param a pointer to default value (set to NULL to bypass default value write).
  * @return Operation status (JsonConfigStatus).
  */
-JsonConfigStatus
-    json_config_read_number(JsonConfig* inst, const char* key, float* val, float* val_default);
+JsonConfigStatus json_config_read_number(
+    JsonConfig* inst,
+    const char* key,
+    float* val,
+    const float* val_default);
 
 /**
  * @brief Read a boolean value.
@@ -78,7 +81,7 @@ JsonConfigStatus
  * @return Operation status (JsonConfigStatus).
  */
 JsonConfigStatus
-    json_config_read_bool(JsonConfig* inst, const char* key, bool* val, bool* val_default);
+    json_config_read_bool(JsonConfig* inst, const char* key, bool* val, const bool* val_default);
 
 /**
  * @brief Read a string value.

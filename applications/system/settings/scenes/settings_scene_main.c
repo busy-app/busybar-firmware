@@ -14,6 +14,7 @@ typedef enum {
     SettingsSceneMainMenuIndexSound,
     SettingsSceneMainMenuIndexBrightness,
     SettingsSceneMainMenuIndexDebugApps,
+    SettingsSceneMainMenuIndexMatter,
 
     SettingsSceneMainMenuIndexesCount,
 } SettingsSceneMainMenuIndex;
@@ -45,6 +46,11 @@ static const NextSceneParameters next_scenes_parameters[] = {
         {
             .nav_bar_entry = "DEBUG",
             .scene_id = SettingsAppSceneIdDebugApps,
+        },
+    [SettingsSceneMainMenuIndexMatter] =
+        {
+            .nav_bar_entry = "SMART HOME",
+            .scene_id = SettingsAppSceneIdMatter,
         },
 };
 
@@ -106,6 +112,14 @@ static void settings_scene_main_on_enter(void* context) {
             SettingsSceneMainMenuIndexDebugApps,
             settings_scene_setup_menu_callback,
             instance);
+        menu_add_item(
+            data->front_menu,
+            "Smart home",
+            "",
+            SETTINGS_IMG_PATH("house_front_7x7.bin"),
+            SettingsSceneMainMenuIndexMatter,
+            settings_scene_setup_menu_callback,
+            instance);
 
         menu_set_selected_item_index(data->front_menu, data->menu_idx);
 
@@ -133,6 +147,14 @@ static void settings_scene_main_on_enter(void* context) {
             NULL,
             SETTINGS_IMG_PATH("debug_back_12x12.bin"),
             SettingsSceneMainMenuIndexDebugApps,
+            NULL,
+            instance);
+        menu_add_item(
+            data->back_menu,
+            "SMART HOME",
+            NULL,
+            SETTINGS_IMG_PATH("house_back_12x12.bin"),
+            SettingsSceneMainMenuIndexMatter,
             NULL,
             instance);
 

@@ -143,6 +143,11 @@ static void busy_scene_timer_update_lights(BusyApp* instance) {
     }
 }
 
+static void busy_scene_timer_update_matter(BusyApp* app) {
+    const BusySceneTimer* scene = scene_manager_get_current_scene_data(app->scene_manager);
+    busy_set_matter(app, (scene->timer_state == BusyTimerStateWork) && !scene->is_paused);
+}
+
 static void busy_scene_timer_update_timer_mode(BusyApp* instance) {
     const BusySceneTimer* data = scene_manager_get_current_scene_data(instance->scene_manager);
 
@@ -195,6 +200,7 @@ static void busy_scene_timer_update_timer_state(BusyApp* instance) {
     });
 
     busy_scene_timer_update_lights(instance);
+    busy_scene_timer_update_matter(instance);
 }
 
 static void busy_scene_timer_toggle_pause(BusyApp* instance) {
@@ -214,6 +220,7 @@ static void busy_scene_timer_toggle_pause(BusyApp* instance) {
     });
 
     busy_scene_timer_update_lights(instance);
+    busy_scene_timer_update_matter(instance);
     busy_timer_toggle(instance->busy_timer);
 }
 
@@ -298,6 +305,7 @@ static void busy_scene_timer_on_exit(void* context) {
     BusyApp* instance = context;
 
     busy_set_status_lights(instance, BusyStatusLightsTypeOff);
+    busy_set_matter(instance, false);
     busy_timer_set_callback(instance->busy_timer, NULL, NULL);
 
     BusySceneTimer* data = scene_manager_get_current_scene_data(instance->scene_manager);

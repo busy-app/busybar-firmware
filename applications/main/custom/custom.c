@@ -83,6 +83,7 @@ static CustomApp* custom_alloc(void) {
     instance->audio = furi_record_open(RECORD_AUDIO);
     instance->gui = furi_record_open(RECORD_GUI);
     instance->desktop = furi_record_open(RECORD_DESKTOP);
+    instance->matter = furi_record_open(RECORD_MATTER);
 
     with_gui(instance->gui, {
         GuiLayer* layer = gui_get_layer(instance->gui, GuiLayerIdMain);
@@ -131,15 +132,17 @@ static CustomApp* custom_alloc(void) {
         custom_event_queue_callback,
         instance);
 
-    custom_set_status_lights(instance, CustomStatusLightsTypeOff);
-
     scene_manager_next_scene(instance->scene_manager, CustomAppSceneIdStart);
+
+    custom_set_status_lights(instance, CustomStatusLightsTypeOff);
+    custom_set_matter(instance, false);
 
     return instance;
 }
 
 static void custom_free(CustomApp* instance) {
     custom_set_status_lights(instance, CustomStatusLightsTypeOff);
+    custom_set_matter(instance, false);
 
     scene_manager_free(instance->scene_manager);
 
@@ -153,6 +156,7 @@ static void custom_free(CustomApp* instance) {
         flex_layout_free(instance->back_container);
     });
 
+    furi_record_close(RECORD_MATTER);
     furi_record_close(RECORD_DESKTOP);
     furi_record_close(RECORD_STATUS_LIGHTS);
     furi_record_close(RECORD_AUDIO);
@@ -207,7 +211,17 @@ void custom_set_status_lights(CustomApp* instance, CustomStatusLightsType type) 
     furi_assert(instance);
     furi_assert(type < CustomStatusLightsTypeMax);
 
-    status_lights_send_command(instance->status_lights, &custom_status_lights[type]);
+    const CustomStatusLightsPreset* preset = &custom_status_lights[type];
+    status_lights_run_preset(instance->status_lights, preset->preset, preset->color);
+}
+
+void custom_set_matter(CustomApp* instance, bool switch_state) {
+    furi_assert(instance);
+    MatterVirtualDeviceState device_state = {
+        .device = MatterVirtualDeviceSwitch2,
+        .bool_val = switch_state,
+    };
+    matter_set_state(instance->matter, device_state);
 }
 
 void custom_push_location(CustomApp* instance, const char* location_name) {
