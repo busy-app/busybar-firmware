@@ -140,7 +140,7 @@ typedef struct {
  */
 typedef struct {
     char ssid[SSID_MAX_LEN]; /**< Access point name (SSID) */
-    WifiSecurityMode securiy_mode; /**< Type of protection used by the current access point */
+    WifiSecurityMode security_mode; /**< Type of protection used by the current access point */
     WifiIpConfig ip_config; /**< Current IP configuration */
     WifiState state; /**< State of the Wifi system */
 } WifiInfo;

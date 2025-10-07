@@ -103,6 +103,41 @@ static void matter_cli_cmd_reset(PipeSide* pipe, FuriString* args, void* context
     printf("Done. Please do a manual hardware reset of both chips.\r\n");
 }
 
+static void matter_cli_cmd_comm(PipeSide* pipe, FuriString* args, void* context) {
+    UNUSED(pipe);
+    UNUSED(args);
+    furi_assert(context);
+    MatterCli* matter_cli = context;
+
+    FuriString* qr_code = furi_string_alloc();
+    FuriString* man_code = furi_string_alloc();
+    size_t window_len = matter_enable_commissioning(matter_cli->matter, qr_code, man_code);
+
+    if(!window_len) {
+        printf(ANSI_FG_RED "failed to enable commissioning\r\n" ANSI_RESET);
+    } else {
+        printf("Manual pairing code : %s\r\n", furi_string_get_cstr(man_code));
+        printf("QR code payload     : %s\r\n", furi_string_get_cstr(qr_code));
+        printf("Ready to pair for   : %zu seconds\r\n", window_len);
+    }
+
+    furi_string_free(qr_code);
+    furi_string_free(man_code);
+}
+
+static void matter_cli_cmd_fabrics(PipeSide* pipe, FuriString* args, void* context) {
+    UNUSED(pipe);
+    UNUSED(args);
+    furi_assert(context);
+    MatterCli* matter_cli = context;
+
+    if(matter_is_commissioned(matter_cli->matter)) {
+        printf("device is commissioned to one or more fabrics\r\n");
+    } else {
+        printf("device is not commissioned to any fabric\r\n");
+    }
+}
+
 // =========
 // Utilities
 // =========
@@ -151,6 +186,15 @@ static void matter_cli_print_event(const void* message, void* context) {
             matter_cli_format_device_state(matter_cli, state, &event->update.new_state);
             furi_string_cat(notification, state);
             furi_string_free(state);
+
+        } else if(event->type == MatterEventTypeCommissioning) {
+            furi_string_set_str(notification, "Commissioning status: ");
+            static const char* state_names[MatterCommissioningStatusMAX] = {
+                [MatterCommissioningStatusStarted] = "started",
+                [MatterCommissioningStatusFailed] = "failed",
+                [MatterCommissioningStatusComplete] = "complete",
+            };
+            furi_string_cat_str(notification, state_names[event->commissioning.status]);
         }
 
         cli_shell_notification_print(matter_cli->shell, notification);
@@ -227,6 +271,18 @@ void matter_cli_command(PipeSide* pipe, FuriString* args, void* context) {
         "reset",
         CliCommandFlagParallelSafe | CliCommandFlagUseShellThread,
         matter_cli_cmd_reset,
+        matter_cli);
+    cli_registry_add_command(
+        matter_cli->commands,
+        "comm",
+        CliCommandFlagParallelSafe | CliCommandFlagUseShellThread,
+        matter_cli_cmd_comm,
+        matter_cli);
+    cli_registry_add_command(
+        matter_cli->commands,
+        "fabrics",
+        CliCommandFlagParallelSafe | CliCommandFlagUseShellThread,
+        matter_cli_cmd_fabrics,
         matter_cli);
 
     cli_shell_start(matter_cli->shell);

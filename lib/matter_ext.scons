@@ -74,6 +74,7 @@ libenv.AppendUnique(
         "-Wno-maybe-uninitialized",
         "-Wno-deprecated-declarations",
         "-Wno-missing-field-initializers",
+        "-Wno-psabi",
     ],
     CPPDEFINES=[
         "CHIP_CRYPTO_PLATFORM=1",
@@ -421,6 +422,11 @@ sources = [
     f"{MATTER_GLUE_DIR}/platform/bsb/SilabsConfig.cpp",
     f"{MATTER_GLUE_DIR}/platform/bsb/SystemLayerImplFuri.cpp",
     f"{MATTER_GLUE_DIR}/platform/bsb/SystemTimeSupport.cpp",
+
+    f"{MATTER_SDK_DIR}/src/setup_payload/Base38Encode.cpp",
+    f"{MATTER_SDK_DIR}/src/setup_payload/SetupPayload.cpp",
+    f"{MATTER_SDK_DIR}/src/setup_payload/ManualSetupPayloadGenerator.cpp",
+    f"{MATTER_SDK_DIR}/src/setup_payload/QRCodeSetupPayloadGenerator.cpp",
 
     f"{ZAP_GENERATED_DIR}/app/callback-stub.cpp",
     f"{ZAP_GENERATED_DIR}/app/cluster-init-callback.cpp",

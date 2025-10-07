@@ -26,17 +26,8 @@ void cli_command_status_lights(PipeSide* pipe, FuriString* args, void* context) 
         return;
     }
 
-    const StatusLightsCommand command = {
-        .preset = StatusLightsPresetStaticColor,
-        .color =
-            {
-                .r = value[0],
-                .g = value[1],
-                .b = value[2],
-            },
-    };
-
+    Color color = COLOR_MAKE_RGB(value[0], value[1], value[2]);
     StatusLights* status_lights = furi_record_open(RECORD_STATUS_LIGHTS);
-    status_lights_send_command(status_lights, &command);
+    status_lights_run_preset(status_lights, StatusLightsPresetStaticColor, color);
     furi_record_close(RECORD_STATUS_LIGHTS);
 }

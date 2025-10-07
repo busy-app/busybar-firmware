@@ -1,11 +1,14 @@
 #include "brightness.h"
 #include "common.h"
 
-#define BACK_BRIGHTNESS_RANGE_MIN 0
+#define BACK_BRIGHTNESS_RANGE_MIN 5
 #define BACK_BRIGHTNESS_RANGE_MAX 100
 
 #define FRONT_BRIGHTNESS_RANGE_MIN 25
 #define FRONT_BRIGHTNESS_RANGE_MAX 100
+
+#define STATUS_LIGHTS_BRIGHTNESS_RANGE_MIN 1
+#define STATUS_LIGHTS_BRIGHTNESS_RANGE_MAX 100
 
 static uint8_t settings_brightness_to_model(uint8_t brightness, uint8_t min, uint8_t max) {
     uint8_t input_range = max - min;
@@ -29,6 +32,7 @@ void settings_brightness_set_auto_mode(SettingsApp* instance) {
 
     back_display_set_brightness(instance->back_display, BACK_DISPLAY_BRIGHTNESS_AUTO);
     front_display_set_brightness(instance->front_display, FRONT_DISPLAY_BRIGHTNESS_AUTO);
+    status_lights_set_brightness(instance->status_lights, STATUS_LIGHTS_BRIGHTNESS_AUTO);
 }
 
 SettingsBrightnessMode settings_brightness_get_mode(SettingsApp* instance) {
@@ -41,8 +45,12 @@ SettingsBrightnessMode settings_brightness_get_mode(SettingsApp* instance) {
 
 void settings_brightness_set(SettingsApp* instance, uint8_t brightness) {
     furi_assert(instance);
+
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wtype-limits"
     furi_assert(brightness >= SETTINGS_BRIGHTNESS_RANGE_MIN);
     furi_assert(brightness <= SETTINGS_BRIGHTNESS_RANGE_MAX);
+#pragma GCC diagnostic pop
 
     uint8_t back_brightness = settings_brightness_from_model(
         brightness, BACK_BRIGHTNESS_RANGE_MIN, BACK_BRIGHTNESS_RANGE_MAX);
@@ -51,6 +59,10 @@ void settings_brightness_set(SettingsApp* instance, uint8_t brightness) {
     uint8_t front_brightness = settings_brightness_from_model(
         brightness, FRONT_BRIGHTNESS_RANGE_MIN, FRONT_BRIGHTNESS_RANGE_MAX);
     front_display_set_brightness(instance->front_display, front_brightness);
+
+    uint8_t status_lights_brightness = settings_brightness_from_model(
+        brightness, STATUS_LIGHTS_BRIGHTNESS_RANGE_MIN, STATUS_LIGHTS_BRIGHTNESS_RANGE_MAX);
+    status_lights_set_brightness(instance->status_lights, status_lights_brightness);
 }
 
 uint8_t settings_brightness_get(SettingsApp* instance) {
