@@ -99,9 +99,25 @@ void label_set_text_align(Label* instance, TextAlign align);
  *
  * @param[in,out] instance pointer to the Label instance to be modified
  * @param[in] mode new long content mode for label
- * @param[in] duration defines animation speed in scrollable modes
+ * @param[in] duration animation duration in scrollable modes (milliseconds)
  */
 void label_set_long_content_mode(Label* instance, LabelLongContentMode mode, uint32_t duration);
+
+/**
+ * @brief Set color of label text.
+ * 
+ * @param[in,out] instance pointer to the Label instance to be modified
+ * @param[in] color what set the text color to
+ */
+void label_set_color(Label* instance, Color color);
+
+/**
+ * @brief Set font of label text.
+ * 
+ * @param[in,out] instance pointer to the Label instance to be modified
+ * @param[in] font what set the font to
+ */
+void label_set_font(Label* instance, GuiFont font);
 
 #ifdef __cplusplus
 }

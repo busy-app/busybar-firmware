@@ -1,6 +1,7 @@
 #include "label.h"
 
 #include <gui/widget_i.h>
+#include <gui/gui_i.h>
 
 #define MY_CLASS (&label_lvgl_class)
 
@@ -112,8 +113,19 @@ void label_set_long_content_mode(Label* instance, LabelLongContentMode mode, uin
     furi_check(instance);
     furi_check(mode < LabelLongContentModeCount);
 
-    lv_label_set_long_mode((lv_obj_t*)instance->label, (lv_label_long_mode_t)mode);
-    lv_obj_set_style_anim_time((lv_obj_t*)instance->label, duration, LV_PART_MAIN);
+    lv_label_set_long_mode(instance->label, (lv_label_long_mode_t)mode);
+    lv_obj_set_style_anim_time(instance->label, duration, LV_PART_MAIN);
+}
+
+void label_set_color(Label* instance, Color color) {
+    furi_check(instance);
+    lv_obj_set_style_text_color(instance->label, TO_LV_COLOR(color), LV_PART_MAIN);
+    lv_obj_set_style_text_opa(instance->label, color.a, LV_PART_MAIN);
+}
+
+void label_set_font(Label* instance, GuiFont font) {
+    furi_check(instance);
+    lv_obj_set_style_text_font(instance->label, gui_font_to_lvgl(font), LV_PART_MAIN);
 }
 
 // LVGL class descriptor
