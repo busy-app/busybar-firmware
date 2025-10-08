@@ -226,6 +226,7 @@ void busy_set_status_lights(BusyApp* instance, BusyStatusLightsType type) {
 }
 
 void busy_set_matter(BusyApp* instance, bool switch_state) {
+    furi_assert(instance);
     matter_set_switch_state(instance->matter, switch_state);
 }
 
