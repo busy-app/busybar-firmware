@@ -168,23 +168,36 @@ typedef struct {
         .weight = (WEIGHT),      \
     }
 
+// Stage                 Measured time  Weight
+// ReadManifest:         252 ms         0
+// ValidateDFUImage:     5536 ms        15
+// FlashWrite:           1669 ms        5
+// FlashValidate:        1323 ms        4
+// 917RadioWrite:        70893 ms       202
+// 917RadioInstall:      18049 ms       52
+// 917Write:             34993 ms       98
+// 917Install:           9272 ms        26
+// ResourcesFileCleanup: 1124 ms        3
+// ResourcesDirCleanup:  1459 ms        4
+// ResourcesFileUnpack:  6173 ms        18
+
 static const UpdateTaskStageGroupMap update_task_stage_progress[] = {
     [UpdateTaskStageProgress] = STAGE_DEF(UpdateTaskStageGroupMisc, 0),
 
-    [UpdateTaskStageReadManifest] = STAGE_DEF(UpdateTaskStageGroupPrepare, 5),
+    [UpdateTaskStageReadManifest] = STAGE_DEF(UpdateTaskStageGroupPrepare, 0),
 
-    [UpdateTaskStageValidateDFUImage] = STAGE_DEF(UpdateTaskStageGroupFirmware, 20),
-    [UpdateTaskStageFlashWrite] = STAGE_DEF(UpdateTaskStageGroupFirmware, 20),
-    [UpdateTaskStageFlashValidate] = STAGE_DEF(UpdateTaskStageGroupFirmware, 5),
+    [UpdateTaskStageValidateDFUImage] = STAGE_DEF(UpdateTaskStageGroupFirmware, 15),
+    [UpdateTaskStageFlashWrite] = STAGE_DEF(UpdateTaskStageGroupFirmware, 5),
+    [UpdateTaskStageFlashValidate] = STAGE_DEF(UpdateTaskStageGroupFirmware, 4),
 
-    [UpdateTaskStage917RadioWrite] = STAGE_DEF(UpdateTaskStageGroup917Radio, 240),
-    [UpdateTaskStage917RadioInstall] = STAGE_DEF(UpdateTaskStageGroup917Radio, 90),
+    [UpdateTaskStage917RadioWrite] = STAGE_DEF(UpdateTaskStageGroup917Radio, 202),
+    [UpdateTaskStage917RadioInstall] = STAGE_DEF(UpdateTaskStageGroup917Radio, 52),
 
-    [UpdateTaskStage917Write] = STAGE_DEF(UpdateTaskStageGroup917, 45),
-    [UpdateTaskStage917Install] = STAGE_DEF(UpdateTaskStageGroup917, 15),
+    [UpdateTaskStage917Write] = STAGE_DEF(UpdateTaskStageGroup917, 98),
+    [UpdateTaskStage917Install] = STAGE_DEF(UpdateTaskStageGroup917, 26),
 
-    [UpdateTaskStageResourcesFileCleanup] = STAGE_DEF(UpdateTaskStageGroupResources, 5),
-    [UpdateTaskStageResourcesDirCleanup] = STAGE_DEF(UpdateTaskStageGroupResources, 5),
+    [UpdateTaskStageResourcesFileCleanup] = STAGE_DEF(UpdateTaskStageGroupResources, 3),
+    [UpdateTaskStageResourcesDirCleanup] = STAGE_DEF(UpdateTaskStageGroupResources, 4),
     [UpdateTaskStageResourcesFileUnpack] = STAGE_DEF(UpdateTaskStageGroupResources, 18),
 
     [UpdateTaskStageCompleted] = STAGE_DEF(UpdateTaskStageGroupMisc, 1),
