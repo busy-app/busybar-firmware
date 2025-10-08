@@ -25,7 +25,7 @@ jobs:
       - name: 'Checkout code'
         uses: actions/checkout@v4
         with:
-          ref: ${{ github.sha }}
+          ref: ${{ github.event.pull_request.head.sha }}
           fetch-depth: 2
           token: ${{ secrets.GITHUB_TOKEN }}
 

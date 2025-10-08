@@ -35,7 +35,7 @@ jobs:
       - name: 'Checkout code'
         uses: actions/checkout@v4
         with:
-          ref: ${{ github.sha }}
+          ref: ${{ github.event.pull_request.head.sha }}
           fetch-depth: 2
           token: ${{ secrets.GITHUB_TOKEN }}
 
@@ -171,6 +171,6 @@ jobs:
     uses: './.github/workflows/updater-test.yml'
     with:
       branch_name: ${{ github.head_ref || github.ref_name }}
-      commit_sha: ${{ github.sha }}
+      commit_sha: ${{ github.event.pull_request.head.sha }}
       update_url: ${{ needs.main.outputs.update_url }}
       default_target: ${{ needs.main.outputs.default_target }}
