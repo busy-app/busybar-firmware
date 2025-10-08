@@ -14,7 +14,7 @@ env:
   FBT_TOOLCHAIN_PATH: /runner/_work
 
 jobs:
-  main:
+  build:
     runs-on: BsbShell
     env:
       GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -167,11 +167,11 @@ jobs:
 
 
   updater-tests:
-    needs: main
-    if: ${{ needs.main.result == 'success' && needs.main.outputs.update_url != '' }}
+    needs: build
+    if: ${{ needs.build.result == 'success' && needs.build.outputs.update_url != '' }}
     uses: './.github/workflows/updater-test.yml'
     with:
       branch_name: ${{ github.head_ref || github.ref_name }}
       commit_sha: ${{ github.event.pull_request.head.sha }}
-      update_url: ${{ needs.main.outputs.update_url }}
-      default_target: ${{ needs.main.outputs.default_target }}
+      update_url: ${{ needs.build.outputs.update_url }}
+      default_target: ${{ needs.build.outputs.default_target }}

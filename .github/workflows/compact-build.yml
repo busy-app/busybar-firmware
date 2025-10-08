@@ -12,7 +12,7 @@ env:
   FBT_TOOLCHAIN_PATH: /runner/_work
 
 jobs:
-  main:
+  compact-build:
     runs-on: BsbShell
     env:
       GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -42,6 +42,7 @@ jobs:
       - name: "Build update package (unsigned)"
         id: build-fw
         run: |
+          export "U5_TARGET_HW=$(echo "${{ matrix.u5_target }}" | sed 's/f//')"
           source ./scripts/toolchain/fbtenv.sh
           export FBT_GIT_SUBMODULE_SHALLOW=1
           bash ./fbt U5_TARGET_HW=${U5_TARGET_HW} $FBT_BUILD_TYPE dist
