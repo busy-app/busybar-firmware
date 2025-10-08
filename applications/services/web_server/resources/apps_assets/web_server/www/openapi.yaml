@@ -1292,10 +1292,9 @@ components:
       properties:
         state:
           type: string
-          example: enabled
+          example: disconnected
           enum:
-            - disabled
-            - enabled
+            - disconnected
             - connected
         ssid:
           type: string

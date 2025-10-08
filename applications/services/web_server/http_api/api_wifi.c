@@ -61,7 +61,7 @@ static const char* const wifi_ip_type[WifiIpTypeMax] = {
 };
 
 static const char* const wifi_state[WifiStateMax] = {
-    [WifiStateDown] = "enabled",
+    [WifiStateDown] = "disconnected",
     [WifiStateUp] = "connected",
 };
 
