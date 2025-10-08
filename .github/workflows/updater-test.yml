@@ -24,7 +24,7 @@ env:
   DEFAULT_TARGET: ${{ github.event.inputs.default_target }}
 
 jobs:
-  main:
+  updater-test:
     runs-on: BusyBarTest
     steps:
       - name: 'Checkout code at the build’s commit'

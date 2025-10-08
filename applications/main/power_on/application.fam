@@ -1,0 +1,9 @@
+App(
+    appid="power_on",
+    name="Power On",
+    apptype=FlipperAppType.SYSTEM,
+    entry_point="power_on_app",
+    requires=["gui"],
+    stack_size=2 * 1024,
+    targets=["f20", "f21"],
+)
