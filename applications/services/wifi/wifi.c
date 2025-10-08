@@ -215,7 +215,7 @@ static Wifi* wifi_alloc(void) {
     furi_event_loop_set_custom_event_callback(
         instance->event_loop, wifi_custom_event_callback, instance);
 
-    // TODO: Implement reliable Intercom channel opening
+    // TODO [FW-300]: Implement reliable Intercom channel opening
     furi_delay_ms(250); // Wait for the Wifi service to become ready on Si917
 
     intercom_set_rx_callback(
