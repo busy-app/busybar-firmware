@@ -785,46 +785,6 @@ paths:
               schema:
                 $ref: "#/components/schemas/Error"
 
-  /api/wifi/enable:
-    post:
-      tags:
-        - Wifi
-      description: Enables wifi module
-      parameters: []
-      responses:
-        "200":
-          description: Wifi enabled
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/SuccessResponse"
-        "400":
-          description: Wifi already enabled
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/Error"
-
-  /api/wifi/disable:
-    post:
-      tags:
-        - Wifi
-      description: Disables wifi module
-      parameters: []
-      responses:
-        "200":
-          description: Wifi disabled
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/SuccessResponse"
-        "400":
-          description: Not initialized
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/Error"
-
   /api/wifi/status:
     get:
       tags:
@@ -900,20 +860,6 @@ paths:
                 $ref: "#/components/schemas/NetworkResponse"
         "400":
           description: Wifi already connected
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/Error"
-
-  /api/wifi/forget:
-    post:
-      tags:
-        - Wifi
-      description: Forgets saved Wifi config
-      parameters: []
-      responses:
-        "400":
-          description: Not implemented
           content:
             application/json:
               schema:
@@ -1314,13 +1260,9 @@ components:
           WPA,
           WPA2,
           WEP,
-          WPA (Enterprise),
-          WPA2 (Enterprise),
           WPA/WPA2,
           WPA3,
           WPA2/WPA3,
-          WPA3 (Enterprise),
-          WPA2/WPA3 (Enterprise),
         ]
 
     WifiIpMethod:
@@ -1387,8 +1329,6 @@ components:
           properties:
             ip_method:
               $ref: "#/components/schemas/WifiIpMethod"
-            ip_type:
-              $ref: "#/components/schemas/WifiIpType"
             address:
               type: string
               example: 192.168.50.5

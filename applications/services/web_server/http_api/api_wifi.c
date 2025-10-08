@@ -45,13 +45,9 @@ static const char* const security_modes[WifiSecurityModeMax] = {
     [WifiSecurityModeWpa] = "WPA",
     [WifiSecurityModeWpa2] = "WPA2",
     [WifiSecurityModeWep] = "WEP",
-    [WifiSecurityModeWpaEnterprise] = "WPA (Enterprise)",
-    [WifiSecurityModeWpa2Enterprise] = "WPA2 (Enterprise)",
     [WifiSecurityModeWpaWpa2Mixed] = "WPA/WPA2",
     [WifiSecurityModeWpa3] = "WPA3",
     [WifiSecurityModeWpa3Transition] = "WPA2/WPA3",
-    [WifiSecurityModeWpa3Enterprise] = "WPA3 (Enterprise)",
-    [WifiSecurityModeWpa3TransitionEnterprise] = "WPA2/WPA3 (Enterprise)",
 };
 
 static const char* const wifi_ip_method[WifiIpManagementMax] = {
@@ -108,14 +104,6 @@ static bool api_wifi_parse_ip_method(FuriString* method_str, WifiIpManagement* m
     return result;
 }
 
-static bool aip_wifi_parse_ip_type(FuriString* ip_type_str, WifiIpType* ip_type) {
-    int value = 0;
-    bool result =
-        api_wifi_parse_value_from_array(ip_type_str, wifi_ip_type, COUNT_OF(wifi_ip_type), &value);
-    *ip_type = (WifiIpType)value;
-    return result;
-}
-
 static bool api_wifi_get_networks_callback(
     FuriString* path,
     struct mg_connection* conn,
@@ -167,7 +155,6 @@ static bool api_wifi_get_networks_callback(
 
 bool api_wifi_parse_ip_address(
     FuriString* address_str,
-    WifiIpType type,
     uint8_t* result_bytes,
     FuriString* error_msg) {
     bool result = false;
@@ -180,20 +167,12 @@ bool api_wifi_parse_ip_address(
             break;
         }
 
-        if(type == WifiIpTypeV4 && addr.is_ip6) {
+        if(addr.is_ip6) {
             furi_string_printf(error_msg, "Address %s is not IPv4", address_cstr);
             break;
         }
 
-        const uint8_t size = addr.is_ip6 ? 16 : 4;
-        memcpy(result_bytes, addr.ip, size);
-
-        if(type == WifiIpTypeV6) {
-            for(size_t i = 0; i < size; i += 4) {
-                *((uint32_t*)&result_bytes[i]) = mg_ntohl(*((uint32_t*)&result_bytes[i]));
-            }
-        }
-
+        memcpy(result_bytes, addr.ip, 4);
         result = true;
     } while(false);
     return result;
@@ -239,30 +218,6 @@ static bool api_wifi_mg_json_get_str_key(
     return result;
 }
 
-static bool api_wifi_parse_ipv6_settings(
-    struct mg_str ip_config_json,
-    WifiIpv6Settings* ip6_settings,
-    FuriString* error_msg) {
-    bool result = false;
-    FuriString* buf = furi_string_alloc();
-    do {
-        if(!api_wifi_mg_json_get_str_key(ip_config_json, WIFI_JSON_KEY_IP_ADDRESS, buf, error_msg))
-            break;
-        if(!api_wifi_parse_ip_address(buf, WifiIpTypeV6, ip6_settings->global.bytes, error_msg))
-            break;
-
-        if(!api_wifi_mg_json_get_str_key(ip_config_json, WIFI_JSON_KEY_IP_GATEWAY, buf, error_msg))
-            break;
-        if(!api_wifi_parse_ip_address(buf, WifiIpTypeV6, ip6_settings->gateway.bytes, error_msg))
-            break;
-
-        result = true;
-    } while(false);
-
-    furi_string_free(buf);
-    return result;
-}
-
 static bool api_wifi_parse_ipv4_settings(
     struct mg_str ip_config_json,
     WifiIpv4Settings* ip4_settings,
@@ -272,17 +227,17 @@ static bool api_wifi_parse_ipv4_settings(
     do {
         if(!api_wifi_mg_json_get_str_key(ip_config_json, WIFI_JSON_KEY_IP_ADDRESS, buf, error_msg))
             break;
-        if(!api_wifi_parse_ip_address(buf, WifiIpTypeV4, ip4_settings->address.bytes, error_msg))
+        if(!api_wifi_parse_ip_address(buf, ip4_settings->address.bytes, error_msg))
             break;
 
         if(!api_wifi_mg_json_get_str_key(ip_config_json, WIFI_JSON_KEY_IP_MASK, buf, error_msg))
             break;
-        if(!api_wifi_parse_ip_address(buf, WifiIpTypeV4, ip4_settings->mask.bytes, error_msg))
+        if(!api_wifi_parse_ip_address(buf, ip4_settings->mask.bytes, error_msg))
             break;
 
         if(!api_wifi_mg_json_get_str_key(ip_config_json, WIFI_JSON_KEY_IP_GATEWAY, buf, error_msg))
             break;
-        if(!api_wifi_parse_ip_address(buf, WifiIpTypeV4, ip4_settings->gateway.bytes, error_msg))
+        if(!api_wifi_parse_ip_address(buf, ip4_settings->gateway.bytes, error_msg))
             break;
 
         result = true;
@@ -311,20 +266,13 @@ static bool api_wifi_parse_ip_config(
             break;
         }
 
-        if(!aip_wifi_parse_ip_type(buf, &ip_config->type)) {
-            furi_string_printf(error_msg, "%s is not valid ip_type", furi_string_get_cstr(buf));
-            break;
-        }
-
         if(ip_config->mgmt == WifiIpManagementDynamic) {
             result = true;
             break;
         }
 
-        if(ip_config->type == WifiIpTypeV4)
-            result = api_wifi_parse_ipv4_settings(ip_config_json, &ip_config->ip4, error_msg);
-        else
-            result = api_wifi_parse_ipv6_settings(ip_config_json, &ip_config->ip6, error_msg);
+        ip_config->type = WifiIpTypeV4;
+        result = api_wifi_parse_ipv4_settings(ip_config_json, &ip_config->ip4, error_msg);
     } while(false);
     furi_string_free(buf);
     return result;
@@ -428,51 +376,6 @@ static bool api_wifi_disconnect_callback(
     return true;
 }
 
-static bool api_wifi_forget_callback(
-    FuriString* path,
-    struct mg_connection* conn,
-    struct mg_http_message* msg,
-    void* ctx) {
-    UNUSED(msg);
-    UNUSED(ctx);
-
-    if(!IS_HTTP_ENDPOINT(path)) return false;
-
-    ///TODO: implemet after configs
-    MG_REPLY_ERROR(conn, 400, "Not implemented");
-    return true;
-}
-
-static bool api_wifi_enable_callback(
-    FuriString* path,
-    struct mg_connection* conn,
-    struct mg_http_message* msg,
-    void* ctx) {
-    UNUSED(ctx);
-    UNUSED(msg);
-
-    if(!IS_HTTP_ENDPOINT(path)) return false;
-
-    // TODO: Remove this method
-    MG_REPLY_ERROR(conn, 400, "Not implemented");
-    return true;
-}
-
-static bool api_wifi_disable_callback(
-    FuriString* path,
-    struct mg_connection* conn,
-    struct mg_http_message* msg,
-    void* ctx) {
-    UNUSED(ctx);
-    UNUSED(msg);
-
-    if(!IS_HTTP_ENDPOINT(path)) return false;
-
-    // TODO: Remove this method
-    MG_REPLY_ERROR(conn, 400, "Not implemented");
-    return true;
-}
-
 static bool api_wifi_get_status_callback(
     FuriString* path,
     struct mg_connection* conn,
@@ -550,24 +453,6 @@ static const HttpHandler handlers_wifi[] = {
         .method = "POST",
         .type = HttpHandlerCustom,
         .on_request = api_wifi_disconnect_callback,
-    },
-    {
-        .uri = "forget",
-        .method = "POST",
-        .type = HttpHandlerCustom,
-        .on_request = api_wifi_forget_callback,
-    },
-    {
-        .uri = "enable",
-        .method = "POST",
-        .type = HttpHandlerCustom,
-        .on_request = api_wifi_enable_callback,
-    },
-    {
-        .uri = "disable",
-        .method = "POST",
-        .type = HttpHandlerCustom,
-        .on_request = api_wifi_disable_callback,
     },
     {
         .uri = "status",
