@@ -118,6 +118,7 @@ sources = [
     f"{MATTER_SDK_DIR}/src/app/WriteClient.cpp",
     f"{MATTER_SDK_DIR}/src/app/WriteHandler.cpp",
 
+    f"{MATTER_SDK_DIR}/src/app/clusters/access-control-server/access-control-server.cpp",
     f"{MATTER_SDK_DIR}/src/app/clusters/administrator-commissioning-server/administrator-commissioning-server.cpp",
     f"{MATTER_SDK_DIR}/src/app/clusters/basic-information/basic-information.cpp",
     f"{MATTER_SDK_DIR}/src/app/clusters/bindings/PendingNotificationMap.cpp",
