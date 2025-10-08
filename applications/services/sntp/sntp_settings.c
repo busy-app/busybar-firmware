@@ -11,9 +11,10 @@
 
 typedef enum {
     SntpSettingIdxTimezone,
-    SntpSettingIdxAutoInterval,
-    SntpSettingIdxBootInterval,
-    SntpSettingIdxServerName,
+    SntpSettingIdxBackgroundSyncInterval,
+    SntpSettingIdxRetrySyncInterval,
+    SntpSettingIdxBootDelay,
+    SntpSettingIdxServerAddress,
     SntpSettingIdxIsEnabled,
 
     SntpSettingIdxsCount,
@@ -52,8 +53,8 @@ static void sntp_load_int_setting(JsonConfig* config, const SntpSetting* setting
     JsonConfigStatus read_status =
         json_config_read_int(config, setting->name, &read_value, setting->default_value);
 
-    if(read_status == JsonConfigStatusMissing) {
-        FURI_LOG_W(TAG, "Missing %s setting, loading default", setting->name);
+    if(read_status != JsonConfigStatusOk) {
+        FURI_LOG_W(TAG, "Failed to load %s setting, using default", setting->name);
     } else if(setting->is_value_valid && !setting->is_value_valid(&read_value)) {
         FURI_LOG_W(TAG, "Invalid %s setting, loading default", setting->name);
         read_value = *(const int*)setting->default_value;
@@ -82,8 +83,8 @@ static void sntp_load_string_setting(JsonConfig* config, const SntpSetting* sett
         json_config_read_str(config, setting->name, read_value, setting->default_value);
     const char* _read_value = furi_string_get_cstr(read_value);
 
-    if(read_status == JsonConfigStatusMissing) {
-        FURI_LOG_W(TAG, "Missing %s setting, loading default", setting->name);
+    if(read_status != JsonConfigStatusOk) {
+        FURI_LOG_W(TAG, "Failed to load %s setting, using default", setting->name);
     } else if(setting->is_value_valid && !setting->is_value_valid(_read_value)) {
         FURI_LOG_W(TAG, "Invalid %s setting, loading default", setting->name);
         _read_value = setting->default_value;
@@ -111,8 +112,8 @@ static void sntp_load_bool_setting(JsonConfig* config, const SntpSetting* settin
     JsonConfigStatus read_status =
         json_config_read_bool(config, setting->name, &read_value, setting->default_value);
 
-    if(read_status == JsonConfigStatusMissing) {
-        FURI_LOG_W(TAG, "Missing %s setting, loading default", setting->name);
+    if(read_status != JsonConfigStatusOk) {
+        FURI_LOG_W(TAG, "Failed to load %s setting, using default", setting->name);
     } else if(setting->is_value_valid && !setting->is_value_valid(&read_value)) {
         FURI_LOG_W(TAG, "Invalid %s setting, loading default", setting->name);
         read_value = *(const bool*)setting->default_value;
@@ -150,23 +151,31 @@ static bool is_timezone_offset_valid(const void* timezone_offset) {
            _timezone_offset <= SNTP_TIMEZONE_OFFSET_MAX;
 }
 
-static bool is_auto_interval_valid(const void* auto_interval) {
-    int _auto_interval = *(const int*)auto_interval;
+static bool is_background_sync_interval_valid(const void* background_sync_interval) {
+    int _background_sync_interval = *(const int*)background_sync_interval;
 
-    return _auto_interval >= SNTP_AUTO_INTERVAL_MIN && _auto_interval <= SNTP_AUTO_INTERVAL_MAX;
+    return _background_sync_interval >= SNTP_BACKGROUND_SYNC_INTERVAL_MIN &&
+           _background_sync_interval <= SNTP_BACKGROUND_SYNC_INTERVAL_MAX;
 }
 
-static bool is_boot_interval_valid(const void* boot_interval) {
-    int _boot_interval = *(const int*)boot_interval;
+static bool is_retry_sync_interval_valid(const void* retry_sync_interval) {
+    int _retry_sync_interval = *(const int*)retry_sync_interval;
 
-    return _boot_interval >= SNTP_BOOT_INTERVAL_MIN && _boot_interval <= SNTP_BOOT_INTERVAL_MAX;
+    return _retry_sync_interval >= SNTP_RETRY_SYNC_INTERVAL_MIN &&
+           _retry_sync_interval <= SNTP_RETRY_SYNC_INTERVAL_MAX;
 }
 
-static bool is_server_name_valid(const void* server_name) {
-    size_t server_name_length = strlen(server_name);
+static bool is_boot_delay_valid(const void* boot_delay) {
+    int _boot_delay = *(const int*)boot_delay;
 
-    return server_name_length >= SNTP_SERVER_NAME_MIN_LEN &&
-           server_name_length <= SNTP_SERVER_NAME_MAX_LEN - 1;
+    return _boot_delay >= SNTP_BOOT_DELAY_MIN && _boot_delay <= SNTP_BOOT_DELAY_MAX;
+}
+
+static bool is_server_address_valid(const void* server_address) {
+    size_t server_address_length = strlen(server_address);
+
+    return server_address_length >= SNTP_SERVER_ADDRESS_MIN_LEN &&
+           server_address_length <= SNTP_SERVER_ADDRESS_MAX_LEN - 1;
 }
 
 bool sntp_settings_load(SntpSettings* settings) {
@@ -177,9 +186,11 @@ bool sntp_settings_load(SntpSettings* settings) {
 
     if(open_status == JsonConfigStatusOk || open_status == JsonConfigStatusMissing) {
         sntp_load_setting(config, SntpSettingIdxTimezone, &settings->timezone_offset);
-        sntp_load_setting(config, SntpSettingIdxAutoInterval, &settings->auto_interval);
-        sntp_load_setting(config, SntpSettingIdxBootInterval, &settings->boot_interval);
-        sntp_load_setting(config, SntpSettingIdxServerName, &settings->server_name);
+        sntp_load_setting(
+            config, SntpSettingIdxBackgroundSyncInterval, &settings->background_sync_interval);
+        sntp_load_setting(config, SntpSettingIdxRetrySyncInterval, &settings->retry_sync_interval);
+        sntp_load_setting(config, SntpSettingIdxBootDelay, &settings->boot_delay);
+        sntp_load_setting(config, SntpSettingIdxServerAddress, &settings->server_address);
         sntp_load_setting(config, SntpSettingIdxIsEnabled, &settings->is_enabled);
     }
 
@@ -196,9 +207,11 @@ bool sntp_settings_save(const SntpSettings* settings) {
 
     if(open_status == JsonConfigStatusOk || open_status == JsonConfigStatusMissing) {
         sntp_save_setting(config, SntpSettingIdxTimezone, &settings->timezone_offset);
-        sntp_save_setting(config, SntpSettingIdxAutoInterval, &settings->auto_interval);
-        sntp_save_setting(config, SntpSettingIdxBootInterval, &settings->boot_interval);
-        sntp_save_setting(config, SntpSettingIdxServerName, &settings->server_name);
+        sntp_save_setting(
+            config, SntpSettingIdxBackgroundSyncInterval, &settings->background_sync_interval);
+        sntp_save_setting(config, SntpSettingIdxRetrySyncInterval, &settings->retry_sync_interval);
+        sntp_save_setting(config, SntpSettingIdxBootDelay, &settings->boot_delay);
+        sntp_save_setting(config, SntpSettingIdxServerAddress, &settings->server_address);
         sntp_save_setting(config, SntpSettingIdxIsEnabled, &settings->is_enabled);
     }
 
@@ -215,25 +228,32 @@ static const SntpSetting settings[] = {
             .is_value_valid = is_timezone_offset_valid,
             .type = SntpSettingTypeInt,
         },
-    [SntpSettingIdxAutoInterval] =
+    [SntpSettingIdxBackgroundSyncInterval] =
         {
-            .name = "auto_interval",
-            .default_value = &(const int){SNTP_AUTO_INTERVAL_DEFAULT},
-            .is_value_valid = is_auto_interval_valid,
+            .name = "background_sync_interval",
+            .default_value = &(const int){SNTP_BACKGROUND_SYNC_INTERVAL_DEFAULT},
+            .is_value_valid = is_background_sync_interval_valid,
             .type = SntpSettingTypeInt,
         },
-    [SntpSettingIdxBootInterval] =
+    [SntpSettingIdxRetrySyncInterval] =
         {
-            .name = "boot_interval",
-            .default_value = &(const int){SNTP_BOOT_INTERVAL_DEFAULT},
-            .is_value_valid = is_boot_interval_valid,
+            .name = "retry_sync_interval",
+            .default_value = &(const int){SNTP_RETRY_SYNC_INTERVAL_DEFAULT},
+            .is_value_valid = is_retry_sync_interval_valid,
             .type = SntpSettingTypeInt,
         },
-    [SntpSettingIdxServerName] =
+    [SntpSettingIdxBootDelay] =
         {
-            .name = "server_name",
-            .default_value = SNTP_SERVER_NAME_DEFAULT,
-            .is_value_valid = is_server_name_valid,
+            .name = "boot_delay",
+            .default_value = &(const int){SNTP_BOOT_DELAY_DEFAULT},
+            .is_value_valid = is_boot_delay_valid,
+            .type = SntpSettingTypeInt,
+        },
+    [SntpSettingIdxServerAddress] =
+        {
+            .name = "server_address",
+            .default_value = SNTP_SERVER_ADDRESS_DEFAULT,
+            .is_value_valid = is_server_address_valid,
             .type = SntpSettingTypeString,
         },
     [SntpSettingIdxIsEnabled] =

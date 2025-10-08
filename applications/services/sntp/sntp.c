@@ -2,30 +2,30 @@
 #include "sntp_time_update.h"
 
 #include <wifi/wifi.h>
+
 #include <api_lock.h>
 
 #define TAG "SntpSvc"
 
 #define SNTP_S_TO_MS(x) ((x) * 1000)
 
-#define SNTP_MAX_MESSAGES (4)
+#define SNTP_MAX_MESSAGES 4
 
 typedef enum {
-    SntpStatusIdle = 0,
-    SntpStatusSuccess,
-    SntpStatusError,
-    SntpStatusNotConnected,
-    SntpStatusTimeout,
-} SntpStatus;
-
-typedef enum {
-    SntpCustomEventSuccess = (1 << 0),
+    SntpCustomEventUpdateSuccess = 1 << 0,
+    SntpCustomEventUpdateError = 1 << 1,
 } SntpCustomEvent;
 
 typedef enum {
     SntpMessageTypeGetSettings,
     SntpMessageTypeSetSettings,
 } SntpMessageType;
+
+typedef enum {
+    SntpStateBoot,
+    SntpStateInSync,
+    SntpStateRetry,
+} SntpState;
 
 typedef struct {
     SntpMessageType type;
@@ -41,15 +41,13 @@ struct Sntp {
     FuriEventLoop* event_loop;
     FuriEventLoopTimer* timer;
     FuriMessageQueue* message_queue;
-    SntpStatus status;
     SntpSettings settings;
+    SntpState state;
+    bool is_time_update_ongoing;
 };
 
-static bool sntp_check_wifi_connected(Sntp* instance) {
-    furi_assert(instance);
-    UNUSED(instance);
-
-    bool ret = false;
+static bool sntp_is_wifi_connected(void) {
+    bool is_wifi_connected = false;
     Wifi* wifi = furi_record_open(RECORD_WIFI);
     WifiInfo wifi_info;
     const WifiStatus status = wifi_get_info(wifi, &wifi_info);
@@ -60,36 +58,27 @@ static bool sntp_check_wifi_connected(Sntp* instance) {
         FURI_LOG_D(TAG, "Wifi is not connected");
     } else {
         FURI_LOG_D(TAG, "Wifi is connected");
-        ret = true;
+        is_wifi_connected = true;
     }
     furi_record_close(RECORD_WIFI);
-    return ret;
+    return is_wifi_connected;
 }
 
 static void sntp_timer_callback(void* context) {
     Sntp* instance = context;
 
-    switch(instance->status) {
-    case SntpStatusIdle:
-        if(sntp_check_wifi_connected(instance)) {
-            sntp_time_update_startup(instance);
-        }
-        break;
-    case SntpStatusSuccess:
-        instance->status = SntpStatusIdle;
-        break;
-    default:
-        FURI_LOG_E(TAG, "SNTP time update failed with status: %d", instance->status);
-        instance->status = SntpStatusIdle;
-        break;
+    if(!instance->is_time_update_ongoing && sntp_is_wifi_connected()) {
+        instance->is_time_update_ongoing = true;
+        sntp_time_update_startup(instance);
     }
 }
 
 void sntp_status_update(Sntp* instance, bool success) {
     furi_assert(instance);
-    instance->status = success ? SntpStatusSuccess : SntpStatusError;
+
     furi_event_loop_set_custom_event(
-        instance->event_loop, SntpCustomEventSuccess); // Reset status to idle after update
+        instance->event_loop,
+        (success) ? SntpCustomEventUpdateSuccess : SntpCustomEventUpdateError);
 }
 
 static void sntp_message_queue_callback(FuriEventLoopObject* object, void* context) {
@@ -114,14 +103,12 @@ static void sntp_message_queue_callback(FuriEventLoopObject* object, void* conte
 
         if(result) {
             if(instance->settings.is_enabled) {
-                uint32_t interval = (instance->status == SntpStatusSuccess) ?
-                                        instance->settings.auto_interval :
-                                        instance->settings.boot_interval;
-
                 furi_event_loop_pend_callback(instance->event_loop, sntp_timer_callback, instance);
-                furi_event_loop_timer_start(instance->timer, SNTP_S_TO_MS(interval));
+                furi_event_loop_timer_start(
+                    instance->timer, SNTP_S_TO_MS(instance->settings.retry_sync_interval));
             } else {
                 furi_event_loop_timer_stop(instance->timer);
+                instance->state = SntpStateRetry;
             }
         }
         break;
@@ -142,11 +129,26 @@ static void sntp_message_queue_callback(FuriEventLoopObject* object, void* conte
 static void sntp_custom_event_callback(uint32_t events, void* context) {
     Sntp* instance = context;
 
-    if(events & SntpCustomEventSuccess) {
+    if(events & SntpCustomEventUpdateSuccess) {
         FURI_LOG_I(TAG, "SNTP time update successful");
-        instance->status = SntpStatusIdle;
-        furi_event_loop_timer_start(
-            instance->timer, SNTP_S_TO_MS(instance->settings.auto_interval));
+
+        instance->is_time_update_ongoing = false;
+
+        if(instance->settings.is_enabled && instance->state != SntpStateInSync) {
+            furi_event_loop_timer_start(
+                instance->timer, SNTP_S_TO_MS(instance->settings.background_sync_interval));
+            instance->state = SntpStateInSync;
+        }
+    } else if(events & SntpCustomEventUpdateError) {
+        FURI_LOG_E(TAG, "SNTP time update failed");
+
+        instance->is_time_update_ongoing = false;
+
+        if(instance->settings.is_enabled && instance->state != SntpStateRetry) {
+            furi_event_loop_timer_start(
+                instance->timer, SNTP_S_TO_MS(instance->settings.retry_sync_interval));
+            instance->state = SntpStateRetry;
+        }
     }
 }
 
@@ -162,7 +164,8 @@ static void sntp_send_message(Sntp* instance, const SntpMessage* message) {
 Sntp* sntp_alloc() {
     Sntp* instance = malloc(sizeof(Sntp));
 
-    instance->status = SntpStatusIdle;
+    instance->state = SntpStateBoot;
+    instance->is_time_update_ongoing = false;
     instance->event_loop = furi_event_loop_alloc();
     instance->message_queue = furi_message_queue_alloc(SNTP_MAX_MESSAGES, sizeof(SntpMessage));
     instance->timer = furi_event_loop_timer_alloc(
@@ -180,7 +183,9 @@ Sntp* sntp_alloc() {
 
     sntp_settings_load(&instance->settings);
 
-    furi_event_loop_timer_start(instance->timer, SNTP_S_TO_MS(instance->settings.boot_interval));
+    if(instance->settings.is_enabled) {
+        furi_event_loop_timer_start(instance->timer, SNTP_S_TO_MS(instance->settings.boot_delay));
+    }
 
     furi_record_create(RECORD_SNTP, instance);
 

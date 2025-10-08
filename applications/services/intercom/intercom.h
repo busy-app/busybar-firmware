@@ -4,9 +4,11 @@
  */
 #pragma once
 
+#include <furi/core/pubsub.h>
+
 #include <stddef.h>
 #include <stdint.h>
-#include <furi/core/pubsub.h>
+#include <stdbool.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -50,12 +52,14 @@ typedef enum {
 
 typedef enum {
     IntercomEventTypeError, /**< Error event */
+    IntercomEventTypeSyncStateChanged, /**< Sync state changed event */
 } IntercomEventType;
 
 typedef struct {
     IntercomEventType type; /**< Type of the event */
     union {
         const char* message; /**< Optional message, if applicable */
+        bool is_in_sync; /**< New sync state */
     };
 } IntercomEvent;
 
@@ -107,6 +111,14 @@ void intercom_error_handling_disable(Intercom* instance);
  * @returns Pointer to the FuriPubSub instance
  */
 FuriPubSub* intercom_get_pubsub(Intercom* instance);
+
+/**
+ * @brief Check if the intercom is synced and ready for communication.
+ *
+ * @param[in] instance Pointer to the Intercom instance
+ * @returns true if synced and ready, false otherwise
+ */
+bool intercom_is_in_sync(Intercom* instance);
 
 /**
  * @brief Transmit data through Intercom.

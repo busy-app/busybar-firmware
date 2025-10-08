@@ -46,6 +46,7 @@ sources += libenv.Glob("lvgl/src/themes/*/*.c", source=True)
 sources += libenv.Glob("lvgl/src/tick/*.c", source=True)
 sources += libenv.Glob("lvgl/src/widgets/*/*.c", source=True)
 sources += libenv.Glob("lvgl/src/libs/lodepng/*.c", source=True)
+sources += libenv.Glob("lvgl/src/libs/qrcode/*.c", source=True)
 
 lib = libenv.StaticLibrary("${FW_LIB_NAME}", sources)
 libenv.Install("${LIB_DIST_DIR}", lib)

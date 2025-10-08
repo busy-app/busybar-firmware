@@ -18,6 +18,6 @@ App(
     stack_size=1 * 1024,
     order=130,
     targets=["f20", "f21"],
-    requires=["intercom"],
+    requires=["intercom", "light_sensor"],
     sources=["status_lights.c"],
 )

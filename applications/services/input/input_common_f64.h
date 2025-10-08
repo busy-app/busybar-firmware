@@ -3,8 +3,9 @@
  */
 #pragma once
 
-#include <stdint.h>
 #include "input_common.h"
+
+#include <stdint.h>
 
 #ifdef __cplusplus
 extern "C" {

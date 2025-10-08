@@ -311,6 +311,13 @@ static const HttpHandler handlers_api_root[] = {
         .ctx_free = http_api_time_free,
         .on_request = http_api_time_callback,
     },
+    {
+
+        .uri = "name",
+        .method = "*",
+        .type = HttpHandlerCustom,
+        .on_request = http_api_name_callback,
+    },
 };
 
 void* http_api_root_alloc(void) {

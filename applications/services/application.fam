@@ -39,6 +39,7 @@ App(
         "network",
         "sntp",
         "matter",
+        "device_name",
     ],
     targets=["f20", "f21"],
 )
@@ -54,6 +55,7 @@ App(
         "wifi",
         "nvm",
         "matter",
+        "startup_dfu_hook"
     ],
     targets=["f64"],
 )
@@ -64,10 +66,10 @@ App(
     apptype=FlipperAppType.METAPACKAGE,
     provides=[
         # "intercom",  # Enabled in default fw config
-        #"wifi",
+        # "wifi",
         "status_lights",
         "cli_intercom",
-        "ble"
+        "ble",
     ],
     targets=["f64"],
 )

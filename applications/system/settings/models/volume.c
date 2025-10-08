@@ -11,7 +11,12 @@ static float settings_volume_from_model(uint8_t volume) {
 
 void settings_volume_set(SettingsApp* instance, uint8_t volume) {
     furi_assert(instance);
+
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wtype-limits"
+    furi_assert(volume >= SETTINGS_VOLUME_RANGE_MIN);
     furi_assert(volume <= SETTINGS_VOLUME_RANGE_MAX);
+#pragma GCC diagnostic pop
 
     audio_set_volume(instance->audio, settings_volume_from_model(volume));
 }
