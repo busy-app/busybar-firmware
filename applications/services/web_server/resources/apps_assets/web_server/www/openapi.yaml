@@ -1299,6 +1299,16 @@ components:
         ssid:
           type: string
           example: Your_WIFI_SSID
+        bssid:
+          type: string
+          pattern: "^([A-F0-9]:){5}[A-F0-9]$"
+          example: "EC:5A:00:0B:55:1D"
+        channel:
+          type: integer
+          example: "3"
+        rssi:
+          type: integer
+          example: "-43"
         security:
           $ref: "#/components/schemas/WifiSecurityMethod"
         ip_config:

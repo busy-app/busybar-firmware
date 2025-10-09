@@ -9,6 +9,8 @@
 #define WIFI_JSON_KEY_STATE      "state"
 #define WIFI_JSON_KEY_SECURITY   "security"
 #define WIFI_JSON_KEY_SSID       "ssid"
+#define WIFI_JSON_KEY_BSSID      "bssid"
+#define WIFI_JSON_KEY_CHANNEL    "channel"
 #define WIFI_JSON_KEY_RSSI       "rssi"
 #define WIFI_JSON_KEY_PASSWORD   "password"
 #define WIFI_JSON_KEY_COUNT      "count"
@@ -227,18 +229,15 @@ static bool api_wifi_parse_ipv4_settings(
     do {
         if(!api_wifi_mg_json_get_str_key(ip_config_json, WIFI_JSON_KEY_IP_ADDRESS, buf, error_msg))
             break;
-        if(!api_wifi_parse_ip_address(buf, ip4_settings->address.bytes, error_msg))
-            break;
+        if(!api_wifi_parse_ip_address(buf, ip4_settings->address.bytes, error_msg)) break;
 
         if(!api_wifi_mg_json_get_str_key(ip_config_json, WIFI_JSON_KEY_IP_MASK, buf, error_msg))
             break;
-        if(!api_wifi_parse_ip_address(buf, ip4_settings->mask.bytes, error_msg))
-            break;
+        if(!api_wifi_parse_ip_address(buf, ip4_settings->mask.bytes, error_msg)) break;
 
         if(!api_wifi_mg_json_get_str_key(ip_config_json, WIFI_JSON_KEY_IP_GATEWAY, buf, error_msg))
             break;
-        if(!api_wifi_parse_ip_address(buf, ip4_settings->gateway.bytes, error_msg))
-            break;
+        if(!api_wifi_parse_ip_address(buf, ip4_settings->gateway.bytes, error_msg)) break;
 
         result = true;
     } while(false);
@@ -376,6 +375,20 @@ static bool api_wifi_disconnect_callback(
     return true;
 }
 
+static void api_wifi_format_bssid(WifiHardwareAddress* bssid, char* str_out, size_t str_out_size) {
+    memset(str_out, 0, str_out_size);
+
+    for(size_t i = 0; i < HW_ADDRESS_LEN; i++) {
+        char part[4];
+        snprintf(part, sizeof(part), "%02X", bssid->bytes[i]);
+        strcat(str_out, part);
+
+        if(i != HW_ADDRESS_LEN - 1) {
+            strcat(str_out, ":");
+        }
+    }
+}
+
 static bool api_wifi_get_status_callback(
     FuriString* path,
     struct mg_connection* conn,
@@ -402,7 +415,15 @@ static bool api_wifi_get_status_callback(
             const char* security_mode = security_modes[info.security_mode];
             cJSON_AddStringToObject(response, WIFI_JSON_KEY_SECURITY, security_mode);
 
-            if(info.state == WifiStateUp) {
+            char bssid[32];
+            api_wifi_format_bssid(&info.bssid, bssid, sizeof(bssid));
+            cJSON_AddStringToObject(response, WIFI_JSON_KEY_BSSID, bssid);
+
+            cJSON_AddNumberToObject(response, WIFI_JSON_KEY_CHANNEL, info.channel);
+
+            cJSON_AddNumberToObject(response, WIFI_JSON_KEY_RSSI, info.rssi);
+
+            /* ip config */ {
                 cJSON* ip_config_json = cJSON_CreateObject();
                 cJSON_AddStringToObject(
                     ip_config_json, WIFI_JSON_KEY_IP_METHOD, wifi_ip_method[info.ip_config.mgmt]);
