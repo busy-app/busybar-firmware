@@ -18,14 +18,14 @@ env:
   FBT_TOOLCHAIN_PATH: /runner/_work
 
 jobs:
-  main:
+  unit-tests:
     runs-on: BusyBarTest
     steps:
 
       - name: 'Checkout code'
         uses: actions/checkout@v4
         with:
-          ref: ${{ github.sha }}
+          ref: ${{ github.event.pull_request.head.sha }}
           fetch-depth: 2
           token: ${{ secrets.GITHUB_TOKEN }}
 
