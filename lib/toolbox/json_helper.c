@@ -98,7 +98,7 @@ JsonConfigStatus json_config_open(JsonConfig* inst, const char* file_path) {
 }
 
 JsonConfigStatus
-    json_config_read_int(JsonConfig* inst, const char* key, int* val, int* val_default) {
+    json_config_read_int(JsonConfig* inst, const char* key, int* val, const int* val_default) {
     furi_assert(inst);
     furi_assert(inst->root);
     furi_assert(key);
@@ -125,8 +125,11 @@ JsonConfigStatus
     return status;
 }
 
-JsonConfigStatus
-    json_config_read_number(JsonConfig* inst, const char* key, float* val, float* val_default) {
+JsonConfigStatus json_config_read_number(
+    JsonConfig* inst,
+    const char* key,
+    float* val,
+    const float* val_default) {
     furi_assert(inst);
     furi_assert(inst->root);
     furi_assert(key);
@@ -154,7 +157,7 @@ JsonConfigStatus
 }
 
 JsonConfigStatus
-    json_config_read_bool(JsonConfig* inst, const char* key, bool* val, bool* val_default) {
+    json_config_read_bool(JsonConfig* inst, const char* key, bool* val, const bool* val_default) {
     furi_assert(inst);
     furi_assert(inst->root);
     furi_assert(key);

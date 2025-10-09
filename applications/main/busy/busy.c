@@ -83,6 +83,7 @@ static BusyApp* busy_alloc(void) {
     instance->status_lights = furi_record_open(RECORD_STATUS_LIGHTS);
     instance->audio = furi_record_open(RECORD_AUDIO);
     instance->gui = furi_record_open(RECORD_GUI);
+    instance->matter = furi_record_open(RECORD_MATTER);
 
     if(!busy_settings_load(&instance->settings)) {
         FURI_LOG_W(TAG, "Loading default settings");
@@ -141,15 +142,17 @@ static BusyApp* busy_alloc(void) {
         busy_event_queue_callback,
         instance);
 
-    busy_set_status_lights(instance, BusyStatusLightsTypeOff);
-
     scene_manager_next_scene(instance->scene_manager, BusyAppSceneIdStart);
+
+    busy_set_status_lights(instance, BusyStatusLightsTypeOff);
+    busy_set_matter(instance, false);
 
     return instance;
 }
 
 static void busy_free(BusyApp* instance) {
     busy_set_status_lights(instance, BusyStatusLightsTypeOff);
+    busy_set_matter(instance, false);
 
     scene_manager_free(instance->scene_manager);
     busy_timer_free(instance->busy_timer);
@@ -164,6 +167,7 @@ static void busy_free(BusyApp* instance) {
         flex_layout_free(instance->back_container);
     });
 
+    furi_record_close(RECORD_MATTER);
     furi_record_close(RECORD_STATUS_LIGHTS);
     furi_record_close(RECORD_AUDIO);
     furi_record_close(RECORD_GUI);
@@ -217,7 +221,13 @@ void busy_set_status_lights(BusyApp* instance, BusyStatusLightsType type) {
     furi_assert(instance);
     furi_assert(type < BusyStatusLightsTypeMax);
 
-    status_lights_send_command(instance->status_lights, &busy_status_lights[type]);
+    const BusyStatusLightsPreset* preset = &busy_status_lights[type];
+    status_lights_run_preset(instance->status_lights, preset->preset, preset->color);
+}
+
+void busy_set_matter(BusyApp* instance, bool switch_state) {
+    furi_assert(instance);
+    matter_set_switch_state(instance->matter, switch_state);
 }
 
 void busy_push_location(BusyApp* instance, const char* location_name) {

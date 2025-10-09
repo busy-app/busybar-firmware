@@ -2,29 +2,47 @@
 @import "@nuxt/ui";
 
 @theme static {
-  /* orange: '249 115 22', // '249 115 22', */
-  --color-brand: #ff7b37;
-  --color-brand-50: #fff5ed;
-  --color-brand-100: #ffe8d4;
-  --color-brand-200: #ffcda8;
-  --color-brand-300: #ffaa70;
-  --color-brand-400: #ff7b37;
-  --color-brand-500: #ff5c16;
-  --color-brand-600: #f03c06;
-  --color-brand-700: #c72a07;
-  --color-brand-800: #9e220e;
-  --color-brand-900: #7f200f;
-  --color-brand-950: #450c05;
+  --color-brand: #2B7FFF;
+  --color-brand-50: #EAF2FF;
+  --color-brand-100: #D5E5FF;
+  --color-brand-200: #AACCFF;
+  --color-brand-300: #80B2FF;
+  --color-brand-400: #5599FF;
+  --color-brand-500: #2B7FFF;
+  --color-brand-600: #2266CC;
+  --color-brand-700: #1A4C99;
+  --color-brand-800: #113366;
+  --color-brand-900: #091933;
+  --color-brand-950: #050F20;
 
-  --font-sans: 'PP Neue Montreal', sans-serif;
+  --font-sans: 'Inter', sans-serif;
 }
 
 :root {
   --ui-text: var(--color-black);
+  --ui-container: 1440px;
+
+  --glass-stroke:
+    linear-gradient(
+      180deg,
+      rgba(0, 0, 0, 0.10) 0%,
+      rgba(0, 0, 0, 0.00) 100%
+    );
+  --glass-fallback: rgba(0, 0, 0, 0.03);
+  --glass-ring-width: 1px;
+  --glass-mask: linear-gradient(#fff 0 0) content-box no-repeat, linear-gradient(#fff 0 0) no-repeat;
 }
 
 .dark {
   --ui-text: var(--color-white);
+
+  --glass-stroke:
+    linear-gradient(
+      180deg,
+      rgba(255, 255, 255, 0.10) 0%,
+      rgba(255, 255, 255, 0.00) 100%
+    );
+  --glass-fallback: rgba(255, 255, 255, 0.03);
 }
 
 body {
@@ -51,7 +69,49 @@ button {
     }
   }
 
-  .animate-spin {
-    animation: -spin 1s linear infinite; 
+  .ring { --glass-ring-width: 1px; }
+  .ring-0 { --glass-ring-width: 0; }
+  .ring-1 { --glass-ring-width: 1px; }
+  .ring-2 { --glass-ring-width: 2px; }
+  .ring-4 { --glass-ring-width: 4px; }
+  .ring-8 { --glass-ring-width: 8px; }
+
+  .ring-without-fallback {
+    --glass-fallback: rgba(255, 255, 255, 0);
+  }
+
+  .ring-glass {
+    @apply relative ring-inset ring-black/10 dark:ring-white/10;
+  }
+
+  @supports (mask: var(--glass-mask)) {
+    .ring-glass {
+      @apply ring-0;
+      box-shadow: inset 0 0 0 var(--glass-ring-width) var(--glass-fallback);
+    }
+    .ring-glass::before {
+      @apply absolute inset-0 pointer-events-none rounded-[inherit];
+
+      mask: var(--glass-mask);
+      @apply mask-exclude;
+
+      content: '';
+      background: var(--glass-stroke);
+      padding: var(--glass-ring-width);
+    }
+  }
+
+  .rounded-group > * {
+    border-radius: 6px;
+  }
+  
+  .rounded-group > *:first-child {
+    border-top-left-radius: var(--radius-xl);
+    border-top-right-radius: var(--radius-xl);
+  }
+
+  .rounded-group > *:last-child {
+    border-bottom-left-radius: var(--radius-xl);
+    border-bottom-right-radius: var(--radius-xl);
   }
 }
