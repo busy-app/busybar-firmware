@@ -20,7 +20,7 @@ typedef enum {
     InputKeyBack,
     InputKeyStart,
     InputKeyBusy,
-    InputKeyStatus,
+    InputKeyCustom,
     InputKeyOff,
     InputKeyApps,
     InputKeySettings,

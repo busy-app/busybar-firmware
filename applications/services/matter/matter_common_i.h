@@ -22,18 +22,11 @@ extern "C" {
 // ===============
 
 /**
- * @brief Notification about updated state
- */
-typedef struct {
-    MatterVirtualDeviceState new_state;
-} MatterIntercomUpdateFrame;
-
-/**
  * @brief Request to change state
  */
 typedef struct {
-    MatterVirtualDeviceState req_state;
-} MatterIntercomRequestFrame;
+    bool value;
+} MatterIntercomSwitchStateFrame;
 
 /**
  * @brief Request to wipe all Matter-related data (factory reset)
@@ -71,8 +64,7 @@ typedef struct {
 // =============
 
 typedef enum {
-    MatterIntercomFrameTypeUpdate, //<! Notification about updated state. Direction: 917->u5
-    MatterIntercomFrameTypeRequest, //<! Request to change state. Direction: u5->917
+    MatterIntercomFrameTypeSwitchState, //<! Request to change state. Direction: u5->917
 
     MatterIntercomFrameTypeReset, //<! Factory reset. Direction: u5->917
 
@@ -87,8 +79,7 @@ typedef struct {
     MatterIntercomFrameType type;
     union {
         uint8_t frame_of_any_type;
-        MatterIntercomUpdateFrame update;
-        MatterIntercomRequestFrame request;
+        MatterIntercomSwitchStateFrame switch_state;
         MatterIntercomResetFrame reset;
         MatterIntercomCommissionFrame commission;
         MatterIntercomPairingCodesFrame codes;

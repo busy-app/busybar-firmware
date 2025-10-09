@@ -1,7 +1,7 @@
 openapi: 3.0.3
 info:
-  title: Busy Bar HTTP API
-  description: HTTP API for Busy Bar web server
+  title: BUSY Bar HTTP API
+  description: HTTP API for BUSY Bar web server
   version: 0.3.0
   contact:
     name: tbd
@@ -83,7 +83,7 @@ paths:
                 $ref: "#/components/schemas/Error"
 
   /api/name:
-     get:
+    get:
       tags:
         - Settings
       summary: Get current device name
@@ -95,13 +95,13 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/NameInfo"
-    
-     post:
+
+    post:
       tags:
         - Settings
       summary: Set new device name
       description: Set new device name
-      requestBody: 
+      requestBody:
         required: true
         content:
           application/json:
@@ -120,7 +120,6 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Error"
-      
 
   /api/update:
     post:
@@ -695,7 +694,7 @@ paths:
                 "back",
                 "start",
                 "busy",
-                "status",
+                "custom",
                 "off",
                 "apps",
                 "settings",
@@ -807,8 +806,8 @@ paths:
   /api/wifi/status:
     get:
       tags:
-        - Wifi
-      description: Returns current wifi status
+        - Wi-Fi
+      description: Returns current Wi-Fi status
       parameters: []
       responses:
         "200":
@@ -821,8 +820,8 @@ paths:
   /api/wifi/connect:
     post:
       tags:
-        - Wifi
-      description: Attempts to connect to wifi using config
+        - Wi-Fi
+      description: Attempts to connect to Wi-Fi using config
       parameters: []
       requestBody:
         required: true
@@ -838,7 +837,7 @@ paths:
               schema:
                 $ref: "#/components/schemas/SuccessResponse"
         "400":
-          description: Wifi already connected
+          description: Wi-Fi already connected
           content:
             application/json:
               schema:
@@ -847,8 +846,8 @@ paths:
   /api/wifi/disconnect:
     post:
       tags:
-        - Wifi
-      description: Attempts to connect to wifi using config
+        - Wi-Fi
+      description: Attempts to connect to Wi-Fi using config
       parameters: []
       responses:
         "200":
@@ -867,8 +866,8 @@ paths:
   /api/wifi/networks:
     get:
       tags:
-        - Wifi
-      description: Scans environment for available wifi networks
+        - Wi-Fi
+      description: Scans environment for available Wi-Fi networks
       parameters: []
       responses:
         "200":
@@ -878,7 +877,7 @@ paths:
               schema:
                 $ref: "#/components/schemas/NetworkResponse"
         "400":
-          description: Wifi already connected
+          description: Wi-Fi already connected
           content:
             application/json:
               schema:
@@ -936,12 +935,12 @@ paths:
   /api/ble/enable:
     post:
       tags:
-        - Ble
-      description: Enables ble module
+        - BLE
+      description: Enables BLE module
       parameters: []
       responses:
         "200":
-          description: Ble enabled
+          description: BLE enabled
           content:
             application/json:
               schema:
@@ -950,12 +949,12 @@ paths:
   /api/ble/disable:
     post:
       tags:
-        - Ble
-      description: Disables ble module
+        - BLE
+      description: Disables BLE module
       parameters: []
       responses:
         "200":
-          description: Ble disabled
+          description: BLE disabled
           content:
             application/json:
               schema:
@@ -1400,8 +1399,8 @@ components:
 tags:
   - name: System
     description: System information and control
-  - name: Wifi
-    description: Allows to operate with Wifi
+  - name: Wi-Fi
+    description: Allows to operate with Wi-Fi
   - name: Assets
     description: Asset file management and display control
   - name: WebSocket
@@ -1412,5 +1411,5 @@ tags:
     description: Device settings
   - name: Input
     description: Input events
-  - name: Ble
+  - name: BLE
     description: Allows to operate with BLE
