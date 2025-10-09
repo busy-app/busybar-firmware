@@ -87,7 +87,8 @@ static void
             furi_assert(status != JsonConfigStatusError);
             json_config_write_str(cfg, "session_id", session_id);
             json_config_write_str(cfg, "token", token);
-            json_config_free(cfg);
+            status = json_config_free(cfg);
+            furi_assert(status != JsonConfigStatusError);
 
             furi_string_set(mqtt->session_id, session_id);
             furi_string_set(mqtt->link_token, token);
@@ -239,6 +240,7 @@ static void mqtt_client_load_session(MqttClient* mqtt) {
 
     do {
         status = json_config_read_str(cfg, "client_id", mqtt->client_id, NULL);
+        furi_assert(status != JsonConfigStatusError);
         if((status == JsonConfigStatusMissing) || (furi_string_empty(mqtt->client_id))) {
             uint32_t random_id[2];
             furi_hal_random_fill_buf((uint8_t*)random_id, sizeof(random_id));
@@ -247,10 +249,12 @@ static void mqtt_client_load_session(MqttClient* mqtt) {
             break;
         }
         status = json_config_read_str(cfg, "session_id", mqtt->session_id, NULL);
+        furi_assert(status != JsonConfigStatusError);
         if(status == JsonConfigStatusMissing) break;
         if(furi_string_empty(mqtt->session_id)) break;
 
         status = json_config_read_str(cfg, "token", mqtt->link_token, NULL);
+        furi_assert(status != JsonConfigStatusError);
         if(status == JsonConfigStatusMissing) break;
         if(furi_string_empty(mqtt->link_token)) break;
 
@@ -265,7 +269,8 @@ static void mqtt_client_load_session(MqttClient* mqtt) {
         FURI_LOG_W(TAG, "Session data reset");
     }
 
-    json_config_free(cfg);
+    status = json_config_free(cfg);
+    furi_assert(status != JsonConfigStatusError);
 }
 
 static bool mqtt_client_load_certs(MqttClient* mqtt) {
