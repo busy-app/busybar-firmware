@@ -234,7 +234,14 @@ static bool canvas_element_update(CanvasApp* canvas, const CanvasElement* elemen
             label_set_text(widget.text, element->text.text_str);
             label_set_font(widget.text, element->text.font);
             label_set_color(widget.text, element->text.color);
-            widget_set_pos(label_get_base(widget.text), element->x, element->y);
+            Widget* base = label_get_base(widget.text);
+            widget_set_pos(base, element->x, element->y);
+            if(element->text.width) widget_set_width(base, element->text.width);
+            if(element->text.scroll_rate_cpm) {
+                uint32_t scroll_dur =
+                    label_calculate_scroll_duration(widget.text, element->text.scroll_rate_cpm);
+                label_set_long_content_mode(widget.text, LabelLongContentModeScroll, scroll_dur);
+            }
         }
     });
 

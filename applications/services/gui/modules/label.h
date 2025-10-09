@@ -105,6 +105,18 @@ void label_set_text_align(Label* instance, TextAlign align);
 void label_set_long_content_mode(Label* instance, LabelLongContentMode mode, uint32_t duration);
 
 /**
+ * @brief Calculate scroll duration for `label_set_long_content_mode`.
+ * 
+ * @param[in] instance pointer to the Label instance
+ * @param[in] rate_cpm scroll rate for off-screen text in characters per minute
+ * 
+ * @note the label text and width should be set before calling this function.
+ * 
+ * @returns 
+ */
+uint32_t label_calculate_scroll_duration(const Label* instance, uint32_t rate_cpm);
+
+/**
  * @brief Set color of label text.
  * 
  * @param[in,out] instance pointer to the Label instance to be modified

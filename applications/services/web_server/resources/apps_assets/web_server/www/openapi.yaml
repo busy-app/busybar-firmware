@@ -1155,13 +1155,15 @@ components:
         app_id: "my_app"
         elements:
           - id: "0"
-            timeout: 5
+            timeout: 6
             type: "text"
-            text: "Hello yall"
+            text: "Hello, World!"
             x: 1
             y: 1
             font: big
             color: "#AAFF00FF"
+            width: 64
+            scroll_rate: 60
             display: "front"
           - id: "1"
             timeout: 6
@@ -1231,6 +1233,12 @@ components:
               description: "Color to display the text in, in #RRGGBBAA format"
               pattern: "^#[a-fA-F0-9]{8}$"
               default: "#FFFFFFFF"
+            width:
+              type: integer
+              description: Width of the label
+            scroll_rate:
+              type: integer
+              description: Scroll rate in characters per minute
 
     ImageElement:
       allOf:

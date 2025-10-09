@@ -28,6 +28,8 @@ typedef struct {
             char* text_str;
             GuiFont font;
             Color color;
+            size_t width;
+            size_t scroll_rate_cpm;
         } text;
     };
 } CanvasElement;

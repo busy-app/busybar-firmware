@@ -54,6 +54,17 @@ static bool api_display_draw_parse_text_element(
             if(!color_parsed) break;
         }
 
+        double number;
+        if(mg_json_get_num(json_element, "$.width", &number)) {
+            if(number < __DBL_EPSILON__) break; // <= 0
+            canvas_element->text.width = (size_t)number;
+        }
+
+        if(mg_json_get_num(json_element, "$.scroll_rate", &number)) {
+            if(number < __DBL_EPSILON__) break; // <= 0
+            canvas_element->text.scroll_rate_cpm = (size_t)number;
+        }
+
         result = true;
     } while(0);
     return result;
