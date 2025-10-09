@@ -1157,10 +1157,10 @@ components:
           - id: "0"
             timeout: 5
             type: "text"
-            text: "Hello, world!"
+            text: "Hello yall"
             x: 1
-            y: 2
-            font: cubic_12
+            y: 1
+            font: big
             color: "#AAFF00FF"
             display: "front"
           - id: "1"
@@ -1221,19 +1221,10 @@ components:
               type: string
               description: One of the available fonts to display the text in
               enum:
-                - numerals_condensed_10
-                - numerals_regular_10
-                - numerals_small_10
-                - ark_regular_10
-                - ark_regular_20
-                - bf_4x5
-                - bf_5x7_condensed_numerals
-                - bf_5x7
-                - bf_7x10
-                - cubic_12
-                - sonybmp_7
-                - tiny_6
-                - tiny5_8
+                - small
+                - medium
+                - medium_condensed
+                - big
               default: tiny5_8
             color:
               type: string

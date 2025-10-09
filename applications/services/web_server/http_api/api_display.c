@@ -30,22 +30,14 @@ static bool api_display_draw_parse_text_element(
         char* font_name = mg_json_get_str(json_element, "$.font");
         if(font_name) {
             static const char* const font_names[GuiFontMax] = {
-                [GuiFontArkNumeralsCondensed10] = "numerals_condensed_10",
-                [GuiFontArkNumeralsRegular10] = "numerals_regular_10",
-                [GuiFontArkNumeralsSmall10] = "numerals_small_10",
-                [GuiFontArkRegular10] = "ark_regular_10",
-                [GuiFontArkRegular20] = "ark_regular_20",
-                [GuiFontBf4x5] = "bf_4x5",
-                [GuiFontBf5x7CondensedNumerals] = "bf_5x7_condensed_numerals",
-                [GuiFontBf5x7] = "bf_5x7",
-                [GuiFontBf7x10] = "bf_7x10",
-                [GuiFontCubic12] = "cubic_12",
-                [GuiFontSomybmp7] = "sonybmp_7",
-                [GuiFontTiny6] = "tiny_6",
-                [GuiFontTiny5_8] = "tiny5_8",
+                [GuiFontBf4x5] = "small",
+                [GuiFontBf5x7] = "medium",
+                [GuiFontBf5x7CondensedNumerals] = "medium_condensed",
+                [GuiFontBf7x10] = "big",
             };
             canvas_element->text.font = GuiFontMax;
             for(GuiFont i = 0; i < GuiFontMax; i++) {
+                if(!font_names[i]) continue;
                 if(strcmp(font_names[i], font_name) == 0) {
                     canvas_element->text.font = i;
                     break;
