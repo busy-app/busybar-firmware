@@ -1,0 +1,199 @@
+#include "tar.h"
+
+#include <furi.h>
+#include <cli/args.h>
+#include <cli/cli_ansi.h>
+#include <cli/cli_status.h>
+
+#include <toolbox/tar/tar_archive.h>
+#include <toolbox/path.h>
+
+#define TAG "Tar"
+
+#define CHECK_STORAGE_EXT_PATH_PREFIX    STORAGE_EXT_PATH_PREFIX "/"
+#define CHECK_STORAGE_BACKUP_PATH_PREFIX STORAGE_BACKUP_PATH_PREFIX "/"
+
+static void tar_compress_directory_example(void) {
+    printf("Example: tar c /ext/backup.tar /ext/mydir\r\n");
+}
+
+static bool tar_check_params(FuriString* path, FuriString* args) {
+    size_t pos = furi_string_search_str(path, ".tar", 0);
+    if(pos == FURI_STRING_FAILURE) {
+        printf(
+            ANSI_FG_RED "Error: Destination path must end with .tar extension : %s\r\n" ANSI_RESET,
+            furi_string_get_cstr(path));
+        tar_compress_directory_example();
+        return false;
+    }
+
+    if(!(strncmp(
+             furi_string_get_cstr(path),
+             CHECK_STORAGE_EXT_PATH_PREFIX,
+             strlen(CHECK_STORAGE_EXT_PATH_PREFIX)) == 0 ||
+         strncmp(
+             furi_string_get_cstr(path),
+             CHECK_STORAGE_BACKUP_PATH_PREFIX,
+             strlen(CHECK_STORAGE_BACKUP_PATH_PREFIX)) == 0)) {
+        printf(
+            ANSI_FG_RED "Error: Destination path must start with %s or %s: %s\r\n" ANSI_RESET,
+            STORAGE_EXT_PATH_PREFIX,
+            STORAGE_BACKUP_PATH_PREFIX,
+            furi_string_get_cstr(path));
+        tar_compress_directory_example();
+        return false;
+    }
+
+    if(!(strncmp(
+             furi_string_get_cstr(args),
+             CHECK_STORAGE_EXT_PATH_PREFIX,
+             strlen(CHECK_STORAGE_EXT_PATH_PREFIX)) == 0 ||
+         strncmp(
+             furi_string_get_cstr(args),
+             CHECK_STORAGE_BACKUP_PATH_PREFIX,
+             strlen(CHECK_STORAGE_BACKUP_PATH_PREFIX)) == 0)) {
+        printf(
+            ANSI_FG_RED "Error: Source path must start with %s or %s: %s\r\n" ANSI_RESET,
+            STORAGE_EXT_PATH_PREFIX,
+            STORAGE_BACKUP_PATH_PREFIX,
+            furi_string_get_cstr(args));
+        tar_compress_directory_example();
+        return false;
+    }
+
+    return true;
+}
+
+static void tar_compress_directory_cli(PipeSide* pipe, FuriString* path, FuriString* args) {
+    UNUSED(pipe);
+    if(!tar_check_params(path, args)) {
+        return;
+    }
+
+    Storage* storage = furi_record_open(RECORD_STORAGE);
+    TarArchive* archive = tar_archive_alloc(storage);
+    do {
+        if(!tar_archive_open(archive, furi_string_get_cstr(path), TarOpenModeWrite)) {
+            printf("Failed to open archive for writing\r\n");
+            break;
+        }
+        uint32_t start_tick = furi_get_tick();
+        printf(
+            "Compressing directory %s to %s\r\n",
+            furi_string_get_cstr(args),
+            furi_string_get_cstr(path));
+        bool success = tar_archive_add_dir(archive, furi_string_get_cstr(args), "");
+        tar_archive_file_finalize(archive);
+        uint32_t end_tick = furi_get_tick();
+        printf(
+            "Compression %s in %lu ticks \r\n",
+            success ? "success" : "failed",
+            end_tick - start_tick);
+    } while(false);
+    tar_archive_free(archive);
+    furi_record_close(RECORD_STORAGE);
+}
+
+static void tar_extract_files_cli(PipeSide* pipe, FuriString* path, FuriString* args) {
+    UNUSED(pipe);
+    if(!tar_check_params(path, args)) {
+        return;
+    }
+
+    Storage* storage = furi_record_open(RECORD_STORAGE);
+    TarArchive* archive = tar_archive_alloc(storage);
+    do {
+        if(path_recursive_create_dir(storage, args) != FSE_OK) {
+            FURI_LOG_E(TAG, "Failed to create directory: %s", furi_string_get_cstr(args));
+            break;
+        }
+        if(!tar_archive_open(archive, furi_string_get_cstr(path), TarOpenModeRead)) {
+            printf("Failed to open archive for reading\r\n");
+            break;
+        }
+        uint32_t start_tick = furi_get_tick();
+        printf(
+            "Extracting archive %s to %s\r\n",
+            furi_string_get_cstr(path),
+            furi_string_get_cstr(args));
+        bool success = tar_archive_unpack_to(archive, furi_string_get_cstr(args), NULL);
+        uint32_t end_tick = furi_get_tick();
+        printf(
+            "Decompression %s in %lu ticks \r\n",
+            success ? "success" : "failed",
+            end_tick - start_tick);
+    } while(false);
+    tar_archive_free(archive);
+    furi_record_close(RECORD_STORAGE);
+}
+
+typedef void (*TarCliCommandCallback)(PipeSide* pipe, FuriString* path, FuriString* args);
+
+typedef struct {
+    const char* command;
+    const char* help;
+    const TarCliCommandCallback impl;
+} TarCliCommand;
+
+static const TarCliCommand tar_cli_commands[] = {
+    {
+        "c",
+        "Compress directory to tar archive, <path> is the destination path, <args> is the source directory",
+        &tar_compress_directory_cli,
+    },
+    {
+        "x",
+        "Extract files from tar archive, <path> is the tar file path, <args> is the destination directory",
+        &tar_extract_files_cli,
+    },
+};
+
+static void tar_cli_print_usage(void) {
+    printf("Usage:\r\n");
+    printf("tar <cmd> <path> <args>\r\n");
+    printf("The path must start with /bkp or /ext\r\n");
+    printf("Cmd list:\r\n");
+
+    for(size_t i = 0; i < COUNT_OF(tar_cli_commands); ++i) {
+        const TarCliCommand* command_descr = &tar_cli_commands[i];
+        const char* cli_cmd = command_descr->command;
+        printf(
+            "\t%s%s - %s\r\n", cli_cmd, strlen(cli_cmd) > 8 ? "\t\t" : "\t", command_descr->help);
+    }
+}
+
+void tar_command(PipeSide* pipe, FuriString* args, void* context) {
+    UNUSED(context);
+    FuriString* cmd;
+    FuriString* path;
+    cmd = furi_string_alloc();
+    path = furi_string_alloc();
+
+    do {
+        if(!args_read_string_and_trim(args, cmd)) {
+            tar_cli_print_usage();
+            break;
+        }
+
+        if(!args_read_probably_quoted_string_and_trim(args, path)) {
+            tar_cli_print_usage();
+            break;
+        }
+
+        size_t i = 0;
+        for(; i < COUNT_OF(tar_cli_commands); ++i) {
+            const TarCliCommand* command_descr = &tar_cli_commands[i];
+            if(furi_string_cmp_str(cmd, command_descr->command) == 0) {
+                command_descr->impl(pipe, path, args);
+                break;
+            }
+        }
+
+        if(i == COUNT_OF(tar_cli_commands)) {
+            tar_cli_print_usage();
+        }
+    } while(false);
+
+    furi_string_free(path);
+    furi_string_free(cmd);
+}
