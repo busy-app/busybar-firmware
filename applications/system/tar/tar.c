@@ -67,6 +67,7 @@ static bool tar_check_params(FuriString* path, FuriString* args) {
 static void tar_compress_directory_cli(PipeSide* pipe, FuriString* path, FuriString* args) {
     UNUSED(pipe);
     if(!tar_check_params(path, args)) {
+        printf(CLI_STATUS_ERROR);
         return;
     }
 
@@ -75,6 +76,7 @@ static void tar_compress_directory_cli(PipeSide* pipe, FuriString* path, FuriStr
     do {
         if(!tar_archive_open(archive, furi_string_get_cstr(path), TarOpenModeWrite)) {
             printf("Failed to open archive for writing\r\n");
+            printf(CLI_STATUS_ERROR);
             break;
         }
         uint32_t start_tick = furi_get_tick();
@@ -86,9 +88,10 @@ static void tar_compress_directory_cli(PipeSide* pipe, FuriString* path, FuriStr
         tar_archive_file_finalize(archive);
         uint32_t end_tick = furi_get_tick();
         printf(
-            "Compression %s in %lu ticks \r\n",
+            "Compression %s in %lu ms \r\n",
             success ? "success" : "failed",
-            end_tick - start_tick);
+            (end_tick - start_tick) * furi_kernel_get_tick_frequency() / 1000);
+        printf(success ? CLI_STATUS_OK : CLI_STATUS_ERROR);
     } while(false);
     tar_archive_free(archive);
     furi_record_close(RECORD_STORAGE);
@@ -97,6 +100,7 @@ static void tar_compress_directory_cli(PipeSide* pipe, FuriString* path, FuriStr
 static void tar_extract_files_cli(PipeSide* pipe, FuriString* path, FuriString* args) {
     UNUSED(pipe);
     if(!tar_check_params(path, args)) {
+        printf(CLI_STATUS_ERROR);
         return;
     }
 
@@ -104,11 +108,15 @@ static void tar_extract_files_cli(PipeSide* pipe, FuriString* path, FuriString* 
     TarArchive* archive = tar_archive_alloc(storage);
     do {
         if(path_recursive_create_dir(storage, args) != FSE_OK) {
-            FURI_LOG_E(TAG, "Failed to create directory: %s", furi_string_get_cstr(args));
+            printf(
+                ANSI_FG_RED "Error: Failed to create directory: %s\r\n" ANSI_RESET,
+                furi_string_get_cstr(args));
+            printf(CLI_STATUS_ERROR);
             break;
         }
         if(!tar_archive_open(archive, furi_string_get_cstr(path), TarOpenModeRead)) {
             printf("Failed to open archive for reading\r\n");
+            printf(CLI_STATUS_ERROR);
             break;
         }
         uint32_t start_tick = furi_get_tick();
@@ -119,9 +127,10 @@ static void tar_extract_files_cli(PipeSide* pipe, FuriString* path, FuriString* 
         bool success = tar_archive_unpack_to(archive, furi_string_get_cstr(args), NULL);
         uint32_t end_tick = furi_get_tick();
         printf(
-            "Decompression %s in %lu ticks \r\n",
+            "Decompression %s in %lu ms \r\n",
             success ? "success" : "failed",
-            end_tick - start_tick);
+            (end_tick - start_tick) * furi_kernel_get_tick_frequency() / 1000);
+        printf(success ? CLI_STATUS_OK : CLI_STATUS_ERROR);
     } while(false);
     tar_archive_free(archive);
     furi_record_close(RECORD_STORAGE);
