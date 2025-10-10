@@ -156,7 +156,7 @@ void mqtt_api_subscribe(MqttClient* mqtt) {
     furi_assert(mqtt->conn);
 
     FuriString* topic = furi_string_alloc_printf(
-        "%s/%s/down/%s/http-request",
+        "%s/%s/down/%s/#",
         MQTT_API_ROOT_TOPIC,
         furi_string_get_cstr(mqtt->session_id),
         MQTT_API_VERSION);

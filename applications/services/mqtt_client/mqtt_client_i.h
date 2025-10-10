@@ -60,3 +60,9 @@ typedef struct {
 
 void mqtt_api_subscribe(MqttClient* mqtt);
 void mqtt_api_on_message(MqttClient* mqtt, FuriString* topic_str, struct mg_mqtt_message* msg);
+
+void mqtt_screen_streaming_subscribe(MqttClient* mqtt);
+void mqtt_screen_streaming_on_message(
+    MqttClient* mqtt,
+    FuriString* topic_str,
+    struct mg_mqtt_message* msg);
