@@ -100,6 +100,15 @@ JsonConfigStatus json_config_read_str(
     const char* val_default);
 
 /**
+ * @brief Delete an object.
+ * 
+ * @param a pointer to the config instance.
+ * @param object name.
+ * @return Operation status (JsonConfigStatus).
+ */
+JsonConfigStatus json_config_delete(JsonConfig* inst, const char* key);
+
+/**
  * @brief Write an integer value.
  * 
  * @param a pointer to the config instance.

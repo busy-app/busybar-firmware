@@ -74,7 +74,7 @@ CHIP_ERROR KeyValueStoreManagerImpl::Init(void) {
     ReturnErrorOnFailure(error);
 
     FuriThread* cleanupThread =
-        furi_thread_alloc_ex("KvsKeyMapCleanupTask", 512, KvsKeyMapCleanup, NULL);
+        furi_thread_alloc_ex("KvsKeyMapCleanupTask", 2048, KvsKeyMapCleanup, NULL);
     furi_thread_set_priority(cleanupThread, FuriThreadPriorityLowest);
 
     furi_thread_set_state_callback(

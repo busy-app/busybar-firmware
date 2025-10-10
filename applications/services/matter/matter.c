@@ -14,11 +14,9 @@ struct MatterSrv {
     FuriMessageQueue* frame_queue;
     FuriMessageQueue* request_queue;
     FuriPubSub* pubsub;
-
-    MatterVirtualDeviceState device_state[MatterVirtualDeviceMAX];
-    uint8_t commissioned_fabrics;
-
     Intercom* intercom;
+    bool switch_state;
+    uint8_t commissioned_fabrics;
 };
 
 // =========
@@ -78,21 +76,20 @@ static void matter_handle_frame(FuriEventLoopObject* object, void* context) {
     MatterIntercomFrame frame;
     furi_check(furi_message_queue_get(queue, &frame, 0) == FuriStatusOk);
 
-    if(frame.type == MatterIntercomFrameTypeUpdate) {
-        MatterIntercomUpdateFrame* update = &frame.update;
-        MatterVirtualDeviceState state = update->new_state;
-        matter->device_state[state.device] = state;
+    if(frame.type == MatterIntercomFrameTypeSwitchState) {
+        const MatterIntercomSwitchStateFrame* switch_state = &frame.switch_state;
+        matter->switch_state = switch_state->value;
         MatterEvent event = {
-            .type = MatterEventTypeStateUpdate,
-            .update =
+            .type = MatterEventTypeSwitchState,
+            .switch_state =
                 {
-                    .new_state = state,
+                    .value = switch_state->value,
                 },
         };
         furi_pubsub_publish(matter->pubsub, &event);
 
     } else if(frame.type == MatterIntercomFrameTypeCommissionStatus) {
-        MatterIntercomCommissionStatusFrame* status = &frame.commission_status;
+        const MatterIntercomCommissionStatusFrame* status = &frame.commission_status;
         MatterEvent event = {
             .type = MatterEventTypeCommissioning,
             .commissioning =
@@ -122,8 +119,8 @@ static void matter_send_frame(MatterSrv* matter, const MatterIntercomFrame* fram
 // ==========
 
 typedef enum {
-    MatterApiRequestTypeGetState,
-    MatterApiRequestTypeSetState,
+    MatterApiRequestTypeGetSwitchState,
+    MatterApiRequestTypeSetSwitchState,
     MatterApiRequestTypeReset,
     MatterApiRequestTypeCommission,
     MatterApiRequestTypeGetFabricCount,
@@ -132,11 +129,10 @@ typedef enum {
 typedef struct {
     FuriApiLock lock;
     MatterApiRequestType type;
-    MatterVirtualDevice device;
-    MatterVirtualDeviceState state;
     FuriString* qr_code;
     FuriString* manual_code;
     size_t window_duration;
+    bool switch_state;
     uint8_t fabric_count;
 } MatterApiRequest;
 
@@ -152,26 +148,24 @@ static void matter_handle_api_request(FuriEventLoopObject* object, void* context
     furi_check(request);
 
     switch(request->type) {
-    case MatterApiRequestTypeGetState: {
-        request->state = matter->device_state[request->device];
+    case MatterApiRequestTypeGetSwitchState: {
+        request->switch_state = matter->switch_state;
         break;
     }
 
-    case MatterApiRequestTypeSetState: {
-        matter->device_state[request->device] = request->state;
-        MatterIntercomFrame frame = {
-            .type = MatterIntercomFrameTypeRequest,
-            .request =
-                {
-                    .req_state = request->state,
-                },
+    case MatterApiRequestTypeSetSwitchState: {
+        matter->switch_state = request->switch_state;
+
+        const MatterIntercomFrame frame = {
+            .type = MatterIntercomFrameTypeSwitchState,
+            .switch_state.value = request->switch_state,
         };
         matter_send_frame(matter, &frame);
         break;
     }
 
     case MatterApiRequestTypeReset: {
-        MatterIntercomFrame frame = {
+        const MatterIntercomFrame frame = {
             .type = MatterIntercomFrameTypeReset,
         };
         matter_send_frame(matter, &frame);
@@ -179,7 +173,7 @@ static void matter_handle_api_request(FuriEventLoopObject* object, void* context
     }
 
     case MatterApiRequestTypeCommission: {
-        MatterIntercomFrame frame = {
+        const MatterIntercomFrame frame = {
             .type = MatterIntercomFrameTypeCommission,
         };
         matter_send_frame(matter, &frame);
@@ -229,22 +223,20 @@ FuriPubSub* matter_get_pubsub(MatterSrv* matter) {
     return matter->pubsub;
 }
 
-MatterVirtualDeviceState matter_get_state(MatterSrv* matter, MatterVirtualDevice device) {
+bool matter_get_switch_state(MatterSrv* matter) {
     furi_check(matter);
     MatterApiRequest request = {
-        .type = MatterApiRequestTypeGetState,
-        .device = device,
+        .type = MatterApiRequestTypeGetSwitchState,
     };
     matter_synchronous_request(matter, &request);
-    return request.state;
+    return request.switch_state;
 }
 
-void matter_set_state(MatterSrv* matter, MatterVirtualDeviceState state) {
+void matter_set_switch_state(MatterSrv* matter, bool state) {
     furi_check(matter);
     MatterApiRequest request = {
-        .type = MatterApiRequestTypeSetState,
-        .state = state,
-        .device = state.device,
+        .type = MatterApiRequestTypeSetSwitchState,
+        .switch_state = state,
     };
     matter_synchronous_request(matter, &request);
 }
