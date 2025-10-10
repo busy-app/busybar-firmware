@@ -28,6 +28,34 @@ void mqtt_screen_streaming_subscribe(MqttClient* mqtt) {
     furi_string_free(topic);
 }
 
+void mqtt_screen_streaming_timer_callback(void* context) {
+    furi_assert(context);
+
+    MqttClient* mqtt = context;
+
+    Gui* gui = furi_record_open(RECORD_GUI);
+    const uint8_t* frame = gui_display_get_frame_buffer(gui, GuiDisplayIdFront);
+    memcpy(&frame_buff, frame, FRONT_DISPLAY_BUF_SIZE);
+    furi_record_close(RECORD_GUI);
+
+    const struct mg_str message = {.buf = frame_buff, .len = FRONT_DISPLAY_BUF_SIZE};
+
+    const struct mg_mqtt_opts opts = {
+        .topic = mg_str(furi_string_get_cstr(mqtt->resp_topic)),
+        .message = message,
+        .qos = MQTT_SCREEN_STREAMING_RESPONSE_QOS,
+        .retain = false,
+        .props = NULL,
+        .num_props = 0,
+
+    };
+    if(mqtt->conn) {
+        mg_mqtt_pub(mqtt->conn, &opts);
+    } else {
+        FURI_LOG_E(TAG, "Connection lost");
+    }
+}
+
 void mqtt_screen_streaming_on_message(
     MqttClient* mqtt,
     FuriString* topic_str,
@@ -37,7 +65,6 @@ void mqtt_screen_streaming_on_message(
     furi_assert(msg);
 
     FuriString* cor_data = furi_string_alloc();
-    FuriString* resp_topic = furi_string_alloc();
     struct mg_mqtt_prop prop;
     size_t prop_ofs = 0;
     do {
@@ -47,7 +74,7 @@ void mqtt_screen_streaming_on_message(
 
         if(prop.id == MQTT_PROP_RESPONSE_TOPIC) {
             if(prop.val.len > 0) {
-                furi_string_printf(resp_topic, "%.*s", prop.val.len, prop.val.buf);
+                furi_string_printf(mqtt->resp_topic, "%.*s", prop.val.len, prop.val.buf);
             }
             // } else if(prop.id == MQTT_PROP_CORRELATION_DATA) {
             //     if(prop.val.len > 0) {
@@ -56,10 +83,10 @@ void mqtt_screen_streaming_on_message(
         }
     } while(prop_ofs > 0);
 
-    if(furi_string_empty(resp_topic)) {
+    if(furi_string_empty(mqtt->resp_topic)) {
         FURI_LOG_W(TAG, "Missing msg properties");
         furi_string_free(cor_data);
-        furi_string_free(resp_topic);
+        furi_string_free(mqtt->resp_topic);
         return;
     }
 
@@ -70,22 +97,7 @@ void mqtt_screen_streaming_on_message(
     //     },
     // };
 
-    Gui* gui = furi_record_open(RECORD_GUI);
-    const uint8_t* frame = gui_display_get_frame_buffer(gui, GuiDisplayIdFront);
-    memcpy(&frame_buff, frame, FRONT_DISPLAY_BUF_SIZE);
-    furi_record_close(RECORD_GUI);
-
-    const struct mg_str message = {.buf = frame_buff, .len = FRONT_DISPLAY_BUF_SIZE};
-
-    const struct mg_mqtt_opts opts = {
-        .topic = mg_str(furi_string_get_cstr(resp_topic)),
-        .message = message,
-        .qos = MQTT_SCREEN_STREAMING_RESPONSE_QOS,
-        .retain = false,
-        .props = NULL,
-        .num_props = 0,
-
-    };
-
-    mg_mqtt_pub(mqtt->conn, &opts);
+    if(!furi_timer_is_running(mqtt->screen_streaming_timer)) {
+        furi_timer_start(mqtt->screen_streaming_timer, 500);
+    }
 }
