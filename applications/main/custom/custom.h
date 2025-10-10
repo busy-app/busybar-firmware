@@ -26,10 +26,6 @@
 #define TOTAL_TIME_LOW_THR_MN (15)
 
 typedef enum {
-    CustomCustomEventAboutToExit = 100
-} CustomCustomEvent;
-
-typedef enum {
     CustomTransitionTypeDefault,
     CustomTransitionTypeSelect,
     CustomTransitionTypeMax,
