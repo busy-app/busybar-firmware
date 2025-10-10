@@ -1055,7 +1055,7 @@ paths:
       tags:
         - System
       summary: Set timezone offset
-      description: Sets the timezone offset in hours
+      description: Sets the timezone offset in ±HH:MM format
       operationId: setTimeTimezone
       parameters:
         - name: timezone
@@ -1063,9 +1063,9 @@ paths:
           required: true
           schema:
             type: string
-            pattern: "^[+-]?([0-9]|1[0-2])$"
-          description: Timezone offset in hours (with optional + or - sign, range -12 to +12)
-          example: "4"
+            pattern: "^[+-][0-9]{2}:[0-9]{2}$"
+          description: Timezone offset in ±HH:MM format (range -12:00 to +14:00)
+          example: "+04:00"
       responses:
         "200":
           description: Timezone set successfully
@@ -1338,7 +1338,7 @@ components:
         timestamp:
           type: string
           description: ISO 8601 formatted timestamp with timezone
-          example: "2025-10-02T14:30:45+04"
+          example: "2025-10-02T14:30:45+04:00"
       required:
         - timestamp
 

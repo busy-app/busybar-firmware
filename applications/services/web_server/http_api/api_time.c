@@ -5,7 +5,8 @@
 
 #define TAG "HttpTime"
 
-#define API_TIME_H_TO_S(x) ((x) * 60 * 60)
+#define API_TIME_H_TO_M(x) ((x) * 60)
+#define API_TIME_M_TO_S(x) ((x) * 60)
 
 static bool api_time_get_timestamp_callback(
     FuriString* path,
@@ -26,19 +27,23 @@ static bool api_time_get_timestamp_callback(
     int timezone_offset = settings.timezone_offset;
     furi_record_close(RECORD_SNTP);
 
-    /* ISO 8601 timestamp: YYYY-MM-DDTHH:MM:SS+HH */
-    FuriString* json_str = furi_string_alloc_printf(
-        "\"timestamp\":\"%04u-%02u-%02uT%02u:%02u:%02u%+03d\"",
+    /* ISO 8601 timestamp: YYYY-MM-DDTHH:MM:SS±HH:MM */
+    char timezone_offset_sign = (timezone_offset > 0) ? '+' : '-';
+    unsigned int timezone_offset_abs = abs(timezone_offset);
+    unsigned int timezone_offset_hours = timezone_offset_abs / 60;
+    unsigned int timezone_offset_minutes = timezone_offset_abs % 60;
+    MG_REPLY_OK_BODY(
+        conn,
+        "{\"timestamp\":\"%04u-%02u-%02uT%02u:%02u:%02u%c%02u:%02u\"}\n",
         datetime.year,
         datetime.month,
         datetime.day,
         datetime.hour,
         datetime.minute,
         datetime.second,
-        timezone_offset);
-
-    MG_REPLY_OK_BODY(conn, "{%s}\n", furi_string_get_cstr(json_str));
-    furi_string_free(json_str);
+        timezone_offset_sign,
+        timezone_offset_hours,
+        timezone_offset_minutes);
 
     return true;
 }
@@ -92,7 +97,7 @@ static bool api_time_set_timestamp_callback(
             int timezone_offset = settings.timezone_offset;
             furi_record_close(RECORD_SNTP);
 
-            timestamp += API_TIME_H_TO_S(timezone_offset);
+            timestamp += API_TIME_M_TO_S(timezone_offset);
         }
 
         datetime_timestamp_to_datetime(timestamp, &datetime);
@@ -127,15 +132,20 @@ static bool api_time_set_timezone_callback(
             break;
         }
 
-        char timezone_str[5];
+        char timezone_str[7]; /* ±HH:MM format + null terminator */
         if(mg_http_get_var(&msg->query, "timezone", timezone_str, sizeof(timezone_str)) <= 0) {
             break;
         }
 
-        int timezone_offset;
-        if(sscanf(timezone_str, "%d", &timezone_offset) != 1) {
+        /* Parse ±HH:MM format (e.g., "+04:00", "-05:30") */
+        int timezone_offset_hours, timezone_offset_minutes;
+        if(sscanf(timezone_str, "%d:%d", &timezone_offset_hours, &timezone_offset_minutes) != 2) {
             break;
         }
+
+        int timezone_offset =
+            API_TIME_H_TO_M(timezone_offset_hours) +
+            (timezone_offset_hours > 0 ? timezone_offset_minutes : -timezone_offset_minutes);
 
         if(timezone_offset < SNTP_TIMEZONE_OFFSET_MIN ||
            timezone_offset > SNTP_TIMEZONE_OFFSET_MAX) {
