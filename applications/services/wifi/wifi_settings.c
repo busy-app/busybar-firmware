@@ -34,13 +34,9 @@ static const char* const wifi_settings_security_str[WifiSecurityModeMax] = {
     [WifiSecurityModeWpa] = "wpa",
     [WifiSecurityModeWpa2] = "wpa2",
     [WifiSecurityModeWep] = "wep",
-    [WifiSecurityModeWpaEnterprise] = "wpa_enterprise",
-    [WifiSecurityModeWpa2Enterprise] = "wpa2_enterprise",
     [WifiSecurityModeWpaWpa2Mixed] = "wpa_wpa2_mixed",
     [WifiSecurityModeWpa3] = "wpa3",
     [WifiSecurityModeWpa3Transition] = "wpa3_transition",
-    [WifiSecurityModeWpa3Enterprise] = "wpa3_enterprise",
-    [WifiSecurityModeWpa3TransitionEnterprise] = "wpa3_transition_enterprise",
 };
 
 static const char* const wifi_ip_management_str[WifiIpManagementMax] = {
