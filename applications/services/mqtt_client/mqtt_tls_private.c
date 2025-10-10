@@ -1,18 +1,15 @@
-#include "mqtt_i.h"
+#include "mqtt_client_i.h"
 #include <mbedtls/ssl.h>
 #include <mbedtls/pk.h>
 #include <mbedtls_patch/pk_wrap.h>
-#include <mbedtls/entropy.h>
-#include <mbedtls/ctr_drbg.h>
-#include <mbedtls/ecdsa.h>
-#include <mbedtls/ecp.h>
-#include <mbedtls/error.h>
 #include <tls_crypto/tls_crypto_client.h>
 
 #define TAG "MqttTls"
 
 #define TLS_DEBUG_LEVEL 0
 #define TLS_KEY_SLOT    0
+
+static const char* mqtt_alpn_list[] = {"mqtt", NULL};
 
 static int tls_random(void* ctx, unsigned char* buf, size_t len) {
     UNUSED(ctx);
@@ -136,8 +133,7 @@ void mqtt_tls_init(struct mg_connection* conn, const struct mg_tls_opts* opts) {
         mbedtls_ssl_conf_max_tls_version(&tls->conf, MBEDTLS_SSL_VERSION_TLS1_3);
 
         // ALPN
-        const char* alpn_list[] = {"mqtt", NULL};
-        mbedtls_ssl_conf_alpn_protocols(&tls->conf, alpn_list);
+        mbedtls_ssl_conf_alpn_protocols(&tls->conf, mqtt_alpn_list);
 
         if(tls_load_cert(opts->ca, &tls->ca) == false) {
             break;
