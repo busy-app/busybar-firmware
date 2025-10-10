@@ -217,7 +217,7 @@ static bool wifi_settings_parse_credentials(cJSON* json, WifiCredentials* creden
         credentials->security_mode = wifi_settings_find_str_by_id(
             item->valuestring, wifi_settings_security_str, WifiSecurityModeMax);
 
-        if(credentials->security_mode >= WifiSecurityModeMax) {
+        if(credentials->security_mode >= WifiSecurityModeUnsupported) {
             break;
         }
 
