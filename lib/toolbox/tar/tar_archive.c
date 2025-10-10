@@ -38,13 +38,13 @@ typedef struct TarArchive {
 
 /* Plain file backend - uncompressed, supports read and write */
 static int mtar_storage_file_write(void* stream, const void* data, unsigned size) {
-    uint16_t bytes_written = storage_file_write(stream, data, size);
-    return (bytes_written == size) ? bytes_written : MTAR_EWRITEFAIL;
+    size_t bytes_written = storage_file_write(stream, data, size);
+    return (bytes_written == size) ? (int)bytes_written : MTAR_EWRITEFAIL;
 }
 
 static int mtar_storage_file_read(void* stream, void* data, unsigned size) {
-    uint16_t bytes_read = storage_file_read(stream, data, size);
-    return (bytes_read == size) ? bytes_read : MTAR_EREADFAIL;
+    size_t bytes_read = storage_file_read(stream, data, size);
+    return (bytes_read == size) ? (int)bytes_read : MTAR_EREADFAIL;
 }
 
 static int mtar_storage_file_seek(void* stream, unsigned offset) {
@@ -395,10 +395,8 @@ bool tar_archive_unpack_to(
     };
 
     FURI_LOG_I(TAG, "Restoring '%s'", destination);
-    bool success = mtar_foreach(&archive->tar, archive_extract_foreach_cb, &param) ==
-                   MTAR_ESUCCESS;
 
-    return mtar_eof_data(&archive->tar) ? true : success;
+    return mtar_foreach(&archive->tar, archive_extract_foreach_cb, &param) == MTAR_ESUCCESS;
 }
 
 bool tar_archive_add_file(

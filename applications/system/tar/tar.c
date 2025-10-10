@@ -85,7 +85,7 @@ static void tar_compress_directory_cli(PipeSide* pipe, FuriString* path, FuriStr
             furi_string_get_cstr(args),
             furi_string_get_cstr(path));
         bool success = tar_archive_add_dir(archive, furi_string_get_cstr(args), "");
-        tar_archive_file_finalize(archive);
+        tar_archive_finalize(archive);
         uint32_t end_tick = furi_get_tick();
         printf(
             "Compression %s in %lu ms \r\n",
