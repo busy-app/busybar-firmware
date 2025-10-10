@@ -1,8 +1,8 @@
 openapi: 3.0.3
 info:
-  title: Busy Bar HTTP API
-  description: HTTP API for Busy Bar web server
-  version: 0.2.0
+  title: BUSY Bar HTTP API
+  description: HTTP API for BUSY Bar web server
+  version: 0.3.0
   contact:
     name: tbd
 
@@ -83,7 +83,7 @@ paths:
                 $ref: "#/components/schemas/Error"
 
   /api/name:
-     get:
+    get:
       tags:
         - Settings
       summary: Get current device name
@@ -95,13 +95,13 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/NameInfo"
-    
-     post:
+
+    post:
       tags:
         - Settings
       summary: Set new device name
       description: Set new device name
-      requestBody: 
+      requestBody:
         required: true
         content:
           application/json:
@@ -120,7 +120,6 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Error"
-      
 
   /api/update:
     post:
@@ -334,7 +333,6 @@ paths:
       tags:
         - Storage
       summary: List files on internal storage
-      description: Downloads a file from a specified path
       operationId: listStorageFiles
       parameters:
         - name: path
@@ -414,6 +412,26 @@ paths:
                 $ref: "#/components/schemas/SuccessResponse"
         "400":
           description: Invalid path or deletion failed
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /api/storage/status:
+    get:
+      tags:
+        - Storage
+      summary: Show storage usage
+      operationId: getStorageStatus
+      responses:
+        "200":
+          description: Storage status queried successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/StorageStatus"
+        "400":
+          description: Invalid parameters or storage doesn't exist
           content:
             application/json:
               schema:
@@ -676,7 +694,7 @@ paths:
                 "back",
                 "start",
                 "busy",
-                "status",
+                "custom",
                 "off",
                 "apps",
                 "settings",
@@ -785,51 +803,11 @@ paths:
               schema:
                 $ref: "#/components/schemas/Error"
 
-  /api/wifi/enable:
-    post:
-      tags:
-        - Wifi
-      description: Enables wifi module
-      parameters: []
-      responses:
-        "200":
-          description: Wifi enabled
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/SuccessResponse"
-        "400":
-          description: Wifi already enabled
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/Error"
-
-  /api/wifi/disable:
-    post:
-      tags:
-        - Wifi
-      description: Disables wifi module
-      parameters: []
-      responses:
-        "200":
-          description: Wifi disabled
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/SuccessResponse"
-        "400":
-          description: Not initialized
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/Error"
-
   /api/wifi/status:
     get:
       tags:
-        - Wifi
-      description: Returns current wifi status
+        - Wi-Fi
+      description: Returns current Wi-Fi status
       parameters: []
       responses:
         "200":
@@ -842,8 +820,8 @@ paths:
   /api/wifi/connect:
     post:
       tags:
-        - Wifi
-      description: Attempts to connect to wifi using config
+        - Wi-Fi
+      description: Attempts to connect to Wi-Fi using config
       parameters: []
       requestBody:
         required: true
@@ -859,7 +837,7 @@ paths:
               schema:
                 $ref: "#/components/schemas/SuccessResponse"
         "400":
-          description: Wifi already connected
+          description: Wi-Fi already connected
           content:
             application/json:
               schema:
@@ -868,8 +846,8 @@ paths:
   /api/wifi/disconnect:
     post:
       tags:
-        - Wifi
-      description: Attempts to connect to wifi using config
+        - Wi-Fi
+      description: Attempts to connect to Wi-Fi using config
       parameters: []
       responses:
         "200":
@@ -888,8 +866,8 @@ paths:
   /api/wifi/networks:
     get:
       tags:
-        - Wifi
-      description: Scans environment for available wifi networks
+        - Wi-Fi
+      description: Scans environment for available Wi-Fi networks
       parameters: []
       responses:
         "200":
@@ -899,21 +877,7 @@ paths:
               schema:
                 $ref: "#/components/schemas/NetworkResponse"
         "400":
-          description: Wifi already connected
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/Error"
-
-  /api/wifi/forget:
-    post:
-      tags:
-        - Wifi
-      description: Forgets saved Wifi config
-      parameters: []
-      responses:
-        "400":
-          description: Not implemented
+          description: Wi-Fi already connected
           content:
             application/json:
               schema:
@@ -971,12 +935,12 @@ paths:
   /api/ble/enable:
     post:
       tags:
-        - Ble
-      description: Enables ble module
+        - BLE
+      description: Enables BLE module
       parameters: []
       responses:
         "200":
-          description: Ble enabled
+          description: BLE enabled
           content:
             application/json:
               schema:
@@ -985,12 +949,12 @@ paths:
   /api/ble/disable:
     post:
       tags:
-        - Ble
-      description: Disables ble module
+        - BLE
+      description: Disables BLE module
       parameters: []
       responses:
         "200":
-          description: Ble disabled
+          description: BLE disabled
           content:
             application/json:
               schema:
@@ -1167,6 +1131,20 @@ components:
             size: 65535
           - type: "dir"
             name: "assets"
+
+    StorageStatus:
+      type: object
+      properties:
+        used_bytes:
+          type: integer
+          example: 123456
+        free_bytes:
+          type: integer
+          example: 654321
+        total_bytes:
+          type: integer
+          description: "Total size of the parition"
+          example: 777777
 
     StorageListElement:
       type: object
@@ -1408,13 +1386,9 @@ components:
           WPA,
           WPA2,
           WEP,
-          WPA (Enterprise),
-          WPA2 (Enterprise),
           WPA/WPA2,
           WPA3,
           WPA2/WPA3,
-          WPA3 (Enterprise),
-          WPA2/WPA3 (Enterprise),
         ]
 
     WifiIpMethod:
@@ -1444,14 +1418,23 @@ components:
       properties:
         state:
           type: string
-          example: enabled
+          example: disconnected
           enum:
-            - disabled
-            - enabled
+            - disconnected
             - connected
         ssid:
           type: string
           example: Your_WIFI_SSID
+        bssid:
+          type: string
+          pattern: "^([A-F0-9]:){5}[A-F0-9]$"
+          example: "EC:5A:00:0B:55:1D"
+        channel:
+          type: integer
+          example: "3"
+        rssi:
+          type: integer
+          example: "-43"
         security:
           $ref: "#/components/schemas/WifiSecurityMethod"
         ip_config:
@@ -1481,8 +1464,6 @@ components:
           properties:
             ip_method:
               $ref: "#/components/schemas/WifiIpMethod"
-            ip_type:
-              $ref: "#/components/schemas/WifiIpType"
             address:
               type: string
               example: 192.168.50.5
@@ -1512,8 +1493,8 @@ components:
 tags:
   - name: System
     description: System information and control
-  - name: Wifi
-    description: Allows to operate with Wifi
+  - name: Wi-Fi
+    description: Allows to operate with Wi-Fi
   - name: Assets
     description: Asset file management and display control
   - name: WebSocket
@@ -1524,5 +1505,5 @@ tags:
     description: Device settings
   - name: Input
     description: Input events
-  - name: Ble
+  - name: BLE
     description: Allows to operate with BLE
