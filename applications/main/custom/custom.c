@@ -197,11 +197,7 @@ void custom_set_status_lights(CustomApp* instance, CustomStatusLightsType type) 
 
 void custom_set_matter(CustomApp* instance, bool switch_state) {
     furi_assert(instance);
-    MatterVirtualDeviceState device_state = {
-        .device = MatterVirtualDeviceSwitch2,
-        .bool_val = switch_state,
-    };
-    matter_set_state(instance->matter, device_state);
+    matter_set_switch_state(instance->matter, switch_state);
 }
 
 void custom_push_location(CustomApp* instance, const char* location_name) {

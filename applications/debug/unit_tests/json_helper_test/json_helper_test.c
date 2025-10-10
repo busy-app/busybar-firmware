@@ -73,6 +73,27 @@ MU_TEST(json_helper_test_write) {
     mu_assert_int_eq(
         JsonConfigStatusOk,
         json_config_write_str(json_config, "test_str_key", "test_string_value"));
+
+    mu_assert_int_eq(
+        JsonConfigStatusOk, json_config_write_int(json_config, "test_int_removed_key", 96));
+    mu_assert_int_eq(
+        JsonConfigStatusOk,
+        json_config_write_number(json_config, "test_float_removed_key", 2.28f));
+    mu_assert_int_eq(
+        JsonConfigStatusOk, json_config_write_bool(json_config, "test_bool_removed_key", false));
+    mu_assert_int_eq(
+        JsonConfigStatusOk,
+        json_config_write_str(json_config, "test_str_removed_key", "test_string_value_2"));
+}
+
+MU_TEST(json_helper_test_delete) {
+    mu_assert_int_eq(
+        JsonConfigStatusOk, json_config_open(json_config, JSON_UNIT_TESTS_NORMAL_PATH));
+    mu_assert_int_eq(JsonConfigStatusOk, json_config_delete(json_config, "test_int_removed_key"));
+    mu_assert_int_eq(
+        JsonConfigStatusOk, json_config_delete(json_config, "test_float_removed_key"));
+    mu_assert_int_eq(JsonConfigStatusOk, json_config_delete(json_config, "test_bool_removed_key"));
+    mu_assert_int_eq(JsonConfigStatusOk, json_config_delete(json_config, "test_str_removed_key"));
 }
 
 MU_TEST(json_helper_test_read) {
@@ -143,12 +164,43 @@ MU_TEST(json_helper_test_read) {
         mu_assert_string_eq("test_string_value", furi_string_get_cstr(val));
         furi_string_free(val);
     }
+
+    // removed values
+    {
+        int val = 0;
+        mu_assert_int_eq(
+            JsonConfigStatusMissing,
+            json_config_read_int(json_config, "test_int_removed_key", &val, NULL));
+    }
+
+    {
+        float val = 0.0f;
+        mu_assert_int_eq(
+            JsonConfigStatusMissing,
+            json_config_read_number(json_config, "test_float_removed_key", &val, NULL));
+    }
+
+    {
+        bool val = false;
+        mu_assert_int_eq(
+            JsonConfigStatusMissing,
+            json_config_read_bool(json_config, "test_bool_removed_key", &val, NULL));
+    }
+
+    {
+        FuriString* val = furi_string_alloc();
+        mu_assert_int_eq(
+            JsonConfigStatusMissing,
+            json_config_read_str(json_config, "test_str_removed_key", val, NULL));
+        furi_string_free(val);
+    }
 }
 
 MU_TEST_SUITE(json_helper_test_suite_normal) {
     MU_SUITE_CONFIGURE(&json_config_setup, &json_config_teardown);
     MU_RUN_TEST(json_helper_test_read_default);
     MU_RUN_TEST(json_helper_test_write);
+    MU_RUN_TEST(json_helper_test_delete);
     MU_RUN_TEST(json_helper_test_read);
 }
 
