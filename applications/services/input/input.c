@@ -1,6 +1,5 @@
 #include "input.h"
-#include "input_common.h"
-#include "input_common_i.h"
+#include "input_common_f64.h"
 
 #include <furi.h>
 #include <toolbox/api_lock.h>
@@ -66,8 +65,8 @@ const char* input_get_key_name(InputKey key) {
         return "InputKeyStart";
     case InputKeyBusy:
         return "InputKeyBusy";
-    case InputKeyStatus:
-        return "InputKeyStatus";
+    case InputKeyCustom:
+        return "InputKeyCustom";
     case InputKeyOff:
         return "InputKeyOff";
     case InputKeyApps:

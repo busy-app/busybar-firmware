@@ -96,7 +96,7 @@ static void wifi_setup_print_info(const WifiInfo* info) {
         furi_string_cat(str, "DYNAMIC ");
     }
 
-    furi_string_cat_printf(str, "%-16s\r\n", wifi_security_str[info->securiy_mode]);
+    furi_string_cat_printf(str, "%-16s\r\n", wifi_security_str[info->security_mode]);
 
     furi_log_puts(furi_string_get_cstr(str));
     furi_string_free(str);

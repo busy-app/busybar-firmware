@@ -90,7 +90,7 @@ class Main(App):
         self.attest_parser.add_argument(
             "--dac",
             required=True,
-            help="DAC (Device Attestation Ceritificate) file (.pem or .der format)",
+            help="DAC (Device Attestation Certificate) file (.pem or .der format)",
         )
         self.attest_parser.add_argument(
             "--pai",
@@ -155,7 +155,7 @@ class Main(App):
         self.info_parser.add_argument(
             "--product-name",
             type=str,
-            default="Busy Status Bar",
+            default="BUSY Bar",
             help="Product name string",
         )
         self.info_parser.add_argument(
@@ -170,7 +170,7 @@ class Main(App):
         self.info_parser.add_argument(
             "--product-label",
             type=str,
-            default="Busy",
+            default="BUSY",
             help="Product label (shown in app)",
         )
         self.info_parser.add_argument(

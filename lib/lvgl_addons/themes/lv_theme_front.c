@@ -23,21 +23,33 @@ typedef struct {
     lv_style_t disabled;
     lv_style_t transparent;
     lv_style_t scrollbar;
+
     lv_style_t menu_item;
     lv_style_t menu_icon;
     lv_style_t menu_sublabel;
     lv_style_t menu_arrow;
+
     lv_style_t submenu;
     lv_style_t submenu_cursor;
+
     lv_style_t var_item_editor;
+
     lv_style_t timer_label;
+
     lv_style_t margin_right;
+
     lv_style_t title_card;
+
     lv_style_t slider_view;
     lv_style_t slider_view_image;
     lv_style_t slider_view_text_container;
+
     lv_style_t progress_bar;
     lv_style_t progress_bar_fill;
+
+    lv_style_t status_view_icon;
+    lv_style_t status_view_header;
+    lv_style_t status_view_additional_text;
 } my_theme_styles_t;
 
 typedef struct {
@@ -68,6 +80,11 @@ static void style_init(my_theme_t* theme) {
     lv_style_set_text_opa(&theme->styles.transparent, LV_OPA_TRANSP);
     lv_style_set_image_opa(&theme->styles.transparent, LV_OPA_TRANSP);
 
+    lv_style_init(&theme->styles.scrollbar);
+    lv_style_set_bg_opa(&theme->styles.scrollbar, LV_OPA_COVER);
+    lv_style_set_bg_color(&theme->styles.scrollbar, COLOR_FG_FOCUSED);
+    lv_style_set_width(&theme->styles.scrollbar, SCROLLBAR_WIDTH);
+
     lv_style_init(&theme->styles.menu_item);
     lv_style_set_pad_hor(&theme->styles.menu_item, MENU_ITEM_PAD_HOR);
     lv_style_set_pad_ver(&theme->styles.menu_item, MENU_ITEM_PAD_VER);
@@ -94,11 +111,6 @@ static void style_init(my_theme_t* theme) {
     lv_style_init(&theme->styles.timer_label);
     lv_style_set_pad_row(&theme->styles.timer_label, 1);
     lv_style_set_text_color(&theme->styles.timer_label, COLOR_FG_FOCUSED);
-
-    lv_style_init(&theme->styles.scrollbar);
-    lv_style_set_bg_opa(&theme->styles.scrollbar, LV_OPA_COVER);
-    lv_style_set_bg_color(&theme->styles.scrollbar, COLOR_FG_FOCUSED);
-    lv_style_set_width(&theme->styles.scrollbar, SCROLLBAR_WIDTH);
 
     lv_style_init(&theme->styles.margin_right);
     lv_style_set_margin_right(&theme->styles.margin_right, 2);
@@ -130,6 +142,19 @@ static void style_init(my_theme_t* theme) {
     lv_style_set_bg_grad_dir(&theme->styles.progress_bar_fill, LV_GRAD_DIR_HOR);
     lv_style_set_bg_color(&theme->styles.progress_bar_fill, PROGRESS_BAR_FILL_COLOR_1);
     lv_style_set_bg_grad_color(&theme->styles.progress_bar_fill, PROGRESS_BAR_FILL_COLOR_2);
+
+    lv_style_init(&theme->styles.status_view_icon);
+    lv_style_set_align(&theme->styles.status_view_icon, LV_ALIGN_LEFT_MID);
+
+    lv_style_init(&theme->styles.status_view_header);
+    lv_style_set_align(&theme->styles.status_view_header, LV_ALIGN_LEFT_MID);
+    lv_style_set_x(&theme->styles.status_view_header, 10);
+    lv_style_set_text_color(&theme->styles.status_view_header, COLOR_FG_FOCUSED);
+
+    lv_style_init(&theme->styles.status_view_additional_text);
+    lv_style_set_align(&theme->styles.status_view_additional_text, LV_ALIGN_LEFT_MID);
+    lv_style_set_x(&theme->styles.status_view_additional_text, 10);
+    lv_style_set_text_color(&theme->styles.status_view_additional_text, COLOR_FG_NORMAL);
 }
 
 static void theme_apply_callback(lv_theme_t* th, lv_obj_t* obj) {
@@ -243,6 +268,18 @@ static void theme_apply_callback(lv_theme_t* th, lv_obj_t* obj) {
 
     } else if(lv_obj_check_type(obj, &progress_bar_fill_lvgl_class)) {
         lv_obj_add_style(obj, &theme->styles.progress_bar_fill, LV_PART_MAIN);
+
+    } else if(lv_obj_check_type(obj, &status_view_lvgl_class)) {
+        lv_obj_add_style(obj, &theme->styles.normal, LV_PART_MAIN);
+
+    } else if(lv_obj_check_type(obj, &status_view_icon_lvgl_class)) {
+        lv_obj_add_style(obj, &theme->styles.status_view_icon, LV_PART_MAIN);
+
+    } else if(lv_obj_check_type(obj, &status_view_header_lvgl_class)) {
+        lv_obj_add_style(obj, &theme->styles.status_view_header, LV_PART_MAIN);
+
+    } else if(lv_obj_check_type(obj, &status_view_additional_text_lvgl_class)) {
+        lv_obj_add_style(obj, &theme->styles.status_view_additional_text, LV_PART_MAIN);
 #endif
     }
 }

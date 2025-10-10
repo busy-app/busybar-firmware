@@ -195,11 +195,25 @@ static void wifi_get_info_request_handler(Wifi* instance) {
         }
 
         const sl_wifi_client_configuration_t* config = &profile.config;
+        sl_si91x_rsp_wireless_info_t wireless_info;
+
+        status = sl_wifi_get_wireless_info(&wireless_info);
+        if(status != SL_STATUS_OK) {
+            FURI_LOG_E(TAG, "Failed to get Wifi wireless info: %lX", status);
+            break;
+        }
+
+        status = sl_wifi_get_signal_strength(SL_WIFI_CLIENT_INTERFACE, &info->rssi);
+        if(status != SL_STATUS_OK) {
+            FURI_LOG_E(TAG, "Failed to get Wifi RSSI: %lX", status);
+            break;
+        }
 
         wifi_decode_ssid(info->ssid, &config->ssid);
         wifi_decode_ip_config(&info->ip_config, &profile.ip);
-
-        info->securiy_mode = wifi_decode_security_mode(config->security);
+        memcpy(&info->bssid, wireless_info.bssid, HW_ADDRESS_LEN);
+        info->channel = wireless_info.channel_number;
+        info->security_mode = wifi_decode_security_mode(config->security);
 
     } while(false);
 

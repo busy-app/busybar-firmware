@@ -153,8 +153,6 @@ static int32_t wifi_startup_thread_callback(void* arg) {
 
         wifi_load_settings(instance);
 
-        furi_record_create(RECORD_WIFI, instance);
-
         const WifiSettings* settings = &instance->settings;
         const char* ssid = settings->credentials.ssid;
 
@@ -190,6 +188,8 @@ static int32_t wifi_startup_thread_callback(void* arg) {
 
     } while(false);
 
+    furi_record_create(RECORD_WIFI, instance);
+
     return 0;
 }
 
@@ -214,6 +214,9 @@ static Wifi* wifi_alloc(void) {
 
     furi_event_loop_set_custom_event_callback(
         instance->event_loop, wifi_custom_event_callback, instance);
+
+    // TODO [FW-300]: Implement reliable Intercom channel opening
+    furi_delay_ms(250); // Wait for the Wifi service to become ready on Si917
 
     intercom_set_rx_callback(
         instance->intercom, IntercomChannelWifi, wifi_intercom_rx_callback, instance);
