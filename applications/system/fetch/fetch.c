@@ -117,6 +117,8 @@ bool fetch_url(PipeSide* pipe, FuriString* url, FuriString* args, void* context)
 
     fetch_client_set_callback_error(instance->fetch_client, fetch_client_callback_error);
 
+    uint32_t fetch_start_time = furi_get_tick() / furi_kernel_get_tick_frequency();
+
     fetch_client_run(instance->fetch_client, url);
 
     const char spin_chars[] = "|/-\\";
@@ -197,9 +199,12 @@ bool fetch_url(PipeSide* pipe, FuriString* url, FuriString* args, void* context)
     // If saving to file, close and report
     if(instance->file_save) {
         if(!instance->error) {
+            uint32_t elapsed =
+                furi_get_tick() / furi_kernel_get_tick_frequency() - fetch_start_time;
             printf(
-                ANSI_FG_GREEN "File successfully saved to %s\r\n" ANSI_RESET,
-                furi_string_get_cstr(path));
+                ANSI_FG_GREEN "File successfully saved to %s in %lds\r\n" ANSI_RESET,
+                furi_string_get_cstr(path),
+                elapsed);
             ret = true;
         } else {
             fetch_file_save_remove(instance->file_save);
