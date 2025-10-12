@@ -15,6 +15,7 @@ typedef enum {
     SettingsSceneMainMenuIndexBrightness,
     SettingsSceneMainMenuIndexAccount,
     SettingsSceneMainMenuIndexDebugApps,
+    SettingsSceneMainMenuIndexFwUpdate,
     SettingsSceneMainMenuIndexMatter,
 
     SettingsSceneMainMenuIndexesCount,
@@ -42,6 +43,11 @@ static const NextSceneParameters next_scenes_parameters[] = {
         {
             .nav_bar_entry = "BRIGHTNESS",
             .scene_id = SettingsAppSceneIdBrightness,
+        },
+    [SettingsSceneMainMenuIndexFwUpdate] =
+        {
+            .nav_bar_entry = "FW UPDATE",
+            .scene_id = SettingsAppSceneIdFwUpdate,
         },
     [SettingsSceneMainMenuIndexDebugApps] =
         {
@@ -113,9 +119,17 @@ static void settings_scene_main_on_enter(void* context) {
         menu_add_item(
             data->front_menu,
             "Account",
-            NULL,
+            "",
             SETTINGS_IMG_PATH("account_front_8x8.bin"),
             SettingsSceneMainMenuIndexAccount,
+            settings_scene_setup_menu_callback,
+            instance);
+        menu_add_item(
+            data->front_menu,
+            "FW Update",
+            "",
+            SETTINGS_IMG_PATH("fw_update_8x8.bin"),
+            SettingsSceneMainMenuIndexFwUpdate,
             settings_scene_setup_menu_callback,
             instance);
         menu_add_item(
@@ -161,6 +175,14 @@ static void settings_scene_main_on_enter(void* context) {
             NULL,
             SETTINGS_IMG_PATH("account_back_12x12.bin"),
             SettingsSceneMainMenuIndexAccount,
+            NULL,
+            instance);
+        menu_add_item(
+            data->back_menu,
+            "FW UPDATE",
+            NULL,
+            SETTINGS_IMG_PATH("fw_update_12x12.bin"),
+            SettingsSceneMainMenuIndexFwUpdate,
             NULL,
             instance);
         menu_add_item(
