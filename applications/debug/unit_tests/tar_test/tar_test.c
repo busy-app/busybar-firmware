@@ -7,7 +7,7 @@
 #include <toolbox/path.h>
 #include <applications/system/tar/tar.h>
 
-#define TAG                       "Tar_Test"
+#define TAG                       "TarTest"
 #define TAR_UNIT_TESTS_PATH       UNIT_TESTS_PATH("tar_unit_test")
 #define TAR_UNIT_TESTS_FILE_NAME1 TAR_UNIT_TESTS_PATH "/test1.txt"
 #define TAR_UNIT_TESTS_FILE_NAME2 TAR_UNIT_TESTS_PATH "/test2.txt"
