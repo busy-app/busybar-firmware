@@ -13,8 +13,7 @@
 #define CHECK_STORAGE_EXT_PATH_PREFIX    STORAGE_EXT_PATH_PREFIX "/"
 #define CHECK_STORAGE_BACKUP_PATH_PREFIX STORAGE_BACKUP_PATH_PREFIX "/"
 
-typedef bool (
-    *TarCliCommandCallback)(PipeSide* pipe, const char* cmd, FuriString* path, FuriString* args);
+typedef bool (*TarCliCommandCallback)(FuriString* path, FuriString* args);
 
 typedef struct {
     const char* command;
@@ -64,13 +63,8 @@ static bool tar_check_params(const char* cmd, FuriString* path, FuriString* args
     return true;
 }
 
-static bool tar_compress_directory_cli(
-    PipeSide* pipe,
-    const char* cmd,
-    FuriString* path,
-    FuriString* args) {
-    UNUSED(pipe);
-    if(!tar_check_params(cmd, path, args)) {
+bool tar_compress_directory_cli(FuriString* path, FuriString* args) {
+    if(!tar_check_params("c", path, args)) {
         printf(CLI_STATUS_ERROR);
         return false;
     }
@@ -111,10 +105,8 @@ static bool tar_compress_directory_cli(
     return success;
 }
 
-static bool
-    tar_extract_files_cli(PipeSide* pipe, const char* cmd, FuriString* path, FuriString* args) {
-    UNUSED(pipe);
-    if(!tar_check_params(cmd, path, args)) {
+bool tar_extract_files_cli(FuriString* path, FuriString* args) {
+    if(!tar_check_params("x", path, args)) {
         printf(CLI_STATUS_ERROR);
         return false;
     }
@@ -181,6 +173,7 @@ static void tar_cli_print_usage(void) {
 
 void tar_command(PipeSide* pipe, FuriString* args, void* context) {
     UNUSED(context);
+    UNUSED(pipe);
     FuriString* cmd;
     FuriString* path;
     cmd = furi_string_alloc();
@@ -201,7 +194,7 @@ void tar_command(PipeSide* pipe, FuriString* args, void* context) {
         for(; i < COUNT_OF(tar_cli_commands); ++i) {
             const TarCliCommand* command_descr = &tar_cli_commands[i];
             if(furi_string_cmp_str(cmd, command_descr->command) == 0) {
-                command_descr->impl(pipe, command_descr->command, path, args);
+                command_descr->impl(path, args);
                 break;
             }
         }
