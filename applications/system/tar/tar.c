@@ -13,20 +13,20 @@
 #define CHECK_STORAGE_EXT_PATH_PREFIX    STORAGE_EXT_PATH_PREFIX "/"
 #define CHECK_STORAGE_BACKUP_PATH_PREFIX STORAGE_BACKUP_PATH_PREFIX "/"
 
-static void tar_compress_directory_example(void) {
-    printf("Example: tar c /ext/backup.tar /ext/mydir\r\n");
+typedef bool (
+    *TarCliCommandCallback)(PipeSide* pipe, const char* cmd, FuriString* path, FuriString* args);
+
+typedef struct {
+    const char* command;
+    const char* help;
+    const TarCliCommandCallback impl;
+} TarCliCommand;
+
+static void tar_compress_directory_example(const char* cmd) {
+    printf("Example: tar %s /ext/backup.tar /ext/mydir\r\n", cmd);
 }
 
-static bool tar_check_params(FuriString* path, FuriString* args) {
-    size_t pos = furi_string_search_str(path, ".tar", 0);
-    if(pos == FURI_STRING_FAILURE) {
-        printf(
-            ANSI_FG_RED "Error: Destination path must end with .tar extension : %s\r\n" ANSI_RESET,
-            furi_string_get_cstr(path));
-        tar_compress_directory_example();
-        return false;
-    }
-
+static bool tar_check_params(const char* cmd, FuriString* path, FuriString* args) {
     if(!(strncmp(
              furi_string_get_cstr(path),
              CHECK_STORAGE_EXT_PATH_PREFIX,
@@ -40,7 +40,7 @@ static bool tar_check_params(FuriString* path, FuriString* args) {
             STORAGE_EXT_PATH_PREFIX,
             STORAGE_BACKUP_PATH_PREFIX,
             furi_string_get_cstr(path));
-        tar_compress_directory_example();
+        tar_compress_directory_example(cmd);
         return false;
     }
 
@@ -57,25 +57,38 @@ static bool tar_check_params(FuriString* path, FuriString* args) {
             STORAGE_EXT_PATH_PREFIX,
             STORAGE_BACKUP_PATH_PREFIX,
             furi_string_get_cstr(args));
-        tar_compress_directory_example();
+        tar_compress_directory_example(cmd);
         return false;
     }
 
     return true;
 }
 
-static void tar_compress_directory_cli(PipeSide* pipe, FuriString* path, FuriString* args) {
+static bool tar_compress_directory_cli(
+    PipeSide* pipe,
+    const char* cmd,
+    FuriString* path,
+    FuriString* args) {
     UNUSED(pipe);
-    if(!tar_check_params(path, args)) {
+    if(!tar_check_params(cmd, path, args)) {
         printf(CLI_STATUS_ERROR);
-        return;
+        return false;
     }
 
+    bool success = false;
     Storage* storage = furi_record_open(RECORD_STORAGE);
     TarArchive* archive = tar_archive_alloc(storage);
     do {
+        if(!storage_dir_exists(storage, furi_string_get_cstr(args))) {
+            printf(
+                ANSI_FG_RED "Error: Destination directory does not exist: %s\r\n" ANSI_RESET,
+                furi_string_get_cstr(args));
+            printf(CLI_STATUS_ERROR);
+            break;
+        }
+
         if(!tar_archive_open(archive, furi_string_get_cstr(path), TarOpenModeWrite)) {
-            printf("Failed to open archive for writing\r\n");
+            printf(ANSI_FG_RED "Error: Failed to open archive for writing\r\n" ANSI_RESET);
             printf(CLI_STATUS_ERROR);
             break;
         }
@@ -84,26 +97,28 @@ static void tar_compress_directory_cli(PipeSide* pipe, FuriString* path, FuriStr
             "Compressing directory %s to %s\r\n",
             furi_string_get_cstr(args),
             furi_string_get_cstr(path));
-        bool success = tar_archive_add_dir(archive, furi_string_get_cstr(args), "");
+        success = tar_archive_add_dir(archive, furi_string_get_cstr(args), "");
         tar_archive_finalize(archive);
         uint32_t end_tick = furi_get_tick();
         printf(
             "Compression %s in %lu ms \r\n",
-            success ? "success" : "failed",
+            success ? ANSI_FG_GREEN "success" ANSI_RESET : ANSI_FG_RED "failed" ANSI_RESET,
             (end_tick - start_tick) * furi_kernel_get_tick_frequency() / 1000);
         printf(success ? CLI_STATUS_OK : CLI_STATUS_ERROR);
     } while(false);
     tar_archive_free(archive);
     furi_record_close(RECORD_STORAGE);
+    return success;
 }
 
-static void tar_extract_files_cli(PipeSide* pipe, FuriString* path, FuriString* args) {
+static bool
+    tar_extract_files_cli(PipeSide* pipe, const char* cmd, FuriString* path, FuriString* args) {
     UNUSED(pipe);
-    if(!tar_check_params(path, args)) {
+    if(!tar_check_params(cmd, path, args)) {
         printf(CLI_STATUS_ERROR);
-        return;
+        return false;
     }
-
+    bool success = false;
     Storage* storage = furi_record_open(RECORD_STORAGE);
     TarArchive* archive = tar_archive_alloc(storage);
     do {
@@ -115,7 +130,7 @@ static void tar_extract_files_cli(PipeSide* pipe, FuriString* path, FuriString* 
             break;
         }
         if(!tar_archive_open(archive, furi_string_get_cstr(path), TarOpenModeRead)) {
-            printf("Failed to open archive for reading\r\n");
+            printf(ANSI_FG_RED "Error: Failed to open archive for reading\r\n" ANSI_RESET);
             printf(CLI_STATUS_ERROR);
             break;
         }
@@ -124,25 +139,18 @@ static void tar_extract_files_cli(PipeSide* pipe, FuriString* path, FuriString* 
             "Extracting archive %s to %s\r\n",
             furi_string_get_cstr(path),
             furi_string_get_cstr(args));
-        bool success = tar_archive_unpack_to(archive, furi_string_get_cstr(args), NULL);
+        success = tar_archive_unpack_to(archive, furi_string_get_cstr(args), NULL);
         uint32_t end_tick = furi_get_tick();
         printf(
             "Decompression %s in %lu ms \r\n",
-            success ? "success" : "failed",
+            success ? ANSI_FG_GREEN "success" ANSI_RESET : ANSI_FG_RED "failed" ANSI_RESET,
             (end_tick - start_tick) * furi_kernel_get_tick_frequency() / 1000);
         printf(success ? CLI_STATUS_OK : CLI_STATUS_ERROR);
     } while(false);
     tar_archive_free(archive);
     furi_record_close(RECORD_STORAGE);
+    return success;
 }
-
-typedef void (*TarCliCommandCallback)(PipeSide* pipe, FuriString* path, FuriString* args);
-
-typedef struct {
-    const char* command;
-    const char* help;
-    const TarCliCommandCallback impl;
-} TarCliCommand;
 
 static const TarCliCommand tar_cli_commands[] = {
     {
@@ -193,7 +201,7 @@ void tar_command(PipeSide* pipe, FuriString* args, void* context) {
         for(; i < COUNT_OF(tar_cli_commands); ++i) {
             const TarCliCommand* command_descr = &tar_cli_commands[i];
             if(furi_string_cmp_str(cmd, command_descr->command) == 0) {
-                command_descr->impl(pipe, path, args);
+                command_descr->impl(pipe, command_descr->command, path, args);
                 break;
             }
         }
