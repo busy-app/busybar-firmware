@@ -2,8 +2,12 @@
 
 #include <furi.h>
 
+// Do not support 4 Enterprise security modes: SL_WIFI_WPA_ENTERPRISE, SL_WIFI_WPA2_ENTERPRISE,
+// SL_WIFI_WPA3_ENTERPRISE and SL_WIFI_WPA3_TRANSITION_ENTERPRISE
+#define WIFI_SECURITY_MODE_NOT_SUPPORTED_NUM (4)
 static_assert(
-    (int)WifiSecurityModeWpa3TransitionEnterprise == (int)SL_WIFI_WPA3_TRANSITION_ENTERPRISE,
+    (WifiSecurityModeWpa3Transition + WIFI_SECURITY_MODE_NOT_SUPPORTED_NUM) ==
+        SL_WIFI_WPA3_TRANSITION_ENTERPRISE,
     "Security mode enum mismatch");
 
 WifiStatus wifi_decode_sl_status(sl_status_t sl_status) {
