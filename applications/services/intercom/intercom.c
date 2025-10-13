@@ -35,10 +35,12 @@
 
 #define INTERCOM_MAGIC_DELAY (100UL)
 
-typedef struct {
+struct IntercomChHandle {
+    Intercom* intercom;
+    FuriSemaphore* other_side_ready;
     IntercomRxCallback rx_callback;
     void* callback_context;
-} IntercomChannelData;
+};
 
 struct Intercom {
     FuriThread* rx_thread;
@@ -51,7 +53,7 @@ struct Intercom {
     bool is_initial_sync_done;
     bool error_handling_disabled;
     _Atomic bool is_in_sync;
-    IntercomChannelData channels[IntercomChannelMax];
+    IntercomChHandle handles[IntercomChannelMax];
     IntercomFrame tx_frame;
     IntercomFrame rx_frame;
 };
@@ -114,10 +116,12 @@ static void intercom_dump_frame(const IntercomFrame* frame) {
 
     furi_string_printf(
         tmp,
-        "chan : %hhu\r\n"
+        "cmd  : %d\r\n"
+        "chan : %d\r\n"
         "size : %hu\r\n"
         "data : \r\n",
-        frame->channel,
+        intercom_frame_get_command(frame),
+        intercom_frame_get_channel(frame),
         frame->data_size);
 
     for(uint32_t i = 0; i < sizeof(frame->data); ++i) {
@@ -215,7 +219,7 @@ static bool intercom_try_sync(Intercom* instance) {
         intercom_publish_sync_state_change(instance, true);
         instance->is_initial_sync_done = true;
 
-        // TODO find proper enterprose delay value
+        // TODO: find proper enterprise delay value
         furi_delay_ms(INTERCOM_MAGIC_DELAY);
         furi_check(furi_semaphore_release(instance->tx_semaphore) == FuriStatusOk);
     } else {
@@ -241,18 +245,41 @@ static FURI_ALWAYS_INLINE void intercom_process_tx_data_event(Intercom* instance
     intercom_send_tx_frame(instance);
 }
 
+static FURI_ALWAYS_INLINE void intercom_process_data_frame(Intercom* instance) {
+    furi_assert(instance);
+    const IntercomFrame* frame = &instance->rx_frame;
+    furi_assert(intercom_frame_get_command(frame) == IntercomFrameCommandData);
+
+    const IntercomChHandle* handle = &instance->handles[intercom_frame_get_channel(frame)];
+    if(handle->rx_callback) {
+        handle->rx_callback(frame->data, frame->data_size, handle->callback_context);
+    }
+}
+
+static FURI_ALWAYS_INLINE void intercom_process_open_frame(Intercom* instance) {
+    furi_assert(instance);
+    const IntercomFrame* frame = &instance->rx_frame;
+    furi_assert(intercom_frame_get_command(frame) == IntercomFrameCommandOpen);
+
+    const IntercomChHandle* handle = &instance->handles[intercom_frame_get_channel(frame)];
+    furi_check(furi_semaphore_release(handle->other_side_ready) == FuriStatusOk);
+}
+
 static FURI_ALWAYS_INLINE void intercom_process_rx_frame_event(Intercom* instance) {
     INTERCOM_LOG_D("Frame received");
 
-    IntercomFrame* rx_frame = &instance->rx_frame;
+    const IntercomFrame* rx_frame = &instance->rx_frame;
 
     if(intercom_frame_is_valid(rx_frame)) {
-        const IntercomChannelData* channel_data = &instance->channels[rx_frame->channel];
-
-        if(channel_data->rx_callback) {
-            channel_data->rx_callback(
-                rx_frame->data, rx_frame->data_size, channel_data->callback_context);
+        IntercomFrameCommand command = intercom_frame_get_command(rx_frame);
+        if(command == IntercomFrameCommandData) {
+            intercom_process_data_frame(instance);
+        } else if(command == IntercomFrameCommandOpen) {
+            intercom_process_open_frame(instance);
+        } else {
+            furi_crash("not implemented");
         }
+
     } else {
         intercom_error_handler(IntercomErrorFraming, instance);
     }
@@ -334,6 +361,11 @@ static Intercom* intercom_alloc(void) {
     instance->pubsub = furi_pubsub_alloc();
     intercom_error_handling_enable(instance);
 
+    for(IntercomChannel i = 0; i < IntercomChannelMax; i++) {
+        instance->handles[i].intercom = instance;
+        instance->handles[i].other_side_ready = furi_semaphore_alloc(1, 0);
+    }
+
     furi_event_loop_set_custom_event_callback(
         instance->event_loop, intercom_custom_event_callback, instance);
 
@@ -360,15 +392,12 @@ static Intercom* intercom_alloc(void) {
     return instance;
 }
 
-size_t intercom_tx(
-    Intercom* instance,
-    IntercomChannel channel,
-    const void* data,
-    size_t data_size,
-    uint32_t timeout) {
-    furi_check(instance);
+size_t
+    intercom_tx(IntercomChHandle* handle, const void* data, size_t data_size, uint32_t timeout) {
+    furi_check(handle);
     furi_check(data);
     furi_check(data_size > 0);
+    Intercom* instance = handle->intercom;
 
     size_t sent_data_size = 0;
 
@@ -383,7 +412,8 @@ size_t intercom_tx(
         memcpy(frame->data, data + sent_data_size, chunk_size);
         frame->data_size = chunk_size;
 
-        frame->channel = channel;
+        IntercomChannel channel = handle - instance->handles;
+        frame->status_byte = intercom_frame_make_status(IntercomFrameCommandData, channel);
         frame->check = intercom_frame_get_checksum(frame);
 
         INTERCOM_LOG_D("TX payload size: %zu byte(s)", data_size);
@@ -401,18 +431,53 @@ size_t intercom_tx(
     return sent_data_size;
 }
 
-void intercom_set_rx_callback(
+static const char* const intercom_channel_names[IntercomChannelMax] = {
+    [IntercomChannelInput] = "Input",
+    [IntercomChannelWifi] = "Wifi",
+    [IntercomChannelWifiData] = "WifiData",
+    [IntercomChannelStatusLights] = "StatusLights",
+    [IntercomChannelCli] = "Cli",
+    [IntercomChannelBle] = "Ble",
+    [IntercomChannelCryptoBackup] = "CryptoBackup",
+    [IntercomChannelMatter] = "Matter",
+    [IntercomChannelDebug] = "Debug",
+};
+
+IntercomChHandle* intercom_channel_open(
     Intercom* instance,
-    IntercomChannel channel,
+    IntercomChannel ch_id,
+    FuriWait timeout,
     IntercomRxCallback callback,
     void* context) {
     furi_check(instance);
-    furi_check(channel < COUNT_OF(instance->channels));
+    furi_check(ch_id < IntercomChannelMax);
+    if(context) furi_check(callback);
 
-    IntercomChannelData* port_data = &instance->channels[channel];
+    IntercomChHandle* handle = &instance->handles[ch_id];
+    handle->rx_callback = callback;
+    handle->callback_context = context;
 
-    port_data->rx_callback = callback;
-    port_data->callback_context = context;
+    furi_check(furi_semaphore_acquire(instance->tx_semaphore, FuriWaitForever) == FuriStatusOk);
+    IntercomFrame* frame = &instance->tx_frame;
+    frame->status_byte = intercom_frame_make_status(IntercomFrameCommandOpen, ch_id);
+    frame->check = intercom_frame_get_checksum(frame);
+    furi_event_loop_set_custom_event(instance->event_loop, IntercomCustomEventDataAvailable);
+
+    FuriStatus status = furi_semaphore_acquire(handle->other_side_ready, timeout);
+    if((timeout == FuriWaitNever) && (status == FuriStatusErrorResource)) {
+        status = FuriStatusErrorTimeout;
+    }
+
+    const char* ch_name = intercom_channel_names[ch_id];
+    if(status == FuriStatusOk) {
+        FURI_LOG_D(TAG, "Channel %s synced", ch_name);
+    } else if(status == FuriStatusErrorTimeout) {
+        FURI_LOG_D(TAG, "Channel %s sync timeout exceeded (%u ticks)", ch_name, timeout);
+    } else {
+        furi_crash();
+    }
+
+    return handle;
 }
 
 void intercom_error_handling_enable(Intercom* instance) {
