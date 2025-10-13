@@ -112,7 +112,7 @@ static void updater_cli_execute_install(const char* manifest_path) {
 
 static void updater_cli_execute_install_tar(const char* path) {
     printf("Installing update bundle from: %s\r\n", path);
-    if(!update_fw_tar(path)) {
+    if(!update_fw_tar_install(path)) {
         printf("Update failed\r\n");
     }
 }

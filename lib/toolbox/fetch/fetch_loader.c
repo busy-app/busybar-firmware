@@ -1,11 +1,15 @@
 #include "fetch_loader.h"
 
 #include <storage/storage.h>
-#include <wifi/wifi.h>
 #include <toolbox/fetch/fetch_client.h>
 #include <toolbox/fetch/fetch_file_save.h>
 
 #define TAG "FetchLoader"
+
+#define FETCH_LOADER_SIZE_BUFFER              128
+#define FETCH_LOADER_THREAD_STACK_SIZE        2048
+#define FETCH_LOADER_WAIT_FORCED_DONE_MS      5000
+#define FETCH_LOADER_WAIT_FORCED_DONE_STEP_MS 100
 
 struct FetchLoader {
     FuriThread* thread;
@@ -43,6 +47,9 @@ FetchLoader* fetch_loader_alloc(void) {
 void fetch_loader_free(FetchLoader* instance) {
     furi_check(instance);
     furi_check(!furi_semaphore_get_space(instance->is_processing_semaphore));
+    furi_check(!instance->thread);
+    furi_check(!instance->fetch_client);
+    furi_check(!instance->file_save);
 
     furi_message_queue_free(instance->status_queue);
     furi_string_free(instance->url);
@@ -58,59 +65,19 @@ void fetch_loader_forced_done(FetchLoader* instance) {
     //todo: wait connect WiFi
     if(!fetch_client_is_processing_done(instance->fetch_client)) {
         fetch_client_forced_done(instance->fetch_client);
-        uint32_t timeout = 50;
+        int timeout = FETCH_LOADER_WAIT_FORCED_DONE_MS;
         FURI_LOG_D(TAG, "Waiting for fetch client to stop...");
         instance->exit = true;
-        while(furi_semaphore_get_space(instance->is_processing_semaphore) && timeout--) {
-            furi_delay_ms(100);
+        while(furi_semaphore_get_space(instance->is_processing_semaphore) &&
+              (timeout -= FETCH_LOADER_WAIT_FORCED_DONE_STEP_MS) > 0) {
+            furi_delay_ms(FETCH_LOADER_WAIT_FORCED_DONE_STEP_MS);
             FURI_LOG_D(TAG, "Waiting stop...");
         }
-        if(timeout == 0) {
+        if(timeout <= 0) {
             FURI_LOG_E(TAG, "Timeout waiting for fetch loader to stop");
             furi_crash();
         }
     }
-}
-
-static bool fetch_loader_is_connected(FetchLoader* instance) {
-    furi_assert(instance);
-    UNUSED(instance);
-
-    bool ret = false;
-    Wifi* wifi = furi_record_open(RECORD_WIFI);
-    WifiInfo wifi_info;
-    const WifiStatus status = wifi_get_info(wifi, &wifi_info);
-
-    if(status != WifiStatusOk) {
-        FURI_LOG_D(TAG, "Failed to get Wifi info: %d", status);
-    } else if(wifi_info.state != WifiStateUp) {
-        FURI_LOG_D(TAG, "Wifi is not connected");
-    } else {
-        FURI_LOG_D(TAG, "Wifi is connected");
-        ret = true;
-    }
-    furi_record_close(RECORD_WIFI);
-    return ret;
-}
-
-static int32_t fetch_loader_check_wifi_connected(FetchLoader* instance) {
-    furi_assert(instance);
-    bool ret = true;
-    FuriString* state_str = furi_string_alloc_printf("Connecting to server...");
-    if(instance->callback_state) {
-        instance->callback_state(state_str, instance->context_state);
-    }
-
-    if(!fetch_loader_is_connected(instance)) {
-        instance->error = true;
-        furi_string_printf(state_str, "Not connected to WiFi");
-        if(instance->callback_state) {
-            instance->callback_state(state_str, instance->context_state);
-        }
-        ret = false;
-    }
-    furi_string_free(state_str);
-    return ret;
 }
 
 //########## Thread ##########
@@ -168,8 +135,10 @@ static int32_t fetch_loader_thread_callback(void* context) {
     FetchLoader* instance = context;
     FURI_LOG_D(TAG, "Start");
 
-    if(!fetch_loader_check_wifi_connected(instance)) {
-        return 0;
+    if(instance->callback_state) {
+        FuriString* state_str = furi_string_alloc_printf("Connecting to server...");
+        instance->callback_state(state_str, instance->context_state);
+        furi_string_free(state_str);
     }
 
     FuriString* path = instance->path;
@@ -179,8 +148,8 @@ static int32_t fetch_loader_thread_callback(void* context) {
     instance->file_save = fetch_file_save_alloc(path);
     if(!instance->file_save) {
         FURI_LOG_E(TAG, "Failed to open file %s", furi_string_get_cstr(path));
-        furi_crash();
         fetch_client_free(instance->fetch_client);
+        instance->fetch_client = NULL;
         return 0;
     }
     fetch_client_set_callback_raw_data(
@@ -211,7 +180,7 @@ static int32_t fetch_loader_thread_callback(void* context) {
             }
         }
         while(furi_stream_buffer_bytes_available(instance->state_msg)) {
-            uint8_t buffer[128];
+            uint8_t buffer[FETCH_LOADER_SIZE_BUFFER];
             size_t bytes_read =
                 furi_stream_buffer_receive(instance->state_msg, buffer, sizeof(buffer), 0);
             if(bytes_read > 0) {
@@ -227,7 +196,7 @@ static int32_t fetch_loader_thread_callback(void* context) {
     }
 
     if(!instance->error && !instance->exit) {
-        FURI_LOG_D(TAG, "Firmware download complete to %s", furi_string_get_cstr(path));
+        FURI_LOG_D(TAG, "File download complete to %s", furi_string_get_cstr(path));
     } else {
         fetch_file_save_remove(instance->file_save);
         FURI_LOG_E(TAG, "Error occurred during download");
@@ -243,25 +212,26 @@ static int32_t fetch_loader_thread_callback(void* context) {
     return 0;
 }
 
-void fetch_loader_run(FetchLoader* instance, const char* url, const char* path) {
+bool fetch_loader_run(FetchLoader* instance, const char* url, const char* path) {
     furi_check(instance);
 
     if(furi_semaphore_get_space(instance->is_processing_semaphore)) {
-        FURI_LOG_W(TAG, "FW Loader is already running");
-        return;
+        FURI_LOG_W(TAG, "fetch loader is already running");
+        return false;
     }
 
     furi_semaphore_acquire(instance->is_processing_semaphore, FuriWaitForever);
     furi_string_set(instance->url, url);
     furi_string_set(instance->path, path);
-    instance->thread =
-        furi_thread_alloc_ex("FetchLoader", 2048, fetch_loader_thread_callback, instance);
+    instance->thread = furi_thread_alloc_ex(
+        "FetchLoader", FETCH_LOADER_THREAD_STACK_SIZE, fetch_loader_thread_callback, instance);
     furi_thread_set_state_context(instance->thread, instance);
     furi_thread_set_state_callback(instance->thread, fetch_loader_thread_state_callback);
 
     FURI_LOG_D(TAG, "Starting thread");
 
     furi_thread_start(instance->thread);
+    return true;
 }
 
 bool fetch_loader_is_processing_done(FetchLoader* instance) {
