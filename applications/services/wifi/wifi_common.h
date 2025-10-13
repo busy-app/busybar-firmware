@@ -58,9 +58,14 @@ typedef enum {
     WifiSecurityModeWpa,
     WifiSecurityModeWpa2,
     WifiSecurityModeWep,
+    WifiSecurityModeWpaEnterprise,
+    WifiSecurityModeWpa2Enterprise,
     WifiSecurityModeWpaWpa2Mixed,
     WifiSecurityModeWpa3,
     WifiSecurityModeWpa3Transition,
+    WifiSecurityModeWpa3Enterprise,
+    WifiSecurityModeWpa3TransitionEnterprise,
+    WifiSecurityModeUnsupported, /**< The security mode is not supported by this device */
     WifiSecurityModeMax, /**< Special value, internal use */
 } WifiSecurityMode;
 

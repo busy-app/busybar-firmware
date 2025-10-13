@@ -12,7 +12,7 @@
 #define SNTP_UPDATE_TIMEOUT_MS        30000
 #define SNTP_UPDATE_THREAD_STACK_SIZE (1024 * 2)
 
-#define SNTP_H_TO_S(x) ((x) * 60 * 60)
+#define SNTP_M_TO_S(x) ((x) * 60)
 
 typedef enum {
     SntpTimeUpdateStatusNone,
@@ -38,7 +38,7 @@ static void rtc_adjust_time(time_t mseconds_epoch, int timezone_offset) {
     furi_hal_rtc_get_datetime(&datetime_old);
 
     /* apply timezone offset & update RTC with synchronized time */
-    time_t timezone_offset_seconds = SNTP_H_TO_S(timezone_offset);
+    time_t timezone_offset_seconds = SNTP_M_TO_S(timezone_offset);
     datetime_timestamp_to_datetime(seconds_new + timezone_offset_seconds, &datetime_new);
     furi_hal_rtc_set_datetime(&datetime_new);
 
