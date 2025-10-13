@@ -21,7 +21,7 @@ struct FetchLoader {
     FuriMessageQueue* status_queue;
     FuriStreamBuffer* state_msg;
     bool error;
-    bool exit;
+    bool stop_requested;
 
     FetchLoaderCallbackStatus callback_status;
     void* context_status;
@@ -40,7 +40,7 @@ FetchLoader* fetch_loader_alloc(void) {
     instance->state_msg = furi_stream_buffer_alloc(512, 1);
     instance->thread = NULL;
     instance->error = false;
-    instance->exit = false;
+    instance->stop_requested = false;
     return instance;
 }
 
@@ -67,7 +67,7 @@ void fetch_loader_forced_done(FetchLoader* instance) {
         fetch_client_forced_done(instance->fetch_client);
         int timeout = FETCH_LOADER_WAIT_FORCED_DONE_MS;
         FURI_LOG_D(TAG, "Waiting for fetch client to stop...");
-        instance->exit = true;
+        instance->stop_requested = true;
         while(furi_semaphore_get_space(instance->is_processing_semaphore) &&
               (timeout -= FETCH_LOADER_WAIT_FORCED_DONE_STEP_MS) > 0) {
             furi_delay_ms(FETCH_LOADER_WAIT_FORCED_DONE_STEP_MS);
@@ -121,9 +121,9 @@ static void
 
     if(state == FuriThreadStateStopped) {
         furi_thread_free(thread);
+        instance->thread = NULL;
         FURI_LOG_D(TAG, "Stop");
         furi_semaphore_release(instance->is_processing_semaphore);
-        instance->thread = NULL;
         if(instance->callback_done) {
             instance->callback_done(instance->context_done);
         }
@@ -195,7 +195,7 @@ static int32_t fetch_loader_thread_callback(void* context) {
         }
     }
 
-    if(!instance->error && !instance->exit) {
+    if(!instance->error && !instance->stop_requested) {
         FURI_LOG_D(TAG, "File download complete to %s", furi_string_get_cstr(path));
     } else {
         fetch_file_save_remove(instance->file_save);
