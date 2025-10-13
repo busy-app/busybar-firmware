@@ -216,7 +216,7 @@ bool fetch_loader_run(FetchLoader* instance, const char* url, const char* path) 
     furi_check(instance);
 
     if(furi_semaphore_get_space(instance->is_processing_semaphore)) {
-        FURI_LOG_W(TAG, "fetch loader is already running");
+        FURI_LOG_W(TAG, "Fetch loader is already running");
         return false;
     }
 
