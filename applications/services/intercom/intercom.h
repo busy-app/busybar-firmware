@@ -123,15 +123,15 @@ typedef void (*IntercomRxCallback)(const void* data, size_t data_size, void* con
  * This function blocks until code on the other chip opens a channel with the
  * same ID. Once it does, this function returns on both chips.
  * 
- * @warning This function doesn't check whether the channel is currently open by
- *          someone else. It's your responsibility to make sure this never
- *          happens.
+ * @warning You must not call this function from multiple threads on the
+ *          same chip.
  * 
  * @param[in] instance Intercom instance
  * @param[in] ch_id Channel ID
- * @param[in] timeout Timeout in ticks. If this timeout is exceeded, the
- *                    operation will still succeed, but there will be no
- *                    guarantee that the other chip has opened the channel.
+ * @param[in] timeout Timeout for waiting for the other chip, in ticks. If this
+ *                    timeout is exceeded, the operation will still succeed, but
+ *                    there will be no guarantee that the other chip has opened
+ *                    the channel and is ready to accept frames.
  * @param[in] rx_callback Data reception callback. May be NULL if reception is
  *                        not required.
  * @param[in] context Context for provided callback. May be NULL if rx_callback
@@ -145,6 +145,20 @@ IntercomChHandle* intercom_channel_open(
     FuriWait timeout,
     IntercomRxCallback rx_callback,
     void* context);
+
+/**
+ * @brief Closes an Intercom channel
+ * 
+ * Nothing is signaled to the other chip. However, with this you can open the
+ * channel on the same chip again.
+ * 
+ * Additional calls to `intercom_channel_open` won't notify the other chip
+ * either. Frames received in between this `close` and the next `open` will be
+ * silently discarded.
+ * 
+ * @param[in] handle Intercom channel handle
+ */
+void intercom_channel_close(IntercomChHandle* handle);
 
 /**
  * @brief Transmit data through Intercom.

@@ -12,7 +12,7 @@
 #define TAG "CryptoBackupServer"
 
 typedef struct {
-    Intercom* intercom;
+    IntercomChHandle* intercom;
     FuriSemaphore* access_semaphore;
     uint32_t buffer_size;
     uint8_t* buffer;
@@ -24,12 +24,8 @@ static void crypto_backup_server_tx(CryptoBackupServer* instance, CryptoBackupEv
     furi_check(instance);
     furi_check(event_tx);
 
-    size_t tx_size = intercom_tx(
-        instance->intercom,
-        IntercomChannelCryptoBackup,
-        event_tx,
-        sizeof(CryptoBackupEvent),
-        FuriWaitForever);
+    size_t tx_size =
+        intercom_tx(instance->intercom, event_tx, sizeof(CryptoBackupEvent), FuriWaitForever);
     furi_check(tx_size == sizeof(CryptoBackupEvent), "Failed to send data");
 }
 
@@ -189,12 +185,17 @@ int32_t crypto_backup_server_init(void* arg) {
     crypto_backup_server.access_semaphore = furi_semaphore_alloc(1, 1);
     crypto_backup_server.buffer_size = 0;
     crypto_backup_server.buffer = NULL;
-    crypto_backup_server.intercom = furi_record_open(RECORD_INTERCOM);
 
-    intercom_set_rx_callback(
-        crypto_backup_server.intercom,
+    Intercom* intercom = furi_record_open(RECORD_INTERCOM);
+
+    // we never send out frames without a prior request.
+    // blocking is not required.
+    crypto_backup_server.intercom = intercom_channel_open(
+        intercom,
         IntercomChannelCryptoBackup,
+        FuriWaitNever,
         crypto_backup_server_rx_callback,
         &crypto_backup_server);
+
     return 0;
 }
