@@ -152,8 +152,6 @@ static int32_t wifi_startup_thread_callback(void* arg) {
 
         wifi_load_settings(instance);
 
-        furi_record_create(RECORD_WIFI, instance);
-
         const WifiSettings* settings = &instance->settings;
         const char* ssid = settings->credentials.ssid;
 
@@ -188,6 +186,8 @@ static int32_t wifi_startup_thread_callback(void* arg) {
             addr->bytes[3]);
 
     } while(false);
+
+    furi_record_create(RECORD_WIFI, instance);
 
     return 0;
 }

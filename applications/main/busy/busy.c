@@ -3,25 +3,6 @@
 
 #define BUSY_NAV_BAR_HEIGHT 20
 
-static bool busy_thread_signal_callback(uint32_t signal, void* arg, void* context) {
-    UNUSED(arg);
-
-    BusyApp* instance = context;
-
-    switch(signal) {
-    case FuriSignalExit:
-        furi_event_loop_stop(instance->event_loop);
-        return true;
-
-    case FuriSignalAboutToExit:
-        busy_send_custom_event(instance, BusyCustomEventAboutToExit);
-        return true;
-
-    default:
-        return false;
-    }
-}
-
 static void busy_input_queue_callback(FuriEventLoopObject* object, void* context) {
     furi_assert(context);
 
@@ -186,7 +167,6 @@ int32_t busy_app(void* arg) {
 
     BusyApp* instance = busy_alloc();
     FuriThread* thread = furi_thread_get_current();
-    furi_thread_set_signal_callback(thread, busy_thread_signal_callback, instance);
     furi_event_loop_run(instance->event_loop);
     furi_thread_set_signal_callback(thread, NULL, NULL);
     busy_free(instance);
@@ -227,11 +207,7 @@ void busy_set_status_lights(BusyApp* instance, BusyStatusLightsType type) {
 
 void busy_set_matter(BusyApp* instance, bool switch_state) {
     furi_assert(instance);
-    MatterVirtualDeviceState device_state = {
-        .device = MatterVirtualDeviceSwitch1,
-        .bool_val = switch_state,
-    };
-    matter_set_state(instance->matter, device_state);
+    matter_set_switch_state(instance->matter, switch_state);
 }
 
 void busy_push_location(BusyApp* instance, const char* location_name) {

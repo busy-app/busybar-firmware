@@ -3,25 +3,6 @@
 
 #define CUSTOM_NAV_BAR_HEIGHT 20
 
-static bool custom_thread_signal_callback(uint32_t signal, void* arg, void* context) {
-    UNUSED(arg);
-
-    CustomApp* instance = context;
-
-    switch(signal) {
-    case FuriSignalExit:
-        furi_event_loop_stop(instance->event_loop);
-        return true;
-
-    case FuriSignalAboutToExit:
-        custom_send_custom_event(instance, CustomCustomEventAboutToExit);
-        return true;
-
-    default:
-        return false;
-    }
-}
-
 static void custom_input_queue_callback(FuriEventLoopObject* object, void* context) {
     furi_assert(context);
 
@@ -176,7 +157,6 @@ int32_t custom_app(void* arg) {
 
     CustomApp* instance = custom_alloc();
     FuriThread* thread = furi_thread_get_current();
-    furi_thread_set_signal_callback(thread, custom_thread_signal_callback, instance);
     furi_event_loop_run(instance->event_loop);
     furi_thread_set_signal_callback(thread, NULL, NULL);
     custom_free(instance);
@@ -217,11 +197,7 @@ void custom_set_status_lights(CustomApp* instance, CustomStatusLightsType type) 
 
 void custom_set_matter(CustomApp* instance, bool switch_state) {
     furi_assert(instance);
-    MatterVirtualDeviceState device_state = {
-        .device = MatterVirtualDeviceSwitch2,
-        .bool_val = switch_state,
-    };
-    matter_set_state(instance->matter, device_state);
+    matter_set_switch_state(instance->matter, switch_state);
 }
 
 void custom_push_location(CustomApp* instance, const char* location_name) {

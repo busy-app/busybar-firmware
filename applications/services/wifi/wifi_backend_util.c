@@ -2,6 +2,10 @@
 
 #include <furi.h>
 
+static_assert(
+    (int)WifiSecurityModeWpa3TransitionEnterprise == (int)SL_WIFI_WPA3_TRANSITION_ENTERPRISE,
+    "Security mode enum mismatch");
+
 WifiStatus wifi_decode_sl_status(sl_status_t sl_status) {
     WifiStatus status;
 
@@ -44,8 +48,18 @@ sl_ip_management_t wifi_encode_ip_management(WifiIpManagement mgmt) {
 sl_wifi_security_t wifi_encode_security_mode(WifiSecurityMode security_mode) {
     sl_wifi_security_t ret;
 
+    static const sl_wifi_security_t lut[WifiSecurityModeMax] = {
+        [WifiSecurityModeOpen] = SL_WIFI_OPEN,
+        [WifiSecurityModeWpa] = SL_WIFI_WPA,
+        [WifiSecurityModeWpa2] = SL_WIFI_WPA2,
+        [WifiSecurityModeWep] = SL_WIFI_WEP,
+        [WifiSecurityModeWpaWpa2Mixed] = SL_WIFI_WPA_WPA2_MIXED,
+        [WifiSecurityModeWpa3] = SL_WIFI_WPA3,
+        [WifiSecurityModeWpa3Transition] = SL_WIFI_WPA3_TRANSITION,
+    };
+
     if(security_mode < WifiSecurityModeMax) {
-        ret = (sl_wifi_security_t)security_mode;
+        ret = lut[security_mode];
     } else {
         furi_crash("Invalid WifiSecurityMode value");
     }
@@ -78,8 +92,25 @@ void wifi_encode_ssid(sl_wifi_ssid_t* sl_ssid, const char* ssid) {
 WifiSecurityMode wifi_decode_security_mode(sl_wifi_security_t sl_security) {
     WifiSecurityMode ret;
 
+    static const WifiSecurityMode lut[] = {
+        [SL_WIFI_OPEN] = WifiSecurityModeOpen,
+        [SL_WIFI_WPA] = WifiSecurityModeWpa,
+        [SL_WIFI_WPA2] = WifiSecurityModeWpa2,
+        [SL_WIFI_WEP] = WifiSecurityModeWep,
+        [SL_WIFI_WPA_ENTERPRISE] = WifiSecurityModeUnsupported,
+        [SL_WIFI_WPA2_ENTERPRISE] = WifiSecurityModeUnsupported,
+        [SL_WIFI_WPA_WPA2_MIXED] = WifiSecurityModeWpaWpa2Mixed,
+        [SL_WIFI_WPA3] = WifiSecurityModeWpa3,
+        [SL_WIFI_WPA3_TRANSITION] = WifiSecurityModeWpa3Transition,
+        [SL_WIFI_WPA3_ENTERPRISE] = WifiSecurityModeUnsupported,
+        [SL_WIFI_WPA3_TRANSITION_ENTERPRISE] = WifiSecurityModeUnsupported,
+    };
+
     if(sl_security <= SL_WIFI_WPA3_TRANSITION_ENTERPRISE) {
-        ret = (WifiSecurityMode)sl_security;
+        ret = lut[sl_security];
+        if(ret == WifiSecurityModeMax) {
+            furi_crash("Enterprise sl_wifi_security_t not supported");
+        }
     } else {
         furi_crash("Invalid sl_wifi_security_t value");
     }

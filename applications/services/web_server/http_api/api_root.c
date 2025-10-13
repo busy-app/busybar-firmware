@@ -304,6 +304,15 @@ static const HttpHandler handlers_api_root[] = {
         .on_request = http_api_ble_callback,
     },
     {
+        .uri = "time",
+        .method = "*",
+        .type = HttpHandlerCustom,
+        .ctx_alloc = http_api_time_alloc,
+        .ctx_free = http_api_time_free,
+        .on_request = http_api_time_callback,
+    },
+    {
+
         .uri = "name",
         .method = "*",
         .type = HttpHandlerCustom,
@@ -356,11 +365,6 @@ bool http_api_root_callback(
     struct mg_http_message* msg,
     void* ctx) {
     ApiRootCtx* context = ctx;
-    FURI_LOG_D(TAG, "%.*s %.*s", msg->method.len, msg->method.buf, msg->uri.len, msg->uri.buf);
-    if(msg->query.len > 0) {
-        FURI_LOG_D(TAG, "Query %.*s", msg->query.len, msg->query.buf);
-    }
-
     if(furi_string_equal(path, "access")) {
         return http_api_access_callback(context, conn, msg);
     }
