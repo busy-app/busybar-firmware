@@ -21,11 +21,7 @@ static const WifiRequestHandler wifi_request_handlers[WifiRequestTypeMax];
 
 static inline void wifi_send_response(Wifi* instance) {
     const size_t tx_size = intercom_tx(
-        instance->intercom,
-        IntercomChannelWifi,
-        &instance->response,
-        sizeof(WifiResponse),
-        FuriWaitForever);
+        instance->intercom_main, &instance->response, sizeof(WifiResponse), FuriWaitForever);
     furi_check(tx_size == sizeof(WifiResponse));
 }
 
@@ -347,7 +343,6 @@ static Wifi* wifi_alloc(void) {
 
     instance->event_loop = furi_event_loop_alloc();
     instance->event_pubsub = furi_pubsub_alloc();
-    instance->intercom = furi_record_open(RECORD_INTERCOM);
     instance->tcpip_lock = furi_semaphore_alloc(1, 0);
     instance->ip6_addr_valid = furi_semaphore_alloc(1, 0);
 
@@ -355,10 +350,13 @@ static Wifi* wifi_alloc(void) {
 
     furi_event_loop_set_custom_event_callback(
         instance->event_loop, wifi_custom_event_callback, instance);
-    intercom_set_rx_callback(
-        instance->intercom, IntercomChannelWifi, wifi_intercom_rx_callback, instance);
-    intercom_set_rx_callback(
-        instance->intercom, IntercomChannelWifiData, wifi_net_intercom_rx_callback, instance);
+
+    Intercom* intercom = furi_record_open(RECORD_INTERCOM);
+    instance->intercom_main = intercom_channel_open(
+        intercom, IntercomChannelWifi, FuriWaitForever, wifi_intercom_rx_callback, instance);
+    // it's fine if we drop some 917->u5 packets until u5 is ready to accept them
+    instance->intercom_data = intercom_channel_open(
+        intercom, IntercomChannelWifiData, FuriWaitNever, wifi_net_intercom_rx_callback, instance);
 
     wifi_net_tcpip_init(instance);
 

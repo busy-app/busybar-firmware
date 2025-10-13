@@ -17,8 +17,8 @@ static err_t wifi_link_output_callback(struct netif* netif, struct pbuf* p) {
     pbuf_header(p, -ETH_PAD_SIZE); /* drop the padding word */
 #endif
 
-    const size_t tx_size = intercom_tx(
-        instance->intercom, IntercomChannelWifiData, p->payload, p->len, FuriWaitForever);
+    const size_t tx_size =
+        intercom_tx(instance->intercom_data, p->payload, p->len, FuriWaitForever);
     furi_check(tx_size == p->len);
 
 #if(ETH_PAD_SIZE != 0)
@@ -102,8 +102,12 @@ void wifi_net_init(Wifi* instance, const WifiHardwareAddress* addr) {
 
     UNLOCK_TCPIP_CORE();
 
-    intercom_set_rx_callback(
-        instance->intercom, IntercomChannelWifiData, wifi_net_intercom_rx_callback, instance);
+    instance->intercom_data = intercom_channel_open(
+        instance->intercom,
+        IntercomChannelWifiData,
+        FuriWaitForever,
+        wifi_net_intercom_rx_callback,
+        instance);
 }
 
 void wifi_net_up(Wifi* instance) {

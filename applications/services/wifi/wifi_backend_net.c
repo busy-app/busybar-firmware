@@ -98,8 +98,7 @@ static void wifi_net_tcpip_input(const uint8_t* data, uint16_t data_len) {
 static void wifi_net_intercom_input(const uint8_t* data, uint16_t data_len) {
     furi_check(instance);
 
-    const size_t tx_size =
-        intercom_tx(instance->intercom, IntercomChannelWifiData, data, data_len, FuriWaitForever);
+    const size_t tx_size = intercom_tx(instance->intercom_data, data, data_len, FuriWaitForever);
     furi_check(tx_size == data_len);
 }
 
