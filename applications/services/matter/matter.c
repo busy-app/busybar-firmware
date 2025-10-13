@@ -18,7 +18,7 @@ struct MatterSrv {
     MatterVirtualDeviceState device_state[MatterVirtualDeviceMAX];
     uint8_t commissioned_fabrics;
 
-    Intercom* intercom;
+    IntercomChHandle* intercom;
 };
 
 // =========
@@ -112,9 +112,7 @@ static void matter_handle_frame(FuriEventLoopObject* object, void* context) {
 
 static void matter_send_frame(MatterSrv* matter, const MatterIntercomFrame* frame) {
     furi_check(
-        intercom_tx(
-            matter->intercom, IntercomChannelMatter, frame, sizeof(*frame), FuriWaitForever) ==
-        sizeof(*frame));
+        intercom_tx(matter->intercom, frame, sizeof(*frame), FuriWaitForever) == sizeof(*frame));
 }
 
 // ==========
@@ -301,9 +299,9 @@ MatterSrv* matter_srv_alloc(void) {
 
     matter->pubsub = furi_pubsub_alloc();
 
-    matter->intercom = furi_record_open(RECORD_INTERCOM);
-    intercom_set_rx_callback(
-        matter->intercom, IntercomChannelMatter, matter_forward_frame_to_thread, matter);
+    Intercom* intercom = furi_record_open(RECORD_INTERCOM);
+    matter->intercom = intercom_channel_open(
+        intercom, IntercomChannelMatter, FuriWaitForever, matter_forward_frame_to_thread, matter);
 
     furi_record_create(RECORD_MATTER, matter);
     return matter;

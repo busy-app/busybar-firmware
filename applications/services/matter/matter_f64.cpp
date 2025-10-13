@@ -41,10 +41,9 @@ class BsbFabricTableDelegate : public FabricTable::Delegate {
 
 class MatterSrv {
 public:
-    MatterSrv(void);
     CHIP_ERROR init(void);
 
-    Intercom* m_intercom;
+    IntercomChHandle* m_intercom;
 
 private:
     CommonCaseDeviceServerInitParams m_server_init_params;
@@ -88,9 +87,7 @@ static void matter_hyphenate_manual_code(char* buffer, size_t buf_size) {
 
 static void matter_send_frame(MatterSrv* matter, const MatterIntercomFrame* frame) {
     furi_check(
-        intercom_tx(
-            matter->m_intercom, IntercomChannelMatter, frame, sizeof(*frame), FuriWaitForever) ==
-        sizeof(*frame));
+        intercom_tx(matter->m_intercom, frame, sizeof(*frame), FuriWaitForever) == sizeof(*frame));
 }
 
 /**
@@ -324,10 +321,6 @@ static void matter_device_event(const ChipDeviceEvent* event, intptr_t arg) {
     }
 }
 
-MatterSrv::MatterSrv(void) {
-    this->m_intercom = static_cast<Intercom*>(furi_record_open(RECORD_INTERCOM));
-}
-
 CHIP_ERROR MatterSrv::init(void) {
     CHIP_ERROR err;
 
@@ -355,6 +348,10 @@ CHIP_ERROR MatterSrv::init(void) {
             break;
         }
 
+        auto intercom = static_cast<Intercom*>(furi_record_open(RECORD_INTERCOM));
+        m_intercom = intercom_channel_open(
+            intercom, IntercomChannelMatter, FuriWaitForever, matter_handle_frame, this);
+
         err = Server::GetInstance().Init(m_server_init_params);
         if(err != CHIP_NO_ERROR) {
             break;
@@ -366,7 +363,6 @@ CHIP_ERROR MatterSrv::init(void) {
         PlatformMgr().AddEventHandler(matter_device_event, (intptr_t)this);
         Server::GetInstance().GetFabricTable().AddFabricDelegate(&m_fabric_delegate);
 
-        intercom_set_rx_callback(m_intercom, IntercomChannelMatter, matter_handle_frame, this);
         matter_send_current_state(this, MatterVirtualDeviceSwitch1);
         matter_send_current_state(this, MatterVirtualDeviceSwitch2);
         matter_send_fabric_count_update(this);
