@@ -23,7 +23,7 @@
 #endif
 
 struct CliIntercom {
-    IntercomChHandle* intercom;
+    IntercomChannel* intercom;
     CliRegistry* registry;
     FuriMessageQueue* msg_queue;
     FuriStreamBuffer* intercom_rx_stream;
@@ -327,7 +327,7 @@ static CliIntercom* cli_intercom_alloc(void) {
     Intercom* intercom = furi_record_open(RECORD_INTERCOM);
     cli_intercom->intercom = intercom_channel_open(
         intercom,
-        IntercomChannelCli,
+        IntercomChannelIdCli,
         FuriWaitForever,
         cli_intercom_intercom_rx_callback,
         cli_intercom);

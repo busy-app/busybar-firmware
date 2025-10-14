@@ -104,7 +104,7 @@ void wifi_net_init(Wifi* instance, const WifiHardwareAddress* addr) {
 
     instance->intercom_data = intercom_channel_open(
         instance->intercom,
-        IntercomChannelWifiData,
+        IntercomChannelIdWifiData,
         FuriWaitForever,
         wifi_net_intercom_rx_callback,
         instance);

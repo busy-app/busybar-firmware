@@ -137,7 +137,7 @@ static bool ble_service_process_input_frame(BleServiceObject* instance) {
 BleServiceObject* ble_service_alloc(
     const BleServiceDescriptor* service_config,
     FuriMessageQueue* dest_queue,
-    IntercomChHandle* intercom) {
+    IntercomChannel* intercom) {
     furi_assert(service_config);
     furi_assert(dest_queue);
 

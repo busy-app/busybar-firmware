@@ -90,23 +90,23 @@ bool intercom_is_in_sync(Intercom* instance);
  * @brief Enumeration of available channel identifiers.
  */
 typedef enum {
-    IntercomChannelInput, /**< Input handling */
-    IntercomChannelWifi, /**< Wireless network handling */
-    IntercomChannelWifiData, /**< Wireless network data handling */
-    IntercomChannelStatusLights, /**< Status lights handling */
-    IntercomChannelCli, /**< Command line interface handling */
-    IntercomChannelBle, /**< BLE handling */
-    IntercomChannelCryptoBackup, /**< Crypto backup handling */
-    IntercomChannelMatter, /**< Matter smart home protocol */
+    IntercomChannelIdInput, /**< Input handling */
+    IntercomChannelIdWifi, /**< Wireless network handling */
+    IntercomChannelIdWifiData, /**< Wireless network data handling */
+    IntercomChannelIdStatusLights, /**< Status lights handling */
+    IntercomChannelIdCli, /**< Command line interface handling */
+    IntercomChannelIdBle, /**< BLE handling */
+    IntercomChannelIdCryptoBackup, /**< Crypto backup handling */
+    IntercomChannelIdMatter, /**< Matter smart home protocol */
     /* Add more channels here as needed */
-    IntercomChannelDebug = 15, /**< Testing, debugging, etc */
-    IntercomChannelMax, /**< Special value for internal use */
-} IntercomChannel;
+    IntercomChannelIdDebug = 15, /**< Testing, debugging, etc */
+    IntercomChannelIdMax, /**< Special value for internal use */
+} IntercomChannelId;
 
 /**
  * @brief Opaque channel handle
  */
-typedef struct IntercomChHandle IntercomChHandle;
+typedef struct IntercomChannel IntercomChannel;
 
 /**
  * @brief Receive callback function type.
@@ -139,9 +139,9 @@ typedef void (*IntercomRxCallback)(const void* data, size_t data_size, void* con
  * 
  * @returns Channel handle
  */
-IntercomChHandle* intercom_channel_open(
+IntercomChannel* intercom_channel_open(
     Intercom* instance,
-    IntercomChannel ch_id,
+    IntercomChannelId ch_id,
     FuriWait timeout,
     IntercomRxCallback rx_callback,
     void* context);

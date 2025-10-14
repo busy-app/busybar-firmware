@@ -45,7 +45,7 @@ class MatterSrv {
 public:
     CHIP_ERROR init(void);
 
-    IntercomChHandle* m_intercom;
+    IntercomChannel* m_intercom;
 
 private:
     CommonCaseDeviceServerInitParams m_server_init_params;
@@ -300,7 +300,7 @@ CHIP_ERROR MatterSrv::init(void) {
 
         auto intercom = static_cast<Intercom*>(furi_record_open(RECORD_INTERCOM));
         m_intercom = intercom_channel_open(
-            intercom, IntercomChannelMatter, FuriWaitForever, matter_handle_frame, this);
+            intercom, IntercomChannelIdMatter, FuriWaitForever, matter_handle_frame, this);
         matter_send_current_state(this);
         matter_send_fabric_count_update(this);
 

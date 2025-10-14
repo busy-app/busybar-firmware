@@ -216,7 +216,7 @@ static Wifi* wifi_alloc(void) {
 
     instance->intercom_main = intercom_channel_open(
         instance->intercom,
-        IntercomChannelWifi,
+        IntercomChannelIdWifi,
         FuriWaitForever,
         wifi_intercom_rx_callback,
         instance);

@@ -18,7 +18,7 @@
 struct StatusLights {
     FuriEventLoop* event_loop;
     FuriMessageQueue* message_queue;
-    IntercomChHandle* intercom;
+    IntercomChannel* intercom;
 
     uint8_t light_level;
     uint8_t brightness;
@@ -206,8 +206,8 @@ static StatusLights* status_lights_alloc() {
         instance);
 
     Intercom* intercom = furi_record_open(RECORD_INTERCOM);
-    instance->intercom =
-        intercom_channel_open(intercom, IntercomChannelStatusLights, FuriWaitForever, NULL, NULL);
+    instance->intercom = intercom_channel_open(
+        intercom, IntercomChannelIdStatusLights, FuriWaitForever, NULL, NULL);
 
 #if defined(SRV_LIGHT_SENSOR)
     FuriPubSub* light_sensor_pubsub = furi_record_open(RECORD_LIGHT_SENSOR_EVENTS);

@@ -27,7 +27,7 @@ typedef enum {
 
 // Ensure there's enough bits to represent every command and channel
 static_assert(IntercomFrameCommandMax <= (1 << INTERCOM_FRAME_COMMAND_BITS));
-static_assert(IntercomChannelMax <= (1 << INTERCOM_FRAME_CHAN_BITS));
+static_assert(IntercomChannelIdMax <= (1 << INTERCOM_FRAME_CHAN_BITS));
 static_assert(INTERCOM_FRAME_COMMAND_BITS + INTERCOM_FRAME_CHAN_BITS == 8);
 
 /**
@@ -55,7 +55,7 @@ static inline IntercomFrameCommand intercom_frame_get_command(const IntercomFram
 /**
  * @brief Parses the channel field out of a frame
  */
-static inline IntercomChannel intercom_frame_get_channel(const IntercomFrame* frame) {
+static inline IntercomChannelId intercom_frame_get_channel(const IntercomFrame* frame) {
     uint8_t mask = (1 << INTERCOM_FRAME_CHAN_BITS) - 1;
     return frame->status_byte & mask;
 }
@@ -64,7 +64,7 @@ static inline IntercomChannel intercom_frame_get_channel(const IntercomFrame* fr
  * @brief Makes a status byte
  */
 static inline uint8_t
-    intercom_frame_make_status(IntercomFrameCommand command, IntercomChannel channel) {
+    intercom_frame_make_status(IntercomFrameCommand command, IntercomChannelId channel) {
     uint8_t status = 0;
     status |= channel;
     status |= (command << INTERCOM_FRAME_CHAN_BITS);
@@ -106,7 +106,7 @@ static inline bool intercom_frame_is_valid(const IntercomFrame* frame) {
 
     do {
         if(intercom_frame_get_command(frame) >= IntercomFrameCommandMax) break;
-        if(intercom_frame_get_channel(frame) >= IntercomChannelMax) break;
+        if(intercom_frame_get_channel(frame) >= IntercomChannelIdMax) break;
         if(frame->data_size > INTERCOM_FRAME_DATA_SIZE) break;
         if(intercom_frame_get_checksum(frame) != frame->check) break;
 

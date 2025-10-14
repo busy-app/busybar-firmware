@@ -109,7 +109,11 @@ static Ble* ble_alloc() {
 
     Intercom* intercom = furi_record_open(RECORD_INTERCOM);
     instance->intercom = intercom_channel_open(
-        intercom, IntercomChannelBle, FuriWaitForever, ble_backend_intercom_rx_callback, instance);
+        intercom,
+        IntercomChannelIdBle,
+        FuriWaitForever,
+        ble_backend_intercom_rx_callback,
+        instance);
 
     for(size_t i = 0; i < BLE_SERVICES_COUNT; i++) {
         instance->services[i] =

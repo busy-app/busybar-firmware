@@ -53,7 +53,7 @@ struct Input {
     InputKeyState* key_states;
 #ifdef SRV_INTERCOM
     Intercom* intercom_srv;
-    IntercomChHandle* intercom;
+    IntercomChannel* intercom;
 #endif
     FuriMessageQueue* request_queue;
     InputAbsoluteState absolute_state;
@@ -257,7 +257,7 @@ int32_t input_srv(void* p) {
 #ifdef SRV_INTERCOM
     instance->intercom_srv = furi_record_open(RECORD_INTERCOM);
     instance->intercom = intercom_channel_open(
-        instance->intercom_srv, IntercomChannelInput, FuriWaitForever, NULL, NULL);
+        instance->intercom_srv, IntercomChannelIdInput, FuriWaitForever, NULL, NULL);
     for(size_t i = 0; i < input_pins_count; i++) {
         InputKeyState* state = &instance->key_states[i];
 

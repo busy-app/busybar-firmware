@@ -24,7 +24,7 @@ typedef struct {
 } CryptoBackupClient;
 
 typedef struct {
-    IntercomChHandle* intercom;
+    IntercomChannel* intercom;
     FuriStreamBuffer* rx_buffer;
     CryptoBackupCmd cmd;
     FuriSemaphore* access_semaphore;
@@ -150,7 +150,7 @@ static CryptoBackup* crypto_backup_client_init() {
     Intercom* intercom = furi_record_open(RECORD_INTERCOM);
     instance->intercom = intercom_channel_open(
         intercom,
-        IntercomChannelCryptoBackup,
+        IntercomChannelIdCryptoBackup,
         FuriWaitForever,
         crypto_backup_client_rx_callback,
         instance);

@@ -12,7 +12,7 @@
 #define TAG "CryptoBackupServer"
 
 typedef struct {
-    IntercomChHandle* intercom;
+    IntercomChannel* intercom;
     FuriSemaphore* access_semaphore;
     uint32_t buffer_size;
     uint8_t* buffer;
@@ -192,7 +192,7 @@ int32_t crypto_backup_server_init(void* arg) {
     // blocking is not required.
     crypto_backup_server.intercom = intercom_channel_open(
         intercom,
-        IntercomChannelCryptoBackup,
+        IntercomChannelIdCryptoBackup,
         FuriWaitNever,
         crypto_backup_server_rx_callback,
         &crypto_backup_server);
