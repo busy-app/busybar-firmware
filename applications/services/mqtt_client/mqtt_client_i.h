@@ -33,7 +33,6 @@ struct MqttClient {
 
     char* ca_bundle;
     char* device_cert;
-    char* device_key;
 
     FuriString* device_serial;
     FuriString* client_id;

@@ -68,7 +68,6 @@ bool tls_crypto_client_sign(
             success = true;
         } else if(instance->sign_msg.cmd == TlsCryptoError) {
             FURI_LOG_E(TAG, "917 returned error");
-            // TODO: Errors handling
         } else {
             furi_crash("Unsupported reponse");
         }
@@ -85,7 +84,5 @@ bool tls_crypto_client_sign(
 
 int32_t tls_crypto_client_init(void* arg) {
     UNUSED(arg);
-    // TODO: service?
-    FURI_LOG_D(TAG, "Hello, world!");
     return 0;
 }

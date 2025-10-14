@@ -10,7 +10,6 @@
 #define CERT_FILE_CA_BUNDLE    APP_ASSETS_PATH("ca_bundle.crt")
 #define CERT_FILE_INTERMEDIATE APP_ASSETS_PATH("signing-ca.crt")
 #define CERT_FILE_DEVICE       APP_ASSETS_PATH("device.crt")
-#define CERT_FILE_DEVICE_KEY   APP_ASSETS_PATH("device.key")
 
 #define SESSION_FILE APP_DATA_PATH("session.json")
 
@@ -130,7 +129,6 @@ static void mqtt_event_handler(struct mg_connection* conn, int ev, void* ev_data
             .name = name,
             .ca = mg_str(mqtt->ca_bundle),
             .cert = mg_str(mqtt->device_cert),
-            .key = mg_str(mqtt->device_key),
         };
         mqtt_tls_init(conn, &opts);
     } else if(ev == MG_EV_TLS_HS) {
@@ -325,18 +323,6 @@ static bool mqtt_client_load_certs(MqttClient* mqtt) {
             break;
         }
         storage_file_close(file);
-
-        // if(!storage_file_open(file, CERT_FILE_DEVICE_KEY, FSAM_READ, FSOM_OPEN_EXISTING)) {
-        //     FURI_LOG_E(TAG, "Device key file error: %s", storage_file_get_error_desc(file));
-        //     break;
-        // }
-        // file_size = storage_file_size(file);
-        // mqtt->device_key = malloc(file_size);
-        // if(storage_file_read(file, mqtt->device_key, file_size) != file_size) {
-        //     FURI_LOG_E(TAG, "Device key file read error");
-        //     break;
-        // }
-        // storage_file_close(file);
 
         success = true;
     } while(0);
