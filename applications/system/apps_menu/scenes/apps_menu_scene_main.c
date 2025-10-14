@@ -49,7 +49,6 @@ static void apps_menu_scene_main_on_enter(void* context) {
     with_gui(instance->gui, {
         // front:
         data->front_menu = menu_alloc(instance->front_scene_window);
-
         menu_add_item(
             data->front_menu,
             "Clock",
@@ -94,11 +93,10 @@ static bool apps_menu_scene_main_on_event(const SceneManagerEvent* event, void* 
 
     if(event->type == SceneManagerEventTypeCustom) {
         if(event->event == SceneCustomEventMenuItemClicked) {
-            Desktop* desktop = furi_record_open(RECORD_DESKTOP);
             furi_check(data->menu_idx < AppsSceneMainMenuIndexesCount);
 
+            Desktop* desktop = furi_record_open(RECORD_DESKTOP);
             desktop_replace_current_app(desktop, apps_menu_scene_app_names[data->menu_idx], NULL);
-
             furi_record_close(RECORD_DESKTOP);
         }
     }
