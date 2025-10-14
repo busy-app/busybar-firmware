@@ -18,7 +18,7 @@
 #include "helpers/run_later.h"
 #include "scenes/busy_scenes.h"
 
-#include "widgets/progress_bar.h"
+#include "widgets/timer_bar.h"
 #include "widgets/timer_card.h"
 #include "widgets/timer_indicator.h"
 #include "widgets/transition_overlay.h"
@@ -40,7 +40,6 @@ typedef enum {
     BusyCustomEventStartPressed,
     BusyCustomEventStartReleased,
     BusyCustomEventStartShortPressed,
-    BusyCustomEventAboutToExit
 } BusyCustomEvent;
 
 typedef enum {
@@ -63,10 +62,10 @@ typedef enum {
 } BusyStatusLightsType;
 
 typedef enum {
-    BusyProgressBarTypeWork,
-    BusyProgressBarTypeRest,
-    BusyProgressBarTypeMax,
-} BusyProgressBarType;
+    BusyTimerBarTypeWork,
+    BusyTimerBarTypeRest,
+    BusyTimerBarTypeMax,
+} BusyTimerBarType;
 
 typedef struct {
     FuriEventLoop* event_loop;

@@ -1,10 +1,13 @@
 #include "lv_theme_front.h"
 #include "lv_theme_common.h"
 
-#define COLOR_BG_NORMAL  lv_color_black()
-#define COLOR_FG_NORMAL  lv_color_hex(0x666666)
-#define COLOR_BG_FOCUSED lv_color_black()
-#define COLOR_FG_FOCUSED lv_color_white()
+#define COLOR_BG_NORMAL           lv_color_black()
+#define COLOR_FG_NORMAL           lv_color_hex(0x666666)
+#define COLOR_BG_FOCUSED          lv_color_black()
+#define COLOR_FG_FOCUSED          lv_color_white()
+#define PROGRESS_BAR_FILL_COLOR_1 lv_color_hex(0x104224)
+#define PROGRESS_BAR_FILL_COLOR_2 lv_color_hex(0x16A34A)
+#define PROGRESS_BAR_BG_COLOR     lv_color_hex(0x333333)
 
 #define SCROLLBAR_WIDTH (0)
 
@@ -40,6 +43,9 @@ typedef struct {
     lv_style_t slider_view;
     lv_style_t slider_view_image;
     lv_style_t slider_view_text_container;
+
+    lv_style_t progress_bar;
+    lv_style_t progress_bar_fill;
 
     lv_style_t status_view_icon;
     lv_style_t status_view_header;
@@ -126,6 +132,16 @@ static void style_init(my_theme_t* theme) {
     lv_style_set_align(&theme->styles.slider_view_text_container, LV_ALIGN_RIGHT_MID);
     lv_style_set_translate_x(&theme->styles.slider_view_text_container, -1);
     lv_style_set_text_font(&theme->styles.slider_view_text_container, &lv_font_ark_regular_10);
+
+    lv_style_init(&theme->styles.progress_bar);
+    lv_style_set_bg_opa(&theme->styles.progress_bar, LV_OPA_COVER);
+    lv_style_set_bg_color(&theme->styles.progress_bar, PROGRESS_BAR_BG_COLOR);
+
+    lv_style_init(&theme->styles.progress_bar_fill);
+    lv_style_set_bg_opa(&theme->styles.progress_bar_fill, LV_OPA_COVER);
+    lv_style_set_bg_grad_dir(&theme->styles.progress_bar_fill, LV_GRAD_DIR_HOR);
+    lv_style_set_bg_color(&theme->styles.progress_bar_fill, PROGRESS_BAR_FILL_COLOR_1);
+    lv_style_set_bg_grad_color(&theme->styles.progress_bar_fill, PROGRESS_BAR_FILL_COLOR_2);
 
     lv_style_init(&theme->styles.status_view_icon);
     lv_style_set_align(&theme->styles.status_view_icon, LV_ALIGN_LEFT_MID);
@@ -246,6 +262,12 @@ static void theme_apply_callback(lv_theme_t* th, lv_obj_t* obj) {
 
     } else if(lv_obj_check_type(obj, &slider_view_arrow_label_lvgl_class)) {
         lv_obj_add_style(obj, &theme->styles.disabled, LV_PART_MAIN | LV_STATE_DISABLED);
+
+    } else if(lv_obj_check_type(obj, &progress_bar_lvgl_class)) {
+        lv_obj_add_style(obj, &theme->styles.progress_bar, LV_PART_MAIN);
+
+    } else if(lv_obj_check_type(obj, &progress_bar_fill_lvgl_class)) {
+        lv_obj_add_style(obj, &theme->styles.progress_bar_fill, LV_PART_MAIN);
 
     } else if(lv_obj_check_type(obj, &status_view_lvgl_class)) {
         lv_obj_add_style(obj, &theme->styles.normal, LV_PART_MAIN);

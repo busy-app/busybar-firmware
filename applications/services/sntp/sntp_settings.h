@@ -7,9 +7,9 @@
 #include <stdint.h>
 #include <stdbool.h>
 
-#define SNTP_TIMEZONE_OFFSET_MIN     (-12)
-#define SNTP_TIMEZONE_OFFSET_MAX     (+12)
-#define SNTP_TIMEZONE_OFFSET_DEFAULT (+4)
+#define SNTP_TIMEZONE_OFFSET_MIN     (-12 * 60)
+#define SNTP_TIMEZONE_OFFSET_MAX     (+14 * 60)
+#define SNTP_TIMEZONE_OFFSET_DEFAULT (+4 * 60)
 
 #define SNTP_BACKGROUND_SYNC_INTERVAL_MIN     (2 * 60 * 60)
 #define SNTP_BACKGROUND_SYNC_INTERVAL_MAX     (48 * 60 * 60)
@@ -33,7 +33,7 @@
  * @brief SNTP service settings structure.
  */
 typedef struct {
-    int timezone_offset; /**< Timezone offset from UTC in hours (range: -12 to +12) */
+    int timezone_offset; /**< Timezone offset from UTC in minutes */
     int background_sync_interval; /**< Interval between automatic syncs in seconds */
     int retry_sync_interval; /**< Interval between sync retry attempts on failure in seconds */
     int boot_delay; /**< Delay after boot before first sync in seconds */

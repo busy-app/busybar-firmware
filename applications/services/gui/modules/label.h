@@ -6,6 +6,7 @@
 
 #include <gui/widget.h>
 #include <gui/gui.h>
+#include <toolbox/color.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -34,6 +35,12 @@ typedef enum {
 
     LabelLongContentModeCount /**< Count of possible choices*/
 } LabelLongContentMode;
+
+typedef enum {
+    LabelFontSizeSmall,
+    LabelFontSizeNormal,
+    LabelFontSizeLarge,
+} LabelFontSize;
 
 /**
  * @brief Create a new Label instance.
@@ -68,6 +75,21 @@ Widget* label_get_base(Label* instance);
  * @param[in] text zero-terminated string containing the text to be shown
  */
 void label_set_text(Label* instance, const char* text);
+
+/**
+ * @brief Set the label text color.
+ *
+ * @param[in,out] instance pointer to the Label instance to be modified
+ * @param[in] color text color
+ */
+void label_set_text_color(Label* instance, Color color);
+
+/**
+ * @brief Set the label font size.
+ * @param[in,out] instance pointer to the Label instance to be modified
+ * @param[in] size font size
+ */
+void label_set_text_font_size(Label* instance, LabelFontSize size);
 
 /**
  * @brief Set the label text with printf-like formatting.

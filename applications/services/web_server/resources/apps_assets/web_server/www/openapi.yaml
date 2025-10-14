@@ -960,6 +960,90 @@ paths:
               schema:
                 $ref: "#/components/schemas/SuccessResponse"
 
+  /api/time:
+    get:
+      tags:
+        - System
+      summary: Get current timestamp with timezone
+      description: Retrieves the current timestamp from RTC with timezone in ISO 8601 format
+      operationId: getTime
+      responses:
+        "200":
+          description: Timestamp retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TimestampInfo"
+        "400":
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /api/time/timestamp:
+    post:
+      tags:
+        - System
+      summary: Set current timestamp
+      description: |
+        Sets the RTC timestamp in ISO 8601 format.
+        - Without 'Z': treated as local time
+        - With 'Z': treated as UTC and converted to local time using current timezone offset
+      operationId: setTimeTimestamp
+      parameters:
+        - name: timestamp
+          in: query
+          required: true
+          schema:
+            type: string
+            pattern: "^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}Z?$"
+          description: ISO 8601 timestamp (e.g., 2025-10-02T14:30:45 for local time or 2025-10-02T14:30:45Z for UTC)
+          example: "2025-10-02T14:30:45"
+      responses:
+        "200":
+          description: Timestamp set successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse"
+        "400":
+          description: Invalid timestamp format or value
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /api/time/timezone:
+    post:
+      tags:
+        - System
+      summary: Set timezone offset
+      description: Sets the timezone offset in ±HH:MM format
+      operationId: setTimeTimezone
+      parameters:
+        - name: timezone
+          in: query
+          required: true
+          schema:
+            type: string
+            pattern: "^[+-][0-9]{2}:[0-9]{2}$"
+          description: Timezone offset in ±HH:MM format (range -12:00 to +14:00)
+          example: "+04:00"
+      responses:
+        "200":
+          description: Timezone set successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse"
+        "400":
+          description: Invalid timezone offset
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
 components:
   securitySchemes:
     ApiKeyAuth:
@@ -1249,6 +1333,16 @@ components:
           type: number
           description: Audio volume value (0-100)
           example: "50"
+
+    TimestampInfo:
+      type: object
+      properties:
+        timestamp:
+          type: string
+          description: ISO 8601 formatted timestamp with timezone
+          example: "2025-10-02T14:30:45+04:00"
+      required:
+        - timestamp
 
     Status:
       type: object

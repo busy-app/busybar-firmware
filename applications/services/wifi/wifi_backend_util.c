@@ -2,6 +2,14 @@
 
 #include <furi.h>
 
+// Do not support 4 Enterprise security modes: SL_WIFI_WPA_ENTERPRISE, SL_WIFI_WPA2_ENTERPRISE,
+// SL_WIFI_WPA3_ENTERPRISE and SL_WIFI_WPA3_TRANSITION_ENTERPRISE
+#define WIFI_SECURITY_MODE_NOT_SUPPORTED_NUM (4)
+static_assert(
+    (WifiSecurityModeWpa3Transition + WIFI_SECURITY_MODE_NOT_SUPPORTED_NUM) ==
+        SL_WIFI_WPA3_TRANSITION_ENTERPRISE,
+    "Security mode enum mismatch");
+
 WifiStatus wifi_decode_sl_status(sl_status_t sl_status) {
     WifiStatus status;
 
@@ -93,13 +101,13 @@ WifiSecurityMode wifi_decode_security_mode(sl_wifi_security_t sl_security) {
         [SL_WIFI_WPA] = WifiSecurityModeWpa,
         [SL_WIFI_WPA2] = WifiSecurityModeWpa2,
         [SL_WIFI_WEP] = WifiSecurityModeWep,
-        [SL_WIFI_WPA_ENTERPRISE] = WifiSecurityModeMax,
-        [SL_WIFI_WPA2_ENTERPRISE] = WifiSecurityModeMax,
+        [SL_WIFI_WPA_ENTERPRISE] = WifiSecurityModeUnsupported,
+        [SL_WIFI_WPA2_ENTERPRISE] = WifiSecurityModeUnsupported,
         [SL_WIFI_WPA_WPA2_MIXED] = WifiSecurityModeWpaWpa2Mixed,
         [SL_WIFI_WPA3] = WifiSecurityModeWpa3,
         [SL_WIFI_WPA3_TRANSITION] = WifiSecurityModeWpa3Transition,
-        [SL_WIFI_WPA3_ENTERPRISE] = WifiSecurityModeMax,
-        [SL_WIFI_WPA3_TRANSITION_ENTERPRISE] = WifiSecurityModeMax,
+        [SL_WIFI_WPA3_ENTERPRISE] = WifiSecurityModeUnsupported,
+        [SL_WIFI_WPA3_TRANSITION_ENTERPRISE] = WifiSecurityModeUnsupported,
     };
 
     if(sl_security <= SL_WIFI_WPA3_TRANSITION_ENTERPRISE) {
