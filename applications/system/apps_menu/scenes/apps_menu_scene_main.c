@@ -1,74 +1,107 @@
 #include "../apps_menu_i.h"
 #include "../storage_macros.h"
 
+#include <desktop/desktop.h>
+
 #include <gui/modules/image.h>
 #include <gui/modules/label.h>
 
-typedef struct {
-    Image* front_placeholder;
-    Label* front_placeholder_text;
+#include <gui/modules/menu.h>
 
-    Image* back_placeholder;
-    Label* back_placeholder_text;
+typedef enum {
+    SceneCustomEventMenuItemClicked = AppsMenuCustomEventSceneEventsStart,
+} SceneCustomEvent;
+
+typedef enum {
+    AppsSceneMainMenuIndexClock,
+
+    AppsSceneMainMenuIndexesCount,
+} AppsSceneMainMenuIndex;
+
+typedef struct {
+    Menu* front_menu;
+    Menu* back_menu;
+
+    _Atomic AppsSceneMainMenuIndex menu_idx;
 } AppsMenuSceneMain;
+
+static const char* apps_menu_scene_app_names[AppsSceneMainMenuIndexesCount] = {
+    [AppsSceneMainMenuIndexClock] = "clock",
+};
+
+static void apps_scene_setup_menu_callback(uint32_t index, void* context) {
+    furi_assert(context);
+
+    AppsMenu* instance = context;
+    AppsMenuSceneMain* data = scene_manager_get_current_scene_data(instance->scene_manager);
+
+    data->menu_idx = index;
+    uint32_t event = SceneCustomEventMenuItemClicked;
+    furi_check(
+        furi_message_queue_put(instance->event_queue, &event, FuriWaitForever) == FuriStatusOk);
+}
 
 static void apps_menu_scene_main_on_enter(void* context) {
     furi_assert(context);
-    AppsMenu* app = context;
-    AppsMenuSceneMain* scene = scene_manager_get_current_scene_data(app->scene_manager);
+    AppsMenu* instance = context;
+    AppsMenuSceneMain* data = scene_manager_get_current_scene_data(instance->scene_manager);
 
-    with_gui(app->gui, {
-        widget_set_visible(nav_bar_get_base(app->back_nav_bar), true);
-
+    with_gui(instance->gui, {
         // front:
+        data->front_menu = menu_alloc(instance->front_scene_window);
 
-        scene->front_placeholder = image_alloc(app->front_scene_window);
-        image_set_source(
-            scene->front_placeholder, APPS_MENU_IMG_PATH("apps_placeholder_front_49x16.bin"));
-        Widget* front_placeholder_base = image_get_base(scene->front_placeholder);
-        widget_set_align(front_placeholder_base, AlignCenter);
-
-        scene->front_placeholder_text = label_alloc(app->front_scene_window);
-        label_set_text(scene->front_placeholder_text, "Coming soon...");
-        label_set_text_align(scene->front_placeholder_text, TextAlignCenter);
-        Widget* front_placeholder_text_base = label_get_base(scene->front_placeholder_text);
-        widget_set_align(front_placeholder_text_base, AlignCenter);
+        menu_add_item(
+            data->front_menu,
+            "Clock",
+            "",
+            APPS_MENU_IMG_PATH("clock_front_8x8.bin"),
+            AppsSceneMainMenuIndexClock,
+            apps_scene_setup_menu_callback,
+            instance);
+        menu_set_selected_item_index(data->front_menu, data->menu_idx);
 
         // back:
+        data->back_menu = menu_alloc(instance->back_scene_window);
+        menu_add_item(
+            data->back_menu,
+            "CLOCK",
+            "",
+            APPS_MENU_IMG_PATH("clock_back_12x12.bin"),
+            AppsSceneMainMenuIndexClock,
+            NULL,
+            instance);
 
-        scene->back_placeholder = image_alloc(app->back_scene_window);
-        image_set_source(
-            scene->back_placeholder, APPS_MENU_IMG_PATH("apps_placeholder_back_98x44.bin"));
-        Widget* back_placeholder_base = image_get_base(scene->back_placeholder);
-        widget_set_align(back_placeholder_base, AlignTopMid);
-        widget_set_padding(back_placeholder_base, 0, 0, 4, 0);
-
-        scene->back_placeholder_text = label_alloc(back_placeholder_base);
-        label_set_text(scene->back_placeholder_text, "Coming soon...");
-        label_set_text_align(scene->back_placeholder_text, TextAlignCenter);
-        Widget* back_placeholder_text_base = label_get_base(scene->back_placeholder_text);
-        widget_set_align(back_placeholder_text_base, AlignBottomMid);
+        menu_set_selected_item_index(data->back_menu, data->menu_idx);
+        widget_set_visible(nav_bar_get_base(instance->back_nav_bar), true);
     });
 }
 
 static void apps_menu_scene_main_on_exit(void* context) {
     furi_assert(context);
-    AppsMenu* app = context;
-    AppsMenuSceneMain* scene = scene_manager_get_current_scene_data(app->scene_manager);
+    AppsMenu* instance = context;
+    AppsMenuSceneMain* data = scene_manager_get_current_scene_data(instance->scene_manager);
 
-    with_gui(app->gui, {
-        image_free(scene->front_placeholder);
-        label_free(scene->front_placeholder_text);
-        image_free(scene->back_placeholder);
-        label_free(scene->back_placeholder_text);
+    with_gui(instance->gui, {
+        menu_free(data->front_menu);
+        menu_free(data->back_menu);
     });
 }
 
 static bool apps_menu_scene_main_on_event(const SceneManagerEvent* event, void* context) {
     furi_assert(context);
-    AppsMenu* app = context;
-    UNUSED(app);
-    UNUSED(event);
+    AppsMenu* instance = context;
+    AppsMenuSceneMain* data = scene_manager_get_current_scene_data(instance->scene_manager);
+
+    if(event->type == SceneManagerEventTypeCustom) {
+        if(event->event == SceneCustomEventMenuItemClicked) {
+            Desktop* desktop = furi_record_open(RECORD_DESKTOP);
+            furi_check(data->menu_idx < AppsSceneMainMenuIndexesCount);
+
+            desktop_replace_current_app(desktop, apps_menu_scene_app_names[data->menu_idx], NULL);
+
+            furi_record_close(RECORD_DESKTOP);
+        }
+    }
 
     return false;
 }
