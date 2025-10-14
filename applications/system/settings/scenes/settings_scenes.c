@@ -5,6 +5,7 @@ extern const Scene settings_scene_main;
 extern const Scene settings_scene_sound;
 extern const Scene settings_scene_brightness;
 extern const Scene settings_scene_debug_apps;
+extern const Scene settings_scene_fw_update;
 
 extern const Scene settings_scene_matter;
 extern const Scene settings_scene_matter_pairing;
@@ -21,6 +22,8 @@ const Scene* const settings_scenes[SettingsAppSceneIdsCount] = {
     [SettingsAppSceneIdSound] = &settings_scene_sound,
     [SettingsAppSceneIdBrightness] = &settings_scene_brightness,
     [SettingsAppSceneIdDebugApps] = &settings_scene_debug_apps,
+
+    [SettingsAppSceneIdFwUpdate] = &settings_scene_fw_update,
 
     [SettingsAppSceneIdMatter] = &settings_scene_matter,
     [SettingsAppSceneIdMatterPairing] = &settings_scene_matter_pairing,

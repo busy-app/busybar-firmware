@@ -272,7 +272,7 @@ static void wifi_prepare_scan_response(WifiResponse* response) {
             WifiScanResult* result_out = &response->scan_results.data[i];
 
             strncpy(result_out->ssid, (const char*)result_in->ssid, SSID_MAX_LEN);
-            result_out->security_mode = result_in->security_mode;
+            result_out->security_mode = wifi_decode_security_mode(result_in->security_mode);
             result_out->rssi = result_in->rssi;
         }
 
