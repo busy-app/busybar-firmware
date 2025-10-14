@@ -9,6 +9,7 @@ App(
         "custom",
         "soft_off",
         "power_on",
+        "clock",
     ],
     targets=["f20", "f21"],
 )
