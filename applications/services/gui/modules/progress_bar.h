@@ -1,14 +1,11 @@
 /**
  * @file progress_bar.h
- * @brief A widget that shows the remaining time.
- *
- * Can be used only on the front display.
+ * @brief A widget that displays a static ProgressBar.
  */
 #pragma once
 
 #include <gui/widget.h>
-
-#include <color.h>
+#include <toolbox/color.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -16,11 +13,6 @@ extern "C" {
 
 /** ProgressBar opaque structure. */
 typedef struct ProgressBar ProgressBar;
-
-typedef struct {
-    const char* file_path;
-    Color trough_color;
-} ProgressBarPreset;
 
 /**
  * @brief Create a new ProgressBar instance.
@@ -32,7 +24,7 @@ typedef struct {
 ProgressBar* progress_bar_alloc(Widget* parent);
 
 /**
- * @brief Delete a ProgressBar instance.
+ * @brief Delete an ProgressBar instance.
  *
  * @param[in,out] instance pointer to the ProgressBar instance to be deleted
  */
@@ -48,15 +40,13 @@ void progress_bar_free(ProgressBar* instance);
  */
 Widget* progress_bar_get_base(ProgressBar* instance);
 
-void progress_bar_set_preset(ProgressBar* instance, const ProgressBarPreset* preset);
-
 /**
- * @brief Set the displayed value.
- *
- * @param[in,out] instance pointer to the ProgressBar instance to be modified
- * @param[in] value progress value (@c 0.0 - no fill, @c 1.0 - fully filled)
- */
-void progress_bar_set_value(ProgressBar* instance, float value);
+* @brief Set the current value of the ProgressBar.
+*
+* @param[in,out] instance pointer to the ProgressBar instance to be modified
+* @param[in] value current value (0-100)
+*/
+void progress_bar_set_value(ProgressBar* instance, int32_t value);
 
 #ifdef __cplusplus
 }

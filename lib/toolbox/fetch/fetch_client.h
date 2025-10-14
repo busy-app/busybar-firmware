@@ -42,6 +42,12 @@ void fetch_client_run(FetchClient* instance, FuriString* url);
 bool fetch_client_is_processing_done(FetchClient* instance);
 
 /*
+* Forces the fetch process to be marked as done.
+* @param[in] instance Pointer to the FetchClient instance.
+*/
+void fetch_client_forced_done(FetchClient* instance);
+
+/*
 * Sets the context for the FetchClient instance.
 * @param[in] instance Pointer to the FetchClient instance.
 * @param[in] context Pointer to the context to set.

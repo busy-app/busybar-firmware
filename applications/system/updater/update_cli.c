@@ -13,8 +13,8 @@
 #include <toolbox/update_lib/common_vals.h>
 #include <toolbox/tar/tar_archive.h>
 #include <toolbox/path.h>
-#include <cli/cli_ansi.h>
 #include <applications/system/fetch/fetch.h>
+#include <toolbox/update_fw_tar.h>
 
 #define TAG                 "UpdaterCli"
 #define UPDATE_STAGING_ROOT ("/update")
@@ -112,122 +112,9 @@ static void updater_cli_execute_install(const char* manifest_path) {
 
 static void updater_cli_execute_install_tar(const char* path) {
     printf("Installing update bundle from: %s\r\n", path);
-
-    UpdateConfig* state = update_config_alloc();
-    Storage* storage = furi_record_open(RECORD_STORAGE);
-
-    FuriString* file_path = furi_string_alloc();
-    path_extract_dirname(path, file_path);
-
-    FuriString* final_staging_path = furi_string_alloc();
-    path_concat(furi_string_get_cstr(file_path), UPDATE_STAGING_ROOT, final_staging_path);
-
-    FuriString* manifest_full_path = furi_string_alloc_printf(
-        "%s/%s", furi_string_get_cstr(final_staging_path), UPDATE_CONFIG_FILENAME);
-
-    FURI_LOG_D(TAG, "Final staging path: %s", furi_string_get_cstr(final_staging_path));
-
-    if(storage_dir_exists(storage, furi_string_get_cstr(final_staging_path))) {
-        FURI_LOG_I(
-            TAG,
-            "Cleaning up directory recursively: %s",
-            furi_string_get_cstr(final_staging_path));
-        storage_simply_remove_recursive(storage, furi_string_get_cstr(final_staging_path));
+    if(!update_fw_tar_install(path)) {
+        printf("Update failed\r\n");
     }
-
-    do {
-        // 1. Create staging directory
-        printf("Creating staging directory: %s\r\n", furi_string_get_cstr(final_staging_path));
-        if(storage_common_mkdir(storage, furi_string_get_cstr(final_staging_path)) != FSE_OK) {
-            FURI_LOG_E(
-                TAG,
-                "Failed to create package directory: %s",
-                furi_string_get_cstr(final_staging_path));
-            printf(
-                ANSI_FG_RED "Failed to create package directory: %s\r\n" ANSI_RESET,
-                furi_string_get_cstr(final_staging_path));
-            break;
-        }
-
-        // 2. Unpack TAR
-        printf("Unpacking TAR contents to: %s\r\n", furi_string_get_cstr(final_staging_path));
-        TarArchive* tar = tar_archive_alloc(storage);
-        bool unpack_success = false;
-        if(tar_archive_open(tar, path, TarOpenModeRead)) {
-            if(tar_archive_unpack_to(tar, furi_string_get_cstr(final_staging_path), NULL)) {
-                unpack_success = true;
-            } else {
-                FURI_LOG_E(
-                    TAG,
-                    "Failed to unpack TAR contents to %s",
-                    furi_string_get_cstr(final_staging_path));
-                printf(
-                    ANSI_FG_RED "Failed to unpack TAR contents to %s\r\n" ANSI_RESET,
-                    furi_string_get_cstr(final_staging_path));
-            }
-        } else {
-            FURI_LOG_E(TAG, "Failed to open TAR file %s", path);
-            printf(ANSI_FG_RED "Failed to open TAR file %s\r\n" ANSI_RESET, path);
-        }
-
-        tar_archive_free(tar);
-
-        if(!unpack_success) {
-            // Staging dir will be cleaned by on_close as reboot_initiated is false
-            FURI_LOG_E(TAG, "Failed to unpack update TAR.");
-            printf(ANSI_FG_RED "Failed to unpack update TAR.\r\n" ANSI_RESET);
-            break;
-        }
-        printf(ANSI_FG_GREEN "TAR unpacked successfully\r\n" ANSI_RESET);
-
-        // 3. Validate: Check for UPDATE_CONFIG_FILENAME
-        printf("Checking for manifest: %s\r\n", furi_string_get_cstr(manifest_full_path));
-        if(!storage_file_exists(storage, furi_string_get_cstr(manifest_full_path))) {
-            FURI_LOG_E(
-                TAG, "Manifest file not found: %s", furi_string_get_cstr(manifest_full_path));
-            printf(
-                ANSI_FG_RED "Manifest file not found: %s\r\n" ANSI_RESET,
-                furi_string_get_cstr(manifest_full_path));
-            break;
-        }
-        FURI_LOG_D(TAG, "Manifest found: %s", furi_string_get_cstr(manifest_full_path));
-        printf(
-            ANSI_FG_GREEN "Manifest found: %s\r\n" ANSI_RESET,
-            furi_string_get_cstr(manifest_full_path));
-
-        // 4. Validate the update package using update_config_load
-        UpdateConfigValidation config_state =
-            update_config_load(state, furi_string_get_cstr(manifest_full_path));
-        if(config_state != UpdateConfigValidationOK) {
-            printf(
-                ANSI_FG_RED "Failed to load updater configuration: %s\r\n" ANSI_RESET,
-                update_config_validation_get_error_str(config_state));
-            break;
-        }
-
-        printf(ANSI_FG_GREEN "Updater configuration valid\r\n" ANSI_RESET);
-
-        if(!update_config_write_pointer_file(storage, furi_string_get_cstr(manifest_full_path))) {
-            printf(ANSI_FG_RED "Failed to write manifest path to pointer file.\r\n" ANSI_RESET);
-            break;
-        }
-
-        printf(
-            ANSI_FG_GREEN "Manifest path written to %s/%s\r\n" ANSI_RESET,
-            furi_string_get_cstr(final_staging_path),
-            UPDATE_POINTER_FILE_NAME);
-
-        furi_hal_nvm_set_boot_mode(FuriHalNvmBootModeUpdate);
-        printf(ANSI_FG_GREEN "Boot mode set to Update.\r\nRebooting...\r\n" ANSI_RESET);
-        furi_delay_ms(100);
-        furi_hal_power_reset();
-    } while(false);
-
-    furi_string_free(file_path);
-    furi_string_free(final_staging_path);
-    furi_string_free(manifest_full_path);
-    furi_record_close(RECORD_STORAGE);
-    update_config_free(state);
 }
 
 static void updater_cli_execute_install_web(const char* link) {

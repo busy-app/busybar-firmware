@@ -39,6 +39,7 @@ App(
         "network",
         "sntp",
         "matter",
+        "update_checker",
         "device_name",
     ],
     targets=["f20", "f21"],

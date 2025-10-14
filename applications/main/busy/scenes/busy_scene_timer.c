@@ -6,7 +6,7 @@
 #include <gui/modules/flex_layout.h>
 
 #include "../widgets/pause_overlay.h"
-#include "../widgets/progress_bar.h"
+#include "../widgets/timer_bar.h"
 #include "../widgets/timer_indicator.h"
 #include "../widgets/timer_label.h"
 
@@ -18,7 +18,7 @@ typedef struct {
     FlexLayout* front_flex;
     TimerIndicator* timer_indicator;
     TimerLabel* timer_label;
-    ProgressBar* progress_bar;
+    TimerBar* timer_bar;
     PauseOverlay* pause_overlay;
     RunLater* run_later;
     BusyTimerMode timer_mode;
@@ -116,8 +116,8 @@ static void busy_scene_timer_update_tick(BusyApp* instance) {
     const float progress = (float)time->elapsed_s / (time->elapsed_s + time->remain_s);
 
     with_gui(instance->gui, {
-        if(widget_is_visible(progress_bar_get_base(data->progress_bar))) {
-            progress_bar_set_value(data->progress_bar, progress);
+        if(widget_is_visible(timer_bar_get_base(data->timer_bar))) {
+            timer_bar_set_value(data->timer_bar, progress);
         }
 
         timer_label_set_time(data->timer_label, data->timer_time.remain_s);
@@ -155,19 +155,19 @@ static void busy_scene_timer_update_timer_mode(BusyApp* instance) {
         if(data->timer_mode == BusyTimerModeInfinite) {
             widget_set_pos(flex_layout_get_base(data->front_flex), 1, 1);
             widget_set_visible(timer_label_get_base(data->timer_label), false);
-            widget_set_visible(progress_bar_get_base(data->progress_bar), false);
+            widget_set_visible(timer_bar_get_base(data->timer_bar), false);
             timer_card_show_time(instance->timer_card, false);
 
         } else if(data->timer_mode == BusyTimerModeSimple) {
             widget_set_pos(flex_layout_get_base(data->front_flex), 0, 1);
             widget_set_visible(timer_label_get_base(data->timer_label), true);
-            widget_set_visible(progress_bar_get_base(data->progress_bar), true);
+            widget_set_visible(timer_bar_get_base(data->timer_bar), true);
             timer_card_show_time(instance->timer_card, true);
 
         } else if(data->timer_mode == BusyTimerModeInterval) {
             widget_set_pos(flex_layout_get_base(data->front_flex), 0, 0);
             widget_set_visible(timer_label_get_base(data->timer_label), true);
-            widget_set_visible(progress_bar_get_base(data->progress_bar), true);
+            widget_set_visible(timer_bar_get_base(data->timer_bar), true);
             timer_card_show_time(instance->timer_card, true);
         }
     });
@@ -186,16 +186,14 @@ static void busy_scene_timer_update_timer_state(BusyApp* instance) {
 
             } else if(data->timer_mode == BusyTimerModeInterval) {
                 timer_indicator_set_state(data->timer_indicator, TimerIndicatorStateWork);
-                progress_bar_set_preset(
-                    data->progress_bar, &busy_progress_bar[BusyProgressBarTypeWork]);
+                timer_bar_set_preset(data->timer_bar, &busy_progress_bar[BusyTimerBarTypeWork]);
             }
 
         } else if(data->timer_state == BusyTimerStateRest) {
             furi_assert(data->timer_mode == BusyTimerModeInterval);
 
             timer_indicator_set_state(data->timer_indicator, TimerIndicatorStateRest);
-            progress_bar_set_preset(
-                data->progress_bar, &busy_progress_bar[BusyProgressBarTypeRest]);
+            timer_bar_set_preset(data->timer_bar, &busy_progress_bar[BusyTimerBarTypeRest]);
         }
     });
 
@@ -284,8 +282,8 @@ static void busy_scene_timer_on_enter(void* context) {
 
         data->timer_label = timer_label_alloc(flex_layout_get_base(data->front_flex));
 
-        data->progress_bar = progress_bar_alloc(instance->front_window);
-        widget_set_pos(progress_bar_get_base(data->progress_bar), 1, 15);
+        data->timer_bar = timer_bar_alloc(instance->front_window);
+        widget_set_pos(timer_bar_get_base(data->timer_bar), 1, 15);
 
         data->pause_overlay = pause_overlay_alloc(instance->front_window);
 
@@ -326,7 +324,7 @@ static void busy_scene_timer_on_exit(void* context) {
         timer_card_show_time(instance->timer_card, false);
 
         flex_layout_free(data->front_flex);
-        progress_bar_free(data->progress_bar);
+        timer_bar_free(data->timer_bar);
         pause_overlay_free(data->pause_overlay);
     });
 }

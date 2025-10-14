@@ -6,7 +6,7 @@
 #include <gui/modules/flex_layout.h>
 
 #include <busy/widgets/pause_overlay.h>
-#include <busy/widgets/progress_bar.h>
+#include <busy/widgets/timer_bar.h>
 #include <busy/widgets/timer_indicator.h>
 #include <busy/widgets/timer_label.h>
 
