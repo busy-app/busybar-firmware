@@ -299,8 +299,8 @@ CHIP_ERROR MatterSrv::init(void) {
         Server::GetInstance().GetFabricTable().AddFabricDelegate(&m_fabric_delegate);
 
         auto intercom = static_cast<Intercom*>(furi_record_open(RECORD_INTERCOM));
-        m_intercom = intercom_channel_open(
-            intercom, IntercomChannelIdMatter, FuriWaitForever, matter_handle_frame, this);
+        m_intercom =
+            intercom_channel_open(intercom, IntercomChannelIdMatter, matter_handle_frame, this);
         matter_send_current_state(this);
         matter_send_fabric_count_update(this);
 

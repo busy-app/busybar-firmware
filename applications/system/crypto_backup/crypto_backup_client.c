@@ -149,18 +149,13 @@ static CryptoBackup* crypto_backup_client_init() {
     instance->access_semaphore = furi_semaphore_alloc(1, 0);
     Intercom* intercom = furi_record_open(RECORD_INTERCOM);
     instance->intercom = intercom_channel_open(
-        intercom,
-        IntercomChannelIdCryptoBackup,
-        FuriWaitForever,
-        crypto_backup_client_rx_callback,
-        instance);
+        intercom, IntercomChannelIdCryptoBackup, crypto_backup_client_rx_callback, instance);
     instance->rx_buffer = furi_stream_buffer_alloc(CRYPTO_BACKUP_COMMON_USERDATA_SIZE, 1);
     return instance;
 }
 
 static void crypto_backup_client_deinit(CryptoBackup* instance) {
     furi_check(instance);
-    intercom_channel_close(instance->intercom);
     furi_record_close(RECORD_INTERCOM);
     furi_semaphore_free(instance->access_semaphore);
     furi_stream_buffer_free(instance->rx_buffer);

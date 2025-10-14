@@ -215,11 +215,7 @@ static Wifi* wifi_alloc(void) {
         instance->event_loop, wifi_custom_event_callback, instance);
 
     instance->intercom_main = intercom_channel_open(
-        instance->intercom,
-        IntercomChannelIdWifi,
-        FuriWaitForever,
-        wifi_intercom_rx_callback,
-        instance);
+        instance->intercom, IntercomChannelIdWifi, wifi_intercom_rx_callback, instance);
 
     FuriThread* startup_thread = furi_thread_alloc_ex(
         "WifiStartup", STARTUP_THREAD_STACK_SIZE, wifi_startup_thread_callback, instance);

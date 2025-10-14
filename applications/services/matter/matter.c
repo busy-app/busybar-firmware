@@ -293,7 +293,7 @@ MatterSrv* matter_srv_alloc(void) {
 
     Intercom* intercom = furi_record_open(RECORD_INTERCOM);
     matter->intercom = intercom_channel_open(
-        intercom, IntercomChannelIdMatter, FuriWaitForever, matter_forward_frame_to_thread, matter);
+        intercom, IntercomChannelIdMatter, matter_forward_frame_to_thread, matter);
 
     furi_record_create(RECORD_MATTER, matter);
     return matter;

@@ -367,14 +367,9 @@ static Wifi* wifi_alloc(void) {
 
     Intercom* intercom = furi_record_open(RECORD_INTERCOM);
     instance->intercom_main = intercom_channel_open(
-        intercom, IntercomChannelIdWifi, FuriWaitForever, wifi_intercom_rx_callback, instance);
-    // it's fine if we drop some 917->u5 packets until u5 is ready to accept them
+        intercom, IntercomChannelIdWifi, wifi_intercom_rx_callback, instance);
     instance->intercom_data = intercom_channel_open(
-        intercom,
-        IntercomChannelIdWifiData,
-        FuriWaitNever,
-        wifi_net_intercom_rx_callback,
-        instance);
+        intercom, IntercomChannelIdWifiData, wifi_net_intercom_rx_callback, instance);
 
     wifi_net_tcpip_init(instance);
 

@@ -103,11 +103,7 @@ void wifi_net_init(Wifi* instance, const WifiHardwareAddress* addr) {
     UNLOCK_TCPIP_CORE();
 
     instance->intercom_data = intercom_channel_open(
-        instance->intercom,
-        IntercomChannelIdWifiData,
-        FuriWaitForever,
-        wifi_net_intercom_rx_callback,
-        instance);
+        instance->intercom, IntercomChannelIdWifiData, wifi_net_intercom_rx_callback, instance);
 }
 
 void wifi_net_up(Wifi* instance) {

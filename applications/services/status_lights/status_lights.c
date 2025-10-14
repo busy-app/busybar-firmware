@@ -206,8 +206,8 @@ static StatusLights* status_lights_alloc() {
         instance);
 
     Intercom* intercom = furi_record_open(RECORD_INTERCOM);
-    instance->intercom = intercom_channel_open(
-        intercom, IntercomChannelIdStatusLights, FuriWaitForever, NULL, NULL);
+    instance->intercom =
+        intercom_channel_open(intercom, IntercomChannelIdStatusLights, NULL, NULL);
 
 #if defined(SRV_LIGHT_SENSOR)
     FuriPubSub* light_sensor_pubsub = furi_record_open(RECORD_LIGHT_SENSOR_EVENTS);

@@ -188,12 +188,9 @@ int32_t crypto_backup_server_init(void* arg) {
 
     Intercom* intercom = furi_record_open(RECORD_INTERCOM);
 
-    // we never send out frames without a prior request.
-    // blocking is not required.
     crypto_backup_server.intercom = intercom_channel_open(
         intercom,
         IntercomChannelIdCryptoBackup,
-        FuriWaitNever,
         crypto_backup_server_rx_callback,
         &crypto_backup_server);
 

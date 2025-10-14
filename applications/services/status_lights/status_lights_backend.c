@@ -110,11 +110,7 @@ static StatusLights* status_lights_alloc() {
 
     Intercom* intercom = furi_record_open(RECORD_INTERCOM);
     instance->intercom = intercom_channel_open(
-        intercom,
-        IntercomChannelIdStatusLights,
-        FuriWaitForever,
-        status_lights_intercom_rx_callback,
-        instance);
+        intercom, IntercomChannelIdStatusLights, status_lights_intercom_rx_callback, instance);
 
     furi_record_create(RECORD_STATUS_LIGHTS, instance);
 

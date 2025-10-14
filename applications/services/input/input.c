@@ -267,8 +267,7 @@ int32_t input_srv(void* p) {
 
 #ifdef SRV_INTERCOM
     Intercom* intercom = furi_record_open(RECORD_INTERCOM);
-    intercom_channel_open(
-        intercom, IntercomChannelIdInput, FuriWaitForever, input_intercom_rx_callback, input);
+    intercom_channel_open(intercom, IntercomChannelIdInput, input_intercom_rx_callback, input);
 #endif
 
     furi_record_create(RECORD_INPUT, input);

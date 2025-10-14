@@ -326,11 +326,7 @@ static CliIntercom* cli_intercom_alloc(void) {
 
     Intercom* intercom = furi_record_open(RECORD_INTERCOM);
     cli_intercom->intercom = intercom_channel_open(
-        intercom,
-        IntercomChannelIdCli,
-        FuriWaitForever,
-        cli_intercom_intercom_rx_callback,
-        cli_intercom);
+        intercom, IntercomChannelIdCli, cli_intercom_intercom_rx_callback, cli_intercom);
 
     cli_intercom->event_loop = furi_event_loop_alloc();
 
