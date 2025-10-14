@@ -88,7 +88,6 @@ libenv.AppendUnique(
 
 sources = [
     f"{MATTER_SDK_DIR}/src/access/AccessControl.cpp",
-    f"{MATTER_SDK_DIR}/src/access/AccessRestrictionProvider.cpp",
     f"{MATTER_SDK_DIR}/src/access/examples/ExampleAccessControlDelegate.cpp",
 
     f"{MATTER_SDK_DIR}/src/app/AttributeAccessInterfaceRegistry.cpp",
@@ -120,7 +119,6 @@ sources = [
     f"{MATTER_SDK_DIR}/src/app/WriteHandler.cpp",
 
     f"{MATTER_SDK_DIR}/src/app/clusters/access-control-server/access-control-server.cpp",
-    f"{MATTER_SDK_DIR}/src/app/clusters/access-control-server/ArlEncoder.cpp",
     f"{MATTER_SDK_DIR}/src/app/clusters/administrator-commissioning-server/administrator-commissioning-server.cpp",
     f"{MATTER_SDK_DIR}/src/app/clusters/basic-information/basic-information.cpp",
     f"{MATTER_SDK_DIR}/src/app/clusters/bindings/PendingNotificationMap.cpp",
@@ -131,12 +129,8 @@ sources = [
     f"{MATTER_SDK_DIR}/src/app/clusters/group-key-mgmt-server/group-key-mgmt-server.cpp",
     f"{MATTER_SDK_DIR}/src/app/clusters/groups-server/groups-server.cpp",
     f"{MATTER_SDK_DIR}/src/app/clusters/identify-server/identify-server.cpp",
-    f"{MATTER_SDK_DIR}/src/app/clusters/localization-configuration-server/localization-configuration-server.cpp",
     f"{MATTER_SDK_DIR}/src/app/clusters/on-off-server/on-off-server.cpp",
     f"{MATTER_SDK_DIR}/src/app/clusters/operational-credentials-server/operational-credentials-server.cpp",
-    f"{MATTER_SDK_DIR}/src/app/clusters/time-synchronization-server/DefaultTimeSyncDelegate.cpp",
-    f"{MATTER_SDK_DIR}/src/app/clusters/time-synchronization-server/time-synchronization-server.cpp",
-    f"{MATTER_SDK_DIR}/src/app/clusters/time-synchronization-server/TimeSyncDataProvider.cpp",
 
     f"{MATTER_SDK_DIR}/src/app/data-model-provider/ActionReturnStatus.cpp",
     f"{MATTER_SDK_DIR}/src/app/data-model-provider/MetadataTypes.cpp",

@@ -304,6 +304,15 @@ static const HttpHandler handlers_api_root[] = {
         .on_request = http_api_ble_callback,
     },
     {
+        .uri = "time",
+        .method = "*",
+        .type = HttpHandlerCustom,
+        .ctx_alloc = http_api_time_alloc,
+        .ctx_free = http_api_time_free,
+        .on_request = http_api_time_callback,
+    },
+    {
+
         .uri = "name",
         .method = "*",
         .type = HttpHandlerCustom,

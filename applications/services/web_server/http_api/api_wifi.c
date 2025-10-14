@@ -50,6 +50,7 @@ static const char* const security_modes[WifiSecurityModeMax] = {
     [WifiSecurityModeWpaWpa2Mixed] = "WPA/WPA2",
     [WifiSecurityModeWpa3] = "WPA3",
     [WifiSecurityModeWpa3Transition] = "WPA2/WPA3",
+    [WifiSecurityModeUnsupported] = "Unsupported",
 };
 
 static const char* const wifi_ip_method[WifiIpManagementMax] = {
@@ -94,6 +95,10 @@ static bool api_wifi_get_security_mode_by_name(const FuriString* name, WifiSecur
     int value = WifiSecurityModeMax;
     bool result =
         api_wifi_parse_value_from_array(name, security_modes, WifiSecurityModeMax, &value);
+    if(result && value == WifiSecurityModeUnsupported) {
+        // Unsupported is not a valid input mode
+        result = false;
+    }
     *mode = (WifiSecurityMode)value;
     return result;
 }
