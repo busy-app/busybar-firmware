@@ -26,7 +26,7 @@ const TransitionOverlayPreset custom_transitions[CustomTransitionTypeMax] = {
         },
 };
 
-const StatusLightsCommand custom_status_lights[CustomStatusLightsTypeMax] = {
+const CustomStatusLightsPreset custom_status_lights[CustomStatusLightsTypeMax] = {
     [CustomStatusLightsTypeOff] =
         {
             .preset = StatusLightsPresetOff,

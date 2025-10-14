@@ -28,6 +28,8 @@ typedef enum {
     AppsMenuCustomEventLaunchMain,
     AppsMenuCustomEventAboutToExit,
 
+    AppsMenuCustomEventSceneEventsStart,
+
     AppsMenuCustomEventMAX = 0xFFFFFFFF, // forces enum size, don't use
 } AppsMenuCustomEvent;
 

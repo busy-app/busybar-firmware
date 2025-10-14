@@ -39,6 +39,8 @@ App(
         "network",
         "sntp",
         "matter",
+        "update_checker",
+        "device_name",
     ],
     targets=["f20", "f21"],
 )
@@ -54,6 +56,7 @@ App(
         "wifi",
         "nvm",
         "matter",
+        "startup_dfu_hook"
     ],
     targets=["f64"],
 )

@@ -9,7 +9,7 @@
 #define WEB_ROOT APP_ASSETS_PATH("www/")
 
 #define HEADER_CORS_ORIGIN        "Access-Control-Allow-Origin: *\r\n"
-#define HEADER_CORS_METHODS       "Access-Control-Allow-Methods: GET, POST, PUT, DELETE, OPTIONS\r\n"
+#define HEADER_CORS_METHODS       "Access-Control-Allow-Methods: GET, POST, PUT, DELETE\r\n"
 #define HEADER_CORS_HEADERS       "Access-Control-Allow-Headers: *\r\n"
 #define HEADER_CORS               HEADER_CORS_ORIGIN HEADER_CORS_METHODS HEADER_CORS_HEADERS
 #define HEADER_CONTENT_TYPE_JSON  "Content-Type: application/json\r\n"

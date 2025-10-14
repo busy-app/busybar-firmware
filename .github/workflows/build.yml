@@ -14,7 +14,7 @@ env:
   FBT_TOOLCHAIN_PATH: /runner/_work
 
 jobs:
-  main:
+  build:
     runs-on: BsbShell
     env:
       GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -22,6 +22,9 @@ jobs:
       fail-fast: false
       matrix:
         u5_target: [20, 21]
+    outputs:
+      default_target: ${{ env.DEFAULT_TARGET }}
+      update_url: ${{ steps.set-url.outputs.update_url }}
 
     steps:
       - name: 'Wipe workspace'
@@ -32,7 +35,7 @@ jobs:
       - name: 'Checkout code'
         uses: actions/checkout@v4
         with:
-          ref: ${{ github.sha }}
+          ref: ${{ github.event.pull_request.head.sha }}
           fetch-depth: 2
           token: ${{ secrets.GITHUB_TOKEN }}
 
@@ -60,6 +63,7 @@ jobs:
             TYPE="pull"
           elif [[ "${{ github.ref }}" == "refs/tags/"* ]]; then
             TYPE="tag"
+            BUILD_TYPE='DEBUG=0 COMPACT=1'
           else
             TYPE="other"
           fi
@@ -84,6 +88,16 @@ jobs:
           rm -rf artifacts
           mkdir -p artifacts
           cp -v dist/f${U5_TARGET_HW}-*/* artifacts/
+
+      - name: 'Calculate hashsums for artifacts'
+        working-directory: artifacts
+        shell: bash
+        run: |
+          SUMS_FILE="busybar-f${U5_TARGET_HW}-sha256sum.txt"
+          find . -maxdepth 1 -type f ! -name "$SUMS_FILE" -printf '%f\0' \
+            | LC_ALL=C sort -z \
+            | xargs -0 sha256sum \
+            > "$SUMS_FILE"
 
       - name: 'Upload build artifacts'
         if: ${{ !github.event.pull_request.head.repo.fork && steps.build-fw.outcome == 'success' }}
@@ -151,13 +165,13 @@ jobs:
         run: |
           echo "update_url=${{ steps.names.outputs.branch_name }}/busybar-f${{ matrix.u5_target }}-update-${{ steps.names.outputs.suffix }}.tar" >> "$GITHUB_OUTPUT"
 
-      - name: Trigger "Updater tests"
-        if: ${{ false && matrix.u5_target == env.DEFAULT_TARGET }}
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          gh workflow run updater_test.yml \
-            --ref ${COMMIT_HASH} \
-            -f default_target=${{ env.DEFAULT_TARGET }} \
-            -f sha=${{ github.sha }} \
-            -f update_url="${{ steps.set-url.outputs.update_url }}"
+
+  updater-tests:
+    needs: build
+    if: ${{ needs.build.result == 'success' && needs.build.outputs.update_url != '' }}
+    uses: './.github/workflows/updater-test.yml'
+    with:
+      branch_name: ${{ github.head_ref || github.ref_name }}
+      commit_sha: ${{ github.event.pull_request.head.sha }}
+      update_url: ${{ needs.build.outputs.update_url }}
+      default_target: ${{ needs.build.outputs.default_target }}

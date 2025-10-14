@@ -11,7 +11,7 @@
 #define TAG "Desktop"
 
 // Time to wait for the rotary switch steady state
-#define SWITCH_DELAY_MS   (300)
+#define SWITCH_DELAY_MS   (100)
 // Maximum and initial counts for synchronisation primitives
 #define INPUT_QUEUE_COUNT (8)
 #define START_QUEUE_COUNT (3)
@@ -45,6 +45,7 @@ struct Desktop {
 };
 
 static const DesktopDefaultApp desktop_default_apps[];
+static const DesktopDefaultApp power_on_app = {"power_on", NULL};
 
 // Called by the Input service thread when the user interacts with the rotary switch/buttons
 static void desktop_input_pubsub_callback(const void* message, void* context) {
@@ -171,9 +172,19 @@ static void desktop_handle_switch_finished(Desktop* instance) {
     desktop_overlay_hide(instance->overlay, transition_type);
 }
 
+static void desktop_prepare_power_on_app(Desktop* instance) {
+    desktop_start_request_set_name(instance->current_request, power_on_app.name);
+    desktop_start_request_set_args(instance->current_request, power_on_app.args);
+}
+
+static bool desktop_power_on_app_is_running(Desktop* instance) {
+    return furi_string_equal_str(instance->current_request->name, power_on_app.name);
+}
+
 // Check if desktop_handle_switch_start() should be called
 static bool desktop_should_handle_switch_start(Desktop* instance) {
-    return !desktop_overlay_show_requested(instance->overlay);
+    return !desktop_overlay_show_requested(instance->overlay) &&
+           (!desktop_power_on_app_is_running(instance));
 }
 
 // Called if the requested app failed to start (Shows error message via the Message app)
@@ -220,6 +231,10 @@ static void desktop_do_replace_current_app(Desktop* instance) {
         // App will be started asynchronously after
         // the currently running one will have stopped
     } else if(status == LoaderStatusErrorAppNotRunning) {
+        if(desktop_power_on_app_is_running(instance)) {
+            desktop_prepare_default_app(instance);
+        }
+
         // App will be started immediately
         desktop_start_current_app(instance);
         desktop_prepare_default_app(instance);
@@ -231,14 +246,18 @@ static void desktop_do_replace_current_app(Desktop* instance) {
 }
 
 // Called in the Desktop thread when there are input events to process
-static void desktop_input_queue_callback(FuriEventLoopObject* object, void* context) {
+void desktop_input_queue_callback(FuriEventLoopObject* object, void* context) {
     furi_assert(context);
 
     Desktop* instance = context;
     furi_assert(instance->input_queue == object);
 
     InputSwitchPosition next_switch_pos;
+
+    bool skip_switch_event = false;
     while(furi_message_queue_get(instance->input_queue, &next_switch_pos, 0) == FuriStatusOk) {
+        skip_switch_event = desktop_power_on_app_is_running(instance);
+
         instance->switch_direction = (next_switch_pos > instance->switch_pos) ?
                                          DesktopSwitchDirectionDown :
                                          DesktopSwitchDirectionUp;
@@ -252,7 +271,7 @@ static void desktop_input_queue_callback(FuriEventLoopObject* object, void* cont
         desktop_handle_switch_update(instance);
     }
 
-    furi_event_loop_timer_start(instance->switch_timer, SWITCH_DELAY_MS);
+    if(!skip_switch_event) furi_event_loop_timer_start(instance->switch_timer, SWITCH_DELAY_MS);
 }
 
 // Called in the Desktop thread when the switch steady state has been reached
@@ -370,7 +389,7 @@ static Desktop* desktop_alloc(void) {
     UNUSED(desktop_input_pubsub_callback);
 #endif
 
-    desktop_prepare_default_app(instance);
+    desktop_prepare_power_on_app(instance);
     if(!loader_is_locked(instance->loader)) {
         desktop_start_current_app(instance);
     }

@@ -8,7 +8,7 @@
 
 #define TAG "DesktopOverlay"
 
-#define FADE_OUT_ANIM_TIME_MS 135
+#define FADE_OUT_ANIM_TIME_MS 100
 
 typedef struct {
     uint32_t begin;
@@ -18,36 +18,18 @@ typedef struct {
 struct DesktopOverlay {
     Gui* gui;
     Widget* fade_out_widget;
-    AnimImage* switch_anim_image;
     AnimImage* mask_anim_image;
-
-    DesktopOverlayTransitionType show_transition_type;
     bool show_requested;
 };
 
-static const DesctopOverlayFrameRange switch_anim_frame_ranges[] = {
-    [DesktopOverlayTransitionTypeUp] = {.begin = 0, .end = 7},
-    [DesktopOverlayTransitionTypeDown] = {.begin = 8, .end = 15},
-};
-
 static const DesctopOverlayFrameRange mask_anim_frame_ranges[] = {
-    [DesktopOverlayTransitionTypeUp] = {.begin = 15, .end = 29},
-    [DesktopOverlayTransitionTypeDown] = {.begin = 0, .end = 14},
+    [DesktopOverlayTransitionTypeUp] = {.begin = 10, .end = 19},
+    [DesktopOverlayTransitionTypeDown] = {.begin = 0, .end = 9},
 };
 
-static void desktop_overlay_anim_image_completed_callback(AnimImage* anim, void* context) {
+static void desktop_overlay_mask_anim_image_completed_callback(AnimImage* anim, void* context) {
     UNUSED(context);
     widget_set_visible(anim_image_get_base(anim), false);
-}
-
-static void desktop_overlay_fade_out_anim_completed_callback(lv_anim_t* anim) {
-    DesktopOverlay* instance = lv_anim_get_user_data(anim);
-
-    const DesctopOverlayFrameRange* range =
-        &switch_anim_frame_ranges[instance->show_transition_type];
-
-    widget_set_visible(anim_image_get_base(instance->switch_anim_image), true);
-    anim_image_set_range(instance->switch_anim_image, range->begin, range->end, false, false);
 }
 
 static void desktop_overlay_fade_out_anim_exec_callback(void* var, int32_t value) {
@@ -67,14 +49,6 @@ DesktopOverlay* desktop_overlay_alloc(Gui* gui) {
         lv_obj_set_style_bg_color(
             (lv_obj_t*)instance->fade_out_widget, lv_color_black(), LV_PART_MAIN);
 
-        instance->switch_anim_image = anim_image_alloc(root);
-        widget_set_visible(anim_image_get_base(instance->switch_anim_image), false);
-        anim_image_set_source(
-            instance->switch_anim_image, DESKTOP_ANIM_PATH("switch_effect_transition_72x16.anim"));
-        anim_image_set_completed_callback(
-            instance->switch_anim_image, desktop_overlay_anim_image_completed_callback, instance);
-        anim_image_stop(instance->switch_anim_image);
-
         instance->mask_anim_image = anim_image_alloc(root);
         widget_set_visible(anim_image_get_base(instance->mask_anim_image), false);
         widget_set_blend_mode(
@@ -82,7 +56,9 @@ DesktopOverlay* desktop_overlay_alloc(Gui* gui) {
         anim_image_set_source(
             instance->mask_anim_image, DESKTOP_ANIM_PATH("hosizontal_mask_transition_72x16.anim"));
         anim_image_set_completed_callback(
-            instance->mask_anim_image, desktop_overlay_anim_image_completed_callback, instance);
+            instance->mask_anim_image,
+            desktop_overlay_mask_anim_image_completed_callback,
+            instance);
         anim_image_stop(instance->mask_anim_image);
     });
 
@@ -95,8 +71,6 @@ void desktop_overlay_show(DesktopOverlay* instance, DesktopOverlayTransitionType
     furi_check(type < DesktopOverlayTransitionTypesCount);
 
     if(type != DesktopOverlayTransitionTypeNone) {
-        instance->show_transition_type = type;
-
         with_gui(instance->gui, {
             widget_set_visible(instance->fade_out_widget, true);
 
@@ -108,8 +82,6 @@ void desktop_overlay_show(DesktopOverlay* instance, DesktopOverlayTransitionType
             lv_anim_set_duration(&fade_out_anim, FADE_OUT_ANIM_TIME_MS);
             lv_anim_set_path_cb(&fade_out_anim, lv_anim_path_ease_in_out);
             lv_anim_set_exec_cb(&fade_out_anim, desktop_overlay_fade_out_anim_exec_callback);
-            lv_anim_set_completed_cb(
-                &fade_out_anim, desktop_overlay_fade_out_anim_completed_callback);
             lv_anim_start(&fade_out_anim);
         });
     }

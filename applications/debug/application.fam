@@ -22,7 +22,7 @@ App(
         "wifi_adaptive_test",
         "animation_player",
         "lottie_player",
-        "clock",
+        "mqtt_test",
     ],
     targets=["f20", "f21"],
 )
@@ -31,7 +31,6 @@ App(
     appid="debug_apps",
     name="Not meant for release firmware",
     apptype=FlipperAppType.METAPACKAGE,
-    provides=[
-    ],
+    provides=[],
     targets=["f64"],
 )

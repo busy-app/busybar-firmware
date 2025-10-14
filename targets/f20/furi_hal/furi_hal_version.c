@@ -34,3 +34,8 @@ const uint8_t* furi_hal_version_get_ble_mac(void) {
 uint8_t furi_hal_version_get_hw_target(void) {
     return version_get_target(version_get());
 }
+
+void furi_hal_version_get_uid_str(FuriString* serial) {
+    furi_string_printf(
+        serial, "%08lx%08lx%08lx", LL_GetUID_Word2(), LL_GetUID_Word1(), LL_GetUID_Word0());
+}

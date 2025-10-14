@@ -11,6 +11,14 @@
 
 #include <toolbox/update_lib/update_config.h>
 #include <toolbox/update_lib/common_vals.h>
+#include <toolbox/tar/tar_archive.h>
+#include <toolbox/path.h>
+#include <applications/system/fetch/fetch.h>
+#include <toolbox/update_fw_tar.h>
+
+#define TAG                 "UpdaterCli"
+#define UPDATE_STAGING_ROOT ("/update")
+#define UPDATE_TAR_TMP      ("/upload.tar")
 
 static void
     updater_cli_progress_callback(SlUpdaterProgressPhase phase, uint8_t percentage, void* context) {
@@ -30,7 +38,9 @@ static void
 static void updater_cli_command_print_usage(void) {
     bool is_debug = furi_hal_nvm_is_flag_set(FuriHalNvmFlagDebug);
     printf("Usage:\r\n");
-    printf("update <917|917_ta%s|install> path\r\n", is_debug ? "|917_probe" : "");
+    printf(
+        "update <917|917_ta%s|install|install_tar|install_web> path\r\n",
+        is_debug ? "|917_probe" : "");
 }
 
 static bool
@@ -100,6 +110,26 @@ static void updater_cli_execute_install(const char* manifest_path) {
     update_config_free(state);
 }
 
+static void updater_cli_execute_install_tar(const char* path) {
+    printf("Installing update bundle from: %s\r\n", path);
+    if(!update_fw_tar_install(path)) {
+        printf("Update failed\r\n");
+    }
+}
+
+static void updater_cli_execute_install_web(const char* link) {
+    printf("Installing update bundle from web: %s\r\n", link);
+    FuriString* url = furi_string_alloc_set_str(link);
+    FuriString* file_path = furi_string_alloc();
+    path_concat(STORAGE_EXT_PATH_PREFIX, UPDATE_STAGING_ROOT, file_path);
+    path_concat(furi_string_get_cstr(file_path), UPDATE_TAR_TMP, file_path);
+    if(fetch_download_file(url, file_path)) {
+        updater_cli_execute_install_tar(furi_string_get_cstr(file_path));
+    }
+    furi_string_free(url);
+    furi_string_free(file_path);
+}
+
 void update_cli_command(PipeSide* pipe, FuriString* args, void* context) {
     UNUSED(pipe);
     UNUSED(context);
@@ -125,6 +155,16 @@ void update_cli_command(PipeSide* pipe, FuriString* args, void* context) {
 
         if(furi_string_equal_str(cmd, "install")) {
             updater_cli_execute_install(furi_string_get_cstr(path));
+            break;
+        }
+
+        if(furi_string_equal_str(cmd, "install_tar")) {
+            updater_cli_execute_install_tar(furi_string_get_cstr(path));
+            break;
+        }
+
+        if(furi_string_equal_str(cmd, "install_web")) {
+            updater_cli_execute_install_web(furi_string_get_cstr(path));
             break;
         }
 

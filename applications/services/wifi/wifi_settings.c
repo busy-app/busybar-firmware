@@ -10,7 +10,6 @@
 #define WIFI_SETTINGS_CURRENT_VERSION (0)
 
 #define VERSION_KEY "version"
-#define ENABLED_KEY "enabled"
 
 #define CREDENTIALS_KEY "credentials"
 
@@ -35,13 +34,9 @@ static const char* const wifi_settings_security_str[WifiSecurityModeMax] = {
     [WifiSecurityModeWpa] = "wpa",
     [WifiSecurityModeWpa2] = "wpa2",
     [WifiSecurityModeWep] = "wep",
-    [WifiSecurityModeWpaEnterprise] = "wpa_enterprise",
-    [WifiSecurityModeWpa2Enterprise] = "wpa2_enterprise",
     [WifiSecurityModeWpaWpa2Mixed] = "wpa_wpa2_mixed",
     [WifiSecurityModeWpa3] = "wpa3",
     [WifiSecurityModeWpa3Transition] = "wpa3_transition",
-    [WifiSecurityModeWpa3Enterprise] = "wpa3_enterprise",
-    [WifiSecurityModeWpa3TransitionEnterprise] = "wpa3_transition_enterprise",
 };
 
 static const char* const wifi_ip_management_str[WifiIpManagementMax] = {
@@ -222,7 +217,7 @@ static bool wifi_settings_parse_credentials(cJSON* json, WifiCredentials* creden
         credentials->security_mode = wifi_settings_find_str_by_id(
             item->valuestring, wifi_settings_security_str, WifiSecurityModeMax);
 
-        if(credentials->security_mode >= WifiSecurityModeMax) {
+        if(credentials->security_mode >= WifiSecurityModeUnsupported) {
             break;
         }
 
@@ -414,14 +409,6 @@ static bool wifi_settings_parse(cJSON* json, WifiSettings* settings) {
             break;
         }
 
-        item = cJSON_GetObjectItem(json, ENABLED_KEY);
-
-        if(!cJSON_IsBool(item)) {
-            break;
-        }
-
-        settings->enabled = cJSON_IsTrue(item);
-
         item = cJSON_GetObjectItem(json, CREDENTIALS_KEY);
 
         if(!wifi_settings_parse_credentials(item, &settings->credentials)) {
@@ -503,7 +490,6 @@ bool wifi_settings_save(const WifiSettings* settings) {
         cJSON* root = cJSON_CreateObject();
 
         cJSON_AddNumberToObject(root, VERSION_KEY, WIFI_SETTINGS_CURRENT_VERSION);
-        cJSON_AddBoolToObject(root, ENABLED_KEY, settings->enabled);
 
         wifi_settings_serialize_credentials(root, &settings->credentials);
         wifi_settings_serialize_ip_config(root, &settings->ip_config);
