@@ -11,24 +11,22 @@ extern "C" {
 #endif
 
 /** Total frame size */
-#define INTERCOM_FRAME_SIZE         (1024U)
+#define INTERCOM_FRAME_SIZE      (1024U)
 /** Maximum data (payload) size */
-#define INTERCOM_FRAME_DATA_SIZE    (INTERCOM_FRAME_SIZE - 5U)
-/** Command field size (bits) in status byte */
-#define INTERCOM_FRAME_COMMAND_BITS (4U)
-/** Channel number field size (bits) in status byte */
-#define INTERCOM_FRAME_CHAN_BITS    (4U)
+#define INTERCOM_FRAME_DATA_SIZE (INTERCOM_FRAME_SIZE - 5U)
 
+typedef struct {
+    IntercomChannelId channel_id;
+} IntercomOpenCommandPayload;
+
+/**
+ * @brief Special values for `status_byte` frame field
+ */
 typedef enum {
-    IntercomFrameCommandData, /** Data on already opened channel */
-    IntercomFrameCommandOpen, /**< Indicating readiness to open channel */
+    IntercomFrameCommandMin = IntercomChannelIdMax,
+    IntercomFrameCommandOpen,
     IntercomFrameCommandMax,
 } IntercomFrameCommand;
-
-// Ensure there's enough bits to represent every command and channel
-static_assert(IntercomFrameCommandMax <= (1 << INTERCOM_FRAME_COMMAND_BITS));
-static_assert(IntercomChannelIdMax <= (1 << INTERCOM_FRAME_CHAN_BITS));
-static_assert(INTERCOM_FRAME_COMMAND_BITS + INTERCOM_FRAME_CHAN_BITS == 8);
 
 /**
  * @brief Intercom frame structure.
@@ -36,40 +34,13 @@ static_assert(INTERCOM_FRAME_COMMAND_BITS + INTERCOM_FRAME_CHAN_BITS == 8);
  * All Intercom frames have a fixed size of 1024 bytes.
  */
 typedef struct FURI_PACKED {
-    uint8_t status_byte; /**< Command and channel identifier */
+    uint8_t status_byte; /**< Channel identitier or command from `IntercomFrameCommand` */
     uint16_t data_size; /**< Size of the data (payload) contained in this frame */
     uint8_t data[INTERCOM_FRAME_DATA_SIZE]; /**< Data (payload) to transmit with the frame */
     uint16_t check; /**< 16-bit checksum for transmission error detection */
 } IntercomFrame;
 
 static_assert(sizeof(IntercomFrame) == INTERCOM_FRAME_SIZE);
-
-/**
- * @brief Parses the command field out of a frame
- */
-static inline IntercomFrameCommand intercom_frame_get_command(const IntercomFrame* frame) {
-    uint8_t mask = (1 << INTERCOM_FRAME_COMMAND_BITS) - 1;
-    return (frame->status_byte >> INTERCOM_FRAME_CHAN_BITS) & mask;
-}
-
-/**
- * @brief Parses the channel field out of a frame
- */
-static inline IntercomChannelId intercom_frame_get_channel(const IntercomFrame* frame) {
-    uint8_t mask = (1 << INTERCOM_FRAME_CHAN_BITS) - 1;
-    return frame->status_byte & mask;
-}
-
-/**
- * @brief Makes a status byte
- */
-static inline uint8_t
-    intercom_frame_make_status(IntercomFrameCommand command, IntercomChannelId channel) {
-    uint8_t status = 0;
-    status |= channel;
-    status |= (command << INTERCOM_FRAME_CHAN_BITS);
-    return status;
-}
 
 /**
  * @brief Calculate the checksum of a given frame.
@@ -105,8 +76,8 @@ static inline bool intercom_frame_is_valid(const IntercomFrame* frame) {
     bool is_valid = false;
 
     do {
-        if(intercom_frame_get_command(frame) >= IntercomFrameCommandMax) break;
-        if(intercom_frame_get_channel(frame) >= IntercomChannelIdMax) break;
+        if(frame->status_byte >= IntercomFrameCommandMax) break;
+        if(frame->status_byte == IntercomChannelIdMax) break;
         if(frame->data_size > INTERCOM_FRAME_DATA_SIZE) break;
         if(intercom_frame_get_checksum(frame) != frame->check) break;
 
