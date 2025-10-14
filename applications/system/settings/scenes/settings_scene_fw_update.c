@@ -41,7 +41,7 @@ typedef struct {
     Label* label_status_front_percent;
     ProgressBar* bar_front;
 
-    uint8_t bar_volume;
+    uint8_t progress_value;
 
     FetchLoader* fw_loader;
     FuriString* fw_status;
@@ -57,10 +57,25 @@ static void settings_scene_fw_update_scene_update(SettingsApp* instance) {
     SettingsSceneFwUpdate* data = scene_manager_get_current_scene_data(instance->scene_manager);
     furi_assert(data);
     with_gui(instance->gui, {
-        progress_bar_set_value(data->bar_front, data->bar_volume);
-        progress_bar_set_value(data->bar_back, data->bar_volume);
-        label_set_text_fmt(data->label_status_front_percent, "%d%%", data->bar_volume);
-        label_set_text_fmt(data->label_status_back_percent, "%d%%", data->bar_volume);
+        // Hide progress bar and %% before starting
+        const bool is_progressing = data->progress_value != 0;
+        widget_set_visible(progress_bar_get_base(data->bar_front), is_progressing);
+        widget_set_visible(progress_bar_get_base(data->bar_back), is_progressing);
+        widget_set_visible(label_get_base(data->label_status_front_percent), is_progressing);
+        widget_set_visible(label_get_base(data->label_status_back_percent), is_progressing);
+
+        progress_bar_set_value(data->bar_front, data->progress_value);
+        progress_bar_set_value(data->bar_back, data->progress_value);
+
+        if(is_progressing) {
+            label_set_text(data->label_status_back, "Downloading");
+            label_set_text(data->label_status_front, "Downloading");
+            label_set_text_fmt(data->label_status_front_percent, "%d%%", data->progress_value);
+        } else {
+            label_set_text(data->label_status_front, "See back screen");
+            label_set_text(data->label_status_front_percent, "");
+        }
+        label_set_text_fmt(data->label_status_back_percent, "%d%%", data->progress_value);
         label_set_text(data->label_fw_name_download, furi_string_get_cstr(data->fw_status));
     });
 }
@@ -90,7 +105,7 @@ static bool settings_scene_fw_update_input_callback(const InputEvent* event, voi
         case InputKeyStart:
         case InputKeyOk:
             custom_event = SceneCustomEventDownloadStarted;
-            data->bar_volume = 0;
+            data->progress_value = 0;
             consumed = true;
             break;
         default:
@@ -114,7 +129,7 @@ static void settings_scene_fw_status_callback(FetchLoaderStatus status, void* co
     uint8_t download_percent =
         (uint8_t)((status.received_download_size * 100) / status.total_download_size);
 
-    data->bar_volume = download_percent;
+    data->progress_value = download_percent;
 
     char* dimension = "B";
     if(status.total_download_size > 2048) {
@@ -239,12 +254,13 @@ static void settings_scene_fw_update_on_enter(void* context) {
     SettingsApp* instance = context;
     SettingsSceneFwUpdate* data = scene_manager_get_current_scene_data(instance->scene_manager);
     // Init data
-    data->fw_status = furi_string_alloc();
+    data->fw_status = furi_string_alloc_set("Checking for update...");
     data->fw_info.fw_url = furi_string_alloc();
     data->fw_info.fw_sha256 = furi_string_alloc();
     data->fw_info.new_fw_version = furi_string_alloc();
     data->fw_info.fw_current_version = furi_string_alloc();
-    data->bar_volume = 0;
+    data->progress_value = 0;
+
     data->update_checker = furi_record_open(RECORD_UPDATE_CHECKER);
     update_checker_get_current_version(data->update_checker, data->fw_info.fw_current_version);
 
@@ -261,7 +277,7 @@ static void settings_scene_fw_update_on_enter(void* context) {
         widget_set_height_content(label_container_back);
 
         data->label_status_back = label_alloc(label_container_back);
-        label_set_text(data->label_status_back, "Downloading");
+        label_set_text(data->label_status_back, "");
         widget_set_padding(label_get_base(data->label_status_back), 0, 38 + 10, 0, 0);
         widget_set_align(label_get_base(data->label_status_back), AlignRightMid);
 
@@ -296,16 +312,18 @@ static void settings_scene_fw_update_on_enter(void* context) {
         widget_set_height_content(label_container_front);
 
         data->label_status_front = label_alloc(label_container_front);
-        label_set_text(data->label_status_front, "Downloading");
+        label_set_text(data->label_status_front, "");
         widget_set_align(label_get_base(data->label_status_front), AlignLeftMid);
 
         data->label_status_front_percent = label_alloc(label_container_front);
-        label_set_text(data->label_status_front_percent, "0%");
+        label_set_text(data->label_status_front_percent, "See back screen");
         widget_set_align(label_get_base(data->label_status_front_percent), AlignRightMid);
 
         data->bar_front = progress_bar_alloc(flex_layout_get_base(layout_front));
         widget_set_height(progress_bar_get_base(data->bar_front), 4);
     });
+
+    settings_scene_fw_update_scene_update(instance);
 
     // FwLoader
     data->fw_loader = fetch_loader_alloc();
