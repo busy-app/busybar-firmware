@@ -112,6 +112,7 @@
         "network",
         "mongoose",
         "toolbox",
+        "formatters",
         "flipper_format",
         "flipper_application",
         "heatshrink",
