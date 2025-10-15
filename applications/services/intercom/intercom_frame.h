@@ -21,7 +21,7 @@ extern "C" {
  * All Intercom frames have a fixed size of 1024 bytes.
  */
 typedef struct FURI_PACKED {
-    uint8_t channel_id; /**< Channel identitier */
+    uint8_t channel_id; /**< Channel identifier */
     uint16_t data_size; /**< Size of the data (payload) contained in this frame */
     uint8_t data[INTERCOM_FRAME_DATA_SIZE]; /**< Data (payload) to transmit with the frame */
     uint16_t check; /**< 16-bit checksum for transmission error detection */
