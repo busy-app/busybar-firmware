@@ -6,7 +6,7 @@
 
 #define TAG "FetchClient"
 
-//#define FETCH_CLIENT_DEBUG
+#define FETCH_CLIENT_DEBUG
 
 #ifdef FETCH_CLIENT_DEBUG
 #define FETCH_CLIENT_INFO(...)  FURI_LOG_I(__VA_ARGS__)
@@ -246,9 +246,9 @@ static void
 
     if(state == FuriThreadStateStopped) {
         furi_thread_free(thread);
+        instance->thread = NULL;
         FETCH_CLIENT_INFO(TAG, "Stop");
         furi_semaphore_release(instance->is_processing_semaphore);
-        instance->thread = NULL;
     }
 }
 
