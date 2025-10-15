@@ -110,8 +110,8 @@ static void matter_handle_frame(const void* data, size_t data_size, void* contex
 
         const auto workFn =
             frame->switch_state.value ?
-                [](intptr_t arg) { OnOff::Attributes::OnOff::Set(onOffEndpointId, true); } :
-                [](intptr_t arg) { OnOff::Attributes::OnOff::Set(onOffEndpointId, false); };
+                [](intptr_t arg) { OnOffServer::Instance().setOnOffValue(onOffEndpointId, true, false); } :
+                [](intptr_t arg) { OnOffServer::Instance().setOnOffValue(onOffEndpointId, false, false); };
 
         PlatformMgr().ScheduleWork(workFn, 0);
 
@@ -200,7 +200,7 @@ void MatterPostAttributeChangeCallback(
 static void matter_send_current_state(MatterSrv* matter) {
     bool state;
 
-    if(OnOff::Attributes::OnOff::Get(onOffEndpointId, &state) ==
+    if(OnOffServer::Instance().getOnOffValue(onOffEndpointId, &state) ==
        Protocols::InteractionModel::Status::Success) {
         matter_send_state_update(matter, state);
     }
