@@ -15,26 +15,13 @@ extern "C" {
 /** Maximum data (payload) size */
 #define INTERCOM_FRAME_DATA_SIZE (INTERCOM_FRAME_SIZE - 5U)
 
-typedef struct {
-    IntercomChannelId channel_id;
-} IntercomOpenCommandPayload;
-
-/**
- * @brief Special values for `status_byte` frame field
- */
-typedef enum {
-    IntercomFrameCommandMin = IntercomChannelIdMax,
-    IntercomFrameCommandOpen,
-    IntercomFrameCommandMax,
-} IntercomFrameCommand;
-
 /**
  * @brief Intercom frame structure.
  *
  * All Intercom frames have a fixed size of 1024 bytes.
  */
 typedef struct FURI_PACKED {
-    uint8_t status_byte; /**< Channel identitier or command from `IntercomFrameCommand` */
+    uint8_t channel_id; /**< Channel identitier */
     uint16_t data_size; /**< Size of the data (payload) contained in this frame */
     uint8_t data[INTERCOM_FRAME_DATA_SIZE]; /**< Data (payload) to transmit with the frame */
     uint16_t check; /**< 16-bit checksum for transmission error detection */
@@ -76,8 +63,7 @@ static inline bool intercom_frame_is_valid(const IntercomFrame* frame) {
     bool is_valid = false;
 
     do {
-        if(frame->status_byte >= IntercomFrameCommandMax) break;
-        if(frame->status_byte == IntercomChannelIdMax) break;
+        if(frame->channel_id >= IntercomChannelIdMax) break;
         if(frame->data_size > INTERCOM_FRAME_DATA_SIZE) break;
         if(intercom_frame_get_checksum(frame) != frame->check) break;
 

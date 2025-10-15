@@ -99,7 +99,8 @@ typedef enum {
     IntercomChannelIdCryptoBackup, /**< Crypto backup handling */
     IntercomChannelIdMatter, /**< Matter smart home protocol */
     /* Add more channels here as needed */
-    IntercomChannelIdDebug = 15, /**< Testing, debugging, etc */
+    IntercomChannelIdDebug, /**< Testing, debugging, etc */
+    IntercomChannelIdMeta, /**< Special channel for internal Intercom use. Do not use. */
     IntercomChannelIdMax, /**< Special value for internal use */
 } IntercomChannelId;
 
