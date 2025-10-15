@@ -1224,7 +1224,7 @@ components:
             y: 1
             font: big
             color: "#AAFF00FF"
-            width: 64
+            width: 72
             scroll_rate: 60
             display: "front"
           - id: "1"
