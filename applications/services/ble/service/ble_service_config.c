@@ -6,6 +6,6 @@
 const BleServiceDescriptor* service_config[] = {
     [BleServiceIndexDeviceInfo] = &ble_service_config_device_info,
     [BleServiceIndexBattery] = &ble_service_config_battery,
-    [BleServiceIndexUart] = &ble_service_config_nordic_uart,
-    [BleServiceIndexSilabsUart] = &ble_service_config_hm10_uart,
+    [BleServiceIndexNordicUart] = &ble_service_config_nordic_uart,
+    [BleServiceIndexHm10Uart] = &ble_service_config_hm10_uart,
 };

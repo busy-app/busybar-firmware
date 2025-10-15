@@ -5,7 +5,7 @@
 
 bool ble_service_lock(BleServiceObject* instance) {
     if(furi_mutex_acquire(instance->service_lock, 100) != FuriStatusOk) {
-        BLE_LOG_W("%s - service lock failed", instance->desc->name);
+        BLE_LOG_W("%s - service lock failed", instance->config->name);
         return false;
     }
     return true;
@@ -13,13 +13,13 @@ bool ble_service_lock(BleServiceObject* instance) {
 
 void ble_service_unlock(BleServiceObject* instance) {
     if(furi_mutex_release(instance->service_lock) != FuriStatusOk) {
-        BLE_LOG_W("%s - service unlock failed", instance->desc->name);
+        BLE_LOG_W("%s - service unlock failed", instance->config->name);
     }
 }
 
 static bool ble_service_lock_input_frame(BleServiceObject* instance) {
     if(furi_semaphore_acquire(instance->frame_lock, 100) != FuriStatusOk) {
-        BLE_LOG_W("%s - frame lock failed", instance->desc->name);
+        BLE_LOG_W("%s - frame lock failed", instance->config->name);
         return false;
     }
     return true;
@@ -27,108 +27,71 @@ static bool ble_service_lock_input_frame(BleServiceObject* instance) {
 
 static void ble_service_unlock_input_frame(BleServiceObject* instance) {
     if(furi_semaphore_release(instance->frame_lock) != FuriStatusOk) {
-        BLE_LOG_W("%s - frame unlock failed", instance->desc->name);
+        BLE_LOG_W("%s - frame unlock failed", instance->config->name);
     }
 }
 
-void ble_service_prepare_frame(
-    BleServiceObject* instance,
-    BleIntercomFrameType frame_type,
-    uint8_t command_event,
-    size_t data_size,
-    void* data) {
-    BleIntercomFrameGeneric* frame = (BleIntercomFrameGeneric*)instance->output;
-    frame->header.frame_type = frame_type;
-    frame->header.command = command_event;
-    frame->header.service_index = instance->desc->index;
-    frame->header.data_size = data_size;
-    ///TODO: need more checks if there_is_enough memory in buffer
-    if(data_size && data) memcpy(frame->data, data, data_size);
+static inline void
+    ble_service_frame_buf_check_alloc(BleServiceObject* instance, size_t new_frame_size) {
+    furi_check(new_frame_size < MAX_BLE_INTERCOM_FRAME_SIZE);
+    if(new_frame_size > instance->frame_size) {
+        free(instance->frame_buf);
+        instance->frame_buf = malloc(new_frame_size);
+        instance->frame_size = new_frame_size;
+        BLE_LOG_D("%s - buf_size: %d", instance->config->name, new_frame_size);
+    }
 }
 
-void ble_service_send_intercom_frame(BleServiceObject* instance) {
-    const BleIntercomFrameGeneric* frame = (BleIntercomFrameGeneric*)instance->output;
-    const BleIntercomFrameHeader* header = &frame->header;
+void ble_service_prepare_send_intercom_frame(
+    BleServiceObject* instance,
+    BleIntercomFrameType frame_type,
+    BleCommand command,
+    size_t data_size,
+    void* data) {
+    size_t frame_size = data_size + sizeof(BleIntercomFrameHeader);
+    ble_service_frame_buf_check_alloc(instance, frame_size);
 
-    size_t frame_size = header->data_size + sizeof(BleIntercomFrameHeader);
+    BleIntercomFrameGeneric* frame = (BleIntercomFrameGeneric*)instance->frame_buf;
+    BleIntercomFrameHeader* header = &frame->header;
+
+    header->frame_type = frame_type;
+    header->command = command;
+    header->service_index = instance->config->index;
+    header->data_size = data_size;
+    ///TODO: need more checks if there_is_enough memory in buffer
+    if(data_size && data) memcpy(frame->data, data, data_size);
 
     BLE_LOG_D(
         "%s - TX frame t: %d c: %d ds: %d fs: %d",
-        instance->desc->name,
+        instance->config->name,
         header->frame_type,
         header->command,
         header->data_size,
         frame_size);
 
-    size_t tx = intercom_tx(instance->intercom_ch, instance->output, frame_size, 100);
+    size_t tx = intercom_tx(instance->intercom_ch, instance->frame_buf, frame_size, 100);
     furi_assert(tx == frame_size);
 }
 
 void ble_service_switch_state(BleServiceObject* instance, BleServiceState new_state) {
-    BLE_LOG_D("%s - set state: %d", instance->desc->name, new_state);
+    BLE_LOG_D("%s - set state: %d", instance->config->name, new_state);
     instance->state = new_state;
-}
 
-bool execute_handler(BleServiceObject* instance, BleCommand command) {
-    bool result = false;
-    switch(command) {
-    case BleCommandServiceInit:
-        result = ble_service_target_init(instance);
-        break;
-    case BleCommandServiceRead:
-        break;
-    case BleCommandServiceWrite:
-        break;
-    case BleCommandServiceNotify:
-        break;
-    default:
-        break;
-    }
-
-    ble_service_send_intercom_frame(instance);
-    return result;
-}
-
-static bool ble_service_process_request(BleServiceObject* instance) {
-    BLE_LOG_D("%s - process request", instance->desc->name);
-    BleIntercomFrameGeneric* frame = (BleIntercomFrameGeneric*)instance->frame_buf;
-    bool result = false;
-
-    result = execute_handler(instance, frame->header.command);
-    return result;
-}
-
-static bool ble_service_process_response(BleServiceObject* instance) {
-    BLE_LOG_D("%s - process response", instance->desc->name);
-    return ble_service_target_process_response(instance);
-}
-
-static bool ble_service_process_notification(BleServiceObject* instance) {
-    BLE_LOG_D("%s - notification frame RX", instance->desc->name);
-
-    BleIntercomFrameGeneric* frame = (BleIntercomFrameGeneric*)instance->frame_buf;
-
-    if(frame->header.command == BleCommandServiceNotify) {
-        BleCharacteristicData* ch_data = (BleCharacteristicData*)frame->data;
-        ble_service_target_notify(
-            instance, ch_data->header.index, ch_data->data, ch_data->header.data_size);
-    }
-
-    return true;
+    if(instance->state_change_callback && instance->state_callback_context)
+        instance->state_change_callback(instance->state_callback_context);
 }
 
 static bool ble_service_process_input_frame(BleServiceObject* instance) {
-    BLE_LOG_D("%s - process_input_frame", instance->desc->name);
+    BLE_LOG_D("%s - process_input_frame", instance->config->name);
 
     BleIntercomFrameGeneric* frame = (BleIntercomFrameGeneric*)instance->frame_buf;
-    if(frame->header.frame_type == BleIntercomFrameTypeRequest) {
-        ble_service_process_request(instance);
-    } else if(frame->header.frame_type == BleIntercomFrameTypeResponse) {
-        BLE_LOG_D("%s - state: %d", instance->desc->name, instance->state);
-        ble_service_process_response(instance);
-    } else if(frame->header.frame_type == BleIntercomFrameTypeNotification) {
-        ble_service_process_notification(instance);
-    }
+
+    ble_service_target_execute(
+        instance,
+        frame->header.frame_type,
+        frame->header.command,
+        frame->header.data_size,
+        frame->data);
 
     ble_service_unlock_input_frame(instance);
     return true;
@@ -136,18 +99,25 @@ static bool ble_service_process_input_frame(BleServiceObject* instance) {
 
 BleServiceObject* ble_service_alloc(
     const BleServiceDescriptor* service_config,
-    FuriMessageQueue* dest_queue,
-    IntercomChannel* intercom_ch) {
+    FuriMessageQueue* message_queue,
+    IntercomChannel* intercom_ch,
+    BleServiceStateChangeCallback state_callback,
+    BleServiceStateChangeCallbackContext* ctx) {
     furi_assert(service_config);
-    furi_assert(dest_queue);
+    furi_assert(message_queue);
+    furi_assert(intercom_ch);
+    furi_assert(state_callback);
+    furi_assert(ctx);
 
     BleServiceObject* instance = malloc(sizeof(BleServiceObject));
     BLE_LOG_D("%s - alloc service", service_config->name);
 
     instance->state = BleServiceStateReset;
-    instance->desc = service_config;
+    instance->config = service_config;
     instance->intercom_ch = intercom_ch;
-    instance->message_queue = dest_queue;
+    instance->message_queue = message_queue;
+    instance->state_change_callback = state_callback;
+    instance->state_callback_context = ctx;
     instance->frame_lock = furi_semaphore_alloc(1, 1);
     instance->service_lock = furi_mutex_alloc(FuriMutexTypeNormal);
 
@@ -159,8 +129,7 @@ BleServiceObject* ble_service_alloc(
             instance->chars[config->intercom_index] = ble_char;
         }
     }
-    ///TODO: testcode remove when frame_buf will be allocated dynamically
-    instance->frame_size = sizeof(instance->frame_buf);
+    instance->frame_size = 0;
 
     return instance;
 }
@@ -169,13 +138,14 @@ bool ble_service_process(BleServiceObject* instance, const BleServiceCommand* ms
     furi_assert(instance);
     furi_assert(msg);
 
-    BLE_LOG_D("%s - ble_service_process", instance->desc->name);
+    BLE_LOG_D("%s - ble_service_process", instance->config->name);
     bool result = false;
     if(ble_service_lock(instance)) {
-        if(msg->type == BleCommandServiceProcessFrame) {
+        if(msg->command == BleCommandServiceProcessFrame) {
             result = ble_service_process_input_frame(instance);
         } else
-            result = execute_handler(instance, msg->type);
+            result = ble_service_target_execute(
+                instance, BleIntercomFrameTypeRequest, msg->command, 0, NULL);
 
         ble_service_unlock(instance);
     }
@@ -187,39 +157,91 @@ void ble_service_process_mailbox(
     const BleIntercomFrameGeneric* input_frame) {
     furi_assert(instance);
     furi_assert(input_frame);
+    BLE_LOG_D("ble_service_process_mailbox");
 
     size_t fs = input_frame->header.data_size + sizeof(BleIntercomFrameHeader);
 
-    furi_assert(fs <= instance->frame_size);
-
     if(ble_service_lock_input_frame(instance)) {
+        ble_service_frame_buf_check_alloc(instance, fs);
         memcpy(instance->frame_buf, input_frame, fs);
-        ble_service_enqueue_message(instance, BleCommandServiceProcessFrame, NULL, 0);
+        ble_service_enqueue_message(instance, BleCommandServiceProcessFrame, 0);
     }
 }
 
-void ble_service_enqueue_message(
-    BleServiceObject* instance,
-    BleCommand command,
-    void* data,
-    uint8_t data_size) {
+BleServiceState ble_service_get_state(BleServiceObject* instance) {
+    furi_assert(instance);
+    ///TODO: Think of taking service_lock here
+    return instance->state;
+}
+
+void ble_service_enqueue_message(BleServiceObject* instance, BleCommand command, uint8_t ch_index) {
     furi_assert(instance);
 
-    UNUSED(data);
-    UNUSED(data_size);
-
-    BleServiceCommand msg = {.type = command, .service_index = instance->desc->index};
+    BleServiceCommand msg = {
+        .command = command, .service_index = instance->config->index, .char_index = ch_index};
 
     if(furi_message_queue_put(instance->message_queue, &msg, 100) != FuriStatusOk) {
-        BLE_LOG_W("%s - unable to enqueue for processing", instance->desc->name);
+        BLE_LOG_W("%s - unable to enqueue for processing", instance->config->name);
     }
 }
 
 void ble_service_enqueue_init(BleServiceObject* instance) {
     furi_assert(instance);
-    BLE_LOG_D("%s - enqueue init", instance->desc->name);
+    BLE_LOG_D("%s - enqueue init", instance->config->name);
     if(ble_service_lock(instance)) {
-        ble_service_enqueue_message(instance, BleCommandServiceInit, NULL, 0);
+        ble_service_enqueue_message(instance, BleCommandServiceInit, 0);
+        ble_service_unlock(instance);
+    }
+}
+
+void ble_service_enqueue_run(BleServiceObject* instance) {
+    furi_assert(instance);
+    BLE_LOG_D("%s - enqueue run", instance->config->name);
+    ble_service_enqueue_message(instance, BleCommandServiceRun, 0);
+}
+
+void ble_service_write_data(
+    BleServiceObject* instance,
+    uint8_t index,
+    const void* data,
+    const size_t data_size) {
+    furi_assert(instance);
+    furi_assert(index < instance->config->char_count);
+    furi_assert(data);
+    furi_assert(data_size > 0);
+
+    if(ble_service_lock(instance)) {
+        BleCharacteristicObject* ch = instance->chars[index];
+        ble_characteristic_set_data(ch, data, data_size);
+        ble_service_enqueue_run(instance);
+        ble_service_unlock(instance);
+    }
+}
+
+void ble_service_register_update_callback(
+    BleServiceObject* instance,
+    uint16_t index,
+    BleDataUpdatedCallback cb,
+    void* ctx) {
+    furi_assert(instance);
+    furi_assert(index < instance->config->char_count);
+    if(ble_service_lock(instance)) {
+        BleCharacteristicObject* ch = instance->chars[index];
+        ble_characteristic_register_update_callback(ch, cb, ctx);
+        ble_service_unlock(instance);
+    }
+}
+
+void ble_service_register_transmission_done_callback(
+    BleServiceObject* instance,
+    uint16_t index,
+    BleDataTransmitDoneCallback cb,
+    void* ctx) {
+    furi_assert(instance);
+    furi_assert(index < instance->config->char_count);
+    if(ble_service_lock(instance)) {
+        BleCharacteristicObject* ch = instance->chars[index];
+        ble_characteristic_register_tx_done_callback(ch, cb, ctx);
         ble_service_unlock(instance);
     }
 }

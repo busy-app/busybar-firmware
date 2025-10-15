@@ -5,11 +5,20 @@
 #define TAG "BleChar"
 
 struct BleCharacteristicObject {
-    uint16_t handle; ///TODO: maybe add this only to 917
     bool modified;
     uint8_t max_data_size;
     uint8_t data_size; ///TODO: set data_type of proper size
+    uint8_t cccd_value;
+    uint16_t cccd_handle;
+    uint16_t handle; ///TODO: maybe add this only to 917
     void* data;
+
+    BleDataUpdatedCallback update_cb;
+    void* update_ctx;
+
+    BleDataTransmitDoneCallback tx_done_cb;
+    void* tx_done_ctx;
+
     const BleCharacteristicDescriptor* descriptor;
 };
 
@@ -33,6 +42,7 @@ void ble_characteristic_free(BleCharacteristicObject* instance) {
 
 const void* ble_characteristic_get_data(BleCharacteristicObject* instance) {
     furi_assert(instance);
+    instance->modified = false;
     return instance->data;
 }
 
@@ -58,6 +68,19 @@ void ble_characteristic_set_data(
     memcpy(instance->data, data, data_size);
     instance->data_size = data_size;
     instance->modified = true;
+
+    if(instance->update_cb) {
+        instance->update_cb(data_size, instance->data, instance->update_ctx);
+        instance->modified = false;
+    }
+}
+
+void ble_characteristic_tx_done(BleCharacteristicObject* instance) {
+    furi_assert(instance);
+    if(instance->tx_done_cb) {
+        instance->tx_done_cb(instance->tx_done_ctx);
+        instance->modified = false;
+    }
 }
 
 bool ble_characteristic_is_modified(BleCharacteristicObject* instance) {
@@ -82,6 +105,27 @@ uint16_t ble_characteristic_get_handle(BleCharacteristicObject* instance) {
     return instance->handle;
 }
 
+void ble_characteristic_set_cccd_handle(BleCharacteristicObject* instance, uint16_t cccd_handle) {
+    furi_assert(instance);
+    furi_assert(instance->cccd_handle == 0);
+    instance->cccd_handle = cccd_handle;
+}
+
+bool ble_characteristic_is_cccd_handle(BleCharacteristicObject* instance, uint16_t possible_cccd) {
+    furi_assert(instance);
+    return instance->cccd_handle == possible_cccd;
+}
+
+void ble_characteristic_set_cccd_value(BleCharacteristicObject* instance, uint8_t value) {
+    furi_assert(instance);
+    instance->cccd_value = value;
+}
+
+uint8_t ble_characteristic_get_cccd_value(BleCharacteristicObject* instance) {
+    furi_assert(instance);
+    return instance->cccd_value;
+}
+
 uint8_t ble_characteristic_fill_update_struct(
     BleCharacteristicObject* instance,
     BleCharacteristicData* output) {
@@ -95,4 +139,36 @@ uint8_t ble_characteristic_fill_update_struct(
     memcpy(output->data, instance->data, instance->data_size);
     instance->modified = false;
     return (instance->data_size + sizeof(BleCharacteristicDataHeader));
+}
+
+void ble_characteristic_register_update_callback(
+    BleCharacteristicObject* instance,
+    BleDataUpdatedCallback callback,
+    void* ctx) {
+    furi_assert(instance);
+
+    if(callback) {
+        instance->update_cb = callback;
+        instance->update_ctx = ctx;
+    } else {
+        BLE_LOG_D("Reset update callback");
+        instance->update_cb = NULL;
+        instance->update_ctx = NULL;
+    }
+}
+
+void ble_characteristic_register_tx_done_callback(
+    BleCharacteristicObject* instance,
+    BleDataTransmitDoneCallback callback,
+    void* ctx) {
+    furi_assert(instance);
+
+    if(callback) {
+        instance->tx_done_cb = callback;
+        instance->tx_done_ctx = ctx;
+    } else {
+        BLE_LOG_D("Reset tx_done callback");
+        instance->tx_done_cb = NULL;
+        instance->tx_done_ctx = NULL;
+    }
 }

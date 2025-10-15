@@ -33,6 +33,7 @@ const BleServiceDescriptor ble_service_config_battery = {
     .uuid_size = 2,
 #endif
     .init = ble_service_battery_init,
+    .run = ble_service_battery_run,
     .index = BleServiceIndexBattery,
     .init_method = BleServiceInitMethodLocal,
     .char_count = COUNT_OF(battery_service_characteristics),

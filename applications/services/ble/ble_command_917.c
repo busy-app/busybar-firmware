@@ -8,6 +8,21 @@ BleIntercomFrameGeneric* ble_command_preprocess(Ble* instance, uint32_t events) 
     return &instance->mailbox;
 }
 
+void ble_command_handler_init(Ble* instance, BleIntercomFrameGeneric* frame) {
+    if(frame->header.frame_type == BleIntercomFrameTypeResponse) {
+        BLE_LOG_D("BleCommandInit response");
+    } else {
+        BLE_LOG_D("BleCommandInit request");
+
+        ble_worker_init();
+
+        frame->header.frame_type = BleIntercomFrameTypeResponse;
+        size_t frame_size = sizeof(BleIntercomFrameHeader) + frame->header.data_size;
+        size_t tx = intercom_tx(instance->intercom_ch, frame, frame_size, 100);
+        furi_assert(tx == frame_size);
+    }
+}
+
 void ble_command_handler_enable(Ble* instance, BleIntercomFrameGeneric* frame) {
     if(frame->header.frame_type == BleIntercomFrameTypeResponse) {
         BLE_LOG_D("BleCommandEnable response");
@@ -34,7 +49,7 @@ void ble_command_handler_disable(Ble* instance, BleIntercomFrameGeneric* frame) 
     }
 }
 
-void ble_command_handler_get_status(Ble* instance, BleIntercomFrameStatus* frame) {
+void ble_command_handler_get_state(Ble* instance, BleIntercomFrameStatus* frame) {
     if(frame->header.frame_type == BleIntercomFrameTypeResponse) {
         BLE_LOG_W("No need response");
     } else {
@@ -43,17 +58,8 @@ void ble_command_handler_get_status(Ble* instance, BleIntercomFrameStatus* frame
         frame->header.data_size = sizeof(BleServiceState);
         frame->state = instance->state;
 
-        ble_worker_init();
-
         size_t frame_size = sizeof(BleIntercomFrameStatus);
         size_t tx = intercom_tx(instance->intercom_ch, frame, frame_size, 100);
         furi_assert(tx == frame_size);
-    }
-}
-
-void ble_command_postprocess(Ble* instance, uint32_t events, bool result) {
-    UNUSED(result);
-    if(events == BleEventTypeFrameReceived) {
-        furi_semaphore_release(instance->mailbox_lock);
     }
 }
