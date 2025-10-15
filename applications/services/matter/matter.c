@@ -121,6 +121,7 @@ static void matter_send_frame(MatterSrv* matter, const MatterIntercomFrame* fram
 typedef enum {
     MatterApiRequestTypeGetSwitchState,
     MatterApiRequestTypeSetSwitchState,
+    MatterApiRequestTypeSetSwitchStartupMode,
     MatterApiRequestTypeReset,
     MatterApiRequestTypeCommission,
     MatterApiRequestTypeGetFabricCount,
@@ -129,11 +130,16 @@ typedef enum {
 typedef struct {
     FuriApiLock lock;
     MatterApiRequestType type;
-    FuriString* qr_code;
-    FuriString* manual_code;
-    size_t window_duration;
-    bool switch_state;
-    uint8_t fabric_count;
+    union {
+        struct {
+            FuriString* qr_code;
+            FuriString* manual_code;
+            size_t window_duration;
+        };
+        bool switch_state;
+        uint8_t fabric_count;
+        MatterSwitchStartupMode startup_mode;
+    };
 } MatterApiRequest;
 
 static void matter_handle_api_request(FuriEventLoopObject* object, void* context) {
@@ -159,6 +165,15 @@ static void matter_handle_api_request(FuriEventLoopObject* object, void* context
         const MatterIntercomFrame frame = {
             .type = MatterIntercomFrameTypeSwitchState,
             .switch_state.value = request->switch_state,
+        };
+        matter_send_frame(matter, &frame);
+        break;
+    }
+
+    case MatterApiRequestTypeSetSwitchStartupMode: {
+        const MatterIntercomFrame frame = {
+            .type = MatterIntercomFrameTypeSwitchStartupMode,
+            .startup.mode = request->startup_mode,
         };
         matter_send_frame(matter, &frame);
         break;
@@ -237,6 +252,15 @@ void matter_set_switch_state(MatterSrv* matter, bool state) {
     MatterApiRequest request = {
         .type = MatterApiRequestTypeSetSwitchState,
         .switch_state = state,
+    };
+    matter_synchronous_request(matter, &request);
+}
+
+void matter_set_switch_startup_mode(MatterSrv* matter, MatterSwitchStartupMode mode) {
+    furi_check(matter);
+    MatterApiRequest request = {
+        .type = MatterApiRequestTypeSetSwitchStartupMode,
+        .startup_mode = mode,
     };
     matter_synchronous_request(matter, &request);
 }

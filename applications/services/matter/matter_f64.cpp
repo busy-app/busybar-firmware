@@ -108,12 +108,27 @@ static void matter_handle_frame(const void* data, size_t data_size, void* contex
     if(frame->type == MatterIntercomFrameTypeSwitchState) {
         FURI_LOG_D(TAG, "SwitchState frame");
 
-        const auto workFn =
-            frame->switch_state.value ?
-                [](intptr_t arg) { OnOffServer::Instance().setOnOffValue(onOffEndpointId, true, false); } :
-                [](intptr_t arg) { OnOffServer::Instance().setOnOffValue(onOffEndpointId, false, false); };
+        PlatformMgr().ScheduleWork(
+            [](intptr_t arg) {
+                OnOffServer::Instance().setOnOffValue(
+                    onOffEndpointId, static_cast<bool>(arg), false);
+            },
+            frame->switch_state.value);
 
-        PlatformMgr().ScheduleWork(workFn, 0);
+    } else if(frame->type == MatterIntercomFrameTypeSwitchStartupMode) {
+        FURI_LOG_D(TAG, "SwitchStartupMode frame");
+
+        PlatformMgr().ScheduleWork(
+            [](intptr_t arg) {
+                const auto startup_mode = static_cast<OnOff::StartUpOnOffEnum>(arg);
+
+                if(startup_mode < OnOff::StartUpOnOffEnum::kUnknownEnumValue) {
+                    OnOff::Attributes::StartUpOnOff::Set(onOffEndpointId, startup_mode);
+                } else {
+                    OnOff::Attributes::StartUpOnOff::SetNull(onOffEndpointId);
+                }
+            },
+            frame->startup.mode);
 
     } else if(frame->type == MatterIntercomFrameTypeReset) {
         FURI_LOG_D(TAG, "Reset frame");
