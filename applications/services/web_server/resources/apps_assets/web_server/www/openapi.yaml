@@ -1221,7 +1221,7 @@ components:
             type: "text"
             text: "Hello, World!"
             x: 1
-            y: 1
+            y: 3
             font: big
             color: "#AAFF00FF"
             width: 72

@@ -20,6 +20,7 @@ static bool api_display_draw_parse_text_element(
     UNUSED(app_id);
     bool result = false;
     do {
+        canvas_element->y -= 2;
         canvas_element->type = CanvasElementTypeText;
         canvas_element->text.text_str = mg_json_get_str(json_element, "$.text");
         if(!canvas_element->text.text_str) break;
@@ -112,12 +113,12 @@ static bool api_display_draw_parse_element(
         int32_t temp_val = mg_json_get_long(element, "$.timeout", -1);
         canvas_element->timeout = (temp_val > 0) ? temp_val : 0;
 
-        temp_val = mg_json_get_long(element, "$.x", -1);
-        if(temp_val < 0) break;
+        temp_val = mg_json_get_long(element, "$.x", LONG_MIN);
+        if(temp_val == LONG_MIN) break;
         canvas_element->x = temp_val;
 
-        temp_val = mg_json_get_long(element, "$.y", -1);
-        if(temp_val < 0) break;
+        temp_val = mg_json_get_long(element, "$.y", LONG_MIN);
+        if(temp_val == LONG_MIN) break;
         canvas_element->y = temp_val;
 
         char* display_id_str = mg_json_get_str(element, "$.display");

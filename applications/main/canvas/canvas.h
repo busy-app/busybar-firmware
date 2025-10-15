@@ -16,8 +16,8 @@ typedef enum {
 typedef struct {
     char* element_id;
     uint32_t timeout;
-    uint16_t x;
-    uint16_t y;
+    int16_t x;
+    int16_t y;
     GuiDisplayId display;
     CanvasElementType type;
     union {
