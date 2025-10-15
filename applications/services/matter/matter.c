@@ -14,7 +14,7 @@ struct MatterSrv {
     FuriMessageQueue* frame_queue;
     FuriMessageQueue* request_queue;
     FuriPubSub* pubsub;
-    IntercomChannel* intercom;
+    IntercomChannel* intercom_ch;
     bool switch_state;
     uint8_t commissioned_fabrics;
 };
@@ -109,7 +109,8 @@ static void matter_handle_frame(FuriEventLoopObject* object, void* context) {
 
 static void matter_send_frame(MatterSrv* matter, const MatterIntercomFrame* frame) {
     furi_check(
-        intercom_tx(matter->intercom, frame, sizeof(*frame), FuriWaitForever) == sizeof(*frame));
+        intercom_tx(matter->intercom_ch, frame, sizeof(*frame), FuriWaitForever) ==
+        sizeof(*frame));
 }
 
 // ==========
@@ -292,7 +293,7 @@ MatterSrv* matter_srv_alloc(void) {
     matter->pubsub = furi_pubsub_alloc();
 
     Intercom* intercom = furi_record_open(RECORD_INTERCOM);
-    matter->intercom = intercom_channel_open(
+    matter->intercom_ch = intercom_channel_open(
         intercom, IntercomChannelIdMatter, matter_forward_frame_to_thread, matter);
 
     furi_record_create(RECORD_MATTER, matter);

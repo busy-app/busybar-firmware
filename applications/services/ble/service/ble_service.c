@@ -60,7 +60,7 @@ void ble_service_send_intercom_frame(BleServiceObject* instance) {
         header->data_size,
         frame_size);
 
-    size_t tx = intercom_tx(instance->intercom, instance->output, frame_size, 100);
+    size_t tx = intercom_tx(instance->intercom_ch, instance->output, frame_size, 100);
     furi_assert(tx == frame_size);
 }
 
@@ -137,7 +137,7 @@ static bool ble_service_process_input_frame(BleServiceObject* instance) {
 BleServiceObject* ble_service_alloc(
     const BleServiceDescriptor* service_config,
     FuriMessageQueue* dest_queue,
-    IntercomChannel* intercom) {
+    IntercomChannel* intercom_ch) {
     furi_assert(service_config);
     furi_assert(dest_queue);
 
@@ -146,7 +146,7 @@ BleServiceObject* ble_service_alloc(
 
     instance->state = BleServiceStateReset;
     instance->desc = service_config;
-    instance->intercom = intercom;
+    instance->intercom_ch = intercom_ch;
     instance->message_queue = dest_queue;
     instance->frame_lock = furi_semaphore_alloc(1, 1);
     instance->service_lock = furi_mutex_alloc(FuriMutexTypeNormal);

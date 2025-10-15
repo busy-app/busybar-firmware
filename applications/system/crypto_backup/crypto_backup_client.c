@@ -24,7 +24,7 @@ typedef struct {
 } CryptoBackupClient;
 
 typedef struct {
-    IntercomChannel* intercom;
+    IntercomChannel* intercom_ch;
     FuriStreamBuffer* rx_buffer;
     CryptoBackupCmd cmd;
     FuriSemaphore* access_semaphore;
@@ -140,7 +140,7 @@ static void crypto_backup_client_rx_callback(const void* data, size_t data_size,
 
 static void crypto_backup_client_data_tx(CryptoBackup* instance, CryptoBackupEvent* event) {
     size_t tx_size =
-        intercom_tx(instance->intercom, event, sizeof(CryptoBackupEvent), FuriWaitForever);
+        intercom_tx(instance->intercom_ch, event, sizeof(CryptoBackupEvent), FuriWaitForever);
     furi_check(tx_size == sizeof(CryptoBackupEvent), "Failed to send data");
 }
 
@@ -148,7 +148,7 @@ static CryptoBackup* crypto_backup_client_init() {
     CryptoBackup* instance = malloc(sizeof(CryptoBackup));
     instance->access_semaphore = furi_semaphore_alloc(1, 0);
     Intercom* intercom = furi_record_open(RECORD_INTERCOM);
-    instance->intercom = intercom_channel_open(
+    instance->intercom_ch = intercom_channel_open(
         intercom, IntercomChannelIdCryptoBackup, crypto_backup_client_rx_callback, instance);
     instance->rx_buffer = furi_stream_buffer_alloc(CRYPTO_BACKUP_COMMON_USERDATA_SIZE, 1);
     return instance;

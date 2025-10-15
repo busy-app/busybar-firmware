@@ -45,7 +45,7 @@ class MatterSrv {
 public:
     CHIP_ERROR init(void);
 
-    IntercomChannel* m_intercom;
+    IntercomChannel* m_intercom_ch;
 
 private:
     CommonCaseDeviceServerInitParams m_server_init_params;
@@ -89,7 +89,8 @@ static void matter_hyphenate_manual_code(char* buffer, size_t buf_size) {
 
 static void matter_send_frame(MatterSrv* matter, const MatterIntercomFrame* frame) {
     furi_check(
-        intercom_tx(matter->m_intercom, frame, sizeof(*frame), FuriWaitForever) == sizeof(*frame));
+        intercom_tx(matter->m_intercom_ch, frame, sizeof(*frame), FuriWaitForever) ==
+        sizeof(*frame));
 }
 
 /**
@@ -299,7 +300,7 @@ CHIP_ERROR MatterSrv::init(void) {
         Server::GetInstance().GetFabricTable().AddFabricDelegate(&m_fabric_delegate);
 
         auto intercom = static_cast<Intercom*>(furi_record_open(RECORD_INTERCOM));
-        m_intercom =
+        m_intercom_ch =
             intercom_channel_open(intercom, IntercomChannelIdMatter, matter_handle_frame, this);
         matter_send_current_state(this);
         matter_send_fabric_count_update(this);

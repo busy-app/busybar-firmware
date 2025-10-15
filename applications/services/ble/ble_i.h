@@ -39,7 +39,7 @@ struct Ble {
     FuriMutex* ble_lock;
 
     FuriEventLoop* event_loop;
-    IntercomChannel* intercom;
+    IntercomChannel* intercom_ch;
     //--------------------------
 
     FuriSemaphore* access_semaphore;

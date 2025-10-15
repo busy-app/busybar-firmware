@@ -12,7 +12,7 @@ typedef void (
 BleServiceObject* ble_service_alloc(
     const BleServiceDescriptor* service_config,
     FuriMessageQueue* dest_queue,
-    IntercomChannel* intercom);
+    IntercomChannel* intercom_ch);
 
 bool ble_service_process(BleServiceObject* instance, const BleServiceCommand* msg);
 void ble_service_process_mailbox(

@@ -69,7 +69,7 @@ static void ble_init_timer_handler(void* context) {
         frame->header.data_size = 0;
 
         size_t frame_size = sizeof(BleIntercomFrameHeader);
-        size_t tx = intercom_tx(instance->intercom, frame, frame_size, 100);
+        size_t tx = intercom_tx(instance->intercom_ch, frame, frame_size, 100);
         furi_assert(tx == frame_size);
 
         furi_semaphore_release(instance->mailbox_lock);
@@ -108,12 +108,12 @@ static Ble* ble_alloc() {
         instance);
 
     Intercom* intercom = furi_record_open(RECORD_INTERCOM);
-    instance->intercom = intercom_channel_open(
+    instance->intercom_ch = intercom_channel_open(
         intercom, IntercomChannelIdBle, ble_backend_intercom_rx_callback, instance);
 
     for(size_t i = 0; i < BLE_SERVICES_COUNT; i++) {
         instance->services[i] =
-            ble_service_alloc(service_config[i], instance->message_queue, instance->intercom);
+            ble_service_alloc(service_config[i], instance->message_queue, instance->intercom_ch);
     }
 
 #if defined(SI917)

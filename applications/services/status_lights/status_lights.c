@@ -18,7 +18,7 @@
 struct StatusLights {
     FuriEventLoop* event_loop;
     FuriMessageQueue* message_queue;
-    IntercomChannel* intercom;
+    IntercomChannel* intercom_ch;
 
     uint8_t light_level;
     uint8_t brightness;
@@ -86,7 +86,8 @@ static uint8_t status_lights_light_sensor_level_to_brightness(uint8_t light_leve
 }
 
 static void status_lights_send_command(StatusLights* instance, StatusLightsCommand* command) {
-    size_t tx_size = intercom_tx(instance->intercom, command, sizeof(*command), FuriWaitForever);
+    size_t tx_size =
+        intercom_tx(instance->intercom_ch, command, sizeof(*command), FuriWaitForever);
 
     furi_check(tx_size == sizeof(*command), "Failed to send data");
 }
@@ -206,7 +207,7 @@ static StatusLights* status_lights_alloc() {
         instance);
 
     Intercom* intercom = furi_record_open(RECORD_INTERCOM);
-    instance->intercom =
+    instance->intercom_ch =
         intercom_channel_open(intercom, IntercomChannelIdStatusLights, NULL, NULL);
 
 #if defined(SRV_LIGHT_SENSOR)
