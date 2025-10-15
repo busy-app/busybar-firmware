@@ -6,7 +6,7 @@
 
 #define TAG "FetchClient"
 
-#define FETCH_CLIENT_DEBUG
+//#define FETCH_CLIENT_DEBUG
 
 #ifdef FETCH_CLIENT_DEBUG
 #define FETCH_CLIENT_INFO(...)  FURI_LOG_I(__VA_ARGS__)
