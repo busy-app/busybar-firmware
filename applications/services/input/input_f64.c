@@ -210,10 +210,7 @@ static void input_queue_callback(FuriEventLoopObject* object, void* context) {
 #ifdef SRV_INTERCOM
     while(intercom_is_in_sync(instance->intercom_srv)) {
         size_t sent_size = intercom_tx(
-            instance->intercom_ch,
-            &event,
-            sizeof(InputCommonEvent),
-            furi_ms_to_ticks(INPUT_INTERCOM_TIMEOUT_MS));
+            instance->intercom_ch, &event, sizeof(InputCommonEvent), INPUT_INTERCOM_TIMEOUT_MS);
 
         if(sent_size == sizeof(InputCommonEvent)) {
             break;

@@ -26,7 +26,7 @@ typedef struct {
 
 static const char* const intercom_channel_names[IntercomChannelIdMax] = {
     [IntercomChannelIdInput] = "Input",
-    [IntercomChannelIdWifi] = "Wifi",
+    [IntercomChannelIdWifiControl] = "Wifi",
     [IntercomChannelIdWifiData] = "WifiData",
     [IntercomChannelIdStatusLights] = "StatusLights",
     [IntercomChannelIdCli] = "Cli",
@@ -132,10 +132,12 @@ bool intercom_channel_await_peer_ready(IntercomChannel* channel, FuriWait timeou
     furi_check(channel_id != IntercomChannelIdMeta);
 
     const uint32_t expecting = IntercomChannelFlagPeerReady;
-    uint32_t flags = furi_event_flag_wait(channel->flags, expecting, FuriFlagNoClear, timeout);
+    uint32_t flags = furi_event_flag_wait(
+        channel->flags, expecting, FuriFlagNoClear | FuriFlagWaitAll, timeout);
+
     if(flags == FuriFlagErrorTimeout) return false;
+    if((timeout == 0) && (flags == FuriFlagErrorResource)) return false;
 
     furi_check(!(flags & FuriFlagError));
-    furi_check(flags & expecting);
     return true;
 }

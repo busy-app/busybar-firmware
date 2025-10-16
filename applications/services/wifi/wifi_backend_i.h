@@ -13,8 +13,8 @@
 struct Wifi {
     FuriEventLoop* event_loop;
     FuriPubSub* event_pubsub;
-    IntercomChannel* intercom_main;
-    IntercomChannel* intercom_data;
+    IntercomChannel* intercom_ch_control;
+    IntercomChannel* intercom_ch_data;
     FuriSemaphore* tcpip_lock;
     FuriSemaphore* ip6_addr_valid;
     struct netif netif;

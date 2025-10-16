@@ -53,8 +53,8 @@ struct Wifi {
     FuriEventLoop* event_loop;
     FuriSemaphore* access_semaphore;
     Intercom* intercom;
-    IntercomChannel* intercom_main;
-    IntercomChannel* intercom_data;
+    IntercomChannel* intercom_ch_control;
+    IntercomChannel* intercom_ch_data;
     WifiMessage* current_message;
     struct netif netif;
     WifiRequest request;

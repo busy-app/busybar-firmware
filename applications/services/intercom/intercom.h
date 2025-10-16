@@ -91,7 +91,7 @@ bool intercom_is_in_sync(Intercom* instance);
  */
 typedef enum {
     IntercomChannelIdInput, /**< Input handling */
-    IntercomChannelIdWifi, /**< Wireless network handling */
+    IntercomChannelIdWifiControl, /**< Wireless network control handling */
     IntercomChannelIdWifiData, /**< Wireless network data handling */
     IntercomChannelIdStatusLights, /**< Status lights handling */
     IntercomChannelIdCli, /**< Command line interface handling */

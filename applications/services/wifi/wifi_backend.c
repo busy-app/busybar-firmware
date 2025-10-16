@@ -21,7 +21,7 @@ static const WifiRequestHandler wifi_request_handlers[WifiRequestTypeMax];
 
 static inline void wifi_send_response(Wifi* instance) {
     const size_t tx_size = intercom_tx(
-        instance->intercom_main, &instance->response, sizeof(WifiResponse), FuriWaitForever);
+        instance->intercom_ch_control, &instance->response, sizeof(WifiResponse), FuriWaitForever);
     furi_check(tx_size == sizeof(WifiResponse));
 }
 
@@ -366,9 +366,9 @@ static Wifi* wifi_alloc(void) {
         instance->event_loop, wifi_custom_event_callback, instance);
 
     Intercom* intercom = furi_record_open(RECORD_INTERCOM);
-    instance->intercom_main = intercom_channel_open(
-        intercom, IntercomChannelIdWifi, wifi_intercom_rx_callback, instance);
-    instance->intercom_data = intercom_channel_open(
+    instance->intercom_ch_control = intercom_channel_open(
+        intercom, IntercomChannelIdWifiControl, wifi_intercom_rx_callback, instance);
+    instance->intercom_ch_data = intercom_channel_open(
         intercom, IntercomChannelIdWifiData, wifi_net_intercom_rx_callback, instance);
 
     wifi_net_tcpip_init(instance);

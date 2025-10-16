@@ -63,7 +63,6 @@ static inline bool intercom_frame_is_valid(const IntercomFrame* frame) {
     bool is_valid = false;
 
     do {
-        if(frame->channel_id >= IntercomChannelIdMax) break;
         if(frame->data_size > INTERCOM_FRAME_DATA_SIZE) break;
         if(intercom_frame_get_checksum(frame) != frame->check) break;
 

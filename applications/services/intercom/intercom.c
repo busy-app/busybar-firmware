@@ -93,7 +93,7 @@ static void intercom_dump_frame(const IntercomFrame* frame) {
 
     furi_string_printf(
         tmp,
-        "chan : %d\r\n"
+        "chan : %hu\r\n"
         "size : %hu\r\n"
         "data : \r\n",
         frame->channel_id,
@@ -227,7 +227,6 @@ static FURI_ALWAYS_INLINE void intercom_process_rx_frame_event(Intercom* instanc
 
     if(intercom_frame_is_valid(rx_frame)) {
         IntercomChannelId channel_id = rx_frame->channel_id;
-        furi_assert(channel_id < IntercomChannelIdMax);
         IntercomChannel* channel = &instance->handles[channel_id];
         intercom_channel_call_callback(channel, rx_frame);
 
@@ -362,10 +361,11 @@ size_t
     Intercom* instance = channel->intercom;
 
     size_t sent_data_size = 0;
+    const uint32_t timeout_ticks = furi_ms_to_ticks(timeout);
     const uint32_t start_time = furi_get_tick();
-    const uint32_t end_by = start_time + timeout;
+    const uint32_t end_by = start_time + timeout_ticks;
 
-    if(!intercom_channel_await_peer_ready(channel, timeout)) return 0;
+    if(!intercom_channel_await_peer_ready(channel, timeout_ticks)) return 0;
 
     while(furi_semaphore_acquire(instance->tx_semaphore, end_by - furi_get_tick()) ==
           FuriStatusOk) {

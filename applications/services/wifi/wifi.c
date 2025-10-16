@@ -65,7 +65,7 @@ static void wifi_process_request(Wifi* instance) {
         connect_request->ip = *connect_message->ip_config;
     }
 
-    intercom_tx(instance->intercom_main, request, sizeof(WifiRequest), FuriWaitForever);
+    intercom_tx(instance->intercom_ch_control, request, sizeof(WifiRequest), FuriWaitForever);
 }
 
 static void wifi_process_response(Wifi* instance) {
@@ -214,8 +214,8 @@ static Wifi* wifi_alloc(void) {
     furi_event_loop_set_custom_event_callback(
         instance->event_loop, wifi_custom_event_callback, instance);
 
-    instance->intercom_main = intercom_channel_open(
-        instance->intercom, IntercomChannelIdWifi, wifi_intercom_rx_callback, instance);
+    instance->intercom_ch_control = intercom_channel_open(
+        instance->intercom, IntercomChannelIdWifiControl, wifi_intercom_rx_callback, instance);
 
     FuriThread* startup_thread = furi_thread_alloc_ex(
         "WifiStartup", STARTUP_THREAD_STACK_SIZE, wifi_startup_thread_callback, instance);
