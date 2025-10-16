@@ -93,7 +93,7 @@ static void intercom_dump_frame(const IntercomFrame* frame) {
 
     furi_string_printf(
         tmp,
-        "chan : %hu\r\n"
+        "chan : %hhu\r\n"
         "size : %hu\r\n"
         "data : \r\n",
         frame->channel_id,
