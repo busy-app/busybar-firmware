@@ -9,6 +9,7 @@
 #define MQTT_SERVER_ADDR         "mqtts://mqtt.cloud.dev.busy.app:8883"
 #define MQTT_RECONNECT_DELAY_MIN (2000)
 #define MQTT_RECONNECT_DELAY_MAX (60000)
+#define MQTT_POLL_PERIOD         (100)
 #define MQTT_QOS                 (2)
 #define MQTT_API_VERSION         "v1"
 
@@ -40,8 +41,8 @@ struct MqttClient {
     FuriString* session_id;
     FuriString* link_token;
 
-    FuriTimer* screen_streaming_timer;
-    FuriString* resp_topic;
+    struct mg_timer screen_stream_timer;
+    FuriString* screen_stream_topic;
 };
 
 typedef struct {
@@ -65,7 +66,6 @@ void mqtt_api_subscribe(MqttClient* mqtt);
 void mqtt_api_on_message(MqttClient* mqtt, FuriString* topic_str, struct mg_mqtt_message* msg);
 
 void mqtt_screen_streaming_subscribe(MqttClient* mqtt);
-void mqtt_screen_streaming_timer_callback(void* context);
 void mqtt_screen_streaming_on_message(
     MqttClient* mqtt,
     FuriString* topic_str,
