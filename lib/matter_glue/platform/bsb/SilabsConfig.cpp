@@ -225,16 +225,11 @@ bool SilabsConfig::ConfigValueExists(Key key, size_t& dataLen) {
 }
 
 CHIP_ERROR SilabsConfig::FactoryResetConfig(void) {
-    CHIP_ERROR err = CHIP_NO_ERROR;
-
     for(Key k = kMinConfigKey_MatterConfig; k <= kMaxConfigKey_MatterConfig; ++k) {
-        err = ClearConfigValue(k);
-        if(!ChipError::IsSuccess(err)) {
-            break;
-        }
+        ClearConfigValue(k);
     }
 
-    return err;
+    return CHIP_NO_ERROR;
 }
 
 bool SilabsConfig::ValidConfigKey(Key key) {
