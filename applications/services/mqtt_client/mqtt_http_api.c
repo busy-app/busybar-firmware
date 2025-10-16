@@ -4,7 +4,7 @@
 
 #define HTTP_HOST           "http://127.0.0.1"
 #define HTTP_URI_API_PREFIX "/api/"
-#define HTTP_CONN_TIMEOUT   5 // In polling periods (1000ms)
+#define HTTP_CONN_TIMEOUT   (5000) // In ms
 
 typedef enum {
     MethodGet = 0,
@@ -207,7 +207,7 @@ void mqtt_api_on_message(MqttClient* mqtt, FuriString* topic_str, struct mg_mqtt
 
     MqttHttpContext* http_ctx = malloc(sizeof(MqttHttpContext));
     http_ctx->mqtt = mqtt;
-    http_ctx->poll_cnt = HTTP_CONN_TIMEOUT;
+    http_ctx->poll_cnt = HTTP_CONN_TIMEOUT / MQTT_POLL_PERIOD;
     http_ctx->response_topic = resp_topic;
     http_ctx->cor_data = cor_data;
     http_ctx->request_len = msg->data.len;

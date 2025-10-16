@@ -8,6 +8,7 @@
 
 #define MQTT_SCREEN_STREAMING_REQUEST_QOS  (1)
 #define MQTT_SCREEN_STREAMING_RESPONSE_QOS (0)
+#define MQTT_SCREEN_STREAMING_FRAME_PERIOD (100)
 
 static char frame_buff[FRONT_DISPLAY_BUF_SIZE];
 
@@ -28,20 +29,21 @@ void mqtt_screen_streaming_subscribe(MqttClient* mqtt) {
     furi_string_free(topic);
 }
 
-void mqtt_screen_streaming_timer_callback(void* context) {
-    furi_assert(context);
-
-    MqttClient* mqtt = context;
+static void mqtt_screen_streaming_timer_callback(void* data) {
+    MqttClient* mqtt = data;
+    furi_assert(mqtt);
 
     Gui* gui = furi_record_open(RECORD_GUI);
-    const uint8_t* frame = gui_display_get_frame_buffer(gui, GuiDisplayIdFront);
-    memcpy(&frame_buff, frame, FRONT_DISPLAY_BUF_SIZE);
+    with_gui(gui, {
+        const uint8_t* frame = gui_display_get_frame_buffer(gui, GuiDisplayIdFront);
+        memcpy(&frame_buff, frame, FRONT_DISPLAY_BUF_SIZE);
+    });
     furi_record_close(RECORD_GUI);
 
     const struct mg_str message = {.buf = frame_buff, .len = FRONT_DISPLAY_BUF_SIZE};
 
     const struct mg_mqtt_opts opts = {
-        .topic = mg_str(furi_string_get_cstr(mqtt->resp_topic)),
+        .topic = mg_str(furi_string_get_cstr(mqtt->screen_stream_topic)),
         .message = message,
         .qos = MQTT_SCREEN_STREAMING_RESPONSE_QOS,
         .retain = false,
@@ -56,6 +58,28 @@ void mqtt_screen_streaming_timer_callback(void* context) {
     }
 }
 
+static void mqtt_screen_streaming_start(MqttClient* mqtt, struct mg_str* topic_prop) {
+    FURI_LOG_I(TAG, "Start");
+    if(!mqtt->screen_stream_topic) {
+        mqtt->screen_stream_topic = furi_string_alloc();
+        mg_timer_init(
+            &mqtt->mgr.timers,
+            &mqtt->screen_stream_timer,
+            MQTT_SCREEN_STREAMING_FRAME_PERIOD,
+            MG_TIMER_REPEAT | MG_TIMER_RUN_NOW,
+            mqtt_screen_streaming_timer_callback,
+            mqtt);
+    }
+    furi_string_printf(mqtt->screen_stream_topic, "%.*s", topic_prop->len, topic_prop->buf);
+}
+
+static void mqtt_screen_streaming_stop(MqttClient* mqtt) {
+    FURI_LOG_I(TAG, "End");
+    mg_timer_free(&mqtt->mgr.timers, &mqtt->screen_stream_timer);
+    furi_string_free(mqtt->screen_stream_topic);
+    mqtt->screen_stream_topic = NULL;
+}
+
 void mqtt_screen_streaming_on_message(
     MqttClient* mqtt,
     FuriString* topic_str,
@@ -64,40 +88,20 @@ void mqtt_screen_streaming_on_message(
     furi_assert(topic_str);
     furi_assert(msg);
 
-    FuriString* cor_data = furi_string_alloc();
-    struct mg_mqtt_prop prop;
-    size_t prop_ofs = 0;
-    do {
-        memset(&prop, 0, sizeof(struct mg_mqtt_prop));
-        prop_ofs = mg_mqtt_next_prop(msg, &prop, prop_ofs);
-        if(prop_ofs <= 0) break;
+    if(msg->data.len == 0) {
+        mqtt_screen_streaming_stop(mqtt);
+    } else {
+        // TODO: parse payload, timeout?
+        struct mg_mqtt_prop prop;
+        size_t prop_ofs = 0;
+        do {
+            memset(&prop, 0, sizeof(struct mg_mqtt_prop));
+            prop_ofs = mg_mqtt_next_prop(msg, &prop, prop_ofs);
+            if(prop_ofs <= 0) break;
 
-        if(prop.id == MQTT_PROP_RESPONSE_TOPIC) {
-            if(prop.val.len > 0) {
-                furi_string_printf(mqtt->resp_topic, "%.*s", prop.val.len, prop.val.buf);
+            if((prop.id == MQTT_PROP_RESPONSE_TOPIC) && (prop.val.len > 0)) {
+                mqtt_screen_streaming_start(mqtt, &prop.val);
             }
-            // } else if(prop.id == MQTT_PROP_CORRELATION_DATA) {
-            //     if(prop.val.len > 0) {
-            //         furi_string_printf(cor_data, "%.*s", prop.val.len, prop.val.buf);
-            //     }
-        }
-    } while(prop_ofs > 0);
-
-    if(furi_string_empty(mqtt->resp_topic)) {
-        FURI_LOG_W(TAG, "Missing msg properties");
-        furi_string_free(cor_data);
-        furi_string_free(mqtt->resp_topic);
-        return;
-    }
-
-    // struct mg_mqtt_prop props[] = {
-    //     {
-    //         .id = MQTT_PROP_CORRELATION_DATA,
-    //         .val = mg_str(furi_string_get_cstr(cor_data)),
-    //     },
-    // };
-
-    if(!furi_timer_is_running(mqtt->screen_streaming_timer)) {
-        furi_timer_start(mqtt->screen_streaming_timer, 500);
+        } while(prop_ofs > 0);
     }
 }

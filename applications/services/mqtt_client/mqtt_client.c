@@ -420,10 +420,6 @@ int32_t mqtt_client_start(void* p) {
         mqtt->status = MqttClientStatusError;
     }
 
-    mqtt->screen_streaming_timer =
-        furi_timer_alloc(mqtt_screen_streaming_timer_callback, FuriTimerTypePeriodic, mqtt);
-    mqtt->resp_topic = furi_string_alloc();
-
     mqtt_client_load_session(mqtt);
 
     Network* network = furi_record_open(RECORD_NETWORK);
@@ -464,7 +460,7 @@ int32_t mqtt_client_start(void* p) {
 
     // Event loop
     while(1) {
-        mg_mgr_poll(&mqtt->mgr, 1000);
+        mg_mgr_poll(&mqtt->mgr, MQTT_POLL_PERIOD);
     }
     return 0;
 }
