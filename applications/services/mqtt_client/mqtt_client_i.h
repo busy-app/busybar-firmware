@@ -43,6 +43,7 @@ struct MqttClient {
 
     struct mg_timer screen_stream_timer;
     FuriString* screen_stream_topic;
+    char* screen_stream_buf;
 };
 
 typedef struct {
@@ -62,10 +63,11 @@ typedef struct {
     };
 } MqttClientMessage;
 
-void mqtt_api_subscribe(MqttClient* mqtt);
-void mqtt_api_on_message(MqttClient* mqtt, FuriString* topic_str, struct mg_mqtt_message* msg);
+void mqtt_topics_subscribe(MqttClient* mqtt);
+void mqtt_topics_on_message(MqttClient* mqtt, FuriString* topic_str, struct mg_mqtt_message* msg);
 
-void mqtt_screen_streaming_subscribe(MqttClient* mqtt);
+void mqtt_http_api_on_message(MqttClient* mqtt, FuriString* topic_str, struct mg_mqtt_message* msg);
+
 void mqtt_screen_streaming_on_message(
     MqttClient* mqtt,
     FuriString* topic_str,
