@@ -21,70 +21,43 @@ typedef struct {
 } AppsMenuSceneStart;
 
 typedef enum {
+    AppsMenuSceneStartInOutAnimTypeNone,
+
     AppsMenuSceneStartInOutAnimTypeEnter,
     AppsMenuSceneStartInOutAnimTypeExit,
-
-    AppsMenuSceneStartInOutAnimTypeNone
 } AppsMenuSceneStartInOutAnimType;
 
 typedef struct {
-    int32_t title_start;
-    int32_t title_stop;
-    uint32_t title_duration;
-
     uint32_t icon_start;
     uint32_t icon_stop;
 } AppsMenuSceneStartInOutAnimInfo;
 
-static const AppsMenuSceneStartInOutAnimInfo in_out_anim_infos[][DesktopSwitchDirectionsCount] = {
+static const AppsMenuSceneStartInOutAnimInfo in_out_anim_infos[] = {
+    [AppsMenuSceneStartInOutAnimTypeNone] =
+        {
+            .icon_start = 59,
+            .icon_stop = 59,
+        },
     [AppsMenuSceneStartInOutAnimTypeEnter] =
         {
-            [DesktopSwitchDirectionUp] =
-                {
-                    .title_start = 8,
-                    .title_stop = 0,
-                    .title_duration = 165,
-                    .icon_start = 0,
-                    .icon_stop = 59,
-                },
-            [DesktopSwitchDirectionDown] =
-                {
-                    .title_start = -8,
-                    .title_stop = 0,
-                    .title_duration = 165,
-                    .icon_start = 0,
-                    .icon_stop = 59,
-                },
+            .icon_start = 0,
+            .icon_stop = 59,
         },
     [AppsMenuSceneStartInOutAnimTypeExit] =
         {
-            [DesktopSwitchDirectionUp] =
-                {
-                    .title_start = 0,
-                    .title_stop = -8,
-                    .title_duration = 135,
-                    .icon_start = 60,
-                    .icon_stop = 67,
-                },
-            [DesktopSwitchDirectionDown] =
-                {
-                    .title_start = 0,
-                    .title_stop = 8,
-                    .title_duration = 135,
-                    .icon_start = 60,
-                    .icon_stop = 67,
-                },
+            .icon_start = 60,
+            .icon_stop = 67,
         },
 };
 
 static bool apps_menu_scene_start_input_callback(const InputEvent* event, void* context) {
     furi_assert(event);
     furi_assert(context);
+
     AppsMenu* app = context;
 
     bool consumed = false;
     AppsMenuCustomEvent custom_event;
-
     if(event->type == InputTypeShort) {
         switch(event->key) {
         case InputKeyStart:
@@ -122,21 +95,8 @@ static void apps_menu_scene_start_timer_callback(void* context) {
 static void apps_menu_start_run_in_out_anim(AppsMenu* app, AppsMenuSceneStartInOutAnimType type) {
     AppsMenuSceneStart* scene = scene_manager_get_current_scene_data(app->scene_manager);
 
-    if(type != AppsMenuSceneStartInOutAnimTypeNone) {
-        const AppsMenuSceneStartInOutAnimInfo* anim_info =
-            &in_out_anim_infos[type][desktop_get_switch_direction(app->desktop)];
-
-        anim_title_card_run_title_anim(
-            scene->front_card,
-            anim_info->title_start,
-            anim_info->title_stop,
-            anim_info->title_duration);
-        anim_title_card_run_icon_anim(
-            scene->front_card, anim_info->icon_start, anim_info->icon_stop);
-    } else {
-        anim_title_card_run_icon_anim(
-            scene->front_card, (*in_out_anim_infos)->icon_stop, (*in_out_anim_infos)->icon_stop);
-    }
+    const AppsMenuSceneStartInOutAnimInfo* anim_info = &in_out_anim_infos[type];
+    anim_title_card_run_icon_anim(scene->front_card, anim_info->icon_start, anim_info->icon_stop);
 }
 
 static void apps_menu_scene_start_on_enter(void* context) {
@@ -213,7 +173,7 @@ static bool apps_menu_scene_start_on_event(const SceneManagerEvent* event, void*
         default:
             break;
         }
-
+    } else if(event->type == SceneManagerEventTypeBack) {
         consumed = true;
     }
 

@@ -151,6 +151,27 @@ int32_t widget_get_height(const Widget* instance);
 void widget_set_size(Widget* instance, int32_t width, int32_t height);
 
 /**
+ * @brief Set both the width and height of a Widget to fit its content.
+ *
+ * @param[in,out] instance pointer to the Widget instance to be modified
+ */
+void widget_set_size_content(Widget* instance);
+
+/**
+ * @brief Set the width of a Widget to fit its content.
+ *
+ * @param[in,out] instance pointer to the Widget instance to be modified
+ */
+void widget_set_width_content(Widget* instance);
+
+/**
+ * @brief Set the height of a Widget to fit its content.
+ *
+ * @param[in,out] instance pointer to the Widget instance to be modified
+ */
+void widget_set_height_content(Widget* instance);
+
+/**
  * @brief Set the Widget x (horizontal) position.
  *
  * @note Widget positions are always relative to its parent.

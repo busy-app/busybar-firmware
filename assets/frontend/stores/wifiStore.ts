@@ -1,6 +1,6 @@
 import { defineStore } from 'pinia';
 
-type WifiSecurity =
+export type WifiSecurity =
   | 'Open'
   | 'WPA'
   | 'WPA2'
@@ -30,29 +30,30 @@ export type WifiNetwork = {
   rssi: number;
 };
 
+export interface WifiConnectIPConfig {
+  ip_method: 'dhcp' | 'static';
+  ip_type: 'ipv4' | 'ipv6';
+  address?: string;
+  mask?: string;
+  gateway?: string;
+}
+
 export type WifiConnectOptions = {
   ssid: string;
   password?: string;
   security: WifiSecurity;
-  ip_config: {
-    ip_method: 'dhcp' | 'static';
-    ip_type: 'ipv4' | 'ipv6';
-    address?: string;
-    mask?: string;
-    gateway?: string;
-  };
+  ip_config: WifiConnectIPConfig;
 };
 
 export const useWifiStore = defineStore('wifi', () => {
-  const barUrl = useRuntimeConfig().public.barUrl;
   const toast = useToast();
 
-  const wifi = ref<wifiState>({
-    state: 'disabled'
-  });
+  const apiRequest = useApiStore().apiRequest;
 
-  async function updateWifiState () {
-    const state = await $fetch<wifiState>(`${barUrl}/api/wifi/status`)
+  const wifi = ref<wifiState | undefined>(undefined);
+
+  async function fetchWifiState (): Promise<wifiState | undefined> {
+    const state = await apiRequest<wifiState>('/api/wifi/status')
       .then(response => {
         if (!response || typeof response !== 'object') {
           throw new Error('Empty response');
@@ -64,31 +65,38 @@ export const useWifiStore = defineStore('wifi', () => {
         toast.add({
           id: 'wifi-status-error',
           title: 'Failed to fetch WiFi state',
-          description: error.message || 'Unknown error. Check your connection and try again.',
-          icon: 'i-tabler-alert-triangle-filled',
+          description: error.data?.error || genericErrorMessage,
+          icon: 'i-ri-alert-line',
           color: 'error',
           duration: 10000
         });
-        return wifi.value;
+        return undefined;
       });
 
-    wifi.value = state;
+    return state;
+  }
+
+  async function getWifiState (): Promise<wifiState | undefined> {
+    if (wifi.value === undefined) {
+      wifi.value = await fetchWifiState();
+    }
+    return wifi.value;
   }
 
   async function enableWifi () {
-    await $fetch(`${barUrl}/api/wifi/enable`, {
+    await apiRequest('/api/wifi/enable', {
       method: 'POST'
     })
       .then(() => {
-        wifi.value.state = 'enabled';
+        wifi.value = { state: 'enabled' };
       })
       .catch(error => {
         console.error('Error enabling WiFi:', error);
         toast.add({
           id: 'wifi-enable-error',
           title: 'Failed to enable WiFi',
-          description: error.message || 'Unknown error. Check your connection and try again.',
-          icon: 'i-tabler-alert-triangle-filled',
+          description: error.data?.error || genericErrorMessage,
+          icon: 'i-ri-alert-line',
           color: 'error',
           duration: 10000
         });
@@ -96,19 +104,22 @@ export const useWifiStore = defineStore('wifi', () => {
   }
 
   async function disableWifi () {
-    await $fetch(`${barUrl}/api/wifi/disable`, {
+    if (wifi.value === undefined || wifi.value.state === 'disabled') {
+      return;
+    }
+    await apiRequest('/api/wifi/disable', {
       method: 'POST'
     })
       .then(() => {
-        wifi.value.state = 'disabled';
+        wifi.value = { state: 'disabled' };
       })
       .catch(error => {
         console.error('Error disabling WiFi:', error);
         toast.add({
           id: 'wifi-disable-error',
           title: 'Failed to disable WiFi',
-          description: error.message || 'Unknown error. Check your connection and try again.',
-          icon: 'i-tabler-alert-triangle-filled',
+          description: error.data?.error || genericErrorMessage,
+          icon: 'i-ri-alert-line',
           color: 'error',
           duration: 10000
         });
@@ -121,11 +132,22 @@ export const useWifiStore = defineStore('wifi', () => {
       networks: WifiNetwork[];
     }
 
-    return await $fetch<WifiNetworkListResponse>(`${barUrl}/api/wifi/networks`)
+    return await apiRequest<WifiNetworkListResponse>('/api/wifi/networks')
       .then(response => {
         if (!response || !Array.isArray(response.networks)) {
           throw new Error('Failed to fetch WiFi networks');
         }
+        // dedupe networks by SSID, keeping the one with the highest signal level
+        response.networks = response.networks.reduce<WifiNetwork[]>((acc, curr) => {
+          const existing = acc.find(n => n.ssid === curr.ssid);
+          if (!existing) {
+            acc.push(curr);
+          } else if (curr.rssi > existing.rssi) {
+            const index = acc.indexOf(existing);
+            acc[index] = curr;
+          }
+          return acc;
+        }, []);
         return response.networks;
       })
       .catch(error => {
@@ -133,8 +155,8 @@ export const useWifiStore = defineStore('wifi', () => {
         toast.add({
           id: 'wifi-networks-error',
           title: 'Failed to fetch WiFi networks',
-          description: error.message || 'Unknown error. Check your connection and try again.',
-          icon: 'i-tabler-alert-triangle-filled',
+          description: error.data?.error || genericErrorMessage,
+          icon: 'i-ri-alert-line',
           color: 'error',
           duration: 10000
         });
@@ -143,7 +165,7 @@ export const useWifiStore = defineStore('wifi', () => {
   }
 
   async function connectToWifiNetwork (options: WifiConnectOptions) {
-    return await $fetch(`${barUrl}/api/wifi/connect`, {
+    return await apiRequest('/api/wifi/connect', {
       method: 'POST',
       body: options
     })
@@ -152,8 +174,8 @@ export const useWifiStore = defineStore('wifi', () => {
         toast.add({
           id: 'wifi-connect-error',
           title: 'Failed to connect to WiFi',
-          description: error.message || 'Unknown error. Check your connection and try again.',
-          icon: 'i-tabler-alert-triangle-filled',
+          description: error.data?.error || genericErrorMessage,
+          icon: 'i-ri-alert-line',
           color: 'error',
           duration: 10000
         });
@@ -162,7 +184,7 @@ export const useWifiStore = defineStore('wifi', () => {
   }
 
   async function disconnectFromWifiNetwork () {
-    return await $fetch(`${barUrl}/api/wifi/disconnect`, {
+    return await apiRequest('/api/wifi/disconnect', {
       method: 'POST'
     })
       .catch(error => {
@@ -170,8 +192,8 @@ export const useWifiStore = defineStore('wifi', () => {
         toast.add({
           id: 'wifi-disconnect-error',
           title: 'Failed to disconnect from WiFi',
-          description: error.message || 'Unknown error. Check your connection and try again.',
-          icon: 'i-tabler-alert-triangle-filled',
+          description: error.data?.error || genericErrorMessage,
+          icon: 'i-ri-alert-line',
           color: 'error',
           duration: 10000
         });
@@ -180,7 +202,7 @@ export const useWifiStore = defineStore('wifi', () => {
   }
 
   async function forgetSavedWifiNetwork () {
-    return await $fetch(`${barUrl}/api/wifi/forget`, {
+    return await apiRequest('/api/wifi/forget', {
       method: 'POST'
     })
       .catch(error => {
@@ -188,8 +210,8 @@ export const useWifiStore = defineStore('wifi', () => {
         toast.add({
           id: 'wifi-forget-error',
           title: 'Failed to forget WiFi network',
-          description: error.message || 'Unknown error. Check your connection and try again.',
-          icon: 'i-tabler-alert-triangle-filled',
+          description: error.data?.error || genericErrorMessage,
+          icon: 'i-ri-alert-line',
           color: 'error',
           duration: 10000
         });
@@ -199,7 +221,8 @@ export const useWifiStore = defineStore('wifi', () => {
 
   return {
     wifi,
-    updateWifiState,
+    fetchWifiState,
+    getWifiState,
     enableWifi,
     disableWifi,
     listWifiNetworks,

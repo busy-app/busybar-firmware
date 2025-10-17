@@ -1,52 +1,76 @@
 #include "sntp_time_update.h"
 #include "sntp.h"
-#include <furi.h>
+
 #include <network/network.h>
-#include <mongoose.h>
+
+#include <furi.h>
 #include <furi_hal_rtc.h>
+#include <mongoose.h>
 
 #define TAG "SntpTimeUpdate"
 
-#define SNTP_TIME_UPDATE_SET_TIMEZONE            (4) // Set timezone offset in hours
-#define SNTP_TIME_UPDATE_TIMEZONE_CALCULATION(x) ((x) * 60 * 60) // Convert hours to seconds
+#define SNTP_UPDATE_TIMEOUT_MS        30000
+#define SNTP_UPDATE_THREAD_STACK_SIZE (1024 * 2)
+
+#define SNTP_M_TO_S(x) ((x) * 60)
 
 typedef enum {
-    SntpTimeUpdateStatusSuccess = (1UL << 1),
-    SntpTimeUpdateStatusError = (1UL << 2),
-    SntpTimeUpdateStatusDone = (1UL << 3),
+    SntpTimeUpdateStatusNone,
+
+    SntpTimeUpdateStatusOk,
+    SntpTimeUpdateStatusError,
+    SntpTimeUpdateStatusTimeout,
 } SntpTimeUpdateStatus;
 
+typedef struct {
+    int timezone_offset;
+    SntpTimeUpdateStatus update_status;
+    bool is_update_in_progress;
+} SntpTimeUpdateContext;
+
+static void rtc_adjust_time(time_t mseconds_epoch, int timezone_offset) {
+    /* extract millisecond-precision epoch time */
+    time_t seconds_new = mseconds_epoch / 1000;
+    int mseconds_new = mseconds_epoch % 1000;
+
+    /* capture current RTC time before update for delta calculation */
+    DateTime datetime_new, datetime_old;
+    furi_hal_rtc_get_datetime(&datetime_old);
+
+    /* apply timezone offset & update RTC with synchronized time */
+    time_t timezone_offset_seconds = SNTP_M_TO_S(timezone_offset);
+    datetime_timestamp_to_datetime(seconds_new + timezone_offset_seconds, &datetime_new);
+    furi_hal_rtc_set_datetime(&datetime_new);
+
+    /* log updated UTC time */
+    char datetime_new_str[20]; /* 19 for "YYYY-MM-DD HH:MM:SS" + 1 for null terminator */
+    strftime(
+        datetime_new_str, sizeof(datetime_new_str), "%Y-%m-%d %H:%M:%S", gmtime(&seconds_new));
+    FURI_LOG_I(TAG, "Exact UTC time: %s.%03d", datetime_new_str, mseconds_new);
+
+    /* log count of seconds RTC was adjusted */
+    time_t seconds_old = datetime_datetime_to_timestamp(&datetime_old) - timezone_offset_seconds;
+    FURI_LOG_I(TAG, "Time adjustment from RTC: %+d seconds", (int)(seconds_new - seconds_old));
+}
+
 static void sntp_time_update_callback(struct mg_connection* c, int ev, void* ev_data) {
-    SntpTimeUpdateStatus* sntp_time_update_done = c->fn_data;
+    SntpTimeUpdateContext* context = c->fn_data;
 
-    if(ev == MG_EV_SNTP_TIME) {
-        const time_t time = *(time_t*)ev_data / 1000; // Get rid of milliseconds
-        DateTime datetime_temp, datetime;
-        furi_hal_rtc_get_datetime(&datetime_temp);
-        // Update the RTC with the received time
-        datetime_timestamp_to_datetime(
-            time + SNTP_TIME_UPDATE_TIMEZONE_CALCULATION(SNTP_TIME_UPDATE_SET_TIMEZONE),
-            &datetime);
-        furi_hal_rtc_set_datetime(&datetime);
+    switch(ev) {
+    case MG_EV_SNTP_TIME: {
+        rtc_adjust_time(*(time_t*)ev_data, context->timezone_offset);
+        context->update_status = SntpTimeUpdateStatusOk;
+        break;
+    }
 
-        suseconds_t tv_usec = *(time_t*)ev_data % 1000;
+    case MG_EV_ERROR:
+        FURI_LOG_E(TAG, "SNTP error: %s", (const char*)ev_data);
+        context->update_status = SntpTimeUpdateStatusError;
+        break;
 
-        char tmp[48];
-        strftime(tmp, sizeof(tmp), "%Y-%m-%d %H:%M:%S", gmtime(&time));
-        snprintf(tmp + strlen(tmp), sizeof(tmp) - strlen(tmp), ".%03d", (int)tv_usec);
-
-        FURI_LOG_I(TAG, "Exact UTC time: %s", tmp);
-
-        // Log the time adjustment from RTC
-        const time_t time_temp =
-            datetime_datetime_to_timestamp(&datetime_temp) -
-            SNTP_TIME_UPDATE_TIMEZONE_CALCULATION(SNTP_TIME_UPDATE_SET_TIMEZONE);
-        FURI_LOG_I(TAG, "Time adjustment from RTC: %+d seconds", (int)time - (int)time_temp);
-
-        *sntp_time_update_done |= SntpTimeUpdateStatusSuccess;
-
-    } else if(ev == MG_EV_CLOSE) {
-        *sntp_time_update_done |= SntpTimeUpdateStatusDone;
+    case MG_EV_CLOSE:
+        context->is_update_in_progress = false;
+        break;
     }
 }
 
@@ -54,28 +78,40 @@ static int32_t sntp_time_update_thread_callback(void* context) {
     furi_assert(context);
 
     Sntp* instance = context;
+    SntpSettings settings;
+    sntp_get_settings(instance, &settings);
 
-    struct mg_mgr mgr;
-    SntpTimeUpdateStatus status = 0;
+    SntpTimeUpdateContext update_context = {
+        .timezone_offset = settings.timezone_offset,
+        .update_status = SntpTimeUpdateStatusNone,
+        .is_update_in_progress = true,
+    };
 
     FURI_LOG_D(TAG, "Start");
 
     Network* network = furi_record_open(RECORD_NETWORK);
     network_init_current_thread(network);
 
+    struct mg_mgr mgr;
     mg_mgr_init(&mgr);
-    mg_sntp_connect(&mgr, NULL, sntp_time_update_callback, &status);
+    struct mg_connection* conn =
+        mg_sntp_connect(&mgr, settings.server_address, sntp_time_update_callback, &update_context);
 
-    while(!(status & SntpTimeUpdateStatusDone)) {
+    uint32_t timeout_tick = furi_get_tick() + furi_ms_to_ticks(SNTP_UPDATE_TIMEOUT_MS);
+    while(update_context.is_update_in_progress) {
+        if(furi_get_tick() > timeout_tick) {
+            FURI_LOG_W(TAG, "SNTP update timeout");
+            update_context.update_status = SntpTimeUpdateStatusTimeout;
+            conn->is_draining = 1;
+        }
         mg_mgr_poll(&mgr, 1000);
     }
+
     mg_mgr_free(&mgr);
     network_deinit_current_thread(network);
     furi_record_close(RECORD_NETWORK);
 
-    if(status & SntpTimeUpdateStatusSuccess) {
-        sntp_status_update(instance, true);
-    }
+    sntp_status_update(instance, update_context.update_status == SntpTimeUpdateStatusOk);
 
     FURI_LOG_D(TAG, "Stopping thread");
 
@@ -86,7 +122,6 @@ static void sntp_time_update_thread_state_callback(
     FuriThread* thread,
     FuriThreadState state,
     void* context) {
-    furi_assert(thread);
     UNUSED(context);
 
     if(state == FuriThreadStateStopped) {
@@ -97,10 +132,11 @@ static void sntp_time_update_thread_state_callback(
 
 void sntp_time_update_startup(void* context) {
     furi_assert(context);
-    FuriThread* startup_thread = furi_thread_alloc_ex(
-        "SntpTimeUpdate", 1024 * 2, sntp_time_update_thread_callback, context);
-    furi_thread_set_state_callback(startup_thread, sntp_time_update_thread_state_callback);
+
+    FuriThread* time_update_thread = furi_thread_alloc_ex(
+        "SntpTimeUpdate", SNTP_UPDATE_THREAD_STACK_SIZE, sntp_time_update_thread_callback, context);
+    furi_thread_set_state_callback(time_update_thread, sntp_time_update_thread_state_callback);
     FURI_LOG_D(TAG, "Starting thread");
 
-    furi_thread_start(startup_thread);
+    furi_thread_start(time_update_thread);
 }

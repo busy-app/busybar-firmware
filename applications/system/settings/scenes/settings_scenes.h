@@ -8,6 +8,16 @@ typedef enum {
     SettingsAppSceneIdSound,
     SettingsAppSceneIdBrightness,
     SettingsAppSceneIdDebugApps,
+    SettingsAppSceneIdFwUpdate,
+
+    SettingsAppSceneIdMatter,
+    SettingsAppSceneIdMatterPairing,
+    SettingsAppSceneIdMatterCommissionStart,
+    SettingsAppSceneIdMatterCommissionFail,
+    SettingsAppSceneIdMatterCommissionDone,
+
+    SettingsAppSceneIdConnectWifi,
+    SettingsAppSceneIdReboot,
 
     SettingsAppSceneIdsCount
 } SettingsAppSceneId;

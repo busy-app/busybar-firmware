@@ -1,0 +1,52 @@
+name: "Compact build"
+
+on:
+  push:
+    branches:
+      - dev
+  pull_request:
+
+env:
+  FBT_GIT_SUBMODULE_SHALLOW: 0
+  DEFAULT_TARGET: 21
+  FBT_TOOLCHAIN_PATH: /runner/_work
+
+jobs:
+  compact-build:
+    runs-on: BsbShell
+    env:
+      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    strategy:
+      fail-fast: false
+      matrix:
+        u5_target: [20, 21]
+    outputs:
+      default_target: ${{ env.DEFAULT_TARGET }}
+
+    steps:
+      - name: "Wipe workspace"
+        run: |
+          find ./ -mount -maxdepth 1 -exec rm -rf {} \;
+
+      - name: "Checkout code"
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          fetch-depth: 2
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: "Update submodules"
+        run: |
+          git submodule update --init --recursive --jobs=$(nproc) scripts/toolchain fbt_layers/fbtng
+
+      - name: "Build update package (unsigned)"
+        id: build-fw
+        run: |
+          export "U5_TARGET_HW=$(echo "${{ matrix.u5_target }}" | sed 's/f//')"
+          source ./scripts/toolchain/fbtenv.sh
+          export FBT_GIT_SUBMODULE_SHALLOW=1
+          bash ./fbt U5_TARGET_HW=${U5_TARGET_HW} $FBT_BUILD_TYPE dist
+
+      - name: "Check for uncommitted changes"
+        run: |
+          git diff --exit-code

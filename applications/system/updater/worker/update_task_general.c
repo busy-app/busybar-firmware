@@ -42,6 +42,7 @@ static void update_task_sl_updater_progress_callback(
         } else if(current_stage == UpdateTaskStage917Write) {
             update_task_set_progress(update_task, UpdateTaskStage917Install, 0);
         }
+        update_task_set_progress(update_task, UpdateTaskStageProgress, percentage);
         break;
     default:
         break;
@@ -315,7 +316,7 @@ static bool update_task_write_917(UpdateTask* update_task, bool use_stack_image)
     if(success) {
         update_task_set_progress(
             update_task,
-            use_stack_image ? UpdateTaskStage917RadioWrite : UpdateTaskStage917Write,
+            use_stack_image ? UpdateTaskStage917RadioInstall : UpdateTaskStage917Install,
             100);
     }
 
