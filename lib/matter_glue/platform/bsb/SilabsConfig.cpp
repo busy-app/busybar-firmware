@@ -232,7 +232,6 @@ CHIP_ERROR SilabsConfig::FactoryResetConfig(void) {
 
     for(Key k = kMinConfigKey_MatterConfig; k <= kMaxConfigKey_MatterConfig; ++k) {
         err = ClearConfigValue(k);
-
         if(!CHIP_ERROR::IsSuccess(err)) {
             break;
         }
