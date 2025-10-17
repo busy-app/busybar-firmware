@@ -126,25 +126,37 @@ jobs:
 
       - name: Upload test results to Allure TestOps
         if: always()
+        id: allure_upload
         run: |
           cd tests
-          echo "Attempting upload with command:"
-          echo "allurectl upload allure-results --endpoint https://flipper.testops.cloud --token ${{ secrets.ALLURE_TESTOPS_TOKEN }} --project-id 232 --launch-name 'GitHub Actions - ${{ github.workflow }} - ${{ github.sha }}'"
+          echo "Uploading test results to Allure TestOps..."
 
-          # Try the upload
-          allurectl upload allure-results \
+          # Get branch name
+          BRANCH_NAME="${{ github.head_ref || github.ref_name }}"
+          LAUNCH_NAME="Github Actions Smoke - $BRANCH_NAME - ${{ github.sha }}"
+          
+          # Try the upload and capture output
+          OUTPUT=$(allurectl upload allure-results \
             --endpoint "${{ secrets.ALLURE_TESTOPS_URL }}" \
             --token "${{ secrets.ALLURE_TESTOPS_TOKEN }}" \
             --project-id "${{ secrets.ALLURE_PROJECT_ID }}" \
-            --launch-name "GitHub Actions - ${{ github.workflow }} - ${{ github.sha }}"
+            --launch-name "$LAUNCH_NAME" 2>&1)
 
-          # Check the exit code
           exit_code=$?
+          echo "$OUTPUT"
+
           if [ $exit_code -eq 0 ]; then
             echo "Upload successful!"
-            echo "View results: ${{ secrets.ALLURE_TESTOPS_URL }}/project/${{ secrets.ALLURE_PROJECT_ID }}"
+            # Extract launch URL from output if available
+            LAUNCH_URL=$(echo "$OUTPUT" | grep -o 'https://[^[:space:]]*launch/[0-9]*' | head -1 || echo "")
+            if [ -n "$LAUNCH_URL" ]; then
+              echo "ALLURE_LAUNCH_URL=$LAUNCH_URL" >> $GITHUB_OUTPUT
+              echo "Launch URL: $LAUNCH_URL"
+            fi
+            echo "ALLURE_UPLOAD_SUCCESS=true" >> $GITHUB_OUTPUT
           else
             echo "Upload failed with exit code: $exit_code"
+            echo "ALLURE_UPLOAD_SUCCESS=false" >> $GITHUB_OUTPUT
             exit $exit_code
           fi
 
@@ -256,27 +268,19 @@ jobs:
         if: always()
         run: |
           RUN_ID="${{ github.run_number }}-${{ github.sha }}"
+          BRANCH_NAME="${{ github.head_ref || github.ref_name }}"
 
-          # Create comprehensive summary
-          echo "# BSB Test Run Summary" >> $GITHUB_STEP_SUMMARY
+          echo "# BSB Test Results" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
-          echo "**Run ID:** $RUN_ID" >> $GITHUB_STEP_SUMMARY
-          echo "**Test Suite:** all" >> $GITHUB_STEP_SUMMARY
-          echo "**Commit:** ${{ github.sha }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Run:** $RUN_ID | **Branch:** $BRANCH_NAME | **Commit:** ${{ github.sha }}" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
 
           echo "## 📊 Allure Reports" >> $GITHUB_STEP_SUMMARY
-          echo "- 🔗 [This Run Report](https://flipper-aws-qa-tests.s3.eu-central-1.amazonaws.com/bsb/allure-reports/all/$RUN_ID/index.html)" >> $GITHUB_STEP_SUMMARY
-          echo "- 🔗 [Latest Report](https://flipper-aws-qa-tests.s3.eu-central-1.amazonaws.com/bsb/allure-reports/all/latest/index.html)" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
-
-          echo "## 📁 Test Artifacts (S3)" >> $GITHUB_STEP_SUMMARY
-          echo "- 🔗 [Test Results](https://s3.console.aws.amazon.com/s3/buckets/flipper-aws-qa-tests/bsb/test-results/all/$RUN_ID/)" >> $GITHUB_STEP_SUMMARY
-          echo "- 🔗 [All BSB Reports](https://s3.console.aws.amazon.com/s3/buckets/flipper-aws-qa-tests/bsb/allure-reports/)" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
-
-          echo "## 📋 Quick Links" >> $GITHUB_STEP_SUMMARY
-          echo "- [All Test Suites - Latest Reports](https://s3.console.aws.amazon.com/s3/buckets/flipper-aws-qa-tests/bsb/allure-reports/)" >> $GITHUB_STEP_SUMMARY
-          echo "- [CLI Tests - Latest](https://flipper-aws-qa-tests.s3.eu-central-1.amazonaws.com/bsb/allure-reports/cli/latest/index.html)" >> $GITHUB_STEP_SUMMARY
-          echo "- [Frontend Tests - Latest](https://flipper-aws-qa-tests.s3.eu-central-1.amazonaws.com/bsb/allure-reports/frontend/latest/index.html)" >> $GITHUB_STEP_SUMMARY
-          echo "- [All Tests - Latest](https://flipper-aws-qa-tests.s3.eu-central-1.amazonaws.com/bsb/allure-reports/all/latest/index.html)" >> $GITHUB_STEP_SUMMARY
+          
+          # Add Allure TestOps launch link if available
+          if [ "${{ steps.allure_upload.outputs.ALLURE_UPLOAD_SUCCESS }}" = "true" ] && [ -n "${{ steps.allure_upload.outputs.ALLURE_LAUNCH_URL }}" ]; then
+            echo "- 🚀 [Allure TestOps Launch](${{ steps.allure_upload.outputs.ALLURE_LAUNCH_URL }})" >> $GITHUB_STEP_SUMMARY
+          fi
+          
+          echo "- 📋 [This Run Report](https://flipper-aws-qa-tests.s3.eu-central-1.amazonaws.com/bsb/allure-reports/all/$RUN_ID/index.html)" >> $GITHUB_STEP_SUMMARY
+          echo "- 📋 [Latest Report](https://flipper-aws-qa-tests.s3.eu-central-1.amazonaws.com/bsb/allure-reports/all/latest/index.html)" >> $GITHUB_STEP_SUMMARY

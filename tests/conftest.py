@@ -82,14 +82,34 @@ def web_session() -> requests.Session:
 
     def logged_request(*args, **kwargs):
         start_time = time.time()
+        method = args[0] if args else kwargs.get("method", "GET")
+        url = args[1] if len(args) > 1 else kwargs.get("url", "")
+
+        logger.info(f"Web request: {method} {url}")
+        if kwargs.get("json"):
+            logger.debug(f"Request JSON: {kwargs['json']}")
+        elif kwargs.get("data"):
+            logger.debug(f"Request data: {str(kwargs['data'])[:200]}")
+
         response = original_request(*args, **kwargs)
         duration = time.time() - start_time
+
         log_web_request(
-            method=args[0] if args else kwargs.get("method", "GET"),
-            url=args[1] if len(args) > 1 else kwargs.get("url", ""),
+            method=method,
+            url=url,
             status_code=response.status_code,
             duration=duration,
         )
+        logger.info(
+            f"Web request: {method} {url} - {response.status_code} in {duration:.2f}s"
+        )
+        logger.debug(f"Response headers: {dict(response.headers)}")
+        logger.debug(f"Response content: {response.text[:500]}")  # Log first 500 chars
+
+        if response.status_code >= 400:
+            logger.error(f"Web request failed: {method} {url} - {response.status_code}")
+            logger.error(f"Error response: {response.text[:1000]}")
+
         return response
 
     session.request = logged_request
@@ -216,7 +236,11 @@ class SimpleCLIConnection:
             timeout = 15.0
 
         try:
-            self.logger.debug(f"Executing command: {repr(command)}")
+            start_time = time.time()
+            self.logger.info(f"CLI command: {command}")
+            self.logger.debug(
+                f"Executing command: {repr(command)} (timeout: {timeout}s)"
+            )
 
             # Send command
             cmd_bytes = f"{command}\r\n".encode("utf-8")
@@ -282,14 +306,33 @@ class SimpleCLIConnection:
                 self._in_sl_cli = False
                 self.logger.debug(f"Exited 917 CLI mode")
 
-            # Log the command execution
-            duration = timeout  # Approximate since we don't track exact timing
+            # Log the command execution with actual timing
+            duration = time.time() - start_time
             log_cli_command(command, cleaned, duration)
+
+            self.logger.info(
+                f"CLI command: {command} - {len(cleaned)} chars in {duration:.2f}s"
+            )
+            self.logger.debug(
+                f"CLI response ({len(cleaned)} chars): {cleaned[:500]}"
+            )  # Log first 500 chars
+
+            # Log if command took unusually long
+            if duration > 10.0:
+                self.logger.warning(
+                    f"CLI command took {duration:.2f}s (longer than expected): {command}"
+                )
 
             return cleaned
 
         except Exception as e:
-            self.logger.error(f"Command execution failed: {type(e).__name__}: {e}")
+            duration = time.time() - start_time
+            self.logger.error(
+                f"CLI command failed: {command} - {type(e).__name__}: {e} (after {duration:.2f}s)"
+            )
+            self.logger.debug(
+                f"Failed command details: timeout={timeout}, slow_command={slow_command}"
+            )
             return ""
 
     def _clean_response(self, response: str, command: str) -> str:
