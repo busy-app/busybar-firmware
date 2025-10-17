@@ -1,7 +1,7 @@
 #pragma once
 #include "../web_server_i.h"
 
-#define API_VERSION {0, 0, 0}
+#define API_VERSION {0, 3, 0}
 
 // Root API handlers
 void* http_api_root_alloc(void);
@@ -128,6 +128,22 @@ bool http_api_streaming_single_frame_callback(
 void* http_api_ble_alloc(void);
 void http_api_ble_free(void* ctx);
 bool http_api_ble_callback(
+    FuriString* path,
+    struct mg_connection* conn,
+    struct mg_http_message* msg,
+    void* ctx);
+
+// Time
+void* http_api_time_alloc(void);
+void http_api_time_free(void* ctx);
+bool http_api_time_callback(
+    FuriString* path,
+    struct mg_connection* conn,
+    struct mg_http_message* msg,
+    void* ctx);
+
+// Name
+bool http_api_name_callback(
     FuriString* path,
     struct mg_connection* conn,
     struct mg_http_message* msg,

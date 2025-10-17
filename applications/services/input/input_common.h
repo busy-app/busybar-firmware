@@ -9,6 +9,8 @@
 extern "C" {
 #endif
 
+typedef struct Input Input;
+
 /**
  * @brief Enumeration of device types used for user input.
  */

@@ -49,13 +49,13 @@
 
 #define RSI_BLE_MAX_NBR_ATT_SERV  10
 #define RSI_BLE_MAX_NBR_CENTRALS  1
-#define RSI_BLE_GATT_ASYNC_ENABLE 0
+#define RSI_BLE_GATT_ASYNC_ENABLE 1
 #define RSI_BLE_GATT_INIT         0
 
 /* Number of BLE GATT RECORD SIZE IN (n*16 BYTES), eg:(0x40*16)=1024 bytes */
 #define RSI_BLE_NUM_REC_BYTES 0x40
 
-#define RSI_BLE_INDICATE_CONFIRMATION_FROM_HOST 0
+#define RSI_BLE_INDICATE_CONFIRMATION_FROM_HOST 1
 
 /*=======================================================================*/
 //! Advertising command parameters
@@ -209,7 +209,7 @@
 
 #if DLE_ON
 #define DLE_BUFFER_MODE      1
-#define DLE_BUFFER_COUNT     25 // Should be less than RSI_BLE_NUM_CONN_EVENTS
+#define DLE_BUFFER_COUNT     1 // Should be less than RSI_BLE_NUM_CONN_EVENTS
 #define RSI_BLE_MAX_DATA_LEN RSI_DEV_ATT_LEN
 #else
 #define DLE_BUFFER_MODE      0
