@@ -607,6 +607,52 @@ class TestStorageAPI:
                                     allure.attachment_type.JSON,
                                 )
 
+    @allure.id("3050")
+    @allure.title("GET /api/storage/status")
+    @pytest.mark.api
+    @pytest.mark.frontend
+    def test_api_storage_status(self, api_session, web_base_url):
+        with allure.step("Make GET request to /api/storage/status"):
+            response = api_session.get(f"{web_base_url}/api/storage/status", timeout=10)
+        with allure.step("Verify response status and structure"):
+            assert (
+                response.status_code == 200
+            ), f"Expected 200, got {response.status_code}"
+            assert (
+                "application/json" in response.headers.get("content-type", "").lower()
+            )
+            response_data = response.json()
+            allure.attach(
+                json.dumps(response_data, indent=2),
+                "Storage Status Response",
+                allure.attachment_type.JSON,
+            )
+
+            assert (
+                "used_bytes" in response_data
+            ), "Response should contain 'used_bytes' field"
+            assert (
+                "free_bytes" in response_data
+            ), "Response should contain 'free_bytes' field"
+            assert (
+                "total_bytes" in response_data
+            ), "Response should contain 'total_bytes' field"
+
+            assert isinstance(
+                response_data["used_bytes"], int
+            ), "'used_bytes' should be an integer"
+            assert isinstance(
+                response_data["free_bytes"], int
+            ), "'free_bytes' should be an integer"
+            assert isinstance(
+                response_data["total_bytes"], int
+            ), "'total_bytes' should be an integer"
+
+            assert (
+                response_data["used_bytes"] + response_data["free_bytes"]
+                == response_data["total_bytes"]
+            ), "Sum of 'used_bytes' and 'free_bytes' should equal 'total_bytes'"
+
 
 @allure.feature("5. Web Frontend")
 @allure.story("API (draft)")
@@ -803,7 +849,7 @@ class TestWifiAPI:
 
             # Validate required fields
             assert "state" in status_data, "Response should contain 'state' field"
-            valid_states = ["disabled", "enabled", "connected"]
+            valid_states = ["disabled", "enabled", "connected", "disconnected"]
             assert (
                 status_data["state"] in valid_states
             ), f"State should be one of {valid_states}"

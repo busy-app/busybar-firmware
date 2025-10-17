@@ -79,7 +79,7 @@ class TestWebFrontendBasic:
         with allure.step("Verify YAML content"):
             content = response.text
             assert "openapi:" in content, "Should contain OpenAPI version"
-            assert "Busy Bar HTTP API" in content, "Should contain API title"
+            assert "BUSY Bar HTTP API" in content, "Should contain API title"
             assert "paths:" in content, "Should contain API paths"
 
 
