@@ -245,7 +245,7 @@ static void settings_scene_fw_update_install(void* context) {
     SettingsApp* instance = context;
     SettingsSceneFwUpdate* data = scene_manager_get_current_scene_data(instance->scene_manager);
     UNUSED(data);
-    updater_tar_install(SETTINGS_FW_FILE_PATH, true);
+    updater_tar_install(SETTINGS_FW_FILE_PATH, NULL, true);
 }
 
 static void settings_scene_fw_update_on_enter(void* context) {

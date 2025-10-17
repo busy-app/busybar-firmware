@@ -27,11 +27,13 @@ const char* updater_tar_install_get_error_str(UpdaterTarStatus error_code);
 /**
  * @brief Execute the installation of a firmware update from a TAR file.
  *
- * @param path The path to the TAR file.
+ * @param tar_path The path to the TAR file.
+ * @param staging_path Optional path where to unpack (pass NULL to use default).
  * @param auto_reboot If true, automatically reboot after successful installation.
  * @return The status of the update installation.
  */
-UpdaterTarStatus updater_tar_install(const char* path, bool auto_reboot);
+UpdaterTarStatus
+    updater_tar_install(const char* tar_path, const char* staging_path, bool auto_reboot);
 
 #ifdef __cplusplus
 }

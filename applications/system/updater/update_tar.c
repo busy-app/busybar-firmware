@@ -7,7 +7,7 @@
 #include <toolbox/path.h>
 #include <toolbox/update_lib/update_config.h>
 
-#define UPDATE_STAGING_ROOT ("/update")
+#define UPDATE_STAGING_ROOT "/update"
 
 #define TAG "UpdaterTar"
 
@@ -29,17 +29,22 @@ const char* updater_tar_install_get_error_str(UpdaterTarStatus error_code) {
     return "Unknown error code";
 }
 
-UpdaterTarStatus updater_tar_install(const char* path, bool auto_reboot) {
+UpdaterTarStatus
+    updater_tar_install(const char* tar_path, const char* staging_path, bool auto_reboot) {
     UpdaterTarStatus ret = UpdaterTarStatusErrorUnknown;
-    FURI_LOG_D(TAG, "Installing update bundle from: %s", path);
+    FURI_LOG_D(TAG, "Installing update bundle from: %s", tar_path);
     UpdateConfig* state = update_config_alloc();
     Storage* storage = furi_record_open(RECORD_STORAGE);
 
-    FuriString* file_path = furi_string_alloc();
-    path_extract_dirname(path, file_path);
-
     FuriString* final_staging_path = furi_string_alloc();
-    path_concat(furi_string_get_cstr(file_path), UPDATE_STAGING_ROOT, final_staging_path);
+    if(staging_path != NULL) {
+        furi_string_set_str(final_staging_path, staging_path);
+    } else {
+        FuriString* file_path = furi_string_alloc();
+        path_extract_dirname(tar_path, file_path);
+        path_concat(furi_string_get_cstr(file_path), UPDATE_STAGING_ROOT, final_staging_path);
+        furi_string_free(file_path);
+    }
 
     FuriString* manifest_full_path = furi_string_alloc_printf(
         "%s/%s", furi_string_get_cstr(final_staging_path), UPDATE_CONFIG_FILENAME);
@@ -71,7 +76,7 @@ UpdaterTarStatus updater_tar_install(const char* path, bool auto_reboot) {
         FURI_LOG_D(TAG, "Unpacking TAR contents to: %s", furi_string_get_cstr(final_staging_path));
         TarArchive* tar = tar_archive_alloc(storage);
         bool unpack_success = false;
-        if(tar_archive_open(tar, path, TarOpenModeRead)) {
+        if(tar_archive_open(tar, tar_path, TarOpenModeRead)) {
             if(tar_archive_unpack_to(tar, furi_string_get_cstr(final_staging_path), NULL)) {
                 unpack_success = true;
             } else {
@@ -82,7 +87,7 @@ UpdaterTarStatus updater_tar_install(const char* path, bool auto_reboot) {
                 ret = UpdaterTarStatusErrorUnpackTar;
             }
         } else {
-            FURI_LOG_E(TAG, "Failed to open TAR file %s", path);
+            FURI_LOG_E(TAG, "Failed to open TAR file %s", tar_path);
             ret = UpdaterTarStatusErrorOpenTar;
         }
 
@@ -149,7 +154,6 @@ UpdaterTarStatus updater_tar_install(const char* path, bool auto_reboot) {
         ret = UpdaterTarStatusSuccess;
     } while(false);
 
-    furi_string_free(file_path);
     furi_string_free(final_staging_path);
     furi_string_free(manifest_full_path);
     furi_record_close(RECORD_STORAGE);

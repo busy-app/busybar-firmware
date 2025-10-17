@@ -123,7 +123,7 @@ static void updater_cli_execute_install(const char* manifest_path) {
 
 static void updater_cli_execute_install_tar(const char* path) {
     printf("Installing update bundle from: %s\r\n", path);
-    UpdaterTarStatus status = updater_tar_install(path, true);
+    UpdaterTarStatus status = updater_tar_install(path, NULL, true);
     if(status != UpdaterTarStatusSuccess) {
         printf("Update failed: %s\r\n", updater_tar_install_get_error_str(status));
     }
