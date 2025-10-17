@@ -2,16 +2,16 @@ App(
     appid="update_cli",
     name="update",
     apptype=FlipperAppType.CLICMD,
-    sources=["update_cli.c", "sl_updater.c", "fkermit.c"],
+    sources=["update_cli.c", "sl_updater.c", "fkermit.c", "update_tar.c", "helpers/*.c", "session/*.c"],
     entry_point="update_cli_command",
-    requires=["storage"],
+    requires=["storage", "cli_commands_target_specific"],
 )
 
 App(
     appid="updater",
     name="UpdaterSvc",
     apptype=FlipperAppType.SERVICE,
-    sources=["update_app.c", "worker/*.c", "sl_updater.c", "fkermit.c"],
+    sources=["update_app.c", "worker/*.c", "sl_updater.c", "fkermit.c", "session/session_config.c"],
     entry_point="updater_srv",
     requires=[
         "gui",

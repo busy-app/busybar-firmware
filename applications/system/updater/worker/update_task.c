@@ -208,18 +208,26 @@ static UpdateTaskStageGroup update_task_get_task_groups(UpdateTask* update_task)
     UpdateTaskStageGroup ret = UpdateTaskStageGroupPrepare;
     const UpdateManifest* manifest = update_config_get_manifest(update_task->config);
 
-    if(!furi_string_empty(updater_manifest_get_path(manifest, UpdateManifestPathDfu))) {
+    if(update_task->session_config.do_update_u5_firmware &&
+       !furi_string_empty(updater_manifest_get_path(manifest, UpdateManifestPathDfu))) {
         ret |= UpdateTaskStageGroupFirmware;
     }
-    if(!furi_string_empty(updater_manifest_get_path(manifest, UpdateManifestPath917))) {
+
+    if(update_task->session_config.do_update_917_firmware &&
+       !furi_string_empty(updater_manifest_get_path(manifest, UpdateManifestPath917))) {
         ret |= UpdateTaskStageGroup917;
     }
-    if(!furi_string_empty(updater_manifest_get_path(manifest, UpdateManifestPath917Radio))) {
+
+    if(update_task->session_config.do_update_917_radio_stack &&
+       !furi_string_empty(updater_manifest_get_path(manifest, UpdateManifestPath917Radio))) {
         ret |= UpdateTaskStageGroup917Radio;
     }
-    if(!furi_string_empty(updater_manifest_get_path(manifest, UpdateManifestPathResources))) {
+
+    if(update_task->session_config.do_update_resources &&
+       !furi_string_empty(updater_manifest_get_path(manifest, UpdateManifestPathResources))) {
         ret |= UpdateTaskStageGroupResources;
     }
+
     return ret;
 }
 
@@ -388,6 +396,14 @@ bool update_task_parse_manifest(UpdateTask* update_task) {
 
         CHECK_RESULT(update_config_read_pointer_file(update_task->storage, manifest_path));
         // furi_string_set(update_task->update_path, manifest_path);
+
+        FuriString* update_dir_path = furi_string_alloc();
+        path_extract_dirname(furi_string_get_cstr(manifest_path), update_dir_path);
+        updater_session_config_load(
+            furi_string_get_cstr(update_dir_path), &update_task->session_config);
+
+        updater_session_config_delete(furi_string_get_cstr(update_dir_path));
+        furi_string_free(update_dir_path);
 
         update_task_set_progress(update_task, UpdateTaskStageProgress, 20);
         UpdateConfigValidation res =
