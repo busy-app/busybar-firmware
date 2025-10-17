@@ -140,18 +140,28 @@ jobs:
             --endpoint "${{ secrets.ALLURE_TESTOPS_URL }}" \
             --token "${{ secrets.ALLURE_TESTOPS_TOKEN }}" \
             --project-id "${{ secrets.ALLURE_PROJECT_ID }}" \
-            --launch-name "$LAUNCH_NAME" 2>&1)
+            --launch-name "$LAUNCH_NAME" \
+            --launch-tags "github" 2>&1)
 
           exit_code=$?
           echo "$OUTPUT"
 
           if [ $exit_code -eq 0 ]; then
             echo "Upload successful!"
-            # Extract launch URL from output if available
-            LAUNCH_URL=$(echo "$OUTPUT" | grep -o 'https://[^[:space:]]*launch/[0-9]*' | head -1 || echo "")
-            if [ -n "$LAUNCH_URL" ]; then
+            # Extract launch ID from output (allurectl typically outputs "Launch [ID]" format)
+            LAUNCH_ID=$(echo "$OUTPUT" | grep -o 'Launch \[[0-9]*\]' | grep -o '[0-9]*' | head -1 || echo "")
+            if [ -n "$LAUNCH_ID" ]; then
+              LAUNCH_URL="https://flipper.testops.cloud/launch/$LAUNCH_ID"
               echo "ALLURE_LAUNCH_URL=$LAUNCH_URL" >> $GITHUB_OUTPUT
-              echo "Launch URL: $LAUNCH_URL"
+              echo "ALLURE_LAUNCH_ID=$LAUNCH_ID" >> $GITHUB_OUTPUT
+              echo "Launch URL: $LAUNCH_URL (ID: $LAUNCH_ID)"
+            else
+              # Fallback: try to extract direct URL if format is different
+              LAUNCH_URL=$(echo "$OUTPUT" | grep -o 'https://[^[:space:]]*launch/[0-9]*' | head -1 || echo "")
+              if [ -n "$LAUNCH_URL" ]; then
+                echo "ALLURE_LAUNCH_URL=$LAUNCH_URL" >> $GITHUB_OUTPUT
+                echo "Launch URL: $LAUNCH_URL"
+              fi
             fi
             echo "ALLURE_UPLOAD_SUCCESS=true" >> $GITHUB_OUTPUT
           else
@@ -279,7 +289,11 @@ jobs:
           
           # Add Allure TestOps launch link if available
           if [ "${{ steps.allure_upload.outputs.ALLURE_UPLOAD_SUCCESS }}" = "true" ] && [ -n "${{ steps.allure_upload.outputs.ALLURE_LAUNCH_URL }}" ]; then
-            echo "- 🚀 [Allure TestOps Launch](${{ steps.allure_upload.outputs.ALLURE_LAUNCH_URL }})" >> $GITHUB_STEP_SUMMARY
+            if [ -n "${{ steps.allure_upload.outputs.ALLURE_LAUNCH_ID }}" ]; then
+              echo "- 🚀 [Allure TestOps Launch [${{ steps.allure_upload.outputs.ALLURE_LAUNCH_ID }}]](${{ steps.allure_upload.outputs.ALLURE_LAUNCH_URL }})" >> $GITHUB_STEP_SUMMARY
+            else
+              echo "- 🚀 [Allure TestOps Launch](${{ steps.allure_upload.outputs.ALLURE_LAUNCH_URL }})" >> $GITHUB_STEP_SUMMARY
+            fi
           fi
           
           echo "- 📋 [This Run Report](https://flipper-aws-qa-tests.s3.eu-central-1.amazonaws.com/bsb/allure-reports/all/$RUN_ID/index.html)" >> $GITHUB_STEP_SUMMARY
