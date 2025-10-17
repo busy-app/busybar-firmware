@@ -1,34 +1,35 @@
-#include "update_fw_tar.h"
+#include "update_tar.h"
+
+#include <furi_hal_nvm.h>
+#include <furi_hal_power.h>
 #include <toolbox/tar/tar_archive.h>
 #include <toolbox/path.h>
 #include <toolbox/update_lib/update_config.h>
-#include <furi_hal_nvm.h>
-#include <furi_hal_power.h>
 
 #define UPDATE_STAGING_ROOT ("/update")
 
-#define TAG "UpdateFwTar"
+#define TAG "UpdaterTar"
 
-static const char* const update_fw_tar_install_error_messages[] = {
-    [UpdateFwTarStatusSuccess] = "Success",
-    [UpdateFwTarStatusErrorCreateStagingDir] = "Failed to create staging directory",
-    [UpdateFwTarStatusErrorOpenTar] = "Failed to open TAR file",
-    [UpdateFwTarStatusErrorUnpackTar] = "Failed to unpack TAR file",
-    [UpdateFwTarStatusErrorManifestNotFound] = "Manifest not found",
-    [UpdateFwTarStatusErrorValidateManifest] = "Failed to validate manifest",
-    [UpdateFwTarStatusErrorWritePointerFile] = "Failed to write pointer file",
-    [UpdateFwTarStatusErrorUnknown] = "Unknown error",
+static const char* const updater_tar_install_error_messages[] = {
+    [UpdaterTarStatusSuccess] = "Success",
+    [UpdaterTarStatusErrorCreateStagingDir] = "Failed to create staging directory",
+    [UpdaterTarStatusErrorOpenTar] = "Failed to open TAR file",
+    [UpdaterTarStatusErrorUnpackTar] = "Failed to unpack TAR file",
+    [UpdaterTarStatusErrorManifestNotFound] = "Manifest not found",
+    [UpdaterTarStatusErrorValidateManifest] = "Failed to validate manifest",
+    [UpdaterTarStatusErrorWritePointerFile] = "Failed to write pointer file",
+    [UpdaterTarStatusErrorUnknown] = "Unknown error",
 };
 
-const char* update_fw_tar_install_get_error_str(UpdateFwTarStatus error_code) {
-    if(error_code <= UpdateFwTarStatusErrorUnknown) {
-        return update_fw_tar_install_error_messages[error_code];
+const char* updater_tar_install_get_error_str(UpdaterTarStatus error_code) {
+    if(error_code <= UpdaterTarStatusErrorUnknown) {
+        return updater_tar_install_error_messages[error_code];
     }
     return "Unknown error code";
 }
 
-UpdateFwTarStatus update_fw_tar_install(const char* path) {
-    UpdateFwTarStatus ret = UpdateFwTarStatusErrorUnknown;
+UpdaterTarStatus updater_tar_install(const char* path, bool auto_reboot) {
+    UpdaterTarStatus ret = UpdaterTarStatusErrorUnknown;
     FURI_LOG_D(TAG, "Installing update bundle from: %s", path);
     UpdateConfig* state = update_config_alloc();
     Storage* storage = furi_record_open(RECORD_STORAGE);
@@ -61,7 +62,7 @@ UpdateFwTarStatus update_fw_tar_install(const char* path) {
                 TAG,
                 "Failed to create package directory: %s",
                 furi_string_get_cstr(final_staging_path));
-            ret = UpdateFwTarStatusErrorCreateStagingDir;
+            ret = UpdaterTarStatusErrorCreateStagingDir;
             break;
         }
 
@@ -77,11 +78,11 @@ UpdateFwTarStatus update_fw_tar_install(const char* path) {
                     TAG,
                     "Failed to unpack TAR contents to %s",
                     furi_string_get_cstr(final_staging_path));
-                ret = UpdateFwTarStatusErrorUnpackTar;
+                ret = UpdaterTarStatusErrorUnpackTar;
             }
         } else {
             FURI_LOG_E(TAG, "Failed to open TAR file %s", path);
-            ret = UpdateFwTarStatusErrorOpenTar;
+            ret = UpdaterTarStatusErrorOpenTar;
         }
 
         tar_archive_free(tar);
@@ -98,7 +99,7 @@ UpdateFwTarStatus update_fw_tar_install(const char* path) {
         if(!storage_file_exists(storage, furi_string_get_cstr(manifest_full_path))) {
             FURI_LOG_E(
                 TAG, "Manifest file not found: %s", furi_string_get_cstr(manifest_full_path));
-            ret = UpdateFwTarStatusErrorManifestNotFound;
+            ret = UpdaterTarStatusErrorManifestNotFound;
             break;
         }
         FURI_LOG_D(TAG, "Manifest found: %s", furi_string_get_cstr(manifest_full_path));
@@ -111,7 +112,7 @@ UpdateFwTarStatus update_fw_tar_install(const char* path) {
                 TAG,
                 "Failed to load updater configuration: %s",
                 update_config_validation_get_error_str(config_state));
-            ret = UpdateFwTarStatusErrorValidateManifest;
+            ret = UpdaterTarStatusErrorValidateManifest;
             break;
         }
 
@@ -119,7 +120,7 @@ UpdateFwTarStatus update_fw_tar_install(const char* path) {
 
         if(!update_config_write_pointer_file(storage, furi_string_get_cstr(manifest_full_path))) {
             FURI_LOG_E(TAG, "Failed to write manifest path to pointer file.");
-            ret = UpdateFwTarStatusErrorWritePointerFile;
+            ret = UpdaterTarStatusErrorWritePointerFile;
             break;
         }
 
@@ -129,12 +130,17 @@ UpdateFwTarStatus update_fw_tar_install(const char* path) {
             furi_string_get_cstr(final_staging_path),
             UPDATE_POINTER_FILE_NAME);
 
-        // 5. Set boot mode to Update and reboot
+        // 5. Set boot mode to Updater and optionally reboot
         furi_hal_nvm_set_boot_mode(FuriHalNvmBootModeUpdate);
-        FURI_LOG_D(TAG, "Boot mode set to Update. Rebooting...");
-        furi_delay_ms(100);
-        furi_hal_power_reset();
-        ret = UpdateFwTarStatusSuccess;
+        FURI_LOG_D(TAG, "Boot mode set to Update.");
+
+        if(auto_reboot) {
+            FURI_LOG_D(TAG, "Rebooting...");
+            furi_delay_ms(100);
+            furi_hal_power_reset();
+        }
+
+        ret = UpdaterTarStatusSuccess;
     } while(false);
 
     furi_string_free(file_path);

@@ -1,3 +1,4 @@
+#include "update_tar.h"
 #include "sl_updater.h"
 #include "sl_update_params.h"
 
@@ -14,7 +15,6 @@
 #include <toolbox/tar/tar_archive.h>
 #include <toolbox/path.h>
 #include <applications/system/fetch/fetch.h>
-#include <toolbox/update_fw_tar.h>
 
 #define TAG                 "UpdaterCli"
 #define UPDATE_STAGING_ROOT ("/update")
@@ -112,8 +112,9 @@ static void updater_cli_execute_install(const char* manifest_path) {
 
 static void updater_cli_execute_install_tar(const char* path) {
     printf("Installing update bundle from: %s\r\n", path);
-    if(!update_fw_tar_install(path)) {
-        printf("Update failed\r\n");
+    UpdaterTarStatus status = updater_tar_install(path, true);
+    if(status != UpdaterTarStatusSuccess) {
+        printf("Update failed: %s\r\n", updater_tar_install_get_error_str(status));
     }
 }
 
