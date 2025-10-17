@@ -1,6 +1,7 @@
 #include "update_tar.h"
 #include "sl_updater.h"
 #include "sl_update_params.h"
+#include "session/session_config.h"
 
 #include <furi.h>
 #include <furi_hal_nvm.h>
@@ -17,8 +18,8 @@
 #include <applications/system/fetch/fetch.h>
 
 #define TAG                 "UpdaterCli"
-#define UPDATE_STAGING_ROOT ("/update")
-#define UPDATE_TAR_TMP      ("/upload.tar")
+#define UPDATE_STAGING_ROOT "/update"
+#define UPDATE_TAR_TEMP     "/upload.tar"
 
 static void
     updater_cli_progress_callback(SlUpdaterProgressPhase phase, uint8_t percentage, void* context) {
@@ -94,6 +95,16 @@ static void updater_cli_execute_install(const char* manifest_path) {
 
         printf("Updater configuration valid\r\n");
 
+        FuriString* update_dir_path = furi_string_alloc();
+        path_extract_dirname(manifest_path, update_dir_path);
+
+        UpdaterSessionConfig session_config;
+        const UpdateManifest* manifest = update_config_get_manifest(state);
+        updater_session_config_compose(manifest, &session_config);
+        updater_session_config_save(furi_string_get_cstr(update_dir_path), &session_config);
+
+        furi_string_free(update_dir_path);
+
         if(!update_config_write_pointer_file(storage, manifest_path)) {
             printf("Failed to write manifest path to pointer file.\r\n");
             break;
@@ -123,7 +134,7 @@ static void updater_cli_execute_install_web(const char* link) {
     FuriString* url = furi_string_alloc_set_str(link);
     FuriString* file_path = furi_string_alloc();
     path_concat(STORAGE_EXT_PATH_PREFIX, UPDATE_STAGING_ROOT, file_path);
-    path_concat(furi_string_get_cstr(file_path), UPDATE_TAR_TMP, file_path);
+    path_concat(furi_string_get_cstr(file_path), UPDATE_TAR_TEMP, file_path);
     if(fetch_download_file(url, file_path)) {
         updater_cli_execute_install_tar(furi_string_get_cstr(file_path));
     }

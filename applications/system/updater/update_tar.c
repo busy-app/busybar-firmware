@@ -1,4 +1,5 @@
 #include "update_tar.h"
+#include "session/session_config.h"
 
 #include <furi_hal_nvm.h>
 #include <furi_hal_power.h>
@@ -117,6 +118,11 @@ UpdaterTarStatus updater_tar_install(const char* path, bool auto_reboot) {
         }
 
         FURI_LOG_D(TAG, "Updater configuration valid");
+
+        UpdaterSessionConfig session_config;
+        const UpdateManifest* manifest = update_config_get_manifest(state);
+        updater_session_config_compose(manifest, &session_config);
+        updater_session_config_save(furi_string_get_cstr(final_staging_path), &session_config);
 
         if(!update_config_write_pointer_file(storage, furi_string_get_cstr(manifest_full_path))) {
             FURI_LOG_E(TAG, "Failed to write manifest path to pointer file.");
