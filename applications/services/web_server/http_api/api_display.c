@@ -3,6 +3,7 @@
 #include <desktop/desktop.h>
 #include <gui/gui.h>
 #include <toolbox/path.h>
+#include <toolbox/value_index.h>
 #include <canvas/canvas.h>
 #include <back_display/back_display.h>
 #include <front_display/front_display.h>
@@ -12,6 +13,16 @@
 #define DISPLAY_ASSETS_DIR EXT_PATH("assets")
 
 #define DISPLAY_BRIGHTNESS_MAX (100)
+#define DISPLAY_TEXT_OFFSET_PX (-2)
+
+static int32_t api_display_text_offset(Align align) {
+    // cut off diacritics by default, so that the top of _most_ letters is aligned with the top edge of the screen
+    if(align == AlignDefault) return DISPLAY_TEXT_OFFSET_PX;
+    if(align == AlignTopLeft) return DISPLAY_TEXT_OFFSET_PX;
+    if(align == AlignTopMid) return DISPLAY_TEXT_OFFSET_PX;
+    if(align == AlignTopRight) return DISPLAY_TEXT_OFFSET_PX;
+    return 0;
+}
 
 static bool api_display_draw_parse_text_element(
     CanvasElement* canvas_element,
@@ -20,10 +31,11 @@ static bool api_display_draw_parse_text_element(
     UNUSED(app_id);
     bool result = false;
     do {
-        canvas_element->y -= 2;
         canvas_element->type = CanvasElementTypeText;
         canvas_element->text.text_str = mg_json_get_str(json_element, "$.text");
         if(!canvas_element->text.text_str) break;
+
+        canvas_element->y += api_display_text_offset(canvas_element->align);
 
         canvas_element->text.font = GuiFontTiny5_8;
         canvas_element->text.color = (Color)COLOR_MAKE_HEXA(0xFFFFFFFF);
@@ -36,16 +48,10 @@ static bool api_display_draw_parse_text_element(
                 [GuiFontBf5x7CondensedNumerals] = "medium_condensed",
                 [GuiFontBf7x10] = "big",
             };
-            canvas_element->text.font = GuiFontMax;
-            for(GuiFont i = 0; i < GuiFontMax; i++) {
-                if(!font_names[i]) continue;
-                if(strcmp(font_names[i], font_name) == 0) {
-                    canvas_element->text.font = i;
-                    break;
-                }
-            }
+            size_t font = value_index_string(font_name, font_names, COUNT_OF(font_names));
+            canvas_element->text.font = font;
             free(font_name);
-            if(canvas_element->text.font == GuiFontMax) break;
+            if(font == 0) break;
         }
 
         char* color_hex = mg_json_get_str(json_element, "$.color");
@@ -62,7 +68,7 @@ static bool api_display_draw_parse_text_element(
         }
 
         if(mg_json_get_num(json_element, "$.scroll_rate", &number)) {
-            if(number < __DBL_EPSILON__) break; // <= 0
+            if(number < -__DBL_EPSILON__) break; // < 0
             canvas_element->text.scroll_rate_cpm = (size_t)number;
         }
 
@@ -113,13 +119,29 @@ static bool api_display_draw_parse_element(
         int32_t temp_val = mg_json_get_long(element, "$.timeout", -1);
         canvas_element->timeout = (temp_val > 0) ? temp_val : 0;
 
-        temp_val = mg_json_get_long(element, "$.x", LONG_MIN);
-        if(temp_val == LONG_MIN) break;
-        canvas_element->x = temp_val;
+        canvas_element->x = mg_json_get_long(element, "$.x", 0);
+        canvas_element->y = mg_json_get_long(element, "$.y", 0);
 
-        temp_val = mg_json_get_long(element, "$.y", LONG_MIN);
-        if(temp_val == LONG_MIN) break;
-        canvas_element->y = temp_val;
+        char* alignment = mg_json_get_str(element, "$.align");
+        if(alignment) {
+            static const char* const alignments[AlignMax] = {
+                [AlignTopLeft] = "top_left",
+                [AlignTopMid] = "top_mid",
+                [AlignTopRight] = "top_right",
+                [AlignBottomLeft] = "bottom_left",
+                [AlignBottomMid] = "bottom_mid",
+                [AlignBottomRight] = "bottom_right",
+                [AlignLeftMid] = "left_mid",
+                [AlignRightMid] = "right_mid",
+                [AlignCenter] = "center",
+            };
+            size_t align = value_index_string(alignment, alignments, COUNT_OF(alignments));
+            canvas_element->align = align;
+            free(alignment);
+            if(align == 0) break;
+        } else {
+            canvas_element->align = AlignDefault;
+        }
 
         char* display_id_str = mg_json_get_str(element, "$.display");
         if(display_id_str) {
@@ -139,7 +161,8 @@ static bool api_display_draw_parse_element(
 
         static const ApiDisplayElementTypeAssoc element_parsers[] = {
             {"text", api_display_draw_parse_text_element},
-            {"image", api_display_draw_parse_image_element}};
+            {"image", api_display_draw_parse_image_element},
+        };
         for(size_t i = 0; i < COUNT_OF(element_parsers); i++) {
             const ApiDisplayElementTypeAssoc* association = &element_parsers[i];
             if(strcmp(element_type, association->type) == 0) {

@@ -207,6 +207,51 @@ int32_t canvas_app(void* arg) {
     return 0;
 }
 
+static Widget* canvas_element_update_specific(
+    CanvasWidget* widget,
+    Widget* root,
+    const CanvasElement* element) {
+    furi_assert(widget);
+    furi_assert(root);
+    furi_assert(element);
+
+    if(widget->type == CanvasElementTypeImage) {
+        if(!widget->image) {
+            widget->image = image_alloc(root);
+        }
+        image_set_source(widget->image, furi_string_get_cstr(element->image.file_path));
+        return image_get_base(widget->image);
+
+    } else if(widget->type == CanvasElementTypeText) {
+        if(!widget->text) {
+            widget->text = label_alloc(root);
+        }
+        label_set_text(widget->text, element->text.text_str);
+        label_set_font(widget->text, element->text.font);
+        label_set_color(widget->text, element->text.color);
+
+        Widget* base = label_get_base(widget->text);
+        if(element->text.width) widget_set_width(base, element->text.width);
+        if(element->text.scroll_rate_cpm) {
+            uint32_t scroll_dur =
+                label_calculate_scroll_duration(widget->text, element->text.scroll_rate_cpm);
+            label_set_long_content_mode(widget->text, LabelLongContentModeScroll, scroll_dur);
+        }
+        return base;
+
+    } else {
+        furi_crash();
+    }
+}
+
+static void canvas_element_update_generic(Widget* base, const CanvasElement* element) {
+    furi_assert(base);
+    furi_assert(element);
+
+    widget_set_align(base, element->align);
+    widget_set_pos(base, element->x, element->y);
+}
+
 static bool canvas_element_update(CanvasApp* canvas, const CanvasElement* element) {
     CanvasWidget* widget_old = CanvasWidgetsDict_get(canvas->widgets, element->element_id);
     CanvasWidget widget = {0};
@@ -221,28 +266,8 @@ static bool canvas_element_update(CanvasApp* canvas, const CanvasElement* elemen
         widget.type = element->type;
         GuiLayer* gui_layer = gui_get_layer(canvas->gui, GuiLayerIdMain);
         Widget* root = gui_layer_get_root_widget(gui_layer, element->display);
-        if(widget.type == CanvasElementTypeImage) {
-            if(!widget.image) {
-                widget.image = image_alloc(root);
-            }
-            image_set_source(widget.image, furi_string_get_cstr(element->image.file_path));
-            widget_set_pos(image_get_base(widget.image), element->x, element->y);
-        } else if(widget.type == CanvasElementTypeText) {
-            if(!widget.text) {
-                widget.text = label_alloc(root);
-            }
-            label_set_text(widget.text, element->text.text_str);
-            label_set_font(widget.text, element->text.font);
-            label_set_color(widget.text, element->text.color);
-            Widget* base = label_get_base(widget.text);
-            widget_set_pos(base, element->x, element->y);
-            if(element->text.width) widget_set_width(base, element->text.width);
-            if(element->text.scroll_rate_cpm) {
-                uint32_t scroll_dur =
-                    label_calculate_scroll_duration(widget.text, element->text.scroll_rate_cpm);
-                label_set_long_content_mode(widget.text, LabelLongContentModeScroll, scroll_dur);
-            }
-        }
+        Widget* base = canvas_element_update_specific(&widget, root, element);
+        canvas_element_update_generic(base, element);
     });
 
     if((element->timeout > 0) || (widget.timeout_timer)) {

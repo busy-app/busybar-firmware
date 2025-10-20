@@ -19,6 +19,7 @@ typedef struct {
     int16_t x;
     int16_t y;
     GuiDisplayId display;
+    Align align;
     CanvasElementType type;
     union {
         struct {

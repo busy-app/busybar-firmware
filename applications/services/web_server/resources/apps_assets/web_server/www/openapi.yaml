@@ -1240,8 +1240,6 @@ components:
       required:
         - id
         - type
-        - x
-        - y
       properties:
         id:
           type: string
@@ -1265,6 +1263,19 @@ components:
           enum: [front, back]
           description: Which display to show the element on (for dual-display devices)
           default: front
+        align:
+          type: string
+          description: Alignment relative to the screen
+          enum:
+            - top_left
+            - top_mid
+            - top_right
+            - bottom_left
+            - bottom_mid
+            - bottom_right
+            - left_mid
+            - right_mid
+            - center
       discriminator:
         propertyName: type
         mapping:
