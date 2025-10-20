@@ -143,6 +143,9 @@ static int32_t wifi_startup_thread_callback(void* arg) {
     Wifi* instance = arg;
 
     do {
+        // TODO [FW-300]: Implement reliable Intercom channel opening
+        furi_delay_ms(250); // Wait for the Wifi service to become ready on Si917
+
         WifiHardwareAddress hw_address;
         if(wifi_get_hw_address(instance, &hw_address) != WifiStatusOk) {
             FURI_LOG_E(TAG, "Failed to get hardware address");
@@ -150,8 +153,6 @@ static int32_t wifi_startup_thread_callback(void* arg) {
         }
 
         wifi_net_init(instance, &hw_address);
-
-        wifi_load_settings(instance);
 
         const WifiSettings* settings = &instance->settings;
         const char* ssid = settings->credentials.ssid;
@@ -188,8 +189,6 @@ static int32_t wifi_startup_thread_callback(void* arg) {
 
     } while(false);
 
-    furi_record_create(RECORD_WIFI, instance);
-
     return 0;
 }
 
@@ -201,6 +200,14 @@ static void
     if(state == FuriThreadStateStopped) {
         furi_thread_free(thread);
     }
+}
+
+static void wifi_run_startup_thread(Wifi* instance) {
+    FuriThread* startup_thread = furi_thread_alloc_ex(
+        "WifiStartup", STARTUP_THREAD_STACK_SIZE, wifi_startup_thread_callback, instance);
+
+    furi_thread_set_state_callback(startup_thread, wifi_startup_thread_state_callback);
+    furi_thread_start(startup_thread);
 }
 
 static Wifi* wifi_alloc(void) {
@@ -215,17 +222,13 @@ static Wifi* wifi_alloc(void) {
     furi_event_loop_set_custom_event_callback(
         instance->event_loop, wifi_custom_event_callback, instance);
 
-    // TODO [FW-300]: Implement reliable Intercom channel opening
-    furi_delay_ms(250); // Wait for the Wifi service to become ready on Si917
-
     intercom_set_rx_callback(
         instance->intercom, IntercomChannelWifi, wifi_intercom_rx_callback, instance);
 
-    FuriThread* startup_thread = furi_thread_alloc_ex(
-        "WifiStartup", STARTUP_THREAD_STACK_SIZE, wifi_startup_thread_callback, instance);
+    wifi_load_settings(instance);
+    wifi_run_startup_thread(instance);
 
-    furi_thread_set_state_callback(startup_thread, wifi_startup_thread_state_callback);
-    furi_thread_start(startup_thread);
+    furi_record_create(RECORD_WIFI, instance);
 
     return instance;
 }
