@@ -12,26 +12,25 @@ extern "C" {
 #endif
 
 /**
- * @brief Identifier for a virtual device
+ * @brief Node commissioning (onboarding) status
  */
 typedef enum {
-    MatterVirtualDeviceSwitch1, //<! Switch 1. State type: bool
-    // TODO: Switch2
-    MatterVirtualDeviceMAX, //<! Do not use
-} MatterVirtualDevice;
+    MatterCommissioningStatusStarted,
+    MatterCommissioningStatusComplete,
+    MatterCommissioningStatusFailed,
+    MatterCommissioningStatusMAX,
+} MatterCommissioningStatus;
 
 /**
- * @brief State of a virtual device along with its identifier
- * 
- * @note This type includes the device ID to make it very obvious (at least when
- * constructing the value) what union field one should use.
+ * @brief Enumeration of possible startup modes for the Matter switch
  */
-typedef struct {
-    MatterVirtualDevice device;
-    union {
-        bool bool_val;
-    };
-} MatterVirtualDeviceState;
+typedef enum {
+    MatterSwitchStartupModeOff, /**< Set switch to OFF at startup */
+    MatterSwitchStartupModeOn, /**< Set switch to ON at startup */
+    MatterSwitchStartupModeToggle, /**< Toggle switch at startup */
+    MatterSwitchStartupModeLast, /**< Set switch to last state at startup */
+    MatterSwitchStartupModeMAX, /**< Special value, internal use */
+} MatterSwitchStartupMode;
 
 #ifdef __cplusplus
 }

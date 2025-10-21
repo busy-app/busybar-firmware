@@ -39,6 +39,67 @@ Depends(
     ],
 )
 
+dist_env.PhonyTarget(
+    "flash_usb",
+    [
+        [
+            "${PYTHON3}",
+            dist_env.Real("#scripts/update_over_http.py"),
+            "--file",
+            "${SOURCE}",
+        ]
+    ],
+    source=update_tar,
+)
+
+
+# Tar without radio firmware for minimal update package
+min_update_tar = dist_env.Command(
+    u5_env["FW_ENV"].File("${BUILD_DIR}/min_update_${F_TARGET_HW}.tar"),
+    None,
+    [
+        [
+            "$PYTHON",
+            dist_env.Real("#scripts/update_bundle.py"),
+            "--target",
+            u5_env.subst("$TARGET_HW"),
+            "--output-tar",
+            "$TARGET",
+            "--stage",
+            u5_env["UPD_ENV"]["FW_BIN"][0],
+            "--dfu",
+            u5_env["FW_ENV"]["FW_DFU"][0],
+            "--sil-fw",
+            sil_env["FW_ENV"]["FW_RPS"][0],
+        ]
+    ],
+)
+
+Depends(
+    min_update_tar,
+    [
+        u5_env["UPD_ENV"]["FW_BIN"],
+        u5_env["FW_ENV"]["FW_DFU"],
+        sil_env["FW_ENV"]["FW_RPS"],
+    ],
+)
+
+dist_env.PhonyTarget(
+    "flash_usb_min",
+    [
+        [
+            "${PYTHON3}",
+            dist_env.Real("#scripts/update_over_http.py"),
+            "--file",
+            "${SOURCE}",
+        ]
+    ],
+    source=min_update_tar,
+)
+
+
+# Dist folder
+
 dist_flavor = "".join(
     ["C" if u5_env["COMPACT"] else "", "D" if u5_env["DEBUG"] else ""]
 )

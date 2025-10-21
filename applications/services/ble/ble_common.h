@@ -1,5 +1,6 @@
 #pragma once
 
+#include "ble_state.h"
 #include "service/ble_service_index.h"
 
 #include <furi.h>
@@ -22,33 +23,24 @@ typedef enum {
     BleIntercomFrameTypeNotification,
 } BleIntercomFrameType;
 
-typedef enum {
-    BleServiceStateReset, /*Service was just created. Will move to BleServiceStateInitialization when it will create all inner objects*/
-    BleServiceStateInitialization, /* Service performs initialization sequence for all inner ble services. 
-    U5 also sends init data to 917 to help him create its services */
-    BleServiceStateReady, /*All init sequences are done. All inner services configured, and both u5 and 917 ready to work. But ble still disabled*/
-    BleServiceStateAdvertising, /*User enabled ble, device start advertising.*/
-    BleServiceStateConnected, /*Remote device connected to bsb over ble*/
-    BleServiceStateError, /*Error occured.*/
-} BleServiceState;
 //==========================================================================================================
 typedef enum {
+    BleCommandInit,
     BleCommandEnable,
     BleCommandDisable,
-    BleCommandGetStatus,
+    BleCommandGetState,
     //-------------------------------------
     BleCommandServiceInit,
-
-    BleCommandServiceRead,
-    BleCommandServiceWrite,
-    BleCommandServiceNotify,
+    BleCommandServiceRun,
+    BleCommandServiceUpdate,
     //-------------------------------------
     BleCommandServiceProcessFrame,
 } BleCommand;
 
 typedef struct {
-    BleCommand type;
+    BleCommand command;
     uint16_t service_index;
+    uint16_t char_index;
 } BleServiceCommand;
 //==========================================================================================================
 

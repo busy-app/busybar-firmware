@@ -124,6 +124,4 @@ const BleServiceDescriptor ble_service_config_device_info = {
     .init_method = BleServiceInitMethodRemote,
     .char_count = COUNT_OF(device_info_service_characteristics),
     .char_descriptors = device_info_service_characteristics,
-    // .run = ble_service_device_info_run,
-    // .on_response = ble_service_device_info_on_response,
 };

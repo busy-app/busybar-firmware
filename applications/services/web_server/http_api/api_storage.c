@@ -291,6 +291,39 @@ static bool api_storage_list_callback(
     return true;
 }
 
+static bool api_storage_status_callback(
+    FuriString* path,
+    struct mg_connection* conn,
+    struct mg_http_message* msg,
+    void* ctx) {
+    UNUSED(msg);
+    UNUSED(ctx);
+
+    if(!IS_HTTP_ENDPOINT(path)) return false;
+
+    uint64_t used_bytes, free_bytes, total_bytes;
+    bool read_only;
+    Storage* api = furi_record_open(RECORD_STORAGE);
+    FS_Error error = storage_common_fs_info(
+        api, STORAGE_EXT_PATH_PREFIX, &total_bytes, &free_bytes, &read_only);
+
+    if(error == FSE_OK) {
+        used_bytes = total_bytes - free_bytes;
+        MG_REPLY_OK_BODY(
+            conn,
+            "{\"used_bytes\":%llu,\"free_bytes\":%llu,\"total_bytes\":%llu}\n",
+            used_bytes,
+            free_bytes,
+            total_bytes);
+    } else {
+        MG_REPLY_BAD_REQUEST(conn);
+    }
+
+    furi_record_close(RECORD_STORAGE);
+
+    return true;
+}
+
 static const HttpHandler handlers_storage[] = {
     {
         .uri = "write",
@@ -321,6 +354,12 @@ static const HttpHandler handlers_storage[] = {
         .method = "GET",
         .type = HttpHandlerCustom,
         .on_request = api_storage_list_callback,
+    },
+    {
+        .uri = "status",
+        .method = "GET",
+        .type = HttpHandlerCustom,
+        .on_request = api_storage_status_callback,
     },
 };
 

@@ -236,3 +236,27 @@ bool scene_manager_search_and_switch_to_previous_scene(SceneManager* instance, u
 
     return success;
 }
+
+bool scene_manager_replace_current_scene(SceneManager* instance, uint32_t scene_id) {
+    furi_check(instance);
+    furi_check(scene_id < instance->scene_count);
+
+    bool success = false;
+
+    do {
+        size_t stack_size = SceneIdStack_size(instance->scene_id_stack);
+        if(!stack_size) break;
+
+        const Scene* prev_scene = scene_manager_get_current_scene(instance);
+        prev_scene->exit_callback(instance->context);
+
+        SceneIdStack_set_at(instance->scene_id_stack, stack_size - 1, scene_id);
+
+        const Scene* new_scene = scene_manager_get_current_scene(instance);
+        new_scene->enter_callback(instance->context);
+
+        success = true;
+    } while(false);
+
+    return success;
+}

@@ -6,7 +6,7 @@
 #include <gui/modules/flex_layout.h>
 
 #include <busy/widgets/pause_overlay.h>
-#include <busy/widgets/progress_bar.h>
+#include <busy/widgets/timer_bar.h>
 #include <busy/widgets/timer_label.h>
 
 #define COUNTDOWN_THRESHOLD_S (3)
@@ -53,6 +53,7 @@ static void custom_scene_timer_on_enter(void* context) {
     });
 
     custom_set_status_lights(instance, CustomStatusLightsTypeWork);
+    custom_set_matter(instance, true);
 
     custom_start_transition(instance);
 }
@@ -63,6 +64,7 @@ static void custom_scene_timer_on_exit(void* context) {
     CustomApp* instance = context;
 
     custom_set_status_lights(instance, CustomStatusLightsTypeOff);
+    custom_set_matter(instance, false);
 
     CustomSceneTimer* data = scene_manager_get_current_scene_data(instance->scene_manager);
 

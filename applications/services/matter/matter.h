@@ -1,11 +1,10 @@
 /**
  * @file matter.h
- * API for Matter service on f20.
+ * API for Matter service on u5.
  */
 
 #pragma once
 
-#include <furi.h>
 #include "matter_common.h"
 
 #ifdef __cplusplus
@@ -20,15 +19,23 @@ typedef struct MatterSrv MatterSrv;
  * @brief Type of service event
  */
 typedef enum {
-    MatterEventTypeStateUpdate, // <! State of a virtual device changed
+    MatterEventTypeSwitchState, //<! Switch state updated
+    MatterEventTypeCommissioning, //<! Started, completed or failed commissioning
 } MatterEventType;
 
 /**
- * @brief Event of type `MatterEventTypeStateUpdate`
+ * @brief Event of type `MatterEventTypeSwitchState`
  */
 typedef struct {
-    MatterVirtualDeviceState new_state;
-} MatterUpdateEvent;
+    bool value;
+} MatterSwitchStateEvent;
+
+/**
+ * @brief Event of type `MatterEventTypeCommissioning`
+ */
+typedef struct {
+    MatterCommissioningStatus status;
+} MatterCommissioningEvent;
 
 /**
  * @brief Complete service event
@@ -36,7 +43,8 @@ typedef struct {
 typedef struct {
     MatterEventType type;
     union {
-        MatterUpdateEvent update;
+        MatterSwitchStateEvent switch_state;
+        MatterCommissioningEvent commissioning;
     };
 } MatterEvent;
 
@@ -50,22 +58,29 @@ typedef struct {
 FuriPubSub* matter_get_pubsub(MatterSrv* matter);
 
 /**
- * @brief Gets the state of a virtual Matter device
+ * @brief Gets the state of the Matter switch
  * 
  * @param[in] matter Service instance
- * @param[in] device Virtual device selector
  * 
- * @returns Current state of the queried device
+ * @returns Current state of the Matter switch
  */
-MatterVirtualDeviceState matter_get_state(MatterSrv* matter, MatterVirtualDevice device);
+bool matter_get_switch_state(MatterSrv* matter);
 
 /**
- * @brief Sets the state of a virtual Matter device
+ * @brief Sets the state of the Matter switch
  * 
  * @param[in] matter Service instance
- * @param[in] state Virtual device selector along with its state
+ * @param[in] state Desired Matter switch state
  */
-void matter_set_state(MatterSrv* matter, MatterVirtualDeviceState state);
+void matter_set_switch_state(MatterSrv* matter, bool state);
+
+/**
+ * @brief Set the startup mode of the Matter switch
+ *
+ * @param[in] matter Service instance
+ * @param[in] mode Desired Matter switch startup mode
+ */
+void matter_set_switch_startup_mode(MatterSrv* matter, MatterSwitchStartupMode mode);
 
 /**
  * @brief Deletes all Matter data
@@ -74,7 +89,26 @@ void matter_set_state(MatterSrv* matter, MatterVirtualDeviceState state);
  */
 void matter_factory_reset(MatterSrv* matter);
 
-// TODO: matter_enable_commissioning
+/**
+ * @brief Enables Matter commissioning
+ * 
+ * @param[in] matter Service instance
+ * @param[out] qr_code String to fill with onboarding QR code payload
+ * @param[out] manual_code String to fill with manual pairing code
+ * 
+ * @returns Time (in seconds) that commissioning has been enabled for.
+ *          0 indicates an error.
+ */
+size_t
+    matter_enable_commissioning(MatterSrv* matter, FuriString* qr_code, FuriString* manual_code);
+
+/**
+ * @brief Determines whether the device is commissioned into at least one Matter
+ *        fabric
+ * 
+ * @param[in] matter Service instance
+ */
+bool matter_is_commissioned(MatterSrv* matter);
 
 #ifdef __cplusplus
 }

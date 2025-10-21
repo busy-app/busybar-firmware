@@ -24,6 +24,10 @@
 #include <platform/internal/GenericConnectivityManagerImpl_TCP.ipp>
 #endif
 
+#include <app/server/Server.h>
+
+#include <network/network.h>
+
 namespace chip {
 namespace DeviceLayer {
 
@@ -31,7 +35,48 @@ namespace DeviceLayer {
  */
 ConnectivityManagerImpl ConnectivityManagerImpl::sInstance;
 
+using WiFiStationMode = ConnectivityManagerImpl::WiFiStationMode;
+
+void ConnectivityManagerImpl::WifiEvent(const void* message, void* context) {
+    auto state = *static_cast<const WifiState*>(message);
+    auto* self = static_cast<ConnectivityManagerImpl*>(context);
+
+    ChipLogDetail(DeviceLayer, "ConnectivityManagerImpl::WifiEvent(%d)", state);
+
+    StackLock lock;
+    ChipDeviceEvent event;
+    ConnectivityChange change = (state == WifiStateUp) ? kConnectivity_Established :
+                                                         kConnectivity_Lost;
+    self->mIsConnected = state == WifiStateUp;
+
+    event.Type = DeviceEventType::kWiFiConnectivityChange;
+    event.WiFiConnectivityChange.Result = change;
+    PlatformMgr().PostEventOrDie(&event);
+
+    event.Type = DeviceEventType::kInternetConnectivityChange;
+    event.InternetConnectivityChange.IPv4 = kConnectivity_NoChange;
+    event.InternetConnectivityChange.IPv6 = change;
+    // event.InternetConnectivityChange.ipAddress is only used for debug logging, no need to fill it in
+    PlatformMgr().PostEventOrDie(&event);
+
+    event.Type = DeviceEventType::kInterfaceIpAddressChanged;
+    event.InterfaceIpAddressChanged.Type = (state == WifiStateUp) ?
+                                               InterfaceIpChangeType::kIpV6_Assigned :
+                                               InterfaceIpChangeType::kIpV6_Lost;
+    PlatformMgr().PostEventOrDie(&event);
+
+    event.Type = DeviceEventType::kDnssdRestartNeeded;
+    PlatformMgr().PostEventOrDie(&event);
+}
+
 CHIP_ERROR ConnectivityManagerImpl::_Init(void) {
+    auto* network = static_cast<Network*>(furi_record_open(RECORD_NETWORK));
+    network_init_current_thread(network);
+
+    mIsConnected = false;
+    mWifiPubSub = static_cast<FuriPubSub*>(furi_record_open(RECORD_WIFI));
+    mPubSubSub = furi_pubsub_subscribe(mWifiPubSub, ConnectivityManagerImpl::WifiEvent, this);
+
     return CHIP_NO_ERROR;
 }
 

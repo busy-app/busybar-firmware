@@ -3,18 +3,11 @@
 
 void ble_worker_init();
 
-// void ble_worker_init_service(BleIntercomFrameServiceConfig* config);
-
 bool ble_worker_register_service(BleServiceObject* service);
 
-void ble_worker_set_value(
-    uint16_t service_index,
-    uint16_t char_index,
-    uint16_t data_size,
-    const uint8_t* data);
+void ble_worker_send(uint16_t handle, uint16_t data_size, const uint8_t* data, uint16_t cccd_value);
 
-void ble_worker_set_data(uint16_t handle, uint16_t data_size, const uint8_t* data);
-void ble_worker_notify(uint16_t handle, uint16_t data_size, const uint8_t* data);
+void ble_worker_receive_confirm(uint16_t handle, uint8_t cccd_value);
 
 void ble_worker_start();
 

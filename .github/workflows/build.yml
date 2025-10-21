@@ -14,8 +14,10 @@ env:
   FBT_TOOLCHAIN_PATH: /runner/_work
 
 jobs:
-  main:
+  build:
     runs-on: BsbShell
+    env:
+      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     strategy:
       fail-fast: false
       matrix:
@@ -23,31 +25,45 @@ jobs:
     outputs:
       default_target: ${{ env.DEFAULT_TARGET }}
       update_url: ${{ steps.set-url.outputs.update_url }}
+
     steps:
       - name: 'Wipe workspace'
-        run: find ./ -mount -maxdepth 1 -exec rm -rf {} \;
+        run: |
+          rm -f /home/runner/.gitconfig
+          find ./ -mount -maxdepth 1 -exec rm -rf {} \;
 
       - name: 'Checkout code'
         uses: actions/checkout@v4
         with:
-          ref: ${{ github.sha }}
+          ref: ${{ github.event.pull_request.head.sha }}
           fetch-depth: 2
           token: ${{ secrets.GITHUB_TOKEN }}
 
+      - name: 'Configure Git and LFS for submodules'
+        run: |
+          # Configure Git LFS
+          git lfs install --skip-smudge
+          
+          # Set up authentication for GitHub repositories at repo level
+          echo "https://x-access-token:${GH_TOKEN}@github.com" > ~/.git-credentials
+          git config credential.helper 'store --file ~/.git-credentials'
+          
+          # Configure LFS settings
+          git config lfs.transfer.maxretries 3
+
       - name: 'Update submodules'
         run: |
-          git submodule update --init --recursive --jobs=$(nproc) scripts/toolchain fbt_layers/fbtng || cat /home/runner/work/bsb-firmware/bsb-firmware/.git/modules/lib/matter_ext/lfs/logs/*
+          git submodule update --init --recursive --jobs=$(nproc) scripts/toolchain fbt_layers/fbtng || (git lfs logs last && exit 1)
 
       - name: 'Get commit details'
         id: names
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           BUILD_TYPE='DEBUG=1 COMPACT=0'
           if [[ ${{ github.event_name }} == 'pull_request' ]]; then
             TYPE="pull"
           elif [[ "${{ github.ref }}" == "refs/tags/"* ]]; then
             TYPE="tag"
+            BUILD_TYPE='DEBUG=0 COMPACT=1'
           else
             TYPE="other"
           fi
@@ -72,6 +88,16 @@ jobs:
           rm -rf artifacts
           mkdir -p artifacts
           cp -v dist/f${U5_TARGET_HW}-*/* artifacts/
+
+      - name: 'Calculate hashsums for artifacts'
+        working-directory: artifacts
+        shell: bash
+        run: |
+          SUMS_FILE="busybar-f${U5_TARGET_HW}-sha256sum.txt"
+          find . -maxdepth 1 -type f ! -name "$SUMS_FILE" -printf '%f\0' \
+            | LC_ALL=C sort -z \
+            | xargs -0 sha256sum \
+            > "$SUMS_FILE"
 
       - name: 'Upload build artifacts'
         if: ${{ !github.event.pull_request.head.repo.fork && steps.build-fw.outcome == 'success' }}
@@ -139,13 +165,13 @@ jobs:
         run: |
           echo "update_url=${{ steps.names.outputs.branch_name }}/busybar-f${{ matrix.u5_target }}-update-${{ steps.names.outputs.suffix }}.tar" >> "$GITHUB_OUTPUT"
 
+
   updater-tests:
-    needs: main
-    if: ${{ needs.main.result == 'success' && needs.main.outputs.update_url != '' }}
-    uses: ./.github/workflows/updater_test.yml
+    needs: build
+    if: ${{ needs.build.result == 'success' && needs.build.outputs.update_url != '' }}
+    uses: './.github/workflows/updater-test.yml'
     with:
       branch_name: ${{ github.head_ref || github.ref_name }}
-      commit_sha: ${{ github.sha }}
-      update_url: ${{ needs.main.outputs.update_url }}
-      default_target: ${{ needs.main.outputs.default_target }}
-
+      commit_sha: ${{ github.event.pull_request.head.sha }}
+      update_url: ${{ needs.build.outputs.update_url }}
+      default_target: ${{ needs.build.outputs.default_target }}

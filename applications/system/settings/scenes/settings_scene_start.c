@@ -23,35 +23,30 @@ typedef struct {
 } SettingsSceneStart;
 
 typedef enum {
+    SettingsSceneStartInOutAnimTypeNone,
+
     SettingsSceneStartInOutAnimTypeEnter,
     SettingsSceneStartInOutAnimTypeExit,
-
-    SettingsSceneStartInOutAnimTypeNone
 } SettingsSceneStartInOutAnimType;
 
 typedef struct {
-    int32_t title_start;
-    int32_t title_stop;
-    uint32_t title_duration;
-
     uint32_t icon_start;
     uint32_t icon_stop;
 } SettingsSceneStartInOutAnimInfo;
 
 static const SettingsSceneStartInOutAnimInfo in_out_anim_infos[] = {
+    [SettingsSceneStartInOutAnimTypeNone] =
+        {
+            .icon_start = 59,
+            .icon_stop = 59,
+        },
     [SettingsSceneStartInOutAnimTypeEnter] =
         {
-            .title_start = -8,
-            .title_stop = 0,
-            .title_duration = 165,
             .icon_start = 0,
             .icon_stop = 59,
         },
     [SettingsSceneStartInOutAnimTypeExit] =
         {
-            .title_start = 0,
-            .title_stop = -8,
-            .title_duration = 135,
             .icon_start = 60,
             .icon_stop = 67,
         },
@@ -65,7 +60,6 @@ static bool settings_scene_start_input_callback(const InputEvent* event, void* c
 
     bool consumed = false;
     SceneCustomEvent custom_event;
-
     if(event->type == InputTypeShort) {
         switch(event->key) {
         case InputKeyStart:
@@ -100,25 +94,12 @@ static void settings_scene_start_timer_callback(void* context) {
     }
 }
 
-static void settings_scene_start_run_in_out_anim(
-    SettingsApp* instance,
-    SettingsSceneStartInOutAnimType type) {
+static void
+    settings_start_run_in_out_anim(SettingsApp* instance, SettingsSceneStartInOutAnimType type) {
     SettingsSceneStart* data = scene_manager_get_current_scene_data(instance->scene_manager);
 
-    if(type != SettingsSceneStartInOutAnimTypeNone) {
-        const SettingsSceneStartInOutAnimInfo* anim_info = &in_out_anim_infos[type];
-
-        anim_title_card_run_title_anim(
-            data->front_card,
-            anim_info->title_start,
-            anim_info->title_stop,
-            anim_info->title_duration);
-        anim_title_card_run_icon_anim(
-            data->front_card, anim_info->icon_start, anim_info->icon_stop);
-    } else {
-        anim_title_card_run_icon_anim(
-            data->front_card, in_out_anim_infos->icon_stop, in_out_anim_infos->icon_stop);
-    }
+    const SettingsSceneStartInOutAnimInfo* anim_info = &in_out_anim_infos[type];
+    anim_title_card_run_icon_anim(data->front_card, anim_info->icon_start, anim_info->icon_stop);
 }
 
 static void settings_scene_start_on_enter(void* context) {
@@ -137,10 +118,9 @@ static void settings_scene_start_on_enter(void* context) {
             data->front_card, SETTINGS_ANIM_PATH("settings_front_13x13.anim"));
 
         if(data->is_not_first_enter) {
-            settings_scene_start_run_in_out_anim(instance, SettingsSceneStartInOutAnimTypeNone);
+            settings_start_run_in_out_anim(instance, SettingsSceneStartInOutAnimTypeNone);
         } else {
-            settings_scene_start_run_in_out_anim(instance, SettingsSceneStartInOutAnimTypeEnter);
-
+            settings_start_run_in_out_anim(instance, SettingsSceneStartInOutAnimTypeEnter);
             data->is_not_first_enter = true;
         }
 
@@ -193,8 +173,7 @@ static bool settings_scene_start_on_event(const SceneManagerEvent* event, void* 
 
         case SettingsCustomEventAboutToExit:
             with_gui(instance->gui, {
-                settings_scene_start_run_in_out_anim(
-                    instance, SettingsSceneStartInOutAnimTypeExit);
+                settings_start_run_in_out_anim(instance, SettingsSceneStartInOutAnimTypeExit);
             });
             consumed = true;
             break;
@@ -202,6 +181,8 @@ static bool settings_scene_start_on_event(const SceneManagerEvent* event, void* 
         default:
             break;
         }
+    } else if(event->type == SceneManagerEventTypeBack) {
+        consumed = true;
     }
 
     return consumed;

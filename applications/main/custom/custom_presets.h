@@ -2,6 +2,11 @@
 
 #include "custom.h"
 
+typedef struct {
+    StatusLightsPreset preset;
+    Color color;
+} CustomStatusLightsPreset;
+
 extern const TransitionOverlayPreset custom_transitions[CustomTransitionTypeMax];
 
-extern const StatusLightsCommand custom_status_lights[CustomStatusLightsTypeMax];
+extern const CustomStatusLightsPreset custom_status_lights[CustomStatusLightsTypeMax];
