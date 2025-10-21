@@ -32,13 +32,14 @@ typedef enum {
     BusyCustomEventTimerStateChanged,
     BusyCustomEventTimerIntervalEnded,
     BusyCustomEventTimerSequenceEnded,
-    BusyCustomEventTimerToggle,
+    BusyCustomEventTimerTogglePause,
     BusyCustomEventTimerSkip,
     BusyCustomEventTimeIncrement,
     BusyCustomEventTimeDecrement,
     BusyCustomEventStartPressed,
     BusyCustomEventStartReleased,
     BusyCustomEventStartShortPressed,
+    BusyCustomEventOffToSimple,
     BusyCustomEventAboutToExit
 } BusyCustomEvent;
 
@@ -99,3 +100,5 @@ void busy_set_status_lights(BusyApp* instance, BusyStatusLightsType type);
 void busy_push_location(BusyApp* instance, const char* location_name);
 
 void busy_pop_location(BusyApp* instance);
+
+BusyAppSceneId busy_get_timer_scene_id(BusyApp* instance);

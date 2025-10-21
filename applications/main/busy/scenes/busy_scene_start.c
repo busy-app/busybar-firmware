@@ -141,7 +141,8 @@ static bool busy_scene_start_on_event(const SceneManagerEvent* event, void* cont
             if(timer_config.mode == BusyTimerModeInterval) {
                 scene_manager_next_scene(instance->scene_manager, BusyAppSceneIdOverview);
             } else {
-                scene_manager_next_scene(instance->scene_manager, BusyAppSceneIdTimer);
+                scene_manager_next_scene(
+                    instance->scene_manager, busy_get_timer_scene_id(instance));
             }
 
         } else if(event->event == BusySceneStartMenuIndexSetup) {

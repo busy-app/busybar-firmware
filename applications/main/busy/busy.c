@@ -235,3 +235,24 @@ void busy_pop_location(BusyApp* instance) {
 
     with_gui(instance->gui, { nav_bar_pop_location(instance->nav_bar); });
 }
+
+BusyAppSceneId busy_get_timer_scene_id(BusyApp* instance) {
+    furi_assert(instance);
+    return BusyAppSceneIdTimerOff;
+
+    // BusyTimerConfig timer_config;
+    // busy_timer_get_config(instance->busy_timer, &timer_config);
+    // switch(timer_config.mode) {
+    // case BusyTimerModeInfinite:
+    //     return BusyAppSceneIdTimerSimple;
+    // case BusyTimerModeSimple:
+    //     return BusyAppSceneIdTimerSimple;
+    // case BusyTimerModeInterval:
+    //     return BusyAppSceneIdTimerSimple;
+    // case BusyTimerModeMax:
+    //     furi_crash();
+    //     break;
+    // }
+
+    // return BusyAppSceneIdTimerSimple;
+}

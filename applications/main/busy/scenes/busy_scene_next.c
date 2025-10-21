@@ -115,7 +115,7 @@ static bool busy_scene_next_on_event(const SceneManagerEvent* event, void* conte
                 transition_type = BusyTransitionTypeDefault;
 
             } else {
-                scene_id = BusyAppSceneIdTimer;
+                scene_id = busy_get_timer_scene_id(instance);
                 transition_type = (timer_state == BusyTimerStateWork) ? BusyTransitionTypeWork :
                                                                         BusyTransitionTypeRest;
             }

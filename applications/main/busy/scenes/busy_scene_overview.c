@@ -15,7 +15,7 @@ static void busy_scene_overview_run_later_callback(void* context) {
     BusyApp* instance = context;
 
     busy_prepare_transition(instance, BusyTransitionTypeAutomatic);
-    scene_manager_next_scene(instance->scene_manager, BusyAppSceneIdTimer);
+    scene_manager_next_scene(instance->scene_manager, busy_get_timer_scene_id(instance));
 }
 
 static bool busy_scene_overview_input_callback(const InputEvent* event, void* context) {
@@ -95,7 +95,7 @@ static bool busy_scene_overview_on_event(const SceneManagerEvent* event, void* c
     if(event->type == SceneManagerEventTypeCustom) {
         if(event->event == BusyCustomEventStartShortPressed) {
             busy_prepare_transition(instance, BusyTransitionTypeSkip);
-            scene_manager_next_scene(instance->scene_manager, BusyAppSceneIdTimer);
+            scene_manager_next_scene(instance->scene_manager, busy_get_timer_scene_id(instance));
         }
 
         consumed = true;
