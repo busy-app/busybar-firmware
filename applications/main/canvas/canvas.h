@@ -3,6 +3,7 @@
 #include <furi.h>
 #include <m-array.h>
 #include <gui/gui.h>
+#include <time.h>
 
 #define RECORD_CANVAS "CANVAS"
 
@@ -16,6 +17,7 @@ typedef enum {
 typedef struct {
     char* app_scoped_id;
     uint32_t timeout;
+    time_t display_until;
     int16_t x;
     int16_t y;
     GuiDisplayId display;

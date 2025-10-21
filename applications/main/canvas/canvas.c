@@ -7,6 +7,7 @@
 #include <gui/modules/label.h>
 #include <m-dict.h>
 #include <toolbox/m_cstr_dup.h>
+#include <furi_hal_rtc.h>
 #include "canvas.h"
 
 typedef struct {
@@ -324,7 +325,19 @@ static bool
         canvas_element_update_generic(base, element);
     });
 
-    if((element->timeout > 0) || (widget.timeout_timer)) {
+    uint32_t effective_timeout = 0;
+    if(element->timeout > 0) {
+        furi_check(element->display_until == 0);
+        effective_timeout = element->timeout;
+    } else if(element->display_until > 0) {
+        furi_check(element->timeout == 0);
+        DateTime time;
+        furi_hal_rtc_get_datetime(&time);
+        time_t current_stamp = (time_t)datetime_datetime_to_timestamp(&time); // TODO: Y2038
+        effective_timeout = MAX(0, element->display_until - current_stamp);
+    }
+
+    if((effective_timeout > 0) || (widget.timeout_timer)) {
         if(!widget.timeout_context) {
             widget.timeout_context = malloc(sizeof(CanvasWidgetTimeoutContext));
             widget.timeout_context->id = strdup(complete_id);
@@ -334,11 +347,11 @@ static bool
 
     CanvasWidgetsDict_set_at(canvas->widgets, complete_id, widget);
 
-    if((element->timeout > 0) || (widget.timeout_timer)) {
+    if((effective_timeout > 0) || (widget.timeout_timer)) {
         CanvasAppQueueEvent evt = {
             .type = CanvasAppEventSetTimeout,
             .element_id = strdup(complete_id),
-            .timeout_value = element->timeout,
+            .timeout_value = effective_timeout,
         };
         furi_check(
             furi_message_queue_put(canvas->event_queue, &evt, FuriWaitForever) == FuriStatusOk);
