@@ -100,6 +100,8 @@ void busy_timer_stop(BusyTimer* instance);
 
 void busy_timer_toggle(BusyTimer* instance);
 
+bool busy_timer_is_running(BusyTimer* instance);
+
 void busy_timer_skip(BusyTimer* instance);
 
 void busy_timer_add_time(BusyTimer* instance, int32_t time_mn);

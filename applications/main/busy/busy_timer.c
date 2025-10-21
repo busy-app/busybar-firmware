@@ -193,7 +193,7 @@ static uint32_t busy_timer_calc_delta(const BusyTimer* instance) {
     }
 }
 
-static bool busy_timer_is_running(const BusyTimer* instance) {
+static bool busy_timer_inner_is_running(const BusyTimer* instance) {
     return instance->timer_running;
 }
 
@@ -396,7 +396,7 @@ static void
 }
 
 static void busy_timer_add_time_message_handler(BusyTimer* instance, BusyTimerMessageData* data) {
-    if(!busy_timer_is_running(instance)) {
+    if(!busy_timer_inner_is_running(instance)) {
         // Ignore if the timer is not running (paused)
         return;
     }
@@ -451,7 +451,7 @@ static void busy_timer_add_time_message_handler(BusyTimer* instance, BusyTimerMe
 static void busy_timer_toggle_message_handler(BusyTimer* instance, BusyTimerMessageData* data) {
     UNUSED(data);
 
-    if(busy_timer_is_running(instance)) {
+    if(busy_timer_inner_is_running(instance)) {
         busy_timer_stop_timer(instance);
         FURI_LOG_I(TAG, "Paused");
 
@@ -464,9 +464,14 @@ static void busy_timer_toggle_message_handler(BusyTimer* instance, BusyTimerMess
 static void busy_timer_skip_message_handler(BusyTimer* instance, BusyTimerMessageData* data) {
     UNUSED(data);
 
-    if(busy_timer_is_running(instance)) {
+    if(busy_timer_inner_is_running(instance)) {
         busy_timer_next_state(instance, true);
     }
+}
+
+static void
+    busy_timer_is_running_message_handler(BusyTimer* instance, BusyTimerMessageData* data) {
+    *data->is_running = busy_timer_inner_is_running(instance);
 }
 
 static const BusyTimerMessageHandler busy_timer_message_handlers[BusyTimerMessageTypeMax] = {
@@ -481,4 +486,5 @@ static const BusyTimerMessageHandler busy_timer_message_handlers[BusyTimerMessag
     [BusyTimerMessageTypeAddTime] = busy_timer_add_time_message_handler,
     [BusyTimerMessageTypeToggle] = busy_timer_toggle_message_handler,
     [BusyTimerMessageTypeSkip] = busy_timer_skip_message_handler,
+    [BusyTimerMessageTypeIsRunning] = busy_timer_is_running_message_handler,
 };

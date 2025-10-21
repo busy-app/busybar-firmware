@@ -136,3 +136,14 @@ void busy_timer_add_time(BusyTimer* instance, int32_t time_mn) {
 
     busy_timer_send_message(instance, &message);
 }
+
+bool busy_timer_is_running(BusyTimer* instance) {
+    furi_assert(instance);
+    bool is_running = false;
+    BusyTimerMessage message = {
+        .type = BusyTimerMessageTypeIsRunning,
+        .data.is_running = &is_running,
+    };
+    busy_timer_send_message(instance, &message);
+    return is_running;
+}

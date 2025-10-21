@@ -32,6 +32,7 @@ typedef enum {
     BusyTimerMessageTypeAddTime,
     BusyTimerMessageTypeToggle,
     BusyTimerMessageTypeSkip,
+    BusyTimerMessageTypeIsRunning,
 
     BusyTimerMessageTypeMax,
 } BusyTimerMessageType;
@@ -49,6 +50,7 @@ typedef union {
     const BusyTimerConfig* config_c;
     const BusyTimerCallbackInfo* callback_info;
     int32_t add_time_mn;
+    bool* const is_running;
 } BusyTimerMessageData;
 
 typedef struct {
