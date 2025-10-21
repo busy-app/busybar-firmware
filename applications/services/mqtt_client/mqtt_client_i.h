@@ -48,6 +48,7 @@ typedef struct {
         MqttClientMessageUnlink,
         MqttClientMessageRequestPin,
         MqttClientMessageGetSessionId,
+        MqttClientMessageGetSessionEmail,
     } type;
     FuriApiLock lock;
     union {

@@ -981,6 +981,53 @@ paths:
               schema:
                 $ref: "#/components/schemas/Error"
 
+  /api/account:
+    get:
+      tags:
+        - System
+      summary: Get MQTT status
+      description: Retrieves MQTT status and linked account data
+      operationId: getAccountInfo
+      responses:
+        "200":
+          description: Data retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AccountInfo"
+    post:
+      tags:
+        - System
+      summary: Link device to account
+      description: Requests account link PIN. Works only if device is connected to MQTT and is not linked to account
+      operationId: linkAccount
+      responses:
+        "200":
+          description: Data retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AccountLink"
+        "400":
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+    delete:
+      tags:
+        - System
+      summary: Unlink device from account
+      description: Removes account linking data
+      operationId: unlinkAccount
+      responses:
+        "200":
+          description: Done successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse"
+
   /api/time/timestamp:
     post:
       tags:
@@ -1380,16 +1427,7 @@ components:
     WifiSecurityMethod:
       type: string
       example: "WPA3"
-      enum:
-        [
-          Open,
-          WPA,
-          WPA2,
-          WEP,
-          WPA/WPA2,
-          WPA3,
-          WPA2/WPA3,
-        ]
+      enum: [Open, WPA, WPA2, WEP, WPA/WPA2, WPA3, WPA2/WPA3]
 
     WifiIpMethod:
       type: string
@@ -1489,6 +1527,30 @@ components:
       type: string
       description: Frame for requested display encoded in base64
       format: base64
+
+    AccountInfo:
+      type: object
+      properties:
+        state:
+          type: string
+          example: "linked"
+          enum: ["error", "disconnected", "not_linked", "linked"]
+        id:
+          type: string
+          example: "12345678-9abc-def0-1234-56789abcdef0"
+        email:
+          type: string
+          example: "name@example.com"
+
+    AccountLink:
+      type: object
+      properties:
+        code:
+          type: string
+          example: "ABCD"
+        expires_at:
+          type: integer
+          example: 1761060863
 
 tags:
   - name: System
