@@ -56,7 +56,19 @@ typedef struct {
     SettingProviderSettingType type;
 } SettingProviderSetting;
 
-SettingProvider* setting_provider_alloc(const char* file_path);
+typedef bool (*SettingProviderMigrationCallback)(SettingProvider* provider);
+
+typedef struct {
+    int source_version;
+    int target_version;
+    SettingProviderMigrationCallback callback;
+} SettingProviderMigration;
+
+SettingProvider* setting_provider_alloc(
+    const char* file_path,
+    int target_version,
+    const SettingProviderMigration* migrations,
+    size_t migrations_count);
 
 void setting_provider_free(SettingProvider* provider);
 

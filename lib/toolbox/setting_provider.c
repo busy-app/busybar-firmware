@@ -2,11 +2,15 @@
 
 #include <toolbox/json_helper.h>
 
-#define TAG "SettingProvider"
+#define TAG                  "SettingProvider"
+#define SETTINGS_VERSION_KEY "version"
 
 struct SettingProvider {
     JsonConfig* config;
     const char* file_path;
+    int target_version;
+    const SettingProviderMigration* migrations;
+    size_t migrations_count;
 };
 
 typedef void (*SettingProviderLoadCallback)(
@@ -228,15 +232,113 @@ static const SettingProviderTypeActions setting_type_actions[] = {
 
 static_assert(COUNT_OF(setting_type_actions) == SettingProviderSettingTypesCount);
 
+/* migrations implementation */
+
+static const SettingProviderMigration* setting_provider_find_migration(
+    const SettingProvider* provider,
+    int source_version,
+    int target_version) {
+    UNUSED(target_version);
+
+    const SettingProviderMigration* found_migration = NULL;
+
+    for(size_t i = 0; i < provider->migrations_count; i++) {
+        const SettingProviderMigration* migration = &provider->migrations[i];
+        if(migration->source_version == source_version &&
+           migration->target_version == source_version + 1) {
+            found_migration = migration;
+            break;
+        }
+    }
+
+    return found_migration;
+}
+
+static void setting_provider_apply_migrations(SettingProvider* provider) {
+    bool is_success = false;
+
+    do {
+        int source_version = 0;
+        JsonConfigStatus status =
+            json_config_read_int(provider->config, SETTINGS_VERSION_KEY, &source_version, NULL);
+
+        if(status != JsonConfigStatusOk) {
+            FURI_LOG_D(TAG, "Failed to read version from settings file");
+            break;
+        }
+
+        if(source_version == provider->target_version) {
+            is_success = true;
+            break;
+        }
+
+        if(source_version > provider->target_version) {
+            FURI_LOG_D(
+                TAG,
+                "File version: %d is newer than target version %d",
+                source_version,
+                provider->target_version);
+            break;
+        }
+
+        int migration_step_version;
+        for(migration_step_version = source_version;
+            migration_step_version < provider->target_version;) {
+            const SettingProviderMigration* migration = setting_provider_find_migration(
+                provider, migration_step_version, provider->target_version);
+
+            if(!migration) {
+                FURI_LOG_D(
+                    TAG,
+                    "Missing migration from v%d to v%d",
+                    migration_step_version,
+                    migration->target_version);
+                break;
+            }
+
+            if(!migration->callback(provider)) {
+                FURI_LOG_D(
+                    TAG,
+                    "Migration from v%d to v%d failed",
+                    migration_step_version,
+                    migration->target_version);
+                break;
+            }
+
+            migration_step_version = migration->target_version;
+        }
+
+        if(migration_step_version == provider->target_version) {
+            is_success = true;
+        }
+
+        json_config_write_int(provider->config, SETTINGS_VERSION_KEY, provider->target_version);
+    } while(false);
+
+    if(!is_success) {
+        FURI_LOG_D(TAG, "Migration failed - dropping file and starting fresh");
+        /* TODO: delete config file? */
+    }
+}
+
 /* public api implementation */
 
-SettingProvider* setting_provider_alloc(const char* file_path) {
+SettingProvider* setting_provider_alloc(
+    const char* file_path,
+    int target_version,
+    const SettingProviderMigration* migrations,
+    size_t migrations_count) {
     furi_check(file_path);
+    furi_check(target_version > 0);
+    furi_check(migrations || migrations_count == 0);
 
     SettingProvider* provider = malloc(sizeof(*provider));
 
     provider->config = NULL;
     provider->file_path = file_path;
+    provider->target_version = target_version;
+    provider->migrations = migrations;
+    provider->migrations_count = migrations_count;
 
     return provider;
 }
@@ -261,6 +363,8 @@ bool setting_provider_open(SettingProvider* provider) {
         FURI_LOG_E(TAG, "Failed to open settings file: %s", provider->file_path);
         json_config_free(provider->config);
         provider->config = NULL;
+    } else {
+        setting_provider_apply_migrations(provider);
     }
 
     return provider->config;
