@@ -13,15 +13,36 @@
 #define DISPLAY_ASSETS_DIR EXT_PATH("assets")
 
 #define DISPLAY_BRIGHTNESS_MAX (100)
-#define DISPLAY_TEXT_OFFSET_PX (-2)
 
-static int32_t api_display_text_offset(Align align) {
-    // cut off diacritics by default, so that the top of _most_ letters is aligned with the top edge of the screen
-    if(align == AlignDefault) return DISPLAY_TEXT_OFFSET_PX;
-    if(align == AlignTopLeft) return DISPLAY_TEXT_OFFSET_PX;
-    if(align == AlignTopMid) return DISPLAY_TEXT_OFFSET_PX;
-    if(align == AlignTopRight) return DISPLAY_TEXT_OFFSET_PX;
-    return 0;
+static int32_t api_display_text_offset(GuiFont font, Align align) {
+    // align horizontal text edges with screen edges
+    if(font == GuiFontBf4x5) {
+        if(align == AlignBottomLeft) return 0;
+        if(align == AlignBottomMid) return 0;
+        if(align == AlignBottomRight) return 0;
+        if(align == AlignLeftMid) return -1;
+        if(align == AlignCenter) return -1;
+        if(align == AlignRightMid) return -1;
+        return -2;
+    } else if(font == GuiFontBf5x7 || font == GuiFontBf5x7CondensedNumerals) {
+        if(align == AlignBottomLeft) return 0;
+        if(align == AlignBottomMid) return 0;
+        if(align == AlignBottomRight) return 0;
+        if(align == AlignLeftMid) return -1;
+        if(align == AlignCenter) return -1;
+        if(align == AlignRightMid) return -1;
+        return -2;
+    } else if(font == GuiFontBf7x10) {
+        if(align == AlignBottomLeft) return 2;
+        if(align == AlignBottomMid) return 2;
+        if(align == AlignBottomRight) return 2;
+        if(align == AlignLeftMid) return 0;
+        if(align == AlignCenter) return 0;
+        if(align == AlignRightMid) return 0;
+        return -2;
+    } else {
+        furi_crash();
+    }
 }
 
 static bool api_display_draw_parse_text_element(
@@ -34,8 +55,6 @@ static bool api_display_draw_parse_text_element(
         canvas_element->type = CanvasElementTypeText;
         canvas_element->text.text_str = mg_json_get_str(json_element, "$.text");
         if(!canvas_element->text.text_str) break;
-
-        canvas_element->y += api_display_text_offset(canvas_element->align);
 
         canvas_element->text.font = GuiFontTiny5_8;
         canvas_element->text.color = (Color)COLOR_MAKE_HEXA(0xFFFFFFFF);
@@ -53,6 +72,9 @@ static bool api_display_draw_parse_text_element(
             free(font_name);
             if(font == 0) break;
         }
+
+        canvas_element->y +=
+            api_display_text_offset(canvas_element->text.font, canvas_element->align);
 
         char* color_hex = mg_json_get_str(json_element, "$.color");
         if(color_hex) {
