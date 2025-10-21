@@ -15,6 +15,14 @@ extern "C" {
 #endif
 
 /**
+ * @brief TBD
+ *
+ * @param[in,out] instance pointer to the Wifi instance
+ * @returns TBD
+ */
+FuriState* wifi_get_state(Wifi* instance);
+
+/**
  * @brief Scan for available Wifi access points nearby.
  *
  * The array pointed to by the results parameter MUST be allocated by the user code.

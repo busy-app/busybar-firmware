@@ -6,6 +6,7 @@
 
 #include <stdint.h>
 
+#include <core/state.h>
 #include <core/pubsub.h>
 
 #ifdef __cplusplus
@@ -47,8 +48,11 @@ typedef enum {
 
 /** Enumeration of possible states for the Wifi system. */
 typedef enum {
+    WifiStateUnknown,
     WifiStateDown, /**< The Wifi system is in disconnected state */
     WifiStateUp, /**< The Wifi system is in connected state */
+    WifiStateConnecting,
+    WifiStateDisconnecting,
     WifiStateMax, /**< Special value, internal use */
 } WifiState;
 

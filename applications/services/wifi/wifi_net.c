@@ -104,6 +104,8 @@ void wifi_net_init(Wifi* instance, const WifiHardwareAddress* addr) {
 
     intercom_set_rx_callback(
         instance->intercom, IntercomChannelWifiData, wifi_net_intercom_rx_callback, instance);
+
+    wifi_set_state(instance, WifiStateDown);
 }
 
 void wifi_net_up(Wifi* instance) {
@@ -137,9 +139,13 @@ void wifi_net_up(Wifi* instance) {
             furi_delay_ms(1000);
         }
     }
+
+    wifi_set_state(instance, WifiStateUp);
 }
 
 void wifi_net_down(Wifi* instance) {
+    wifi_set_state(instance, WifiStateDown);
+
     struct netif* netif = &instance->netif;
 
     LOCK_TCPIP_CORE();
@@ -149,6 +155,11 @@ void wifi_net_down(Wifi* instance) {
     netif_set_link_down(netif);
 
     UNLOCK_TCPIP_CORE();
+}
+
+void wifi_net_get_hw_address(Wifi* instance, WifiHardwareAddress* hw_addr) {
+    const struct netif* netif = &instance->netif;
+    memcpy(hw_addr->bytes, netif->hwaddr, HW_ADDRESS_LEN);
 }
 
 void wifi_net_get_ip_config(Wifi* instance, WifiIpConfig* ip_config) {

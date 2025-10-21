@@ -1420,8 +1420,11 @@ components:
           type: string
           example: disconnected
           enum:
+            - unknown
             - disconnected
             - connected
+            - connecting
+            - disconnecting
         ssid:
           type: string
           example: Your_WIFI_SSID

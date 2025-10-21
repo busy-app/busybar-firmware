@@ -50,6 +50,10 @@ static void wifi_update_settings(
     }
 }
 
+void wifi_set_state(Wifi* instance, WifiState new_state) {
+    furi_state_set(instance->state, &new_state);
+}
+
 static void wifi_process_request(Wifi* instance) {
     const WifiMessage* message = instance->current_message;
     WifiRequest* request = &instance->request;
@@ -63,6 +67,11 @@ static void wifi_process_request(Wifi* instance) {
 
         connect_request->credentials = *connect_message->credentials;
         connect_request->ip = *connect_message->ip_config;
+
+        wifi_set_state(instance, WifiStateConnecting);
+
+    } else if(request_type == WifiRequestTypeDisconnect) {
+        wifi_set_state(instance, WifiStateDisconnecting);
     }
 
     intercom_tx(
@@ -110,12 +119,18 @@ static void wifi_process_response(Wifi* instance) {
             WifiInfo* info = message->get_info_message.info;
             *info = response->info;
 
+            wifi_net_get_hw_address(instance, &info->bssid);
             wifi_net_get_ip_config(instance, &info->ip_config);
 
         } else if(request_type == WifiRequestTypeGetHwAddress) {
             WifiHardwareAddress* hw_address = message->get_hw_address_message.hw_address;
             *hw_address = response->hw_address;
         }
+
+    } else {
+        // Failsafe behaviour: disable network interface and set state to Disconnected
+        wifi_net_down(instance);
+        wifi_save_default_settings(instance);
     }
 
     message->status = status;
@@ -215,6 +230,7 @@ static Wifi* wifi_alloc(void) {
 
     instance->event_loop = furi_event_loop_alloc();
     instance->access_semaphore = furi_semaphore_alloc(1, 1);
+    instance->state = furi_state_alloc(sizeof(WifiState));
     instance->intercom = furi_record_open(RECORD_INTERCOM);
 
     furi_record_open(RECORD_NETWORK);

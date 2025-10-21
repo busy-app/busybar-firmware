@@ -64,8 +64,11 @@ static const char* const wifi_ip_type[WifiIpTypeMax] = {
 };
 
 static const char* const wifi_state[WifiStateMax] = {
+    [WifiStateUnknown] = "unknown",
     [WifiStateDown] = "disconnected",
     [WifiStateUp] = "connected",
+    [WifiStateConnecting] = "connecting",
+    [WifiStateDisconnecting] = "disconnecting",
 };
 
 static const ApiWifiResponseData* api_wifi_get_response_data_from_status(WifiStatus status) {
