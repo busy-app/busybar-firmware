@@ -113,8 +113,8 @@ static bool api_display_draw_parse_element(
     canvas_element->display = GuiDisplayIdFront;
 
     do {
-        canvas_element->element_id = mg_json_get_str(element, "$.id");
-        if(!canvas_element->element_id) break;
+        canvas_element->app_scoped_id = mg_json_get_str(element, "$.id");
+        if(!canvas_element->app_scoped_id) break;
 
         int32_t temp_val = mg_json_get_long(element, "$.timeout", -1);
         canvas_element->timeout = (temp_val > 0) ? temp_val : 0;
@@ -264,16 +264,25 @@ static bool api_display_delete_callback(
 
     if(!IS_HTTP_ENDPOINT(path)) return false;
 
+    char app_id_buf[64];
+    int app_id_len = mg_http_get_var(&msg->query, "app_id", app_id_buf, sizeof(app_id_buf));
+    const char* app_id = (app_id_len >= 1) ? app_id_buf : NULL;
+
     FuriString* app_name = furi_string_alloc();
     Loader* loader = furi_record_open(RECORD_LOADER);
+
     if(loader_get_application_name(loader, app_name)) {
         if(furi_string_cmp(app_name, "Canvas") == 0) {
-            loader_stop(loader);
+            CanvasApp* canvas = furi_record_open(RECORD_CANVAS);
+            canvas_delete_elements(canvas, app_id);
+            furi_record_close(RECORD_CANVAS);
         }
     }
+
     furi_record_close(RECORD_LOADER);
     MG_REPLY_OK(conn);
     furi_string_free(app_name);
+
     return true;
 }
 

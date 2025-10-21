@@ -477,6 +477,14 @@ paths:
       summary: Clear display
       description: Clears the display and stops the Canvas application if running
       operationId: clearDisplay
+      parameters:
+        - name: app_id
+          in: query
+          required: false
+          schema:
+            type: string
+          description: Application identifier
+          example: "my_app"
       responses:
         "200":
           description: Display cleared successfully
@@ -1220,8 +1228,7 @@ components:
             timeout: 6
             type: "text"
             text: "Hello, World!"
-            x: 1
-            y: 3
+            align: center
             font: big
             color: "#AAFF00FF"
             width: 72
