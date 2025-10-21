@@ -51,7 +51,8 @@ static void wifi_update_settings(
 }
 
 void wifi_set_state(Wifi* instance, WifiState new_state) {
-    furi_state_set(instance->state, &new_state);
+    // furi_state_set(instance->state, &new_state);
+    instance->state = new_state;
 }
 
 static void wifi_process_request(Wifi* instance) {
@@ -63,12 +64,16 @@ static void wifi_process_request(Wifi* instance) {
 
     if(request_type == WifiRequestTypeConnect) {
         const WifiConnectMessage* connect_message = &message->connect_message;
-        WifiConnectRequest* connect_request = &request->connect_request;
+        const WifiCredentials* credentials = connect_message->credentials;
+        const WifiIpConfig* ip_config = connect_message->ip_config;
 
-        connect_request->credentials = *connect_message->credentials;
-        connect_request->ip = *connect_message->ip_config;
+        WifiConnectRequest* connect_request = &request->connect_request;
+        connect_request->credentials = *credentials;
+        connect_request->ip = *ip_config;
 
         wifi_set_state(instance, WifiStateConnecting);
+
+        FURI_LOG_I(TAG, "Connecting to \"%s\"", credentials->ssid);
 
     } else if(request_type == WifiRequestTypeDisconnect) {
         wifi_set_state(instance, WifiStateDisconnecting);
@@ -106,10 +111,26 @@ static void wifi_process_response(Wifi* instance) {
 
         } else if(request_type == WifiRequestTypeConnect) {
             const WifiConnectMessage* connect_message = &message->connect_message;
+            const WifiCredentials* credentials = connect_message->credentials;
             const WifiIpConfig* ip_config = connect_message->ip_config;
 
-            wifi_update_settings(instance, connect_message->credentials, ip_config);
+            wifi_update_settings(instance, credentials, ip_config);
             wifi_net_up(instance);
+
+            FURI_LOG_I(TAG, "Connected to \"%s\"", credentials->ssid);
+
+            WifiIpConfig new_ip_config;
+            wifi_net_get_ip_config(instance, &new_ip_config);
+
+            const WifiIpv4* addr = &new_ip_config.ip4.address;
+
+            FURI_LOG_I(
+                TAG,
+                "IP: %hhu.%hhu.%hhu.%hhu",
+                addr->bytes[0],
+                addr->bytes[1],
+                addr->bytes[2],
+                addr->bytes[3]);
 
         } else if(request_type == WifiRequestTypeDisconnect) {
             wifi_net_down(instance);
@@ -117,7 +138,16 @@ static void wifi_process_response(Wifi* instance) {
 
         } else if(request_type == WifiRequestTypeGetInfo) {
             WifiInfo* info = message->get_info_message.info;
-            *info = response->info;
+
+            const WifiBackendInfo* backend_info = &response->backend_info;
+            const WifiCredentials* credentials = &instance->settings.credentials;
+
+            strncpy(info->ssid, credentials->ssid, SSID_MAX_LEN);
+            info->security_mode = credentials->security_mode;
+
+            info->state = instance->state;
+            info->rssi = backend_info->rssi;
+            info->channel = backend_info->channel;
 
             wifi_net_get_hw_address(instance, &info->bssid);
             wifi_net_get_ip_config(instance, &info->ip_config);
@@ -129,8 +159,10 @@ static void wifi_process_response(Wifi* instance) {
 
     } else {
         // Failsafe behaviour: disable network interface and set state to Disconnected
-        wifi_net_down(instance);
-        wifi_save_default_settings(instance);
+        // wifi_net_down(instance);
+        // wifi_save_default_settings(instance);
+
+        FURI_LOG_E(TAG, "Request type: %d failed with status: %d", request_type, status);
     }
 
     message->status = status;
@@ -172,35 +204,15 @@ static int32_t wifi_startup_thread_callback(void* arg) {
         const WifiSettings* settings = &instance->settings;
         const char* ssid = settings->credentials.ssid;
 
-        if(strlen(ssid) == 0) {
+        if(strnlen(ssid, SSID_MAX_LEN) == 0) {
             FURI_LOG_I(TAG, "No SSID specified");
             break;
         }
-
-        FURI_LOG_I(TAG, "Connecting to \"%s\"", ssid);
 
         if(wifi_connect(instance, &settings->credentials, &settings->ip_config) != WifiStatusOk) {
             FURI_LOG_E(TAG, "Failed to connect");
             break;
         }
-
-        FURI_LOG_I(TAG, "Connected to \"%s\"", ssid);
-
-        WifiInfo info;
-        if(wifi_get_info(instance, &info) != WifiStatusOk) {
-            FURI_LOG_E(TAG, "Failed to get info");
-            break;
-        }
-
-        const WifiIpConfig* ip_config = &info.ip_config;
-        const WifiIpv4* addr = &ip_config->ip4.address;
-        FURI_LOG_I(
-            TAG,
-            "IP: %hhu.%hhu.%hhu.%hhu",
-            addr->bytes[0],
-            addr->bytes[1],
-            addr->bytes[2],
-            addr->bytes[3]);
 
     } while(false);
 
@@ -230,7 +242,7 @@ static Wifi* wifi_alloc(void) {
 
     instance->event_loop = furi_event_loop_alloc();
     instance->access_semaphore = furi_semaphore_alloc(1, 1);
-    instance->state = furi_state_alloc(sizeof(WifiState));
+    // instance->state = furi_state_alloc(sizeof(WifiState));
     instance->intercom = furi_record_open(RECORD_INTERCOM);
 
     furi_record_open(RECORD_NETWORK);

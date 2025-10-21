@@ -65,8 +65,8 @@ static const char* const wifi_ip_type[WifiIpTypeMax] = {
 
 static const char* const wifi_state[WifiStateMax] = {
     [WifiStateUnknown] = "unknown",
-    [WifiStateDown] = "disconnected",
-    [WifiStateUp] = "connected",
+    [WifiStateDisconnected] = "disconnected",
+    [WifiStateConnected] = "connected",
     [WifiStateConnecting] = "connecting",
     [WifiStateDisconnecting] = "disconnecting",
 };
@@ -417,7 +417,7 @@ static bool api_wifi_get_status_callback(
 
         cJSON_AddStringToObject(response, WIFI_JSON_KEY_STATE, wifi_state[info.state]);
 
-        if(info.state == WifiStateUp) {
+        if(info.state == WifiStateConnected) {
             cJSON_AddStringToObject(response, WIFI_JSON_KEY_SSID, info.ssid);
 
             const char* security_mode = security_modes[info.security_mode];

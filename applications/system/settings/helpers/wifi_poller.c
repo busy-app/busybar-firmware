@@ -23,7 +23,7 @@ typedef enum {
 
 static WifiPollerState wifi_poller_info_to_state(WifiInfo* info) {
     WifiPollerState state = 0;
-    if(info->state == WifiStateUp) state |= WifiPollerStateLinkUp;
+    if(info->state == WifiStateConnected) state |= WifiPollerStateLinkUp;
     return state;
 }
 

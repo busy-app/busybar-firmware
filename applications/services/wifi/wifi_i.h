@@ -52,13 +52,14 @@ typedef struct {
 struct Wifi {
     FuriEventLoop* event_loop;
     FuriSemaphore* access_semaphore;
-    FuriState* state;
+    // FuriState* state;
     Intercom* intercom;
     WifiMessage* current_message;
     struct netif netif;
     WifiRequest request;
     WifiResponse response;
     WifiSettings settings;
+    WifiState state;
 };
 
 void wifi_set_state(Wifi* instance, WifiState new_state);

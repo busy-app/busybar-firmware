@@ -29,7 +29,7 @@ static inline void wifi_send_response(Wifi* instance) {
     furi_check(tx_size == sizeof(WifiResponse));
 }
 
-static inline void wifi_set_state(Wifi* instance, WifiState state) {
+static inline void wifi_set_state(Wifi* instance, WifiBackendState state) {
     if(state != instance->state) {
         instance->state = state;
         furi_pubsub_publish(instance->event_pubsub, &instance->state);
@@ -63,7 +63,7 @@ static void wifi_connect_request_handler(Wifi* instance) {
         const WifiCredentials* credentials = &request->credentials;
         const WifiIpConfig* ip = &request->ip;
 
-        if(instance->state == WifiStateUp) {
+        if(instance->state == WifiBackendStateConnected) {
             status = SL_STATUS_SI91X_SCAN_ISSUED_IN_ASSOCIATED_STATE;
             FURI_LOG_E(TAG, "Wifi already connected");
             break;
@@ -135,7 +135,7 @@ static void wifi_connect_request_handler(Wifi* instance) {
             break;
         }
 
-        wifi_set_state(instance, WifiStateUp);
+        wifi_set_state(instance, WifiBackendStateConnected);
 
     } while(false);
 
@@ -158,7 +158,7 @@ static void wifi_disconnect_request_handler(Wifi* instance) {
             break;
         }
 
-        wifi_set_state(instance, WifiStateDown);
+        wifi_set_state(instance, WifiBackendStateDisconnected);
 
     } while(false);
 
@@ -174,46 +174,30 @@ static void wifi_get_info_request_handler(Wifi* instance) {
     sl_status_t status;
 
     do {
-        WifiInfo* info = &instance->response.info;
-        // Set the result state value right away
-        info->state = instance->state;
+        WifiBackendInfo* backend_info = &instance->response.backend_info;
 
-        // Do not try to get the profile if interface is not up
-        if(instance->state != WifiStateUp) {
-            status = SL_STATUS_OK;
+        if(instance->state != WifiBackendStateConnected) {
+            status = SL_STATUS_SI91X_COMMAND_GIVEN_IN_INVALID_STATE;
             break;
         }
 
-        sl_net_wifi_client_profile_t profile = {0};
-
-        status = sl_net_get_profile(
-            SL_NET_WIFI_CLIENT_INTERFACE, SL_NET_DEFAULT_WIFI_CLIENT_PROFILE_ID, &profile);
+        int32_t rssi;
+        status = sl_wifi_get_signal_strength(SL_WIFI_CLIENT_2_4GHZ_INTERFACE, &rssi);
 
         if(status != SL_STATUS_OK) {
-            FURI_LOG_E(TAG, "Failed to get Wifi profile: %lX", status);
+            FURI_LOG_E(TAG, "Failed to get RSSI: %lX", status);
             break;
         }
 
-        const sl_wifi_client_configuration_t* config = &profile.config;
-        sl_si91x_rsp_wireless_info_t wireless_info;
+        sl_wifi_channel_t channel;
+        status = sl_wifi_get_channel(SL_WIFI_CLIENT_2_4GHZ_INTERFACE, &channel);
 
-        status = sl_wifi_get_wireless_info(&wireless_info);
         if(status != SL_STATUS_OK) {
-            FURI_LOG_E(TAG, "Failed to get Wifi wireless info: %lX", status);
-            break;
+            FURI_LOG_E(TAG, "Failed to get channel: %lX", status);
         }
 
-        status = sl_wifi_get_signal_strength(SL_WIFI_CLIENT_INTERFACE, &info->rssi);
-        if(status != SL_STATUS_OK) {
-            FURI_LOG_E(TAG, "Failed to get Wifi RSSI: %lX", status);
-            break;
-        }
-
-        wifi_decode_ssid(info->ssid, &config->ssid);
-        wifi_decode_ip_config(&info->ip_config, &profile.ip);
-        memcpy(&info->bssid, wireless_info.bssid, HW_ADDRESS_LEN);
-        info->channel = wireless_info.channel_number;
-        info->security_mode = wifi_decode_security_mode(config->security);
+        backend_info->rssi = rssi;
+        backend_info->channel = channel.channel;
 
     } while(false);
 

@@ -54,7 +54,7 @@ static bool sntp_is_wifi_connected(void) {
 
     if(status != WifiStatusOk) {
         FURI_LOG_D(TAG, "Failed to get Wifi info: %d", status);
-    } else if(wifi_info.state != WifiStateUp) {
+    } else if(wifi_info.state != WifiStateConnected) {
         FURI_LOG_D(TAG, "Wifi is not connected");
     } else {
         FURI_LOG_D(TAG, "Wifi is connected");

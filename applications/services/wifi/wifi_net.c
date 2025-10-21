@@ -105,7 +105,7 @@ void wifi_net_init(Wifi* instance, const WifiHardwareAddress* addr) {
     intercom_set_rx_callback(
         instance->intercom, IntercomChannelWifiData, wifi_net_intercom_rx_callback, instance);
 
-    wifi_set_state(instance, WifiStateDown);
+    wifi_set_state(instance, WifiStateDisconnected);
 }
 
 void wifi_net_up(Wifi* instance) {
@@ -140,11 +140,11 @@ void wifi_net_up(Wifi* instance) {
         }
     }
 
-    wifi_set_state(instance, WifiStateUp);
+    wifi_set_state(instance, WifiStateConnected);
 }
 
 void wifi_net_down(Wifi* instance) {
-    wifi_set_state(instance, WifiStateDown);
+    wifi_set_state(instance, WifiStateDisconnected);
 
     struct netif* netif = &instance->netif;
 
@@ -168,10 +168,10 @@ void wifi_net_get_ip_config(Wifi* instance, WifiIpConfig* ip_config) {
     ip_config->type = cfg->type;
     ip_config->mgmt = cfg->mgmt;
 
-    WifiIpv4Settings* settings = &ip_config->ip4;
+    WifiIpv4Settings* ip4_settings = &ip_config->ip4;
     const struct netif* netif = &instance->netif;
 
-    settings->address.value = netif->ip_addr.addr;
-    settings->mask.value = netif->netmask.addr;
-    settings->gateway.value = netif->gw.addr;
+    ip4_settings->address.value = netif->ip_addr.addr;
+    ip4_settings->mask.value = netif->netmask.addr;
+    ip4_settings->gateway.value = netif->gw.addr;
 }

@@ -17,6 +17,12 @@ typedef enum {
     WifiRequestTypeMax,
 } WifiRequestType;
 
+typedef enum {
+    WifiBackendStateDisconnected,
+    WifiBackendStateConnected,
+    WifiBackendStateMax,
+} WifiBackendState;
+
 typedef struct {
     WifiCredentials credentials;
     WifiIpConfig ip;
@@ -35,11 +41,16 @@ typedef struct {
 } WifiScanResults;
 
 typedef struct {
+    int32_t rssi;
+    uint16_t channel;
+} WifiBackendInfo;
+
+typedef struct {
     uint8_t type;
     uint8_t status;
     union {
         WifiScanResults scan_results;
-        WifiInfo info;
+        WifiBackendInfo backend_info;
         WifiHardwareAddress hw_address;
     };
 } WifiResponse;
