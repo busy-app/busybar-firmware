@@ -11,11 +11,16 @@
 
 typedef struct {
     enum {
-        CanvasAppEventExit,
         CanvasAppEventSetTimeout,
+        CanvasAppEventClearApp,
     } type;
-    char* element_id;
-    uint32_t timeout_value;
+    union {
+        struct {
+            char* element_id;
+            uint32_t timeout_value;
+        };
+        char* app_id;
+    };
 } CanvasAppQueueEvent;
 
 typedef struct {
@@ -41,7 +46,6 @@ struct CanvasApp {
     FuriMutex* widget_list_mutex;
     Gui* gui;
     CanvasWidgetsDict_t widgets;
-    FuriString* app_id;
 };
 
 static bool canvas_app_input_callback(const InputEvent* event, void* context) {
@@ -53,11 +57,7 @@ static bool canvas_app_input_callback(const InputEvent* event, void* context) {
 
     if(event->type == InputTypeShort) {
         if(event->key == InputKeyBack) {
-            CanvasAppQueueEvent evt = {.type = CanvasAppEventExit};
-            furi_check(
-                furi_message_queue_put(canvas->event_queue, &evt, FuriWaitForever) ==
-                FuriStatusOk);
-            consumed = true;
+            furi_event_loop_stop(canvas->event_loop);
         }
     }
 
@@ -100,6 +100,72 @@ static void canvas_element_timeout(void* context) {
     }
 }
 
+static void canvas_widget_destroy(CanvasApp* canvas, CanvasWidget* widget) {
+    furi_assert(canvas);
+    furi_assert(widget);
+
+    if(widget->timeout_timer) {
+        furi_event_loop_timer_free(widget->timeout_timer);
+    }
+    if(widget->timeout_context) {
+        free(widget->timeout_context->id);
+        free(widget->timeout_context);
+    }
+
+    if(widget->type == CanvasElementTypeImage) {
+        image_free(widget->image);
+    } else if(widget->type == CanvasElementTypeText) {
+        label_free(widget->text);
+    }
+}
+
+static void canvas_widget_destroy_all(CanvasApp* canvas) {
+    CanvasWidgetsDict_it_t it;
+    for(CanvasWidgetsDict_it(it, canvas->widgets); !CanvasWidgetsDict_end_p(it);
+        CanvasWidgetsDict_next(it)) {
+        CanvasWidgetsDict_itref_t* itref = CanvasWidgetsDict_ref(it);
+        CanvasWidget* widget = &itref->value;
+        canvas_widget_destroy(canvas, widget);
+    }
+}
+
+static void canvas_app_clear_app_id(CanvasApp* canvas, const char* app_id) {
+    furi_assert(canvas);
+    furi_check(furi_mutex_acquire(canvas->widget_list_mutex, FuriWaitForever) == FuriStatusOk);
+
+    if(app_id) {
+        char needle_prefix[strlen(app_id) + 2];
+        strcpy(needle_prefix, app_id);
+        strcat(needle_prefix, ".");
+
+        CanvasWidgetsDict_t new_dict;
+        CanvasWidgetsDict_init(new_dict);
+
+        CanvasWidgetsDict_it_t it;
+        for(CanvasWidgetsDict_it(it, canvas->widgets); !CanvasWidgetsDict_end_p(it);
+            CanvasWidgetsDict_next(it)) {
+            CanvasWidgetsDict_itref_t* item = CanvasWidgetsDict_ref(it);
+            if(strncmp(item->key, needle_prefix, strlen(needle_prefix)) != 0) {
+                CanvasWidgetsDict_set_at(new_dict, item->key, item->value);
+            } else {
+                canvas_widget_destroy(canvas, &item->value);
+            }
+        }
+
+        CanvasWidgetsDict_move(canvas->widgets, new_dict);
+
+    } else {
+        canvas_widget_destroy_all(canvas);
+        CanvasWidgetsDict_reset(canvas->widgets);
+    }
+
+    if(CanvasWidgetsDict_empty_p(canvas->widgets)) {
+        furi_event_loop_stop(canvas->event_loop);
+    }
+
+    furi_check(furi_mutex_release(canvas->widget_list_mutex) == FuriStatusOk);
+}
+
 static void canvas_app_queue_event_callback(FuriEventLoopObject* object, void* context) {
     furi_assert(context);
     CanvasApp* canvas = context;
@@ -108,9 +174,7 @@ static void canvas_app_queue_event_callback(FuriEventLoopObject* object, void* c
     CanvasAppQueueEvent event;
     furi_check(furi_message_queue_get(canvas->event_queue, &event, 0) == FuriStatusOk);
 
-    if(event.type == CanvasAppEventExit) {
-        furi_event_loop_stop(canvas->event_loop);
-    } else if(event.type == CanvasAppEventSetTimeout) {
+    if(event.type == CanvasAppEventSetTimeout) {
         furi_assert(event.element_id);
         furi_mutex_acquire(canvas->widget_list_mutex, FuriWaitForever);
         CanvasWidget* widget = CanvasWidgetsDict_get(canvas->widgets, event.element_id);
@@ -130,6 +194,11 @@ static void canvas_app_queue_event_callback(FuriEventLoopObject* object, void* c
             widget->timeout_timer = NULL;
         }
         furi_mutex_release(canvas->widget_list_mutex);
+        free(event.element_id);
+
+    } else if(event.type == CanvasAppEventClearApp) {
+        canvas_app_clear_app_id(canvas, event.app_id);
+        if(event.app_id) free(event.app_id);
     }
 }
 
@@ -147,7 +216,6 @@ static CanvasApp* canvas_app_alloc() {
 
     canvas->gui = furi_record_open(RECORD_GUI);
     CanvasWidgetsDict_init(canvas->widgets);
-    canvas->app_id = furi_string_alloc();
 
     with_gui(canvas->gui, {
         GuiLayer* main_layer = gui_get_layer(canvas->gui, GuiLayerIdMain);
@@ -161,33 +229,12 @@ static void canvas_app_free(CanvasApp* canvas) {
     with_gui(canvas->gui, {
         GuiLayer* main_layer = gui_get_layer(canvas->gui, GuiLayerIdMain);
         gui_layer_remove_input_callback(main_layer, canvas_app_input_callback);
-
-        CanvasWidgetsDict_it_t it;
-        for(CanvasWidgetsDict_it(it, canvas->widgets); !CanvasWidgetsDict_end_p(it);
-            CanvasWidgetsDict_next(it)) {
-            const CanvasWidgetsDict_itref_t* itref = CanvasWidgetsDict_cref(it);
-            const CanvasWidget* widget = &itref->value;
-
-            if(widget->timeout_timer) {
-                furi_event_loop_timer_free(widget->timeout_timer);
-            }
-            if(widget->timeout_context) {
-                free(widget->timeout_context->id);
-                free(widget->timeout_context);
-            }
-
-            if(widget->type == CanvasElementTypeImage) {
-                image_free(widget->image);
-            } else if(widget->type == CanvasElementTypeText) {
-                label_free(widget->text);
-            }
-        }
+        canvas_widget_destroy_all(canvas);
     });
 
     furi_record_close(RECORD_GUI);
 
     CanvasWidgetsDict_clear(canvas->widgets);
-    furi_string_free(canvas->app_id);
 
     furi_event_loop_unsubscribe(canvas->event_loop, canvas->event_queue);
     furi_message_queue_free(canvas->event_queue);
@@ -201,7 +248,7 @@ int32_t canvas_app(void* arg) {
     CanvasApp* canvas = canvas_app_alloc();
     furi_record_create(RECORD_CANVAS, canvas);
     furi_event_loop_run(canvas->event_loop);
-    furi_record_destroy(RECORD_CANVAS);
+    furi_check(furi_record_destroy(RECORD_CANVAS));
     canvas_app_free(canvas);
 
     return 0;
@@ -252,8 +299,15 @@ static void canvas_element_update_generic(Widget* base, const CanvasElement* ele
     widget_set_pos(base, element->x, element->y);
 }
 
-static bool canvas_element_update(CanvasApp* canvas, const CanvasElement* element) {
-    CanvasWidget* widget_old = CanvasWidgetsDict_get(canvas->widgets, element->element_id);
+static bool
+    canvas_element_update(CanvasApp* canvas, const char* app_id, const CanvasElement* element) {
+    size_t complete_id_len = strlen(app_id) + 1 + strlen(element->app_scoped_id);
+    char* complete_id = malloc(complete_id_len + 1);
+    strcat(complete_id, app_id);
+    strcat(complete_id, ".");
+    strcat(complete_id, element->app_scoped_id);
+
+    CanvasWidget* widget_old = CanvasWidgetsDict_get(canvas->widgets, element->app_scoped_id);
     CanvasWidget widget = {0};
     if(widget_old) {
         if(widget_old->type != element->type) {
@@ -273,35 +327,33 @@ static bool canvas_element_update(CanvasApp* canvas, const CanvasElement* elemen
     if((element->timeout > 0) || (widget.timeout_timer)) {
         if(!widget.timeout_context) {
             widget.timeout_context = malloc(sizeof(CanvasWidgetTimeoutContext));
-            widget.timeout_context->id = strdup(element->element_id);
+            widget.timeout_context->id = strdup(complete_id);
             widget.timeout_context->canvas = canvas;
         }
     }
 
-    CanvasWidgetsDict_set_at(canvas->widgets, element->element_id, widget);
+    CanvasWidgetsDict_set_at(canvas->widgets, complete_id, widget);
 
     if((element->timeout > 0) || (widget.timeout_timer)) {
         CanvasAppQueueEvent evt = {
             .type = CanvasAppEventSetTimeout,
-            .element_id = widget.timeout_context->id,
-            .timeout_value = element->timeout};
+            .element_id = strdup(complete_id),
+            .timeout_value = element->timeout,
+        };
         furi_check(
             furi_message_queue_put(canvas->event_queue, &evt, FuriWaitForever) == FuriStatusOk);
     }
+
+    free(complete_id);
+
     return true;
 }
 
-bool canvas_show_elements(CanvasApp* canvas, char* app_id, CanvasElementsArray_t elements) {
+bool canvas_show_elements(CanvasApp* canvas, const char* app_id, CanvasElementsArray_t elements) {
     furi_assert(canvas);
     furi_assert(app_id);
 
     UNUSED(elements);
-
-    if(furi_string_empty(canvas->app_id)) {
-        furi_string_set(canvas->app_id, app_id);
-    } else if(furi_string_cmp(canvas->app_id, app_id) != 0) {
-        return false;
-    }
 
     bool success = true;
     furi_mutex_acquire(canvas->widget_list_mutex, FuriWaitForever);
@@ -309,7 +361,7 @@ bool canvas_show_elements(CanvasApp* canvas, char* app_id, CanvasElementsArray_t
     for(CanvasElementsArray_it(it, elements); !CanvasElementsArray_end_p(it);
         CanvasElementsArray_next(it)) {
         const CanvasElement* item = CanvasElementsArray_cref(it);
-        if(!canvas_element_update(canvas, item)) {
+        if(!canvas_element_update(canvas, app_id, item)) {
             success = false;
             break;
         }
@@ -317,4 +369,14 @@ bool canvas_show_elements(CanvasApp* canvas, char* app_id, CanvasElementsArray_t
     furi_mutex_release(canvas->widget_list_mutex);
 
     return success;
+}
+
+void canvas_delete_elements(CanvasApp* canvas, const char* app_id) {
+    furi_check(canvas);
+
+    CanvasAppQueueEvent evt = {
+        .type = CanvasAppEventClearApp,
+        .app_id = app_id ? strdup(app_id) : NULL,
+    };
+    furi_check(furi_message_queue_put(canvas->event_queue, &evt, FuriWaitForever) == FuriStatusOk);
 }

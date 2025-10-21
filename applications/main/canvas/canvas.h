@@ -14,7 +14,7 @@ typedef enum {
 } CanvasElementType;
 
 typedef struct {
-    char* element_id;
+    char* app_scoped_id;
     uint32_t timeout;
     int16_t x;
     int16_t y;
@@ -36,7 +36,7 @@ typedef struct {
 } CanvasElement;
 
 static inline void canvas_element_clear(CanvasElement* obj) {
-    if(obj->element_id) free(obj->element_id);
+    if(obj->app_scoped_id) free(obj->app_scoped_id);
     if(obj->type == CanvasElementTypeImage) {
         if(obj->image.file_path) furi_string_free(obj->image.file_path);
     } else if(obj->type == CanvasElementTypeText) {
@@ -49,4 +49,13 @@ ARRAY_DEF(
     CanvasElement,
     M_OPEXTEND(M_POD_OPLIST, CLEAR(API_2(canvas_element_clear))))
 
-bool canvas_show_elements(CanvasApp* canvas, char* app_id, CanvasElementsArray_t elements);
+bool canvas_show_elements(CanvasApp* canvas, const char* app_id, CanvasElementsArray_t elements);
+
+/**
+ * @brief Delete elements by filter and possibly terminate Canvas
+ * 
+ * Deletes ALL elements (`app_id` is NULL) or elements related to a non-NULL
+ * `app_id`. If no elements are left after this possibly selective delete, the
+ * Canvas terminates itself.
+ */
+void canvas_delete_elements(CanvasApp* canvas, const char* app_id);
