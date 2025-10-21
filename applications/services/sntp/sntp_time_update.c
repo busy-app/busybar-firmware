@@ -94,17 +94,17 @@ static int32_t sntp_time_update_thread_callback(void* context) {
 
     struct mg_mgr mgr;
     mg_mgr_init(&mgr);
-    mg_sntp_connect(&mgr, settings.server_address, sntp_time_update_callback, &update_context);
+    struct mg_connection* conn =
+        mg_sntp_connect(&mgr, settings.server_address, sntp_time_update_callback, &update_context);
 
     uint32_t timeout_tick = furi_get_tick() + furi_ms_to_ticks(SNTP_UPDATE_TIMEOUT_MS);
     while(update_context.is_update_in_progress) {
-        mg_mgr_poll(&mgr, 1000);
-
         if(furi_get_tick() > timeout_tick) {
             FURI_LOG_W(TAG, "SNTP update timeout");
             update_context.update_status = SntpTimeUpdateStatusTimeout;
-            break;
+            conn->is_draining = 1;
         }
+        mg_mgr_poll(&mgr, 1000);
     }
 
     mg_mgr_free(&mgr);

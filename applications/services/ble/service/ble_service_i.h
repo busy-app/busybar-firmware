@@ -5,13 +5,14 @@
 
 #include <furi.h>
 
-#define BLE_ATT_PROPERTY_READ   0x02
-#define BLE_ATT_PROPERTY_WRITE  0x08
-#define BLE_ATT_PROPERTY_NOTIFY 0x10
+#define BLE_ATT_PROPERTY_READ     0x02
+#define BLE_ATT_PROPERTY_WRITE    0x08
+#define BLE_ATT_PROPERTY_NOTIFY   0x10
+#define BLE_ATT_PROPERTY_INDICATE 0x20
 
 struct BleServiceObject {
     BleServiceState state;
-    const BleServiceDescriptor* desc;
+    const BleServiceDescriptor* config;
     BleCharacteristicObject** chars;
 
     FuriMessageQueue* message_queue;
@@ -20,28 +21,25 @@ struct BleServiceObject {
 
     FuriSemaphore* frame_lock;
     size_t frame_size;
-    ///TODO: replace this with malloc
-    uint8_t frame_buf[70];
-    //uint8_t* frame_buf;
+    uint8_t* frame_buf;
 
-    uint8_t output[70];
     BleServiceStateChangeCallback state_change_callback;
-    void* data_context;
+    BleServiceStateChangeCallbackContext* state_callback_context;
+
+    void* context;
 #if defined(SI917)
     void* service_handler;
+    uint16_t handle;
 #endif
 };
 
-void ble_service_enqueue_message(
-    BleServiceObject* instance,
-    BleCommand command,
-    void* data,
-    uint8_t data_size);
+void ble_service_enqueue_message(BleServiceObject* instance, BleCommand command, uint8_t ch_index);
+void ble_service_enqueue_run(BleServiceObject* instance);
 
-void ble_service_prepare_frame(
+void ble_service_prepare_send_intercom_frame(
     BleServiceObject* instance,
     BleIntercomFrameType frame_type,
-    uint8_t command_event,
+    BleCommand command,
     size_t data_size,
     void* data);
 
