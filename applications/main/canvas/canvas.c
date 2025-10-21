@@ -279,11 +279,17 @@ static Widget* canvas_element_update_specific(
         label_set_color(widget->text, element->text.color);
 
         Widget* base = label_get_base(widget->text);
-        if(element->text.width) widget_set_width(base, element->text.width);
+        if(element->text.width) {
+            widget_set_width(base, element->text.width);
+        } else {
+            widget_set_width_content(base);
+        }
         if(element->text.scroll_rate_cpm) {
             uint32_t scroll_dur =
                 label_calculate_scroll_duration(widget->text, element->text.scroll_rate_cpm);
             label_set_long_content_mode(widget->text, LabelLongContentModeScroll, scroll_dur);
+        } else {
+            label_set_long_content_mode(widget->text, LabelLongContentModeClip, 0);
         }
         return base;
 
@@ -308,7 +314,7 @@ static bool
     strcat(complete_id, ".");
     strcat(complete_id, element->app_scoped_id);
 
-    CanvasWidget* widget_old = CanvasWidgetsDict_get(canvas->widgets, element->app_scoped_id);
+    CanvasWidget* widget_old = CanvasWidgetsDict_get(canvas->widgets, complete_id);
     CanvasWidget widget = {0};
     if(widget_old) {
         if(widget_old->type != element->type) {
