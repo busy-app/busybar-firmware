@@ -52,24 +52,19 @@ typedef struct {
 struct Wifi {
     FuriEventLoop* event_loop;
     FuriSemaphore* access_semaphore;
-    // FuriState* state;
+    FuriState* state;
     Intercom* intercom;
     WifiMessage* current_message;
     struct netif netif;
     WifiRequest request;
     WifiResponse response;
-    WifiSettings settings;
-    WifiState state;
+    WifiInfo info;
 };
-
-void wifi_set_state(Wifi* instance, WifiState new_state);
 
 void wifi_net_init(Wifi* instance, const WifiHardwareAddress* addr);
 
-void wifi_net_up(Wifi* instance);
+bool wifi_net_up(Wifi* instance, const WifiIpConfig* ip_config);
 
 void wifi_net_down(Wifi* instance);
-
-void wifi_net_get_hw_address(Wifi* instance, WifiHardwareAddress* hw_addr);
 
 void wifi_net_get_ip_config(Wifi* instance, WifiIpConfig* ip_config);

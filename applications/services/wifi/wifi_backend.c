@@ -61,7 +61,6 @@ static void wifi_connect_request_handler(Wifi* instance) {
     do {
         const WifiConnectRequest* request = &instance->request.connect_request;
         const WifiCredentials* credentials = &request->credentials;
-        const WifiIpConfig* ip = &request->ip;
 
         if(instance->state == WifiBackendStateConnected) {
             status = SL_STATUS_SI91X_SCAN_ISSUED_IN_ASSOCIATED_STATE;
@@ -76,20 +75,7 @@ static void wifi_connect_request_handler(Wifi* instance) {
                     .security = wifi_encode_security_mode(credentials->security_mode),
                     .credential_id = SL_NET_DEFAULT_WIFI_CLIENT_CREDENTIAL_ID,
                 },
-            .ip =
-                {
-                    .mode = wifi_encode_ip_management(ip->mgmt),
-                    .type = wifi_encode_ip_version(ip->type),
-                },
         };
-
-        if(ip->mgmt == WifiIpManagementStatic) {
-            static_assert(sizeof(sl_net_ipv4_setting_t) == sizeof(WifiIpv4Settings));
-            memcpy(&profile.ip.ip.v4, &ip->ip4, sizeof(WifiIpv4Settings));
-
-            static_assert(sizeof(sl_net_ipv6_setting_t) == sizeof(WifiIpv6Settings));
-            memcpy(&profile.ip.ip.v6, &ip->ip6, sizeof(WifiIpv6Settings));
-        }
 
         wifi_encode_ssid(&profile.config.ssid, credentials->ssid);
 

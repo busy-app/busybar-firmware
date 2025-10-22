@@ -67,16 +67,10 @@ WifiStatus wifi_get_info(Wifi* instance, WifiInfo* info) {
     furi_check(instance);
     furi_check(info);
 
-    WifiMessage msg = {
-        .request_type = WifiRequestTypeGetInfo,
-        .get_info_message =
-            {
-                .info = info,
-            },
-    };
+    // TODO: Protect with mutex / use FuriState
+    *info = instance->info;
 
-    wifi_send_message(instance, &msg);
-    return msg.status;
+    return WifiStatusOk;
 }
 
 WifiStatus wifi_get_hw_address(Wifi* instance, WifiHardwareAddress* hw_address) {

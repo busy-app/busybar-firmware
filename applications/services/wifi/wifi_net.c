@@ -104,19 +104,14 @@ void wifi_net_init(Wifi* instance, const WifiHardwareAddress* addr) {
 
     intercom_set_rx_callback(
         instance->intercom, IntercomChannelWifiData, wifi_net_intercom_rx_callback, instance);
-
-    wifi_set_state(instance, WifiStateDisconnected);
 }
 
-void wifi_net_up(Wifi* instance) {
+bool wifi_net_up(Wifi* instance, const WifiIpConfig* ip_config) {
     struct netif* netif = &instance->netif;
-
-    const WifiIpConfig* ip_config = &instance->settings.ip_config;
-    const WifiIpManagement mgmt = ip_config->mgmt;
 
     LOCK_TCPIP_CORE();
 
-    if(mgmt == WifiIpManagementStatic) {
+    if(ip_config->mgmt == WifiIpManagementStatic) {
         const WifiIpv4Settings* ip4_settings = &ip_config->ip4;
 
         netif->ip_addr.addr = ip4_settings->address.value;
@@ -127,51 +122,46 @@ void wifi_net_up(Wifi* instance) {
     netif_set_link_up(netif);
     netif_set_up(netif);
 
-    if(mgmt == WifiIpManagementDynamic) {
+    if(ip_config->mgmt == WifiIpManagementDynamic) {
         furi_check(dhcp_start(netif) == ERR_OK);
     }
 
     UNLOCK_TCPIP_CORE();
 
     if(ip_config->mgmt == WifiIpManagementDynamic) {
+        // TODO: Make waiting for address event driven?
+        // TODO: Timeout error after waiting for a while
         while(!dhcp_supplied_address(netif)) {
             FURI_LOG_D(TAG, "Waiting for IP configuration...");
             furi_delay_ms(1000);
         }
     }
 
-    wifi_set_state(instance, WifiStateConnected);
+    return true;
 }
 
 void wifi_net_down(Wifi* instance) {
-    wifi_set_state(instance, WifiStateDisconnected);
-
     struct netif* netif = &instance->netif;
 
     LOCK_TCPIP_CORE();
 
-    dhcp_stop(netif);
+    dhcp_release_and_stop(netif);
+
     netif_set_down(netif);
     netif_set_link_down(netif);
 
     UNLOCK_TCPIP_CORE();
 }
 
-void wifi_net_get_hw_address(Wifi* instance, WifiHardwareAddress* hw_addr) {
-    const struct netif* netif = &instance->netif;
-    memcpy(hw_addr->bytes, netif->hwaddr, HW_ADDRESS_LEN);
-}
-
 void wifi_net_get_ip_config(Wifi* instance, WifiIpConfig* ip_config) {
-    const WifiIpConfig* cfg = &instance->settings.ip_config;
-
-    ip_config->type = cfg->type;
-    ip_config->mgmt = cfg->mgmt;
-
-    WifiIpv4Settings* ip4_settings = &ip_config->ip4;
     const struct netif* netif = &instance->netif;
 
-    ip4_settings->address.value = netif->ip_addr.addr;
-    ip4_settings->mask.value = netif->netmask.addr;
-    ip4_settings->gateway.value = netif->gw.addr;
+    ip_config->type = WifiIpTypeV4;
+    ip_config->mgmt = dhcp_supplied_address(netif) ? WifiIpManagementDynamic :
+                                                     WifiIpManagementStatic;
+    WifiIpv4Settings* ip4 = &ip_config->ip4;
+
+    ip4->address.value = netif->ip_addr.addr;
+    ip4->mask.value = netif->netmask.addr;
+    ip4->gateway.value = netif->gw.addr;
 }
