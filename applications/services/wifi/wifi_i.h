@@ -61,6 +61,8 @@ struct Wifi {
     WifiInfo info;
 };
 
+WifiStatus wifi_get_hw_address(Wifi* instance, WifiHardwareAddress* hw_address);
+
 void wifi_net_init(Wifi* instance, const WifiHardwareAddress* addr);
 
 bool wifi_net_up(Wifi* instance, const WifiIpConfig* ip_config);

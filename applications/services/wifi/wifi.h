@@ -70,15 +70,6 @@ WifiStatus wifi_disconnect(Wifi* instance);
  */
 WifiStatus wifi_get_info(Wifi* instance, WifiInfo* info);
 
-/**
- * @brief Get the hardware address of the Wifi physical interface.
- *
- * @param[in,out] instance pointer to the Wifi instance
- * @param[out] info pointer to the structure to contain the hardware address
- * @returns WifiStatusOk on success, error code otherwise
- */
-WifiStatus wifi_get_hw_address(Wifi* instance, WifiHardwareAddress* hw_address);
-
 #ifdef __cplusplus
 }
 #endif
