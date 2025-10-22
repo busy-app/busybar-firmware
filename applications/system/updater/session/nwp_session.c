@@ -69,7 +69,7 @@ static bool nwp_get_active_version(FuriString* nwp_version) {
     return furi_string_size(nwp_version) > 0;
 }
 
-bool updater_nwp_session_has_actual_version(const char* nwp_rps_path) {
+bool updater_nwp_session_is_current_version(const char* nwp_rps_path) {
     bool should_update = true;
 
     FuriString* active_version_string = furi_string_alloc();

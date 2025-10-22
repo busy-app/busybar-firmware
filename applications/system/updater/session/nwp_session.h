@@ -6,7 +6,7 @@
 extern "C" {
 #endif
 
-bool updater_nwp_session_has_actual_version(const char* nwp_rps_path);
+bool updater_nwp_session_is_current_version(const char* nwp_rps_path);
 
 #ifdef __cplusplus
 }

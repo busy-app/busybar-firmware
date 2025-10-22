@@ -24,7 +24,7 @@ void updater_session_config_compose(const UpdateManifest* manifest, UpdaterSessi
         .do_update_917_firmware = !furi_string_empty(sl917_firmware_path),
         .do_update_917_radio_stack =
             !furi_string_empty(nwp_firmware_path) &&
-            updater_nwp_session_has_actual_version(furi_string_get_cstr(nwp_firmware_path)),
+            updater_nwp_session_is_current_version(furi_string_get_cstr(nwp_firmware_path)),
         .do_update_resources = !furi_string_empty(resources_path),
     };
 }
