@@ -357,6 +357,7 @@ UpdateTask* update_task_alloc(void) {
     FuriThread* thread = update_task->thread =
         furi_thread_alloc_ex("UpdateWorker", 5120, NULL, update_task);
 
+    furi_thread_set_state_context(thread, update_task);
     furi_thread_set_state_callback(thread, update_task_worker_thread_cb);
 
     furi_thread_set_callback(thread, update_task_worker_general);
