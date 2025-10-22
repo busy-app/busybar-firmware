@@ -25,12 +25,12 @@ extern "C" {
 const char* updater_tar_install_get_error_str(UpdaterTarStatus error_code);
 
 /**
- * @brief Execute the installation of a firmware update from a TAR file.
+ * @brief Execute the preparation of a firmware update from a TAR file.
  *
  * @param tar_path The path to the TAR file.
  * @param staging_path Optional path where to unpack (pass NULL to use default).
- * @param auto_reboot If true, automatically reboot after successful installation.
- * @return The status of the update installation.
+ * @param auto_reboot If true, automatically reboot after successful preparation.
+ * @return The status of the update preparation.
  */
 UpdaterTarStatus
     updater_tar_install(const char* tar_path, const char* staging_path, bool auto_reboot);
