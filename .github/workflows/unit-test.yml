@@ -102,7 +102,7 @@ jobs:
 
       - name: Run smoke tests
         run: |
-          cd tests
+          cd scripts/autotests
           python3 -m pytest . -v \
             --alluredir=allure-results \
             --clean-alluredir \
@@ -128,7 +128,7 @@ jobs:
         if: always()
         id: allure_upload
         run: |
-          cd tests
+          cd scripts/autotests
           echo "Uploading test results to Allure TestOps..."
 
           # Get branch name
@@ -181,7 +181,7 @@ jobs:
       - name: Upload test results to S3
         if: always()
         run: |
-          cd tests
+          cd scripts/autotests
           # Create unique path for this test run with project prefix
           RUN_ID="${{ github.run_number }}-${{ github.sha }}"
           S3_PATH="s3://flipper-aws-qa-tests/bsb/test-results/all/$RUN_ID"
@@ -215,7 +215,7 @@ jobs:
       - name: Download previous Allure history from S3
         if: always()
         run: |
-          cd tests
+          cd scripts/autotests
           # Download previous history if it exists
           HISTORY_PATH="s3://flipper-aws-qa-tests/bsb/allure-history/all"
           mkdir -p allure-history
@@ -227,7 +227,7 @@ jobs:
       - name: Generate Allure report with history
         if: always()
         run: |
-          cd tests
+          cd scripts/autotests
           # Copy history to allure-results if it exists
           if [ -d "allure-history" ] && [ "$(ls -A allure-history)" ]; then
             cp -r allure-history/* allure-results/ 2>/dev/null || true
@@ -246,7 +246,7 @@ jobs:
       - name: Upload Allure report and history to S3
         if: always()
         run: |
-          cd tests
+          cd scripts/autotests
           RUN_ID="${{ github.run_number }}-${{ github.sha }}"
 
           # Upload the complete report
@@ -289,11 +289,17 @@ jobs:
           
           # Add Allure TestOps launch link if available
           if [ "${{ steps.allure_upload.outputs.ALLURE_UPLOAD_SUCCESS }}" = "true" ] && [ -n "${{ steps.allure_upload.outputs.ALLURE_LAUNCH_URL }}" ]; then
+            LAUNCH_URL="${{ steps.allure_upload.outputs.ALLURE_LAUNCH_URL }}"
+            echo "Debug: Launch URL is: $LAUNCH_URL"
             if [ -n "${{ steps.allure_upload.outputs.ALLURE_LAUNCH_ID }}" ]; then
-              echo "- 🚀 [Allure TestOps Launch [${{ steps.allure_upload.outputs.ALLURE_LAUNCH_ID }}]](${{ steps.allure_upload.outputs.ALLURE_LAUNCH_URL }})" >> $GITHUB_STEP_SUMMARY
+              echo "- 🚀 [Allure TestOps Launch [${{ steps.allure_upload.outputs.ALLURE_LAUNCH_ID }}]]($LAUNCH_URL)" >> $GITHUB_STEP_SUMMARY
             else
-              echo "- 🚀 [Allure TestOps Launch](${{ steps.allure_upload.outputs.ALLURE_LAUNCH_URL }})" >> $GITHUB_STEP_SUMMARY
+              echo "- 🚀 [Allure TestOps Launch]($LAUNCH_URL)" >> $GITHUB_STEP_SUMMARY
             fi
+          else
+            echo "Debug: Allure upload failed or no URL captured"
+            echo "Debug: Success = ${{ steps.allure_upload.outputs.ALLURE_UPLOAD_SUCCESS }}"
+            echo "Debug: URL = ${{ steps.allure_upload.outputs.ALLURE_LAUNCH_URL }}"
           fi
           
           echo "- 📋 [This Run Report](https://flipper-aws-qa-tests.s3.eu-central-1.amazonaws.com/bsb/allure-reports/all/$RUN_ID/index.html)" >> $GITHUB_STEP_SUMMARY
