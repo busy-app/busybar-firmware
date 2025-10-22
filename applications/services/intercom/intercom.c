@@ -320,6 +320,8 @@ static int32_t intercom_rx_thread(void* arg) {
     return 0;
 }
 
+#include "power/power_service/power.h"
+
 static Intercom* intercom_alloc(void) {
     Intercom* instance = malloc(sizeof(Intercom));
 
@@ -354,6 +356,13 @@ static Intercom* intercom_alloc(void) {
             TAG,
             "Initial sync failed, retrying in %ld ms",
             INTERCOM_INITIAL_SYNC_RETRY_LOCKOUT_MS);
+
+#if defined(TARGET_F20)
+        Power* power = furi_record_open(RECORD_POWER);
+        power_reboot(power, PowerRebootNormal);
+        furi_record_close(RECORD_POWER);
+#endif
+
         furi_delay_ms(INTERCOM_INITIAL_SYNC_RETRY_LOCKOUT_MS);
     }
 
