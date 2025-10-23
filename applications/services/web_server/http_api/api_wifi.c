@@ -383,12 +383,12 @@ static bool api_wifi_disconnect_callback(
     return true;
 }
 
-static void api_wifi_format_bssid(WifiHardwareAddress* bssid, char* str_out, size_t str_out_size) {
+static void api_wifi_format_bssid(const uint8_t* bssid, char* str_out, size_t str_out_size) {
     memset(str_out, 0, str_out_size);
 
     for(size_t i = 0; i < HW_ADDRESS_LEN; i++) {
         char part[4];
-        snprintf(part, sizeof(part), "%02X", bssid->bytes[i]);
+        snprintf(part, sizeof(part), "%02X", bssid[i]);
         strcat(str_out, part);
 
         if(i != HW_ADDRESS_LEN - 1) {
@@ -423,9 +423,9 @@ static bool api_wifi_get_status_callback(
             const char* security_mode = security_modes[info.security_mode];
             cJSON_AddStringToObject(response, WIFI_JSON_KEY_SECURITY, security_mode);
 
-            char bssid[32];
-            api_wifi_format_bssid(&info.bssid, bssid, sizeof(bssid));
-            cJSON_AddStringToObject(response, WIFI_JSON_KEY_BSSID, bssid);
+            char bssid_str[32];
+            api_wifi_format_bssid(info.bssid, bssid_str, sizeof(bssid_str));
+            cJSON_AddStringToObject(response, WIFI_JSON_KEY_BSSID, bssid_str);
 
             cJSON_AddNumberToObject(response, WIFI_JSON_KEY_CHANNEL, info.channel);
 

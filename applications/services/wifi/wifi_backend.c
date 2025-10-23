@@ -36,6 +36,22 @@ static inline void wifi_set_state(Wifi* instance, WifiBackendState state) {
     }
 }
 
+static void wifi_init_request_handler(Wifi* instance) {
+    FURI_LOG_D(TAG, "Init");
+
+    WifiResponse* response = &instance->response;
+
+    const sl_status_t status =
+        sl_wifi_get_mac_address(SL_WIFI_CLIENT_INTERFACE, (sl_mac_address_t*)response->hw_address);
+
+    if(status != SL_STATUS_OK) {
+        FURI_LOG_E(TAG, "Failed to get MAC address: %lX", status);
+    }
+
+    response->status = wifi_decode_sl_status(status);
+    wifi_send_response(instance);
+}
+
 static void wifi_scan_request_handler(Wifi* instance) {
     FURI_LOG_D(TAG, "Scan");
 
@@ -55,6 +71,8 @@ static void wifi_scan_request_handler(Wifi* instance) {
 
 static void wifi_connect_request_handler(Wifi* instance) {
     FURI_LOG_D(TAG, "Connect");
+
+    WifiResponse* response = &instance->response;
 
     sl_status_t status;
 
@@ -125,14 +143,14 @@ static void wifi_connect_request_handler(Wifi* instance) {
 
     } while(false);
 
-    WifiResponse* response = &instance->response;
     response->status = wifi_decode_sl_status(status);
-
     wifi_send_response(instance);
 }
 
 static void wifi_disconnect_request_handler(Wifi* instance) {
     FURI_LOG_D(TAG, "Disconnect");
+
+    WifiResponse* response = &instance->response;
 
     sl_status_t status;
 
@@ -148,19 +166,19 @@ static void wifi_disconnect_request_handler(Wifi* instance) {
 
     } while(false);
 
-    WifiResponse* response = &instance->response;
     response->status = wifi_decode_sl_status(status);
-
     wifi_send_response(instance);
 }
 
 static void wifi_get_backend_info_request_handler(Wifi* instance) {
     FURI_LOG_D(TAG, "GetBackendInfo");
 
+    WifiResponse* response = &instance->response;
+
     sl_status_t status;
 
     do {
-        WifiBackendInfo* backend_info = &instance->response.backend_info;
+        WifiBackendInfo* backend_info = &response->backend_info;
 
         if(instance->state != WifiBackendStateConnected) {
             status = SL_STATUS_SI91X_COMMAND_GIVEN_IN_INVALID_STATE;
@@ -187,26 +205,7 @@ static void wifi_get_backend_info_request_handler(Wifi* instance) {
 
     } while(false);
 
-    WifiResponse* response = &instance->response;
     response->status = wifi_decode_sl_status(status);
-
-    wifi_send_response(instance);
-}
-
-static void wifi_init_request_handler(Wifi* instance) {
-    FURI_LOG_D(TAG, "Init");
-
-    WifiHardwareAddress* hw_address = &instance->response.hw_address;
-    const sl_status_t status =
-        sl_wifi_get_mac_address(SL_WIFI_CLIENT_INTERFACE, (sl_mac_address_t*)hw_address);
-
-    if(status != SL_STATUS_OK) {
-        FURI_LOG_E(TAG, "Failed to get MAC address: %lX", status);
-    }
-
-    WifiResponse* response = &instance->response;
-    response->status = wifi_decode_sl_status(status);
-
     wifi_send_response(instance);
 }
 

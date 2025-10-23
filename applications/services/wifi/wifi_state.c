@@ -19,7 +19,8 @@ void wifi_state_transition(Wifi* instance, WifiState new_state, ...) {
     if(current_state == WifiStateUnknown) {
         if(new_state == WifiStateDisconnected) {
             wifi_state_reset_info(info);
-            info->bssid = *(va_arg(args, const WifiHardwareAddress*));
+            memcpy(info->bssid, va_arg(args, const uint8_t*), HW_ADDRESS_LEN);
+
         } else {
             furi_crash("Invalid transition from WifiStateUnknown");
         }

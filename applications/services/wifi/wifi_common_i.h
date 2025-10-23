@@ -50,6 +50,6 @@ typedef struct {
     union {
         WifiScanResults scan_results;
         WifiBackendInfo backend_info;
-        WifiHardwareAddress hw_address;
+        uint8_t hw_address[HW_ADDRESS_LEN];
     };
 } WifiResponse;

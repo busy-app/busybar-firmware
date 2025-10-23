@@ -94,7 +94,7 @@ static void wifi_net_intercom_rx_callback(const void* data, size_t data_size, vo
     }
 }
 
-void wifi_net_init(Wifi* instance, const WifiHardwareAddress* addr) {
+void wifi_net_init(Wifi* instance, const uint8_t* hw_addr) {
     furi_record_open(RECORD_USB_NETWORK);
 
     struct netif* netif = &instance->netif;
@@ -109,7 +109,7 @@ void wifi_net_init(Wifi* instance, const WifiHardwareAddress* addr) {
     netif_set_default(netif);
 
     netif->hwaddr_len = ETH_HWADDR_LEN;
-    memcpy(netif->hwaddr, addr, ETH_HWADDR_LEN);
+    memcpy(netif->hwaddr, hw_addr, ETH_HWADDR_LEN);
 
     UNLOCK_TCPIP_CORE();
 

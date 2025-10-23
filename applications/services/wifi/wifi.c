@@ -124,7 +124,7 @@ static void wifi_process_response(Wifi* instance) {
 
     if(status == WifiStatusOk) {
         if(request_type == WifiRequestTypeInit) {
-            const WifiHardwareAddress* hw_address = &response->hw_address;
+            const uint8_t* hw_address = response->hw_address;
 
             wifi_net_init(instance, hw_address);
             wifi_state_transition(instance, WifiStateDisconnected, hw_address);

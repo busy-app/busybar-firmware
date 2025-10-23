@@ -131,11 +131,6 @@ typedef struct {
     WifiIpv6Settings ip6;
 } WifiIpConfig;
 
-/** Hardware (MAC) address structure. */
-typedef struct {
-    uint8_t bytes[HW_ADDRESS_LEN]; /**< Hardware address value */
-} WifiHardwareAddress;
-
 /**
  * @brief Wifi information structure.
  *
@@ -143,7 +138,7 @@ typedef struct {
  */
 typedef struct {
     char ssid[SSID_MAX_LEN]; /**< Access point name (SSID) */
-    WifiHardwareAddress bssid; /**< Access point MAC address (BSSID) */
+    uint8_t bssid[HW_ADDRESS_LEN]; /**< Access point MAC address (BSSID) */
     int32_t rssi; /**< Signal strength (RSSI) in dBm */
     uint16_t channel; /**< Channel number */
     WifiSecurityMode security_mode; /**< Type of protection used by the current access point */
