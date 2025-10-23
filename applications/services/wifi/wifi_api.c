@@ -1,6 +1,6 @@
 #include "wifi_i.h"
 
-static void wifi_send_message(Wifi* instance, WifiMessage* message) {
+static void wifi_api_blocking_request(Wifi* instance, WifiMessage* message) {
     message->lock = api_lock_alloc_locked();
 
     furi_check(furi_semaphore_acquire(instance->api_semaphore, FuriWaitForever) == FuriStatusOk);
@@ -85,7 +85,7 @@ WifiStatus wifi_scan(Wifi* instance, WifiScanResult* results, uint8_t* count, ui
             },
     };
 
-    wifi_send_message(instance, &msg);
+    wifi_api_blocking_request(instance, &msg);
     return msg.status;
 }
 
@@ -105,7 +105,7 @@ WifiStatus wifi_connect(
             },
     };
 
-    wifi_send_message(instance, &msg);
+    wifi_api_blocking_request(instance, &msg);
     return msg.status;
 }
 
@@ -116,7 +116,7 @@ WifiStatus wifi_disconnect(Wifi* instance) {
         .request_type = WifiRequestTypeDisconnect,
     };
 
-    wifi_send_message(instance, &msg);
+    wifi_api_blocking_request(instance, &msg);
     return msg.status;
 }
 
