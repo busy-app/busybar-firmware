@@ -63,7 +63,7 @@ static bool update_task_flash_program_page(
     return true;
 }
 
-static bool pdate_task_compare_flash(
+static bool update_task_compare_flash(
     const uint8_t i_page,
     const uint8_t* update_block,
     uint16_t update_block_len) {
@@ -124,7 +124,7 @@ static bool update_task_write_dfu(UpdateTask* update_task) {
         CHECK_RESULT(dfu_file_process_targets(&page_task, dfu_file, n_targets));
 
         update_task_set_progress(update_task, UpdateTaskStageFlashValidate, 0);
-        page_task.task_cb = &pdate_task_compare_flash;
+        page_task.task_cb = &update_task_compare_flash;
         CHECK_RESULT(dfu_file_process_targets(&page_task, dfu_file, n_targets));
 
         success = true;

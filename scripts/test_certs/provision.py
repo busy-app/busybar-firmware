@@ -328,7 +328,7 @@ def main():
             desc="provision device info",
         )
 
-    print(f"Passcode: {args.passcode}, Descriminator: {args.discriminator}")
+    print(f"Passcode: {args.passcode}, Discriminator: {args.discriminator}")
     print("Provisioning complete.")
 
 

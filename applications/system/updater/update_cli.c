@@ -1,3 +1,4 @@
+#include "update.h"
 #include "sl_updater.h"
 #include "sl_update_params.h"
 
@@ -14,11 +15,10 @@
 #include <toolbox/tar/tar_archive.h>
 #include <toolbox/path.h>
 #include <applications/system/fetch/fetch.h>
-#include <toolbox/update_fw_tar.h>
 
 #define TAG                 "UpdaterCli"
-#define UPDATE_STAGING_ROOT ("/update")
-#define UPDATE_TAR_TMP      ("/upload.tar")
+#define UPDATE_STAGING_ROOT "update"
+#define UPDATE_TAR_TEMP     "upload.tar"
 
 static void
     updater_cli_progress_callback(SlUpdaterProgressPhase phase, uint8_t percentage, void* context) {
@@ -80,52 +80,61 @@ static void updater_cli_execute_917probe() {
 static void updater_cli_execute_install(const char* manifest_path) {
     printf("Installing update bundle from: %s\r\n", manifest_path);
 
-    UpdateConfig* state = update_config_alloc();
-    Storage* storage = furi_record_open(RECORD_STORAGE);
-
     do {
-        UpdateConfigValidation config_state = update_config_load(state, manifest_path);
-        if(config_state != UpdateConfigValidationOK) {
+        UpdaterStatus prepare_install_status = updater_prepare_install(manifest_path);
+        if(prepare_install_status != UpdaterStatusSuccess) {
             printf(
-                "Failed to load updater configuration: %s\r\n",
-                update_config_validation_get_error_str(config_state));
+                "Update prepare install failed: %s\r\n",
+                updater_get_status_string(prepare_install_status));
+
             break;
         }
 
-        printf("Updater configuration valid\r\n");
-
-        if(!update_config_write_pointer_file(storage, manifest_path)) {
-            printf("Failed to write manifest path to pointer file.\r\n");
-            break;
-        }
-
-        printf("Manifest path written to %s\r\n", EXT_PATH(UPDATE_POINTER_FILE_NAME));
-
-        furi_hal_nvm_set_boot_mode(FuriHalNvmBootModeUpdate);
-        printf("Boot mode set to Update. Rebooting...\r\n");
-        furi_hal_power_reset();
+        updater_reboot_install();
     } while(false);
-
-    furi_record_close(RECORD_STORAGE);
-    update_config_free(state);
 }
 
-static void updater_cli_execute_install_tar(const char* path) {
-    printf("Installing update bundle from: %s\r\n", path);
-    if(!update_fw_tar_install(path)) {
-        printf("Update failed\r\n");
-    }
+static void updater_cli_execute_install_tar(const char* tar_path) {
+    printf("Installing update bundle from: %s\r\n", tar_path);
+
+    FuriString* manifest_path = furi_string_alloc();
+
+    do {
+        UpdaterStatus unpack_tar_status = updater_unpack_tar(tar_path, NULL, manifest_path);
+        if(unpack_tar_status != UpdaterStatusSuccess) {
+            printf(
+                "Update unpack TAR failed: %s\r\n", updater_get_status_string(unpack_tar_status));
+
+            break;
+        }
+
+        UpdaterStatus prepare_install_status =
+            updater_prepare_install(furi_string_get_cstr(manifest_path));
+        if(prepare_install_status != UpdaterStatusSuccess) {
+            printf(
+                "Update prepare install failed: %s\r\n",
+                updater_get_status_string(prepare_install_status));
+
+            break;
+        }
+
+        updater_reboot_install();
+    } while(false);
+
+    furi_string_free(manifest_path);
 }
 
 static void updater_cli_execute_install_web(const char* link) {
     printf("Installing update bundle from web: %s\r\n", link);
+
     FuriString* url = furi_string_alloc_set_str(link);
-    FuriString* file_path = furi_string_alloc();
-    path_concat(STORAGE_EXT_PATH_PREFIX, UPDATE_STAGING_ROOT, file_path);
-    path_concat(furi_string_get_cstr(file_path), UPDATE_TAR_TMP, file_path);
+    FuriString* file_path =
+        furi_string_alloc_set_str(EXT_PATH(UPDATE_STAGING_ROOT "/" UPDATE_TAR_TEMP));
+
     if(fetch_download_file(url, file_path)) {
         updater_cli_execute_install_tar(furi_string_get_cstr(file_path));
     }
+
     furi_string_free(url);
     furi_string_free(file_path);
 }
