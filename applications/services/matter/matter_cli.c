@@ -23,11 +23,18 @@ static const char* const switch_state_colors[2] = {
     ANSI_FG_GREEN,
 };
 
+static const char* const startup_modes[MatterSwitchStartupModeMAX] = {
+    "OFF",
+    "ON",
+    "TOGGLE",
+    "LAST",
+};
+
 // ============
 // Sub-commands
 // ============
 
-static void matter_cli_cmd_set_print_usage(void) {
+static void matter_cli_cmd_switch_print_usage(void) {
     printf("Usage: switch <state>\r\n");
     printf("  state: on|off\r\n");
 }
@@ -42,7 +49,7 @@ static void matter_cli_cmd_switch(PipeSide* pipe, FuriString* args, void* contex
     do {
         // parse device state
         if(!args_read_string_and_trim(args, arg)) {
-            matter_cli_cmd_set_print_usage();
+            matter_cli_cmd_switch_print_usage();
             break;
         }
 
@@ -54,11 +61,48 @@ static void matter_cli_cmd_switch(PipeSide* pipe, FuriString* args, void* contex
         }
 
         if(i == COUNT_OF(switch_states)) {
-            matter_cli_cmd_set_print_usage();
+            matter_cli_cmd_switch_print_usage();
             break;
         }
 
         matter_set_switch_state(matter_cli->matter, i);
+
+    } while(0);
+
+    furi_string_free(arg);
+}
+
+static void matter_cli_cmd_startup_print_usage(void) {
+    printf("Usage: startup <mode>\r\n");
+    printf("  mode: off|on|toggle|last\r\n");
+}
+
+static void matter_cli_cmd_startup(PipeSide* pipe, FuriString* args, void* context) {
+    UNUSED(pipe);
+    furi_assert(context);
+    MatterCli* matter_cli = context;
+
+    FuriString* arg = furi_string_alloc();
+
+    do {
+        if(!args_read_string_and_trim(args, arg)) {
+            matter_cli_cmd_startup_print_usage();
+            break;
+        }
+
+        size_t i;
+        for(i = 0; i < COUNT_OF(startup_modes); i++) {
+            if(furi_string_cmpi(arg, startup_modes[i]) == 0) {
+                break;
+            }
+        }
+
+        if(i == COUNT_OF(startup_modes)) {
+            matter_cli_cmd_startup_print_usage();
+            break;
+        }
+
+        matter_set_switch_startup_mode(matter_cli->matter, i);
 
     } while(0);
 
@@ -211,6 +255,12 @@ void matter_cli_command(PipeSide* pipe, FuriString* args, void* context) {
         "switch",
         CliCommandFlagParallelSafe | CliCommandFlagUseShellThread,
         matter_cli_cmd_switch,
+        matter_cli);
+    cli_registry_add_command(
+        matter_cli->commands,
+        "startup",
+        CliCommandFlagParallelSafe | CliCommandFlagUseShellThread,
+        matter_cli_cmd_startup,
         matter_cli);
     cli_registry_add_command(
         matter_cli->commands,

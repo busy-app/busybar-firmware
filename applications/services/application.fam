@@ -40,6 +40,7 @@ App(
         "sntp",
         "tls_crypto",
         "matter",
+        "update_checker",
         "device_name",
     ],
     targets=["f20", "f21"],

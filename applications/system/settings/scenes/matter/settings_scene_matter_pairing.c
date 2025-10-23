@@ -30,8 +30,6 @@ static void settings_scene_matter_pairing_on_enter(void* context) {
     UNUSED(window_secs);
 
     with_gui(app->gui, {
-        widget_set_visible(nav_bar_get_base(app->back_nav_bar), true);
-
         scene->front_prompt = status_view_alloc(app->front_scene_window);
         status_view_set_icon(scene->front_prompt, SETTINGS_IMG_PATH("info_front_7x7.bin"));
         status_view_set_header(scene->front_prompt, "Look at back\nscreen");
@@ -68,15 +66,11 @@ static bool settings_scene_matter_pairing_on_event(const SceneManagerEvent* even
 
     bool consumed = false;
 
-    do {
-        if(event->type == SceneManagerEventTypeCustom) {
-            consumed = matter_scene_replace_current(app, event->event);
-            if(consumed) break;
-
-        } else if(event->type == SceneManagerEventTypeBack) {
-            settings_pop_location(app);
-        }
-    } while(0);
+    if(event->type == SceneManagerEventTypeCustom) {
+        consumed = matter_scene_replace_current(app, event->event);
+    } else if(event->type == SceneManagerEventTypeBack) {
+        settings_pop_location(app);
+    }
 
     return consumed;
 }

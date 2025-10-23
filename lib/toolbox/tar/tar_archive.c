@@ -38,13 +38,13 @@ typedef struct TarArchive {
 
 /* Plain file backend - uncompressed, supports read and write */
 static int mtar_storage_file_write(void* stream, const void* data, unsigned size) {
-    uint16_t bytes_written = storage_file_write(stream, data, size);
-    return (bytes_written == size) ? bytes_written : MTAR_EWRITEFAIL;
+    size_t bytes_written = storage_file_write(stream, data, size);
+    return (bytes_written == size) ? (int)bytes_written : MTAR_EWRITEFAIL;
 }
 
 static int mtar_storage_file_read(void* stream, void* data, unsigned size) {
-    uint16_t bytes_read = storage_file_read(stream, data, size);
-    return (bytes_read == size) ? bytes_read : MTAR_EREADFAIL;
+    size_t bytes_read = storage_file_read(stream, data, size);
+    return (bytes_read == size) ? (int)bytes_read : MTAR_EREADFAIL;
 }
 
 static int mtar_storage_file_seek(void* stream, unsigned offset) {

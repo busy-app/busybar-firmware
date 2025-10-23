@@ -99,6 +99,21 @@ void widget_set_size(Widget* instance, int32_t width, int32_t height) {
     lv_obj_set_size((lv_obj_t*)instance, width, height);
 }
 
+void widget_set_size_content(Widget* instance) {
+    furi_check(instance);
+    lv_obj_set_size((lv_obj_t*)instance, LV_SIZE_CONTENT, LV_SIZE_CONTENT);
+}
+
+void widget_set_width_content(Widget* instance) {
+    furi_check(instance);
+    lv_obj_set_width((lv_obj_t*)instance, LV_SIZE_CONTENT);
+}
+
+void widget_set_height_content(Widget* instance) {
+    furi_check(instance);
+    lv_obj_set_height((lv_obj_t*)instance, LV_SIZE_CONTENT);
+}
+
 void widget_set_pos_x(Widget* instance, int32_t x) {
     furi_check(instance);
     lv_obj_set_x((lv_obj_t*)instance, x);

@@ -29,6 +29,7 @@ struct FetchClient {
     uint32_t started_download_ticks;
     size_t delta_received_bytes;
     uint32_t count_receive_packets;
+    bool exit;
 
     FetchClientCallbackRawData callback_raw_data;
     FetchClientCallbackHeader callback_header;
@@ -69,7 +70,7 @@ static void fetch_client_update_on_data_cb(struct mg_connection* conn, struct mg
     instance->delta_received_bytes += io->len;
     instance->count_receive_packets++;
 
-    if((instance->count_receive_packets % 12) == 0) {
+    if((instance->count_receive_packets % (12 * 8)) == 0) {
         instance->status.speed_bytes_per_sec =
             (uint32_t)((float)instance->delta_received_bytes /
                        ((float)(furi_get_tick() - instance->started_raw_ticks + 1) /
@@ -237,7 +238,7 @@ static void fetch_client_mg_handler(struct mg_connection* conn, int event, void*
     }
 }
 
-//########## Tread callbacks ##########
+//########## Thread callbacks ##########
 static void
     fetch_client_thread_state_callback(FuriThread* thread, FuriThreadState state, void* context) {
     furi_assert(thread);
@@ -245,9 +246,9 @@ static void
 
     if(state == FuriThreadStateStopped) {
         furi_thread_free(thread);
+        instance->thread = NULL;
         FETCH_CLIENT_INFO(TAG, "Stop");
         furi_semaphore_release(instance->is_processing_semaphore);
-        instance->thread = NULL;
     }
 }
 
@@ -262,10 +263,15 @@ static int32_t fetch_client_thread_callback(void* context) {
     mg_log_set(MG_LL_VERBOSE);
 #endif
     mg_mgr_init(&instance->mgr);
-    mg_http_connect(
+    struct mg_connection* conn = mg_http_connect(
         &instance->mgr, furi_string_get_cstr(instance->url), fetch_client_mg_handler, instance);
 
     while(furi_semaphore_acquire(instance->done_poll_semaphore, 0) != FuriStatusOk) {
+        if(instance->exit) {
+            FETCH_CLIENT_INFO(TAG, "Fetch client forced done");
+            conn->is_draining = 1;
+            FETCH_CLIENT_INFO(TAG, "Connection closed");
+        }
         mg_mgr_poll(&instance->mgr, 1000);
         furi_thread_yield();
     }
@@ -297,7 +303,6 @@ FetchClient* fetch_client_alloc(void) {
 void fetch_client_free(FetchClient* instance) {
     furi_check(instance);
     furi_check(!furi_semaphore_get_space(instance->is_processing_semaphore));
-
     furi_string_free(instance->url);
     furi_semaphore_free(instance->done_poll_semaphore);
     furi_semaphore_free(instance->is_processing_semaphore);
@@ -318,6 +323,11 @@ void fetch_client_run(FetchClient* instance, FuriString* url) {
     FETCH_CLIENT_INFO(TAG, "Starting thread");
 
     furi_thread_start(instance->thread);
+}
+
+void fetch_client_forced_done(FetchClient* instance) {
+    furi_check(instance);
+    instance->exit = true;
 }
 
 bool fetch_client_is_processing_done(FetchClient* instance) {

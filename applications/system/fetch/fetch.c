@@ -1,16 +1,10 @@
 #include "fetch.h"
-#include "helpers/fetch_client.h"
-#include "helpers/fetch_file_save.h"
+#include <toolbox/fetch/fetch_client.h>
+#include <toolbox/fetch/fetch_file_save.h>
 
 #include <furi.h>
 #include <cli/args.h>
 #include <cli/cli_ansi.h>
-#include <cli/cli_status.h>
-
-#include <mongoose.h>
-#include <mongoose_glue.h>
-#include <wifi/wifi.h>
-#include <network/network.h>
 
 #define TAG "Fetch"
 
