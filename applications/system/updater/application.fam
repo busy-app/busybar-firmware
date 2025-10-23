@@ -2,7 +2,7 @@ App(
     appid="update_cli",
     name="update",
     apptype=FlipperAppType.CLICMD,
-    sources=["update_cli.c", "sl_updater.c", "fkermit.c", "update_tar.c", "helpers/*.c", "session/*.c"],
+    sources=["update_cli.c", "sl_updater.c", "fkermit.c", "update.c", "helpers/*.c", "session/*.c"],
     entry_point="update_cli_command",
     requires=["storage", "cli_commands_target_specific"],
 )

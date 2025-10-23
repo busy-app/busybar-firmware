@@ -5,7 +5,7 @@
 #include <toolbox/path.h>
 
 #include <storage/storage.h>
-#include <applications/system/updater/update_tar.h>
+#include <applications/system/updater/update.h>
 
 #define TAG "HttpApiUpdate"
 
@@ -82,41 +82,64 @@ static bool
     handle_completed_upload_and_reboot(HttpUpdateHandlerCtx* ctx, struct mg_connection* conn) {
     FURI_LOG_I(TAG, "File upload complete. Processing update package.");
 
-    /* construct final staging path */
-    if(furi_string_empty(ctx->package_name_param)) {
-        FURI_LOG_E(TAG, "Package name is empty, cannot proceed.");
-        MG_REPLY_BAD_REQUEST(conn);
-        return false;
+    FuriString* manifest_path = NULL;
+
+    bool is_success = false;
+    do {
+        /* construct final staging path */
+        if(furi_string_empty(ctx->package_name_param)) {
+            FURI_LOG_E(TAG, "Package name is empty, cannot proceed.");
+            MG_REPLY_BAD_REQUEST(conn);
+            break;
+        }
+
+        path_concat(
+            UPDATE_STAGING_ROOT,
+            furi_string_get_cstr(ctx->package_name_param),
+            ctx->final_staging_path);
+
+        FURI_LOG_I(TAG, "Final staging path: %s", furi_string_get_cstr(ctx->final_staging_path));
+
+        manifest_path = furi_string_alloc();
+        UpdaterStatus unpack_tar_status = updater_unpack_tar(
+            furi_string_get_cstr(ctx->temp_tar_path),
+            furi_string_get_cstr(ctx->final_staging_path),
+            manifest_path);
+        if(unpack_tar_status != UpdaterStatusSuccess) {
+            const char* error_string = updater_get_status_string(unpack_tar_status);
+            FURI_LOG_E(TAG, "Update unpack TAR failed: %s", error_string);
+            MG_REPLY_ERROR(conn, 400, "Update unpack TAR failed: %s", error_string);
+            break;
+        }
+
+        UpdaterStatus prepare_install_status =
+            updater_prepare_install(furi_string_get_cstr(manifest_path));
+        if(prepare_install_status != UpdaterStatusSuccess) {
+            const char* error_string = updater_get_status_string(prepare_install_status);
+            FURI_LOG_E(TAG, "Update prepare install failed: %s", error_string);
+            MG_REPLY_ERROR(conn, 400, "Update prepare install failed: %s", error_string);
+
+            break;
+        }
+
+        /* update succeeded - mark for reboot */
+        ctx->reboot_initiated = true;
+        FURI_LOG_I(TAG, "Reboot pending");
+
+        MG_REPLY_OK_BODY(
+            conn, "{\"result\":\"OK\",\"message\":\"Update accepted. System will reboot.\"}\n");
+
+        conn->is_draining = 1;
+
+        /* reboot will now occur in on_close_cb after response is sent. */
+        is_success = true;
+    } while(false);
+
+    if(manifest_path) {
+        furi_string_free(manifest_path);
     }
-    path_concat(
-        UPDATE_STAGING_ROOT,
-        furi_string_get_cstr(ctx->package_name_param),
-        ctx->final_staging_path);
-    FURI_LOG_I(TAG, "Final staging path: %s", furi_string_get_cstr(ctx->final_staging_path));
 
-    UpdaterTarStatus status = updater_tar_install(
-        furi_string_get_cstr(ctx->temp_tar_path),
-        furi_string_get_cstr(ctx->final_staging_path),
-        false);
-
-    if(status != UpdaterTarStatusSuccess) {
-        const char* error_str = updater_tar_install_get_error_str(status);
-        FURI_LOG_E(TAG, "Update installation failed: %s", error_str);
-        MG_REPLY_ERROR(conn, 400, "Update installation failed: %s", error_str);
-        return false;
-    }
-
-    /* update succeeded - mark for reboot */
-    ctx->reboot_initiated = true;
-    FURI_LOG_I(TAG, "Reboot pending");
-
-    MG_REPLY_OK_BODY(
-        conn, "{\"result\":\"OK\",\"message\":\"Update accepted. System will reboot.\"}\n");
-
-    conn->is_draining = 1;
-
-    // Reboot will now occur in on_close_cb after response is sent.
-    return true;
+    return is_success;
 }
 
 static void http_api_update_on_data_cb(struct mg_connection* conn, struct mg_iobuf* io) {
@@ -204,8 +227,7 @@ static void http_api_update_on_close_cb(struct mg_connection* conn) {
 
     if(reboot_was_initiated) {
         FURI_LOG_I(TAG, "Rebooting device now after response sent and connection closed.");
-        furi_delay_ms(100); // Brief delay for safety before reset
-        furi_hal_power_reset();
+        updater_reboot_install();
     }
 }
 
