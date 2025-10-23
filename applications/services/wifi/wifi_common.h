@@ -36,13 +36,12 @@ typedef struct Wifi Wifi;
 typedef enum {
     WifiStatusOk, /**< No error has occurred. */
     WifiStatusError, /**< A generic error has occurred. */
-    WifiStatusNotInitialized, /**< Wifi was not initialized before use. */
-    WifiStatusAlreadyInitialized, /** Wifi has already been initialized. */
-    WifiStatusFailedToInitialize, /** Wifi initialization failed. */
-    WifiStatusAlreadyConnected, /** Wifi has already been connected. */
-    WifiStatusAccessPointNotFound, /** Wifi access point was not found. */
-    WifiStatusNotValidForThisCommand, /** Command issued in an invalid state. */
-    // TODO: Add more errors
+    WifiStatusTimeout, /**< Command timed out. */
+    WifiStatusAlreadyConnected, /**< Wifi has already been connected. */
+    WifiStatusAlreadyDisconnected, /**< Wifi has already been disconnected. */
+    WifiStatusScanNotPossible, /**< Failed to scan due to Wifi being connected. */
+    WifiStatusAccessPointNotFound, /**< Wifi access point was not found. */
+    WifiStatusAuthenticationFailed, /**< Wifi authentication failed. */
     WifiStatusMax, /**< Special value, internal use */
 } WifiStatus;
 
@@ -51,8 +50,8 @@ typedef enum {
     WifiStateUnknown,
     WifiStateDisconnected, /**< The Wifi system is in disconnected state */
     WifiStateConnected, /**< The Wifi system is in connected state */
-    WifiStateConnecting,
-    WifiStateDisconnecting,
+    WifiStateConnecting, /**< The Wifi system is trying to connect */
+    WifiStateDisconnecting, /**< The Wifi system is disconnecting */
     WifiStateMax, /**< Special value, internal use */
 } WifiState;
 

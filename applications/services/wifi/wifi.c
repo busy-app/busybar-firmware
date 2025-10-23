@@ -82,29 +82,37 @@ static void wifi_process_request(Wifi* instance) {
     WifiRequest* request = &instance->request;
 
     const WifiRequestType request_type = message->request_type;
-    request->type = request_type;
+    const WifiStatus status = wifi_state_check_request_type(instance, request_type);
 
-    if(request_type == WifiRequestTypeInit) {
-        // TODO [FW-300]: Implement reliable Intercom channel opening
-        furi_delay_ms(250); // Wait for the Wifi service to become ready on Si917
+    if(status == WifiStatusOk) {
+        if(request_type == WifiRequestTypeInit) {
+            // TODO [FW-300]: Implement reliable Intercom channel opening
+            furi_delay_ms(250); // Wait for the Wifi service to become ready on Si917
 
-    } else if(request_type == WifiRequestTypeConnect) {
-        const WifiConnectMessage* connect_message = &message->connect_message;
-        const WifiCredentials* credentials = &connect_message->credentials;
+        } else if(request_type == WifiRequestTypeConnect) {
+            const WifiConnectMessage* connect_message = &message->connect_message;
+            const WifiCredentials* credentials = &connect_message->credentials;
 
-        WifiConnectRequest* connect_request = &request->connect_request;
-        connect_request->credentials = *credentials;
+            WifiConnectRequest* connect_request = &request->connect_request;
+            connect_request->credentials = *credentials;
 
-        wifi_state_transition(instance, WifiStateConnecting);
+            wifi_state_transition(instance, WifiStateConnecting);
 
-        FURI_LOG_I(TAG, "Connecting to \"%s\"", credentials->ssid);
+            FURI_LOG_I(TAG, "Connecting to \"%s\"", credentials->ssid);
 
-    } else if(request_type == WifiRequestTypeDisconnect) {
-        wifi_state_transition(instance, WifiStateDisconnecting);
+        } else if(request_type == WifiRequestTypeDisconnect) {
+            wifi_state_transition(instance, WifiStateDisconnecting);
+        }
+
+        request->type = request_type;
+
+        intercom_tx(
+            instance->intercom, IntercomChannelWifi, request, sizeof(WifiRequest), FuriWaitForever);
+
+    } else {
+        FURI_LOG_E(TAG, "Request type: %d failed with status: %d", request_type, status);
+        wifi_api_unlock(instance, status);
     }
-
-    intercom_tx(
-        instance->intercom, IntercomChannelWifi, request, sizeof(WifiRequest), FuriWaitForever);
 }
 
 static void wifi_process_response(Wifi* instance) {
@@ -182,8 +190,16 @@ static void wifi_process_response(Wifi* instance) {
         }
 
     } else {
-        // TODO: Transitions from error conditions
         FURI_LOG_E(TAG, "Request type: %d failed with status: %d", request_type, status);
+
+        if(request_type == WifiRequestTypeConnect) {
+            wifi_state_transition(instance, WifiStateDisconnected);
+            wifi_save_default_settings();
+
+        } else if(request_type == WifiRequestTypeDisconnect) {
+            wifi_state_transition(instance, WifiStateDisconnected);
+            furi_event_loop_timer_stop(instance->poll_timer);
+        }
     }
 
     wifi_api_unlock(instance, status);

@@ -80,12 +80,6 @@ static void wifi_connect_request_handler(Wifi* instance) {
         const WifiConnectRequest* request = &instance->request.connect_request;
         const WifiCredentials* credentials = &request->credentials;
 
-        if(instance->state == WifiBackendStateConnected) {
-            status = SL_STATUS_SI91X_SCAN_ISSUED_IN_ASSOCIATED_STATE;
-            FURI_LOG_E(TAG, "Wifi already connected");
-            break;
-        }
-
         // Initialise client profile
         sl_net_wifi_client_profile_t profile = {
             .config =
@@ -179,11 +173,6 @@ static void wifi_get_backend_info_request_handler(Wifi* instance) {
 
     do {
         WifiBackendInfo* backend_info = &response->backend_info;
-
-        if(instance->state != WifiBackendStateConnected) {
-            status = SL_STATUS_SI91X_COMMAND_GIVEN_IN_INVALID_STATE;
-            break;
-        }
 
         int32_t rssi;
         status = sl_wifi_get_signal_strength(SL_WIFI_CLIENT_2_4GHZ_INTERFACE, &rssi);

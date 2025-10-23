@@ -15,20 +15,15 @@ WifiStatus wifi_decode_sl_status(sl_status_t sl_status) {
 
     if(sl_status == SL_STATUS_OK) {
         status = WifiStatusOk;
-    } else if(sl_status == SL_STATUS_NOT_INITIALIZED) {
-        status = WifiStatusNotInitialized;
-    } else if(sl_status == SL_STATUS_ALREADY_INITIALIZED) {
-        status = WifiStatusAlreadyInitialized;
-    } else if(sl_status == SL_STATUS_INITIALIZATION) {
-        status = WifiStatusFailedToInitialize;
     } else if(sl_status == SL_STATUS_SI91X_SCAN_ISSUED_IN_ASSOCIATED_STATE) {
-        status = WifiStatusAlreadyConnected;
+        status = WifiStatusScanNotPossible;
     } else if(sl_status == SL_STATUS_SI91X_NO_AP_FOUND) {
         status = WifiStatusAccessPointNotFound;
-    } else if(sl_status == SL_STATUS_SI91X_COMMAND_GIVEN_IN_INVALID_STATE) {
-        status = WifiStatusNotValidForThisCommand;
+    } else if(
+        sl_status == SL_STATUS_SI91X_ASSOCIATION_FAILED ||
+        sl_status == SL_STATUS_SI91X_INVALID_PSK_LENGTH) {
+        status = WifiStatusAuthenticationFailed;
     } else {
-        // TODO: More error cases
         status = WifiStatusError;
     }
 

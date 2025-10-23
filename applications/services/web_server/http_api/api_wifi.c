@@ -34,12 +34,12 @@ typedef struct {
 static const ApiWifiResponseData wifi_response_data[WifiStatusMax] = {
     [WifiStatusOk] = {.code = 200, "OK"},
     [WifiStatusError] = {.code = 500, "Generic error"},
-    [WifiStatusNotInitialized] = {.code = 400, "Not initialized"},
-    [WifiStatusAlreadyInitialized] = {.code = 400, "Already initialized"},
-    [WifiStatusFailedToInitialize] = {.code = 503, "Failed to initialize"},
+    [WifiStatusTimeout] = {.code = 400, "Command timed out"},
     [WifiStatusAlreadyConnected] = {.code = 400, "Already connected"},
+    [WifiStatusAlreadyDisconnected] = {.code = 400, "Already disconnected"},
+    [WifiStatusScanNotPossible] = {.code = 400, "Scan not currently possible"},
     [WifiStatusAccessPointNotFound] = {.code = 400, "Access point not found"},
-    [WifiStatusNotValidForThisCommand] = {.code = 400, "Improper command for current state"},
+    [WifiStatusAuthenticationFailed] = {.code = 400, "Authentication failed"},
 };
 
 static const char* const security_modes[WifiSecurityModeMax] = {

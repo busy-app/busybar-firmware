@@ -76,3 +76,36 @@ void wifi_state_update_backend_info(Wifi* instance, const WifiBackendInfo* backe
     info->channel = backend_info->channel;
     info->rssi = backend_info->rssi;
 }
+
+WifiStatus wifi_state_check_request_type(Wifi* instance, WifiRequestType request_type) {
+    const WifiInfo* info = &instance->info;
+    const WifiState current_state = info->state;
+
+    WifiStatus status = WifiStatusOk;
+
+    if(request_type == WifiRequestTypeInit) {
+        if(current_state != WifiStateUnknown) {
+            status = WifiStatusError;
+        }
+    } else if(request_type == WifiRequestTypeScan) {
+        if(current_state != WifiStateDisconnected) {
+            status = WifiStatusScanNotPossible;
+        }
+    } else if(request_type == WifiRequestTypeConnect) {
+        if(current_state != WifiStateDisconnected) {
+            status = WifiStatusAlreadyConnected;
+        }
+    } else if(request_type == WifiRequestTypeDisconnect) {
+        if(current_state != WifiStateConnected) {
+            status = WifiStatusAlreadyDisconnected;
+        }
+    } else if(request_type == WifiRequestTypeGetBackendInfo) {
+        if(current_state != WifiStateConnected) {
+            status = WifiStatusError;
+        }
+    } else {
+        furi_crash("Invalid WifiRequestType");
+    }
+
+    return status;
+}
