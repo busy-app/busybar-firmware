@@ -48,11 +48,12 @@ void wifi_schedule_connect_request(Wifi* instance, const WifiSettings* settings)
     furi_assert(instance);
 
     WifiMessage msg = {
-        .request_type = WifiRequestTypeInit,
-        .connect_message = {
-            .credentials = settings->credentials,
-            .ip_config = settings->ip_config,
-        },
+        .request_type = WifiRequestTypeConnect,
+        .connect_message =
+            {
+                .credentials = settings->credentials,
+                .ip_config = settings->ip_config,
+            },
     };
 
     wifi_api_nonblocking_request(instance, &msg);

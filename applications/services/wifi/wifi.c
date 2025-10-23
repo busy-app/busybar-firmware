@@ -46,6 +46,29 @@ static void wifi_print_connection_info(Wifi* instance) {
         addr->bytes[3]);
 }
 
+static void wifi_apply_settings_pending_callback(void* context) {
+    furi_assert(context);
+    Wifi* instance = context;
+
+    do {
+        WifiSettings settings;
+
+        if(!wifi_settings_load(&settings)) {
+            FURI_LOG_W(TAG, "Failed to load settings, using defaults");
+            wifi_settings_init_defaults(&settings);
+            wifi_settings_save(&settings);
+        }
+
+        if(strnlen(settings.credentials.ssid, SSID_MAX_LEN) == 0) {
+            FURI_LOG_I(TAG, "No SSID specified");
+            break;
+        }
+
+        wifi_schedule_connect_request(instance, &settings);
+
+    } while(false);
+}
+
 static void wifi_process_request(Wifi* instance) {
     const WifiMessage* message = &instance->api_message;
     WifiRequest* request = &instance->request;
@@ -97,6 +120,9 @@ static void wifi_process_response(Wifi* instance) {
 
             wifi_net_init(instance, hw_address);
             wifi_state_transition(instance, WifiStateDisconnected, hw_address);
+
+            furi_event_loop_pend_callback(
+                instance->event_loop, wifi_apply_settings_pending_callback, instance);
 
         } else if(request_type == WifiRequestTypeScan) {
             WifiScanMessage* scan_message = &message->scan_message;

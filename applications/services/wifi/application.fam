@@ -37,12 +37,3 @@ App(
         "wifi_backend_util.c",
     ],
 )
-
-App(
-    appid="wifi_startup",
-    apptype=FlipperAppType.STARTUP,
-    entry_point="wifi_on_system_start",
-    order=50,
-    requires=["wifi"],
-    sources=["wifi_startup.c"],
-)
