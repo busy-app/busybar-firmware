@@ -25,8 +25,6 @@ static void settings_scene_matter_commission_start_on_enter(void* context) {
     };
 
     with_gui(app->gui, {
-        widget_set_visible(nav_bar_get_base(app->back_nav_bar), true);
-
         for(GuiDisplayId disp = 0; disp < GuiDisplayIdMax; disp++) {
             scene->statuses[disp] = status_view_alloc(windows[disp]);
             status_view_set_icon(scene->statuses[disp], images[disp]);
