@@ -12,6 +12,23 @@ static void wifi_send_message(Wifi* instance, WifiMessage* message) {
     api_lock_wait_unlock_and_free(message->lock);
 }
 
+bool wifi_api_is_locked(Wifi* instance) {
+    return furi_semaphore_get_count(instance->access_semaphore) == 0;
+}
+
+void wifi_api_unlock(Wifi* instance, WifiStatus status) {
+    WifiMessage* message = instance->current_message;
+    furi_assert(message);
+
+    message->status = status;
+
+    if(message->lock) {
+        api_lock_unlock(message->lock);
+    }
+
+    furi_check(furi_semaphore_release(instance->access_semaphore) == FuriStatusOk);
+}
+
 WifiStatus wifi_init(Wifi* instance) {
     furi_check(instance);
 

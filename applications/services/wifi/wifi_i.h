@@ -51,6 +51,7 @@ typedef struct {
 
 struct Wifi {
     FuriEventLoop* event_loop;
+    FuriEventLoopTimer* poll_timer;
     FuriSemaphore* access_semaphore;
     FuriState* state;
     Intercom* intercom;
@@ -61,8 +62,15 @@ struct Wifi {
     WifiInfo info;
 };
 
+// Private API calls (to be removed in the future)
 WifiStatus wifi_init(Wifi* instance);
 
+// Api locking
+bool wifi_api_is_locked(Wifi* instance);
+
+void wifi_api_unlock(Wifi* instance, WifiStatus status);
+
+// Network management
 void wifi_net_init(Wifi* instance, const WifiHardwareAddress* addr);
 
 bool wifi_net_up(Wifi* instance, const WifiIpConfig* ip_config);

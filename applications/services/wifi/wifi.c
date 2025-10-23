@@ -4,6 +4,8 @@
 
 #include "wifi_state.h"
 
+#define WIFI_POLL_INTERVAL_MS (15 * 1000)
+
 static void wifi_intercom_rx_callback(const void* data, size_t data_size, void* context) {
     furi_assert(data_size == sizeof(WifiResponse));
     furi_assert(context);
@@ -70,22 +72,10 @@ static void wifi_process_request(Wifi* instance) {
         instance->intercom, IntercomChannelWifi, request, sizeof(WifiRequest), FuriWaitForever);
 }
 
-static void wifi_unlock_api(Wifi* instance, WifiStatus status) {
-    WifiMessage* message = instance->current_message;
-    furi_assert(message);
-
-    message->status = status;
-    api_lock_unlock(message->lock);
-
-    instance->current_message = NULL;
-
-    furi_check(furi_semaphore_release(instance->access_semaphore) == FuriStatusOk);
-}
-
 static void wifi_process_response(Wifi* instance) {
     WifiMessage* message = instance->current_message;
 
-    if(message == NULL) {
+    if(!wifi_api_is_locked(instance)) {
         // BUG: Figure out where the rogue responses come from
         FURI_LOG_W(TAG, "BUG: Rogue response of type %d", instance->response.type);
         return;
@@ -128,6 +118,8 @@ static void wifi_process_response(Wifi* instance) {
 
                 wifi_print_connection_info(instance);
 
+                furi_event_loop_timer_start(instance->poll_timer, WIFI_POLL_INTERVAL_MS);
+
             } else {
                 status = WifiStatusError;
                 wifi_state_transition(instance, WifiStateDisconnected);
@@ -139,6 +131,8 @@ static void wifi_process_response(Wifi* instance) {
             wifi_state_transition(instance, WifiStateDisconnected);
 
             wifi_save_default_settings();
+
+            furi_event_loop_timer_stop(instance->poll_timer);
         }
 
     } else {
@@ -146,7 +140,7 @@ static void wifi_process_response(Wifi* instance) {
         FURI_LOG_E(TAG, "Request type: %d failed with status: %d", request_type, status);
     }
 
-    wifi_unlock_api(instance, status);
+    wifi_api_unlock(instance, status);
 }
 
 static void wifi_custom_event_callback(uint32_t events, void* context) {
@@ -162,10 +156,21 @@ static void wifi_custom_event_callback(uint32_t events, void* context) {
     }
 }
 
+static void wifi_poll_timer_callback(void* context) {
+    furi_assert(context);
+    Wifi* instance = context;
+
+    UNUSED(instance);
+
+    FURI_LOG_D(TAG, "Polling RSSI");
+}
+
 static Wifi* wifi_alloc(void) {
     Wifi* instance = malloc(sizeof(Wifi));
 
     instance->event_loop = furi_event_loop_alloc();
+    instance->poll_timer = furi_event_loop_timer_alloc(
+        instance->event_loop, wifi_poll_timer_callback, FuriEventLoopTimerTypePeriodic, instance);
     instance->access_semaphore = furi_semaphore_alloc(1, 1);
     // instance->state = furi_state_alloc(sizeof(WifiInfo));
     instance->intercom = furi_record_open(RECORD_INTERCOM);
