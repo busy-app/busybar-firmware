@@ -53,6 +53,7 @@ struct Wifi {
     FuriEventLoop* event_loop;
     FuriEventLoopTimer* poll_timer;
     FuriSemaphore* api_semaphore;
+    FuriSemaphore* dhcp_semaphore;
     FuriState* state;
     Intercom* intercom;
     struct netif netif;

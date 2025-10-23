@@ -209,6 +209,7 @@ static Wifi* wifi_alloc(void) {
     instance->poll_timer = furi_event_loop_timer_alloc(
         instance->event_loop, wifi_poll_timer_callback, FuriEventLoopTimerTypePeriodic, instance);
     instance->api_semaphore = furi_semaphore_alloc(1, 1);
+    instance->dhcp_semaphore = furi_semaphore_alloc(1, 0);
     // instance->state = furi_state_alloc(sizeof(WifiInfo));
     instance->intercom = furi_record_open(RECORD_INTERCOM);
 

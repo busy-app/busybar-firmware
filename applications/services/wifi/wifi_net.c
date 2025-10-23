@@ -8,6 +8,7 @@
 
 #define MAX_DATA_LEN (1019UL) // Limited by Intercom
 #define WIRELESS_MTU (MAX_DATA_LEN - SIZEOF_ETH_HDR + ETH_PAD_SIZE)
+#define DHCP_WAIT_MS (30 * 1000)
 
 static err_t wifi_link_output_callback(struct netif* netif, struct pbuf* p) {
     Wifi* instance = netif->state;
@@ -40,6 +41,16 @@ static err_t wifi_init_netif_callback(struct netif* netif) {
     netif->linkoutput = wifi_link_output_callback;
 
     return ERR_OK;
+}
+
+static void wifi_netif_status_callback(struct netif* netif) {
+    Wifi* instance = netif->state;
+    furi_assert(instance);
+
+    if(dhcp_supplied_address(netif)) {
+        furi_check(furi_semaphore_release(instance->dhcp_semaphore) == FuriStatusOk);
+        netif_set_status_callback(netif, NULL);
+    }
 }
 
 static void wifi_net_intercom_rx_callback(const void* data, size_t data_size, void* context) {
@@ -128,16 +139,22 @@ bool wifi_net_up(Wifi* instance, const WifiIpConfig* ip_config) {
 
     UNLOCK_TCPIP_CORE();
 
+    bool success = true;
+
     if(ip_config->mgmt == WifiIpManagementDynamic) {
-        // TODO: Make waiting for address event driven?
-        // TODO: Timeout error after waiting for a while
-        while(!dhcp_supplied_address(netif)) {
-            FURI_LOG_D(TAG, "Waiting for IP configuration...");
-            furi_delay_ms(1000);
+        FURI_LOG_I(TAG, "Waiting for IP configuration...");
+
+        LOCK_TCPIP_CORE();
+        netif_set_status_callback(netif, wifi_netif_status_callback);
+        UNLOCK_TCPIP_CORE();
+
+        if(furi_semaphore_acquire(instance->dhcp_semaphore, DHCP_WAIT_MS) != FuriStatusOk) {
+            FURI_LOG_E(TAG, "Failed to receive IP configuration");
+            success = false;
         }
     }
 
-    return true;
+    return success;
 }
 
 void wifi_net_down(Wifi* instance) {
