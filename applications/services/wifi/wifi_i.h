@@ -19,8 +19,8 @@ typedef enum {
 } WifiEvent;
 
 typedef struct {
-    const WifiCredentials* credentials;
-    const WifiIpConfig* ip_config;
+    WifiCredentials credentials;
+    WifiIpConfig ip_config;
 } WifiConnectMessage;
 
 typedef struct {
@@ -68,7 +68,9 @@ bool wifi_api_is_locked(Wifi* instance);
 void wifi_api_unlock(Wifi* instance, WifiStatus status);
 
 // Internal nonblocking API calls
-void wifi_schedule_init_request(void* context);
+void wifi_schedule_init_request(Wifi* instance);
+
+void wifi_schedule_connect_request(Wifi* instance, const WifiSettings* settings);
 
 void wifi_schedule_backend_info_request(void* context);
 

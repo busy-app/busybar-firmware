@@ -34,12 +34,25 @@ void wifi_api_unlock(Wifi* instance, WifiStatus status) {
     furi_check(furi_semaphore_release(instance->api_semaphore) == FuriStatusOk);
 }
 
-void wifi_schedule_init_request(void* context) {
-    furi_assert(context);
-    Wifi* instance = context;
+void wifi_schedule_init_request(Wifi* instance) {
+    furi_assert(instance);
 
     WifiMessage msg = {
         .request_type = WifiRequestTypeInit,
+    };
+
+    wifi_api_nonblocking_request(instance, &msg);
+}
+
+void wifi_schedule_connect_request(Wifi* instance, const WifiSettings* settings) {
+    furi_assert(instance);
+
+    WifiMessage msg = {
+        .request_type = WifiRequestTypeInit,
+        .connect_message = {
+            .credentials = settings->credentials,
+            .ip_config = settings->ip_config,
+        },
     };
 
     wifi_api_nonblocking_request(instance, &msg);
@@ -87,8 +100,8 @@ WifiStatus wifi_connect(
         .request_type = WifiRequestTypeConnect,
         .connect_message =
             {
-                .credentials = credentials,
-                .ip_config = ip_config,
+                .credentials = *credentials,
+                .ip_config = *ip_config,
             },
     };
 

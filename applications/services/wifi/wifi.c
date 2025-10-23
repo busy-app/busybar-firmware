@@ -59,7 +59,7 @@ static void wifi_process_request(Wifi* instance) {
 
     } else if(request_type == WifiRequestTypeConnect) {
         const WifiConnectMessage* connect_message = &message->connect_message;
-        const WifiCredentials* credentials = connect_message->credentials;
+        const WifiCredentials* credentials = &connect_message->credentials;
 
         WifiConnectRequest* connect_request = &request->connect_request;
         connect_request->credentials = *credentials;
@@ -112,8 +112,8 @@ static void wifi_process_response(Wifi* instance) {
 
         } else if(request_type == WifiRequestTypeConnect) {
             const WifiConnectMessage* connect_message = &message->connect_message;
-            const WifiCredentials* credentials = connect_message->credentials;
-            const WifiIpConfig* ip_config = connect_message->ip_config;
+            const WifiCredentials* credentials = &connect_message->credentials;
+            const WifiIpConfig* ip_config = &connect_message->ip_config;
 
             if(wifi_net_up(instance, ip_config)) {
                 WifiIpConfig new_ip_config;
