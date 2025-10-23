@@ -12,6 +12,17 @@ static void wifi_send_message(Wifi* instance, WifiMessage* message) {
     api_lock_wait_unlock_and_free(message->lock);
 }
 
+WifiStatus wifi_init(Wifi* instance) {
+    furi_check(instance);
+
+    WifiMessage msg = {
+        .request_type = WifiRequestTypeInit,
+    };
+
+    wifi_send_message(instance, &msg);
+    return msg.status;
+}
+
 WifiStatus wifi_scan(Wifi* instance, WifiScanResult* results, uint8_t* count, uint8_t max_count) {
     furi_check(instance);
     furi_check(results);
@@ -71,20 +82,4 @@ WifiStatus wifi_get_info(Wifi* instance, WifiInfo* info) {
     *info = instance->info;
 
     return WifiStatusOk;
-}
-
-WifiStatus wifi_get_hw_address(Wifi* instance, WifiHardwareAddress* hw_address) {
-    furi_check(instance);
-    furi_check(hw_address);
-
-    WifiMessage msg = {
-        .request_type = WifiRequestTypeGetHwAddress,
-        .get_hw_address_message =
-            {
-                .hw_address = hw_address,
-            },
-    };
-
-    wifi_send_message(instance, &msg);
-    return msg.status;
 }

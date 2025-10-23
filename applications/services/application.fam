@@ -31,6 +31,7 @@ App(
         "power_srv",
         "intercom",
         "wifi",
+        "wifi_startup",
         "status_bar",
         "status_lights",
         "light_sensor",

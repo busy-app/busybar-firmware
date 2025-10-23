@@ -9,11 +9,11 @@
 #include "wifi_common.h"
 
 typedef enum {
+    WifiRequestTypeInit,
     WifiRequestTypeScan,
     WifiRequestTypeConnect,
     WifiRequestTypeDisconnect,
     WifiRequestTypeGetInfo,
-    WifiRequestTypeGetHwAddress,
     WifiRequestTypeMax,
 } WifiRequestType;
 

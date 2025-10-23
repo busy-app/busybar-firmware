@@ -4,8 +4,6 @@
 
 #include "wifi_state.h"
 
-#define STARTUP_THREAD_STACK_SIZE (2048UL)
-
 static void wifi_intercom_rx_callback(const void* data, size_t data_size, void* context) {
     furi_assert(data_size == sizeof(WifiResponse));
     furi_assert(context);
@@ -14,14 +12,6 @@ static void wifi_intercom_rx_callback(const void* data, size_t data_size, void* 
 
     memcpy(&instance->response, data, data_size);
     furi_event_loop_set_custom_event(instance->event_loop, WifiEventResponse);
-}
-
-static void wifi_load_settings(WifiSettings* settings) {
-    if(!wifi_settings_load(settings)) {
-        FURI_LOG_W(TAG, "Failed to load settings, using defaults");
-        wifi_settings_init_defaults(settings);
-        wifi_settings_save(settings);
-    }
 }
 
 static void wifi_save_settings(const WifiCredentials* credentials, const WifiIpConfig* ip_config) {
@@ -80,6 +70,18 @@ static void wifi_process_request(Wifi* instance) {
         instance->intercom, IntercomChannelWifi, request, sizeof(WifiRequest), FuriWaitForever);
 }
 
+static void wifi_unlock_api(Wifi* instance, WifiStatus status) {
+    WifiMessage* message = instance->current_message;
+    furi_assert(message);
+
+    message->status = status;
+    api_lock_unlock(message->lock);
+
+    instance->current_message = NULL;
+
+    furi_check(furi_semaphore_release(instance->access_semaphore) == FuriStatusOk);
+}
+
 static void wifi_process_response(Wifi* instance) {
     WifiMessage* message = instance->current_message;
 
@@ -96,7 +98,13 @@ static void wifi_process_response(Wifi* instance) {
     WifiStatus status = response->status;
 
     if(status == WifiStatusOk) {
-        if(request_type == WifiRequestTypeScan) {
+        if(request_type == WifiRequestTypeInit) {
+            const WifiHardwareAddress* hw_address = &response->hw_address;
+
+            wifi_net_init(instance, hw_address);
+            wifi_state_transition(instance, WifiStateDisconnected, hw_address);
+
+        } else if(request_type == WifiRequestTypeScan) {
             const uint8_t results_count =
                 MIN(message->scan_message.max_count, response->scan_results.count);
 
@@ -131,11 +139,6 @@ static void wifi_process_response(Wifi* instance) {
             wifi_state_transition(instance, WifiStateDisconnected);
 
             wifi_save_default_settings();
-
-        } else if(request_type == WifiRequestTypeGetInfo) {
-        } else if(request_type == WifiRequestTypeGetHwAddress) {
-            WifiHardwareAddress* hw_address = message->get_hw_address_message.hw_address;
-            *hw_address = response->hw_address;
         }
 
     } else {
@@ -143,11 +146,7 @@ static void wifi_process_response(Wifi* instance) {
         FURI_LOG_E(TAG, "Request type: %d failed with status: %d", request_type, status);
     }
 
-    message->status = status;
-    api_lock_unlock(message->lock);
-
-    instance->current_message = NULL;
-    furi_semaphore_release(instance->access_semaphore);
+    wifi_unlock_api(instance, status);
 }
 
 static void wifi_custom_event_callback(uint32_t events, void* context) {
@@ -161,64 +160,6 @@ static void wifi_custom_event_callback(uint32_t events, void* context) {
     } else {
         furi_crash("Multiple Wifi events");
     }
-}
-
-// TODO: replace with startup hook
-static int32_t wifi_startup_thread_callback(void* arg) {
-    furi_assert(arg);
-    Wifi* instance = arg;
-
-    do {
-        // TODO [FW-300]: Implement reliable Intercom channel opening
-        furi_delay_ms(250); // Wait for the Wifi service to become ready on Si917
-
-        // TODO: Get si917 hardware address by other means?
-        WifiHardwareAddress hw_address;
-        if(wifi_get_hw_address(instance, &hw_address) != WifiStatusOk) {
-            FURI_LOG_E(TAG, "Failed to get hardware address");
-            break;
-        }
-
-        wifi_net_init(instance, &hw_address);
-        wifi_state_transition(instance, WifiStateDisconnected, &hw_address);
-
-        WifiSettings settings;
-        wifi_load_settings(&settings);
-
-        const WifiCredentials* credentials = &settings.credentials;
-        const WifiIpConfig* ip_config = &settings.ip_config;
-
-        if(strnlen(credentials->ssid, SSID_MAX_LEN) == 0) {
-            FURI_LOG_I(TAG, "No SSID specified");
-            break;
-        }
-
-        if(wifi_connect(instance, credentials, ip_config) != WifiStatusOk) {
-            FURI_LOG_E(TAG, "Failed to connect");
-            break;
-        }
-
-    } while(false);
-
-    return 0;
-}
-
-static void
-    wifi_startup_thread_state_callback(FuriThread* thread, FuriThreadState state, void* context) {
-    furi_assert(thread);
-    UNUSED(context);
-
-    if(state == FuriThreadStateStopped) {
-        furi_thread_free(thread);
-    }
-}
-
-static void wifi_run_startup_thread(Wifi* instance) {
-    FuriThread* startup_thread = furi_thread_alloc_ex(
-        "WifiStartup", STARTUP_THREAD_STACK_SIZE, wifi_startup_thread_callback, instance);
-
-    furi_thread_set_state_callback(startup_thread, wifi_startup_thread_state_callback);
-    furi_thread_start(startup_thread);
 }
 
 static Wifi* wifi_alloc(void) {
@@ -236,8 +177,6 @@ static Wifi* wifi_alloc(void) {
 
     intercom_set_rx_callback(
         instance->intercom, IntercomChannelWifi, wifi_intercom_rx_callback, instance);
-
-    wifi_run_startup_thread(instance);
 
     furi_record_create(RECORD_WIFI, instance);
 

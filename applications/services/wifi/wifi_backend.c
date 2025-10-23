@@ -193,8 +193,8 @@ static void wifi_get_info_request_handler(Wifi* instance) {
     wifi_send_response(instance);
 }
 
-static void wifi_get_hw_address_request_handler(Wifi* instance) {
-    FURI_LOG_D(TAG, "GetHwAddress");
+static void wifi_init_request_handler(Wifi* instance) {
+    FURI_LOG_D(TAG, "Init");
 
     WifiHardwareAddress* hw_address = &instance->response.hw_address;
     const sl_status_t status =
@@ -367,9 +367,9 @@ int32_t wifi_srv(void* arg) {
 }
 
 static const WifiRequestHandler wifi_request_handlers[WifiRequestTypeMax] = {
+    [WifiRequestTypeInit] = wifi_init_request_handler,
     [WifiRequestTypeScan] = wifi_scan_request_handler,
     [WifiRequestTypeConnect] = wifi_connect_request_handler,
     [WifiRequestTypeDisconnect] = wifi_disconnect_request_handler,
     [WifiRequestTypeGetInfo] = wifi_get_info_request_handler,
-    [WifiRequestTypeGetHwAddress] = wifi_get_hw_address_request_handler,
 };
