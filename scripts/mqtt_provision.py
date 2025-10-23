@@ -36,6 +36,8 @@ KEY_TYPE_ECDSA256 = 8
 
 def write_certs():
     with FlipperStorage(PORT_NAME) as storage:
+        storage.mkdir("/ext/apps_assets/mqtt_client")
+
         from_path = os.path.join(CERTS_DIR, CA_BUNDLE)
         to_path = MQTT_DATA_DIR + CA_BUNDLE
         print(f'Sending "{from_path}" to "{to_path}"')
