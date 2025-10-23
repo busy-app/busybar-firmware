@@ -37,7 +37,7 @@ static const ApiWifiResponseData wifi_response_data[WifiStatusMax] = {
     [WifiStatusTimeout] = {.code = 400, "Command timed out"},
     [WifiStatusAlreadyConnected] = {.code = 400, "Already connected"},
     [WifiStatusAlreadyDisconnected] = {.code = 400, "Already disconnected"},
-    [WifiStatusScanNotPossible] = {.code = 400, "Scan not currently possible"},
+    [WifiStatusScanNotPossible] = {.code = 400, "Scan not possible when connected"},
     [WifiStatusAccessPointNotFound] = {.code = 400, "Access point not found"},
     [WifiStatusAuthenticationFailed] = {.code = 400, "Authentication failed"},
 };
