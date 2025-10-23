@@ -35,7 +35,7 @@ typedef struct {
 
 typedef struct {
     WifiRequestType request_type;
-    WifiStatus status;
+    WifiStatus* status;
     union {
         WifiConnectMessage connect_message;
         WifiScanMessage scan_message;

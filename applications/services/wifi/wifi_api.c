@@ -1,6 +1,9 @@
 #include "wifi_i.h"
 
-static void wifi_api_blocking_request(Wifi* instance, WifiMessage* message) {
+static WifiStatus wifi_api_blocking_request(Wifi* instance, WifiMessage* message) {
+    WifiStatus status;
+
+    message->status = &status;
     message->lock = api_lock_alloc_locked();
 
     furi_check(furi_semaphore_acquire(instance->api_semaphore, FuriWaitForever) == FuriStatusOk);
@@ -9,6 +12,8 @@ static void wifi_api_blocking_request(Wifi* instance, WifiMessage* message) {
     furi_event_loop_set_custom_event(instance->event_loop, WifiEventRequest);
 
     api_lock_wait_unlock_and_free(message->lock);
+
+    return status;
 }
 
 static void wifi_api_nonblocking_request(Wifi* instance, const WifiMessage* message) {
@@ -25,9 +30,10 @@ bool wifi_api_is_locked(Wifi* instance) {
 void wifi_api_unlock(Wifi* instance, WifiStatus status) {
     WifiMessage* message = &instance->api_message;
 
-    message->status = status;
-
     if(message->lock) {
+        furi_assert(message->status);
+        *message->status = status;
+
         api_lock_unlock(message->lock);
     }
 
@@ -85,8 +91,7 @@ WifiStatus wifi_scan(Wifi* instance, WifiScanResult* results, uint8_t* count, ui
             },
     };
 
-    wifi_api_blocking_request(instance, &msg);
-    return msg.status;
+    return wifi_api_blocking_request(instance, &msg);
 }
 
 WifiStatus wifi_connect(
@@ -105,8 +110,7 @@ WifiStatus wifi_connect(
             },
     };
 
-    wifi_api_blocking_request(instance, &msg);
-    return msg.status;
+    return wifi_api_blocking_request(instance, &msg);
 }
 
 WifiStatus wifi_disconnect(Wifi* instance) {
@@ -116,8 +120,7 @@ WifiStatus wifi_disconnect(Wifi* instance) {
         .request_type = WifiRequestTypeDisconnect,
     };
 
-    wifi_api_blocking_request(instance, &msg);
-    return msg.status;
+    return wifi_api_blocking_request(instance, &msg);
 }
 
 WifiStatus wifi_get_info(Wifi* instance, WifiInfo* info) {
