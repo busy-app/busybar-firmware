@@ -5,15 +5,7 @@
 void wifi_on_system_start(void) {
     Wifi* wifi = furi_record_open(RECORD_WIFI);
 
-    // TODO [FW-300]: Implement reliable Intercom channel opening
-    furi_delay_ms(250); // Wait for the Wifi service to become ready on Si917
-
     do {
-        if(wifi_init(wifi) != WifiStatusOk) {
-            FURI_LOG_E(TAG, "Failed to init");
-            break;
-        }
-
         WifiSettings settings;
 
         if(!wifi_settings_load(&settings)) {

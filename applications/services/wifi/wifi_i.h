@@ -62,15 +62,15 @@ struct Wifi {
     WifiInfo info;
 };
 
-// Private API calls (to be removed in the future)
-WifiStatus wifi_init(Wifi* instance);
-
-// Internal API management
-bool wifi_api_nonblocking_request(Wifi* instance, const WifiMessage* message);
-
+// API management
 bool wifi_api_is_locked(Wifi* instance);
 
 void wifi_api_unlock(Wifi* instance, WifiStatus status);
+
+// Internal nonblocking API calls
+void wifi_schedule_init_request(void* context);
+
+void wifi_schedule_backend_info_request(void* context);
 
 // Network management
 void wifi_net_init(Wifi* instance, const WifiHardwareAddress* addr);

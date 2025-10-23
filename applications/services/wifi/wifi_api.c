@@ -11,16 +11,11 @@ static void wifi_send_message(Wifi* instance, WifiMessage* message) {
     api_lock_wait_unlock_and_free(message->lock);
 }
 
-bool wifi_api_nonblocking_request(Wifi* instance, const WifiMessage* message) {
-    bool success = false;
-
+static void wifi_api_nonblocking_request(Wifi* instance, const WifiMessage* message) {
     if(furi_semaphore_acquire(instance->api_semaphore, 0) == FuriStatusOk) {
         instance->api_message = *message;
         furi_event_loop_set_custom_event(instance->event_loop, WifiEventRequest);
-        success = true;
     }
-
-    return success;
 }
 
 bool wifi_api_is_locked(Wifi* instance) {
@@ -39,15 +34,26 @@ void wifi_api_unlock(Wifi* instance, WifiStatus status) {
     furi_check(furi_semaphore_release(instance->api_semaphore) == FuriStatusOk);
 }
 
-WifiStatus wifi_init(Wifi* instance) {
-    furi_check(instance);
+void wifi_schedule_init_request(void* context) {
+    furi_assert(context);
+    Wifi* instance = context;
 
     WifiMessage msg = {
         .request_type = WifiRequestTypeInit,
     };
 
-    wifi_send_message(instance, &msg);
-    return msg.status;
+    wifi_api_nonblocking_request(instance, &msg);
+}
+
+void wifi_schedule_backend_info_request(void* context) {
+    furi_assert(context);
+    Wifi* instance = context;
+
+    const WifiMessage msg = {
+        .request_type = WifiRequestTypeGetBackendInfo,
+    };
+
+    wifi_api_nonblocking_request(instance, &msg);
 }
 
 WifiStatus wifi_scan(Wifi* instance, WifiScanResult* results, uint8_t* count, uint8_t max_count) {

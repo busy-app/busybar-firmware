@@ -46,18 +46,6 @@ static void wifi_print_connection_info(Wifi* instance) {
         addr->bytes[3]);
 }
 
-static void wifi_schedule_backend_info_request(void* context) {
-    furi_assert(context);
-
-    Wifi* instance = context;
-
-    const WifiMessage message = {
-        .request_type = WifiRequestTypeGetBackendInfo,
-    };
-
-    wifi_api_nonblocking_request(instance, &message);
-}
-
 static void wifi_process_request(Wifi* instance) {
     const WifiMessage* message = &instance->api_message;
     WifiRequest* request = &instance->request;
@@ -65,7 +53,11 @@ static void wifi_process_request(Wifi* instance) {
     const WifiRequestType request_type = message->request_type;
     request->type = request_type;
 
-    if(request_type == WifiRequestTypeConnect) {
+    if(request_type == WifiRequestTypeInit) {
+        // TODO [FW-300]: Implement reliable Intercom channel opening
+        furi_delay_ms(250); // Wait for the Wifi service to become ready on Si917
+
+    } else if(request_type == WifiRequestTypeConnect) {
         const WifiConnectMessage* connect_message = &message->connect_message;
         const WifiCredentials* credentials = connect_message->credentials;
 
@@ -107,14 +99,16 @@ static void wifi_process_response(Wifi* instance) {
             wifi_state_transition(instance, WifiStateDisconnected, hw_address);
 
         } else if(request_type == WifiRequestTypeScan) {
-            const uint8_t results_count =
-                MIN(message->scan_message.max_count, response->scan_results.count);
+            WifiScanMessage* scan_message = &message->scan_message;
+            const WifiScanResults* scan_results = &response->scan_results;
 
-            const WifiScanResult* results_in = response->scan_results.data;
-            WifiScanResult* results_out = message->scan_message.data;
+            const uint8_t results_count = MIN(scan_message->max_count, scan_results->count);
+
+            const WifiScanResult* results_in = scan_results->data;
+            WifiScanResult* results_out = scan_message->data;
 
             memcpy(results_out, results_in, results_count * sizeof(WifiScanResult));
-            *message->scan_message.count = results_count;
+            *scan_message->count = results_count;
 
         } else if(request_type == WifiRequestTypeConnect) {
             const WifiConnectMessage* connect_message = &message->connect_message;
@@ -194,6 +188,8 @@ static Wifi* wifi_alloc(void) {
 
     intercom_set_rx_callback(
         instance->intercom, IntercomChannelWifi, wifi_intercom_rx_callback, instance);
+
+    wifi_schedule_init_request(instance);
 
     furi_record_create(RECORD_WIFI, instance);
 
