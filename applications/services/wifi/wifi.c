@@ -35,15 +35,23 @@ static void wifi_print_connection_info(Wifi* instance) {
     const WifiInfo* info = &instance->info;
     const WifiIpv4* addr = &info->ip_config.ip4.address;
 
-    FURI_LOG_I(TAG, "Connected to \"%s\"", info->ssid);
-
     FURI_LOG_I(
         TAG,
-        "IP: %hhu.%hhu.%hhu.%hhu",
+        "Connection success\r\n"
+        "\tSSID:\t\t%s\r\n"
+        "\tIPv4 address:\t%hhu.%hhu.%hhu.%hhu",
+        info->ssid,
         addr->bytes[0],
         addr->bytes[1],
         addr->bytes[2],
         addr->bytes[3]);
+}
+
+static void wifi_poll_timer_callback(void* context) {
+    furi_assert(context);
+    Wifi* instance = context;
+
+    wifi_schedule_backend_info_request(instance);
 }
 
 static void wifi_apply_settings_pending_callback(void* context) {
@@ -120,7 +128,7 @@ static void wifi_process_response(Wifi* instance) {
 
             wifi_net_init(instance, hw_address);
             wifi_state_transition(instance, WifiStateDisconnected, hw_address);
-
+            // Asynchronously load and apply settings if needed
             furi_event_loop_pend_callback(
                 instance->event_loop, wifi_apply_settings_pending_callback, instance);
 
@@ -151,7 +159,7 @@ static void wifi_process_response(Wifi* instance) {
                 wifi_print_connection_info(instance);
 
                 furi_event_loop_pend_callback(
-                    instance->event_loop, wifi_schedule_backend_info_request, instance);
+                    instance->event_loop, wifi_poll_timer_callback, instance);
 
                 furi_event_loop_timer_start(instance->poll_timer, WIFI_POLL_INTERVAL_MS);
 
@@ -199,10 +207,7 @@ static Wifi* wifi_alloc(void) {
 
     instance->event_loop = furi_event_loop_alloc();
     instance->poll_timer = furi_event_loop_timer_alloc(
-        instance->event_loop,
-        wifi_schedule_backend_info_request,
-        FuriEventLoopTimerTypePeriodic,
-        instance);
+        instance->event_loop, wifi_poll_timer_callback, FuriEventLoopTimerTypePeriodic, instance);
     instance->api_semaphore = furi_semaphore_alloc(1, 1);
     // instance->state = furi_state_alloc(sizeof(WifiInfo));
     instance->intercom = furi_record_open(RECORD_INTERCOM);
