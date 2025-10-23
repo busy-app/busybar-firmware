@@ -5,7 +5,7 @@
 
 #define TAG "WifiSettings"
 
-#define WIFI_SETTINGS_FILE EXT_PATH("apps_data/wifi/settings.json")
+#define WIFI_SETTINGS_FILE APP_DATA_PATH("settings.json")
 
 #define WIFI_SETTINGS_CURRENT_VERSION (0)
 
