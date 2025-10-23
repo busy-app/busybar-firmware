@@ -52,11 +52,11 @@ typedef struct {
 struct Wifi {
     FuriEventLoop* event_loop;
     FuriEventLoopTimer* poll_timer;
-    FuriSemaphore* access_semaphore;
+    FuriSemaphore* api_semaphore;
     FuriState* state;
     Intercom* intercom;
-    WifiMessage* current_message;
     struct netif netif;
+    WifiMessage api_message;
     WifiRequest request;
     WifiResponse response;
     WifiInfo info;
@@ -65,7 +65,9 @@ struct Wifi {
 // Private API calls (to be removed in the future)
 WifiStatus wifi_init(Wifi* instance);
 
-// Api locking
+// Internal API management
+bool wifi_api_nonblocking_request(Wifi* instance, const WifiMessage* message);
+
 bool wifi_api_is_locked(Wifi* instance);
 
 void wifi_api_unlock(Wifi* instance, WifiStatus status);

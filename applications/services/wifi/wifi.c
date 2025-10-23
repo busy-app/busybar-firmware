@@ -47,7 +47,7 @@ static void wifi_print_connection_info(Wifi* instance) {
 }
 
 static void wifi_process_request(Wifi* instance) {
-    const WifiMessage* message = instance->current_message;
+    const WifiMessage* message = &instance->api_message;
     WifiRequest* request = &instance->request;
 
     const WifiRequestType request_type = message->request_type;
@@ -73,7 +73,7 @@ static void wifi_process_request(Wifi* instance) {
 }
 
 static void wifi_process_response(Wifi* instance) {
-    WifiMessage* message = instance->current_message;
+    WifiMessage* message = &instance->api_message;
 
     if(!wifi_api_is_locked(instance)) {
         // BUG: Figure out where the rogue responses come from
@@ -171,7 +171,7 @@ static Wifi* wifi_alloc(void) {
     instance->event_loop = furi_event_loop_alloc();
     instance->poll_timer = furi_event_loop_timer_alloc(
         instance->event_loop, wifi_poll_timer_callback, FuriEventLoopTimerTypePeriodic, instance);
-    instance->access_semaphore = furi_semaphore_alloc(1, 1);
+    instance->api_semaphore = furi_semaphore_alloc(1, 1);
     // instance->state = furi_state_alloc(sizeof(WifiInfo));
     instance->intercom = furi_record_open(RECORD_INTERCOM);
 

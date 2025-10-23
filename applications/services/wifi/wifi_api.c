@@ -3,22 +3,32 @@
 static void wifi_send_message(Wifi* instance, WifiMessage* message) {
     message->lock = api_lock_alloc_locked();
 
-    furi_check(
-        furi_semaphore_acquire(instance->access_semaphore, FuriWaitForever) == FuriStatusOk);
+    furi_check(furi_semaphore_acquire(instance->api_semaphore, FuriWaitForever) == FuriStatusOk);
 
-    instance->current_message = message;
+    instance->api_message = *message;
     furi_event_loop_set_custom_event(instance->event_loop, WifiEventRequest);
 
     api_lock_wait_unlock_and_free(message->lock);
 }
 
+bool wifi_api_nonblocking_request(Wifi* instance, const WifiMessage* message) {
+    bool success = false;
+
+    if(furi_semaphore_acquire(instance->api_semaphore, 0) == FuriStatusOk) {
+        instance->api_message = *message;
+        furi_event_loop_set_custom_event(instance->event_loop, WifiEventRequest);
+        success = true;
+    }
+
+    return success;
+}
+
 bool wifi_api_is_locked(Wifi* instance) {
-    return furi_semaphore_get_count(instance->access_semaphore) == 0;
+    return furi_semaphore_get_count(instance->api_semaphore) == 0;
 }
 
 void wifi_api_unlock(Wifi* instance, WifiStatus status) {
-    WifiMessage* message = instance->current_message;
-    furi_assert(message);
+    WifiMessage* message = &instance->api_message;
 
     message->status = status;
 
@@ -26,7 +36,7 @@ void wifi_api_unlock(Wifi* instance, WifiStatus status) {
         api_lock_unlock(message->lock);
     }
 
-    furi_check(furi_semaphore_release(instance->access_semaphore) == FuriStatusOk);
+    furi_check(furi_semaphore_release(instance->api_semaphore) == FuriStatusOk);
 }
 
 WifiStatus wifi_init(Wifi* instance) {
