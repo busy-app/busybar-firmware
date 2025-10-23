@@ -20,7 +20,7 @@ WifiStatus wifi_decode_sl_status(sl_status_t sl_status) {
     } else if(sl_status == SL_STATUS_SI91X_NO_AP_FOUND) {
         status = WifiStatusAccessPointNotFound;
     } else if(
-        sl_status == SL_STATUS_SI91X_ASSOCIATION_FAILED ||
+        sl_status == SL_STATUS_SI91X_DEAUTHENTICATION_RECEIVED_FROM_AP ||
         sl_status == SL_STATUS_SI91X_INVALID_PSK_LENGTH) {
         status = WifiStatusAuthenticationFailed;
     } else {

@@ -172,7 +172,7 @@ static void wifi_process_response(Wifi* instance) {
                 furi_event_loop_timer_start(instance->poll_timer, WIFI_POLL_INTERVAL_MS);
 
             } else {
-                status = WifiStatusError;
+                status = WifiStatusTimeout;
                 wifi_state_transition(instance, WifiStateDisconnected);
             }
 
