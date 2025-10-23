@@ -5,7 +5,8 @@ import sys
 from datetime import datetime, timedelta, timezone
 
 import socket
-from OpenSSL import SSL, crypto
+import ssl
+from typing import List
 
 from cryptography import x509
 from cryptography.hazmat.primitives import hashes, serialization
@@ -57,8 +58,12 @@ def write_certs():
 def write_private_key(key_file, wrap=False):
     with open(key_file, "rb") as f:
         private_key = serialization.load_pem_private_key(f.read(), password=None)
-        key_data = private_key.private_numbers().private_value.to_bytes(
-            (private_key.private_numbers().private_value.bit_length() + 7) // 8,
+        if not isinstance(private_key, ec.EllipticCurvePrivateKey):
+            raise TypeError("Expected an elliptic-curve private key for TLS storage")
+
+        private_numbers = private_key.private_numbers()
+        key_data = private_numbers.private_value.to_bytes(
+            (private_numbers.private_value.bit_length() + 7) // 8,
             byteorder="big",
         )
 
@@ -104,46 +109,92 @@ def get_device_uid():
     return uid_str.decode("utf-8")
 
 
+def _collect_cert_chain(tls_socket: ssl.SSLSocket) -> List[bytes]:
+    chain_bytes: List[bytes] = []
+    chain_getters = [
+        "getpeercertchain",
+        "get_verified_chain",
+        "get_unverified_chain",
+    ]
+
+    for getter_name in chain_getters:
+        getter = getattr(tls_socket, getter_name, None)
+        if callable(getter):
+            try:
+                chain = getter()
+            except ssl.SSLError:
+                continue
+            if not chain:
+                continue
+
+            if isinstance(chain, (list, tuple)):
+                candidate: List[bytes] = []
+                for item in chain:
+                    if isinstance(item, (bytes, bytearray, memoryview)):
+                        candidate.append(bytes(item))
+                if candidate:
+                    chain_bytes = candidate
+                    break
+            elif isinstance(chain, (bytes, bytearray, memoryview)):
+                chain_bytes = [bytes(chain)]
+                break
+
+    if not chain_bytes:
+        leaf_cert = tls_socket.getpeercert(binary_form=True)
+        if leaf_cert:
+            chain_bytes = [leaf_cert]
+
+    if not chain_bytes:
+        raise RuntimeError("No certificates retrieved from TLS handshake")
+
+    return chain_bytes
+
+
 def get_ca_chain(hostname, port):
-    ctx = SSL.Context(SSL.TLS_CLIENT_METHOD)
-    ctx.set_min_proto_version(SSL.TLS1_3_VERSION)
-    ctx.set_max_proto_version(SSL.TLS1_3_VERSION)
+    context = ssl.SSLContext(ssl.PROTOCOL_TLS_CLIENT)
+    context.check_hostname = False
+    context.verify_mode = ssl.CERT_NONE
 
-    ctx.set_verify(SSL.VERIFY_NONE, lambda conn, cert, errno, depth, ok: True)
+    if hasattr(context, "minimum_version") and hasattr(ssl, "TLSVersion"):
+        context.minimum_version = ssl.TLSVersion.TLSv1_3
+        context.maximum_version = ssl.TLSVersion.TLSv1_3
 
-    sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    sock.settimeout(5)
-    sock.setblocking(True)
-    conn = SSL.Connection(ctx, sock)
+    pem_chunks = []
 
     try:
-        conn.set_tlsext_host_name(hostname.encode("utf-8"))
-        conn.connect((hostname, port))
-        conn.do_handshake()
+        with socket.create_connection((hostname, port), timeout=5) as raw_sock:
+            raw_sock.setblocking(True)
+            with context.wrap_socket(raw_sock, server_hostname=hostname) as tls_sock:
+                for cert_der in _collect_cert_chain(tls_sock):
+                    pem_chunks.append(
+                        ssl.DER_cert_to_PEM_cert(cert_der).encode("ascii")
+                    )
+    except (OSError, ssl.SSLError) as exc:
+        raise RuntimeError(
+            f"Failed to download certificate chain from {hostname}:{port}"
+        ) from exc
 
-        cert_chain = conn.get_peer_cert_chain()
-        if not cert_chain:
-            raise RuntimeError()
+    if not pem_chunks:
+        raise RuntimeError("Certificate chain from server is empty")
 
-        pem_data = b""
-        for i, cert in enumerate(cert_chain):
-            pem = crypto.dump_certificate(crypto.FILETYPE_PEM, cert)
-            pem_data += pem
-
-        with open(os.path.join(CERTS_DIR, CA_BUNDLE), "wb") as f:
-            f.write(pem_data)
-
-    finally:
-        conn.close()
-        sock.close()
+    with open(os.path.join(CERTS_DIR, CA_BUNDLE), "wb") as f:
+        for chunk in pem_chunks:
+            f.write(chunk)
 
 
 def gen_device_cert(device_uid):
     # Load signing CA
     with open(os.path.join(CERTS_DIR, SIGN_KEY), "rb") as f:
         ca_private_key = serialization.load_pem_private_key(f.read(), password=None)
+        if not isinstance(ca_private_key, ec.EllipticCurvePrivateKey):
+            raise TypeError("Signing CA key must be an elliptic-curve private key")
     with open(os.path.join(CERTS_DIR, SIGN_CERT), "rb") as f:
         ca_cert = x509.load_pem_x509_certificate(f.read())
+        ca_public_key = ca_cert.public_key()
+        if not isinstance(ca_public_key, ec.EllipticCurvePublicKey):
+            raise TypeError(
+                "Signing CA certificate must provide an elliptic-curve public key"
+            )
 
     # Generate device private key
     device_private_key = ec.generate_private_key(ec.SECP256R1())
@@ -220,7 +271,7 @@ def gen_device_cert(device_uid):
             x509.SubjectKeyIdentifier.from_public_key(csr.public_key()), critical=False
         )
         .add_extension(
-            x509.AuthorityKeyIdentifier.from_issuer_public_key(ca_cert.public_key()),
+            x509.AuthorityKeyIdentifier.from_issuer_public_key(ca_public_key),
             critical=False,
         )
         .sign(ca_private_key, hashes.SHA256())
