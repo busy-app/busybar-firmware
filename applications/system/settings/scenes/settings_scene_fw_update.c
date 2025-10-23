@@ -1,13 +1,13 @@
 #include "../settings.h"
-
 #include "../storage_macros.h"
+
 #include <gui/modules/label.h>
 #include <gui/modules/image.h>
 #include <gui/modules/progress_bar.h>
+#include <update_checker/update_checker.h>
+#include <applications/system/updater/update.h>
 
 #include <toolbox/fetch/fetch_loader.h>
-#include <toolbox/update_fw_tar.h>
-#include <applications/services/update_checker/update_checker.h>
 #include <toolbox/sha256_calc.h>
 
 #define SETTINGS_FW_FILE_PATH EXT_PATH("update/upload.tar")
@@ -245,7 +245,26 @@ static void settings_scene_fw_update_install(void* context) {
     SettingsApp* instance = context;
     SettingsSceneFwUpdate* data = scene_manager_get_current_scene_data(instance->scene_manager);
     UNUSED(data);
-    update_fw_tar_install(SETTINGS_FW_FILE_PATH);
+
+    FuriString* manifest_path = furi_string_alloc();
+
+    do {
+        UpdaterStatus unpack_tar_status =
+            updater_unpack_tar(SETTINGS_FW_FILE_PATH, NULL, manifest_path);
+        if(unpack_tar_status != UpdaterStatusSuccess) {
+            break;
+        }
+
+        UpdaterStatus prepare_install_status =
+            updater_prepare_install(furi_string_get_cstr(manifest_path));
+        if(prepare_install_status != UpdaterStatusSuccess) {
+            break;
+        }
+
+        updater_reboot_install();
+    } while(false);
+
+    furi_string_free(manifest_path);
 }
 
 static void settings_scene_fw_update_on_enter(void* context) {
