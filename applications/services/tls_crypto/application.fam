@@ -15,7 +15,7 @@ App(
     entry_point="tls_crypto_server_init",
     requires=["intercom"],
     stack_size=1 * 1024,
-    order=80,
+    order=90,
     targets=["f64"],
     sources=["tls_crypto_server.c"],
 )
