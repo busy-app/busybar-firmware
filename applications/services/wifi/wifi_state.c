@@ -68,3 +68,10 @@ void wifi_state_transition(Wifi* instance, WifiState new_state, ...) {
 
     va_end(args);
 }
+
+void wifi_state_update_backend_info(Wifi* instance, const WifiBackendInfo* backend_info) {
+    WifiInfo* info = &instance->info;
+
+    info->channel = backend_info->channel;
+    info->rssi = backend_info->rssi;
+}

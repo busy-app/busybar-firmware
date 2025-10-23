@@ -154,8 +154,8 @@ static void wifi_disconnect_request_handler(Wifi* instance) {
     wifi_send_response(instance);
 }
 
-static void wifi_get_info_request_handler(Wifi* instance) {
-    FURI_LOG_D(TAG, "GetInfo");
+static void wifi_get_backend_info_request_handler(Wifi* instance) {
+    FURI_LOG_D(TAG, "GetBackendInfo");
 
     sl_status_t status;
 
@@ -371,5 +371,5 @@ static const WifiRequestHandler wifi_request_handlers[WifiRequestTypeMax] = {
     [WifiRequestTypeScan] = wifi_scan_request_handler,
     [WifiRequestTypeConnect] = wifi_connect_request_handler,
     [WifiRequestTypeDisconnect] = wifi_disconnect_request_handler,
-    [WifiRequestTypeGetInfo] = wifi_get_info_request_handler,
+    [WifiRequestTypeGetBackendInfo] = wifi_get_backend_info_request_handler,
 };
