@@ -90,7 +90,15 @@ static void updater_cli_execute_install(const char* manifest_path) {
             break;
         }
 
-        updater_reboot_install();
+        UpdaterStatus reboot_install_status = updater_reboot_install();
+        if(reboot_install_status != UpdaterStatusSuccess) {
+            printf(
+                "Update reboot install failed: %s\r\n",
+                updater_get_status_string(reboot_install_status));
+
+            updater_cancel_prepared_install();
+            break;
+        }
     } while(false);
 }
 
@@ -118,7 +126,15 @@ static void updater_cli_execute_install_tar(const char* tar_path) {
             break;
         }
 
-        updater_reboot_install();
+        UpdaterStatus reboot_install_status = updater_reboot_install();
+        if(reboot_install_status != UpdaterStatusSuccess) {
+            printf(
+                "Update reboot install failed: %s\r\n",
+                updater_get_status_string(reboot_install_status));
+
+            updater_cancel_prepared_install();
+            break;
+        }
     } while(false);
 
     furi_string_free(manifest_path);

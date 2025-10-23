@@ -227,7 +227,9 @@ static void http_api_update_on_close_cb(struct mg_connection* conn) {
 
     if(reboot_was_initiated) {
         FURI_LOG_I(TAG, "Rebooting device now after response sent and connection closed.");
-        updater_reboot_install();
+        if(updater_reboot_install() != UpdaterStatusSuccess) {
+            updater_cancel_prepared_install();
+        }
     }
 }
 

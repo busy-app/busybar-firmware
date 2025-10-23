@@ -261,7 +261,9 @@ static void settings_scene_fw_update_install(void* context) {
             break;
         }
 
-        updater_reboot_install();
+        if(updater_reboot_install() != UpdaterStatusSuccess) {
+            updater_cancel_prepared_install();
+        }
     } while(false);
 
     furi_string_free(manifest_path);
