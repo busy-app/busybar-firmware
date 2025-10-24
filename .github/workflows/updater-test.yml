@@ -71,6 +71,7 @@ jobs:
         run: |
           set -euo pipefail
           source scripts/toolchain/fbtenv.sh
+          python3 scripts/testops.py format --no-confirm
           python3 scripts/storage.py -p 10.0.4.20 send update_bundle /ext/tmp/upd_bundle
           python3 scripts/testops.py update-bundle /ext/tmp/upd_bundle/update.json
           python3 scripts/testops.py wait -t 240
