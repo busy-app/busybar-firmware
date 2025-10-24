@@ -336,7 +336,7 @@ static void loader_stop_handler(Loader* loader, const LoaderMessage* message) {
         }
 
         if(!furi_thread_signal(loader->app.thread, FuriSignalExit, NULL)) {
-            status = LoaderStatusErrorInternal;
+            status = LoaderStatusErrorNoSignalHandler;
             break;
         }
 
