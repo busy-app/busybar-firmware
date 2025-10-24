@@ -249,12 +249,7 @@ void updater_cancel_prepared_install(void) {
 UpdaterStatus updater_reboot_install(void) {
     UpdaterStatus status;
 
-    if(!does_battery_state_allow_update()) {
-        FURI_LOG_W(
-            TAG, "Battery level too low (has to be at least %d%%)", UPDATE_MIN_BATTERY_LEVEL);
-
-        status = UpdaterStatusErrorLowBatteryLevel;
-    } else {
+    if(does_battery_state_allow_update()) {
         furi_hal_nvm_set_boot_mode(FuriHalNvmBootModeUpdate);
 
         FURI_LOG_D(TAG, "Boot mode set to \"update\"\r\nRebooting...");
@@ -263,6 +258,11 @@ UpdaterStatus updater_reboot_install(void) {
         furi_hal_power_reset();
 
         status = UpdaterStatusSuccess;
+    } else {
+        FURI_LOG_W(
+            TAG, "Battery level too low (has to be at least %d%%)", UPDATE_MIN_BATTERY_LEVEL);
+
+        status = UpdaterStatusErrorLowBatteryLevel;
     }
 
     return status;
