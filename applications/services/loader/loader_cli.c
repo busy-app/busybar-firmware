@@ -22,7 +22,7 @@ static void loader_cli_kill(Loader* loader) {
         printf("App stopped successfully\r\n");
     } else if(status == LoaderStatusErrorAppNotRunning) {
         printf("No app running\r\n");
-    } else if(status == LoaderStatusErrorInternal) {
+    } else if(status == LoaderStatusErrorNoSignalHandler) {
         printf("Failed to stop: update app to support signals\r\n");
     } else {
         printf("Failed to stop: unexpected loader status");
