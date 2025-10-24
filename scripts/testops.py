@@ -204,7 +204,7 @@ class TelnetClient:
         self.sendline(command)
 
         accumulated = b""
-        patterns_bytes = [patterns.encode("utf-8") for pattern in patterns]
+        patterns_bytes = [pattern.encode("utf-8") for pattern in patterns]
         error_patterns_bytes = [err.encode("utf-8") for err in (error_patterns or [])]
 
         while time.perf_counter() - start < timeout:
