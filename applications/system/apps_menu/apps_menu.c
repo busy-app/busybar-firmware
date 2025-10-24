@@ -81,10 +81,13 @@ static bool apps_menu_gui_input_callback(const InputEvent* event, void* context)
 
 static AppsMenu* apps_menu_alloc(void) {
     AppsMenu* app = malloc(sizeof(AppsMenu));
+    FuriThread* thread = furi_thread_get_current();
 
     app->event_loop = furi_event_loop_alloc();
     app->input_queue = furi_message_queue_alloc(1, sizeof(InputEvent));
     app->event_queue = furi_message_queue_alloc(1, sizeof(AppsMenuCustomEvent));
+    furi_thread_set_signal_callback(thread, apps_menu_thread_signal_callback, app);
+
     app->scene_manager = scene_manager_alloc(apps_menu_scenes, COUNT_OF(apps_menu_scenes), app);
     app->gui = furi_record_open(RECORD_GUI);
     app->desktop = furi_record_open(RECORD_DESKTOP);
@@ -130,6 +133,7 @@ static AppsMenu* apps_menu_alloc(void) {
 }
 
 static void apps_menu_free(AppsMenu* app) {
+    FuriThread* thread = furi_thread_get_current();
     scene_manager_free(app->scene_manager);
 
     with_gui(app->gui, {
@@ -145,6 +149,8 @@ static void apps_menu_free(AppsMenu* app) {
 
     furi_event_loop_unsubscribe(app->event_loop, app->input_queue);
     furi_event_loop_unsubscribe(app->event_loop, app->event_queue);
+
+    furi_thread_set_signal_callback(thread, NULL, NULL);
     furi_message_queue_free(app->input_queue);
     furi_message_queue_free(app->event_queue);
     furi_event_loop_free(app->event_loop);
@@ -161,10 +167,7 @@ int32_t apps_menu_app(void* arg) {
     UNUSED(arg);
 
     AppsMenu* app = apps_menu_alloc();
-    FuriThread* thread = furi_thread_get_current();
-    furi_thread_set_signal_callback(thread, apps_menu_thread_signal_callback, app);
     furi_event_loop_run(app->event_loop);
-    furi_thread_set_signal_callback(thread, NULL, NULL);
     apps_menu_free(app);
 
     return 0;
