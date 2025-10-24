@@ -127,8 +127,6 @@ WifiStatus wifi_get_info(Wifi* instance, WifiInfo* info) {
     furi_check(instance);
     furi_check(info);
 
-    // TODO: Protect with mutex / use FuriState
-    *info = instance->info;
-
+    furi_state_get(instance->state, info);
     return WifiStatusOk;
 }

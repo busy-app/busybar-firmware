@@ -32,19 +32,20 @@ static void wifi_save_default_settings(void) {
 }
 
 static void wifi_print_connection_info(Wifi* instance) {
-    const WifiInfo* info = &instance->info;
-    const WifiIpv4* addr = &info->ip_config.ip4.address;
+    with_furi_state(instance->state, const WifiInfo* info, {
+        const WifiIpv4* addr = &info->ip_config.ip4.address;
 
-    FURI_LOG_I(
-        TAG,
-        "Connection success\r\n"
-        "\tSSID:\t\t%s\r\n"
-        "\tIPv4 address:\t%hhu.%hhu.%hhu.%hhu",
-        info->ssid,
-        addr->bytes[0],
-        addr->bytes[1],
-        addr->bytes[2],
-        addr->bytes[3]);
+        FURI_LOG_I(
+            TAG,
+            "Connection success\r\n"
+            "\tSSID:\t\t%s\r\n"
+            "\tIPv4 address:\t%hhu.%hhu.%hhu.%hhu",
+            info->ssid,
+            addr->bytes[0],
+            addr->bytes[1],
+            addr->bytes[2],
+            addr->bytes[3]);
+    });
 }
 
 static void wifi_poll_timer_callback(void* context) {
@@ -226,7 +227,7 @@ static Wifi* wifi_alloc(void) {
         instance->event_loop, wifi_poll_timer_callback, FuriEventLoopTimerTypePeriodic, instance);
     instance->api_semaphore = furi_semaphore_alloc(1, 1);
     instance->dhcp_semaphore = furi_semaphore_alloc(1, 0);
-    // instance->state = furi_state_alloc(sizeof(WifiInfo));
+    instance->state = furi_state_alloc(sizeof(WifiInfo));
     instance->intercom = furi_record_open(RECORD_INTERCOM);
 
     furi_record_open(RECORD_NETWORK);

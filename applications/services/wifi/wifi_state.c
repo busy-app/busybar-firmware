@@ -10,102 +10,104 @@ static void wifi_state_reset_info(WifiInfo* info) {
 }
 
 void wifi_state_transition(Wifi* instance, WifiState new_state, ...) {
-    va_list args;
-    va_start(args, new_state);
+    with_furi_state(instance->state, WifiInfo * info, {
+        va_list args;
+        va_start(args, new_state);
 
-    WifiInfo* info = &instance->info;
-    const WifiState current_state = info->state;
+        const WifiState current_state = info->state;
 
-    if(current_state == WifiStateUnknown) {
-        if(new_state == WifiStateDisconnected) {
-            wifi_state_reset_info(info);
-            memcpy(info->bssid, va_arg(args, const uint8_t*), HW_ADDRESS_LEN);
+        if(current_state == WifiStateUnknown) {
+            if(new_state == WifiStateDisconnected) {
+                wifi_state_reset_info(info);
+                memcpy(info->bssid, va_arg(args, const uint8_t*), HW_ADDRESS_LEN);
+
+            } else {
+                furi_crash("Invalid transition from WifiStateUnknown");
+            }
+
+        } else if(current_state == WifiStateDisconnected) {
+            if(new_state == WifiStateConnecting) {
+                /* Nothing */
+            } else {
+                furi_crash("Invalid transition from WifiStateDisconnected");
+            }
+
+        } else if(current_state == WifiStateConnecting) {
+            if(new_state == WifiStateConnected) {
+                const WifiCredentials* credentials = va_arg(args, const WifiCredentials*);
+                const WifiIpConfig* ip_config = va_arg(args, const WifiIpConfig*);
+
+                strncpy(info->ssid, credentials->ssid, SSID_MAX_LEN);
+                info->security_mode = credentials->security_mode;
+                info->ip_config = *ip_config;
+
+            } else if(new_state == WifiStateDisconnected) {
+                /* Nothing */
+            } else {
+                furi_crash("Invalid transition from WifiStateConnecting");
+            }
+
+        } else if(current_state == WifiStateConnected) {
+            if(new_state == WifiStateDisconnecting) {
+                /* Nothing */
+            } else {
+                furi_crash("Invalid transition from WifiStateConnected");
+            }
+
+        } else if(current_state == WifiStateDisconnecting) {
+            if(new_state == WifiStateDisconnected) {
+                wifi_state_reset_info(info);
+            } else {
+                furi_crash("Invalid transition from WifiStateDisconnecting");
+            }
 
         } else {
-            furi_crash("Invalid transition from WifiStateUnknown");
+            furi_crash("Invalid WifiState value");
         }
 
-    } else if(current_state == WifiStateDisconnected) {
-        if(new_state == WifiStateConnecting) {
-            /* Nothing */
-        } else {
-            furi_crash("Invalid transition from WifiStateDisconnected");
-        }
+        va_end(args);
 
-    } else if(current_state == WifiStateConnecting) {
-        if(new_state == WifiStateConnected) {
-            const WifiCredentials* credentials = va_arg(args, const WifiCredentials*);
-            const WifiIpConfig* ip_config = va_arg(args, const WifiIpConfig*);
-
-            strncpy(info->ssid, credentials->ssid, SSID_MAX_LEN);
-            info->security_mode = credentials->security_mode;
-            info->ip_config = *ip_config;
-
-        } else if(new_state == WifiStateDisconnected) {
-            /* Nothing */
-        } else {
-            furi_crash("Invalid transition from WifiStateConnecting");
-        }
-
-    } else if(current_state == WifiStateConnected) {
-        if(new_state == WifiStateDisconnecting) {
-            /* Nothing */
-        } else {
-            furi_crash("Invalid transition from WifiStateConnected");
-        }
-
-    } else if(current_state == WifiStateDisconnecting) {
-        if(new_state == WifiStateDisconnected) {
-            wifi_state_reset_info(info);
-        } else {
-            furi_crash("Invalid transition from WifiStateDisconnecting");
-        }
-
-    } else {
-        furi_crash("Invalid WifiState value");
-    }
-
-    info->state = new_state;
-
-    va_end(args);
+        info->state = new_state;
+    });
 }
 
 void wifi_state_update_backend_info(Wifi* instance, const WifiBackendInfo* backend_info) {
-    WifiInfo* info = &instance->info;
-
-    info->channel = backend_info->channel;
-    info->rssi = backend_info->rssi;
+    with_furi_state(instance->state, WifiInfo * info, {
+        info->channel = backend_info->channel;
+        info->rssi = backend_info->rssi;
+    });
 }
 
 WifiStatus wifi_state_check_request_type(Wifi* instance, WifiRequestType request_type) {
-    const WifiInfo* info = &instance->info;
-    const WifiState current_state = info->state;
-
     WifiStatus status = WifiStatusOk;
 
-    if(request_type == WifiRequestTypeInit) {
-        if(current_state != WifiStateUnknown) {
-            status = WifiStatusError;
+    with_furi_state(instance->state, WifiInfo * info, {
+        const WifiState current_state = info->state;
+
+        if(request_type == WifiRequestTypeInit) {
+            if(current_state != WifiStateUnknown) {
+                status = WifiStatusError;
+            }
+        } else if(request_type == WifiRequestTypeScan) {
+            if(current_state != WifiStateDisconnected) {
+                status = WifiStatusScanNotPossible;
+            }
+        } else if(request_type == WifiRequestTypeConnect) {
+            if(current_state != WifiStateDisconnected) {
+                status = WifiStatusAlreadyConnected;
+            }
+        } else if(request_type == WifiRequestTypeDisconnect) {
+            if(current_state != WifiStateConnected) {
+                status = WifiStatusAlreadyDisconnected;
+            }
+        } else if(request_type == WifiRequestTypeGetBackendInfo) {
+            if(current_state != WifiStateConnected) {
+                status = WifiStatusError;
+            }
+        } else {
+            furi_crash("Invalid WifiRequestType");
         }
-    } else if(request_type == WifiRequestTypeScan) {
-        if(current_state != WifiStateDisconnected) {
-            status = WifiStatusScanNotPossible;
-        }
-    } else if(request_type == WifiRequestTypeConnect) {
-        if(current_state != WifiStateDisconnected) {
-            status = WifiStatusAlreadyConnected;
-        }
-    } else if(request_type == WifiRequestTypeDisconnect) {
-        if(current_state != WifiStateConnected) {
-            status = WifiStatusAlreadyDisconnected;
-        }
-    } else if(request_type == WifiRequestTypeGetBackendInfo) {
-        if(current_state != WifiStateConnected) {
-            status = WifiStatusError;
-        }
-    } else {
-        furi_crash("Invalid WifiRequestType");
-    }
+    });
 
     return status;
 }

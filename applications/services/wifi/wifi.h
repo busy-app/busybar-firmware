@@ -15,10 +15,14 @@ extern "C" {
 #endif
 
 /**
- * @brief TBD
+ * @brief Get the state object that supports change notifications
+ *
+ * The received FuriState object will have an underlying type of WifiInfo.
+ *
+ * Use furi_state_subscribe() to get notifications about changes in the current state.
  *
  * @param[in,out] instance pointer to the Wifi instance
- * @returns TBD
+ * @returns pointer to the FuriState object
  */
 FuriState* wifi_get_state(Wifi* instance);
 

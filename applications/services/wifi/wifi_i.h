@@ -55,7 +55,6 @@ struct Wifi {
     WifiMessage api_message;
     WifiRequest request;
     WifiResponse response;
-    WifiInfo info;
 };
 
 // API management
