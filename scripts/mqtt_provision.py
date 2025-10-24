@@ -28,7 +28,7 @@ SIGN_KEY = "signing-ca.key"
 DEVICE_CERT = "device.crt"
 DEVICE_KEY = "device.key"
 
-MQTT_DATA_DIR = "/ext/apps_assets/mqtt_client/"
+MQTT_DATA_DIR = "/ext/apps_assets/mqtt_client"
 
 PORT_NAME = ("10.0.4.20", 23)
 KEY_ID_TLS = 0x10
@@ -37,20 +37,21 @@ KEY_TYPE_ECDSA256 = 8
 
 def write_certs():
     with FlipperStorage(PORT_NAME) as storage:
-        storage.mkdir("/ext/apps_assets/mqtt_client")
+        if not storage.exist_dir(MQTT_DATA_DIR):
+            storage.mkdir(MQTT_DATA_DIR)
 
         from_path = os.path.join(CERTS_DIR, CA_BUNDLE)
-        to_path = MQTT_DATA_DIR + CA_BUNDLE
+        to_path = MQTT_DATA_DIR + "/" + CA_BUNDLE
         print(f'Sending "{from_path}" to "{to_path}"')
         storage.send_file(f"{from_path}", f"{to_path}")
 
         from_path = os.path.join(CERTS_DIR, SIGN_CERT)
-        to_path = MQTT_DATA_DIR + SIGN_CERT
+        to_path = MQTT_DATA_DIR + "/" + SIGN_CERT
         print(f'Sending "{from_path}" to "{to_path}"')
         storage.send_file(f"{from_path}", f"{to_path}")
 
         from_path = os.path.join(CERTS_DIR, DEVICE_CERT)
-        to_path = MQTT_DATA_DIR + DEVICE_CERT
+        to_path = MQTT_DATA_DIR + "/" + DEVICE_CERT
         print(f'Sending "{from_path}" to "{to_path}"')
         storage.send_file(f"{from_path}", f"{to_path}")
 
@@ -89,9 +90,9 @@ def write_private_key(key_file, wrap=False):
 
 def cleanup():
     with FlipperStorage(PORT_NAME) as storage:
-        storage.remove(MQTT_DATA_DIR + CA_BUNDLE)
-        storage.remove(MQTT_DATA_DIR + SIGN_CERT)
-        storage.remove(MQTT_DATA_DIR + DEVICE_CERT)
+        storage.remove(MQTT_DATA_DIR + "/" + CA_BUNDLE)
+        storage.remove(MQTT_DATA_DIR + "/" + SIGN_CERT)
+        storage.remove(MQTT_DATA_DIR + "/" + DEVICE_CERT)
 
     with CryptoStorage(PORT_NAME) as crypto_storage:
         ret = crypto_storage.wipe_partition(0)
