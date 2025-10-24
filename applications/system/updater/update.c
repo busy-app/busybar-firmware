@@ -138,9 +138,9 @@ UpdaterStatus updater_prepare_install(const char* manifest_path) {
     FURI_LOG_D(TAG, "Preparing update for installation");
 
     UpdaterStatus status = UpdaterStatusErrorUnknown;
-    Storage* storage = NULL;
-    UpdateConfig* config = NULL;
-    FuriString* staging_path = NULL;
+    Storage* storage = furi_record_open(RECORD_STORAGE);
+    UpdateConfig* config = update_config_alloc();
+    FuriString* staging_path = furi_string_alloc();
 
     do {
         if(!does_battery_state_allow_update()) {
@@ -153,7 +153,6 @@ UpdaterStatus updater_prepare_install(const char* manifest_path) {
 
         FURI_LOG_D(TAG, "Checking for manifest: %s", manifest_path);
 
-        storage = furi_record_open(RECORD_STORAGE);
         if(!storage_file_exists(storage, manifest_path)) {
             FURI_LOG_E(TAG, "Manifest file not found: %s", manifest_path);
 
@@ -163,7 +162,6 @@ UpdaterStatus updater_prepare_install(const char* manifest_path) {
 
         FURI_LOG_D(TAG, "Manifest file found: %s", manifest_path);
 
-        config = update_config_alloc();
         UpdateConfigValidation config_state = update_config_load(config, manifest_path);
         if(config_state != UpdateConfigValidationOK) {
             FURI_LOG_E(
@@ -177,7 +175,6 @@ UpdaterStatus updater_prepare_install(const char* manifest_path) {
 
         FURI_LOG_D(TAG, "Updater configuration valid");
 
-        staging_path = furi_string_alloc();
         path_extract_dirname(manifest_path, staging_path);
 
         UpdaterSessionConfig session_config;
@@ -203,17 +200,9 @@ UpdaterStatus updater_prepare_install(const char* manifest_path) {
         status = UpdaterStatusSuccess;
     } while(false);
 
-    if(staging_path) {
-        furi_string_free(staging_path);
-    }
-
-    if(config) {
-        update_config_free(config);
-    }
-
-    if(storage) {
-        furi_record_close(RECORD_STORAGE);
-    }
+    furi_string_free(staging_path);
+    update_config_free(config);
+    furi_record_close(RECORD_STORAGE);
 
     return status;
 }

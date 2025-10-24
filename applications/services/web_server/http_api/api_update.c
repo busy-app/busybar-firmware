@@ -82,7 +82,7 @@ static bool
     handle_completed_upload_and_reboot(HttpUpdateHandlerCtx* ctx, struct mg_connection* conn) {
     FURI_LOG_I(TAG, "File upload complete. Processing update package.");
 
-    FuriString* manifest_path = NULL;
+    FuriString* manifest_path = furi_string_alloc();
 
     bool is_success = false;
     do {
@@ -100,7 +100,6 @@ static bool
 
         FURI_LOG_I(TAG, "Final staging path: %s", furi_string_get_cstr(ctx->final_staging_path));
 
-        manifest_path = furi_string_alloc();
         UpdaterStatus unpack_tar_status = updater_unpack_tar(
             furi_string_get_cstr(ctx->temp_tar_path),
             furi_string_get_cstr(ctx->final_staging_path),
@@ -135,9 +134,7 @@ static bool
         is_success = true;
     } while(false);
 
-    if(manifest_path) {
-        furi_string_free(manifest_path);
-    }
+    furi_string_free(manifest_path);
 
     return is_success;
 }
