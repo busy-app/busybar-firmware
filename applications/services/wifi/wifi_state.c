@@ -1,11 +1,7 @@
 #include "wifi_state.h"
 
 static void wifi_state_reset_info(WifiInfo* info) {
-    memset(info->ssid, 0, SSID_MAX_LEN);
-    memset(&info->ip_config, 0, sizeof(info->ip_config));
-
-    info->security_mode = WifiSecurityModeOpen;
-    info->channel = 0;
+    memset(info, 0, sizeof(WifiInfo));
     info->rssi = -99;
 }
 
@@ -19,8 +15,6 @@ void wifi_state_transition(Wifi* instance, WifiState new_state, ...) {
         if(current_state == WifiStateUnknown) {
             if(new_state == WifiStateDisconnected) {
                 wifi_state_reset_info(info);
-                memcpy(info->bssid, va_arg(args, const uint8_t*), HW_ADDRESS_LEN);
-
             } else {
                 furi_crash("Invalid transition from WifiStateUnknown");
             }
@@ -73,6 +67,7 @@ void wifi_state_transition(Wifi* instance, WifiState new_state, ...) {
 
 void wifi_state_update_backend_info(Wifi* instance, const WifiBackendInfo* backend_info) {
     with_furi_state(instance->state, WifiInfo * info, {
+        memcpy(info->bssid, backend_info->bssid, HW_ADDRESS_LEN);
         info->channel = backend_info->channel;
         info->rssi = backend_info->rssi;
     });

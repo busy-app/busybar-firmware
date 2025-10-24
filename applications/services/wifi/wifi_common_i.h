@@ -40,6 +40,7 @@ typedef struct {
 } WifiScanResults;
 
 typedef struct {
+    uint8_t bssid[HW_ADDRESS_LEN];
     int32_t rssi;
     uint16_t channel;
 } WifiBackendInfo;

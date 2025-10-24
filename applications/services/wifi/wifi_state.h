@@ -2,6 +2,11 @@
 
 #include "wifi_i.h"
 
+/*
+ * Variable arguments:
+ * const WifiCredentials*, const WifiIpConfig* for WifiStateConnected
+ * no variable arguments for any other state
+ */
 void wifi_state_transition(Wifi* instance, WifiState new_state, ...);
 
 void wifi_state_update_backend_info(Wifi* instance, const WifiBackendInfo* backend_info);

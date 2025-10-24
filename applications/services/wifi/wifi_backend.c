@@ -174,6 +174,13 @@ static void wifi_get_backend_info_request_handler(Wifi* instance) {
     do {
         WifiBackendInfo* backend_info = &response->backend_info;
 
+        sl_si91x_rsp_wireless_info_t wl_info;
+        status = sl_wifi_get_wireless_info(&wl_info);
+        if(status != SL_STATUS_OK) {
+            FURI_LOG_E(TAG, "Failed to get wireless info: %lX", status);
+            break;
+        }
+
         int32_t rssi;
         status = sl_wifi_get_signal_strength(SL_WIFI_CLIENT_2_4GHZ_INTERFACE, &rssi);
 
@@ -182,15 +189,9 @@ static void wifi_get_backend_info_request_handler(Wifi* instance) {
             break;
         }
 
-        sl_wifi_channel_t channel;
-        status = sl_wifi_get_channel(SL_WIFI_CLIENT_2_4GHZ_INTERFACE, &channel);
-
-        if(status != SL_STATUS_OK) {
-            FURI_LOG_E(TAG, "Failed to get channel: %lX", status);
-        }
-
+        memcpy(backend_info->bssid, wl_info.bssid, HW_ADDRESS_LEN);
+        backend_info->channel = wl_info.channel_number;
         backend_info->rssi = rssi;
-        backend_info->channel = channel.channel;
 
     } while(false);
 

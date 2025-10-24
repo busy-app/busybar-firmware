@@ -133,10 +133,8 @@ static void wifi_process_response(Wifi* instance) {
 
     if(status == WifiStatusOk) {
         if(request_type == WifiRequestTypeInit) {
-            const uint8_t* hw_address = response->hw_address;
-
-            wifi_net_init(instance, hw_address);
-            wifi_state_transition(instance, WifiStateDisconnected, hw_address);
+            wifi_net_init(instance, response->hw_address);
+            wifi_state_transition(instance, WifiStateDisconnected);
             // Asynchronously load and apply settings if needed
             furi_event_loop_pend_callback(
                 instance->event_loop, wifi_apply_settings_pending_callback, instance);
