@@ -90,6 +90,8 @@ static void updater_cli_execute_install(const char* manifest_path) {
             break;
         }
 
+        printf("Update preparation successful, rebooting...\r\n");
+
         UpdaterStatus reboot_install_status = updater_reboot_install();
         if(reboot_install_status != UpdaterStatusSuccess) {
             printf(
@@ -116,6 +118,10 @@ static void updater_cli_execute_install_tar(const char* tar_path) {
             break;
         }
 
+        printf(
+            "Update unpack TAR successful, manifest path: %s\r\n",
+            furi_string_get_cstr(manifest_path));
+
         UpdaterStatus prepare_install_status =
             updater_prepare_install(furi_string_get_cstr(manifest_path));
         if(prepare_install_status != UpdaterStatusSuccess) {
@@ -125,6 +131,8 @@ static void updater_cli_execute_install_tar(const char* tar_path) {
 
             break;
         }
+
+        printf("Update preparation successful, rebooting...\r\n");
 
         UpdaterStatus reboot_install_status = updater_reboot_install();
         if(reboot_install_status != UpdaterStatusSuccess) {
