@@ -361,8 +361,8 @@ class BusyBarDevice:
 
     def update_bundle(self, bundle_path: str, timeout: int = 10) -> Tuple[bool, str]:
         """
-        Runs 'update install <bundle.json>' and waits for 'Updater configuration valid' message.
-        Returns immediately with error if 'Failed to load updater configuration: Manifest path invalid' is detected.
+        Runs 'update install <bundle.json>' and waits for 'Update preparation successful, rebooting...' message.
+        Returns immediately with error if 'Update prepare install failed:' is detected.
         Closes connection immediately after seeing success message since device won't return to prompt.
         """
         cmd = f"update install {bundle_path}"
@@ -372,18 +372,18 @@ class BusyBarDevice:
 
             # Define error patterns that should cause immediate failure
             error_patterns = [
-                "Failed to load updater configuration: Manifest path invalid"
+                "Update prepare install failed:"
             ]
 
             # Use the method with error pattern detection
-            res = tn.run_until_pattern(cmd, "Updater configuration valid", timeout=timeout, error_patterns=error_patterns)
+            res = tn.run_until_pattern(cmd, "Update preparation successful, rebooting...", timeout=timeout, error_patterns=error_patterns)
 
             if res.ok:
-                return True, res.stdout if res.stdout else "Update initiated successfully - 'Updater configuration valid' detected"
+                return True, res.stdout if res.stdout else "Update initiated successfully - 'Update preparation successful, rebooting...' detected"
             else:
                 # Check if the error was due to invalid manifest path
                 if "Failed to load updater configuration: Manifest path invalid" in res.stdout:
-                    return False, f"Update failed: Invalid manifest path. Output: {res.stdout}"
+                    return False, f"Update prepare install failed:. Output: {res.stdout}"
                 elif res.stdout:
                     return False, f"Update command failed or timed out. Output: {res.stdout}"
                 else:
