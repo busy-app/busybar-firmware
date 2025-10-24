@@ -75,6 +75,11 @@ void wifi_schedule_backend_info_request(Wifi* instance) {
     wifi_api_nonblocking_request(instance, &msg);
 }
 
+FuriState* wifi_get_state(Wifi* instance) {
+    furi_check(instance);
+    return instance->state;
+}
+
 WifiStatus wifi_scan(Wifi* instance, WifiScanResult* results, uint8_t* count, uint8_t max_count) {
     furi_check(instance);
     furi_check(results);
