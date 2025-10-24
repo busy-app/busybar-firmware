@@ -50,6 +50,9 @@
 #endif
 
 #define MITM_REQ 1
+
+#define DEVICE_ADDRESS_EQUAL(addr1, addr2) (memcmp(addr1, addr2, RSI_DEV_ADDR_LEN) == 0)
+
 //! application events list
 typedef enum {
     BLEWorkerEvtExit = (1 << 0),
@@ -768,7 +771,10 @@ static int32_t ble_worker_thread_callback(void* context) {
 
         if(events & BLEWorkerSmpLtkRequest) {
             BLE_LOG_I("BLEWorkerSmpLtkRequest");
-            if(ble_worker_instance->pairing_info_available) {
+            if(ble_worker_instance->pairing_info_available &&
+               DEVICE_ADDRESS_EQUAL(
+                   ble_worker_instance->remote_dev_address,
+                   ble_worker_instance->enc_enabled.dev_addr)) {
                 const rsi_bt_event_encryption_enabled_t* encrypt_keys =
                     &ble_worker_instance->enc_enabled;
 
