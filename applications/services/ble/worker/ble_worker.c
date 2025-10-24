@@ -740,11 +740,9 @@ static int32_t ble_worker_thread_callback(void* context) {
         }
 
         if(events & BLEWorkerSmpResponse) {
-            BLE_LOG_D("BLEWorkerSmpResponse");
+            BLE_LOG_I("BLEWorkerSmpResponse");
             status = rsi_ble_smp_pair_response(
-                ble_worker_instance->rsi_bt_event_smp_resp.dev_addr,
-                RSI_BLE_SMP_IO_CAPABILITY,
-                MITM_REQ);
+                ble_worker_instance->remote_dev_address, RSI_BLE_SMP_IO_CAPABILITY, MITM_REQ);
 
             if(status != SL_STATUS_OK) {
                 BLE_LOG_W("Passkey Status: %lX", status);
@@ -783,19 +781,21 @@ static int32_t ble_worker_thread_callback(void* context) {
                     (1 | encrypt_keys->enabled | (encrypt_keys->sc_enable << 7)),
                     encrypt_keys->localltk);
                 if(status != RSI_SUCCESS) {
-                    BLE_LOG_W("\n ltk req reply cmd failed with reason = %lx \n", status);
+                    BLE_LOG_W("ltk req reply cmd failed with reason = %lx", status);
                 }
+                BLE_LOG_I("Paired device");
             } else {
+                BLE_LOG_I("Not paired device");
                 rsi_ble_ltk_req_reply(ble_worker_instance->remote_dev_address, 0, NULL);
                 if(status != RSI_SUCCESS) {
-                    BLE_LOG_W("\n ltk negative req reply cmd failed with reason = %lx \n", status);
+                    BLE_LOG_W("ltk negative req reply cmd failed with reason = %lx \n", status);
                 }
 
                 /* restarting the SMP */
                 status = rsi_ble_smp_pair_request(
                     ble_worker_instance->remote_dev_address, RSI_BLE_SMP_IO_CAPABILITY, MITM_REQ);
                 if(status != RSI_SUCCESS) {
-                    BLE_LOG_W("\n smp pair req failed with reason = %lx \n", status);
+                    BLE_LOG_W("smp pair req failed with reason = %lx", status);
                 } else {
                     ble_worker_instance->pairing_info_available = 0;
                 }
