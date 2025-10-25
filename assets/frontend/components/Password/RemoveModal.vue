@@ -21,6 +21,7 @@
   >
     <template #body>
       <UFormField
+        v-if="apiStore.apiKey"
         label="Current password"
         :error="pms.currentPasswordValidation"
       >
@@ -58,6 +59,7 @@
 import { vMaska } from 'maska/vue';
 
 const pms = usePasswordModalStore();
+const apiStore = useApiStore();
 
-const isInvalid = computed(() => pms.currentPasswordValidation !== undefined || pms.passwordModel.current === '');
+const isInvalid = computed(() => pms.currentPasswordValidation !== undefined || (!!apiStore.apiKey && pms.passwordModel.current === ''));
 </script>
