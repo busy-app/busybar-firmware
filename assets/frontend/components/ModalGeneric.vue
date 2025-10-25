@@ -11,7 +11,7 @@
       content: `${props.wide ? 'max-w-[640px]' : 'max-w-[360px]'} divide-none`,
       description: 'hidden',
       header: 'min-h-20',
-      body: 'pt-0 sm:pt-0 overflow-y-scroll',
+      body: 'pt-0 sm:pt-0 overflow-y-auto',
       close: showCloseButton ? 'flex top-6 end-5' :'hidden'
     }"
   >
