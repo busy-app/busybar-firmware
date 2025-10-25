@@ -4,11 +4,13 @@
       <div class="flex flex-col gap-8 pb-6 sm:pb-0 sm:pr-6">
         <div class="flex justify-between items-center">
           <UIcon
+            data-id="mute-icon"
             :name="mute.isMuted ? 'i-ri-volume-mute-line' : 'i-ri-volume-up-line'"
             class="size-7"
           />
 
           <UButton
+            data-id="mute-button"
             label="Mute"
             icon="i-ri-volume-mute-line"
             variant="subtle"
@@ -22,11 +24,18 @@
         <div class="flex flex-col gap-2.5">
           <div class="flex justify-between items-center">
             <div class="text-lg font-medium">Sound</div>
-            <div class="text-muted">{{ volumeNumber }}%</div>
+            <div
+              data-id="volume-percentage"
+              class="text-muted"
+            >
+              {{ volumeNumber }}%
+            </div>
           </div>
 
           <USlider
             v-model="nextVolumeNumber"
+            data-id="volume-slider"
+            :step="5"
             :default-value="volumeNumber"
             :ui="{
               root: '',
@@ -42,11 +51,13 @@
       <div class="flex flex-col gap-8 pt-6 sm:pt-0 sm:pl-6">
         <div class="flex justify-between items-center">
           <UIcon
+            data-id="brightness-auto-icon"
             :name="isBrightnessAuto ? 'i-busy-brightness-auto' : 'i-ri-sun-line'"
             class="size-7"
           />
 
           <UButton
+            data-id="brightness-auto-button"
             label="Auto"
             icon="i-ri-input-method-line"
             variant="subtle"
@@ -60,11 +71,18 @@
         <div class="flex flex-col gap-2.5">
           <div class="flex justify-between items-center">
             <div class="text-lg font-medium">Brightness</div>
-            <div class="text-muted">{{ brightnessNumber }}%</div>
+            <div
+              data-id="brightness-percentage"
+              class="text-muted"
+            >
+              {{ brightnessNumber }}%
+            </div>
           </div>
 
           <USlider
             v-model="nextBrightnessNumber"
+            data-id="brightness-slider"
+            :step="5"
             :default-value="brightnessNumber"
             :ui="{
               root: '',
