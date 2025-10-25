@@ -1,5 +1,8 @@
 <template>
-  <div class="max-w-screen xl:sticky xl:top-4 xl:w-40 xl:self-start flex xl:flex-col gap-2 overflow-auto px-4 sm:px-0">
+  <div
+    data-id="layout-default-tabs"
+    class="max-w-screen xl:sticky xl:top-4 xl:w-40 xl:self-start flex xl:flex-col gap-2 overflow-auto px-4 sm:px-0"
+  >
     <div
       v-for="tab in tabStore.tabOptions"
       :key="tab.value"

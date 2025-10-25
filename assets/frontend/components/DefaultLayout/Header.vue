@@ -1,27 +1,45 @@
 <template>
-  <nav class="relative h-12 flex justify-between items-center">
+  <nav
+    data-id="layout-default-header"
+    class="relative h-12 flex justify-between items-center"
+  >
     <div class="flex gap-4">
       <UIcon
+        data-id="layout-default-header-logo"
         name="i-busy-bar-logo"
         class="w-[70px] h-[28px]"
       />
       <div class="hidden md:flex items-center gap-2">
-        <div class="flex items-center gap-1">
+        <div
+          data-id="layout-default-header-connection-state"
+          class="flex items-center gap-1"
+        >
           <UIcon
             name="i-ri-usb-line"
             class="w-[18px] h-[22px]"
           />
           Connected
         </div>
-        <div class="text-muted">{{ host }}</div>
+        <div
+          data-id="layout-default-header-connection-host"
+          class="text-muted"
+        >
+          {{ host }}
+        </div>
       </div>
     </div>
 
     <!-- temp -->
     <div class="absolute left-1/2 -translate-x-1/2 flex items-center gap-4">
-      <div class="text-xl">BUSY Bar</div>
+      <div
+        data-id="layout-default-header-name"
+        class="text-xl"
+      >
+        BUSY Bar
+      </div>
       <div
         v-if="power"
+        data-id="layout-default-header-power"
         class="flex items-center gap-1.5"
       >
         <div class="relative flex">
@@ -41,6 +59,7 @@
 
     <div class="hidden absolute left-1/2 -translate-x-1/2">
       <UDropdownMenu
+        data-id="layout-default-header-device-menu"
         :items="[
           {
             label: 'Rename',
@@ -77,6 +96,7 @@
 
       <ModalGeneric
         v-model:open="showRenameModal"
+        data-id="model-rename"
         title="Rename device"
         :primary-action-props="{
           label: 'Rename',
@@ -94,6 +114,7 @@
         <template #body>
           <UInput
             v-model="nameModel"
+            name="new-name"
             size="xl"
             variant="soft"
           />
@@ -102,6 +123,7 @@
 
       <ModalGeneric
         v-model:open="showRestartModal"
+        data-id="model-restart"
         title="Restart BUSY Bar?"
         description="Web control will be back after the reboot."
         :primary-action-props="{
@@ -120,6 +142,7 @@
 
     <div class="flex gap-4 items-center">
       <UDropdownMenu
+        data-id="layout-default-header-user-menu"
         :items="userDropdownItems"
         :content="{
           align: 'end',
@@ -130,6 +153,7 @@
         }"
       >
         <UButton
+          data-id="layout-default-header-user-menu-trigger"
           icon="i-busy-user-fill"
           size="lg"
           square

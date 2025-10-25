@@ -1,5 +1,5 @@
 <template>
-  <SectionCard>
+  <SectionCard data-id="settings-section-primary">
     <div class="grid sm:grid-cols-2 divide-y sm:divide-x sm:divide-y-0 divide-neutral-300/30 dark:divide-neutral-700/30 p-2">
       <div class="flex flex-col gap-8 pb-6 sm:pb-0 sm:pr-6">
         <div class="flex justify-between items-center">

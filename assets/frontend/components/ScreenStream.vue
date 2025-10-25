@@ -1,5 +1,8 @@
 <template>
-  <div class="screen-stream-container">
+  <div
+    data-id="screen-stream"
+    class="screen-stream-container"
+  >
     <div class="device-image">
       <img
         src="~/assets/images/busybar-device.png"
@@ -9,6 +12,7 @@
     <div class="canvas-container">
       <canvas
         ref="canvasRef"
+        data-id="screen-stream-canvas"
         :width="canvasWidth"
         :height="canvasHeight"
         class="aspect-[72/16]"

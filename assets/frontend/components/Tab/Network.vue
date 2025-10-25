@@ -1,6 +1,7 @@
 <template>
   <SectionCard
     :key="title"
+    data-id="network-section-wifi"
     :title="title"
     :icon="networks.length ? undefined : connected ? 'i-ri-signal-wifi-fill' : 'i-ri-signal-wifi-line'"
   >
@@ -9,6 +10,7 @@
       #leading-actions
     >
       <UButton
+        data-id="network-section-wifi-back-button"
         icon="i-ri-arrow-left-line"
         variant="ghost"
         color="neutral"
@@ -26,17 +28,24 @@
     >
       <div
         v-if="connected"
+        data-id="network-section-wifi-status-connected"
         class="flex items-center gap-2 text-green-500"
       >
         <div class="relative top-[-1px] size-2.5 rounded-full bg-green-500" />
         Connected
       </div>
-      <div v-else>Disconnected</div>
+      <div
+        v-else
+        data-id="network-section-wifi-status-disconnected"
+      >
+        Disconnected
+      </div>
     </template>
 
     <template #actions>
       <UButton
         v-if="!connected && !networks.length"
+        data-id="network-section-wifi-select-button"
         label="Select network"
         :ui="{
           base: 'px-2.5 py-2 rounded-full'
@@ -47,6 +56,7 @@
       />
       <UButton
         v-if="connected && !networks.length"
+        data-id="network-section-wifi-forget-button"
         label="Forget network"
         variant="soft"
         color="error"
@@ -63,6 +73,7 @@
         :delay-duration="0"
       >
         <UButton
+          data-id="network-section-wifi-add-button"
           icon="i-ri-add-line"
           variant="ghost"
           color="neutral"
@@ -88,6 +99,7 @@
       <template v-if="wifiStore.wifi?.ip_config?.address">
         <CopyButton
           v-if="copyAvailable"
+          data-id="network-section-wifi-ip-address-copy-button"
           :text="wifiStore.wifi?.ip_config?.address"
           variant="link"
           color="neutral"
@@ -95,6 +107,7 @@
         />
         <div
           v-else
+          data-id="network-section-wifi-ip-address-no-copy"
           class="text-sm text-muted"
         >
           {{ wifiStore.wifi?.ip_config?.address }}
@@ -102,6 +115,7 @@
       </template>
       <div
         v-else
+        data-id="network-section-wifi-ip-address-unavailable"
         class="text-sm text-muted"
       >
         Unable to get IP address
@@ -130,7 +144,10 @@
       v-if="!connected && networks.length"
       #raw-body
     >
-      <div class="flex flex-col gap-1.5">
+      <div
+        data-id="network-section-wifi-networks"
+        class="flex flex-col gap-1.5"
+      >
         <div
           v-for="network in networks"
           :key="network.ssid"
@@ -179,6 +196,7 @@
 
   <ModalGeneric
     v-model:open="showConnectModal"
+    data-id="modal-connect-wifi"
     :title="connectToExistingNetwork ? `Connect to ${connectModel.ssid}` : 'Add network'"
     :description="connectToExistingNetwork ? 'Enter the network security password.' : 'Enter the name and security type of the network you want to connect to.'"
     wide
@@ -200,6 +218,7 @@
         <UFormField label="Network name">
           <UInput
             v-model="connectModel.ssid"
+            name="ssid"
             size="xl"
             variant="soft"
           />
@@ -207,6 +226,7 @@
         <UFormField label="Security">
           <USelect
             v-model="connectModel.security"
+            name="security"
             :items="[
               'Open',
               'WPA',
@@ -232,6 +252,7 @@
       >
         <UInput
           v-model="connectModel.password"
+          name="password"
           size="xl"
           variant="soft"
           :type="showPassword ? 'text' : 'password'"
@@ -253,8 +274,12 @@
         </UInput>
       </UFormField>
 
-      <UCollapsible class="flex flex-col gap-6 w-full">
+      <UCollapsible
+        data-id="modal-connect-wifi-advanced-options"
+        class="flex flex-col gap-6 w-full"
+      >
         <UButton
+          data-id="modal-connect-wifi-advanced-options-toggle"
           class="group"
           label="Advanced options"
           color="neutral"
@@ -272,6 +297,7 @@
             <UFormField label="IP Type">
               <USelect
                 v-model="connectModel.ip_config.ip_type"
+                name="ip-type"
                 :items="['ipv4', 'ipv6']"
                 size="xl"
                 variant="soft"
@@ -281,6 +307,7 @@
             <UFormField label="IP Settings">
               <USelect
                 v-model="connectModel.ip_config.ip_method"
+                name="ip-method"
                 :items="['dhcp', 'static']"
                 size="xl"
                 variant="soft"
@@ -292,6 +319,7 @@
                 <UInput
                   v-model="connectModel.ip_config.address"
                   v-maska="'###.###.###.###'"
+                  name="ip-address"
                   placeholder="___.___.___.___"
                   size="xl"
                   variant="soft"
@@ -301,6 +329,7 @@
                 <UInput
                   v-model="connectModel.ip_config.mask"
                   v-maska="'###.###.###.###'"
+                  name="subnet-mask"
                   placeholder="___.___.___.___"
                   size="xl"
                   variant="soft"
@@ -310,6 +339,7 @@
                 <UInput
                   v-model="connectModel.ip_config.gateway"
                   v-maska="'###.###.###.###'"
+                  name="gateway"
                   placeholder="___.___.___.___"
                   size="xl"
                   variant="soft"
@@ -324,6 +354,7 @@
 
   <SectionCard
     v-if="deviceStore.httpAPIAccess"
+    data-id="network-section-http-api"
     title="HTTP API"
     icon="i-ri-exchange-2-line"
   >
@@ -374,6 +405,7 @@
 
           <USwitch
             v-model="httpApiSwitchModel"
+            data-id="network-section-http-api-switch"
             :loading="loading.access"
             @update:model-value="handleHttpApiToggle"
           />
@@ -388,6 +420,7 @@
               <div>Security</div>
               <UBadge
                 v-if="deviceStore.httpAPIAccess.mode === 'key'"
+                data-id="network-section-http-api-status-secure"
                 icon="i-ri-lock-fill"
                 label="Secure"
                 color="success"
@@ -396,6 +429,7 @@
               />
               <UBadge
                 v-else-if="deviceStore.httpAPIAccess.mode === 'enabled'"
+                data-id="network-section-http-api-status-insecure"
                 icon="i-ri-alert-fill"
                 label="Insecure"
                 color="warning"
@@ -419,6 +453,7 @@
 
           <UDropdownMenu
             v-if="deviceStore.httpAPIAccess.mode === 'key'"
+            data-id="network-section-http-api-security-dropdown"
             :items="[
               {
                 label: 'Change',
@@ -458,6 +493,7 @@
 
           <UButton
             v-else
+            data-id="network-section-http-api-set-password-button"
             label="Set password"
             variant="soft"
             color="primary"
@@ -473,6 +509,7 @@
 
       <ModalGeneric
         v-model:open="showEnableHttpApiModal"
+        data-id="modal-http-api"
         title="Enable access to HTTP API?"
         description="Anyone on the same Wi-Fi network will be able to access the device via this page. We recommend setting a password that will be asked each time you open this page with a BUSY Bar connected via Wi-Fi."
         show-close-button

@@ -1,5 +1,8 @@
 <template>
-  <div class="w-screen min-h-screen px-4 sm:px-6 py-4">
+  <div
+    data-id="layout-default"
+    class="w-screen min-h-screen px-4 sm:px-6 py-4"
+  >
     <UContainer>
       <DefaultLayoutHeader />
       <DefaultLayoutPreview class="pb-10" />

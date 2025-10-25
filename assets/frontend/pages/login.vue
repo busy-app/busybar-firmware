@@ -1,5 +1,8 @@
 <template>
-  <div class="w-full min-h-[calc(100vh-2rem)] flex flex-col items-center justify-center gap-6">
+  <div
+    data-id="page-login"
+    class="w-full min-h-[calc(100vh-2rem)] flex flex-col items-center justify-center gap-6"
+  >
     <template v-if="!initialLoading">
       <div class="text-xl font-medium">Virtual LAN is locked</div>
 
@@ -16,11 +19,13 @@
         <UInput
           v-model="pms.passwordModel.current"
           v-maska="'##########'"
+          name="current-password"
           size="xl"
           variant="soft"
           :type="pms.passwordModel.showCurrent ? 'text' : 'password'"
           placeholder="Password"
           @update:model-value="pms.passwordModel.currentWrong = false"
+          @keyup.enter="attemptUnlock()"
         >
           <template #trailing>
             <UButton
@@ -39,6 +44,7 @@
       </UFormField>
 
       <UButton
+        data-id="page-login-unlock-button"
         label="Unlock"
         color="primary"
         size="lg"
