@@ -203,7 +203,7 @@
     :primary-action-props="{
       label: 'Connect',
       loading: loading.connect,
-      disabled: connectModel.ssid === '' || (connectModel.security !== 'Open' && connectModel.password === ''),
+      disabled: isConnectInvalid,
       onClick: connectToNetwork
     }"
     :secondary-action-props="{
@@ -221,6 +221,7 @@
             name="ssid"
             size="xl"
             variant="soft"
+            @keyup.enter="isConnectInvalid || loading.connect ? null : connectToNetwork()"
           />
         </UFormField>
         <UFormField label="Security">
@@ -257,6 +258,7 @@
           variant="soft"
           :type="showPassword ? 'text' : 'password'"
           :placeholder="connectToExistingNetwork ? 'Password' : ''"
+          @keyup.enter="isConnectInvalid || loading.connect ? null : connectToNetwork()"
         >
           <template #trailing>
             <UButton
@@ -323,6 +325,7 @@
                   placeholder="___.___.___.___"
                   size="xl"
                   variant="soft"
+                  @keyup.enter="isConnectInvalid || loading.connect ? null : connectToNetwork()"
                 />
               </UFormField>
               <UFormField label="Subnet Mask">
@@ -333,6 +336,7 @@
                   placeholder="___.___.___.___"
                   size="xl"
                   variant="soft"
+                  @keyup.enter="isConnectInvalid || loading.connect ? null : connectToNetwork()"
                 />
               </UFormField>
               <UFormField label="Gateway">
@@ -343,6 +347,7 @@
                   placeholder="___.___.___.___"
                   size="xl"
                   variant="soft"
+                  @keyup.enter="isConnectInvalid || loading.connect ? null : connectToNetwork()"
                 />
               </UFormField>
             </template>
@@ -599,6 +604,8 @@ const initConnectModel = () => {
     }
   };
 };
+
+const isConnectInvalid = computed(() => connectModel.value.ssid === '' || (connectModel.value.security !== 'Open' && connectModel.value.password === ''));
 
 async function connectToNetwork () {
   if (!connectModel.value.ssid) {

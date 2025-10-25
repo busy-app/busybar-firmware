@@ -117,6 +117,7 @@
             name="new-name"
             size="xl"
             variant="soft"
+            @keyup.enter="loading.rename ? null : updateDeviceName"
           />
         </template>
       </ModalGeneric>

@@ -33,7 +33,7 @@
           :type="pms.passwordModel.showCurrent ? 'text' : 'password'"
           placeholder="Enter password"
           @update:model-value="pms.passwordModel.currentWrong = false"
-          @keyup.enter="isInvalid ? null : pms.removePassword()"
+          @keyup.enter="isInvalid || pms.loading ? null : pms.removePassword()"
         >
           <template #trailing>
             <UButton

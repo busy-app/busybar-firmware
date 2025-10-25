@@ -33,7 +33,7 @@
           :type="pms.passwordModel.showCurrent ? 'text' : 'password'"
           placeholder="Enter password"
           @update:model-value="pms.passwordModel.currentWrong = false"
-          @keyup.enter="isInvalid ? null : pms.setPassword()"
+          @keyup.enter="isInvalid || pms.loading ? null : pms.setPassword()"
         >
           <template #trailing>
             <UButton
@@ -63,7 +63,7 @@
           variant="soft"
           :type="pms.passwordModel.showNew ? 'text' : 'password'"
           placeholder="From 4 to 10 digits"
-          @keyup.enter="isInvalid ? null : pms.setPassword()"
+          @keyup.enter="isInvalid || pms.loading ? null : pms.setPassword()"
         >
           <template #trailing>
             <UButton

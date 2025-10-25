@@ -25,7 +25,7 @@
           :type="pms.passwordModel.showCurrent ? 'text' : 'password'"
           placeholder="Password"
           @update:model-value="pms.passwordModel.currentWrong = false"
-          @keyup.enter="attemptUnlock()"
+          @keyup.enter="loading ? null : attemptUnlock()"
         >
           <template #trailing>
             <UButton
