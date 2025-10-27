@@ -130,11 +130,12 @@ bool ble_security_delete_data() {
 }
 
 static bool ble_scurity_key_is_present(uint8_t* key, size_t key_size) {
-    furi_assert(key_size > 0);
-
-    uint8_t* dummy = malloc(key_size);
-    bool result = (memcmp(key, dummy, key_size) != 0);
-    free(dummy);
+    bool result = false;
+    for(size_t i = 0; i < key_size; i++) {
+        if(key[i] == 0) continue;
+        result = true;
+        break;
+    }
     return result;
 }
 
