@@ -6,7 +6,9 @@
 #include <sl_wifi_callback_framework.h>
 
 #include "ble_config.h"
+#include "ble_security.h"
 
+#include "rsi_ble.h"
 #include "rsi_ble_apis.h"
 #include "rsi_ble_common_config.h"
 #include "rsi_bt_common_apis.h"
@@ -14,8 +16,6 @@
 #include "ble_advertise_config.h"
 #include "ble_worker_util.h"
 #include "../service/ble_service_i.h"
-
-#include "nvm/nvm.h"
 
 #include <m-dict.h>
 
@@ -74,6 +74,7 @@ typedef enum {
     BLEWorkerSmpResponse = (1 << 13),
     BLEWorkerSmpEncryptStarted = (1 << 14),
     BLEWorkerSmpLtkRequest = (1 << 15),
+    BLEWorkerSmpSecurityKeys = (1 << 16),
 } BLEWorkerEvt;
 
 #define BLE_USART_ECHO_ALL_EVENTS                                                                \
@@ -82,7 +83,7 @@ typedef enum {
      BLEWorkerEvtDataLengthChange | BLEWorkerEvtReceveRemoteFeatures | BLEWorkerEvtMoreDataReq | \
      BLEWorkerEvtWrite | BLEWorkerEvtDataTransmit | BLEWorkerEvtMtu |                            \
      BLEWorkerEvtIndicateConfirm | BLEWorkerSmpResponse | BLEWorkerSmpLtkRequest |               \
-     BLEWorkerSmpEncryptStarted)
+     BLEWorkerSmpEncryptStarted | BLEWorkerSmpSecurityKeys)
 
 typedef struct {
     ///TODO: for now this is ok, for future maybe it is worth to make each characteristic
@@ -105,7 +106,7 @@ typedef struct {
     FuriSemaphore* indication_sem;
     FuriSemaphore* notification_sem;
     uint8_t pairing_info_available;
-    Nvm* nvm;
+    FuriTimer* timer;
     ///TODO: this can be removed
     bool connected;
     BleWorkerState state;
@@ -131,8 +132,7 @@ typedef struct {
 
     rsi_bt_event_smp_resp_t rsi_bt_event_smp_resp;
     rsi_bt_event_le_ltk_request_t ble_ltk_req;
-    rsi_bt_event_encryption_enabled_t enc_enabled;
-    rsi_bt_event_le_security_keys_t app_ble_sec_keys;
+    BleSecurityData security_data;
 
     BleServiceEntryDict_t service_dict;
 } BleWorker;
@@ -377,7 +377,9 @@ static void rsi_ble_on_encrypt_started(
     UNUSED(resp_status);
     BLE_LOG_D("rsi_ble_on_encrypt_started status: %X", resp_status);
     memcpy(
-        &ble_worker_instance->enc_enabled, enc_enabled, sizeof(rsi_bt_event_encryption_enabled_t));
+        &ble_worker_instance->security_data.ltk,
+        enc_enabled,
+        sizeof(rsi_bt_event_encryption_enabled_t));
 
     furi_thread_flags_set(
         furi_thread_get_id(ble_worker_instance->thread), BLEWorkerSmpEncryptStarted);
@@ -754,27 +756,24 @@ static int32_t ble_worker_thread_callback(void* context) {
             BLE_LOG_I("BLEWorkerSmpEncryptStarted");
             if(ble_worker_instance->pairing_info_available == 0) {
                 ble_worker_instance->pairing_info_available = 1;
-                bool result = nvm_write(
-                    ble_worker_instance->nvm,
-                    NvmKeyBlePairingData,
-                    &ble_worker_instance->enc_enabled,
-                    sizeof(rsi_bt_event_encryption_enabled_t));
 
-                if(result)
-                    BLE_LOG_I("LTK saved");
+                FuriString* buf = furi_string_alloc();
+                ble_security_print_encryption_data(buf, &ble_worker_instance->security_data.ltk);
+                BLE_LOG_I(furi_string_get_cstr(buf));
+                furi_string_free(buf);
+
+                if(ble_security_save_data(&ble_worker_instance->security_data))
+                    BLE_LOG_I("Security data saved");
                 else
-                    BLE_LOG_W("Failed to save LTK");
+                    BLE_LOG_W("Failed to save Security");
             }
         }
 
         if(events & BLEWorkerSmpLtkRequest) {
             BLE_LOG_I("BLEWorkerSmpLtkRequest");
-            if(ble_worker_instance->pairing_info_available &&
-               DEVICE_ADDRESS_EQUAL(
-                   ble_worker_instance->remote_dev_address,
-                   ble_worker_instance->enc_enabled.dev_addr)) {
+            if(ble_worker_instance->pairing_info_available) {
                 const rsi_bt_event_encryption_enabled_t* encrypt_keys =
-                    &ble_worker_instance->enc_enabled;
+                    &ble_worker_instance->security_data.ltk;
 
                 status = rsi_ble_ltk_req_reply(
                     ble_worker_instance->remote_dev_address,
@@ -800,6 +799,23 @@ static int32_t ble_worker_thread_callback(void* context) {
                     ble_worker_instance->pairing_info_available = 0;
                 }
             }
+        }
+
+        if(events & BLEWorkerSmpSecurityKeys) {
+            BLE_LOG_W("BLEWorkerSmpSecurityKeys");
+            FuriString* buf = furi_string_alloc();
+            ble_sercurity_format_rpa_data(buf, &ble_worker_instance->security_data.irk);
+            BLE_LOG_I(furi_string_get_cstr(buf));
+            furi_string_free(buf);
+            if(ble_security_rpa_enable(&ble_worker_instance->security_data.irk))
+                BLE_LOG_I("RPA setup done");
+            else
+                BLE_LOG_W("RPA some error");
+
+            if(ble_security_save_data(&ble_worker_instance->security_data))
+                BLE_LOG_I("Security data saved");
+            else
+                BLE_LOG_W("Failed to save Security");
         }
     }
 
@@ -940,34 +956,6 @@ static void ble_prepare_uuid(const Char_UUID_t* temp, const uint8_t size, uuid_t
         ble_worker_prepare_128bit_uuid(temp->Char_UUID_128, uuid);
 }
 
-static bool ble_worker_load_pairing_data(Nvm* nvm, rsi_bt_event_encryption_enabled_t* enc) {
-    size_t key_len = 0;
-    bool result = false;
-    do {
-        if(!nvm_exists(nvm, NvmKeyBlePairingData, &key_len)) {
-            BLE_LOG_W("LTK key not exist");
-            break;
-        }
-
-        const size_t struct_size = sizeof(rsi_bt_event_encryption_enabled_t);
-        if(key_len != struct_size) {
-            BLE_LOG_W("Wrong LTK key size %d != %d", key_len, struct_size);
-            break;
-        }
-
-        BLE_LOG_I("Read LTK key struct of %d bytes", key_len);
-        if(!nvm_read(nvm, NvmKeyBlePairingData, enc, key_len)) {
-            BLE_LOG_W("Failed to read LTK key");
-            break;
-        }
-
-        BLE_LOG_I("LTK read done");
-        result = true;
-    } while(false);
-
-    return result;
-}
-
 void ble_worker_init() {
     ble_worker_instance = malloc(sizeof(BleWorker));
     ble_worker_instance->state = BleWorkerStateIdle;
@@ -977,13 +965,17 @@ void ble_worker_init() {
     ble_worker_instance->indication_sem = furi_semaphore_alloc(1, 0);
     ble_worker_instance->notification_sem = furi_semaphore_alloc(1, 1);
     ble_worker_instance->max_payload_size = BLE_WORKER_MAX_MTU_SIZE - BLE_WORKER_ATTR_HEADER_SIZE;
-    ble_worker_instance->nvm = furi_record_open(RECORD_NVM);
-
-    ble_worker_instance->pairing_info_available =
-        ble_worker_load_pairing_data(ble_worker_instance->nvm, &ble_worker_instance->enc_enabled);
 
     BleServiceEntryDict_init(ble_worker_instance->service_dict);
 
+    if(ble_security_load_data(&ble_worker_instance->security_data)) {
+        FuriString* buf = furi_string_alloc();
+        ble_security_print_encryption_data(buf, &ble_worker_instance->security_data.ltk);
+        BLE_LOG_I("Loaded LTK: %s", furi_string_get_cstr(buf));
+        ble_sercurity_format_rpa_data(buf, &ble_worker_instance->security_data.irk);
+        BLE_LOG_I("Loaded RPA: %s", furi_string_get_cstr(buf));
+        furi_string_free(buf);
+    }
     ble_hw_config();
 
     //Appearance adjustment
@@ -1146,11 +1138,29 @@ void ble_worker_receive_confirm(uint16_t handle, uint8_t cccd_value) {
 }
 
 bool ble_worker_forget_pairing() {
-    bool result = nvm_delete(ble_worker_instance->nvm, NvmKeyBlePairingData);
+    sl_status_t status;
+    if(ble_worker_instance->state == BleWorkerStateAdvertising) {
+        status = rsi_ble_stop_advertising();
 
-    memset(&ble_worker_instance->enc_enabled, 0, sizeof(rsi_bt_event_encryption_enabled_t));
+        if(status != RSI_SUCCESS)
+            BLE_LOG_W("Unable to stop adv");
+        else
+            BLE_LOG_I("Stopping adv");
+    } else
+        ///This is a mistake if worker is not initialized
+        BLE_LOG_W("Not adv %02X", ble_worker_instance->state);
+
+    ble_security_rpa_disable();
+
+    bool result = ble_security_delete_data();
+
+    memset(&ble_worker_instance->security_data, 0, sizeof(BleSecurityData));
     ble_worker_instance->pairing_info_available = 0;
 
-    if(result) BLE_LOG_I("LTK removed");
+    if(ble_worker_instance->state == BleWorkerStateAdvertising) {
+        ble_worker_start_advertising();
+    }
+
+    if(result) BLE_LOG_I("Security data removed");
     return result;
 }
