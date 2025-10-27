@@ -1044,6 +1044,52 @@ paths:
               schema:
                 $ref: "#/components/schemas/Error"
 
+  /api/busy/snapshot:
+    get:
+      tags:
+        - Busy
+      summary: Get BUSY timer snapshot
+      description: Gets the current state of the BUSY timer in the snapshot form
+      operationId: getBusySnapshot
+      responses:
+        "200":
+          description: Got snapshot successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BusySnapshot"
+        "400":
+          description: Error getting snapshot
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+    post:
+      tags:
+        - Busy
+      summary: Set BUSY time snapshot
+      description: Run the timer starting from the given snapshot
+      operationId: setBusySnapshot
+      parameters:
+        - name: snapshot
+          in: query
+          required: true
+          schema:
+            $ref: "#/components/schemas/BusySnapshot"
+      responses:
+        "200":
+          description: Snapshot successfully set
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse"
+        "400":
+          description: Error setting snapshot
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+          
 components:
   securitySchemes:
     ApiKeyAuth:
@@ -1110,7 +1156,7 @@ components:
           description: Access mode
           example: "key"
         key_valid:
-          type: bool
+          type: boolean
           description: Access key was set and is valid
           example: true
 
@@ -1490,6 +1536,126 @@ components:
       description: Frame for requested display encoded in base64
       format: base64
 
+    BusySnapshot:
+      type: object
+      properties:
+        snapshot:
+          type: object
+          oneOf:
+            - $ref: "#/components/schemas/BusySnapshotNotStarted"
+            - $ref: "#/components/schemas/BusySnapshotInfinite"
+            - $ref: "#/components/schemas/BusySnapshotSimple"
+            - $ref: "#/components/schemas/BusySnapshotInterval"
+        snapshot_time_ms:
+          type: integer
+          example: 1761582532251
+      required:
+        - snapshot
+        - shapshot_time_ms
+        
+    BusySnapshotNotStarted:
+      type: object
+      properties:
+        type:
+          type: string
+          enum: ["NOT_STARTED"]
+          example: "NOT_STARTED"
+      required:
+        - type
+
+    BusySnapshotInfinite:
+      type: object
+      properties:
+        type:
+          type: string
+          enum: ["INFINITE"]
+          example: "INFINITE"
+        card_id:
+          type: integer
+          example: 0
+        is_paused:
+          type: boolean
+          example: false
+      required:
+        - type
+        - card_id
+        - is_paused
+        
+    BusySnapshotSimple:
+      type: object
+      properties:
+        type:
+          type: string
+          enum: ["SIMPLE"]
+          example: "SIMPLE"
+        card_id:
+          type: integer
+          example: 0
+        time_left_ms:
+          type: integer
+          example: 9000
+        is_paused:
+          type: boolean
+          example: false
+      required:
+        - type
+        - card_id
+        - time_left_ms
+        - is_paused
+        
+    BusySnapshotInterval:
+      type: object
+      properties:
+        type:
+          type: string
+          enum: ["INTERVAL"]
+          example: "INTERVAL"
+        card_id:
+          type: integer
+          example: 0
+        current_interval:
+          type: integer
+          example: 1
+        current_interval_time_total_ms:
+          type: integer
+          example: 60000
+        current_interval_time_left_ms:
+          type: integer
+          example: 42690
+        is_paused:
+          type: boolean
+          example: false
+        interval_settings:
+          $ref: "#/components/schemas/BusySnapshotIntervalSettings"
+      required:
+        - type
+        - card_id
+        - current_interval
+        - current_interval_time_total_ms
+        - current_interval_time_left_ms
+        - is_paused
+        - interval_settings
+        
+    BusySnapshotIntervalSettings:
+      type: object
+      properties:
+        type:
+          type: string
+          enum: ["INTERVAL"]
+          example: "INTERVAL"
+        interval_work_ms:
+          type: integer
+          example: 120000
+        interval_rest_ms:
+          type: integer
+          example: 60000
+        interval_work_cycles_count:
+          type: integer
+          example: 3
+        is_autostart_enabled:
+          type: boolean
+          example: false
+          
 tags:
   - name: System
     description: System information and control
@@ -1507,3 +1673,5 @@ tags:
     description: Input events
   - name: BLE
     description: Allows to operate with BLE
+  - name: Busy
+    description: BUSY timer control
