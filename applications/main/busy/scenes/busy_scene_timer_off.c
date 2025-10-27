@@ -6,10 +6,7 @@
 typedef struct {
     Widget* root;
     PauseOverlay* pause_overlay;
-
     AnimImage* anim_image;
-
-    bool transitioning;
 } BusySceneTimerOff;
 
 static void busy_scene_timer_off_update_lights(BusyApp* instance, bool is_paused) {
@@ -18,6 +15,10 @@ static void busy_scene_timer_off_update_lights(BusyApp* instance, bool is_paused
     } else {
         busy_set_status_lights(instance, BusyStatusLightsTypeWork);
     }
+}
+
+static void busy_scene_timer_old_update_matter(BusyApp* instance, bool is_paused) {
+    busy_set_matter(instance, !is_paused);
 }
 
 static void busy_scene_timer_off_toggle_pause(BusyApp* instance) {
@@ -38,6 +39,7 @@ static void busy_scene_timer_off_toggle_pause(BusyApp* instance) {
     });
 
     busy_scene_timer_off_update_lights(instance, is_paused);
+    busy_scene_timer_old_update_matter(instance, is_paused);
 }
 
 static bool busy_scene_timer_off_input_callback(const InputEvent* event, void* context) {
@@ -49,9 +51,6 @@ static bool busy_scene_timer_off_input_callback(const InputEvent* event, void* c
     if(event->type == InputTypeShort) {
         if(event->key == InputKeyUp) {
             busy_send_custom_event(instance, BusyCustomEventTimeIncrement);
-            return true;
-        } else if(event->key == InputKeyDown) {
-            busy_send_custom_event(instance, BusyCustomEventTimeDecrement);
             return true;
         } else if(event->key == InputKeyStart) {
             busy_send_custom_event(instance, BusyCustomEventTimerTogglePause);
@@ -67,7 +66,6 @@ void busy_scene_timer_off_on_enter(void* context) {
 
     BusyApp* instance = context;
     BusySceneTimerOff* data = scene_manager_get_current_scene_data(instance->scene_manager);
-    data->transitioning = false;
 
     with_gui(instance->gui, {
         gui_layer_add_input_callback(
@@ -130,12 +128,6 @@ static void busy_scene_timer_off_handle_back(BusyApp* instance) {
     }
 }
 
-void busy_scene_timer_off_anim_image_completed_callback(AnimImage* instance, void* context) {
-    UNUSED(instance);
-    furi_assert(context);
-    busy_send_custom_event((BusyApp*)context, BusyCustomEventOffToSimple);
-}
-
 static bool busy_scene_timer_off_on_event(const SceneManagerEvent* event, void* context) {
     furi_assert(context);
     BusyApp* instance = context;
@@ -143,35 +135,13 @@ static bool busy_scene_timer_off_on_event(const SceneManagerEvent* event, void* 
     bool consumed = false;
 
     if(event->type == SceneManagerEventTypeCustom) {
-        if(event->event == BusyCustomEventOffToSimple) {
-            scene_manager_next_scene(instance->scene_manager, BusyAppSceneIdTimerSimple);
-        } else if(event->event == BusyCustomEventTimerTogglePause) {
+        if(event->event == BusyCustomEventTimerTogglePause) {
             busy_scene_timer_off_toggle_pause(instance);
         } else if(event->event == BusyCustomEventTimeIncrement) {
-            BusySceneTimerOff* data =
-                scene_manager_get_current_scene_data(instance->scene_manager);
-
-            if(busy_timer_is_running(instance->busy_timer) && !data->transitioning) {
-                data->transitioning = true;
-
-                with_gui(instance->gui, {
-                    anim_image_stop(data->anim_image);
-                    anim_image_set_source(
-                        data->anim_image,
-                        "/ext/apps_assets/busy/animations/busy_label_transition_70x14.anim");
-                    anim_image_set_loop(data->anim_image, false);
-                    anim_image_set_completed_callback(
-                        data->anim_image,
-                        busy_scene_timer_off_anim_image_completed_callback,
-                        instance);
-                    anim_image_start(data->anim_image);
-                });
+            if(busy_timer_is_running(instance->busy_timer)) {
+                busy_timer_add_time(instance->busy_timer, BUSY_TIMER_TIME_INCREMENT_MN);
+                scene_manager_next_scene(instance->scene_manager, BusyAppSceneIdTimerOffToSimple);
             }
-
-            // TODO: time label must be visible in transition. Probably we need a new scene just for transition.
-            // busy_timer_add_time(instance->busy_timer, BUSY_TIMER_TIME_INCREMENT_MN);
-        } else if(event->event == BusyCustomEventTimeDecrement) {
-            // busy_timer_add_time(instance->busy_timer, -BUSY_TIMER_TIME_INCREMENT_MN);
         }
 
         consumed = true;
@@ -183,6 +153,7 @@ static bool busy_scene_timer_off_on_event(const SceneManagerEvent* event, void* 
 
     return consumed;
 }
+
 const Scene busy_scene_timer_off = {
     .enter_callback = busy_scene_timer_off_on_enter,
     .exit_callback = busy_scene_timer_off_on_exit,

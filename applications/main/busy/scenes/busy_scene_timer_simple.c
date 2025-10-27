@@ -48,6 +48,10 @@ static void busy_scene_timer_simple_update_lights(BusyApp* instance, bool is_pau
     }
 }
 
+static void busy_scene_timer_simple_update_matter(BusyApp* instance, bool is_paused) {
+    busy_set_matter(instance, !is_paused);
+}
+
 static void busy_scene_timer_simple_toggle_pause(BusyApp* instance) {
     BusySceneTimerSimple* data = scene_manager_get_current_scene_data(instance->scene_manager);
 
@@ -66,6 +70,7 @@ static void busy_scene_timer_simple_toggle_pause(BusyApp* instance) {
     });
 
     busy_scene_timer_simple_update_lights(instance, is_paused);
+    busy_scene_timer_simple_update_matter(instance, is_paused);
 }
 
 static bool busy_scene_timer_simple_input_callback(const InputEvent* event, void* context) {

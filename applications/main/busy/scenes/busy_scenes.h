@@ -6,6 +6,7 @@ typedef enum {
     BusyAppSceneIdStart,
     BusyAppSceneIdOverview,
     BusyAppSceneIdTimerOff,
+    BusyAppSceneIdTimerOffToSimple,
     BusyAppSceneIdTimerSimple,
     BusyAppSceneIdTimerOld,
     BusyAppSceneIdNext,
