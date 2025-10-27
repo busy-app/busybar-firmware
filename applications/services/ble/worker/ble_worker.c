@@ -359,9 +359,21 @@ static void ble_worker_on_mtu_event(rsi_ble_event_mtu_t* rsi_ble_mtu) {
 }
 
 //===========================================================================================
+
+static void rsi_ble_on_smp_request(rsi_bt_event_smp_req_t* remote_dev_address) {
+    UNUSED(remote_dev_address);
+    BLE_LOG_W("rsi_ble_on_smp_request");
+}
+
 static void rsi_ble_on_smp_response(rsi_bt_event_smp_resp_t* resp) {
+    BLE_LOG_D("rsi_ble_on_smp_response");
     memcpy(&ble_worker_instance->rsi_bt_event_smp_resp, resp, sizeof(rsi_bt_event_smp_resp_t));
     furi_thread_flags_set(furi_thread_get_id(ble_worker_instance->thread), BLEWorkerSmpResponse);
+}
+
+static void rsi_ble_on_smp_passkey(rsi_bt_event_smp_passkey_t* remote_dev_address) {
+    UNUSED(remote_dev_address);
+    BLE_LOG_W("rsi_ble_on_smp_passkey");
 }
 
 static void
@@ -399,13 +411,14 @@ static void
 
 static void
     rsi_ble_on_le_security_keys(rsi_bt_event_le_security_keys_t* rsi_ble_event_le_security_keys) {
-    UNUSED(rsi_ble_event_le_security_keys);
-
     BLE_LOG_D("rsi_ble_on_le_security_keys");
     memcpy(
-        &ble_worker_instance->app_ble_sec_keys,
+        &ble_worker_instance->security_data.irk,
         rsi_ble_event_le_security_keys,
         sizeof(rsi_bt_event_le_security_keys_t));
+
+    furi_thread_flags_set(
+        furi_thread_get_id(ble_worker_instance->thread), BLEWorkerSmpSecurityKeys);
 }
 
 static void ble_on_cli_smp_response_event(rsi_bt_event_smp_resp_t* remote_dev_address) {
@@ -448,9 +461,9 @@ static void ble_hw_config() {
         NULL);
 
     rsi_ble_smp_register_callbacks(
-        NULL,
+        rsi_ble_on_smp_request,
         rsi_ble_on_smp_response,
-        NULL,
+        rsi_ble_on_smp_passkey,
         rsi_ble_on_smp_failed,
         rsi_ble_on_encrypt_started,
         NULL,
