@@ -153,6 +153,24 @@ static void http_api_account_unlink(struct mg_connection* conn) {
     MG_REPLY_OK(conn);
 }
 
+bool http_api_account_link_callback(
+    FuriString* path,
+    struct mg_connection* conn,
+    struct mg_http_message* msg,
+    void* ctx) {
+    UNUSED(ctx);
+
+    if(!IS_HTTP_ENDPOINT(path)) return false;
+
+    if(mg_match(msg->method, mg_str("POST"), NULL)) {
+        http_api_account_link(conn);
+    } else {
+        MG_REPLY_METHOD_NOT_ALLOWED(conn);
+    }
+
+    return true;
+}
+
 bool http_api_account_callback(
     FuriString* path,
     struct mg_connection* conn,
@@ -164,8 +182,6 @@ bool http_api_account_callback(
 
     if(mg_match(msg->method, mg_str("GET"), NULL)) {
         http_api_account_get_status(conn);
-    } else if(mg_match(msg->method, mg_str("POST"), NULL)) {
-        http_api_account_link(conn);
     } else if(mg_match(msg->method, mg_str("DELETE"), NULL)) {
         http_api_account_unlink(conn);
     } else {

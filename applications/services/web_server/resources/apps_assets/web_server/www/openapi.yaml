@@ -995,6 +995,21 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/AccountInfo"
+    delete:
+      tags:
+        - System
+      summary: Unlink device from account
+      description: Removes account linking data
+      operationId: unlinkAccount
+      responses:
+        "200":
+          description: Done successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse"
+
+  /api/account-link:
     post:
       tags:
         - System
@@ -1014,19 +1029,6 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Error"
-    delete:
-      tags:
-        - System
-      summary: Unlink device from account
-      description: Removes account linking data
-      operationId: unlinkAccount
-      responses:
-        "200":
-          description: Done successfully
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/SuccessResponse"
 
   /api/time/timestamp:
     post:

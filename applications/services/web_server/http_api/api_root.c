@@ -323,6 +323,12 @@ static const HttpHandler handlers_api_root[] = {
         .type = HttpHandlerCustom,
         .on_request = http_api_account_callback,
     },
+    {
+        .uri = "account-link",
+        .method = "*",
+        .type = HttpHandlerCustom,
+        .on_request = http_api_account_link_callback,
+    },
 };
 
 void* http_api_root_alloc(void) {
