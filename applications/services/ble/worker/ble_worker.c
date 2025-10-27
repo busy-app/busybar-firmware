@@ -770,11 +770,6 @@ static int32_t ble_worker_thread_callback(void* context) {
             if(ble_worker_instance->pairing_info_available == 0) {
                 ble_worker_instance->pairing_info_available = 1;
 
-                FuriString* buf = furi_string_alloc();
-                ble_security_print_encryption_data(buf, &ble_worker_instance->security_data.ltk);
-                BLE_LOG_I(furi_string_get_cstr(buf));
-                furi_string_free(buf);
-
                 if(ble_security_save_data(&ble_worker_instance->security_data))
                     BLE_LOG_I("Security data saved");
                 else
@@ -815,11 +810,8 @@ static int32_t ble_worker_thread_callback(void* context) {
         }
 
         if(events & BLEWorkerSmpSecurityKeys) {
-            BLE_LOG_W("BLEWorkerSmpSecurityKeys");
-            FuriString* buf = furi_string_alloc();
-            ble_sercurity_format_rpa_data(buf, &ble_worker_instance->security_data.irk);
-            BLE_LOG_I(furi_string_get_cstr(buf));
-            furi_string_free(buf);
+            BLE_LOG_I("BLEWorkerSmpSecurityKeys");
+
             if(ble_security_rpa_enable(&ble_worker_instance->security_data.irk))
                 BLE_LOG_I("RPA setup done");
             else
@@ -981,14 +973,6 @@ void ble_worker_init() {
 
     BleServiceEntryDict_init(ble_worker_instance->service_dict);
 
-    if(ble_security_load_data(&ble_worker_instance->security_data)) {
-        FuriString* buf = furi_string_alloc();
-        ble_security_print_encryption_data(buf, &ble_worker_instance->security_data.ltk);
-        BLE_LOG_I("Loaded LTK: %s", furi_string_get_cstr(buf));
-        ble_sercurity_format_rpa_data(buf, &ble_worker_instance->security_data.irk);
-        BLE_LOG_I("Loaded RPA: %s", furi_string_get_cstr(buf));
-        furi_string_free(buf);
-    }
     ble_hw_config();
 
     //Appearance adjustment
