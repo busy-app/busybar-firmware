@@ -431,6 +431,31 @@ static void rsi_ble_on_sc_method(rsi_bt_event_sc_method_t* scmethod) {
     BLE_LOG_W("rsi_ble_on_sc_method");
 }
 //===========================================================================================
+
+static bool ble_worker_start_advertising() {
+    rsi_ble_req_adv_t ble_adv = {0};
+    ble_adv.status = RSI_BLE_START_ADV;
+
+    ble_adv.adv_type = RSI_BLE_ADV_TYPE;
+    ble_adv.filter_type = RSI_BLE_ADV_FILTER_TYPE;
+    ble_adv.direct_addr_type = LE_RESOLVABLE_RANDOM_ADDRESS;
+
+    ble_adv.adv_int_min = RSI_BLE_ADV_INT_MIN;
+    ble_adv.adv_int_max = RSI_BLE_ADV_INT_MAX;
+    ble_adv.adv_channel_map = RSI_BLE_ADV_CHANNEL_MAP;
+
+    ble_adv.own_addr_type = LE_RESOLVABLE_RANDOM_ADDRESS;
+    sl_status_t status = rsi_ble_start_advertising_with_values(&ble_adv);
+
+    if(status != RSI_SUCCESS) {
+        BLE_LOG_W("Failed to start advertising, error code : 0x%08lx", status);
+    } else {
+        BLE_LOG_I("Start advertising...");
+    }
+
+    return status == RSI_SUCCESS;
+}
+
 static void ble_hw_config() {
     sl_status_t status = 0;
     static uint8_t rsi_app_resp_get_dev_addr[RSI_DEV_ADDR_LEN] = {0};
@@ -583,14 +608,9 @@ static int32_t ble_worker_thread_callback(void* context) {
             }
 
             //! start advertising
-            status = rsi_ble_start_advertising();
-            if(status != RSI_SUCCESS) {
-                BLE_LOG_W("Failed to start advertising, error code : 0x%08lx", status);
-                instance->state = BleWorkerStateError;
-            } else {
-                BLE_LOG_I("Start advertising...");
-                instance->state = BleWorkerStateAdvertising;
-            }
+
+            instance->state = ble_worker_start_advertising() ? BleWorkerStateAdvertising :
+                                                               BleWorkerStateError;
         }
 
         if(events & BLEWorkerEvtReceveRemoteFeatures) {
@@ -1057,13 +1077,7 @@ void ble_worker_start() {
             break;
         }
 
-        sl_status_t status = rsi_ble_start_advertising();
-        if(status != RSI_SUCCESS) {
-            BLE_LOG_W("Failed to start advertising, error code : 0x%08lx", status);
-            break;
-        }
-
-        BLE_LOG_I("Start advertising...");
+        ble_worker_start_advertising();
         ble_worker_instance->state = BleWorkerStateAdvertising;
         furi_thread_start(ble_worker_instance->thread);
     } while(false);
