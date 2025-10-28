@@ -4,6 +4,7 @@ App(
     targets=["f20", "f21"],
     apptype=FlipperAppType.STARTUP,
     entry_point="tls_crypto_client_init",
+    order=20,
     stack_size=1024 * 4,
     sources=["tls_crypto_client.c"],
 )
