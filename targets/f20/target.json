@@ -144,7 +144,8 @@
         "subl_project",
         "cli",
         "upload_resources",
-        "u5_updater"
+        "u5_updater",
+        "mqtt"
     ],
     "extra_target_meta": {
         "debug_tags": [

@@ -1,12 +1,9 @@
 #!/usr/bin/env python3
 
-import os
+import argparse
 import sys
+from pathlib import Path
 from datetime import datetime, timedelta, timezone
-
-import socket
-import ssl
-from typing import List
 
 from cryptography import x509
 from cryptography.hazmat.primitives import hashes, serialization
@@ -14,15 +11,11 @@ from cryptography.hazmat.primitives.asymmetric import ec
 from cryptography.x509.oid import NameOID, ExtendedKeyUsageOID
 
 from flipper.cli import Cli
-from flipper.storage_socket import FlipperStorage, FlipperStorageOperations
+from flipper.storage_socket import FlipperStorage
 from crypto_storage import CryptoStorage
 
-MQTT_SERVER = "mqtt.cloud.dev.busy.app"
-MQTT_PORT = 8883
+CERTS_DIR_DEFAULT = Path("scripts/test_certs/mqtt")
 
-CERTS_DIR = "scripts/test_certs/mqtt"
-
-CA_BUNDLE = "ca_bundle.crt"
 SIGN_CERT = "signing-ca.crt"
 SIGN_KEY = "signing-ca.key"
 DEVICE_CERT = "device.crt"
@@ -35,29 +28,26 @@ KEY_ID_TLS = 0x10
 KEY_TYPE_ECDSA256 = 8
 
 
-def write_certs():
+def write_certs(certs_dir: Path):
     with FlipperStorage(PORT_NAME) as storage:
         if not storage.exist_dir(MQTT_DATA_DIR):
             storage.mkdir(MQTT_DATA_DIR)
 
-        from_path = os.path.join(CERTS_DIR, CA_BUNDLE)
-        to_path = MQTT_DATA_DIR + "/" + CA_BUNDLE
-        print(f'Sending "{from_path}" to "{to_path}"')
-        storage.send_file(f"{from_path}", f"{to_path}")
-
-        from_path = os.path.join(CERTS_DIR, SIGN_CERT)
+        from_path = certs_dir / SIGN_CERT
         to_path = MQTT_DATA_DIR + "/" + SIGN_CERT
         print(f'Sending "{from_path}" to "{to_path}"')
-        storage.send_file(f"{from_path}", f"{to_path}")
+        storage.send_file(str(from_path), f"{to_path}")
 
-        from_path = os.path.join(CERTS_DIR, DEVICE_CERT)
+        from_path = certs_dir / DEVICE_CERT
         to_path = MQTT_DATA_DIR + "/" + DEVICE_CERT
         print(f'Sending "{from_path}" to "{to_path}"')
-        storage.send_file(f"{from_path}", f"{to_path}")
+        storage.send_file(str(from_path), f"{to_path}")
 
 
 def write_private_key(key_file, wrap=False):
-    with open(key_file, "rb") as f:
+    key_path = Path(key_file)
+
+    with open(key_path, "rb") as f:
         private_key = serialization.load_pem_private_key(f.read(), password=None)
         if not isinstance(private_key, ec.EllipticCurvePrivateKey):
             raise TypeError("Expected an elliptic-curve private key for TLS storage")
@@ -90,7 +80,6 @@ def write_private_key(key_file, wrap=False):
 
 def cleanup():
     with FlipperStorage(PORT_NAME) as storage:
-        storage.remove(MQTT_DATA_DIR + "/" + CA_BUNDLE)
         storage.remove(MQTT_DATA_DIR + "/" + SIGN_CERT)
         storage.remove(MQTT_DATA_DIR + "/" + DEVICE_CERT)
 
@@ -110,86 +99,13 @@ def get_device_uid():
     return uid_str.decode("utf-8")
 
 
-def _collect_cert_chain(tls_socket: ssl.SSLSocket) -> List[bytes]:
-    chain_bytes: List[bytes] = []
-    chain_getters = [
-        "getpeercertchain",
-        "get_verified_chain",
-        "get_unverified_chain",
-    ]
-
-    for getter_name in chain_getters:
-        getter = getattr(tls_socket, getter_name, None)
-        if callable(getter):
-            try:
-                chain = getter()
-            except ssl.SSLError:
-                continue
-            if not chain:
-                continue
-
-            if isinstance(chain, (list, tuple)):
-                candidate: List[bytes] = []
-                for item in chain:
-                    if isinstance(item, (bytes, bytearray, memoryview)):
-                        candidate.append(bytes(item))
-                if candidate:
-                    chain_bytes = candidate
-                    break
-            elif isinstance(chain, (bytes, bytearray, memoryview)):
-                chain_bytes = [bytes(chain)]
-                break
-
-    if not chain_bytes:
-        leaf_cert = tls_socket.getpeercert(binary_form=True)
-        if leaf_cert:
-            chain_bytes = [leaf_cert]
-
-    if not chain_bytes:
-        raise RuntimeError("No certificates retrieved from TLS handshake")
-
-    return chain_bytes
-
-
-def get_ca_chain(hostname, port):
-    context = ssl.SSLContext(ssl.PROTOCOL_TLS_CLIENT)
-    context.check_hostname = False
-    context.verify_mode = ssl.CERT_NONE
-
-    if hasattr(context, "minimum_version") and hasattr(ssl, "TLSVersion"):
-        context.minimum_version = ssl.TLSVersion.TLSv1_3
-        context.maximum_version = ssl.TLSVersion.TLSv1_3
-
-    pem_chunks = []
-
-    try:
-        with socket.create_connection((hostname, port), timeout=5) as raw_sock:
-            raw_sock.setblocking(True)
-            with context.wrap_socket(raw_sock, server_hostname=hostname) as tls_sock:
-                for cert_der in _collect_cert_chain(tls_sock):
-                    pem_chunks.append(
-                        ssl.DER_cert_to_PEM_cert(cert_der).encode("ascii")
-                    )
-    except (OSError, ssl.SSLError) as exc:
-        raise RuntimeError(
-            f"Failed to download certificate chain from {hostname}:{port}"
-        ) from exc
-
-    if not pem_chunks:
-        raise RuntimeError("Certificate chain from server is empty")
-
-    with open(os.path.join(CERTS_DIR, CA_BUNDLE), "wb") as f:
-        for chunk in pem_chunks:
-            f.write(chunk)
-
-
-def gen_device_cert(device_uid):
+def gen_device_cert(certs_dir: Path, device_uid):
     # Load signing CA
-    with open(os.path.join(CERTS_DIR, SIGN_KEY), "rb") as f:
+    with open(certs_dir / SIGN_KEY, "rb") as f:
         ca_private_key = serialization.load_pem_private_key(f.read(), password=None)
         if not isinstance(ca_private_key, ec.EllipticCurvePrivateKey):
             raise TypeError("Signing CA key must be an elliptic-curve private key")
-    with open(os.path.join(CERTS_DIR, SIGN_CERT), "rb") as f:
+    with open(certs_dir / SIGN_CERT, "rb") as f:
         ca_cert = x509.load_pem_x509_certificate(f.read())
         ca_public_key = ca_cert.public_key()
         if not isinstance(ca_public_key, ec.EllipticCurvePublicKey):
@@ -199,7 +115,7 @@ def gen_device_cert(device_uid):
 
     # Generate device private key
     device_private_key = ec.generate_private_key(ec.SECP256R1())
-    with open(os.path.join(CERTS_DIR, DEVICE_KEY), "wb") as f:
+    with open(certs_dir / DEVICE_KEY, "wb") as f:
         f.write(
             device_private_key.private_bytes(
                 encoding=serialization.Encoding.PEM,
@@ -278,22 +194,42 @@ def gen_device_cert(device_uid):
         .sign(ca_private_key, hashes.SHA256())
     )
 
-    with open(os.path.join(CERTS_DIR, DEVICE_CERT), "wb") as f:
+    with open(certs_dir / DEVICE_CERT, "wb") as f:
         f.write(device_cert.public_bytes(serialization.Encoding.PEM))
 
 
-def main():
-    if len(sys.argv) == 2 and sys.argv[1] == "-c":
+def parse_args(argv):
+    parser = argparse.ArgumentParser(description="Provision MQTT credentials")
+    parser.add_argument(
+        "-c",
+        "--cleanup",
+        action="store_true",
+        help="Remove certificates from device and wipe key storage",
+    )
+    parser.add_argument(
+        "--certs-dir",
+        type=Path,
+        default=CERTS_DIR_DEFAULT,
+        help="Directory containing certificate material",
+    )
+    return parser.parse_args(argv)
+
+
+def main(argv=None):
+    args = parse_args(sys.argv[1:] if argv is None else argv)
+    certs_dir = args.certs_dir.expanduser()
+
+    if args.cleanup:
         print("Cleanup")
         cleanup()
-    else:
-        device_uid = get_device_uid()
-        print("UID:", device_uid)
+        return
 
-        get_ca_chain(MQTT_SERVER, MQTT_PORT)
-        gen_device_cert(device_uid)
-        write_certs()
-        write_private_key(os.path.join(CERTS_DIR, DEVICE_KEY), False)
+    device_uid = get_device_uid()
+    print("UID:", device_uid)
+
+    gen_device_cert(certs_dir, device_uid)
+    write_certs(certs_dir)
+    write_private_key(certs_dir / DEVICE_KEY, False)
 
 
 if __name__ == "__main__":
