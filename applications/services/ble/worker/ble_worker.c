@@ -148,7 +148,8 @@ static BleWorker* ble_worker_instance;
  * @section description
  * This callback function updates the scanned remote devices list
  */
-void ble_worker_on_adv_report_event(rsi_ble_event_adv_report_t* adv_report) {
+static void ble_worker_on_adv_report_event(rsi_ble_event_adv_report_t* adv_report) {
+    BLE_LOG_W("ble_worker_on_adv_report_event");
     if(ble_worker_instance->device_found == 1) {
         return;
     }
@@ -227,7 +228,7 @@ static void
  * @section description
  * This Callback function indicates disconnected device information and status
  */
-void ble_worker_phy_update_complete_event(
+static void ble_worker_phy_update_complete_event(
     rsi_ble_event_phy_update_t* rsi_ble_event_phy_update_complete) {
     memcpy(
         &ble_worker_instance->app_phy_update_complete,
@@ -243,7 +244,7 @@ void ble_worker_phy_update_complete_event(
  * @section description
  * This Callback function indicates data length is set
  */
-void ble_worker_data_length_change_event(
+static void ble_worker_data_length_change_event(
     rsi_ble_event_data_length_update_t* rsi_ble_data_length_update) {
     memcpy(
         &ble_worker_instance->data_length_update,
@@ -262,14 +263,15 @@ void ble_worker_data_length_change_event(
  * @section description
  * This callback function indicates the status of the connection
  */
-void ble_worker_on_enhance_conn_status_event(rsi_ble_event_enhance_conn_status_t* resp_enh_conn) {
+static void
+    ble_worker_on_enhance_conn_status_event(rsi_ble_event_enhance_conn_status_t* resp_enh_conn) {
     memcpy(ble_worker_instance->remote_dev_address, resp_enh_conn->dev_addr, 6);
     rsi_6byte_dev_address_to_ascii(
         ble_worker_instance->str_remote_address, resp_enh_conn->dev_addr);
     furi_thread_flags_set(furi_thread_get_id(ble_worker_instance->thread), BLEWorkerEvtConnected);
 }
 
-void ble_worker_on_conn_update_complete_event(
+static void ble_worker_on_conn_update_complete_event(
     rsi_ble_event_conn_update_t* rsi_ble_event_conn_update_complete,
     uint16_t resp_status) {
     UNUSED(resp_status);
@@ -281,6 +283,12 @@ void ble_worker_on_conn_update_complete_event(
         ble_worker_instance->remote_dev_address, rsi_ble_event_conn_update_complete->dev_addr, 6);
 
     furi_thread_flags_set(furi_thread_get_id(ble_worker_instance->thread), BLEWorkerEvtConnUpdate);
+}
+
+static void rsi_ble_on_directed_adv_report_event(
+    rsi_ble_event_directedadv_report_t* rsi_ble_event_directed) {
+    BLE_LOG_W("rsi_ble_on_directed_adv_report_event");
+    UNUSED(rsi_ble_event_directed);
 }
 /*==============================================*/
 /**
@@ -481,7 +489,7 @@ static void ble_hw_config() {
         ble_worker_phy_update_complete_event,
         ble_worker_data_length_change_event,
         ble_worker_on_enhance_conn_status_event,
-        NULL,
+        rsi_ble_on_directed_adv_report_event,
         ble_worker_on_conn_update_complete_event,
         NULL);
 
