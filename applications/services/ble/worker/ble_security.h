@@ -24,6 +24,8 @@ bool ble_security_delete_data(BleSecurityData* security);
 bool ble_security_rpa_enable(BleSecurityData* security);
 bool ble_security_rpa_disable();
 
-bool ble_security_init(BleSecurityData** instance);
+BleSecurityData* ble_security_alloc();
+void ble_security_free(BleSecurityData* instance);
+bool ble_security_init(BleSecurityData* instance);
 
 void ble_security_respond_with_keys(BleSecurityData* instance);

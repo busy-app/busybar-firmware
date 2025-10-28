@@ -550,7 +550,7 @@ static void ble_hw_config() {
     // ble_adjust_gap_service_data();
 
     ble_worker_instance->pairing_info_available =
-        ble_security_init(&ble_worker_instance->security_data);
+        ble_security_init(ble_worker_instance->security_data);
 
     status = rsi_ble_set_random_address_with_value(rsi_app_resp_get_dev_addr);
     if(status != RSI_SUCCESS) {
@@ -1002,7 +1002,7 @@ void ble_worker_init() {
     ble_worker_instance->indication_sem = furi_semaphore_alloc(1, 0);
     ble_worker_instance->notification_sem = furi_semaphore_alloc(1, 1);
     ble_worker_instance->max_payload_size = BLE_WORKER_MAX_MTU_SIZE - BLE_WORKER_ATTR_HEADER_SIZE;
-
+    ble_worker_instance->security_data = ble_security_alloc();
     BleServiceEntryDict_init(ble_worker_instance->service_dict);
 
     ble_hw_config();

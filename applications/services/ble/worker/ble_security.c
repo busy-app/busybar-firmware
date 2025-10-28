@@ -282,23 +282,23 @@ bool ble_security_rpa_disable() {
     return result;
 }
 
-bool ble_security_init(BleSecurityData** instance) {
+bool ble_security_init(BleSecurityData* instance) {
     furi_assert(instance);
-    furi_assert(*instance == NULL);
 
-    BleSecurityData* data = malloc(sizeof(BleSecurityData));
     bool result = false;
-
     do {
-        if(!ble_security_load_data(data)) {
-            free(data);
-            break;
-        }
+        ble_security_load_data(instance);
 
-        *instance = data;
-
-        result = ble_security_rpa_init(data);
+        result = ble_security_rpa_init(instance);
     } while(false);
-
     return result;
+}
+
+BleSecurityData* ble_security_alloc() {
+    return malloc(sizeof(BleSecurityData));
+}
+
+void ble_security_free(BleSecurityData* instance) {
+    furi_assert(instance);
+    free(instance);
 }
