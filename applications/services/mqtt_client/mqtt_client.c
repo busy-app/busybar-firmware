@@ -364,12 +364,12 @@ static void mqtt_conn_wakeup_callback(struct mg_connection* conn, int ev, void* 
 
     switch(msg->type) {
     case MqttClientMessageWifiStateChange:
-        if(msg->wifi_state == WifiStateUp) {
+        if(msg->wifi_state == WifiStateConnected) {
             if((!mqtt->is_wifi_up) && (mqtt->conn == NULL)) {
                 mqtt_connect_callback(mqtt);
             }
             mqtt->is_wifi_up = true;
-        } else if(msg->wifi_state == WifiStateDown) {
+        } else if(msg->wifi_state == WifiStateDisconnected) {
             mqtt->is_wifi_up = false;
         }
         break;

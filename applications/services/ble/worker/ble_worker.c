@@ -588,7 +588,6 @@ static int32_t ble_worker_thread_callback(void* context) {
                 const size_t data_size = instance->app_ble_write_event.length;
 
                 uint16_t handle = *(uint16_t*)instance->app_ble_write_event.handle;
-                BLE_LOG_I("Handle: %04X", handle);
                 BleServiceEntry* entry =
                     BleServiceEntryDict_get(ble_worker_instance->service_dict, handle);
 
@@ -606,7 +605,8 @@ static int32_t ble_worker_thread_callback(void* context) {
                         }
 
                         ble_service_unlock(service);
-                    }
+                    } else
+                        furi_crash("FAIL!");
                 } else {
                     BLE_LOG_W("Not found: %04X", handle);
                     status =

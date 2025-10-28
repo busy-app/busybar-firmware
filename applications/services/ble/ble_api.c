@@ -1,4 +1,7 @@
 #include "ble_i.h"
+#include "http/ble_http_repeater.h"
+
+#include "ble_system_command.h"
 
 #define TAG "BleAPI"
 
@@ -45,6 +48,7 @@ BleServiceState ble_get_state(Ble* ble) {
     msg->header.frame_type = BleIntercomFrameTypeRequest;
     msg->header.command = BleCommandGetState;
     msg->header.data_size = sizeof(BleServiceState);
+    msg->header.source = BleIntercomFrameSourceSystem;
 
     ble_send_message(ble, msg);
     BleServiceState state = msg->result ? *((BleServiceState*)msg->data) : BleServiceStateError;
@@ -55,6 +59,8 @@ BleServiceState ble_get_state(Ble* ble) {
 
 bool ble_start(Ble* ble) {
     furi_assert(ble);
+    ble_init(ble);
+
     BleServiceState state = ble_get_state(ble);
 
     bool result = false;
@@ -63,6 +69,8 @@ bool ble_start(Ble* ble) {
         msg.header.frame_type = BleIntercomFrameTypeRequest;
         msg.header.command = BleCommandEnable;
         msg.header.data_size = 0;
+        msg.header.source = BleIntercomFrameSourceSystem;
+
         ble_send_message(ble, &msg);
         result = msg.result;
     } else {
@@ -78,6 +86,8 @@ bool ble_stop(Ble* ble) {
     msg.header.frame_type = BleIntercomFrameTypeRequest;
     msg.header.command = BleCommandDisable;
     msg.header.data_size = 0;
+    msg.header.source = BleIntercomFrameSourceSystem;
+
     ble_send_message(ble, &msg);
     return msg.result;
 }
