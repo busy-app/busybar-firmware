@@ -28,6 +28,8 @@
 
 #include <network/network.h>
 
+#include <wifi/wifi_common_i.h>
+
 namespace chip {
 namespace DeviceLayer {
 
@@ -38,16 +40,16 @@ ConnectivityManagerImpl ConnectivityManagerImpl::sInstance;
 using WiFiStationMode = ConnectivityManagerImpl::WiFiStationMode;
 
 void ConnectivityManagerImpl::WifiEvent(const void* message, void* context) {
-    auto state = *static_cast<const WifiState*>(message);
+    auto state = *static_cast<const WifiBackendState*>(message);
     auto* self = static_cast<ConnectivityManagerImpl*>(context);
 
     ChipLogDetail(DeviceLayer, "ConnectivityManagerImpl::WifiEvent(%d)", state);
 
     StackLock lock;
     ChipDeviceEvent event;
-    ConnectivityChange change = (state == WifiStateUp) ? kConnectivity_Established :
-                                                         kConnectivity_Lost;
-    self->mIsConnected = state == WifiStateUp;
+    ConnectivityChange change = (state == WifiBackendStateConnected) ? kConnectivity_Established :
+                                                                       kConnectivity_Lost;
+    self->mIsConnected = state == WifiBackendStateConnected;
 
     event.Type = DeviceEventType::kWiFiConnectivityChange;
     event.WiFiConnectivityChange.Result = change;
@@ -60,7 +62,7 @@ void ConnectivityManagerImpl::WifiEvent(const void* message, void* context) {
     PlatformMgr().PostEventOrDie(&event);
 
     event.Type = DeviceEventType::kInterfaceIpAddressChanged;
-    event.InterfaceIpAddressChanged.Type = (state == WifiStateUp) ?
+    event.InterfaceIpAddressChanged.Type = (state == WifiBackendStateConnected) ?
                                                InterfaceIpChangeType::kIpV6_Assigned :
                                                InterfaceIpChangeType::kIpV6_Lost;
     PlatformMgr().PostEventOrDie(&event);

@@ -89,6 +89,7 @@
         "furi",
         "version",
         "toolbox_f64",
+        "formatters",
         "firmware_applications_f64",
         "containers",
         "cli"
