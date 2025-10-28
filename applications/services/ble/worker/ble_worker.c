@@ -577,6 +577,7 @@ static int32_t ble_worker_thread_callback(void* context) {
                 rsi_ble_mtu_exchange_event(instance->remote_dev_address, BLE_WORKER_MAX_MTU_SIZE);
             if(status != RSI_SUCCESS) {
                 BLE_LOG_W("MTU request cmd failed with error code = 0x%08lx", status);
+                furi_crash();
             } else {
                 BLE_LOG_I("MTU sent");
             }
@@ -740,6 +741,9 @@ static int32_t ble_worker_thread_callback(void* context) {
                 const size_t data_size = instance->app_ble_write_event.length;
 
                 uint16_t handle = *(uint16_t*)instance->app_ble_write_event.handle;
+
+                if(handle == 0x001D) BLE_LOG_W("Subscribed!");
+
                 BleServiceEntry* entry =
                     BleServiceEntryDict_get(ble_worker_instance->service_dict, handle);
 
