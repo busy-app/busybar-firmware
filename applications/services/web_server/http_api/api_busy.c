@@ -400,9 +400,8 @@ static bool api_busy_set_snapshot_callback(
 
     bool success = false;
     const char* error_msg;
-    cJSON* root = cJSON_Parse(msg->body.buf);
 
-    BusyTimer* timer = furi_record_open(RECORD_BUSY_TIMER);
+    cJSON* root = cJSON_Parse(msg->body.buf);
 
     do {
         BusyTimerSnapshot snapshot;
@@ -411,15 +410,17 @@ static bool api_busy_set_snapshot_callback(
             break;
         }
 
-        if(!busy_timer_set_snapshot(timer, &snapshot)) {
+        BusyTimer* timer = furi_record_open(RECORD_BUSY_TIMER);
+        const bool snapshot_set = busy_timer_set_snapshot(timer, &snapshot);
+        furi_record_close(RECORD_BUSY_TIMER);
+
+        if(!snapshot_set) {
             error_msg = "Failed to set snapshot";
             break;
         }
 
         success = true;
     } while(false);
-
-    furi_record_close(RECORD_BUSY_TIMER);
 
     cJSON_Delete(root);
 
