@@ -82,7 +82,7 @@ static bool
     handle_completed_upload_and_reboot(HttpUpdateHandlerCtx* ctx, struct mg_connection* conn) {
     FURI_LOG_I(TAG, "File upload complete. Processing update package.");
 
-    FuriString* manifest_path = NULL;
+    FuriString* manifest_path = furi_string_alloc();
 
     bool is_success = false;
     do {
@@ -100,25 +100,31 @@ static bool
 
         FURI_LOG_I(TAG, "Final staging path: %s", furi_string_get_cstr(ctx->final_staging_path));
 
-        manifest_path = furi_string_alloc();
         UpdaterStatus unpack_tar_status = updater_unpack_tar(
             furi_string_get_cstr(ctx->temp_tar_path),
             furi_string_get_cstr(ctx->final_staging_path),
             manifest_path);
         if(unpack_tar_status != UpdaterStatusSuccess) {
-            const char* error_string = updater_get_status_string(unpack_tar_status);
-            FURI_LOG_E(TAG, "Update unpack TAR failed: %s", error_string);
-            MG_REPLY_ERROR(conn, 400, "Update unpack TAR failed: %s", error_string);
+            FuriString* error_string = furi_string_alloc_printf(
+                "Update unpack TAR failed: %s", updater_get_status_string(unpack_tar_status));
+
+            FURI_LOG_E(TAG, furi_string_get_cstr(error_string));
+            MG_REPLY_ERROR(conn, 400, furi_string_get_cstr(error_string));
+
+            furi_string_free(error_string);
             break;
         }
 
         UpdaterStatus prepare_install_status =
             updater_prepare_install(furi_string_get_cstr(manifest_path));
         if(prepare_install_status != UpdaterStatusSuccess) {
-            const char* error_string = updater_get_status_string(prepare_install_status);
-            FURI_LOG_E(TAG, "Update prepare install failed: %s", error_string);
-            MG_REPLY_ERROR(conn, 400, "Update prepare install failed: %s", error_string);
+            FuriString* error_string = furi_string_alloc_printf(
+                "Update prepare install failed: %s", updater_get_status_string(unpack_tar_status));
 
+            FURI_LOG_E(TAG, furi_string_get_cstr(error_string));
+            MG_REPLY_ERROR(conn, 400, furi_string_get_cstr(error_string));
+
+            furi_string_free(error_string);
             break;
         }
 
@@ -135,9 +141,7 @@ static bool
         is_success = true;
     } while(false);
 
-    if(manifest_path) {
-        furi_string_free(manifest_path);
-    }
+    furi_string_free(manifest_path);
 
     return is_success;
 }
@@ -155,7 +159,7 @@ static void http_api_update_on_data_cb(struct mg_connection* conn, struct mg_iob
     }
 
     size_t data_len = io->len;
-    FURI_LOG_D(
+    FURI_LOG_T(
         TAG,
         "on_data: Received %zu bytes. Total received: %zu / %zu",
         data_len,
@@ -227,7 +231,9 @@ static void http_api_update_on_close_cb(struct mg_connection* conn) {
 
     if(reboot_was_initiated) {
         FURI_LOG_I(TAG, "Rebooting device now after response sent and connection closed.");
-        updater_reboot_install();
+        if(updater_reboot_install() != UpdaterStatusSuccess) {
+            updater_cancel_prepared_install();
+        }
     }
 }
 

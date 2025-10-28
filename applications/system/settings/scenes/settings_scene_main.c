@@ -78,18 +78,11 @@ static void settings_scene_main_on_enter(void* context) {
     SettingsApp* instance = context;
     SettingsSceneMain* data = scene_manager_get_current_scene_data(instance->scene_manager);
 
-    uint8_t volume = settings_volume_get(instance);
-    char volume_text[snprintf(NULL, 0, "%u%%", UINT8_MAX) + 1];
-    sprintf(volume_text, "%u%%", volume);
-
-    const char* brightness_text;
-    if(settings_brightness_get_mode(instance) == SettingsBrightnessModeAuto) {
-        brightness_text = "Auto";
-    } else {
-        char* text = alloca(snprintf(NULL, 0, "%u%%", UINT8_MAX) + 1);
-        sprintf(text, "%u%%", settings_brightness_get(instance));
-        brightness_text = text;
-    }
+    FuriString* volume_text = furi_string_alloc_printf("%u%%", settings_volume_get(instance));
+    FuriString* brightness_text =
+        (settings_brightness_get_mode(instance) == SettingsBrightnessModeAuto) ?
+            furi_string_alloc_set("Auto") :
+            furi_string_alloc_printf("%u%%", settings_brightness_get(instance));
 
     with_gui(instance->gui, {
         data->front_menu = menu_alloc(instance->front_scene_window);
@@ -97,7 +90,7 @@ static void settings_scene_main_on_enter(void* context) {
         menu_add_item(
             data->front_menu,
             "Sound",
-            volume_text,
+            furi_string_get_cstr(volume_text),
             SETTINGS_IMG_PATH("sound_front_7x7.bin"),
             SettingsSceneMainMenuIndexSound,
             settings_scene_setup_menu_callback,
@@ -105,7 +98,7 @@ static void settings_scene_main_on_enter(void* context) {
         menu_add_item(
             data->front_menu,
             "Brightness",
-            brightness_text,
+            furi_string_get_cstr(brightness_text),
             SETTINGS_IMG_PATH("brightness_front_7x7.bin"),
             SettingsSceneMainMenuIndexBrightness,
             settings_scene_setup_menu_callback,
@@ -142,7 +135,7 @@ static void settings_scene_main_on_enter(void* context) {
         menu_add_item(
             data->back_menu,
             "SOUND",
-            volume_text,
+            furi_string_get_cstr(volume_text),
             SETTINGS_IMG_PATH("sound_on_back_12x12.bin"),
             SettingsSceneMainMenuIndexSound,
             NULL,
@@ -150,7 +143,7 @@ static void settings_scene_main_on_enter(void* context) {
         menu_add_item(
             data->back_menu,
             "BRIGHTNESS",
-            brightness_text,
+            furi_string_get_cstr(brightness_text),
             SETTINGS_IMG_PATH("brightness_back_12x12.bin"),
             SettingsSceneMainMenuIndexBrightness,
             NULL,
@@ -183,6 +176,9 @@ static void settings_scene_main_on_enter(void* context) {
         menu_set_selected_item_index(data->back_menu, data->menu_idx);
         widget_set_visible(nav_bar_get_base(instance->back_nav_bar), true);
     });
+
+    furi_string_free(volume_text);
+    furi_string_free(brightness_text);
 }
 
 static void settings_scene_main_on_exit(void* context) {

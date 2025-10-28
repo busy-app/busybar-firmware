@@ -18,8 +18,10 @@ typedef enum {
     UpdaterStatusErrorCreateStagingDir, /**< Failed to create staging directory. */
     UpdaterStatusErrorOpenTar, /**< Failed to open archive file. */
     UpdaterStatusErrorUnpackTar, /**< Failed to extract archive contents. */
+    UpdaterStatusErrorLowBatteryLevel, /**< Too low battery level for operation */
     UpdaterStatusErrorManifestNotFound, /**< Manifest file not found. */
     UpdaterStatusErrorValidateManifest, /**< Manifest validation failed. */
+    UpdaterStatusErrorSaveSessionConfig, /**< Failed to save session config. */
     UpdaterStatusErrorWritePointerFile, /**< Failed to write pointer file. */
     UpdaterStatusErrorUnknown, /**< Unknown error occurred. */
 
@@ -68,9 +70,9 @@ UpdaterStatus updater_prepare_install(const char* manifest_path);
 /**
  * @brief Reboot device and apply prepared update.
  *
- * @warning This function does not return.
+ * @return UpdaterStatusSuccess on success, error code otherwise.
  */
-void updater_reboot_install(void);
+UpdaterStatus updater_reboot_install(void);
 
 #ifdef __cplusplus
 }

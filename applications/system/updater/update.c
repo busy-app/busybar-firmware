@@ -1,12 +1,16 @@
 #include "update.h"
 #include "session/session_config.h"
 
+#include <power/power_service/power.h>
+
 #include <furi_hal_nvm.h>
 #include <furi_hal_power.h>
 #include <toolbox/path.h>
 #include <toolbox/tar/tar_archive.h>
 #include <toolbox/update_lib/update_config.h>
 #include <toolbox/update_lib/common_vals.h>
+
+#define UPDATE_MIN_BATTERY_LEVEL 40
 
 #define UPDATE_STAGING_ROOT "update"
 
@@ -19,11 +23,27 @@ static const char* const updater_tar_install_error_messages[] = {
     [UpdaterStatusErrorUnpackTar] = "Failed to unpack TAR file",
     [UpdaterStatusErrorManifestNotFound] = "Manifest not found",
     [UpdaterStatusErrorValidateManifest] = "Failed to validate manifest",
+    [UpdaterStatusErrorSaveSessionConfig] = "Failed save session config",
     [UpdaterStatusErrorWritePointerFile] = "Failed to write pointer file",
+    [UpdaterStatusErrorLowBatteryLevel] = "Low battery level",
     [UpdaterStatusErrorUnknown] = "Unknown error",
 };
 
 static_assert(COUNT_OF(updater_tar_install_error_messages) == UpdaterStatusesCount);
+
+static bool does_battery_state_allow_update(void) {
+    Power* power = furi_record_open(RECORD_POWER);
+
+    PowerInfo info;
+    power_get_info(power, &info);
+
+    bool allow_update =
+        info.charge > UPDATE_MIN_BATTERY_LEVEL ||
+        (furi_hal_nvm_is_flag_set(FuriHalNvmFlagDebug) && power_is_usb_connected(power));
+
+    furi_record_close(RECORD_POWER);
+    return allow_update;
+}
 
 const char* updater_get_status_string(UpdaterStatus status) {
     return (status < UpdaterStatusesCount) ? updater_tar_install_error_messages[status] :
@@ -120,8 +140,17 @@ UpdaterStatus updater_prepare_install(const char* manifest_path) {
     UpdaterStatus status = UpdaterStatusErrorUnknown;
     Storage* storage = furi_record_open(RECORD_STORAGE);
     UpdateConfig* config = update_config_alloc();
+    FuriString* staging_path = furi_string_alloc();
 
     do {
+        if(!does_battery_state_allow_update()) {
+            FURI_LOG_W(
+                TAG, "Battery level too low (has to be at least %d%%)", UPDATE_MIN_BATTERY_LEVEL);
+
+            status = UpdaterStatusErrorLowBatteryLevel;
+            break;
+        }
+
         FURI_LOG_D(TAG, "Checking for manifest: %s", manifest_path);
 
         if(!storage_file_exists(storage, manifest_path)) {
@@ -146,18 +175,22 @@ UpdaterStatus updater_prepare_install(const char* manifest_path) {
 
         FURI_LOG_D(TAG, "Updater configuration valid");
 
-        FuriString* staging_path = furi_string_alloc();
         path_extract_dirname(manifest_path, staging_path);
 
         UpdaterSessionConfig session_config;
         const UpdateManifest* manifest = update_config_get_manifest(config);
         updater_session_config_compose(manifest, &session_config);
-        updater_session_config_save(furi_string_get_cstr(staging_path), &session_config);
-
-        furi_string_free(staging_path);
+        if(!updater_session_config_save(furi_string_get_cstr(staging_path), &session_config)) {
+            FURI_LOG_E(TAG, "Failed to save session config");
+            status = UpdaterStatusErrorSaveSessionConfig;
+            break;
+        }
 
         if(!update_config_write_pointer_file(storage, manifest_path)) {
             FURI_LOG_E(TAG, "Failed to write manifest path to pointer file");
+
+            updater_session_config_delete(furi_string_get_cstr(staging_path));
+
             status = UpdaterStatusErrorWritePointerFile;
             break;
         }
@@ -167,8 +200,9 @@ UpdaterStatus updater_prepare_install(const char* manifest_path) {
         status = UpdaterStatusSuccess;
     } while(false);
 
-    furi_record_close(RECORD_STORAGE);
+    furi_string_free(staging_path);
     update_config_free(config);
+    furi_record_close(RECORD_STORAGE);
 
     return status;
 }
@@ -201,11 +235,24 @@ void updater_cancel_prepared_install(void) {
     furi_record_close(RECORD_STORAGE);
 }
 
-void updater_reboot_install(void) {
-    furi_hal_nvm_set_boot_mode(FuriHalNvmBootModeUpdate);
-    FURI_LOG_D(TAG, "Boot mode set to \"update\"");
+UpdaterStatus updater_reboot_install(void) {
+    UpdaterStatus status;
 
-    FURI_LOG_D(TAG, "Rebooting...");
-    furi_delay_ms(100);
-    furi_hal_power_reset();
+    if(does_battery_state_allow_update()) {
+        furi_hal_nvm_set_boot_mode(FuriHalNvmBootModeUpdate);
+
+        FURI_LOG_D(TAG, "Boot mode set to \"update\"\r\nRebooting...");
+
+        furi_delay_ms(100);
+        furi_hal_power_reset();
+
+        status = UpdaterStatusSuccess;
+    } else {
+        FURI_LOG_W(
+            TAG, "Battery level too low (has to be at least %d%%)", UPDATE_MIN_BATTERY_LEVEL);
+
+        status = UpdaterStatusErrorLowBatteryLevel;
+    }
+
+    return status;
 }

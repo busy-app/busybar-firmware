@@ -12,11 +12,31 @@
 
 #include <power/power_service/power.h>
 #include <audio/audio.h>
+#include <wifi/wifi.h>
 
 #define TAG "StatusBar"
 
+#define EVENT_QUEUE_LEN (16)
+
+typedef enum {
+    StatusBarEventTypeWifi,
+    StatusBarEventTypeMax,
+} StatusBarEventType;
+
+typedef struct {
+    WifiState state;
+} StatusBarWifiEvent;
+
+typedef struct {
+    StatusBarEventType type;
+    union {
+        StatusBarWifiEvent wifi;
+    };
+} StatusBarEvent;
+
 struct StatusBar {
     FuriEventLoop* event_loop;
+    FuriMessageQueue* event_queue;
     Gui* gui;
     Power* power;
     Audio* audio;
@@ -38,6 +58,25 @@ typedef enum {
     StatusBarUpdateEventAnyPower = StatusBarUpdateEventPowerChargingState |
                                    StatusBarUpdateEventPowerChargeAmount
 } StatusBarUpdateEvent;
+
+static void wifi_state_callback(const void* state, void* context) {
+    furi_assert(state);
+    furi_assert(context);
+
+    const WifiInfo* info = state;
+
+    const StatusBarEvent event = {
+        .type = StatusBarEventTypeWifi,
+        .wifi =
+            {
+                .state = info->state,
+            },
+    };
+
+    StatusBar* instance = context;
+    furi_check(
+        furi_message_queue_put(instance->event_queue, &event, FuriWaitForever) == FuriStatusOk);
+}
 
 static void power_events_callback(const void* message, void* context) {
     furi_assert(message);
@@ -122,10 +161,43 @@ static void status_bar_custom_event_callback(uint32_t events, void* context) {
     })
 }
 
+static void status_bar_process_wifi_event(StatusBar* instance, const StatusBarWifiEvent* event) {
+    WifiStatusIndicatorState indicator_state;
+
+    if(event->state == WifiStateUnknown) {
+        indicator_state = WifiStatusIndicatorStateUnknown;
+    } else if(event->state == WifiStateDisconnected) {
+        indicator_state = WifiStatusIndicatorStateDisconnected;
+    } else if(event->state == WifiStateConnected) {
+        indicator_state = WifiStatusIndicatorStateConnected;
+    } else {
+        indicator_state = WifiStatusIndicatorStateConnecting;
+    }
+
+    with_gui(instance->gui, {
+        wifi_status_indicator_set_state(instance->wifi_status_indicator, indicator_state);
+    });
+}
+
+static void status_bar_event_queue_callback(FuriEventLoopObject* object, void* context) {
+    furi_assert(context);
+    StatusBar* instance = context;
+
+    furi_assert(instance->event_queue == object);
+
+    StatusBarEvent event;
+    while(furi_message_queue_get(instance->event_queue, &event, 0) == FuriStatusOk) {
+        if(event.type == StatusBarEventTypeWifi) {
+            status_bar_process_wifi_event(instance, &event.wifi);
+        }
+    }
+}
+
 static StatusBar* status_bar_alloc(void) {
     StatusBar* instance = malloc(sizeof(*instance));
 
     instance->event_loop = furi_event_loop_alloc();
+    instance->event_queue = furi_message_queue_alloc(EVENT_QUEUE_LEN, sizeof(StatusBarEvent));
     instance->gui = furi_record_open(RECORD_GUI);
     instance->power = furi_record_open(RECORD_POWER);
     instance->audio = furi_record_open(RECORD_AUDIO);
@@ -135,6 +207,9 @@ static StatusBar* status_bar_alloc(void) {
 
     bool is_usb_connected = power_is_usb_connected(instance->power);
     float audio_volume = audio_get_volume(instance->audio);
+
+    Wifi* wifi = furi_record_open(RECORD_WIFI);
+    furi_state_subscribe(wifi_get_state(wifi), wifi_state_callback, instance);
 
     with_gui(instance->gui, {
         GuiLayer* system_layer = gui_get_layer(instance->gui, GuiLayerIdSystem);
@@ -172,6 +247,13 @@ static StatusBar* status_bar_alloc(void) {
         battery_status_indicator_set_charge_amount(
             instance->battery_status_indicator, power_info.charge);
     });
+
+    furi_event_loop_subscribe_message_queue(
+        instance->event_loop,
+        instance->event_queue,
+        FuriEventLoopEventIn,
+        status_bar_event_queue_callback,
+        instance);
 
     furi_event_loop_set_custom_event_callback(
         instance->event_loop, status_bar_custom_event_callback, instance);

@@ -19,7 +19,7 @@ struct Wifi {
     struct netif netif;
     WifiRequest request;
     WifiResponse response;
-    WifiState state;
+    WifiBackendState state;
 };
 
 void wifi_net_tcpip_init(Wifi* instance);
