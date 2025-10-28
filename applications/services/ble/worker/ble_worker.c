@@ -823,15 +823,6 @@ static int32_t ble_worker_thread_callback(void* context) {
                 if(status != RSI_SUCCESS) {
                     BLE_LOG_W("ltk negative req reply cmd failed with reason = %lx \n", status);
                 }
-
-                /* restarting the SMP */
-                status = rsi_ble_smp_pair_request(
-                    ble_worker_instance->remote_dev_address, RSI_BLE_SMP_IO_CAPABILITY, MITM_REQ);
-                if(status != RSI_SUCCESS) {
-                    BLE_LOG_W("smp pair req failed with reason = %lx", status);
-                } else {
-                    ble_worker_instance->pairing_info_available = 0;
-                }
             }
         }
 
