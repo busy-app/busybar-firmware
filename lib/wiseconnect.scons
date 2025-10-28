@@ -118,7 +118,6 @@ sources = [
     f"{WIRELESS_DIR}/sl_net/src/sl_net_rsi_utility.c",
     f"{WIRELESS_DIR}/sl_net/src/sl_net_si91x_callback_framework.c",
     f"{WIRELESS_DIR}/sl_net/src/sli_net_si91x_utility.c",
-    f"{WIRELESS_DIR}/firmware_upgrade/firmware_upgradation.c",
     # SDK BLE Silabs
     f"{WIRELESS_DIR}/ble/src/rsi_common_apis.c",
     f"{WIRELESS_DIR}/ble/src/rsi_bt_ble.c",
