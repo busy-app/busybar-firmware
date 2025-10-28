@@ -60,6 +60,7 @@ static void mqtt_link_events_callback(const void* message, void* context) {
 
     if(mqtt_event->type == MqttClientEventLinkPin) {
         strncpy(link_ctx->pin, mqtt_event->link.pin, MQTT_LINK_PIN_LEN);
+        link_ctx->pin[MQTT_LINK_PIN_LEN] = '\0';
         link_ctx->pin_expires_at = mqtt_event->link.expires_at;
         mg_wakeup(web_srv_get_mgr(), link_ctx->conn->id, NULL, 0);
     }
@@ -114,6 +115,7 @@ static void http_api_account_link(struct mg_connection* conn) {
             conn,
             400,
             (status == MqttClientStatusConnectedLinked) ? "Already linked" : "Not connected");
+        furi_record_close(RECORD_MQTT);
         return;
     }
 
