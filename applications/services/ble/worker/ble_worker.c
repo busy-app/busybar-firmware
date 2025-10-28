@@ -548,6 +548,14 @@ static void ble_hw_config() {
     BLE_LOG_I("Local Name: %s", advertise_config.local_name.data);
 
     // ble_adjust_gap_service_data();
+
+    ble_worker_instance->pairing_info_available =
+        ble_security_init(&ble_worker_instance->security_data);
+
+    status = rsi_ble_set_random_address_with_value(rsi_app_resp_get_dev_addr);
+    if(status != RSI_SUCCESS) {
+        BLE_LOG_W("Failed to set address: %08lX", status);
+    }
 }
 
 static int32_t ble_worker_thread_callback(void* context) {
