@@ -434,19 +434,26 @@ static void rsi_ble_on_sc_method(rsi_bt_event_sc_method_t* scmethod) {
 }
 //===========================================================================================
 
-static bool ble_worker_start_advertising() {
+static bool
+    ble_worker_start_advertising(bool rpa_enabled, const rsi_bt_event_le_security_keys_t* key) {
     rsi_ble_req_adv_t ble_adv = {0};
     ble_adv.status = RSI_BLE_START_ADV;
 
-    ble_adv.adv_type = RSI_BLE_ADV_TYPE;
+    ble_adv.adv_type = rpa_enabled ? DIR_CONN_LOW_DUTY_CYCLE : UNDIR_CONN;
     ble_adv.filter_type = RSI_BLE_ADV_FILTER_TYPE;
-    ble_adv.direct_addr_type = LE_RESOLVABLE_RANDOM_ADDRESS;
+    if(rpa_enabled) {
+        ble_adv.direct_addr_type = key->Identity_addr_type;
+        memcpy(ble_adv.direct_addr, key->Identity_addr, RSI_DEV_ADDR_LEN);
+    }
 
     ble_adv.adv_int_min = RSI_BLE_ADV_INT_MIN;
     ble_adv.adv_int_max = RSI_BLE_ADV_INT_MAX;
     ble_adv.adv_channel_map = RSI_BLE_ADV_CHANNEL_MAP;
 
-    ble_adv.own_addr_type = LE_RESOLVABLE_RANDOM_ADDRESS;
+    ble_adv.own_addr_type = rpa_enabled ? LE_RESOLVABLE_RANDOM_ADDRESS : LE_PUBLIC_ADDRESS;
+
+    rsi_ble_set_advertise_data((uint8_t*)&advertise_config, sizeof(advertise_config));
+
     sl_status_t status = rsi_ble_start_advertising_with_values(&ble_adv);
 
     if(status != RSI_SUCCESS) {
@@ -539,9 +546,6 @@ static void ble_hw_config() {
     BLE_LOG_I("Appearance: %04X", advertise_config.appearance.data);
     BLE_LOG_I("Manufacturer: %04X", advertise_config.manufacturer.data);
     BLE_LOG_I("Local Name: %s", advertise_config.local_name.data);
-
-    //! set advertise data
-    rsi_ble_set_advertise_data((uint8_t*)&advertise_config, sizeof(advertise_config));
 
     // ble_adjust_gap_service_data();
 }
@@ -1168,7 +1172,7 @@ bool ble_worker_forget_pairing() {
     ble_worker_instance->pairing_info_available = 0;
 
     if(ble_worker_instance->state == BleWorkerStateAdvertising) {
-        ble_worker_start_advertising();
+        ble_worker_start_advertising(false, NULL);
     }
 
     if(result) BLE_LOG_I("Security data removed");
