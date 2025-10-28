@@ -180,3 +180,9 @@ void mqtt_tls_init(struct mg_connection* conn, const struct mg_tls_opts* opts) {
 
     mg_tls_free(conn);
 }
+
+void mqtt_tls_free_ca(struct mg_connection* c) {
+    struct mg_tls* tls = (struct mg_tls*)c->tls;
+    furi_assert(tls);
+    mbedtls_x509_crt_free(&tls->ca);
+}
