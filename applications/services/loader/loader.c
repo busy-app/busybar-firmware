@@ -462,8 +462,20 @@ static int32_t loader_startup_hook_thread(void* context) {
     return 0;
 }
 
+static void loader_startup_hook_thread_state_callback(
+    FuriThread* thread,
+    FuriThreadState state,
+    void* context) {
+    furi_assert(thread);
+    UNUSED(context);
+
+    if(state == FuriThreadStateStopped) {
+        furi_thread_free(thread);
+    }
+}
+
 static void loader_do_on_start(void) {
-    FURI_LOG_I(TAG, "Executing system start hooks");
+    FURI_LOG_I(TAG, "Executing %d system start hooks", FLIPPER_ON_SYSTEM_START_COUNT);
 
     FuriThread* hook_threads[FLIPPER_ON_SYSTEM_START_COUNT];
 
@@ -471,15 +483,9 @@ static void loader_do_on_start(void) {
         FlipperInternalOnStartHook hook = FLIPPER_ON_SYSTEM_START[i];
         hook_threads[i] =
             furi_thread_alloc_ex("Hook thread", 2048, loader_startup_hook_thread, hook);
+        furi_thread_set_state_callback(hook_threads[i], loader_startup_hook_thread_state_callback);
         furi_thread_start(hook_threads[i]);
     }
-
-    for(size_t i = 0; i < FLIPPER_ON_SYSTEM_START_COUNT; i++) {
-        furi_thread_join(hook_threads[i]);
-        furi_thread_free(hook_threads[i]);
-    }
-
-    FURI_LOG_I(TAG, "All start hooks returned");
 }
 
 static void loader_do_autorun(Loader* loader) {

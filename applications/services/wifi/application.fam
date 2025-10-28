@@ -15,6 +15,7 @@ App(
         "wifi_api.c",
         "wifi_net.c",
         "wifi_settings.c",
+        "wifi_state.c",
     ],
 )
 

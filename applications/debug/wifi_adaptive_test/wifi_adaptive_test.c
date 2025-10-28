@@ -148,7 +148,7 @@ static WifiAdaptiveTest* wifi_adaptive_test_alloc(void) {
     if(status != WifiStatusOk) {
         furi_string_printf(message, "Wifi error: %d", status);
 
-    } else if(wifi_info.state != WifiStateUp) {
+    } else if(wifi_info.state != WifiStateConnected) {
         furi_string_set(message, "Please connect to AP\nand restart the app");
 
     } else {
