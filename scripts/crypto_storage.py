@@ -1,6 +1,8 @@
 #!/usr/bin/env python3
 
 import re
+from dataclasses import dataclass
+from typing import List, Optional, Tuple
 
 from flipper.app import App, CatchExceptions
 from flipper.cli import Cli
@@ -25,12 +27,51 @@ class CryptoStorage(Cli):
         self.send_and_wait_prompt("exit\r")
         Cli.__exit__(self, exc_type, exc_value, traceback)
 
-    def list_partition(self, partition: int):
-        data = self.send_and_wait_prompt(f"{self.CRYPTO_CMD} list {partition}\r")
-        parsed_data, ret = self._parse_response(data)
+    @dataclass(frozen=True)
+    class KeyEntry:
+        partition: int
+        key_type: int
+        key_id: int
 
-        print(parsed_data)
-        return ret
+    def _fetch_partition_listing(self, partition: int) -> Tuple[str, int]:
+        data = self.send_and_wait_prompt(f"{self.CRYPTO_CMD} list {partition}\r")
+        return self._parse_response(data)
+
+    def list_partition(self, partition: int):
+        listing, ret = self._fetch_partition_listing(partition)
+        print(listing)
+        return listing, ret
+
+    def enumerate_keys(
+        self, partition: int, *, echo: bool = True
+    ) -> Tuple[List["CryptoStorage.KeyEntry"], str, int]:
+        listing, ret = self._fetch_partition_listing(partition)
+        if echo:
+            print(listing)
+        return self._parse_key_listing(listing), listing, ret
+
+    def ensure_key_absent(
+        self,
+        partition: int,
+        key_type: int,
+        key_id: int,
+        *,
+        echo: bool = True,
+        error_message: Optional[str] = None,
+    ) -> str:
+        keys, listing, ret = self.enumerate_keys(partition, echo=echo)
+        if ret != 0:
+            raise Exception(f"list_partition failed with error {ret}")
+
+        for entry in keys:
+            if (
+                entry.partition == partition
+                and entry.key_type == key_type
+                and entry.key_id == key_id
+            ):
+                raise RuntimeError(error_message or "Key slot already provisioned")
+
+        return listing
 
     def wipe_partition(self, partition: int):
         data = self.send_and_wait_prompt(f"{self.CRYPTO_CMD} wipe {partition}\r")
@@ -65,6 +106,30 @@ class CryptoStorage(Cli):
         print(parsed_data)
         return ret
 
+    @staticmethod
+    def _parse_key_listing(listing: str) -> List["CryptoStorage.KeyEntry"]:
+        entries: List[CryptoStorage.KeyEntry] = []
+
+        for raw_line in listing.splitlines():
+            line = raw_line.strip()
+            if not line.lower().startswith("key:"):
+                continue
+
+            columns = line[4:].strip().split()
+            if len(columns) < 3:
+                continue
+
+            try:
+                partition = int(columns[0], 0)
+                key_type = int(columns[1], 0)
+                key_id = int(columns[2], 0)
+            except ValueError:
+                continue
+
+            entries.append(CryptoStorage.KeyEntry(partition, key_type, key_id))
+
+        return entries
+
     def _parse_response(self, data: bytes) -> tuple[str, int]:
         """
         Regex explanation:
@@ -89,7 +154,7 @@ class CryptoStorage(Cli):
 
 
 class Main(App):
-    def init(self):
+    def init(self):  # type: ignore[override]
         self.subparsers = self.parser.add_subparsers(help="sub-command help")
 
         # List command

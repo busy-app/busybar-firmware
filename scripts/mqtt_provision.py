@@ -28,6 +28,17 @@ KEY_ID_TLS = 0x10
 KEY_TYPE_ECDSA256 = 8
 
 
+def ensure_tls_slot_empty():
+    with CryptoStorage(PORT_NAME) as crypto_storage:
+        crypto_storage.ensure_key_absent(
+            0,
+            KEY_TYPE_ECDSA256,
+            KEY_ID_TLS,
+            echo=True,
+            error_message="TLS key slot already provisioned; refusing to overwrite",
+        )
+
+
 def write_certs(certs_dir: Path):
     with FlipperStorage(PORT_NAME) as storage:
         if not storage.exist_dir(MQTT_DATA_DIR):
@@ -60,11 +71,13 @@ def write_private_key(key_file, wrap=False):
 
     with CryptoStorage(PORT_NAME) as crypto_storage:
         flags = 1 if wrap else 0
-
-        ret = crypto_storage.list_partition(0)
-        if ret != 0:
-            raise Exception(f"list_partition failed with error {ret}")
-        # TODO: check if key exists
+        crypto_storage.ensure_key_absent(
+            0,
+            KEY_TYPE_ECDSA256,
+            KEY_ID_TLS,
+            echo=False,
+            error_message="TLS key slot already provisioned; refusing to overwrite",
+        )
 
         ret = crypto_storage.write_key(
             0,
@@ -227,6 +240,7 @@ def main(argv=None):
     device_uid = get_device_uid()
     print("UID:", device_uid)
 
+    ensure_tls_slot_empty()
     gen_device_cert(certs_dir, device_uid)
     write_certs(certs_dir)
     write_private_key(certs_dir / DEVICE_KEY, False)
