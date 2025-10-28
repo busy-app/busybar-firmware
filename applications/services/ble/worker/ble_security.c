@@ -5,6 +5,10 @@
 
 #define TAG "BleSecurity"
 
+#define BLE_SECURITY_RPA_ENABLE         1
+#define BLE_SECURITY_RPA_DISABLE        0
+#define BLE_SECURITY_RPA_UPDATE_TIMEOUT (900U) //15 min
+
 #define BLE_SCURITY_LOG_KEYS
 
 #ifdef BLE_SCURITY_LOG_KEYS
@@ -191,7 +195,8 @@ bool ble_security_rpa_enable(rsi_bt_event_le_security_keys_t* rpa_keys) {
         }
 
         //set address resolution enable and resolvable private address timeout
-        status = rsi_ble_set_addr_resolution_enable(1, 10);
+        status = rsi_ble_set_addr_resolution_enable(
+            BLE_SECURITY_RPA_ENABLE, BLE_SECURITY_RPA_UPDATE_TIMEOUT);
         if(status != RSI_SUCCESS) {
             BLE_LOG_W("line %d -> status: 0x%lx", __LINE__, status);
             break;
@@ -199,7 +204,7 @@ bool ble_security_rpa_enable(rsi_bt_event_le_security_keys_t* rpa_keys) {
 
         //set privacy mode
         status = rsi_ble_set_privacy_mode(
-            rpa_keys->Identity_addr_type, rpa_keys->Identity_addr, RSI_BLE_DEVICE_PRIVACY_MODE);
+            rpa_keys->Identity_addr_type, rpa_keys->Identity_addr, RSI_BLE_NETWORK_PRIVACY_MODE);
         if(status != RSI_SUCCESS) {
             BLE_LOG_W("line %d -> status: 0x%lx", __LINE__, status);
             break;
@@ -213,7 +218,8 @@ bool ble_security_rpa_enable(rsi_bt_event_le_security_keys_t* rpa_keys) {
 bool ble_security_rpa_disable() {
     bool result = false;
     do {
-        sl_status_t status = rsi_ble_set_addr_resolution_enable(0, 10);
+        sl_status_t status = rsi_ble_set_addr_resolution_enable(
+            BLE_SECURITY_RPA_DISABLE, BLE_SECURITY_RPA_UPDATE_TIMEOUT);
         if(status != RSI_SUCCESS) {
             BLE_LOG_W("line %d -> status: 0x%lx", __LINE__, status);
             break;
