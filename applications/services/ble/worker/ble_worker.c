@@ -132,7 +132,7 @@ typedef struct {
 
     rsi_bt_event_smp_resp_t rsi_bt_event_smp_resp;
     rsi_bt_event_le_ltk_request_t ble_ltk_req;
-    BleSecurityData security_data;
+    BleSecurityData* security_data;
 
     BleServiceEntryDict_t service_dict;
 } BleWorker;
@@ -396,10 +396,7 @@ static void rsi_ble_on_encrypt_started(
     rsi_bt_event_encryption_enabled_t* enc_enabled) {
     UNUSED(resp_status);
     BLE_LOG_D("rsi_ble_on_encrypt_started status: %X", resp_status);
-    memcpy(
-        &ble_worker_instance->security_data.ltk,
-        enc_enabled,
-        sizeof(rsi_bt_event_encryption_enabled_t));
+    ble_security_set_pairing_data(ble_worker_instance->security_data, enc_enabled);
 
     furi_thread_flags_set(
         furi_thread_get_id(ble_worker_instance->thread), BLEWorkerSmpEncryptStarted);
@@ -420,10 +417,7 @@ static void
 static void
     rsi_ble_on_le_security_keys(rsi_bt_event_le_security_keys_t* rsi_ble_event_le_security_keys) {
     BLE_LOG_D("rsi_ble_on_le_security_keys");
-    memcpy(
-        &ble_worker_instance->security_data.irk,
-        rsi_ble_event_le_security_keys,
-        sizeof(rsi_bt_event_le_security_keys_t));
+    ble_security_set_rpa_data(ble_worker_instance->security_data, rsi_ble_event_le_security_keys);
 
     furi_thread_flags_set(
         furi_thread_get_id(ble_worker_instance->thread), BLEWorkerSmpSecurityKeys);
@@ -616,9 +610,12 @@ static int32_t ble_worker_thread_callback(void* context) {
             }
 
             //! start advertising
-
-            instance->state = ble_worker_start_advertising() ? BleWorkerStateAdvertising :
-                                                               BleWorkerStateError;
+            const rsi_bt_event_le_security_keys_t* rpa =
+                ble_security_get_rpa_data(ble_worker_instance->security_data);
+            instance->state =
+                ble_worker_start_advertising(ble_worker_instance->pairing_info_available, rpa) ?
+                    BleWorkerStateAdvertising :
+                    BleWorkerStateError;
         }
 
         if(events & BLEWorkerEvtReceveRemoteFeatures) {
@@ -798,7 +795,7 @@ static int32_t ble_worker_thread_callback(void* context) {
             if(ble_worker_instance->pairing_info_available == 0) {
                 ble_worker_instance->pairing_info_available = 1;
 
-                if(ble_security_save_data(&ble_worker_instance->security_data))
+                if(ble_security_save_data(ble_worker_instance->security_data))
                     BLE_LOG_I("Security data saved");
                 else
                     BLE_LOG_W("Failed to save Security");
@@ -807,9 +804,10 @@ static int32_t ble_worker_thread_callback(void* context) {
 
         if(events & BLEWorkerSmpLtkRequest) {
             BLE_LOG_I("BLEWorkerSmpLtkRequest");
+            ///TODO: Move this logic to ble_security module
             if(ble_worker_instance->pairing_info_available) {
                 const rsi_bt_event_encryption_enabled_t* encrypt_keys =
-                    &ble_worker_instance->security_data.ltk;
+                    ble_security_get_pairing_data(ble_worker_instance->security_data);
 
                 status = rsi_ble_ltk_req_reply(
                     ble_worker_instance->remote_dev_address,
@@ -839,13 +837,13 @@ static int32_t ble_worker_thread_callback(void* context) {
 
         if(events & BLEWorkerSmpSecurityKeys) {
             BLE_LOG_I("BLEWorkerSmpSecurityKeys");
-
-            if(ble_security_rpa_enable(&ble_worker_instance->security_data.irk))
+            ///TODO: rework logic below
+            if(ble_security_rpa_enable(ble_worker_instance->security_data))
                 BLE_LOG_I("RPA setup done");
             else
                 BLE_LOG_W("RPA some error");
 
-            if(ble_security_save_data(&ble_worker_instance->security_data))
+            if(ble_security_save_data(ble_worker_instance->security_data))
                 BLE_LOG_I("Security data saved");
             else
                 BLE_LOG_W("Failed to save Security");
@@ -1085,7 +1083,10 @@ void ble_worker_start() {
             break;
         }
 
-        ble_worker_start_advertising();
+        const rsi_bt_event_le_security_keys_t* rpa =
+            ble_security_get_rpa_data(ble_worker_instance->security_data);
+        ble_worker_start_advertising(ble_worker_instance->pairing_info_available, rpa);
+
         ble_worker_instance->state = BleWorkerStateAdvertising;
         furi_thread_start(ble_worker_instance->thread);
     } while(false);
@@ -1171,9 +1172,8 @@ bool ble_worker_forget_pairing() {
 
     ble_security_rpa_disable();
 
-    bool result = ble_security_delete_data();
+    bool result = ble_security_delete_data(ble_worker_instance->security_data);
 
-    memset(&ble_worker_instance->security_data, 0, sizeof(BleSecurityData));
     ble_worker_instance->pairing_info_available = 0;
 
     if(ble_worker_instance->state == BleWorkerStateAdvertising) {

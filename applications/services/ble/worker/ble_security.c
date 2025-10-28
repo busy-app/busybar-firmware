@@ -5,6 +5,11 @@
 
 #define TAG "BleSecurity"
 
+struct BleSecurityData {
+    rsi_bt_event_le_security_keys_t irk;
+    rsi_bt_event_encryption_enabled_t ltk;
+};
+
 #define BLE_SECURITY_RPA_ENABLE         1
 #define BLE_SECURITY_RPA_DISABLE        0
 #define BLE_SECURITY_RPA_UPDATE_TIMEOUT (900U) //15 min
@@ -79,6 +84,42 @@ static void ble_security_log_keys(const BleSecurityData* security) {
 }
 #endif
 
+static bool ble_scurity_key_is_present(uint8_t* key, size_t key_size) {
+    bool result = false;
+    for(size_t i = 0; i < key_size; i++) {
+        if(key[i] == 0) continue;
+        result = true;
+        break;
+    }
+    return result;
+}
+
+const rsi_bt_event_encryption_enabled_t* ble_security_get_pairing_data(BleSecurityData* security) {
+    furi_assert(security);
+    return &security->ltk;
+}
+
+void ble_security_set_pairing_data(
+    BleSecurityData* security,
+    const rsi_bt_event_encryption_enabled_t* encryption) {
+    furi_assert(security);
+    furi_assert(encryption);
+    memcpy(&security->ltk, encryption, sizeof(rsi_bt_event_encryption_enabled_t));
+}
+
+const rsi_bt_event_le_security_keys_t* ble_security_get_rpa_data(BleSecurityData* security) {
+    furi_assert(security);
+    return &security->irk;
+}
+
+void ble_security_set_rpa_data(
+    BleSecurityData* security,
+    const rsi_bt_event_le_security_keys_t* rpa_keys) {
+    furi_assert(security);
+    furi_assert(rpa_keys);
+    memcpy(&security->irk, rpa_keys, sizeof(rsi_bt_event_le_security_keys_t));
+}
+
 static bool ble_security_load_data(BleSecurityData* security) {
     furi_assert(security);
 
@@ -125,26 +166,23 @@ bool ble_security_save_data(const BleSecurityData* const security) {
     return result;
 }
 
-bool ble_security_delete_data() {
+bool ble_security_delete_data(BleSecurityData* security) {
+    furi_assert(security);
+
     Nvm* nvm = furi_record_open(RECORD_NVM);
     bool result = nvm_delete(nvm, NvmKeyBlePairingData);
     furi_record_close(RECORD_NVM);
 
+    memset(security, 0, sizeof(BleSecurityData));
+
     return result;
 }
 
-static bool ble_scurity_key_is_present(uint8_t* key, size_t key_size) {
-    bool result = false;
-    for(size_t i = 0; i < key_size; i++) {
-        if(key[i] == 0) continue;
-        result = true;
-        break;
-    }
-    return result;
-}
+static bool ble_security_rpa_init(BleSecurityData* security) {
+    furi_assert(security);
 
-static bool ble_security_rpa_init(rsi_bt_event_le_security_keys_t* rpa_keys) {
-    furi_assert(rpa_keys);
+    rsi_bt_event_le_security_keys_t* rpa_keys = &security->irk;
+
     bool result = false;
     do {
         if(!ble_scurity_key_is_present(rpa_keys->local_irk, 16)) {
@@ -158,7 +196,7 @@ static bool ble_security_rpa_init(rsi_bt_event_le_security_keys_t* rpa_keys) {
             break;
         }
 
-        if(!ble_security_rpa_enable(rpa_keys)) {
+        if(!ble_security_rpa_enable(security)) {
             BLE_LOG_W("RPA init failed");
             break;
         }
@@ -169,8 +207,10 @@ static bool ble_security_rpa_init(rsi_bt_event_le_security_keys_t* rpa_keys) {
     return result;
 }
 
-bool ble_security_rpa_enable(rsi_bt_event_le_security_keys_t* rpa_keys) {
-    furi_assert(rpa_keys);
+bool ble_security_rpa_enable(BleSecurityData* security) {
+    furi_assert(security);
+
+    rsi_bt_event_le_security_keys_t* rpa_keys = &security->irk;
 
     bool result = false;
     do {
@@ -242,10 +282,23 @@ bool ble_security_rpa_disable() {
     return result;
 }
 
-bool ble_security_init(BleSecurityData* instance) {
+bool ble_security_init(BleSecurityData** instance) {
     furi_assert(instance);
+    furi_assert(*instance == NULL);
 
-    if(!ble_security_load_data(instance)) return false;
+    BleSecurityData* data = malloc(sizeof(BleSecurityData));
+    bool result = false;
 
-    return ble_security_rpa_init(&instance->irk);
+    do {
+        if(!ble_security_load_data(data)) {
+            free(data);
+            break;
+        }
+
+        *instance = data;
+
+        result = ble_security_rpa_init(data);
+    } while(false);
+
+    return result;
 }
