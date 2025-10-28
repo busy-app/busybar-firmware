@@ -1070,12 +1070,13 @@ paths:
       summary: Set BUSY time snapshot
       description: Run the timer starting from the given snapshot
       operationId: setBusySnapshot
-      parameters:
-        - name: snapshot
-          in: query
-          required: true
-          schema:
-            $ref: "#/components/schemas/BusySnapshot"
+      parameters: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/BusySnapshot"
       responses:
         "200":
           description: Snapshot successfully set
@@ -1549,12 +1550,12 @@ components:
             - $ref: "#/components/schemas/BusySnapshotInfinite"
             - $ref: "#/components/schemas/BusySnapshotSimple"
             - $ref: "#/components/schemas/BusySnapshotInterval"
-        snapshot_time_ms:
+        snapshot_timestamp_ms:
           type: integer
           example: 1761582532251
       required:
         - snapshot
-        - shapshot_time_ms
+        - shapshot_timestamp_ms
         
     BusySnapshotNotStarted:
       type: object
