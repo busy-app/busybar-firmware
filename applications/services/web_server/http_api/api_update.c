@@ -105,19 +105,26 @@ static bool
             furi_string_get_cstr(ctx->final_staging_path),
             manifest_path);
         if(unpack_tar_status != UpdaterStatusSuccess) {
-            const char* error_string = updater_get_status_string(unpack_tar_status);
-            FURI_LOG_E(TAG, "Update unpack TAR failed: %s", error_string);
-            MG_REPLY_ERROR(conn, 400, "Update unpack TAR failed: %s", error_string);
+            const char* error_description = updater_get_status_string(unpack_tar_status);
+            char error_string
+                [snprintf(NULL, 0, "Update unpack TAR failed: \"%s\"", error_description) + 1];
+            sprintf(error_string, "Update unpack TAR failed: \"%s\"", error_description);
+
+            FURI_LOG_E(TAG, error_string);
+            MG_REPLY_ERROR(conn, 400, error_string);
             break;
         }
 
         UpdaterStatus prepare_install_status =
             updater_prepare_install(furi_string_get_cstr(manifest_path));
         if(prepare_install_status != UpdaterStatusSuccess) {
-            const char* error_string = updater_get_status_string(prepare_install_status);
-            FURI_LOG_E(TAG, "Update prepare install failed: %s", error_string);
-            MG_REPLY_ERROR(conn, 400, "Update prepare install failed: %s", error_string);
+            const char* error_description = updater_get_status_string(unpack_tar_status);
+            char error_string
+                [snprintf(NULL, 0, "Update prepare install failed: \"%s\"", error_description) + 1];
+            sprintf(error_string, "Update prepare install failed: \"%s\"", error_description);
 
+            FURI_LOG_E(TAG, error_string);
+            MG_REPLY_ERROR(conn, 400, error_string);
             break;
         }
 
