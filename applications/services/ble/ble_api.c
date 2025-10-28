@@ -94,13 +94,18 @@ bool ble_stop(Ble* ble) {
 
 bool ble_forget(Ble* ble) {
     furi_assert(ble);
-    BleMessage msg = {0};
-    msg.header.frame_type = BleIntercomFrameTypeRequest;
-    msg.header.command = BleCommandForgetPairing;
-    msg.header.data_size = 0;
-    msg.header.source = BleIntercomFrameSourceSystem;
 
-    ble_send_message(ble, &msg);
+    BleServiceState state = ble_get_state(ble);
+
+    BleMessage msg = {0};
+    if(state == BleServiceStateReady) {
+        msg.header.frame_type = BleIntercomFrameTypeRequest;
+        msg.header.command = BleCommandForgetPairing;
+        msg.header.data_size = 0;
+        msg.header.source = BleIntercomFrameSourceSystem;
+
+        ble_send_message(ble, &msg);
+    }
     return msg.result;
 }
 
