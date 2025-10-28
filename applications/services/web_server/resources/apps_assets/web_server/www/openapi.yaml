@@ -984,7 +984,7 @@ paths:
   /api/account:
     get:
       tags:
-        - System
+        - Account
       summary: Get MQTT status
       description: Retrieves MQTT status and linked account data
       operationId: getAccountInfo
@@ -997,7 +997,7 @@ paths:
                 $ref: "#/components/schemas/AccountInfo"
     delete:
       tags:
-        - System
+        - Account
       summary: Unlink device from account
       description: Removes account linking data
       operationId: unlinkAccount
@@ -1009,10 +1009,10 @@ paths:
               schema:
                 $ref: "#/components/schemas/SuccessResponse"
 
-  /api/account-link:
+  /api/account/link:
     post:
       tags:
-        - System
+        - Account
       summary: Link device to account
       description: Requests account link PIN. Works only if device is connected to MQTT and is not linked to account
       operationId: linkAccount
@@ -1574,3 +1574,5 @@ tags:
     description: Input events
   - name: BLE
     description: Allows to operate with BLE
+  - name: Account
+    description: Account linking and MQTT status

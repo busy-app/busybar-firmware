@@ -324,7 +324,7 @@ static const HttpHandler handlers_api_root[] = {
         .on_request = http_api_account_callback,
     },
     {
-        .uri = "account-link",
+        .uri = "account/link",
         .method = "*",
         .type = HttpHandlerCustom,
         .on_request = http_api_account_link_callback,
