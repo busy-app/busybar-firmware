@@ -1172,9 +1172,7 @@ bool ble_worker_forget_pairing() {
             BLE_LOG_W("Unable to stop adv");
         else
             BLE_LOG_I("Stopping adv");
-    } else
-        ///This is a mistake if worker is not initialized
-        BLE_LOG_W("Not adv %02X", ble_worker_instance->state);
+    }
 
     ble_security_rpa_disable();
 
