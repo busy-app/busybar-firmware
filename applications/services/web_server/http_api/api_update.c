@@ -152,7 +152,7 @@ static void http_api_update_on_data_cb(struct mg_connection* conn, struct mg_iob
     }
 
     size_t data_len = io->len;
-    FURI_LOG_D(
+    FURI_LOG_T(
         TAG,
         "on_data: Received %zu bytes. Total received: %zu / %zu",
         data_len,
