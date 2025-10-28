@@ -1,9 +1,0 @@
-App(
-    appid="wifi_setup",
-    name="WiFi Setup",
-    apptype=FlipperAppType.APP,
-    entry_point="wifi_setup_app",
-    requires=["gui"],
-    stack_size=2 * 1024,
-    targets=["f20", "f21"],
-)

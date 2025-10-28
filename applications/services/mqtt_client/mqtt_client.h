@@ -4,6 +4,8 @@
 
 #define RECORD_MQTT "MQTT"
 
+#define MQTT_LINK_PIN_LEN (4)
+
 typedef enum {
     MqttClientStatusError, // Clent certificates missing
     MqttClientStatusNotConnected, // Not connected to MQTT broker
@@ -20,7 +22,7 @@ typedef struct {
     union {
         struct {
             const char* pin;
-            uint32_t valid_untill; // TODO: time format??
+            uint32_t expires_at;
         } link;
         MqttClientStatus status;
     };
@@ -34,3 +36,4 @@ MqttClientStatus mqtt_client_get_status(MqttClient* mqtt);
 bool mqtt_client_request_link_pin(MqttClient* mqtt);
 void mqtt_client_unlink(MqttClient* mqtt);
 void mqtt_client_get_session_id(MqttClient* mqtt, FuriString* id);
+void mqtt_client_get_session_email(MqttClient* mqtt, FuriString* id);

@@ -210,9 +210,12 @@ exit:
 CHIP_ERROR SilabsConfig::ClearConfigValue(Key key) {
     CHIP_ERROR err = CHIP_NO_ERROR;
 
-    VerifyOrExit(nvm_delete(mNvmInstance, key), err = CHIP_ERROR_INTERNAL);
+    if(nvm_exists(mNvmInstance, key, nullptr)) {
+        if(!nvm_delete(mNvmInstance, key)) {
+            err = CHIP_ERROR_INTERNAL;
+        }
+    }
 
-exit:
     return err;
 }
 
@@ -229,7 +232,7 @@ CHIP_ERROR SilabsConfig::FactoryResetConfig(void) {
 
     for(Key k = kMinConfigKey_MatterConfig; k <= kMaxConfigKey_MatterConfig; ++k) {
         err = ClearConfigValue(k);
-        if(!ChipError::IsSuccess(err)) {
+        if(!CHIP_ERROR::IsSuccess(err)) {
             break;
         }
     }

@@ -28,6 +28,10 @@ typedef struct {
     bool value;
 } MatterIntercomSwitchStateFrame;
 
+typedef struct {
+    uint8_t mode;
+} MatterIntercomStartupModeFrame;
+
 /**
  * @brief Request to wipe all Matter-related data (factory reset)
  */
@@ -64,7 +68,8 @@ typedef struct {
 // =============
 
 typedef enum {
-    MatterIntercomFrameTypeSwitchState, //<! Request to change state. Direction: u5->917
+    MatterIntercomFrameTypeSwitchState, //<! Request to change state. Direction: u5<->917
+    MatterIntercomFrameTypeSwitchStartupMode, //<! Request to change startup mode. Direction: u5->917
 
     MatterIntercomFrameTypeReset, //<! Factory reset. Direction: u5->917
 
@@ -80,6 +85,7 @@ typedef struct {
     union {
         uint8_t frame_of_any_type;
         MatterIntercomSwitchStateFrame switch_state;
+        MatterIntercomStartupModeFrame startup;
         MatterIntercomResetFrame reset;
         MatterIntercomCommissionFrame commission;
         MatterIntercomPairingCodesFrame codes;

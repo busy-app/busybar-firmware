@@ -8,8 +8,6 @@
  */
 #define RECORD_BLE "ble"
 
-#define BLE_AUTO_INIT
-
 typedef enum {
     BleUartChannelNordic,
     BleUartChannelHM10,
@@ -18,8 +16,6 @@ typedef enum {
 } BleUartChannel;
 
 typedef struct Ble Ble;
-
-bool ble_init(Ble* ble);
 
 BleServiceState ble_get_state(Ble* ble);
 
