@@ -71,15 +71,20 @@ static void
     mqtt_device_on_message(MqttClient* mqtt, FuriString* topic_str, struct mg_str* message) {
     if(furi_string_end_with(topic_str, "/down/v1/link/otp")) {
         char* pin = mg_json_get_str(*message, "$.code");
+        int32_t pin_expires_at = mg_json_get_long(*message, "$.expires_at", -1);
         if(pin) {
             FURI_LOG_I(TAG, "Link PIN: %s", pin);
-            MqttClientEvent pub_event = {.type = MqttClientEventLinkPin, .link = {.pin = pin}};
+            MqttClientEvent pub_event = {
+                .type = MqttClientEventLinkPin,
+                .link = {.pin = pin, .expires_at = pin_expires_at}};
             furi_pubsub_publish(mqtt->event_pubsub, &pub_event);
+            free(pin);
         }
     } else if(furi_string_end_with(topic_str, "/down/v1/link/token")) {
         char* session_id = mg_json_get_str(*message, "$.session_id");
         char* token = mg_json_get_str(*message, "$.token");
-        if(session_id && token) {
+        char* email = mg_json_get_str(*message, "$.email");
+        if(session_id && token && email) {
             FURI_LOG_I(TAG, "Link done!");
 
             JsonConfig* cfg = json_config_alloc();
@@ -87,6 +92,7 @@ static void
             furi_assert(status != JsonConfigStatusError);
             json_config_write_str(cfg, "session_id", session_id);
             json_config_write_str(cfg, "token", token);
+            json_config_write_str(cfg, "email", email);
             status = json_config_free(cfg);
             furi_assert(status != JsonConfigStatusError);
 
@@ -103,6 +109,7 @@ static void
         }
         if(session_id) free(session_id);
         if(token) free(token);
+        if(email) free(email);
     }
 }
 
@@ -413,6 +420,12 @@ static void mqtt_conn_wakeup_callback(struct mg_connection* conn, int ev, void* 
         break;
     case MqttClientMessageGetSessionId:
         furi_string_set(msg->str_param, mqtt->session_id);
+        break;
+    case MqttClientMessageGetSessionEmail:
+        json_config_read_single_str(SESSION_FILE, "email", msg->str_param, "");
+        break;
+    default:
+        furi_crash();
         break;
     }
 
