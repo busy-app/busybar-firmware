@@ -105,19 +105,26 @@ static bool
             furi_string_get_cstr(ctx->final_staging_path),
             manifest_path);
         if(unpack_tar_status != UpdaterStatusSuccess) {
-            const char* error_string = updater_get_status_string(unpack_tar_status);
-            FURI_LOG_E(TAG, "Update unpack TAR failed: %s", error_string);
-            MG_REPLY_ERROR(conn, 400, "Update unpack TAR failed: %s", error_string);
+            FuriString* error_string = furi_string_alloc_printf(
+                "Update unpack TAR failed: %s", updater_get_status_string(unpack_tar_status));
+
+            FURI_LOG_E(TAG, furi_string_get_cstr(error_string));
+            MG_REPLY_ERROR(conn, 400, furi_string_get_cstr(error_string));
+
+            furi_string_free(error_string);
             break;
         }
 
         UpdaterStatus prepare_install_status =
             updater_prepare_install(furi_string_get_cstr(manifest_path));
         if(prepare_install_status != UpdaterStatusSuccess) {
-            const char* error_string = updater_get_status_string(prepare_install_status);
-            FURI_LOG_E(TAG, "Update prepare install failed: %s", error_string);
-            MG_REPLY_ERROR(conn, 400, "Update prepare install failed: %s", error_string);
+            FuriString* error_string = furi_string_alloc_printf(
+                "Update prepare install failed: %s", updater_get_status_string(unpack_tar_status));
 
+            FURI_LOG_E(TAG, furi_string_get_cstr(error_string));
+            MG_REPLY_ERROR(conn, 400, furi_string_get_cstr(error_string));
+
+            furi_string_free(error_string);
             break;
         }
 
@@ -152,7 +159,7 @@ static void http_api_update_on_data_cb(struct mg_connection* conn, struct mg_iob
     }
 
     size_t data_len = io->len;
-    FURI_LOG_D(
+    FURI_LOG_T(
         TAG,
         "on_data: Received %zu bytes. Total received: %zu / %zu",
         data_len,
