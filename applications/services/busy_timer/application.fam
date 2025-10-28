@@ -1,0 +1,10 @@
+App(
+    appid="busy_timer",
+    name="BusyTimer",
+    apptype=FlipperAppType.SERVICE,
+    entry_point="busy_timer_srv",
+    cdefines=["SRV_BUSY_TIMER"],
+    stack_size=2 * 1024,
+    targets=["f20", "f21"],
+    order=190,
+)

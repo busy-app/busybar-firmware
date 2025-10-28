@@ -41,6 +41,7 @@ App(
         "matter",
         "update_checker",
         "device_name",
+        "busy_timer",
     ],
     targets=["f20", "f21"],
 )
