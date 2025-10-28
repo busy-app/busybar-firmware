@@ -88,8 +88,7 @@ static bool api_ble_get_state_callback(
     return true;
 }
 
-///TODO: Temporary endpoint useful for testing, remove in future
-static bool api_ble_forget_callback(
+static bool api_ble_delete_pairing_callback(
     FuriString* path,
     struct mg_connection* conn,
     struct mg_http_message* msg,
@@ -103,8 +102,8 @@ static bool api_ble_forget_callback(
     bool result = ble_forget(ble);
     furi_record_close(RECORD_BLE);
 
-    int code = 404;
-    const char* message = "LTK already removed";
+    int code = 503;
+    const char* message = "Unable to remove pairing";
     if(result)
         MG_REPLY_OK(conn);
     else
@@ -133,10 +132,10 @@ static const HttpHandler handlers_ble[] = {
         .on_request = api_ble_get_state_callback,
     },
     {
-        .uri = "forget",
+        .uri = "pairing",
         .method = "DELETE",
         .type = HttpHandlerCustom,
-        .on_request = api_ble_forget_callback,
+        .on_request = api_ble_delete_pairing_callback,
     },
 };
 
