@@ -844,16 +844,15 @@ static int32_t ble_worker_thread_callback(void* context) {
 
         if(events & BLEWorkerSmpSecurityKeys) {
             BLE_LOG_I("BLEWorkerSmpSecurityKeys");
-            ///TODO: rework logic below
-            if(ble_security_rpa_enable(ble_worker_instance->security_data))
-                BLE_LOG_I("RPA setup done");
-            else
-                BLE_LOG_W("RPA some error");
+            do {
+                if(!ble_security_rpa_enable(ble_worker_instance->security_data)) break;
 
-            if(ble_security_save_data(ble_worker_instance->security_data))
+                if(!ble_security_save_data(ble_worker_instance->security_data)) {
+                    BLE_LOG_W("Failed to save Security");
+                    break;
+                }
                 BLE_LOG_I("Security data saved");
-            else
-                BLE_LOG_W("Failed to save Security");
+            } while(false);
         }
     }
 
