@@ -1,5 +1,5 @@
 /**
- * @brief Visual list of apps categorized as DEBUG
+ * @brief Matter settings UI
  */
 
 #pragma once
