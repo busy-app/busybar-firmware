@@ -53,19 +53,13 @@ static void tls_crypto_server_sign(
     if(success) {
         FURI_LOG_D(TAG, "Sign done");
         size_t tx_size = intercom_tx(
-            instance->intercom_ch,
-            sign_resp,
-            sizeof(TlsCryptoSignMessage),
-            FuriWaitForever);
+            instance->intercom_ch, sign_resp, sizeof(TlsCryptoSignMessage), FuriWaitForever);
         furi_check(tx_size == sizeof(TlsCryptoSignMessage), "Failed to send data");
     } else {
         FURI_LOG_E(TAG, "Sign error");
         TlsCryptoErrorMessage error_msg = {.cmd = TlsCryptoError};
         size_t tx_size = intercom_tx(
-            instance->intercom_ch,
-            &error_msg,
-            sizeof(TlsCryptoErrorMessage),
-            FuriWaitForever);
+            instance->intercom_ch, &error_msg, sizeof(TlsCryptoErrorMessage), FuriWaitForever);
         furi_check(tx_size == sizeof(TlsCryptoErrorMessage), "Failed to send data");
     }
 

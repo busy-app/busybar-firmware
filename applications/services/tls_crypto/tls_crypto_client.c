@@ -1,3 +1,4 @@
+#include "tls_crypto_client.h"
 #include <furi.h>
 #include <intercom/intercom.h>
 #include "tls_crypto_common.h"
@@ -6,12 +7,12 @@
 #define RESPONSE_TIMEOUT 200
 #define ACQUIRE_TIMEOUT  500
 
-typedef struct {
+struct TlsCryptoClient {
     Intercom* intercom;
     IntercomChannel* intercom_ch;
     FuriMutex* transaction;
     FuriMessageQueue* response_queue;
-} TlsCryptoClient;
+};
 
 static void tls_crypto_client_rx_callback(const void* data, size_t data_size, void* context) {
     furi_assert(data);
@@ -30,10 +31,11 @@ static TlsCryptoClient* tls_crypto_client_alloc(void) {
     client->response_queue = furi_message_queue_alloc(1, sizeof(TlsCryptoSignMessage));
 
     client->intercom = furi_record_open(RECORD_INTERCOM);
-    client->intercom_ch = intercom_channel_open(client->intercom, IntercomChannelTlsCrypto, tls_crypto_client_rx_callback, client);
+    client->intercom_ch = intercom_channel_open(
+        client->intercom, IntercomChannelTlsCrypto, tls_crypto_client_rx_callback, client);
 
     client->transaction = furi_mutex_alloc(FuriMutexTypeNormal);
-    
+
     return client;
 }
 
@@ -58,11 +60,8 @@ bool tls_crypto_client_sign(
     sign_msg.data_size = hash_len;
     memcpy(sign_msg.data, hash, hash_len);
 
-    size_t tx_size = intercom_tx(
-        client->intercom_ch,
-        &sign_msg,
-        sizeof(TlsCryptoSignMessage),
-        FuriWaitForever);
+    size_t tx_size =
+        intercom_tx(client->intercom_ch, &sign_msg, sizeof(TlsCryptoSignMessage), FuriWaitForever);
     furi_check(tx_size == sizeof(TlsCryptoSignMessage), "Failed to send data");
 
     if(furi_message_queue_get(client->response_queue, &sign_msg, RESPONSE_TIMEOUT) ==

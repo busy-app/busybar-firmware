@@ -16,6 +16,7 @@ typedef struct TlsCryptoClient TlsCryptoClient;
 
 bool tls_crypto_client_sign(
     TlsCryptoClient* client,
+    uint8_t key_slot,
     const uint8_t* hash,
     size_t hash_len,
     uint8_t* sign_buf,
@@ -25,4 +26,3 @@ bool tls_crypto_client_sign(
 #ifdef __cplusplus
 }
 #endif
-

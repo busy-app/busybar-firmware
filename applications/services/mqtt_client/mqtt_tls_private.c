@@ -45,7 +45,8 @@ static int tls_pk_sign_full(
         return MBEDTLS_ERR_SSL_FEATURE_UNAVAILABLE;
     }
     TlsCryptoClient* crypto = furi_record_open(RECORD_TLS_CRYPTO_CLIENT);
-    bool success = tls_crypto_client_sign(crypto, TLS_KEY_SLOT, data, data_len, sig, sig_size, sig_len);
+    bool success =
+        tls_crypto_client_sign(crypto, TLS_KEY_SLOT, data, data_len, sig, sig_size, sig_len);
     furi_record_close(RECORD_TLS_CRYPTO_CLIENT);
     return (success ? 0 : MBEDTLS_ERR_SSL_INTERNAL_ERROR);
 }

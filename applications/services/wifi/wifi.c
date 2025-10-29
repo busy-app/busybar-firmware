@@ -107,8 +107,7 @@ static void wifi_process_request(Wifi* instance) {
 
         request->type = request_type;
 
-        intercom_tx(
-            instance->intercom_ch_control, request, sizeof(WifiRequest), FuriWaitForever);
+        intercom_tx(instance->intercom_ch_control, request, sizeof(WifiRequest), FuriWaitForever);
 
     } else {
         FURI_LOG_E(TAG, "Request type: %d failed with status: %d", request_type, status);

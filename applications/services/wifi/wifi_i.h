@@ -51,12 +51,8 @@ struct Wifi {
     FuriSemaphore* dhcp_semaphore;
     FuriState* state;
     Intercom* intercom;
-<<<<<<< HEAD
     IntercomChannel* intercom_ch_control;
     IntercomChannel* intercom_ch_data;
-    WifiMessage* current_message;
-=======
->>>>>>> origin/dev
     struct netif netif;
     WifiMessage api_message;
     WifiRequest request;
