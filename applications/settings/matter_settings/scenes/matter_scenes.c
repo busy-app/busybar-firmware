@@ -18,6 +18,6 @@ const Scene* const matter_scenes[SceneIdsCount] = {
     [SceneIdCommissionDone] = &matter_scene_commission_done,
     [SceneIdCommissionFail] = &matter_scene_commission_fail,
 
-    [SceneIdConnectWifi] & matter_scene_connect_wifi,
-    [SceneIdReboot] & matter_scene_reboot,
+    [SceneIdConnectWifi] = &matter_scene_connect_wifi,
+    [SceneIdReboot] = &matter_scene_reboot,
 };
