@@ -27,7 +27,7 @@ for libname in [
     "heatshrink",
     "ext_applications",
     "firmware_applications_f20",
-    "settings",
+    "settings_helpers",
     ## SI917
     "sl_glue",
     "simplicity_sdk",

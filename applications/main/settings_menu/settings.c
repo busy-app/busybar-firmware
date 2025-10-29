@@ -1,6 +1,6 @@
 #include "settings.h"
 #include "scenes/settings_scenes.h"
-#include <settings/settings_gui_params.h>
+#include <settings_helpers/gui_params.h>
 
 static bool settings_thread_signal_callback(uint32_t signal, void* arg, void* context) {
     UNUSED(arg);

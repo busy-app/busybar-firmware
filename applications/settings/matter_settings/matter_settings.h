@@ -15,7 +15,7 @@
 #include <gui/scene_manager.h>
 #include <gui/modules/nav_bar.h>
 #include <gui/modules/flex_layout.h>
-#include <settings/settings_gui_params.h>
+#include <settings_helpers/gui_params.h>
 
 #include "scenes/matter_scenes.h"
 #include "helpers/wifi_poller.h"

@@ -1,7 +1,7 @@
 #include "../sound_settings.h"
 #include "../models/volume.h"
 #include "../widgets/slider_view.h"
-#include <settings/settings_gui_params.h>
+#include <settings_helpers/gui_params.h>
 
 #define FRONT_SLIDER_GRADIENT_START ((Color)COLOR_MAKE_HEX(0x104224))
 #define FRONT_SLIDER_GRADIENT_STOP  ((Color)COLOR_MAKE_HEX(0x16A34A))

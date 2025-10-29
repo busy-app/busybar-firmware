@@ -1,7 +1,7 @@
 #include "debug_app_list.h"
 #include "scenes/debug_scenes.h"
-#include <settings/settings_app_info.h>
-#include <settings/settings_gui_params.h>
+#include <settings_helpers/app_info.h>
+#include <settings_helpers/gui_params.h>
 
 static bool debug_app_list_thread_signal_callback(uint32_t signal, void* arg, void* context) {
     UNUSED(arg);

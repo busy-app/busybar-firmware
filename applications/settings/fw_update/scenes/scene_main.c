@@ -8,7 +8,7 @@
 
 #include <toolbox/fetch/fetch_loader.h>
 #include <toolbox/sha256_calc.h>
-#include <settings/settings_gui_params.h>
+#include <settings_helpers/gui_params.h>
 
 #define SETTINGS_FW_FILE_PATH EXT_PATH("update/upload.tar")
 

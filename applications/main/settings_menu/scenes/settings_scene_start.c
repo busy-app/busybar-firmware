@@ -1,6 +1,6 @@
 #include "../settings.h"
 #include "settings_scenes.h"
-#include <settings/settings_gui_params.h>
+#include <settings_helpers/gui_params.h>
 
 #include <gui/modules/title_card.h>
 #include <gui/modules/anim_title_card.h>

@@ -1,5 +1,5 @@
 #include "../matter_settings.h"
-#include <settings/status_view.h>
+#include <settings_helpers/status_view.h>
 
 #include <power/power_service/power.h>
 
