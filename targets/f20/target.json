@@ -112,6 +112,7 @@
         "network",
         "mongoose",
         "toolbox",
+        "formatters",
         "flipper_format",
         "flipper_application",
         "heatshrink",
@@ -119,6 +120,7 @@
         "datetime",
         "targets",
         "furi",
+        "settings_helpers",
         "drivers",
         "version",
         "internal_assets",
@@ -143,7 +145,8 @@
         "subl_project",
         "cli",
         "upload_resources",
-        "u5_updater"
+        "u5_updater",
+        "mqtt"
     ],
     "extra_target_meta": {
         "debug_tags": [

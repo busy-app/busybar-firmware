@@ -87,9 +87,9 @@ void battery_status_indicator_set_charge_amount(BatteryStatusIndicator* instance
 
     lv_bar_set_value(instance->charge_level_bar, charge, LV_ANIM_OFF);
 
-    char text[snprintf(NULL, 0, "%u", BATTERY_STATUS_INDICATOR_MAX_CHARGE_AMOUNT) + 1];
-    snprintf(text, sizeof(text), "%u", charge);
-    lv_label_set_text(instance->charge_level_label, text);
+    FuriString* text = furi_string_alloc_printf("%u", charge);
+    lv_label_set_text(instance->charge_level_label, furi_string_get_cstr(text));
+    furi_string_free(text);
 }
 
 void battery_status_indicator_set_charging_state(

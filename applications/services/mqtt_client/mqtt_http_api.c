@@ -4,7 +4,7 @@
 
 #define HTTP_HOST           "http://127.0.0.1"
 #define HTTP_URI_API_PREFIX "/api/"
-#define HTTP_CONN_TIMEOUT   5 // In polling periods (1000ms)
+#define HTTP_CONN_TIMEOUT   (5000) // In ms
 
 typedef enum {
     MethodGet = 0,
@@ -152,26 +152,8 @@ static void mqtt_api_http_handler(struct mg_connection* conn, int ev, void* ev_d
     }
 }
 
-void mqtt_api_subscribe(MqttClient* mqtt) {
-    furi_assert(mqtt->conn);
-
-    FuriString* topic = furi_string_alloc_printf(
-        "%s/%s/down/%s/http-request",
-        MQTT_API_ROOT_TOPIC,
-        furi_string_get_cstr(mqtt->session_id),
-        MQTT_API_VERSION);
-    const struct mg_mqtt_opts opts = {
-        .topic = mg_str(furi_string_get_cstr(topic)), .qos = MQTT_QOS};
-    mg_mqtt_sub(mqtt->conn, &opts);
-
-    furi_string_free(topic);
-}
-
-void mqtt_api_on_message(MqttClient* mqtt, FuriString* topic_str, struct mg_mqtt_message* msg) {
-    if(!furi_string_end_with(topic_str, "http-request")) {
-        FURI_LOG_W(TAG, "Unknown topic %s", furi_string_get_cstr(topic_str));
-        return;
-    }
+void mqtt_http_api_on_message(MqttClient* mqtt, FuriString* topic_str, struct mg_mqtt_message* msg) {
+    UNUSED(topic_str);
 
     if(!mqtt_api_http_check_request(&msg->data)) {
         FURI_LOG_W(TAG, "Bad request");
@@ -207,7 +189,7 @@ void mqtt_api_on_message(MqttClient* mqtt, FuriString* topic_str, struct mg_mqtt
 
     MqttHttpContext* http_ctx = malloc(sizeof(MqttHttpContext));
     http_ctx->mqtt = mqtt;
-    http_ctx->poll_cnt = HTTP_CONN_TIMEOUT;
+    http_ctx->poll_cnt = HTTP_CONN_TIMEOUT / MQTT_POLL_PERIOD;
     http_ctx->response_topic = resp_topic;
     http_ctx->cor_data = cor_data;
     http_ctx->request_len = msg->data.len;
