@@ -190,7 +190,17 @@ void ConfigurationManagerImpl::RunConfigUnitTest(void) {
 }
 
 void ConfigurationManagerImpl::DoFactoryReset(intptr_t arg) {
-    // TODO: Implement factory reset procedure
+    UNUSED(arg);
+
+    ChipLogProgress(DeviceLayer, "Performing factory reset");
+
+    const auto err = SilabsConfig::FactoryResetConfig();
+
+    if(!CHIP_ERROR::IsSuccess(err)) {
+        ChipLogError(DeviceLayer, "Factory reset failed: %s", chip::ErrorStr(err));
+    }
+
+    PersistedStorage::KeyValueStoreMgrImpl().ErasePartition();
 }
 
 ConfigurationManager& ConfigurationMgrImpl() {

@@ -25,11 +25,27 @@ static inline void wifi_send_response(Wifi* instance) {
     furi_check(tx_size == sizeof(WifiResponse));
 }
 
-static inline void wifi_set_state(Wifi* instance, WifiState state) {
+static inline void wifi_set_state(Wifi* instance, WifiBackendState state) {
     if(state != instance->state) {
         instance->state = state;
         furi_pubsub_publish(instance->event_pubsub, &instance->state);
     }
+}
+
+static void wifi_init_request_handler(Wifi* instance) {
+    FURI_LOG_D(TAG, "Init");
+
+    WifiResponse* response = &instance->response;
+
+    const sl_status_t status =
+        sl_wifi_get_mac_address(SL_WIFI_CLIENT_INTERFACE, (sl_mac_address_t*)response->hw_address);
+
+    if(status != SL_STATUS_OK) {
+        FURI_LOG_E(TAG, "Failed to get MAC address: %lX", status);
+    }
+
+    response->status = wifi_decode_sl_status(status);
+    wifi_send_response(instance);
 }
 
 static void wifi_scan_request_handler(Wifi* instance) {
@@ -52,18 +68,13 @@ static void wifi_scan_request_handler(Wifi* instance) {
 static void wifi_connect_request_handler(Wifi* instance) {
     FURI_LOG_D(TAG, "Connect");
 
+    WifiResponse* response = &instance->response;
+
     sl_status_t status;
 
     do {
         const WifiConnectRequest* request = &instance->request.connect_request;
         const WifiCredentials* credentials = &request->credentials;
-        const WifiIpConfig* ip = &request->ip;
-
-        if(instance->state == WifiStateUp) {
-            status = SL_STATUS_SI91X_SCAN_ISSUED_IN_ASSOCIATED_STATE;
-            FURI_LOG_E(TAG, "Wifi already connected");
-            break;
-        }
 
         // Initialise client profile
         sl_net_wifi_client_profile_t profile = {
@@ -72,20 +83,7 @@ static void wifi_connect_request_handler(Wifi* instance) {
                     .security = wifi_encode_security_mode(credentials->security_mode),
                     .credential_id = SL_NET_DEFAULT_WIFI_CLIENT_CREDENTIAL_ID,
                 },
-            .ip =
-                {
-                    .mode = wifi_encode_ip_management(ip->mgmt),
-                    .type = wifi_encode_ip_version(ip->type),
-                },
         };
-
-        if(ip->mgmt == WifiIpManagementStatic) {
-            static_assert(sizeof(sl_net_ipv4_setting_t) == sizeof(WifiIpv4Settings));
-            memcpy(&profile.ip.ip.v4, &ip->ip4, sizeof(WifiIpv4Settings));
-
-            static_assert(sizeof(sl_net_ipv6_setting_t) == sizeof(WifiIpv6Settings));
-            memcpy(&profile.ip.ip.v6, &ip->ip6, sizeof(WifiIpv6Settings));
-        }
 
         wifi_encode_ssid(&profile.config.ssid, credentials->ssid);
 
@@ -131,18 +129,18 @@ static void wifi_connect_request_handler(Wifi* instance) {
             break;
         }
 
-        wifi_set_state(instance, WifiStateUp);
+        wifi_set_state(instance, WifiBackendStateConnected);
 
     } while(false);
 
-    WifiResponse* response = &instance->response;
     response->status = wifi_decode_sl_status(status);
-
     wifi_send_response(instance);
 }
 
 static void wifi_disconnect_request_handler(Wifi* instance) {
     FURI_LOG_D(TAG, "Disconnect");
+
+    WifiResponse* response = &instance->response;
 
     sl_status_t status;
 
@@ -154,85 +152,46 @@ static void wifi_disconnect_request_handler(Wifi* instance) {
             break;
         }
 
-        wifi_set_state(instance, WifiStateDown);
+        wifi_set_state(instance, WifiBackendStateDisconnected);
 
     } while(false);
 
-    WifiResponse* response = &instance->response;
     response->status = wifi_decode_sl_status(status);
-
     wifi_send_response(instance);
 }
 
-static void wifi_get_info_request_handler(Wifi* instance) {
-    FURI_LOG_D(TAG, "GetInfo");
+static void wifi_get_backend_info_request_handler(Wifi* instance) {
+    FURI_LOG_D(TAG, "GetBackendInfo");
+
+    WifiResponse* response = &instance->response;
 
     sl_status_t status;
 
     do {
-        WifiInfo* info = &instance->response.info;
-        // Set the result state value right away
-        info->state = instance->state;
+        WifiBackendInfo* backend_info = &response->backend_info;
 
-        // Do not try to get the profile if interface is not up
-        if(instance->state != WifiStateUp) {
-            status = SL_STATUS_OK;
+        sl_si91x_rsp_wireless_info_t wl_info;
+        status = sl_wifi_get_wireless_info(&wl_info);
+        if(status != SL_STATUS_OK) {
+            FURI_LOG_E(TAG, "Failed to get wireless info: %lX", status);
             break;
         }
 
-        sl_net_wifi_client_profile_t profile = {0};
-
-        status = sl_net_get_profile(
-            SL_NET_WIFI_CLIENT_INTERFACE, SL_NET_DEFAULT_WIFI_CLIENT_PROFILE_ID, &profile);
+        int32_t rssi;
+        status = sl_wifi_get_signal_strength(SL_WIFI_CLIENT_2_4GHZ_INTERFACE, &rssi);
 
         if(status != SL_STATUS_OK) {
-            FURI_LOG_E(TAG, "Failed to get Wifi profile: %lX", status);
+            FURI_LOG_E(TAG, "Failed to get RSSI: %lX", status);
             break;
         }
 
-        const sl_wifi_client_configuration_t* config = &profile.config;
-        sl_si91x_rsp_wireless_info_t wireless_info;
-
-        status = sl_wifi_get_wireless_info(&wireless_info);
-        if(status != SL_STATUS_OK) {
-            FURI_LOG_E(TAG, "Failed to get Wifi wireless info: %lX", status);
-            break;
-        }
-
-        status = sl_wifi_get_signal_strength(SL_WIFI_CLIENT_INTERFACE, &info->rssi);
-        if(status != SL_STATUS_OK) {
-            FURI_LOG_E(TAG, "Failed to get Wifi RSSI: %lX", status);
-            break;
-        }
-
-        wifi_decode_ssid(info->ssid, &config->ssid);
-        wifi_decode_ip_config(&info->ip_config, &profile.ip);
-        memcpy(&info->bssid, wireless_info.bssid, HW_ADDRESS_LEN);
-        info->channel = wireless_info.channel_number;
-        info->security_mode = wifi_decode_security_mode(config->security);
+        memcpy(backend_info->bssid, wl_info.bssid, HW_ADDRESS_LEN);
+        backend_info->channel = wl_info.channel_number;
+        backend_info->rssi = rssi;
 
     } while(false);
 
-    WifiResponse* response = &instance->response;
     response->status = wifi_decode_sl_status(status);
-
-    wifi_send_response(instance);
-}
-
-static void wifi_get_hw_address_request_handler(Wifi* instance) {
-    FURI_LOG_D(TAG, "GetHwAddress");
-
-    WifiHardwareAddress* hw_address = &instance->response.hw_address;
-    const sl_status_t status =
-        sl_wifi_get_mac_address(SL_WIFI_CLIENT_INTERFACE, (sl_mac_address_t*)hw_address);
-
-    if(status != SL_STATUS_OK) {
-        FURI_LOG_E(TAG, "Failed to get MAC address: %lX", status);
-    }
-
-    WifiResponse* response = &instance->response;
-    response->status = wifi_decode_sl_status(status);
-
     wifi_send_response(instance);
 }
 
@@ -394,9 +353,9 @@ int32_t wifi_srv(void* arg) {
 }
 
 static const WifiRequestHandler wifi_request_handlers[WifiRequestTypeMax] = {
+    [WifiRequestTypeInit] = wifi_init_request_handler,
     [WifiRequestTypeScan] = wifi_scan_request_handler,
     [WifiRequestTypeConnect] = wifi_connect_request_handler,
     [WifiRequestTypeDisconnect] = wifi_disconnect_request_handler,
-    [WifiRequestTypeGetInfo] = wifi_get_info_request_handler,
-    [WifiRequestTypeGetHwAddress] = wifi_get_hw_address_request_handler,
+    [WifiRequestTypeGetBackendInfo] = wifi_get_backend_info_request_handler,
 };

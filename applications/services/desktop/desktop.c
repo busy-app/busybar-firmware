@@ -10,13 +10,17 @@
 
 #define TAG "Desktop"
 
-// Time to wait for the rotary switch steady state
-#define SWITCH_DELAY_MS   (100)
+// Time to wait for the rotary switch steady state.
+#define SWITCH_DELAY_MS       (100)
+// Time to wait for the app to:
+//   - install its signal handler (when launching)
+//   - finish shutting down after removing its signal handler (when exiting)
+#define APP_STOP_GRACE_PERIOD (100)
 // Maximum and initial counts for synchronisation primitives
-#define INPUT_QUEUE_COUNT (8)
-#define START_QUEUE_COUNT (3)
-#define EXIT_SEMAPH_COUNT (1)
-#define EXIT_SEMAPH_INIT  (1)
+#define INPUT_QUEUE_COUNT     (8)
+#define START_QUEUE_COUNT     (3)
+#define EXIT_SEMAPH_COUNT     (1)
+#define EXIT_SEMAPH_INIT      (1)
 
 typedef struct {
     const char* name;
@@ -225,23 +229,44 @@ static void desktop_start_current_app(Desktop* instance) {
 
 // Start the pending app using two strategies depending on the loader state
 static void desktop_do_replace_current_app(Desktop* instance) {
-    const LoaderStatus status = loader_stop(instance->loader);
+    const size_t tries = 2;
 
-    if(status == LoaderStatusOk) {
-        // App will be started asynchronously after
-        // the currently running one will have stopped
-    } else if(status == LoaderStatusErrorAppNotRunning) {
-        if(desktop_power_on_app_is_running(instance)) {
+    for(size_t i = 0; i < tries; i++) {
+        const LoaderStatus status = loader_stop(instance->loader);
+
+        if(status == LoaderStatusOk) {
+            // App will be started asynchronously after
+            // the currently running one will have stopped
+            break;
+
+        } else if(status == LoaderStatusErrorAppNotRunning) {
+            if(desktop_power_on_app_is_running(instance)) {
+                desktop_prepare_default_app(instance);
+            }
+
+            // App will be started immediately
+            desktop_start_current_app(instance);
             desktop_prepare_default_app(instance);
-        }
+            break;
 
-        // App will be started immediately
-        desktop_start_current_app(instance);
-        desktop_prepare_default_app(instance);
-    } else if(status == LoaderStatusErrorInternal) {
-        furi_crash("Update app to support signals");
-    } else {
-        furi_crash("Unexpected loader status");
+        } else if(status == LoaderStatusErrorNoSignalHandler) {
+            bool grace_period_allowed = i != (tries - 1);
+
+            if(grace_period_allowed) {
+                FURI_LOG_W(
+                    TAG,
+                    "No signal handler (%zu/%zu), waiting %d ms",
+                    i + 1,
+                    tries,
+                    APP_STOP_GRACE_PERIOD);
+                furi_delay_ms(APP_STOP_GRACE_PERIOD);
+            } else {
+                furi_crash("App likely never installs a signal handler, update app");
+            }
+
+        } else {
+            furi_crash("Unexpected loader status");
+        }
     }
 }
 
@@ -432,5 +457,5 @@ static const DesktopDefaultApp desktop_default_apps[] = {
     [InputSwitchPositionStatus] = {"custom", NULL},
     [InputSwitchPositionOff] = {"soft_off", NULL},
     [InputSwitchPositionApps] = {"apps_menu", NULL},
-    [InputSwitchPositionSettings] = {"settings", NULL},
+    [InputSwitchPositionSettings] = {"settings_menu", NULL},
 };

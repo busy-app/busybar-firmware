@@ -97,6 +97,7 @@ typedef enum {
     IntercomChannelIdCli, /**< Command line interface handling */
     IntercomChannelIdBle, /**< BLE handling */
     IntercomChannelIdCryptoBackup, /**< Crypto backup handling */
+    IntercomChannelTlsCrypto, /**< TLS Crypto handling */
     IntercomChannelIdMatter, /**< Matter smart home protocol */
     /* Add more channels here as needed */
     IntercomChannelIdDebug, /**< Testing, debugging, etc */

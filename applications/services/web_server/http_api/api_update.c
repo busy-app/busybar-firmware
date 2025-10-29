@@ -1,12 +1,11 @@
-#include "furi_hal_nvm.h"
 #include "http_api.h" // Should contain ConnectionContext and other common defs
+
 #include <furi.h>
 #include <furi_hal_power.h>
-#include <storage/storage.h>
 #include <toolbox/path.h>
-#include <toolbox/tar/tar_archive.h>
-#include <toolbox/update_lib/update_config.h>
-#include <toolbox/update_lib/common_vals.h>
+
+#include <storage/storage.h>
+#include <applications/system/updater/update.h>
 
 #define TAG "HttpApiUpdate"
 
@@ -21,7 +20,6 @@ typedef struct {
     FuriString* package_name_param; // Parsed from query string
     FuriString* temp_tar_path; // Path to the temporary TAR file being saved
     FuriString* final_staging_path; // Path to /ext/update/<package_name>
-    FuriString* manifest_full_path; // Path to update.json in final_staging_path
     File* temp_tar_file_handle; // File handle for the temp TAR
 
     size_t total_file_size; // Expected total size from Content-Length
@@ -29,9 +27,6 @@ typedef struct {
 
     bool file_fully_received; // Flag: true if all bytes received and temp file closed
     bool reboot_initiated; // Flag: true if reboot sequence was successfully started
-    bool staging_dir_created; // Flag: true if final_staging_path directory was created
-    // No name_provided/file_provided flags needed as in multipart, presence of file is via Content-Length > 0
-    // and name is a required query param (or defaults).
 } HttpUpdateHandlerCtx;
 
 // Forward declarations
@@ -40,28 +35,18 @@ static bool
 static void http_api_update_on_data_cb(struct mg_connection* conn, struct mg_iobuf* io);
 static void http_api_update_on_close_cb(struct mg_connection* conn);
 
-// Helper to clean up a directory recursively (remains the same)
-static void cleanup_directory_recursive(Storage* storage, const char* path) {
-    if(storage_dir_exists(storage, path)) {
-        FURI_LOG_I(TAG, "Cleaning up directory recursively: %s", path);
-        storage_simply_remove_recursive(storage, path);
-    }
-}
-
 static HttpUpdateHandlerCtx* alloc_raw_update_context() {
     HttpUpdateHandlerCtx* ctx = malloc(sizeof(HttpUpdateHandlerCtx));
     ctx->storage = furi_record_open(RECORD_STORAGE);
     ctx->package_name_param = furi_string_alloc(); // Will be set from query
     ctx->temp_tar_path = furi_string_alloc_printf("%s/upload.tar", UPDATE_STAGING_ROOT);
     ctx->final_staging_path = furi_string_alloc(); // Will be /ext/update/<name>
-    ctx->manifest_full_path = furi_string_alloc();
     ctx->temp_tar_file_handle = storage_file_alloc(ctx->storage);
 
     ctx->total_file_size = 0;
     ctx->received_file_size = 0;
     ctx->file_fully_received = false;
     ctx->reboot_initiated = false;
-    ctx->staging_dir_created = false;
     return ctx;
 }
 
@@ -83,20 +68,9 @@ static void free_raw_update_context(HttpUpdateHandlerCtx* ctx) {
         storage_simply_remove(ctx->storage, furi_string_get_cstr(ctx->temp_tar_path));
     }
 
-    // Clean up final staging directory if it was created but reboot was not initiated
-    if(ctx->staging_dir_created && !ctx->reboot_initiated &&
-       furi_string_size(ctx->final_staging_path) > 0) {
-        FURI_LOG_I(
-            TAG,
-            "Cleaning up staging directory: %s",
-            furi_string_get_cstr(ctx->final_staging_path));
-        cleanup_directory_recursive(ctx->storage, furi_string_get_cstr(ctx->final_staging_path));
-    }
-
     furi_string_free(ctx->package_name_param);
     furi_string_free(ctx->temp_tar_path);
     furi_string_free(ctx->final_staging_path);
-    furi_string_free(ctx->manifest_full_path);
     if(ctx->storage) {
         furi_record_close(RECORD_STORAGE);
         ctx->storage = NULL;
@@ -104,121 +78,72 @@ static void free_raw_update_context(HttpUpdateHandlerCtx* ctx) {
     free(ctx);
 }
 
-// Combined logic for unpacking, verifying, and initiating update
-// This is called after the file is fully received and closed.
 static bool
     handle_completed_upload_and_reboot(HttpUpdateHandlerCtx* ctx, struct mg_connection* conn) {
     FURI_LOG_I(TAG, "File upload complete. Processing update package.");
 
-    // 1. Construct final staging path and create directory
-    // Ensure package_name_param is not empty before using it for path construction
-    if(furi_string_empty(ctx->package_name_param)) {
-        FURI_LOG_E(TAG, "Package name is empty, cannot proceed.");
-        MG_REPLY_BAD_REQUEST(conn);
-        return false;
-    }
-    path_concat(
-        UPDATE_STAGING_ROOT,
-        furi_string_get_cstr(ctx->package_name_param),
-        ctx->final_staging_path);
-    FURI_LOG_I(TAG, "Final staging path: %s", furi_string_get_cstr(ctx->final_staging_path));
+    FuriString* manifest_path = furi_string_alloc();
 
-    cleanup_directory_recursive(ctx->storage, furi_string_get_cstr(ctx->final_staging_path));
-
-    if(storage_common_mkdir(ctx->storage, furi_string_get_cstr(ctx->final_staging_path)) !=
-       FSE_OK) {
-        FURI_LOG_E(
-            TAG,
-            "Failed to create package directory: %s",
-            furi_string_get_cstr(ctx->final_staging_path));
-        MG_REPLY_INTERNAL_ERROR(conn, "Failed to create package directory for update.");
-        return false;
-    }
-    ctx->staging_dir_created = true;
-
-    // 2. Unpack TAR
-    TarArchive* tar = tar_archive_alloc(ctx->storage);
-    bool unpack_success = false;
-    if(tar_archive_open(tar, furi_string_get_cstr(ctx->temp_tar_path), TarOpenModeRead)) {
-        if(tar_archive_unpack_to(tar, furi_string_get_cstr(ctx->final_staging_path), NULL)) {
-            unpack_success = true;
-        } else {
-            FURI_LOG_E(
-                TAG,
-                "Failed to unpack TAR contents to %s",
-                furi_string_get_cstr(ctx->final_staging_path));
+    bool is_success = false;
+    do {
+        /* construct final staging path */
+        if(furi_string_empty(ctx->package_name_param)) {
+            FURI_LOG_E(TAG, "Package name is empty, cannot proceed.");
+            MG_REPLY_BAD_REQUEST(conn);
+            break;
         }
-    } else {
-        FURI_LOG_E(TAG, "Failed to open TAR file %s", furi_string_get_cstr(ctx->temp_tar_path));
-    }
 
-    tar_archive_free(tar);
+        path_concat(
+            UPDATE_STAGING_ROOT,
+            furi_string_get_cstr(ctx->package_name_param),
+            ctx->final_staging_path);
 
-    if(!unpack_success) {
-        MG_REPLY_INTERNAL_ERROR(conn, "Failed to unpack update TAR.");
-        // Staging dir will be cleaned by on_close as reboot_initiated is false
-        return false;
-    }
+        FURI_LOG_I(TAG, "Final staging path: %s", furi_string_get_cstr(ctx->final_staging_path));
 
-    // 3. Validate: Check for update.json (using UPDATE_CONFIG_FILENAME)
-    // Correctly form the full path to the manifest file
-    furi_string_printf(
-        ctx->manifest_full_path,
-        "%s/%s",
-        furi_string_get_cstr(ctx->final_staging_path),
-        UPDATE_CONFIG_FILENAME);
-    if(!storage_file_exists(ctx->storage, furi_string_get_cstr(ctx->manifest_full_path))) {
-        FURI_LOG_E(
-            TAG, "Manifest file not found: %s", furi_string_get_cstr(ctx->manifest_full_path));
-        MG_REPLY_BAD_REQUEST(conn);
-        return false;
-    }
-    FURI_LOG_I(TAG, "Manifest found: %s", furi_string_get_cstr(ctx->manifest_full_path));
+        UpdaterStatus unpack_tar_status = updater_unpack_tar(
+            furi_string_get_cstr(ctx->temp_tar_path),
+            furi_string_get_cstr(ctx->final_staging_path),
+            manifest_path);
+        if(unpack_tar_status != UpdaterStatusSuccess) {
+            FuriString* error_string = furi_string_alloc_printf(
+                "Update unpack TAR failed: %s", updater_get_status_string(unpack_tar_status));
 
-    // Validate the update package using update_config_load
-    UpdateConfig* update_config = update_config_alloc();
+            FURI_LOG_E(TAG, furi_string_get_cstr(error_string));
+            MG_REPLY_ERROR(conn, 400, furi_string_get_cstr(error_string));
 
-    UpdateConfigValidation validation_result =
-        update_config_load(update_config, furi_string_get_cstr(ctx->manifest_full_path));
+            furi_string_free(error_string);
+            break;
+        }
 
-    if(validation_result != UpdateConfigValidationOK) {
-        const char* validation_error_str =
-            update_config_validation_get_error_str(validation_result);
-        FURI_LOG_E(
-            TAG,
-            "Update package validation failed: %s (Code: %d)",
-            validation_error_str,
-            validation_result);
-        MG_REPLY_ERROR(conn, 400, "Update package validation failed: %s", validation_error_str);
-        update_config_free(update_config);
-        return false; // Staging dir will be cleaned by on_close
-    }
-    FURI_LOG_I(TAG, "Update package validation successful.");
-    update_config_free(update_config);
+        UpdaterStatus prepare_install_status =
+            updater_prepare_install(furi_string_get_cstr(manifest_path));
+        if(prepare_install_status != UpdaterStatusSuccess) {
+            FuriString* error_string = furi_string_alloc_printf(
+                "Update prepare install failed: %s", updater_get_status_string(unpack_tar_status));
 
-    // Note: We do not need to check for the stage file here, as the update_config_load already
-    // 4. Write pointer file
-    if(!update_config_write_pointer_file(
-           ctx->storage, furi_string_get_cstr(ctx->manifest_full_path))) {
-        FURI_LOG_E(TAG, "Failed to write update pointer file.");
-        MG_REPLY_INTERNAL_ERROR(conn, "Failed to finalize update configuration.");
-        return false;
-    }
-    FURI_LOG_I(TAG, "Update pointer file written successfully.");
+            FURI_LOG_E(TAG, furi_string_get_cstr(error_string));
+            MG_REPLY_ERROR(conn, 400, furi_string_get_cstr(error_string));
 
-    // 5. Initiate update (reboot into update mode)
-    furi_hal_nvm_set_boot_mode(FuriHalNvmBootModeUpdate);
-    ctx->reboot_initiated = true; // Mark that reboot is about to happen
+            furi_string_free(error_string);
+            break;
+        }
 
-    FURI_LOG_I(TAG, "Reboot pending");
+        /* update succeeded - mark for reboot */
+        ctx->reboot_initiated = true;
+        FURI_LOG_I(TAG, "Reboot pending");
 
-    MG_REPLY_OK_BODY(
-        conn, "{\"result\":\"OK\",\"message\":\"Update accepted. System will reboot.\"}\n");
+        MG_REPLY_OK_BODY(
+            conn, "{\"result\":\"OK\",\"message\":\"Update accepted. System will reboot.\"}\n");
 
-    conn->is_draining = 1;
+        conn->is_draining = 1;
 
-    // Reboot will now occur in on_close_cb after response is sent.
-    return true;
+        /* reboot will now occur in on_close_cb after response is sent. */
+        is_success = true;
+    } while(false);
+
+    furi_string_free(manifest_path);
+
+    return is_success;
 }
 
 static void http_api_update_on_data_cb(struct mg_connection* conn, struct mg_iobuf* io) {
@@ -234,7 +159,7 @@ static void http_api_update_on_data_cb(struct mg_connection* conn, struct mg_iob
     }
 
     size_t data_len = io->len;
-    FURI_LOG_D(
+    FURI_LOG_T(
         TAG,
         "on_data: Received %zu bytes. Total received: %zu / %zu",
         data_len,
@@ -306,8 +231,9 @@ static void http_api_update_on_close_cb(struct mg_connection* conn) {
 
     if(reboot_was_initiated) {
         FURI_LOG_I(TAG, "Rebooting device now after response sent and connection closed.");
-        furi_delay_ms(100); // Brief delay for safety before reset
-        furi_hal_power_reset();
+        if(updater_reboot_install() != UpdaterStatusSuccess) {
+            updater_cancel_prepared_install();
+        }
     }
 }
 

@@ -4,12 +4,12 @@ App(
     apptype=FlipperAppType.METAPACKAGE,
     provides=[
         "canvas",
-        # "wifi_setup",
         "busy",
         "custom",
         "soft_off",
         "power_on",
         "clock",
+        "settings_menu",
     ],
     targets=["f20", "f21"],
 )

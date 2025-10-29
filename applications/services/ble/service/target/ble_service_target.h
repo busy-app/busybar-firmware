@@ -5,6 +5,6 @@
 bool ble_service_target_execute(
     BleServiceObject* instance,
     BleIntercomFrameType frame_type,
-    BleCommand command,
+    BleServiceCommandEnum command,
     size_t data_size,
     void* data);

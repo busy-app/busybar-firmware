@@ -72,7 +72,7 @@ static bool update_checker_check_wifi_connected(UpdateChecker* instance) {
 
     if(status != WifiStatusOk) {
         FURI_LOG_D(TAG, "Failed to get Wifi info: %d", status);
-    } else if(wifi_info.state != WifiStateUp) {
+    } else if(wifi_info.state != WifiStateConnected) {
         FURI_LOG_D(TAG, "Wifi is not connected");
     } else {
         FURI_LOG_D(TAG, "Wifi is connected");
@@ -248,7 +248,7 @@ static void update_checker_custom_event_callback(uint32_t events, void* context)
     UpdateChecker* instance = context;
 
     if(events & UpdateCheckerCustomEventSuccess) {
-        FURI_LOG_I(TAG, "Update successful");
+        FURI_LOG_I(TAG, "Check successful");
         instance->status = UpdateCheckerStatusIdle;
         furi_event_loop_timer_start(instance->timer, instance->examination_interval);
     }

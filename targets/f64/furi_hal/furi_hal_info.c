@@ -1,5 +1,6 @@
 #include <furi_hal_info.h>
 
+#include <formatters/sl_rps/sl_rps.h>
 #include <furi_hal_version.h>
 #include <furi.h>
 
@@ -110,17 +111,18 @@ static void furi_hal_info_get_nwp(FuriHalInfoNwp* instance) {
         if(status != SL_STATUS_OK) {
             FURI_LOG_E(TAG, "Failed to get firmware version: 0x%08lX", status);
         } else {
-            furi_string_printf(
+            sl_rps_format_nwp_version(
                 instance->firmware_version,
-                "%x%x.%d.%d.%d.%d.%d.%d",
-                fw_version.chip_id,
-                fw_version.rom_id,
-                fw_version.major,
-                fw_version.minor,
-                fw_version.security_version,
-                fw_version.patch_num,
-                fw_version.customer_id,
-                fw_version.build_num);
+                &(SlRpsNwpVersion){
+                    .major = fw_version.major,
+                    .minor = fw_version.minor,
+                    .patch = fw_version.patch_num,
+                    .build = fw_version.build_num,
+                    .security = fw_version.security_version,
+                    .rom_id = fw_version.rom_id,
+                    .chip_id = fw_version.chip_id,
+                    .customer_id = fw_version.customer_id,
+                });
         }
 
         status = rsi_bt_get_local_device_address((uint8_t*)&mac_addr);

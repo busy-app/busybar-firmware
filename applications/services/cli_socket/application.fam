@@ -3,6 +3,6 @@ App(
     apptype=FlipperAppType.STARTUP,
     entry_point="cli_socket_on_system_start",
     cdefines=["SRV_CLI_SOCKET"],
-    order=20,
+    order=40,
     targets=["f20", "f21"],
 )
