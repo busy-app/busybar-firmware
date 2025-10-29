@@ -432,5 +432,5 @@ static const DesktopDefaultApp desktop_default_apps[] = {
     [InputSwitchPositionStatus] = {"custom", NULL},
     [InputSwitchPositionOff] = {"soft_off", NULL},
     [InputSwitchPositionApps] = {"apps_menu", NULL},
-    [InputSwitchPositionSettings] = {"settings", NULL},
+    [InputSwitchPositionSettings] = {"settings_menu", NULL},
 };
