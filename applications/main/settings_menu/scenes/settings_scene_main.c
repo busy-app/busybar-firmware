@@ -1,7 +1,7 @@
 #include "../settings.h"
 #include "settings_scenes.h"
 #include <firmware_applications_f20/applications.h>
-#include <settings_helpers/app_info.h>
+#include <settings_helpers/app_desc.h>
 
 #include <gui/modules/menu.h>
 
@@ -33,26 +33,26 @@ static void settings_scene_main_on_enter(void* context) {
 
         uint32_t passed_index = 0;
         const char* passed_app_name = instance->launching_subapp;
-        SettingsAppDescriptor descriptor;
+        SettingsAppDescriptor* descriptor = settings_app_descriptor_alloc();
 
         for(size_t i = 0; i < FLIPPER_SETTINGS_APPS_COUNT; i++) {
+            settings_app_descriptor_reset(descriptor);
             const FlipperInternalApplication* app = &FLIPPER_SETTINGS_APPS[i];
-            memset(&descriptor, 0, sizeof(descriptor));
-            app->app(&descriptor);
+            app->app(descriptor);
 
             menu_add_item(
                 data->front_menu,
-                descriptor.front_title,
-                descriptor.menu_extra,
-                descriptor.front_icon,
+                furi_string_get_cstr(descriptor->front_title),
+                furi_string_get_cstr(descriptor->menu_extra),
+                furi_string_get_cstr(descriptor->front_icon),
                 i,
                 settings_scene_setup_menu_callback,
                 instance);
             menu_add_item(
                 data->back_menu,
-                descriptor.back_title,
-                descriptor.menu_extra,
-                descriptor.back_icon,
+                furi_string_get_cstr(descriptor->back_title),
+                furi_string_get_cstr(descriptor->menu_extra),
+                furi_string_get_cstr(descriptor->back_icon),
                 i,
                 NULL,
                 NULL);
@@ -63,6 +63,8 @@ static void settings_scene_main_on_enter(void* context) {
                 }
             }
         }
+
+        settings_app_descriptor_free(descriptor);
 
         menu_set_selected_item_index(data->front_menu, passed_index);
         menu_set_selected_item_index(data->back_menu, passed_index);

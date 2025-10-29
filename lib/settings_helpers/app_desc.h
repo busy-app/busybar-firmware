@@ -11,8 +11,7 @@
 extern "C" {
 #endif
 
-#define SETTINGS_DESCRIPTOR_TITLE_SZ (64)
-#define SETTINGS_DESCRIPTOR_PATH_SZ  (128)
+#include <furi.h>
 
 /**
  * @brief Dynamic information about a settings submenu.
@@ -22,13 +21,18 @@ extern "C" {
  * and exit immediately. This data will be shown in the main settings menu.
  */
 typedef struct {
-    char front_title[SETTINGS_DESCRIPTOR_TITLE_SZ]; //<! Title on front display
-    char back_title[SETTINGS_DESCRIPTOR_TITLE_SZ]; //<! Title on back display
-    char menu_extra[SETTINGS_DESCRIPTOR_TITLE_SZ]; //<! Sub-label for menus on both screens
+    FuriString* front_title; //<! Title on front display
+    FuriString* back_title; //<! Title on back display
+    FuriString* menu_extra; //<! Sub-label for menus on both displays
 
-    char front_icon[SETTINGS_DESCRIPTOR_PATH_SZ]; //<! Path to icon on front display
-    char back_icon[SETTINGS_DESCRIPTOR_PATH_SZ]; //<! Path to icon on back display
+    FuriString* front_icon; //<! Path to icon on front display
+    FuriString* back_icon; //<! Path to icon on back display
 } SettingsAppDescriptor;
+
+SettingsAppDescriptor* settings_app_descriptor_alloc(void);
+void settings_app_descriptor_free(SettingsAppDescriptor* desc);
+
+void settings_app_descriptor_reset(SettingsAppDescriptor* desc);
 
 #ifdef __cplusplus
 }

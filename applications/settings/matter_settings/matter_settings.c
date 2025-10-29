@@ -1,6 +1,6 @@
 #include "matter_settings.h"
 #include "scenes/matter_scenes.h"
-#include <settings_helpers/app_info.h>
+#include <settings_helpers/app_desc.h>
 #include <settings_helpers/gui_params.h>
 
 static bool matter_settings_thread_signal_callback(uint32_t signal, void* arg, void* context) {
@@ -204,10 +204,10 @@ int32_t matter_settings_entry(void* arg) {
     if(arg) {
         SettingsAppDescriptor* descriptor = arg;
 
-        strcpy(descriptor->front_title, "Smart home");
-        strcpy(descriptor->back_title, "SMART HOME");
-        strcpy(descriptor->front_icon, IMG_PATH("house_front_7x7.bin"));
-        strcpy(descriptor->back_icon, IMG_PATH("house_back_12x12.bin"));
+        furi_string_set_str(descriptor->front_title, "Smart home");
+        furi_string_set_str(descriptor->back_title, "SMART HOME");
+        furi_string_set_str(descriptor->front_icon, IMG_PATH("house_front_7x7.bin"));
+        furi_string_set_str(descriptor->back_icon, IMG_PATH("house_back_12x12.bin"));
 
         return 0;
     }

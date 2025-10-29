@@ -44,8 +44,8 @@ uint8_t volume_model_get(VolumeModel* model) {
     return volume_to_model(audio_get_volume(model->audio));
 }
 
-void volume_model_format(VolumeModel* model, char* buf) {
+void volume_model_format(VolumeModel* model, FuriString* string) {
     furi_assert(model);
-    furi_assert(buf);
-    sprintf(buf, "%hhu%%", volume_model_get(model));
+    furi_assert(string);
+    furi_string_printf(string, "%hhu%%", volume_model_get(model));
 }

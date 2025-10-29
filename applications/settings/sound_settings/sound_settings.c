@@ -1,6 +1,6 @@
 #include "sound_settings.h"
 #include "scenes/sound_scenes.h"
-#include <settings_helpers/app_info.h>
+#include <settings_helpers/app_desc.h>
 #include <settings_helpers/gui_params.h>
 
 static bool sound_settings_thread_signal_callback(uint32_t signal, void* arg, void* context) {
@@ -164,11 +164,11 @@ int32_t sound_settings_entry(void* arg) {
         VolumeModel* model = volume_model_alloc();
         SettingsAppDescriptor* descriptor = arg;
 
-        strcpy(descriptor->front_title, "Sound");
-        strcpy(descriptor->back_title, "SOUND");
+        furi_string_set_str(descriptor->front_title, "Sound");
+        furi_string_set_str(descriptor->back_title, "SOUND");
         volume_model_format(model, descriptor->menu_extra);
-        strcpy(descriptor->front_icon, IMG_PATH("speaker_front_7x7.bin"));
-        strcpy(descriptor->back_icon, IMG_PATH("speaker_on_back_12x12.bin"));
+        furi_string_set_str(descriptor->front_icon, IMG_PATH("speaker_front_7x7.bin"));
+        furi_string_set_str(descriptor->back_icon, IMG_PATH("speaker_on_back_12x12.bin"));
 
         volume_model_free(model);
         return 0;

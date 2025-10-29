@@ -96,13 +96,13 @@ uint8_t brightness_model_get(BrightnessModel* model) {
     return brightness_to_model(brightness, BACK_BRIGHTNESS_RANGE_MIN, BACK_BRIGHTNESS_RANGE_MAX);
 }
 
-void brightness_model_format(BrightnessModel* model, char* buffer) {
+void brightness_model_format(BrightnessModel* model, FuriString* string) {
     furi_assert(model);
-    furi_assert(buffer);
+    furi_assert(string);
 
     if(brightness_model_get_mode(model) == BrightnessModeAuto) {
-        strcpy(buffer, "Auto");
+        furi_string_set_str(string, "Auto");
     } else {
-        sprintf(buffer, "%hhu%%", brightness_model_get(model));
+        furi_string_printf(string, "%hhu%%", brightness_model_get(model));
     }
 }

@@ -31,7 +31,7 @@ BrightnessMode brightness_model_get_mode(BrightnessModel* model);
 
 void brightness_model_set(BrightnessModel* model, uint8_t brightness);
 uint8_t brightness_model_get(BrightnessModel* model);
-void brightness_model_format(BrightnessModel* model, char* buffer);
+void brightness_model_format(BrightnessModel* model, FuriString* string);
 
 #ifdef __cplusplus
 }

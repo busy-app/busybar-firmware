@@ -22,7 +22,7 @@ void volume_model_free(VolumeModel* model);
 void volume_model_set(VolumeModel* model, uint8_t volume);
 uint8_t volume_model_get(VolumeModel* model);
 
-void volume_model_format(VolumeModel* model, char* buf);
+void volume_model_format(VolumeModel* model, FuriString* string);
 
 #ifdef __cplusplus
 }

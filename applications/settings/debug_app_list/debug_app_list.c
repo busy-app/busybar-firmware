@@ -1,6 +1,6 @@
 #include "debug_app_list.h"
 #include "scenes/debug_scenes.h"
-#include <settings_helpers/app_info.h>
+#include <settings_helpers/app_desc.h>
 #include <settings_helpers/gui_params.h>
 
 static bool debug_app_list_thread_signal_callback(uint32_t signal, void* arg, void* context) {
@@ -154,10 +154,10 @@ int32_t debug_app_list_entry(void* arg) {
     if(arg) {
         SettingsAppDescriptor* descriptor = arg;
 
-        strcpy(descriptor->front_title, "Debug apps");
-        strcpy(descriptor->back_title, "DEBUG APPS");
-        strcpy(descriptor->front_icon, IMG_PATH("bug_front_7x7.bin"));
-        strcpy(descriptor->back_icon, IMG_PATH("bug_back_12x12.bin"));
+        furi_string_set_str(descriptor->front_title, "Debug apps");
+        furi_string_set_str(descriptor->back_title, "DEBUG APPS");
+        furi_string_set_str(descriptor->front_icon, IMG_PATH("bug_front_7x7.bin"));
+        furi_string_set_str(descriptor->back_icon, IMG_PATH("bug_back_12x12.bin"));
 
         return 0;
     }

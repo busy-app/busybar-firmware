@@ -8,7 +8,7 @@ env.Append(
         Dir("."),
     ],
     SDK_HEADERS=[
-        File("settings_app_info.h"),
+        File("settings_app_desc.h"),
         File("settings_gui_params.h"),
     ],
 )

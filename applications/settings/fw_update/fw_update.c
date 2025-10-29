@@ -1,6 +1,6 @@
 #include "fw_update.h"
 #include "scenes/update_scenes.h"
-#include <settings_helpers/app_info.h>
+#include <settings_helpers/app_desc.h>
 #include <settings_helpers/gui_params.h>
 
 static bool fw_update_thread_signal_callback(uint32_t signal, void* arg, void* context) {
@@ -155,10 +155,10 @@ int32_t fw_update_entry(void* arg) {
     if(arg) {
         SettingsAppDescriptor* descriptor = arg;
 
-        strcpy(descriptor->front_title, "FW update");
-        strcpy(descriptor->back_title, "FW UPDATE");
-        strcpy(descriptor->front_icon, IMG_PATH("microchip_front_8x8.bin"));
-        strcpy(descriptor->back_icon, IMG_PATH("microchip_back_12x12.bin"));
+        furi_string_set_str(descriptor->front_title, "FW update");
+        furi_string_set_str(descriptor->back_title, "FW UPDATE");
+        furi_string_set_str(descriptor->front_icon, IMG_PATH("microchip_front_8x8.bin"));
+        furi_string_set_str(descriptor->back_icon, IMG_PATH("microchip_back_12x12.bin"));
 
         return 0;
     }
