@@ -2,7 +2,7 @@ openapi: 3.0.3
 info:
   title: BUSY Bar HTTP API
   description: HTTP API for BUSY Bar web server
-  version: 0.3.0
+  version: 1.0.0
   contact:
     name: tbd
 
@@ -837,7 +837,7 @@ paths:
               schema:
                 $ref: "#/components/schemas/SuccessResponse"
         "400":
-          description: Wi-Fi already connected
+          description: Already connected
           content:
             application/json:
               schema:
@@ -857,7 +857,7 @@ paths:
               schema:
                 $ref: "#/components/schemas/SuccessResponse"
         "400":
-          description: Command issued in an invalid state
+          description: Already disconnected
           content:
             application/json:
               schema:
@@ -877,7 +877,7 @@ paths:
               schema:
                 $ref: "#/components/schemas/NetworkResponse"
         "400":
-          description: Wi-Fi already connected
+          description: Scan not possible when connected
           content:
             application/json:
               schema:
@@ -974,6 +974,55 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/TimestampInfo"
+        "400":
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /api/account:
+    get:
+      tags:
+        - Account
+      summary: Get MQTT status
+      description: Retrieves MQTT status and linked account data
+      operationId: getAccountInfo
+      responses:
+        "200":
+          description: Data retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AccountInfo"
+    delete:
+      tags:
+        - Account
+      summary: Unlink device from account
+      description: Removes account linking data
+      operationId: unlinkAccount
+      responses:
+        "200":
+          description: Done successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse"
+
+  /api/account/link:
+    post:
+      tags:
+        - Account
+      summary: Link device to account
+      description: Requests account link PIN. Works only if device is connected to MQTT and is not linked to account
+      operationId: linkAccount
+      responses:
+        "200":
+          description: Data retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AccountLink"
         "400":
           description: Bad request
           content:
@@ -1380,16 +1429,7 @@ components:
     WifiSecurityMethod:
       type: string
       example: "WPA3"
-      enum:
-        [
-          Open,
-          WPA,
-          WPA2,
-          WEP,
-          WPA/WPA2,
-          WPA3,
-          WPA2/WPA3,
-        ]
+      enum: [Open, WPA, WPA2, WEP, WPA/WPA2, WPA3, WPA2/WPA3]
 
     WifiIpMethod:
       type: string
@@ -1420,8 +1460,11 @@ components:
           type: string
           example: disconnected
           enum:
+            - unknown
             - disconnected
             - connected
+            - connecting
+            - disconnecting
         ssid:
           type: string
           example: Your_WIFI_SSID
@@ -1490,6 +1533,30 @@ components:
       description: Frame for requested display encoded in base64
       format: base64
 
+    AccountInfo:
+      type: object
+      properties:
+        state:
+          type: string
+          example: "linked"
+          enum: ["error", "disconnected", "not_linked", "linked"]
+        id:
+          type: string
+          example: "12345678-9abc-def0-1234-56789abcdef0"
+        email:
+          type: string
+          example: "name@example.com"
+
+    AccountLink:
+      type: object
+      properties:
+        code:
+          type: string
+          example: "ABCD"
+        expires_at:
+          type: integer
+          example: 1761060863
+
 tags:
   - name: System
     description: System information and control
@@ -1507,3 +1574,5 @@ tags:
     description: Input events
   - name: BLE
     description: Allows to operate with BLE
+  - name: Account
+    description: Account linking and MQTT status

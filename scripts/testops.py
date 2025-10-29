@@ -176,19 +176,26 @@ class TelnetClient:
 
         return "\n".join(lines)
 
-    def run_until_pattern(self, command: str, pattern: str, timeout: float, error_patterns: list = None) -> CommandResult:
+    def run_until_pattern(
+            self,
+            command: str,
+            patterns: str | list[str],
+            timeout: float,
+            error_patterns: list[str] | None = None
+    ) -> CommandResult:
         """
-        Send a command and wait for a specific pattern in the output instead of waiting for prompt.
+        Send a command and wait for one or more specific patterns in the output instead of waiting for prompt.
         Useful for commands that don't return to prompt (like update commands).
 
         Args:
             command: The command to send
-            pattern: The text pattern to wait for in the output
-            timeout: Maximum time to wait for the pattern
+            pattern: A text pattern or list of patterns to wait for in the output
+            timeout: Maximum time to wait for any of the patterns
             error_patterns: List of error patterns that should cause immediate failure
 
         Returns:
-            CommandResult with ok=True if pattern found, ok=False if timeout or error pattern found
+            CommandResult with ok=True if any success pattern found,
+            ok=False if timeout or an error pattern is found.
         """
         if not self._tn:
             raise RuntimeError("Telnet not connected")
@@ -197,7 +204,7 @@ class TelnetClient:
         self.sendline(command)
 
         accumulated = b""
-        pattern_bytes = pattern.encode("utf-8")
+        patterns_bytes = [pattern.encode("utf-8") for pattern in patterns]
         error_patterns_bytes = [err.encode("utf-8") for err in (error_patterns or [])]
 
         while time.perf_counter() - start < timeout:
@@ -217,11 +224,12 @@ class TelnetClient:
                             return CommandResult(ok=False, command=command, stdout=cleaned, duration_sec=duration)
 
                     # Check if we found the success pattern
-                    if pattern_bytes in accumulated:
-                        duration = time.perf_counter() - start
-                        cleaned = self._clean_command_output(accumulated, command)
-                        self._logger.info(f"Pattern '{pattern}' found after {duration:.2f}s")
-                        return CommandResult(ok=True, command=command, stdout=cleaned, duration_sec=duration)
+                    for pattern in patterns_bytes:
+                        if pattern in accumulated:
+                            duration = time.perf_counter() - start
+                            cleaned = self._clean_command_output(accumulated, command)
+                            self._logger.info(f"Pattern '{pattern}' found after {duration:.2f}s")
+                            return CommandResult(ok=True, command=command, stdout=cleaned, duration_sec=duration)
 
                 time.sleep(0.1)  # Small delay to avoid busy waiting
             except Exception as e:
@@ -361,8 +369,8 @@ class BusyBarDevice:
 
     def update_bundle(self, bundle_path: str, timeout: int = 10) -> Tuple[bool, str]:
         """
-        Runs 'update install <bundle.json>' and waits for 'Updater configuration valid' message.
-        Returns immediately with error if 'Failed to load updater configuration: Manifest path invalid' is detected.
+        Runs 'update install <bundle.json>' and waits for 'Update preparation successful, rebooting...' message.
+        Returns immediately with error if 'Update prepare install failed:' is detected.
         Closes connection immediately after seeing success message since device won't return to prompt.
         """
         cmd = f"update install {bundle_path}"
@@ -372,18 +380,22 @@ class BusyBarDevice:
 
             # Define error patterns that should cause immediate failure
             error_patterns = [
-                "Failed to load updater configuration: Manifest path invalid"
+                "Update prepare install failed:"
+            ]
+            ok_patterns = [
+                "Updater configuration valid",
+                "Update preparation successful"
             ]
 
             # Use the method with error pattern detection
-            res = tn.run_until_pattern(cmd, "Updater configuration valid", timeout=timeout, error_patterns=error_patterns)
+            res = tn.run_until_pattern(cmd, ok_patterns, timeout=timeout, error_patterns=error_patterns)
 
             if res.ok:
-                return True, res.stdout if res.stdout else "Update initiated successfully - 'Updater configuration valid' detected"
+                return True, res.stdout if res.stdout else "Update initiated successfully - 'Update preparation successful, rebooting...' detected"
             else:
                 # Check if the error was due to invalid manifest path
                 if "Failed to load updater configuration: Manifest path invalid" in res.stdout:
-                    return False, f"Update failed: Invalid manifest path. Output: {res.stdout}"
+                    return False, f"Update prepare install failed:. Output: {res.stdout}"
                 elif res.stdout:
                     return False, f"Update command failed or timed out. Output: {res.stdout}"
                 else:

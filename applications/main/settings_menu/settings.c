@@ -75,10 +75,13 @@ static bool settings_gui_input_callback(const InputEvent* event, void* context) 
 static SettingsApp* settings_alloc(void* app_arg) {
     SettingsApp* instance = malloc(sizeof(SettingsApp));
     instance->app_arg = app_arg;
+    FuriThread* thread = furi_thread_get_current();
 
     instance->event_loop = furi_event_loop_alloc();
     instance->input_queue = furi_message_queue_alloc(8, sizeof(InputEvent));
     instance->event_queue = furi_message_queue_alloc(8, sizeof(uint32_t));
+    furi_thread_set_signal_callback(thread, settings_thread_signal_callback, instance);
+
     instance->scene_manager =
         scene_manager_alloc(settings_scenes, COUNT_OF(settings_scenes), instance);
 
@@ -130,6 +133,8 @@ static SettingsApp* settings_alloc(void* app_arg) {
 }
 
 static void settings_free(SettingsApp* instance) {
+    FuriThread* thread = furi_thread_get_current();
+
     scene_manager_free(instance->scene_manager);
 
     with_gui(instance->gui, {
@@ -147,6 +152,8 @@ static void settings_free(SettingsApp* instance) {
 
     furi_event_loop_unsubscribe(instance->event_loop, instance->input_queue);
     furi_event_loop_unsubscribe(instance->event_loop, instance->event_queue);
+
+    furi_thread_set_signal_callback(thread, NULL, NULL);
     furi_message_queue_free(instance->input_queue);
     furi_message_queue_free(instance->event_queue);
     furi_event_loop_free(instance->event_loop);
@@ -157,11 +164,8 @@ static void settings_free(SettingsApp* instance) {
 int32_t settings_app(void* arg) {
     UNUSED(arg);
 
-    SettingsApp* instance = settings_alloc(arg);
-    FuriThread* thread = furi_thread_get_current();
-    furi_thread_set_signal_callback(thread, settings_thread_signal_callback, instance);
+    SettingsApp* instance = settings_alloc();
     furi_event_loop_run(instance->event_loop);
-    furi_thread_set_signal_callback(thread, NULL, NULL);
     settings_free(instance);
 
     return 0;

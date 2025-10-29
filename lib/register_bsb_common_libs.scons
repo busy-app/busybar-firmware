@@ -20,6 +20,7 @@ for libname in [
     "mbedtls",
     "icon_assets",
     "toolbox",
+    "formatters",
     "flipper_format",
     "flipper_application",
     "nanopb",

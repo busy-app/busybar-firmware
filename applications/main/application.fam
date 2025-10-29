@@ -4,7 +4,6 @@ App(
     apptype=FlipperAppType.METAPACKAGE,
     provides=[
         "canvas",
-        # "wifi_setup",
         "busy",
         "custom",
         "soft_off",
