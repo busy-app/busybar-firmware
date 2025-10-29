@@ -32,7 +32,7 @@ static void settings_scene_main_on_enter(void* context) {
         data->back_menu = menu_alloc(instance->back_scene_window);
 
         uint32_t passed_index = 0;
-        const char* passed_app_name = instance->app_arg;
+        const char* passed_app_name = instance->launching_subapp;
         SettingsAppDescriptor descriptor;
 
         for(size_t i = 0; i < FLIPPER_SETTINGS_APPS_COUNT; i++) {
@@ -69,6 +69,8 @@ static void settings_scene_main_on_enter(void* context) {
 
         widget_set_visible(nav_bar_get_base(instance->back_nav_bar), true);
     });
+
+    instance->launching_subapp = NULL;
 }
 
 static void settings_scene_main_on_exit(void* context) {

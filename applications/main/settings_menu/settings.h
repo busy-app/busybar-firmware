@@ -19,7 +19,7 @@ typedef enum {
 } SettingsCustomEvent;
 
 typedef struct SettingsApp {
-    void* app_arg;
+    const char* launching_subapp;
     FuriEventLoop* event_loop;
     FuriMessageQueue* input_queue;
     FuriMessageQueue* event_queue;

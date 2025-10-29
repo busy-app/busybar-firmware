@@ -74,7 +74,7 @@ static bool settings_gui_input_callback(const InputEvent* event, void* context) 
 
 static SettingsApp* settings_alloc(void* app_arg) {
     SettingsApp* instance = malloc(sizeof(SettingsApp));
-    instance->app_arg = app_arg;
+    instance->launching_subapp = (const char*)app_arg;
     FuriThread* thread = furi_thread_get_current();
 
     instance->event_loop = furi_event_loop_alloc();
@@ -126,7 +126,7 @@ static SettingsApp* settings_alloc(void* app_arg) {
         instance);
 
     scene_manager_next_scene(instance->scene_manager, SettingsAppSceneIdStart);
-    if(instance->app_arg)
+    if(instance->launching_subapp)
         scene_manager_next_scene(instance->scene_manager, SettingsAppSceneIdMain);
 
     return instance;
@@ -164,7 +164,7 @@ static void settings_free(SettingsApp* instance) {
 int32_t settings_app(void* arg) {
     UNUSED(arg);
 
-    SettingsApp* instance = settings_alloc();
+    SettingsApp* instance = settings_alloc(arg);
     furi_event_loop_run(instance->event_loop);
     settings_free(instance);
 
