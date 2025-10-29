@@ -7,10 +7,9 @@ void busy_timer_get_snapshot(BusyTimer* instance, BusyTimerSnapshot* snapshot) {
     *snapshot = instance->snapshot;
 }
 
-bool busy_timer_set_snapshot(BusyTimer* instance, const BusyTimerSnapshot* snapshot) {
+void busy_timer_set_snapshot(BusyTimer* instance, const BusyTimerSnapshot* snapshot) {
     furi_check(instance);
     furi_check(snapshot);
     // TODO: Proper implementation
     instance->snapshot = *snapshot;
-    return true;
 }
