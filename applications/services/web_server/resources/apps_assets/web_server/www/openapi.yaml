@@ -983,6 +983,19 @@ paths:
               schema:
                 $ref: "#/components/schemas/Error"
 
+  /api/ble/status:
+    get:
+      tags:
+        - BLE
+      description: Returns current BLE status
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BleStatusResponse"
+
   /api/time:
     get:
       tags:
@@ -1579,6 +1592,13 @@ components:
         expires_at:
           type: integer
           example: 1761060863
+
+    BleStatusResponse:
+      type: object
+      properties:
+        state:
+          type: string
+          example: connected
 
 tags:
   - name: System
