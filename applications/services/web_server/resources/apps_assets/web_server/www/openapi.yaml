@@ -936,7 +936,8 @@ paths:
     post:
       tags:
         - BLE
-      description: Enables BLE module
+      summary: Enable BLE
+      description: Enables BLE module and starts advertising
       parameters: []
       responses:
         "200":
@@ -950,7 +951,8 @@ paths:
     post:
       tags:
         - BLE
-      description: Disables BLE module
+      summary: Disable BLE
+      description: Stop advertising
       parameters: []
       responses:
         "200":
@@ -959,6 +961,40 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/SuccessResponse"
+  
+  /api/ble/pairing:
+    delete:
+      tags:
+        - BLE
+      summary: Remove pairing
+      description: Remove pairing with previous device
+      parameters: []
+      responses:
+        "200":
+          description: Pairing removed, now device is discoverable
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse"
+        "503":
+          description: Failed to remove, due to BLE is not initialized, or pairing was already removed before
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /api/ble/status:
+    get:
+      tags:
+        - BLE
+      description: Returns current BLE status
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BleStatusResponse"
 
   /api/time:
     get:
@@ -1556,6 +1592,13 @@ components:
         expires_at:
           type: integer
           example: 1761060863
+
+    BleStatusResponse:
+      type: object
+      properties:
+        state:
+          type: string
+          example: connected
 
 tags:
   - name: System

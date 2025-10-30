@@ -93,6 +93,21 @@ static bool ble_command_get_state_response(BleIntercomFrameGeneric* frame, void*
     return true;
 }
 
+static bool ble_command_forget_pairing_request(BleIntercomFrameGeneric* frame, void* context) {
+    BLE_LOG_D("BleCommandForgetPairing request");
+    frame->header.command = BleCommandForgetPairing;
+    return ble_command_request_process(frame, context);
+}
+
+static bool ble_command_forget_pairing_response(BleIntercomFrameGeneric* frame, void* context) {
+    BLE_LOG_D("BleCommandForgetPairing response");
+    Ble* instance = context;
+
+    instance->current_message->result = frame->data[0];
+    api_lock_unlock(instance->current_message->lock);
+    return true;
+}
+
 const BleCommandItem ble_commands[BleCommandCount] = {
     [BleCommandUnknown] =
         {
@@ -118,5 +133,10 @@ const BleCommandItem ble_commands[BleCommandCount] = {
         {
             .request = ble_command_get_state_request,
             .response = ble_command_get_state_response,
+        },
+    [BleCommandForgetPairing] =
+        {
+            .request = ble_command_forget_pairing_request,
+            .response = ble_command_forget_pairing_response,
         },
 };

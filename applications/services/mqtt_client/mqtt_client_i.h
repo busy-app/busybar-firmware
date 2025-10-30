@@ -65,6 +65,7 @@ typedef struct {
 
 void mqtt_topics_subscribe(MqttClient* mqtt);
 void mqtt_topics_on_message(MqttClient* mqtt, FuriString* topic_str, struct mg_mqtt_message* msg);
+void mqtt_topics_on_close(MqttClient* mqtt);
 
 void mqtt_http_api_on_message(MqttClient* mqtt, FuriString* topic_str, struct mg_mqtt_message* msg);
 
@@ -72,8 +73,7 @@ void mqtt_screen_streaming_on_message(
     MqttClient* mqtt,
     FuriString* topic_str,
     struct mg_mqtt_message* msg);
-void mqtt_api_subscribe(MqttClient* mqtt);
-void mqtt_api_on_message(MqttClient* mqtt, FuriString* topic_str, struct mg_mqtt_message* msg);
+void mqtt_screen_streaming_on_close(MqttClient* mqtt);
 
 void mqtt_tls_init(struct mg_connection* conn, const struct mg_tls_opts* opts);
 void mqtt_tls_free_ca(struct mg_connection* conn);
