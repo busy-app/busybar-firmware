@@ -1,5 +1,6 @@
 #include "cli_command_factory_reset.h"
 #include "power/power_service/power.h"
+#include "ble/ble.h"
 
 #include <furi_hal_nvm.h>
 #include <storage/storage.h>
@@ -19,8 +20,10 @@ static void cli_command_step_format_emmc() {
 }
 
 static void cli_command_step_reset_pairing() {
-    // printf("Reset WiFi/BLE pairing...\r\n");
-    /// TODO: implement when pairing will be present
+    printf("Reset BLE pairing...\r\n");
+    Ble* ble = furi_record_open(RECORD_BLE);
+    ble_forget(ble);
+    furi_record_close(RECORD_BLE);
 }
 
 static void cli_command_step_wifi_ble_restore_default_config() {
