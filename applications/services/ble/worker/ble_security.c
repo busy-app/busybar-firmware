@@ -45,11 +45,15 @@ static void ble_sercurity_format_rpa_data(
     ble_security_format_item(
         output, "\r\nIdentity addr: ", security->Identity_addr, RSI_DEV_ADDR_LEN);
 
-    ble_security_format_item(output, "\r\nLocal IRK: ", security->local_irk, 16);
-    ble_security_format_item(output, "\r\nRemote IRK: ", security->remote_irk, 16);
+    ble_security_format_item(
+        output, "\r\nLocal IRK: ", security->local_irk, sizeof(security->local_irk));
+    ble_security_format_item(
+        output, "\r\nRemote IRK: ", security->remote_irk, sizeof(security->remote_irk));
 
-    ble_security_format_item(output, "\r\nRemote Rand: ", security->remote_rand, 16);
-    ble_security_format_item(output, "\r\nRemote LT: ", security->remote_ltk, 16);
+    ble_security_format_item(
+        output, "\r\nRemote Rand: ", security->remote_rand, sizeof(security->remote_rand));
+    ble_security_format_item(
+        output, "\r\nRemote LT: ", security->remote_ltk, sizeof(security->remote_ltk));
 }
 
 static void ble_security_format_encryption_data(
@@ -66,10 +70,12 @@ static void ble_security_format_encryption_data(
         encryption->dev_addr_type);
 
     ble_security_format_item(output, "\r\nDev addr: ", encryption->dev_addr, RSI_DEV_ADDR_LEN);
-    ble_security_format_item(output, "\r\nLocal LTK: ", encryption->localltk, 16);
+    ble_security_format_item(
+        output, "\r\nLocal LTK: ", encryption->localltk, sizeof(encryption->localltk));
 
     furi_string_cat_printf(output, "\r\nLocal EDIV: %04X", encryption->localediv);
-    ble_security_format_item(output, "\r\nLocal Rand: ", encryption->localrand, 8);
+    ble_security_format_item(
+        output, "\r\nLocal Rand: ", encryption->localrand, sizeof(encryption->localrand));
 }
 
 static void ble_security_log_keys(const BleSecurityData* security) {
@@ -185,7 +191,7 @@ static bool ble_security_rpa_init(BleSecurityData* security) {
 
     bool result = false;
     do {
-        if(!ble_scurity_key_is_present(rpa_keys->local_irk, 16)) {
+        if(!ble_security_key_is_present(rpa_keys->local_irk, sizeof(rpa_keys->local_irk))) {
             BLE_LOG_W("IRK not present");
             break;
         }
