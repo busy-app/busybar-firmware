@@ -100,7 +100,6 @@ static bool ble_command_forget_pairing_request(BleIntercomFrameGeneric* frame, v
 }
 
 static bool ble_command_forget_pairing_response(BleIntercomFrameGeneric* frame, void* context) {
-    UNUSED(frame);
     BLE_LOG_D("BleCommandForgetPairing response");
     Ble* instance = context;
 

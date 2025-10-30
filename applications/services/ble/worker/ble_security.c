@@ -14,9 +14,9 @@ struct BleSecurityData {
 #define BLE_SECURITY_RPA_DISABLE        0
 #define BLE_SECURITY_RPA_UPDATE_TIMEOUT (900U) //15 min
 
-#define BLE_SCURITY_LOG_KEYS
+#define BLE_SECURITY_LOG_KEYS
 
-#ifdef BLE_SCURITY_LOG_KEYS
+#ifdef BLE_SECURITY_LOG_KEYS
 static void ble_security_format_array(FuriString* buf, const uint8_t* data, size_t data_size) {
     for(uint8_t i = 0; i < data_size; i++) {
         furi_string_cat_printf(buf, "%02X ", data[i]);
@@ -90,7 +90,7 @@ static void ble_security_log_keys(const BleSecurityData* security) {
 }
 #endif
 
-static bool ble_scurity_key_is_present(uint8_t* key, size_t key_size) {
+static bool ble_security_key_is_present(uint8_t* key, size_t key_size) {
     bool result = false;
     for(size_t i = 0; i < key_size; i++) {
         if(key[i] == 0) continue;
@@ -151,7 +151,7 @@ static bool ble_security_load_data(BleSecurityData* security) {
         }
 
         result = true;
-#ifdef BLE_SCURITY_LOG_KEYS
+#ifdef BLE_SECURITY_LOG_KEYS
         ble_security_log_keys(security);
 #endif
     } while(false);
@@ -166,7 +166,7 @@ bool ble_security_save_data(const BleSecurityData* const security) {
     bool result = nvm_write(nvm, NvmKeyBlePairingData, security, sizeof(BleSecurityData));
     furi_record_close(RECORD_NVM);
 
-#ifdef BLE_SCURITY_LOG_KEYS
+#ifdef BLE_SECURITY_LOG_KEYS
     ble_security_log_keys(security);
 #endif
     return result;
