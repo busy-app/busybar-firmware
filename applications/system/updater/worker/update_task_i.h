@@ -16,10 +16,9 @@ typedef struct UpdateTask {
     UpdaterSessionConfig session_config;
     FuriThread* thread;
     Storage* storage;
-    FuriString* update_dir_path;
     File* file;
-    updateProgressCb status_change_cb;
-    void* status_change_cb_state;
+    UpdateProgressCallback status_change_callback;
+    void* status_change_callback_context;
 } UpdateTask;
 
 void update_task_set_progress(UpdateTask* update_task, UpdateTaskStage stage, uint8_t progress);
