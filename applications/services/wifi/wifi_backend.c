@@ -10,9 +10,34 @@
 
 #define NUM_CONNECTION_ATTEMPTS (3)
 
+#define STATE_CODE_UPPER_MASK 0xF0
+#define STATE_CODE_LOWER_MASK 0x0F
+
+#define STATE_CODE_ASSOC   0x80
+#define STATE_CODE_DEASSOC 0x90
+
 typedef enum {
-    WifiEventRequest = 1UL << 0,
-    WifiEventScanComplete = 1UL << 1,
+    WifiEventTypeRequest,
+    WifiEventTypeScan,
+    WifiEventTypeModuleStats,
+    WifiEventTypeMax,
+} WifiEventType;
+
+typedef struct {
+    sl_status_t status;
+} WifiScanEvent;
+
+typedef struct {
+    uint8_t state_code;
+    uint8_t reason_code;
+} WifiModuleStatsEvent;
+
+typedef struct {
+    WifiEventType type;
+    union {
+        WifiScanEvent scan;
+        WifiModuleStatsEvent module_stats;
+    };
 } WifiEvent;
 
 typedef void (*WifiRequestHandler)(Wifi* instance);
@@ -205,7 +230,14 @@ static void wifi_intercom_rx_callback(const void* data, size_t data_size, void* 
 
     Wifi* instance = context;
     memcpy(&instance->request, data, data_size);
-    furi_event_loop_set_custom_event(instance->event_loop, WifiEventRequest);
+
+    const WifiEvent wifi_event = {
+        .type = WifiEventTypeRequest,
+    };
+
+    furi_check(
+        furi_message_queue_put(instance->event_queue, &wifi_event, FuriWaitForever) ==
+        FuriStatusOk);
 }
 
 static void wifi_net_intercom_rx_callback(const void* data, size_t data_size, void* context) {
@@ -238,36 +270,58 @@ static void wifi_prepare_scan_response(WifiResponse* response) {
             result_out->security_mode = wifi_decode_security_mode(result_in->security_mode);
             result_out->rssi = result_in->rssi;
         }
-
-    } else {
-        response->status = wifi_decode_sl_status(status);
     }
 
+    response->status = wifi_decode_sl_status(status);
     response->scan_results.count = results_count;
 
     sli_wifi_flush_scan_results_database();
     free(scan_results);
 }
 
-static void wifi_custom_event_callback(uint32_t events, void* context) {
+static void wifi_event_queue_callback(FuriEventLoopObject* object, void* context) {
     furi_assert(context);
 
     Wifi* instance = context;
+    furi_assert(object == instance->event_queue);
+
     WifiResponse* response = &instance->response;
 
-    if(events == WifiEventRequest) {
-        const WifiRequestType request_type = instance->request.type;
-        furi_check(request_type < WifiRequestTypeMax);
+    WifiEvent wifi_event;
+    while(furi_message_queue_get(instance->event_queue, &wifi_event, 0) == FuriStatusOk) {
+        const WifiEventType event_type = wifi_event.type;
 
-        response->type = request_type;
-        wifi_request_handlers[request_type](instance);
+        if(event_type == WifiEventTypeRequest) {
+            const WifiRequestType request_type = instance->request.type;
+            furi_check(request_type < WifiRequestTypeMax);
 
-    } else if(events == WifiEventScanComplete) {
-        wifi_prepare_scan_response(response);
-        wifi_send_response(instance);
+            response->type = request_type;
+            wifi_request_handlers[request_type](instance);
 
-    } else {
-        furi_crash("Multiple Wifi events");
+        } else if(event_type == WifiEventTypeScan) {
+            const WifiScanEvent* scan = &wifi_event.scan;
+            response->status = wifi_decode_sl_status(scan->status);
+
+            if(scan->status == SL_STATUS_OK) {
+                wifi_prepare_scan_response(response);
+            }
+
+            wifi_send_response(instance);
+
+        } else if(event_type == WifiEventTypeModuleStats) {
+            const WifiModuleStatsEvent* module_stats = &wifi_event.module_stats;
+            const uint8_t state_code = module_stats->state_code & STATE_CODE_UPPER_MASK;
+
+            // TODO: react to these codes
+            if(state_code == STATE_CODE_ASSOC) {
+                FURI_LOG_I(TAG, "Associated!");
+            } else if(state_code == STATE_CODE_DEASSOC) {
+                FURI_LOG_I(TAG, "DEassociated!");
+            }
+
+        } else {
+            furi_crash("Invalid WifiEventType");
+        }
     }
 }
 
@@ -280,20 +334,62 @@ static sl_status_t wifi_scan_callback(
 
     furi_assert(context);
     Wifi* instance = context;
-    WifiResponse* response = &instance->response;
 
-    sl_status_t ret, status;
+    sl_status_t ret = SL_STATUS_OK;
+    sl_status_t status = SL_STATUS_OK;
 
     if(event & SL_WIFI_EVENT_FAIL_INDICATION) {
+        event &= ~SL_WIFI_EVENT_FAIL_INDICATION;
         status = *((sl_status_t*)result);
         ret = SL_STATUS_FAIL;
-
-    } else {
-        ret = status = SL_STATUS_OK;
     }
 
-    response->status = wifi_decode_sl_status(status);
-    furi_event_loop_set_custom_event(instance->event_loop, WifiEventScanComplete);
+    if(event == SL_WIFI_SCAN_RESULT_EVENT) {
+        const WifiEvent wifi_event = {
+            .type = WifiEventTypeScan,
+            .scan = {
+                .status = wifi_decode_sl_status(status),
+            }};
+
+        furi_check(
+            furi_message_queue_put(instance->event_queue, &wifi_event, FuriWaitForever) ==
+            FuriStatusOk);
+    }
+
+    return ret;
+}
+
+static sl_status_t
+    wifi_stats_callback(sl_wifi_event_t event, void* data, uint32_t data_length, void* context) {
+    furi_assert(context);
+    Wifi* instance = context;
+
+    UNUSED(instance);
+
+    sl_status_t ret = SL_STATUS_OK;
+
+    if(event & SL_WIFI_EVENT_FAIL_INDICATION) {
+        ret = SL_STATUS_FAIL;
+
+    } else if(event == SL_WIFI_STATS_MODULE_STATE_EVENT) {
+        furi_assert(data);
+        furi_assert(data_length = sizeof(sl_wifi_module_state_stats_response_t));
+
+        const sl_wifi_module_state_stats_response_t* response = data;
+
+        const WifiEvent wifi_event = {
+            .type = WifiEventTypeModuleStats,
+            .module_stats =
+                {
+                    .state_code = response->state_code,
+                    .reason_code = response->reason_code,
+                },
+        };
+
+        furi_check(
+            furi_message_queue_put(instance->event_queue, &wifi_event, FuriWaitForever) ==
+            FuriStatusOk);
+    }
 
     return ret;
 }
@@ -310,6 +406,12 @@ static sl_status_t wifi_init_driver(Wifi* instance) {
 
         status = sl_wifi_set_scan_callback(wifi_scan_callback, instance);
 
+        if(status != SL_STATUS_OK) {
+            break;
+        }
+
+        status = sl_wifi_set_stats_callback(wifi_stats_callback, instance);
+
     } while(false);
 
     return status;
@@ -319,6 +421,7 @@ static Wifi* wifi_alloc(void) {
     Wifi* instance = malloc(sizeof(Wifi));
 
     instance->event_loop = furi_event_loop_alloc();
+    instance->event_queue = furi_message_queue_alloc(3, sizeof(WifiEvent));
     instance->event_pubsub = furi_pubsub_alloc();
     instance->intercom = furi_record_open(RECORD_INTERCOM);
     instance->tcpip_lock = furi_semaphore_alloc(1, 0);
@@ -326,8 +429,12 @@ static Wifi* wifi_alloc(void) {
 
     furi_record_open(RECORD_NETWORK);
 
-    furi_event_loop_set_custom_event_callback(
-        instance->event_loop, wifi_custom_event_callback, instance);
+    furi_event_loop_subscribe_message_queue(
+        instance->event_loop,
+        instance->event_queue,
+        FuriEventLoopEventIn,
+        wifi_event_queue_callback,
+        instance);
     intercom_set_rx_callback(
         instance->intercom, IntercomChannelWifi, wifi_intercom_rx_callback, instance);
     intercom_set_rx_callback(
