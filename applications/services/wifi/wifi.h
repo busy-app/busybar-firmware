@@ -2,9 +2,11 @@
  * @file wifi.h
  * @brief API for controlling WiFi networks.
  *
- * All of the below functions are synchronous (will block the calling thread until completion).
- * Additionally, the Wifi system only serves one thread at a time, so attempting to access it from
- * multiple threads will put them in a blocked state until the previous thread is done with it.
+ * Some functions are blocking (will block the calling thread until completion).
+ *
+ * Additionally, the Wifi system only serves one thread at a time,
+ * so attempting to access it from multiple threads will put them in a blocked state
+ * until the previous thread is done working with its blocking functions.
  */
 #pragma once
 
@@ -15,10 +17,25 @@ extern "C" {
 #endif
 
 /**
+ * @brief Get the state object that supports change notifications
+ *
+ * The received FuriState object will have an underlying type of WifiInfo.
+ * Use furi_state_subscribe() to get notifications about changes in the current state.
+ *
+ * This function never blocks.
+ *
+ * @param[in,out] instance pointer to the Wifi instance
+ * @returns pointer to the FuriState object
+ */
+FuriState* wifi_get_state(Wifi* instance);
+
+/**
  * @brief Scan for available Wifi access points nearby.
  *
  * The array pointed to by the results parameter MUST be allocated by the user code.
  * Naturally, it is also responsible for freeing the array when it is no longer needed.
+ *
+ * This function will block the calling thread until completion.
  *
  * @note Scanning is only possible when the Wifi is disconnected from a network.
  *
@@ -37,6 +54,8 @@ WifiStatus wifi_scan(
 /**
  * @brief Connect to an access point using the specified configuration.
  *
+ * This function will block the calling thread until completion.
+ *
  * @param[in,out] instance pointer to the Wifi instance
  * @param[in] credentials pointer to the structure containing the connection credentials
  * @param[in] ip_config pointer to the structure containing the connection configuration
@@ -48,6 +67,8 @@ WifiStatus
 /**
  * @brief Disconnect from the access point.
  *
+ * This function will block the calling thread until completion.
+ *
  * @param[in,out] instance pointer to the Wifi instance
  * @returns WifiStatusOk on success, error code otherwise
  */
@@ -56,20 +77,13 @@ WifiStatus wifi_disconnect(Wifi* instance);
 /**
  * @brief Get the information about current state of the Wifi system.
  *
+ * This function never blocks.
+ *
  * @param[in,out] instance pointer to the Wifi instance
  * @param[out] info pointer to the structure to contain the information
  * @returns WifiStatusOk on success, error code otherwise
  */
 WifiStatus wifi_get_info(Wifi* instance, WifiInfo* info);
-
-/**
- * @brief Get the hardware address of the Wifi physical interface.
- *
- * @param[in,out] instance pointer to the Wifi instance
- * @param[out] info pointer to the structure to contain the hardware address
- * @returns WifiStatusOk on success, error code otherwise
- */
-WifiStatus wifi_get_hw_address(Wifi* instance, WifiHardwareAddress* hw_address);
 
 #ifdef __cplusplus
 }

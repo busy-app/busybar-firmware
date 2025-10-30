@@ -27,8 +27,6 @@
 #include <platform/internal/GenericConnectivityManagerImpl_NoThread.h>
 #include <platform/internal/GenericConnectivityManagerImpl_WiFi.h>
 
-#include <wifi/wifi.h>
-
 namespace chip {
 namespace DeviceLayer {
 

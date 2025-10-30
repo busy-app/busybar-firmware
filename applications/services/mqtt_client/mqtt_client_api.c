@@ -60,6 +60,20 @@ void mqtt_client_get_session_id(MqttClient* mqtt, FuriString* id) {
     api_lock_wait_unlock_and_free(msg.lock);
 }
 
+void mqtt_client_get_session_email(MqttClient* mqtt, FuriString* id) {
+    furi_assert(mqtt);
+    furi_assert(id);
+
+    MqttClientMessage msg = {
+        .type = MqttClientMessageGetSessionEmail,
+        .str_param = id,
+        .lock = api_lock_alloc_locked(),
+    };
+
+    mg_wakeup(&mqtt->mgr, mqtt->wakeup_conn_id, &msg, sizeof(MqttClientMessage));
+    api_lock_wait_unlock_and_free(msg.lock);
+}
+
 FuriPubSub* mqtt_client_get_pubsub(MqttClient* mqtt) {
     furi_assert(mqtt);
     return mqtt->event_pubsub;
