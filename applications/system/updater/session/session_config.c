@@ -2,9 +2,7 @@
 #include "nwp_session.h"
 
 #include <toolbox/json_helper.h>
-#include <toolbox/path.h>
-
-#define SESSION_CONFIG_FILE "session.json"
+#include <toolbox/update_lib/common_vals.h>
 
 void updater_session_config_compose(const UpdateManifest* manifest, UpdaterSessionConfig* config) {
     const FuriString* u5_firmware_path =
@@ -29,15 +27,11 @@ void updater_session_config_compose(const UpdateManifest* manifest, UpdaterSessi
     };
 }
 
-bool updater_session_config_load(const char* dir_path, UpdaterSessionConfig* config) {
-    furi_assert(dir_path);
+bool updater_session_config_load(UpdaterSessionConfig* config) {
     furi_assert(config);
 
-    FuriString* file_path = furi_string_alloc_set_str(dir_path);
-    path_append(file_path, SESSION_CONFIG_FILE);
-
     JsonConfig* json = json_config_alloc();
-    JsonConfigStatus open_status = json_config_open(json, furi_string_get_cstr(file_path));
+    JsonConfigStatus open_status = json_config_open(json, EXT_PATH(SESSION_CONFIG_FILE_NAME));
 
     if(open_status == JsonConfigStatusOk || open_status == JsonConfigStatusMissing) {
         json_config_read_bool(
@@ -57,21 +51,16 @@ bool updater_session_config_load(const char* dir_path, UpdaterSessionConfig* con
         };
     }
 
-    furi_string_free(file_path);
     JsonConfigStatus free_status = json_config_free(json);
     return (open_status == JsonConfigStatusOk || open_status == JsonConfigStatusMissing) &&
            free_status == JsonConfigStatusOk;
 }
 
-bool updater_session_config_save(const char* dir_path, const UpdaterSessionConfig* config) {
-    furi_assert(dir_path);
+bool updater_session_config_save(const UpdaterSessionConfig* config) {
     furi_assert(config);
 
-    FuriString* file_path = furi_string_alloc_set_str(dir_path);
-    path_append(file_path, SESSION_CONFIG_FILE);
-
     JsonConfig* json = json_config_alloc();
-    JsonConfigStatus open_status = json_config_open(json, furi_string_get_cstr(file_path));
+    JsonConfigStatus open_status = json_config_open(json, EXT_PATH(SESSION_CONFIG_FILE_NAME));
 
     if(open_status == JsonConfigStatusOk || open_status == JsonConfigStatusMissing) {
         json_config_write_bool(json, "do_update_u5_firmware", config->do_update_u5_firmware);
@@ -81,22 +70,15 @@ bool updater_session_config_save(const char* dir_path, const UpdaterSessionConfi
         json_config_write_bool(json, "do_update_resources", config->do_update_resources);
     }
 
-    furi_string_free(file_path);
     JsonConfigStatus free_status = json_config_free(json);
     return (open_status == JsonConfigStatusOk || open_status == JsonConfigStatusMissing) &&
            free_status == JsonConfigStatusOk;
 }
 
-bool updater_session_config_delete(const char* dir_path) {
-    furi_assert(dir_path);
-
-    FuriString* file_path = furi_string_alloc_set_str(dir_path);
-    path_append(file_path, SESSION_CONFIG_FILE);
-
+bool updater_session_config_delete(void) {
     Storage* storage = furi_record_open(RECORD_STORAGE);
-    FS_Error result = storage_common_remove(storage, furi_string_get_cstr(file_path));
+    FS_Error result = storage_common_remove(storage, EXT_PATH(SESSION_CONFIG_FILE_NAME));
     furi_record_close(RECORD_STORAGE);
 
-    furi_string_free(file_path);
     return (result == FSE_OK || result == FSE_NOT_EXIST);
 }

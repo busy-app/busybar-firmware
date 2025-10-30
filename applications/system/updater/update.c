@@ -140,7 +140,6 @@ UpdaterStatus updater_prepare_install(const char* manifest_path) {
     UpdaterStatus status = UpdaterStatusErrorUnknown;
     Storage* storage = furi_record_open(RECORD_STORAGE);
     UpdateConfig* config = update_config_alloc();
-    FuriString* staging_path = furi_string_alloc();
 
     do {
         if(!does_battery_state_allow_update()) {
@@ -175,12 +174,10 @@ UpdaterStatus updater_prepare_install(const char* manifest_path) {
 
         FURI_LOG_D(TAG, "Updater configuration valid");
 
-        path_extract_dirname(manifest_path, staging_path);
-
         UpdaterSessionConfig session_config;
         const UpdateManifest* manifest = update_config_get_manifest(config);
         updater_session_config_compose(manifest, &session_config);
-        if(!updater_session_config_save(furi_string_get_cstr(staging_path), &session_config)) {
+        if(!updater_session_config_save(&session_config)) {
             FURI_LOG_E(TAG, "Failed to save session config");
             status = UpdaterStatusErrorSaveSessionConfig;
             break;
@@ -189,7 +186,7 @@ UpdaterStatus updater_prepare_install(const char* manifest_path) {
         if(!update_config_write_pointer_file(storage, manifest_path)) {
             FURI_LOG_E(TAG, "Failed to write manifest path to pointer file");
 
-            updater_session_config_delete(furi_string_get_cstr(staging_path));
+            updater_session_config_delete();
 
             status = UpdaterStatusErrorWritePointerFile;
             break;
@@ -200,7 +197,6 @@ UpdaterStatus updater_prepare_install(const char* manifest_path) {
         status = UpdaterStatusSuccess;
     } while(false);
 
-    furi_string_free(staging_path);
     update_config_free(config);
     furi_record_close(RECORD_STORAGE);
 
@@ -220,15 +216,7 @@ void updater_cancel_prepared_install(void) {
 
     Storage* storage = furi_record_open(RECORD_STORAGE);
 
-    FuriString* manifest_path = furi_string_alloc();
-    if(update_config_read_pointer_file(storage, manifest_path)) {
-        FuriString* staging_path = furi_string_alloc();
-        path_extract_dirname(furi_string_get_cstr(manifest_path), staging_path);
-        updater_session_config_delete(furi_string_get_cstr(staging_path));
-        furi_string_free(staging_path);
-    }
-
-    furi_string_free(manifest_path);
+    updater_session_config_delete();
 
     storage_common_remove(storage, EXT_PATH(UPDATE_POINTER_FILE_NAME));
 
