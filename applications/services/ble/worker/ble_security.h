@@ -83,7 +83,7 @@ bool ble_security_save_data(const BleSecurityData* const security);
 bool ble_security_delete_data(BleSecurityData* security);
 
 /**
- * @brief Enables RPA logic when pairing is finished and when startup. 
+ * @brief Enables RPA logic when pairing is finished and on startup. 
  *
  * @param security security instance
  * 
