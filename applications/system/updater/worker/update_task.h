@@ -36,7 +36,7 @@ typedef enum {
     UpdateTaskStageMAX
 } UpdateTaskStage;
 
-inline bool update_stage_is_error(const UpdateTaskStage stage) {
+static inline bool update_stage_is_error(const UpdateTaskStage stage) {
     return stage >= UpdateTaskStageError;
 }
 
@@ -60,14 +60,20 @@ typedef struct {
 
 typedef struct UpdateTask UpdateTask;
 
-typedef void (
-    *updateProgressCb)(const char* status, const uint8_t stage_pct, bool failed, void* state);
+typedef void (*UpdateProgressCallback)(
+    const char* status,
+    UpdateTaskStage stage,
+    uint8_t percent,
+    void* context);
 
 UpdateTask* update_task_alloc(void);
 
 void update_task_free(UpdateTask* update_task);
 
-void update_task_set_progress_cb(UpdateTask* update_task, updateProgressCb cb, void* state);
+void update_task_set_progress_callback(
+    UpdateTask* update_task,
+    UpdateProgressCallback callback,
+    void* context);
 
 void update_task_start(UpdateTask* update_task);
 

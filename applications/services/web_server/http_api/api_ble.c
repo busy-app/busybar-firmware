@@ -88,6 +88,30 @@ static bool api_ble_get_state_callback(
     return true;
 }
 
+static bool api_ble_delete_pairing_callback(
+    FuriString* path,
+    struct mg_connection* conn,
+    struct mg_http_message* msg,
+    void* ctx) {
+    UNUSED(ctx);
+    UNUSED(msg);
+
+    if(!IS_HTTP_ENDPOINT(path)) return false;
+
+    Ble* ble = furi_record_open(RECORD_BLE);
+    bool result = ble_forget(ble);
+    furi_record_close(RECORD_BLE);
+
+    int code = 503;
+    const char* message = "Unable to remove pairing";
+    if(result)
+        MG_REPLY_OK(conn);
+    else
+        MG_REPLY_ERROR(conn, code, message);
+
+    return true;
+}
+
 static const HttpHandler handlers_ble[] = {
     {
         .uri = "enable",
@@ -106,6 +130,12 @@ static const HttpHandler handlers_ble[] = {
         .method = "GET",
         .type = HttpHandlerCustom,
         .on_request = api_ble_get_state_callback,
+    },
+    {
+        .uri = "pairing",
+        .method = "DELETE",
+        .type = HttpHandlerCustom,
+        .on_request = api_ble_delete_pairing_callback,
     },
 };
 
