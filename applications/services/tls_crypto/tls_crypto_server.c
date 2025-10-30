@@ -102,7 +102,7 @@ int32_t tls_crypto_server_init(void* arg) {
 
     instance->intercom = furi_record_open(RECORD_INTERCOM);
     instance->intercom_ch = intercom_channel_open(
-        instance->intercom, IntercomChannelTlsCrypto, tls_crypto_server_rx_callback, instance);
+        instance->intercom, IntercomChannelIdTlsCrypto, tls_crypto_server_rx_callback, instance);
 
     FURI_LOG_I(TAG, "Start");
 

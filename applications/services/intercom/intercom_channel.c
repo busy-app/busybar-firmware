@@ -31,11 +31,18 @@ static const char* const intercom_channel_names[IntercomChannelIdMax] = {
     [IntercomChannelIdStatusLights] = "StatusLights",
     [IntercomChannelIdCli] = "Cli",
     [IntercomChannelIdBle] = "Ble",
+    [IntercomChannelIdTlsCrypto] = "TlsCrypto",
     [IntercomChannelIdCryptoBackup] = "CryptoBackup",
     [IntercomChannelIdMatter] = "Matter",
     [IntercomChannelIdDebug] = "Debug",
     [IntercomChannelIdMeta] = "Meta",
 };
+
+static const char* intercom_channel_id_name(IntercomChannelId channel_id) {
+    furi_check(channel_id < IntercomChannelIdMax);
+    const char* name = intercom_channel_names[channel_id];
+    return name ? name : "Unknown";
+}
 
 static FURI_ALWAYS_INLINE IntercomChannelId intercom_channel_id(IntercomChannel* channel) {
     furi_assert(channel);
@@ -52,7 +59,7 @@ static void intercom_meta_channel_ready(Intercom* intercom, const IntercomMetaFr
     furi_check(channel_id < IntercomChannelIdMax);
     furi_check(channel_id != IntercomChannelIdMeta);
 
-    FURI_LOG_D(TAG, "OTHER side ready: %s", intercom_channel_names[channel_id]);
+    FURI_LOG_D(TAG, "OTHER side ready: %s", intercom_channel_id_name(channel_id));
 
     const IntercomChannel* channel = &intercom->handles[channel_id];
     furi_check(
@@ -123,7 +130,7 @@ void intercom_channel_send_ready(IntercomChannel* channel) {
     tx_frame->check = intercom_frame_get_checksum(tx_frame);
     intercom_do_tx(channel->intercom);
 
-    FURI_LOG_D(TAG, "THIS side ready: %s", intercom_channel_names[channel_id]);
+    FURI_LOG_D(TAG, "THIS side ready: %s", intercom_channel_id_name(channel_id));
 }
 
 bool intercom_channel_await_peer_ready(IntercomChannel* channel, FuriWait timeout) {

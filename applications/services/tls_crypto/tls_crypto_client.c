@@ -32,7 +32,7 @@ static TlsCryptoClient* tls_crypto_client_alloc(void) {
 
     client->intercom = furi_record_open(RECORD_INTERCOM);
     client->intercom_ch = intercom_channel_open(
-        client->intercom, IntercomChannelTlsCrypto, tls_crypto_client_rx_callback, client);
+        client->intercom, IntercomChannelIdTlsCrypto, tls_crypto_client_rx_callback, client);
 
     client->transaction = furi_mutex_alloc(FuriMutexTypeNormal);
 
