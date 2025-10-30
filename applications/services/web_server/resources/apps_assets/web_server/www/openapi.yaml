@@ -971,7 +971,7 @@ paths:
       parameters: []
       responses:
         "200":
-          description: Pairing removed, now device is visible
+          description: Pairing removed, now device is discoverable
           content:
             application/json:
               schema:
