@@ -61,26 +61,30 @@ void cli_command_factory_reset(PipeSide* pipe, FuriString* args, void* context) 
     UNUSED(args);
     UNUSED(context);
 
-    printf("Warning! This will wipe all the data from the device! Are you sure? y/n\r\n");
+    if(updater_is_install_allowed()) {
+        printf("Warning! This will wipe all the data from the device! Are you sure? y/n\r\n");
 
-    for(char response; pipe_receive(pipe, &response, sizeof(response)) == sizeof(response);) {
-        if(response == 'y' || response == 'Y') {
-            printf("Performing factory reset...\r\n");
+        for(char response; pipe_receive(pipe, &response, sizeof(response)) == sizeof(response);) {
+            if(response == 'y' || response == 'Y') {
+                printf("Performing factory reset...\r\n");
 
-            format_emmc_ext();
-            wifi_ble_reset_pairing();
-            wifi_ble_restore_default_config();
+                format_emmc_ext();
+                wifi_ble_reset_pairing();
+                wifi_ble_restore_default_config();
 
 #ifndef FURI_DEBUG
-            furi_hal_nvm_reset();
+                furi_hal_nvm_reset();
 #endif
 
-            reset_firmware_to_backup();
+                reset_firmware_to_backup();
 
-            break;
-        } else if(response == 'n' || response == 'N') {
-            printf("\r\nCancelled.");
-            break;
+                break;
+            } else if(response == 'n' || response == 'N') {
+                printf("\r\nCancelled.");
+                break;
+            }
         }
+    } else {
+        printf("Factory reset is not allowed due to low battery. Please charge the device.\r\n");
     }
 }
