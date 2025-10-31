@@ -16,20 +16,23 @@
 #define STATE_CODE_ASSOCIATED   0x80
 #define STATE_CODE_DEASSOCIATED 0x90
 
-#define REASON_CODE_NO_RESPONSE 0x01
-#define REASON_CODE_DEAUTH_USER 0x06
-#define REASON_CODE_BEACON_LOSS 0x10
+#define REASON_CODE_NO_RESPONSE  0x01
+#define REASON_CODE_ASSOC_DENIAL 0x02
+#define REASON_CODE_AP_NOT_FOUND 0x03
+#define REASON_CODE_DEAUTH_USER  0x06
+#define REASON_CODE_KEY_FAILURE  0x08
+#define REASON_CODE_BEACON_LOSS  0x10
 
 typedef enum {
     WifiEventTypeRequest,
-    WifiEventTypeScan,
+    WifiEventTypeScanFinished,
     WifiEventTypeModuleStats,
     WifiEventTypeMax,
 } WifiEventType;
 
 typedef struct {
     sl_status_t status;
-} WifiScanEvent;
+} WifiScanFinishedEvent;
 
 typedef struct {
     uint8_t state_code;
@@ -39,7 +42,7 @@ typedef struct {
 typedef struct {
     WifiEventType type;
     union {
-        WifiScanEvent scan;
+        WifiScanFinishedEvent scan_finished;
         WifiModuleStatsEvent module_stats;
     };
 } WifiEvent;
@@ -283,6 +286,69 @@ static void wifi_prepare_scan_response(WifiResponse* response) {
     free(scan_results);
 }
 
+static void wifi_scan_finished_event_handler(Wifi* instance, const WifiScanFinishedEvent* event) {
+    WifiResponse* response = &instance->response;
+    response->status = wifi_decode_sl_status(event->status);
+
+    if(event->status == SL_STATUS_OK) {
+        wifi_prepare_scan_response(response);
+    }
+
+    wifi_send_response(instance);
+}
+
+static void wifi_module_stats_event_handler(Wifi* instance, const WifiModuleStatsEvent* event) {
+    const uint8_t state_code = event->state_code & STATE_CODE_UPPER_MASK;
+    const uint8_t reason_code = event->reason_code & REASON_CODE_MSB_MASK;
+
+    if(state_code == STATE_CODE_ASSOCIATED) {
+        if(instance->state == WifiBackendStateReconnecting) {
+            wifi_set_state(instance, WifiBackendStateConnected);
+            // TODO: set interface up?
+
+        } else if(instance->state == WifiBackendStateDisconnected) {
+            FURI_LOG_W(TAG, "Association while disconnected");
+        }
+
+    } else if(state_code == STATE_CODE_DEASSOCIATED) {
+        if(reason_code == REASON_CODE_DEAUTH_USER) {
+            if(instance->state != WifiBackendStateDisconnected) {
+                FURI_LOG_W(TAG, "Deassociation by user request while disconnected");
+            }
+
+        } else if(reason_code == REASON_CODE_NO_RESPONSE || reason_code == REASON_CODE_BEACON_LOSS) {
+            if(instance->state == WifiBackendStateConnected) {
+                wifi_set_state(instance, WifiBackendStateReconnecting);
+                // TODO: set interface down?
+            }
+
+            FURI_LOG_D(TAG, "No response from AP, current state: %d", instance->state);
+
+        } else if(reason_code == REASON_CODE_AP_NOT_FOUND) {
+            if(instance->state == WifiBackendStateReconnecting) {
+                wifi_set_state(instance, WifiBackendStateDisconnected);
+            }
+
+            FURI_LOG_D(TAG, "AP not found, current state: %d", instance->state);
+
+        } else if(reason_code == REASON_CODE_ASSOC_DENIAL || reason_code == REASON_CODE_KEY_FAILURE) {
+            if(instance->state == WifiBackendStateReconnecting) {
+                FURI_LOG_W(TAG, "AP credentials were changed, disconnecting");
+                wifi_set_state(instance, WifiBackendStateDisconnected);
+
+            } else {
+                FURI_LOG_T(TAG, "Authentication error");
+            }
+
+        } else {
+            FURI_LOG_E(TAG, "BUG: Unhandled reason code 0x%hhX, please report", reason_code);
+        }
+
+    } else {
+        FURI_LOG_T(TAG, "Module state: 0x%hhX, reason: 0x%hhX", state_code, reason_code);
+    }
+}
+
 static void wifi_event_queue_callback(FuriEventLoopObject* object, void* context) {
     furi_assert(context);
 
@@ -302,40 +368,11 @@ static void wifi_event_queue_callback(FuriEventLoopObject* object, void* context
             response->type = request_type;
             wifi_request_handlers[request_type](instance);
 
-        } else if(event_type == WifiEventTypeScan) {
-            const WifiScanEvent* scan = &wifi_event.scan;
-            response->status = wifi_decode_sl_status(scan->status);
-
-            if(scan->status == SL_STATUS_OK) {
-                wifi_prepare_scan_response(response);
-            }
-
-            wifi_send_response(instance);
+        } else if(event_type == WifiEventTypeScanFinished) {
+            wifi_scan_finished_event_handler(instance, &wifi_event.scan_finished);
 
         } else if(event_type == WifiEventTypeModuleStats) {
-            const WifiModuleStatsEvent* module_stats = &wifi_event.module_stats;
-            const uint8_t state_code = module_stats->state_code & STATE_CODE_UPPER_MASK;
-            const uint8_t reason_code = module_stats->reason_code & REASON_CODE_MSB_MASK;
-
-            // TODO: react to these codes
-            if(state_code == STATE_CODE_ASSOCIATED) {
-                FURI_LOG_I(
-                    TAG,
-                    "Associated, current state: %d, reason: 0x%hhX",
-                    instance->state,
-                    reason_code);
-            } else if(state_code == STATE_CODE_DEASSOCIATED) {
-                if(reason_code == REASON_CODE_DEAUTH_USER) {
-                    FURI_LOG_I(
-                        TAG, "DEassociated by user request, current state: %d", instance->state);
-                } else {
-                    FURI_LOG_I(
-                        TAG,
-                        "DEassociated, current state: %d, reason: 0x%hhX",
-                        instance->state,
-                        reason_code);
-                }
-            }
+            wifi_module_stats_event_handler(instance, &wifi_event.module_stats);
 
         } else {
             furi_crash("Invalid WifiEventType");
@@ -364,8 +401,8 @@ static sl_status_t wifi_scan_callback(
 
     if(event == SL_WIFI_SCAN_RESULT_EVENT) {
         const WifiEvent wifi_event = {
-            .type = WifiEventTypeScan,
-            .scan = {
+            .type = WifiEventTypeScanFinished,
+            .scan_finished = {
                 .status = wifi_decode_sl_status(status),
             }};
 
@@ -381,8 +418,6 @@ static sl_status_t
     wifi_stats_callback(sl_wifi_event_t event, void* data, uint32_t data_length, void* context) {
     furi_assert(context);
     Wifi* instance = context;
-
-    UNUSED(instance);
 
     sl_status_t ret = SL_STATUS_OK;
 
