@@ -18,7 +18,6 @@ struct Wifi {
     FuriSemaphore* tcpip_lock;
     FuriSemaphore* ip6_addr_valid;
     struct netif netif;
-    WifiRequest request;
     WifiResponse response;
     WifiBackendState state;
 };

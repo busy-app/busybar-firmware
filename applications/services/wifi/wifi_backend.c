@@ -24,11 +24,15 @@
 #define REASON_CODE_BEACON_LOSS  0x10
 
 typedef enum {
-    WifiEventTypeRequest,
+    WifiEventTypeRequestReceived,
     WifiEventTypeScanFinished,
     WifiEventTypeModuleStats,
     WifiEventTypeMax,
 } WifiEventType;
+
+typedef struct {
+    WifiRequest request;
+} WifiRequestReceivedEvent;
 
 typedef struct {
     sl_status_t status;
@@ -42,12 +46,13 @@ typedef struct {
 typedef struct {
     WifiEventType type;
     union {
+        WifiRequestReceivedEvent request_received;
         WifiScanFinishedEvent scan_finished;
         WifiModuleStatsEvent module_stats;
     };
 } WifiEvent;
 
-typedef void (*WifiRequestHandler)(Wifi* instance);
+typedef void (*WifiRequestHandler)(Wifi* instance, const WifiRequest* request);
 
 static const WifiRequestHandler wifi_request_handlers[WifiRequestTypeMax];
 
@@ -68,7 +73,9 @@ static inline void wifi_set_state(Wifi* instance, WifiBackendState state) {
     }
 }
 
-static void wifi_init_request_handler(Wifi* instance) {
+static void wifi_init_request_handler(Wifi* instance, const WifiRequest* request) {
+    UNUSED(request);
+
     FURI_LOG_D(TAG, "Init");
 
     WifiResponse* response = &instance->response;
@@ -84,7 +91,9 @@ static void wifi_init_request_handler(Wifi* instance) {
     wifi_send_response(instance);
 }
 
-static void wifi_scan_request_handler(Wifi* instance) {
+static void wifi_scan_request_handler(Wifi* instance, const WifiRequest* request) {
+    UNUSED(request);
+
     FURI_LOG_D(TAG, "Scan");
 
     sl_wifi_scan_configuration_t wifi_scan_configuration = default_wifi_scan_configuration;
@@ -101,7 +110,7 @@ static void wifi_scan_request_handler(Wifi* instance) {
     }
 }
 
-static void wifi_connect_request_handler(Wifi* instance) {
+static void wifi_connect_request_handler(Wifi* instance, const WifiRequest* request) {
     FURI_LOG_D(TAG, "Connect");
 
     WifiResponse* response = &instance->response;
@@ -109,8 +118,7 @@ static void wifi_connect_request_handler(Wifi* instance) {
     sl_status_t status;
 
     do {
-        const WifiConnectRequest* request = &instance->request.connect_request;
-        const WifiCredentials* credentials = &request->credentials;
+        const WifiCredentials* credentials = &request->connect_request.credentials;
 
         // Initialise client profile
         sl_net_wifi_client_profile_t profile = {
@@ -173,7 +181,9 @@ static void wifi_connect_request_handler(Wifi* instance) {
     wifi_send_response(instance);
 }
 
-static void wifi_disconnect_request_handler(Wifi* instance) {
+static void wifi_disconnect_request_handler(Wifi* instance, const WifiRequest* request) {
+    UNUSED(request);
+
     FURI_LOG_D(TAG, "Disconnect");
 
     WifiResponse* response = &instance->response;
@@ -196,7 +206,9 @@ static void wifi_disconnect_request_handler(Wifi* instance) {
     wifi_send_response(instance);
 }
 
-static void wifi_get_backend_info_request_handler(Wifi* instance) {
+static void wifi_get_backend_info_request_handler(Wifi* instance, const WifiRequest* request) {
+    UNUSED(request);
+
     FURI_LOG_D(TAG, "GetBackendInfo");
 
     WifiResponse* response = &instance->response;
@@ -236,11 +248,12 @@ static void wifi_intercom_rx_callback(const void* data, size_t data_size, void* 
     furi_assert(data_size == sizeof(WifiRequest));
 
     Wifi* instance = context;
-    memcpy(&instance->request, data, data_size);
 
-    const WifiEvent wifi_event = {
-        .type = WifiEventTypeRequest,
+    WifiEvent wifi_event = {
+        .type = WifiEventTypeRequestReceived,
     };
+
+    memcpy(&wifi_event.request_received, data, data_size);
 
     furi_check(
         furi_message_queue_put(instance->event_queue, &wifi_event, FuriWaitForever) ==
@@ -284,6 +297,19 @@ static void wifi_prepare_scan_response(WifiResponse* response) {
 
     sli_wifi_flush_scan_results_database();
     free(scan_results);
+}
+
+static void
+    wifi_request_received_event_handler(Wifi* instance, const WifiRequestReceivedEvent* event) {
+    const WifiRequest* request = &event->request;
+
+    const WifiRequestType request_type = request->type;
+    furi_check(request_type < WifiRequestTypeMax);
+
+    WifiResponse* response = &instance->response;
+    response->type = request_type;
+
+    wifi_request_handlers[request_type](instance, request);
 }
 
 static void wifi_scan_finished_event_handler(Wifi* instance, const WifiScanFinishedEvent* event) {
@@ -355,25 +381,16 @@ static void wifi_event_queue_callback(FuriEventLoopObject* object, void* context
     Wifi* instance = context;
     furi_assert(object == instance->event_queue);
 
-    WifiResponse* response = &instance->response;
+    WifiEvent event;
+    while(furi_message_queue_get(instance->event_queue, &event, 0) == FuriStatusOk) {
+        const WifiEventType event_type = event.type;
 
-    WifiEvent wifi_event;
-    while(furi_message_queue_get(instance->event_queue, &wifi_event, 0) == FuriStatusOk) {
-        const WifiEventType event_type = wifi_event.type;
-
-        if(event_type == WifiEventTypeRequest) {
-            const WifiRequestType request_type = instance->request.type;
-            furi_check(request_type < WifiRequestTypeMax);
-
-            response->type = request_type;
-            wifi_request_handlers[request_type](instance);
-
+        if(event_type == WifiEventTypeRequestReceived) {
+            wifi_request_received_event_handler(instance, &event.request_received);
         } else if(event_type == WifiEventTypeScanFinished) {
-            wifi_scan_finished_event_handler(instance, &wifi_event.scan_finished);
-
+            wifi_scan_finished_event_handler(instance, &event.scan_finished);
         } else if(event_type == WifiEventTypeModuleStats) {
-            wifi_module_stats_event_handler(instance, &wifi_event.module_stats);
-
+            wifi_module_stats_event_handler(instance, &event.module_stats);
         } else {
             furi_crash("Invalid WifiEventType");
         }
