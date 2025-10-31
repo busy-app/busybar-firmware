@@ -173,6 +173,7 @@ static void mqtt_event_handler(struct mg_connection* conn, int ev, void* ev_data
             free(mqtt->ca_bundle);
             mqtt->ca_bundle = NULL;
         }
+        mqtt_topics_on_close(mqtt);
         if(mqtt->is_wifi_up) {
             if(mqtt->fast_reconnect) {
                 mqtt->fast_reconnect = false;

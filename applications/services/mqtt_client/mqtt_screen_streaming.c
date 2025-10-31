@@ -9,6 +9,8 @@
 #define MQTT_SCREEN_STREAMING_RESPONSE_QOS (0)
 #define MQTT_SCREEN_STREAMING_FRAME_PERIOD (500)
 
+static void mqtt_screen_streaming_stop(MqttClient* mqtt);
+
 static void mqtt_screen_streaming_timer_callback(void* data) {
     MqttClient* mqtt = data;
     furi_assert(mqtt->screen_stream_topic);
@@ -21,26 +23,29 @@ static void mqtt_screen_streaming_timer_callback(void* data) {
     });
     furi_record_close(RECORD_GUI);
 
-    const struct mg_str message = {.buf = mqtt->screen_stream_buf, .len = FRONT_DISPLAY_BUF_SIZE};
-
-    const struct mg_mqtt_opts opts = {
-        .topic = mg_str(furi_string_get_cstr(mqtt->screen_stream_topic)),
-        .message = message,
-        .qos = MQTT_SCREEN_STREAMING_RESPONSE_QOS,
-        .retain = false,
-        .props = NULL,
-        .num_props = 0,
-    };
     if(mqtt->conn) {
+        const struct mg_str message = {
+            .buf = mqtt->screen_stream_buf, .len = FRONT_DISPLAY_BUF_SIZE};
+
+        const struct mg_mqtt_opts opts = {
+            .topic = mg_str(furi_string_get_cstr(mqtt->screen_stream_topic)),
+            .message = message,
+            .qos = MQTT_SCREEN_STREAMING_RESPONSE_QOS,
+            .retain = false,
+            .props = NULL,
+            .num_props = 0,
+        };
+
         mg_mqtt_pub(mqtt->conn, &opts);
     } else {
         FURI_LOG_E(TAG, "Connection lost");
+        mqtt_screen_streaming_stop(mqtt);
     }
 }
 
 static void mqtt_screen_streaming_start(MqttClient* mqtt, struct mg_str* topic_prop) {
-    FURI_LOG_I(TAG, "Start");
     if(!mqtt->screen_stream_topic) {
+        FURI_LOG_I(TAG, "Start");
         mqtt->screen_stream_topic = furi_string_alloc();
         mqtt->screen_stream_buf = malloc(FRONT_DISPLAY_BUF_SIZE);
         mg_timer_init(
@@ -55,8 +60,8 @@ static void mqtt_screen_streaming_start(MqttClient* mqtt, struct mg_str* topic_p
 }
 
 static void mqtt_screen_streaming_stop(MqttClient* mqtt) {
-    FURI_LOG_I(TAG, "End");
-    if(!mqtt->screen_stream_topic) {
+    if(mqtt->screen_stream_topic) {
+        FURI_LOG_I(TAG, "End");
         mg_timer_free(&mqtt->mgr.timers, &mqtt->screen_stream_timer);
         free(mqtt->screen_stream_buf);
         furi_string_free(mqtt->screen_stream_topic);
@@ -86,4 +91,8 @@ void mqtt_screen_streaming_on_message(
             }
         } while(prop_ofs > 0);
     }
+}
+
+void mqtt_screen_streaming_on_close(MqttClient* mqtt) {
+    mqtt_screen_streaming_stop(mqtt);
 }
