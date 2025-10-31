@@ -158,11 +158,15 @@
               return;
             }
             initConnectModel();
-            connectModel.ssid = network.ssid;
+            if (network.ssid) {
+              connectModel.ssid = network.ssid;
+            }
             if (network.security === 'Open') {
               return connectToNetwork();
             }
-            connectModel.security = network.security;
+            if (network.security) {
+              connectModel.security = network.security;
+            }
             connectToExistingNetwork = true;
             showConnectModal = true;
           }"
@@ -298,7 +302,7 @@
           <div class="flex flex-col gap-6">
             <UFormField label="IP Type">
               <USelect
-                v-model="connectModel.ip_config.ip_type"
+                v-model="connectModel.ipConfig.ipType"
                 name="ip-type"
                 :items="['ipv4', 'ipv6']"
                 size="xl"
@@ -308,7 +312,7 @@
             </UFormField>
             <UFormField label="IP Settings">
               <USelect
-                v-model="connectModel.ip_config.ip_method"
+                v-model="connectModel.ipConfig.ipMethod"
                 name="ip-method"
                 :items="['dhcp', 'static']"
                 size="xl"
@@ -316,10 +320,10 @@
                 class="w-full"
               />
             </UFormField>
-            <template v-if="connectModel.ip_config.ip_method === 'static'">
+            <template v-if="connectModel.ipConfig.ipMethod === 'static'">
               <UFormField label="Address">
                 <UInput
-                  v-model="connectModel.ip_config.address"
+                  v-model="connectModel.ipConfig.address"
                   v-maska="'###.###.###.###'"
                   name="ip-address"
                   placeholder="___.___.___.___"
@@ -330,7 +334,7 @@
               </UFormField>
               <UFormField label="Subnet Mask">
                 <UInput
-                  v-model="connectModel.ip_config.mask"
+                  v-model="connectModel.ipConfig.mask"
                   v-maska="'###.###.###.###'"
                   name="subnet-mask"
                   placeholder="___.___.___.___"
@@ -341,7 +345,7 @@
               </UFormField>
               <UFormField label="Gateway">
                 <UInput
-                  v-model="connectModel.ip_config.gateway"
+                  v-model="connectModel.ipConfig.gateway"
                   v-maska="'###.###.###.###'"
                   name="gateway"
                   placeholder="___.___.___.___"
@@ -547,6 +551,7 @@
 
 <script setup lang="ts">
 import { vMaska } from 'maska/vue';
+import type { WifiConnectParams, WifiNetwork } from '@busy-app/busy-lib';
 
 const wifiStore = useWifiStore();
 const deviceStore = useDeviceStore();
@@ -578,26 +583,26 @@ async function listWifiNetworks () {
 const showConnectModal = ref(false);
 const showPassword = ref(false);
 const connectToExistingNetwork = ref(false);
-const connectModel = ref({
+const connectModel = ref<WifiConnectParams>({
   ssid: '',
-  security: 'Open' as WifiSecurity,
+  security: 'Open',
   password: '',
-  ip_config: {
-    ip_method: 'dhcp' as 'dhcp' | 'static',
-    ip_type: 'ipv4' as 'ipv4' | 'ipv6',
+  ipConfig: {
+    ipMethod: 'dhcp' as 'dhcp' | 'static',
+    ipType: 'ipv4' as 'ipv4' | 'ipv6',
     address: '',
     mask: '',
     gateway: ''
-  } as WifiConnectIPConfig
+  }
 });
 const initConnectModel = () => {
   connectModel.value = {
     ssid: '',
     security: 'Open',
     password: '',
-    ip_config: {
-      ip_method: 'dhcp',
-      ip_type: 'ipv4',
+    ipConfig: {
+      ipMethod: 'dhcp',
+      ipType: 'ipv4',
       address: '',
       mask: '',
       gateway: ''
@@ -641,7 +646,10 @@ const title = computed(() => {
   return 'Wi-Fi';
 });
 
-function wifiIconByRssi (rssi: number): string {
+function wifiIconByRssi (rssi: WifiNetwork['rssi']): string {
+  if (!rssi) {
+    return 'i-ri-signal-wifi-1-fill';
+  }
   if (rssi < 60) {
     return 'i-ri-signal-wifi-fill';
   }

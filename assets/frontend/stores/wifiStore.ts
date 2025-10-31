@@ -1,59 +1,18 @@
 import { defineStore } from 'pinia';
-
-export type WifiSecurity =
-  | 'Open'
-  | 'WPA'
-  | 'WPA2'
-  | 'WEP'
-  | 'WPA Enterprise'
-  | 'WPA2 Enterprise'
-  | 'WPA WPA2 Mixed'
-  | 'WPA3'
-  | 'WPA3 Transition'
-  | 'WPA3 Enterprise'
-  | 'WPA3 Transition Enterprise';
-
-export interface wifiState {
-  state: 'enabled' | 'disabled' | 'connected';
-  ssid?: string;
-  security?: WifiSecurity;
-  ip_config?: {
-    ip_method: 'dhcp' | 'static';
-    ip_type: 'ipv4' | 'ipv6';
-    address?: string;
-  };
-}
-
-export type WifiNetwork = {
-  ssid: string;
-  security: WifiSecurity;
-  rssi: number;
-};
-
-export interface WifiConnectIPConfig {
-  ip_method: 'dhcp' | 'static';
-  ip_type: 'ipv4' | 'ipv6';
-  address?: string;
-  mask?: string;
-  gateway?: string;
-}
-
-export type WifiConnectOptions = {
-  ssid: string;
-  password?: string;
-  security: WifiSecurity;
-  ip_config: WifiConnectIPConfig;
-};
+import { BusyBar } from '@busy-app/busy-lib';
+import type { WifiStatusResponse as WifiState, WifiNetwork, WifiConnectParams } from '@busy-app/busy-lib';
 
 export const useWifiStore = defineStore('wifi', () => {
   const toast = useToast();
 
-  const apiRequest = useApiStore().apiRequest;
+  const busyBar = new BusyBar({
+    host: useRuntimeConfig().public.barUrl
+  });
 
-  const wifi = ref<wifiState | undefined>(undefined);
+  const wifi = ref<WifiState | undefined>(undefined);
 
-  async function fetchWifiState (): Promise<wifiState | undefined> {
-    const state = await apiRequest<wifiState>('/api/wifi/status')
+  async function fetchWifiState (): Promise<WifiState | undefined> {
+    const state = await busyBar.statusWifi()
       .then(response => {
         if (!response || typeof response !== 'object') {
           throw new Error('Empty response');
@@ -76,7 +35,7 @@ export const useWifiStore = defineStore('wifi', () => {
     return state;
   }
 
-  async function getWifiState (): Promise<wifiState | undefined> {
+  async function getWifiState (): Promise<WifiState | undefined> {
     if (wifi.value === undefined) {
       wifi.value = await fetchWifiState();
     }
@@ -84,9 +43,7 @@ export const useWifiStore = defineStore('wifi', () => {
   }
 
   async function enableWifi () {
-    await apiRequest('/api/wifi/enable', {
-      method: 'POST'
-    })
+    await busyBar.enableWifi()
       .then(() => {
         wifi.value = { state: 'enabled' };
       })
@@ -107,9 +64,8 @@ export const useWifiStore = defineStore('wifi', () => {
     if (wifi.value === undefined || wifi.value.state === 'disabled') {
       return;
     }
-    await apiRequest('/api/wifi/disable', {
-      method: 'POST'
-    })
+
+    await busyBar.disableWifi()
       .then(() => {
         wifi.value = { state: 'disabled' };
       })
@@ -127,12 +83,7 @@ export const useWifiStore = defineStore('wifi', () => {
   }
 
   async function listWifiNetworks () {
-    interface WifiNetworkListResponse {
-      count: number;
-      networks: WifiNetwork[];
-    }
-
-    return await apiRequest<WifiNetworkListResponse>('/api/wifi/networks')
+    return await busyBar.networksWifi()
       .then(response => {
         if (!response || !Array.isArray(response.networks)) {
           throw new Error('Failed to fetch WiFi networks');
@@ -142,7 +93,7 @@ export const useWifiStore = defineStore('wifi', () => {
           const existing = acc.find(n => n.ssid === curr.ssid);
           if (!existing) {
             acc.push(curr);
-          } else if (curr.rssi > existing.rssi) {
+          } else if (curr.rssi && existing.rssi && curr.rssi > existing.rssi) {
             const index = acc.indexOf(existing);
             acc[index] = curr;
           }
@@ -164,11 +115,8 @@ export const useWifiStore = defineStore('wifi', () => {
       });
   }
 
-  async function connectToWifiNetwork (options: WifiConnectOptions) {
-    return await apiRequest('/api/wifi/connect', {
-      method: 'POST',
-      body: options
-    })
+  async function connectToWifiNetwork (params: WifiConnectParams) {
+    return await busyBar.connectWifi(params)
       .catch(error => {
         console.error('Error connecting to WiFi:', error);
         toast.add({
@@ -184,9 +132,7 @@ export const useWifiStore = defineStore('wifi', () => {
   }
 
   async function disconnectFromWifiNetwork () {
-    return await apiRequest('/api/wifi/disconnect', {
-      method: 'POST'
-    })
+    return await busyBar.disconnectWifi()
       .catch(error => {
         console.error('Error disconnecting from WiFi:', error);
         toast.add({
@@ -202,9 +148,7 @@ export const useWifiStore = defineStore('wifi', () => {
   }
 
   async function forgetSavedWifiNetwork () {
-    return await apiRequest('/api/wifi/forget', {
-      method: 'POST'
-    })
+    return await busyBar.forgetWifi()
       .catch(error => {
         console.error('Error forgetting WiFi network:', error);
         toast.add({
