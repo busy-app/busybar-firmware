@@ -52,17 +52,14 @@ typedef struct {
     };
 } WifiEvent;
 
-typedef void (*WifiRequestHandler)(Wifi* instance, const WifiRequest* request);
+typedef void (
+    *WifiRequestHandler)(Wifi* instance, const WifiRequest* request, WifiResponse* response);
 
 static const WifiRequestHandler wifi_request_handlers[WifiRequestTypeMax];
 
-static inline void wifi_send_response(Wifi* instance) {
+static inline void wifi_send_response(Wifi* instance, const WifiResponse* response) {
     const size_t tx_size = intercom_tx(
-        instance->intercom,
-        IntercomChannelWifi,
-        &instance->response,
-        sizeof(WifiResponse),
-        FuriWaitForever);
+        instance->intercom, IntercomChannelWifi, response, sizeof(WifiResponse), FuriWaitForever);
     furi_check(tx_size == sizeof(WifiResponse));
 }
 
@@ -73,12 +70,11 @@ static inline void wifi_set_state(Wifi* instance, WifiBackendState state) {
     }
 }
 
-static void wifi_init_request_handler(Wifi* instance, const WifiRequest* request) {
+static void
+    wifi_init_request_handler(Wifi* instance, const WifiRequest* request, WifiResponse* response) {
     UNUSED(request);
 
     FURI_LOG_D(TAG, "Init");
-
-    WifiResponse* response = &instance->response;
 
     const sl_status_t status =
         sl_wifi_get_mac_address(SL_WIFI_CLIENT_INTERFACE, (sl_mac_address_t*)response->hw_address);
@@ -88,10 +84,11 @@ static void wifi_init_request_handler(Wifi* instance, const WifiRequest* request
     }
 
     response->status = wifi_decode_sl_status(status);
-    wifi_send_response(instance);
+    wifi_send_response(instance, response);
 }
 
-static void wifi_scan_request_handler(Wifi* instance, const WifiRequest* request) {
+static void
+    wifi_scan_request_handler(Wifi* instance, const WifiRequest* request, WifiResponse* response) {
     UNUSED(request);
 
     FURI_LOG_D(TAG, "Scan");
@@ -103,17 +100,16 @@ static void wifi_scan_request_handler(Wifi* instance, const WifiRequest* request
     status = sl_wifi_start_scan(SL_WIFI_CLIENT_2_4GHZ_INTERFACE, NULL, &wifi_scan_configuration);
 
     if(status != SL_STATUS_IN_PROGRESS) {
-        WifiResponse* response = &instance->response;
         response->status = wifi_decode_sl_status(status);
-
-        wifi_send_response(instance);
+        wifi_send_response(instance, response);
     }
 }
 
-static void wifi_connect_request_handler(Wifi* instance, const WifiRequest* request) {
+static void wifi_connect_request_handler(
+    Wifi* instance,
+    const WifiRequest* request,
+    WifiResponse* response) {
     FURI_LOG_D(TAG, "Connect");
-
-    WifiResponse* response = &instance->response;
 
     sl_status_t status;
 
@@ -178,15 +174,16 @@ static void wifi_connect_request_handler(Wifi* instance, const WifiRequest* requ
     } while(false);
 
     response->status = wifi_decode_sl_status(status);
-    wifi_send_response(instance);
+    wifi_send_response(instance, response);
 }
 
-static void wifi_disconnect_request_handler(Wifi* instance, const WifiRequest* request) {
+static void wifi_disconnect_request_handler(
+    Wifi* instance,
+    const WifiRequest* request,
+    WifiResponse* response) {
     UNUSED(request);
 
     FURI_LOG_D(TAG, "Disconnect");
-
-    WifiResponse* response = &instance->response;
 
     sl_status_t status;
 
@@ -203,15 +200,16 @@ static void wifi_disconnect_request_handler(Wifi* instance, const WifiRequest* r
     } while(false);
 
     response->status = wifi_decode_sl_status(status);
-    wifi_send_response(instance);
+    wifi_send_response(instance, response);
 }
 
-static void wifi_get_backend_info_request_handler(Wifi* instance, const WifiRequest* request) {
+static void wifi_get_backend_info_request_handler(
+    Wifi* instance,
+    const WifiRequest* request,
+    WifiResponse* response) {
     UNUSED(request);
 
     FURI_LOG_D(TAG, "GetBackendInfo");
-
-    WifiResponse* response = &instance->response;
 
     sl_status_t status;
 
@@ -240,7 +238,7 @@ static void wifi_get_backend_info_request_handler(Wifi* instance, const WifiRequ
     } while(false);
 
     response->status = wifi_decode_sl_status(status);
-    wifi_send_response(instance);
+    wifi_send_response(instance, response);
 }
 
 static void wifi_intercom_rx_callback(const void* data, size_t data_size, void* context) {
@@ -265,62 +263,61 @@ static void wifi_net_intercom_rx_callback(const void* data, size_t data_size, vo
     sl_wifi_send_raw_data_frame(SL_WIFI_CLIENT_INTERFACE, data, data_size);
 }
 
-static void wifi_prepare_scan_response(WifiResponse* response) {
-    uint16_t results_count = 0;
-
-    const size_t results_size = sizeof(sl_wifi_extended_scan_result_t) * SCAN_MAX_RESULTS;
-    sl_wifi_extended_scan_result_t* scan_results = malloc(results_size);
-
-    sl_wifi_extended_scan_result_parameters_t params = {
-        .scan_results = scan_results,
-        .array_length = results_size,
-        .result_count = &results_count,
-    };
-
-    sl_status_t status = sl_wifi_get_stored_scan_results(SL_WIFI_CLIENT_2_4GHZ_INTERFACE, &params);
-
-    if(status == SL_STATUS_OK) {
-        results_count = MIN(results_count, SCAN_MAX_RESULTS);
-
-        for(uint16_t i = 0; i < results_count; ++i) {
-            const sl_wifi_extended_scan_result_t* result_in = &scan_results[i];
-            WifiScanResult* result_out = &response->scan_results.data[i];
-
-            strncpy(result_out->ssid, (const char*)result_in->ssid, SSID_MAX_LEN);
-            result_out->security_mode = wifi_decode_security_mode(result_in->security_mode);
-            result_out->rssi = result_in->rssi;
-        }
-    }
-
-    response->status = wifi_decode_sl_status(status);
-    response->scan_results.count = results_count;
-
-    sli_wifi_flush_scan_results_database();
-    free(scan_results);
-}
-
 static void
     wifi_request_received_event_handler(Wifi* instance, const WifiRequestReceivedEvent* event) {
     const WifiRequest* request = &event->request;
-
     const WifiRequestType request_type = request->type;
     furi_check(request_type < WifiRequestTypeMax);
 
-    WifiResponse* response = &instance->response;
-    response->type = request_type;
+    WifiResponse response = {
+        .type = request_type,
+    };
 
-    wifi_request_handlers[request_type](instance, request);
+    wifi_request_handlers[request_type](instance, request, &response);
 }
 
 static void wifi_scan_finished_event_handler(Wifi* instance, const WifiScanFinishedEvent* event) {
-    WifiResponse* response = &instance->response;
-    response->status = wifi_decode_sl_status(event->status);
+    WifiResponse response = {
+        .type = WifiRequestTypeScan,
+        .status = wifi_decode_sl_status(event->status),
+    };
 
-    if(event->status == SL_STATUS_OK) {
-        wifi_prepare_scan_response(response);
+    if(response.status == WifiStatusOk) {
+        uint16_t results_count = 0;
+
+        const size_t results_size = sizeof(sl_wifi_extended_scan_result_t) * SCAN_MAX_RESULTS;
+        sl_wifi_extended_scan_result_t* scan_results = malloc(results_size);
+
+        sl_wifi_extended_scan_result_parameters_t params = {
+            .scan_results = scan_results,
+            .array_length = results_size,
+            .result_count = &results_count,
+        };
+
+        sl_status_t status =
+            sl_wifi_get_stored_scan_results(SL_WIFI_CLIENT_2_4GHZ_INTERFACE, &params);
+
+        if(status == SL_STATUS_OK) {
+            results_count = MIN(results_count, SCAN_MAX_RESULTS);
+
+            for(uint16_t i = 0; i < results_count; ++i) {
+                const sl_wifi_extended_scan_result_t* result_in = &scan_results[i];
+                WifiScanResult* result_out = &response.scan_results.data[i];
+
+                strncpy(result_out->ssid, (const char*)result_in->ssid, SSID_MAX_LEN);
+                result_out->security_mode = wifi_decode_security_mode(result_in->security_mode);
+                result_out->rssi = result_in->rssi;
+            }
+        }
+
+        response.status = wifi_decode_sl_status(status);
+        response.scan_results.count = results_count;
+
+        sli_wifi_flush_scan_results_database();
+        free(scan_results);
     }
 
-    wifi_send_response(instance);
+    wifi_send_response(instance, &response);
 }
 
 static void wifi_module_stats_event_handler(Wifi* instance, const WifiModuleStatsEvent* event) {
