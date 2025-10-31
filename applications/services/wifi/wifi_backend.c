@@ -419,9 +419,11 @@ static sl_status_t wifi_scan_callback(
     if(event == SL_WIFI_SCAN_RESULT_EVENT) {
         const WifiEvent wifi_event = {
             .type = WifiEventTypeScanFinished,
-            .scan_finished = {
-                .status = wifi_decode_sl_status(status),
-            }};
+            .scan_finished =
+                {
+                    .status = wifi_decode_sl_status(status),
+                },
+        };
 
         furi_check(
             furi_message_queue_put(instance->event_queue, &wifi_event, FuriWaitForever) ==
