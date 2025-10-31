@@ -1,4 +1,4 @@
-openapi: 3.0.3
+openapi: 3.1.0
 info:
   title: BUSY Bar HTTP API
   description: HTTP API for BUSY Bar web server
@@ -1306,28 +1306,40 @@ components:
       required:
         - app_id
         - elements
-      example:
-        app_id: "my_app"
-        elements:
-          - id: "0"
-            timeout: 6
-            type: "text"
-            text: "Hello, World!"
-            align: center
-            x: 36
-            y: 8
-            font: big
-            color: "#AAFF00FF"
-            width: 72
-            scroll_rate: 60
-            display: "front"
-          - id: "1"
-            timeout: 6
-            type: "image"
-            path: "data.png"
-            x: 0
-            y: 0
-            display: "back"
+      examples:
+        - app_id: "my_app"
+          elements:
+            - id: "0"
+              timeout: 6
+              align: center
+              x: 36
+              y: 8
+              type: text
+              text: "Hello, World! Long text"
+              font: medium
+              color: "#FFFFFFFF"
+              width: 72
+              scroll_rate: 160
+              display: front
+            - id: "1"
+              timeout: 6
+              type: "image"
+              path: "data.png"
+              x: 0
+              y: 0
+              display: "back"
+        - app_id: "my_app"
+          elements:
+            - id: "0"
+              timeout: 6
+              align: top_mid
+              x: 36
+              y: 0
+              type: text
+              text: "top_mid"
+              font: big
+              color: "#AAFF00FF"
+              display: "front"
 
     DisplayElement:
       type: object
