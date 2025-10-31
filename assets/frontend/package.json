@@ -10,7 +10,7 @@
     "lint": "eslint --ext .js,.ts,.vue --ignore-pattern .gitignore ."
   },
   "dependencies": {
-    "@busy-app/busy-lib": "^0.2.1",
+    "@busy-app/busy-lib": "^0.4.0",
     "@nuxt/eslint": "1.4.1",
     "@nuxt/ui": "3.3.4",
     "@pinia/nuxt": "^0.10.1",
