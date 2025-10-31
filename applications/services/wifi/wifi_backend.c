@@ -11,10 +11,14 @@
 #define NUM_CONNECTION_ATTEMPTS (3)
 
 #define STATE_CODE_UPPER_MASK 0xF0
-#define STATE_CODE_LOWER_MASK 0x0F
+#define REASON_CODE_MSB_MASK  0x7F
 
-#define STATE_CODE_ASSOC   0x80
-#define STATE_CODE_DEASSOC 0x90
+#define STATE_CODE_ASSOCIATED   0x80
+#define STATE_CODE_DEASSOCIATED 0x90
+
+#define REASON_CODE_NO_RESPONSE 0x01
+#define REASON_CODE_DEAUTH_USER 0x06
+#define REASON_CODE_BEACON_LOSS 0x10
 
 typedef enum {
     WifiEventTypeRequest,
@@ -311,12 +315,26 @@ static void wifi_event_queue_callback(FuriEventLoopObject* object, void* context
         } else if(event_type == WifiEventTypeModuleStats) {
             const WifiModuleStatsEvent* module_stats = &wifi_event.module_stats;
             const uint8_t state_code = module_stats->state_code & STATE_CODE_UPPER_MASK;
+            const uint8_t reason_code = module_stats->reason_code & REASON_CODE_MSB_MASK;
 
             // TODO: react to these codes
-            if(state_code == STATE_CODE_ASSOC) {
-                FURI_LOG_I(TAG, "Associated!");
-            } else if(state_code == STATE_CODE_DEASSOC) {
-                FURI_LOG_I(TAG, "DEassociated!");
+            if(state_code == STATE_CODE_ASSOCIATED) {
+                FURI_LOG_I(
+                    TAG,
+                    "Associated, current state: %d, reason: 0x%hhX",
+                    instance->state,
+                    reason_code);
+            } else if(state_code == STATE_CODE_DEASSOCIATED) {
+                if(reason_code == REASON_CODE_DEAUTH_USER) {
+                    FURI_LOG_I(
+                        TAG, "DEassociated by user request, current state: %d", instance->state);
+                } else {
+                    FURI_LOG_I(
+                        TAG,
+                        "DEassociated, current state: %d, reason: 0x%hhX",
+                        instance->state,
+                        reason_code);
+                }
             }
 
         } else {
