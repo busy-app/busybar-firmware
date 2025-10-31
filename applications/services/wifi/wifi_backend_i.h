@@ -13,6 +13,7 @@
 struct Wifi {
     FuriEventLoop* event_loop;
     FuriMessageQueue* event_queue;
+    FuriEventLoopTimer* info_timer;
     FuriPubSub* event_pubsub;
     Intercom* intercom;
     FuriSemaphore* tcpip_lock;

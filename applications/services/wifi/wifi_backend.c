@@ -23,6 +23,8 @@
 #define REASON_CODE_KEY_FAILURE  0x08
 #define REASON_CODE_BEACON_LOSS  0x10
 
+#define INFO_TIMER_PERIOD_MS (15 * 1000)
+
 typedef enum {
     WifiEventTypeRequestReceived,
     WifiEventTypeScanFinished,
@@ -61,6 +63,53 @@ static inline void wifi_send_response(Wifi* instance, const WifiResponse* respon
     const size_t tx_size = intercom_tx(
         instance->intercom, IntercomChannelWifi, response, sizeof(WifiResponse), FuriWaitForever);
     furi_check(tx_size == sizeof(WifiResponse));
+}
+
+static void wifi_backend_info_callback(void* context) {
+    furi_assert(context);
+    Wifi* instance = context;
+
+    WifiResponse response = {
+        .type = WifiRequestTypeBackendInfo,
+    };
+
+    sl_status_t status;
+
+    do {
+        WifiBackendInfo* backend_info = &response.backend_info;
+        backend_info->state = instance->state;
+
+        if(instance->state != WifiBackendStateConnected) {
+            status = SL_STATUS_OK;
+            break;
+        }
+
+        sl_si91x_rsp_wireless_info_t wl_info;
+
+        status = sl_wifi_get_wireless_info(&wl_info);
+
+        if(status != SL_STATUS_OK) {
+            FURI_LOG_E(TAG, "Failed to get wireless info: %lX", status);
+            break;
+        }
+
+        int32_t rssi;
+        status = sl_wifi_get_signal_strength(SL_WIFI_CLIENT_2_4GHZ_INTERFACE, &rssi);
+
+        if(status != SL_STATUS_OK) {
+            FURI_LOG_E(TAG, "Failed to get RSSI: %lX", status);
+            break;
+        }
+
+        memcpy(backend_info->bssid, wl_info.bssid, HW_ADDRESS_LEN);
+        backend_info->channel = wl_info.channel_number;
+        backend_info->rssi = rssi;
+
+    } while(false);
+
+    response.status = wifi_decode_sl_status(status);
+
+    wifi_send_response(instance, &response);
 }
 
 static inline void wifi_set_state(Wifi* instance, WifiBackendState state) {
@@ -207,44 +256,6 @@ static sl_status_t wifi_disconnect_request_handler(
     return status;
 }
 
-static sl_status_t wifi_get_backend_info_request_handler(
-    Wifi* instance,
-    const WifiRequest* request,
-    WifiResponse* response) {
-    UNUSED(instance);
-    UNUSED(request);
-
-    FURI_LOG_D(TAG, "GetBackendInfo");
-
-    sl_status_t status;
-
-    do {
-        WifiBackendInfo* backend_info = &response->backend_info;
-
-        sl_si91x_rsp_wireless_info_t wl_info;
-        status = sl_wifi_get_wireless_info(&wl_info);
-        if(status != SL_STATUS_OK) {
-            FURI_LOG_E(TAG, "Failed to get wireless info: %lX", status);
-            break;
-        }
-
-        int32_t rssi;
-        status = sl_wifi_get_signal_strength(SL_WIFI_CLIENT_2_4GHZ_INTERFACE, &rssi);
-
-        if(status != SL_STATUS_OK) {
-            FURI_LOG_E(TAG, "Failed to get RSSI: %lX", status);
-            break;
-        }
-
-        memcpy(backend_info->bssid, wl_info.bssid, HW_ADDRESS_LEN);
-        backend_info->channel = wl_info.channel_number;
-        backend_info->rssi = rssi;
-
-    } while(false);
-
-    return status;
-}
-
 static void wifi_intercom_rx_callback(const void* data, size_t data_size, void* context) {
     furi_assert(context);
     furi_assert(data_size == sizeof(WifiRequest));
@@ -271,7 +282,7 @@ static void
     wifi_request_received_event_handler(Wifi* instance, const WifiRequestReceivedEvent* event) {
     const WifiRequest* request = &event->request;
     const WifiRequestType request_type = request->type;
-    furi_check(request_type < WifiRequestTypeMax);
+    furi_check(request_type < WifiRequestTypeBackendInfo);
 
     WifiResponse response = {0};
     const sl_status_t status = wifi_request_handlers[request_type](instance, request, &response);
@@ -341,6 +352,9 @@ static void wifi_module_stats_event_handler(Wifi* instance, const WifiModuleStat
             FURI_LOG_W(TAG, "Association while disconnected");
         }
 
+        furi_event_loop_timer_start(instance->info_timer, INFO_TIMER_PERIOD_MS);
+        furi_event_loop_pend_callback(instance->event_loop, wifi_backend_info_callback, instance);
+
     } else if(state_code == STATE_CODE_DEASSOCIATED) {
         if(reason_code == REASON_CODE_DEAUTH_USER) {
             if(instance->state != WifiBackendStateDisconnected) {
@@ -374,6 +388,9 @@ static void wifi_module_stats_event_handler(Wifi* instance, const WifiModuleStat
         } else {
             FURI_LOG_E(TAG, "BUG: Unhandled reason code 0x%hhX, please report", reason_code);
         }
+
+        furi_event_loop_timer_stop(instance->info_timer);
+        furi_event_loop_pend_callback(instance->event_loop, wifi_backend_info_callback, instance);
 
     } else {
         FURI_LOG_T(TAG, "Module state: 0x%hhX, reason: 0x%hhX", state_code, reason_code);
@@ -500,6 +517,8 @@ static Wifi* wifi_alloc(void) {
     instance->event_loop = furi_event_loop_alloc();
     instance->event_queue = furi_message_queue_alloc(3, sizeof(WifiEvent));
     instance->event_pubsub = furi_pubsub_alloc();
+    instance->info_timer = furi_event_loop_timer_alloc(
+        instance->event_loop, wifi_backend_info_callback, FuriEventLoopTimerTypePeriodic, instance);
     instance->intercom = furi_record_open(RECORD_INTERCOM);
     instance->tcpip_lock = furi_semaphore_alloc(1, 0);
     instance->ip6_addr_valid = furi_semaphore_alloc(1, 0);
@@ -544,5 +563,4 @@ static const WifiRequestHandler wifi_request_handlers[WifiRequestTypeMax] = {
     [WifiRequestTypeScan] = wifi_scan_request_handler,
     [WifiRequestTypeConnect] = wifi_connect_request_handler,
     [WifiRequestTypeDisconnect] = wifi_disconnect_request_handler,
-    [WifiRequestTypeGetBackendInfo] = wifi_get_backend_info_request_handler,
 };

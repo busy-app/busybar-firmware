@@ -107,13 +107,8 @@ static void wifi_process_request(Wifi* instance) {
 }
 
 static void wifi_process_response(Wifi* instance, const WifiResponse* response) {
+    furi_assert(wifi_api_is_locked(instance));
     WifiMessage* message = &instance->api_message;
-
-    if(!wifi_api_is_locked(instance)) {
-        // BUG: Figure out where the rogue responses come from
-        FURI_LOG_W(TAG, "BUG: Rogue response of type %d", response->type);
-        return;
-    }
 
     const WifiRequestType request_type = message->request_type;
     furi_assert(request_type == response->type);
@@ -165,9 +160,6 @@ static void wifi_process_response(Wifi* instance, const WifiResponse* response) 
             wifi_state_transition(instance, WifiStateDisconnected);
 
             wifi_save_default_settings();
-
-        } else if(request_type == WifiRequestTypeGetBackendInfo) {
-            wifi_state_update_backend_info(instance, &response->backend_info);
         }
 
     } else {
@@ -185,6 +177,15 @@ static void wifi_process_response(Wifi* instance, const WifiResponse* response) 
     wifi_api_unlock(instance, status);
 }
 
+static void wifi_process_async_response(Wifi* instance, const WifiResponse* response) {
+    const WifiRequestType response_type = response->type;
+
+    if(response_type == WifiRequestTypeBackendInfo) {
+        // TODO: change connectivity status if needed
+        wifi_state_update_backend_info(instance, &response->backend_info);
+    }
+}
+
 static void wifi_response_queue_callback(FuriEventLoopObject* object, void* context) {
     furi_assert(context);
 
@@ -193,7 +194,12 @@ static void wifi_response_queue_callback(FuriEventLoopObject* object, void* cont
 
     WifiResponse response;
     while(furi_message_queue_get(instance->response_queue, &response, 0) == FuriStatusOk) {
-        wifi_process_response(instance, &response);
+        // TODO: Better condition
+        if(response.type != WifiRequestTypeBackendInfo) {
+            wifi_process_response(instance, &response);
+        } else {
+            wifi_process_async_response(instance, &response);
+        }
     }
 }
 
