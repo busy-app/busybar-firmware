@@ -33,6 +33,30 @@ static void wifi_ble_restore_default_config(void) {
     /// TODO: implement after wifi/ble configs will be implemented
 }
 
+static void reset_firmware_to_backup(void) {
+    do {
+        UpdaterStatus prepare_install_status =
+            updater_prepare_install(BACKUP_PATH("recovery/update.json"));
+        if(prepare_install_status != UpdaterStatusSuccess) {
+            printf(
+                "Factory reset prepare install failed: %s\r\n",
+                updater_get_status_string(prepare_install_status));
+
+            break;
+        }
+
+        UpdaterStatus reboot_install_status = updater_reboot_install();
+        if(reboot_install_status != UpdaterStatusSuccess) {
+            printf(
+                "Factory reset reboot install failed: %s\r\n",
+                updater_get_status_string(reboot_install_status));
+
+            updater_cancel_prepared_install();
+            break;
+        }
+    } while(false);
+}
+
 void cli_command_factory_reset(PipeSide* pipe, FuriString* args, void* context) {
     UNUSED(args);
     UNUSED(context);
@@ -51,8 +75,7 @@ void cli_command_factory_reset(PipeSide* pipe, FuriString* args, void* context) 
             furi_hal_nvm_reset();
 #endif
 
-            updater_prepare_install(BACKUP_PATH("recovery/update.json"));
-            updater_reboot_install();
+            reset_firmware_to_backup();
 
             break;
         } else if(response == 'n' || response == 'N') {
