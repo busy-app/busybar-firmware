@@ -1306,40 +1306,38 @@ components:
       required:
         - app_id
         - elements
-      examples:
-        - app_id: "my_app"
-          elements:
-            - id: "0"
-              timeout: 6
-              align: center
-              x: 36
-              y: 8
-              type: text
-              text: "Hello, World! Long text"
-              font: medium
-              color: "#FFFFFFFF"
-              width: 72
-              scroll_rate: 160
-              display: front
-            - id: "1"
-              timeout: 6
-              type: "image"
-              path: "data.png"
-              x: 0
-              y: 0
-              display: "back"
-        - app_id: "my_app"
-          elements:
-            - id: "0"
-              timeout: 6
-              align: top_mid
-              x: 36
-              y: 0
-              type: text
-              text: "top_mid"
-              font: big
-              color: "#AAFF00FF"
-              display: "front"
+      example:
+        app_id: "my_app"
+        elements:
+          - id: "0"
+            timeout: 6
+            align: center
+            x: 36
+            y: 10
+            type: text
+            text: "Hello, World! Long text"
+            font: medium
+            color: "#FFFFFFFF"
+            width: 72
+            scroll_rate: 160
+            display: front
+          - id: "1"
+            timeout: 6
+            align: top_mid
+            x: 36
+            y: 0
+            type: text
+            text: "top_mid"
+            font: small
+            color: "#AAFF00FF"
+            display: "front"
+          - id: "2"
+            timeout: 6
+            type: "image"
+            path: "data.png"
+            x: 0
+            y: 0
+            display: "back"
 
     DisplayElement:
       type: object
