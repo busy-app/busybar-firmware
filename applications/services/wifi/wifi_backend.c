@@ -52,7 +52,7 @@ typedef struct {
     };
 } WifiEvent;
 
-typedef void (
+typedef sl_status_t (
     *WifiRequestHandler)(Wifi* instance, const WifiRequest* request, WifiResponse* response);
 
 static const WifiRequestHandler wifi_request_handlers[WifiRequestTypeMax];
@@ -70,8 +70,9 @@ static inline void wifi_set_state(Wifi* instance, WifiBackendState state) {
     }
 }
 
-static void
+static sl_status_t
     wifi_init_request_handler(Wifi* instance, const WifiRequest* request, WifiResponse* response) {
+    UNUSED(instance);
     UNUSED(request);
 
     FURI_LOG_D(TAG, "Init");
@@ -83,32 +84,36 @@ static void
         FURI_LOG_E(TAG, "Failed to get MAC address: %lX", status);
     }
 
-    response->status = wifi_decode_sl_status(status);
-    wifi_send_response(instance, response);
+    return status;
 }
 
-static void
+static sl_status_t
     wifi_scan_request_handler(Wifi* instance, const WifiRequest* request, WifiResponse* response) {
+    UNUSED(instance);
     UNUSED(request);
+    UNUSED(response);
 
     FURI_LOG_D(TAG, "Scan");
 
     sl_wifi_scan_configuration_t wifi_scan_configuration = default_wifi_scan_configuration;
     wifi_scan_configuration.type = SL_WIFI_SCAN_TYPE_EXTENDED;
 
-    sl_status_t status;
-    status = sl_wifi_start_scan(SL_WIFI_CLIENT_2_4GHZ_INTERFACE, NULL, &wifi_scan_configuration);
+    const sl_status_t status =
+        sl_wifi_start_scan(SL_WIFI_CLIENT_2_4GHZ_INTERFACE, NULL, &wifi_scan_configuration);
 
     if(status != SL_STATUS_IN_PROGRESS) {
-        response->status = wifi_decode_sl_status(status);
-        wifi_send_response(instance, response);
+        FURI_LOG_E(TAG, "Failed to initiate scan: %lX", status);
     }
+
+    return status;
 }
 
-static void wifi_connect_request_handler(
+static sl_status_t wifi_connect_request_handler(
     Wifi* instance,
     const WifiRequest* request,
     WifiResponse* response) {
+    UNUSED(response);
+
     FURI_LOG_D(TAG, "Connect");
 
     sl_status_t status;
@@ -173,15 +178,15 @@ static void wifi_connect_request_handler(
 
     } while(false);
 
-    response->status = wifi_decode_sl_status(status);
-    wifi_send_response(instance, response);
+    return status;
 }
 
-static void wifi_disconnect_request_handler(
+static sl_status_t wifi_disconnect_request_handler(
     Wifi* instance,
     const WifiRequest* request,
     WifiResponse* response) {
     UNUSED(request);
+    UNUSED(response);
 
     FURI_LOG_D(TAG, "Disconnect");
 
@@ -199,14 +204,14 @@ static void wifi_disconnect_request_handler(
 
     } while(false);
 
-    response->status = wifi_decode_sl_status(status);
-    wifi_send_response(instance, response);
+    return status;
 }
 
-static void wifi_get_backend_info_request_handler(
+static sl_status_t wifi_get_backend_info_request_handler(
     Wifi* instance,
     const WifiRequest* request,
     WifiResponse* response) {
+    UNUSED(instance);
     UNUSED(request);
 
     FURI_LOG_D(TAG, "GetBackendInfo");
@@ -237,8 +242,7 @@ static void wifi_get_backend_info_request_handler(
 
     } while(false);
 
-    response->status = wifi_decode_sl_status(status);
-    wifi_send_response(instance, response);
+    return status;
 }
 
 static void wifi_intercom_rx_callback(const void* data, size_t data_size, void* context) {
@@ -269,11 +273,15 @@ static void
     const WifiRequestType request_type = request->type;
     furi_check(request_type < WifiRequestTypeMax);
 
-    WifiResponse response = {
-        .type = request_type,
-    };
+    WifiResponse response = {0};
+    const sl_status_t status = wifi_request_handlers[request_type](instance, request, &response);
 
-    wifi_request_handlers[request_type](instance, request, &response);
+    if(status != SL_STATUS_IN_PROGRESS) {
+        response.type = request_type;
+        response.status = wifi_decode_sl_status(status);
+
+        wifi_send_response(instance, &response);
+    }
 }
 
 static void wifi_scan_finished_event_handler(Wifi* instance, const WifiScanFinishedEvent* event) {
