@@ -36,21 +36,22 @@ static void widget_lvgl_constructor(const lv_obj_class_t* class_p, lv_obj_t* obj
 
 // Public API
 
+static AlignBitmask align_to_bitmask_lut[AlignMax] = {
+    [AlignDefault] = AlignBitmaskTop | AlignBitmaskLeft,
+    [AlignTopLeft] = AlignBitmaskTop | AlignBitmaskLeft,
+    [AlignTopMid] = AlignBitmaskTop | AlignBitmaskHorCenter,
+    [AlignTopRight] = AlignBitmaskTop | AlignBitmaskRight,
+    [AlignLeftMid] = AlignBitmaskVerCenter | AlignBitmaskLeft,
+    [AlignCenter] = AlignBitmaskVerCenter | AlignBitmaskHorCenter,
+    [AlignRightMid] = AlignBitmaskVerCenter | AlignBitmaskRight,
+    [AlignBottomLeft] = AlignBitmaskBottom | AlignBitmaskLeft,
+    [AlignBottomMid] = AlignBitmaskBottom | AlignBitmaskHorCenter,
+    [AlignBottomRight] = AlignBitmaskBottom | AlignBitmaskRight,
+};
+
 AlignBitmask widget_align_to_bitmask(Align align) {
-    AlignBitmask mask = 0;
-    if((align == AlignBottomLeft) || (align == AlignLeftMid) || (align == AlignTopLeft))
-        mask |= AlignBitmaskLeft;
-    if((align == AlignTopMid) || (align == AlignCenter) || (align == AlignBottomMid))
-        mask |= AlignBitmaskHorCenter;
-    if((align == AlignBottomRight) || (align == AlignRightMid) || (align == AlignTopRight))
-        mask |= AlignBitmaskRight;
-    if((align == AlignTopLeft) || (align == AlignTopMid) || (align == AlignTopRight))
-        mask |= AlignBitmaskTop;
-    if((align == AlignLeftMid) || (align == AlignCenter) || (align == AlignRightMid))
-        mask |= AlignBitmaskVerCenter;
-    if((align == AlignBottomLeft) || (align == AlignBottomMid) || (align == AlignBottomRight))
-        mask |= AlignBitmaskBottom;
-    return mask;
+    furi_check(align < AlignMax);
+    return align_to_bitmask_lut[align];
 }
 
 Widget* widget_alloc(Widget* parent) {

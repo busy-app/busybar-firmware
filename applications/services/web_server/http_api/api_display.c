@@ -124,12 +124,12 @@ static bool api_display_draw_parse_element(
                 [AlignTopLeft] = "top_left",
                 [AlignTopMid] = "top_mid",
                 [AlignTopRight] = "top_right",
+                [AlignLeftMid] = "mid_left",
+                [AlignCenter] = "center",
+                [AlignRightMid] = "mid_right",
                 [AlignBottomLeft] = "bottom_left",
                 [AlignBottomMid] = "bottom_mid",
                 [AlignBottomRight] = "bottom_right",
-                [AlignLeftMid] = "left_mid",
-                [AlignRightMid] = "right_mid",
-                [AlignCenter] = "center",
             };
             size_t align = value_index_string(alignment, alignments, COUNT_OF(alignments));
             canvas_element->align = align;

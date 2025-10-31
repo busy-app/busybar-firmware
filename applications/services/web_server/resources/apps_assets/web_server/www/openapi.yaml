@@ -1351,10 +1351,10 @@ components:
           description: Type of display element
         x:
           type: integer
-          description: X coordinate for placement on display
+          description: X coordinate of selected anchor point relative to top-left of display
         y:
           type: integer
-          description: Y coordinate for placement on display
+          description: Y coordinate of selected anchor point relative to top-left of display
         display:
           type: string
           enum: [front, back]
@@ -1362,17 +1362,17 @@ components:
           default: front
         align:
           type: string
-          description: Alignment relative to the screen
+          description: Anchor point of element. Also use `x` and `y` to position element.
           enum:
             - top_left
             - top_mid
             - top_right
+            - mid_left
+            - center
+            - mid_right
             - bottom_left
             - bottom_mid
             - bottom_right
-            - left_mid
-            - right_mid
-            - center
       discriminator:
         propertyName: type
         mapping:
