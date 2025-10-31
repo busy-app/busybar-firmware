@@ -48,6 +48,13 @@ UpdaterStatus
     updater_unpack_tar(const char* tar_path, const char* staging_path, FuriString* manifest_path);
 
 /**
+ * @brief Check if firmware update installation is allowed.
+ *
+ * @return true if update installation is allowed, false otherwise.
+ */
+bool updater_is_install_allowed(void);
+
+/**
  * @brief Check if update is ready to install on reboot.
  *
  * @return true if update is prepared, false otherwise.

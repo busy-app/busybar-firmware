@@ -31,20 +31,6 @@ static const char* const updater_tar_install_error_messages[] = {
 
 static_assert(COUNT_OF(updater_tar_install_error_messages) == UpdaterStatusesCount);
 
-static bool does_battery_state_allow_update(void) {
-    Power* power = furi_record_open(RECORD_POWER);
-
-    PowerInfo info;
-    power_get_info(power, &info);
-
-    bool allow_update =
-        info.charge > UPDATE_MIN_BATTERY_LEVEL ||
-        (furi_hal_nvm_is_flag_set(FuriHalNvmFlagDebug) && power_is_usb_connected(power));
-
-    furi_record_close(RECORD_POWER);
-    return allow_update;
-}
-
 const char* updater_get_status_string(UpdaterStatus status) {
     return (status < UpdaterStatusesCount) ? updater_tar_install_error_messages[status] :
                                              "Unknown error code";
@@ -142,7 +128,7 @@ UpdaterStatus updater_prepare_install(const char* manifest_path) {
     UpdateConfig* config = update_config_alloc();
 
     do {
-        if(!does_battery_state_allow_update()) {
+        if(!updater_is_install_allowed()) {
             FURI_LOG_W(
                 TAG, "Battery level too low (has to be at least %d%%)", UPDATE_MIN_BATTERY_LEVEL);
 
@@ -203,6 +189,20 @@ UpdaterStatus updater_prepare_install(const char* manifest_path) {
     return status;
 }
 
+bool updater_is_install_allowed(void) {
+    Power* power = furi_record_open(RECORD_POWER);
+
+    PowerInfo info;
+    power_get_info(power, &info);
+
+    bool is_install_allowed =
+        info.charge > UPDATE_MIN_BATTERY_LEVEL ||
+        (furi_hal_nvm_is_flag_set(FuriHalNvmFlagDebug) && power_is_usb_connected(power));
+
+    furi_record_close(RECORD_POWER);
+    return is_install_allowed;
+}
+
 bool updater_is_install_prepared(void) {
     Storage* storage = furi_record_open(RECORD_STORAGE);
     bool is_install_prepared = storage_file_exists(storage, EXT_PATH(UPDATE_POINTER_FILE_NAME));
@@ -226,7 +226,7 @@ void updater_cancel_prepared_install(void) {
 UpdaterStatus updater_reboot_install(void) {
     UpdaterStatus status;
 
-    if(does_battery_state_allow_update()) {
+    if(updater_is_install_allowed()) {
         furi_hal_nvm_set_boot_mode(FuriHalNvmBootModeUpdate);
 
         FURI_LOG_D(TAG, "Boot mode set to \"update\"\r\nRebooting...");
