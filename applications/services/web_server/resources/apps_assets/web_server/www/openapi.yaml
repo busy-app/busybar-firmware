@@ -1426,11 +1426,17 @@ components:
         - type: object
           required:
             - path
-          properties:
-            path:
-              type: string
-              pattern: "^[a-zA-Z0-9._/-]+$"
-              description: Path to the image file in the app's assets
+          oneOf:
+            - properties:
+                path:
+                  type: string
+                  pattern: "^[a-zA-Z0-9._/-]+$"
+                  description: Path to the image file in the app's assets
+            - properties:
+                builtin_image:
+                  type: string
+                  pattern: "^[a-z_]+/[a-z0-9_]+$"
+                  description: Identifier of builtin image
 
     DisplayBrightnessInfo:
       type: object

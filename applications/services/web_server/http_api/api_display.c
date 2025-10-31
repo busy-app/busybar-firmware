@@ -10,7 +10,8 @@
 
 #define TAG "HttpDisplay"
 
-#define DISPLAY_ASSETS_DIR EXT_PATH("assets")
+#define DISPLAY_ASSETS_DIR               EXT_PATH("assets")
+#define DISPLAY_BUILTIN_IMAGES_FORMATTER EXT_PATH("apps_assets/%s/images/%s.bin")
 
 #define DISPLAY_BRIGHTNESS_MAX (100)
 
@@ -70,16 +71,45 @@ static bool api_display_draw_parse_image_element(
     const char* app_id,
     struct mg_str json_element) {
     bool result = false;
+
+    char* uploaded = mg_json_get_str(json_element, "$.path");
+    char* builtin = mg_json_get_str(json_element, "$.builtin_image");
+
     do {
         canvas_element->type = CanvasElementTypeImage;
-        char* image_file = mg_json_get_str(json_element, "$.path");
-        if(!image_file) break;
-        canvas_element->image.file_path =
-            furi_string_alloc_printf("%s/%s/%s", DISPLAY_ASSETS_DIR, app_id, image_file);
+        if(uploaded && builtin) break;
 
-        free(image_file);
-        result = true;
+        if(uploaded) {
+            canvas_element->image.file_path =
+                furi_string_alloc_printf("%s/%s/%s", DISPLAY_ASSETS_DIR, app_id, uploaded);
+
+            result = true;
+            break;
+        }
+
+        if(builtin) {
+            char* app_name = builtin;
+            char* image_name = NULL;
+
+            for(char* c = builtin; *c != 0; c++) {
+                if(*c == '/') {
+                    *c = '\0';
+                    image_name = c + 1;
+                }
+            }
+
+            if(!image_name) break;
+
+            canvas_element->image.file_path =
+                furi_string_alloc_printf(DISPLAY_BUILTIN_IMAGES_FORMATTER, app_name, image_name);
+            result = true;
+            break;
+        }
     } while(0);
+
+    free(uploaded);
+    free(builtin);
+
     return result;
 }
 
