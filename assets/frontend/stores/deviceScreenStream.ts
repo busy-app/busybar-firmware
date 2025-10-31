@@ -2,7 +2,7 @@ import { defineStore } from 'pinia';
 import { ScreenStream, DeviceScreen } from '@busy-app/busy-lib';
 
 export const useDeviceScreenStreamStore = defineStore('deviceScreenStream', () => {
-  const barUrl = useRuntimeConfig().public.barUrl || location.origin;
+  const barUrl = useRuntimeConfig().public.barUrl ? `http://${useRuntimeConfig().public.barUrl}` : location.origin;
   const apiKey = useApiStore().apiKey;
 
   const currentScreen = ref<DeviceScreen>(DeviceScreen.FRONT);
