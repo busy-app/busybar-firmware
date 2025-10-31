@@ -36,6 +36,23 @@ static void widget_lvgl_constructor(const lv_obj_class_t* class_p, lv_obj_t* obj
 
 // Public API
 
+AlignBitmask widget_align_to_bitmask(Align align) {
+    AlignBitmask mask = 0;
+    if((align == AlignBottomLeft) || (align == AlignLeftMid) || (align == AlignTopLeft))
+        mask |= AlignBitmaskLeft;
+    if((align == AlignTopMid) || (align == AlignCenter) || (align == AlignBottomMid))
+        mask |= AlignBitmaskHorCenter;
+    if((align == AlignBottomRight) || (align == AlignRightMid) || (align == AlignTopRight))
+        mask |= AlignBitmaskRight;
+    if((align == AlignTopLeft) || (align == AlignTopMid) || (align == AlignTopRight))
+        mask |= AlignBitmaskTop;
+    if((align == AlignLeftMid) || (align == AlignCenter) || (align == AlignRightMid))
+        mask |= AlignBitmaskVerCenter;
+    if((align == AlignBottomLeft) || (align == AlignBottomMid) || (align == AlignBottomRight))
+        mask |= AlignBitmaskBottom;
+    return mask;
+}
+
 Widget* widget_alloc(Widget* parent) {
     furi_check(parent);
 

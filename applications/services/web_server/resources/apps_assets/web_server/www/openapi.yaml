@@ -1314,6 +1314,8 @@ components:
             type: "text"
             text: "Hello, World!"
             align: center
+            x: 36
+            y: 8
             font: big
             color: "#AAFF00FF"
             width: 72

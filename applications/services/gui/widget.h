@@ -38,6 +38,27 @@ typedef enum {
     AlignMax, /**< Special value, not to be used in application code */
 } Align;
 
+/** Like `Align`, but with coded axes for ease of processing */
+typedef enum {
+    AlignBitmaskLeft = (1 << 0),
+    AlignBitmaskHorCenter = (1 << 1),
+    AlignBitmaskRight = (1 << 2),
+
+    AlignBitmaskTop = (1 << 3),
+    AlignBitmaskVerCenter = (1 << 4),
+    AlignBitmaskBottom = (1 << 5),
+} AlignBitmask;
+
+/**
+ * @brief Convert `Align` into `AlignBitmask`
+ * 
+ * `AlignBitmask` may be easier to manually parse in some cases.
+ * 
+ * @param[in] align `Align` value
+ * @returns Converted `AlignBitmap` value
+ */
+AlignBitmask widget_align_to_bitmask(Align align);
+
 /** Enumeration of possible scrollbar modes for widget */
 typedef enum {
     WidgetScrollBarModeOff, /**< Never show scrollbars*/

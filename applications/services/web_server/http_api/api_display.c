@@ -14,37 +14,6 @@
 
 #define DISPLAY_BRIGHTNESS_MAX (100)
 
-static int32_t api_display_text_offset(GuiFont font, Align align) {
-    // align horizontal text edges with screen edges
-    if(font == GuiFontBf4x5) {
-        if(align == AlignBottomLeft) return 0;
-        if(align == AlignBottomMid) return 0;
-        if(align == AlignBottomRight) return 0;
-        if(align == AlignLeftMid) return -1;
-        if(align == AlignCenter) return -1;
-        if(align == AlignRightMid) return -1;
-        return -2;
-    } else if(font == GuiFontBf5x7 || font == GuiFontBf5x7CondensedNumerals) {
-        if(align == AlignBottomLeft) return 0;
-        if(align == AlignBottomMid) return 0;
-        if(align == AlignBottomRight) return 0;
-        if(align == AlignLeftMid) return -1;
-        if(align == AlignCenter) return -1;
-        if(align == AlignRightMid) return -1;
-        return -2;
-    } else if(font == GuiFontBf7x10) {
-        if(align == AlignBottomLeft) return 2;
-        if(align == AlignBottomMid) return 2;
-        if(align == AlignBottomRight) return 2;
-        if(align == AlignLeftMid) return 0;
-        if(align == AlignCenter) return 0;
-        if(align == AlignRightMid) return 0;
-        return -2;
-    } else {
-        furi_crash();
-    }
-}
-
 static bool api_display_draw_parse_text_element(
     CanvasElement* canvas_element,
     const char* app_id,
@@ -72,9 +41,6 @@ static bool api_display_draw_parse_text_element(
             free(font_name);
             if(font == 0) break;
         }
-
-        canvas_element->y +=
-            api_display_text_offset(canvas_element->text.font, canvas_element->align);
 
         char* color_hex = mg_json_get_str(json_element, "$.color");
         if(color_hex) {

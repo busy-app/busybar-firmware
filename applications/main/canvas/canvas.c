@@ -298,12 +298,79 @@ static Widget* canvas_element_update_specific(
     }
 }
 
-static void canvas_element_update_generic(Widget* base, const CanvasElement* element) {
+/**
+ * LVGL applies `pos_x` and `pos_y` relative to the anchor point selected by
+ * `Align`. We want alignment to behave like in Flipper Zero: the anchor point
+ * is always relative to the top left of the screen, and the object is then
+ * aligned relative to this anchor point.
+ */
+static void canvas_element_reanchor(Widget* root, Align align, int32_t* x, int32_t* y) {
+    furi_assert(root);
+    furi_assert(x);
+    furi_assert(y);
+
+    int32_t disp_width = widget_get_width(root);
+    int32_t disp_height = widget_get_height(root);
+    AlignBitmask align_bm = widget_align_to_bitmask(align);
+
+    int32_t lvgl_anchor_x;
+    if(align_bm & AlignBitmaskLeft) lvgl_anchor_x = 0;
+    if(align_bm & AlignBitmaskHorCenter) lvgl_anchor_x = disp_width / 2;
+    if(align_bm & AlignBitmaskRight) lvgl_anchor_x = disp_width;
+
+    int32_t lvgl_anchor_y;
+    if(align_bm & AlignBitmaskTop) lvgl_anchor_y = 0;
+    if(align_bm & AlignBitmaskVerCenter) lvgl_anchor_y = disp_height / 2;
+    if(align_bm & AlignBitmaskBottom) lvgl_anchor_y = disp_height;
+
+    *x -= lvgl_anchor_x;
+    *y -= lvgl_anchor_y;
+}
+
+/**
+ * Slight vertical nudge for perceptually better aligned text at low resolution
+ */
+static int32_t canvas_text_nudge_y(GuiFont font, Align align) {
+    AlignBitmask align_bm = widget_align_to_bitmask(align);
+    if(font == GuiFontBf4x5) {
+        if(align_bm & AlignBitmaskBottom) return 0;
+        if(align_bm & AlignBitmaskVerCenter) return -1;
+        return -2; // BitmaskTop
+    } else if(font == GuiFontBf5x7 || font == GuiFontBf5x7CondensedNumerals) {
+        if(align_bm & AlignBitmaskBottom) return 0;
+        if(align_bm & AlignBitmaskVerCenter) return -1;
+        return -2; // BitmaskTop
+    } else if(font == GuiFontBf7x10) {
+        if(align_bm & AlignBitmaskBottom) return 2;
+        if(align_bm & AlignBitmaskVerCenter) return 0;
+        return -2; // BitmaskTop
+    } else {
+        furi_crash();
+    }
+}
+
+static int32_t canvas_element_nudge_y(const CanvasElement* element) {
+    furi_assert(element);
+
+    if(element->type == CanvasElementTypeText) {
+        return canvas_text_nudge_y(element->text.font, element->align);
+    }
+
+    return 0;
+}
+
+static void
+    canvas_element_update_generic(Widget* base, Widget* root, const CanvasElement* element) {
     furi_assert(base);
     furi_assert(element);
 
+    int32_t x = element->x;
+    int32_t y = element->y;
+    canvas_element_reanchor(root, element->align, &x, &y);
+    y += canvas_element_nudge_y(element);
+
     widget_set_align(base, element->align);
-    widget_set_pos(base, element->x, element->y);
+    widget_set_pos(base, x, y);
 }
 
 static bool
@@ -328,7 +395,7 @@ static bool
         GuiLayer* gui_layer = gui_get_layer(canvas->gui, GuiLayerIdMain);
         Widget* root = gui_layer_get_root_widget(gui_layer, element->display);
         Widget* base = canvas_element_update_specific(&widget, root, element);
-        canvas_element_update_generic(base, element);
+        canvas_element_update_generic(base, root, element);
     });
 
     uint32_t effective_timeout = 0;
