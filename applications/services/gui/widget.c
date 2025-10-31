@@ -36,7 +36,7 @@ static void widget_lvgl_constructor(const lv_obj_class_t* class_p, lv_obj_t* obj
 
 // Public API
 
-static AlignBitmask align_to_bitmask_lut[AlignMax] = {
+static const AlignBitmask align_to_bitmask_lut[AlignMax] = {
     [AlignDefault] = AlignBitmaskTop | AlignBitmaskLeft,
     [AlignTopLeft] = AlignBitmaskTop | AlignBitmaskLeft,
     [AlignTopMid] = AlignBitmaskTop | AlignBitmaskHorCenter,
