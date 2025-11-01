@@ -40,8 +40,6 @@ typedef struct FURI_PACKED {
     BleAdvertiseLocalName local_name;
 } BleAdvertiseConfig;
 
-// extern const BleAdvertiseConfig advertise_config;
-
 static const BleAdvertiseConfig advertise_config_template = {
     .flags =
         {
@@ -66,7 +64,6 @@ static const BleAdvertiseConfig advertise_config_template = {
     .local_name =
         {
             .header = {.type = 0x9, .length = 0},
-            // .data = BLE_LOCAL_NAME,
         },
 };
 
@@ -108,12 +105,11 @@ void ble_advertise_set_name(BleAdvertiseContext* instance, const char* new_name)
 
     if(furi_string_size(name) > free_space) {
         furi_string_left(name, free_space - 3);
-        BLE_LOG_I("Trimmed name: %s", furi_string_get_cstr(name));
         furi_string_cat_printf(name, "...");
     }
 
-    BLE_LOG_I("New device name: %s", furi_string_get_cstr(name));
     const size_t name_size = furi_string_size(name);
+    BLE_LOG_I("New device name: %s, size: %d", furi_string_get_cstr(name), name_size);
 
     BleAdvertiseConfig* const config = instance->advertise_config;
     config->local_name.header.length = name_size + 1;
@@ -131,7 +127,7 @@ void ble_advertise_refresh_data(const BleAdvertiseContext* instance) {
 
     furi_mutex_acquire(instance->lock, FuriWaitForever);
 
-    BLE_LOG_I("Size: %d", instance->actual_size);
+    BLE_LOG_D("Size: %d", instance->actual_size);
     if(rsi_ble_set_advertise_data(instance->advertise_config, instance->actual_size) !=
        RSI_SUCCESS)
         BLE_LOG_W("Failed to set advertise data");
@@ -149,11 +145,8 @@ void ble_advertise_print_data(const BleAdvertiseContext* instance) {
     BLE_LOG_I("Flags: %d", config->flags.data);
     BLE_LOG_I("Appearance: %04X", config->appearance.data);
     BLE_LOG_I("Manufacturer: %04X", config->manufacturer.data);
-    if(config->local_name.header.length > 0) {
-        BLE_LOG_I(
-            "Local name: %s, size: %d", config->local_name.data, config->local_name.header.length);
-    } else
-        BLE_LOG_I("Free name space %d", BLE_ADVERTISE_PACKET_MAX_SIZE - instance->actual_size);
+    BLE_LOG_I(
+        "Local name: %s, size: %d", config->local_name.data, config->local_name.header.length);
 
     furi_mutex_release(instance->lock);
 }
