@@ -15,6 +15,25 @@ BleIntercomFrameGeneric* ble_command_preprocess(Ble* instance, uint32_t events) 
     }
 }
 
+static void ble_on_name_change_callback(const void* message, void* context) {
+    UNUSED(message);
+    Ble* instance = context;
+    furi_event_loop_set_custom_event(instance->event_loop, BleEventTypeDeviceNameChanged);
+}
+
+static void ble_subscribe_on_name_change(Ble* instance) {
+    DeviceName* name_record = furi_record_open(RECORD_DEVICE_NAME);
+    FuriPubSub* pubsub = device_name_get_on_change_pub_sub(name_record);
+    furi_pubsub_subscribe(pubsub, ble_on_name_change_callback, instance);
+    furi_record_close(RECORD_DEVICE_NAME);
+}
+
+static void ble_get_name_from_record(FuriString* output) {
+    DeviceName* name_record = furi_record_open(RECORD_DEVICE_NAME);
+    device_name_get(name_record, output);
+    furi_record_close(RECORD_DEVICE_NAME);
+}
+
 static bool ble_command_init_request(BleIntercomFrameGeneric* frame, void* context) {
     BLE_LOG_D("BleCommandInit request");
 
@@ -35,6 +54,7 @@ static bool ble_command_init_response(BleIntercomFrameGeneric* frame, void* cont
     ///But for now let's keep it as it is.
     instance->state = BleServiceStateReady;
     instance->current_message->result = true;
+    ble_subscribe_on_name_change(instance);
     api_lock_unlock(instance->current_message_api_lock);
     return true;
 }
