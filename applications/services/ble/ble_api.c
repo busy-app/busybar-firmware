@@ -79,9 +79,6 @@ BleServiceState ble_get_state(Ble* ble) {
     ble_send_message(
         ble, BleCommandGetState, &dummy, sizeof(dummy), &state, sizeof(BleServiceState), &result);
 
-    ///TODO: rework this
-    // BleServiceState state = msg->result ? *((BleServiceState*)msg->data) : BleServiceStateError;
-
     return state;
 }
 
