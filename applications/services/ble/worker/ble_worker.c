@@ -53,8 +53,6 @@
 
 #define MITM_REQ 1
 
-#define DEVICE_ADDRESS_EQUAL(addr1, addr2) (memcmp(addr1, addr2, RSI_DEV_ADDR_LEN) == 0)
-
 //! application events list
 typedef enum {
     BLEWorkerEvtExit = (1 << 0),
@@ -108,7 +106,6 @@ typedef struct {
     FuriSemaphore* indication_sem;
     FuriSemaphore* notification_sem;
     uint8_t pairing_info_available;
-    FuriTimer* timer;
     ///TODO: this can be removed
     bool connected;
     BleWorkerState state;
