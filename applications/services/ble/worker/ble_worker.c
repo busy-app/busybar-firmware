@@ -21,6 +21,8 @@
 
 #define TAG "BleWorker"
 
+#define BLE_DEFAULT_LOCAL_NAME "BUSY Bar"
+
 #define BLE_WORKER_LOCAL_DEV_ADDR_LEN 18 // Length of the local device address
 #define BLE_WORKER_MAX_MTU_SIZE       240
 #define BLE_WORKER_ATTR_HEADER_SIZE   3
@@ -535,8 +537,8 @@ static void ble_hw_config() {
         ble_worker_on_indicate_confirmation_event,
         NULL);
 
-    // //! Set local name
-    status = rsi_bt_set_local_name((uint8_t*)advertise_config.local_name.data);
+    //! Set local name
+    status = rsi_bt_set_local_name((const uint8_t*)BLE_DEFAULT_LOCAL_NAME);
     if(status != RSI_SUCCESS) {
         BLE_LOG_W("Failed to set local name, error code : 0x%08lx", status);
         furi_crash();
