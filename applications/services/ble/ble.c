@@ -52,7 +52,6 @@ void ble_custom_event_callback(uint32_t events, void* context) {
         }
 
         if(events & BleEventTypeDeviceNameChanged) {
-            BLE_LOG_I("BleEventTypeDeviceNameChanged");
             ble_invoke_retry_command_on_internal_event(
                 instance, BleCommandSetDeviceName, BleEventTypeDeviceNameChanged, 100);
         }

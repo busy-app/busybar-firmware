@@ -1,6 +1,7 @@
 #include "ble_command_engine.h"
 #include "ble_system_command.h"
 #include "http/ble_http_repeater.h"
+#include "device_name/device_name.h"
 
 #define TAG "BLE_U5"
 
@@ -92,7 +93,7 @@ static bool ble_command_disable_response(BleIntercomFrameGeneric* frame, void* c
 }
 
 static bool ble_command_get_state_request(BleIntercomFrameGeneric* frame, void* context) {
-    BLE_LOG_D("BleCommandDisable request");
+    BLE_LOG_D("BleCommandGetState request");
     frame->header.command = BleCommandGetState;
     return ble_command_request_process(frame, context);
 }
@@ -100,7 +101,7 @@ static bool ble_command_get_state_request(BleIntercomFrameGeneric* frame, void* 
 static bool ble_command_get_state_response(BleIntercomFrameGeneric* frame, void* context) {
     UNUSED(frame);
 
-    BLE_LOG_D("BleCommandDisable response");
+    BLE_LOG_D("BleCommandGetState response");
     Ble* instance = context;
     ///TODO: this logic must be improved
     BLE_LOG_D("Local state: %d remote state: %d", instance->state, frame->data[0]);
