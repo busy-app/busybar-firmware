@@ -132,6 +132,7 @@ typedef struct {
     rsi_bt_event_smp_resp_t rsi_bt_event_smp_resp;
     rsi_bt_event_le_ltk_request_t ble_ltk_req;
     BleSecurityData* security_data;
+    BleAdvertiseContext* advertise;
 
     BleServiceEntryDict_t service_dict;
 } BleWorker;
@@ -541,10 +542,7 @@ static void ble_hw_config() {
         furi_crash();
     }
 
-    BLE_LOG_I("Flags: %d", advertise_config.flags.data);
-    BLE_LOG_I("Appearance: %04X", advertise_config.appearance.data);
-    BLE_LOG_I("Manufacturer: %04X", advertise_config.manufacturer.data);
-    BLE_LOG_I("Local Name: %s", advertise_config.local_name.data);
+    ble_advertise_print_data(ble_worker_instance->advertise);
 
     // ble_adjust_gap_service_data();
 
@@ -1002,6 +1000,9 @@ void ble_worker_init() {
     ble_worker_instance->notification_sem = furi_semaphore_alloc(1, 1);
     ble_worker_instance->max_payload_size = BLE_WORKER_MAX_MTU_SIZE - BLE_WORKER_ATTR_HEADER_SIZE;
     ble_worker_instance->security_data = ble_security_alloc();
+    ble_worker_instance->advertise = ble_advertise_alloc();
+    ble_advertise_set_name(ble_worker_instance->advertise, BLE_DEFAULT_LOCAL_NAME);
+
     BleServiceEntryDict_init(ble_worker_instance->service_dict);
 
     ble_hw_config();
