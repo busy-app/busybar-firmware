@@ -113,4 +113,15 @@ const BleCommandItem ble_commands[BleCommandCount] = {
             .request = ble_command_forget_pairing_request,
             .response = ble_command_forget_pairing_response,
         },
-};
+
+void ble_invoke_retry_command_on_internal_event(
+    Ble* instance,
+    BleSystemCommand command,
+    BleEventType retry_event,
+    uint32_t retry_timeout) {
+    UNUSED(instance);
+    UNUSED(retry_timeout);
+    UNUSED(command);
+    UNUSED(retry_event);
+    furi_crash("Not implemented");
+}
