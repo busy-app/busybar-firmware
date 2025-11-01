@@ -13,7 +13,7 @@
 #include "rsi_ble_common_config.h"
 #include "rsi_bt_common_apis.h"
 
-#include "ble_advertise_config.h"
+#include "ble_advertise.h"
 #include "ble_worker_util.h"
 #include "../service/ble_service_i.h"
 
