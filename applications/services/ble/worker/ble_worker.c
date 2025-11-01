@@ -1192,3 +1192,17 @@ bool ble_worker_forget_pairing() {
     if(result) BLE_LOG_I("Security data removed");
     return result;
 }
+
+void ble_worker_set_name(const char* new_name) {
+    furi_assert(new_name);
+
+    if(ble_worker_instance->state == BleWorkerStateAdvertising) {
+        ble_worker_stop_advertising();
+    }
+
+    ble_advertise_set_name(ble_worker_instance->advertise, new_name);
+
+    if(ble_worker_instance->state == BleWorkerStateAdvertising) {
+        ble_worker_start_advertising(false, NULL, ble_worker_instance->advertise);
+    }
+}
