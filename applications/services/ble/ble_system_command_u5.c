@@ -35,7 +35,7 @@ static bool ble_command_init_response(BleIntercomFrameGeneric* frame, void* cont
     ///But for now let's keep it as it is.
     instance->state = BleServiceStateReady;
     instance->current_message->result = true;
-    api_lock_unlock(instance->current_message->lock);
+    api_lock_unlock(instance->current_message_api_lock);
     return true;
 }
 
@@ -50,7 +50,7 @@ static bool ble_command_enable_response(BleIntercomFrameGeneric* frame, void* co
     Ble* instance = context;
 
     instance->current_message->result = true;
-    api_lock_unlock(instance->current_message->lock);
+    api_lock_unlock(instance->current_message_api_lock);
     ble_http_repeater_start(instance);
     return true;
 }
@@ -66,7 +66,7 @@ static bool ble_command_disable_response(BleIntercomFrameGeneric* frame, void* c
     Ble* instance = context;
 
     instance->current_message->result = true;
-    api_lock_unlock(instance->current_message->lock);
+    api_lock_unlock(instance->current_message_api_lock);
     ble_http_repeater_stop();
     return true;
 }
@@ -89,7 +89,7 @@ static bool ble_command_get_state_response(BleIntercomFrameGeneric* frame, void*
     instance->current_message->result = true;
     BleServiceState* state = (BleServiceState*)instance->current_message->data;
     *state = instance->state;
-    api_lock_unlock(instance->current_message->lock);
+    api_lock_unlock(instance->current_message_api_lock);
     return true;
 }
 
@@ -104,7 +104,10 @@ static bool ble_command_forget_pairing_response(BleIntercomFrameGeneric* frame, 
     Ble* instance = context;
 
     instance->current_message->result = frame->data[0];
-    api_lock_unlock(instance->current_message->lock);
+    api_lock_unlock(instance->current_message_api_lock);
+    return true;
+}
+
     return true;
 }
 

@@ -15,7 +15,6 @@
 
 typedef struct {
     bool result; ///TODO: replace with some more extended status
-    FuriApiLock lock;
     BleIntercomFrameHeader header;
     uint8_t data[];
 } BleMessage;
@@ -42,8 +41,10 @@ struct Ble {
 
     BleServiceObject* services[BLE_SERVICES_COUNT];
 #if !defined(SI917)
-    FuriTimer* init_timer;
+    FuriApiLock current_message_api_lock;
+    FuriMutex* current_message_lock;
     BleMessage* current_message;
+    size_t current_message_size;
 #endif
 };
 

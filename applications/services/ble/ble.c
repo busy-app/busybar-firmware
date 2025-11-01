@@ -127,6 +127,11 @@ static Ble* ble_alloc() {
 
 #if !defined(SI917)
     ble_http_repeater_init();
+
+    instance->current_message_lock = furi_mutex_alloc(FuriMutexTypeNormal);
+    instance->current_message_api_lock = api_lock_alloc_locked();
+    instance->current_message_size = sizeof(BleIntercomFrameHeader) + sizeof(bool);
+    instance->current_message = malloc(instance->current_message_size);
 #endif
 
     furi_record_create(RECORD_BLE, instance);
