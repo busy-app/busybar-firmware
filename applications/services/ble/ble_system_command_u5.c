@@ -108,6 +108,42 @@ static bool ble_command_forget_pairing_response(BleIntercomFrameGeneric* frame, 
     return true;
 }
 
+static bool ble_command_set_device_name_request(BleIntercomFrameGeneric* frame, void* context) {
+    BLE_LOG_D("BleCommandSetDeviceName request");
+
+    FuriString* name = furi_string_alloc();
+    ble_get_name_from_record(name);
+
+    size_t name_size = furi_string_size(name) + 1;
+    const size_t new_msg_size = sizeof(BleIntercomFrameHeader) + name_size;
+
+    BleIntercomFrameGeneric* name_frame = malloc(new_msg_size);
+
+    memcpy(&name_frame->header, &frame->header, sizeof(BleIntercomFrameHeader));
+    name_frame->header.data_size = name_size;
+    memcpy(name_frame->data, furi_string_get_cstr(name), name_size);
+    name_frame->data[name_size] = 0;
+
+    bool result = ble_command_request_process(name_frame, context);
+    free(name_frame);
+    free(name);
+    return result;
+}
+
+static bool ble_command_set_device_name_response(BleIntercomFrameGeneric* frame, void* context) {
+    UNUSED(frame);
+    UNUSED(context);
+    BLE_LOG_D("BleCommandSetDeviceName response");
+    Ble* instance = context;
+    instance->current_message->result = frame->data[0];
+
+    const FuriThreadId owner_id = furi_mutex_get_owner(instance->current_message_lock);
+    const FuriThreadId current_id = furi_thread_get_current_id();
+    if(owner_id == current_id) {
+        furi_mutex_release(instance->current_message_lock);
+    } else {
+        api_lock_unlock(instance->current_message_api_lock);
+    }
     return true;
 }
 
@@ -142,6 +178,12 @@ const BleCommandItem ble_commands[BleCommandCount] = {
             .request = ble_command_forget_pairing_request,
             .response = ble_command_forget_pairing_response,
         },
+    [BleCommandSetDeviceName] =
+        {
+            .request = ble_command_set_device_name_request,
+            .response = ble_command_set_device_name_response,
+        },
+};
 
 void ble_invoke_retry_command_on_internal_event(
     Ble* instance,

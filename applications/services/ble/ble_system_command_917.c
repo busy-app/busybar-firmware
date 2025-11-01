@@ -82,6 +82,22 @@ static bool ble_command_forget_pairing_response(BleIntercomFrameGeneric* frame, 
     return true;
 }
 
+static bool ble_command_set_device_name_request(BleIntercomFrameGeneric* frame, void* context) {
+    BLE_LOG_D("BleCommandSetDeviceName request");
+
+    const char* name = (const char*)frame->data;
+    ble_worker_set_name(name);
+
+    return ble_command_response_process(frame, context);
+}
+
+static bool ble_command_set_device_name_response(BleIntercomFrameGeneric* frame, void* context) {
+    UNUSED(frame);
+    UNUSED(context);
+    BLE_LOG_D("BleCommandSetDeviceName response");
+    return true;
+}
+
 const BleCommandItem ble_commands[BleCommandCount] = {
     [BleCommandUnknown] =
         {
@@ -113,6 +129,12 @@ const BleCommandItem ble_commands[BleCommandCount] = {
             .request = ble_command_forget_pairing_request,
             .response = ble_command_forget_pairing_response,
         },
+    [BleCommandSetDeviceName] =
+        {
+            .request = ble_command_set_device_name_request,
+            .response = ble_command_set_device_name_response,
+        },
+};
 
 void ble_invoke_retry_command_on_internal_event(
     Ble* instance,
