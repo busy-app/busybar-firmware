@@ -51,6 +51,12 @@ void ble_custom_event_callback(uint32_t events, void* context) {
             ble_update_state_from_services(instance);
         }
 
+        if(events & BleEventTypeDeviceNameChanged) {
+            BLE_LOG_I("BleEventTypeDeviceNameChanged");
+            ble_invoke_retry_command_on_internal_event(
+                instance, BleCommandSetDeviceName, BleEventTypeDeviceNameChanged, 100);
+        }
+
         if((events & BleEventTypeFrameReceived) || (events & BleEventTypeIncomingMessage)) {
             BleIntercomFrameGeneric* frame = ble_command_preprocess(instance, events);
             ble_command_engine_run(instance->engine, frame, instance);

@@ -25,6 +25,7 @@ typedef enum {
     BleEventTypeIncomingMessage = (1 << 0),
     BleEventTypeFrameReceived = (1 << 1),
     BleEventTypeServiceStateChanged = (1 << 2),
+    BleEventTypeDeviceNameChanged = (1 << 3),
 } BleEventType;
 
 struct Ble {
