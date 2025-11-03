@@ -231,7 +231,6 @@ static void wifi_response_queue_callback(FuriEventLoopObject* object, void* cont
 
     WifiResponse response;
     while(furi_message_queue_get(instance->response_queue, &response, 0) == FuriStatusOk) {
-        // TODO: Better condition
         if(response.type != WifiRequestTypeBackendInfo) {
             wifi_process_response(instance, &response);
         } else {
