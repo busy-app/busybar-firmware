@@ -95,7 +95,7 @@ WifiStatus wifi_state_check_request_type(Wifi* instance, WifiRequestType request
             if(current_state != WifiStateConnected) {
                 status = WifiStatusAlreadyDisconnected;
             }
-        } else if(request_type == WifiRequestTypeGetBackendInfo) {
+        } else if(request_type == WifiRequestTypeBackendInfo) {
             if(current_state != WifiStateConnected) {
                 status = WifiStatusError;
             }

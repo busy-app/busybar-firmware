@@ -65,8 +65,6 @@ void wifi_schedule_init_request(Wifi* instance);
 
 void wifi_schedule_connect_request(Wifi* instance, const WifiSettings* settings);
 
-void wifi_schedule_backend_info_request(Wifi* instance);
-
 // Network management
 void wifi_net_init(Wifi* instance, const uint8_t* hw_addr);
 
