@@ -177,12 +177,49 @@ static void wifi_process_response(Wifi* instance, const WifiResponse* response) 
     wifi_api_unlock(instance, status);
 }
 
+static void
+    wifi_process_backend_info_response(Wifi* instance, const WifiBackendInfo* backend_info) {
+    WifiInfo wifi_info;
+    furi_state_get(instance->state, &wifi_info);
+
+    if(wifi_info.state == WifiStateConnected) {
+        if(backend_info->state == WifiBackendStateReconnecting) {
+            FURI_LOG_W(TAG, "Disconnected from \"%s\", trying to reconnect", wifi_info.ssid);
+
+            wifi_net_down(instance);
+            wifi_state_transition(instance, WifiStateReconnecting);
+        }
+
+    } else if(wifi_info.state == WifiStateReconnecting) {
+        if(backend_info->state == WifiBackendStateConnected) {
+            FURI_LOG_I(TAG, "Reconnected to \"%s\"", wifi_info.ssid);
+
+            if(wifi_net_up(instance, &wifi_info.ip_config)) {
+                WifiIpConfig new_ip_config;
+                wifi_net_get_ip_config(instance, &new_ip_config);
+
+                wifi_state_transition(instance, WifiStateConnected, &new_ip_config);
+                wifi_print_connection_info(instance);
+
+            } else {
+                // TODO: Disconnect on backend side
+            }
+
+        } else if(backend_info->state == WifiBackendStateDisconnected) {
+            wifi_state_transition(instance, WifiStateDisconnected);
+        }
+    }
+
+    wifi_state_update_backend_info(instance, backend_info);
+}
+
 static void wifi_process_async_response(Wifi* instance, const WifiResponse* response) {
     const WifiRequestType response_type = response->type;
 
     if(response_type == WifiRequestTypeBackendInfo) {
-        // TODO: change connectivity status if needed
-        wifi_state_update_backend_info(instance, &response->backend_info);
+        wifi_process_backend_info_response(instance, &response->backend_info);
+    } else {
+        furi_crash("Invalid WifiRequestType");
     }
 }
 
