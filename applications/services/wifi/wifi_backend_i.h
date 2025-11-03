@@ -2,6 +2,7 @@
 
 #include "wifi_common_i.h"
 
+#include <sl_status.h>
 #include <lwip/netif.h>
 
 #include <furi.h>
@@ -23,3 +24,7 @@ struct Wifi {
 };
 
 void wifi_net_tcpip_init(Wifi* instance);
+
+sl_status_t wifi_net_tcpip_netif_up(Wifi* instance);
+
+void wifi_net_tcpip_netif_down(Wifi* instance);

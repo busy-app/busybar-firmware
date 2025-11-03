@@ -348,8 +348,8 @@ static void wifi_module_stats_event_handler(Wifi* instance, const WifiModuleStat
 
     if(state_code == STATE_CODE_ASSOCIATED) {
         if(instance->state == WifiBackendStateReconnecting) {
+            wifi_net_tcpip_netif_up(instance);
             wifi_set_state(instance, WifiBackendStateConnected);
-            // TODO: set interface up?
 
         } else if(instance->state == WifiBackendStateDisconnected) {
             FURI_LOG_W(TAG, "Association while disconnected");
@@ -367,7 +367,7 @@ static void wifi_module_stats_event_handler(Wifi* instance, const WifiModuleStat
         } else if(reason_code == REASON_CODE_NO_RESPONSE || reason_code == REASON_CODE_BEACON_LOSS) {
             if(instance->state == WifiBackendStateConnected) {
                 wifi_set_state(instance, WifiBackendStateReconnecting);
-                // TODO: set interface down?
+                wifi_net_tcpip_netif_down(instance);
             }
 
             FURI_LOG_D(TAG, "No response from AP, current state: %d", instance->state);
