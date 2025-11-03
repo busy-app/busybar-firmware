@@ -13,4 +13,6 @@ void ble_worker_start();
 
 void ble_worker_stop();
 
+bool ble_worker_forget_pairing();
+
 void ble_worker_test_after_init();

@@ -293,12 +293,12 @@ void update_task_set_progress(UpdateTask* update_task, UpdateTaskStage stage, ui
     }
     update_task->state.overall_progress = adapted_progress;
 
-    if(update_task->status_change_cb) {
-        (update_task->status_change_cb)(
+    if(update_task->status_change_callback) {
+        update_task->status_change_callback(
             furi_string_get_cstr(update_task->state.status),
+            update_task->state.stage,
             adapted_progress,
-            update_stage_is_error(update_task->state.stage),
-            update_task->status_change_cb_state);
+            update_task->status_change_callback_context);
     }
 }
 
@@ -351,7 +351,7 @@ UpdateTask* update_task_alloc(void) {
     update_task->config = update_config_alloc();
     update_task->storage = furi_record_open(RECORD_STORAGE);
     update_task->file = storage_file_alloc(update_task->storage);
-    update_task->status_change_cb = NULL;
+    update_task->status_change_callback = NULL;
     update_task->update_dir_path = furi_string_alloc();
 
     FuriThread* thread = update_task->thread =
@@ -469,9 +469,12 @@ bool update_task_parse_manifest(UpdateTask* update_task) {
     return result;
 }
 
-void update_task_set_progress_cb(UpdateTask* update_task, updateProgressCb cb, void* state) {
-    update_task->status_change_cb = cb;
-    update_task->status_change_cb_state = state;
+void update_task_set_progress_callback(
+    UpdateTask* update_task,
+    UpdateProgressCallback callback,
+    void* context) {
+    update_task->status_change_callback = callback;
+    update_task->status_change_callback_context = context;
 }
 
 void update_task_start(UpdateTask* update_task) {

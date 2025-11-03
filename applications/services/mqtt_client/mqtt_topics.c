@@ -27,3 +27,7 @@ void mqtt_topics_on_message(MqttClient* mqtt, FuriString* topic_str, struct mg_m
         return;
     }
 }
+
+void mqtt_topics_on_close(MqttClient* mqtt) {
+    mqtt_screen_streaming_on_close(mqtt);
+}
