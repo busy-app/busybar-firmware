@@ -202,7 +202,7 @@ static void
                 wifi_print_connection_info(instance);
 
             } else {
-                // TODO: Disconnect on backend side
+                wifi_schedule_disconnect_request(instance);
             }
 
         } else if(backend_info->state == WifiBackendStateDisconnected) {

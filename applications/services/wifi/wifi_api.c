@@ -65,6 +65,16 @@ void wifi_schedule_connect_request(Wifi* instance, const WifiSettings* settings)
     wifi_api_nonblocking_request(instance, &msg);
 }
 
+void wifi_schedule_disconnect_request(Wifi* instance) {
+    furi_assert(instance);
+
+    WifiMessage msg = {
+        .request_type = WifiRequestTypeDisconnect,
+    };
+
+    wifi_api_nonblocking_request(instance, &msg);
+}
+
 FuriState* wifi_get_state(Wifi* instance) {
     furi_check(instance);
     return instance->state;

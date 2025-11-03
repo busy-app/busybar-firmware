@@ -509,7 +509,8 @@ static sl_status_t wifi_init_driver(Wifi* instance) {
             .beacon_missed_count = BEACON_MISSED_COUNT,
             .first_time_retry_enable = 0, // Initial retry count handled separately
         };
-        status = sl_wifi_set_advanced_client_configuration(SL_WIFI_CLIENT_2_4GHZ_INTERFACE, &adv_cfg);
+        status =
+            sl_wifi_set_advanced_client_configuration(SL_WIFI_CLIENT_2_4GHZ_INTERFACE, &adv_cfg);
 
         if(status != SL_STATUS_OK) {
             break;
