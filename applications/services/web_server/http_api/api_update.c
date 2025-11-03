@@ -119,7 +119,8 @@ static bool
             updater_prepare_install(furi_string_get_cstr(manifest_path));
         if(prepare_install_status != UpdaterStatusSuccess) {
             FuriString* error_string = furi_string_alloc_printf(
-                "Update prepare install failed: %s", updater_get_status_string(unpack_tar_status));
+                "Update prepare install failed: %s",
+                updater_get_status_string(prepare_install_status));
 
             FURI_LOG_E(TAG, furi_string_get_cstr(error_string));
             MG_REPLY_ERROR(conn, 400, furi_string_get_cstr(error_string));

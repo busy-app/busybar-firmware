@@ -597,7 +597,11 @@
     LV_FONT_DECLARE(lv_font_ark_numerals_condensed_10) \
     LV_FONT_DECLARE(lv_font_ark_regular_10) \
     LV_FONT_DECLARE(lv_font_ark_regular_12) \
-    LV_FONT_DECLARE(lv_font_ark_regular_20) 
+    LV_FONT_DECLARE(lv_font_ark_regular_20) \
+    LV_FONT_DECLARE(lv_font_bf_4x5) \
+    LV_FONT_DECLARE(lv_font_bf_5x7_condensed_numerals) \
+    LV_FONT_DECLARE(lv_font_bf_5x7) \
+    LV_FONT_DECLARE(lv_font_bf_7x10) 
 
 /** Always set a default font */
 #define LV_FONT_DEFAULT &lv_font_tiny5_8

@@ -10,6 +10,9 @@ extern "C" {
 
 #define RECORD_BACK_DISPLAY "back_display"
 
+#define BACK_DISPLAY_W (160)
+#define BACK_DISPLAY_H (80)
+
 #define BACK_DISPLAY_BRIGHTNESS_MIN  (0)
 #define BACK_DISPLAY_BRIGHTNESS_MAX  (100)
 #define BACK_DISPLAY_BRIGHTNESS_AUTO (255)
