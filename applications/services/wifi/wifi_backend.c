@@ -350,8 +350,11 @@ static void wifi_module_stats_event_handler(Wifi* instance, const WifiModuleStat
 
     if(state_code == STATE_CODE_ASSOCIATED) {
         if(instance->state == WifiBackendStateReconnecting) {
-            wifi_net_tcpip_netif_up(instance);
-            wifi_set_state(instance, WifiBackendStateConnected);
+            if(wifi_net_tcpip_netif_up(instance)) {
+                wifi_set_state(instance, WifiBackendStateConnected);
+            } else {
+                wifi_set_state(instance, WifiBackendStateDisconnected);
+            }
 
         } else if(instance->state == WifiBackendStateDisconnected) {
             FURI_LOG_W(TAG, "Association while disconnected");
@@ -529,7 +532,7 @@ static sl_status_t wifi_init_driver(Wifi* instance) {
         }
 
         sl_mac_address_t mac_addr;
-        status = sl_wifi_get_mac_address(SL_WIFI_CLIENT_INTERFACE, &mac_addr);
+        status = sl_wifi_get_mac_address(SL_WIFI_CLIENT_2_4GHZ_INTERFACE, &mac_addr);
 
         if(status != SL_STATUS_OK) {
             break;
