@@ -524,6 +524,19 @@ static sl_status_t wifi_init_driver(Wifi* instance) {
 
         status = sl_wifi_set_stats_callback(wifi_stats_callback, instance);
 
+        if(status != SL_STATUS_OK) {
+            break;
+        }
+
+        sl_mac_address_t mac_addr;
+        status = sl_wifi_get_mac_address(SL_WIFI_CLIENT_INTERFACE, &mac_addr);
+
+        if(status != SL_STATUS_OK) {
+            break;
+        }
+
+        wifi_net_tcpip_init(instance, &mac_addr);
+
     } while(false);
 
     return status;
@@ -553,8 +566,6 @@ static Wifi* wifi_alloc(void) {
         instance->intercom, IntercomChannelWifi, wifi_intercom_rx_callback, instance);
     intercom_set_rx_callback(
         instance->intercom, IntercomChannelWifiData, wifi_net_intercom_rx_callback, instance);
-
-    wifi_net_tcpip_init(instance);
 
     const sl_status_t status = wifi_init_driver(instance);
 

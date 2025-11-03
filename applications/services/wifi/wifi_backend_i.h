@@ -2,8 +2,9 @@
 
 #include "wifi_common_i.h"
 
-#include <sl_status.h>
 #include <lwip/netif.h>
+
+#include <sl_ieee802_types.h>
 
 #include <furi.h>
 #include <intercom/intercom.h>
@@ -23,8 +24,8 @@ struct Wifi {
     WifiBackendState state;
 };
 
-void wifi_net_tcpip_init(Wifi* instance);
+void wifi_net_tcpip_init(Wifi* instance, sl_mac_address_t* mac_addr);
 
-sl_status_t wifi_net_tcpip_netif_up(Wifi* instance);
+bool wifi_net_tcpip_netif_up(Wifi* instance);
 
 void wifi_net_tcpip_netif_down(Wifi* instance);
