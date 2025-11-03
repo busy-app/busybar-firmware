@@ -334,6 +334,9 @@ static void wifi_scan_finished_event_handler(Wifi* instance, const WifiScanFinis
 
         sli_wifi_flush_scan_results_database();
         free(scan_results);
+
+    } else {
+        FURI_LOG_E(TAG, "Scan finished with error: 0x%lX", event->status);
     }
 
     wifi_send_response(instance, &response);
@@ -443,7 +446,7 @@ static sl_status_t wifi_scan_callback(
             .type = WifiEventTypeScanFinished,
             .scan_finished =
                 {
-                    .status = wifi_decode_sl_status(status),
+                    .status = status,
                 },
         };
 
