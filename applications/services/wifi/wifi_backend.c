@@ -8,7 +8,9 @@
 #include "wifi_config.h"
 #include "wifi_backend_util.h"
 
-#define NUM_CONNECTION_ATTEMPTS (3)
+#define NUM_CONNECTION_ATTEMPTS 3
+#define SCAN_INTERVAL_S         5
+#define BEACON_MISSED_COUNT     40
 
 #define STATE_CODE_UPPER_MASK 0xF0
 #define REASON_CODE_MSB_MASK  0x7F
@@ -496,6 +498,18 @@ static sl_status_t wifi_init_driver(Wifi* instance) {
 
     do {
         status = sl_net_init(SL_NET_WIFI_CLIENT_INTERFACE, &wifi_config_client, NULL, NULL);
+
+        if(status != SL_STATUS_OK) {
+            break;
+        }
+
+        static const sl_wifi_advanced_client_configuration_t adv_cfg = {
+            .max_retry_attempts = UINT32_MAX, // Try reconnecting infinitely if connection was lost
+            .scan_interval = SCAN_INTERVAL_S,
+            .beacon_missed_count = BEACON_MISSED_COUNT,
+            .first_time_retry_enable = 0, // Initial retry count handled separately
+        };
+        status = sl_wifi_set_advanced_client_configuration(SL_WIFI_CLIENT_2_4GHZ_INTERFACE, &adv_cfg);
 
         if(status != SL_STATUS_OK) {
             break;
