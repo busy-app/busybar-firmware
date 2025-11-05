@@ -50,7 +50,7 @@ static bool ble_command_disable_response(BleIntercomFrameGeneric* frame, void* c
 }
 
 static bool ble_command_get_state_request(BleIntercomFrameGeneric* frame, void* context) {
-    BLE_LOG_D("BleCommandDisable request");
+    BLE_LOG_D("BleCommandGetState request");
     Ble* instance = context;
     frame->header.source = BleIntercomFrameSourceSystem;
     frame->header.frame_type = BleIntercomFrameTypeResponse;
@@ -63,7 +63,7 @@ static bool ble_command_get_state_request(BleIntercomFrameGeneric* frame, void* 
 static bool ble_command_get_state_response(BleIntercomFrameGeneric* frame, void* context) {
     UNUSED(frame);
     UNUSED(context);
-    BLE_LOG_D("BleCommandDisable response");
+    BLE_LOG_D("BleCommandGetState response");
     return true;
 }
 
