@@ -281,6 +281,10 @@ static void theme_apply_callback(lv_theme_t* th, lv_obj_t* obj) {
 
     } else if(lv_obj_check_type(obj, &status_view_additional_text_lvgl_class)) {
         lv_obj_add_style(obj, &theme->styles.status_view_additional_text, LV_PART_MAIN);
+
+    } else if(lv_obj_check_type(obj, &countdown_lvgl_class)) {
+        lv_obj_add_style(obj, &theme->styles.focused, LV_PART_MAIN);
+        lv_obj_add_style(obj, &theme->styles.scrollbar, LV_PART_SCROLLBAR);
 #endif
     }
 }
