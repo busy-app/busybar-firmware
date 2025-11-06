@@ -3,6 +3,7 @@
 #include <gui/widget_i.h>
 #include <gui/gui_i.h>
 #include <furi_hal_rtc.h>
+#include <sntp/sntp.h>
 
 #define MY_CLASS         (&countdown_lvgl_class)
 #define UPDATE_PERIOD_MS (100)
@@ -12,6 +13,8 @@ struct Countdown {
     lv_obj_t* label;
     lv_timer_t* timer;
 
+    Sntp* sntp;
+    time_t timezone_offset;
     time_t timestamp;
     time_t last_updated_at;
     CountdownDirection direction;
@@ -28,6 +31,8 @@ static void countdown_update(Countdown* countdown) {
     furi_assert(countdown);
 
     time_t now = furi_hal_rtc_get_timestamp(); // TODO: Y2038
+    now -= countdown->timezone_offset;
+
     if(countdown->last_updated_at == now) return;
     countdown->last_updated_at = now;
 
@@ -64,12 +69,14 @@ Countdown* countdown_alloc(Widget* parent) {
     lv_obj_class_init_obj(obj);
 
     Countdown* instance = (Countdown*)obj;
+    instance->sntp = furi_record_open(RECORD_SNTP);
     return instance;
 }
 
 void countdown_free(Countdown* instance) {
     furi_check(instance);
     lv_obj_delete((lv_obj_t*)instance);
+    furi_record_close(RECORD_SNTP);
 }
 
 Widget* countdown_get_base(Countdown* instance) {
@@ -91,6 +98,10 @@ void countdown_begin(
     furi_check(instance);
     furi_check(direction < CountdownDirectionMAX);
     furi_check(hours < CountdownShowHourMAX);
+
+    SntpSettings sntp_settings;
+    sntp_get_settings(instance->sntp, &sntp_settings);
+    instance->timezone_offset = sntp_settings.timezone_offset * 60;
 
     instance->last_updated_at = -1;
     instance->timestamp = time;

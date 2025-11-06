@@ -1450,7 +1450,7 @@ components:
           properties:
             timestamp:
               type: string
-              description: Seconds-based Unix timestamp to count down or up to. The string contains the digits of the timestamp.
+              description: "Seconds-based Unix UTC timestamp to count down or up to. Note: it's a number in a string."
             color:
               type: string
               description: "Color to display the text in, in #RRGGBBAA format"
