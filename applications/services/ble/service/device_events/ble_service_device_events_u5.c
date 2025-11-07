@@ -3,11 +3,6 @@
 
 #define TAG "BleDeviceEvents"
 
-typedef enum {
-    BleServiceDeviceEventFlagBitNameChange = 0,
-    BleServiceDeviceEventFlagBitCount
-} BleServiceDeviceEventFlagBit;
-
 static BleServiceObject* event_context;
 
 typedef struct {
@@ -19,6 +14,13 @@ typedef struct {
 
 typedef FuriPubSub* (*BleServiceDeviceEventFlagGetPubSubCallback)(void);
 
+typedef enum {
+    BleServiceDeviceEventFlagBitNameChange = 0, /* Device name changed flag */
+    /* Add more flags here */
+    BleServiceDeviceEventFlagBitCount, /* Total flags count */
+    BleServiceDeviceEventFlagBitMax = 32, /* Max flags possible */
+} BleServiceDeviceEventFlagBit;
+
 static FuriPubSub* ble_service_device_name_get_pubsub() {
     DeviceName* device_name = furi_record_open(RECORD_DEVICE_NAME);
     FuriPubSub* pubsub = device_name_get_pubsub(device_name);
@@ -26,12 +28,13 @@ static FuriPubSub* ble_service_device_name_get_pubsub() {
     return pubsub;
 }
 
+//Add proper get_pubsub callback for your flag here
 static const BleServiceDeviceEventFlagGetPubSubCallback
     pubsub_callbacks[BleServiceDeviceEventFlagBitCount] = {
         [BleServiceDeviceEventFlagBitNameChange] = ble_service_device_name_get_pubsub,
 };
 
-static void ble_device_event_enqueue_run(BleServiceObject* instance) {
+static void ble_device_events_enqueue_run(BleServiceObject* instance) {
     BleServiceDeviceEventContext* ctx = instance->context;
     if(!ctx->run_enqueued) {
         ble_service_enqueue_run(instance);
@@ -50,7 +53,7 @@ static void
         ctx->shadow |= (1 << flag_bit);
 
         if(!ctx->waiting_tx_done) {
-            ble_device_event_enqueue_run(instance);
+            ble_device_events_enqueue_run(instance);
         }
         furi_mutex_release(ctx->lock);
 
@@ -72,7 +75,7 @@ static void ble_service_device_events_tx_done(void* context) {
     furi_mutex_acquire(ctx->lock, FuriWaitForever);
     ctx->waiting_tx_done = false;
 
-    ble_device_event_enqueue_run(instance);
+    ble_device_events_enqueue_run(instance);
 
     furi_mutex_release(ctx->lock);
 }
