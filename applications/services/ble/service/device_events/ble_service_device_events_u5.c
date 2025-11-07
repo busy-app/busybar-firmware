@@ -3,13 +3,17 @@
 
 #define TAG "BleDeviceEvents"
 
+#define WAIT_TX_DONE_TIMEOUT (500)
+
 static BleServiceObject* event_context;
 
 typedef struct {
     bool waiting_tx_done;
     bool run_enqueued;
     FuriMutex* lock;
+    FuriTimer* wait_tx_timer;
     BleServiceDeviceEvents shadow;
+    BleServiceDeviceEvents sent_shadow;
 } BleServiceDeviceEventContext;
 
 typedef FuriPubSub* (*BleServiceDeviceEventFlagGetPubSubCallback)(void);
@@ -46,7 +50,7 @@ static void
     ble_device_events_set_flag(BleServiceObject* instance, BleServiceDeviceEventFlagBit flag_bit) {
     furi_assert(instance);
     furi_assert(flag_bit < BleServiceDeviceEventFlagBitCount);
-
+    BLE_LOG_D("device_events_set_flag");
     if(ble_service_lock(instance)) {
         BleServiceDeviceEventContext* ctx = instance->context;
         furi_mutex_acquire(ctx->lock, FuriWaitForever);
@@ -73,6 +77,8 @@ static void ble_service_device_events_tx_done(void* context) {
     BleServiceDeviceEventContext* ctx = instance->context;
 
     furi_mutex_acquire(ctx->lock, FuriWaitForever);
+    furi_timer_stop(ctx->wait_tx_timer);
+
     ctx->waiting_tx_done = false;
 
     ble_device_events_enqueue_run(instance);
@@ -91,11 +97,24 @@ static void ble_service_device_events_subscribe(BleServiceObject* instance) {
     }
 }
 
+static void ble_service_device_events_wait_tx_done_timeout(void* context) {
+    BleServiceObject* instance = context;
+    BleServiceDeviceEventContext* ctx = instance->context;
+
+    furi_mutex_acquire(ctx->lock, FuriWaitForever);
+    ctx->waiting_tx_done = false;
+    ctx->shadow |= ctx->sent_shadow;
+    furi_mutex_release(ctx->lock);
+    BLE_LOG_W("Events restored");
+}
+
 bool ble_service_device_events_init(void* object) {
     BleServiceObject* instance = object;
 
     BleServiceDeviceEventContext* ctx = malloc(sizeof(BleServiceDeviceEventContext));
     ctx->lock = furi_mutex_alloc(FuriMutexTypeNormal);
+    ctx->wait_tx_timer = furi_timer_alloc(
+        ble_service_device_events_wait_tx_done_timeout, FuriTimerTypeOnce, instance);
     ctx->shadow = 0;
     instance->context = ctx;
 
@@ -116,10 +135,13 @@ bool ble_service_device_events_run(void* object) {
     furi_mutex_acquire(ctx->lock, FuriWaitForever);
     if(ctx->shadow != 0) {
         ble_characteristic_set_data(ch, &ctx->shadow, sizeof(BleServiceDeviceEvents));
+        ctx->sent_shadow = ctx->shadow;
         ctx->shadow = 0;
         ctx->waiting_tx_done = true;
-        ctx->run_enqueued = false;
+        furi_timer_start(ctx->wait_tx_timer, furi_ms_to_ticks(WAIT_TX_DONE_TIMEOUT));
     }
+    ctx->run_enqueued = false;
+
     furi_mutex_release(ctx->lock);
 
     return true;
