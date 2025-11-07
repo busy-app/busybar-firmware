@@ -8,10 +8,7 @@ typedef enum {
     BleServiceDeviceEventFlagBitCount
 } BleServiceDeviceEventFlagBit;
 
-typedef struct {
-    BleServiceDeviceEventFlagBit flag_bit;
-    BleServiceObject* instance;
-} BleDeviceEventSubscriptionContext;
+static BleServiceObject* event_context;
 
 typedef struct {
     FuriMutex* lock;
@@ -20,8 +17,23 @@ typedef struct {
     BleServiceDeviceEvents shadow;
 } BleServiceDeviceEventContext;
 
+typedef FuriPubSub* (*BleServiceDeviceEventFlagGetPubSubCallback)(void);
+
+static FuriPubSub* ble_service_device_name_get_pubsub() {
+    DeviceName* device_name = furi_record_open(RECORD_DEVICE_NAME);
+    FuriPubSub* pubsub = device_name_get_pubsub(device_name);
+    furi_record_close(RECORD_DEVICE_NAME);
+    return pubsub;
+}
+
+static const BleServiceDeviceEventFlagGetPubSubCallback
+    pubsub_callbacks[BleServiceDeviceEventFlagBitCount] = {
+        [BleServiceDeviceEventFlagBitNameChange] = ble_service_device_name_get_pubsub,
+};
+
 static void
     ble_device_events_set_flag(BleServiceObject* instance, BleServiceDeviceEventFlagBit flag_bit) {
+    furi_assert(instance);
     furi_assert(flag_bit < BleServiceDeviceEventFlagBitCount);
 
     if(ble_service_lock(instance)) {
@@ -37,8 +49,8 @@ static void
 
 static void ble_device_events_callback(const void* message, void* context) {
     UNUSED(message);
-    BleDeviceEventSubscriptionContext* ctx = context;
-    ble_device_events_set_flag(ctx->instance, ctx->flag_bit);
+    const uint32_t bit = (uint32_t)context;
+    ble_device_events_set_flag(event_context, bit);
 }
 
 static void ble_service_device_events_tx_done(void* context) {
@@ -73,19 +85,16 @@ void timer_cb(void* context) {
     }
 }
 
-typedef FuriPubSub* (*BleServiceDeviceEventFlagGetPubSubCallback)(void);
-
-static FuriPubSub* ble_service_device_event_flag_get_pubsub() {
-    DeviceName* device_name = furi_record_open(RECORD_DEVICE_NAME);
-    FuriPubSub* pubsub = device_name_get_pubsub(device_name);
-    furi_record_close(RECORD_DEVICE_NAME);
-    return pubsub;
+static void ble_service_device_events_subscribe(BleServiceObject* instance) {
+    event_context = instance;
+    for(uint8_t i = 0; i < BleServiceDeviceEventFlagBitCount; i++) {
+        BleServiceDeviceEventFlagGetPubSubCallback get_pubsub = pubsub_callbacks[i];
+        furi_assert(get_pubsub);
+        FuriPubSub* pubsub = get_pubsub();
+        uint32_t bit = i;
+        furi_pubsub_subscribe(pubsub, ble_device_events_callback, (void*)bit);
+    }
 }
-
-static const BleServiceDeviceEventFlagGetPubSubCallback
-    pubsub_callbacks[BleServiceDeviceEventFlagBitCount] = {
-        [BleServiceDeviceEventFlagBitNameChange] = ble_service_device_event_flag_get_pubsub,
-};
 
 bool ble_service_device_events_init(void* object) {
     BLE_LOG_I("device_events_init_u5");
@@ -97,15 +106,7 @@ bool ble_service_device_events_init(void* object) {
     ctx->shadow = 0;
     instance->context = ctx;
 
-    for(uint8_t i = 0; i < BleServiceDeviceEventFlagBitCount; i++) {
-        BleServiceDeviceEventFlagGetPubSubCallback get_pubsub = pubsub_callbacks[i];
-        FuriPubSub* pubsub = get_pubsub();
-        BleDeviceEventSubscriptionContext* sub_context =
-            malloc(sizeof(BleDeviceEventSubscriptionContext));
-        sub_context->flag_bit = i;
-        sub_context->instance = instance;
-        furi_pubsub_subscribe(pubsub, ble_device_events_callback, sub_context);
-    }
+    ble_service_device_events_subscribe(instance);
 
     BleCharacteristicObject* ch = instance->chars[BleSrvDeviceEventsCharacterIndexFlags];
     ble_characteristic_register_tx_done_callback(ch, ble_service_device_events_tx_done, instance);
