@@ -11,9 +11,9 @@ typedef enum {
 static BleServiceObject* event_context;
 
 typedef struct {
+    bool waiting_tx_done;
+    bool run_enqueued;
     FuriMutex* lock;
-    FuriTimer* timer; ///TODO: remove after test
-    uint8_t cout; ///TODO: remove after test
     BleServiceDeviceEvents shadow;
 } BleServiceDeviceEventContext;
 
@@ -31,6 +31,14 @@ static const BleServiceDeviceEventFlagGetPubSubCallback
         [BleServiceDeviceEventFlagBitNameChange] = ble_service_device_name_get_pubsub,
 };
 
+static void ble_device_event_enqueue_run(BleServiceObject* instance) {
+    BleServiceDeviceEventContext* ctx = instance->context;
+    if(!ctx->run_enqueued) {
+        ble_service_enqueue_run(instance);
+        ctx->run_enqueued = true;
+    }
+}
+
 static void
     ble_device_events_set_flag(BleServiceObject* instance, BleServiceDeviceEventFlagBit flag_bit) {
     furi_assert(instance);
@@ -40,9 +48,12 @@ static void
         BleServiceDeviceEventContext* ctx = instance->context;
         furi_mutex_acquire(ctx->lock, FuriWaitForever);
         ctx->shadow |= (1 << flag_bit);
+
+        if(!ctx->waiting_tx_done) {
+            ble_device_event_enqueue_run(instance);
+        }
         furi_mutex_release(ctx->lock);
 
-        ble_service_enqueue_run(instance);
         ble_service_unlock(instance);
     }
 }
@@ -54,35 +65,16 @@ static void ble_device_events_callback(const void* message, void* context) {
 }
 
 static void ble_service_device_events_tx_done(void* context) {
-    UNUSED(context);
-    BLE_LOG_I("device_events_tx_done");
+    BLE_LOG_D("device_events_tx_done");
     BleServiceObject* instance = context;
     BleServiceDeviceEventContext* ctx = instance->context;
-    furi_timer_start(ctx->timer, furi_ms_to_ticks(500));
 
-    ble_service_enqueue_run(context);
-}
+    furi_mutex_acquire(ctx->lock, FuriWaitForever);
+    ctx->waiting_tx_done = false;
 
-void timer_cb(void* context) {
-    BLE_LOG_I("timer_cb");
-    BleServiceObject* instance = context;
-    if(ble_service_lock(instance)) {
-        BleServiceDeviceEventContext* ctx = instance->context;
-        furi_mutex_acquire(ctx->lock, FuriWaitForever);
+    ble_device_event_enqueue_run(instance);
 
-        if(ctx->cout == 0)
-            ctx->shadow |= (1 << 1);
-        else if(ctx->cout == 1)
-            ctx->shadow |= (1 << 2);
-        else if(ctx->cout == 2) {
-            ctx->shadow |= ((1 << 3) | (1 << 2) | (1 << 1));
-        }
-        furi_mutex_release(ctx->lock);
-
-        if(ctx->cout < 3) ble_service_enqueue_run(instance);
-        ctx->cout++;
-        ble_service_unlock(instance);
-    }
+    furi_mutex_release(ctx->lock);
 }
 
 static void ble_service_device_events_subscribe(BleServiceObject* instance) {
@@ -97,12 +89,10 @@ static void ble_service_device_events_subscribe(BleServiceObject* instance) {
 }
 
 bool ble_service_device_events_init(void* object) {
-    BLE_LOG_I("device_events_init_u5");
     BleServiceObject* instance = object;
 
     BleServiceDeviceEventContext* ctx = malloc(sizeof(BleServiceDeviceEventContext));
     ctx->lock = furi_mutex_alloc(FuriMutexTypeNormal);
-    ctx->timer = furi_timer_alloc(timer_cb, FuriTimerTypeOnce, instance);
     ctx->shadow = 0;
     instance->context = ctx;
 
@@ -115,7 +105,7 @@ bool ble_service_device_events_init(void* object) {
 }
 
 bool ble_service_device_events_run(void* object) {
-    BLE_LOG_I("ble_service_device_events_run");
+    BLE_LOG_D("ble_service_device_events_run");
     BleServiceObject* instance = object;
     BleServiceDeviceEventContext* ctx = instance->context;
     BleCharacteristicObject* ch = instance->chars[BleSrvDeviceEventsCharacterIndexFlags];
@@ -124,6 +114,8 @@ bool ble_service_device_events_run(void* object) {
     if(ctx->shadow != 0) {
         ble_characteristic_set_data(ch, &ctx->shadow, sizeof(BleServiceDeviceEvents));
         ctx->shadow = 0;
+        ctx->waiting_tx_done = true;
+        ctx->run_enqueued = false;
     }
     furi_mutex_release(ctx->lock);
 
