@@ -4,6 +4,8 @@
 #include <toolbox/json_helper.h>
 #include <toolbox/update_lib/common_vals.h>
 
+#define SESSION_CONFIG_PATH EXT_PATH(SESSION_CONFIG_FILE_NAME)
+
 void updater_session_config_compose(const UpdateManifest* manifest, UpdaterSessionConfig* config) {
     const FuriString* u5_firmware_path =
         updater_manifest_get_path(manifest, UpdateManifestPathDfu);
@@ -31,7 +33,7 @@ bool updater_session_config_load(UpdaterSessionConfig* config) {
     furi_assert(config);
 
     JsonConfig* json = json_config_alloc();
-    JsonConfigStatus open_status = json_config_open(json, EXT_PATH(SESSION_CONFIG_FILE_NAME));
+    JsonConfigStatus open_status = json_config_open(json, SESSION_CONFIG_PATH);
 
     if(open_status == JsonConfigStatusOk || open_status == JsonConfigStatusMissing) {
         json_config_read_bool(
@@ -60,7 +62,7 @@ bool updater_session_config_save(const UpdaterSessionConfig* config) {
     furi_assert(config);
 
     JsonConfig* json = json_config_alloc();
-    JsonConfigStatus open_status = json_config_open(json, EXT_PATH(SESSION_CONFIG_FILE_NAME));
+    JsonConfigStatus open_status = json_config_open(json, SESSION_CONFIG_PATH);
 
     if(open_status == JsonConfigStatusOk || open_status == JsonConfigStatusMissing) {
         json_config_write_bool(json, "do_update_u5_firmware", config->do_update_u5_firmware);
@@ -77,7 +79,7 @@ bool updater_session_config_save(const UpdaterSessionConfig* config) {
 
 bool updater_session_config_delete(void) {
     Storage* storage = furi_record_open(RECORD_STORAGE);
-    FS_Error result = storage_common_remove(storage, EXT_PATH(SESSION_CONFIG_FILE_NAME));
+    FS_Error result = storage_common_remove(storage, SESSION_CONFIG_PATH);
     furi_record_close(RECORD_STORAGE);
 
     return (result == FSE_OK || result == FSE_NOT_EXIST);
