@@ -13,13 +13,15 @@
 #include "rsi_ble_common_config.h"
 #include "rsi_bt_common_apis.h"
 
-#include "ble_advertise_config.h"
+#include "ble_advertise.h"
 #include "ble_worker_util.h"
 #include "../service/ble_service_i.h"
 
 #include <m-dict.h>
 
 #define TAG "BleWorker"
+
+#define BLE_DEFAULT_LOCAL_NAME "BUSY Bar"
 
 #define BLE_WORKER_LOCAL_DEV_ADDR_LEN 18 // Length of the local device address
 #define BLE_WORKER_MAX_MTU_SIZE       240
@@ -50,8 +52,6 @@
 #endif
 
 #define MITM_REQ 1
-
-#define DEVICE_ADDRESS_EQUAL(addr1, addr2) (memcmp(addr1, addr2, RSI_DEV_ADDR_LEN) == 0)
 
 //! application events list
 typedef enum {
@@ -106,7 +106,6 @@ typedef struct {
     FuriSemaphore* indication_sem;
     FuriSemaphore* notification_sem;
     uint8_t pairing_info_available;
-    FuriTimer* timer;
     ///TODO: this can be removed
     bool connected;
     BleWorkerState state;
@@ -133,6 +132,7 @@ typedef struct {
     rsi_bt_event_smp_resp_t rsi_bt_event_smp_resp;
     rsi_bt_event_le_ltk_request_t ble_ltk_req;
     BleSecurityData* security_data;
+    BleAdvertiseContext* advertise;
 
     BleServiceEntryDict_t service_dict;
 } BleWorker;
@@ -433,9 +433,10 @@ static void rsi_ble_on_sc_method(rsi_bt_event_sc_method_t* scmethod) {
     BLE_LOG_W("rsi_ble_on_sc_method");
 }
 //===========================================================================================
-
-static bool
-    ble_worker_start_advertising(bool rpa_enabled, const rsi_bt_event_le_security_keys_t* key) {
+static bool ble_worker_start_advertising(
+    bool rpa_enabled,
+    const rsi_bt_event_le_security_keys_t* key,
+    const BleAdvertiseContext* advertise) {
     rsi_ble_req_adv_t ble_adv = {0};
     ble_adv.status = RSI_BLE_START_ADV;
 
@@ -452,7 +453,7 @@ static bool
 
     ble_adv.own_addr_type = rpa_enabled ? LE_RESOLVABLE_RANDOM_ADDRESS : LE_PUBLIC_ADDRESS;
 
-    rsi_ble_set_advertise_data((uint8_t*)&advertise_config, sizeof(advertise_config));
+    ble_advertise_refresh_data(advertise);
 
     sl_status_t status = rsi_ble_start_advertising_with_values(&ble_adv);
 
@@ -461,6 +462,17 @@ static bool
     } else {
         BLE_LOG_I("Start advertising...");
     }
+
+    return status == RSI_SUCCESS;
+}
+
+static bool ble_worker_stop_advertising() {
+    sl_status_t status = rsi_ble_stop_advertising();
+
+    if(status != RSI_SUCCESS)
+        BLE_LOG_W("Failed to stop advertising, error code : 0x%08lx", status);
+    else
+        BLE_LOG_I("Stop advertising...");
 
     return status == RSI_SUCCESS;
 }
@@ -535,17 +547,14 @@ static void ble_hw_config() {
         ble_worker_on_indicate_confirmation_event,
         NULL);
 
-    // //! Set local name
-    status = rsi_bt_set_local_name((uint8_t*)advertise_config.local_name.data);
+    //! Set local name
+    status = rsi_bt_set_local_name((const uint8_t*)BLE_DEFAULT_LOCAL_NAME);
     if(status != RSI_SUCCESS) {
         BLE_LOG_W("Failed to set local name, error code : 0x%08lx", status);
         furi_crash();
     }
 
-    BLE_LOG_I("Flags: %d", advertise_config.flags.data);
-    BLE_LOG_I("Appearance: %04X", advertise_config.appearance.data);
-    BLE_LOG_I("Manufacturer: %04X", advertise_config.manufacturer.data);
-    BLE_LOG_I("Local Name: %s", advertise_config.local_name.data);
+    ble_advertise_print_data(ble_worker_instance->advertise);
 
     // ble_adjust_gap_service_data();
 
@@ -625,10 +634,12 @@ static int32_t ble_worker_thread_callback(void* context) {
             //! start advertising
             const rsi_bt_event_le_security_keys_t* rpa =
                 ble_security_get_rpa_data(ble_worker_instance->security_data);
-            instance->state =
-                ble_worker_start_advertising(ble_worker_instance->pairing_info_available, rpa) ?
-                    BleWorkerStateAdvertising :
-                    BleWorkerStateError;
+            instance->state = ble_worker_start_advertising(
+                                  ble_worker_instance->pairing_info_available,
+                                  rpa,
+                                  ble_worker_instance->advertise) ?
+                                  BleWorkerStateAdvertising :
+                                  BleWorkerStateError;
         }
 
         if(events & BLEWorkerEvtReceveRemoteFeatures) {
@@ -781,12 +792,8 @@ static int32_t ble_worker_thread_callback(void* context) {
         }
 
         if(events & BLEWorkerEvtExit) {
-            status = rsi_ble_stop_advertising();
-            if(status != RSI_SUCCESS) {
-                BLE_LOG_W("Unable to stop advertise: 0x%08lx", status);
-                instance->state = BleWorkerStateError;
-            } else
-                instance->state = BleWorkerStateIdle;
+            instance->state = ble_worker_stop_advertising() ? BleWorkerStateIdle :
+                                                              BleWorkerStateError;
             break;
         }
 
@@ -1003,6 +1010,9 @@ void ble_worker_init() {
     ble_worker_instance->notification_sem = furi_semaphore_alloc(1, 1);
     ble_worker_instance->max_payload_size = BLE_WORKER_MAX_MTU_SIZE - BLE_WORKER_ATTR_HEADER_SIZE;
     ble_worker_instance->security_data = ble_security_alloc();
+    ble_worker_instance->advertise = ble_advertise_alloc();
+    ble_advertise_set_name(ble_worker_instance->advertise, BLE_DEFAULT_LOCAL_NAME);
+
     BleServiceEntryDict_init(ble_worker_instance->service_dict);
 
     ble_hw_config();
@@ -1091,7 +1101,8 @@ void ble_worker_start() {
 
         const rsi_bt_event_le_security_keys_t* rpa =
             ble_security_get_rpa_data(ble_worker_instance->security_data);
-        ble_worker_start_advertising(ble_worker_instance->pairing_info_available, rpa);
+        ble_worker_start_advertising(
+            ble_worker_instance->pairing_info_available, rpa, ble_worker_instance->advertise);
 
         ble_worker_instance->state = BleWorkerStateAdvertising;
         furi_thread_start(ble_worker_instance->thread);
@@ -1164,14 +1175,8 @@ void ble_worker_receive_confirm(uint16_t handle, uint8_t cccd_value) {
 }
 
 bool ble_worker_forget_pairing() {
-    sl_status_t status;
     if(ble_worker_instance->state == BleWorkerStateAdvertising) {
-        status = rsi_ble_stop_advertising();
-
-        if(status != RSI_SUCCESS)
-            BLE_LOG_W("Unable to stop adv");
-        else
-            BLE_LOG_I("Stopping adv");
+        ble_worker_stop_advertising();
     }
 
     ble_security_rpa_disable();
@@ -1181,9 +1186,23 @@ bool ble_worker_forget_pairing() {
     ble_worker_instance->pairing_info_available = 0;
 
     if(ble_worker_instance->state == BleWorkerStateAdvertising) {
-        ble_worker_start_advertising(false, NULL);
+        ble_worker_start_advertising(false, NULL, ble_worker_instance->advertise);
     }
 
     if(result) BLE_LOG_I("Security data removed");
     return result;
+}
+
+void ble_worker_set_name(const char* new_name) {
+    furi_assert(new_name);
+
+    if(ble_worker_instance->state == BleWorkerStateAdvertising) {
+        ble_worker_stop_advertising();
+    }
+
+    ble_advertise_set_name(ble_worker_instance->advertise, new_name);
+
+    if(ble_worker_instance->state == BleWorkerStateAdvertising) {
+        ble_worker_start_advertising(false, NULL, ble_worker_instance->advertise);
+    }
 }

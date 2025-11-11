@@ -96,7 +96,8 @@ static void power_test_canvas_enter(PowerTest* instance) {
 
         instance->canvas_front =
             canvas_alloc(root, widget_get_width(root), widget_get_height(root));
-        canvas_set_fill_color(instance->canvas_front, (Color){255, 255, 255});
+        Color fill = COLOR_MAKE_HEXA(0xFFFFFFFF);
+        canvas_set_fill_color(instance->canvas_front, fill);
         canvas_fill(instance->canvas_front);
     });
 

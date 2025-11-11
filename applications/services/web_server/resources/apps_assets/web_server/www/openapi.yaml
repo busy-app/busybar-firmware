@@ -1,4 +1,4 @@
-openapi: 3.0.3
+openapi: 3.1.0
 info:
   title: BUSY Bar HTTP API
   description: HTTP API for BUSY Bar web server
@@ -477,6 +477,14 @@ paths:
       summary: Clear display
       description: Clears the display and stops the Canvas application if running
       operationId: clearDisplay
+      parameters:
+        - name: app_id
+          in: query
+          required: false
+          schema:
+            type: string
+          description: Application identifier
+          example: "my_app"
       responses:
         "200":
           description: Display cleared successfully
@@ -1302,13 +1310,28 @@ components:
         app_id: "my_app"
         elements:
           - id: "0"
-            timeout: 5
-            type: "text"
-            text: "Hello, world!"
-            x: 0
-            y: 0
-            display: "front"
+            timeout: 6
+            align: center
+            x: 36
+            y: 10
+            type: text
+            text: "Hello, World! Long text"
+            font: medium
+            color: "#FFFFFFFF"
+            width: 72
+            scroll_rate: 160
+            display: front
           - id: "1"
+            timeout: 6
+            align: top_mid
+            x: 36
+            y: 0
+            type: text
+            text: "top_mid"
+            font: small
+            color: "#AAFF00FF"
+            display: "front"
+          - id: "2"
             timeout: 6
             type: "image"
             path: "data.png"
@@ -1321,8 +1344,6 @@ components:
       required:
         - id
         - type
-        - x
-        - y
       properties:
         id:
           type: string
@@ -1330,22 +1351,38 @@ components:
         timeout:
           type: integer
           minimum: 0
-          description: Time in seconds the element should be displayed (0 for no timeout)
+          description: Time in seconds the element should be displayed (0 for no timeout). Mutually exclusive with display_until.
+        display_until:
+          type: string
+          description: The element will be hidden when system time reaches the specified Unix timestamp (in seconds). Mutually exclusive with timeout.
         type:
           type: string
           enum: [text, image]
           description: Type of display element
         x:
           type: integer
-          description: X coordinate for placement on display
+          description: X coordinate of selected anchor point relative to top-left of display
         y:
           type: integer
-          description: Y coordinate for placement on display
+          description: Y coordinate of selected anchor point relative to top-left of display
         display:
           type: string
           enum: [front, back]
           description: Which display to show the element on (for dual-display devices)
           default: front
+        align:
+          type: string
+          description: Anchor point of element. Also use `x` and `y` to position element.
+          enum:
+            - top_left
+            - top_mid
+            - top_right
+            - mid_left
+            - center
+            - mid_right
+            - bottom_left
+            - bottom_mid
+            - bottom_right
       discriminator:
         propertyName: type
         mapping:
@@ -1362,6 +1399,26 @@ components:
             text:
               type: string
               description: Text content to display
+            font:
+              type: string
+              description: One of the available fonts to display the text in
+              enum:
+                - small
+                - medium
+                - medium_condensed
+                - big
+              default: tiny5_8
+            color:
+              type: string
+              description: "Color to display the text in, in #RRGGBBAA format"
+              pattern: "^#[a-fA-F0-9]{8}$"
+              default: "#FFFFFFFF"
+            width:
+              type: integer
+              description: Width of the label
+            scroll_rate:
+              type: integer
+              description: Scroll rate in characters per minute
 
     ImageElement:
       allOf:
@@ -1369,11 +1426,17 @@ components:
         - type: object
           required:
             - path
-          properties:
-            path:
-              type: string
-              pattern: "^[a-zA-Z0-9._/-]+$"
-              description: Path to the image file in the app's assets
+          oneOf:
+            - properties:
+                path:
+                  type: string
+                  pattern: "^[a-zA-Z0-9._/-]+$"
+                  description: Path to the image file in the app's assets
+            - properties:
+                builtin_image:
+                  type: string
+                  pattern: "^[a-z_]+/[a-z0-9_]+$"
+                  description: Identifier of builtin image
 
     DisplayBrightnessInfo:
       type: object

@@ -26,3 +26,12 @@ void device_name_get(DeviceName* instance, FuriString* name);
  * @returns true - on success, false - when failed to set name. More details in error string
  */
 bool device_name_set(DeviceName* instance, FuriString* name, FuriString* error);
+
+/**
+ * @brief Get PubSub instance which indicates that name was changed
+ *
+ *
+ * @param[in] instance of device name record
+ * @returns pubsub instance available for subscription
+ */
+FuriPubSub* device_name_get_on_change_pub_sub(DeviceName* instance);

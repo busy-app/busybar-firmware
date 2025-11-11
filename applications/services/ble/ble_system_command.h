@@ -9,6 +9,7 @@ typedef enum {
     BleCommandDisable,
     BleCommandGetState,
     BleCommandForgetPairing,
+    BleCommandSetDeviceName,
 
     BleCommandCount
 } BleSystemCommand;
@@ -19,3 +20,9 @@ bool ble_command_request_process(BleIntercomFrameGeneric* frame, void* context);
 bool ble_command_response_process(BleIntercomFrameGeneric* frame, void* context);
 
 extern const BleCommandItem ble_commands[];
+
+void ble_invoke_retry_command_on_internal_event(
+    Ble* instance,
+    BleSystemCommand command,
+    BleEventType retry_event,
+    uint32_t retry_timeout);

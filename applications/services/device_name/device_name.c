@@ -19,6 +19,7 @@
 
 struct DeviceName {
     FuriMutex* lock;
+    FuriPubSub* on_change;
 };
 
 static bool settings_dir_create_if_not_exist(Storage* storage) {
@@ -125,6 +126,7 @@ bool device_name_set(DeviceName* instance, FuriString* name, FuriString* error) 
         if(device_name_save_config(storage, name)) {
             FURI_LOG_I(TAG, "New name: %s", furi_string_get_cstr(name));
             result = true;
+            furi_pubsub_publish(instance->on_change, name);
         } else {
             DEVICE_NAME_SET_ERROR(error, "Failed to save name");
         }
@@ -135,11 +137,17 @@ bool device_name_set(DeviceName* instance, FuriString* name, FuriString* error) 
     return result;
 }
 
+FuriPubSub* device_name_get_on_change_pub_sub(DeviceName* instance) {
+    furi_assert(instance);
+    return instance->on_change;
+}
+
 int device_name_startup(void* arg) {
     UNUSED(arg);
 
     DeviceName* instance = malloc(sizeof(DeviceName));
     instance->lock = furi_mutex_alloc(FuriMutexTypeNormal);
+    instance->on_change = furi_pubsub_alloc();
 
     furi_record_create(RECORD_DEVICE_NAME, instance);
 

@@ -13,6 +13,7 @@ void mqtt_topics_subscribe(MqttClient* mqtt) {
     const struct mg_mqtt_opts opts = {
         .topic = mg_str(furi_string_get_cstr(topic)), .qos = MQTT_QOS};
     mg_mqtt_sub(mqtt->conn, &opts);
+    FURI_LOG_D(TAG, "Subscribing to %s", furi_string_get_cstr(topic));
 
     furi_string_free(topic);
 }
@@ -26,4 +27,8 @@ void mqtt_topics_on_message(MqttClient* mqtt, FuriString* topic_str, struct mg_m
         FURI_LOG_W(TAG, "Unknown topic %s", furi_string_get_cstr(topic_str));
         return;
     }
+}
+
+void mqtt_topics_on_close(MqttClient* mqtt) {
+    mqtt_screen_streaming_on_close(mqtt);
 }
