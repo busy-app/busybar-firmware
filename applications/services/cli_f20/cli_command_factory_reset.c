@@ -8,12 +8,12 @@
 static void format_emmc_ext(void) {
     Storage* storage = furi_record_open(RECORD_STORAGE);
 
-    printf("Format EMMC...\r\n");
+    printf("Formatting EMMC...\r\n");
 
     FS_Error fs_status = storage_sd_format(storage, STORAGE_EXT_PATH_PREFIX);
 
     if(fs_status != FSE_OK) {
-        printf("Error: %s", storage_error_get_desc(fs_status));
+        printf("EMMC formatting error: %s", storage_error_get_desc(fs_status));
     } else {
         printf("EMMC was successfully formatted.\r\n");
     }
@@ -22,10 +22,11 @@ static void format_emmc_ext(void) {
 }
 
 static void wifi_ble_reset_pairing(void) {
-    printf("Reset BLE pairing...\r\n");
+    printf("Resetting BLE pairing...\r\n");
     Ble* ble = furi_record_open(RECORD_BLE);
     ble_forget(ble);
     furi_record_close(RECORD_BLE);
+    printf("BLE pairing was successfully reset.\r\n");
 }
 
 static void wifi_ble_restore_default_config(void) {
@@ -34,6 +35,8 @@ static void wifi_ble_restore_default_config(void) {
 }
 
 static void reset_firmware_to_backup(void) {
+    printf("Resetting firmware to factory default...\r\n");
+
     do {
         UpdaterStatus prepare_install_status =
             updater_prepare_install(BACKUP_PATH("recovery/update.json"));
@@ -44,6 +47,8 @@ static void reset_firmware_to_backup(void) {
 
             break;
         }
+
+        printf("Preparation for the installation is complete, device will reboot...\r\n");
 
         UpdaterStatus reboot_install_status = updater_reboot_install();
         if(reboot_install_status != UpdaterStatusSuccess) {
