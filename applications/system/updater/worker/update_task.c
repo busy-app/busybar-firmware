@@ -326,14 +326,14 @@ bool update_task_open_file(UpdateTask* update_task, const FuriString* filename) 
 
 static void
     update_task_worker_thread_cb(FuriThread* thread, FuriThreadState state, void* context) {
-    UpdateTask* update_task = context;
+    UNUSED(context);
 
     if(state != FuriThreadStateStopped) {
         return;
     }
 
     if(furi_thread_get_return_code(thread) == UPDATE_TASK_NOERR) {
-        updater_session_config_delete(furi_string_get_cstr(update_task->update_dir_path));
+        updater_session_config_delete();
 
         furi_delay_ms(UPDATE_DELAY_OPERATION_OK);
         furi_hal_power_reset();
@@ -352,12 +352,10 @@ UpdateTask* update_task_alloc(void) {
     update_task->storage = furi_record_open(RECORD_STORAGE);
     update_task->file = storage_file_alloc(update_task->storage);
     update_task->status_change_callback = NULL;
-    update_task->update_dir_path = furi_string_alloc();
 
     FuriThread* thread = update_task->thread =
         furi_thread_alloc_ex("UpdateWorker", 5120, NULL, update_task);
 
-    furi_thread_set_state_context(thread, update_task);
     furi_thread_set_state_callback(thread, update_task_worker_thread_cb);
 
     furi_thread_set_callback(thread, update_task_worker_general);
@@ -374,7 +372,6 @@ void update_task_free(UpdateTask* update_task) {
     update_task_close_file(update_task);
     storage_file_free(update_task->file);
     update_config_free(update_task->config);
-    furi_string_free(update_task->update_dir_path);
 
     furi_record_close(RECORD_STORAGE);
 
@@ -400,9 +397,7 @@ bool update_task_parse_manifest(UpdateTask* update_task) {
         CHECK_RESULT(update_config_read_pointer_file(update_task->storage, manifest_path));
         // furi_string_set(update_task->update_path, manifest_path);
 
-        path_extract_dirname(furi_string_get_cstr(manifest_path), update_task->update_dir_path);
-        updater_session_config_load(
-            furi_string_get_cstr(update_task->update_dir_path), &update_task->session_config);
+        updater_session_config_load(&update_task->session_config);
 
         update_task_set_progress(update_task, UpdateTaskStageProgress, 20);
         UpdateConfigValidation res =

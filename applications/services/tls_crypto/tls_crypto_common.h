@@ -2,21 +2,33 @@
 
 #include <furi.h>
 
-#define TLS_CRYPTO_DATA_SIZE_MAX 256
+#define TLS_CRYPTO_DATA_SIZE_MAX 800
 
 typedef enum {
     TlsCryptoSignRequest,
     TlsCryptoSignResponse,
-    TlsCryptoError = 0xFFFFFFFF, /**< Special value for error handling */
+    TlsCryptoCertRequest,
+    TlsCryptoCertResponse,
+    TlsCryptoError = 0xFFFFFFFF,
 } TlsCryptoCmd;
 
-typedef struct FURI_PACKED {
-    TlsCryptoCmd cmd; /**< Command type */
-    uint8_t key_slot;
+typedef struct {
+    TlsCryptoCmd type;
     size_t data_size;
-    uint8_t data[TLS_CRYPTO_DATA_SIZE_MAX];
-} TlsCryptoSignMessage;
+    uint8_t key_slot;
+} TlsCryptoMessageHeader;
 
-typedef struct FURI_PACKED {
-    TlsCryptoCmd cmd; /**< Command type */
+typedef struct {
+    TlsCryptoMessageHeader header;
+    uint8_t data[TLS_CRYPTO_DATA_SIZE_MAX];
+} TlsCryptoMessageGeneric;
+
+typedef struct {
+    TlsCryptoMessageHeader header;
+    uint8_t data[];
+} TlsCryptoDataMessage;
+
+typedef struct {
+    TlsCryptoMessageHeader header;
+    // TODO: error code?
 } TlsCryptoErrorMessage;
