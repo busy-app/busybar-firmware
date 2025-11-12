@@ -262,10 +262,10 @@ static CanvasApp* canvas_app_alloc() {
 }
 
 static void canvas_app_free(CanvasApp* canvas) {
+    canvas_widget_destroy_all(canvas);
     with_gui(canvas->gui, {
         GuiLayer* main_layer = gui_get_layer(canvas->gui, GuiLayerIdMain);
         gui_layer_remove_input_callback(main_layer, canvas_app_input_callback);
-        canvas_widget_destroy_all(canvas);
         display_mirror_free(canvas->display_mirror);
     });
 
