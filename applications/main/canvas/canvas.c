@@ -5,6 +5,7 @@
 #include <gui/gui.h>
 #include <gui/modules/image.h>
 #include <gui/modules/label.h>
+#include <gui/modules/countdown.h>
 #include <m-dict.h>
 #include <toolbox/m_cstr_dup.h>
 #include <furi_hal_rtc.h>
@@ -38,6 +39,7 @@ typedef struct {
     union {
         Image* image;
         Label* text;
+        Countdown* countdown;
     };
 } CanvasWidget;
 
@@ -104,6 +106,9 @@ static void canvas_element_timeout(void* context) {
         } else if(widget->type == CanvasElementTypeText) {
             furi_assert(widget->text);
             label_free(widget->text);
+        } else if(widget->type == CanvasElementTypeCountdown) {
+            furi_assert(widget->countdown);
+            countdown_free(widget->countdown);
         }
     });
 
@@ -140,6 +145,8 @@ static void canvas_widget_destroy(CanvasApp* canvas, CanvasWidget* widget) {
             image_free(widget->image);
         } else if(widget->type == CanvasElementTypeText) {
             label_free(widget->text);
+        } else if(widget->type == CanvasElementTypeCountdown) {
+            countdown_free(widget->countdown);
         }
     });
 }
@@ -305,7 +312,7 @@ static Widget* canvas_element_update_specific(
         }
         label_set_text(widget->text, element->text.text_str);
         label_set_font(widget->text, element->text.font);
-        label_set_color(widget->text, element->text.color);
+        label_set_text_color(widget->text, element->text.color);
 
         Widget* base = label_get_base(widget->text);
         if(element->text.width) {
@@ -321,6 +328,18 @@ static Widget* canvas_element_update_specific(
             label_set_long_content_mode(widget->text, LabelLongContentModeClip, 0);
         }
         return base;
+
+    } else if(widget->type == CanvasElementTypeCountdown) {
+        if(!widget->countdown) {
+            widget->countdown = countdown_alloc(root);
+        }
+        countdown_set_text_color(widget->countdown, element->countdown.color);
+        countdown_begin(
+            widget->countdown,
+            element->countdown.timestamp,
+            element->countdown.direction,
+            element->countdown.hours);
+        return countdown_get_base(widget->countdown);
 
     } else {
         furi_crash();
@@ -434,9 +453,7 @@ static bool
         effective_timeout = element->timeout;
     } else if(element->display_until > 0) {
         furi_check(element->timeout == 0);
-        DateTime time;
-        furi_hal_rtc_get_datetime(&time);
-        time_t current_stamp = (time_t)datetime_datetime_to_timestamp(&time); // TODO: Y2038
+        time_t current_stamp = (time_t)furi_hal_rtc_get_timestamp(); // TODO: Y2038
         effective_timeout = MAX(0, element->display_until - current_stamp);
     }
 
