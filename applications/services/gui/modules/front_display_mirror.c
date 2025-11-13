@@ -1,4 +1,5 @@
 #include "front_display_mirror.h"
+
 #include <gui/gui_i.h>
 
 #define MY_CLASS (&display_mirror_lvgl_class)

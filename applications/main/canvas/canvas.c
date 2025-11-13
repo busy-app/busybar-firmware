@@ -10,7 +10,7 @@
 #include <toolbox/m_cstr_dup.h>
 #include <furi_hal_rtc.h>
 #include "canvas.h"
-#include "widgets/front_display_mirror.h"
+#include <gui/modules/front_display_mirror.h>
 
 typedef struct {
     enum {

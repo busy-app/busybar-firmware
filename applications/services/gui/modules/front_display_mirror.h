@@ -1,8 +1,6 @@
 /**
- * @file display_mirror.h
- * @brief A widget that front display to back
- *
- * Can be used only on the back display.
+ * @file front_display_mirror.h
+ * @brief Widget that mirrors the front display onto the back display.
  */
 #pragma once
 
@@ -17,6 +15,8 @@ typedef struct DisplayMirror DisplayMirror;
 
 /**
  * @brief Create a new DisplayMirror instance.
+ *
+ * Can be attached only to the back display.
  *
  * @param[in,out] parent pointer to the parent Widget instance
  *
