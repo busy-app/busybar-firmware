@@ -89,6 +89,7 @@ void label_set_text(Label* instance, const char* text) {
 void label_set_text_color(Label* instance, Color color) {
     furi_check(instance);
     lv_obj_set_style_text_color((lv_obj_t*)instance->label, TO_LV_COLOR(color), LV_PART_MAIN);
+    lv_obj_set_style_text_opa(instance->label, color.a, LV_PART_MAIN);
 }
 
 void label_set_text_font_size(Label* instance, LabelFontSize size) {
@@ -193,12 +194,6 @@ uint32_t label_calculate_scroll_duration(const Label* instance, uint32_t rate_cp
 
     size_t duration_ms = (offscreen_chars * 60 * 1000) / rate_cpm;
     return duration_ms;
-}
-
-void label_set_color(Label* instance, Color color) {
-    furi_check(instance);
-    lv_obj_set_style_text_color(instance->label, TO_LV_COLOR(color), LV_PART_MAIN);
-    lv_obj_set_style_text_opa(instance->label, color.a, LV_PART_MAIN);
 }
 
 void label_set_font(Label* instance, GuiFont font) {

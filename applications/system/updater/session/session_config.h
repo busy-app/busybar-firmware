@@ -15,11 +15,11 @@ typedef struct {
 
 void updater_session_config_compose(const UpdateManifest* manifest, UpdaterSessionConfig* config);
 
-bool updater_session_config_load(const char* dir_path, UpdaterSessionConfig* config);
+bool updater_session_config_load(UpdaterSessionConfig* config);
 
-bool updater_session_config_save(const char* dir_path, const UpdaterSessionConfig* config);
+bool updater_session_config_save(const UpdaterSessionConfig* config);
 
-bool updater_session_config_delete(const char* dir_path);
+bool updater_session_config_delete(void);
 
 #ifdef __cplusplus
 }

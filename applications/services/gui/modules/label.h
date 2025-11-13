@@ -139,14 +139,6 @@ void label_set_long_content_mode(Label* instance, LabelLongContentMode mode, uin
 uint32_t label_calculate_scroll_duration(const Label* instance, uint32_t rate_cpm);
 
 /**
- * @brief Set color of label text.
- * 
- * @param[in,out] instance pointer to the Label instance to be modified
- * @param[in] color what to set the text color to
- */
-void label_set_color(Label* instance, Color color);
-
-/**
  * @brief Set font of label text.
  * 
  * @param[in,out] instance pointer to the Label instance to be modified
