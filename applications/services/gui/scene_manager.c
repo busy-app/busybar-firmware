@@ -140,9 +140,10 @@ uint32_t scene_manager_get_current_scene_id(const SceneManager* instance) {
     return *SceneIdStack_back(REMOVE_CONST(instance->scene_id_stack));
 }
 
-SceneData* scene_manager_get_current_scene_data(const SceneManager* instance) {
+SceneData* scene_manager_get_scene_data(const SceneManager* instance, uint32_t scene_id) {
     furi_check(instance);
-    return instance->scene_data[scene_manager_get_current_scene_id(instance)];
+    furi_check(scene_id == scene_manager_get_current_scene_id(instance));
+    return instance->scene_data[scene_id];
 }
 
 void scene_manager_next_scene(SceneManager* instance, uint32_t scene_id) {
