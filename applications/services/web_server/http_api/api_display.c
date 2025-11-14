@@ -30,18 +30,17 @@ static bool api_display_draw_parse_text_element(
         canvas_element->text.color = (Color)COLOR_MAKE_HEXA(0xFFFFFFFF);
 
         char* font_name = mg_json_get_str(json_element, "$.font");
-        if(font_name) {
-            static const char* const font_names[GuiFontMax] = {
-                [GuiFontBf4x5] = "small",
-                [GuiFontBf5x7] = "medium",
-                [GuiFontBf5x7CondensedNumerals] = "medium_condensed",
-                [GuiFontBf7x10] = "big",
-            };
-            size_t font = value_index_string(font_name, font_names, COUNT_OF(font_names));
-            canvas_element->text.font = font;
-            free(font_name);
-            if(font == 0) break;
-        }
+        if(!font_name) break;
+        static const char* const font_names[GuiFontMax] = {
+            [GuiFontBf4x5] = "small",
+            [GuiFontBf5x7] = "medium",
+            [GuiFontBf5x7CondensedNumerals] = "medium_condensed",
+            [GuiFontBf7x10] = "big",
+        };
+        size_t font = value_index_string(font_name, font_names, COUNT_OF(font_names));
+        canvas_element->text.font = font;
+        free(font_name);
+        if(font == 0) break;
 
         char* color_hex = mg_json_get_str(json_element, "$.color");
         if(color_hex) {
@@ -60,6 +59,55 @@ static bool api_display_draw_parse_text_element(
             if(number < -__DBL_EPSILON__) break; // < 0
             canvas_element->text.scroll_rate_cpm = (size_t)number;
         }
+
+        result = true;
+    } while(0);
+    return result;
+}
+
+static bool api_display_draw_parse_countdown_element(
+    CanvasElement* canvas_element,
+    const char* app_id,
+    struct mg_str json_element) {
+    UNUSED(app_id);
+    bool result = false;
+    do {
+        canvas_element->type = CanvasElementTypeCountdown;
+        canvas_element->countdown.color = (Color)COLOR_MAKE_HEXA(0xFFFFFFFF);
+
+        char* color_hex = mg_json_get_str(json_element, "$.color");
+        if(color_hex) {
+            bool color_parsed = color_parse_hexa_string(color_hex, &canvas_element->text.color);
+            free(color_hex);
+            if(!color_parsed) break;
+        }
+
+        // numeric representation in string: JS and mg_json have precision issues
+        // https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number/MAX_SAFE_INTEGER
+        char* timestamp_str = mg_json_get_str(json_element, "$.timestamp");
+        if(!timestamp_str) break;
+        canvas_element->countdown.timestamp = atoll(timestamp_str);
+        free(timestamp_str);
+
+        char* direction_str = mg_json_get_str(json_element, "$.direction");
+        if(!direction_str) break;
+        static const char* const direction_lut[CountdownDirectionMAX] = {
+            [CountdownDirectionTimeLeft] = "time_left",
+            [CountdownDirectionTimeSince] = "time_since",
+        };
+        canvas_element->countdown.direction =
+            value_index_string(direction_str, direction_lut, COUNT_OF(direction_lut));
+        free(direction_str);
+
+        char* hours_str = mg_json_get_str(json_element, "$.show_hours");
+        if(!hours_str) break;
+        static const char* const hours_lut[CountdownShowHourMAX] = {
+            [CountdownShowHourWhenNonZero] = "when_non_zero",
+            [CountdownShowHourAlways] = "always",
+        };
+        canvas_element->countdown.hours =
+            value_index_string(hours_str, hours_lut, COUNT_OF(hours_lut));
+        free(hours_str);
 
         result = true;
     } while(0);
@@ -188,6 +236,7 @@ static bool api_display_draw_parse_element(
         static const ApiDisplayElementTypeAssoc element_parsers[] = {
             {"text", api_display_draw_parse_text_element},
             {"image", api_display_draw_parse_image_element},
+            {"countdown", api_display_draw_parse_countdown_element},
         };
         for(size_t i = 0; i < COUNT_OF(element_parsers); i++) {
             const ApiDisplayElementTypeAssoc* association = &element_parsers[i];

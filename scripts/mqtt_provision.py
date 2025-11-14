@@ -18,41 +18,80 @@ CERTS_DIR_DEFAULT = Path("scripts/test_certs/mqtt")
 
 SIGN_CERT = "signing-ca.crt"
 SIGN_KEY = "signing-ca.key"
-DEVICE_CERT = "device.crt"
+SIGN_CERT_DER = "signing-ca.der"
+DEVICE_CERT = "device.der"
 DEVICE_KEY = "device.key"
 
 MQTT_DATA_DIR = "/ext/apps_assets/mqtt_client"
 
 PORT_NAME = ("10.0.4.20", 23)
-KEY_ID_TLS = 0x10
-KEY_TYPE_ECDSA256 = 8
+
+KEY_ID_OFFSET = 0x10
+KEY_ID_TLS_SIGN = KEY_ID_OFFSET + 0  # Sign cert slot
+KEY_ID_TLS_DEVICE = KEY_ID_OFFSET + 1  # Device cert + key slot
+
+KEY_TYPE_ECDSA256_KEY = 8
+KEY_TYPE_ECDSA256_CERT = 12
 
 
-def ensure_tls_slot_empty():
+def ensure_tls_slots_empty():
     with CryptoStorage(PORT_NAME) as crypto_storage:
         crypto_storage.ensure_key_absent(
             0,
-            KEY_TYPE_ECDSA256,
-            KEY_ID_TLS,
+            KEY_TYPE_ECDSA256_CERT,
+            KEY_ID_TLS_SIGN,
             echo=True,
-            error_message="TLS key slot already provisioned; refusing to overwrite",
+            error_message="TLS sign cert slot already provisioned; refusing to overwrite",
+        )
+
+        crypto_storage.ensure_key_absent(
+            0,
+            KEY_TYPE_ECDSA256_CERT,
+            KEY_ID_TLS_DEVICE,
+            echo=True,
+            error_message="TLS device cert slot already provisioned; refusing to overwrite",
+        )
+
+        crypto_storage.ensure_key_absent(
+            0,
+            KEY_TYPE_ECDSA256_KEY,
+            KEY_ID_TLS_DEVICE,
+            echo=True,
+            error_message="TLS device key slot already provisioned; refusing to overwrite",
         )
 
 
 def write_certs(certs_dir: Path):
-    with FlipperStorage(PORT_NAME) as storage:
-        if not storage.exist_dir(MQTT_DATA_DIR):
-            storage.mkdir(MQTT_DATA_DIR)
+    cert_path = certs_dir / SIGN_CERT_DER
+    with open(cert_path, "rb") as f:
+        sign_cert = f.read()
 
-        from_path = certs_dir / SIGN_CERT
-        to_path = MQTT_DATA_DIR + "/" + SIGN_CERT
-        print(f'Sending "{from_path}" to "{to_path}"')
-        storage.send_file(str(from_path), f"{to_path}")
+    cert_path = certs_dir / DEVICE_CERT
+    with open(cert_path, "rb") as f:
+        device_cert = f.read()
 
-        from_path = certs_dir / DEVICE_CERT
-        to_path = MQTT_DATA_DIR + "/" + DEVICE_CERT
-        print(f'Sending "{from_path}" to "{to_path}"')
-        storage.send_file(str(from_path), f"{to_path}")
+    with CryptoStorage(PORT_NAME) as crypto_storage:
+        ret = crypto_storage.write_key(
+            0,
+            KEY_TYPE_ECDSA256_CERT,
+            KEY_ID_TLS_SIGN,
+            0,
+            len(sign_cert),
+            sign_cert.hex(),
+        )
+        if ret != 0:
+            raise Exception(f"write_key failed with error {ret}")
+
+        ret = crypto_storage.write_key(
+            0,
+            KEY_TYPE_ECDSA256_CERT,
+            KEY_ID_TLS_DEVICE,
+            0,
+            len(device_cert),
+            device_cert.hex(),
+        )
+        if ret != 0:
+            raise Exception(f"write_key failed with error {ret}")
 
 
 def write_private_key(key_file, wrap=False):
@@ -71,18 +110,11 @@ def write_private_key(key_file, wrap=False):
 
     with CryptoStorage(PORT_NAME) as crypto_storage:
         flags = 1 if wrap else 0
-        crypto_storage.ensure_key_absent(
-            0,
-            KEY_TYPE_ECDSA256,
-            KEY_ID_TLS,
-            echo=False,
-            error_message="TLS key slot already provisioned; refusing to overwrite",
-        )
 
         ret = crypto_storage.write_key(
             0,
-            KEY_TYPE_ECDSA256,
-            KEY_ID_TLS,
+            KEY_TYPE_ECDSA256_KEY,
+            KEY_ID_TLS_DEVICE,
             flags,
             len(key_data),
             key_data.hex(),
@@ -92,10 +124,6 @@ def write_private_key(key_file, wrap=False):
 
 
 def cleanup():
-    with FlipperStorage(PORT_NAME) as storage:
-        storage.remove(MQTT_DATA_DIR + "/" + SIGN_CERT)
-        storage.remove(MQTT_DATA_DIR + "/" + DEVICE_CERT)
-
     with CryptoStorage(PORT_NAME) as crypto_storage:
         ret = crypto_storage.wipe_partition(0)
         if ret != 0:
@@ -207,8 +235,10 @@ def gen_device_cert(certs_dir: Path, device_uid):
         .sign(ca_private_key, hashes.SHA256())
     )
 
+    with open(certs_dir / SIGN_CERT_DER, "wb") as f:
+        f.write(ca_cert.public_bytes(serialization.Encoding.DER))
     with open(certs_dir / DEVICE_CERT, "wb") as f:
-        f.write(device_cert.public_bytes(serialization.Encoding.PEM))
+        f.write(device_cert.public_bytes(serialization.Encoding.DER))
 
 
 def parse_args(argv):
@@ -240,7 +270,7 @@ def main(argv=None):
     device_uid = get_device_uid()
     print("UID:", device_uid)
 
-    ensure_tls_slot_empty()
+    ensure_tls_slots_empty()
     gen_device_cert(certs_dir, device_uid)
     write_certs(certs_dir)
     write_private_key(certs_dir / DEVICE_KEY, False)

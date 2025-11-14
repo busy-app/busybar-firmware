@@ -13,6 +13,7 @@ void mqtt_topics_subscribe(MqttClient* mqtt) {
     const struct mg_mqtt_opts opts = {
         .topic = mg_str(furi_string_get_cstr(topic)), .qos = MQTT_QOS};
     mg_mqtt_sub(mqtt->conn, &opts);
+    FURI_LOG_D(TAG, "Subscribing to %s", furi_string_get_cstr(topic));
 
     furi_string_free(topic);
 }
