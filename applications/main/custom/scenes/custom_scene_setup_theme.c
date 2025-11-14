@@ -11,7 +11,8 @@ static void custom_scene_setup_theme_on_enter(void* context) {
     furi_assert(context);
 
     CustomApp* instance = context;
-    CustomSceneSetupTheme* data = scene_manager_get_current_scene_data(instance->scene_manager);
+    CustomSceneSetupTheme* data =
+        scene_manager_get_scene_data(instance->scene_manager, CustomAppSceneIdSetupTheme);
 
     with_gui(instance->gui, {
         data->front_label = label_alloc(instance->front_window);
@@ -28,7 +29,8 @@ static void custom_scene_setup_theme_on_exit(void* context) {
     furi_assert(context);
 
     CustomApp* instance = context;
-    CustomSceneSetupTheme* data = scene_manager_get_current_scene_data(instance->scene_manager);
+    CustomSceneSetupTheme* data =
+        scene_manager_get_scene_data(instance->scene_manager, CustomAppSceneIdSetupTheme);
 
     with_gui(instance->gui, {
         label_free(data->front_label);
