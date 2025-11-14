@@ -25,6 +25,8 @@ typedef enum {
     BleServiceDeviceEventFlagBitMax = 32, /* Max flags possible */
 } BleServiceDeviceEventFlagBit;
 
+static_assert(BleServiceDeviceEventFlagBitCount <= BleServiceDeviceEventFlagBitMax);
+
 static FuriPubSub* ble_service_device_name_get_pubsub() {
     DeviceName* device_name = furi_record_open(RECORD_DEVICE_NAME);
     FuriPubSub* pubsub = device_name_get_pubsub(device_name);
