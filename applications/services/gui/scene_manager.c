@@ -142,6 +142,8 @@ uint32_t scene_manager_get_current_scene_id(const SceneManager* instance) {
 
 SceneData* scene_manager_get_scene_data(const SceneManager* instance, uint32_t scene_id) {
     furi_check(instance);
+    // That is important to ensure that the requested scene is the current one
+    // If you need data of another scene, make another api for that
     furi_check(scene_id == scene_manager_get_current_scene_id(instance));
     return instance->scene_data[scene_id];
 }
