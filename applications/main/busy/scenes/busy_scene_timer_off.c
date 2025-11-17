@@ -22,7 +22,8 @@ static void busy_scene_timer_old_update_matter(BusyApp* instance, bool is_paused
 }
 
 static void busy_scene_timer_off_toggle_pause(BusyApp* instance) {
-    BusySceneTimerOff* data = scene_manager_get_current_scene_data(instance->scene_manager);
+    BusySceneTimerOff* data =
+        scene_manager_get_scene_data(instance->scene_manager, BusyAppSceneIdTimerOff);
 
     busy_timer_toggle(instance->busy_timer);
     bool is_paused = !busy_timer_is_running(instance->busy_timer);
@@ -65,7 +66,8 @@ void busy_scene_timer_off_on_enter(void* context) {
     furi_assert(context);
 
     BusyApp* instance = context;
-    BusySceneTimerOff* data = scene_manager_get_current_scene_data(instance->scene_manager);
+    BusySceneTimerOff* data =
+        scene_manager_get_scene_data(instance->scene_manager, BusyAppSceneIdTimerOff);
 
     with_gui(instance->gui, {
         gui_layer_add_input_callback(
@@ -77,10 +79,9 @@ void busy_scene_timer_off_on_enter(void* context) {
 
         data->anim_image = anim_image_alloc(data->root);
         anim_image_set_source(
-            data->anim_image, "/ext/apps_assets/busy/animations/busy_label_70x14.anim");
+            data->anim_image, "/ext/apps_assets/busy/animations/busy_label_72x16.anim");
         anim_image_set_loop(data->anim_image, true);
         anim_image_start(data->anim_image);
-        widget_set_pos(anim_image_get_base(data->anim_image), 1, 1);
 
         data->pause_overlay = pause_overlay_alloc(instance->front_window);
 
@@ -101,7 +102,8 @@ void busy_scene_timer_off_on_exit(void* context) {
 
     busy_set_status_lights(instance, BusyStatusLightsTypeOff);
 
-    BusySceneTimerOff* data = scene_manager_get_current_scene_data(instance->scene_manager);
+    BusySceneTimerOff* data =
+        scene_manager_get_scene_data(instance->scene_manager, BusyAppSceneIdTimerOff);
 
     with_gui(instance->gui, {
         gui_layer_remove_input_callback(

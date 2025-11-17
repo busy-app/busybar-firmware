@@ -50,21 +50,18 @@ static void
 
     BusyApp* instance = context;
     BusySceneTimerOffToSimple* data =
-        scene_manager_get_current_scene_data(instance->scene_manager);
+        scene_manager_get_scene_data(instance->scene_manager, BusyAppSceneIdTimerOffToSimple);
 
     if(event->type == BusyTimerEventTypeTick) {
         data->timer_time = event->time;
         busy_send_custom_event(instance, BusyCustomEventTimerTick);
-    } else if(event->type == BusyTimerEventTypeIntervalEnded) {
-        busy_send_custom_event(instance, BusyCustomEventTimerIntervalEnded);
     }
 }
 
-static void busy_scene_timer_off_to_simple_lvgl_anim_callback(void* context, int32_t value) {
+static void
+    busy_scene_timer_off_to_simple_timer_label_anim_callback(void* context, int32_t value) {
     furi_assert(context);
 
-    // lv_obj_t* instance = context;
-    // lv_obj_set_width(instance, value);
     Widget* instance = context;
     widget_set_pos(instance, value, 1);
 }
@@ -74,7 +71,7 @@ void busy_scene_timer_off_to_simple_on_enter(void* context) {
 
     BusyApp* instance = context;
     BusySceneTimerOffToSimple* data =
-        scene_manager_get_current_scene_data(instance->scene_manager);
+        scene_manager_get_scene_data(instance->scene_manager, BusyAppSceneIdTimerOffToSimple);
 
     with_gui(instance->gui, {
         gui_layer_add_input_callback(
@@ -85,9 +82,10 @@ void busy_scene_timer_off_to_simple_on_enter(void* context) {
         data->root = widget_alloc(instance->front_window);
 
         data->anim_image = anim_image_alloc(data->root);
-        widget_set_pos(anim_image_get_base(data->anim_image), 1, 1);
+        // widget_set_pos(anim_image_get_base(data->anim_image), 1, 1);
         anim_image_set_source(
-            data->anim_image, "/ext/apps_assets/busy/animations/busy_label_transition_70x14.anim");
+            data->anim_image,
+            "/ext/apps_assets/busy/animations/busy_label_transition_off_to_simple_72x16.anim");
         anim_image_set_loop(data->anim_image, false);
         anim_image_set_completed_callback(
             data->anim_image,
@@ -116,8 +114,7 @@ void busy_scene_timer_off_to_simple_on_enter(void* context) {
                 LV_BEZIER_VAL_FLOAT(1.0F));
 
             lv_anim_set_path_cb(&anim, lv_anim_path_custom_bezier3);
-            lv_anim_set_exec_cb(&anim, busy_scene_timer_off_to_simple_lvgl_anim_callback);
-            // lv_anim_set_completed_cb(&anim, busy_scene_timer_off_to_simple_lvgl_anim_completed_callback);
+            lv_anim_set_exec_cb(&anim, busy_scene_timer_off_to_simple_timer_label_anim_callback);
             lv_anim_set_var(&anim, timer_label_get_base(data->timer_label));
 
             lv_anim_start(&anim);
@@ -141,7 +138,9 @@ void busy_scene_timer_off_to_simple_on_exit(void* context) {
     busy_set_status_lights(instance, BusyStatusLightsTypeOff);
 
     BusySceneTimerOffToSimple* data =
-        scene_manager_get_current_scene_data(instance->scene_manager);
+        scene_manager_get_scene_data(instance->scene_manager, BusyAppSceneIdTimerOffToSimple);
+
+    busy_timer_set_callback(instance->busy_timer, NULL, NULL);
 
     with_gui(instance->gui, {
         gui_layer_remove_input_callback(
@@ -164,8 +163,8 @@ static bool
 
     if(event->type == SceneManagerEventTypeCustom) {
         if(event->event == BusyCustomEventTimerTick) {
-            const BusySceneTimerOffToSimple* data =
-                scene_manager_get_current_scene_data(instance->scene_manager);
+            const BusySceneTimerOffToSimple* data = scene_manager_get_scene_data(
+                instance->scene_manager, BusyAppSceneIdTimerOffToSimple);
 
             with_gui(instance->gui, {
                 timer_label_set_time(data->timer_label, data->timer_time.remain_s);

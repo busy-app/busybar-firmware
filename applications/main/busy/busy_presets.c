@@ -129,8 +129,8 @@ const TimerIndicatorAnimSources busy_indicator_anim_sources = {
         {
             [TimerIndicatorStateWork] = BUSY_ANIM_PATH("busy_label_40x14.anim"),
             [TimerIndicatorStateRest] = BUSY_ANIM_PATH("rest_label_40x14.anim"),
-            [TimerIndicatorStateWorkBig] = BUSY_ANIM_PATH("busy_label_70x14.anim"),
-            [TimerIndicatorStateRestBig] = BUSY_ANIM_PATH("rest_label_70x14.anim"),
+            [TimerIndicatorStateWorkBig] = BUSY_ANIM_PATH("busy_label_70x16.anim"),
+            [TimerIndicatorStateRestBig] = BUSY_ANIM_PATH("rest_label_70x16.anim"),
         },
     .transitions =
         {

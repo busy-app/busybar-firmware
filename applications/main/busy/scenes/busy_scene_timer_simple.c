@@ -22,8 +22,8 @@
     "   ]"                \
     "}}}"
 
-static const Vector3 busy_position_start = {3.0f, 100.f, 100.f};
-static const Vector3 busy_position_end = {96.5f, 100.f, 100.f};
+static const Vector3 busy_position_start = {-37.0f, 8.f, 0.f};
+static const Vector3 busy_position_end = {1.0f, 8.f, 0.f};
 
 typedef struct {
     Widget* root;
@@ -34,9 +34,6 @@ typedef struct {
     LottieAnimation* lottie;
     FuriString* lottie_text_store;
     Image* image;
-
-    RunLater* run_later;
-
     BusyTimerTime timer_time;
 } BusySceneTimerSimple;
 
@@ -53,7 +50,8 @@ static void busy_scene_timer_simple_update_matter(BusyApp* instance, bool is_pau
 }
 
 static void busy_scene_timer_simple_toggle_pause(BusyApp* instance) {
-    BusySceneTimerSimple* data = scene_manager_get_current_scene_data(instance->scene_manager);
+    BusySceneTimerSimple* data =
+        scene_manager_get_scene_data(instance->scene_manager, BusyAppSceneIdTimerSimple);
 
     busy_timer_toggle(instance->busy_timer);
     bool is_paused = !busy_timer_is_running(instance->busy_timer);
@@ -100,7 +98,8 @@ static void busy_scene_timer_simple_event_callback(const BusyTimerEvent* event, 
     furi_assert(context);
 
     BusyApp* instance = context;
-    BusySceneTimerSimple* data = scene_manager_get_current_scene_data(instance->scene_manager);
+    BusySceneTimerSimple* data =
+        scene_manager_get_scene_data(instance->scene_manager, BusyAppSceneIdTimerSimple);
 
     if(event->type == BusyTimerEventTypeTick) {
         data->timer_time = event->time;
@@ -114,8 +113,11 @@ void busy_scene_timer_simple_on_enter(void* context) {
     furi_assert(context);
 
     BusyApp* instance = context;
-    BusySceneTimerSimple* data = scene_manager_get_current_scene_data(instance->scene_manager);
+    BusySceneTimerSimple* data =
+        scene_manager_get_scene_data(instance->scene_manager, BusyAppSceneIdTimerSimple);
     data->lottie_text_store = furi_string_alloc();
+
+    busy_timer_get_time(instance->busy_timer, &data->timer_time);
 
     with_gui(instance->gui, {
         gui_layer_add_input_callback(
@@ -125,29 +127,33 @@ void busy_scene_timer_simple_on_enter(void* context) {
 
         data->root = widget_alloc(instance->front_window);
 
-        data->anim_image = anim_image_alloc(data->root);
-        anim_image_set_source(
-            data->anim_image, "/ext/apps_assets/busy/animations/busy_particles_41x16.anim");
-        anim_image_set_loop(data->anim_image, true);
-        anim_image_start(data->anim_image);
-        widget_set_pos(anim_image_get_base(data->anim_image), -1, 0);
+        {
+            Widget* label = widget_alloc(data->root);
 
-        data->lottie = lottie_animation_alloc(data->root);
-        lottie_animation_set_source(
-            data->lottie, "/ext/apps_assets/busy/busy_label_progress_lottie_small.json", 0);
-        widget_set_pos(lottie_animation_get_base(data->lottie), -1, 0);
+            data->anim_image = anim_image_alloc(label);
+            anim_image_set_source(data->anim_image, BUSY_ANIM_PATH("busy_particles_41x16.anim"));
+            anim_image_set_loop(data->anim_image, true);
+            anim_image_start(data->anim_image);
 
-        data->image = image_alloc(data->root);
-        image_set_source(data->image, "/ext/apps_assets/busy/images/busy_text_label_41x16.bin");
-        widget_set_pos(image_get_base(data->image), -1, 0);
+            data->lottie = lottie_animation_alloc(label);
+            lottie_animation_set_source(
+                data->lottie, BUSY_ASSETS_PATH("busy_label_progress_lottie_small.json"), 0);
+
+            data->image = image_alloc(label);
+            image_set_source(data->image, BUSY_IMG_PATH("busy_text_label_41x16.bin"));
+
+            widget_set_pos(label, 0, 0);
+        }
 
         data->timer_label = timer_label_alloc(data->root);
-        widget_set_pos(timer_label_get_base(data->timer_label), 31 + 11, 1);
+        timer_label_set_time(data->timer_label, data->timer_time.remain_s);
+        widget_set_pos(timer_label_get_base(data->timer_label), 31 + 12, 1);
 
         data->pause_overlay = pause_overlay_alloc(instance->front_window);
 
         widget_set_visible(timer_card_get_base(instance->timer_card), true);
         timer_card_show_header(instance->timer_card, true);
+        timer_card_set_time(instance->timer_card, data->timer_time.remain_s);
         timer_card_show_time(instance->timer_card, true);
     });
 
@@ -166,7 +172,8 @@ void busy_scene_timer_simple_on_exit(void* context) {
     busy_set_status_lights(instance, BusyStatusLightsTypeOff);
     busy_timer_set_callback(instance->busy_timer, NULL, NULL);
 
-    BusySceneTimerSimple* data = scene_manager_get_current_scene_data(instance->scene_manager);
+    BusySceneTimerSimple* data =
+        scene_manager_get_scene_data(instance->scene_manager, BusyAppSceneIdTimerSimple);
     furi_string_free(data->lottie_text_store);
 
     with_gui(instance->gui, {
@@ -196,7 +203,7 @@ static void busy_scene_timer_simple_handle_back(BusyApp* instance) {
 
 static void busy_scene_timer_simple_lottie_override_slot(BusyApp* instance, Vector3 vector) {
     const BusySceneTimerSimple* data =
-        scene_manager_get_current_scene_data(instance->scene_manager);
+        scene_manager_get_scene_data(instance->scene_manager, BusyAppSceneIdTimerSimple);
 
     furi_string_printf(data->lottie_text_store, SLOT_TEMPLATE, vector.x, vector.y, vector.z);
 
@@ -208,7 +215,7 @@ static void busy_scene_timer_simple_lottie_override_slot(BusyApp* instance, Vect
 
 static void busy_scene_timer_simple_update_tick(BusyApp* instance) {
     const BusySceneTimerSimple* data =
-        scene_manager_get_current_scene_data(instance->scene_manager);
+        scene_manager_get_scene_data(instance->scene_manager, BusyAppSceneIdTimerSimple);
     const BusyTimerTime* time = &data->timer_time;
 
     const float progress = (float)time->elapsed_s / (time->elapsed_s + time->remain_s);
@@ -228,24 +235,9 @@ static void busy_scene_timer_simple_update_tick(BusyApp* instance) {
     }
 }
 
-static void busy_scene_timer_simple_run_later_callback(void* context) {
-    furi_assert(context);
-    BusyApp* instance = context;
-
+static void busy_scene_timer_simple_go_to_progress_scene(BusyApp* instance) {
     busy_prepare_transition(instance, BusyTransitionTypeWorkDone);
     scene_manager_next_scene(instance->scene_manager, BusyAppSceneIdNext);
-}
-
-static void busy_scene_timer_simple_go_to_progress_scene(BusyApp* instance) {
-    BusySceneTimerSimple* data = scene_manager_get_current_scene_data(instance->scene_manager);
-
-    furi_assert(data->run_later == NULL);
-
-    data->run_later = run_later(
-        instance->event_loop,
-        busy_scene_timer_simple_run_later_callback,
-        instance,
-        PROGRESS_TRANSITION_MS);
 }
 
 static bool busy_scene_timer_simple_on_event(const SceneManagerEvent* event, void* context) {
