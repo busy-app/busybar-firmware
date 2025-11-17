@@ -1,6 +1,7 @@
 #include "label.h"
 
 #include <gui/widget_i.h>
+#include <gui/gui_i.h>
 
 #define MY_CLASS (&label_lvgl_class)
 
@@ -8,6 +9,7 @@ struct Label {
     Widget base;
     lv_obj_t* label;
     FuriString* text;
+    GuiFont font;
 };
 
 const lv_obj_class_t label_lvgl_class;
@@ -87,6 +89,7 @@ void label_set_text(Label* instance, const char* text) {
 void label_set_text_color(Label* instance, Color color) {
     furi_check(instance);
     lv_obj_set_style_text_color((lv_obj_t*)instance->label, TO_LV_COLOR(color), LV_PART_MAIN);
+    lv_obj_set_style_text_opa(instance->label, color.a, LV_PART_MAIN);
 }
 
 void label_set_text_font_size(Label* instance, LabelFontSize size) {
@@ -145,8 +148,58 @@ void label_set_long_content_mode(Label* instance, LabelLongContentMode mode, uin
     furi_check(instance);
     furi_check(mode < LabelLongContentModeCount);
 
-    lv_label_set_long_mode((lv_obj_t*)instance->label, (lv_label_long_mode_t)mode);
-    lv_obj_set_style_anim_time((lv_obj_t*)instance->label, duration, LV_PART_MAIN);
+    lv_label_set_long_mode(instance->label, (lv_label_long_mode_t)mode);
+    lv_obj_set_style_anim_time(instance->label, duration, LV_PART_MAIN);
+}
+
+static size_t label_calculate_offscreen_chars(
+    const char* text,
+    size_t width,
+    size_t letter_space,
+    const lv_font_t* font) {
+    size_t str_bytes = strlen(text);
+    size_t inscreen_chars = 0, total_chars = 0;
+    FuriStringUTF8State utf8_state = FuriStringUTF8StateStarting;
+
+    for(size_t i = 0; i < str_bytes; i++) {
+        FuriStringUnicodeValue codepoint;
+        furi_string_utf8_decode(text[i], &utf8_state, &codepoint);
+        if(utf8_state != FuriStringUTF8StateStarting) continue;
+
+        int32_t portion_width = lv_text_get_width(text, i + 1, font, letter_space);
+        furi_assert(portion_width > 0);
+
+        if((size_t)portion_width <= width) inscreen_chars++;
+        total_chars++;
+    }
+
+    size_t offscreen_chars = total_chars - inscreen_chars;
+    return offscreen_chars;
+}
+
+uint32_t label_calculate_scroll_duration(const Label* instance, uint32_t rate_cpm) {
+    furi_check(instance);
+    furi_check(rate_cpm > 0);
+
+    lv_obj_t* label = TO_LV_OBJ(instance);
+    lv_obj_update_layout(label);
+    const char* text = furi_string_get_cstr(instance->text);
+    int32_t width = lv_obj_get_width(label);
+    int32_t letter_space = lv_obj_get_style_text_letter_space(label, LV_PART_MAIN);
+
+    furi_assert(width > 0);
+    furi_assert(letter_space >= 0);
+    size_t offscreen_chars = label_calculate_offscreen_chars(
+        text, (size_t)width, letter_space, gui_font_to_lvgl(instance->font));
+
+    size_t duration_ms = (offscreen_chars * 60 * 1000) / rate_cpm;
+    return duration_ms;
+}
+
+void label_set_font(Label* instance, GuiFont font) {
+    furi_check(instance);
+    lv_obj_set_style_text_font(instance->label, gui_font_to_lvgl(font), LV_PART_MAIN);
+    instance->font = font;
 }
 
 // LVGL class descriptor

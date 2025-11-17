@@ -1,0 +1,31 @@
+Import("FW_ENV", "DIST_ENV")
+distenv, firmware_env = DIST_ENV, FW_ENV
+
+
+mqtt_provision = distenv.PhonyTarget(
+    "mqtt_provision",
+    [
+        [
+            "${PYTHON3}",
+            distenv.Real("${FBT_SCRIPT_DIR}/mqtt_provision.py"),
+            "--certs-dir",
+            "${PROJECT_ROOT}/scripts/test_certs/mqtt",
+        ]
+    ],
+    source=distenv.Real("${FBT_SCRIPT_DIR}/test_certs/mqtt/signing-ca.crt"),
+)
+
+
+mqtt_provision = distenv.PhonyTarget(
+    "mqtt_wipe",
+    [
+        [
+            "${PYTHON3}",
+            distenv.Real("${FBT_SCRIPT_DIR}/mqtt_provision.py"),
+            "--certs-dir",
+            "${PROJECT_ROOT}/scripts/test_certs/mqtt",
+            "--cleanup",
+        ]
+    ],
+    source=distenv.Real("${FBT_SCRIPT_DIR}/test_certs/mqtt/signing-ca.crt"),
+)

@@ -51,7 +51,8 @@ static void busy_scene_next_on_enter(void* context) {
     furi_assert(context);
 
     BusyApp* instance = context;
-    BusySceneNext* data = scene_manager_get_current_scene_data(instance->scene_manager);
+    BusySceneNext* data =
+        scene_manager_get_scene_data(instance->scene_manager, BusyAppSceneIdNext);
 
     data->timer_state = busy_timer_get_state(instance->busy_timer);
 
@@ -76,7 +77,8 @@ static void busy_scene_next_on_exit(void* context) {
     furi_assert(context);
 
     BusyApp* instance = context;
-    BusySceneNext* data = scene_manager_get_current_scene_data(instance->scene_manager);
+    BusySceneNext* data =
+        scene_manager_get_scene_data(instance->scene_manager, BusyAppSceneIdNext);
 
     with_gui(instance->gui, {
         GuiLayer* layer = gui_get_layer(instance->gui, GuiLayerIdMain);
@@ -95,7 +97,8 @@ static bool busy_scene_next_on_event(const SceneManagerEvent* event, void* conte
     bool consumed = false;
 
     if(event->type == SceneManagerEventTypeCustom) {
-        const BusySceneNext* data = scene_manager_get_current_scene_data(instance->scene_manager);
+        const BusySceneNext* data =
+            scene_manager_get_scene_data(instance->scene_manager, BusyAppSceneIdNext);
 
         if(event->event == BusyCustomEventStartPressed) {
             if(data->front_anim) {

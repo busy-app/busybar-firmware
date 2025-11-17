@@ -39,7 +39,7 @@ class Main(App):
         self.parser.add_argument(
             "--version",
             help="Swagger UI version to download",
-            default="5.10.5",
+            default="5.30.1",
             required=False,
         )
         self.parser.add_argument(

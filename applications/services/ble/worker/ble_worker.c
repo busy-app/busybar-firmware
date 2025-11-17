@@ -6,18 +6,22 @@
 #include <sl_wifi_callback_framework.h>
 
 #include "ble_config.h"
+#include "ble_security.h"
 
+#include "rsi_ble.h"
 #include "rsi_ble_apis.h"
 #include "rsi_ble_common_config.h"
 #include "rsi_bt_common_apis.h"
 
-#include "ble_advertise_config.h"
+#include "ble_advertise.h"
 #include "ble_worker_util.h"
 #include "../service/ble_service_i.h"
 
 #include <m-dict.h>
 
 #define TAG "BleWorker"
+
+#define BLE_DEFAULT_LOCAL_NAME "BUSY Bar"
 
 #define BLE_WORKER_LOCAL_DEV_ADDR_LEN 18 // Length of the local device address
 #define BLE_WORKER_MAX_MTU_SIZE       240
@@ -31,10 +35,23 @@
 #define BLE_CCCD_INDICATION_ENABLED(cccd_value)   ((cccd_value & 0x02) != 0)
 
 //! Configuration bitmap for attributes
-#define RSI_BLE_ATT_MAINTAIN_IN_HOST BIT(0)
-#define RSI_BLE_ATT_SECURITY_ENABLE  BIT(1)
+#define ATT_REC_MAINTAIN_IN_HOST BIT(0) ///< Attribute record maintained in Host
+#define SEC_MODE_1_LEVEL_1       BIT(1) ///< NO Auth and No Enc
+#define SEC_MODE_1_LEVEL_2       BIT(2) ///< UnAUTH with Enc
+#define SEC_MODE_1_LEVEL_3       BIT(3) ///< AUTH with Enc
+#define SEC_MODE_1_LEVEL_4       BIT(4) ///< AUTH LE_SC Pairing with Enc
+#define ON_BR_EDR_LINK_ONLY      BIT(5) ///< BR/EDR link-only mode
+#define ON_LE_LINK_ONLY          BIT(6) ///< LE link-only mode
+#define VARIABLE_ATT_CHAR_VAL    BIT(7) ///< Variable characteristic value length
 
-#define RSI_BLE_ATT_CONFIG_BITMAP (RSI_BLE_ATT_MAINTAIN_IN_HOST)
+#define RSI_BLE_ATT_CONFIG_BITMAP (SEC_MODE_1_LEVEL_4)
+
+#ifdef RSI_BLE_SMP_IO_CAPABILITY
+#undef RSI_BLE_SMP_IO_CAPABILITY
+#define RSI_BLE_SMP_IO_CAPABILITY 0x03
+#endif
+
+#define MITM_REQ 1
 
 //! application events list
 typedef enum {
@@ -53,6 +70,11 @@ typedef enum {
     BLEWorkerEvtDataTransmit = (1 << 10),
     BLEWorkerEvtMtu = (1 << 11),
     BLEWorkerEvtIndicateConfirm = (1 << 12),
+
+    BLEWorkerSmpResponse = (1 << 13),
+    BLEWorkerSmpEncryptStarted = (1 << 14),
+    BLEWorkerSmpLtkRequest = (1 << 15),
+    BLEWorkerSmpSecurityKeys = (1 << 16),
 } BLEWorkerEvt;
 
 #define BLE_USART_ECHO_ALL_EVENTS                                                                \
@@ -60,7 +82,8 @@ typedef enum {
      BLEWorkerEvtDisconnected | BLEWorkerEvtPhyUpdateComplete | BLEWorkerEvtConnUpdate |         \
      BLEWorkerEvtDataLengthChange | BLEWorkerEvtReceveRemoteFeatures | BLEWorkerEvtMoreDataReq | \
      BLEWorkerEvtWrite | BLEWorkerEvtDataTransmit | BLEWorkerEvtMtu |                            \
-     BLEWorkerEvtIndicateConfirm)
+     BLEWorkerEvtIndicateConfirm | BLEWorkerSmpResponse | BLEWorkerSmpLtkRequest |               \
+     BLEWorkerSmpEncryptStarted | BLEWorkerSmpSecurityKeys)
 
 typedef struct {
     ///TODO: for now this is ok, for future maybe it is worth to make each characteristic
@@ -82,6 +105,7 @@ typedef struct {
     FuriThread* thread;
     FuriSemaphore* indication_sem;
     FuriSemaphore* notification_sem;
+    uint8_t pairing_info_available;
     ///TODO: this can be removed
     bool connected;
     BleWorkerState state;
@@ -105,6 +129,11 @@ typedef struct {
     rsi_ble_event_write_t app_ble_write_event;
     rsi_ble_event_mtu_t app_ble_mtu_event;
 
+    rsi_bt_event_smp_resp_t rsi_bt_event_smp_resp;
+    rsi_bt_event_le_ltk_request_t ble_ltk_req;
+    BleSecurityData* security_data;
+    BleAdvertiseContext* advertise;
+
     BleServiceEntryDict_t service_dict;
 } BleWorker;
 
@@ -119,7 +148,8 @@ static BleWorker* ble_worker_instance;
  * @section description
  * This callback function updates the scanned remote devices list
  */
-void ble_worker_on_adv_report_event(rsi_ble_event_adv_report_t* adv_report) {
+static void ble_worker_on_adv_report_event(rsi_ble_event_adv_report_t* adv_report) {
+    BLE_LOG_W("ble_worker_on_adv_report_event");
     if(ble_worker_instance->device_found == 1) {
         return;
     }
@@ -198,7 +228,7 @@ static void
  * @section description
  * This Callback function indicates disconnected device information and status
  */
-void ble_worker_phy_update_complete_event(
+static void ble_worker_phy_update_complete_event(
     rsi_ble_event_phy_update_t* rsi_ble_event_phy_update_complete) {
     memcpy(
         &ble_worker_instance->app_phy_update_complete,
@@ -214,7 +244,7 @@ void ble_worker_phy_update_complete_event(
  * @section description
  * This Callback function indicates data length is set
  */
-void ble_worker_data_length_change_event(
+static void ble_worker_data_length_change_event(
     rsi_ble_event_data_length_update_t* rsi_ble_data_length_update) {
     memcpy(
         &ble_worker_instance->data_length_update,
@@ -233,14 +263,15 @@ void ble_worker_data_length_change_event(
  * @section description
  * This callback function indicates the status of the connection
  */
-void ble_worker_on_enhance_conn_status_event(rsi_ble_event_enhance_conn_status_t* resp_enh_conn) {
+static void
+    ble_worker_on_enhance_conn_status_event(rsi_ble_event_enhance_conn_status_t* resp_enh_conn) {
     memcpy(ble_worker_instance->remote_dev_address, resp_enh_conn->dev_addr, 6);
     rsi_6byte_dev_address_to_ascii(
         ble_worker_instance->str_remote_address, resp_enh_conn->dev_addr);
     furi_thread_flags_set(furi_thread_get_id(ble_worker_instance->thread), BLEWorkerEvtConnected);
 }
 
-void ble_worker_on_conn_update_complete_event(
+static void ble_worker_on_conn_update_complete_event(
     rsi_ble_event_conn_update_t* rsi_ble_event_conn_update_complete,
     uint16_t resp_status) {
     UNUSED(resp_status);
@@ -252,6 +283,12 @@ void ble_worker_on_conn_update_complete_event(
         ble_worker_instance->remote_dev_address, rsi_ble_event_conn_update_complete->dev_addr, 6);
 
     furi_thread_flags_set(furi_thread_get_id(ble_worker_instance->thread), BLEWorkerEvtConnUpdate);
+}
+
+static void rsi_ble_on_directed_adv_report_event(
+    rsi_ble_event_directedadv_report_t* rsi_ble_event_directed) {
+    BLE_LOG_W("rsi_ble_on_directed_adv_report_event");
+    UNUSED(rsi_ble_event_directed);
 }
 /*==============================================*/
 /**
@@ -329,6 +366,117 @@ static void ble_worker_on_mtu_event(rsi_ble_event_mtu_t* rsi_ble_mtu) {
     furi_thread_flags_set(furi_thread_get_id(ble_worker_instance->thread), BLEWorkerEvtMtu);
 }
 
+//===========================================================================================
+
+static void rsi_ble_on_smp_request(rsi_bt_event_smp_req_t* remote_dev_address) {
+    UNUSED(remote_dev_address);
+    BLE_LOG_W("rsi_ble_on_smp_request");
+}
+
+static void rsi_ble_on_smp_response(rsi_bt_event_smp_resp_t* resp) {
+    BLE_LOG_D("rsi_ble_on_smp_response");
+    memcpy(&ble_worker_instance->rsi_bt_event_smp_resp, resp, sizeof(rsi_bt_event_smp_resp_t));
+    furi_thread_flags_set(furi_thread_get_id(ble_worker_instance->thread), BLEWorkerSmpResponse);
+}
+
+static void rsi_ble_on_smp_passkey(rsi_bt_event_smp_passkey_t* remote_dev_address) {
+    UNUSED(remote_dev_address);
+    BLE_LOG_W("rsi_ble_on_smp_passkey");
+}
+
+static void
+    rsi_ble_on_smp_failed(uint16_t resp_status, rsi_bt_event_smp_failed_t* remote_dev_address) {
+    UNUSED(resp_status);
+    UNUSED(remote_dev_address);
+    BLE_LOG_W("rsi_ble_on_smp_failed status: %X", resp_status);
+}
+
+static void rsi_ble_on_encrypt_started(
+    uint16_t resp_status,
+    rsi_bt_event_encryption_enabled_t* enc_enabled) {
+    UNUSED(resp_status);
+    BLE_LOG_D("rsi_ble_on_encrypt_started status: %X", resp_status);
+    ble_security_set_pairing_data(ble_worker_instance->security_data, enc_enabled);
+
+    furi_thread_flags_set(
+        furi_thread_get_id(ble_worker_instance->thread), BLEWorkerSmpEncryptStarted);
+}
+
+static void
+    rsi_ble_on_le_ltk_req_event(rsi_bt_event_le_ltk_request_t* rsi_ble_event_le_ltk_request) {
+    UNUSED(rsi_ble_event_le_ltk_request);
+
+    BLE_LOG_D("rsi_ble_on_le_ltk_req_event");
+    memcpy(
+        &ble_worker_instance->ble_ltk_req,
+        rsi_ble_event_le_ltk_request,
+        sizeof(rsi_bt_event_le_ltk_request_t));
+    furi_thread_flags_set(furi_thread_get_id(ble_worker_instance->thread), BLEWorkerSmpLtkRequest);
+}
+
+static void
+    rsi_ble_on_le_security_keys(rsi_bt_event_le_security_keys_t* rsi_ble_event_le_security_keys) {
+    BLE_LOG_D("rsi_ble_on_le_security_keys");
+    ble_security_set_rpa_data(ble_worker_instance->security_data, rsi_ble_event_le_security_keys);
+
+    furi_thread_flags_set(
+        furi_thread_get_id(ble_worker_instance->thread), BLEWorkerSmpSecurityKeys);
+}
+
+static void ble_on_cli_smp_response_event(rsi_bt_event_smp_resp_t* remote_dev_address) {
+    UNUSED(remote_dev_address);
+    BLE_LOG_W("ble_on_cli_smp_response_event");
+}
+
+static void rsi_ble_on_sc_method(rsi_bt_event_sc_method_t* scmethod) {
+    UNUSED(scmethod);
+    BLE_LOG_W("rsi_ble_on_sc_method");
+}
+//===========================================================================================
+static bool ble_worker_start_advertising(
+    bool rpa_enabled,
+    const rsi_bt_event_le_security_keys_t* key,
+    const BleAdvertiseContext* advertise) {
+    rsi_ble_req_adv_t ble_adv = {0};
+    ble_adv.status = RSI_BLE_START_ADV;
+
+    ble_adv.adv_type = rpa_enabled ? DIR_CONN_LOW_DUTY_CYCLE : UNDIR_CONN;
+    ble_adv.filter_type = RSI_BLE_ADV_FILTER_TYPE;
+    if(rpa_enabled) {
+        ble_adv.direct_addr_type = key->Identity_addr_type;
+        memcpy(ble_adv.direct_addr, key->Identity_addr, RSI_DEV_ADDR_LEN);
+    }
+
+    ble_adv.adv_int_min = RSI_BLE_ADV_INT_MIN;
+    ble_adv.adv_int_max = RSI_BLE_ADV_INT_MAX;
+    ble_adv.adv_channel_map = RSI_BLE_ADV_CHANNEL_MAP;
+
+    ble_adv.own_addr_type = rpa_enabled ? LE_RESOLVABLE_RANDOM_ADDRESS : LE_PUBLIC_ADDRESS;
+
+    ble_advertise_refresh_data(advertise);
+
+    sl_status_t status = rsi_ble_start_advertising_with_values(&ble_adv);
+
+    if(status != RSI_SUCCESS) {
+        BLE_LOG_W("Failed to start advertising, error code : 0x%08lx", status);
+    } else {
+        BLE_LOG_I("Start advertising...");
+    }
+
+    return status == RSI_SUCCESS;
+}
+
+static bool ble_worker_stop_advertising() {
+    sl_status_t status = rsi_ble_stop_advertising();
+
+    if(status != RSI_SUCCESS)
+        BLE_LOG_W("Failed to stop advertising, error code : 0x%08lx", status);
+    else
+        BLE_LOG_I("Stop advertising...");
+
+    return status == RSI_SUCCESS;
+}
+
 static void ble_hw_config() {
     sl_status_t status = 0;
     static uint8_t rsi_app_resp_get_dev_addr[RSI_DEV_ADDR_LEN] = {0};
@@ -354,9 +502,22 @@ static void ble_hw_config() {
         ble_worker_phy_update_complete_event,
         ble_worker_data_length_change_event,
         ble_worker_on_enhance_conn_status_event,
-        NULL,
+        rsi_ble_on_directed_adv_report_event,
         ble_worker_on_conn_update_complete_event,
         NULL);
+
+    rsi_ble_smp_register_callbacks(
+        rsi_ble_on_smp_request,
+        rsi_ble_on_smp_response,
+        rsi_ble_on_smp_passkey,
+        rsi_ble_on_smp_failed,
+        rsi_ble_on_encrypt_started,
+        NULL,
+        NULL,
+        rsi_ble_on_le_ltk_req_event,
+        rsi_ble_on_le_security_keys,
+        ble_on_cli_smp_response_event,
+        rsi_ble_on_sc_method);
 
     rsi_ble_gap_extended_register_callbacks(
         ble_worker_simple_peripheral_on_remote_features_event, ble_worker_more_data_req_event);
@@ -386,22 +547,24 @@ static void ble_hw_config() {
         ble_worker_on_indicate_confirmation_event,
         NULL);
 
-    // //! Set local name
-    status = rsi_bt_set_local_name((uint8_t*)advertise_config.local_name.data);
+    //! Set local name
+    status = rsi_bt_set_local_name((const uint8_t*)BLE_DEFAULT_LOCAL_NAME);
     if(status != RSI_SUCCESS) {
         BLE_LOG_W("Failed to set local name, error code : 0x%08lx", status);
         furi_crash();
     }
 
-    BLE_LOG_I("Flags: %d", advertise_config.flags.data);
-    BLE_LOG_I("Appearance: %04X", advertise_config.appearance.data);
-    BLE_LOG_I("Manufacturer: %04X", advertise_config.manufacturer.data);
-    BLE_LOG_I("Local Name: %s", advertise_config.local_name.data);
-
-    //! set advertise data
-    rsi_ble_set_advertise_data((uint8_t*)&advertise_config, sizeof(advertise_config));
+    ble_advertise_print_data(ble_worker_instance->advertise);
 
     // ble_adjust_gap_service_data();
+
+    ble_worker_instance->pairing_info_available =
+        ble_security_init(ble_worker_instance->security_data);
+
+    status = rsi_ble_set_random_address_with_value(rsi_app_resp_get_dev_addr);
+    if(status != RSI_SUCCESS) {
+        BLE_LOG_W("Failed to set address: %08lX", status);
+    }
 }
 
 static int32_t ble_worker_thread_callback(void* context) {
@@ -423,6 +586,7 @@ static int32_t ble_worker_thread_callback(void* context) {
                 rsi_ble_mtu_exchange_event(instance->remote_dev_address, BLE_WORKER_MAX_MTU_SIZE);
             if(status != RSI_SUCCESS) {
                 BLE_LOG_W("MTU request cmd failed with error code = 0x%08lx", status);
+                furi_crash();
             } else {
                 BLE_LOG_I("MTU sent");
             }
@@ -468,14 +632,14 @@ static int32_t ble_worker_thread_callback(void* context) {
             }
 
             //! start advertising
-            status = rsi_ble_start_advertising();
-            if(status != RSI_SUCCESS) {
-                BLE_LOG_W("Failed to start advertising, error code : 0x%08lx", status);
-                instance->state = BleWorkerStateError;
-            } else {
-                BLE_LOG_I("Start advertising...");
-                instance->state = BleWorkerStateAdvertising;
-            }
+            const rsi_bt_event_le_security_keys_t* rpa =
+                ble_security_get_rpa_data(ble_worker_instance->security_data);
+            instance->state = ble_worker_start_advertising(
+                                  ble_worker_instance->pairing_info_available,
+                                  rpa,
+                                  ble_worker_instance->advertise) ?
+                                  BleWorkerStateAdvertising :
+                                  BleWorkerStateError;
         }
 
         if(events & BLEWorkerEvtReceveRemoteFeatures) {
@@ -588,7 +752,9 @@ static int32_t ble_worker_thread_callback(void* context) {
                 const size_t data_size = instance->app_ble_write_event.length;
 
                 uint16_t handle = *(uint16_t*)instance->app_ble_write_event.handle;
-                BLE_LOG_I("Handle: %04X", handle);
+
+                if(handle == 0x001D) BLE_LOG_W("Subscribed!");
+
                 BleServiceEntry* entry =
                     BleServiceEntryDict_get(ble_worker_instance->service_dict, handle);
 
@@ -606,7 +772,8 @@ static int32_t ble_worker_thread_callback(void* context) {
                         }
 
                         ble_service_unlock(service);
-                    }
+                    } else
+                        furi_crash("FAIL!");
                 } else {
                     BLE_LOG_W("Not found: %04X", handle);
                     status =
@@ -625,18 +792,74 @@ static int32_t ble_worker_thread_callback(void* context) {
         }
 
         if(events & BLEWorkerEvtExit) {
-            status = rsi_ble_stop_advertising();
-            if(status != RSI_SUCCESS) {
-                BLE_LOG_W("Unable to stop advertise: 0x%08lx", status);
-                instance->state = BleWorkerStateError;
-            } else
-                instance->state = BleWorkerStateIdle;
+            instance->state = ble_worker_stop_advertising() ? BleWorkerStateIdle :
+                                                              BleWorkerStateError;
             break;
         }
 
         if(events & BLEWorkerEvtIndicateConfirm) {
             BLE_LOG_D("BLEWorkerEvtIndicateConfirm");
             furi_semaphore_release(ble_worker_instance->indication_sem);
+        }
+
+        if(events & BLEWorkerSmpResponse) {
+            BLE_LOG_I("BLEWorkerSmpResponse");
+            status = rsi_ble_smp_pair_response(
+                ble_worker_instance->remote_dev_address, RSI_BLE_SMP_IO_CAPABILITY, MITM_REQ);
+
+            if(status != SL_STATUS_OK) {
+                BLE_LOG_W("Passkey Status: %lX", status);
+            }
+            ble_worker_instance->pairing_info_available = 0;
+        }
+
+        if(events & BLEWorkerSmpEncryptStarted) {
+            BLE_LOG_I("BLEWorkerSmpEncryptStarted");
+            if(ble_worker_instance->pairing_info_available == 0) {
+                ble_worker_instance->pairing_info_available = 1;
+
+                if(ble_security_save_data(ble_worker_instance->security_data))
+                    BLE_LOG_I("Security data saved");
+                else
+                    BLE_LOG_W("Failed to save Security");
+            }
+        }
+
+        if(events & BLEWorkerSmpLtkRequest) {
+            BLE_LOG_I("BLEWorkerSmpLtkRequest");
+            ///TODO: Move this logic to ble_security module
+            if(ble_worker_instance->pairing_info_available) {
+                const rsi_bt_event_encryption_enabled_t* encrypt_keys =
+                    ble_security_get_pairing_data(ble_worker_instance->security_data);
+
+                status = rsi_ble_ltk_req_reply(
+                    ble_worker_instance->remote_dev_address,
+                    (1 | encrypt_keys->enabled | (encrypt_keys->sc_enable << 7)),
+                    encrypt_keys->localltk);
+                if(status != RSI_SUCCESS) {
+                    BLE_LOG_W("ltk req reply cmd failed with reason = %lx", status);
+                }
+                BLE_LOG_I("Paired device");
+            } else {
+                BLE_LOG_I("Not paired device");
+                rsi_ble_ltk_req_reply(ble_worker_instance->remote_dev_address, 0, NULL);
+                if(status != RSI_SUCCESS) {
+                    BLE_LOG_W("ltk negative req reply cmd failed with reason = %lx \n", status);
+                }
+            }
+        }
+
+        if(events & BLEWorkerSmpSecurityKeys) {
+            BLE_LOG_I("BLEWorkerSmpSecurityKeys");
+            do {
+                if(!ble_security_rpa_enable(ble_worker_instance->security_data)) break;
+
+                if(!ble_security_save_data(ble_worker_instance->security_data)) {
+                    BLE_LOG_W("Failed to save Security");
+                    break;
+                }
+                BLE_LOG_I("Security data saved");
+            } while(false);
         }
     }
 
@@ -759,6 +982,7 @@ static uint16_t ble_worker_add_char_val_att(
         new_att.att_uuid.val.val16 = RSI_BLE_CLIENT_CHAR_UUID;
         new_att.property = RSI_BLE_ATT_PROPERTY_READ | RSI_BLE_ATT_PROPERTY_WRITE;
         new_att.data_len = 2;
+        new_att.config_bitmap = auth_read;
 
         //! add attribute to the service
         int32_t ret = rsi_ble_add_attribute(&new_att);
@@ -785,6 +1009,10 @@ void ble_worker_init() {
     ble_worker_instance->indication_sem = furi_semaphore_alloc(1, 0);
     ble_worker_instance->notification_sem = furi_semaphore_alloc(1, 1);
     ble_worker_instance->max_payload_size = BLE_WORKER_MAX_MTU_SIZE - BLE_WORKER_ATTR_HEADER_SIZE;
+    ble_worker_instance->security_data = ble_security_alloc();
+    ble_worker_instance->advertise = ble_advertise_alloc();
+    ble_advertise_set_name(ble_worker_instance->advertise, BLE_DEFAULT_LOCAL_NAME);
+
     BleServiceEntryDict_init(ble_worker_instance->service_dict);
 
     ble_hw_config();
@@ -845,7 +1073,7 @@ bool ble_worker_register_service(BleServiceObject* service) {
                 ch_config->char_properties,
                 ble_characteristic_get_data(ch),
                 ble_characteristic_get_data_size(ch),
-                0);
+                RSI_BLE_ATT_CONFIG_BITMAP);
             BleServiceEntry entry = {.service = service, .char_index = ch_config->intercom_index};
             BleServiceEntryDict_set_at(ble_worker_instance->service_dict, value_handle, entry);
 
@@ -871,13 +1099,11 @@ void ble_worker_start() {
             break;
         }
 
-        sl_status_t status = rsi_ble_start_advertising();
-        if(status != RSI_SUCCESS) {
-            BLE_LOG_W("Failed to start advertising, error code : 0x%08lx", status);
-            break;
-        }
+        const rsi_bt_event_le_security_keys_t* rpa =
+            ble_security_get_rpa_data(ble_worker_instance->security_data);
+        ble_worker_start_advertising(
+            ble_worker_instance->pairing_info_available, rpa, ble_worker_instance->advertise);
 
-        BLE_LOG_I("Start advertising...");
         ble_worker_instance->state = BleWorkerStateAdvertising;
         furi_thread_start(ble_worker_instance->thread);
     } while(false);
@@ -946,4 +1172,37 @@ void ble_worker_receive_confirm(uint16_t handle, uint8_t cccd_value) {
     }
 
     if(status != 0) BLE_LOG_W("Recv fail %08lX", status);
+}
+
+bool ble_worker_forget_pairing() {
+    if(ble_worker_instance->state == BleWorkerStateAdvertising) {
+        ble_worker_stop_advertising();
+    }
+
+    ble_security_rpa_disable();
+
+    bool result = ble_security_delete_data(ble_worker_instance->security_data);
+
+    ble_worker_instance->pairing_info_available = 0;
+
+    if(ble_worker_instance->state == BleWorkerStateAdvertising) {
+        ble_worker_start_advertising(false, NULL, ble_worker_instance->advertise);
+    }
+
+    if(result) BLE_LOG_I("Security data removed");
+    return result;
+}
+
+void ble_worker_set_name(const char* new_name) {
+    furi_assert(new_name);
+
+    if(ble_worker_instance->state == BleWorkerStateAdvertising) {
+        ble_worker_stop_advertising();
+    }
+
+    ble_advertise_set_name(ble_worker_instance->advertise, new_name);
+
+    if(ble_worker_instance->state == BleWorkerStateAdvertising) {
+        ble_worker_start_advertising(false, NULL, ble_worker_instance->advertise);
+    }
 }

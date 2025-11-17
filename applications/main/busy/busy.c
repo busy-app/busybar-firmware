@@ -166,9 +166,7 @@ int32_t busy_app(void* arg) {
     UNUSED(arg);
 
     BusyApp* instance = busy_alloc();
-    FuriThread* thread = furi_thread_get_current();
     furi_event_loop_run(instance->event_loop);
-    furi_thread_set_signal_callback(thread, NULL, NULL);
     busy_free(instance);
 
     return 0;

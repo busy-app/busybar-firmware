@@ -9,6 +9,7 @@
 #define MQTT_SERVER_ADDR         "mqtts://mqtt.cloud.dev.busy.app:8883"
 #define MQTT_RECONNECT_DELAY_MIN (2000)
 #define MQTT_RECONNECT_DELAY_MAX (60000)
+#define MQTT_POLL_PERIOD         (100)
 #define MQTT_QOS                 (2)
 #define MQTT_API_VERSION         "v1"
 
@@ -32,13 +33,15 @@ struct MqttClient {
     bool fast_reconnect;
 
     char* ca_bundle;
-    char* device_cert;
-    char* device_key;
 
     FuriString* device_serial;
     FuriString* client_id;
     FuriString* session_id;
     FuriString* link_token;
+
+    struct mg_timer screen_stream_timer;
+    FuriString* screen_stream_topic;
+    char* screen_stream_buf;
 };
 
 typedef struct {
@@ -48,6 +51,7 @@ typedef struct {
         MqttClientMessageUnlink,
         MqttClientMessageRequestPin,
         MqttClientMessageGetSessionId,
+        MqttClientMessageGetSessionEmail,
     } type;
     FuriApiLock lock;
     union {
@@ -58,5 +62,22 @@ typedef struct {
     };
 } MqttClientMessage;
 
-void mqtt_api_subscribe(MqttClient* mqtt);
-void mqtt_api_on_message(MqttClient* mqtt, FuriString* topic_str, struct mg_mqtt_message* msg);
+typedef struct {
+    struct mg_str ca;
+    struct mg_str name;
+} MqttTlsCfg;
+
+void mqtt_topics_subscribe(MqttClient* mqtt);
+void mqtt_topics_on_message(MqttClient* mqtt, FuriString* topic_str, struct mg_mqtt_message* msg);
+void mqtt_topics_on_close(MqttClient* mqtt);
+
+void mqtt_http_api_on_message(MqttClient* mqtt, FuriString* topic_str, struct mg_mqtt_message* msg);
+
+void mqtt_screen_streaming_on_message(
+    MqttClient* mqtt,
+    FuriString* topic_str,
+    struct mg_mqtt_message* msg);
+void mqtt_screen_streaming_on_close(MqttClient* mqtt);
+
+bool mqtt_tls_init(struct mg_connection* conn, const MqttTlsCfg* opts);
+void mqtt_tls_free_ca(struct mg_connection* conn);

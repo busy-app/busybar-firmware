@@ -1,6 +1,7 @@
 #pragma once
 
 #include "update_task.h"
+#include "../session/session_config.h"
 
 #include <furi_hal.h>
 #include <storage/storage.h>
@@ -12,11 +13,12 @@
 typedef struct UpdateTask {
     UpdateTaskState state;
     UpdateConfig* config;
+    UpdaterSessionConfig session_config;
     FuriThread* thread;
     Storage* storage;
     File* file;
-    updateProgressCb status_change_cb;
-    void* status_change_cb_state;
+    UpdateProgressCallback status_change_callback;
+    void* status_change_callback_context;
 } UpdateTask;
 
 void update_task_set_progress(UpdateTask* update_task, UpdateTaskStage stage, uint8_t progress);

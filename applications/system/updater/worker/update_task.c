@@ -208,18 +208,26 @@ static UpdateTaskStageGroup update_task_get_task_groups(UpdateTask* update_task)
     UpdateTaskStageGroup ret = UpdateTaskStageGroupPrepare;
     const UpdateManifest* manifest = update_config_get_manifest(update_task->config);
 
-    if(!furi_string_empty(updater_manifest_get_path(manifest, UpdateManifestPathDfu))) {
+    if(update_task->session_config.do_update_u5_firmware &&
+       !furi_string_empty(updater_manifest_get_path(manifest, UpdateManifestPathDfu))) {
         ret |= UpdateTaskStageGroupFirmware;
     }
-    if(!furi_string_empty(updater_manifest_get_path(manifest, UpdateManifestPath917))) {
+
+    if(update_task->session_config.do_update_917_firmware &&
+       !furi_string_empty(updater_manifest_get_path(manifest, UpdateManifestPath917))) {
         ret |= UpdateTaskStageGroup917;
     }
-    if(!furi_string_empty(updater_manifest_get_path(manifest, UpdateManifestPath917Radio))) {
+
+    if(update_task->session_config.do_update_917_radio_stack &&
+       !furi_string_empty(updater_manifest_get_path(manifest, UpdateManifestPath917Radio))) {
         ret |= UpdateTaskStageGroup917Radio;
     }
-    if(!furi_string_empty(updater_manifest_get_path(manifest, UpdateManifestPathResources))) {
+
+    if(update_task->session_config.do_update_resources &&
+       !furi_string_empty(updater_manifest_get_path(manifest, UpdateManifestPathResources))) {
         ret |= UpdateTaskStageGroupResources;
     }
+
     return ret;
 }
 
@@ -285,12 +293,12 @@ void update_task_set_progress(UpdateTask* update_task, UpdateTaskStage stage, ui
     }
     update_task->state.overall_progress = adapted_progress;
 
-    if(update_task->status_change_cb) {
-        (update_task->status_change_cb)(
+    if(update_task->status_change_callback) {
+        update_task->status_change_callback(
             furi_string_get_cstr(update_task->state.status),
+            update_task->state.stage,
             adapted_progress,
-            update_stage_is_error(update_task->state.stage),
-            update_task->status_change_cb_state);
+            update_task->status_change_callback_context);
     }
 }
 
@@ -325,6 +333,8 @@ static void
     }
 
     if(furi_thread_get_return_code(thread) == UPDATE_TASK_NOERR) {
+        updater_session_config_delete();
+
         furi_delay_ms(UPDATE_DELAY_OPERATION_OK);
         furi_hal_power_reset();
     }
@@ -341,8 +351,7 @@ UpdateTask* update_task_alloc(void) {
     update_task->config = update_config_alloc();
     update_task->storage = furi_record_open(RECORD_STORAGE);
     update_task->file = storage_file_alloc(update_task->storage);
-    update_task->status_change_cb = NULL;
-    // update_task->update_path = furi_string_alloc();
+    update_task->status_change_callback = NULL;
 
     FuriThread* thread = update_task->thread =
         furi_thread_alloc_ex("UpdateWorker", 5120, NULL, update_task);
@@ -365,7 +374,6 @@ void update_task_free(UpdateTask* update_task) {
     update_config_free(update_task->config);
 
     furi_record_close(RECORD_STORAGE);
-    // furi_string_free(update_task->update_path);
 
     free(update_task);
 }
@@ -388,6 +396,8 @@ bool update_task_parse_manifest(UpdateTask* update_task) {
 
         CHECK_RESULT(update_config_read_pointer_file(update_task->storage, manifest_path));
         // furi_string_set(update_task->update_path, manifest_path);
+
+        updater_session_config_load(&update_task->session_config);
 
         update_task_set_progress(update_task, UpdateTaskStageProgress, 20);
         UpdateConfigValidation res =
@@ -454,9 +464,12 @@ bool update_task_parse_manifest(UpdateTask* update_task) {
     return result;
 }
 
-void update_task_set_progress_cb(UpdateTask* update_task, updateProgressCb cb, void* state) {
-    update_task->status_change_cb = cb;
-    update_task->status_change_cb_state = state;
+void update_task_set_progress_callback(
+    UpdateTask* update_task,
+    UpdateProgressCallback callback,
+    void* context) {
+    update_task->status_change_callback = callback;
+    update_task->status_change_callback_context = context;
 }
 
 void update_task_start(UpdateTask* update_task) {

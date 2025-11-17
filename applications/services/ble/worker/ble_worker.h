@@ -13,4 +13,8 @@ void ble_worker_start();
 
 void ble_worker_stop();
 
+bool ble_worker_forget_pairing();
+
 void ble_worker_test_after_init();
+
+void ble_worker_set_name(const char* new_name);

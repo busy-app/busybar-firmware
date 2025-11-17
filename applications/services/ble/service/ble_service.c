@@ -4,7 +4,7 @@
 #define TAG "BleServiceBase"
 
 bool ble_service_lock(BleServiceObject* instance) {
-    if(furi_mutex_acquire(instance->service_lock, 100) != FuriStatusOk) {
+    if(furi_mutex_acquire(instance->service_lock, 1000) != FuriStatusOk) {
         BLE_LOG_W("%s - service lock failed", instance->config->name);
         return false;
     }
@@ -18,14 +18,16 @@ void ble_service_unlock(BleServiceObject* instance) {
 }
 
 static bool ble_service_lock_input_frame(BleServiceObject* instance) {
-    if(furi_semaphore_acquire(instance->frame_lock, 100) != FuriStatusOk) {
+    if(furi_semaphore_acquire(instance->frame_lock, 1000) != FuriStatusOk) {
         BLE_LOG_W("%s - frame lock failed", instance->config->name);
         return false;
     }
+    instance->frame_pending = true;
     return true;
 }
 
 static void ble_service_unlock_input_frame(BleServiceObject* instance) {
+    instance->frame_pending = false;
     if(furi_semaphore_release(instance->frame_lock) != FuriStatusOk) {
         BLE_LOG_W("%s - frame unlock failed", instance->config->name);
     }
@@ -34,10 +36,10 @@ static void ble_service_unlock_input_frame(BleServiceObject* instance) {
 static inline void
     ble_service_frame_buf_check_alloc(BleServiceObject* instance, size_t new_frame_size) {
     furi_check(new_frame_size < MAX_BLE_INTERCOM_FRAME_SIZE);
-    if(new_frame_size > instance->frame_size) {
+    if(new_frame_size > instance->buffer_size) {
         free(instance->frame_buf);
         instance->frame_buf = malloc(new_frame_size);
-        instance->frame_size = new_frame_size;
+        instance->buffer_size = new_frame_size;
         BLE_LOG_D("%s - buf_size: %d", instance->config->name, new_frame_size);
     }
 }
@@ -45,7 +47,7 @@ static inline void
 void ble_service_prepare_send_intercom_frame(
     BleServiceObject* instance,
     BleIntercomFrameType frame_type,
-    BleCommand command,
+    BleServiceCommandEnum command,
     size_t data_size,
     void* data) {
     size_t frame_size = data_size + sizeof(BleIntercomFrameHeader);
@@ -54,6 +56,7 @@ void ble_service_prepare_send_intercom_frame(
     BleIntercomFrameGeneric* frame = (BleIntercomFrameGeneric*)instance->frame_buf;
     BleIntercomFrameHeader* header = &frame->header;
 
+    header->source = BleIntercomFrameSourceService;
     header->frame_type = frame_type;
     header->command = command;
     header->service_index = instance->config->index;
@@ -69,8 +72,8 @@ void ble_service_prepare_send_intercom_frame(
         header->data_size,
         frame_size);
 
-    size_t tx =
-        intercom_tx(instance->intercom, IntercomChannelBle, instance->frame_buf, frame_size, 100);
+    size_t tx = intercom_tx(
+        instance->intercom, IntercomChannelBle, instance->frame_buf, frame_size, FuriWaitForever);
     furi_assert(tx == frame_size);
 }
 
@@ -130,24 +133,22 @@ BleServiceObject* ble_service_alloc(
             instance->chars[config->intercom_index] = ble_char;
         }
     }
-    instance->frame_size = 0;
+    instance->buffer_size = 0;
 
     return instance;
 }
 
-bool ble_service_process(BleServiceObject* instance, const BleServiceCommand* msg) {
+bool ble_service_process(BleServiceObject* instance) {
     furi_assert(instance);
-    furi_assert(msg);
 
     BLE_LOG_D("%s - ble_service_process", instance->config->name);
     bool result = false;
     if(ble_service_lock(instance)) {
-        if(msg->command == BleCommandServiceProcessFrame) {
+        if(instance->frame_pending) {
             result = ble_service_process_input_frame(instance);
         } else
             result = ble_service_target_execute(
-                instance, BleIntercomFrameTypeRequest, msg->command, 0, NULL);
-
+                instance, BleIntercomFrameTypeRequest, BleServiceCommandRun, 0, NULL);
         ble_service_unlock(instance);
     }
     return result;
@@ -165,7 +166,7 @@ void ble_service_process_mailbox(
     if(ble_service_lock_input_frame(instance)) {
         ble_service_frame_buf_check_alloc(instance, fs);
         memcpy(instance->frame_buf, input_frame, fs);
-        ble_service_enqueue_message(instance, BleCommandServiceProcessFrame, 0);
+        ble_service_enqueue_message(instance);
     }
 }
 
@@ -175,22 +176,29 @@ BleServiceState ble_service_get_state(BleServiceObject* instance) {
     return instance->state;
 }
 
-void ble_service_enqueue_message(BleServiceObject* instance, BleCommand command, uint8_t ch_index) {
+void ble_service_enqueue_message(BleServiceObject* instance) {
     furi_assert(instance);
 
-    BleServiceCommand msg = {
-        .command = command, .service_index = instance->config->index, .char_index = ch_index};
-
-    if(furi_message_queue_put(instance->message_queue, &msg, 100) != FuriStatusOk) {
+    uint32_t value = (uint32_t)instance;
+    if(furi_message_queue_put(instance->message_queue, &value, 100) != FuriStatusOk) {
         BLE_LOG_W("%s - unable to enqueue for processing", instance->config->name);
     }
 }
 
 void ble_service_enqueue_init(BleServiceObject* instance) {
     furi_assert(instance);
-    BLE_LOG_D("%s - enqueue init", instance->config->name);
-    if(ble_service_lock(instance)) {
-        ble_service_enqueue_message(instance, BleCommandServiceInit, 0);
+    if(ble_service_lock(instance) && ble_service_lock_input_frame(instance)) {
+        ble_service_frame_buf_check_alloc(instance, sizeof(BleIntercomFrameHeader));
+        BleIntercomFrameGeneric* frame = (BleIntercomFrameGeneric*)instance->frame_buf;
+
+        frame->header.source = BleIntercomFrameSourceService;
+        frame->header.frame_type = BleIntercomFrameTypeRequest;
+        frame->header.command = BleServiceCommandInit;
+        frame->header.service_index = instance->config->index;
+        frame->header.data_size = 0;
+        BLE_LOG_I("%s - enqueue init", instance->config->name);
+
+        ble_service_enqueue_message(instance);
         ble_service_unlock(instance);
     }
 }
@@ -198,7 +206,8 @@ void ble_service_enqueue_init(BleServiceObject* instance) {
 void ble_service_enqueue_run(BleServiceObject* instance) {
     furi_assert(instance);
     BLE_LOG_D("%s - enqueue run", instance->config->name);
-    ble_service_enqueue_message(instance, BleCommandServiceRun, 0);
+
+    ble_service_enqueue_message(instance);
 }
 
 void ble_service_write_data(
@@ -245,4 +254,83 @@ void ble_service_register_transmission_done_callback(
         ble_characteristic_register_tx_done_callback(ch, cb, ctx);
         ble_service_unlock(instance);
     }
+}
+
+size_t ble_service_count_characteristics_and_size(
+    BleServiceObject* instance,
+    bool modified_only,
+    BleCharacteristicCountType* characteristics_count) {
+    furi_assert(characteristics_count);
+
+    const uint8_t chars_count_max = instance->config->char_count;
+
+    size_t total_data_size = 0;
+    uint8_t chars_count = 0;
+    for(size_t i = 0; i < chars_count_max; i++) {
+        if(!modified_only && !ble_characteristic_is_modified(instance->chars[i])) continue;
+        total_data_size += ble_characteristic_get_data_size(instance->chars[i]);
+        chars_count++;
+    }
+
+    *characteristics_count = chars_count;
+    return total_data_size;
+}
+
+BleIntercomServiceData* ble_service_create_intercom_service_data_pack(
+    BleServiceObject* instance,
+    bool modified_only,
+    size_t* output_pack_size) {
+    furi_assert(output_pack_size);
+    BleCharacteristicCountType chars_count = 0;
+    size_t total_data_size =
+        ble_service_count_characteristics_and_size(instance, false, &chars_count);
+
+    size_t total_config_size = sizeof(BleCharacteristicDataHeader) * chars_count +
+                               total_data_size + sizeof(BleCharacteristicCountType);
+
+    const BleCharacteristicCountType chars_count_max = instance->config->char_count;
+
+    BleIntercomServiceData* config = malloc(total_config_size);
+    config->char_count = chars_count;
+    uint8_t offset = 0;
+    for(size_t i = 0; i < chars_count_max; i++) {
+        BleCharacteristicObject* ch_obj = instance->chars[i];
+
+        if(!modified_only && !ble_characteristic_is_modified(ch_obj)) continue;
+        BleCharacteristicData* char_init =
+            (BleCharacteristicData*)((uint8_t*)config->chars_config + offset);
+
+        offset += ble_characteristic_fill_update_struct(ch_obj, char_init);
+    }
+
+    *output_pack_size = total_config_size;
+    return config;
+}
+
+bool ble_service_parse_intercom_service_data(
+    BleServiceObject* instance,
+    const BleIntercomServiceData* data,
+    BleParseIntercomServiceDataCharacteristicExtraAction action) {
+    const BleIntercomServiceData* service_config = data;
+    uint8_t offset = 0;
+
+    for(size_t i = 0; i < service_config->char_count; i++) {
+        const BleCharacteristicData* char_init =
+            (BleCharacteristicData*)((uint8_t*)service_config->chars_config + offset);
+        size_t data_size = char_init->header.data_size;
+
+        BleCharacteristicObject* ch = instance->chars[char_init->header.index];
+        ble_characteristic_set_data(ch, char_init->data, data_size);
+
+        BLE_LOG_D(
+            "Ch: %s new data: %s",
+            ble_characteristic_get_config(ch)->name,
+            (const char*)char_init->data);
+
+        if(action) action(ch);
+
+        offset += (data_size + sizeof(BleCharacteristicDataHeader));
+    }
+
+    return true;
 }

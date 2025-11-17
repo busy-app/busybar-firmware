@@ -28,6 +28,7 @@ extern "C" {
 typedef enum {
     NvmKeyRangeMin = 0x0UL, /**< Minimum key value (inclusive) */
     NvmKeyRangeUser1Min = 0x10000UL, /**< Free to use key range 1 start (inclusive) */
+    NvmKeyBlePairingData = 0x10001UL,
     /* Add more key ranges here */
     NvmKeyRangeUser1Max = 0x87000UL, /**< Free to use key range 1 end (non-inclusive) */
     NvmKeyRangeUser2Min = 0x88000UL, /**< Free to use key range 2 start (inclusive) */
