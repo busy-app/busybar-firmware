@@ -214,6 +214,12 @@ static void mqtt_event_handler(struct mg_connection* conn, int ev, void* ev_data
                 FURI_LOG_E(TAG, "Subscribe error 0x%02X", sub_reason);
                 conn->is_draining = 1;
             }
+        } else if(msg->cmd == MQTT_CMD_PINGRESP) {
+            FURI_LOG_D(TAG, "<- PONG");
+        } else if(msg->cmd == MQTT_CMD_PINGREQ) {
+            FURI_LOG_D(TAG, "<- PING");
+            mg_mqtt_pong(conn);
+            FURI_LOG_D(TAG, "-> PONG");
         } else {
             FURI_LOG_D(TAG, "MQTT CMD: %u", msg->cmd);
         }
@@ -249,6 +255,7 @@ static void mqtt_connect_callback(void* data) {
         .user = mg_str(furi_string_get_cstr(username)),
         .pass = mg_str(furi_string_get_cstr(mqtt->link_token)),
         .clean = true,
+        .keepalive = 0,
         .version = 5,
     };
     mqtt->conn = mg_mqtt_connect(&mqtt->mgr, MQTT_SERVER_ADDR, &opts, mqtt_event_handler, mqtt);
@@ -387,6 +394,15 @@ static void mqtt_conn_wakeup_callback(struct mg_connection* conn, int ev, void* 
     }
 }
 
+static void mqtt_ping_timer_callback(void* data) {
+    MqttClient* mqtt = data;
+
+    if(mqtt->conn) {
+        mg_mqtt_ping(mqtt->conn);
+        FURI_LOG_D(TAG, "-> PING");
+    }
+}
+
 int32_t mqtt_client_start(void* p) {
     UNUSED(p);
     MqttClient* mqtt = malloc(sizeof(MqttClient));
@@ -439,6 +455,14 @@ int32_t mqtt_client_start(void* p) {
             mqtt_connect_callback,
             mqtt);
     }
+
+    mg_timer_init(
+        &mqtt->mgr.timers,
+        &mqtt->ping_timer,
+        10 * 60 * 1000,
+        MG_TIMER_REPEAT | MG_TIMER_RUN_NOW,
+        mqtt_ping_timer_callback,
+        mqtt);
 
     // Event loop
     while(1) {

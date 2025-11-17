@@ -26,6 +26,7 @@ struct MqttClient {
     struct mg_timer reconnect_delay_timer;
     uint32_t reconnect_delay;
     unsigned long wakeup_conn_id;
+    struct mg_timer ping_timer;
 
     MqttClientStatus status;
     bool is_wifi_up;
