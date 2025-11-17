@@ -51,7 +51,8 @@ static void scene_main_mode_changed_callback(VarItem* item, void* context) {
     furi_assert(context);
 
     BrightnessSettings* instance = context;
-    SettingsSceneBrightness* data = scene_manager_get_current_scene_data(instance->scene_manager);
+    SettingsSceneBrightness* data =
+        scene_manager_get_scene_data(instance->scene_manager, SceneIdMain);
 
     data->mode = var_item_get_value(item);
     scene_main_filter_items(data);
@@ -63,7 +64,8 @@ static void scene_main_changed_callback(VarItem* item, void* context) {
     furi_assert(context);
 
     BrightnessSettings* instance = context;
-    SettingsSceneBrightness* data = scene_manager_get_current_scene_data(instance->scene_manager);
+    SettingsSceneBrightness* data =
+        scene_manager_get_scene_data(instance->scene_manager, SceneIdMain);
 
     data->brightness = var_item_get_value(item);
     brightness_settings_send_custom_event(instance, SceneEventBrightnessChanged);
@@ -73,7 +75,8 @@ static void scene_main_fill_var_item_list(
     BrightnessSettings* instance,
     VarItemListContainer* container,
     bool do_set_callbacks) {
-    SettingsSceneBrightness* data = scene_manager_get_current_scene_data(instance->scene_manager);
+    SettingsSceneBrightness* data =
+        scene_manager_get_scene_data(instance->scene_manager, SceneIdMain);
 
     VarItem* mode_item = var_item_list_add_selector(
         container->list,
@@ -104,7 +107,8 @@ static void scene_main_on_enter(void* context) {
     furi_assert(context);
 
     BrightnessSettings* instance = context;
-    SettingsSceneBrightness* data = scene_manager_get_current_scene_data(instance->scene_manager);
+    SettingsSceneBrightness* data =
+        scene_manager_get_scene_data(instance->scene_manager, SceneIdMain);
 
     BrightnessMode mode = brightness_model_get_mode(instance->model);
     data->mode = mode;
@@ -129,7 +133,8 @@ static void scene_main_on_exit(void* context) {
     furi_assert(context);
 
     BrightnessSettings* instance = context;
-    SettingsSceneBrightness* data = scene_manager_get_current_scene_data(instance->scene_manager);
+    SettingsSceneBrightness* data =
+        scene_manager_get_scene_data(instance->scene_manager, SceneIdMain);
 
     with_gui(instance->gui, {
         var_item_list_free(data->front_container.list);
@@ -147,7 +152,7 @@ static bool scene_main_on_event(const SceneManagerEvent* event, void* context) {
     bool consumed = false;
     if(event->type == SceneManagerEventTypeCustom) {
         SettingsSceneBrightness* data =
-            scene_manager_get_current_scene_data(instance->scene_manager);
+            scene_manager_get_scene_data(instance->scene_manager, SceneIdMain);
 
         switch(event->event) {
         case SceneEventModeChanged:
