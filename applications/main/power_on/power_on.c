@@ -116,7 +116,7 @@ static void power_on_app_free(PowerOnApp* instance) {
     furi_record_close(RECORD_BACK_DISPLAY);
     furi_record_close(RECORD_FRONT_DISPLAY);
     furi_record_close(RECORD_GUI);
-    furi_record_open(RECORD_INTERCOM);
+    furi_record_close(RECORD_INTERCOM);
 
     furi_timer_free(instance->back_to_transport_timer);
     free(instance);
