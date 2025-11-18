@@ -19,7 +19,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        u5_target: [20, 21]
+        u5_target: [21, 22]
     outputs:
       default_target: ${{ env.DEFAULT_TARGET }}
 
