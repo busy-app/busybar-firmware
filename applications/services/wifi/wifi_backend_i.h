@@ -22,6 +22,7 @@ struct Wifi {
     FuriSemaphore* ip6_addr_valid;
     struct netif netif;
     WifiBackendState state;
+    bool scan_in_progress;
 };
 
 void wifi_net_tcpip_init(Wifi* instance, sl_mac_address_t* mac_addr);

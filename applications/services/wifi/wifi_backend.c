@@ -154,6 +154,8 @@ static sl_status_t
 
     if(status != SL_STATUS_IN_PROGRESS) {
         FURI_LOG_E(TAG, "Failed to initiate scan: %lX", status);
+    } else {
+        instance->scan_in_progress = true;
     }
 
     return status;
@@ -298,6 +300,13 @@ static void
 }
 
 static void wifi_scan_finished_event_handler(Wifi* instance, const WifiScanFinishedEvent* event) {
+    if(!instance->scan_in_progress) {
+        FURI_LOG_W(TAG, "BUG: Unexpected scan response from NWP");
+        return;
+    }
+
+    instance->scan_in_progress = false;
+
     WifiResponse response = {
         .type = WifiRequestTypeScan,
         .status = wifi_decode_sl_status(event->status),
@@ -507,7 +516,7 @@ static sl_status_t wifi_init_driver(Wifi* instance) {
         }
 
         static const sl_wifi_advanced_client_configuration_t adv_cfg = {
-            .max_retry_attempts = UINT32_MAX, // Try reconnecting infinitely if connection was lost
+            .max_retry_attempts = UINT32_MAX, // Try reconnecting indefinitely if connection was lost
             .scan_interval = SCAN_INTERVAL_S,
             .beacon_missed_count = BEACON_MISSED_COUNT,
             .first_time_retry_enable = 0, // Initial retry count handled separately
