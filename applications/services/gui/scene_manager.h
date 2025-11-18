@@ -53,7 +53,7 @@ void scene_manager_handle_tick_event(SceneManager* instance);
 
 uint32_t scene_manager_get_current_scene_id(const SceneManager* instance);
 
-SceneData* scene_manager_get_current_scene_data(const SceneManager* instance);
+SceneData* scene_manager_get_scene_data(const SceneManager* instance, uint32_t scene_id);
 
 void scene_manager_next_scene(SceneManager* instance, uint32_t scene_id);
 

@@ -48,7 +48,8 @@ static void busy_scene_progress_on_enter(void* context) {
     furi_assert(context);
 
     BusyApp* instance = context;
-    BusySceneProgress* data = scene_manager_get_current_scene_data(instance->scene_manager);
+    BusySceneProgress* data =
+        scene_manager_get_scene_data(instance->scene_manager, BusyAppSceneIdProgress);
 
     const BusyTimerState state = busy_timer_get_state(instance->busy_timer);
 
@@ -98,7 +99,8 @@ static void busy_scene_progress_on_exit(void* context) {
     furi_assert(context);
 
     BusyApp* instance = context;
-    BusySceneProgress* data = scene_manager_get_current_scene_data(instance->scene_manager);
+    BusySceneProgress* data =
+        scene_manager_get_scene_data(instance->scene_manager, BusyAppSceneIdProgress);
 
     run_later_cancel(data->run_later);
 

@@ -83,7 +83,8 @@ static void apps_menu_scene_start_timer_callback(void* context) {
     furi_assert(context);
 
     AppsMenu* app = context;
-    AppsMenuSceneStart* scene = scene_manager_get_current_scene_data(app->scene_manager);
+    AppsMenuSceneStart* scene =
+        scene_manager_get_scene_data(app->scene_manager, AppsMenuSceneIdStart);
 
     with_gui(app->gui, { anim_title_card_run_background_anim(scene->front_card); });
 
@@ -93,7 +94,8 @@ static void apps_menu_scene_start_timer_callback(void* context) {
 }
 
 static void apps_menu_start_run_in_out_anim(AppsMenu* app, AppsMenuSceneStartInOutAnimType type) {
-    AppsMenuSceneStart* scene = scene_manager_get_current_scene_data(app->scene_manager);
+    AppsMenuSceneStart* scene =
+        scene_manager_get_scene_data(app->scene_manager, AppsMenuSceneIdStart);
 
     const AppsMenuSceneStartInOutAnimInfo* anim_info = &in_out_anim_infos[type];
     anim_title_card_run_icon_anim(scene->front_card, anim_info->icon_start, anim_info->icon_stop);
@@ -102,7 +104,8 @@ static void apps_menu_start_run_in_out_anim(AppsMenu* app, AppsMenuSceneStartInO
 static void apps_menu_scene_start_on_enter(void* context) {
     furi_assert(context);
     AppsMenu* app = context;
-    AppsMenuSceneStart* scene = scene_manager_get_current_scene_data(app->scene_manager);
+    AppsMenuSceneStart* scene =
+        scene_manager_get_scene_data(app->scene_manager, AppsMenuSceneIdStart);
 
     with_gui(app->gui, {
         GuiLayer* layer = gui_get_layer(app->gui, GuiLayerIdMain);
@@ -137,7 +140,8 @@ static void apps_menu_scene_start_on_enter(void* context) {
 static void apps_menu_scene_start_on_exit(void* context) {
     furi_assert(context);
     AppsMenu* app = context;
-    AppsMenuSceneStart* scene = scene_manager_get_current_scene_data(app->scene_manager);
+    AppsMenuSceneStart* scene =
+        scene_manager_get_scene_data(app->scene_manager, AppsMenuSceneIdStart);
 
     with_gui(app->gui, {
         GuiLayer* layer = gui_get_layer(app->gui, GuiLayerIdMain);
