@@ -5,7 +5,7 @@ App(
     entry_point="ble_srv",
     stack_size=4 * 1024,
     order=140,
-    targets=["f64"],
+    targets=["f64", "f65"],
     requires=["intercom"],
     sources=[
         "ble.c",
@@ -29,7 +29,7 @@ App(
     entry_point="ble_srv",
     stack_size=2 * 1024,
     order=140,
-    targets=["f20", "f21"],
+    targets=["f20", "f21", "f22"],
     requires=["intercom"],
     sources=[
         "ble.c",

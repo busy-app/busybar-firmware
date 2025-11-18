@@ -5,7 +5,7 @@ App(
     entry_point="status_lights_srv",
     stack_size=1 * 1024,
     order=130,
-    targets=["f64"],
+    targets=["f64", "f65"],
     requires=["intercom"],
     sources=["status_lights_backend.c", "status_lights_preset_defs.c", "presets/*.c"],
 )
@@ -17,7 +17,7 @@ App(
     entry_point="status_lights_srv",
     stack_size=1 * 1024,
     order=130,
-    targets=["f20", "f21"],
+    targets=["f20", "f21", "f22"],
     requires=["intercom", "light_sensor"],
     sources=["status_lights.c"],
 )

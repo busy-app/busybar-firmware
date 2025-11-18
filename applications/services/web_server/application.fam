@@ -6,6 +6,6 @@ App(
     stack_size=8 * 1024,
     order=170,
     requires=["usb_srv", "canvas"],
-    targets=["f20", "f21"],
+    targets=["f20", "f21", "f22"],
     resources="resources",
 )
