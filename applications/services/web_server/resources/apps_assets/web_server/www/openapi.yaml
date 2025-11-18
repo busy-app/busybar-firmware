@@ -1,8 +1,8 @@
-openapi: 3.0.3
+openapi: 3.1.0
 info:
   title: BUSY Bar HTTP API
   description: HTTP API for BUSY Bar web server
-  version: 1.0.0
+  version: 1.1.0
   contact:
     name: tbd
 
@@ -477,6 +477,14 @@ paths:
       summary: Clear display
       description: Clears the display and stops the Canvas application if running
       operationId: clearDisplay
+      parameters:
+        - name: app_id
+          in: query
+          required: false
+          schema:
+            type: string
+          description: Application identifier
+          example: "my_app"
       responses:
         "200":
           description: Display cleared successfully
@@ -936,7 +944,8 @@ paths:
     post:
       tags:
         - BLE
-      description: Enables BLE module
+      summary: Enable BLE
+      description: Enables BLE module and starts advertising
       parameters: []
       responses:
         "200":
@@ -950,7 +959,8 @@ paths:
     post:
       tags:
         - BLE
-      description: Disables BLE module
+      summary: Disable BLE
+      description: Stop advertising
       parameters: []
       responses:
         "200":
@@ -959,6 +969,40 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/SuccessResponse"
+  
+  /api/ble/pairing:
+    delete:
+      tags:
+        - BLE
+      summary: Remove pairing
+      description: Remove pairing with previous device
+      parameters: []
+      responses:
+        "200":
+          description: Pairing removed, now device is discoverable
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse"
+        "503":
+          description: Failed to remove, due to BLE is not initialized, or pairing was already removed before
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /api/ble/status:
+    get:
+      tags:
+        - BLE
+      description: Returns current BLE status
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BleStatusResponse"
 
   /api/time:
     get:
@@ -974,6 +1018,55 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/TimestampInfo"
+        "400":
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /api/account:
+    get:
+      tags:
+        - Account
+      summary: Get MQTT status
+      description: Retrieves MQTT status and linked account data
+      operationId: getAccountInfo
+      responses:
+        "200":
+          description: Data retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AccountInfo"
+    delete:
+      tags:
+        - Account
+      summary: Unlink device from account
+      description: Removes account linking data
+      operationId: unlinkAccount
+      responses:
+        "200":
+          description: Done successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse"
+
+  /api/account/link:
+    post:
+      tags:
+        - Account
+      summary: Link device to account
+      description: Requests account link PIN. Works only if device is connected to MQTT and is not linked to account
+      operationId: linkAccount
+      responses:
+        "200":
+          description: Data retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AccountLink"
         "400":
           description: Bad request
           content:
@@ -1264,13 +1357,28 @@ components:
         app_id: "my_app"
         elements:
           - id: "0"
-            timeout: 5
-            type: "text"
-            text: "Hello, world!"
-            x: 0
-            y: 0
-            display: "front"
+            timeout: 6
+            align: center
+            x: 36
+            y: 10
+            type: text
+            text: "Hello, World! Long text"
+            font: medium
+            color: "#FFFFFFFF"
+            width: 72
+            scroll_rate: 160
+            display: front
           - id: "1"
+            timeout: 6
+            align: top_mid
+            x: 36
+            y: 0
+            type: text
+            text: "top_mid"
+            font: small
+            color: "#AAFF00FF"
+            display: "front"
+          - id: "2"
             timeout: 6
             type: "image"
             path: "data.png"
@@ -1283,8 +1391,6 @@ components:
       required:
         - id
         - type
-        - x
-        - y
       properties:
         id:
           type: string
@@ -1292,27 +1398,44 @@ components:
         timeout:
           type: integer
           minimum: 0
-          description: Time in seconds the element should be displayed (0 for no timeout)
+          description: Time in seconds the element should be displayed (0 for no timeout). Mutually exclusive with display_until.
+        display_until:
+          type: string
+          description: The element will be hidden when system time reaches the specified Unix timestamp (in seconds). Mutually exclusive with timeout.
         type:
           type: string
-          enum: [text, image]
+          enum: [text, image, countdown]
           description: Type of display element
         x:
           type: integer
-          description: X coordinate for placement on display
+          description: X coordinate of selected anchor point relative to top-left of display
         y:
           type: integer
-          description: Y coordinate for placement on display
+          description: Y coordinate of selected anchor point relative to top-left of display
         display:
           type: string
           enum: [front, back]
           description: Which display to show the element on (for dual-display devices)
           default: front
+        align:
+          type: string
+          description: Anchor point of element. Also use `x` and `y` to position element.
+          enum:
+            - top_left
+            - top_mid
+            - top_right
+            - mid_left
+            - center
+            - mid_right
+            - bottom_left
+            - bottom_mid
+            - bottom_right
       discriminator:
         propertyName: type
         mapping:
           text: "#/components/schemas/TextElement"
           image: "#/components/schemas/ImageElement"
+          countdown: "#/components/schemas/CountdownElement"
 
     TextElement:
       allOf:
@@ -1324,6 +1447,26 @@ components:
             text:
               type: string
               description: Text content to display
+            font:
+              type: string
+              description: One of the available fonts to display the text in
+              enum:
+                - small
+                - medium
+                - medium_condensed
+                - big
+              default: tiny5_8
+            color:
+              type: string
+              description: "Color to display the text in, in #RRGGBBAA format"
+              pattern: "^#[a-fA-F0-9]{8}$"
+              default: "#FFFFFFFF"
+            width:
+              type: integer
+              description: Width of the label
+            scroll_rate:
+              type: integer
+              description: Scroll rate in characters per minute
 
     ImageElement:
       allOf:
@@ -1331,11 +1474,43 @@ components:
         - type: object
           required:
             - path
+          oneOf:
+            - properties:
+                path:
+                  type: string
+                  pattern: "^[a-zA-Z0-9._/-]+$"
+                  description: Path to the image file in the app's assets
+            - properties:
+                builtin_image:
+                  type: string
+                  pattern: "^[a-z_]+/[a-z0-9_]+$"
+                  description: Identifier of builtin image
+
+    CountdownElement:
+      allOf:
+        - $ref: "#/components/schemas/DisplayElement"
+        - type: object
+          required:
+            - timestamp
+            - direction
+            - show_hours
           properties:
-            path:
+            timestamp:
               type: string
-              pattern: "^[a-zA-Z0-9._/-]+$"
-              description: Path to the image file in the app's assets
+              description: "Seconds-based Unix UTC timestamp to count down or up to. Note: it's a number in a string."
+            color:
+              type: string
+              description: "Color to display the text in, in #RRGGBBAA format"
+              pattern: "^#[a-fA-F0-9]{8}$"
+              default: "#FFFFFFFF"
+            direction:
+              type: string
+              enum: [time_left, time_since]
+              description: Whether to count up or down
+            show_hours:
+              type: string
+              enum: [when_non_zero, always]
+              description: When to show the hours position
 
     DisplayBrightnessInfo:
       type: object
@@ -1427,16 +1602,7 @@ components:
     WifiSecurityMethod:
       type: string
       example: "WPA3"
-      enum:
-        [
-          Open,
-          WPA,
-          WPA2,
-          WEP,
-          WPA/WPA2,
-          WPA3,
-          WPA2/WPA3,
-        ]
+      enum: [Open, WPA, WPA2, WEP, WPA/WPA2, WPA3, WPA2/WPA3]
 
     WifiIpMethod:
       type: string
@@ -1540,6 +1706,37 @@ components:
       description: Frame for requested display encoded in base64
       format: base64
 
+    AccountInfo:
+      type: object
+      properties:
+        state:
+          type: string
+          example: "linked"
+          enum: ["error", "disconnected", "not_linked", "linked"]
+        id:
+          type: string
+          example: "12345678-9abc-def0-1234-56789abcdef0"
+        email:
+          type: string
+          example: "name@example.com"
+
+    AccountLink:
+      type: object
+      properties:
+        code:
+          type: string
+          example: "ABCD"
+        expires_at:
+          type: integer
+          example: 1761060863
+
+    BleStatusResponse:
+      type: object
+      properties:
+        state:
+          type: string
+          example: connected
+
     BusySnapshot:
       type: object
       properties:
@@ -1556,7 +1753,7 @@ components:
       required:
         - snapshot
         - shapshot_timestamp_ms
-        
+
     BusySnapshotNotStarted:
       type: object
       properties:
@@ -1584,7 +1781,7 @@ components:
         - type
         - card_id
         - is_paused
-        
+
     BusySnapshotSimple:
       type: object
       properties:
@@ -1606,7 +1803,7 @@ components:
         - card_id
         - time_left_ms
         - is_paused
-        
+
     BusySnapshotInterval:
       type: object
       properties:
@@ -1639,7 +1836,7 @@ components:
         - current_interval_time_left_ms
         - is_paused
         - interval_settings
-        
+
     BusySnapshotIntervalSettings:
       type: object
       properties:
@@ -1659,7 +1856,7 @@ components:
         is_autostart_enabled:
           type: boolean
           example: false
-          
+
 tags:
   - name: System
     description: System information and control
@@ -1677,5 +1874,7 @@ tags:
     description: Input events
   - name: BLE
     description: Allows to operate with BLE
+  - name: Account
+    description: Account linking and MQTT status
   - name: Busy
     description: BUSY timer control

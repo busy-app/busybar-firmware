@@ -61,3 +61,6 @@ extern const lv_obj_class_t status_view_lvgl_class;
 extern const lv_obj_class_t status_view_icon_lvgl_class;
 extern const lv_obj_class_t status_view_header_lvgl_class;
 extern const lv_obj_class_t status_view_additional_text_lvgl_class;
+
+// Countdown
+extern const lv_obj_class_t countdown_lvgl_class;

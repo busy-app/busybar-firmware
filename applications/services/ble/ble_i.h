@@ -15,7 +15,6 @@
 
 typedef struct {
     bool result; ///TODO: replace with some more extended status
-    FuriApiLock lock;
     BleIntercomFrameHeader header;
     uint8_t data[];
 } BleMessage;
@@ -26,6 +25,7 @@ typedef enum {
     BleEventTypeIncomingMessage = (1 << 0),
     BleEventTypeFrameReceived = (1 << 1),
     BleEventTypeServiceStateChanged = (1 << 2),
+    BleEventTypeDeviceNameChanged = (1 << 3),
 } BleEventType;
 
 struct Ble {
@@ -42,8 +42,10 @@ struct Ble {
 
     BleServiceObject* services[BLE_SERVICES_COUNT];
 #if !defined(SI917)
-    FuriTimer* init_timer;
+    FuriApiLock current_message_api_lock;
+    FuriMutex* current_message_lock;
     BleMessage* current_message;
+    size_t current_message_size;
 #endif
 };
 

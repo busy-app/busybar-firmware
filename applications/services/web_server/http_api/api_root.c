@@ -312,11 +312,22 @@ static const HttpHandler handlers_api_root[] = {
         .on_request = http_api_time_callback,
     },
     {
-
         .uri = "name",
         .method = "*",
         .type = HttpHandlerCustom,
         .on_request = http_api_name_callback,
+    },
+    {
+        .uri = "account",
+        .method = "*",
+        .type = HttpHandlerCustom,
+        .on_request = http_api_account_callback,
+    },
+    {
+        .uri = "account/link",
+        .method = "*",
+        .type = HttpHandlerCustom,
+        .on_request = http_api_account_link_callback,
     },
     {
         .uri = "busy",

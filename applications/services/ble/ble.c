@@ -51,6 +51,11 @@ void ble_custom_event_callback(uint32_t events, void* context) {
             ble_update_state_from_services(instance);
         }
 
+        if(events & BleEventTypeDeviceNameChanged) {
+            ble_invoke_retry_command_on_internal_event(
+                instance, BleCommandSetDeviceName, BleEventTypeDeviceNameChanged, 100);
+        }
+
         if((events & BleEventTypeFrameReceived) || (events & BleEventTypeIncomingMessage)) {
             BleIntercomFrameGeneric* frame = ble_command_preprocess(instance, events);
             ble_command_engine_run(instance->engine, frame, instance);
@@ -127,6 +132,11 @@ static Ble* ble_alloc() {
 
 #if !defined(SI917)
     ble_http_repeater_init();
+
+    instance->current_message_lock = furi_mutex_alloc(FuriMutexTypeNormal);
+    instance->current_message_api_lock = api_lock_alloc_locked();
+    instance->current_message_size = sizeof(BleIntercomFrameHeader) + sizeof(bool);
+    instance->current_message = malloc(instance->current_message_size);
 #endif
 
     furi_record_create(RECORD_BLE, instance);

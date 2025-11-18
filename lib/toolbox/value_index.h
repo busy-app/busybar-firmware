@@ -60,6 +60,19 @@ size_t value_index_float(const float value, const float values[], size_t values_
  */
 size_t value_index_bool(const bool value, const bool values[], size_t values_count);
 
+/** Get the index of a string array element which is equal to the given value.
+ *
+ * Returned index corresponds to the first element found.
+ * If no suitable elements were found, the function returns 0.
+ *
+ * @param   value           value to be searched.
+ * @param   values          pointer to the array to perform the search in.
+ * @param   values_count    array size.
+ *
+ * @return value's index.
+ */
+size_t value_index_string(const char* value, const char* const values[], size_t values_count);
+
 #ifdef __cplusplus
 }
 #endif
