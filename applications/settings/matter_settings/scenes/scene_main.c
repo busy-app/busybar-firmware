@@ -24,7 +24,7 @@ static void matter_scene_submenu_item_callback(uint32_t index, void* context) {
     furi_assert(context);
 
     MatterSettings* app = context;
-    MatterScene* scene = scene_manager_get_current_scene_data(app->scene_manager);
+    MatterScene* scene = scene_manager_get_scene_data(app->scene_manager, SceneIdMain);
 
     scene->menu_idx = index;
     matter_settings_send_custom_event(app, SceneCustomEventMenuItemClicked);
@@ -33,7 +33,7 @@ static void matter_scene_submenu_item_callback(uint32_t index, void* context) {
 static void matter_scene_on_enter(void* context) {
     furi_assert(context);
     MatterSettings* app = context;
-    MatterScene* scene = scene_manager_get_current_scene_data(app->scene_manager);
+    MatterScene* scene = scene_manager_get_scene_data(app->scene_manager, SceneIdMain);
 
     scene->ui_initialized = false;
 
@@ -72,7 +72,7 @@ static void matter_scene_on_enter(void* context) {
 static void matter_scene_on_exit(void* context) {
     furi_assert(context);
     MatterSettings* app = context;
-    MatterScene* scene = scene_manager_get_current_scene_data(app->scene_manager);
+    MatterScene* scene = scene_manager_get_scene_data(app->scene_manager, SceneIdMain);
 
     if(!scene->ui_initialized) return;
 
@@ -91,7 +91,7 @@ static bool matter_scene_on_event(const SceneManagerEvent* event, void* context)
     bool consumed = false;
     if(event->type == SceneManagerEventTypeCustom) {
         if(event->event == SceneCustomEventMenuItemClicked) {
-            MatterScene* scene = scene_manager_get_current_scene_data(app->scene_manager);
+            MatterScene* scene = scene_manager_get_scene_data(app->scene_manager, SceneIdMain);
 
             if(scene->menu_idx == SceneSubmenuIndexPairing) {
                 scene_manager_next_scene(app->scene_manager, SceneIdPairing);

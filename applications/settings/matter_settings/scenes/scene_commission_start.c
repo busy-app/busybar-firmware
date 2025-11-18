@@ -8,7 +8,8 @@ typedef struct {
 static void matter_scene_commission_start_on_enter(void* context) {
     furi_assert(context);
     MatterSettings* app = context;
-    SettingsSceneCommissionStart* scene = scene_manager_get_current_scene_data(app->scene_manager);
+    SettingsSceneCommissionStart* scene =
+        scene_manager_get_scene_data(app->scene_manager, SceneIdCommissionStart);
 
     Widget* const windows[GuiDisplayIdMax] = {
         [GuiDisplayIdFront] = app->front_scene_window,
@@ -35,7 +36,8 @@ static void matter_scene_commission_start_on_enter(void* context) {
 static void matter_scene_commission_start_on_exit(void* context) {
     furi_assert(context);
     MatterSettings* app = context;
-    SettingsSceneCommissionStart* scene = scene_manager_get_current_scene_data(app->scene_manager);
+    SettingsSceneCommissionStart* scene =
+        scene_manager_get_scene_data(app->scene_manager, SceneIdCommissionStart);
 
     with_gui(app->gui, {
         for(GuiDisplayId disp = 0; disp < GuiDisplayIdMax; disp++) {

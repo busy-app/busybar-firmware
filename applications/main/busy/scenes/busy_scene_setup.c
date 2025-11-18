@@ -28,7 +28,8 @@ static void busy_scene_setup_on_enter(void* context) {
     furi_assert(context);
 
     BusyApp* instance = context;
-    BusySceneSetup* data = scene_manager_get_current_scene_data(instance->scene_manager);
+    BusySceneSetup* data =
+        scene_manager_get_scene_data(instance->scene_manager, BusyAppSceneIdSetup);
 
     BusyTimerConfig timer_config;
     busy_timer_get_config(instance->busy_timer, &timer_config);
@@ -71,7 +72,8 @@ static void busy_scene_setup_on_exit(void* context) {
     furi_assert(context);
 
     BusyApp* instance = context;
-    BusySceneSetup* data = scene_manager_get_current_scene_data(instance->scene_manager);
+    BusySceneSetup* data =
+        scene_manager_get_scene_data(instance->scene_manager, BusyAppSceneIdSetup);
 
     with_gui(instance->gui, {
         menu_free(data->front_menu);
@@ -83,7 +85,8 @@ static bool busy_scene_setup_on_event(const SceneManagerEvent* event, void* cont
     furi_assert(context);
 
     BusyApp* instance = context;
-    BusySceneSetup* data = scene_manager_get_current_scene_data(instance->scene_manager);
+    BusySceneSetup* data =
+        scene_manager_get_scene_data(instance->scene_manager, BusyAppSceneIdSetup);
 
     bool consumed = false;
     if(event->type == SceneManagerEventTypeCustom) {
