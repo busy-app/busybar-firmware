@@ -3,6 +3,7 @@
 #include <furi.h>
 #include <m-array.h>
 #include <gui/gui.h>
+#include <gui/modules/countdown.h>
 #include <time.h>
 
 #define RECORD_CANVAS "CANVAS"
@@ -12,6 +13,7 @@ typedef struct CanvasApp CanvasApp;
 typedef enum {
     CanvasElementTypeImage,
     CanvasElementTypeText,
+    CanvasElementTypeCountdown,
 } CanvasElementType;
 
 typedef struct {
@@ -34,6 +36,12 @@ typedef struct {
             size_t width;
             size_t scroll_rate_cpm;
         } text;
+        struct {
+            time_t timestamp;
+            Color color;
+            CountdownDirection direction;
+            CountdownShowHour hours;
+        } countdown;
     };
 } CanvasElement;
 

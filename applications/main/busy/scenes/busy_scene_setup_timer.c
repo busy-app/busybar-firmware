@@ -201,7 +201,8 @@ static void busy_scene_setup_timer_on_enter(void* context) {
     furi_assert(context);
 
     BusyApp* instance = context;
-    BusySceneSetupTimer* data = scene_manager_get_current_scene_data(instance->scene_manager);
+    BusySceneSetupTimer* data =
+        scene_manager_get_scene_data(instance->scene_manager, BusyAppSceneIdSetupTimer);
 
     data->timer_config = instance->settings.timer_config;
 
@@ -221,7 +222,8 @@ static void busy_scene_setup_timer_on_exit(void* context) {
     furi_assert(context);
 
     BusyApp* instance = context;
-    BusySceneSetupTimer* data = scene_manager_get_current_scene_data(instance->scene_manager);
+    BusySceneSetupTimer* data =
+        scene_manager_get_scene_data(instance->scene_manager, BusyAppSceneIdSetupTimer);
 
     busy_timer_set_config(instance->busy_timer, &data->timer_config);
 

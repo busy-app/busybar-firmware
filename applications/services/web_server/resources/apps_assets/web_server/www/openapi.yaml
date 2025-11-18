@@ -1357,7 +1357,7 @@ components:
           description: The element will be hidden when system time reaches the specified Unix timestamp (in seconds). Mutually exclusive with timeout.
         type:
           type: string
-          enum: [text, image]
+          enum: [text, image, countdown]
           description: Type of display element
         x:
           type: integer
@@ -1388,6 +1388,7 @@ components:
         mapping:
           text: "#/components/schemas/TextElement"
           image: "#/components/schemas/ImageElement"
+          countdown: "#/components/schemas/CountdownElement"
 
     TextElement:
       allOf:
@@ -1437,6 +1438,32 @@ components:
                   type: string
                   pattern: "^[a-z_]+/[a-z0-9_]+$"
                   description: Identifier of builtin image
+
+    CountdownElement:
+      allOf:
+        - $ref: "#/components/schemas/DisplayElement"
+        - type: object
+          required:
+            - timestamp
+            - direction
+            - show_hours
+          properties:
+            timestamp:
+              type: string
+              description: "Seconds-based Unix UTC timestamp to count down or up to. Note: it's a number in a string."
+            color:
+              type: string
+              description: "Color to display the text in, in #RRGGBBAA format"
+              pattern: "^#[a-fA-F0-9]{8}$"
+              default: "#FFFFFFFF"
+            direction:
+              type: string
+              enum: [time_left, time_since]
+              description: Whether to count up or down
+            show_hours:
+              type: string
+              enum: [when_non_zero, always]
+              description: When to show the hours position
 
     DisplayBrightnessInfo:
       type: object

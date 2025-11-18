@@ -33,7 +33,6 @@ struct MqttClient {
     bool fast_reconnect;
 
     char* ca_bundle;
-    char* device_cert;
 
     FuriString* device_serial;
     FuriString* client_id;
@@ -63,6 +62,11 @@ typedef struct {
     };
 } MqttClientMessage;
 
+typedef struct {
+    struct mg_str ca;
+    struct mg_str name;
+} MqttTlsCfg;
+
 void mqtt_topics_subscribe(MqttClient* mqtt);
 void mqtt_topics_on_message(MqttClient* mqtt, FuriString* topic_str, struct mg_mqtt_message* msg);
 void mqtt_topics_on_close(MqttClient* mqtt);
@@ -75,5 +79,5 @@ void mqtt_screen_streaming_on_message(
     struct mg_mqtt_message* msg);
 void mqtt_screen_streaming_on_close(MqttClient* mqtt);
 
-void mqtt_tls_init(struct mg_connection* conn, const struct mg_tls_opts* opts);
+bool mqtt_tls_init(struct mg_connection* conn, const MqttTlsCfg* opts);
 void mqtt_tls_free_ca(struct mg_connection* conn);
