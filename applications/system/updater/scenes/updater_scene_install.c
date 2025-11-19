@@ -1,5 +1,6 @@
 #include "../update_app_i.h"
 #include "../storage_macros.h"
+#include "updater_scenes.h"
 
 #include <gui/modules/flex_layout.h>
 #include <gui/modules/image.h>
@@ -23,7 +24,8 @@ static void updater_scene_install_on_enter(void* context) {
     furi_assert(context);
 
     UpdaterApp* instance = context;
-    UpdaterSceneInstall* data = scene_manager_get_current_scene_data(instance->scene_manager);
+    UpdaterSceneInstall* data =
+        scene_manager_get_scene_data(instance->scene_manager, UpdaterAppSceneIdInstall);
 
     with_gui(instance->gui, {
         /* back ui */
@@ -87,7 +89,8 @@ static void updater_scene_install_on_exit(void* context) {
     furi_assert(context);
 
     UpdaterApp* instance = context;
-    UpdaterSceneInstall* data = scene_manager_get_current_scene_data(instance->scene_manager);
+    UpdaterSceneInstall* data =
+        scene_manager_get_scene_data(instance->scene_manager, UpdaterAppSceneIdInstall);
 
     with_gui(instance->gui, {
         flex_layout_free(data->back_flex);
@@ -100,7 +103,8 @@ static bool updater_scene_install_on_event(const SceneManagerEvent* event, void*
 
     if(event->type == SceneManagerEventTypeCustom) {
         UpdaterApp* instance = context;
-        UpdaterSceneInstall* data = scene_manager_get_current_scene_data(instance->scene_manager);
+        UpdaterSceneInstall* data =
+            scene_manager_get_scene_data(instance->scene_manager, UpdaterAppSceneIdInstall);
 
         with_gui(instance->gui, {
             /* back ui */

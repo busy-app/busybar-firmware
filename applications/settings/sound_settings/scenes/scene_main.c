@@ -51,7 +51,7 @@ static void scene_main_slider_view_callback(int32_t value, void* context) {
     furi_assert(context);
 
     SoundSettings* instance = context;
-    SettingsSceneSound* data = scene_manager_get_current_scene_data(instance->scene_manager);
+    SettingsSceneSound* data = scene_manager_get_scene_data(instance->scene_manager, SceneIdMain);
 
     data->volume = value;
     sound_settings_send_custom_event(instance, SceneEventVolumeChanged);
@@ -61,7 +61,7 @@ static void scene_main_on_enter(void* context) {
     furi_assert(context);
 
     SoundSettings* instance = context;
-    SettingsSceneSound* data = scene_manager_get_current_scene_data(instance->scene_manager);
+    SettingsSceneSound* data = scene_manager_get_scene_data(instance->scene_manager, SceneIdMain);
 
     uint8_t volume = volume_model_get(instance->model);
 
@@ -96,7 +96,7 @@ static void scene_main_on_exit(void* context) {
     furi_assert(context);
 
     SoundSettings* instance = context;
-    SettingsSceneSound* data = scene_manager_get_current_scene_data(instance->scene_manager);
+    SettingsSceneSound* data = scene_manager_get_scene_data(instance->scene_manager, SceneIdMain);
 
     with_gui(instance->gui, {
         GuiLayer* layer = gui_get_layer(instance->gui, GuiLayerIdMain);
@@ -117,7 +117,7 @@ static bool scene_main_on_event(const SceneManagerEvent* event, void* context) {
         switch(event->event) {
         case SceneEventVolumeChanged: {
             SettingsSceneSound* data =
-                scene_manager_get_current_scene_data(instance->scene_manager);
+                scene_manager_get_scene_data(instance->scene_manager, SceneIdMain);
 
             volume_model_set(instance->model, data->volume);
             audio_play_file(instance->audio, SOUND_PATH("volume_change.snd"));

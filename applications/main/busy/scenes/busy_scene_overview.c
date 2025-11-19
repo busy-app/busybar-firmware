@@ -45,7 +45,8 @@ static void busy_scene_overview_on_enter(void* context) {
     furi_assert(context);
 
     BusyApp* instance = context;
-    BusySceneOverview* data = scene_manager_get_current_scene_data(instance->scene_manager);
+    BusySceneOverview* data =
+        scene_manager_get_scene_data(instance->scene_manager, BusyAppSceneIdOverview);
 
     BusyTimerConfig timer_config;
     busy_timer_get_config(instance->busy_timer, &timer_config);
@@ -73,7 +74,8 @@ static void busy_scene_overview_on_exit(void* context) {
     furi_assert(context);
 
     BusyApp* instance = context;
-    BusySceneOverview* data = scene_manager_get_current_scene_data(instance->scene_manager);
+    BusySceneOverview* data =
+        scene_manager_get_scene_data(instance->scene_manager, BusyAppSceneIdOverview);
 
     run_later_cancel(data->run_later);
 

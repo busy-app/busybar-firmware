@@ -54,7 +54,8 @@ typedef struct {
 
 static void scene_main_scene_update(FwUpdate* instance) {
     furi_assert(instance);
-    SettingsSceneFwUpdate* data = scene_manager_get_current_scene_data(instance->scene_manager);
+    SettingsSceneFwUpdate* data =
+        scene_manager_get_scene_data(instance->scene_manager, SceneIdMain);
     furi_assert(data);
     with_gui(instance->gui, {
         // Hide progress bar and %% before starting
@@ -82,7 +83,8 @@ static void scene_main_scene_update(FwUpdate* instance) {
 
 static void scene_main_start_download(FwUpdate* instance) {
     furi_assert(instance);
-    SettingsSceneFwUpdate* data = scene_manager_get_current_scene_data(instance->scene_manager);
+    SettingsSceneFwUpdate* data =
+        scene_manager_get_scene_data(instance->scene_manager, SceneIdMain);
     furi_assert(data);
     if(data->fw_info.is_new_version && furi_string_size(data->fw_info.fw_url)) {
         fetch_loader_run(
@@ -95,7 +97,8 @@ static bool scene_main_input_callback(const InputEvent* event, void* context) {
     furi_assert(context);
 
     FwUpdate* instance = context;
-    SettingsSceneFwUpdate* data = scene_manager_get_current_scene_data(instance->scene_manager);
+    SettingsSceneFwUpdate* data =
+        scene_manager_get_scene_data(instance->scene_manager, SceneIdMain);
 
     bool consumed = false;
     SceneEvent custom_event;
@@ -123,7 +126,7 @@ static void settings_scene_fw_status_callback(FetchLoaderStatus status, void* co
     furi_assert(context);
     FwUpdate* app_instance = context;
     SettingsSceneFwUpdate* data =
-        scene_manager_get_current_scene_data(app_instance->scene_manager);
+        scene_manager_get_scene_data(app_instance->scene_manager, SceneIdMain);
     furi_assert(data);
 
     uint8_t download_percent =
@@ -153,7 +156,8 @@ static void settings_scene_fw_status_callback(FetchLoaderStatus status, void* co
 static void scene_main_state_callback(FuriString* error, void* context) {
     furi_assert(context);
     FwUpdate* instance = context;
-    SettingsSceneFwUpdate* data = scene_manager_get_current_scene_data(instance->scene_manager);
+    SettingsSceneFwUpdate* data =
+        scene_manager_get_scene_data(instance->scene_manager, SceneIdMain);
     furi_assert(data);
 
     // Show error message
@@ -164,7 +168,8 @@ static void scene_main_state_callback(FuriString* error, void* context) {
 static void scene_main_done_callback(void* context) {
     furi_assert(context);
     FwUpdate* instance = context;
-    SettingsSceneFwUpdate* data = scene_manager_get_current_scene_data(instance->scene_manager);
+    SettingsSceneFwUpdate* data =
+        scene_manager_get_scene_data(instance->scene_manager, SceneIdMain);
     furi_assert(data);
 
     furi_string_set(data->fw_status, "Checking sha256...");
@@ -177,7 +182,8 @@ static void scene_main_check(const void* message, void* context) {
     furi_assert(status);
     furi_assert(context);
     FwUpdate* instance = context;
-    SettingsSceneFwUpdate* data = scene_manager_get_current_scene_data(instance->scene_manager);
+    SettingsSceneFwUpdate* data =
+        scene_manager_get_scene_data(instance->scene_manager, SceneIdMain);
     data->fw_info.is_new_version = false;
 
     switch(status->type) {
@@ -208,7 +214,8 @@ static void scene_main_check(const void* message, void* context) {
 static void scene_main_check_sha256(void* context) {
     furi_assert(context);
     FwUpdate* instance = context;
-    SettingsSceneFwUpdate* data = scene_manager_get_current_scene_data(instance->scene_manager);
+    SettingsSceneFwUpdate* data =
+        scene_manager_get_scene_data(instance->scene_manager, SceneIdMain);
     furi_assert(data);
     if(data->fw_info.is_new_version) {
         FuriString* sha256_calc = furi_string_alloc();
@@ -243,7 +250,8 @@ static void scene_main_install(void* context) {
     furi_assert(context);
 
     FwUpdate* instance = context;
-    SettingsSceneFwUpdate* data = scene_manager_get_current_scene_data(instance->scene_manager);
+    SettingsSceneFwUpdate* data =
+        scene_manager_get_scene_data(instance->scene_manager, SceneIdMain);
     UNUSED(data);
 
     FuriString* manifest_path = furi_string_alloc();
@@ -273,7 +281,8 @@ static void scene_main_on_enter(void* context) {
     furi_assert(context);
 
     FwUpdate* instance = context;
-    SettingsSceneFwUpdate* data = scene_manager_get_current_scene_data(instance->scene_manager);
+    SettingsSceneFwUpdate* data =
+        scene_manager_get_scene_data(instance->scene_manager, SceneIdMain);
     // Init data
     data->fw_status = furi_string_alloc_set("Checking for update...");
     data->fw_info.fw_url = furi_string_alloc();
@@ -361,7 +370,8 @@ static void scene_main_on_exit(void* context) {
     furi_assert(context);
 
     FwUpdate* instance = context;
-    SettingsSceneFwUpdate* data = scene_manager_get_current_scene_data(instance->scene_manager);
+    SettingsSceneFwUpdate* data =
+        scene_manager_get_scene_data(instance->scene_manager, SceneIdMain);
 
     with_gui(instance->gui, {
         GuiLayer* layer = gui_get_layer(instance->gui, GuiLayerIdMain);
@@ -403,7 +413,8 @@ static bool scene_main_on_event(const SceneManagerEvent* event, void* context) {
     furi_assert(context);
 
     FwUpdate* instance = context;
-    SettingsSceneFwUpdate* data = scene_manager_get_current_scene_data(instance->scene_manager);
+    SettingsSceneFwUpdate* data =
+        scene_manager_get_scene_data(instance->scene_manager, SceneIdMain);
     UNUSED(data);
     bool consumed = false;
     if(event->type == SceneManagerEventTypeCustom) {

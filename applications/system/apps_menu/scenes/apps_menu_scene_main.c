@@ -1,5 +1,6 @@
 #include "../apps_menu_i.h"
 #include "../storage_macros.h"
+#include "apps_menu_scenes.h"
 
 #include <desktop/desktop.h>
 
@@ -33,7 +34,8 @@ static void apps_scene_setup_menu_callback(uint32_t index, void* context) {
     furi_assert(context);
 
     AppsMenu* instance = context;
-    AppsMenuSceneMain* data = scene_manager_get_current_scene_data(instance->scene_manager);
+    AppsMenuSceneMain* data =
+        scene_manager_get_scene_data(instance->scene_manager, AppsMenuSceneIdMain);
 
     data->menu_idx = index;
     uint32_t event = SceneCustomEventMenuItemClicked;
@@ -44,7 +46,8 @@ static void apps_scene_setup_menu_callback(uint32_t index, void* context) {
 static void apps_menu_scene_main_on_enter(void* context) {
     furi_assert(context);
     AppsMenu* instance = context;
-    AppsMenuSceneMain* data = scene_manager_get_current_scene_data(instance->scene_manager);
+    AppsMenuSceneMain* data =
+        scene_manager_get_scene_data(instance->scene_manager, AppsMenuSceneIdMain);
 
     with_gui(instance->gui, {
         // front:
@@ -78,7 +81,8 @@ static void apps_menu_scene_main_on_enter(void* context) {
 static void apps_menu_scene_main_on_exit(void* context) {
     furi_assert(context);
     AppsMenu* instance = context;
-    AppsMenuSceneMain* data = scene_manager_get_current_scene_data(instance->scene_manager);
+    AppsMenuSceneMain* data =
+        scene_manager_get_scene_data(instance->scene_manager, AppsMenuSceneIdMain);
 
     with_gui(instance->gui, {
         menu_free(data->front_menu);
@@ -89,7 +93,8 @@ static void apps_menu_scene_main_on_exit(void* context) {
 static bool apps_menu_scene_main_on_event(const SceneManagerEvent* event, void* context) {
     furi_assert(context);
     AppsMenu* instance = context;
-    AppsMenuSceneMain* data = scene_manager_get_current_scene_data(instance->scene_manager);
+    AppsMenuSceneMain* data =
+        scene_manager_get_scene_data(instance->scene_manager, AppsMenuSceneIdMain);
 
     if(event->type == SceneManagerEventTypeCustom) {
         if(event->event == SceneCustomEventMenuItemClicked) {

@@ -68,7 +68,8 @@ static void busy_scene_timer_event_callback(const BusyTimerEvent* event, void* c
     furi_assert(context);
 
     BusyApp* instance = context;
-    BusySceneTimer* data = scene_manager_get_current_scene_data(instance->scene_manager);
+    BusySceneTimer* data =
+        scene_manager_get_scene_data(instance->scene_manager, BusyAppSceneIdTimer);
 
     if(event->type == BusyTimerEventTypeTick) {
         data->timer_time = event->time;
@@ -92,7 +93,8 @@ static void busy_scene_timer_run_later_callback(void* context) {
     furi_assert(context);
     BusyApp* instance = context;
 
-    const BusySceneTimer* data = scene_manager_get_current_scene_data(instance->scene_manager);
+    const BusySceneTimer* data =
+        scene_manager_get_scene_data(instance->scene_manager, BusyAppSceneIdTimer);
 
     if(data->is_force_ended) {
         busy_prepare_transition(instance, BusyTransitionTypeSkip);
@@ -110,7 +112,8 @@ static void busy_scene_timer_run_later_callback(void* context) {
 }
 
 static void busy_scene_timer_update_tick(BusyApp* instance) {
-    const BusySceneTimer* data = scene_manager_get_current_scene_data(instance->scene_manager);
+    const BusySceneTimer* data =
+        scene_manager_get_scene_data(instance->scene_manager, BusyAppSceneIdTimer);
     const BusyTimerTime* time = &data->timer_time;
 
     const float progress = (float)time->elapsed_s / (time->elapsed_s + time->remain_s);
@@ -132,7 +135,8 @@ static void busy_scene_timer_update_tick(BusyApp* instance) {
 }
 
 static void busy_scene_timer_update_lights(BusyApp* instance) {
-    const BusySceneTimer* data = scene_manager_get_current_scene_data(instance->scene_manager);
+    const BusySceneTimer* data =
+        scene_manager_get_scene_data(instance->scene_manager, BusyAppSceneIdTimer);
 
     if(data->is_paused) {
         busy_set_status_lights(instance, BusyStatusLightsTypeOff);
@@ -144,12 +148,14 @@ static void busy_scene_timer_update_lights(BusyApp* instance) {
 }
 
 static void busy_scene_timer_update_matter(BusyApp* app) {
-    const BusySceneTimer* scene = scene_manager_get_current_scene_data(app->scene_manager);
+    const BusySceneTimer* scene =
+        scene_manager_get_scene_data(app->scene_manager, BusyAppSceneIdTimer);
     busy_set_matter(app, (scene->timer_state == BusyTimerStateWork) && !scene->is_paused);
 }
 
 static void busy_scene_timer_update_timer_mode(BusyApp* instance) {
-    const BusySceneTimer* data = scene_manager_get_current_scene_data(instance->scene_manager);
+    const BusySceneTimer* data =
+        scene_manager_get_scene_data(instance->scene_manager, BusyAppSceneIdTimer);
 
     with_gui(instance->gui, {
         if(data->timer_mode == BusyTimerModeInfinite) {
@@ -174,7 +180,8 @@ static void busy_scene_timer_update_timer_mode(BusyApp* instance) {
 }
 
 static void busy_scene_timer_update_timer_state(BusyApp* instance) {
-    const BusySceneTimer* data = scene_manager_get_current_scene_data(instance->scene_manager);
+    const BusySceneTimer* data =
+        scene_manager_get_scene_data(instance->scene_manager, BusyAppSceneIdTimer);
 
     with_gui(instance->gui, {
         if(data->timer_state == BusyTimerStateWork) {
@@ -202,7 +209,8 @@ static void busy_scene_timer_update_timer_state(BusyApp* instance) {
 }
 
 static void busy_scene_timer_toggle_pause(BusyApp* instance) {
-    BusySceneTimer* data = scene_manager_get_current_scene_data(instance->scene_manager);
+    BusySceneTimer* data =
+        scene_manager_get_scene_data(instance->scene_manager, BusyAppSceneIdTimer);
 
     data->is_paused = !data->is_paused;
 
@@ -223,7 +231,8 @@ static void busy_scene_timer_toggle_pause(BusyApp* instance) {
 }
 
 static void busy_scene_timer_handle_skip(BusyApp* instance) {
-    const BusySceneTimer* data = scene_manager_get_current_scene_data(instance->scene_manager);
+    const BusySceneTimer* data =
+        scene_manager_get_scene_data(instance->scene_manager, BusyAppSceneIdTimer);
 
     if((data->timer_mode == BusyTimerModeInterval) && !data->is_paused) {
         busy_prepare_transition(instance, BusyTransitionTypeSkip);
@@ -233,7 +242,8 @@ static void busy_scene_timer_handle_skip(BusyApp* instance) {
 }
 
 static void busy_scene_timer_handle_back(BusyApp* instance) {
-    const BusySceneTimer* data = scene_manager_get_current_scene_data(instance->scene_manager);
+    const BusySceneTimer* data =
+        scene_manager_get_scene_data(instance->scene_manager, BusyAppSceneIdTimer);
 
     if(!data->is_paused) {
         busy_timer_stop(instance->busy_timer);
@@ -248,7 +258,8 @@ static void busy_scene_timer_handle_back(BusyApp* instance) {
 }
 
 static void busy_scene_timer_go_to_progress_scene(BusyApp* instance) {
-    BusySceneTimer* data = scene_manager_get_current_scene_data(instance->scene_manager);
+    BusySceneTimer* data =
+        scene_manager_get_scene_data(instance->scene_manager, BusyAppSceneIdTimer);
 
     if(data->is_force_ended) {
         busy_scene_timer_run_later_callback(instance);
@@ -268,7 +279,8 @@ static void busy_scene_timer_on_enter(void* context) {
     furi_assert(context);
 
     BusyApp* instance = context;
-    BusySceneTimer* data = scene_manager_get_current_scene_data(instance->scene_manager);
+    BusySceneTimer* data =
+        scene_manager_get_scene_data(instance->scene_manager, BusyAppSceneIdTimer);
 
     with_gui(instance->gui, {
         GuiLayer* layer = gui_get_layer(instance->gui, GuiLayerIdMain);
@@ -306,7 +318,8 @@ static void busy_scene_timer_on_exit(void* context) {
     busy_set_matter(instance, false);
     busy_timer_set_callback(instance->busy_timer, NULL, NULL);
 
-    BusySceneTimer* data = scene_manager_get_current_scene_data(instance->scene_manager);
+    BusySceneTimer* data =
+        scene_manager_get_scene_data(instance->scene_manager, BusyAppSceneIdTimer);
 
     if(data->run_later) {
         run_later_cancel(data->run_later);
