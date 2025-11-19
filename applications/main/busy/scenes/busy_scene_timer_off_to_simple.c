@@ -4,7 +4,7 @@
 #include "../widgets/timer_label.h"
 
 #define ANIM_START_X     73
-#define ANIM_END_X       43
+#define ANIM_END_X       42
 #define ANIM_DURATION_MS (40 * 1000 / 60)
 
 typedef struct {

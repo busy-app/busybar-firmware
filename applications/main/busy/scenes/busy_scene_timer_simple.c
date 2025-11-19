@@ -147,7 +147,7 @@ void busy_scene_timer_simple_on_enter(void* context) {
 
         data->timer_label = timer_label_alloc(data->root);
         timer_label_set_time(data->timer_label, data->timer_time.remain_s);
-        widget_set_pos(timer_label_get_base(data->timer_label), 31 + 12, 1);
+        widget_set_pos(timer_label_get_base(data->timer_label), 31 + 11, 1);
 
         data->pause_overlay = pause_overlay_alloc(instance->front_window);
 
