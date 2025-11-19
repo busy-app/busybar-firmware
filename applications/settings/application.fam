@@ -8,6 +8,7 @@ App(
         "debug_app_list",
         "fw_update",
         "matter_settings",
+        "ble_settings",
     ],
     targets=["f20", "f21"],
 )

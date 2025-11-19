@@ -15,18 +15,18 @@ extern "C" {
 /**
  * @brief Converts an `R, G, B` representation into a color
  */
-#define COLOR_MAKE_RGB(rv, gv, bv) {.a = 255, .b = (bv), .g = (gv), .r = (rv)}
+#define COLOR_MAKE_RGB(rv, gv, bv) {.b = (bv), .g = (gv), .r = (rv), .a = 255}
 
 /**
  * @brief Converts an `R, G, B, A` representation into a color
  */
-#define COLOR_MAKE_RGBA(rv, gv, bv, av) {.a = (av), .b = (bv), .g = (gv), .r = (rv)}
+#define COLOR_MAKE_RGBA(rv, gv, bv, av) {.b = (bv), .g = (gv), .r = (rv), .a = (av)}
 
 /**
  * @brief Converts an `0xRRGGBB` representation into a color
  */
 #define COLOR_MAKE_HEX(hex) \
-    {.a = 255, .b = (hex) & 0xFF, .g = ((hex) >> 8) & 0xFF, .r = ((hex) >> 16) & 0xFF}
+    {.b = (hex) & 0xFF, .g = ((hex) >> 8) & 0xFF, .r = ((hex) >> 16) & 0xFF, .a = 255}
 
 /**
  * @brief Converts an `0xRRGGBBAA` representation into a color
