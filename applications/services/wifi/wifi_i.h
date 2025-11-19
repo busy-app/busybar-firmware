@@ -15,7 +15,6 @@
 
 typedef enum {
     WifiEventRequest = 1UL << 0,
-    WifiEventResponse = 1UL << 1,
 } WifiEvent;
 
 typedef struct {
@@ -46,7 +45,7 @@ typedef struct {
 
 struct Wifi {
     FuriEventLoop* event_loop;
-    FuriEventLoopTimer* poll_timer;
+    FuriMessageQueue* response_queue;
     FuriSemaphore* api_semaphore;
     FuriSemaphore* dhcp_semaphore;
     FuriState* state;
@@ -54,7 +53,6 @@ struct Wifi {
     struct netif netif;
     WifiMessage api_message;
     WifiRequest request;
-    WifiResponse response;
 };
 
 // API management
@@ -67,7 +65,7 @@ void wifi_schedule_init_request(Wifi* instance);
 
 void wifi_schedule_connect_request(Wifi* instance, const WifiSettings* settings);
 
-void wifi_schedule_backend_info_request(Wifi* instance);
+void wifi_schedule_disconnect_request(Wifi* instance);
 
 // Network management
 void wifi_net_init(Wifi* instance, const uint8_t* hw_addr);

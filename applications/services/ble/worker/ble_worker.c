@@ -467,11 +467,22 @@ static bool ble_worker_start_advertising(
 }
 
 static bool ble_worker_stop_advertising() {
-    sl_status_t status = rsi_ble_stop_advertising();
+    sl_status_t status;
+    ///TODO: think of more reliable way of handling stop command when we are connected
+    if(ble_worker_instance->connected) {
+        status = rsi_ble_disconnect((int8_t*)ble_worker_instance->remote_dev_address);
+        if(status != RSI_SUCCESS)
+            BLE_LOG_W("Failed to disconnect, error code : 0x%08lx", status);
+        else
+            BLE_LOG_I("Disconnected");
+    }
 
-    if(status != RSI_SUCCESS)
+    status = rsi_ble_stop_advertising();
+
+    if(status != RSI_SUCCESS) {
         BLE_LOG_W("Failed to stop advertising, error code : 0x%08lx", status);
-    else
+        status = RSI_SUCCESS;
+    } else
         BLE_LOG_I("Stop advertising...");
 
     return status == RSI_SUCCESS;

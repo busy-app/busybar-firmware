@@ -10,6 +10,7 @@
 #include <toolbox/m_cstr_dup.h>
 #include <furi_hal_rtc.h>
 #include "canvas.h"
+#include <gui/modules/front_display_mirror.h>
 
 typedef struct {
     enum {
@@ -34,6 +35,7 @@ typedef struct {
     FuriEventLoopTimer* timeout_timer;
     CanvasWidgetTimeoutContext* timeout_context;
     CanvasElementType type;
+    GuiDisplayId display;
     union {
         Image* image;
         Label* text;
@@ -49,6 +51,7 @@ struct CanvasApp {
     FuriMutex* widget_list_mutex;
     Gui* gui;
     CanvasWidgetsDict_t widgets;
+    DisplayMirror* display_mirror;
 };
 
 static bool canvas_app_input_callback(const InputEvent* event, void* context) {
@@ -65,6 +68,23 @@ static bool canvas_app_input_callback(const InputEvent* event, void* context) {
     }
 
     return consumed;
+}
+
+static void canvas_check_back_screen_empty(CanvasApp* canvas) {
+    bool back_empty = true;
+    CanvasWidgetsDict_it_t it;
+    for(CanvasWidgetsDict_it(it, canvas->widgets); !CanvasWidgetsDict_end_p(it);
+        CanvasWidgetsDict_next(it)) {
+        CanvasWidgetsDict_itref_t* itref = CanvasWidgetsDict_ref(it);
+        CanvasWidget* widget = &itref->value;
+        if(widget->display == GuiDisplayIdBack) {
+            back_empty = false;
+            break;
+        }
+    }
+    with_gui(canvas->gui, {
+        widget_set_visible(display_mirror_get_base(canvas->display_mirror), back_empty);
+    });
 }
 
 static void canvas_element_timeout(void* context) {
@@ -93,9 +113,11 @@ static void canvas_element_timeout(void* context) {
     });
 
     CanvasWidgetsDict_erase(canvas->widgets, id);
-
     free(id);
     free(context);
+    context = NULL;
+
+    canvas_check_back_screen_empty(canvas);
 
     bool no_more_widgets = CanvasWidgetsDict_empty_p(canvas->widgets);
 
@@ -118,13 +140,15 @@ static void canvas_widget_destroy(CanvasApp* canvas, CanvasWidget* widget) {
         free(widget->timeout_context);
     }
 
-    if(widget->type == CanvasElementTypeImage) {
-        image_free(widget->image);
-    } else if(widget->type == CanvasElementTypeText) {
-        label_free(widget->text);
-    } else if(widget->type == CanvasElementTypeCountdown) {
-        countdown_free(widget->countdown);
-    }
+    with_gui(canvas->gui, {
+        if(widget->type == CanvasElementTypeImage) {
+            image_free(widget->image);
+        } else if(widget->type == CanvasElementTypeText) {
+            label_free(widget->text);
+        } else if(widget->type == CanvasElementTypeCountdown) {
+            countdown_free(widget->countdown);
+        }
+    });
 }
 
 static void canvas_widget_destroy_all(CanvasApp* canvas) {
@@ -166,6 +190,8 @@ static void canvas_app_clear_app_id(CanvasApp* canvas, const char* app_id) {
         canvas_widget_destroy_all(canvas);
         CanvasWidgetsDict_reset(canvas->widgets);
     }
+
+    canvas_check_back_screen_empty(canvas);
 
     if(CanvasWidgetsDict_empty_p(canvas->widgets)) {
         furi_event_loop_stop(canvas->event_loop);
@@ -228,16 +254,19 @@ static CanvasApp* canvas_app_alloc() {
     with_gui(canvas->gui, {
         GuiLayer* main_layer = gui_get_layer(canvas->gui, GuiLayerIdMain);
         gui_layer_add_input_callback(main_layer, canvas_app_input_callback, canvas);
+        Widget* back_root = gui_layer_get_root_widget(main_layer, GuiDisplayIdBack);
+        canvas->display_mirror = display_mirror_alloc(back_root);
     });
 
     return canvas;
 }
 
 static void canvas_app_free(CanvasApp* canvas) {
+    canvas_widget_destroy_all(canvas);
     with_gui(canvas->gui, {
         GuiLayer* main_layer = gui_get_layer(canvas->gui, GuiLayerIdMain);
         gui_layer_remove_input_callback(main_layer, canvas_app_input_callback);
-        canvas_widget_destroy_all(canvas);
+        display_mirror_free(canvas->display_mirror);
     });
 
     furi_record_close(RECORD_GUI);
@@ -411,6 +440,7 @@ static bool
 
     with_gui(canvas->gui, {
         widget.type = element->type;
+        widget.display = element->display;
         GuiLayer* gui_layer = gui_get_layer(canvas->gui, GuiLayerIdMain);
         Widget* root = gui_layer_get_root_widget(gui_layer, element->display);
         Widget* base = canvas_element_update_specific(&widget, root, element);
@@ -468,6 +498,7 @@ bool canvas_show_elements(CanvasApp* canvas, const char* app_id, CanvasElementsA
             success = false;
             break;
         }
+        canvas_check_back_screen_empty(canvas);
     }
     furi_mutex_release(canvas->widget_list_mutex);
 

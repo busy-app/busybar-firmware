@@ -1,5 +1,6 @@
 #include "../update_app_i.h"
 #include "../storage_macros.h"
+#include "updater_scenes.h"
 
 #include <gui/modules/flex_layout.h>
 #include <gui/modules/anim_image.h>
@@ -16,7 +17,8 @@ static void updater_scene_success_on_enter(void* context) {
     furi_assert(context);
 
     UpdaterApp* instance = context;
-    UpdaterSceneSuccess* data = scene_manager_get_current_scene_data(instance->scene_manager);
+    UpdaterSceneSuccess* data =
+        scene_manager_get_scene_data(instance->scene_manager, UpdaterAppSceneIdSuccess);
 
     with_gui(instance->gui, {
         /* back ui */
@@ -60,7 +62,8 @@ static void updater_scene_success_on_exit(void* context) {
     furi_assert(context);
 
     UpdaterApp* instance = context;
-    UpdaterSceneSuccess* data = scene_manager_get_current_scene_data(instance->scene_manager);
+    UpdaterSceneSuccess* data =
+        scene_manager_get_scene_data(instance->scene_manager, UpdaterAppSceneIdSuccess);
 
     with_gui(instance->gui, {
         flex_layout_free(data->back_flex);
