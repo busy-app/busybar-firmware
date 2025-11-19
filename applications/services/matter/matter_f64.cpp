@@ -101,9 +101,18 @@ void matter_stop_blinking(::Identify* identify) {
     status_lights_run_preset(matter->m_status_lights, StatusLightsPresetOff, IDENTIFY_COLOR);
 }
 
-// ======================
+/**
+ * @warning Requires Matter stack to be locked
+ */
+void matter_restart_dnssd(void) {
+    ChipDeviceEvent event;
+    event.Type = DeviceEventType::kDnssdRestartNeeded;
+    PlatformMgr().PostEventOrDie(&event);
+}
+
+// =====================
 // Communication with u5
-// ======================
+// =====================
 
 static void matter_send_frame(MatterSrv* matter, const MatterIntercomFrame* frame) {
     furi_check(
@@ -247,6 +256,7 @@ void BsbFabricTableDelegate::OnFabricRemoved(
     FabricIndex fabricIndex) {
     UNUSED(fabricTable);
     UNUSED(fabricIndex);
+    matter_restart_dnssd();
     matter_send_fabric_count_update(matter_global_srv);
 }
 
@@ -283,6 +293,7 @@ static void matter_device_event(const ChipDeviceEvent* event, intptr_t arg) {
 
     } else if(event->Type == DeviceEventType::kCommissioningComplete) {
         FURI_LOG_D(TAG, "Commissioning complete");
+        matter_restart_dnssd();
         MatterIntercomFrame frame = {
             .type = MatterIntercomFrameTypeCommissionStatus,
             .commission_status =
