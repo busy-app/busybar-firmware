@@ -60,7 +60,7 @@ static BusyApp* busy_alloc(void) {
     instance->input_queue = furi_message_queue_alloc(8, sizeof(InputEvent));
     instance->event_queue = furi_message_queue_alloc(8, sizeof(uint32_t));
     instance->scene_manager = scene_manager_alloc(busy_scenes, BusyAppSceneIdMax, instance);
-    instance->busy_timer = busy_timer_alloc();
+    instance->busy_timer = furi_record_open(RECORD_BUSY_TIMER);
     instance->status_lights = furi_record_open(RECORD_STATUS_LIGHTS);
     instance->audio = furi_record_open(RECORD_AUDIO);
     instance->gui = furi_record_open(RECORD_GUI);
@@ -136,7 +136,6 @@ static void busy_free(BusyApp* instance) {
     busy_set_matter(instance, false);
 
     scene_manager_free(instance->scene_manager);
-    busy_timer_free(instance->busy_timer);
 
     with_gui(instance->gui, {
         GuiLayer* layer = gui_get_layer(instance->gui, GuiLayerIdMain);
@@ -148,6 +147,7 @@ static void busy_free(BusyApp* instance) {
         flex_layout_free(instance->back_container);
     });
 
+    furi_record_close(RECORD_BUSY_TIMER);
     furi_record_close(RECORD_MATTER);
     furi_record_close(RECORD_STATUS_LIGHTS);
     furi_record_close(RECORD_AUDIO);
