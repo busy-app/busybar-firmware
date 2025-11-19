@@ -14,7 +14,7 @@ typedef struct {
 static void matter_scene_pairing_on_enter(void* context) {
     furi_assert(context);
     MatterSettings* app = context;
-    MatterScenePairing* scene = scene_manager_get_current_scene_data(app->scene_manager);
+    MatterScenePairing* scene = scene_manager_get_scene_data(app->scene_manager, SceneIdPairing);
 
     scene->ui_initialized = false;
     if(!matter_settings_check_wifi_connectivity(app)) return;
@@ -45,7 +45,7 @@ static void matter_scene_pairing_on_enter(void* context) {
 static void matter_scene_pairing_on_exit(void* context) {
     furi_assert(context);
     MatterSettings* app = context;
-    MatterScenePairing* scene = scene_manager_get_current_scene_data(app->scene_manager);
+    MatterScenePairing* scene = scene_manager_get_scene_data(app->scene_manager, SceneIdPairing);
 
     if(!scene->ui_initialized) return;
 

@@ -85,7 +85,8 @@ static void settings_scene_start_timer_callback(void* context) {
     furi_assert(context);
 
     SettingsApp* instance = context;
-    SettingsSceneStart* data = scene_manager_get_current_scene_data(instance->scene_manager);
+    SettingsSceneStart* data =
+        scene_manager_get_scene_data(instance->scene_manager, SettingsAppSceneIdStart);
 
     with_gui(instance->gui, { anim_title_card_run_background_anim(data->front_card); });
 
@@ -96,7 +97,8 @@ static void settings_scene_start_timer_callback(void* context) {
 
 static void
     settings_start_run_in_out_anim(SettingsApp* instance, SettingsSceneStartInOutAnimType type) {
-    SettingsSceneStart* data = scene_manager_get_current_scene_data(instance->scene_manager);
+    SettingsSceneStart* data =
+        scene_manager_get_scene_data(instance->scene_manager, SettingsAppSceneIdStart);
 
     const SettingsSceneStartInOutAnimInfo* anim_info = &in_out_anim_infos[type];
     anim_title_card_run_icon_anim(data->front_card, anim_info->icon_start, anim_info->icon_stop);
@@ -106,7 +108,8 @@ static void settings_scene_start_on_enter(void* context) {
     furi_assert(context);
 
     SettingsApp* instance = context;
-    SettingsSceneStart* data = scene_manager_get_current_scene_data(instance->scene_manager);
+    SettingsSceneStart* data =
+        scene_manager_get_scene_data(instance->scene_manager, SettingsAppSceneIdStart);
 
     with_gui(instance->gui, {
         GuiLayer* layer = gui_get_layer(instance->gui, GuiLayerIdMain);
@@ -145,7 +148,8 @@ static void settings_scene_start_on_exit(void* context) {
     furi_assert(context);
 
     SettingsApp* instance = context;
-    SettingsSceneStart* data = scene_manager_get_current_scene_data(instance->scene_manager);
+    SettingsSceneStart* data =
+        scene_manager_get_scene_data(instance->scene_manager, SettingsAppSceneIdStart);
 
     with_gui(instance->gui, {
         GuiLayer* layer = gui_get_layer(instance->gui, GuiLayerIdMain);
