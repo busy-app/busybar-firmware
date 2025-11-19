@@ -25,7 +25,7 @@ static void scene_main_on_enter(void* context) {
     furi_assert(context);
 
     BleSettings* instance = context;
-    SettingsSceneBle* data = scene_manager_get_current_scene_data(instance->scene_manager);
+    SettingsSceneBle* data = scene_manager_get_scene_data(instance->scene_manager, SceneIdMain);
 
     with_gui(instance->gui, {
         data->front_menu = submenu_alloc(instance->front_scene_window);
@@ -64,7 +64,7 @@ static void scene_main_on_exit(void* context) {
     furi_assert(context);
 
     BleSettings* instance = context;
-    SettingsSceneBle* data = scene_manager_get_current_scene_data(instance->scene_manager);
+    SettingsSceneBle* data = scene_manager_get_scene_data(instance->scene_manager, SceneIdMain);
 
     with_gui(instance->gui, {
         submenu_free(data->front_menu);
