@@ -333,6 +333,12 @@ static BusyTimerSnapshot busy_timer_make_snapshot(const BusyTimer* instance) {
     return snapshot;
 }
 
+static void busy_timer_apply_snapshot(BusyTimer* instance, const BusyTimerSnapshot* snapshot) {
+    UNUSED(instance);
+    UNUSED(snapshot);
+    // TODO: Implement applying snapshot
+}
+
 static void busy_timer_poll_timer_callback(void* context) {
     furi_assert(context);
     BusyTimer* instance = context;
@@ -504,8 +510,7 @@ static void
 
 static void
     busy_timer_set_snapshot_message_handler(BusyTimer* instance, BusyTimerMessageData* data) {
-    instance->snapshot = *data->snapshot_c;
-    // TODO: Implement actual logic
+    busy_timer_apply_snapshot(instance, data->snapshot_c);
 }
 
 // Service

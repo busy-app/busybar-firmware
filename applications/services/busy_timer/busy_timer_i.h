@@ -70,7 +70,6 @@ struct BusyTimer {
     void* callback_context;
     uint64_t last_timestamp_ms;
     uint32_t cycles_done;
-    BusyTimerSnapshot snapshot;
     BusyTimerConfig config;
     BusyTimerTime time;
     BusyTimerMode mode;
