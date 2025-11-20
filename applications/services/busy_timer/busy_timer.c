@@ -8,7 +8,7 @@
 
 #define POLL_TIMER_PERIOD_MS (S_TO_MS(1) / 30)
 // TODO: [FW-468] Add milliseconds support to RTC
-#define TIMESTAMP_NOW_MS()   S_TO_MS(furi_hal_rtc_get_timestamp())
+#define TIMESTAMP_NOW_MS()   S_TO_MS((uint64_t)furi_hal_rtc_get_timestamp())
 
 typedef void (*const BusyTimerMessageHandler)(BusyTimer* instance, BusyTimerMessageData* data);
 
