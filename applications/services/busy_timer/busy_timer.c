@@ -1,8 +1,14 @@
 #include "busy_timer_i.h"
 
+#include <furi_hal_rtc.h>
+
 #ifdef BUSY_TIMER_TICK_DEBUG
 #define TIME_MAX_LEN (14)
 #endif
+
+#define POLL_TIMER_PERIOD_MS (S_TO_MS(1) / 30)
+// TODO: [FW-468] Add milliseconds support to RTC
+#define TIMESTAMP_NOW_MS()   S_TO_MS(furi_hal_rtc_get_timestamp())
 
 typedef void (*const BusyTimerMessageHandler)(BusyTimer* instance, BusyTimerMessageData* data);
 
@@ -199,13 +205,15 @@ static bool busy_timer_is_running(const BusyTimer* instance) {
 
 static void busy_timer_start_timer(BusyTimer* instance) {
     if(instance->mode != BusyTimerModeInfinite) {
-        furi_event_loop_timer_start(instance->timer, S_TO_MS(1));
+        furi_event_loop_timer_start(instance->poll_timer, POLL_TIMER_PERIOD_MS);
     }
+
+    instance->last_timestamp_ms = TIMESTAMP_NOW_MS();
     instance->timer_running = true;
 }
 
 static void busy_timer_stop_timer(BusyTimer* instance) {
-    furi_event_loop_timer_stop(instance->timer);
+    furi_event_loop_timer_stop(instance->poll_timer);
     instance->timer_running = false;
 }
 
@@ -220,7 +228,7 @@ static void busy_timer_infinite_to_simple(BusyTimer* instance) {
     busy_timer_notify_tick(instance);
 }
 
-void busy_timer_next_state(BusyTimer* instance, bool force) {
+static void busy_timer_next_state(BusyTimer* instance, bool force) {
     FURI_LOG_I(TAG, "Current state: %s", busy_timer_get_state_name(instance->state));
 
     instance->cycles_done = busy_timer_calc_cycles_done(instance);
@@ -247,21 +255,30 @@ void busy_timer_next_state(BusyTimer* instance, bool force) {
     }
 }
 
-static void busy_timer_callback(void* context) {
+static void busy_timer_update(BusyTimer* instance, uint64_t timestamp_ms) {
+    const uint64_t dt = timestamp_ms - instance->last_timestamp_ms;
+
+    if(dt >= S_TO_MS(1)) {
+        if(instance->time.remain_s) {
+            const uint32_t delta_s = busy_timer_calc_delta(instance);
+
+            instance->time.remain_s -= delta_s;
+            instance->time.elapsed_s += delta_s;
+
+            busy_timer_notify_tick(instance);
+
+        } else {
+            busy_timer_next_state(instance, false);
+        }
+
+        instance->last_timestamp_ms = timestamp_ms;
+    }
+}
+
+static void busy_timer_poll_timer_callback(void* context) {
     furi_assert(context);
     BusyTimer* instance = context;
-
-    if(instance->time.remain_s) {
-        const uint32_t delta_s = busy_timer_calc_delta(instance);
-
-        instance->time.remain_s -= delta_s;
-        instance->time.elapsed_s += delta_s;
-
-        busy_timer_notify_tick(instance);
-
-    } else {
-        busy_timer_next_state(instance, false);
-    }
+    busy_timer_update(instance, TIMESTAMP_NOW_MS());
 }
 
 static void busy_timer_message_queue_callback(FuriEventLoopObject* object, void* context) {
@@ -422,12 +439,14 @@ static void busy_timer_skip_message_handler(BusyTimer* instance, BusyTimerMessag
     }
 }
 
-static void busy_timer_get_snapshot_message_handler(BusyTimer* instance, BusyTimerMessageData* data) {
+static void
+    busy_timer_get_snapshot_message_handler(BusyTimer* instance, BusyTimerMessageData* data) {
     *data->snapshot = instance->snapshot;
     // TODO: Implement actual logic
 }
 
-static void busy_timer_set_snapshot_message_handler(BusyTimer* instance, BusyTimerMessageData* data) {
+static void
+    busy_timer_set_snapshot_message_handler(BusyTimer* instance, BusyTimerMessageData* data) {
     instance->snapshot = *data->snapshot_c;
     // TODO: Implement actual logic
 }
@@ -438,8 +457,11 @@ static BusyTimer* busy_timer_alloc(void) {
     BusyTimer* instance = malloc(sizeof(BusyTimer));
 
     instance->event_loop = furi_event_loop_alloc();
-    instance->timer = furi_event_loop_timer_alloc(
-        instance->event_loop, busy_timer_callback, FuriEventLoopTimerTypePeriodic, instance);
+    instance->poll_timer = furi_event_loop_timer_alloc(
+        instance->event_loop,
+        busy_timer_poll_timer_callback,
+        FuriEventLoopTimerTypePeriodic,
+        instance);
     instance->message_queue = furi_message_queue_alloc(1, sizeof(BusyTimerMessage));
     instance->config = busy_timer_config_default;
 

@@ -64,10 +64,11 @@ typedef struct {
 struct BusyTimer {
     FuriThread* thread;
     FuriEventLoop* event_loop;
-    FuriEventLoopTimer* timer;
+    FuriEventLoopTimer* poll_timer;
     FuriMessageQueue* message_queue;
     BusyTimerCallback callback;
     void* callback_context;
+    uint64_t last_timestamp_ms;
     uint32_t cycles_done;
     BusyTimerSnapshot snapshot;
     BusyTimerConfig config;
