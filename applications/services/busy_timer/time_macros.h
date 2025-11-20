@@ -12,3 +12,4 @@
 #define S_TO_H(h) (S_TO_M(h) / 60)
 
 #define S_TO_MS(s) ((s) * 1000)
+#define M_TO_MS(m) (S_TO_MS(M_TO_S(m)))

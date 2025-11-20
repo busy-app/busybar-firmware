@@ -275,6 +275,64 @@ static void busy_timer_update(BusyTimer* instance, uint64_t timestamp_ms) {
     }
 }
 
+static uint32_t busy_timer_get_interval_index(const BusyTimer* instance) {
+    return 2 * instance->cycles_done + (instance->state == BusyTimerStateRest ? 1 : 0);
+}
+
+static BusyTimerSnapshot busy_timer_make_snapshot(const BusyTimer* instance) {
+    BusyTimerSnapshot snapshot = {0};
+
+    snapshot.timestamp_ms = TIMESTAMP_NOW_MS();
+
+    if(instance->state != BusyTimerStateIdle) {
+        BusyTimerSnapshotCommon* common = &snapshot.common;
+        common->card_id = 0;
+        common->is_paused = !busy_timer_is_running(instance);
+
+        const BusyTimerMode mode = instance->mode;
+
+        if(mode == BusyTimerModeInfinite) {
+            snapshot.type = BusyTimerSnapshotTypeInfinite;
+
+        } else if(mode == BusyTimerModeSimple) {
+            snapshot.type = BusyTimerSnapshotTypeSimple;
+
+            const BusyTimerTime* time = &instance->time;
+
+            BusyTimerSnapshotSimple* simple = &snapshot.simple;
+            simple->time_left_ms = S_TO_MS(time->remain_s);
+
+        } else if(mode == BusyTimerModeInterval) {
+            snapshot.type = BusyTimerSnapshotTypeInterval;
+
+            const BusyTimerTime* time = &instance->time;
+            const BusyTimerConfig* config = &instance->config;
+
+            BusyTimerSnapshotInterval* interval = &snapshot.interval;
+            interval->has_settings = true;
+
+            BusyTimerIntervalState* state = &interval->state;
+            state->index = busy_timer_get_interval_index(instance);
+            state->time_left_ms = S_TO_MS(time->remain_s);
+            state->time_total_ms = S_TO_MS(time->elapsed_s + time->remain_s);
+
+            BusyTimerIntervalSettings* settings = &interval->settings;
+            settings->work_time_ms = M_TO_MS(config->work_time_mn);
+            settings->rest_time_ms = M_TO_MS(config->rest_time_mn);
+            settings->cycles_count = config->cycle_count;
+            settings->is_autostart_enabled = config->enable_autostart;
+
+        } else {
+            furi_crash("Invalid BusyTimerMode value");
+        }
+
+    } else {
+        snapshot.type = BusyTimerSnapshotTypeNotStarted;
+    }
+
+    return snapshot;
+}
+
 static void busy_timer_poll_timer_callback(void* context) {
     furi_assert(context);
     BusyTimer* instance = context;
@@ -441,8 +499,7 @@ static void busy_timer_skip_message_handler(BusyTimer* instance, BusyTimerMessag
 
 static void
     busy_timer_get_snapshot_message_handler(BusyTimer* instance, BusyTimerMessageData* data) {
-    *data->snapshot = instance->snapshot;
-    // TODO: Implement actual logic
+    *data->snapshot = busy_timer_make_snapshot(instance);
 }
 
 static void
