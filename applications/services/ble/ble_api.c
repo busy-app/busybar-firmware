@@ -15,12 +15,9 @@ static void ble_send_message(
     furi_mutex_acquire(instance->current_message_lock, FuriWaitForever);
     api_lock_relock(instance->current_message_api_lock);
 
-    const size_t new_msg_size = sizeof(BleIntercomFrameHeader) + data_size + sizeof(bool);
+    const size_t new_msg_size = sizeof(BleMessage) + data_size;
     if(new_msg_size > instance->current_message_size) {
-        free(instance->current_message);
-
-        instance->current_message = malloc(new_msg_size);
-        furi_check(instance->current_message);
+        instance->current_message = realloc(instance->current_message, new_msg_size);
         instance->current_message_size = new_msg_size;
     }
 

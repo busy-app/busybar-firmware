@@ -13,13 +13,14 @@ typedef enum {
     WifiRequestTypeScan,
     WifiRequestTypeConnect,
     WifiRequestTypeDisconnect,
-    WifiRequestTypeGetBackendInfo,
+    WifiRequestTypeBackendInfo,
     WifiRequestTypeMax,
 } WifiRequestType;
 
 typedef enum {
     WifiBackendStateDisconnected,
     WifiBackendStateConnected,
+    WifiBackendStateReconnecting,
     WifiBackendStateMax,
 } WifiBackendState;
 
@@ -40,6 +41,7 @@ typedef struct {
 } WifiScanResults;
 
 typedef struct {
+    uint8_t state;
     uint8_t bssid[HW_ADDRESS_LEN];
     int32_t rssi;
     uint16_t channel;

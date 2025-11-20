@@ -42,7 +42,7 @@ void wifi_state_transition(Wifi* instance, WifiState new_state, ...) {
             }
 
         } else if(current_state == WifiStateConnected) {
-            if(new_state == WifiStateDisconnecting) {
+            if(new_state == WifiStateDisconnecting || new_state == WifiStateReconnecting) {
                 /* Nothing */
             } else {
                 furi_crash("Invalid transition from WifiStateConnected");
@@ -53,6 +53,20 @@ void wifi_state_transition(Wifi* instance, WifiState new_state, ...) {
                 wifi_state_reset_info(info);
             } else {
                 furi_crash("Invalid transition from WifiStateDisconnecting");
+            }
+
+        } else if(current_state == WifiStateReconnecting) {
+            if(new_state == WifiStateDisconnected) {
+                wifi_state_reset_info(info);
+
+            } else if(new_state == WifiStateConnected) {
+                const WifiIpConfig* ip_config = va_arg(args, const WifiIpConfig*);
+                info->ip_config = *ip_config;
+
+            } else if(new_state == WifiStateDisconnecting) {
+                /* Nothing */
+            } else {
+                furi_crash("Invalid transition from WifiStateReconnecting");
             }
 
         } else {
@@ -92,11 +106,11 @@ WifiStatus wifi_state_check_request_type(Wifi* instance, WifiRequestType request
                 status = WifiStatusAlreadyConnected;
             }
         } else if(request_type == WifiRequestTypeDisconnect) {
-            if(current_state != WifiStateConnected) {
+            if(current_state != WifiStateConnected && current_state != WifiStateReconnecting) {
                 status = WifiStatusAlreadyDisconnected;
             }
-        } else if(request_type == WifiRequestTypeGetBackendInfo) {
-            if(current_state != WifiStateConnected) {
+        } else if(request_type == WifiRequestTypeBackendInfo) {
+            if(current_state != WifiStateConnected && current_state != WifiStateReconnecting) {
                 status = WifiStatusError;
             }
         } else {
