@@ -1,4 +1,5 @@
 #include <furi.h>
+#include <furi_hal_version.h>
 #include <tusb.h>
 #include <class/net/net_device.h>
 #include <class/net/ncm.h>
@@ -6,7 +7,38 @@
 
 #define VERSION_BCD(maj, min, rev) (((maj & 0xFF) << 8) | ((min & 0x0F) << 4) | (rev & 0x0F))
 
-#define NCM_CONFIG_TOTAL_LEN (TUD_CONFIG_DESC_LEN + TUD_CDC_NCM_DESC_LEN)
+// Length of template descriptor
+#define USB_NET_NCM_DESC_LEN (8 + 9 + 5 + 5 + 13 + 6 + 7 + 9 + 9 + 7 + 7)
+
+// CDC-ECM Descriptor Template
+// Interface number, description string index, MAC address string index, EP notification address and size, EP data address (out, in), and size, max segment size.
+/* clang-format off */
+#define USB_NET_NCM_DESCRIPTOR(_itfnum, _desc_stridx, _mac_stridx, _ep_notif, _ep_notif_size, _epout, _epin, _epsize, _maxsegmentsize) \
+  /* Interface Association */\
+  8, TUSB_DESC_INTERFACE_ASSOCIATION, _itfnum, 2, TUSB_CLASS_CDC, CDC_COMM_SUBCLASS_NETWORK_CONTROL_MODEL, 0, 0,\
+  /* CDC Control Interface */\
+  9, TUSB_DESC_INTERFACE, _itfnum, 0, 1, TUSB_CLASS_CDC, CDC_COMM_SUBCLASS_NETWORK_CONTROL_MODEL, 0, _desc_stridx,\
+  /* CDC-NCM Header */\
+  5, TUSB_DESC_CS_INTERFACE, CDC_FUNC_DESC_HEADER, U16_TO_U8S_LE(0x0110),\
+  /* CDC-NCM Union */\
+  5, TUSB_DESC_CS_INTERFACE, CDC_FUNC_DESC_UNION, _itfnum, (uint8_t)((_itfnum) + 1),\
+  /* CDC-NCM Functional Descriptor */\
+  13, TUSB_DESC_CS_INTERFACE, CDC_FUNC_DESC_ETHERNET_NETWORKING, _mac_stridx, 0, 0, 0, 0, U16_TO_U8S_LE(_maxsegmentsize), U16_TO_U8S_LE(0), 0, \
+  /* CDC-NCM Functional Descriptor */\
+  6, TUSB_DESC_CS_INTERFACE, CDC_FUNC_DESC_NCM, U16_TO_U8S_LE(0x0100), 0, \
+  /* Endpoint Notification */\
+  7, TUSB_DESC_ENDPOINT, _ep_notif, TUSB_XFER_INTERRUPT, U16_TO_U8S_LE(_ep_notif_size), 10,\
+  /* CDC Data Interface (default inactive) */\
+  9, TUSB_DESC_INTERFACE, (uint8_t)((_itfnum)+1), 0, 0, TUSB_CLASS_CDC_DATA, 0, NCM_DATA_PROTOCOL_NETWORK_TRANSFER_BLOCK, 0,\
+  /* CDC Data Interface (alternative active) */\
+  9, TUSB_DESC_INTERFACE, (uint8_t)((_itfnum)+1), 1, 2, TUSB_CLASS_CDC_DATA, 0, NCM_DATA_PROTOCOL_NETWORK_TRANSFER_BLOCK, 0,\
+  /* Endpoint In */\
+  7, TUSB_DESC_ENDPOINT, _epin, TUSB_XFER_BULK, U16_TO_U8S_LE(_epsize), 0,\
+  /* Endpoint Out */\
+  7, TUSB_DESC_ENDPOINT, _epout, TUSB_XFER_BULK, U16_TO_U8S_LE(_epsize), 0
+/* clang-format on */
+
+#define NCM_CONFIG_TOTAL_LEN (TUD_CONFIG_DESC_LEN + USB_NET_NCM_DESC_LEN)
 
 #define EPNUM_NCM_NOTIF    0x81
 #define EPNUM_NCM_DATA_OUT 0x02
@@ -69,7 +101,7 @@ static tusb_desc_device_qualifier_t const desc_qualifier = {
 
 static uint8_t const desc_cfg_hs[] = {
     TUD_CONFIG_DESCRIPTOR(1, UsbItfNumTotal, 0, NCM_CONFIG_TOTAL_LEN, 0x00, 500),
-    TUD_CDC_NCM_DESCRIPTOR(
+    USB_NET_NCM_DESCRIPTOR(
         UsbItfNcm,
         UsbStrNcmInterface,
         UsbStrNcmMac,
@@ -83,7 +115,7 @@ static uint8_t const desc_cfg_hs[] = {
 
 static uint8_t const desc_cfg_fs[] = {
     TUD_CONFIG_DESCRIPTOR(1, UsbItfNumTotal, 0, NCM_CONFIG_TOTAL_LEN, 0x00, 500),
-    TUD_CDC_NCM_DESCRIPTOR(
+    USB_NET_NCM_DESCRIPTOR(
         UsbItfNcm,
         UsbStrNcmInterface,
         UsbStrNcmMac,
@@ -94,6 +126,8 @@ static uint8_t const desc_cfg_fs[] = {
         64,
         CFG_TUD_NET_MTU),
 };
+
+static uint8_t desc_cfg_other_speed[NCM_CONFIG_TOTAL_LEN];
 
 uint8_t const* tud_descriptor_device_cb(void) {
     return (uint8_t const*)&desc_device;
@@ -114,14 +148,19 @@ uint8_t const* tud_descriptor_other_speed_configuration_cb(uint8_t index) {
     if(index != 0) {
         return NULL;
     }
-    return (tud_speed_get() == TUSB_SPEED_HIGH) ? desc_cfg_fs : desc_cfg_hs;
+    const void* cfg = (tud_speed_get() == TUSB_SPEED_HIGH) ? desc_cfg_fs : desc_cfg_hs;
+    memcpy(desc_cfg_other_speed, cfg, NCM_CONFIG_TOTAL_LEN);
+
+    desc_cfg_other_speed[1] = TUSB_DESC_OTHER_SPEED_CONFIG;
+
+    return desc_cfg_other_speed;
 }
 
 static char const* desc_string_arr[] = {
     [UsbStrLang] = (const char[]){0x09, 0x04},
     [UsbStrManufacturer] = "Flipper Devices Inc.",
     [UsbStrProduct] = "BUSY Bar USB Ethernet",
-    [UsbStrSerial] = "0", //TODO: furi_hal_version
+    [UsbStrSerial] = NULL,
     [UsbStrNcmInterface] = "Network Interface",
     [UsbStrNcmMac] = NULL,
 };
@@ -136,6 +175,18 @@ uint16_t const* tud_descriptor_string_cb(uint8_t index, uint16_t langid) {
     case UsbStrLang:
         memcpy(&desc_string_temp[1], desc_string_arr[0], 2);
         chr_count = 1;
+        break;
+
+    case UsbStrSerial:
+        FuriString* uid = furi_string_alloc();
+        furi_hal_version_get_uid_str(uid);
+        size_t uid_len = furi_string_size(uid);
+        furi_assert(uid_len < COUNT_OF(desc_string_temp));
+        for(uint8_t i = 0; i < uid_len; i++) {
+            desc_string_temp[i] = furi_string_get_char(uid, i);
+        }
+        chr_count = uid_len;
+        furi_string_free(uid);
         break;
 
     case UsbStrNcmMac:
@@ -177,19 +228,30 @@ uint16_t const* tud_descriptor_string_cb(uint8_t index, uint16_t langid) {
     return desc_string_temp;
 }
 
-#define BOS_TOTAL_LEN     (TUD_BOS_DESC_LEN + TUD_BOS_WEBUSB_DESC_LEN + TUD_BOS_MICROSOFT_OS_DESC_LEN)
-#define MS_OS_20_DESC_LEN 0xB2
+#define BOS_TOTAL_LEN                                                             \
+    (TUD_BOS_DESC_LEN + TUD_BOS_WEBUSB_DESC_LEN + TUD_BOS_MICROSOFT_OS_DESC_LEN + \
+     USB_20_EXT_DESC_LEN)
+#define MS_OS_20_DESC_LEN   0xB2
+#define USB_20_EXT_DESC_LEN 7
 
 static uint8_t const desc_bos[] = {
     // total length, number of device caps
-    TUD_BOS_DESCRIPTOR(BOS_TOTAL_LEN, 2),
+    TUD_BOS_DESCRIPTOR(BOS_TOTAL_LEN, 3),
 
     // Vendor Code, iLandingPage
     TUD_BOS_WEBUSB_DESCRIPTOR(UsbVendorReqWebUsb, 1),
 
     // Microsoft OS 2.0 descriptor
     TUD_BOS_MS_OS_20_DESCRIPTOR(MS_OS_20_DESC_LEN, UsbVendorReqMsos20),
-};
+
+    // USB 2.0 Extension Descriptor
+    0x07,
+    TUSB_DESC_DEVICE_CAPABILITY,
+    DEVICE_CAPABILITY_USB20_EXTENSION,
+    0x00,
+    0x00,
+    0x00,
+    0x00};
 
 uint8_t const* tud_descriptor_bos_cb(void) {
     return (uint8_t const*)(desc_bos);
