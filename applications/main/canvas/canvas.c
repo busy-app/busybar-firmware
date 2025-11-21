@@ -409,7 +409,10 @@ static void canvas_app_queue_event_callback(FuriEventLoopObject* object, void* c
             success = true;
         }
     }
-    if(event.app_id) free(event.app_id);
+    if(event.app_id) {
+        free(event.app_id);
+        event.app_id = NULL;
+    }
 
     *event.result = success;
     api_lock_unlock(event.lock);

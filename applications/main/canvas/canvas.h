@@ -46,7 +46,10 @@ typedef struct {
 } CanvasElement;
 
 static inline void canvas_element_clear(CanvasElement* obj) {
-    if(obj->id) free(obj->id);
+    if(obj->id) {
+        free(obj->id);
+        obj->id = NULL;
+    }
     if(obj->type == CanvasElementTypeImage) {
         if(obj->image.file_path) furi_string_free(obj->image.file_path);
     } else if(obj->type == CanvasElementTypeText) {
