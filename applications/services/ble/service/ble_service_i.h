@@ -25,8 +25,7 @@ struct BleServiceObject {
     size_t buffer_size;
     uint8_t* frame_buf;
 
-    BleServiceStateChangeCallback state_change_callback;
-    BleServiceStateChangeCallbackContext* state_callback_context;
+    FuriString* error;
 
     void* context;
 #if defined(SI917)

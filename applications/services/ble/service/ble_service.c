@@ -104,24 +104,19 @@ static bool ble_service_process_input_frame(BleServiceObject* instance) {
 BleServiceObject* ble_service_alloc(
     const BleServiceDescriptor* service_config,
     FuriMessageQueue* message_queue,
-    Intercom* intercom,
-    BleServiceStateChangeCallback state_callback,
-    BleServiceStateChangeCallbackContext* ctx) {
+    Intercom* intercom) {
     furi_assert(service_config);
     furi_assert(message_queue);
     furi_assert(intercom);
-    furi_assert(state_callback);
-    furi_assert(ctx);
 
     BleServiceObject* instance = malloc(sizeof(BleServiceObject));
     BLE_LOG_D("%s - alloc service", service_config->name);
 
-    instance->state = BleServiceStateReset;
+    instance->ready = false;
     instance->config = service_config;
     instance->intercom = intercom;
     instance->message_queue = message_queue;
-    instance->state_change_callback = state_callback;
-    instance->state_callback_context = ctx;
+    instance->error = furi_string_alloc();
     instance->frame_lock = furi_semaphore_alloc(1, 1);
     instance->service_lock = furi_mutex_alloc(FuriMutexTypeNormal);
 
@@ -168,12 +163,6 @@ void ble_service_process_mailbox(
         memcpy(instance->frame_buf, input_frame, fs);
         ble_service_enqueue_message(instance);
     }
-}
-
-BleServiceState ble_service_get_state(BleServiceObject* instance) {
-    furi_assert(instance);
-    ///TODO: Think of taking service_lock here
-    return instance->state;
 }
 
 void ble_service_enqueue_message(BleServiceObject* instance) {
