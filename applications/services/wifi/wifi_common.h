@@ -52,6 +52,7 @@ typedef enum {
     WifiStateConnected, /**< The Wifi system is in connected state */
     WifiStateConnecting, /**< The Wifi system is trying to connect */
     WifiStateDisconnecting, /**< The Wifi system is disconnecting */
+    WifiStateReconnecting, /**< The Wifi system is trying to reconnect */
     WifiStateMax, /**< Special value, internal use */
 } WifiState;
 
