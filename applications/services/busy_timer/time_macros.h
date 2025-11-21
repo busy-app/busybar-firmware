@@ -13,3 +13,5 @@
 
 #define S_TO_MS(s) ((s) * 1000)
 #define M_TO_MS(m) (S_TO_MS(M_TO_S(m)))
+
+#define MS_TO_S(ms) ((ms) / 1000)

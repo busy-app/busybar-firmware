@@ -75,5 +75,4 @@ struct BusyTimer {
     BusyTimerMode mode;
     BusyTimerState state;
     bool timer_running;
-    bool next_state_forced;
 };

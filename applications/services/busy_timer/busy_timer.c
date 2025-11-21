@@ -112,13 +112,13 @@ static void busy_timer_notify_state_changed(const BusyTimer* instance) {
     }
 }
 
-static void busy_timer_notify_interval_ended(const BusyTimer* instance) {
+static void busy_timer_notify_interval_ended(const BusyTimer* instance, bool force) {
     FURI_LOG_D(TAG, "Interval ended: %s", busy_timer_get_state_name(instance->state));
 
     if(instance->callback) {
         const BusyTimerEvent event = {
             .type = BusyTimerEventTypeIntervalEnded,
-            .is_force_ended = instance->next_state_forced,
+            .is_force_ended = force,
         };
 
         instance->callback(&event, instance->callback_context);
@@ -181,7 +181,7 @@ static uint32_t busy_timer_calc_cycles_done(const BusyTimer* instance) {
     }
 }
 
-static uint32_t busy_timer_calc_delta(const BusyTimer* instance) {
+static uint32_t busy_timer_calc_increment(const BusyTimer* instance) {
     if(instance->config.enable_demo_mode) {
         if(instance->time.remain_s > 60) {
             return 60;
@@ -233,7 +233,6 @@ static void busy_timer_next_state(BusyTimer* instance, bool force) {
 
     instance->cycles_done = busy_timer_calc_cycles_done(instance);
     instance->state = busy_timer_calc_state(instance);
-    instance->next_state_forced = force;
 
     if(instance->state != BusyTimerStateIdle) {
         instance->time.elapsed_s = 0;
@@ -246,29 +245,35 @@ static void busy_timer_next_state(BusyTimer* instance, bool force) {
 
         } else {
             busy_timer_stop_timer(instance);
-            busy_timer_notify_interval_ended(instance);
+            busy_timer_notify_interval_ended(instance, force);
         }
 
     } else {
         busy_timer_stop_timer(instance);
-        busy_timer_notify_interval_ended(instance);
+        busy_timer_notify_interval_ended(instance, force);
     }
 }
 
 static void busy_timer_update(BusyTimer* instance, uint64_t timestamp_ms) {
-    const uint64_t dt = timestamp_ms - instance->last_timestamp_ms;
+    const uint32_t dt_s = MS_TO_S(timestamp_ms - instance->last_timestamp_ms);
 
-    if(dt >= S_TO_MS(1)) {
-        if(instance->time.remain_s) {
-            const uint32_t delta_s = busy_timer_calc_delta(instance);
+    if(dt_s) {
+        for(uint32_t i = 0; i < dt_s; ++i) {
+            const uint32_t inc_s = busy_timer_calc_increment(instance);
+            const bool is_last = (i == (dt_s - 1));
 
-            instance->time.remain_s -= delta_s;
-            instance->time.elapsed_s += delta_s;
+            if(instance->time.remain_s >= inc_s) {
+                instance->time.remain_s -= inc_s;
+                instance->time.elapsed_s += inc_s;
 
-            busy_timer_notify_tick(instance);
+                if(is_last) {
+                    busy_timer_notify_tick(instance);
+                }
 
-        } else {
-            busy_timer_next_state(instance, false);
+            } else {
+                // Force every but last transition
+                busy_timer_next_state(instance, !is_last);
+            }
         }
 
         instance->last_timestamp_ms = timestamp_ms;
