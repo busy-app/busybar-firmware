@@ -147,7 +147,7 @@ static bool ble_service_process_input_frame(BleServiceObject* instance) {
 
     BleIntercomFrameGeneric* frame = (BleIntercomFrameGeneric*)instance->frame_buf;
 
-    ble_service_target_execute(
+    bool result = ble_service_target_execute(
         instance,
         frame->header.frame_type,
         frame->header.command,
@@ -155,7 +155,7 @@ static bool ble_service_process_input_frame(BleServiceObject* instance) {
         frame->data);
 
     ble_service_unlock_input_frame(instance);
-    return true;
+    return result;
 }
 
 BleServiceObject* ble_service_alloc(
