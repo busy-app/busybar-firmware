@@ -44,6 +44,19 @@ static inline void
     }
 }
 
+static inline void ble_service_prepare_intercom_frame_header(
+    BleIntercomFrameHeader* const header,
+    BleIntercomFrameType frame_type,
+    BleServiceCommandEnum command,
+    uint16_t service_index,
+    size_t data_size) {
+    header->source = BleIntercomFrameSourceService;
+    header->frame_type = frame_type;
+    header->command = command;
+    header->service_index = service_index;
+    header->data_size = data_size;
+}
+
 void ble_service_prepare_send_intercom_frame(
     BleServiceObject* instance,
     BleIntercomFrameType frame_type,
@@ -54,14 +67,10 @@ void ble_service_prepare_send_intercom_frame(
     ble_service_frame_buf_check_alloc(instance, frame_size);
 
     BleIntercomFrameGeneric* frame = (BleIntercomFrameGeneric*)instance->frame_buf;
-    BleIntercomFrameHeader* header = &frame->header;
 
-    header->source = BleIntercomFrameSourceService;
-    header->frame_type = frame_type;
-    header->command = command;
-    header->service_index = instance->config->index;
-    header->data_size = data_size;
-    ///TODO: need more checks if there_is_enough memory in buffer
+    ble_service_prepare_intercom_frame_header(
+        &frame->header, frame_type, command, instance->config->index, data_size);
+
     if(data_size && data) memcpy(frame->data, data, data_size);
 
     BLE_LOG_D(
