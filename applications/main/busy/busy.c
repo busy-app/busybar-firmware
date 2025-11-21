@@ -223,21 +223,22 @@ void busy_pop_location(BusyApp* instance) {
 
 BusyAppSceneId busy_get_timer_scene_id(BusyApp* instance) {
     furi_assert(instance);
-    return BusyAppSceneIdTimerInterval;
 
-    // BusyTimerConfig timer_config;
-    // busy_timer_get_config(instance->busy_timer, &timer_config);
-    // switch(timer_config.mode) {
-    // case BusyTimerModeInfinite:
-    //     return BusyAppSceneIdTimerSimple;
-    // case BusyTimerModeSimple:
-    //     return BusyAppSceneIdTimerSimple;
-    // case BusyTimerModeInterval:
-    //     return BusyAppSceneIdTimerSimple;
-    // case BusyTimerModeMax:
-    //     furi_crash();
-    //     break;
-    // }
+    BusyTimerConfig timer_config;
+    busy_timer_get_config(instance->busy_timer, &timer_config);
 
-    // return BusyAppSceneIdTimerSimple;
+    switch(timer_config.mode) {
+    case BusyTimerModeInfinite:
+        return BusyAppSceneIdTimerOff;
+    case BusyTimerModeSimple:
+        return BusyAppSceneIdTimerSimple;
+    case BusyTimerModeInterval:
+        return BusyAppSceneIdTimerInterval;
+    case BusyTimerModeMax:
+        furi_crash();
+        break;
+    }
+
+    furi_crash();
+    return -1;
 }

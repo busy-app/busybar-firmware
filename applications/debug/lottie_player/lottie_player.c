@@ -134,7 +134,7 @@ static LottiePlayer* lottie_player_alloc(const char* file_path) {
         label_set_line_spacing(instance->back_label, 4);
         widget_set_align(label_get_base(instance->back_label), AlignCenter);
 
-        if(lottie_animation_set_source(instance->lottie, file_path)) {
+        if(lottie_animation_set_source(instance->lottie, file_path, 0)) {
             label_set_text_fmt(instance->back_label, "Playing animation:\n%s", file_path);
         } else {
             label_set_text_fmt(instance->back_label, "Failed to load:\n%s", file_path);
