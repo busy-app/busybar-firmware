@@ -12,7 +12,7 @@
 #define BLE_ATT_PROPERTY_INDICATE 0x20
 
 struct BleServiceObject {
-    BleServiceState state;
+    bool ready;
     const BleServiceDescriptor* config;
     BleCharacteristicObject** chars;
 
