@@ -2,15 +2,7 @@
 
 #define TAG "BleServiceU5"
 
-static bool ble_service_command_allowed_by_state(
-    const BleServiceCommandEnum command,
-    const BleServiceState state) {
-    UNUSED(state);
-    UNUSED(command);
-    return true;
-}
-
-static bool ble_service_target_init(BleServiceObject* instance) {
+static bool ble_service_init_request(BleServiceObject* instance) {
     BLE_LOG_D("%s - ble_service_target_init", instance->config->name);
 
     bool result = false;
@@ -144,21 +136,19 @@ bool ble_service_target_execute(
     BLE_LOG_D("%s - target_execute: %d", instance->config->name, command);
 
     bool result = false;
-    if(ble_service_command_allowed_by_state(command, instance->state)) {
-        switch(command) {
-        case BleServiceCommandInit:
-            result = ble_service_command_handler_init(instance, frame_type, data_size, data);
-            break;
-        case BleServiceCommandRun:
-            ble_service_command_handler_run(instance, frame_type, data_size, data);
-            break;
-        case BleServiceCommandUpdate:
-            ble_service_command_handler_update(instance, frame_type, data_size, data);
-            break;
-        default:
-            __furi_crash("Unknown command");
-            break;
-        }
+    switch(command) {
+    case BleServiceCommandInit:
+        result = ble_service_command_handler_init(instance, frame_type, data_size, data);
+        break;
+    case BleServiceCommandRun:
+        ble_service_command_handler_run(instance, frame_type, data_size, data);
+        break;
+    case BleServiceCommandUpdate:
+        ble_service_command_handler_update(instance, frame_type, data_size, data);
+        break;
+    default:
+        __furi_crash("Unknown command");
+        break;
     }
 
     return result;
