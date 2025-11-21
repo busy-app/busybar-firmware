@@ -57,4 +57,9 @@ typedef struct /*FURI_PACKED*/ {
     BleIntercomServiceData service_init;
 } BleIntercomFrameServiceConfig;
 
+typedef struct {
+    bool result;
+    size_t data_size;
+    uint8_t data[];
+} BleIntercomResponse;
 //=============================================

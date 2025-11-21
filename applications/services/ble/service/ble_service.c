@@ -86,6 +86,37 @@ void ble_service_prepare_send_intercom_frame(
     furi_assert(tx == frame_size);
 }
 
+void ble_service_prepare_send_intercom_response_frame(
+    BleServiceObject* instance,
+    BleServiceCommandEnum command,
+    bool result,
+    size_t data_size,
+    const void* data) {
+    size_t response_size = sizeof(BleIntercomResponse) + data_size + 1;
+    size_t frame_size = sizeof(BleIntercomFrameHeader) + response_size;
+    ble_service_frame_buf_check_alloc(instance, frame_size);
+
+    BleIntercomFrameGeneric* frame = (BleIntercomFrameGeneric*)instance->frame_buf;
+    ble_service_prepare_intercom_frame_header(
+        &frame->header,
+        BleIntercomFrameTypeResponse,
+        command,
+        instance->config->index,
+        response_size);
+
+    BleIntercomResponse* response = (BleIntercomResponse*)frame->data;
+    response->result = result;
+    response->data_size = data_size;
+
+    if(data_size && data) {
+        memcpy(response->data, data, data_size);
+        response->data[data_size] = 0;
+    }
+
+    size_t tx = intercom_tx(
+        instance->intercom, IntercomChannelBle, instance->frame_buf, frame_size, FuriWaitForever);
+    furi_assert(tx == frame_size);
+}
 
 bool ble_service_is_ready(BleServiceObject* instance) {
     furi_assert(instance);

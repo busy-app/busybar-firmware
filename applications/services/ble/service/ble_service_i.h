@@ -48,6 +48,12 @@ void ble_service_prepare_send_intercom_frame(
     size_t data_size,
     void* data);
 
+void ble_service_prepare_send_intercom_response_frame(
+    BleServiceObject* instance,
+    BleServiceCommandEnum command,
+    bool result,
+    size_t data_size,
+    const void* data);
 
 void ble_service_set_error(BleServiceObject* instance, const char* error);
 
