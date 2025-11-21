@@ -29,22 +29,32 @@ static bool ble_service_init_request(BleServiceObject* instance) {
     return result;
 }
 
+static bool ble_service_init_response(BleServiceObject* instance, size_t data_size, void* data) {
+    furi_assert(data_size > 0);
+    BleIntercomResponse* response = data;
+
+    instance->ready = response->result;
+
+    if(!response->result) {
+        ble_service_set_error(instance, (const char*)response->data);
+    }
+
+    BLE_LOG_D("%s - %s", instance->config->name, instance->ready ? "Ready" : "Not ready");
+    return instance->ready;
+}
+
 static bool ble_service_command_handler_init(
     BleServiceObject* instance,
     BleIntercomFrameType frame_type,
     size_t data_size,
     void* data) {
-    UNUSED(data);
-    UNUSED(data_size);
-
     bool result = false;
     if(frame_type == BleIntercomFrameTypeRequest) {
         BLE_LOG_D("Init request");
-        result = ble_service_target_init(instance);
+        result = ble_service_init_request(instance);
     } else {
         BLE_LOG_D("Init response");
-        ble_service_switch_state(instance, BleServiceStateReady);
-        result = true;
+        result = ble_service_init_response(instance, data_size, data);
     }
     return result;
 }
