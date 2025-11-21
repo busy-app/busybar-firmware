@@ -17,7 +17,7 @@ typedef enum {
 } CanvasElementType;
 
 typedef struct {
-    char* app_scoped_id;
+    char* id;
     uint32_t timeout;
     time_t display_until;
     int16_t x;
@@ -46,7 +46,7 @@ typedef struct {
 } CanvasElement;
 
 static inline void canvas_element_clear(CanvasElement* obj) {
-    if(obj->app_scoped_id) free(obj->app_scoped_id);
+    if(obj->id) free(obj->id);
     if(obj->type == CanvasElementTypeImage) {
         if(obj->image.file_path) furi_string_free(obj->image.file_path);
     } else if(obj->type == CanvasElementTypeText) {
@@ -54,10 +54,27 @@ static inline void canvas_element_clear(CanvasElement* obj) {
     }
 }
 
+static inline void canvas_element_clone(CanvasElement* obj, const CanvasElement* src) {
+    memcpy(obj, src, sizeof(CanvasElement));
+    if(src->id) obj->id = strdup(src->id);
+    if(src->type == CanvasElementTypeImage) {
+        if(src->image.file_path) {
+            obj->image.file_path = furi_string_alloc_set(src->image.file_path);
+        }
+    } else if(src->type == CanvasElementTypeText) {
+        if(src->text.text_str) {
+            obj->text.text_str = strdup(src->text.text_str);
+        }
+    }
+}
+
 ARRAY_DEF(
     CanvasElementsArray,
     CanvasElement,
-    M_OPEXTEND(M_POD_OPLIST, CLEAR(API_2(canvas_element_clear))))
+    M_OPEXTEND(
+        M_POD_OPLIST,
+        CLEAR(API_2(canvas_element_clear)),
+        INIT_SET(API_6(canvas_element_clone))))
 
 bool canvas_show_elements(CanvasApp* canvas, const char* app_id, CanvasElementsArray_t elements);
 
@@ -68,4 +85,4 @@ bool canvas_show_elements(CanvasApp* canvas, const char* app_id, CanvasElementsA
  * `app_id`. If no elements are left after this possibly selective delete, the
  * Canvas terminates itself.
  */
-void canvas_delete_elements(CanvasApp* canvas, const char* app_id);
+bool canvas_delete_elements(CanvasApp* canvas, const char* app_id);
