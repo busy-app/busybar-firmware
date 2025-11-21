@@ -59,17 +59,27 @@ static void ble_service_update_characteristic_extra_action(BleCharacteristicObje
 }
 
 static bool ble_service_update_request(BleServiceObject* instance, size_t data_size, void* data) {
-    if(data_size == 0) {
-        BLE_LOG_W("Data_size == 0");
-        return false;
-    }
+    bool result = false;
+    do {
+        if(data_size == 0) {
+            ble_service_set_error(instance, "Empty data");
+            break;
+        }
 
-    ble_service_parse_intercom_service_data(
-        instance, data, ble_service_update_characteristic_extra_action);
+        if(!ble_service_parse_intercom_service_data(
+               instance, data, ble_service_update_characteristic_extra_action)) {
+            ble_service_set_error(instance, "Failed to parse service data");
+            break;
+        }
+        result = true;
+    } while(false);
 
-    ble_service_prepare_send_intercom_frame(
-        instance, BleIntercomFrameTypeResponse, BleServiceCommandUpdate, 0, NULL);
-
+    ble_service_prepare_send_intercom_response_frame(
+        instance,
+        BleServiceCommandUpdate,
+        result,
+        furi_string_size(instance->error),
+        furi_string_get_cstr(instance->error));
     return true;
 }
 
