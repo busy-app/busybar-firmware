@@ -17,7 +17,11 @@ void ble_service_process_mailbox(
     BleServiceObject* instance,
     const BleIntercomFrameGeneric* input_frame);
 
-BleServiceState ble_service_get_state(BleServiceObject* instance);
+bool ble_service_is_ready(BleServiceObject* instance);
+
+const char* ble_service_get_name(BleServiceObject* instance);
+
+void ble_service_get_error(BleServiceObject* instance, FuriString* error);
 
 void ble_service_enqueue_init(BleServiceObject* instance);
 

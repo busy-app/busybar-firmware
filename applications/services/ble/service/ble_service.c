@@ -77,12 +77,29 @@ void ble_service_prepare_send_intercom_frame(
     furi_assert(tx == frame_size);
 }
 
-void ble_service_switch_state(BleServiceObject* instance, BleServiceState new_state) {
-    BLE_LOG_D("%s - set state: %d", instance->config->name, new_state);
-    instance->state = new_state;
 
-    if(instance->state_change_callback && instance->state_callback_context)
-        instance->state_change_callback(instance->state_callback_context);
+bool ble_service_is_ready(BleServiceObject* instance) {
+    furi_assert(instance);
+    return instance->ready;
+}
+
+const char* ble_service_get_name(BleServiceObject* instance) {
+    furi_assert(instance);
+    return instance->config->name;
+}
+
+void ble_service_set_error(BleServiceObject* instance, const char* error) {
+    furi_assert(instance);
+    furi_assert(error);
+
+    furi_string_set_str(instance->error, error);
+    instance->ready = false;
+}
+
+void ble_service_get_error(BleServiceObject* instance, FuriString* error) {
+    furi_assert(instance);
+    furi_assert(error);
+    furi_string_set(error, instance->error);
 }
 
 static bool ble_service_process_input_frame(BleServiceObject* instance) {
