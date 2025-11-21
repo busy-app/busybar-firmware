@@ -6,21 +6,32 @@
 static bool ble_service_target_init(BleServiceObject* instance, size_t data_size, void* data) {
     BLE_LOG_D("%s - ble_service_target_init", instance->config->name);
 
-    BleServiceState state = BleServiceStateReady;
+    do {
+        if(data_size == 0) {
+            ble_service_set_error(instance, "Empty init data");
+            break;
+        }
 
-    if(data_size == 0) {
-        BLE_LOG_W("Data_size == 0");
-        return false;
-    }
+        if(!ble_service_parse_intercom_service_data(instance, data, NULL)) {
+            ble_service_set_error(instance, "Failed to parse service data");
+            break;
+        }
 
-    ble_service_parse_intercom_service_data(instance, data, NULL);
+        if(!ble_worker_register_service(instance)) {
+            ble_service_set_error(instance, "Failed to register service");
+            break;
+        }
+        instance->ready = true;
+    } while(false);
 
-    if(ble_worker_register_service(instance)) {
-        ble_service_switch_state(instance, state);
-    }
+    BLE_LOG_I("%s - %s", instance->config->name, instance->ready ? "Ready" : "Not ready");
 
-    ble_service_prepare_send_intercom_frame(
-        instance, BleIntercomFrameTypeResponse, BleServiceCommandInit, 0, NULL);
+    ble_service_prepare_send_intercom_response_frame(
+        instance,
+        BleServiceCommandInit,
+        instance->ready,
+        furi_string_size(instance->error),
+        furi_string_get_cstr(instance->error));
 
     return true;
 }
