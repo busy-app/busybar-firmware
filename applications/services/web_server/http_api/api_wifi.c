@@ -69,6 +69,7 @@ static const char* const wifi_state[WifiStateMax] = {
     [WifiStateConnected] = "connected",
     [WifiStateConnecting] = "connecting",
     [WifiStateDisconnecting] = "disconnecting",
+    [WifiStateReconnecting] = "reconnecting",
 };
 
 static const ApiWifiResponseData* api_wifi_get_response_data_from_status(WifiStatus status) {

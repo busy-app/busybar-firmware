@@ -142,7 +142,7 @@ bool wifi_net_up(Wifi* instance, const WifiIpConfig* ip_config) {
     bool success = true;
 
     if(ip_config->mgmt == WifiIpManagementDynamic) {
-        FURI_LOG_I(TAG, "Waiting for IP configuration...");
+        FURI_LOG_I(TAG, "Waiting for IP configuration");
 
         LOCK_TCPIP_CORE();
         netif_set_status_callback(netif, wifi_netif_status_callback);

@@ -34,4 +34,4 @@ bool device_name_set(DeviceName* instance, FuriString* name, FuriString* error);
  * @param[in] instance of device name record
  * @returns pubsub instance available for subscription
  */
-FuriPubSub* device_name_get_on_change_pub_sub(DeviceName* instance);
+FuriPubSub* device_name_get_pubsub(DeviceName* instance);
