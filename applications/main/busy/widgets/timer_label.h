@@ -49,6 +49,15 @@ Widget* timer_label_get_base(TimerLabel* instance);
  */
 void timer_label_set_time(TimerLabel* instance, uint32_t time_s);
 
+/**
+ * @brief Set the countdown colors.
+ *
+ * @param[in,out] instance pointer to the TimerLabel instance to be modified
+ * @param[in] main main countdown color to use
+ * @param[in] blink blink color to use
+ */
+void timer_label_set_countdown_colors(TimerLabel* instance, Color main, Color blink);
+
 #ifdef __cplusplus
 }
 #endif

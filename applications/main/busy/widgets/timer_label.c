@@ -64,8 +64,8 @@ static void timer_label_lvgl_constructor(const lv_obj_class_t* class_p, lv_obj_t
 
     TimerLabel* instance = (TimerLabel*)obj;
 
-    instance->countdown_color = lv_color_make(200, 60, 60);
-    instance->countdown_blink_color = lv_color_make(255, 150, 150);
+    instance->countdown_color = lv_color_white();
+    instance->countdown_blink_color = lv_color_white();
 
     instance->top_layout = lv_obj_create(obj);
     lv_obj_set_flex_flow(instance->top_layout, LV_FLEX_FLOW_ROW);
@@ -165,6 +165,13 @@ void timer_label_set_time(TimerLabel* instance, uint32_t time_s) {
     if(time_s <= 3) {
         timer_label_red_blink(instance);
     }
+}
+
+void timer_label_set_countdown_colors(TimerLabel* instance, Color main, Color blink) {
+    furi_check(instance);
+
+    instance->countdown_color = TO_LV_COLOR(main);
+    instance->countdown_blink_color = TO_LV_COLOR(blink);
 }
 
 // LVGL class descriptor

@@ -223,7 +223,7 @@ void busy_pop_location(BusyApp* instance) {
 
 BusyAppSceneId busy_get_timer_scene_id(BusyApp* instance) {
     furi_assert(instance);
-    return BusyAppSceneIdTimerOff;
+    return BusyAppSceneIdTimerInterval;
 
     // BusyTimerConfig timer_config;
     // busy_timer_get_config(instance->busy_timer, &timer_config);
