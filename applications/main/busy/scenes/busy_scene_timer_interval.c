@@ -1,64 +1,13 @@
 #include "../busy.h"
+#include "../busy_presets.h"
 #include "../widgets/pause_overlay.h"
 #include "../widgets/timer_label.h"
 
 #include <gui/modules/lottie_animation.h>
 #include <gui/modules/image.h>
 
-#include <toolbox/vector3.h>
-
 #define COUNTDOWN_THRESHOLD_S  (3)
 #define PROGRESS_TRANSITION_MS (1000)
-
-#define SLOT_TEMPLATE     \
-    "{"                   \
-    " \"wave_offset\": {" \
-    "  \"p\": {"          \
-    "   \"a\": 0,"        \
-    "   \"k\": ["         \
-    "     %f,"            \
-    "     %f,"            \
-    "     %f"             \
-    "   ]"                \
-    "}}}"
-
-typedef struct {
-    const Vector3 position_start;
-    const Vector3 position_end;
-    const char* anim_path;
-    const char* lottie_path;
-    const char* image_path;
-    Color countdown_main_color;
-    Color countdown_blink_color;
-} BusySceneTimerIntervalAsset;
-
-typedef enum {
-    BusySceneTimerIntervalAssetIdBusy,
-    BusySceneTimerIntervalAssetIdRest,
-} BusySceneTimerIntervalAssetId;
-
-static const BusySceneTimerIntervalAsset busy_scene_timer_interval_assets[] = {
-    [BusySceneTimerIntervalAssetIdBusy] =
-        {
-            .position_start = {-37.0f, 8.f, 0.f},
-            .position_end = {1.0f, 8.f, 0.f},
-            .anim_path = BUSY_ANIM_PATH("busy_particles_41x16.anim"),
-            .lottie_path = BUSY_ASSETS_PATH("busy_label_progress_lottie_small.json"),
-            .image_path = BUSY_IMG_PATH("busy_text_label_41x16.bin"),
-            .countdown_main_color = COLOR_MAKE_HEX(0xFF6077),
-            .countdown_blink_color = COLOR_MAKE_HEX(0xFFC8C8),
-        },
-    [BusySceneTimerIntervalAssetIdRest] =
-        {
-            .position_start = {20.5f, 33.f, 0.f},
-            .position_end = {20.5f, 16.f, 0.f},
-            .anim_path = BUSY_ANIM_PATH("rest_particles_41x16.anim"),
-            .lottie_path = BUSY_ASSETS_PATH("rest_label_progress_lottie_small.json"),
-            .image_path = BUSY_IMG_PATH("rest_text_label_41x16.bin"),
-            .countdown_main_color = COLOR_MAKE_HEX(0x3EC287),
-            .countdown_blink_color = COLOR_MAKE_HEX(0x7BFFCA),
-        },
-};
 
 typedef struct {
     Widget* root;
@@ -278,7 +227,8 @@ static void busy_scene_timer_interval_lottie_override_slot(BusyApp* instance, Ve
     const BusySceneTimerInterval* data =
         scene_manager_get_scene_data(instance->scene_manager, BusyAppSceneIdTimerInterval);
 
-    furi_string_printf(data->lottie_text_store, SLOT_TEMPLATE, vector.x, vector.y, vector.z);
+    furi_string_printf(
+        data->lottie_text_store, BUSY_LOTTIE_SLOT_TEMPLATE, vector.x, vector.y, vector.z);
 
     if(!lottie_animation_override_slot(
            data->lottie, furi_string_get_cstr(data->lottie_text_store))) {

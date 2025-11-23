@@ -1,4 +1,5 @@
 #include "../busy.h"
+#include "../busy_presets.h"
 #include "../widgets/pause_overlay.h"
 #include "../widgets/timer_label.h"
 
@@ -9,21 +10,6 @@
 
 #define COUNTDOWN_THRESHOLD_S  (3)
 #define PROGRESS_TRANSITION_MS (1000)
-
-#define SLOT_TEMPLATE     \
-    "{"                   \
-    " \"wave_offset\": {" \
-    "  \"p\": {"          \
-    "   \"a\": 0,"        \
-    "   \"k\": ["         \
-    "     %f,"            \
-    "     %f,"            \
-    "     %f"             \
-    "   ]"                \
-    "}}}"
-
-static const Vector3 busy_position_start = {-37.0f, 8.f, 0.f};
-static const Vector3 busy_position_end = {1.0f, 8.f, 0.f};
 
 typedef struct {
     Widget* root;
@@ -130,17 +116,19 @@ void busy_scene_timer_simple_on_enter(void* context) {
         {
             Widget* label = widget_alloc(data->root);
 
+            const BusySceneTimerIntervalAsset* asset =
+                &busy_scene_timer_interval_assets[BusySceneTimerIntervalAssetIdBusy];
+
             data->anim_image = anim_image_alloc(label);
-            anim_image_set_source(data->anim_image, BUSY_ANIM_PATH("busy_particles_41x16.anim"));
+            anim_image_set_source(data->anim_image, asset->anim_path);
             anim_image_set_loop(data->anim_image, true);
             anim_image_start(data->anim_image);
 
             data->lottie = lottie_animation_alloc(label);
-            lottie_animation_set_source(
-                data->lottie, BUSY_ASSETS_PATH("busy_label_progress_lottie_small.json"), 0);
+            lottie_animation_set_source(data->lottie, asset->lottie_path, 0);
 
             data->image = image_alloc(label);
-            image_set_source(data->image, BUSY_IMG_PATH("busy_text_label_41x16.bin"));
+            image_set_source(data->image, asset->image_path);
 
             widget_set_pos(label, 0, 0);
         }
@@ -205,7 +193,8 @@ static void busy_scene_timer_simple_lottie_override_slot(BusyApp* instance, Vect
     const BusySceneTimerSimple* data =
         scene_manager_get_scene_data(instance->scene_manager, BusyAppSceneIdTimerSimple);
 
-    furi_string_printf(data->lottie_text_store, SLOT_TEMPLATE, vector.x, vector.y, vector.z);
+    furi_string_printf(
+        data->lottie_text_store, BUSY_LOTTIE_SLOT_TEMPLATE, vector.x, vector.y, vector.z);
 
     if(!lottie_animation_override_slot(
            data->lottie, furi_string_get_cstr(data->lottie_text_store))) {
@@ -221,7 +210,9 @@ static void busy_scene_timer_simple_update_tick(BusyApp* instance) {
     const float progress = (float)time->elapsed_s / (time->elapsed_s + time->remain_s);
 
     with_gui(instance->gui, {
-        Vector3 position = vector3_lerp(busy_position_start, busy_position_end, progress);
+        const BusySceneTimerIntervalAsset* asset =
+            &busy_scene_timer_interval_assets[BusySceneTimerIntervalAssetIdBusy];
+        Vector3 position = vector3_lerp(asset->position_start, asset->position_end, progress);
         busy_scene_timer_simple_lottie_override_slot(instance, position);
 
         timer_label_set_time(data->timer_label, data->timer_time.remain_s);

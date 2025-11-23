@@ -82,7 +82,6 @@ void busy_scene_timer_off_to_simple_on_enter(void* context) {
         data->root = widget_alloc(instance->front_window);
 
         data->anim_image = anim_image_alloc(data->root);
-        // widget_set_pos(anim_image_get_base(data->anim_image), 1, 1);
         anim_image_set_source(
             data->anim_image,
             "/ext/apps_assets/busy/animations/busy_label_transition_off_to_simple_72x16.anim");

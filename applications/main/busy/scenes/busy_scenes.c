@@ -19,7 +19,6 @@ const Scene* const busy_scenes[BusyAppSceneIdMax] = {
     [BusyAppSceneIdTimerOff] = &busy_scene_timer_off,
     [BusyAppSceneIdTimerOffToSimple] = &busy_scene_timer_off_to_simple,
     [BusyAppSceneIdTimerSimple] = &busy_scene_timer_simple,
-    [BusyAppSceneIdTimerOld] = &busy_scene_timer_old,
     [BusyAppSceneIdNext] = &busy_scene_next,
     [BusyAppSceneIdProgress] = &busy_scene_progress,
     [BusyAppSceneIdSetup] = &busy_scene_setup,

@@ -111,30 +111,29 @@ const BusyStatusLightsPreset busy_status_lights[BusyStatusLightsTypeMax] = {
         },
 };
 
-const TimerBarPreset busy_progress_bar[BusyTimerBarTypeMax] = {
-    [BusyTimerBarTypeWork] =
+const BusySceneTimerIntervalAsset busy_scene_timer_interval_assets[] = {
+    [BusySceneTimerIntervalAssetIdBusy] =
         {
-            .file_path = BUSY_ANIM_PATH("progress_bar_busy_71x1.anim"),
-            .trough_color = COLOR_MAKE_HEX(0x4A0000),
+            // Scale version
+            // .position_start = {-37.0f, 8.f, 0.f},
+            // .position_end = {1.0f, 8.f, 0.f},
+            // Position version
+            .position_start = {-1.5f, 100.0f, 100.0f},
+            .position_end = {54.0f, 100.0f, 100.0f},
+            .anim_path = BUSY_ANIM_PATH("busy_particles_41x16.anim"),
+            .lottie_path = BUSY_ASSETS_PATH("busy_label_progress_lottie_small.json"),
+            .image_path = BUSY_IMG_PATH("busy_text_label_41x16.bin"),
+            .countdown_main_color = COLOR_MAKE_HEX(0xFF6077),
+            .countdown_blink_color = COLOR_MAKE_HEX(0xFFC8C8),
         },
-    [BusyTimerBarTypeRest] =
+    [BusySceneTimerIntervalAssetIdRest] =
         {
-            .file_path = BUSY_ANIM_PATH("progress_bar_rest_71x1.anim"),
-            .trough_color = COLOR_MAKE_HEX(0x003B28),
-        },
-};
-
-const TimerIndicatorAnimSources busy_indicator_anim_sources = {
-    .states =
-        {
-            [TimerIndicatorStateWork] = BUSY_ANIM_PATH("busy_label_40x14.anim"),
-            [TimerIndicatorStateRest] = BUSY_ANIM_PATH("rest_label_40x14.anim"),
-            [TimerIndicatorStateWorkBig] = BUSY_ANIM_PATH("busy_label_70x16.anim"),
-            [TimerIndicatorStateRestBig] = BUSY_ANIM_PATH("rest_label_70x16.anim"),
-        },
-    .transitions =
-        {
-            [TimerIndicatorTransitionOffToSimple] =
-                BUSY_ANIM_PATH("busy_label_transition_70x14.anim"),
+            .position_start = {20.5f, 33.f, 0.f},
+            .position_end = {20.5f, 16.f, 0.f},
+            .anim_path = BUSY_ANIM_PATH("rest_particles_41x16.anim"),
+            .lottie_path = BUSY_ASSETS_PATH("rest_label_progress_lottie_small.json"),
+            .image_path = BUSY_IMG_PATH("rest_text_label_41x16.bin"),
+            .countdown_main_color = COLOR_MAKE_HEX(0x3EC287),
+            .countdown_blink_color = COLOR_MAKE_HEX(0x7BFFCA),
         },
 };
