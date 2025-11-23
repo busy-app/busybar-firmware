@@ -160,10 +160,12 @@ void timer_label_set_time(TimerLabel* instance, uint32_t time_s) {
 
     if(time_s == 4) {
         timer_label_to_red(instance);
-    }
-
-    if(time_s <= 3) {
+    } else if(time_s <= 3) {
         timer_label_red_blink(instance);
+    } else {
+        lv_obj_set_style_text_color(instance->main_label, lv_color_white(), LV_PART_MAIN);
+        lv_obj_set_style_text_color(instance->seconds_label, lv_color_white(), LV_PART_MAIN);
+        lv_obj_set_style_text_color(instance->bottom_label, lv_color_white(), LV_PART_MAIN);
     }
 }
 

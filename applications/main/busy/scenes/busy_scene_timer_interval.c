@@ -71,11 +71,15 @@ typedef struct {
     Widget* label;
     const BusySceneTimerIntervalAsset* asset;
     BusyTimerTime timer_time;
+    BusyTimerState timer_state;
 } BusySceneTimerInterval;
 
-static void busy_scene_timer_interval_update_lights(BusyApp* instance, bool is_paused) {
+static void
+    busy_scene_timer_interval_update_lights(BusyApp* instance, bool is_paused, bool is_rest) {
     if(is_paused) {
         busy_set_status_lights(instance, BusyStatusLightsTypeOff);
+    } else if(is_rest) {
+        busy_set_status_lights(instance, BusyStatusLightsTypeRest);
     } else {
         busy_set_status_lights(instance, BusyStatusLightsTypeWork);
     }
@@ -91,6 +95,7 @@ static void busy_scene_timer_interval_toggle_pause(BusyApp* instance) {
 
     busy_timer_toggle(instance->busy_timer);
     bool is_paused = !busy_timer_is_running(instance->busy_timer);
+    bool is_rest = busy_timer_get_state(instance->busy_timer) == BusyTimerStateRest;
 
     with_gui(instance->gui, {
         pause_overlay_show(data->pause_overlay, is_paused);
@@ -103,7 +108,7 @@ static void busy_scene_timer_interval_toggle_pause(BusyApp* instance) {
         }
     });
 
-    busy_scene_timer_interval_update_lights(instance, is_paused);
+    busy_scene_timer_interval_update_lights(instance, is_paused, is_rest);
     busy_scene_timer_interval_update_matter(instance, is_paused);
 }
 
@@ -145,13 +150,17 @@ static void busy_scene_timer_interval_event_callback(const BusyTimerEvent* event
         busy_send_custom_event(instance, BusyCustomEventTimerTick);
     } else if(event->type == BusyTimerEventTypeIntervalEnded) {
         busy_send_custom_event(instance, BusyCustomEventTimerIntervalEnded);
+    } else if(event->type == BusyTimerEventTypeStateChanged) {
+        data->timer_state = event->state;
+        busy_send_custom_event(instance, BusyCustomEventTimerStateChanged);
     }
 }
 
 static void busy_scene_timer_interval_update_gui_assets(BusyApp* instance) {
     BusySceneTimerInterval* data =
         scene_manager_get_scene_data(instance->scene_manager, BusyAppSceneIdTimerInterval);
-    data->asset = (busy_timer_get_state(instance->busy_timer) == BusyTimerStateWork) ?
+    BusyTimerState state = busy_timer_get_state(instance->busy_timer);
+    data->asset = (state == BusyTimerStateWork) ?
                       &busy_scene_timer_interval_assets[BusySceneTimerIntervalAssetIdBusy] :
                       &busy_scene_timer_interval_assets[BusySceneTimerIntervalAssetIdRest];
 
@@ -173,6 +182,8 @@ static void busy_scene_timer_interval_update_gui_assets(BusyApp* instance) {
 
     timer_label_set_countdown_colors(
         data->timer_label, data->asset->countdown_main_color, data->asset->countdown_blink_color);
+
+    busy_scene_timer_interval_update_lights(instance, false, state == BusyTimerStateRest);
 }
 
 void busy_scene_timer_interval_on_enter(void* context) {
@@ -192,6 +203,10 @@ void busy_scene_timer_interval_on_enter(void* context) {
     data->asset = (busy_timer_get_state(instance->busy_timer) == BusyTimerStateWork) ?
                       &busy_scene_timer_interval_assets[BusySceneTimerIntervalAssetIdBusy] :
                       &busy_scene_timer_interval_assets[BusySceneTimerIntervalAssetIdRest];
+
+    data->anim_image = NULL;
+    data->lottie = NULL;
+    data->image = NULL;
 
     with_gui(instance->gui, {
         gui_layer_add_input_callback(
@@ -308,6 +323,10 @@ static void busy_scene_timer_interval_handle_skip(BusyApp* instance) {
     }
 }
 
+static void busy_scene_timer_interval_handle_state_change(BusyApp* instance) {
+    with_gui(instance->gui, { busy_scene_timer_interval_update_gui_assets(instance); });
+}
+
 static bool busy_scene_timer_interval_on_event(const SceneManagerEvent* event, void* context) {
     furi_assert(context);
     BusyApp* instance = context;
@@ -323,6 +342,8 @@ static bool busy_scene_timer_interval_on_event(const SceneManagerEvent* event, v
             busy_scene_timer_interval_toggle_pause(instance);
         } else if(event->event == BusyCustomEventTimerSkip) {
             busy_scene_timer_interval_handle_skip(instance);
+        } else if(event->event == BusyCustomEventTimerStateChanged) {
+            busy_scene_timer_interval_handle_state_change(instance);
         } else if(event->event == BusyCustomEventTimeIncrement) {
             busy_timer_add_time(instance->busy_timer, BUSY_TIMER_TIME_INCREMENT_MN);
         } else if(event->event == BusyCustomEventTimeDecrement) {
