@@ -1,4 +1,6 @@
 #include "intercom_i.h"
+#include <furi_hal_nvm.h>
+#include <furi_hal_power.h>
 
 #define TAG "IntercomSrv"
 
@@ -437,6 +439,12 @@ bool intercom_is_in_sync(Intercom* instance) {
 
 int32_t intercom_srv(void* arg) {
     UNUSED(arg);
+#if defined(TARGET_F20)
+    if(furi_hal_nvm_is_flag_set(FuriHalNvmFlagDebug)) {
+        furi_hal_power_reset_917(false);
+        FURI_LOG_I(TAG, "917 was reset");
+    }
+#endif
 
     Intercom* instance = intercom_alloc();
     furi_event_loop_run(instance->event_loop);
