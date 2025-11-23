@@ -83,8 +83,7 @@ void busy_scene_timer_off_to_simple_on_enter(void* context) {
 
         data->anim_image = anim_image_alloc(data->root);
         anim_image_set_source(
-            data->anim_image,
-            "/ext/apps_assets/busy/animations/busy_label_transition_off_to_simple_72x16.anim");
+            data->anim_image, BUSY_ANIM_PATH("busy_label_transition_off_to_simple_72x16.anim"));
         anim_image_set_loop(data->anim_image, false);
         anim_image_set_completed_callback(
             data->anim_image,

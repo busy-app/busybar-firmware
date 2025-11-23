@@ -78,8 +78,7 @@ void busy_scene_timer_off_on_enter(void* context) {
         data->root = widget_alloc(instance->front_window);
 
         data->anim_image = anim_image_alloc(data->root);
-        anim_image_set_source(
-            data->anim_image, "/ext/apps_assets/busy/animations/busy_label_72x16.anim");
+        anim_image_set_source(data->anim_image, BUSY_ANIM_PATH("busy_label_72x16.anim"));
         anim_image_set_loop(data->anim_image, true);
         anim_image_start(data->anim_image);
 
