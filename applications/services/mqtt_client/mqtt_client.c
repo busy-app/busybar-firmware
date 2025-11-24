@@ -83,7 +83,8 @@ static void
         char* session_id = mg_json_get_str(*message, "$.session_id");
         char* token = mg_json_get_str(*message, "$.token");
         char* email = mg_json_get_str(*message, "$.email");
-        if(session_id && token && email) {
+        char* user_id = mg_json_get_str(*message, "$.user_id");
+        if(session_id && token && email && user_id) {
             FURI_LOG_I(TAG, "Link done!");
 
             JsonConfig* cfg = json_config_alloc();
@@ -92,6 +93,7 @@ static void
             json_config_write_str(cfg, "session_id", session_id);
             json_config_write_str(cfg, "token", token);
             json_config_write_str(cfg, "email", email);
+            json_config_write_str(cfg, "user_id", user_id);
             status = json_config_free(cfg);
             furi_assert(status != JsonConfigStatusError);
 
@@ -109,6 +111,7 @@ static void
         if(session_id) free(session_id);
         if(token) free(token);
         if(email) free(email);
+        if(user_id) free(user_id);
     }
 }
 
@@ -371,11 +374,16 @@ static void mqtt_conn_wakeup_callback(struct mg_connection* conn, int ev, void* 
         mqtt_client_load_session(mqtt);
 
         break;
-    case MqttClientMessageGetSessionId:
-        furi_string_set(msg->str_param, mqtt->session_id);
-        break;
-    case MqttClientMessageGetSessionEmail:
-        json_config_read_single_str(SESSION_FILE, "email", msg->str_param, "");
+    case MqttClientMessageGetSessionInfo:
+        if(msg->session_info.id) {
+            furi_string_set(msg->session_info.id, mqtt->session_id);
+        }
+        if(msg->session_info.email) {
+            json_config_read_single_str(SESSION_FILE, "email", msg->session_info.email, "");
+        }
+        if(msg->session_info.user_id) {
+            json_config_read_single_str(SESSION_FILE, "user_id", msg->session_info.user_id, "");
+        }
         break;
     default:
         furi_crash();
