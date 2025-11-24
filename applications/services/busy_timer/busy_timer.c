@@ -255,9 +255,21 @@ static void busy_timer_next_state(BusyTimer* instance, bool force) {
 }
 
 static void busy_timer_update(BusyTimer* instance, uint64_t timestamp_ms) {
-    const uint32_t dt_s = MS_TO_S(timestamp_ms - instance->last_timestamp_ms);
+    do {
+        // Got snapshot from a peer with a clock that is ahead of ours
+        if(timestamp_ms < instance->last_timestamp_ms) {
+            instance->last_timestamp_ms = timestamp_ms;
+            busy_timer_notify_tick(instance);
+            break;
+        }
 
-    if(dt_s) {
+        const uint32_t dt_s = MS_TO_S(timestamp_ms - instance->last_timestamp_ms);
+
+        // Too early for a tick
+        if(dt_s == 0) {
+            break;
+        }
+
         for(uint32_t i = 0; i < dt_s; ++i) {
             const uint32_t inc_s = busy_timer_calc_increment(instance);
             const bool is_last = (i == (dt_s - 1));
@@ -281,7 +293,7 @@ static void busy_timer_update(BusyTimer* instance, uint64_t timestamp_ms) {
         }
 
         instance->last_timestamp_ms = timestamp_ms;
-    }
+    } while(false);
 }
 
 static uint32_t busy_timer_get_interval_index(const BusyTimer* instance) {
@@ -343,9 +355,67 @@ static BusyTimerSnapshot busy_timer_make_snapshot(const BusyTimer* instance) {
 }
 
 static void busy_timer_apply_snapshot(BusyTimer* instance, const BusyTimerSnapshot* snapshot) {
-    UNUSED(instance);
-    UNUSED(snapshot);
-    // TODO: Implement applying snapshot
+    busy_timer_stop_timer(instance);
+
+    const BusyTimerSnapshotType type = snapshot->type;
+
+    if(type == BusyTimerSnapshotTypeNotStarted) {
+        instance->state = BusyTimerStateIdle;
+        // TODO: Exit from timer/app
+
+    } else {
+        BusyTimerMode new_mode;
+        BusyTimerState new_state;
+
+        if(type == BusyTimerSnapshotTypeInfinite) {
+            new_mode = BusyTimerModeInfinite;
+            new_state = BusyTimerStateWork;
+
+        } else if(type == BusyTimerSnapshotTypeSimple) {
+            const BusyTimerSnapshotSimple* simple = &snapshot->simple;
+
+            new_mode = BusyTimerModeSimple;
+            new_state = BusyTimerStateWork;
+
+            instance->time.elapsed_s = 0;
+            instance->time.remain_s = MS_TO_S(simple->time_left_ms);
+
+        } else if(type == BusyTimerSnapshotTypeInterval) {
+            const BusyTimerSnapshotInterval* interval = &snapshot->interval;
+            const BusyTimerIntervalState* interval_state = &interval->state;
+            const BusyTimerIntervalSettings* interval_settings = &interval->settings;
+
+            new_mode = BusyTimerModeInterval;
+            new_state = interval_state->index % 2 ? BusyTimerStateRest : BusyTimerStateWork;
+
+            instance->cycles_done = interval_state->index / 2;
+            instance->time.elapsed_s =
+                MS_TO_S(interval_state->time_total_ms - interval_state->time_left_ms);
+            instance->time.remain_s = MS_TO_S(interval_state->time_left_ms);
+
+            instance->config.cycle_count = interval_settings->cycles_count;
+            instance->config.work_time_mn = MS_TO_M(interval_settings->work_time_ms);
+            instance->config.rest_time_mn = MS_TO_M(interval_settings->rest_time_ms);
+            instance->config.enable_autostart = interval_settings->is_autostart_enabled;
+            instance->config.enable_intervals = true;
+
+        } else {
+            furi_crash("Invalid BusyTimerSnapshotType value");
+        }
+
+        instance->mode = new_mode;
+        instance->state = new_state;
+        instance->config.mode = new_mode;
+
+        if(!snapshot->common.is_paused) {
+            busy_timer_start_timer(instance);
+        }
+
+        instance->last_timestamp_ms = snapshot->timestamp_ms;
+
+        busy_timer_notify_mode_changed(instance);
+        busy_timer_notify_state_changed(instance);
+    }
 }
 
 static void busy_timer_poll_timer_callback(void* context) {
