@@ -21,6 +21,14 @@ typedef enum {
 } BleServiceState;
 
 typedef enum {
+    BlePairingStateUnkown,
+    BlePairingStateNotPaired,
+    BlePairingStatePaired,
+
+    BlePairingStateCount
+} BlePairingState;
+
+typedef enum {
     BleUartChannelNordic,
     BleUartChannelHM10,
 
@@ -34,6 +42,8 @@ BleServiceState ble_get_state(Ble* ble);
 bool ble_start(Ble* ble);
 
 bool ble_stop(Ble* ble);
+
+BlePairingState ble_pairing_get_state(Ble* ble);
 
 bool ble_forget(Ble* ble);
 
