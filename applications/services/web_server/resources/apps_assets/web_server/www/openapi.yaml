@@ -969,7 +969,7 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/SuccessResponse"
-  
+
   /api/ble/pairing:
     delete:
       tags:
@@ -1673,6 +1673,9 @@ components:
         email:
           type: string
           example: "name@example.com"
+        user_id:
+          type: string
+          example: "12345678-9abc-def0-1234-56789abcdef0"
 
     AccountLink:
       type: object
