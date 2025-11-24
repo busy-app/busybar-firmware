@@ -93,7 +93,10 @@ static bool ble_command_enable_response(BleIntercomFrameGeneric* frame, void* co
     BLE_LOG_D("BleCommandEnable response");
     Ble* instance = context;
 
-    instance->current_message->result = true;
+    const BleIntercomResponse* response = (const BleIntercomResponse*)frame->data;
+    instance->current_message->result = response->result;
+    instance->state = response->result ? BleServiceStateAdvertising : BleServiceStateError;
+
     api_lock_unlock(instance->current_message_api_lock);
     ble_http_repeater_start(instance);
     return true;
@@ -109,7 +112,10 @@ static bool ble_command_disable_response(BleIntercomFrameGeneric* frame, void* c
     BLE_LOG_D("BleCommandDisable response");
     Ble* instance = context;
 
-    instance->current_message->result = true;
+    const BleIntercomResponse* response = (const BleIntercomResponse*)frame->data;
+    instance->current_message->result = response->result;
+    instance->state = response->result ? BleServiceStateReady : BleServiceStateError;
+
     api_lock_unlock(instance->current_message_api_lock);
     ble_http_repeater_stop();
     return true;
@@ -122,15 +128,37 @@ static bool ble_command_get_state_request(BleIntercomFrameGeneric* frame, void* 
 }
 
 static bool ble_command_get_state_response(BleIntercomFrameGeneric* frame, void* context) {
-    UNUSED(frame);
-
     BLE_LOG_D("BleCommandGetState response");
     Ble* instance = context;
-    ///TODO: this logic must be improved
-    BLE_LOG_D("Local state: %d remote state: %d", instance->state, frame->data[0]);
 
-    ///TODO: Temporary fix, in order to unblock ble_start()
-    instance->current_message->result = true;
+    const BleIntercomResponse* response = (BleIntercomResponse*)frame->data;
+    ///TODO: create structure type for state response and use it instead of data[0]
+    const BleServiceState remote_state = response->data[0];
+
+    bool result = false;
+    do {
+        if(!response->result) {
+            instance->state = BleServiceStateError;
+            BLE_LOG_W("Failed to get state from remote");
+            break;
+        }
+
+        if(instance->state == BleServiceStateError) {
+            instance->state = BleServiceStateError;
+            BLE_LOG_W("Local service error");
+            break;
+        }
+
+        if(remote_state == BleServiceStateError) {
+            instance->state = BleServiceStateError;
+            BLE_LOG_W("Remote service error");
+            break;
+        }
+
+        result = true;
+    } while(false);
+
+    instance->current_message->result = result;
     BleServiceState* state = (BleServiceState*)instance->current_message->data;
     *state = instance->state;
     api_lock_unlock(instance->current_message_api_lock);
