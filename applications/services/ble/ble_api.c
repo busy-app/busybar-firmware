@@ -114,7 +114,7 @@ bool ble_forget(Ble* ble) {
     BleServiceState state = ble_get_state(ble);
 
     bool result = false;
-    if(state == BleServiceStateReady) {
+    if(state != BleServiceStateError && state != BleServiceStateReset) {
         ble_send_message(ble, BleCommandForgetPairing, NULL, 0, NULL, 0, &result);
     }
     return result;
