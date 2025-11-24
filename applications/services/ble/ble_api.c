@@ -101,6 +101,8 @@ bool ble_start(Ble* ble) {
 bool ble_stop(Ble* ble) {
     furi_assert(ble);
     bool result = false;
+    ble_init(ble);
+
     BLE_LOG_I("ble_stop");
     ble_send_message(ble, BleCommandDisable, NULL, 0, NULL, 0, &result);
     return result;
