@@ -1,5 +1,6 @@
 #include "ble_command_engine.h"
 #include "ble_system_command.h"
+#include "ble/service/ble_service.h"
 #include "http/ble_http_repeater.h"
 #include "device_name/device_name.h"
 
@@ -14,6 +15,12 @@ BleIntercomFrameGeneric* ble_command_preprocess(Ble* instance, uint32_t events) 
         BLE_LOG_W("Unknown event");
         return NULL;
     }
+}
+
+void ble_set_service_post_process_callback(Ble* ble, BleServicePostProcessCallback callback) {
+    furi_assert(ble);
+    if(callback) BLE_LOG_I("Subscribe for post process");
+    ble->service_post_process_callback = callback;
 }
 
 static void ble_on_name_change_callback(const void* message, void* context) {
@@ -35,6 +42,27 @@ static void ble_get_name_from_record(FuriString* output) {
     furi_record_close(RECORD_DEVICE_NAME);
 }
 
+static void ble_service_init_wait_callback(BleServiceObject* service, bool result, void* ctx) {
+    UNUSED(service);
+    UNUSED(result);
+    BLE_LOG_D("ble_service_init_wait_callback");
+    Ble* instance = ctx;
+
+    uint8_t total_ready;
+    for(total_ready = 0; total_ready < BLE_SERVICES_COUNT; total_ready++) {
+        if(!ble_service_is_ready(instance->services[total_ready])) break;
+    }
+
+    if(total_ready == BLE_SERVICES_COUNT) {
+        instance->state = BleServiceStateReady;
+        instance->current_message->result = true;
+        ble_subscribe_on_name_change(instance);
+
+        ble_set_service_post_process_callback(instance, NULL);
+        api_lock_unlock(instance->current_message_api_lock);
+    }
+}
+
 static bool ble_command_init_request(BleIntercomFrameGeneric* frame, void* context) {
     BLE_LOG_D("BleCommandInit request");
 
@@ -46,17 +74,12 @@ static bool ble_command_init_response(BleIntercomFrameGeneric* frame, void* cont
     BLE_LOG_D("BleCommandInit response");
     Ble* instance = context;
 
+    ble_set_service_post_process_callback(instance, ble_service_init_wait_callback);
+
     for(size_t i = 0; i < BLE_SERVICES_COUNT; i++) {
         ble_service_enqueue_init(instance->services[i]);
     }
 
-    ///TODO: need to wait untill all services will call on_state changed callback
-    ///And after that change state to Ready and release message
-    ///But for now let's keep it as it is.
-    instance->state = BleServiceStateReady;
-    instance->current_message->result = true;
-    ble_subscribe_on_name_change(instance);
-    api_lock_unlock(instance->current_message_api_lock);
     return true;
 }
 
