@@ -44,7 +44,7 @@
 #define ON_LE_LINK_ONLY          BIT(6) ///< LE link-only mode
 #define VARIABLE_ATT_CHAR_VAL    BIT(7) ///< Variable characteristic value length
 
-#define RSI_BLE_ATT_CONFIG_BITMAP (SEC_MODE_1_LEVEL_4)
+#define RSI_BLE_ATT_CONFIG_BITMAP (SEC_MODE_1_LEVEL_1)
 
 #ifdef RSI_BLE_SMP_IO_CAPABILITY
 #undef RSI_BLE_SMP_IO_CAPABILITY
