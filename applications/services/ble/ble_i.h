@@ -27,6 +27,9 @@ typedef enum {
     BleEventTypeDeviceNameChanged = (1 << 3),
 } BleEventType;
 
+typedef void (
+    *BleServicePostProcessCallback)(BleServiceObject* service, bool result, void* extra_context);
+
 struct Ble {
     BleServiceState state;
     FuriMutex* ble_lock;
@@ -38,6 +41,7 @@ struct Ble {
     FuriEventLoop* event_loop;
     Intercom* intercom;
     //--------------------------
+    FuriString* error;
 
     BleServiceObject* services[BLE_SERVICES_COUNT];
 #if !defined(SI917)
@@ -45,7 +49,13 @@ struct Ble {
     FuriMutex* current_message_lock;
     BleMessage* current_message;
     size_t current_message_size;
+
+    BleServicePostProcessCallback service_post_process_callback;
 #endif
 };
 
 bool ble_init(Ble* ble);
+
+#if !defined(SI917)
+void ble_set_service_post_process_callback(Ble* ble, BleServicePostProcessCallback callback);
+#endif
