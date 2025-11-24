@@ -47,10 +47,6 @@ void ble_custom_event_callback(uint32_t events, void* context) {
     Ble* instance = context;
 
     if(furi_mutex_acquire(instance->ble_lock, 100) == FuriStatusOk) {
-        if(events & BleEventTypeServiceStateChanged) {
-            ble_update_state_from_services(instance);
-        }
-
         if(events & BleEventTypeDeviceNameChanged) {
             ble_invoke_retry_command_on_internal_event(
                 instance, BleCommandSetDeviceName, BleEventTypeDeviceNameChanged, 100);
@@ -90,13 +86,6 @@ static void ble_backend_intercom_rx_callback(const void* data, size_t data_size,
     }
 }
 
-static void ble_service_state_change_callback(void* context) {
-    furi_assert(context);
-    Ble* instance = context;
-    BLE_LOG_D("ble_service_state_change_callback");
-    furi_event_loop_set_custom_event(instance->event_loop, BleEventTypeServiceStateChanged);
-}
-
 static Ble* ble_alloc() {
     Ble* instance = malloc(sizeof(Ble));
     instance->state = BleServiceStateReset;
@@ -122,12 +111,8 @@ static Ble* ble_alloc() {
         instance->intercom, IntercomChannelBle, ble_backend_intercom_rx_callback, instance);
 
     for(size_t i = 0; i < BLE_SERVICES_COUNT; i++) {
-        instance->services[i] = ble_service_alloc(
-            service_config[i],
-            instance->message_queue,
-            instance->intercom,
-            ble_service_state_change_callback,
-            instance);
+        instance->services[i] =
+            ble_service_alloc(service_config[i], instance->message_queue, instance->intercom);
     }
 
 #if !defined(SI917)
