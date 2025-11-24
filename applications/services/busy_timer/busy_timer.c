@@ -273,6 +273,10 @@ static void busy_timer_update(BusyTimer* instance, uint64_t timestamp_ms) {
             } else {
                 // Force every but last transition
                 busy_timer_next_state(instance, !is_last);
+                // Break out of the loop if already finished
+                if(instance->state == BusyTimerStateIdle) {
+                    break;
+                }
             }
         }
 
