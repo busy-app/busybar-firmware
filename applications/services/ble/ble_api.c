@@ -120,6 +120,19 @@ bool ble_forget(Ble* ble) {
     return result;
 }
 
+BlePairingState ble_pairing_get_state(Ble* ble) {
+    furi_assert(ble);
+    BLE_LOG_I("ble_paired");
+    BleServiceState state = ble_get_state(ble);
+
+    BlePairingState pairing = BlePairingStateUnkown;
+    bool result = false;
+    if(state != BleServiceStateError && state != BleServiceStateReset) {
+        ble_send_message(ble, BleCommandGetPairing, NULL, 0, &pairing, sizeof(pairing), &result);
+    }
+    return pairing;
+}
+
 void ble_uart_tx_data(Ble* ble, BleUartChannel channel, const void* data, const size_t data_size) {
     furi_assert(ble);
     furi_assert(channel < BleUartChannelCount);
