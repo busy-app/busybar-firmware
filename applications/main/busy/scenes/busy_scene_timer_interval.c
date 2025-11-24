@@ -260,8 +260,16 @@ static void busy_scene_timer_interval_update_tick(BusyApp* instance) {
 }
 
 static void busy_scene_timer_interval_go_to_progress_scene(BusyApp* instance) {
-    busy_prepare_transition(instance, BusyTransitionTypeWorkDone);
-    scene_manager_next_scene(instance->scene_manager, BusyAppSceneIdNext);
+    const BusySceneTimerInterval* data =
+        scene_manager_get_scene_data(instance->scene_manager, BusyAppSceneIdTimerInterval);
+
+    if(data->asset == &busy_scene_timer_interval_assets[BusySceneTimerIntervalAssetIdRest]) {
+        busy_prepare_transition(instance, BusyTransitionTypeRestDone);
+    } else {
+        busy_prepare_transition(instance, BusyTransitionTypeWorkDone);
+    }
+
+    scene_manager_next_scene(instance->scene_manager, BusyAppSceneIdProgress);
 }
 
 static void busy_scene_timer_interval_handle_skip(BusyApp* instance) {

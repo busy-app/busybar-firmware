@@ -23,6 +23,9 @@ typedef struct {
     BusyTimerTime timer_time;
 } BusySceneTimerSimple;
 
+static const BusySceneTimerIntervalAsset* asset =
+    &busy_scene_timer_interval_assets[BusySceneTimerIntervalAssetIdBusy];
+
 static void busy_scene_timer_simple_update_lights(BusyApp* instance, bool is_paused) {
     if(is_paused) {
         busy_set_status_lights(instance, BusyStatusLightsTypeOff);
@@ -116,9 +119,6 @@ void busy_scene_timer_simple_on_enter(void* context) {
         {
             Widget* label = widget_alloc(data->root);
 
-            const BusySceneTimerIntervalAsset* asset =
-                &busy_scene_timer_interval_assets[BusySceneTimerIntervalAssetIdBusy];
-
             data->anim_image = anim_image_alloc(label);
             anim_image_set_source(data->anim_image, asset->anim_path);
             anim_image_set_loop(data->anim_image, true);
@@ -210,8 +210,6 @@ static void busy_scene_timer_simple_update_tick(BusyApp* instance) {
     const float progress = (float)time->elapsed_s / (time->elapsed_s + time->remain_s);
 
     with_gui(instance->gui, {
-        const BusySceneTimerIntervalAsset* asset =
-            &busy_scene_timer_interval_assets[BusySceneTimerIntervalAssetIdBusy];
         Vector3 position = vector3_lerp(asset->position_start, asset->position_end, progress);
         busy_scene_timer_simple_lottie_override_slot(instance, position);
 
