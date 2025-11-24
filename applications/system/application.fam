@@ -8,10 +8,10 @@ App(
         "system_apps_on_start",
         "system_apps_cli",
         "lottie_player",
+        "updater",
     ],
     targets=["f20", "f21"],
 )
-
 
 App(
     appid="system_apps_cli",

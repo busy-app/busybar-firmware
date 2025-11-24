@@ -35,3 +35,24 @@ App(
     order=300,
     targets=["f20", "f21"],
 )
+
+App(
+    appid="updater",
+    name="UpdaterSvc",
+    apptype=FlipperAppType.SERVICE,
+    sources=[
+        "updater.c",
+        "helpers/rps.c",
+        "session/*.c",
+    ],
+    entry_point="updater_srv",
+    requires=[
+        "storage",
+        "power_srv",
+        "network",
+        "cli_commands_target_specific",
+    ],
+    stack_size=4 * 1024,
+    order=310,
+    targets=["f20", "f21"],
+)
