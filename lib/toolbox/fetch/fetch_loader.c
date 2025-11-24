@@ -38,9 +38,17 @@ FetchLoader* fetch_loader_alloc(void) {
     instance->is_processing_semaphore = furi_semaphore_alloc(1, 1);
     instance->status_queue = furi_message_queue_alloc(10, sizeof(FetchClientStatus));
     instance->state_msg = furi_stream_buffer_alloc(512, 1);
+    instance->fetch_client = fetch_client_alloc();
     instance->thread = NULL;
     instance->error = false;
     instance->stop_requested = false;
+
+    fetch_client_set_context(instance->fetch_client, instance);
+    fetch_client_set_callback_raw_data(
+        instance->fetch_client, fetch_loader_callback_file_write_data);
+    fetch_client_set_callback_status(instance->fetch_client, fetch_loader_callback_status);
+    fetch_client_set_callback_error(instance->fetch_client, fetch_loader_callback_state);
+
     return instance;
 }
 
@@ -48,9 +56,9 @@ void fetch_loader_free(FetchLoader* instance) {
     furi_check(instance);
     furi_check(!furi_semaphore_get_space(instance->is_processing_semaphore));
     furi_check(!instance->thread);
-    furi_check(!instance->fetch_client);
     furi_check(!instance->file_save);
 
+    fetch_client_free(instance->fetch_client);
     furi_message_queue_free(instance->status_queue);
     furi_string_free(instance->url);
     furi_string_free(instance->path);
@@ -204,8 +212,6 @@ static int32_t fetch_loader_thread_callback(void* context) {
     // exit thread when done
     fetch_file_save_free(instance->file_save);
     instance->file_save = NULL;
-    fetch_client_free(instance->fetch_client);
-    instance->fetch_client = NULL;
     FURI_LOG_D(TAG, "Stopping thread");
 
     return 0;
