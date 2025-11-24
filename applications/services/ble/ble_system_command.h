@@ -9,6 +9,7 @@ typedef enum {
     BleCommandDisable,
     BleCommandGetState,
     BleCommandForgetPairing,
+    BleCommandGetPairing,
     BleCommandSetDeviceName,
 
     BleCommandCount
