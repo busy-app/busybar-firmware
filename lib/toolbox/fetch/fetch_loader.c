@@ -20,8 +20,8 @@ struct FetchLoader {
     FetchFileSave* file_save;
     FuriMessageQueue* status_queue;
     FuriStreamBuffer* state_msg;
-    bool error;
-    bool stop_requested;
+    _Atomic bool error;
+    _Atomic bool stop_requested;
 
     FetchLoaderCallbackStatus callback_status;
     void* context_status;
@@ -30,6 +30,40 @@ struct FetchLoader {
     FetchLoaderCallbackDone callback_done;
     void* context_done;
 };
+
+//########## Fetch Client Callbacks ##########
+
+static void fetch_loader_callback_file_write_data(uint8_t* data, size_t data_size, void* context) {
+    furi_assert(context);
+    FetchLoader* instance = context;
+    furi_assert(instance->file_save);
+    if(data_size > 0) {
+        fetch_file_save_write(instance->file_save, data, data_size);
+    } else {
+        FURI_LOG_W(TAG, "No data received for file write");
+    }
+}
+
+void fetch_loader_callback_status(FetchClientStatus status, void* context) {
+    furi_assert(context);
+    FetchLoader* instance = context;
+    furi_assert(instance);
+    furi_message_queue_put(instance->status_queue, &status, FuriWaitForever);
+}
+
+static void fetch_loader_callback_state(const char* error, void* context) {
+    furi_assert(context);
+    FetchLoader* instance = context;
+    furi_assert(instance);
+    FuriString* state_str = furi_string_alloc_printf("Error: %s\r\n", error);
+    furi_stream_buffer_send(
+        instance->state_msg,
+        (uint8_t*)furi_string_get_cstr(state_str),
+        furi_string_size(state_str),
+        FuriWaitForever);
+    furi_string_free(state_str);
+    instance->error = true;
+}
 
 FetchLoader* fetch_loader_alloc(void) {
     FetchLoader* instance = malloc(sizeof(FetchLoader));
@@ -89,38 +123,6 @@ void fetch_loader_forced_done(FetchLoader* instance) {
 
 //########## Thread ##########
 
-static void fetch_loader_callback_file_write_data(uint8_t* data, size_t data_size, void* context) {
-    furi_assert(context);
-    FetchLoader* instance = context;
-    furi_assert(instance->file_save);
-    if(data_size > 0) {
-        fetch_file_save_write(instance->file_save, data, data_size);
-    } else {
-        FURI_LOG_W(TAG, "No data received for file write");
-    }
-}
-
-void fetch_loader_callback_status(FetchClientStatus status, void* context) {
-    furi_assert(context);
-    FetchLoader* instance = context;
-    furi_assert(instance);
-    furi_message_queue_put(instance->status_queue, &status, FuriWaitForever);
-}
-
-static void fetch_loader_callback_state(const char* error, void* context) {
-    furi_assert(context);
-    FetchLoader* instance = context;
-    furi_assert(instance);
-    FuriString* state_str = furi_string_alloc_printf("Error: %s\r\n", error);
-    furi_stream_buffer_send(
-        instance->state_msg,
-        (uint8_t*)furi_string_get_cstr(state_str),
-        furi_string_size(state_str),
-        FuriWaitForever);
-    furi_string_free(state_str);
-    instance->error = true;
-}
-
 static void
     fetch_loader_thread_state_callback(FuriThread* thread, FuriThreadState state, void* context) {
     furi_assert(thread);
@@ -131,8 +133,14 @@ static void
         instance->thread = NULL;
         FURI_LOG_D(TAG, "Stop");
         furi_semaphore_release(instance->is_processing_semaphore);
+
         if(instance->callback_done) {
-            instance->callback_done(instance->context_done);
+            FetchLoaderDoneStatus done_status = (instance->stop_requested) ?
+                                                    FetchLoaderDoneStatusAbort :
+                                                (instance->error) ? FetchLoaderDoneStatusFailure :
+                                                                    FetchLoaderDoneStatusSuccess;
+
+            instance->callback_done(done_status, instance->context_done);
         }
     }
 }
@@ -150,20 +158,11 @@ static int32_t fetch_loader_thread_callback(void* context) {
 
     FuriString* path = instance->path;
     FuriString* url = instance->url;
-    instance->fetch_client = fetch_client_alloc();
-    fetch_client_set_context(instance->fetch_client, instance);
     instance->file_save = fetch_file_save_alloc(path);
     if(!instance->file_save) {
         FURI_LOG_E(TAG, "Failed to open file %s", furi_string_get_cstr(path));
-        fetch_client_free(instance->fetch_client);
-        instance->fetch_client = NULL;
         return 0;
     }
-    fetch_client_set_callback_raw_data(
-        instance->fetch_client, fetch_loader_callback_file_write_data);
-    fetch_client_set_callback_status(instance->fetch_client, fetch_loader_callback_status);
-
-    fetch_client_set_callback_error(instance->fetch_client, fetch_loader_callback_state);
 
     fetch_client_run(instance->fetch_client, url);
 
@@ -183,9 +182,10 @@ static int32_t fetch_loader_thread_callback(void* context) {
                     .received_download_size = status.received_download_size,
                     .speed_bytes_per_sec = status.speed_bytes_per_sec,
                 };
-                instance->callback_status(status_converted, instance->context_status);
+                instance->callback_status(&status_converted, instance->context_status);
             }
         }
+
         while(furi_stream_buffer_bytes_available(instance->state_msg)) {
             uint8_t buffer[FETCH_LOADER_SIZE_BUFFER];
             size_t bytes_read =
@@ -267,6 +267,7 @@ void fetch_loader_set_done_callback(
     FetchLoaderCallbackDone callback,
     void* context) {
     furi_check(instance);
+
     instance->callback_done = callback;
     instance->context_done = context;
 }
