@@ -14,6 +14,8 @@
 
 typedef void (*const BusyTimerMessageHandler)(BusyTimer* instance, BusyTimerMessageData* data);
 
+static void busy_timer_make_snapshot(const BusyTimer* instance, BusyTimerSnapshot* snapshot);
+
 static const BusyTimerMessageHandler busy_timer_message_handlers[];
 
 static const BusyTimerConfig busy_timer_config_default = {
@@ -125,6 +127,16 @@ static void busy_timer_notify_interval_ended(const BusyTimer* instance, bool for
 
         instance->callback(&event, instance->callback_context);
     }
+}
+
+static void busy_timer_notify_user_interacted(const BusyTimer* instance) {
+    FURI_LOG_D(TAG, "User interacted: %s", busy_timer_get_state_name(instance->state));
+
+    BusyTimerEvent event = {0};
+    event.type = BusyTimerEventTypeUserInteracted,
+
+    busy_timer_make_snapshot(instance, &event.user_interacted.snapshot);
+    furi_pubsub_publish(instance->event_pubsub, &event);
 }
 
 static BusyTimerState busy_timer_calc_state(const BusyTimer* instance) {
@@ -302,36 +314,34 @@ static uint32_t busy_timer_get_interval_index(const BusyTimer* instance) {
     return 2 * instance->cycles_done + (instance->state == BusyTimerStateRest ? 1 : 0);
 }
 
-static BusyTimerSnapshot busy_timer_make_snapshot(const BusyTimer* instance) {
-    BusyTimerSnapshot snapshot = {0};
-
-    snapshot.timestamp_ms = TIMESTAMP_NOW_MS();
+static void busy_timer_make_snapshot(const BusyTimer* instance, BusyTimerSnapshot* snapshot) {
+    snapshot->timestamp_ms = TIMESTAMP_NOW_MS();
 
     if(instance->state != BusyTimerStateIdle) {
-        BusyTimerSnapshotCommon* common = &snapshot.common;
+        BusyTimerSnapshotCommon* common = &snapshot->common;
         strcpy(common->card_id, DEFAULT_CARD_ID);
         common->is_paused = !busy_timer_is_running(instance);
 
         const BusyTimerMode mode = instance->mode;
 
         if(mode == BusyTimerModeInfinite) {
-            snapshot.type = BusyTimerSnapshotTypeInfinite;
+            snapshot->type = BusyTimerSnapshotTypeInfinite;
 
         } else if(mode == BusyTimerModeSimple) {
-            snapshot.type = BusyTimerSnapshotTypeSimple;
+            snapshot->type = BusyTimerSnapshotTypeSimple;
 
             const BusyTimerTime* time = &instance->time;
 
-            BusyTimerSnapshotSimple* simple = &snapshot.simple;
+            BusyTimerSnapshotSimple* simple = &snapshot->simple;
             simple->time_left_ms = S_TO_MS(time->remain_s);
 
         } else if(mode == BusyTimerModeInterval) {
-            snapshot.type = BusyTimerSnapshotTypeInterval;
+            snapshot->type = BusyTimerSnapshotTypeInterval;
 
             const BusyTimerTime* time = &instance->time;
             const BusyTimerConfig* config = &instance->config;
 
-            BusyTimerSnapshotInterval* interval = &snapshot.interval;
+            BusyTimerSnapshotInterval* interval = &snapshot->interval;
             BusyTimerIntervalState* state = &interval->state;
             state->index = busy_timer_get_interval_index(instance);
             state->time_left_ms = S_TO_MS(time->remain_s);
@@ -348,10 +358,8 @@ static BusyTimerSnapshot busy_timer_make_snapshot(const BusyTimer* instance) {
         }
 
     } else {
-        snapshot.type = BusyTimerSnapshotTypeNotStarted;
+        snapshot->type = BusyTimerSnapshotTypeNotStarted;
     }
-
-    return snapshot;
 }
 
 static void busy_timer_apply_snapshot(BusyTimer* instance, const BusyTimerSnapshot* snapshot) {
@@ -445,6 +453,11 @@ const char** busy_timer_get_mode_names(void) {
     return busy_timer_mode_names;
 }
 
+FuriPubSub* busy_timer_get_pubsub(const BusyTimer* instance) {
+    furi_check(instance);
+    return instance->event_pubsub;
+}
+
 // Message handlers
 
 static void busy_timer_start_message_handler(BusyTimer* instance, BusyTimerMessageData* data) {
@@ -467,6 +480,8 @@ static void busy_timer_start_message_handler(BusyTimer* instance, BusyTimerMessa
 
         FURI_LOG_I(TAG, "Resumed");
     }
+
+    busy_timer_notify_user_interacted(instance);
 }
 
 static void busy_timer_stop_message_handler(BusyTimer* instance, BusyTimerMessageData* data) {
@@ -476,6 +491,8 @@ static void busy_timer_stop_message_handler(BusyTimer* instance, BusyTimerMessag
     instance->state = BusyTimerStateIdle;
 
     FURI_LOG_I(TAG, "Stopped");
+
+    busy_timer_notify_user_interacted(instance);
 }
 
 static void
@@ -557,6 +574,8 @@ static void busy_timer_add_time_message_handler(BusyTimer* instance, BusyTimerMe
 
     busy_timer_start_timer(instance);
     busy_timer_notify_tick(instance);
+    // TODO: Debounce input?
+    busy_timer_notify_user_interacted(instance);
 
     FURI_LOG_I(TAG, "Interval override");
 }
@@ -572,6 +591,8 @@ static void busy_timer_toggle_message_handler(BusyTimer* instance, BusyTimerMess
         busy_timer_start_timer(instance);
         FURI_LOG_I(TAG, "Resumed");
     }
+
+    busy_timer_notify_user_interacted(instance);
 }
 
 static void busy_timer_skip_message_handler(BusyTimer* instance, BusyTimerMessageData* data) {
@@ -579,12 +600,13 @@ static void busy_timer_skip_message_handler(BusyTimer* instance, BusyTimerMessag
 
     if(busy_timer_is_running(instance)) {
         busy_timer_next_state(instance, true);
+        busy_timer_notify_user_interacted(instance);
     }
 }
 
 static void
     busy_timer_get_snapshot_message_handler(BusyTimer* instance, BusyTimerMessageData* data) {
-    *data->snapshot = busy_timer_make_snapshot(instance);
+    busy_timer_make_snapshot(instance, data->snapshot);
 }
 
 static void
@@ -604,6 +626,7 @@ static BusyTimer* busy_timer_alloc(void) {
         FuriEventLoopTimerTypePeriodic,
         instance);
     instance->message_queue = furi_message_queue_alloc(1, sizeof(BusyTimerMessage));
+    instance->event_pubsub = furi_pubsub_alloc();
     instance->config = busy_timer_config_default;
 
     furi_event_loop_subscribe_message_queue(

@@ -66,6 +66,7 @@ struct BusyTimer {
     FuriEventLoop* event_loop;
     FuriEventLoopTimer* poll_timer;
     FuriMessageQueue* message_queue;
+    FuriPubSub* event_pubsub;
     BusyTimerCallback callback;
     void* callback_context;
     uint64_t last_timestamp_ms;

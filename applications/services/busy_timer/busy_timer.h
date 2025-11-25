@@ -46,6 +46,7 @@ typedef enum {
     BusyTimerEventTypeModeChanged,
     BusyTimerEventTypeStateChanged,
     BusyTimerEventTypeIntervalEnded,
+    BusyTimerEventTypeUserInteracted,
     BusyTimerEventTypeMax,
 } BusyTimerEventType;
 
@@ -60,12 +61,17 @@ typedef struct {
 } BusyTimerCycles;
 
 typedef struct {
+    BusyTimerSnapshot snapshot;
+} BusyTimerEventUserInteracted;
+
+typedef struct {
     BusyTimerEventType type;
     union {
         BusyTimerTime time;
         BusyTimerMode mode;
         BusyTimerState state;
         bool is_force_ended;
+        BusyTimerEventUserInteracted user_interacted;
     };
 } BusyTimerEvent;
 
@@ -83,6 +89,8 @@ typedef struct {
 typedef void (*BusyTimerCallback)(const BusyTimerEvent* event, void* context);
 
 void busy_timer_set_callback(BusyTimer* instance, BusyTimerCallback callback, void* context);
+
+FuriPubSub* busy_timer_get_pubsub(const BusyTimer* instance);
 
 BusyTimerState busy_timer_get_state(const BusyTimer* instance);
 
