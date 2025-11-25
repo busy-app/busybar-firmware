@@ -81,3 +81,9 @@ void mqtt_screen_streaming_on_close(MqttClient* mqtt);
 
 bool mqtt_tls_init(struct mg_connection* conn, const MqttTlsCfg* opts);
 void mqtt_tls_free_ca(struct mg_connection* conn);
+
+// BusyTimer api
+void mqtt_busy_timer_on_message(
+    MqttClient* mqtt,
+    FuriString* topic_str,
+    struct mg_mqtt_message* msg);

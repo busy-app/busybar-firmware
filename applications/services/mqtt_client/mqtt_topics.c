@@ -23,9 +23,10 @@ void mqtt_topics_on_message(MqttClient* mqtt, FuriString* topic_str, struct mg_m
         mqtt_http_api_on_message(mqtt, topic_str, msg);
     } else if(furi_string_end_with(topic_str, "stream-request")) {
         mqtt_screen_streaming_on_message(mqtt, topic_str, msg);
+    } else if(furi_string_end_with(topic_str, "busy/snapshot")) {
+        mqtt_busy_timer_on_message(mqtt, topic_str, msg);
     } else {
         FURI_LOG_W(TAG, "Unknown topic %s", furi_string_get_cstr(topic_str));
-        return;
     }
 }
 
