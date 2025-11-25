@@ -116,7 +116,7 @@ static bool ble_command_init_response(BleIntercomFrameGeneric* frame, void* cont
         ble_service_enqueue_init(instance->services[i]);
     }
 
-    return true;
+    return ble_command_set_device_name_request(frame, instance);
 }
 
 static bool ble_command_enable_request(BleIntercomFrameGeneric* frame, void* context) {
@@ -283,7 +283,6 @@ const BleCommandItem ble_commands[BleCommandCount] = {
         },
     [BleCommandGetPairing] =
         {
-
             .request = ble_command_get_pairing_request,
             .response = ble_command_get_pairing_response,
         },
