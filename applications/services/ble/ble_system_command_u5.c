@@ -42,6 +42,42 @@ static void ble_get_name_from_record(FuriString* output) {
     furi_record_close(RECORD_DEVICE_NAME);
 }
 
+static bool ble_command_set_device_name_request(BleIntercomFrameGeneric* frame, void* context) {
+    BLE_LOG_D("BleCommandSetDeviceName request");
+
+    FuriString* name = furi_string_alloc();
+    ble_get_name_from_record(name);
+
+    size_t name_size = furi_string_size(name) + 1;
+    const size_t new_msg_size = sizeof(BleIntercomFrameHeader) + name_size;
+
+    BleIntercomFrameGeneric* name_frame = malloc(new_msg_size);
+
+    memcpy(&name_frame->header, &frame->header, sizeof(BleIntercomFrameHeader));
+    name_frame->header.command = BleCommandSetDeviceName;
+    name_frame->header.data_size = name_size;
+    memcpy(name_frame->data, furi_string_get_cstr(name), name_size);
+    name_frame->data[name_size] = 0;
+
+    bool result = ble_command_request_process(name_frame, context);
+    free(name_frame);
+    free(name);
+    return result;
+}
+
+static bool ble_command_set_device_name_response(BleIntercomFrameGeneric* frame, void* context) {
+    BLE_LOG_D("BleCommandSetDeviceName response");
+    Ble* instance = context;
+    instance->current_message->result = frame->data[0];
+
+    const FuriThreadId owner_id = furi_mutex_get_owner(instance->current_message_lock);
+    const FuriThreadId current_id = furi_thread_get_current_id();
+    if(owner_id == current_id) {
+        furi_mutex_release(instance->current_message_lock);
+    }
+    return true;
+}
+
 static void ble_service_init_wait_callback(BleServiceObject* service, bool result, void* ctx) {
     UNUSED(service);
     UNUSED(result);
@@ -198,45 +234,6 @@ static bool ble_command_get_pairing_response(BleIntercomFrameGeneric* frame, voi
     BlePairingState* result_pairing = (BlePairingState*)instance->current_message->data;
     *result_pairing = response_pairing;
     api_lock_unlock(instance->current_message_api_lock);
-    return true;
-}
-
-static bool ble_command_set_device_name_request(BleIntercomFrameGeneric* frame, void* context) {
-    BLE_LOG_D("BleCommandSetDeviceName request");
-
-    FuriString* name = furi_string_alloc();
-    ble_get_name_from_record(name);
-
-    size_t name_size = furi_string_size(name) + 1;
-    const size_t new_msg_size = sizeof(BleIntercomFrameHeader) + name_size;
-
-    BleIntercomFrameGeneric* name_frame = malloc(new_msg_size);
-
-    memcpy(&name_frame->header, &frame->header, sizeof(BleIntercomFrameHeader));
-    name_frame->header.data_size = name_size;
-    memcpy(name_frame->data, furi_string_get_cstr(name), name_size);
-    name_frame->data[name_size] = 0;
-
-    bool result = ble_command_request_process(name_frame, context);
-    free(name_frame);
-    free(name);
-    return result;
-}
-
-static bool ble_command_set_device_name_response(BleIntercomFrameGeneric* frame, void* context) {
-    UNUSED(frame);
-    UNUSED(context);
-    BLE_LOG_D("BleCommandSetDeviceName response");
-    Ble* instance = context;
-    instance->current_message->result = frame->data[0];
-
-    const FuriThreadId owner_id = furi_mutex_get_owner(instance->current_message_lock);
-    const FuriThreadId current_id = furi_thread_get_current_id();
-    if(owner_id == current_id) {
-        furi_mutex_release(instance->current_message_lock);
-    } else {
-        api_lock_unlock(instance->current_message_api_lock);
-    }
     return true;
 }
 
