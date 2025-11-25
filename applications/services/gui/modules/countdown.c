@@ -14,9 +14,8 @@ struct Countdown {
     lv_timer_t* timer;
 
     Sntp* sntp;
-    time_t timezone_offset;
     time_t timestamp;
-    time_t last_updated_at;
+    DateTime last_updated_at;
     CountdownDirection direction;
     CountdownShowHour hours;
 };
@@ -30,11 +29,12 @@ const lv_obj_class_t countdown_lvgl_class;
 static void countdown_update(Countdown* countdown) {
     furi_assert(countdown);
 
-    time_t now = furi_hal_rtc_get_timestamp(); // TODO: Y2038
-    now -= countdown->timezone_offset;
+    DateTime local_time = {0};
+    furi_hal_rtc_get_datetime(&local_time);
+    if(memcmp(&local_time, &countdown->last_updated_at, sizeof(local_time)) == 0) return;
+    countdown->last_updated_at = local_time;
 
-    if(countdown->last_updated_at == now) return;
-    countdown->last_updated_at = now;
+    time_t now = sntp_get_utc_timestamp(countdown->sntp);
 
     time_t delta = countdown->timestamp - now;
     if(countdown->direction == CountdownDirectionTimeSince) delta = -delta;
@@ -101,9 +101,7 @@ void countdown_begin(
 
     SntpSettings sntp_settings;
     sntp_get_settings(instance->sntp, &sntp_settings);
-    instance->timezone_offset = sntp_settings.timezone_offset * 60;
 
-    instance->last_updated_at = -1;
     instance->timestamp = time;
     instance->direction = direction;
     instance->hours = hours;
