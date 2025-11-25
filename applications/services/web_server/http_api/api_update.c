@@ -5,7 +5,7 @@
 #include <toolbox/path.h>
 
 #include <storage/storage.h>
-#include <applications/system/updater/update.h>
+#include <applications/system/updater/updater.h>
 
 #define TAG "HttpApiUpdate"
 
@@ -17,6 +17,7 @@
 // Context for the update handler (raw upload)
 typedef struct {
     Storage* storage;
+    Updater* updater;
     FuriString* package_name_param; // Parsed from query string
     FuriString* temp_tar_path; // Path to the temporary TAR file being saved
     FuriString* final_staging_path; // Path to /ext/update/<package_name>
@@ -26,7 +27,6 @@ typedef struct {
     size_t received_file_size; // Bytes received so far
 
     bool file_fully_received; // Flag: true if all bytes received and temp file closed
-    bool reboot_initiated; // Flag: true if reboot sequence was successfully started
 } HttpUpdateHandlerCtx;
 
 // Forward declarations
@@ -38,6 +38,7 @@ static void http_api_update_on_close_cb(struct mg_connection* conn);
 static HttpUpdateHandlerCtx* alloc_raw_update_context() {
     HttpUpdateHandlerCtx* ctx = malloc(sizeof(HttpUpdateHandlerCtx));
     ctx->storage = furi_record_open(RECORD_STORAGE);
+    ctx->updater = furi_record_open(RECORD_UPDATER);
     ctx->package_name_param = furi_string_alloc(); // Will be set from query
     ctx->temp_tar_path = furi_string_alloc_printf("%s/upload.tar", UPDATE_STAGING_ROOT);
     ctx->final_staging_path = furi_string_alloc(); // Will be /ext/update/<name>
@@ -46,7 +47,6 @@ static HttpUpdateHandlerCtx* alloc_raw_update_context() {
     ctx->total_file_size = 0;
     ctx->received_file_size = 0;
     ctx->file_fully_received = false;
-    ctx->reboot_initiated = false;
     return ctx;
 }
 
@@ -71,10 +71,17 @@ static void free_raw_update_context(HttpUpdateHandlerCtx* ctx) {
     furi_string_free(ctx->package_name_param);
     furi_string_free(ctx->temp_tar_path);
     furi_string_free(ctx->final_staging_path);
+
+    if(ctx->updater) {
+        furi_record_close(RECORD_UPDATER);
+        ctx->storage = NULL;
+    }
+
     if(ctx->storage) {
         furi_record_close(RECORD_STORAGE);
         ctx->storage = NULL;
     }
+
     free(ctx);
 }
 
@@ -85,6 +92,8 @@ static bool
     FuriString* manifest_path = furi_string_alloc();
 
     bool is_success = false;
+    bool update_started = false;
+
     do {
         /* construct final staging path */
         if(furi_string_empty(ctx->package_name_param)) {
@@ -100,13 +109,30 @@ static bool
 
         FURI_LOG_I(TAG, "Final staging path: %s", furi_string_get_cstr(ctx->final_staging_path));
 
-        UpdaterStatus unpack_tar_status = updater_unpack_tar(
+        /* Start update session */
+        UpdaterStatus start_status = updater_start_update(ctx->updater);
+        if(start_status != UpdaterStatusOk) {
+            FuriString* error_string = furi_string_alloc_printf(
+                "Update not allowed: %s", updater_get_status_string(start_status));
+
+            FURI_LOG_E(TAG, furi_string_get_cstr(error_string));
+            MG_REPLY_ERROR(conn, 400, furi_string_get_cstr(error_string));
+
+            furi_string_free(error_string);
+            break;
+        }
+
+        update_started = true;
+
+        UpdaterStatus unpack_tar_status = updater_unpack(
+            ctx->updater,
             furi_string_get_cstr(ctx->temp_tar_path),
             furi_string_get_cstr(ctx->final_staging_path),
-            manifest_path);
-        if(unpack_tar_status != UpdaterStatusSuccess) {
+            manifest_path,
+            true);
+        if(unpack_tar_status != UpdaterStatusOk) {
             FuriString* error_string = furi_string_alloc_printf(
-                "Update unpack TAR failed: %s", updater_get_status_string(unpack_tar_status));
+                "Update bundle unpack failed: %s", updater_get_status_string(unpack_tar_status));
 
             FURI_LOG_E(TAG, furi_string_get_cstr(error_string));
             MG_REPLY_ERROR(conn, 400, furi_string_get_cstr(error_string));
@@ -116,8 +142,8 @@ static bool
         }
 
         UpdaterStatus prepare_install_status =
-            updater_prepare_install(furi_string_get_cstr(manifest_path));
-        if(prepare_install_status != UpdaterStatusSuccess) {
+            updater_prepare_install(ctx->updater, furi_string_get_cstr(manifest_path), true);
+        if(prepare_install_status != UpdaterStatusOk) {
             FuriString* error_string = furi_string_alloc_printf(
                 "Update prepare install failed: %s",
                 updater_get_status_string(prepare_install_status));
@@ -129,18 +155,21 @@ static bool
             break;
         }
 
-        /* update succeeded - mark for reboot */
-        ctx->reboot_initiated = true;
-        FURI_LOG_I(TAG, "Reboot pending");
+        FURI_LOG_I(TAG, "Device will reboot...");
 
         MG_REPLY_OK_BODY(
             conn, "{\"result\":\"OK\",\"message\":\"Update accepted. System will reboot.\"}\n");
 
         conn->is_draining = 1;
 
-        /* reboot will now occur in on_close_cb after response is sent. */
+        updater_reboot_install(ctx->updater, false);
+
         is_success = true;
     } while(false);
+
+    if(update_started && !is_success) {
+        updater_stop_update(ctx->updater);
+    }
 
     furi_string_free(manifest_path);
 
@@ -220,22 +249,14 @@ static void http_api_update_on_close_cb(struct mg_connection* conn) {
 
     FURI_LOG_D(TAG, "on_close");
 
-    bool reboot_was_initiated = false;
     if(update_ctx) {
-        reboot_was_initiated = update_ctx->reboot_initiated;
         free_raw_update_context(update_ctx);
         conn_ctx->context = NULL;
     }
+
     // Clear callbacks
     conn_ctx->raw.on_data = NULL;
     conn_ctx->on_close = NULL;
-
-    if(reboot_was_initiated) {
-        FURI_LOG_I(TAG, "Rebooting device now after response sent and connection closed.");
-        if(updater_reboot_install() != UpdaterStatusSuccess) {
-            updater_cancel_prepared_install();
-        }
-    }
 }
 
 bool http_api_update_hdr_callback(
