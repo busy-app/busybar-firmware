@@ -77,7 +77,8 @@ static bool api_display_draw_parse_countdown_element(
 
         char* color_hex = mg_json_get_str(json_element, "$.color");
         if(color_hex) {
-            bool color_parsed = color_parse_hexa_string(color_hex, &canvas_element->text.color);
+            bool color_parsed =
+                color_parse_hexa_string(color_hex, &canvas_element->countdown.color);
             free(color_hex);
             if(!color_parsed) break;
         }
