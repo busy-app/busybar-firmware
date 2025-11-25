@@ -1,12 +1,11 @@
-#include "update.h"
-#include "sl_updater.h"
-#include "sl_update_params.h"
+#include "updater.h"
+#include "sl_updater/sl_updater.h"
+#include "sl_updater/sl_update_params.h"
 
 #include <furi.h>
 #include <furi_hal_nvm.h>
 #include <furi_hal_power.h>
 
-#include <storage/storage.h>
 #include <cli/cli_command.h>
 #include <cli/args.h>
 
@@ -78,89 +77,116 @@ static void updater_cli_execute_917probe() {
 }
 
 static void updater_cli_execute_install(const char* manifest_path) {
+    Updater* updater = furi_record_open(RECORD_UPDATER);
+
     printf("Installing update bundle from: %s\r\n", manifest_path);
 
-    do {
-        UpdaterStatus prepare_install_status = updater_prepare_install(manifest_path);
-        if(prepare_install_status != UpdaterStatusSuccess) {
-            printf(
-                "Update prepare install failed: %s\r\n",
-                updater_get_status_string(prepare_install_status));
+    UpdaterStatus update_status = updater_start_update(updater);
+    if(update_status == UpdaterStatusOk) {
+        do {
+            update_status = updater_prepare_install(updater, manifest_path, true);
+            if(update_status != UpdaterStatusOk) {
+                printf(
+                    "Install preparation failed: %s\r\n",
+                    updater_get_status_string(update_status));
 
-            break;
-        }
+                break;
+            }
 
-        printf("Update preparation successful, rebooting...\r\n");
+            printf("Update preparation successful, rebooting...\r\n");
 
-        UpdaterStatus reboot_install_status = updater_reboot_install();
-        if(reboot_install_status != UpdaterStatusSuccess) {
-            printf(
-                "Update reboot install failed: %s\r\n",
-                updater_get_status_string(reboot_install_status));
+            updater_reboot_install(updater, true);
+        } while(false);
 
-            updater_cancel_prepared_install();
-            break;
-        }
-    } while(false);
+        updater_stop_update(updater);
+    } else {
+        printf("Update not allowed: %s\r\n", updater_get_status_string(update_status));
+    }
+
+    furi_record_close(RECORD_UPDATER);
 }
 
 static void updater_cli_execute_install_tar(const char* tar_path) {
+    Updater* updater = furi_record_open(RECORD_UPDATER);
+
     printf("Installing update bundle from: %s\r\n", tar_path);
 
-    FuriString* manifest_path = furi_string_alloc();
+    UpdaterStatus update_status = updater_start_update(updater);
+    if(update_status == UpdaterStatusOk) {
+        do {
+            update_status = updater_unpack(updater, tar_path, NULL, NULL, true);
+            if(update_status != UpdaterStatusOk) {
+                printf(
+                    "Update unpack TAR failed: %s\r\n", updater_get_status_string(update_status));
 
-    do {
-        UpdaterStatus unpack_tar_status = updater_unpack_tar(tar_path, NULL, manifest_path);
-        if(unpack_tar_status != UpdaterStatusSuccess) {
-            printf(
-                "Update unpack TAR failed: %s\r\n", updater_get_status_string(unpack_tar_status));
+                break;
+            }
 
-            break;
-        }
+            update_status = updater_prepare_install(updater, NULL, true);
+            if(update_status != UpdaterStatusOk) {
+                printf(
+                    "Update prepare install failed: %s\r\n",
+                    updater_get_status_string(update_status));
 
-        printf(
-            "Update unpack TAR successful, manifest path: %s\r\n",
-            furi_string_get_cstr(manifest_path));
+                break;
+            }
 
-        UpdaterStatus prepare_install_status =
-            updater_prepare_install(furi_string_get_cstr(manifest_path));
-        if(prepare_install_status != UpdaterStatusSuccess) {
-            printf(
-                "Update prepare install failed: %s\r\n",
-                updater_get_status_string(prepare_install_status));
+            printf("Update preparation successful, rebooting...\r\n");
 
-            break;
-        }
+            updater_reboot_install(updater, true);
+        } while(false);
 
-        printf("Update preparation successful, rebooting...\r\n");
+        updater_stop_update(updater);
+    } else {
+        printf("Update not allowed: %s\r\n", updater_get_status_string(update_status));
+    }
 
-        UpdaterStatus reboot_install_status = updater_reboot_install();
-        if(reboot_install_status != UpdaterStatusSuccess) {
-            printf(
-                "Update reboot install failed: %s\r\n",
-                updater_get_status_string(reboot_install_status));
-
-            updater_cancel_prepared_install();
-            break;
-        }
-    } while(false);
-
-    furi_string_free(manifest_path);
+    furi_record_close(RECORD_UPDATER);
 }
 
 static void updater_cli_execute_install_web(const char* link) {
-    printf("Installing update bundle from web: %s\r\n", link);
+    Updater* updater = furi_record_open(RECORD_UPDATER);
 
-    FuriString* url = furi_string_alloc_set_str(link);
-    FuriString* file_path =
-        furi_string_alloc_set_str(EXT_PATH(UPDATE_STAGING_ROOT "/" UPDATE_TAR_TEMP));
+    printf("Installing update bundle from: %s\r\n", link);
 
-    if(fetch_download_file(url, file_path)) {
-        updater_cli_execute_install_tar(furi_string_get_cstr(file_path));
+    UpdaterStatus update_status = updater_start_update(updater);
+    if(update_status == UpdaterStatusOk) {
+        do {
+            update_status = updater_download(updater, link, NULL, true);
+            if(update_status != UpdaterStatusOk) {
+                printf("Download failed: %s\r\n", updater_get_status_string(update_status));
+
+                break;
+            }
+
+            update_status = updater_unpack(updater, NULL, NULL, NULL, true);
+            if(update_status != UpdaterStatusOk) {
+                printf(
+                    "Update unpack TAR failed: %s\r\n", updater_get_status_string(update_status));
+
+                break;
+            }
+
+            update_status = updater_prepare_install(updater, NULL, true);
+            if(update_status != UpdaterStatusOk) {
+                printf(
+                    "Update prepare install failed: %s\r\n",
+                    updater_get_status_string(update_status));
+
+                break;
+            }
+
+            printf("Update preparation successful, rebooting...\r\n");
+
+            updater_reboot_install(updater, true);
+        } while(false);
+
+        updater_stop_update(updater);
+    } else {
+        printf("Update not allowed: %s\r\n", updater_get_status_string(update_status));
     }
 
-    furi_string_free(url);
-    furi_string_free(file_path);
+    furi_record_close(RECORD_UPDATER);
 }
 
 void update_cli_command(PipeSide* pipe, FuriString* args, void* context) {

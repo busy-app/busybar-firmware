@@ -8,7 +8,7 @@ App(
         "helpers/fkermit.c",
     ],
     entry_point="update_cli_command",
-    requires=["storage", "cli_commands_target_specific"],
+    requires=["storage", "updater", "cli_commands_target_specific"],
 )
 
 App(
