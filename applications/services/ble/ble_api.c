@@ -58,7 +58,9 @@ bool ble_init(Ble* ble) {
         ble_send_message(ble, BleCommandInit, NULL, 0, NULL, 0, &result);
         ble_set_name(ble);
 
-    } else if(state == BleServiceStateReady) {
+    } else if(
+        state == BleServiceStateReady || state == BleServiceStateAdvertising ||
+        state == BleServiceStateConnected) {
         ///TODO: possibly this should be done by actually executing command and
         /// if state is Ready then just do nothing and return true;
         /// But for now let's left it as it is
@@ -122,7 +124,6 @@ bool ble_forget(Ble* ble) {
 
 BlePairingState ble_pairing_get_state(Ble* ble) {
     furi_assert(ble);
-    BLE_LOG_I("ble_paired");
     BleServiceState state = ble_get_state(ble);
 
     BlePairingState pairing = BlePairingStateUnkown;
