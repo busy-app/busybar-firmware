@@ -37,3 +37,4 @@ bool mqtt_client_request_link_pin(MqttClient* mqtt);
 void mqtt_client_unlink(MqttClient* mqtt);
 void mqtt_client_get_session_id(MqttClient* mqtt, FuriString* id);
 void mqtt_client_get_session_email(MqttClient* mqtt, FuriString* id);
+void mqtt_client_publish(MqttClient* mqtt, const char* topic, const void* data, size_t data_size);

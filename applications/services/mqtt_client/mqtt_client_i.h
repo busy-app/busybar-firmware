@@ -16,6 +16,8 @@
 #define MQTT_DEVICE_ROOT_TOPIC "devices"
 #define MQTT_API_ROOT_TOPIC    "sessions"
 
+#define MQTT_BUSY_TIMER_SNAPSHOT_TOPIC "busy/snapshot"
+
 struct MqttClient {
     Wifi* wifi;
     FuriPubSubSubscription* wifi_event_sub;
@@ -45,6 +47,12 @@ struct MqttClient {
 };
 
 typedef struct {
+    const char* topic;
+    const void* data;
+    size_t data_size;
+} MqttClientPublish;
+
+typedef struct {
     enum {
         MqttClientMessageWifiStateChange,
         MqttClientMessageGetStatus,
@@ -52,6 +60,7 @@ typedef struct {
         MqttClientMessageRequestPin,
         MqttClientMessageGetSessionId,
         MqttClientMessageGetSessionEmail,
+        MqttClientMessagePublish,
     } type;
     FuriApiLock lock;
     union {
@@ -59,6 +68,7 @@ typedef struct {
         bool* bool_param;
         FuriString* str_param;
         WifiState wifi_state;
+        MqttClientPublish publish;
     };
 } MqttClientMessage;
 
@@ -83,6 +93,8 @@ bool mqtt_tls_init(struct mg_connection* conn, const MqttTlsCfg* opts);
 void mqtt_tls_free_ca(struct mg_connection* conn);
 
 // BusyTimer api
+void mqtt_busy_timer_init(MqttClient* mqtt);
+
 void mqtt_busy_timer_on_message(
     MqttClient* mqtt,
     FuriString* topic_str,

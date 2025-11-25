@@ -339,7 +339,7 @@ char* busy_timer_snapshot_serialize(const BusyTimerSnapshot* snapshot) {
 
     cJSON_AddNumberToObject(json, KEY_TIMESTAMP, snapshot->timestamp_ms);
 
-    char* json_text = cJSON_Print(json);
+    char* json_text = cJSON_PrintUnformatted(json);
 
     cJSON_Delete(json);
     return json_text;

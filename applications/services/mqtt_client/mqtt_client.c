@@ -325,6 +325,35 @@ static bool mqtt_client_load_ca_bundle(MqttClient* mqtt) {
     return success;
 }
 
+static void mqtt_client_do_publish(MqttClient* mqtt, const MqttClientPublish* pub) {
+    if(mqtt->conn) {
+        FuriString* full_topic = furi_string_alloc_printf(
+            "%s/%s/up/%s/%s",
+            MQTT_API_ROOT_TOPIC,
+            furi_string_get_cstr(mqtt->session_id),
+            MQTT_API_VERSION,
+            pub->topic);
+
+        const struct mg_str message = {
+            .buf = (char*)pub->data,
+            .len = pub->data_size,
+        };
+
+        const struct mg_mqtt_opts opts = {
+            .topic = mg_str(furi_string_get_cstr(full_topic)),
+            .message = message,
+            .qos = 0,
+            .retain = false,
+            .props = NULL,
+            .num_props = 0,
+        };
+
+        mg_mqtt_pub(mqtt->conn, &opts);
+
+        furi_string_free(full_topic);
+    }
+}
+
 static void mqtt_conn_wakeup_callback(struct mg_connection* conn, int ev, void* ev_data) {
     if(ev != MG_EV_WAKEUP) return;
     MqttClient* mqtt = conn->fn_data;
@@ -377,6 +406,9 @@ static void mqtt_conn_wakeup_callback(struct mg_connection* conn, int ev, void* 
     case MqttClientMessageGetSessionEmail:
         json_config_read_single_str(SESSION_FILE, "email", msg->str_param, "");
         break;
+    case MqttClientMessagePublish:
+        mqtt_client_do_publish(mqtt, &msg->publish);
+        break;
     default:
         furi_crash();
         break;
@@ -427,6 +459,9 @@ int32_t mqtt_client_start(void* p) {
     // mqtt->is_wifi_up = (wifi_info.state == WifiStateUp);
 
     mqtt->is_wifi_up = true; // TODO: wifi events
+
+    // Start listening for BusyTimer events
+    mqtt_busy_timer_init(mqtt);
 
     mqtt->reconnect_delay = MQTT_RECONNECT_DELAY_MIN;
 
