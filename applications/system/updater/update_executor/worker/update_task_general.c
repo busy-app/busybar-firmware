@@ -1,8 +1,7 @@
 #include "update_task_i.h"
 #include "update_task.h"
-
-#include "../sl_updater.h"
-#include "../sl_update_params.h"
+#include "../../sl_updater/sl_updater.h"
+#include "../../sl_updater/sl_update_params.h"
 
 #include <toolbox/path.h>
 #include <toolbox/tar/tar_archive.h>
@@ -10,7 +9,7 @@
 #include <toolbox/update_lib/resources/manifest.h>
 #include <toolbox/update_lib/update_manifest.h>
 
-#define TAG "UpdateTask"
+#define TAG "UpdExecTask"
 
 #define STM_DFU_VENDOR_ID   0x0483
 #define STM_DFU_PRODUCT_ID  0xDF11
@@ -26,23 +25,27 @@ static void update_task_sl_updater_progress_callback(
     SlUpdaterProgressPhase phase,
     uint8_t percentage,
     void* context) {
-    UpdateTask* update_task = context;
+    UpdateExecutorTask* update_task = context;
     furi_assert(update_task);
 
-    const UpdateTaskState* current_task_state = update_task_get_state(update_task);
-    UpdateTaskStage current_stage = current_task_state->stage;
+    const UpdateExecutorTaskState* current_task_state =
+        update_executor_task_get_state(update_task);
+    UpdateExecutorTaskStage current_stage = current_task_state->stage;
 
     switch(phase) {
     case SL_UPDATER_PROGRESS_PHASE_UPLOADING:
-        update_task_set_progress(update_task, UpdateTaskStageProgress, percentage);
+        update_executor_task_set_progress(
+            update_task, UpdateExecutorTaskStageProgress, percentage);
         break;
     case SL_UPDATER_PROGRESS_PHASE_AWAITING_INSTALL:
-        if(current_stage == UpdateTaskStage917RadioWrite) {
-            update_task_set_progress(update_task, UpdateTaskStage917RadioInstall, 0);
-        } else if(current_stage == UpdateTaskStage917Write) {
-            update_task_set_progress(update_task, UpdateTaskStage917Install, 0);
+        if(current_stage == UpdateExecutorTaskStage917RadioWrite) {
+            update_executor_task_set_progress(
+                update_task, UpdateExecutorTaskStage917RadioInstall, 0);
+        } else if(current_stage == UpdateExecutorTaskStage917Write) {
+            update_executor_task_set_progress(update_task, UpdateExecutorTaskStage917Install, 0);
         }
-        update_task_set_progress(update_task, UpdateTaskStageProgress, percentage);
+        update_executor_task_set_progress(
+            update_task, UpdateExecutorTaskStageProgress, percentage);
         break;
     default:
         break;
@@ -90,11 +93,11 @@ static bool check_address_boundaries(const size_t address) {
 }
 
 static void update_task_file_progress(const uint8_t progress, void* context) {
-    UpdateTask* update_task = context;
-    update_task_set_progress(update_task, UpdateTaskStageProgress, progress);
+    UpdateExecutorTask* update_task = context;
+    update_executor_task_set_progress(update_task, UpdateExecutorTaskStageProgress, progress);
 }
 
-static bool update_task_write_dfu(UpdateTask* update_task) {
+static bool update_task_write_dfu(UpdateExecutorTask* update_task) {
     DfuUpdateTask page_task = {
         .address_cb = &check_address_boundaries,
         .progress_cb = &update_task_file_progress,
@@ -104,8 +107,8 @@ static bool update_task_write_dfu(UpdateTask* update_task) {
 
     bool success = false;
     do {
-        update_task_set_progress(update_task, UpdateTaskStageValidateDFUImage, 0);
-        CHECK_RESULT(update_task_open_file(
+        update_executor_task_set_progress(update_task, UpdateExecutorTaskStageValidateDFUImage, 0);
+        CHECK_RESULT(update_executor_task_open_file(
             update_task,
             updater_manifest_get_path(
                 update_config_get_manifest(update_task->config), UpdateManifestPathDfu)));
@@ -119,11 +122,11 @@ static bool update_task_write_dfu(UpdateTask* update_task) {
             break;
         }
 
-        update_task_set_progress(update_task, UpdateTaskStageFlashWrite, 0);
+        update_executor_task_set_progress(update_task, UpdateExecutorTaskStageFlashWrite, 0);
         page_task.task_cb = &update_task_flash_program_page;
         CHECK_RESULT(dfu_file_process_targets(&page_task, dfu_file, n_targets));
 
-        update_task_set_progress(update_task, UpdateTaskStageFlashValidate, 0);
+        update_executor_task_set_progress(update_task, UpdateExecutorTaskStageFlashValidate, 0);
         page_task.task_cb = &update_task_compare_flash;
         CHECK_RESULT(dfu_file_process_targets(&page_task, dfu_file, n_targets));
 
@@ -134,7 +137,7 @@ static bool update_task_write_dfu(UpdateTask* update_task) {
 }
 
 typedef struct {
-    UpdateTask* update_task;
+    UpdateExecutorTask* update_task;
     TarArchive* archive;
 } TarUnpackProgress;
 
@@ -144,12 +147,14 @@ static bool update_task_resource_unpack_cb(const char* name, bool is_directory, 
     TarUnpackProgress* unpack_progress = context;
     int32_t progress = 0, total = 0;
     tar_archive_get_read_progress(unpack_progress->archive, &progress, &total);
-    update_task_set_progress(
-        unpack_progress->update_task, UpdateTaskStageProgress, (progress * 100) / (total + 1));
+    update_executor_task_set_progress(
+        unpack_progress->update_task,
+        UpdateExecutorTaskStageProgress,
+        (progress * 100) / (total + 1));
     return true;
 }
 
-static void update_task_cleanup_resources(UpdateTask* update_task) {
+static void update_task_cleanup_resources(UpdateExecutorTask* update_task) {
     ResourceManifestReader* manifest_reader = resource_manifest_reader_alloc(update_task->storage);
     do {
         FURI_LOG_D(TAG, "Cleaning up old manifest");
@@ -170,13 +175,14 @@ static void update_task_cleanup_resources(UpdateTask* update_task) {
         }
         resource_manifest_rewind(manifest_reader);
 
-        update_task_set_progress(update_task, UpdateTaskStageResourcesFileCleanup, 0);
+        update_executor_task_set_progress(
+            update_task, UpdateExecutorTaskStageResourcesFileCleanup, 0);
         uint32_t n_processed_file_entries = 0;
         while((entry_ptr = resource_manifest_reader_next(manifest_reader))) {
             if(entry_ptr->type == ResourceManifestEntryTypeFile) {
-                update_task_set_progress(
+                update_executor_task_set_progress(
                     update_task,
-                    UpdateTaskStageProgress,
+                    UpdateExecutorTaskStageProgress,
                     (n_processed_file_entries++ * 100) / n_file_entries);
 
                 FuriString* file_path = furi_string_alloc();
@@ -197,13 +203,14 @@ static void update_task_cleanup_resources(UpdateTask* update_task) {
             }
         }
 
-        update_task_set_progress(update_task, UpdateTaskStageResourcesDirCleanup, 0);
+        update_executor_task_set_progress(
+            update_task, UpdateExecutorTaskStageResourcesDirCleanup, 0);
         uint32_t n_processed_dir_entries = 0;
         while((entry_ptr = resource_manifest_reader_previous(manifest_reader))) {
             if(entry_ptr->type == ResourceManifestEntryTypeDirectory) {
-                update_task_set_progress(
+                update_executor_task_set_progress(
                     update_task,
-                    UpdateTaskStageProgress,
+                    UpdateExecutorTaskStageProgress,
                     (n_processed_dir_entries++ * 100) / n_dir_entries);
 
                 FuriString* folder_path = furi_string_alloc();
@@ -233,14 +240,14 @@ static void update_task_cleanup_resources(UpdateTask* update_task) {
     resource_manifest_reader_free(manifest_reader);
 }
 
-static bool update_task_handle_resources(UpdateTask* update_task) {
+static bool update_task_handle_resources(UpdateExecutorTask* update_task) {
     const FuriString* resources_path = updater_manifest_get_path(
         update_config_get_manifest(update_task->config), UpdateManifestPathResources);
 
     TarArchive* archive = tar_archive_alloc(update_task->storage);
     bool success = false;
     do {
-        if(update_task->state.groups & UpdateTaskStageGroupResources) {
+        if(update_task->state.groups & UpdateExecutorTaskStageGroupResources) {
             TarUnpackProgress progress = {
                 .update_task = update_task,
                 .archive = archive,
@@ -251,7 +258,8 @@ static bool update_task_handle_resources(UpdateTask* update_task) {
 
             update_task_cleanup_resources(update_task);
 
-            update_task_set_progress(update_task, UpdateTaskStageResourcesFileUnpack, 0);
+            update_executor_task_set_progress(
+                update_task, UpdateExecutorTaskStageResourcesFileUnpack, 0);
             tar_archive_set_file_callback(archive, update_task_resource_unpack_cb, &progress);
             CHECK_RESULT(tar_archive_unpack_to(archive, STORAGE_EXT_PATH_PREFIX, NULL));
         }
@@ -263,7 +271,7 @@ static bool update_task_handle_resources(UpdateTask* update_task) {
     return success;
 }
 
-static bool update_task_write_917(UpdateTask* update_task, bool use_stack_image) {
+static bool update_task_write_917(UpdateExecutorTask* update_task, bool use_stack_image) {
     bool success = false;
 
     const char* img_type = use_stack_image ? "917 NWP" : "917 FW";
@@ -277,8 +285,10 @@ static bool update_task_write_917(UpdateTask* update_task, bool use_stack_image)
 
     FURI_LOG_I(TAG, "Starting %s update from: %s", img_type, firmware_path_cstr);
 
-    update_task_set_progress(
-        update_task, use_stack_image ? UpdateTaskStage917RadioWrite : UpdateTaskStage917Write, 0);
+    update_executor_task_set_progress(
+        update_task,
+        use_stack_image ? UpdateExecutorTaskStage917RadioWrite : UpdateExecutorTaskStage917Write,
+        0);
 
     SlUpdater* sl_updater = sl_updater_alloc();
 
@@ -314,50 +324,51 @@ static bool update_task_write_917(UpdateTask* update_task, bool use_stack_image)
     sl_updater_free(sl_updater);
 
     if(success) {
-        update_task_set_progress(
+        update_executor_task_set_progress(
             update_task,
-            use_stack_image ? UpdateTaskStage917RadioInstall : UpdateTaskStage917Install,
+            use_stack_image ? UpdateExecutorTaskStage917RadioInstall :
+                              UpdateExecutorTaskStage917Install,
             100);
     }
 
     return success;
 }
 
-int32_t update_task_worker_general(void* context) {
+int32_t update_executor_task_worker_general(void* context) {
     furi_assert(context);
-    UpdateTask* update_task = context;
+    UpdateExecutorTask* update_task = context;
     bool success = false;
 
     do {
-        update_task_set_progress(update_task, UpdateTaskStageReadManifest, 0);
-        CHECK_RESULT(update_task_parse_manifest(update_task));
+        update_executor_task_set_progress(update_task, UpdateExecutorTaskStageReadManifest, 0);
+        CHECK_RESULT(update_executor_task_parse_manifest(update_task));
 
-        if(update_task->state.groups & UpdateTaskStageGroupFirmware) {
+        if(update_task->state.groups & UpdateExecutorTaskStageGroupFirmware) {
             CHECK_RESULT(update_task_write_dfu(update_task));
         }
 
-        if(update_task->state.groups & UpdateTaskStageGroup917Radio) {
+        if(update_task->state.groups & UpdateExecutorTaskStageGroup917Radio) {
             CHECK_RESULT(update_task_write_917(update_task, true));
         }
 
-        if(update_task->state.groups & UpdateTaskStageGroup917) {
+        if(update_task->state.groups & UpdateExecutorTaskStageGroup917) {
             CHECK_RESULT(update_task_write_917(update_task, false));
         }
 
-        if(update_task->state.groups & UpdateTaskStageGroupResources) {
+        if(update_task->state.groups & UpdateExecutorTaskStageGroupResources) {
             CHECK_RESULT(update_task_handle_resources(update_task));
         }
 
-        update_task_set_progress(update_task, UpdateTaskStageCompleted, 100);
+        update_executor_task_set_progress(update_task, UpdateExecutorTaskStageCompleted, 100);
         success = true;
     } while(false);
 
     furi_hal_power_reset_917(false); // for a good measure
 
     if(!success) {
-        update_task_set_progress(update_task, UpdateTaskStageError, 0);
-        return UPDATE_TASK_FAILED;
+        update_executor_task_set_progress(update_task, UpdateExecutorTaskStageError, 0);
+        return UPDATE_EXECUTOR_TASK_FAILED;
     }
 
-    return UPDATE_TASK_NOERR;
+    return UPDATE_EXECUTOR_TASK_NOERR;
 }

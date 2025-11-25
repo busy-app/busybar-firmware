@@ -1,6 +1,6 @@
-#include "../update_app_i.h"
-#include "../storage_macros.h"
-#include "updater_scenes.h"
+#include "../update_executor_i.h"
+#include "../../storage_macros.h"
+#include "scenes.h"
 
 #include <gui/modules/flex_layout.h>
 #include <gui/modules/image.h>
@@ -13,14 +13,14 @@ typedef struct {
     Label* back_extras_label;
 
     FlexLayout* front_flex;
-} UpdaterSceneFail;
+} FailScene;
 
-static void updater_scene_fail_on_enter(void* context) {
+static void fail_scene_on_enter(void* context) {
     furi_assert(context);
 
-    UpdaterApp* instance = context;
-    UpdaterSceneFail* data =
-        scene_manager_get_scene_data(instance->scene_manager, UpdaterAppSceneIdFail);
+    UpdateExecutor* instance = context;
+    FailScene* data =
+        scene_manager_get_scene_data(instance->scene_manager, UpdateExecutorSceneIdFail);
 
     with_gui(instance->gui, {
         /* back ui */
@@ -75,12 +75,12 @@ static void updater_scene_fail_on_enter(void* context) {
     });
 }
 
-static void updater_scene_fail_on_exit(void* context) {
+static void fail_scene_on_exit(void* context) {
     furi_assert(context);
 
-    UpdaterApp* instance = context;
-    UpdaterSceneFail* data =
-        scene_manager_get_scene_data(instance->scene_manager, UpdaterAppSceneIdFail);
+    UpdateExecutor* instance = context;
+    FailScene* data =
+        scene_manager_get_scene_data(instance->scene_manager, UpdateExecutorSceneIdFail);
 
     with_gui(instance->gui, {
         flex_layout_free(data->back_flex);
@@ -88,13 +88,13 @@ static void updater_scene_fail_on_exit(void* context) {
     });
 }
 
-static bool updater_scene_fail_on_event(const SceneManagerEvent* event, void* context) {
+static bool fail_scene_on_event(const SceneManagerEvent* event, void* context) {
     furi_assert(context);
     furi_assert(event->type == SceneManagerEventTypeCustom);
 
-    UpdaterApp* instance = context;
-    UpdaterSceneFail* data =
-        scene_manager_get_scene_data(instance->scene_manager, UpdaterAppSceneIdFail);
+    UpdateExecutor* instance = context;
+    FailScene* data =
+        scene_manager_get_scene_data(instance->scene_manager, UpdateExecutorSceneIdFail);
 
     with_gui(instance->gui, {
         /* back ui */
@@ -104,9 +104,9 @@ static bool updater_scene_fail_on_event(const SceneManagerEvent* event, void* co
     return true;
 }
 
-const Scene updater_scene_fail = {
-    .enter_callback = updater_scene_fail_on_enter,
-    .exit_callback = updater_scene_fail_on_exit,
-    .event_callback = updater_scene_fail_on_event,
-    .data_size = sizeof(UpdaterSceneFail),
+const Scene update_executor_scene_fail = {
+    .enter_callback = fail_scene_on_enter,
+    .exit_callback = fail_scene_on_exit,
+    .event_callback = fail_scene_on_event,
+    .data_size = sizeof(FailScene),
 };

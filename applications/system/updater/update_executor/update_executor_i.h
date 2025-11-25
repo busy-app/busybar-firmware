@@ -11,7 +11,7 @@ typedef struct {
     Gui* gui;
     Storage* storage;
     FuriEventLoop* event_loop;
-    UpdateTask* update_task;
+    UpdateExecutorTask* update_task;
     SceneManager* scene_manager;
 
     Widget* back_container;
@@ -19,4 +19,4 @@ typedef struct {
 
     const char* update_status;
     uint8_t update_percent;
-} UpdaterApp;
+} UpdateExecutor;
