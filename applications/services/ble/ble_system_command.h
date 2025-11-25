@@ -11,6 +11,7 @@ typedef enum {
     BleCommandForgetPairing,
     BleCommandGetPairing,
     BleCommandSetDeviceName,
+    BleCommandConnectionUpdated,
 
     BleCommandCount
 } BleSystemCommand;
