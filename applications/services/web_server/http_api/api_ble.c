@@ -11,8 +11,8 @@ typedef struct {
 const char* ble_state_names[] = {
     [BleServiceStateReset] = "reset",
     [BleServiceStateInitialization] = "initialization",
-    [BleServiceStateReady] = "enabled",
-    [BleServiceStateAdvertising] = "advertising",
+    [BleServiceStateReady] = "disabled",
+    [BleServiceStateAdvertising] = "enabled",
     [BleServiceStateConnected] = "connected",
     [BleServiceStateError] = "internal error",
 };
