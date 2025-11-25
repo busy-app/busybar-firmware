@@ -9,9 +9,35 @@ BleIntercomFrameGeneric* ble_command_preprocess(Ble* instance, uint32_t events) 
     return (BleIntercomFrameGeneric*)&instance->mailbox;
 }
 
+static void ble_connection_changed_callback(
+    void* ctx,
+    bool connected,
+    const uint8_t remote_dev_address[BLE_REMOTE_ADDRESS_SIZE]) {
+    BLE_LOG_D("ble_connection_changed_callback");
+    Ble* instance = ctx;
+
+    furi_mutex_acquire(instance->ble_lock, FuriWaitForever);
+    furi_semaphore_acquire(instance->mailbox_lock, FuriWaitForever);
+
+    instance->state = connected ? BleServiceStateConnected : BleServiceStateAdvertising;
+    BleIntercomFrameGeneric* frame = &instance->mailbox;
+    frame->header.frame_type = BleIntercomFrameTypeRequest;
+    frame->header.command = BleCommandConnectionUpdated;
+    frame->header.source = BleIntercomFrameSourceSystem;
+    frame->header.data_size = sizeof(connected) + BLE_REMOTE_ADDRESS_SIZE;
+    frame->data[0] = connected;
+
+    memcpy(instance->remote_device_address, remote_dev_address, BLE_REMOTE_ADDRESS_SIZE);
+    memcpy(&frame->data[1], remote_dev_address, BLE_REMOTE_ADDRESS_SIZE);
+
+    ble_command_request_process(frame, instance);
+    furi_semaphore_release(instance->mailbox_lock);
+    furi_mutex_release(instance->ble_lock);
+}
+
 static bool ble_command_init_request(BleIntercomFrameGeneric* frame, void* context) {
     BLE_LOG_D("BleCommandInit request");
-    ble_worker_init();
+    ble_worker_init(ble_connection_changed_callback, context);
     return ble_command_response_process(frame, context);
 }
 
