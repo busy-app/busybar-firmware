@@ -28,7 +28,6 @@ typedef enum {
     BusyTimerMessageTypeGetState,
     BusyTimerMessageTypeGetTime,
     BusyTimerMessageTypeGetCycles,
-    BusyTimerMessageTypeSetCallback,
     BusyTimerMessageTypeAddTime,
     BusyTimerMessageTypeToggle,
     BusyTimerMessageTypeSkip,
@@ -38,18 +37,12 @@ typedef enum {
     BusyTimerMessageTypeMax,
 } BusyTimerMessageType;
 
-typedef struct {
-    BusyTimerCallback callback;
-    void* context;
-} BusyTimerCallbackInfo;
-
 typedef union {
     BusyTimerState* state;
     BusyTimerTime* time;
     BusyTimerCycles* cycles;
     BusyTimerConfig* config;
     const BusyTimerConfig* config_c;
-    const BusyTimerCallbackInfo* callback_info;
     int32_t add_time_mn;
     BusyTimerSnapshot* snapshot;
     const BusyTimerSnapshot* snapshot_c;
@@ -67,7 +60,6 @@ struct BusyTimer {
     FuriEventLoopTimer* poll_timer;
     FuriMessageQueue* message_queue;
     FuriPubSub* event_pubsub;
-    BusyTimerCallback callback;
     void* callback_context;
     uint64_t last_timestamp_ms;
     uint32_t cycles_done;

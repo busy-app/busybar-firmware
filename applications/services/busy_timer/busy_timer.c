@@ -80,53 +80,45 @@ static void busy_timer_notify_tick(const BusyTimer* instance) {
     busy_timer_log_time(instance);
 #endif
 
-    if(instance->callback) {
-        const BusyTimerEvent event = {
-            .type = BusyTimerEventTypeTick,
-            .time = instance->time,
-        };
+    BusyTimerEvent event = {
+        .type = BusyTimerEventTypeTick,
+        .time = instance->time,
+    };
 
-        instance->callback(&event, instance->callback_context);
-    }
+    furi_pubsub_publish(instance->event_pubsub, &event);
 }
 
 static void busy_timer_notify_mode_changed(const BusyTimer* instance) {
     FURI_LOG_D(TAG, "Mode changed: %s", busy_timer_get_mode_name(instance->mode));
 
-    if(instance->callback) {
-        const BusyTimerEvent event = {
-            .type = BusyTimerEventTypeModeChanged,
-            .mode = instance->mode,
-        };
+    BusyTimerEvent event = {
+        .type = BusyTimerEventTypeModeChanged,
+        .mode = instance->mode,
+    };
 
-        instance->callback(&event, instance->callback_context);
-    }
+    furi_pubsub_publish(instance->event_pubsub, &event);
 }
 
 static void busy_timer_notify_state_changed(const BusyTimer* instance) {
     FURI_LOG_D(TAG, "State changed: %s", busy_timer_get_state_name(instance->state));
 
-    if(instance->callback) {
-        const BusyTimerEvent event = {
-            .type = BusyTimerEventTypeStateChanged,
-            .state = instance->state,
-        };
+    BusyTimerEvent event = {
+        .type = BusyTimerEventTypeStateChanged,
+        .state = instance->state,
+    };
 
-        instance->callback(&event, instance->callback_context);
-    }
+    furi_pubsub_publish(instance->event_pubsub, &event);
 }
 
 static void busy_timer_notify_interval_ended(const BusyTimer* instance, bool force) {
     FURI_LOG_D(TAG, "Interval ended: %s", busy_timer_get_state_name(instance->state));
 
-    if(instance->callback) {
-        const BusyTimerEvent event = {
-            .type = BusyTimerEventTypeIntervalEnded,
-            .is_force_ended = force,
-        };
+    BusyTimerEvent event = {
+        .type = BusyTimerEventTypeIntervalEnded,
+        .is_force_ended = force,
+    };
 
-        instance->callback(&event, instance->callback_context);
-    }
+    furi_pubsub_publish(instance->event_pubsub, &event);
 }
 
 static void busy_timer_notify_user_interacted(const BusyTimer* instance) {
@@ -519,12 +511,6 @@ static void
     data->cycles->done_count = instance->cycles_done;
 }
 
-static void
-    busy_timer_set_callback_message_handler(BusyTimer* instance, BusyTimerMessageData* data) {
-    instance->callback = data->callback_info->callback;
-    instance->callback_context = data->callback_info->context;
-}
-
 static void busy_timer_add_time_message_handler(BusyTimer* instance, BusyTimerMessageData* data) {
     if(!busy_timer_is_running(instance)) {
         // Ignore if the timer is not running (paused)
@@ -658,7 +644,6 @@ static const BusyTimerMessageHandler busy_timer_message_handlers[BusyTimerMessag
     [BusyTimerMessageTypeGetState] = busy_timer_get_state_message_handler,
     [BusyTimerMessageTypeGetTime] = busy_timer_get_time_message_handler,
     [BusyTimerMessageTypeGetCycles] = busy_timer_get_cycles_message_handler,
-    [BusyTimerMessageTypeSetCallback] = busy_timer_set_callback_message_handler,
     [BusyTimerMessageTypeAddTime] = busy_timer_add_time_message_handler,
     [BusyTimerMessageTypeToggle] = busy_timer_toggle_message_handler,
     [BusyTimerMessageTypeSkip] = busy_timer_skip_message_handler,

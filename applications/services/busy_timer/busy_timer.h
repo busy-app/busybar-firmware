@@ -86,10 +86,6 @@ typedef struct {
     bool enable_demo_mode;
 } BusyTimerConfig;
 
-typedef void (*BusyTimerCallback)(const BusyTimerEvent* event, void* context);
-
-void busy_timer_set_callback(BusyTimer* instance, BusyTimerCallback callback, void* context);
-
 FuriPubSub* busy_timer_get_pubsub(const BusyTimer* instance);
 
 BusyTimerState busy_timer_get_state(const BusyTimer* instance);

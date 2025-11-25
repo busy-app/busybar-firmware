@@ -7,22 +7,6 @@ static void busy_timer_send_message(const BusyTimer* instance, BusyTimerMessage*
     api_lock_wait_unlock_and_free(message->lock);
 }
 
-void busy_timer_set_callback(BusyTimer* instance, BusyTimerCallback callback, void* context) {
-    furi_assert(instance);
-
-    const BusyTimerCallbackInfo callback_info = {
-        .callback = callback,
-        .context = context,
-    };
-
-    BusyTimerMessage message = {
-        .type = BusyTimerMessageTypeSetCallback,
-        .data.callback_info = &callback_info,
-    };
-
-    busy_timer_send_message(instance, &message);
-}
-
 BusyTimerState busy_timer_get_state(const BusyTimer* instance) {
     furi_assert(instance);
 

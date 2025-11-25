@@ -21,6 +21,8 @@ typedef struct {
     TimerBar* timer_bar;
     PauseOverlay* pause_overlay;
     RunLater* run_later;
+    FuriPubSub* timer_pubsub;
+    FuriPubSubSubscription* timer_sub;
     BusyTimerMode timer_mode;
     BusyTimerTime timer_time;
     BusyTimerState timer_state;
@@ -63,9 +65,11 @@ static bool busy_scene_timer_input_callback(const InputEvent* event, void* conte
     return consumed;
 }
 
-static void busy_scene_timer_event_callback(const BusyTimerEvent* event, void* context) {
-    furi_assert(event);
+static void busy_scene_timer_pubsub_callback(const void* msg, void* context) {
+    furi_assert(msg);
     furi_assert(context);
+
+    const BusyTimerEvent* event = msg;
 
     BusyApp* instance = context;
     BusySceneTimer* data =
@@ -303,7 +307,10 @@ static void busy_scene_timer_on_enter(void* context) {
         timer_card_show_header(instance->timer_card, true);
     });
 
-    busy_timer_set_callback(instance->busy_timer, busy_scene_timer_event_callback, instance);
+    data->timer_pubsub = busy_timer_get_pubsub(instance->busy_timer);
+    data->timer_sub =
+        furi_pubsub_subscribe(data->timer_pubsub, busy_scene_timer_pubsub_callback, instance);
+
     busy_timer_start(instance->busy_timer);
 
     busy_start_transition(instance);
@@ -316,10 +323,11 @@ static void busy_scene_timer_on_exit(void* context) {
 
     busy_set_status_lights(instance, BusyStatusLightsTypeOff);
     busy_set_matter(instance, false);
-    busy_timer_set_callback(instance->busy_timer, NULL, NULL);
 
     BusySceneTimer* data =
         scene_manager_get_scene_data(instance->scene_manager, BusyAppSceneIdTimer);
+
+    furi_pubsub_unsubscribe(data->timer_pubsub, data->timer_sub);
 
     if(data->run_later) {
         run_later_cancel(data->run_later);
