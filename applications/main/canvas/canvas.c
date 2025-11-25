@@ -328,7 +328,8 @@ static Widget* canvas_element_update_specific(
         if(element->text.scroll_rate_cpm) {
             uint32_t scroll_dur =
                 label_calculate_scroll_duration(widget->text, element->text.scroll_rate_cpm);
-            label_set_long_content_mode(widget->text, LabelLongContentModeScroll, scroll_dur);
+            label_set_long_content_mode(
+                widget->text, LabelLongContentModeScrollCircular, scroll_dur);
         } else {
             label_set_long_content_mode(widget->text, LabelLongContentModeClip, 0);
         }
