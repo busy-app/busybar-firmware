@@ -240,6 +240,19 @@ static bool ble_command_set_device_name_response(BleIntercomFrameGeneric* frame,
     return true;
 }
 
+static bool ble_command_connection_updated_request(BleIntercomFrameGeneric* frame, void* context) {
+    BLE_LOG_D("ble_command_connection_updated_request");
+
+    Ble* instance = context;
+
+    const bool connected = frame->data[0];
+    const uint8_t* addr = &frame->data[1];
+    instance->state = connected ? BleServiceStateConnected : BleServiceStateAdvertising;
+    memcpy(instance->remote_device_address, addr, BLE_REMOTE_DEVICE_ADDRESS_SIZE);
+
+    return true;
+}
+
 const BleCommandItem ble_commands[BleCommandCount] = {
     [BleCommandUnknown] =
         {
@@ -281,6 +294,10 @@ const BleCommandItem ble_commands[BleCommandCount] = {
         {
             .request = ble_command_set_device_name_request,
             .response = ble_command_set_device_name_response,
+        },
+    [BleCommandConnectionUpdated] =
+        {
+            .request = ble_command_connection_updated_request,
         },
 };
 
