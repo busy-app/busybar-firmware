@@ -10,7 +10,7 @@ on:
 
 env:
   FBT_GIT_SUBMODULE_SHALLOW: 0
-  DEFAULT_TARGET: 21
+  DEFAULT_TARGET_SPEC: 21_64
   FBT_TOOLCHAIN_PATH: /runner/_work
 
 jobs:
@@ -21,9 +21,10 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        u5_target: [21, 22]
+        target_spec: ["21_64", "22_65"]
     outputs:
-      default_target: ${{ env.DEFAULT_TARGET }}
+      default_target_spec: ${{ env.DEFAULT_TARGET_SPEC }}
+      bundle_target_spec: ${{ steps.targets.outputs.u5_target_hw }}
       update_url: ${{ steps.set-url.outputs.update_url }}
 
     steps:
@@ -31,6 +32,16 @@ jobs:
         run: |
           rm -f /home/runner/.gitconfig
           find ./ -mount -maxdepth 1 -exec rm -rf {} \;
+
+      - name: "Configure targets"
+        id: targets
+        run: |
+          U5_TARGET=$(echo "${{ matrix.target_spec }}" | cut -d_ -f1 | sed 's/f//')
+          SIL_TARGET=$(echo "${{ matrix.target_spec }}" | cut -d_ -f2 | sed 's/f//')
+          echo "U5_TARGET_HW=${U5_TARGET}" >> $GITHUB_ENV
+          echo "SIL_TARGET_HW=${SIL_TARGET}" >> $GITHUB_ENV
+          echo "u5_target_hw=${U5_TARGET}"  >> $GITHUB_OUTPUT
+          echo "sil_target_hw=${U5_TARGET}"  >> $GITHUB_OUTPUT
 
       - name: 'Checkout code'
         uses: actions/checkout@v4
@@ -70,14 +81,13 @@ jobs:
           echo "event_type=$TYPE" >> $GITHUB_OUTPUT
           python3 fbt_layers/fbtng/scripts/get_env.py "--event_file=${{ github.event_path }}" "--type=$TYPE" || (cat "${{ github.event_path }}" && exit 1)
           echo "FBT_BUILD_TYPE=$BUILD_TYPE" >> $GITHUB_ENV
-          echo "U5_TARGET_HW=$(echo "${{ matrix.u5_target }}" | sed 's/f//')" >> $GITHUB_ENV
 
       - name: 'Build update package (unsigned)'
         id: build-fw
         run: |
           source ./scripts/toolchain/fbtenv.sh
           export FBT_GIT_SUBMODULE_SHALLOW=1
-          bash ./fbt U5_TARGET_HW=${U5_TARGET_HW} $FBT_BUILD_TYPE dist
+          bash ./fbt U5_TARGET_HW=${U5_TARGET_HW} SIL_TARGET_HW=${SIL_TARGET_HW} $FBT_BUILD_TYPE dist
 
       - name: 'Check for uncommitted changes'
         run: |
@@ -111,7 +121,7 @@ jobs:
               "${{ secrets.INDEXER_URL }}"/busybar-firmware/uploadfiles
 
       - name: Handle u5 map files
-        if: ${{ !github.event.pull_request.head.repo.fork && steps.build-fw.outcome == 'success'  && matrix.u5_target == env.DEFAULT_TARGET}}
+        if: ${{ !github.event.pull_request.head.repo.fork && steps.build-fw.outcome == 'success'  && matrix.target_spec == env.DEFAULT_TARGET_SPEC }}
         run: |
           rm -rf map_analyser_files
           mkdir -p map_analyser_files
@@ -125,7 +135,7 @@ jobs:
               "--analyser_token=${{ secrets.U5_ANALYSER_TOKEN }}";
 
       - name: Handle silabs map files
-        if: ${{ !github.event.pull_request.head.repo.fork && steps.build-fw.outcome == 'success' && matrix.u5_target == env.DEFAULT_TARGET }}
+        if: ${{ !github.event.pull_request.head.repo.fork && steps.build-fw.outcome == 'success' && matrix.target_spec == env.DEFAULT_TARGET_SPEC }}
         run: |
           rm -rf map_analyser_files
           mkdir -p map_analyser_files
@@ -138,32 +148,32 @@ jobs:
               "--analyser_token=${{ secrets.SIL_ANALYSER_TOKEN }}";
 
       - name: 'Find previous comment'
-        if: ${{ !github.event.pull_request.head.repo.fork && matrix.u5_target == env.DEFAULT_TARGET && github.event.pull_request }}
+        if: ${{ !github.event.pull_request.head.repo.fork && matrix.target_spec == env.DEFAULT_TARGET_SPEC && github.event.pull_request }}
         uses: peter-evans/find-comment@v3
         id: find-comment
         with:
           issue-number: ${{ github.event.pull_request.number }}
           comment-author: 'github-actions[bot]'
-          body-includes: 'Compiled f${{ matrix.u5_target }} firmware for commit'
+          body-includes: 'Compiled f${{ matrix.target_spec }} firmware for commit'
 
       - name: 'Create or update comment'
-        if: ${{ !github.event.pull_request.head.repo.fork && matrix.u5_target == env.DEFAULT_TARGET && github.event.pull_request }}
+        if: ${{ !github.event.pull_request.head.repo.fork && matrix.target_spec == env.DEFAULT_TARGET_SPEC && github.event.pull_request }}
         uses: peter-evans/create-or-update-comment@v4
         with:
           comment-id: ${{ steps.find-comment.outputs.comment-id }}
           issue-number: ${{ github.event.pull_request.number }}
           body: |
-            **Compiled f${{ matrix.u5_target }} firmware for commit `${{steps.names.outputs.commit_sha}}`:**
-            - [📦 Update package](https://update.flipperzero.one/builds/busybar-firmware/${{steps.names.outputs.branch_name}}/busybar-f${{matrix.u5_target}}-update-${{steps.names.outputs.suffix}}.tar)
+            **Compiled f${{ matrix.target_spec }} firmware for commit `${{steps.names.outputs.commit_sha}}`:**
+            - [📦 Update package](https://update.flipperzero.one/builds/busybar-firmware/${{steps.names.outputs.branch_name}}/busybar-f${{steps.targets.outputs.u5_target_hw}}-update-${{steps.names.outputs.suffix}}.tar)
             - [📊 Sil Size report](https://fw-reports-sil-bsb.flipp.dev/?branch=${{steps.names.outputs.branch_name}})
             - [📊 U5 Size report](https://fw-reports-bsb.flipp.dev/?branch=${{steps.names.outputs.branch_name}})
           edit-mode: replace
 
       - name: 'Set update URL output for default target'
         id: set-url
-        if: ${{ matrix.u5_target == env.DEFAULT_TARGET }}
+        if: ${{ matrix.target_spec == env.DEFAULT_TARGET_SPEC }}
         run: |
-          echo "update_url=${{ steps.names.outputs.branch_name }}/busybar-f${{ matrix.u5_target }}-update-${{ steps.names.outputs.suffix }}.tar" >> "$GITHUB_OUTPUT"
+          echo "update_url=${{ steps.names.outputs.branch_name }}/busybar-f${{ steps.targets.outputs.u5_target_hw }}-update-${{ steps.names.outputs.suffix }}.tar" >> "$GITHUB_OUTPUT"
 
 
   updater-tests:
@@ -174,4 +184,4 @@ jobs:
       branch_name: ${{ github.head_ref || github.ref_name }}
       commit_sha: ${{ github.event.pull_request.head.sha }}
       update_url: ${{ needs.build.outputs.update_url }}
-      default_target: ${{ needs.build.outputs.default_target }}
+      target: ${{ needs.build.outputs.bundle_target_spec }}
