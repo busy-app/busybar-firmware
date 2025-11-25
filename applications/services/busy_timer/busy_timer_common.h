@@ -7,6 +7,8 @@
 #include <stdint.h>
 #include <stdbool.h>
 
+#define CARD_ID_LEN (36)
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -32,7 +34,7 @@ typedef enum {
 } BusyTimerSnapshotType;
 
 typedef struct {
-    uint32_t card_id;
+    char card_id[CARD_ID_LEN + 1];
     bool is_paused;
 } BusyTimerSnapshotCommon;
 
@@ -49,7 +51,6 @@ typedef struct {
     BusyTimerSnapshotCommon common;
     BusyTimerIntervalState state;
     BusyTimerIntervalSettings settings;
-    bool has_settings;
 } BusyTimerSnapshotInterval;
 
 typedef struct {

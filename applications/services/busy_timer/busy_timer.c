@@ -10,6 +10,8 @@
 // TODO: [FW-468] Add milliseconds support to RTC
 #define TIMESTAMP_NOW_MS()   S_TO_MS((uint64_t)furi_hal_rtc_get_timestamp())
 
+#define DEFAULT_CARD_ID "00000000-0000-0000-0000-000000000000"
+
 typedef void (*const BusyTimerMessageHandler)(BusyTimer* instance, BusyTimerMessageData* data);
 
 static const BusyTimerMessageHandler busy_timer_message_handlers[];
@@ -307,7 +309,7 @@ static BusyTimerSnapshot busy_timer_make_snapshot(const BusyTimer* instance) {
 
     if(instance->state != BusyTimerStateIdle) {
         BusyTimerSnapshotCommon* common = &snapshot.common;
-        common->card_id = 0;
+        strcpy(common->card_id, DEFAULT_CARD_ID);
         common->is_paused = !busy_timer_is_running(instance);
 
         const BusyTimerMode mode = instance->mode;
@@ -330,8 +332,6 @@ static BusyTimerSnapshot busy_timer_make_snapshot(const BusyTimer* instance) {
             const BusyTimerConfig* config = &instance->config;
 
             BusyTimerSnapshotInterval* interval = &snapshot.interval;
-            interval->has_settings = true;
-
             BusyTimerIntervalState* state = &interval->state;
             state->index = busy_timer_get_interval_index(instance);
             state->time_left_ms = S_TO_MS(time->remain_s);

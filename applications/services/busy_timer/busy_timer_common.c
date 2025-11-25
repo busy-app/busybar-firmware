@@ -36,7 +36,7 @@ static const char* const snapshot_type_values[BusyTimerSnapshotTypeMax] = {
 static void busy_timer_snapshot_serialize_snapshot_common(
     cJSON* json,
     const BusyTimerSnapshotCommon* common) {
-    cJSON_AddNumberToObject(json, KEY_SNAPSHOT_COMMON_CARD_ID, common->card_id);
+    cJSON_AddStringToObject(json, KEY_SNAPSHOT_COMMON_CARD_ID, common->card_id);
     cJSON_AddBoolToObject(json, KEY_SNAPSHOT_COMMON_IS_PAUSED, common->is_paused);
 }
 
@@ -81,11 +81,7 @@ static void busy_timer_snapshot_serialize_snapshot_interval(
     cJSON_AddNumberToObject(
         json, KEY_SNAPSHOT_INTERVAL_CURRENT_LEFT, interval->state.time_left_ms);
 
-    if(interval->has_settings) {
-        busy_timer_snapshot_serialize_snapshot_interval_settings(json, &interval->settings);
-    } else {
-        cJSON_AddNullToObject(json, KEY_SNAPSHOT_INTERVAL_SETTINGS);
-    }
+    busy_timer_snapshot_serialize_snapshot_interval_settings(json, &interval->settings);
 }
 
 // Snapshot deserialization
@@ -97,13 +93,19 @@ static bool busy_timer_snapshot_deserialize_snapshot_common(
 
     do {
         const cJSON* item;
+        const char* str_val;
 
         item = cJSON_GetObjectItem(json, KEY_SNAPSHOT_COMMON_CARD_ID);
-        if(!cJSON_IsNumber(item)) {
+        if(!cJSON_IsString(item)) {
             break;
         }
 
-        common->card_id = cJSON_GetNumberValue(item);
+        str_val = cJSON_GetStringValue(item);
+        if(strlen(str_val) != CARD_ID_LEN) {
+            break;
+        }
+
+        strcpy(common->card_id, str_val);
 
         item = cJSON_GetObjectItem(json, KEY_SNAPSHOT_COMMON_IS_PAUSED);
         if(!cJSON_IsBool(item)) {
@@ -161,6 +163,8 @@ static bool busy_timer_snapshot_deserialize_interval_settings(
 
         const cJSON* item;
 
+// TODO: Remove after the mobile apps have been fixed
+#ifdef INTERVAL_SETTINGS_TYPE_CHECK
         item = cJSON_GetObjectItem(json, KEY_SNAPSHOT_TYPE);
         if(!cJSON_IsString(item)) {
             break;
@@ -172,7 +176,7 @@ static bool busy_timer_snapshot_deserialize_interval_settings(
         if(strcmp(type_str, snapshot_type_values[BusyTimerSnapshotTypeInterval]) != 0) {
             break;
         }
-
+#endif
         item = cJSON_GetObjectItem(json, KEY_SNAPSHOT_INTERVAL_SETTINGS_WORK);
         if(!cJSON_IsNumber(item)) {
             break;
@@ -243,15 +247,7 @@ static bool busy_timer_snapshot_deserialize_snapshot_interval(
         state->time_left_ms = cJSON_GetNumberValue(item);
 
         item = cJSON_GetObjectItem(json, KEY_SNAPSHOT_INTERVAL_SETTINGS);
-
-        if(cJSON_IsObject(item)) {
-            if(!busy_timer_snapshot_deserialize_interval_settings(item, &interval->settings))
-                break;
-            interval->has_settings = true;
-
-        } else if(cJSON_IsNull(item)) {
-            interval->has_settings = false;
-        } else {
+        if(!busy_timer_snapshot_deserialize_interval_settings(item, &interval->settings)) {
             break;
         }
 

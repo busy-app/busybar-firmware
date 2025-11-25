@@ -1773,8 +1773,8 @@ components:
           enum: ["INFINITE"]
           example: "INFINITE"
         card_id:
-          type: integer
-          example: 0
+          type: string
+          example: "00000000-0000-0000-0000-000000000000"
         is_paused:
           type: boolean
           example: false
@@ -1791,8 +1791,8 @@ components:
           enum: ["SIMPLE"]
           example: "SIMPLE"
         card_id:
-          type: integer
-          example: 0
+          type: string
+          example: "00000000-0000-0000-0000-000000000000"
         time_left_ms:
           type: integer
           example: 9000
@@ -1813,8 +1813,8 @@ components:
           enum: ["INTERVAL"]
           example: "INTERVAL"
         card_id:
-          type: integer
-          example: 0
+          type: string
+          example: "00000000-0000-0000-0000-000000000000"
         current_interval:
           type: integer
           example: 1
