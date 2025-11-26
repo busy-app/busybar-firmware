@@ -102,7 +102,26 @@ static void ble_service_init_wait_callback(BleServiceObject* service, bool resul
 static bool ble_command_init_request(BleIntercomFrameGeneric* frame, void* context) {
     BLE_LOG_D("BleCommandInit request");
 
-    return ble_command_request_process(frame, context);
+    Ble* instance = context;
+    const BleServiceState state = instance->state;
+
+    ///TODO: replace this with some preprocess function which will check if command is allowed in this state
+    bool result = false;
+    if(state == BleServiceStateReset) {
+        result = ble_command_request_process(frame, context);
+    } else if(
+        state == BleServiceStateReady || state == BleServiceStateAdvertising ||
+        state == BleServiceStateConnected) {
+        instance->current_message->result = true;
+        api_lock_unlock(instance->current_message_api_lock);
+    } else if(state == BleServiceStateError) {
+        BLE_LOG_W("No init, error occured");
+
+        instance->current_message->result = false;
+        api_lock_unlock(instance->current_message_api_lock);
+    }
+
+    return result;
 }
 
 static bool ble_command_init_response(BleIntercomFrameGeneric* frame, void* context) {
@@ -120,8 +139,25 @@ static bool ble_command_init_response(BleIntercomFrameGeneric* frame, void* cont
 }
 
 static bool ble_command_enable_request(BleIntercomFrameGeneric* frame, void* context) {
-    BLE_LOG_D("BleCommandEnable request");
-    return ble_command_request_process(frame, context);
+    BLE_LOG_I("BleCommandEnable request");
+    Ble* instance = context;
+    const BleServiceState state = instance->state;
+
+    ///TODO: replace this with some preprocess function which will check if command is allowed in this state
+    bool result = false;
+    if(state == BleServiceStateReady) {
+        result = ble_command_request_process(frame, context);
+    } else if(state == BleServiceStateAdvertising || state == BleServiceStateConnected) {
+        instance->current_message->result = true;
+        api_lock_unlock(instance->current_message_api_lock);
+    } else if(state == BleServiceStateError) {
+        BLE_LOG_W("No enable, error occured");
+
+        instance->current_message->result = false;
+        api_lock_unlock(instance->current_message_api_lock);
+    }
+
+    return result;
 }
 
 static bool ble_command_enable_response(BleIntercomFrameGeneric* frame, void* context) {
@@ -139,8 +175,25 @@ static bool ble_command_enable_response(BleIntercomFrameGeneric* frame, void* co
 }
 
 static bool ble_command_disable_request(BleIntercomFrameGeneric* frame, void* context) {
-    BLE_LOG_D("BleCommandDisable request");
-    return ble_command_request_process(frame, context);
+    BLE_LOG_I("BleCommandDisable request");
+    Ble* instance = context;
+    const BleServiceState state = instance->state;
+
+    ///TODO: replace this with some preprocess function which will check if command is allowed in this state
+    bool result = false;
+    if(state == BleServiceStateAdvertising || state == BleServiceStateConnected) {
+        result = ble_command_request_process(frame, context);
+    } else if(state == BleServiceStateReady) {
+        instance->current_message->result = true;
+        api_lock_unlock(instance->current_message_api_lock);
+    } else if(state == BleServiceStateError) {
+        BLE_LOG_W("No enable, error occured");
+
+        instance->current_message->result = false;
+        api_lock_unlock(instance->current_message_api_lock);
+    }
+
+    return result;
 }
 
 static bool ble_command_disable_response(BleIntercomFrameGeneric* frame, void* context) {
