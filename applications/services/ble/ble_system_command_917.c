@@ -126,30 +126,6 @@ static bool ble_command_forget_pairing_response(BleIntercomFrameGeneric* frame, 
     return true;
 }
 
-static bool ble_command_get_pairing_request(BleIntercomFrameGeneric* frame, void* context) {
-    BLE_LOG_D("BleCommandGetPairing request");
-
-    //TODO: make this as a structure
-    size_t response_size = sizeof(BleIntercomResponse) + sizeof(BlePairingState);
-    frame->header.data_size = response_size;
-    BleIntercomResponse* response = (BleIntercomResponse*)frame->data;
-
-    BlePairingState* response_pairing = (BlePairingState*)response->data;
-    *response_pairing = ble_worker_pairing_exists() ? BlePairingStatePaired :
-                                                      BlePairingStateNotPaired;
-
-    response->result = true;
-
-    return ble_command_response_process(frame, context);
-}
-
-static bool ble_command_get_pairing_response(BleIntercomFrameGeneric* frame, void* context) {
-    UNUSED(frame);
-    UNUSED(context);
-    BLE_LOG_D("BleCommandGetPairing response");
-    return true;
-}
-
 static bool ble_command_set_device_name_request(BleIntercomFrameGeneric* frame, void* context) {
     BLE_LOG_D("BleCommandSetDeviceName request");
 
@@ -196,12 +172,6 @@ const BleCommandItem ble_commands[BleCommandCount] = {
         {
             .request = ble_command_forget_pairing_request,
             .response = ble_command_forget_pairing_response,
-        },
-    [BleCommandGetPairing] =
-        {
-
-            .request = ble_command_get_pairing_request,
-            .response = ble_command_get_pairing_response,
         },
     [BleCommandSetDeviceName] =
         {

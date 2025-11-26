@@ -45,8 +45,6 @@ bool ble_start(Ble* ble);
 
 bool ble_stop(Ble* ble);
 
-BlePairingState ble_pairing_get_state(Ble* ble);
-
 bool ble_forget(Ble* ble);
 
 void ble_uart_set_rx_callback(
