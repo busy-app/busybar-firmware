@@ -1,4 +1,4 @@
-#include "busy.h"
+#include "busy_i.h"
 #include "busy_presets.h"
 
 #define BUSY_NAV_BAR_HEIGHT 20
@@ -66,16 +66,6 @@ static BusyApp* busy_alloc(void) {
     instance->gui = furi_record_open(RECORD_GUI);
     instance->matter = furi_record_open(RECORD_MATTER);
 
-    if(!busy_settings_load(&instance->settings)) {
-        FURI_LOG_W(TAG, "Loading default settings");
-        // Get default timer config
-        busy_timer_get_config(instance->busy_timer, &instance->settings.timer_config);
-        busy_settings_save(&instance->settings);
-
-    } else {
-        busy_timer_set_config(instance->busy_timer, &instance->settings.timer_config);
-    }
-
     with_gui(instance->gui, {
         GuiLayer* layer = gui_get_layer(instance->gui, GuiLayerIdMain);
         gui_layer_add_input_callback(layer, busy_gui_input_callback, instance);
@@ -128,10 +118,13 @@ static BusyApp* busy_alloc(void) {
     busy_set_status_lights(instance, BusyStatusLightsTypeOff);
     busy_set_matter(instance, false);
 
+    furi_record_create(RECORD_BUSY_APP, instance);
     return instance;
 }
 
 static void busy_free(BusyApp* instance) {
+    furi_record_destroy(RECORD_BUSY_APP);
+
     busy_set_status_lights(instance, BusyStatusLightsTypeOff);
     busy_set_matter(instance, false);
 

@@ -1,4 +1,4 @@
-#include "../busy.h"
+#include "../busy_i.h"
 
 #include <gui/modules/label.h>
 #include <gui/modules/anim_image.h>

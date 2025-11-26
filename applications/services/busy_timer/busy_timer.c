@@ -532,6 +532,12 @@ static void
 static void
     busy_timer_set_config_message_handler(BusyTimer* instance, BusyTimerMessageData* data) {
     instance->config = *data->config_c;
+
+    const BusySettings settings = {
+        .timer_config = instance->config,
+    };
+
+    busy_settings_save(&settings);
 }
 
 static void busy_timer_get_state_message_handler(BusyTimer* instance, BusyTimerMessageData* data) {
@@ -655,7 +661,6 @@ static BusyTimer* busy_timer_alloc(void) {
         instance);
     instance->message_queue = furi_message_queue_alloc(1, sizeof(BusyTimerMessage));
     instance->event_pubsub = furi_pubsub_alloc();
-    instance->config = busy_timer_config_default;
 
     furi_event_loop_subscribe_message_queue(
         instance->event_loop,
@@ -663,6 +668,15 @@ static BusyTimer* busy_timer_alloc(void) {
         FuriEventLoopEventIn,
         busy_timer_message_queue_callback,
         instance);
+
+    BusySettings settings;
+    if(!busy_settings_load(&settings)) {
+        FURI_LOG_W(TAG, "Loading default settings");
+        settings.timer_config = busy_timer_config_default;
+        busy_settings_save(&settings);
+    }
+
+    instance->config = settings.timer_config;
 
     furi_record_create(RECORD_BUSY_TIMER, instance);
 

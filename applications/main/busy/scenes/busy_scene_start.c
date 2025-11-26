@@ -1,4 +1,4 @@
-#include "../busy.h"
+#include "../busy_i.h"
 #include "../widgets/anim_menu.h"
 
 #include <gui/modules/menu.h>

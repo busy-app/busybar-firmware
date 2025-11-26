@@ -1,6 +1,7 @@
 #pragma once
 
 #include "busy_timer.h"
+#include "busy_settings.h"
 
 #include <toolbox/api_lock.h>
 
