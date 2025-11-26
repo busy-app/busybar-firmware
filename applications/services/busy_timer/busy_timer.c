@@ -228,7 +228,7 @@ static void busy_timer_start_timer(BusyTimer* instance) {
         furi_event_loop_timer_start(instance->poll_timer, POLL_TIMER_PERIOD_MS);
     }
 
-    instance->last_timestamp_ms = TIMESTAMP_NOW_MS();
+    instance->prev_tick_timestamp_ms = TIMESTAMP_NOW_MS();
     instance->timer_running = true;
 }
 
@@ -277,13 +277,13 @@ static void busy_timer_next_state(BusyTimer* instance, bool force) {
 static void busy_timer_update(BusyTimer* instance, uint64_t timestamp_ms) {
     do {
         // Got snapshot from a peer with a clock that is ahead of ours
-        if(timestamp_ms < instance->last_timestamp_ms) {
-            instance->last_timestamp_ms = timestamp_ms;
+        if(timestamp_ms < instance->prev_tick_timestamp_ms) {
+            instance->prev_tick_timestamp_ms = timestamp_ms;
             busy_timer_notify_tick(instance);
             break;
         }
 
-        const uint32_t dt_s = MS_TO_S(timestamp_ms - instance->last_timestamp_ms);
+        const uint32_t dt_s = MS_TO_S(timestamp_ms - instance->prev_tick_timestamp_ms);
 
         // Too early for a tick
         if(dt_s == 0) {
@@ -312,7 +312,7 @@ static void busy_timer_update(BusyTimer* instance, uint64_t timestamp_ms) {
             }
         }
 
-        instance->last_timestamp_ms = timestamp_ms;
+        instance->prev_tick_timestamp_ms = timestamp_ms;
     } while(false);
 }
 
@@ -434,7 +434,7 @@ static void busy_timer_apply_snapshot(BusyTimer* instance, const BusyTimerSnapsh
         busy_timer_start_timer(instance);
     }
 
-    instance->last_timestamp_ms = snapshot_timestamp_ms;
+    instance->prev_tick_timestamp_ms = snapshot_timestamp_ms;
 
     busy_timer_notify_mode_changed(instance);
     busy_timer_notify_state_changed(instance);
