@@ -53,7 +53,7 @@ static bool busy_scene_timer_input_callback(const InputEvent* event, void* conte
             consumed = true;
 
         } else if(event->key == InputKeyStart) {
-            custom_event = BusyCustomEventTimerToggle;
+            custom_event = BusyCustomEventStartShortPressed;
             consumed = true;
         }
     }
@@ -90,6 +90,10 @@ static void busy_scene_timer_pubsub_callback(const void* msg, void* context) {
     } else if(event->type == BusyTimerEventTypeIntervalEnded) {
         data->is_force_ended = event->is_force_ended;
         busy_send_custom_event(instance, BusyCustomEventTimerIntervalEnded);
+
+    } else if(event->type == BusyTimerEventTypeTimerPaused) {
+        data->is_paused = event->timer_paused.is_paused;
+        busy_send_custom_event(instance, BusyCustomEventTimerPaused);
     }
 }
 
@@ -212,11 +216,9 @@ static void busy_scene_timer_update_timer_state(BusyApp* instance) {
     busy_scene_timer_update_matter(instance);
 }
 
-static void busy_scene_timer_toggle_pause(BusyApp* instance) {
+static void busy_scene_timer_handle_pause(BusyApp* instance) {
     BusySceneTimer* data =
         scene_manager_get_scene_data(instance->scene_manager, BusyAppSceneIdTimer);
-
-    data->is_paused = !data->is_paused;
 
     with_gui(instance->gui, {
         pause_overlay_show(data->pause_overlay, data->is_paused);
@@ -231,7 +233,6 @@ static void busy_scene_timer_toggle_pause(BusyApp* instance) {
 
     busy_scene_timer_update_lights(instance);
     busy_scene_timer_update_matter(instance);
-    busy_timer_toggle(instance->busy_timer);
 }
 
 static void busy_scene_timer_handle_skip(BusyApp* instance) {
@@ -256,8 +257,9 @@ static void busy_scene_timer_handle_back(BusyApp* instance) {
 
         scene_manager_search_and_switch_to_previous_scene(
             instance->scene_manager, BusyAppSceneIdStart);
+
     } else {
-        busy_scene_timer_toggle_pause(instance);
+        busy_timer_toggle(instance->busy_timer);
     }
 }
 
@@ -369,8 +371,11 @@ static bool busy_scene_timer_on_event(const SceneManagerEvent* event, void* cont
         } else if(event->event == BusyCustomEventTimerIntervalEnded) {
             busy_scene_timer_go_to_progress_scene(instance);
 
-        } else if(event->event == BusyCustomEventTimerToggle) {
-            busy_scene_timer_toggle_pause(instance);
+        } else if(event->event == BusyCustomEventTimerPaused) {
+            busy_scene_timer_handle_pause(instance);
+
+        } else if(event->event == BusyCustomEventStartShortPressed) {
+            busy_timer_toggle(instance->busy_timer);
 
         } else if(event->event == BusyCustomEventTimerSkip) {
             busy_scene_timer_handle_skip(instance);
