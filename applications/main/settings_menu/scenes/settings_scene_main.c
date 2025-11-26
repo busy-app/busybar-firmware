@@ -1,6 +1,6 @@
 #include "../settings.h"
 #include "settings_scenes.h"
-#include <firmware_applications_f20/applications.h>
+#include <applications.h>
 #include <settings_helpers/app_desc.h>
 
 #include <gui/modules/menu.h>
