@@ -63,7 +63,6 @@ struct BusyTimer {
     FuriPubSub* event_pubsub;
     void* callback_context;
     uint64_t prev_tick_timestamp_ms;
-    uint64_t prev_snaphot_timestamp_ms;
     uint32_t cycles_done;
     BusyTimerConfig config;
     BusyTimerTime time;

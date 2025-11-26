@@ -324,7 +324,7 @@ static uint32_t busy_timer_get_interval_index(const BusyTimer* instance) {
 }
 
 static void busy_timer_make_snapshot(BusyTimer* instance, BusyTimerSnapshot* snapshot) {
-    instance->prev_snaphot_timestamp_ms = snapshot->timestamp_ms = TIMESTAMP_NOW_MS();
+    snapshot->timestamp_ms = TIMESTAMP_NOW_MS();
 
     if(instance->state != BusyTimerStateIdle) {
         BusyTimerSnapshotCommon* common = &snapshot->common;
@@ -438,7 +438,6 @@ static void busy_timer_apply_snapshot(BusyTimer* instance, const BusyTimerSnapsh
     }
 
     instance->prev_tick_timestamp_ms = snapshot_timestamp_ms;
-    instance->user_snapshot = *snapshot;
 
     busy_timer_notify_mode_changed(instance);
     busy_timer_notify_state_changed(instance);
