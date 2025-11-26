@@ -180,16 +180,13 @@ static bool ble_command_disable_request(BleIntercomFrameGeneric* frame, void* co
 
     ///TODO: replace this with some preprocess function which will check if command is allowed in this state
     bool result = false;
-    if(state == BleServiceStateAdvertising || state == BleServiceStateConnected) {
-        result = ble_command_request_process(frame, context);
-    } else if(state == BleServiceStateReady) {
-        instance->current_message->result = true;
-        api_lock_unlock(instance->current_message_api_lock);
-    } else if(state == BleServiceStateError) {
+    if(state == BleServiceStateError) {
         BLE_LOG_W("No disable, error occured");
 
-        instance->current_message->result = false;
+        instance->current_message->result = result;
         api_lock_unlock(instance->current_message_api_lock);
+    } else {
+        result = ble_command_request_process(frame, context);
     }
 
     return result;
