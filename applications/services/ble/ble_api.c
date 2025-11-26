@@ -93,12 +93,16 @@ bool ble_stop(Ble* ble) {
 bool ble_forget(Ble* ble) {
     furi_assert(ble);
 
-    BleServiceState state = ble_get_state(ble);
-
     bool result = false;
-    if(state != BleServiceStateError && state != BleServiceStateReset) {
-        ble_send_message(ble, BleCommandForgetPairing, NULL, 0, NULL, 0, &result);
-    }
+    do {
+        BleStatus status = {0};
+        if(!ble_get_status(ble, &status)) break;
+
+        if(status.state != BleServiceStateError && status.state != BleServiceStateReset) {
+            ble_send_message(ble, BleCommandForgetPairing, NULL, 0, NULL, 0, &result);
+        }
+    } while(false);
+
     return result;
 }
 
