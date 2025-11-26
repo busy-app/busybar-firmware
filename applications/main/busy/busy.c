@@ -31,6 +31,42 @@ static void busy_event_queue_callback(FuriEventLoopObject* object, void* context
     }
 }
 
+static void busy_api_queue_callback(FuriEventLoopObject* object, void* context) {
+    furi_assert(context);
+
+    BusyApp* instance = context;
+    furi_assert(instance->api_queue == object);
+
+    BusyApiMessage message;
+    while(furi_message_queue_get(instance->api_queue, &message, 0) == FuriStatusOk) {
+        const BusyApiMessageType type = message.type;
+
+        if(type == BusyApiMessageTypeShowTimer) {
+            if(scene_manager_get_current_scene_id(instance->scene_manager) !=
+               BusyAppSceneIdTimer) {
+                // TODO: Move this code to separate scene
+                with_gui(instance->gui, {
+                    widget_set_visible(nav_bar_get_base(instance->nav_bar), false);
+                    widget_set_visible(timer_card_get_base(instance->timer_card), true);
+
+                    timer_card_show_header(instance->timer_card, false);
+                    timer_card_show_time(instance->timer_card, false);
+                });
+
+                instance->skip_timer_start = true;
+
+                busy_prepare_transition(instance, BusyTransitionTypeAutomatic);
+                scene_manager_next_scene(instance->scene_manager, BusyAppSceneIdTimer);
+            }
+
+        } else {
+            furi_crash("Invalid BusyApiMessageType value");
+        }
+
+        api_lock_unlock(message.lock);
+    }
+}
+
 static bool busy_gui_input_callback(const InputEvent* event, void* context) {
     furi_assert(event);
     furi_assert(context);
@@ -59,6 +95,7 @@ static BusyApp* busy_alloc(void) {
     instance->event_loop = furi_event_loop_alloc();
     instance->input_queue = furi_message_queue_alloc(8, sizeof(InputEvent));
     instance->event_queue = furi_message_queue_alloc(8, sizeof(uint32_t));
+    instance->api_queue = furi_message_queue_alloc(1, sizeof(BusyApiMessage));
     instance->scene_manager = scene_manager_alloc(busy_scenes, BusyAppSceneIdMax, instance);
     instance->busy_timer = furi_record_open(RECORD_BUSY_TIMER);
     instance->status_lights = furi_record_open(RECORD_STATUS_LIGHTS);
@@ -113,6 +150,13 @@ static BusyApp* busy_alloc(void) {
         busy_event_queue_callback,
         instance);
 
+    furi_event_loop_subscribe_message_queue(
+        instance->event_loop,
+        instance->api_queue,
+        FuriEventLoopEventIn,
+        busy_api_queue_callback,
+        instance);
+
     scene_manager_next_scene(instance->scene_manager, BusyAppSceneIdStart);
 
     busy_set_status_lights(instance, BusyStatusLightsTypeOff);
@@ -123,7 +167,10 @@ static BusyApp* busy_alloc(void) {
 }
 
 static void busy_free(BusyApp* instance) {
-    furi_record_destroy(RECORD_BUSY_APP);
+    while(!furi_record_destroy(RECORD_BUSY_APP)) {
+        // Workaround: wait before all users close the record
+        furi_delay_ms(1);
+    }
 
     busy_set_status_lights(instance, BusyStatusLightsTypeOff);
     busy_set_matter(instance, false);
@@ -148,8 +195,10 @@ static void busy_free(BusyApp* instance) {
 
     furi_event_loop_unsubscribe(instance->event_loop, instance->input_queue);
     furi_event_loop_unsubscribe(instance->event_loop, instance->event_queue);
+    furi_event_loop_unsubscribe(instance->event_loop, instance->api_queue);
     furi_message_queue_free(instance->input_queue);
     furi_message_queue_free(instance->event_queue);
+    furi_message_queue_free(instance->api_queue);
     furi_event_loop_free(instance->event_loop);
 
     free(instance);

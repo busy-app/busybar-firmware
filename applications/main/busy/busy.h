@@ -8,6 +8,8 @@ extern "C" {
 
 typedef struct BusyApp BusyApp;
 
+void busy_show_timer(BusyApp* instance);
+
 #ifdef __cplusplus
 }
 #endif

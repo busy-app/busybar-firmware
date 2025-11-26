@@ -313,7 +313,9 @@ static void busy_scene_timer_on_enter(void* context) {
     data->timer_sub =
         furi_pubsub_subscribe(data->timer_pubsub, busy_scene_timer_pubsub_callback, instance);
 
-    busy_timer_start(instance->busy_timer);
+    if(!instance->skip_timer_start) {
+        busy_timer_start(instance->busy_timer);
+    }
 
     busy_start_transition(instance);
 }
@@ -322,6 +324,7 @@ static void busy_scene_timer_on_exit(void* context) {
     furi_assert(context);
 
     BusyApp* instance = context;
+    instance->skip_timer_start = false;
 
     busy_set_status_lights(instance, BusyStatusLightsTypeOff);
     busy_set_matter(instance, false);

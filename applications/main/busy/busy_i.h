@@ -1,6 +1,7 @@
 #pragma once
 
 #include <furi.h>
+#include <api_lock.h>
 
 #include <gui/gui.h>
 #include <gui/modules/nav_bar.h>
@@ -66,10 +67,20 @@ typedef enum {
     BusyTimerBarTypeMax,
 } BusyTimerBarType;
 
+typedef enum {
+    BusyApiMessageTypeShowTimer,
+} BusyApiMessageType;
+
+typedef struct {
+    BusyApiMessageType type;
+    FuriApiLock lock;
+} BusyApiMessage;
+
 struct BusyApp {
     FuriEventLoop* event_loop;
     FuriMessageQueue* input_queue;
     FuriMessageQueue* event_queue;
+    FuriMessageQueue* api_queue;
     SceneManager* scene_manager;
     BusyTimer* busy_timer;
     StatusLights* status_lights;
@@ -84,6 +95,8 @@ struct BusyApp {
     TransitionOverlay* transition_overlay;
     TimerCard* timer_card;
     NavBar* nav_bar;
+    // Misc flags
+    bool skip_timer_start;
 };
 
 void busy_send_custom_event(BusyApp* instance, uint32_t custom_event);
