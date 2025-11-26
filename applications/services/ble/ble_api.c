@@ -54,16 +54,14 @@ bool ble_init(Ble* ble) {
     return result;
 }
 
-BleServiceState ble_get_state(Ble* ble) {
+bool ble_get_status(Ble* ble, BleStatus* const output) {
     furi_assert(ble);
+    furi_assert(output);
 
-    BleServiceState state = BleServiceStateReset;
-    uint8_t dummy = 0;
     bool result = false;
-    ble_send_message(
-        ble, BleCommandGetState, &dummy, sizeof(dummy), &state, sizeof(BleServiceState), &result);
+    ble_send_message(ble, BleCommandGetStatus, NULL, 0, output, sizeof(BleStatus), &result);
 
-    return state;
+    return result;
 }
 
 bool ble_start(Ble* ble) {
@@ -102,18 +100,6 @@ bool ble_forget(Ble* ble) {
         ble_send_message(ble, BleCommandForgetPairing, NULL, 0, NULL, 0, &result);
     }
     return result;
-}
-
-BlePairingState ble_pairing_get_state(Ble* ble) {
-    furi_assert(ble);
-    BleServiceState state = ble_get_state(ble);
-
-    BlePairingState pairing = BlePairingStateUnkown;
-    bool result = false;
-    if(state != BleServiceStateError && state != BleServiceStateReset) {
-        ble_send_message(ble, BleCommandGetPairing, NULL, 0, &pairing, sizeof(pairing), &result);
-    }
-    return pairing;
 }
 
 void ble_uart_tx_data(Ble* ble, BleUartChannel channel, const void* data, const size_t data_size) {

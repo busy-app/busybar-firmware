@@ -208,23 +208,20 @@ static bool ble_command_disable_response(BleIntercomFrameGeneric* frame, void* c
     return true;
 }
 
-static bool ble_command_get_state_request(BleIntercomFrameGeneric* frame, void* context) {
-    BLE_LOG_D("BleCommandGetState request");
-    frame->header.command = BleCommandGetState;
+static bool ble_command_get_status_request(BleIntercomFrameGeneric* frame, void* context) {
+    BLE_LOG_D("BleCommandGetStatus request");
+    frame->header.command = BleCommandGetStatus;
     return ble_command_request_process(frame, context);
 }
 
-static bool ble_command_get_state_response(BleIntercomFrameGeneric* frame, void* context) {
-    BLE_LOG_D("BleCommandGetState response");
+static bool ble_command_get_status_response(BleIntercomFrameGeneric* frame, void* context) {
+    BLE_LOG_D("BleCommandGetStatus response");
     Ble* instance = context;
 
-    const BleIntercomResponse* response = (BleIntercomResponse*)frame->data;
-    ///TODO: create structure type for state response and use it instead of data[0]
-    const BleServiceState remote_state = response->data[0];
-
+    const BleStatus* response = (BleStatus*)frame->data;
     bool result = false;
     do {
-        if(!response->result) {
+        if(!frame->header.result) {
             instance->state = BleServiceStateError;
             BLE_LOG_W("Failed to get state from remote");
             break;
@@ -236,7 +233,7 @@ static bool ble_command_get_state_response(BleIntercomFrameGeneric* frame, void*
             break;
         }
 
-        if(remote_state == BleServiceStateError) {
+        if(response->state == BleServiceStateError) {
             instance->state = BleServiceStateError;
             BLE_LOG_W("Remote service error");
             break;
@@ -246,8 +243,8 @@ static bool ble_command_get_state_response(BleIntercomFrameGeneric* frame, void*
     } while(false);
 
     instance->current_message->result = result;
-    BleServiceState* state = (BleServiceState*)instance->current_message->data;
-    *state = instance->state;
+    memcpy(instance->current_message->data, response, sizeof(BleStatus));
+
     api_lock_unlock(instance->current_message_api_lock);
     return true;
 }
@@ -301,10 +298,10 @@ const BleCommandItem ble_commands[BleCommandCount] = {
             .request = ble_command_disable_request,
             .response = ble_command_disable_response,
         },
-    [BleCommandGetState] =
+    [BleCommandGetStatus] =
         {
-            .request = ble_command_get_state_request,
-            .response = ble_command_get_state_response,
+            .request = ble_command_get_status_request,
+            .response = ble_command_get_status_response,
         },
     [BleCommandForgetPairing] =
         {

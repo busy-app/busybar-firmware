@@ -88,26 +88,33 @@ static bool ble_command_disable_response(BleIntercomFrameGeneric* frame, void* c
     return true;
 }
 
-static bool ble_command_get_state_request(BleIntercomFrameGeneric* frame, void* context) {
-    BLE_LOG_D("BleCommandDisable request");
+static bool ble_command_get_status_request(BleIntercomFrameGeneric* frame, void* context) {
+    BLE_LOG_D("BleCommandGetStatus request");
     Ble* instance = context;
-    frame->header.source = BleIntercomFrameSourceSystem;
-    frame->header.frame_type = BleIntercomFrameTypeResponse;
 
-    size_t response_size = sizeof(BleIntercomResponse) + sizeof(BleServiceState);
+    size_t response_size = sizeof(BleStatus);
     frame->header.data_size = response_size;
-    BleIntercomResponse* response = (BleIntercomResponse*)frame->data;
+    frame->header.result = true;
 
-    response->result = true;
-    response->data[0] = instance->state;
+    BleStatus* response = (BleStatus*)frame->data;
+    response->state = instance->state;
+    if(instance->state != BleServiceStateReset) {
+        response->pairing = ble_worker_pairing_exists() ? BlePairingStatePaired :
+                                                          BlePairingStateNotPaired;
+    } else {
+        response->pairing = BlePairingStateUnkown;
+    }
+
+    memcpy(
+        response->remote_device_address, instance->remote_device_address, BLE_REMOTE_ADDRESS_SIZE);
 
     return ble_command_response_process(frame, context);
 }
 
-static bool ble_command_get_state_response(BleIntercomFrameGeneric* frame, void* context) {
+static bool ble_command_get_status_response(BleIntercomFrameGeneric* frame, void* context) {
     UNUSED(frame);
     UNUSED(context);
-    BLE_LOG_D("BleCommandDisable response");
+    BLE_LOG_D("BleCommandGetStatus response");
     return true;
 }
 
@@ -163,10 +170,10 @@ const BleCommandItem ble_commands[BleCommandCount] = {
             .request = ble_command_disable_request,
             .response = ble_command_disable_response,
         },
-    [BleCommandGetState] =
+    [BleCommandGetStatus] =
         {
-            .request = ble_command_get_state_request,
-            .response = ble_command_get_state_response,
+            .request = ble_command_get_status_request,
+            .response = ble_command_get_status_response,
         },
     [BleCommandForgetPairing] =
         {

@@ -37,9 +37,15 @@ typedef enum {
     BleUartChannelCount
 } BleUartChannel;
 
+typedef struct {
+    BleServiceState state;
+    BlePairingState pairing;
+    uint8_t remote_device_address[BLE_REMOTE_DEVICE_ADDRESS_SIZE];
+} BleStatus;
+
 typedef struct Ble Ble;
 
-BleServiceState ble_get_state(Ble* ble);
+bool ble_get_status(Ble* ble, BleStatus* const output);
 
 bool ble_start(Ble* ble);
 
