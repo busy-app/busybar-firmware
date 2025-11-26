@@ -49,7 +49,7 @@ static void ble_event_loop_msg_queue_handler(FuriEventLoopObject* object, void* 
         BLE_LOG_W("Unable to get message from queue!");
 }
 
-void ble_custom_event_callback(uint32_t events, void* context) {
+static void ble_custom_event_callback(uint32_t events, void* context) {
     Ble* instance = context;
 
     if(furi_mutex_acquire(instance->ble_lock, 100) == FuriStatusOk) {
