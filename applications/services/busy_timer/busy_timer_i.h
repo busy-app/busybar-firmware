@@ -58,6 +58,7 @@ struct BusyTimer {
     FuriThread* thread;
     FuriEventLoop* event_loop;
     FuriEventLoopTimer* poll_timer;
+    FuriEventLoopTimer* debounce_timer;
     FuriMessageQueue* message_queue;
     FuriPubSub* event_pubsub;
     void* callback_context;
@@ -68,5 +69,6 @@ struct BusyTimer {
     BusyTimerTime time;
     BusyTimerMode mode;
     BusyTimerState state;
+    BusyTimerSnapshot user_snapshot;
     bool timer_running;
 };
