@@ -165,9 +165,8 @@ static bool ble_command_enable_response(BleIntercomFrameGeneric* frame, void* co
     BLE_LOG_D("BleCommandEnable response");
     Ble* instance = context;
 
-    const BleIntercomResponse* response = (const BleIntercomResponse*)frame->data;
-    instance->current_message->result = response->result;
-    instance->state = response->result ? BleServiceStateAdvertising : BleServiceStateError;
+    instance->current_message->result = frame->header.result;
+    instance->state = frame->header.result ? BleServiceStateAdvertising : BleServiceStateError;
 
     api_lock_unlock(instance->current_message_api_lock);
     ble_http_repeater_start(instance);
@@ -187,7 +186,7 @@ static bool ble_command_disable_request(BleIntercomFrameGeneric* frame, void* co
         instance->current_message->result = true;
         api_lock_unlock(instance->current_message_api_lock);
     } else if(state == BleServiceStateError) {
-        BLE_LOG_W("No enable, error occured");
+        BLE_LOG_W("No disable, error occured");
 
         instance->current_message->result = false;
         api_lock_unlock(instance->current_message_api_lock);
@@ -201,9 +200,8 @@ static bool ble_command_disable_response(BleIntercomFrameGeneric* frame, void* c
     BLE_LOG_D("BleCommandDisable response");
     Ble* instance = context;
 
-    const BleIntercomResponse* response = (const BleIntercomResponse*)frame->data;
-    instance->current_message->result = response->result;
-    instance->state = response->result ? BleServiceStateReady : BleServiceStateError;
+    instance->current_message->result = frame->header.result;
+    instance->state = frame->header.result ? BleServiceStateReady : BleServiceStateError;
 
     api_lock_unlock(instance->current_message_api_lock);
     ble_http_repeater_stop();

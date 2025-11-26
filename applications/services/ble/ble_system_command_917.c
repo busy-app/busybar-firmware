@@ -55,10 +55,8 @@ static bool ble_command_enable_request(BleIntercomFrameGeneric* frame, void* con
     ble_worker_start();
 
     instance->state = BleServiceStateAdvertising;
-    frame->header.data_size = sizeof(BleIntercomResponse);
-    BleIntercomResponse* response = (BleIntercomResponse*)frame->data;
-    response->result = true;
-    response->data_size = 0;
+    frame->header.data_size = 0;
+    frame->header.result = true;
 
     return ble_command_response_process(frame, context);
 }
@@ -77,10 +75,8 @@ static bool ble_command_disable_request(BleIntercomFrameGeneric* frame, void* co
     ble_worker_stop();
 
     instance->state = BleServiceStateReady;
-    frame->header.data_size = sizeof(BleIntercomResponse);
-    BleIntercomResponse* response = (BleIntercomResponse*)frame->data;
-    response->result = true;
-    response->data_size = 0;
+    frame->header.data_size = 0;
+    frame->header.result = true;
 
     return ble_command_response_process(frame, context);
 }
