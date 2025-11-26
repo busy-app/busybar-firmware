@@ -45,12 +45,6 @@ void ble_service_prepare_send_intercom_frame(
     BleServiceObject* instance,
     BleIntercomFrameType frame_type,
     BleServiceCommandEnum command,
-    size_t data_size,
-    void* data);
-
-void ble_service_prepare_send_intercom_response_frame(
-    BleServiceObject* instance,
-    BleServiceCommandEnum command,
     bool result,
     size_t data_size,
     const void* data);

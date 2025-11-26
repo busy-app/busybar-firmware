@@ -26,8 +26,9 @@ static bool ble_service_target_init(BleServiceObject* instance, size_t data_size
 
     BLE_LOG_I("%s - %s", instance->config->name, instance->ready ? "Ready" : "Not ready");
 
-    ble_service_prepare_send_intercom_response_frame(
+    ble_service_prepare_send_intercom_frame(
         instance,
+        BleIntercomFrameTypeResponse,
         BleServiceCommandInit,
         instance->ready,
         furi_string_size(instance->error),
@@ -74,12 +75,14 @@ static bool ble_service_update_request(BleServiceObject* instance, size_t data_s
         result = true;
     } while(false);
 
-    ble_service_prepare_send_intercom_response_frame(
+    ble_service_prepare_send_intercom_frame(
         instance,
+        BleIntercomFrameTypeRequest,
         BleServiceCommandUpdate,
         result,
         furi_string_size(instance->error),
         furi_string_get_cstr(instance->error));
+
     return true;
 }
 
@@ -152,13 +155,18 @@ static bool ble_service_command_handler_run(
         }
 
         BLE_LOG_D("%s - config size: %d", instance->config->name, total_size);
+        result = true;
 
         ble_service_prepare_send_intercom_frame(
-            instance, BleIntercomFrameTypeRequest, BleServiceCommandUpdate, total_size, config);
+            instance,
+            BleIntercomFrameTypeRequest,
+            BleServiceCommandUpdate,
+            result,
+            total_size,
+            config);
 
         free(config);
 
-        result = true;
     } while(false);
     return result;
 }

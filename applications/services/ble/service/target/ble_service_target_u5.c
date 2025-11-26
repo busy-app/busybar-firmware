@@ -15,31 +15,29 @@ static bool ble_service_init_request(BleServiceObject* instance) {
 
         BLE_LOG_D("%s - config size: %d", instance->config->name, total_config_size);
 
+        result = true;
+
         ble_service_prepare_send_intercom_frame(
             instance,
             BleIntercomFrameTypeRequest,
             BleServiceCommandInit,
+            result,
             total_config_size,
             config);
 
         free(config);
-        result = true;
     }
 
     return result;
 }
 
 static bool ble_service_init_response(BleServiceObject* instance, size_t data_size, void* data) {
-    furi_assert(data_size > 0);
-    BleIntercomResponse* response = data;
+    UNUSED(data_size);
+    UNUSED(data);
 
-    instance->ready = response->result;
+    instance->ready = true;
 
-    if(!response->result) {
-        ble_service_set_error(instance, (const char*)response->data);
-    }
-
-    BLE_LOG_D("%s - %s", instance->config->name, instance->ready ? "Ready" : "Not ready");
+    BLE_LOG_D("%s - Ready", instance->config->name, "Ready");
     return instance->ready;
 }
 
@@ -70,7 +68,7 @@ static bool ble_service_update_request(BleServiceObject* instance, size_t data_s
 
     size_t total_size = sizeof(BleCharacteristicCountType);
     ble_service_prepare_send_intercom_frame(
-        instance, BleIntercomFrameTypeResponse, BleServiceCommandUpdate, total_size, data);
+        instance, BleIntercomFrameTypeResponse, BleServiceCommandUpdate, result, total_size, data);
 
     return result;
 }
@@ -126,13 +124,18 @@ static bool ble_service_command_handler_run(
             ble_service_create_intercom_service_data_pack(instance, false, &total_size);
 
         BLE_LOG_D("%s - config size: %d", instance->config->name, total_size);
+        result = true;
 
         ble_service_prepare_send_intercom_frame(
-            instance, BleIntercomFrameTypeRequest, BleServiceCommandUpdate, total_size, config);
+            instance,
+            BleIntercomFrameTypeRequest,
+            BleServiceCommandUpdate,
+            result,
+            total_size,
+            config);
 
         free(config);
 
-        result = true;
     } while(false);
     return result;
 }

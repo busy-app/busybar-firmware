@@ -48,6 +48,7 @@ static inline void ble_service_prepare_intercom_frame_header(
     BleIntercomFrameHeader* const header,
     BleIntercomFrameType frame_type,
     BleServiceCommandEnum command,
+    bool result,
     uint16_t service_index,
     size_t data_size) {
     header->source = BleIntercomFrameSourceService;
@@ -55,21 +56,23 @@ static inline void ble_service_prepare_intercom_frame_header(
     header->command = command;
     header->service_index = service_index;
     header->data_size = data_size;
+    header->result = result;
 }
 
 void ble_service_prepare_send_intercom_frame(
     BleServiceObject* instance,
     BleIntercomFrameType frame_type,
     BleServiceCommandEnum command,
+    bool result,
     size_t data_size,
-    void* data) {
+    const void* data) {
     size_t frame_size = data_size + sizeof(BleIntercomFrameHeader);
     ble_service_frame_buf_check_alloc(instance, frame_size);
 
     BleIntercomFrameGeneric* frame = (BleIntercomFrameGeneric*)instance->frame_buf;
 
     ble_service_prepare_intercom_frame_header(
-        &frame->header, frame_type, command, instance->config->index, data_size);
+        &frame->header, frame_type, command, result, instance->config->index, data_size);
 
     if(data_size && data) memcpy(frame->data, data, data_size);
 
@@ -80,38 +83,6 @@ void ble_service_prepare_send_intercom_frame(
         header->command,
         header->data_size,
         frame_size);
-
-    size_t tx = intercom_tx(
-        instance->intercom, IntercomChannelBle, instance->frame_buf, frame_size, FuriWaitForever);
-    furi_assert(tx == frame_size);
-}
-
-void ble_service_prepare_send_intercom_response_frame(
-    BleServiceObject* instance,
-    BleServiceCommandEnum command,
-    bool result,
-    size_t data_size,
-    const void* data) {
-    size_t response_size = sizeof(BleIntercomResponse) + data_size + 1;
-    size_t frame_size = sizeof(BleIntercomFrameHeader) + response_size;
-    ble_service_frame_buf_check_alloc(instance, frame_size);
-
-    BleIntercomFrameGeneric* frame = (BleIntercomFrameGeneric*)instance->frame_buf;
-    ble_service_prepare_intercom_frame_header(
-        &frame->header,
-        BleIntercomFrameTypeResponse,
-        command,
-        instance->config->index,
-        response_size);
-
-    BleIntercomResponse* response = (BleIntercomResponse*)frame->data;
-    response->result = result;
-    response->data_size = data_size;
-
-    if(data_size && data) {
-        memcpy(response->data, data, data_size);
-        response->data[data_size] = 0;
-    }
 
     size_t tx = intercom_tx(
         instance->intercom, IntercomChannelBle, instance->frame_buf, frame_size, FuriWaitForever);
@@ -151,13 +122,16 @@ static bool ble_service_process_input_frame(BleServiceObject* instance) {
 
     BleIntercomFrameGeneric* frame = (BleIntercomFrameGeneric*)instance->frame_buf;
 
-    bool result = ble_service_target_execute(
-        instance,
-        frame->header.frame_type,
-        frame->header.command,
-        frame->header.data_size,
-        frame->data);
+    const BleIntercomFrameHeader* hdr = &frame->header;
 
+    bool result = false;
+    if(hdr->result) {
+        result = ble_service_target_execute(
+            instance, hdr->frame_type, hdr->command, hdr->data_size, frame->data);
+    } else {
+        ble_service_set_error(
+            instance, "Error, frame_type: %d, cmd: %d,", hdr->frame_type, hdr->command);
+    }
     ble_service_unlock_input_frame(instance);
     return result;
 }
@@ -246,6 +220,7 @@ void ble_service_enqueue_init(BleServiceObject* instance) {
         frame->header.command = BleServiceCommandInit;
         frame->header.service_index = instance->config->index;
         frame->header.data_size = 0;
+        frame->header.result = true;
         BLE_LOG_I("%s - enqueue init", instance->config->name);
 
         ble_service_enqueue_message(instance);
