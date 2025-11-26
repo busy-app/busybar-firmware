@@ -5,6 +5,6 @@ App(
     entry_point="busy_timer_srv",
     cdefines=["SRV_BUSY_TIMER"],
     stack_size=2 * 1024,
-    targets=["f20", "f21"],
+    targets=["f20", "f21", "f22"],
     order=190,
 )
