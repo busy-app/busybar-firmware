@@ -21,8 +21,6 @@ typedef struct {
 
 #endif
 
-#define BLE_REMOTE_DEVICE_ADDRESS_SIZE (6)
-
 typedef enum {
     BleEventTypeIncomingMessage = (1 << 0),
     BleEventTypeFrameReceived = (1 << 1),

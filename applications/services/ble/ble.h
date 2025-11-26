@@ -8,6 +8,8 @@
  */
 #define RECORD_BLE "ble"
 
+#define BLE_REMOTE_DEVICE_ADDRESS_SIZE (6)
+
 typedef enum {
     BleServiceStateReset, /*Service was just created. Will move to BleServiceStateInitialization when it will create all inner objects*/
     BleServiceStateInitialization, /* Service performs initialization sequence for all inner ble services.
