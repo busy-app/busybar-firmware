@@ -2,6 +2,9 @@
 
 #include <furi_hal_rtc.h>
 
+#include <busy/busy.h>
+#include <desktop/desktop.h>
+
 #ifdef BUSY_TIMER_TICK_DEBUG
 #define TIME_MAX_LEN (14)
 #endif
@@ -73,6 +76,28 @@ static void busy_timer_log_time(BusyTimer* instance) {
     FURI_LOG_D(TAG, "Remaining: %s", buf);
 }
 #endif
+
+static void busy_timer_start_app(void) {
+    if(!furi_record_exists(RECORD_BUSY_APP)) {
+        Desktop* desktop = furi_record_open(RECORD_DESKTOP);
+        desktop_replace_current_app(desktop, "busy", NULL);
+        furi_record_close(RECORD_DESKTOP);
+    }
+
+    BusyApp* busy_app = furi_record_open(RECORD_BUSY_APP);
+    // TODO: Wait for the app to switch to the timer scene
+    UNUSED(busy_app);
+    furi_record_close(RECORD_BUSY_APP);
+}
+
+static void busy_timer_exit_app(void) {
+    if(furi_record_exists(RECORD_BUSY_APP)) {
+        BusyApp* busy_app = furi_record_open(RECORD_BUSY_APP);
+        // TODO: Tell the app to exit
+        UNUSED(busy_app);
+        furi_record_close(RECORD_BUSY_APP);
+    }
+}
 
 static void busy_timer_notify_tick(const BusyTimer* instance) {
 #ifdef BUSY_TIMER_TICK_DEBUG
@@ -386,8 +411,8 @@ static void busy_timer_apply_snapshot(BusyTimer* instance, const BusyTimerSnapsh
 
     if(type == BusyTimerSnapshotTypeNotStarted) {
         instance->state = BusyTimerStateIdle;
+        busy_timer_exit_app();
         return;
-        // TODO: Exit from timer/app
     }
 
     BusyTimerMode new_mode;
@@ -438,6 +463,8 @@ static void busy_timer_apply_snapshot(BusyTimer* instance, const BusyTimerSnapsh
     }
 
     instance->prev_tick_timestamp_ms = snapshot_timestamp_ms;
+
+    busy_timer_start_app();
 
     busy_timer_notify_mode_changed(instance);
     busy_timer_notify_state_changed(instance);
