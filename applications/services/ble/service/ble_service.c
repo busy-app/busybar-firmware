@@ -128,11 +128,15 @@ const char* ble_service_get_name(BleServiceObject* instance) {
     return instance->config->name;
 }
 
-void ble_service_set_error(BleServiceObject* instance, const char* error) {
+void ble_service_set_error(BleServiceObject* instance, const char* format, ...) {
     furi_assert(instance);
-    furi_assert(error);
+    furi_assert(format);
 
-    furi_string_set_str(instance->error, error);
+    va_list args;
+    va_start(args, format);
+    furi_string_vprintf(instance->error, format, args);
+    va_end(args);
+
     instance->ready = false;
 }
 

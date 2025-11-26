@@ -55,7 +55,7 @@ void ble_service_prepare_send_intercom_response_frame(
     size_t data_size,
     const void* data);
 
-void ble_service_set_error(BleServiceObject* instance, const char* error);
+void ble_service_set_error(BleServiceObject* instance, const char* foramt, ...);
 
 bool ble_service_lock(BleServiceObject* instance);
 void ble_service_unlock(BleServiceObject* instance);
