@@ -121,6 +121,14 @@ bool fetch_file_save_write(FetchFileSave* instance, uint8_t* data, size_t size) 
     return true;
 }
 
+void fetch_file_save_close(FetchFileSave* instance) {
+    furi_check(instance);
+
+    if(storage_file_is_open(instance->file_handle)) {
+        storage_file_close(instance->file_handle);
+    }
+}
+
 void fetch_file_save_remove(FetchFileSave* instance) {
     furi_check(instance);
     furi_check(instance->storage);
