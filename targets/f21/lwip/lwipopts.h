@@ -168,7 +168,6 @@
 #define LWIP_NETCONN_SEM_PER_THREAD        1
 #define LWIP_NETCONN_FULLDUPLEX            1
 #define LWIP_SOCKET                        1
-#define LWIP_TCP_KEEPALIVE                 1
 #define LWIP_SO_SNDTIMEO                   1
 #define LWIP_SO_RCVTIMEO                   1
 #define LWIP_SO_SNDRCVTIMEO_NONSTANDARD    0
@@ -182,6 +181,11 @@
 #define LWIP_SOCKET_SELECT                 1
 #define LWIP_SOCKET_POLL                   1
 #define LWIP_STATS                         1
+
+#define LWIP_TCP_KEEPALIVE    1
+#define TCP_KEEPIDLE_DEFAULT  600000UL // 10min
+#define TCP_KEEPINTVL_DEFAULT 60000UL
+#define TCP_KEEPCNT_DEFAULT   9U
 
 #define LWIP_STATS_DISPLAY                  0
 #define LINK_STATS                          1

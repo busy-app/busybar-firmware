@@ -5,6 +5,6 @@ App(
     entry_point="light_sensor_srv",
     stack_size=1024,
     order=90,
-    targets=["f20", "f21"],
+    targets=["f20", "f21", "f22"],
     cdefines=["SRV_LIGHT_SENSOR"],
 )

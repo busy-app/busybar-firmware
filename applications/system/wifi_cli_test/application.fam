@@ -1,8 +1,8 @@
 App(
     appid="wifi_cli_test",
     name="wifi_cli_test",
-    targets=["f64"],
+    targets=["f64", "f65"],
     apptype=FlipperAppType.CLICMD,
     entry_point="wifi_cli_test_command",
-    sources=["wifi_cli_test.c","wifi_cli_wifi_commands.c"],
+    sources=["wifi_cli_test.c", "wifi_cli_wifi_commands.c"],
 )

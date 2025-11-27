@@ -180,8 +180,8 @@ static bool api_display_draw_parse_element(
     canvas_element->display = GuiDisplayIdFront;
 
     do {
-        canvas_element->app_scoped_id = mg_json_get_str(element, "$.id");
-        if(!canvas_element->app_scoped_id) break;
+        canvas_element->id = mg_json_get_str(element, "$.id");
+        if(!canvas_element->id) break;
 
         int32_t temp_val = mg_json_get_long(element, "$.timeout", -1);
         canvas_element->timeout = (temp_val > 0) ? temp_val : 0;
