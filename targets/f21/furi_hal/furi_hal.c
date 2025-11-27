@@ -12,7 +12,6 @@ void furi_hal_init_early(void) {
     furi_hal_os_init();
     furi_hal_spi_config_init_early();
     furi_hal_i2c_init_early();
-    // furi_hal_light_init();
     furi_hal_rtc_init_early();
     furi_hal_nvm_init_early();
 }
@@ -20,7 +19,6 @@ void furi_hal_init_early(void) {
 void furi_hal_deinit_early(void) {
     furi_hal_rtc_deinit_early();
     furi_hal_i2c_deinit_early();
-    // furi_hal_spi_config_deinit_early();
     furi_hal_resources_deinit_early();
     furi_hal_dma_deinit_early();
     furi_hal_bus_deinit_early();
@@ -30,7 +28,6 @@ void furi_hal_deinit_early(void) {
 void furi_hal_init(void) {
     furi_hal_mpu_init();
     furi_hal_clock_init();
-    // furi_hal_psram_init();
     furi_hal_nvm_init();
     furi_hal_sdmmc_init(false);
     furi_hal_random_init();
@@ -38,27 +35,8 @@ void furi_hal_init(void) {
     furi_hal_rtc_init();
     furi_hal_interrupt_init();
     furi_hal_flash_init();
-    // furi_hal_resources_init();
-    // furi_hal_version_init();
-    // furi_hal_region_init();
     furi_hal_spi_config_init();
-    // furi_hal_spi_dma_init();
-    // furi_hal_ibutton_init();
-    // furi_hal_speaker_init();
-    // furi_hal_crypto_init();
     furi_hal_i2c_init();
-    // furi_hal_usb_pd_init();
-    // furi_hal_power_init();
-    // furi_hal_light_init();
-    // furi_hal_bt_init();
-    // furi_hal_memory_init();
     furi_hal_usb_init();
-    // furi_hal_vibro_init();
-    // furi_hal_subghz_init();
-    // furi_hal_nfc_init();
-    // furi_hal_rfid_init();
-    // furi_hal_gpu_init();
-    // furi_hal_button_init();
-    // furi_hal_dac_init();
     furi_hal_sai_init();
 }

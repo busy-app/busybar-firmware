@@ -1,7 +1,7 @@
 App(
     appid="fetch",
     name="fetch",
-    targets=["f20", "f21"],
+    targets=["f20", "f21", "f22"],
     apptype=FlipperAppType.CLICMD,
     entry_point="fetch_command",
     stack_size=1024 * 2,

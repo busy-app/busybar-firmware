@@ -137,7 +137,7 @@ bool device_name_set(DeviceName* instance, FuriString* name, FuriString* error) 
     return result;
 }
 
-FuriPubSub* device_name_get_on_change_pub_sub(DeviceName* instance) {
+FuriPubSub* device_name_get_pubsub(DeviceName* instance) {
     furi_assert(instance);
     return instance->on_change;
 }

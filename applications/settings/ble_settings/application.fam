@@ -6,5 +6,5 @@ App(
     requires=["gui", "front_display", "back_display", "status_lights"],
     stack_size=4 * 1024,
     order=0,
-    targets=["f20", "f21"],
+    targets=["f21", "f22"],
 )
