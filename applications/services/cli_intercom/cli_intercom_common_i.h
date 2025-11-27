@@ -45,6 +45,7 @@ static inline uint8_t
     cli_intercom_construct_status(CliIntercomMessageType msg_type, uint8_t length) {
     furi_assert(msg_type < CliIntercomMessageTypeMAX);
     furi_assert(length <= CLI_INTERCOM_MAX_PAYLOAD_LEN);
+
 #ifdef BSB_MCU_SI917
     furi_assert(msg_type != CliIntercomMessageTypeSpawn); // can't spawn a shell on u5
 #endif
@@ -57,7 +58,7 @@ static inline void
     *length = status & CLI_INTERCOM_MAX_PAYLOAD_LEN;
     if(*msg_type < CliIntercomMessageTypeStatusMAX) furi_assert(!*length);
 
-#ifdef BSB_MCU_SI917
+#ifdef BSB_MCU_U5
     furi_assert(*msg_type != CliIntercomMessageTypeSpawn); // can't spawn a shell on u5
 #endif
 }
