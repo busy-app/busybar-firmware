@@ -5,7 +5,7 @@ App(
     entry_point="demo_wifi_test_ap",
     stack_size=4 * 1024,
     order=100,
-    targets=["f64"],
+    targets=["f64", "f65"],
 )
 
 App(
@@ -15,5 +15,5 @@ App(
     entry_point="demo_wifi_test",
     stack_size=4 * 1024,
     order=100,
-    targets=["f64"],
+    targets=["f64", "f65"],
 )

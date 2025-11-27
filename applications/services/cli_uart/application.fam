@@ -5,5 +5,5 @@ App(
     entry_point="cli_uart_srv",
     cdefines=["SRV_CLI_UART"],
     stack_size=2 * 1024,
-    targets=["f64"],
+    targets=["f64", "f65"],
 )

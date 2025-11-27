@@ -5,5 +5,5 @@ App(
     entry_point="crash_test_app",
     requires=["gui"],
     stack_size=1 * 1024,
-    targets=["f20", "f21"],
+    targets=["f20", "f21", "f22"],
 )
