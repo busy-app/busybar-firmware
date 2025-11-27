@@ -53,6 +53,8 @@ bool ble_stop(Ble* ble);
 
 bool ble_forget(Ble* ble);
 
+FuriPubSub* ble_get_pubsub(Ble* ble);
+
 void ble_uart_set_rx_callback(
     Ble* ble,
     BleUartChannel channel,

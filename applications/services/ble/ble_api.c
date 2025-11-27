@@ -102,6 +102,11 @@ bool ble_forget(Ble* ble) {
     return result;
 }
 
+FuriPubSub* ble_get_pubsub(Ble* ble) {
+    furi_assert(ble);
+    return ble->on_status_change;
+}
+
 void ble_uart_tx_data(Ble* ble, BleUartChannel channel, const void* data, const size_t data_size) {
     furi_assert(ble);
     furi_assert(channel < BleUartChannelCount);
