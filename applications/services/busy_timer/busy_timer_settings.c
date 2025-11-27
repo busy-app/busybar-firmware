@@ -1,14 +1,14 @@
-#include "busy_settings.h"
+#include "busy_timer_settings.h"
 
 #include <storage/storage.h>
 
 #include <cjson/cJSON.h>
 
-#define TAG "BusySettings"
+#define TAG "BusyTimerSettings"
 
-#define BUSY_SETTINGS_FILE APP_DATA_PATH("settings.json")
+#define BUSY_TIMER_SETTINGS_FILE APP_DATA_PATH("settings.json")
 
-#define BUSY_SETTINGS_CURRENT_VERSION (0)
+#define BUSY_TIMER_SETTINGS_CURRENT_VERSION (0)
 
 #define VERSION_KEY "version"
 
@@ -26,7 +26,7 @@
 #define BUSY_TIMER_SIMPLE_MODE_KEY   "simple"
 #define BUSY_TIMER_INTERVAL_MODE_KEY "interval"
 
-static bool busy_settings_parse_timer_config(const cJSON* json, BusyTimerConfig* config) {
+static bool busy_timer_settings_parse_timer_config(const cJSON* json, BusyTimerConfig* config) {
     bool success = false;
 
     do {
@@ -109,7 +109,7 @@ static bool busy_settings_parse_timer_config(const cJSON* json, BusyTimerConfig*
     return success;
 }
 
-static bool busy_settings_parse(const cJSON* json, BusySettings* settings) {
+static bool busy_timer_settings_parse(const cJSON* json, BusyTimerSettings* settings) {
     bool success = false;
 
     do {
@@ -125,13 +125,13 @@ static bool busy_settings_parse(const cJSON* json, BusySettings* settings) {
             break;
         }
 
-        if(item->valueint != BUSY_SETTINGS_CURRENT_VERSION) {
+        if(item->valueint != BUSY_TIMER_SETTINGS_CURRENT_VERSION) {
             break;
         }
 
         item = cJSON_GetObjectItem(json, BUSY_TIMER_KEY);
 
-        if(!busy_settings_parse_timer_config(item, &settings->timer_config)) {
+        if(!busy_timer_settings_parse_timer_config(item, &settings->timer_config)) {
             break;
         }
 
@@ -142,7 +142,7 @@ static bool busy_settings_parse(const cJSON* json, BusySettings* settings) {
     return success;
 }
 
-bool busy_settings_load(BusySettings* settings) {
+bool busy_timer_settings_load(BusyTimerSettings* settings) {
     furi_check(settings);
 
     bool success = false;
@@ -151,7 +151,7 @@ bool busy_settings_load(BusySettings* settings) {
     File* file = storage_file_alloc(storage);
 
     do {
-        if(!storage_file_open(file, BUSY_SETTINGS_FILE, FSAM_READ, FSOM_OPEN_EXISTING)) {
+        if(!storage_file_open(file, BUSY_TIMER_SETTINGS_FILE, FSAM_READ, FSOM_OPEN_EXISTING)) {
             break;
         }
 
@@ -169,7 +169,7 @@ bool busy_settings_load(BusySettings* settings) {
 
         cJSON* root = cJSON_Parse(buffer);
 
-        success = busy_settings_parse(root, settings);
+        success = busy_timer_settings_parse(root, settings);
 
         cJSON_Delete(root);
         free(buffer);
@@ -182,7 +182,7 @@ bool busy_settings_load(BusySettings* settings) {
     return success;
 }
 
-static void busy_settings_serialize_timer_config(cJSON* json, const BusyTimerConfig* config) {
+static void busy_timer_settings_serialize_timer_config(cJSON* json, const BusyTimerConfig* config) {
     cJSON* timer_json = cJSON_AddObjectToObject(json, BUSY_TIMER_KEY);
 
     const char* mode_str;
@@ -206,7 +206,7 @@ static void busy_settings_serialize_timer_config(cJSON* json, const BusyTimerCon
     cJSON_AddBoolToObject(timer_json, BUSY_TIMER_ENABLE_DEMO_MODE_KEY, config->enable_demo_mode);
 }
 
-bool busy_settings_save(const BusySettings* settings) {
+bool busy_timer_settings_save(const BusyTimerSettings* settings) {
     furi_check(settings);
 
     bool success = false;
@@ -215,15 +215,15 @@ bool busy_settings_save(const BusySettings* settings) {
     File* file = storage_file_alloc(storage);
 
     do {
-        if(!storage_file_open(file, BUSY_SETTINGS_FILE, FSAM_WRITE, FSOM_CREATE_ALWAYS)) {
+        if(!storage_file_open(file, BUSY_TIMER_SETTINGS_FILE, FSAM_WRITE, FSOM_CREATE_ALWAYS)) {
             break;
         }
 
         cJSON* root = cJSON_CreateObject();
 
-        cJSON_AddNumberToObject(root, VERSION_KEY, BUSY_SETTINGS_CURRENT_VERSION);
+        cJSON_AddNumberToObject(root, VERSION_KEY, BUSY_TIMER_SETTINGS_CURRENT_VERSION);
 
-        busy_settings_serialize_timer_config(root, &settings->timer_config);
+        busy_timer_settings_serialize_timer_config(root, &settings->timer_config);
 
         char* buffer = cJSON_Print(root);
 

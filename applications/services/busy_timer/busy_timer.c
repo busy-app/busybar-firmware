@@ -482,6 +482,18 @@ static void busy_timer_schedule_notify_user_interacted(BusyTimer* instance) {
     furi_event_loop_timer_start(instance->debounce_timer, DEBOUNCE_TIMER_DELAY_MS);
 }
 
+static void busy_timer_load_settings(BusyTimer* instance) {
+    BusyTimerSettings settings;
+
+    if(!busy_timer_settings_load(&settings)) {
+        FURI_LOG_W(TAG, "Loading default settings");
+        settings.timer_config = busy_timer_config_default;
+        busy_timer_settings_save(&settings);
+    }
+
+    instance->config = settings.timer_config;
+}
+
 static void busy_timer_poll_timer_callback(void* context) {
     furi_assert(context);
     BusyTimer* instance = context;
@@ -566,11 +578,11 @@ static void
     busy_timer_set_config_message_handler(BusyTimer* instance, BusyTimerMessageData* data) {
     instance->config = *data->config_c;
 
-    const BusySettings settings = {
+    const BusyTimerSettings settings = {
         .timer_config = instance->config,
     };
 
-    busy_settings_save(&settings);
+    busy_timer_settings_save(&settings);
 }
 
 static void busy_timer_get_state_message_handler(BusyTimer* instance, BusyTimerMessageData* data) {
@@ -702,14 +714,7 @@ static BusyTimer* busy_timer_alloc(void) {
         busy_timer_message_queue_callback,
         instance);
 
-    BusySettings settings;
-    if(!busy_settings_load(&settings)) {
-        FURI_LOG_W(TAG, "Loading default settings");
-        settings.timer_config = busy_timer_config_default;
-        busy_settings_save(&settings);
-    }
-
-    instance->config = settings.timer_config;
+    busy_timer_load_settings(instance);
 
     furi_record_create(RECORD_BUSY_TIMER, instance);
 
