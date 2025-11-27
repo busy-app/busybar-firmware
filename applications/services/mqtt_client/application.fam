@@ -6,5 +6,5 @@ App(
     stack_size=8 * 1024,
     order=160,
     requires=["web_server"],
-    targets=["f20", "f21"],
+    targets=["f20", "f21", "f22"],
 )

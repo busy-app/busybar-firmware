@@ -6,5 +6,5 @@ App(
     requires=["gui", "audio"],
     stack_size=4 * 1024,
     order=2,
-    targets=["f20", "f21"],
+    targets=["f20", "f21", "f22"],
 )
