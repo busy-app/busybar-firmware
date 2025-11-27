@@ -9,10 +9,8 @@ BleIntercomFrameGeneric* ble_command_preprocess(Ble* instance, uint32_t events) 
     return (BleIntercomFrameGeneric*)&instance->mailbox;
 }
 
-static void ble_connection_changed_callback(
-    void* ctx,
-    bool connected,
-    const uint8_t remote_dev_address[BLE_REMOTE_ADDRESS_SIZE]) {
+static void
+    ble_connection_changed_callback(void* ctx, bool connected, const uint8_t* remote_dev_address) {
     BLE_LOG_D("ble_connection_changed_callback");
     Ble* instance = ctx;
 
@@ -20,15 +18,21 @@ static void ble_connection_changed_callback(
     furi_semaphore_acquire(instance->mailbox_lock, FuriWaitForever);
 
     instance->state = connected ? BleServiceStateConnected : BleServiceStateAdvertising;
+
+    BleStatus status = {
+        .state = instance->state,
+        .pairing = ble_worker_pairing_exists() ? BlePairingStatePaired : BlePairingStateNotPaired,
+    };
+    memcpy(
+        status.remote_device_address, remote_dev_address, BLE_REMOTE_DEVICE_ADDRESS_STRING_SIZE);
+    memcpy(instance->remote_device_address, remote_dev_address, BLE_REMOTE_ADDRESS_STRING_SIZE);
+
     BleIntercomFrameGeneric* frame = &instance->mailbox;
     frame->header.frame_type = BleIntercomFrameTypeRequest;
-    frame->header.command = BleCommandConnectionUpdated;
+    frame->header.command = BleCommandSetStatus;
     frame->header.source = BleIntercomFrameSourceSystem;
-    frame->header.data_size = sizeof(connected) + BLE_REMOTE_ADDRESS_SIZE;
-    frame->data[0] = connected;
-
-    memcpy(instance->remote_device_address, remote_dev_address, BLE_REMOTE_ADDRESS_SIZE);
-    memcpy(&frame->data[1], remote_dev_address, BLE_REMOTE_ADDRESS_SIZE);
+    frame->header.data_size = sizeof(BleStatus);
+    frame->header.result = true;
 
     ble_command_request_process(frame, instance);
     furi_semaphore_release(instance->mailbox_lock);
@@ -106,7 +110,9 @@ static bool ble_command_get_status_request(BleIntercomFrameGeneric* frame, void*
     }
 
     memcpy(
-        response->remote_device_address, instance->remote_device_address, BLE_REMOTE_ADDRESS_SIZE);
+        response->remote_device_address,
+        instance->remote_device_address,
+        BLE_REMOTE_ADDRESS_STRING_SIZE);
 
     return ble_command_response_process(frame, context);
 }

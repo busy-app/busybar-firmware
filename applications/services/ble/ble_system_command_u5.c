@@ -246,6 +246,45 @@ static bool ble_command_get_status_response(BleIntercomFrameGeneric* frame, void
     return true;
 }
 
+static bool ble_command_set_status_request(BleIntercomFrameGeneric* frame, void* context) {
+    BLE_LOG_D("ble_command_set_status_request");
+
+    Ble* instance = context;
+
+    const BleStatus* response = (BleStatus*)frame->data;
+    bool result = false;
+    do {
+        if(!frame->header.result) {
+            instance->state = BleServiceStateError;
+            BLE_LOG_W("Failed to get state from remote");
+            break;
+        }
+
+        if(instance->state == BleServiceStateError) {
+            instance->state = BleServiceStateError;
+            BLE_LOG_W("Local service error");
+            break;
+        }
+
+        if(response->state == BleServiceStateError) {
+            instance->state = BleServiceStateError;
+            BLE_LOG_W("Remote service error");
+            break;
+        }
+
+        result = true;
+    } while(false);
+
+    memcpy(
+        instance->remote_device_address,
+        response->remote_device_address,
+        BLE_REMOTE_DEVICE_ADDRESS_STRING_SIZE);
+
+    // furi_pubsub_publish(instance->pubsub, void *message)
+
+    return result;
+}
+
 static bool ble_command_forget_pairing_request(BleIntercomFrameGeneric* frame, void* context) {
     BLE_LOG_D("BleCommandForgetPairing request");
     frame->header.command = BleCommandForgetPairing;
@@ -258,19 +297,6 @@ static bool ble_command_forget_pairing_response(BleIntercomFrameGeneric* frame, 
 
     instance->current_message->result = frame->data[0];
     api_lock_unlock(instance->current_message_api_lock);
-    return true;
-}
-
-static bool ble_command_connection_updated_request(BleIntercomFrameGeneric* frame, void* context) {
-    BLE_LOG_D("ble_command_connection_updated_request");
-
-    Ble* instance = context;
-
-    const bool connected = frame->data[0];
-    const uint8_t* addr = &frame->data[1];
-    instance->state = connected ? BleServiceStateConnected : BleServiceStateAdvertising;
-    memcpy(instance->remote_device_address, addr, BLE_REMOTE_DEVICE_ADDRESS_SIZE);
-
     return true;
 }
 
@@ -300,6 +326,10 @@ const BleCommandItem ble_commands[BleCommandCount] = {
             .request = ble_command_get_status_request,
             .response = ble_command_get_status_response,
         },
+    [BleCommandSetStatus] =
+        {
+            .request = ble_command_set_status_request,
+        },
     [BleCommandForgetPairing] =
         {
             .request = ble_command_forget_pairing_request,
@@ -309,10 +339,6 @@ const BleCommandItem ble_commands[BleCommandCount] = {
         {
             .request = ble_command_set_device_name_request,
             .response = ble_command_set_device_name_response,
-        },
-    [BleCommandConnectionUpdated] =
-        {
-            .request = ble_command_connection_updated_request,
         },
 };
 
