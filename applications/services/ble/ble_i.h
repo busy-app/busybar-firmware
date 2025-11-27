@@ -44,7 +44,7 @@ struct Ble {
     FuriString* error;
 
     BleServiceObject* services[BLE_SERVICES_COUNT];
-    uint8_t remote_device_address[BLE_REMOTE_DEVICE_ADDRESS_SIZE];
+    uint8_t remote_device_address[BLE_REMOTE_DEVICE_ADDRESS_STRING_SIZE];
 #if !defined(SI917)
     FuriApiLock current_message_api_lock;
     FuriMutex* current_message_lock;

@@ -1,12 +1,10 @@
 #pragma once
 #include "../service/ble_service.h"
 
-#define BLE_REMOTE_ADDRESS_SIZE (6)
+#define BLE_REMOTE_ADDRESS_STRING_SIZE (18)
 
-typedef void (*BleConnectionStateChanged)(
-    void* context,
-    bool conntected,
-    const uint8_t remote_dev_address[BLE_REMOTE_ADDRESS_SIZE]);
+typedef void (
+    *BleConnectionStateChanged)(void* context, bool conntected, const uint8_t* remote_dev_address);
 
 void ble_worker_init(BleConnectionStateChanged connect_callback, void* ctx);
 

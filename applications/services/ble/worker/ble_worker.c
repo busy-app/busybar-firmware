@@ -622,7 +622,7 @@ static int32_t ble_worker_thread_callback(void* context) {
             ble_worker_instance->on_connection_changed_cb(
                 ble_worker_instance->on_connection_changed_ctx,
                 ble_worker_instance->connected,
-                ble_worker_instance->remote_dev_address);
+                ble_worker_instance->str_remote_address);
         }
 
         if(events & BLEWorkerEvtDisconnected) {
@@ -658,11 +658,11 @@ static int32_t ble_worker_thread_callback(void* context) {
                                   BleWorkerStateAdvertising :
                                   BleWorkerStateError;
 
-            memset(ble_worker_instance->remote_dev_address, 0, BLE_REMOTE_ADDRESS_SIZE);
+            memset(ble_worker_instance->str_remote_address, 0, BLE_REMOTE_ADDRESS_STRING_SIZE);
             ble_worker_instance->on_connection_changed_cb(
                 ble_worker_instance->on_connection_changed_ctx,
                 ble_worker_instance->connected,
-                ble_worker_instance->remote_dev_address);
+                ble_worker_instance->str_remote_address);
         }
 
         if(events & BLEWorkerEvtReceveRemoteFeatures) {

@@ -8,7 +8,7 @@
  */
 #define RECORD_BLE "ble"
 
-#define BLE_REMOTE_DEVICE_ADDRESS_SIZE (6)
+#define BLE_REMOTE_DEVICE_ADDRESS_STRING_SIZE (18)
 
 typedef enum {
     BleServiceStateReset, /*Service was just created. Will move to BleServiceStateInitialization when it will create all inner objects*/
@@ -40,7 +40,7 @@ typedef enum {
 typedef struct {
     BleServiceState state;
     BlePairingState pairing;
-    uint8_t remote_device_address[BLE_REMOTE_DEVICE_ADDRESS_SIZE];
+    uint8_t remote_device_address[BLE_REMOTE_DEVICE_ADDRESS_STRING_SIZE];
 } BleStatus;
 
 typedef struct Ble Ble;
