@@ -56,7 +56,8 @@
             "16000000U"
         ],
         "USE_FULL_LL_DRIVER",
-        "_GNU_SOURCE"
+        "_GNU_SOURCE",
+        "BSB_MCU_U5"
     ],
     "include_paths": [
         "src",

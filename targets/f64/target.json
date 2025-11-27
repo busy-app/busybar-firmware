@@ -50,7 +50,8 @@
         "-Map=${TARGET}.map"
     ],
     "defines": [
-        "_GNU_SOURCE"
+        "_GNU_SOURCE",
+        "BSB_MCU_SI917"
     ],
     "include_paths": [
         "config",
@@ -90,7 +91,7 @@
         "version",
         "toolbox_f64",
         "formatters",
-        "firmware_applications_sil",
+        "firmware_applications_si917",
         "containers",
         "cli"
     ],
