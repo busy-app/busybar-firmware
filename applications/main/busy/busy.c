@@ -44,19 +44,7 @@ static void busy_api_queue_callback(FuriEventLoopObject* object, void* context) 
         if(type == BusyApiMessageTypeShowTimer) {
             if(scene_manager_get_current_scene_id(instance->scene_manager) !=
                BusyAppSceneIdTimer) {
-                // TODO: Move this code to separate scene
-                with_gui(instance->gui, {
-                    widget_set_visible(nav_bar_get_base(instance->nav_bar), false);
-                    widget_set_visible(timer_card_get_base(instance->timer_card), true);
-
-                    timer_card_show_header(instance->timer_card, false);
-                    timer_card_show_time(instance->timer_card, false);
-                });
-
-                instance->skip_timer_start = true;
-
-                busy_prepare_transition(instance, BusyTransitionTypeAutomatic);
-                scene_manager_next_scene(instance->scene_manager, BusyAppSceneIdTimer);
+                scene_manager_next_scene(instance->scene_manager, BusyAppSceneIdShowTimer);
             }
 
         } else {

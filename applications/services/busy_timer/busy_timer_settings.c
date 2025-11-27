@@ -182,7 +182,8 @@ bool busy_timer_settings_load(BusyTimerSettings* settings) {
     return success;
 }
 
-static void busy_timer_settings_serialize_timer_config(cJSON* json, const BusyTimerConfig* config) {
+static void
+    busy_timer_settings_serialize_timer_config(cJSON* json, const BusyTimerConfig* config) {
     cJSON* timer_json = cJSON_AddObjectToObject(json, BUSY_TIMER_KEY);
 
     const char* mode_str;
