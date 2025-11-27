@@ -5,7 +5,7 @@ App(
     entry_point="matter_srv",
     stack_size=8 * 1024,
     order=200,
-    targets=["f64"],
+    targets=["f64", "f65"],
     requires=[
         "intercom",
         "wifi",
@@ -23,7 +23,7 @@ App(
     entry_point="matter_srv",
     stack_size=4 * 1024,
     order=250,
-    targets=["f20", "f21"],
+    targets=["f20", "f21", "f22"],
     requires=["intercom"],
     provides=["matter_cli"],
     sources=[
@@ -37,7 +37,7 @@ App(
     apptype=FlipperAppType.CLICMD,
     entry_point="matter_cli_command",
     stack_size=2 * 1024,
-    targets=["f20", "f21"],
+    targets=["f20", "f21", "f22"],
     requires=["matter"],
     sources=[
         "matter_cli.c",

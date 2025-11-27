@@ -4,5 +4,5 @@ App(
     entry_point="cli_socket_on_system_start",
     cdefines=["SRV_CLI_SOCKET"],
     order=40,
-    targets=["f20", "f21"],
+    targets=["f20", "f21", "f22"],
 )

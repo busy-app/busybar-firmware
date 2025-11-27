@@ -90,7 +90,7 @@
         "version",
         "toolbox_f64",
         "formatters",
-        "firmware_applications_f64",
+        "firmware_applications_sil",
         "containers",
         "cli"
     ],

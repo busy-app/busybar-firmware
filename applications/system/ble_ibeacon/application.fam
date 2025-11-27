@@ -1,7 +1,7 @@
 App(
     appid="ble_ibeacon",
     name="ble_ibeacon",
-    targets=["f64"],
+    targets=["f64", "f65"],
     apptype=FlipperAppType.CLICMD,
     entry_point="ble_ibeacon_command",
 )

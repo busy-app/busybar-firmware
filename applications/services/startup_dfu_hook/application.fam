@@ -3,7 +3,7 @@ App(
     apptype=FlipperAppType.STARTUP,
     entry_point="startup_dfu_hook_on_system_start",
     order=5,
-    targets=["f64"],
+    targets=["f64", "f65"],
     requires=["status_lights", "input", "intercom"],
     sources=["startup_dfu_hook_f64.c"],
 )
