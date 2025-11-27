@@ -10,7 +10,6 @@
 #include <toolbox/api_lock.h>
 #include <toolbox/path.h>
 #include <toolbox/tar/tar_archive.h>
-#include <toolbox/update_lib/common_vals.h>
 
 #define TAG "Updater"
 
@@ -18,10 +17,6 @@
 
 #define UPDATE_START_MIN_BATTERY_CHARGE 40
 #define UPDATE_REBOOT_INSTALL_DELAY     100
-
-#define DEFAULT_DOWNLOAD_PATH EXT_PATH("update/bundle.tar")
-#define DEFAULT_STAGING_PATH  EXT_PATH("update/staging")
-#define DEFAULT_MANIFEST_PATH DEFAULT_STAGING_PATH "/" UPDATE_CONFIG_FILENAME
 
 struct Updater {
     FuriEventLoop* event_loop;
@@ -472,7 +467,7 @@ UpdaterStatus
         .as_download =
             {
                 .url = furi_string_alloc_set_str(url),
-                .path = furi_string_alloc_set_str((path) ?: DEFAULT_DOWNLOAD_PATH),
+                .path = furi_string_alloc_set_str((path) ?: UPDATER_DEFAULT_DOWNLOAD_PATH),
             },
         .type = MessageTypeDownload,
     };
@@ -504,8 +499,9 @@ UpdaterStatus updater_unpack(
     UpdaterMessage message = {
         .as_unpack =
             {
-                .tar_path = furi_string_alloc_set_str((tar_path) ?: DEFAULT_DOWNLOAD_PATH),
-                .staging_path = furi_string_alloc_set_str((staging_path) ?: DEFAULT_STAGING_PATH),
+                .tar_path = furi_string_alloc_set_str((tar_path) ?: UPDATER_DEFAULT_DOWNLOAD_PATH),
+                .staging_path =
+                    furi_string_alloc_set_str((staging_path) ?: UPDATER_DEFAULT_STAGING_PATH),
                 .manifest_path = manifest_path,
             },
         .type = MessageTypeUnpack,
@@ -522,7 +518,7 @@ UpdaterStatus updater_prepare_install(Updater* instance, const char* manifest_pa
         .as_prepare_install =
             {
                 .manifest_path =
-                    furi_string_alloc_set_str((manifest_path) ?: DEFAULT_MANIFEST_PATH),
+                    furi_string_alloc_set_str((manifest_path) ?: UPDATER_DEFAULT_MANIFEST_PATH),
             },
         .type = MessageTypePrepareInstall,
     };

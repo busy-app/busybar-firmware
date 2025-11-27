@@ -9,8 +9,6 @@
 #include <toolbox/sha256_calc.h>
 #include <settings_helpers/gui_params.h>
 
-#define SETTINGS_DOWNLOAD_PATH EXT_PATH("update/bundle.tar")
-
 typedef enum {
     SceneEventBackPressed = AppEventSceneEventsStart,
     SceneEventUpdateStatus,
@@ -104,11 +102,7 @@ static void scene_main_start_download(FwUpdate* instance) {
 
         data->update_in_progress = true;
 
-        updater_download(
-            data->updater,
-            furi_string_get_cstr(data->fw_info.fw_url),
-            SETTINGS_DOWNLOAD_PATH,
-            false);
+        updater_download(data->updater, furi_string_get_cstr(data->fw_info.fw_url), NULL, false);
     } while(false);
 }
 
@@ -260,7 +254,7 @@ static void scene_main_check_sha256(void* context) {
         File* file = storage_file_alloc(storage);
         bool is_ok = false;
 
-        sha256_string_calc_file(file, SETTINGS_DOWNLOAD_PATH, sha256_calc, &file_error);
+        sha256_string_calc_file(file, UPDATER_DEFAULT_DOWNLOAD_PATH, sha256_calc, &file_error);
 
         storage_file_free(file);
         furi_record_close(RECORD_STORAGE);
@@ -290,8 +284,6 @@ static void scene_main_install(void* context) {
         scene_manager_get_scene_data(instance->scene_manager, SceneIdMain);
     furi_assert(data);
 
-    FuriString* manifest_path = furi_string_alloc();
-
     bool update_started = false;
 
     do {
@@ -303,14 +295,12 @@ static void scene_main_install(void* context) {
             update_started = true;
         }
 
-        UpdaterStatus unpack_tar_status =
-            updater_unpack(data->updater, SETTINGS_DOWNLOAD_PATH, NULL, manifest_path, true);
+        UpdaterStatus unpack_tar_status = updater_unpack(data->updater, NULL, NULL, NULL, true);
         if(unpack_tar_status != UpdaterStatusOk) {
             break;
         }
 
-        UpdaterStatus prepare_install_status =
-            updater_prepare_install(data->updater, furi_string_get_cstr(manifest_path), true);
+        UpdaterStatus prepare_install_status = updater_prepare_install(data->updater, NULL, true);
         if(prepare_install_status != UpdaterStatusOk) {
             break;
         }
@@ -321,8 +311,6 @@ static void scene_main_install(void* context) {
     if(update_started && !data->update_in_progress) {
         updater_stop_update(data->updater);
     }
-
-    furi_string_free(manifest_path);
 }
 
 static void scene_main_on_enter(void* context) {
