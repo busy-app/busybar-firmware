@@ -77,7 +77,7 @@ static bool ble_service_update_request(BleServiceObject* instance, size_t data_s
 
     ble_service_prepare_send_intercom_frame(
         instance,
-        BleIntercomFrameTypeRequest,
+        BleIntercomFrameTypeResponse,
         BleServiceCommandUpdate,
         result,
         furi_string_size(instance->error),
