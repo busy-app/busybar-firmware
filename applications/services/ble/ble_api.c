@@ -7,10 +7,8 @@
 static void ble_send_message(
     Ble* instance,
     const BleSystemCommand command,
-    const void* data,
-    const size_t data_size,
-    void* const output,
-    const size_t max_output_size,
+    void* data,
+    size_t data_size,
     bool* result) {
     furi_mutex_acquire(instance->current_message_lock, FuriWaitForever);
     api_lock_relock(instance->current_message_api_lock);
@@ -36,8 +34,8 @@ static void ble_send_message(
     api_lock_wait_unlock(instance->current_message_api_lock);
 
     *result = instance->current_message->result;
-    if(output && max_output_size > 0) {
-        memcpy(output, instance->current_message->data, max_output_size);
+    if(data && data_size > 0) {
+        memcpy(data, instance->current_message->data, data_size);
     }
     memset(instance->current_message, 0, instance->current_message_size);
     furi_mutex_release(instance->current_message_lock);
@@ -46,10 +44,8 @@ static void ble_send_message(
 bool ble_init(Ble* ble) {
     furi_assert(ble);
 
-    // BleServiceState state = ble_get_state(ble);
-
     bool result = false;
-    ble_send_message(ble, BleCommandInit, NULL, 0, NULL, 0, &result);
+    ble_send_message(ble, BleCommandInit, NULL, 0, &result);
 
     return result;
 }
@@ -59,7 +55,7 @@ bool ble_get_status(Ble* ble, BleStatus* const output) {
     furi_assert(output);
 
     bool result = false;
-    ble_send_message(ble, BleCommandGetStatus, NULL, 0, output, sizeof(BleStatus), &result);
+    ble_send_message(ble, BleCommandGetStatus, output, sizeof(BleStatus), &result);
 
     return result;
 }
@@ -71,7 +67,7 @@ bool ble_start(Ble* ble) {
     do {
         if(!ble_init(ble)) break;
 
-        ble_send_message(ble, BleCommandEnable, NULL, 0, NULL, 0, &result);
+        ble_send_message(ble, BleCommandEnable, NULL, 0, &result);
     } while(false);
 
     return result;
@@ -84,7 +80,7 @@ bool ble_stop(Ble* ble) {
     do {
         if(!ble_init(ble)) break;
 
-        ble_send_message(ble, BleCommandDisable, NULL, 0, NULL, 0, &result);
+        ble_send_message(ble, BleCommandDisable, NULL, 0, &result);
     } while(false);
 
     return result;
@@ -99,7 +95,7 @@ bool ble_forget(Ble* ble) {
         if(!ble_get_status(ble, &status)) break;
 
         if(status.state != BleServiceStateError && status.state != BleServiceStateReset) {
-            ble_send_message(ble, BleCommandForgetPairing, NULL, 0, NULL, 0, &result);
+            ble_send_message(ble, BleCommandForgetPairing, NULL, 0, &result);
         }
     } while(false);
 
