@@ -3,6 +3,7 @@
 #include "busy_timer.h"
 #include "busy_timer_settings.h"
 
+#include <sntp/sntp.h>
 #include <toolbox/api_lock.h>
 
 #define TAG "BusyTimer"
@@ -62,6 +63,7 @@ struct BusyTimer {
     FuriEventLoopTimer* debounce_timer;
     FuriMessageQueue* message_queue;
     FuriPubSub* event_pubsub;
+    Sntp* sntp;
     void* callback_context;
     uint64_t prev_tick_timestamp_ms;
     uint32_t cycles_done;

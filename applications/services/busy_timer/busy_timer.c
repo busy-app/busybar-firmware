@@ -1,7 +1,5 @@
 #include "busy_timer_i.h"
 
-#include <furi_hal_rtc.h>
-
 #include <busy/busy.h>
 #include <loader/loader.h>
 #include <desktop/desktop.h>
@@ -12,8 +10,6 @@
 
 #define POLL_TIMER_PERIOD_MS    (S_TO_MS(1) / 30)
 #define DEBOUNCE_TIMER_DELAY_MS (S_TO_MS(1))
-// TODO: [FW-468] Add milliseconds support to RTC
-#define TIMESTAMP_NOW_MS()      S_TO_MS((uint64_t)furi_hal_rtc_get_timestamp())
 
 #define DEFAULT_CARD_ID "00000000-0000-0000-0000-000000000000"
 
@@ -262,7 +258,7 @@ static void busy_timer_start_timer(BusyTimer* instance) {
         furi_event_loop_timer_start(instance->poll_timer, POLL_TIMER_PERIOD_MS);
     }
 
-    instance->prev_tick_timestamp_ms = TIMESTAMP_NOW_MS();
+    instance->prev_tick_timestamp_ms = sntp_get_utc_timestamp_ms(instance->sntp);
     instance->timer_running = true;
 }
 
@@ -355,7 +351,7 @@ static uint32_t busy_timer_get_interval_index(const BusyTimer* instance) {
 }
 
 static void busy_timer_make_snapshot(BusyTimer* instance, BusyTimerSnapshot* snapshot) {
-    snapshot->timestamp_ms = TIMESTAMP_NOW_MS();
+    snapshot->timestamp_ms = sntp_get_utc_timestamp_ms(instance->sntp);
 
     if(instance->state != BusyTimerStateIdle) {
         BusyTimerSnapshotCommon* common = &snapshot->common;
@@ -497,7 +493,7 @@ static void busy_timer_load_settings(BusyTimer* instance) {
 static void busy_timer_poll_timer_callback(void* context) {
     furi_assert(context);
     BusyTimer* instance = context;
-    busy_timer_update(instance, TIMESTAMP_NOW_MS());
+    busy_timer_update(instance, sntp_get_utc_timestamp_ms(instance->sntp));
 }
 
 static void busy_timer_debounce_timer_callback(void* context) {
@@ -706,6 +702,7 @@ static BusyTimer* busy_timer_alloc(void) {
         instance);
     instance->message_queue = furi_message_queue_alloc(1, sizeof(BusyTimerMessage));
     instance->event_pubsub = furi_pubsub_alloc();
+    instance->sntp = furi_record_open(RECORD_SNTP);
 
     furi_event_loop_subscribe_message_queue(
         instance->event_loop,
