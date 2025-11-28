@@ -1,7 +1,7 @@
 #include "ble_i.h"
 #include "ble_system_command.h"
 
-#if !defined(SI917)
+#if !defined(BSB_MCU_SI917)
 #include "http/ble_http_repeater.h"
 #endif
 
@@ -12,7 +12,7 @@ static void
     UNUSED(instance);
     UNUSED(service);
     UNUSED(result);
-#if !defined(SI917)
+#if !defined(BSB_MCU_SI917)
     if(!result && !ble_service_is_ready(service)) {
         FuriString* buf = furi_string_alloc();
         ble_service_get_error(service, buf);
@@ -123,7 +123,7 @@ static Ble* ble_alloc() {
     }
 
     instance->error = furi_string_alloc();
-#if !defined(SI917)
+#if !defined(BSB_MCU_SI917)
     ble_http_repeater_init();
 
     instance->on_status_change = furi_pubsub_alloc();

@@ -28,7 +28,7 @@ struct BleServiceObject {
     FuriString* error;
 
     void* context;
-#if defined(SI917)
+#if defined(BSB_MCU_SI917)
     void* service_handler;
     uint16_t handle;
 #endif

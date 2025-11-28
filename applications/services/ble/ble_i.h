@@ -9,7 +9,7 @@
 #include <intercom/intercom.h>
 #include <furi.h>
 
-#if !defined(SI917)
+#if !defined(BSB_MCU_SI917)
 
 #include <api_lock.h>
 
@@ -44,7 +44,7 @@ struct Ble {
 
     BleServiceObject* services[BLE_SERVICES_COUNT];
     uint8_t remote_device_address[BLE_REMOTE_DEVICE_ADDRESS_STRING_SIZE];
-#if !defined(SI917)
+#if !defined(BSB_MCU_SI917)
     FuriPubSub* on_status_change;
     FuriApiLock current_command_api_lock;
     FuriMutex* current_command_lock;
@@ -57,6 +57,6 @@ struct Ble {
 
 bool ble_init(Ble* ble);
 
-#if !defined(SI917)
+#if !defined(BSB_MCU_SI917)
 void ble_set_service_post_process_callback(Ble* ble, BleServicePostProcessCallback callback);
 #endif
