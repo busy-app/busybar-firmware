@@ -97,3 +97,10 @@ bool ble_security_rpa_enable(BleSecurityData* security);
  * @return True if success, otherwise false
  */
 bool ble_security_rpa_disable();
+
+/**
+ * @brief Check if RPA key exists or not
+ * 
+ * @return True if exists, otherwise false
+ */
+bool ble_security_rpa_present(BleSecurityData* security);

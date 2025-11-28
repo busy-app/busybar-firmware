@@ -1,6 +1,6 @@
-#include "../update_app_i.h"
-#include "../storage_macros.h"
-#include "updater_scenes.h"
+#include "../update_executor_i.h"
+#include "../../storage_macros.h"
+#include "scenes.h"
 
 #include <gui/modules/flex_layout.h>
 #include <gui/modules/anim_image.h>
@@ -11,14 +11,14 @@
 typedef struct {
     FlexLayout* back_flex;
     FlexLayout* front_flex;
-} UpdaterSceneSuccess;
+} SuccessScene;
 
-static void updater_scene_success_on_enter(void* context) {
+static void success_scene_on_enter(void* context) {
     furi_assert(context);
 
-    UpdaterApp* instance = context;
-    UpdaterSceneSuccess* data =
-        scene_manager_get_scene_data(instance->scene_manager, UpdaterAppSceneIdSuccess);
+    UpdateExecutor* instance = context;
+    SuccessScene* data =
+        scene_manager_get_scene_data(instance->scene_manager, UpdateExecutorSceneIdSuccess);
 
     with_gui(instance->gui, {
         /* back ui */
@@ -58,12 +58,12 @@ static void updater_scene_success_on_enter(void* context) {
     });
 }
 
-static void updater_scene_success_on_exit(void* context) {
+static void success_scene_on_exit(void* context) {
     furi_assert(context);
 
-    UpdaterApp* instance = context;
-    UpdaterSceneSuccess* data =
-        scene_manager_get_scene_data(instance->scene_manager, UpdaterAppSceneIdSuccess);
+    UpdateExecutor* instance = context;
+    SuccessScene* data =
+        scene_manager_get_scene_data(instance->scene_manager, UpdateExecutorSceneIdSuccess);
 
     with_gui(instance->gui, {
         flex_layout_free(data->back_flex);
@@ -71,7 +71,7 @@ static void updater_scene_success_on_exit(void* context) {
     });
 }
 
-static bool updater_scene_success_on_event(const SceneManagerEvent* event, void* context) {
+static bool success_scene_on_event(const SceneManagerEvent* event, void* context) {
     furi_assert(context);
     furi_assert(event->type == SceneManagerEventTypeCustom);
 
@@ -80,9 +80,9 @@ static bool updater_scene_success_on_event(const SceneManagerEvent* event, void*
     return true;
 }
 
-const Scene updater_scene_success = {
-    .enter_callback = updater_scene_success_on_enter,
-    .exit_callback = updater_scene_success_on_exit,
-    .event_callback = updater_scene_success_on_event,
-    .data_size = sizeof(UpdaterSceneSuccess),
+const Scene update_executor_scene_success = {
+    .enter_callback = success_scene_on_enter,
+    .exit_callback = success_scene_on_exit,
+    .event_callback = success_scene_on_event,
+    .data_size = sizeof(SuccessScene),
 };

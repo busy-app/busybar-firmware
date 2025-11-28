@@ -2,15 +2,7 @@
 
 #define TAG "BleServiceU5"
 
-static bool ble_service_command_allowed_by_state(
-    const BleServiceCommandEnum command,
-    const BleServiceState state) {
-    UNUSED(state);
-    UNUSED(command);
-    return true;
-}
-
-static bool ble_service_target_init(BleServiceObject* instance) {
+static bool ble_service_init_request(BleServiceObject* instance) {
     BLE_LOG_D("%s - ble_service_target_init", instance->config->name);
 
     bool result = false;
@@ -23,18 +15,30 @@ static bool ble_service_target_init(BleServiceObject* instance) {
 
         BLE_LOG_D("%s - config size: %d", instance->config->name, total_config_size);
 
+        result = true;
+
         ble_service_prepare_send_intercom_frame(
             instance,
             BleIntercomFrameTypeRequest,
             BleServiceCommandInit,
+            result,
             total_config_size,
             config);
 
         free(config);
-        result = true;
     }
 
     return result;
+}
+
+static bool ble_service_init_response(BleServiceObject* instance, size_t data_size, void* data) {
+    UNUSED(data_size);
+    UNUSED(data);
+
+    instance->ready = true;
+
+    BLE_LOG_D("%s - Ready", instance->config->name, "Ready");
+    return instance->ready;
 }
 
 static bool ble_service_command_handler_init(
@@ -42,17 +46,13 @@ static bool ble_service_command_handler_init(
     BleIntercomFrameType frame_type,
     size_t data_size,
     void* data) {
-    UNUSED(data);
-    UNUSED(data_size);
-
     bool result = false;
     if(frame_type == BleIntercomFrameTypeRequest) {
         BLE_LOG_D("Init request");
-        result = ble_service_target_init(instance);
+        result = ble_service_init_request(instance);
     } else {
         BLE_LOG_D("Init response");
-        ble_service_switch_state(instance, BleServiceStateReady);
-        result = true;
+        result = ble_service_init_response(instance, data_size, data);
     }
     return result;
 }
@@ -68,7 +68,7 @@ static bool ble_service_update_request(BleServiceObject* instance, size_t data_s
 
     size_t total_size = sizeof(BleCharacteristicCountType);
     ble_service_prepare_send_intercom_frame(
-        instance, BleIntercomFrameTypeResponse, BleServiceCommandUpdate, total_size, data);
+        instance, BleIntercomFrameTypeResponse, BleServiceCommandUpdate, result, total_size, data);
 
     return result;
 }
@@ -124,13 +124,18 @@ static bool ble_service_command_handler_run(
             ble_service_create_intercom_service_data_pack(instance, true, &total_size);
 
         BLE_LOG_D("%s - config size: %d", instance->config->name, total_size);
+        result = true;
 
         ble_service_prepare_send_intercom_frame(
-            instance, BleIntercomFrameTypeRequest, BleServiceCommandUpdate, total_size, config);
+            instance,
+            BleIntercomFrameTypeRequest,
+            BleServiceCommandUpdate,
+            result,
+            total_size,
+            config);
 
         free(config);
 
-        result = true;
     } while(false);
     return result;
 }
@@ -144,21 +149,19 @@ bool ble_service_target_execute(
     BLE_LOG_D("%s - target_execute: %d", instance->config->name, command);
 
     bool result = false;
-    if(ble_service_command_allowed_by_state(command, instance->state)) {
-        switch(command) {
-        case BleServiceCommandInit:
-            result = ble_service_command_handler_init(instance, frame_type, data_size, data);
-            break;
-        case BleServiceCommandRun:
-            ble_service_command_handler_run(instance, frame_type, data_size, data);
-            break;
-        case BleServiceCommandUpdate:
-            ble_service_command_handler_update(instance, frame_type, data_size, data);
-            break;
-        default:
-            __furi_crash("Unknown command");
-            break;
-        }
+    switch(command) {
+    case BleServiceCommandInit:
+        result = ble_service_command_handler_init(instance, frame_type, data_size, data);
+        break;
+    case BleServiceCommandRun:
+        ble_service_command_handler_run(instance, frame_type, data_size, data);
+        break;
+    case BleServiceCommandUpdate:
+        ble_service_command_handler_update(instance, frame_type, data_size, data);
+        break;
+    default:
+        furi_crash("Unknown command");
+        break;
     }
 
     return result;

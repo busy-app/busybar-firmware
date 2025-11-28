@@ -300,6 +300,13 @@ bool ble_security_init(BleSecurityData* instance) {
     return result;
 }
 
+bool ble_security_rpa_present(BleSecurityData* security) {
+    furi_assert(security);
+
+    rsi_bt_event_le_security_keys_t* rpa_keys = &security->irk;
+    return ble_security_key_is_present(rpa_keys->local_irk, sizeof(rpa_keys->local_irk));
+}
+
 BleSecurityData* ble_security_alloc() {
     return malloc(sizeof(BleSecurityData));
 }

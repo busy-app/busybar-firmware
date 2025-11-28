@@ -1,6 +1,6 @@
-#include "../update_app_i.h"
-#include "../storage_macros.h"
-#include "updater_scenes.h"
+#include "../update_executor_i.h"
+#include "../../storage_macros.h"
+#include "scenes.h"
 
 #include <gui/modules/flex_layout.h>
 #include <gui/modules/image.h>
@@ -18,14 +18,14 @@ typedef struct {
     FlexLayout* front_flex;
     Label* front_status_percent_label;
     ProgressBar* front_progress_bar;
-} UpdaterSceneInstall;
+} InstallScene;
 
-static void updater_scene_install_on_enter(void* context) {
+static void install_scene_on_enter(void* context) {
     furi_assert(context);
 
-    UpdaterApp* instance = context;
-    UpdaterSceneInstall* data =
-        scene_manager_get_scene_data(instance->scene_manager, UpdaterAppSceneIdInstall);
+    UpdateExecutor* instance = context;
+    InstallScene* data =
+        scene_manager_get_scene_data(instance->scene_manager, UpdateExecutorSceneIdInstall);
 
     with_gui(instance->gui, {
         /* back ui */
@@ -85,12 +85,12 @@ static void updater_scene_install_on_enter(void* context) {
     });
 }
 
-static void updater_scene_install_on_exit(void* context) {
+static void install_scene_on_exit(void* context) {
     furi_assert(context);
 
-    UpdaterApp* instance = context;
-    UpdaterSceneInstall* data =
-        scene_manager_get_scene_data(instance->scene_manager, UpdaterAppSceneIdInstall);
+    UpdateExecutor* instance = context;
+    InstallScene* data =
+        scene_manager_get_scene_data(instance->scene_manager, UpdateExecutorSceneIdInstall);
 
     with_gui(instance->gui, {
         flex_layout_free(data->back_flex);
@@ -98,13 +98,13 @@ static void updater_scene_install_on_exit(void* context) {
     });
 }
 
-static bool updater_scene_install_on_event(const SceneManagerEvent* event, void* context) {
+static bool install_scene_on_event(const SceneManagerEvent* event, void* context) {
     furi_assert(context);
 
     if(event->type == SceneManagerEventTypeCustom) {
-        UpdaterApp* instance = context;
-        UpdaterSceneInstall* data =
-            scene_manager_get_scene_data(instance->scene_manager, UpdaterAppSceneIdInstall);
+        UpdateExecutor* instance = context;
+        InstallScene* data =
+            scene_manager_get_scene_data(instance->scene_manager, UpdateExecutorSceneIdInstall);
 
         with_gui(instance->gui, {
             /* back ui */
@@ -122,9 +122,9 @@ static bool updater_scene_install_on_event(const SceneManagerEvent* event, void*
     return true;
 }
 
-const Scene updater_scene_install = {
-    .enter_callback = updater_scene_install_on_enter,
-    .exit_callback = updater_scene_install_on_exit,
-    .event_callback = updater_scene_install_on_event,
-    .data_size = sizeof(UpdaterSceneInstall),
+const Scene update_executor_scene_install = {
+    .enter_callback = install_scene_on_enter,
+    .exit_callback = install_scene_on_exit,
+    .event_callback = install_scene_on_event,
+    .data_size = sizeof(InstallScene),
 };

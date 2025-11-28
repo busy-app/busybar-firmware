@@ -16,7 +16,7 @@
 
 #define TAG "SlUpdater"
 
-#include "fkermit.h"
+#include "../helpers/fkermit.h"
 
 typedef enum {
     Si917BootloaderModeDefault,

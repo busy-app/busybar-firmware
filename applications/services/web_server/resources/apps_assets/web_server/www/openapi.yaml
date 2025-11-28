@@ -128,15 +128,7 @@ paths:
       summary: Update firmware
       description: Uploads a firmware update package (TAR file) and initiates the update process.
       operationId: updateFirmware
-      parameters:
-        - name: name
-          in: query
-          required: false
-          schema:
-            type: string
-            pattern: "^[a-zA-Z0-9._-]+$"
-          description: Name for the update package. The update will be unpacked to /ext/update/<name>.
-          example: "firmware"
+      parameters: []
       requestBody:
         required: true
         content:
@@ -1739,7 +1731,16 @@ components:
       properties:
         state:
           type: string
-          example: connected
+          enum: ["reset", "initialization", "disabled", "enabled", "connected", "internal error"]
+          example: connected          
+        address:
+          type: string
+          example: 50:DA:D6:FE:DD:A9
+        pairing:
+          type: string
+          enum: ["unknown", "not paired", "paired"]
+          example: paired   
+
 
     BusySnapshot:
       type: object

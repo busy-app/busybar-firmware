@@ -13,7 +13,7 @@ static const BleCharacteristicDescriptor device_events_service_characteristics[]
         .intercom_index = BleSrvDeviceEventsCharacterIndexFlags,
         .name = "Event Flags",
         .initial_data_size = sizeof(BleServiceDeviceEvents),
-#if defined(SI917)
+#if defined(BSB_MCU_SI917)
         .uuid = {.Char_UUID_128 = EVENT_SERVICE_FLAGS_CHAR_UUID},
         .uuid_size = 16,
         ///TODO: maybe BLE_ATT_PROPERTY_READ is optional in current context, and can be removed
@@ -24,7 +24,7 @@ static const BleCharacteristicDescriptor device_events_service_characteristics[]
 
 const BleServiceDescriptor ble_service_config_device_events = {
     .name = "Device Events",
-#if defined(SI917)
+#if defined(BSB_MCU_SI917)
     .uuid = {.Char_UUID_128 = EVENT_SERVICE_UUID},
     .uuid_size = 16,
 #endif
