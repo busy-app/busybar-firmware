@@ -226,15 +226,15 @@ bool scene_manager_search_and_switch_to_previous_scene(SceneManager* instance, u
             }
         }
 
+        if(SceneIdStack_end_p(it)) break;
+
         SceneIdStack_pop_until(instance->scene_id_stack, it);
         SceneIdStack_push_back(instance->scene_id_stack, scene_id);
 
         const Scene* previous_scene = scene_manager_get_current_scene(instance);
-        if(!previous_scene) break;
-
         previous_scene->enter_callback(instance->context);
-        success = true;
 
+        success = true;
     } while(false);
 
     return success;
