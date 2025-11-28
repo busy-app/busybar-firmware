@@ -87,13 +87,12 @@ static void updater_cli_execute_install(const char* manifest_path) {
             update_status = updater_installation_prepare(updater, manifest_path, true);
             if(update_status != UpdaterStatusOk) {
                 printf(
-                    "Update installation preparation failed: %s\r\n",
-                    updater_get_status_string(update_status));
+                    "Update preparation failed: %s\r\n", updater_get_status_string(update_status));
 
                 break;
             }
 
-            printf("Update installation preparation, rebooting...\r\n");
+            printf("Update preparation successful, rebooting...\r\n");
 
             updater_installation_apply(updater, true);
         } while(false);
@@ -125,13 +124,12 @@ static void updater_cli_execute_install_tar(const char* tar_path) {
             update_status = updater_installation_prepare(updater, NULL, true);
             if(update_status != UpdaterStatusOk) {
                 printf(
-                    "Update installation preparation failed: %s\r\n",
-                    updater_get_status_string(update_status));
+                    "Update preparation failed: %s\r\n", updater_get_status_string(update_status));
 
                 break;
             }
 
-            printf("Update installation preparation, rebooting...\r\n");
+            printf("Update preparation successful, rebooting...\r\n");
 
             updater_installation_apply(updater, true);
         } while(false);
@@ -170,13 +168,12 @@ static void updater_cli_execute_install_web(const char* link) {
             update_status = updater_installation_prepare(updater, NULL, true);
             if(update_status != UpdaterStatusOk) {
                 printf(
-                    "Update installation preparation failed: %s\r\n",
-                    updater_get_status_string(update_status));
+                    "Update preparation failed: %s\r\n", updater_get_status_string(update_status));
 
                 break;
             }
 
-            printf("Update installation preparation, rebooting...\r\n");
+            printf("Update preparation successful, rebooting...\r\n");
 
             updater_installation_apply(updater, true);
         } while(false);
