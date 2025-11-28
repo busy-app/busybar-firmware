@@ -8,13 +8,19 @@ typedef struct {
     HttpHandlersList_t handlers;
 } ApiBleCtx;
 
-const char* ble_state_names[] = {
+const char* ble_state_names[BleServiceStateCount] = {
     [BleServiceStateReset] = "reset",
     [BleServiceStateInitialization] = "initialization",
     [BleServiceStateReady] = "disabled",
     [BleServiceStateAdvertising] = "enabled",
     [BleServiceStateConnected] = "connected",
     [BleServiceStateError] = "internal error",
+};
+
+const char* ble_pairing_state_names[BlePairingStateCount] = {
+    [BlePairingStateUnkown] = "unknown",
+    [BlePairingStateNotPaired] = "not paired",
+    [BlePairingStatePaired] = "paired",
 };
 
 static bool api_ble_enable_callback(
@@ -75,15 +81,39 @@ static bool api_ble_get_state_callback(
 
     if(!IS_HTTP_ENDPOINT(path)) return false;
 
+    BleStatus status = {0};
     Ble* ble = furi_record_open(RECORD_BLE);
-    BleServiceState state = ble_get_state(ble);
+    bool result = ble_get_status(ble, &status);
     furi_record_close(RECORD_BLE);
 
-    ///TODO:rework logic to return enabled/disabled/connected
-    if(state != BleServiceStateError)
-        MG_REPLY_OK_BODY(conn, "{\"state\":\"%s\"}\n", ble_state_names[state]);
-    else
-        MG_REPLY_ERROR(conn, 400, ble_state_names[state]);
+    do {
+        if(!result) {
+            MG_REPLY_BAD_REQUEST(conn);
+            break;
+        }
+
+        if(status.state == BleServiceStateError) {
+            MG_REPLY_ERROR(conn, 400, ble_state_names[status.state]);
+            break;
+        }
+
+        cJSON* response = cJSON_CreateObject();
+
+        cJSON_AddStringToObject(response, "state", ble_state_names[status.state]);
+        if(status.state == BleServiceStateConnected) {
+            cJSON_AddStringToObject(
+                response, "address", (const char*)status.remote_device_address);
+        }
+        cJSON_AddStringToObject(response, "pairing", ble_pairing_state_names[status.pairing]);
+
+        char* buf = cJSON_Print(response);
+        furi_check(buf);
+
+        MG_REPLY_OK_BODY(conn, buf);
+
+        cJSON_Delete(response);
+        free(buf);
+    } while(false);
 
     return true;
 }
