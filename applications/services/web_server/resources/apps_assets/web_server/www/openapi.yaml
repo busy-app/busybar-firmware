@@ -1689,7 +1689,16 @@ components:
       properties:
         state:
           type: string
-          example: connected
+          enum: ["reset", "initialization", "disabled", "enabled", "connected", "internal error"]
+          example: connected          
+        address:
+          type: string
+          example: 50:DA:D6:FE:DD:A9
+        pairing:
+          type: string
+          enum: ["unknown", "not paired", "paired"]
+          example: paired   
+
 
 tags:
   - name: System
