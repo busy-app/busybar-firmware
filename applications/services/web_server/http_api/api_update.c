@@ -181,7 +181,8 @@ static void http_api_update_on_data_cb(struct mg_connection* conn, struct mg_iob
         FURI_LOG_I(TAG, "on_data: All data received (%zu bytes)", update_ctx->received_file_size);
         update_ctx->file_fully_received = true;
 
-        fetch_file_save_close(update_ctx->file_save);
+        fetch_file_save_free(update_ctx->file_save);
+        update_ctx->file_save = NULL;
 
         if(!handle_completed_upload_and_reboot(update_ctx, conn)) {
             // Error response already sent by handle_completed_upload_and_reboot

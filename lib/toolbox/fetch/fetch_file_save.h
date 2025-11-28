@@ -27,12 +27,6 @@ void fetch_file_save_free(FetchFileSave* instance);
 bool fetch_file_save_write(FetchFileSave* instance, uint8_t* data, size_t size);
 
 /*
-* Close the file associated with the FetchFileSave instance.
-* @param[in] instance Pointer to the FetchFileSave instance.
-*/
-void fetch_file_save_close(FetchFileSave* instance);
-
-/*
 * Remove the file associated with the FetchFileSave instance.
 * @param[in] instance Pointer to the FetchFileSave instance.
 */
