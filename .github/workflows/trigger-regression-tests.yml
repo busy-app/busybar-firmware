@@ -1,0 +1,89 @@
+name: Trigger Allure Regression Tests
+
+on:
+  push:
+    tags:
+      - '*-rc*'
+
+jobs:
+  trigger-regression:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Create Allure Launch and Add Test Plan
+        run: |
+          echo "Creating launch and adding test plan #${{ secrets.ALLURE_TESTPLAN_ID }} for tag: ${{ github.ref_name }}"
+          
+          echo "Creating generic launch..."
+          launch_payload='{
+            "name": "Regression Tests - ${{ github.ref_name }}",
+            "projectId": ${{ secrets.ALLURE_PROJECT_ID }},
+            "autoclose": true,
+            "external": true,
+            "issues": [],
+            "links": [
+              {
+                "name": "GitHub Tag",
+                "type": "tag",
+                "url": "https://github.com/${{ github.repository }}/releases/tag/${{ github.ref_name }}"
+              }
+            ],
+            "tags": []
+          }'
+          
+          launch_response=$(curl -s -w "\n%{http_code}" -X POST "${{ secrets.ALLURE_ENDPOINT }}/api/launch" \
+            -H "Authorization: Api-Token ${{ secrets.ALLURE_TOKEN }}" \
+            -H "Content-Type: application/json" \
+            -d "$launch_payload")
+          
+          launch_http_code=$(echo "$launch_response" | tail -n1)
+          launch_response_body=$(echo "$launch_response" | head -n -1)
+          
+          echo "Launch creation status: $launch_http_code"
+          echo "Launch response: $launch_response_body"
+          
+          if [ "$launch_http_code" -lt 200 ] || [ "$launch_http_code" -ge 300 ]; then
+            echo "Failed to create launch"
+            exit 1
+          fi
+          
+          # Extract launch ID
+          if command -v jq &> /dev/null; then
+            launch_id=$(echo "$launch_response_body" | jq -r '.id // empty' 2>/dev/null || echo "")
+          else
+            echo "jq not available, trying manual extraction"
+            launch_id=$(echo "$launch_response_body" | sed -n 's/.*"id":\([0-9]*\).*/\1/p' | head -1)
+          fi
+          
+          if [ -z "$launch_id" ]; then
+            echo "Could not extract launch ID from response"
+            exit 1
+          fi
+          
+          echo "Created launch with ID: $launch_id"
+          
+          echo "Adding test plan to launch..."
+          testplan_payload='{
+            "testPlanId": ${{ secrets.ALLURE_TESTPLAN_ID }},
+            "envVarValueSets": []
+          }'
+          
+          testplan_response=$(curl -s -w "\n%{http_code}" -X POST "${{ secrets.ALLURE_ENDPOINT }}/api/launch/$launch_id/testplan/add" \
+            -H "Authorization: Api-Token ${{ secrets.ALLURE_TOKEN }}" \
+            -H "Content-Type: application/json" \
+            -d "$testplan_payload")
+          
+          testplan_http_code=$(echo "$testplan_response" | tail -n1)
+          testplan_response_body=$(echo "$testplan_response" | head -n -1)
+          
+          echo "Test plan addition status: $testplan_http_code"
+          echo "Test plan response: $testplan_response_body"
+          
+          if [ "$testplan_http_code" -ge 200 ] && [ "$testplan_http_code" -lt 300 ]; then
+            echo "Successfully created launch and added test plan!"
+            echo "Launch ID: $launch_id"
+            echo "Launch URL: ${{ secrets.ALLURE_ENDPOINT }}/launch/$launch_id"
+          else
+            echo "Failed to add test plan to launch"
+            echo "Error details: $testplan_response_body"
+            exit 1
+          fi
