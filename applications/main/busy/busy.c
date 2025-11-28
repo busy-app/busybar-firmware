@@ -46,8 +46,16 @@ static void busy_api_queue_callback(FuriEventLoopObject* object, void* context) 
                 scene_manager_get_current_scene_id(instance->scene_manager);
 
             if(scene_id != BusyAppSceneIdTimer) {
-                instance->show_timer_requested = true;
-                scene_manager_next_scene(instance->scene_manager, BusyAppSceneIdShowTimer);
+                busy_go_to_show_timer_scene(instance);
+            }
+
+        } else if(type == BusyApiMessageTypeRequestExit) {
+            if(instance->run_mode == BusyAppRunModeTimer) {
+                // App was launched by the timer, exit
+                busy_exit(instance);
+            } else {
+                // App was launched normally, signal finish
+                busy_send_custom_event(instance, BusyCustomEventReturnToStart);
             }
 
         } else {
@@ -152,8 +160,11 @@ static BusyApp* busy_alloc(const char* arg) {
     busy_set_matter(instance, false);
 
     if(arg && strcmp(arg, BUSY_APP_TIMER_MODE) == 0) {
-        scene_manager_next_scene(instance->scene_manager, BusyAppSceneIdShowTimer);
+        instance->run_mode = BusyAppRunModeTimer;
+        busy_go_to_show_timer_scene(instance);
+
     } else {
+        instance->run_mode = BusyAppRunModeNormal;
         scene_manager_next_scene(instance->scene_manager, BusyAppSceneIdStart);
     }
 
@@ -254,6 +265,19 @@ void busy_pop_location(BusyApp* instance) {
     furi_assert(instance);
 
     with_gui(instance->gui, { nav_bar_pop_location(instance->nav_bar); });
+}
+
+void busy_go_to_show_timer_scene(BusyApp* instance) {
+    furi_assert(instance);
+
+    instance->show_timer_requested = true;
+    scene_manager_next_scene(instance->scene_manager, BusyAppSceneIdShowTimer);
+}
+
+bool busy_return_to_start_scene(BusyApp* instance) {
+    furi_assert(instance);
+    return scene_manager_search_and_switch_to_previous_scene(
+        instance->scene_manager, BusyAppSceneIdStart);
 }
 
 void busy_exit(BusyApp* instance) {

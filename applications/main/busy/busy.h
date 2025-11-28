@@ -25,6 +25,8 @@ typedef struct BusyApp BusyApp;
 
 void busy_show_timer(BusyApp* instance);
 
+void busy_request_exit(BusyApp* instance);
+
 #ifdef __cplusplus
 }
 #endif

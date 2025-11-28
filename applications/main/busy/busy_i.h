@@ -28,11 +28,16 @@
 #define TOTAL_TIME_LOW_THR_MN (15)
 
 typedef enum {
+    BusyAppRunModeNormal,
+    BusyAppRunModeTimer,
+    BusyAppRunModeMax,
+} BusyAppRunMode;
+
+typedef enum {
     BusyCustomEventTimerTick = 100,
     BusyCustomEventTimerModeChanged,
     BusyCustomEventTimerStateChanged,
     BusyCustomEventTimerIntervalEnded,
-    BusyCustomEventTimerSequenceEnded,
     BusyCustomEventTimerPaused,
     BusyCustomEventTimerSkip,
     BusyCustomEventTimeIncrement,
@@ -40,6 +45,8 @@ typedef enum {
     BusyCustomEventStartPressed,
     BusyCustomEventStartReleased,
     BusyCustomEventStartShortPressed,
+    BusyCustomEventReturnToStart,
+    BusyCustomEventMax,
 } BusyCustomEvent;
 
 typedef enum {
@@ -69,6 +76,8 @@ typedef enum {
 
 typedef enum {
     BusyApiMessageTypeShowTimer,
+    BusyApiMessageTypeRequestExit,
+    BusyApiMessageTypeMax,
 } BusyApiMessageType;
 
 typedef struct {
@@ -95,7 +104,8 @@ struct BusyApp {
     TransitionOverlay* transition_overlay;
     TimerCard* timer_card;
     NavBar* nav_bar;
-    // State flags
+    // Misc state
+    BusyAppRunMode run_mode;
     bool show_timer_requested;
 };
 
@@ -112,5 +122,9 @@ void busy_set_matter(BusyApp* instance, bool switch_state);
 void busy_push_location(BusyApp* instance, const char* location_name);
 
 void busy_pop_location(BusyApp* instance);
+
+void busy_go_to_show_timer_scene(BusyApp* instance);
+
+bool busy_return_to_start_scene(BusyApp* instance);
 
 void busy_exit(BusyApp* instance);

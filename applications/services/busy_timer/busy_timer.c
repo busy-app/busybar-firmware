@@ -1,7 +1,6 @@
 #include "busy_timer_i.h"
 
 #include <busy/busy.h>
-#include <loader/loader.h>
 #include <desktop/desktop.h>
 
 #ifdef BUSY_TIMER_TICK_DEBUG
@@ -90,13 +89,8 @@ static void busy_timer_start_app(void) {
 
 static void busy_timer_exit_app(void) {
     if(furi_record_exists(RECORD_BUSY_APP)) {
-        // Prevent the BUSY app from exiting
-        furi_record_open(RECORD_BUSY_APP);
-        // Request the app to stop
-        Loader* loader = furi_record_open(RECORD_LOADER);
-        furi_check(loader_stop(loader) == LoaderStatusOk);
-        furi_record_close(RECORD_LOADER);
-        // Now the app can exit
+        BusyApp* busy_app = furi_record_open(RECORD_BUSY_APP);
+        busy_request_exit(busy_app);
         furi_record_close(RECORD_BUSY_APP);
     }
 }

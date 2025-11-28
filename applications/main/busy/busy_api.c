@@ -18,3 +18,13 @@ void busy_show_timer(BusyApp* instance) {
 
     busy_api_send_message(instance, &message);
 }
+
+void busy_request_exit(BusyApp* instance) {
+    furi_check(instance);
+
+    BusyApiMessage message = {
+        .type = BusyApiMessageTypeRequestExit,
+    };
+
+    busy_api_send_message(instance, &message);
+}

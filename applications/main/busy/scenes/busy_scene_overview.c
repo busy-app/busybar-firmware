@@ -98,6 +98,10 @@ static bool busy_scene_overview_on_event(const SceneManagerEvent* event, void* c
         if(event->event == BusyCustomEventStartShortPressed) {
             busy_prepare_transition(instance, BusyTransitionTypeSkip);
             scene_manager_next_scene(instance->scene_manager, BusyAppSceneIdTimer);
+
+        } else if(event->event == BusyCustomEventReturnToStart) {
+            busy_prepare_transition(instance, BusyTransitionTypeAutomatic);
+            furi_check(busy_return_to_start_scene(instance));
         }
 
         consumed = true;
