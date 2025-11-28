@@ -178,6 +178,10 @@ static void busy_free(BusyApp* instance) {
         furi_delay_ms(1);
     }
 
+    if(busy_timer_get_state(instance->busy_timer) != BusyTimerStateIdle) {
+        busy_timer_stop(instance->busy_timer);
+    }
+
     busy_set_status_lights(instance, BusyStatusLightsTypeOff);
     busy_set_matter(instance, false);
 
