@@ -52,14 +52,18 @@ typedef struct {
         MqttClientMessageGetStatus,
         MqttClientMessageUnlink,
         MqttClientMessageRequestPin,
-        MqttClientMessageGetSessionId,
-        MqttClientMessageGetSessionEmail,
+        MqttClientMessageGetSessionInfo,
     } type;
     FuriApiLock lock;
     union {
         MqttClientStatus* status;
         bool* bool_param;
-        FuriString* str_param;
+        struct {
+            FuriString* id;
+            FuriString* email;
+            FuriString* user_id;
+        } session_info;
+
         WifiState wifi_state;
     };
 } MqttClientMessage;

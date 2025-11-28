@@ -11,6 +11,7 @@
 #include <furi_hal_rtc.h>
 #include "canvas.h"
 #include <gui/modules/front_display_mirror.h>
+#include <sntp/sntp.h>
 
 typedef struct {
     enum {
@@ -50,6 +51,7 @@ struct CanvasApp {
     Gui* gui;
     CanvasWidgetsDict_t widgets;
     DisplayMirror* display_mirror;
+    Sntp* sntp;
     char* app_id;
 };
 
@@ -202,7 +204,8 @@ static Widget* canvas_element_update_specific(
         if(element->text.scroll_rate_cpm) {
             uint32_t scroll_dur =
                 label_calculate_scroll_duration(widget->text, element->text.scroll_rate_cpm);
-            label_set_long_content_mode(widget->text, LabelLongContentModeScroll, scroll_dur);
+            label_set_long_content_mode(
+                widget->text, LabelLongContentModeScrollCircular, scroll_dur);
         } else {
             label_set_long_content_mode(widget->text, LabelLongContentModeClip, 0);
         }
@@ -325,8 +328,8 @@ static bool canvas_element_update(CanvasApp* canvas, const CanvasElement* elemen
         effective_timeout = element->timeout;
     } else if(element->display_until > 0) {
         furi_check(element->timeout == 0);
-        time_t current_stamp = (time_t)furi_hal_rtc_get_timestamp(); // TODO: Y2038
-        effective_timeout = MAX(0, element->display_until - current_stamp);
+        time_t current_stamp = sntp_get_utc_timestamp(canvas->sntp);
+        effective_timeout = MAX(1, element->display_until - current_stamp);
     }
 
     if((effective_timeout > 0) || (widget.timeout_timer)) {
@@ -432,6 +435,8 @@ static CanvasApp* canvas_app_alloc() {
     canvas->gui = furi_record_open(RECORD_GUI);
     CanvasWidgetsDict_init(canvas->widgets);
 
+    canvas->sntp = furi_record_open(RECORD_SNTP);
+
     with_gui(canvas->gui, {
         GuiLayer* main_layer = gui_get_layer(canvas->gui, GuiLayerIdMain);
         gui_layer_add_input_callback(main_layer, canvas_app_input_callback, canvas);
@@ -450,6 +455,7 @@ static void canvas_app_free(CanvasApp* canvas) {
         display_mirror_free(canvas->display_mirror);
     });
 
+    furi_record_close(RECORD_GUI);
     furi_record_close(RECORD_GUI);
 
     CanvasWidgetsDict_clear(canvas->widgets);
