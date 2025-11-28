@@ -182,10 +182,11 @@ static BusyTimerState busy_timer_calc_state(const BusyTimer* instance) {
         state = BusyTimerStateWork;
 
     } else if(instance->state == BusyTimerStateWork) {
-        const bool interval_timer = instance->mode == BusyTimerModeInterval;
-        const bool cycles_remaining = instance->cycles_done < instance->config.cycle_count;
+        const bool intervals_enabled = instance->mode == BusyTimerModeInterval;
+        const bool intervals_remaining = instance->current_interval_index <
+                                         instance->config.cycle_count * 2 - 1;
 
-        if(interval_timer && cycles_remaining) {
+        if(intervals_enabled && intervals_remaining) {
             state = BusyTimerStateRest;
         } else {
             state = BusyTimerStateIdle;
@@ -221,13 +222,11 @@ static uint32_t busy_timer_calc_remaining_time(const BusyTimer* instance) {
 }
 
 // Called BEFORE calculating the state
-static uint32_t busy_timer_calc_cycles_done(const BusyTimer* instance) {
+static uint32_t busy_timer_calc_interval_index(const BusyTimer* instance) {
     if((instance->state == BusyTimerStateIdle) || (instance->mode != BusyTimerModeInterval)) {
         return 0;
-    } else if(instance->state == BusyTimerStateWork) {
-        return instance->cycles_done + 1;
     } else {
-        return instance->cycles_done;
+        return instance->current_interval_index + 1;
     }
 }
 
@@ -281,7 +280,7 @@ static void busy_timer_infinite_to_simple(BusyTimer* instance) {
 static void busy_timer_next_state(BusyTimer* instance, bool force) {
     FURI_LOG_I(TAG, "Current state: %s", busy_timer_get_state_name(instance->state));
 
-    instance->cycles_done = busy_timer_calc_cycles_done(instance);
+    instance->current_interval_index = busy_timer_calc_interval_index(instance);
     instance->state = busy_timer_calc_state(instance);
 
     if(instance->state != BusyTimerStateIdle) {
@@ -346,10 +345,6 @@ static void busy_timer_update(BusyTimer* instance, uint64_t timestamp_ms) {
     } while(false);
 }
 
-static uint32_t busy_timer_get_interval_index(const BusyTimer* instance) {
-    return 2 * instance->cycles_done + (instance->state == BusyTimerStateRest ? 1 : 0);
-}
-
 static void busy_timer_make_snapshot(BusyTimer* instance, BusyTimerSnapshot* snapshot) {
     snapshot->timestamp_ms = sntp_get_utc_timestamp_ms(instance->sntp);
 
@@ -379,7 +374,7 @@ static void busy_timer_make_snapshot(BusyTimer* instance, BusyTimerSnapshot* sna
 
             BusyTimerSnapshotInterval* interval = &snapshot->interval;
             BusyTimerIntervalState* state = &interval->state;
-            state->index = busy_timer_get_interval_index(instance);
+            state->index = instance->current_interval_index;
             state->time_left_ms = S_TO_MS(time->remain_s);
             state->time_total_ms = S_TO_MS(time->elapsed_s + time->remain_s);
 
@@ -441,7 +436,7 @@ static void busy_timer_apply_snapshot(BusyTimer* instance, const BusyTimerSnapsh
         new_mode = BusyTimerModeInterval;
         new_state = interval_state->index % 2 ? BusyTimerStateRest : BusyTimerStateWork;
 
-        instance->cycles_done = interval_state->index / 2;
+        instance->current_interval_index = interval_state->index;
         instance->time.elapsed_s =
             MS_TO_S(interval_state->time_total_ms - interval_state->time_left_ms);
         instance->time.remain_s = MS_TO_S(interval_state->time_left_ms);
@@ -592,7 +587,7 @@ static void busy_timer_get_time_message_handler(BusyTimer* instance, BusyTimerMe
 static void
     busy_timer_get_cycles_message_handler(BusyTimer* instance, BusyTimerMessageData* data) {
     data->cycles->total_count = instance->config.cycle_count;
-    data->cycles->done_count = instance->cycles_done;
+    data->cycles->done_count = instance->current_interval_index / 2 + 1;
 }
 
 static void busy_timer_add_time_message_handler(BusyTimer* instance, BusyTimerMessageData* data) {

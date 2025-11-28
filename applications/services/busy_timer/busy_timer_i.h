@@ -65,7 +65,7 @@ struct BusyTimer {
     FuriPubSub* event_pubsub;
     Sntp* sntp;
     uint64_t prev_tick_timestamp_ms;
-    uint32_t cycles_done;
+    uint32_t current_interval_index;
     BusyTimerConfig config;
     BusyTimerTime time;
     BusyTimerMode mode;
