@@ -39,6 +39,8 @@ static void busy_scene_start_on_enter(void* context) {
         scene_manager_get_scene_data(instance->scene_manager, BusyAppSceneIdStart);
 
     with_gui(instance->gui, {
+        nav_bar_reset_location(instance->nav_bar);
+
         widget_set_visible(timer_card_get_base(instance->timer_card), false);
         widget_set_visible(nav_bar_get_base(instance->nav_bar), true);
 

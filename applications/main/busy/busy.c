@@ -46,6 +46,7 @@ static void busy_api_queue_callback(FuriEventLoopObject* object, void* context) 
                 scene_manager_get_current_scene_id(instance->scene_manager);
 
             if(scene_id != BusyAppSceneIdTimer) {
+                instance->show_timer_requested = true;
                 scene_manager_next_scene(instance->scene_manager, BusyAppSceneIdShowTimer);
             }
 

@@ -225,7 +225,10 @@ static void busy_scene_setup_timer_on_exit(void* context) {
     BusySceneSetupTimer* data =
         scene_manager_get_scene_data(instance->scene_manager, BusyAppSceneIdSetupTimer);
 
-    busy_timer_set_config(instance->busy_timer, &data->timer_config);
+    if(!instance->show_timer_requested) {
+        // Do not save settings if timer was launched from another device while this scene was active
+        busy_timer_set_config(instance->busy_timer, &data->timer_config);
+    }
 
     with_gui(instance->gui, {
         for(GuiDisplayId id = 0; id < GuiDisplayIdMax; ++id) {

@@ -4,7 +4,6 @@ static void busy_scene_show_timer_on_enter(void* context) {
     furi_assert(context);
 
     BusyApp* instance = context;
-    instance->show_timer_requested = true;
 
     busy_prepare_transition(instance, BusyTransitionTypeAutomatic);
 
