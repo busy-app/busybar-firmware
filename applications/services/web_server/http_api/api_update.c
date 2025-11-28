@@ -10,7 +10,7 @@
 
 #define TAG "HttpApiUpdate"
 
-#define MAX_UPLOAD_FILE_SIZE (40 * 1024 * 1024) // User-set: 40MB
+#define MAX_UPLOAD_FILE_SIZE (100 * 1024 * 1024) /* user-set: 100MB */
 
 // Context for the update handler (raw upload)
 typedef struct {
