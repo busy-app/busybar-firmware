@@ -17,7 +17,7 @@ typedef struct {
     bool result; ///TODO: replace with some more extended status
     BleIntercomFrameHeader header;
     uint8_t data[];
-} BleMessage;
+} BleCommand;
 
 #endif
 
@@ -47,10 +47,10 @@ struct Ble {
     uint8_t remote_device_address[BLE_REMOTE_DEVICE_ADDRESS_STRING_SIZE];
 #if !defined(SI917)
     FuriPubSub* on_status_change;
-    FuriApiLock current_message_api_lock;
-    FuriMutex* current_message_lock;
-    BleMessage* current_message;
-    size_t current_message_size;
+    FuriApiLock current_command_api_lock;
+    FuriMutex* current_command_lock;
+    BleCommand* current_command;
+    size_t current_command_size;
 
     BleServicePostProcessCallback service_post_process_callback;
 #endif

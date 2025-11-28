@@ -25,10 +25,10 @@ static void
         BLE_LOG_W("Error: %s", furi_string_get_cstr(instance->error));
         instance->state = BleServiceStateError;
 
-        if(api_lock_is_locked(instance->current_message_api_lock)) {
-            instance->current_message->result = false;
+        if(api_lock_is_locked(instance->current_command_api_lock)) {
+            instance->current_command->result = false;
             ///TODO: maybe add error here
-            api_lock_unlock(instance->current_message_api_lock);
+            api_lock_unlock(instance->current_command_api_lock);
         }
     } else if(instance->service_post_process_callback) {
         instance->service_post_process_callback(service, result, instance);
@@ -126,10 +126,10 @@ static Ble* ble_alloc() {
     ble_http_repeater_init();
 
     instance->on_status_change = furi_pubsub_alloc();
-    instance->current_message_lock = furi_mutex_alloc(FuriMutexTypeNormal);
-    instance->current_message_api_lock = api_lock_alloc_locked();
-    instance->current_message_size = sizeof(BleIntercomFrameHeader) + sizeof(bool);
-    instance->current_message = malloc(instance->current_message_size);
+    instance->current_command_lock = furi_mutex_alloc(FuriMutexTypeNormal);
+    instance->current_command_api_lock = api_lock_alloc_locked();
+    instance->current_command_size = sizeof(BleIntercomFrameHeader) + sizeof(bool);
+    instance->current_command = malloc(instance->current_command_size);
 #endif
 
     furi_record_create(RECORD_BLE, instance);
