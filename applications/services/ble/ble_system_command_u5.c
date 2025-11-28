@@ -31,7 +31,7 @@ static void ble_on_name_change_callback(const void* message, void* context) {
 
 static void ble_subscribe_on_name_change(Ble* instance) {
     DeviceName* name_record = furi_record_open(RECORD_DEVICE_NAME);
-    FuriPubSub* pubsub = device_name_get_on_change_pub_sub(name_record);
+    FuriPubSub* pubsub = device_name_get_pubsub(name_record);
     furi_pubsub_subscribe(pubsub, ble_on_name_change_callback, instance);
     furi_record_close(RECORD_DEVICE_NAME);
 }

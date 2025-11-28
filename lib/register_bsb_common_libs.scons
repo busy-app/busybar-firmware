@@ -26,7 +26,7 @@ for libname in [
     "nanopb",
     "heatshrink",
     "ext_applications",
-    "firmware_applications_f20",
+    "firmware_applications_u5",
     "settings_helpers",
     ## SI917
     "sl_glue",
@@ -34,7 +34,7 @@ for libname in [
     "wiseconnect",
     "matter_ext",
     "toolbox_f64",
-    "firmware_applications_f64",
+    "firmware_applications_si917",
 ]:
     env.RegisterComponent(f"fwlib_{libname}", env.FindComponentSconscript(libname))
 

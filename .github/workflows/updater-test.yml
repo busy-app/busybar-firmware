@@ -12,7 +12,7 @@ on:
       update_url:
         required: false
         type: string
-      default_target:
+      target:
         required: false
         type: string
         default: '21'
@@ -21,7 +21,7 @@ permissions:
   contents: read
 
 env:
-  DEFAULT_TARGET: ${{ github.event.inputs.default_target }}
+  U5_HW_TARGET: ${{ github.event.inputs.target }}
 
 jobs:
   updater-test:
@@ -42,9 +42,9 @@ jobs:
           set -euo pipefail
           URL="https://update.flipperzero.one/builds/busybar-firmware/${{ inputs.update_url }}"
           echo "Using URL: $URL"
-          curl --fail -L -o busybar-f${{ env.DEFAULT_TARGET }}-update.tar "$URL"
+          curl --fail -L -o busybar-f${{ env.U5_HW_TARGET }}-update.tar "$URL"
           mkdir -p update_bundle
-          tar -xf busybar-f${{ env.DEFAULT_TARGET }}-update.tar -C update_bundle
+          tar -xf busybar-f${{ env.U5_HW_TARGET }}-update.tar -C update_bundle
 
       - name: 'Flash firmware'
         id: flashing

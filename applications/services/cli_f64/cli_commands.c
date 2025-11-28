@@ -8,7 +8,7 @@
 #include <cli/cli_registry.h>
 #include <cli/cli_ansi.h>
 #include <cli/cli_commands.h>
-#include <firmware_applications_f64/applications.h>
+#include <applications.h>
 
 static void
     cli_command_device_info_callback(const char* key, const char* value, bool last, void* context) {

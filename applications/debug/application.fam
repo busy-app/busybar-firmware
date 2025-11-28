@@ -24,7 +24,7 @@ App(
         "lottie_player",
         "mqtt_test",
     ],
-    targets=["f20", "f21"],
+    targets=["f20", "f21", "f22"],
 )
 
 App(
@@ -32,5 +32,5 @@ App(
     name="Not meant for release firmware",
     apptype=FlipperAppType.METAPACKAGE,
     provides=[],
-    targets=["f64"],
+    targets=["f64", "f65"],
 )

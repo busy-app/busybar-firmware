@@ -99,7 +99,8 @@ static Ble* ble_alloc() {
     instance->mailbox_lock = furi_semaphore_alloc(1, 1);
     instance->ble_lock = furi_mutex_alloc(FuriMutexTypeNormal);
 
-    instance->message_queue = furi_message_queue_alloc(BLE_SERVICES_COUNT, 4);
+    instance->message_queue =
+        furi_message_queue_alloc(BLE_SERVICES_COUNT, sizeof(BleServiceObject*));
     instance->engine = ble_command_engine_alloc(ble_commands, BleCommandCount, NULL, NULL);
 
     furi_event_loop_set_custom_event_callback(
@@ -139,7 +140,6 @@ static Ble* ble_alloc() {
 
 int32_t ble_srv(void* arg) {
     UNUSED(arg);
-
     Ble* instance = ble_alloc();
     furi_event_loop_run(instance->event_loop);
 

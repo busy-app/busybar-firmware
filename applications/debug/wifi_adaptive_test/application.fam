@@ -7,5 +7,5 @@ App(
     requires=["gui"],
     stack_size=2 * 1024,
     fap_category="Debug",
-    targets=["f20", "f21"],
+    targets=["f20", "f21", "f22"],
 )
