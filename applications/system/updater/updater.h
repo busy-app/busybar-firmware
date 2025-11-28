@@ -32,10 +32,10 @@ typedef enum {
     UpdaterStatusUnpackArchiveOpenFailure, /**< Failed to open .tar archive file */
     UpdaterStatusUnpackArchiveUnpackFailure, /**< Failed to extract .tar archive contents */
 
-    UpdaterStatusPrepareInstallManifestNotFound, /**< Update manifest file not found in staging directory */
-    UpdaterStatusPrepareInstallManifestInvalid, /**< Manifest file validation failed */
-    UpdaterStatusPrepareInstallSessionConfigSetupFailure, /**< Failed to save session configuration */
-    UpdaterStatusPrepareInstallPointerSetupFailure, /**< Failed to write pointer file */
+    UpdaterStatusInstallationPrepareManifestNotFound, /**< Update manifest file not found */
+    UpdaterStatusInstallationPrepareManifestInvalid, /**< Manifest file validation failed */
+    UpdaterStatusInstallationPrepareSessionConfigSetupFailure, /**< Failed to save session configuration */
+    UpdaterStatusInstallationPreparePointerSetupFailure, /**< Failed to write pointer file */
 
     UpdaterStatusUnknownFailure, /**< Unknown error occurred */
 
@@ -45,15 +45,15 @@ typedef enum {
 typedef enum {
     UpdaterUpdateActionDownload, /**< Downloading update bundle from URL */
     UpdaterUpdateActionUnpack, /**< Unpacking .tar archive to staging directory */
-    UpdaterUpdateActionPrepareInstall, /**< Preparing update for installation (manifest validation, session setup) */
-    UpdaterUpdateActionRebootInstall, /**< Rebooting device to install prepared update */
+    UpdaterUpdateActionInstallationPrepare, /**< Preparing update for installation (manifest validation, session setup) */
+    UpdaterUpdateActionInstallationApply, /**< Rebooting device to install prepared update */
 
     UpdaterUpdateActionNone, /**< No action (initial/idle state) */
 } UpdaterUpdateAction;
 
 typedef enum {
-    UpdaterUpdateEventStart, /**< Update process started (lock acquired) */
-    UpdaterUpdateEventStop, /**< Update process stopped (lock released) */
+    UpdaterUpdateEventSessionStart, /**< Update process started (lock acquired) */
+    UpdaterUpdateEventSessionStop, /**< Update process stopped (lock released) */
     UpdaterUpdateEventActionBegin, /**< Action started (download/unpack/prepare/reboot) */
     UpdaterUpdateEventActionDone, /**< Action completed with result status */
     UpdaterUpdateEventDetailChange, /**< Status detail string changed (e.g., download state message) */
@@ -104,7 +104,7 @@ UpdaterStatus updater_get_allowance_status(Updater* instance);
 
 /** Start update process
  *
- * Acquires update lock and emits UpdaterUpdateEventStart event.
+ * Checks allowance status, acquires update lock, and emits UpdaterUpdateEventSessionStart event.
  * Must be called before any update operations.
  *
  * @param[in]  instance  Updater instance
@@ -113,20 +113,20 @@ UpdaterStatus updater_get_allowance_status(Updater* instance);
  *             UpdaterStatusBatteryLow if battery too low,
  *             UpdaterStatusBusy if update already in progress
  */
-UpdaterStatus updater_start_update(Updater* instance);
+UpdaterStatus updater_session_start(Updater* instance);
 
 /** Stop update process
  *
- * Releases update lock and emits UpdaterUpdateEventStop event.
+ * Emits UpdaterUpdateEventSessionStop event and releases update lock.
  * Must be called after all update operations complete.
  *
  * @param[in]  instance  Updater instance
  */
-void updater_stop_update(Updater* instance);
+void updater_session_stop(Updater* instance);
 
 /** Download update bundle from URL
  *
- * Requires update lock to be acquired.
+ * Must be called from inside of updater's session.
  *
  * @param[in]  instance  Updater instance
  * @param[in]  url       URL to download from
@@ -142,7 +142,7 @@ UpdaterStatus updater_download(Updater* instance, const char* url, const char* p
 /** Abort ongoing download operation
  *
  * Signals download to abort. Download will complete with UpdaterStatusDownloadAbort.
- * Requires update lock to be acquired.
+ * Must be called from inside of updater's session.
  *
  * @param[in]  instance  Updater instance
  */
@@ -150,7 +150,7 @@ void updater_abort_download(Updater* instance);
 
 /** Unpack update bundle .tar archive
  *
- * Requires update lock to be acquired.
+ * Must be called from inside of updater's session.
  *
  * @param[in]   instance       Updater instance
  * @param[in]   tar_path       Path to .tar archive (NULL for default)
@@ -172,28 +172,30 @@ UpdaterStatus updater_unpack(
 
 /** Prepare update for installation
  *
- * Requires update lock to be acquired.
+ * Must be called from inside of updater's session.
  *
  * @param[in]  instance       Updater instance
- * @param[in]  manifest_path  Path to update manifest file (NULL for default: /ext/update/update.fuf)
+ * @param[in]  manifest_path  Path to update manifest file (NULL for default: /ext/update/staging/update.fuf)
  * @param[in]  do_wait        true to block until complete, false for async operation
  *
  * @return     UpdaterStatusOk on success,
- *             UpdaterStatusPrepareInstallManifestNotFound if manifest missing,
- *             UpdaterStatusPrepareInstallManifestInvalid if validation fails,
- *             UpdaterStatusPrepareInstallSessionConfigSetupFailure if session config save fails,
- *             UpdaterStatusPrepareInstallPointerSetupFailure if pointer file write fails
+ *             UpdaterStatusInstallationPrepareManifestNotFound if manifest missing,
+ *             UpdaterStatusInstallationPrepareManifestInvalid if validation fails,
+ *             UpdaterStatusInstallationPrepareSessionConfigSetupFailure if session config save fails,
+ *             UpdaterStatusInstallationPreparePointerSetupFailure if pointer file write fails
  */
-UpdaterStatus updater_prepare_install(Updater* instance, const char* manifest_path, bool do_wait);
+UpdaterStatus
+    updater_installation_prepare(Updater* instance, const char* manifest_path, bool do_wait);
 
-/** Reboot device to install prepared update
+/** Apply prepared installation
  *
- * Requires update lock to be acquired.
+ * This will reboot the device.
+ * Requires update session to be started.
  *
  * @param[in]  instance  Updater instance
  * @param[in]  do_wait   true to block and reboot, false for async reboot
  */
-void updater_reboot_install(Updater* instance, bool do_wait);
+void updater_installation_apply(Updater* instance, bool do_wait);
 
 #ifdef __cplusplus
 }

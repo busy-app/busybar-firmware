@@ -73,10 +73,10 @@ static bool
 
     do {
         /* Start update session */
-        UpdaterStatus start_status = updater_start_update(ctx->updater);
-        if(start_status != UpdaterStatusOk) {
+        UpdaterStatus session_start_status = updater_session_start(ctx->updater);
+        if(session_start_status != UpdaterStatusOk) {
             FuriString* error_string = furi_string_alloc_printf(
-                "Update not allowed: %s", updater_get_status_string(start_status));
+                "Update not allowed: %s", updater_get_status_string(session_start_status));
 
             FURI_LOG_E(TAG, furi_string_get_cstr(error_string));
             MG_REPLY_ERROR(conn, 400, furi_string_get_cstr(error_string));
@@ -99,11 +99,12 @@ static bool
             break;
         }
 
-        UpdaterStatus prepare_install_status = updater_prepare_install(ctx->updater, NULL, true);
-        if(prepare_install_status != UpdaterStatusOk) {
+        UpdaterStatus installation_prepare_status =
+            updater_installation_prepare(ctx->updater, NULL, true);
+        if(installation_prepare_status != UpdaterStatusOk) {
             FuriString* error_string = furi_string_alloc_printf(
-                "Update prepare install failed: %s",
-                updater_get_status_string(prepare_install_status));
+                "Update installation preparation failed: %s",
+                updater_get_status_string(installation_prepare_status));
 
             FURI_LOG_E(TAG, furi_string_get_cstr(error_string));
             MG_REPLY_ERROR(conn, 400, furi_string_get_cstr(error_string));
@@ -119,13 +120,13 @@ static bool
 
         conn->is_draining = 1;
 
-        updater_reboot_install(ctx->updater, false);
+        updater_installation_apply(ctx->updater, false);
 
         is_success = true;
     } while(false);
 
     if(update_started && !is_success) {
-        updater_stop_update(ctx->updater);
+        updater_session_stop(ctx->updater);
     }
 
     return is_success;

@@ -92,10 +92,12 @@ static void scene_main_start_download(FwUpdate* instance) {
             break;
         }
 
-        UpdaterStatus start_status = updater_start_update(data->updater);
-        if(start_status != UpdaterStatusOk) {
+        UpdaterStatus session_start_status = updater_session_start(data->updater);
+        if(session_start_status != UpdaterStatusOk) {
             furi_string_printf(
-                data->fw_status, "Update failed: %s", updater_get_status_string(start_status));
+                data->fw_status,
+                "Update failed: %s",
+                updater_get_status_string(session_start_status));
             fw_update_send_custom_event(instance, SceneEventUpdateStatus);
             break;
         }
@@ -288,28 +290,29 @@ static void scene_main_install(void* context) {
 
     do {
         if(!data->update_in_progress) {
-            UpdaterStatus start_status = updater_start_update(data->updater);
-            if(start_status != UpdaterStatusOk) {
+            UpdaterStatus session_start_status = updater_session_start(data->updater);
+            if(session_start_status != UpdaterStatusOk) {
                 break;
             }
             update_started = true;
         }
 
-        UpdaterStatus unpack_tar_status = updater_unpack(data->updater, NULL, NULL, NULL, true);
-        if(unpack_tar_status != UpdaterStatusOk) {
+        UpdaterStatus unpack_status = updater_unpack(data->updater, NULL, NULL, NULL, true);
+        if(unpack_status != UpdaterStatusOk) {
             break;
         }
 
-        UpdaterStatus prepare_install_status = updater_prepare_install(data->updater, NULL, true);
-        if(prepare_install_status != UpdaterStatusOk) {
+        UpdaterStatus installation_prepare_status =
+            updater_installation_prepare(data->updater, NULL, true);
+        if(installation_prepare_status != UpdaterStatusOk) {
             break;
         }
 
-        updater_reboot_install(data->updater, false);
+        updater_installation_apply(data->updater, false);
     } while(false);
 
     if(update_started && !data->update_in_progress) {
-        updater_stop_update(data->updater);
+        updater_session_stop(data->updater);
     }
 }
 
@@ -434,7 +437,7 @@ static void scene_main_on_exit(void* context) {
     }
 
     if(data->update_in_progress) {
-        updater_stop_update(data->updater);
+        updater_session_stop(data->updater);
     }
 
     furi_record_close(RECORD_UPDATER);

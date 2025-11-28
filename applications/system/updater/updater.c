@@ -15,8 +15,8 @@
 
 #define MESSAGE_QUEUE_ITEMS_COUNT 8
 
-#define UPDATE_START_MIN_BATTERY_CHARGE 40
-#define UPDATE_REBOOT_INSTALL_DELAY     100
+#define UPDATE_START_MIN_BATTERY_CHARGE        40
+#define UPDATE_INSTALLATION_APPLY_REBOOT_DELAY 100
 
 struct Updater {
     FuriEventLoop* event_loop;
@@ -39,12 +39,12 @@ typedef struct {
 } DownloadQueueMessage;
 
 typedef enum {
-    MessageTypeStartUpdate,
-    MessageTypeStopUpdate,
+    MessageTypeSessionStart,
+    MessageTypeSessionStop,
     MessageTypeDownload,
     MessageTypeUnpack,
-    MessageTypePrepareInstall,
-    MessageTypeRebootInstall,
+    MessageTypeInstallationPrepare,
+    MessageTypeInstallationApply,
 
     MessageTypesCount
 } MessageType;
@@ -64,7 +64,7 @@ typedef struct {
 
         struct {
             FuriString* manifest_path;
-        } as_prepare_install;
+        } as_installation_prepare;
     };
 
     FuriApiLock api_lock;
@@ -80,21 +80,21 @@ typedef struct {
 static const char* const status_strings[];
 static const MessageHandler message_handlers[];
 
-static UpdaterStatus do_start_update(Updater* instance, UpdaterMessage* message) {
+static UpdaterStatus do_session_start(Updater* instance, UpdaterMessage* message) {
     UNUSED(message);
 
     UpdaterUpdateState* update_state = furi_state_acquire(instance->update_state);
-    update_state->event = UpdaterUpdateEventStart;
+    update_state->event = UpdaterUpdateEventSessionStart;
     furi_state_release(instance->update_state);
 
     return UpdaterStatusOk;
 }
 
-static UpdaterStatus do_stop_update(Updater* instance, UpdaterMessage* message) {
+static UpdaterStatus do_session_stop(Updater* instance, UpdaterMessage* message) {
     UNUSED(message);
 
     UpdaterUpdateState* update_state = furi_state_acquire(instance->update_state);
-    update_state->event = UpdaterUpdateEventStop;
+    update_state->event = UpdaterUpdateEventSessionStop;
     furi_state_release(instance->update_state);
 
     return UpdaterStatusOk;
@@ -263,8 +263,9 @@ static UpdaterStatus do_unpack(Updater* instance, UpdaterMessage* message) {
     return update_status;
 }
 
-static UpdaterStatus do_prepare_install(Updater* instance, UpdaterMessage* message) {
-    const char* manifest_path = furi_string_get_cstr(message->as_prepare_install.manifest_path);
+static UpdaterStatus do_installation_prepare(Updater* instance, UpdaterMessage* message) {
+    const char* manifest_path =
+        furi_string_get_cstr(message->as_installation_prepare.manifest_path);
 
     FURI_LOG_D(TAG, "Preparing update bundle for installation using manifest %s", manifest_path);
 
@@ -276,7 +277,7 @@ static UpdaterStatus do_prepare_install(Updater* instance, UpdaterMessage* messa
 
         if(!storage_file_exists(instance->storage, manifest_path)) {
             FURI_LOG_E(TAG, "Manifest file not found: %s", manifest_path);
-            update_status = UpdaterStatusPrepareInstallManifestNotFound;
+            update_status = UpdaterStatusInstallationPrepareManifestNotFound;
             break;
         }
 
@@ -289,7 +290,7 @@ static UpdaterStatus do_prepare_install(Updater* instance, UpdaterMessage* messa
                 "Failed to load updater configuration: %s",
                 update_config_validation_get_error_str(validation_status));
 
-            update_status = UpdaterStatusPrepareInstallManifestInvalid;
+            update_status = UpdaterStatusInstallationPrepareManifestInvalid;
             break;
         }
 
@@ -300,7 +301,7 @@ static UpdaterStatus do_prepare_install(Updater* instance, UpdaterMessage* messa
         updater_session_config_compose(manifest, &session_config);
         if(!updater_session_config_save(&session_config)) {
             FURI_LOG_E(TAG, "Failed to set up session config");
-            update_status = UpdaterStatusPrepareInstallSessionConfigSetupFailure;
+            update_status = UpdaterStatusInstallationPrepareSessionConfigSetupFailure;
             break;
         }
 
@@ -308,7 +309,7 @@ static UpdaterStatus do_prepare_install(Updater* instance, UpdaterMessage* messa
 
         if(!update_config_write_pointer_file(instance->storage, manifest_path)) {
             FURI_LOG_E(TAG, "Failed to set up pointer file");
-            update_status = UpdaterStatusPrepareInstallPointerSetupFailure;
+            update_status = UpdaterStatusInstallationPreparePointerSetupFailure;
 
             updater_session_config_delete();
 
@@ -321,12 +322,12 @@ static UpdaterStatus do_prepare_install(Updater* instance, UpdaterMessage* messa
     } while(false);
 
     update_config_free(config);
-    furi_string_free(message->as_prepare_install.manifest_path);
+    furi_string_free(message->as_installation_prepare.manifest_path);
 
     return update_status;
 }
 
-static UpdaterStatus do_reboot_install(Updater* instance, UpdaterMessage* message) {
+static UpdaterStatus do_installation_apply(Updater* instance, UpdaterMessage* message) {
     UNUSED(instance);
     UNUSED(message);
 
@@ -334,7 +335,7 @@ static UpdaterStatus do_reboot_install(Updater* instance, UpdaterMessage* messag
 
     FURI_LOG_D(TAG, "Boot mode set to \"update\", device will reboot...");
 
-    furi_delay_ms(UPDATE_REBOOT_INSTALL_DELAY);
+    furi_delay_ms(UPDATE_INSTALLATION_APPLY_REBOOT_DELAY);
     furi_hal_power_reset();
 
     furi_crash();
@@ -424,7 +425,7 @@ UpdaterStatus updater_get_allowance_status(Updater* instance) {
                UpdaterStatusBatteryLow;
 }
 
-UpdaterStatus updater_start_update(Updater* instance) {
+UpdaterStatus updater_session_start(Updater* instance) {
     furi_check(instance);
 
     UpdaterStatus result_status;
@@ -439,7 +440,7 @@ UpdaterStatus updater_start_update(Updater* instance) {
             break;
         }
 
-        invoke_async(instance, &(UpdaterMessage){.type = MessageTypeStartUpdate});
+        invoke_async(instance, &(UpdaterMessage){.type = MessageTypeSessionStart});
 
         result_status = UpdaterStatusOk;
     } while(false);
@@ -447,10 +448,10 @@ UpdaterStatus updater_start_update(Updater* instance) {
     return result_status;
 }
 
-void updater_stop_update(Updater* instance) {
+void updater_session_stop(Updater* instance) {
     furi_check(instance);
 
-    invoke_async(instance, &(UpdaterMessage){.type = MessageTypeStopUpdate});
+    invoke_async(instance, &(UpdaterMessage){.type = MessageTypeSessionStop});
 
     furi_semaphore_release(instance->update_lock);
 }
@@ -510,28 +511,29 @@ UpdaterStatus updater_unpack(
     return (do_wait) ? invoke_sync(instance, &message) : invoke_async(instance, &message);
 }
 
-UpdaterStatus updater_prepare_install(Updater* instance, const char* manifest_path, bool do_wait) {
+UpdaterStatus
+    updater_installation_prepare(Updater* instance, const char* manifest_path, bool do_wait) {
     furi_check(instance);
     furi_check(furi_semaphore_get_space(instance->update_lock) > 0);
 
     UpdaterMessage message = {
-        .as_prepare_install =
+        .as_installation_prepare =
             {
                 .manifest_path =
                     furi_string_alloc_set_str((manifest_path) ?: UPDATER_DEFAULT_MANIFEST_PATH),
             },
-        .type = MessageTypePrepareInstall,
+        .type = MessageTypeInstallationPrepare,
     };
 
     return (do_wait) ? invoke_sync(instance, &message) : invoke_async(instance, &message);
 }
 
-void updater_reboot_install(Updater* instance, bool do_wait) {
+void updater_installation_apply(Updater* instance, bool do_wait) {
     furi_check(instance);
     furi_check(furi_semaphore_get_space(instance->update_lock) > 0);
 
     UpdaterMessage message = {
-        .type = MessageTypeRebootInstall,
+        .type = MessageTypeInstallationApply,
     };
 
     if(do_wait) {
@@ -596,24 +598,24 @@ static const char* const status_strings[] = {
     [UpdaterStatusUnpackCreateStagingDirectoryFailure] = "Failed to create staging directory",
     [UpdaterStatusUnpackArchiveOpenFailure] = "Failed to open tar file",
     [UpdaterStatusUnpackArchiveUnpackFailure] = "Failed to unpack tar file",
-    [UpdaterStatusPrepareInstallManifestNotFound] = "Manifest not found",
-    [UpdaterStatusPrepareInstallManifestInvalid] = "Failed to validate manifest",
-    [UpdaterStatusPrepareInstallSessionConfigSetupFailure] = "Failed to save session config",
-    [UpdaterStatusPrepareInstallPointerSetupFailure] = "Failed to write pointer file",
+    [UpdaterStatusInstallationPrepareManifestNotFound] = "Manifest not found",
+    [UpdaterStatusInstallationPrepareManifestInvalid] = "Failed to validate manifest",
+    [UpdaterStatusInstallationPrepareSessionConfigSetupFailure] = "Failed to save session config",
+    [UpdaterStatusInstallationPreparePointerSetupFailure] = "Failed to write pointer file",
     [UpdaterStatusUnknownFailure] = "Unknown error",
 };
 
 static_assert(COUNT_OF(status_strings) == UpdaterStatusesCount);
 
 static const MessageHandler message_handlers[] = {
-    [MessageTypeStartUpdate] =
+    [MessageTypeSessionStart] =
         {
-            .callback = do_start_update,
+            .callback = do_session_start,
             .action = UpdaterUpdateActionNone,
         },
-    [MessageTypeStopUpdate] =
+    [MessageTypeSessionStop] =
         {
-            .callback = do_stop_update,
+            .callback = do_session_stop,
             .action = UpdaterUpdateActionNone,
         },
     [MessageTypeDownload] =
@@ -626,15 +628,15 @@ static const MessageHandler message_handlers[] = {
             .callback = do_unpack,
             .action = UpdaterUpdateActionUnpack,
         },
-    [MessageTypePrepareInstall] =
+    [MessageTypeInstallationPrepare] =
         {
-            .callback = do_prepare_install,
-            .action = UpdaterUpdateActionPrepareInstall,
+            .callback = do_installation_prepare,
+            .action = UpdaterUpdateActionInstallationPrepare,
         },
-    [MessageTypeRebootInstall] =
+    [MessageTypeInstallationApply] =
         {
-            .callback = do_reboot_install,
-            .action = UpdaterUpdateActionRebootInstall,
+            .callback = do_installation_apply,
+            .action = UpdaterUpdateActionInstallationApply,
         },
 };
 

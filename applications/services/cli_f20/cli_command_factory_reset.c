@@ -40,18 +40,18 @@ static void reset_firmware_to_backup(Updater* updater) {
     printf("Resetting firmware to factory default...\r\n");
 
     do {
-        UpdaterStatus prepare_install_status =
-            updater_prepare_install(updater, BACKUP_PATH("recovery/update.json"), true);
-        if(prepare_install_status != UpdaterStatusOk) {
+        UpdaterStatus installation_prepare_status =
+            updater_installation_prepare(updater, BACKUP_PATH("recovery/update.json"), true);
+        if(installation_prepare_status != UpdaterStatusOk) {
             printf(
                 "Factory reset prepare install failed: %s\r\n",
-                updater_get_status_string(prepare_install_status));
+                updater_get_status_string(installation_prepare_status));
             break;
         }
 
         printf("Preparation for the installation is complete, device will reboot...\r\n");
 
-        updater_reboot_install(updater, false);
+        updater_installation_apply(updater, false);
     } while(false);
 }
 
@@ -61,7 +61,7 @@ void cli_command_factory_reset(PipeSide* pipe, FuriString* args, void* context) 
 
     Updater* updater = furi_record_open(RECORD_UPDATER);
 
-    UpdaterStatus update_status = updater_start_update(updater);
+    UpdaterStatus update_status = updater_session_start(updater);
     if(update_status == UpdaterStatusOk) {
         printf("Warning! This will wipe all the data from the device! Are you sure? y/n\r\n");
 
@@ -89,7 +89,7 @@ void cli_command_factory_reset(PipeSide* pipe, FuriString* args, void* context) 
         printf("Factory reset is not allowed: %s\r\n", updater_get_status_string(update_status));
     }
 
-    updater_stop_update(updater);
+    updater_session_stop(updater);
 
     furi_record_close(RECORD_UPDATER);
 }

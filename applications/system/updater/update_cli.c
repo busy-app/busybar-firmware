@@ -81,24 +81,24 @@ static void updater_cli_execute_install(const char* manifest_path) {
 
     printf("Installing update bundle from: %s\r\n", manifest_path);
 
-    UpdaterStatus update_status = updater_start_update(updater);
+    UpdaterStatus update_status = updater_session_start(updater);
     if(update_status == UpdaterStatusOk) {
         do {
-            update_status = updater_prepare_install(updater, manifest_path, true);
+            update_status = updater_installation_prepare(updater, manifest_path, true);
             if(update_status != UpdaterStatusOk) {
                 printf(
-                    "Install preparation failed: %s\r\n",
+                    "Update installation preparation failed: %s\r\n",
                     updater_get_status_string(update_status));
 
                 break;
             }
 
-            printf("Update preparation successful, rebooting...\r\n");
+            printf("Update installation preparation, rebooting...\r\n");
 
-            updater_reboot_install(updater, true);
+            updater_installation_apply(updater, true);
         } while(false);
 
-        updater_stop_update(updater);
+        updater_session_stop(updater);
     } else {
         printf("Update not allowed: %s\r\n", updater_get_status_string(update_status));
     }
@@ -111,7 +111,7 @@ static void updater_cli_execute_install_tar(const char* tar_path) {
 
     printf("Installing update bundle from: %s\r\n", tar_path);
 
-    UpdaterStatus update_status = updater_start_update(updater);
+    UpdaterStatus update_status = updater_session_start(updater);
     if(update_status == UpdaterStatusOk) {
         do {
             update_status = updater_unpack(updater, tar_path, NULL, NULL, true);
@@ -122,21 +122,21 @@ static void updater_cli_execute_install_tar(const char* tar_path) {
                 break;
             }
 
-            update_status = updater_prepare_install(updater, NULL, true);
+            update_status = updater_installation_prepare(updater, NULL, true);
             if(update_status != UpdaterStatusOk) {
                 printf(
-                    "Update prepare install failed: %s\r\n",
+                    "Update installation preparation failed: %s\r\n",
                     updater_get_status_string(update_status));
 
                 break;
             }
 
-            printf("Update preparation successful, rebooting...\r\n");
+            printf("Update installation preparation, rebooting...\r\n");
 
-            updater_reboot_install(updater, true);
+            updater_installation_apply(updater, true);
         } while(false);
 
-        updater_stop_update(updater);
+        updater_session_stop(updater);
     } else {
         printf("Update not allowed: %s\r\n", updater_get_status_string(update_status));
     }
@@ -149,7 +149,7 @@ static void updater_cli_execute_install_web(const char* link) {
 
     printf("Installing update bundle from: %s\r\n", link);
 
-    UpdaterStatus update_status = updater_start_update(updater);
+    UpdaterStatus update_status = updater_session_start(updater);
     if(update_status == UpdaterStatusOk) {
         do {
             update_status = updater_download(updater, link, NULL, true);
@@ -167,21 +167,21 @@ static void updater_cli_execute_install_web(const char* link) {
                 break;
             }
 
-            update_status = updater_prepare_install(updater, NULL, true);
+            update_status = updater_installation_prepare(updater, NULL, true);
             if(update_status != UpdaterStatusOk) {
                 printf(
-                    "Update prepare install failed: %s\r\n",
+                    "Update installation preparation failed: %s\r\n",
                     updater_get_status_string(update_status));
 
                 break;
             }
 
-            printf("Update preparation successful, rebooting...\r\n");
+            printf("Update installation preparation, rebooting...\r\n");
 
-            updater_reboot_install(updater, true);
+            updater_installation_apply(updater, true);
         } while(false);
 
-        updater_stop_update(updater);
+        updater_session_stop(updater);
     } else {
         printf("Update not allowed: %s\r\n", updater_get_status_string(update_status));
     }
