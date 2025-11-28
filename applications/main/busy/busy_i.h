@@ -110,3 +110,5 @@ void busy_set_matter(BusyApp* instance, bool switch_state);
 void busy_push_location(BusyApp* instance, const char* location_name);
 
 void busy_pop_location(BusyApp* instance);
+
+void busy_exit(BusyApp* instance);

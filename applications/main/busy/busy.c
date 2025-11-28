@@ -77,7 +77,7 @@ static bool busy_gui_input_callback(const InputEvent* event, void* context) {
     return consumed;
 }
 
-static BusyApp* busy_alloc(void) {
+static BusyApp* busy_alloc(const char* arg) {
     BusyApp* instance = malloc(sizeof(BusyApp));
 
     instance->event_loop = furi_event_loop_alloc();
@@ -145,10 +145,14 @@ static BusyApp* busy_alloc(void) {
         busy_api_queue_callback,
         instance);
 
-    scene_manager_next_scene(instance->scene_manager, BusyAppSceneIdStart);
-
     busy_set_status_lights(instance, BusyStatusLightsTypeOff);
     busy_set_matter(instance, false);
+
+    if(arg && strcmp(arg, BUSY_APP_TIMER_MODE) == 0) {
+        scene_manager_next_scene(instance->scene_manager, BusyAppSceneIdShowTimer);
+    } else {
+        scene_manager_next_scene(instance->scene_manager, BusyAppSceneIdStart);
+    }
 
     furi_record_create(RECORD_BUSY_APP, instance);
     return instance;
@@ -193,9 +197,7 @@ static void busy_free(BusyApp* instance) {
 }
 
 int32_t busy_app(void* arg) {
-    UNUSED(arg);
-
-    BusyApp* instance = busy_alloc();
+    BusyApp* instance = busy_alloc(arg);
     furi_event_loop_run(instance->event_loop);
     busy_free(instance);
 
@@ -249,4 +251,9 @@ void busy_pop_location(BusyApp* instance) {
     furi_assert(instance);
 
     with_gui(instance->gui, { nav_bar_pop_location(instance->nav_bar); });
+}
+
+void busy_exit(BusyApp* instance) {
+    furi_assert(instance);
+    furi_event_loop_stop(instance->event_loop);
 }

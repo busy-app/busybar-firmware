@@ -255,8 +255,10 @@ static void busy_scene_timer_handle_back(BusyApp* instance) {
 
         busy_prepare_transition(instance, BusyTransitionTypeDefault);
 
-        scene_manager_search_and_switch_to_previous_scene(
-            instance->scene_manager, BusyAppSceneIdStart);
+        if(!scene_manager_search_and_switch_to_previous_scene(
+               instance->scene_manager, BusyAppSceneIdStart)) {
+            busy_exit(instance);
+        }
 
     } else {
         busy_timer_toggle(instance->busy_timer);

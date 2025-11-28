@@ -15,8 +15,6 @@ static void busy_scene_show_timer_on_enter(void* context) {
 
     busy_prepare_transition(instance, BusyTransitionTypeAutomatic);
     scene_manager_next_scene(instance->scene_manager, BusyAppSceneIdTimer);
-
-    scene_manager_next_scene(instance->scene_manager, BusyAppSceneIdTimer);
 }
 
 static void busy_scene_show_timer_on_exit(void* context) {

@@ -81,7 +81,7 @@ static void busy_timer_log_time(BusyTimer* instance) {
 static void busy_timer_start_app(void) {
     if(!furi_record_exists(RECORD_BUSY_APP)) {
         Desktop* desktop = furi_record_open(RECORD_DESKTOP);
-        while(!desktop_replace_current_app(desktop, "busy", NULL)) {
+        while(!desktop_replace_current_app(desktop, "busy", BUSY_APP_TIMER_MODE)) {
             furi_thread_yield();
         }
         furi_record_close(RECORD_DESKTOP);
