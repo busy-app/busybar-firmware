@@ -160,7 +160,7 @@ bool ble_service_target_execute(
         ble_service_command_handler_update(instance, frame_type, data_size, data);
         break;
     default:
-        __furi_crash("Unknown command");
+        furi_crash("Unknown command");
         break;
     }
 
