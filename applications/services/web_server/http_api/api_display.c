@@ -77,7 +77,8 @@ static bool api_display_draw_parse_countdown_element(
 
         char* color_hex = mg_json_get_str(json_element, "$.color");
         if(color_hex) {
-            bool color_parsed = color_parse_hexa_string(color_hex, &canvas_element->text.color);
+            bool color_parsed =
+                color_parse_hexa_string(color_hex, &canvas_element->countdown.color);
             free(color_hex);
             if(!color_parsed) break;
         }
@@ -179,8 +180,8 @@ static bool api_display_draw_parse_element(
     canvas_element->display = GuiDisplayIdFront;
 
     do {
-        canvas_element->app_scoped_id = mg_json_get_str(element, "$.id");
-        if(!canvas_element->app_scoped_id) break;
+        canvas_element->id = mg_json_get_str(element, "$.id");
+        if(!canvas_element->id) break;
 
         int32_t temp_val = mg_json_get_long(element, "$.timeout", -1);
         canvas_element->timeout = (temp_val > 0) ? temp_val : 0;

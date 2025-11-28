@@ -14,7 +14,7 @@ App(
     ],
     sdk_headers=["power_service/power.h"],
     order=40,
-    targets=["f20", "f21"],
+    targets=["f20", "f21", "f22"],
 )
 
 App(

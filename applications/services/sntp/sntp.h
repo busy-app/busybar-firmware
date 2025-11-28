@@ -7,6 +7,7 @@
 #include "sntp_settings.h"
 
 #include <furi.h>
+#include <time.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -51,6 +52,14 @@ void sntp_get_settings(const Sntp* instance, SntpSettings* settings);
  * @return true if settings were successfully applied, false otherwise
  */
 bool sntp_set_settings(Sntp* instance, const SntpSettings* settings);
+
+/**
+ * @brief Get UTC Unix seconds timestamp
+ * 
+ * @param[in] instance
+ * @return 64-bit UTC Unix seconds timestamp
+ */
+time_t sntp_get_utc_timestamp(Sntp* instance);
 
 #ifdef __cplusplus
 }

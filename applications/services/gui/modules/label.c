@@ -148,51 +148,27 @@ void label_set_long_content_mode(Label* instance, LabelLongContentMode mode, uin
     furi_check(instance);
     furi_check(mode < LabelLongContentModeCount);
 
-    lv_label_set_long_mode(instance->label, (lv_label_long_mode_t)mode);
     lv_obj_set_style_anim_time(instance->label, duration, LV_PART_MAIN);
+    lv_label_set_long_mode(instance->label, (lv_label_long_mode_t)mode);
 }
 
-static size_t label_calculate_offscreen_chars(
-    const char* text,
-    size_t width,
-    size_t letter_space,
-    const lv_font_t* font) {
-    size_t str_bytes = strlen(text);
-    size_t inscreen_chars = 0, total_chars = 0;
-    FuriStringUTF8State utf8_state = FuriStringUTF8StateStarting;
-
-    for(size_t i = 0; i < str_bytes; i++) {
-        FuriStringUnicodeValue codepoint;
-        furi_string_utf8_decode(text[i], &utf8_state, &codepoint);
-        if(utf8_state != FuriStringUTF8StateStarting) continue;
-
-        int32_t portion_width = lv_text_get_width(text, i + 1, font, letter_space);
-        furi_assert(portion_width > 0);
-
-        if((size_t)portion_width <= width) inscreen_chars++;
-        total_chars++;
-    }
-
-    size_t offscreen_chars = total_chars - inscreen_chars;
-    return offscreen_chars;
-}
-
-uint32_t label_calculate_scroll_duration(const Label* instance, uint32_t rate_cpm) {
+uint32_t label_calculate_scroll_duration(const Label* instance, uint32_t rate_ppm) {
     furi_check(instance);
-    furi_check(rate_cpm > 0);
+    furi_check(rate_ppm > 0);
 
     lv_obj_t* label = TO_LV_OBJ(instance);
     lv_obj_update_layout(label);
+
     const char* text = furi_string_get_cstr(instance->text);
-    int32_t width = lv_obj_get_width(label);
+    const lv_font_t* font = gui_font_to_lvgl(instance->font);
     int32_t letter_space = lv_obj_get_style_text_letter_space(label, LV_PART_MAIN);
+    int32_t text_width = lv_text_get_width(text, strlen(text), font, letter_space);
 
-    furi_assert(width > 0);
-    furi_assert(letter_space >= 0);
-    size_t offscreen_chars = label_calculate_offscreen_chars(
-        text, (size_t)width, letter_space, gui_font_to_lvgl(instance->font));
+    int32_t space_width = lv_font_get_glyph_width(font, ' ', ' ');
+    int32_t gap_width = space_width * LV_LABEL_WAIT_CHAR_COUNT;
+    int32_t total_width = text_width + gap_width;
 
-    size_t duration_ms = (offscreen_chars * 60 * 1000) / rate_cpm;
+    size_t duration_ms = (total_width * 60 * 1000) / rate_ppm;
     return duration_ms;
 }
 

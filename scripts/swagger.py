@@ -9,6 +9,7 @@ a customized HTML page that serves the API schema from the embedded device.
 import logging
 import shutil
 import tempfile
+import urllib.error
 import urllib.request
 import zipfile
 import ssl
@@ -30,7 +31,7 @@ class Main(App):
         "favicon-32x32.png",
     ]
 
-    def init(self):
+    def init(self):  # type: ignore[override]
         self.parser.add_argument(
             "api_spec",
             help="Full path to OpenAPI specification file",
@@ -40,6 +41,12 @@ class Main(App):
             "--version",
             help="Swagger UI version to download",
             default="5.30.1",
+            required=False,
+        )
+        self.parser.add_argument(
+            "--dist-dir",
+            help="Directory containing cached Swagger UI distributions",
+            default="swagger-dist",
             required=False,
         )
         self.parser.add_argument(
@@ -56,6 +63,12 @@ class Main(App):
             default=True,
         )
         self.parser.add_argument(
+            "--download-only",
+            help="Download the requested Swagger UI version to the cache directory and exit",
+            action="store_true",
+            default=False,
+        )
+        self.parser.add_argument(
             "-q",
             "--quiet",
             help="Suppress output messages",
@@ -69,6 +82,33 @@ class Main(App):
         if self.args.quiet:
             self.logger.setLevel(logging.WARNING)
 
+        dist_cache_dir = Path(self.args.dist_dir).expanduser()
+        dist_cache_dir.mkdir(parents=True, exist_ok=True)
+
+        # Determine target directory
+        if self.args.target_dir:
+            target_dir = Path(self.args.target_dir)
+        else:
+            target_dir = None
+
+        # Configuration
+        swagger_ui_version = self.args.version
+        swagger_ui_url = self.SWAGGER_UI_URL_BASE.format(version=swagger_ui_version)
+
+        try:
+            swagger_zip_path = self._get_or_download_swagger_zip(
+                dist_cache_dir, swagger_ui_url, swagger_ui_version, allow_download=True
+            )
+        except Exception as e:
+            self.logger.error(f"Failed to prepare Swagger UI distribution: {e}")
+            return 1
+
+        if self.args.download_only:
+            self.logger.info(
+                f"Swagger UI v{swagger_ui_version} is available at: {swagger_zip_path}"
+            )
+            return 0
+
         # Get API specification file path (now a required positional argument)
         api_spec_path = Path(self.args.api_spec)
 
@@ -78,20 +118,12 @@ class Main(App):
 
         self.logger.info(f"Using OpenAPI specification: {api_spec_path}")
 
-        # Determine target directory
-        if self.args.target_dir:
-            target_dir = Path(self.args.target_dir)
-        else:
-            # Use "docs" directory next to the OpenAPI file
+        if target_dir is None:
             target_dir = api_spec_path.parent / "docs"
             self.logger.info(f"No target directory specified, using: {target_dir}")
 
         # Extract just the filename for API spec relative path
         api_yaml_path = api_spec_path.name
-
-        # Configuration
-        swagger_ui_version = self.args.version
-        swagger_ui_url = self.SWAGGER_UI_URL_BASE.format(version=swagger_ui_version)
 
         # Clean and create target directory
         if self.args.clean and target_dir.exists():
@@ -105,9 +137,9 @@ class Main(App):
             with tempfile.TemporaryDirectory() as temp_dir:
                 temp_path = Path(temp_dir)
 
-                # Download and extract Swagger UI
-                swagger_dist_dir = self._download_swagger_ui(
-                    temp_path, swagger_ui_url, swagger_ui_version
+                # Extract Swagger UI assets from cached archive
+                swagger_dist_dir = self._extract_swagger_dist(
+                    swagger_zip_path, temp_path, swagger_ui_version
                 )
 
                 # Copy Swagger UI assets
@@ -127,37 +159,55 @@ class Main(App):
             self.logger.error(f"Error: {e}")
             return 1
 
-    def _download_swagger_ui(
-        self, temp_dir: Path, swagger_ui_url: str, swagger_ui_version: str
+    def _get_or_download_swagger_zip(
+        self,
+        cache_dir: Path,
+        swagger_ui_url: str,
+        swagger_ui_version: str,
+        allow_download: bool,
     ) -> Path:
-        """Download and extract Swagger UI."""
-        self.logger.info(f"Downloading Swagger UI v{swagger_ui_version}...")
+        """Ensure the requested Swagger UI archive is available locally."""
 
-        zip_path = temp_dir / "swagger-ui.zip"
+        zip_path = cache_dir / f"swagger-ui-{swagger_ui_version}.zip"
+
+        if zip_path.exists():
+            self.logger.info(f"Using cached Swagger UI archive: {zip_path}")
+            return zip_path
+
+        if not allow_download:
+            raise FileNotFoundError(
+                f"Swagger UI v{swagger_ui_version} not found in cache and downloads disabled"
+            )
+
+        self.logger.info(f"Downloading Swagger UI v{swagger_ui_version}...")
+        self._download_swagger_ui_archive(swagger_ui_url, zip_path)
+        return zip_path
+
+    def _download_swagger_ui_archive(self, swagger_ui_url: str, zip_path: Path) -> None:
+        """Download Swagger UI archive to the specified path."""
 
         try:
-            # Try normal download first
             urllib.request.urlretrieve(swagger_ui_url, zip_path)
         except urllib.error.URLError as e:
             if "CERTIFICATE_VERIFY_FAILED" in str(e):
                 self.logger.warning(
                     "SSL certificate verification failed. Trying with verification disabled..."
                 )
-                # Create a context with SSL verification disabled
-                import ssl
-
                 context = ssl.create_default_context()
                 context.check_hostname = False
                 context.verify_mode = ssl.CERT_NONE
 
-                # Download with SSL verification disabled
                 with urllib.request.urlopen(
                     swagger_ui_url, context=context
-                ) as response, open(zip_path, "wb") as out_file:
-                    out_file.write(response.read())
+                ) as response, zip_path.open("wb") as out_file:
+                    shutil.copyfileobj(response, out_file)
             else:
-                # Re-raise if it's not a certificate issue
                 raise
+
+    def _extract_swagger_dist(
+        self, zip_path: Path, temp_dir: Path, swagger_ui_version: str
+    ) -> Path:
+        """Extract Swagger UI distribution to a temporary directory."""
 
         with zipfile.ZipFile(zip_path, "r") as zip_ref:
             zip_ref.extractall(temp_dir)
@@ -166,7 +216,11 @@ class Main(App):
         if not extracted_dir.exists():
             raise FileNotFoundError(f"Extracted directory not found: {extracted_dir}")
 
-        return extracted_dir / "dist"
+        dist_dir = extracted_dir / "dist"
+        if not dist_dir.exists():
+            raise FileNotFoundError(f"Swagger UI dist directory not found: {dist_dir}")
+
+        return dist_dir
 
     def _copy_swagger_assets(self, swagger_dist_dir: Path, target_dir: Path) -> None:
         """Copy necessary Swagger UI assets."""

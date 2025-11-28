@@ -2,6 +2,6 @@ App(
     appid="cli_commands_target_specific",
     apptype=FlipperAppType.STARTUP,
     entry_point="cli_on_system_start",
-    targets=["f20", "f21"],
+    targets=["f20", "f21", "f22"],
     order=10,
 )
