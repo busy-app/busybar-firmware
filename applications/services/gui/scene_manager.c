@@ -193,12 +193,15 @@ bool scene_manager_has_previous_scene(const SceneManager* instance, uint32_t sce
 
     bool success = false;
 
-    SceneIdStack_it_ct it;
-    for(SceneIdStack_it_last(it, instance->scene_id_stack); !SceneIdStack_end_p(it);
-        SceneIdStack_previous(it)) {
-        if(*SceneIdStack_cref(it) == scene_id) {
-            success = true;
-            break;
+    if(SceneIdStack_size(instance->scene_id_stack) > 0) {
+        SceneIdStack_it_ct it;
+        SceneIdStack_it_last(it, instance->scene_id_stack);
+        // Start searching from the second to last element
+        for(SceneIdStack_previous(it); !SceneIdStack_end_p(it); SceneIdStack_previous(it)) {
+            if(*SceneIdStack_cref(it) == scene_id) {
+                success = true;
+                break;
+            }
         }
     }
 
@@ -211,31 +214,28 @@ bool scene_manager_search_and_switch_to_previous_scene(SceneManager* instance, u
 
     bool success = false;
 
-    do {
-        const Scene* current_scene = scene_manager_get_current_scene(instance);
-        if(!current_scene) break;
-
-        current_scene->exit_callback(instance->context);
-        SceneIdStack_pop_back(NULL, instance->scene_id_stack);
-
+    if(SceneIdStack_size(instance->scene_id_stack) > 0) {
         SceneIdStack_it_ct it;
-        for(SceneIdStack_it_last(it, instance->scene_id_stack); !SceneIdStack_end_p(it);
-            SceneIdStack_previous(it)) {
+        SceneIdStack_it_last(it, instance->scene_id_stack);
+        // Start searching from the second to last element
+        for(SceneIdStack_previous(it); !SceneIdStack_end_p(it); SceneIdStack_previous(it)) {
             if(*SceneIdStack_cref(it) == scene_id) {
+                success = true;
                 break;
             }
         }
 
-        if(SceneIdStack_end_p(it)) break;
+        if(success) {
+            const Scene* current_scene = scene_manager_get_current_scene(instance);
+            current_scene->exit_callback(instance->context);
 
-        SceneIdStack_pop_until(instance->scene_id_stack, it);
-        SceneIdStack_push_back(instance->scene_id_stack, scene_id);
+            SceneIdStack_pop_until(instance->scene_id_stack, it);
+            SceneIdStack_push_back(instance->scene_id_stack, scene_id);
 
-        const Scene* previous_scene = scene_manager_get_current_scene(instance);
-        previous_scene->enter_callback(instance->context);
-
-        success = true;
-    } while(false);
+            const Scene* previous_scene = scene_manager_get_current_scene(instance);
+            previous_scene->enter_callback(instance->context);
+        }
+    }
 
     return success;
 }
