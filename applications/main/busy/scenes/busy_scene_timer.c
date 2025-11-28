@@ -315,7 +315,7 @@ static void busy_scene_timer_on_enter(void* context) {
     data->timer_sub =
         furi_pubsub_subscribe(data->timer_pubsub, busy_scene_timer_pubsub_callback, instance);
 
-    if(!scene_manager_has_previous_scene(instance->scene_manager, BusyAppSceneIdShowTimer)) {
+    if(!instance->show_timer_requested) {
         busy_timer_start(instance->busy_timer);
     }
 
@@ -326,6 +326,7 @@ static void busy_scene_timer_on_exit(void* context) {
     furi_assert(context);
 
     BusyApp* instance = context;
+    instance->show_timer_requested = false;
 
     busy_set_status_lights(instance, BusyStatusLightsTypeOff);
     busy_set_matter(instance, false);

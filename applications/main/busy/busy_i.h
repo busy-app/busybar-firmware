@@ -95,6 +95,8 @@ struct BusyApp {
     TransitionOverlay* transition_overlay;
     TimerCard* timer_card;
     NavBar* nav_bar;
+    // State flags
+    bool show_timer_requested;
 };
 
 void busy_send_custom_event(BusyApp* instance, uint32_t custom_event);

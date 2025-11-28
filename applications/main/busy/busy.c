@@ -42,8 +42,10 @@ static void busy_api_queue_callback(FuriEventLoopObject* object, void* context) 
         const BusyApiMessageType type = message.type;
 
         if(type == BusyApiMessageTypeShowTimer) {
-            if(scene_manager_get_current_scene_id(instance->scene_manager) !=
-               BusyAppSceneIdTimer) {
+            const BusyAppSceneId scene_id =
+                scene_manager_get_current_scene_id(instance->scene_manager);
+
+            if(scene_id != BusyAppSceneIdTimer) {
                 scene_manager_next_scene(instance->scene_manager, BusyAppSceneIdShowTimer);
             }
 
