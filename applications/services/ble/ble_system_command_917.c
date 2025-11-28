@@ -127,8 +127,7 @@ static bool ble_command_get_status_response(BleIntercomFrameGeneric* frame, void
 static bool ble_command_forget_pairing_request(BleIntercomFrameGeneric* frame, void* context) {
     BLE_LOG_D("BleCommandForgetPairing request");
     bool result = ble_worker_forget_pairing();
-    frame->header.data_size = 1;
-    frame->data[0] = result;
+    frame->header.result = result;
     return ble_command_response_process(frame, context);
 }
 
@@ -144,7 +143,7 @@ static bool ble_command_set_device_name_request(BleIntercomFrameGeneric* frame, 
 
     const char* name = (const char*)frame->data;
     ble_worker_set_name(name);
-
+    frame->header.result = true;
     return ble_command_response_process(frame, context);
 }
 

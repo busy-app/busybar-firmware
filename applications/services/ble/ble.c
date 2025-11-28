@@ -26,7 +26,7 @@ static void
         instance->state = BleServiceStateError;
 
         if(api_lock_is_locked(instance->current_command_api_lock)) {
-            instance->current_command->result = false;
+            instance->current_command->header.result = false;
             ///TODO: maybe add error here
             api_lock_unlock(instance->current_command_api_lock);
         }

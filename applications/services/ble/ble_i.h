@@ -14,7 +14,6 @@
 #include <api_lock.h>
 
 typedef struct {
-    bool result; ///TODO: replace with some more extended status
     BleIntercomFrameHeader header;
     uint8_t data[];
 } BleCommand;

@@ -33,7 +33,7 @@ static void ble_send_message(
 
     api_lock_wait_unlock(instance->current_command_api_lock);
 
-    *result = instance->current_command->result;
+    *result = instance->current_command->header.result;
     if(data && data_size > 0) {
         memcpy(data, instance->current_command->data, data_size);
     }
