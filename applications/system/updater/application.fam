@@ -30,7 +30,7 @@ App(
     ],
     stack_size=2 * 1024,
     order=300,
-    targets=["f20", "f21"],
+    targets=["f20", "f21", "f22"],
 )
 
 App(

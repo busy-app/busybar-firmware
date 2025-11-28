@@ -7,112 +7,104 @@
 static void ble_send_message(
     Ble* instance,
     const BleSystemCommand command,
-    const void* data,
-    const size_t data_size,
-    void* const output,
-    const size_t max_output_size,
+    void* data,
+    size_t data_size,
     bool* result) {
-    furi_mutex_acquire(instance->current_message_lock, FuriWaitForever);
-    api_lock_relock(instance->current_message_api_lock);
+    furi_mutex_acquire(instance->current_command_lock, FuriWaitForever);
+    api_lock_relock(instance->current_command_api_lock);
 
-    const size_t new_msg_size = sizeof(BleMessage) + data_size;
-    if(new_msg_size > instance->current_message_size) {
-        instance->current_message = realloc(instance->current_message, new_msg_size);
-        instance->current_message_size = new_msg_size;
+    const size_t new_msg_size = sizeof(BleIntercomFrameHeader) + data_size + sizeof(bool);
+    if(new_msg_size > instance->current_command_size) {
+        free(instance->current_command);
+
+        instance->current_command = malloc(new_msg_size);
+        furi_check(instance->current_command);
+        instance->current_command_size = new_msg_size;
     }
 
-    BleIntercomFrameHeader* header = &instance->current_message->header;
+    BleIntercomFrameHeader* header = &instance->current_command->header;
     header->frame_type = BleIntercomFrameTypeRequest;
     header->command = command;
     header->source = BleIntercomFrameSourceSystem;
     header->data_size = data_size;
-    if(data_size > 0) memcpy(instance->current_message->data, data, data_size);
+    if(data_size > 0) memcpy(instance->current_command->data, data, data_size);
 
     furi_event_loop_set_custom_event(instance->event_loop, BleEventTypeIncomingMessage);
 
-    api_lock_wait_unlock(instance->current_message_api_lock);
+    api_lock_wait_unlock(instance->current_command_api_lock);
 
-    *result = instance->current_message->result;
-    if(output && max_output_size > 0) {
-        memcpy(output, instance->current_message->data, max_output_size);
+    *result = instance->current_command->header.result;
+    if(data && data_size > 0) {
+        memcpy(data, instance->current_command->data, data_size);
     }
-    memset(instance->current_message, 0, instance->current_message_size);
-    furi_mutex_release(instance->current_message_lock);
-}
-
-void ble_set_name(Ble* ble) {
-    bool result = false;
-    ble_send_message(ble, BleCommandSetDeviceName, NULL, 0, NULL, 0, &result);
+    memset(instance->current_command, 0, instance->current_command_size);
+    furi_mutex_release(instance->current_command_lock);
 }
 
 bool ble_init(Ble* ble) {
     furi_assert(ble);
 
-    BleServiceState state = ble_get_state(ble);
-
     bool result = false;
-    if(state == BleServiceStateReset) {
-        ble_send_message(ble, BleCommandInit, NULL, 0, NULL, 0, &result);
-        ble_set_name(ble);
-
-    } else if(state == BleServiceStateReady) {
-        ///TODO: possibly this should be done by actually executing command and
-        /// if state is Ready then just do nothing and return true;
-        /// But for now let's left it as it is
-        result = true;
-    } else {
-        BLE_LOG_W("No init, wrong state: %d", state);
-    }
+    ble_send_message(ble, BleCommandInit, NULL, 0, &result);
 
     return result;
 }
 
-BleServiceState ble_get_state(Ble* ble) {
+bool ble_get_status(Ble* ble, BleStatus* const output) {
     furi_assert(ble);
+    furi_assert(output);
 
-    BleServiceState state = BleServiceStateReset;
-    uint8_t dummy = 0;
     bool result = false;
-    ble_send_message(
-        ble, BleCommandGetState, &dummy, sizeof(dummy), &state, sizeof(BleServiceState), &result);
+    ble_send_message(ble, BleCommandGetStatus, output, sizeof(BleStatus), &result);
 
-    return state;
+    return result;
 }
 
 bool ble_start(Ble* ble) {
     furi_assert(ble);
-    ble_init(ble);
-
-    BleServiceState state = ble_get_state(ble);
 
     bool result = false;
-    if(state == BleServiceStateReady) {
-        ble_send_message(ble, BleCommandEnable, NULL, 0, NULL, 0, &result);
-    } else {
-        BLE_LOG_W("No start, wrong state: %d", state);
-    }
+    do {
+        if(!ble_init(ble)) break;
+
+        ble_send_message(ble, BleCommandEnable, NULL, 0, &result);
+    } while(false);
 
     return result;
 }
 
 bool ble_stop(Ble* ble) {
     furi_assert(ble);
+
     bool result = false;
-    BLE_LOG_I("ble_stop");
-    ble_send_message(ble, BleCommandDisable, NULL, 0, NULL, 0, &result);
+    do {
+        if(!ble_init(ble)) break;
+
+        ble_send_message(ble, BleCommandDisable, NULL, 0, &result);
+    } while(false);
+
     return result;
 }
 
 bool ble_forget(Ble* ble) {
     furi_assert(ble);
 
-    BleServiceState state = ble_get_state(ble);
-
     bool result = false;
-    if(state == BleServiceStateReady) {
-        ble_send_message(ble, BleCommandForgetPairing, NULL, 0, NULL, 0, &result);
-    }
+    do {
+        BleStatus status = {0};
+        if(!ble_get_status(ble, &status)) break;
+
+        if(status.state != BleServiceStateError && status.state != BleServiceStateReset) {
+            ble_send_message(ble, BleCommandForgetPairing, NULL, 0, &result);
+        }
+    } while(false);
+
     return result;
+}
+
+FuriPubSub* ble_get_pubsub(Ble* ble) {
+    furi_assert(ble);
+    return ble->on_status_change;
 }
 
 void ble_uart_tx_data(Ble* ble, BleUartChannel channel, const void* data, const size_t data_size) {

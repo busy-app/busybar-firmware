@@ -21,7 +21,7 @@
 #include <intercom/intercom.h>
 #include <cli/cli_registry.h>
 #include <cli/cli_ansi.h>
-#include <firmware_applications_f20/applications.h>
+#include <applications.h>
 #include <storage/storage_backup.h>
 #include <device_name/device_name.h>
 

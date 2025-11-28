@@ -17,15 +17,17 @@
 #define MQTT_API_ROOT_TOPIC    "sessions"
 
 struct MqttClient {
-    Wifi* wifi;
-    FuriPubSubSubscription* wifi_event_sub;
-
     FuriPubSub* event_pubsub;
     struct mg_mgr mgr;
     struct mg_connection* conn;
+
     struct mg_timer reconnect_delay_timer;
     uint32_t reconnect_delay;
+
     unsigned long wakeup_conn_id;
+
+    struct mg_timer ping_timer;
+    bool ping_enabled;
 
     MqttClientStatus status;
     bool is_wifi_up;
@@ -50,14 +52,18 @@ typedef struct {
         MqttClientMessageGetStatus,
         MqttClientMessageUnlink,
         MqttClientMessageRequestPin,
-        MqttClientMessageGetSessionId,
-        MqttClientMessageGetSessionEmail,
+        MqttClientMessageGetSessionInfo,
     } type;
     FuriApiLock lock;
     union {
         MqttClientStatus* status;
         bool* bool_param;
-        FuriString* str_param;
+        struct {
+            FuriString* id;
+            FuriString* email;
+            FuriString* user_id;
+        } session_info;
+
         WifiState wifi_state;
     };
 } MqttClientMessage;

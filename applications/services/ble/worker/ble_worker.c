@@ -135,6 +135,8 @@ typedef struct {
     BleAdvertiseContext* advertise;
 
     BleServiceEntryDict_t service_dict;
+    BleConnectionStateChanged on_connection_changed_cb;
+    void* on_connection_changed_ctx;
 } BleWorker;
 
 //==========================================================
@@ -617,6 +619,10 @@ static int32_t ble_worker_thread_callback(void* context) {
             }
 
             ble_worker_instance->connected = true;
+            ble_worker_instance->on_connection_changed_cb(
+                ble_worker_instance->on_connection_changed_ctx,
+                ble_worker_instance->connected,
+                ble_worker_instance->str_remote_address);
         }
 
         if(events & BLEWorkerEvtDisconnected) {
@@ -651,6 +657,12 @@ static int32_t ble_worker_thread_callback(void* context) {
                                   ble_worker_instance->advertise) ?
                                   BleWorkerStateAdvertising :
                                   BleWorkerStateError;
+
+            memset(ble_worker_instance->str_remote_address, 0, BLE_REMOTE_ADDRESS_STRING_SIZE);
+            ble_worker_instance->on_connection_changed_cb(
+                ble_worker_instance->on_connection_changed_ctx,
+                ble_worker_instance->connected,
+                ble_worker_instance->str_remote_address);
         }
 
         if(events & BLEWorkerEvtReceveRemoteFeatures) {
@@ -1011,12 +1023,17 @@ static void ble_prepare_uuid(const Char_UUID_t* temp, const uint8_t size, uuid_t
         ble_worker_prepare_128bit_uuid(temp->Char_UUID_128, uuid);
 }
 
-void ble_worker_init() {
+void ble_worker_init(BleConnectionStateChanged connect_callback, void* ctx) {
+    furi_assert(connect_callback);
+    furi_assert(ctx);
+
     ble_worker_instance = malloc(sizeof(BleWorker));
     ble_worker_instance->state = BleWorkerStateIdle;
     ble_worker_instance->thread =
         furi_thread_alloc_ex("BleWorker", 2048, ble_worker_thread_callback, ble_worker_instance);
 
+    ble_worker_instance->on_connection_changed_cb = connect_callback;
+    ble_worker_instance->on_connection_changed_ctx = ctx;
     ble_worker_instance->indication_sem = furi_semaphore_alloc(1, 0);
     ble_worker_instance->notification_sem = furi_semaphore_alloc(1, 1);
     ble_worker_instance->max_payload_size = BLE_WORKER_MAX_MTU_SIZE - BLE_WORKER_ATTR_HEADER_SIZE;
@@ -1202,6 +1219,10 @@ bool ble_worker_forget_pairing() {
 
     if(result) BLE_LOG_I("Security data removed");
     return result;
+}
+
+bool ble_worker_pairing_exists() {
+    return ble_security_rpa_present(ble_worker_instance->security_data);
 }
 
 void ble_worker_set_name(const char* new_name) {

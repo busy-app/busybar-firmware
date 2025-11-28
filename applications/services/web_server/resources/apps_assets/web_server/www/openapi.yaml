@@ -961,7 +961,7 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/SuccessResponse"
-  
+
   /api/ble/pairing:
     delete:
       tags:
@@ -1195,7 +1195,7 @@ components:
           description: Access mode
           example: "key"
         key_valid:
-          type: bool
+          type: boolean
           description: Access key was set and is valid
           example: true
 
@@ -1302,7 +1302,7 @@ components:
         app_id: "my_app"
         elements:
           - id: "0"
-            timeout: 6
+            timeout: 10
             align: center
             x: 36
             y: 10
@@ -1311,7 +1311,7 @@ components:
             font: medium
             color: "#FFFFFFFF"
             width: 72
-            scroll_rate: 160
+            scroll_rate: 1000
             display: front
           - id: "1"
             timeout: 6
@@ -1411,7 +1411,7 @@ components:
               description: Width of the label
             scroll_rate:
               type: integer
-              description: Scroll rate in characters per minute
+              description: Scroll rate in pixels per minute
 
     ImageElement:
       allOf:
@@ -1665,6 +1665,9 @@ components:
         email:
           type: string
           example: "name@example.com"
+        user_id:
+          type: string
+          example: "12345678-9abc-def0-1234-56789abcdef0"
 
     AccountLink:
       type: object
@@ -1681,7 +1684,16 @@ components:
       properties:
         state:
           type: string
-          example: connected
+          enum: ["reset", "initialization", "disabled", "enabled", "connected", "internal error"]
+          example: connected          
+        address:
+          type: string
+          example: 50:DA:D6:FE:DD:A9
+        pairing:
+          type: string
+          enum: ["unknown", "not paired", "paired"]
+          example: paired   
+
 
 tags:
   - name: System

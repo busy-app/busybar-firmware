@@ -10,5 +10,5 @@ App(
         "matter_settings",
         "ble_settings",
     ],
-    targets=["f20", "f21"],
+    targets=["f20", "f21", "f22"],
 )
