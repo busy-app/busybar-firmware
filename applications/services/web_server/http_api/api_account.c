@@ -29,12 +29,20 @@ static void http_api_account_get_status(struct mg_connection* conn) {
 
     if(status == MqttClientStatusConnectedLinked) {
         FuriString* id_str = furi_string_alloc();
-        mqtt_client_get_session_id(mqtt, id_str);
-        furi_string_cat_printf(json_str, ",\"%s\":\"%s\"", "id", furi_string_get_cstr(id_str));
+        FuriString* email_str = furi_string_alloc();
+        FuriString* user_id_str = furi_string_alloc();
 
-        mqtt_client_get_session_email(mqtt, id_str);
-        furi_string_cat_printf(json_str, ",\"%s\":\"%s\"", "email", furi_string_get_cstr(id_str));
+        mqtt_client_get_session_info(mqtt, id_str, email_str, user_id_str);
+
+        furi_string_cat_printf(json_str, ",\"%s\":\"%s\"", "id", furi_string_get_cstr(id_str));
+        furi_string_cat_printf(
+            json_str, ",\"%s\":\"%s\"", "email", furi_string_get_cstr(email_str));
+        furi_string_cat_printf(
+            json_str, ",\"%s\":\"%s\"", "user_id", furi_string_get_cstr(user_id_str));
+
         furi_string_free(id_str);
+        furi_string_free(email_str);
+        furi_string_free(user_id_str);
     }
 
     furi_record_close(RECORD_MQTT);
