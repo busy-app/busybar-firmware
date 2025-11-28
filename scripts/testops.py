@@ -30,6 +30,32 @@ from time import sleep
 from typing import List, Optional, Tuple
 
 
+def _normalize_input_key(raw_key: str) -> str:
+    """
+    Accept flexible key names (with/without InputKey prefix) and normalize to InputKeyXxx.
+    """
+    cleaned = raw_key.strip()
+    if not cleaned:
+        raise ValueError("Key name cannot be empty")
+
+    suffix = cleaned[8:] if cleaned.lower().startswith("inputkey") else cleaned
+    suffix = suffix.strip()
+    if not suffix:
+        raise ValueError("Key name missing after InputKey prefix")
+
+    parts = re.split(r"[_\s-]+", suffix)
+    normalized_parts = []
+    for part in parts:
+        if not part:
+            continue
+        normalized_parts.append(part[:1].upper() + part[1:])
+
+    if not normalized_parts:
+        raise ValueError(f"Unable to normalize key name '{raw_key}'")
+
+    return "InputKey" + "".join(normalized_parts)
+
+
 def _setup_root_logger() -> logging.Logger:
     level_name = os.getenv("LOG_LEVEL", "INFO").upper()
     level = getattr(logging, level_name, logging.INFO)
@@ -473,6 +499,39 @@ class BusyBarDevice:
             else:
                 return False, f"Format command failed or timed out. Output: {res.stdout}"
 
+    def send_input_sequences(
+            self,
+            sequences: List[Tuple[str, List[str]]],
+            timeout: int = 10,
+            delay: float = 0.0
+    ) -> Tuple[bool, str]:
+        """
+        Sends one or more input sequences via telnet. Each sequence contains a key and
+        the list of InputType events to send in order.
+        """
+        if not sequences:
+            return False, "No input sequences specified"
+
+        with self._telnet(timeout=timeout) as tn:
+            _ = tn.read_welcome()
+            outputs: List[str] = []
+            for idx, (key, input_types) in enumerate(sequences):
+                if not input_types:
+                    continue
+                for input_type in input_types:
+                    cmd = f"input send {key} {input_type}"
+                    self._logger.info(f"Sending input: {cmd}")
+                    res = tn.run(cmd, timeout=timeout)
+                    if not res.ok:
+                        return False, res.stdout or f"Command '{cmd}' failed or timed out"
+                    outputs.append(res.stdout.strip() or f"{cmd} (ok)")
+
+                if delay > 0 and idx < len(sequences) - 1:
+                    time.sleep(delay)
+
+            joined = "\n".join(outputs)
+            return True, joined or "Input sequence(s) sent"
+
 
 class BusyBarWaiter:
     def __init__(self):
@@ -586,6 +645,38 @@ class BusyBarTestOps:
                              help="Connection timeout in seconds (default: 10)")
         p_power.set_defaults(func=self._cmd_power)
 
+        p_input = subparsers.add_parser(
+            "input",
+            help="Send key events via telnet",
+            description="Inject key presses using the BusyBar 'input send' command.",
+        )
+        p_input.add_argument("key", nargs="?", help="Key name (e.g., InputKeyStart or 'start')")
+        p_input.add_argument(
+            "-s",
+            "--sequence",
+            nargs="+",
+            metavar="KEY",
+            help="Send a series of short presses for the provided keys"
+        )
+        p_input.add_argument("--long", action="store_true", help="Use InputTypeLong instead of Short")
+        p_input.add_argument("--only", action="store_true", help="Send only a single Short/Long event")
+        pr_group = p_input.add_mutually_exclusive_group()
+        pr_group.add_argument("--press", action="store_true", help="Send only a Press event")
+        pr_group.add_argument("--release", action="store_true", help="Send only a Release event")
+        p_input.add_argument(
+            "-t",
+            "--delay",
+            dest="sequence_delay",
+            type=float,
+            default=0.0,
+            help="Delay in seconds between sequential presses when using -s"
+        )
+        p_input.add_argument("--host", default=self.default_host, help="Device IP/host")
+        p_input.add_argument("--telnet-port", type=int, default=self.default_port, help="Telnet port (default: 23)")
+        p_input.add_argument("--timeout", type=int, default=10,
+                             help="Connection timeout in seconds (default: 10)")
+        p_input.set_defaults(func=self._cmd_input)
+
         p_upd = subparsers.add_parser(
             "update-bundle",
             help="Update firmware with bundle file",
@@ -690,6 +781,76 @@ class BusyBarTestOps:
         device = self._make_device_from_args(args.host, args.telnet_port, args.timeout)
         ok, msg = device.power(power_args=args.power_cmd or [], timeout=args.timeout)
         print(msg if msg else "(Command executed successfully, no output)")
+        return 0 if ok else 1
+
+    def _cmd_input(self, args: argparse.Namespace) -> int:
+        sequences: List[Tuple[str, List[str]]] = []
+        sequence_delay = 0.0
+
+        if args.sequence:
+            if args.key:
+                print("Positional key cannot be used with -s/--sequence", file=sys.stderr)
+                return 1
+            if args.long or args.only or args.press or args.release:
+                print("-s/--sequence only supports short presses; remove other modifiers", file=sys.stderr)
+                return 1
+            if args.sequence_delay < 0:
+                print("Delay must be non-negative", file=sys.stderr)
+                return 1
+
+            try:
+                normalized_keys = [_normalize_input_key(key) for key in args.sequence]
+            except ValueError as exc:
+                print(f"Invalid key: {exc}", file=sys.stderr)
+                return 1
+
+            sequences = [
+                (key, ["InputTypePress", "InputTypeShort", "InputTypeRelease"])
+                for key in normalized_keys
+            ]
+            sequence_delay = args.sequence_delay
+        else:
+            if not args.key:
+                print("Key argument is required unless using -s/--sequence", file=sys.stderr)
+                return 1
+
+            if args.sequence_delay:
+                print("-t/--delay is only valid with -s/--sequence", file=sys.stderr)
+                return 1
+
+            try:
+                key = _normalize_input_key(args.key)
+            except ValueError as exc:
+                print(f"Invalid key: {exc}", file=sys.stderr)
+                return 1
+
+            if args.only and (args.press or args.release):
+                print("--only cannot be combined with --press or --release", file=sys.stderr)
+                return 1
+
+            if args.long and (args.press or args.release):
+                print("--long cannot be combined with --press or --release", file=sys.stderr)
+                return 1
+
+            if args.press:
+                sequence = ["InputTypePress"]
+            elif args.release:
+                sequence = ["InputTypeRelease"]
+            elif args.only:
+                sequence = ["InputTypeLong" if args.long else "InputTypeShort"]
+            else:
+                middle = "InputTypeLong" if args.long else "InputTypeShort"
+                sequence = ["InputTypePress", middle, "InputTypeRelease"]
+
+            sequences = [(key, sequence)]
+
+        device = self._make_device_from_args(args.host, args.telnet_port, args.timeout)
+        ok, msg = device.send_input_sequences(
+            sequences=sequences,
+            timeout=args.timeout,
+            delay=sequence_delay
+        )
+        print(msg if msg else "(No output received)")
         return 0 if ok else 1
 
     def _cmd_update_bundle(self, args: argparse.Namespace) -> int:
