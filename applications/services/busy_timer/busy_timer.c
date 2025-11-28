@@ -465,6 +465,7 @@ static void busy_timer_apply_snapshot(BusyTimer* instance, const BusyTimerSnapsh
 
     busy_timer_notify_mode_changed(instance);
     busy_timer_notify_state_changed(instance);
+    busy_timer_notify_tick(instance);
     busy_timer_notify_paused(instance);
 }
 
