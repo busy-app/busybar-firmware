@@ -54,7 +54,7 @@ static void busy_api_queue_callback(FuriEventLoopObject* object, void* context) 
                 // App was launched by the timer, exit
                 busy_exit(instance);
             } else {
-                // App was launched normally, signal finish
+                // App was launched normally, return to start menu
                 busy_send_custom_event(instance, BusyCustomEventReturnToStart);
             }
 
