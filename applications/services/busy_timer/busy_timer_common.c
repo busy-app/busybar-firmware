@@ -101,7 +101,7 @@ static bool busy_timer_snapshot_deserialize_snapshot_common(
         }
 
         str_val = cJSON_GetStringValue(item);
-        if(strlen(str_val) != CARD_ID_LEN) {
+        if(strlen(str_val) != BUSY_TIMER_CARD_ID_LEN) {
             break;
         }
 

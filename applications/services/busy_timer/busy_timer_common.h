@@ -7,7 +7,7 @@
 #include <stdint.h>
 #include <stdbool.h>
 
-#define CARD_ID_LEN (36)
+#define BUSY_TIMER_CARD_ID_LEN (36)
 
 #ifdef __cplusplus
 extern "C" {
@@ -34,7 +34,7 @@ typedef enum {
 } BusyTimerSnapshotType;
 
 typedef struct {
-    char card_id[CARD_ID_LEN + 1];
+    char card_id[BUSY_TIMER_CARD_ID_LEN + 1];
     bool is_paused;
 } BusyTimerSnapshotCommon;
 
