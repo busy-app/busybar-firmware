@@ -4,27 +4,13 @@
  */
 #pragma once
 
-#include <stdint.h>
-#include <stdbool.h>
+#include "busy_timer_common.h"
 
 #define BUSY_TIMER_CARD_ID_LEN (36)
 
 #ifdef __cplusplus
 extern "C" {
 #endif
-typedef struct {
-    uint32_t work_time_ms;
-    uint32_t rest_time_ms;
-    uint32_t cycles_count;
-    bool is_autostart_enabled;
-} BusyTimerIntervalSettings;
-
-typedef struct {
-    uint32_t index;
-    uint32_t time_total_ms;
-    uint32_t time_left_ms;
-} BusyTimerIntervalState;
-
 typedef enum {
     BusyTimerSnapshotTypeNotStarted,
     BusyTimerSnapshotTypeInfinite,

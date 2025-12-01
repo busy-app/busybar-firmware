@@ -1,23 +1,8 @@
 #pragma once
 
-#include <furi.h>
+#include <core/pubsub.h>
 
 #include "busy_timer_snapshot.h"
-
-#include "time_macros.h"
-
-#define BUSY_TIMER_TIME_MIN_MN       (5)
-#define BUSY_TIMER_TIME_MAX_MN       H_TO_M(24)
-#define BUSY_TIMER_TIME_INCREMENT_MN (5)
-
-#define BUSY_TIMER_WORK_TIME_MIN_MN (5)
-#define BUSY_TIMER_WORK_TIME_MAX_MN H_TO_M(8)
-#define BUSY_TIMER_REST_TIME_MIN_MN (5)
-#define BUSY_TIMER_REST_TIME_MAX_MN H_TO_M(8)
-
-#define BUSY_TIMER_CYCLE_COUNT_MIN (2)
-#define BUSY_TIMER_CYCLE_COUNT_MAX (35)
-#define BUSY_TIMER_CYCLE_INCREMENT (1)
 
 #define RECORD_BUSY_TIMER "busy_timer"
 

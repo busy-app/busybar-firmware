@@ -3,6 +3,8 @@
 #include "busy_timer.h"
 #include "busy_timer_settings.h"
 
+#include <furi.h>
+
 #include <sntp/sntp.h>
 #include <toolbox/api_lock.h>
 
