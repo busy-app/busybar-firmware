@@ -1,6 +1,6 @@
 /**
  * @file busy_timer_snapshot.h
- * @brief Common types and functions for BusyTimer.
+ * @brief Data types and functions for BusyTimer snapshot handling.
  */
 #pragma once
 
