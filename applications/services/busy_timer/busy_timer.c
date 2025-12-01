@@ -24,7 +24,7 @@ static const BusyTimerConfig busy_timer_config_default = {
     .cycle_count = CYCLE_COUNT_DEFAULT,
     .enable_intervals = ENABLE_INTERVALS_DEFAULT,
     .enable_autostart = ENABLE_AUTOSTART_DEFAULT,
-    .enable_demo_mode = ENABLE_SPEED_DEFAULT,
+    .enable_demo_mode = ENABLE_DEMO_MODE_DEFAULT,
 };
 
 static const char* busy_timer_mode_names[BusyTimerModeMax] = {
