@@ -70,6 +70,14 @@ char* busy_timer_snapshot_serialize(const BusyTimerSnapshot* snapshot);
  */
 bool busy_timer_snapshot_deserialize(BusyTimerSnapshot* snapshot, const char* json_text);
 
+/**
+ * @brief Check whether a BusyTimerSnapshot object represents a valid state.
+ *
+ * @param[in] snapshot pointer to the object to be validated
+ * @returns @c true if the object is valid, @c false otherwise
+ */
+bool busy_timer_snapshot_is_valid(const BusyTimerSnapshot* snapshot);
+
 #ifdef __cplusplus
 }
 #endif

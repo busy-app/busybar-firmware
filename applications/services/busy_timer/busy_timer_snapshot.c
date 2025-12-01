@@ -317,6 +317,32 @@ static bool
     return success;
 }
 
+// UUID format check
+bool busy_timer_snapshot_is_valid_card_id(const char* card_id) {
+    uint32_t i;
+
+    for(i = 0; i < BUSY_TIMER_CARD_ID_LEN; ++i) {
+        const char c = card_id[i];
+
+        if(c == '\0') {
+            break;
+        }
+
+        if(i == 8 || i == 13 || i == 18 || i == 23) {
+            if(c != '-') {
+                break;
+            }
+
+        } else {
+            if(!isxdigit(c)) {
+                break;
+            }
+        }
+    }
+
+    return i == BUSY_TIMER_CARD_ID_LEN;
+}
+
 // Public functions
 
 char* busy_timer_snapshot_serialize(const BusyTimerSnapshot* snapshot) {
@@ -375,4 +401,79 @@ bool busy_timer_snapshot_deserialize(BusyTimerSnapshot* snapshot, const char* js
     cJSON_Delete(json);
 
     return success;
+}
+
+bool busy_timer_snapshot_is_valid(const BusyTimerSnapshot* snapshot) {
+    furi_check(snapshot);
+
+    bool is_valid = false;
+
+    do {
+        const BusyTimerSnapshotType type = snapshot->type;
+
+        if(type == BusyTimerSnapshotTypeNotStarted) {
+            // Nothing to check
+        } else if(type == BusyTimerSnapshotTypeInfinite) {
+            const BusyTimerSnapshotInfinite* infinite = &snapshot->infinite;
+            if(!busy_timer_snapshot_is_valid_card_id(infinite->common.card_id)) {
+                break;
+            }
+
+        } else if(type == BusyTimerSnapshotTypeSimple) {
+            const BusyTimerSnapshotSimple* simple = &snapshot->simple;
+            if(!busy_timer_snapshot_is_valid_card_id(simple->common.card_id)) {
+                break;
+            }
+
+            if(simple->time_left_ms > M_TO_MS(BUSY_TIMER_TIME_MAX_MN)) {
+                break;
+            }
+
+        } else if(type == BusyTimerSnapshotTypeInterval) {
+            const BusyTimerSnapshotInterval* interval = &snapshot->interval;
+            if(!busy_timer_snapshot_is_valid_card_id(interval->common.card_id)) {
+                break;
+            }
+
+            const BusyTimerIntervalSettings* settings = &interval->settings;
+            if(settings->cycles_count < BUSY_TIMER_CYCLE_COUNT_MIN ||
+               settings->cycles_count > BUSY_TIMER_CYCLE_COUNT_MAX) {
+                break;
+            }
+
+            if(settings->work_time_ms < M_TO_MS(BUSY_TIMER_WORK_TIME_MIN_MN) ||
+               settings->work_time_ms > M_TO_MS(BUSY_TIMER_WORK_TIME_MAX_MN)) {
+                break;
+            }
+
+            if(settings->rest_time_ms < M_TO_MS(BUSY_TIMER_REST_TIME_MIN_MN) ||
+               settings->rest_time_ms > M_TO_MS(BUSY_TIMER_REST_TIME_MAX_MN)) {
+                break;
+            }
+
+            const BusyTimerIntervalState* state = &interval->state;
+            if(state->index > (BUSY_TIMER_CYCLE_COUNT_MAX * 2) - 2) {
+                break;
+            }
+            if(state->time_left_ms > state->time_total_ms) {
+                break;
+            }
+
+            const bool is_rest = state->index % 2;
+            const uint32_t upper_bound_ms = is_rest ? M_TO_MS(BUSY_TIMER_REST_TIME_MAX_MN) :
+                                                      M_TO_MS(BUSY_TIMER_WORK_TIME_MAX_MN);
+
+            if(state->time_left_ms > upper_bound_ms) {
+                break;
+            }
+
+        } else {
+            break;
+        }
+
+        is_valid = true;
+
+    } while(false);
+
+    return is_valid;
 }
