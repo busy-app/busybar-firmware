@@ -4,7 +4,7 @@
 #define TAG "BleServiceBase"
 
 bool ble_service_lock(BleServiceObject* instance) {
-    if(furi_mutex_acquire(instance->service_lock, 1000) != FuriStatusOk) {
+    if(furi_mutex_acquire(instance->service_lock, 2000) != FuriStatusOk) {
         BLE_LOG_W("%s - service lock failed", instance->config->name);
         return false;
     }
@@ -18,7 +18,7 @@ void ble_service_unlock(BleServiceObject* instance) {
 }
 
 static bool ble_service_lock_input_frame(BleServiceObject* instance) {
-    if(furi_semaphore_acquire(instance->frame_lock, 1000) != FuriStatusOk) {
+    if(furi_semaphore_acquire(instance->frame_lock, 2000) != FuriStatusOk) {
         BLE_LOG_W("%s - frame lock failed", instance->config->name);
         return false;
     }

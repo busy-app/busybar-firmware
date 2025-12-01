@@ -1159,11 +1159,11 @@ static void ble_worker_send_chunk(
         status = rsi_ble_indicate_value(
             ble_worker_instance->remote_dev_address, handle, data_size, data);
 
-        if(furi_semaphore_acquire(ble_worker_instance->indication_sem, 1000) != FuriStatusOk) {
+        if(furi_semaphore_acquire(ble_worker_instance->indication_sem, 2000) != FuriStatusOk) {
             furi_crash("Indication failed");
         }
     } else if(ble_worker_instance->connected && BLE_CCCD_NOTIFICATION_ENABLED(cccd_value)) {
-        if(furi_semaphore_acquire(ble_worker_instance->notification_sem, 1000) != FuriStatusOk) {
+        if(furi_semaphore_acquire(ble_worker_instance->notification_sem, 2000) != FuriStatusOk) {
             //furi_crash("Notification failed");
             BLE_LOG_W("Notification failed for %04X", handle);
         }
