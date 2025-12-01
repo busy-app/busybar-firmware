@@ -293,7 +293,7 @@ size_t ble_service_count_characteristics_and_size(
     size_t total_data_size = 0;
     uint8_t chars_count = 0;
     for(size_t i = 0; i < chars_count_max; i++) {
-        if(!modified_only && !ble_characteristic_is_modified(instance->chars[i])) continue;
+        if(modified_only && !ble_characteristic_is_modified(instance->chars[i])) continue;
         total_data_size += ble_characteristic_get_data_size(instance->chars[i]);
         chars_count++;
     }
@@ -309,7 +309,7 @@ BleIntercomServiceData* ble_service_create_intercom_service_data_pack(
     furi_assert(output_pack_size);
     BleCharacteristicCountType chars_count = 0;
     size_t total_data_size =
-        ble_service_count_characteristics_and_size(instance, false, &chars_count);
+        ble_service_count_characteristics_and_size(instance, modified_only, &chars_count);
 
     size_t total_config_size = sizeof(BleCharacteristicDataHeader) * chars_count +
                                total_data_size + sizeof(BleCharacteristicCountType);
@@ -322,7 +322,7 @@ BleIntercomServiceData* ble_service_create_intercom_service_data_pack(
     for(size_t i = 0; i < chars_count_max; i++) {
         BleCharacteristicObject* ch_obj = instance->chars[i];
 
-        if(!modified_only && !ble_characteristic_is_modified(ch_obj)) continue;
+        if(modified_only && !ble_characteristic_is_modified(ch_obj)) continue;
         BleCharacteristicData* char_init =
             (BleCharacteristicData*)((uint8_t*)config->chars_config + offset);
 
