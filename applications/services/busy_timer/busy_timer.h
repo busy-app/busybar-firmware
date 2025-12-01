@@ -2,7 +2,7 @@
 
 #include <furi.h>
 
-#include "busy_timer_common.h"
+#include "busy_timer_snapshot.h"
 
 #include "time_macros.h"
 

@@ -1,4 +1,4 @@
-#include "busy_timer_common.h"
+#include "busy_timer_snapshot.h"
 
 #include <furi.h>
 

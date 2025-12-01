@@ -1,5 +1,5 @@
 /**
- * @file busy_timer_common.h
+ * @file busy_timer_snapshot.h
  * @brief Common types and functions for BusyTimer.
  */
 #pragma once
