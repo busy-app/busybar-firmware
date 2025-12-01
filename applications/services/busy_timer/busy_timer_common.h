@@ -70,7 +70,7 @@ typedef struct {
  * @warning The calling code is responsible for deleting the return value
  *          once it is not needed anymore.
  *
- * @param[out] snapshot pointer to the object to be serialised
+ * @param[in] snapshot pointer to the object to be serialised
  * @returns pointer to a dynamically allocated character string
  */
 char* busy_timer_snapshot_serialize(const BusyTimerSnapshot* snapshot);
