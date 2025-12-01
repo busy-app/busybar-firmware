@@ -43,7 +43,6 @@ typedef struct {
     BusyTimerSnapshotType type;
     uint64_t timestamp_ms;
     union {
-        BusyTimerSnapshotCommon common;
         BusyTimerSnapshotInfinite infinite;
         BusyTimerSnapshotSimple simple;
         BusyTimerSnapshotInterval interval;

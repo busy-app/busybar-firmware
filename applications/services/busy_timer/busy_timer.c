@@ -10,6 +10,7 @@
 #define POLL_TIMER_PERIOD_MS    (S_TO_MS(1) / 30)
 #define DEBOUNCE_TIMER_DELAY_MS (S_TO_MS(1))
 
+// TODO: Support card IDs
 #define DEFAULT_CARD_ID "00000000-0000-0000-0000-000000000000"
 
 typedef void (*const BusyTimerMessageHandler)(BusyTimer* instance, BusyTimerMessageData* data);
@@ -339,39 +340,45 @@ static void busy_timer_update(BusyTimer* instance, uint64_t timestamp_ms) {
     } while(false);
 }
 
+static void busy_timer_fill_snapshot_common(BusyTimer* instance, BusyTimerSnapshotCommon* common) {
+    strcpy(common->card_id, DEFAULT_CARD_ID);
+    common->is_paused = !busy_timer_is_running(instance);
+}
+
 static void busy_timer_make_snapshot(BusyTimer* instance, BusyTimerSnapshot* snapshot) {
     snapshot->timestamp_ms = sntp_get_utc_timestamp_ms(instance->sntp);
 
     if(instance->state != BusyTimerStateIdle) {
-        BusyTimerSnapshotCommon* common = &snapshot->common;
-        strcpy(common->card_id, DEFAULT_CARD_ID);
-        common->is_paused = !busy_timer_is_running(instance);
-
         const BusyTimerMode mode = instance->mode;
 
         if(mode == BusyTimerModeInfinite) {
             snapshot->type = BusyTimerSnapshotTypeInfinite;
 
+            BusyTimerSnapshotInfinite* infinite = &snapshot->infinite;
+            busy_timer_fill_snapshot_common(instance, &infinite->common);
+
         } else if(mode == BusyTimerModeSimple) {
             snapshot->type = BusyTimerSnapshotTypeSimple;
 
-            const BusyTimerTime* time = &instance->time;
-
             BusyTimerSnapshotSimple* simple = &snapshot->simple;
+            busy_timer_fill_snapshot_common(instance, &simple->common);
+
+            const BusyTimerTime* time = &instance->time;
             simple->time_left_ms = S_TO_MS(time->remain_s);
 
         } else if(mode == BusyTimerModeInterval) {
             snapshot->type = BusyTimerSnapshotTypeInterval;
 
-            const BusyTimerTime* time = &instance->time;
-            const BusyTimerConfig* config = &instance->config;
-
             BusyTimerSnapshotInterval* interval = &snapshot->interval;
+            busy_timer_fill_snapshot_common(instance, &interval->common);
+
+            const BusyTimerTime* time = &instance->time;
             BusyTimerIntervalState* state = &interval->state;
             state->index = instance->current_interval_index;
             state->time_left_ms = S_TO_MS(time->remain_s);
             state->time_total_ms = S_TO_MS(time->elapsed_s + time->remain_s);
 
+            const BusyTimerConfig* config = &instance->config;
             BusyTimerIntervalSettings* settings = &interval->settings;
             settings->work_time_ms = M_TO_MS(config->work_time_mn);
             settings->rest_time_ms = M_TO_MS(config->rest_time_mn);
@@ -414,12 +421,22 @@ static void busy_timer_apply_snapshot(BusyTimer* instance, const BusyTimerSnapsh
     BusyTimerMode new_mode;
     BusyTimerState new_state;
 
+    bool is_paused;
+
     if(type == BusyTimerSnapshotTypeInfinite) {
+        const BusyTimerSnapshotInfinite* infinite = &snapshot->infinite;
+        const BusyTimerSnapshotCommon* common = &infinite->common;
+
+        is_paused = common->is_paused;
+
         new_mode = BusyTimerModeInfinite;
         new_state = BusyTimerStateWork;
 
     } else if(type == BusyTimerSnapshotTypeSimple) {
         const BusyTimerSnapshotSimple* simple = &snapshot->simple;
+        const BusyTimerSnapshotCommon* common = &simple->common;
+
+        is_paused = common->is_paused;
 
         new_mode = BusyTimerModeSimple;
         new_state = BusyTimerStateWork;
@@ -429,8 +446,11 @@ static void busy_timer_apply_snapshot(BusyTimer* instance, const BusyTimerSnapsh
 
     } else if(type == BusyTimerSnapshotTypeInterval) {
         const BusyTimerSnapshotInterval* interval = &snapshot->interval;
+        const BusyTimerSnapshotCommon* common = &interval->common;
+
+        is_paused = common->is_paused;
+
         const BusyTimerIntervalState* interval_state = &interval->state;
-        const BusyTimerIntervalSettings* interval_settings = &interval->settings;
 
         new_mode = BusyTimerModeInterval;
         new_state = interval_state->index % 2 ? BusyTimerStateRest : BusyTimerStateWork;
@@ -439,6 +459,8 @@ static void busy_timer_apply_snapshot(BusyTimer* instance, const BusyTimerSnapsh
         instance->time.elapsed_s =
             MS_TO_S(interval_state->time_total_ms - interval_state->time_left_ms);
         instance->time.remain_s = MS_TO_S(interval_state->time_left_ms);
+
+        const BusyTimerIntervalSettings* interval_settings = &interval->settings;
 
         instance->config.cycle_count = interval_settings->cycles_count;
         instance->config.work_time_mn = MS_TO_M(interval_settings->work_time_ms);
@@ -454,7 +476,7 @@ static void busy_timer_apply_snapshot(BusyTimer* instance, const BusyTimerSnapsh
     instance->state = new_state;
     instance->config.mode = new_mode;
 
-    if(!snapshot->common.is_paused) {
+    if(!is_paused) {
         busy_timer_start_timer(instance);
     }
 
