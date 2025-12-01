@@ -37,11 +37,9 @@ static inline void
     ble_service_frame_buf_check_alloc(BleServiceObject* instance, size_t new_frame_size) {
     furi_check(new_frame_size < MAX_BLE_INTERCOM_FRAME_SIZE);
     if(new_frame_size > instance->buffer_size) {
-        uint8_t* old_buffer_ptr = instance->frame_buf;
-        instance->frame_buf = malloc(new_frame_size);
+        instance->frame_buf = realloc(instance->frame_buf, new_frame_size);
         instance->buffer_size = new_frame_size;
         BLE_LOG_D("%s - buf_size: %d", instance->config->name, new_frame_size);
-        free(old_buffer_ptr);
     }
 }
 
