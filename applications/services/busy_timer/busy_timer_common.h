@@ -22,6 +22,8 @@
 #define BUSY_TIMER_CYCLE_COUNT_MAX (35)
 #define BUSY_TIMER_CYCLE_INCREMENT (1)
 
+#define BUSY_TIMER_CARD_ID_LEN (36)
+
 #ifdef __cplusplus
 extern "C" {
 #endif

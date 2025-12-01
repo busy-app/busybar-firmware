@@ -6,8 +6,6 @@
 
 #include "busy_timer_common.h"
 
-#define BUSY_TIMER_CARD_ID_LEN (36)
-
 #ifdef __cplusplus
 extern "C" {
 #endif
