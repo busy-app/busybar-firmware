@@ -1,5 +1,7 @@
 #include "ble_service_device_events_i.h"
 #include "device_name/device_name.h"
+#include "input/input.h"
+#include "audio/audio.h"
 
 #define TAG "BleDeviceEvents"
 
@@ -21,6 +23,9 @@ typedef FuriPubSub* (*BleServiceDeviceEventFlagGetPubSubCallback)(void);
 typedef enum {
     BleServiceDeviceEventFlagBitNameChange = 0, /* Device name changed flag */
     /* Add more flags here */
+    BleServiceDeviceEventFlagInputUpdate = 9,
+    BleServiceDeviceEventFlagVolumeUpdate = 17,
+    BleServiceDeviceEventFlagTest3 = 30,
     BleServiceDeviceEventFlagBitCount, /* Total flags count */
     BleServiceDeviceEventFlagBitMax = 32, /* Max flags possible */
 } BleServiceDeviceEventFlagBit;
@@ -34,10 +39,23 @@ static FuriPubSub* ble_service_device_name_get_pubsub() {
     return pubsub;
 }
 
+static FuriPubSub* ble_service_input_events_get_pubsub() {
+    return furi_record_open(RECORD_INPUT_EVENTS);
+}
+
+static FuriPubSub* ble_service_audio_get_pubsub() {
+    Audio* audio = furi_record_open(RECORD_AUDIO);
+    FuriPubSub* pubsub = audio_get_pubsub(audio);
+    furi_record_close(RECORD_AUDIO);
+    return pubsub;
+}
+
 //Add proper get_pubsub callback for your flag here
 static const BleServiceDeviceEventFlagGetPubSubCallback
     pubsub_callbacks[BleServiceDeviceEventFlagBitCount] = {
         [BleServiceDeviceEventFlagBitNameChange] = ble_service_device_name_get_pubsub,
+        [BleServiceDeviceEventFlagInputUpdate] = ble_service_input_events_get_pubsub,
+        [BleServiceDeviceEventFlagVolumeUpdate] = ble_service_audio_get_pubsub,
 };
 
 static void ble_device_events_enqueue_run(BleServiceObject* instance) {
@@ -92,7 +110,8 @@ static void ble_service_device_events_subscribe(BleServiceObject* instance) {
     event_context = instance;
     for(uint8_t i = 0; i < BleServiceDeviceEventFlagBitCount; i++) {
         BleServiceDeviceEventFlagGetPubSubCallback get_pubsub = pubsub_callbacks[i];
-        furi_assert(get_pubsub);
+        // furi_assert(get_pubsub);
+        if(get_pubsub == NULL) continue;
         FuriPubSub* pubsub = get_pubsub();
         uint32_t bit = i;
         furi_pubsub_subscribe(pubsub, ble_device_events_callback, (void*)bit);
