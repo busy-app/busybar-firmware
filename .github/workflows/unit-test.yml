@@ -98,59 +98,6 @@ jobs:
           allure-token: ${{ secrets.ALLURE_TESTOPS_TOKEN }}
           allure-project-id: ${{ secrets.ALLURE_PROJECT_ID }}
 
-      - name: Upload test results to Allure TestOps
-        if: always()
-        run: |
-          cd tests
-          echo "Attempting upload with command:"
-          echo "allurectl upload allure-results --endpoint https://flipper.testops.cloud --token ${{ secrets.ALLURE_TESTOPS_TOKEN }} --project-id 232 --launch-name 'GitHub Actions - ${{ github.workflow }} - ${{ github.sha }}'"
-
-          # Try the upload
-          allurectl upload allure-results \
-            --endpoint "${{ secrets.ALLURE_TESTOPS_URL }}" \
-            --token "${{ secrets.ALLURE_TESTOPS_TOKEN }}" \
-            --project-id "${{ secrets.ALLURE_PROJECT_ID }}" \
-            --launch-name "GitHub Actions - ${{ github.workflow }} - ${{ github.sha }}"
-
-          # Check the exit code
-          exit_code=$?
-          if [ $exit_code -eq 0 ]; then
-            echo "Upload successful!"
-            echo "View results: ${{ secrets.ALLURE_TESTOPS_URL }}/project/${{ secrets.ALLURE_PROJECT_ID }}"
-          else
-            echo "Upload failed with exit code: $exit_code"
-            exit $exit_code
-          fi
-
-      - name: Configure AWS CLI
-        if: always()
-        uses: aws-actions/configure-aws-credentials@v4
-        with:
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region: eu-central-1
-
-      - name: Upload test results to S3
-        if: always()
-        run: |
-          cd scripts/testing
-          # Create unique path for this test run with project prefix
-          RUN_ID="${{ github.run_number }}-${{ github.sha }}"
-          S3_PATH="s3://flipper-aws-qa-tests/bsb/test-results/all/$RUN_ID"
-
-          # Upload test results
-          aws s3 sync allure-results/ "$S3_PATH/allure-results/" --delete
-          aws s3 cp test-results.xml "$S3_PATH/test-results.xml"
-
-          # Upload logs if they exist
-          if [ -d "logs" ]; then
-            aws s3 sync logs/ "$S3_PATH/logs/" --delete
-          fi
-
-          echo "Test results uploaded to: $S3_PATH"
-        continue-on-error: true
-
-
       - name: Set up Java (required for Allure report generation)
         if: always()
         uses: actions/setup-java@v4
@@ -243,7 +190,7 @@ jobs:
       - name: Run Playwright automation tests (All Browsers)
         if: always()
         run: |
-          cd scripts/testing/playwright-automation
+          cd tests/playwright-automation
           python3 -m pytest -m ui \
             --browser=chromium --browser=firefox --browser=webkit \
             --base-url=http://10.0.4.20 \
