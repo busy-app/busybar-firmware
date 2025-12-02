@@ -150,12 +150,9 @@ bool http_api_name_callback(
     void* ctx);
 
 // MQTT Account
+void* http_api_account_alloc(void);
+void http_api_account_free(void* ctx);
 bool http_api_account_callback(
-    FuriString* path,
-    struct mg_connection* conn,
-    struct mg_http_message* msg,
-    void* ctx);
-bool http_api_account_link_callback(
     FuriString* path,
     struct mg_connection* conn,
     struct mg_http_message* msg,

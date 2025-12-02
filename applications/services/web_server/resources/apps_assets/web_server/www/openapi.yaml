@@ -1018,19 +1018,6 @@ paths:
                 $ref: "#/components/schemas/Error"
 
   /api/account:
-    get:
-      tags:
-        - Account
-      summary: Get MQTT status
-      description: Retrieves MQTT status and linked account data
-      operationId: getAccountInfo
-      responses:
-        "200":
-          description: Data retrieved successfully
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/AccountInfo"
     delete:
       tags:
         - Account
@@ -1059,6 +1046,78 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/AccountLink"
+        "400":
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /api/account/info:
+    get:
+      tags:
+        - Account
+      summary: Get linked account info
+      description: Retrieves linked account data
+      operationId: getAccountInfo
+      responses:
+        "200":
+          description: Data retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AccountInfo"
+
+  /api/account/status:
+    get:
+      tags:
+        - Account
+      summary: Get MQTT status info
+      description: Retrieves MQTT status
+      operationId: getAccountState
+      responses:
+        "200":
+          description: Data retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AccountState"
+
+  /api/account/profile:
+    get:
+      tags:
+        - Account
+      summary: Get MQTT profile
+      description: Retrieves MQTT backend type (dev/prod/local)
+      operationId: getAccountProfile
+      responses:
+        "200":
+          description: Data retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AccountProfile"
+    post:
+      tags:
+        - Account
+      summary: Set MQTT profile
+      description: Sets MQTT backend type (dev/prod/local)
+      operationId: setAccountProfile
+      parameters:
+        - name: profile
+          in: query
+          required: true
+          schema:
+            type: string
+            enum: ["dev", "prod", "local"]
+          example: "dev"
+      responses:
+        "200":
+          description: Set successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse"
         "400":
           description: Bad request
           content:
@@ -1655,10 +1714,9 @@ components:
     AccountInfo:
       type: object
       properties:
-        state:
-          type: string
-          example: "linked"
-          enum: ["error", "disconnected", "not_linked", "linked"]
+        linked:
+          type: boolean
+          example: true
         id:
           type: string
           example: "12345678-9abc-def0-1234-56789abcdef0"
@@ -1668,6 +1726,22 @@ components:
         user_id:
           type: string
           example: "12345678-9abc-def0-1234-56789abcdef0"
+
+    AccountState:
+      type: object
+      properties:
+        state:
+          type: string
+          example: "connected"
+          enum: ["error", "disconnected", "connected"]
+
+    AccountProfile:
+      type: object
+      properties:
+        state:
+          type: string
+          example: "dev"
+          enum: ["dev", "prod", "local"]
 
     AccountLink:
       type: object
@@ -1684,16 +1758,23 @@ components:
       properties:
         state:
           type: string
-          enum: ["reset", "initialization", "disabled", "enabled", "connected", "internal error"]
-          example: connected          
+          enum:
+            [
+              "reset",
+              "initialization",
+              "disabled",
+              "enabled",
+              "connected",
+              "internal error",
+            ]
+          example: connected
         address:
           type: string
           example: 50:DA:D6:FE:DD:A9
         pairing:
           type: string
           enum: ["unknown", "not paired", "paired"]
-          example: paired   
-
+          example: paired
 
 tags:
   - name: System

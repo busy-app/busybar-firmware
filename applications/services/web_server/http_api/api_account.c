@@ -5,49 +5,76 @@
 
 #define LINK_TIMEOUT 3000
 
-static const struct {
-    char* name;
-    MqttClientStatus status;
-} mqtt_statuses[] = {
-    {"error", MqttClientStatusError},
-    {"disconnected", MqttClientStatusNotConnected},
-    {"not_linked", MqttClientStatusConnectedNotLinked},
-    {"linked", MqttClientStatusConnectedLinked},
-};
+static bool http_api_account_get_info(
+    FuriString* path,
+    struct mg_connection* conn,
+    struct mg_http_message* msg,
+    void* ctx) {
+    UNUSED(msg);
+    UNUSED(ctx);
 
-static void http_api_account_get_status(struct mg_connection* conn) {
+    if(!IS_HTTP_ENDPOINT(path)) return false;
+
     FuriString* json_str = furi_string_alloc();
 
     MqttClient* mqtt = furi_record_open(RECORD_MQTT);
-    MqttClientStatus status = mqtt_client_get_status(mqtt);
 
-    for(size_t i = 0; i < COUNT_OF(mqtt_statuses); i++) {
-        if(status == mqtt_statuses[i].status) {
-            furi_string_cat_printf(json_str, "\"%s\":\"%s\"", "state", mqtt_statuses[i].name);
-        }
-    }
+    FuriString* id_str = furi_string_alloc();
+    FuriString* email_str = furi_string_alloc();
+    FuriString* user_id_str = furi_string_alloc();
 
-    if(status == MqttClientStatusConnectedLinked) {
-        FuriString* id_str = furi_string_alloc();
-        FuriString* email_str = furi_string_alloc();
-        FuriString* user_id_str = furi_string_alloc();
+    mqtt_client_get_session_info(mqtt, id_str, email_str, user_id_str);
 
-        mqtt_client_get_session_info(mqtt, id_str, email_str, user_id_str);
+    bool linked = !furi_string_empty(id_str);
+    furi_string_printf(json_str, "\"%s\":%s", "linked", linked ? "true" : "false");
 
+    if(linked) {
         furi_string_cat_printf(json_str, ",\"%s\":\"%s\"", "id", furi_string_get_cstr(id_str));
         furi_string_cat_printf(
             json_str, ",\"%s\":\"%s\"", "email", furi_string_get_cstr(email_str));
         furi_string_cat_printf(
             json_str, ",\"%s\":\"%s\"", "user_id", furi_string_get_cstr(user_id_str));
+    }
 
-        furi_string_free(id_str);
-        furi_string_free(email_str);
-        furi_string_free(user_id_str);
+    furi_string_free(id_str);
+    furi_string_free(email_str);
+    furi_string_free(user_id_str);
+
+    furi_record_close(RECORD_MQTT);
+    MG_REPLY_OK_BODY(conn, "{%s}\n", furi_string_get_cstr(json_str));
+    furi_string_free(json_str);
+
+    return true;
+}
+
+static bool http_api_account_get_status(
+    FuriString* path,
+    struct mg_connection* conn,
+    struct mg_http_message* msg,
+    void* ctx) {
+    UNUSED(msg);
+    UNUSED(ctx);
+
+    if(!IS_HTTP_ENDPOINT(path)) return false;
+
+    FuriString* json_str = furi_string_alloc();
+
+    MqttClient* mqtt = furi_record_open(RECORD_MQTT);
+    MqttClientStatus status = mqtt_client_get_status(mqtt);
+
+    if(status == MqttClientStatusError) {
+        furi_string_printf(json_str, "\"%s\":\"%s\"", "status", "error");
+    } else if(status == MqttClientStatusNotConnected) {
+        furi_string_printf(json_str, "\"%s\":\"%s\"", "status", "disconnected");
+    } else {
+        furi_string_printf(json_str, "\"%s\":\"%s\"", "status", "connected");
     }
 
     furi_record_close(RECORD_MQTT);
     MG_REPLY_OK_BODY(conn, "{%s}\n", furi_string_get_cstr(json_str));
     furi_string_free(json_str);
+
+    return true;
 }
 
 typedef struct {
@@ -114,7 +141,16 @@ static void mqtt_link_close_callback(struct mg_connection* conn) {
     free(link_ctx);
 }
 
-static void http_api_account_link(struct mg_connection* conn) {
+static bool http_api_account_link(
+    FuriString* path,
+    struct mg_connection* conn,
+    struct mg_http_message* msg,
+    void* ctx) {
+    UNUSED(msg);
+    UNUSED(ctx);
+
+    if(!IS_HTTP_ENDPOINT(path)) return false;
+
     MqttClient* mqtt = furi_record_open(RECORD_MQTT);
     MqttClientStatus status = mqtt_client_get_status(mqtt);
 
@@ -124,7 +160,7 @@ static void http_api_account_link(struct mg_connection* conn) {
             400,
             (status == MqttClientStatusConnectedLinked) ? "Already linked" : "Not connected");
         furi_record_close(RECORD_MQTT);
-        return;
+        return true;
     }
 
     MqttLinkContext* link_ctx = malloc(sizeof(MqttLinkContext));
@@ -153,32 +189,141 @@ static void http_api_account_link(struct mg_connection* conn) {
     mqtt_client_request_link_pin(mqtt);
 
     // Hold connection untill link pin response or timeout
+    return true;
 }
 
-static void http_api_account_unlink(struct mg_connection* conn) {
+static bool http_api_account_unlink(
+    FuriString* path,
+    struct mg_connection* conn,
+    struct mg_http_message* msg,
+    void* ctx) {
+    UNUSED(msg);
+    UNUSED(ctx);
+
+    if(!IS_HTTP_ENDPOINT(path)) return false;
+
     MqttClient* mqtt = furi_record_open(RECORD_MQTT);
     mqtt_client_unlink(mqtt);
     furi_record_close(RECORD_MQTT);
 
     MG_REPLY_OK(conn);
+
+    return true;
 }
 
-bool http_api_account_link_callback(
+static bool http_api_account_mqtt_profile(
     FuriString* path,
     struct mg_connection* conn,
     struct mg_http_message* msg,
     void* ctx) {
+    UNUSED(msg);
     UNUSED(ctx);
 
     if(!IS_HTTP_ENDPOINT(path)) return false;
 
-    if(mg_match(msg->method, mg_str("POST"), NULL)) {
-        http_api_account_link(conn);
-    } else {
+    if(mg_match(msg->method, mg_str("GET"), NULL)) {
+        MqttClient* mqtt = furi_record_open(RECORD_MQTT);
+        MqttClientProfile profile_id = mqtt_client_get_profile(mqtt);
+        furi_record_close(RECORD_MQTT);
+
+        if(profile_id == MqttClientProfileProd) {
+            MG_REPLY_OK_BODY(conn, "{\"profile\":\"%s\"}\n", "prod");
+        } else if(profile_id == MqttClientProfileDev) {
+            MG_REPLY_OK_BODY(conn, "{\"profile\":\"%s\"}\n", "dev");
+        } else {
+            MG_REPLY_OK_BODY(conn, "{\"profile\":\"%s\"}\n", "local");
+        }
+
+    } else if(mg_match(msg->method, mg_str("POST"), NULL)) {
+        bool success = false;
+        do {
+            if(msg->query.len == 0) break;
+
+            char temp_str[8];
+            int var_len = mg_http_get_var(&msg->query, "profile", temp_str, sizeof(temp_str));
+            if(var_len <= 0) break;
+
+            MqttClientProfile profile_id;
+            if(strncmp("prod", temp_str, var_len) == 0) {
+                profile_id = MqttClientProfileProd;
+            } else if(strncmp("dev", temp_str, var_len) == 0) {
+                profile_id = MqttClientProfileDev;
+            } else if(strncmp("local", temp_str, var_len) == 0) {
+                profile_id = MqttClientProfileLocal;
+            } else
+                break;
+
+            MqttClient* mqtt = furi_record_open(RECORD_MQTT);
+            mqtt_client_set_profile(mqtt, profile_id);
+            furi_record_close(RECORD_MQTT);
+
+            success = true;
+        } while(0);
+
+        if(success)
+            MG_REPLY_OK(conn);
+        else
+            MG_REPLY_BAD_REQUEST(conn);
+    } else
         MG_REPLY_METHOD_NOT_ALLOWED(conn);
-    }
 
     return true;
+}
+
+static const HttpHandler api_account_handlers[] = {
+    {
+        .uri = "",
+        .method = "DELETE",
+        .type = HttpHandlerCustom,
+        .on_request = http_api_account_unlink,
+    },
+    {
+        .uri = "link",
+        .method = "POST",
+        .type = HttpHandlerCustom,
+        .on_request = http_api_account_link,
+    },
+    {
+        .uri = "info",
+        .method = "GET",
+        .type = HttpHandlerCustom,
+        .on_request = http_api_account_get_info,
+    },
+    {
+        .uri = "status",
+        .method = "GET",
+        .type = HttpHandlerCustom,
+        .on_request = http_api_account_get_status,
+    },
+    {
+        .uri = "profile",
+        .method = "*",
+        .type = HttpHandlerCustom,
+        .on_request = http_api_account_mqtt_profile,
+    },
+};
+
+typedef struct {
+    HttpHandlersList_t handlers;
+} ApiAccountCtx;
+
+void* http_api_account_alloc(void) {
+    ApiAccountCtx* context = malloc(sizeof(ApiAccountCtx));
+    HttpHandlersList_init(context->handlers);
+
+    for(size_t i = COUNT_OF(api_account_handlers); i > 0; i--) {
+        http_handler_add(context->handlers, &api_account_handlers[i - 1]);
+    }
+
+    return context;
+}
+
+void http_api_account_free(void* ctx) {
+    furi_assert(ctx);
+
+    ApiAccountCtx* context = ctx;
+    HttpHandlersList_clear(context->handlers);
+    free(context);
 }
 
 bool http_api_account_callback(
@@ -186,17 +331,7 @@ bool http_api_account_callback(
     struct mg_connection* conn,
     struct mg_http_message* msg,
     void* ctx) {
-    UNUSED(ctx);
+    ApiAccountCtx* context = ctx;
 
-    if(!IS_HTTP_ENDPOINT(path)) return false;
-
-    if(mg_match(msg->method, mg_str("GET"), NULL)) {
-        http_api_account_get_status(conn);
-    } else if(mg_match(msg->method, mg_str("DELETE"), NULL)) {
-        http_api_account_unlink(conn);
-    } else {
-        MG_REPLY_METHOD_NOT_ALLOWED(conn);
-    }
-
-    return true;
+    return http_handle_request(path, context->handlers, conn, msg);
 }

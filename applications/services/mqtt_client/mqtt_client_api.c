@@ -49,6 +49,29 @@ void mqtt_client_get_session_info(
     mqtt_client_send_message(mqtt, &msg);
 }
 
+MqttClientProfile mqtt_client_get_profile(MqttClient* mqtt) {
+    furi_assert(mqtt);
+    MqttClientProfile profile;
+
+    MqttClientMessage msg = {
+        .type = MqttClientMessageGetProfile,
+        .profile = &profile,
+    };
+    mqtt_client_send_message(mqtt, &msg);
+
+    return profile;
+}
+
+void mqtt_client_set_profile(MqttClient* mqtt, MqttClientProfile profile) {
+    furi_assert(mqtt);
+
+    MqttClientMessage msg = {
+        .type = MqttClientMessageSetProfile,
+        .profile = &profile,
+    };
+    mqtt_client_send_message(mqtt, &msg);
+}
+
 FuriPubSub* mqtt_client_get_pubsub(MqttClient* mqtt) {
     furi_assert(mqtt);
     return mqtt->event_pubsub;

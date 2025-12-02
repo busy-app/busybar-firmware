@@ -31,14 +31,6 @@ static const HttpHandler handlers_root[] = {
         .on_request = http_api_options_callback,
     },
     {
-        .uri = "/ws_test",
-        .method = "GET",
-        .type = HttpHandlerCustom,
-        .on_request = http_websocket_callback,
-        .ctx_alloc = http_websocket_alloc,
-        .ctx_free = http_websocket_free,
-    },
-    {
         .uri = "",
         .method = "GET",
         .type = HttpHandlerDir,

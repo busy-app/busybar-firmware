@@ -6,7 +6,6 @@
 #include <wifi/wifi.h>
 #include "mqtt_client.h"
 
-#define MQTT_SERVER_ADDR         "mqtts://mqtt.cloud.dev.busy.app:8883"
 #define MQTT_RECONNECT_DELAY_MIN (2000)
 #define MQTT_RECONNECT_DELAY_MAX (60000)
 #define MQTT_POLL_PERIOD         (100)
@@ -20,6 +19,10 @@ struct MqttClient {
     FuriPubSub* event_pubsub;
     struct mg_mgr mgr;
     struct mg_connection* conn;
+
+    int profile_id;
+    char* server_addr;
+    bool use_tls;
 
     struct mg_timer reconnect_delay_timer;
     uint32_t reconnect_delay;
@@ -53,11 +56,14 @@ typedef struct {
         MqttClientMessageUnlink,
         MqttClientMessageRequestPin,
         MqttClientMessageGetSessionInfo,
+        MqttClientMessageGetProfile,
+        MqttClientMessageSetProfile,
     } type;
     FuriApiLock lock;
     union {
         MqttClientStatus* status;
         bool* bool_param;
+        MqttClientProfile* profile;
         struct {
             FuriString* id;
             FuriString* email;
