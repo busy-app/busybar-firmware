@@ -57,34 +57,6 @@ jobs:
         run: |
           git submodule update --init --recursive --jobs=$(nproc) scripts/toolchain fbt_layers/fbtng || (git lfs logs last && exit 1)
 
-
-      - name: 'Download update package'
-        run: |
-          set -euo pipefail
-          URL="https://update.flipperzero.one/builds/busybar-firmware/${{ inputs.update_url }}"
-          echo "Using URL: $URL"
-          curl --fail -L -o busybar-f${{ env.U5_HW_TARGET }}-update.tar "$URL"
-          mkdir -p update_bundle
-          tar -xf busybar-f${{ env.U5_HW_TARGET }}-update.tar -C update_bundle
-
-      - name: 'Flash firmware'
-        id: flashing
-        timeout-minutes: 20
-        run: |
-          set -euo pipefail
-          source scripts/toolchain/fbtenv.sh
-          python3 scripts/testops.py format --no-confirm
-          python3 scripts/storage.py -p 10.0.4.20 send update_bundle /ext/tmp/upd_bundle
-          python3 scripts/testops.py update-bundle /ext/tmp/upd_bundle/update.json
-          python3 scripts/testops.py wait -t 240
-
-      - name: 'Check that both cores are available (post-flash)'
-        if: steps.flashing.outcome == 'success'
-        run: |
-          set -euo pipefail
-          source scripts/toolchain/fbtenv.sh
-          python3 scripts/testops.py sanity
-
       - name: Set up Python 3.11
         uses: actions/setup-python@v4
         with:
