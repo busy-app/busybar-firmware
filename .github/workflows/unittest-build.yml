@@ -34,6 +34,27 @@ jobs:
           fetch-depth: 2
           token: ${{ secrets.GITHUB_TOKEN }}
 
+      - name: 'Bootstrap tooling submodule'
+        run: |
+          git submodule update --init --depth 1 fbt_layers/fbtng
+
+      - name: 'Get commit details'
+        id: names
+        run: |
+          set -euo pipefail
+          PROFILE='debug'
+          if [[ "${{ github.event_name }}" == 'pull_request' ]]; then
+            TYPE="pull"
+          elif [[ "${{ github.ref }}" == refs/tags/* ]]; then
+            TYPE="tag"
+            PROFILE='release'
+          else
+            TYPE="other"
+          fi
+          echo "event_type=$TYPE" >> "$GITHUB_OUTPUT"
+          echo "build_profile=$PROFILE" >> "$GITHUB_OUTPUT"
+          python3 fbt_layers/fbtng/scripts/get_env.py "--event_file=${{ github.event_path }}" "--type=$TYPE" || (cat "${{ github.event_path }}" && exit 1)
+
       - name: 'Build firmware artifacts'
         id: build-fw
         uses: ./.github/actions/build-artifacts
@@ -49,7 +70,7 @@ jobs:
         run: |
           set -euo pipefail
           ARTIFACT_DIR="${{ steps.build-fw.outputs.artifact_path }}"
-          zip_name="unit-tests-f${U5_TARGET_HW}.zip"
+          zip_name="busybar-f${U5_TARGET_HW}-unit-tests-${{ steps.names.outputs.suffix }}.zip"
           rm -f "$zip_name"
           (cd "$ARTIFACT_DIR" && zip -qr "../$zip_name" .)
           echo "zip_path=$zip_name" >> "$GITHUB_OUTPUT"
@@ -57,6 +78,16 @@ jobs:
     #   - name: 'Upload bundled artifacts'
     #     uses: actions/upload-artifact@v4
     #     with:
-    #       name: unit-tests-f${{ steps.build-fw.outputs.u5_target_hw }}
+    #       name: busybar-f${{ steps.build-fw.outputs.u5_target_hw }}-unit-tests-${{ steps.names.outputs.suffix }}
     #       path: ${{ steps.zip.outputs.zip_path }}
     #       if-no-files-found: error
+
+      - name: 'Upload bundle to build artifacts server'
+        if: ${{ !github.event.pull_request.head.repo.fork && steps.build-fw.outcome == 'success' }}
+        run: |
+          ZIP_PATH="${{ steps.zip.outputs.zip_path }}"
+          curl --fail -L -H "Token: ${{ secrets.INDEXER_TOKEN }}" \
+              -F "branch=${BRANCH_NAME}" \
+              -F "version_token=${COMMIT_SHA}" \
+              -F "files=@${ZIP_PATH}" \
+              "${{ secrets.INDEXER_URL }}"/busybar-firmware/uploadfiles
