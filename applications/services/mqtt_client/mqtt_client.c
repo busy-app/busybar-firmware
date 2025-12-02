@@ -377,12 +377,13 @@ static void mqtt_client_do_publish(MqttClient* mqtt, const MqttClientPublish* pu
         const struct mg_mqtt_opts opts = {
             .topic = mg_str(furi_string_get_cstr(full_topic)),
             .message = message,
-            .qos = 0,
+            .qos = pub->qos,
             .retain = false,
             .props = NULL,
             .num_props = 0,
         };
 
+        // TODO: Implement proper QoS handling
         mg_mqtt_pub(mqtt->conn, &opts);
 
         furi_string_free(full_topic);

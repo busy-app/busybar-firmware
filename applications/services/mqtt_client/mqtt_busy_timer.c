@@ -16,7 +16,11 @@ static void mqtt_busy_timer_pubsub_callback(const void* data, void* context) {
         furi_check(snapshot_str);
 
         mqtt_client_publish(
-            mqtt, MQTT_BUSY_TIMER_SNAPSHOT_TOPIC, snapshot_str, strlen(snapshot_str));
+            mqtt,
+            MqttQosAtLeastOnce,
+            MQTT_BUSY_TIMER_SNAPSHOT_TOPIC,
+            snapshot_str,
+            strlen(snapshot_str));
 
         free(snapshot_str);
     }

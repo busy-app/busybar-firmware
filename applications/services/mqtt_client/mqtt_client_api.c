@@ -49,11 +49,17 @@ void mqtt_client_get_session_info(
     mqtt_client_send_message(mqtt, &msg);
 }
 
-void mqtt_client_publish(MqttClient* mqtt, const char* topic, const void* data, size_t data_size) {
+void mqtt_client_publish(
+    MqttClient* mqtt,
+    MqttQos qos,
+    const char* topic,
+    const void* data,
+    size_t data_size) {
     furi_check(mqtt);
     furi_check(topic);
     furi_check(data);
     furi_check(data_size);
+    furi_check(qos < MqttQosMax);
 
     const MqttClientMessage msg = {
         .type = MqttClientMessagePublish,
@@ -62,6 +68,7 @@ void mqtt_client_publish(MqttClient* mqtt, const char* topic, const void* data, 
                 .topic = topic,
                 .data = data,
                 .data_size = data_size,
+                .qos = qos,
             },
         .lock = api_lock_alloc_locked(),
     };

@@ -52,6 +52,7 @@ typedef struct {
     const char* topic;
     const void* data;
     size_t data_size;
+    MqttQos qos;
 } MqttClientPublish;
 
 typedef struct {

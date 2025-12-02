@@ -28,6 +28,13 @@ typedef struct {
     };
 } MqttClientEvent;
 
+typedef enum {
+    MqttQosAtMostOnce = 0,
+    MqttQosAtLeastOnce = 1,
+    MqttQosExactlyOnce = 2,
+    MqttQosMax,
+} MqttQos;
+
 typedef struct MqttClient MqttClient;
 
 FuriPubSub* mqtt_client_get_pubsub(MqttClient* mqtt);
@@ -40,4 +47,10 @@ void mqtt_client_get_session_info(
     FuriString* id,
     FuriString* email,
     FuriString* user_id);
-void mqtt_client_publish(MqttClient* mqtt, const char* topic, const void* data, size_t data_size);
+
+void mqtt_client_publish(
+    MqttClient* mqtt,
+    MqttQos qos,
+    const char* topic,
+    const void* data,
+    size_t data_size);
