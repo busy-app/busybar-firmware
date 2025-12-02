@@ -71,7 +71,7 @@ jobs:
         run: |
           set -euo pipefail
           ARTIFACT_DIR="${{ steps.build-fw.outputs.artifact_path }}"
-          zip_name="busybar-f${U5_TARGET_HW}-unit-tests-${{ steps.names.outputs.suffix }}.zip"
+          zip_name="busybar-f${U5_TARGET_HW}-unittests-${{ steps.names.outputs.suffix }}.zip"
           rm -f "$zip_name"
           (cd "$ARTIFACT_DIR" && zip -qr "../$zip_name" .)
           echo "zip_path=$zip_name" >> "$GITHUB_OUTPUT"
