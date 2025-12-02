@@ -6,6 +6,7 @@
 
 #include <furi.h>
 
+#include <ble/ble.h>
 #include <desktop/desktop.h>
 #include <gui/gui.h>
 #include <front_display/front_display.h>

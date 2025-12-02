@@ -1,7 +1,8 @@
 #include "ble_settings.h"
 #include <settings_helpers/app_desc.h>
 #include <settings_helpers/gui_params.h>
-#include <ble/ble.h>
+
+#define TAG "BleSettings"
 
 static bool ble_settings_thread_signal_callback(uint32_t signal, void* arg, void* context) {
     UNUSED(arg);
@@ -154,14 +155,55 @@ static void ble_settings_free(BleSettings* instance) {
     free(instance);
 }
 
+static void ble_settings_set_icon_by_status(
+    SettingsAppDescriptor* const descriptor,
+    const BleStatus* const status) {
+    struct {
+        const char* front;
+        const char* back;
+    } icon;
+
+    if(status->state == BleServiceStateReady) {
+        icon.front = "ble_front_gray_8x8.bin";
+        icon.back = "ble_back_12x12.bin";
+    } else if(status->state == BleServiceStateAdvertising) {
+        const bool paired = status->pairing == BlePairingStatePaired;
+        icon.front = paired ? "ble_front_paired_8x8.bin" : "ble_front_8x8.bin";
+        icon.back = paired ? "ble_back_paired_12x12.bin" : "ble_back_12x12.bin";
+    } else if(status->state == BleServiceStateConnected) {
+        icon.front = "ble_front_checkmark_8x8.bin";
+        icon.back = "ble_back_paired_12x12.bin";
+    } else {
+        FURI_LOG_W(TAG, "Wrong state!");
+        icon.front = "ble_front_gray_8x8.bin";
+        icon.back = "ble_back_12x12.bin";
+    }
+
+    furi_string_printf(descriptor->front_icon, IMG_PATH("%s"), icon.front);
+    furi_string_printf(descriptor->back_icon, IMG_PATH("%s"), icon.back);
+}
+
 int32_t ble_settings_entry(void* arg) {
     if(arg) {
         SettingsAppDescriptor* descriptor = arg;
         furi_string_set_str(descriptor->front_title, "Bluetooth");
         furi_string_set_str(descriptor->back_title, "Bluetooth");
 
-        furi_string_set_str(descriptor->front_icon, IMG_PATH("ble_front_8x8.bin"));
-        furi_string_set_str(descriptor->back_icon, IMG_PATH("ble_back_12x12.bin"));
+        Ble* ble = furi_record_open(RECORD_BLE);
+
+        BleStatus status = {0};
+        bool result = ble_get_status(ble, &status);
+        furi_check(result);
+        ///TODO: rework this part when proper init sequence will be done for BLE
+        if(status.state == BleServiceStateReset) {
+            ble_stop(ble);
+            result = ble_get_status(ble, &status);
+            furi_check(result);
+        }
+
+        ble_settings_set_icon_by_status(descriptor, &status);
+        furi_record_close(RECORD_BLE);
+
         return 0;
     }
 
