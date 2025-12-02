@@ -110,7 +110,7 @@ runs:
         echo "u5_target_hw=$U5_TARGET" >> "$GITHUB_OUTPUT"
         echo "sil_target_hw=$SIL_TARGET" >> "$GITHUB_OUTPUT"
         if [[ -n "${{ inputs.custom_suffix }}" ]]; then
-          echo "SUFFIX=${{ inputs.custom_suffix }}" >> "$GITHUB_ENV"
+          echo "DIST_SUFFIX=${{ inputs.custom_suffix }}" >> "$GITHUB_ENV"
         fi
 
     - name: Configure Git and LFS
