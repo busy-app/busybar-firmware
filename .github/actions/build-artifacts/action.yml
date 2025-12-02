@@ -27,6 +27,10 @@ inputs:
     description: Additional arguments to append to the fbt command
     required: false
     default: ""
+  custom_suffix:
+    description: Optional suffix override for artifact naming
+    required: false
+    default: ""
   configure_lfs:
     description: Configure Git LFS and credentials before building
     required: false
@@ -105,6 +109,9 @@ runs:
         echo "artifact_path=${{ inputs.artifact_path }}" >> "$GITHUB_OUTPUT"
         echo "u5_target_hw=$U5_TARGET" >> "$GITHUB_OUTPUT"
         echo "sil_target_hw=$SIL_TARGET" >> "$GITHUB_OUTPUT"
+        if [[ -n "${{ inputs.custom_suffix }}" ]]; then
+          echo "SUFFIX=${{ inputs.custom_suffix }}" >> "$GITHUB_ENV"
+        fi
 
     - name: Configure Git and LFS
       if: inputs.configure_lfs == 'true'

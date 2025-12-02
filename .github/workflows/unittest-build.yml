@@ -63,6 +63,7 @@ jobs:
           build_type: debug
           firmware_app_set: unit_tests
           artifact_path: unit-test-artifacts
+          custom_suffix: unittests
 
       - name: 'Bundle artifacts into zip'
         id: zip
@@ -74,13 +75,6 @@ jobs:
           rm -f "$zip_name"
           (cd "$ARTIFACT_DIR" && zip -qr "../$zip_name" .)
           echo "zip_path=$zip_name" >> "$GITHUB_OUTPUT"
-
-    #   - name: 'Upload bundled artifacts'
-    #     uses: actions/upload-artifact@v4
-    #     with:
-    #       name: busybar-f${{ steps.build-fw.outputs.u5_target_hw }}-unit-tests-${{ steps.names.outputs.suffix }}
-    #       path: ${{ steps.zip.outputs.zip_path }}
-    #       if-no-files-found: error
 
       - name: 'Upload bundle to build artifacts server'
         if: ${{ !github.event.pull_request.head.repo.fork && steps.build-fw.outcome == 'success' }}
