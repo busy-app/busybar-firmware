@@ -28,16 +28,6 @@ jobs:
         run: |
           find ./ -mount -maxdepth 1 -exec rm -rf {} \;
 
-      - name: "Configure targets"
-        id: targets
-        run: |
-          U5_TARGET=$(echo "${{ matrix.target_spec }}" | cut -d_ -f1 | sed 's/f//')
-          SIL_TARGET=$(echo "${{ matrix.target_spec }}" | cut -d_ -f2 | sed 's/f//')
-          echo "U5_TARGET_HW=${U5_TARGET}" >> $GITHUB_ENV
-          echo "SIL_TARGET_HW=${SIL_TARGET}" >> $GITHUB_ENV
-          echo "u5_target_hw=${U5_TARGET}"  >> $GITHUB_OUTPUT
-          echo "sil_target_hw=${U5_TARGET}"  >> $GITHUB_OUTPUT
-
       - name: "Checkout code"
         uses: actions/checkout@v4
         with:
@@ -45,17 +35,10 @@ jobs:
           fetch-depth: 2
           token: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: "Update submodules"
-        run: |
-          git submodule update --init --recursive --jobs=$(nproc) scripts/toolchain fbt_layers/fbtng
-
-      - name: "Build update package (unsigned)"
+      - name: "Build firmware artifacts"
         id: build-fw
-        run: |
-          source ./scripts/toolchain/fbtenv.sh
-          export FBT_GIT_SUBMODULE_SHALLOW=1
-          bash ./fbt U5_TARGET_HW=${U5_TARGET_HW} SIL_TARGET_HW=${SIL_TARGET_HW} $FBT_BUILD_TYPE dist
-
-      - name: "Check for uncommitted changes"
-        run: |
-          git diff --exit-code
+        uses: ./.github/actions/artifacts-dist.yml
+        with:
+          target_spec: ${{ matrix.target_spec }}
+          build_type: release
+          artifact_path: artifacts

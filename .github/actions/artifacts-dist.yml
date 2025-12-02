@@ -1,0 +1,168 @@
+name: Build firmware artifacts
+author: hedger
+description: Build firmware artifacts for distribution
+
+inputs:
+  target_spec:
+    description: Target specification in the format "U5TARGET_SILTARGET", e.g. "21_64"
+    required: true
+    default: "21_64"
+  build_type:
+    description: "Build profile to use (release/debug)."
+    required: false
+    default: "release"
+  build_flags:
+    description: Override build flags passed to fbt (e.g. "DEBUG=1 COMPACT=0")
+    required: false
+    default: ""
+  artifact_path:
+    description: Path to store the built artifacts
+    required: false
+    default: "artifacts"
+  firmware_app_set:
+    description: Optional FIRMWARE_APP_SET argument
+    required: false
+    default: ""
+  extra_fbt_args:
+    description: Additional arguments to append to the fbt command
+    required: false
+    default: ""
+  configure_lfs:
+    description: Configure Git LFS and credentials before building
+    required: false
+    default: "true"
+  generate_hashes:
+    description: Generate sha256 sums for produced artifacts
+    required: false
+    default: "true"
+
+outputs:
+  artifact_path:
+    description: Directory containing copied artifacts
+    value: ${{ steps.vars.outputs.artifact_path }}
+  u5_target_hw:
+    description: Parsed U5 target value
+    value: ${{ steps.vars.outputs.u5_target_hw }}
+  sil_target_hw:
+    description: Parsed Silabs target value
+    value: ${{ steps.vars.outputs.sil_target_hw }}
+
+runs:
+  using: "composite"
+  steps:
+    - id: vars
+      shell: bash
+      run: |
+        set -euo pipefail
+        TARGET_SPEC="${{ inputs.target_spec }}"
+        if [[ -z "$TARGET_SPEC" ]]; then
+          echo "target_spec input is required" >&2
+          exit 1
+        fi
+        if [[ "$TARGET_SPEC" != *"_"* ]]; then
+          echo "target_spec must contain an underscore (U5_SIL), got '$TARGET_SPEC'" >&2
+          exit 1
+        fi
+        RAW_U5="${TARGET_SPEC%%_*}"
+        RAW_SIL="${TARGET_SPEC#*_}"
+        U5_TARGET="${RAW_U5#f}"
+        SIL_TARGET="${RAW_SIL#f}"
+        if [[ -z "$U5_TARGET" || -z "$SIL_TARGET" ]]; then
+          echo "Failed to parse target_spec='$TARGET_SPEC'" >&2
+          exit 1
+        fi
+
+        if [[ -n "${{ inputs.build_flags }}" ]]; then
+          BUILD_FLAGS="${{ inputs.build_flags }}"
+        else
+          case "${{ inputs.build_type }}" in
+            release)
+              BUILD_FLAGS='DEBUG=0 COMPACT=1'
+              ;;
+            debug)
+              BUILD_FLAGS='DEBUG=1 COMPACT=0'
+              ;;
+            *)
+              echo "Unsupported build_type '${{ inputs.build_type }}'. Use 'release' or 'debug'." >&2
+              exit 1
+              ;;
+          esac
+        fi
+
+        EXTRA_ARGS="${{ inputs.extra_fbt_args }}"
+        if [[ -n "${{ inputs.firmware_app_set }}" ]]; then
+          if [[ -n "$EXTRA_ARGS" ]]; then
+            EXTRA_ARGS+=" "
+          fi
+          EXTRA_ARGS+="FIRMWARE_APP_SET=${{ inputs.firmware_app_set }}"
+        fi
+
+        echo "U5_TARGET_HW=$U5_TARGET" >> "$GITHUB_ENV"
+        echo "SIL_TARGET_HW=$SIL_TARGET" >> "$GITHUB_ENV"
+        echo "FBT_BUILD_FLAGS=$BUILD_FLAGS" >> "$GITHUB_ENV"
+        echo "FBT_EXTRA_ARGS=$EXTRA_ARGS" >> "$GITHUB_ENV"
+        echo "ARTIFACT_PATH=${{ inputs.artifact_path }}" >> "$GITHUB_ENV"
+        echo "artifact_path=${{ inputs.artifact_path }}" >> "$GITHUB_OUTPUT"
+        echo "u5_target_hw=$U5_TARGET" >> "$GITHUB_OUTPUT"
+        echo "sil_target_hw=$SIL_TARGET" >> "$GITHUB_OUTPUT"
+
+    - name: Configure Git and LFS
+      if: inputs.configure_lfs == 'true'
+      shell: bash
+      run: |
+        set -euo pipefail
+        git lfs install --skip-smudge
+        if [[ -n "${GH_TOKEN:-}" ]]; then
+          echo "https://x-access-token:${GH_TOKEN}@github.com" > ~/.git-credentials
+          git config credential.helper 'store --file ~/.git-credentials'
+        fi
+        git config lfs.transfer.maxretries 3
+
+    - name: Update submodules
+      shell: bash
+      run: |
+        set -euo pipefail
+        git submodule update --init --recursive --jobs="$(nproc)" scripts/toolchain fbt_layers/fbtng || (git lfs logs last && exit 1)
+
+    - name: Build update package
+      shell: bash
+      run: |
+        set -euo pipefail
+        source ./scripts/toolchain/fbtenv.sh
+        export FBT_GIT_SUBMODULE_SHALLOW=1
+        ARGS=("U5_TARGET_HW=${U5_TARGET_HW}" "SIL_TARGET_HW=${SIL_TARGET_HW}")
+        if [[ -n "${FBT_BUILD_FLAGS}" ]]; then
+          # shellcheck disable=SC2206
+          ARGS+=( ${FBT_BUILD_FLAGS} )
+        fi
+        if [[ -n "${FBT_EXTRA_ARGS}" ]]; then
+          # shellcheck disable=SC2206
+          ARGS+=( ${FBT_EXTRA_ARGS} )
+        fi
+        bash ./fbt "${ARGS[@]}" dist
+
+    - name: Check for uncommitted changes
+      shell: bash
+      run: |
+        set -euo pipefail
+        git diff --exit-code
+
+    - name: Copy build artifacts
+      shell: bash
+      run: |
+        set -euo pipefail
+        rm -rf "$ARTIFACT_PATH"
+        mkdir -p "$ARTIFACT_PATH"
+        cp -v dist/f${U5_TARGET_HW}-*/* "$ARTIFACT_PATH"/
+
+    - name: Calculate hashsums for artifacts
+      if: inputs.generate_hashes == 'true'
+      shell: bash
+      working-directory: ${{ inputs.artifact_path }}
+      run: |
+        set -euo pipefail
+        SUMS_FILE="busybar-f${U5_TARGET_HW}-sha256sum.txt"
+        find . -maxdepth 1 -type f ! -name "$SUMS_FILE" -print0 \
+          | LC_ALL=C sort -z \
+          | xargs -0 sha256sum \
+          > "$SUMS_FILE"
