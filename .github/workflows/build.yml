@@ -40,6 +40,10 @@ jobs:
           fetch-depth: 2
           token: ${{ secrets.GITHUB_TOKEN }}
 
+      - name: 'Bootstrap tooling submodule'
+        run: |
+          git submodule update --init --depth 1 fbt_layers/fbtng
+
       - name: 'Get commit details'
         id: names
         run: |
@@ -59,7 +63,7 @@ jobs:
 
       - name: 'Build firmware artifacts'
         id: build-fw
-        uses: ./.github/actions/artifacts-dist.yml
+        uses: ./.github/actions/build-artifacts
         with:
           target_spec: ${{ matrix.target_spec }}
           build_type: ${{ steps.names.outputs.build_profile }}

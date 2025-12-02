@@ -36,7 +36,7 @@ jobs:
 
       - name: 'Build firmware artifacts'
         id: build-fw
-        uses: ./.github/actions/artifacts-dist.yml
+        uses: ./.github/actions/build-artifacts
         with:
           target_spec: ${{ matrix.target_spec }}
           build_type: debug
