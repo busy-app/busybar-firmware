@@ -76,7 +76,7 @@ jobs:
 
       - name: Run smoke tests
         run: |
-          cd scripts/testing
+          cd tests
           python3 -m pytest . -v \
             --alluredir=allure-results \
             --clean-alluredir \
@@ -101,7 +101,7 @@ jobs:
       - name: Upload test results to Allure TestOps
         if: always()
         run: |
-          cd scripts/testing
+          cd tests
           echo "Attempting upload with command:"
           echo "allurectl upload allure-results --endpoint https://flipper.testops.cloud --token ${{ secrets.ALLURE_TESTOPS_TOKEN }} --project-id 232 --launch-name 'GitHub Actions - ${{ github.workflow }} - ${{ github.sha }}'"
 
@@ -195,37 +195,6 @@ jobs:
           if [ -d "allure-report/history" ]; then
             cp -r allure-report/history/* allure-history-new/ 2>/dev/null || true
           fi
-        continue-on-error: true
-
-      - name: Upload Allure report and history to S3
-        if: always()
-        run: |
-          cd scripts/testing
-          RUN_ID="${{ github.run_number }}-${{ github.sha }}"
-
-          # Upload the complete report
-          REPORT_PATH="s3://flipper-aws-qa-tests/bsb/allure-reports/all/$RUN_ID"
-          PUBLIC_URL="https://flipper-aws-qa-tests.s3.eu-central-1.amazonaws.com/bsb/allure-reports/all/$RUN_ID/index.html"
-          aws s3 sync allure-report/ "$REPORT_PATH/" --delete
-
-          # Upload latest report as "latest" for easy access
-          LATEST_PATH="s3://flipper-aws-qa-tests/bsb/allure-reports/all/latest"
-          LATEST_PUBLIC_URL="https://flipper-aws-qa-tests.s3.eu-central-1.amazonaws.com/bsb/allure-reports/all/latest/index.html"
-          aws s3 sync allure-report/ "$LATEST_PATH/" --delete
-
-          # Upload history for next run
-          if [ -d "allure-history-new" ] && [ "$(ls -A allure-history-new)" ]; then
-            HISTORY_PATH="s3://flipper-aws-qa-tests/bsb/allure-history/all"
-            aws s3 sync allure-history-new/ "$HISTORY_PATH/" --delete
-          fi
-
-          echo "Allure report uploaded to: $REPORT_PATH"
-          echo "Latest report available at: $LATEST_PATH"
-
-          # Add links to GitHub step summary
-          echo "## Allure Reports (all)" >> $GITHUB_STEP_SUMMARY
-          echo "- [This Run ($RUN_ID)]($PUBLIC_URL)" >> $GITHUB_STEP_SUMMARY
-          echo "- [Latest Report]($LATEST_PUBLIC_URL)" >> $GITHUB_STEP_SUMMARY
         continue-on-error: true
 
       - name: Create Job Summary
