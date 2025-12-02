@@ -1149,7 +1149,7 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Error"
-    post:
+    put:
       tags:
         - Busy
       summary: Set BUSY time snapshot

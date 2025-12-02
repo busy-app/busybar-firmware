@@ -80,7 +80,7 @@ static const HttpHandler handlers_busy[] = {
     },
     {
         .uri = "snapshot",
-        .method = "POST",
+        .method = "PUT",
         .type = HttpHandlerCustom,
         .on_request = api_busy_set_snapshot_callback,
     },
