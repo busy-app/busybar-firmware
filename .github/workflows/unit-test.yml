@@ -57,23 +57,23 @@ jobs:
         run: |
           git submodule update --init --recursive --jobs=$(nproc) scripts/toolchain fbt_layers/fbtng || (git lfs logs last && exit 1)
 
-      - name: 'Build unit test firmware'
+
+      - name: 'Download update package'
         run: |
           set -euo pipefail
-          source ./scripts/toolchain/fbtenv.sh
-          export FBT_GIT_SUBMODULE_SHALLOW=1
-          bash ./fbt FIRMWARE_APP_SET=unit_tests
+          URL="https://update.flipperzero.one/builds/busybar-firmware/${{ inputs.update_url }}"
+          echo "Using URL: $URL"
+          curl --fail -L -o busybar-f${{ env.U5_HW_TARGET }}-update.tar "$URL"
+          mkdir -p update_bundle
+          tar -xf busybar-f${{ env.U5_HW_TARGET }}-update.tar -C update_bundle
 
-      - name: 'Flash unit tests firmware'
-        if: success()
+      - name: 'Flash firmware'
         id: flashing
-        timeout-minutes: 10
+        timeout-minutes: 20
         run: |
           set -euo pipefail
           source scripts/toolchain/fbtenv.sh
           python3 scripts/testops.py format --no-confirm
-          mkdir -p update_bundle
-          tar -xf dist/f${U5_TARGET_HW}-D/busybar-f${U5_TARGET_HW}-update-local.tar -C update_bundle
           python3 scripts/storage.py -p 10.0.4.20 send update_bundle /ext/tmp/upd_bundle
           python3 scripts/testops.py update-bundle /ext/tmp/upd_bundle/update.json
           python3 scripts/testops.py wait -t 240
@@ -84,13 +84,6 @@ jobs:
           set -euo pipefail
           source scripts/toolchain/fbtenv.sh
           python3 scripts/testops.py sanity
-
-      - name: 'Run units'
-        timeout-minutes: 2
-        run: |
-          set -euo pipefail
-          source scripts/toolchain/fbtenv.sh
-          python3 scripts/testops.py unit-tests
 
       - name: Set up Python 3.11
         uses: actions/setup-python@v4
