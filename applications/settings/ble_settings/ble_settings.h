@@ -33,6 +33,7 @@ typedef enum {
 #define IMG_PATH(path)    ASSETS_PATH("images") "/" path
 
 typedef struct {
+    Ble* ble;
     FuriEventLoop* event_loop;
     FuriMessageQueue* input_queue;
     FuriMessageQueue* event_queue;
