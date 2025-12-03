@@ -5,6 +5,7 @@
 #include <gui/modules/progress_bar.h>
 #include <update_checker/update_checker.h>
 #include <applications/system/updater/updater.h>
+#include <applications/system/updater/updater_paths.h>
 
 #include <toolbox/sha256_calc.h>
 #include <settings_helpers/gui_params.h>

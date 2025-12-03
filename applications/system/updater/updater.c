@@ -1,4 +1,5 @@
 #include "updater.h"
+#include "updater_paths.h"
 #include "session/session_config.h"
 
 #include <storage/storage.h>

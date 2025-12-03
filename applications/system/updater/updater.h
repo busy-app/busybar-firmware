@@ -6,17 +6,12 @@
 #pragma once
 
 #include <furi.h>
-#include <toolbox/update_lib/common_vals.h>
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
 #define RECORD_UPDATER "updater"
-
-#define UPDATER_DEFAULT_DOWNLOAD_PATH EXT_PATH("update/bundle.tar")
-#define UPDATER_DEFAULT_STAGING_PATH  EXT_PATH("update/staging")
-#define UPDATER_DEFAULT_MANIFEST_PATH (UPDATER_DEFAULT_STAGING_PATH "/" UPDATE_CONFIG_FILENAME)
 
 typedef struct Updater Updater;
 
