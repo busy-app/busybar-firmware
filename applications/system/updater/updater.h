@@ -73,6 +73,32 @@ typedef struct {
     const FuriString* detail; /**< Optional detail string (e.g., download state message) */
 } UpdaterUpdateState;
 
+typedef enum {
+    UpdaterCheckStatusAvailable,
+    UpdaterCheckStatusNotAvailable,
+    UpdaterCheckStatusFailure,
+
+    UpdaterCheckStatusNone,
+} UpdaterCheckStatus;
+
+typedef enum {
+    UpdaterCheckEventStart,
+    UpdaterCheckEventStop,
+
+    UpdaterCheckEventNone,
+} UpdaterCheckEvent;
+
+typedef struct {
+    const FuriString* url;
+    const FuriString* id;
+    const FuriString* version;
+    const FuriString* sha256;
+    const FuriString* changelog;
+
+    UpdaterCheckStatus status;
+    UpdaterCheckEvent event;
+} UpdaterCheckState;
+
 /** Get human-readable string for a status code
  *
  * @param[in]  status  The status code
@@ -88,6 +114,8 @@ const char* updater_get_status_string(UpdaterStatus status);
  * @return     FuriState pointer (acquire/release to access UpdaterUpdateState)
  */
 FuriState* updater_get_update_state(Updater* instance);
+
+FuriState* updater_get_check_state(Updater* instance);
 
 /** Check if update is allowed to start
  *
@@ -191,6 +219,10 @@ UpdaterStatus
  * @param[in]  do_wait   true to block and reboot, false for async reboot
  */
 void updater_installation_apply(Updater* instance, bool do_wait);
+
+void updater_check_for_update(Updater* instance);
+
+const char* updater_get_active_version(Updater* instance);
 
 #ifdef __cplusplus
 }

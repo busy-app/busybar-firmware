@@ -1,16 +1,19 @@
 #include "updater.h"
 #include "updater_paths.h"
+#include "updater_settings.h"
+#include "update_checker/update_checker.h"
 #include "session/session_config.h"
 
 #include <storage/storage.h>
 #include <power/power_service/power.h>
-#include <toolbox/fetch/fetch_loader.h>
 
 #include <furi_hal_nvm.h>
 #include <furi_hal_power.h>
+#include <furi_hal_version.h>
 #include <toolbox/api_lock.h>
 #include <toolbox/path.h>
 #include <toolbox/tar/tar_archive.h>
+#include <toolbox/fetch/fetch_loader.h>
 
 #define TAG "Updater"
 
@@ -20,18 +23,28 @@
 #define UPDATE_INSTALLATION_APPLY_REBOOT_DELAY 100
 
 struct Updater {
-    FuriEventLoop* event_loop;
-    FuriMessageQueue* message_queue;
-    FuriSemaphore* update_lock;
-    FuriState* update_state;
-
     Storage* storage;
     Power* power;
 
+    FuriEventLoop* event_loop;
+    FuriMessageQueue* message_queue;
+    UpdaterSettings settings;
+
+    FuriSemaphore* update_lock;
+    FuriState* update_state;
     FuriString* update_detail;
 
     FetchLoader* download_loader;
     FuriMessageQueue* download_queue;
+
+    UpdateChecker* update_checker;
+    FuriState* check_state;
+    FuriEventLoopTimer* check_timer;
+    FuriString* check_url;
+    FuriString* check_id;
+    FuriString* check_version;
+    FuriString* check_sha256;
+    FuriString* check_changelog;
 };
 
 typedef struct {
@@ -46,6 +59,7 @@ typedef enum {
     MessageTypeUnpack,
     MessageTypeInstallationPrepare,
     MessageTypeInstallationApply,
+    MessageTypeCheckForUpdate,
 
     MessageTypesCount
 } MessageType;
@@ -78,8 +92,75 @@ typedef struct {
     UpdaterUpdateAction action;
 } MessageHandler;
 
+typedef enum {
+    CustomEventUpdateCheckSuccess = 1 << 0,
+    CustomEventUpdateCheckFailure = 1 << 1,
+} CustomEvent;
+
 static const char* const status_strings[];
 static const MessageHandler message_handlers[];
+
+static void custom_event_callback(uint32_t events, void* context) {
+    Updater* instance = context;
+
+    if(events & CustomEventUpdateCheckSuccess) {
+        furi_event_loop_timer_start(instance->check_timer, instance->settings.check_interval);
+    } else if(events & CustomEventUpdateCheckFailure) {
+        furi_event_loop_timer_restart(instance->check_timer);
+    }
+}
+
+static void check_done_callback(bool is_success, UpdaterCheckerInfo* update_info, void* context) {
+    Updater* instance = context;
+
+    furi_event_loop_set_custom_event(
+        instance->event_loop,
+        (is_success) ? CustomEventUpdateCheckSuccess : CustomEventUpdateCheckFailure);
+
+    UpdaterCheckState* check_state = furi_state_acquire(instance->check_state);
+
+    if(is_success) {
+        if(furi_string_cmp_str(update_info->version, updater_get_active_version(instance))) {
+            furi_string_set(instance->check_url, update_info->url);
+            furi_string_set(instance->check_id, update_info->id);
+            furi_string_set(instance->check_version, update_info->version);
+            furi_string_set(instance->check_sha256, update_info->sha256);
+            furi_string_set(instance->check_changelog, update_info->changelog);
+
+            check_state->status = UpdaterCheckStatusAvailable;
+        } else {
+            check_state->status = UpdaterCheckStatusNotAvailable;
+        }
+
+    } else {
+        check_state->status = UpdaterCheckStatusFailure;
+    }
+
+    check_state->event = UpdaterCheckEventStop;
+
+    furi_state_release(instance->check_state);
+}
+
+static void check_timer_callback(void* context) {
+    updater_check_for_update(context);
+}
+
+static UpdaterStatus do_check_for_update(Updater* instance, UpdaterMessage* message) {
+    UNUSED(message);
+
+    bool is_check_start_successful = update_checker_run(
+        instance->update_checker,
+        instance->settings.check_url,
+        instance->settings.check_channel_id);
+
+    if(is_check_start_successful) {
+        UpdaterCheckState* check_state = furi_state_acquire(instance->check_state);
+        check_state->event = UpdaterCheckEventStart;
+        furi_state_release(instance->check_state);
+    }
+
+    return UpdaterStatusOk;
+}
 
 static UpdaterStatus do_session_start(Updater* instance, UpdaterMessage* message) {
     UNUSED(message);
@@ -352,16 +433,16 @@ static void message_queue_callback(FuriEventLoopObject* object, void* context) {
     furi_message_queue_get(instance->message_queue, &message, FuriWaitForever);
     const MessageHandler* handler = &message_handlers[message.type];
 
+    update_state = furi_state_acquire(instance->update_state);
+
     if(handler->action != UpdaterUpdateActionNone) {
-        update_state = furi_state_acquire(instance->update_state);
         update_state->event = UpdaterUpdateEventActionBegin;
         update_state->status = UpdaterStatusBusy;
         update_state->action = handler->action;
-
-        furi_string_reset(instance->update_detail);
-
-        furi_state_release(instance->update_state);
     }
+
+    furi_string_reset(instance->update_detail);
+    furi_state_release(instance->update_state);
 
     UpdaterStatus result_status = handler->callback(instance, &message);
 
@@ -413,6 +494,12 @@ FuriState* updater_get_update_state(Updater* instance) {
     furi_check(instance);
 
     return instance->update_state;
+}
+
+FuriState* updater_get_check_state(Updater* instance) {
+    furi_check(instance);
+
+    return instance->check_state;
 }
 
 UpdaterStatus updater_get_allowance_status(Updater* instance) {
@@ -544,6 +631,20 @@ void updater_installation_apply(Updater* instance, bool do_wait) {
     }
 }
 
+void updater_check_for_update(Updater* instance) {
+    furi_check(instance);
+
+    invoke_sync(instance, &(UpdaterMessage){.type = MessageTypeCheckForUpdate});
+}
+
+const char* updater_get_active_version(Updater* instance) {
+    furi_check(instance);
+
+    const Version* version = furi_hal_version_get_firmware_version();
+    return (strcmp(version_get_version(version), "unknown") == 0) ? version_get_githash(version) :
+                                                                    version_get_version(version);
+}
+
 static Updater* updater_alloc(void) {
     Updater* instance = malloc(sizeof(*instance));
 
@@ -553,12 +654,24 @@ static Updater* updater_alloc(void) {
     instance->event_loop = furi_event_loop_alloc();
     instance->message_queue =
         furi_message_queue_alloc(MESSAGE_QUEUE_ITEMS_COUNT, sizeof(UpdaterMessage));
+    updater_settings_load(&instance->settings);
+
     instance->update_lock = furi_semaphore_alloc(1, 1);
     instance->update_state = furi_state_alloc(sizeof(UpdaterUpdateState));
-
     instance->update_detail = furi_string_alloc();
 
+    instance->download_loader = NULL;
     instance->download_queue = furi_message_queue_alloc(1, sizeof(DownloadQueueMessage));
+
+    instance->update_checker = update_checker_alloc();
+    instance->check_state = furi_state_alloc(sizeof(UpdaterCheckState));
+    instance->check_timer = furi_event_loop_timer_alloc(
+        instance->event_loop, check_timer_callback, FuriEventLoopTimerTypeOnce, instance);
+    instance->check_url = furi_string_alloc();
+    instance->check_id = furi_string_alloc();
+    instance->check_version = furi_string_alloc();
+    instance->check_sha256 = furi_string_alloc();
+    instance->check_changelog = furi_string_alloc();
 
     furi_event_loop_subscribe_message_queue(
         instance->event_loop,
@@ -567,6 +680,9 @@ static Updater* updater_alloc(void) {
         message_queue_callback,
         instance);
 
+    furi_event_loop_set_custom_event_callback(
+        instance->event_loop, custom_event_callback, instance);
+
     furi_state_set(
         instance->update_state,
         &(const UpdaterUpdateState){
@@ -574,6 +690,21 @@ static Updater* updater_alloc(void) {
             .action = UpdaterUpdateActionNone,
             .detail = instance->update_detail,
         });
+
+    furi_state_set(
+        instance->check_state,
+        &(const UpdaterCheckState){
+            .url = instance->check_url,
+            .id = instance->check_id,
+            .version = instance->check_version,
+            .sha256 = instance->check_sha256,
+            .changelog = instance->check_changelog,
+            .status = UpdaterCheckStatusNone,
+            .event = UpdaterCheckEventNone,
+        });
+
+    update_checker_set_done_callback(instance->update_checker, check_done_callback, instance);
+    furi_event_loop_timer_start(instance->check_timer, instance->settings.check_startup_interval);
 
     furi_record_create(RECORD_UPDATER, instance);
 
@@ -638,6 +769,11 @@ static const MessageHandler message_handlers[] = {
         {
             .callback = do_installation_apply,
             .action = UpdaterUpdateActionInstallationApply,
+        },
+    [MessageTypeCheckForUpdate] =
+        {
+            .callback = do_check_for_update,
+            .action = UpdaterUpdateActionNone,
         },
 };
 
