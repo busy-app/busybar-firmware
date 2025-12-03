@@ -124,7 +124,12 @@ static BleSettings* ble_settings_alloc() {
         ble_settings_event_queue_callback,
         instance);
 
-    scene_manager_next_scene(instance->scene_manager, SceneIdMain);
+    BleStatus status = {0};
+    bool result = ble_get_status(instance->ble, &status);
+    furi_check(result);
+    const bool not_paired = status.pairing == BlePairingStateNotPaired;
+    scene_manager_next_scene(
+        instance->scene_manager, not_paired ? SceneIdPairingMode : SceneIdForgetDevice);
     return instance;
 }
 

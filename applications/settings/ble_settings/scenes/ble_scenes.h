@@ -3,9 +3,12 @@
 #include <gui/scene_manager.h>
 
 typedef enum {
-    SceneIdMain,
+    SceneIdPairingMode,
+    SceneIdForgetDevice,
+    SceneIdForgetDeviceConfirm,
 
-    SceneIdsCount,
+    SceneIdMain, //TODO: remove this and main scene also
+    SceneIdsCount = 2,
 } SceneId;
 
 extern const Scene* const ble_settings_scenes[SceneIdsCount];
