@@ -75,9 +75,17 @@ jobs:
           python3 scripts/testops.py update-bundle /ext/tmp/upd_bundle/update.json
           python3 scripts/testops.py wait -t 260
 
-      - name: 'Check that both cores are available (post-flash)'
-        if: steps.flashing.outcome == 'success'
+      - name: 'Check that both cores are available (post-update)'
+        if: steps.updating.outcome == 'success'
         run: |
           set -euo pipefail
           source scripts/toolchain/fbtenv.sh
           python3 scripts/testops.py sanity
+
+      - name: 'Upload runner logs'
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: runner-logs-updater-test
+          path: /opt/logs/${{ runner.name }}/latest/runlog.log
+          if-no-files-found: warn

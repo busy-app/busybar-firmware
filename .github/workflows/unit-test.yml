@@ -75,3 +75,11 @@ jobs:
           set -euo pipefail
           source scripts/toolchain/fbtenv.sh
           python3 scripts/testops.py unit-tests
+
+      - name: 'Upload runner logs'
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: runner-logs-unit-tests
+          path: /opt/logs/${{ runner.name }}/latest/runlog.log
+          if-no-files-found: warn
