@@ -5,7 +5,7 @@
 #include <furi_hal_version.h>
 #include <cjson/cJSON.h>
 
-#define TAG "UpdateCheckerParser"
+#define TAG "UpdateParser"
 
 #define UPDATE_CHECKER_BRANCH "channels"
 
@@ -31,10 +31,7 @@
     })
 #define UPDATE_CHECKER_BRANCH_FILE_NAME_FW_FOUND "update_tar"
 
-static bool update_checker_parser_parse_json(
-    cJSON* json_root,
-    const char* branch_id,
-    UpdateMetadata* metadata) {
+static bool parse_update_json(cJSON* json_root, const char* branch_id, UpdateMetadata* metadata) {
     bool is_success = false;
 
     do {
@@ -198,7 +195,7 @@ bool update_parser_metadata_parse(
         }
 
         cJSON* root = cJSON_Parse(file_buffer);
-        is_success = update_checker_parser_parse_json(root, branch_id, metadata);
+        is_success = parse_update_json(root, branch_id, metadata);
 
         cJSON_Delete(root);
         free(file_buffer);
