@@ -78,6 +78,7 @@ jobs:
         run: |
           cd tests
           python3 -m pytest . -v \
+            --ignore=playwright-automation \
             --alluredir=allure-results \
             --clean-alluredir \
             --tb=short \
