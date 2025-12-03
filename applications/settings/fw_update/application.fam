@@ -3,7 +3,7 @@ App(
     name="Firmware update",
     apptype=FlipperAppType.SETTINGS,
     entry_point="fw_update_entry",
-    requires=["gui", "front_display", "back_display", "update_checker"],
+    requires=["gui", "front_display", "back_display", "updater", "wifi"],
     stack_size=4 * 1024,
     order=4,
     targets=["f20", "f21", "f22"],

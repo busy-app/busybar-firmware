@@ -3,9 +3,9 @@
 #include <gui/modules/label.h>
 #include <gui/modules/image.h>
 #include <gui/modules/progress_bar.h>
-#include <update_checker/update_checker.h>
 #include <applications/system/updater/updater.h>
 #include <applications/system/updater/updater_paths.h>
+#include <wifi/wifi.h>
 
 #include <toolbox/sha256_calc.h>
 #include <settings_helpers/gui_params.h>
@@ -42,12 +42,11 @@ typedef struct {
     uint8_t progress_value;
 
     Updater* updater;
-    FuriStateSub* updater_state_subscription;
+    FuriStateSub* update_state_subscription;
+    FuriStateSub* update_check_subscription;
     FuriString* fw_status;
 
     FirmwareUpdateInfo fw_info;
-    UpdateChecker* update_checker;
-    FuriPubSubSubscription* update_checker_subscription;
 
     bool update_in_progress;
 
@@ -139,7 +138,7 @@ static bool scene_main_input_callback(const InputEvent* event, void* context) {
     return consumed;
 }
 
-static void scene_main_updater_state_callback(const void* state_item, void* context) {
+static void updater_update_state_callback(const void* state_item, void* context) {
     furi_assert(context);
     furi_assert(state_item);
 
@@ -210,38 +209,47 @@ static void scene_main_updater_state_callback(const void* state_item, void* cont
     }
 }
 
-static void scene_main_check(const void* message, void* context) {
-    UpdateCheckerEvent* status = (UpdateCheckerEvent*)message;
-    furi_assert(status);
+static void updater_check_state_callback(const void* state_item, void* context) {
+    furi_assert(state_item);
     furi_assert(context);
-    FwUpdate* instance = context;
-    SettingsSceneFwUpdate* data =
-        scene_manager_get_scene_data(instance->scene_manager, SceneIdMain);
-    data->fw_info.is_new_version = false;
 
-    switch(status->type) {
-    case UpdateCheckerEventNoNewVersion:
-        furi_string_set(data->fw_status, "No new version");
-        break;
-    case UpdateCheckerEventNewVersion:
-        update_checker_get_new_version(data->update_checker, data->fw_info.new_fw_version);
-        update_checker_get_new_firmware_url(data->update_checker, data->fw_info.fw_url);
-        update_checker_get_new_firmware_sha256(data->update_checker, data->fw_info.fw_sha256);
+    const UpdaterCheckState* state = (const UpdaterCheckState*)state_item;
 
-        furi_string_set(data->fw_status, "New version, press OK to update");
-        data->fw_info.is_new_version = true;
+    if(state->event == UpdaterCheckEventStop) {
+        FwUpdate* instance = context;
 
-        break;
-    case UpdateCheckerEventError:
-        furi_string_set(data->fw_status, "Error checking update");
-        break;
-    case UpdateCheckerEventNoWifiConnection:
-        furi_string_set(data->fw_status, "No WiFi connection");
-        break;
-    default:
-        break;
+        SettingsSceneFwUpdate* data =
+            scene_manager_get_scene_data(instance->scene_manager, SceneIdMain);
+        data->fw_info.is_new_version = false;
+
+        switch(state->status) {
+        case UpdaterCheckStatusNotAvailable:
+            furi_string_set(data->fw_status, "No new version");
+            break;
+        case UpdaterCheckStatusAvailable:
+            if(state->version) {
+                furi_string_set(
+                    data->fw_info.new_fw_version, furi_string_get_cstr(state->version));
+            }
+            if(state->url) {
+                furi_string_set(data->fw_info.fw_url, furi_string_get_cstr(state->url));
+            }
+            if(state->sha256) {
+                furi_string_set(data->fw_info.fw_sha256, furi_string_get_cstr(state->sha256));
+            }
+
+            furi_string_set(data->fw_status, "New version, press OK to update");
+            data->fw_info.is_new_version = true;
+
+            break;
+        case UpdaterCheckStatusFailure:
+            furi_string_set(data->fw_status, "Error checking update");
+            break;
+        default:
+            break;
+        }
+        fw_update_send_custom_event(instance, SceneEventUpdateStatus);
     }
-    fw_update_send_custom_event(instance, SceneEventUpdateStatus);
 }
 
 static void scene_main_check_sha256(void* context) {
@@ -277,6 +285,21 @@ static void scene_main_check_sha256(void* context) {
         }
         fw_update_send_custom_event(instance, SceneEventErrorOccurred);
     }
+}
+
+static bool is_wifi_connected(void) {
+    Wifi* wifi = furi_record_open(RECORD_WIFI);
+
+    WifiInfo wifi_info;
+    const WifiStatus status = wifi_get_info(wifi, &wifi_info);
+
+    bool is_wifi_connected = false;
+    if(status == WifiStatusOk && wifi_info.state == WifiStateConnected) {
+        is_wifi_connected = true;
+    }
+
+    furi_record_close(RECORD_WIFI);
+    return is_wifi_connected;
 }
 
 static void scene_main_install(void* context) {
@@ -324,15 +347,15 @@ static void scene_main_on_enter(void* context) {
     SettingsSceneFwUpdate* data =
         scene_manager_get_scene_data(instance->scene_manager, SceneIdMain);
 
+    data->updater = furi_record_open(RECORD_UPDATER);
+
     data->fw_status = furi_string_alloc_set("Checking for update...");
     data->fw_info.fw_url = furi_string_alloc();
     data->fw_info.fw_sha256 = furi_string_alloc();
     data->fw_info.new_fw_version = furi_string_alloc();
-    data->fw_info.fw_current_version = furi_string_alloc();
+    data->fw_info.fw_current_version =
+        furi_string_alloc_set_str(updater_get_active_version(data->updater));
     data->progress_value = 0;
-
-    data->update_checker = furi_record_open(RECORD_UPDATE_CHECKER);
-    update_checker_get_current_version(data->update_checker, data->fw_info.fw_current_version);
 
     with_gui(instance->gui, {
         GuiLayer* layer = gui_get_layer(instance->gui, GuiLayerIdMain);
@@ -395,16 +418,20 @@ static void scene_main_on_enter(void* context) {
 
     scene_main_scene_update(instance);
 
-    data->updater = furi_record_open(RECORD_UPDATER);
     data->update_in_progress = false;
 
-    FuriState* updater_state = updater_get_update_state(data->updater);
-    data->updater_state_subscription =
-        furi_state_subscribe(updater_state, scene_main_updater_state_callback, instance);
+    data->update_state_subscription = furi_state_subscribe(
+        updater_get_update_state(data->updater), updater_update_state_callback, instance);
 
-    data->update_checker_subscription = furi_pubsub_subscribe(
-        update_checker_get_pubsub(data->update_checker), scene_main_check, instance);
-    update_checker_check_update(data->update_checker);
+    data->update_check_subscription = furi_state_subscribe(
+        updater_get_check_state(data->updater), updater_check_state_callback, instance);
+
+    if(is_wifi_connected()) {
+        updater_check_for_update(data->updater);
+    } else {
+        furi_string_set(data->fw_status, "No WiFi connection");
+        fw_update_send_custom_event(instance, SceneEventUpdateStatus);
+    }
 }
 
 static void scene_main_on_exit(void* context) {
@@ -429,12 +456,12 @@ static void scene_main_on_exit(void* context) {
         progress_bar_free(data->bar_front);
     });
 
-    furi_pubsub_unsubscribe(
-        update_checker_get_pubsub(data->update_checker), data->update_checker_subscription);
-    furi_record_close(RECORD_UPDATE_CHECKER);
+    if(data->update_state_subscription) {
+        furi_state_unsubscribe(data->update_state_subscription);
+    }
 
-    if(data->updater_state_subscription) {
-        furi_state_unsubscribe(data->updater_state_subscription);
+    if(data->update_check_subscription) {
+        furi_state_unsubscribe(data->update_check_subscription);
     }
 
     if(data->update_in_progress) {
