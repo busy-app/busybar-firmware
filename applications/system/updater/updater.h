@@ -74,29 +74,30 @@ typedef struct {
 } UpdaterUpdateState;
 
 typedef enum {
-    UpdaterCheckStatusAvailable,
-    UpdaterCheckStatusNotAvailable,
-    UpdaterCheckStatusFailure,
+    UpdaterCheckStatusAvailable, /**< Update is available */
+    UpdaterCheckStatusNotAvailable, /**< No update available */
+    UpdaterCheckStatusFailure, /**< Failed to check for update */
 
-    UpdaterCheckStatusNone,
+    UpdaterCheckStatusNone, /**< No check performed (initial/idle state) */
 } UpdaterCheckStatus;
 
 typedef enum {
-    UpdaterCheckEventStart,
-    UpdaterCheckEventStop,
+    UpdaterCheckEventStart, /**< Update check started */
+    UpdaterCheckEventStop, /**< Update check stopped */
 
-    UpdaterCheckEventNone,
+    UpdaterCheckEventNone, /**< No event (initial/idle state) */
 } UpdaterCheckEvent;
 
+/** Update check state information accessible via FuriState */
 typedef struct {
-    const FuriString* url;
-    const FuriString* id;
-    const FuriString* version;
-    const FuriString* sha256;
-    const FuriString* changelog;
+    const FuriString* url; /**< Download URL for the update bundle */
+    const FuriString* id; /**< Unique update identifier */
+    const FuriString* version; /**< Update version string */
+    const FuriString* sha256; /**< SHA256 checksum of the update bundle */
+    const FuriString* changelog; /**< Update changelog */
 
-    UpdaterCheckStatus status;
-    UpdaterCheckEvent event;
+    UpdaterCheckStatus status; /**< Current check status */
+    UpdaterCheckEvent event; /**< Current check event type */
 } UpdaterCheckState;
 
 /** Get human-readable string for a status code
@@ -115,6 +116,12 @@ const char* updater_get_status_string(UpdaterStatus status);
  */
 FuriState* updater_get_update_state(Updater* instance);
 
+/** Get update check state object for monitoring update availability
+ *
+ * @param[in]  instance  Updater instance
+ *
+ * @return     FuriState pointer (acquire/release to access UpdaterCheckState)
+ */
 FuriState* updater_get_check_state(Updater* instance);
 
 /** Check if update is allowed to start
@@ -220,8 +227,18 @@ UpdaterStatus
  */
 void updater_installation_apply(Updater* instance, bool do_wait);
 
+/** Check for available firmware updates
+ *
+ * Queries remote server for available updates and populates check state.
+ *
+ * @param[in]  instance  Updater instance
+ */
 void updater_check_for_update(Updater* instance);
 
+/** Get currently active firmware version string
+ *
+ * @return     Version string
+ */
 const char* updater_get_active_version(void);
 
 #ifdef __cplusplus
