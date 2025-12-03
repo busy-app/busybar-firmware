@@ -113,37 +113,6 @@ jobs:
           sudo mv allure-2.32.0 /opt/allure
           sudo ln -s /opt/allure/bin/allure /usr/local/bin/allure
 
-      - name: Download previous Allure history from S3
-        if: always()
-        run: |
-          cd scripts/testing
-          # Download previous history if it exists
-          HISTORY_PATH="s3://flipper-aws-qa-tests/bsb/allure-history/all"
-          mkdir -p allure-history
-
-          # Try to download existing history (ignore errors if it doesn't exist)
-          aws s3 sync "$HISTORY_PATH/" allure-history/ || echo "No previous history found, starting fresh"
-        continue-on-error: true
-
-      - name: Generate Allure report with history
-        if: always()
-        run: |
-          cd scripts/testing
-          # Copy history to allure-results if it exists
-          if [ -d "allure-history" ] && [ "$(ls -A allure-history)" ]; then
-            cp -r allure-history/* allure-results/ 2>/dev/null || true
-          fi
-
-          # Generate report
-          allure generate allure-results --clean -o allure-report
-
-          # Extract history for next run
-          mkdir -p allure-history-new
-          if [ -d "allure-report/history" ]; then
-            cp -r allure-report/history/* allure-history-new/ 2>/dev/null || true
-          fi
-        continue-on-error: true
-
       - name: Create Job Summary
         if: always()
         run: |
