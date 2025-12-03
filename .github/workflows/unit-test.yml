@@ -176,14 +176,14 @@ jobs:
       - name: Install Playwright automation dependencies
         if: always()
         run: |
-          cd scripts/testing/playwright-automation
+          cd tests/playwright-automation
           python3 -m pip install --upgrade pip
           pip install -r requirements.txt
 
       - name: Install Playwright browsers
         if: always()
         run: |
-          cd scripts/testing/playwright-automation
+          cd tests/playwright-automation
           playwright install-deps
           playwright install chromium firefox webkit
 
