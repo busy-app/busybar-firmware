@@ -353,8 +353,7 @@ static void scene_main_on_enter(void* context) {
     data->fw_info.fw_url = furi_string_alloc();
     data->fw_info.fw_sha256 = furi_string_alloc();
     data->fw_info.new_fw_version = furi_string_alloc();
-    data->fw_info.fw_current_version =
-        furi_string_alloc_set_str(updater_get_active_version(data->updater));
+    data->fw_info.fw_current_version = furi_string_alloc_set_str(updater_get_active_version());
     data->progress_value = 0;
 
     with_gui(instance->gui, {

@@ -222,7 +222,7 @@ void updater_installation_apply(Updater* instance, bool do_wait);
 
 void updater_check_for_update(Updater* instance);
 
-const char* updater_get_active_version(Updater* instance);
+const char* updater_get_active_version(void);
 
 #ifdef __cplusplus
 }

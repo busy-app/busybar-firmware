@@ -120,7 +120,7 @@ static void check_done_callback(bool is_success, UpdaterCheckerInfo* update_info
     UpdaterCheckState* check_state = furi_state_acquire(instance->check_state);
 
     if(is_success) {
-        if(furi_string_cmp_str(update_info->version, updater_get_active_version(instance))) {
+        if(furi_string_cmp_str(update_info->version, updater_get_active_version())) {
             furi_string_set(instance->check_url, update_info->url);
             furi_string_set(instance->check_id, update_info->id);
             furi_string_set(instance->check_version, update_info->version);
@@ -637,9 +637,7 @@ void updater_check_for_update(Updater* instance) {
     invoke_sync(instance, &(UpdaterMessage){.type = MessageTypeCheckForUpdate});
 }
 
-const char* updater_get_active_version(Updater* instance) {
-    furi_check(instance);
-
+const char* updater_get_active_version(void) {
     const Version* version = furi_hal_version_get_firmware_version();
     return (strcmp(version_get_version(version), "unknown") == 0) ? version_get_githash(version) :
                                                                     version_get_version(version);
