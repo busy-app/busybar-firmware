@@ -69,6 +69,13 @@ void nav_bar_push_location(NavBar* instance, const char* location_name);
  */
 void nav_bar_pop_location(NavBar* instance);
 
+/**
+ * @brief Remove all locations from the NavBar.
+ *
+ * @param[in,out] instance pointer to the NavBar instance to be modified
+ */
+void nav_bar_reset_location(NavBar* instance);
+
 #ifdef __cplusplus
 }
 #endif

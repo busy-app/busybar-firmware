@@ -330,6 +330,14 @@ static const HttpHandler handlers_api_root[] = {
         .type = HttpHandlerCustom,
         .on_request = http_api_account_link_callback,
     },
+    {
+        .uri = "busy",
+        .method = "*",
+        .type = HttpHandlerCustom,
+        .ctx_alloc = http_api_busy_alloc,
+        .ctx_free = http_api_busy_free,
+        .on_request = http_api_busy_callback,
+    },
 };
 
 void* http_api_root_alloc(void) {
