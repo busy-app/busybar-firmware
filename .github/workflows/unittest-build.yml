@@ -21,6 +21,9 @@ jobs:
       fail-fast: false
       matrix:
         target_spec: ["21_64"]
+    outputs:
+      update_url: ${{ steps.set-url.outputs.update_url }}
+      target: ${{ steps.build-fw.outputs.u5_target_hw }}
 
     steps:
       - name: 'Wipe workspace'
@@ -85,3 +88,19 @@ jobs:
               -F "version_token=${COMMIT_SHA}" \
               -F "files=@${ZIP_PATH}" \
               "${{ secrets.INDEXER_URL }}"/busybar-firmware/uploadfiles
+
+      - name: 'Set update URL output'
+        id: set-url
+        if: ${{ !github.event.pull_request.head.repo.fork && steps.build-fw.outcome == 'success' }}
+        run: |
+          echo "update_url=${{ steps.names.outputs.branch_name }}/${{ steps.zip.outputs.zip_path }}" >> "$GITHUB_OUTPUT"
+
+  unit-tests:
+    needs: unit-test-build
+    if: ${{ needs.unit-test-build.result == 'success' && needs.unit-test-build.outputs.update_url != '' }}
+    uses: './.github/workflows/unit-test.yml'
+    with:
+      branch_name: ${{ github.head_ref || github.ref_name }}
+      commit_sha: ${{ github.event.pull_request.head.sha || github.sha }}
+      update_url: ${{ needs.unit-test-build.outputs.update_url }}
+      target: ${{ needs.unit-test-build.outputs.target }}
