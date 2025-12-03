@@ -38,15 +38,15 @@ static void directory_load_done_callback(FetchLoaderDoneStatus done_status, void
 }
 
 static int32_t thread_callback(void* context) {
-    FURI_LOG_D(TAG, "Start");
-
     UpdateChecker* instance = context;
+    const char* url = furi_string_get_cstr(instance->url);
 
     FetchLoader* directory_loader = fetch_loader_alloc();
     fetch_loader_set_done_callback(directory_loader, directory_load_done_callback, instance);
 
-    fetch_loader_run(
-        directory_loader, furi_string_get_cstr(instance->url), UPDATER_CHECK_DIRECTORY_PATH);
+    FURI_LOG_D(
+        TAG, "Downloading directory file from %s to %s...", url, UPDATER_CHECK_DIRECTORY_PATH);
+    fetch_loader_run(directory_loader, url, UPDATER_CHECK_DIRECTORY_PATH);
 
     uint32_t flags = furi_thread_flags_wait(
         ThreadFlagDirectoryLoadSuccess | ThreadFlagDirectoryLoadFailure,
@@ -58,9 +58,15 @@ static int32_t thread_callback(void* context) {
     do {
         if(flags & ThreadFlagDirectoryLoadFailure) {
             instance->was_check_successful = false;
+            FURI_LOG_E(
+                TAG,
+                "Failed to download directory file from %s to %s",
+                url,
+                UPDATER_CHECK_DIRECTORY_PATH);
             break;
         }
 
+        FURI_LOG_D(TAG, "Parsing directory file %s...", UPDATER_CHECK_DIRECTORY_PATH);
         bool is_parse_success = update_parser_metadata_parse(
             UPDATER_CHECK_DIRECTORY_PATH,
             furi_string_get_cstr(instance->channel_id),
@@ -68,6 +74,7 @@ static int32_t thread_callback(void* context) {
 
         if(!is_parse_success) {
             instance->was_check_successful = false;
+            FURI_LOG_E(TAG, "Failed to parse directory file %s", UPDATER_CHECK_DIRECTORY_PATH);
             break;
         }
 
@@ -99,7 +106,7 @@ static void thread_state_callback(FuriThread* thread, FuriThreadState state, voi
 
         furi_semaphore_release(instance->run_lock);
 
-        FURI_LOG_D(TAG, "Stop");
+        FURI_LOG_D(TAG, "Finished checking for update");
     }
 }
 
@@ -162,10 +169,13 @@ bool update_checker_run(UpdateChecker* instance, const char* url, const char* ch
     furi_assert(url);
     furi_assert(channel_id);
 
+    FURI_LOG_D(TAG, "Beginning checking for update...");
+
     bool is_success;
     do {
         if(furi_semaphore_acquire(instance->run_lock, 0) != FuriStatusOk) {
             is_success = false;
+            FURI_LOG_D(TAG, "Active update check is running, aborting");
             break;
         }
 
