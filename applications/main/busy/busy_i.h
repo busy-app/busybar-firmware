@@ -18,7 +18,6 @@
 #include "helpers/run_later.h"
 #include "scenes/busy_scenes.h"
 
-#include "widgets/timer_bar.h"
 #include "widgets/timer_card.h"
 #include "widgets/timer_indicator.h"
 #include "widgets/transition_overlay.h"
