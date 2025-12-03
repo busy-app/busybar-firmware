@@ -36,7 +36,7 @@
 #ifdef SLI_SI91X_MCU_INTERFACE
 #define RSI_BLE_MAX_NBR_ATT_REC     80
 /* Number of BLE notifications */
-#define RSI_BLE_NUM_CONN_EVENTS     2 //ToDo: Need to check
+#define RSI_BLE_NUM_CONN_EVENTS     5 //ToDo: Need to check
 #define RSI_BLE_MAX_NBR_PERIPHERALS 1
 #define RSI_BLE_MAX_NBR_CENTRALS    1
 #else
@@ -209,7 +209,7 @@
 
 #if DLE_ON
 #define DLE_BUFFER_MODE      1
-#define DLE_BUFFER_COUNT     1 // Should be less than RSI_BLE_NUM_CONN_EVENTS
+#define DLE_BUFFER_COUNT     2 // Should be less than RSI_BLE_NUM_CONN_EVENTS
 #define RSI_BLE_MAX_DATA_LEN RSI_DEV_ATT_LEN
 #else
 #define DLE_BUFFER_MODE      0

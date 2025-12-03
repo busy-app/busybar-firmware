@@ -198,6 +198,7 @@ static void ble_worker_on_connect_event(rsi_ble_event_conn_status_t* resp_conn) 
     memcpy(ble_worker_instance->remote_dev_address, resp_conn->dev_addr, 6);
     rsi_6byte_dev_address_to_ascii(ble_worker_instance->str_remote_address, resp_conn->dev_addr);
     furi_thread_flags_set(furi_thread_get_id(ble_worker_instance->thread), BLEWorkerEvtConnected);
+    BLE_LOG_W("BLEWorkerEvtConnected_norm");
 }
 
 /**
@@ -271,6 +272,7 @@ static void
     rsi_6byte_dev_address_to_ascii(
         ble_worker_instance->str_remote_address, resp_enh_conn->dev_addr);
     furi_thread_flags_set(furi_thread_get_id(ble_worker_instance->thread), BLEWorkerEvtConnected);
+    BLE_LOG_W("BLEWorkerEvtConnected_enh");
 }
 
 static void ble_worker_on_conn_update_complete_event(
@@ -309,6 +311,7 @@ void ble_worker_simple_peripheral_on_remote_features_event(
         sizeof(rsi_ble_event_remote_features_t));
     furi_thread_flags_set(
         furi_thread_get_id(ble_worker_instance->thread), BLEWorkerEvtReceveRemoteFeatures);
+    BLE_LOG_W("BLEWorkerEvtReceveRemoteFeatures");
 }
 
 static void ble_worker_more_data_req_event(rsi_ble_event_le_dev_buf_ind_t* rsi_ble_more_data_evt) {
@@ -604,19 +607,21 @@ static int32_t ble_worker_thread_callback(void* context) {
                 BLE_LOG_I("MTU sent");
             }
 
-            if(!instance->conn_params_updated) {
-                status = rsi_ble_conn_params_update(
-                    instance->remote_dev_address,
-                    CONN_INTERVAL_MIN,
-                    CONN_INTERVAL_MAX,
-                    CONN_LATENCY,
-                    SUPERVISION_TIMEOUT);
-                if(status != RSI_SUCCESS) {
-                    BLE_LOG_W(
-                        "Failed to update connection parameters, error code : 0x%08lx", status);
-                    furi_crash();
-                }
-            }
+            // if(!instance->conn_params_updated) {
+            //     BLE_LOG_W("rsi_ble_conn_params_update");
+            //     status = rsi_ble_conn_params_update(
+            //         instance->remote_dev_address,
+            //         CONN_INTERVAL_MIN,
+            //         CONN_INTERVAL_MAX,
+            //         CONN_LATENCY,
+            //         SUPERVISION_TIMEOUT);
+            //     if(status != RSI_SUCCESS) {
+            //         BLE_LOG_W(
+            //             "Failed to update connection parameters, error code : 0x%08lx", status);
+            //         furi_crash();
+            //     } else
+            //         instance->conn_params_updated = 1;
+            // }
 
             ble_worker_instance->connected = true;
             ble_worker_instance->on_connection_changed_cb(
@@ -649,14 +654,12 @@ static int32_t ble_worker_thread_callback(void* context) {
             }
 
             //! start advertising
-            const rsi_bt_event_le_security_keys_t* rpa =
-                ble_security_get_rpa_data(ble_worker_instance->security_data);
-            instance->state = ble_worker_start_advertising(
-                                  ble_worker_instance->pairing_info_available,
-                                  rpa,
-                                  ble_worker_instance->advertise) ?
-                                  BleWorkerStateAdvertising :
-                                  BleWorkerStateError;
+            // const rsi_bt_event_le_security_keys_t* rpa =
+            //     ble_security_get_rpa_data(ble_worker_instance->security_data);
+            instance->state =
+                ble_worker_start_advertising(false, NULL, ble_worker_instance->advertise) ?
+                    BleWorkerStateAdvertising :
+                    BleWorkerStateError;
 
             memset(ble_worker_instance->str_remote_address, 0, BLE_REMOTE_ADDRESS_STRING_SIZE);
             ble_worker_instance->on_connection_changed_cb(
@@ -671,33 +674,41 @@ static int32_t ble_worker_thread_callback(void* context) {
                 "Feature received is 0x%04X",
                 *(uint16_t*)instance->remote_dev_feature.remote_features);
 
-            if(instance->remote_dev_feature.remote_features[0] & 0x20) {
-                status = rsi_ble_set_data_len(instance->remote_dev_address, TX_LEN, TX_TIME);
-                if(status != RSI_SUCCESS) {
-                    BLE_LOG_W("Failed to set data length, error code : 0x%08lx", status);
+            status = rsi_ble_set_data_len(instance->remote_dev_address, TX_LEN, TX_TIME);
+            if(status != RSI_SUCCESS) {
+                BLE_LOG_W("Failed to set data length, error code : 0x%08lx", status);
 
-                    furi_thread_flags_set(
-                        furi_thread_get_id(ble_worker_instance->thread),
-                        BLEWorkerEvtReceveRemoteFeatures);
-                }
-
-            } else if(instance->remote_dev_feature.remote_features[1] & 0x01) {
-                status = rsi_ble_setphy(
-                    (int8_t*)instance->remote_dev_address,
-                    TX_PHY_RATE,
-                    RX_PHY_RATE,
-                    CODDED_PHY_RATE);
-                if(status != RSI_SUCCESS) {
-                    if(status != BLE_WORKER_BT_HCI_COMMAND_DISALLOWED) {
-                        //retry the same command
-                        furi_thread_flags_set(
-                            furi_thread_get_id(ble_worker_instance->thread),
-                            BLEWorkerEvtDataLengthChange);
-                    } else {
-                        BLE_LOG_W("Failed to set phy, error code : 0x%08lx", status);
-                    }
-                }
+                furi_thread_flags_set(
+                    furi_thread_get_id(ble_worker_instance->thread),
+                    BLEWorkerEvtReceveRemoteFeatures);
             }
+            // if(instance->remote_dev_feature.remote_features[0] & 0x20) {
+            //     status = rsi_ble_set_data_len(instance->remote_dev_address, TX_LEN, TX_TIME);
+            //     if(status != RSI_SUCCESS) {
+            //         BLE_LOG_W("Failed to set data length, error code : 0x%08lx", status);
+
+            //         furi_thread_flags_set(
+            //             furi_thread_get_id(ble_worker_instance->thread),
+            //             BLEWorkerEvtReceveRemoteFeatures);
+            //     }
+
+            // } else if(instance->remote_dev_feature.remote_features[1] & 0x01) {
+            //     status = rsi_ble_setphy(
+            //         (int8_t*)instance->remote_dev_address,
+            //         TX_PHY_RATE,
+            //         RX_PHY_RATE,
+            //         CODDED_PHY_RATE);
+            //     if(status != RSI_SUCCESS) {
+            //         if(status != BLE_WORKER_BT_HCI_COMMAND_DISALLOWED) {
+            //             //retry the same command
+            //             furi_thread_flags_set(
+            //                 furi_thread_get_id(ble_worker_instance->thread),
+            //                 BLEWorkerEvtDataLengthChange);
+            //         } else {
+            //             BLE_LOG_W("Failed to set phy, error code : 0x%08lx", status);
+            //         }
+            //     }
+            // }
         }
 
         if(events & BLEWorkerEvtDataLengthChange) {
@@ -708,24 +719,24 @@ static int32_t ble_worker_thread_callback(void* context) {
                 instance->data_length_update.MaxRxOctets,
                 instance->data_length_update.MaxRxTime);
 
-            if(instance->remote_dev_feature.remote_features[1] & 0x01) {
-                osDelay(500);
-                status = rsi_ble_setphy(
-                    (int8_t*)instance->remote_dev_address,
-                    TX_PHY_RATE,
-                    RX_PHY_RATE,
-                    CODDED_PHY_RATE);
-                if(status != RSI_SUCCESS) {
-                    if(status != BLE_WORKER_BT_HCI_COMMAND_DISALLOWED) {
-                        //retry the same command
-                        furi_thread_flags_set(
-                            furi_thread_get_id(ble_worker_instance->thread),
-                            BLEWorkerEvtDataLengthChange);
-                    } else {
-                        BLE_LOG_W("Failed to set phy, error code : 0x%08lx", status);
-                    }
-                }
-            }
+            // if(instance->remote_dev_feature.remote_features[1] & 0x01) {
+            //     osDelay(500);
+            //     status = rsi_ble_setphy(
+            //         (int8_t*)instance->remote_dev_address,
+            //         TX_PHY_RATE,
+            //         RX_PHY_RATE,
+            //         CODDED_PHY_RATE);
+            //     if(status != RSI_SUCCESS) {
+            //         if(status != BLE_WORKER_BT_HCI_COMMAND_DISALLOWED) {
+            //             //retry the same command
+            //             furi_thread_flags_set(
+            //                 furi_thread_get_id(ble_worker_instance->thread),
+            //                 BLEWorkerEvtDataLengthChange);
+            //         } else {
+            //             BLE_LOG_W("Failed to set phy, error code : 0x%08lx", status);
+            //         }
+            //     }
+            // }
         }
 
         if(events & BLEWorkerEvtPhyUpdateComplete) {
@@ -1127,10 +1138,9 @@ void ble_worker_start() {
             break;
         }
 
-        const rsi_bt_event_le_security_keys_t* rpa =
-            ble_security_get_rpa_data(ble_worker_instance->security_data);
-        ble_worker_start_advertising(
-            ble_worker_instance->pairing_info_available, rpa, ble_worker_instance->advertise);
+        // const rsi_bt_event_le_security_keys_t* rpa =
+        //     ble_security_get_rpa_data(ble_worker_instance->security_data);
+        ble_worker_start_advertising(false, NULL, ble_worker_instance->advertise);
 
         ble_worker_instance->state = BleWorkerStateAdvertising;
         furi_thread_start(ble_worker_instance->thread);
