@@ -47,7 +47,8 @@ static void custom_scene_timer_on_enter(void* context) {
         data->timer_indicator = timer_indicator_alloc(flex_layout_get_base(data->front_flex));
         timer_indicator_set_preset(
             data->timer_indicator,
-            &custom_timer_indicator_presets[CustomTimerIndicatorTypeKeepOut]);
+            &custom_timer_indicator_presets[CustomTimerIndicatorTypeKeepOut],
+            NULL);
 
         widget_set_visible(timer_card_get_base(instance->timer_card), true);
         timer_card_show_header(instance->timer_card, true);

@@ -42,6 +42,13 @@ typedef struct {
     TimerIndicatorFgConfig foreground_config;
 } TimerIndicatorPreset;
 
+typedef struct {
+    const char* anim_path;
+    uint32_t duration_ms;
+    uint32_t start_width_px;
+    uint32_t end_width_px;
+} TimerIndicatorTransition;
+
 /**
  * @brief Create a new TimerIndicator instance.
  *
@@ -80,8 +87,13 @@ Widget* timer_indicator_get_base(TimerIndicator* instance);
  * instead of the respective file path.
  *
  * @param[in,out] instance pointer to the TimerIndicator instance to be modified
+ * @param[in] preset
+ * @param[in] transition
  */
-void timer_indicator_set_preset(TimerIndicator* instance, const TimerIndicatorPreset* preset);
+void timer_indicator_set_preset(
+    TimerIndicator* instance,
+    const TimerIndicatorPreset* preset,
+    const TimerIndicatorTransition* transition);
 
 /**
  * @brief Set the progress value for the progress Lottie animation.

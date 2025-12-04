@@ -1,5 +1,7 @@
 #include "busy_presets.h"
 
+#define FRAMES_TO_MS(x) ((x) * 1000 / 60)
+
 const TransitionOverlayPreset busy_transitions[BusyTransitionTypeMax] = {
     [BusyTransitionTypeDefault] =
         {
@@ -154,4 +156,15 @@ const TimerIndicatorPreset busy_timer_indicator_presets[BusyTimerIndicatorTypeMa
                 },
         },
     [BusyTimerIndicatorTypeRestBig] = {},
+};
+
+const TimerIndicatorTransition
+    busy_timer_indicator_transitions[BusyTimerIndicatorTransitionTypeMax] = {
+        [BusyTimerIndicatorTransitionTypeInfToSimple] =
+            {
+                .anim_path = BUSY_ANIM_PATH("indicator_busy_transition_70x16.anim"),
+                .duration_ms = FRAMES_TO_MS(40),
+                .start_width_px = 70,
+                .end_width_px = 39,
+            },
 };

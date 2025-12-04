@@ -20,6 +20,7 @@ typedef struct {
     FuriPubSub* timer_pubsub;
     FuriPubSubSubscription* timer_sub;
     BusyTimerMode timer_mode;
+    BusyTimerMode prev_timer_mode;
     BusyTimerTime timer_time;
     BusyTimerState timer_state;
     bool is_paused;
@@ -76,6 +77,7 @@ static void busy_scene_timer_pubsub_callback(const void* msg, void* context) {
         busy_send_custom_event(instance, BusyCustomEventTimerTick);
 
     } else if(event->type == BusyTimerEventTypeModeChanged) {
+        data->prev_timer_mode = data->timer_mode;
         data->timer_mode = event->mode;
         busy_send_custom_event(instance, BusyCustomEventTimerModeChanged);
 
@@ -179,14 +181,25 @@ static void busy_scene_timer_update_timer_state(BusyApp* instance) {
         scene_manager_get_scene_data(instance->scene_manager, BusyAppSceneIdTimer);
 
     const TimerIndicatorPreset* preset = NULL;
+    const TimerIndicatorTransition* transition = NULL;
 
     if(data->timer_state == BusyTimerStateWork) {
         if(data->timer_mode == BusyTimerModeInfinite) {
             preset = &busy_timer_indicator_presets[BusyTimerIndicatorTypeWorkBig];
         } else if(data->timer_mode == BusyTimerModeSimple) {
             preset = &busy_timer_indicator_presets[BusyTimerIndicatorTypeWork];
+            if(data->prev_timer_mode == BusyTimerModeInfinite) {
+                // Special case: transitioning from Infinite to Simple
+                transition =
+                    &busy_timer_indicator_transitions[BusyTimerIndicatorTransitionTypeInfToSimple];
+            }
         } else if(data->timer_mode == BusyTimerModeInterval) {
             preset = &busy_timer_indicator_presets[BusyTimerIndicatorTypeWork];
+            if(data->prev_timer_mode == BusyTimerModeInfinite) {
+                // Special case: transitioning from Infinite to Interval
+                transition =
+                    &busy_timer_indicator_transitions[BusyTimerIndicatorTransitionTypeInfToSimple];
+            }
         }
 
     } else if(data->timer_state == BusyTimerStateRest) {
@@ -195,7 +208,9 @@ static void busy_scene_timer_update_timer_state(BusyApp* instance) {
     }
 
     if(preset) {
-        with_gui(instance->gui, { timer_indicator_set_preset(data->timer_indicator, preset); });
+        with_gui(instance->gui, {
+            timer_indicator_set_preset(data->timer_indicator, preset, transition);
+        });
     }
 
     busy_scene_timer_update_lights(instance);
@@ -297,6 +312,9 @@ static void busy_scene_timer_on_enter(void* context) {
     data->timer_pubsub = busy_timer_get_pubsub(instance->busy_timer);
     data->timer_sub =
         furi_pubsub_subscribe(data->timer_pubsub, busy_scene_timer_pubsub_callback, instance);
+
+    data->timer_mode = BusyTimerModeMax;
+    data->prev_timer_mode = BusyTimerModeMax;
 
     if(!instance->show_timer_requested) {
         busy_timer_start(instance->busy_timer);

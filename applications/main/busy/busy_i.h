@@ -76,6 +76,11 @@ typedef enum {
 } BusyTimerIndicatorType;
 
 typedef enum {
+    BusyTimerIndicatorTransitionTypeInfToSimple,
+    BusyTimerIndicatorTransitionTypeMax,
+} BusyTimerIndicatorTransitionType;
+
+typedef enum {
     BusyApiMessageTypeShowTimer,
     BusyApiMessageTypeRequestExit,
     BusyApiMessageTypeMax,
