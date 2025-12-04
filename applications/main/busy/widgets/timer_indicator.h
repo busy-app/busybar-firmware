@@ -6,7 +6,7 @@
  */
 #pragma once
 
-#include <gui/modules/anim_image.h>
+#include <gui/widget.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -16,22 +16,31 @@ extern "C" {
 typedef struct TimerIndicator TimerIndicator;
 
 typedef enum {
-    TimerIndicatorStateWork,
-    TimerIndicatorStateRest,
-    TimerIndicatorStateWorkBig,
-    TimerIndicatorStateRestBig,
-    TimerIndicatorStateMax,
-} TimerIndicatorState;
-
-typedef enum {
-    TimerIndicatorTransitionOffToSimple,
-    TimerIndicatorTransitionMax,
-} TimerIndicatorTransition;
+    TimerIndicatorProgressDirectionHorizontal,
+    TimerIndicatorProgressDirectionVertical,
+    TimerIndicatorProgressDirectionMax,
+} TimerIndicatorProgressDirection;
 
 typedef struct {
-    const char* states[TimerIndicatorStateMax];
-    const char* transitions[TimerIndicatorTransitionMax];
-} TimerIndicatorAnimSources;
+    const char* anim_path;
+} TimerIndicatorBgConfig;
+
+typedef struct {
+    const char* lottie_path;
+    TimerIndicatorProgressDirection direction;
+    uint8_t start_offset_px;
+    uint8_t end_offset_px;
+} TimerIndicatorProgressConfig;
+
+typedef struct {
+    const char* image_path;
+} TimerIndicatorFgConfig;
+
+typedef struct {
+    TimerIndicatorBgConfig background_config;
+    TimerIndicatorProgressConfig progress_config;
+    TimerIndicatorFgConfig foreground_config;
+} TimerIndicatorPreset;
 
 /**
  * @brief Create a new TimerIndicator instance.
@@ -60,34 +69,38 @@ void timer_indicator_free(TimerIndicator* instance);
 Widget* timer_indicator_get_base(TimerIndicator* instance);
 
 /**
- * @brief Get a pointer to the underlying AnimImage class instance.
+ * @brief Set the active preset for a TimerIndicator instance.
  *
- * The return value can be used in all AnimImage methods.
+ * TimerIndicator presets consist of the following parts:
+ * - Background animation (.anim sequence file)
+ * - Lottie animation, used for a visual progress representation
+ * - Foreground image, containing static elements (.bin image file)
  *
- * @param[in,out] instance pointer to the TimerIndicator instance to be queried
- * @returns pointer to the base class instance
+ * Any of these parts may be omitted, in that case NULL should be passed
+ * instead of the respective file path.
+ *
+ * @param[in,out] instance pointer to the TimerIndicator instance to be modified
  */
-AnimImage* timer_indicator_get_anim_image(TimerIndicator* instance);
+void timer_indicator_set_preset(TimerIndicator* instance, const TimerIndicatorPreset* preset);
 
 /**
- * @brief Set animation sources for different states of a TimerIndicator instance.
+ * @brief Set the progress value for the progress Lottie animation.
  *
- * @param[in,out] instance pointer to the TimerIndicator instance to be operated on
- * @param[in] sources pointer to the structure containing animation source paths
+ * @note If no Lottie animation is present in the current
+ *       preset, this function will do nothing
+ *
+ * @param[in,out] instance pointer to the TimerIndicator instance to be modified
+ * @param[in] progress number between 0 and 1 (inclusive)
  */
-void timer_indicator_set_anim_sources(
-    TimerIndicator* instance,
-    const TimerIndicatorAnimSources* sources);
+void timer_indicator_set_progress(TimerIndicator* instance, float progress);
 
 /**
- * @brief Set current state of a TimerIndicator instance.
+ * @brief Enable or disable animations shown by a TimerIndicator instance.
  *
- * If a transition is defined between the old and new state, it will be played.
- *
- * @param[in,out] instance pointer to the TimerIndicator instance to be operated on
- * @param[in] state value to determine the new state
+ * @param[in,out] instance pointer to the TimerIndicator instance to be modified
+ * @param[in] enable play animations if @c true, stop them otherwise
  */
-void timer_indicator_set_state(TimerIndicator* instance, TimerIndicatorState state);
+void timer_indicator_enable_animations(TimerIndicator* instance, bool enable);
 
 #ifdef __cplusplus
 }

@@ -1,8 +1,6 @@
 #include "../busy_i.h"
 #include "../busy_presets.h"
 
-#include <gui/modules/image.h>
-#include <gui/modules/anim_image.h>
 #include <gui/modules/flex_layout.h>
 
 #include "../widgets/pause_overlay.h"
@@ -123,9 +121,9 @@ static void busy_scene_timer_update_tick(BusyApp* instance) {
     const BusyTimerTime* time = &data->timer_time;
 
     const float progress = (float)time->elapsed_s / (time->elapsed_s + time->remain_s);
-    UNUSED(progress);
 
     with_gui(instance->gui, {
+        timer_indicator_set_progress(data->timer_indicator, progress);
         timer_label_set_time(data->timer_label, data->timer_time.remain_s);
         timer_card_set_time(instance->timer_card, data->timer_time.remain_s);
     });
@@ -162,17 +160,14 @@ static void busy_scene_timer_update_timer_mode(BusyApp* instance) {
 
     with_gui(instance->gui, {
         if(data->timer_mode == BusyTimerModeInfinite) {
-            widget_set_pos(flex_layout_get_base(data->front_flex), 1, 1);
             widget_set_visible(timer_label_get_base(data->timer_label), false);
             timer_card_show_time(instance->timer_card, false);
 
         } else if(data->timer_mode == BusyTimerModeSimple) {
-            widget_set_pos(flex_layout_get_base(data->front_flex), 0, 1);
             widget_set_visible(timer_label_get_base(data->timer_label), true);
             timer_card_show_time(instance->timer_card, true);
 
         } else if(data->timer_mode == BusyTimerModeInterval) {
-            widget_set_pos(flex_layout_get_base(data->front_flex), 0, 0);
             widget_set_visible(timer_label_get_base(data->timer_label), true);
             timer_card_show_time(instance->timer_card, true);
         }
@@ -183,23 +178,25 @@ static void busy_scene_timer_update_timer_state(BusyApp* instance) {
     const BusySceneTimer* data =
         scene_manager_get_scene_data(instance->scene_manager, BusyAppSceneIdTimer);
 
-    with_gui(instance->gui, {
-        if(data->timer_state == BusyTimerStateWork) {
-            if(data->timer_mode == BusyTimerModeInfinite) {
-                timer_indicator_set_state(data->timer_indicator, TimerIndicatorStateWorkBig);
+    const TimerIndicatorPreset* preset = NULL;
 
-            } else if(data->timer_mode == BusyTimerModeSimple) {
-                timer_indicator_set_state(data->timer_indicator, TimerIndicatorStateWork);
-
-            } else if(data->timer_mode == BusyTimerModeInterval) {
-                timer_indicator_set_state(data->timer_indicator, TimerIndicatorStateWork);
-            }
-
-        } else if(data->timer_state == BusyTimerStateRest) {
-            furi_assert(data->timer_mode == BusyTimerModeInterval);
-            timer_indicator_set_state(data->timer_indicator, TimerIndicatorStateRest);
+    if(data->timer_state == BusyTimerStateWork) {
+        if(data->timer_mode == BusyTimerModeInfinite) {
+            preset = &busy_timer_indicator_presets[BusyTimerIndicatorTypeWorkBig];
+        } else if(data->timer_mode == BusyTimerModeSimple) {
+            preset = &busy_timer_indicator_presets[BusyTimerIndicatorTypeWork];
+        } else if(data->timer_mode == BusyTimerModeInterval) {
+            preset = &busy_timer_indicator_presets[BusyTimerIndicatorTypeWork];
         }
-    });
+
+    } else if(data->timer_state == BusyTimerStateRest) {
+        furi_assert(data->timer_mode == BusyTimerModeInterval);
+        preset = &busy_timer_indicator_presets[BusyTimerIndicatorTypeRest];
+    }
+
+    if(preset) {
+        with_gui(instance->gui, { timer_indicator_set_preset(data->timer_indicator, preset); });
+    }
 
     busy_scene_timer_update_lights(instance);
     busy_scene_timer_update_matter(instance);
@@ -212,12 +209,7 @@ static void busy_scene_timer_handle_pause(BusyApp* instance) {
     with_gui(instance->gui, {
         pause_overlay_show(data->pause_overlay, data->is_paused);
         timer_card_show_header(instance->timer_card, !data->is_paused);
-
-        if(data->is_paused) {
-            anim_image_stop(timer_indicator_get_anim_image(data->timer_indicator));
-        } else {
-            anim_image_start(timer_indicator_get_anim_image(data->timer_indicator));
-        }
+        timer_indicator_enable_animations(data->timer_indicator, !data->is_paused);
     });
 
     busy_scene_timer_update_lights(instance);
@@ -288,12 +280,13 @@ static void busy_scene_timer_on_enter(void* context) {
         gui_layer_add_input_callback(layer, busy_scene_timer_input_callback, instance);
 
         data->front_flex = flex_layout_alloc(instance->front_window, FlexLayoutTypeRow);
+        widget_set_pos_x(flex_layout_get_base(data->front_flex), 1);
         flex_layout_set_spacing(data->front_flex, 2);
 
         data->timer_indicator = timer_indicator_alloc(flex_layout_get_base(data->front_flex));
-        timer_indicator_set_anim_sources(data->timer_indicator, &busy_indicator_anim_sources);
 
         data->timer_label = timer_label_alloc(flex_layout_get_base(data->front_flex));
+        widget_set_margin(timer_label_get_base(data->timer_label), 0, 0, 1, 0);
 
         data->pause_overlay = pause_overlay_alloc(instance->front_window);
 

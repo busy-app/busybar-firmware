@@ -1,8 +1,6 @@
 #include "../custom.h"
 #include "../custom_presets.h"
 
-#include <gui/modules/image.h>
-#include <gui/modules/anim_image.h>
 #include <gui/modules/flex_layout.h>
 
 #include <busy/widgets/pause_overlay.h>
@@ -47,7 +45,9 @@ static void custom_scene_timer_on_enter(void* context) {
         flex_layout_set_spacing(data->front_flex, 2);
 
         data->timer_indicator = timer_indicator_alloc(flex_layout_get_base(data->front_flex));
-        timer_indicator_set_anim_sources(data->timer_indicator, &custom_indicator_anim_sources);
+        timer_indicator_set_preset(
+            data->timer_indicator,
+            &custom_timer_indicator_presets[CustomTimerIndicatorTypeKeepOut]);
 
         widget_set_visible(timer_card_get_base(instance->timer_card), true);
         timer_card_show_header(instance->timer_card, true);
@@ -55,7 +55,6 @@ static void custom_scene_timer_on_enter(void* context) {
 
     custom_set_status_lights(instance, CustomStatusLightsTypeWork);
     custom_set_matter(instance, true);
-    timer_indicator_set_state(data->timer_indicator, TimerIndicatorStateWorkBig);
 
     custom_start_transition(instance);
 }

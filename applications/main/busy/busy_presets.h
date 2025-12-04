@@ -11,4 +11,4 @@ extern const TransitionOverlayPreset busy_transitions[BusyTransitionTypeMax];
 
 extern const BusyStatusLightsPreset busy_status_lights[BusyStatusLightsTypeMax];
 
-extern const TimerIndicatorAnimSources busy_indicator_anim_sources;
+extern const TimerIndicatorPreset busy_timer_indicator_presets[BusyTimerIndicatorTypeMax];

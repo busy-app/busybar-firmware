@@ -68,10 +68,12 @@ typedef enum {
 } BusyStatusLightsType;
 
 typedef enum {
-    BusyTimerBarTypeWork,
-    BusyTimerBarTypeRest,
-    BusyTimerBarTypeMax,
-} BusyTimerBarType;
+    BusyTimerIndicatorTypeWork,
+    BusyTimerIndicatorTypeRest,
+    BusyTimerIndicatorTypeWorkBig,
+    BusyTimerIndicatorTypeRestBig,
+    BusyTimerIndicatorTypeMax,
+} BusyTimerIndicatorType;
 
 typedef enum {
     BusyApiMessageTypeShowTimer,

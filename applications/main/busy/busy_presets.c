@@ -111,17 +111,47 @@ const BusyStatusLightsPreset busy_status_lights[BusyStatusLightsTypeMax] = {
         },
 };
 
-const TimerIndicatorAnimSources busy_indicator_anim_sources = {
-    .states =
+const TimerIndicatorPreset busy_timer_indicator_presets[BusyTimerIndicatorTypeMax] = {
+    [BusyTimerIndicatorTypeWork] =
         {
-            [TimerIndicatorStateWork] = BUSY_ANIM_PATH("busy_label_40x14.anim"),
-            [TimerIndicatorStateRest] = BUSY_ANIM_PATH("rest_label_40x14.anim"),
-            [TimerIndicatorStateWorkBig] = BUSY_ANIM_PATH("busy_label_70x14.anim"),
-            [TimerIndicatorStateRestBig] = BUSY_ANIM_PATH("rest_label_70x14.anim"),
+            .background_config =
+                {
+                    .anim_path = BUSY_ANIM_PATH("particles_busy_39x16.anim"),
+                },
+            .progress_config =
+                {
+                    .lottie_path = BUSY_LOTTIE_PATH("progress_busy_39x16.json"),
+                    .direction = TimerIndicatorProgressDirectionHorizontal,
+                    .end_offset_px = 38,
+                },
+            .foreground_config =
+                {
+                    .image_path = BUSY_IMG_PATH("indicator_busy_39x16.bin"),
+                },
         },
-    .transitions =
+    [BusyTimerIndicatorTypeRest] =
         {
-            [TimerIndicatorTransitionOffToSimple] =
-                BUSY_ANIM_PATH("busy_label_transition_70x14.anim"),
+            .background_config =
+                {
+                    .anim_path = BUSY_ANIM_PATH("particles_rest_39x16.anim"),
+                },
+            .progress_config =
+                {
+                    .lottie_path = BUSY_LOTTIE_PATH("progress_rest_39x16.json"),
+                    .direction = TimerIndicatorProgressDirectionVertical,
+                    .end_offset_px = 22,
+                },
+            .foreground_config =
+                {
+                    .image_path = BUSY_IMG_PATH("indicator_rest_39x16.bin"),
+                },
         },
+    [BusyTimerIndicatorTypeWorkBig] =
+        {
+            .background_config =
+                {
+                    .anim_path = BUSY_ANIM_PATH("indicator_busy_70x16.anim"),
+                },
+        },
+    [BusyTimerIndicatorTypeRestBig] = {},
 };
