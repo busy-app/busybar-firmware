@@ -1,4 +1,3 @@
-
 #include <furi.h>
 
 #include <gui/gui.h>
@@ -26,7 +25,7 @@
 typedef enum {
     PowerOnAppThreadFlagExitToMenu = 1 << 0,
     PowerOnAppThreadFlagExitToTransportMode = 1 << 1,
-    PowerOnAppThreadFlagSyncDone = 1 << 2,
+    PowerOnAppThreadFlagDeviceStarted = 1 << 2,
 } PowerOnAppThreadFlag;
 
 #define POWER_ON_APP_ANIMATION_FLAGS \
@@ -42,9 +41,6 @@ typedef struct {
 
     FuriThread* thread;
     FuriTimer* back_to_transport_timer;
-
-    Intercom* intercom;
-    FuriPubSubSubscription* intercom_event_sub;
 } PowerOnApp;
 
 static bool power_on_input_callback(const InputEvent* event, void* context) {
@@ -71,18 +67,21 @@ static void back_to_transport_timer_callback(void* ctx) {
     furi_thread_flags_set(instance->thread, PowerOnAppThreadFlagExitToTransportMode);
 }
 
-static void power_on_intercom_callback(const void* message, void* context) {
-    furi_assert(message);
+static bool power_on_thread_signal(uint32_t signal, void* arg, void* context) {
+    UNUSED(arg);
     furi_assert(context);
 
-    const IntercomEvent* event = message;
     PowerOnApp* instance = context;
 
-    if(event->type == IntercomEventTypeSyncStateChanged) {
-        if(event->is_in_sync) {
-            furi_thread_flags_set(instance->thread, PowerOnAppThreadFlagSyncDone);
-        }
+    if(signal == FuriSignalExit) {
+        // Desktop has received the initial switch state and wants to close us
+        furi_check(
+            !(furi_thread_flags_set(instance->thread, PowerOnAppThreadFlagDeviceStarted) &
+              FuriFlagError));
+        return true;
     }
+
+    return false;
 }
 
 static PowerOnApp* power_on_app_alloc(void) {
@@ -91,7 +90,6 @@ static PowerOnApp* power_on_app_alloc(void) {
     instance->gui = furi_record_open(RECORD_GUI);
     instance->front_display = furi_record_open(RECORD_FRONT_DISPLAY);
     instance->back_display = furi_record_open(RECORD_BACK_DISPLAY);
-    instance->input = furi_record_open(RECORD_INPUT);
     instance->power = furi_record_open(RECORD_POWER);
     instance->storage = furi_record_open(RECORD_STORAGE);
 
@@ -101,22 +99,17 @@ static PowerOnApp* power_on_app_alloc(void) {
     furi_timer_start(
         instance->back_to_transport_timer, furi_ms_to_ticks(MIN_TO_MS(POWER_ON_APP_TIMEOUT_MIN)));
 
-    instance->intercom = furi_record_open(RECORD_INTERCOM);
-    instance->intercom_event_sub = furi_pubsub_subscribe(
-        intercom_get_pubsub(instance->intercom), power_on_intercom_callback, instance);
+    furi_thread_set_signal_callback(furi_thread_get_current(), power_on_thread_signal, instance);
+
     return instance;
 }
 
 static void power_on_app_free(PowerOnApp* instance) {
-    furi_pubsub_unsubscribe(intercom_get_pubsub(instance->intercom), instance->intercom_event_sub);
-
     furi_record_close(RECORD_STORAGE);
     furi_record_close(RECORD_POWER);
-    furi_record_close(RECORD_INPUT);
     furi_record_close(RECORD_BACK_DISPLAY);
     furi_record_close(RECORD_FRONT_DISPLAY);
     furi_record_close(RECORD_GUI);
-    furi_record_close(RECORD_INTERCOM);
 
     furi_timer_free(instance->back_to_transport_timer);
     free(instance);
@@ -149,32 +142,28 @@ int32_t power_on_app(void* arg) {
 
     PowerOnApp* instance = power_on_app_alloc();
 
-    bool sync_done = intercom_is_in_sync(instance->intercom);
-
     AnimImage* front_anim = NULL;
     AnimImage* back_anim = NULL;
 
     Label* label_front = NULL;
     Label* label_back = NULL;
 
-    if(!sync_done) {
-        with_gui(instance->gui, {
-            GuiLayer* layer = gui_get_layer(instance->gui, GuiLayerIdMain);
-            Widget* front = gui_layer_get_root_widget(layer, GuiDisplayIdFront);
-            Widget* back = gui_layer_get_root_widget(layer, GuiDisplayIdBack);
+    with_gui(instance->gui, {
+        GuiLayer* layer = gui_get_layer(instance->gui, GuiLayerIdMain);
+        Widget* front = gui_layer_get_root_widget(layer, GuiDisplayIdFront);
+        Widget* back = gui_layer_get_root_widget(layer, GuiDisplayIdBack);
 
-            label_front = label_alloc(front);
-            label_back = label_alloc(back);
+        label_front = label_alloc(front);
+        label_back = label_alloc(back);
 
-            label_set_text(label_front, "Starting...");
-            label_set_text(label_back, "Starting...");
+        label_set_text(label_front, "Starting...");
+        label_set_text(label_back, "Starting...");
 
-            widget_set_align(label_get_base(label_front), AlignCenter);
-            widget_set_align(label_get_base(label_back), AlignCenter);
-        });
+        widget_set_align(label_get_base(label_front), AlignCenter);
+        widget_set_align(label_get_base(label_back), AlignCenter);
+    });
 
-        furi_thread_flags_wait(PowerOnAppThreadFlagSyncDone, FuriFlagWaitAny, FuriWaitForever);
-    }
+    furi_thread_flags_wait(PowerOnAppThreadFlagDeviceStarted, FuriFlagWaitAny, FuriWaitForever);
 
     do {
         if(power_on_done_flag_present(instance)) break;

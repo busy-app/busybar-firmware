@@ -25,6 +25,10 @@ typedef struct {
     Input* input;
 } InputPinState;
 
+typedef enum {
+    InputStatusFlagInitialStateAvailable = (1 << 0),
+} InputStatusFlag;
+
 /** Input state */
 struct Input {
     FuriPubSub* event_pubsub;
@@ -32,7 +36,9 @@ struct Input {
     FuriMessageQueue* request_queue;
     InputPinState* pin_states;
     volatile uint32_t sequence;
+
     InputAbsoluteState absolute_state;
+    FuriEventFlag* status;
 };
 
 typedef enum {
@@ -115,6 +121,12 @@ static void input_update_absolute_state(Input* input, InputEvent* event) {
         if(type == InputTypePress) {
             input->absolute_state.switch_position = key - INPUT_SWITCH_RANGE_START;
         }
+
+        // the mode switch is sent last, and it can only be in one of its 5 positions.
+        // if we receive a press in this range, we won't receive any more initial state.
+        furi_check(
+            !(furi_event_flag_set(input->status, InputStatusFlagInitialStateAvailable) &
+              FuriFlagError));
 
     } else {
         // not an absolute control
@@ -265,6 +277,8 @@ int32_t input_srv(void* p) {
     furi_event_loop_set_custom_event_callback(
         input->event_loop, input_custom_event_callback, input);
 
+    input->status = furi_event_flag_alloc();
+
 #ifdef SRV_INTERCOM
     Intercom* intercom = furi_record_open(RECORD_INTERCOM);
     intercom_channel_open(intercom, IntercomChannelIdInput, input_intercom_rx_callback, input);
@@ -307,6 +321,11 @@ static void input_synchronous_request(Input* input, InputRequest* request) {
 }
 
 InputAbsoluteState input_get_absolute_state(Input* input) {
+    uint32_t wait_for = InputStatusFlagInitialStateAvailable;
+    furi_check(
+        furi_event_flag_wait(input->status, wait_for, FuriFlagNoClear, FuriWaitForever) ==
+        wait_for);
+
     InputRequest request = {
         .type = InputRequestTypeGetAbsState,
     };
