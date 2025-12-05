@@ -79,9 +79,9 @@ const TransitionOverlayPreset busy_transitions[BusyTransitionTypeMax] = {
             .timings =
                 {
                     .in_ms = 134,
-                    .out_ms = 1000,
+                    .out_ms = 500,
                 },
-            .mask.file_path = BUSY_ANIM_PATH("transition_done_red_72x16.anim"),
+            .mask.file_path = BUSY_ANIM_PATH("transition_done_busy_72x16.anim"),
         },
     [BusyTransitionTypeRestDone] =
         {
@@ -90,9 +90,9 @@ const TransitionOverlayPreset busy_transitions[BusyTransitionTypeMax] = {
             .timings =
                 {
                     .in_ms = 134,
-                    .out_ms = 1000,
+                    .out_ms = 500,
                 },
-            .mask.file_path = BUSY_ANIM_PATH("transition_done_green_72x16.anim"),
+            .mask.file_path = BUSY_ANIM_PATH("transition_done_rest_72x16.anim"),
         },
 };
 
