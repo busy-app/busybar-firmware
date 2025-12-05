@@ -17,15 +17,17 @@
 #define MQTT_API_ROOT_TOPIC    "sessions"
 
 struct MqttClient {
-    Wifi* wifi;
-    FuriPubSubSubscription* wifi_event_sub;
-
     FuriPubSub* event_pubsub;
     struct mg_mgr mgr;
     struct mg_connection* conn;
+
     struct mg_timer reconnect_delay_timer;
     uint32_t reconnect_delay;
+
     unsigned long wakeup_conn_id;
+
+    struct mg_timer ping_timer;
+    bool ping_enabled;
 
     MqttClientStatus status;
     bool is_wifi_up;
@@ -33,7 +35,6 @@ struct MqttClient {
     bool fast_reconnect;
 
     char* ca_bundle;
-    char* device_cert;
 
     FuriString* device_serial;
     FuriString* client_id;
@@ -51,17 +52,26 @@ typedef struct {
         MqttClientMessageGetStatus,
         MqttClientMessageUnlink,
         MqttClientMessageRequestPin,
-        MqttClientMessageGetSessionId,
-        MqttClientMessageGetSessionEmail,
+        MqttClientMessageGetSessionInfo,
     } type;
     FuriApiLock lock;
     union {
         MqttClientStatus* status;
         bool* bool_param;
-        FuriString* str_param;
+        struct {
+            FuriString* id;
+            FuriString* email;
+            FuriString* user_id;
+        } session_info;
+
         WifiState wifi_state;
     };
 } MqttClientMessage;
+
+typedef struct {
+    struct mg_str ca;
+    struct mg_str name;
+} MqttTlsCfg;
 
 void mqtt_topics_subscribe(MqttClient* mqtt);
 void mqtt_topics_on_message(MqttClient* mqtt, FuriString* topic_str, struct mg_mqtt_message* msg);
@@ -75,5 +85,5 @@ void mqtt_screen_streaming_on_message(
     struct mg_mqtt_message* msg);
 void mqtt_screen_streaming_on_close(MqttClient* mqtt);
 
-void mqtt_tls_init(struct mg_connection* conn, const struct mg_tls_opts* opts);
+bool mqtt_tls_init(struct mg_connection* conn, const MqttTlsCfg* opts);
 void mqtt_tls_free_ca(struct mg_connection* conn);

@@ -13,9 +13,15 @@ typedef struct {
     uint32_t speed_bytes_per_sec;
 } FetchLoaderStatus;
 
-typedef void (*FetchLoaderCallbackStatus)(FetchLoaderStatus status, void* context);
-typedef void (*FetchLoaderCallbackState)(FuriString* state, void* context);
-typedef void (*FetchLoaderCallbackDone)(void* context);
+typedef enum {
+    FetchLoaderDoneStatusSuccess,
+    FetchLoaderDoneStatusFailure,
+    FetchLoaderDoneStatusAbort,
+} FetchLoaderDoneStatus;
+
+typedef void (*FetchLoaderCallbackStatus)(const FetchLoaderStatus* status, void* context);
+typedef void (*FetchLoaderCallbackState)(const FuriString* state, void* context);
+typedef void (*FetchLoaderCallbackDone)(FetchLoaderDoneStatus done_status, void* context);
 
 FetchLoader* fetch_loader_alloc(void);
 void fetch_loader_free(FetchLoader* instance);

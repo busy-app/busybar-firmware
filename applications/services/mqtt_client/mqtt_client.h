@@ -35,5 +35,8 @@ FuriPubSub* mqtt_client_get_pubsub(MqttClient* mqtt);
 MqttClientStatus mqtt_client_get_status(MqttClient* mqtt);
 bool mqtt_client_request_link_pin(MqttClient* mqtt);
 void mqtt_client_unlink(MqttClient* mqtt);
-void mqtt_client_get_session_id(MqttClient* mqtt, FuriString* id);
-void mqtt_client_get_session_email(MqttClient* mqtt, FuriString* id);
+void mqtt_client_get_session_info(
+    MqttClient* mqtt,
+    FuriString* id,
+    FuriString* email,
+    FuriString* user_id);

@@ -8,10 +8,10 @@ App(
         "system_apps_on_start",
         "system_apps_cli",
         "lottie_player",
+        "updater",
     ],
-    targets=["f20", "f21"],
+    targets=["f20", "f21", "f22"],
 )
-
 
 App(
     appid="system_apps_cli",
@@ -23,7 +23,7 @@ App(
         "fetch",
         "tar_cli",
     ],
-    targets=["f20", "f21"],
+    targets=["f20", "f21", "f22"],
 )
 
 App(
@@ -31,7 +31,7 @@ App(
     name="On start hooks",
     apptype=FlipperAppType.METAPACKAGE,
     provides=[],
-    targets=["f20", "f21"],
+    targets=["f20", "f21", "f22"],
 )
 
 App(
@@ -52,7 +52,7 @@ App(
         # "wifi_test_cli",
         "crypto",
     ],
-    targets=["f64"],
+    targets=["f64", "f65"],
 )
 
 App(
@@ -62,5 +62,5 @@ App(
     provides=[
         "crypto_backup_server",
     ],
-    targets=["f64"],
+    targets=["f64", "f65"],
 )

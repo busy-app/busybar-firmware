@@ -7,7 +7,9 @@
 #define TAG "MqttTls"
 
 #define TLS_DEBUG_LEVEL 0
-#define TLS_KEY_SLOT    0
+
+#define TLS_KEY_SLOT_SIGN   0 // Intermediate cert slot (signing-ca.der)
+#define TLS_KEY_SLOT_DEVICE 1 // Device cert and key slot (device.der + device.key)
 
 static const char* mqtt_alpn_list[] = {"mqtt", NULL};
 
@@ -45,8 +47,8 @@ static int tls_pk_sign_full(
         return MBEDTLS_ERR_SSL_FEATURE_UNAVAILABLE;
     }
     TlsCryptoClient* crypto = furi_record_open(RECORD_TLS_CRYPTO_CLIENT);
-    bool success =
-        tls_crypto_client_sign(crypto, TLS_KEY_SLOT, data, data_len, sig, sig_size, sig_len);
+    bool success = tls_crypto_client_sign(
+        crypto, TLS_KEY_SLOT_DEVICE, data, data_len, sig, sig_size, sig_len);
     furi_record_close(RECORD_TLS_CRYPTO_CLIENT);
     return (success ? 0 : MBEDTLS_ERR_SSL_INTERNAL_ERROR);
 }
@@ -75,12 +77,30 @@ static const mbedtls_pk_info_t tls_pk_wrap = {
     .debug_func = NULL,
 };
 
-static bool tls_load_cert(struct mg_str str, mbedtls_x509_crt* p) {
+static bool tls_load_ca(struct mg_str str, mbedtls_x509_crt* p) {
     if(str.buf == NULL || str.buf[0] == '\0' || str.buf[0] == '*') return true;
     if(str.buf[0] == '-') str.len++; // PEM, include trailing NUL
     int ret = mbedtls_x509_crt_parse(p, (uint8_t*)str.buf, str.len);
     if(ret != 0) {
-        FURI_LOG_E(TAG, "Cert load err -%04X", -ret);
+        FURI_LOG_E(TAG, "Cert parse error -0x%04X", -ret);
+        return false;
+    }
+    return true;
+}
+
+static bool tls_load_cert_from_917(uint8_t slot, mbedtls_x509_crt* crt) {
+    size_t cert_len = 0;
+    TlsCryptoClient* crypto = furi_record_open(RECORD_TLS_CRYPTO_CLIENT);
+    uint8_t* cert_buf = tls_crypto_client_get_cert(crypto, slot, &cert_len);
+    furi_record_close(RECORD_TLS_CRYPTO_CLIENT);
+    if(cert_buf == NULL) {
+        FURI_LOG_E(TAG, "Cert get error (slot %u)", slot);
+        return false;
+    }
+    int ret = mbedtls_x509_crt_parse(crt, cert_buf, cert_len);
+    free(cert_buf);
+    if(ret != 0) {
+        FURI_LOG_E(TAG, "Cert parse error -0x%04X", -ret);
         return false;
     }
     return true;
@@ -102,7 +122,7 @@ static int tls_net_recv(void* ctx, unsigned char* buf, size_t len) {
     return (int)n;
 }
 
-void mqtt_tls_init(struct mg_connection* conn, const struct mg_tls_opts* opts) {
+bool mqtt_tls_init(struct mg_connection* conn, const MqttTlsCfg* opts) {
     struct mg_tls* tls = (struct mg_tls*)calloc(1, sizeof(*tls));
     conn->tls = tls;
 
@@ -138,7 +158,7 @@ void mqtt_tls_init(struct mg_connection* conn, const struct mg_tls_opts* opts) {
         // ALPN
         mbedtls_ssl_conf_alpn_protocols(&tls->conf, mqtt_alpn_list);
 
-        if(tls_load_cert(opts->ca, &tls->ca) == false) {
+        if(tls_load_ca(opts->ca, &tls->ca) == false) {
             break;
         }
         mbedtls_ssl_conf_ca_chain(&tls->conf, &tls->ca, NULL);
@@ -148,7 +168,10 @@ void mqtt_tls_init(struct mg_connection* conn, const struct mg_tls_opts* opts) {
             free(host);
         }
         mbedtls_ssl_conf_authmode(&tls->conf, MBEDTLS_SSL_VERIFY_REQUIRED);
-        if(!tls_load_cert(opts->cert, &tls->cert)) {
+        if(!tls_load_cert_from_917(TLS_KEY_SLOT_DEVICE, &tls->cert)) {
+            break;
+        }
+        if(!tls_load_cert_from_917(TLS_KEY_SLOT_SIGN, &tls->cert)) {
             break;
         }
 
@@ -178,10 +201,11 @@ void mqtt_tls_init(struct mg_connection* conn, const struct mg_tls_opts* opts) {
         conn->is_tls_hs = 1;
         mbedtls_ssl_set_bio(&tls->ssl, conn, tls_net_send, tls_net_recv, 0);
 
-        return;
+        return true;
     } while(0);
 
     mg_tls_free(conn);
+    return false;
 }
 
 void mqtt_tls_free_ca(struct mg_connection* c) {

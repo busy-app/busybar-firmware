@@ -38,28 +38,20 @@ App(
         "ble",
         "network",
         "sntp",
-        "tls_crypto_client",
+        "tls_crypto",
         "matter",
         "update_checker",
         "device_name",
     ],
-    targets=["f20", "f21"],
+    targets=["f20", "f21", "f22"],
 )
 
 App(
     appid="basic_services",
     name="Basic services",
     apptype=FlipperAppType.METAPACKAGE,
-    provides=[
-        "cli",
-        "input",
-        "network",
-        "wifi",
-        "nvm",
-        "matter",
-        "startup_dfu_hook"
-    ],
-    targets=["f64"],
+    provides=["cli", "input", "network", "wifi", "nvm", "matter", "startup_dfu_hook"],
+    targets=["f64", "f65"],
 )
 
 App(
@@ -74,5 +66,5 @@ App(
         "ble",
         "tls_crypto_server",
     ],
-    targets=["f64"],
+    targets=["f64", "f65"],
 )

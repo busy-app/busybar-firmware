@@ -1,4 +1,6 @@
 #include "intercom_i.h"
+#include <furi_hal_nvm.h>
+#include <furi_hal_power.h>
 
 #define TAG "IntercomSrv"
 
@@ -15,18 +17,14 @@
 #define INTERCOM_BAUD_RATE (11250000UL)
 #endif
 
-#if defined(STM32U595xx)
-#define TARGET_F20
-#elif defined(SI917)
-#define TARGET_F64
-#else
+#if !defined(BSB_MCU_SI917) && !defined(BSB_MCU_U5)
 #error "Unsupported MCU"
 #endif
 
-#if defined(TARGET_F20)
+#if defined(BSB_MCU_U5)
 #define INTERCOM_SERIAL FuriHalSerialIdUsart1
 #define INTERCOM_GPIO   gpio_917_irq
-#elif defined(TARGET_F64)
+#elif defined(BSB_MCU_SI917)
 #define INTERCOM_SERIAL FuriHalSerialIdUsart0
 #define INTERCOM_GPIO   gpio_u5_irq
 #else
@@ -180,10 +178,10 @@ static bool intercom_try_sync(Intercom* instance) {
     bool result = intercom_sync_serial(instance->serial);
     if(result) {
         // TODO: Unify function signatures
-#if defined(TARGET_F20)
+#if defined(BSB_MCU_U5)
         furi_hal_gpio_init_simple(&INTERCOM_GPIO, GpioModeInterruptFall);
         furi_hal_gpio_add_int_callback(&INTERCOM_GPIO, intercom_gpio_irq_callback, instance);
-#elif defined(TARGET_F64)
+#elif defined(BSB_MCU_SI917)
         furi_hal_gpio_add_int_callback(
             &INTERCOM_GPIO, GpioConditionFall, intercom_gpio_irq_callback, instance);
 #else
@@ -428,6 +426,12 @@ bool intercom_is_in_sync(Intercom* instance) {
 
 int32_t intercom_srv(void* arg) {
     UNUSED(arg);
+#if defined(BSB_MCU_U5)
+    if(furi_hal_nvm_is_flag_set(FuriHalNvmFlagDebug)) {
+        furi_hal_power_reset_917(false);
+        FURI_LOG_I(TAG, "917 was reset");
+    }
+#endif
 
     Intercom* instance = intercom_alloc();
     furi_event_loop_run(instance->event_loop);

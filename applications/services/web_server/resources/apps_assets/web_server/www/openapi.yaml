@@ -1,8 +1,8 @@
-openapi: 3.0.3
+openapi: 3.1.0
 info:
   title: BUSY Bar HTTP API
   description: HTTP API for BUSY Bar web server
-  version: 1.0.0
+  version: 2.0.0
   contact:
     name: tbd
 
@@ -128,15 +128,7 @@ paths:
       summary: Update firmware
       description: Uploads a firmware update package (TAR file) and initiates the update process.
       operationId: updateFirmware
-      parameters:
-        - name: name
-          in: query
-          required: false
-          schema:
-            type: string
-            pattern: "^[a-zA-Z0-9._-]+$"
-          description: Name for the update package. The update will be unpacked to /ext/update/<name>.
-          example: "firmware"
+      parameters: []
       requestBody:
         required: true
         content:
@@ -477,6 +469,14 @@ paths:
       summary: Clear display
       description: Clears the display and stops the Canvas application if running
       operationId: clearDisplay
+      parameters:
+        - name: app_id
+          in: query
+          required: false
+          schema:
+            type: string
+          description: Application identifier
+          example: "my_app"
       responses:
         "200":
           description: Display cleared successfully
@@ -961,7 +961,7 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/SuccessResponse"
-  
+
   /api/ble/pairing:
     delete:
       tags:
@@ -1195,7 +1195,7 @@ components:
           description: Access mode
           example: "key"
         key_valid:
-          type: bool
+          type: boolean
           description: Access key was set and is valid
           example: true
 
@@ -1302,13 +1302,28 @@ components:
         app_id: "my_app"
         elements:
           - id: "0"
-            timeout: 5
-            type: "text"
-            text: "Hello, world!"
-            x: 0
-            y: 0
-            display: "front"
+            timeout: 10
+            align: center
+            x: 36
+            y: 10
+            type: text
+            text: "Hello, World! Long text"
+            font: medium
+            color: "#FFFFFFFF"
+            width: 72
+            scroll_rate: 1000
+            display: front
           - id: "1"
+            timeout: 6
+            align: top_mid
+            x: 36
+            y: 0
+            type: text
+            text: "top_mid"
+            font: small
+            color: "#AAFF00FF"
+            display: "front"
+          - id: "2"
             timeout: 6
             type: "image"
             path: "data.png"
@@ -1321,8 +1336,6 @@ components:
       required:
         - id
         - type
-        - x
-        - y
       properties:
         id:
           type: string
@@ -1330,27 +1343,44 @@ components:
         timeout:
           type: integer
           minimum: 0
-          description: Time in seconds the element should be displayed (0 for no timeout)
+          description: Time in seconds the element should be displayed (0 for no timeout). Mutually exclusive with display_until.
+        display_until:
+          type: string
+          description: The element will be hidden when system time reaches the specified Unix timestamp (in seconds). Mutually exclusive with timeout.
         type:
           type: string
-          enum: [text, image]
+          enum: [text, image, countdown]
           description: Type of display element
         x:
           type: integer
-          description: X coordinate for placement on display
+          description: X coordinate of selected anchor point relative to top-left of display
         y:
           type: integer
-          description: Y coordinate for placement on display
+          description: Y coordinate of selected anchor point relative to top-left of display
         display:
           type: string
           enum: [front, back]
           description: Which display to show the element on (for dual-display devices)
           default: front
+        align:
+          type: string
+          description: Anchor point of element. Also use `x` and `y` to position element.
+          enum:
+            - top_left
+            - top_mid
+            - top_right
+            - mid_left
+            - center
+            - mid_right
+            - bottom_left
+            - bottom_mid
+            - bottom_right
       discriminator:
         propertyName: type
         mapping:
           text: "#/components/schemas/TextElement"
           image: "#/components/schemas/ImageElement"
+          countdown: "#/components/schemas/CountdownElement"
 
     TextElement:
       allOf:
@@ -1362,6 +1392,26 @@ components:
             text:
               type: string
               description: Text content to display
+            font:
+              type: string
+              description: One of the available fonts to display the text in
+              enum:
+                - small
+                - medium
+                - medium_condensed
+                - big
+              default: tiny5_8
+            color:
+              type: string
+              description: "Color to display the text in, in #RRGGBBAA format"
+              pattern: "^#[a-fA-F0-9]{8}$"
+              default: "#FFFFFFFF"
+            width:
+              type: integer
+              description: Width of the label
+            scroll_rate:
+              type: integer
+              description: Scroll rate in pixels per minute
 
     ImageElement:
       allOf:
@@ -1369,11 +1419,43 @@ components:
         - type: object
           required:
             - path
+          oneOf:
+            - properties:
+                path:
+                  type: string
+                  pattern: "^[a-zA-Z0-9._/-]+$"
+                  description: Path to the image file in the app's assets
+            - properties:
+                builtin_image:
+                  type: string
+                  pattern: "^[a-z_]+/[a-z0-9_]+$"
+                  description: Identifier of builtin image
+
+    CountdownElement:
+      allOf:
+        - $ref: "#/components/schemas/DisplayElement"
+        - type: object
+          required:
+            - timestamp
+            - direction
+            - show_hours
           properties:
-            path:
+            timestamp:
               type: string
-              pattern: "^[a-zA-Z0-9._/-]+$"
-              description: Path to the image file in the app's assets
+              description: "Seconds-based Unix UTC timestamp to count down or up to. Note: it's a number in a string."
+            color:
+              type: string
+              description: "Color to display the text in, in #RRGGBBAA format"
+              pattern: "^#[a-fA-F0-9]{8}$"
+              default: "#FFFFFFFF"
+            direction:
+              type: string
+              enum: [time_left, time_since]
+              description: Whether to count up or down
+            show_hours:
+              type: string
+              enum: [when_non_zero, always]
+              description: When to show the hours position
 
     DisplayBrightnessInfo:
       type: object
@@ -1501,6 +1583,7 @@ components:
             - connected
             - connecting
             - disconnecting
+            - reconnecting
         ssid:
           type: string
           example: Your_WIFI_SSID
@@ -1582,6 +1665,9 @@ components:
         email:
           type: string
           example: "name@example.com"
+        user_id:
+          type: string
+          example: "12345678-9abc-def0-1234-56789abcdef0"
 
     AccountLink:
       type: object
@@ -1598,7 +1684,16 @@ components:
       properties:
         state:
           type: string
-          example: connected
+          enum: ["reset", "initialization", "disabled", "enabled", "connected", "internal error"]
+          example: connected          
+        address:
+          type: string
+          example: 50:DA:D6:FE:DD:A9
+        pairing:
+          type: string
+          enum: ["unknown", "not paired", "paired"]
+          example: paired   
+
 
 tags:
   - name: System

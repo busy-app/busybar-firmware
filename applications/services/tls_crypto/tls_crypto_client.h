@@ -23,6 +23,8 @@ bool tls_crypto_client_sign(
     size_t sign_buf_size,
     size_t* sign_len);
 
+uint8_t* tls_crypto_client_get_cert(TlsCryptoClient* client, uint8_t key_slot, size_t* cert_len);
+
 #ifdef __cplusplus
 }
 #endif

@@ -38,7 +38,8 @@ static void matter_scene_connect_wifi_poller_event(void* context, WifiPollerStat
 static void matter_scene_connect_wifi_on_enter(void* context) {
     furi_assert(context);
     MatterSettings* app = context;
-    MatterSceneConntextWifi* scene = scene_manager_get_current_scene_data(app->scene_manager);
+    MatterSceneConntextWifi* scene =
+        scene_manager_get_scene_data(app->scene_manager, SceneIdConnectWifi);
 
     wifi_poller_set_callback(app->wifi_poller, matter_scene_connect_wifi_poller_event, app);
 
@@ -82,7 +83,8 @@ static void matter_scene_connect_wifi_on_enter(void* context) {
 static void matter_scene_connect_wifi_on_exit(void* context) {
     furi_assert(context);
     MatterSettings* app = context;
-    MatterSceneConntextWifi* scene = scene_manager_get_current_scene_data(app->scene_manager);
+    MatterSceneConntextWifi* scene =
+        scene_manager_get_scene_data(app->scene_manager, SceneIdConnectWifi);
 
     wifi_poller_set_callback(app->wifi_poller, NULL, NULL);
 

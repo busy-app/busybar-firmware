@@ -65,11 +65,11 @@ void wifi_schedule_connect_request(Wifi* instance, const WifiSettings* settings)
     wifi_api_nonblocking_request(instance, &msg);
 }
 
-void wifi_schedule_backend_info_request(Wifi* instance) {
+void wifi_schedule_disconnect_request(Wifi* instance) {
     furi_assert(instance);
 
-    const WifiMessage msg = {
-        .request_type = WifiRequestTypeGetBackendInfo,
+    WifiMessage msg = {
+        .request_type = WifiRequestTypeDisconnect,
     };
 
     wifi_api_nonblocking_request(instance, &msg);

@@ -8,7 +8,7 @@ on:
 
 env:
   FBT_GIT_SUBMODULE_SHALLOW: 0
-  DEFAULT_TARGET: 21
+  DEFAULT_TARGET_SPEC: 21_64
   FBT_TOOLCHAIN_PATH: /runner/_work
 
 jobs:
@@ -19,14 +19,24 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        u5_target: [20, 21]
+        target_spec: ["21_64", "22_65"]
     outputs:
-      default_target: ${{ env.DEFAULT_TARGET }}
+      default_target_spec: ${{ env.DEFAULT_TARGET_SPEC }}
 
     steps:
       - name: "Wipe workspace"
         run: |
           find ./ -mount -maxdepth 1 -exec rm -rf {} \;
+
+      - name: "Configure targets"
+        id: targets
+        run: |
+          U5_TARGET=$(echo "${{ matrix.target_spec }}" | cut -d_ -f1 | sed 's/f//')
+          SIL_TARGET=$(echo "${{ matrix.target_spec }}" | cut -d_ -f2 | sed 's/f//')
+          echo "U5_TARGET_HW=${U5_TARGET}" >> $GITHUB_ENV
+          echo "SIL_TARGET_HW=${SIL_TARGET}" >> $GITHUB_ENV
+          echo "u5_target_hw=${U5_TARGET}"  >> $GITHUB_OUTPUT
+          echo "sil_target_hw=${U5_TARGET}"  >> $GITHUB_OUTPUT
 
       - name: "Checkout code"
         uses: actions/checkout@v4
@@ -42,10 +52,9 @@ jobs:
       - name: "Build update package (unsigned)"
         id: build-fw
         run: |
-          export "U5_TARGET_HW=$(echo "${{ matrix.u5_target }}" | sed 's/f//')"
           source ./scripts/toolchain/fbtenv.sh
           export FBT_GIT_SUBMODULE_SHALLOW=1
-          bash ./fbt U5_TARGET_HW=${U5_TARGET_HW} $FBT_BUILD_TYPE dist
+          bash ./fbt U5_TARGET_HW=${U5_TARGET_HW} SIL_TARGET_HW=${SIL_TARGET_HW} $FBT_BUILD_TYPE dist
 
       - name: "Check for uncommitted changes"
         run: |

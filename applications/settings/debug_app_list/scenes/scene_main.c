@@ -20,7 +20,7 @@ static void scene_main_submenu_item_callback(uint32_t index, void* context) {
     furi_assert(context);
 
     DebugAppList* app = context;
-    SettingsSceneDebugApps* scene = scene_manager_get_current_scene_data(app->scene_manager);
+    SettingsSceneDebugApps* scene = scene_manager_get_scene_data(app->scene_manager, SceneIdMain);
 
     scene->menu_idx = index;
     debug_app_list_send_custom_event(app, SceneEventMenuItemClicked);
@@ -29,7 +29,7 @@ static void scene_main_submenu_item_callback(uint32_t index, void* context) {
 static void scene_main_on_enter(void* context) {
     furi_assert(context);
     DebugAppList* app = context;
-    SettingsSceneDebugApps* scene = scene_manager_get_current_scene_data(app->scene_manager);
+    SettingsSceneDebugApps* scene = scene_manager_get_scene_data(app->scene_manager, SceneIdMain);
 
     with_gui(app->gui, {
         widget_set_visible(nav_bar_get_base(app->back_nav_bar), true);
@@ -67,7 +67,7 @@ static void scene_main_on_enter(void* context) {
 static void scene_main_on_exit(void* context) {
     furi_assert(context);
     DebugAppList* app = context;
-    SettingsSceneDebugApps* scene = scene_manager_get_current_scene_data(app->scene_manager);
+    SettingsSceneDebugApps* scene = scene_manager_get_scene_data(app->scene_manager, SceneIdMain);
 
     furi_record_close(RECORD_DESKTOP);
 
@@ -87,7 +87,7 @@ static bool scene_main_on_event(const SceneManagerEvent* event, void* context) {
     if(event->type == SceneManagerEventTypeCustom) {
         if(event->event == SceneEventMenuItemClicked) {
             SettingsSceneDebugApps* scene =
-                scene_manager_get_current_scene_data(app->scene_manager);
+                scene_manager_get_scene_data(app->scene_manager, SceneIdMain);
             const FlipperInternalApplication* app = &FLIPPER_DEBUG_APPS[scene->menu_idx];
 
             // TODO: make the launched app use our navbar

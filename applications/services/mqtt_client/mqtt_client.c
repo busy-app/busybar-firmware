@@ -7,29 +7,39 @@
 
 #define TAG "MqttClient"
 
-#define CERT_FILE_CA_BUNDLE    EXT_PATH("apps_assets/ca/cacert.pem")
-#define CERT_FILE_INTERMEDIATE APP_ASSETS_PATH("signing-ca.crt")
-#define CERT_FILE_DEVICE       APP_ASSETS_PATH("device.crt")
+#define CERT_FILE_CA_BUNDLE EXT_PATH("apps_assets/ca/cacert.pem")
 
 #define SESSION_FILE APP_DATA_PATH("session.json")
+
+#define MQTT_PING_PERIOD (10 * 60 * 1000)
 
 static void mqtt_connect_callback(void* data);
 static bool mqtt_client_load_ca_bundle(MqttClient* mqtt);
 
-// static void mqtt_wifi_event_callback(const void* message, void* context) {
-//     MqttClient* mqtt = context;
-//     furi_assert(mqtt);
+static void mqtt_wifi_event_callback(const void* state, void* context) {
+    MqttClient* mqtt = context;
+    furi_assert(mqtt);
 
-//     WifiState wifi_event = *(WifiState*)message;
+    const WifiInfo* info = state;
 
-//     MqttClientMessage msg = {
-//         .type = MqttClientMessageWifiStateChange,
-//         .wifi_state = wifi_event,
-//         .lock = NULL,
-//     };
+    MqttClientMessage msg = {
+        .type = MqttClientMessageWifiStateChange,
+        .wifi_state = info->state,
+        .lock = NULL,
+    };
 
-//     mg_wakeup(&mqtt->mgr, mqtt->wakeup_conn_id, &msg, sizeof(MqttClientMessage));
-// }
+    mg_wakeup(&mqtt->mgr, mqtt->wakeup_conn_id, &msg, sizeof(MqttClientMessage));
+}
+
+static void mqtt_ping_timer_callback(void* data) {
+    furi_assert(data);
+    MqttClient* mqtt = data;
+
+    if(mqtt->conn) {
+        FURI_LOG_D(TAG, "-> PING");
+        mg_mqtt_ping(mqtt->conn);
+    }
+}
 
 static void mqtt_status_change_event(MqttClient* mqtt, MqttClientStatus status) {
     mqtt->status = status;
@@ -46,6 +56,7 @@ static void mqtt_device_subscribe(MqttClient* mqtt) {
     const struct mg_mqtt_opts sub_opts = {
         .topic = mg_str(furi_string_get_cstr(topic)), .qos = MQTT_QOS};
     mg_mqtt_sub(mqtt->conn, &sub_opts);
+    FURI_LOG_D(TAG, "Subscribing to %s", furi_string_get_cstr(topic));
 
     furi_string_free(topic);
 }
@@ -84,7 +95,8 @@ static void
         char* session_id = mg_json_get_str(*message, "$.session_id");
         char* token = mg_json_get_str(*message, "$.token");
         char* email = mg_json_get_str(*message, "$.email");
-        if(session_id && token && email) {
+        char* user_id = mg_json_get_str(*message, "$.user_id");
+        if(session_id && token && email && user_id) {
             FURI_LOG_I(TAG, "Link done!");
 
             JsonConfig* cfg = json_config_alloc();
@@ -93,6 +105,7 @@ static void
             json_config_write_str(cfg, "session_id", session_id);
             json_config_write_str(cfg, "token", token);
             json_config_write_str(cfg, "email", email);
+            json_config_write_str(cfg, "user_id", user_id);
             status = json_config_free(cfg);
             furi_assert(status != JsonConfigStatusError);
 
@@ -110,14 +123,13 @@ static void
         if(session_id) free(session_id);
         if(token) free(token);
         if(email) free(email);
+        if(user_id) free(user_id);
     }
 }
 
 static void mqtt_on_message(MqttClient* mqtt, struct mg_mqtt_message* msg) {
     furi_assert(mqtt);
     furi_assert(msg);
-
-    // TODO: check QOS, serial/session_id
 
     FuriString* topic_str = furi_string_alloc_printf("%.*s", msg->topic.len, msg->topic.buf);
 
@@ -141,12 +153,15 @@ static void mqtt_event_handler(struct mg_connection* conn, int ev, void* ev_data
             return;
         }
         const struct mg_str name = mg_url_host(MQTT_SERVER_ADDR);
-        const struct mg_tls_opts opts = {
+        const MqttTlsCfg opts = {
             .name = name,
             .ca = mg_str(mqtt->ca_bundle),
-            .cert = mg_str(mqtt->device_cert),
         };
-        mqtt_tls_init(conn, &opts);
+        if(!mqtt_tls_init(conn, &opts)) {
+            conn->is_draining = 1;
+            mqtt->status = MqttClientStatusError;
+            return;
+        }
     } else if(ev == MG_EV_TLS_HS) {
         FURI_LOG_D(TAG, "TLS handshake done!");
         // Free CA bundle data
@@ -162,12 +177,28 @@ static void mqtt_event_handler(struct mg_connection* conn, int ev, void* ev_data
             } else {
                 mqtt_device_subscribe(mqtt);
             }
+            if(!mqtt->ping_enabled) {
+                mg_timer_init(
+                    &mqtt->mgr.timers,
+                    &mqtt->ping_timer,
+                    MQTT_PING_PERIOD,
+                    MG_TIMER_REPEAT,
+                    mqtt_ping_timer_callback,
+                    mqtt);
+                mqtt->ping_enabled = true;
+            }
         } else {
             FURI_LOG_E(TAG, "MQTT Connect error, code 0x%02X", *conn_code);
         }
     } else if(ev == MG_EV_CLOSE) {
         FURI_LOG_W(TAG, "MQTT Connection close");
         mqtt_status_change_event(mqtt, MqttClientStatusNotConnected);
+
+        if(mqtt->ping_enabled) {
+            mg_timer_free(&mqtt->mgr.timers, &mqtt->ping_timer);
+            mqtt->ping_enabled = false;
+        }
+
         mqtt->conn = NULL;
         if(mqtt->ca_bundle) {
             free(mqtt->ca_bundle);
@@ -212,6 +243,11 @@ static void mqtt_event_handler(struct mg_connection* conn, int ev, void* ev_data
                 FURI_LOG_E(TAG, "Subscribe error 0x%02X", sub_reason);
                 conn->is_draining = 1;
             }
+        } else if(msg->cmd == MQTT_CMD_PINGRESP) {
+            FURI_LOG_D(TAG, "<- PONG");
+        } else if(msg->cmd == MQTT_CMD_PINGREQ) {
+            FURI_LOG_D(TAG, "PING request received");
+            mg_mqtt_pong(conn);
         } else {
             FURI_LOG_D(TAG, "MQTT CMD: %u", msg->cmd);
         }
@@ -247,6 +283,7 @@ static void mqtt_connect_callback(void* data) {
         .user = mg_str(furi_string_get_cstr(username)),
         .pass = mg_str(furi_string_get_cstr(mqtt->link_token)),
         .clean = true,
+        .keepalive = 0,
         .version = 5,
     };
     mqtt->conn = mg_mqtt_connect(&mqtt->mgr, MQTT_SERVER_ADDR, &opts, mqtt_event_handler, mqtt);
@@ -296,59 +333,6 @@ static void mqtt_client_load_session(MqttClient* mqtt) {
     furi_assert(status != JsonConfigStatusError);
 }
 
-static bool mqtt_client_load_certs(MqttClient* mqtt) {
-    bool success = false;
-    Storage* storage = furi_record_open(RECORD_STORAGE);
-    File* file = storage_file_alloc(storage);
-
-    do {
-        if(!storage_file_exists(storage, CERT_FILE_CA_BUNDLE)) {
-            FURI_LOG_E(TAG, "CA bundle file missing");
-            break;
-        }
-
-        FileInfo file_info;
-        if(storage_common_stat(storage, CERT_FILE_INTERMEDIATE, &file_info) != FSE_OK) {
-            FURI_LOG_E(TAG, "Intermediate cert file error");
-            break;
-        }
-        uint64_t int_cert_size = file_info.size;
-
-        if(!storage_file_open(file, CERT_FILE_DEVICE, FSAM_READ, FSOM_OPEN_EXISTING)) {
-            FURI_LOG_E(TAG, "Device cert file error: %s", storage_file_get_error_desc(file));
-            break;
-        }
-        uint64_t file_size = storage_file_size(file);
-
-        // TODO: read device cert from 917
-        // TODO: verify key on 917
-        mqtt->device_cert = malloc(int_cert_size + file_size);
-        if(storage_file_read(file, mqtt->device_cert, file_size) != file_size) {
-            FURI_LOG_E(TAG, "Device cert file read error");
-            break;
-        }
-        storage_file_close(file);
-        // TODO: verify CN?
-
-        if(!storage_file_open(file, CERT_FILE_INTERMEDIATE, FSAM_READ, FSOM_OPEN_EXISTING)) {
-            FURI_LOG_E(TAG, "Intermediate cert file error: %s", storage_file_get_error_desc(file));
-            break;
-        }
-        if(storage_file_read(file, &(mqtt->device_cert[file_size]), int_cert_size) !=
-           int_cert_size) {
-            FURI_LOG_E(TAG, "Intermediate cert file read error");
-            break;
-        }
-        storage_file_close(file);
-
-        success = true;
-    } while(0);
-
-    storage_file_free(file);
-    furi_record_close(RECORD_STORAGE);
-    return success;
-}
-
 static bool mqtt_client_load_ca_bundle(MqttClient* mqtt) {
     furi_assert(mqtt->ca_bundle == NULL);
     bool success = false;
@@ -395,7 +379,7 @@ static void mqtt_conn_wakeup_callback(struct mg_connection* conn, int ev, void* 
                 mqtt_connect_callback(mqtt);
             }
             mqtt->is_wifi_up = true;
-        } else if(msg->wifi_state == WifiStateDisconnected) {
+        } else {
             mqtt->is_wifi_up = false;
         }
         break;
@@ -422,11 +406,16 @@ static void mqtt_conn_wakeup_callback(struct mg_connection* conn, int ev, void* 
         mqtt_client_load_session(mqtt);
 
         break;
-    case MqttClientMessageGetSessionId:
-        furi_string_set(msg->str_param, mqtt->session_id);
-        break;
-    case MqttClientMessageGetSessionEmail:
-        json_config_read_single_str(SESSION_FILE, "email", msg->str_param, "");
+    case MqttClientMessageGetSessionInfo:
+        if(msg->session_info.id) {
+            furi_string_set(msg->session_info.id, mqtt->session_id);
+        }
+        if(msg->session_info.email) {
+            json_config_read_single_str(SESSION_FILE, "email", msg->session_info.email, "");
+        }
+        if(msg->session_info.user_id) {
+            json_config_read_single_str(SESSION_FILE, "user_id", msg->session_info.user_id, "");
+        }
         break;
     default:
         furi_crash();
@@ -443,6 +432,7 @@ int32_t mqtt_client_start(void* p) {
     MqttClient* mqtt = malloc(sizeof(MqttClient));
     mqtt->conn = NULL;
     mqtt->status = MqttClientStatusNotConnected;
+    mqtt->ping_enabled = false;
 
     mqtt->device_serial = furi_string_alloc();
     furi_hal_version_get_uid_str(mqtt->device_serial);
@@ -451,10 +441,7 @@ int32_t mqtt_client_start(void* p) {
     mqtt->session_id = furi_string_alloc();
     mqtt->link_token = furi_string_alloc();
 
-    if(!mqtt_client_load_certs(mqtt)) {
-        FURI_LOG_E(TAG, "Certificates load error");
-        mqtt->status = MqttClientStatusError;
-    }
+    // TODO: check certs + key on 917?
 
     mqtt_client_load_session(mqtt);
 
@@ -472,15 +459,9 @@ int32_t mqtt_client_start(void* p) {
     mqtt->event_pubsub = furi_pubsub_alloc();
     furi_record_create(RECORD_MQTT, mqtt);
 
-    // mqtt->wifi = furi_record_open(RECORD_WIFI);
-    // mqtt->wifi_event_sub =
-    //     furi_pubsub_subscribe(wifi_get_pubsub(mqtt->wifi), mqtt_wifi_event_callback, mqtt);
-
-    // WifiInfo wifi_info;
-    // wifi_get_info(mqtt->wifi, &wifi_info);
-    // mqtt->is_wifi_up = (wifi_info.state == WifiStateUp);
-
-    mqtt->is_wifi_up = true; // TODO: wifi events
+    Wifi* wifi = furi_record_open(RECORD_WIFI);
+    furi_state_subscribe(wifi_get_state(wifi), mqtt_wifi_event_callback, mqtt);
+    mqtt->is_wifi_up = false;
 
     mqtt->reconnect_delay = MQTT_RECONNECT_DELAY_MIN;
 

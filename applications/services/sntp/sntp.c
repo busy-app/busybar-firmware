@@ -2,6 +2,7 @@
 #include "sntp_time_update.h"
 
 #include <wifi/wifi.h>
+#include <furi_hal_rtc.h>
 
 #include <api_lock.h>
 
@@ -220,6 +221,19 @@ bool sntp_set_settings(Sntp* instance, const SntpSettings* settings) {
     sntp_send_message(instance, &message);
 
     return result;
+}
+
+time_t sntp_get_utc_timestamp(Sntp* instance) {
+    furi_check(instance);
+
+    SntpSettings settings;
+    sntp_get_settings(instance, &settings);
+    time_t timezone_offset_s = settings.timezone_offset * 60;
+
+    time_t now = furi_hal_rtc_get_timestamp(); // TODO: Y2038
+    now -= timezone_offset_s;
+
+    return now;
 }
 
 int32_t sntp_srv(void* p) {

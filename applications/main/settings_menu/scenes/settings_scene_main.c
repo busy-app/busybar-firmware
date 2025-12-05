@@ -1,6 +1,6 @@
 #include "../settings.h"
 #include "settings_scenes.h"
-#include <firmware_applications_f20/applications.h>
+#include <applications.h>
 #include <settings_helpers/app_desc.h>
 
 #include <gui/modules/menu.h>
@@ -25,7 +25,8 @@ static void settings_scene_main_on_enter(void* context) {
     furi_assert(context);
 
     SettingsApp* instance = context;
-    SettingsSceneMain* data = scene_manager_get_current_scene_data(instance->scene_manager);
+    SettingsSceneMain* data =
+        scene_manager_get_scene_data(instance->scene_manager, SettingsAppSceneIdMain);
 
     with_gui(instance->gui, {
         data->front_menu = menu_alloc(instance->front_scene_window);
@@ -79,7 +80,8 @@ static void settings_scene_main_on_exit(void* context) {
     furi_assert(context);
 
     SettingsApp* instance = context;
-    SettingsSceneMain* data = scene_manager_get_current_scene_data(instance->scene_manager);
+    SettingsSceneMain* data =
+        scene_manager_get_scene_data(instance->scene_manager, SettingsAppSceneIdMain);
 
     with_gui(instance->gui, {
         menu_free(data->front_menu);
@@ -91,7 +93,8 @@ static bool settings_scene_main_on_event(const SceneManagerEvent* event, void* c
     furi_assert(context);
 
     SettingsApp* instance = context;
-    SettingsSceneMain* data = scene_manager_get_current_scene_data(instance->scene_manager);
+    SettingsSceneMain* data =
+        scene_manager_get_scene_data(instance->scene_manager, SettingsAppSceneIdMain);
 
     bool consumed = false;
     if(event->type == SceneManagerEventTypeCustom) {
