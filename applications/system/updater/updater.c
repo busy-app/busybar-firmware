@@ -573,7 +573,7 @@ void updater_abort_download(Updater* instance) {
         &(const DownloadQueueMessage){
             .is_abort_request = true,
         },
-        FuriWaitForever);
+        0);
 }
 
 UpdaterStatus updater_unpack(
