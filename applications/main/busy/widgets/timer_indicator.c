@@ -7,13 +7,10 @@
 
 #define MY_CLASS (&timer_indicator_lvgl_class)
 
-#define FRAMES_TO_MS(x) ((x) * 1000 / 60)
-
 #define SLOT_TEMPLATE \
     "{"               \
     " \"%s\": {"      \
     "  \"p\": {"      \
-    "   \"a\": 0,"    \
     "   \"k\": ["     \
     "     %.2f,"      \
     "     %.2f"       \
@@ -55,28 +52,6 @@ static void timer_indicator_lvgl_anim_completed_callback(lv_anim_t* anim) {
     timer_indicator_apply_preset(instance);
 
     widget_set_width(&instance->base, LV_SIZE_CONTENT);
-}
-
-static void timer_indicator_lvgl_constructor(const lv_obj_class_t* class_p, lv_obj_t* obj) {
-    UNUSED(class_p);
-
-    TimerIndicator* instance = (TimerIndicator*)obj;
-    UNUSED(instance);
-}
-
-static void timer_indicator_lvgl_destructor(const lv_obj_class_t* class_p, lv_obj_t* obj) {
-    UNUSED(class_p);
-
-    TimerIndicator* instance = (TimerIndicator*)obj;
-    if(instance->bg_anim) {
-        anim_image_free(instance->bg_anim);
-    }
-    if(instance->progress_lottie) {
-        lottie_animation_free(instance->progress_lottie);
-    }
-    if(instance->fg_image) {
-        image_free(instance->fg_image);
-    }
 }
 
 // Implementation
@@ -245,8 +220,6 @@ void timer_indicator_enable_animations(TimerIndicator* instance, bool enable) {
 
 const lv_obj_class_t timer_indicator_lvgl_class = {
     .base_class = &widget_lvgl_class,
-    .constructor_cb = timer_indicator_lvgl_constructor,
-    .destructor_cb = timer_indicator_lvgl_destructor,
     .name = "widget-timer-indicator",
     .width_def = LV_SIZE_CONTENT,
     .height_def = LV_SIZE_CONTENT,
