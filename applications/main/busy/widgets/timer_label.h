@@ -15,6 +15,13 @@ extern "C" {
 /** TimerLabel opaque structure. */
 typedef struct TimerLabel TimerLabel;
 
+typedef struct {
+    struct {
+        Color base;
+        Color blink;
+    } countdown_colors;
+} TimerLabelPreset;
+
 /**
  * @brief Create a new TimerLabel instance.
  *
@@ -48,6 +55,13 @@ Widget* timer_label_get_base(TimerLabel* instance);
  * @param[in] time_s time to show, in seconds
  */
 void timer_label_set_time(TimerLabel* instance, uint32_t time_s);
+
+/**
+ * @brief
+ *
+ * @param[in,out] instance pointer to the TimerLabel instance to be modified
+ */
+void timer_label_set_preset(TimerLabel* instance, const TimerLabelPreset* preset);
 
 #ifdef __cplusplus
 }

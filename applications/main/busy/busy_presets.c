@@ -168,3 +168,22 @@ const TimerIndicatorTransition
                 .end_width_px = 39,
             },
 };
+
+const TimerLabelPreset busy_timer_label_presets[BusyTimerLabelTypeMax] = {
+    [BusyTimerLabelTypeWork] =
+        {
+            .countdown_colors =
+                {
+                    .base = COLOR_MAKE_HEX(0xFF6077),
+                    .blink = COLOR_MAKE_HEX(0xFFC8C8),
+                },
+        },
+    [BusyTimerLabelTypeRest] =
+        {
+            .countdown_colors =
+                {
+                    .base = COLOR_MAKE_HEX(0x3EC287),
+                    .blink = COLOR_MAKE_HEX(0x7BFFCA),
+                },
+        },
+};
