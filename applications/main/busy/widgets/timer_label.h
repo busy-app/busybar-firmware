@@ -15,11 +15,12 @@ extern "C" {
 /** TimerLabel opaque structure. */
 typedef struct TimerLabel TimerLabel;
 
+/** TimerLabel preset type. */
 typedef struct {
     struct {
-        Color base;
-        Color blink;
-    } countdown_colors;
+        Color base; /**< Countdown base colour */
+        Color blink; /**< Countdown blink colour */
+    } countdown_colors; /**< Special colours used for countdown animation */
 } TimerLabelPreset;
 
 /**
@@ -57,9 +58,10 @@ Widget* timer_label_get_base(TimerLabel* instance);
 void timer_label_set_time(TimerLabel* instance, uint32_t time_s);
 
 /**
- * @brief
+ * @brief Set the current preset (affects countdown blinking)
  *
  * @param[in,out] instance pointer to the TimerLabel instance to be modified
+ * @param[in] preset pointer to the TimerLabelPreset object
  */
 void timer_label_set_preset(TimerLabel* instance, const TimerLabelPreset* preset);
 
