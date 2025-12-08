@@ -233,7 +233,7 @@ void updater_installation_apply(Updater* instance, bool do_wait);
  *
  * @param[in]  instance  Updater instance
  */
-void updater_check_for_update(Updater* instance);
+UpdaterStatus updater_check_for_update(Updater* instance);
 
 /** Get currently active firmware version string
  *

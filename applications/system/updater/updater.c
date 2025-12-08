@@ -159,7 +159,7 @@ static UpdaterStatus do_check_for_update(Updater* instance, UpdaterMessage* mess
         furi_state_release(instance->check_state);
     }
 
-    return UpdaterStatusOk;
+    return (is_check_start_successful) ? UpdaterStatusOk : UpdaterStatusBusy;
 }
 
 static UpdaterStatus do_session_start(Updater* instance, UpdaterMessage* message) {
@@ -631,10 +631,10 @@ void updater_installation_apply(Updater* instance, bool do_wait) {
     }
 }
 
-void updater_check_for_update(Updater* instance) {
+UpdaterStatus updater_check_for_update(Updater* instance) {
     furi_check(instance);
 
-    invoke_sync(instance, &(UpdaterMessage){.type = MessageTypeCheckForUpdate});
+    return invoke_sync(instance, &(UpdaterMessage){.type = MessageTypeCheckForUpdate});
 }
 
 const char* updater_get_active_version(void) {
