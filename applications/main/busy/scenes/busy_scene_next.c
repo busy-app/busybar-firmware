@@ -1,24 +1,17 @@
 #include "../busy_i.h"
 
-#include <gui/modules/label.h>
-#include <gui/modules/anim_image.h>
-
 #define WAIT_ANIM_BEGIN (0)
 #define WAIT_ANIM_END   (179)
 
 #define PRESS_ANIM_BEGIN (180)
 #define PRESS_ANIM_END   (185)
 
+#include "../widgets/progress_view.h"
+
 typedef struct {
-    AnimImage* front_anim;
+    ProgressView* front_progress_view;
     BusyTimerState timer_state;
 } BusySceneNext;
-
-static const char* front_anim_file_path[BusyTimerStateMax] = {
-    [BusyTimerStateIdle] = BUSY_ANIM_PATH("finish_waiting_72x16.anim"),
-    [BusyTimerStateWork] = BUSY_ANIM_PATH("busy_waiting_72x16.anim"),
-    [BusyTimerStateRest] = BUSY_ANIM_PATH("rest_waiting_72x16.anim"),
-};
 
 static bool busy_scene_next_input_callback(const InputEvent* event, void* context) {
     furi_assert(event);
@@ -54,21 +47,28 @@ static void busy_scene_next_on_enter(void* context) {
     BusySceneNext* data =
         scene_manager_get_scene_data(instance->scene_manager, BusyAppSceneIdNext);
 
-    data->timer_state = busy_timer_get_state(instance->busy_timer);
+    BusyTimerCycles timer_cycles;
+    busy_timer_get_cycles(instance->busy_timer, &timer_cycles);
+
+    const uint32_t prev_interval_idx = timer_cycles.current_idx - 1;
 
     with_gui(instance->gui, {
         GuiLayer* layer = gui_get_layer(instance->gui, GuiLayerIdMain);
         gui_layer_add_input_callback(layer, busy_scene_next_input_callback, instance);
 
-        data->front_anim = anim_image_alloc(instance->front_window);
-
-        anim_image_set_source(data->front_anim, front_anim_file_path[data->timer_state]);
-        anim_image_set_range(data->front_anim, WAIT_ANIM_BEGIN, WAIT_ANIM_END, true, false);
+        data->front_progress_view = progress_view_alloc(instance->front_window);
+        progress_view_set_progress(
+            data->front_progress_view, prev_interval_idx, timer_cycles.total_count, true);
+        widget_set_align(progress_view_get_base(data->front_progress_view), AlignBottomMid);
     });
 
-    if(data->timer_state == BusyTimerStateIdle) {
+    const BusyTimerState timer_state = busy_timer_get_state(instance->busy_timer);
+
+    if(timer_state == BusyTimerStateIdle) {
         audio_play_file(instance->audio, BUSY_SOUND_PATH("session_completed.snd"));
     }
+
+    data->timer_state = timer_state;
 
     busy_start_transition(instance);
 }
@@ -84,7 +84,7 @@ static void busy_scene_next_on_exit(void* context) {
         GuiLayer* layer = gui_get_layer(instance->gui, GuiLayerIdMain);
         gui_layer_remove_input_callback(layer, busy_scene_next_input_callback);
 
-        anim_image_free(data->front_anim);
+        progress_view_free(data->front_progress_view);
     });
 }
 
@@ -101,17 +101,11 @@ static bool busy_scene_next_on_event(const SceneManagerEvent* event, void* conte
             scene_manager_get_scene_data(instance->scene_manager, BusyAppSceneIdNext);
 
         if(event->event == BusyCustomEventStartPressed) {
-            if(data->front_anim) {
-                with_gui(instance->gui, {
-                    anim_image_set_range(
-                        data->front_anim, PRESS_ANIM_BEGIN, PRESS_ANIM_END, false, false);
-                });
-            }
-
         } else if(event->event == BusyCustomEventStartReleased) {
-            const BusyTimerState timer_state = data->timer_state;
-            BusyTransitionType transition_type;
             BusyAppSceneId scene_id;
+            BusyTransitionType transition_type;
+
+            const BusyTimerState timer_state = data->timer_state;
 
             if(timer_state == BusyTimerStateIdle) {
                 scene_id = BusyAppSceneIdStart;

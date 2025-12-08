@@ -1,7 +1,5 @@
 #include "../busy_i.h"
 
-#include <gui/modules/image.h>
-
 #include "../widgets/progress_view.h"
 
 #define DONE_TRANSITION_DELAY_MS (4000)
@@ -9,7 +7,6 @@
 
 typedef struct {
     ProgressView* front_progress_view;
-    Image* front_rest_image;
     RunLater* run_later;
 } BusySceneProgress;
 
@@ -51,41 +48,36 @@ static void busy_scene_progress_on_enter(void* context) {
     BusySceneProgress* data =
         scene_manager_get_scene_data(instance->scene_manager, BusyAppSceneIdProgress);
 
-    const BusyTimerState state = busy_timer_get_state(instance->busy_timer);
+    BusyTimerCycles timer_cycles;
+    busy_timer_get_cycles(instance->busy_timer, &timer_cycles);
 
-    uint32_t run_later_delay;
-    BusyStatusLightsType status_lights;
+    const uint32_t prev_interval_idx = timer_cycles.current_idx - 1;
 
     with_gui(instance->gui, {
         GuiLayer* layer = gui_get_layer(instance->gui, GuiLayerIdMain);
         gui_layer_add_input_callback(layer, busy_scene_progress_input_callback, instance);
+
+        data->front_progress_view = progress_view_alloc(instance->front_window);
+        progress_view_set_progress(
+            data->front_progress_view, prev_interval_idx, timer_cycles.total_count, false);
+        widget_set_align(progress_view_get_base(data->front_progress_view), AlignBottomMid);
     });
 
-    if(state == BusyTimerStateRest || state == BusyTimerStateIdle) {
-        BusyTimerCycles cycles;
-        busy_timer_get_cycles(instance->busy_timer, &cycles);
+    const BusyTimerState timer_state = busy_timer_get_state(instance->busy_timer);
 
-        with_gui(instance->gui, {
-            data->front_progress_view = progress_view_alloc(instance->front_window);
+    uint32_t run_later_delay;
+    BusyStatusLightsType status_lights;
 
-            progress_view_set_progress(
-                data->front_progress_view, cycles.done_count, cycles.total_count);
-        });
-
+    if(timer_state == BusyTimerStateRest || timer_state == BusyTimerStateIdle) {
         run_later_delay = DONE_TRANSITION_DELAY_MS;
         status_lights = BusyStatusLightsTypeWork;
 
-    } else if(state == BusyTimerStateWork) {
-        with_gui(instance->gui, {
-            data->front_rest_image = image_alloc(instance->front_window);
-            image_set_source(data->front_rest_image, BUSY_IMG_PATH("rest_done_72x16.bin"));
-        });
-
+    } else if(timer_state == BusyTimerStateWork) {
         run_later_delay = REST_TRANSITION_DELAY_MS;
         status_lights = BusyStatusLightsTypeRest;
 
     } else {
-        furi_crash();
+        furi_crash("Invalid BusyTimerState value");
     }
 
     data->run_later = run_later(
@@ -110,15 +102,7 @@ static void busy_scene_progress_on_exit(void* context) {
         GuiLayer* layer = gui_get_layer(instance->gui, GuiLayerIdMain);
         gui_layer_remove_input_callback(layer, busy_scene_progress_input_callback);
 
-        if(data->front_progress_view) {
-            progress_view_free(data->front_progress_view);
-            data->front_progress_view = NULL;
-        }
-
-        if(data->front_rest_image) {
-            image_free(data->front_rest_image);
-            data->front_rest_image = NULL;
-        }
+        progress_view_free(data->front_progress_view);
     });
 }
 

@@ -44,11 +44,17 @@ Widget* progress_view_get_base(ProgressView* instance);
 /**
  * @brief Set the progress to display.
  *
+ * TODO: Split into 2 functions?
+ *
  * @param[in,out] instance pointer to the ProgressView instance to be modified
- * @param[in] done number of done intervals
- * @param[in] total total number of intervals
+ * @param[in] interval_idx numerical index of the current interval
+ * @param[in] cycles_count total count of timer cycles
  */
-void progress_view_set_progress(ProgressView* instance, uint32_t done, uint32_t total);
+void progress_view_set_progress(
+    ProgressView* instance,
+    uint32_t interval_idx,
+    uint32_t cycles_count,
+    bool wait_next);
 
 #ifdef __cplusplus
 }
