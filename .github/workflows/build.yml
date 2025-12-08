@@ -24,7 +24,7 @@ jobs:
         target_spec: ["21_64", "22_65"]
     outputs:
       default_target_spec: ${{ env.DEFAULT_TARGET_SPEC }}
-      bundle_target_spec: ${{ steps.targets.outputs.u5_target_hw }}
+      bundle_target_spec: ${{ steps.build-fw.outputs.u5_target_hw }}
       update_url: ${{ steps.set-url.outputs.update_url }}
 
     steps:
@@ -33,16 +33,6 @@ jobs:
           rm -f /home/runner/.gitconfig
           find ./ -mount -maxdepth 1 -exec rm -rf {} \;
 
-      - name: "Configure targets"
-        id: targets
-        run: |
-          U5_TARGET=$(echo "${{ matrix.target_spec }}" | cut -d_ -f1 | sed 's/f//')
-          SIL_TARGET=$(echo "${{ matrix.target_spec }}" | cut -d_ -f2 | sed 's/f//')
-          echo "U5_TARGET_HW=${U5_TARGET}" >> $GITHUB_ENV
-          echo "SIL_TARGET_HW=${SIL_TARGET}" >> $GITHUB_ENV
-          echo "u5_target_hw=${U5_TARGET}"  >> $GITHUB_OUTPUT
-          echo "sil_target_hw=${U5_TARGET}"  >> $GITHUB_OUTPUT
-
       - name: 'Checkout code'
         uses: actions/checkout@v4
         with:
@@ -50,74 +40,48 @@ jobs:
           fetch-depth: 2
           token: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: 'Configure Git and LFS for submodules'
+      - name: 'Bootstrap tooling submodule'
         run: |
-          # Configure Git LFS
-          git lfs install --skip-smudge
-          
-          # Set up authentication for GitHub repositories at repo level
-          echo "https://x-access-token:${GH_TOKEN}@github.com" > ~/.git-credentials
-          git config credential.helper 'store --file ~/.git-credentials'
-          
-          # Configure LFS settings
-          git config lfs.transfer.maxretries 3
-
-      - name: 'Update submodules'
-        run: |
-          git submodule update --init --recursive --jobs=$(nproc) scripts/toolchain fbt_layers/fbtng || (git lfs logs last && exit 1)
+          git submodule update --init --depth 1 fbt_layers/fbtng
 
       - name: 'Get commit details'
         id: names
         run: |
-          BUILD_TYPE='DEBUG=1 COMPACT=0'
-          if [[ ${{ github.event_name }} == 'pull_request' ]]; then
+          set -euo pipefail
+          PROFILE='debug'
+          if [[ "${{ github.event_name }}" == 'pull_request' ]]; then
             TYPE="pull"
-          elif [[ "${{ github.ref }}" == "refs/tags/"* ]]; then
+          elif [[ "${{ github.ref }}" == refs/tags/* ]]; then
             TYPE="tag"
-            BUILD_TYPE='DEBUG=0 COMPACT=1'
+            PROFILE='release'
           else
             TYPE="other"
           fi
-          echo "event_type=$TYPE" >> $GITHUB_OUTPUT
+          echo "event_type=$TYPE" >> "$GITHUB_OUTPUT"
+          echo "build_profile=$PROFILE" >> "$GITHUB_OUTPUT"
           python3 fbt_layers/fbtng/scripts/get_env.py "--event_file=${{ github.event_path }}" "--type=$TYPE" || (cat "${{ github.event_path }}" && exit 1)
-          echo "FBT_BUILD_TYPE=$BUILD_TYPE" >> $GITHUB_ENV
 
-      - name: 'Build update package (unsigned)'
+      - name: 'Build firmware artifacts'
         id: build-fw
-        run: |
-          source ./scripts/toolchain/fbtenv.sh
-          export FBT_GIT_SUBMODULE_SHALLOW=1
-          bash ./fbt U5_TARGET_HW=${U5_TARGET_HW} SIL_TARGET_HW=${SIL_TARGET_HW} $FBT_BUILD_TYPE dist
-
-      - name: 'Check for uncommitted changes'
-        run: |
-          git diff --exit-code
-
-      - name: 'Copy build artifacts'
-        run: |
-          rm -rf artifacts
-          mkdir -p artifacts
-          cp -v dist/f${U5_TARGET_HW}-*/* artifacts/
-
-      - name: 'Calculate hashsums for artifacts'
-        working-directory: artifacts
-        shell: bash
-        run: |
-          SUMS_FILE="busybar-f${U5_TARGET_HW}-sha256sum.txt"
-          find . -maxdepth 1 -type f ! -name "$SUMS_FILE" -printf '%f\0' \
-            | LC_ALL=C sort -z \
-            | xargs -0 sha256sum \
-            > "$SUMS_FILE"
+        uses: ./.github/actions/build-artifacts
+        with:
+          target_spec: ${{ matrix.target_spec }}
+          build_type: ${{ steps.names.outputs.build_profile }}
+          artifact_path: artifacts
 
       - name: 'Upload build artifacts'
         if: ${{ !github.event.pull_request.head.repo.fork && steps.build-fw.outcome == 'success' }}
         id: build-update
         run: |
-          FILES=$(for ARTIFACT in $(find artifacts -maxdepth 1 -not -type d); do echo "-F files=@${ARTIFACT}"; done)
+          ARTIFACT_DIR="${{ steps.build-fw.outputs.artifact_path }}"
+          FILE_ARGS=()
+          while IFS= read -r -d '' ARTIFACT; do
+            FILE_ARGS+=("-F" "files=@${ARTIFACT}")
+          done < <(find "$ARTIFACT_DIR" -maxdepth 1 -type f -print0)
           curl --fail -L -H "Token: ${{ secrets.INDEXER_TOKEN }}" \
               -F "branch=${BRANCH_NAME}" \
               -F "version_token=${COMMIT_SHA}" \
-              ${FILES[@]} \
+              "${FILE_ARGS[@]}" \
               "${{ secrets.INDEXER_URL }}"/busybar-firmware/uploadfiles
 
       - name: Handle u5 map files
@@ -164,7 +128,7 @@ jobs:
           issue-number: ${{ github.event.pull_request.number }}
           body: |
             **Compiled f${{ matrix.target_spec }} firmware for commit `${{steps.names.outputs.commit_sha}}`:**
-            - [📦 Update package](https://update.flipperzero.one/builds/busybar-firmware/${{steps.names.outputs.branch_name}}/busybar-f${{steps.targets.outputs.u5_target_hw}}-update-${{steps.names.outputs.suffix}}.tar)
+            - [📦 Update package](https://update.flipperzero.one/builds/busybar-firmware/${{steps.names.outputs.branch_name}}/busybar-f${{steps.build-fw.outputs.u5_target_hw}}-update-${{steps.names.outputs.suffix}}.tar)
             - [📊 Sil Size report](https://fw-reports-sil-bsb.flipp.dev/?branch=${{steps.names.outputs.branch_name}})
             - [📊 U5 Size report](https://fw-reports-bsb.flipp.dev/?branch=${{steps.names.outputs.branch_name}})
           edit-mode: replace
@@ -173,7 +137,7 @@ jobs:
         id: set-url
         if: ${{ matrix.target_spec == env.DEFAULT_TARGET_SPEC }}
         run: |
-          echo "update_url=${{ steps.names.outputs.branch_name }}/busybar-f${{ steps.targets.outputs.u5_target_hw }}-update-${{ steps.names.outputs.suffix }}.tar" >> "$GITHUB_OUTPUT"
+          echo "update_url=${{ steps.names.outputs.branch_name }}/busybar-f${{ steps.build-fw.outputs.u5_target_hw }}-update-${{ steps.names.outputs.suffix }}.tar" >> "$GITHUB_OUTPUT"
 
 
   updater-tests:
