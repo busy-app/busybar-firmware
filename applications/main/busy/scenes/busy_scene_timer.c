@@ -324,6 +324,9 @@ static void busy_scene_timer_on_enter(void* context) {
     data->timer_sub =
         furi_pubsub_subscribe(data->timer_pubsub, busy_scene_timer_pubsub_callback, instance);
 
+    data->timer_mode = BusyTimerModeMax;
+    data->prev_timer_mode = BusyTimerModeMax;
+
     if(!instance->show_timer_requested) {
         busy_timer_start(instance->busy_timer);
     }
