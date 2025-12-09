@@ -20,6 +20,7 @@ on:
 permissions:
   contents: read
   checks: write
+  id-token: write
 
 env:
   U5_HW_TARGET: ${{ inputs.target }}
@@ -72,10 +73,26 @@ jobs:
           source scripts/toolchain/fbtenv.sh
           python3 scripts/testops.py unit-tests
 
-      - name: 'Upload runner logs'
+      - name: 'Configure AWS CLI'
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: aws-actions/configure-aws-credentials@v4
         with:
-          name: runner-logs-unit-tests
-          path: /opt/logs/${{ runner.name }}/latest/runlog.log
-          if-no-files-found: warn
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: eu-central-1
+
+      - name: 'Upload runner logs to S3'
+        if: always()
+        run: |
+          RUN_ID="${{ github.run_number }}-${{ github.sha }}"
+          LOG_FILE="/opt/logs/${{ runner.name }}/latest/runlog.log"
+          S3_PATH="s3://flipper-aws-qa-tests/bsb/runner-logs/unit-tests/$RUN_ID/runlog.log"
+          PUBLIC_URL="https://flipper-aws-qa-tests.s3.eu-central-1.amazonaws.com/bsb/runner-logs/unit-tests/$RUN_ID/runlog.log"
+
+          if [ -f "$LOG_FILE" ]; then
+            aws s3 cp "$LOG_FILE" "$S3_PATH"
+            echo "## 📋 Runner Logs" >> $GITHUB_STEP_SUMMARY
+            echo "- [runlog.log]($PUBLIC_URL)" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "Log file not found: $LOG_FILE"
+          fi
