@@ -1,7 +1,11 @@
 #pragma once
 
 #include "busy_timer.h"
+#include "busy_timer_settings.h"
 
+#include <furi.h>
+
+#include <sntp/sntp.h>
 #include <toolbox/api_lock.h>
 
 #define TAG "BusyTimer"
@@ -16,7 +20,7 @@
 
 #define ENABLE_INTERVALS_DEFAULT (true)
 #define ENABLE_AUTOSTART_DEFAULT (false)
-#define ENABLE_SPEED_DEFAULT     (false)
+#define ENABLE_DEMO_MODE_DEFAULT (false)
 
 #define SPEED_MULTIPLIER (60)
 
@@ -28,18 +32,14 @@ typedef enum {
     BusyTimerMessageTypeGetState,
     BusyTimerMessageTypeGetTime,
     BusyTimerMessageTypeGetCycles,
-    BusyTimerMessageTypeSetCallback,
     BusyTimerMessageTypeAddTime,
     BusyTimerMessageTypeToggle,
     BusyTimerMessageTypeSkip,
+    BusyTimerMessageTypeGetSnapshot,
+    BusyTimerMessageTypeSetSnapshot,
 
     BusyTimerMessageTypeMax,
 } BusyTimerMessageType;
-
-typedef struct {
-    BusyTimerCallback callback;
-    void* context;
-} BusyTimerCallbackInfo;
 
 typedef union {
     BusyTimerState* state;
@@ -47,8 +47,9 @@ typedef union {
     BusyTimerCycles* cycles;
     BusyTimerConfig* config;
     const BusyTimerConfig* config_c;
-    const BusyTimerCallbackInfo* callback_info;
     int32_t add_time_mn;
+    BusyTimerSnapshot* snapshot;
+    const BusyTimerSnapshot* snapshot_c;
 } BusyTimerMessageData;
 
 typedef struct {
@@ -60,15 +61,17 @@ typedef struct {
 struct BusyTimer {
     FuriThread* thread;
     FuriEventLoop* event_loop;
-    FuriEventLoopTimer* timer;
+    FuriEventLoopTimer* poll_timer;
+    FuriEventLoopTimer* debounce_timer;
     FuriMessageQueue* message_queue;
-    BusyTimerCallback callback;
-    void* callback_context;
-    uint32_t cycles_done;
+    FuriPubSub* event_pubsub;
+    Sntp* sntp;
+    uint64_t prev_tick_timestamp_ms;
+    uint32_t current_interval_index;
     BusyTimerConfig config;
     BusyTimerTime time;
     BusyTimerMode mode;
     BusyTimerState state;
+    BusyTimerSnapshot user_snapshot;
     bool timer_running;
-    bool next_state_forced;
 };

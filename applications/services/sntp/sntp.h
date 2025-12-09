@@ -61,6 +61,14 @@ bool sntp_set_settings(Sntp* instance, const SntpSettings* settings);
  */
 time_t sntp_get_utc_timestamp(Sntp* instance);
 
+/**
+ * @brief Get UTC Unix milliseconds timestamp
+ *
+ * @param[in] instance
+ * @return 64-bit UTC Unix milliseconds timestamp
+ */
+uint64_t sntp_get_utc_timestamp_ms(Sntp* instance);
+
 #ifdef __cplusplus
 }
 #endif

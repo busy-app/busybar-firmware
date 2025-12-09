@@ -74,6 +74,34 @@ void mqtt_client_set_profile(MqttClient* mqtt, MqttClientProfile profile, char* 
     furi_string_free(url);
 }
 
+void mqtt_client_publish(
+    MqttClient* mqtt,
+    MqttQos qos,
+    const char* topic,
+    const void* data,
+    size_t data_size) {
+    furi_check(mqtt);
+    furi_check(topic);
+    furi_check(data);
+    furi_check(data_size);
+    furi_check(qos < MqttQosMax);
+
+    const MqttClientMessage msg = {
+        .type = MqttClientMessagePublish,
+        .publish =
+            {
+                .topic = topic,
+                .data = data,
+                .data_size = data_size,
+                .qos = qos,
+            },
+        .lock = api_lock_alloc_locked(),
+    };
+
+    mg_wakeup(&mqtt->mgr, mqtt->wakeup_conn_id, &msg, sizeof(MqttClientMessage));
+    api_lock_wait_unlock_and_free(msg.lock);
+}
+
 FuriPubSub* mqtt_client_get_pubsub(MqttClient* mqtt) {
     furi_assert(mqtt);
     return mqtt->event_pubsub;

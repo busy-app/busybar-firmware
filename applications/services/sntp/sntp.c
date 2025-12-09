@@ -236,6 +236,11 @@ time_t sntp_get_utc_timestamp(Sntp* instance) {
     return now;
 }
 
+uint64_t sntp_get_utc_timestamp_ms(Sntp* instance) {
+    // TODO: [FW-486] Add millisecond support to RTC
+    return sntp_get_utc_timestamp(instance) * 1000ULL;
+}
+
 int32_t sntp_srv(void* p) {
     UNUSED(p);
     Sntp* instance = sntp_alloc();

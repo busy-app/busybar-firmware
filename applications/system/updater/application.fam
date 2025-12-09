@@ -39,7 +39,10 @@ App(
     apptype=FlipperAppType.SERVICE,
     sources=[
         "updater.c",
+        "updater_settings.c",
         "helpers/rps.c",
+        "helpers/update_parser.c",
+        "update_checker/*.c",
         "session/*.c",
     ],
     entry_point="updater_srv",
