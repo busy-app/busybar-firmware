@@ -97,8 +97,6 @@ static void progress_view_lvgl_constructor(const lv_obj_class_t* class_p, lv_obj
 // Implementation
 
 static void progress_view_start_grow_animation(lv_obj_t* element) {
-    lv_obj_set_style_clip_corner(element, true, LV_PART_MAIN);
-
     lv_obj_t* shutter = lv_obj_create(element);
 
     lv_obj_set_height(shutter, LV_PCT(100));
