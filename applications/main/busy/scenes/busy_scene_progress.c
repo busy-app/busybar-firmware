@@ -1,11 +1,13 @@
 #include "../busy_i.h"
 
 #include "../widgets/progress_view.h"
+#include "../widgets/progress_counter.h"
 
 #define DONE_TRANSITION_DELAY_MS (4000)
 #define REST_TRANSITION_DELAY_MS (1500)
 
 typedef struct {
+    ProgressCounter* front_progress_counter;
     ProgressView* front_progress_view;
     RunLater* run_later;
 } BusySceneProgress;
@@ -48,22 +50,17 @@ static void busy_scene_progress_on_enter(void* context) {
     BusySceneProgress* data =
         scene_manager_get_scene_data(instance->scene_manager, BusyAppSceneIdProgress);
 
+    const BusyTimerState timer_state = busy_timer_get_state(instance->busy_timer);
+
     BusyTimerCycles timer_cycles;
     busy_timer_get_cycles(instance->busy_timer, &timer_cycles);
 
-    const uint32_t prev_interval_idx = timer_cycles.current_idx - 1;
+    const uint32_t curr_interval_idx = timer_cycles.current_idx;
+    const uint32_t prev_interval_idx = curr_interval_idx - 1;
+    const uint32_t num_cycles = timer_cycles.total_count;
 
-    with_gui(instance->gui, {
-        GuiLayer* layer = gui_get_layer(instance->gui, GuiLayerIdMain);
-        gui_layer_add_input_callback(layer, busy_scene_progress_input_callback, instance);
-
-        data->front_progress_view = progress_view_alloc(instance->front_window);
-        progress_view_set_progress(
-            data->front_progress_view, prev_interval_idx, timer_cycles.total_count, false);
-        widget_set_align(progress_view_get_base(data->front_progress_view), AlignBottomMid);
-    });
-
-    const BusyTimerState timer_state = busy_timer_get_state(instance->busy_timer);
+    uint32_t num_intervals_done;
+    uint32_t num_intervals_total;
 
     uint32_t run_later_delay;
     BusyStatusLightsType status_lights;
@@ -72,13 +69,35 @@ static void busy_scene_progress_on_enter(void* context) {
         run_later_delay = DONE_TRANSITION_DELAY_MS;
         status_lights = BusyStatusLightsTypeWork;
 
+        num_intervals_done = (curr_interval_idx + 1) / 2;
+        num_intervals_total = num_cycles;
+
     } else if(timer_state == BusyTimerStateWork) {
         run_later_delay = REST_TRANSITION_DELAY_MS;
         status_lights = BusyStatusLightsTypeRest;
 
+        num_intervals_done = curr_interval_idx / 2;
+        num_intervals_total = num_cycles - 1;
+
     } else {
         furi_crash("Invalid BusyTimerState value");
     }
+
+    with_gui(instance->gui, {
+        GuiLayer* layer = gui_get_layer(instance->gui, GuiLayerIdMain);
+        gui_layer_add_input_callback(layer, busy_scene_progress_input_callback, instance);
+
+        data->front_progress_counter = progress_counter_alloc(instance->front_window);
+        progress_counter_set_values(
+            data->front_progress_counter, num_intervals_done, num_intervals_total);
+        widget_set_align(progress_counter_get_base(data->front_progress_counter), AlignTopMid);
+        widget_set_pos_y(progress_counter_get_base(data->front_progress_counter), 3);
+
+        data->front_progress_view = progress_view_alloc(instance->front_window);
+        progress_view_set_progress(
+            data->front_progress_view, prev_interval_idx, num_cycles, false);
+        widget_set_align(progress_view_get_base(data->front_progress_view), AlignBottomMid);
+    });
 
     data->run_later = run_later(
         instance->event_loop, busy_scene_progress_run_later_callback, instance, run_later_delay);
@@ -102,6 +121,7 @@ static void busy_scene_progress_on_exit(void* context) {
         GuiLayer* layer = gui_get_layer(instance->gui, GuiLayerIdMain);
         gui_layer_remove_input_callback(layer, busy_scene_progress_input_callback);
 
+        progress_counter_free(data->front_progress_counter);
         progress_view_free(data->front_progress_view);
     });
 }
