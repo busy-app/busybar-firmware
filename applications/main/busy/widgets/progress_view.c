@@ -16,7 +16,8 @@
 #define COLOR_GREEN_3 0x00FB91
 #define COLOR_GREEN_4 0x00FB91
 
-#define COLOR_GREY 0x656C6F
+#define COLOR_GREY_1 0x656C6F
+#define COLOR_GREY_2 0x9FAAAF
 
 #define CYCLES_SHOWN_MIN (2UL)
 #define CYCLES_SHOWN_MAX (10UL)
@@ -25,6 +26,10 @@
 #define NUM_ELEMENT_STATES (2UL)
 
 #define NUM_GRADIENT_STOPS (2UL)
+
+#define GROW_ANIM_DURATION_MS    (833)
+#define BLINK_ANIM_DURATION_1_MS (500)
+#define BLINK_ANIM_DURATION_2_MS (1500)
 
 struct ProgressView {
     Widget base;
@@ -38,20 +43,12 @@ static const uint32_t element_color_hl[NUM_ELEMENT_STATES][NUM_GRADIENT_STOPS];
 
 // LVGL-specific code
 
-// void progress_view_lvgl_grow_anim_exec_callback(lv_anim_t* anim, int32_t value) {
-//     furi_assert(anim);
-//     ProgressView* instance = anim->var;
-//
-//     const int32_t done_bar_width = MAX(value - 1, 0);
-//     lv_obj_set_width(instance->done_bar, done_bar_width);
-//
-//     const int32_t end_value = anim->end_value;
-//
-//     if(end_value < lv_obj_get_width(lv_obj_get_parent(instance->done_bar))) {
-//         const int32_t next_bar_width = 2 * end_value - (done_bar_width + anim->start_value);
-//         lv_obj_set_width(instance->next_bar, next_bar_width);
-//     }
-// }
+void progress_view_lvgl_grow_anim_exec_callback(void* context, int32_t value) {
+    furi_assert(context);
+    lv_obj_t* shutter = context;
+
+    lv_obj_set_width(shutter, lv_pct(value));
+}
 
 static void progress_view_lvgl_update_blink_anim_params(lv_anim_t* anim) {
     if(anim->reverse_play_in_progress) {
@@ -79,8 +76,8 @@ void progress_view_lvgl_blink_anim_exec_callback(lv_anim_t* anim, int32_t value)
 
     const uint32_t* const colors = lv_obj_get_user_data(block);
 
-    const lv_color_t c1 = lv_color_mix(lv_color_hex(colors[0]), lv_color_hex(COLOR_GREY), value);
-    const lv_color_t c2 = lv_color_mix(lv_color_hex(colors[1]), lv_color_hex(COLOR_GREY), value);
+    const lv_color_t c1 = lv_color_mix(lv_color_hex(colors[0]), lv_color_hex(COLOR_GREY_1), value);
+    const lv_color_t c2 = lv_color_mix(lv_color_hex(colors[1]), lv_color_hex(COLOR_GREY_1), value);
 
     lv_obj_set_style_bg_color(block, c1, LV_PART_MAIN);
     lv_obj_set_style_bg_grad_color(block, c2, LV_PART_MAIN);
@@ -99,41 +96,34 @@ static void progress_view_lvgl_constructor(const lv_obj_class_t* class_p, lv_obj
 
 // Implementation
 
-// static void
-//     progress_view_start_grow_animation(ProgressView* instance, int32_t done, int32_t total) {
-//     const int32_t total_width = lv_obj_get_width(lv_obj_get_parent(instance->done_bar));
-//     const int32_t sector_width = total_width / total;
-//     const int32_t done_width = done * total_width / total;
-//     const int32_t prev_done_width = done_width - sector_width;
-//
-//     lv_anim_t anim;
-//     lv_anim_init(&anim);
-//
-//     lv_anim_set_values(&anim, prev_done_width, done_width);
-//     lv_anim_set_duration(&anim, 500);
-//     lv_anim_set_delay(&anim, 500);
-//     if(done < total) {
-//         lv_anim_set_bezier3_param(
-//             &anim,
-//             LV_BEZIER_VAL_FLOAT(0.37F),
-//             LV_BEZIER_VAL_FLOAT(0.0F),
-//             LV_BEZIER_VAL_FLOAT(0.3F),
-//             LV_BEZIER_VAL_FLOAT(1.78F));
-//     } else {
-//         lv_anim_set_bezier3_param(
-//             &anim,
-//             LV_BEZIER_VAL_FLOAT(0.37F),
-//             LV_BEZIER_VAL_FLOAT(0.0F),
-//             LV_BEZIER_VAL_FLOAT(0.3F),
-//             LV_BEZIER_VAL_FLOAT(1.4F));
-//     }
-//     lv_anim_set_path_cb(&anim, lv_anim_path_custom_bezier3);
-//     lv_anim_set_custom_exec_cb(&anim, progress_view_lvgl_grow_anim_exec_callback);
-//     lv_anim_set_var(&anim, instance);
-//
-//     lv_anim_start(&anim);
-// }
+static void progress_view_start_grow_animation(lv_obj_t* block) {
+    lv_obj_set_style_clip_corner(block, true, LV_PART_MAIN);
 
+    lv_obj_t* shutter = lv_obj_create(block);
+
+    lv_obj_set_height(shutter, LV_PCT(100));
+    lv_obj_set_style_bg_opa(shutter, LV_OPA_COVER, LV_PART_MAIN);
+    lv_obj_set_style_bg_color(shutter, lv_color_hex(COLOR_GREY_2), LV_PART_MAIN);
+    lv_obj_set_style_bg_grad_color(shutter, lv_color_hex(COLOR_GREY_1), LV_PART_MAIN);
+    lv_obj_set_style_bg_grad_dir(shutter, LV_GRAD_DIR_HOR, LV_PART_MAIN);
+    lv_obj_set_style_align(shutter, LV_ALIGN_TOP_RIGHT, LV_PART_MAIN);
+
+    lv_anim_t anim;
+    lv_anim_init(&anim);
+    // Animating shutter width from 100 to 0 percent
+    lv_anim_set_values(&anim, 100, 0);
+    lv_anim_set_duration(&anim, GROW_ANIM_DURATION_MS);
+    lv_anim_set_bezier3_param(
+        &anim,
+        LV_BEZIER_VAL_FLOAT(0.5F),
+        LV_BEZIER_VAL_FLOAT(0.0F),
+        LV_BEZIER_VAL_FLOAT(1.0F),
+        LV_BEZIER_VAL_FLOAT(0.5F));
+    lv_anim_set_path_cb(&anim, lv_anim_path_custom_bezier3);
+    lv_anim_set_exec_cb(&anim, progress_view_lvgl_grow_anim_exec_callback);
+    lv_anim_set_var(&anim, shutter);
+    lv_anim_start(&anim);
+}
 static void progress_view_start_blink_animation(lv_obj_t* block, const uint32_t* const colors) {
     lv_obj_set_user_data(block, (void*)colors);
 
@@ -144,8 +134,8 @@ static void progress_view_start_blink_animation(lv_obj_t* block, const uint32_t*
 
     lv_anim_set_repeat_count(&anim, LV_ANIM_REPEAT_INFINITE);
     lv_anim_set_values(&anim, LV_OPA_TRANSP, LV_OPA_COVER);
-    lv_anim_set_duration(&anim, 500);
-    lv_anim_set_reverse_duration(&anim, 1500);
+    lv_anim_set_duration(&anim, BLINK_ANIM_DURATION_1_MS);
+    lv_anim_set_reverse_duration(&anim, BLINK_ANIM_DURATION_2_MS);
     lv_anim_set_path_cb(&anim, lv_anim_path_custom_bezier3);
     lv_anim_set_custom_exec_cb(&anim, progress_view_lvgl_blink_anim_exec_callback);
     lv_anim_set_var(&anim, block);
@@ -202,19 +192,23 @@ void progress_view_set_progress(
 
             if(wait_next) {
                 c1 = lv_color_darken(c1, LV_OPA_50);
-                c2 = lv_color_darken(c1, LV_OPA_50);
+                c2 = lv_color_darken(c2, LV_OPA_50);
             }
 
             lv_obj_set_style_bg_color(block, c1, LV_PART_MAIN);
             lv_obj_set_style_bg_grad_color(block, c2, LV_PART_MAIN);
             lv_obj_set_style_bg_grad_dir(block, LV_GRAD_DIR_VER, LV_PART_MAIN);
 
+            if(!wait_next && i == interval_idx) {
+                progress_view_start_grow_animation(block);
+            }
+
         } else if(wait_next && i == interval_idx + 1) {
             const uint32_t* const colors = element_color_hl[state_idx];
             progress_view_start_blink_animation(block, colors);
 
         } else {
-            lv_obj_set_style_bg_color(block, lv_color_hex(COLOR_GREY), LV_PART_MAIN);
+            lv_obj_set_style_bg_color(block, lv_color_hex(COLOR_GREY_1), LV_PART_MAIN);
         }
     }
 }
@@ -230,7 +224,7 @@ const lv_obj_class_t progress_view_lvgl_class = {
     .instance_size = sizeof(ProgressView),
 };
 
-// Blah
+// Element parameters
 
 static const uint8_t element_width[NUM_ELEMENT_SIZES][NUM_ELEMENT_STATES] = {
     {31, 8},
