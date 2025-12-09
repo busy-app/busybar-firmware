@@ -1109,8 +1109,13 @@ paths:
           required: true
           schema:
             type: string
-            enum: ["dev", "prod", "local"]
+            enum: ["dev", "prod", "local", "custom"]
           example: "dev"
+        - name: custom_url
+          in: query
+          schema:
+            type: string
+            example: "mqtts://mqtt.example.com:8883"
       responses:
         "200":
           description: Set successfully
@@ -1741,7 +1746,10 @@ components:
         state:
           type: string
           example: "dev"
-          enum: ["dev", "prod", "local"]
+          enum: ["dev", "prod", "local", "custom"]
+        custom_url:
+          type: string
+          example: "mqtts://mqtt.example.com:8883"
 
     AccountLink:
       type: object

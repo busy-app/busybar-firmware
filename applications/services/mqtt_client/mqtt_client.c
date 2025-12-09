@@ -22,6 +22,7 @@ static struct {
     [MqttClientProfileProd] =
         {.url = "mqtts://mqtt.cloud.dev.busy.app:8883", .use_tls = true}, // TODO: prod server
     [MqttClientProfileLocal] = {.url = "mqtt://10.0.4.21:1883", .use_tls = false},
+    [MqttClientProfileCustom] = {.url = "", .use_tls = false},
 };
 
 static void mqtt_connect_callback(void* data);
@@ -164,12 +165,9 @@ static void mqtt_event_handler(struct mg_connection* conn, int ev, void* ev_data
             return;
         }
         if(mqtt->use_tls) {
-            const struct mg_str name = mg_url_host(mqtt->server_addr);
-            const MqttTlsCfg opts = {
-                .name = name,
-                .ca = mg_str(mqtt->ca_bundle),
-            };
-            if(!mqtt_tls_init(conn, &opts)) {
+            const struct mg_str name = mg_url_host(furi_string_get_cstr(mqtt->server_addr));
+            bool custom_certs = (mqtt->profile_id == MqttClientProfileCustom);
+            if(!mqtt_tls_init(conn, name, mg_str(mqtt->ca_bundle), custom_certs)) {
                 conn->is_draining = 1;
                 mqtt->status = MqttClientStatusError;
                 return;
@@ -286,7 +284,7 @@ static void mqtt_connect_callback(void* data) {
 
     mg_timer_free(&mqtt->mgr.timers, &mqtt->reconnect_delay_timer);
 
-    FURI_LOG_D(TAG, "Connecting to %s ...", mqtt->server_addr);
+    FURI_LOG_D(TAG, "Connecting to %s ...", furi_string_get_cstr(mqtt->server_addr));
 
     FuriString* username =
         furi_string_alloc_printf("BusyBar device %s", furi_string_get_cstr(mqtt->device_serial));
@@ -299,7 +297,11 @@ static void mqtt_connect_callback(void* data) {
         .keepalive = 0,
         .version = 5,
     };
-    mqtt->conn = mg_mqtt_connect(&mqtt->mgr, mqtt->server_addr, &opts, mqtt_event_handler, mqtt);
+    mqtt->conn = mg_mqtt_connect(
+        &mqtt->mgr, furi_string_get_cstr(mqtt->server_addr), &opts, mqtt_event_handler, mqtt);
+    if(!mqtt->conn) {
+        mqtt->status = MqttClientStatusError;
+    }
 
     furi_string_free(username);
 }
@@ -373,6 +375,22 @@ static bool mqtt_client_load_ca_bundle(MqttClient* mqtt) {
     return success;
 }
 
+static void mqtt_client_load_profile(MqttClient* mqtt, MqttClientProfile profile) {
+    if(profile == MqttClientProfileCustom) {
+        furi_assert(
+            json_config_read_single_str(CONFIG_FILE, "custom_url", mqtt->server_addr, "") !=
+            JsonConfigStatusError);
+        if(furi_string_start_with(mqtt->server_addr, "mqtts://")) {
+            mqtt->use_tls = true;
+        } else {
+            mqtt->use_tls = false;
+        }
+    } else {
+        furi_string_set(mqtt->server_addr, server_profiles[mqtt->profile_id].url);
+        mqtt->use_tls = server_profiles[mqtt->profile_id].use_tls;
+    }
+}
+
 static void mqtt_conn_wakeup_callback(struct mg_connection* conn, int ev, void* ev_data) {
     if(ev != MG_EV_WAKEUP) return;
     MqttClient* mqtt = conn->fn_data;
@@ -431,16 +449,22 @@ static void mqtt_conn_wakeup_callback(struct mg_connection* conn, int ev, void* 
         }
         break;
     case MqttClientMessageGetProfile:
-        furi_assert(msg->profile);
-        *msg->profile = mqtt->profile_id;
+        furi_assert(msg->profile.id);
+        *msg->profile.id = mqtt->profile_id;
+        if(msg->profile.custom_url) {
+            json_config_read_single_str(CONFIG_FILE, "custom_url", msg->profile.custom_url, "");
+        }
         break;
     case MqttClientMessageSetProfile:
-        furi_assert(msg->profile);
-        furi_assert(*msg->profile < MqttClientProfileMax);
-        json_config_write_single_int(CONFIG_FILE, "profile", *msg->profile);
-        mqtt->profile_id = *msg->profile;
-        mqtt->server_addr = server_profiles[mqtt->profile_id].url;
-        mqtt->use_tls = server_profiles[mqtt->profile_id].use_tls;
+        furi_assert(msg->profile.id);
+        furi_assert(*msg->profile.id < MqttClientProfileMax);
+        json_config_write_single_int(CONFIG_FILE, "profile", *msg->profile.id);
+        if((msg->profile.custom_url) && (*msg->profile.id == MqttClientProfileCustom)) {
+            json_config_write_single_str(
+                CONFIG_FILE, "custom_url", furi_string_get_cstr(msg->profile.custom_url));
+        }
+        mqtt->profile_id = *msg->profile.id;
+        mqtt_client_load_profile(mqtt, mqtt->profile_id);
         if(mqtt->conn) {
             mqtt->conn->is_draining = 1;
         }
@@ -462,6 +486,7 @@ int32_t mqtt_client_start(void* p) {
     mqtt->status = MqttClientStatusNotConnected;
     mqtt->ping_enabled = false;
 
+    mqtt->server_addr = furi_string_alloc();
     int default_profile = MqttClientProfileDev;
     furi_assert(
         json_config_read_single_int(CONFIG_FILE, "profile", &mqtt->profile_id, &default_profile) !=
@@ -472,8 +497,7 @@ int32_t mqtt_client_start(void* p) {
             JsonConfigStatusError);
         mqtt->profile_id = default_profile;
     }
-    mqtt->server_addr = server_profiles[mqtt->profile_id].url;
-    mqtt->use_tls = server_profiles[mqtt->profile_id].use_tls;
+    mqtt_client_load_profile(mqtt, mqtt->profile_id);
 
     mqtt->device_serial = furi_string_alloc();
     furi_hal_version_get_uid_str(mqtt->device_serial);
@@ -502,19 +526,16 @@ int32_t mqtt_client_start(void* p) {
 
     Wifi* wifi = furi_record_open(RECORD_WIFI);
     furi_state_subscribe(wifi_get_state(wifi), mqtt_wifi_event_callback, mqtt);
-    mqtt->is_wifi_up = false;
 
     mqtt->reconnect_delay = MQTT_RECONNECT_DELAY_MIN;
 
-    if((mqtt->status != MqttClientStatusError) && (mqtt->is_wifi_up)) {
-        mg_timer_init(
-            &mqtt->mgr.timers,
-            &mqtt->reconnect_delay_timer,
-            mqtt->reconnect_delay,
-            MG_TIMER_ONCE | MG_TIMER_RUN_NOW,
-            mqtt_connect_callback,
-            mqtt);
-    }
+    mg_timer_init(
+        &mqtt->mgr.timers,
+        &mqtt->reconnect_delay_timer,
+        mqtt->reconnect_delay,
+        MG_TIMER_ONCE | MG_TIMER_RUN_NOW,
+        mqtt_connect_callback,
+        mqtt);
 
     // Event loop
     while(1) {

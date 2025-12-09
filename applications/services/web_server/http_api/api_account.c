@@ -3,7 +3,8 @@
 
 #define TAG "HttpAccount"
 
-#define LINK_TIMEOUT 3000
+#define CUSTOM_URL_LEN_MAX 64
+#define LINK_TIMEOUT       3000
 
 static bool http_api_account_get_info(
     FuriString* path,
@@ -222,24 +223,33 @@ static bool http_api_account_mqtt_profile(
     if(!IS_HTTP_ENDPOINT(path)) return false;
 
     if(mg_match(msg->method, mg_str("GET"), NULL)) {
+        FuriString* url = furi_string_alloc();
         MqttClient* mqtt = furi_record_open(RECORD_MQTT);
-        MqttClientProfile profile_id = mqtt_client_get_profile(mqtt);
+        MqttClientProfile profile_id = mqtt_client_get_profile(mqtt, url);
         furi_record_close(RECORD_MQTT);
 
         if(profile_id == MqttClientProfileProd) {
             MG_REPLY_OK_BODY(conn, "{\"profile\":\"%s\"}\n", "prod");
         } else if(profile_id == MqttClientProfileDev) {
             MG_REPLY_OK_BODY(conn, "{\"profile\":\"%s\"}\n", "dev");
-        } else {
+        } else if(profile_id == MqttClientProfileLocal) {
             MG_REPLY_OK_BODY(conn, "{\"profile\":\"%s\"}\n", "local");
+        } else {
+            MG_REPLY_OK_BODY(
+                conn,
+                "{\"profile\":\"%s\",\"custom_url\":\"%s\"}\n",
+                "custom",
+                furi_string_get_cstr(url));
         }
+
+        furi_string_free(url);
 
     } else if(mg_match(msg->method, mg_str("POST"), NULL)) {
         bool success = false;
         do {
             if(msg->query.len == 0) break;
 
-            char temp_str[8];
+            char temp_str[CUSTOM_URL_LEN_MAX];
             int var_len = mg_http_get_var(&msg->query, "profile", temp_str, sizeof(temp_str));
             if(var_len <= 0) break;
 
@@ -250,11 +260,15 @@ static bool http_api_account_mqtt_profile(
                 profile_id = MqttClientProfileDev;
             } else if(strncmp("local", temp_str, var_len) == 0) {
                 profile_id = MqttClientProfileLocal;
+            } else if(strncmp("custom", temp_str, var_len) == 0) {
+                profile_id = MqttClientProfileCustom;
+                var_len = mg_http_get_var(&msg->query, "custom_url", temp_str, sizeof(temp_str));
+                if(var_len <= 0) break;
             } else
                 break;
 
             MqttClient* mqtt = furi_record_open(RECORD_MQTT);
-            mqtt_client_set_profile(mqtt, profile_id);
+            mqtt_client_set_profile(mqtt, profile_id, temp_str);
             furi_record_close(RECORD_MQTT);
 
             success = true;

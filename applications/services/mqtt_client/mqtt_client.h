@@ -17,6 +17,7 @@ typedef enum {
     MqttClientProfileDev = 0,
     MqttClientProfileProd,
     MqttClientProfileLocal,
+    MqttClientProfileCustom,
 
     MqttClientProfileMax
 } MqttClientProfile;
@@ -48,5 +49,5 @@ void mqtt_client_get_session_info(
     FuriString* id,
     FuriString* email,
     FuriString* user_id);
-MqttClientProfile mqtt_client_get_profile(MqttClient* mqtt);
-void mqtt_client_set_profile(MqttClient* mqtt, MqttClientProfile profile);
+MqttClientProfile mqtt_client_get_profile(MqttClient* mqtt, FuriString* custom_url);
+void mqtt_client_set_profile(MqttClient* mqtt, MqttClientProfile profile, char* custom_url);

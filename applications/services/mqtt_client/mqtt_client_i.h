@@ -21,7 +21,7 @@ struct MqttClient {
     struct mg_connection* conn;
 
     int profile_id;
-    char* server_addr;
+    FuriString* server_addr;
     bool use_tls;
 
     struct mg_timer reconnect_delay_timer;
@@ -63,7 +63,10 @@ typedef struct {
     union {
         MqttClientStatus* status;
         bool* bool_param;
-        MqttClientProfile* profile;
+        struct {
+            MqttClientProfile* id;
+            FuriString* custom_url;
+        } profile;
         struct {
             FuriString* id;
             FuriString* email;
@@ -73,11 +76,6 @@ typedef struct {
         WifiState wifi_state;
     };
 } MqttClientMessage;
-
-typedef struct {
-    struct mg_str ca;
-    struct mg_str name;
-} MqttTlsCfg;
 
 void mqtt_topics_subscribe(MqttClient* mqtt);
 void mqtt_topics_on_message(MqttClient* mqtt, FuriString* topic_str, struct mg_mqtt_message* msg);
@@ -91,5 +89,9 @@ void mqtt_screen_streaming_on_message(
     struct mg_mqtt_message* msg);
 void mqtt_screen_streaming_on_close(MqttClient* mqtt);
 
-bool mqtt_tls_init(struct mg_connection* conn, const MqttTlsCfg* opts);
+bool mqtt_tls_init(
+    struct mg_connection* conn,
+    struct mg_str name,
+    struct mg_str ca,
+    bool custom_certs);
 void mqtt_tls_free_ca(struct mg_connection* conn);
