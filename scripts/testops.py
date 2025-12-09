@@ -469,6 +469,27 @@ class BusyBarDevice:
             res = tn.run("uptime", timeout=timeout)
             return res.ok, (res.stdout or "(No output received)")
 
+    def debug_set(self, enable: bool, timeout: int) -> Tuple[bool, str]:
+        """
+        Runs 'sysctl debug 1' or 'sysctl debug 0' and checks for expected response.
+
+        Args:
+            enable: True to enable debug, False to disable
+            timeout: Command timeout in seconds
+
+        Returns:
+            Tuple of (success, output_message)
+        """
+        cmd = "sysctl debug 1" if enable else "sysctl debug 0"
+        expected = "Debug enabled" if enable else "Debug disabled"
+
+        with self._telnet(timeout=timeout) as tn:
+            res = tn.run(cmd, timeout=timeout)
+            output = res.stdout or ""
+            if expected in output:
+                return True, output
+            return False, f"Debug {'enable' if enable else 'disable'} failed. Output: {output}"
+
     def send_tar(
         self,
         tar_path: str,
@@ -810,6 +831,21 @@ class BusyBarTestOps:
         p_uptime.add_argument("-t", "--timeout", type=int, default=10, help="Timeout in seconds (default: 10)")
         p_uptime.set_defaults(func=self._cmd_uptime)
 
+        p_debug = subparsers.add_parser(
+            "debug",
+            help="Enable or disable debug mode via telnet",
+            description="Runs 'sysctl debug 1' or 'sysctl debug 0' and verifies the response",
+        )
+        p_debug.add_argument(
+            "state",
+            choices=["on", "off", "1", "0"],
+            help="Debug state: on/1 to enable, off/0 to disable"
+        )
+        p_debug.add_argument("--host", default=self.default_host, help="Device IP/host")
+        p_debug.add_argument("--telnet-port", type=int, default=self.default_port, help="Telnet port (default: 23)")
+        p_debug.add_argument("-t", "--timeout", type=int, default=10, help="Timeout in seconds (default: 10)")
+        p_debug.set_defaults(func=self._cmd_debug)
+
         p_format = subparsers.add_parser(
             "storage-format",
             help="Format storage partition (with automatic confirmation)",
@@ -1005,6 +1041,17 @@ class BusyBarTestOps:
             print("Failed to get uptime", file=sys.stderr)
             return 1
         print(msg if msg else "(No output received)")
+        return 0
+
+    def _cmd_debug(self, args: argparse.Namespace) -> int:
+        device = self._make_device_from_args(args.host, args.telnet_port, args.timeout)
+        enable = args.state in ("on", "1")
+        ok, msg = device.debug_set(enable=enable, timeout=args.timeout)
+        if not ok:
+            print(f"Failed to {'enable' if enable else 'disable'} debug", file=sys.stderr)
+            print(msg, file=sys.stderr)
+            return 1
+        print(msg if msg else f"Debug {'enabled' if enable else 'disabled'}")
         return 0
 
     def _cmd_storage_format(self, args: argparse.Namespace) -> int:

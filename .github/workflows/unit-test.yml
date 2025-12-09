@@ -30,6 +30,7 @@ env:
 jobs:
   unit-tests:
     runs-on: BusyBarTest
+    timeout-minutes: 20
     steps:
       - name: 'Checkout code at the build’s commit'
         uses: actions/checkout@v4
@@ -51,10 +52,12 @@ jobs:
 
       - name: 'Flash firmware'
         id: flashing
-        timeout-minutes: 20
         run: |
           set -euo pipefail
           source scripts/toolchain/fbtenv.sh
+          python3 scripts/testops.py power reboot
+          python3 scripts/testops.py wait -t 20
+          python3 scripts/testops.py debug 1
           python3 scripts/testops.py format --no-confirm
           python3 scripts/testops.py update-fw unittests/busybar-f${{ inputs.target }}-update-unittests.tar
           python3 scripts/testops.py wait -t 280
@@ -67,7 +70,6 @@ jobs:
           python3 scripts/testops.py sanity
 
       - name: 'Run units'
-        timeout-minutes: 2
         run: |
           set -euo pipefail
           source scripts/toolchain/fbtenv.sh
@@ -87,12 +89,11 @@ jobs:
           RUN_ID="${{ github.run_number }}-${{ github.sha }}"
           LOG_FILE="/opt/logs/${{ runner.name }}/latest/runlog.log"
           S3_PATH="s3://flipper-aws-qa-tests/bsb/runner-logs/unit-tests/$RUN_ID/runlog.log"
-          PUBLIC_URL="https://flipper-aws-qa-tests.s3.eu-central-1.amazonaws.com/bsb/runner-logs/unit-tests/$RUN_ID/runlog.log"
 
           if [ -f "$LOG_FILE" ]; then
             aws s3 cp "$LOG_FILE" "$S3_PATH"
             echo "## 📋 Runner Logs" >> $GITHUB_STEP_SUMMARY
-            echo "- [runlog.log]($PUBLIC_URL)" >> $GITHUB_STEP_SUMMARY
+            echo "- [runlog.log]($S3_PATH)" >> $GITHUB_STEP_SUMMARY
           else
             echo "Log file not found: $LOG_FILE"
           fi

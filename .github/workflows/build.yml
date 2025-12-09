@@ -24,7 +24,7 @@ jobs:
         target_spec: ["21_64", "22_65"]
     outputs:
       default_target_spec: ${{ env.DEFAULT_TARGET_SPEC }}
-      bundle_target_spec: ${{ steps.build-fw.outputs.u5_target_hw }}
+      bundle_target_spec: ${{ steps.set-url.outputs.target }}
       update_url: ${{ steps.set-url.outputs.update_url }}
 
     steps:
@@ -138,6 +138,7 @@ jobs:
         if: ${{ matrix.target_spec == env.DEFAULT_TARGET_SPEC }}
         run: |
           echo "update_url=${{ steps.names.outputs.branch_name }}/busybar-f${{ steps.build-fw.outputs.u5_target_hw }}-update-${{ steps.names.outputs.suffix }}.tar" >> "$GITHUB_OUTPUT"
+          echo "target=${{ steps.build-fw.outputs.u5_target_hw }}" >> "$GITHUB_OUTPUT"
 
 
   updater-tests:
@@ -149,3 +150,4 @@ jobs:
       commit_sha: ${{ github.event.pull_request.head.sha }}
       update_url: ${{ needs.build.outputs.update_url }}
       target: ${{ needs.build.outputs.bundle_target_spec }}
+    secrets: inherit
