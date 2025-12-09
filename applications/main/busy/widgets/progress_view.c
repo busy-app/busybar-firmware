@@ -123,8 +123,8 @@ static void progress_view_start_blink_animation(lv_obj_t* block, const uint32_t*
 
     lv_anim_set_repeat_count(&anim, LV_ANIM_REPEAT_INFINITE);
     lv_anim_set_values(&anim, LV_OPA_TRANSP, LV_OPA_COVER);
-    lv_anim_set_duration(&anim, 1000);
-    lv_anim_set_reverse_duration(&anim, 1000);
+    lv_anim_set_duration(&anim, 500);
+    lv_anim_set_reverse_duration(&anim, 1500);
     lv_anim_set_path_cb(&anim, lv_anim_path_linear);
     lv_anim_set_exec_cb(&anim, progress_view_lvgl_blink_anim_exec_callback);
     lv_anim_set_var(&anim, block);
