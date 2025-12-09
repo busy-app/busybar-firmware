@@ -43,8 +43,6 @@ jobs:
           URL="https://update.flipperzero.one/builds/busybar-firmware/${{ inputs.update_url }}"
           echo "Using URL: $URL"
           curl --fail -L -o busybar-f${{ env.U5_HW_TARGET }}-update.tar "$URL"
-          mkdir -p update_bundle
-          tar -xf busybar-f${{ env.U5_HW_TARGET }}-update.tar -C update_bundle
 
       - name: 'Flash firmware'
         id: flashing
@@ -53,8 +51,7 @@ jobs:
           set -euo pipefail
           source scripts/toolchain/fbtenv.sh
           python3 scripts/testops.py format --no-confirm
-          python3 scripts/storage.py -p 10.0.4.20 send update_bundle /ext/tmp/upd_bundle
-          python3 scripts/testops.py update-bundle /ext/tmp/upd_bundle/update.json
+          python3 scripts/testops.py update-fw busybar-f${{ env.U5_HW_TARGET }}-update.tar
           python3 scripts/testops.py wait -t 260
 
       - name: 'Check that both cores are available (post-flash)'
@@ -71,8 +68,7 @@ jobs:
         run: |
           set -euo pipefail
           source scripts/toolchain/fbtenv.sh
-          python3 scripts/storage.py -p 10.0.4.20 send update_bundle /ext/tmp/upd_bundle
-          python3 scripts/testops.py update-bundle /ext/tmp/upd_bundle/update.json
+          python3 scripts/testops.py update-fw unittests/busybar-f${{ env.U5_HW_TARGET }}-update-unittests.tar
           python3 scripts/testops.py wait -t 260
 
       - name: 'Check that both cores are available (post-update)'

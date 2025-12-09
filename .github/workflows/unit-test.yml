@@ -47,8 +47,6 @@ jobs:
           echo "Using URL: $URL"
           curl --fail -L -o busybar-f${{ inputs.target }}-unittests.zip "$URL"
           unzip -q busybar-f${{ inputs.target }}-unittests.zip -d unittests
-          cd unittests && mkdir -p update_bundle
-          tar -xf busybar-f${{ inputs.target }}-update-unittests.tar -C update_bundle
 
       - name: 'Flash firmware'
         id: flashing
@@ -57,8 +55,7 @@ jobs:
           set -euo pipefail
           source scripts/toolchain/fbtenv.sh
           python3 scripts/testops.py format --no-confirm
-          python3 scripts/storage.py -p 10.0.4.20 send unittests/update_bundle /ext/tmp/upd_bundle
-          python3 scripts/testops.py update-bundle /ext/tmp/upd_bundle/update.json
+          python3 scripts/testops.py update-fw unittests/busybar-f${{ inputs.target }}-update-unittests.tar
           python3 scripts/testops.py wait -t 280
 
       - name: 'Check that both cores are available (post-flash)'
