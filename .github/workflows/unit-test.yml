@@ -1,82 +1,65 @@
 name: 'Unit tests'
 
 on:
-  push:
-    branches:
-      - dev
-    tags:
-      - '*'
-  pull_request:
+  workflow_call:
+    inputs:
+      branch_name:
+        required: true
+        type: string
+      commit_sha:
+        required: true
+        type: string
+      update_url:
+        required: true
+        type: string
+      target:
+        required: false
+        type: string
+        default: '21'
 
 permissions:
   contents: read
   checks: write
 
 env:
+  U5_HW_TARGET: ${{ inputs.target }}
   FBT_GIT_SUBMODULE_SHALLOW: 0
-  DEFAULT_TARGET_SPEC: 21_64
   FBT_TOOLCHAIN_PATH: /runner/_work
 
 jobs:
   unit-tests:
     runs-on: BusyBarTest
     steps:
-
-      - name: "Configure targets"
-        id: targets
-        run: |
-          U5_TARGET=$(echo "${{ env.DEFAULT_TARGET_SPEC}}" | cut -d_ -f1 | sed 's/f//')
-          SIL_TARGET=$(echo "${{ env.DEFAULT_TARGET_SPEC }}" | cut -d_ -f2 | sed 's/f//')
-          echo "U5_TARGET_HW=${U5_TARGET}" >> $GITHUB_ENV
-          echo "SIL_TARGET_HW=${SIL_TARGET}" >> $GITHUB_ENV
-          echo "u5_target_hw=${U5_TARGET}"  >> $GITHUB_OUTPUT
-          echo "sil_target_hw=${U5_TARGET}"  >> $GITHUB_OUTPUT
-
-
-
-      - name: 'Checkout code'
+      - name: 'Checkout code at the build’s commit'
         uses: actions/checkout@v4
         with:
-          ref: ${{ github.event.pull_request.head.sha }}
+          ref: ${{ inputs.commit_sha }}
           fetch-depth: 2
-          token: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: 'Configure Git and LFS for submodules'
-        run: |
-          # Configure Git LFS
-          git lfs install --skip-smudge
-
-          # Set up authentication for GitHub repositories at repo level
-          echo "https://x-access-token:${GH_TOKEN}@github.com" > ~/.git-credentials
-          git config credential.helper 'store --file ~/.git-credentials'
-
-          # Configure LFS settings
-          git config lfs.transfer.maxretries 3
 
       - name: 'Update submodules'
         run: |
-          git submodule update --init --recursive --jobs=$(nproc) scripts/toolchain fbt_layers/fbtng || (git lfs logs last && exit 1)
+          git submodule update --init --recursive --jobs=$(nproc) scripts/toolchain fbt_layers/fbtng
 
-      - name: 'Build unit test firmware'
+      - name: 'Download unit test package'
         run: |
           set -euo pipefail
-          source ./scripts/toolchain/fbtenv.sh
-          export FBT_GIT_SUBMODULE_SHALLOW=1
-          bash ./fbt FIRMWARE_APP_SET=unit_tests
+          URL="https://update.flipperzero.one/builds/busybar-firmware/${{ inputs.update_url }}"
+          echo "Using URL: $URL"
+          curl --fail -L -o busybar-f${{ inputs.target }}-unittests.zip "$URL"
+          unzip -q busybar-f${{ inputs.target }}-unittests.zip -d unittests
+          cd unittests && mkdir -p update_bundle
+          tar -xf busybar-f${{ inputs.target }}-update-unittests.tar -C update_bundle
 
-      - name: 'Flash unit tests firmware'
-        if: success()
+      - name: 'Flash firmware'
         id: flashing
-        timeout-minutes: 10
+        timeout-minutes: 20
         run: |
           set -euo pipefail
           source scripts/toolchain/fbtenv.sh
           python3 scripts/testops.py format --no-confirm
-          mkdir -p update_bundle
-          tar -xf dist/f${U5_TARGET_HW}-D/busybar-f${U5_TARGET_HW}-update-local.tar -C update_bundle
-          python3 scripts/storage.py -p 10.0.4.20 send update_bundle /ext/tmp/upd_bundle
+          python3 scripts/storage.py -p 10.0.4.20 send unittests/update_bundle /ext/tmp/upd_bundle
           python3 scripts/testops.py update-bundle /ext/tmp/upd_bundle/update.json
-          python3 scripts/testops.py wait -t 240
+          python3 scripts/testops.py wait -t 280
 
       - name: 'Check that both cores are available (post-flash)'
         if: steps.flashing.outcome == 'success'
@@ -91,3 +74,11 @@ jobs:
           set -euo pipefail
           source scripts/toolchain/fbtenv.sh
           python3 scripts/testops.py unit-tests
+
+      - name: 'Upload runner logs'
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: runner-logs-unit-tests
+          path: /opt/logs/${{ runner.name }}/latest/runlog.log
+          if-no-files-found: warn

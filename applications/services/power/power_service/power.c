@@ -2,6 +2,8 @@
 #include <toolbox/dsp.h>
 #include <drivers/bq25798/bq25798.h>
 
+#include <furi_hal_nvm.h>
+
 #define TAG "Power"
 
 #define POWER_IRQ_GPIO (&gpio_bq25798_irq)
@@ -377,6 +379,11 @@ static void power_update_info(Power* power) {
     }
 #endif
 
+    if(power->shipping_mode_wait && !status.vbus_present) {
+        FURI_LOG_I(TAG, "Entering shipping mode...");
+        power_handle_shutdown(power, false);
+    }
+
     if((power->state.battery_ready == false) && (status.vbat_present_stat == true)) {
         power->state.battery_ready = true;
         power_pubsub_publish(power, PowerEventBatteryPresent);
@@ -524,6 +531,22 @@ void power_run(Power* power) {
     bq25798_set_charge_current_limit(POWER_I2C, power->charger_current_limit);
     bq25798_set_charge_voltage_limit(POWER_I2C, POWER_CHARGE_VOLTAGE);
     furi_hal_i2c_release(POWER_I2C);
+
+#ifndef FURI_RAM_EXEC
+    if(furi_hal_nvm_is_flag_set(FuriHalNvmFlagRebootIntoShippingMode)) {
+        furi_hal_nvm_reset_flag(FuriHalNvmFlagRebootIntoShippingMode);
+        power->shipping_mode_wait = true;
+
+        if(power->state.usb_connected) {
+            FURI_LOG_I(TAG, "Awaiting for USB to be disconnected to enter shipping mode...");
+        } else {
+            FURI_LOG_I(TAG, "Entering shipping mode...");
+            power_handle_shutdown(power, false);
+        }
+    } else {
+        power->shipping_mode_wait = false;
+    }
+#endif
 
     furi_record_create(RECORD_POWER, power);
 

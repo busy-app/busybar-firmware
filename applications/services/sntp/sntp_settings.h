@@ -25,7 +25,7 @@
 
 #define SNTP_SERVER_ADDRESS_MIN_LEN 1
 #define SNTP_SERVER_ADDRESS_MAX_LEN 64
-#define SNTP_SERVER_ADDRESS_DEFAULT "udp://time.google.com:123"
+#define SNTP_SERVER_ADDRESS_DEFAULT "udp://time.busy.app:123"
 
 #define SNTP_IS_ENABLED_DEFAULT true
 

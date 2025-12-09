@@ -41,6 +41,7 @@ App(
         "tls_crypto",
         "matter",
         "device_name",
+        "busy_timer",
     ],
     targets=["f20", "f21", "f22"],
 )
