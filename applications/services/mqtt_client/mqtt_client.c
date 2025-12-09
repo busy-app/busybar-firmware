@@ -498,6 +498,7 @@ static void mqtt_conn_wakeup_callback(struct mg_connection* conn, int ev, void* 
         if(mqtt->conn) {
             mqtt->conn->is_draining = 1;
         }
+        break;
     case MqttClientMessagePublish:
         mqtt_client_do_publish(mqtt, &msg->publish);
         break;

@@ -5,8 +5,6 @@
 
 #define TAG "HttpSrv"
 
-// TODO: timers
-
 typedef struct {
     HttpHandlersList_t handlers;
     struct mg_mgr mgr; // Event manager
