@@ -70,18 +70,18 @@ static void progress_view_lvgl_update_blink_anim_params(lv_anim_t* anim) {
 
 void progress_view_lvgl_blink_anim_exec_callback(lv_anim_t* anim, int32_t value) {
     furi_assert(anim);
-    lv_obj_t* block = anim->var;
+    lv_obj_t* element = anim->var;
 
     progress_view_lvgl_update_blink_anim_params(anim);
 
-    const uint32_t* const colors = lv_obj_get_user_data(block);
+    const uint32_t* const colors = lv_obj_get_user_data(element);
 
     const lv_color_t c1 = lv_color_mix(lv_color_hex(colors[0]), lv_color_hex(COLOR_GREY_1), value);
     const lv_color_t c2 = lv_color_mix(lv_color_hex(colors[1]), lv_color_hex(COLOR_GREY_1), value);
 
-    lv_obj_set_style_bg_color(block, c1, LV_PART_MAIN);
-    lv_obj_set_style_bg_grad_color(block, c2, LV_PART_MAIN);
-    lv_obj_set_style_bg_grad_dir(block, LV_GRAD_DIR_VER, LV_PART_MAIN);
+    lv_obj_set_style_bg_color(element, c1, LV_PART_MAIN);
+    lv_obj_set_style_bg_grad_color(element, c2, LV_PART_MAIN);
+    lv_obj_set_style_bg_grad_dir(element, LV_GRAD_DIR_VER, LV_PART_MAIN);
 }
 
 static void progress_view_lvgl_constructor(const lv_obj_class_t* class_p, lv_obj_t* obj) {
@@ -96,10 +96,10 @@ static void progress_view_lvgl_constructor(const lv_obj_class_t* class_p, lv_obj
 
 // Implementation
 
-static void progress_view_start_grow_animation(lv_obj_t* block) {
-    lv_obj_set_style_clip_corner(block, true, LV_PART_MAIN);
+static void progress_view_start_grow_animation(lv_obj_t* element) {
+    lv_obj_set_style_clip_corner(element, true, LV_PART_MAIN);
 
-    lv_obj_t* shutter = lv_obj_create(block);
+    lv_obj_t* shutter = lv_obj_create(element);
 
     lv_obj_set_height(shutter, LV_PCT(100));
     lv_obj_set_style_bg_opa(shutter, LV_OPA_COVER, LV_PART_MAIN);
@@ -124,8 +124,8 @@ static void progress_view_start_grow_animation(lv_obj_t* block) {
     lv_anim_set_var(&anim, shutter);
     lv_anim_start(&anim);
 }
-static void progress_view_start_blink_animation(lv_obj_t* block, const uint32_t* const colors) {
-    lv_obj_set_user_data(block, (void*)colors);
+static void progress_view_start_blink_animation(lv_obj_t* element, const uint32_t* const colors) {
+    lv_obj_set_user_data(element, (void*)colors);
 
     lv_anim_t anim;
     lv_anim_init(&anim);
@@ -138,7 +138,7 @@ static void progress_view_start_blink_animation(lv_obj_t* block, const uint32_t*
     lv_anim_set_reverse_duration(&anim, BLINK_ANIM_DURATION_2_MS);
     lv_anim_set_path_cb(&anim, lv_anim_path_custom_bezier3);
     lv_anim_set_custom_exec_cb(&anim, progress_view_lvgl_blink_anim_exec_callback);
-    lv_anim_set_var(&anim, block);
+    lv_anim_set_var(&anim, element);
     lv_anim_start(&anim);
 }
 
@@ -179,10 +179,10 @@ void progress_view_set_progress(
         const uint32_t state_idx = i % NUM_ELEMENT_STATES;
         const uint32_t w = element_width[width_idx][state_idx];
 
-        lv_obj_t* block = lv_obj_create(TO_LV_OBJ(instance));
-        lv_obj_set_size(block, w, 3);
-        lv_obj_set_style_radius(block, 1, LV_PART_MAIN);
-        lv_obj_set_style_bg_opa(block, LV_OPA_COVER, LV_PART_MAIN);
+        lv_obj_t* element = lv_obj_create(TO_LV_OBJ(instance));
+        lv_obj_set_size(element, w, 3);
+        lv_obj_set_style_radius(element, 1, LV_PART_MAIN);
+        lv_obj_set_style_bg_opa(element, LV_OPA_COVER, LV_PART_MAIN);
 
         if(i <= interval_idx) {
             const uint32_t* const colors = element_color[state_idx];
@@ -195,20 +195,20 @@ void progress_view_set_progress(
                 c2 = lv_color_darken(c2, LV_OPA_50);
             }
 
-            lv_obj_set_style_bg_color(block, c1, LV_PART_MAIN);
-            lv_obj_set_style_bg_grad_color(block, c2, LV_PART_MAIN);
-            lv_obj_set_style_bg_grad_dir(block, LV_GRAD_DIR_VER, LV_PART_MAIN);
+            lv_obj_set_style_bg_color(element, c1, LV_PART_MAIN);
+            lv_obj_set_style_bg_grad_color(element, c2, LV_PART_MAIN);
+            lv_obj_set_style_bg_grad_dir(element, LV_GRAD_DIR_VER, LV_PART_MAIN);
 
             if(!wait_next && i == interval_idx) {
-                progress_view_start_grow_animation(block);
+                progress_view_start_grow_animation(element);
             }
 
         } else if(wait_next && i == interval_idx + 1) {
             const uint32_t* const colors = element_color_hl[state_idx];
-            progress_view_start_blink_animation(block, colors);
+            progress_view_start_blink_animation(element, colors);
 
         } else {
-            lv_obj_set_style_bg_color(block, lv_color_hex(COLOR_GREY_1), LV_PART_MAIN);
+            lv_obj_set_style_bg_color(element, lv_color_hex(COLOR_GREY_1), LV_PART_MAIN);
         }
     }
 }
