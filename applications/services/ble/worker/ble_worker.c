@@ -623,28 +623,6 @@ static int32_t ble_worker_thread_callback(void* context) {
             BLE_LOG_I("Connected, str_remote_address : %s", instance->str_remote_address);
             instance->state = BleWorkerStateConnected;
             //! Setting MTU Exchange event
-            status =
-                rsi_ble_mtu_exchange_event(instance->remote_dev_address, BLE_WORKER_MAX_MTU_SIZE);
-            if(status != RSI_SUCCESS) {
-                BLE_LOG_W("MTU request cmd failed with error code = 0x%08lx", status);
-                furi_crash();
-            } else {
-                BLE_LOG_I("MTU sent");
-            }
-
-            if(!instance->conn_params_updated) {
-                status = rsi_ble_conn_params_update(
-                    instance->remote_dev_address,
-                    CONN_INTERVAL_MIN,
-                    CONN_INTERVAL_MAX,
-                    CONN_LATENCY,
-                    SUPERVISION_TIMEOUT);
-                if(status != RSI_SUCCESS) {
-                    BLE_LOG_W(
-                        "Failed to update connection parameters, error code : 0x%08lx", status);
-                    furi_crash();
-                }
-            }
 
             ble_worker_instance->connected = true;
             ble_worker_instance->on_connection_changed_cb(
@@ -702,41 +680,13 @@ static int32_t ble_worker_thread_callback(void* context) {
                 status = rsi_ble_set_data_len(instance->remote_dev_address, TX_LEN, TX_TIME);
                 if(status != RSI_SUCCESS) {
                     BLE_LOG_W("Failed to set data length, error code : 0x%08lx", status);
-
-                    furi_thread_flags_set(
-                        furi_thread_get_id(ble_worker_instance->thread),
-                        BLEWorkerEvtReceveRemoteFeatures);
-                }
-
-            } else if(instance->remote_dev_feature.remote_features[1] & 0x01) {
-                status = rsi_ble_setphy(
-                    (int8_t*)instance->remote_dev_address,
-                    TX_PHY_RATE,
-                    RX_PHY_RATE,
-                    CODDED_PHY_RATE);
-                if(status != RSI_SUCCESS) {
-                    if(status != BLE_WORKER_BT_HCI_COMMAND_DISALLOWED) {
-                        //retry the same command
-                        furi_thread_flags_set(
-                            furi_thread_get_id(ble_worker_instance->thread),
-                            BLEWorkerEvtDataLengthChange);
-                    } else {
-                        BLE_LOG_W("Failed to set phy, error code : 0x%08lx", status);
-                    }
-                }
+                } else
+                    BLE_LOG_I("LEN set done");
             }
         }
 
         if(events & BLEWorkerEvtDataLengthChange) {
-            BLE_LOG_I(
-                "Max_tx_octets: %d\r\nMax_tx_time: %d\r\nMax_rx_octets: %d\r\nMax_rx_time: %d",
-                instance->data_length_update.MaxTxOctets,
-                instance->data_length_update.MaxTxTime,
-                instance->data_length_update.MaxRxOctets,
-                instance->data_length_update.MaxRxTime);
-
             if(instance->remote_dev_feature.remote_features[1] & 0x01) {
-                osDelay(500);
                 status = rsi_ble_setphy(
                     (int8_t*)instance->remote_dev_address,
                     TX_PHY_RATE,
@@ -745,12 +695,21 @@ static int32_t ble_worker_thread_callback(void* context) {
                 if(status != RSI_SUCCESS) {
                     if(status != BLE_WORKER_BT_HCI_COMMAND_DISALLOWED) {
                         //retry the same command
+                        BLE_LOG_W("Failed to set phy, error code : 0x%08lx", status);
+                    } else {
+                        osDelay(500);
+                        BLE_LOG_W("Retry setphy");
                         furi_thread_flags_set(
                             furi_thread_get_id(ble_worker_instance->thread),
                             BLEWorkerEvtDataLengthChange);
-                    } else {
-                        BLE_LOG_W("Failed to set phy, error code : 0x%08lx", status);
                     }
+                } else {
+                    BLE_LOG_I(
+                        "PHY set done max_tx_octets: %d\r\nMax_tx_time: %d\r\nMax_rx_octets: %d\r\nMax_rx_time: %d",
+                        instance->data_length_update.MaxTxOctets,
+                        instance->data_length_update.MaxTxTime,
+                        instance->data_length_update.MaxRxOctets,
+                        instance->data_length_update.MaxRxTime);
                 }
             }
         }
@@ -769,6 +728,15 @@ static int32_t ble_worker_thread_callback(void* context) {
                 instance->event_conn_update_complete.conn_interval,
                 instance->event_conn_update_complete.conn_latency,
                 instance->event_conn_update_complete.timeout);
+
+            status =
+                rsi_ble_mtu_exchange_event(instance->remote_dev_address, BLE_WORKER_MAX_MTU_SIZE);
+            if(status != RSI_SUCCESS) {
+                BLE_LOG_W("MTU request cmd failed with error code = 0x%08lx", status);
+                furi_crash();
+            } else {
+                BLE_LOG_I("MTU sent");
+            }
         }
 
         if(events & BLEWorkerEvtMtu) {
@@ -795,13 +763,10 @@ static int32_t ble_worker_thread_callback(void* context) {
         }
 
         if(events & BLEWorkerEvtWrite) {
-            BLE_LOG_D("Received packet type = %u", instance->app_ble_write_event.pkt_type);
-
+            uint16_t handle = *(uint16_t*)instance->app_ble_write_event.handle;
             if(instance->app_ble_write_event.pkt_type == RSI_BLE_WRITE_REQUEST_EVENT) {
                 const void* data = instance->app_ble_write_event.att_value;
                 const size_t data_size = instance->app_ble_write_event.length;
-
-                uint16_t handle = *(uint16_t*)instance->app_ble_write_event.handle;
 
                 if(handle == 0x001D) BLE_LOG_W("Subscribed!");
 
@@ -833,6 +798,8 @@ static int32_t ble_worker_thread_callback(void* context) {
                 BLE_LOG_W("Notification event");
             } else if(instance->app_ble_write_event.pkt_type == RSI_BLE_INDICATION_EVENT) {
                 BLE_LOG_W("Indication event");
+            } else if(instance->app_ble_write_event.pkt_type == RSI_BLE_WRITE_CMD_EVENT) {
+                BLE_LOG_W("CMD event");
             }
         }
 
