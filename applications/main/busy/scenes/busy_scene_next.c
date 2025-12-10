@@ -77,7 +77,7 @@ static void busy_scene_next_on_enter(void* context) {
         flex_box_set_align(data->front_flex, FlexBoxAlignStart, FlexBoxAlignCenter);
         flex_box_set_spacing(data->front_flex, 2);
         widget_set_align(flex_box_get_base(data->front_flex), AlignTopMid);
-        widget_set_pos_y(flex_box_get_base(data->front_flex), 2);
+        widget_set_pos_y(flex_box_get_base(data->front_flex), 3);
 
         Label* start_label = label_alloc(flex_box_get_base(data->front_flex));
         label_set_text(start_label, "Start");
