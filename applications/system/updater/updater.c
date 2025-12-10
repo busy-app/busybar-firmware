@@ -722,16 +722,20 @@ int32_t updater_srv(void* p) {
 static const char* const status_strings[] = {
     [UpdaterStatusOk] = "Success",
     [UpdaterStatusBatteryLow] = "Battery level too low",
-    [UpdaterStatusBusy] = "Update already in progress",
+    [UpdaterStatusBusy] = "Operation already in progress",
+
     [UpdaterStatusDownloadFailure] = "Failed to download update bundle",
     [UpdaterStatusDownloadAbort] = "Download aborted",
+
     [UpdaterStatusUnpackCreateStagingDirectoryFailure] = "Failed to create staging directory",
     [UpdaterStatusUnpackArchiveOpenFailure] = "Failed to open tar file",
     [UpdaterStatusUnpackArchiveUnpackFailure] = "Failed to unpack tar file",
+
     [UpdaterStatusInstallationPrepareManifestNotFound] = "Manifest not found",
     [UpdaterStatusInstallationPrepareManifestInvalid] = "Failed to validate manifest",
     [UpdaterStatusInstallationPrepareSessionConfigSetupFailure] = "Failed to save session config",
     [UpdaterStatusInstallationPreparePointerSetupFailure] = "Failed to write pointer file",
+
     [UpdaterStatusUnknownFailure] = "Unknown error",
 };
 
