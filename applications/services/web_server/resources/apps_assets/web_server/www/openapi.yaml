@@ -163,6 +163,146 @@ paths:
               schema:
                 $ref: "#/components/schemas/Error"
 
+  /api/update/check:
+    post:
+      tags:
+        - System
+      summary: Start firmware update check
+      description: Initiates an asynchronous check for available firmware updates.
+      operationId: checkFirmwareUpdate
+      responses:
+        "200":
+          description: Update check started successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse"
+        "409":
+          description: Update check already in progress
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "500":
+          description: Failed to start update check
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /api/update/status:
+    get:
+      tags:
+        - System
+      summary: Get firmware update status
+      description: Returns current update and check status including progress information.
+      operationId: getFirmwareUpdateStatus
+      responses:
+        "200":
+          description: Status retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UpdateStatus"
+
+  /api/update/changelog:
+    get:
+      tags:
+        - System
+      summary: Get update changelog
+      description: Returns the changelog for a specific firmware version.
+      operationId: getUpdateChangelog
+      parameters:
+        - name: version
+          in: query
+          required: true
+          schema:
+            type: string
+          description: Firmware version to get changelog for
+          example: "1.2.3"
+      responses:
+        "200":
+          description: Changelog retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  changelog:
+                    type: string
+                    description: Changelog text
+        "400":
+          description: Version parameter missing, update not available, or version mismatch
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /api/update/install:
+    post:
+      tags:
+        - System
+      summary: Install firmware update
+      description: |
+        Starts asynchronous firmware installation from a remote URL.
+        The update process (download, SHA verification, unpack, prepare, reboot) runs in the background.
+        Use /api/update/status to monitor progress.
+      operationId: installFirmwareUpdate
+      parameters:
+        - name: version
+          in: query
+          required: true
+          schema:
+            type: string
+          description: Firmware version to install
+          example: "1.2.3"
+      responses:
+        "200":
+          description: Update installation started successfully in background
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse"
+        "400":
+          description: Version parameter missing, update not available, or version mismatch
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "409":
+          description: Update already in progress
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "500":
+          description: Failed to start background installation
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "503":
+          description: Battery too low for update
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /api/update/abort_download:
+    post:
+      tags:
+        - System
+      summary: Abort ongoing firmware download
+      description: Signals the updater to abort an ongoing download operation.
+      operationId: abortFirmwareDownload
+      responses:
+        "200":
+          description: Abort signal sent successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse"
+
   /api/assets/upload:
     post:
       tags:
@@ -1220,6 +1360,72 @@ components:
         - api_semver
       example:
         api_semver: "0.0.0"
+
+    UpdateStatus:
+      type: object
+      properties:
+        install:
+          type: object
+          properties:
+            is_allowed:
+              type: boolean
+              description: Whether update installation is allowed (battery check)
+            event:
+              type: string
+              enum: ["session_start", "session_stop", "action_begin", "action_done", "detail_change", "action_progress", "none"]
+              description: Current update event
+            action:
+              type: string
+              enum: ["download", "sha_verification", "unpack", "prepare", "apply", "none"]
+              description: Current update action
+            status:
+              type: string
+              enum: ["ok", "battery_low", "busy", "download_failure", "download_abort", "sha_mismatch", "unpack_staging_dir_failure", "unpack_archive_open_failure", "unpack_archive_unpack_failure", "install_manifest_not_found", "install_manifest_invalid", "install_session_config_failure", "install_pointer_setup_failure", "unknown_failure"]
+              description: Current or last operation status
+            detail:
+              type: string
+              description: Optional status detail string
+            download:
+              type: object
+              properties:
+                speed_bytes_per_sec:
+                  type: integer
+                  description: Current download speed in bytes per second
+                received_bytes:
+                  type: integer
+                  description: Bytes received so far
+                total_bytes:
+                  type: integer
+                  description: Total download size in bytes
+        check:
+          type: object
+          properties:
+            available_version:
+              type: string
+              description: Version of available update (empty if none)
+            event:
+              type: string
+              enum: ["start", "stop", "none"]
+              description: Current check event
+            result:
+              type: string
+              enum: ["available", "not_available", "failure", "none"]
+              description: Check result status
+      example:
+        install:
+          is_allowed: true
+          event: "none"
+          action: "none"
+          status: "ok"
+          detail: ""
+          download:
+            speed_bytes_per_sec: 0
+            received_bytes: 0
+            total_bytes: 0
+        check:
+          available_version: "1.2.3"
+          event: "stop"
+          result: "available"
 
     NameInfo:
       type: object
