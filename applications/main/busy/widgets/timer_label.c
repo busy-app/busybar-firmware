@@ -1,6 +1,7 @@
 #include "timer_label.h"
 
 #include <gui/widget_i.h>
+
 #include <busy_timer/time_macros.h>
 
 #define MY_CLASS (&timer_label_lvgl_class)
@@ -9,9 +10,12 @@
 #define FONT_CONDENSED (&lv_font_ark_numerals_condensed_10)
 #define FONT_SMALLNUM  (&lv_font_ark_numerals_small_10)
 
-#define BLINK_COUNT     (3)
-#define BLINK_DELAY_MS  (500)
-#define BLINK_PERIOD_MS (333)
+#define BLINK_START_S         (3)
+#define BLINK_INTERVAL_MS     (333)
+#define BLINK_INTERVAL_REV_MS (1000 - BLINK_INTERVAL_MS)
+
+#define COUNTDOWN_START_S       (BLINK_START_S + 1)
+#define COUNTDOWN_TRANSITION_MS (1000)
 
 struct TimerLabel {
     Widget base;
@@ -33,10 +37,10 @@ static void timer_label_lvgl_anim_color_to_countdown_callback(void* context, int
 
     TimerLabel* instance = context;
 
-    lv_color_t start_color = lv_color_white();
-    lv_color_t end_color = instance->countdown_base_color;
+    const lv_color_t start_color = lv_color_white();
+    const lv_color_t end_color = instance->countdown_base_color;
 
-    lv_color_t color = lv_color_mix(end_color, start_color, value);
+    const lv_color_t color = lv_color_mix(end_color, start_color, value);
     lv_obj_set_style_text_color(instance->main_label, color, LV_PART_MAIN);
     lv_obj_set_style_text_color(instance->seconds_label, color, LV_PART_MAIN);
     lv_obj_set_style_text_color(instance->bottom_label, color, LV_PART_MAIN);
@@ -47,10 +51,10 @@ static void timer_label_lvgl_anim_countdown_blink_callback(void* context, int32_
 
     TimerLabel* instance = context;
 
-    lv_color_t start_color = instance->countdown_base_color;
-    lv_color_t end_color = instance->countdown_blink_color;
+    const lv_color_t start_color = instance->countdown_base_color;
+    const lv_color_t end_color = instance->countdown_blink_color;
 
-    lv_color_t color = lv_color_mix(end_color, start_color, value);
+    const lv_color_t color = lv_color_mix(end_color, start_color, value);
     lv_obj_set_style_text_color(instance->main_label, color, LV_PART_MAIN);
     lv_obj_set_style_text_color(instance->seconds_label, color, LV_PART_MAIN);
     lv_obj_set_style_text_color(instance->bottom_label, color, LV_PART_MAIN);
@@ -86,8 +90,8 @@ static void timer_label_to_countdown(TimerLabel* instance) {
     lv_anim_t anim;
     lv_anim_init(&anim);
 
-    lv_anim_set_values(&anim, 0, 0xFF);
-    lv_anim_set_duration(&anim, 1000);
+    lv_anim_set_values(&anim, LV_OPA_TRANSP, LV_OPA_COVER);
+    lv_anim_set_duration(&anim, COUNTDOWN_TRANSITION_MS);
 
     lv_anim_set_exec_cb(&anim, timer_label_lvgl_anim_color_to_countdown_callback);
     lv_anim_set_var(&anim, instance);
@@ -99,9 +103,9 @@ static void timer_label_countdown_blink(TimerLabel* instance) {
     lv_anim_t anim;
     lv_anim_init(&anim);
 
-    lv_anim_set_values(&anim, 0, 0xFF);
-    lv_anim_set_duration(&anim, 250);
-    lv_anim_set_reverse_duration(&anim, 250);
+    lv_anim_set_values(&anim, LV_OPA_TRANSP, LV_OPA_COVER);
+    lv_anim_set_duration(&anim, BLINK_INTERVAL_MS);
+    lv_anim_set_reverse_duration(&anim, BLINK_INTERVAL_REV_MS);
 
     lv_anim_set_exec_cb(&anim, timer_label_lvgl_anim_countdown_blink_callback);
     lv_anim_set_var(&anim, instance);
@@ -157,9 +161,9 @@ void timer_label_set_time(TimerLabel* instance, uint32_t time_s) {
         lv_obj_add_flag(instance->seconds_label, LV_OBJ_FLAG_HIDDEN);
     }
 
-    if(time_s == 4) {
+    if(time_s == COUNTDOWN_START_S) {
         timer_label_to_countdown(instance);
-    } else if(time_s <= 3) {
+    } else if(time_s <= BLINK_START_S) {
         timer_label_countdown_blink(instance);
     } else {
         lv_obj_set_style_text_color(instance->main_label, lv_color_white(), LV_PART_MAIN);
