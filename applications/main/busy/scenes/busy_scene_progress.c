@@ -3,7 +3,11 @@
 #include "../widgets/progress_view.h"
 #include "../widgets/progress_counter.h"
 
-#define NEXT_TRANSITION_DELAY_MS (1500)
+#include "../helpers/animate.h"
+
+#define PROGRESS_SLIDE_POS_Y     (-6)
+#define PROGRESS_SLIDE_TIME_MS   (300)
+#define NEXT_TRANSITION_DELAY_MS (2000)
 
 typedef struct {
     ProgressCounter* front_progress_counter;
@@ -90,6 +94,12 @@ static void busy_scene_progress_on_enter(void* context) {
         progress_view_set_progress(
             data->front_progress_view, prev_interval_idx, num_cycles, false);
         widget_set_align(progress_view_get_base(data->front_progress_view), AlignBottomMid);
+
+        animate_pos_y(
+            progress_view_get_base(data->front_progress_view),
+            PROGRESS_SLIDE_POS_Y,
+            0,
+            PROGRESS_SLIDE_TIME_MS);
     });
 
     data->run_later = run_later(

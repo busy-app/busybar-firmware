@@ -175,7 +175,7 @@ const TimerLabelPreset busy_timer_label_presets[BusyTimerLabelTypeMax] = {
             .countdown_colors =
                 {
                     .base = COLOR_MAKE_HEX(0xFF6077),
-                    .blink = COLOR_MAKE_HEX(0xFFC8C8),
+                    .blink = COLOR_MAKE_HEX(0x8B2939),
                 },
         },
     [BusyTimerLabelTypeRest] =
@@ -183,7 +183,7 @@ const TimerLabelPreset busy_timer_label_presets[BusyTimerLabelTypeMax] = {
             .countdown_colors =
                 {
                     .base = COLOR_MAKE_HEX(0x3EC287),
-                    .blink = COLOR_MAKE_HEX(0x7BFFCA),
+                    .blink = COLOR_MAKE_HEX(0x1D6344),
                 },
         },
 };
