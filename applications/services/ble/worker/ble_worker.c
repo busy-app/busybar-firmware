@@ -232,6 +232,7 @@ static void
  */
 static void ble_worker_phy_update_complete_event(
     rsi_ble_event_phy_update_t* rsi_ble_event_phy_update_complete) {
+    BLE_LOG_W("ble_worker_phy_update_complete_event");
     memcpy(
         &ble_worker_instance->app_phy_update_complete,
         rsi_ble_event_phy_update_complete,
@@ -334,10 +335,24 @@ static void ble_worker_more_data_req_event(rsi_ble_event_le_dev_buf_ind_t* rsi_b
 static void
     ble_worker_on_gatt_write_event(uint16_t event_id, rsi_ble_event_write_t* rsi_ble_write) {
     UNUSED(event_id);
-
+    // BLE_LOG_W("E: %04X, handle: %04X", event_id, *(uint16_t*)rsi_ble_write->handle);
     memcpy(
         &ble_worker_instance->app_ble_write_event, rsi_ble_write, sizeof(rsi_ble_event_write_t));
     furi_thread_flags_set(furi_thread_get_id(ble_worker_instance->thread), BLEWorkerEvtWrite);
+}
+
+static void rsi_ble_on_gatt_prepare_write_event(
+    uint16_t event_id,
+    rsi_ble_event_prepare_write_t* rsi_ble_write) {
+    UNUSED(rsi_ble_write);
+    BLE_LOG_W("Prep: %04X", event_id);
+}
+
+static void rsi_ble_on_execute_write_event(
+    uint16_t event_id,
+    rsi_ble_execute_write_t* rsi_ble_execute_write) {
+    UNUSED(rsi_ble_execute_write);
+    BLE_LOG_W("Exec: %04X", event_id);
 }
 
 static void ble_worker_on_indicate_confirmation_event(
@@ -351,15 +366,6 @@ static void ble_worker_on_indicate_confirmation_event(
         furi_thread_get_id(ble_worker_instance->thread), BLEWorkerEvtIndicateConfirm);
 }
 
-/**
- * @fn         ble_worker_on_mtu_event
- * @brief      its invoked when write/notify/indication events are received.
- * @param[in]  event_id, it indicates write/notification event id.
- * @param[in]  rsi_ble_write, write event parameters.
- * @return     none.
- * @section description
- * This callback function is invoked when write/notify/indication events are received
- */
 static void ble_worker_on_mtu_event(rsi_ble_event_mtu_t* rsi_ble_mtu) {
     memcpy(&ble_worker_instance->app_ble_mtu_event, rsi_ble_mtu, sizeof(rsi_ble_event_mtu_t));
     rsi_6byte_dev_address_to_ascii(
@@ -368,6 +374,28 @@ static void ble_worker_on_mtu_event(rsi_ble_event_mtu_t* rsi_ble_mtu) {
     furi_thread_flags_set(furi_thread_get_id(ble_worker_instance->thread), BLEWorkerEvtMtu);
 }
 
+static void rsi_ble_on_att_desc_resp(
+    uint16_t resp_status,
+    rsi_ble_resp_att_descs_t* rsi_ble_resp_att_desc) {
+    UNUSED(resp_status);
+    UNUSED(rsi_ble_resp_att_desc);
+    BLE_LOG_W("rsi_ble_on_att_desc_resp_t");
+}
+
+static void rsi_ble_on_gatt_error_resp(
+    uint16_t event_status,
+    rsi_ble_event_error_resp_t* rsi_ble_gatt_error) {
+    uint16_t error = *(uint16_t*)rsi_ble_gatt_error->error;
+    uint16_t handle = *(uint16_t*)rsi_ble_gatt_error->handle;
+    BLE_LOG_W("Status: %04X, err: %04X, handle: %04X", event_status, error, handle);
+}
+
+void rsi_ble_on_char_services_resp(
+    uint16_t resp_status,
+    rsi_ble_resp_char_services_t* rsi_ble_resp_char_serv) {
+    UNUSED(rsi_ble_resp_char_serv);
+    BLE_LOG_W("rsi_ble_on_char_services_resp status: %04X", resp_status);
+}
 //===========================================================================================
 
 static void rsi_ble_on_smp_request(rsi_bt_event_smp_req_t* remote_dev_address) {
@@ -538,17 +566,17 @@ static void ble_hw_config() {
     rsi_ble_gatt_register_callbacks(
         NULL,
         NULL,
+        rsi_ble_on_char_services_resp,
         NULL,
-        NULL,
-        NULL,
+        rsi_ble_on_att_desc_resp,
         NULL,
         NULL,
         ble_worker_on_gatt_write_event,
-        NULL,
-        NULL,
+        rsi_ble_on_gatt_prepare_write_event,
+        rsi_ble_on_execute_write_event,
         NULL,
         ble_worker_on_mtu_event,
-        NULL,
+        rsi_ble_on_gatt_error_resp,
         NULL,
         NULL,
         NULL,
