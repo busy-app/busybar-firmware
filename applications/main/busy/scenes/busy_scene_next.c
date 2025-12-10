@@ -5,11 +5,13 @@
 #include <gui/modules/anim_image.h>
 
 #include "../widgets/progress_view.h"
+#include "../widgets/prompt_overlay.h"
 
 #define FLEX_OFFSET_INIT  (3)
 #define FLEX_OFFSET_PRESS (FLEX_OFFSET_INIT + 1)
 
 typedef struct {
+    PromptOverlay* front_prompt;
     FlexBox* front_flex;
     ProgressView* front_progress_view;
     BusyTimerState timer_state;
@@ -92,6 +94,10 @@ static void busy_scene_next_on_enter(void* context) {
         progress_view_set_progress(
             data->front_progress_view, prev_interval_idx, timer_cycles.total_count, true);
         widget_set_align(progress_view_get_base(data->front_progress_view), AlignBottomMid);
+
+        data->front_prompt = prompt_overlay_alloc(instance->front_window);
+        prompt_overlay_set_animation_target(
+            data->front_prompt, flex_box_get_base(data->front_flex));
     });
 
     if(timer_state == BusyTimerStateIdle) {
@@ -114,6 +120,7 @@ static void busy_scene_next_on_exit(void* context) {
         GuiLayer* layer = gui_get_layer(instance->gui, GuiLayerIdMain);
         gui_layer_remove_input_callback(layer, busy_scene_next_input_callback);
 
+        prompt_overlay_free(data->front_prompt);
         flex_box_free(data->front_flex);
         progress_view_free(data->front_progress_view);
     });
