@@ -1,17 +1,30 @@
 #include "../busy_i.h"
 
+#include <gui/modules/label.h>
+#include <gui/modules/flex_box.h>
+#include <gui/modules/anim_image.h>
+
+#include "../widgets/progress_view.h"
+
 #define WAIT_ANIM_BEGIN (0)
 #define WAIT_ANIM_END   (179)
 
 #define PRESS_ANIM_BEGIN (180)
 #define PRESS_ANIM_END   (185)
 
-#include "../widgets/progress_view.h"
-
 typedef struct {
+    FlexBox* front_flex;
     ProgressView* front_progress_view;
     BusyTimerState timer_state;
 } BusySceneNext;
+
+typedef struct {
+    const char* arrow_anim_path;
+    const char* label_text;
+    Color label_color;
+} BusySceneNextPreset;
+
+static const BusySceneNextPreset busy_scene_next_presets[BusyTimerStateMax];
 
 static bool busy_scene_next_input_callback(const InputEvent* event, void* context) {
     furi_assert(event);
@@ -47,22 +60,42 @@ static void busy_scene_next_on_enter(void* context) {
     BusySceneNext* data =
         scene_manager_get_scene_data(instance->scene_manager, BusyAppSceneIdNext);
 
+    const BusyTimerState timer_state = busy_timer_get_state(instance->busy_timer);
+
     BusyTimerCycles timer_cycles;
     busy_timer_get_cycles(instance->busy_timer, &timer_cycles);
 
     const uint32_t prev_interval_idx = timer_cycles.current_idx - 1;
+    const BusySceneNextPreset* preset = &busy_scene_next_presets[timer_state];
 
     with_gui(instance->gui, {
         GuiLayer* layer = gui_get_layer(instance->gui, GuiLayerIdMain);
         gui_layer_add_input_callback(layer, busy_scene_next_input_callback, instance);
+
+        data->front_flex = flex_box_alloc(instance->front_window);
+        flex_box_set_flow(data->front_flex, FlexBoxFlowRow);
+        flex_box_set_align(data->front_flex, FlexBoxAlignStart, FlexBoxAlignCenter);
+        flex_box_set_spacing(data->front_flex, 2);
+        widget_set_align(flex_box_get_base(data->front_flex), AlignTopMid);
+        widget_set_pos_y(flex_box_get_base(data->front_flex), 2);
+
+        Label* start_label = label_alloc(flex_box_get_base(data->front_flex));
+        label_set_text(start_label, "Start");
+
+        if(preset->arrow_anim_path) {
+            AnimImage* anim = anim_image_alloc(flex_box_get_base(data->front_flex));
+            anim_image_set_source(anim, preset->arrow_anim_path);
+        }
+
+        Label* message_label = label_alloc(flex_box_get_base(data->front_flex));
+        label_set_text(message_label, preset->label_text);
+        label_set_text_color(message_label, preset->label_color);
 
         data->front_progress_view = progress_view_alloc(instance->front_window);
         progress_view_set_progress(
             data->front_progress_view, prev_interval_idx, timer_cycles.total_count, true);
         widget_set_align(progress_view_get_base(data->front_progress_view), AlignBottomMid);
     });
-
-    const BusyTimerState timer_state = busy_timer_get_state(instance->busy_timer);
 
     if(timer_state == BusyTimerStateIdle) {
         audio_play_file(instance->audio, BUSY_SOUND_PATH("session_completed.snd"));
@@ -84,6 +117,7 @@ static void busy_scene_next_on_exit(void* context) {
         GuiLayer* layer = gui_get_layer(instance->gui, GuiLayerIdMain);
         gui_layer_remove_input_callback(layer, busy_scene_next_input_callback);
 
+        flex_box_free(data->front_flex);
         progress_view_free(data->front_progress_view);
     });
 }
@@ -142,4 +176,25 @@ const Scene busy_scene_next = {
     .exit_callback = busy_scene_next_on_exit,
     .event_callback = busy_scene_next_on_event,
     .data_size = sizeof(BusySceneNext),
+};
+
+static const BusySceneNextPreset busy_scene_next_presets[BusyTimerStateMax] = {
+    // TODO: Remove later
+    [BusyTimerStateIdle] =
+        {
+            .label_color = COLOR_MAKE_HEX(0xFFFFFF),
+            .label_text = "Finished!",
+        },
+    [BusyTimerStateWork] =
+        {
+            .arrow_anim_path = BUSY_ANIM_PATH("arrow_red_5x5.anim"),
+            .label_color = COLOR_MAKE_HEX(0xFF3C4A),
+            .label_text = "BUSY",
+        },
+    [BusyTimerStateRest] =
+        {
+            .arrow_anim_path = BUSY_ANIM_PATH("arrow_green_5x5.anim"),
+            .label_color = COLOR_MAKE_HEX(0x0AE974),
+            .label_text = "REST",
+        },
 };
