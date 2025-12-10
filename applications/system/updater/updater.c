@@ -606,7 +606,6 @@ UpdaterStatus
 
 void updater_abort_download(Updater* instance) {
     furi_check(instance);
-    furi_check(furi_semaphore_get_space(instance->update_lock) > 0);
 
     furi_message_queue_put(
         instance->download_queue,
