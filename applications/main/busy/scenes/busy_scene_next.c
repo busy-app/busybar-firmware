@@ -6,11 +6,8 @@
 
 #include "../widgets/progress_view.h"
 
-#define WAIT_ANIM_BEGIN (0)
-#define WAIT_ANIM_END   (179)
-
-#define PRESS_ANIM_BEGIN (180)
-#define PRESS_ANIM_END   (185)
+#define FLEX_OFFSET_INIT  (3)
+#define FLEX_OFFSET_PRESS (FLEX_OFFSET_INIT + 1)
 
 typedef struct {
     FlexBox* front_flex;
@@ -77,7 +74,7 @@ static void busy_scene_next_on_enter(void* context) {
         flex_box_set_align(data->front_flex, FlexBoxAlignStart, FlexBoxAlignCenter);
         flex_box_set_spacing(data->front_flex, 2);
         widget_set_align(flex_box_get_base(data->front_flex), AlignTopMid);
-        widget_set_pos_y(flex_box_get_base(data->front_flex), 3);
+        widget_set_pos_y(flex_box_get_base(data->front_flex), FLEX_OFFSET_INIT);
 
         Label* start_label = label_alloc(flex_box_get_base(data->front_flex));
         label_set_text(start_label, "Start");
@@ -135,6 +132,10 @@ static bool busy_scene_next_on_event(const SceneManagerEvent* event, void* conte
             scene_manager_get_scene_data(instance->scene_manager, BusyAppSceneIdNext);
 
         if(event->event == BusyCustomEventStartPressed) {
+            with_gui(instance->gui, {
+                widget_set_pos_y(flex_box_get_base(data->front_flex), FLEX_OFFSET_PRESS);
+            });
+
         } else if(event->event == BusyCustomEventStartReleased) {
             BusyAppSceneId scene_id;
             BusyTransitionType transition_type;
