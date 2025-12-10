@@ -377,9 +377,10 @@ static bool mqtt_client_load_ca_bundle(MqttClient* mqtt) {
 
 static void mqtt_client_load_profile(MqttClient* mqtt, MqttClientProfile profile) {
     if(profile == MqttClientProfileCustom) {
-        furi_assert(
-            json_config_read_single_str(CONFIG_FILE, "custom_url", mqtt->server_addr, "") !=
-            JsonConfigStatusError);
+        JsonConfigStatus res =
+            json_config_read_single_str(CONFIG_FILE, "custom_url", mqtt->server_addr, "");
+        furi_assert(res != JsonConfigStatusError);
+
         if(furi_string_start_with(mqtt->server_addr, "mqtts://")) {
             mqtt->use_tls = true;
         } else {
@@ -521,13 +522,14 @@ int32_t mqtt_client_start(void* p) {
 
     mqtt->server_addr = furi_string_alloc();
     int default_profile = MqttClientProfileDev;
-    furi_assert(
-        json_config_read_single_int(CONFIG_FILE, "profile", &mqtt->profile_id, &default_profile) !=
-        JsonConfigStatusError);
+    JsonConfigStatus res =
+        json_config_read_single_int(CONFIG_FILE, "profile", &mqtt->profile_id, &default_profile);
+    furi_assert(res != JsonConfigStatusError);
     if(mqtt->profile_id >= MqttClientProfileMax) {
-        furi_assert(
-            json_config_write_single_int(CONFIG_FILE, "profile", default_profile) !=
-            JsonConfigStatusError);
+        JsonConfigStatus res =
+            json_config_write_single_int(CONFIG_FILE, "profile", default_profile);
+        furi_assert(res != JsonConfigStatusError);
+
         mqtt->profile_id = default_profile;
     }
     mqtt_client_load_profile(mqtt, mqtt->profile_id);
