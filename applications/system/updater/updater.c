@@ -23,6 +23,9 @@
 #define UPDATE_START_MIN_BATTERY_CHARGE        40
 #define UPDATE_INSTALLATION_APPLY_REBOOT_DELAY 100
 
+#define INSTALL_FROM_URL_THREAD_NAME       "UpdateInstall"
+#define INSTALL_FROM_URL_THREAD_STACK_SIZE (2 * 1024)
+
 struct Updater {
     Storage* storage;
     Power* power;
@@ -46,6 +49,9 @@ struct Updater {
     FuriString* check_version;
     FuriString* check_sha256;
     FuriString* check_changelog;
+
+    FuriString* install_url;
+    FuriString* install_sha256;
 };
 
 typedef struct {
@@ -502,6 +508,54 @@ static void message_queue_callback(FuriEventLoopObject* object, void* context) {
     }
 }
 
+static int32_t install_from_url_thread_callback(void* context) {
+    Updater* instance = context;
+
+    UpdaterStatus status;
+    do {
+        const char* url = furi_string_get_cstr(instance->install_url);
+        status = updater_download(instance, url, NULL, true);
+        if(status != UpdaterStatusOk) {
+            break;
+        }
+
+        if(furi_string_size(instance->install_sha256) > 0) {
+            const char* sha = furi_string_get_cstr(instance->install_sha256);
+            status = updater_verify_bundle_sha(instance, NULL, sha, true);
+            if(status != UpdaterStatusOk) {
+                break;
+            }
+        }
+
+        status = updater_unpack(instance, NULL, NULL, NULL, true);
+        if(status != UpdaterStatusOk) {
+            break;
+        }
+
+        status = updater_installation_prepare(instance, NULL, true);
+        if(status != UpdaterStatusOk) {
+            break;
+        }
+
+        updater_installation_apply(instance, true);
+    } while(false);
+
+    updater_session_stop(instance);
+
+    return 0;
+}
+
+static void install_from_url_thread_state_callback(
+    FuriThread* thread,
+    FuriThreadState state,
+    void* context) {
+    UNUSED(context);
+
+    if(state == FuriThreadStateStopped) {
+        furi_thread_free(thread);
+    }
+}
+
 static UpdaterStatus invoke_async(Updater* instance, UpdaterMessage* message) {
     message->result_status = NULL;
     message->api_lock = NULL;
@@ -691,6 +745,30 @@ void updater_installation_apply(Updater* instance, bool do_wait) {
     }
 }
 
+UpdaterStatus updater_install_from_url(Updater* instance, const char* url, const char* sha256) {
+    furi_check(instance);
+    furi_check(url);
+
+    UpdaterStatus session_start_status = updater_session_start(instance);
+
+    if(session_start_status == UpdaterStatusOk) {
+        furi_string_set(instance->install_url, url);
+        furi_string_set(instance->install_sha256, sha256);
+
+        FuriThread* thread = furi_thread_alloc_ex(
+            INSTALL_FROM_URL_THREAD_NAME,
+            INSTALL_FROM_URL_THREAD_STACK_SIZE,
+            install_from_url_thread_callback,
+            instance);
+
+        furi_thread_set_state_context(thread, instance);
+        furi_thread_set_state_callback(thread, install_from_url_thread_state_callback);
+        furi_thread_start(thread);
+    }
+
+    return session_start_status;
+}
+
 UpdaterStatus updater_check_for_update(Updater* instance) {
     furi_check(instance);
 
@@ -730,6 +808,9 @@ static Updater* updater_alloc(void) {
     instance->check_version = furi_string_alloc();
     instance->check_sha256 = furi_string_alloc();
     instance->check_changelog = furi_string_alloc();
+
+    instance->install_url = furi_string_alloc();
+    instance->install_sha256 = furi_string_alloc();
 
     furi_event_loop_subscribe_message_queue(
         instance->event_loop,
