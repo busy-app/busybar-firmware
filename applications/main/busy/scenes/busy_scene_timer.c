@@ -9,14 +9,11 @@
 
 #define COUNTDOWN_THRESHOLD_S (3)
 
-#define PROGRESS_TRANSITION_MS (1000)
-
 typedef struct {
     FlexLayout* front_flex;
     TimerIndicator* timer_indicator;
     TimerLabel* timer_label;
     PauseOverlay* pause_overlay;
-    RunLater* run_later;
     FuriPubSub* timer_pubsub;
     FuriPubSubSubscription* timer_sub;
     BusyTimerMode timer_mode;
@@ -92,28 +89,6 @@ static void busy_scene_timer_pubsub_callback(const void* msg, void* context) {
     } else if(event->type == BusyTimerEventTypeTimerPaused) {
         data->is_paused = event->timer_paused.is_paused;
         busy_send_custom_event(instance, BusyCustomEventTimerPaused);
-    }
-}
-
-static void busy_scene_timer_run_later_callback(void* context) {
-    furi_assert(context);
-    BusyApp* instance = context;
-
-    const BusySceneTimer* data =
-        scene_manager_get_scene_data(instance->scene_manager, BusyAppSceneIdTimer);
-
-    if(data->is_force_ended) {
-        busy_prepare_transition(instance, BusyTransitionTypeSkip);
-    } else if(data->timer_state == BusyTimerStateRest) {
-        busy_prepare_transition(instance, BusyTransitionTypeRestDone);
-    } else {
-        busy_prepare_transition(instance, BusyTransitionTypeWorkDone);
-    }
-
-    if(data->timer_mode == BusyTimerModeInterval) {
-        scene_manager_next_scene(instance->scene_manager, BusyAppSceneIdProgress);
-    } else {
-        scene_manager_next_scene(instance->scene_manager, BusyAppSceneIdNext);
     }
 }
 
@@ -281,16 +256,17 @@ static void busy_scene_timer_go_to_progress_scene(BusyApp* instance) {
         scene_manager_get_scene_data(instance->scene_manager, BusyAppSceneIdTimer);
 
     if(data->is_force_ended) {
-        busy_scene_timer_run_later_callback(instance);
-
+        busy_prepare_transition(instance, BusyTransitionTypeSkip);
+    } else if(data->timer_state == BusyTimerStateRest) {
+        busy_prepare_transition(instance, BusyTransitionTypeRestDone);
     } else {
-        furi_assert(data->run_later == NULL);
+        busy_prepare_transition(instance, BusyTransitionTypeWorkDone);
+    }
 
-        data->run_later = run_later(
-            instance->event_loop,
-            busy_scene_timer_run_later_callback,
-            instance,
-            PROGRESS_TRANSITION_MS);
+    if(data->timer_mode == BusyTimerModeInterval) {
+        scene_manager_next_scene(instance->scene_manager, BusyAppSceneIdProgress);
+    } else {
+        scene_manager_next_scene(instance->scene_manager, BusyAppSceneIdNext);
     }
 }
 
@@ -347,11 +323,6 @@ static void busy_scene_timer_on_exit(void* context) {
         scene_manager_get_scene_data(instance->scene_manager, BusyAppSceneIdTimer);
 
     furi_pubsub_unsubscribe(data->timer_pubsub, data->timer_sub);
-
-    if(data->run_later) {
-        run_later_cancel(data->run_later);
-        data->run_later = NULL;
-    }
 
     data->is_force_ended = false;
     data->is_paused = false;
