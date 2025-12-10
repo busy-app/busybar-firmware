@@ -3,8 +3,7 @@
 #include "../widgets/progress_view.h"
 #include "../widgets/progress_counter.h"
 
-#define DONE_TRANSITION_DELAY_MS (4000)
-#define REST_TRANSITION_DELAY_MS (1500)
+#define NEXT_TRANSITION_DELAY_MS (1500)
 
 typedef struct {
     ProgressCounter* front_progress_counter;
@@ -59,23 +58,17 @@ static void busy_scene_progress_on_enter(void* context) {
     const uint32_t prev_interval_idx = curr_interval_idx - 1;
     const uint32_t num_cycles = timer_cycles.total_count;
 
+    BusyStatusLightsType status_lights;
     uint32_t num_intervals_done;
     uint32_t num_intervals_total;
 
-    uint32_t run_later_delay;
-    BusyStatusLightsType status_lights;
-
     if(timer_state == BusyTimerStateRest || timer_state == BusyTimerStateIdle) {
-        run_later_delay = DONE_TRANSITION_DELAY_MS;
         status_lights = BusyStatusLightsTypeWork;
-
         num_intervals_done = (curr_interval_idx + 1) / 2;
         num_intervals_total = num_cycles;
 
     } else if(timer_state == BusyTimerStateWork) {
-        run_later_delay = REST_TRANSITION_DELAY_MS;
         status_lights = BusyStatusLightsTypeRest;
-
         num_intervals_done = curr_interval_idx / 2;
         num_intervals_total = num_cycles - 1;
 
@@ -100,7 +93,10 @@ static void busy_scene_progress_on_enter(void* context) {
     });
 
     data->run_later = run_later(
-        instance->event_loop, busy_scene_progress_run_later_callback, instance, run_later_delay);
+        instance->event_loop,
+        busy_scene_progress_run_later_callback,
+        instance,
+        NEXT_TRANSITION_DELAY_MS);
 
     busy_set_status_lights(instance, status_lights);
     busy_start_transition(instance);
