@@ -40,7 +40,6 @@ App(
         "sntp",
         "tls_crypto",
         "matter",
-        "update_checker",
         "device_name",
         "busy_timer",
     ],
