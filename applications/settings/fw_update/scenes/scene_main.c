@@ -222,11 +222,11 @@ static void updater_check_state_callback(const void* state_item, void* context) 
             scene_manager_get_scene_data(instance->scene_manager, SceneIdMain);
         data->fw_info.is_new_version = false;
 
-        switch(state->status) {
-        case UpdaterCheckStatusNotAvailable:
+        switch(state->result) {
+        case UpdaterCheckResultNotAvailable:
             furi_string_set(data->fw_status, "No new version");
             break;
-        case UpdaterCheckStatusAvailable:
+        case UpdaterCheckResultAvailable:
             if(state->version) {
                 furi_string_set(
                     data->fw_info.new_fw_version, furi_string_get_cstr(state->version));
@@ -242,7 +242,7 @@ static void updater_check_state_callback(const void* state_item, void* context) 
             data->fw_info.is_new_version = true;
 
             break;
-        case UpdaterCheckStatusFailure:
+        case UpdaterCheckResultFailure:
             furi_string_set(data->fw_status, "Error checking update");
             break;
         default:

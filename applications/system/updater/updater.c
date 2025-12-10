@@ -127,13 +127,13 @@ static void check_done_callback(bool is_success, UpdaterCheckerInfo* update_info
             furi_string_set(instance->check_sha256, update_info->sha256);
             furi_string_set(instance->check_changelog, update_info->changelog);
 
-            check_state->status = UpdaterCheckStatusAvailable;
+            check_state->result = UpdaterCheckResultAvailable;
         } else {
-            check_state->status = UpdaterCheckStatusNotAvailable;
+            check_state->result = UpdaterCheckResultNotAvailable;
         }
 
     } else {
-        check_state->status = UpdaterCheckStatusFailure;
+        check_state->result = UpdaterCheckResultFailure;
     }
 
     check_state->event = UpdaterCheckEventStop;
@@ -697,7 +697,7 @@ static Updater* updater_alloc(void) {
             .version = instance->check_version,
             .sha256 = instance->check_sha256,
             .changelog = instance->check_changelog,
-            .status = UpdaterCheckStatusNone,
+            .result = UpdaterCheckResultNone,
             .event = UpdaterCheckEventNone,
         });
 

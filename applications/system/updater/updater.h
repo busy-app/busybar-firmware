@@ -74,12 +74,12 @@ typedef struct {
 } UpdaterUpdateState;
 
 typedef enum {
-    UpdaterCheckStatusAvailable, /**< Update is available */
-    UpdaterCheckStatusNotAvailable, /**< No update available */
-    UpdaterCheckStatusFailure, /**< Failed to check for update */
+    UpdaterCheckResultAvailable, /**< Update is available */
+    UpdaterCheckResultNotAvailable, /**< No update available */
+    UpdaterCheckResultFailure, /**< Failed to check for update */
 
-    UpdaterCheckStatusNone, /**< No check performed (initial/idle state) */
-} UpdaterCheckStatus;
+    UpdaterCheckResultNone, /**< No check performed (initial/idle state) */
+} UpdaterCheckResult;
 
 typedef enum {
     UpdaterCheckEventStart, /**< Update check started */
@@ -96,7 +96,7 @@ typedef struct {
     const FuriString* sha256; /**< SHA256 checksum of the update bundle */
     const FuriString* changelog; /**< Update changelog */
 
-    UpdaterCheckStatus status; /**< Current check status */
+    UpdaterCheckResult result; /**< Current check result */
     UpdaterCheckEvent event; /**< Current check event type */
 } UpdaterCheckState;
 
@@ -232,6 +232,9 @@ void updater_installation_apply(Updater* instance, bool do_wait);
  * Queries remote server for available updates and populates check state.
  *
  * @param[in]  instance  Updater instance
+ *
+* @return     UpdaterStatusOk on success,
+ *            UpdaterStatusBusy if check is already in progress,
  */
 UpdaterStatus updater_check_for_update(Updater* instance);
 
