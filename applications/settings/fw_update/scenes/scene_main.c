@@ -258,32 +258,27 @@ static void scene_main_check_sha256(void* context) {
     SettingsSceneFwUpdate* data =
         scene_manager_get_scene_data(instance->scene_manager, SceneIdMain);
     furi_assert(data);
+
     if(data->fw_info.is_new_version) {
-        FuriString* sha256_calc = furi_string_alloc();
-        FS_Error file_error = FSE_OK;
-        Storage* storage = furi_record_open(RECORD_STORAGE);
-        File* file = storage_file_alloc(storage);
-        bool is_ok = false;
+        const char* status_text;
+        SceneEvent event;
 
-        sha256_string_calc_file(file, UPDATER_DEFAULT_DOWNLOAD_PATH, sha256_calc, &file_error);
+        UpdaterStatus status = updater_verify_bundle_sha(
+            data->updater,
+            UPDATER_DEFAULT_DOWNLOAD_PATH,
+            furi_string_get_cstr(data->fw_info.fw_sha256),
+            true);
 
-        storage_file_free(file);
-        furi_record_close(RECORD_STORAGE);
-
-        if((file_error == FSE_OK) &&
-           (furi_string_cmp(sha256_calc, data->fw_info.fw_sha256) == 0)) {
-            furi_string_set(data->fw_status, "Installing...");
-            is_ok = true;
+        if(status == UpdaterStatusOk) {
+            status_text = "Installing...";
+            event = SceneEventInstallationStarted;
         } else {
-            furi_string_set(data->fw_status, "Error: sha256 mismatch");
+            status_text = "Error: sha256 mismatch";
+            event = SceneEventErrorOccurred;
         }
 
-        furi_string_free(sha256_calc);
-
-        if(is_ok) {
-            fw_update_send_custom_event(instance, SceneEventInstallationStarted);
-        }
-        fw_update_send_custom_event(instance, SceneEventErrorOccurred);
+        furi_string_set(data->fw_status, status_text);
+        fw_update_send_custom_event(instance, event);
     }
 }
 

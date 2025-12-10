@@ -14,6 +14,7 @@
 #include <toolbox/path.h>
 #include <toolbox/tar/tar_archive.h>
 #include <toolbox/fetch/fetch_loader.h>
+#include <toolbox/sha256_calc.h>
 
 #define TAG "Updater"
 
@@ -56,6 +57,7 @@ typedef enum {
     MessageTypeSessionStart,
     MessageTypeSessionStop,
     MessageTypeDownload,
+    MessageTypeVerifyBundleSha,
     MessageTypeUnpack,
     MessageTypeInstallationPrepare,
     MessageTypeInstallationApply,
@@ -70,6 +72,11 @@ typedef struct {
             FuriString* url;
             FuriString* path;
         } as_download;
+
+        struct {
+            FuriString* tar_path;
+            FuriString* sha;
+        } as_verify_bundle_sha;
 
         struct {
             FuriString* tar_path;
@@ -292,6 +299,39 @@ static UpdaterStatus do_download(Updater* instance, UpdaterMessage* message) {
     instance->download_loader = NULL;
 
     return download_message.status;
+}
+
+static UpdaterStatus do_verify_bundle_sha(Updater* instance, UpdaterMessage* message) {
+    const char* tar_path = furi_string_get_cstr(message->as_verify_bundle_sha.tar_path);
+    const char* sha = furi_string_get_cstr(message->as_verify_bundle_sha.sha);
+
+    FURI_LOG_D(TAG, "Verifying SHA256 checksum of %s", tar_path);
+
+    FuriString* sha256_calc = furi_string_alloc();
+
+    FS_Error file_status = FSE_OK;
+    File* file = storage_file_alloc(instance->storage);
+
+    sha256_string_calc_file(file, tar_path, sha256_calc, &file_status);
+
+    storage_file_free(file);
+
+    UpdaterStatus update_status =
+        (file_status == FSE_OK && furi_string_cmp(sha256_calc, sha) == 0) ?
+            UpdaterStatusOk :
+            UpdaterStatusShaMismatch;
+
+    furi_string_free(sha256_calc);
+    furi_string_free(message->as_verify_bundle_sha.tar_path);
+    furi_string_free(message->as_verify_bundle_sha.sha);
+
+    if(update_status == UpdaterStatusOk) {
+        FURI_LOG_D(TAG, "SHA256 checksum verified successfully");
+    } else {
+        FURI_LOG_E(TAG, "SHA256 checksum verification failed for %s", tar_path);
+    }
+
+    return update_status;
 }
 
 static UpdaterStatus do_unpack(Updater* instance, UpdaterMessage* message) {
@@ -576,6 +616,27 @@ void updater_abort_download(Updater* instance) {
         0);
 }
 
+UpdaterStatus updater_verify_bundle_sha(
+    Updater* instance,
+    const char* tar_path,
+    const char* sha,
+    bool do_wait) {
+    furi_check(instance);
+    furi_check(sha);
+    furi_check(furi_semaphore_get_space(instance->update_lock) > 0);
+
+    UpdaterMessage message = {
+        .as_verify_bundle_sha =
+            {
+                .tar_path = furi_string_alloc_set_str((tar_path) ?: UPDATER_DEFAULT_DOWNLOAD_PATH),
+                .sha = furi_string_alloc_set_str(sha),
+            },
+        .type = MessageTypeVerifyBundleSha,
+    };
+
+    return (do_wait) ? invoke_sync(instance, &message) : invoke_async(instance, &message);
+}
+
 UpdaterStatus updater_unpack(
     Updater* instance,
     const char* tar_path,
@@ -727,6 +788,8 @@ static const char* const status_strings[] = {
     [UpdaterStatusDownloadFailure] = "Failed to download update bundle",
     [UpdaterStatusDownloadAbort] = "Download aborted",
 
+    [UpdaterStatusShaMismatch] = "SHA256 checksum verification failed",
+
     [UpdaterStatusUnpackCreateStagingDirectoryFailure] = "Failed to create staging directory",
     [UpdaterStatusUnpackArchiveOpenFailure] = "Failed to open tar file",
     [UpdaterStatusUnpackArchiveUnpackFailure] = "Failed to unpack tar file",
@@ -756,6 +819,11 @@ static const MessageHandler message_handlers[] = {
         {
             .callback = do_download,
             .action = UpdaterUpdateActionDownload,
+        },
+    [MessageTypeVerifyBundleSha] =
+        {
+            .callback = do_verify_bundle_sha,
+            .action = UpdaterUpdateActionShaVerification,
         },
     [MessageTypeUnpack] =
         {

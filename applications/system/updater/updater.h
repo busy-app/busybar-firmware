@@ -23,6 +23,8 @@ typedef enum {
     UpdaterStatusDownloadFailure, /**< Failed to download update bundle from URL */
     UpdaterStatusDownloadAbort, /**< Download was aborted by user */
 
+    UpdaterStatusShaMismatch, /**< Update bundle SHA256 checksum verification failed */
+
     UpdaterStatusUnpackCreateStagingDirectoryFailure, /**< Failed to create staging directory */
     UpdaterStatusUnpackArchiveOpenFailure, /**< Failed to open .tar archive file */
     UpdaterStatusUnpackArchiveUnpackFailure, /**< Failed to extract .tar archive contents */
@@ -39,11 +41,14 @@ typedef enum {
 
 typedef enum {
     UpdaterUpdateActionDownload, /**< Downloading update bundle from URL */
+    UpdaterUpdateActionShaVerification, /**< Downloading update bundle from URL */
     UpdaterUpdateActionUnpack, /**< Unpacking .tar archive to staging directory */
     UpdaterUpdateActionInstallationPrepare, /**< Preparing update for installation (manifest validation, session setup) */
     UpdaterUpdateActionInstallationApply, /**< Rebooting device to install prepared update */
 
     UpdaterUpdateActionNone, /**< No action (initial/idle state) */
+
+    UpdaterUpdateActionsCount,
 } UpdaterUpdateAction;
 
 typedef enum {
@@ -55,6 +60,8 @@ typedef enum {
     UpdaterUpdateEventActionProgress, /**< Progress update (e.g., download bytes received) */
 
     UpdaterUpdateEventNone, /**< No event (initial/idle state) */
+
+    UpdaterUpdateEventsCount,
 } UpdaterUpdateEvent;
 
 /** Update state information accessible via FuriState */
@@ -79,6 +86,8 @@ typedef enum {
     UpdaterCheckResultFailure, /**< Failed to check for update */
 
     UpdaterCheckResultNone, /**< No check performed (initial/idle state) */
+
+    UpdaterCheckResultsCount,
 } UpdaterCheckResult;
 
 typedef enum {
@@ -86,6 +95,8 @@ typedef enum {
     UpdaterCheckEventStop, /**< Update check stopped */
 
     UpdaterCheckEventNone, /**< No event (initial/idle state) */
+
+    UpdaterCheckEventsCount,
 } UpdaterCheckEvent;
 
 /** Update check state information accessible via FuriState */
@@ -177,6 +188,24 @@ UpdaterStatus updater_download(Updater* instance, const char* url, const char* p
  * @param[in]  instance  Updater instance
  */
 void updater_abort_download(Updater* instance);
+
+/** Verify SHA256 checksum of update bundle
+ *
+ * Must be called from inside of updater's session.
+ *
+ * @param[in]  instance  Updater instance
+ * @param[in]  tar_path  Path to .tar archive (NULL for default)
+ * @param[in]  sha       Expected SHA256 checksum string
+ * @param[in]  do_wait   true to block until complete, false for async operation
+ *
+ * @return     UpdaterStatusOk if checksum matches and file is accessible,
+ *             UpdaterStatusShaMismatch if checksum verification failed
+ */
+UpdaterStatus updater_verify_bundle_sha(
+    Updater* instance,
+    const char* tar_path,
+    const char* sha,
+    bool do_wait);
 
 /** Unpack update bundle .tar archive
  *
