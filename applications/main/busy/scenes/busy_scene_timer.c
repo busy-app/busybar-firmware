@@ -251,23 +251,35 @@ static void busy_scene_timer_handle_return_to_start(BusyApp* instance) {
     furi_check(busy_return_to_start_scene(instance));
 }
 
-static void busy_scene_timer_go_to_progress_scene(BusyApp* instance) {
+static void busy_scene_timer_handle_interval_ended(BusyApp* instance) {
     BusySceneTimer* data =
         scene_manager_get_scene_data(instance->scene_manager, BusyAppSceneIdTimer);
 
+    BusyTransitionType transition_type;
+
     if(data->is_force_ended) {
-        busy_prepare_transition(instance, BusyTransitionTypeSkip);
+        transition_type = BusyTransitionTypeSkip;
     } else if(data->timer_state == BusyTimerStateRest) {
-        busy_prepare_transition(instance, BusyTransitionTypeRestDone);
+        transition_type = BusyTransitionTypeRestDone;
     } else {
-        busy_prepare_transition(instance, BusyTransitionTypeWorkDone);
+        transition_type = BusyTransitionTypeWorkDone;
     }
 
+    BusyAppSceneId next_scene_id;
+
     if(data->timer_mode == BusyTimerModeInterval) {
-        scene_manager_next_scene(instance->scene_manager, BusyAppSceneIdProgress);
+        if(data->timer_state == BusyTimerStateIdle) {
+            next_scene_id = BusyAppSceneIdEnding;
+        } else {
+            next_scene_id = BusyAppSceneIdProgress;
+        }
+
     } else {
-        scene_manager_next_scene(instance->scene_manager, BusyAppSceneIdNext);
+        next_scene_id = BusyAppSceneIdFinish;
     }
+
+    busy_prepare_transition(instance, transition_type);
+    scene_manager_next_scene(instance->scene_manager, next_scene_id);
 }
 
 static void busy_scene_timer_on_enter(void* context) {
@@ -356,7 +368,7 @@ static bool busy_scene_timer_on_event(const SceneManagerEvent* event, void* cont
             busy_scene_timer_update_timer_state(instance);
 
         } else if(event->event == BusyCustomEventTimerIntervalEnded) {
-            busy_scene_timer_go_to_progress_scene(instance);
+            busy_scene_timer_handle_interval_ended(instance);
 
         } else if(event->event == BusyCustomEventTimerPaused) {
             busy_scene_timer_handle_pause(instance);

@@ -60,6 +60,7 @@ static void busy_scene_next_on_enter(void* context) {
         scene_manager_get_scene_data(instance->scene_manager, BusyAppSceneIdNext);
 
     const BusyTimerState timer_state = busy_timer_get_state(instance->busy_timer);
+    furi_assert(timer_state != BusyTimerStateIdle);
 
     BusyTimerCycles timer_cycles;
     busy_timer_get_cycles(instance->busy_timer, &timer_cycles);
@@ -100,10 +101,6 @@ static void busy_scene_next_on_enter(void* context) {
             data->front_prompt, flex_box_get_base(data->front_flex));
     });
 
-    if(timer_state == BusyTimerStateIdle) {
-        audio_play_file(instance->audio, BUSY_SOUND_PATH("session_completed.snd"));
-    }
-
     data->timer_state = timer_state;
 
     busy_start_transition(instance);
@@ -139,10 +136,7 @@ static bool busy_scene_next_on_event(const SceneManagerEvent* event, void* conte
             scene_manager_get_scene_data(instance->scene_manager, BusyAppSceneIdNext);
 
         if(event->event == BusyCustomEventStartPressed) {
-            with_gui(instance->gui, {
-                widget_set_pos_y(flex_box_get_base(data->front_flex), FLEX_OFFSET_PRESS);
-            });
-
+            // TODO: remove handling
         } else if(event->event == BusyCustomEventStartReleased) {
             BusyAppSceneId scene_id;
             BusyTransitionType transition_type;

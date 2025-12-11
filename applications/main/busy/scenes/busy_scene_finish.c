@@ -1,0 +1,123 @@
+#include "../busy_i.h"
+
+#include <gui/modules/label.h>
+#include <gui/modules/anim_image.h>
+
+#include "../widgets/prompt_overlay.h"
+
+typedef struct {
+    AnimImage* front_anim;
+    Label* front_label;
+    PromptOverlay* front_prompt;
+} BusySceneFinish;
+
+static bool busy_scene_finish_input_callback(const InputEvent* event, void* context) {
+    furi_assert(event);
+    furi_assert(context);
+
+    BusyApp* instance = context;
+
+    bool consumed = false;
+    BusyCustomEvent custom_event;
+
+    if(event->key == InputKeyStart) {
+        if(event->type == InputTypePress) {
+            custom_event = BusyCustomEventStartPressed;
+            consumed = true;
+
+        } else if(event->type == InputTypeRelease) {
+            custom_event = BusyCustomEventStartReleased;
+            consumed = true;
+        }
+    }
+
+    if(consumed) {
+        busy_send_custom_event(instance, custom_event);
+    }
+
+    return consumed;
+}
+
+static void busy_scene_finish_handle_back(BusyApp* instance) {
+    busy_prepare_transition(instance, BusyTransitionTypeDefault);
+
+    if(!busy_return_to_start_scene(instance)) {
+        busy_exit(instance);
+    }
+}
+
+static void busy_scene_finish_on_enter(void* context) {
+    furi_assert(context);
+
+    BusyApp* instance = context;
+    BusySceneFinish* data =
+        scene_manager_get_scene_data(instance->scene_manager, BusyAppSceneIdFinish);
+
+    with_gui(instance->gui, {
+        GuiLayer* layer = gui_get_layer(instance->gui, GuiLayerIdMain);
+        gui_layer_add_input_callback(layer, busy_scene_finish_input_callback, instance);
+
+        data->front_anim = anim_image_alloc(instance->front_window);
+        anim_image_set_source(data->front_anim, BUSY_ANIM_PATH("finished_confetti_72x16.anim"));
+
+        data->front_label = label_alloc(instance->front_window);
+        label_set_text(data->front_label, "Well done!");
+        widget_set_pos_y(label_get_base(data->front_label), 5);
+        widget_set_align(label_get_base(data->front_label), AlignTopMid);
+
+        data->front_prompt = prompt_overlay_alloc(instance->front_window);
+        prompt_overlay_set_animation_target(data->front_prompt, label_get_base(data->front_label));
+    });
+
+    audio_play_file(instance->audio, BUSY_SOUND_PATH("session_completed.snd"));
+
+    busy_start_transition(instance);
+}
+
+static void busy_scene_finish_on_exit(void* context) {
+    furi_assert(context);
+
+    BusyApp* instance = context;
+    BusySceneFinish* data =
+        scene_manager_get_scene_data(instance->scene_manager, BusyAppSceneIdFinish);
+
+    with_gui(instance->gui, {
+        GuiLayer* layer = gui_get_layer(instance->gui, GuiLayerIdMain);
+        gui_layer_remove_input_callback(layer, busy_scene_finish_input_callback);
+
+        anim_image_free(data->front_anim);
+        label_free(data->front_label);
+        prompt_overlay_free(data->front_prompt);
+    });
+}
+
+static bool busy_scene_finish_on_event(const SceneManagerEvent* event, void* context) {
+    furi_assert(context);
+    BusyApp* instance = context;
+
+    bool consumed = false;
+
+    if(event->type == SceneManagerEventTypeCustom) {
+        if(event->event == BusyCustomEventStartPressed) {
+            // TODO: Remove handling
+        } else if(event->event == BusyCustomEventStartReleased) {
+            busy_scene_finish_handle_back(instance);
+        }
+
+        consumed = true;
+
+    } else if(event->type == SceneManagerEventTypeBack) {
+        busy_scene_finish_handle_back(instance);
+
+        consumed = true;
+    }
+
+    return consumed;
+}
+
+const Scene busy_scene_finish = {
+    .enter_callback = busy_scene_finish_on_enter,
+    .exit_callback = busy_scene_finish_on_exit,
+    .event_callback = busy_scene_finish_on_event,
+    .data_size = sizeof(BusySceneFinish),
+};
