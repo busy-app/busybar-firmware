@@ -294,6 +294,7 @@ static void busy_timer_next_state(BusyTimer* instance, bool force) {
 
     } else {
         busy_timer_stop_timer(instance);
+        busy_timer_notify_state_changed(instance);
         busy_timer_notify_interval_ended(instance, force);
     }
 }
