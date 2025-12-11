@@ -26,9 +26,14 @@
 
 #define GRADIENT_STOPS_COUNT (2UL)
 
-#define GROW_ANIM_DURATION_MS    (833)
+#define GROW_ANIM_DURATION_MS    (333)
+#define GROW_ANIM_DELAY_MS       (1000)
+
+#define BLINK_ANIM_DELAY_MS      (1000)
 #define BLINK_ANIM_DURATION_1_MS (500)
 #define BLINK_ANIM_DURATION_2_MS (1500)
+
+#define SCROLL_ANIM_DELAY_MS (600)
 
 #define ELEMENT_GAP_PX (1)
 
@@ -43,6 +48,16 @@ static const uint32_t element_color[ELEMENT_STATES_COUNT][GRADIENT_STOPS_COUNT];
 static const uint32_t element_color_hl[ELEMENT_STATES_COUNT][GRADIENT_STOPS_COUNT];
 
 // LVGL-specific code
+static void progress_view_lvgl_scroll_event_callback(lv_event_t* event) {
+    const lv_event_code_t code = lv_event_get_code(event);
+
+    if(code == LV_EVENT_SCROLL_BEGIN) {
+        lv_anim_t* anim = lv_event_get_scroll_anim(event);
+        if(anim) {
+            lv_anim_set_delay(anim, SCROLL_ANIM_DELAY_MS);
+        }
+    }
+}
 
 void progress_view_lvgl_grow_anim_exec_callback(void* context, int32_t value) {
     furi_assert(context);
@@ -90,6 +105,8 @@ static void progress_view_lvgl_constructor(const lv_obj_class_t* class_p, lv_obj
 
     lv_obj_set_flex_flow(obj, LV_FLEX_FLOW_ROW);
     lv_obj_set_style_pad_column(obj, ELEMENT_GAP_PX, LV_PART_MAIN);
+    lv_obj_add_event_cb(
+        obj, progress_view_lvgl_scroll_event_callback, LV_EVENT_SCROLL_BEGIN, NULL);
 
     ProgressView* instance = (ProgressView*)obj;
     UNUSED(instance);
@@ -111,14 +128,8 @@ static void progress_view_start_grow_animation(lv_obj_t* element) {
     lv_anim_init(&anim);
     // Animating shutter width from 100 to 0 percent
     lv_anim_set_values(&anim, 100, 0);
+    lv_anim_set_delay(&anim, GROW_ANIM_DELAY_MS);
     lv_anim_set_duration(&anim, GROW_ANIM_DURATION_MS);
-    lv_anim_set_bezier3_param(
-        &anim,
-        LV_BEZIER_VAL_FLOAT(0.5F),
-        LV_BEZIER_VAL_FLOAT(0.0F),
-        LV_BEZIER_VAL_FLOAT(1.0F),
-        LV_BEZIER_VAL_FLOAT(0.5F));
-    lv_anim_set_path_cb(&anim, lv_anim_path_custom_bezier3);
     lv_anim_set_exec_cb(&anim, progress_view_lvgl_grow_anim_exec_callback);
     lv_anim_set_var(&anim, shutter);
     lv_anim_start(&anim);
@@ -133,6 +144,7 @@ static void progress_view_start_blink_animation(lv_obj_t* element, const uint32_
 
     lv_anim_set_repeat_count(&anim, LV_ANIM_REPEAT_INFINITE);
     lv_anim_set_values(&anim, LV_OPA_TRANSP, LV_OPA_COVER);
+    lv_anim_set_delay(&anim, BLINK_ANIM_DELAY_MS);
     lv_anim_set_duration(&anim, BLINK_ANIM_DURATION_1_MS);
     lv_anim_set_reverse_duration(&anim, BLINK_ANIM_DURATION_2_MS);
     lv_anim_set_path_cb(&anim, lv_anim_path_custom_bezier3);
