@@ -497,6 +497,7 @@ class BusyBarDevice:
         timeout: int = 120,
         retries: int = 0,
         retry_delay: float = 5.0,
+        connect_timeout: float = 5.0,
     ) -> Tuple[bool, str]:
         """
         Upload a tar file to the device via HTTP POST.
@@ -504,9 +505,10 @@ class BusyBarDevice:
         Args:
             tar_path: Local path to the tar file
             name: Update name parameter (default: firmware)
-            timeout: HTTP timeout in seconds (default: 120)
+            timeout: HTTP timeout in seconds for transfer (default: 120)
             retries: Number of retry attempts if host is unavailable (default: 0)
             retry_delay: Delay in seconds between retries (default: 5.0)
+            connect_timeout: Timeout for initial connection check (default: 5.0)
 
         Returns:
             Tuple of (success, output_message)
@@ -515,7 +517,9 @@ class BusyBarDevice:
             return False, f"File not found: {tar_path}"
 
         file_size = os.path.getsize(tar_path)
-        url = f"http://{self.config.telnet.host}:{self.config.http_port}/api/update?name={name}"
+        host = self.config.telnet.host
+        port = self.config.http_port
+        url = f"http://{host}:{port}/api/update?name={name}"
 
         self._logger.info(f"Uploading {tar_path} ({file_size} bytes) to {url}")
 
@@ -527,6 +531,15 @@ class BusyBarDevice:
             if attempt > 0:
                 self._logger.info(f"Retry {attempt}/{retries} after {retry_delay}s...")
                 time.sleep(retry_delay)
+
+            try:
+                with socket.create_connection((host, port), timeout=connect_timeout):
+                    pass
+                self._logger.debug(f"Connection to {host}:{port} successful")
+            except (socket.timeout, OSError) as e:
+                last_error = f"Cannot connect to {host}:{port}: {e}"
+                self._logger.warning(f"Attempt {attempt + 1}/{retries + 1} failed: {last_error}")
+                continue
 
             try:
                 req = urllib.request.Request(
@@ -552,7 +565,7 @@ class BusyBarDevice:
 
             except urllib.error.HTTPError as e:
                 body = e.read().decode("utf-8", errors="ignore") if e.fp else ""
-                return False, f"HTTP error {e.code}: {e.reason}. Response: {body}"
+                self._logger.warning(f"HTTP error {e.code}: {e.reason}. Response: {body}")
             except urllib.error.URLError as e:
                 last_error = f"URL error: {e.reason}"
                 self._logger.warning(f"Attempt {attempt + 1}/{retries + 1} failed: {last_error}")
@@ -893,6 +906,12 @@ class BusyBarTestOps:
             default=5.0,
             help="Delay in seconds between retries (default: 5.0)"
         )
+        p_send_tar.add_argument(
+            "--connect-timeout",
+            type=float,
+            default=5.0,
+            help="Timeout for initial connection check in seconds (default: 5.0)"
+        )
         p_send_tar.set_defaults(func=self._cmd_send_tar)
 
         return parser
@@ -1088,6 +1107,7 @@ class BusyBarTestOps:
             timeout=args.timeout,
             retries=args.retries,
             retry_delay=args.retry_delay,
+            connect_timeout=args.connect_timeout,
         )
         print(msg)
         return 0 if ok else 1
