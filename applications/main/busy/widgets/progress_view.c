@@ -19,17 +19,18 @@
 #define COLOR_GREY_1 0x656C6F
 #define COLOR_GREY_2 0x9FAAAF
 
-#define CYCLES_SHOWN_MIN (2UL)
-#define CYCLES_SHOWN_MAX (10UL)
+#define CYCLES_SHOWN_COUNT_MAX (10UL)
 
-#define NUM_ELEMENT_SIZES  (CYCLES_SHOWN_MAX - CYCLES_SHOWN_MIN + 1UL)
-#define NUM_ELEMENT_STATES (2UL)
+#define ELEMENT_SIZES_COUNT  (CYCLES_SHOWN_COUNT_MAX)
+#define ELEMENT_STATES_COUNT (2UL)
 
-#define NUM_GRADIENT_STOPS (2UL)
+#define GRADIENT_STOPS_COUNT (2UL)
 
 #define GROW_ANIM_DURATION_MS    (833)
 #define BLINK_ANIM_DURATION_1_MS (500)
 #define BLINK_ANIM_DURATION_2_MS (1500)
+
+#define ELEMENT_GAP_PX (1)
 
 struct ProgressView {
     Widget base;
@@ -37,9 +38,9 @@ struct ProgressView {
 
 const lv_obj_class_t progress_view_lvgl_class;
 
-static const uint8_t element_width[NUM_ELEMENT_SIZES][NUM_ELEMENT_STATES];
-static const uint32_t element_color[NUM_ELEMENT_STATES][NUM_GRADIENT_STOPS];
-static const uint32_t element_color_hl[NUM_ELEMENT_STATES][NUM_GRADIENT_STOPS];
+static const uint8_t element_width[ELEMENT_SIZES_COUNT][ELEMENT_STATES_COUNT];
+static const uint32_t element_color[ELEMENT_STATES_COUNT][GRADIENT_STOPS_COUNT];
+static const uint32_t element_color_hl[ELEMENT_STATES_COUNT][GRADIENT_STOPS_COUNT];
 
 // LVGL-specific code
 
@@ -88,7 +89,7 @@ static void progress_view_lvgl_constructor(const lv_obj_class_t* class_p, lv_obj
     UNUSED(class_p);
 
     lv_obj_set_flex_flow(obj, LV_FLEX_FLOW_ROW);
-    lv_obj_set_style_pad_column(obj, 1, LV_PART_MAIN);
+    lv_obj_set_style_pad_column(obj, ELEMENT_GAP_PX, LV_PART_MAIN);
 
     ProgressView* instance = (ProgressView*)obj;
     UNUSED(instance);
@@ -140,6 +141,17 @@ static void progress_view_start_blink_animation(lv_obj_t* element, const uint32_
     lv_anim_start(&anim);
 }
 
+static uint32_t progress_view_calc_total_width(uint32_t cycles_count) {
+    const uint32_t cc = MIN(cycles_count, ELEMENT_SIZES_COUNT);
+    const uint8_t* ws = element_width[cc - 1];
+
+    const uint32_t busy_total_width = ws[0] * cc;
+    const uint32_t rest_total_width = ws[1] * (cc - 1);
+    const uint32_t gap_total_width = ELEMENT_GAP_PX * ((cc * 2) - 2);
+
+    return busy_total_width + rest_total_width + gap_total_width;
+}
+
 // Public API
 
 ProgressView* progress_view_alloc(Widget* parent) {
@@ -168,13 +180,13 @@ void progress_view_set_progress(
     uint32_t cycles_count,
     bool wait_next) {
     furi_check(instance);
-    furi_check(cycles_count >= CYCLES_SHOWN_MIN);
+    furi_check(cycles_count > 0);
 
     const uint32_t interval_count = cycles_count * 2 - 1;
-    const uint32_t width_idx = MIN(cycles_count - CYCLES_SHOWN_MIN, NUM_ELEMENT_SIZES - 1);
+    const uint32_t width_idx = MIN(cycles_count, ELEMENT_SIZES_COUNT) - 1;
 
     for(uint32_t i = 0; i < interval_count; ++i) {
-        const uint32_t state_idx = i % NUM_ELEMENT_STATES;
+        const uint32_t state_idx = i % ELEMENT_STATES_COUNT;
         const uint32_t w = element_width[width_idx][state_idx];
 
         lv_obj_t* element = lv_obj_create(TO_LV_OBJ(instance));
@@ -209,6 +221,8 @@ void progress_view_set_progress(
             lv_obj_set_style_bg_color(element, lv_color_hex(COLOR_GREY_1), LV_PART_MAIN);
         }
     }
+
+    lv_obj_set_width(TO_LV_OBJ(instance), progress_view_calc_total_width(cycles_count));
 }
 
 // LVGL class descriptor
@@ -224,7 +238,8 @@ const lv_obj_class_t progress_view_lvgl_class = {
 
 // Element parameters
 
-static const uint8_t element_width[NUM_ELEMENT_SIZES][NUM_ELEMENT_STATES] = {
+static const uint8_t element_width[ELEMENT_SIZES_COUNT][ELEMENT_STATES_COUNT] = {
+    {72, 0},
     {31, 8},
     {18, 7},
     {12, 6},
@@ -236,12 +251,12 @@ static const uint8_t element_width[NUM_ELEMENT_SIZES][NUM_ELEMENT_STATES] = {
     {3, 2},
 };
 
-static const uint32_t element_color[NUM_ELEMENT_STATES][NUM_GRADIENT_STOPS] = {
+static const uint32_t element_color[ELEMENT_STATES_COUNT][GRADIENT_STOPS_COUNT] = {
     {COLOR_RED_1, COLOR_RED_2},
     {COLOR_GREEN_1, COLOR_GREEN_2},
 };
 
-static const uint32_t element_color_hl[NUM_ELEMENT_STATES][NUM_GRADIENT_STOPS] = {
+static const uint32_t element_color_hl[ELEMENT_STATES_COUNT][GRADIENT_STOPS_COUNT] = {
     {COLOR_RED_3, COLOR_RED_4},
     {COLOR_GREEN_3, COLOR_GREEN_4},
 };
