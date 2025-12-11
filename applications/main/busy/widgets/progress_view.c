@@ -19,7 +19,7 @@
 #define COLOR_GREY_1 0x656C6F
 #define COLOR_GREY_2 0x9FAAAF
 
-#define CYCLES_SHOWN_COUNT_MAX (10UL)
+#define CYCLES_SHOWN_COUNT_MAX (7UL)
 
 #define ELEMENT_SIZES_COUNT  (CYCLES_SHOWN_COUNT_MAX)
 #define ELEMENT_STATES_COUNT (2UL)
@@ -141,15 +141,19 @@ static void progress_view_start_blink_animation(lv_obj_t* element, const uint32_
     lv_anim_start(&anim);
 }
 
-static uint32_t progress_view_calc_total_width(uint32_t cycles_count) {
-    const uint32_t cc = MIN(cycles_count, ELEMENT_SIZES_COUNT);
-    const uint8_t* ws = element_width[cc - 1];
+static void progress_view_scroll_to_idx(
+    ProgressView* instance,
+    uint32_t interval_idx,
+    bool enable_animation) {
+    if(interval_idx >= CYCLES_SHOWN_COUNT_MAX - 1) {
+        const lv_obj_t* obj = TO_LV_OBJ(instance);
 
-    const uint32_t busy_total_width = ws[0] * cc;
-    const uint32_t rest_total_width = ws[1] * (cc - 1);
-    const uint32_t gap_total_width = ELEMENT_GAP_PX * ((cc * 2) - 2);
+        const uint32_t max_idx = lv_obj_get_child_count(obj) - 1;
+        const uint32_t target_idx = MIN(interval_idx + CYCLES_SHOWN_COUNT_MAX, max_idx);
 
-    return busy_total_width + rest_total_width + gap_total_width;
+        lv_obj_t* target = lv_obj_get_child(obj, target_idx);
+        lv_obj_scroll_to_view(target, enable_animation ? LV_ANIM_ON : LV_ANIM_OFF);
+    }
 }
 
 // Public API
@@ -222,7 +226,7 @@ void progress_view_set_progress(
         }
     }
 
-    lv_obj_set_width(TO_LV_OBJ(instance), progress_view_calc_total_width(cycles_count));
+    progress_view_scroll_to_idx(instance, interval_idx, !wait_next);
 }
 
 // LVGL class descriptor
@@ -231,7 +235,7 @@ const lv_obj_class_t progress_view_lvgl_class = {
     .base_class = &widget_lvgl_class,
     .constructor_cb = progress_view_lvgl_constructor,
     .name = "widget-progress-view",
-    .width_def = LV_SIZE_CONTENT,
+    .width_def = LV_PCT(100),
     .height_def = LV_SIZE_CONTENT,
     .instance_size = sizeof(ProgressView),
 };
@@ -246,9 +250,6 @@ static const uint8_t element_width[ELEMENT_SIZES_COUNT][ELEMENT_STATES_COUNT] = 
     {8, 6},
     {7, 4},
     {6, 3},
-    {5, 2},
-    {4, 2},
-    {3, 2},
 };
 
 static const uint32_t element_color[ELEMENT_STATES_COUNT][GRADIENT_STOPS_COUNT] = {
