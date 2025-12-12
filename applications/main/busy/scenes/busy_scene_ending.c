@@ -4,6 +4,11 @@
 
 #include "../widgets/summary_view.h"
 
+#include "../helpers/animate.h"
+
+#define SUMMARY_SLIDE_POS_Y   (-6)
+#define SUMMARY_SLIDE_TIME_MS (500)
+
 typedef struct {
     SummaryView* front_summary;
     AnimImage* front_anim;
@@ -40,9 +45,7 @@ static void busy_scene_ending_on_enter(void* context) {
 
     with_gui(instance->gui, {
         data->front_summary = summary_view_alloc(instance->front_window);
-        // TODO: take cycles count into account
-        // summary_view_set_cycles_count(data->front_summary, config.cycle_count);
-        summary_view_set_cycles_count(data->front_summary, 10);
+        summary_view_set_cycles_count(data->front_summary, config.cycle_count);
         summary_view_set_finished_callback(
             data->front_summary, busy_scnene_ending_summary_finished_callback, instance);
         widget_set_align(summary_view_get_base(data->front_summary), AlignCenter);
@@ -54,6 +57,12 @@ static void busy_scene_ending_on_enter(void* context) {
         anim_image_set_loop(data->front_anim, false);
         anim_image_stop(data->front_anim);
         widget_set_visible(anim_image_get_base(data->front_anim), false);
+
+        animate_pos_y(
+            summary_view_get_base(data->front_summary),
+            SUMMARY_SLIDE_POS_Y,
+            0,
+            SUMMARY_SLIDE_TIME_MS);
     });
 
     busy_start_transition(instance);
