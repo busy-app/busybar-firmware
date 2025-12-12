@@ -656,7 +656,7 @@ paths:
       tags:
         - Input
 
-      summary: Input evnts streaming
+      summary: Input events streaming
       description: Start WebSocket session for input events streaming
       operationId: connectInputWebSocket
       responses:
@@ -773,31 +773,6 @@ paths:
                 $ref: "#/components/schemas/StatusPower"
         "500":
           description: Internal server error
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/Error"
-
-  /ws_test:
-    get:
-      tags:
-        - WebSocket
-      summary: WebSocket test endpoint
-      description: |
-        WebSocket connection for real-time communication and testing.
-        Upgrade from HTTP to WebSocket protocol is required.
-      operationId: connectWebSocket
-      responses:
-        "101":
-          description: WebSocket connection established
-        "400":
-          description: WebSocket upgrade failed
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/Error"
-        "426":
-          description: Upgrade required
           content:
             application/json:
               schema:
@@ -1958,8 +1933,6 @@ tags:
     description: Allows to operate with Wi-Fi
   - name: Assets
     description: Asset file management and display control
-  - name: WebSocket
-    description: Real-time communication via WebSocket
   - name: Streaming
     description: Screen streaming
   - name: Settings
