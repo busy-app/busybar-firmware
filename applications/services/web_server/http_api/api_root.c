@@ -325,13 +325,9 @@ static const HttpHandler handlers_api_root[] = {
         .uri = "account",
         .method = "*",
         .type = HttpHandlerCustom,
+        .ctx_alloc = http_api_account_alloc,
+        .ctx_free = http_api_account_free,
         .on_request = http_api_account_callback,
-    },
-    {
-        .uri = "account/link",
-        .method = "*",
-        .type = HttpHandlerCustom,
-        .on_request = http_api_account_link_callback,
     },
     {
         .uri = "busy",

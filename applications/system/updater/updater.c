@@ -777,8 +777,12 @@ UpdaterStatus updater_check_for_update(Updater* instance) {
 
 const char* updater_get_active_version(void) {
     const Version* version = furi_hal_version_get_firmware_version();
-    return (strcmp(version_get_version(version), "unknown") == 0) ? version_get_githash(version) :
-                                                                    version_get_version(version);
+    const char* version_str = version_get_version(version);
+    if((strlen(version_str) > 0) && (version_str[0] != 'r')) {
+        return version_str;
+    }
+
+    return version_get_githash(version);
 }
 
 static Updater* updater_alloc(void) {
