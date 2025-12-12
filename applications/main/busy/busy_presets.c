@@ -94,6 +94,17 @@ const TransitionOverlayPreset busy_transitions[BusyTransitionTypeMax] = {
                 },
             .mask.file_path = BUSY_ANIM_PATH("transition_done_rest_72x16.anim"),
         },
+    [BusyTransitionTypeEnding] =
+        {
+            .type = TransitionOverlayTypeMask,
+            .blend_mode = TransitionOverlayBlendModeAdd,
+            .timings =
+                {
+                    .in_ms = 125,
+                    .out_ms = 125,
+                },
+            .mask.file_path = BUSY_ANIM_PATH("transition_flash_72x16.anim"),
+        },
 };
 
 const BusyStatusLightsPreset busy_status_lights[BusyStatusLightsTypeMax] = {

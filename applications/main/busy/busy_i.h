@@ -59,6 +59,7 @@ typedef enum {
     BusyTransitionTypeRest,
     BusyTransitionTypeWorkDone,
     BusyTransitionTypeRestDone,
+    BusyTransitionTypeEnding,
     BusyTransitionTypeMax,
 } BusyTransitionType;
 

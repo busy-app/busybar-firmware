@@ -80,7 +80,7 @@ static bool busy_scene_ending_on_event(const SceneManagerEvent* event, void* con
 
     if(event->type == SceneManagerEventTypeCustom) {
         if(event->event == BusyCustomEventAnimationEnded) {
-            busy_prepare_transition(instance, BusyTransitionTypeAutomatic);
+            busy_prepare_transition(instance, BusyTransitionTypeEnding);
             scene_manager_next_scene(instance->scene_manager, BusyAppSceneIdFinish);
         }
 
