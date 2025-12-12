@@ -17,6 +17,7 @@ struct PromptOverlay {
     AnimImage base;
     lv_obj_t* target;
     uint32_t frame_idx;
+    bool is_pressed;
 };
 
 typedef struct {
@@ -51,11 +52,7 @@ static void prompt_overlay_lvgl_anim_callback(void* context, int32_t value) {
 
     if(value == ANIM_START_VALUE) {
         instance->frame_idx = 0;
-
-        AnimImage* anim_image = &instance->base;
-
-        anim_image_rewind(anim_image);
-        anim_image_start(anim_image);
+        anim_image_start(&instance->base);
     }
 }
 
@@ -82,10 +79,10 @@ static bool prompt_overlay_input_callback(Widget* widget, const InputEvent* even
 
     if(event->key == InputKeyStart) {
         if(event->type == InputTypePress) {
-            AnimImage* anim_image = &instance->base;
+            instance->is_pressed = true;
 
-            anim_image_stop(anim_image);
-            anim_image_rewind(anim_image);
+            AnimImage* anim_image = &instance->base;
+            anim_image_set_range(anim_image, 0, 0, false, true);
 
             lv_obj_t* obj = TO_LV_OBJ(instance);
             lv_anim_delete(obj, prompt_overlay_lvgl_anim_callback);
@@ -95,6 +92,8 @@ static bool prompt_overlay_input_callback(Widget* widget, const InputEvent* even
             consumed = true;
 
         } else if(event->type == InputTypeRelease) {
+            instance->is_pressed = false;
+
             prompt_overlay_set_target_y_offset(instance, 0);
             prompt_overlay_start_animation(instance);
 
@@ -108,8 +107,9 @@ static bool prompt_overlay_input_callback(Widget* widget, const InputEvent* even
 static void prompt_overlay_start_animation(PromptOverlay* instance) {
     AnimImage* anim_image = &instance->base;
 
+    const uint32_t frame_count = anim_image_get_frame_count(anim_image);
+    anim_image_set_range(anim_image, 0, frame_count - 1, false, false);
     anim_image_stop(anim_image);
-    anim_image_rewind(anim_image);
 
     const uint32_t init_frame_idx = anim_frames[COUNT_OF(anim_frames) - 1].next_frame_idx;
     anim_image_set_frame_callback(
@@ -135,14 +135,17 @@ static void prompt_overlay_set_target_y_offset(PromptOverlay* instance, int32_t 
     }
 }
 
-static uint32_t prompt_overlay_animation_frame_callback(AnimImage* anim, void* context) {
-    furi_assert(anim);
+static uint32_t prompt_overlay_animation_frame_callback(AnimImage* anim_image, void* context) {
+    furi_assert(anim_image);
     UNUSED(context);
 
-    PromptOverlay* instance = (PromptOverlay*)anim;
+    PromptOverlay* instance = (PromptOverlay*)anim_image;
     const PromptOverlayFrame* frame = &anim_frames[instance->frame_idx++];
 
-    prompt_overlay_set_target_y_offset(instance, frame->target_offset_px);
+    if(!instance->is_pressed) {
+        prompt_overlay_set_target_y_offset(instance, frame->target_offset_px);
+    }
+
     return frame->next_frame_idx;
 }
 
