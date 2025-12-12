@@ -1,4 +1,4 @@
-#include "../busy.h"
+#include "../busy_i.h"
 
 #include <gui/modules/image.h>
 
@@ -138,8 +138,10 @@ static bool busy_scene_progress_on_event(const SceneManagerEvent* event, void* c
 
     } else if(event->type == SceneManagerEventTypeBack) {
         busy_prepare_transition(instance, BusyTransitionTypeDefault);
-        scene_manager_search_and_switch_to_previous_scene(
-            instance->scene_manager, BusyAppSceneIdStart);
+
+        if(!busy_return_to_start_scene(instance)) {
+            busy_exit(instance);
+        }
 
         consumed = true;
     }

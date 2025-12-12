@@ -2,11 +2,12 @@ Import("env")
 
 env.Append(
     CPPPATH=[
+        Dir("mbedtls_patch").srcnode(),
         Dir("mbedtls/include").srcnode(),
         Dir("mbedtls/library").srcnode(),
-        Dir("mbedtls_patch").srcnode(),
     ],
     SDK_HEADERS=[
+        File("mbedtls_patch/pk_wrap.h"),
         File("mbedtls/include/mbedtls/des.h"),
         File("mbedtls/include/mbedtls/sha1.h"),
         File("mbedtls/include/mbedtls/sha256.h"),
@@ -15,7 +16,6 @@ env.Append(
         File("mbedtls/include/mbedtls/ecdsa.h"),
         File("mbedtls/include/mbedtls/ecdh.h"),
         File("mbedtls/include/mbedtls/ecp.h"),
-        File("mbedtls_patch/pk_wrap.h"),
     ],
     CPPDEFINES=[("MBEDTLS_CONFIG_FILE", '\\"mbedtls_cfg.h\\"')],
 )
@@ -55,15 +55,18 @@ sources = [
     File("mbedtls/library/constant_time.c"),
     libenv.Glob("mbedtls/library/x509*.c"),
     libenv.Glob("mbedtls/library/asn1*.c"),
-    libenv.Glob("mbedtls/library/pk*.c"),
+    libenv.Glob("mbedtls/library/pk*.c", exclude=["mbedtls/library/pk_wrap.c"]),
     libenv.Glob("mbedtls/library/ec*.c"),
     libenv.Glob("mbedtls/library/rsa*.c"),
     libenv.Glob("mbedtls/library/sha*.c"),
     libenv.Glob("mbedtls/library/aes*.c"),
     libenv.Glob("mbedtls/library/psa*.c"),
     libenv.Glob("mbedtls/library/cipher*.c"),
-    libenv.Glob("mbedtls/library/ssl*.c", exclude = ["mbedtls/library/ssl_tls13_generic.c"]),
+    libenv.Glob(
+        "mbedtls/library/ssl*.c", exclude=["mbedtls/library/ssl_tls13_generic.c"]
+    ),
     File("mbedtls_patch/ssl_tls13_generic.c"),
+    File("mbedtls_patch/pk_wrap.c"),
 ]
 
 Depends(sources, File("mbedtls_cfg.h"))

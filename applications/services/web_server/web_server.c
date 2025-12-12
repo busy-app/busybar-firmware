@@ -5,8 +5,6 @@
 
 #define TAG "HttpSrv"
 
-// TODO: timers
-
 typedef struct {
     HttpHandlersList_t handlers;
     struct mg_mgr mgr; // Event manager
@@ -29,14 +27,6 @@ static const HttpHandler handlers_root[] = {
         .method = "OPTIONS",
         .type = HttpHandlerCustom,
         .on_request = http_api_options_callback,
-    },
-    {
-        .uri = "/ws_test",
-        .method = "GET",
-        .type = HttpHandlerCustom,
-        .on_request = http_websocket_callback,
-        .ctx_alloc = http_websocket_alloc,
-        .ctx_free = http_websocket_free,
     },
     {
         .uri = "",

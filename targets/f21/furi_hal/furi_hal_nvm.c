@@ -29,6 +29,8 @@ _Static_assert(FuriHalNvmFlagCount <= 32, "Too many NVM flags defined!");
 
 static volatile NvmData* nvm_storage = (NvmData*)(&__bkp_start__);
 
+#pragma GCC push_options
+#pragma GCC optimize("O0")
 void furi_hal_nvm_reset(void) {
     memset((void*)nvm_storage, 0, sizeof(NvmData));
 
@@ -40,6 +42,7 @@ void furi_hal_nvm_reset(void) {
     nvm_storage->flags = 0;
     nvm_storage->boot_mode = FuriHalNvmBootModeNormal;
 }
+#pragma GCC pop_options
 
 void furi_hal_nvm_set_flag(FuriHalNvmFlag flag) {
     nvm_storage->flags |= (1 << flag);
