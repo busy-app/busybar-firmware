@@ -22,6 +22,9 @@
 struct SummaryView {
     Widget base;
     lv_obj_t* elements[ELEMENT_COUNT_MAX];
+    uint32_t elements_count;
+    SummaryViewCallback finished_callback;
+    void* callback_context;
 };
 
 const lv_obj_class_t summary_view_lvgl_class;
@@ -33,6 +36,17 @@ static void summary_view_element_lvgl_anim_callback(void* context, int32_t value
 
     lv_obj_t* element = context;
     lv_obj_set_style_bg_opa(element, value, LV_PART_MAIN);
+}
+
+static void summary_view_element_lvgl_anim_completed_callback(lv_anim_t* anim) {
+    furi_assert(anim);
+
+    SummaryView* instance = anim->user_data;
+    furi_assert(instance);
+
+    if(instance->finished_callback) {
+        instance->finished_callback(instance->callback_context);
+    }
 }
 
 static void summary_view_sequence_lvgl_anim_callback(void* context, int32_t value) {
@@ -50,6 +64,11 @@ static void summary_view_sequence_lvgl_anim_callback(void* context, int32_t valu
     lv_anim_set_values(&element_anim, LV_OPA_TRANSP, LV_OPA_COVER);
     lv_anim_set_exec_cb(&element_anim, summary_view_element_lvgl_anim_callback);
     lv_anim_set_var(&element_anim, element);
+
+    if(element_idx == instance->elements_count - 1) {
+        lv_anim_set_completed_cb(&element_anim, summary_view_element_lvgl_anim_completed_callback);
+        lv_anim_set_user_data(&element_anim, instance);
+    }
 
     lv_obj_t* overlay = lv_obj_get_child(element, 0);
 
@@ -83,9 +102,8 @@ static void summary_view_lvgl_constructor(const lv_obj_class_t* class_p, lv_obj_
 
 // Implementation
 
-static void
-    summary_view_add_element(SummaryView* instance, uint32_t element_idx, uint32_t element_count) {
-    const uint32_t element_width = SUMMARY_VIEW_MAX_WIDTH / element_count;
+static void summary_view_add_element(SummaryView* instance, uint32_t element_idx) {
+    const uint32_t element_width = SUMMARY_VIEW_MAX_WIDTH / instance->elements_count;
 
     lv_obj_t* element = lv_obj_create(TO_LV_OBJ(instance));
     lv_obj_set_size(element, element_width, ELEMENT_HEIGHT);
@@ -103,13 +121,13 @@ static void
     instance->elements[element_idx] = element;
 }
 
-static void summary_view_start_sequence(SummaryView* instance, uint32_t element_count) {
+static void summary_view_start_sequence(SummaryView* instance) {
     lv_anim_t anim;
     lv_anim_init(&anim);
     lv_anim_set_delay(&anim, SEQUENCE_ANIM_DELAY_MS);
     lv_anim_set_duration(&anim, SEQUENCE_ANIM_DURATION_MS);
     lv_anim_set_early_apply(&anim, false);
-    lv_anim_set_values(&anim, 0, element_count - 1);
+    lv_anim_set_values(&anim, 0, instance->elements_count - 1);
     lv_anim_set_path_cb(&anim, lv_anim_path_ease_in);
     lv_anim_set_exec_cb(&anim, summary_view_sequence_lvgl_anim_callback);
     lv_anim_set_var(&anim, instance);
@@ -141,13 +159,23 @@ Widget* summary_view_get_base(SummaryView* instance) {
 void summary_view_set_cycles_count(SummaryView* instance, uint32_t cycles_count) {
     furi_check(instance);
 
-    const uint32_t element_count = MIN(cycles_count, ELEMENT_COUNT_MAX);
+    instance->elements_count = MIN(cycles_count, ELEMENT_COUNT_MAX);
 
-    for(uint32_t i = 0; i < element_count; ++i) {
-        summary_view_add_element(instance, i, element_count);
+    for(uint32_t i = 0; i < instance->elements_count; ++i) {
+        summary_view_add_element(instance, i);
     }
 
-    summary_view_start_sequence(instance, element_count);
+    summary_view_start_sequence(instance);
+}
+
+void summary_view_set_finished_callback(
+    SummaryView* instance,
+    SummaryViewCallback callback,
+    void* context) {
+    furi_check(instance);
+
+    instance->finished_callback = callback;
+    instance->callback_context = context;
 }
 
 // LVGL class descriptor

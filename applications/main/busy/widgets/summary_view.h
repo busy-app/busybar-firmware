@@ -14,6 +14,8 @@ extern "C" {
 /** SummaryView opaque structure. */
 typedef struct SummaryView SummaryView;
 
+typedef void (*SummaryViewCallback)(void* context);
+
 /**
  * @brief Create a new SummaryView instance.
  *
@@ -46,6 +48,11 @@ Widget* summary_view_get_base(SummaryView* instance);
  * @param[in,out] instance pointer to the SummaryView instance to be modified
  */
 void summary_view_set_cycles_count(SummaryView* instance, uint32_t cycles_count);
+
+void summary_view_set_finished_callback(
+    SummaryView* instance,
+    SummaryViewCallback callback,
+    void* context);
 
 #ifdef __cplusplus
 }
