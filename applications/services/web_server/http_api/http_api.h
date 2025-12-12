@@ -1,7 +1,7 @@
 #pragma once
 #include "../web_server_i.h"
 
-#define API_VERSION {3, 0, 0}
+#define API_VERSION {4, 0, 0}
 
 // Root API handlers
 void* http_api_root_alloc(void);
@@ -150,12 +150,9 @@ bool http_api_name_callback(
     void* ctx);
 
 // MQTT Account
+void* http_api_account_alloc(void);
+void http_api_account_free(void* ctx);
 bool http_api_account_callback(
-    FuriString* path,
-    struct mg_connection* conn,
-    struct mg_http_message* msg,
-    void* ctx);
-bool http_api_account_link_callback(
     FuriString* path,
     struct mg_connection* conn,
     struct mg_http_message* msg,
