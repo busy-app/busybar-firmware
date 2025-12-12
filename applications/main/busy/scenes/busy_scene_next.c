@@ -35,12 +35,8 @@ static bool busy_scene_next_input_callback(const InputEvent* event, void* contex
     BusyCustomEvent custom_event;
 
     if(event->key == InputKeyStart) {
-        if(event->type == InputTypePress) {
-            custom_event = BusyCustomEventStartPressed;
-            consumed = true;
-
-        } else if(event->type == InputTypeRelease) {
-            custom_event = BusyCustomEventStartReleased;
+        if(event->type == InputTypeShort) {
+            custom_event = BusyCustomEventStartShortPressed;
             consumed = true;
         }
     }
@@ -135,9 +131,7 @@ static bool busy_scene_next_on_event(const SceneManagerEvent* event, void* conte
         const BusySceneNext* data =
             scene_manager_get_scene_data(instance->scene_manager, BusyAppSceneIdNext);
 
-        if(event->event == BusyCustomEventStartPressed) {
-            // TODO: remove handling
-        } else if(event->event == BusyCustomEventStartReleased) {
+        if(event->event == BusyCustomEventStartShortPressed) {
             BusyAppSceneId scene_id;
             BusyTransitionType transition_type;
 

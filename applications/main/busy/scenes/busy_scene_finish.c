@@ -21,12 +21,8 @@ static bool busy_scene_finish_input_callback(const InputEvent* event, void* cont
     BusyCustomEvent custom_event;
 
     if(event->key == InputKeyStart) {
-        if(event->type == InputTypePress) {
-            custom_event = BusyCustomEventStartPressed;
-            consumed = true;
-
-        } else if(event->type == InputTypeRelease) {
-            custom_event = BusyCustomEventStartReleased;
+        if(event->type == InputTypeShort) {
+            custom_event = BusyCustomEventStartShortPressed;
             consumed = true;
         }
     }
@@ -98,10 +94,8 @@ static bool busy_scene_finish_on_event(const SceneManagerEvent* event, void* con
     bool consumed = false;
 
     if(event->type == SceneManagerEventTypeCustom) {
-        if(event->event == BusyCustomEventStartPressed) {
-            // TODO: Remove handling
-        } else if(event->event == BusyCustomEventStartReleased) {
-            busy_scene_finish_handle_back(instance);
+        if(event->event == BusyCustomEventStartShortPressed) {
+            // busy_scene_finish_handle_back(instance);
         }
 
         consumed = true;
