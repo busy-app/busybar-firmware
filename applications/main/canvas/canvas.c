@@ -484,9 +484,11 @@ int32_t canvas_app(void* arg) {
 
     furi_event_loop_run(canvas->event_loop);
 
-    furi_check(
-        !furi_record_destroy(RECORD_CANVAS),
-        "Canvas app quit failure. Canvas is used by other threads");
+    while(!furi_record_destroy(RECORD_CANVAS)) {
+        // Wait before all users close the record
+        furi_delay_ms(1);
+    }
+
     canvas_app_free(canvas);
 
     return 0;
