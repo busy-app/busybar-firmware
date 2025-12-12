@@ -1,11 +1,10 @@
 #include "../busy_i.h"
 
-#include <gui/modules/label.h>
-
+#include "../widgets/summary_view.h"
 #include "../helpers/run_later.h"
 
 typedef struct {
-    Label* front_label;
+    SummaryView* front_summary;
     RunLater* run_later;
 } BusySceneEndig;
 
@@ -25,10 +24,13 @@ static void busy_scene_ending_on_enter(void* context) {
     BusySceneEndig* data =
         scene_manager_get_scene_data(instance->scene_manager, BusyAppSceneIdEnding);
 
+    BusyTimerConfig config;
+    busy_timer_get_config(instance->busy_timer, &config);
+
     with_gui(instance->gui, {
-        data->front_label = label_alloc(instance->front_window);
-        label_set_text(data->front_label, "ENDING ANIMATION");
-        widget_set_align(label_get_base(data->front_label), AlignCenter);
+        data->front_summary = summary_view_alloc(instance->front_window);
+        summary_view_set_cycles_count(data->front_summary, config.cycle_count);
+        widget_set_align(summary_view_get_base(data->front_summary), AlignCenter);
     });
 
     data->run_later =
@@ -46,7 +48,7 @@ static void busy_scene_ending_on_exit(void* context) {
 
     run_later_cancel(data->run_later);
 
-    with_gui(instance->gui, { label_free(data->front_label); });
+    with_gui(instance->gui, { summary_view_free(data->front_summary); });
 }
 
 static bool busy_scene_ending_on_event(const SceneManagerEvent* event, void* context) {
