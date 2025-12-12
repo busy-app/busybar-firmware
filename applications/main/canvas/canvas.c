@@ -481,8 +481,12 @@ int32_t canvas_app(void* arg) {
     UNUSED(arg);
     CanvasApp* canvas = canvas_app_alloc();
     furi_record_create(RECORD_CANVAS, canvas);
+
     furi_event_loop_run(canvas->event_loop);
-    furi_check(furi_record_destroy(RECORD_CANVAS));
+
+    furi_check(
+        !furi_record_destroy(RECORD_CANVAS),
+        "Canvas app quit failure. Canvas is used by other threads");
     canvas_app_free(canvas);
 
     return 0;
