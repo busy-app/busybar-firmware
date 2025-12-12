@@ -1,8 +1,9 @@
 #include "mqtt_client_i.h"
 #include <mbedtls/ssl.h>
 #include <mbedtls/pk.h>
-#include <mbedtls_patch/pk_wrap.h>
+#include <pk_wrap.h>
 #include <tls_crypto/tls_crypto_client.h>
+#include <storage/storage.h>
 
 #define TAG "MqttTls"
 
@@ -10,6 +11,10 @@
 
 #define TLS_KEY_SLOT_SIGN   0 // Intermediate cert slot (signing-ca.der)
 #define TLS_KEY_SLOT_DEVICE 1 // Device cert and key slot (device.der + device.key)
+
+#define TLS_CUSTOM_CERT_DEVICE APP_ASSETS_PATH("device.crt")
+#define TLS_CUSTOM_CERT_SIGN   APP_ASSETS_PATH("signing-ca.crt")
+#define TLS_CUSTOM_KEY         APP_ASSETS_PATH("device.key")
 
 static const char* mqtt_alpn_list[] = {"mqtt", NULL};
 
@@ -35,7 +40,7 @@ static int tls_pk_can_do(mbedtls_pk_type_t type) {
     return (type == MBEDTLS_PK_ECKEY || type == MBEDTLS_PK_ECDSA);
 }
 
-static int tls_pk_sign_full(
+static int tls_pk_sign_917(
     mbedtls_md_type_t md_alg,
     const unsigned char* data,
     size_t data_len,
@@ -51,12 +56,12 @@ static int tls_pk_sign_full(
     return (success ? 0 : MBEDTLS_ERR_SSL_INTERNAL_ERROR);
 }
 
-static const mbedtls_pk_info_t tls_pk_wrap = {
+static const mbedtls_pk_info_t tls_pk_wrap_917 = {
     .type = MBEDTLS_PK_ECKEY,
     .name = "ECDSA_917",
     .get_bitlen = tls_pk_get_bitlen,
     .can_do = tls_pk_can_do,
-    .sign_message_func = tls_pk_sign_full,
+    .sign_message_func = tls_pk_sign_917,
     .verify_func = NULL,
     .sign_func = NULL, // Using .sign_message_func instead
 #if defined(MBEDTLS_ECDSA_C) && defined(MBEDTLS_ECP_RESTARTABLE)
@@ -102,6 +107,88 @@ static bool tls_load_cert_from_917(uint8_t slot, mbedtls_x509_crt* crt) {
     return true;
 }
 
+static bool tls_load_cert_from_file(char* path, mbedtls_x509_crt* crt) {
+    Storage* storage = furi_record_open(RECORD_STORAGE);
+    File* file = storage_file_alloc(storage);
+
+    bool success = false;
+    size_t cert_len = 0;
+    uint8_t* cert_buf = NULL;
+
+    do {
+        if(!storage_file_open(file, path, FSAM_READ, FSOM_OPEN_EXISTING)) {
+            FURI_LOG_E(TAG, "Cert file error: %s", storage_file_get_error_desc(file));
+            return false;
+        }
+
+        cert_len = storage_file_size(file);
+        cert_buf = malloc(cert_len + 1);
+
+        if(storage_file_read(file, cert_buf, cert_len) != cert_len) {
+            FURI_LOG_E(TAG, "Cert file read error");
+            return false;
+        }
+        success = true;
+    } while(0);
+
+    storage_file_close(file);
+    furi_record_close(RECORD_STORAGE);
+
+    if(!success) {
+        if(cert_buf) free(cert_buf);
+        return false;
+    }
+
+    int ret = mbedtls_x509_crt_parse(crt, cert_buf, cert_len + 1);
+    free(cert_buf);
+    if(ret != 0) {
+        FURI_LOG_E(TAG, "Cert parse error -0x%04X", -ret);
+        return false;
+    }
+    return true;
+}
+
+static bool tls_load_key_from_file(char* path, mbedtls_pk_context* pk) {
+    Storage* storage = furi_record_open(RECORD_STORAGE);
+    File* file = storage_file_alloc(storage);
+
+    bool success = false;
+    size_t cert_len = 0;
+    uint8_t* cert_buf = NULL;
+
+    do {
+        if(!storage_file_open(file, path, FSAM_READ, FSOM_OPEN_EXISTING)) {
+            FURI_LOG_E(TAG, "Key file error: %s", storage_file_get_error_desc(file));
+            return false;
+        }
+
+        cert_len = storage_file_size(file);
+        cert_buf = malloc(cert_len + 1);
+
+        if(storage_file_read(file, cert_buf, cert_len) != cert_len) {
+            FURI_LOG_E(TAG, "Key file read error");
+            return false;
+        }
+        success = true;
+    } while(0);
+
+    storage_file_close(file);
+    furi_record_close(RECORD_STORAGE);
+
+    if(!success) {
+        if(cert_buf) free(cert_buf);
+        return false;
+    }
+
+    int ret = mbedtls_pk_parse_key(pk, cert_buf, cert_len + 1, NULL, 0, tls_random, 0);
+    free(cert_buf);
+    if(ret != 0) {
+        FURI_LOG_E(TAG, "Key parse error -0x%04X", -ret);
+        return false;
+    }
+    return true;
+}
+
 static int tls_net_send(void* ctx, const unsigned char* buf, size_t len) {
     long n = mg_io_send((struct mg_connection*)ctx, buf, len);
     if(n == MG_IO_WAIT) return MBEDTLS_ERR_SSL_WANT_WRITE;
@@ -118,7 +205,11 @@ static int tls_net_recv(void* ctx, unsigned char* buf, size_t len) {
     return (int)n;
 }
 
-bool mqtt_tls_init(struct mg_connection* conn, const MqttTlsCfg* opts) {
+bool mqtt_tls_init(
+    struct mg_connection* conn,
+    struct mg_str name,
+    struct mg_str ca,
+    bool custom_certs) {
     struct mg_tls* tls = (struct mg_tls*)calloc(1, sizeof(*tls));
     conn->tls = tls;
 
@@ -154,25 +245,37 @@ bool mqtt_tls_init(struct mg_connection* conn, const MqttTlsCfg* opts) {
         // ALPN
         mbedtls_ssl_conf_alpn_protocols(&tls->conf, mqtt_alpn_list);
 
-        if(tls_load_ca(opts->ca, &tls->ca) == false) {
+        if(tls_load_ca(ca, &tls->ca) == false) {
             break;
         }
         mbedtls_ssl_conf_ca_chain(&tls->conf, &tls->ca, NULL);
-        if(conn->is_client && opts->name.buf != NULL && opts->name.buf[0] != '\0') {
-            char* host = mg_mprintf("%.*s", opts->name.len, opts->name.buf);
+        if(conn->is_client && name.buf != NULL && name.buf[0] != '\0') {
+            char* host = mg_mprintf("%.*s", name.len, name.buf);
             mbedtls_ssl_set_hostname(&tls->ssl, host);
             free(host);
         }
         mbedtls_ssl_conf_authmode(&tls->conf, MBEDTLS_SSL_VERIFY_REQUIRED);
-        if(!tls_load_cert_from_917(TLS_KEY_SLOT_DEVICE, &tls->cert)) {
-            break;
-        }
-        if(!tls_load_cert_from_917(TLS_KEY_SLOT_SIGN, &tls->cert)) {
-            break;
-        }
+        if(custom_certs) {
+            if(!tls_load_cert_from_file(TLS_CUSTOM_CERT_DEVICE, &tls->cert)) {
+                break;
+            }
+            if(!tls_load_cert_from_file(TLS_CUSTOM_CERT_SIGN, &tls->cert)) {
+                break;
+            }
+            if(!tls_load_key_from_file(TLS_CUSTOM_KEY, &tls->pk)) {
+                break;
+            }
+        } else {
+            if(!tls_load_cert_from_917(TLS_KEY_SLOT_DEVICE, &tls->cert)) {
+                break;
+            }
+            if(!tls_load_cert_from_917(TLS_KEY_SLOT_SIGN, &tls->cert)) {
+                break;
+            }
 
-        // Setup custom PK wrapper for private key operations
-        mbedtls_pk_setup(&tls->pk, &tls_pk_wrap);
+            // Setup custom PK wrapper for private key operations
+            mbedtls_pk_setup(&tls->pk, &tls_pk_wrap_917);
+        }
 
         ret = mbedtls_ssl_conf_own_cert(&tls->conf, &tls->cert, &tls->pk);
         if(tls->cert.version && ret != 0) {
