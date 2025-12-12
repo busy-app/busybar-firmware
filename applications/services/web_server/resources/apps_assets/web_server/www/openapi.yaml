@@ -15,7 +15,7 @@ paths:
       tags:
         - System
       summary: Get API version information
-      description: Retrieves api version
+      description: Retrieves API version
       operationId: getVersion
       responses:
         "200":
@@ -35,8 +35,8 @@ paths:
     get:
       tags:
         - Settings
-      summary: HTTP API access over Wi-Fi configuration get
-      description: HTTP API access over Wi-Fi configuration get
+      summary: Get HTTP API access over Wi-Fi configuration
+      description: Get HTTP API access over Wi-Fi configuration
       operationId: getHttpAccess
       responses:
         "200":
@@ -48,8 +48,8 @@ paths:
     post:
       tags:
         - Settings
-      summary: HTTP API access over Wi-Fi configuration set
-      description: HTTP API access over Wi-Fi configuration set
+      summary: Set HTTP API access over Wi-Fi configuration
+      description: Set HTTP API access over Wi-Fi configuration
       operationId: setHttpAccess
       parameters:
         - name: mode
@@ -66,7 +66,7 @@ paths:
           schema:
             type: string
             pattern: "^[0-9]+$"
-          description: Access key (4-10 digits len)
+          description: Access key (4-10 digits length)
           example: "12345678"
       responses:
         "200":
@@ -306,7 +306,7 @@ paths:
           example: "/ext/test.png"
       responses:
         "200":
-          description: File uploaded successfully
+          description: File downloaded successfully
           content:
             application/octet-stream:
               schema:
@@ -343,7 +343,7 @@ paths:
               schema:
                 $ref: "#/components/schemas/StorageList"
         "400":
-          description: Invalid parameters or directory not exists
+          description: Invalid parameters or directory does not exist
           content:
             application/json:
               schema:
@@ -403,7 +403,7 @@ paths:
               schema:
                 $ref: "#/components/schemas/SuccessResponse"
         "400":
-          description: Invalid path or deletion failed
+          description: Invalid path or creation failed
           content:
             application/json:
               schema:
@@ -627,7 +627,7 @@ paths:
       tags:
         - Settings
       summary: Set audio volume
-      description: Get audio volume value
+      description: Set audio volume value
       operationId: setAudioVolume
       parameters:
         - name: volume
@@ -762,7 +762,7 @@ paths:
       tags:
         - System
       summary: Get power status
-      description: Get system status
+      description: Get power status
       operationId: getStatusPower
       responses:
         "200":
@@ -822,7 +822,7 @@ paths:
     post:
       tags:
         - Wi-Fi
-      description: Attempts to connect to Wi-Fi using config
+      description: Disconnects from Wi-Fi
       parameters: []
       responses:
         "200":
@@ -862,7 +862,7 @@ paths:
     get:
       tags:
         - Streaming
-      summary: Get single frame for required screen
+      summary: Get single frame for requested screen
       parameters:
         - name: display
           in: query
@@ -894,8 +894,8 @@ paths:
       description: |
         WebSocket connection for real-time screen streaming.
         Upgrade from HTTP to WebSocket protocol is required.
-        After connection client must send desired display id
-        as json {"display": 0}
+        After connection, client must send desired display ID
+        as JSON {"display": 0}
       operationId: connectWebSocket
       responses:
         "101":
@@ -927,7 +927,7 @@ paths:
       tags:
         - BLE
       summary: Disable BLE
-      description: Stop advertising
+      description: Stops advertising
       parameters: []
       responses:
         "200":
@@ -952,7 +952,7 @@ paths:
               schema:
                 $ref: "#/components/schemas/SuccessResponse"
         "503":
-          description: Failed to remove, due to BLE is not initialized, or pairing was already removed before
+          description: Failed to remove because BLE is not initialized or pairing was already removed
           content:
             application/json:
               schema:
@@ -1173,7 +1173,7 @@ paths:
       tags:
         - Busy
       summary: Get BUSY timer snapshot
-      description: Gets the current state of the BUSY timer in the snapshot form
+      description: Gets the current state of the BUSY timer in snapshot form
       operationId: getBusySnapshot
       responses:
         "200":
@@ -1253,7 +1253,7 @@ components:
       properties:
         api_semver:
           type: string
-          description: Api SemVer
+          description: API SemVer
           example: "0.0.0"
       required:
         - api_semver
@@ -1314,7 +1314,7 @@ components:
           example: 654321
         total_bytes:
           type: integer
-          description: "Total size of the parition"
+          description: "Total size of the partition"
           example: 777777
 
     StorageListElement:
@@ -1821,7 +1821,7 @@ components:
           example: 1761582532251
       required:
         - snapshot
-        - shapshot_timestamp_ms
+        - snapshot_timestamp_ms
 
     BusySnapshotNotStarted:
       type: object
