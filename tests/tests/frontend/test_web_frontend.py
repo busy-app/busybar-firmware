@@ -147,25 +147,21 @@ class TestWebFrontendAPI:
         response = web_session.get(f"{web_base_url}/api/wifi/status", timeout=10)
 
         with allure.step("Verify wifi status endpoint"):
-            # Should return 200 or possibly 404/405 if not implemented
-            assert response.status_code in [
-                200,
-                404,
-                405,
-            ], f"Got unexpected status {response.status_code}"
+            assert (
+                response.status_code == 200
+            ), f"Expected 200, got {response.status_code}"
 
-            if response.status_code == 200:
-                assert (
-                    "application/json"
-                    in response.headers.get("content-type", "").lower()
+            assert (
+                "application/json"
+                in response.headers.get("content-type", "").lower()
+            )
+            try:
+                wifi_data = response.json()
+                allure.attach(
+                    str(wifi_data), "WiFi Status Data", allure.attachment_type.JSON
                 )
-                try:
-                    wifi_data = response.json()
-                    allure.attach(
-                        str(wifi_data), "WiFi Status Data", allure.attachment_type.JSON
-                    )
-                except ValueError:
-                    pytest.fail("Response is not valid JSON")
+            except ValueError:
+                pytest.fail("Response is not valid JSON")
 
     @allure.id("2734")
     @allure.title("BSB API. System Status Endpoint")
@@ -175,26 +171,23 @@ class TestWebFrontendAPI:
         response = web_session.get(f"{web_base_url}/api/status/system", timeout=10)
 
         with allure.step("Verify system status endpoint"):
-            assert response.status_code in [
-                200,
-                404,
-                405,
-            ], f"Got unexpected status {response.status_code}"
+            assert (
+                response.status_code == 200
+            ), f"Expected 200, got {response.status_code}"
 
-            if response.status_code == 200:
-                assert (
-                    "application/json"
-                    in response.headers.get("content-type", "").lower()
+            assert (
+                "application/json"
+                in response.headers.get("content-type", "").lower()
+            )
+            try:
+                system_data = response.json()
+                allure.attach(
+                    str(system_data),
+                    "System Status Data",
+                    allure.attachment_type.JSON,
                 )
-                try:
-                    system_data = response.json()
-                    allure.attach(
-                        str(system_data),
-                        "System Status Data",
-                        allure.attachment_type.JSON,
-                    )
-                except ValueError:
-                    pytest.fail("Response is not valid JSON")
+            except ValueError:
+                pytest.fail("Response is not valid JSON")
 
 
 @allure.feature("5. Web Frontend")
@@ -266,12 +259,9 @@ class TestWebFrontendErrorHandling:
         response_time = time.time() - start_time
 
         with allure.step(f"Check response time for {endpoint}"):
-            # Allow some endpoints to be not implemented
-            assert response.status_code in [
-                200,
-                404,
-                405,
-            ], f"Unexpected status for {endpoint}: {response.status_code}"
+            assert (
+                response.status_code == 200
+            ), f"Expected 200 for {endpoint}, got {response.status_code}"
             assert (
                 response_time < 5.0
             ), f"Response too slow for {endpoint}: {response_time:.2f}s"

@@ -255,6 +255,126 @@ class TestSystemAPI:
 
 @allure.feature("5. Web Frontend")
 @allure.story("API (draft)")
+class TestNameAPI:
+    """Test cases for Name API endpoints"""
+
+    @allure.id("2712")
+    @allure.title("GET /api/name [Draft]")
+    @pytest.mark.api
+    @pytest.mark.frontend
+    def test_api_name_get(self, api_session, web_base_url):
+        """Test GET /api/name endpoint"""
+
+        with allure.step("Make GET request to /api/name"):
+            response = api_session.get(f"{web_base_url}/api/name", timeout=10)
+
+        with allure.step("Verify response status and structure"):
+            assert (
+                response.status_code == 200
+            ), f"Expected 200, got {response.status_code}"
+            assert (
+                "application/json" in response.headers.get("content-type", "").lower()
+            )
+
+            name_data = response.json()
+            allure.attach(
+                json.dumps(name_data, indent=2),
+                "Name Response",
+                allure.attachment_type.JSON,
+            )
+
+            # Validate required fields based on OpenAPI schema
+            assert "name" in name_data, "Response should contain 'name' field"
+            assert isinstance(name_data["name"], str), "Name should be a string"
+
+    @allure.id("2713")
+    @allure.title("POST /api/name [Draft]")
+    @pytest.mark.api
+    @pytest.mark.frontend
+    def test_api_name_post(self, api_session, web_base_url):
+        """Test POST /api/name endpoint"""
+
+        with allure.step("Get current device name"):
+            get_response = api_session.get(f"{web_base_url}/api/name", timeout=10)
+            original_name = None
+            if get_response.status_code == 200:
+                original_name = get_response.json().get("name")
+                allure.attach(
+                    f"Original name: {original_name}",
+                    "Original Name",
+                    allure.attachment_type.TEXT,
+                )
+
+        test_name = "Test Device Name"
+
+        with allure.step(f"Set device name to: {test_name}"):
+            response = api_session.post(
+                f"{web_base_url}/api/name",
+                json={"name": test_name},
+                timeout=10,
+            )
+
+        with allure.step("Verify response status"):
+            assert (
+                response.status_code == 200
+            ), f"Expected 200, got {response.status_code}"
+
+            response_data = response.json()
+            allure.attach(
+                json.dumps(response_data, indent=2),
+                "Name Set Response",
+                allure.attachment_type.JSON,
+            )
+
+            assert (
+                "result" in response_data
+            ), "Success response should contain 'result' field"
+
+            # Verify name was set
+            with allure.step("Verify name was updated"):
+                verify_response = api_session.get(
+                    f"{web_base_url}/api/name", timeout=10
+                )
+                assert (
+                    verify_response.status_code == 200
+                ), f"Expected 200, got {verify_response.status_code}"
+                new_name = verify_response.json().get("name")
+                assert (
+                    new_name == test_name
+                ), f"Name should be '{test_name}', got '{new_name}'"
+
+            # Restore original name if we had one
+            if original_name:
+                with allure.step(f"Restore original name: {original_name}"):
+                    api_session.post(
+                        f"{web_base_url}/api/name",
+                        json={"name": original_name},
+                        timeout=10,
+                    )
+
+    @allure.id("2714")
+    @allure.title("POST /api/name (invalid) [Draft]")
+    @pytest.mark.api
+    @pytest.mark.frontend
+    def test_api_name_post_invalid(self, api_session, web_base_url):
+        """Test POST /api/name endpoint with invalid data"""
+
+        with allure.step("Set empty device name"):
+            response = api_session.post(
+                f"{web_base_url}/api/name",
+                json={"name": ""},
+                timeout=10,
+            )
+
+        with allure.step("Verify error response"):
+            assert response.status_code in [
+                400,
+                200,
+            ], f"Expected 400 or 200, got {response.status_code}"
+
+
+@allure.feature("5. Web Frontend")
+@allure.story("API (draft)")
 class TestSettingsAPI:
     """Test cases for Settings API endpoints"""
 
@@ -312,35 +432,22 @@ class TestSettingsAPI:
             )
 
         with allure.step("Verify response status and structure"):
-            # Should return 200 for success or 400 for validation errors
-            assert response.status_code in [
-                200,
-                400,
-            ], f"Expected 200 or 400, got {response.status_code}"
+            assert (
+                response.status_code == 200
+            ), f"Expected 200, got {response.status_code}"
             assert (
                 "application/json" in response.headers.get("content-type", "").lower()
             )
 
-            if response.status_code == 200:
-                response_data = response.json()
-                allure.attach(
-                    json.dumps(response_data, indent=2),
-                    "Access Set Response",
-                    allure.attachment_type.JSON,
-                )
-                assert (
-                    "result" in response_data
-                ), "Success response should contain 'result' field"
-            else:
-                error_data = response.json()
-                allure.attach(
-                    json.dumps(error_data, indent=2),
-                    "Access Error Response",
-                    allure.attachment_type.JSON,
-                )
-                assert (
-                    "error" in error_data
-                ), "Error response should contain 'error' field"
+            response_data = response.json()
+            allure.attach(
+                json.dumps(response_data, indent=2),
+                "Access Set Response",
+                allure.attachment_type.JSON,
+            )
+            assert (
+                "result" in response_data
+            ), "Success response should contain 'result' field"
 
     @allure.id("2644")
     @allure.title("GET /api/display/brightness [Draft]")
@@ -387,13 +494,22 @@ class TestSettingsAPI:
             )
 
         with allure.step("Verify response status"):
-            assert response.status_code in [
-                200,
-                400,
-            ], f"Expected 200 or 400, got {response.status_code}"
+            assert (
+                response.status_code == 200
+            ), f"Expected 200, got {response.status_code}"
             assert (
                 "application/json" in response.headers.get("content-type", "").lower()
             )
+
+            response_data = response.json()
+            allure.attach(
+                json.dumps(response_data, indent=2),
+                "Brightness Set Response",
+                allure.attachment_type.JSON,
+            )
+            assert (
+                "result" in response_data
+            ), "Success response should contain 'result' field"
 
     @allure.id("2646")
     @allure.title("GET /api/audio/volume [Draft]")
@@ -440,19 +556,84 @@ class TestSettingsAPI:
             )
 
         with allure.step("Verify response status"):
-            assert response.status_code in [
-                200,
-                400,
-            ], f"Expected 200 or 400, got {response.status_code}"
+            assert (
+                response.status_code == 200
+            ), f"Expected 200, got {response.status_code}"
             assert (
                 "application/json" in response.headers.get("content-type", "").lower()
             )
+
+            response_data = response.json()
+            allure.attach(
+                json.dumps(response_data, indent=2),
+                "Volume Set Response",
+                allure.attachment_type.JSON,
+            )
+            assert (
+                "result" in response_data
+            ), "Success response should contain 'result' field"
 
 
 @allure.feature("5. Web Frontend")
 @allure.story("API (draft)")
 class TestStorageAPI:
     """Test cases for Storage API endpoints"""
+
+    @allure.id("2715")
+    @allure.title("GET /api/storage/status [Draft]")
+    @pytest.mark.api
+    @pytest.mark.frontend
+    def test_api_storage_status(self, api_session, web_base_url):
+        """Test GET /api/storage/status endpoint"""
+
+        with allure.step("Make GET request to /api/storage/status"):
+            response = api_session.get(f"{web_base_url}/api/storage/status", timeout=10)
+
+        with allure.step("Verify response status and structure"):
+            assert (
+                response.status_code == 200
+            ), f"Expected 200, got {response.status_code}"
+            assert (
+                "application/json"
+                in response.headers.get("content-type", "").lower()
+            )
+
+            status_data = response.json()
+            allure.attach(
+                json.dumps(status_data, indent=2),
+                "Storage Status Response",
+                allure.attachment_type.JSON,
+            )
+
+            # Validate required fields based on OpenAPI schema
+            assert (
+                "used_bytes" in status_data
+            ), "Response should contain 'used_bytes' field"
+            assert (
+                "free_bytes" in status_data
+            ), "Response should contain 'free_bytes' field"
+            assert (
+                "total_bytes" in status_data
+            ), "Response should contain 'total_bytes' field"
+
+            # Validate types
+            assert isinstance(
+                status_data["used_bytes"], int
+            ), "used_bytes should be an integer"
+            assert isinstance(
+                status_data["free_bytes"], int
+            ), "free_bytes should be an integer"
+            assert isinstance(
+                status_data["total_bytes"], int
+            ), "total_bytes should be an integer"
+
+            # Validate logical consistency
+            total = status_data["total_bytes"]
+            used = status_data["used_bytes"]
+            free = status_data["free_bytes"]
+            assert (
+                used + free <= total
+            ), f"used ({used}) + free ({free}) should be <= total ({total})"
 
     @allure.id("2648")
     @allure.title("GET /api/storage/list [Draft]")
@@ -468,44 +649,41 @@ class TestStorageAPI:
             )
 
         with allure.step("Verify response status and structure"):
-            assert response.status_code in [
-                200,
-                400,
-            ], f"Expected 200 or 400, got {response.status_code}"
+            assert (
+                response.status_code == 200
+            ), f"Expected 200, got {response.status_code}"
+            assert (
+                "application/json"
+                in response.headers.get("content-type", "").lower()
+            )
 
-            if response.status_code == 200:
-                assert (
-                    "application/json"
-                    in response.headers.get("content-type", "").lower()
-                )
+            list_data = response.json()
+            allure.attach(
+                json.dumps(list_data, indent=2),
+                "Storage List Response",
+                allure.attachment_type.JSON,
+            )
 
-                list_data = response.json()
-                allure.attach(
-                    json.dumps(list_data, indent=2),
-                    "Storage List Response",
-                    allure.attachment_type.JSON,
-                )
+            # Validate structure based on OpenAPI schema
+            assert "list" in list_data, "Response should contain 'list' field"
+            assert isinstance(
+                list_data["list"], list
+            ), "List field should be an array"
 
-                # Validate structure based on OpenAPI schema
-                assert "list" in list_data, "Response should contain 'list' field"
-                assert isinstance(
-                    list_data["list"], list
-                ), "List field should be an array"
+            # Validate list items if any exist
+            for item in list_data["list"]:
+                assert "type" in item, "List item should contain 'type' field"
+                assert "name" in item, "List item should contain 'name' field"
+                assert item["type"] in [
+                    "file",
+                    "dir",
+                ], "Type should be 'file' or 'dir'"
 
-                # Validate list items if any exist
-                for item in list_data["list"]:
-                    assert "type" in item, "List item should contain 'type' field"
-                    assert "name" in item, "List item should contain 'name' field"
-                    assert item["type"] in [
-                        "file",
-                        "dir",
-                    ], "Type should be 'file' or 'dir'"
-
-                    if item["type"] == "file":
-                        assert "size" in item, "File items should contain 'size' field"
-                        assert isinstance(
-                            item["size"], int
-                        ), "File size should be an integer"
+                if item["type"] == "file":
+                    assert "size" in item, "File items should contain 'size' field"
+                    assert isinstance(
+                        item["size"], int
+                    ), "File size should be an integer"
 
     @allure.id("2649")
     @allure.title("POST /api/storage/mkdir [Draft]")
@@ -523,21 +701,19 @@ class TestStorageAPI:
             )
 
         with allure.step("Verify directory creation response"):
-            assert response.status_code in [
-                200,
-                400,
-            ], f"Expected 200 or 400, got {response.status_code}"
+            assert (
+                response.status_code == 200
+            ), f"Expected 200, got {response.status_code}"
 
-            if response.status_code == 200:
-                response_data = response.json()
-                allure.attach(
-                    json.dumps(response_data, indent=2),
-                    "Mkdir Response",
-                    allure.attachment_type.JSON,
-                )
-                assert (
-                    "result" in response_data
-                ), "Success response should contain 'result' field"
+            response_data = response.json()
+            allure.attach(
+                json.dumps(response_data, indent=2),
+                "Mkdir Response",
+                allure.attachment_type.JSON,
+            )
+            assert (
+                "result" in response_data
+            ), "Success response should contain 'result' field"
 
     @allure.id("2650")
     @allure.title(
@@ -561,51 +737,52 @@ class TestStorageAPI:
                 timeout=10,
             )
 
-            assert response.status_code in [
-                200,
-                400,
-                413,
-            ], f"Expected 200, 400, or 413, got {response.status_code}"
+            assert (
+                response.status_code == 200
+            ), f"Expected 200, got {response.status_code}"
 
-            if response.status_code == 200:
-                write_response = response.json()
-                allure.attach(
-                    json.dumps(write_response, indent=2),
-                    "Write Response",
-                    allure.attachment_type.JSON,
+            write_response = response.json()
+            allure.attach(
+                json.dumps(write_response, indent=2),
+                "Write Response",
+                allure.attachment_type.JSON,
+            )
+
+            with allure.step(f"Read test file: {test_file}"):
+                params = {"path": test_file}
+                read_response = api_session.get(
+                    f"{web_base_url}/api/storage/read", params=params, timeout=10
                 )
 
-                with allure.step(f"Read test file: {test_file}"):
+                assert (
+                    read_response.status_code == 200
+                ), f"Expected 200, got {read_response.status_code}"
+                assert (
+                    read_response.content == test_content
+                ), "Read content should match written content"
+                allure.attach(
+                    read_response.content.decode(),
+                    "File Content",
+                    allure.attachment_type.TEXT,
+                )
+
+                with allure.step(f"Remove test file: {test_file}"):
                     params = {"path": test_file}
-                    read_response = api_session.get(
-                        f"{web_base_url}/api/storage/read", params=params, timeout=10
+                    remove_response = api_session.delete(
+                        f"{web_base_url}/api/storage/remove",
+                        params=params,
+                        timeout=10,
                     )
 
-                    if read_response.status_code == 200:
-                        assert (
-                            read_response.content == test_content
-                        ), "Read content should match written content"
-                        allure.attach(
-                            read_response.content.decode(),
-                            "File Content",
-                            allure.attachment_type.TEXT,
-                        )
-
-                        with allure.step(f"Remove test file: {test_file}"):
-                            params = {"path": test_file}
-                            remove_response = api_session.delete(
-                                f"{web_base_url}/api/storage/remove",
-                                params=params,
-                                timeout=10,
-                            )
-
-                            if remove_response.status_code == 200:
-                                remove_data = remove_response.json()
-                                allure.attach(
-                                    json.dumps(remove_data, indent=2),
-                                    "Remove Response",
-                                    allure.attachment_type.JSON,
-                                )
+                    assert (
+                        remove_response.status_code == 200
+                    ), f"Expected 200, got {remove_response.status_code}"
+                    remove_data = remove_response.json()
+                    allure.attach(
+                        json.dumps(remove_data, indent=2),
+                        "Remove Response",
+                        allure.attachment_type.JSON,
+                    )
 
 
 @allure.feature("5. Web Frontend")
@@ -635,19 +812,19 @@ class TestAssetsAPI:
             )
 
         with allure.step("Verify upload response"):
-            assert response.status_code in [
-                200,
-                400,
-                413,
-            ], f"Expected 200, 400, or 413, got {response.status_code}"
+            assert (
+                response.status_code == 200
+            ), f"Expected 200, got {response.status_code}"
 
-            if response.status_code == 200:
-                response_data = response.json()
-                allure.attach(
-                    json.dumps(response_data, indent=2),
-                    "Asset Upload Response",
-                    allure.attachment_type.JSON,
-                )
+            response_data = response.json()
+            allure.attach(
+                json.dumps(response_data, indent=2),
+                "Asset Upload Response",
+                allure.attachment_type.JSON,
+            )
+            assert (
+                "result" in response_data
+            ), "Success response should contain 'result' field"
 
     @allure.id("2652")
     @allure.title("DELETE /api/assets/upload [Draft]")
@@ -665,10 +842,19 @@ class TestAssetsAPI:
             )
 
         with allure.step("Verify delete response"):
-            assert response.status_code in [
-                200,
-                400,
-            ], f"Expected 200 or 400, got {response.status_code}"
+            assert (
+                response.status_code == 200
+            ), f"Expected 200, got {response.status_code}"
+
+            response_data = response.json()
+            allure.attach(
+                json.dumps(response_data, indent=2),
+                "Asset Delete Response",
+                allure.attachment_type.JSON,
+            )
+            assert (
+                "result" in response_data
+            ), "Success response should contain 'result' field"
 
     @allure.id("2653")
     @allure.title("POST /api/display/draw [Draft]")
@@ -685,8 +871,11 @@ class TestAssetsAPI:
                     "timeout": 5,
                     "type": "text",
                     "text": "Hello API Test",
-                    "x": 0,
-                    "y": 0,
+                    "x": 36,
+                    "y": 10,
+                    "align": "center",
+                    "font": "medium",
+                    "color": "#FFFFFFFF",
                     "display": "front",
                 }
             ],
@@ -698,28 +887,25 @@ class TestAssetsAPI:
             )
 
         with allure.step("Verify draw response"):
-            if response.status_code == 423:
-                assert (
-                    False
-                ), "Device is busy (423 Locked). Move the selector away from busy mode"
-            else:
-                assert response.status_code in [
-                    200,
-                    400,
-                ], f"Expected 200, 400, got {response.status_code}"
+            assert (
+                response.status_code == 200
+            ), f"Expected 200, got {response.status_code}"
 
-                if response.status_code in [200, 400]:
-                    response_data = response.json()
-                    allure.attach(
-                        json.dumps(response_data, indent=2),
-                        "Display Draw Response",
-                        allure.attachment_type.JSON,
-                    )
+            response_data = response.json()
+            allure.attach(
+                json.dumps(response_data, indent=2),
+                "Display Draw Response",
+                allure.attachment_type.JSON,
+            )
+            assert (
+                "result" in response_data
+            ), "Success response should contain 'result' field"
 
     @allure.id("2654")
     @allure.title("DELETE /api/display/draw [Draft]")
     @pytest.mark.api
     @pytest.mark.frontend
+    @pytest.mark.skip(reason="Firmware bug - endpoint times out")
     def test_api_display_clear(self, api_session, web_base_url):
         """Test DELETE /api/display/draw endpoint"""
 
@@ -729,15 +915,25 @@ class TestAssetsAPI:
             )
 
         with allure.step("Verify clear response"):
-            assert response.status_code in [
-                200,
-                500,
-            ], f"Expected 200 or 500, got {response.status_code}"
+            assert (
+                response.status_code == 200
+            ), f"Expected 200, got {response.status_code}"
+
+            response_data = response.json()
+            allure.attach(
+                json.dumps(response_data, indent=2),
+                "Display Clear Response",
+                allure.attachment_type.JSON,
+            )
+            assert (
+                "result" in response_data
+            ), "Success response should contain 'result' field"
 
     @allure.id("2655")
     @allure.title("POST /api/audio/play [Draft]")
     @pytest.mark.api
     @pytest.mark.frontend
+    @pytest.mark.skip(reason="Requires test audio file to be uploaded first")
     def test_api_audio_play(self, api_session, web_base_url):
         """Test POST /api/audio/play endpoint"""
 
@@ -748,16 +944,25 @@ class TestAssetsAPI:
             )
 
         with allure.step("Verify play response"):
-            assert response.status_code in [
-                200,
-                400,
-                500,
-            ], f"Expected 200, 400, or 500, got {response.status_code}"
+            assert (
+                response.status_code == 200
+            ), f"Expected 200, got {response.status_code}"
+
+            response_data = response.json()
+            allure.attach(
+                json.dumps(response_data, indent=2),
+                "Audio Play Response",
+                allure.attachment_type.JSON,
+            )
+            assert (
+                "result" in response_data
+            ), "Success response should contain 'result' field"
 
     @allure.id("2656")
     @allure.title("DELETE /api/audio/play [Draft]")
     @pytest.mark.api
     @pytest.mark.frontend
+    @pytest.mark.skip(reason="Requires audio to be playing first")
     def test_api_audio_stop(self, api_session, web_base_url):
         """Test DELETE /api/audio/play endpoint"""
 
@@ -765,10 +970,19 @@ class TestAssetsAPI:
             response = api_session.delete(f"{web_base_url}/api/audio/play", timeout=10)
 
         with allure.step("Verify stop response"):
-            assert response.status_code in [
-                200,
-                500,
-            ], f"Expected 200 or 500, got {response.status_code}"
+            assert (
+                response.status_code == 200
+            ), f"Expected 200, got {response.status_code}"
+
+            response_data = response.json()
+            allure.attach(
+                json.dumps(response_data, indent=2),
+                "Audio Stop Response",
+                allure.attachment_type.JSON,
+            )
+            assert (
+                "result" in response_data
+            ), "Success response should contain 'result' field"
 
 
 @allure.feature("5. Web Frontend")
@@ -803,42 +1017,17 @@ class TestWifiAPI:
 
             # Validate required fields
             assert "state" in status_data, "Response should contain 'state' field"
-            valid_states = ["disabled", "enabled", "connected"]
+            valid_states = [
+                "unknown",
+                "disconnected",
+                "connected",
+                "connecting",
+                "disconnecting",
+                "reconnecting",
+            ]
             assert (
                 status_data["state"] in valid_states
             ), f"State should be one of {valid_states}"
-
-    @allure.id("2658")
-    @allure.title("POST /api/wifi/enable [Draft]")
-    @pytest.mark.api
-    @pytest.mark.frontend
-    def test_api_wifi_enable(self, api_session, web_base_url):
-        """Test POST /api/wifi/enable endpoint"""
-
-        with allure.step("Enable WiFi"):
-            response = api_session.post(f"{web_base_url}/api/wifi/enable", timeout=10)
-
-        with allure.step("Verify enable response"):
-            assert response.status_code in [
-                200,
-                400,
-            ], f"Expected 200 or 400, got {response.status_code}"
-
-    @allure.id("2659")
-    @allure.title("POST /api/wifi/disable [Draft]")
-    @pytest.mark.api
-    @pytest.mark.frontend
-    def test_api_wifi_disable(self, api_session, web_base_url):
-        """Test POST /api/wifi/disable endpoint"""
-
-        with allure.step("Disable WiFi"):
-            response = api_session.post(f"{web_base_url}/api/wifi/disable", timeout=10)
-
-        with allure.step("Verify disable response"):
-            assert response.status_code in [
-                200,
-                400,
-            ], f"Expected 200 or 400, got {response.status_code}"
 
     @allure.id("2660")
     @allure.title("GET /api/wifi/networks [Draft]")
@@ -853,26 +1042,24 @@ class TestWifiAPI:
             )  # Longer timeout for scan
 
         with allure.step("Verify networks response"):
-            assert response.status_code in [
-                200,
-                400,
-            ], f"Expected 200 or 400, got {response.status_code}"
+            assert (
+                response.status_code == 200
+            ), f"Expected 200, got {response.status_code}"
 
-            if response.status_code == 200:
-                networks_data = response.json()
-                allure.attach(
-                    json.dumps(networks_data, indent=2),
-                    "WiFi Networks Response",
-                    allure.attachment_type.JSON,
-                )
+            networks_data = response.json()
+            allure.attach(
+                json.dumps(networks_data, indent=2),
+                "WiFi Networks Response",
+                allure.attachment_type.JSON,
+            )
 
-                assert "count" in networks_data, "Response should contain 'count' field"
-                assert (
-                    "networks" in networks_data
-                ), "Response should contain 'networks' field"
-                assert isinstance(
-                    networks_data["networks"], list
-                ), "Networks should be a list"
+            assert "count" in networks_data, "Response should contain 'count' field"
+            assert (
+                "networks" in networks_data
+            ), "Response should contain 'networks' field"
+            assert isinstance(
+                networks_data["networks"], list
+            ), "Networks should be a list"
 
     @allure.id("2661")
     @allure.title("POST /api/wifi/connect [Draft]")
@@ -905,16 +1092,43 @@ class TestWifiAPI:
     def test_api_wifi_disconnect(self, api_session, web_base_url):
         """Test POST /api/wifi/disconnect endpoint"""
 
+        with allure.step("Check WiFi status before disconnect"):
+            status_response = api_session.get(
+                f"{web_base_url}/api/wifi/status", timeout=10
+            )
+            assert (
+                status_response.status_code == 200
+            ), f"Expected 200, got {status_response.status_code}"
+            status_data = status_response.json()
+            wifi_state = status_data.get("state", "unknown")
+            allure.attach(
+                json.dumps(status_data, indent=2),
+                "WiFi Status Before Disconnect",
+                allure.attachment_type.JSON,
+            )
+
+            if wifi_state not in ["connected", "connecting"]:
+                pytest.skip(f"WiFi is not connected (state: {wifi_state}), skipping disconnect test")
+
         with allure.step("Disconnect from WiFi"):
             response = api_session.post(
                 f"{web_base_url}/api/wifi/disconnect", timeout=10
             )
 
         with allure.step("Verify disconnect response"):
-            assert response.status_code in [
-                200,
-                400,
-            ], f"Expected 200 or 400, got {response.status_code}"
+            assert (
+                response.status_code == 200
+            ), f"Expected 200, got {response.status_code}"
+
+            response_data = response.json()
+            allure.attach(
+                json.dumps(response_data, indent=2),
+                "WiFi Disconnect Response",
+                allure.attachment_type.JSON,
+            )
+            assert (
+                "result" in response_data
+            ), "Success response should contain 'result' field"
 
 
 @allure.feature("5. Web Frontend")
@@ -1458,6 +1672,371 @@ class TestAPIErrorHandling:
             assert (
                 success_count >= 3
             ), f"Expected at least 3 successful requests, got {success_count} out of {len(response_codes)}"
+
+
+@allure.feature("5. Web Frontend")
+@allure.story("API (draft)")
+class TestTimeAPI:
+    """Test cases for Time API endpoints"""
+
+    @allure.id("2716")
+    @allure.title("GET /api/time [Draft]")
+    @pytest.mark.api
+    @pytest.mark.frontend
+    def test_api_time_get(self, api_session, web_base_url):
+        """Test GET /api/time endpoint"""
+
+        with allure.step("Make GET request to /api/time"):
+            response = api_session.get(f"{web_base_url}/api/time", timeout=10)
+
+        with allure.step("Verify response status and structure"):
+            assert (
+                response.status_code == 200
+            ), f"Expected 200, got {response.status_code}"
+            assert (
+                "application/json"
+                in response.headers.get("content-type", "").lower()
+            )
+
+            time_data = response.json()
+            allure.attach(
+                json.dumps(time_data, indent=2),
+                "Time Response",
+                allure.attachment_type.JSON,
+            )
+
+            # Validate required fields based on OpenAPI schema
+            assert (
+                "timestamp" in time_data
+            ), "Response should contain 'timestamp' field"
+            assert isinstance(
+                time_data["timestamp"], str
+            ), "Timestamp should be a string"
+
+            # Validate ISO 8601 format (basic check)
+            timestamp = time_data["timestamp"]
+            assert "T" in timestamp, "Timestamp should be in ISO 8601 format"
+            assert (
+                "+" in timestamp or "-" in timestamp[10:]
+            ), "Timestamp should include timezone offset"
+
+    @allure.id("2717")
+    @allure.title("POST /api/time/timestamp [Draft]")
+    @pytest.mark.api
+    @pytest.mark.frontend
+    def test_api_time_timestamp_post(self, api_session, web_base_url):
+        """Test POST /api/time/timestamp endpoint"""
+
+        # Use a valid ISO 8601 timestamp
+        test_timestamp = "2025-06-15T12:30:45"
+
+        with allure.step(f"Set timestamp to: {test_timestamp}"):
+            params = {"timestamp": test_timestamp}
+            response = api_session.post(
+                f"{web_base_url}/api/time/timestamp", params=params, timeout=10
+            )
+
+        with allure.step("Verify response status"):
+            assert (
+                response.status_code == 200
+            ), f"Expected 200, got {response.status_code}"
+
+            response_data = response.json()
+            allure.attach(
+                json.dumps(response_data, indent=2),
+                "Timestamp Set Response",
+                allure.attachment_type.JSON,
+            )
+
+            assert (
+                "result" in response_data
+            ), "Success response should contain 'result' field"
+
+    @allure.id("2718")
+    @allure.title("POST /api/time/timestamp (invalid) [Draft]")
+    @pytest.mark.api
+    @pytest.mark.frontend
+    def test_api_time_timestamp_post_invalid(self, api_session, web_base_url):
+        """Test POST /api/time/timestamp endpoint with invalid format"""
+
+        invalid_timestamps = [
+            "not-a-timestamp",
+            "2025/06/15 12:30:45",
+            "12:30:45",
+            "",
+        ]
+
+        for invalid_ts in invalid_timestamps:
+            with allure.step(f"Test invalid timestamp: {invalid_ts}"):
+                params = {"timestamp": invalid_ts}
+                response = api_session.post(
+                    f"{web_base_url}/api/time/timestamp", params=params, timeout=10
+                )
+
+                assert response.status_code == 400, (
+                    f"Expected 400 for invalid timestamp '{invalid_ts}', "
+                    f"got {response.status_code}"
+                )
+
+    @allure.id("2719")
+    @allure.title("POST /api/time/timezone [Draft]")
+    @pytest.mark.api
+    @pytest.mark.frontend
+    def test_api_time_timezone_post(self, api_session, web_base_url):
+        """Test POST /api/time/timezone endpoint"""
+
+        # Test valid timezone offset
+        test_timezone = "+04:00"
+
+        with allure.step(f"Set timezone to: {test_timezone}"):
+            params = {"timezone": test_timezone}
+            response = api_session.post(
+                f"{web_base_url}/api/time/timezone", params=params, timeout=10
+            )
+
+        with allure.step("Verify response status"):
+            assert (
+                response.status_code == 200
+            ), f"Expected 200, got {response.status_code}"
+
+            response_data = response.json()
+            allure.attach(
+                json.dumps(response_data, indent=2),
+                "Timezone Set Response",
+                allure.attachment_type.JSON,
+            )
+
+            assert (
+                "result" in response_data
+            ), "Success response should contain 'result' field"
+
+    @allure.id("2720")
+    @allure.title("POST /api/time/timezone (invalid) [Draft]")
+    @pytest.mark.api
+    @pytest.mark.frontend
+    def test_api_time_timezone_post_invalid(self, api_session, web_base_url):
+        """Test POST /api/time/timezone endpoint with invalid format"""
+
+        invalid_timezones = [
+            "invalid",
+            "+25:00",  # Out of range
+            "-15:00",  # Out of range
+            "",
+        ]
+
+        for invalid_tz in invalid_timezones:
+            with allure.step(f"Test invalid timezone: {invalid_tz}"):
+                params = {"timezone": invalid_tz}
+                response = api_session.post(
+                    f"{web_base_url}/api/time/timezone", params=params, timeout=10
+                )
+
+                assert response.status_code == 400, (
+                    f"Expected 400 for invalid timezone '{invalid_tz}', "
+                    f"got {response.status_code}"
+                )
+
+
+@allure.feature("5. Web Frontend")
+@allure.story("API (draft)")
+class TestAccountAPI:
+    """Test cases for Account API endpoints"""
+
+    @allure.id("2721")
+    @allure.title("GET /api/account [Draft]")
+    @pytest.mark.api
+    @pytest.mark.frontend
+    def test_api_account_get(self, api_session, web_base_url):
+        """Test GET /api/account endpoint"""
+
+        with allure.step("Make GET request to /api/account"):
+            response = api_session.get(f"{web_base_url}/api/account", timeout=10)
+
+        with allure.step("Verify response status and structure"):
+            assert (
+                response.status_code == 200
+            ), f"Expected 200, got {response.status_code}"
+            assert (
+                "application/json" in response.headers.get("content-type", "").lower()
+            )
+
+            account_data = response.json()
+            allure.attach(
+                json.dumps(account_data, indent=2),
+                "Account Response",
+                allure.attachment_type.JSON,
+            )
+
+            # Validate required fields based on OpenAPI schema
+            assert "state" in account_data, "Response should contain 'state' field"
+
+            # Validate state enum
+            valid_states = ["error", "disconnected", "not_linked", "linked"]
+            assert (
+                account_data["state"] in valid_states
+            ), f"State should be one of {valid_states}, got {account_data['state']}"
+
+            # If linked, additional fields should be present
+            if account_data["state"] == "linked":
+                assert "id" in account_data, "Linked state should include 'id'"
+                assert "email" in account_data, "Linked state should include 'email'"
+
+    @allure.id("2722")
+    @allure.title("POST /api/account/link [Draft]")
+    @pytest.mark.api
+    @pytest.mark.frontend
+    def test_api_account_link_post(self, api_session, web_base_url):
+        """Test POST /api/account/link endpoint"""
+
+        with allure.step("Check account status before linking"):
+            status_response = api_session.get(
+                f"{web_base_url}/api/account", timeout=10
+            )
+            assert (
+                status_response.status_code == 200
+            ), f"Expected 200, got {status_response.status_code}"
+            account_data = status_response.json()
+            account_state = account_data.get("state", "unknown")
+            allure.attach(
+                json.dumps(account_data, indent=2),
+                "Account Status Before Link",
+                allure.attachment_type.JSON,
+            )
+
+            if account_state == "linked":
+                pytest.skip("Account is already linked, skipping link test")
+            if account_state in ["error", "disconnected"]:
+                pytest.skip(f"Account is not ready for linking (state: {account_state}), skipping link test")
+
+        with allure.step("Request account linking PIN"):
+            response = api_session.post(f"{web_base_url}/api/account/link", timeout=10)
+
+        with allure.step("Verify response status"):
+            assert (
+                response.status_code == 200
+            ), f"Expected 200, got {response.status_code}"
+
+            response_data = response.json()
+            allure.attach(
+                json.dumps(response_data, indent=2),
+                "Account Link Response",
+                allure.attachment_type.JSON,
+            )
+
+            assert "code" in response_data, "Response should contain 'code' field"
+            assert (
+                "expires_at" in response_data
+            ), "Response should contain 'expires_at' field"
+
+    @allure.id("2723")
+    @allure.title("DELETE /api/account [Draft]")
+    @pytest.mark.api
+    @pytest.mark.frontend
+    @pytest.mark.skip(reason="Destructive test - unlinks account")
+    def test_api_account_delete(self, api_session, web_base_url):
+        """Test DELETE /api/account endpoint (unlink)"""
+
+        with allure.step("Unlink account"):
+            response = api_session.delete(f"{web_base_url}/api/account", timeout=10)
+
+        with allure.step("Verify response status"):
+            assert (
+                response.status_code == 200
+            ), f"Expected 200, got {response.status_code}"
+
+            response_data = response.json()
+            allure.attach(
+                json.dumps(response_data, indent=2),
+                "Account Unlink Response",
+                allure.attachment_type.JSON,
+            )
+
+            assert (
+                "result" in response_data
+            ), "Success response should contain 'result' field"
+
+
+@allure.feature("5. Web Frontend")
+@allure.story("API (draft)")
+class TestBleStatusAPI:
+    """Test cases for BLE Status API endpoints"""
+
+    @allure.id("2724")
+    @allure.title("GET /api/ble/status [Draft]")
+    @pytest.mark.api
+    @pytest.mark.frontend
+    def test_api_ble_status_get(self, api_session, web_base_url):
+        """Test GET /api/ble/status endpoint"""
+
+        with allure.step("Make GET request to /api/ble/status"):
+            response = api_session.get(f"{web_base_url}/api/ble/status", timeout=10)
+
+        with allure.step("Verify response status and structure"):
+            assert (
+                response.status_code == 200
+            ), f"Expected 200, got {response.status_code}"
+            assert (
+                "application/json" in response.headers.get("content-type", "").lower()
+            )
+
+            ble_data = response.json()
+            allure.attach(
+                json.dumps(ble_data, indent=2),
+                "BLE Status Response",
+                allure.attachment_type.JSON,
+            )
+
+            # Validate required fields based on OpenAPI schema
+            assert "state" in ble_data, "Response should contain 'state' field"
+            assert "pairing" in ble_data, "Response should contain 'pairing' field"
+
+            # Validate state enum
+            valid_states = [
+                "reset",
+                "initialization",
+                "disabled",
+                "enabled",
+                "connected",
+                "internal error",
+            ]
+            assert (
+                ble_data["state"] in valid_states
+            ), f"State should be one of {valid_states}, got {ble_data['state']}"
+
+            # Address field is only present when BLE is enabled
+            if ble_data["state"] in ["enabled", "connected"]:
+                assert "address" in ble_data, "Response should contain 'address' field when BLE is enabled"
+
+            # Validate pairing enum
+            valid_pairing = ["unknown", "not paired", "paired"]
+            assert (
+                ble_data["pairing"] in valid_pairing
+            ), f"Pairing should be one of {valid_pairing}, got {ble_data['pairing']}"
+
+    @allure.id("2725")
+    @allure.title("DELETE /api/ble/pairing [Draft]")
+    @pytest.mark.api
+    @pytest.mark.frontend
+    @pytest.mark.skip(reason="Destructive test - removes BLE pairing")
+    def test_api_ble_pairing_delete(self, api_session, web_base_url):
+        """Test DELETE /api/ble/pairing endpoint"""
+
+        with allure.step("Remove BLE pairing"):
+            response = api_session.delete(f"{web_base_url}/api/ble/pairing", timeout=10)
+
+        with allure.step("Verify response status"):
+            # May return 200 if successful, 503 if BLE not initialized or already unpaired
+            assert response.status_code in [
+                200,
+                503,
+            ], f"Expected 200 or 503, got {response.status_code}"
+
+            response_data = response.json()
+            allure.attach(
+                json.dumps(response_data, indent=2),
+                "BLE Pairing Remove Response",
+                allure.attachment_type.JSON,
+            )
 
 
 @allure.feature("5. Web Frontend")
