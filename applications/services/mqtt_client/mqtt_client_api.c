@@ -49,6 +49,31 @@ void mqtt_client_get_session_info(
     mqtt_client_send_message(mqtt, &msg);
 }
 
+MqttClientProfile mqtt_client_get_profile(MqttClient* mqtt, FuriString* custom_url) {
+    furi_assert(mqtt);
+    MqttClientProfile profile;
+
+    MqttClientMessage msg = {
+        .type = MqttClientMessageGetProfile,
+        .profile = {.id = &profile, .custom_url = custom_url},
+    };
+    mqtt_client_send_message(mqtt, &msg);
+
+    return profile;
+}
+
+void mqtt_client_set_profile(MqttClient* mqtt, MqttClientProfile profile, char* custom_url) {
+    furi_assert(mqtt);
+
+    FuriString* url = furi_string_alloc_set(custom_url);
+    MqttClientMessage msg = {
+        .type = MqttClientMessageSetProfile,
+        .profile = {.id = &profile, .custom_url = url},
+    };
+    mqtt_client_send_message(mqtt, &msg);
+    furi_string_free(url);
+}
+
 void mqtt_client_publish(
     MqttClient* mqtt,
     MqttQos qos,
