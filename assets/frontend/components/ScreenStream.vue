@@ -167,8 +167,6 @@ function dataCallback (data: Uint8Array) {
 }
 
 function stopCallback () {
-  console.log('Screen stream stopped');
-
   if (canvasCtx.value) {
     canvasCtx.value.clearRect(0, 0, canvasWidth.value, canvasHeight.value);
   }
@@ -184,9 +182,6 @@ onMounted(() => {
   }
 
   deviceScreenStreamStore.startScreenStream(dataCallback, stopCallback)
-    .then(() => {
-      console.log('Screen stream started');
-    })
     .catch(error => {
       console.error('Error starting screen stream:', error);
       toast.add({

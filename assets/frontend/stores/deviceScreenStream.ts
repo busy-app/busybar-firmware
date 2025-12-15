@@ -53,8 +53,6 @@ export const useDeviceScreenStreamStore = defineStore('deviceScreenStream', () =
     return new Promise(resolve => {
       if (screenStream.value) {
         screenStream.value.onStop(() => {
-          console.log('WebSocket disconnect');
-
           resolve();
         });
         screenStream.value.closeWebsocket();

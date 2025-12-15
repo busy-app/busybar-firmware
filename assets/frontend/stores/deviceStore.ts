@@ -66,7 +66,6 @@ export const useDeviceStore = defineStore('device', () => {
         if (!response || typeof response !== 'object') {
           throw new Error('Empty response');
         }
-        console.log('Device status fetched:', response);
         deviceStatus.value = response;
         return response;
       })
@@ -101,7 +100,6 @@ export const useDeviceStore = defineStore('device', () => {
         if (!response || typeof response !== 'object') {
           throw new Error('Empty response');
         }
-        console.log('System status fetched:', response);
         return response;
       })
       .catch(async error => {
@@ -132,7 +130,6 @@ export const useDeviceStore = defineStore('device', () => {
         if (!response || typeof response !== 'object') {
           throw new Error('Empty response');
         }
-        console.log('Device power status fetched:', response);
         return response;
       })
       .catch(async error => {
@@ -163,7 +160,6 @@ export const useDeviceStore = defineStore('device', () => {
         if (!response || typeof response !== 'object') {
           throw new Error('Empty response');
         }
-        console.log('HTTP API access fetched:', response);
         httpAPIAccess.value = response;
         return response;
       })
@@ -228,7 +224,6 @@ export const useDeviceStore = defineStore('device', () => {
         if (!response || typeof response !== 'object') {
           throw new Error('Empty response');
         }
-        console.log('Display brightness fetched:', response);
         const frontParsed = response.front === 'auto' ? 'auto' : Number(response.front);
         const backParsed = response.back === 'auto' ? 'auto' : Number(response.back);
         return { front: frontParsed, back: backParsed } as DisplayBrightnessInfo;
@@ -286,7 +281,6 @@ export const useDeviceStore = defineStore('device', () => {
         if (!response || typeof response !== 'object') {
           throw new Error('Empty response');
         }
-        console.log('Audio volume fetched:', response);
         audio.value = response;
         return response;
       })
@@ -359,8 +353,6 @@ export const useDeviceStore = defineStore('device', () => {
         if (firmwareUpdate.value.progress === 100) {
           firmwareUpdate.value.stage = 'unpacking';
         }
-      } else {
-        console.log(`Uploaded ${event.loaded} bytes`);
       }
     };
 
