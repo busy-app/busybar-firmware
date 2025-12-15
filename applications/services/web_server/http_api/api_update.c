@@ -7,6 +7,7 @@
 #include <storage/storage.h>
 #include <toolbox/fetch/fetch_file_save.h>
 #include <applications/system/updater/updater.h>
+#include <applications/system/updater/updater_paths.h>
 
 #define TAG "HttpApiUpdate"
 

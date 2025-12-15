@@ -1,6 +1,6 @@
 #pragma once
 
-#include "busy.h"
+#include "busy_i.h"
 
 typedef struct {
     StatusLightsPreset preset;
