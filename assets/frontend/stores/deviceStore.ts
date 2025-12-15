@@ -151,6 +151,63 @@ export const useDeviceStore = defineStore('device', () => {
     return powerStatus;
   }
 
+  // Device name
+  const DEFAULT_DEVICE_NAME = 'BUSY Bar';
+  const deviceName = ref<string | undefined>(undefined);
+  async function fetchDeviceName (): Promise<string> {
+    const name = await busyBar.getName()
+      .then(response => {
+        if (typeof response !== 'string') {
+          throw new Error('Empty response');
+        }
+        deviceName.value = response;
+        return response;
+      })
+      .catch(async error => {
+        if (error.data?.error === 'Forbidden') {
+          await navigateTo('/login');
+          return DEFAULT_DEVICE_NAME;
+        }
+        console.error('Error fetching device name:', error);
+        toast.add({
+          id: 'device-name-error',
+          title: 'Failed to fetch device name',
+          description: error.data?.error || genericErrorMessage,
+          icon: 'i-ri-alert-line',
+          color: 'error',
+          duration: 10000
+        });
+        return DEFAULT_DEVICE_NAME;
+      });
+
+    return name;
+  }
+  async function getDeviceName (): Promise<string> {
+    if (deviceName.value === undefined) {
+      deviceName.value = await fetchDeviceName();
+    }
+    return deviceName.value;
+  }
+  async function setDeviceName (name: string): Promise<boolean> {
+    return await busyBar.setName({ name })
+      .then(() => {
+        deviceName.value = name;
+        return true;
+      })
+      .catch(error => {
+        console.error('Error setting device name:', error);
+        toast.add({
+          id: 'device-name-set-error',
+          title: 'Failed to set device name',
+          description: error.data?.error || genericErrorMessage,
+          icon: 'i-ri-alert-line',
+          color: 'error',
+          duration: 10000
+        });
+        return false;
+      });
+  }
+
   // HTTP API
   const httpAPIAccess = ref<HttpAccessInfo | undefined>(undefined);
   async function fetchHttpAPIAccess (): Promise<HttpAccessInfo | undefined> {
@@ -408,6 +465,11 @@ export const useDeviceStore = defineStore('device', () => {
     fetchPowerStatus,
     fetchDeviceStatus,
     getDeviceStatus,
+
+    deviceName,
+    fetchDeviceName,
+    getDeviceName,
+    setDeviceName,
 
     httpAPIAccess,
     fetchHttpAPIAccess,

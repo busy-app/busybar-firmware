@@ -3,12 +3,26 @@
     data-id="layout-default-header"
     class="relative h-12 flex justify-between items-center"
   >
-    <div class="flex gap-4">
+    <div class="flex gap-6">
       <UIcon
         data-id="layout-default-header-logo"
         name="i-busy-bar-logo"
         class="w-[70px] h-[28px]"
       />
+      <div
+        v-if="power"
+        data-id="layout-default-header-power"
+        class="flex items-center gap-1.5"
+      >
+        <div class="relative flex">
+          <BatteryIndicator
+            :charge="power?.battery_charge"
+            :state="power?.state"
+            class="size-7"
+          />
+        </div>
+        <div>{{ power?.battery_charge }}%</div>
+      </div>
       <div class="hidden md:flex items-center gap-2">
         <div
           data-id="layout-default-header-connection-state"
@@ -20,44 +34,10 @@
           />
           Connected
         </div>
-        <div
-          data-id="layout-default-header-connection-host"
-          class="text-muted"
-        >
-          {{ host }}
-        </div>
       </div>
     </div>
 
-    <!-- temp -->
-    <div class="absolute left-1/2 -translate-x-1/2 flex items-center gap-4">
-      <div
-        data-id="layout-default-header-name"
-        class="text-xl"
-      >
-        BUSY Bar
-      </div>
-      <div
-        v-if="power"
-        data-id="layout-default-header-power"
-        class="flex items-center gap-1.5"
-      >
-        <div class="relative flex">
-          <UIcon
-            :name="power?.state === 'charging' ? 'i-busy-battery-charging' : batteryIcon()"
-            class="size-6"
-          />
-          <UIcon
-            v-if="power?.state === 'charging'"
-            name="i-busy-charging-lightning"
-            class="absolute size-6"
-          />
-        </div>
-        <div>{{ power?.battery_charge }}%</div>
-      </div>
-    </div>
-
-    <div class="hidden absolute left-1/2 -translate-x-1/2">
+    <div class="absolute left-1/2 -translate-x-1/2">
       <UDropdownMenu
         data-id="layout-default-header-device-menu"
         :items="[
@@ -90,7 +70,7 @@
           trailing-icon="i-ri-arrow-down-s-fill"
           color="neutral"
           variant="ghost"
-          class="text-xl"
+          class="text-xl rounded-md"
         />
       </UDropdownMenu>
 
@@ -179,8 +159,6 @@ const pms = usePasswordModalStore();
 const apiStore = useApiStore();
 
 const colorMode = useColorMode();
-
-const host = location.hostname;
 
 const httpApiAccess = ref(await deviceStore.getHttpAPIAccess());
 
@@ -283,14 +261,8 @@ const loading = ref({
 
 async function updateDeviceName () {
   loading.value.rename = true;
-  try {
-    await new Promise(resolve => setTimeout(resolve, 2000));
-  } catch {
-    //
-  } finally {
-    loading.value.rename = false;
-    showRenameModal.value = false;
-  }
+  await deviceStore.setDeviceName(nameModel.value.trim());
+  loading.value.rename = false;
 }
 
 async function restartDevice () {
@@ -310,17 +282,9 @@ async function lockDown () {
   await navigateTo('/login');
 }
 
-// temp
 const power = computed(() => deviceStore.deviceStatus?.power);
 
-function batteryIcon (): string {
-  const charge = power.value?.battery_charge || 0;
-  if (charge >= 75) {
-    return 'i-ri-battery-fill';
-  }
-  if (charge >= 30) {
-    return 'i-ri-battery-low-line';
-  }
-  return 'i-ri-battery-line';
-}
+onMounted(async () => {
+  nameModel.value = await deviceStore.getDeviceName();
+});
 </script>
