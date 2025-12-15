@@ -1,13 +1,14 @@
 import { defineStore } from 'pinia';
-import { BusyBar } from '@busy-app/busy-lib';
-import type { WifiStatusResponse as WifiState, WifiNetwork, WifiConnectParams } from '@busy-app/busy-lib';
+import type {
+  WifiStatusResponse as WifiState,
+  WifiNetwork,
+  WifiConnectParams
+} from '@busy-app/busy-lib';
 
 export const useWifiStore = defineStore('wifi', () => {
   const toast = useToast();
 
-  const busyBar = new BusyBar({
-    host: useRuntimeConfig().public.barUrl
-  });
+  const busyBar = useDeviceStore().busyBar;
 
   const wifi = ref<WifiState | undefined>(undefined);
 
@@ -40,46 +41,6 @@ export const useWifiStore = defineStore('wifi', () => {
       wifi.value = await fetchWifiState();
     }
     return wifi.value;
-  }
-
-  async function enableWifi () {
-    await busyBar.enableWifi()
-      .then(() => {
-        wifi.value = { state: 'enabled' };
-      })
-      .catch(error => {
-        console.error('Error enabling WiFi:', error);
-        toast.add({
-          id: 'wifi-enable-error',
-          title: 'Failed to enable WiFi',
-          description: error.data?.error || genericErrorMessage,
-          icon: 'i-ri-alert-line',
-          color: 'error',
-          duration: 10000
-        });
-      });
-  }
-
-  async function disableWifi () {
-    if (wifi.value === undefined || wifi.value.state === 'disabled') {
-      return;
-    }
-
-    await busyBar.disableWifi()
-      .then(() => {
-        wifi.value = { state: 'disabled' };
-      })
-      .catch(error => {
-        console.error('Error disabling WiFi:', error);
-        toast.add({
-          id: 'wifi-disable-error',
-          title: 'Failed to disable WiFi',
-          description: error.data?.error || genericErrorMessage,
-          icon: 'i-ri-alert-line',
-          color: 'error',
-          duration: 10000
-        });
-      });
   }
 
   async function listWifiNetworks () {
@@ -147,31 +108,12 @@ export const useWifiStore = defineStore('wifi', () => {
       });
   }
 
-  async function forgetSavedWifiNetwork () {
-    return await busyBar.forgetWifi()
-      .catch(error => {
-        console.error('Error forgetting WiFi network:', error);
-        toast.add({
-          id: 'wifi-forget-error',
-          title: 'Failed to forget WiFi network',
-          description: error.data?.error || genericErrorMessage,
-          icon: 'i-ri-alert-line',
-          color: 'error',
-          duration: 10000
-        });
-        return false;
-      });
-  }
-
   return {
     wifi,
     fetchWifiState,
     getWifiState,
-    enableWifi,
-    disableWifi,
     listWifiNetworks,
     connectToWifiNetwork,
-    disconnectFromWifiNetwork,
-    forgetSavedWifiNetwork
+    disconnectFromWifiNetwork
   };
 });

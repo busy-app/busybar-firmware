@@ -1,66 +1,34 @@
 import { defineStore } from 'pinia';
-
-export interface ApiVersion {
-  api_semver: string;
-}
-
-export interface SystemStatus {
-  branch: string;
-  version: string;
-  build_date: string;
-  commit_hash: string;
-  uptime: string;
-}
-
-export interface PowerStatus {
-  state: string;
-  battery_charge: number;
-  battery_voltage: number;
-  battery_current: number;
-  usb_voltage: number;
-}
-
-export interface BleStatus {
-  state: string;
-}
-
-export interface DeviceStatus {
-  system: SystemStatus;
-  power: PowerStatus;
-  ble: BleStatus;
-}
-
-export interface HttpAPIAccess {
-  mode: 'key' | 'disabled' | 'enabled';
-  key_valid: boolean;
-}
-
-export interface DisplayBrightness {
-  front: 'auto' | number;
-  back: 'auto' | number;
-}
-
-export interface AudioVolume {
-  volume: number;
-}
+import { BusyBar } from '@busy-app/busy-lib';
+import type {
+  VersionInfo,
+  StatusSystem,
+  StatusPower,
+  Status as DeviceStatus,
+  HttpAccessInfo,
+  HttpAccessParams,
+  DisplayBrightnessInfo,
+  DisplayBrightnessParams,
+  AudioVolumeInfo
+} from '@busy-app/busy-lib';
 
 export type UpdateStage = 'idle' | 'uploading' | 'unpacking' | 'updating' | 'success' | 'error';
 
 export const useDeviceStore = defineStore('device', () => {
   const toast = useToast();
 
-  const apiRequest = useApiStore().apiRequest;
+  const busyBar = new BusyBar({
+    addr: useRuntimeConfig().public.barUrl
+  });
 
   // API version
-  const apiVersion = ref<ApiVersion | undefined>(undefined);
-
-  async function fetchApiVersion (): Promise<ApiVersion | undefined> {
-    const version = await apiRequest<ApiVersion>('/api/version', { timeout: 3000 })
+  const apiVersion = ref<VersionInfo | undefined>(undefined);
+  async function fetchApiVersion (): Promise<VersionInfo | undefined> {
+    const version = await busyBar.getApiVersion()
       .then(response => {
         if (!response || typeof response !== 'object') {
           throw new Error('Empty response');
         }
-        console.log('API version fetched:', response);
         apiVersion.value = response;
         return response;
       })
@@ -83,8 +51,7 @@ export const useDeviceStore = defineStore('device', () => {
 
     return version;
   }
-
-  async function getApiVersion (): Promise<ApiVersion | undefined> {
+  async function getApiVersion (): Promise<VersionInfo | undefined> {
     if (apiVersion.value === undefined) {
       apiVersion.value = await fetchApiVersion();
     }
@@ -93,9 +60,8 @@ export const useDeviceStore = defineStore('device', () => {
 
   // Device status
   const deviceStatus = ref<DeviceStatus | undefined>(undefined);
-
   async function fetchDeviceStatus (): Promise<DeviceStatus | undefined> {
-    const status = await apiRequest<DeviceStatus>('/api/status', { timeout: 3000 })
+    const status = await busyBar.deviceStatus()
       .then(response => {
         if (!response || typeof response !== 'object') {
           throw new Error('Empty response');
@@ -123,16 +89,14 @@ export const useDeviceStore = defineStore('device', () => {
 
     return status;
   }
-
   async function getDeviceStatus (): Promise<DeviceStatus | undefined> {
     if (deviceStatus.value === undefined) {
       deviceStatus.value = await fetchDeviceStatus();
     }
     return deviceStatus.value;
   }
-
-  async function fetchSystemStatus (throwError: boolean = false): Promise<SystemStatus | undefined> {
-    const systemStatus = await apiRequest<SystemStatus>('/api/status/system', { timeout: 3000 })
+  async function fetchSystemStatus (throwError: boolean = false): Promise<StatusSystem | undefined> {
+    const systemStatus = await busyBar.systemStatus()
       .then(response => {
         if (!response || typeof response !== 'object') {
           throw new Error('Empty response');
@@ -162,9 +126,8 @@ export const useDeviceStore = defineStore('device', () => {
 
     return systemStatus;
   }
-
-  async function fetchPowerStatus (): Promise<PowerStatus | undefined> {
-    const powerStatus = await apiRequest<PowerStatus>('/api/status/power', { timeout: 3000 })
+  async function fetchPowerStatus (): Promise<StatusPower | undefined> {
+    const powerStatus = await busyBar.powerStatus()
       .then(response => {
         if (!response || typeof response !== 'object') {
           throw new Error('Empty response');
@@ -193,10 +156,9 @@ export const useDeviceStore = defineStore('device', () => {
   }
 
   // HTTP API
-  const httpAPIAccess = ref<HttpAPIAccess | undefined>(undefined);
-
-  async function fetchHttpAPIAccess (): Promise<HttpAPIAccess | undefined> {
-    const access = await apiRequest<HttpAPIAccess>('/api/access', { timeout: 3000 })
+  const httpAPIAccess = ref<HttpAccessInfo | undefined>(undefined);
+  async function fetchHttpAPIAccess (): Promise<HttpAccessInfo | undefined> {
+    const access = await busyBar.getHttpAccess()
       .then(response => {
         if (!response || typeof response !== 'object') {
           throw new Error('Empty response');
@@ -224,14 +186,12 @@ export const useDeviceStore = defineStore('device', () => {
 
     return access;
   }
-
-  async function getHttpAPIAccess (): Promise<HttpAPIAccess | undefined> {
+  async function getHttpAPIAccess (): Promise<HttpAccessInfo | undefined> {
     if (httpAPIAccess.value === undefined) {
       httpAPIAccess.value = await fetchHttpAPIAccess();
     }
     return httpAPIAccess.value;
   }
-
   async function setHttpAPIAccess (mode: 'key' | 'disabled' | 'enabled', key?: string): Promise<boolean> {
     const payload = { mode } as { mode: 'key' | 'disabled' | 'enabled'; key?: string };
     if (mode === 'key') {
@@ -241,10 +201,7 @@ export const useDeviceStore = defineStore('device', () => {
       payload['key'] = key;
     }
 
-    return await apiRequest('/api/access', {
-      method: 'POST',
-      query: payload
-    })
+    return await busyBar.setHttpAccess(payload as HttpAccessParams)
       .then(async () => {
         httpAPIAccess.value = await fetchHttpAPIAccess();
         return true;
@@ -264,14 +221,9 @@ export const useDeviceStore = defineStore('device', () => {
   }
 
   // Display brightness
-  const displayBrightness = ref<DisplayBrightness | undefined>(undefined);
-
-  async function fetchDisplayBrightness (): Promise<DisplayBrightness | undefined> {
-    interface APIDisplayBrightness {
-      front: 'auto' | string;
-      back: 'auto' | string;
-    }
-    const brightness = await apiRequest<APIDisplayBrightness>('/api/display/brightness', { timeout: 3000 })
+  const displayBrightness = ref<DisplayBrightnessInfo | undefined>(undefined);
+  async function fetchDisplayBrightness (): Promise<DisplayBrightnessInfo | undefined> {
+    const brightness = await busyBar.getDisplayBrightness()
       .then(response => {
         if (!response || typeof response !== 'object') {
           throw new Error('Empty response');
@@ -279,7 +231,7 @@ export const useDeviceStore = defineStore('device', () => {
         console.log('Display brightness fetched:', response);
         const frontParsed = response.front === 'auto' ? 'auto' : Number(response.front);
         const backParsed = response.back === 'auto' ? 'auto' : Number(response.back);
-        return { front: frontParsed, back: backParsed } as DisplayBrightness;
+        return { front: frontParsed, back: backParsed } as DisplayBrightnessInfo;
       })
       .catch(async error => {
         if (error.data?.error === 'Forbidden') {
@@ -300,22 +252,14 @@ export const useDeviceStore = defineStore('device', () => {
 
     return brightness;
   }
-
-  async function getDisplayBrightness (): Promise<DisplayBrightness | undefined> {
+  async function getDisplayBrightness (): Promise<DisplayBrightnessInfo | undefined> {
     if (displayBrightness.value === undefined) {
       displayBrightness.value = await fetchDisplayBrightness();
     }
     return displayBrightness.value;
   }
-
-  async function setDisplayBrightness (brightness: DisplayBrightness): Promise<boolean> {
-    return await apiRequest('/api/display/brightness', {
-      method: 'POST',
-      query: {
-        front: String(brightness.front),
-        back: String(brightness.back)
-      }
-    })
+  async function setDisplayBrightness (brightness: DisplayBrightnessInfo): Promise<boolean> {
+    return await busyBar.setDisplayBrightness(brightness as DisplayBrightnessParams)
       .then(() => {
         displayBrightness.value = brightness;
         return true;
@@ -335,10 +279,9 @@ export const useDeviceStore = defineStore('device', () => {
   }
 
   // Audio volume
-  const audio = ref<AudioVolume | undefined>(undefined);
-
-  async function fetchAudioVolume (): Promise<AudioVolume | undefined> {
-    const volume = await apiRequest<AudioVolume>('/api/audio/volume', { timeout: 3000 })
+  const audio = ref<AudioVolumeInfo | undefined>(undefined);
+  async function fetchAudioVolume (): Promise<AudioVolumeInfo | undefined> {
+    const volume = await busyBar.getAudioVolume()
       .then(response => {
         if (!response || typeof response !== 'object') {
           throw new Error('Empty response');
@@ -366,19 +309,14 @@ export const useDeviceStore = defineStore('device', () => {
 
     return volume;
   }
-
-  async function getAudioVolume (): Promise<AudioVolume | undefined> {
+  async function getAudioVolume (): Promise<AudioVolumeInfo | undefined> {
     if (audio.value === undefined) {
       audio.value = await fetchAudioVolume();
     }
     return audio.value;
   }
-
   async function setAudioVolume (volume: number): Promise<boolean> {
-    return await apiRequest('/api/audio/volume', {
-      method: 'POST',
-      query: { volume }
-    })
+    return await busyBar.setAudioVolume({ volume })
       .then(() => {
         if (audio.value) {
           audio.value.volume = volume;
@@ -409,7 +347,6 @@ export const useDeviceStore = defineStore('device', () => {
     progress: 0,
     error: null as string | null
   });
-
   async function uploadFirmware () {
     const xhr = new XMLHttpRequest();
     xhr.open('POST', `/api/update?name=${firmwareUpdate.value.firmwareBundleName}`);
@@ -469,6 +406,8 @@ export const useDeviceStore = defineStore('device', () => {
   }
 
   return {
+    busyBar,
+
     apiVersion,
     fetchApiVersion,
     getApiVersion,
