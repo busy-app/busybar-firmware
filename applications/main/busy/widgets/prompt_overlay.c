@@ -8,16 +8,23 @@
 #define ANIM_DELAY_MS    (1000)
 #define ANIM_INTERVAL_MS (3000)
 
-#define ANIM_START_VALUE (0)
-#define ANIM_END_VALUE   (1)
-
 #define TARGET_Y_OFFSET (2)
+
+typedef enum {
+    PromptOverlayStateBegin,
+    PromptOverlayStateAnimBegin,
+    PromptOverlayStateAnimEnd,
+    PromptOverlayStateEnd,
+} PromptOverlayState;
 
 struct PromptOverlay {
     AnimImage base;
     lv_obj_t* target;
     uint32_t frame_idx;
+    PromptOverlayCallback callback;
+    void* callback_context;
     bool is_pressed;
+    uint32_t time;
 };
 
 typedef struct {
@@ -50,9 +57,14 @@ static void prompt_overlay_lvgl_anim_callback(void* context, int32_t value) {
 
     PromptOverlay* instance = context;
 
-    if(value == ANIM_START_VALUE) {
+    if(value == PromptOverlayStateAnimBegin) {
         instance->frame_idx = 0;
         anim_image_start(&instance->base);
+
+    } else if(value == PromptOverlayStateAnimEnd) {
+        if(instance->callback) {
+            instance->callback(instance->callback_context);
+        }
     }
 }
 
@@ -123,7 +135,7 @@ static void prompt_overlay_start_animation(PromptOverlay* instance) {
     lv_anim_set_delay(&anim, ANIM_DELAY_MS);
     lv_anim_set_duration(&anim, ANIM_INTERVAL_MS);
     lv_anim_set_repeat_count(&anim, LV_ANIM_REPEAT_INFINITE);
-    lv_anim_set_values(&anim, ANIM_START_VALUE, ANIM_END_VALUE);
+    lv_anim_set_values(&anim, PromptOverlayStateBegin, PromptOverlayStateEnd);
     lv_anim_set_exec_cb(&anim, prompt_overlay_lvgl_anim_callback);
     lv_anim_set_var(&anim, instance);
     lv_anim_start(&anim);
@@ -176,6 +188,16 @@ void prompt_overlay_set_animation_target(PromptOverlay* instance, Widget* widget
     furi_check(widget);
 
     instance->target = TO_LV_OBJ(widget);
+}
+
+void prompt_overlay_set_callback(
+    PromptOverlay* instance,
+    PromptOverlayCallback callback,
+    void* context) {
+    furi_check(instance);
+
+    instance->callback = callback;
+    instance->callback_context = context;
 }
 
 // LVGL class descriptor

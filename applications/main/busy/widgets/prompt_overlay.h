@@ -18,6 +18,8 @@ extern "C" {
 /** PromptOverlay opaque structure. */
 typedef struct PromptOverlay PromptOverlay;
 
+typedef void (*PromptOverlayCallback)(void* context);
+
 /**
  * @brief Create a new PromptOverlay instance.
  *
@@ -51,6 +53,11 @@ Widget* prompt_overlay_get_base(PromptOverlay* instance);
  * @param[in,out] widget pointer to the Widget instance to be animated
  */
 void prompt_overlay_set_animation_target(PromptOverlay* instance, Widget* widget);
+
+void prompt_overlay_set_callback(
+    PromptOverlay* instance,
+    PromptOverlayCallback callback,
+    void* context);
 
 #ifdef __cplusplus
 }

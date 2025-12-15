@@ -6,15 +6,16 @@
 
 #define MY_CLASS (&summary_label_lvgl_class)
 
-#define INITIAL_DELAY_MS       (1000)
 #define TRANSITION_DURATION_MS (250)
-#define LINGER_DURATION_MS     (3000 - 2 * TRANSITION_DURATION_MS)
 
 struct SummaryLabel {
     Widget base;
     lv_obj_t* cycles_layout;
     lv_obj_t* cycles_label;
     lv_obj_t* message_label;
+
+    lv_obj_t* show_target;
+    lv_obj_t* hide_target;
 };
 
 const lv_obj_class_t summary_label_lvgl_class;
@@ -25,20 +26,27 @@ static void summary_label_lvgl_anim_callback(void* context, int32_t value) {
     furi_assert(context);
     SummaryLabel* instance = context;
 
-    lv_obj_set_style_opa(instance->cycles_layout, LV_OPA_COVER - value, LV_PART_MAIN);
-    lv_obj_set_style_opa(instance->message_label, value, LV_PART_MAIN);
+    lv_obj_set_style_opa(instance->show_target, LV_OPA_COVER - value, LV_PART_MAIN);
+    lv_obj_set_style_opa(instance->hide_target, value, LV_PART_MAIN);
+}
+
+static void summary_label_lvgl_anim_completed_callback(lv_anim_t* anim) {
+    furi_assert(anim);
+
+    SummaryLabel* instance = anim->var;
+    FURI_SWAP(instance->show_target, instance->hide_target);
 }
 
 static void summary_label_lvgl_constructor(const lv_obj_class_t* class_p, lv_obj_t* obj) {
     UNUSED(class_p);
 
     lv_obj_t* cycles_layout = lv_obj_create(obj);
-    lv_obj_add_flag(cycles_layout, LV_OBJ_FLAG_HIDDEN);
     lv_obj_set_flex_flow(cycles_layout, LV_FLEX_FLOW_ROW);
     lv_obj_set_style_pad_column(cycles_layout, 2, LV_PART_MAIN);
     lv_obj_set_style_flex_cross_place(cycles_layout, LV_FLEX_ALIGN_CENTER, LV_PART_MAIN);
     lv_obj_set_size(cycles_layout, LV_SIZE_CONTENT, LV_SIZE_CONTENT);
     lv_obj_set_style_align(cycles_layout, LV_ALIGN_CENTER, LV_PART_MAIN);
+    lv_obj_set_style_opa(cycles_layout, LV_OPA_TRANSP, LV_PART_MAIN);
 
     lv_obj_t* cycles_icon = lv_image_create(cycles_layout);
     lv_image_set_src(cycles_icon, BUSY_IMG_PATH("tick_red_6x5.bin"));
@@ -54,6 +62,9 @@ static void summary_label_lvgl_constructor(const lv_obj_class_t* class_p, lv_obj
     instance->cycles_layout = cycles_layout;
     instance->cycles_label = cycles_label;
     instance->message_label = message_label;
+
+    instance->show_target = cycles_layout;
+    instance->hide_target = message_label;
 }
 
 // Implementation
@@ -84,19 +95,21 @@ void summary_label_set_cycles_count(SummaryLabel* instance, uint32_t cycles_coun
     furi_check(instance);
 
     lv_label_set_text_fmt(instance->cycles_label, "%lu/%lu", cycles_count, cycles_count);
-    lv_obj_remove_flag(instance->cycles_layout, LV_OBJ_FLAG_HIDDEN);
+
+    lv_obj_set_style_opa(instance->cycles_layout, LV_OPA_COVER, LV_PART_MAIN);
+    lv_obj_set_style_opa(instance->message_label, LV_OPA_TRANSP, LV_PART_MAIN);
+}
+
+void summary_label_switch_display(SummaryLabel* instance) {
+    furi_check(instance);
 
     lv_anim_t anim;
     lv_anim_init(&anim);
-    lv_anim_set_delay(&anim, INITIAL_DELAY_MS);
-    lv_anim_set_repeat_count(&anim, LV_ANIM_REPEAT_INFINITE);
-    lv_anim_set_repeat_delay(&anim, LINGER_DURATION_MS);
     lv_anim_set_values(&anim, LV_OPA_TRANSP, LV_OPA_COVER);
     lv_anim_set_duration(&anim, TRANSITION_DURATION_MS);
-    lv_anim_set_reverse_duration(&anim, TRANSITION_DURATION_MS);
-    lv_anim_set_reverse_delay(&anim, LINGER_DURATION_MS);
     lv_anim_set_path_cb(&anim, lv_anim_path_ease_in_out);
     lv_anim_set_exec_cb(&anim, summary_label_lvgl_anim_callback);
+    lv_anim_set_completed_cb(&anim, summary_label_lvgl_anim_completed_callback);
     lv_anim_set_var(&anim, instance);
     lv_anim_start(&anim);
 }

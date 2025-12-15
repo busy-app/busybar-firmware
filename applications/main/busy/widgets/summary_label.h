@@ -49,6 +49,8 @@ Widget* summary_label_get_base(SummaryLabel* instance);
  */
 void summary_label_set_cycles_count(SummaryLabel* instance, uint32_t cycles_count);
 
+void summary_label_switch_display(SummaryLabel* instance);
+
 #ifdef __cplusplus
 }
 #endif

@@ -34,6 +34,16 @@ static bool busy_scene_finish_input_callback(const InputEvent* event, void* cont
     return consumed;
 }
 
+static void busy_scene_finish_prompt_overlay_callback(void* context) {
+    furi_assert(context);
+    BusyApp* instance = context;
+
+    BusySceneFinish* data =
+        scene_manager_get_scene_data(instance->scene_manager, BusyAppSceneIdFinish);
+
+    summary_label_switch_display(data->front_summary);
+}
+
 static void busy_scene_finish_handle_back(BusyApp* instance) {
     busy_prepare_transition(instance, BusyTransitionTypeDefault);
 
@@ -60,16 +70,18 @@ static void busy_scene_finish_on_enter(void* context) {
         anim_image_set_source(data->front_anim, BUSY_ANIM_PATH("finished_confetti_72x16.anim"));
 
         data->front_summary = summary_label_alloc(instance->front_window);
-        if(timer_config.mode == BusyTimerModeInterval) {
-            summary_label_set_cycles_count(data->front_summary, timer_config.cycle_count);
-        }
-
         widget_set_pos_y(summary_label_get_base(data->front_summary), 5);
         widget_set_align(summary_label_get_base(data->front_summary), AlignTopMid);
 
         data->front_prompt = prompt_overlay_alloc(instance->front_window);
         prompt_overlay_set_animation_target(
             data->front_prompt, summary_label_get_base(data->front_summary));
+
+        if(timer_config.mode == BusyTimerModeInterval) {
+            summary_label_set_cycles_count(data->front_summary, timer_config.cycle_count);
+            prompt_overlay_set_callback(
+                data->front_prompt, busy_scene_finish_prompt_overlay_callback, instance);
+        }
     });
 
     audio_play_file(instance->audio, BUSY_SOUND_PATH("session_completed.snd"));
