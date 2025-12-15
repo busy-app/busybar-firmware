@@ -7,7 +7,6 @@ import type {
   Status as DeviceStatus,
   HttpAccessInfo,
   HttpAccessParams,
-  DisplayBrightnessInfo,
   DisplayBrightnessParams,
   AudioVolumeInfo
 } from '@busy-app/busy-lib';
@@ -217,8 +216,8 @@ export const useDeviceStore = defineStore('device', () => {
   }
 
   // Display brightness
-  const displayBrightness = ref<DisplayBrightnessInfo | undefined>(undefined);
-  async function fetchDisplayBrightness (): Promise<DisplayBrightnessInfo | undefined> {
+  const displayBrightness = ref<DisplayBrightnessParams | undefined>(undefined);
+  async function fetchDisplayBrightness (): Promise<DisplayBrightnessParams | undefined> {
     const brightness = await busyBar.getDisplayBrightness()
       .then(response => {
         if (!response || typeof response !== 'object') {
@@ -226,7 +225,7 @@ export const useDeviceStore = defineStore('device', () => {
         }
         const frontParsed = response.front === 'auto' ? 'auto' : Number(response.front);
         const backParsed = response.back === 'auto' ? 'auto' : Number(response.back);
-        return { front: frontParsed, back: backParsed } as DisplayBrightnessInfo;
+        return { front: frontParsed, back: backParsed } as DisplayBrightnessParams;
       })
       .catch(async error => {
         if (error.data?.error === 'Forbidden') {
@@ -247,14 +246,14 @@ export const useDeviceStore = defineStore('device', () => {
 
     return brightness;
   }
-  async function getDisplayBrightness (): Promise<DisplayBrightnessInfo | undefined> {
+  async function getDisplayBrightness (): Promise<DisplayBrightnessParams | undefined> {
     if (displayBrightness.value === undefined) {
       displayBrightness.value = await fetchDisplayBrightness();
     }
     return displayBrightness.value;
   }
-  async function setDisplayBrightness (brightness: DisplayBrightnessInfo): Promise<boolean> {
-    return await busyBar.setDisplayBrightness(brightness as DisplayBrightnessParams)
+  async function setDisplayBrightness (brightness: DisplayBrightnessParams): Promise<boolean> {
+    return await busyBar.setDisplayBrightness(brightness)
       .then(() => {
         displayBrightness.value = brightness;
         return true;

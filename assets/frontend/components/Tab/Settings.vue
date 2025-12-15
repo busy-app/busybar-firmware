@@ -17,7 +17,7 @@
             size="sm"
             :color="mute.isMuted ? 'primary' : 'neutral'"
             class="rounded-full"
-            @click="mute.isMuted ? onUpdateAudioSlider(mute.volumeBeforeMute) : setVolumeToMute()"
+            @click="mute.isMuted ? unmute() : setVolumeToMute()"
           />
         </div>
 
@@ -28,7 +28,7 @@
               data-id="volume-percentage"
               class="text-muted"
             >
-              {{ volumeNumber }}%
+              {{ nextVolumeNumber || volumeNumber }}%
             </div>
           </div>
 
@@ -43,7 +43,7 @@
               range: `${mute.isMuted ? 'bg-neutral' : 'bg-primary'} rounded-r-none`,
               thumb: `${mute.isMuted ? 'bg-neutral' : 'bg-primary'} ring-4 ring-white size-[6px] focus-visible:outline-none`
             }"
-            @update:model-value="onUpdateAudioSlider"
+            @change="onChangeAudioSlider"
           />
         </div>
       </div>
@@ -64,7 +64,7 @@
             size="sm"
             :color="isBrightnessAuto ? 'primary' : 'neutral'"
             class="rounded-full"
-            @click="isBrightnessAuto ? onUpdateBrightnessSlider(50) : setBrightnessToAuto()"
+            @click="isBrightnessAuto ? disableAutoBrightness() : setBrightnessToAuto()"
           />
         </div>
 
@@ -90,7 +90,7 @@
               range: `${isBrightnessAuto ? 'bg-neutral' : 'bg-primary'} rounded-r-none`,
               thumb: `${isBrightnessAuto ? 'bg-neutral' : 'bg-primary'} ring-4 ring-white size-[6px] focus-visible:outline-none`
             }"
-            @update:model-value="onUpdateBrightnessSlider"
+            @change="onChangeBrightnessSlider"
           />
         </div>
       </div>
@@ -179,11 +179,12 @@ const mute = ref({
   volumeBeforeMute: 50
 });
 
-function onUpdateAudioSlider (value: number | number[] | undefined) {
-  nextVolumeNumber.value = Array.isArray(value) ? value[0] : value;
-  if (loading.value.audio === true) {
-    return;
-  }
+function unmute () {
+  nextVolumeNumber.value = mute.value.volumeBeforeMute;
+  setAudioVolume();
+}
+
+function onChangeAudioSlider () {
   setAudioVolume();
 }
 
@@ -195,16 +196,12 @@ async function setAudioVolume () {
 
   loading.value.audio = true;
   const v = nextVolumeNumber.value;
-  nextVolumeNumber.value = undefined;
 
   await deviceStore.setAudioVolume(v);
   deviceStore.audio = { volume: v };
 
   setTimeout(() => {
     loading.value.audio = false;
-    if (nextVolumeNumber.value !== undefined) {
-      setAudioVolume();
-    }
   }, 250);
 }
 
@@ -226,11 +223,12 @@ const nextBrightnessNumber = ref<number | undefined>(undefined);
 const brightnessNumber = computed(() => isNaN(Number(deviceStore.displayBrightness?.front)) ? 50 : Number(deviceStore.displayBrightness?.front));
 const isBrightnessAuto = computed(() => deviceStore.displayBrightness?.front === 'auto');
 
-function onUpdateBrightnessSlider (value: number | number[] | undefined) {
-  nextBrightnessNumber.value = Array.isArray(value) ? value[0] : value;
-  if (loading.value.brightness === true) {
-    return;
-  }
+function disableAutoBrightness () {
+  nextBrightnessNumber.value = 50;
+  setDisplayBrightness();
+}
+
+function onChangeBrightnessSlider () {
   setDisplayBrightness();
 }
 
@@ -241,7 +239,6 @@ async function setDisplayBrightness () {
 
   loading.value.brightness = true;
   const b = nextBrightnessNumber.value;
-  nextBrightnessNumber.value = undefined;
 
   await deviceStore.setDisplayBrightness({
     front: b,
@@ -254,9 +251,6 @@ async function setDisplayBrightness () {
 
   setTimeout(() => {
     loading.value.brightness = false;
-    if (nextBrightnessNumber.value !== undefined) {
-      setDisplayBrightness();
-    }
   }, 250);
 }
 
