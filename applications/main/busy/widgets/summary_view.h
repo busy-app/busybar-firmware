@@ -1,7 +1,8 @@
 /**
  * @file summary_view.h
- * @brief
+ * @brief A widget that provides an animated timer session summary.
  *
+ * Can be used only on the front display.
  */
 #pragma once
 
@@ -14,6 +15,11 @@ extern "C" {
 /** SummaryView opaque structure. */
 typedef struct SummaryView SummaryView;
 
+/**
+ * @brief Animation completion callback function type.
+ *
+ * @param[in,out] context pointer to a user-specified context object
+ */
 typedef void (*SummaryViewCallback)(void* context);
 
 /**
@@ -43,13 +49,24 @@ void summary_view_free(SummaryView* instance);
 Widget* summary_view_get_base(SummaryView* instance);
 
 /**
- * @brief
+ * @brief Set the cycles count to display.
+ *
+ * Affects the number of blocks in the animation. Values higher than 10
+ * will be silently clamped.
  *
  * @param[in,out] instance pointer to the SummaryView instance to be modified
+ * @param[in] cycles_count number of cycles to display
  */
 void summary_view_set_cycles_count(SummaryView* instance, uint32_t cycles_count);
 
-void summary_view_set_finished_callback(
+/**
+ * @brief Set the function to be called upon the animation completion.
+ *
+ * @param[in,out] instance pointer to the SummaryView instance to be modified
+ * @param[in] callback pointer to the callback function
+ * @param[in,out] context pointer to the user-specified object (will be passed to the callback)
+ */
+void summary_view_set_completed_callback(
     SummaryView* instance,
     SummaryViewCallback callback,
     void* context);

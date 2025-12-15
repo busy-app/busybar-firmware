@@ -1,7 +1,8 @@
 /**
  * @file summary_label.h
- * @brief
+ * @brief A widget that provides a text-based timer session summary.
  *
+ * Can be used only on the front display.
  */
 #pragma once
 
@@ -13,8 +14,6 @@ extern "C" {
 
 /** SummaryLabel opaque structure. */
 typedef struct SummaryLabel SummaryLabel;
-
-typedef void (*SummaryLabelCallback)(void* context);
 
 /**
  * @brief Create a new SummaryLabel instance.
@@ -43,12 +42,18 @@ void summary_label_free(SummaryLabel* instance);
 Widget* summary_label_get_base(SummaryLabel* instance);
 
 /**
- * @brief
+ * @brief Set the number of cycles to show in the cycles display section.
  *
  * @param[in,out] instance pointer to the SummaryLabel instance to be modified
+ * @param[in] cycles_count number of cycles to show
  */
 void summary_label_set_cycles_count(SummaryLabel* instance, uint32_t cycles_count);
 
+/**
+ * @brief Switch the cycles display to the text message and vice versa.
+ *
+ * @param[in,out] instance pointer to the SummaryLabel instance to be modified
+ */
 void summary_label_switch_display(SummaryLabel* instance);
 
 #ifdef __cplusplus

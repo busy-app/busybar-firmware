@@ -1,6 +1,6 @@
 /**
  * @file progress_view.h
- * @brief
+ * @brief A widget that provides a progress timeline.
  *
  * Can be used only on the front display.
  */
@@ -43,8 +43,6 @@ Widget* progress_view_get_base(ProgressView* instance);
 
 /**
  * @brief Set the progress to display.
- *
- * TODO: Split into 2 functions?
  *
  * @param[in,out] instance pointer to the ProgressView instance to be modified
  * @param[in] interval_idx numerical index of the current interval

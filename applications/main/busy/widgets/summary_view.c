@@ -23,7 +23,7 @@ struct SummaryView {
     Widget base;
     lv_obj_t* elements[ELEMENT_COUNT_MAX];
     uint32_t elements_count;
-    SummaryViewCallback finished_callback;
+    SummaryViewCallback completed_callback;
     void* callback_context;
 };
 
@@ -44,8 +44,8 @@ static void summary_view_element_lvgl_anim_completed_callback(lv_anim_t* anim) {
     SummaryView* instance = anim->user_data;
     furi_assert(instance);
 
-    if(instance->finished_callback) {
-        instance->finished_callback(instance->callback_context);
+    if(instance->completed_callback) {
+        instance->completed_callback(instance->callback_context);
     }
 }
 
@@ -168,13 +168,13 @@ void summary_view_set_cycles_count(SummaryView* instance, uint32_t cycles_count)
     summary_view_start_sequence(instance);
 }
 
-void summary_view_set_finished_callback(
+void summary_view_set_completed_callback(
     SummaryView* instance,
     SummaryViewCallback callback,
     void* context) {
     furi_check(instance);
 
-    instance->finished_callback = callback;
+    instance->completed_callback = callback;
     instance->callback_context = context;
 }
 

@@ -85,7 +85,7 @@ static void busy_scene_ending_on_enter(void* context) {
 
         data->front_summary = summary_view_alloc(instance->front_window);
         summary_view_set_cycles_count(data->front_summary, config.cycle_count);
-        summary_view_set_finished_callback(
+        summary_view_set_completed_callback(
             data->front_summary, busy_scene_ending_summary_finished_callback, instance);
         widget_set_align(summary_view_get_base(data->front_summary), AlignCenter);
 

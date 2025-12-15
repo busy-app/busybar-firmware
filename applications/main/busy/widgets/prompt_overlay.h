@@ -18,6 +18,11 @@ extern "C" {
 /** PromptOverlay opaque structure. */
 typedef struct PromptOverlay PromptOverlay;
 
+/**
+ * @brief Animation completion callback function type.
+ *
+ * @param[in,out] context pointer to a user-specified context object
+ */
 typedef void (*PromptOverlayCallback)(void* context);
 
 /**
@@ -54,6 +59,13 @@ Widget* prompt_overlay_get_base(PromptOverlay* instance);
  */
 void prompt_overlay_set_animation_target(PromptOverlay* instance, Widget* widget);
 
+/**
+ * @brief Set the function to be called each time upon the animation completion.
+ *
+ * @param[in,out] instance pointer to the PromptOverlay instance to be modified
+ * @param[in] callback pointer to the callback function
+ * @param[in,out] context pointer to the user-specified object (will be passed to the callback)
+ */
 void prompt_overlay_set_callback(
     PromptOverlay* instance,
     PromptOverlayCallback callback,
