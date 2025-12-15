@@ -89,6 +89,27 @@
           }"
         />
       </UTooltip>
+      <UTooltip
+        v-if="!connected && networks.length"
+        text="Refresh networks"
+        :delay-duration="0"
+      >
+        <UButton
+          data-id="network-section-wifi-add-button"
+          icon="i-busy-refresh"
+          variant="ghost"
+          color="neutral"
+          square
+          :ui="{
+            base: 'p-3 rounded-full'
+          }"
+          class="justify-center sm:justify-start"
+          :class="loading.list ? 'animate-spin' : ''"
+          @click="() => {
+            listWifiNetworks();
+          }"
+        />
+      </UTooltip>
     </template>
 
     <div
@@ -300,16 +321,6 @@
 
         <template #content>
           <div class="flex flex-col gap-6">
-            <UFormField label="IP Type">
-              <USelect
-                v-model="connectModel.ipConfig.ipType"
-                name="ip-type"
-                :items="['ipv4', 'ipv6']"
-                size="xl"
-                variant="soft"
-                class="w-full"
-              />
-            </UFormField>
             <UFormField label="IP Settings">
               <USelect
                 v-model="connectModel.ipConfig.ipMethod"
@@ -578,7 +589,19 @@ async function listWifiNetworks () {
   loading.value.list = true;
   networks.value = await wifiStore.listWifiNetworks();
   loading.value.list = false;
+
+  if (!scanTimeout.value) {
+    scanTimeout.value = setTimeout(async () => {
+      if (wifiStore.wifi?.state === 'connected' || loading.value.connect) {
+        return;
+      }
+      scanTimeout.value = null;
+      await listWifiNetworks();
+    }, 10000);
+  }
 }
+
+const scanTimeout = ref<NodeJS.Timeout | null>(null);
 
 const showConnectModal = ref(false);
 const showPassword = ref(false);
@@ -589,7 +612,6 @@ const connectModel = ref<WifiConnectParams>({
   password: '',
   ipConfig: {
     ipMethod: 'dhcp' as 'dhcp' | 'static',
-    ipType: 'ipv4' as 'ipv4' | 'ipv6',
     address: '',
     mask: '',
     gateway: ''
@@ -602,7 +624,6 @@ const initConnectModel = () => {
     password: '',
     ipConfig: {
       ipMethod: 'dhcp',
-      ipType: 'ipv4',
       address: '',
       mask: '',
       gateway: ''
