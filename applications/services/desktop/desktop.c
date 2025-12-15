@@ -46,31 +46,20 @@ struct Desktop {
 
 static const DesktopDefaultApp desktop_default_apps[];
 static const DesktopDefaultApp power_on_app = {"power_on", NULL};
+#define POWER_ON_APP_FULL_NAME "Power On"
 
-static void desktop_mode_switch_input(Desktop* instance, InputSwitchPosition pos) {
-    furi_assert(instance);
-
-    furi_check(
-        furi_message_queue_put(instance->input_queue, &pos, FuriWaitForever) == FuriStatusOk);
-}
-
-// Called by the Input service thread when the user interacts with the rotary switch/buttons
-static void desktop_input_pubsub_callback(const void* message, void* context) {
+// Called by the Input service thread when the user interacts with the rotary switch
+static void desktop_input_switch_state_callback(const void* message, void* context) {
     furi_assert(message);
     furi_assert(context);
 
-    const InputEvent* event = message;
+    const InputSwitchPosition* position = message;
     Desktop* instance = context;
 
     if(!instance->pin_current_app) {
-        if(event->type == InputTypePress) {
-            const InputKey key = event->key;
-            // Only react to rotary switch events
-            if(key >= InputKeyBusy && key < InputKeyMAX) {
-                const InputSwitchPosition pos = key - InputKeyBusy;
-                desktop_mode_switch_input(instance, pos);
-            }
-        }
+        furi_check(
+            furi_message_queue_put(instance->input_queue, position, FuriWaitForever) ==
+            FuriStatusOk);
     }
 }
 
@@ -181,9 +170,18 @@ static void desktop_prepare_power_on_app(Desktop* instance) {
     desktop_start_request_set_args(instance->current_request, power_on_app.args);
 }
 
+static bool desktop_power_on_app_is_running(Desktop* instance) {
+    FuriString* current_app = furi_string_alloc();
+    loader_get_application_name(instance->loader, current_app);
+    bool result = furi_string_equal_str(current_app, POWER_ON_APP_FULL_NAME);
+    furi_string_free(current_app);
+    return result;
+}
+
 // Check if desktop_handle_switch_start() should be called
 static bool desktop_should_handle_switch_start(Desktop* instance) {
-    return !desktop_overlay_show_requested(instance->overlay);
+    return (!desktop_overlay_show_requested(instance->overlay)) &&
+           (!desktop_power_on_app_is_running(instance));
 }
 
 // Called if the requested app failed to start (Shows error message via the Message app)
@@ -281,7 +279,7 @@ static void desktop_switch_timer_callback(void* context) {
     furi_assert(context);
     Desktop* instance = context;
 
-    furi_assert(instance->switch_pos < InputSwitchPositionMAX);
+    if(instance->switch_pos == InputSwitchPositionMAX) return;
     const DesktopDefaultApp* default_app = &desktop_default_apps[instance->switch_pos];
 
     desktop_enqueue_start_request(instance, default_app->name, default_app->args);
@@ -388,12 +386,10 @@ static Desktop* desktop_alloc(void) {
 
 #if defined(SRV_INPUT)
     Input* input = furi_record_open(RECORD_INPUT);
-    desktop_mode_switch_input(instance, input_get_absolute_state(input).switch_position);
-
-    FuriPubSub* input_events = furi_record_open(RECORD_INPUT_EVENTS);
-    furi_pubsub_subscribe(input_events, desktop_input_pubsub_callback, instance);
+    furi_state_subscribe(
+        input_get_switch_pos(input), desktop_input_switch_state_callback, instance);
 #else
-    UNUSED(desktop_input_pubsub_callback);
+    UNUSED(desktop_input_switch_state_callback);
 #endif
 
     furi_record_create(RECORD_DESKTOP, instance);

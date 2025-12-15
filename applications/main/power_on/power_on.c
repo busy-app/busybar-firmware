@@ -12,7 +12,8 @@
 
 #define TAG "PowerON"
 
-#define POWER_ON_APP_TIMEOUT_MIN (15)
+#define POWER_ON_START_TIMEOUT_TICKS furi_ms_to_ticks(500)
+#define POWER_ON_APP_TIMEOUT_MIN     (15)
 
 #define MIN_TO_MS(minutes) (minutes * 60U * 1000U)
 
@@ -142,46 +143,52 @@ int32_t power_on_app(void* arg) {
 
     PowerOnApp* instance = power_on_app_alloc();
 
+    GuiLayer* layer_main = gui_get_layer(instance->gui, GuiLayerIdMain);
+    Widget* front_root = gui_layer_get_root_widget(layer_main, GuiDisplayIdFront);
+    Widget* back_root = gui_layer_get_root_widget(layer_main, GuiDisplayIdBack);
+
     AnimImage* front_anim = NULL;
     AnimImage* back_anim = NULL;
 
-    Label* label_front = NULL;
-    Label* label_back = NULL;
+    Label* front_label = NULL;
+    Label* back_label = NULL;
 
-    with_gui(instance->gui, {
-        GuiLayer* layer = gui_get_layer(instance->gui, GuiLayerIdMain);
-        Widget* front = gui_layer_get_root_widget(layer, GuiDisplayIdFront);
-        Widget* back = gui_layer_get_root_widget(layer, GuiDisplayIdBack);
+    // avoid showing text for <500ms
+    uint32_t wanted_flags = PowerOnAppThreadFlagDeviceStarted;
+    uint32_t flags =
+        furi_thread_flags_wait(wanted_flags, FuriFlagWaitAny, POWER_ON_START_TIMEOUT_TICKS);
 
-        label_front = label_alloc(front);
-        label_back = label_alloc(back);
+    if(flags == FuriFlagErrorTimeout) {
+        with_gui(instance->gui, {
+            front_label = label_alloc(front_root);
+            back_label = label_alloc(back_root);
 
-        label_set_text(label_front, "Starting...");
-        label_set_text(label_back, "Starting...");
+            label_set_text(front_label, "Starting...");
+            label_set_text(back_label, "Starting...");
 
-        widget_set_align(label_get_base(label_front), AlignCenter);
-        widget_set_align(label_get_base(label_back), AlignCenter);
-    });
+            widget_set_align(label_get_base(front_label), AlignCenter);
+            widget_set_align(label_get_base(back_label), AlignCenter);
+        });
 
-    furi_thread_flags_wait(PowerOnAppThreadFlagDeviceStarted, FuriFlagWaitAny, FuriWaitForever);
+        furi_thread_flags_wait(wanted_flags, FuriFlagWaitAny, FuriWaitForever);
+
+    } else {
+        furi_check(!(flags & FuriFlagError));
+    }
 
     do {
         if(power_on_done_flag_present(instance)) break;
 
         with_gui(instance->gui, {
-            GuiLayer* layer = gui_get_layer(instance->gui, GuiLayerIdMain);
-            gui_layer_add_input_callback(layer, power_on_input_callback, instance);
+            gui_layer_add_input_callback(layer_main, power_on_input_callback, instance);
 
-            if(label_front) label_free(label_front);
-            if(label_back) label_free(label_back);
+            if(front_label) label_free(front_label);
+            if(back_label) label_free(back_label);
 
-            Widget* front = gui_layer_get_root_widget(layer, GuiDisplayIdFront);
-            front_anim =
-                power_on_animation_alloc(front, POWER_ON_ANIM_PATH("front_power_on_72x16.anim"));
-
-            Widget* back = gui_layer_get_root_widget(layer, GuiDisplayIdBack);
-            back_anim =
-                power_on_animation_alloc(back, POWER_ON_ANIM_PATH("back_power_on_160x80.anim"));
+            front_anim = power_on_animation_alloc(
+                front_root, POWER_ON_ANIM_PATH("front_power_on_72x16.anim"));
+            back_anim = power_on_animation_alloc(
+                back_root, POWER_ON_ANIM_PATH("back_power_on_160x80.anim"));
         });
 
         uint32_t flags =
@@ -201,11 +208,10 @@ int32_t power_on_app(void* arg) {
         if(front_anim) anim_image_free(front_anim);
         if(back_anim) anim_image_free(back_anim);
 
-        if(label_front) label_free(label_front);
-        if(label_back) label_free(label_back);
+        if(front_label) label_free(front_label);
+        if(back_label) label_free(back_label);
 
-        GuiLayer* layer = gui_get_layer(instance->gui, GuiLayerIdMain);
-        gui_layer_remove_input_callback(layer, power_on_input_callback);
+        gui_layer_remove_input_callback(layer_main, power_on_input_callback);
     });
 
     power_on_app_free(instance);

@@ -3,6 +3,7 @@
  */
 #pragma once
 
+#include <furi.h>
 #include <stdint.h>
 
 #ifdef __cplusplus
@@ -34,7 +35,7 @@ typedef enum {
 /**
  * @brief Bitmask of available buttons.
  */
-typedef enum {
+typedef enum FURI_DEPRECATED {
     InputButtonMaskOk = (1 << InputButtonOk),
     InputButtonMaskBack = (1 << InputButtonBack),
     InputButtonMaskStart = (1 << InputButtonStart),
@@ -63,7 +64,7 @@ typedef enum {
 /**
  * @brief State of all absolute controls (i.e. buttons and the mode switch)
  */
-typedef struct {
+typedef struct FURI_DEPRECATED {
     InputButtonMask buttons; /**< Bitmask of buttons that are currently pressed */
     InputSwitchPosition switch_position; /**< Current mode switch position */
 } InputAbsoluteState;

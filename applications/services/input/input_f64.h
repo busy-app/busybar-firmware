@@ -21,7 +21,7 @@ extern "C" {
  * 
  * @returns State of all absolute controls
  */
-InputAbsoluteState input_get_absolute_state(Input* instance);
+InputAbsoluteState FURI_DEPRECATED input_get_absolute_state(Input* instance);
 
 #ifdef __cplusplus
 }
