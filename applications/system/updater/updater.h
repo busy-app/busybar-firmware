@@ -23,6 +23,8 @@ typedef enum {
     UpdaterStatusDownloadFailure, /**< Failed to download update bundle from URL */
     UpdaterStatusDownloadAbort, /**< Download was aborted by user */
 
+    UpdaterStatusShaMismatch, /**< Update bundle SHA256 checksum verification failed */
+
     UpdaterStatusUnpackCreateStagingDirectoryFailure, /**< Failed to create staging directory */
     UpdaterStatusUnpackArchiveOpenFailure, /**< Failed to open .tar archive file */
     UpdaterStatusUnpackArchiveUnpackFailure, /**< Failed to extract .tar archive contents */
@@ -39,11 +41,14 @@ typedef enum {
 
 typedef enum {
     UpdaterUpdateActionDownload, /**< Downloading update bundle from URL */
+    UpdaterUpdateActionShaVerification, /**< Downloading update bundle from URL */
     UpdaterUpdateActionUnpack, /**< Unpacking .tar archive to staging directory */
     UpdaterUpdateActionInstallationPrepare, /**< Preparing update for installation (manifest validation, session setup) */
     UpdaterUpdateActionInstallationApply, /**< Rebooting device to install prepared update */
 
     UpdaterUpdateActionNone, /**< No action (initial/idle state) */
+
+    UpdaterUpdateActionsCount,
 } UpdaterUpdateAction;
 
 typedef enum {
@@ -55,6 +60,8 @@ typedef enum {
     UpdaterUpdateEventActionProgress, /**< Progress update (e.g., download bytes received) */
 
     UpdaterUpdateEventNone, /**< No event (initial/idle state) */
+
+    UpdaterUpdateEventsCount,
 } UpdaterUpdateEvent;
 
 /** Update state information accessible via FuriState */
@@ -74,18 +81,22 @@ typedef struct {
 } UpdaterUpdateState;
 
 typedef enum {
-    UpdaterCheckStatusAvailable, /**< Update is available */
-    UpdaterCheckStatusNotAvailable, /**< No update available */
-    UpdaterCheckStatusFailure, /**< Failed to check for update */
+    UpdaterCheckResultAvailable, /**< Update is available */
+    UpdaterCheckResultNotAvailable, /**< No update available */
+    UpdaterCheckResultFailure, /**< Failed to check for update */
 
-    UpdaterCheckStatusNone, /**< No check performed (initial/idle state) */
-} UpdaterCheckStatus;
+    UpdaterCheckResultNone, /**< No check performed (initial/idle state) */
+
+    UpdaterCheckResultsCount,
+} UpdaterCheckResult;
 
 typedef enum {
     UpdaterCheckEventStart, /**< Update check started */
     UpdaterCheckEventStop, /**< Update check stopped */
 
     UpdaterCheckEventNone, /**< No event (initial/idle state) */
+
+    UpdaterCheckEventsCount,
 } UpdaterCheckEvent;
 
 /** Update check state information accessible via FuriState */
@@ -96,7 +107,7 @@ typedef struct {
     const FuriString* sha256; /**< SHA256 checksum of the update bundle */
     const FuriString* changelog; /**< Update changelog */
 
-    UpdaterCheckStatus status; /**< Current check status */
+    UpdaterCheckResult result; /**< Current check result */
     UpdaterCheckEvent event; /**< Current check event type */
 } UpdaterCheckState;
 
@@ -178,6 +189,24 @@ UpdaterStatus updater_download(Updater* instance, const char* url, const char* p
  */
 void updater_abort_download(Updater* instance);
 
+/** Verify SHA256 checksum of update bundle
+ *
+ * Must be called from inside of updater's session.
+ *
+ * @param[in]  instance  Updater instance
+ * @param[in]  tar_path  Path to .tar archive (NULL for default)
+ * @param[in]  sha       Expected SHA256 checksum string
+ * @param[in]  do_wait   true to block until complete, false for async operation
+ *
+ * @return     UpdaterStatusOk if checksum matches and file is accessible,
+ *             UpdaterStatusShaMismatch if checksum verification failed
+ */
+UpdaterStatus updater_verify_bundle_sha(
+    Updater* instance,
+    const char* tar_path,
+    const char* sha,
+    bool do_wait);
+
 /** Unpack update bundle .tar archive
  *
  * Must be called from inside of updater's session.
@@ -227,13 +256,32 @@ UpdaterStatus
  */
 void updater_installation_apply(Updater* instance, bool do_wait);
 
+/** Install firmware from URL
+ *
+ * Downloads, verifies, unpacks, prepares, and installs firmware from a remote URL.
+ * Runs asynchronously in a background thread and reboots the device upon completion.
+ * The update session is automatically started and stopped by this function.
+ *
+ * @param[in]  instance  Updater instance
+ * @param[in]  url       URL to download update bundle from
+ * @param[in]  sha256    Expected SHA256 checksum (NULL to skip verification)
+ *
+ * @return     UpdaterStatusOk if background installation started successfully,
+ *             UpdaterStatusBatteryLow if battery level is too low,
+ *             UpdaterStatusBusy if another update is already in progress
+ */
+UpdaterStatus updater_install_from_url(Updater* instance, const char* url, const char* sha256);
+
 /** Check for available firmware updates
  *
  * Queries remote server for available updates and populates check state.
  *
  * @param[in]  instance  Updater instance
+ *
+* @return     UpdaterStatusOk on success,
+ *            UpdaterStatusBusy if check is already in progress,
  */
-void updater_check_for_update(Updater* instance);
+UpdaterStatus updater_check_for_update(Updater* instance);
 
 /** Get currently active firmware version string
  *

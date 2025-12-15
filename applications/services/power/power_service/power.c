@@ -379,10 +379,12 @@ static void power_update_info(Power* power) {
     }
 #endif
 
+#ifndef FURI_RAM_EXEC
     if(power->shipping_mode_wait && !status.vbus_present) {
         FURI_LOG_I(TAG, "Entering shipping mode...");
         power_handle_shutdown(power, false);
     }
+#endif
 
     if((power->state.battery_ready == false) && (status.vbat_present_stat == true)) {
         power->state.battery_ready = true;

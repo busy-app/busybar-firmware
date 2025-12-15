@@ -7,29 +7,29 @@
 
 #define TAG "UpdateParser"
 
-#define UPDATE_CHECKER_BRANCH "channels"
+#define UPDATE_PARSER_BRANCH "channels"
 
-#define UPDATE_CHECKER_BRANCH_ID          "id"
-#define UPDATE_CHECKER_BRANCH_TITLE       "title"
-#define UPDATE_CHECKER_BRANCH_DESCRIPTION "description"
-#define UPDATE_CHECKER_BRANCH_VERSIONS    "versions"
+#define UPDATE_PARSER_BRANCH_ID          "id"
+#define UPDATE_PARSER_BRANCH_TITLE       "title"
+#define UPDATE_PARSER_BRANCH_DESCRIPTION "description"
+#define UPDATE_PARSER_BRANCH_VERSIONS    "versions"
 
-#define UPDATE_CHECKER_BRANCH_VERSIONS_VERSION   "version"
-#define UPDATE_CHECKER_BRANCH_VERSIONS_CHANGELOG "changelog"
-#define UPDATE_CHECKER_BRANCH_VERSIONS_FILES     "files"
+#define UPDATE_PARSER_BRANCH_VERSIONS_VERSION   "version"
+#define UPDATE_PARSER_BRANCH_VERSIONS_CHANGELOG "changelog"
+#define UPDATE_PARSER_BRANCH_VERSIONS_FILES     "files"
 
-#define UPDATE_CHECKER_BRANCH_VERSIONS_FILES_URL    "url"
-#define UPDATE_CHECKER_BRANCH_VERSIONS_FILES_TARGET "target"
-#define UPDATE_CHECKER_BRANCH_VERSIONS_FILES_TYPE   "type"
-#define UPDATE_CHECKER_BRANCH_VERSIONS_FILES_SHA256 "sha256"
+#define UPDATE_PARSER_BRANCH_VERSIONS_FILES_URL    "url"
+#define UPDATE_PARSER_BRANCH_VERSIONS_FILES_TARGET "target"
+#define UPDATE_PARSER_BRANCH_VERSIONS_FILES_TYPE   "type"
+#define UPDATE_PARSER_BRANCH_VERSIONS_FILES_SHA256 "sha256"
 
-#define UPDATE_CHECKER_BRANCH_TARGET_FOUND                                         \
+#define UPDATE_PARSER_BRANCH_TARGET_FOUND                                          \
     ({                                                                             \
         static char target[8];                                                     \
         snprintf(target, sizeof(target), "f%u", furi_hal_version_get_hw_target()); \
         target;                                                                    \
     })
-#define UPDATE_CHECKER_BRANCH_FILE_NAME_FW_FOUND "update_tar"
+#define UPDATE_PARSER_BRANCH_FILE_NAME_FW_FOUND "update_tar"
 
 static bool parse_update_json(cJSON* json_root, const char* branch_id, UpdateMetadata* metadata) {
     bool is_success = false;
@@ -40,7 +40,7 @@ static bool parse_update_json(cJSON* json_root, const char* branch_id, UpdateMet
         }
 
         cJSON* item;
-        item = cJSON_GetObjectItem(json_root, UPDATE_CHECKER_BRANCH);
+        item = cJSON_GetObjectItem(json_root, UPDATE_PARSER_BRANCH);
 
         if(!cJSON_IsArray(item)) {
             break;
@@ -53,7 +53,7 @@ static bool parse_update_json(cJSON* json_root, const char* branch_id, UpdateMet
                 continue;
             }
 
-            id = cJSON_GetObjectItem(item, UPDATE_CHECKER_BRANCH_ID);
+            id = cJSON_GetObjectItem(item, UPDATE_PARSER_BRANCH_ID);
 
             if(!cJSON_IsString(id)) {
                 continue;
@@ -66,7 +66,7 @@ static bool parse_update_json(cJSON* json_root, const char* branch_id, UpdateMet
             FURI_LOG_D(TAG, "Found update channel: %s", id->valuestring);
 
             /* channel found, search for version */
-            item = cJSON_GetObjectItem(item, UPDATE_CHECKER_BRANCH_VERSIONS);
+            item = cJSON_GetObjectItem(item, UPDATE_PARSER_BRANCH_VERSIONS);
             if(!cJSON_IsArray(item)) {
                 break;
             }
@@ -78,18 +78,18 @@ static bool parse_update_json(cJSON* json_root, const char* branch_id, UpdateMet
                 }
 
                 cJSON* id_version =
-                    cJSON_GetObjectItem(version, UPDATE_CHECKER_BRANCH_VERSIONS_VERSION);
+                    cJSON_GetObjectItem(version, UPDATE_PARSER_BRANCH_VERSIONS_VERSION);
                 if(!cJSON_IsString(id_version)) {
                     continue;
                 }
 
                 cJSON* id_changelog =
-                    cJSON_GetObjectItem(version, UPDATE_CHECKER_BRANCH_VERSIONS_CHANGELOG);
+                    cJSON_GetObjectItem(version, UPDATE_PARSER_BRANCH_VERSIONS_CHANGELOG);
                 if(!cJSON_IsString(id_changelog)) {
                     continue;
                 }
 
-                cJSON* files = cJSON_GetObjectItem(version, UPDATE_CHECKER_BRANCH_VERSIONS_FILES);
+                cJSON* files = cJSON_GetObjectItem(version, UPDATE_PARSER_BRANCH_VERSIONS_FILES);
                 if(!cJSON_IsArray(files)) {
                     continue;
                 }
@@ -101,31 +101,31 @@ static bool parse_update_json(cJSON* json_root, const char* branch_id, UpdateMet
                     }
 
                     cJSON* target =
-                        cJSON_GetObjectItem(file, UPDATE_CHECKER_BRANCH_VERSIONS_FILES_TARGET);
+                        cJSON_GetObjectItem(file, UPDATE_PARSER_BRANCH_VERSIONS_FILES_TARGET);
                     if(!cJSON_IsString(target)) {
                         continue;
                     }
-                    if(strcmp(target->valuestring, UPDATE_CHECKER_BRANCH_TARGET_FOUND) != 0) {
+                    if(strcmp(target->valuestring, UPDATE_PARSER_BRANCH_TARGET_FOUND) != 0) {
                         continue;
                     }
 
                     cJSON* url =
-                        cJSON_GetObjectItem(file, UPDATE_CHECKER_BRANCH_VERSIONS_FILES_URL);
+                        cJSON_GetObjectItem(file, UPDATE_PARSER_BRANCH_VERSIONS_FILES_URL);
                     if(!cJSON_IsString(url)) {
                         continue;
                     }
 
                     cJSON* type =
-                        cJSON_GetObjectItem(file, UPDATE_CHECKER_BRANCH_VERSIONS_FILES_TYPE);
+                        cJSON_GetObjectItem(file, UPDATE_PARSER_BRANCH_VERSIONS_FILES_TYPE);
                     if(!cJSON_IsString(type)) {
                         continue;
                     }
-                    if(strcmp(type->valuestring, UPDATE_CHECKER_BRANCH_FILE_NAME_FW_FOUND) != 0) {
+                    if(strcmp(type->valuestring, UPDATE_PARSER_BRANCH_FILE_NAME_FW_FOUND) != 0) {
                         continue;
                     }
 
                     cJSON* sha256 =
-                        cJSON_GetObjectItem(file, UPDATE_CHECKER_BRANCH_VERSIONS_FILES_SHA256);
+                        cJSON_GetObjectItem(file, UPDATE_PARSER_BRANCH_VERSIONS_FILES_SHA256);
                     if(!cJSON_IsString(sha256)) {
                         continue;
                     }
