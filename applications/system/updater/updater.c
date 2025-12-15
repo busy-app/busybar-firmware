@@ -113,6 +113,30 @@ typedef enum {
 static const char* const status_strings[];
 static const MessageHandler message_handlers[];
 
+static UpdaterStatus invoke_async(Updater* instance, UpdaterMessage* message) {
+    message->result_status = NULL;
+    message->api_lock = NULL;
+
+    furi_check(
+        furi_message_queue_put(instance->message_queue, message, FuriWaitForever) == FuriStatusOk);
+
+    return UpdaterStatusOk;
+}
+
+static UpdaterStatus invoke_sync(Updater* instance, UpdaterMessage* message) {
+    UpdaterStatus update_status;
+
+    message->result_status = &update_status;
+    message->api_lock = api_lock_alloc_locked();
+
+    furi_check(
+        furi_message_queue_put(instance->message_queue, message, FuriWaitForever) == FuriStatusOk);
+
+    api_lock_wait_unlock_and_free(message->api_lock);
+
+    return update_status;
+}
+
 static void custom_event_callback(uint32_t events, void* context) {
     Updater* instance = context;
 
@@ -144,7 +168,6 @@ static void check_done_callback(bool is_success, UpdaterCheckerInfo* update_info
         } else {
             check_state->result = UpdaterCheckResultNotAvailable;
         }
-
     } else {
         check_state->result = UpdaterCheckResultFailure;
     }
@@ -155,7 +178,7 @@ static void check_done_callback(bool is_success, UpdaterCheckerInfo* update_info
 }
 
 static void check_timer_callback(void* context) {
-    updater_check_for_update(context);
+    invoke_async(context, &(UpdaterMessage){.type = MessageTypeCheckForUpdate});
 }
 
 static UpdaterStatus do_check_for_update(Updater* instance, UpdaterMessage* message) {
@@ -554,30 +577,6 @@ static void install_from_url_thread_state_callback(
     if(state == FuriThreadStateStopped) {
         furi_thread_free(thread);
     }
-}
-
-static UpdaterStatus invoke_async(Updater* instance, UpdaterMessage* message) {
-    message->result_status = NULL;
-    message->api_lock = NULL;
-
-    furi_check(
-        furi_message_queue_put(instance->message_queue, message, FuriWaitForever) == FuriStatusOk);
-
-    return UpdaterStatusOk;
-}
-
-static UpdaterStatus invoke_sync(Updater* instance, UpdaterMessage* message) {
-    UpdaterStatus update_status;
-
-    message->result_status = &update_status;
-    message->api_lock = api_lock_alloc_locked();
-
-    furi_check(
-        furi_message_queue_put(instance->message_queue, message, FuriWaitForever) == FuriStatusOk);
-
-    api_lock_wait_unlock_and_free(message->api_lock);
-
-    return update_status;
 }
 
 const char* updater_get_status_string(UpdaterStatus status) {
