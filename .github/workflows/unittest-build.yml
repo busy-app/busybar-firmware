@@ -15,6 +15,7 @@ env:
 jobs:
   unit-test-build:
     runs-on: BsbShell
+    timeout-minutes: 20
     env:
       GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     strategy:
@@ -104,3 +105,4 @@ jobs:
       commit_sha: ${{ github.event.pull_request.head.sha || github.sha }}
       update_url: ${{ needs.unit-test-build.outputs.update_url }}
       target: ${{ needs.unit-test-build.outputs.target }}
+    secrets: inherit
