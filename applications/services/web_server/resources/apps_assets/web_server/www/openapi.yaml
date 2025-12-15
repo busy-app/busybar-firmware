@@ -124,7 +124,7 @@ paths:
   /api/update:
     post:
       tags:
-        - System
+        - Updater
       summary: Update firmware
       description: Uploads a firmware update package (TAR file) and initiates the update process.
       operationId: updateFirmware
@@ -166,7 +166,7 @@ paths:
   /api/update/check:
     post:
       tags:
-        - System
+        - Updater
       summary: Start firmware update check
       description: Initiates an asynchronous check for available firmware updates.
       operationId: checkFirmwareUpdate
@@ -193,7 +193,7 @@ paths:
   /api/update/status:
     get:
       tags:
-        - System
+        - Updater
       summary: Get firmware update status
       description: Returns current update and check status including progress information.
       operationId: getFirmwareUpdateStatus
@@ -208,7 +208,7 @@ paths:
   /api/update/changelog:
     get:
       tags:
-        - System
+        - Updater
       summary: Get update changelog
       description: Returns the changelog for a specific firmware version.
       operationId: getUpdateChangelog
@@ -241,7 +241,7 @@ paths:
   /api/update/install:
     post:
       tags:
-        - System
+        - Updater
       summary: Install firmware update
       description: |
         Starts asynchronous firmware installation from a remote URL.
@@ -291,7 +291,7 @@ paths:
   /api/update/abort_download:
     post:
       tags:
-        - System
+        - Updater
       summary: Abort ongoing firmware download
       description: Signals the updater to abort an ongoing download operation.
       operationId: abortFirmwareDownload
@@ -2135,6 +2135,8 @@ components:
 tags:
   - name: System
     description: System information and control
+  - name: Updater
+    description: Firmware update control
   - name: Wi-Fi
     description: Allows to operate with Wi-Fi
   - name: Assets
