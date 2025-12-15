@@ -623,6 +623,14 @@ static int32_t ble_worker_thread_callback(void* context) {
             BLE_LOG_I("Connected, str_remote_address : %s", instance->str_remote_address);
             instance->state = BleWorkerStateConnected;
             //! Setting MTU Exchange event
+            status =
+                rsi_ble_mtu_exchange_event(instance->remote_dev_address, BLE_WORKER_MAX_MTU_SIZE);
+            if(status != RSI_SUCCESS) {
+                BLE_LOG_W("MTU request cmd failed with error code = 0x%08lx", status);
+                furi_crash();
+            } else {
+                BLE_LOG_I("MTU sent");
+            }
 
             ble_worker_instance->connected = true;
             ble_worker_instance->on_connection_changed_cb(
@@ -728,15 +736,6 @@ static int32_t ble_worker_thread_callback(void* context) {
                 instance->event_conn_update_complete.conn_interval,
                 instance->event_conn_update_complete.conn_latency,
                 instance->event_conn_update_complete.timeout);
-
-            status =
-                rsi_ble_mtu_exchange_event(instance->remote_dev_address, BLE_WORKER_MAX_MTU_SIZE);
-            if(status != RSI_SUCCESS) {
-                BLE_LOG_W("MTU request cmd failed with error code = 0x%08lx", status);
-                furi_crash();
-            } else {
-                BLE_LOG_I("MTU sent");
-            }
         }
 
         if(events & BLEWorkerEvtMtu) {
