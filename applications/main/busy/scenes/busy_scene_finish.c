@@ -1,13 +1,13 @@
 #include "../busy_i.h"
 
-#include <gui/modules/label.h>
 #include <gui/modules/anim_image.h>
 
 #include "../widgets/prompt_overlay.h"
+#include "../widgets/summary_label.h"
 
 typedef struct {
     AnimImage* front_anim;
-    Label* front_label;
+    SummaryLabel* front_summary;
     PromptOverlay* front_prompt;
 } BusySceneFinish;
 
@@ -49,6 +49,9 @@ static void busy_scene_finish_on_enter(void* context) {
     BusySceneFinish* data =
         scene_manager_get_scene_data(instance->scene_manager, BusyAppSceneIdFinish);
 
+    BusyTimerConfig timer_config;
+    busy_timer_get_config(instance->busy_timer, &timer_config);
+
     with_gui(instance->gui, {
         GuiLayer* layer = gui_get_layer(instance->gui, GuiLayerIdMain);
         gui_layer_add_input_callback(layer, busy_scene_finish_input_callback, instance);
@@ -56,13 +59,17 @@ static void busy_scene_finish_on_enter(void* context) {
         data->front_anim = anim_image_alloc(instance->front_window);
         anim_image_set_source(data->front_anim, BUSY_ANIM_PATH("finished_confetti_72x16.anim"));
 
-        data->front_label = label_alloc(instance->front_window);
-        label_set_text(data->front_label, "Well done!");
-        widget_set_pos_y(label_get_base(data->front_label), 5);
-        widget_set_align(label_get_base(data->front_label), AlignTopMid);
+        data->front_summary = summary_label_alloc(instance->front_window);
+        if(timer_config.mode == BusyTimerModeInterval) {
+            summary_label_set_cycles_count(data->front_summary, timer_config.cycle_count);
+        }
+
+        widget_set_pos_y(summary_label_get_base(data->front_summary), 5);
+        widget_set_align(summary_label_get_base(data->front_summary), AlignTopMid);
 
         data->front_prompt = prompt_overlay_alloc(instance->front_window);
-        prompt_overlay_set_animation_target(data->front_prompt, label_get_base(data->front_label));
+        prompt_overlay_set_animation_target(
+            data->front_prompt, summary_label_get_base(data->front_summary));
     });
 
     audio_play_file(instance->audio, BUSY_SOUND_PATH("session_completed.snd"));
@@ -82,7 +89,7 @@ static void busy_scene_finish_on_exit(void* context) {
         gui_layer_remove_input_callback(layer, busy_scene_finish_input_callback);
 
         anim_image_free(data->front_anim);
-        label_free(data->front_label);
+        summary_label_free(data->front_summary);
         prompt_overlay_free(data->front_prompt);
     });
 }
