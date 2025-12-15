@@ -1,4 +1,4 @@
-#include "../busy.h"
+#include "../busy_i.h"
 
 #include <gui/modules/image.h>
 
@@ -48,7 +48,8 @@ static void busy_scene_progress_on_enter(void* context) {
     furi_assert(context);
 
     BusyApp* instance = context;
-    BusySceneProgress* data = scene_manager_get_current_scene_data(instance->scene_manager);
+    BusySceneProgress* data =
+        scene_manager_get_scene_data(instance->scene_manager, BusyAppSceneIdProgress);
 
     const BusyTimerState state = busy_timer_get_state(instance->busy_timer);
 
@@ -98,7 +99,8 @@ static void busy_scene_progress_on_exit(void* context) {
     furi_assert(context);
 
     BusyApp* instance = context;
-    BusySceneProgress* data = scene_manager_get_current_scene_data(instance->scene_manager);
+    BusySceneProgress* data =
+        scene_manager_get_scene_data(instance->scene_manager, BusyAppSceneIdProgress);
 
     run_later_cancel(data->run_later);
 
@@ -136,8 +138,10 @@ static bool busy_scene_progress_on_event(const SceneManagerEvent* event, void* c
 
     } else if(event->type == SceneManagerEventTypeBack) {
         busy_prepare_transition(instance, BusyTransitionTypeDefault);
-        scene_manager_search_and_switch_to_previous_scene(
-            instance->scene_manager, BusyAppSceneIdStart);
+
+        if(!busy_return_to_start_scene(instance)) {
+            busy_exit(instance);
+        }
 
         consumed = true;
     }

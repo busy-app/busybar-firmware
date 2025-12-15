@@ -1,4 +1,4 @@
-#include "../busy.h"
+#include "../busy_i.h"
 #include "../widgets/anim_menu.h"
 
 #include <gui/modules/menu.h>
@@ -35,9 +35,12 @@ static void busy_scene_start_on_enter(void* context) {
     furi_assert(context);
 
     BusyApp* instance = context;
-    BusySceneStart* data = scene_manager_get_current_scene_data(instance->scene_manager);
+    BusySceneStart* data =
+        scene_manager_get_scene_data(instance->scene_manager, BusyAppSceneIdStart);
 
     with_gui(instance->gui, {
+        nav_bar_reset_location(instance->nav_bar);
+
         widget_set_visible(timer_card_get_base(instance->timer_card), false);
         widget_set_visible(nav_bar_get_base(instance->nav_bar), true);
 
@@ -69,7 +72,8 @@ static void busy_scene_start_on_exit(void* context) {
     furi_assert(context);
 
     BusyApp* instance = context;
-    BusySceneStart* data = scene_manager_get_current_scene_data(instance->scene_manager);
+    BusySceneStart* data =
+        scene_manager_get_scene_data(instance->scene_manager, BusyAppSceneIdStart);
 
     with_gui(instance->gui, {
         flex_layout_free(data->front_layout);

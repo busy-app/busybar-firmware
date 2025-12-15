@@ -1,8 +1,5 @@
 #pragma once
 
-#include "ble_state.h"
-#include "service/ble_service_index.h" ///TODO: do we need this here?
-
 #include <furi.h>
 #include "ble_intercom_types.h"
 

@@ -60,6 +60,7 @@ if fwenv.get("IS_BASE_FIRMWARE", False):
                 "#/applications/services/web_server/resources/apps_assets/web_server/www/openapi.yaml"
             )
         ),
+        SWAGGER_DIST_DIR=fw_assets_env.Dir("#assets/swagger").rdir(),
     )
     resources_dist.append(swagger_files)
 

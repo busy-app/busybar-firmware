@@ -1,8 +1,7 @@
 #include "overview_label.h"
 
 #include <gui/widget_i.h>
-
-#include "../time_macros.h"
+#include <busy_timer/time_macros.h>
 
 #define MY_CLASS (&overview_label_lvgl_class)
 

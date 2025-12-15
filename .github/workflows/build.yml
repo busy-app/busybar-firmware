@@ -10,7 +10,7 @@ on:
 
 env:
   FBT_GIT_SUBMODULE_SHALLOW: 0
-  DEFAULT_TARGET: 21
+  DEFAULT_TARGET_SPEC: 21_64
   FBT_TOOLCHAIN_PATH: /runner/_work
 
 jobs:
@@ -21,9 +21,10 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        u5_target: [20, 21]
+        target_spec: ["21_64", "22_65"]
     outputs:
-      default_target: ${{ env.DEFAULT_TARGET }}
+      default_target_spec: ${{ env.DEFAULT_TARGET_SPEC }}
+      bundle_target_spec: ${{ steps.set-url.outputs.target }}
       update_url: ${{ steps.set-url.outputs.update_url }}
 
     steps:
@@ -36,82 +37,55 @@ jobs:
         uses: actions/checkout@v4
         with:
           ref: ${{ github.event.pull_request.head.sha }}
-          fetch-depth: 2
+          fetch-depth: 0
           token: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: 'Configure Git and LFS for submodules'
+      - name: 'Bootstrap tooling submodule'
         run: |
-          # Configure Git LFS
-          git lfs install --skip-smudge
-          
-          # Set up authentication for GitHub repositories at repo level
-          echo "https://x-access-token:${GH_TOKEN}@github.com" > ~/.git-credentials
-          git config credential.helper 'store --file ~/.git-credentials'
-          
-          # Configure LFS settings
-          git config lfs.transfer.maxretries 3
-
-      - name: 'Update submodules'
-        run: |
-          git submodule update --init --recursive --jobs=$(nproc) scripts/toolchain fbt_layers/fbtng || (git lfs logs last && exit 1)
+          git submodule update --init --depth 1 fbt_layers/fbtng
 
       - name: 'Get commit details'
         id: names
         run: |
-          BUILD_TYPE='DEBUG=1 COMPACT=0'
-          if [[ ${{ github.event_name }} == 'pull_request' ]]; then
+          set -euo pipefail
+          PROFILE='debug'
+          if [[ "${{ github.event_name }}" == 'pull_request' ]]; then
             TYPE="pull"
-          elif [[ "${{ github.ref }}" == "refs/tags/"* ]]; then
+          elif [[ "${{ github.ref }}" == refs/tags/* ]]; then
             TYPE="tag"
-            BUILD_TYPE='DEBUG=0 COMPACT=1'
+            PROFILE='release'
           else
             TYPE="other"
           fi
-          echo "event_type=$TYPE" >> $GITHUB_OUTPUT
+          echo "event_type=$TYPE" >> "$GITHUB_OUTPUT"
+          echo "build_profile=$PROFILE" >> "$GITHUB_OUTPUT"
           python3 fbt_layers/fbtng/scripts/get_env.py "--event_file=${{ github.event_path }}" "--type=$TYPE" || (cat "${{ github.event_path }}" && exit 1)
-          echo "FBT_BUILD_TYPE=$BUILD_TYPE" >> $GITHUB_ENV
-          echo "U5_TARGET_HW=$(echo "${{ matrix.u5_target }}" | sed 's/f//')" >> $GITHUB_ENV
 
-      - name: 'Build update package (unsigned)'
+      - name: 'Build firmware artifacts'
         id: build-fw
-        run: |
-          source ./scripts/toolchain/fbtenv.sh
-          export FBT_GIT_SUBMODULE_SHALLOW=1
-          bash ./fbt U5_TARGET_HW=${U5_TARGET_HW} $FBT_BUILD_TYPE dist
-
-      - name: 'Check for uncommitted changes'
-        run: |
-          git diff --exit-code
-
-      - name: 'Copy build artifacts'
-        run: |
-          rm -rf artifacts
-          mkdir -p artifacts
-          cp -v dist/f${U5_TARGET_HW}-*/* artifacts/
-
-      - name: 'Calculate hashsums for artifacts'
-        working-directory: artifacts
-        shell: bash
-        run: |
-          SUMS_FILE="busybar-f${U5_TARGET_HW}-sha256sum.txt"
-          find . -maxdepth 1 -type f ! -name "$SUMS_FILE" -printf '%f\0' \
-            | LC_ALL=C sort -z \
-            | xargs -0 sha256sum \
-            > "$SUMS_FILE"
+        uses: ./.github/actions/build-artifacts
+        with:
+          target_spec: ${{ matrix.target_spec }}
+          build_type: ${{ steps.names.outputs.build_profile }}
+          artifact_path: artifacts
 
       - name: 'Upload build artifacts'
         if: ${{ !github.event.pull_request.head.repo.fork && steps.build-fw.outcome == 'success' }}
         id: build-update
         run: |
-          FILES=$(for ARTIFACT in $(find artifacts -maxdepth 1 -not -type d); do echo "-F files=@${ARTIFACT}"; done)
+          ARTIFACT_DIR="${{ steps.build-fw.outputs.artifact_path }}"
+          FILE_ARGS=()
+          while IFS= read -r -d '' ARTIFACT; do
+            FILE_ARGS+=("-F" "files=@${ARTIFACT}")
+          done < <(find "$ARTIFACT_DIR" -maxdepth 1 -type f -print0)
           curl --fail -L -H "Token: ${{ secrets.INDEXER_TOKEN }}" \
               -F "branch=${BRANCH_NAME}" \
               -F "version_token=${COMMIT_SHA}" \
-              ${FILES[@]} \
+              "${FILE_ARGS[@]}" \
               "${{ secrets.INDEXER_URL }}"/busybar-firmware/uploadfiles
 
       - name: Handle u5 map files
-        if: ${{ !github.event.pull_request.head.repo.fork && steps.build-fw.outcome == 'success'  && matrix.u5_target == env.DEFAULT_TARGET}}
+        if: ${{ !github.event.pull_request.head.repo.fork && steps.build-fw.outcome == 'success'  && matrix.target_spec == env.DEFAULT_TARGET_SPEC }}
         run: |
           rm -rf map_analyser_files
           mkdir -p map_analyser_files
@@ -125,7 +99,7 @@ jobs:
               "--analyser_token=${{ secrets.U5_ANALYSER_TOKEN }}";
 
       - name: Handle silabs map files
-        if: ${{ !github.event.pull_request.head.repo.fork && steps.build-fw.outcome == 'success' && matrix.u5_target == env.DEFAULT_TARGET }}
+        if: ${{ !github.event.pull_request.head.repo.fork && steps.build-fw.outcome == 'success' && matrix.target_spec == env.DEFAULT_TARGET_SPEC }}
         run: |
           rm -rf map_analyser_files
           mkdir -p map_analyser_files
@@ -138,32 +112,33 @@ jobs:
               "--analyser_token=${{ secrets.SIL_ANALYSER_TOKEN }}";
 
       - name: 'Find previous comment'
-        if: ${{ !github.event.pull_request.head.repo.fork && matrix.u5_target == env.DEFAULT_TARGET && github.event.pull_request }}
+        if: ${{ !github.event.pull_request.head.repo.fork && matrix.target_spec == env.DEFAULT_TARGET_SPEC && github.event.pull_request }}
         uses: peter-evans/find-comment@v3
         id: find-comment
         with:
           issue-number: ${{ github.event.pull_request.number }}
           comment-author: 'github-actions[bot]'
-          body-includes: 'Compiled f${{ matrix.u5_target }} firmware for commit'
+          body-includes: 'Compiled f${{ matrix.target_spec }} firmware for commit'
 
       - name: 'Create or update comment'
-        if: ${{ !github.event.pull_request.head.repo.fork && matrix.u5_target == env.DEFAULT_TARGET && github.event.pull_request }}
+        if: ${{ !github.event.pull_request.head.repo.fork && matrix.target_spec == env.DEFAULT_TARGET_SPEC && github.event.pull_request }}
         uses: peter-evans/create-or-update-comment@v4
         with:
           comment-id: ${{ steps.find-comment.outputs.comment-id }}
           issue-number: ${{ github.event.pull_request.number }}
           body: |
-            **Compiled f${{ matrix.u5_target }} firmware for commit `${{steps.names.outputs.commit_sha}}`:**
-            - [📦 Update package](https://update.flipperzero.one/builds/busybar-firmware/${{steps.names.outputs.branch_name}}/busybar-f${{matrix.u5_target}}-update-${{steps.names.outputs.suffix}}.tar)
+            **Compiled f${{ matrix.target_spec }} firmware for commit `${{steps.names.outputs.commit_sha}}`:**
+            - [📦 Update package](https://update.flipperzero.one/builds/busybar-firmware/${{steps.names.outputs.branch_name}}/busybar-f${{steps.build-fw.outputs.u5_target_hw}}-update-${{steps.names.outputs.suffix}}.tar)
             - [📊 Sil Size report](https://fw-reports-sil-bsb.flipp.dev/?branch=${{steps.names.outputs.branch_name}})
             - [📊 U5 Size report](https://fw-reports-bsb.flipp.dev/?branch=${{steps.names.outputs.branch_name}})
           edit-mode: replace
 
       - name: 'Set update URL output for default target'
         id: set-url
-        if: ${{ matrix.u5_target == env.DEFAULT_TARGET }}
+        if: ${{ matrix.target_spec == env.DEFAULT_TARGET_SPEC }}
         run: |
-          echo "update_url=${{ steps.names.outputs.branch_name }}/busybar-f${{ matrix.u5_target }}-update-${{ steps.names.outputs.suffix }}.tar" >> "$GITHUB_OUTPUT"
+          echo "update_url=${{ steps.names.outputs.branch_name }}/busybar-f${{ steps.build-fw.outputs.u5_target_hw }}-update-${{ steps.names.outputs.suffix }}.tar" >> "$GITHUB_OUTPUT"
+          echo "target=${{ steps.build-fw.outputs.u5_target_hw }}" >> "$GITHUB_OUTPUT"
 
 
   updater-tests:
@@ -174,4 +149,5 @@ jobs:
       branch_name: ${{ github.head_ref || github.ref_name }}
       commit_sha: ${{ github.event.pull_request.head.sha }}
       update_url: ${{ needs.build.outputs.update_url }}
-      default_target: ${{ needs.build.outputs.default_target }}
+      target: ${{ needs.build.outputs.bundle_target_spec }}
+    secrets: inherit

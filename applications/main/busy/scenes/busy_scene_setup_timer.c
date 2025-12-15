@@ -1,15 +1,15 @@
-#include "../busy.h"
+#include "../busy_i.h"
 
 #include <gui/modules/var_item_list.h>
 
 typedef enum {
-    // Timer Mode is not included becaue it is always shown
+    // Timer Mode is not included because it is always shown
     VarItemListIdTime,
     VarItemListIdWork,
     VarItemListIdRest,
     VarItemListIdCycles,
     VarItemListIdAutostart,
-    // Demo Mode is not included becaue it is always shown
+    // Demo Mode is not included because it is always shown
     VarItemListIdMax,
 } VarItemListId;
 
@@ -201,9 +201,10 @@ static void busy_scene_setup_timer_on_enter(void* context) {
     furi_assert(context);
 
     BusyApp* instance = context;
-    BusySceneSetupTimer* data = scene_manager_get_current_scene_data(instance->scene_manager);
+    BusySceneSetupTimer* data =
+        scene_manager_get_scene_data(instance->scene_manager, BusyAppSceneIdSetupTimer);
 
-    data->timer_config = instance->settings.timer_config;
+    busy_timer_get_config(instance->busy_timer, &data->timer_config);
 
     with_gui(instance->gui, {
         data->containers[GuiDisplayIdFront].list = var_item_list_alloc(instance->front_window);
@@ -221,12 +222,13 @@ static void busy_scene_setup_timer_on_exit(void* context) {
     furi_assert(context);
 
     BusyApp* instance = context;
-    BusySceneSetupTimer* data = scene_manager_get_current_scene_data(instance->scene_manager);
+    BusySceneSetupTimer* data =
+        scene_manager_get_scene_data(instance->scene_manager, BusyAppSceneIdSetupTimer);
 
-    busy_timer_set_config(instance->busy_timer, &data->timer_config);
-
-    instance->settings.timer_config = data->timer_config;
-    busy_settings_save(&instance->settings);
+    if(!instance->show_timer_requested) {
+        // Do not save settings if timer was launched from another device while this scene was active
+        busy_timer_set_config(instance->busy_timer, &data->timer_config);
+    }
 
     with_gui(instance->gui, {
         for(GuiDisplayId id = 0; id < GuiDisplayIdMax; ++id) {

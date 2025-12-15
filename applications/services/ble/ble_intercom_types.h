@@ -22,6 +22,7 @@ typedef struct /*FURI_PACKED*/ {
     BleIntercomFrameType frame_type;
     BleCommandCode command;
     uint16_t service_index;
+    bool result;
 
     size_t data_size;
 } BleIntercomFrameHeader;

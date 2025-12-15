@@ -1,0 +1,9 @@
+App(
+    appid="settings_menu",
+    name="Settings menu",
+    apptype=FlipperAppType.SYSTEM,
+    entry_point="settings_app",
+    requires=["gui", "audio", "front_display", "back_display", "update_cli"],
+    stack_size=4 * 1024,
+    targets=["f20", "f21", "f22"],
+)

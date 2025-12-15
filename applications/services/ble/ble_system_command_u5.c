@@ -1,6 +1,8 @@
 #include "ble_command_engine.h"
 #include "ble_system_command.h"
+#include "ble/service/ble_service.h"
 #include "http/ble_http_repeater.h"
+#include "device_name/device_name.h"
 
 #define TAG "BLE_U5"
 
@@ -8,17 +10,118 @@ BleIntercomFrameGeneric* ble_command_preprocess(Ble* instance, uint32_t events) 
     if(events & BleEventTypeFrameReceived)
         return &instance->mailbox;
     else if(events & BleEventTypeIncomingMessage)
-        return (BleIntercomFrameGeneric*)&instance->current_message->header;
+        return (BleIntercomFrameGeneric*)&instance->current_command->header;
     else {
         BLE_LOG_W("Unknown event");
         return NULL;
     }
 }
 
+void ble_set_service_post_process_callback(Ble* ble, BleServicePostProcessCallback callback) {
+    furi_assert(ble);
+    if(callback) BLE_LOG_I("Subscribe for post process");
+    ble->service_post_process_callback = callback;
+}
+
+static void ble_on_name_change_callback(const void* message, void* context) {
+    UNUSED(message);
+    Ble* instance = context;
+    furi_event_loop_set_custom_event(instance->event_loop, BleEventTypeDeviceNameChanged);
+}
+
+static void ble_subscribe_on_name_change(Ble* instance) {
+    DeviceName* name_record = furi_record_open(RECORD_DEVICE_NAME);
+    FuriPubSub* pubsub = device_name_get_pubsub(name_record);
+    furi_pubsub_subscribe(pubsub, ble_on_name_change_callback, instance);
+    furi_record_close(RECORD_DEVICE_NAME);
+}
+
+static void ble_get_name_from_record(FuriString* output) {
+    DeviceName* name_record = furi_record_open(RECORD_DEVICE_NAME);
+    device_name_get(name_record, output);
+    furi_record_close(RECORD_DEVICE_NAME);
+}
+
+static bool ble_command_set_device_name_request(BleIntercomFrameGeneric* frame, void* context) {
+    BLE_LOG_D("BleCommandSetDeviceName request");
+
+    FuriString* name = furi_string_alloc();
+    ble_get_name_from_record(name);
+
+    size_t name_size = furi_string_size(name) + 1;
+    const size_t new_msg_size = sizeof(BleIntercomFrameHeader) + name_size;
+
+    BleIntercomFrameGeneric* name_frame = malloc(new_msg_size);
+
+    memcpy(&name_frame->header, &frame->header, sizeof(BleIntercomFrameHeader));
+    name_frame->header.command = BleCommandSetDeviceName;
+    name_frame->header.data_size = name_size;
+    memcpy(name_frame->data, furi_string_get_cstr(name), name_size);
+    name_frame->data[name_size] = 0;
+
+    bool result = ble_command_request_process(name_frame, context);
+    free(name_frame);
+    free(name);
+    return result;
+}
+
+static bool ble_command_set_device_name_response(BleIntercomFrameGeneric* frame, void* context) {
+    BLE_LOG_D("BleCommandSetDeviceName response");
+    Ble* instance = context;
+    instance->current_command->header.result = frame->header.result;
+
+    const FuriThreadId owner_id = furi_mutex_get_owner(instance->current_command_lock);
+    const FuriThreadId current_id = furi_thread_get_current_id();
+    if(owner_id == current_id) {
+        furi_mutex_release(instance->current_command_lock);
+    }
+    return true;
+}
+
+static void ble_service_init_wait_callback(BleServiceObject* service, bool result, void* ctx) {
+    UNUSED(service);
+    UNUSED(result);
+    BLE_LOG_D("ble_service_init_wait_callback");
+    Ble* instance = ctx;
+
+    uint8_t total_ready;
+    for(total_ready = 0; total_ready < BLE_SERVICES_COUNT; total_ready++) {
+        if(!ble_service_is_ready(instance->services[total_ready])) break;
+    }
+
+    if(total_ready == BLE_SERVICES_COUNT) {
+        instance->state = BleServiceStateReady;
+        instance->current_command->header.result = true;
+        ble_subscribe_on_name_change(instance);
+
+        ble_set_service_post_process_callback(instance, NULL);
+        api_lock_unlock(instance->current_command_api_lock);
+    }
+}
+
 static bool ble_command_init_request(BleIntercomFrameGeneric* frame, void* context) {
     BLE_LOG_D("BleCommandInit request");
 
-    return ble_command_request_process(frame, context);
+    Ble* instance = context;
+    const BleServiceState state = instance->state;
+
+    ///TODO: replace this with some preprocess function which will check if command is allowed in this state
+    bool result = false;
+    if(state == BleServiceStateReset) {
+        result = ble_command_request_process(frame, context);
+    } else if(
+        state == BleServiceStateReady || state == BleServiceStateAdvertising ||
+        state == BleServiceStateConnected) {
+        instance->current_command->header.result = true;
+        api_lock_unlock(instance->current_command_api_lock);
+    } else if(state == BleServiceStateError) {
+        BLE_LOG_W("No init, error occured");
+
+        instance->current_command->header.result = false;
+        api_lock_unlock(instance->current_command_api_lock);
+    }
+
+    return result;
 }
 
 static bool ble_command_init_response(BleIntercomFrameGeneric* frame, void* context) {
@@ -26,22 +129,35 @@ static bool ble_command_init_response(BleIntercomFrameGeneric* frame, void* cont
     BLE_LOG_D("BleCommandInit response");
     Ble* instance = context;
 
+    ble_set_service_post_process_callback(instance, ble_service_init_wait_callback);
+
     for(size_t i = 0; i < BLE_SERVICES_COUNT; i++) {
         ble_service_enqueue_init(instance->services[i]);
     }
 
-    ///TODO: need to wait untill all services will call on_state changed callback
-    ///And after that change state to Ready and release message
-    ///But for now let's keep it as it is.
-    instance->state = BleServiceStateReady;
-    instance->current_message->result = true;
-    api_lock_unlock(instance->current_message->lock);
-    return true;
+    return ble_command_set_device_name_request(frame, instance);
 }
 
 static bool ble_command_enable_request(BleIntercomFrameGeneric* frame, void* context) {
-    BLE_LOG_D("BleCommandEnable request");
-    return ble_command_request_process(frame, context);
+    BLE_LOG_I("BleCommandEnable request");
+    Ble* instance = context;
+    const BleServiceState state = instance->state;
+
+    ///TODO: replace this with some preprocess function which will check if command is allowed in this state
+    bool result = false;
+    if(state == BleServiceStateReady) {
+        result = ble_command_request_process(frame, context);
+    } else if(state == BleServiceStateAdvertising || state == BleServiceStateConnected) {
+        instance->current_command->header.result = true;
+        api_lock_unlock(instance->current_command_api_lock);
+    } else if(state == BleServiceStateError) {
+        BLE_LOG_W("No enable, error occured");
+
+        instance->current_command->header.result = false;
+        api_lock_unlock(instance->current_command_api_lock);
+    }
+
+    return result;
 }
 
 static bool ble_command_enable_response(BleIntercomFrameGeneric* frame, void* context) {
@@ -49,15 +165,31 @@ static bool ble_command_enable_response(BleIntercomFrameGeneric* frame, void* co
     BLE_LOG_D("BleCommandEnable response");
     Ble* instance = context;
 
-    instance->current_message->result = true;
-    api_lock_unlock(instance->current_message->lock);
+    instance->current_command->header.result = frame->header.result;
+    instance->state = frame->header.result ? BleServiceStateAdvertising : BleServiceStateError;
+
+    api_lock_unlock(instance->current_command_api_lock);
     ble_http_repeater_start(instance);
     return true;
 }
 
 static bool ble_command_disable_request(BleIntercomFrameGeneric* frame, void* context) {
-    BLE_LOG_D("BleCommandDisable request");
-    return ble_command_request_process(frame, context);
+    BLE_LOG_I("BleCommandDisable request");
+    Ble* instance = context;
+    const BleServiceState state = instance->state;
+
+    ///TODO: replace this with some preprocess function which will check if command is allowed in this state
+    bool result = false;
+    if(state == BleServiceStateError) {
+        BLE_LOG_W("No disable, error occured");
+
+        instance->current_command->header.result = result;
+        api_lock_unlock(instance->current_command_api_lock);
+    } else {
+        result = ble_command_request_process(frame, context);
+    }
+
+    return result;
 }
 
 static bool ble_command_disable_response(BleIntercomFrameGeneric* frame, void* context) {
@@ -65,31 +197,106 @@ static bool ble_command_disable_response(BleIntercomFrameGeneric* frame, void* c
     BLE_LOG_D("BleCommandDisable response");
     Ble* instance = context;
 
-    instance->current_message->result = true;
-    api_lock_unlock(instance->current_message->lock);
+    instance->current_command->header.result = frame->header.result;
+    instance->state = frame->header.result ? BleServiceStateReady : BleServiceStateError;
+
+    api_lock_unlock(instance->current_command_api_lock);
     ble_http_repeater_stop();
     return true;
 }
 
-static bool ble_command_get_state_request(BleIntercomFrameGeneric* frame, void* context) {
-    BLE_LOG_D("BleCommandDisable request");
-    frame->header.command = BleCommandGetState;
+static bool ble_command_get_status_request(BleIntercomFrameGeneric* frame, void* context) {
+    BLE_LOG_D("BleCommandGetStatus request");
+    frame->header.command = BleCommandGetStatus;
     return ble_command_request_process(frame, context);
 }
 
-static bool ble_command_get_state_response(BleIntercomFrameGeneric* frame, void* context) {
-    UNUSED(frame);
-
-    BLE_LOG_D("BleCommandDisable response");
+static bool ble_command_get_status_response(BleIntercomFrameGeneric* frame, void* context) {
+    BLE_LOG_D("BleCommandGetStatus response");
     Ble* instance = context;
-    ///TODO: this logic must be improved
-    BLE_LOG_D("Local state: %d remote state: %d", instance->state, frame->data[0]);
 
-    ///TODO: Temporary fix, in order to unblock ble_start()
-    instance->current_message->result = true;
-    BleServiceState* state = (BleServiceState*)instance->current_message->data;
-    *state = instance->state;
-    api_lock_unlock(instance->current_message->lock);
+    const BleStatus* response = (BleStatus*)frame->data;
+    bool result = false;
+    do {
+        if(!frame->header.result) {
+            instance->state = BleServiceStateError;
+            BLE_LOG_W("Failed to get state from remote");
+            break;
+        }
+
+        if(instance->state == BleServiceStateError) {
+            instance->state = BleServiceStateError;
+            BLE_LOG_W("Local service error");
+            break;
+        }
+
+        if(response->state == BleServiceStateError) {
+            instance->state = BleServiceStateError;
+            BLE_LOG_W("Remote service error");
+            break;
+        }
+
+        result = true;
+    } while(false);
+
+    instance->current_command->header.result = result;
+    memcpy(instance->current_command->data, response, sizeof(BleStatus));
+
+    api_lock_unlock(instance->current_command_api_lock);
+    return true;
+}
+
+static bool ble_command_set_status_request(BleIntercomFrameGeneric* frame, void* context) {
+    BLE_LOG_D("ble_command_set_status_request");
+
+    Ble* instance = context;
+
+    const BleStatus* response = (BleStatus*)frame->data;
+    bool result = false;
+    do {
+        if(!frame->header.result) {
+            instance->state = BleServiceStateError;
+            BLE_LOG_W("Failed to get state from remote");
+            break;
+        }
+
+        if(instance->state == BleServiceStateError) {
+            instance->state = BleServiceStateError;
+            BLE_LOG_W("Local service error");
+            break;
+        }
+
+        if(response->state == BleServiceStateError) {
+            instance->state = BleServiceStateError;
+            BLE_LOG_W("Remote service error");
+            break;
+        }
+
+        result = true;
+    } while(false);
+
+    memcpy(
+        instance->remote_device_address,
+        response->remote_device_address,
+        BLE_REMOTE_DEVICE_ADDRESS_STRING_SIZE);
+
+    furi_pubsub_publish(instance->on_status_change, NULL);
+
+    return result;
+}
+
+static bool ble_command_forget_pairing_request(BleIntercomFrameGeneric* frame, void* context) {
+    BLE_LOG_D("BleCommandForgetPairing request");
+    frame->header.command = BleCommandForgetPairing;
+    return ble_command_request_process(frame, context);
+}
+
+static bool ble_command_forget_pairing_response(BleIntercomFrameGeneric* frame, void* context) {
+    BLE_LOG_D("BleCommandForgetPairing response");
+    Ble* instance = context;
+
+    instance->current_command->header.result = frame->header.result;
+    api_lock_unlock(instance->current_command_api_lock);
     return true;
 }
 
@@ -114,9 +321,41 @@ const BleCommandItem ble_commands[BleCommandCount] = {
             .request = ble_command_disable_request,
             .response = ble_command_disable_response,
         },
-    [BleCommandGetState] =
+    [BleCommandGetStatus] =
         {
-            .request = ble_command_get_state_request,
-            .response = ble_command_get_state_response,
+            .request = ble_command_get_status_request,
+            .response = ble_command_get_status_response,
+        },
+    [BleCommandSetStatus] =
+        {
+            .request = ble_command_set_status_request,
+        },
+    [BleCommandForgetPairing] =
+        {
+            .request = ble_command_forget_pairing_request,
+            .response = ble_command_forget_pairing_response,
+        },
+    [BleCommandSetDeviceName] =
+        {
+            .request = ble_command_set_device_name_request,
+            .response = ble_command_set_device_name_response,
         },
 };
+
+void ble_invoke_retry_command_on_internal_event(
+    Ble* instance,
+    BleSystemCommand command,
+    BleEventType retry_event,
+    uint32_t retry_timeout) {
+    if(furi_mutex_acquire(instance->current_command_lock, retry_timeout) == FuriStatusOk) {
+        BleIntercomFrameHeader* header = &instance->current_command->header;
+        header->frame_type = BleIntercomFrameTypeRequest;
+        header->command = command;
+        header->source = BleIntercomFrameSourceSystem;
+        header->data_size = 0;
+        furi_event_loop_set_custom_event(instance->event_loop, BleEventTypeIncomingMessage);
+    } else {
+        BLE_LOG_W("Invoke retry");
+        furi_event_loop_set_custom_event(instance->event_loop, retry_event);
+    }
+}

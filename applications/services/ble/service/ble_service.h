@@ -7,23 +7,21 @@
 
 typedef struct BleServiceObject BleServiceObject;
 
-typedef void BleServiceStateChangeCallbackContext;
-
-typedef void (*BleServiceStateChangeCallback)(BleServiceStateChangeCallbackContext* ctx);
-
 BleServiceObject* ble_service_alloc(
     const BleServiceDescriptor* service_config,
     FuriMessageQueue* message_queue,
-    Intercom* intercom,
-    BleServiceStateChangeCallback state_callback,
-    BleServiceStateChangeCallbackContext* ctx);
+    Intercom* intercom);
 
 bool ble_service_process(BleServiceObject* instance);
 void ble_service_process_mailbox(
     BleServiceObject* instance,
     const BleIntercomFrameGeneric* input_frame);
 
-BleServiceState ble_service_get_state(BleServiceObject* instance);
+bool ble_service_is_ready(BleServiceObject* instance);
+
+const char* ble_service_get_name(BleServiceObject* instance);
+
+void ble_service_get_error(BleServiceObject* instance, FuriString* error);
 
 void ble_service_enqueue_init(BleServiceObject* instance);
 

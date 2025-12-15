@@ -72,25 +72,26 @@ static bool http_api_access_set_callback(
         uint8_t access_mode;
         char access_key[ACCESS_KEY_LEN_MAX + 1];
 
-        int mode_len = mg_http_get_var(&msg->query, "mode", mode_str, sizeof(mode_str));
-        int key_len = mg_http_get_var(&msg->query, "key", access_key, ACCESS_KEY_LEN_MAX);
+        int mode_status = mg_http_get_var(&msg->query, "mode", mode_str, sizeof(mode_str));
+        int key_status = mg_http_get_var(&msg->query, "key", access_key, sizeof(access_key));
 
-        if(mode_len <= 0) break;
+        if(mode_status <= 0) break;
 
-        if(mode_len > 0) {
+        if(mode_status > 0) {
             if(strcmp(mode_str, "disabled") == 0) {
                 access_mode = ApiAccessDisabled;
             } else if(strcmp(mode_str, "enabled") == 0) {
                 access_mode = ApiAccessEnabled;
             } else if(strcmp(mode_str, "key") == 0) {
                 access_mode = ApiAccessKeyRequired;
-                if(key_len <= 0) break;
+                if(key_status <= 0) break;
             } else {
                 break;
             }
         }
 
-        if(key_len > 0) {
+        if(key_status > 0) {
+            size_t key_len = strlen(access_key);
             if((key_len < ACCESS_KEY_LEN_MIN) || (key_len > ACCESS_KEY_LEN_MAX)) {
                 break;
             }
@@ -312,11 +313,26 @@ static const HttpHandler handlers_api_root[] = {
         .on_request = http_api_time_callback,
     },
     {
-
         .uri = "name",
         .method = "*",
         .type = HttpHandlerCustom,
         .on_request = http_api_name_callback,
+    },
+    {
+        .uri = "account",
+        .method = "*",
+        .type = HttpHandlerCustom,
+        .ctx_alloc = http_api_account_alloc,
+        .ctx_free = http_api_account_free,
+        .on_request = http_api_account_callback,
+    },
+    {
+        .uri = "busy",
+        .method = "*",
+        .type = HttpHandlerCustom,
+        .ctx_alloc = http_api_busy_alloc,
+        .ctx_free = http_api_busy_free,
+        .on_request = http_api_busy_callback,
     },
 };
 

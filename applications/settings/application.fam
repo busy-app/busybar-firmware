@@ -1,0 +1,14 @@
+App(
+    appid="settings",
+    name="Package with all settings apps",
+    apptype=FlipperAppType.METAPACKAGE,
+    provides=[
+        "brightness_settings",
+        "sound_settings",
+        "debug_app_list",
+        "fw_update",
+        "matter_settings",
+        "ble_settings",
+    ],
+    targets=["f20", "f21", "f22"],
+)
