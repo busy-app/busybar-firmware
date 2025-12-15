@@ -753,7 +753,12 @@ UpdaterStatus updater_install_from_url(Updater* instance, const char* url, const
 
     if(session_start_status == UpdaterStatusOk) {
         furi_string_set(instance->install_url, url);
-        furi_string_set(instance->install_sha256, sha256);
+
+        if(sha256) {
+            furi_string_set(instance->install_sha256, sha256);
+        } else {
+            furi_string_reset(instance->install_sha256);
+        }
 
         FuriThread* thread = furi_thread_alloc_ex(
             INSTALL_FROM_URL_THREAD_NAME,
