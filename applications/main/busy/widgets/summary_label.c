@@ -6,7 +6,9 @@
 
 #define MY_CLASS (&summary_label_lvgl_class)
 
-#define TRANSITION_DURATION_MS (250)
+#define ANIM_DURATION_MS (250)
+
+#define TRANSLATE_Y_FACTOR (32)
 
 struct SummaryLabel {
     Widget base;
@@ -26,15 +28,21 @@ static void summary_label_lvgl_anim_callback(void* context, int32_t value) {
     furi_assert(context);
     SummaryLabel* instance = context;
 
-    lv_obj_set_style_opa(instance->show_target, LV_OPA_COVER - value, LV_PART_MAIN);
-    lv_obj_set_style_opa(instance->hide_target, value, LV_PART_MAIN);
+    const int32_t reverse_value = LV_OPA_COVER - value;
+
+    lv_obj_set_style_opa(instance->show_target, value, LV_PART_MAIN);
+    lv_obj_set_style_opa(instance->hide_target, reverse_value, LV_PART_MAIN);
+
+    lv_obj_set_style_translate_y(
+        instance->show_target, -reverse_value / TRANSLATE_Y_FACTOR, LV_PART_MAIN);
+    lv_obj_set_style_translate_y(instance->hide_target, -value / TRANSLATE_Y_FACTOR, LV_PART_MAIN);
 }
 
 static void summary_label_lvgl_anim_completed_callback(lv_anim_t* anim) {
     furi_assert(anim);
 
     SummaryLabel* instance = anim->var;
-    FURI_SWAP(instance->show_target, instance->hide_target);
+    FURI_SWAP(instance->hide_target, instance->show_target);
 }
 
 static void summary_label_lvgl_constructor(const lv_obj_class_t* class_p, lv_obj_t* obj) {
@@ -63,8 +71,8 @@ static void summary_label_lvgl_constructor(const lv_obj_class_t* class_p, lv_obj
     instance->cycles_label = cycles_label;
     instance->message_label = message_label;
 
-    instance->show_target = cycles_layout;
-    instance->hide_target = message_label;
+    instance->show_target = message_label;
+    instance->hide_target = cycles_layout;
 }
 
 // Implementation
@@ -106,7 +114,7 @@ void summary_label_switch_display(SummaryLabel* instance) {
     lv_anim_t anim;
     lv_anim_init(&anim);
     lv_anim_set_values(&anim, LV_OPA_TRANSP, LV_OPA_COVER);
-    lv_anim_set_duration(&anim, TRANSITION_DURATION_MS);
+    lv_anim_set_duration(&anim, ANIM_DURATION_MS);
     lv_anim_set_path_cb(&anim, lv_anim_path_ease_in_out);
     lv_anim_set_exec_cb(&anim, summary_label_lvgl_anim_callback);
     lv_anim_set_completed_cb(&anim, summary_label_lvgl_anim_completed_callback);
