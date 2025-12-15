@@ -14,7 +14,30 @@ typedef struct {
     AnimImage* front_anim;
 } BusySceneEndig;
 
-static void busy_scnene_ending_summary_finished_callback(void* context) {
+static bool busy_scene_ending_input_callback(const InputEvent* event, void* context) {
+    furi_assert(event);
+    furi_assert(context);
+
+    BusyApp* instance = context;
+
+    bool consumed = false;
+    BusyCustomEvent custom_event;
+
+    if(event->type == InputTypeShort) {
+        if(event->key == InputKeyStart) {
+            custom_event = BusyCustomEventStartShortPressed;
+            consumed = true;
+        }
+    }
+
+    if(consumed) {
+        busy_send_custom_event(instance, custom_event);
+    }
+
+    return consumed;
+}
+
+static void busy_scene_ending_summary_finished_callback(void* context) {
     furi_assert(context);
 
     BusyApp* instance = context;
@@ -30,7 +53,20 @@ static void busy_scene_ending_anim_completed_callback(AnimImage* anim_image, voi
     UNUSED(anim_image);
 
     BusyApp* instance = context;
-    busy_send_custom_event(instance, BusyCustomEventAnimationEnded);
+    busy_send_custom_event(instance, BusyCustomEventAnimationCompleted);
+}
+
+static void busy_scene_ending_handle_animation_completed(BusyApp* instance) {
+    busy_prepare_transition(instance, BusyTransitionTypeEnding);
+    scene_manager_next_scene(instance->scene_manager, BusyAppSceneIdFinish);
+}
+
+static void busy_scene_ending_handle_back(BusyApp* instance) {
+    busy_prepare_transition(instance, BusyTransitionTypeDefault);
+
+    if(!busy_return_to_start_scene(instance)) {
+        busy_exit(instance);
+    }
 }
 
 static void busy_scene_ending_on_enter(void* context) {
@@ -44,10 +80,13 @@ static void busy_scene_ending_on_enter(void* context) {
     busy_timer_get_config(instance->busy_timer, &config);
 
     with_gui(instance->gui, {
+        GuiLayer* layer = gui_get_layer(instance->gui, GuiLayerIdMain);
+        gui_layer_add_input_callback(layer, busy_scene_ending_input_callback, instance);
+
         data->front_summary = summary_view_alloc(instance->front_window);
         summary_view_set_cycles_count(data->front_summary, config.cycle_count);
         summary_view_set_finished_callback(
-            data->front_summary, busy_scnene_ending_summary_finished_callback, instance);
+            data->front_summary, busy_scene_ending_summary_finished_callback, instance);
         widget_set_align(summary_view_get_base(data->front_summary), AlignCenter);
 
         data->front_anim = anim_image_alloc(instance->front_window);
@@ -76,6 +115,9 @@ static void busy_scene_ending_on_exit(void* context) {
         scene_manager_get_scene_data(instance->scene_manager, BusyAppSceneIdEnding);
 
     with_gui(instance->gui, {
+        GuiLayer* layer = gui_get_layer(instance->gui, GuiLayerIdMain);
+        gui_layer_remove_input_callback(layer, busy_scene_ending_input_callback);
+
         summary_view_free(data->front_summary);
         anim_image_free(data->front_anim);
     });
@@ -88,14 +130,19 @@ static bool busy_scene_ending_on_event(const SceneManagerEvent* event, void* con
     bool consumed = false;
 
     if(event->type == SceneManagerEventTypeCustom) {
-        if(event->event == BusyCustomEventAnimationEnded) {
-            busy_prepare_transition(instance, BusyTransitionTypeEnding);
-            scene_manager_next_scene(instance->scene_manager, BusyAppSceneIdFinish);
+        if(event->event == BusyCustomEventAnimationCompleted ||
+           event->event == BusyCustomEventStartShortPressed) {
+            busy_scene_ending_handle_animation_completed(instance);
+
+        } else if(event->event == BusyCustomEventReturnToStart) {
+            busy_scene_ending_handle_back(instance);
         }
 
         consumed = true;
 
     } else if(event->type == SceneManagerEventTypeBack) {
+        busy_scene_ending_handle_back(instance);
+
         consumed = true;
     }
 
