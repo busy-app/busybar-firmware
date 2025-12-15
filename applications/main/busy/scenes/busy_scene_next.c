@@ -65,7 +65,8 @@ static void busy_scene_next_handle_start(BusyApp* instance) {
         (timer_state == BusyTimerStateWork) ? BusyTransitionTypeWork : BusyTransitionTypeRest;
 
     busy_prepare_transition(instance, transition_type);
-    scene_manager_search_and_switch_to_previous_scene(instance->scene_manager, BusyAppSceneIdTimer);
+    scene_manager_search_and_switch_to_previous_scene(
+        instance->scene_manager, BusyAppSceneIdTimer);
 }
 
 static void busy_scene_next_handle_back(BusyApp* instance) {
