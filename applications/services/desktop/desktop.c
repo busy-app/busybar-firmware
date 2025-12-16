@@ -239,8 +239,9 @@ static void desktop_do_replace_current_app(Desktop* instance) {
             break;
 
         } else if(status == LoaderStatusErrorNoSignalHandler) {
-            // TODO [FL-429]: this should never happen with `app_platform`, and we can crash
+            // TODO [FW-429]: this should never happen with `app_platform`, and we can crash
             // furi_crash("update app to use app_platform");
+            FURI_LOG_W(TAG, "no signal handler installed");
 
         } else {
             furi_crash("Unexpected loader status");
