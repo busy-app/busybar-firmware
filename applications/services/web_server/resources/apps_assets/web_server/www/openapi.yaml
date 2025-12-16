@@ -1641,7 +1641,7 @@ components:
           description: The element will be hidden when system time reaches the specified Unix timestamp (in seconds). Mutually exclusive with timeout.
         type:
           type: string
-          enum: [text, image, countdown]
+          enum: [text, image, anim_image, countdown]
           description: Type of display element
         x:
           type: integer
@@ -1672,6 +1672,7 @@ components:
         mapping:
           text: "#/components/schemas/TextElement"
           image: "#/components/schemas/ImageElement"
+          anim_image: "#/components/schemas/AnimImageElement"
           countdown: "#/components/schemas/CountdownElement"
 
     TextElement:
@@ -1722,6 +1723,42 @@ components:
                   type: string
                   pattern: "^[a-z_]+/[a-z0-9_]+$"
                   description: Identifier of builtin image
+
+    AnimImageElement:
+      allOf:
+        - $ref: "#/components/schemas/DisplayElement"
+        - type: object
+          required:
+            - path
+          allOf:
+            oneOf:
+              - properties:
+                  path:
+                    type: string
+                    pattern: "^[a-zA-Z0-9._/-]+$"
+                    description: Path to the animation file in the app's assets
+              - properties:
+                  builtin_anim:
+                    type: string
+                    pattern: "^[a-z_]+/[a-z0-9_]+$"
+                    description: Identifier of builtin animation
+            properties:
+              range_start:
+                type: number
+                description: Index of the first frame of the requested part of the animation. Clamped to the frame count.
+                default: 0
+              range_end:
+                type: number
+                description: Index of the last frame of the requested part of the animation. Clamped to the frame count.
+                default: 0xffff_ffff
+              loop:
+                type: bool
+                description: Whether to loop the requested part of the animation
+                default: false
+              wait_end:
+                type: bool
+                description: If the element has been created before and this flag is true, the previous range will finish before the requested one starts.
+                default: false
 
     CountdownElement:
       allOf:

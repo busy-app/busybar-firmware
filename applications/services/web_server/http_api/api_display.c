@@ -12,6 +12,7 @@
 
 #define DISPLAY_ASSETS_DIR               EXT_PATH("assets")
 #define DISPLAY_BUILTIN_IMAGES_FORMATTER EXT_PATH("apps_assets/%s/images/%s.bin")
+#define DISPLAY_BUILTIN_ANIM_FORMATTER   EXT_PATH("apps_assets/%s/animations/%s.anim")
 
 #define DISPLAY_BRIGHTNESS_MAX (100)
 
@@ -115,21 +116,25 @@ static bool api_display_draw_parse_countdown_element(
     return result;
 }
 
-static bool api_display_draw_parse_image_element(
-    CanvasElement* canvas_element,
+static bool api_display_draw_parse_image_path(
+    FuriString** file_path,
     const char* app_id,
-    struct mg_str json_element) {
+    struct mg_str json_element,
+    CanvasElementType type) {
+    furi_check((type == CanvasElementTypeImage) || (type == CanvasElementTypeAnimImage));
+    bool is_animated = type == CanvasElementTypeAnimImage;
+
     bool result = false;
 
     char* uploaded = mg_json_get_str(json_element, "$.path");
-    char* builtin = mg_json_get_str(json_element, "$.builtin_image");
+    char* builtin =
+        mg_json_get_str(json_element, is_animated ? "$.builtin_anim" : "$.builtin_image");
 
     do {
-        canvas_element->type = CanvasElementTypeImage;
         if(uploaded && builtin) break;
 
         if(uploaded) {
-            canvas_element->image.file_path =
+            *file_path =
                 furi_string_alloc_printf("%s/%s/%s", DISPLAY_ASSETS_DIR, app_id, uploaded);
 
             result = true;
@@ -149,8 +154,10 @@ static bool api_display_draw_parse_image_element(
 
             if(!image_name) break;
 
-            canvas_element->image.file_path =
-                furi_string_alloc_printf(DISPLAY_BUILTIN_IMAGES_FORMATTER, app_name, image_name);
+            *file_path = furi_string_alloc_printf(
+                is_animated ? DISPLAY_BUILTIN_ANIM_FORMATTER : DISPLAY_BUILTIN_IMAGES_FORMATTER,
+                app_name,
+                image_name);
             result = true;
             break;
         }
@@ -158,6 +165,67 @@ static bool api_display_draw_parse_image_element(
 
     free(uploaded);
     free(builtin);
+    return result;
+}
+
+static bool api_display_draw_parse_image_element(
+    CanvasElement* canvas_element,
+    const char* app_id,
+    struct mg_str json_element) {
+    bool result = false;
+
+    do {
+        canvas_element->type = CanvasElementTypeImage;
+        if(!api_display_draw_parse_image_path(
+               &canvas_element->image.file_path, app_id, json_element, canvas_element->type))
+            break;
+
+        result = true;
+    } while(0);
+
+    return result;
+}
+
+static bool api_display_draw_parse_anim_image_element(
+    CanvasElement* canvas_element,
+    const char* app_id,
+    struct mg_str json_element) {
+    bool result = false;
+
+    do {
+        canvas_element->type = CanvasElementTypeAnimImage;
+        if(!api_display_draw_parse_image_path(
+               &canvas_element->image.file_path, app_id, json_element, canvas_element->type))
+            break;
+
+        double num;
+        if(mg_json_get_num(json_element, "$.range_start", &num)) {
+            canvas_element->anim_image.range_start = num;
+        } else {
+            canvas_element->anim_image.range_start = 0;
+        }
+
+        if(mg_json_get_num(json_element, "$.range_end", &num)) {
+            canvas_element->anim_image.range_end = num;
+        } else {
+            canvas_element->anim_image.range_end = UINT32_MAX;
+        }
+
+        bool json_bool;
+        if(mg_json_get_bool(json_element, "$.loop", &json_bool)) {
+            canvas_element->anim_image.loop = json_bool;
+        } else {
+            canvas_element->anim_image.loop = false;
+        }
+
+        if(mg_json_get_bool(json_element, "$.wait_end", &json_bool)) {
+            canvas_element->anim_image.wait_end = json_bool;
+        } else {
+            canvas_element->anim_image.wait_end = false;
+        }
+
+        result = true;
+    } while(0);
 
     return result;
 }
@@ -237,6 +305,7 @@ static bool api_display_draw_parse_element(
         static const ApiDisplayElementTypeAssoc element_parsers[] = {
             {"text", api_display_draw_parse_text_element},
             {"image", api_display_draw_parse_image_element},
+            {"anim_image", api_display_draw_parse_anim_image_element},
             {"countdown", api_display_draw_parse_countdown_element},
         };
         for(size_t i = 0; i < COUNT_OF(element_parsers); i++) {

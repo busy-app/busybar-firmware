@@ -12,6 +12,7 @@ typedef struct CanvasApp CanvasApp;
 
 typedef enum {
     CanvasElementTypeImage,
+    CanvasElementTypeAnimImage,
     CanvasElementTypeText,
     CanvasElementTypeCountdown,
 } CanvasElementType;
@@ -25,10 +26,20 @@ typedef struct {
     GuiDisplayId display;
     Align align;
     CanvasElementType type;
+
     union {
         struct {
             FuriString* file_path;
         } image;
+
+        struct {
+            FuriString* file_path;
+            uint32_t range_start;
+            uint32_t range_end;
+            bool loop;
+            bool wait_end;
+        } anim_image;
+
         struct {
             char* text_str;
             GuiFont font;
@@ -36,6 +47,7 @@ typedef struct {
             size_t width;
             size_t scroll_rate_cpm;
         } text;
+
         struct {
             time_t timestamp;
             Color color;

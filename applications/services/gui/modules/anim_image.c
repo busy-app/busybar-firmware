@@ -269,12 +269,13 @@ Widget* anim_image_get_base(AnimImage* instance) {
 bool anim_image_set_source(AnimImage* instance, const char* file_path) {
     furi_check(instance);
 
-    instance->is_loaded = false;
-
     if(instance->file_path) {
+        if(strcmp(instance->file_path, file_path) == 0) return instance->is_loaded;
         free(instance->file_path);
         instance->file_path = NULL;
     }
+
+    instance->is_loaded = false;
 
     if(file_path) {
         instance->file_path = strdup(file_path);
