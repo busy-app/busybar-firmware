@@ -63,7 +63,7 @@ static const WifiRequestHandler wifi_request_handlers[WifiRequestTypeMax];
 
 static inline void wifi_send_response(Wifi* instance, const WifiResponse* response) {
     const size_t tx_size = intercom_tx(
-        instance->intercom, IntercomChannelWifi, response, sizeof(WifiResponse), FuriWaitForever);
+        instance->intercom_ch_control, response, sizeof(WifiResponse), FuriWaitForever);
     furi_check(tx_size == sizeof(WifiResponse));
 }
 
@@ -563,7 +563,6 @@ static Wifi* wifi_alloc(void) {
     instance->event_pubsub = furi_pubsub_alloc();
     instance->info_timer = furi_event_loop_timer_alloc(
         instance->event_loop, wifi_backend_info_callback, FuriEventLoopTimerTypePeriodic, instance);
-    instance->intercom = furi_record_open(RECORD_INTERCOM);
     instance->tcpip_lock = furi_semaphore_alloc(1, 0);
     instance->ip6_addr_valid = furi_semaphore_alloc(1, 0);
 
@@ -575,10 +574,12 @@ static Wifi* wifi_alloc(void) {
         FuriEventLoopEventIn,
         wifi_event_queue_callback,
         instance);
-    intercom_set_rx_callback(
-        instance->intercom, IntercomChannelWifi, wifi_intercom_rx_callback, instance);
-    intercom_set_rx_callback(
-        instance->intercom, IntercomChannelWifiData, wifi_net_intercom_rx_callback, instance);
+
+    Intercom* intercom = furi_record_open(RECORD_INTERCOM);
+    instance->intercom_ch_control = intercom_channel_open(
+        intercom, IntercomChannelIdWifiControl, wifi_intercom_rx_callback, instance);
+    instance->intercom_ch_data = intercom_channel_open(
+        intercom, IntercomChannelIdWifiData, wifi_net_intercom_rx_callback, instance);
 
     const sl_status_t status = wifi_init_driver(instance);
 
