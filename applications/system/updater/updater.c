@@ -6,10 +6,12 @@
 
 #include <storage/storage.h>
 #include <power/power_service/power.h>
+#include <sntp/sntp.h>
 
 #include <furi_hal_nvm.h>
 #include <furi_hal_power.h>
 #include <furi_hal_version.h>
+#include <datetime.h>
 #include <toolbox/api_lock.h>
 #include <toolbox/path.h>
 #include <toolbox/tar/tar_archive.h>
@@ -25,6 +27,8 @@
 
 #define INSTALL_FROM_URL_THREAD_NAME       "UpdateInstall"
 #define INSTALL_FROM_URL_THREAD_STACK_SIZE (2 * 1024)
+
+#define AUTOUPDATE_TIMER_INTERVAL (5 * 60 * 1000)
 
 struct Updater {
     Storage* storage;
@@ -52,6 +56,10 @@ struct Updater {
 
     FuriString* install_url;
     FuriString* install_sha256;
+    bool install_is_autoupdate;
+
+    FuriEventLoopTimer* autoupdate_timer;
+    FuriSemaphore* autoupdate_semaphore;
 };
 
 typedef struct {
@@ -113,6 +121,12 @@ typedef enum {
 static const char* const status_strings[];
 static const MessageHandler message_handlers[];
 
+static UpdaterStatus install_from_url_internal(
+    Updater* instance,
+    const char* url,
+    const char* sha256,
+    bool is_autoupdate);
+
 static UpdaterStatus invoke_async(Updater* instance, UpdaterMessage* message) {
     message->result_status = NULL;
     message->api_lock = NULL;
@@ -136,12 +150,12 @@ static UpdaterStatus invoke_sync(Updater* instance, UpdaterMessage* message) {
 
     return update_status;
 }
-
 static void custom_event_callback(uint32_t events, void* context) {
     Updater* instance = context;
 
     if(events & CustomEventUpdateCheckSuccess) {
-        furi_event_loop_timer_start(instance->check_timer, instance->settings.check_interval);
+        furi_event_loop_timer_start(
+            instance->check_timer, furi_ms_to_ticks(instance->settings.check_interval));
     } else if(events & CustomEventUpdateCheckFailure) {
         furi_event_loop_timer_restart(instance->check_timer);
     }
@@ -179,6 +193,76 @@ static void check_done_callback(bool is_success, UpdaterCheckerInfo* update_info
 
 static void check_timer_callback(void* context) {
     invoke_async(context, &(UpdaterMessage){.type = MessageTypeCheckForUpdate});
+}
+
+static void autoupdate_timer_callback(void* context) {
+    furi_assert(context);
+
+    Updater* instance = context;
+
+    FURI_LOG_D(TAG, "Autoupdate: starting check...");
+
+    do {
+        if(furi_semaphore_get_space(instance->autoupdate_semaphore) > 0) {
+            FURI_LOG_D(TAG, "Autoupdate: skipped, timer tick pending");
+            break;
+        }
+
+        Sntp* sntp = furi_record_open(RECORD_SNTP);
+        time_t timestamp = sntp_get_utc_timestamp(sntp);
+        furi_record_close(RECORD_SNTP);
+
+        DateTime datetime;
+        datetime_timestamp_to_datetime(timestamp, &datetime);
+
+        int time_minutes = datetime.hour * 60 + datetime.minute;
+        int interval_start = instance->settings.autoupdate_interval_start;
+        int interval_end = instance->settings.autoupdate_interval_end;
+        bool is_time_in_interval =
+            (interval_start <= interval_end) ?
+                (time_minutes >= interval_start) && (time_minutes < interval_end) :
+                (time_minutes >= interval_start) || (time_minutes < interval_end);
+
+        if(!is_time_in_interval) {
+            FURI_LOG_D(
+                TAG,
+                "Autoupdate: skipped, outside time window (%02d:%02d)",
+                datetime.hour,
+                datetime.minute);
+            break;
+        }
+
+        UpdaterCheckState* check_state = furi_state_acquire(instance->check_state);
+
+        do {
+            if(check_state->result != UpdaterCheckResultAvailable) {
+                FURI_LOG_D(TAG, "Autoupdate: skipped, no update available");
+                break;
+            }
+
+            if(check_state->event != UpdaterCheckEventStop) {
+                FURI_LOG_D(TAG, "Autoupdate: skipped, check for update is running");
+                break;
+            }
+
+            UpdaterStatus install_status = install_from_url_internal(
+                instance,
+                furi_string_get_cstr(check_state->url),
+                furi_string_get_cstr(check_state->sha256),
+                true);
+
+            if(install_status == UpdaterStatusOk) {
+                FURI_LOG_I(TAG, "Autoupdate: installation started");
+            } else {
+                FURI_LOG_W(
+                    TAG,
+                    "Autoupdate: failed to start (%s)",
+                    updater_get_status_string(install_status));
+            }
+        } while(false);
+
+        furi_state_release(instance->check_state);
+    } while(false);
 }
 
 static UpdaterStatus do_check_for_update(Updater* instance, UpdaterMessage* message) {
@@ -560,6 +644,13 @@ static int32_t install_from_url_thread_callback(void* context) {
             break;
         }
 
+        if(instance->install_is_autoupdate) {
+            if(furi_semaphore_get_space(instance->autoupdate_semaphore) > 0) {
+                FURI_LOG_I(TAG, "Autoupdate: installation aborted, paused by user");
+                break;
+            }
+        }
+
         updater_installation_apply(instance, true);
     } while(false);
 
@@ -744,10 +835,11 @@ void updater_installation_apply(Updater* instance, bool do_wait) {
     }
 }
 
-UpdaterStatus updater_install_from_url(Updater* instance, const char* url, const char* sha256) {
-    furi_check(instance);
-    furi_check(url);
-
+static UpdaterStatus install_from_url_internal(
+    Updater* instance,
+    const char* url,
+    const char* sha256,
+    bool is_autoupdate) {
     UpdaterStatus session_start_status = updater_session_start(instance);
 
     if(session_start_status == UpdaterStatusOk) {
@@ -758,6 +850,8 @@ UpdaterStatus updater_install_from_url(Updater* instance, const char* url, const
         } else {
             furi_string_reset(instance->install_sha256);
         }
+
+        instance->install_is_autoupdate = is_autoupdate;
 
         FuriThread* thread = furi_thread_alloc_ex(
             INSTALL_FROM_URL_THREAD_NAME,
@@ -773,10 +867,29 @@ UpdaterStatus updater_install_from_url(Updater* instance, const char* url, const
     return session_start_status;
 }
 
+UpdaterStatus updater_install_from_url(Updater* instance, const char* url, const char* sha256) {
+    furi_check(instance);
+    furi_check(url);
+
+    return install_from_url_internal(instance, url, sha256, false);
+}
+
 UpdaterStatus updater_check_for_update(Updater* instance) {
     furi_check(instance);
 
     return invoke_sync(instance, &(UpdaterMessage){.type = MessageTypeCheckForUpdate});
+}
+
+void updater_pause_autoupdates(Updater* instance) {
+    furi_check(instance);
+
+    furi_semaphore_acquire(instance->autoupdate_semaphore, 0);
+}
+
+void updater_resume_autoupdates(Updater* instance) {
+    furi_check(instance);
+
+    furi_semaphore_release(instance->autoupdate_semaphore);
 }
 
 const char* updater_get_active_version(void) {
@@ -798,6 +911,7 @@ static Updater* updater_alloc(void) {
     instance->event_loop = furi_event_loop_alloc();
     instance->message_queue =
         furi_message_queue_alloc(MESSAGE_QUEUE_ITEMS_COUNT, sizeof(UpdaterMessage));
+
     updater_settings_load(&instance->settings);
 
     instance->update_lock = furi_semaphore_alloc(1, 1);
@@ -819,6 +933,10 @@ static Updater* updater_alloc(void) {
 
     instance->install_url = furi_string_alloc();
     instance->install_sha256 = furi_string_alloc();
+
+    instance->autoupdate_timer = furi_event_loop_timer_alloc(
+        instance->event_loop, autoupdate_timer_callback, FuriEventLoopTimerTypePeriodic, instance);
+    instance->autoupdate_semaphore = furi_semaphore_alloc(UINT32_MAX, UINT32_MAX);
 
     furi_event_loop_subscribe_message_queue(
         instance->event_loop,
@@ -851,7 +969,13 @@ static Updater* updater_alloc(void) {
         });
 
     update_checker_set_done_callback(instance->update_checker, check_done_callback, instance);
-    furi_event_loop_timer_start(instance->check_timer, instance->settings.check_startup_interval);
+    furi_event_loop_timer_start(
+        instance->check_timer, furi_ms_to_ticks(instance->settings.check_startup_interval));
+
+    if(instance->settings.autoupdate_enabled) {
+        furi_event_loop_timer_start(
+            instance->autoupdate_timer, furi_ms_to_ticks(AUTOUPDATE_TIMER_INTERVAL));
+    }
 
     furi_record_create(RECORD_UPDATER, instance);
 

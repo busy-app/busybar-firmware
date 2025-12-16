@@ -283,6 +283,18 @@ UpdaterStatus updater_install_from_url(Updater* instance, const char* url, const
  */
 UpdaterStatus updater_check_for_update(Updater* instance);
 
+/** Pause automatic updates
+ *
+ * @param[in]  instance  Updater instance
+ */
+void updater_pause_autoupdates(Updater* instance);
+
+/** Resume automatic updates
+ *
+ * @param[in]  instance  Updater instance
+ */
+void updater_resume_autoupdates(Updater* instance);
+
 /** Get currently active firmware version string
  *
  * @return     Version string
