@@ -14,6 +14,9 @@ typedef enum {
     UpdaterSettingIdxCheckChannelId,
     UpdaterSettingIdxCheckStartupInterval,
     UpdaterSettingIdxCheckInterval,
+    UpdaterSettingIdxAutoupdateEnabled,
+    UpdaterSettingIdxAutoupdateIntervalStart,
+    UpdaterSettingIdxAutoupdateIntervalEnd,
 
     UpdaterSettingIdxsCount,
 } UpdaterSettingIdx;
@@ -21,6 +24,7 @@ typedef enum {
 typedef enum {
     UpdaterSettingTypeInt,
     UpdaterSettingTypeString,
+    UpdaterSettingTypeBool,
 
     UpdaterSettingTypesCount,
 } UpdaterSettingType;
@@ -107,6 +111,38 @@ static void updater_save_string_setting(
     }
 }
 
+static void
+    updater_load_bool_setting(JsonConfig* config, const UpdaterSetting* setting, void* value) {
+    furi_assert(setting->type == UpdaterSettingTypeBool);
+
+    bool read_value;
+    JsonConfigStatus read_status =
+        json_config_read_bool(config, setting->name, &read_value, setting->default_value);
+
+    if(read_status != JsonConfigStatusOk) {
+        FURI_LOG_W(TAG, "Failed to load %s setting, using default", setting->name);
+    } else if(setting->is_value_valid && !setting->is_value_valid(&read_value)) {
+        FURI_LOG_W(TAG, "Invalid %s setting, loading default", setting->name);
+        read_value = *(const bool*)setting->default_value;
+    }
+
+    *(bool*)value = read_value;
+}
+
+static void updater_save_bool_setting(
+    JsonConfig* config,
+    const UpdaterSetting* setting,
+    const void* value) {
+    furi_assert(setting->type == UpdaterSettingTypeBool);
+
+    if(!setting->is_value_valid || setting->is_value_valid(value)) {
+        bool _value = *(const bool*)value;
+        json_config_write_bool(config, setting->name, _value);
+    } else {
+        FURI_LOG_W(TAG, "Invalid %s setting save attempt", setting->name);
+    }
+}
+
 static void updater_load_setting(JsonConfig* config, UpdaterSettingIdx setting_idx, void* value) {
     const UpdaterSetting* setting = &settings[setting_idx];
     setting_type_actions[setting->type].load(config, setting, value);
@@ -146,6 +182,20 @@ static bool is_check_interval_valid(const void* check_interval) {
            _check_interval <= UPDATER_CHECK_INTERVAL_MAX;
 }
 
+static bool is_autoupdate_interval_start_valid(const void* autoupdate_interval_start) {
+    int _autoupdate_interval_start = *(const int*)autoupdate_interval_start;
+
+    return _autoupdate_interval_start >= UPDATER_AUTOUPDATE_INTERVAL_START_MIN &&
+           _autoupdate_interval_start <= UPDATER_AUTOUPDATE_INTERVAL_START_MAX;
+}
+
+static bool is_autoupdate_interval_end_valid(const void* autoupdate_interval_end) {
+    int _autoupdate_interval_end = *(const int*)autoupdate_interval_end;
+
+    return _autoupdate_interval_end >= UPDATER_AUTOUPDATE_INTERVAL_END_MIN &&
+           _autoupdate_interval_end <= UPDATER_AUTOUPDATE_INTERVAL_END_MAX;
+}
+
 bool updater_settings_load(UpdaterSettings* settings) {
     furi_check(settings);
 
@@ -158,6 +208,14 @@ bool updater_settings_load(UpdaterSettings* settings) {
         updater_load_setting(
             config, UpdaterSettingIdxCheckStartupInterval, &settings->check_startup_interval);
         updater_load_setting(config, UpdaterSettingIdxCheckInterval, &settings->check_interval);
+        updater_load_setting(
+            config, UpdaterSettingIdxAutoupdateEnabled, &settings->autoupdate_enabled);
+        updater_load_setting(
+            config,
+            UpdaterSettingIdxAutoupdateIntervalStart,
+            &settings->autoupdate_interval_start);
+        updater_load_setting(
+            config, UpdaterSettingIdxAutoupdateIntervalEnd, &settings->autoupdate_interval_end);
     }
 
     JsonConfigStatus free_status = json_config_free(config);
@@ -177,6 +235,14 @@ bool updater_settings_save(const UpdaterSettings* settings) {
         updater_save_setting(
             config, UpdaterSettingIdxCheckStartupInterval, &settings->check_startup_interval);
         updater_save_setting(config, UpdaterSettingIdxCheckInterval, &settings->check_interval);
+        updater_save_setting(
+            config, UpdaterSettingIdxAutoupdateEnabled, &settings->autoupdate_enabled);
+        updater_save_setting(
+            config,
+            UpdaterSettingIdxAutoupdateIntervalStart,
+            &settings->autoupdate_interval_start);
+        updater_save_setting(
+            config, UpdaterSettingIdxAutoupdateIntervalEnd, &settings->autoupdate_interval_end);
     }
 
     JsonConfigStatus free_status = json_config_free(config);
@@ -213,6 +279,27 @@ static const UpdaterSetting settings[] = {
             .is_value_valid = is_check_interval_valid,
             .type = UpdaterSettingTypeInt,
         },
+    [UpdaterSettingIdxAutoupdateEnabled] =
+        {
+            .name = "autoupdate_enabled",
+            .default_value = &(const bool){UPDATER_AUTOUPDATE_ENABLED_DEFAULT},
+            .is_value_valid = NULL,
+            .type = UpdaterSettingTypeBool,
+        },
+    [UpdaterSettingIdxAutoupdateIntervalStart] =
+        {
+            .name = "autoupdate_interval_start",
+            .default_value = &(const int){UPDATER_AUTOUPDATE_INTERVAL_START_DEFAULT},
+            .is_value_valid = is_autoupdate_interval_start_valid,
+            .type = UpdaterSettingTypeInt,
+        },
+    [UpdaterSettingIdxAutoupdateIntervalEnd] =
+        {
+            .name = "autoupdate_interval_end",
+            .default_value = &(const int){UPDATER_AUTOUPDATE_INTERVAL_END_DEFAULT},
+            .is_value_valid = is_autoupdate_interval_end_valid,
+            .type = UpdaterSettingTypeInt,
+        },
 };
 
 static_assert(COUNT_OF(settings) == UpdaterSettingIdxsCount);
@@ -227,6 +314,11 @@ static const UpdaterSettingTypeActions setting_type_actions[] = {
         {
             .load = updater_load_string_setting,
             .save = updater_save_string_setting,
+        },
+    [UpdaterSettingTypeBool] =
+        {
+            .load = updater_load_bool_setting,
+            .save = updater_save_bool_setting,
         },
 };
 
