@@ -61,6 +61,7 @@ static int32_t startup_dfu_hook_thread(void* arg) {
     FuriPubSub* input_events = furi_record_open(RECORD_INPUT_EVENTS);
     FuriPubSubSubscription* input_events_subscription = furi_pubsub_subscribe(
         input_events, startup_dfu_hook_input_events_callback, furi_thread_get_current_id());
+    // TODO [FW-503]: use furi_state
     InputAbsoluteState input_state = input_get_absolute_state(input);
 
     Intercom* intercom = furi_record_open(RECORD_INTERCOM);
@@ -124,6 +125,7 @@ static int32_t startup_dfu_hook_thread(void* arg) {
 
 void startup_dfu_hook_on_system_start(void) {
     Input* input = furi_record_open(RECORD_INPUT);
+    // TODO [FW-503]: use furi_state
     InputAbsoluteState input_state = input_get_absolute_state(input);
 
     if(input_state.buttons & InputButtonMaskStart) {
