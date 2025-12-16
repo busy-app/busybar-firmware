@@ -46,7 +46,7 @@ static bool busy_scene_progress_input_callback(const InputEvent* event, void* co
     return consumed;
 }
 
-static void busy_scene_progress_handle_start(BusyApp* instance) {
+static void busy_scene_progress_handle_start_short_pressed(BusyApp* instance) {
     busy_prepare_transition(instance, BusyTransitionTypeSkip);
     scene_manager_next_scene(instance->scene_manager, BusyAppSceneIdNext);
 }
@@ -153,7 +153,7 @@ static bool busy_scene_progress_on_event(const SceneManagerEvent* event, void* c
 
     if(event->type == SceneManagerEventTypeCustom) {
         if(event->event == BusyCustomEventStartShortPressed) {
-            busy_scene_progress_handle_start(instance);
+            busy_scene_progress_handle_start_short_pressed(instance);
 
         } else if(event->event == BusyCustomEventReturnToStart) {
             busy_scene_progress_handle_back(instance);

@@ -54,7 +54,7 @@ static bool busy_scene_next_input_callback(const InputEvent* event, void* contex
     return consumed;
 }
 
-static void busy_scene_next_handle_start(BusyApp* instance) {
+static void busy_scene_next_handle_start_short_pressed(BusyApp* instance) {
     const BusySceneNext* data =
         scene_manager_get_scene_data(instance->scene_manager, BusyAppSceneIdNext);
 
@@ -175,7 +175,7 @@ static bool busy_scene_next_on_event(const SceneManagerEvent* event, void* conte
 
     if(event->type == SceneManagerEventTypeCustom) {
         if(event->event == BusyCustomEventStartShortPressed) {
-            busy_scene_next_handle_start(instance);
+            busy_scene_next_handle_start_short_pressed(instance);
 
         } else if(event->event == BusyCustomEventReturnToStart) {
             busy_scene_next_handle_back(instance);

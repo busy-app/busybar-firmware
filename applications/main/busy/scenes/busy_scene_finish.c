@@ -115,6 +115,9 @@ static bool busy_scene_finish_on_event(const SceneManagerEvent* event, void* con
     if(event->type == SceneManagerEventTypeCustom) {
         if(event->event == BusyCustomEventStartShortPressed) {
             busy_scene_finish_handle_back(instance);
+
+        } else if(event->event == BusyCustomEventReturnToStart) {
+            busy_scene_finish_handle_back(instance);
         }
 
         consumed = true;

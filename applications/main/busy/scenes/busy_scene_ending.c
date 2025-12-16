@@ -56,6 +56,11 @@ static void busy_scene_ending_anim_completed_callback(AnimImage* anim_image, voi
     busy_send_custom_event(instance, BusyCustomEventAnimationCompleted);
 }
 
+static void busy_scene_ending_handle_start_short_pressed(BusyApp* instance) {
+    busy_prepare_transition(instance, BusyTransitionTypeSkip);
+    scene_manager_next_scene(instance->scene_manager, BusyAppSceneIdFinish);
+}
+
 static void busy_scene_ending_handle_animation_completed(BusyApp* instance) {
     busy_prepare_transition(instance, BusyTransitionTypeEnding);
     scene_manager_next_scene(instance->scene_manager, BusyAppSceneIdFinish);
@@ -130,8 +135,10 @@ static bool busy_scene_ending_on_event(const SceneManagerEvent* event, void* con
     bool consumed = false;
 
     if(event->type == SceneManagerEventTypeCustom) {
-        if(event->event == BusyCustomEventAnimationCompleted ||
-           event->event == BusyCustomEventStartShortPressed) {
+        if(event->event == BusyCustomEventStartShortPressed) {
+            busy_scene_ending_handle_start_short_pressed(instance);
+
+        } else if(event->event == BusyCustomEventAnimationCompleted) {
             busy_scene_ending_handle_animation_completed(instance);
 
         } else if(event->event == BusyCustomEventReturnToStart) {
