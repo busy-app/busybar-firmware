@@ -38,17 +38,12 @@ const CustomStatusLightsPreset custom_status_lights[CustomStatusLightsTypeMax] =
         },
 };
 
-const TimerIndicatorAnimSources custom_indicator_anim_sources = {
-    .states =
+const TimerIndicatorPreset custom_timer_indicator_presets[CustomTimerIndicatorTypeMax] = {
+    [CustomTimerIndicatorTypeKeepOut] =
         {
-            [TimerIndicatorStateWork] = CUSTOM_ANIM_PATH("NULL_WORK"),
-            [TimerIndicatorStateRest] = CUSTOM_ANIM_PATH("NULL_REST"),
-            [TimerIndicatorStateWorkBig] = CUSTOM_ANIM_PATH("keepout_label_72x16.anim"),
-            [TimerIndicatorStateRestBig] = CUSTOM_ANIM_PATH("NULL_REST_BIG"),
-        },
-    .transitions =
-        {
-            [TimerIndicatorTransitionOffToSimple] =
-                CUSTOM_ANIM_PATH("custom_label_transition_70x14.anim"),
+            .background_config =
+                {
+                    .anim_path = CUSTOM_ANIM_PATH("keepout_label_72x16.anim"),
+                },
         },
 };

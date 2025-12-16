@@ -11,4 +11,4 @@ extern const TransitionOverlayPreset custom_transitions[CustomTransitionTypeMax]
 
 extern const CustomStatusLightsPreset custom_status_lights[CustomStatusLightsTypeMax];
 
-extern const TimerIndicatorAnimSources custom_indicator_anim_sources;
+extern const TimerIndicatorPreset custom_timer_indicator_presets[CustomTimerIndicatorTypeMax];
