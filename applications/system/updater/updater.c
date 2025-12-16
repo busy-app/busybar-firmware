@@ -39,14 +39,16 @@ struct Updater {
     UpdaterSettings settings;
 
     FuriSemaphore* update_lock;
-    FuriState* update_state;
+    FuriState* update_state_provider;
+    UpdaterUpdateState* update_state;
     FuriString* update_detail;
 
     FetchLoader* download_loader;
     FuriMessageQueue* download_queue;
 
     UpdateChecker* update_checker;
-    FuriState* check_state;
+    FuriState* check_state_provider;
+    UpdaterCheckState* check_state;
     FuriEventLoopTimer* check_timer;
     FuriString* check_url;
     FuriString* check_id;
@@ -168,7 +170,7 @@ static void check_done_callback(bool is_success, UpdaterCheckerInfo* update_info
         instance->event_loop,
         (is_success) ? CustomEventUpdateCheckSuccess : CustomEventUpdateCheckFailure);
 
-    UpdaterCheckState* check_state = furi_state_acquire(instance->check_state);
+    UpdaterCheckState* check_state = furi_state_acquire(instance->check_state_provider);
 
     if(is_success) {
         if(furi_string_cmp_str(update_info->version, updater_get_active_version())) {
@@ -188,7 +190,7 @@ static void check_done_callback(bool is_success, UpdaterCheckerInfo* update_info
 
     check_state->event = UpdaterCheckEventStop;
 
-    furi_state_release(instance->check_state);
+    furi_state_release(instance->check_state_provider);
 }
 
 static void check_timer_callback(void* context) {
@@ -232,23 +234,21 @@ static void autoupdate_timer_callback(void* context) {
             break;
         }
 
-        UpdaterCheckState* check_state = furi_state_acquire(instance->check_state);
-
         do {
-            if(check_state->result != UpdaterCheckResultAvailable) {
+            if(instance->check_state->result != UpdaterCheckResultAvailable) {
                 FURI_LOG_D(TAG, "Autoupdate: skipped, no update available");
                 break;
             }
 
-            if(check_state->event != UpdaterCheckEventStop) {
+            if(instance->check_state->event != UpdaterCheckEventStop) {
                 FURI_LOG_D(TAG, "Autoupdate: skipped, check for update is running");
                 break;
             }
 
             UpdaterStatus install_status = install_from_url_internal(
                 instance,
-                furi_string_get_cstr(check_state->url),
-                furi_string_get_cstr(check_state->sha256),
+                furi_string_get_cstr(instance->check_state->url),
+                furi_string_get_cstr(instance->check_state->sha256),
                 true);
 
             if(install_status == UpdaterStatusOk) {
@@ -260,8 +260,6 @@ static void autoupdate_timer_callback(void* context) {
                     updater_get_status_string(install_status));
             }
         } while(false);
-
-        furi_state_release(instance->check_state);
     } while(false);
 }
 
@@ -274,9 +272,9 @@ static UpdaterStatus do_check_for_update(Updater* instance, UpdaterMessage* mess
         instance->settings.check_channel_id);
 
     if(is_check_start_successful) {
-        UpdaterCheckState* check_state = furi_state_acquire(instance->check_state);
+        UpdaterCheckState* check_state = furi_state_acquire(instance->check_state_provider);
         check_state->event = UpdaterCheckEventStart;
-        furi_state_release(instance->check_state);
+        furi_state_release(instance->check_state_provider);
     }
 
     return (is_check_start_successful) ? UpdaterStatusOk : UpdaterStatusBusy;
@@ -285,9 +283,9 @@ static UpdaterStatus do_check_for_update(Updater* instance, UpdaterMessage* mess
 static UpdaterStatus do_session_start(Updater* instance, UpdaterMessage* message) {
     UNUSED(message);
 
-    UpdaterUpdateState* update_state = furi_state_acquire(instance->update_state);
+    UpdaterUpdateState* update_state = furi_state_acquire(instance->update_state_provider);
     update_state->event = UpdaterUpdateEventSessionStart;
-    furi_state_release(instance->update_state);
+    furi_state_release(instance->update_state_provider);
 
     return UpdaterStatusOk;
 }
@@ -295,9 +293,9 @@ static UpdaterStatus do_session_start(Updater* instance, UpdaterMessage* message
 static UpdaterStatus do_session_stop(Updater* instance, UpdaterMessage* message) {
     UNUSED(message);
 
-    UpdaterUpdateState* update_state = furi_state_acquire(instance->update_state);
+    UpdaterUpdateState* update_state = furi_state_acquire(instance->update_state_provider);
     update_state->event = UpdaterUpdateEventSessionStop;
-    furi_state_release(instance->update_state);
+    furi_state_release(instance->update_state_provider);
 
     return UpdaterStatusOk;
 }
@@ -307,12 +305,12 @@ static void download_status_callback(const FetchLoaderStatus* status, void* cont
 
     Updater* instance = context;
 
-    UpdaterUpdateState* update_state = furi_state_acquire(instance->update_state);
+    UpdaterUpdateState* update_state = furi_state_acquire(instance->update_state_provider);
     update_state->event = UpdaterUpdateEventActionProgress;
     update_state->as_download.total_size = status->total_download_size;
     update_state->as_download.received_size = status->received_download_size;
     update_state->as_download.speed_bytes_per_sec = status->speed_bytes_per_sec;
-    furi_state_release(instance->update_state);
+    furi_state_release(instance->update_state_provider);
 }
 
 static void download_state_callback(const FuriString* state, void* context) {
@@ -320,10 +318,10 @@ static void download_state_callback(const FuriString* state, void* context) {
 
     Updater* instance = context;
 
-    UpdaterUpdateState* update_state = furi_state_acquire(instance->update_state);
+    UpdaterUpdateState* update_state = furi_state_acquire(instance->update_state_provider);
     update_state->event = UpdaterUpdateEventDetailChange;
     furi_string_set(instance->update_detail, state);
-    furi_state_release(instance->update_state);
+    furi_state_release(instance->update_state_provider);
 }
 
 static void download_done_callback(FetchLoaderDoneStatus done_status, void* context) {
@@ -586,7 +584,7 @@ static void message_queue_callback(FuriEventLoopObject* object, void* context) {
     furi_message_queue_get(instance->message_queue, &message, FuriWaitForever);
     const MessageHandler* handler = &message_handlers[message.type];
 
-    update_state = furi_state_acquire(instance->update_state);
+    update_state = furi_state_acquire(instance->update_state_provider);
 
     if(handler->action != UpdaterUpdateActionNone) {
         update_state->event = UpdaterUpdateEventActionBegin;
@@ -595,7 +593,7 @@ static void message_queue_callback(FuriEventLoopObject* object, void* context) {
     }
 
     furi_string_reset(instance->update_detail);
-    furi_state_release(instance->update_state);
+    furi_state_release(instance->update_state_provider);
 
     UpdaterStatus result_status = handler->callback(instance, &message);
 
@@ -608,10 +606,10 @@ static void message_queue_callback(FuriEventLoopObject* object, void* context) {
     }
 
     if(handler->action != UpdaterUpdateActionNone) {
-        update_state = furi_state_acquire(instance->update_state);
+        update_state = furi_state_acquire(instance->update_state_provider);
         update_state->event = UpdaterUpdateEventActionDone;
         update_state->status = result_status;
-        furi_state_release(instance->update_state);
+        furi_state_release(instance->update_state_provider);
     }
 }
 
@@ -677,13 +675,13 @@ const char* updater_get_status_string(UpdaterStatus status) {
 FuriState* updater_get_update_state(Updater* instance) {
     furi_check(instance);
 
-    return instance->update_state;
+    return instance->update_state_provider;
 }
 
 FuriState* updater_get_check_state(Updater* instance) {
     furi_check(instance);
 
-    return instance->check_state;
+    return instance->check_state_provider;
 }
 
 UpdaterStatus updater_get_allowance_status(Updater* instance) {
@@ -915,14 +913,16 @@ static Updater* updater_alloc(void) {
     updater_settings_load(&instance->settings);
 
     instance->update_lock = furi_semaphore_alloc(1, 1);
-    instance->update_state = furi_state_alloc(sizeof(UpdaterUpdateState));
+    instance->update_state_provider = furi_state_alloc(sizeof(UpdaterUpdateState));
     instance->update_detail = furi_string_alloc();
+    instance->update_state = furi_state_acquire(instance->update_state_provider);
+    furi_state_release(instance->update_state_provider);
 
     instance->download_loader = NULL;
     instance->download_queue = furi_message_queue_alloc(1, sizeof(DownloadQueueMessage));
 
     instance->update_checker = update_checker_alloc();
-    instance->check_state = furi_state_alloc(sizeof(UpdaterCheckState));
+    instance->check_state_provider = furi_state_alloc(sizeof(UpdaterCheckState));
     instance->check_timer = furi_event_loop_timer_alloc(
         instance->event_loop, check_timer_callback, FuriEventLoopTimerTypeOnce, instance);
     instance->check_url = furi_string_alloc();
@@ -930,6 +930,8 @@ static Updater* updater_alloc(void) {
     instance->check_version = furi_string_alloc();
     instance->check_sha256 = furi_string_alloc();
     instance->check_changelog = furi_string_alloc();
+    instance->check_state = furi_state_acquire(instance->check_state_provider);
+    furi_state_release(instance->check_state_provider);
 
     instance->install_url = furi_string_alloc();
     instance->install_sha256 = furi_string_alloc();
@@ -949,7 +951,7 @@ static Updater* updater_alloc(void) {
         instance->event_loop, custom_event_callback, instance);
 
     furi_state_set(
-        instance->update_state,
+        instance->update_state_provider,
         &(const UpdaterUpdateState){
             .event = UpdaterUpdateEventNone,
             .action = UpdaterUpdateActionNone,
@@ -957,7 +959,7 @@ static Updater* updater_alloc(void) {
         });
 
     furi_state_set(
-        instance->check_state,
+        instance->check_state_provider,
         &(const UpdaterCheckState){
             .url = instance->check_url,
             .id = instance->check_id,
