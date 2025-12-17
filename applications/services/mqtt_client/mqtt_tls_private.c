@@ -51,8 +51,10 @@ static int tls_pk_sign_917(
         FURI_LOG_E(TAG, "Unsupported MD algorithm 0x%02X", md_alg);
         return MBEDTLS_ERR_SSL_FEATURE_UNAVAILABLE;
     }
-    bool success =
-        tls_crypto_client_sign(TLS_KEY_SLOT_DEVICE, data, data_len, sig, sig_size, sig_len);
+    TlsCryptoClient* crypto = furi_record_open(RECORD_TLS_CRYPTO_CLIENT);
+    bool success = tls_crypto_client_sign(
+        crypto, TLS_KEY_SLOT_DEVICE, data, data_len, sig, sig_size, sig_len);
+    furi_record_close(RECORD_TLS_CRYPTO_CLIENT);
     return (success ? 0 : MBEDTLS_ERR_SSL_INTERNAL_ERROR);
 }
 
@@ -93,7 +95,9 @@ static bool tls_load_ca(struct mg_str str, mbedtls_x509_crt* p) {
 
 static bool tls_load_cert_from_917(uint8_t slot, mbedtls_x509_crt* crt) {
     size_t cert_len = 0;
-    uint8_t* cert_buf = tls_crypto_client_get_cert(slot, &cert_len);
+    TlsCryptoClient* crypto = furi_record_open(RECORD_TLS_CRYPTO_CLIENT);
+    uint8_t* cert_buf = tls_crypto_client_get_cert(crypto, slot, &cert_len);
+    furi_record_close(RECORD_TLS_CRYPTO_CLIENT);
     if(cert_buf == NULL) {
         FURI_LOG_E(TAG, "Cert get error (slot %u)", slot);
         return false;

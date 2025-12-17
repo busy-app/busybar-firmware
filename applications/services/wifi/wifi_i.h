@@ -50,6 +50,8 @@ struct Wifi {
     FuriSemaphore* dhcp_semaphore;
     FuriState* state;
     Intercom* intercom;
+    IntercomChannel* intercom_ch_control;
+    IntercomChannel* intercom_ch_data;
     struct netif netif;
     WifiMessage api_message;
     WifiRequest request;

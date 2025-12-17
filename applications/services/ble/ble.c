@@ -113,13 +113,13 @@ static Ble* ble_alloc() {
         ble_event_loop_msg_queue_handler,
         instance);
 
-    instance->intercom = furi_record_open(RECORD_INTERCOM);
-    intercom_set_rx_callback(
-        instance->intercom, IntercomChannelBle, ble_backend_intercom_rx_callback, instance);
+    Intercom* intercom = furi_record_open(RECORD_INTERCOM);
+    instance->intercom_ch = intercom_channel_open(
+        intercom, IntercomChannelIdBle, ble_backend_intercom_rx_callback, instance);
 
     for(size_t i = 0; i < BLE_SERVICES_COUNT; i++) {
         instance->services[i] =
-            ble_service_alloc(service_config[i], instance->message_queue, instance->intercom);
+            ble_service_alloc(service_config[i], instance->message_queue, instance->intercom_ch);
     }
 
     instance->error = furi_string_alloc();

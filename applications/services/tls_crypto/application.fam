@@ -11,7 +11,7 @@ App(
 
 App(
     appid="tls_crypto_server",
-    name="tls_crypto_server",
+    name="TlsCryptoServer",
     apptype=FlipperAppType.SERVICE,
     entry_point="tls_crypto_server_init",
     requires=["intercom"],
