@@ -5,7 +5,7 @@ import pytest
 
 
 @allure.feature("5. Web Frontend")
-@allure.story("Local API - Input")
+@allure.story("Input")
 class TestInputAPI:
     """Test cases for Input API endpoints"""
 

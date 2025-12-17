@@ -55,7 +55,7 @@ class TestBleAPI:
 
 
 @allure.feature("5. Web Frontend")
-@allure.story("Local API - BLE")
+@allure.story("BLE")
 class TestBleStatusAPI:
     """Test cases for BLE Status API endpoints"""
 

@@ -253,7 +253,7 @@ class TestSystemAPI:
 
 
 @allure.feature("5. Web Frontend")
-@allure.story("Local API - System")
+@allure.story("System")
 class TestTimeAPI:
     """Test cases for Time API endpoints"""
 
