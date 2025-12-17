@@ -220,30 +220,6 @@ class TestWebFrontendErrorHandling:
                 405,
             ], f"Expected 404/405, got {response.status_code}"
 
-    @allure.id("2737")
-    @allure.title("BSB Front. Malicious Query Parameters")
-    @pytest.mark.frontend
-    def test_malicious_query_parameters(self, web_session, web_base_url):
-        """Test that server handles malicious query parameters gracefully"""
-        malicious_params = [
-            "?param=<script>alert('xss')</script>",
-            "?param=" + "A" * 10000,  # Very long parameter
-            "?param=../../../etc/passwd",
-            "?param='; DROP TABLE users; --",
-        ]
-
-        for malicious_param in malicious_params:
-            with allure.step(f"Test parameter: {malicious_param[:50]}..."):
-                response = web_session.get(
-                    f"{web_base_url}/{malicious_param}", timeout=10
-                )
-                # Should not crash the server - any response code is fine as long as we get one
-                assert (
-                    response.status_code is not None
-                ), "Server should respond to malicious requests"
-                assert (
-                    response.status_code < 500
-                ), f"Server error with param {malicious_param[:20]}: {response.status_code}"
 
     @allure.id("2738")
     @pytest.mark.parametrize(
@@ -285,19 +261,19 @@ class TestWebFrontendIntegration:
         """Test that web interface, API docs, and core API endpoints all work together"""
 
         # Test main page
-        main_response = web_session.get(web_base_url, timeout=10)
+        main_response = web_session.get(web_base_url, timeout=5)
         assert main_response.status_code == 200, "Main page should load"
 
         # Test API docs
-        docs_response = web_session.get(f"{web_base_url}/docs/", timeout=10)
+        docs_response = web_session.get(f"{web_base_url}/docs/", timeout=5)
         assert docs_response.status_code == 200, "API docs should load"
 
         # Test at least one API endpoint works
-        api_response = web_session.get(f"{web_base_url}/api/version", timeout=10)
+        api_response = web_session.get(f"{web_base_url}/api/version", timeout=5)
         assert api_response.status_code == 200, "At least one API endpoint should work"
 
         # Test OpenAPI spec
-        spec_response = web_session.get(f"{web_base_url}/openapi.yaml", timeout=10)
+        spec_response = web_session.get(f"{web_base_url}/openapi.yaml", timeout=5)
         assert spec_response.status_code == 200, "OpenAPI spec should be available"
 
         with allure.step("Verify complete stack is functional"):

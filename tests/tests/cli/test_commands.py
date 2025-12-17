@@ -24,7 +24,6 @@ class TestCLICommandsSession:
             ), "? command should return available commands list"
             assert "?" in response, "? command should list itself as available"
 
-            # Check for key expected commands from your PuTTY output
             expected_commands = [
                 "loader",
                 "power",
