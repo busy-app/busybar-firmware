@@ -18,7 +18,7 @@ struct BleServiceObject {
 
     FuriMessageQueue* message_queue;
     FuriMutex* service_lock;
-    Intercom* intercom;
+    IntercomChannel* intercom_ch;
 
     FuriSemaphore* frame_lock;
     bool frame_pending;
