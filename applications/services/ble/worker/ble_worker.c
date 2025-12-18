@@ -689,11 +689,12 @@ static int32_t ble_worker_thread_callback(void* context) {
             //! start advertising
             const rsi_bt_event_le_security_keys_t* rpa =
                 ble_security_get_rpa_data(ble_worker_instance->security_data);
-            ///TODO: move ble_worker_instance->pairing_info_available instead of false, when debug done
-            instance->state =
-                ble_worker_start_advertising(false, rpa, ble_worker_instance->advertise) ?
-                    BleWorkerStateAdvertising :
-                    BleWorkerStateError;
+            instance->state = ble_worker_start_advertising(
+                                  ble_worker_instance->pairing_info_available,
+                                  rpa,
+                                  ble_worker_instance->advertise) ?
+                                  BleWorkerStateAdvertising :
+                                  BleWorkerStateError;
 
             memset(ble_worker_instance->str_remote_address, 0, BLE_REMOTE_ADDRESS_STRING_SIZE);
             ble_worker_instance->on_connection_changed_cb(
@@ -1145,8 +1146,8 @@ void ble_worker_start() {
 
         const rsi_bt_event_le_security_keys_t* rpa =
             ble_security_get_rpa_data(ble_worker_instance->security_data);
-        ///TODO: move ble_worker_instance->pairing_info_available instead of false, when debug done
-        ble_worker_start_advertising(false, rpa, ble_worker_instance->advertise);
+        ble_worker_start_advertising(
+            ble_worker_instance->pairing_info_available, rpa, ble_worker_instance->advertise);
 
         ble_worker_instance->state = BleWorkerStateAdvertising;
         furi_thread_start(ble_worker_instance->thread);
