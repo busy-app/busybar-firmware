@@ -12,8 +12,7 @@ struct BleSecurityData {
 
 #define BLE_SECURITY_RPA_ENABLE         1
 #define BLE_SECURITY_RPA_DISABLE        0
-///TODO: Temporary change, for debug, move back once done
-#define BLE_SECURITY_RPA_UPDATE_TIMEOUT (3600U) //(900U) //15 min
+#define BLE_SECURITY_RPA_UPDATE_TIMEOUT (900U) //15 min
 
 #define BLE_SECURITY_LOG_KEYS
 
