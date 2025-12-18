@@ -17,7 +17,7 @@ struct StatusLights {
     FuriEventLoop* event_loop;
     FuriMessageQueue* command_queue;
     FuriEventLoopTimer* timer;
-    Intercom* intercom;
+    IntercomChannel* intercom_ch;
 
     StatusLightsGenericPreset* preset_instance;
     const StatusLightsPresetBase* preset_api;
@@ -108,12 +108,9 @@ static StatusLights* status_lights_alloc() {
     instance->timer = furi_event_loop_timer_alloc(
         instance->event_loop, status_lights_run_pattern, FuriEventLoopTimerTypePeriodic, instance);
 
-    instance->intercom = furi_record_open(RECORD_INTERCOM);
-    intercom_set_rx_callback(
-        instance->intercom,
-        IntercomChannelStatusLights,
-        status_lights_intercom_rx_callback,
-        instance);
+    Intercom* intercom = furi_record_open(RECORD_INTERCOM);
+    instance->intercom_ch = intercom_channel_open(
+        intercom, IntercomChannelIdStatusLights, status_lights_intercom_rx_callback, instance);
 
     furi_record_create(RECORD_STATUS_LIGHTS, instance);
 

@@ -20,6 +20,7 @@ on:
 permissions:
   contents: read
   checks: write
+  id-token: write
 
 env:
   U5_HW_TARGET: ${{ inputs.target }}
@@ -29,6 +30,7 @@ env:
 jobs:
   unit-tests:
     runs-on: BusyBarTest
+    timeout-minutes: 20
     steps:
       - name: 'Checkout code at the build’s commit'
         uses: actions/checkout@v4
@@ -47,18 +49,17 @@ jobs:
           echo "Using URL: $URL"
           curl --fail -L -o busybar-f${{ inputs.target }}-unittests.zip "$URL"
           unzip -q busybar-f${{ inputs.target }}-unittests.zip -d unittests
-          cd unittests && mkdir -p update_bundle
-          tar -xf busybar-f${{ inputs.target }}-update-unittests.tar -C update_bundle
 
       - name: 'Flash firmware'
         id: flashing
-        timeout-minutes: 20
         run: |
           set -euo pipefail
           source scripts/toolchain/fbtenv.sh
+          python3 scripts/testops.py power reboot
+          python3 scripts/testops.py wait -t 20
+          python3 scripts/testops.py debug 1
           python3 scripts/testops.py format --no-confirm
-          python3 scripts/storage.py -p 10.0.4.20 send unittests/update_bundle /ext/tmp/upd_bundle
-          python3 scripts/testops.py update-bundle /ext/tmp/upd_bundle/update.json
+          python3 scripts/testops.py update-fw unittests/busybar-f${{ inputs.target }}-update-unittests.tar -r 3 --connect-timeout 10
           python3 scripts/testops.py wait -t 280
 
       - name: 'Check that both cores are available (post-flash)'
@@ -69,16 +70,30 @@ jobs:
           python3 scripts/testops.py sanity
 
       - name: 'Run units'
-        timeout-minutes: 2
         run: |
           set -euo pipefail
           source scripts/toolchain/fbtenv.sh
           python3 scripts/testops.py unit-tests
 
-      - name: 'Upload runner logs'
+      - name: 'Configure AWS CLI'
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: aws-actions/configure-aws-credentials@v4
         with:
-          name: runner-logs-unit-tests
-          path: /opt/logs/${{ runner.name }}/latest/runlog.log
-          if-no-files-found: warn
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: eu-central-1
+
+      - name: 'Upload runner logs to S3'
+        if: always()
+        run: |
+          RUN_ID="${{ github.run_number }}-${{ github.sha }}"
+          LOG_FILE="/opt/logs/${{ runner.name }}/latest/runlog.log"
+          S3_PATH="s3://flipper-aws-qa-tests/bsb/runner-logs/unit-tests/$RUN_ID/runlog.log"
+
+          if [ -f "$LOG_FILE" ]; then
+            aws s3 cp "$LOG_FILE" "$S3_PATH"
+            echo "## 📋 Runner Logs" >> $GITHUB_STEP_SUMMARY
+            echo "- [runlog.log]($S3_PATH)" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "Log file not found: $LOG_FILE"
+          fi

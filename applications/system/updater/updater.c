@@ -14,6 +14,7 @@
 #include <toolbox/path.h>
 #include <toolbox/tar/tar_archive.h>
 #include <toolbox/fetch/fetch_loader.h>
+#include <toolbox/sha256_calc.h>
 
 #define TAG "Updater"
 
@@ -21,6 +22,9 @@
 
 #define UPDATE_START_MIN_BATTERY_CHARGE        40
 #define UPDATE_INSTALLATION_APPLY_REBOOT_DELAY 100
+
+#define INSTALL_FROM_URL_THREAD_NAME       "UpdateInstall"
+#define INSTALL_FROM_URL_THREAD_STACK_SIZE (2 * 1024)
 
 struct Updater {
     Storage* storage;
@@ -45,6 +49,9 @@ struct Updater {
     FuriString* check_version;
     FuriString* check_sha256;
     FuriString* check_changelog;
+
+    FuriString* install_url;
+    FuriString* install_sha256;
 };
 
 typedef struct {
@@ -56,6 +63,7 @@ typedef enum {
     MessageTypeSessionStart,
     MessageTypeSessionStop,
     MessageTypeDownload,
+    MessageTypeVerifyBundleSha,
     MessageTypeUnpack,
     MessageTypeInstallationPrepare,
     MessageTypeInstallationApply,
@@ -70,6 +78,11 @@ typedef struct {
             FuriString* url;
             FuriString* path;
         } as_download;
+
+        struct {
+            FuriString* tar_path;
+            FuriString* sha;
+        } as_verify_bundle_sha;
 
         struct {
             FuriString* tar_path;
@@ -100,6 +113,30 @@ typedef enum {
 static const char* const status_strings[];
 static const MessageHandler message_handlers[];
 
+static UpdaterStatus invoke_async(Updater* instance, UpdaterMessage* message) {
+    message->result_status = NULL;
+    message->api_lock = NULL;
+
+    furi_check(
+        furi_message_queue_put(instance->message_queue, message, FuriWaitForever) == FuriStatusOk);
+
+    return UpdaterStatusOk;
+}
+
+static UpdaterStatus invoke_sync(Updater* instance, UpdaterMessage* message) {
+    UpdaterStatus update_status;
+
+    message->result_status = &update_status;
+    message->api_lock = api_lock_alloc_locked();
+
+    furi_check(
+        furi_message_queue_put(instance->message_queue, message, FuriWaitForever) == FuriStatusOk);
+
+    api_lock_wait_unlock_and_free(message->api_lock);
+
+    return update_status;
+}
+
 static void custom_event_callback(uint32_t events, void* context) {
     Updater* instance = context;
 
@@ -127,13 +164,12 @@ static void check_done_callback(bool is_success, UpdaterCheckerInfo* update_info
             furi_string_set(instance->check_sha256, update_info->sha256);
             furi_string_set(instance->check_changelog, update_info->changelog);
 
-            check_state->status = UpdaterCheckStatusAvailable;
+            check_state->result = UpdaterCheckResultAvailable;
         } else {
-            check_state->status = UpdaterCheckStatusNotAvailable;
+            check_state->result = UpdaterCheckResultNotAvailable;
         }
-
     } else {
-        check_state->status = UpdaterCheckStatusFailure;
+        check_state->result = UpdaterCheckResultFailure;
     }
 
     check_state->event = UpdaterCheckEventStop;
@@ -142,7 +178,7 @@ static void check_done_callback(bool is_success, UpdaterCheckerInfo* update_info
 }
 
 static void check_timer_callback(void* context) {
-    updater_check_for_update(context);
+    invoke_async(context, &(UpdaterMessage){.type = MessageTypeCheckForUpdate});
 }
 
 static UpdaterStatus do_check_for_update(Updater* instance, UpdaterMessage* message) {
@@ -159,7 +195,7 @@ static UpdaterStatus do_check_for_update(Updater* instance, UpdaterMessage* mess
         furi_state_release(instance->check_state);
     }
 
-    return UpdaterStatusOk;
+    return (is_check_start_successful) ? UpdaterStatusOk : UpdaterStatusBusy;
 }
 
 static UpdaterStatus do_session_start(Updater* instance, UpdaterMessage* message) {
@@ -292,6 +328,39 @@ static UpdaterStatus do_download(Updater* instance, UpdaterMessage* message) {
     instance->download_loader = NULL;
 
     return download_message.status;
+}
+
+static UpdaterStatus do_verify_bundle_sha(Updater* instance, UpdaterMessage* message) {
+    const char* tar_path = furi_string_get_cstr(message->as_verify_bundle_sha.tar_path);
+    const char* sha = furi_string_get_cstr(message->as_verify_bundle_sha.sha);
+
+    FURI_LOG_D(TAG, "Verifying SHA256 checksum of %s", tar_path);
+
+    FuriString* sha256_calc = furi_string_alloc();
+
+    FS_Error file_status = FSE_OK;
+    File* file = storage_file_alloc(instance->storage);
+
+    sha256_string_calc_file(file, tar_path, sha256_calc, &file_status);
+
+    storage_file_free(file);
+
+    UpdaterStatus update_status =
+        (file_status == FSE_OK && furi_string_cmp(sha256_calc, sha) == 0) ?
+            UpdaterStatusOk :
+            UpdaterStatusShaMismatch;
+
+    furi_string_free(sha256_calc);
+    furi_string_free(message->as_verify_bundle_sha.tar_path);
+    furi_string_free(message->as_verify_bundle_sha.sha);
+
+    if(update_status == UpdaterStatusOk) {
+        FURI_LOG_D(TAG, "SHA256 checksum verified successfully");
+    } else {
+        FURI_LOG_E(TAG, "SHA256 checksum verification failed for %s", tar_path);
+    }
+
+    return update_status;
 }
 
 static UpdaterStatus do_unpack(Updater* instance, UpdaterMessage* message) {
@@ -462,28 +531,52 @@ static void message_queue_callback(FuriEventLoopObject* object, void* context) {
     }
 }
 
-static UpdaterStatus invoke_async(Updater* instance, UpdaterMessage* message) {
-    message->result_status = NULL;
-    message->api_lock = NULL;
+static int32_t install_from_url_thread_callback(void* context) {
+    Updater* instance = context;
 
-    furi_check(
-        furi_message_queue_put(instance->message_queue, message, FuriWaitForever) == FuriStatusOk);
+    UpdaterStatus status;
+    do {
+        const char* url = furi_string_get_cstr(instance->install_url);
+        status = updater_download(instance, url, NULL, true);
+        if(status != UpdaterStatusOk) {
+            break;
+        }
 
-    return UpdaterStatusOk;
+        if(furi_string_size(instance->install_sha256) > 0) {
+            const char* sha = furi_string_get_cstr(instance->install_sha256);
+            status = updater_verify_bundle_sha(instance, NULL, sha, true);
+            if(status != UpdaterStatusOk) {
+                break;
+            }
+        }
+
+        status = updater_unpack(instance, NULL, NULL, NULL, true);
+        if(status != UpdaterStatusOk) {
+            break;
+        }
+
+        status = updater_installation_prepare(instance, NULL, true);
+        if(status != UpdaterStatusOk) {
+            break;
+        }
+
+        updater_installation_apply(instance, true);
+    } while(false);
+
+    updater_session_stop(instance);
+
+    return 0;
 }
 
-static UpdaterStatus invoke_sync(Updater* instance, UpdaterMessage* message) {
-    UpdaterStatus update_status;
+static void install_from_url_thread_state_callback(
+    FuriThread* thread,
+    FuriThreadState state,
+    void* context) {
+    UNUSED(context);
 
-    message->result_status = &update_status;
-    message->api_lock = api_lock_alloc_locked();
-
-    furi_check(
-        furi_message_queue_put(instance->message_queue, message, FuriWaitForever) == FuriStatusOk);
-
-    api_lock_wait_unlock_and_free(message->api_lock);
-
-    return update_status;
+    if(state == FuriThreadStateStopped) {
+        furi_thread_free(thread);
+    }
 }
 
 const char* updater_get_status_string(UpdaterStatus status) {
@@ -566,7 +659,6 @@ UpdaterStatus
 
 void updater_abort_download(Updater* instance) {
     furi_check(instance);
-    furi_check(furi_semaphore_get_space(instance->update_lock) > 0);
 
     furi_message_queue_put(
         instance->download_queue,
@@ -574,6 +666,27 @@ void updater_abort_download(Updater* instance) {
             .is_abort_request = true,
         },
         0);
+}
+
+UpdaterStatus updater_verify_bundle_sha(
+    Updater* instance,
+    const char* tar_path,
+    const char* sha,
+    bool do_wait) {
+    furi_check(instance);
+    furi_check(sha);
+    furi_check(furi_semaphore_get_space(instance->update_lock) > 0);
+
+    UpdaterMessage message = {
+        .as_verify_bundle_sha =
+            {
+                .tar_path = furi_string_alloc_set_str((tar_path) ?: UPDATER_DEFAULT_DOWNLOAD_PATH),
+                .sha = furi_string_alloc_set_str(sha),
+            },
+        .type = MessageTypeVerifyBundleSha,
+    };
+
+    return (do_wait) ? invoke_sync(instance, &message) : invoke_async(instance, &message);
 }
 
 UpdaterStatus updater_unpack(
@@ -631,16 +744,49 @@ void updater_installation_apply(Updater* instance, bool do_wait) {
     }
 }
 
-void updater_check_for_update(Updater* instance) {
+UpdaterStatus updater_install_from_url(Updater* instance, const char* url, const char* sha256) {
+    furi_check(instance);
+    furi_check(url);
+
+    UpdaterStatus session_start_status = updater_session_start(instance);
+
+    if(session_start_status == UpdaterStatusOk) {
+        furi_string_set(instance->install_url, url);
+
+        if(sha256) {
+            furi_string_set(instance->install_sha256, sha256);
+        } else {
+            furi_string_reset(instance->install_sha256);
+        }
+
+        FuriThread* thread = furi_thread_alloc_ex(
+            INSTALL_FROM_URL_THREAD_NAME,
+            INSTALL_FROM_URL_THREAD_STACK_SIZE,
+            install_from_url_thread_callback,
+            instance);
+
+        furi_thread_set_state_context(thread, instance);
+        furi_thread_set_state_callback(thread, install_from_url_thread_state_callback);
+        furi_thread_start(thread);
+    }
+
+    return session_start_status;
+}
+
+UpdaterStatus updater_check_for_update(Updater* instance) {
     furi_check(instance);
 
-    invoke_sync(instance, &(UpdaterMessage){.type = MessageTypeCheckForUpdate});
+    return invoke_sync(instance, &(UpdaterMessage){.type = MessageTypeCheckForUpdate});
 }
 
 const char* updater_get_active_version(void) {
     const Version* version = furi_hal_version_get_firmware_version();
-    return (strcmp(version_get_version(version), "unknown") == 0) ? version_get_githash(version) :
-                                                                    version_get_version(version);
+    const char* version_str = version_get_version(version);
+    if((strlen(version_str) > 0) && (version_str[0] != 'r')) {
+        return version_str;
+    }
+
+    return version_get_githash(version);
 }
 
 static Updater* updater_alloc(void) {
@@ -671,6 +817,9 @@ static Updater* updater_alloc(void) {
     instance->check_sha256 = furi_string_alloc();
     instance->check_changelog = furi_string_alloc();
 
+    instance->install_url = furi_string_alloc();
+    instance->install_sha256 = furi_string_alloc();
+
     furi_event_loop_subscribe_message_queue(
         instance->event_loop,
         instance->message_queue,
@@ -697,7 +846,7 @@ static Updater* updater_alloc(void) {
             .version = instance->check_version,
             .sha256 = instance->check_sha256,
             .changelog = instance->check_changelog,
-            .status = UpdaterCheckStatusNone,
+            .result = UpdaterCheckResultNone,
             .event = UpdaterCheckEventNone,
         });
 
@@ -722,16 +871,22 @@ int32_t updater_srv(void* p) {
 static const char* const status_strings[] = {
     [UpdaterStatusOk] = "Success",
     [UpdaterStatusBatteryLow] = "Battery level too low",
-    [UpdaterStatusBusy] = "Update already in progress",
+    [UpdaterStatusBusy] = "Operation already in progress",
+
     [UpdaterStatusDownloadFailure] = "Failed to download update bundle",
     [UpdaterStatusDownloadAbort] = "Download aborted",
+
+    [UpdaterStatusShaMismatch] = "SHA256 checksum verification failed",
+
     [UpdaterStatusUnpackCreateStagingDirectoryFailure] = "Failed to create staging directory",
     [UpdaterStatusUnpackArchiveOpenFailure] = "Failed to open tar file",
     [UpdaterStatusUnpackArchiveUnpackFailure] = "Failed to unpack tar file",
+
     [UpdaterStatusInstallationPrepareManifestNotFound] = "Manifest not found",
     [UpdaterStatusInstallationPrepareManifestInvalid] = "Failed to validate manifest",
     [UpdaterStatusInstallationPrepareSessionConfigSetupFailure] = "Failed to save session config",
     [UpdaterStatusInstallationPreparePointerSetupFailure] = "Failed to write pointer file",
+
     [UpdaterStatusUnknownFailure] = "Unknown error",
 };
 
@@ -752,6 +907,11 @@ static const MessageHandler message_handlers[] = {
         {
             .callback = do_download,
             .action = UpdaterUpdateActionDownload,
+        },
+    [MessageTypeVerifyBundleSha] =
+        {
+            .callback = do_verify_bundle_sha,
+            .action = UpdaterUpdateActionShaVerification,
         },
     [MessageTypeUnpack] =
         {
