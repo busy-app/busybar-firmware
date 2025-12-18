@@ -6,12 +6,11 @@
 
 #define THEME_NAME_LEN_MAX (64)
 
-ARRAY_DEF(BusyThemeArray, BusyTheme*, BUSY_THEME_OPLIST);
-
 typedef struct {
+    ThemePickerModel* picker_model;
     ThemePicker* front_picker;
-    ThemePicker* back_picker;
-    BusyThemeArray_t themes;
+    // TODO: Solve storage issue
+    // ThemePicker* back_picker;
 } BusySceneSetupTheme;
 
 static void busy_scene_setup_theme_picker_callback(uint32_t index, void* context) {
@@ -21,7 +20,7 @@ static void busy_scene_setup_theme_picker_callback(uint32_t index, void* context
     busy_send_custom_event(instance, index);
 }
 
-static void busy_scene_setup_theme_read_themes(BusyThemeArray_t data) {
+static void busy_scene_setup_theme_read_extra_themes(ThemePickerModel* model) {
     Storage* storage = furi_record_open(RECORD_STORAGE);
 
     File* themes_dir = storage_file_alloc(storage);
@@ -36,7 +35,7 @@ static void busy_scene_setup_theme_read_themes(BusyThemeArray_t data) {
 
         while(storage_dir_read(themes_dir, NULL, file_name, THEME_NAME_LEN_MAX)) {
             if(busy_theme_read(theme, file_name)) {
-                BusyThemeArray_push_back(data, theme);
+                theme_picker_model_add_item(model, theme);
             }
         }
 
@@ -49,14 +48,9 @@ static void busy_scene_setup_theme_read_themes(BusyThemeArray_t data) {
 }
 
 static void busy_scene_setup_theme_handle_theme_changed(BusyApp* instance, uint32_t theme_idx) {
-    if(theme_idx == 0) {
-        busy_theme_reset(instance->theme);
-
-    } else {
-        const BusySceneSetupTheme* data =
-            scene_manager_get_scene_data(instance->scene_manager, BusyAppSceneIdSetupTheme);
-        busy_theme_set(instance->theme, *BusyThemeArray_cget(data->themes, theme_idx - 1));
-    }
+    const BusySceneSetupTheme* data =
+        scene_manager_get_scene_data(instance->scene_manager, BusyAppSceneIdSetupTheme);
+    busy_theme_set(instance->theme, theme_picker_model_get_item(data->picker_model, theme_idx));
 }
 
 static void busy_scene_setup_theme_on_enter(void* context) {
@@ -66,27 +60,23 @@ static void busy_scene_setup_theme_on_enter(void* context) {
     BusySceneSetupTheme* data =
         scene_manager_get_scene_data(instance->scene_manager, BusyAppSceneIdSetupTheme);
 
-    BusyThemeArray_init(data->themes);
-    busy_scene_setup_theme_read_themes(data->themes);
+    data->picker_model = theme_picker_model_alloc();
+
+    BusyTheme* default_theme = busy_theme_alloc_default();
+    theme_picker_model_add_item(data->picker_model, default_theme);
+    busy_theme_free(default_theme);
+
+    busy_scene_setup_theme_read_extra_themes(data->picker_model);
 
     with_gui(instance->gui, {
         data->front_picker = theme_picker_alloc(instance->front_window);
+        theme_picker_set_model(data->front_picker, data->picker_model);
         widget_set_align(theme_picker_get_base(data->front_picker), AlignCenter);
 
-        data->back_picker = theme_picker_alloc(instance->back_window);
-        widget_set_align(theme_picker_get_base(data->back_picker), AlignCenter);
+        // data->back_picker = theme_picker_alloc(instance->back_window);
+        // theme_picker_set_model(data->back_picker, data->picker_model);
+        // widget_set_align(theme_picker_get_base(data->back_picker), AlignCenter);
 
-        // Add default theme
-        theme_picker_add_item(data->front_picker, BUSY_IMG_PATH("theme_preview_72x16.bin"));
-        theme_picker_add_item(data->back_picker, BUSY_IMG_PATH("theme_preview_72x16.bin"));
-
-        BusyThemeArray_it_ct it;
-        for(BusyThemeArray_it(it, data->themes); !BusyThemeArray_end_p(it);
-            BusyThemeArray_next(it)) {
-            const BusyTheme* theme = *BusyThemeArray_cref(it);
-            theme_picker_add_item(data->front_picker, busy_theme_get_preview_path(theme));
-            theme_picker_add_item(data->back_picker, busy_theme_get_preview_path(theme));
-        }
         // Needed only once
         theme_picker_set_callback(
             data->front_picker, busy_scene_setup_theme_picker_callback, instance);
@@ -102,10 +92,9 @@ static void busy_scene_setup_theme_on_exit(void* context) {
 
     with_gui(instance->gui, {
         theme_picker_free(data->front_picker);
-        theme_picker_free(data->back_picker);
+        // theme_picker_free(data->back_picker);
+        theme_picker_model_free(data->picker_model);
     });
-
-    BusyThemeArray_clear(data->themes);
 }
 
 static bool busy_scene_setup_theme_on_event(const SceneManagerEvent* event, void* context) {

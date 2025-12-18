@@ -17,7 +17,22 @@
 
 typedef struct BusyTheme BusyTheme;
 
+typedef enum {
+    BusyThemeFileTypeImage,
+    BusyThemeFileTypeAnimImage,
+    BusyThemeFileTypeLottieAnim,
+    BusyThemeFileTypeMax,
+} BusyThemeFileType;
+
+typedef struct {
+    const char* name;
+    const char* bg_path;
+    BusyThemeFileType bg_type;
+} BusyThemeInfo;
+
 BusyTheme* busy_theme_alloc(void);
+
+BusyTheme* busy_theme_alloc_default(void);
 
 BusyTheme* busy_theme_alloc_set(const BusyTheme* other);
 
@@ -27,10 +42,6 @@ void busy_theme_reset(BusyTheme* instance);
 
 void busy_theme_set(BusyTheme* instance, const BusyTheme* other);
 
-const char* busy_theme_get_name(const BusyTheme* instance);
-
-const char* busy_theme_get_preview_path(const BusyTheme* instance);
-
-const char* busy_theme_get_bg_path(const BusyTheme* instance);
-
 bool busy_theme_read(BusyTheme* instance, const char* name);
+
+void busy_theme_get_info(const BusyTheme* instance, BusyThemeInfo* info);

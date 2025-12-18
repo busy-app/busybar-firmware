@@ -6,6 +6,8 @@
 
 #include <gui/widget.h>
 
+#include "../helpers/theme_picker_model.h"
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -41,7 +43,7 @@ void theme_picker_free(ThemePicker* instance);
  */
 Widget* theme_picker_get_base(ThemePicker* instance);
 
-void theme_picker_add_item(ThemePicker* instance, const char* image_path);
+void theme_picker_set_model(ThemePicker* instance, const ThemePickerModel* model);
 
 void theme_picker_set_callback(ThemePicker* instance, ThemePickerCallback callback, void* context);
 

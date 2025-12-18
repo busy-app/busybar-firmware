@@ -101,7 +101,7 @@ static BusyApp* busy_alloc(const char* arg) {
     instance->audio = furi_record_open(RECORD_AUDIO);
     instance->gui = furi_record_open(RECORD_GUI);
     instance->matter = furi_record_open(RECORD_MATTER);
-    instance->theme = busy_theme_alloc();
+    instance->theme = busy_theme_alloc_default();
 
     busy_set_status_lights(instance, BusyStatusLightsTypeOff);
     busy_set_matter(instance, false);

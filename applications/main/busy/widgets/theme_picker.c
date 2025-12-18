@@ -1,9 +1,9 @@
 #include "theme_picker.h"
 
-#include <m-array.h>
-
 #include <gui/widget_i.h>
+
 #include <gui/modules/image.h>
+#include <gui/modules/anim_image.h>
 
 #define MY_CLASS (&theme_picker_lvgl_class)
 
@@ -12,13 +12,12 @@
 #define SYM_ARROW_LEFT_BIG  "<"
 #define SYM_ARROW_RIGHT_BIG ">"
 
-ARRAY_DEF(ThemePickerItemArray, FuriString*, FURI_STRING_OPLIST);
-
 struct ThemePicker {
     Widget base;
     Image* image;
+    AnimImage* anim_image;
 
-    ThemePickerItemArray_t items;
+    const ThemePickerModel* model;
     uint32_t current_idx;
 
     ThemePickerCallback callback;
@@ -68,9 +67,8 @@ static void theme_picker_lvgl_constructor(const lv_obj_class_t* class_p, lv_obj_
     ThemePicker* instance = (ThemePicker*)obj;
     widget_set_input_feed_callback((Widget*)instance, theme_picker_input_callback);
 
-    ThemePickerItemArray_init(instance->items);
-
     instance->image = image_alloc((Widget*)obj);
+    instance->anim_image = anim_image_alloc((Widget*)obj);
 
     lv_obj_t* deco_left = theme_picker_create_decoration(obj, false);
     lv_obj_set_style_align(deco_left, LV_ALIGN_TOP_LEFT, LV_PART_MAIN);
@@ -79,18 +77,30 @@ static void theme_picker_lvgl_constructor(const lv_obj_class_t* class_p, lv_obj_
     lv_obj_set_style_align(deco_right, LV_ALIGN_TOP_RIGHT, LV_PART_MAIN);
 }
 
-static void theme_picker_lvgl_destructor(const lv_obj_class_t* class_p, lv_obj_t* obj) {
-    UNUSED(class_p);
-
-    ThemePicker* instance = (ThemePicker*)obj;
-    ThemePickerItemArray_clear(instance->items);
-}
-
 // Implementation
 
 static void theme_picker_update_image(ThemePicker* instance) {
-    FuriString* image_path = *ThemePickerItemArray_get(instance->items, instance->current_idx);
-    image_set_source(instance->image, furi_string_get_cstr(image_path));
+    const BusyTheme* theme = theme_picker_model_get_item(instance->model, instance->current_idx);
+
+    BusyThemeInfo info;
+    busy_theme_get_info(theme, &info);
+
+    const BusyThemeFileType bg_type = info.bg_type;
+    const char* bg_path = info.bg_path;
+
+    if(bg_type == BusyThemeFileTypeImage) {
+        widget_set_visible((Widget*)instance->image, true);
+        widget_set_visible((Widget*)instance->anim_image, false);
+
+        anim_image_stop(instance->anim_image);
+        image_set_source(instance->image, bg_path);
+
+    } else if(bg_type == BusyThemeFileTypeAnimImage) {
+        widget_set_visible((Widget*)instance->image, false);
+        widget_set_visible((Widget*)instance->anim_image, true);
+
+        anim_image_set_source(instance->anim_image, bg_path);
+    }
 }
 
 static bool theme_picker_input_callback(Widget* widget, const InputEvent* event) {
@@ -100,7 +110,7 @@ static bool theme_picker_input_callback(Widget* widget, const InputEvent* event)
 
     if(event->type == InputTypeShort) {
         if(event->key == InputKeyUp) {
-            if(instance->current_idx == ThemePickerItemArray_size(instance->items) - 1) {
+            if(instance->current_idx == theme_picker_model_get_item_count(instance->model) - 1) {
                 instance->current_idx = 0;
             } else {
                 ++instance->current_idx;
@@ -110,7 +120,7 @@ static bool theme_picker_input_callback(Widget* widget, const InputEvent* event)
 
         } else if(event->key == InputKeyDown) {
             if(instance->current_idx == 0) {
-                instance->current_idx = ThemePickerItemArray_size(instance->items) - 1;
+                instance->current_idx = theme_picker_model_get_item_count(instance->model) - 1;
             } else {
                 --instance->current_idx;
             }
@@ -152,17 +162,12 @@ Widget* theme_picker_get_base(ThemePicker* instance) {
     return (Widget*)instance;
 }
 
-void theme_picker_add_item(ThemePicker* instance, const char* image_path) {
+void theme_picker_set_model(ThemePicker* instance, const ThemePickerModel* model) {
     furi_check(instance);
+    furi_check(model);
 
-    const bool was_empty = ThemePickerItemArray_empty_p(instance->items);
-
-    FuriString* item = *ThemePickerItemArray_push_new(instance->items);
-    furi_string_set(item, image_path);
-
-    if(was_empty) {
-        theme_picker_update_image(instance);
-    }
+    instance->model = model;
+    theme_picker_update_image(instance);
 }
 
 void theme_picker_set_callback(ThemePicker* instance, ThemePickerCallback callback, void* context) {
@@ -177,7 +182,6 @@ void theme_picker_set_callback(ThemePicker* instance, ThemePickerCallback callba
 const lv_obj_class_t theme_picker_lvgl_class = {
     .base_class = &widget_lvgl_class,
     .constructor_cb = theme_picker_lvgl_constructor,
-    .destructor_cb = theme_picker_lvgl_destructor,
     .name = "widget-theme-picker",
     .width_def = LV_SIZE_CONTENT,
     .height_def = LV_SIZE_CONTENT,
