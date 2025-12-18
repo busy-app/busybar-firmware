@@ -478,7 +478,7 @@ static void rsi_ble_on_sc_method(rsi_bt_event_sc_method_t* scmethod) {
 // }
 //===========================================================================================
 static bool ble_worker_start_advertising(
-    bool rpa_enabled,
+    bool advertise_to_paired_only,
     const rsi_bt_event_le_security_keys_t* key,
     const BleAdvertiseContext* advertise) {
     rsi_ble_req_adv_t ble_adv = {0};
@@ -487,15 +487,23 @@ static bool ble_worker_start_advertising(
     ble_adv.adv_type = rpa_enabled ? DIR_CONN_LOW_DUTY_CYCLE : UNDIR_CONN;
     ble_adv.filter_type = RSI_BLE_ADV_FILTER_TYPE;
     if(rpa_enabled) {
-        ble_adv.direct_addr_type = key->Identity_addr_type;
-        memcpy(ble_adv.direct_addr, key->Identity_addr, RSI_DEV_ADDR_LEN);
-    }
+
+    ble_adv.status = RSI_BLE_START_ADV;
+    ble_adv.adv_type = UNDIR_CONN;
 
     ble_adv.adv_int_min = RSI_BLE_ADV_INT_MIN;
     ble_adv.adv_int_max = RSI_BLE_ADV_INT_MAX;
     ble_adv.adv_channel_map = RSI_BLE_ADV_CHANNEL_MAP;
 
-    ble_adv.own_addr_type = rpa_enabled ? LE_RESOLVABLE_RANDOM_ADDRESS : LE_PUBLIC_ADDRESS;
+    rsi_ble_clear_acceptlist();
+    if(advertise_to_paired_only) {
+        rsi_ble_addto_acceptlist((int8_t*)key->Identity_addr, key->Identity_addr_type);
+        ble_adv.filter_type = ALLOW_SCAN_REQ_ACCEPT_LIST_CONN_REQ_ACCEPT_LIST;
+        ble_adv.own_addr_type = LE_RESOLVABLE_RANDOM_ADDRESS;
+    } else {
+        ble_adv.filter_type = RSI_BLE_ADV_FILTER_TYPE;
+        ble_adv.own_addr_type = LE_PUBLIC_ADDRESS;
+    }
 
     ble_advertise_refresh_data(advertise);
 
