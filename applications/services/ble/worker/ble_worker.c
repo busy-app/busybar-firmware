@@ -21,6 +21,10 @@
 
 #define TAG "BleWorker"
 
+///TODO: Remove after all connection issues will be resolved
+// Uncommend macro below in order to force ble advertising with public address only
+// #define BLE_DEBUG_ADVERTISE_FORCE_PUBLIC
+
 #define BLE_DEFAULT_LOCAL_NAME "BUSY Bar"
 
 #define BLE_WORKER_LOCAL_DEV_ADDR_LEN 18 // Length of the local device address
@@ -482,11 +486,11 @@ static bool ble_worker_start_advertising(
     const rsi_bt_event_le_security_keys_t* key,
     const BleAdvertiseContext* advertise) {
     rsi_ble_req_adv_t ble_adv = {0};
-    ble_adv.status = RSI_BLE_START_ADV;
 
-    ble_adv.adv_type = rpa_enabled ? DIR_CONN_LOW_DUTY_CYCLE : UNDIR_CONN;
-    ble_adv.filter_type = RSI_BLE_ADV_FILTER_TYPE;
-    if(rpa_enabled) {
+#ifdef BLE_DEBUG_ADVERTISE_FORCE_PUBLIC
+    BLE_LOG_W("Public advertise forced!");
+    advertise_to_paired_only = false;
+#endif
 
     ble_adv.status = RSI_BLE_START_ADV;
     ble_adv.adv_type = UNDIR_CONN;
