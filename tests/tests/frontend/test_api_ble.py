@@ -1,7 +1,7 @@
-import json
-
 import allure
 import pytest
+
+from utils import api_get, api_post, api_delete, assert_field_in
 
 
 @allure.feature("5. Web Frontend")
@@ -17,19 +17,11 @@ class TestBleAPI:
         """Test POST /api/ble/enable endpoint"""
 
         with allure.step("Enable BLE"):
-            response = api_session.post(f"{web_base_url}/api/ble/enable", timeout=10)
+            response = api_post(api_session, web_base_url, "/api/ble/enable")
 
         with allure.step("Verify enable response"):
-            assert (
-                response.status_code == 200
-            ), f"Expected 200, got {response.status_code}"
-
-            response_data = response.json()
-            allure.attach(
-                json.dumps(response_data, indent=2),
-                "BLE Enable Response",
-                allure.attachment_type.JSON,
-            )
+            response.assert_ok()
+            response.attach_to_allure("BLE Enable Response")
 
     @allure.id("2664")
     @allure.title("POST /api/ble/disable")
@@ -39,19 +31,11 @@ class TestBleAPI:
         """Test POST /api/ble/disable endpoint"""
 
         with allure.step("Disable BLE"):
-            response = api_session.post(f"{web_base_url}/api/ble/disable", timeout=10)
+            response = api_post(api_session, web_base_url, "/api/ble/disable")
 
         with allure.step("Verify disable response"):
-            assert (
-                response.status_code == 200
-            ), f"Expected 200, got {response.status_code}"
-
-            response_data = response.json()
-            allure.attach(
-                json.dumps(response_data, indent=2),
-                "BLE Disable Response",
-                allure.attachment_type.JSON,
-            )
+            response.assert_ok()
+            response.attach_to_allure("BLE Disable Response")
 
 
 @allure.feature("5. Web Frontend")
@@ -67,49 +51,27 @@ class TestBleStatusAPI:
         """Test GET /api/ble/status endpoint"""
 
         with allure.step("Make GET request to /api/ble/status"):
-            response = api_session.get(f"{web_base_url}/api/ble/status", timeout=10)
+            response = api_get(api_session, web_base_url, "/api/ble/status")
 
         with allure.step("Verify response status and structure"):
-            assert (
-                response.status_code == 200
-            ), f"Expected 200, got {response.status_code}"
-            assert (
-                "application/json" in response.headers.get("content-type", "").lower()
-            )
+            response.assert_ok().assert_json_content_type()
+            response.assert_has_fields("state", "pairing").attach_to_allure("BLE Status Response")
 
-            ble_data = response.json()
-            allure.attach(
-                json.dumps(ble_data, indent=2),
-                "BLE Status Response",
-                allure.attachment_type.JSON,
-            )
-
-            # Validate required fields based on OpenAPI schema
-            assert "state" in ble_data, "Response should contain 'state' field"
-            assert "pairing" in ble_data, "Response should contain 'pairing' field"
+            data = response.json()
 
             # Validate state enum
             valid_states = [
-                "reset",
-                "initialization",
-                "disabled",
-                "enabled",
-                "connected",
-                "internal error",
+                "reset", "initialization", "disabled",
+                "enabled", "connected", "internal error",
             ]
-            assert (
-                ble_data["state"] in valid_states
-            ), f"State should be one of {valid_states}, got {ble_data['state']}"
+            assert_field_in(data, "state", valid_states)
 
             # Address field is only present when BLE is enabled
-            if ble_data["state"] in ["enabled", "connected"]:
-                assert "address" in ble_data, "Response should contain 'address' field when BLE is enabled"
+            if data["state"] in ["enabled", "connected"]:
+                response.assert_has_fields("address")
 
             # Validate pairing enum
-            valid_pairing = ["unknown", "not paired", "paired"]
-            assert (
-                ble_data["pairing"] in valid_pairing
-            ), f"Pairing should be one of {valid_pairing}, got {ble_data['pairing']}"
+            assert_field_in(data, "pairing", ["unknown", "not paired", "paired"])
 
     @allure.id("2725")
     @allure.title("DELETE /api/ble/pairing")
@@ -120,18 +82,9 @@ class TestBleStatusAPI:
         """Test DELETE /api/ble/pairing endpoint"""
 
         with allure.step("Remove BLE pairing"):
-            response = api_session.delete(f"{web_base_url}/api/ble/pairing", timeout=10)
+            response = api_delete(api_session, web_base_url, "/api/ble/pairing")
 
         with allure.step("Verify response status"):
             # May return 200 if successful, 503 if BLE not initialized or already unpaired
-            assert response.status_code in [
-                200,
-                503,
-            ], f"Expected 200 or 503, got {response.status_code}"
-
-            response_data = response.json()
-            allure.attach(
-                json.dumps(response_data, indent=2),
-                "BLE Pairing Remove Response",
-                allure.attachment_type.JSON,
-            )
+            response.assert_status([200, 503])
+            response.attach_to_allure("BLE Pairing Remove Response")

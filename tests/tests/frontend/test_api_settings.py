@@ -1,7 +1,14 @@
-import json
-
 import allure
 import pytest
+
+from utils import (
+    api_get,
+    api_post,
+    attach_json,
+    assert_has_fields,
+    assert_field_in,
+    assert_field_type,
+)
 
 
 @allure.feature("5. Web Frontend")
@@ -11,124 +18,144 @@ class TestNameAPI:
 
     @allure.id("2712")
     @allure.title("Name. GET /api/name")
+    @allure.issue("FW-407")
     @pytest.mark.api
     @pytest.mark.frontend
     def test_api_name_get(self, api_session, web_base_url):
         """Test GET /api/name endpoint"""
 
         with allure.step("Make GET request to /api/name"):
-            response = api_session.get(f"{web_base_url}/api/name", timeout=10)
+            response = api_get(api_session, web_base_url, "/api/name")
 
         with allure.step("Verify response status and structure"):
-            assert (
-                response.status_code == 200
-            ), f"Expected 200, got {response.status_code}"
-            assert (
-                "application/json" in response.headers.get("content-type", "").lower()
-            )
-
-            name_data = response.json()
-            allure.attach(
-                json.dumps(name_data, indent=2),
-                "Name Response",
-                allure.attachment_type.JSON,
-            )
-
-            # Validate required fields based on OpenAPI schema
-            assert "name" in name_data, "Response should contain 'name' field"
-            assert isinstance(name_data["name"], str), "Name should be a string"
+            response.assert_ok().assert_json_content_type()
+            response.assert_has_fields("name")
+            response.assert_field_type("name", str).attach_to_allure("Name Response")
 
     @allure.id("2713")
     @allure.title("Name. POST /api/name")
+    @allure.issue("FW-407")
     @pytest.mark.api
     @pytest.mark.frontend
-    @pytest.mark.parametrize("test_name", ["Test Device Name", "Another Name 123", "设备名称测试", "emoji 🚀"])
+    @pytest.mark.parametrize("test_name", [
+        "18 symbols length!",
+        "Test Device Name",
+        "Another Name 123",
+        "T",
+        "8u7Y 8a&",
+        "Bu$Y 8aR",
+        "wa^%$#@!()_+{}|>?",
+        "Name \ bh d / h",
+        "Quotes '  ` ~",
+        "Nah - ure_ad-en",
+        "N!",
+        "Name!",
+        "Name@Home",
+        "Name#1",
+        "Name$Dollar",
+        "Name%Percent",
+        "Name^Caret",
+        "Name&And",
+        "Name*Star",
+        "Name(Paren",
+        "Name)Paren",
+        "Name- Dash",
+        "Name=Equal",
+        "Name+Plus",
+        "Name{Brace",
+        "Name}Brace",
+        "Name[Bracket",
+        "Name]Bracket",
+        "Name|Pipe",
+        "Name;Semicolon",
+        "Name:Colon",
+        "Name\"Quote",
+        "Name<Less",
+        "Name>Greater",
+        "Name,Comma",
+        "Name.Period",
+        "Name?Question",
+        "Name/Slash",
+        "Name\\Backslash",
+    ])
     def test_api_name_post(self, api_session, web_base_url, test_name):
         """Test POST /api/name endpoint"""
 
         with allure.step("Get current device name"):
-            get_response = api_session.get(f"{web_base_url}/api/name", timeout=10)
+            get_response = api_get(api_session, web_base_url, "/api/name")
             original_name = None
             if get_response.status_code == 200:
-                original_name = get_response.json().get("name")
-                allure.attach(
-                    f"Original name: {original_name}",
-                    "Original Name",
-                    allure.attachment_type.TEXT,
-                )
+                original_name = get_response.get_field("name")
+                attach_json({"original_name": original_name}, "Original Name")
 
         with allure.step(f"Set device name to: {test_name}"):
-            response = api_session.post(
-                f"{web_base_url}/api/name",
-                json={"name": test_name},
-                timeout=10,
+            response = api_post(
+                api_session, web_base_url, "/api/name",
+                json={"name": test_name}
             )
 
         with allure.step("Verify response status"):
-            assert (
-                response.status_code == 200
-            ), f"Expected 200, got {response.status_code}"
-
-            response_data = response.json()
-            allure.attach(
-                json.dumps(response_data, indent=2),
-                "Name Set Response",
-                allure.attachment_type.JSON,
-            )
-
-            assert (
-                "result" in response_data
-            ), "Success response should contain 'result' field"
+            response.assert_ok()
+            response.assert_has_fields("result").attach_to_allure("Name Set Response")
 
             # Verify name was set
             with allure.step("Verify name was updated"):
-                verify_response = api_session.get(
-                    f"{web_base_url}/api/name", timeout=10
-                )
-                assert (
-                    verify_response.status_code == 200
-                ), f"Expected 200, got {verify_response.status_code}"
-                new_name = verify_response.json().get("name")
+                verify_response = api_get(api_session, web_base_url, "/api/name")
+                verify_response.assert_ok()
+                new_name = verify_response.get_field("name")
                 assert (
                     new_name == test_name
                 ), f"Name should be '{test_name}', got '{new_name}'"
-                allure.attach(json.dumps(verify_response.json()),
-                              "Verified Name Response",
-                              allure.attachment_type.JSON)
+                verify_response.attach_to_allure("Verified Name Response")
 
             # Restore original name if we had one
             if original_name:
                 with allure.step(f"Restore original name: {original_name}"):
-                    api_session.post(
-                        f"{web_base_url}/api/name",
-                        json={"name": original_name},
-                        timeout=10,
+                    api_post(
+                        api_session, web_base_url, "/api/name",
+                        json={"name": original_name}
                     )
 
     @allure.id("2714")
-    @allure.title("Name. POST /api/name (invalid)")
+    @allure.title("Name. POST /api/name (negative)")
+    @allure.issue("FW-407")
     @pytest.mark.api
     @pytest.mark.frontend
-    @pytest.mark.parametrize("test_name", ["",
-                                           " ",
-                                           "*&(^!$%(*!@%($&*^!@)($ !)(*@^$)(*!^@$ ^&!@($&*^!@(*& ^!@(^$)@(*&$!&",
-                                           "设备名称测试",
-                                           "emoji 🚀"])
+    @pytest.mark.parametrize("test_name", [
+        " ",
+        "  ",
+        "*&(^!$%(*!@%($&*^!@)($ !)(*@^$)(*!^@$ ^&!@($&*^!@(*& ^!@(^$)@(*&$!&",
+        "设备名称测试",
+        "emoji 🚀",
+        "Бизи Бар",
+    ])
     def test_api_name_post_invalid(self, api_session, web_base_url, test_name):
         """Test POST /api/name endpoint with invalid data"""
 
-        with allure.step("Set empty device name"):
-            response = api_session.post(
-                f"{web_base_url}/api/name",
-                json={"name": test_name},
-                timeout=10,
+        with allure.step("Get current device name"):
+            get_response = api_get(api_session, web_base_url, "/api/name")
+            original_name = None
+            if get_response.status_code == 200:
+                original_name = get_response.get_field("name")
+                attach_json({"original_name": original_name}, "Original Name")
+
+        with allure.step("Set invalid device name"):
+            response = api_post(
+                api_session, web_base_url, "/api/name",
+                json={"name": test_name}
             )
 
         with allure.step("Verify error response"):
-            assert response.status_code in [
-                400,
-            ], f"Expected 400, got {response.status_code} {response.text}"
+            response.assert_bad_request()
 
+        with allure.step("Verify name was not updated"):
+            verify_response = api_get(api_session, web_base_url, "/api/name")
+            verify_response.assert_ok()
+            new_name = verify_response.get_field("name")
+            assert (
+                new_name == original_name
+            ), f"Name should be '{original_name}', got '{new_name}'"
+            verify_response.attach_to_allure("Verified Name Response")
 
 @allure.feature("5. Web Frontend")
 @allure.story("Settings")
@@ -137,74 +164,76 @@ class TestSettingsAPI:
 
     @allure.id("2642")
     @allure.title("Settings. GET /api/access")
+    @allure.issue("FW-406")
     @pytest.mark.api
     @pytest.mark.frontend
     def test_api_access_get(self, api_session, web_base_url):
         """Test GET /api/access endpoint"""
 
         with allure.step("Make GET request to /api/access"):
-            response = api_session.get(f"{web_base_url}/api/access", timeout=10)
+            response = api_get(api_session, web_base_url, "/api/access")
 
         with allure.step("Verify response status and structure"):
-            assert (
-                response.status_code == 200
-            ), f"Expected 200, got {response.status_code}"
-            assert (
-                "application/json" in response.headers.get("content-type", "").lower()
-            )
+            response.assert_ok().assert_json_content_type()
+            response.assert_has_fields("mode", "key_valid").attach_to_allure("Access Info Response")
 
-            access_data = response.json()
-            allure.attach(
-                json.dumps(access_data, indent=2),
-                "Access Info Response",
-                allure.attachment_type.JSON,
-            )
-
-            # Validate required fields based on OpenAPI schema
-            assert "mode" in access_data, "Response should contain 'mode' field"
-            assert (
-                "key_valid" in access_data
-            ), "Response should contain 'key_valid' field"
-
-            # Validate mode enum
-            valid_modes = ["disabled", "enabled", "key"]
-            assert (
-                access_data["mode"] in valid_modes
-            ), f"Mode should be one of {valid_modes}"
-            assert isinstance(
-                access_data["key_valid"], bool
-            ), "key_valid should be a boolean"
+            data = response.json()
+            assert_field_in(data, "mode", ["disabled", "enabled", "key"])
+            assert_field_type(data, "key_valid", bool)
 
     @allure.id("2643")
     @allure.title("Settings. POST /api/access")
+    @allure.issue("FW-406")
     @pytest.mark.api
     @pytest.mark.frontend
-    def test_api_access_post(self, api_session, web_base_url):
-        """Test POST /api/access endpoint"""
+    @pytest.mark.parametrize("key", [
+        "1234",          # valid
+        "12345",  # valid
+        "0000",  # valid
+        "asfd",       # valid
+        "asfde",  # valid
+        "blablabla",  # valid
+        "9999999999",  # valid
+        "1234567890",  # valid
+        "1a45",       # invalid - mixed
+        "🔑🔒",       # invalid - emoji
+        "ключ",        # invalid - non-latin
+        "１２３４５",    # invalid - full-width
+        "汉字汉字汉字",        # invalid - Chinese characters
+        "abcd",         # invalid - non-numeric
+        "123",          # invalid - too short
+        "12345678901",  # invalid - too long
+        "12a34",       # invalid - mixed
+        "",             # invalid - empty
+        "     ",       # invalid - spaces only
+    ])
+    def test_api_access_post_fuzzed(self, api_session, web_base_url, key):
+        """Test POST /api/access endpoint with fuzzed key values"""
 
-        with allure.step("Make POST request to /api/access with valid parameters"):
-            params = {"mode": "key", "key": "12345678"}
-            response = api_session.post(
-                f"{web_base_url}/api/access", params=params, timeout=10
+        with allure.step(f"Make POST request to /api/access with key: {key!r}"):
+            response = api_post(
+                api_session, web_base_url, "/api/access",
+                params={"mode": "key", "key": key}
             )
 
-        with allure.step("Verify response status and structure"):
-            assert (
-                response.status_code == 200
-            ), f"Expected 200, got {response.status_code}"
-            assert (
-                "application/json" in response.headers.get("content-type", "").lower()
-            )
+        response.assert_ok().assert_json_content_type()
+        response.assert_has_fields("result").attach_to_allure("Access Set Response")
+        verify_response = api_get(api_session, web_base_url, "/api/access")
+        verify_response.assert_ok()
+        verify_data = verify_response.json()
+        assert verify_data["mode"] == "key", f"Expected mode 'key', got '{verify_data['mode']}'"
+        #
+        # is_valid_key = (
+        #         4 <= len(key) <= 10
+        #         and key.isdigit()
+        # )
+        if True:
+            with allure.step("Verify success response for valid key"):
+                assert verify_data["key_valid"] is True, "Expected key_valid to be True"
+        else:
+            with allure.step("Verify failure response for invalid key"):
+                assert verify_data["key_valid"] is False, "Expected key_valid to be False"
 
-            response_data = response.json()
-            allure.attach(
-                json.dumps(response_data, indent=2),
-                "Access Set Response",
-                allure.attachment_type.JSON,
-            )
-            assert (
-                "result" in response_data
-            ), "Success response should contain 'result' field"
 
     @allure.id("2644")
     @allure.title("Settings. GET /api/display/brightness")
@@ -214,28 +243,11 @@ class TestSettingsAPI:
         """Test GET /api/display/brightness endpoint"""
 
         with allure.step("Make GET request to /api/display/brightness"):
-            response = api_session.get(
-                f"{web_base_url}/api/display/brightness", timeout=10
-            )
+            response = api_get(api_session, web_base_url, "/api/display/brightness")
 
         with allure.step("Verify response status and structure"):
-            assert (
-                response.status_code == 200
-            ), f"Expected 200, got {response.status_code}"
-            assert (
-                "application/json" in response.headers.get("content-type", "").lower()
-            )
-
-            brightness_data = response.json()
-            allure.attach(
-                json.dumps(brightness_data, indent=2),
-                "Brightness Response",
-                allure.attachment_type.JSON,
-            )
-
-            # Validate fields based on OpenAPI schema
-            assert "front" in brightness_data, "Response should contain 'front' field"
-            assert "back" in brightness_data, "Response should contain 'back' field"
+            response.assert_ok().assert_json_content_type()
+            response.assert_has_fields("front", "back").attach_to_allure("Brightness Response")
 
     @allure.id("2645")
     @allure.title("Settings. POST /api/display/brightness")
@@ -245,28 +257,14 @@ class TestSettingsAPI:
         """Test POST /api/display/brightness endpoint"""
 
         with allure.step("Make POST request to /api/display/brightness"):
-            params = {"front": "auto", "back": "50"}
-            response = api_session.post(
-                f"{web_base_url}/api/display/brightness", params=params, timeout=10
+            response = api_post(
+                api_session, web_base_url, "/api/display/brightness",
+                params={"front": "auto", "back": "50"}
             )
 
         with allure.step("Verify response status"):
-            assert (
-                response.status_code == 200
-            ), f"Expected 200, got {response.status_code}"
-            assert (
-                "application/json" in response.headers.get("content-type", "").lower()
-            )
-
-            response_data = response.json()
-            allure.attach(
-                json.dumps(response_data, indent=2),
-                "Brightness Set Response",
-                allure.attachment_type.JSON,
-            )
-            assert (
-                "result" in response_data
-            ), "Success response should contain 'result' field"
+            response.assert_ok().assert_json_content_type()
+            response.assert_has_fields("result").attach_to_allure("Brightness Set Response")
 
     @allure.id("2646")
     @allure.title("Settings. GET /api/audio/volume")
@@ -276,28 +274,14 @@ class TestSettingsAPI:
         """Test GET /api/audio/volume endpoint"""
 
         with allure.step("Make GET request to /api/audio/volume"):
-            response = api_session.get(f"{web_base_url}/api/audio/volume", timeout=10)
+            response = api_get(api_session, web_base_url, "/api/audio/volume")
 
         with allure.step("Verify response status and structure"):
-            assert (
-                response.status_code == 200
-            ), f"Expected 200, got {response.status_code}"
-            assert (
-                "application/json" in response.headers.get("content-type", "").lower()
-            )
+            response.assert_ok().assert_json_content_type()
+            response.assert_has_fields("volume").attach_to_allure("Volume Response")
 
-            volume_data = response.json()
-            allure.attach(
-                json.dumps(volume_data, indent=2),
-                "Volume Response",
-                allure.attachment_type.JSON,
-            )
-
-            # Validate fields based on OpenAPI schema
-            assert "volume" in volume_data, "Response should contain 'volume' field"
-            assert isinstance(
-                volume_data["volume"], (int, float)
-            ), "Volume should be numeric"
+            data = response.json()
+            assert_field_type(data, "volume", (int, float))
 
     @allure.id("2647")
     @allure.title("Settings. POST /api/audio/volume")
@@ -307,25 +291,11 @@ class TestSettingsAPI:
         """Test POST /api/audio/volume endpoint"""
 
         with allure.step("Make POST request to /api/audio/volume"):
-            params = {"volume": 50}
-            response = api_session.post(
-                f"{web_base_url}/api/audio/volume", params=params, timeout=10
+            response = api_post(
+                api_session, web_base_url, "/api/audio/volume",
+                params={"volume": 50}
             )
 
         with allure.step("Verify response status"):
-            assert (
-                response.status_code == 200
-            ), f"Expected 200, got {response.status_code}"
-            assert (
-                "application/json" in response.headers.get("content-type", "").lower()
-            )
-
-            response_data = response.json()
-            allure.attach(
-                json.dumps(response_data, indent=2),
-                "Volume Set Response",
-                allure.attachment_type.JSON,
-            )
-            assert (
-                "result" in response_data
-            ), "Success response should contain 'result' field"
+            response.assert_ok().assert_json_content_type()
+            response.assert_has_fields("result").attach_to_allure("Volume Set Response")

@@ -4,6 +4,8 @@ import allure
 import pytest
 from bs4 import BeautifulSoup
 
+from utils import api_get, attach_text
+
 
 @allure.feature("5. Web Frontend")
 @allure.story("Basic connectivity")
@@ -29,12 +31,10 @@ class TestWebFrontendBasic:
         with allure.step("Verify HTML structure"):
             soup = BeautifulSoup(response.text, "html.parser")
 
-            # Check for basic HTML structure
             assert soup.find("html") is not None, "Missing <html> tag"
             assert soup.find("head") is not None, "Missing <head> tag"
             assert soup.find("body") is not None, "Missing <body> tag"
 
-            # Check for Nuxt app container (this is what actually matters)
             app_container = soup.find("div", {"id": "__nuxt"})
             assert app_container is not None, "Missing Nuxt app container"
 
@@ -59,7 +59,6 @@ class TestWebFrontendBasic:
                 "BSB Firmware API Documentation" in title.text
             ), f"Expected API docs title, got: {title.text}"
 
-            # Check for Swagger UI
             swagger_container = soup.find("div", {"id": "swagger-ui"})
             assert swagger_container is not None, "Missing Swagger UI container"
 
@@ -105,7 +104,6 @@ class TestWebFrontendAPI:
                 "application/json" in response.headers.get("content-type", "").lower()
             )
 
-            # Try to parse JSON
             try:
                 version_data = response.json()
                 allure.attach(
@@ -152,8 +150,7 @@ class TestWebFrontendAPI:
             ), f"Expected 200, got {response.status_code}"
 
             assert (
-                "application/json"
-                in response.headers.get("content-type", "").lower()
+                "application/json" in response.headers.get("content-type", "").lower()
             )
             try:
                 wifi_data = response.json()
@@ -176,8 +173,7 @@ class TestWebFrontendAPI:
             ), f"Expected 200, got {response.status_code}"
 
             assert (
-                "application/json"
-                in response.headers.get("content-type", "").lower()
+                "application/json" in response.headers.get("content-type", "").lower()
             )
             try:
                 system_data = response.json()
@@ -220,7 +216,6 @@ class TestWebFrontendErrorHandling:
                 405,
             ], f"Expected 404/405, got {response.status_code}"
 
-
     @allure.id("2738")
     @pytest.mark.parametrize(
         "endpoint",
@@ -242,10 +237,9 @@ class TestWebFrontendErrorHandling:
                 response_time < 5.0
             ), f"Response too slow for {endpoint}: {response_time:.2f}s"
 
-            allure.attach(
+            attach_text(
                 f"Endpoint: {endpoint}\nStatus: {response.status_code}\nTime: {response_time:.3f}s",
-                "Response Info",
-                allure.attachment_type.TEXT,
+                "Response Info"
             )
 
 
@@ -260,19 +254,15 @@ class TestWebFrontendIntegration:
     def test_complete_stack_functional(self, web_session, web_base_url):
         """Test that web interface, API docs, and core API endpoints all work together"""
 
-        # Test main page
         main_response = web_session.get(web_base_url, timeout=5)
         assert main_response.status_code == 200, "Main page should load"
 
-        # Test API docs
         docs_response = web_session.get(f"{web_base_url}/docs/", timeout=5)
         assert docs_response.status_code == 200, "API docs should load"
 
-        # Test at least one API endpoint works
         api_response = web_session.get(f"{web_base_url}/api/version", timeout=5)
         assert api_response.status_code == 200, "At least one API endpoint should work"
 
-        # Test OpenAPI spec
         spec_response = web_session.get(f"{web_base_url}/openapi.yaml", timeout=5)
         assert spec_response.status_code == 200, "OpenAPI spec should be available"
 
@@ -288,7 +278,7 @@ class TestWebFrontendIntegration:
             summary = f"""
             Main page: {main_response.status_code}
             API docs: {docs_response.status_code}
-            Version API: {api_response.status_code}  
+            Version API: {api_response.status_code}
             OpenAPI spec: {spec_response.status_code}
             """
-            allure.attach(summary, "Stack Status Summary", allure.attachment_type.TEXT)
+            attach_text(summary, "Stack Status Summary")

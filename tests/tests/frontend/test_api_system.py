@@ -1,7 +1,15 @@
-import json
-
 import allure
 import pytest
+
+from utils import (
+    api_get,
+    api_post,
+    attach_text,
+    assert_has_fields,
+    assert_field_in,
+    assert_field_type,
+    assert_field_range,
+)
 
 
 @allure.feature("5. Web Frontend")
@@ -19,30 +27,14 @@ class TestSystemAPI:
         """Test GET /api/version endpoint"""
 
         with allure.step("Make GET request to /api/version"):
-            response = api_session.get(f"{web_base_url}/api/version", timeout=10)
+            response = api_get(api_session, web_base_url, "/api/version")
 
         with allure.step("Verify response status and structure"):
-            assert (
-                response.status_code == 200
-            ), f"Expected 200, got {response.status_code}"
-            assert (
-                "application/json" in response.headers.get("content-type", "").lower()
-            )
-
-            version_data = response.json()
-            allure.attach(
-                json.dumps(version_data, indent=2),
-                "Version Response",
-                allure.attachment_type.JSON,
-            )
-
-            # Validate required fields
-            assert (
-                "api_semver" in version_data
-            ), "Response should contain 'api_semver' field"
+            response.assert_ok().assert_json_content_type()
+            response.assert_has_fields("api_semver").attach_to_allure("Version Response")
 
         with allure.step("Verify api_semver format and value"):
-            api_semver = version_data["api_semver"]
+            api_semver = response.get_field("api_semver")
             assert isinstance(api_semver, str), "api_semver should be a string"
 
             # Check semantic versioning format (x.y.z)
@@ -54,14 +46,7 @@ class TestSystemAPI:
             # Verify it's a valid semantic version (>= 0.0.0)
             major, minor, patch = [int(part) for part in version_parts]
             version_tuple = (major, minor, patch)
-            assert version_tuple >= (
-                0,
-                0,
-                0,
-            ), f"api_semver should be a valid semantic version, got {api_semver}"
-
-            # Note: 0.0.0 is acceptable for development/initial versions
-            # If the requirement is specifically > 0.0.0, this would need to change based on actual firmware version
+            assert version_tuple >= (0, 0, 0), f"api_semver should be a valid semantic version, got {api_semver}"
 
     @allure.id("2639")
     @allure.title("GET /api/status")
@@ -74,63 +59,30 @@ class TestSystemAPI:
             cli_device_info = persistent_cli_connection.execute_command(
                 "device_info", timeout=20.0, slow_command=True
             )
-            allure.attach(
-                cli_device_info, "CLI device_info", allure.attachment_type.TEXT
-            )
+            attach_text(cli_device_info, "CLI device_info")
 
         with allure.step("Make GET request to /api/status"):
-            response = api_session.get(f"{web_base_url}/api/status", timeout=10)
+            response = api_get(api_session, web_base_url, "/api/status")
 
         with allure.step("Verify response status and structure"):
-            assert (
-                response.status_code == 200
-            ), f"Expected 200, got {response.status_code}"
-            assert (
-                "application/json" in response.headers.get("content-type", "").lower()
-            )
-
-            status_data = response.json()
-            allure.attach(
-                json.dumps(status_data, indent=2),
-                "Status Response",
-                allure.attachment_type.JSON,
-            )
-
-            # Validate required fields based on OpenAPI schema
-            assert "system" in status_data, "Response should contain 'system' field"
-            assert "power" in status_data, "Response should contain 'power' field"
+            response.assert_ok().assert_json_content_type()
+            response.assert_has_fields("system", "power").attach_to_allure("Status Response")
 
         with allure.step("Verify system data structure"):
-            system_data = status_data["system"]
-            required_system_fields = [
-                "branch",
-                "version",
-                "build_date",
-                "commit_hash",
-                "uptime",
-            ]
-            for field in required_system_fields:
-                assert (
-                    field in system_data
-                ), f"System data should contain '{field}' field"
+            data = response.json()
+            assert_has_fields(
+                data["system"],
+                "branch", "version", "build_date", "commit_hash", "uptime"
+            )
 
         with allure.step("Verify power data structure"):
-            power_data = status_data["power"]
-            required_power_fields = [
-                "state",
-                "battery_charge",
-                "battery_voltage",
-                "battery_current",
-                "usb_voltage",
-            ]
-            for field in required_power_fields:
-                assert field in power_data, f"Power data should contain '{field}' field"
+            assert_has_fields(
+                data["power"],
+                "state", "battery_charge", "battery_voltage", "battery_current", "usb_voltage"
+            )
 
         with allure.step("Cross-verify with CLI device_info data"):
-            # This is a basic verification - specific field matching would need actual CLI output parsing
-            assert (
-                cli_device_info.strip()
-            ), "CLI device_info should return data for comparison"
+            assert cli_device_info.strip(), "CLI device_info should return data for comparison"
 
     @allure.id("2640")
     @allure.title("GET /api/status/system")
@@ -145,41 +97,21 @@ class TestSystemAPI:
             cli_device_info = persistent_cli_connection.execute_command(
                 "device_info", timeout=20.0, slow_command=True
             )
-            allure.attach(
-                cli_device_info, "CLI device_info", allure.attachment_type.TEXT
-            )
+            attach_text(cli_device_info, "CLI device_info")
 
         with allure.step("Make GET request to /api/status/system"):
-            response = api_session.get(f"{web_base_url}/api/status/system", timeout=10)
+            response = api_get(api_session, web_base_url, "/api/status/system")
 
         with allure.step("Verify response status and structure"):
-            assert (
-                response.status_code == 200
-            ), f"Expected 200, got {response.status_code}"
-            assert (
-                "application/json" in response.headers.get("content-type", "").lower()
-            )
+            response.assert_ok().assert_json_content_type()
+            response.assert_has_fields(
+                "branch", "version", "build_date", "commit_hash", "uptime"
+            ).attach_to_allure("System Status Response")
 
-            system_data = response.json()
-            allure.attach(
-                json.dumps(system_data, indent=2),
-                "System Status Response",
-                allure.attachment_type.JSON,
-            )
-
-            # Validate required fields based on OpenAPI schema
-            required_fields = [
-                "branch",
-                "version",
-                "build_date",
-                "commit_hash",
-                "uptime",
-            ]
-            for field in required_fields:
-                assert field in system_data, f"Response should contain '{field}' field"
-                assert isinstance(
-                    system_data[field], str
-                ), f"Field '{field}' should be a string"
+            # Validate all fields are strings
+            data = response.json()
+            for field in ["branch", "version", "build_date", "commit_hash", "uptime"]:
+                assert_field_type(data, field, str)
 
     @allure.id("2641")
     @allure.title("GET /api/status/power")
@@ -194,62 +126,29 @@ class TestSystemAPI:
             cli_device_info = persistent_cli_connection.execute_command(
                 "device_info", timeout=20.0, slow_command=True
             )
-            allure.attach(
-                cli_device_info, "CLI device_info", allure.attachment_type.TEXT
-            )
+            attach_text(cli_device_info, "CLI device_info")
 
         with allure.step("Make GET request to /api/status/power"):
-            response = api_session.get(f"{web_base_url}/api/status/power", timeout=10)
+            response = api_get(api_session, web_base_url, "/api/status/power")
 
         with allure.step("Verify response status and structure"):
-            assert (
-                response.status_code == 200
-            ), f"Expected 200, got {response.status_code}"
-            assert (
-                "application/json" in response.headers.get("content-type", "").lower()
-            )
-
-            power_data = response.json()
-            allure.attach(
-                json.dumps(power_data, indent=2),
-                "Power Status Response",
-                allure.attachment_type.JSON,
-            )
-
-            # Validate required fields based on OpenAPI schema
-            required_fields = [
-                "state",
-                "battery_charge",
-                "battery_voltage",
-                "battery_current",
-                "usb_voltage",
-            ]
-            for field in required_fields:
-                assert field in power_data, f"Response should contain '{field}' field"
+            response.assert_ok().assert_json_content_type()
+            response.assert_has_fields(
+                "state", "battery_charge", "battery_voltage", "battery_current", "usb_voltage"
+            ).attach_to_allure("Power Status Response")
 
         with allure.step("Verify power field types and values"):
+            data = response.json()
+
             # Validate state enum
-            valid_states = ["discharging", "charging", "charged"]
-            assert (
-                power_data["state"] in valid_states
-            ), f"State should be one of {valid_states}"
+            assert_field_in(data, "state", ["discharging", "charging", "charged"])
 
             # Validate numeric fields
-            numeric_fields = [
-                "battery_charge",
-                "battery_voltage",
-                "battery_current",
-                "usb_voltage",
-            ]
-            for field in numeric_fields:
-                assert isinstance(
-                    power_data[field], int
-                ), f"Field '{field}' should be an integer"
+            for field in ["battery_charge", "battery_voltage", "battery_current", "usb_voltage"]:
+                assert_field_type(data, field, int)
 
             # Validate battery charge percentage
-            assert (
-                0 <= power_data["battery_charge"] <= 100
-            ), "Battery charge should be between 0-100%"
+            assert_field_range(data, "battery_charge", min_value=0, max_value=100)
 
 
 @allure.feature("5. Web Frontend")
@@ -265,34 +164,15 @@ class TestTimeAPI:
         """Test GET /api/time endpoint"""
 
         with allure.step("Make GET request to /api/time"):
-            response = api_session.get(f"{web_base_url}/api/time", timeout=10)
+            response = api_get(api_session, web_base_url, "/api/time")
 
         with allure.step("Verify response status and structure"):
-            assert (
-                response.status_code == 200
-            ), f"Expected 200, got {response.status_code}"
-            assert (
-                "application/json"
-                in response.headers.get("content-type", "").lower()
-            )
-
-            time_data = response.json()
-            allure.attach(
-                json.dumps(time_data, indent=2),
-                "Time Response",
-                allure.attachment_type.JSON,
-            )
-
-            # Validate required fields based on OpenAPI schema
-            assert (
-                "timestamp" in time_data
-            ), "Response should contain 'timestamp' field"
-            assert isinstance(
-                time_data["timestamp"], str
-            ), "Timestamp should be a string"
+            response.assert_ok().assert_json_content_type()
+            response.assert_has_fields("timestamp")
+            response.assert_field_type("timestamp", str).attach_to_allure("Time Response")
 
             # Validate ISO 8601 format (basic check)
-            timestamp = time_data["timestamp"]
+            timestamp = response.get_field("timestamp")
             assert "T" in timestamp, "Timestamp should be in ISO 8601 format"
             assert (
                 "+" in timestamp or "-" in timestamp[10:]
@@ -305,30 +185,17 @@ class TestTimeAPI:
     def test_api_time_timestamp_post(self, api_session, web_base_url):
         """Test POST /api/time/timestamp endpoint"""
 
-        # Use a valid ISO 8601 timestamp
         test_timestamp = "2025-06-15T12:30:45"
 
         with allure.step(f"Set timestamp to: {test_timestamp}"):
-            params = {"timestamp": test_timestamp}
-            response = api_session.post(
-                f"{web_base_url}/api/time/timestamp", params=params, timeout=10
+            response = api_post(
+                api_session, web_base_url, "/api/time/timestamp",
+                params={"timestamp": test_timestamp}
             )
 
         with allure.step("Verify response status"):
-            assert (
-                response.status_code == 200
-            ), f"Expected 200, got {response.status_code}"
-
-            response_data = response.json()
-            allure.attach(
-                json.dumps(response_data, indent=2),
-                "Timestamp Set Response",
-                allure.attachment_type.JSON,
-            )
-
-            assert (
-                "result" in response_data
-            ), "Success response should contain 'result' field"
+            response.assert_ok()
+            response.assert_has_fields("result").attach_to_allure("Timestamp Set Response")
 
     @allure.id("2718")
     @allure.title("POST /api/time/timestamp (invalid)")
@@ -344,15 +211,11 @@ class TestTimeAPI:
         """Test POST /api/time/timestamp endpoint with invalid format"""
 
         with allure.step(f"Test invalid timestamp: {invalid_ts}"):
-            params = {"timestamp": invalid_ts}
-            response = api_session.post(
-                f"{web_base_url}/api/time/timestamp", params=params, timeout=10
+            response = api_post(
+                api_session, web_base_url, "/api/time/timestamp",
+                params={"timestamp": invalid_ts}
             )
-
-            assert response.status_code == 400, (
-                f"Expected 400 for invalid timestamp '{invalid_ts}', "
-                f"got {response.status_code}"
-            )
+            response.assert_bad_request()
 
     @allure.id("2719")
     @allure.title("POST /api/time/timezone")
@@ -368,26 +231,14 @@ class TestTimeAPI:
         """Test POST /api/time/timezone endpoint"""
 
         with allure.step(f"Set timezone to: {test_tz}"):
-            params = {"timezone": test_tz}
-            response = api_session.post(
-                f"{web_base_url}/api/time/timezone", params=params, timeout=10
+            response = api_post(
+                api_session, web_base_url, "/api/time/timezone",
+                params={"timezone": test_tz}
             )
 
         with allure.step("Verify response status"):
-            assert (
-                response.status_code == 200
-            ), f"Expected 200, got {response.status_code}"
-
-            response_data = response.json()
-            allure.attach(
-                json.dumps(response_data, indent=2),
-                "Timezone Set Response",
-                allure.attachment_type.JSON,
-            )
-
-            assert (
-                "result" in response_data
-            ), "Success response should contain 'result' field"
+            response.assert_ok()
+            response.assert_has_fields("result").attach_to_allure("Timezone Set Response")
 
     @allure.id("2720")
     @allure.title("POST /api/time/timezone (invalid)")
@@ -395,23 +246,19 @@ class TestTimeAPI:
     @pytest.mark.frontend
     @pytest.mark.parametrize("invalid_tz", [
         "invalid",
-        "+25:00",  # Out of range
-        "-15:00",  # Out of range
+        "+25:00",
+        "-15:00",
         "",
     ])
     def test_api_time_timezone_post_invalid(self, api_session, web_base_url, invalid_tz):
         """Test POST /api/time/timezone endpoint with invalid format"""
 
         with allure.step(f"Test invalid timezone: {invalid_tz}"):
-            params = {"timezone": invalid_tz}
-            response = api_session.post(
-                f"{web_base_url}/api/time/timezone", params=params, timeout=10
+            response = api_post(
+                api_session, web_base_url, "/api/time/timezone",
+                params={"timezone": invalid_tz}
             )
-
-            assert response.status_code == 400, (
-                f"Expected 400 for invalid timezone '{invalid_tz}', "
-                f"got {response.status_code}"
-            )
+            response.assert_bad_request()
 
 
 @allure.feature("5. Web Frontend")
@@ -432,19 +279,15 @@ class TestUpdateAPI:
             initial_device_info = persistent_cli_connection.execute_command(
                 "device_info", timeout=20.0, slow_command=True
             )
-            allure.attach(
-                initial_device_info, "Initial Device Info", allure.attachment_type.TEXT
-            )
+            attach_text(initial_device_info, "Initial Device Info")
 
         with allure.step("Create mock update package"):
             mock_tar_content = b"Mock firmware update package for testing"
 
         with allure.step("Attempt firmware update"):
-            params = {"name": "test_firmware"}
-
-            response = api_session.post(
-                f"{web_base_url}/api/update",
-                params=params,
+            response = api_post(
+                api_session, web_base_url, "/api/update",
+                params={"name": "test_firmware"},
                 data=mock_tar_content,
                 headers={"Content-Type": "application/octet-stream"},
                 timeout=30,
@@ -452,14 +295,5 @@ class TestUpdateAPI:
 
         with allure.step("Verify update response"):
             # Expected responses: 200 (success), 400 (invalid package), 413 (too large), 500 (error)
-            expected_codes = [200, 400, 413, 500]
-            assert (
-                response.status_code in expected_codes
-            ), f"Expected one of {expected_codes}, got {response.status_code}"
-
-            response_data = response.json()
-            allure.attach(
-                json.dumps(response_data, indent=2),
-                "Update Response",
-                allure.attachment_type.JSON,
-            )
+            response.assert_status([200, 400, 413, 500])
+            response.attach_to_allure("Update Response")

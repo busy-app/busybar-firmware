@@ -1,8 +1,18 @@
-import json
 import time
 
 import allure
 import pytest
+
+from utils import (
+    api_get,
+    api_post,
+    api_delete,
+    attach_text,
+    attach_json,
+    assert_has_fields,
+    assert_field_type,
+    assert_field_in,
+)
 
 
 @allure.feature("5. Web Frontend")
@@ -18,50 +28,23 @@ class TestStorageAPI:
         """Test GET /api/storage/status endpoint"""
 
         with allure.step("Make GET request to /api/storage/status"):
-            response = api_session.get(f"{web_base_url}/api/storage/status", timeout=10)
+            response = api_get(api_session, web_base_url, "/api/storage/status")
 
         with allure.step("Verify response status and structure"):
-            assert (
-                response.status_code == 200
-            ), f"Expected 200, got {response.status_code}"
-            assert (
-                "application/json"
-                in response.headers.get("content-type", "").lower()
-            )
-
-            status_data = response.json()
-            allure.attach(
-                json.dumps(status_data, indent=2),
-                "Storage Status Response",
-                allure.attachment_type.JSON,
-            )
-
-            # Validate required fields based on OpenAPI schema
-            assert (
-                "used_bytes" in status_data
-            ), "Response should contain 'used_bytes' field"
-            assert (
-                "free_bytes" in status_data
-            ), "Response should contain 'free_bytes' field"
-            assert (
-                "total_bytes" in status_data
-            ), "Response should contain 'total_bytes' field"
+            response.assert_ok().assert_json_content_type()
+            response.assert_has_fields(
+                "used_bytes", "free_bytes", "total_bytes"
+            ).attach_to_allure("Storage Status Response")
 
             # Validate types
-            assert isinstance(
-                status_data["used_bytes"], int
-            ), "used_bytes should be an integer"
-            assert isinstance(
-                status_data["free_bytes"], int
-            ), "free_bytes should be an integer"
-            assert isinstance(
-                status_data["total_bytes"], int
-            ), "total_bytes should be an integer"
+            data = response.json()
+            for field in ["used_bytes", "free_bytes", "total_bytes"]:
+                assert_field_type(data, field, int)
 
             # Validate logical consistency
-            total = status_data["total_bytes"]
-            used = status_data["used_bytes"]
-            free = status_data["free_bytes"]
+            total = data["total_bytes"]
+            used = data["used_bytes"]
+            free = data["free_bytes"]
             assert (
                 used + free <= total
             ), f"used ({used}) + free ({free}) should be <= total ({total})"
@@ -74,47 +57,26 @@ class TestStorageAPI:
         """Test GET /api/storage/list endpoint"""
 
         with allure.step("Make GET request to /api/storage/list"):
-            params = {"path": "/ext"}
-            response = api_session.get(
-                f"{web_base_url}/api/storage/list", params=params, timeout=10
+            response = api_get(
+                api_session, web_base_url, "/api/storage/list",
+                params={"path": "/ext"}
             )
 
         with allure.step("Verify response status and structure"):
-            assert (
-                response.status_code == 200
-            ), f"Expected 200, got {response.status_code}"
-            assert (
-                "application/json"
-                in response.headers.get("content-type", "").lower()
-            )
+            response.assert_ok().assert_json_content_type()
+            response.assert_has_fields("list").attach_to_allure("Storage List Response")
 
-            list_data = response.json()
-            allure.attach(
-                json.dumps(list_data, indent=2),
-                "Storage List Response",
-                allure.attachment_type.JSON,
-            )
-
-            # Validate structure based on OpenAPI schema
-            assert "list" in list_data, "Response should contain 'list' field"
-            assert isinstance(
-                list_data["list"], list
-            ), "List field should be an array"
+            data = response.json()
+            assert_field_type(data, "list", list)
 
             # Validate list items if any exist
-            for item in list_data["list"]:
-                assert "type" in item, "List item should contain 'type' field"
-                assert "name" in item, "List item should contain 'name' field"
-                assert item["type"] in [
-                    "file",
-                    "dir",
-                ], "Type should be 'file' or 'dir'"
+            for item in data["list"]:
+                assert_has_fields(item, "type", "name")
+                assert_field_in(item, "type", ["file", "dir"])
 
                 if item["type"] == "file":
-                    assert "size" in item, "File items should contain 'size' field"
-                    assert isinstance(
-                        item["size"], int
-                    ), "File size should be an integer"
+                    assert_has_fields(item, "size")
+                    assert_field_type(item, "size", int)
 
     @allure.id("2649")
     @allure.title("POST /api/storage/mkdir")
@@ -126,25 +88,14 @@ class TestStorageAPI:
         test_dir = "/ext/test_mkdir_" + str(int(time.time()))
 
         with allure.step(f"Create test directory: {test_dir}"):
-            params = {"path": test_dir}
-            response = api_session.post(
-                f"{web_base_url}/api/storage/mkdir", params=params, timeout=10
+            response = api_post(
+                api_session, web_base_url, "/api/storage/mkdir",
+                params={"path": test_dir}
             )
 
         with allure.step("Verify directory creation response"):
-            assert (
-                response.status_code == 200
-            ), f"Expected 200, got {response.status_code}"
-
-            response_data = response.json()
-            allure.attach(
-                json.dumps(response_data, indent=2),
-                "Mkdir Response",
-                allure.attachment_type.JSON,
-            )
-            assert (
-                "result" in response_data
-            ), "Success response should contain 'result' field"
+            response.assert_ok()
+            response.assert_has_fields("result").attach_to_allure("Mkdir Response")
 
     @allure.id("2650")
     @allure.title(
@@ -159,61 +110,33 @@ class TestStorageAPI:
         test_content = b"Test content for API storage test"
 
         with allure.step(f"Write test file: {test_file}"):
-            params = {"path": test_file}
-            response = api_session.post(
-                f"{web_base_url}/api/storage/write",
-                params=params,
+            response = api_post(
+                api_session, web_base_url, "/api/storage/write",
+                params={"path": test_file},
                 data=test_content,
                 headers={"Content-Type": "application/octet-stream"},
-                timeout=10,
             )
-
-            assert (
-                response.status_code == 200
-            ), f"Expected 200, got {response.status_code}"
-
-            write_response = response.json()
-            allure.attach(
-                json.dumps(write_response, indent=2),
-                "Write Response",
-                allure.attachment_type.JSON,
-            )
+            response.assert_ok()
+            response.attach_to_allure("Write Response")
 
             with allure.step(f"Read test file: {test_file}"):
-                params = {"path": test_file}
-                read_response = api_session.get(
-                    f"{web_base_url}/api/storage/read", params=params, timeout=10
+                read_response = api_get(
+                    api_session, web_base_url, "/api/storage/read",
+                    params={"path": test_file}
                 )
-
+                read_response.assert_ok()
                 assert (
-                    read_response.status_code == 200
-                ), f"Expected 200, got {read_response.status_code}"
-                assert (
-                    read_response.content == test_content
+                    read_response.response.content == test_content
                 ), "Read content should match written content"
-                allure.attach(
-                    read_response.content.decode(),
-                    "File Content",
-                    allure.attachment_type.TEXT,
-                )
+                attach_text(read_response.response.content.decode(), "File Content")
 
                 with allure.step(f"Remove test file: {test_file}"):
-                    params = {"path": test_file}
-                    remove_response = api_session.delete(
-                        f"{web_base_url}/api/storage/remove",
-                        params=params,
-                        timeout=10,
+                    remove_response = api_delete(
+                        api_session, web_base_url, "/api/storage/remove",
+                        params={"path": test_file}
                     )
-
-                    assert (
-                        remove_response.status_code == 200
-                    ), f"Expected 200, got {remove_response.status_code}"
-                    remove_data = remove_response.json()
-                    allure.attach(
-                        json.dumps(remove_data, indent=2),
-                        "Remove Response",
-                        allure.attachment_type.JSON,
-                    )
+                    remove_response.assert_ok()
+                    remove_response.attach_to_allure("Remove Response")
 
     @allure.id("2675")
     @allure.title("POST /api/storage/write (file size limits)")
@@ -223,115 +146,89 @@ class TestStorageAPI:
         """Test file upload size limits"""
 
         test_file_path = "/ext/large_test_fil.bin"
-
-        # Create a large file (simulate size limit testing)
         large_content = b"x" * (10 * 1024 * 1024)  # 10MB
 
         with allure.step(f"Check if test file already exists: {test_file_path}"):
-            # First check if file exists and clean it up
-            check_response = api_session.get(
-                f"{web_base_url}/api/storage/read",
-                params={"path": test_file_path},
-                timeout=10,
+            check_response = api_get(
+                api_session, web_base_url, "/api/storage/read",
+                params={"path": test_file_path}
             )
             if check_response.status_code == 200:
-                allure.attach(
+                attach_text(
                     f"File {test_file_path} already exists, attempting cleanup",
-                    "Pre-cleanup",
-                    allure.attachment_type.TEXT,
+                    "Pre-cleanup"
                 )
-
-                # File exists, try to delete it first
-                delete_response = api_session.delete(
-                    f"{web_base_url}/api/storage/remove",
-                    params={"path": test_file_path},
-                    timeout=10,
+                delete_response = api_delete(
+                    api_session, web_base_url, "/api/storage/remove",
+                    params={"path": test_file_path}
                 )
                 if delete_response.status_code != 200:
                     pytest.fail(
                         f"Failed to delete existing test file {test_file_path}. Status: {delete_response.status_code}"
                     )
                 else:
-                    allure.attach(
+                    attach_text(
                         f"Successfully cleaned up existing file {test_file_path}",
-                        "Pre-cleanup Success",
-                        allure.attachment_type.TEXT,
+                        "Pre-cleanup Success"
                     )
 
         upload_successful = False
 
         try:
             with allure.step(f"Test large file upload to storage: {test_file_path}"):
-                params = {"path": test_file_path}
-                response = api_session.post(
-                    f"{web_base_url}/api/storage/write",
-                    params=params,
+                response = api_post(
+                    api_session, web_base_url, "/api/storage/write",
+                    params={"path": test_file_path},
                     data=large_content,
                     headers={"Content-Type": "application/octet-stream"},
                     timeout=30,
                 )
 
             with allure.step("Verify size limit handling"):
-                # Should return 413 (Payload Too Large), 400 (Bad Request), 500 (Server Error), or 200 (Success if no size limit)
-                assert response.status_code in [
-                    200,
-                    400,
-                    413,
-                    500,
-                ], f"Expected 200, 400, 413, or 500, got {response.status_code}"
+                response.assert_status([200, 400, 413, 500])
 
                 if response.status_code == 200:
                     upload_successful = True
-                    allure.attach(
+                    attach_text(
                         "Large file upload succeeded - no size limit enforced",
-                        "Upload Result",
-                        allure.attachment_type.TEXT,
+                        "Upload Result"
                     )
 
-                    # Verify file was actually written by checking its size
-                    verify_response = api_session.get(
-                        f"{web_base_url}/api/storage/read",
-                        params={"path": test_file_path},
-                        timeout=10,
+                    # Verify file was actually written
+                    verify_response = api_get(
+                        api_session, web_base_url, "/api/storage/read",
+                        params={"path": test_file_path}
                     )
                     if verify_response.status_code == 200:
-                        actual_size = len(verify_response.content)
+                        actual_size = len(verify_response.response.content)
                         expected_size = len(large_content)
-                        allure.attach(
+                        attach_text(
                             f"File size verification: Expected {expected_size} bytes, got {actual_size} bytes",
-                            "Size Verification",
-                            allure.attachment_type.TEXT,
+                            "Size Verification"
                         )
                         assert (
                             actual_size == expected_size
                         ), f"File size mismatch: expected {expected_size}, got {actual_size}"
                 else:
-                    allure.attach(
+                    attach_text(
                         f"Large file upload rejected with status {response.status_code} - size limits enforced",
-                        "Upload Result",
-                        allure.attachment_type.TEXT,
+                        "Upload Result"
                     )
 
         finally:
-            # Always attempt cleanup if upload was successful
             if upload_successful:
                 with allure.step(f"Clean up test file: {test_file_path}"):
-                    cleanup_response = api_session.delete(
-                        f"{web_base_url}/api/storage/remove",
-                        params={"path": test_file_path},
-                        timeout=10,
+                    cleanup_response = api_delete(
+                        api_session, web_base_url, "/api/storage/remove",
+                        params={"path": test_file_path}
                     )
 
                     if cleanup_response.status_code == 200:
-                        allure.attach(
+                        attach_text(
                             "Large test file cleaned up successfully",
-                            "Cleanup Success",
-                            allure.attachment_type.TEXT,
+                            "Cleanup Success"
                         )
                     else:
-                        # Cleanup failure should fail the test
                         error_msg = f"Failed to clean up test file {test_file_path}. Status: {cleanup_response.status_code}"
-                        allure.attach(
-                            error_msg, "Cleanup Failure", allure.attachment_type.TEXT
-                        )
+                        attach_text(error_msg, "Cleanup Failure")
                         pytest.fail(error_msg)

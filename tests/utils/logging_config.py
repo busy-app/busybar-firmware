@@ -86,12 +86,6 @@ def setup_logging(log_level: str = "INFO", log_to_file: bool = True) -> logging.
         file_handler.setFormatter(file_format)
         root_logger.addHandler(file_handler)
 
-        # Also create a symlink to latest log
-        latest_log = logs_dir / "latest.log"
-        if latest_log.exists():
-            latest_log.unlink()
-        latest_log.symlink_to(log_file.name)
-
     # Setup specific loggers
 
     # Reduce noise from external libraries

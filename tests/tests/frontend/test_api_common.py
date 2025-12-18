@@ -1,9 +1,10 @@
-import json
 import queue
 import threading
 
 import allure
 import pytest
+
+from utils import api_get, api_post
 
 
 @allure.feature("5. Web Frontend")
@@ -27,10 +28,8 @@ class TestAPIErrorHandling:
 
         for endpoint in invalid_endpoints:
             with allure.step(f"Test invalid endpoint: {endpoint}"):
-                response = api_session.get(f"{web_base_url}{endpoint}", timeout=10)
-                assert (
-                    response.status_code == 404
-                ), f"Expected 404 for {endpoint}, got {response.status_code}"
+                response = api_get(api_session, web_base_url, endpoint)
+                response.assert_not_found()
 
     @allure.id("2673")
     @allure.title("API endpoints (missing required parameters)")
@@ -40,25 +39,19 @@ class TestAPIErrorHandling:
         """Test API endpoints with missing required parameters"""
 
         test_cases = [
-            ("/api/storage/list", {}),  # Missing path parameter
-            ("/api/input", {}),  # Missing key parameter
-            ("/api/screen", {}),  # Missing display parameter
+            ("GET", "/api/storage/list", {}),
+            ("POST", "/api/input", {}),
+            ("GET", "/api/screen", {}),
         ]
 
-        for endpoint, params in test_cases:
+        for method, endpoint, params in test_cases:
             with allure.step(f"Test missing parameters for {endpoint}"):
-                if endpoint == "/api/input":
-                    response = api_session.post(
-                        f"{web_base_url}{endpoint}", params=params, timeout=10
-                    )
+                if method == "POST":
+                    response = api_post(api_session, web_base_url, endpoint, params=params)
                 else:
-                    response = api_session.get(
-                        f"{web_base_url}{endpoint}", params=params, timeout=10
-                    )
+                    response = api_get(api_session, web_base_url, endpoint, params=params)
 
-                assert (
-                    response.status_code == 400
-                ), f"Expected 400 for missing params on {endpoint}, got {response.status_code}"
+                response.assert_bad_request()
 
     @allure.id("2674")
     @allure.title("API endpoints (invalid parameter values)")
@@ -68,31 +61,21 @@ class TestAPIErrorHandling:
         """Test API endpoints with invalid parameter values"""
 
         test_cases = [
-            ("/api/input", {"key": "invalid_key_name"}),
-            ("/api/screen", {"display": "invalid"}),
-            ("/api/screen", {"display": -1}),
-            ("/api/audio/volume", {"volume": -50}),
-            ("/api/audio/volume", {"volume": 150}),
+            ("POST", "/api/input", {"key": "invalid_key_name"}),
+            ("GET", "/api/screen", {"display": "invalid"}),
+            ("GET", "/api/screen", {"display": -1}),
+            ("POST", "/api/audio/volume", {"volume": -50}),
+            ("POST", "/api/audio/volume", {"volume": 150}),
         ]
 
-        for endpoint, params in test_cases:
+        for method, endpoint, params in test_cases:
             with allure.step(f"Test invalid parameters for {endpoint}"):
-                if endpoint == "/api/input":
-                    response = api_session.post(
-                        f"{web_base_url}{endpoint}", params=params, timeout=10
-                    )
-                elif endpoint == "/api/audio/volume":
-                    response = api_session.post(
-                        f"{web_base_url}{endpoint}", params=params, timeout=10
-                    )
+                if method == "POST":
+                    response = api_post(api_session, web_base_url, endpoint, params=params)
                 else:
-                    response = api_session.get(
-                        f"{web_base_url}{endpoint}", params=params, timeout=10
-                    )
+                    response = api_get(api_session, web_base_url, endpoint, params=params)
 
-                assert (
-                    response.status_code == 400
-                ), f"Expected 400 for invalid params on {endpoint}, got {response.status_code}"
+                response.assert_bad_request()
 
     @allure.id("2708")
     @allure.title("GET /api/version (concurrent requests)")
@@ -126,7 +109,6 @@ class TestAPIErrorHandling:
                 result = results.get()
                 response_codes.append(result)
 
-            # All requests should succeed (status 200)
             success_count = sum(1 for code in response_codes if code == 200)
             assert (
                 success_count >= 3
@@ -146,7 +128,6 @@ class TestAPIAuthentication:
     def test_api_without_auth_token(self, api_session, web_base_url):
         """Test API access without authentication token"""
 
-        # Remove any auth headers
         headers = api_session.headers.copy()
         if "X-API-Token" in headers:
             del headers["X-API-Token"]
