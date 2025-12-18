@@ -151,53 +151,79 @@ static void busy_scene_timer_update_timer_mode(BusyApp* instance) {
     });
 }
 
+static const TimerIndicatorPreset*
+    busy_scene_timer_get_indicator_preset(const BusySceneTimer* data) {
+    const TimerIndicatorPreset* ret = NULL;
+
+    const BusyTimerState timer_state = data->timer_state;
+    const BusyTimerMode timer_mode = data->timer_mode;
+
+    if(timer_state == BusyTimerStateWork) {
+        if(timer_mode == BusyTimerModeInfinite) {
+            ret = &busy_timer_indicator_presets[BusyTimerIndicatorTypeWorkBig];
+        } else if(timer_mode == BusyTimerModeSimple || timer_mode == BusyTimerModeInterval) {
+            ret = &busy_timer_indicator_presets[BusyTimerIndicatorTypeWork];
+        }
+
+    } else if(timer_state == BusyTimerStateRest) {
+        ret = &busy_timer_indicator_presets[BusyTimerIndicatorTypeRest];
+    }
+
+    return ret;
+}
+
+static const TimerIndicatorTransition*
+    busy_scene_timer_get_indicator_transition(const BusySceneTimer* data) {
+    const TimerIndicatorTransition* ret = NULL;
+
+    const BusyTimerMode timer_mode = data->timer_mode;
+
+    if(data->timer_state == BusyTimerStateWork) {
+        if(timer_mode == BusyTimerModeSimple || timer_mode == BusyTimerModeInterval) {
+            if(data->prev_timer_mode == BusyTimerModeInfinite) {
+                ret =
+                    &busy_timer_indicator_transitions[BusyTimerIndicatorTransitionTypeInfToSimple];
+            }
+        }
+    }
+
+    return ret;
+}
+
+static const TimerLabelPreset* busy_scen_timer_get_label_preset(const BusySceneTimer* data) {
+    const TimerLabelPreset* ret = NULL;
+
+    const BusyTimerState timer_state = data->timer_state;
+
+    if(timer_state == BusyTimerStateWork) {
+        ret = &busy_timer_label_presets[BusyTimerLabelTypeWork];
+    } else if(timer_state == BusyTimerStateRest) {
+        ret = &busy_timer_label_presets[BusyTimerLabelTypeRest];
+    }
+
+    return ret;
+}
+
 static void busy_scene_timer_update_timer_state(BusyApp* instance) {
     const BusySceneTimer* data =
         scene_manager_get_scene_data(instance->scene_manager, BusyAppSceneIdTimer);
 
-    const TimerIndicatorPreset* timer_indicator_preset = NULL;
-    const TimerIndicatorTransition* timer_indicator_transition = NULL;
-    const TimerLabelPreset* timer_label_preset = NULL;
+    const TimerIndicatorPreset* timer_indicator_preset =
+        busy_scene_timer_get_indicator_preset(data);
+    const TimerIndicatorTransition* timer_indicator_transition =
+        busy_scene_timer_get_indicator_transition(data);
+    const TimerLabelPreset* timer_label_preset = busy_scen_timer_get_label_preset(data);
 
-    if(data->timer_state == BusyTimerStateWork) {
-        if(data->timer_mode == BusyTimerModeInfinite) {
-            timer_indicator_preset = &busy_timer_indicator_presets[BusyTimerIndicatorTypeWorkBig];
-        } else if(data->timer_mode == BusyTimerModeSimple) {
-            timer_indicator_preset = &busy_timer_indicator_presets[BusyTimerIndicatorTypeWork];
-            if(data->prev_timer_mode == BusyTimerModeInfinite) {
-                // Special case: transitioning from Infinite to Simple
-                timer_indicator_transition =
-                    &busy_timer_indicator_transitions[BusyTimerIndicatorTransitionTypeInfToSimple];
-            }
-        } else if(data->timer_mode == BusyTimerModeInterval) {
-            timer_indicator_preset = &busy_timer_indicator_presets[BusyTimerIndicatorTypeWork];
-            if(data->prev_timer_mode == BusyTimerModeInfinite) {
-                // Special case: transitioning from Infinite to Interval
-                timer_indicator_transition =
-                    &busy_timer_indicator_transitions[BusyTimerIndicatorTransitionTypeInfToSimple];
-            }
-        }
-
-        timer_label_preset = &busy_timer_label_presets[BusyTimerLabelTypeWork];
-
-    } else if(data->timer_state == BusyTimerStateRest) {
-        furi_assert(data->timer_mode == BusyTimerModeInterval);
-        timer_indicator_preset = &busy_timer_indicator_presets[BusyTimerIndicatorTypeRest];
-        timer_label_preset = &busy_timer_label_presets[BusyTimerLabelTypeRest];
-    }
-
-    if(timer_indicator_preset) {
-        with_gui(instance->gui, {
+    with_gui(instance->gui, {
+        if(timer_indicator_preset) {
             timer_indicator_set_preset(
                 data->timer_indicator, timer_indicator_preset, timer_indicator_transition);
-        });
-    }
+        }
 
-    if(timer_label_preset) {
-        with_gui(instance->gui, {
+        if(timer_label_preset) {
             timer_label_set_preset(data->timer_label, timer_label_preset);
-        });
-    }
+        }
+    });
 
     busy_scene_timer_update_lights(instance);
     busy_scene_timer_update_matter(instance);
