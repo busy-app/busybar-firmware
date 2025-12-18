@@ -650,6 +650,7 @@ static int32_t ble_worker_thread_callback(void* context) {
             //! event invokes when connection was completed
             BLE_LOG_I("Connected, str_remote_address : %s", instance->str_remote_address);
             instance->state = BleWorkerStateConnected;
+            ///TODO: Commented due to issues with connect to different phones remove when interaction logic will be finalized
             //! Setting MTU Exchange event
             // status =
             //     rsi_ble_mtu_exchange_event(instance->remote_dev_address, BLE_WORKER_MAX_MTU_SIZE);
@@ -713,6 +714,8 @@ static int32_t ble_worker_thread_callback(void* context) {
                 "Feature received is 0x%04X",
                 *(uint16_t*)instance->remote_dev_feature.remote_features);
 
+            ///TODO: Commented due to issues with connect to different phones remove when interaction logic will be finalized
+            ///This particularly causes problems with iphone 17
             // if(instance->remote_dev_feature.remote_features[0] & 0x20) {
             //     status = rsi_ble_set_data_len(instance->remote_dev_address, TX_LEN, TX_TIME);
             //     if(status != RSI_SUCCESS) {
@@ -723,6 +726,7 @@ static int32_t ble_worker_thread_callback(void* context) {
         }
 
         if(events & BLEWorkerEvtDataLengthChange) {
+            ///TODO: Commented due to issues with connect to different phones remove when interaction logic will be finalized
             // if(instance->remote_dev_feature.remote_features[1] & 0x01) {
             //     status = rsi_ble_setphy(
             //         (int8_t*)instance->remote_dev_address,
