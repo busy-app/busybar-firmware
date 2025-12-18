@@ -59,9 +59,19 @@ typedef struct {
     char manual_code[MATTER_MAX_MAN_CODE_LEN + 1];
 } MatterIntercomPairingCodesFrame;
 
+/**
+ * @brief Commissioning status
+ */
 typedef struct {
     MatterCommissioningStatus status;
 } MatterIntercomCommissionStatusFrame;
+
+/**
+ * @brief Initialization done
+ */
+typedef struct {
+    MatterStatus system_status;
+} MatterIntercomInitDoneFrame;
 
 // =============
 // Generic frame
@@ -77,7 +87,9 @@ typedef enum {
     MatterIntercomFrameTypePairingCodes, //<! Pairing codes. Direction: 917->u5
     MatterIntercomFrameTypeCommissionStatus, //<! Commissioning status update. Direction: 917->u5
 
-    MatterIntercomFrameTypeFabricCountUpdate, // <! Commissioned fabric count. Direction: 917->u5
+    MatterIntercomFrameTypeFabricCountUpdate, //<! Commissioned fabric count. Direction: 917->u5
+
+    MatterIntercomFrameTypeInitDone, //<! Matter has finished initializing. Direction: 917->u5
 } MatterIntercomFrameType;
 
 typedef struct {
@@ -91,6 +103,7 @@ typedef struct {
         MatterIntercomPairingCodesFrame codes;
         MatterIntercomCommissionStatusFrame commission_status;
         MatterIntercomFabricCountUpdateFrame fabric_count;
+        MatterIntercomInitDoneFrame init_done;
     };
 } MatterIntercomFrame;
 

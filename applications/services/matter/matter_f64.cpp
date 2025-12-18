@@ -51,6 +51,7 @@ public:
 
     IntercomChannel* m_intercom_ch;
     StatusLights* m_status_lights;
+    bool m_is_functional;
 
 private:
     CommonCaseDeviceServerInitParams m_server_init_params;
@@ -189,7 +190,7 @@ static void matter_handle_frame(const void* data, size_t data_size, void* contex
 }
 
 /**
- * @brief Notifies u5 about an updated state 
+ * @brief Notifies u5 about updated switch state 
  */
 static void matter_send_state_update(MatterSrv* matter, bool state) {
     MatterIntercomFrame frame = {
@@ -211,6 +212,20 @@ static void matter_send_fabric_count_update(MatterSrv* matter) {
         .fabric_count =
             {
                 .fabric_count = Server::GetInstance().GetFabricTable().FabricCount(),
+            },
+    };
+    matter_send_frame(matter, &frame);
+}
+
+/**
+ * @brief Tells u5 that initialization is complete
+ */
+static void matter_send_init_done(MatterSrv* matter, MatterStatus status) {
+    MatterIntercomFrame frame = {
+        .type = MatterIntercomFrameTypeInitDone,
+        .init_done =
+            {
+                .system_status = status,
             },
     };
     matter_send_frame(matter, &frame);
@@ -351,14 +366,21 @@ CHIP_ERROR MatterSrv::init(void) {
 
         PlatformMgr().AddEventHandler(matter_device_event, (intptr_t)this);
         Server::GetInstance().GetFabricTable().AddFabricDelegate(&m_fabric_delegate);
+    } while(false);
 
-        auto intercom = static_cast<Intercom*>(furi_record_open(RECORD_INTERCOM));
-        m_intercom_ch =
-            intercom_channel_open(intercom, IntercomChannelIdMatter, matter_handle_frame, this);
+    auto intercom = static_cast<Intercom*>(furi_record_open(RECORD_INTERCOM));
+    m_intercom_ch =
+        intercom_channel_open(intercom, IntercomChannelIdMatter, matter_handle_frame, this);
+
+    m_is_functional = err == CHIP_NO_ERROR;
+    if(m_is_functional) {
+        StackLock lock;
         matter_send_current_state(this);
         matter_send_fabric_count_update(this);
-
-    } while(false);
+        matter_send_init_done(this, MatterStatusOperational);
+    } else {
+        matter_send_init_done(this, MatterStatusInoperative);
+    }
 
     return err;
 }

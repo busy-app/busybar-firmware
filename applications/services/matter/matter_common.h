@@ -32,6 +32,15 @@ typedef enum {
     MatterSwitchStartupModeMAX, /**< Special value, internal use */
 } MatterSwitchStartupMode;
 
+/**
+ * @brief Matter system status
+ */
+typedef enum {
+    MatterStatusOperational,
+    MatterStatusInoperative,
+    MatterStatusMAX,
+} MatterStatus;
+
 #ifdef __cplusplus
 }
 #endif

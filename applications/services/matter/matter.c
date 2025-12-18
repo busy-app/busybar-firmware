@@ -17,6 +17,7 @@ struct MatterSrv {
     IntercomChannel* intercom_ch;
     bool switch_state;
     uint8_t commissioned_fabrics;
+    MatterStatus system_status;
 };
 
 // =========
@@ -102,6 +103,9 @@ static void matter_handle_frame(FuriEventLoopObject* object, void* context) {
     } else if(frame.type == MatterIntercomFrameTypeFabricCountUpdate) {
         matter->commissioned_fabrics = frame.fabric_count.fabric_count;
 
+    } else if(frame.type == MatterIntercomFrameTypeInitDone) {
+        matter->system_status = frame.init_done.system_status;
+
     } else {
         furi_crash();
     }
@@ -151,6 +155,11 @@ static void matter_handle_api_request(FuriEventLoopObject* object, void* context
     MatterApiRequest* request;
     furi_check(furi_message_queue_get(queue, &request, 0) == FuriStatusOk);
     furi_check(request);
+
+    if(matter->system_status != MatterStatusOperational) {
+        api_lock_unlock(request->lock);
+        return;
+    }
 
     switch(request->type) {
     case MatterApiRequestTypeGetSwitchState: {
@@ -241,6 +250,7 @@ bool matter_get_switch_state(MatterSrv* matter) {
     furi_check(matter);
     MatterApiRequest request = {
         .type = MatterApiRequestTypeGetSwitchState,
+        .switch_state = false,
     };
     matter_synchronous_request(matter, &request);
     return request.switch_state;
@@ -279,6 +289,7 @@ size_t
         .type = MatterApiRequestTypeCommission,
         .qr_code = qr_code,
         .manual_code = manual_code,
+        .window_duration = 0,
     };
     matter_synchronous_request(matter, &request);
     return request.window_duration;
@@ -288,6 +299,7 @@ bool matter_is_commissioned(MatterSrv* matter) {
     furi_check(matter);
     MatterApiRequest request = {
         .type = MatterApiRequestTypeGetFabricCount,
+        .fabric_count = 0,
     };
     matter_synchronous_request(matter, &request);
     return request.fabric_count > 0;
@@ -315,6 +327,8 @@ MatterSrv* matter_srv_alloc(void) {
         matter);
 
     matter->pubsub = furi_pubsub_alloc();
+
+    matter->system_status = MatterStatusMAX;
 
     Intercom* intercom = furi_record_open(RECORD_INTERCOM);
     matter->intercom_ch = intercom_channel_open(
