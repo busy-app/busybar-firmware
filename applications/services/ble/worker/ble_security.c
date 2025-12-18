@@ -250,9 +250,8 @@ bool ble_security_rpa_enable(BleSecurityData* security) {
         }
 
         //set address resolution enable and resolvable private address timeout
-        ///TODO: Temporary change, for debug, move BLE_SECURITY_RPA_ENABLE back once done
         status = rsi_ble_set_addr_resolution_enable(
-            BLE_SECURITY_RPA_DISABLE, BLE_SECURITY_RPA_UPDATE_TIMEOUT);
+            BLE_SECURITY_RPA_ENABLE, BLE_SECURITY_RPA_UPDATE_TIMEOUT);
         if(status != RSI_SUCCESS) {
             BLE_LOG_W("line %d -> status: 0x%lx", __LINE__, status);
             break;
