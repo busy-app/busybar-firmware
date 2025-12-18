@@ -3,7 +3,7 @@
 #include <gui/widget_i.h>
 #include <gui/modules/front_display_mirror.h>
 
-#include "../time_macros.h"
+#include <busy_timer/time_macros.h>
 #include "../storage_macros.h"
 
 #define MY_CLASS (&timer_card_lvgl_class)

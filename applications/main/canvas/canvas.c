@@ -481,8 +481,14 @@ int32_t canvas_app(void* arg) {
     UNUSED(arg);
     CanvasApp* canvas = canvas_app_alloc();
     furi_record_create(RECORD_CANVAS, canvas);
+
     furi_event_loop_run(canvas->event_loop);
-    furi_check(furi_record_destroy(RECORD_CANVAS));
+
+    while(!furi_record_destroy(RECORD_CANVAS)) {
+        // Wait before all users close the record
+        furi_delay_ms(1);
+    }
+
     canvas_app_free(canvas);
 
     return 0;

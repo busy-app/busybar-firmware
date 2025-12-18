@@ -149,6 +149,13 @@ void nav_bar_pop_location(NavBar* instance) {
     nav_bar_update_breadcrumbs(instance);
 }
 
+void nav_bar_reset_location(NavBar* instance) {
+    furi_check(instance);
+
+    LocationStack_reset(instance->locations);
+    nav_bar_update_breadcrumbs(instance);
+}
+
 /* LVGL class descriptor */
 
 const lv_obj_class_t nav_bar_lvgl_class = {

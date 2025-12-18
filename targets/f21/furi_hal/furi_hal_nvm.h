@@ -6,6 +6,7 @@ typedef enum {
     FuriHalNvmFlagDebug,
     FuriHalNvmFlagDetailedFilename,
     FuriHalNvmFlagStorageFormatInternal,
+    FuriHalNvmFlagRebootIntoShippingMode,
     FuriHalNvmFlagCount, /**< Keep this last */
 } FuriHalNvmFlag;
 

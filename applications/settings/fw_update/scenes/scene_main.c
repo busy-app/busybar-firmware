@@ -3,14 +3,12 @@
 #include <gui/modules/label.h>
 #include <gui/modules/image.h>
 #include <gui/modules/progress_bar.h>
-#include <update_checker/update_checker.h>
-#include <applications/system/updater/update.h>
+#include <applications/system/updater/updater.h>
+#include <applications/system/updater/updater_paths.h>
+#include <wifi/wifi.h>
 
-#include <toolbox/fetch/fetch_loader.h>
 #include <toolbox/sha256_calc.h>
 #include <settings_helpers/gui_params.h>
-
-#define SETTINGS_FW_FILE_PATH EXT_PATH("update/upload.tar")
 
 typedef enum {
     SceneEventBackPressed = AppEventSceneEventsStart,
@@ -43,12 +41,14 @@ typedef struct {
 
     uint8_t progress_value;
 
-    FetchLoader* fw_loader;
+    Updater* updater;
+    FuriStateSub* update_state_subscription;
+    FuriStateSub* update_check_subscription;
     FuriString* fw_status;
 
     FirmwareUpdateInfo fw_info;
-    UpdateChecker* update_checker;
-    FuriPubSubSubscription* update_checker_subscription;
+
+    bool update_in_progress;
 
 } SettingsSceneFwUpdate;
 
@@ -86,10 +86,26 @@ static void scene_main_start_download(FwUpdate* instance) {
     SettingsSceneFwUpdate* data =
         scene_manager_get_scene_data(instance->scene_manager, SceneIdMain);
     furi_assert(data);
-    if(data->fw_info.is_new_version && furi_string_size(data->fw_info.fw_url)) {
-        fetch_loader_run(
-            data->fw_loader, furi_string_get_cstr(data->fw_info.fw_url), SETTINGS_FW_FILE_PATH);
-    }
+
+    do {
+        if(!(data->fw_info.is_new_version && furi_string_size(data->fw_info.fw_url))) {
+            break;
+        }
+
+        UpdaterStatus session_start_status = updater_session_start(data->updater);
+        if(session_start_status != UpdaterStatusOk) {
+            furi_string_printf(
+                data->fw_status,
+                "Update failed: %s",
+                updater_get_status_string(session_start_status));
+            fw_update_send_custom_event(instance, SceneEventUpdateStatus);
+            break;
+        }
+
+        data->update_in_progress = true;
+
+        updater_download(data->updater, furi_string_get_cstr(data->fw_info.fw_url), NULL, false);
+    } while(false);
 }
 
 static bool scene_main_input_callback(const InputEvent* event, void* context) {
@@ -122,93 +138,118 @@ static bool scene_main_input_callback(const InputEvent* event, void* context) {
     return consumed;
 }
 
-static void settings_scene_fw_status_callback(FetchLoaderStatus status, void* context) {
+static void updater_update_state_callback(const void* state_item, void* context) {
     furi_assert(context);
-    FwUpdate* app_instance = context;
-    SettingsSceneFwUpdate* data =
-        scene_manager_get_scene_data(app_instance->scene_manager, SceneIdMain);
-    furi_assert(data);
+    furi_assert(state_item);
 
-    uint8_t download_percent =
-        (uint8_t)((status.received_download_size * 100) / status.total_download_size);
-
-    data->progress_value = download_percent;
-
-    char* dimension = "B";
-    if(status.total_download_size > 2048) {
-        status.received_download_size /= 1024;
-        status.total_download_size /= 1024;
-        dimension = "kB";
-    }
-
-    furi_string_printf(
-        data->fw_status,
-        "%8.2f kB/s, %zu%s/%zu%s",
-        (float)status.speed_bytes_per_sec / 1024.0f,
-        status.received_download_size,
-        dimension,
-        status.total_download_size,
-        dimension);
-
-    fw_update_send_custom_event(app_instance, SceneEventUpdateStatus);
-}
-
-static void scene_main_state_callback(FuriString* error, void* context) {
-    furi_assert(context);
     FwUpdate* instance = context;
     SettingsSceneFwUpdate* data =
         scene_manager_get_scene_data(instance->scene_manager, SceneIdMain);
     furi_assert(data);
 
-    // Show error message
-    furi_string_set(data->fw_status, error);
-    fw_update_send_custom_event(instance, SceneEventUpdateStatus);
-}
+    const UpdaterUpdateState* state = state_item;
 
-static void scene_main_done_callback(void* context) {
-    furi_assert(context);
-    FwUpdate* instance = context;
-    SettingsSceneFwUpdate* data =
-        scene_manager_get_scene_data(instance->scene_manager, SceneIdMain);
-    furi_assert(data);
+    switch(state->event) {
+    case UpdaterUpdateEventActionProgress:
+        if(state->action == UpdaterUpdateActionDownload) {
+            size_t received = state->as_download.received_size;
+            size_t total = state->as_download.total_size;
 
-    furi_string_set(data->fw_status, "Checking sha256...");
+            uint8_t download_percent = 0;
+            if(total > 0) {
+                download_percent = (uint8_t)((received * 100) / total);
+            }
 
-    fw_update_send_custom_event(instance, SceneEventDownloadDone);
-}
+            data->progress_value = download_percent;
 
-static void scene_main_check(const void* message, void* context) {
-    UpdateCheckerEvent* status = (UpdateCheckerEvent*)message;
-    furi_assert(status);
-    furi_assert(context);
-    FwUpdate* instance = context;
-    SettingsSceneFwUpdate* data =
-        scene_manager_get_scene_data(instance->scene_manager, SceneIdMain);
-    data->fw_info.is_new_version = false;
+            char* dimension = "B";
+            if(total > 2048) {
+                received /= 1024;
+                total /= 1024;
+                dimension = "kB";
+            }
 
-    switch(status->type) {
-    case UpdateCheckerEventNoNewVersion:
-        furi_string_set(data->fw_status, "No new version");
+            furi_string_printf(
+                data->fw_status,
+                "%8.2f kB/s, %zu%s/%zu%s",
+                (float)state->as_download.speed_bytes_per_sec / 1024.0f,
+                received,
+                dimension,
+                total,
+                dimension);
+
+            fw_update_send_custom_event(instance, SceneEventUpdateStatus);
+        }
         break;
-    case UpdateCheckerEventNewVersion:
-        update_checker_get_new_version(data->update_checker, data->fw_info.new_fw_version);
-        update_checker_get_new_firmware_url(data->update_checker, data->fw_info.fw_url);
-        update_checker_get_new_firmware_sha256(data->update_checker, data->fw_info.fw_sha256);
 
-        furi_string_set(data->fw_status, "New version, press OK to update");
-        data->fw_info.is_new_version = true;
+    case UpdaterUpdateEventDetailChange:
+        if(state->detail) {
+            furi_string_set(data->fw_status, state->detail);
+            fw_update_send_custom_event(instance, SceneEventUpdateStatus);
+        }
+        break;
 
+    case UpdaterUpdateEventActionDone:
+        if(state->action == UpdaterUpdateActionDownload) {
+            if(state->status == UpdaterStatusOk) {
+                furi_string_set(data->fw_status, "Checking sha256...");
+                fw_update_send_custom_event(instance, SceneEventDownloadDone);
+            } else {
+                furi_string_printf(
+                    data->fw_status,
+                    "Download failed: %s",
+                    updater_get_status_string(state->status));
+                fw_update_send_custom_event(instance, SceneEventErrorOccurred);
+            }
+        }
         break;
-    case UpdateCheckerEventError:
-        furi_string_set(data->fw_status, "Error checking update");
-        break;
-    case UpdateCheckerEventNoWifiConnection:
-        furi_string_set(data->fw_status, "No WiFi connection");
-        break;
+
     default:
         break;
     }
-    fw_update_send_custom_event(instance, SceneEventUpdateStatus);
+}
+
+static void updater_check_state_callback(const void* state_item, void* context) {
+    furi_assert(state_item);
+    furi_assert(context);
+
+    const UpdaterCheckState* state = (const UpdaterCheckState*)state_item;
+
+    if(state->event == UpdaterCheckEventStop) {
+        FwUpdate* instance = context;
+
+        SettingsSceneFwUpdate* data =
+            scene_manager_get_scene_data(instance->scene_manager, SceneIdMain);
+        data->fw_info.is_new_version = false;
+
+        switch(state->result) {
+        case UpdaterCheckResultNotAvailable:
+            furi_string_set(data->fw_status, "No new version");
+            break;
+        case UpdaterCheckResultAvailable:
+            if(state->version) {
+                furi_string_set(
+                    data->fw_info.new_fw_version, furi_string_get_cstr(state->version));
+            }
+            if(state->url) {
+                furi_string_set(data->fw_info.fw_url, furi_string_get_cstr(state->url));
+            }
+            if(state->sha256) {
+                furi_string_set(data->fw_info.fw_sha256, furi_string_get_cstr(state->sha256));
+            }
+
+            furi_string_set(data->fw_status, "New version, press OK to update");
+            data->fw_info.is_new_version = true;
+
+            break;
+        case UpdaterCheckResultFailure:
+            furi_string_set(data->fw_status, "Error checking update");
+            break;
+        default:
+            break;
+        }
+        fw_update_send_custom_event(instance, SceneEventUpdateStatus);
+    }
 }
 
 static void scene_main_check_sha256(void* context) {
@@ -217,33 +258,43 @@ static void scene_main_check_sha256(void* context) {
     SettingsSceneFwUpdate* data =
         scene_manager_get_scene_data(instance->scene_manager, SceneIdMain);
     furi_assert(data);
+
     if(data->fw_info.is_new_version) {
-        FuriString* sha256_calc = furi_string_alloc();
-        FS_Error file_error = FSE_OK;
-        Storage* storage = furi_record_open(RECORD_STORAGE);
-        File* file = storage_file_alloc(storage);
-        bool is_ok = false;
+        const char* status_text;
+        SceneEvent event;
 
-        sha256_string_calc_file(file, SETTINGS_FW_FILE_PATH, sha256_calc, &file_error);
+        UpdaterStatus status = updater_verify_bundle_sha(
+            data->updater,
+            UPDATER_DEFAULT_DOWNLOAD_PATH,
+            furi_string_get_cstr(data->fw_info.fw_sha256),
+            true);
 
-        storage_file_free(file);
-        furi_record_close(RECORD_STORAGE);
-
-        if((file_error == FSE_OK) &&
-           (furi_string_cmp(sha256_calc, data->fw_info.fw_sha256) == 0)) {
-            furi_string_set(data->fw_status, "Installing...");
-            is_ok = true;
+        if(status == UpdaterStatusOk) {
+            status_text = "Installing...";
+            event = SceneEventInstallationStarted;
         } else {
-            furi_string_set(data->fw_status, "Error: sha256 mismatch");
+            status_text = "Error: sha256 mismatch";
+            event = SceneEventErrorOccurred;
         }
 
-        furi_string_free(sha256_calc);
-
-        if(is_ok) {
-            fw_update_send_custom_event(instance, SceneEventInstallationStarted);
-        }
-        fw_update_send_custom_event(instance, SceneEventErrorOccurred);
+        furi_string_set(data->fw_status, status_text);
+        fw_update_send_custom_event(instance, event);
     }
+}
+
+static bool is_wifi_connected(void) {
+    Wifi* wifi = furi_record_open(RECORD_WIFI);
+
+    WifiInfo wifi_info;
+    const WifiStatus status = wifi_get_info(wifi, &wifi_info);
+
+    bool is_wifi_connected = false;
+    if(status == WifiStatusOk && wifi_info.state == WifiStateConnected) {
+        is_wifi_connected = true;
+    }
+
+    furi_record_close(RECORD_WIFI);
+    return is_wifi_connected;
 }
 
 static void scene_main_install(void* context) {
@@ -252,29 +303,36 @@ static void scene_main_install(void* context) {
     FwUpdate* instance = context;
     SettingsSceneFwUpdate* data =
         scene_manager_get_scene_data(instance->scene_manager, SceneIdMain);
-    UNUSED(data);
+    furi_assert(data);
 
-    FuriString* manifest_path = furi_string_alloc();
+    bool update_started = false;
 
     do {
-        UpdaterStatus unpack_tar_status =
-            updater_unpack_tar(SETTINGS_FW_FILE_PATH, NULL, manifest_path);
-        if(unpack_tar_status != UpdaterStatusSuccess) {
+        if(!data->update_in_progress) {
+            UpdaterStatus session_start_status = updater_session_start(data->updater);
+            if(session_start_status != UpdaterStatusOk) {
+                break;
+            }
+            update_started = true;
+        }
+
+        UpdaterStatus unpack_status = updater_unpack(data->updater, NULL, NULL, NULL, true);
+        if(unpack_status != UpdaterStatusOk) {
             break;
         }
 
-        UpdaterStatus prepare_install_status =
-            updater_prepare_install(furi_string_get_cstr(manifest_path));
-        if(prepare_install_status != UpdaterStatusSuccess) {
+        UpdaterStatus installation_prepare_status =
+            updater_installation_prepare(data->updater, NULL, true);
+        if(installation_prepare_status != UpdaterStatusOk) {
             break;
         }
 
-        if(updater_reboot_install() != UpdaterStatusSuccess) {
-            updater_cancel_prepared_install();
-        }
+        updater_installation_apply(data->updater, false);
     } while(false);
 
-    furi_string_free(manifest_path);
+    if(update_started && !data->update_in_progress) {
+        updater_session_stop(data->updater);
+    }
 }
 
 static void scene_main_on_enter(void* context) {
@@ -283,16 +341,15 @@ static void scene_main_on_enter(void* context) {
     FwUpdate* instance = context;
     SettingsSceneFwUpdate* data =
         scene_manager_get_scene_data(instance->scene_manager, SceneIdMain);
-    // Init data
+
+    data->updater = furi_record_open(RECORD_UPDATER);
+
     data->fw_status = furi_string_alloc_set("Checking for update...");
     data->fw_info.fw_url = furi_string_alloc();
     data->fw_info.fw_sha256 = furi_string_alloc();
     data->fw_info.new_fw_version = furi_string_alloc();
-    data->fw_info.fw_current_version = furi_string_alloc();
+    data->fw_info.fw_current_version = furi_string_alloc_set_str(updater_get_active_version());
     data->progress_value = 0;
-
-    data->update_checker = furi_record_open(RECORD_UPDATE_CHECKER);
-    update_checker_get_current_version(data->update_checker, data->fw_info.fw_current_version);
 
     with_gui(instance->gui, {
         GuiLayer* layer = gui_get_layer(instance->gui, GuiLayerIdMain);
@@ -355,15 +412,20 @@ static void scene_main_on_enter(void* context) {
 
     scene_main_scene_update(instance);
 
-    // FwLoader
-    data->fw_loader = fetch_loader_alloc();
-    fetch_loader_set_status_callback(data->fw_loader, settings_scene_fw_status_callback, instance);
-    fetch_loader_set_state_callback(data->fw_loader, scene_main_state_callback, instance);
-    fetch_loader_set_done_callback(data->fw_loader, scene_main_done_callback, instance);
+    data->update_in_progress = false;
 
-    data->update_checker_subscription = furi_pubsub_subscribe(
-        update_checker_get_pubsub(data->update_checker), scene_main_check, instance);
-    update_checker_check_update(data->update_checker);
+    data->update_state_subscription = furi_state_subscribe(
+        updater_get_update_state(data->updater), updater_update_state_callback, instance);
+
+    data->update_check_subscription = furi_state_subscribe(
+        updater_get_check_state(data->updater), updater_check_state_callback, instance);
+
+    if(is_wifi_connected()) {
+        updater_check_for_update(data->updater);
+    } else {
+        furi_string_set(data->fw_status, "No WiFi connection");
+        fw_update_send_custom_event(instance, SceneEventUpdateStatus);
+    }
 }
 
 static void scene_main_on_exit(void* context) {
@@ -388,18 +450,19 @@ static void scene_main_on_exit(void* context) {
         progress_bar_free(data->bar_front);
     });
 
-    furi_pubsub_unsubscribe(
-        update_checker_get_pubsub(data->update_checker), data->update_checker_subscription);
-    furi_record_close(RECORD_UPDATE_CHECKER);
-
-    // Free fw loader
-    if(!fetch_loader_is_processing_done(data->fw_loader)) {
-        fetch_loader_forced_done(data->fw_loader);
+    if(data->update_state_subscription) {
+        furi_state_unsubscribe(data->update_state_subscription);
     }
-    fetch_loader_set_status_callback(data->fw_loader, NULL, NULL);
-    fetch_loader_set_state_callback(data->fw_loader, NULL, NULL);
-    fetch_loader_set_done_callback(data->fw_loader, NULL, NULL);
-    fetch_loader_free(data->fw_loader);
+
+    if(data->update_check_subscription) {
+        furi_state_unsubscribe(data->update_check_subscription);
+    }
+
+    if(data->update_in_progress) {
+        updater_session_stop(data->updater);
+    }
+
+    furi_record_close(RECORD_UPDATER);
 
     // Free data
     furi_string_free(data->fw_status);
