@@ -346,7 +346,6 @@ static void ble_worker_more_data_req_event(rsi_ble_event_le_dev_buf_ind_t* rsi_b
 static void
     ble_worker_on_gatt_write_event(uint16_t event_id, rsi_ble_event_write_t* rsi_ble_write) {
     UNUSED(event_id);
-    // BLE_LOG_W("E: %04X, handle: %04X", event_id, *(uint16_t*)rsi_ble_write->handle);
     memcpy(
         &ble_worker_instance->app_ble_write_event, rsi_ble_write, sizeof(rsi_ble_event_write_t));
     furi_thread_flags_set(furi_thread_get_id(ble_worker_instance->thread), BLEWorkerEvtWrite);
@@ -379,8 +378,6 @@ static void ble_worker_on_indicate_confirmation_event(
 
 static void ble_worker_on_mtu_event(rsi_ble_event_mtu_t* rsi_ble_mtu) {
     memcpy(&ble_worker_instance->app_ble_mtu_event, rsi_ble_mtu, sizeof(rsi_ble_event_mtu_t));
-    // rsi_6byte_dev_address_to_ascii(
-    //     ble_worker_instance->str_remote_address, ble_worker_instance->app_ble_mtu_event.dev_addr);
 
     furi_thread_flags_set(furi_thread_get_id(ble_worker_instance->thread), BLEWorkerEvtMtu);
 }
@@ -473,13 +470,6 @@ static void rsi_ble_on_sc_method(rsi_bt_event_sc_method_t* scmethod) {
     UNUSED(scmethod);
     BLE_LOG_W("rsi_ble_on_sc_method");
 }
-//===========================================================================================
-// static void rsi_ble_on_mtu_exchange_info(
-//     rsi_ble_event_mtu_exchange_information_t* rsi_ble_event_mtu_exchange_info) {
-//     UNUSED(rsi_ble_event_mtu_exchange_info);
-//     BLE_LOG_W("rsi_ble_on_mtu_exchange_info");
-//     furi_thread_flags_set(furi_thread_get_id(ble_worker_instance->thread), BLEWorkerExtendedMtu);
-// }
 //===========================================================================================
 static bool ble_worker_start_advertising(
     bool advertise_to_paired_only,
@@ -613,8 +603,6 @@ static void ble_hw_config() {
         NULL,
         ble_worker_on_indicate_confirmation_event,
         NULL);
-
-    // rsi_ble_gatt_extended_register_callbacks(rsi_ble_on_mtu_exchange_info);
 
     //! Set local name
     status = rsi_bt_set_local_name((const uint8_t*)BLE_DEFAULT_LOCAL_NAME);
