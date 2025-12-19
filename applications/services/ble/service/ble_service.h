@@ -10,7 +10,7 @@ typedef struct BleServiceObject BleServiceObject;
 BleServiceObject* ble_service_alloc(
     const BleServiceDescriptor* service_config,
     FuriMessageQueue* message_queue,
-    Intercom* intercom);
+    IntercomChannel* intercom_ch);
 
 bool ble_service_process(BleServiceObject* instance);
 void ble_service_process_mailbox(

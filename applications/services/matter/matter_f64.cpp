@@ -49,7 +49,7 @@ public:
     MatterSrv(void);
     CHIP_ERROR init(void);
 
-    Intercom* m_intercom;
+    IntercomChannel* m_intercom_ch;
     StatusLights* m_status_lights;
 
 private:
@@ -116,8 +116,7 @@ void matter_restart_dnssd(void) {
 
 static void matter_send_frame(MatterSrv* matter, const MatterIntercomFrame* frame) {
     furi_check(
-        intercom_tx(
-            matter->m_intercom, IntercomChannelMatter, frame, sizeof(*frame), FuriWaitForever) ==
+        intercom_tx(matter->m_intercom_ch, frame, sizeof(*frame), FuriWaitForever) ==
         sizeof(*frame));
 }
 
@@ -312,7 +311,6 @@ MatterSrv::MatterSrv(void)
           matter_start_blinking,
           matter_stop_blinking,
           chip::app::Clusters::Identify::IdentifyTypeEnum::kVisibleIndicator)) {
-    m_intercom = static_cast<Intercom*>(furi_record_open(RECORD_INTERCOM));
     m_status_lights = static_cast<StatusLights*>(furi_record_open(RECORD_STATUS_LIGHTS));
 }
 
@@ -354,8 +352,9 @@ CHIP_ERROR MatterSrv::init(void) {
         PlatformMgr().AddEventHandler(matter_device_event, (intptr_t)this);
         Server::GetInstance().GetFabricTable().AddFabricDelegate(&m_fabric_delegate);
 
-        intercom_set_rx_callback(m_intercom, IntercomChannelMatter, matter_handle_frame, this);
-
+        auto intercom = static_cast<Intercom*>(furi_record_open(RECORD_INTERCOM));
+        m_intercom_ch =
+            intercom_channel_open(intercom, IntercomChannelIdMatter, matter_handle_frame, this);
         matter_send_current_state(this);
         matter_send_fabric_count_update(this);
 

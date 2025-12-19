@@ -15,6 +15,7 @@ static_assert(SIGNATURE_LEN_MAX <= TLS_CRYPTO_DATA_SIZE_MAX);
 
 typedef struct {
     Intercom* intercom;
+    IntercomChannel* intercom_ch;
     FuriEventLoop* event_loop;
     FuriMessageQueue* command_queue;
 } TlsCryptoServer;
@@ -55,18 +56,13 @@ static void tls_crypto_server_sign(TlsCryptoServer* instance, TlsCryptoMessageGe
         msg->header.data_size = signature_len;
         memcpy(msg->data, signature_buf, signature_len);
         size_t packet_len = sizeof(TlsCryptoMessageHeader) + msg->header.data_size;
-        size_t tx_size = intercom_tx(
-            instance->intercom, IntercomChannelTlsCrypto, msg, packet_len, FuriWaitForever);
+        size_t tx_size = intercom_tx(instance->intercom_ch, msg, packet_len, FuriWaitForever);
         furi_check(tx_size == packet_len, "Failed to send data");
     } else {
         FURI_LOG_E(TAG, "Sign error");
         TlsCryptoErrorMessage error_msg = {.header = {.type = TlsCryptoError}};
         size_t tx_size = intercom_tx(
-            instance->intercom,
-            IntercomChannelTlsCrypto,
-            &error_msg,
-            sizeof(TlsCryptoErrorMessage),
-            FuriWaitForever);
+            instance->intercom_ch, &error_msg, sizeof(TlsCryptoErrorMessage), FuriWaitForever);
         furi_check(tx_size == sizeof(TlsCryptoErrorMessage), "Failed to send data");
     }
     free(signature_buf);
@@ -90,8 +86,7 @@ static void tls_crypto_server_get_cert(TlsCryptoServer* instance, TlsCryptoMessa
             memcpy(msg->data, key->data, key->header.size);
 
             size_t packet_len = sizeof(TlsCryptoMessageHeader) + msg->header.data_size;
-            size_t tx_size = intercom_tx(
-                instance->intercom, IntercomChannelTlsCrypto, msg, packet_len, FuriWaitForever);
+            size_t tx_size = intercom_tx(instance->intercom_ch, msg, packet_len, FuriWaitForever);
             furi_check(tx_size == packet_len, "Failed to send data");
 
             success = true;
@@ -103,11 +98,7 @@ static void tls_crypto_server_get_cert(TlsCryptoServer* instance, TlsCryptoMessa
         FURI_LOG_E(TAG, "Get cert error");
         TlsCryptoErrorMessage error_msg = {.header = {.type = TlsCryptoError}};
         size_t tx_size = intercom_tx(
-            instance->intercom,
-            IntercomChannelTlsCrypto,
-            &error_msg,
-            sizeof(TlsCryptoErrorMessage),
-            FuriWaitForever);
+            instance->intercom_ch, &error_msg, sizeof(TlsCryptoErrorMessage), FuriWaitForever);
         furi_check(tx_size == sizeof(TlsCryptoErrorMessage), "Failed to send data");
     }
 }
@@ -153,8 +144,8 @@ int32_t tls_crypto_server_init(void* arg) {
         instance);
 
     instance->intercom = furi_record_open(RECORD_INTERCOM);
-    intercom_set_rx_callback(
-        instance->intercom, IntercomChannelTlsCrypto, tls_crypto_server_rx_callback, instance);
+    instance->intercom_ch = intercom_channel_open(
+        instance->intercom, IntercomChannelIdTlsCrypto, tls_crypto_server_rx_callback, instance);
 
     FURI_LOG_I(TAG, "Start");
 

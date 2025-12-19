@@ -13,6 +13,15 @@ typedef enum {
     MqttClientStatusConnectedLinked, // Connected to MQTT broker, linked
 } MqttClientStatus;
 
+typedef enum {
+    MqttClientProfileDev = 0,
+    MqttClientProfileProd,
+    MqttClientProfileLocal,
+    MqttClientProfileCustom,
+
+    MqttClientProfileMax
+} MqttClientProfile;
+
 typedef struct {
     enum {
         MqttClientEventStatusChange,
@@ -28,6 +37,13 @@ typedef struct {
     };
 } MqttClientEvent;
 
+typedef enum {
+    MqttQosAtMostOnce = 0,
+    MqttQosAtLeastOnce = 1,
+    MqttQosExactlyOnce = 2,
+    MqttQosMax,
+} MqttQos;
+
 typedef struct MqttClient MqttClient;
 
 FuriPubSub* mqtt_client_get_pubsub(MqttClient* mqtt);
@@ -40,3 +56,12 @@ void mqtt_client_get_session_info(
     FuriString* id,
     FuriString* email,
     FuriString* user_id);
+MqttClientProfile mqtt_client_get_profile(MqttClient* mqtt, FuriString* custom_url);
+void mqtt_client_set_profile(MqttClient* mqtt, MqttClientProfile profile, char* custom_url);
+
+void mqtt_client_publish(
+    MqttClient* mqtt,
+    MqttQos qos,
+    const char* topic,
+    const void* data,
+    size_t data_size);

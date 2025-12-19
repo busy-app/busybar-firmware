@@ -17,6 +17,7 @@ typedef enum {
 typedef struct {
     FuriThreadId thread_id;
     Intercom* intercom;
+    IntercomChannel* test_channel;
     uint8_t buffer[BUFFER_SIZE];
 } IntercomTest;
 
@@ -58,8 +59,8 @@ static IntercomTest* intercom_test_alloc(void) {
     instance->thread_id = furi_thread_get_current_id();
     instance->intercom = furi_record_open(RECORD_INTERCOM);
 
-    intercom_set_rx_callback(
-        instance->intercom, IntercomChannelDebug, intercom_test_rx_callback, instance);
+    instance->test_channel = intercom_channel_open(
+        instance->intercom, IntercomChannelIdDebug, intercom_test_rx_callback, instance);
 
     return instance;
 }
@@ -81,12 +82,8 @@ int32_t intercom_test_srv(void* arg) {
 
         start = DWT->CYCCNT;
 
-        const size_t tx_size = intercom_tx(
-            instance->intercom,
-            IntercomChannelDebug,
-            instance->buffer,
-            BUFFER_SIZE,
-            FuriWaitForever);
+        const size_t tx_size =
+            intercom_tx(instance->test_channel, instance->buffer, BUFFER_SIZE, FuriWaitForever);
 
         furi_check(tx_size == BUFFER_SIZE, "Failed to send data");
 

@@ -65,7 +65,6 @@ static void ble_event_handler(struct mg_connection* conn, int ev, void* ev_data)
         conn->recv.len = 0;
     } else if(ev == MG_EV_CLOSE) {
         if(ble_http->exit) return;
-        FURI_LOG_I(TAG, "Reopen conn");
         ble_http->conn =
             mg_connect(&ble_http->mgr, BLE_HTTP_HOST, ble_event_handler, ble_http_repeater);
     }
