@@ -5,6 +5,7 @@
 
 typedef struct {
     Intercom* intercom;
+    IntercomChannel* test_channel;
     FuriSemaphore* semaphore;
     FuriEventLoop* event_loop;
     uint8_t buffer[BUFFER_SIZE];
@@ -16,8 +17,8 @@ static void intercom_test_semaphore_callback(FuriEventLoopObject* object, void* 
     IntercomTest* instance = context;
     furi_assert(instance->semaphore == object);
 
-    const size_t tx_size = intercom_tx(
-        instance->intercom, IntercomChannelDebug, instance->buffer, BUFFER_SIZE, FuriWaitForever);
+    const size_t tx_size =
+        intercom_tx(instance->test_channel, instance->buffer, BUFFER_SIZE, FuriWaitForever);
 
     furi_check(tx_size == BUFFER_SIZE, "Failed to send data");
 }
@@ -49,8 +50,8 @@ static IntercomTest* intercom_test_alloc(void) {
         intercom_test_semaphore_callback,
         instance);
 
-    intercom_set_rx_callback(
-        instance->intercom, IntercomChannelDebug, intercom_test_rx_callback, instance);
+    instance->test_channel = intercom_channel_open(
+        instance->intercom, IntercomChannelIdDebug, intercom_test_rx_callback, instance);
 
     return instance;
 }

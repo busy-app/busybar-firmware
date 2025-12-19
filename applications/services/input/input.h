@@ -77,14 +77,15 @@ void input_key_release(Input* input, InputKey key);
 void input_key_toggle(Input* input, InputKey key);
 
 /**
- * @brief Gets the state of all absolute controls, i.e. the buttons and the mode
- *        switch
+ * @brief Get the reference to a FuriState with the mode switch position.
+ * 
+ * The FuriState stores a `InputSwitchPosition` type. `InputSwitchPositionMAX`
+ * means that state is unknown yet.
  * 
  * @param [in] input Input instance
- * 
- * @returns State of all absolute controls
+ * @returns `FuriState` as described above.
  */
-InputAbsoluteState input_get_absolute_state(Input* input);
+FuriState* input_get_switch_pos(Input* input);
 
 #ifdef __cplusplus
 }
