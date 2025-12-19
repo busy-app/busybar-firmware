@@ -156,7 +156,7 @@ class TestSystemAPI:
 class TestTimeAPI:
     """Test cases for Time API endpoints"""
 
-    @allure.id("2716")
+    @allure.id("2680")
     @allure.title("GET /api/time")
     @pytest.mark.api
     @pytest.mark.frontend
@@ -178,7 +178,7 @@ class TestTimeAPI:
                 "+" in timestamp or "-" in timestamp[10:]
             ), "Timestamp should include timezone offset"
 
-    @allure.id("2717")
+    @allure.id("2681")
     @allure.title("POST /api/time/timestamp")
     @pytest.mark.api
     @pytest.mark.frontend
@@ -197,7 +197,7 @@ class TestTimeAPI:
             response.assert_ok()
             response.assert_has_fields("result").attach_to_allure("Timestamp Set Response")
 
-    @allure.id("2718")
+    @allure.id("2682")
     @allure.title("POST /api/time/timestamp (invalid)")
     @pytest.mark.api
     @pytest.mark.frontend
@@ -217,7 +217,7 @@ class TestTimeAPI:
             )
             response.assert_bad_request()
 
-    @allure.id("2719")
+    @allure.id("2683")
     @allure.title("POST /api/time/timezone")
     @pytest.mark.api
     @pytest.mark.frontend
@@ -240,7 +240,7 @@ class TestTimeAPI:
             response.assert_ok()
             response.assert_has_fields("result").attach_to_allure("Timezone Set Response")
 
-    @allure.id("2720")
+    @allure.id("2684")
     @allure.title("POST /api/time/timezone (invalid)")
     @pytest.mark.api
     @pytest.mark.frontend

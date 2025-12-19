@@ -16,7 +16,7 @@ from utils import (
 class TestAccountInfoAPI:
     """Test cases for Account Info API endpoint"""
 
-    @allure.id("2721")
+    @allure.id("2685")
     @allure.title("GET /api/account/info")
     @pytest.mark.api
     @pytest.mark.frontend
@@ -201,7 +201,7 @@ class TestAccountProfileAPI:
 class TestAccountLinkAPI:
     """Test cases for Account Link API endpoint"""
 
-    @allure.id("2722")
+    @allure.id("2686")
     @allure.title("POST /api/account/link")
     @pytest.mark.api
     @pytest.mark.frontend
@@ -252,7 +252,7 @@ class TestAccountLinkAPI:
 class TestAccountUnlinkAPI:
     """Test cases for Account Unlink API endpoint"""
 
-    @allure.id("2723")
+    @allure.id("2687")
     @allure.title("DELETE /api/account")
     @pytest.mark.api
     @pytest.mark.frontend

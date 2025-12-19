@@ -20,7 +20,7 @@ from utils import (
 class TestStorageAPI:
     """Test cases for Storage API endpoints"""
 
-    @allure.id("2715")
+    @allure.id("2679")
     @allure.title("GET /api/storage/status")
     @pytest.mark.api
     @pytest.mark.frontend

@@ -43,7 +43,7 @@ class TestBleAPI:
 class TestBleStatusAPI:
     """Test cases for BLE Status API endpoints"""
 
-    @allure.id("2724")
+    @allure.id("2688")
     @allure.title("GET /api/ble/status")
     @pytest.mark.api
     @pytest.mark.frontend
@@ -73,7 +73,7 @@ class TestBleStatusAPI:
             # Validate pairing enum
             assert_field_in(data, "pairing", ["unknown", "not paired", "paired"])
 
-    @allure.id("2725")
+    @allure.id("2689")
     @allure.title("DELETE /api/ble/pairing")
     @pytest.mark.api
     @pytest.mark.frontend

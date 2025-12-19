@@ -16,7 +16,7 @@ from utils import (
 class TestNameAPI:
     """Test cases for Name API endpoints"""
 
-    @allure.id("2712")
+    @allure.id("2676")
     @allure.title("Name. GET /api/name")
     @allure.issue("FW-407")
     @pytest.mark.api
@@ -32,7 +32,7 @@ class TestNameAPI:
             response.assert_has_fields("name")
             response.assert_field_type("name", str).attach_to_allure("Name Response")
 
-    @allure.id("2713")
+    @allure.id("2677")
     @allure.title("Name. POST /api/name")
     @allure.issue("FW-407")
     @pytest.mark.api
@@ -116,7 +116,7 @@ class TestNameAPI:
                         json={"name": original_name}
                     )
 
-    @allure.id("2714")
+    @allure.id("2678")
     @allure.title("Name. POST /api/name (negative)")
     @allure.issue("FW-407")
     @pytest.mark.api

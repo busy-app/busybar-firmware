@@ -91,7 +91,7 @@ class TestAssetsAPI:
             response.assert_ok()
             response.assert_has_fields("result").attach_to_allure("Display Draw Response")
 
-    @allure.id("2726")
+    @allure.id("2690")
     @allure.title("POST /api/display/draw (image)")
     @pytest.mark.api
     @pytest.mark.frontend
