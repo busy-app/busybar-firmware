@@ -23,7 +23,7 @@ typedef struct {
     BusyTimerMode prev_timer_mode;
     BusyTimerTime timer_time;
     BusyTimerState timer_state;
-    uint32_t prev_reveal_time;
+    uint32_t prev_label_show_time;
     bool is_custom_theme;
     bool is_paused;
     bool is_force_ended;
@@ -117,13 +117,13 @@ static void busy_scene_timer_update_tick(BusyApp* instance) {
         timer_card_set_time(instance->timer_card, time_remain_s);
 
         if(busy_scene_timer_has_label_tweaks(data)) {
-            const uint32_t dt_s = time_elapsed_s - data->prev_reveal_time;
+            const uint32_t dt_s = time_elapsed_s - data->prev_label_show_time;
 
             if(dt_s == TIMER_HIDDEN_TIME_S) {
-                timer_label_reveal(data->timer_label);
+                timer_label_show(data->timer_label);
             } else if(dt_s == TIMER_HIDDEN_TIME_S + TIMER_SHOWN_TIME_S || dt_s == 0) {
                 timer_label_hide(data->timer_label);
-                data->prev_reveal_time = time_elapsed_s;
+                data->prev_label_show_time = time_elapsed_s;
             }
         }
     });
@@ -235,7 +235,7 @@ static void busy_scene_timer_update_timer_state(BusyApp* instance) {
     BusySceneTimer* data =
         scene_manager_get_scene_data(instance->scene_manager, BusyAppSceneIdTimer);
 
-    data->prev_reveal_time = 0;
+    data->prev_label_show_time = 0;
 
     const TimerIndicatorPreset* timer_indicator_preset =
         busy_scene_timer_get_indicator_preset(data);

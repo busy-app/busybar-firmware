@@ -39,6 +39,15 @@ const lv_obj_class_t timer_label_lvgl_class;
 
 // LVGL-specific code
 
+static void timer_label_reveal_lvgl_anim_callback(void* context, int32_t value) {
+    furi_assert(context);
+
+    TimerLabel* instance = context;
+
+    lv_obj_set_style_opa(instance->main_layout, value, LV_PART_MAIN);
+    lv_obj_set_x(instance->bg_gradient, MAIN_WIDTH_PX - (MAIN_WIDTH_PX * value / LV_OPA_COVER));
+}
+
 static void timer_label_lvgl_anim_color_to_countdown_callback(void* context, int32_t value) {
     furi_assert(context);
 
@@ -135,6 +144,21 @@ static void timer_label_countdown_blink(TimerLabel* instance) {
     lv_anim_start(&anim);
 }
 
+// Implementation
+
+static void timer_label_animate_transition(TimerLabel* instance, uint8_t stop_value) {
+    const uint8_t start_value = lv_obj_get_style_opa(instance->main_layout, LV_PART_MAIN);
+
+    lv_anim_t anim;
+    lv_anim_init(&anim);
+    lv_anim_set_duration(&anim, 250);
+    lv_anim_set_values(&anim, start_value, stop_value);
+    lv_anim_set_exec_cb(&anim, timer_label_reveal_lvgl_anim_callback);
+
+    lv_anim_set_var(&anim, instance);
+    lv_anim_start(&anim);
+}
+
 // Public API
 
 TimerLabel* timer_label_alloc(Widget* parent) {
@@ -207,20 +231,14 @@ void timer_label_enable_background(TimerLabel* instance, bool enable) {
     widget_set_visible((Widget*)instance->bg_gradient, enable);
 }
 
-void timer_label_reveal(TimerLabel* instance) {
+void timer_label_show(TimerLabel* instance) {
     furi_check(instance);
-
-    // TODO: Reveal animation
-    lv_obj_remove_flag(instance->bg_gradient, LV_OBJ_FLAG_HIDDEN);
-    lv_obj_remove_flag(instance->main_layout, LV_OBJ_FLAG_HIDDEN);
+    timer_label_animate_transition(instance, LV_OPA_COVER);
 }
 
 void timer_label_hide(TimerLabel* instance) {
     furi_check(instance);
-
-    // TODO: Hide animation
-    lv_obj_add_flag(instance->bg_gradient, LV_OBJ_FLAG_HIDDEN);
-    lv_obj_add_flag(instance->main_layout, LV_OBJ_FLAG_HIDDEN);
+    timer_label_animate_transition(instance, LV_OPA_TRANSP);
 }
 
 // LVGL class descriptor
