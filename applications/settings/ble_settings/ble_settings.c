@@ -4,25 +4,6 @@
 
 #define TAG "BleSettings"
 
-static bool ble_settings_thread_signal_callback(uint32_t signal, void* arg, void* context) {
-    UNUSED(arg);
-
-    BleSettings* instance = context;
-
-    switch(signal) {
-    case FuriSignalExit:
-        furi_event_loop_stop(instance->event_loop);
-        return true;
-
-    case FuriSignalAboutToExit:
-        ble_settings_send_custom_event(instance, AppEventAboutToExit);
-        return true;
-
-    default:
-        return false;
-    }
-}
-
 static void ble_settings_input_queue_callback(FuriEventLoopObject* object, void* context) {
     UNUSED(object);
 
@@ -215,10 +196,7 @@ int32_t ble_settings_entry(void* arg) {
     }
 
     BleSettings* instance = ble_settings_alloc();
-    FuriThread* thread = furi_thread_get_current();
-    furi_thread_set_signal_callback(thread, ble_settings_thread_signal_callback, instance);
     furi_event_loop_run(instance->event_loop);
-    furi_thread_set_signal_callback(thread, NULL, NULL);
     ble_settings_free(instance);
 
     return 0;
