@@ -42,9 +42,7 @@ static bool ble_settings_gui_input_callback(const InputEvent* event, void* conte
 
     bool consumed = false;
     if(event->type == InputTypeShort) {
-        if(event->key == InputKeyBack) {
-            consumed = true;
-        }
+        consumed = true;
     }
 
     if(consumed) {
