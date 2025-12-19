@@ -13,6 +13,7 @@
      INIT_SET(BUSY_THEME_INIT_SET), \
      SET(busy_theme_set),           \
      CLEAR(busy_theme_free),        \
+     EQUAL(busy_theme_is_equal),    \
      TYPE(BusyTheme*))
 
 typedef struct BusyTheme BusyTheme;
@@ -47,3 +48,5 @@ bool busy_theme_read(BusyTheme* instance, const char* name);
 void busy_theme_get_info(const BusyTheme* instance, BusyThemeInfo* info);
 
 bool busy_theme_is_default(const BusyTheme* instance);
+
+bool busy_theme_is_equal(const BusyTheme* instance, const BusyTheme* other);

@@ -68,6 +68,9 @@ static void busy_scene_setup_theme_on_enter(void* context) {
 
     busy_scene_setup_theme_read_extra_themes(data->picker_model);
 
+    const uint32_t selected_theme_index =
+        theme_picker_model_get_item_index(data->picker_model, instance->theme);
+
     with_gui(instance->gui, {
         data->front_picker = theme_picker_alloc(instance->front_window);
         theme_picker_set_model(data->front_picker, data->picker_model);
@@ -76,6 +79,11 @@ static void busy_scene_setup_theme_on_enter(void* context) {
         // data->back_picker = theme_picker_alloc(instance->back_window);
         // theme_picker_set_model(data->back_picker, data->picker_model);
         // widget_set_align(theme_picker_get_base(data->back_picker), AlignCenter);
+
+        if(selected_theme_index != THEME_PICKER_MODEL_INVALID_INDEX) {
+            theme_picker_set_current_item(data->front_picker, selected_theme_index);
+            // theme_picker_set_current_item(data->back_picker, selected_theme_index);
+        }
 
         // Needed only once
         theme_picker_set_callback(

@@ -177,6 +177,13 @@ void theme_picker_set_callback(ThemePicker* instance, ThemePickerCallback callba
     instance->callback_context = context;
 }
 
+void theme_picker_set_current_item(ThemePicker* instance, uint32_t index) {
+    furi_check(instance);
+
+    instance->current_idx = index;
+    theme_picker_update_image(instance);
+}
+
 // LVGL class descriptor
 
 const lv_obj_class_t theme_picker_lvgl_class = {

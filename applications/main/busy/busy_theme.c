@@ -77,6 +77,7 @@ BusyTheme* busy_theme_alloc(void) {
 BusyTheme* busy_theme_alloc_default(void) {
     BusyTheme* instance = busy_theme_alloc();
 
+    furi_string_set(instance->name, "default");
     furi_string_set(instance->bg_path, BUSY_IMG_PATH("theme_preview_72x16.bin"));
 
     return instance;
@@ -168,4 +169,8 @@ bool busy_theme_is_default(const BusyTheme* instance) {
     furi_assert(instance);
 
     return furi_string_empty(instance->name);
+}
+
+bool busy_theme_is_equal(const BusyTheme* instance, const BusyTheme* other) {
+    return furi_string_equal(instance->name, other->name);
 }

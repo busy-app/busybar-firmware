@@ -47,6 +47,8 @@ void theme_picker_set_model(ThemePicker* instance, const ThemePickerModel* model
 
 void theme_picker_set_callback(ThemePicker* instance, ThemePickerCallback callback, void* context);
 
+void theme_picker_set_current_item(ThemePicker* instance, uint32_t index);
+
 #ifdef __cplusplus
 }
 #endif
