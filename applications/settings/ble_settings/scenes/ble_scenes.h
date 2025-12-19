@@ -7,8 +7,7 @@ typedef enum {
     SceneIdForgetDevice,
     SceneIdForgetDeviceConfirm,
 
-    SceneIdMain, //TODO: remove this and main scene also
-    SceneIdsCount = 2,
+    SceneIdsCount
 } SceneId;
 
 extern const Scene* const ble_settings_scenes[SceneIdsCount];
