@@ -45,3 +45,5 @@ void busy_theme_set(BusyTheme* instance, const BusyTheme* other);
 bool busy_theme_read(BusyTheme* instance, const char* name);
 
 void busy_theme_get_info(const BusyTheme* instance, BusyThemeInfo* info);
+
+bool busy_theme_is_default(const BusyTheme* instance);

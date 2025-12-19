@@ -16,10 +16,12 @@ typedef struct {
     PauseOverlay* pause_overlay;
     FuriPubSub* timer_pubsub;
     FuriPubSubSubscription* timer_sub;
+    TimerIndicatorPreset custom_preset;
     BusyTimerMode timer_mode;
     BusyTimerMode prev_timer_mode;
     BusyTimerTime timer_time;
     BusyTimerState timer_state;
+    bool is_custom_theme;
     bool is_paused;
     bool is_force_ended;
 } BusySceneTimer;
@@ -159,10 +161,14 @@ static const TimerIndicatorPreset*
     const BusyTimerMode timer_mode = data->timer_mode;
 
     if(timer_state == BusyTimerStateWork) {
-        if(timer_mode == BusyTimerModeInfinite) {
-            ret = &busy_timer_indicator_presets[BusyTimerIndicatorTypeWorkBig];
-        } else if(timer_mode == BusyTimerModeSimple || timer_mode == BusyTimerModeInterval) {
-            ret = &busy_timer_indicator_presets[BusyTimerIndicatorTypeWork];
+        if(data->is_custom_theme) {
+            ret = &data->custom_preset;
+        } else {
+            if(timer_mode == BusyTimerModeInfinite) {
+                ret = &busy_timer_indicator_presets[BusyTimerIndicatorTypeWorkBig];
+            } else if(timer_mode == BusyTimerModeSimple || timer_mode == BusyTimerModeInterval) {
+                ret = &busy_timer_indicator_presets[BusyTimerIndicatorTypeWork];
+            }
         }
 
     } else if(timer_state == BusyTimerStateRest) {
@@ -190,7 +196,7 @@ static const TimerIndicatorTransition*
     return ret;
 }
 
-static const TimerLabelPreset* busy_scen_timer_get_label_preset(const BusySceneTimer* data) {
+static const TimerLabelPreset* busy_scene_timer_get_label_preset(const BusySceneTimer* data) {
     const TimerLabelPreset* ret = NULL;
 
     const BusyTimerState timer_state = data->timer_state;
@@ -204,6 +210,32 @@ static const TimerLabelPreset* busy_scen_timer_get_label_preset(const BusySceneT
     return ret;
 }
 
+static void busy_scene_timer_apply_theme(BusyApp* instance) {
+    BusySceneTimer* data =
+        scene_manager_get_scene_data(instance->scene_manager, BusyAppSceneIdTimer);
+
+    const bool is_custom_theme = !busy_theme_is_default(instance->theme);
+
+    if(is_custom_theme) {
+        BusyThemeInfo info;
+        busy_theme_get_info(instance->theme, &info);
+
+        const BusyThemeFileType bg_type = info.bg_type;
+
+        if(bg_type == BusyThemeFileTypeImage) {
+            data->custom_preset.foreground_config.image_path = info.bg_path;
+        } else if(bg_type == BusyThemeFileTypeAnimImage) {
+            data->custom_preset.background_config.anim_path = info.bg_path;
+        } else if(bg_type == BusyThemeFileTypeLottieAnim) {
+            data->custom_preset.progress_config.lottie_path = info.bg_path;
+        } else {
+            furi_crash("Invalid BusyThemeFileType value");
+        }
+    }
+
+    data->is_custom_theme = is_custom_theme;
+}
+
 static void busy_scene_timer_update_timer_state(BusyApp* instance) {
     const BusySceneTimer* data =
         scene_manager_get_scene_data(instance->scene_manager, BusyAppSceneIdTimer);
@@ -212,7 +244,7 @@ static void busy_scene_timer_update_timer_state(BusyApp* instance) {
         busy_scene_timer_get_indicator_preset(data);
     const TimerIndicatorTransition* timer_indicator_transition =
         busy_scene_timer_get_indicator_transition(data);
-    const TimerLabelPreset* timer_label_preset = busy_scen_timer_get_label_preset(data);
+    const TimerLabelPreset* timer_label_preset = busy_scene_timer_get_label_preset(data);
 
     with_gui(instance->gui, {
         if(timer_indicator_preset) {
@@ -310,8 +342,10 @@ static void busy_scene_timer_handle_interval_ended(BusyApp* instance) {
 
 static void busy_scene_timer_on_enter(void* context) {
     furi_assert(context);
-
     BusyApp* instance = context;
+
+    busy_scene_timer_apply_theme(instance);
+
     BusySceneTimer* data =
         scene_manager_get_scene_data(instance->scene_manager, BusyAppSceneIdTimer);
 
@@ -320,7 +354,7 @@ static void busy_scene_timer_on_enter(void* context) {
         gui_layer_add_input_callback(layer, busy_scene_timer_input_callback, instance);
 
         data->front_flex = flex_layout_alloc(instance->front_window, FlexLayoutTypeRow);
-        widget_set_pos_x(flex_layout_get_base(data->front_flex), 1);
+        // widget_set_pos_x(flex_layout_get_base(data->front_flex), 1);
         flex_layout_set_spacing(data->front_flex, 2);
 
         data->timer_indicator = timer_indicator_alloc(flex_layout_get_base(data->front_flex));

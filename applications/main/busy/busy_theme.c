@@ -163,3 +163,9 @@ bool busy_theme_read(BusyTheme* instance, const char* name) {
 
     return success;
 }
+
+bool busy_theme_is_default(const BusyTheme* instance) {
+    furi_assert(instance);
+
+    return furi_string_empty(instance->name);
+}
