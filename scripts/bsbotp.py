@@ -354,12 +354,12 @@ def verify_signature(
 
 def create_otp1_signature_data(otp1: OTP1Data, mcu_uid: bytes) -> bytes:
     """Create data to be signed for OTP1 (includes MCU UID for binding)"""
-    return mcu_uid + otp1.to_bytes()
+    return mcu_uid + b"-otp1-" + otp1.to_bytes()
 
 
 def create_otp2_signature_data(otp2: OTP2Data, mcu_uid: bytes) -> bytes:
     """Create data to be signed for OTP2 (includes MCU UID for binding)"""
-    return mcu_uid + otp2.to_bytes()
+    return mcu_uid + b"-otp2-" + otp2.to_bytes()
 
 
 # ============================================================================
@@ -573,6 +573,22 @@ def cmd_verify(args):
     otp3 = OTP3Data.from_bytes(otp3_raw[: struct.calcsize(OTP3Data.STRUCT_FORMAT)])
     public_key = public_key_from_bytes(otp3.hw_otp3_pkey)
 
+    # Compare with external public key file if provided
+    pubkey_match = None
+    if args.public_key:
+        with open(args.public_key, "rb") as f:
+            external_pubkey = f.read()
+        if len(external_pubkey) != 56:
+            print(
+                f"Warning: External public key file has unexpected size "
+                f"({len(external_pubkey)} bytes, expected 56)"
+            )
+        pubkey_match = external_pubkey == otp3.hw_otp3_pkey
+        print(f"Public key comparison: {'MATCH' if pubkey_match else 'MISMATCH'}")
+        if not pubkey_match:
+            print(f"  OTP3 public key : {format_hex(otp3.hw_otp3_pkey)}")
+            print(f"  External key    : {format_hex(external_pubkey)}")
+
     # Load OTP4 (signatures)
     with open(args.otp4, "rb") as f:
         otp4_raw = f.read()
@@ -599,9 +615,13 @@ def cmd_verify(args):
     print(f"OTP1 signature: {'VALID' if otp1_valid else 'INVALID'}")
     print(f"OTP2 signature: {'VALID' if otp2_valid else 'INVALID'}")
 
-    if not (otp1_valid and otp2_valid):
+    all_valid = otp1_valid and otp2_valid
+    if pubkey_match is not None:
+        all_valid = all_valid and pubkey_match
+
+    if not all_valid:
         sys.exit(1)
-    print("\nAll signatures verified successfully!")
+    print("\nAll verifications passed!")
 
 
 def cmd_dump_all(args):
@@ -686,6 +706,12 @@ Examples:
 
   # Verify signatures
   %(prog)s verify --otp1 otp1.bin --otp2 otp2.bin --otp3 otp3.bin --otp4 otp4.bin
+
+  # Verify signatures and compare public key with external file
+  %(prog)s verify --otp1 otp1.bin --otp2 otp2.bin --otp3 otp3.bin --otp4 otp4.bin \\\n      --public-key public.bin
+
+  # Create OTP2 with custom timestamp
+  %(prog)s create-otp2 -o otp2.bin --timestamp 1751035273 --color 0 --region 0
 """,
     )
 
@@ -778,6 +804,10 @@ Examples:
     verify_parser.add_argument("--otp2", required=True, help="OTP2 data file")
     verify_parser.add_argument("--otp3", required=True, help="OTP3 public key file")
     verify_parser.add_argument("--otp4", required=True, help="OTP4 signature file")
+    verify_parser.add_argument(
+        "--public-key",
+        help="External public key file (raw 56-byte binary) to compare with OTP3",
+    )
     verify_parser.set_defaults(func=cmd_verify)
 
     # Dump all command
