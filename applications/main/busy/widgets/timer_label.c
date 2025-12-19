@@ -73,6 +73,7 @@ static void timer_label_lvgl_constructor(const lv_obj_class_t* class_p, lv_obj_t
     TimerLabel* instance = (TimerLabel*)obj;
 
     instance->bg_gradient = lv_obj_create(obj);
+    lv_obj_add_flag(instance->bg_gradient, LV_OBJ_FLAG_HIDDEN);
     lv_obj_set_size(instance->bg_gradient, LV_PCT(100), LV_PCT(100));
     lv_obj_set_style_bg_color(instance->bg_gradient, lv_color_white(), LV_PART_MAIN);
     lv_obj_set_style_bg_opa(instance->bg_gradient, LV_OPA_COVER, LV_PART_MAIN);
@@ -199,6 +200,27 @@ void timer_label_set_preset(TimerLabel* instance, const TimerLabelPreset* preset
 
     instance->countdown_base_color = TO_LV_COLOR(preset->countdown_colors.base);
     instance->countdown_blink_color = TO_LV_COLOR(preset->countdown_colors.blink);
+}
+
+void timer_label_enable_background(TimerLabel* instance, bool enable) {
+    furi_check(instance);
+    widget_set_visible((Widget*)instance->bg_gradient, enable);
+}
+
+void timer_label_reveal(TimerLabel* instance) {
+    furi_check(instance);
+
+    // TODO: Reveal animation
+    lv_obj_remove_flag(instance->bg_gradient, LV_OBJ_FLAG_HIDDEN);
+    lv_obj_remove_flag(instance->main_layout, LV_OBJ_FLAG_HIDDEN);
+}
+
+void timer_label_hide(TimerLabel* instance) {
+    furi_check(instance);
+
+    // TODO: Hide animation
+    lv_obj_add_flag(instance->bg_gradient, LV_OBJ_FLAG_HIDDEN);
+    lv_obj_add_flag(instance->main_layout, LV_OBJ_FLAG_HIDDEN);
 }
 
 // LVGL class descriptor

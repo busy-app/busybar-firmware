@@ -65,6 +65,12 @@ void timer_label_set_time(TimerLabel* instance, uint32_t time_s);
  */
 void timer_label_set_preset(TimerLabel* instance, const TimerLabelPreset* preset);
 
+void timer_label_enable_background(TimerLabel* instance, bool enable);
+
+void timer_label_reveal(TimerLabel* instance);
+
+void timer_label_hide(TimerLabel* instance);
+
 #ifdef __cplusplus
 }
 #endif

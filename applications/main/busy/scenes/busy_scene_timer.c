@@ -209,32 +209,6 @@ static const TimerLabelPreset* busy_scene_timer_get_label_preset(const BusyScene
     return ret;
 }
 
-static void busy_scene_timer_apply_theme(BusyApp* instance) {
-    BusySceneTimer* data =
-        scene_manager_get_scene_data(instance->scene_manager, BusyAppSceneIdTimer);
-
-    const bool is_custom_theme = !busy_theme_is_default(instance->theme);
-
-    if(is_custom_theme) {
-        BusyThemeInfo info;
-        busy_theme_get_info(instance->theme, &info);
-
-        const BusyThemeFileType bg_type = info.bg_type;
-
-        if(bg_type == BusyThemeFileTypeImage) {
-            data->custom_preset.foreground_config.image_path = info.bg_path;
-        } else if(bg_type == BusyThemeFileTypeAnimImage) {
-            data->custom_preset.background_config.anim_path = info.bg_path;
-        } else if(bg_type == BusyThemeFileTypeLottieAnim) {
-            data->custom_preset.progress_config.lottie_path = info.bg_path;
-        } else {
-            furi_crash("Invalid BusyThemeFileType value");
-        }
-    }
-
-    data->is_custom_theme = is_custom_theme;
-}
-
 static void busy_scene_timer_update_timer_state(BusyApp* instance) {
     const BusySceneTimer* data =
         scene_manager_get_scene_data(instance->scene_manager, BusyAppSceneIdTimer);
@@ -253,6 +227,9 @@ static void busy_scene_timer_update_timer_state(BusyApp* instance) {
 
         if(timer_label_preset) {
             timer_label_set_preset(data->timer_label, timer_label_preset);
+            timer_label_enable_background(
+                data->timer_label,
+                data->is_custom_theme && data->timer_state == BusyTimerStateWork);
         }
     });
 
@@ -337,6 +314,32 @@ static void busy_scene_timer_handle_interval_ended(BusyApp* instance) {
 
     busy_prepare_transition(instance, transition_type);
     scene_manager_next_scene(instance->scene_manager, next_scene_id);
+}
+
+static void busy_scene_timer_apply_theme(BusyApp* instance) {
+    BusySceneTimer* data =
+        scene_manager_get_scene_data(instance->scene_manager, BusyAppSceneIdTimer);
+
+    const bool is_custom_theme = !busy_theme_is_default(instance->theme);
+
+    if(is_custom_theme) {
+        BusyThemeInfo info;
+        busy_theme_get_info(instance->theme, &info);
+
+        const BusyThemeFileType bg_type = info.bg_type;
+
+        if(bg_type == BusyThemeFileTypeImage) {
+            data->custom_preset.foreground_config.image_path = info.bg_path;
+        } else if(bg_type == BusyThemeFileTypeAnimImage) {
+            data->custom_preset.background_config.anim_path = info.bg_path;
+        } else if(bg_type == BusyThemeFileTypeLottieAnim) {
+            data->custom_preset.progress_config.lottie_path = info.bg_path;
+        } else {
+            furi_crash("Invalid BusyThemeFileType value");
+        }
+    }
+
+    data->is_custom_theme = is_custom_theme;
 }
 
 static void busy_scene_timer_on_enter(void* context) {
