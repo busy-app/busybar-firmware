@@ -9,6 +9,9 @@
 
 #define COUNTDOWN_THRESHOLD_S (3)
 
+#define TIMER_HIDDEN_TIME_S (15)
+#define TIMER_SHOWN_TIME_S  (5)
+
 typedef struct {
     TimerIndicator* timer_indicator;
     TimerLabel* timer_label;
@@ -20,6 +23,7 @@ typedef struct {
     BusyTimerMode prev_timer_mode;
     BusyTimerTime timer_time;
     BusyTimerState timer_state;
+    uint32_t prev_reveal_time;
     bool is_custom_theme;
     bool is_paused;
     bool is_force_ended;
@@ -93,17 +97,35 @@ static void busy_scene_timer_pubsub_callback(const void* msg, void* context) {
     }
 }
 
+static bool busy_scene_timer_has_label_tweaks(const BusySceneTimer* data) {
+    return data->is_custom_theme && data->timer_state == BusyTimerStateWork;
+}
+
 static void busy_scene_timer_update_tick(BusyApp* instance) {
-    const BusySceneTimer* data =
+    BusySceneTimer* data =
         scene_manager_get_scene_data(instance->scene_manager, BusyAppSceneIdTimer);
     const BusyTimerTime* time = &data->timer_time;
 
-    const float progress = (float)time->elapsed_s / (time->elapsed_s + time->remain_s);
+    const uint32_t time_remain_s = time->remain_s;
+    const uint32_t time_elapsed_s = time->elapsed_s;
+
+    const float progress = (float)time_elapsed_s / (time_elapsed_s + time_remain_s);
 
     with_gui(instance->gui, {
         timer_indicator_set_progress(data->timer_indicator, progress);
-        timer_label_set_time(data->timer_label, data->timer_time.remain_s);
-        timer_card_set_time(instance->timer_card, data->timer_time.remain_s);
+        timer_label_set_time(data->timer_label, time_remain_s);
+        timer_card_set_time(instance->timer_card, time_remain_s);
+
+        if(busy_scene_timer_has_label_tweaks(data)) {
+            const uint32_t dt_s = time_elapsed_s - data->prev_reveal_time;
+
+            if(dt_s == TIMER_HIDDEN_TIME_S) {
+                timer_label_reveal(data->timer_label);
+            } else if(dt_s == TIMER_HIDDEN_TIME_S + TIMER_SHOWN_TIME_S || dt_s == 0) {
+                timer_label_hide(data->timer_label);
+                data->prev_reveal_time = time_elapsed_s;
+            }
+        }
     });
 
     if(time->remain_s == 0) {
@@ -210,8 +232,10 @@ static const TimerLabelPreset* busy_scene_timer_get_label_preset(const BusyScene
 }
 
 static void busy_scene_timer_update_timer_state(BusyApp* instance) {
-    const BusySceneTimer* data =
+    BusySceneTimer* data =
         scene_manager_get_scene_data(instance->scene_manager, BusyAppSceneIdTimer);
+
+    data->prev_reveal_time = 0;
 
     const TimerIndicatorPreset* timer_indicator_preset =
         busy_scene_timer_get_indicator_preset(data);
@@ -228,8 +252,7 @@ static void busy_scene_timer_update_timer_state(BusyApp* instance) {
         if(timer_label_preset) {
             timer_label_set_preset(data->timer_label, timer_label_preset);
             timer_label_enable_background(
-                data->timer_label,
-                data->is_custom_theme && data->timer_state == BusyTimerStateWork);
+                data->timer_label, busy_scene_timer_has_label_tweaks(data));
         }
     });
 
@@ -341,6 +364,8 @@ static void busy_scene_timer_apply_theme(BusyApp* instance) {
 
     data->is_custom_theme = is_custom_theme;
 }
+
+// Standard SceneManager event handlers
 
 static void busy_scene_timer_on_enter(void* context) {
     furi_assert(context);
