@@ -17,8 +17,15 @@
 #define COUNTDOWN_START_S       (BLINK_START_S + 1)
 #define COUNTDOWN_TRANSITION_MS (1000)
 
+#define MAIN_WIDTH_PX    (40)
+#define BG_GRAD_WIDTH_PX (10)
+
+#define BG_GRAD_STOP_POS (255 * BG_GRAD_WIDTH_PX / MAIN_WIDTH_PX)
+
 struct TimerLabel {
     Widget base;
+    lv_obj_t* bg_gradient;
+    lv_obj_t* main_layout;
     lv_obj_t* top_layout;
     lv_obj_t* main_label;
     lv_obj_t* seconds_label;
@@ -63,14 +70,28 @@ static void timer_label_lvgl_anim_countdown_blink_callback(void* context, int32_
 static void timer_label_lvgl_constructor(const lv_obj_class_t* class_p, lv_obj_t* obj) {
     UNUSED(class_p);
 
-    lv_obj_set_flex_flow(obj, LV_FLEX_FLOW_COLUMN);
-
     TimerLabel* instance = (TimerLabel*)obj;
+
+    instance->bg_gradient = lv_obj_create(obj);
+    lv_obj_set_size(instance->bg_gradient, LV_PCT(100), LV_PCT(100));
+    lv_obj_set_style_bg_color(instance->bg_gradient, lv_color_white(), LV_PART_MAIN);
+    lv_obj_set_style_bg_opa(instance->bg_gradient, LV_OPA_COVER, LV_PART_MAIN);
+    lv_obj_set_style_bg_grad_dir(instance->bg_gradient, LV_GRAD_DIR_HOR, LV_PART_MAIN);
+    lv_obj_set_style_bg_grad_opa(instance->bg_gradient, LV_OPA_COVER, LV_PART_MAIN);
+    lv_obj_set_style_bg_grad_color(instance->bg_gradient, lv_color_black(), LV_PART_MAIN);
+    lv_obj_set_style_bg_grad_stop(instance->bg_gradient, BG_GRAD_STOP_POS, LV_PART_MAIN);
+    lv_obj_set_style_blend_mode(instance->bg_gradient, LV_BLEND_MODE_MULTIPLY, LV_PART_MAIN);
+
+    instance->main_layout = lv_obj_create(obj);
+    lv_obj_align(instance->main_layout, LV_ALIGN_LEFT_MID, BG_GRAD_WIDTH_PX, 0);
+    lv_obj_set_size(instance->main_layout, LV_SIZE_CONTENT, LV_SIZE_CONTENT);
+    lv_obj_set_flex_flow(instance->main_layout, LV_FLEX_FLOW_COLUMN);
+    lv_obj_set_style_pad_row(instance->main_layout, 1, LV_PART_MAIN);
 
     instance->countdown_base_color = lv_color_white();
     instance->countdown_blink_color = lv_color_white();
 
-    instance->top_layout = lv_obj_create(obj);
+    instance->top_layout = lv_obj_create(instance->main_layout);
     lv_obj_set_flex_flow(instance->top_layout, LV_FLEX_FLOW_ROW);
     lv_obj_set_size(instance->top_layout, LV_SIZE_CONTENT, LV_SIZE_CONTENT);
     lv_obj_set_style_pad_column(instance->top_layout, 1, LV_PART_MAIN);
@@ -82,7 +103,7 @@ static void timer_label_lvgl_constructor(const lv_obj_class_t* class_p, lv_obj_t
     lv_obj_set_style_text_font(instance->seconds_label, FONT_SMALLNUM, LV_PART_MAIN);
     lv_obj_set_style_text_color(instance->seconds_label, lv_color_white(), LV_PART_MAIN);
 
-    instance->bottom_label = lv_label_create(obj);
+    instance->bottom_label = lv_label_create(instance->main_layout);
     lv_label_set_text(instance->bottom_label, "LEFT");
 }
 
@@ -186,7 +207,7 @@ const lv_obj_class_t timer_label_lvgl_class = {
     .base_class = &widget_lvgl_class,
     .constructor_cb = timer_label_lvgl_constructor,
     .name = "widget-timer-label",
-    .width_def = LV_SIZE_CONTENT,
-    .height_def = LV_SIZE_CONTENT,
+    .width_def = MAIN_WIDTH_PX,
+    .height_def = LV_PCT(100),
     .instance_size = sizeof(TimerLabel),
 };

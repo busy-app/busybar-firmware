@@ -10,7 +10,6 @@
 #define COUNTDOWN_THRESHOLD_S (3)
 
 typedef struct {
-    FlexLayout* front_flex;
     TimerIndicator* timer_indicator;
     TimerLabel* timer_label;
     PauseOverlay* pause_overlay;
@@ -353,16 +352,11 @@ static void busy_scene_timer_on_enter(void* context) {
         GuiLayer* layer = gui_get_layer(instance->gui, GuiLayerIdMain);
         gui_layer_add_input_callback(layer, busy_scene_timer_input_callback, instance);
 
-        data->front_flex = flex_layout_alloc(instance->front_window, FlexLayoutTypeRow);
-        // widget_set_pos_x(flex_layout_get_base(data->front_flex), 1);
-        flex_layout_set_spacing(data->front_flex, 2);
-
-        data->timer_indicator = timer_indicator_alloc(flex_layout_get_base(data->front_flex));
-
-        data->timer_label = timer_label_alloc(flex_layout_get_base(data->front_flex));
-        widget_set_margin(timer_label_get_base(data->timer_label), 0, 0, 1, 0);
-
+        data->timer_indicator = timer_indicator_alloc(instance->front_window);
+        data->timer_label = timer_label_alloc(instance->front_window);
         data->pause_overlay = pause_overlay_alloc(instance->front_window);
+
+        widget_set_align(timer_label_get_base(data->timer_label), AlignRightMid);
 
         widget_set_visible(timer_card_get_base(instance->timer_card), true);
         timer_card_show_header(instance->timer_card, true);
@@ -406,7 +400,8 @@ static void busy_scene_timer_on_exit(void* context) {
         timer_card_show_header(instance->timer_card, false);
         timer_card_show_time(instance->timer_card, false);
 
-        flex_layout_free(data->front_flex);
+        timer_indicator_free(data->timer_indicator);
+        timer_label_free(data->timer_label);
         pause_overlay_free(data->pause_overlay);
     });
 }
