@@ -32,6 +32,8 @@ typedef struct {
     lv_style_t submenu;
     lv_style_t submenu_cursor;
 
+    lv_style_t dialog_text;
+
     lv_style_t var_item_editor;
 
     lv_style_t timer_label;
@@ -104,6 +106,9 @@ static void style_init(my_theme_t* theme) {
     lv_style_init(&theme->styles.submenu_cursor);
     lv_style_set_pad_left(&theme->styles.submenu_cursor, 2);
     lv_style_set_pad_right(&theme->styles.submenu_cursor, 1);
+
+    lv_style_init(&theme->styles.dialog_text);
+    lv_style_set_width(&theme->styles.dialog_text, LV_PCT(50));
 
     lv_style_init(&theme->styles.var_item_editor);
     lv_style_set_pad_column(&theme->styles.var_item_editor, 2);
@@ -217,6 +222,26 @@ static void theme_apply_callback(lv_theme_t* th, lv_obj_t* obj) {
         lv_obj_add_style(obj, &theme->styles.focused, LV_PART_MAIN | LV_STATE_FOCUSED);
         lv_obj_add_style(obj, &theme->styles.submenu_cursor, LV_PART_MAIN);
 
+    } else if(lv_obj_check_type(obj, &dialog_lvgl_class)) {
+        lv_obj_set_scrollbar_mode(obj, LV_SCROLLBAR_MODE_OFF);
+        lv_obj_set_flex_flow(obj, LV_FLEX_FLOW_ROW);
+        lv_obj_set_flex_align(
+            obj, LV_FLEX_ALIGN_SPACE_BETWEEN, LV_FLEX_ALIGN_CENTER, LV_FLEX_ALIGN_CENTER);
+        lv_obj_add_style(obj, &theme->styles.normal, LV_PART_MAIN);
+
+    } else if(lv_obj_check_type(obj, &dialog_text_lvgl_class)) {
+        lv_label_set_long_mode(obj, LV_LABEL_LONG_WRAP);
+        lv_obj_add_style(obj, &theme->styles.focused, LV_PART_MAIN);
+        lv_obj_add_style(obj, &theme->styles.dialog_text, LV_PART_MAIN);
+
+    } else if(lv_obj_check_type(obj, &dialog_option_lvgl_class)) {
+        lv_obj_add_style(obj, &theme->styles.normal, LV_PART_MAIN);
+        lv_obj_add_style(obj, &theme->styles.focused, LV_PART_MAIN | LV_STATE_FOCUSED);
+
+    } else if(lv_obj_check_type(obj, &dialog_cursor_lvgl_class)) {
+        lv_obj_add_style(obj, &theme->styles.transparent, LV_PART_MAIN);
+        lv_obj_add_style(obj, &theme->styles.focused, LV_PART_MAIN | LV_STATE_FOCUSED);
+        lv_obj_add_style(obj, &theme->styles.submenu_cursor, LV_PART_MAIN);
     } else if(lv_obj_check_type(obj, &var_item_list_lvgl_class)) {
         lv_obj_set_scroll_snap_y(obj, LV_SCROLL_SNAP_CENTER);
 

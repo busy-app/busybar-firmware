@@ -60,9 +60,11 @@ static void wifi_apply_settings_pending_callback(void* context) {
 
         if(strnlen(settings.credentials.ssid, SSID_MAX_LEN) == 0) {
             FURI_LOG_I(TAG, "No SSID specified");
+            wifi_saved_network_state_change(instance, false, NULL);
             break;
         }
 
+        wifi_saved_network_state_change(instance, true, settings.credentials.ssid);
         wifi_schedule_connect_request(instance, &settings);
 
     } while(false);
@@ -144,6 +146,7 @@ static void wifi_process_response(Wifi* instance, const WifiResponse* response) 
                 WifiIpConfig new_ip_config;
                 wifi_net_get_ip_config(instance, &new_ip_config);
 
+                wifi_saved_network_state_change(instance, true, credentials->ssid);
                 wifi_state_transition(instance, WifiStateConnected, credentials, &new_ip_config);
                 wifi_save_settings(credentials, ip_config);
 
@@ -160,6 +163,7 @@ static void wifi_process_response(Wifi* instance, const WifiResponse* response) 
             wifi_state_transition(instance, WifiStateDisconnected);
 
             wifi_save_default_settings();
+            wifi_saved_network_state_change(instance, false, NULL);
         }
 
     } else {
@@ -168,6 +172,7 @@ static void wifi_process_response(Wifi* instance, const WifiResponse* response) 
         if(request_type == WifiRequestTypeConnect) {
             wifi_state_transition(instance, WifiStateDisconnected);
             wifi_save_default_settings();
+            wifi_saved_network_state_change(instance, false, NULL);
 
         } else if(request_type == WifiRequestTypeDisconnect) {
             wifi_state_transition(instance, WifiStateDisconnected);

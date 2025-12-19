@@ -141,6 +141,7 @@ typedef struct {
     uint8_t bssid[HW_ADDRESS_LEN]; /**< Access point MAC address (BSSID) */
     int32_t rssi; /**< Signal strength (RSSI) in dBm */
     uint16_t channel; /**< Channel number */
+    bool is_configured; /**< Access point configuration presents */
     WifiSecurityMode security_mode; /**< Type of protection used by the current access point */
     WifiIpConfig ip_config; /**< Current IP configuration */
     WifiState state; /**< State of the Wifi system */
