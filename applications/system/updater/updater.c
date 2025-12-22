@@ -1002,6 +1002,7 @@ static Updater* updater_alloc(void) {
         &(const UpdaterCheckState){
             .result = UpdaterCheckResultNone,
             .event = UpdaterCheckEventNone,
+            .version = "",
         });
 
     update_checker_set_done_callback(instance->update_checker, check_done_callback, instance);
