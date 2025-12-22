@@ -14,6 +14,7 @@ extern "C" {
 #define TEST_FUNCTION_DECLS
 #include "test_test/test_test.h"
 #include "anim_test/anim_test.h"
+#include "rle_test/rle_test.h"
 #include "pipe_test/pipe_test.h"
 #include "json_helper_test/json_helper_test.h"
 #include "state_test/state_test.h"
@@ -27,6 +28,7 @@ static TestCallback unit_test_callbacks[] = {
 #define TEST_FUNCTION_REFS
 #include "test_test/test_test.h"
 #include "anim_test/anim_test.h"
+#include "rle_test/rle_test.h"
 #include "pipe_test/pipe_test.h"
 #include "json_helper_test/json_helper_test.h"
 #include "state_test/state_test.h"

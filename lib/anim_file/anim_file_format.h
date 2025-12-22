@@ -105,7 +105,7 @@ typedef struct FURI_PACKED {
  */
 typedef enum FURI_PACKED {
     AnimFileFrameEncodingRaw, //<! Plain pixels encoded according to `AnimFileColorFormat`
-    AnimFileFrameEncodingRle, //<! Run-length encoding of `Raw` data implemented by `toolbox/rle_encode`
+    AnimFileFrameEncodingRle, //<! Run-length encoding of `Raw` data implemented by `toolbox/rle_encode`. `blk_size` parameter is 3 for `AnimFileColorFormatBgr888`, and 1 for `AnimFileColorFormatGray4`.
     AnimFileFrameEncodingMAX,
 } AnimFileFrameEncoding;
 static_assert(sizeof(AnimFileFrameEncoding) == sizeof(uint8_t));
