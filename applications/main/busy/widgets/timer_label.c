@@ -17,6 +17,8 @@
 #define COUNTDOWN_START_S       (BLINK_START_S + 1)
 #define COUNTDOWN_TRANSITION_MS (1000)
 
+#define SHOW_TRANSITION_MS (833)
+
 #define MAIN_WIDTH_PX    (40)
 #define BG_GRAD_WIDTH_PX (10)
 
@@ -151,8 +153,15 @@ static void timer_label_animate_transition(TimerLabel* instance, uint8_t stop_va
 
     lv_anim_t anim;
     lv_anim_init(&anim);
-    lv_anim_set_duration(&anim, 250);
+    lv_anim_set_duration(&anim, SHOW_TRANSITION_MS);
     lv_anim_set_values(&anim, start_value, stop_value);
+    lv_anim_set_bezier3_param(
+        &anim,
+        LV_BEZIER_VAL_FLOAT(0.3F),
+        LV_BEZIER_VAL_FLOAT(0.0F),
+        LV_BEZIER_VAL_FLOAT(0.7F),
+        LV_BEZIER_VAL_FLOAT(1.0F));
+    lv_anim_set_path_cb(&anim, lv_anim_path_custom_bezier3);
     lv_anim_set_exec_cb(&anim, timer_label_reveal_lvgl_anim_callback);
 
     lv_anim_set_var(&anim, instance);
