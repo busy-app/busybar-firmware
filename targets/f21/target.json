@@ -128,7 +128,8 @@
         "ext_applications",
         "firmware_applications_u5",
         "cli",
-        "containers"
+        "containers",
+        "anim_file"
     ],
     "fw_modules": [
         "fw_elf",
