@@ -59,6 +59,8 @@ static void wifi_state_view_front_lvgl_constructor(const lv_obj_class_t* class_p
     lv_label_set_text(instance->ssid_label, "");
     lv_obj_set_style_text_color(instance->ssid_label, lv_color_white(), LV_PART_MAIN);
     lv_obj_set_style_text_font(instance->ssid_label, font, LV_PART_MAIN);
+    lv_obj_set_width(instance->ssid_label, LV_PCT(100));
+    lv_label_set_long_mode(instance->ssid_label, LV_LABEL_LONG_SCROLL);
 
     lv_obj_t* arrow = lv_label_create(obj);
     lv_label_set_text(arrow, ">");
@@ -109,6 +111,8 @@ static void wifi_state_view_back_lvgl_constructor(const lv_obj_class_t* class_p,
     lv_label_set_text(instance->ssid_label, "");
     lv_obj_set_style_text_color(instance->ssid_label, lv_color_black(), LV_PART_MAIN);
     lv_obj_set_style_text_font(instance->ssid_label, font, LV_PART_MAIN);
+    lv_obj_set_width(instance->ssid_label, LV_PCT(100));
+    lv_label_set_long_mode(instance->ssid_label, LV_LABEL_LONG_SCROLL);
 
     lv_obj_t* arrow = lv_label_create(obj);
     lv_label_set_text(arrow, ">");
