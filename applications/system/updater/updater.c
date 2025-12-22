@@ -615,15 +615,13 @@ static void message_queue_callback(FuriEventLoopObject* object, void* context) {
     furi_message_queue_get(instance->message_queue, &message, FuriWaitForever);
     const MessageHandler* handler = &message_handlers[message.type];
 
-    update_state = furi_state_acquire(instance->update_state);
-
     if(handler->action != UpdaterUpdateActionNone) {
+        update_state = furi_state_acquire(instance->update_state);
         update_state->event = UpdaterUpdateEventActionBegin;
         update_state->status = UpdaterStatusBusy;
         update_state->action = handler->action;
+        furi_state_release(instance->update_state);
     }
-
-    furi_state_release(instance->update_state);
 
     UpdaterStatus result_status = handler->callback(instance, &message);
 
