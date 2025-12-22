@@ -37,8 +37,6 @@
  * |                |                 +---------------------+
  * |                |                 | Encoded frame data  |
  * +----------------+-----------------+---------------------+
- * |     CRC32      |
- * +----------------+
  * 
  * There must always be at least one section with the an index of 0 named
  * "whole", covering the entire range of Display Frames.

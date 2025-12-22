@@ -63,9 +63,7 @@ const char* anim_test_prepare_file(AnimTestFile type) {
     TestArray array = arrays[type];
     #undef TEST_FILE_DEF
 
-    uint32_t crc = crc32_calc_buffer(0, array.data, array.size - sizeof(crc));
-    storage_file_write(file, array.data, array.size - sizeof(crc));
-    storage_file_write(file, &crc, sizeof(crc));
+    storage_file_write(file, array.data, array.size);
 
     storage_file_free(file);
     furi_record_close(RECORD_STORAGE);

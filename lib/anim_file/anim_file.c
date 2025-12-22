@@ -1,8 +1,6 @@
 #include "anim_file.h"
 #include "anim_file_format.h"
 
-#include <toolbox/crc32_calc.h>
-
 #define TAG "AnimFile"
 
 #define ANIM_FILE_DETAILED_ERRORS
@@ -88,7 +86,7 @@ static bool anim_file_read_header(AnimFileHeader* header, File* file) {
         ANIM_FILE_ERR("Invalid flags");
         return false;
     }
-    if(storage_file_size(file) != sizeof(*header) + header->sections_chunk_length + header->frames_chunk_length + sizeof(uint32_t)) {
+    if(storage_file_size(file) != sizeof(*header) + header->sections_chunk_length + header->frames_chunk_length) {
         ANIM_FILE_ERR("Invalid size");
         return false;
     }
@@ -401,10 +399,6 @@ AnimFile* anim_file_alloc(Storage* storage, const char* path) {
             ANIM_FILE_ERR("Failed to open file: %s", path);
             break;
         }
-        // if(crc32_calc_file(file, NULL, NULL) != 0) {
-        //     ANIM_FILE_ERR("Corrupted file");
-        //     break;
-        // }
 
         AnimFileHeader header;
         if(!anim_file_read_header(&header, file)) break;
