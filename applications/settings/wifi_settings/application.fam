@@ -5,6 +5,6 @@ App(
     entry_point="wifi_settings_entry",
     requires=["gui", "front_display", "back_display"],
     stack_size=4 * 1024,
-    order=1,
+    order=10,
     targets=["f21", "f22"],
 )

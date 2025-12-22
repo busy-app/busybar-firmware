@@ -5,6 +5,6 @@ App(
     entry_point="fw_update_entry",
     requires=["gui", "front_display", "back_display", "updater", "wifi"],
     stack_size=4 * 1024,
-    order=4,
+    order=60,
     targets=["f20", "f21", "f22"],
 )

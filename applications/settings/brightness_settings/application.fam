@@ -5,6 +5,6 @@ App(
     entry_point="brightness_settings_entry",
     requires=["gui", "front_display", "back_display", "status_lights"],
     stack_size=4 * 1024,
-    order=2,
+    order=50,
     targets=["f20", "f21", "f22"],
 )
