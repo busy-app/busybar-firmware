@@ -183,10 +183,8 @@ static void updater_update_state_callback(const void* state_item, void* context)
         break;
 
     case UpdaterUpdateEventDetailChange:
-        if(state->detail) {
-            furi_string_set(data->fw_status, state->detail);
-            fw_update_send_custom_event(instance, SceneEventUpdateStatus);
-        }
+        furi_string_set(data->fw_status, state->detail);
+        fw_update_send_custom_event(instance, SceneEventUpdateStatus);
         break;
 
     case UpdaterUpdateEventActionDone:
@@ -213,7 +211,7 @@ static void updater_check_state_callback(const void* state_item, void* context) 
     furi_assert(state_item);
     furi_assert(context);
 
-    const UpdaterCheckState* state = (const UpdaterCheckState*)state_item;
+    const UpdaterCheckState* state = state_item;
 
     if(state->event == UpdaterCheckEventStop) {
         FwUpdate* instance = context;
@@ -226,22 +224,22 @@ static void updater_check_state_callback(const void* state_item, void* context) 
         case UpdaterCheckResultNotAvailable:
             furi_string_set(data->fw_status, "No new version");
             break;
-        case UpdaterCheckResultAvailable:
-            if(state->version) {
-                furi_string_set(
-                    data->fw_info.new_fw_version, furi_string_get_cstr(state->version));
-            }
-            if(state->url) {
-                furi_string_set(data->fw_info.fw_url, furi_string_get_cstr(state->url));
-            }
-            if(state->sha256) {
-                furi_string_set(data->fw_info.fw_sha256, furi_string_get_cstr(state->sha256));
-            }
+        case UpdaterCheckResultAvailable: {
+            furi_string_set(data->fw_info.new_fw_version, state->version);
+
+            updater_get_check_info(
+                data->updater,
+                &(UpdateCheckInfo){
+                    .url = data->fw_info.fw_url,
+                    .id = NULL,
+                    .sha256 = data->fw_info.fw_sha256,
+                    .changelog = NULL,
+                });
 
             furi_string_set(data->fw_status, "New version, press OK to update");
             data->fw_info.is_new_version = true;
-
             break;
+        }
         case UpdaterCheckResultFailure:
             furi_string_set(data->fw_status, "Error checking update");
             break;
