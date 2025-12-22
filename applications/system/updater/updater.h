@@ -13,6 +13,9 @@ extern "C" {
 
 #define RECORD_UPDATER "updater"
 
+#define UPDATER_UPDATE_STATE_DETAIL_MAX_LENGTH 128
+#define UPDATER_CHECK_STATE_VERSION_MAX_LENGTH 64
+
 typedef struct Updater Updater;
 
 typedef enum {
@@ -77,7 +80,7 @@ typedef struct {
     UpdaterUpdateEvent event; /**< Current event type */
     UpdaterUpdateAction action; /**< Current action being performed */
     UpdaterStatus status; /**< Current or last operation status */
-    const FuriString* detail; /**< Optional detail string (e.g., download state message) */
+    char detail[UPDATER_UPDATE_STATE_DETAIL_MAX_LENGTH]; /**< Optional detail string */
 } UpdaterUpdateState;
 
 typedef enum {
@@ -101,15 +104,17 @@ typedef enum {
 
 /** Update check state information accessible via FuriState */
 typedef struct {
-    const FuriString* url; /**< Download URL for the update bundle */
-    const FuriString* id; /**< Unique update identifier */
-    const FuriString* version; /**< Update version string */
-    const FuriString* sha256; /**< SHA256 checksum of the update bundle */
-    const FuriString* changelog; /**< Update changelog */
-
     UpdaterCheckResult result; /**< Current check result */
     UpdaterCheckEvent event; /**< Current check event type */
+    char version[UPDATER_CHECK_STATE_VERSION_MAX_LENGTH];
 } UpdaterCheckState;
+
+typedef struct {
+    FuriString* url; /**< Download URL for the update bundle */
+    FuriString* id; /**< Unique update identifier */
+    FuriString* sha256; /**< SHA256 checksum of the update bundle */
+    FuriString* changelog; /**< Update changelog */
+} UpdateCheckInfo;
 
 /** Get human-readable string for a status code
  *
@@ -134,6 +139,13 @@ FuriState* updater_get_update_state(Updater* instance);
  * @return     FuriState pointer (acquire/release to access UpdaterCheckState)
  */
 FuriState* updater_get_check_state(Updater* instance);
+
+/** Get update information
+ *
+ * @param[in]   instance  Updater instance
+ * @param[out]  info      Pointer to UpdateCheckInfo struct to populate
+ */
+void updater_get_check_info(Updater* instance, UpdateCheckInfo* info);
 
 /** Check if update is allowed to start
  *
