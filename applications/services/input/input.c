@@ -28,24 +28,11 @@ typedef struct {
 /** Input state */
 struct Input {
     FuriPubSub* event_pubsub;
+    FuriState* switch_pos;
     FuriEventLoop* event_loop;
-    FuriMessageQueue* request_queue;
     InputPinState* pin_states;
     volatile uint32_t sequence;
-    InputAbsoluteState absolute_state;
 };
-
-typedef enum {
-    InputRequestTypeGetAbsState,
-} InputRequestType;
-
-typedef struct {
-    InputRequestType type;
-    FuriApiLock lock;
-    union {
-        InputAbsoluteState abs_state;
-    };
-} InputRequest;
 
 const char* input_get_key_name(InputKey key) {
     switch(key) {
@@ -105,19 +92,11 @@ static void input_update_absolute_state(Input* input, InputEvent* event) {
     InputType type = event->type;
     furi_check(type == InputTypePress || type == InputTypeRelease);
 
-    if(key >= INPUT_BUTTON_RANGE_START && key <= INPUT_BUTTON_RANGE_END) {
-        size_t offset = key - INPUT_BUTTON_RANGE_START;
-        InputButtonMask* buttons = &input->absolute_state.buttons;
-        size_t button_value = type == InputTypePress;
-        *buttons = (*buttons & ~(1 << offset)) | (button_value << offset);
-
-    } else if(key >= INPUT_SWITCH_RANGE_START && key <= INPUT_SWITCH_RANGE_END) {
+    if(key >= INPUT_SWITCH_RANGE_START && key <= INPUT_SWITCH_RANGE_END) {
         if(type == InputTypePress) {
-            input->absolute_state.switch_position = key - INPUT_SWITCH_RANGE_START;
+            InputSwitchPosition pos = key - INPUT_SWITCH_RANGE_START;
+            furi_state_set(input->switch_pos, &pos);
         }
-
-    } else {
-        // not an absolute control
     }
 }
 
@@ -215,38 +194,12 @@ static void input_intercom_rx_callback(const void* data, size_t data_size, void*
 }
 #endif
 
-static void input_request_handler(FuriEventLoopObject* object, void* context) {
-    FuriMessageQueue* queue = object;
-    Input* input = context;
-
-    InputRequest* request;
-    furi_check(furi_message_queue_get(queue, &request, 0) == FuriStatusOk);
-
-    if(request->type == InputRequestTypeGetAbsState) {
-        request->abs_state = input->absolute_state;
-
-    } else {
-        furi_crash();
-    }
-
-    api_lock_unlock(request->lock);
-}
-
 int32_t input_srv(void* p) {
     UNUSED(p);
 
     Input* input = malloc(sizeof(Input));
     input->event_pubsub = furi_pubsub_alloc();
     input->event_loop = furi_event_loop_alloc();
-
-    input->request_queue =
-        furi_message_queue_alloc(INPUT_REQUEST_QUEUE_SIZE, sizeof(InputRequest*));
-    furi_event_loop_subscribe_message_queue(
-        input->event_loop,
-        input->request_queue,
-        FuriEventLoopEventIn,
-        input_request_handler,
-        input);
 
     furi_record_create(RECORD_INPUT_EVENTS, input->event_pubsub);
 
@@ -265,9 +218,13 @@ int32_t input_srv(void* p) {
     furi_event_loop_set_custom_event_callback(
         input->event_loop, input_custom_event_callback, input);
 
+    input->switch_pos = furi_state_alloc(sizeof(InputSwitchPosition));
+    InputSwitchPosition position = InputSwitchPositionMAX;
+    furi_state_set(input->switch_pos, &position);
+
 #ifdef SRV_INTERCOM
     Intercom* intercom = furi_record_open(RECORD_INTERCOM);
-    intercom_set_rx_callback(intercom, IntercomChannelInput, input_intercom_rx_callback, input);
+    intercom_channel_open(intercom, IntercomChannelIdInput, input_intercom_rx_callback, input);
 #endif
 
     furi_record_create(RECORD_INPUT, input);
@@ -297,19 +254,7 @@ void input_key_toggle(Input* input, InputKey key) {
         input->event_loop, INPUT_KEY_PRESS(key) | INPUT_KEY_RELEASE(key));
 }
 
-// TODO: generalize this synchronous request pattern in a common lib
-static void input_synchronous_request(Input* input, InputRequest* request) {
+FuriState* input_get_switch_pos(Input* input) {
     furi_check(input);
-    request->lock = api_lock_alloc_locked();
-    furi_check(
-        furi_message_queue_put(input->request_queue, &request, FuriWaitForever) == FuriStatusOk);
-    api_lock_wait_unlock_and_free(request->lock);
-}
-
-InputAbsoluteState input_get_absolute_state(Input* input) {
-    InputRequest request = {
-        .type = InputRequestTypeGetAbsState,
-    };
-    input_synchronous_request(input, &request);
-    return request.abs_state;
+    return input->switch_pos;
 }

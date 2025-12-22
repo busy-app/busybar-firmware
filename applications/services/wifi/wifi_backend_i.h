@@ -17,7 +17,8 @@ struct Wifi {
     FuriMessageQueue* event_queue;
     FuriEventLoopTimer* info_timer;
     FuriPubSub* event_pubsub;
-    Intercom* intercom;
+    IntercomChannel* intercom_ch_control;
+    IntercomChannel* intercom_ch_data;
     FuriSemaphore* tcpip_lock;
     FuriSemaphore* ip6_addr_valid;
     struct netif netif;
