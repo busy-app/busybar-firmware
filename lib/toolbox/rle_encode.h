@@ -1,3 +1,8 @@
+/**
+ * @brief Run-Length encoding and decoding.
+ * Compatible with `scripts/flipper/rle.py`
+ */
+
 #pragma once
 
 #include <stdint.h>
