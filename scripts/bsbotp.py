@@ -101,7 +101,7 @@ def parse_hex(hex_str: str) -> bytes:
 class OTP1Data:
     """
     Header:
-      magic                      : 0x1337             # uint16 (magic value)
+      magic                      : 0x3713             # uint16 (magic value)
       index                      : 1                  # uint8 (OTP block index)
       hw_otp_ver                 : 0                  # uint8 (version)
     Data:
@@ -176,7 +176,7 @@ class HWRegion(Enum):
 class OTP2Data:
     """
     Header:
-      magic                      : 0x1337             # uint16 (magic value)
+      magic                      : 0x3713             # uint16 (magic value)
       index                      : 2                  # uint8 (OTP block index)
       hw_otp_ver                 : 0                  # uint8 (version)
     Data:
@@ -231,7 +231,7 @@ class ECCurve(Enum):
 class OTP3Data:
     """
     Header:
-      magic                      : 0x1337             # uint16 (magic value)
+      magic                      : 0x3713             # uint16 (magic value)
       index                      : 3                  # uint8 (OTP block index)
       hw_otp_ver                 : 0                  # uint8 (version)
     Data:
@@ -278,7 +278,7 @@ class OTP3Data:
 class OTPSignature:
     """
     Header:
-      magic                      : 0x1337             # uint16 (magic value)
+      magic                      : 0x3713             # uint16 (magic value)
       index                      : 4                  # uint8 (OTP block index)
       hw_otp_ver                 : 0                  # uint8 (version)
     Data:
