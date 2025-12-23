@@ -264,7 +264,7 @@ void furi_hal_flash_program_page(const uint8_t page, const uint8_t* data, uint16
 
 bool furi_hal_flash_program_otp(const uint32_t base, const uint8_t* data, uint16_t length) {
     furi_assert(base >= FLASH_OTP_BASE);
-    furi_assert((base + length) < (FLASH_OTP_BASE + FLASH_OTP_SIZE));
+    furi_assert((base + length) <= (FLASH_OTP_BASE + FLASH_OTP_SIZE));
     furi_assert((base & 0xF) == 0);
     furi_assert(data);
 
