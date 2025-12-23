@@ -24,6 +24,46 @@ except ImportError:
     HAS_CRYPTO = False
 
 OTP_PAGE_SIZE = 128
+OTP_MAGIC = 0x3713
+
+# OTP block indices for integrity checking
+OTP_INDEX_OTP1 = 1
+OTP_INDEX_OTP2 = 2
+OTP_INDEX_OTP3 = 3
+OTP_INDEX_OTP4 = 4
+
+# Common header format: magic (uint16) + index (uint8) + version (uint8)
+OTP_HEADER_FORMAT = "<H B B"
+OTP_HEADER_SIZE = struct.calcsize(OTP_HEADER_FORMAT)
+
+
+def validate_otp_header(data: bytes, expected_index: int, name: str) -> int:
+    """Validate OTP header and return version.
+
+    Args:
+        data: Raw OTP data bytes
+        expected_index: Expected OTP block index (1-4)
+        name: OTP block name for error messages
+
+    Returns:
+        Version number from header
+
+    Raises:
+        ValueError: If magic or index doesn't match
+    """
+    magic, index, version = struct.unpack(OTP_HEADER_FORMAT, data[:OTP_HEADER_SIZE])
+    if magic != OTP_MAGIC:
+        raise ValueError(
+            f"Invalid {name} magic: 0x{magic:04x}, expected 0x{OTP_MAGIC:04x}"
+        )
+    if index != expected_index:
+        raise ValueError(f"Invalid {name} index: {index}, expected {expected_index}")
+    return version
+
+
+def pack_otp_header(index: int, version: int) -> bytes:
+    """Pack OTP header bytes."""
+    return struct.pack(OTP_HEADER_FORMAT, OTP_MAGIC, index, version)
 
 
 def pad_to_page(data: bytes) -> bytes:
@@ -60,17 +100,21 @@ def parse_hex(hex_str: str) -> bytes:
 @dataclass
 class OTP1Data:
     """
-    hw_otp1_ver                  : 0                  # uint8
-    hw_timestamp                 : 1751035273         # uint32
-    u5_usb_mac                   : aa:cc:33:44:55:66  # uint8[6]
-    hw_model                     : BB.1               # str(8)
-    hw_version                   : 4                  # uint8
-    hw_target                    : 22                 # uint8
-    hw_body                      : 7                  # uint8
-    hw_connect                   : 2                  # uint8
+    Header:
+      magic                      : 0x1337             # uint16 (magic value)
+      index                      : 1                  # uint8 (OTP block index)
+      hw_otp_ver                 : 0                  # uint8 (version)
+    Data:
+      hw_timestamp               : 1751035273         # uint32
+      u5_usb_mac                 : aa:cc:33:44:55:66  # uint8[6]
+      hw_model                   : BB.1               # str(8)
+      hw_version                 : 4                  # uint8
+      hw_target                  : 22                 # uint8
+      hw_body                    : 7                  # uint8
+      hw_connect                 : 2                  # uint8
     """
 
-    hw_otp1_ver: int
+    hw_otp_ver: int
     hw_timestamp: int
     u5_usb_mac: bytes
     hw_model: str
@@ -79,26 +123,37 @@ class OTP1Data:
     hw_body: int
     hw_connect: int
 
-    STRUCT_FORMAT = "<B I 6s 8s B B B B"
+    # Header (4 bytes) + Data (22 bytes) = 26 bytes
+    STRUCT_FORMAT = "<H B B I 6s 8s B B B B"
+    INDEX = OTP_INDEX_OTP1
 
     @classmethod
     def from_bytes(cls, data: bytes) -> "OTP1Data":
-        unpacked_data = struct.unpack(cls.STRUCT_FORMAT, data)
+        unpacked = struct.unpack(cls.STRUCT_FORMAT, data)
+        magic, index, version = unpacked[0], unpacked[1], unpacked[2]
+        if magic != OTP_MAGIC:
+            raise ValueError(
+                f"Invalid OTP1 magic: 0x{magic:04x}, expected 0x{OTP_MAGIC:04x}"
+            )
+        if index != cls.INDEX:
+            raise ValueError(f"Invalid OTP1 index: {index}, expected {cls.INDEX}")
         return cls(
-            hw_otp1_ver=unpacked_data[0],
-            hw_timestamp=unpacked_data[1],
-            u5_usb_mac=unpacked_data[2],
-            hw_model=unpacked_data[3].decode("utf-8").rstrip("\x00"),
-            hw_version=unpacked_data[4],
-            hw_target=unpacked_data[5],
-            hw_body=unpacked_data[6],
-            hw_connect=unpacked_data[7],
+            hw_otp_ver=version,
+            hw_timestamp=unpacked[3],
+            u5_usb_mac=unpacked[4],
+            hw_model=unpacked[5].decode("utf-8").rstrip("\x00"),
+            hw_version=unpacked[6],
+            hw_target=unpacked[7],
+            hw_body=unpacked[8],
+            hw_connect=unpacked[9],
         )
 
     def to_bytes(self) -> bytes:
         return struct.pack(
             self.STRUCT_FORMAT,
-            self.hw_otp1_ver,
+            OTP_MAGIC,
+            self.INDEX,
+            self.hw_otp_ver,
             self.hw_timestamp,
             self.u5_usb_mac,
             self.hw_model.encode("utf-8").ljust(8, b"\x00"),
@@ -120,33 +175,48 @@ class HWRegion(Enum):
 @dataclass
 class OTP2Data:
     """
-    hw_otp2_ver                  : 0                  # uint8
-    hw_timestamp_qc              : 1751035273         # uint32
-    hw_color                     : 0                  # uint8
-    hw_region                    : 0                  # uint8
+    Header:
+      magic                      : 0x1337             # uint16 (magic value)
+      index                      : 2                  # uint8 (OTP block index)
+      hw_otp_ver                 : 0                  # uint8 (version)
+    Data:
+      hw_timestamp_qc            : 1751035273         # uint32
+      hw_color                   : 0                  # uint8
+      hw_region                  : 0                  # uint8
     """
 
-    STRUCT_FORMAT = "<B I B B"
+    # Header (4 bytes) + Data (6 bytes) = 10 bytes
+    STRUCT_FORMAT = "<H B B I B B"
+    INDEX = OTP_INDEX_OTP2
 
-    hw_otp2_ver: int
+    hw_otp_ver: int
     hw_timestamp_qc: int
     hw_color: HWColor
     hw_region: HWRegion
 
     @classmethod
     def from_bytes(cls, data: bytes) -> "OTP2Data":
-        unpacked_data = struct.unpack(cls.STRUCT_FORMAT, data)
+        unpacked = struct.unpack(cls.STRUCT_FORMAT, data)
+        magic, index, version = unpacked[0], unpacked[1], unpacked[2]
+        if magic != OTP_MAGIC:
+            raise ValueError(
+                f"Invalid OTP2 magic: 0x{magic:04x}, expected 0x{OTP_MAGIC:04x}"
+            )
+        if index != cls.INDEX:
+            raise ValueError(f"Invalid OTP2 index: {index}, expected {cls.INDEX}")
         return cls(
-            hw_otp2_ver=unpacked_data[0],
-            hw_timestamp_qc=unpacked_data[1],
-            hw_color=HWColor(unpacked_data[2]),
-            hw_region=HWRegion(unpacked_data[3]),
+            hw_otp_ver=version,
+            hw_timestamp_qc=unpacked[3],
+            hw_color=HWColor(unpacked[4]),
+            hw_region=HWRegion(unpacked[5]),
         )
 
     def to_bytes(self) -> bytes:
         return struct.pack(
             self.STRUCT_FORMAT,
-            self.hw_otp2_ver,
+            OTP_MAGIC,
+            self.INDEX,
+            self.hw_otp_ver,
             self.hw_timestamp_qc,
             self.hw_color.value,
             self.hw_region.value,
@@ -160,30 +230,45 @@ class ECCurve(Enum):
 @dataclass
 class OTP3Data:
     """
-    hw_otp3_ver                  : 0                  # uint8
-    hw_otp3_curve                : 1                  # uint8
-    hw_otp3_pkey                 : <public key>      # uint8[56]
+    Header:
+      magic                      : 0x1337             # uint16 (magic value)
+      index                      : 3                  # uint8 (OTP block index)
+      hw_otp_ver                 : 0                  # uint8 (version)
+    Data:
+      hw_otp3_curve              : 1                  # uint8
+      hw_otp3_pkey               : <public key>       # uint8[56]
     """
 
-    STRUCT_FORMAT = "<B B 56s"
+    # Header (4 bytes) + Data (57 bytes) = 61 bytes
+    STRUCT_FORMAT = "<H B B B 56s"
+    INDEX = OTP_INDEX_OTP3
 
-    hw_otp3_ver: int
+    hw_otp_ver: int
     hw_otp3_curve: ECCurve
     hw_otp3_pkey: bytes
 
     @classmethod
     def from_bytes(cls, data: bytes) -> "OTP3Data":
-        unpacked_data = struct.unpack(cls.STRUCT_FORMAT, data)
+        unpacked = struct.unpack(cls.STRUCT_FORMAT, data)
+        magic, index, version = unpacked[0], unpacked[1], unpacked[2]
+        if magic != OTP_MAGIC:
+            raise ValueError(
+                f"Invalid OTP3 magic: 0x{magic:04x}, expected 0x{OTP_MAGIC:04x}"
+            )
+        if index != cls.INDEX:
+            raise ValueError(f"Invalid OTP3 index: {index}, expected {cls.INDEX}")
         return cls(
-            hw_otp3_ver=unpacked_data[0],
-            hw_otp3_curve=ECCurve(unpacked_data[1]),
-            hw_otp3_pkey=unpacked_data[2],
+            hw_otp_ver=version,
+            hw_otp3_curve=ECCurve(unpacked[3]),
+            hw_otp3_pkey=unpacked[4],
         )
 
     def to_bytes(self) -> bytes:
         return struct.pack(
             self.STRUCT_FORMAT,
-            self.hw_otp3_ver,
+            OTP_MAGIC,
+            self.INDEX,
+            self.hw_otp_ver,
             self.hw_otp3_curve.value,
             self.hw_otp3_pkey,
         )
@@ -192,33 +277,48 @@ class OTP3Data:
 @dataclass
 class OTPSignature:
     """
-    hw_otp4_ver                : 0                  # uint8
-    hw_otp4_mcu_uid            : <mcu id>          # uint8[12]
-    hw_otp1_signature          : <signature>       # uint8[56]
-    hw_otp2_signature          : <signature>       # uint8[56]
+    Header:
+      magic                      : 0x1337             # uint16 (magic value)
+      index                      : 4                  # uint8 (OTP block index)
+      hw_otp_ver                 : 0                  # uint8 (version)
+    Data:
+      hw_otp4_mcu_uid            : <mcu id>           # uint8[12]
+      hw_otp1_signature          : <signature>        # uint8[56]
+      hw_otp2_signature          : <signature>        # uint8[56]
     """
 
-    STRUCT_FORMAT = "<B 12s 56s 56s"
+    # Header (4 bytes) + Data (124 bytes) = 128 bytes
+    STRUCT_FORMAT = "<H B B 12s 56s 56s"
+    INDEX = OTP_INDEX_OTP4
 
-    hw_otp4_ver: int
+    hw_otp_ver: int
     hw_otp4_mcu_uid: bytes
     hw_otp1_signature: bytes
     hw_otp2_signature: bytes
 
     @classmethod
     def from_bytes(cls, data: bytes) -> "OTPSignature":
-        unpacked_data = struct.unpack(cls.STRUCT_FORMAT, data)
+        unpacked = struct.unpack(cls.STRUCT_FORMAT, data)
+        magic, index, version = unpacked[0], unpacked[1], unpacked[2]
+        if magic != OTP_MAGIC:
+            raise ValueError(
+                f"Invalid OTP4 magic: 0x{magic:04x}, expected 0x{OTP_MAGIC:04x}"
+            )
+        if index != cls.INDEX:
+            raise ValueError(f"Invalid OTP4 index: {index}, expected {cls.INDEX}")
         return cls(
-            hw_otp4_ver=unpacked_data[0],
-            hw_otp4_mcu_uid=unpacked_data[1],
-            hw_otp1_signature=unpacked_data[2],
-            hw_otp2_signature=unpacked_data[3],
+            hw_otp_ver=version,
+            hw_otp4_mcu_uid=unpacked[3],
+            hw_otp1_signature=unpacked[4],
+            hw_otp2_signature=unpacked[5],
         )
 
     def to_bytes(self) -> bytes:
         return struct.pack(
             self.STRUCT_FORMAT,
-            self.hw_otp4_ver,
+            OTP_MAGIC,
+            self.INDEX,
+            self.hw_otp_ver,
             self.hw_otp4_mcu_uid,
             self.hw_otp1_signature,
             self.hw_otp2_signature,
@@ -390,7 +490,7 @@ def cmd_generate_key(args):
 def cmd_create_otp1(args):
     """Create OTP1 data file"""
     otp1 = OTP1Data(
-        hw_otp1_ver=args.version,
+        hw_otp_ver=args.version,
         hw_timestamp=args.timestamp if args.timestamp else int(time.time()),
         u5_usb_mac=parse_mac(args.mac),
         hw_model=args.model,
@@ -405,7 +505,7 @@ def cmd_create_otp1(args):
         f.write(data)
 
     print(f"OTP1 data saved to: {args.output}")
-    print(f"  Version: {otp1.hw_otp1_ver}")
+    print(f"  Version: {otp1.hw_otp_ver}")
     print(f"  Timestamp: {otp1.hw_timestamp}")
     print(f"  MAC: {format_mac(otp1.u5_usb_mac)}")
     print(f"  Model: {otp1.hw_model}")
@@ -418,7 +518,7 @@ def cmd_create_otp1(args):
 def cmd_create_otp2(args):
     """Create OTP2 data file"""
     otp2 = OTP2Data(
-        hw_otp2_ver=args.version,
+        hw_otp_ver=args.version,
         hw_timestamp_qc=args.timestamp if args.timestamp else int(time.time()),
         hw_color=HWColor(args.color),
         hw_region=HWRegion(args.region),
@@ -429,7 +529,7 @@ def cmd_create_otp2(args):
         f.write(data)
 
     print(f"OTP2 data saved to: {args.output}")
-    print(f"  Version: {otp2.hw_otp2_ver}")
+    print(f"  Version: {otp2.hw_otp_ver}")
     print(f"  QC Timestamp: {otp2.hw_timestamp_qc}")
     print(f"  Color: {otp2.hw_color.name}")
     print(f"  Region: {otp2.hw_region.name}")
@@ -448,7 +548,7 @@ def cmd_create_otp3(args):
     ) + public_numbers.y.to_bytes(28, byteorder="big")
 
     otp3 = OTP3Data(
-        hw_otp3_ver=args.version,
+        hw_otp_ver=args.version,
         hw_otp3_curve=ECCurve.SECP224R1,
         hw_otp3_pkey=public_bytes,
     )
@@ -458,7 +558,7 @@ def cmd_create_otp3(args):
         f.write(data)
 
     print(f"OTP3 data saved to: {args.output}")
-    print(f"  Version: {otp3.hw_otp3_ver}")
+    print(f"  Version: {otp3.hw_otp_ver}")
     print(f"  Curve: {otp3.hw_otp3_curve.name}")
     print(f"  Public Key: {public_bytes.hex()}")
 
@@ -492,7 +592,7 @@ def cmd_create_otp4(args):
     otp2_signature = sign_data(private_key, otp2_sig_data)
 
     otp4 = OTPSignature(
-        hw_otp4_ver=args.version,
+        hw_otp_ver=args.version,
         hw_otp4_mcu_uid=mcu_uid,
         hw_otp1_signature=otp1_signature,
         hw_otp2_signature=otp2_signature,
@@ -503,7 +603,7 @@ def cmd_create_otp4(args):
         f.write(data)
 
     print(f"OTP4 signature saved to: {args.output}")
-    print(f"  Version: {otp4.hw_otp4_ver}")
+    print(f"  Version: {otp4.hw_otp_ver}")
     print(f"  MCU UID: {format_hex(mcu_uid)}")
     print(f"  OTP1 Signature: {format_hex(otp1_signature)}")
     print(f"  OTP2 Signature: {format_hex(otp2_signature)}")
@@ -524,7 +624,7 @@ def cmd_load(args):
     if otp_type == "OTP1":
         otp = OTP1Data.from_bytes(data[: struct.calcsize(OTP1Data.STRUCT_FORMAT)])
         print("OTP1 Data:")
-        print(f"  hw_otp1_ver    : {otp.hw_otp1_ver}")
+        print(f"  hw_otp_ver     : {otp.hw_otp_ver}")
         print(f"  hw_timestamp   : {otp.hw_timestamp}")
         print(f"  u5_usb_mac     : {format_mac(otp.u5_usb_mac)}")
         print(f"  hw_model       : {otp.hw_model}")
@@ -536,7 +636,7 @@ def cmd_load(args):
     elif otp_type == "OTP2":
         otp = OTP2Data.from_bytes(data[: struct.calcsize(OTP2Data.STRUCT_FORMAT)])
         print("OTP2 Data:")
-        print(f"  hw_otp2_ver      : {otp.hw_otp2_ver}")
+        print(f"  hw_otp_ver       : {otp.hw_otp_ver}")
         print(f"  hw_timestamp_qc  : {otp.hw_timestamp_qc}")
         print(f"  hw_color         : {otp.hw_color.name} ({otp.hw_color.value})")
         print(f"  hw_region        : {otp.hw_region.name} ({otp.hw_region.value})")
@@ -544,7 +644,7 @@ def cmd_load(args):
     elif otp_type == "OTP3":
         otp = OTP3Data.from_bytes(data[: struct.calcsize(OTP3Data.STRUCT_FORMAT)])
         print("OTP3 Data:")
-        print(f"  hw_otp3_ver   : {otp.hw_otp3_ver}")
+        print(f"  hw_otp_ver    : {otp.hw_otp_ver}")
         print(f"  hw_otp3_curve : {otp.hw_otp3_curve.name} ({otp.hw_otp3_curve.value})")
         print(f"  hw_otp3_pkey  : {format_hex(otp.hw_otp3_pkey)}")
 
@@ -553,7 +653,7 @@ def cmd_load(args):
             data[: struct.calcsize(OTPSignature.STRUCT_FORMAT)]
         )
         print("OTP4 Signature Data:")
-        print(f"  hw_otp4_ver       : {otp.hw_otp4_ver}")
+        print(f"  hw_otp_ver        : {otp.hw_otp_ver}")
         print(f"  hw_otp4_mcu_uid   : {format_hex(otp.hw_otp4_mcu_uid)}")
         print(f"  hw_otp1_signature : {format_hex(otp.hw_otp1_signature)}")
         print(f"  hw_otp2_signature : {format_hex(otp.hw_otp2_signature)}")
@@ -652,7 +752,7 @@ def cmd_dump_all(args):
         try:
             otp = cls.from_bytes(page_data[:struct_size])
             if name == "OTP1":
-                print(f"  hw_otp1_ver    : {otp.hw_otp1_ver}")
+                print(f"  hw_otp_ver     : {otp.hw_otp_ver}")
                 print(f"  hw_timestamp   : {otp.hw_timestamp}")
                 print(f"  u5_usb_mac     : {format_mac(otp.u5_usb_mac)}")
                 print(f"  hw_model       : {otp.hw_model}")
@@ -661,16 +761,16 @@ def cmd_dump_all(args):
                 print(f"  hw_body        : {otp.hw_body}")
                 print(f"  hw_connect     : {otp.hw_connect}")
             elif name == "OTP2":
-                print(f"  hw_otp2_ver      : {otp.hw_otp2_ver}")
+                print(f"  hw_otp_ver       : {otp.hw_otp_ver}")
                 print(f"  hw_timestamp_qc  : {otp.hw_timestamp_qc}")
                 print(f"  hw_color         : {otp.hw_color.name}")
                 print(f"  hw_region        : {otp.hw_region.name}")
             elif name == "OTP3":
-                print(f"  hw_otp3_ver   : {otp.hw_otp3_ver}")
+                print(f"  hw_otp_ver    : {otp.hw_otp_ver}")
                 print(f"  hw_otp3_curve : {otp.hw_otp3_curve.name}")
                 print(f"  hw_otp3_pkey  : {format_hex(otp.hw_otp3_pkey)}")
             elif name == "OTP4":
-                print(f"  hw_otp4_ver       : {otp.hw_otp4_ver}")
+                print(f"  hw_otp_ver        : {otp.hw_otp_ver}")
                 print(f"  hw_otp4_mcu_uid   : {format_hex(otp.hw_otp4_mcu_uid)}")
                 print(f"  hw_otp1_signature : {format_hex(otp.hw_otp1_signature)}")
                 print(f"  hw_otp2_signature : {format_hex(otp.hw_otp2_signature)}")

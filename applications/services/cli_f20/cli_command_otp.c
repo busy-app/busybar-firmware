@@ -39,7 +39,8 @@ static uint8_t* cli_otp_parse_data(FuriString* args, size_t* len) {
         const char* str_buf = furi_string_get_cstr(data_str);
         for(size_t i = 0; i < furi_string_size(data_str); i++) {
             char c = str_buf[i];
-            if(((c >= '0') && (c <= '9')) || ((c >= 'A') && (c <= 'F'))) {
+            if(((c >= '0') && (c <= '9')) || ((c >= 'A') && (c <= 'F')) ||
+               ((c >= 'a') && (c <= 'f'))) {
                 hex_char_count++;
             } else {
                 hex_char_count = 0;
@@ -56,15 +57,21 @@ static uint8_t* cli_otp_parse_data(FuriString* args, size_t* len) {
 
     uint8_t* buf = malloc(*len);
     const char* str_buf = furi_string_get_cstr(data_str);
-    for(size_t i = 0; i < furi_string_size(data_str); i += 2) {
+    for(size_t i = 0; i < hex_char_count; i += 2) {
         uint8_t byte_temp = 0;
         char c = str_buf[i];
         if((c >= '0') && (c <= '9')) byte_temp |= (c - '0') << 4;
-        if((c >= 'A') && (c <= 'F')) byte_temp |= (c - 'A' + 0xA) << 4;
+        else if((c >= 'A') && (c <= 'F'))
+            byte_temp |= (c - 'A' + 0xA) << 4;
+        else if((c >= 'a') && (c <= 'f'))
+            byte_temp |= (c - 'a' + 0xa) << 4;
 
         c = str_buf[i + 1];
         if((c >= '0') && (c <= '9')) byte_temp |= (c - '0');
-        if((c >= 'A') && (c <= 'F')) byte_temp |= (c - 'A' + 0xA);
+        else if((c >= 'A') && (c <= 'F'))
+            byte_temp |= (c - 'A' + 0xA);
+        else if((c >= 'a') && (c <= 'f'))
+            byte_temp |= (c - 'a' + 0xa);
         buf[i / 2] = byte_temp;
     }
 
@@ -73,7 +80,6 @@ static uint8_t* cli_otp_parse_data(FuriString* args, size_t* len) {
 }
 
 static void cli_command_otp_program(PipeSide* pipe, FuriString* args, void* context) {
-    UNUSED(args);
     UNUSED(context);
 
     uint32_t addr = cli_otp_parse_addr(args);
@@ -85,7 +91,7 @@ static void cli_command_otp_program(PipeSide* pipe, FuriString* args, void* cont
             free(data);
         }
         printf("Usage:\r\n");
-        printf("otp dump <OTP1/OTP2/OTP3/OTP4>  <data>\r\n");
+        printf("otp program <OTP1/OTP2/OTP3/OTP4> <data>\r\n");
         return;
     }
 

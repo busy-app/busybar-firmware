@@ -3,6 +3,7 @@
 
 #include <furi.h>
 #include <furi_hal.h>
+#include <furi_hal_version.h>
 #include <storage/storage.h>
 #include <toolbox/path.h>
 
