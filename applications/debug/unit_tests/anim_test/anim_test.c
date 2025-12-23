@@ -40,6 +40,15 @@ typedef enum {
      * (all px vals shifted left by 4 bits)
      */
     AnimTestFile_Gray_Ramp_2x2x4,
+    /*
+     * 10x10 4bpp grayscale pixels, 10 frames.
+     * R, G and B values within an individual pixel are equal.
+     * All pixels within a frame have the same color.
+     * 
+     * Frame 0   Frame 1         Frame 8   Frame 9
+     *    0         1     . . .     8         9
+     */
+    AnimTestFile_Gray_RLE_Ramp_10x10x10,
 } AnimTestFile;
 
 const char* anim_test_prepare_file(AnimTestFile type) {
@@ -59,6 +68,7 @@ const char* anim_test_prepare_file(AnimTestFile type) {
         TEST_FILE_DEF(Color_Ramp_1x1x4),
         TEST_FILE_DEF(Color_ComplexDuration_2x2x10),
         TEST_FILE_DEF(Gray_Ramp_2x2x4),
+        TEST_FILE_DEF(Gray_RLE_Ramp_10x10x10),
     };
     TestArray array = arrays[type];
     #undef TEST_FILE_DEF
@@ -267,12 +277,48 @@ MU_TEST(anim_test_grayscale) {
     furi_record_close(RECORD_STORAGE);
 }
 
+/**
+ * Run-length encoded frame
+ */
+MU_TEST(anim_test_rle) {
+    const char* path = anim_test_prepare_file(AnimTestFile_Gray_RLE_Ramp_10x10x10);
+
+    Storage* storage = furi_record_open(RECORD_STORAGE);
+    AnimFile* anim = anim_file_alloc(storage, path);
+    mu_assert_not_null(anim);
+
+    uint8_t buffer[300];
+
+    for(size_t i = 0; i < 10; i++) {
+        AnimFileFrameFlag flags = anim_file_frame(anim, buffer);
+
+        for(size_t k = 0; k < 100; k++) {
+            size_t expected = i << 4;
+            mu_assert_int_eq(expected, buffer[(k * 3) + 0]);
+            mu_assert_int_eq(expected, buffer[(k * 3) + 1]);
+            mu_assert_int_eq(expected, buffer[(k * 3) + 2]);
+        }
+
+        AnimFileFrameFlag exp_flags;
+        if(i == 9) {
+            exp_flags = AnimFileFrameFlagLast | AnimFileFrameFlagFinished;
+        } else {
+            exp_flags = 0;
+        }
+        mu_assert_int_eq(exp_flags, flags);
+    }
+
+    anim_file_free(anim);
+    furi_record_close(RECORD_STORAGE);
+}
+
 MU_TEST_SUITE(anim_basic_test_suite) {
     MU_RUN_TEST(anim_test_play_whole_oneshot);
     MU_RUN_TEST(anim_test_play_whole_loop);
     MU_RUN_TEST(anim_test_play_complex_oneshot);
     MU_RUN_TEST(anim_test_play_complex_pend);
     MU_RUN_TEST(anim_test_grayscale);
+    MU_RUN_TEST(anim_test_rle);
 }
 
 int run_minunit_anim_test(void) {

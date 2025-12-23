@@ -7,6 +7,11 @@
  *     consecutive display frames.
  *   - Section: User-selectable named range of display frame indices.
  *   - Chunk: part of the file. There's a Sections chunk and a Frames chunk.
+ *   - Color buffer: Plain Bgr888 buffer that LVGL accepts directly.
+ *   - Packed buffer: Either Bgr888 or Gray4 buffer. Gray4 has to be unpacked
+ *     into a Color buffer, Bgr888 can be used directly.
+ *   - Encoded buffer: Either RLE-encoded or plain packed buffer. RLE has to be
+ *     decoded into a Packed buffer.
  * 
  * All integers are little-endian.
  * 
@@ -84,6 +89,8 @@ typedef struct FURI_PACKED {
 
     uint32_t sections_chunk_length;
     uint32_t frames_chunk_length;
+
+    uint32_t max_encoded_length;
 } AnimFileHeader;
 static_assert(sizeof(AnimFileHeader) % sizeof(uint32_t) == 0);
 

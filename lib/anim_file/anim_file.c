@@ -1,6 +1,8 @@
 #include "anim_file.h"
 #include "anim_file_format.h"
 
+#include <toolbox/rle_encode.h>
+
 #define TAG "AnimFile"
 
 #define ANIM_FILE_DETAILED_ERRORS
@@ -39,7 +41,8 @@ typedef struct {
  */
 typedef struct {
     AnimFileFrameHeader frame_hdr;
-    uint8_t* encoded_frame_buffer;
+    uint8_t* encoded_buffer; // may not be present
+    uint8_t* packed_buffer;
 
     size_t file_offset;
     size_t disp_frame_idx;
@@ -334,37 +337,65 @@ static void anim_file_load_current_frame(AnimFile* anim) {
     if(read_next_frame) {
         storage_file_seek(anim->file, playback->file_offset, true);
         storage_file_read(anim->file, frame_hdr, sizeof(*frame_hdr));
-        storage_file_read(anim->file, playback->encoded_frame_buffer, frame_hdr->encoded_length);
+
+        uint8_t* frame_buffer = (frame_hdr->encoding != AnimFileFrameEncodingRaw) ? playback->encoded_buffer : playback->packed_buffer;
+        furi_check(frame_buffer);
+        storage_file_read(anim->file, frame_buffer, frame_hdr->encoded_length);
+
         playback->did_display_frame = false;
         playback->remaining_duration = (flags & AnimFileFrameFlagSwitchToRequested) ? active->start_duration_override : frame_hdr->duration;
     }
 }
 
-void anim_file_decode_frame(AnimFile* anim, uint8_t* buffer) {
+static size_t anim_file_packed_length(const AnimFileHeader* file_hdr) {
+    furi_assert(file_hdr);
+
+    if(file_hdr->color_format == AnimFileColorFormatBgr888) {
+        return file_hdr->width * file_hdr->height * 3;
+    } else if(file_hdr->color_format == AnimFileColorFormatGray4) {
+        return file_hdr->width * file_hdr->height / 2;
+    } else {
+        furi_crash();
+    }
+}
+
+static void anim_file_decode_frame(AnimFile* anim, uint8_t* buffer) {
     furi_assert(anim);
     furi_assert(buffer);
 
-    const AnimFileFrameHeader* header = &anim->playback.frame_hdr;
+    const AnimFileHeader* file_hdr = &anim->meta.header;
+    const AnimFileFrameHeader* frame_hdr = &anim->playback.frame_hdr;
     AnimFileInfo info = anim->meta.info;
-    AnimFileColorFormat color_fmt = anim->meta.color_format;
-    size_t canvas_sz = info.width * info.height * 3;
+    const uint8_t* encoded_buf = anim->playback.encoded_buffer;
+    uint8_t* packed_buf = anim->playback.packed_buffer;
 
-    // TODO: RLE
-    furi_check(header->encoding == AnimFileFrameEncodingRaw);
-    uint8_t* packed_color = anim->playback.encoded_frame_buffer;
+    AnimFileColorFormat color_fmt = anim->meta.color_format;
+    size_t packed_len = anim_file_packed_length(file_hdr);
+    size_t blk_size = 0;
 
     if(color_fmt == AnimFileColorFormatBgr888) {
-        memcpy(buffer, packed_color, canvas_sz);
+        blk_size = 3;
+    } else if(color_fmt == AnimFileColorFormatGray4) {
+        blk_size = 1;
+    }
+
+    if(frame_hdr->encoding == AnimFileFrameEncodingRle) {
+        furi_check(encoded_buf);
+        size_t decoded_sz = 0;
+        furi_check(rle_decompress(encoded_buf, frame_hdr->encoded_length, packed_buf, packed_len, blk_size, &decoded_sz));
+        furi_check(decoded_sz == packed_len);
+    }
+
+    if(color_fmt == AnimFileColorFormatBgr888) {
+        memcpy(buffer, packed_buf, packed_len);
 
     } else if(color_fmt == AnimFileColorFormatGray4) {
-        size_t packed_color_sz = info.width * info.height / 2;
-
         size_t x = 0;
         size_t y = 0;
         size_t dest_idx = 0;
-        for(size_t i = 0; i < packed_color_sz; i++) {
-            uint8_t left_px = packed_color[i] & 0xF0;
-            uint8_t right_px = packed_color[i] << 4;
+        for(size_t i = 0; i < packed_len; i++) {
+            uint8_t left_px = packed_buf[i] & 0xF0;
+            uint8_t right_px = packed_buf[i] << 4;
             buffer[dest_idx + 0] = left_px;
             buffer[dest_idx + 1] = left_px;
             buffer[dest_idx + 2] = left_px;
@@ -430,7 +461,11 @@ AnimFile* anim_file_alloc(Storage* storage, const char* path) {
             },
         };
 
-        anim.playback.encoded_frame_buffer = malloc(max_encoded_len);
+        if(header.max_encoded_length) {
+            anim.playback.encoded_buffer = malloc(header.max_encoded_length);
+        }
+        anim.playback.packed_buffer = malloc(anim_file_packed_length(&header));
+
         if(!anim_file_set_section_indexed(&anim, AnimFilePlayFlagNone, ANIM_FILE_WHOLE_SECTION_INDEX)) {
             ANIM_FILE_ERR("Failed to set section 0");
             break;
@@ -450,7 +485,8 @@ AnimFile* anim_file_alloc(Storage* storage, const char* path) {
 
 void anim_file_free(AnimFile* anim) {
     furi_check(anim);
-    free(anim->playback.encoded_frame_buffer);
+    if(anim->playback.encoded_buffer) free(anim->playback.encoded_buffer);
+    free(anim->playback.packed_buffer);
     free(anim->meta.sections);
     storage_file_free(anim->file);
     free(anim);
