@@ -22,7 +22,7 @@
 #define OTP1_MODEL_SIZE (8)
 #define OTP1_MAC_SIZE   (6)
 
-typedef struct __attribute__((packed)) {
+typedef struct {
     FuriHalOtpHeader header; // Common header (magic, index=1, version)
     uint32_t hw_timestamp; // Production timestamp (Unix epoch)
     uint8_t u5_usb_mac[OTP1_MAC_SIZE]; // USB MAC address
@@ -31,19 +31,19 @@ typedef struct __attribute__((packed)) {
     uint8_t hw_target; // Target ID
     uint8_t hw_body; // Body type
     uint8_t hw_connect; // Connect type
-} Otp1Data;
+} FURI_PACKED Otp1Data;
 
 _Static_assert(sizeof(Otp1Data) == 26, "OTP1 data structure size mismatch");
 
 // OTP2 Data Structure - Device Info (QC)
 // Layout: <H B B I B B (little-endian)
 // Total size: 4 (header) + 6 (data) = 10 bytes
-typedef struct __attribute__((packed)) {
+typedef struct {
     FuriHalOtpHeader header; // Common header (magic, index=2, version)
     uint32_t hw_timestamp_qc; // QC timestamp (Unix epoch)
     uint8_t hw_color; // Device color
     uint8_t hw_region; // Device region
-} Otp2Data;
+} FURI_PACKED Otp2Data;
 
 _Static_assert(sizeof(Otp2Data) == 10, "OTP2 data structure size mismatch");
 
@@ -52,11 +52,11 @@ _Static_assert(sizeof(Otp2Data) == 10, "OTP2 data structure size mismatch");
 // Total size: 4 (header) + 57 (data) = 61 bytes
 #define OTP3_PKEY_SIZE (56) // secp224r1: 28 bytes X + 28 bytes Y
 
-typedef struct __attribute__((packed)) {
+typedef struct {
     FuriHalOtpHeader header; // Common header (magic, index=3, version)
     uint8_t hw_otp3_curve; // EC curve identifier
     uint8_t hw_otp3_pkey[OTP3_PKEY_SIZE]; // Public key (X || Y)
-} Otp3Data;
+} FURI_PACKED Otp3Data;
 
 _Static_assert(sizeof(Otp3Data) == 61, "OTP3 data structure size mismatch");
 
@@ -66,12 +66,12 @@ _Static_assert(sizeof(Otp3Data) == 61, "OTP3 data structure size mismatch");
 #define OTP4_MCU_UID_SIZE   (12)
 #define OTP4_SIGNATURE_SIZE (56) // secp224r1: 28 bytes R + 28 bytes S
 
-typedef struct __attribute__((packed)) {
+typedef struct {
     FuriHalOtpHeader header; // Common header (magic, index=4, version)
     uint8_t hw_otp4_mcu_uid[OTP4_MCU_UID_SIZE]; // MCU UID (for binding)
     uint8_t hw_otp1_signature[OTP4_SIGNATURE_SIZE]; // Signature over OTP1
     uint8_t hw_otp2_signature[OTP4_SIGNATURE_SIZE]; // Signature over OTP2
-} Otp4Data;
+} FURI_PACKED Otp4Data;
 
 _Static_assert(sizeof(Otp4Data) == 128, "OTP4 data structure size mismatch");
 
@@ -151,7 +151,7 @@ typedef struct {
     bool otp4_valid;
 
     // Cached/derived values
-    char model_name[OTP1_MODEL_SIZE + 1]; // Null-terminated model
+    char model_code[OTP1_MODEL_SIZE + 1]; // Null-terminated model
     uint8_t usb_mac[6];
 } FuriHalVersionState;
 
@@ -171,13 +171,13 @@ void furi_hal_version_init(void) {
     // Initialize model name
     if(furi_hal_version_state.otp1_valid) {
         const Otp1Data* otp1 = otp_get_otp1();
-        memcpy(furi_hal_version_state.model_name, otp1->hw_model, OTP1_MODEL_SIZE);
-        furi_hal_version_state.model_name[OTP1_MODEL_SIZE] = '\0';
+        memcpy(furi_hal_version_state.model_code, otp1->hw_model, OTP1_MODEL_SIZE);
+        furi_hal_version_state.model_code[OTP1_MODEL_SIZE] = '\0';
     } else {
         strncpy(
-            furi_hal_version_state.model_name,
+            furi_hal_version_state.model_code,
             "Unknown",
-            sizeof(furi_hal_version_state.model_name) - 1);
+            sizeof(furi_hal_version_state.model_code) - 1);
     }
 
     // Initialize USB MAC address
@@ -247,7 +247,7 @@ uint32_t furi_hal_version_get_hw_timestamp(void) {
 }
 
 const char* furi_hal_version_get_name_ptr(void) {
-    return furi_hal_version_state.model_name;
+    return furi_hal_version_state.model_code;
 }
 
 // ============================================================================
@@ -265,7 +265,7 @@ FuriHalVersionColor furi_hal_version_get_hw_color(void) {
     if(!furi_hal_version_state.otp2_valid) {
         return FuriHalVersionColorWhite; // Default
     }
-    // Currently only WHITE (0x00) is defined in bsbotp.py
+
     return (FuriHalVersionColor)otp_get_otp2()->hw_color;
 }
 
@@ -277,16 +277,15 @@ uint8_t furi_hal_version_get_hw_region(void) {
 }
 
 // ============================================================================
-// Model and Regulatory Info (stubs - to be populated based on hw_model)
+// Model and Regulatory Info
 // ============================================================================
 
 const char* furi_hal_version_get_model_name(void) {
-    return furi_hal_version_state.model_name;
+    return "BUSY Bar";
 }
 
 const char* furi_hal_version_get_model_code(void) {
-    // TODO: Map model string to code
-    return furi_hal_version_state.model_name;
+    return furi_hal_version_state.model_code;
 }
 
 const char* furi_hal_version_get_fcc_id(void) {
@@ -314,20 +313,8 @@ const char* furi_hal_version_get_ncc_id(void) {
     return "";
 }
 
-/**
- * @brief Get USB MAC address from OTP1
- * @return Pointer to 6-byte USB MAC
- */
 const uint8_t* furi_hal_version_get_usb_mac(void) {
     return furi_hal_version_state.usb_mac;
-}
-
-// ============================================================================
-// Firmware Version
-// ============================================================================
-
-const struct Version* furi_hal_version_get_firmware_version(void) {
-    return version_get();
 }
 
 // ============================================================================

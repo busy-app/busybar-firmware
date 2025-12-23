@@ -165,11 +165,11 @@ class OTP1Data:
 
 
 class HWColor(Enum):
-    WHITE = 0x00
+    WHITE = 0x01
 
 
 class HWRegion(Enum):
-    WORLD = 0x00
+    WORLD = 0x01
 
 
 @dataclass

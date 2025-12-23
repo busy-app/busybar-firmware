@@ -184,7 +184,7 @@ void furi_hal_info_get(PropertyValueCallback out, char sep, void* context) {
 
         // OTP1 - Hardware/Production info
         property_out_bool(&property_context, "otp1", "valid", furi_hal_version_get_otp1_valid());
-        property_out_str(&property_context, "otp1", "model", furi_hal_version_get_model_name());
+        property_out_str(&property_context, "otp1", "model", furi_hal_version_get_model_code());
         property_out_int(&property_context, "otp1", "version", furi_hal_version_get_hw_version());
         property_out_int(&property_context, "otp1", "target", furi_hal_version_get_hw_target());
         property_out_int(&property_context, "otp1", "body", furi_hal_version_get_hw_body());

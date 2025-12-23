@@ -2,6 +2,7 @@
 #include <stdint.h>
 #include <stdbool.h>
 #include <stm32u5xx.h>
+#include <core/common_defines.h>
 
 #define FURI_HAL_OTP_TOTAL_SIZE (FLASH_OTP_SIZE)
 
@@ -31,11 +32,11 @@
 #define FURI_HAL_OTP_INDEX_OTP4 (4)
 
 // Common OTP header structure (4 bytes)
-typedef struct __attribute__((packed)) {
+typedef struct {
     uint16_t magic; // Magic value (FURI_HAL_OTP_MAGIC)
     uint8_t index; // OTP block index (1-4)
     uint8_t version; // OTP structure version
-} FuriHalOtpHeader;
+} FURI_PACKED FuriHalOtpHeader;
 
 _Static_assert(sizeof(FuriHalOtpHeader) == 4, "OTP header size mismatch");
 

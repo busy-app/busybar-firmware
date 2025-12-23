@@ -20,7 +20,7 @@ extern "C" {
 
 /** Device Colors (from OTP2 hw_color, matches HWColor in bsbotp.py) */
 typedef enum {
-    FuriHalVersionColorWhite = 0x00,
+    FuriHalVersionColorWhite = 0x01,
 } FuriHalVersionColor;
 
 /** Init flipper version
