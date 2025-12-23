@@ -60,14 +60,16 @@ static uint8_t* cli_otp_parse_data(FuriString* args, size_t* len) {
     for(size_t i = 0; i < hex_char_count; i += 2) {
         uint8_t byte_temp = 0;
         char c = str_buf[i];
-        if((c >= '0') && (c <= '9')) byte_temp |= (c - '0') << 4;
+        if((c >= '0') && (c <= '9'))
+            byte_temp |= (c - '0') << 4;
         else if((c >= 'A') && (c <= 'F'))
             byte_temp |= (c - 'A' + 0xA) << 4;
         else if((c >= 'a') && (c <= 'f'))
             byte_temp |= (c - 'a' + 0xa) << 4;
 
         c = str_buf[i + 1];
-        if((c >= '0') && (c <= '9')) byte_temp |= (c - '0');
+        if((c >= '0') && (c <= '9'))
+            byte_temp |= (c - '0');
         else if((c >= 'A') && (c <= 'F'))
             byte_temp |= (c - 'A' + 0xA);
         else if((c >= 'a') && (c <= 'f'))
