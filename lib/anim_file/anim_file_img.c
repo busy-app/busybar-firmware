@@ -1,5 +1,5 @@
 /**
- * @brief Image decoding functions
+ * @brief Main animation state machine; image decoding functions
  */
 
 #include "anim_file_i.h"
@@ -52,7 +52,7 @@ AnimFileFrameFlag anim_file_frame_flags(const AnimFile* anim) {
     return flags;
 }
 
-void anim_file_load_current_frame(AnimFile* anim) {
+bool anim_file_load_current_frame(AnimFile* anim) {
     furi_assert(anim);
 
     AnimFileRange* active = &anim->active_range;
@@ -85,19 +85,46 @@ void anim_file_load_current_frame(AnimFile* anim) {
     }
 
     if(read_next_frame) {
-        storage_file_seek(anim->file, playback->file_offset, true);
-        storage_file_read(anim->file, frame_hdr, sizeof(*frame_hdr));
+        if(!storage_file_seek(anim->file, playback->file_offset, true)) {
+            ANIM_FILE_ERR("Failed to seek frame header");
+            return false;
+        }
+    
+        size_t to_read = sizeof(*frame_hdr);
+        if(storage_file_read(anim->file, frame_hdr, to_read) != to_read) {
+            ANIM_FILE_ERR("Failed to read frame header");
+            return false;
+        }
 
-        uint8_t* frame_buffer = (frame_hdr->encoding != AnimFileFrameEncodingRaw) ? playback->encoded_buffer : playback->packed_buffer;
-        furi_check(frame_buffer);
-        storage_file_read(anim->file, frame_buffer, frame_hdr->encoded_length);
+        uint8_t* frame_buffer;
+        if(frame_hdr->encoding != AnimFileFrameEncodingRaw) {
+            frame_buffer = playback->encoded_buffer;
+            if(!frame_buffer) {
+                ANIM_FILE_ERR("Invalid file header: max_encoded_length = 0 with an encoded frame");
+                return false;
+            }
+            if(frame_hdr->encoded_length > anim->meta.header.max_encoded_length) {
+                ANIM_FILE_ERR("Invalid file header: frame.encoded_length > max_encoded_length");
+                return false;
+            }
+        } else {
+            frame_buffer = playback->packed_buffer;
+        }
+
+        to_read = frame_hdr->encoded_length;
+        if(storage_file_read(anim->file, frame_buffer, frame_hdr->encoded_length) != to_read) {
+            ANIM_FILE_ERR("Invalid frame encoded_length");
+            return false;
+        }
 
         playback->did_display_frame = false;
         playback->remaining_duration = (flags & AnimFileFrameFlagSwitchToRequested) ? active->start_duration_override : frame_hdr->duration;
     }
+
+    return true;
 }
 
-void anim_file_decode_frame(AnimFile* anim, uint8_t* buffer) {
+bool anim_file_decode_frame(AnimFile* anim, uint8_t* buffer) {
     furi_assert(anim);
     furi_assert(buffer);
 
@@ -118,10 +145,19 @@ void anim_file_decode_frame(AnimFile* anim, uint8_t* buffer) {
     }
 
     if(frame_hdr->encoding == AnimFileFrameEncodingRle) {
-        furi_check(encoded_buf);
+        if(!encoded_buf) {
+            ANIM_FILE_ERR("Invalid file header: max_encoded_length=0 with an encoded frame");
+            return false;
+        }
         size_t decoded_sz = 0;
-        furi_check(rle_decompress(encoded_buf, frame_hdr->encoded_length, packed_buf, packed_len, blk_size, &decoded_sz));
-        furi_check(decoded_sz == packed_len);
+        if(!rle_decompress(encoded_buf, frame_hdr->encoded_length, packed_buf, packed_len, blk_size, &decoded_sz)) {
+            ANIM_FILE_ERR("RLE compressed data too large");
+            return false;
+        }
+        if(decoded_sz != packed_len) {
+            ANIM_FILE_ERR("RLE compressed data too short");
+            return false;
+        }
     }
 
     if(color_fmt == AnimFileColorFormatBgr888) {
@@ -150,4 +186,6 @@ void anim_file_decode_frame(AnimFile* anim, uint8_t* buffer) {
             if(y >= info.height) break;
         }
     }
+
+    return true;
 }

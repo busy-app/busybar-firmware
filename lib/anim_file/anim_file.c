@@ -5,6 +5,7 @@
 #include "anim_file_i.h"
 
 AnimFile* anim_file_alloc(Storage* storage, const char* path) {
+    furi_check(storage);
     furi_check(path);
 
     AnimFile* result = NULL;
@@ -83,10 +84,12 @@ AnimFileInfo anim_file_info(const AnimFile* anim) {
 
 AnimFileFrameFlag anim_file_frame(AnimFile* anim, void* buffer) {
     furi_check(anim);
+    furi_check(buffer);
 
-    anim_file_load_current_frame(anim);
+    if(!anim_file_load_current_frame(anim)) return AnimFileFrameFlagError;
+
     if(!anim->playback.did_display_frame) {
-        anim_file_decode_frame(anim, buffer);
+        if(!anim_file_decode_frame(anim, buffer)) return AnimFileFrameFlagError;
     }
 
     return anim_file_frame_flags(anim);
@@ -121,6 +124,7 @@ bool anim_file_set_section_indexed(AnimFile* anim, AnimFilePlayFlag flags, size_
 
 bool anim_file_set_section_named(AnimFile* anim, AnimFilePlayFlag flags, const char* name) {
     furi_check(anim);
+    furi_check(name);
 
     const AnimFileHeader* header = &anim->meta.header;
     const uint8_t* sections = anim->meta.sections;

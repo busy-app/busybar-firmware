@@ -107,9 +107,9 @@ size_t anim_file_packed_length(const AnimFileHeader* file_hdr);
 
 AnimFileFrameFlag anim_file_frame_flags(const AnimFile* anim);
 
-void anim_file_load_current_frame(AnimFile* anim);
+bool anim_file_load_current_frame(AnimFile* anim);
 
-void anim_file_decode_frame(AnimFile* anim, uint8_t* buffer);
+bool anim_file_decode_frame(AnimFile* anim, uint8_t* buffer);
 
 #ifdef __cplusplus
 }

@@ -60,7 +60,7 @@ const uint8_t test_file_Gray_RLE_Ramp_10x10x10[] = {
     'B', 'S', 'B', 'a', 'n', 'i', 'm', '0',
     0, 10, 10, 1,   10, 0, 0, 0, // gray4, 10x10, 10fps
     19, 0, 0, 0,   60, 0, 0, 0, // chunk sizes
-    1, 0, 0, 0, // max encoded len
+    2, 0, 0, 0, // max encoded len
     // sections
     0, 0, 0, 0,   9, 0, 0, 0,   47, 0, 0, 0,   1,   'w', 'h', 'o', 'l', 'e', 0,
     // frames
