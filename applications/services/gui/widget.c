@@ -36,6 +36,24 @@ static void widget_lvgl_constructor(const lv_obj_class_t* class_p, lv_obj_t* obj
 
 // Public API
 
+static const AlignBitmask align_to_bitmask_lut[AlignMax] = {
+    [AlignDefault] = AlignBitmaskTop | AlignBitmaskLeft,
+    [AlignTopLeft] = AlignBitmaskTop | AlignBitmaskLeft,
+    [AlignTopMid] = AlignBitmaskTop | AlignBitmaskHorCenter,
+    [AlignTopRight] = AlignBitmaskTop | AlignBitmaskRight,
+    [AlignLeftMid] = AlignBitmaskVerCenter | AlignBitmaskLeft,
+    [AlignCenter] = AlignBitmaskVerCenter | AlignBitmaskHorCenter,
+    [AlignRightMid] = AlignBitmaskVerCenter | AlignBitmaskRight,
+    [AlignBottomLeft] = AlignBitmaskBottom | AlignBitmaskLeft,
+    [AlignBottomMid] = AlignBitmaskBottom | AlignBitmaskHorCenter,
+    [AlignBottomRight] = AlignBitmaskBottom | AlignBitmaskRight,
+};
+
+AlignBitmask widget_align_to_bitmask(Align align) {
+    furi_check(align < AlignMax);
+    return align_to_bitmask_lut[align];
+}
+
 Widget* widget_alloc(Widget* parent) {
     furi_check(parent);
 
@@ -99,6 +117,22 @@ void widget_set_size(Widget* instance, int32_t width, int32_t height) {
     lv_obj_set_size((lv_obj_t*)instance, width, height);
 }
 
+void widget_set_max_width(Widget* instance, int32_t max_width) {
+    furi_check(instance);
+    lv_obj_set_style_max_width(TO_LV_OBJ(instance), max_width, LV_PART_MAIN);
+}
+
+void widget_set_max_height(Widget* instance, int32_t max_height) {
+    furi_check(instance);
+    lv_obj_set_style_max_height(TO_LV_OBJ(instance), max_height, LV_PART_MAIN);
+}
+
+void widget_set_max_size(Widget* instance, int32_t max_width, int32_t max_height) {
+    furi_check(instance);
+    lv_obj_set_style_max_width(TO_LV_OBJ(instance), max_width, LV_PART_MAIN);
+    lv_obj_set_style_max_height(TO_LV_OBJ(instance), max_height, LV_PART_MAIN);
+}
+
 void widget_set_size_content(Widget* instance) {
     furi_check(instance);
     lv_obj_set_size((lv_obj_t*)instance, LV_SIZE_CONTENT, LV_SIZE_CONTENT);
@@ -151,10 +185,10 @@ void widget_set_scrollbar_mode(Widget* instance, WidgetScrollBarMode scrollbar_m
     lv_obj_set_scrollbar_mode((lv_obj_t*)instance, (lv_scrollbar_mode_t)scrollbar_mode);
 }
 
-void widget_set_background_color(Widget* instance, Color color, float opacity) {
+void widget_set_background_color(Widget* instance, Color color) {
     furi_check(instance);
     lv_obj_set_style_bg_color((lv_obj_t*)instance, TO_LV_COLOR(color), LV_PART_MAIN);
-    lv_obj_set_style_bg_opa((lv_obj_t*)instance, (lv_opa_t)(opacity * 255), LV_PART_MAIN);
+    lv_obj_set_style_bg_opa((lv_obj_t*)instance, (lv_opa_t)(color.a), LV_PART_MAIN);
 }
 
 void widget_set_padding(Widget* instance, int32_t left, int32_t right, int32_t top, int32_t bottom) {

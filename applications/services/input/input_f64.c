@@ -11,10 +11,11 @@
 
 #define TAG "Input"
 
-#define INPUT_DEBOUNCE_TIMEOUT 2
-#define INPUT_DEBOUNCE_TICKS   10
-#define INPUT_QUEUE_SIZE       32
-#define REQUEST_QUEUE_SIZE     4
+#define INPUT_DEBOUNCE_TIMEOUT    2
+#define INPUT_DEBOUNCE_TICKS      10
+#define INPUT_QUEUE_SIZE          32
+#define REQUEST_QUEUE_SIZE        4
+#define INPUT_INTERCOM_TIMEOUT_MS 100
 
 #ifdef INPUT_DEBUG
 #define INPUT_LOG(...) FURI_LOG_D(TAG, __VA_ARGS__)
@@ -24,7 +25,6 @@
 
 typedef enum {
     InputEventFlagActivity = 1 << 0,
-    InputEventFlagIntercomSync = 1 << 1,
 } InputEventFlag;
 
 typedef struct {
@@ -47,13 +47,13 @@ typedef struct {
 
 struct Input {
     FuriPubSub* event_pubsub;
-    FuriPubSub* intercom_pubsub;
     FuriEventLoop* event_loop;
     FuriMessageQueue* input_queue;
     FuriEventLoopTimer* debounce_timer;
     InputKeyState* key_states;
 #ifdef SRV_INTERCOM
-    Intercom* intercom;
+    Intercom* intercom_srv;
+    IntercomChannel* intercom_ch;
 #endif
     FuriMessageQueue* request_queue;
     InputAbsoluteState absolute_state;
@@ -66,20 +66,6 @@ static void input_isr_key(void* context) {
     furi_event_loop_set_custom_event(instance->event_loop, InputEventFlagActivity);
 }
 
-static void input_intercom_events_callback(const void* message, void* context) {
-    furi_assert(message);
-    furi_assert(context);
-
-    const IntercomEvent* event = message;
-    Input* instance = context;
-
-    if(event->type == IntercomEventTypeSyncStateChanged) {
-        if(event->is_in_sync) {
-            furi_event_loop_set_custom_event(instance->event_loop, InputEventFlagIntercomSync);
-        }
-    }
-}
-
 static void input_custom_event_callback(uint32_t events, void* context) {
     furi_assert(context);
     Input* instance = context;
@@ -87,14 +73,6 @@ static void input_custom_event_callback(uint32_t events, void* context) {
     if(events & InputEventFlagActivity) {
         if(!furi_event_loop_timer_is_running(instance->debounce_timer)) {
             furi_event_loop_timer_start(instance->debounce_timer, INPUT_DEBOUNCE_TIMEOUT);
-        }
-    } else if(events & InputEventFlagIntercomSync) {
-        for(size_t i = 0; i < input_pins_count; i++) {
-            InputKeyState* state = &instance->key_states[i];
-
-            if(state->level) {
-                input_send(instance, instance->key_states[i].pin, InputActionPress);
-            }
         }
     }
 }
@@ -230,9 +208,9 @@ static void input_queue_callback(FuriEventLoopObject* object, void* context) {
 #endif
 
 #ifdef SRV_INTERCOM
-    while(intercom_is_in_sync(instance->intercom)) {
+    while(intercom_is_in_sync(instance->intercom_srv)) {
         size_t sent_size = intercom_tx(
-            instance->intercom, IntercomChannelInput, &event, sizeof(InputCommonEvent), 100);
+            instance->intercom_ch, &event, sizeof(InputCommonEvent), INPUT_INTERCOM_TIMEOUT_MS);
 
         if(sent_size == sizeof(InputCommonEvent)) {
             break;
@@ -257,9 +235,6 @@ int32_t input_srv(void* p) {
         FuriEventLoopTimerTypePeriodic,
         instance);
     instance->key_states = malloc(sizeof(InputKeyState) * input_pins_count);
-#ifdef SRV_INTERCOM
-    instance->intercom = furi_record_open(RECORD_INTERCOM);
-#endif
     instance->request_queue = furi_message_queue_alloc(REQUEST_QUEUE_SIZE, sizeof(InputRequest));
 
     for(size_t i = 0; i < input_pins_count; i++) {
@@ -276,8 +251,18 @@ int32_t input_srv(void* p) {
         furi_hal_gpio_add_int_callback(pin->gpio, pin->cond, input_isr_key, instance);
     }
 
-    instance->intercom_pubsub = intercom_get_pubsub(instance->intercom);
-    furi_pubsub_subscribe(instance->intercom_pubsub, input_intercom_events_callback, instance);
+#ifdef SRV_INTERCOM
+    instance->intercom_srv = furi_record_open(RECORD_INTERCOM);
+    instance->intercom_ch =
+        intercom_channel_open(instance->intercom_srv, IntercomChannelIdInput, NULL, NULL);
+    for(size_t i = 0; i < input_pins_count; i++) {
+        InputKeyState* state = &instance->key_states[i];
+
+        if(state->level) {
+            input_send(instance, instance->key_states[i].pin, InputActionPress);
+        }
+    }
+#endif
 
     furi_event_loop_set_custom_event_callback(
         instance->event_loop, input_custom_event_callback, instance);

@@ -1,6 +1,7 @@
 #include "label.h"
 
 #include <gui/widget_i.h>
+#include <gui/gui_i.h>
 
 #define MY_CLASS (&label_lvgl_class)
 
@@ -8,6 +9,7 @@ struct Label {
     Widget base;
     lv_obj_t* label;
     FuriString* text;
+    GuiFont font;
 };
 
 const lv_obj_class_t label_lvgl_class;
@@ -87,6 +89,7 @@ void label_set_text(Label* instance, const char* text) {
 void label_set_text_color(Label* instance, Color color) {
     furi_check(instance);
     lv_obj_set_style_text_color((lv_obj_t*)instance->label, TO_LV_COLOR(color), LV_PART_MAIN);
+    lv_obj_set_style_text_opa(instance->label, color.a, LV_PART_MAIN);
 }
 
 void label_set_text_font_size(Label* instance, LabelFontSize size) {
@@ -145,8 +148,34 @@ void label_set_long_content_mode(Label* instance, LabelLongContentMode mode, uin
     furi_check(instance);
     furi_check(mode < LabelLongContentModeCount);
 
-    lv_label_set_long_mode((lv_obj_t*)instance->label, (lv_label_long_mode_t)mode);
-    lv_obj_set_style_anim_time((lv_obj_t*)instance->label, duration, LV_PART_MAIN);
+    lv_obj_set_style_anim_time(instance->label, duration, LV_PART_MAIN);
+    lv_label_set_long_mode(instance->label, (lv_label_long_mode_t)mode);
+}
+
+uint32_t label_calculate_scroll_duration(const Label* instance, uint32_t rate_ppm) {
+    furi_check(instance);
+    furi_check(rate_ppm > 0);
+
+    lv_obj_t* label = TO_LV_OBJ(instance);
+    lv_obj_update_layout(label);
+
+    const char* text = furi_string_get_cstr(instance->text);
+    const lv_font_t* font = gui_font_to_lvgl(instance->font);
+    int32_t letter_space = lv_obj_get_style_text_letter_space(label, LV_PART_MAIN);
+    int32_t text_width = lv_text_get_width(text, strlen(text), font, letter_space);
+
+    int32_t space_width = lv_font_get_glyph_width(font, ' ', ' ');
+    int32_t gap_width = space_width * LV_LABEL_WAIT_CHAR_COUNT;
+    int32_t total_width = text_width + gap_width;
+
+    size_t duration_ms = (total_width * 60 * 1000) / rate_ppm;
+    return duration_ms;
+}
+
+void label_set_font(Label* instance, GuiFont font) {
+    furi_check(instance);
+    lv_obj_set_style_text_font(instance->label, gui_font_to_lvgl(font), LV_PART_MAIN);
+    instance->font = font;
 }
 
 // LVGL class descriptor

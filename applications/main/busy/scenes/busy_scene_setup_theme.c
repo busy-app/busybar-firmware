@@ -1,4 +1,4 @@
-#include "../busy.h"
+#include "../busy_i.h"
 
 #include <gui/modules/label.h>
 
@@ -11,7 +11,8 @@ static void busy_scene_setup_theme_on_enter(void* context) {
     furi_assert(context);
 
     BusyApp* instance = context;
-    BusySceneSetupTheme* data = scene_manager_get_current_scene_data(instance->scene_manager);
+    BusySceneSetupTheme* data =
+        scene_manager_get_scene_data(instance->scene_manager, BusyAppSceneIdSetupTheme);
 
     with_gui(instance->gui, {
         data->front_label = label_alloc(instance->front_window);
@@ -28,7 +29,8 @@ static void busy_scene_setup_theme_on_exit(void* context) {
     furi_assert(context);
 
     BusyApp* instance = context;
-    BusySceneSetupTheme* data = scene_manager_get_current_scene_data(instance->scene_manager);
+    BusySceneSetupTheme* data =
+        scene_manager_get_scene_data(instance->scene_manager, BusyAppSceneIdSetupTheme);
 
     with_gui(instance->gui, {
         label_free(data->front_label);

@@ -75,6 +75,14 @@ bool matter_get_switch_state(MatterSrv* matter);
 void matter_set_switch_state(MatterSrv* matter, bool state);
 
 /**
+ * @brief Set the startup mode of the Matter switch
+ *
+ * @param[in] matter Service instance
+ * @param[in] mode Desired Matter switch startup mode
+ */
+void matter_set_switch_startup_mode(MatterSrv* matter, MatterSwitchStartupMode mode);
+
+/**
  * @brief Deletes all Matter data
  * 
  * @param[in] matter Service instance

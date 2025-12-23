@@ -27,6 +27,8 @@ import subprocess
 import sys
 import os
 import secrets
+import tempfile
+import shutil
 from pathlib import Path
 
 
@@ -85,10 +87,13 @@ DEFAULT_PRODUCT_ID = "0001"
 DEFAULT_PASSCODE = _gen_random_passcode()
 DEFAULT_DISCRIMINATOR = _rand_12bit_str()
 DEFAULT_CERTS_DIR = "scripts/test_certs/matter"
+DEFAULT_CD_PATH = f"{DEFAULT_CERTS_DIR}/test-CD-{DEFAULT_VENDOR_ID}-{DEFAULT_PRODUCT_ID}.der"
 
 # Relative paths used by original script
 CRYPTO_STORAGE = Path("scripts/crypto_storage.py")
 CREDENTIALS = Path("scripts/credentials.py")
+
+to_cleanup = []
 
 
 def check_repo_root() -> None:
@@ -113,12 +118,37 @@ def run_cmd(cmd: list[str], env=None, desc: str = "") -> None:
         sys.exit(e.returncode)
 
 
-def build_attestation_paths(certs_dir: Path, vendor_id: str, product_id: str):
+def get_default_certs(certs_dir: Path, vendor_id: str, product_id: str):
     pai_cert = certs_dir / f"test-PAI-{vendor_id}-cert.pem"
     dac_key = certs_dir / f"test-DAC-{vendor_id}-{product_id}-key.pem"
     dac_cert = certs_dir / f"test-DAC-{vendor_id}-{product_id}-cert.pem"
-    cd = certs_dir / f"test-CD-{vendor_id}-{product_id}.der"
-    return pai_cert, dac_key, dac_cert, cd
+    return pai_cert, dac_key, dac_cert
+
+
+def get_production_certs(production: Path):
+    temp = Path(tempfile.mkdtemp(prefix="bsb-matter-certs"))
+    to_cleanup.append(temp)
+
+    src_pai_and_paa = production / "certificate_chain.pem"
+    src_dac_cert = production / "certificate.pem"
+    src_dac_key = production / "privateKey.pem"
+    pai_cert = temp / "pai.pem"
+    paa_cert = temp / "paa.pem"
+
+    # CloudPKI provides concatenated PAI and PAA, we need to split them
+    with open(src_pai_and_paa, "r") as src_pai_and_paa:
+        pai_and_paa = src_pai_and_paa.read()
+        DELIMITER = "-----BEGIN CERTIFICATE-----"
+        certs = pai_and_paa.split(DELIMITER)
+        certs = [DELIMITER + cert for cert in certs if cert]
+        pai = certs[0]
+        paa = certs[1]
+        with open(pai_cert, "w") as dst_pai:
+            dst_pai.write(pai)
+        with open(paa_cert, "w") as dst_paa:
+            dst_paa.write(paa)
+
+    return pai_cert, src_dac_key, src_dac_cert    
 
 
 def ensure_files_exist(paths: list[Path]):
@@ -225,9 +255,12 @@ def main():
         help="Setup discriminator (decimal string)",
     )
     parser.add_argument(
-        "--certs-dir",
-        default=DEFAULT_CERTS_DIR,
-        help="Directory containing test cert artifacts",
+        "--production-certs",
+        default=None,
+        help="Directory containing production certificates from CloudPKI. If not set, default test certs will be used.",
+    )
+    parser.add_argument(
+        "--cd", default=DEFAULT_CD_PATH, help="Path to CD DER file. If not, default test CD will be used."
     )
     parser.add_argument(
         "--toolchain-path",
@@ -258,10 +291,15 @@ def main():
 
     check_repo_root()
 
-    certs_dir = Path(args.certs_dir)
-    pai_cert, dac_key, dac_cert, cd_file = build_attestation_paths(
-        certs_dir, args.vendor_id, args.product_id
-    )
+    production_certs = args.production_certs
+    if args.production_certs:
+        pai_cert, dac_key, dac_cert = get_production_certs(Path(production_certs))
+    else:
+        pai_cert, dac_key, dac_cert = get_default_certs(
+            Path(DEFAULT_CERTS_DIR), args.vendor_id, args.product_id
+        )
+
+    cd_file = Path(args.cd)
 
     # Setup toolchain environment cross-platform (no shell sourcing)
     env = os.environ.copy()
@@ -328,8 +366,11 @@ def main():
             desc="provision device info",
         )
 
-    print(f"Passcode: {args.passcode}, Descriminator: {args.discriminator}")
+    print(f"Passcode: {args.passcode}, Discriminator: {args.discriminator}")
     print("Provisioning complete.")
+
+    for path in to_cleanup:
+        shutil.rmtree(path)
 
 
 if __name__ == "__main__":

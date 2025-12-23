@@ -14,7 +14,7 @@ struct MatterSrv {
     FuriMessageQueue* frame_queue;
     FuriMessageQueue* request_queue;
     FuriPubSub* pubsub;
-    Intercom* intercom;
+    IntercomChannel* intercom_ch;
     bool switch_state;
     uint8_t commissioned_fabrics;
 };
@@ -109,8 +109,7 @@ static void matter_handle_frame(FuriEventLoopObject* object, void* context) {
 
 static void matter_send_frame(MatterSrv* matter, const MatterIntercomFrame* frame) {
     furi_check(
-        intercom_tx(
-            matter->intercom, IntercomChannelMatter, frame, sizeof(*frame), FuriWaitForever) ==
+        intercom_tx(matter->intercom_ch, frame, sizeof(*frame), FuriWaitForever) ==
         sizeof(*frame));
 }
 
@@ -121,6 +120,7 @@ static void matter_send_frame(MatterSrv* matter, const MatterIntercomFrame* fram
 typedef enum {
     MatterApiRequestTypeGetSwitchState,
     MatterApiRequestTypeSetSwitchState,
+    MatterApiRequestTypeSetSwitchStartupMode,
     MatterApiRequestTypeReset,
     MatterApiRequestTypeCommission,
     MatterApiRequestTypeGetFabricCount,
@@ -129,11 +129,16 @@ typedef enum {
 typedef struct {
     FuriApiLock lock;
     MatterApiRequestType type;
-    FuriString* qr_code;
-    FuriString* manual_code;
-    size_t window_duration;
-    bool switch_state;
-    uint8_t fabric_count;
+    union {
+        struct {
+            FuriString* qr_code;
+            FuriString* manual_code;
+            size_t window_duration;
+        };
+        bool switch_state;
+        uint8_t fabric_count;
+        MatterSwitchStartupMode startup_mode;
+    };
 } MatterApiRequest;
 
 static void matter_handle_api_request(FuriEventLoopObject* object, void* context) {
@@ -159,6 +164,15 @@ static void matter_handle_api_request(FuriEventLoopObject* object, void* context
         const MatterIntercomFrame frame = {
             .type = MatterIntercomFrameTypeSwitchState,
             .switch_state.value = request->switch_state,
+        };
+        matter_send_frame(matter, &frame);
+        break;
+    }
+
+    case MatterApiRequestTypeSetSwitchStartupMode: {
+        const MatterIntercomFrame frame = {
+            .type = MatterIntercomFrameTypeSwitchStartupMode,
+            .startup.mode = request->startup_mode,
         };
         matter_send_frame(matter, &frame);
         break;
@@ -241,6 +255,15 @@ void matter_set_switch_state(MatterSrv* matter, bool state) {
     matter_synchronous_request(matter, &request);
 }
 
+void matter_set_switch_startup_mode(MatterSrv* matter, MatterSwitchStartupMode mode) {
+    furi_check(matter);
+    MatterApiRequest request = {
+        .type = MatterApiRequestTypeSetSwitchStartupMode,
+        .startup_mode = mode,
+    };
+    matter_synchronous_request(matter, &request);
+}
+
 void matter_factory_reset(MatterSrv* matter) {
     furi_check(matter);
     MatterApiRequest request = {
@@ -293,9 +316,9 @@ MatterSrv* matter_srv_alloc(void) {
 
     matter->pubsub = furi_pubsub_alloc();
 
-    matter->intercom = furi_record_open(RECORD_INTERCOM);
-    intercom_set_rx_callback(
-        matter->intercom, IntercomChannelMatter, matter_forward_frame_to_thread, matter);
+    Intercom* intercom = furi_record_open(RECORD_INTERCOM);
+    matter->intercom_ch = intercom_channel_open(
+        intercom, IntercomChannelIdMatter, matter_forward_frame_to_thread, matter);
 
     furi_record_create(RECORD_MATTER, matter);
     return matter;

@@ -1,104 +1,32 @@
 #pragma once
 
-#include <furi.h>
+#define RECORD_BUSY_APP "busy_app"
 
-#include <gui/gui.h>
-#include <gui/modules/nav_bar.h>
-#include <gui/modules/flex_layout.h>
-#include <audio/audio.h>
-#include <status_lights/status_lights.h>
-#include <matter/matter.h>
+/**
+ * @brief Special argument to launch in timer mode.
+ *
+ * Passing this string as the application argument
+ * indicates that the app was run by the BUSY timer.
+ *
+ * In this mode, the app will go directly to the
+ * BusyAppSceneIdTimer scene and will exit if "back"
+ * is pressed on any of the following scenes:
+ * - BusyAppSceneIdTimer,
+ * - BusyAppSceneIdNext,
+ * - BusyAppSceneIdProgress.
+ */
+#define BUSY_APP_TIMER_MODE "timer"
 
-#include "busy_timer.h"
-#include "busy_settings.h"
+#ifdef __cplusplus
+extern "C" {
+#endif
 
-#include "time_macros.h"
-#include "storage_macros.h"
+typedef struct BusyApp BusyApp;
 
-#include "helpers/run_later.h"
-#include "scenes/busy_scenes.h"
+void busy_show_timer(BusyApp* instance);
 
-#include "widgets/timer_bar.h"
-#include "widgets/timer_card.h"
-#include "widgets/timer_indicator.h"
-#include "widgets/transition_overlay.h"
+void busy_request_exit(BusyApp* instance);
 
-#define TAG "Busy"
-
-#define TOTAL_TIME_LOW_THR_MN (15)
-
-typedef enum {
-    BusyCustomEventTimerTick = 100,
-    BusyCustomEventTimerModeChanged,
-    BusyCustomEventTimerStateChanged,
-    BusyCustomEventTimerIntervalEnded,
-    BusyCustomEventTimerSequenceEnded,
-    BusyCustomEventTimerToggle,
-    BusyCustomEventTimerSkip,
-    BusyCustomEventTimeIncrement,
-    BusyCustomEventTimeDecrement,
-    BusyCustomEventStartPressed,
-    BusyCustomEventStartReleased,
-    BusyCustomEventStartShortPressed,
-} BusyCustomEvent;
-
-typedef enum {
-    BusyTransitionTypeDefault,
-    BusyTransitionTypeAutomatic,
-    BusyTransitionTypeSkip,
-    BusyTransitionTypeSelect,
-    BusyTransitionTypeWork,
-    BusyTransitionTypeRest,
-    BusyTransitionTypeWorkDone,
-    BusyTransitionTypeRestDone,
-    BusyTransitionTypeMax,
-} BusyTransitionType;
-
-typedef enum {
-    BusyStatusLightsTypeOff,
-    BusyStatusLightsTypeWork,
-    BusyStatusLightsTypeRest,
-    BusyStatusLightsTypeMax,
-} BusyStatusLightsType;
-
-typedef enum {
-    BusyTimerBarTypeWork,
-    BusyTimerBarTypeRest,
-    BusyTimerBarTypeMax,
-} BusyTimerBarType;
-
-typedef struct {
-    FuriEventLoop* event_loop;
-    FuriMessageQueue* input_queue;
-    FuriMessageQueue* event_queue;
-    SceneManager* scene_manager;
-    BusyTimer* busy_timer;
-    StatusLights* status_lights;
-    Audio* audio;
-    Gui* gui;
-    MatterSrv* matter;
-    // Containers & application windows
-    Widget* front_window;
-    FlexLayout* back_container;
-    Widget* back_window;
-    // Persistent widgets
-    TransitionOverlay* transition_overlay;
-    TimerCard* timer_card;
-    NavBar* nav_bar;
-    // Application settings
-    BusySettings settings;
-} BusyApp;
-
-void busy_send_custom_event(BusyApp* instance, uint32_t custom_event);
-
-void busy_prepare_transition(BusyApp* instance, BusyTransitionType type);
-
-void busy_start_transition(BusyApp* instance);
-
-void busy_set_status_lights(BusyApp* instance, BusyStatusLightsType type);
-
-void busy_set_matter(BusyApp* instance, bool switch_state);
-
-void busy_push_location(BusyApp* instance, const char* location_name);
-
-void busy_pop_location(BusyApp* instance);
+#ifdef __cplusplus
+}
+#endif

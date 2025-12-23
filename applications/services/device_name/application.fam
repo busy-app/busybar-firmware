@@ -4,7 +4,7 @@ App(
     apptype=FlipperAppType.STARTUP,
     entry_point="device_name_startup",
     stack_size=1 * 1024,
-    targets=["f20", "f21"],
+    targets=["f20", "f21", "f22"],
     requires=["storage"],
-    order=40,
+    order=50,
 )

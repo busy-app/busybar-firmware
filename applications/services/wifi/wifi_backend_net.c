@@ -99,7 +99,7 @@ static void wifi_net_intercom_input(const uint8_t* data, uint16_t data_len) {
     furi_check(instance);
 
     const size_t tx_size =
-        intercom_tx(instance->intercom, IntercomChannelWifiData, data, data_len, FuriWaitForever);
+        intercom_tx(instance->intercom_ch_data, data, data_len, FuriWaitForever);
     furi_check(tx_size == data_len);
 }
 
@@ -113,13 +113,9 @@ static void wifi_net_tcpip_netif_status_callback(struct netif* netif) {
 }
 
 static void wifi_net_tcpip_netif_up_callback(void* context) {
-    furi_assert(context);
+    UNUSED(context);
 
-    const sl_mac_address_t* mac_addr = context;
     struct netif* netif = &instance->netif;
-
-    netif->hwaddr_len = ETH_HWADDR_LEN;
-    memcpy(netif->hwaddr, mac_addr, ETH_HWADDR_LEN);
 
     netif_set_up(netif);
     netif_set_link_up(netif);
@@ -142,21 +138,68 @@ static void wifi_net_tcpip_netif_down_callback(void* context) {
 }
 
 static void wifi_net_tcpip_add_netif_callback(void* context) {
-    UNUSED(context);
+    furi_assert(context);
+    const sl_mac_address_t* mac_addr = context;
 
     struct netif* netif = &instance->netif;
     netif_add(netif, NULL, wifi_net_tcpip_netif_init_callback, tcpip_input);
     netif_set_default(netif);
+
+    netif->hwaddr_len = ETH_HWADDR_LEN;
+    memcpy(netif->hwaddr, mac_addr, ETH_HWADDR_LEN);
 
     wifi_net_tcpip_unlock();
 }
 
 // Private API
 
-void wifi_net_tcpip_init(Wifi* wifi) {
+void wifi_net_tcpip_init(Wifi* wifi, sl_mac_address_t* mac_addr) {
     // TODO: Is it possible to store the instance not in a global variable?
+    furi_check(instance == NULL);
     instance = wifi;
-    wifi_net_tcpip_callback(wifi_net_tcpip_add_netif_callback, NULL);
+
+    wifi_net_tcpip_callback(wifi_net_tcpip_add_netif_callback, mac_addr);
+}
+
+bool wifi_net_tcpip_netif_up(Wifi* instance) {
+    bool success = false;
+
+    do {
+        wifi_net_tcpip_callback(wifi_net_tcpip_netif_up_callback, NULL);
+
+        struct netif* netif = &instance->netif;
+
+        LOCK_TCPIP_CORE();
+        netif_set_status_callback(netif, wifi_net_tcpip_netif_status_callback);
+        UNLOCK_TCPIP_CORE();
+
+        const FuriStatus status = furi_semaphore_acquire(
+            instance->ip6_addr_valid, furi_ms_to_ticks(IP_VALIDITY_AWAIT_MS));
+
+        LOCK_TCPIP_CORE();
+        netif_set_status_callback(netif, NULL);
+        UNLOCK_TCPIP_CORE();
+
+        if(status == FuriStatusErrorTimeout) {
+            FURI_LOG_E(TAG, "IPv6 DAD resolution failed in %d ms", IP_VALIDITY_AWAIT_MS);
+            break;
+
+        } else if(status != FuriStatusOk) {
+            furi_crash();
+        }
+
+        FURI_LOG_I(TAG, "IPv6 link-local addr: %s", ip6addr_ntoa(netif_ip6_addr(netif, 0)));
+
+        success = true;
+
+    } while(false);
+
+    return success;
+}
+
+void wifi_net_tcpip_netif_down(Wifi* instance) {
+    UNUSED(instance);
+    wifi_net_tcpip_callback(wifi_net_tcpip_netif_down_callback, NULL);
 }
 
 // Public API
@@ -208,14 +251,9 @@ sl_status_t sl_net_wifi_client_deinit(sl_net_interface_t interface) {
 
 sl_status_t sl_net_wifi_client_up(sl_net_interface_t interface, sl_net_profile_id_t profile_id) {
     furi_check(instance);
-
     UNUSED(interface);
-    // TODO: What is SL_NET_AUTO_JOIN for?
-    furi_check(profile_id != SL_NET_AUTO_JOIN);
 
     sl_status_t status;
-
-    struct netif* netif = &instance->netif;
 
     do {
         sl_net_wifi_client_profile_t profile = {0};
@@ -231,27 +269,10 @@ sl_status_t sl_net_wifi_client_up(sl_net_interface_t interface, sl_net_profile_i
             break;
         }
 
-        sl_mac_address_t mac_addr;
-        status = sl_wifi_get_mac_address(SL_WIFI_CLIENT_INTERFACE, &mac_addr);
-        if(status != SL_STATUS_OK) {
-            break;
-        }
-
-        wifi_net_tcpip_callback(wifi_net_tcpip_netif_up_callback, &mac_addr);
-
-        netif_set_status_callback(netif, wifi_net_tcpip_netif_status_callback);
-        FuriStatus status = furi_semaphore_acquire(
-            instance->ip6_addr_valid, furi_ms_to_ticks(IP_VALIDITY_AWAIT_MS));
-        netif_set_status_callback(netif, NULL);
-
-        if(status == FuriStatusErrorTimeout) {
-            FURI_LOG_E(TAG, "IPv6 DAD resolution failed in %d ms", IP_VALIDITY_AWAIT_MS);
+        if(!wifi_net_tcpip_netif_up(instance)) {
             status = SL_STATUS_TIMEOUT;
             break;
         }
-        furi_check(!(status & FuriStatusError));
-
-        FURI_LOG_I(TAG, "IPv6 link-local addr: %s", ip6addr_ntoa(netif_ip6_addr(netif, 0)));
 
     } while(false);
 
@@ -262,7 +283,7 @@ sl_status_t sl_net_wifi_client_down(sl_net_interface_t interface) {
     furi_check(instance);
     UNUSED(interface);
 
-    wifi_net_tcpip_callback(wifi_net_tcpip_netif_down_callback, NULL);
+    wifi_net_tcpip_netif_down(instance);
 
     return sl_wifi_disconnect(SL_WIFI_CLIENT_INTERFACE);
 }

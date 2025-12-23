@@ -17,7 +17,7 @@ typedef enum {
     BleSrvDeviceInfoCharacterIndexSoftwareRevision,
 } BleSrvDeviceInfoCharacterIndex;
 
-#if defined(SI917)
+#if defined(BSB_MCU_SI917)
 static bool ble_service_device_info_init_917(void* object) {
     UNUSED(object);
     BLE_LOG_W("device_info_init_917");
@@ -85,7 +85,7 @@ static const BleCharacteristicDescriptor device_info_service_characteristics[] =
     {
         .intercom_index = BleSrvDeviceInfoCharacterIndexSerialNumber,
         .name = "Serial Number",
-#if defined(SI917)
+#if defined(BSB_MCU_SI917)
         .uuid = {.Char_UUID_16 = 0x2A25},
         .uuid_size = 2,
         .char_properties = BLE_ATT_PROPERTY_READ,
@@ -94,7 +94,7 @@ static const BleCharacteristicDescriptor device_info_service_characteristics[] =
     {
         .intercom_index = BleSrvDeviceInfoCharacterIndexHardwareRevision,
         .name = "Hardware Revision",
-#if defined(SI917)
+#if defined(BSB_MCU_SI917)
         .uuid = {.Char_UUID_16 = 0x2A27},
         .uuid_size = 2,
         .char_properties = BLE_ATT_PROPERTY_READ,
@@ -103,7 +103,7 @@ static const BleCharacteristicDescriptor device_info_service_characteristics[] =
     {
         .intercom_index = BleSrvDeviceInfoCharacterIndexSoftwareRevision,
         .name = "Software Revision",
-#if defined(SI917)
+#if defined(BSB_MCU_SI917)
         .uuid = {.Char_UUID_16 = 0x2A26},
         .uuid_size = 2,
         .char_properties = BLE_ATT_PROPERTY_READ,
@@ -113,7 +113,7 @@ static const BleCharacteristicDescriptor device_info_service_characteristics[] =
 
 const BleServiceDescriptor ble_service_config_device_info = {
     .name = "Device Information",
-#if defined(SI917)
+#if defined(BSB_MCU_SI917)
     .uuid = {.Char_UUID_16 = 0x180A},
     .uuid_size = 2,
     .init = ble_service_device_info_init_917,

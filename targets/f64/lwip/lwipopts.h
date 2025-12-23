@@ -112,6 +112,10 @@
 #define LWIP_DHCP (LWIP_IPV4)
 #endif /* LWIP_DHCP */
 
+#define LWIP_IPV6_ND       (LWIP_IPV6)
+#define LWIP_ND6_QUEUEING  (LWIP_IPV6)
+#define LWIP_NUM_ND6_QUEUE 3
+
 #define LWIP_ETHERNET                       (LWIP_IPV6) // Required for IPV6 only mode
 #define LWIP_IPV6_MLD                       (LWIP_IPV6)
 #define LWIP_ICMP6                          (LWIP_IPV6)
@@ -131,11 +135,13 @@
 #define LWIP_ND6_MAX_NEIGHBOR_ADVERTISEMENT (3)
 #define LWIP_ND6_TCP_REACHABILITY_HINTS     (0)
 #define LWIP_ND6_ALLOW_RA_UPDATES           (LWIP_IPV6_ND)
+#define LWIP_ND6_SUPPORT_RIO                (LWIP_IPV6_ND)
+#define LWIP_ND6_NUM_ROUTES                 (5)
 
 #define MEMP_SEPARATE_POOLS         (1)
 #define LWIP_PBUF_FROM_CUSTOM_POOLS (0)
 #define MEMP_USE_CUSTOM_POOLS       (0)
-#define PBUF_POOL_SIZE              (32)
+#define PBUF_POOL_SIZE              (64)
 #define PBUF_POOL_BUFSIZE           (1500) // IPv6 path MTU
 #define PBUF_CUSTOM_POOL_IDX_START  (MEMP_PBUF_POOL_SMALL)
 #define PBUF_CUSTOM_POOL_IDX_END    (MEMP_PBUF_POOL_LARGE)
@@ -152,10 +158,6 @@
 #define NETIF_MAX_HWADDR_LEN 8U
 
 #define LWIP_IPV6_NUM_ADDRESSES 5
-
-#define LWIP_IPV6_ND       (LWIP_IPV6)
-#define LWIP_ND6_QUEUEING  (LWIP_IPV6)
-#define LWIP_NUM_ND6_QUEUE 3
 
 #define LWIP_MULTICAST_PING 0
 

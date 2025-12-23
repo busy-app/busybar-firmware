@@ -1,4 +1,4 @@
-#include "../busy.h"
+#include "../busy_i.h"
 
 #include <gui/modules/anim_image.h>
 
@@ -45,7 +45,8 @@ static void busy_scene_overview_on_enter(void* context) {
     furi_assert(context);
 
     BusyApp* instance = context;
-    BusySceneOverview* data = scene_manager_get_current_scene_data(instance->scene_manager);
+    BusySceneOverview* data =
+        scene_manager_get_scene_data(instance->scene_manager, BusyAppSceneIdOverview);
 
     BusyTimerConfig timer_config;
     busy_timer_get_config(instance->busy_timer, &timer_config);
@@ -73,7 +74,8 @@ static void busy_scene_overview_on_exit(void* context) {
     furi_assert(context);
 
     BusyApp* instance = context;
-    BusySceneOverview* data = scene_manager_get_current_scene_data(instance->scene_manager);
+    BusySceneOverview* data =
+        scene_manager_get_scene_data(instance->scene_manager, BusyAppSceneIdOverview);
 
     run_later_cancel(data->run_later);
 
@@ -96,6 +98,10 @@ static bool busy_scene_overview_on_event(const SceneManagerEvent* event, void* c
         if(event->event == BusyCustomEventStartShortPressed) {
             busy_prepare_transition(instance, BusyTransitionTypeSkip);
             scene_manager_next_scene(instance->scene_manager, BusyAppSceneIdTimer);
+
+        } else if(event->event == BusyCustomEventReturnToStart) {
+            busy_prepare_transition(instance, BusyTransitionTypeAutomatic);
+            furi_check(busy_return_to_start_scene(instance));
         }
 
         consumed = true;

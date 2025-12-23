@@ -1,7 +1,7 @@
 #pragma once
 #include "../web_server_i.h"
 
-#define API_VERSION {0, 3, 0}
+#define API_VERSION {4, 1, 0}
 
 // Root API handlers
 void* http_api_root_alloc(void);
@@ -103,7 +103,14 @@ bool http_api_wifi_callback(
     void* ctx);
 
 // Update API
-bool http_api_update_hdr_callback(
+void* http_api_update_alloc(void);
+void http_api_update_free(void* ctx);
+bool http_api_update_callback(
+    FuriString* path,
+    struct mg_connection* conn,
+    struct mg_http_message* msg,
+    void* ctx);
+bool http_api_update_hdr_callback_root(
     FuriString* path,
     struct mg_connection* conn,
     struct mg_http_message* msg,
@@ -144,6 +151,24 @@ bool http_api_time_callback(
 
 // Name
 bool http_api_name_callback(
+    FuriString* path,
+    struct mg_connection* conn,
+    struct mg_http_message* msg,
+    void* ctx);
+
+// MQTT Account
+void* http_api_account_alloc(void);
+void http_api_account_free(void* ctx);
+bool http_api_account_callback(
+    FuriString* path,
+    struct mg_connection* conn,
+    struct mg_http_message* msg,
+    void* ctx);
+
+// Busy
+void* http_api_busy_alloc(void);
+void http_api_busy_free(void* ctx);
+bool http_api_busy_callback(
     FuriString* path,
     struct mg_connection* conn,
     struct mg_http_message* msg,

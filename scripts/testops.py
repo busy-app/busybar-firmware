@@ -9,6 +9,7 @@ Usage:
   python testops.py update-bundle PATH.json [--host HOST] [--telnet-port PORT] [--update-timeout SECONDS]
   python testops.py unit-tests [--host HOST] [--telnet-port PORT] [-t TIMEOUT]
   python testops.py device_info [--host HOST] [--telnet-port PORT] [-t TIMEOUT]
+  python testops.py update-fw TAR_PATH [--name NAME] [--host HOST] [-t TIMEOUT]
 
 Environment:
   BUSYBAR_IP   Default host if --host is not provided (default: 10.0.4.20)
@@ -26,8 +27,36 @@ import subprocess
 import sys
 import telnetlib
 import time
+import urllib.request
+import urllib.error
 from time import sleep
 from typing import List, Optional, Tuple
+
+
+def _normalize_input_key(raw_key: str) -> str:
+    """
+    Accept flexible key names (with/without InputKey prefix) and normalize to InputKeyXxx.
+    """
+    cleaned = raw_key.strip()
+    if not cleaned:
+        raise ValueError("Key name cannot be empty")
+
+    suffix = cleaned[8:] if cleaned.lower().startswith("inputkey") else cleaned
+    suffix = suffix.strip()
+    if not suffix:
+        raise ValueError("Key name missing after InputKey prefix")
+
+    parts = re.split(r"[_\s-]+", suffix)
+    normalized_parts = []
+    for part in parts:
+        if not part:
+            continue
+        normalized_parts.append(part[:1].upper() + part[1:])
+
+    if not normalized_parts:
+        raise ValueError(f"Unable to normalize key name '{raw_key}'")
+
+    return "InputKey" + "".join(normalized_parts)
 
 
 def _setup_root_logger() -> logging.Logger:
@@ -176,19 +205,26 @@ class TelnetClient:
 
         return "\n".join(lines)
 
-    def run_until_pattern(self, command: str, pattern: str, timeout: float, error_patterns: list = None) -> CommandResult:
+    def run_until_pattern(
+            self,
+            command: str,
+            patterns: str | list[str],
+            timeout: float,
+            error_patterns: list[str] | None = None
+    ) -> CommandResult:
         """
-        Send a command and wait for a specific pattern in the output instead of waiting for prompt.
+        Send a command and wait for one or more specific patterns in the output instead of waiting for prompt.
         Useful for commands that don't return to prompt (like update commands).
 
         Args:
             command: The command to send
-            pattern: The text pattern to wait for in the output
-            timeout: Maximum time to wait for the pattern
+            pattern: A text pattern or list of patterns to wait for in the output
+            timeout: Maximum time to wait for any of the patterns
             error_patterns: List of error patterns that should cause immediate failure
 
         Returns:
-            CommandResult with ok=True if pattern found, ok=False if timeout or error pattern found
+            CommandResult with ok=True if any success pattern found,
+            ok=False if timeout or an error pattern is found.
         """
         if not self._tn:
             raise RuntimeError("Telnet not connected")
@@ -197,7 +233,7 @@ class TelnetClient:
         self.sendline(command)
 
         accumulated = b""
-        pattern_bytes = pattern.encode("utf-8")
+        patterns_bytes = [pattern.encode("utf-8") for pattern in patterns]
         error_patterns_bytes = [err.encode("utf-8") for err in (error_patterns or [])]
 
         while time.perf_counter() - start < timeout:
@@ -217,11 +253,12 @@ class TelnetClient:
                             return CommandResult(ok=False, command=command, stdout=cleaned, duration_sec=duration)
 
                     # Check if we found the success pattern
-                    if pattern_bytes in accumulated:
-                        duration = time.perf_counter() - start
-                        cleaned = self._clean_command_output(accumulated, command)
-                        self._logger.info(f"Pattern '{pattern}' found after {duration:.2f}s")
-                        return CommandResult(ok=True, command=command, stdout=cleaned, duration_sec=duration)
+                    for pattern in patterns_bytes:
+                        if pattern in accumulated:
+                            duration = time.perf_counter() - start
+                            cleaned = self._clean_command_output(accumulated, command)
+                            self._logger.info(f"Pattern '{pattern}' found after {duration:.2f}s")
+                            return CommandResult(ok=True, command=command, stdout=cleaned, duration_sec=duration)
 
                 time.sleep(0.1)  # Small delay to avoid busy waiting
             except Exception as e:
@@ -361,8 +398,8 @@ class BusyBarDevice:
 
     def update_bundle(self, bundle_path: str, timeout: int = 10) -> Tuple[bool, str]:
         """
-        Runs 'update install <bundle.json>' and waits for 'Updater configuration valid' message.
-        Returns immediately with error if 'Failed to load updater configuration: Manifest path invalid' is detected.
+        Runs 'update install <bundle.json>' and waits for 'Update preparation successful, rebooting...' message.
+        Returns immediately with error if 'Update prepare install failed:' is detected.
         Closes connection immediately after seeing success message since device won't return to prompt.
         """
         cmd = f"update install {bundle_path}"
@@ -372,18 +409,22 @@ class BusyBarDevice:
 
             # Define error patterns that should cause immediate failure
             error_patterns = [
-                "Failed to load updater configuration: Manifest path invalid"
+                "Update prepare install failed:"
+            ]
+            ok_patterns = [
+                "Updater configuration valid",
+                "Update preparation successful"
             ]
 
             # Use the method with error pattern detection
-            res = tn.run_until_pattern(cmd, "Updater configuration valid", timeout=timeout, error_patterns=error_patterns)
+            res = tn.run_until_pattern(cmd, ok_patterns, timeout=timeout, error_patterns=error_patterns)
 
             if res.ok:
-                return True, res.stdout if res.stdout else "Update initiated successfully - 'Updater configuration valid' detected"
+                return True, res.stdout if res.stdout else "Update initiated successfully - 'Update preparation successful, rebooting...' detected"
             else:
                 # Check if the error was due to invalid manifest path
                 if "Failed to load updater configuration: Manifest path invalid" in res.stdout:
-                    return False, f"Update failed: Invalid manifest path. Output: {res.stdout}"
+                    return False, f"Update prepare install failed:. Output: {res.stdout}"
                 elif res.stdout:
                     return False, f"Update command failed or timed out. Output: {res.stdout}"
                 else:
@@ -428,6 +469,115 @@ class BusyBarDevice:
             res = tn.run("uptime", timeout=timeout)
             return res.ok, (res.stdout or "(No output received)")
 
+    def debug_set(self, enable: bool, timeout: int) -> Tuple[bool, str]:
+        """
+        Runs 'sysctl debug 1' or 'sysctl debug 0' and checks for expected response.
+
+        Args:
+            enable: True to enable debug, False to disable
+            timeout: Command timeout in seconds
+
+        Returns:
+            Tuple of (success, output_message)
+        """
+        cmd = "sysctl debug 1" if enable else "sysctl debug 0"
+        expected = "Debug enabled" if enable else "Debug disabled"
+
+        with self._telnet(timeout=timeout) as tn:
+            res = tn.run(cmd, timeout=timeout)
+            output = res.stdout or ""
+            if expected in output:
+                return True, output
+            return False, f"Debug {'enable' if enable else 'disable'} failed. Output: {output}"
+
+    def send_tar(
+        self,
+        tar_path: str,
+        name: str = "firmware",
+        timeout: int = 120,
+        retries: int = 0,
+        retry_delay: float = 5.0,
+        connect_timeout: float = 5.0,
+    ) -> Tuple[bool, str]:
+        """
+        Upload a tar file to the device via HTTP POST.
+
+        Args:
+            tar_path: Local path to the tar file
+            name: Update name parameter (default: firmware)
+            timeout: HTTP timeout in seconds for transfer (default: 120)
+            retries: Number of retry attempts if host is unavailable (default: 0)
+            retry_delay: Delay in seconds between retries (default: 5.0)
+            connect_timeout: Timeout for initial connection check (default: 5.0)
+
+        Returns:
+            Tuple of (success, output_message)
+        """
+        if not os.path.isfile(tar_path):
+            return False, f"File not found: {tar_path}"
+
+        file_size = os.path.getsize(tar_path)
+        host = self.config.telnet.host
+        port = self.config.http_port
+        url = f"http://{host}:{port}/api/update?name={name}"
+
+        self._logger.info(f"Uploading {tar_path} ({file_size} bytes) to {url}")
+
+        with open(tar_path, "rb") as f:
+            data = f.read()
+
+        last_error = None
+        for attempt in range(retries + 1):
+            if attempt > 0:
+                self._logger.info(f"Retry {attempt}/{retries} after {retry_delay}s...")
+                time.sleep(retry_delay)
+
+            try:
+                with socket.create_connection((host, port), timeout=connect_timeout):
+                    pass
+                self._logger.debug(f"Connection to {host}:{port} successful")
+            except (socket.timeout, OSError) as e:
+                last_error = f"Cannot connect to {host}:{port}: {e}"
+                self._logger.warning(f"Attempt {attempt + 1}/{retries + 1} failed: {last_error}")
+                continue
+
+            try:
+                req = urllib.request.Request(
+                    url,
+                    data=data,
+                    method="POST",
+                    headers={
+                        "Content-Type": "application/octet-stream",
+                        "Connection": "keep-alive",
+                        "Content-Length": str(file_size),
+                        "DNT": "1",
+                    },
+                )
+
+                with urllib.request.urlopen(req, timeout=timeout) as response:
+                    status = response.status
+                    body = response.read().decode("utf-8", errors="ignore")
+                    self._logger.info(f"Response: {status} - {body}")
+                    if status == 200:
+                        return True, f"Upload successful ({file_size} bytes). Response: {body}"
+                    else:
+                        return False, f"Upload failed with status {status}. Response: {body}"
+
+            except urllib.error.HTTPError as e:
+                body = e.read().decode("utf-8", errors="ignore") if e.fp else ""
+                self._logger.warning(f"HTTP error {e.code}: {e.reason}. Response: {body}")
+            except urllib.error.URLError as e:
+                last_error = f"URL error: {e.reason}"
+                self._logger.warning(f"Attempt {attempt + 1}/{retries + 1} failed: {last_error}")
+            except (socket.timeout, TimeoutError) as e:
+                last_error = f"Connection timeout: {e}"
+                self._logger.warning(f"Attempt {attempt + 1}/{retries + 1} failed: {last_error}")
+            except OSError as e:
+                last_error = f"Connection error: {e}"
+                self._logger.warning(f"Attempt {attempt + 1}/{retries + 1} failed: {last_error}")
+
+        return False, f"Upload failed after {retries + 1} attempts. Last error: {last_error}"
+
     def storage_format(self, path: str = "/ext", timeout: int = 30) -> Tuple[bool, str]:
         """
         Format storage partition with confirmation.
@@ -460,6 +610,39 @@ class BusyBarDevice:
                     return False, f"Format command completed but success not confirmed. Output: {res.stdout}"
             else:
                 return False, f"Format command failed or timed out. Output: {res.stdout}"
+
+    def send_input_sequences(
+            self,
+            sequences: List[Tuple[str, List[str]]],
+            timeout: int = 10,
+            delay: float = 0.0
+    ) -> Tuple[bool, str]:
+        """
+        Sends one or more input sequences via telnet. Each sequence contains a key and
+        the list of InputType events to send in order.
+        """
+        if not sequences:
+            return False, "No input sequences specified"
+
+        with self._telnet(timeout=timeout) as tn:
+            _ = tn.read_welcome()
+            outputs: List[str] = []
+            for idx, (key, input_types) in enumerate(sequences):
+                if not input_types:
+                    continue
+                for input_type in input_types:
+                    cmd = f"input send {key} {input_type}"
+                    self._logger.info(f"Sending input: {cmd}")
+                    res = tn.run(cmd, timeout=timeout)
+                    if not res.ok:
+                        return False, res.stdout or f"Command '{cmd}' failed or timed out"
+                    outputs.append(res.stdout.strip() or f"{cmd} (ok)")
+
+                if delay > 0 and idx < len(sequences) - 1:
+                    time.sleep(delay)
+
+            joined = "\n".join(outputs)
+            return True, joined or "Input sequence(s) sent"
 
 
 class BusyBarWaiter:
@@ -574,6 +757,38 @@ class BusyBarTestOps:
                              help="Connection timeout in seconds (default: 10)")
         p_power.set_defaults(func=self._cmd_power)
 
+        p_input = subparsers.add_parser(
+            "input",
+            help="Send key events via telnet",
+            description="Inject key presses using the BusyBar 'input send' command.",
+        )
+        p_input.add_argument("key", nargs="?", help="Key name (e.g., InputKeyStart or 'start')")
+        p_input.add_argument(
+            "-s",
+            "--sequence",
+            nargs="+",
+            metavar="KEY",
+            help="Send a series of short presses for the provided keys"
+        )
+        p_input.add_argument("--long", action="store_true", help="Use InputTypeLong instead of Short")
+        p_input.add_argument("--only", action="store_true", help="Send only a single Short/Long event")
+        pr_group = p_input.add_mutually_exclusive_group()
+        pr_group.add_argument("--press", action="store_true", help="Send only a Press event")
+        pr_group.add_argument("--release", action="store_true", help="Send only a Release event")
+        p_input.add_argument(
+            "-t",
+            "--delay",
+            dest="sequence_delay",
+            type=float,
+            default=0.0,
+            help="Delay in seconds between sequential presses when using -s"
+        )
+        p_input.add_argument("--host", default=self.default_host, help="Device IP/host")
+        p_input.add_argument("--telnet-port", type=int, default=self.default_port, help="Telnet port (default: 23)")
+        p_input.add_argument("--timeout", type=int, default=10,
+                             help="Connection timeout in seconds (default: 10)")
+        p_input.set_defaults(func=self._cmd_input)
+
         p_upd = subparsers.add_parser(
             "update-bundle",
             help="Update firmware with bundle file",
@@ -629,6 +844,21 @@ class BusyBarTestOps:
         p_uptime.add_argument("-t", "--timeout", type=int, default=10, help="Timeout in seconds (default: 10)")
         p_uptime.set_defaults(func=self._cmd_uptime)
 
+        p_debug = subparsers.add_parser(
+            "debug",
+            help="Enable or disable debug mode via telnet",
+            description="Runs 'sysctl debug 1' or 'sysctl debug 0' and verifies the response",
+        )
+        p_debug.add_argument(
+            "state",
+            choices=["on", "off", "1", "0"],
+            help="Debug state: on/1 to enable, off/0 to disable"
+        )
+        p_debug.add_argument("--host", default=self.default_host, help="Device IP/host")
+        p_debug.add_argument("--telnet-port", type=int, default=self.default_port, help="Telnet port (default: 23)")
+        p_debug.add_argument("-t", "--timeout", type=int, default=10, help="Timeout in seconds (default: 10)")
+        p_debug.set_defaults(func=self._cmd_debug)
+
         p_format = subparsers.add_parser(
             "storage-format",
             help="Format storage partition (with automatic confirmation)",
@@ -649,6 +879,40 @@ class BusyBarTestOps:
             help="Skip confirmation prompt (for testing - not recommended)"
         )
         p_format.set_defaults(func=self._cmd_storage_format)
+
+        p_send_tar = subparsers.add_parser(
+            "update-fw",
+            help="Upload a firmware tar file to the device via HTTP",
+            description="Uploads a firmware tar archive to the device update endpoint",
+            aliases=["update_fw"],
+        )
+        p_send_tar.add_argument("tar_path", help="Path to the tar file to upload")
+        p_send_tar.add_argument(
+            "--name",
+            default="firmware",
+            help="Update name parameter (default: firmware)"
+        )
+        p_send_tar.add_argument("--host", default=self.default_host, help="Device IP/host")
+        p_send_tar.add_argument("-t", "--timeout", type=int, default=120, help="HTTP timeout in seconds (default: 120)")
+        p_send_tar.add_argument(
+            "-r", "--retries",
+            type=int,
+            default=0,
+            help="Number of retry attempts if host is unavailable (default: 0)"
+        )
+        p_send_tar.add_argument(
+            "--retry-delay",
+            type=float,
+            default=5.0,
+            help="Delay in seconds between retries (default: 5.0)"
+        )
+        p_send_tar.add_argument(
+            "--connect-timeout",
+            type=float,
+            default=5.0,
+            help="Timeout for initial connection check in seconds (default: 5.0)"
+        )
+        p_send_tar.set_defaults(func=self._cmd_send_tar)
 
         return parser
 
@@ -678,6 +942,76 @@ class BusyBarTestOps:
         device = self._make_device_from_args(args.host, args.telnet_port, args.timeout)
         ok, msg = device.power(power_args=args.power_cmd or [], timeout=args.timeout)
         print(msg if msg else "(Command executed successfully, no output)")
+        return 0 if ok else 1
+
+    def _cmd_input(self, args: argparse.Namespace) -> int:
+        sequences: List[Tuple[str, List[str]]] = []
+        sequence_delay = 0.0
+
+        if args.sequence:
+            if args.key:
+                print("Positional key cannot be used with -s/--sequence", file=sys.stderr)
+                return 1
+            if args.long or args.only or args.press or args.release:
+                print("-s/--sequence only supports short presses; remove other modifiers", file=sys.stderr)
+                return 1
+            if args.sequence_delay < 0:
+                print("Delay must be non-negative", file=sys.stderr)
+                return 1
+
+            try:
+                normalized_keys = [_normalize_input_key(key) for key in args.sequence]
+            except ValueError as exc:
+                print(f"Invalid key: {exc}", file=sys.stderr)
+                return 1
+
+            sequences = [
+                (key, ["InputTypePress", "InputTypeShort", "InputTypeRelease"])
+                for key in normalized_keys
+            ]
+            sequence_delay = args.sequence_delay
+        else:
+            if not args.key:
+                print("Key argument is required unless using -s/--sequence", file=sys.stderr)
+                return 1
+
+            if args.sequence_delay:
+                print("-t/--delay is only valid with -s/--sequence", file=sys.stderr)
+                return 1
+
+            try:
+                key = _normalize_input_key(args.key)
+            except ValueError as exc:
+                print(f"Invalid key: {exc}", file=sys.stderr)
+                return 1
+
+            if args.only and (args.press or args.release):
+                print("--only cannot be combined with --press or --release", file=sys.stderr)
+                return 1
+
+            if args.long and (args.press or args.release):
+                print("--long cannot be combined with --press or --release", file=sys.stderr)
+                return 1
+
+            if args.press:
+                sequence = ["InputTypePress"]
+            elif args.release:
+                sequence = ["InputTypeRelease"]
+            elif args.only:
+                sequence = ["InputTypeLong" if args.long else "InputTypeShort"]
+            else:
+                middle = "InputTypeLong" if args.long else "InputTypeShort"
+                sequence = ["InputTypePress", middle, "InputTypeRelease"]
+
+            sequences = [(key, sequence)]
+
+        device = self._make_device_from_args(args.host, args.telnet_port, args.timeout)
+        ok, msg = device.send_input_sequences(
+            sequences=sequences,
+            timeout=args.timeout,
+            delay=sequence_delay
+        )
+        print(msg if msg else "(No output received)")
         return 0 if ok else 1
 
     def _cmd_update_bundle(self, args: argparse.Namespace) -> int:
@@ -728,6 +1062,17 @@ class BusyBarTestOps:
         print(msg if msg else "(No output received)")
         return 0
 
+    def _cmd_debug(self, args: argparse.Namespace) -> int:
+        device = self._make_device_from_args(args.host, args.telnet_port, args.timeout)
+        enable = args.state in ("on", "1")
+        ok, msg = device.debug_set(enable=enable, timeout=args.timeout)
+        if not ok:
+            print(f"Failed to {'enable' if enable else 'disable'} debug", file=sys.stderr)
+            print(msg, file=sys.stderr)
+            return 1
+        print(msg if msg else f"Debug {'enabled' if enable else 'disabled'}")
+        return 0
+
     def _cmd_storage_format(self, args: argparse.Namespace) -> int:
         if not args.no_confirm:
             print(f"WARNING: This will format {args.path} and ALL DATA WILL BE LOST!")
@@ -747,6 +1092,25 @@ class BusyBarTestOps:
             print(f"Failed to format {args.path}", file=sys.stderr)
             print(msg, file=sys.stderr)
             return 1
+
+    def _cmd_send_tar(self, args: argparse.Namespace) -> int:
+        config = BusyBarConfig(
+            http_port=80,
+            telnet=TelnetSettings(host=args.host),
+        )
+        device = BusyBarDevice(config)
+        retry_info = f" (retries: {args.retries})" if args.retries > 0 else ""
+        print(f"Uploading {args.tar_path} to {args.host}...{retry_info}")
+        ok, msg = device.send_tar(
+            tar_path=args.tar_path,
+            name=args.name,
+            timeout=args.timeout,
+            retries=args.retries,
+            retry_delay=args.retry_delay,
+            connect_timeout=args.connect_timeout,
+        )
+        print(msg)
+        return 0 if ok else 1
 
 
 def main() -> int:

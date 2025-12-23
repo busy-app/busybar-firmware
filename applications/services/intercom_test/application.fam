@@ -6,7 +6,7 @@ App(
     requires=["intercom"],
     stack_size=1 * 1024,
     order=80,
-    targets=["f20", "f21"],
+    targets=["f20", "f21", "f22"],
     sources=["intercom_test_client.c"],
 )
 
@@ -18,6 +18,6 @@ App(
     requires=["intercom"],
     stack_size=1 * 1024,
     order=80,
-    targets=["f64"],
+    targets=["f64", "f65"],
     sources=["intercom_test_server.c"],
 )

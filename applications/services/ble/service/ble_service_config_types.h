@@ -1,9 +1,10 @@
 #pragma once
 
 #include "../ble_common.h"
+#include "../ble_callback_types.h"
 #include "ble_service_index.h"
 
-#if defined(SI917)
+#if defined(BSB_MCU_SI917)
 typedef union {
     /**
    * 16-bit UUID
@@ -26,7 +27,7 @@ typedef bool (*BleServiceRun)(void* instance);
 
 typedef struct {
     uint16_t intercom_index;
-#if defined(SI917)
+#if defined(BSB_MCU_SI917)
     Char_UUID_t uuid;
     uint8_t uuid_size;
     uint8_t char_properties;
@@ -37,7 +38,7 @@ typedef struct {
 } BleCharacteristicDescriptor;
 
 typedef struct {
-#if defined(SI917)
+#if defined(BSB_MCU_SI917)
     Char_UUID_t uuid;
     uint8_t uuid_size;
 #endif

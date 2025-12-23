@@ -33,7 +33,7 @@ void ble_command_handler_init(Ble* instance, BleIntercomFrameGeneric* frame) {
 
         frame->header.frame_type = BleIntercomFrameTypeRequest;
         size_t frame_size = sizeof(BleIntercomFrameHeader) + frame->header.data_size;
-        size_t tx = intercom_tx(instance->intercom, IntercomChannelBle, frame, frame_size, 100);
+        size_t tx = intercom_tx(instance->intercom_ch, frame, frame_size, 100);
         furi_assert(tx == frame_size);
     }
 }
@@ -49,7 +49,7 @@ void ble_command_handler_enable(Ble* instance, BleIntercomFrameGeneric* frame) {
 
         frame->header.frame_type = BleIntercomFrameTypeRequest;
         size_t frame_size = sizeof(BleIntercomFrameHeader) + frame->header.data_size;
-        size_t tx = intercom_tx(instance->intercom, IntercomChannelBle, frame, frame_size, 100);
+        size_t tx = intercom_tx(instance->intercom_ch, frame, frame_size, 100);
         furi_assert(tx == frame_size);
     }
 }
@@ -65,7 +65,7 @@ void ble_command_handler_disable(Ble* instance, BleIntercomFrameGeneric* frame) 
 
         frame->header.frame_type = BleIntercomFrameTypeRequest;
         size_t frame_size = sizeof(BleIntercomFrameHeader) + frame->header.data_size;
-        size_t tx = intercom_tx(instance->intercom, IntercomChannelBle, frame, frame_size, 100);
+        size_t tx = intercom_tx(instance->intercom_ch, frame, frame_size, 100);
         furi_assert(tx == frame_size);
     }
 }
@@ -79,7 +79,7 @@ void ble_command_handler_get_state(Ble* instance, BleIntercomFrameStatus* frame)
         frame->header.data_size = 0;
 
         size_t frame_size = sizeof(BleIntercomFrameHeader);
-        size_t tx = intercom_tx(instance->intercom, IntercomChannelBle, frame, frame_size, 100);
+        size_t tx = intercom_tx(instance->intercom_ch, frame, frame_size, 100);
         furi_assert(tx == frame_size);
     } else {
         BLE_LOG_D("GetStatus response");

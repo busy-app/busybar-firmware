@@ -44,7 +44,7 @@ static void mqtt_test_update_status(MqttTestApp* instance) {
     instance->status = mqtt_client_get_status(instance->mqtt);
 
     if(instance->status == MqttClientStatusConnectedLinked) {
-        mqtt_client_get_session_id(instance->mqtt, instance->session_id);
+        mqtt_client_get_session_info(instance->mqtt, instance->session_id, NULL, NULL);
     } else {
         furi_string_reset(instance->session_id);
     }

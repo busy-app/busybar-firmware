@@ -3,15 +3,172 @@
 #include <desktop/desktop.h>
 #include <gui/gui.h>
 #include <toolbox/path.h>
+#include <toolbox/value_index.h>
 #include <canvas/canvas.h>
 #include <back_display/back_display.h>
 #include <front_display/front_display.h>
 
 #define TAG "HttpDisplay"
 
-#define DISPLAY_ASSETS_DIR EXT_PATH("assets")
+#define DISPLAY_ASSETS_DIR               EXT_PATH("assets")
+#define DISPLAY_BUILTIN_IMAGES_FORMATTER EXT_PATH("apps_assets/%s/images/%s.bin")
 
 #define DISPLAY_BRIGHTNESS_MAX (100)
+
+static bool api_display_draw_parse_text_element(
+    CanvasElement* canvas_element,
+    const char* app_id,
+    struct mg_str json_element) {
+    UNUSED(app_id);
+    bool result = false;
+    do {
+        canvas_element->type = CanvasElementTypeText;
+        canvas_element->text.text_str = mg_json_get_str(json_element, "$.text");
+        if(!canvas_element->text.text_str) break;
+
+        canvas_element->text.font = GuiFontTiny5_8;
+        canvas_element->text.color = (Color)COLOR_MAKE_HEXA(0xFFFFFFFF);
+
+        char* font_name = mg_json_get_str(json_element, "$.font");
+        if(!font_name) break;
+        static const char* const font_names[GuiFontMax] = {
+            [GuiFontBf4x5] = "small",
+            [GuiFontBf5x7] = "medium",
+            [GuiFontBf5x7CondensedNumerals] = "medium_condensed",
+            [GuiFontBf7x10] = "big",
+        };
+        size_t font = value_index_string(font_name, font_names, COUNT_OF(font_names));
+        canvas_element->text.font = font;
+        free(font_name);
+        if(font == 0) break;
+
+        char* color_hex = mg_json_get_str(json_element, "$.color");
+        if(color_hex) {
+            bool color_parsed = color_parse_hexa_string(color_hex, &canvas_element->text.color);
+            free(color_hex);
+            if(!color_parsed) break;
+        }
+
+        double number;
+        if(mg_json_get_num(json_element, "$.width", &number)) {
+            if(number < __DBL_EPSILON__) break; // <= 0
+            canvas_element->text.width = (size_t)number;
+        }
+
+        if(mg_json_get_num(json_element, "$.scroll_rate", &number)) {
+            if(number < -__DBL_EPSILON__) break; // < 0
+            canvas_element->text.scroll_rate_cpm = (size_t)number;
+        }
+
+        result = true;
+    } while(0);
+    return result;
+}
+
+static bool api_display_draw_parse_countdown_element(
+    CanvasElement* canvas_element,
+    const char* app_id,
+    struct mg_str json_element) {
+    UNUSED(app_id);
+    bool result = false;
+    do {
+        canvas_element->type = CanvasElementTypeCountdown;
+        canvas_element->countdown.color = (Color)COLOR_MAKE_HEXA(0xFFFFFFFF);
+
+        char* color_hex = mg_json_get_str(json_element, "$.color");
+        if(color_hex) {
+            bool color_parsed =
+                color_parse_hexa_string(color_hex, &canvas_element->countdown.color);
+            free(color_hex);
+            if(!color_parsed) break;
+        }
+
+        // numeric representation in string: JS and mg_json have precision issues
+        // https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number/MAX_SAFE_INTEGER
+        char* timestamp_str = mg_json_get_str(json_element, "$.timestamp");
+        if(!timestamp_str) break;
+        canvas_element->countdown.timestamp = atoll(timestamp_str);
+        free(timestamp_str);
+
+        char* direction_str = mg_json_get_str(json_element, "$.direction");
+        if(!direction_str) break;
+        static const char* const direction_lut[CountdownDirectionMAX] = {
+            [CountdownDirectionTimeLeft] = "time_left",
+            [CountdownDirectionTimeSince] = "time_since",
+        };
+        canvas_element->countdown.direction =
+            value_index_string(direction_str, direction_lut, COUNT_OF(direction_lut));
+        free(direction_str);
+
+        char* hours_str = mg_json_get_str(json_element, "$.show_hours");
+        if(!hours_str) break;
+        static const char* const hours_lut[CountdownShowHourMAX] = {
+            [CountdownShowHourWhenNonZero] = "when_non_zero",
+            [CountdownShowHourAlways] = "always",
+        };
+        canvas_element->countdown.hours =
+            value_index_string(hours_str, hours_lut, COUNT_OF(hours_lut));
+        free(hours_str);
+
+        result = true;
+    } while(0);
+    return result;
+}
+
+static bool api_display_draw_parse_image_element(
+    CanvasElement* canvas_element,
+    const char* app_id,
+    struct mg_str json_element) {
+    bool result = false;
+
+    char* uploaded = mg_json_get_str(json_element, "$.path");
+    char* builtin = mg_json_get_str(json_element, "$.builtin_image");
+
+    do {
+        canvas_element->type = CanvasElementTypeImage;
+        if(uploaded && builtin) break;
+
+        if(uploaded) {
+            canvas_element->image.file_path =
+                furi_string_alloc_printf("%s/%s/%s", DISPLAY_ASSETS_DIR, app_id, uploaded);
+
+            result = true;
+            break;
+        }
+
+        if(builtin) {
+            char* app_name = builtin;
+            char* image_name = NULL;
+
+            for(char* c = builtin; *c != 0; c++) {
+                if(*c == '/') {
+                    *c = '\0';
+                    image_name = c + 1;
+                }
+            }
+
+            if(!image_name) break;
+
+            canvas_element->image.file_path =
+                furi_string_alloc_printf(DISPLAY_BUILTIN_IMAGES_FORMATTER, app_name, image_name);
+            result = true;
+            break;
+        }
+    } while(0);
+
+    free(uploaded);
+    free(builtin);
+
+    return result;
+}
+
+typedef bool (
+    *ApiDisplayElementTypeParser)(CanvasElement*, const char* app_id, struct mg_str element);
+
+typedef struct {
+    const char* type;
+    ApiDisplayElementTypeParser parser;
+} ApiDisplayElementTypeAssoc;
 
 static bool api_display_draw_parse_element(
     CanvasElementsArray_t elements_array,
@@ -23,19 +180,43 @@ static bool api_display_draw_parse_element(
     canvas_element->display = GuiDisplayIdFront;
 
     do {
-        canvas_element->element_id = mg_json_get_str(element, "$.id");
-        if(!canvas_element->element_id) break;
+        canvas_element->id = mg_json_get_str(element, "$.id");
+        if(!canvas_element->id) break;
 
         int32_t temp_val = mg_json_get_long(element, "$.timeout", -1);
         canvas_element->timeout = (temp_val > 0) ? temp_val : 0;
 
-        temp_val = mg_json_get_long(element, "$.x", -1);
-        if(temp_val < 0) break;
-        canvas_element->x = temp_val;
+        char* disp_until = mg_json_get_str(element, "$.display_until");
+        if(disp_until) {
+            canvas_element->display_until = atoll(disp_until);
+            free(disp_until);
+        }
 
-        temp_val = mg_json_get_long(element, "$.y", -1);
-        if(temp_val < 0) break;
-        canvas_element->y = temp_val;
+        if((canvas_element->timeout > 0) && (canvas_element->display_until > 0)) break;
+
+        canvas_element->x = mg_json_get_long(element, "$.x", 0);
+        canvas_element->y = mg_json_get_long(element, "$.y", 0);
+
+        char* alignment = mg_json_get_str(element, "$.align");
+        if(alignment) {
+            static const char* const alignments[AlignMax] = {
+                [AlignTopLeft] = "top_left",
+                [AlignTopMid] = "top_mid",
+                [AlignTopRight] = "top_right",
+                [AlignLeftMid] = "mid_left",
+                [AlignCenter] = "center",
+                [AlignRightMid] = "mid_right",
+                [AlignBottomLeft] = "bottom_left",
+                [AlignBottomMid] = "bottom_mid",
+                [AlignBottomRight] = "bottom_right",
+            };
+            size_t align = value_index_string(alignment, alignments, COUNT_OF(alignments));
+            canvas_element->align = align;
+            free(alignment);
+            if(align == 0) break;
+        } else {
+            canvas_element->align = AlignDefault;
+        }
 
         char* display_id_str = mg_json_get_str(element, "$.display");
         if(display_id_str) {
@@ -52,21 +233,18 @@ static bool api_display_draw_parse_element(
 
         element_type = mg_json_get_str(element, "$.type");
         if(!element_type) break;
-        if(strcmp(element_type, "image") == 0) {
-            canvas_element->type = CanvasElementTypeImage;
-            char* image_file = mg_json_get_str(element, "$.path");
-            if(!image_file) break;
-            canvas_element->image.file_path =
-                furi_string_alloc_printf("%s/%s/%s", DISPLAY_ASSETS_DIR, app_id, image_file);
 
-            free(image_file);
-            success = true;
-        } else if(strcmp(element_type, "text") == 0) {
-            canvas_element->type = CanvasElementTypeText;
-            canvas_element->text.text_str = mg_json_get_str(element, "$.text");
-            if(!canvas_element->text.text_str) break;
-
-            success = true;
+        static const ApiDisplayElementTypeAssoc element_parsers[] = {
+            {"text", api_display_draw_parse_text_element},
+            {"image", api_display_draw_parse_image_element},
+            {"countdown", api_display_draw_parse_countdown_element},
+        };
+        for(size_t i = 0; i < COUNT_OF(element_parsers); i++) {
+            const ApiDisplayElementTypeAssoc* association = &element_parsers[i];
+            if(strcmp(element_type, association->type) == 0) {
+                success = association->parser(canvas_element, app_id, element);
+                break;
+            }
         }
     } while(0);
 
@@ -162,16 +340,25 @@ static bool api_display_delete_callback(
 
     if(!IS_HTTP_ENDPOINT(path)) return false;
 
+    char app_id_buf[64];
+    int app_id_len = mg_http_get_var(&msg->query, "app_id", app_id_buf, sizeof(app_id_buf));
+    const char* app_id = (app_id_len >= 1) ? app_id_buf : NULL;
+
     FuriString* app_name = furi_string_alloc();
     Loader* loader = furi_record_open(RECORD_LOADER);
+
     if(loader_get_application_name(loader, app_name)) {
         if(furi_string_cmp(app_name, "Canvas") == 0) {
-            loader_stop(loader);
+            CanvasApp* canvas = furi_record_open(RECORD_CANVAS);
+            canvas_delete_elements(canvas, app_id);
+            furi_record_close(RECORD_CANVAS);
         }
     }
+
     furi_record_close(RECORD_LOADER);
     MG_REPLY_OK(conn);
     furi_string_free(app_name);
+
     return true;
 }
 

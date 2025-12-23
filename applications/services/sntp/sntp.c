@@ -2,6 +2,7 @@
 #include "sntp_time_update.h"
 
 #include <wifi/wifi.h>
+#include <furi_hal_rtc.h>
 
 #include <api_lock.h>
 
@@ -54,7 +55,7 @@ static bool sntp_is_wifi_connected(void) {
 
     if(status != WifiStatusOk) {
         FURI_LOG_D(TAG, "Failed to get Wifi info: %d", status);
-    } else if(wifi_info.state != WifiStateUp) {
+    } else if(wifi_info.state != WifiStateConnected) {
         FURI_LOG_D(TAG, "Wifi is not connected");
     } else {
         FURI_LOG_D(TAG, "Wifi is connected");
@@ -220,6 +221,24 @@ bool sntp_set_settings(Sntp* instance, const SntpSettings* settings) {
     sntp_send_message(instance, &message);
 
     return result;
+}
+
+time_t sntp_get_utc_timestamp(Sntp* instance) {
+    furi_check(instance);
+
+    SntpSettings settings;
+    sntp_get_settings(instance, &settings);
+    time_t timezone_offset_s = settings.timezone_offset * 60;
+
+    time_t now = furi_hal_rtc_get_timestamp(); // TODO: Y2038
+    now -= timezone_offset_s;
+
+    return now;
+}
+
+uint64_t sntp_get_utc_timestamp_ms(Sntp* instance) {
+    // TODO: [FW-486] Add millisecond support to RTC
+    return sntp_get_utc_timestamp(instance) * 1000ULL;
 }
 
 int32_t sntp_srv(void* p) {

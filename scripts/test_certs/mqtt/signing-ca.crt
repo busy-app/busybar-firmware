@@ -1,0 +1,51 @@
+Certificate:
+    Data:
+        Version: 3 (0x2)
+        Serial Number:
+            06:31:3b:a3:fe:7a:5e:bc:6f:4e:24:fe:2d:4e:8a:dd:2a:b6:cc:47
+        Signature Algorithm: ecdsa-with-SHA256
+        Issuer: C=US, ST=Delaware, O=Flipper Devices Inc, CN=BusyBar Root CA
+        Validity
+            Not Before: Aug  8 13:34:50 2025 GMT
+            Not After : Jul 15 13:34:50 2125 GMT
+        Subject: C=US, ST=Delaware, O=Flipper Devices Inc, CN=BusyBar Signing CA 1
+        Subject Public Key Info:
+            Public Key Algorithm: id-ecPublicKey
+                Public-Key: (256 bit)
+                pub:
+                    04:80:7e:f8:da:42:33:11:93:5d:00:32:bc:96:c7:
+                    56:c6:1e:86:83:fa:f1:3d:3b:e4:c4:87:0b:81:a6:
+                    7c:0a:5f:b8:df:a5:02:15:24:f1:80:e3:7d:41:4b:
+                    60:1c:77:ba:08:91:17:a8:5f:e4:62:95:0c:26:a8:
+                    54:7e:e8:00:9d
+                ASN1 OID: prime256v1
+                NIST CURVE: P-256
+        X509v3 extensions:
+            X509v3 Key Usage: critical
+                Certificate Sign, CRL Sign
+            X509v3 Basic Constraints: critical
+                CA:TRUE, pathlen:0
+            X509v3 Subject Key Identifier: 
+                F2:6B:44:96:90:86:4E:F5:C1:C3:2F:D0:53:0E:CC:95:AD:9C:E4:42
+            X509v3 Authority Key Identifier: 
+                AD:83:CC:F6:0C:99:DA:EE:AB:7C:8B:63:69:01:19:5C:78:9F:10:4B
+    Signature Algorithm: ecdsa-with-SHA256
+    Signature Value:
+        30:44:02:20:23:14:e4:01:df:65:56:b1:0a:cc:cb:bd:eb:0f:
+        f9:28:49:de:b9:b0:1b:d1:a3:6a:c7:cb:04:96:3d:8e:3f:f2:
+        02:20:66:50:70:91:17:fc:3e:f9:31:c5:ae:53:22:70:f2:05:
+        f4:db:a0:d4:33:f4:be:8c:9c:fd:8a:93:72:9c:1f:b6
+-----BEGIN CERTIFICATE-----
+MIICHjCCAcWgAwIBAgIUBjE7o/56XrxvTiT+LU6K3Sq2zEcwCgYIKoZIzj0EAwIw
+WDELMAkGA1UEBhMCVVMxETAPBgNVBAgMCERlbGF3YXJlMRwwGgYDVQQKDBNGbGlw
+cGVyIERldmljZXMgSW5jMRgwFgYDVQQDDA9CdXN5QmFyIFJvb3QgQ0EwIBcNMjUw
+ODA4MTMzNDUwWhgPMjEyNTA3MTUxMzM0NTBaMF0xCzAJBgNVBAYTAlVTMREwDwYD
+VQQIDAhEZWxhd2FyZTEcMBoGA1UECgwTRmxpcHBlciBEZXZpY2VzIEluYzEdMBsG
+A1UEAwwUQnVzeUJhciBTaWduaW5nIENBIDEwWTATBgcqhkjOPQIBBggqhkjOPQMB
+BwNCAASAfvjaQjMRk10AMryWx1bGHoaD+vE9O+TEhwuBpnwKX7jfpQIVJPGA431B
+S2Acd7oIkReoX+RilQwmqFR+6ACdo2YwZDAOBgNVHQ8BAf8EBAMCAQYwEgYDVR0T
+AQH/BAgwBgEB/wIBADAdBgNVHQ4EFgQU8mtElpCGTvXBwy/QUw7Mla2c5EIwHwYD
+VR0jBBgwFoAUrYPM9gyZ2u6rfItjaQEZXHifEEswCgYIKoZIzj0EAwIDRwAwRAIg
+IxTkAd9lVrEKzMu96w/5KEneubAb0aNqx8sElj2OP/ICIGZQcJEX/D75McWuUyJw
+8gX026DUM/S+jJz9ipNynB+2
+-----END CERTIFICATE-----
