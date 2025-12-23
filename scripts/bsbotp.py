@@ -619,7 +619,30 @@ def cmd_load(args):
             f"Warning: File is smaller than OTP page size ({len(data)} < {OTP_PAGE_SIZE})"
         )
 
-    otp_type = args.type.upper()
+    # Auto-detect OTP type from header if not specified
+    if args.type:
+        otp_type = args.type.upper()
+    else:
+        if len(data) < OTP_HEADER_SIZE:
+            print("Error: File too small to read OTP header")
+            sys.exit(1)
+        magic, index, version = struct.unpack(OTP_HEADER_FORMAT, data[:OTP_HEADER_SIZE])
+        if magic != OTP_MAGIC:
+            print(
+                f"Error: Invalid magic value 0x{magic:04x}, expected 0x{OTP_MAGIC:04x}"
+            )
+            sys.exit(1)
+        index_to_type = {
+            OTP_INDEX_OTP1: "OTP1",
+            OTP_INDEX_OTP2: "OTP2",
+            OTP_INDEX_OTP3: "OTP3",
+            OTP_INDEX_OTP4: "OTP4",
+        }
+        if index not in index_to_type:
+            print(f"Error: Unknown OTP index {index} in header")
+            sys.exit(1)
+        otp_type = index_to_type[index]
+        print(f"Auto-detected type: {otp_type} (index={index}, version={version})")
 
     if otp_type == "OTP1":
         otp = OTP1Data.from_bytes(data[: struct.calcsize(OTP1Data.STRUCT_FORMAT)])
@@ -892,9 +915,8 @@ Examples:
     load_parser.add_argument(
         "--type",
         "-t",
-        required=True,
         choices=["otp1", "otp2", "otp3", "otp4"],
-        help="OTP type",
+        help="OTP type (auto-detected from header if not specified)",
     )
     load_parser.set_defaults(func=cmd_load)
 
