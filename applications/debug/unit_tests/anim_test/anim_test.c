@@ -302,6 +302,39 @@ MU_TEST(anim_test_rle) {
     furi_record_close(RECORD_STORAGE);
 }
 
+/**
+ * Performance testing
+ */
+MU_TEST(anim_test_perf) {
+    const size_t iterations = 10;
+    const char* path = "/ext/test.anim"; // TODO: /ext/apps_assets/power_on/back_power_on_160x80.anim
+
+    Storage* storage = furi_record_open(RECORD_STORAGE);
+    AnimFile* anim = anim_file_alloc(storage, path);
+    mu_assert_not_null(anim);
+
+    AnimFileInfo info = anim_file_info(anim);
+    uint8_t* buffer = malloc(info.width * info.height * 3);
+
+    size_t start = furi_get_tick();
+    for(size_t i = 0; i < iterations; i++) {
+        while(1) {
+            AnimFileFrameFlag flags = anim_file_frame(anim, buffer);
+            if(flags & AnimFileFrameFlagFinished) break;
+        }
+    }
+    size_t end = furi_get_tick();
+    size_t delta = end - start;
+
+    size_t frames = iterations * info.frames;
+    printf("%zu fps (%zu frames in %zu ms)\r\n", 1000 * frames / delta, frames, delta);
+
+    free(buffer);
+
+    anim_file_free(anim);
+    furi_record_close(RECORD_STORAGE);
+}
+
 MU_TEST_SUITE(anim_basic_test_suite) {
     MU_RUN_TEST(anim_test_play_whole_oneshot);
     MU_RUN_TEST(anim_test_play_whole_loop);
@@ -309,6 +342,7 @@ MU_TEST_SUITE(anim_basic_test_suite) {
     MU_RUN_TEST(anim_test_play_complex_pend);
     MU_RUN_TEST(anim_test_grayscale);
     MU_RUN_TEST(anim_test_rle);
+    MU_RUN_TEST(anim_test_perf);
 }
 
 int run_minunit_anim_test(void) {
