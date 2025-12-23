@@ -150,6 +150,11 @@ static void style_init(my_theme_t* theme) {
     lv_style_set_margin_bottom(&theme->styles.var_item_editor, -(MENU_ITEM_PAD_VER - 1));
 
     lv_style_init(&theme->styles.dialog);
+    lv_style_set_flex_flow(&theme->styles.dialog, LV_FLEX_FLOW_COLUMN);
+    lv_style_set_flex_main_place(&theme->styles.dialog, LV_FLEX_ALIGN_START);
+    lv_style_set_flex_cross_place(&theme->styles.dialog, LV_FLEX_ALIGN_START);
+    lv_style_set_flex_track_place(&theme->styles.dialog, LV_FLEX_ALIGN_START);
+    lv_style_set_layout(&theme->styles.dialog, LV_LAYOUT_FLEX);
     lv_style_set_pad_left(&theme->styles.dialog, MENU_PAD_ALL);
     lv_style_set_pad_top(&theme->styles.dialog, MENU_PAD_ALL);
     lv_style_set_pad_row(&theme->styles.dialog, MENU_PAD_ALL);
@@ -311,9 +316,6 @@ static void theme_apply_callback(lv_theme_t* th, lv_obj_t* obj) {
         lv_obj_add_style(obj, &theme->styles.menu_arrow, LV_PART_MAIN | LV_STATE_DISABLED);
 
     } else if(lv_obj_check_type(obj, &dialog_lvgl_class)) {
-        lv_obj_set_scrollbar_mode(obj, LV_SCROLLBAR_MODE_OFF);
-        lv_obj_set_flex_flow(obj, LV_FLEX_FLOW_COLUMN);
-        lv_obj_set_flex_align(obj, LV_FLEX_ALIGN_START, LV_FLEX_ALIGN_START, LV_FLEX_ALIGN_START);
         lv_obj_add_style(obj, &theme->styles.dialog, LV_PART_MAIN);
 
     } else if(lv_obj_check_type(obj, &dialog_text_lvgl_class)) {

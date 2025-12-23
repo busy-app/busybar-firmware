@@ -76,6 +76,7 @@ static lv_obj_t* dialog_option_alloc(lv_obj_t* parent, uint32_t index) {
 static void dialog_lvgl_constructor(const lv_obj_class_t* class_p, lv_obj_t* obj) {
     UNUSED(class_p);
     Dialog* instance = (Dialog*)obj;
+    lv_obj_set_scrollbar_mode(obj, LV_SCROLLBAR_MODE_OFF);
 
     instance->text = lv_obj_class_create_obj(MY_TEXT_CLASS, obj);
     lv_obj_class_init_obj(instance->text);

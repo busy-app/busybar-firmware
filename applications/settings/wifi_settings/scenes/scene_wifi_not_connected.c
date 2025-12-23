@@ -1,4 +1,5 @@
 #include "../wifi_settings.h"
+#include "../widgets/wifi_not_connected_view.h"
 #include <settings_helpers/gui_params.h>
 
 #include <gui/modules/var_item_list.h>
@@ -14,7 +15,7 @@ typedef struct {
     Label* front_label;
     Image* front_image;
 
-    Image* back_image;
+    WifiNotConnectedView* back_view;
 } SceneWifiNotConnected;
 
 static void wifi_scene_not_connected_on_enter(void* context) {
@@ -46,8 +47,7 @@ static void wifi_scene_not_connected_on_enter(void* context) {
 
         GuiLayer* top_layer = gui_get_layer(instance->gui, GuiLayerIdSystem);
         Widget* top_back_layer_root = gui_layer_get_root_widget(top_layer, GuiDisplayIdBack);
-        data->back_image = image_alloc(top_back_layer_root);
-        image_set_source(data->back_image, IMG_PATH("connect_back_160x80.bin"));
+        data->back_view = wifi_not_connected_view_back_alloc(top_back_layer_root);
     });
 }
 
@@ -64,7 +64,7 @@ static void wifi_scene_not_connected_on_exit(void* context) {
         label_free(data->front_label);
         flex_layout_free(data->front_container);
 
-        image_free(data->back_image);
+        wifi_not_connected_view_free(data->back_view);
     });
 }
 
