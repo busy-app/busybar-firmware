@@ -154,8 +154,9 @@ SettingProvider* setting_provider_alloc(
 /**
  * @brief Free a settings provider instance.
  *
- * IMPORTANT: Provider must be closed before freeing (see setting_provider_close).
- * This function only deallocates memory and does not perform any I/O.
+ * Cleans up JSON objects and deallocates memory. If the provider is still open,
+ * pending changes will be lost. It's recommended to call setting_provider_close()
+ * first to flush changes to disk.
  *
  * @param provider Settings provider instance
  */
@@ -169,7 +170,6 @@ void setting_provider_free(SettingProvider* provider);
  * If file is corrupted, creates a new empty settings object and marks it for writing.
  *
  * @param provider Settings provider instance
- * @return true if file was opened successfully, false on error
  */
 void setting_provider_open(SettingProvider* provider);
 
