@@ -264,12 +264,7 @@ MU_TEST(anim_test_grayscale) {
             mu_assert_int_eq(expected, buffer[(k * 3) + 2]);
         }
 
-        AnimFileFrameFlag exp_flags;
-        if(i >= 3) {
-            exp_flags = AnimFileFrameFlagLast | AnimFileFrameFlagFinished;
-        } else {
-            exp_flags = 0;
-        }
+        AnimFileFrameFlag exp_flags = (i >= 3) ? (AnimFileFrameFlagLast | AnimFileFrameFlagFinished) : 0;
         mu_assert_int_eq(exp_flags, flags);
     }
 
@@ -299,12 +294,7 @@ MU_TEST(anim_test_rle) {
             mu_assert_int_eq(expected, buffer[(k * 3) + 2]);
         }
 
-        AnimFileFrameFlag exp_flags;
-        if(i == 9) {
-            exp_flags = AnimFileFrameFlagLast | AnimFileFrameFlagFinished;
-        } else {
-            exp_flags = 0;
-        }
+        AnimFileFrameFlag exp_flags = (i == 9) ? (AnimFileFrameFlagLast | AnimFileFrameFlagFinished) : 0;
         mu_assert_int_eq(exp_flags, flags);
     }
 
