@@ -8,7 +8,7 @@ import subprocess
 # usage:
 # COMMIT_HASH, COMMIT_MSG, BRANCH_NAME,
 # PULL_ID(optional), PULL_NAME(optional) must be set as envs
-# maybe from sctipts/get_env.py
+# maybe from scripts/get_env.py
 # other args must be set via command line args
 
 

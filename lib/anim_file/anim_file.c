@@ -38,6 +38,7 @@ AnimFile* anim_file_alloc(Storage* storage, const char* path) {
                     .fps = header.fps,
                     .width = header.width,
                     .height = header.height,
+                    .frames = frame_count,
                 },
                 .color_format = header.color_format,
                 .section_count = section_count,

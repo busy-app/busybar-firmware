@@ -1,147 +1,252 @@
 #!/usr/bin/env python3
 
-import os
-import sys
 import struct
-import logging
-import argparse
-import tempfile
+import json5
+from io import BufferedWriter
+from pathlib import Path
+from tempfile import TemporaryDirectory
 from PIL import Image
 from zipfile import PyZipFile
+from typing import Tuple
+from dataclasses import dataclass
 
+from flipper.app import App
+from flipper import rle
 
-class BusyBarAnimation:
-    def __init__(self, input_folder, fps, output_file):
-        if not os.path.isdir(input_folder):
-            raise FileNotFoundError("Invalid path")
+def number_in_str(input: str) -> int:
+    return int("".join(filter(str.isdigit, input))) or 0
 
-        self.input_folder = input_folder
-        self.fps = fps
-        self.output_file = output_file
-        self.png_files = []
-        self.width = 72  # default display width
-        self.height = 16  # default display height
-        self.bytes_per_pixel = 3  # RGB format
-        self.logger = logging.getLogger("Seq2Anim")
+@dataclass
+class Header:
+    FORMAT = "<8s BBBB BHB II"
+    flags: int
+    width: int
+    height: int
+    color_format: int
+    fps: int
+    max_encoded_len: int
+    sections_chunk_len: int
+    frames_chunk_len: int
 
-    def load_images(self):
-        """Load and sort PNG images from the input folder."""
-        self.png_files = [
-            f for f in os.listdir(self.input_folder) if f.lower().endswith(".png")
-        ]
-        """ Sort the files in natural order """
-        self.png_files.sort(key=lambda x: int("".join(filter(str.isdigit, x))))
+    @staticmethod
+    def length() -> int:
+        return struct.calcsize(Header.FORMAT)
+    
+    def to_bytes(self) -> bytes:
+        return struct.pack(
+            self.FORMAT,
+            b"BSBanim0",
 
-        if not self.png_files:
-            self.logger.error("No PNG images found in the specified folder.")
-            sys.exit(1)
-
-    def process_first_image(self):
-        """Process the first image to extract width, height, and color depth."""
-        first_image_path = os.path.join(self.input_folder, self.png_files[0])
-        with Image.open(first_image_path) as img:
-            self.width, self.height = img.size
-            self.bytes_per_pixel = len(
-                img.getbands()
-            )  # Number of color channels (e.g., 3 for RGB)
-
-    def create_header(self, frames):
-        """Create the header for the binary file."""
-        magic_number = 0x69
-        format_version = 0x00
-        header_format = "IIIIIII"
-        header = struct.pack(
-            header_format,
-            magic_number,
-            format_version,
-            self.fps,
-            self.bytes_per_pixel,
+            self.flags,
             self.width,
             self.height,
-            frames,
+            self.color_format,
+
+            self.fps,
+            self.max_encoded_len,
+            0,
+
+            self.sections_chunk_len,
+            self.frames_chunk_len,
         )
-        return header
 
-    def swap_red_blue(self, image):
-        """Swap the red and blue channels of the image."""
-        # Split the image into individual color channels
-        r, g, b = image.split()
-        # Merge the channels in the order: Blue, Green, Red
-        return Image.merge("RGB", (b, g, r))
+@dataclass
+class Section:
+    FORMAT = "<IIIB"
+    start: int
+    end: int
+    frame_offs: int
+    duration_override: int
+    name: str
 
-    def process_images(self):
-        """Process all images and write them to the output file."""
-        self.load_images()
-        self.process_first_image()
-        frames = len(self.png_files)
+    def length(self) -> int:
+        return struct.calcsize(self.FORMAT) + len(self.name) + 1
 
-        with open(self.output_file, "wb") as out_file:
-            header = self.create_header(frames)
-            out_file.write(header)
-            self.logger.info(
-                f"Header written: magic=0x69, fps={self.fps}, width={self.width}, height={self.height}, frames={frames}"
+    def to_bytes(self) -> bytes:
+        return struct.pack(
+            self.FORMAT,
+            self.start,
+            self.end,
+            self.frame_offs,
+            self.duration_override,
+        ) + bytes(self.name, "utf8") + bytes([0])
+
+@dataclass
+class FileFrame:
+    FORMAT = "<BBH"
+    encoding: int
+    duration: int
+    encoded: bytes
+
+    def length(self) -> int:
+        return struct.calcsize(self.FORMAT) + len(self.encoded)
+
+    def to_bytes(self) -> bytes:
+        return struct.pack(
+            self.FORMAT,
+            self.encoding,
+            self.duration,
+            len(self.encoded),
+        ) + self.encoded
+
+class Main(App):
+    def init(self):
+        self.parser.add_argument("-o", "--output", required=True, help="Output .anim file")
+        self.parser.add_argument("input", help="Input .zip file")
+        self.parser.set_defaults(func=self.main)
+
+    @staticmethod
+    def pack(frame: bytes, mode: str) -> bytes:
+        packed = bytearray()
+
+        if mode == "bgr888":
+            for i in range(0, len(frame), 3):
+                packed.extend([frame[i + 2], frame[i + 1], frame[i]])
+        
+        elif mode == "gray4":
+            for i in range(0, len(frame), 6):
+                px1 = frame[i] & 0xF0
+                px2 = frame[i + 3] & 0xF0
+                packed.append(px1 | (px2 >> 4))
+        
+        else:
+            raise NotImplemented
+        
+        return bytes(packed)
+        
+    @staticmethod
+    def encode(frame: bytes, mode: str) -> FileFrame:
+        raw = frame
+        blk_size = 3 if mode == "bgr888" else 1
+        rle_encoded = rle.compress(frame, blk_size)
+
+        if len(rle_encoded) < len(raw):
+            return FileFrame(encoding=1, duration=1, encoded=rle_encoded)
+        else:
+            return FileFrame(encoding=0, duration=1, encoded=raw)
+
+    def convert(self, input: Path, output: BufferedWriter) -> int:
+        args = self.args
+        input_name = Path(args.input).stem
+        input = input / input_name
+
+        meta: dict = json5.loads((input / "meta.json").read_text())
+
+        frames = list(input.glob("*.png"))
+        frames.sort(key=lambda x: number_in_str(x.stem))
+
+        for i in range(len(frames)):
+            if number_in_str(frames[i].stem) != i:
+                self.logger.error(f"Invalid frame numbering: missing *{i}.png")
+                return 1
+            
+        if "fps" not in meta:
+            self.logger.error(f"Invalid meta.json: must have 'fps'")
+            return 1
+        if "color" not in meta:
+            self.logger.error(f"Invalid meta.json: must have 'color'")
+            return 1
+        if meta["color"] not in ["bgr888", "gray4"]:
+            self.logger.error(f"Invalid meta.json: 'color' must be one of: 'bgr888', 'gray4'")
+            return 1
+        if "sections" not in meta:
+            self.logger.error(f"Invalid meta.json: must have 'sections'")
+            return 1
+        if not meta["sections"]:
+            self.logger.error(f"Invalid meta.json: must have 'sections[0]'")
+            return 1
+        if meta["sections"][0] != {"name": "whole", "start": 0, "end": len(frames) - 1}:
+            self.logger.error(f"Invalid meta.json: 'sections[0]' must be named 'whole' and cover entire range of frames")
+            return 1
+
+        # encode frames
+        width, height = 0, 0
+        encoded_frames: list[FileFrame] = []
+        frames_chunk_len = 0
+        max_encoded_len = 0
+        last_frame = None
+        for frame in frames:
+            with Image.open(frame) as frame:
+                frame = frame.convert("RGB")
+                width, height = frame.size
+                frame = frame.tobytes()
+                if frame == last_frame:
+                    encoded_frames[-1].duration += 1
+                    continue
+
+                last_frame = frame
+                frame = self.pack(frame, meta["color"])
+                frame = self.encode(frame, meta["color"])
+
+                encoded_frames.append(frame)
+                frames_chunk_len += frame.length()
+                max_encoded_len = max(max_encoded_len, len(frame.encoded))
+
+        # encode sections
+        encoded_sections: list[Section] = []
+        sections_chunk_len = 0
+        for section in meta["sections"]:
+            if set(section.keys()) != {"name", "start", "end"}:
+                self.logger.error(f"Invalid meta.json: 'sections' children must only have 'name', 'start' and 'end' fields")
+                return 1
+            section = Section(
+                start=section["start"],
+                end=section["end"],
+                name=section["name"],
+                # to be filled later
+                frame_offs=0,
+                duration_override=0,
             )
+            encoded_sections.append(section)
+            sections_chunk_len += section.length()
 
-            for i, png_file in enumerate(self.png_files):
-                image_path = os.path.join(self.input_folder, png_file)
-                with Image.open(image_path) as img:
-                    img = img.convert("RGB")  # Ensure image is in RGB format
-                    img = self.swap_red_blue(img)  # Swap red and blue channels
-                    img_data = img.tobytes()
-                    out_file.write(img_data)
+        # fill section precomputed start info, now that file offsets are known
+        display_frame_start: list[Tuple[int, int]] = []
+        file_frame_offs = Header.length() + sections_chunk_len
+        disp_frame_idx = 0
+        for file_frame in encoded_frames:
+            for disp_offset in range(file_frame.duration, 0, -1):
+                display_frame_start.append((file_frame_offs, disp_offset))
+            disp_frame_idx += file_frame.duration
+            file_frame_offs += file_frame.length()
+        
+        for section in encoded_sections:
+            section.frame_offs, section.duration_override = display_frame_start[section.start]
 
-            self.logger.info(f"Total frames processed: {i + 1}")
+        # assemble header and write data
+        color_fmt_map = {"bgr888": 0, "gray4": 1}
+        header = Header(
+            flags=0,
+            width=width,
+            height=height,
+            color_format=color_fmt_map[meta["color"]],
+            fps=meta["fps"],
+            max_encoded_len=max_encoded_len,
+            sections_chunk_len=sections_chunk_len,
+            frames_chunk_len=frames_chunk_len,
+        )
+        output.write(header.to_bytes())
+        for section in encoded_sections:
+            output.write(section.to_bytes())
+        for frame in encoded_frames:
+            output.write(frame.to_bytes())
 
+        # print info about file
+        compression_ratio = (len(frames) * width * height * 3) / frames_chunk_len
+        self.logger.info(f"{disp_frame_idx} display frames, {len(encoded_frames)} file frames")
+        self.logger.info(f"max_encoded_len={max_encoded_len} raw_len={width * height * 3}")
+        self.logger.info(f"mean compression radio: {compression_ratio:.3f}x")
 
-def parse_arguments():
-    parser = argparse.ArgumentParser(
-        description="Convert a sequence of PNG images to a binary animation file with swapped red and blue channels."
-    )
-    parser.add_argument(
-        "-i",
-        "--input_path",
-        required=True,
-        help="Path to the folder or .zip file containing PNG images.",
-    )
-    parser.add_argument(
-        "-f",
-        "--fps",
-        type=int,
-        required=True,
-        help="Frames per second for the animation.",
-    )
-    parser.add_argument(
-        "-o", "--output_file", required=True, help="Path to the output binary file."
-    )
-    return parser.parse_args()
+        return 0
 
+    def main(self):
+        args = self.args
 
-def main():
-    args = parse_arguments()
-
-    if os.path.isfile(args.input_path):
-        workdir = tempfile.TemporaryDirectory()
-
-        zip_file = PyZipFile(args.input_path)
-        zip_file.extractall(workdir.name)
-
-        input_folder = os.path.join(workdir.name, os.path.splitext(os.path.basename(args.input_path))[0])
-
-    else:
-        input_folder = args.input_path
-
-    try:
-        animation = BusyBarAnimation(input_folder, args.fps, args.output_file)
-        animation.process_images()
-
-    except FileNotFoundError:
-        print(f"Directory \"{input_folder}\" does not exist")
-        exit(1)
-
-    except Exception:
-        print("Unknown error")
-        exit(1)
-
+        with open(args.output, mode="wb") as output:
+            with TemporaryDirectory(prefix="bsb-seq2anim") as temp_dir:
+                input = PyZipFile(args.input)
+                input.extractall(temp_dir)
+                return self.convert(Path(temp_dir), output)
 
 if __name__ == "__main__":
-    main()
+    Main()()

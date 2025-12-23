@@ -36,6 +36,7 @@ typedef struct {
     size_t width;
     size_t height;
     size_t fps;
+    size_t frames;
 } AnimFileInfo;
 
 /**

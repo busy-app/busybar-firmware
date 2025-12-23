@@ -85,12 +85,11 @@ typedef struct FURI_PACKED {
     AnimFileColorFormat color_format;
 
     uint8_t fps;
-    uint8_t _unused[3];
+    uint16_t max_encoded_length;
+    uint8_t _unused[1];
 
     uint32_t sections_chunk_length;
     uint32_t frames_chunk_length;
-
-    uint16_t max_encoded_length;
 } AnimFileHeader;
 
 #define ANIM_FILE_HEADER_SIGNATURE "BSBanim0" // BUSY Status Bar animation version 0
