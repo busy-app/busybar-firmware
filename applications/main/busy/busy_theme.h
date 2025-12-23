@@ -39,13 +39,15 @@ BusyTheme* busy_theme_alloc_set(const BusyTheme* other);
 
 void busy_theme_free(BusyTheme* instance);
 
-void busy_theme_reset(BusyTheme* instance);
-
 void busy_theme_set(BusyTheme* instance, const BusyTheme* other);
 
 bool busy_theme_read(BusyTheme* instance, const char* name);
 
+const char* busy_theme_get_name(const BusyTheme* instance);
+
 void busy_theme_get_info(const BusyTheme* instance, BusyThemeInfo* info);
+
+void busy_theme_set_default(BusyTheme* instance);
 
 bool busy_theme_is_default(const BusyTheme* instance);
 

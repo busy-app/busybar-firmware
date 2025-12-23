@@ -50,7 +50,13 @@ static void busy_scene_setup_theme_read_extra_themes(ThemePickerModel* model) {
 static void busy_scene_setup_theme_handle_theme_changed(BusyApp* instance, uint32_t theme_idx) {
     const BusySceneSetupTheme* data =
         scene_manager_get_scene_data(instance->scene_manager, BusyAppSceneIdSetupTheme);
-    busy_theme_set(instance->theme, theme_picker_model_get_item(data->picker_model, theme_idx));
+
+    const BusyTheme* selected_theme = theme_picker_model_get_item(data->picker_model, theme_idx);
+    busy_theme_set(instance->theme, selected_theme);
+
+    BusySettings* settings = &instance->settings;
+    strlcpy(
+        settings->theme_name, busy_theme_get_name(selected_theme), sizeof(settings->theme_name));
 }
 
 static void busy_scene_setup_theme_on_enter(void* context) {
@@ -97,6 +103,8 @@ static void busy_scene_setup_theme_on_exit(void* context) {
     BusyApp* instance = context;
     BusySceneSetupTheme* data =
         scene_manager_get_scene_data(instance->scene_manager, BusyAppSceneIdSetupTheme);
+
+    busy_settings_save(&instance->settings);
 
     with_gui(instance->gui, {
         theme_picker_free(data->front_picker);

@@ -88,6 +88,25 @@ static bool busy_gui_input_callback(const InputEvent* event, void* context) {
     return consumed;
 }
 
+static void busy_set_default_settings(BusySettings* settings) {
+    strcpy(settings->theme_name, "default");
+}
+
+static void busy_load_settings(BusyApp* instance) {
+    BusySettings* settings = &instance->settings;
+
+    if(!busy_settings_load(settings)) {
+        FURI_LOG_W(TAG, "Loading default settings");
+        busy_set_default_settings(settings);
+        busy_settings_save(settings);
+    }
+
+    if(!busy_theme_read(instance->theme, settings->theme_name)) {
+        FURI_LOG_W(TAG, "Setting default theme");
+        busy_theme_set_default(instance->theme);
+    }
+}
+
 static BusyApp* busy_alloc(const char* arg) {
     BusyApp* instance = malloc(sizeof(BusyApp));
 
@@ -101,7 +120,7 @@ static BusyApp* busy_alloc(const char* arg) {
     instance->audio = furi_record_open(RECORD_AUDIO);
     instance->gui = furi_record_open(RECORD_GUI);
     instance->matter = furi_record_open(RECORD_MATTER);
-    instance->theme = busy_theme_alloc_default();
+    instance->theme = busy_theme_alloc();
 
     busy_set_status_lights(instance, BusyStatusLightsTypeOff);
     busy_set_matter(instance, false);
@@ -159,6 +178,8 @@ static BusyApp* busy_alloc(const char* arg) {
         FuriEventLoopEventIn,
         busy_api_queue_callback,
         instance);
+
+    busy_load_settings(instance);
 
     if(arg && strcmp(arg, BUSY_APP_TIMER_MODE) == 0) {
         instance->run_mode = BusyAppRunModeTimer;

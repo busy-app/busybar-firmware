@@ -13,6 +13,7 @@
 
 #include "busy.h"
 #include "busy_theme.h"
+#include "busy_settings.h"
 
 #include "storage_macros.h"
 
@@ -117,6 +118,7 @@ struct BusyApp {
     NavBar* nav_bar;
     // Misc state
     BusyTheme* theme;
+    BusySettings settings;
     BusyAppRunMode run_mode;
     bool show_timer_requested;
 };

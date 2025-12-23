@@ -79,8 +79,7 @@ BusyTheme* busy_theme_alloc(void) {
 BusyTheme* busy_theme_alloc_default(void) {
     BusyTheme* instance = busy_theme_alloc();
 
-    furi_string_set(instance->name, DEFAULT_NAME);
-    furi_string_set(instance->bg_path, BUSY_IMG_PATH("theme_preview_72x16.bin"));
+    busy_theme_set_default(instance);
 
     return instance;
 }
@@ -103,13 +102,6 @@ void busy_theme_free(BusyTheme* instance) {
     free(instance);
 }
 
-void busy_theme_reset(BusyTheme* instance) {
-    furi_assert(instance);
-
-    furi_string_reset(instance->name);
-    furi_string_reset(instance->bg_path);
-}
-
 void busy_theme_set(BusyTheme* instance, const BusyTheme* other) {
     furi_assert(instance);
     furi_assert(other);
@@ -117,11 +109,6 @@ void busy_theme_set(BusyTheme* instance, const BusyTheme* other) {
     furi_string_set(instance->name, other->name);
     furi_string_set(instance->bg_path, other->bg_path);
     instance->bg_type = other->bg_type;
-}
-
-const char* busy_theme_get_name(const BusyTheme* instance) {
-    furi_assert(instance);
-    return furi_string_get_cstr(instance->name);
 }
 
 void busy_theme_get_info(const BusyTheme* instance, BusyThemeInfo* info) {
@@ -133,11 +120,23 @@ void busy_theme_get_info(const BusyTheme* instance, BusyThemeInfo* info) {
     info->bg_type = instance->bg_type;
 }
 
+void busy_theme_set_default(BusyTheme* instance) {
+    furi_assert(instance);
+
+    furi_string_set(instance->name, DEFAULT_NAME);
+    furi_string_set(instance->bg_path, BUSY_IMG_PATH("theme_preview_72x16.bin"));
+    instance->bg_type = BusyThemeFileTypeAnimImage;
+}
+
 bool busy_theme_read(BusyTheme* instance, const char* name) {
     furi_assert(instance);
     furi_assert(name);
 
-    busy_theme_reset(instance);
+    // Special case for default theme
+    if(strcmp(name, DEFAULT_NAME) == 0) {
+        busy_theme_set_default(instance);
+        return true;
+    }
 
     bool success = false;
 
@@ -165,6 +164,12 @@ bool busy_theme_read(BusyTheme* instance, const char* name) {
     furi_record_close(RECORD_STORAGE);
 
     return success;
+}
+
+const char* busy_theme_get_name(const BusyTheme* instance) {
+    furi_assert(instance);
+
+    return furi_string_get_cstr(instance->name);
 }
 
 bool busy_theme_is_default(const BusyTheme* instance) {
