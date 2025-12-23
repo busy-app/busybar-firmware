@@ -17,6 +17,39 @@
 // OTP4 - signatures for OTP1 and OTP2
 #define FURI_HAL_OTP_BLOCK4 (FLASH_OTP_BASE + 3 * FURI_HAL_OTP_BLOCK_SIZE)
 
+// ============================================================================
+// OTP Header Definition
+// ============================================================================
+
+// Magic value for OTP block validation (appears as "13 37" in hex dump due to little-endian)
+#define FURI_HAL_OTP_MAGIC (0x3713)
+
+// OTP block indices
+#define FURI_HAL_OTP_INDEX_OTP1 (1)
+#define FURI_HAL_OTP_INDEX_OTP2 (2)
+#define FURI_HAL_OTP_INDEX_OTP3 (3)
+#define FURI_HAL_OTP_INDEX_OTP4 (4)
+
+// Common OTP header structure (4 bytes)
+typedef struct __attribute__((packed)) {
+    uint16_t magic; // Magic value (FURI_HAL_OTP_MAGIC)
+    uint8_t index; // OTP block index (1-4)
+    uint8_t version; // OTP structure version
+} FuriHalOtpHeader;
+
+_Static_assert(sizeof(FuriHalOtpHeader) == 4, "OTP header size mismatch");
+
+/**
+ * @brief Check if an OTP header is valid
+ * @param header Pointer to OTP header
+ * @param expected_index Expected block index (1-4)
+ * @return true if magic and index are valid
+ */
+static inline bool
+    furi_hal_otp_header_is_valid(const FuriHalOtpHeader* header, uint8_t expected_index) {
+    return (header->magic == FURI_HAL_OTP_MAGIC) && (header->index == expected_index);
+}
+
 /**
  * @brief Program data to OTP area
  * @param addr OTP address (must be 16-byte aligned)

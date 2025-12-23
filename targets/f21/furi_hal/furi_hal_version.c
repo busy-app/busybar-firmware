@@ -16,24 +16,6 @@
 // Internal OTP Data Structures
 // ============================================================================
 
-// Magic value for OTP block validation
-#define OTP_MAGIC (0x3713)
-
-// OTP block indices
-#define OTP_INDEX_OTP1 (1)
-#define OTP_INDEX_OTP2 (2)
-#define OTP_INDEX_OTP3 (3)
-#define OTP_INDEX_OTP4 (4)
-
-// Common OTP header structure
-typedef struct __attribute__((packed)) {
-    uint16_t magic; // Magic value (0x1337)
-    uint8_t index; // OTP block index (1-4)
-    uint8_t version; // OTP structure version
-} OtpHeader;
-
-_Static_assert(sizeof(OtpHeader) == 4, "OTP header size mismatch");
-
 // OTP1 Data Structure - Hardware/Board Info (Production)
 // Layout: <H B B I 6s 8s B B B B (little-endian)
 // Total size: 4 (header) + 22 (data) = 26 bytes
@@ -41,7 +23,7 @@ _Static_assert(sizeof(OtpHeader) == 4, "OTP header size mismatch");
 #define OTP1_MAC_SIZE   (6)
 
 typedef struct __attribute__((packed)) {
-    OtpHeader header; // Common header (magic=0x1337, index=1, version)
+    FuriHalOtpHeader header; // Common header (magic, index=1, version)
     uint32_t hw_timestamp; // Production timestamp (Unix epoch)
     uint8_t u5_usb_mac[OTP1_MAC_SIZE]; // USB MAC address
     char hw_model[OTP1_MODEL_SIZE]; // Hardware model string (e.g., "BB.1")
@@ -57,7 +39,7 @@ _Static_assert(sizeof(Otp1Data) == 26, "OTP1 data structure size mismatch");
 // Layout: <H B B I B B (little-endian)
 // Total size: 4 (header) + 6 (data) = 10 bytes
 typedef struct __attribute__((packed)) {
-    OtpHeader header; // Common header (magic=0x1337, index=2, version)
+    FuriHalOtpHeader header; // Common header (magic, index=2, version)
     uint32_t hw_timestamp_qc; // QC timestamp (Unix epoch)
     uint8_t hw_color; // Device color
     uint8_t hw_region; // Device region
@@ -71,7 +53,7 @@ _Static_assert(sizeof(Otp2Data) == 10, "OTP2 data structure size mismatch");
 #define OTP3_PKEY_SIZE (56) // secp224r1: 28 bytes X + 28 bytes Y
 
 typedef struct __attribute__((packed)) {
-    OtpHeader header; // Common header (magic=0x1337, index=3, version)
+    FuriHalOtpHeader header; // Common header (magic, index=3, version)
     uint8_t hw_otp3_curve; // EC curve identifier
     uint8_t hw_otp3_pkey[OTP3_PKEY_SIZE]; // Public key (X || Y)
 } Otp3Data;
@@ -85,7 +67,7 @@ _Static_assert(sizeof(Otp3Data) == 61, "OTP3 data structure size mismatch");
 #define OTP4_SIGNATURE_SIZE (56) // secp224r1: 28 bytes R + 28 bytes S
 
 typedef struct __attribute__((packed)) {
-    OtpHeader header; // Common header (magic=0x1337, index=4, version)
+    FuriHalOtpHeader header; // Common header (magic, index=4, version)
     uint8_t hw_otp4_mcu_uid[OTP4_MCU_UID_SIZE]; // MCU UID (for binding)
     uint8_t hw_otp1_signature[OTP4_SIGNATURE_SIZE]; // Signature over OTP1
     uint8_t hw_otp2_signature[OTP4_SIGNATURE_SIZE]; // Signature over OTP2
@@ -126,19 +108,12 @@ static bool otp_block_is_empty(const void* addr, size_t size) {
     return true;
 }
 
-/**
- * @brief Check if an OTP header has valid magic and index values
- */
-static bool otp_header_is_valid(const OtpHeader* header, uint8_t expected_index) {
-    return (header->magic == OTP_MAGIC) && (header->index == expected_index);
-}
-
 static bool otp_is_otp1_provisioned(void) {
     const Otp1Data* otp1 = otp_get_otp1();
     if(otp_block_is_empty(otp1, sizeof(Otp1Data))) {
         return false;
     }
-    return otp_header_is_valid(&otp1->header, OTP_INDEX_OTP1);
+    return furi_hal_otp_header_is_valid(&otp1->header, FURI_HAL_OTP_INDEX_OTP1);
 }
 
 static bool otp_is_otp2_provisioned(void) {
@@ -146,7 +121,7 @@ static bool otp_is_otp2_provisioned(void) {
     if(otp_block_is_empty(otp2, sizeof(Otp2Data))) {
         return false;
     }
-    return otp_header_is_valid(&otp2->header, OTP_INDEX_OTP2);
+    return furi_hal_otp_header_is_valid(&otp2->header, FURI_HAL_OTP_INDEX_OTP2);
 }
 
 static bool otp_is_otp3_provisioned(void) {
@@ -154,7 +129,7 @@ static bool otp_is_otp3_provisioned(void) {
     if(otp_block_is_empty(otp3, sizeof(Otp3Data))) {
         return false;
     }
-    return otp_header_is_valid(&otp3->header, OTP_INDEX_OTP3);
+    return furi_hal_otp_header_is_valid(&otp3->header, FURI_HAL_OTP_INDEX_OTP3);
 }
 
 static bool otp_is_otp4_provisioned(void) {
@@ -162,7 +137,7 @@ static bool otp_is_otp4_provisioned(void) {
     if(otp_block_is_empty(otp4, sizeof(Otp4Data))) {
         return false;
     }
-    return otp_header_is_valid(&otp4->header, OTP_INDEX_OTP4);
+    return furi_hal_otp_header_is_valid(&otp4->header, FURI_HAL_OTP_INDEX_OTP4);
 }
 
 // ============================================================================
