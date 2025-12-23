@@ -16,7 +16,7 @@ from utils import (
 class TestAccountInfoAPI:
     """Test cases for Account Info API endpoint"""
 
-    @allure.id("2685")
+    @allure.id("3490")
     @allure.title("GET /api/account/info")
     @pytest.mark.api
     @pytest.mark.frontend
@@ -46,7 +46,7 @@ class TestAccountInfoAPI:
 class TestAccountStatusAPI:
     """Test cases for Account Status (MQTT) API endpoint"""
 
-    @allure.id("2740")
+    @allure.id("3489")
     @allure.title("GET /api/account/status")
     @pytest.mark.api
     @pytest.mark.frontend
@@ -70,7 +70,7 @@ class TestAccountStatusAPI:
 class TestAccountProfileAPI:
     """Test cases for Account Profile (MQTT backend) API endpoints"""
 
-    @allure.id("2741")
+    @allure.id("3488")
     @allure.title("GET /api/account/profile")
     @pytest.mark.api
     @pytest.mark.frontend
@@ -92,7 +92,7 @@ class TestAccountProfileAPI:
             if data["state"] == "custom":
                 response.assert_has_fields("custom_url")
 
-    @allure.id("2742")
+    @allure.id("3487")
     @allure.title("POST /api/account/profile")
     @pytest.mark.api
     @pytest.mark.frontend
@@ -134,7 +134,7 @@ class TestAccountProfileAPI:
                     params["custom_url"] = original_custom_url
                 api_post(api_session, web_base_url, "/api/account/profile", params=params)
 
-    @allure.id("2743")
+    @allure.id("3487")
     @allure.title("POST /api/account/profile (custom)")
     @pytest.mark.api
     @pytest.mark.frontend
@@ -177,7 +177,7 @@ class TestAccountProfileAPI:
                     params["custom_url"] = original_custom_url
                 api_post(api_session, web_base_url, "/api/account/profile", params=params)
 
-    @allure.id("2744")
+    @allure.id("3486")
     @allure.title("POST /api/account/profile (invalid)")
     @pytest.mark.api
     @pytest.mark.frontend
@@ -201,7 +201,7 @@ class TestAccountProfileAPI:
 class TestAccountLinkAPI:
     """Test cases for Account Link API endpoint"""
 
-    @allure.id("2686")
+    @allure.id("3485")
     @allure.title("POST /api/account/link")
     @pytest.mark.api
     @pytest.mark.frontend
@@ -252,7 +252,7 @@ class TestAccountLinkAPI:
 class TestAccountUnlinkAPI:
     """Test cases for Account Unlink API endpoint"""
 
-    @allure.id("2687")
+    @allure.id("3484")
     @allure.title("DELETE /api/account")
     @pytest.mark.api
     @pytest.mark.frontend

@@ -213,6 +213,19 @@ def api_delete(
     return APIResponse(response)
 
 
+def api_options(
+    session: requests.Session,
+    base_url: str,
+    endpoint: str,
+    timeout: int = 10,
+    **kwargs,
+) -> APIResponse:
+    """Make an OPTIONS request and return wrapped response."""
+    url = f"{base_url}{endpoint}"
+    response = session.options(url, timeout=timeout, **kwargs)
+    return APIResponse(response)
+
+
 def skip_unless_status(
     session: requests.Session,
     base_url: str,

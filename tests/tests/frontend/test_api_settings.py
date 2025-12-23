@@ -16,9 +16,9 @@ from utils import (
 class TestNameAPI:
     """Test cases for Name API endpoints"""
 
-    @allure.id("2676")
+    @allure.id("2883")
     @allure.title("Name. GET /api/name")
-    @allure.issue("FW-407")
+    @allure.issue("https://flipper.atlassian.net/browse/FW-407")
     @pytest.mark.api
     @pytest.mark.frontend
     def test_api_name_get(self, api_session, web_base_url):
@@ -32,9 +32,9 @@ class TestNameAPI:
             response.assert_has_fields("name")
             response.assert_field_type("name", str).attach_to_allure("Name Response")
 
-    @allure.id("2677")
+    @allure.id("2884")
     @allure.title("Name. POST /api/name")
-    @allure.issue("FW-407")
+    @allure.issue("https://flipper.atlassian.net/browse/FW-407")
     @pytest.mark.api
     @pytest.mark.frontend
     @pytest.mark.parametrize("test_name", [
@@ -116,9 +116,9 @@ class TestNameAPI:
                         json={"name": original_name}
                     )
 
-    @allure.id("2678")
+    @allure.id("3451")
     @allure.title("Name. POST /api/name (negative)")
-    @allure.issue("FW-407")
+    @allure.issue("https://flipper.atlassian.net/browse/FW-407")
     @pytest.mark.api
     @pytest.mark.frontend
     @pytest.mark.parametrize("test_name", [
@@ -222,12 +222,12 @@ class TestSettingsAPI:
         verify_response.assert_ok()
         verify_data = verify_response.json()
         assert verify_data["mode"] == "key", f"Expected mode 'key', got '{verify_data['mode']}'"
-        #
-        # is_valid_key = (
-        #         4 <= len(key) <= 10
-        #         and key.isdigit()
-        # )
-        if True:
+
+        is_valid_key = (
+                4 <= len(key) <= 10
+                and key.isdigit()
+        )
+        if is_valid_key:
             with allure.step("Verify success response for valid key"):
                 assert verify_data["key_valid"] is True, "Expected key_valid to be True"
         else:
