@@ -90,9 +90,8 @@ typedef struct FURI_PACKED {
     uint32_t sections_chunk_length;
     uint32_t frames_chunk_length;
 
-    uint32_t max_encoded_length;
+    uint16_t max_encoded_length;
 } AnimFileHeader;
-static_assert(sizeof(AnimFileHeader) % sizeof(uint32_t) == 0);
 
 #define ANIM_FILE_HEADER_SIGNATURE "BSBanim0" // BUSY Status Bar animation version 0
 
