@@ -18,5 +18,4 @@ typedef struct {
     Gui* gui;
 
     AnimPlay* anim_play;
-    Label* label;
 } AnimationPlayerApp;

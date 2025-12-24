@@ -54,30 +54,33 @@ static AnimationPlayerApp* animation_player_app_alloc(void* args) {
 
     instance->gui = furi_record_open(RECORD_GUI);
 
+    FuriString* args_str = furi_string_alloc_set_str(args ? args : "");
+    size_t colon_index = furi_string_search_char(args_str, ':');
+
+    GuiDisplayId display_arg = GuiDisplayIdFront;
+
+    if(colon_index != FURI_STRING_FAILURE) {
+        if(furi_string_start_with_str(args_str, "back:")) {
+            display_arg = GuiDisplayIdBack;
+        }
+        furi_string_right(args_str, colon_index + 1);
+    }
+
+    const char* path_arg = furi_string_get_cstr(args_str);
+
     with_gui(instance->gui, {
         GuiLayer* main_layer = gui_get_layer(instance->gui, GuiLayerIdMain);
         gui_layer_add_input_callback(main_layer, animation_player_app_input_callback, instance);
 
-        Widget* root;
-        root = gui_layer_get_root_widget(main_layer, GuiDisplayIdBack);
-        instance->label = label_alloc(root);
-
-        widget_set_align(label_get_base(instance->label), AlignCenter);
-
-        root = gui_layer_get_root_widget(main_layer, GuiDisplayIdFront);
+        Widget* root = gui_layer_get_root_widget(main_layer, display_arg);
         instance->anim_play = anim_play_alloc(root);
 
-        const char* path = (args == NULL) ? ANIMATION_PLAYER_FILE_PATH : args;
-
-        if(!anim_play_set_source(instance->anim_play, path)) {
-            FURI_LOG_E(TAG, "Failed to load animation");
-            label_set_text(instance->label, "Failed to load animation");
-
-        } else {
-            label_set_text(instance->label, "Running animation");
+        if(anim_play_set_source(instance->anim_play, path_arg)) {
             anim_play_start(instance->anim_play);
         }
     });
+
+    furi_string_free(args_str);
 
     return instance;
 }
@@ -90,7 +93,6 @@ static void animation_player_app_free(AnimationPlayerApp* instance) {
         gui_layer_remove_input_callback(main_layer, animation_player_app_input_callback);
 
         anim_play_free(instance->anim_play);
-        label_free(instance->label);
     });
 
     furi_record_close(RECORD_GUI);
