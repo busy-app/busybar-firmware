@@ -1,15 +1,7 @@
 import allure
 import pytest
 
-from utils import (
-    api_get,
-    api_post,
-    attach_text,
-    assert_has_fields,
-    assert_field_in,
-    assert_field_type,
-    assert_field_range,
-)
+from api import SystemAPI
 
 
 @allure.feature("5. Web Frontend")
@@ -21,134 +13,80 @@ class TestSystemAPI:
     @allure.title("GET /api/version")
     @pytest.mark.api
     @pytest.mark.frontend
-    def test_api_version_get(
-        self, api_session, web_base_url, persistent_cli_connection
-    ):
+    def test_api_version_get(self, system_api: SystemAPI):
         """Test GET /api/version endpoint"""
+        response = system_api.get_version()
 
-        with allure.step("Make GET request to /api/version"):
-            response = api_get(api_session, web_base_url, "/api/version")
-
-        with allure.step("Verify response status and structure"):
-            response.assert_ok().assert_json_content_type()
-            response.assert_has_fields("api_semver").attach_to_allure("Version Response")
-
-        with allure.step("Verify api_semver format and value"):
-            api_semver = response.get_field("api_semver")
-            assert isinstance(api_semver, str), "api_semver should be a string"
-
-            # Check semantic versioning format (x.y.z)
-            version_parts = api_semver.split(".")
-            assert (
-                len(version_parts) == 3
-            ), f"api_semver should be in x.y.z format, got {api_semver}"
-
-            # Verify it's a valid semantic version (>= 0.0.0)
-            major, minor, patch = [int(part) for part in version_parts]
-            version_tuple = (major, minor, patch)
-            assert version_tuple >= (0, 0, 0), f"api_semver should be a valid semantic version, got {api_semver}"
+        # Pydantic validates semver format, just verify it's reasonable
+        major, minor, patch = [int(p) for p in response.api_semver.split(".")]
+        assert (major, minor, patch) >= (0, 0, 0)
 
     @allure.id("2639")
     @allure.title("GET /api/status")
     @pytest.mark.api
     @pytest.mark.frontend
-    def test_api_status_get(self, api_session, web_base_url, persistent_cli_connection):
+    def test_api_status_get(
+        self, system_api: SystemAPI, persistent_cli_connection
+    ):
         """Test GET /api/status endpoint"""
-
         with allure.step("Get CLI device_info for comparison"):
             cli_device_info = persistent_cli_connection.execute_command(
                 "device_info", timeout=20.0, slow_command=True
             )
-            attach_text(cli_device_info, "CLI device_info")
+            allure.attach(cli_device_info, name="CLI device_info", attachment_type=allure.attachment_type.TEXT)
 
-        with allure.step("Make GET request to /api/status"):
-            response = api_get(api_session, web_base_url, "/api/status")
+        response = system_api.get_status()
 
-        with allure.step("Verify response status and structure"):
-            response.assert_ok().assert_json_content_type()
-            response.assert_has_fields("system", "power").attach_to_allure("Status Response")
-
-        with allure.step("Verify system data structure"):
-            data = response.json()
-            assert_has_fields(
-                data["system"],
-                "branch", "version", "build_date", "commit_hash", "uptime"
-            )
-
-        with allure.step("Verify power data structure"):
-            assert_has_fields(
-                data["power"],
-                "state", "battery_charge", "battery_voltage", "battery_current", "usb_voltage"
-            )
+        # Structure validation done by pydantic
+        assert response.system.uptime
+        assert response.system.version
+        assert 0 <= response.power.battery_charge <= 100
 
         with allure.step("Cross-verify with CLI device_info data"):
-            assert cli_device_info.strip(), "CLI device_info should return data for comparison"
+            assert cli_device_info.strip(), "CLI device_info should return data"
 
     @allure.id("2640")
     @allure.title("GET /api/status/system")
     @pytest.mark.api
     @pytest.mark.frontend
     def test_api_status_system_get(
-        self, api_session, web_base_url, persistent_cli_connection
+        self, system_api: SystemAPI, persistent_cli_connection
     ):
         """Test GET /api/status/system endpoint"""
-
         with allure.step("Get CLI device_info for comparison"):
             cli_device_info = persistent_cli_connection.execute_command(
                 "device_info", timeout=20.0, slow_command=True
             )
-            attach_text(cli_device_info, "CLI device_info")
+            allure.attach(cli_device_info, name="CLI device_info", attachment_type=allure.attachment_type.TEXT)
 
-        with allure.step("Make GET request to /api/status/system"):
-            response = api_get(api_session, web_base_url, "/api/status/system")
+        response = system_api.get_system_status()
 
-        with allure.step("Verify response status and structure"):
-            response.assert_ok().assert_json_content_type()
-            response.assert_has_fields(
-                "branch", "version", "build_date", "commit_hash", "uptime"
-            ).attach_to_allure("System Status Response")
-
-            # Validate all fields are strings
-            data = response.json()
-            for field in ["branch", "version", "build_date", "commit_hash", "uptime"]:
-                assert_field_type(data, field, str)
+        # All fields validated by pydantic as strings
+        assert response.branch
+        assert response.version
+        assert response.build_date
+        assert response.commit_hash
+        assert response.uptime
 
     @allure.id("2641")
     @allure.title("GET /api/status/power")
     @pytest.mark.api
     @pytest.mark.frontend
     def test_api_status_power_get(
-        self, api_session, web_base_url, persistent_cli_connection
+        self, system_api: SystemAPI, persistent_cli_connection
     ):
         """Test GET /api/status/power endpoint"""
-
         with allure.step("Get CLI device_info for comparison"):
             cli_device_info = persistent_cli_connection.execute_command(
                 "device_info", timeout=20.0, slow_command=True
             )
-            attach_text(cli_device_info, "CLI device_info")
+            allure.attach(cli_device_info, name="CLI device_info", attachment_type=allure.attachment_type.TEXT)
 
-        with allure.step("Make GET request to /api/status/power"):
-            response = api_get(api_session, web_base_url, "/api/status/power")
+        response = system_api.get_power_status()
 
-        with allure.step("Verify response status and structure"):
-            response.assert_ok().assert_json_content_type()
-            response.assert_has_fields(
-                "state", "battery_charge", "battery_voltage", "battery_current", "usb_voltage"
-            ).attach_to_allure("Power Status Response")
-
-        with allure.step("Verify power field types and values"):
-            data = response.json()
-
-            # Validate state enum
-            assert_field_in(data, "state", ["discharging", "charging", "charged"])
-
-            # Validate numeric fields
-            for field in ["battery_charge", "battery_voltage", "battery_current", "usb_voltage"]:
-                assert_field_type(data, field, int)
-
-            # Validate battery charge percentage
-            assert_field_range(data, "battery_charge", min_value=0, max_value=100)
+        # State enum and battery_charge range validated by pydantic
+        assert response.state in ["discharging", "charging", "charged"]
+        assert 0 <= response.battery_charge <= 100
 
 
 @allure.feature("5. Web Frontend")
@@ -160,102 +98,83 @@ class TestTimeAPI:
     @allure.title("GET /api/time")
     @pytest.mark.api
     @pytest.mark.frontend
-    def test_api_time_get(self, api_session, web_base_url):
+    def test_api_time_get(self, system_api: SystemAPI):
         """Test GET /api/time endpoint"""
+        response = system_api.get_time()
 
-        with allure.step("Make GET request to /api/time"):
-            response = api_get(api_session, web_base_url, "/api/time")
-
-        with allure.step("Verify response status and structure"):
-            response.assert_ok().assert_json_content_type()
-            response.assert_has_fields("timestamp")
-            response.assert_field_type("timestamp", str).attach_to_allure("Time Response")
-
-            # Validate ISO 8601 format (basic check)
-            timestamp = response.get_field("timestamp")
-            assert "T" in timestamp, "Timestamp should be in ISO 8601 format"
-            assert (
-                "+" in timestamp or "-" in timestamp[10:]
-            ), "Timestamp should include timezone offset"
+        # Pydantic validates ISO 8601 basic format
+        assert "T" in response.timestamp
+        assert "+" in response.timestamp or "-" in response.timestamp[10:]
 
     @allure.id("2681")
     @allure.title("POST /api/time/timestamp")
     @pytest.mark.api
     @pytest.mark.frontend
-    def test_api_time_timestamp_post(self, api_session, web_base_url):
+    def test_api_time_timestamp_post(self, system_api: SystemAPI):
         """Test POST /api/time/timestamp endpoint"""
-
         test_timestamp = "2025-06-15T12:30:45"
 
-        with allure.step(f"Set timestamp to: {test_timestamp}"):
-            response = api_post(
-                api_session, web_base_url, "/api/time/timestamp",
-                params={"timestamp": test_timestamp}
-            )
+        response = system_api.set_timestamp(test_timestamp)
 
-        with allure.step("Verify response status"):
-            response.assert_ok()
-            response.assert_has_fields("result").attach_to_allure("Timestamp Set Response")
+        assert response.result
 
     @allure.id("2682")
     @allure.title("POST /api/time/timestamp (invalid)")
     @pytest.mark.api
     @pytest.mark.frontend
-    @pytest.mark.parametrize("invalid_ts", [
-        "not-a-timestamp",
-        "2025/06/15 12:30:45",
-        "12:30:45",
-        "",
-    ])
-    def test_api_time_timestamp_post_invalid(self, api_session, web_base_url, invalid_ts):
+    @pytest.mark.parametrize(
+        "invalid_ts",
+        [
+            "not-a-timestamp",
+            "2025/06/15 12:30:45",
+            "12:30:45",
+            "",
+        ],
+    )
+    def test_api_time_timestamp_post_invalid(
+        self, system_api: SystemAPI, invalid_ts
+    ):
         """Test POST /api/time/timestamp endpoint with invalid format"""
-
         with allure.step(f"Test invalid timestamp: {invalid_ts}"):
-            response = api_post(
-                api_session, web_base_url, "/api/time/timestamp",
-                params={"timestamp": invalid_ts}
-            )
-            response.assert_bad_request()
+            response = system_api.set_timestamp_raw(invalid_ts)
+            assert response.status_code == 400
 
     @allure.id("2683")
     @allure.title("POST /api/time/timezone")
     @pytest.mark.api
     @pytest.mark.frontend
-    @pytest.mark.parametrize("test_tz", [
-        "+00:00",
-        "-05:00",
-        "+09:30",
-        "-12:00",
-    ])
-    def test_api_time_timezone_post(self, api_session, web_base_url, test_tz):
+    @pytest.mark.parametrize(
+        "test_tz",
+        [
+            "+00:00",
+            "-05:00",
+            "+09:30",
+            "-12:00",
+        ],
+    )
+    def test_api_time_timezone_post(self, system_api: SystemAPI, test_tz):
         """Test POST /api/time/timezone endpoint"""
+        response = system_api.set_timezone(test_tz)
 
-        with allure.step(f"Set timezone to: {test_tz}"):
-            response = api_post(
-                api_session, web_base_url, "/api/time/timezone",
-                params={"timezone": test_tz}
-            )
-
-        with allure.step("Verify response status"):
-            response.assert_ok()
-            response.assert_has_fields("result").attach_to_allure("Timezone Set Response")
+        assert response.result
 
     @allure.id("2684")
     @allure.title("POST /api/time/timezone (invalid)")
     @pytest.mark.api
     @pytest.mark.frontend
-    @pytest.mark.parametrize("invalid_tz", [
-        "invalid",
-        "+25:00",
-        "-15:00",
-        "",
-    ])
-    def test_api_time_timezone_post_invalid(self, api_session, web_base_url, invalid_tz):
+    @pytest.mark.parametrize(
+        "invalid_tz",
+        [
+            "invalid",
+            "+25:00",
+            "-15:00",
+            "",
+        ],
+    )
+    def test_api_time_timezone_post_invalid(
+        self, system_api: SystemAPI, invalid_tz
+    ):
         """Test POST /api/time/timezone endpoint with invalid format"""
-
         with allure.step(f"Test invalid timezone: {invalid_tz}"):
-            response = api_post(
-                api_session, web_base_url, "/api/time/timezone",
-                params={"timezone": invalid_tz}
-            )
-            response.assert_bad_request()
+            response = system_api.set_timezone_raw(invalid_tz)
+            assert response.status_code == 400

@@ -4,8 +4,6 @@ import allure
 import pytest
 from bs4 import BeautifulSoup
 
-from utils import api_get, attach_text
-
 
 @allure.feature("5. Web Frontend")
 @allure.story("Basic connectivity")
@@ -237,9 +235,10 @@ class TestWebFrontendErrorHandling:
                 response_time < 5.0
             ), f"Response too slow for {endpoint}: {response_time:.2f}s"
 
-            attach_text(
+            allure.attach(
                 f"Endpoint: {endpoint}\nStatus: {response.status_code}\nTime: {response_time:.3f}s",
-                "Response Info"
+                name="Response Info",
+                attachment_type=allure.attachment_type.TEXT
             )
 
 
@@ -281,4 +280,4 @@ class TestWebFrontendIntegration:
             Version API: {api_response.status_code}
             OpenAPI spec: {spec_response.status_code}
             """
-            attach_text(summary, "Stack Status Summary")
+            allure.attach(summary, name="Stack Status Summary", attachment_type=allure.attachment_type.TEXT)

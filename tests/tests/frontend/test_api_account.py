@@ -1,14 +1,9 @@
+import json
+
 import allure
 import pytest
 
-from utils import (
-    api_get,
-    api_post,
-    api_delete,
-    attach_json,
-    assert_field_in,
-    assert_field_type,
-)
+from api import AccountAPI
 
 
 @allure.feature("5. Web Frontend")
@@ -20,25 +15,18 @@ class TestAccountInfoAPI:
     @allure.title("GET /api/account/info")
     @pytest.mark.api
     @pytest.mark.frontend
-    def test_api_account_info_get(self, api_session, web_base_url):
+    def test_api_account_info_get(self, account_api: AccountAPI):
         """Test GET /api/account/info endpoint"""
+        response = account_api.get_info()
 
-        with allure.step("Make GET request to /api/account/info"):
-            response = api_get(api_session, web_base_url, "/api/account/info")
+        # linked field validated by pydantic as bool
+        assert isinstance(response.linked, bool)
 
-        with allure.step("Verify response status and structure"):
-            response.assert_ok().assert_json_content_type()
-            response.assert_has_fields("linked").attach_to_allure("Account Info Response")
-
-            data = response.json()
-            assert_field_type(data, "linked", bool)
-
-            # If linked, additional fields should be present
-            if data["linked"]:
-                response.assert_has_fields("id", "email", "user_id")
-                assert_field_type(data, "id", str)
-                assert_field_type(data, "email", str)
-                assert_field_type(data, "user_id", str)
+        # If linked, additional fields should be present
+        if response.linked:
+            assert response.id
+            assert response.email
+            assert response.user_id
 
 
 @allure.feature("5. Web Frontend")
@@ -50,19 +38,11 @@ class TestAccountStatusAPI:
     @allure.title("GET /api/account/status")
     @pytest.mark.api
     @pytest.mark.frontend
-    def test_api_account_status_get(self, api_session, web_base_url):
+    def test_api_account_status_get(self, account_api: AccountAPI):
         """Test GET /api/account/status endpoint"""
+        response = account_api.get_status()
 
-        with allure.step("Make GET request to /api/account/status"):
-            response = api_get(api_session, web_base_url, "/api/account/status")
-
-        with allure.step("Verify response status and structure"):
-            response.assert_ok().assert_json_content_type()
-            response.assert_has_fields("status").attach_to_allure("Account Status Response")
-
-            # Validate state enum per OpenAPI spec
-            data = response.json()
-            assert_field_in(data, "status", ["error", "disconnected", "connected"])
+        assert response.status in ["error", "disconnected", "connected"]
 
 
 @allure.feature("5. Web Frontend")
@@ -74,126 +54,76 @@ class TestAccountProfileAPI:
     @allure.title("GET /api/account/profile")
     @pytest.mark.api
     @pytest.mark.frontend
-    def test_api_account_profile_get(self, api_session, web_base_url):
+    def test_api_account_profile_get(self, account_api: AccountAPI):
         """Test GET /api/account/profile endpoint"""
+        response = account_api.get_profile()
 
-        with allure.step("Make GET request to /api/account/profile"):
-            response = api_get(api_session, web_base_url, "/api/account/profile")
+        assert response.profile in ["dev", "prod", "local", "custom"]
 
-        with allure.step("Verify response status and structure"):
-            response.assert_ok().assert_json_content_type()
-            response.assert_has_fields("state").attach_to_allure("Account Profile Response")
-
-            # Validate profile enum per OpenAPI spec
-            data = response.json()
-            assert_field_in(data, "state", ["dev", "prod", "local", "custom"])
-
-            # If custom, should have custom_url
-            if data["state"] == "custom":
-                response.assert_has_fields("custom_url")
+        if response.profile == "custom":
+            assert response.custom_url
 
     @allure.id("3487")
     @allure.title("POST /api/account/profile")
     @pytest.mark.api
     @pytest.mark.frontend
     @pytest.mark.parametrize("profile", ["dev", "prod"])
-    def test_api_account_profile_post(self, api_session, web_base_url, profile):
+    def test_api_account_profile_post(self, account_api: AccountAPI, profile):
         """Test POST /api/account/profile endpoint"""
-
         with allure.step("Get current profile to restore later"):
-            get_response = api_get(api_session, web_base_url, "/api/account/profile")
-            original_profile = None
-            original_custom_url = None
-            if get_response.status_code == 200:
-                original_data = get_response.json()
-                original_profile = original_data.get("state")
-                original_custom_url = original_data.get("custom_url")
-                attach_json(original_data, "Original Profile")
-
-        with allure.step(f"Set profile to: {profile}"):
-            response = api_post(
-                api_session, web_base_url, "/api/account/profile",
-                params={"profile": profile}
+            original = account_api.get_profile()
+            allure.attach(
+                json.dumps({"profile": original.profile, "custom_url": original.custom_url}, indent=2),
+                name="Original Profile",
+                attachment_type=allure.attachment_type.JSON
             )
 
-        with allure.step("Verify response status"):
-            response.assert_ok()
-            response.assert_has_fields("result").attach_to_allure("Profile Set Response")
+        response = account_api.set_profile(profile)
+        assert response.result
 
         with allure.step("Verify profile was updated"):
-            verify_response = api_get(api_session, web_base_url, "/api/account/profile")
-            verify_response.assert_ok()
-            verify_data = verify_response.json()
-            assert verify_data["state"] == profile, f"Expected profile '{profile}', got '{verify_data['state']}'"
+            verify = account_api.get_profile()
+            assert verify.profile == profile
 
         # Restore original profile
-        if original_profile and original_profile != profile:
-            with allure.step(f"Restore original profile: {original_profile}"):
-                params = {"profile": original_profile}
-                if original_profile == "custom" and original_custom_url:
-                    params["custom_url"] = original_custom_url
-                api_post(api_session, web_base_url, "/api/account/profile", params=params)
+        if original.profile != profile:
+            with allure.step(f"Restore original profile: {original.profile}"):
+                account_api.set_profile(original.profile, original.custom_url)
 
     @allure.id("3487")
     @allure.title("POST /api/account/profile (custom)")
     @pytest.mark.api
     @pytest.mark.frontend
-    def test_api_account_profile_post_custom(self, api_session, web_base_url):
+    def test_api_account_profile_post_custom(self, account_api: AccountAPI):
         """Test POST /api/account/profile endpoint with custom URL"""
-
         custom_url = "mqtts://mqtt.example.com:8883"
 
         with allure.step("Get current profile to restore later"):
-            get_response = api_get(api_session, web_base_url, "/api/account/profile")
-            original_profile = None
-            original_custom_url = None
-            if get_response.status_code == 200:
-                original_data = get_response.json()
-                original_profile = original_data.get("state")
-                original_custom_url = original_data.get("custom_url")
+            original = account_api.get_profile()
 
-        with allure.step(f"Set custom profile with URL: {custom_url}"):
-            response = api_post(
-                api_session, web_base_url, "/api/account/profile",
-                params={"profile": "custom", "custom_url": custom_url}
-            )
-
-        with allure.step("Verify response status"):
-            response.assert_ok()
-            response.assert_has_fields("result").attach_to_allure("Custom Profile Set Response")
+        response = account_api.set_profile("custom", custom_url)
+        assert response.result
 
         with allure.step("Verify custom profile was set"):
-            verify_response = api_get(api_session, web_base_url, "/api/account/profile")
-            verify_response.assert_ok()
-            verify_data = verify_response.json()
-            assert verify_data["state"] == "custom", f"Expected profile 'custom', got '{verify_data['state']}'"
-            assert verify_data.get("custom_url") == custom_url, f"Expected custom_url '{custom_url}'"
+            verify = account_api.get_profile()
+            assert verify.profile == "custom"
+            assert verify.custom_url == custom_url
 
         # Restore original profile
-        if original_profile:
-            with allure.step(f"Restore original profile: {original_profile}"):
-                params = {"profile": original_profile}
-                if original_profile == "custom" and original_custom_url:
-                    params["custom_url"] = original_custom_url
-                api_post(api_session, web_base_url, "/api/account/profile", params=params)
+        if original.profile:
+            with allure.step(f"Restore original profile: {original.profile}"):
+                account_api.set_profile(original.profile, original.custom_url)
 
     @allure.id("3486")
     @allure.title("POST /api/account/profile (invalid)")
     @pytest.mark.api
     @pytest.mark.frontend
     @pytest.mark.parametrize("profile", ["invalid", "", "production", "development"])
-    def test_api_account_profile_post_invalid(self, api_session, web_base_url, profile):
+    def test_api_account_profile_post_invalid(self, account_api: AccountAPI, profile):
         """Test POST /api/account/profile endpoint with invalid profile"""
+        response = account_api.set_profile_raw(profile)
 
-        with allure.step(f"Set invalid profile: {profile!r}"):
-            response = api_post(
-                api_session, web_base_url, "/api/account/profile",
-                params={"profile": profile}
-            )
-
-        with allure.step("Verify error response"):
-            response.assert_bad_request()
-            response.attach_to_allure("Invalid Profile Error Response")
+        assert response.status_code == 400
 
 
 @allure.feature("5. Web Frontend")
@@ -205,46 +135,28 @@ class TestAccountLinkAPI:
     @allure.title("POST /api/account/link")
     @pytest.mark.api
     @pytest.mark.frontend
-    def test_api_account_link_post(self, api_session, web_base_url):
+    def test_api_account_link_post(self, account_api: AccountAPI):
         """Test POST /api/account/link endpoint"""
-
         with allure.step("Check account info before linking"):
-            info_response = api_get(api_session, web_base_url, "/api/account/info")
-            info_response.assert_ok()
+            info = account_api.get_info()
+            allure.attach(json.dumps({"linked": info.linked}, indent=2), name="Account Info Before Link", attachment_type=allure.attachment_type.JSON)
 
-            info_data = info_response.json()
-            attach_json(info_data, "Account Info Before Link")
-
-            if info_data.get("linked"):
-                pytest.skip("Account is already linked, skipping link test")
+            if info.linked:
+                pytest.skip("Account is already linked")
 
         with allure.step("Check MQTT status before linking"):
-            status_response = api_get(api_session, web_base_url, "/api/account/status")
-            status_response.assert_ok()
+            status = account_api.get_status()
+            allure.attach(json.dumps({"status": status.status}, indent=2), name="MQTT Status Before Link", attachment_type=allure.attachment_type.JSON)
 
-            status_data = status_response.json()
-            mqtt_state = status_data.get("status", "unknown")
-            attach_json(status_data, "MQTT Status Before Link")
+            if status.status != "connected":
+                pytest.skip(f"MQTT is not connected (state: {status.status})")
 
-            if mqtt_state != "connected":
-                pytest.skip(f"MQTT is not connected (state: {mqtt_state}), skipping link test")
+        response = account_api.link()
 
-        with allure.step("Request account linking PIN"):
-            response = api_post(api_session, web_base_url, "/api/account/link")
-
-        with allure.step("Verify response status and structure"):
-            response.assert_ok()
-            response.assert_has_fields("code", "expires_at").attach_to_allure("Account Link Response")
-
-            data = response.json()
-            assert_field_type(data, "code", str)
-            assert_field_type(data, "expires_at", int)
-
-            # Code should be non-empty
-            assert len(data["code"]) > 0, "Link code should not be empty"
-
-            # expires_at should be a reasonable Unix timestamp (after year 2020)
-            assert data["expires_at"] > 1577836800, "expires_at should be a valid Unix timestamp"
+        # Validated by pydantic
+        assert response.code
+        assert len(response.code) > 0
+        assert response.expires_at > 1577836800  # After year 2020
 
 
 @allure.feature("5. Web Frontend")
@@ -257,18 +169,11 @@ class TestAccountUnlinkAPI:
     @pytest.mark.api
     @pytest.mark.frontend
     @pytest.mark.skip(reason="Destructive test - unlinks account")
-    def test_api_account_delete(self, api_session, web_base_url):
+    def test_api_account_delete(self, account_api: AccountAPI):
         """Test DELETE /api/account endpoint (unlink)"""
-
-        with allure.step("Unlink account"):
-            response = api_delete(api_session, web_base_url, "/api/account")
-
-        with allure.step("Verify response status"):
-            response.assert_ok()
-            response.assert_has_fields("result").attach_to_allure("Account Unlink Response")
+        response = account_api.unlink()
+        assert response.result
 
         with allure.step("Verify account is unlinked"):
-            verify_response = api_get(api_session, web_base_url, "/api/account/info")
-            verify_response.assert_ok()
-            verify_data = verify_response.json()
-            assert verify_data["linked"] is False, "Account should be unlinked"
+            verify = account_api.get_info()
+            assert verify.linked is False

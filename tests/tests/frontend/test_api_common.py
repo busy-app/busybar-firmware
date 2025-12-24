@@ -4,11 +4,11 @@ import threading
 import allure
 import pytest
 
-from utils import api_get, api_post
+from api import BaseAPI, InputAPI, SettingsAPI, StorageAPI, StreamingAPI
 
 
 @allure.feature("5. Web Frontend")
-@allure.story("Local API - Common")
+@allure.story("Common")
 class TestAPIErrorHandling:
     """Test cases for API error handling and edge cases"""
 
@@ -18,6 +18,7 @@ class TestAPIErrorHandling:
     @pytest.mark.frontend
     def test_api_endpoints_404(self, api_session, web_base_url):
         """Test that non-existent API endpoints return 404"""
+        api = BaseAPI(api_session, web_base_url)
 
         invalid_endpoints = [
             "/api/nonexistent",
@@ -28,54 +29,50 @@ class TestAPIErrorHandling:
 
         for endpoint in invalid_endpoints:
             with allure.step(f"Test invalid endpoint: {endpoint}"):
-                response = api_get(api_session, web_base_url, endpoint)
-                response.assert_not_found()
+                response = api.get_raw(endpoint)
+                assert response.status_code == 404
 
     @allure.id("2673")
     @allure.title("API endpoints (missing required parameters)")
     @pytest.mark.api
     @pytest.mark.frontend
-    def test_api_missing_required_parameters(self, api_session, web_base_url):
+    def test_api_missing_required_parameters(
+        self, storage_api: StorageAPI, input_api: InputAPI, streaming_api: StreamingAPI
+    ):
         """Test API endpoints with missing required parameters"""
+        with allure.step("Test missing path for /api/storage/list"):
+            # storage_api.list requires path parameter
+            response = storage_api.get_raw("/api/storage/list")
+            assert response.status_code == 400
 
-        test_cases = [
-            ("GET", "/api/storage/list", {}),
-            ("POST", "/api/input", {}),
-            ("GET", "/api/screen", {}),
-        ]
+        with allure.step("Test missing key for /api/input"):
+            response = input_api.post_raw("/api/input")
+            assert response.status_code == 400
 
-        for method, endpoint, params in test_cases:
-            with allure.step(f"Test missing parameters for {endpoint}"):
-                if method == "POST":
-                    response = api_post(api_session, web_base_url, endpoint, params=params)
-                else:
-                    response = api_get(api_session, web_base_url, endpoint, params=params)
-
-                response.assert_bad_request()
+        with allure.step("Test missing display for /api/screen"):
+            response = streaming_api.get_raw("/api/screen")
+            assert response.status_code == 400
 
     @allure.id("2674")
     @allure.title("API endpoints (invalid parameter values)")
     @pytest.mark.api
     @pytest.mark.frontend
-    def test_api_invalid_parameter_values(self, api_session, web_base_url):
+    def test_api_invalid_parameter_values(
+        self, input_api: InputAPI, streaming_api: StreamingAPI, settings_api: SettingsAPI
+    ):
         """Test API endpoints with invalid parameter values"""
-
         test_cases = [
-            ("POST", "/api/input", {"key": "invalid_key_name"}),
-            ("GET", "/api/screen", {"display": "invalid"}),
-            ("GET", "/api/screen", {"display": -1}),
-            ("POST", "/api/audio/volume", {"volume": -50}),
-            ("POST", "/api/audio/volume", {"volume": 150}),
+            ("input invalid key", lambda: input_api.send_key("invalid_key_name")),
+            ("screen invalid string", lambda: streaming_api.get_screen(display="invalid")),
+            ("screen negative", lambda: streaming_api.get_screen(display=-1)),
+            ("volume negative", lambda: settings_api.set_volume_raw(-50)),
+            ("volume over max", lambda: settings_api.set_volume_raw(150)),
         ]
 
-        for method, endpoint, params in test_cases:
-            with allure.step(f"Test invalid parameters for {endpoint}"):
-                if method == "POST":
-                    response = api_post(api_session, web_base_url, endpoint, params=params)
-                else:
-                    response = api_get(api_session, web_base_url, endpoint, params=params)
-
-                response.assert_bad_request()
+        for name, test_func in test_cases:
+            with allure.step(f"Test invalid parameters: {name}"):
+                response = test_func()
+                assert response.status_code == 400
 
     @allure.id("2708")
     @allure.title("GET /api/version (concurrent requests)")
@@ -83,7 +80,6 @@ class TestAPIErrorHandling:
     @pytest.mark.frontend
     def test_api_concurrent_requests(self, api_session, web_base_url):
         """Test API behavior under concurrent requests"""
-
         results = queue.Queue()
 
         def make_request():
@@ -110,13 +106,13 @@ class TestAPIErrorHandling:
                 response_codes.append(result)
 
             success_count = sum(1 for code in response_codes if code == 200)
-            assert (
-                success_count >= 3
-            ), f"Expected at least 3 successful requests, got {success_count} out of {len(response_codes)}"
+            assert success_count >= 3, (
+                f"Expected at least 3 successful requests, got {success_count}"
+            )
 
 
 @allure.feature("5. Web Frontend")
-@allure.story("Local API - Common")
+@allure.story("Common")
 class TestAPIAuthentication:
     """Test cases for API authentication (when implemented)"""
 
@@ -127,7 +123,6 @@ class TestAPIAuthentication:
     @pytest.mark.skip(reason="Authentication not implemented yet")
     def test_api_without_auth_token(self, api_session, web_base_url):
         """Test API access without authentication token"""
-
         headers = api_session.headers.copy()
         if "X-API-Token" in headers:
             del headers["X-API-Token"]
@@ -137,10 +132,7 @@ class TestAPIAuthentication:
                 f"{web_base_url}/api/status", headers=headers, timeout=10
             )
 
-        with allure.step("Verify authentication required"):
-            assert (
-                response.status_code == 401
-            ), f"Expected 401 Unauthorized, got {response.status_code}"
+        assert response.status_code == 401
 
     @allure.id("2710")
     @allure.title("GET /api/status (invalid auth token)")
@@ -149,7 +141,6 @@ class TestAPIAuthentication:
     @pytest.mark.skip(reason="Authentication not implemented yet")
     def test_api_with_invalid_auth_token(self, api_session, web_base_url):
         """Test API access with invalid authentication token"""
-
         headers = api_session.headers.copy()
         headers["X-API-Token"] = "invalid-token"
 
@@ -158,10 +149,7 @@ class TestAPIAuthentication:
                 f"{web_base_url}/api/status", headers=headers, timeout=10
             )
 
-        with allure.step("Verify invalid token rejection"):
-            assert (
-                response.status_code == 403
-            ), f"Expected 403 Forbidden, got {response.status_code}"
+        assert response.status_code == 403
 
     @allure.id("2711")
     @allure.title("GET /api/status (valid auth token)")
@@ -170,11 +158,7 @@ class TestAPIAuthentication:
     @pytest.mark.skip(reason="Authentication not implemented yet")
     def test_api_with_valid_auth_token(self, api_auth_session, web_base_url):
         """Test API access with valid authentication token"""
-
         with allure.step("Access protected endpoint with valid auth"):
             response = api_auth_session.get(f"{web_base_url}/api/status", timeout=10)
 
-        with allure.step("Verify successful access"):
-            assert (
-                response.status_code == 200
-            ), f"Expected 200 with valid auth, got {response.status_code}"
+        assert response.status_code == 200

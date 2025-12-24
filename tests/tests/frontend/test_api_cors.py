@@ -1,7 +1,7 @@
 import allure
 import pytest
 
-from utils import api_options
+from api import BaseAPI
 
 
 # All API endpoints from OpenAPI spec
@@ -68,20 +68,17 @@ class TestAPICors:
 
         CORS preflight requests are sent by browsers before making cross-origin
         requests. The server should respond with appropriate CORS headers.
-
         """
+        api = BaseAPI(api_session, web_base_url)
+
         with allure.step(f"Send OPTIONS request to {endpoint}"):
-            # Simulate a CORS preflight request with Origin header
             headers = {
                 "Origin": "http://busybar.local",
                 "Access-Control-Request-Method": "GET",
             }
-            response = api_options(
-                api_session, web_base_url, endpoint, headers=headers
-            )
+            response = api.options(endpoint, headers=headers)
 
         with allure.step("Verify OPTIONS response is successful"):
-            # OPTIONS should return 200 or 204 (No Content)
             assert response.status_code in [200, 204], (
                 f"OPTIONS {endpoint} failed with status {response.status_code}. "
                 f"Expected 200 or 204 for CORS preflight."
@@ -97,6 +94,7 @@ class TestAPICors:
 
         This is a regression test for the bug where OPTIONS /api/name fails.
         """
+        api = BaseAPI(api_session, web_base_url)
         endpoint = "/api/name"
 
         with allure.step("Send OPTIONS preflight request"):
@@ -105,23 +103,18 @@ class TestAPICors:
                 "Access-Control-Request-Method": "GET",
                 "Access-Control-Request-Headers": "Content-Type",
             }
-            response = api_options(
-                api_session, web_base_url, endpoint, headers=headers
-            )
-            response.attach_to_allure("OPTIONS Response")
+            response = api.options(endpoint, headers=headers)
 
         with allure.step("Verify OPTIONS response is successful"):
             assert response.status_code in [200, 204], (
                 f"OPTIONS {endpoint} failed with status {response.status_code}. "
-                f"Expected 200 or 204 for CORS preflight. "
-                f"Response: {response.text()}"
+                f"Expected 200 or 204 for CORS preflight."
             )
 
         with allure.step("Check CORS headers are present"):
-            headers = response.headers
-            # Log all headers for debugging
+            resp_headers = response.headers
             allure.attach(
-                "\n".join(f"{k}: {v}" for k, v in headers.items()),
+                "\n".join(f"{k}: {v}" for k, v in resp_headers.items()),
                 name="Response Headers",
                 attachment_type=allure.attachment_type.TEXT,
             )

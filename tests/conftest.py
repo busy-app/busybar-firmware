@@ -426,7 +426,6 @@ def pytest_runtest_setup(item):
     """Test setup"""
     logger.info(f"Setting up: {item.name}")
 
-    # Add allure labels from markers
     for marker in item.iter_markers():
         if marker.name.startswith("story_"):
             story = marker.name.replace("story_", "").replace("_", " ").title()
@@ -439,4 +438,83 @@ def pytest_runtest_setup(item):
 def pytest_runtest_teardown(item, nextitem):
     """Test teardown"""
     logger.info(f"Test completed: {item.name}")
+
+@pytest.fixture
+def system_api(api_session, web_base_url):
+    """System API client fixture."""
+    from api import SystemAPI
+
+    return SystemAPI(api_session, web_base_url)
+
+
+@pytest.fixture
+def wifi_api(api_session, web_base_url):
+    """WiFi API client fixture."""
+    from api import WifiAPI
+
+    return WifiAPI(api_session, web_base_url)
+
+
+@pytest.fixture
+def storage_api(api_session, web_base_url):
+    """Storage API client fixture."""
+    from api import StorageAPI
+
+    return StorageAPI(api_session, web_base_url)
+
+
+@pytest.fixture
+def assets_api(api_session, web_base_url):
+    """Assets/Display/Audio API client fixture."""
+    from api import AssetsAPI
+
+    return AssetsAPI(api_session, web_base_url)
+
+
+@pytest.fixture
+def account_api(api_session, web_base_url):
+    """Account API client fixture."""
+    from api import AccountAPI
+
+    return AccountAPI(api_session, web_base_url)
+
+
+@pytest.fixture
+def ble_api(api_session, web_base_url):
+    """BLE API client fixture."""
+    from api import BleAPI
+
+    return BleAPI(api_session, web_base_url)
+
+
+@pytest.fixture
+def settings_api(api_session, web_base_url):
+    """Settings API client fixture."""
+    from api import SettingsAPI
+
+    return SettingsAPI(api_session, web_base_url)
+
+
+@pytest.fixture
+def input_api(api_session, web_base_url):
+    """Input API client fixture."""
+    from api import InputAPI
+
+    return InputAPI(api_session, web_base_url)
+
+
+@pytest.fixture
+def streaming_api(api_session, web_base_url):
+    """Streaming API client fixture."""
+    from api import StreamingAPI
+
+    return StreamingAPI(api_session, web_base_url)
+
+
+@pytest.fixture
+def update_api(api_session, web_base_url):
+    """Update API client fixture."""
+    from api import UpdateAPI
+
+    return UpdateAPI(api_session, web_base_url)
 

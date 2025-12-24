@@ -1,7 +1,7 @@
 import allure
 import pytest
 
-from utils import api_post, attach_json, assert_has_fields
+from api import InputAPI
 
 
 @allure.feature("5. Web Frontend")
@@ -13,39 +13,22 @@ class TestInputAPI:
     @allure.title("POST /api/input (key events)")
     @pytest.mark.api
     @pytest.mark.frontend
-    def test_api_input_key_post(self, api_session, web_base_url):
+    def test_api_input_key_post(self, input_api: InputAPI):
         """Test POST /api/input endpoint for key events"""
-
-        valid_keys = [
-            "up", "down", "ok", "back", "start",
-            "busy", "off", "custom", "apps", "settings",
-        ]
-
-        for key in valid_keys:
+        for key in InputAPI.VALID_KEYS:
             with allure.step(f"Send key event: {key}"):
-                response = api_post(
-                    api_session, web_base_url, "/api/input",
-                    params={"key": key}
-                )
-                response.assert_ok()
-                response.attach_to_allure(f"Input {key} Response")
+                response = input_api.send_key(key)
+                assert response.status_code == 200
 
     @allure.id("2666")
     @allure.title("POST /api/input (invalid key)")
     @pytest.mark.api
     @pytest.mark.frontend
-    def test_api_input_invalid_key(self, api_session, web_base_url):
+    def test_api_input_invalid_key(self, input_api: InputAPI):
         """Test POST /api/input endpoint with invalid key"""
+        response = input_api.send_key("invalid_key")
 
-        with allure.step("Send invalid key event"):
-            response = api_post(
-                api_session, web_base_url, "/api/input",
-                params={"key": "invalid_key"}
-            )
+        assert response.status_code == 400
 
-        with allure.step("Verify invalid key response"):
-            response.assert_bad_request()
-
-            data = response.json()
-            response.attach_to_allure("Invalid Key Error Response")
-            assert_has_fields(data, "error")
+        data = response.json()
+        assert "error" in data
