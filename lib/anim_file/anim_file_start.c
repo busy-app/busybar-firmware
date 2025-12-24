@@ -4,7 +4,11 @@
 
 #include "anim_file_i.h"
 
-bool anim_file_compute_start(AnimFile* anim, AnimFilePlayFlag flags, size_t start_frame, size_t end_frame) {
+bool anim_file_compute_start(
+    AnimFile* anim,
+    AnimFilePlayFlag flags,
+    size_t start_frame,
+    size_t end_frame) {
     furi_assert(anim);
 
     const AnimFileHeader* header = &anim->meta.header;
@@ -18,7 +22,8 @@ bool anim_file_compute_start(AnimFile* anim, AnimFilePlayFlag flags, size_t star
     AnimFileFrameHeader frame_hdr;
 
     while(size) {
-        if(storage_file_read(anim->file, &frame_hdr, sizeof(frame_hdr)) != sizeof(frame_hdr)) return false;
+        if(storage_file_read(anim->file, &frame_hdr, sizeof(frame_hdr)) != sizeof(frame_hdr))
+            return false;
 
         size_t first_disp_frame = disp_frame_idx;
         size_t last_disp_frame = disp_frame_idx + frame_hdr.duration - 1;
@@ -46,7 +51,10 @@ bool anim_file_compute_start(AnimFile* anim, AnimFilePlayFlag flags, size_t star
     return true;
 }
 
-void anim_file_set_precomputed_start(AnimFile* anim, AnimFilePlayFlag flags, const AnimFileSection* section) {
+void anim_file_set_precomputed_start(
+    AnimFile* anim,
+    AnimFilePlayFlag flags,
+    const AnimFileSection* section) {
     furi_assert(section);
 
     anim->pending_range = (AnimFileRange){

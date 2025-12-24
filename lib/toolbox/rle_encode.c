@@ -131,7 +131,6 @@ bool rle_decompress(
     size_t dest_len,
     size_t blk_size,
     size_t* result_len) {
-    
     size_t dest_i = 0;
     for(size_t src_i = 0; src_i < src_len;) {
         uint8_t opcode = src[src_i++];

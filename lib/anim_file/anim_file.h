@@ -52,7 +52,8 @@ AnimFileInfo anim_file_info(const AnimFile* anim);
  * @brief Flags related to a just-shown frame
  */
 typedef enum {
-    AnimFileFrameFlagError = (1 << 0), //<! Operation failed. Enable `ANIM_FILE_DETAILED_ERRORS` and look in the logs.
+    AnimFileFrameFlagError =
+        (1 << 0), //<! Operation failed. Enable `ANIM_FILE_DETAILED_ERRORS` and look in the logs.
     AnimFileFrameFlagLast = (1 << 1), //<! The frame is the last one in the section
     AnimFileFrameFlagFinished = (1 << 2), //<! No more sections to play and looping disabled
     AnimFileFrameFlagLooping = (1 << 3), //<! Looping the active section
@@ -77,7 +78,8 @@ AnimFileFrameFlag anim_file_frame(AnimFile* anim, void* buffer);
  */
 typedef enum {
     AnimFilePlayFlagNone = 0,
-    AnimFilePlayFlagFinishCurrentSection = (1 << 0), //<! Finish playing current section, then switch to requested one
+    AnimFilePlayFlagFinishCurrentSection =
+        (1 << 0), //<! Finish playing current section, then switch to requested one
     AnimFilePlayFlagLoop = (1 << 1), //<! Play requested section in a loop
 } AnimFilePlayFlag;
 

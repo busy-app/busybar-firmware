@@ -63,7 +63,7 @@ const char* anim_test_prepare_file(AnimTestFile type) {
         size_t size;
     } TestArray;
 
-    #define TEST_FILE_DEF(name) [AnimTestFile_##name] = { test_file_##name, COUNT_OF(test_file_##name) }
+#define TEST_FILE_DEF(name) [AnimTestFile_##name] = {test_file_##name, COUNT_OF(test_file_##name)}
     static const TestArray arrays[] = {
         TEST_FILE_DEF(Color_Ramp_1x1x4),
         TEST_FILE_DEF(Color_ComplexDuration_2x2x10),
@@ -71,7 +71,7 @@ const char* anim_test_prepare_file(AnimTestFile type) {
         TEST_FILE_DEF(Gray_RLE_Ramp_10x10x10),
     };
     TestArray array = arrays[type];
-    #undef TEST_FILE_DEF
+#undef TEST_FILE_DEF
 
     storage_file_write(file, array.data, array.size);
 
@@ -106,14 +106,21 @@ MU_TEST(anim_test_play_whole_oneshot) {
             mu_assert_int_eq(expected, buffer[1]);
             mu_assert_int_eq(expected, buffer[2]);
 
-            AnimFileFrameFlag exp_flags = (j >= 3) ? (AnimFileFrameFlagLast | AnimFileFrameFlagFinished) : 0;
+            AnimFileFrameFlag exp_flags =
+                (j >= 3) ? (AnimFileFrameFlagLast | AnimFileFrameFlagFinished) : 0;
             mu_assert_int_eq(exp_flags, flags);
         }
 
         if(i % 2 == 0) {
-            mu_assert_int_eq(1, anim_file_set_section_indexed(anim, AnimFilePlayFlagNone, ANIM_FILE_WHOLE_SECTION_INDEX));
+            mu_assert_int_eq(
+                1,
+                anim_file_set_section_indexed(
+                    anim, AnimFilePlayFlagNone, ANIM_FILE_WHOLE_SECTION_INDEX));
         } else {
-            mu_assert_int_eq(1, anim_file_set_section_named(anim, AnimFilePlayFlagNone, ANIM_FILE_WHOLE_SECTION_NAME));
+            mu_assert_int_eq(
+                1,
+                anim_file_set_section_named(
+                    anim, AnimFilePlayFlagNone, ANIM_FILE_WHOLE_SECTION_NAME));
         }
     }
 
@@ -130,7 +137,9 @@ MU_TEST(anim_test_play_whole_loop) {
     Storage* storage = furi_record_open(RECORD_STORAGE);
     AnimFile* anim = anim_file_alloc(storage, path);
     mu_assert_not_null(anim);
-    mu_assert_int_eq(1, anim_file_set_section_indexed(anim, AnimFilePlayFlagLoop, ANIM_FILE_WHOLE_SECTION_INDEX));
+    mu_assert_int_eq(
+        1,
+        anim_file_set_section_indexed(anim, AnimFilePlayFlagLoop, ANIM_FILE_WHOLE_SECTION_INDEX));
 
     uint8_t buffer[3];
 
@@ -142,7 +151,8 @@ MU_TEST(anim_test_play_whole_loop) {
         mu_assert_int_eq(expected, buffer[1]);
         mu_assert_int_eq(expected, buffer[2]);
 
-        AnimFileFrameFlag exp_flags = ((j % 4) == 3) ? (AnimFileFrameFlagLast | AnimFileFrameFlagLooping) : 0;
+        AnimFileFrameFlag exp_flags =
+            ((j % 4) == 3) ? (AnimFileFrameFlagLast | AnimFileFrameFlagLooping) : 0;
         mu_assert_int_eq(exp_flags, flags);
     }
 
@@ -170,24 +180,26 @@ MU_TEST(anim_test_play_complex_oneshot) {
         } else if(i % 3 == 2) {
             mu_assert_int_eq(1, anim_file_set_section_indexed(anim, AnimFilePlayFlagNone, 1));
         }
-        #define FRAMES_IN_RANGE ((6u - 2u) + 1u) // 5
+#define FRAMES_IN_RANGE ((6u - 2u) + 1u) // 5
 
         for(size_t j = 0; j < 10; j++) {
             AnimFileFrameFlag flags = anim_file_frame(anim, buffer);
 
             for(size_t k = 0; k < 4; k++) {
-                const size_t bases[FRAMES_IN_RANGE] = { 1, 2, 2, 2, 3 };
+                const size_t bases[FRAMES_IN_RANGE] = {1, 2, 2, 2, 3};
                 size_t expected = bases[MIN(j, FRAMES_IN_RANGE - 1)] + k;
                 mu_assert_int_eq(expected, buffer[(k * 3) + 0]);
                 mu_assert_int_eq(expected, buffer[(k * 3) + 1]);
                 mu_assert_int_eq(expected, buffer[(k * 3) + 2]);
             }
 
-            AnimFileFrameFlag exp_flags = (j >= (FRAMES_IN_RANGE - 1)) ? (AnimFileFrameFlagLast | AnimFileFrameFlagFinished) : 0;
+            AnimFileFrameFlag exp_flags = (j >= (FRAMES_IN_RANGE - 1)) ?
+                                              (AnimFileFrameFlagLast | AnimFileFrameFlagFinished) :
+                                              0;
             mu_assert_int_eq(exp_flags, flags);
         }
 
-        #undef FRAMES_IN_RANGE
+#undef FRAMES_IN_RANGE
     }
 
     anim_file_free(anim);
@@ -205,8 +217,7 @@ MU_TEST(anim_test_play_complex_pend) {
     mu_assert_not_null(anim);
 
     const size_t bases[] = {
-        0, 1, 1, 2, 2, 2, 3, 3, 3, 3,
-        1, 2, 2, 2, 3, 3, 3, 3, 3, 3,
+        0, 1, 1, 2, 2, 2, 3, 3, 3, 3, 1, 2, 2, 2, 3, 3, 3, 3, 3, 3,
     };
     uint8_t buffer[12];
 
@@ -221,7 +232,8 @@ MU_TEST(anim_test_play_complex_pend) {
         }
 
         if(i == 1) {
-            mu_assert_int_eq(1, anim_file_set_section_named(anim, AnimFilePlayFlagFinishCurrentSection, "2-6"));
+            mu_assert_int_eq(
+                1, anim_file_set_section_named(anim, AnimFilePlayFlagFinishCurrentSection, "2-6"));
         }
 
         AnimFileFrameFlag exp_flags;
@@ -249,9 +261,7 @@ MU_TEST(anim_test_grayscale) {
     AnimFile* anim = anim_file_alloc(storage, path);
     mu_assert_not_null(anim);
 
-    const size_t bases[] = {
-        0x00, 0x10, 0x20, 0x30
-    };
+    const size_t bases[] = {0x00, 0x10, 0x20, 0x30};
     uint8_t buffer[12];
 
     for(size_t i = 0; i < COUNT_OF(bases); i++) {
@@ -264,7 +274,8 @@ MU_TEST(anim_test_grayscale) {
             mu_assert_int_eq(expected, buffer[(k * 3) + 2]);
         }
 
-        AnimFileFrameFlag exp_flags = (i >= 3) ? (AnimFileFrameFlagLast | AnimFileFrameFlagFinished) : 0;
+        AnimFileFrameFlag exp_flags =
+            (i >= 3) ? (AnimFileFrameFlagLast | AnimFileFrameFlagFinished) : 0;
         mu_assert_int_eq(exp_flags, flags);
     }
 
@@ -294,7 +305,8 @@ MU_TEST(anim_test_rle) {
             mu_assert_int_eq(expected, buffer[(k * 3) + 2]);
         }
 
-        AnimFileFrameFlag exp_flags = (i == 9) ? (AnimFileFrameFlagLast | AnimFileFrameFlagFinished) : 0;
+        AnimFileFrameFlag exp_flags =
+            (i == 9) ? (AnimFileFrameFlagLast | AnimFileFrameFlagFinished) : 0;
         mu_assert_int_eq(exp_flags, flags);
     }
 
@@ -307,7 +319,8 @@ MU_TEST(anim_test_rle) {
  */
 MU_TEST(anim_test_perf) {
     const size_t iterations = 10;
-    const char* path = "/ext/test.anim"; // TODO: /ext/apps_assets/power_on/back_power_on_160x80.anim
+    const char* path =
+        "/ext/test.anim"; // TODO: /ext/apps_assets/power_on/back_power_on_160x80.anim
 
     Storage* storage = furi_record_open(RECORD_STORAGE);
     AnimFile* anim = anim_file_alloc(storage, path);

@@ -33,18 +33,20 @@ AnimFile* anim_file_alloc(Storage* storage, const char* path) {
 
         AnimFile anim = {
             .file = file,
-            .meta = {
-                .info = {
-                    .fps = header.fps,
-                    .width = header.width,
-                    .height = header.height,
-                    .frames = frame_count,
+            .meta =
+                {
+                    .info =
+                        {
+                            .fps = header.fps,
+                            .width = header.width,
+                            .height = header.height,
+                            .frames = frame_count,
+                        },
+                    .color_format = header.color_format,
+                    .section_count = section_count,
+                    .sections = sections_chunk,
+                    .header = header,
                 },
-                .color_format = header.color_format,
-                .section_count = section_count,
-                .sections = sections_chunk,
-                .header = header,
-            },
         };
 
         if(header.max_encoded_length) {
@@ -52,7 +54,8 @@ AnimFile* anim_file_alloc(Storage* storage, const char* path) {
         }
         anim.playback.packed_buffer = malloc(anim_file_packed_length(&header));
 
-        if(!anim_file_set_section_indexed(&anim, AnimFilePlayFlagNone, ANIM_FILE_WHOLE_SECTION_INDEX)) {
+        if(!anim_file_set_section_indexed(
+               &anim, AnimFilePlayFlagNone, ANIM_FILE_WHOLE_SECTION_INDEX)) {
             ANIM_FILE_ERR("Failed to set section 0");
             break;
         }

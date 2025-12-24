@@ -26,7 +26,7 @@ AnimFileFrameFlag anim_file_frame_flags(const AnimFile* anim) {
     const AnimFileRange* active = &anim->active_range;
     const AnimFileRange* pending = &anim->pending_range;
     const AnimFilePlayback* playback = &anim->playback;
-    
+
     bool is_last_frame = playback->disp_frame_idx == active->end;
     if(is_last_frame) flags |= AnimFileFrameFlagLast;
 
@@ -89,7 +89,7 @@ bool anim_file_load_current_frame(AnimFile* anim) {
             ANIM_FILE_ERR("Failed to seek frame header");
             return false;
         }
-    
+
         size_t to_read = sizeof(*frame_hdr);
         if(storage_file_read(anim->file, frame_hdr, to_read) != to_read) {
             ANIM_FILE_ERR("Failed to read frame header");
@@ -118,7 +118,9 @@ bool anim_file_load_current_frame(AnimFile* anim) {
         }
 
         playback->did_display_frame = false;
-        playback->remaining_duration = (flags & AnimFileFrameFlagSwitchToRequested) ? active->start_duration_override : frame_hdr->duration;
+        playback->remaining_duration = (flags & AnimFileFrameFlagSwitchToRequested) ?
+                                           active->start_duration_override :
+                                           frame_hdr->duration;
     }
 
     return true;
@@ -150,7 +152,13 @@ bool anim_file_decode_frame(AnimFile* anim, uint8_t* buffer) {
             return false;
         }
         size_t decoded_sz = 0;
-        if(!rle_decompress(encoded_buf, frame_hdr->encoded_length, packed_buf, packed_len, blk_size, &decoded_sz)) {
+        if(!rle_decompress(
+               encoded_buf,
+               frame_hdr->encoded_length,
+               packed_buf,
+               packed_len,
+               blk_size,
+               &decoded_sz)) {
             ANIM_FILE_ERR("RLE compressed data too large");
             return false;
         }

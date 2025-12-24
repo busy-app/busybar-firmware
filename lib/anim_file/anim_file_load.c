@@ -28,7 +28,8 @@ bool anim_file_read_header(AnimFileHeader* header, File* file) {
         ANIM_FILE_ERR("Invalid flags");
         return false;
     }
-    if(storage_file_size(file) != sizeof(*header) + header->sections_chunk_length + header->frames_chunk_length) {
+    if(storage_file_size(file) !=
+       sizeof(*header) + header->sections_chunk_length + header->frames_chunk_length) {
         ANIM_FILE_ERR("Invalid size");
         return false;
     }
@@ -60,7 +61,11 @@ bool anim_file_read_sections(const AnimFileHeader* header, uint8_t** buffer, Fil
     return true;
 }
 
-void anim_file_iterate_sections(const AnimFileHeader* header, const uint8_t* sections, AnimFileSectionCallback callback, void* context) {
+void anim_file_iterate_sections(
+    const AnimFileHeader* header,
+    const uint8_t* sections,
+    AnimFileSectionCallback callback,
+    void* context) {
     furi_assert(header);
     furi_assert(sections);
     furi_assert(callback);
@@ -140,7 +145,10 @@ size_t anim_file_count_display_frames(const AnimFileHeader* header, File* file) 
     return disp_frame_cnt;
 }
 
-bool anim_file_validate_section_0(const AnimFileHeader* header, const uint8_t* buffer, size_t frame_count) {
+bool anim_file_validate_section_0(
+    const AnimFileHeader* header,
+    const uint8_t* buffer,
+    size_t frame_count) {
     furi_assert(header);
     furi_assert(buffer);
 

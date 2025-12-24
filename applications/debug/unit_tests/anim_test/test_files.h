@@ -1,4 +1,5 @@
 #pragma once
+// clang-format off
 
 #include <stdint.h>
 
@@ -6,7 +7,7 @@ const uint8_t test_file_Color_Ramp_1x1x4[] = {
     // header
     'B', 'S', 'B', 'a', 'n', 'i', 'm', '0',
     0, 1, 1, 0,   10, 0, 0, 0, // bgr888, 1x1, 10fps
-    19, 0, 0, 0,   28, 0, 0, 0, // chunk sizes
+    19, 0, 0, 0,  28, 0, 0, 0, // chunk sizes
     // sections
     0, 0, 0, 0,   3, 0, 0, 0,   43, 0, 0, 0,   1,   'w', 'h', 'o', 'l', 'e', 0,
     // frames
@@ -27,7 +28,7 @@ const uint8_t test_file_Color_ComplexDuration_2x2x10[] = {
     // header
     'B', 'S', 'B', 'a', 'n', 'i', 'm', '0',
     0, 2, 2, 0,   10, 0, 0, 0, // bgr888, 2x2, 10fps
-    36, 0, 0, 0,   64, 0, 0, 0, // chunk sizes
+    36, 0, 0, 0,  64, 0, 0, 0, // chunk sizes
     // sections
     0, 0, 0, 0,   9, 0, 0, 0,   60, 0, 0, 0,   1,   'w', 'h', 'o', 'l', 'e', 0,
     2, 0, 0, 0,   6, 0, 0, 0,   76, 0, 0, 0,   1,   '2', '-', '6', 0, 
@@ -42,7 +43,7 @@ const uint8_t test_file_Gray_Ramp_2x2x4[] = {
     // header
     'B', 'S', 'B', 'a', 'n', 'i', 'm', '0',
     0, 2, 2, 1,   10, 0, 0, 0, // gray4, 2x2, 10fps
-    19, 0, 0, 0,   24, 0, 0, 0, // chunk sizes
+    19, 0, 0, 0,  24, 0, 0, 0, // chunk sizes
     // sections
     0, 0, 0, 0,   3, 0, 0, 0,   43, 0, 0, 0,   1,   'w', 'h', 'o', 'l', 'e', 0,
     // frames
@@ -55,7 +56,7 @@ const uint8_t test_file_Gray_Ramp_2x2x4[] = {
 const uint8_t test_file_Gray_RLE_Ramp_10x10x10[] = {
     // header
     'B', 'S', 'B', 'a', 'n', 'i', 'm', '0',
-    0, 10, 10, 1,   10, 2, 0, 0, // gray4, 10x10, 10fps, max encoded len 2
+    0, 10, 10, 1,  10, 2, 0, 0, // gray4, 10x10, 10fps, max encoded len 2
     19, 0, 0, 0,   60, 0, 0, 0, // chunk sizes
     // sections
     0, 0, 0, 0,   9, 0, 0, 0,   43, 0, 0, 0,   1,   'w', 'h', 'o', 'l', 'e', 0,

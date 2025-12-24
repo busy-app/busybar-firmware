@@ -29,7 +29,8 @@ extern "C" {
 // Types
 // =====
 
-typedef void (*AnimFileSectionCallback)(size_t index, const AnimFileSection* section, void* context);
+typedef void (
+    *AnimFileSectionCallback)(size_t index, const AnimFileSection* section, void* context);
 
 /**
  * @brief Information about loaded file
@@ -83,21 +84,35 @@ bool anim_file_read_header(AnimFileHeader* header, File* file);
 
 bool anim_file_read_sections(const AnimFileHeader* header, uint8_t** buffer, File* file);
 
-void anim_file_iterate_sections(const AnimFileHeader* header, const uint8_t* sections, AnimFileSectionCallback callback, void* context);
+void anim_file_iterate_sections(
+    const AnimFileHeader* header,
+    const uint8_t* sections,
+    AnimFileSectionCallback callback,
+    void* context);
 
 size_t anim_file_count_sections(const AnimFileHeader* header, const uint8_t* sections);
 
 size_t anim_file_count_display_frames(const AnimFileHeader* header, File* file);
 
-bool anim_file_validate_section_0(const AnimFileHeader* header, const uint8_t* buffer, size_t frame_count);
+bool anim_file_validate_section_0(
+    const AnimFileHeader* header,
+    const uint8_t* buffer,
+    size_t frame_count);
 
 // =================
 // anim_file_start.c
 // =================
 
-bool anim_file_compute_start(AnimFile* anim, AnimFilePlayFlag flags, size_t start_frame, size_t end_frame);
+bool anim_file_compute_start(
+    AnimFile* anim,
+    AnimFilePlayFlag flags,
+    size_t start_frame,
+    size_t end_frame);
 
-void anim_file_set_precomputed_start(AnimFile* anim, AnimFilePlayFlag flags, const AnimFileSection* section);
+void anim_file_set_precomputed_start(
+    AnimFile* anim,
+    AnimFilePlayFlag flags,
+    const AnimFileSection* section);
 
 // ===============
 // anim_file_img.c

@@ -101,7 +101,8 @@ typedef struct FURI_PACKED {
     uint32_t start; //<! Index of the first Display Frame (inclusive)
     uint32_t end; //<! Index of the last Display Frame (inclusive)
     uint32_t frame_offs; //<! File offset of the first File Frame in this Section
-    uint8_t duration_override; //<! In case the Section starts in the middle of a File Frame that spans multiple Display Frames, this field will indicate the adjusted duration of the affected File Frame
+    uint8_t
+        duration_override; //<! In case the Section starts in the middle of a File Frame that spans multiple Display Frames, this field will indicate the adjusted duration of the affected File Frame
     char name[]; //<! NUL-terminated
 } AnimFileSection;
 

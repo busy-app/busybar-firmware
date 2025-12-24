@@ -20,8 +20,8 @@ struct AnimPlay {
     AnimFile* file;
 };
 
-#define TAG "AnimPlay"
-#define MY_CLASS (&anim_play_lvgl_class)
+#define TAG             "AnimPlay"
+#define MY_CLASS        (&anim_play_lvgl_class)
 #define BYTES_PER_PIXEL 3
 
 // ==================
@@ -130,7 +130,12 @@ AnimFile* anim_play_set_source(AnimPlay* instance, const char* file_path) {
         size_t buffer_size = info.width * info.height * BYTES_PER_PIXEL;
         instance->canvas_buf = realloc(instance->canvas_buf, buffer_size);
 
-        lv_canvas_set_buffer(instance->canvas, instance->canvas_buf, info.width, info.height, LV_COLOR_FORMAT_RGB888);
+        lv_canvas_set_buffer(
+            instance->canvas,
+            instance->canvas_buf,
+            info.width,
+            info.height,
+            LV_COLOR_FORMAT_RGB888);
 
         size_t period = 1000 / info.fps;
         lv_timer_set_period(instance->timer, period);
