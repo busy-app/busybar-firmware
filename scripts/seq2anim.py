@@ -7,8 +7,9 @@ from pathlib import Path
 from tempfile import TemporaryDirectory
 from PIL import Image
 from zipfile import PyZipFile
-from typing import Tuple
+from typing import Tuple, Self
 from dataclasses import dataclass
+from logging import Logger
 
 from flipper.app import App
 from flipper import rle
@@ -89,12 +90,6 @@ class FileFrame:
             len(self.encoded),
         ) + self.encoded
 
-class Main(App):
-    def init(self):
-        self.parser.add_argument("-o", "--output", required=True, help="Output .anim file")
-        self.parser.add_argument("input", help="Input .zip file")
-        self.parser.set_defaults(func=self.main)
-
     @staticmethod
     def pack(frame: bytes, mode: str) -> bytes:
         packed = bytearray()
@@ -115,7 +110,7 @@ class Main(App):
         return bytes(packed)
         
     @staticmethod
-    def encode(frame: bytes, mode: str) -> FileFrame:
+    def encode(frame: bytes, mode: str) -> Self:
         raw = frame
         blk_size = 3 if mode == "bgr888" else 1
         rle_encoded = rle.compress(frame, blk_size)
@@ -125,70 +120,53 @@ class Main(App):
         else:
             return FileFrame(encoding=0, duration=1, encoded=raw)
 
-    def convert(self, input: Path, output: BufferedWriter) -> int:
-        args = self.args
-        input_name = Path(args.input).stem
-        input = input / input_name
+@dataclass
+class ConversionInfo:
+    display_frame_cnt: int
+    file_frame_cnt: int
+    max_encoded_len: int
+    raw_len: int
+    mean_compression_ratio: float
 
-        meta: dict = json5.loads((input / "meta.json").read_text())
+class ConversionError(Exception):
+    pass
 
-        frames = list(input.glob("*.png"))
-        frames.sort(key=lambda x: number_in_str(x.stem))
-
-        for i in range(len(frames)):
-            if number_in_str(frames[i].stem) != i:
-                self.logger.error(f"Invalid frame numbering: missing *{i}.png")
-                return 1
-            
-        if "fps" not in meta:
-            self.logger.error(f"Invalid meta.json: must have 'fps'")
-            return 1
-        if "color" not in meta:
-            self.logger.error(f"Invalid meta.json: must have 'color'")
-            return 1
-        if meta["color"] not in ["bgr888", "gray4"]:
-            self.logger.error(f"Invalid meta.json: 'color' must be one of: 'bgr888', 'gray4'")
-            return 1
-        if "sections" not in meta:
-            self.logger.error(f"Invalid meta.json: must have 'sections'")
-            return 1
-        if not meta["sections"]:
-            self.logger.error(f"Invalid meta.json: must have 'sections[0]'")
-            return 1
-        if meta["sections"][0] != {"name": "whole", "start": 0, "end": len(frames) - 1}:
-            self.logger.error(f"Invalid meta.json: 'sections[0]' must be named 'whole' and cover entire range of frames")
-            return 1
-
-        # encode frames
-        width, height = 0, 0
+class BSBAnimConverter:
+    def _do_convert(self, meta: dict, frames: list[Path], output: BufferedWriter) -> ConversionInfo:
+        # 1. encode frames
+        size: None | Tuple[int, int] = None
         encoded_frames: list[FileFrame] = []
         frames_chunk_len = 0
         max_encoded_len = 0
         last_frame = None
-        for frame in frames:
+
+        for i, frame in enumerate(frames):
             with Image.open(frame) as frame:
                 frame = frame.convert("RGB")
-                width, height = frame.size
+                if size and frame.size != size:
+                    raise ConversionError(f"frame {i} has a different size than previous frames")
+                size = frame.size
+
                 frame = frame.tobytes()
                 if frame == last_frame:
                     encoded_frames[-1].duration += 1
                     continue
 
                 last_frame = frame
-                frame = self.pack(frame, meta["color"])
-                frame = self.encode(frame, meta["color"])
+                frame = FileFrame.pack(frame, meta["color"])
+                frame = FileFrame.encode(frame, meta["color"])
 
                 encoded_frames.append(frame)
                 frames_chunk_len += frame.length()
                 max_encoded_len = max(max_encoded_len, len(frame.encoded))
 
-        # encode sections
+        # 2. encode sections
         encoded_sections: list[Section] = []
         sections_chunk_len = 0
         for section in meta["sections"]:
             if set(section.keys()) != {"name", "start", "end"}:
-                self.logger.error(f"Invalid meta.json: 'sections' children must only have 'name', 'start' and 'end' fields")
-                return 1
+                raise ConversionError(f"Invalid metadata: 'sections' children must only have 'name', 'start' and 'end' fields")
+
             section = Section(
                 start=section["start"],
                 end=section["end"],
@@ -200,7 +178,7 @@ class Main(App):
             encoded_sections.append(section)
             sections_chunk_len += section.length()
 
-        # fill section precomputed start info, now that file offsets are known
+        # 3. fill section precomputed start info, now that file offsets are known
         display_frame_start: list[Tuple[int, int]] = []
         file_frame_offs = Header.length() + sections_chunk_len
         disp_frame_idx = 0
@@ -213,7 +191,9 @@ class Main(App):
         for section in encoded_sections:
             section.frame_offs, section.duration_override = display_frame_start[section.start]
 
-        # assemble header and write data
+        # 4. assemble header and write data
+        assert size
+        width, height = size
         color_fmt_map = {"bgr888": 0, "gray4": 1}
         header = Header(
             flags=0,
@@ -233,20 +213,62 @@ class Main(App):
 
         # print info about file
         compression_ratio = (len(frames) * width * height * 3) / frames_chunk_len
-        self.logger.info(f"{disp_frame_idx} display frames, {len(encoded_frames)} file frames")
-        self.logger.info(f"max_encoded_len={max_encoded_len} raw_len={width * height * 3}")
-        self.logger.info(f"mean compression radio: {compression_ratio:.3f}x")
+        return ConversionInfo(
+            disp_frame_idx,
+            len(encoded_frames),
+            max_encoded_len,
+            width * height * 3,
+            compression_ratio
+        )
 
-        return 0
+    def convert_dir(self, input: Path, output: Path) -> ConversionInfo:
+        meta: dict = json5.loads((input / "meta.json").read_text())
+
+        frames = list(input.glob("*.png"))
+        frames.sort(key=lambda x: number_in_str(x.stem))
+
+        for i in range(len(frames)):
+            if number_in_str(frames[i].stem) != i:
+                raise ConversionError(f"Invalid frame numbering: missing *{i}.png")
+            
+        if "fps" not in meta:
+            raise ConversionError(f"Invalid meta.json: must have 'fps'")
+        if "color" not in meta:
+            raise ConversionError(f"Invalid meta.json: must have 'color'")
+        if meta["color"] not in ["bgr888", "gray4"]:
+            raise ConversionError(f"Invalid meta.json: 'color' must be one of: 'bgr888', 'gray4'")
+        if "sections" not in meta:
+            raise ConversionError(f"Invalid meta.json: must have 'sections'")
+        if not meta["sections"]:
+            raise ConversionError(f"Invalid meta.json: must have 'sections[0]'")
+        if meta["sections"][0] != {"name": "whole", "start": 0, "end": len(frames) - 1}:
+            raise ConversionError(f"Invalid meta.json: 'sections[0]' must be named 'whole' and cover entire range of frames")
+        
+        with open(output, "wb") as output_writer:
+            return self._do_convert(meta, frames, output_writer)
+
+    def convert_zip(self, input: Path, output: Path) -> ConversionInfo:
+        with TemporaryDirectory(prefix="bsb-seq2anim-") as temp_dir:
+            input_zip = PyZipFile(str(input))
+            input_zip.extractall(temp_dir)
+            return self.convert_dir(Path(temp_dir) / input.stem, output)
+
+class Main(App):
+    def init(self):
+        self.parser.add_argument("-o", "--output", required=True, type=Path, help="Output .anim file")
+        self.parser.add_argument("input", type=Path, help="Input .zip file")
+        self.parser.set_defaults(func=self.main)
 
     def main(self):
         args = self.args
-
-        with open(args.output, mode="wb") as output:
-            with TemporaryDirectory(prefix="bsb-seq2anim") as temp_dir:
-                input = PyZipFile(args.input)
-                input.extractall(temp_dir)
-                return self.convert(Path(temp_dir), output)
+        converter = BSBAnimConverter()
+        try:
+            info = converter.convert_zip(args.input, args.output)
+            self.logger.info(info)
+            return 0
+        except ConversionError as e:
+            self.logger.error(str(e))
+            return 1
 
 if __name__ == "__main__":
     Main()()

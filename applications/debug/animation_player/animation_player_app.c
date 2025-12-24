@@ -65,17 +65,17 @@ static AnimationPlayerApp* animation_player_app_alloc(void* args) {
         widget_set_align(label_get_base(instance->label), AlignCenter);
 
         root = gui_layer_get_root_widget(main_layer, GuiDisplayIdFront);
-        instance->anim_image = anim_image_alloc(root);
+        instance->anim_play = anim_play_alloc(root);
 
         const char* path = (args == NULL) ? ANIMATION_PLAYER_FILE_PATH : args;
 
-        if(!anim_image_set_source(instance->anim_image, path)) {
+        if(!anim_play_set_source(instance->anim_play, path)) {
             FURI_LOG_E(TAG, "Failed to load animation");
             label_set_text(instance->label, "Failed to load animation");
 
         } else {
             label_set_text(instance->label, "Running animation");
-            anim_image_start(instance->anim_image);
+            anim_play_start(instance->anim_play);
         }
     });
 
@@ -89,8 +89,7 @@ static void animation_player_app_free(AnimationPlayerApp* instance) {
         GuiLayer* main_layer = gui_get_layer(instance->gui, GuiLayerIdMain);
         gui_layer_remove_input_callback(main_layer, animation_player_app_input_callback);
 
-        anim_image_stop(instance->anim_image);
-        anim_image_free(instance->anim_image);
+        anim_play_free(instance->anim_play);
         label_free(instance->label);
     });
 
