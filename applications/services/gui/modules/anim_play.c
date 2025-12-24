@@ -104,7 +104,7 @@ Widget* anim_play_get_base(AnimPlay* instance) {
     return (Widget*)instance;
 }
 
-bool anim_play_set_source(AnimPlay* instance, const char* file_path) {
+AnimFile* anim_play_set_source(AnimPlay* instance, const char* file_path) {
     furi_check(instance);
 
     bool path_given = !!file_path;
@@ -143,12 +143,6 @@ bool anim_play_set_source(AnimPlay* instance, const char* file_path) {
         // TODO: placeholder
     }
 
-    return !!instance->file;
-}
-
-AnimFile* anim_play_get_file(AnimPlay* instance) {
-    furi_check(instance);
-    furi_check(instance->file);
     return instance->file;
 }
 

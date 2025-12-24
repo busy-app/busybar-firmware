@@ -19,9 +19,7 @@ void anim_play_free(AnimPlay* instance);
 
 Widget* anim_play_get_base(AnimPlay* instance);
 
-bool anim_play_set_source(AnimPlay* instance, const char* path);
-
-AnimFile* anim_play_get_file(AnimPlay* instance);
+AnimFile* anim_play_set_source(AnimPlay* instance, const char* path);
 
 void anim_play_start(AnimPlay* instance);
 
