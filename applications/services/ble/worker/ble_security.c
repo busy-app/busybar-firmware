@@ -17,19 +17,26 @@ struct BleSecurityData {
 #define BLE_SECURITY_LOG_KEYS
 
 #ifdef BLE_SECURITY_LOG_KEYS
-static void ble_security_format_array(FuriString* buf, const uint8_t* data, size_t data_size) {
-    for(uint8_t i = 0; i < data_size; i++) {
-        furi_string_cat_printf(buf, "%02X ", data[i]);
-    }
+static void ble_security_format_array(
+    FuriString* buf,
+    const uint8_t* data,
+    size_t data_size,
+    const char* separator) {
+    uint8_t i = data_size;
+    do {
+        furi_string_cat_printf(buf, "%02X%s", data[i - 1], (i - 1 == 0) ? "" : separator);
+        i -= 1;
+    } while(i);
 }
 
 static void ble_security_format_item(
     FuriString* buf,
     const char* header,
     const void* item,
-    const size_t size) {
+    const size_t size,
+    const char* separator) {
     furi_string_cat_printf(buf, header);
-    ble_security_format_array(buf, item, size);
+    ble_security_format_array(buf, item, size, separator);
 }
 
 static void ble_sercurity_format_rpa_data(
@@ -39,21 +46,21 @@ static void ble_sercurity_format_rpa_data(
     furi_assert(output);
 
     furi_string_printf(output, "Dev addr type: %02X", security->dev_addr_type);
-    ble_security_format_item(output, "\r\nDev addr: ", security->dev_addr, RSI_DEV_ADDR_LEN);
+    ble_security_format_item(output, "\r\nDev addr: ", security->dev_addr, RSI_DEV_ADDR_LEN, ":");
 
     furi_string_cat_printf(output, "\r\nIdentity addr type: %02X", security->Identity_addr_type);
     ble_security_format_item(
-        output, "\r\nIdentity addr: ", security->Identity_addr, RSI_DEV_ADDR_LEN);
+        output, "\r\nIdentity addr: ", security->Identity_addr, RSI_DEV_ADDR_LEN, ":");
 
     ble_security_format_item(
-        output, "\r\nLocal IRK: ", security->local_irk, sizeof(security->local_irk));
+        output, "\r\nLocal IRK: 0x", security->local_irk, sizeof(security->local_irk), "");
     ble_security_format_item(
-        output, "\r\nRemote IRK: ", security->remote_irk, sizeof(security->remote_irk));
+        output, "\r\nRemote IRK: 0x", security->remote_irk, sizeof(security->remote_irk), "");
 
     ble_security_format_item(
-        output, "\r\nRemote Rand: ", security->remote_rand, sizeof(security->remote_rand));
+        output, "\r\nRemote Rand: 0x", security->remote_rand, sizeof(security->remote_rand), "");
     ble_security_format_item(
-        output, "\r\nRemote LT: ", security->remote_ltk, sizeof(security->remote_ltk));
+        output, "\r\nRemote LT: 0x", security->remote_ltk, sizeof(security->remote_ltk), "");
 }
 
 static void ble_security_format_encryption_data(
@@ -69,13 +76,14 @@ static void ble_security_format_encryption_data(
         encryption->sc_enable,
         encryption->dev_addr_type);
 
-    ble_security_format_item(output, "\r\nDev addr: ", encryption->dev_addr, RSI_DEV_ADDR_LEN);
     ble_security_format_item(
-        output, "\r\nLocal LTK: ", encryption->localltk, sizeof(encryption->localltk));
+        output, "\r\nDev addr: ", encryption->dev_addr, RSI_DEV_ADDR_LEN, ":");
+    ble_security_format_item(
+        output, "\r\nLocal LTK: 0x", encryption->localltk, sizeof(encryption->localltk), "");
 
     furi_string_cat_printf(output, "\r\nLocal EDIV: %04X", encryption->localediv);
     ble_security_format_item(
-        output, "\r\nLocal Rand: ", encryption->localrand, sizeof(encryption->localrand));
+        output, "\r\nLocal Rand: 0x", encryption->localrand, sizeof(encryption->localrand), "");
 }
 
 static void ble_security_log_keys(const BleSecurityData* security) {
