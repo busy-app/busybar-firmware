@@ -12,11 +12,25 @@
 #define FLIPPER_MAC_1 0xFA
 #define FLIPPER_MAC_2 0x22
 
+#define OTP1_MAC_SIZE   (6)
+#define OTP1_MODEL_SIZE (8)
+
+typedef struct {
+    bool otp1_valid;
+    bool otp2_valid;
+    bool otp3_valid;
+    bool otp4_valid;
+
+    // Cached/derived values
+    char model_code[OTP1_MODEL_SIZE + 1]; // Null-terminated model
+    uint8_t usb_mac[OTP1_MAC_SIZE];
+} FuriHalVersionState;
+
+static FuriHalVersionState furi_hal_version_state = {0};
+
 // OTP1 Data Structure - Hardware/Board Info (Production)
 // Layout: <H B B I 6s 8s B B B B (little-endian)
 // Total size: 4 (header) + 22 (data) = 26 bytes
-#define OTP1_MODEL_SIZE (8)
-#define OTP1_MAC_SIZE   (6)
 
 typedef struct {
     FuriHalFlashOtpHeader header; // Common header (magic, index=1, version)
@@ -71,9 +85,7 @@ typedef struct {
 
 _Static_assert(sizeof(Otp4Data) == 128, "OTP4 data structure size mismatch");
 
-// ============================================================================
-// Internal OTP Access Helpers
-// ============================================================================
+/*** OTP Access Helpers ***/
 
 static const Otp1Data* otp_get_otp1(void) {
     return (const Otp1Data*)furi_hal_flash_otp_get_block_address(FuriHalOtpBlockOtp1);
@@ -91,9 +103,6 @@ static const Otp4Data* otp_get_otp4(void) {
     return (const Otp4Data*)furi_hal_flash_otp_get_block_address(FuriHalOtpBlockOtp4);
 }
 
-/**
- * @brief Check if an OTP block appears to be empty (all 0xFF)
- */
 static bool otp_block_is_empty(const void* addr, size_t size) {
     const uint8_t* ptr = (const uint8_t*)addr;
     for(size_t i = 0; i < size; i++) {
@@ -136,26 +145,7 @@ static bool otp_is_otp4_provisioned(void) {
     return furi_hal_flash_otp_header_is_valid(&otp4->header, FuriHalOtpBlockOtp4);
 }
 
-// ============================================================================
-// Version Data Cache
-// ============================================================================
-
-typedef struct {
-    bool otp1_valid;
-    bool otp2_valid;
-    bool otp3_valid;
-    bool otp4_valid;
-
-    // Cached/derived values
-    char model_code[OTP1_MODEL_SIZE + 1]; // Null-terminated model
-    uint8_t usb_mac[6];
-} FuriHalVersionState;
-
-static FuriHalVersionState furi_hal_version_state = {0};
-
-// ============================================================================
-// Initialization
-// ============================================================================
+/*** Initialization ***/
 
 void furi_hal_version_init(void) {
     // Check OTP provisioning status
@@ -203,9 +193,7 @@ void furi_hal_version_init(void) {
         furi_hal_version_state.otp4_valid ? "valid" : "empty");
 }
 
-// ============================================================================
-// Hardware Info from OTP1
-// ============================================================================
+/***  Hardware Info from OTP1 ***/
 
 uint8_t furi_hal_version_get_hw_version(void) {
     if(!furi_hal_version_state.otp1_valid) {
@@ -246,9 +234,7 @@ const char* furi_hal_version_get_name_ptr(void) {
     return furi_hal_version_state.model_code;
 }
 
-// ============================================================================
-// Device Info from OTP2
-// ============================================================================
+/*** Device Info from OTP2 ***/
 
 uint32_t furi_hal_version_get_hw_timestamp_qc(void) {
     if(!furi_hal_version_state.otp2_valid) {
@@ -272,9 +258,54 @@ uint8_t furi_hal_version_get_hw_region(void) {
     return otp_get_otp2()->hw_region;
 }
 
-// ============================================================================
-// Model and Regulatory Info
-// ============================================================================
+/*** OTP3 - Public Key Data ***/
+
+FuriHalVersionKeyCurve furi_hal_version_get_sign_curve(void) {
+    if(!furi_hal_version_state.otp3_valid) {
+        return FuriHalVersionKeyCurveNone;
+    }
+    return (FuriHalVersionKeyCurve)otp_get_otp3()->hw_otp3_curve;
+}
+
+const uint8_t* furi_hal_version_get_sign_pubkey(void) {
+    if(!furi_hal_version_state.otp3_valid) {
+        return NULL;
+    }
+    return otp_get_otp3()->hw_otp3_pkey;
+}
+
+size_t furi_hal_version_get_sign_pubkey_size(void) {
+    return OTP3_PKEY_SIZE;
+}
+
+/*** OTP4 - Signature Data ***/
+
+const uint8_t* furi_hal_version_get_otp_mcu_uid(void) {
+    if(!furi_hal_version_state.otp4_valid) {
+        return NULL;
+    }
+    return otp_get_otp4()->hw_otp4_mcu_uid;
+}
+
+const uint8_t* furi_hal_version_get_otp1_signature(void) {
+    if(!furi_hal_version_state.otp4_valid) {
+        return NULL;
+    }
+    return otp_get_otp4()->hw_otp1_signature;
+}
+
+const uint8_t* furi_hal_version_get_otp2_signature(void) {
+    if(!furi_hal_version_state.otp4_valid) {
+        return NULL;
+    }
+    return otp_get_otp4()->hw_otp2_signature;
+}
+
+size_t furi_hal_version_get_signature_size(void) {
+    return OTP4_SIGNATURE_SIZE;
+}
+
+/*** Model and Regulatory Info ***/
 
 const char* furi_hal_version_get_model_name(void) {
     return "BUSY Bar";
@@ -313,9 +344,7 @@ const uint8_t* furi_hal_version_get_usb_mac(void) {
     return furi_hal_version_state.usb_mac;
 }
 
-// ============================================================================
-// MCU UID
-// ============================================================================
+/*** MCU UID ***/
 
 size_t furi_hal_version_uid_size(void) {
     return 12; // STM32U5 has 96-bit (12-byte) UID
@@ -333,9 +362,7 @@ void furi_hal_version_get_uid_str(FuriString* serial) {
     }
 }
 
-// ============================================================================
-// OTP Validity Status
-// ============================================================================
+/*** OTP Validity Status ***/
 
 bool furi_hal_version_get_otp_valid(FuriHalFlashOtpBlock block) {
     switch(block) {
@@ -350,54 +377,4 @@ bool furi_hal_version_get_otp_valid(FuriHalFlashOtpBlock block) {
     default:
         return false;
     }
-}
-// ============================================================================
-// OTP3 - Public Key Data
-// ============================================================================
-
-FuriHalVersionKeyCurve furi_hal_version_get_sign_curve(void) {
-    if(!furi_hal_version_state.otp3_valid) {
-        return FuriHalVersionKeyCurveNone;
-    }
-    return (FuriHalVersionKeyCurve)otp_get_otp3()->hw_otp3_curve;
-}
-
-const uint8_t* furi_hal_version_get_sign_pubkey(void) {
-    if(!furi_hal_version_state.otp3_valid) {
-        return NULL;
-    }
-    return otp_get_otp3()->hw_otp3_pkey;
-}
-
-size_t furi_hal_version_get_sign_pubkey_size(void) {
-    return OTP3_PKEY_SIZE;
-}
-
-// ============================================================================
-// OTP4 - Signature Data
-// ============================================================================
-
-const uint8_t* furi_hal_version_get_otp_mcu_uid(void) {
-    if(!furi_hal_version_state.otp4_valid) {
-        return NULL;
-    }
-    return otp_get_otp4()->hw_otp4_mcu_uid;
-}
-
-const uint8_t* furi_hal_version_get_otp1_signature(void) {
-    if(!furi_hal_version_state.otp4_valid) {
-        return NULL;
-    }
-    return otp_get_otp4()->hw_otp1_signature;
-}
-
-const uint8_t* furi_hal_version_get_otp2_signature(void) {
-    if(!furi_hal_version_state.otp4_valid) {
-        return NULL;
-    }
-    return otp_get_otp4()->hw_otp2_signature;
-}
-
-size_t furi_hal_version_get_signature_size(void) {
-    return OTP4_SIGNATURE_SIZE;
 }

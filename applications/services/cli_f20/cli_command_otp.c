@@ -95,7 +95,7 @@ static void cli_command_otp_program(PipeSide* pipe, FuriString* args, void* cont
 
     size_t len = 0;
     uint8_t* data = cli_otp_parse_data(args, &len);
-    if((addr == 0) || (!data) || (len == 0) || (len > FURI_HAL_OTP_BLOCK_SIZE)) {
+    if((addr == 0) || (!data) || (len == 0) || (len > FURI_HAL_FLASH_OTP_BLOCK_SIZE)) {
         if(data) {
             free(data);
         }
@@ -114,11 +114,11 @@ static void cli_command_otp_program(PipeSide* pipe, FuriString* args, void* cont
     }
 
     const FuriHalFlashOtpHeader* header = (const FuriHalFlashOtpHeader*)data;
-    if(header->magic != FURI_HAL_OTP_MAGIC) {
+    if(header->magic != FURI_HAL_FLASH_OTP_MAGIC) {
         printf(
             "Error: Invalid magic value 0x%04X, expected 0x%04X\r\n",
             header->magic,
-            FURI_HAL_OTP_MAGIC);
+            FURI_HAL_FLASH_OTP_MAGIC);
         free(data);
         return;
     }
@@ -173,9 +173,9 @@ static void cli_command_otp_dump(PipeSide* pipe, FuriString* args, void* context
         return;
     }
 
-    size_t len_remain = FURI_HAL_OTP_BLOCK_SIZE;
+    size_t len_remain = FURI_HAL_FLASH_OTP_BLOCK_SIZE;
     const size_t row_len_max = 16;
-    for(size_t offset = 0; offset < FURI_HAL_OTP_BLOCK_SIZE; offset += row_len_max) {
+    for(size_t offset = 0; offset < FURI_HAL_FLASH_OTP_BLOCK_SIZE; offset += row_len_max) {
         uint8_t* ptr = (uint8_t*)(addr + offset);
         size_t row_len = MIN(len_remain, row_len_max);
         for(uint8_t i = 0; i < row_len; i++) {

@@ -21,9 +21,9 @@
 
 // OTP block base addresses (internal)
 #define OTP_BLOCK1_ADDR (FLASH_OTP_BASE)
-#define OTP_BLOCK2_ADDR (FLASH_OTP_BASE + FURI_HAL_OTP_BLOCK_SIZE)
-#define OTP_BLOCK3_ADDR (FLASH_OTP_BASE + 2 * FURI_HAL_OTP_BLOCK_SIZE)
-#define OTP_BLOCK4_ADDR (FLASH_OTP_BASE + 3 * FURI_HAL_OTP_BLOCK_SIZE)
+#define OTP_BLOCK2_ADDR (FLASH_OTP_BASE + FURI_HAL_FLASH_OTP_BLOCK_SIZE)
+#define OTP_BLOCK3_ADDR (FLASH_OTP_BASE + 2 * FURI_HAL_FLASH_OTP_BLOCK_SIZE)
+#define OTP_BLOCK4_ADDR (FLASH_OTP_BASE + 3 * FURI_HAL_FLASH_OTP_BLOCK_SIZE)
 
 static void furi_hal_flash_unlock() {
     furi_check(FLASH->NSCR & FLASH_NSCR_LOCK);
@@ -269,7 +269,8 @@ void furi_hal_flash_program_page(const uint8_t page, const uint8_t* data, uint16
     FURI_CRITICAL_EXIT();
 }
 
-static bool furi_hal_flash_program_otp(const uint32_t base, const uint8_t* data, uint16_t length) {
+static bool
+    furi_hal_flash_program_otp_block(const uint32_t base, const uint8_t* data, uint16_t length) {
     furi_assert(base >= FLASH_OTP_BASE);
     furi_assert((base + length) <= (FLASH_OTP_BASE + FLASH_OTP_SIZE));
     furi_assert((base & 0xF) == 0);
@@ -402,10 +403,6 @@ void furi_hal_flash_init(void) {
     }
 }
 
-// ============================================================================
-// OTP Block Address
-// ============================================================================
-
 uint32_t furi_hal_flash_otp_get_block_address(FuriHalFlashOtpBlock block) {
     switch(block) {
     case FuriHalOtpBlockOtp1:
@@ -423,5 +420,5 @@ uint32_t furi_hal_flash_otp_get_block_address(FuriHalFlashOtpBlock block) {
 
 bool furi_hal_flash_otp_program(FuriHalFlashOtpBlock block, const uint8_t* data, uint16_t length) {
     uint32_t block_addr = furi_hal_flash_otp_get_block_address(block);
-    return furi_hal_flash_program_otp(block_addr, data, length);
+    return furi_hal_flash_program_otp_block(block_addr, data, length);
 }

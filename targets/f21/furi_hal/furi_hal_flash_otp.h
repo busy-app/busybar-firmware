@@ -4,14 +4,10 @@
 #include <stm32u5xx.h>
 #include <core/common_defines.h>
 
-#define FURI_HAL_OTP_TOTAL_SIZE (FLASH_OTP_SIZE)
-
 // OTP area (512 bytes) is split into 4x 128-byte blocks
-#define FURI_HAL_OTP_BLOCK_SIZE (128)
+#define FURI_HAL_FLASH_OTP_BLOCK_SIZE (128)
 
-// ============================================================================
-// OTP Block Enumeration
-// ============================================================================
+#define FURI_HAL_FLASH_OTP_MAGIC (0x3713)
 
 /** OTP block identifiers */
 typedef enum {
@@ -21,18 +17,10 @@ typedef enum {
     FuriHalOtpBlockOtp4 = 4,
 } FuriHalFlashOtpBlock;
 
-// ============================================================================
-// OTP Header Definition
-// ============================================================================
-
-// Magic value for OTP block validation
-#define FURI_HAL_OTP_MAGIC (0x3713)
-
-// Common OTP header structure (4 bytes)
 typedef struct {
-    uint16_t magic; // Magic value (FURI_HAL_OTP_MAGIC)
+    uint16_t magic; // Magic value (FURI_HAL_FLASH_OTP_MAGIC)
     uint8_t index; // OTP block index (FuriHalOtpBlock)
-    uint8_t version; // OTP structure version
+    uint8_t version;
 } FURI_PACKED FuriHalFlashOtpHeader;
 
 _Static_assert(sizeof(FuriHalFlashOtpHeader) == 4, "OTP header size mismatch");
@@ -46,7 +34,8 @@ _Static_assert(sizeof(FuriHalFlashOtpHeader) == 4, "OTP header size mismatch");
 static inline bool furi_hal_flash_otp_header_is_valid(
     const FuriHalFlashOtpHeader* header,
     FuriHalFlashOtpBlock expected_block) {
-    return (header->magic == FURI_HAL_OTP_MAGIC) && (header->index == (uint8_t)expected_block);
+    return (header->magic == FURI_HAL_FLASH_OTP_MAGIC) &&
+           (header->index == (uint8_t)expected_block);
 }
 
 /**
