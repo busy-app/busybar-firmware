@@ -1,4 +1,5 @@
 #include "furi_hal_flash.h"
+#include "furi_hal_flash_otp.h"
 
 #include <stdint.h>
 #include <stddef.h>
@@ -17,6 +18,12 @@
 #define FURI_HAL_FLASH_PROGRAM_TIMEOUT_US \
     (1000000) // 1 second, for the programming operation itself
 #define FURI_HAL_FLASH_ERASE_TIMEOUT_US (3000000) // 3 seconds, for the erase operation itself
+
+// OTP block base addresses (internal)
+#define OTP_BLOCK1_ADDR (FLASH_OTP_BASE)
+#define OTP_BLOCK2_ADDR (FLASH_OTP_BASE + FURI_HAL_OTP_BLOCK_SIZE)
+#define OTP_BLOCK3_ADDR (FLASH_OTP_BASE + 2 * FURI_HAL_OTP_BLOCK_SIZE)
+#define OTP_BLOCK4_ADDR (FLASH_OTP_BASE + 3 * FURI_HAL_OTP_BLOCK_SIZE)
 
 static void furi_hal_flash_unlock() {
     furi_check(FLASH->NSCR & FLASH_NSCR_LOCK);
@@ -262,7 +269,7 @@ void furi_hal_flash_program_page(const uint8_t page, const uint8_t* data, uint16
     FURI_CRITICAL_EXIT();
 }
 
-bool furi_hal_flash_program_otp(const uint32_t base, const uint8_t* data, uint16_t length) {
+static bool furi_hal_flash_program_otp(const uint32_t base, const uint8_t* data, uint16_t length) {
     furi_assert(base >= FLASH_OTP_BASE);
     furi_assert((base + length) <= (FLASH_OTP_BASE + FLASH_OTP_SIZE));
     furi_assert((base & 0xF) == 0);
@@ -393,4 +400,28 @@ void furi_hal_flash_init(void) {
 
         furi_check(furi_hal_bits_is_not_set(FLASH->OPTR, FLASH_OPTR_PA15_PUPEN));
     }
+}
+
+// ============================================================================
+// OTP Block Address
+// ============================================================================
+
+uint32_t furi_hal_flash_otp_get_block_address(FuriHalFlashOtpBlock block) {
+    switch(block) {
+    case FuriHalOtpBlockOtp1:
+        return OTP_BLOCK1_ADDR;
+    case FuriHalOtpBlockOtp2:
+        return OTP_BLOCK2_ADDR;
+    case FuriHalOtpBlockOtp3:
+        return OTP_BLOCK3_ADDR;
+    case FuriHalOtpBlockOtp4:
+        return OTP_BLOCK4_ADDR;
+    default:
+        furi_crash();
+    }
+}
+
+bool furi_hal_flash_otp_program(FuriHalFlashOtpBlock block, const uint8_t* data, uint16_t length) {
+    uint32_t block_addr = furi_hal_flash_otp_get_block_address(block);
+    return furi_hal_flash_program_otp(block_addr, data, length);
 }

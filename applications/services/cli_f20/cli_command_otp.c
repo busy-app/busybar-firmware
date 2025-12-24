@@ -1,10 +1,11 @@
 #include "cli_command_otp.h"
 #include <cli/args.h>
 #include <furi_hal_flash_otp.h>
+#include <furi_hal_flash.h>
 
-static uint32_t cli_otp_parse_addr(FuriString* args, uint8_t* expected_index) {
+static uint32_t cli_otp_parse_addr(FuriString* args, FuriHalFlashOtpBlock* block) {
     uint32_t addr = 0;
-    *expected_index = 0;
+    *block = 0;
     FuriString* region_arg = furi_string_alloc();
     do {
         if(!args_read_string_and_trim(args, region_arg)) {
@@ -12,17 +13,17 @@ static uint32_t cli_otp_parse_addr(FuriString* args, uint8_t* expected_index) {
         }
 
         if(furi_string_cmpi_str(region_arg, "OTP1") == 0) {
-            addr = FURI_HAL_OTP_BLOCK1;
-            *expected_index = FURI_HAL_OTP_INDEX_OTP1;
+            *block = FuriHalOtpBlockOtp1;
+            addr = furi_hal_flash_otp_get_block_address(FuriHalOtpBlockOtp1);
         } else if(furi_string_cmpi_str(region_arg, "OTP2") == 0) {
-            addr = FURI_HAL_OTP_BLOCK2;
-            *expected_index = FURI_HAL_OTP_INDEX_OTP2;
+            *block = FuriHalOtpBlockOtp2;
+            addr = furi_hal_flash_otp_get_block_address(FuriHalOtpBlockOtp2);
         } else if(furi_string_cmpi_str(region_arg, "OTP3") == 0) {
-            addr = FURI_HAL_OTP_BLOCK3;
-            *expected_index = FURI_HAL_OTP_INDEX_OTP3;
+            *block = FuriHalOtpBlockOtp3;
+            addr = furi_hal_flash_otp_get_block_address(FuriHalOtpBlockOtp3);
         } else if(furi_string_cmpi_str(region_arg, "OTP4") == 0) {
-            addr = FURI_HAL_OTP_BLOCK4;
-            *expected_index = FURI_HAL_OTP_INDEX_OTP4;
+            *block = FuriHalOtpBlockOtp4;
+            addr = furi_hal_flash_otp_get_block_address(FuriHalOtpBlockOtp4);
         }
     } while(0);
     furi_string_free(region_arg);
@@ -89,8 +90,8 @@ static uint8_t* cli_otp_parse_data(FuriString* args, size_t* len) {
 static void cli_command_otp_program(PipeSide* pipe, FuriString* args, void* context) {
     UNUSED(context);
 
-    uint8_t expected_index = 0;
-    uint32_t addr = cli_otp_parse_addr(args, &expected_index);
+    FuriHalFlashOtpBlock block = 0;
+    uint32_t addr = cli_otp_parse_addr(args, &block);
 
     size_t len = 0;
     uint8_t* data = cli_otp_parse_data(args, &len);
@@ -104,14 +105,15 @@ static void cli_command_otp_program(PipeSide* pipe, FuriString* args, void* cont
     }
 
     // Validate OTP header (magic and index)
-    if(len < sizeof(FuriHalOtpHeader)) {
+    if(len < sizeof(FuriHalFlashOtpHeader)) {
         printf(
-            "Error: Data too short for OTP header (min %zu bytes)\r\n", sizeof(FuriHalOtpHeader));
+            "Error: Data too short for OTP header (min %zu bytes)\r\n",
+            sizeof(FuriHalFlashOtpHeader));
         free(data);
         return;
     }
 
-    const FuriHalOtpHeader* header = (const FuriHalOtpHeader*)data;
+    const FuriHalFlashOtpHeader* header = (const FuriHalFlashOtpHeader*)data;
     if(header->magic != FURI_HAL_OTP_MAGIC) {
         printf(
             "Error: Invalid magic value 0x%04X, expected 0x%04X\r\n",
@@ -121,11 +123,11 @@ static void cli_command_otp_program(PipeSide* pipe, FuriString* args, void* cont
         return;
     }
 
-    if(header->index != expected_index) {
+    if(header->index != (uint8_t)block) {
         printf(
             "Error: OTP index mismatch - data contains index %d, but writing to OTP%d\r\n",
             header->index,
-            expected_index);
+            block);
         free(data);
         return;
     }
@@ -146,7 +148,7 @@ static void cli_command_otp_program(PipeSide* pipe, FuriString* args, void* cont
         } else if(answer == 'y' || answer == 'Y') {
             printf("Programming OTP...\r\n");
 
-            bool success = furi_hal_flash_program_otp(addr, data, len);
+            bool success = furi_hal_flash_otp_program(block, data, len);
             if(success) {
                 printf("Done\r\n");
             } else {
@@ -163,8 +165,8 @@ static void cli_command_otp_dump(PipeSide* pipe, FuriString* args, void* context
     UNUSED(pipe);
     UNUSED(context);
 
-    uint8_t expected_index = 0;
-    uint32_t addr = cli_otp_parse_addr(args, &expected_index);
+    FuriHalFlashOtpBlock block = 0;
+    uint32_t addr = cli_otp_parse_addr(args, &block);
     if(addr == 0) {
         printf("Usage:\r\n");
         printf("otp dump <OTP1/OTP2/OTP3/OTP4>\r\n");

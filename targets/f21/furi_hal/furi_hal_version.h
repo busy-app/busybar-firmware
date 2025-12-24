@@ -10,6 +10,7 @@
 #include <string.h>
 #include <version/version.h>
 #include <furi.h>
+#include <furi_hal_flash_otp.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -135,12 +136,6 @@ const char* furi_hal_version_get_name_ptr(void);
  */
 const uint8_t* furi_hal_version_get_usb_mac(void);
 
-/** Get address of version structure of firmware.
- *
- * @return     Address of firmware version structure.
- */
-const struct Version* furi_hal_version_get_firmware_version(void);
-
 /** Get platform UID size in bytes
  *
  * @return     UID size in bytes
@@ -163,29 +158,12 @@ void furi_hal_version_get_uid_str(FuriString* uid);
 // OTP Validity Status
 // ============================================================================
 
-/** Check if OTP1 block is valid (has magic and is programmed)
+/** Check if an OTP block is valid (has magic and is programmed)
  *
- * @return     true if OTP1 is valid
+ * @param      block  OTP block identifier
+ * @return     true if the specified OTP block is valid
  */
-bool furi_hal_version_get_otp1_valid(void);
-
-/** Check if OTP2 block is valid (has magic and is programmed)
- *
- * @return     true if OTP2 is valid
- */
-bool furi_hal_version_get_otp2_valid(void);
-
-/** Check if OTP3 block is valid (has magic and is programmed)
- *
- * @return     true if OTP3 is valid
- */
-bool furi_hal_version_get_otp3_valid(void);
-
-/** Check if OTP4 block is valid (has magic and is programmed)
- *
- * @return     true if OTP4 is valid
- */
-bool furi_hal_version_get_otp4_valid(void);
+bool furi_hal_version_get_otp_valid(FuriHalFlashOtpBlock block);
 
 // ============================================================================
 // OTP3 - Public Key Data
