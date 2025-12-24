@@ -1,11 +1,8 @@
 #include "wifi_state.h"
 
 static void wifi_state_reset_info(WifiInfo* info) {
-    memset(info->bssid, 0, sizeof(info->ssid));
-    memset(&info->ip_config, 0, sizeof(info->ip_config));
+    memset(info, 0, sizeof(WifiInfo));
     info->rssi = -99;
-    info->channel = 0;
-    info->security_mode = 0;
 }
 
 void wifi_state_transition(Wifi* instance, WifiState new_state, ...) {
@@ -24,7 +21,10 @@ void wifi_state_transition(Wifi* instance, WifiState new_state, ...) {
 
         } else if(current_state == WifiStateDisconnected) {
             if(new_state == WifiStateConnecting) {
-                /* Nothing */
+                const WifiCredentials* credentials = va_arg(args, const WifiCredentials*);
+
+                strncpy(info->ssid, credentials->ssid, SSID_MAX_LEN);
+                info->security_mode = credentials->security_mode;
             } else {
                 furi_crash("Invalid transition from WifiStateDisconnected");
             }
@@ -79,17 +79,6 @@ void wifi_state_transition(Wifi* instance, WifiState new_state, ...) {
         va_end(args);
 
         info->state = new_state;
-    });
-}
-
-void wifi_saved_network_state_change(Wifi* instance, bool state, const char* ssid) {
-    with_furi_state(instance->state, WifiInfo * info, {
-        if(info->is_configured != state) {
-            info->is_configured = state;
-        }
-        if(ssid) {
-            strncpy(info->ssid, ssid, sizeof(info->ssid));
-        }
     });
 }
 

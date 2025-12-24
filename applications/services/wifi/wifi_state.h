@@ -12,8 +12,6 @@
  */
 void wifi_state_transition(Wifi* instance, WifiState new_state, ...);
 
-void wifi_saved_network_state_change(Wifi* instance, bool state, const char* ssid);
-
 void wifi_state_update_backend_info(Wifi* instance, const WifiBackendInfo* backend_info);
 
 WifiStatus wifi_state_check_request_type(Wifi* instance, WifiRequestType request_type);

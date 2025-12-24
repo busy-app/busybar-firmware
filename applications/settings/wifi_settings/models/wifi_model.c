@@ -44,7 +44,7 @@ WifiModelState wifi_model_get_state(WifiModel* model) {
     WifiInfo wifi_info;
     wifi_get_info(model->wifi, &wifi_info);
 
-    if(!wifi_info.is_configured) {
+    if(wifi_info.state == WifiStateDisconnected) {
         return WifiModelStateNotConfigured;
     } else if(wifi_info.state == WifiStateConnected) {
         return WifiModelStateConnected;
