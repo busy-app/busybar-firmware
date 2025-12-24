@@ -169,23 +169,28 @@ bool furi_hal_version_get_otp_valid(FuriHalFlashOtpBlock block);
 // OTP3 - Public Key Data
 // ============================================================================
 
+typedef enum {
+    FuriHalVersionKeyCurveNone = 0x00,
+    FuriHalVersionKeyCurveSecp224r1 = 0x01,
+} FuriHalVersionKeyCurve;
+
 /** Get EC curve identifier from OTP3
  *
- * @return     Curve ID (1 = secp224r1), or 0 if not provisioned
+ * @return     Curve ID
  */
-uint8_t furi_hal_version_get_otp3_curve(void);
+FuriHalVersionKeyCurve furi_hal_version_get_sign_curve(void);
 
 /** Get public key from OTP3
  *
  * @return     Pointer to 56-byte public key (X || Y), or NULL if not provisioned
  */
-const uint8_t* furi_hal_version_get_otp3_pubkey(void);
+const uint8_t* furi_hal_version_get_sign_pubkey(void);
 
 /** Get public key size
  *
  * @return     Public key size in bytes (56)
  */
-size_t furi_hal_version_get_otp3_pubkey_size(void);
+size_t furi_hal_version_get_sign_pubkey_size(void);
 
 // ============================================================================
 // OTP4 - Signature Data
@@ -195,25 +200,25 @@ size_t furi_hal_version_get_otp3_pubkey_size(void);
  *
  * @return     Pointer to 12-byte MCU UID, or NULL if not provisioned
  */
-const uint8_t* furi_hal_version_get_otp4_mcu_uid(void);
+const uint8_t* furi_hal_version_get_otp_mcu_uid(void);
 
 /** Get OTP1 signature from OTP4
  *
  * @return     Pointer to 56-byte signature, or NULL if not provisioned
  */
-const uint8_t* furi_hal_version_get_otp4_otp1_signature(void);
+const uint8_t* furi_hal_version_get_otp1_signature(void);
 
 /** Get OTP2 signature from OTP4
  *
  * @return     Pointer to 56-byte signature, or NULL if not provisioned
  */
-const uint8_t* furi_hal_version_get_otp4_otp2_signature(void);
+const uint8_t* furi_hal_version_get_otp2_signature(void);
 
 /** Get signature size
  *
  * @return     Signature size in bytes (56)
  */
-size_t furi_hal_version_get_otp4_signature_size(void);
+size_t furi_hal_version_get_signature_size(void);
 
 #ifdef __cplusplus
 }

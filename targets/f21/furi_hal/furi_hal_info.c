@@ -213,14 +213,14 @@ void furi_hal_info_get(PropertyValueCallback out, char sep, void* context) {
             "otp3",
             "valid",
             furi_hal_version_get_otp_valid(FuriHalOtpBlockOtp3));
-        property_out_int(&property_context, "otp3", "curve", furi_hal_version_get_otp3_curve());
+        property_out_int(&property_context, "otp3", "curve", furi_hal_version_get_sign_curve());
         property_out_hex(
             &property_context,
             temp_str,
             "otp3",
             "pubkey",
-            furi_hal_version_get_otp3_pubkey(),
-            furi_hal_version_get_otp3_pubkey_size());
+            furi_hal_version_get_sign_pubkey(),
+            furi_hal_version_get_sign_pubkey_size());
 
         // OTP4 - Signatures
         property_out_bool(
@@ -229,26 +229,21 @@ void furi_hal_info_get(PropertyValueCallback out, char sep, void* context) {
             "valid",
             furi_hal_version_get_otp_valid(FuriHalOtpBlockOtp4));
         property_out_hex(
-            &property_context,
-            temp_str,
-            "otp4",
-            "mcu_uid",
-            furi_hal_version_get_otp4_mcu_uid(),
-            12);
+            &property_context, temp_str, "otp4", "mcu_uid", furi_hal_version_get_otp_mcu_uid(), 12);
         property_out_hex(
             &property_context,
             temp_str,
             "otp4",
             "otp1_sig",
-            furi_hal_version_get_otp4_otp1_signature(),
-            furi_hal_version_get_otp4_signature_size());
+            furi_hal_version_get_otp1_signature(),
+            furi_hal_version_get_signature_size());
         property_out_hex(
             &property_context,
             temp_str,
             "otp4",
             "otp2_sig",
-            furi_hal_version_get_otp4_otp2_signature(),
-            furi_hal_version_get_otp4_signature_size());
+            furi_hal_version_get_otp2_signature(),
+            furi_hal_version_get_signature_size());
     }
 
     furi_string_free(temp_str);

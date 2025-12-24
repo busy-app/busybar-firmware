@@ -355,21 +355,21 @@ bool furi_hal_version_get_otp_valid(FuriHalFlashOtpBlock block) {
 // OTP3 - Public Key Data
 // ============================================================================
 
-uint8_t furi_hal_version_get_otp3_curve(void) {
+FuriHalVersionKeyCurve furi_hal_version_get_sign_curve(void) {
     if(!furi_hal_version_state.otp3_valid) {
-        return 0;
+        return FuriHalVersionKeyCurveNone;
     }
-    return otp_get_otp3()->hw_otp3_curve;
+    return (FuriHalVersionKeyCurve)otp_get_otp3()->hw_otp3_curve;
 }
 
-const uint8_t* furi_hal_version_get_otp3_pubkey(void) {
+const uint8_t* furi_hal_version_get_sign_pubkey(void) {
     if(!furi_hal_version_state.otp3_valid) {
         return NULL;
     }
     return otp_get_otp3()->hw_otp3_pkey;
 }
 
-size_t furi_hal_version_get_otp3_pubkey_size(void) {
+size_t furi_hal_version_get_sign_pubkey_size(void) {
     return OTP3_PKEY_SIZE;
 }
 
@@ -377,27 +377,27 @@ size_t furi_hal_version_get_otp3_pubkey_size(void) {
 // OTP4 - Signature Data
 // ============================================================================
 
-const uint8_t* furi_hal_version_get_otp4_mcu_uid(void) {
+const uint8_t* furi_hal_version_get_otp_mcu_uid(void) {
     if(!furi_hal_version_state.otp4_valid) {
         return NULL;
     }
     return otp_get_otp4()->hw_otp4_mcu_uid;
 }
 
-const uint8_t* furi_hal_version_get_otp4_otp1_signature(void) {
+const uint8_t* furi_hal_version_get_otp1_signature(void) {
     if(!furi_hal_version_state.otp4_valid) {
         return NULL;
     }
     return otp_get_otp4()->hw_otp1_signature;
 }
 
-const uint8_t* furi_hal_version_get_otp4_otp2_signature(void) {
+const uint8_t* furi_hal_version_get_otp2_signature(void) {
     if(!furi_hal_version_state.otp4_valid) {
         return NULL;
     }
     return otp_get_otp4()->hw_otp2_signature;
 }
 
-size_t furi_hal_version_get_otp4_signature_size(void) {
+size_t furi_hal_version_get_signature_size(void) {
     return OTP4_SIGNATURE_SIZE;
 }
