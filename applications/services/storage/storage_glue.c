@@ -3,28 +3,48 @@
 
 #define TAG "StorageGlue"
 
+/************ storage file shared part ************/
+
+static StorageFileShared* storage_file_shared_alloc(const FuriString* path) {
+    StorageFileShared* shared = malloc(sizeof(StorageFileShared));
+    shared->path = furi_string_alloc_set(path);
+    shared->ref_count = 0;
+    return shared;
+}
+
+static void storage_file_shared_free(StorageFileShared* shared) {
+    furi_check(shared->ref_count == 0);
+
+    furi_string_free(shared->path);
+    free(shared);
+}
+
 /****************** storage file ******************/
 
 void storage_file_init(StorageFile* obj) {
     obj->file = NULL;
     obj->file_data = NULL;
-    obj->path = furi_string_alloc();
+    obj->shared = NULL;
 }
 
 void storage_file_init_set(StorageFile* obj, const StorageFile* src) {
-    obj->file = src->file;
-    obj->file_data = src->file_data;
-    obj->path = furi_string_alloc_set(src->path);
+    UNUSED(obj);
+    UNUSED(src);
+    furi_crash(__FUNCTION__);
 }
 
 void storage_file_set(StorageFile* obj, const StorageFile* src) { //-V524
-    obj->file = src->file;
-    obj->file_data = src->file_data;
-    furi_string_set(obj->path, src->path);
+    UNUSED(obj);
+    UNUSED(src);
+    furi_crash(__FUNCTION__);
 }
 
 void storage_file_clear(StorageFile* obj) {
-    furi_string_free(obj->path);
+    if(obj->shared) {
+        if(--obj->shared->ref_count == 0) {
+            storage_file_shared_free(obj->shared);
+        }
+    }
 }
 
 /****************** storage data ******************/
@@ -92,26 +112,29 @@ static StorageFile* storage_get_file(const File* file, StorageData* storage) {
     return storage_file_ref;
 }
 
+static StorageFileShared* storage_get_file_shared(const FuriString* path, StorageData* storage) {
+    StorageFileShared* storage_file_shared_ref = NULL;
+
+    StorageFileList_it_t it;
+    for(StorageFileList_it(it, storage->files); !StorageFileList_end_p(it);
+        StorageFileList_next(it)) {
+        StorageFile* storage_file = StorageFileList_ref(it);
+
+        if(furi_string_equal(storage_file->shared->path, path)) {
+            storage_file_shared_ref = storage_file->shared;
+            break;
+        }
+    }
+
+    return storage_file_shared_ref;
+}
+
 bool storage_has_file(const File* file, StorageData* storage) {
     return storage_get_file(file, storage) != NULL;
 }
 
 bool storage_path_already_open(FuriString* path, StorageData* storage) {
-    bool open = false;
-
-    StorageFileList_it_t it;
-
-    for(StorageFileList_it(it, storage->files); !StorageFileList_end_p(it);
-        StorageFileList_next(it)) {
-        const StorageFile* storage_file = StorageFileList_cref(it);
-
-        if(furi_string_cmp(storage_file->path, path) == 0) {
-            open = true;
-            break;
-        }
-    }
-
-    return open;
+    return storage_get_file_shared(path, storage) != NULL;
 }
 
 void storage_set_storage_file_data(const File* file, void* file_data, StorageData* storage) {
@@ -127,10 +150,18 @@ void* storage_get_storage_file_data(const File* file, StorageData* storage) {
 }
 
 void storage_push_storage_file(File* file, FuriString* path, StorageData* storage) {
+    StorageFileShared* storage_file_shared = storage_get_file_shared(path, storage);
+
+    if(storage_file_shared == NULL) {
+        storage_file_shared = storage_file_shared_alloc(path);
+    }
+
+    ++storage_file_shared->ref_count;
+
     StorageFile* storage_file = StorageFileList_push_new(storage->files);
     file->file_id = (uint32_t)storage_file;
     storage_file->file = file;
-    furi_string_set(storage_file->path, path);
+    storage_file->shared = storage_file_shared;
 }
 
 bool storage_pop_storage_file(File* file, StorageData* storage) {

@@ -21,9 +21,14 @@ typedef struct {
 } StorageApi;
 
 typedef struct {
+    FuriString* path;
+    uint32_t ref_count;
+} StorageFileShared;
+
+typedef struct {
     File* file;
     void* file_data;
-    FuriString* path;
+    StorageFileShared* shared;
 } StorageFile;
 
 typedef enum {
