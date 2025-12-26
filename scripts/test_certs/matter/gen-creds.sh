@@ -5,10 +5,11 @@ set -e
 # Parse arguments
 
 usage() {
-  echo "Usage: gen-creds.sh <type>"
+  echo "Usage: gen-creds.sh <type> <ver>"
   echo "  type: test|certification"
-  echo "  Use \"test\" for regular testing."
-  echo "  Use \"certification\" for devices going into certification testing."
+  echo "    Use \"test\" for regular testing."
+  echo "    Use \"certification\" for devices going into certification testing."
+  echo "  ver: see \"MATTER_SOFTWARE_VERSION\" in \"matter_f64.cpp\""
   echo ""
   echo "Required env vars:"
   echo "  - MATTER_DIR: path to cloned repo:"
@@ -18,12 +19,13 @@ usage() {
   exit 1
 }
 
-if [[ $# -ne 1 ]]; then
+if [[ $# -ne 2 ]]; then
   usage
 fi
 
 certificate_type=$1
 if ! [[ "$certificate_type" =~ ^(test|certification)$ ]]; then usage; fi
+software_ver=$2
 
 if [[ ! -v MATTER_DIR ]]; then usage; fi
 if [[ ! -v CHIP_CERT ]]; then usage; fi
@@ -114,5 +116,5 @@ $chip_cert_tool gen-cd \
   --certificate-id "CSA00000SWC00000-00" \
   --security-level "0" \
   --security-info "0" \
-  --version-number "1" \
+  --version-number "${software_ver}" \
   --certification-type "$cd_certification_type"
