@@ -234,8 +234,14 @@ uint32_t menu_get_selected_item_index(const Menu* instance) {
 void menu_set_selected_item_index(Menu* instance, uint32_t index) {
     furi_check(instance);
     furi_check(index < lv_group_get_obj_count(instance->group));
+    lv_obj_t* target = lv_group_get_obj_by_index(instance->group, index);
 
-    lv_group_focus_obj(lv_group_get_obj_by_index(instance->group, index));
+    lv_group_focus_obj(target);
+
+    if(lv_obj_get_scroll_snap_y((lv_obj_t*)instance) == LV_SCROLL_SNAP_NONE) {
+        lv_coord_t y = lv_obj_get_y(target);
+        lv_obj_scroll_to_y((lv_obj_t*)instance, y, LV_ANIM_OFF);
+    }
 }
 
 // LVGL class descriptors
