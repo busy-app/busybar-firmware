@@ -5,10 +5,11 @@
 
 /************ storage file shared part ************/
 
-static StorageFileShared* storage_file_shared_alloc(const FuriString* path) {
+static StorageFileShared* storage_file_shared_alloc(void) {
     StorageFileShared* shared = malloc(sizeof(StorageFileShared));
-    shared->path = furi_string_alloc_set(path);
+    shared->path = furi_string_alloc();
     shared->ref_count = 0;
+    shared->access_mode = 0;
     return shared;
 }
 
@@ -133,8 +134,19 @@ bool storage_has_file(const File* file, StorageData* storage) {
     return storage_get_file(file, storage) != NULL;
 }
 
-bool storage_path_already_open(FuriString* path, StorageData* storage) {
-    return storage_get_file_shared(path, storage) != NULL;
+bool storage_path_already_open(FuriString* path, FS_AccessMode access_mode, StorageData* storage) {
+    const StorageFileShared* storage_file_shared = storage_get_file_shared(path, storage);
+
+    bool is_already_open = false;
+
+    if(storage_file_shared) {
+        // Allow indefinite number of FSAM_READ accesses
+        // but fall back to old behaviour for other modes
+        is_already_open = (storage_file_shared->access_mode != FSAM_READ) ||
+                          (storage_file_shared->access_mode != access_mode);
+    }
+
+    return is_already_open;
 }
 
 void storage_set_storage_file_data(const File* file, void* file_data, StorageData* storage) {
@@ -149,13 +161,20 @@ void* storage_get_storage_file_data(const File* file, StorageData* storage) {
     return storage_file_ref->file_data;
 }
 
-void storage_push_storage_file(File* file, FuriString* path, StorageData* storage) {
+void storage_push_storage_file(
+    File* file,
+    FuriString* path,
+    FS_AccessMode access_mode,
+    StorageData* storage) {
     StorageFileShared* storage_file_shared = storage_get_file_shared(path, storage);
 
     if(storage_file_shared == NULL) {
-        storage_file_shared = storage_file_shared_alloc(path);
+        storage_file_shared = storage_file_shared_alloc();
+        furi_string_set(storage_file_shared->path, path);
+        storage_file_shared->access_mode = access_mode;
     }
 
+    furi_check(storage_file_shared->ref_count < UINT8_MAX);
     ++storage_file_shared->ref_count;
 
     StorageFile* storage_file = StorageFileList_push_new(storage->files);

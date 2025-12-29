@@ -22,7 +22,8 @@ typedef struct {
 
 typedef struct {
     FuriString* path;
-    uint32_t ref_count;
+    uint8_t ref_count;
+    FS_AccessMode access_mode;
 } StorageFileShared;
 
 typedef struct {
@@ -70,12 +71,19 @@ struct StorageData {
 };
 
 bool storage_has_file(const File* file, StorageData* storage_data);
-bool storage_path_already_open(FuriString* path, StorageData* storage_data);
+bool storage_path_already_open(
+    FuriString* path,
+    FS_AccessMode access_mode,
+    StorageData* storage_data);
 
 void storage_set_storage_file_data(const File* file, void* file_data, StorageData* storage);
 void* storage_get_storage_file_data(const File* file, StorageData* storage);
 
-void storage_push_storage_file(File* file, FuriString* path, StorageData* storage);
+void storage_push_storage_file(
+    File* file,
+    FuriString* path,
+    FS_AccessMode access_mode,
+    StorageData* storage);
 bool storage_pop_storage_file(File* file, StorageData* storage);
 
 size_t storage_open_files_count(StorageData* storage);

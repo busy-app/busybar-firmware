@@ -99,7 +99,7 @@ bool storage_process_file_open(
     do {
         if(file->error_id != FSE_OK) break;
 
-        if(storage_path_already_open(path, storage)) {
+        if(storage_path_already_open(path, access_mode, storage)) {
             file->error_id = FSE_ALREADY_OPEN;
             break;
         }
@@ -113,7 +113,7 @@ bool storage_process_file_open(
             storage_data_timestamp(storage);
         }
 
-        storage_push_storage_file(file, path, storage);
+        storage_push_storage_file(file, path, access_mode, storage);
 
         const char* path_cstr_no_vfs = cstr_storage_path(app, type, path);
         FS_CALL(storage, file.open(storage, file, path_cstr_no_vfs, access_mode, open_mode));
@@ -289,10 +289,10 @@ bool storage_process_dir_open(Storage* app, File* file, FuriString* path) {
     file->error_id = storage_get_data(app, type, &storage);
 
     if(file->error_id == FSE_OK) {
-        if(storage_path_already_open(path, storage)) {
+        if(storage_path_already_open(path, 0, storage)) {
             file->error_id = FSE_ALREADY_OPEN;
         } else {
-            storage_push_storage_file(file, path, storage);
+            storage_push_storage_file(file, path, 0, storage);
             FS_CALL(storage, dir.open(storage, file, cstr_storage_path(app, type, path)));
         }
     }
@@ -385,7 +385,7 @@ static FS_Error storage_process_common_remove(Storage* app, FuriString* path) {
 
         if(ret != FSE_OK) break;
 
-        if(storage_path_already_open(path, storage)) {
+        if(storage_path_already_open(path, 0, storage)) {
             ret = FSE_ALREADY_OPEN;
             break;
         }
