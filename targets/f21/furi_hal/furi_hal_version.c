@@ -209,6 +209,13 @@ uint8_t furi_hal_version_get_hw_target(void) {
     return otp_get_otp1()->hw_target;
 }
 
+uint8_t furi_hal_version_get_hw_target_otp(void) {
+    if(!furi_hal_version_state.otp1_valid) {
+        return 0;
+    }
+    return otp_get_otp1()->hw_target;
+}
+
 uint8_t furi_hal_version_get_hw_body(void) {
     if(!furi_hal_version_state.otp1_valid) {
         return 0;
@@ -245,7 +252,7 @@ uint32_t furi_hal_version_get_hw_timestamp_qc(void) {
 
 FuriHalVersionColor furi_hal_version_get_hw_color(void) {
     if(!furi_hal_version_state.otp2_valid) {
-        return FuriHalVersionColorWhite; // Default
+        return FuriHalVersionColorUnknown;
     }
 
     return (FuriHalVersionColor)otp_get_otp2()->hw_color;

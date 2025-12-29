@@ -190,7 +190,8 @@ void furi_hal_info_get(PropertyValueCallback out, char sep, void* context) {
             furi_hal_version_get_otp_valid(FuriHalOtpBlockOtp1));
         property_out_str(&property_context, "otp1", "model", furi_hal_version_get_model_code());
         property_out_int(&property_context, "otp1", "version", furi_hal_version_get_hw_version());
-        property_out_int(&property_context, "otp1", "target", furi_hal_version_get_hw_target());
+        property_out_int(
+            &property_context, "otp1", "target", furi_hal_version_get_hw_target_otp());
         property_out_int(&property_context, "otp1", "body", furi_hal_version_get_hw_body());
         property_out_int(&property_context, "otp1", "connect", furi_hal_version_get_hw_connect());
         property_out_long(

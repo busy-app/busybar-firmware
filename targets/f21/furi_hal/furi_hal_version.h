@@ -21,6 +21,7 @@ extern "C" {
 
 /** Device Colors (from OTP2 hw_color, matches HWColor in bsbotp.py) */
 typedef enum {
+    FuriHalVersionColorUnknown = 0x00,
     FuriHalVersionColorWhite = 0x01,
 } FuriHalVersionColor;
 
@@ -82,11 +83,17 @@ const char* furi_hal_version_get_ncc_id(void);
  */
 uint8_t furi_hal_version_get_hw_version(void);
 
-/** Get hardware target
+/** Get hardware target (with fallback to firmware version if OTP not provisioned)
  *
  * @return     Hardware Target
  */
 uint8_t furi_hal_version_get_hw_target(void);
+
+/** Get hardware target from OTP (raw value, 0 if not provisioned)
+ *
+ * @return     Hardware Target from OTP, or 0 if OTP1 not provisioned
+ */
+uint8_t furi_hal_version_get_hw_target_otp(void);
 
 /** Get hardware body
  *
