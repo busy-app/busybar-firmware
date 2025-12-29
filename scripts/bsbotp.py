@@ -881,10 +881,16 @@ Examples:
         "--timestamp", type=int, help="QC timestamp (default: now)"
     )
     otp2_parser.add_argument(
-        "--color", type=int, default=0, help="Hardware color (default: 0=WHITE)"
+        "--color",
+        type=int,
+        default=HWColor.WHITE.value,
+        help="Hardware color (default: 1=WHITE)",
     )
     otp2_parser.add_argument(
-        "--region", type=int, default=0, help="Region (default: 0=WORLD)"
+        "--region",
+        type=int,
+        default=HWRegion.WORLD.value,
+        help="Region (default: 1=WORLD)",
     )
     otp2_parser.set_defaults(func=cmd_create_otp2)
 
