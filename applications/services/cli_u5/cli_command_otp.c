@@ -173,17 +173,10 @@ static void cli_command_otp_dump(PipeSide* pipe, FuriString* args, void* context
         return;
     }
 
-    size_t len_remain = FURI_HAL_FLASH_OTP_BLOCK_SIZE;
-    const size_t row_len_max = 16;
-    for(size_t offset = 0; offset < FURI_HAL_FLASH_OTP_BLOCK_SIZE; offset += row_len_max) {
-        uint8_t* ptr = (uint8_t*)(addr + offset);
-        size_t row_len = MIN(len_remain, row_len_max);
-        for(uint8_t i = 0; i < row_len; i++) {
-            printf("%02X ", ptr[i]);
-        }
-        len_remain -= row_len;
-        printf("\r\n");
+    for(size_t i = 0; i < FURI_HAL_FLASH_OTP_BLOCK_SIZE; i++) {
+        printf("%02x", *(uint8_t*)(addr + i));
     }
+    printf("\r\n");
 }
 
 static void cli_command_otp_print_usage() {
