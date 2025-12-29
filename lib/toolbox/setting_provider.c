@@ -552,17 +552,14 @@ static bool setting_save_structure(
         }
 
         if(is_valid) {
-            const char* name;
-            cJSON* parent_json_node;
             if(setting->name) {
-                name = setting->name;
-                parent_json_node = json_node;
+                json_write_object(json_node, setting->name, inner_json_node);
             } else {
-                name = json_node->string;
-                parent_json_node = json_node->prev;
+                cJSON_Delete(json_node->child);
+                json_node->child = inner_json_node->child;
+                cJSON_free(inner_json_node);
             }
 
-            json_write_object(parent_json_node, name, inner_json_node);
             provider->is_write_pending = true;
         } else {
             cJSON_Delete(inner_json_node);
