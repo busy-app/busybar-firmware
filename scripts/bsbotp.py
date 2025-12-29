@@ -501,10 +501,14 @@ def cmd_create_otp1(args):
     )
 
     data = pad_to_page(otp1.to_bytes())
-    with open(args.output, "wb") as f:
-        f.write(data)
 
-    print(f"OTP1 data saved to: {args.output}")
+    if args.output:
+        with open(args.output, "wb") as f:
+            f.write(data)
+        print(f"OTP1 data saved to: {args.output}")
+    else:
+        print(f"OTP1 data:")
+
     print(f"  Version: {otp1.hw_otp_ver}")
     print(f"  Timestamp: {otp1.hw_timestamp}")
     print(f"  MAC: {format_mac(otp1.u5_usb_mac)}")
@@ -513,6 +517,9 @@ def cmd_create_otp1(args):
     print(f"  Target: {otp1.hw_target}")
     print(f"  Body: {otp1.hw_body}")
     print(f"  Connect: {otp1.hw_connect}")
+
+    if not args.output:
+        print(f"  Raw: {data.hex()}")
 
 
 def cmd_create_otp2(args):
@@ -525,14 +532,21 @@ def cmd_create_otp2(args):
     )
 
     data = pad_to_page(otp2.to_bytes())
-    with open(args.output, "wb") as f:
-        f.write(data)
 
-    print(f"OTP2 data saved to: {args.output}")
+    if args.output:
+        with open(args.output, "wb") as f:
+            f.write(data)
+        print(f"OTP2 data saved to: {args.output}")
+    else:
+        print(f"OTP2 data:")
+
     print(f"  Version: {otp2.hw_otp_ver}")
     print(f"  QC Timestamp: {otp2.hw_timestamp_qc}")
     print(f"  Color: {otp2.hw_color.name}")
     print(f"  Region: {otp2.hw_region.name}")
+
+    if not args.output:
+        print(f"  Raw: {data.hex()}")
 
 
 def cmd_create_otp3(args):
@@ -554,13 +568,20 @@ def cmd_create_otp3(args):
     )
 
     data = pad_to_page(otp3.to_bytes())
-    with open(args.output, "wb") as f:
-        f.write(data)
 
-    print(f"OTP3 data saved to: {args.output}")
+    if args.output:
+        with open(args.output, "wb") as f:
+            f.write(data)
+        print(f"OTP3 data saved to: {args.output}")
+    else:
+        print(f"OTP3 data:")
+
     print(f"  Version: {otp3.hw_otp_ver}")
     print(f"  Curve: {otp3.hw_otp3_curve.name}")
     print(f"  Public Key: {public_bytes.hex()}")
+
+    if not args.output:
+        print(f"  Raw: {data.hex()}")
 
 
 def cmd_create_otp4(args):
@@ -599,14 +620,21 @@ def cmd_create_otp4(args):
     )
 
     data = pad_to_page(otp4.to_bytes())
-    with open(args.output, "wb") as f:
-        f.write(data)
 
-    print(f"OTP4 signature saved to: {args.output}")
+    if args.output:
+        with open(args.output, "wb") as f:
+            f.write(data)
+        print(f"OTP4 signature saved to: {args.output}")
+    else:
+        print(f"OTP4 signature:")
+
     print(f"  Version: {otp4.hw_otp_ver}")
     print(f"  MCU UID: {format_hex(mcu_uid)}")
     print(f"  OTP1 Signature: {format_hex(otp1_signature)}")
     print(f"  OTP2 Signature: {format_hex(otp2_signature)}")
+
+    if not args.output:
+        print(f"  Raw: {data.hex()}")
 
 
 def cmd_load(args):
@@ -850,7 +878,9 @@ Examples:
 
     # Create OTP1 command
     otp1_parser = subparsers.add_parser("create-otp1", help="Create OTP1 hardware info")
-    otp1_parser.add_argument("-o", "--output", required=True, help="Output file")
+    otp1_parser.add_argument(
+        "-o", "--output", help="Output file (if not specified, prints hex data)"
+    )
     otp1_parser.add_argument(
         "--version", type=int, default=0, help="OTP1 version (default: 0)"
     )
@@ -873,7 +903,9 @@ Examples:
 
     # Create OTP2 command
     otp2_parser = subparsers.add_parser("create-otp2", help="Create OTP2 QC info")
-    otp2_parser.add_argument("-o", "--output", required=True, help="Output file")
+    otp2_parser.add_argument(
+        "-o", "--output", help="Output file (if not specified, prints hex data)"
+    )
     otp2_parser.add_argument(
         "--version", type=int, default=0, help="OTP2 version (default: 0)"
     )
@@ -896,7 +928,9 @@ Examples:
 
     # Create OTP3 command
     otp3_parser = subparsers.add_parser("create-otp3", help="Create OTP3 public key")
-    otp3_parser.add_argument("-o", "--output", required=True, help="Output file")
+    otp3_parser.add_argument(
+        "-o", "--output", help="Output file (if not specified, prints hex data)"
+    )
     otp3_parser.add_argument(
         "--version", type=int, default=0, help="OTP3 version (default: 0)"
     )
@@ -905,7 +939,9 @@ Examples:
 
     # Create OTP4 command
     otp4_parser = subparsers.add_parser("create-otp4", help="Create OTP4 signatures")
-    otp4_parser.add_argument("-o", "--output", required=True, help="Output file")
+    otp4_parser.add_argument(
+        "-o", "--output", help="Output file (if not specified, prints hex data)"
+    )
     otp4_parser.add_argument(
         "--version", type=int, default=0, help="OTP4 version (default: 0)"
     )
