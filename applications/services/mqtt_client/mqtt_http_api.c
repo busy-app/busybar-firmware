@@ -147,7 +147,7 @@ void mqtt_http_api_respond_error(MqttClient* mqtt, FuriString* resp_topic, FuriS
     };
     struct mg_mqtt_opts pub_opts = {
         .topic = mg_str(furi_string_get_cstr(resp_topic)),
-        .message = mg_str("HTTP/1.1 400 Bad Request\r\n\r\n"),
+        .message = mg_str("HTTP/1.1 422 Unprocessable Entity\r\n\r\n"),
         .qos = MQTT_QOS,
         .retain = false,
         .props = props,
