@@ -25,7 +25,8 @@ typedef enum {
     SettingProviderSettingTypeBool, ///< Boolean value
     SettingProviderSettingTypeInt, ///< Integer value with validation
     SettingProviderSettingTypeFloat, ///< Floating-point value with validation
-    SettingProviderSettingTypeString, ///< String value with validation
+    SettingProviderSettingTypeString, ///< C-string (char array) with validation
+    SettingProviderSettingTypeFuriString, ///< FuriString value with validation
     SettingProviderSettingTypeCustom, ///< Custom type with serialize/deserialize
     /* TODO: SettingProviderSettingTypeArray */
     /* TODO: SettingProviderSettingTypeRaw */
@@ -71,7 +72,22 @@ typedef struct {
 } SettingProviderFloatInterface;
 
 /**
- * @brief Interface for string settings
+ * @brief Interface for C-string settings (fixed-size char arrays)
+ */
+typedef struct {
+    const char* default_value; ///< Default value to use when loading fails or validation fails
+    /**
+     * @brief Optional validation callback
+     * @param setting The setting descriptor
+     * @param value The value to validate (null-terminated C-string)
+     * @return true if valid, false otherwise
+     */
+    bool (*is_valid_callback)(const SettingProviderSetting* setting, const char* value);
+    size_t max_length; ///< Maximum length of the string (including null terminator)
+} SettingProviderStringInterface;
+
+/**
+ * @brief Interface for FuriString settings (dynamic strings)
  */
 typedef struct {
     const char* default_value; ///< Default value to use when loading fails or validation fails
@@ -82,7 +98,7 @@ typedef struct {
      * @return true if valid, false otherwise
      */
     bool (*is_valid_callback)(const SettingProviderSetting* setting, const FuriString* value);
-} SettingProviderStringInterface;
+} SettingProviderFuriStringInterface;
 
 /**
  * @brief Interface for custom type settings

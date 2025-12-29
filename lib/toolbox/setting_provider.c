@@ -344,6 +344,79 @@ static void setting_reset_string(
     const SettingProviderStringInterface* interface = setting->interface;
 
     furi_check(interface->default_value);
+    furi_check(strlen(interface->default_value) < interface->max_length);
+
+    FURI_LOG_D(TAG, "Loading default for \"%s\": %s", setting->name, interface->default_value);
+
+    json_write_string(json_node, setting->name, interface->default_value);
+    provider->is_write_pending = true;
+
+    if(value) strncpy(value, interface->default_value, interface->max_length);
+}
+
+static void setting_load_string(
+    SettingProvider* provider,
+    cJSON* json_node,
+    const SettingProviderSetting* setting,
+    void* value) {
+    const SettingProviderStringInterface* interface = setting->interface;
+
+    furi_check(interface->max_length > 0);
+
+    FuriString* read_buffer = furi_string_alloc();
+    do {
+        if(!json_read_string(json_node, setting->name, read_buffer)) {
+            FURI_LOG_W(TAG, "Failed to load \"%s\" as string...", setting->name);
+        } else {
+            const char* read_value = furi_string_get_cstr(read_buffer);
+            bool is_valid = furi_string_size(read_buffer) < interface->max_length &&
+                            (!interface->is_valid_callback ||
+                             interface->is_valid_callback(setting, read_value));
+
+            if(is_valid) {
+                strncpy(value, read_value, interface->max_length - 1);
+                break;
+            } else {
+                FURI_LOG_W(TAG, "Invalid \"%s\" value: %s...", setting->name, read_value);
+            }
+        }
+
+        setting_reset_string(provider, json_node, setting, value);
+    } while(false);
+
+    furi_string_free(read_buffer);
+}
+
+static bool setting_save_string(
+    SettingProvider* provider,
+    cJSON* json_node,
+    const SettingProviderSetting* setting,
+    const void* value) {
+    const SettingProviderStringInterface* interface = setting->interface;
+
+    const char* _value = value;
+    bool is_valid =
+        strlen(_value) < interface->max_length &&
+        (!interface->is_valid_callback || interface->is_valid_callback(setting, _value));
+
+    if(is_valid) {
+        json_write_string(json_node, setting->name, _value);
+        provider->is_write_pending = true;
+    } else {
+        FURI_LOG_W(TAG, "Invalid \"%s\" save attempt with value: %s", setting->name, _value);
+    }
+
+    return is_valid;
+}
+
+static void setting_reset_furi_string(
+    SettingProvider* provider,
+    cJSON* json_node,
+    const SettingProviderSetting* setting,
+    void* value) {
+    const SettingProviderFuriStringInterface* interface = setting->interface;
+
+    furi_check(interface->default_value);
 
     FURI_LOG_D(TAG, "Loading default for \"%s\": %s", setting->name, interface->default_value);
 
@@ -353,12 +426,12 @@ static void setting_reset_string(
     if(value) furi_string_set(value, interface->default_value);
 }
 
-static void setting_load_string(
+static void setting_load_furi_string(
     SettingProvider* provider,
     cJSON* json_node,
     const SettingProviderSetting* setting,
     void* value) {
-    const SettingProviderStringInterface* interface = setting->interface;
+    const SettingProviderFuriStringInterface* interface = setting->interface;
 
     do {
         if(!json_read_string(json_node, setting->name, value)) {
@@ -370,16 +443,16 @@ static void setting_load_string(
             break;
         }
 
-        setting_reset_string(provider, json_node, setting, value);
+        setting_reset_furi_string(provider, json_node, setting, value);
     } while(false);
 }
 
-static bool setting_save_string(
+static bool setting_save_furi_string(
     SettingProvider* provider,
     cJSON* json_node,
     const SettingProviderSetting* setting,
     const void* value) {
-    const SettingProviderStringInterface* interface = setting->interface;
+    const SettingProviderFuriStringInterface* interface = setting->interface;
 
     const FuriString* _value = value;
     bool is_valid = !interface->is_valid_callback || interface->is_valid_callback(setting, _value);
@@ -868,6 +941,12 @@ static const SettingTypeActions setting_type_actions[] = {
             .reset = setting_reset_string,
             .load = setting_load_string,
             .save = setting_save_string,
+        },
+    [SettingProviderSettingTypeFuriString] =
+        {
+            .reset = setting_reset_furi_string,
+            .load = setting_load_furi_string,
+            .save = setting_save_furi_string,
         },
     [SettingProviderSettingTypeCustom] =
         {
