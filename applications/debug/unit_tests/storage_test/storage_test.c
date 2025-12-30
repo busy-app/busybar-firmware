@@ -7,12 +7,14 @@
 // This is a hack to access internal storage functions and definitions
 #include <storage/storage_i.h>
 
-#define UNIT_TESTS_RESOURCES_PATH(path) EXT_PATH("unit_tests/" path)
-
 #define STORAGE_LOCKED_FILE UNIT_TESTS_PATH("locked_file.test")
 #define STORAGE_LOCKED_DIR  STORAGE_EXT_PATH_PREFIX
 
 #define STORAGE_TEST_DIR UNIT_TESTS_PATH("test_dir")
+
+#define STORAGE_MULTI_OPEN_FILE_COUNT (10)
+
+#define DIGIT_REPEAT_COUNT (4)
 
 static bool storage_file_create(Storage* storage, const char* path, const char* data) {
     File* file = storage_file_alloc(storage);
@@ -459,6 +461,51 @@ MU_TEST_SUITE(storage_rename) {
     furi_record_close(RECORD_STORAGE);
 }
 
+MU_TEST(storage_test_file_multi_open) {
+    Storage* storage = furi_record_open(RECORD_STORAGE);
+    // Fill test data with a following looking string: 000011112222...9999
+    char test_data[STORAGE_MULTI_OPEN_FILE_COUNT * DIGIT_REPEAT_COUNT + 1] = {0};
+
+    for(uint32_t i = 0; i < STORAGE_MULTI_OPEN_FILE_COUNT; ++i) {
+        for(uint32_t j = 0; j < DIGIT_REPEAT_COUNT; ++j) {
+            test_data[i * DIGIT_REPEAT_COUNT + j] = i + '0';
+        }
+    }
+    // Write test data to a file
+    const char* test_file_path = UNIT_TESTS_PATH("multi_open.txt");
+    mu_check(storage_file_create(storage, test_file_path, test_data));
+
+    File* files[STORAGE_MULTI_OPEN_FILE_COUNT];
+    // Open the same file a bunch of times (works like this only in FSAM_READ access mode)
+    for(uint32_t i = 0; i < COUNT_OF(files); ++i) {
+        files[i] = storage_file_alloc(storage);
+        mu_check(storage_file_open(files[i], test_file_path, FSAM_READ, FSOM_OPEN_EXISTING));
+    }
+    // Seek individual files to different positions (matching their number)
+    for(uint32_t i = 0; i < COUNT_OF(files); ++i) {
+        mu_check(storage_file_seek(files[i], i * DIGIT_REPEAT_COUNT, true));
+    }
+    // Read each file from a different position and compare it to its respective section of data
+    for(uint32_t i = 0; i < COUNT_OF(files); ++i) {
+        char buf[DIGIT_REPEAT_COUNT + 1] = {0};
+        mu_assert_int_eq(DIGIT_REPEAT_COUNT, storage_file_read(files[i], buf, DIGIT_REPEAT_COUNT));
+        // Read result should be a substring from the data with its respective repeating digit
+        const char* result = strstr(test_data, buf);
+        const char* expected = &test_data[i * DIGIT_REPEAT_COUNT];
+        mu_assert_pointers_eq(expected, result);
+    }
+    // Remove the files
+    for(uint32_t i = 0; i < COUNT_OF(files); ++i) {
+        storage_file_free(files[i]);
+    }
+
+    furi_record_close(RECORD_STORAGE);
+}
+
+MU_TEST_SUITE(storage_multi_open) {
+    MU_RUN_TEST(storage_test_file_multi_open);
+}
+
 #define APPSDATA_APP_PATH(path) APPS_DATA_PATH "/" path
 
 static const char* storage_test_apps[] = {
@@ -695,9 +742,13 @@ MU_TEST(test_storage_common_migrate) {
 
 MU_TEST(test_md5_calc) {
     Storage* storage = furi_record_open(RECORD_STORAGE);
+
+    const char* test_path = UNIT_TESTS_PATH("md5.txt");
+    const char* test_data = "Yo dawg, I heard you like md5...";
+    mu_check(storage_file_create(storage, test_path, test_data));
+
     File* file = storage_file_alloc(storage);
 
-    const char* path = UNIT_TESTS_RESOURCES_PATH("storage/md5.txt");
     const char* md5_cstr = "2a456fa43e75088fdde41c93159d62a2";
     const uint8_t md5[MD5_HASH_SIZE] = {
         0x2a,
@@ -722,8 +773,8 @@ MU_TEST(test_md5_calc) {
     FuriString* md5_output_str = furi_string_alloc();
     memset(md5_output, 0, MD5_HASH_SIZE);
 
-    mu_check(md5_calc_file(file, path, md5_output, NULL));
-    mu_check(md5_string_calc_file(file, path, md5_output_str, NULL));
+    mu_check(md5_calc_file(file, test_path, md5_output, NULL));
+    mu_check(md5_string_calc_file(file, test_path, md5_output_str, NULL));
 
     mu_assert_mem_eq(md5, md5_output, MD5_HASH_SIZE);
     mu_assert_string_eq(md5_cstr, furi_string_get_cstr(md5_output_str));
@@ -751,6 +802,7 @@ int run_minunit_storage_test(void) {
     MU_RUN_SUITE(storage_file_64k);
     MU_RUN_SUITE(storage_dir);
     MU_RUN_SUITE(storage_rename);
+    MU_RUN_SUITE(storage_multi_open);
     MU_RUN_SUITE(test_data_path);
     MU_RUN_SUITE(test_storage_common);
     MU_RUN_SUITE(test_md5_calc_suite);
