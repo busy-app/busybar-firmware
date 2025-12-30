@@ -753,7 +753,6 @@ int run_minunit_storage_test(void) {
     MU_RUN_SUITE(storage_rename);
     MU_RUN_SUITE(test_data_path);
     MU_RUN_SUITE(test_storage_common);
-    // MU_RUN_SUITE(test_md5_calc_suite);
-    UNUSED(test_md5_calc_suite);
+    MU_RUN_SUITE(test_md5_calc_suite);
     return MU_EXIT_CODE;
 }

@@ -5,4 +5,5 @@ App(
     apptype=FlipperAppType.CLICMD,
     entry_point="unit_tests_cli_command",
     stack_size=4 * 1024,
+    resources="resources",
 )
