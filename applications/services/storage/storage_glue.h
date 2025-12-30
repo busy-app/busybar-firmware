@@ -21,15 +21,10 @@ typedef struct {
 } StorageApi;
 
 typedef struct {
-    FuriString* path;
-    uint8_t ref_count;
-    FS_AccessMode access_mode;
-} StorageFileShared;
-
-typedef struct {
     File* file;
     void* file_data;
-    StorageFileShared* shared;
+    FuriString* path;
+    FS_AccessMode access_mode;
 } StorageFile;
 
 typedef enum {
