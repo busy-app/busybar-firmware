@@ -12,6 +12,8 @@ _Static_assert(
 
 #define FS_CALL(_storage, _fn) ret = _storage->fs_api->_fn;
 
+#define FSAM_ANY (0)
+
 static bool storage_type_is_valid(StorageType type) {
     return type < ST_MAX;
 }
@@ -289,10 +291,10 @@ bool storage_process_dir_open(Storage* app, File* file, FuriString* path) {
     file->error_id = storage_get_data(app, type, &storage);
 
     if(file->error_id == FSE_OK) {
-        if(storage_path_already_open(path, 0, storage)) {
+        if(storage_path_already_open(path, FSAM_ANY, storage)) {
             file->error_id = FSE_ALREADY_OPEN;
         } else {
-            storage_push_storage_file(file, path, 0, storage);
+            storage_push_storage_file(file, path, FSAM_ANY, storage);
             FS_CALL(storage, dir.open(storage, file, cstr_storage_path(app, type, path)));
         }
     }
@@ -385,7 +387,7 @@ static FS_Error storage_process_common_remove(Storage* app, FuriString* path) {
 
         if(ret != FSE_OK) break;
 
-        if(storage_path_already_open(path, 0, storage)) {
+        if(storage_path_already_open(path, FSAM_ANY, storage)) {
             ret = FSE_ALREADY_OPEN;
             break;
         }
