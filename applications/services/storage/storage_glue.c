@@ -106,10 +106,7 @@ bool storage_path_already_open(FuriString* path, FS_AccessMode access_mode, Stor
         const StorageFile* storage_file = StorageFileList_cref(it);
 
         if(furi_string_cmp(storage_file->path, path) == 0) {
-            const bool is_not_read_only = storage_file->access_mode != FSAM_READ;
-            const bool access_mode_mismatch = storage_file->access_mode != access_mode;
-
-            if(is_not_read_only || access_mode_mismatch) {
+            if((storage_file->access_mode != access_mode) || (access_mode != FSAM_READ)) {
                 open = true;
                 break;
             }
