@@ -24,7 +24,7 @@ export const useDeviceStore = defineStore('device', () => {
   const connectionType = ref<'usb' | 'wifi'>('wifi');
   async function detectConnectionType () {
     try {
-      await $fetch('/api/version', {
+      await $fetch('/api/name', {
         baseURL: useRuntimeConfig().public.barUrl
       });
       connectionType.value = 'usb';
