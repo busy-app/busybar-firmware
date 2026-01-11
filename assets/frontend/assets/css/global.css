@@ -22,33 +22,21 @@
   --ui-text: var(--color-black);
   --ui-container: 1440px;
 
-  --glass-stroke:
-    linear-gradient(
-      180deg,
-      rgba(0, 0, 0, 0.10) 0%,
-      rgba(0, 0, 0, 0.00) 100%
-    );
-  --glass-fallback: rgba(0, 0, 0, 0.03);
-  --glass-ring-width: 1px;
-  --glass-mask: linear-gradient(#fff 0 0) content-box no-repeat, linear-gradient(#fff 0 0) no-repeat;
+  --glass-ring-inner: --alpha(var(--color-white) / 10%);
+  --glass-ring-outer: --alpha(var(--color-black) / 4%);
 }
 
 .dark {
   --ui-text: var(--color-white);
 
-  --glass-stroke:
-    linear-gradient(
-      180deg,
-      rgba(255, 255, 255, 0.10) 0%,
-      rgba(255, 255, 255, 0.00) 100%
-    );
-  --glass-fallback: rgba(255, 255, 255, 0.03);
+  --glass-ring-inner: --alpha(var(--color-white) / 10%);
+  --glass-ring-outer: --alpha(var(--color-white) / 4%);
 }
 
 body {
   overscroll-behavior: none;
 
-  @apply bg-white dark:bg-[#121212]
+  @apply bg-white dark:bg-[#0A0A0A]
 }
 
 input[aria-invalid="true"] {
@@ -59,6 +47,47 @@ button {
   @apply cursor-pointer disabled:cursor-not-allowed aria-disabled:cursor-not-allowed;
 }
 
+@theme {
+  --ring-glass: 1px;
+  --ring-glass-0: 0px;
+  --ring-glass-1: 1px;
+  --ring-glass-2: 2px;
+  --ring-glass-3: 3px;
+  --ring-glass-4: 4px;
+  --ring-glass-6: 6px;
+  --ring-glass-8: 8px;
+}
+
+@utility ring {
+  --ring-glass-width: var(--ring-glass);
+}
+
+@utility ring-* {
+  --ring-glass-width: --value(--ring-glass-*, [length]);
+}
+
+@utility inset-ring {
+  --ring-glass-width: var(--ring-glass);
+}
+
+@utility inset-ring-* {
+  --ring-glass-width: --value(--ring-glass-*, [length]);
+}
+
+@utility ring-glass {
+  --ring-glass-inner: var(--glass-ring-inner);
+  --ring-glass-outer: var(--glass-ring-outer);
+
+  --ring-shadow:
+    inset 0 var(--ring-glass-width) var(--ring-glass-width) 0 var(--ring-glass-inner),
+    inset 0 0 0 var(--ring-glass-width) var(--ring-glass-outer);
+
+  box-shadow:
+    var(--tw-ring-offset-shadow),
+    var(--ring-shadow),
+    var(--tw-shadow) !important;
+}
+
 @layer utilities {
   @keyframes -spin {
     from {
@@ -66,38 +95,6 @@ button {
     }
     to {
       transform: rotate(-360deg);
-    }
-  }
-
-  .ring { --glass-ring-width: 1px; }
-  .ring-0 { --glass-ring-width: 0; }
-  .ring-1 { --glass-ring-width: 1px; }
-  .ring-2 { --glass-ring-width: 2px; }
-  .ring-4 { --glass-ring-width: 4px; }
-  .ring-8 { --glass-ring-width: 8px; }
-
-  .ring-without-fallback {
-    --glass-fallback: rgba(255, 255, 255, 0);
-  }
-
-  .ring-glass {
-    @apply relative ring-inset ring-black/10 dark:ring-white/10;
-  }
-
-  @supports (mask: var(--glass-mask)) {
-    .ring-glass {
-      @apply ring-0;
-      box-shadow: inset 0 0 0 var(--glass-ring-width) var(--glass-fallback);
-    }
-    .ring-glass::before {
-      @apply absolute inset-0 pointer-events-none rounded-[inherit];
-
-      mask: var(--glass-mask);
-      @apply mask-exclude;
-
-      content: '';
-      background: var(--glass-stroke);
-      padding: var(--glass-ring-width);
     }
   }
 

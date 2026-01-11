@@ -72,10 +72,18 @@
           <div class="flex justify-between items-center">
             <div class="text-lg font-medium">Brightness</div>
             <div
+              v-if="!isBrightnessAuto"
               data-id="brightness-percentage"
               class="text-muted"
             >
               {{ brightnessNumber }}%
+            </div>
+            <div
+              v-else
+              data-id="brightness-auto"
+              class="text-muted"
+            >
+              Automatic
             </div>
           </div>
 

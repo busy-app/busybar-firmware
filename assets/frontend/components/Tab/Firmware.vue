@@ -3,7 +3,7 @@
     data-id="firmware-section-primary"
     title="Firmware"
     :subtitle="fwVersionPolifilled"
-    icon="i-ri-cpu-line"
+    icon="i-bi-firmware-fill"
   >
     <template #actions>
       <UButton
@@ -69,6 +69,7 @@
                   label="Select file"
                   color="neutral"
                   variant="soft"
+                  :ui="{ base: 'bg-neutral-200/50 dark:bg-neutral-700/50' }"
                   class="mt-2"
                 />
               </template>

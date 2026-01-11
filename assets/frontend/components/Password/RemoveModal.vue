@@ -31,6 +31,7 @@
           name="current-password"
           size="xl"
           variant="soft"
+          :ui="{ base: 'ring-1 ring-glass' }"
           :type="pms.passwordModel.showCurrent ? 'text' : 'password'"
           placeholder="Enter password"
           @update:model-value="pms.passwordModel.currentWrong = false"

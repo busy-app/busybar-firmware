@@ -26,7 +26,7 @@ export const useWifiStore = defineStore('wifi', () => {
           id: 'wifi-status-error',
           title: 'Failed to fetch WiFi state',
           description: error.data?.error || genericErrorMessage,
-          icon: 'i-ri-alert-line',
+          icon: 'i-bi-alert',
           color: 'error',
           duration: 10000
         });
@@ -68,7 +68,7 @@ export const useWifiStore = defineStore('wifi', () => {
           id: 'wifi-networks-error',
           title: 'Failed to fetch WiFi networks',
           description: error.data?.error || genericErrorMessage,
-          icon: 'i-ri-alert-line',
+          icon: 'i-bi-alert',
           color: 'error',
           duration: 10000
         });
@@ -84,7 +84,7 @@ export const useWifiStore = defineStore('wifi', () => {
           id: 'wifi-connect-error',
           title: 'Failed to connect to WiFi',
           description: error.data?.error || genericErrorMessage,
-          icon: 'i-ri-alert-line',
+          icon: 'i-bi-alert',
           color: 'error',
           duration: 10000
         });
@@ -100,7 +100,7 @@ export const useWifiStore = defineStore('wifi', () => {
           id: 'wifi-disconnect-error',
           title: 'Failed to disconnect from WiFi',
           description: error.data?.error || genericErrorMessage,
-          icon: 'i-ri-alert-line',
+          icon: 'i-bi-alert',
           color: 'error',
           duration: 10000
         });

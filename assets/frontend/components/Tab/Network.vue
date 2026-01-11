@@ -3,7 +3,7 @@
     :key="title"
     data-id="network-section-wifi"
     :title="title"
-    :icon="networks.length ? undefined : connected ? 'i-ri-signal-wifi-fill' : 'i-ri-signal-wifi-line'"
+    :icon="networks.length ? undefined : connected ? 'i-bi-wifi-4' : 'i-bi-wifi-off'"
   >
     <template
       v-if="!connected && networks.length"
@@ -96,7 +96,7 @@
       >
         <UButton
           data-id="network-section-wifi-add-button"
-          icon="i-busy-refresh"
+          icon="i-bi-refresh"
           variant="ghost"
           color="neutral"
           square
@@ -124,7 +124,7 @@
           :text="wifiStore.wifi?.ip_config?.address"
           variant="link"
           color="neutral"
-          class="px-0"
+          class="p-0"
         />
         <div
           v-else
@@ -209,7 +209,7 @@
               :delay-duration="0"
             >
               <UIcon
-                name="i-ri-lock-line"
+                name="i-bi-lock-simple"
                 class="size-6 text-muted"
               />
             </UTooltip>
@@ -246,6 +246,7 @@
             name="ssid"
             size="xl"
             variant="soft"
+            :ui="{ base: 'ring-1 ring-glass' }"
             @keyup.enter="isConnectInvalid || loading.connect ? null : connectToNetwork()"
           />
         </UFormField>
@@ -268,6 +269,7 @@
             ]"
             size="xl"
             variant="soft"
+            :ui="{ base: 'ring-1 ring-glass' }"
             class="w-full"
           />
         </UFormField>
@@ -281,6 +283,7 @@
           name="password"
           size="xl"
           variant="soft"
+          :ui="{ base: 'ring-1 ring-glass' }"
           :type="showPassword ? 'text' : 'password'"
           :placeholder="connectToExistingNetwork ? 'Password' : ''"
           @keyup.enter="isConnectInvalid || loading.connect ? null : connectToNetwork()"
@@ -328,6 +331,7 @@
                 :items="['dhcp', 'static']"
                 size="xl"
                 variant="soft"
+                :ui="{ base: 'ring-1 ring-glass' }"
                 class="w-full"
               />
             </UFormField>
@@ -340,6 +344,7 @@
                   placeholder="___.___.___.___"
                   size="xl"
                   variant="soft"
+                  :ui="{ base: 'ring-1 ring-glass' }"
                   @keyup.enter="isConnectInvalid || loading.connect ? null : connectToNetwork()"
                 />
               </UFormField>
@@ -351,6 +356,7 @@
                   placeholder="___.___.___.___"
                   size="xl"
                   variant="soft"
+                  :ui="{ base: 'ring-1 ring-glass' }"
                   @keyup.enter="isConnectInvalid || loading.connect ? null : connectToNetwork()"
                 />
               </UFormField>
@@ -362,6 +368,7 @@
                   placeholder="___.___.___.___"
                   size="xl"
                   variant="soft"
+                  :ui="{ base: 'ring-1 ring-glass' }"
                   @keyup.enter="isConnectInvalid || loading.connect ? null : connectToNetwork()"
                 />
               </UFormField>
@@ -382,13 +389,13 @@
       <div>Over USB</div>
       <UButton
         variant="link"
-        class="px-0"
+        class="p-0 gap-0.5"
         href="http://10.0.4.20/docs"
         target="_blank"
       >
         <span class="underline">http://10.0.4.20/docs</span>
         <UIcon
-          name="i-ri-external-link-line"
+          name="i-busy-open-in-new"
           class="size-4"
         />
       </UButton>
@@ -399,13 +406,13 @@
         <UButton
           v-if="connected"
           variant="link"
-          class="px-0"
+          class="p-0 gap-0.5"
           :href="`http://${wifiStore.wifi?.ip_config?.address}/docs`"
           target="_blank"
         >
           <span class="underline">http://{{ wifiStore.wifi?.ip_config?.address }}/docs</span>
           <UIcon
-            name="i-ri-external-link-line"
+            name="i-busy-open-in-new"
             class="size-4"
           />
         </UButton>
@@ -669,18 +676,18 @@ const title = computed(() => {
 
 function wifiIconByRssi (rssi: WifiNetwork['rssi']): string {
   if (!rssi) {
-    return 'i-ri-signal-wifi-1-fill';
+    return 'i-bi-wifi-1';
   }
   if (rssi < 60) {
-    return 'i-ri-signal-wifi-fill';
+    return 'i-bi-wifi-4';
   }
   if (rssi < 70) {
-    return 'i-ri-signal-wifi-3-fill';
+    return 'i-bi-wifi-3';
   }
   if (rssi < 80) {
-    return 'i-ri-signal-wifi-2-fill';
+    return 'i-bi-wifi-2';
   }
-  return 'i-ri-signal-wifi-1-fill';
+  return 'i-bi-wifi-2';
 }
 
 const httpApiSwitchModel = ref(false);

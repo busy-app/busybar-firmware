@@ -100,10 +100,16 @@ export default defineNuxtConfig({
     }
   },
   icon: {
-    customCollections: [{
-      prefix: 'busy',
-      dir: './assets/icons'
-    }],
+    customCollections: [
+      {
+        prefix: 'busy',
+        dir: './assets/icons/busy'
+      },
+      {
+        prefix: 'bi',
+        dir: './assets/icons/bi'
+      }
+    ],
     clientBundle: {
       icons: [
         'ri:account-circle-fill',

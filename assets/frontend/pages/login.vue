@@ -107,7 +107,7 @@ async function attemptUnlock () {
         id: 'system-status-error',
         title: 'Failed to fetch system status',
         description: errorWithData(error) ? error.data?.error || genericErrorMessage : genericErrorMessage,
-        icon: 'i-ri-alert-line',
+        icon: 'i-bi-alert',
         color: 'error',
         duration: 10000
       });

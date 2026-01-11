@@ -8,11 +8,12 @@
     "
     :title="props.title"
     :ui="{
-      content: `${props.wide ? 'max-w-[640px]' : 'max-w-[360px]'} divide-none`,
+      content: `${props.wide ? 'max-w-[640px]' : 'max-w-[360px]'} divide-none bg-neutral-100/90 dark:bg-neutral-800/75 backdrop-blur-[5px] ring-1 ring-glass`,
       description: 'hidden',
       header: 'min-h-20',
       body: 'pt-0 sm:pt-0 overflow-y-auto',
-      close: showCloseButton ? 'flex top-6 end-5' :'hidden'
+      close: showCloseButton ? 'flex top-6 end-5' :'hidden',
+      overlay: 'bg-neutral-900/20 dark:bg-neutral-900/80'
     }"
   >
     <template #title>

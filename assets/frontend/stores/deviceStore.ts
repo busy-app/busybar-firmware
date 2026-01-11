@@ -20,6 +20,20 @@ export const useDeviceStore = defineStore('device', () => {
     addr: useRuntimeConfig().public.barUrl
   });
 
+  // Connection type
+  const connectionType = ref<'usb' | 'wifi'>('wifi');
+  async function detectConnectionType () {
+    try {
+      await $fetch('/api/version', {
+        baseURL: useRuntimeConfig().public.barUrl
+      });
+      connectionType.value = 'usb';
+    } catch {
+      connectionType.value = 'wifi';
+    }
+    return connectionType.value;
+  }
+
   // API version
   const apiVersion = ref<VersionInfo | undefined>(undefined);
   async function fetchApiVersion (): Promise<VersionInfo | undefined> {
@@ -41,7 +55,7 @@ export const useDeviceStore = defineStore('device', () => {
           id: 'api-version-error',
           title: 'Failed to fetch API version',
           description: error.data?.error || genericErrorMessage,
-          icon: 'i-ri-alert-line',
+          icon: 'i-bi-alert',
           color: 'error',
           duration: 10000
         });
@@ -78,7 +92,7 @@ export const useDeviceStore = defineStore('device', () => {
           id: 'device-status-error',
           title: 'Failed to fetch device status',
           description: error.data?.error || genericErrorMessage,
-          icon: 'i-ri-alert-line',
+          icon: 'i-bi-alert',
           color: 'error',
           duration: 10000
         });
@@ -114,7 +128,7 @@ export const useDeviceStore = defineStore('device', () => {
           id: 'system-status-error',
           title: 'Failed to fetch system status',
           description: error.data?.error || genericErrorMessage,
-          icon: 'i-ri-alert-line',
+          icon: 'i-bi-alert',
           color: 'error',
           duration: 10000
         });
@@ -141,7 +155,7 @@ export const useDeviceStore = defineStore('device', () => {
           id: 'device-power-error',
           title: 'Failed to fetch device power status',
           description: error.data?.error || genericErrorMessage,
-          icon: 'i-ri-alert-line',
+          icon: 'i-bi-alert',
           color: 'error',
           duration: 10000
         });
@@ -173,7 +187,7 @@ export const useDeviceStore = defineStore('device', () => {
           id: 'device-name-error',
           title: 'Failed to fetch device name',
           description: error.data?.error || genericErrorMessage,
-          icon: 'i-ri-alert-line',
+          icon: 'i-bi-alert',
           color: 'error',
           duration: 10000
         });
@@ -200,7 +214,7 @@ export const useDeviceStore = defineStore('device', () => {
           id: 'device-name-set-error',
           title: 'Failed to set device name',
           description: error.data?.error || genericErrorMessage,
-          icon: 'i-ri-alert-line',
+          icon: 'i-bi-alert',
           color: 'error',
           duration: 10000
         });
@@ -229,7 +243,7 @@ export const useDeviceStore = defineStore('device', () => {
           id: 'http-api-access-error',
           title: 'Failed to fetch HTTP API access',
           description: error.data?.error || genericErrorMessage,
-          icon: 'i-ri-alert-line',
+          icon: 'i-bi-alert',
           color: 'error',
           duration: 10000
         });
@@ -264,7 +278,7 @@ export const useDeviceStore = defineStore('device', () => {
           id: 'http-api-access-set-error',
           title: 'Failed to set HTTP API access',
           description: error.data?.error || genericErrorMessage,
-          icon: 'i-ri-alert-line',
+          icon: 'i-bi-alert',
           color: 'error',
           duration: 10000
         });
@@ -294,7 +308,7 @@ export const useDeviceStore = defineStore('device', () => {
           id: 'display-brightness-error',
           title: 'Failed to fetch display brightness',
           description: error.data?.error || genericErrorMessage,
-          icon: 'i-ri-alert-line',
+          icon: 'i-bi-alert',
           color: 'error',
           duration: 10000
         });
@@ -321,7 +335,7 @@ export const useDeviceStore = defineStore('device', () => {
           id: 'display-brightness-set-error',
           title: 'Failed to set display brightness',
           description: error.data?.error || genericErrorMessage,
-          icon: 'i-ri-alert-line',
+          icon: 'i-bi-alert',
           color: 'error',
           duration: 10000
         });
@@ -350,7 +364,7 @@ export const useDeviceStore = defineStore('device', () => {
           id: 'audio-volume-error',
           title: 'Failed to fetch audio volume',
           description: error.data?.error || genericErrorMessage,
-          icon: 'i-ri-alert-line',
+          icon: 'i-bi-alert',
           color: 'error',
           duration: 10000
         });
@@ -381,7 +395,7 @@ export const useDeviceStore = defineStore('device', () => {
           id: 'audio-volume-set-error',
           title: 'Failed to set audio volume',
           description: error.data?.error || genericErrorMessage,
-          icon: 'i-ri-alert-line',
+          icon: 'i-bi-alert',
           color: 'error',
           duration: 10000
         });
@@ -428,7 +442,7 @@ export const useDeviceStore = defineStore('device', () => {
         toast.add({
           title: 'Update failed',
           description: `Error ${xhr.status}: ${xhr.responseText}`,
-          icon: 'i-ri-alert-line',
+          icon: 'i-bi-alert',
           color: 'error',
           duration: 10000
         });
@@ -455,6 +469,9 @@ export const useDeviceStore = defineStore('device', () => {
 
   return {
     busyBar,
+
+    connectionType,
+    detectConnectionType,
 
     apiVersion,
     fetchApiVersion,

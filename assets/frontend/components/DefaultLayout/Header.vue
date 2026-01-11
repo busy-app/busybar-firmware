@@ -29,7 +29,7 @@
           class="flex items-center gap-1"
         >
           <UIcon
-            name="i-ri-usb-line"
+            :name="deviceStore.connectionType === 'usb' ? 'i-bi-usb' : 'i-bi-wifi-4'"
             class="w-[18px] h-[22px]"
           />
           Connected
@@ -65,12 +65,15 @@
         }"
       >
         <UButton
-          label="BUSY Bar"
+          :label="deviceStore.deviceName"
           size="lg"
-          trailing-icon="i-ri-arrow-down-s-fill"
+          trailing-icon="i-bi-caret-down"
           color="neutral"
           variant="ghost"
           class="text-xl rounded-md"
+          :ui="{
+            trailingIcon: 'size-6 text-neutral-500'
+          }"
         />
       </UDropdownMenu>
 
@@ -97,6 +100,7 @@
             name="new-name"
             size="xl"
             variant="soft"
+            :ui="{ base: 'ring-1 ring-glass' }"
             @keyup.enter="loading.rename ? null : updateDeviceName"
           />
         </template>
@@ -139,7 +143,7 @@
           size="lg"
           square
           color="neutral"
-          variant="soft"
+          variant="ghost"
           class="rounded-full"
         />
         <template #signin-trailing>
@@ -285,6 +289,11 @@ async function lockDown () {
 const power = computed(() => deviceStore.deviceStatus?.power);
 
 onMounted(async () => {
+  await deviceStore.detectConnectionType();
+  if (deviceStore.connectionType === 'usb') {
+    passwordSetItems.splice(0, 1);
+  }
+
   nameModel.value = await deviceStore.getDeviceName();
 });
 </script>
