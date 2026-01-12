@@ -15,7 +15,7 @@ typedef struct {
     AnimImage* front_anim;
     Label* front_label;
     FuriPubSubSubscription* pubsub_subscription;
-} SettingsSceneBle;
+} BleSettingsPairingSceneData;
 
 static void scene_pairing_ble_pairing_done_callback(const void* message, void* context) {
     UNUSED(message);
@@ -34,7 +34,7 @@ static void scene_pairing_mode_on_enter(void* context) {
     furi_assert(context);
 
     BleSettings* instance = context;
-    SettingsSceneBle* data =
+    BleSettingsPairingSceneData* data =
         scene_manager_get_scene_data(instance->scene_manager, SceneIdPairingMode);
 
     data->pubsub_subscription = furi_pubsub_subscribe(
@@ -64,7 +64,7 @@ static void scene_pairing_mode_on_exit(void* context) {
     furi_assert(context);
 
     BleSettings* instance = context;
-    SettingsSceneBle* data =
+    BleSettingsPairingSceneData* data =
         scene_manager_get_scene_data(instance->scene_manager, SceneIdPairingMode);
 
     furi_pubsub_unsubscribe(ble_get_pubsub(instance->ble), data->pubsub_subscription);
@@ -105,5 +105,5 @@ const Scene ble_scene_pairing_mode = {
     .enter_callback = scene_pairing_mode_on_enter,
     .exit_callback = scene_pairing_mode_on_exit,
     .event_callback = scene_pairing_mode_on_event,
-    .data_size = sizeof(SettingsSceneBle),
+    .data_size = sizeof(BleSettingsPairingSceneData),
 };
