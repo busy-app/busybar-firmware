@@ -78,8 +78,6 @@ const pms = usePasswordModalStore();
 const deviceStore = useDeviceStore();
 const apiStore = useApiStore();
 
-const toast = useApiStore().toast;
-
 const initialLoading = ref(true);
 const loading = ref(false);
 
@@ -106,7 +104,7 @@ async function attemptUnlock () {
       toast.add({
         id: 'system-status-error',
         title: 'Failed to fetch system status',
-        description: errorWithData(error) ? error.data?.error || genericErrorMessage : genericErrorMessage,
+        description: errorWithData(error) ? error.data?.error || String(error) || genericErrorMessage : genericErrorMessage,
         icon: 'i-bi-alert',
         color: 'error',
         duration: 10000

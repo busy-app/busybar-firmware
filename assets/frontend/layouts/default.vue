@@ -24,7 +24,6 @@
 <script setup lang="ts">
 const deviceStore = useDeviceStore();
 const wifiStore = useWifiStore();
-const toast = useApiStore().toast;
 
 async function refreshDeviceData () {
   if (!deviceStore.isConnected) {

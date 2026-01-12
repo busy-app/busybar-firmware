@@ -7,7 +7,6 @@ import type {
 
 export const useWifiStore = defineStore('wifi', () => {
   const deviceStore = useDeviceStore();
-  const toast = useApiStore().toast;
 
   const busyBar = useDeviceStore().busyBar;
 
@@ -28,7 +27,7 @@ export const useWifiStore = defineStore('wifi', () => {
           toast.add({
             id: 'wifi-status-error',
             title: 'Failed to fetch WiFi state',
-            description: error.data?.error || genericErrorMessage,
+            description: error.data?.error || String(error) || genericErrorMessage,
             icon: 'i-bi-alert',
             color: 'error',
             duration: 10000
@@ -71,7 +70,7 @@ export const useWifiStore = defineStore('wifi', () => {
         toast.add({
           id: 'wifi-networks-error',
           title: 'Failed to fetch WiFi networks',
-          description: error.data?.error || genericErrorMessage,
+          description: error.data?.error || String(error) || genericErrorMessage,
           icon: 'i-bi-alert',
           color: 'error',
           duration: 10000
@@ -87,7 +86,7 @@ export const useWifiStore = defineStore('wifi', () => {
         toast.add({
           id: 'wifi-connect-error',
           title: 'Failed to connect to WiFi',
-          description: error.data?.error || genericErrorMessage,
+          description: error.data?.error || String(error) || genericErrorMessage,
           icon: 'i-bi-alert',
           color: 'error',
           duration: 10000
@@ -103,7 +102,7 @@ export const useWifiStore = defineStore('wifi', () => {
         toast.add({
           id: 'wifi-disconnect-error',
           title: 'Failed to disconnect from WiFi',
-          description: error.data?.error || genericErrorMessage,
+          description: error.data?.error || String(error) || genericErrorMessage,
           icon: 'i-bi-alert',
           color: 'error',
           duration: 10000

@@ -22,8 +22,6 @@ const props = defineProps<{
   text: string;
 }>();
 
-const toast = useApiStore().toast;
-
 const copyState = ref<'idle' | 'copying' | 'copied' | 'error'>('idle');
 
 const currentIcon = computed(() => {

@@ -14,7 +14,6 @@ import type {
 export type UpdateStage = 'idle' | 'uploading' | 'unpacking' | 'updating' | 'success' | 'error';
 
 export const useDeviceStore = defineStore('device', () => {
-  const toast = useApiStore().toast;
   const apiRequest = useApiStore().apiRequest;
 
   const busyBar = new BusyBar({
@@ -89,7 +88,7 @@ export const useDeviceStore = defineStore('device', () => {
         toast.add({
           id: 'api-version-error',
           title: 'Failed to fetch API version',
-          description: error.data?.error || genericErrorMessage,
+          description: error.data?.error || String(error) || genericErrorMessage,
           icon: 'i-bi-alert',
           color: 'error',
           duration: 10000
@@ -128,7 +127,7 @@ export const useDeviceStore = defineStore('device', () => {
           toast.add({
             id: 'device-status-error',
             title: 'Failed to fetch device status',
-            description: error.data?.error || genericErrorMessage,
+            description: error.data?.error || String(error) || genericErrorMessage,
             icon: 'i-bi-alert',
             color: 'error',
             duration: 10000
@@ -165,7 +164,7 @@ export const useDeviceStore = defineStore('device', () => {
         toast.add({
           id: 'system-status-error',
           title: 'Failed to fetch system status',
-          description: error.data?.error || genericErrorMessage,
+          description: error.data?.error || String(error) || genericErrorMessage,
           icon: 'i-bi-alert',
           color: 'error',
           duration: 10000
@@ -192,7 +191,7 @@ export const useDeviceStore = defineStore('device', () => {
         toast.add({
           id: 'device-power-error',
           title: 'Failed to fetch device power status',
-          description: error.data?.error || genericErrorMessage,
+          description: error.data?.error || String(error) || genericErrorMessage,
           icon: 'i-bi-alert',
           color: 'error',
           duration: 10000
@@ -224,7 +223,7 @@ export const useDeviceStore = defineStore('device', () => {
         toast.add({
           id: 'device-name-error',
           title: 'Failed to fetch device name',
-          description: error.data?.error || genericErrorMessage,
+          description: error.data?.error || String(error) || genericErrorMessage,
           icon: 'i-bi-alert',
           color: 'error',
           duration: 10000
@@ -251,7 +250,7 @@ export const useDeviceStore = defineStore('device', () => {
         toast.add({
           id: 'device-name-set-error',
           title: 'Failed to set device name',
-          description: error.data?.error || genericErrorMessage,
+          description: error.data?.error || String(error) || genericErrorMessage,
           icon: 'i-bi-alert',
           color: 'error',
           duration: 10000
@@ -282,7 +281,7 @@ export const useDeviceStore = defineStore('device', () => {
           toast.add({
             id: 'http-api-access-error',
             title: 'Failed to fetch HTTP API access',
-            description: error.data?.error || genericErrorMessage,
+            description: error.data?.error || String(error) || genericErrorMessage,
             icon: 'i-bi-alert',
             color: 'error',
             duration: 10000
@@ -318,7 +317,7 @@ export const useDeviceStore = defineStore('device', () => {
         toast.add({
           id: 'http-api-access-set-error',
           title: 'Failed to set HTTP API access',
-          description: error.data?.error || genericErrorMessage,
+          description: error.data?.error || String(error) || genericErrorMessage,
           icon: 'i-bi-alert',
           color: 'error',
           duration: 10000
@@ -348,7 +347,7 @@ export const useDeviceStore = defineStore('device', () => {
         toast.add({
           id: 'display-brightness-error',
           title: 'Failed to fetch display brightness',
-          description: error.data?.error || genericErrorMessage,
+          description: error.data?.error || String(error) || genericErrorMessage,
           icon: 'i-bi-alert',
           color: 'error',
           duration: 10000
@@ -375,7 +374,7 @@ export const useDeviceStore = defineStore('device', () => {
         toast.add({
           id: 'display-brightness-set-error',
           title: 'Failed to set display brightness',
-          description: error.data?.error || genericErrorMessage,
+          description: error.data?.error || String(error) || genericErrorMessage,
           icon: 'i-bi-alert',
           color: 'error',
           duration: 10000
@@ -404,7 +403,7 @@ export const useDeviceStore = defineStore('device', () => {
         toast.add({
           id: 'audio-volume-error',
           title: 'Failed to fetch audio volume',
-          description: error.data?.error || genericErrorMessage,
+          description: error.data?.error || String(error) || genericErrorMessage,
           icon: 'i-bi-alert',
           color: 'error',
           duration: 10000
@@ -435,7 +434,7 @@ export const useDeviceStore = defineStore('device', () => {
         toast.add({
           id: 'audio-volume-set-error',
           title: 'Failed to set audio volume',
-          description: error.data?.error || genericErrorMessage,
+          description: error.data?.error || String(error) || genericErrorMessage,
           icon: 'i-bi-alert',
           color: 'error',
           duration: 10000
