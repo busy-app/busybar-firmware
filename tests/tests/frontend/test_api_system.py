@@ -25,16 +25,8 @@ class TestSystemAPI:
     @allure.title("GET /api/status")
     @pytest.mark.api
     @pytest.mark.frontend
-    def test_api_status_get(
-        self, system_api: SystemAPI, persistent_cli_connection
-    ):
+    def test_api_status_get(self, system_api: SystemAPI, cli_device_info):
         """Test GET /api/status endpoint"""
-        with allure.step("Get CLI device_info for comparison"):
-            cli_device_info = persistent_cli_connection.execute_command(
-                "device_info", timeout=20.0, slow_command=True
-            )
-            allure.attach(cli_device_info, name="CLI device_info", attachment_type=allure.attachment_type.TEXT)
-
         response = system_api.get_status()
 
         # Structure validation done by pydantic
@@ -49,16 +41,8 @@ class TestSystemAPI:
     @allure.title("GET /api/status/system")
     @pytest.mark.api
     @pytest.mark.frontend
-    def test_api_status_system_get(
-        self, system_api: SystemAPI, persistent_cli_connection
-    ):
+    def test_api_status_system_get(self, system_api: SystemAPI, cli_device_info):
         """Test GET /api/status/system endpoint"""
-        with allure.step("Get CLI device_info for comparison"):
-            cli_device_info = persistent_cli_connection.execute_command(
-                "device_info", timeout=20.0, slow_command=True
-            )
-            allure.attach(cli_device_info, name="CLI device_info", attachment_type=allure.attachment_type.TEXT)
-
         response = system_api.get_system_status()
 
         # All fields validated by pydantic as strings
@@ -72,16 +56,8 @@ class TestSystemAPI:
     @allure.title("GET /api/status/power")
     @pytest.mark.api
     @pytest.mark.frontend
-    def test_api_status_power_get(
-        self, system_api: SystemAPI, persistent_cli_connection
-    ):
+    def test_api_status_power_get(self, system_api: SystemAPI, cli_device_info):
         """Test GET /api/status/power endpoint"""
-        with allure.step("Get CLI device_info for comparison"):
-            cli_device_info = persistent_cli_connection.execute_command(
-                "device_info", timeout=20.0, slow_command=True
-            )
-            allure.attach(cli_device_info, name="CLI device_info", attachment_type=allure.attachment_type.TEXT)
-
         response = system_api.get_power_status()
 
         # State enum and battery_charge range validated by pydantic

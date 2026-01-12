@@ -12,6 +12,7 @@ from __future__ import annotations
 
 from typing import Literal
 
+import requests
 from pydantic import BaseModel
 
 from .base import BaseAPI
@@ -49,18 +50,14 @@ class BleAPI(BaseAPI):
         """Get BLE status."""
         return self.get("/api/ble/status", BleStatusResponse)
 
-    def enable(self):
-        """Enable BLE. Returns raw response."""
+    def enable(self) -> requests.Response:
+        """Enable BLE."""
         return self.post_raw("/api/ble/enable")
 
-    def disable(self):
-        """Disable BLE. Returns raw response."""
+    def disable(self) -> requests.Response:
+        """Disable BLE."""
         return self.post_raw("/api/ble/disable")
 
-    def remove_pairing(self):
-        """
-        Remove BLE pairing.
-
-        Returns raw response (may return 200 or 503).
-        """
+    def remove_pairing(self) -> requests.Response:
+        """Remove BLE pairing. May return 200 or 503."""
         return self.delete("/api/ble/pairing")

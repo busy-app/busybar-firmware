@@ -11,6 +11,15 @@ from api import UpdateAPI
 # Example firmware version for negative testing
 ERROR_FIRMWARE_VERSION = "0.0.0"
 
+
+def attach_status_json(data: dict, name: str):
+    """Attach status dict as JSON to Allure report."""
+    allure.attach(
+        json.dumps(data, indent=2),
+        name=name,
+        attachment_type=allure.attachment_type.JSON
+    )
+
 @allure.feature("5. Web Frontend")
 @allure.story("Updater")
 class TestUpdateAPI:
@@ -36,31 +45,17 @@ class TestUpdateAPI:
         """Test GET /api/update/status endpoint returns update status"""
         status = update_api.get_status()
 
-        # Verify install section - pydantic validates enums, just check properties work
+        # Verify install section - idle and in_progress should be mutually exclusive
         with allure.step("Verify install status properties"):
-            assert isinstance(status.install.is_idle, bool)
-            assert isinstance(status.install.is_in_progress, bool)
-            assert isinstance(status.install.is_ok, bool)
-            assert isinstance(status.install.is_failed, bool)
-            assert isinstance(status.install.is_allowed, bool)
-
-            # idle and in_progress should be mutually exclusive
             assert not (status.install.is_idle and status.install.is_in_progress)
 
-        # Verify check section
+        # Verify check section - at most one terminal state should be true
         with allure.step("Verify check status properties"):
-            assert isinstance(status.check.is_checking, bool)
-            assert isinstance(status.check.is_available, bool)
-            assert isinstance(status.check.is_up_to_date, bool)
-            assert isinstance(status.check.has_failed, bool)
-
-            # Only one of these can be true at a time
             check_states = [
                 status.check.is_available,
                 status.check.is_up_to_date,
                 status.check.has_failed,
             ]
-            # At most one should be true (or none if status is "none")
             assert sum(check_states) <= 1
 
     @allure.id("3525")
@@ -138,17 +133,13 @@ class TestUpdateStatusFlow:
 
         with allure.step("1. Get initial status"):
             initial = update_api.get_status()
-            allure.attach(
-                json.dumps({
-                    "check.event": initial.check.event,
-                    "check.status": initial.check.status,
-                    "check.is_checking": initial.check.is_checking,
-                    "check.is_available": initial.check.is_available,
-                    "check.available_version": initial.check.available_version,
-                }, indent=2),
-                name="Initial Status",
-                attachment_type=allure.attachment_type.JSON
-            )
+            attach_status_json({
+                "check.event": initial.check.event,
+                "check.status": initial.check.status,
+                "check.is_checking": initial.check.is_checking,
+                "check.is_available": initial.check.is_available,
+                "check.available_version": initial.check.available_version,
+            }, "Initial Status")
 
         with allure.step("2. Trigger update check"):
             response = update_api.check()
@@ -161,31 +152,23 @@ class TestUpdateStatusFlow:
 
         with allure.step("3. Verify check is in progress or completed"):
             status = update_api.get_status()
-            allure.attach(
-                json.dumps({
-                    "check.event": status.check.event,
-                    "check.status": status.check.status,
-                    "check.is_checking": status.check.is_checking,
-                }, indent=2),
-                name="Status After Check Trigger",
-                attachment_type=allure.attachment_type.JSON
-            )
+            attach_status_json({
+                "check.event": status.check.event,
+                "check.status": status.check.status,
+                "check.is_checking": status.check.is_checking,
+            }, "Status After Check Trigger")
             assert status.check.event in ["start", "stop"]
 
         with allure.step("4. Wait for check to complete"):
             check_result = update_api.wait_for_check_complete(timeout=30)
-            allure.attach(
-                json.dumps({
-                    "event": check_result.event,
-                    "status": check_result.status,
-                    "available_version": check_result.available_version,
-                    "is_available": check_result.is_available,
-                    "is_up_to_date": check_result.is_up_to_date,
-                    "has_failed": check_result.has_failed,
-                }, indent=2),
-                name="Check Result",
-                attachment_type=allure.attachment_type.JSON
-            )
+            attach_status_json({
+                "event": check_result.event,
+                "status": check_result.status,
+                "available_version": check_result.available_version,
+                "is_available": check_result.is_available,
+                "is_up_to_date": check_result.is_up_to_date,
+                "has_failed": check_result.has_failed,
+            }, "Check Result")
             assert check_result.is_available or check_result.is_up_to_date or check_result.has_failed
 
     @allure.id("3541")
@@ -197,14 +180,10 @@ class TestUpdateStatusFlow:
 
         with allure.step("1. Check if update is available"):
             status = update_api.get_status()
-            allure.attach(
-                json.dumps({
-                    "check.is_available": status.check.is_available,
-                    "check.available_version": status.check.available_version,
-                }, indent=2),
-                name="Current Status",
-                attachment_type=allure.attachment_type.JSON
-            )
+            attach_status_json({
+                "check.is_available": status.check.is_available,
+                "check.available_version": status.check.available_version,
+            }, "Current Status")
 
             if not status.check.is_available:
                 # Try to trigger a check
@@ -227,17 +206,13 @@ class TestUpdateStatusFlow:
         with allure.step("3. Verify install/download started"):
             sleep(0.5)  # Brief wait for status to update
             status = update_api.get_status()
-            allure.attach(
-                json.dumps({
-                    "install.event": status.install.event,
-                    "install.action": status.install.action,
-                    "install.status": status.install.status,
-                    "install.is_in_progress": status.install.is_in_progress,
-                    "install.is_downloading": status.install.is_downloading,
-                }, indent=2),
-                name="Status After Install Trigger",
-                attachment_type=allure.attachment_type.JSON
-            )
+            attach_status_json({
+                "install.event": status.install.event,
+                "install.action": status.install.action,
+                "install.status": status.install.status,
+                "install.is_in_progress": status.install.is_in_progress,
+                "install.is_downloading": status.install.is_downloading,
+            }, "Status After Install Trigger")
             # Install should be in progress (downloading or other action)
             assert status.install.is_in_progress or status.install.event == "session_start"
 
@@ -256,18 +231,14 @@ class TestUpdateStatusFlow:
                     break
                 sleep(0.5)
 
-            allure.attach(
-                json.dumps({
-                    "install.event": status.install.event,
-                    "install.action": status.install.action,
-                    "install.status": status.install.status,
-                    "install.is_idle": status.install.is_idle,
-                    "install.is_failed": status.install.is_failed,
-                    "install.failure_reason": status.install.failure_reason,
-                }, indent=2),
-                name="Status After Abort",
-                attachment_type=allure.attachment_type.JSON
-            )
+            attach_status_json({
+                "install.event": status.install.event,
+                "install.action": status.install.action,
+                "install.status": status.install.status,
+                "install.is_idle": status.install.is_idle,
+                "install.is_failed": status.install.is_failed,
+                "install.failure_reason": status.install.failure_reason,
+            }, "Status After Abort")
             # After abort, should be stopped or show abort status
             assert status.install.is_idle or status.install.status == "download_abort"
 
@@ -280,18 +251,14 @@ class TestUpdateStatusFlow:
 
         with allure.step("1. Get current status"):
             status = update_api.get_status()
-            allure.attach(
-                json.dumps({
-                    "install.event": status.install.event,
-                    "install.action": status.install.action,
-                    "install.status": status.install.status,
-                    "install.is_idle": status.install.is_idle,
-                    "install.is_in_progress": status.install.is_in_progress,
-                    "check.is_checking": status.check.is_checking,
-                }, indent=2),
-                name="Current Status",
-                attachment_type=allure.attachment_type.JSON
-            )
+            attach_status_json({
+                "install.event": status.install.event,
+                "install.action": status.install.action,
+                "install.status": status.install.status,
+                "install.is_idle": status.install.is_idle,
+                "install.is_in_progress": status.install.is_in_progress,
+                "check.is_checking": status.check.is_checking,
+            }, "Current Status")
 
         with allure.step("2. Verify idle state properties"):
             # Verify consistency of idle state

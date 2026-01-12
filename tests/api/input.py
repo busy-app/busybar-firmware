@@ -65,17 +65,3 @@ class InputAPI(BaseAPI):
             Raw response
         """
         return self.post_raw("/api/input", params={"key": key})
-
-    def send_key_validated(self, key: str):
-        """
-        Send a key event with client-side validation.
-
-        Args:
-            key: Key name (must be a valid key)
-
-        Raises:
-            ValueError: If key is not valid
-        """
-        if key not in self.VALID_KEYS:
-            raise ValueError(f"Invalid key: {key}. Valid keys: {self.VALID_KEYS}")
-        return self.post_raw("/api/input", params={"key": key})

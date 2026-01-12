@@ -15,6 +15,7 @@ from __future__ import annotations
 
 from typing import Literal
 
+import requests
 from pydantic import BaseModel, Field, field_validator
 
 from .base import BaseAPI
@@ -179,10 +180,8 @@ class SystemAPI(BaseAPI):
             params=req.model_dump(),
         )
 
-    def set_timestamp_raw(self, timestamp: str) -> "requests.Response":
+    def set_timestamp_raw(self, timestamp: str) -> requests.Response:
         """Set timestamp and return raw response (for error testing)."""
-        import requests
-
         return self.post_raw("/api/time/timestamp", params={"timestamp": timestamp})
 
     def set_timezone(self, timezone: str) -> ResultResponse:
@@ -202,8 +201,6 @@ class SystemAPI(BaseAPI):
             params=req.model_dump(),
         )
 
-    def set_timezone_raw(self, timezone: str) -> "requests.Response":
+    def set_timezone_raw(self, timezone: str) -> requests.Response:
         """Set timezone and return raw response (for error testing)."""
-        import requests
-
         return self.post_raw("/api/time/timezone", params={"timezone": timezone})

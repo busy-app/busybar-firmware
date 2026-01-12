@@ -153,15 +153,11 @@ class AccountAPI(BaseAPI):
 
         Uses MQTT_DEFAULT_PROFILE env var (defaults to 'dev').
         """
-        profile = MQTTProfiles.DEFAULT
-        if profile == "prod":
-            return self.set_profile_prod()
-        elif profile == "dev":
-            return self.set_profile_dev()
-        elif profile == "stage":
-            return self.set_profile_stage()
-        elif profile == "test":
-            return self.set_profile_test()
-        else:
-            # Assume custom URL
-            return self.set_profile("custom", profile)
+        profile_map = {
+            "prod": ("prod", None),
+            "dev": ("dev", None),
+            "stage": ("custom", MQTTProfiles.STAGE),
+            "test": ("custom", MQTTProfiles.TEST),
+        }
+        profile, url = profile_map.get(MQTTProfiles.DEFAULT, ("custom", MQTTProfiles.DEFAULT))
+        return self.set_profile(profile, url)

@@ -188,10 +188,6 @@ class UpdateAPI(BaseAPI):
         """Start update check."""
         return self.post("/api/update/check", UpdateResultResponse)
 
-    def check_raw(self):
-        """Start update check (raw response for error handling)."""
-        return self.post_raw("/api/update/check")
-
     def get_changelog(self, version: str):
         """
         Get changelog for a specific version.

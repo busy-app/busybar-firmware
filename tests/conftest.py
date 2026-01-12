@@ -13,6 +13,12 @@ from utils.logging_config import (TestLogContext, get_cli_logger,
                                   get_web_logger, log_cli_command,
                                   log_web_request, setup_logging)
 
+# API client imports
+from api import (
+    SystemAPI, WifiAPI, StorageAPI, AssetsAPI, AccountAPI,
+    BleAPI, SettingsAPI, InputAPI, StreamingAPI, UpdateAPI
+)
+
 load_dotenv()
 
 
@@ -440,81 +446,79 @@ def pytest_runtest_teardown(item, nextitem):
     logger.info(f"Test completed: {item.name}")
 
 @pytest.fixture
-def system_api(api_session, web_base_url):
+def api_factory(api_session, web_base_url):
+    """Factory for creating API client instances."""
+    def _create(api_class):
+        return api_class(api_session, web_base_url)
+    return _create
+
+
+@pytest.fixture
+def system_api(api_factory):
     """System API client fixture."""
-    from api import SystemAPI
-
-    return SystemAPI(api_session, web_base_url)
+    return api_factory(SystemAPI)
 
 
 @pytest.fixture
-def wifi_api(api_session, web_base_url):
+def wifi_api(api_factory):
     """WiFi API client fixture."""
-    from api import WifiAPI
-
-    return WifiAPI(api_session, web_base_url)
+    return api_factory(WifiAPI)
 
 
 @pytest.fixture
-def storage_api(api_session, web_base_url):
+def storage_api(api_factory):
     """Storage API client fixture."""
-    from api import StorageAPI
-
-    return StorageAPI(api_session, web_base_url)
+    return api_factory(StorageAPI)
 
 
 @pytest.fixture
-def assets_api(api_session, web_base_url):
+def assets_api(api_factory):
     """Assets/Display/Audio API client fixture."""
-    from api import AssetsAPI
-
-    return AssetsAPI(api_session, web_base_url)
+    return api_factory(AssetsAPI)
 
 
 @pytest.fixture
-def account_api(api_session, web_base_url):
+def account_api(api_factory):
     """Account API client fixture."""
-    from api import AccountAPI
-
-    return AccountAPI(api_session, web_base_url)
+    return api_factory(AccountAPI)
 
 
 @pytest.fixture
-def ble_api(api_session, web_base_url):
+def ble_api(api_factory):
     """BLE API client fixture."""
-    from api import BleAPI
-
-    return BleAPI(api_session, web_base_url)
+    return api_factory(BleAPI)
 
 
 @pytest.fixture
-def settings_api(api_session, web_base_url):
+def settings_api(api_factory):
     """Settings API client fixture."""
-    from api import SettingsAPI
-
-    return SettingsAPI(api_session, web_base_url)
+    return api_factory(SettingsAPI)
 
 
 @pytest.fixture
-def input_api(api_session, web_base_url):
+def input_api(api_factory):
     """Input API client fixture."""
-    from api import InputAPI
-
-    return InputAPI(api_session, web_base_url)
+    return api_factory(InputAPI)
 
 
 @pytest.fixture
-def streaming_api(api_session, web_base_url):
+def streaming_api(api_factory):
     """Streaming API client fixture."""
-    from api import StreamingAPI
-
-    return StreamingAPI(api_session, web_base_url)
+    return api_factory(StreamingAPI)
 
 
 @pytest.fixture
-def update_api(api_session, web_base_url):
+def update_api(api_factory):
     """Update API client fixture."""
-    from api import UpdateAPI
+    return api_factory(UpdateAPI)
 
-    return UpdateAPI(api_session, web_base_url)
+
+@pytest.fixture
+def cli_device_info(persistent_cli_connection):
+    """Fetch and attach CLI device_info for cross-verification."""
+    data = persistent_cli_connection.execute_command(
+        "device_info", timeout=20.0, slow_command=True
+    )
+    allure.attach(data, name="CLI device_info", attachment_type=allure.attachment_type.TEXT)
+    return data
 
