@@ -129,7 +129,7 @@ typedef struct {
         const SettingProviderSetting* setting,
         void* value,
         const FuriString* string);
-    size_t value_size; ///< Size of the value type in bytes
+    size_t default_value_size; ///< Size of the default value type in bytes
 } SettingProviderCustomInterface;
 
 /**

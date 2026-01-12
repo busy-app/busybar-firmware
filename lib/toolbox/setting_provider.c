@@ -480,7 +480,7 @@ static void setting_reset_custom(
 
     furi_check(interface->default_value);
     furi_check(interface->serialize_callback);
-    furi_check(interface->value_size > 0);
+    furi_check(interface->default_value_size > 0);
 
     FuriString* _value = furi_string_alloc();
     interface->serialize_callback(setting, _value, interface->default_value);
@@ -491,7 +491,7 @@ static void setting_reset_custom(
     furi_string_free(_value);
     provider->is_write_pending = true;
 
-    if(value) memcpy(value, interface->default_value, interface->value_size);
+    if(value) memcpy(value, interface->default_value, interface->default_value_size);
 }
 
 static void setting_load_custom(
