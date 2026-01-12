@@ -403,7 +403,7 @@ bool update_executor_task_parse_manifest(UpdateExecutorTask* update_task) {
 
     do {
         update_executor_task_set_progress(update_task, UpdateExecutorTaskStageProgress, 13);
-        CHECK_RESULT(furi_hal_version_do_i_belong_here());
+        CHECK_RESULT(furi_hal_version_check_target_match());
 
         CHECK_RESULT(update_config_read_pointer_file(update_task->storage, manifest_path));
         // furi_string_set(update_task->update_path, manifest_path);

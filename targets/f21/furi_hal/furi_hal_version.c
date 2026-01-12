@@ -371,7 +371,7 @@ void furi_hal_version_get_uid_str(FuriString* serial) {
 
 /*** OTP Validity Status ***/
 
-bool furi_hal_version_get_otp_valid(FuriHalFlashOtpBlock block) {
+bool furi_hal_version_is_otp_valid(FuriHalFlashOtpBlock block) {
     switch(block) {
     case FuriHalOtpBlockOtp1:
         return furi_hal_version_state.otp1_valid;

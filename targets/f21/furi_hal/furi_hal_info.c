@@ -184,10 +184,7 @@ void furi_hal_info_get(PropertyValueCallback out, char sep, void* context) {
 
         // OTP1 - Hardware/Production info
         property_out_bool(
-            &property_context,
-            "otp1",
-            "valid",
-            furi_hal_version_get_otp_valid(FuriHalOtpBlockOtp1));
+            &property_context, "otp1", "valid", furi_hal_version_is_otp_valid(FuriHalOtpBlockOtp1));
         property_out_str(&property_context, "otp1", "model", furi_hal_version_get_model_code());
         property_out_int(&property_context, "otp1", "version", furi_hal_version_get_hw_version());
         property_out_int(
@@ -199,10 +196,7 @@ void furi_hal_info_get(PropertyValueCallback out, char sep, void* context) {
 
         // OTP2 - QC info
         property_out_bool(
-            &property_context,
-            "otp2",
-            "valid",
-            furi_hal_version_get_otp_valid(FuriHalOtpBlockOtp2));
+            &property_context, "otp2", "valid", furi_hal_version_is_otp_valid(FuriHalOtpBlockOtp2));
         property_out_int(&property_context, "otp2", "color", furi_hal_version_get_hw_color());
         property_out_int(&property_context, "otp2", "region", furi_hal_version_get_hw_region());
         property_out_long(
@@ -210,10 +204,7 @@ void furi_hal_info_get(PropertyValueCallback out, char sep, void* context) {
 
         // OTP3 - Public Key
         property_out_bool(
-            &property_context,
-            "otp3",
-            "valid",
-            furi_hal_version_get_otp_valid(FuriHalOtpBlockOtp3));
+            &property_context, "otp3", "valid", furi_hal_version_is_otp_valid(FuriHalOtpBlockOtp3));
         property_out_int(&property_context, "otp3", "curve", furi_hal_version_get_sign_curve());
         property_out_hex(
             &property_context,
@@ -225,10 +216,7 @@ void furi_hal_info_get(PropertyValueCallback out, char sep, void* context) {
 
         // OTP4 - Signatures
         property_out_bool(
-            &property_context,
-            "otp4",
-            "valid",
-            furi_hal_version_get_otp_valid(FuriHalOtpBlockOtp4));
+            &property_context, "otp4", "valid", furi_hal_version_is_otp_valid(FuriHalOtpBlockOtp4));
         property_out_hex(
             &property_context, temp_str, "otp4", "mcu_uid", furi_hal_version_get_otp_mcu_uid(), 12);
         property_out_hex(

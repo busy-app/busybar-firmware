@@ -33,7 +33,7 @@ void furi_hal_version_init(void);
  *
  * @return     true if target and real matches
  */
-bool furi_hal_version_do_i_belong_here(void);
+bool furi_hal_version_check_target_match(void);
 
 /** Get model name
  *
@@ -170,7 +170,7 @@ void furi_hal_version_get_uid_str(FuriString* uid);
  * @param      block  OTP block identifier
  * @return     true if the specified OTP block is valid
  */
-bool furi_hal_version_get_otp_valid(FuriHalFlashOtpBlock block);
+bool furi_hal_version_is_otp_valid(FuriHalFlashOtpBlock block);
 
 // ============================================================================
 // OTP3 - Public Key Data
