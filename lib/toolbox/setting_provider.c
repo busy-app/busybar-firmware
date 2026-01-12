@@ -907,7 +907,6 @@ bool setting_provider_save(
 void setting_provider_drop(SettingProvider* provider, const SettingProviderSetting* setting) {
     furi_check(provider);
     furi_check(provider->json_root);
-    furi_check(setting);
 
     if(setting) {
         furi_check(setting->name);
