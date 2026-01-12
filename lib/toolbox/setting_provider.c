@@ -361,8 +361,6 @@ static void setting_load_string(
     void* value) {
     const SettingProviderStringInterface* interface = setting->interface;
 
-    furi_check(interface->max_length > 0);
-
     FuriString* read_buffer = furi_string_alloc();
     do {
         if(!json_read_string(json_node, setting->name, read_buffer)) {
@@ -374,7 +372,7 @@ static void setting_load_string(
                              interface->is_valid_callback(setting, read_value));
 
             if(is_valid) {
-                strncpy(value, read_value, interface->max_length - 1);
+                strncpy(value, read_value, interface->max_length);
                 break;
             } else {
                 FURI_LOG_W(TAG, "Invalid \"%s\" value: %s...", setting->name, read_value);
