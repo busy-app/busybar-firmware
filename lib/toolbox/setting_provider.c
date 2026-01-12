@@ -819,6 +819,8 @@ void setting_provider_open(SettingProvider* provider) {
         }
 
         char* file_buffer = malloc(file_size + 1);
+        file_buffer[file_size] = '\0';
+
         if(storage_file_read(file, file_buffer, file_size) != file_size) {
             FURI_LOG_W(TAG, "Failed to read file: %s", provider->file_path);
             free(file_buffer);
