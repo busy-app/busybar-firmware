@@ -8,6 +8,7 @@
         data-id="layout-default-header-logo"
         name="i-busy-bar-logo"
         class="w-[70px] h-[28px]"
+        @click="onLogoClick"
       />
       <div
         v-if="power"
@@ -170,6 +171,7 @@
 const deviceStore = useDeviceStore();
 const pms = usePasswordModalStore();
 const apiStore = useApiStore();
+const tabStore = useTabStore();
 
 const colorMode = useColorMode();
 
@@ -296,6 +298,23 @@ async function lockDown () {
 }
 
 const power = computed(() => deviceStore.deviceStatus?.power);
+
+const logoClickCounter = ref(0);
+const clickTimeout = ref<number | null>(null);
+function onLogoClick () {
+  logoClickCounter.value += 1;
+  if (clickTimeout.value) {
+    clearTimeout(clickTimeout.value);
+  }
+  clickTimeout.value = window.setTimeout(() => {
+    logoClickCounter.value = 0;
+    clickTimeout.value = null;
+  }, 2000);
+  if (logoClickCounter.value >= 10) {
+    tabStore.showHiddenTabs = !tabStore.showHiddenTabs;
+    logoClickCounter.value = 0;
+  }
+}
 
 onMounted(async () => {
   await deviceStore.detectConnectionType();

@@ -5,6 +5,7 @@ export interface TabOption {
   icon: string;
   activeIcon?: string;
   value: string;
+  hidden?: boolean;
 }
 
 export const useTabStore = defineStore('tabs', () => {
@@ -26,13 +27,23 @@ export const useTabStore = defineStore('tabs', () => {
       icon: 'i-bi-settings',
       activeIcon: 'i-bi-settings-fill',
       value: 'settings'
+    },
+    {
+      label: 'Animations',
+      icon: 'i-bi-control-play',
+      value: 'animations',
+      hidden: true
     }
   ];
+
   const currentTab = ref<TabOption['value']>(tabOptions[0].value);
+
+  const showHiddenTabs = ref(false);
 
   return {
     tabOptions,
-    currentTab
+    currentTab,
+    showHiddenTabs
   };
 }, {
   persist: {

@@ -15,12 +15,15 @@
       :ui="{
         icon: 'size-6',
         label: 'text-lg',
-        description: 'text-sm'
+        description: 'text-sm',
+        files: 'max-h-[175px] overflow-y-auto',
+        file: 'bg-elevated/50',
+        fileLeadingAvatar: 'w-24 h-auto rounded-none mr-1'
       }"
     >
       <template #actions>
         <UButton
-          label="Select files"
+          :label="filesModel?.length ? 'Add more files' : 'Select files'"
           color="neutral"
           variant="soft"
           :ui="{ base: 'bg-neutral-200/50 dark:bg-neutral-700/50' }"
@@ -31,7 +34,7 @@
       <template #files-top="{ files }">
         <div
           v-if="files?.length"
-          class="w-full mb-2 flex items-center justify-between"
+          class="w-full my-2 flex items-center justify-between"
         >
           <p class="font-bold">Files ({{ files?.length }})</p>
 
@@ -47,7 +50,7 @@
       </template>
 
       <template #files>
-        <div class="flex flex-wrap justify-start gap-1.5 overflow-y-scroll">
+        <!-- <div class="flex flex-wrap justify-start gap-1.5 overflow-y-scroll">
           <div
             v-for="(file, index) in filesModel"
             :key="index"
@@ -59,7 +62,7 @@
               class="w-full h-full object-cover"
             >
           </div>
-        </div>
+        </div> -->
       </template>
     </UFileUpload>
 
@@ -73,26 +76,22 @@
         />
       </UFormField>
 
-      <div>
+      <div class="flex gap-2">
         <UButton
           icon="i-bi-download"
-          label="Download animation"
+          label="Save animation file"
           color="primary"
+          variant="ghost"
+          @click="composeAndDownload"
+        />
+        <UButton
+          icon="i-bi-upload"
+          label="Upload to device"
+          color="neutral"
           variant="solid"
-          @click="handleComposeAnimation"
+          @click="composeAndUpload"
         />
       </div>
-    </div>
-
-    <div class="mt-4">
-      Upload file to the device:
-      <CopyButton
-        variant="link"
-        color="neutral"
-        class="ml-2 text-left text-xs"
-        :text="`python3 assets/frontend/util/upload_anim.py -d /ext/animations ~/Downloads/temp.anim`"
-        style="font-family: monospace;"
-      />
     </div>
   </div>
 </template>
@@ -110,6 +109,8 @@ useHead({
   ]
 });
 
+const deviceStore = useDeviceStore();
+
 const filesModel = ref<File[] | null>(null);
 const fpsModel = ref<number>(60);
 
@@ -122,21 +123,69 @@ async function handleComposeAnimation () {
   }
 
   try {
+    toast.remove('animation-compose-error');
     const animation = await composeAnimation(filesModel.value, fpsModel.value);
     animationOutput.value = animation;
     console.log('Composed animation:', animationOutput.value);
+  } catch (error) {
+    console.error('Error composing animation:', error);
+    toast.add({
+      id: 'animation-compose-error',
+      title: 'Animation Composition Error',
+      description: String(error),
+      icon: 'i-bi-alert',
+      color: 'error',
+      duration: 0,
+      close: true,
+      closeIcon: 'i-bi-cross'
+    });
+  }
+}
 
-    // download animation for testing
-    const url = createObjectUrl(animation);
+async function composeAndDownload () {
+  await handleComposeAnimation();
+  if (animationOutput.value) {
+    const url = createObjectUrl(animationOutput.value);
     const a = document.createElement('a');
     a.href = url;
-    a.download = 'temp.anim';
+    a.download = 'test.anim';
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
     URL.revokeObjectURL(url);
-  } catch (error) {
-    console.error('Error composing animation:', error);
+  }
+}
+
+async function composeAndUpload () {
+  await handleComposeAnimation();
+  if (animationOutput.value) {
+    await deviceStore.busyBar.uploadFile({
+      file: animationOutput.value,
+      path: '/ext/animations/test.anim'
+    })
+      .then(() => {
+        toast.add({
+          title: 'Animation uploaded',
+          description: 'Open Settings > Debug Apps > Animation Player to view it',
+          icon: 'i-bi-checkmark-circle',
+          color: 'success',
+          duration: 0,
+          close: true,
+          closeIcon: 'i-bi-cross'
+        });
+      })
+      .catch(error => {
+        console.error('Error uploading animation file:', error);
+        toast.add({
+          title: 'Upload Failed',
+          description: `Failed to upload animation file: ${error}`,
+          icon: 'i-bi-alert',
+          color: 'error',
+          duration: 0,
+          close: true,
+          closeIcon: 'i-bi-cross'
+        });
+      });
   }
 }
 

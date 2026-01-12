@@ -6,6 +6,10 @@
     <TabNetwork v-if="tabStore.currentTab === 'network'" />
     <TabFirmware v-if="tabStore.currentTab === 'firmware'" />
     <TabSettings v-if="tabStore.currentTab === 'settings'" />
+
+    <template v-if="tabStore.showHiddenTabs">
+      <TabAnimations v-if="tabStore.currentTab === 'animations'" />
+    </template>
   </div>
 </template>
 
