@@ -201,13 +201,15 @@ static const TimerIndicatorTransition*
     busy_scene_timer_get_indicator_transition(const BusySceneTimer* data) {
     const TimerIndicatorTransition* ret = NULL;
 
-    const BusyTimerMode timer_mode = data->timer_mode;
+    if(!busy_scene_timer_has_label_tweaks(data)) {
+        if(data->timer_state == BusyTimerStateWork) {
+            const BusyTimerMode timer_mode = data->timer_mode;
 
-    if(data->timer_state == BusyTimerStateWork) {
-        if(timer_mode == BusyTimerModeSimple || timer_mode == BusyTimerModeInterval) {
-            if(data->prev_timer_mode == BusyTimerModeInfinite) {
-                ret =
-                    &busy_timer_indicator_transitions[BusyTimerIndicatorTransitionTypeInfToSimple];
+            if(timer_mode == BusyTimerModeSimple || timer_mode == BusyTimerModeInterval) {
+                if(data->prev_timer_mode == BusyTimerModeInfinite) {
+                    ret = &busy_timer_indicator_transitions
+                              [BusyTimerIndicatorTransitionTypeInfToSimple];
+                }
             }
         }
     }
