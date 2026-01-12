@@ -913,8 +913,9 @@ void setting_provider_drop(SettingProvider* provider, const SettingProviderSetti
 
         cJSON_DeleteItemFromObject(provider->json_values, setting->name);
     } else {
+        provider->json_values = cJSON_CreateObject();
         cJSON_ReplaceItemInObject(
-            provider->json_root, SETTINGS_JSON_VALUES_KEY, cJSON_CreateObject());
+            provider->json_root, SETTINGS_JSON_VALUES_KEY, provider->json_values);
     }
 
     provider->is_write_pending = true;
