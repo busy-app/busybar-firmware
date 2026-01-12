@@ -188,6 +188,12 @@ static void setting_provider_teardown(void) {
     provider = NULL;
 }
 
+static void setting_provider_reopen(void) {
+    setting_provider_teardown();
+    setting_provider_setup();
+    setting_provider_open(provider);
+}
+
 /* test basic bool operations */
 MU_TEST(setting_provider_test_bool) {
     setting_provider_open(provider);
@@ -861,6 +867,24 @@ MU_TEST(setting_provider_test_drop_all) {
     setting_provider_load(provider, &setting2, &value2);
     mu_assert_int_eq(100, value1);
     mu_assert_int_eq(200, value2);
+
+    const int rewrite_value1 = 333;
+    const int rewrite_value2 = 444;
+    mu_assert(
+        setting_provider_save(provider, &setting1, &rewrite_value1),
+        "Failed to save int after drop");
+    mu_assert(
+        setting_provider_save(provider, &setting2, &rewrite_value2),
+        "Failed to save int after drop");
+
+    setting_provider_reopen();
+
+    value1 = 0;
+    value2 = 0;
+    setting_provider_load(provider, &setting1, &value1);
+    setting_provider_load(provider, &setting2, &value2);
+    mu_assert_int_eq(rewrite_value1, value1);
+    mu_assert_int_eq(rewrite_value2, value2);
 }
 
 /* test suite */
