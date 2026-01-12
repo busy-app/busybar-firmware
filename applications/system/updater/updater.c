@@ -9,7 +9,8 @@
 
 #include <furi_hal_nvm.h>
 #include <furi_hal_power.h>
-#include <furi_hal_version.h>
+
+#include <version/version.h>
 #include <toolbox/api_lock.h>
 #include <toolbox/path.h>
 #include <toolbox/tar/tar_archive.h>
@@ -780,7 +781,7 @@ UpdaterStatus updater_check_for_update(Updater* instance) {
 }
 
 const char* updater_get_active_version(void) {
-    const Version* version = furi_hal_version_get_firmware_version();
+    const Version* version = version_get();
     const char* version_str = version_get_version(version);
     if((strlen(version_str) > 0) && (version_str[0] != 'r')) {
         return version_str;
