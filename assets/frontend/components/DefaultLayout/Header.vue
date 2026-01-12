@@ -28,11 +28,20 @@
           data-id="layout-default-header-connection-state"
           class="flex items-center gap-1"
         >
-          <UIcon
-            :name="deviceStore.connectionType === 'usb' ? 'i-bi-usb' : 'i-bi-wifi-4'"
-            class="w-[18px] h-[22px]"
-          />
-          Connected
+          <template v-if="deviceStore.isConnected">
+            <UIcon
+              :name="deviceStore.connectionType === 'usb' ? 'i-bi-usb' : 'i-bi-wifi-4'"
+              class="w-[18px] h-[22px]"
+            />
+            Connected
+          </template>
+          <template v-else>
+            <UIcon
+              name="i-bi-alert"
+              class="w-[18px] h-[22px] text-red-500"
+            />
+            Disconnected
+          </template>
         </div>
       </div>
     </div>

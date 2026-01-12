@@ -3,7 +3,7 @@
     :key="title"
     data-id="network-section-wifi"
     :title="title"
-    :icon="networks.length ? undefined : connected ? 'i-bi-wifi-4' : 'i-bi-wifi-off'"
+    :icon="networks.length ? undefined : (connected || wifiStore.wifi?.state === 'connecting') ? 'i-bi-wifi-4' : 'i-bi-wifi-off'"
   >
     <template
       v-if="!connected && networks.length"
@@ -33,6 +33,12 @@
       >
         <div class="relative top-[-1px] size-2.5 rounded-full bg-green-500" />
         Connected
+      </div>
+      <div
+        v-else-if="wifiStore.wifi?.state === 'connecting'"
+        data-id="network-section-wifi-status-connecting"
+      >
+        Connecting...
       </div>
       <div
         v-else
@@ -666,7 +672,7 @@ async function forgetNetwork () {
 const connected = computed(() => wifiStore.wifi?.state === 'connected');
 
 const title = computed(() => {
-  if (wifiStore.wifi?.state === 'connected') {
+  if (wifiStore.wifi?.state === 'connected' || wifiStore.wifi?.state === 'connecting') {
     return wifiStore.wifi?.ssid || 'Wi-Fi';
   } else if (networks.value.length > 0) {
     return 'Select network';

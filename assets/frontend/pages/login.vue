@@ -78,7 +78,7 @@ const pms = usePasswordModalStore();
 const deviceStore = useDeviceStore();
 const apiStore = useApiStore();
 
-const toast = useToast();
+const toast = useApiStore().toast;
 
 const initialLoading = ref(true);
 const loading = ref(false);

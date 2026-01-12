@@ -20,3 +20,28 @@
     </UContainer>
   </div>
 </template>
+
+<script setup lang="ts">
+const deviceStore = useDeviceStore();
+const wifiStore = useWifiStore();
+const toast = useApiStore().toast;
+
+async function refreshDeviceData () {
+  if (!deviceStore.isConnected) {
+    await deviceStore.checkConnection();
+    if (!deviceStore.isConnected) {
+      return;
+    }
+    toast.remove('device-disconnected');
+  }
+  await deviceStore.fetchDeviceStatus();
+  await wifiStore.fetchWifiState();
+  await deviceStore.fetchHttpAPIAccess();
+}
+
+const refreshInterval = setInterval(refreshDeviceData, 5000);
+
+onBeforeUnmount(() => {
+  clearInterval(refreshInterval);
+});
+</script>

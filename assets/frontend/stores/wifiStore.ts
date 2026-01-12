@@ -6,7 +6,8 @@ import type {
 } from '@busy-app/busy-lib';
 
 export const useWifiStore = defineStore('wifi', () => {
-  const toast = useToast();
+  const deviceStore = useDeviceStore();
+  const toast = useApiStore().toast;
 
   const busyBar = useDeviceStore().busyBar;
 
@@ -20,16 +21,19 @@ export const useWifiStore = defineStore('wifi', () => {
         }
         return response;
       })
-      .catch(error => {
+      .catch(async error => {
         console.error('Error fetching WiFi state:', error);
-        toast.add({
-          id: 'wifi-status-error',
-          title: 'Failed to fetch WiFi state',
-          description: error.data?.error || genericErrorMessage,
-          icon: 'i-bi-alert',
-          color: 'error',
-          duration: 10000
-        });
+        await deviceStore.checkConnection();
+        if (deviceStore.isConnected) {
+          toast.add({
+            id: 'wifi-status-error',
+            title: 'Failed to fetch WiFi state',
+            description: error.data?.error || genericErrorMessage,
+            icon: 'i-bi-alert',
+            color: 'error',
+            duration: 10000
+          });
+        }
         return undefined;
       });
 

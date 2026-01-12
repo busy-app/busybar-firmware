@@ -25,7 +25,7 @@
 import { DeviceScreen } from '@busy-app/busy-lib';
 
 const deviceScreenStreamStore = useDeviceScreenStreamStore();
-const toast = useToast();
+const toast = useApiStore().toast;
 const canvasRef = ref<HTMLCanvasElement | null>(null);
 const canvasCtx = ref<CanvasRenderingContext2D | null>(null);
 

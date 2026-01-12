@@ -14,11 +14,46 @@ import type {
 export type UpdateStage = 'idle' | 'uploading' | 'unpacking' | 'updating' | 'success' | 'error';
 
 export const useDeviceStore = defineStore('device', () => {
-  const toast = useToast();
+  const toast = useApiStore().toast;
+  const apiRequest = useApiStore().apiRequest;
 
   const busyBar = new BusyBar({
     addr: useRuntimeConfig().public.barUrl
   });
+
+  // Assume device is connected unless the screenstream stops.
+  // Upon stream failure, a probing HTTP request is sent. If it fails too, set isConnected to false.
+  const isConnected = ref<boolean>(true);
+  const checkingConnection = ref<boolean>(false);
+  async function checkConnection () {
+    if (checkingConnection.value) {
+      return;
+    }
+    checkingConnection.value = true;
+    try {
+      await apiRequest('/api/name', { timeout: 3000 });
+      // todo: dispatch a global event instead
+      if (!isConnected.value) {
+        window.location.reload();
+      }
+      isConnected.value = true;
+
+      toast.remove('device-disconnected');
+    } catch {
+      isConnected.value = false;
+      toast.add({
+        id: 'device-disconnected',
+        title: 'Device disconnected',
+        description: 'Device lost. Please check the connection.',
+        icon: 'i-bi-alert',
+        color: 'error',
+        duration: 0,
+        close: true,
+        closeIcon: 'i-bi-cross'
+      });
+    }
+    checkingConnection.value = false;
+  }
 
   // Connection type
   const connectionType = ref<'usb' | 'wifi'>('wifi');
@@ -88,15 +123,18 @@ export const useDeviceStore = defineStore('device', () => {
           return undefined;
         }
         console.error('Error fetching device status:', error);
-        toast.add({
-          id: 'device-status-error',
-          title: 'Failed to fetch device status',
-          description: error.data?.error || genericErrorMessage,
-          icon: 'i-bi-alert',
-          color: 'error',
-          duration: 10000
-        });
-        return undefined;
+        await checkConnection();
+        if (isConnected.value) {
+          toast.add({
+            id: 'device-status-error',
+            title: 'Failed to fetch device status',
+            description: error.data?.error || genericErrorMessage,
+            icon: 'i-bi-alert',
+            color: 'error',
+            duration: 10000
+          });
+        }
+        return deviceStatus.value; // return old value if available
       });
 
     return status;
@@ -171,11 +209,11 @@ export const useDeviceStore = defineStore('device', () => {
   async function fetchDeviceName (): Promise<string> {
     const name = await busyBar.getName()
       .then(response => {
-        if (typeof response !== 'string') {
+        if (typeof response?.name !== 'string') {
           throw new Error('Empty response');
         }
-        deviceName.value = response;
-        return response;
+        deviceName.value = response.name;
+        return response.name;
       })
       .catch(async error => {
         if (error.data?.error === 'Forbidden') {
@@ -239,15 +277,18 @@ export const useDeviceStore = defineStore('device', () => {
           return undefined;
         }
         console.error('Error fetching HTTP API access:', error);
-        toast.add({
-          id: 'http-api-access-error',
-          title: 'Failed to fetch HTTP API access',
-          description: error.data?.error || genericErrorMessage,
-          icon: 'i-bi-alert',
-          color: 'error',
-          duration: 10000
-        });
-        return undefined;
+        await checkConnection();
+        if (isConnected.value) {
+          toast.add({
+            id: 'http-api-access-error',
+            title: 'Failed to fetch HTTP API access',
+            description: error.data?.error || genericErrorMessage,
+            icon: 'i-bi-alert',
+            color: 'error',
+            duration: 10000
+          });
+        }
+        return httpAPIAccess.value; // return old value if available
       });
 
     return access;
@@ -470,6 +511,8 @@ export const useDeviceStore = defineStore('device', () => {
   return {
     busyBar,
 
+    isConnected,
+    checkConnection,
     connectionType,
     detectConnectionType,
 
