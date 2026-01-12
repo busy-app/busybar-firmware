@@ -1,10 +1,5 @@
 #include "interface_v1.h"
 
-typedef struct {
-    const char* const* strings;
-    int strings_count;
-} EnumSettingContext;
-
 #define DEFAULT_SSID          ""
 #define DEFAULT_PASSPHRASE    ""
 #define DEFAULT_SECURITY_MODE WifiSecurityModeOpen
@@ -19,6 +14,11 @@ typedef struct {
 #define DEFAULT_IP6_LOCAL   {0, 0, 0, 0}
 #define DEFAULT_IP6_GLOBAL  {0, 0, 0, 0}
 #define DEFAULT_IP6_GATEWAY {0, 0, 0, 0}
+
+typedef struct {
+    const char* const* strings;
+    int strings_count;
+} EnumSettingContext;
 
 static const char* const security_mode_map[] = {
     [WifiSecurityModeOpen] = "open",
@@ -147,7 +147,7 @@ static const SettingProviderSetting credentials_settings[] = {
         .interface =
             &(const SettingProviderStringInterface){
                 .default_value = DEFAULT_SSID,
-                .max_length = SSID_MAX_LEN,
+                .max_length = SIZEOF_MEMBER(WifiCredentials, ssid),
                 .is_valid_callback = NULL,
             },
         .field_offset = offsetof(WifiCredentials, ssid),
@@ -158,7 +158,7 @@ static const SettingProviderSetting credentials_settings[] = {
         .interface =
             &(const SettingProviderStringInterface){
                 .default_value = DEFAULT_PASSPHRASE,
-                .max_length = PASSPHRASE_MAX_LEN,
+                .max_length = SIZEOF_MEMBER(WifiCredentials, passphrase),
                 .is_valid_callback = NULL,
             },
         .field_offset = offsetof(WifiCredentials, passphrase),
@@ -171,7 +171,7 @@ static const SettingProviderSetting credentials_settings[] = {
                 .default_value = &(const WifiSecurityMode){DEFAULT_SECURITY_MODE},
                 .serialize_callback = enum_setting_serialize,
                 .deserialize_callback = enum_setting_deserialize,
-                .value_size = sizeof(WifiSecurityMode),
+                .value_size = SIZEOF_MEMBER(WifiCredentials, security_mode),
             },
         .context =
             &(EnumSettingContext){
@@ -191,7 +191,7 @@ static const SettingProviderSetting ipv4_settings[] = {
                 .default_value = &(const WifiIpv4){.bytes = DEFAULT_IP4_ADDRESS},
                 .serialize_callback = ipv4_serialize,
                 .deserialize_callback = ipv4_deserialize,
-                .value_size = sizeof(WifiIpv4),
+                .value_size = SIZEOF_MEMBER(WifiIpv4Settings, address),
             },
         .field_offset = offsetof(WifiIpv4Settings, address),
         .type = SettingProviderSettingTypeCustom,
@@ -203,7 +203,7 @@ static const SettingProviderSetting ipv4_settings[] = {
                 .default_value = &(const WifiIpv4){.bytes = DEFAULT_IP4_MASK},
                 .serialize_callback = ipv4_serialize,
                 .deserialize_callback = ipv4_deserialize,
-                .value_size = sizeof(WifiIpv4),
+                .value_size = SIZEOF_MEMBER(WifiIpv4Settings, mask),
             },
         .field_offset = offsetof(WifiIpv4Settings, mask),
         .type = SettingProviderSettingTypeCustom,
@@ -215,7 +215,7 @@ static const SettingProviderSetting ipv4_settings[] = {
                 .default_value = &(const WifiIpv4){.bytes = DEFAULT_IP4_GATEWAY},
                 .serialize_callback = ipv4_serialize,
                 .deserialize_callback = ipv4_deserialize,
-                .value_size = sizeof(WifiIpv4),
+                .value_size = SIZEOF_MEMBER(WifiIpv4Settings, gateway),
             },
         .field_offset = offsetof(WifiIpv4Settings, gateway),
         .type = SettingProviderSettingTypeCustom,
@@ -230,7 +230,7 @@ static const SettingProviderSetting ipv6_settings[] = {
                 .default_value = &(const WifiIpv6){.bytes = DEFAULT_IP6_LOCAL},
                 .serialize_callback = ipv6_serialize,
                 .deserialize_callback = ipv6_deserialize,
-                .value_size = sizeof(WifiIpv6),
+                .value_size = SIZEOF_MEMBER(WifiIpv6Settings, local),
             },
         .field_offset = offsetof(WifiIpv6Settings, local),
         .type = SettingProviderSettingTypeCustom,
@@ -242,7 +242,7 @@ static const SettingProviderSetting ipv6_settings[] = {
                 .default_value = &(const WifiIpv6){.bytes = DEFAULT_IP6_GLOBAL},
                 .serialize_callback = ipv6_serialize,
                 .deserialize_callback = ipv6_deserialize,
-                .value_size = sizeof(WifiIpv6),
+                .value_size = SIZEOF_MEMBER(WifiIpv6Settings, global),
             },
         .field_offset = offsetof(WifiIpv6Settings, global),
         .type = SettingProviderSettingTypeCustom,
@@ -254,7 +254,7 @@ static const SettingProviderSetting ipv6_settings[] = {
                 .default_value = &(const WifiIpv6){.bytes = DEFAULT_IP6_GATEWAY},
                 .serialize_callback = ipv6_serialize,
                 .deserialize_callback = ipv6_deserialize,
-                .value_size = sizeof(WifiIpv6),
+                .value_size = SIZEOF_MEMBER(WifiIpv6Settings, gateway),
             },
         .field_offset = offsetof(WifiIpv6Settings, gateway),
         .type = SettingProviderSettingTypeCustom,
@@ -269,7 +269,7 @@ static const SettingProviderSetting ip_config_settings[] = {
                 .default_value = &(const WifiIpManagement){DEFAULT_IP_MANAGEMENT},
                 .serialize_callback = enum_setting_serialize,
                 .deserialize_callback = enum_setting_deserialize,
-                .value_size = sizeof(WifiIpManagement),
+                .value_size = SIZEOF_MEMBER(WifiIpConfig, mgmt),
             },
         .context =
             &(EnumSettingContext){
@@ -286,7 +286,7 @@ static const SettingProviderSetting ip_config_settings[] = {
                 .default_value = &(const WifiIpType){DEFAULT_IP_TYPE},
                 .serialize_callback = enum_setting_serialize,
                 .deserialize_callback = enum_setting_deserialize,
-                .value_size = sizeof(WifiIpType),
+                .value_size = SIZEOF_MEMBER(WifiIpConfig, type),
             },
         .context =
             &(EnumSettingContext){
