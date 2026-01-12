@@ -26,13 +26,12 @@ const deviceStore = useDeviceStore();
 const wifiStore = useWifiStore();
 
 async function refreshDeviceData () {
+  await deviceStore.checkConnection();
   if (!deviceStore.isConnected) {
-    await deviceStore.checkConnection();
-    if (!deviceStore.isConnected) {
-      return;
-    }
-    toast.remove('device-disconnected');
+    return;
   }
+  toast.remove('device-disconnected');
+
   await deviceStore.fetchDeviceStatus();
   await wifiStore.fetchWifiState();
   await deviceStore.fetchHttpAPIAccess();
