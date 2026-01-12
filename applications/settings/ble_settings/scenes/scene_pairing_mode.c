@@ -58,6 +58,10 @@ static void scene_pairing_mode_on_enter(void* context) {
         label_set_text(data->front_label, "Pairing mode...");
         widget_set_height_content(label_get_base(data->front_label));
     });
+
+    Color color = COLOR_MAKE_RGB(0, 0, 0xFF);
+    status_lights_set_brightness(instance->status_lights, STATUS_LIGHTS_BRIGHTNESS_MAX);
+    status_lights_run_preset(instance->status_lights, StatusLightsPresetFade, color);
 }
 
 static void scene_pairing_mode_on_exit(void* context) {
