@@ -38,7 +38,7 @@ struct Ble {
 
     FuriMessageQueue* message_queue;
     FuriEventLoop* event_loop;
-    Intercom* intercom;
+    IntercomChannel* intercom_ch;
     //--------------------------
     FuriString* error;
 

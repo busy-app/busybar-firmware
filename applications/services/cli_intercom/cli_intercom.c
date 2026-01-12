@@ -23,7 +23,7 @@
 #endif
 
 struct CliIntercom {
-    Intercom* intercom;
+    IntercomChannel* intercom_ch;
     CliRegistry* registry;
     FuriMessageQueue* msg_queue;
     FuriStreamBuffer* intercom_rx_stream;
@@ -68,12 +68,8 @@ static bool cli_intercom_send_protocol(
     const uint8_t* data,
     size_t size,
     uint32_t timeout) {
-    size_t tx_bytes = intercom_tx(
-        cli_intercom->intercom,
-        IntercomChannelCli,
-        data,
-        size,
-        timeout ? timeout : FuriWaitForever);
+    size_t tx_bytes =
+        intercom_tx(cli_intercom->intercom_ch, data, size, timeout ? timeout : FuriWaitForever);
     return tx_bytes == size;
 }
 
@@ -328,12 +324,9 @@ static CliIntercom* cli_intercom_alloc(void) {
 
     cli_intercom->registry = furi_record_open(RECORD_CLI);
 
-    cli_intercom->intercom = furi_record_open(RECORD_INTERCOM);
-    intercom_set_rx_callback(
-        cli_intercom->intercom,
-        IntercomChannelCli,
-        cli_intercom_intercom_rx_callback,
-        cli_intercom);
+    Intercom* intercom = furi_record_open(RECORD_INTERCOM);
+    cli_intercom->intercom_ch = intercom_channel_open(
+        intercom, IntercomChannelIdCli, cli_intercom_intercom_rx_callback, cli_intercom);
 
     cli_intercom->event_loop = furi_event_loop_alloc();
 

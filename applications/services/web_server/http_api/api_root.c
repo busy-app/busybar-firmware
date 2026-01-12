@@ -278,9 +278,12 @@ static const HttpHandler handlers_api_root[] = {
     },
     {
         .uri = "update",
-        .method = "POST",
+        .method = "*",
         .type = HttpHandlerCustom,
-        .on_headers = http_api_update_hdr_callback,
+        .ctx_alloc = http_api_update_alloc,
+        .ctx_free = http_api_update_free,
+        .on_request = http_api_update_callback,
+        .on_headers = http_api_update_hdr_callback_root,
     },
     {
         .uri = "screen",
@@ -314,7 +317,13 @@ static const HttpHandler handlers_api_root[] = {
     },
     {
         .uri = "name",
-        .method = "*",
+        .method = "GET",
+        .type = HttpHandlerCustom,
+        .on_request = http_api_name_callback,
+    },
+    {
+        .uri = "name",
+        .method = "POST",
         .type = HttpHandlerCustom,
         .on_request = http_api_name_callback,
     },

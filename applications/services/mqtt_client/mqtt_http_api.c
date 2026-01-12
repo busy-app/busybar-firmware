@@ -24,35 +24,12 @@ static const struct {
 static const struct {
     char* name;
     MqttApiMethod method;
-} mqtt_api_table[] = {
-    {"version", MethodGet},
-    {"status", MethodGet},
-    {"status/system", MethodGet},
-    {"status/power", MethodGet},
-
-    {"display/draw", MethodPost},
-    {"display/draw", MethodDelete},
-    {"audio/play", MethodPost},
-    {"audio/play", MethodDelete},
-
-    {"display/brightness", MethodGet},
-    {"display/brightness", MethodPost},
-    {"audio/volume", MethodGet},
-    {"audio/volume", MethodPost},
-
-    {"input", MethodPost},
-
-    {"assets/upload", MethodPost},
-    {"assets/upload", MethodDelete},
-
-    {"storage/write", MethodPost},
-    {"storage/read", MethodGet},
-    {"storage/list", MethodGet},
-    {"storage/delete", MethodDelete},
-    {"storage/mkdir", MethodPost},
+} mqtt_api_blacklist[] = {
+    {"update", MethodPost},
 };
 
 static bool mqtt_api_http_check_request(struct mg_str* msg) {
+    // Try parsing HTTP message
     struct mg_http_message http_msg;
     if(mg_http_parse(msg->buf, msg->len, &http_msg) < 0) {
         return false;
@@ -70,9 +47,9 @@ static bool mqtt_api_http_check_request(struct mg_str* msg) {
         uri_mask.len -= 1;
     }
 
-    bool success = false;
-    for(size_t i = 0; i < COUNT_OF(mqtt_api_table); i++) {
-        if(mg_strcmp(uri_mask, mg_str(mqtt_api_table[i].name)) == 0) {
+    // Check method is not in blacklist
+    for(size_t i = 0; i < COUNT_OF(mqtt_api_blacklist); i++) {
+        if(mg_strcmp(uri_mask, mg_str(mqtt_api_blacklist[i].name)) == 0) {
             MqttApiMethod method = MethodUnknown;
             for(size_t method_id = 0; method_id < COUNT_OF(mqtt_api_methods); method_id++) {
                 if(mg_strcmp(http_msg.method, mg_str(mqtt_api_methods[method_id].http_name)) ==
@@ -81,14 +58,23 @@ static bool mqtt_api_http_check_request(struct mg_str* msg) {
                     break;
                 }
             }
-            if((method == MethodUnknown) || (method != mqtt_api_table[i].method)) {
+            if((method == MethodUnknown) || (method != mqtt_api_blacklist[i].method)) {
                 continue;
             }
-            success = true;
+            return false;
         }
     }
 
-    return success;
+    // Check for WebSocket upgrade header
+    bool is_websocket = false;
+    struct mg_str* hdr = mg_http_get_header(&http_msg, "Connection");
+    if(mg_match(http_msg.method, mg_str("GET"), NULL) && (hdr != NULL)) {
+        if(mg_strcasecmp(*hdr, mg_str("upgrade")) == 0) {
+            is_websocket = true;
+        }
+    }
+
+    return !is_websocket;
 }
 
 typedef struct {
@@ -152,13 +138,28 @@ static void mqtt_api_http_handler(struct mg_connection* conn, int ev, void* ev_d
     }
 }
 
+void mqtt_http_api_respond_error(MqttClient* mqtt, FuriString* resp_topic, FuriString* cor_data) {
+    struct mg_mqtt_prop props[] = {
+        {
+            .id = MQTT_PROP_CORRELATION_DATA,
+            .val = mg_str(furi_string_get_cstr(cor_data)),
+        },
+    };
+    struct mg_mqtt_opts pub_opts = {
+        .topic = mg_str(furi_string_get_cstr(resp_topic)),
+        .message = mg_str("HTTP/1.1 422 Unprocessable Entity\r\n\r\n"),
+        .qos = MQTT_QOS,
+        .retain = false,
+        .props = props,
+        .num_props = COUNT_OF(props),
+    };
+    if(mqtt->conn) {
+        mg_mqtt_pub(mqtt->conn, &pub_opts);
+    }
+}
+
 void mqtt_http_api_on_message(MqttClient* mqtt, FuriString* topic_str, struct mg_mqtt_message* msg) {
     UNUSED(topic_str);
-
-    if(!mqtt_api_http_check_request(&msg->data)) {
-        FURI_LOG_W(TAG, "Bad request");
-        return;
-    }
 
     FuriString* cor_data = furi_string_alloc();
     FuriString* resp_topic = furi_string_alloc();
@@ -182,6 +183,14 @@ void mqtt_http_api_on_message(MqttClient* mqtt, FuriString* topic_str, struct mg
 
     if((furi_string_empty(cor_data)) || (furi_string_empty(resp_topic))) {
         FURI_LOG_W(TAG, "Missing msg properties");
+        furi_string_free(cor_data);
+        furi_string_free(resp_topic);
+        return;
+    }
+
+    if(!mqtt_api_http_check_request(&msg->data)) {
+        FURI_LOG_W(TAG, "Bad request");
+        mqtt_http_api_respond_error(mqtt, resp_topic, cor_data);
         furi_string_free(cor_data);
         furi_string_free(resp_topic);
         return;

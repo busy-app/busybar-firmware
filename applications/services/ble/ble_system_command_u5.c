@@ -139,7 +139,7 @@ static bool ble_command_init_response(BleIntercomFrameGeneric* frame, void* cont
 }
 
 static bool ble_command_enable_request(BleIntercomFrameGeneric* frame, void* context) {
-    BLE_LOG_I("BleCommandEnable request");
+    BLE_LOG_D("BleCommandEnable request");
     Ble* instance = context;
     const BleServiceState state = instance->state;
 
@@ -174,7 +174,7 @@ static bool ble_command_enable_response(BleIntercomFrameGeneric* frame, void* co
 }
 
 static bool ble_command_disable_request(BleIntercomFrameGeneric* frame, void* context) {
-    BLE_LOG_I("BleCommandDisable request");
+    BLE_LOG_D("BleCommandDisable request");
     Ble* instance = context;
     const BleServiceState state = instance->state;
 

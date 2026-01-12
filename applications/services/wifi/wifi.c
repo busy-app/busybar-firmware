@@ -76,11 +76,7 @@ static void wifi_process_request(Wifi* instance) {
     const WifiStatus status = wifi_state_check_request_type(instance, request_type);
 
     if(status == WifiStatusOk) {
-        if(request_type == WifiRequestTypeInit) {
-            // TODO [FW-300]: Implement reliable Intercom channel opening
-            furi_delay_ms(250); // Wait for the Wifi service to become ready on Si917
-
-        } else if(request_type == WifiRequestTypeConnect) {
+        if(request_type == WifiRequestTypeConnect) {
             const WifiConnectMessage* connect_message = &message->connect_message;
             const WifiCredentials* credentials = &connect_message->credentials;
 
@@ -97,8 +93,7 @@ static void wifi_process_request(Wifi* instance) {
 
         request->type = request_type;
 
-        intercom_tx(
-            instance->intercom, IntercomChannelWifi, request, sizeof(WifiRequest), FuriWaitForever);
+        intercom_tx(instance->intercom_ch_control, request, sizeof(WifiRequest), FuriWaitForever);
 
     } else {
         FURI_LOG_E(TAG, "Request type: %d failed with status: %d", request_type, status);
@@ -272,8 +267,8 @@ static Wifi* wifi_alloc(void) {
         wifi_response_queue_callback,
         instance);
 
-    intercom_set_rx_callback(
-        instance->intercom, IntercomChannelWifi, wifi_intercom_rx_callback, instance);
+    instance->intercom_ch_control = intercom_channel_open(
+        instance->intercom, IntercomChannelIdWifiControl, wifi_intercom_rx_callback, instance);
 
     wifi_schedule_init_request(instance);
 
