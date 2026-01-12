@@ -52,12 +52,12 @@
       <UButton
         v-if="!connected && !networks.length"
         data-id="network-section-wifi-select-button"
-        label="Select network"
+        :label="wifiStore.wifi?.state === 'connecting' ? 'Connecting...' : 'Select network'"
         :ui="{
           base: 'px-2.5 py-2 rounded-full'
         }"
         class="justify-center sm:justify-start"
-        :loading="loading.state || loading.list"
+        :loading="loading.state || loading.list || wifiStore.wifi?.state === 'connecting'"
         @click="listWifiNetworks"
       />
       <UButton
