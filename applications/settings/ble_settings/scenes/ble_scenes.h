@@ -4,6 +4,7 @@
 
 typedef enum {
     SceneIdPairingMode,
+    SceneIdConnected,
     SceneIdForgetDevice,
     SceneIdForgetDeviceConfirm,
 
