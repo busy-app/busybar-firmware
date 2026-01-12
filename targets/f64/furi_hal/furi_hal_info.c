@@ -1,7 +1,7 @@
 #include <furi_hal_info.h>
 
 #include <formatters/sl_rps/sl_rps.h>
-#include <furi_hal_version.h>
+#include <version/version.h>
 #include <furi.h>
 
 #include <sl_wifi.h>
@@ -187,7 +187,7 @@ void furi_hal_info_get(PropertyValueCallback out, char sep, void* context) {
     furi_hal_info_get_nwp(furi_hal_info_nwp);
 
     // Firmware version
-    const Version* firmware_version = furi_hal_version_get_firmware_version();
+    const Version* firmware_version = version_get();
     if(firmware_version) {
         if(sep == '.') {
             property_value_out(
