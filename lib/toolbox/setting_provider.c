@@ -346,7 +346,7 @@ static void setting_reset_string(
     furi_check(interface->default_value);
     furi_check(strlen(interface->default_value) < interface->max_length);
 
-    FURI_LOG_D(TAG, "Loading default for \"%s\": %s", setting->name, interface->default_value);
+    FURI_LOG_D(TAG, "Loading default for \"%s\": \"%s\"", setting->name, interface->default_value);
 
     json_write_string(json_node, setting->name, interface->default_value);
     provider->is_write_pending = true;
@@ -416,7 +416,7 @@ static void setting_reset_furi_string(
 
     furi_check(interface->default_value);
 
-    FURI_LOG_D(TAG, "Loading default for \"%s\": %s", setting->name, interface->default_value);
+    FURI_LOG_D(TAG, "Loading default for \"%s\": \"%s\"", setting->name, interface->default_value);
 
     json_write_string(json_node, setting->name, interface->default_value);
     provider->is_write_pending = true;
@@ -666,16 +666,18 @@ static bool settings_migrations_apply(SettingProvider* provider) {
     do {
         int stored_version = provider->json_version->valueint;
         if(stored_version == provider->settings_version) {
-            FURI_LOG_D(TAG, "Version is up to date: v%d", stored_version);
+            FURI_LOG_D(
+                TAG, "Version is up to date: v%d, file: %s", stored_version, provider->file_path);
             break;
         }
 
         if(stored_version > provider->settings_version) {
             FURI_LOG_W(
                 TAG,
-                "Stored version: v%d is newer than supported: v%d",
+                "Stored version: v%d is newer than supported: v%d, file: %s",
                 stored_version,
-                provider->settings_version);
+                provider->settings_version,
+                provider->file_path);
             is_success = false;
             break;
         }
@@ -697,7 +699,11 @@ static bool settings_migrations_apply(SettingProvider* provider) {
 
             if(!migration_step->callback(provider)) {
                 FURI_LOG_E(
-                    TAG, "Migration from: v%d to: v%d failed", source_version, target_version);
+                    TAG,
+                    "Migration from: v%d to: v%d failed, file: %s",
+                    source_version,
+                    target_version,
+                    provider->file_path);
                 is_success = false;
                 break;
             }
