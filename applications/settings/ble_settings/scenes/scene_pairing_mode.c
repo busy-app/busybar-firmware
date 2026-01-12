@@ -23,6 +23,7 @@ static void scene_pairing_ble_pairing_done_callback(const void* message, void* c
     ble_settings_send_custom_event(instance, SceneEventBlePairingEvent);
 }
 
+///TODO: move this to ble_settings.c and make it available to other scenes
 static bool ble_settings_is_device_paired(Ble* ble) {
     BleStatus status = {0};
     ble_get_status(ble, &status);
@@ -87,17 +88,12 @@ static bool scene_pairing_mode_on_event(const SceneManagerEvent* event, void* co
 
     BleSettings* instance = context;
 
-    bool go_back = false;
-    if(event->type == SceneManagerEventTypeCustom) {
-        if(event->event == SceneEventBlePairingEvent) {
-            go_back = ble_settings_is_device_paired(instance->ble);
-        }
-    } else if(event->type == SceneManagerEventTypeBack) {
-        go_back = true;
-    }
-
     bool consumed = false;
-    if(go_back) {
+
+    if(event->type == SceneManagerEventTypeCustom && (event->event == SceneEventBlePairingEvent)) {
+        if(ble_settings_is_device_paired(instance->ble))
+            scene_manager_next_scene(instance->scene_manager, SceneIdConnected);
+    } else if(event->type == SceneManagerEventTypeBack) {
         consumed =
             desktop_replace_current_app(instance->desktop, MAIN_SETTINGS_APP, THIS_SETTINGS_APP);
     }

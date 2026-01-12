@@ -104,6 +104,7 @@ static BleSettings* ble_settings_alloc() {
         instance);
 
     BleStatus status = {0};
+    ///TODO: use ble_settings_is_device_paired instead
     bool result = ble_get_status(instance->ble, &status);
     furi_check(result);
     const bool not_paired = status.pairing == BlePairingStateNotPaired;
