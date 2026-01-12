@@ -17,7 +17,11 @@
 #define COUNTDOWN_START_S       (BLINK_START_S + 1)
 #define COUNTDOWN_TRANSITION_MS (1000)
 
-#define SHOW_TRANSITION_MS (833)
+#define BG_TRANSITION_MS (833)
+
+#define TEXT_TRANSITION_HIDE_MS (250)
+#define TEXT_TRANSITION_SHOW_MS (417)
+#define TEXT_DELAY_SHOW_MS      (333)
 
 #define MAIN_WIDTH_PX    (40)
 #define BG_GRAD_WIDTH_PX (10)
@@ -41,13 +45,18 @@ const lv_obj_class_t timer_label_lvgl_class;
 
 // LVGL-specific code
 
-static void timer_label_reveal_lvgl_anim_callback(void* context, int32_t value) {
+static void timer_label_lvgl_anim_bg_gradient_callback(void* context, int32_t value) {
     furi_assert(context);
 
-    TimerLabel* instance = context;
+    lv_obj_t* bg_gradient = context;
+    lv_obj_set_x(bg_gradient, value);
+}
 
-    lv_obj_set_style_opa(instance->main_layout, value, LV_PART_MAIN);
-    lv_obj_set_x(instance->bg_gradient, MAIN_WIDTH_PX - (MAIN_WIDTH_PX * value / LV_OPA_COVER));
+static void timer_label_lvgl_anim_text_callback(void* context, int32_t value) {
+    furi_assert(context);
+
+    lv_obj_t* main_layout = context;
+    lv_obj_set_style_opa(main_layout, value, LV_PART_MAIN);
 }
 
 static void timer_label_lvgl_anim_color_to_countdown_callback(void* context, int32_t value) {
@@ -148,12 +157,12 @@ static void timer_label_countdown_blink(TimerLabel* instance) {
 
 // Implementation
 
-static void timer_label_animate_transition(TimerLabel* instance, uint8_t stop_value) {
-    const uint8_t start_value = lv_obj_get_style_opa(instance->main_layout, LV_PART_MAIN);
+static void timer_label_animate_bg_gradient(TimerLabel* instance, int32_t stop_value) {
+    const int32_t start_value = lv_obj_get_x(instance->bg_gradient);
 
     lv_anim_t anim;
     lv_anim_init(&anim);
-    lv_anim_set_duration(&anim, SHOW_TRANSITION_MS);
+    lv_anim_set_duration(&anim, BG_TRANSITION_MS);
     lv_anim_set_values(&anim, start_value, stop_value);
     lv_anim_set_bezier3_param(
         &anim,
@@ -162,9 +171,29 @@ static void timer_label_animate_transition(TimerLabel* instance, uint8_t stop_va
         LV_BEZIER_VAL_FLOAT(0.7F),
         LV_BEZIER_VAL_FLOAT(1.0F));
     lv_anim_set_path_cb(&anim, lv_anim_path_custom_bezier3);
-    lv_anim_set_exec_cb(&anim, timer_label_reveal_lvgl_anim_callback);
+    lv_anim_set_exec_cb(&anim, timer_label_lvgl_anim_bg_gradient_callback);
 
-    lv_anim_set_var(&anim, instance);
+    lv_anim_set_var(&anim, instance->bg_gradient);
+    lv_anim_start(&anim);
+}
+
+static void timer_label_animate_text(TimerLabel* instance, uint8_t stop_value) {
+    const uint8_t start_value = lv_obj_get_style_opa(instance->main_layout, LV_PART_MAIN);
+
+    lv_anim_t anim;
+    lv_anim_init(&anim);
+
+    if(stop_value != 0) {
+        lv_anim_set_delay(&anim, TEXT_DELAY_SHOW_MS);
+        lv_anim_set_duration(&anim, TEXT_TRANSITION_SHOW_MS);
+    } else {
+        lv_anim_set_duration(&anim, TEXT_TRANSITION_SHOW_MS);
+    }
+
+    lv_anim_set_values(&anim, start_value, stop_value);
+    lv_anim_set_exec_cb(&anim, timer_label_lvgl_anim_text_callback);
+
+    lv_anim_set_var(&anim, instance->main_layout);
     lv_anim_start(&anim);
 }
 
@@ -242,12 +271,16 @@ void timer_label_enable_background(TimerLabel* instance, bool enable) {
 
 void timer_label_show(TimerLabel* instance) {
     furi_check(instance);
-    timer_label_animate_transition(instance, LV_OPA_COVER);
+
+    timer_label_animate_bg_gradient(instance, 0);
+    timer_label_animate_text(instance, LV_OPA_COVER);
 }
 
 void timer_label_hide(TimerLabel* instance) {
     furi_check(instance);
-    timer_label_animate_transition(instance, LV_OPA_TRANSP);
+
+    timer_label_animate_bg_gradient(instance, MAIN_WIDTH_PX);
+    timer_label_animate_text(instance, LV_OPA_TRANSP);
 }
 
 // LVGL class descriptor
