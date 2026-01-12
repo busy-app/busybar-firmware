@@ -196,6 +196,11 @@ export const useDeviceStore = defineStore('device', () => {
       payload['key'] = key;
     }
 
+    // fixme: temp solution for required key field even when it's not needed
+    if (!key) {
+      payload.key = '666666';
+    }
+
     return await busyBar.setHttpAccess(payload as HttpAccessParams)
       .then(async () => {
         httpAPIAccess.value = await fetchHttpAPIAccess();
