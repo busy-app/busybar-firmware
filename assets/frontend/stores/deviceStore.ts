@@ -73,27 +73,12 @@ export const useDeviceStore = defineStore('device', () => {
   async function fetchApiVersion (): Promise<VersionInfo | undefined> {
     const version = await busyBar.getApiVersion()
       .then(response => {
-        if (!response || typeof response !== 'object') {
-          throw new Error('Empty response');
-        }
         apiVersion.value = response;
         return response;
       })
       .catch(async error => {
-        if (error.data?.error === 'Forbidden') {
-          await navigateTo('/login');
-          return undefined;
-        }
-        console.error('Error fetching API version:', error);
-        toast.add({
-          id: 'api-version-error',
-          title: 'Failed to fetch API version',
-          description: error.data?.error || String(error) || genericErrorMessage,
-          icon: 'i-bi-alert',
-          color: 'error',
-          duration: 10000
-        });
-        return undefined;
+        await handleHTTPError(error, 'Couldn\'t get HTTP API version', true);
+        return apiVersion.value;
       });
 
     return version;
@@ -110,29 +95,11 @@ export const useDeviceStore = defineStore('device', () => {
   async function fetchDeviceStatus (): Promise<DeviceStatus | undefined> {
     const status = await busyBar.deviceStatus()
       .then(response => {
-        if (!response || typeof response !== 'object') {
-          throw new Error('Empty response');
-        }
         deviceStatus.value = response;
         return response;
       })
       .catch(async error => {
-        if (error.data?.error === 'Forbidden') {
-          await navigateTo('/login');
-          return undefined;
-        }
-        console.error('Error fetching device status:', error);
-        await checkConnection();
-        if (isConnected.value) {
-          toast.add({
-            id: 'device-status-error',
-            title: 'Failed to fetch device status',
-            description: error.data?.error || String(error) || genericErrorMessage,
-            icon: 'i-bi-alert',
-            color: 'error',
-            duration: 10000
-          });
-        }
+        await handleHTTPError(error, 'Couldn\'t get device status', true);
         return deviceStatus.value; // return old value if available
       });
 
@@ -146,29 +113,11 @@ export const useDeviceStore = defineStore('device', () => {
   }
   async function fetchSystemStatus (throwError: boolean = false): Promise<StatusSystem | undefined> {
     const systemStatus = await busyBar.systemStatus()
-      .then(response => {
-        if (!response || typeof response !== 'object') {
-          throw new Error('Empty response');
-        }
-        return response;
-      })
       .catch(async error => {
         if (throwError) {
           throw error;
         }
-        if (error.data?.error === 'Forbidden') {
-          await navigateTo('/login');
-          return undefined;
-        }
-        console.error('Error fetching system status:', error);
-        toast.add({
-          id: 'system-status-error',
-          title: 'Failed to fetch system status',
-          description: error.data?.error || String(error) || genericErrorMessage,
-          icon: 'i-bi-alert',
-          color: 'error',
-          duration: 10000
-        });
+        await handleHTTPError(error, 'Couldn\'t get system status');
         return undefined;
       });
 
@@ -176,26 +125,8 @@ export const useDeviceStore = defineStore('device', () => {
   }
   async function fetchPowerStatus (): Promise<StatusPower | undefined> {
     const powerStatus = await busyBar.powerStatus()
-      .then(response => {
-        if (!response || typeof response !== 'object') {
-          throw new Error('Empty response');
-        }
-        return response;
-      })
       .catch(async error => {
-        if (error.data?.error === 'Forbidden') {
-          await navigateTo('/login');
-          return undefined;
-        }
-        console.error('Error fetching device power status:', error);
-        toast.add({
-          id: 'device-power-error',
-          title: 'Failed to fetch device power status',
-          description: error.data?.error || String(error) || genericErrorMessage,
-          icon: 'i-bi-alert',
-          color: 'error',
-          duration: 10000
-        });
+        await handleHTTPError(error, 'Couldn\'t get power status');
         return undefined;
       });
 
@@ -208,26 +139,11 @@ export const useDeviceStore = defineStore('device', () => {
   async function fetchDeviceName (): Promise<string> {
     const name = await busyBar.getName()
       .then(response => {
-        if (typeof response?.name !== 'string') {
-          throw new Error('Empty response');
-        }
         deviceName.value = response.name;
         return response.name;
       })
       .catch(async error => {
-        if (error.data?.error === 'Forbidden') {
-          await navigateTo('/login');
-          return DEFAULT_DEVICE_NAME;
-        }
-        console.error('Error fetching device name:', error);
-        toast.add({
-          id: 'device-name-error',
-          title: 'Failed to fetch device name',
-          description: error.data?.error || String(error) || genericErrorMessage,
-          icon: 'i-bi-alert',
-          color: 'error',
-          duration: 10000
-        });
+        await handleHTTPError(error, 'Couldn\'t get device name');
         return DEFAULT_DEVICE_NAME;
       });
 
@@ -245,16 +161,8 @@ export const useDeviceStore = defineStore('device', () => {
         deviceName.value = name;
         return true;
       })
-      .catch(error => {
-        console.error('Error setting device name:', error);
-        toast.add({
-          id: 'device-name-set-error',
-          title: 'Failed to set device name',
-          description: error.data?.error || String(error) || genericErrorMessage,
-          icon: 'i-bi-alert',
-          color: 'error',
-          duration: 10000
-        });
+      .catch(async error => {
+        await handleHTTPError(error, 'Couldn\'t set device name');
         return false;
       });
   }
@@ -264,29 +172,10 @@ export const useDeviceStore = defineStore('device', () => {
   async function fetchHttpAPIAccess (): Promise<HttpAccessInfo | undefined> {
     const access = await busyBar.getHttpAccess()
       .then(response => {
-        if (!response || typeof response !== 'object') {
-          throw new Error('Empty response');
-        }
-        httpAPIAccess.value = response;
         return response;
       })
       .catch(async error => {
-        if (error.data?.error === 'Forbidden') {
-          await navigateTo('/login');
-          return undefined;
-        }
-        console.error('Error fetching HTTP API access:', error);
-        await checkConnection();
-        if (isConnected.value) {
-          toast.add({
-            id: 'http-api-access-error',
-            title: 'Failed to fetch HTTP API access',
-            description: error.data?.error || String(error) || genericErrorMessage,
-            icon: 'i-bi-alert',
-            color: 'error',
-            duration: 10000
-          });
-        }
+        await handleHTTPError(error, 'Couldn\'t get HTTP API access state', true);
         return httpAPIAccess.value; // return old value if available
       });
 
@@ -312,16 +201,8 @@ export const useDeviceStore = defineStore('device', () => {
         httpAPIAccess.value = await fetchHttpAPIAccess();
         return true;
       })
-      .catch(error => {
-        console.error('Error setting HTTP API access:', error);
-        toast.add({
-          id: 'http-api-access-set-error',
-          title: 'Failed to set HTTP API access',
-          description: error.data?.error || String(error) || genericErrorMessage,
-          icon: 'i-bi-alert',
-          color: 'error',
-          duration: 10000
-        });
+      .catch(async error => {
+        await handleHTTPError(error, 'Couldn\'t set HTTP API access state');
         return false;
       });
   }
@@ -331,28 +212,13 @@ export const useDeviceStore = defineStore('device', () => {
   async function fetchDisplayBrightness (): Promise<DisplayBrightnessParams | undefined> {
     const brightness = await busyBar.getDisplayBrightness()
       .then(response => {
-        if (!response || typeof response !== 'object') {
-          throw new Error('Empty response');
-        }
         const frontParsed = response.front === 'auto' ? 'auto' : Number(response.front);
         const backParsed = response.back === 'auto' ? 'auto' : Number(response.back);
         return { front: frontParsed, back: backParsed } as DisplayBrightnessParams;
       })
       .catch(async error => {
-        if (error.data?.error === 'Forbidden') {
-          await navigateTo('/login');
-          return undefined;
-        }
-        console.error('Error fetching display brightness:', error);
-        toast.add({
-          id: 'display-brightness-error',
-          title: 'Failed to fetch display brightness',
-          description: error.data?.error || String(error) || genericErrorMessage,
-          icon: 'i-bi-alert',
-          color: 'error',
-          duration: 10000
-        });
-        return undefined;
+        await handleHTTPError(error, 'Couldn\'t get display brightness', true);
+        return displayBrightness.value;
       });
 
     return brightness;
@@ -369,16 +235,8 @@ export const useDeviceStore = defineStore('device', () => {
         displayBrightness.value = brightness;
         return true;
       })
-      .catch(error => {
-        console.error('Error setting display brightness:', error);
-        toast.add({
-          id: 'display-brightness-set-error',
-          title: 'Failed to set display brightness',
-          description: error.data?.error || String(error) || genericErrorMessage,
-          icon: 'i-bi-alert',
-          color: 'error',
-          duration: 10000
-        });
+      .catch(async error => {
+        await handleHTTPError(error, 'Couldn\'t set display brightness');
         return false;
       });
   }
@@ -388,27 +246,12 @@ export const useDeviceStore = defineStore('device', () => {
   async function fetchAudioVolume (): Promise<AudioVolumeInfo | undefined> {
     const volume = await busyBar.getAudioVolume()
       .then(response => {
-        if (!response || typeof response !== 'object') {
-          throw new Error('Empty response');
-        }
         audio.value = response;
         return response;
       })
       .catch(async error => {
-        if (error.data?.error === 'Forbidden') {
-          await navigateTo('/login');
-          return undefined;
-        }
-        console.error('Error fetching audio volume:', error);
-        toast.add({
-          id: 'audio-volume-error',
-          title: 'Failed to fetch audio volume',
-          description: error.data?.error || String(error) || genericErrorMessage,
-          icon: 'i-bi-alert',
-          color: 'error',
-          duration: 10000
-        });
-        return undefined;
+        await handleHTTPError(error, 'Couldn\'t get audio volume', true);
+        return audio.value;
       });
 
     return volume;
@@ -429,16 +272,8 @@ export const useDeviceStore = defineStore('device', () => {
         }
         return true;
       })
-      .catch(error => {
-        console.error('Error setting audio volume:', error);
-        toast.add({
-          id: 'audio-volume-set-error',
-          title: 'Failed to set audio volume',
-          description: error.data?.error || String(error) || genericErrorMessage,
-          icon: 'i-bi-alert',
-          color: 'error',
-          duration: 10000
-        });
+      .catch(async error => {
+        await handleHTTPError(error, 'Couldn\'t set audio volume');
         return false;
       });
   }

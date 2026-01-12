@@ -6,8 +6,6 @@ import type {
 } from '@busy-app/busy-lib';
 
 export const useWifiStore = defineStore('wifi', () => {
-  const deviceStore = useDeviceStore();
-
   const busyBar = useDeviceStore().busyBar;
 
   const wifi = ref<WifiState | undefined>(undefined);
@@ -15,25 +13,12 @@ export const useWifiStore = defineStore('wifi', () => {
   async function fetchWifiState (): Promise<WifiState | undefined> {
     const state = await busyBar.statusWifi()
       .then(response => {
-        if (!response || typeof response !== 'object') {
-          throw new Error('Empty response');
-        }
+        wifi.value = response;
         return response;
       })
       .catch(async error => {
-        console.error('Error fetching WiFi state:', error);
-        await deviceStore.checkConnection();
-        if (deviceStore.isConnected) {
-          toast.add({
-            id: 'wifi-status-error',
-            title: 'Failed to fetch WiFi state',
-            description: error.data?.error || String(error) || genericErrorMessage,
-            icon: 'i-bi-alert',
-            color: 'error',
-            duration: 10000
-          });
-        }
-        return undefined;
+        await await handleHTTPError(error, 'Couldn\'t fetch WiFi state', true);
+        return wifi.value;
       });
 
     return state;
@@ -65,48 +50,24 @@ export const useWifiStore = defineStore('wifi', () => {
         }, []);
         return response.networks;
       })
-      .catch(error => {
-        console.error('Error fetching WiFi networks:', error);
-        toast.add({
-          id: 'wifi-networks-error',
-          title: 'Failed to fetch WiFi networks',
-          description: error.data?.error || String(error) || genericErrorMessage,
-          icon: 'i-bi-alert',
-          color: 'error',
-          duration: 10000
-        });
+      .catch(async error => {
+        await handleHTTPError(error, 'Couldn\'t list WiFi networks');
         return [];
       });
   }
 
   async function connectToWifiNetwork (params: WifiConnectParams) {
     return await busyBar.connectWifi(params)
-      .catch(error => {
-        console.error('Error connecting to WiFi:', error);
-        toast.add({
-          id: 'wifi-connect-error',
-          title: 'Failed to connect to WiFi',
-          description: error.data?.error || String(error) || genericErrorMessage,
-          icon: 'i-bi-alert',
-          color: 'error',
-          duration: 10000
-        });
+      .catch(async error => {
+        await handleHTTPError(error, 'Couldn\'t connect to WiFi network');
         return false;
       });
   }
 
   async function disconnectFromWifiNetwork () {
     return await busyBar.disconnectWifi()
-      .catch(error => {
-        console.error('Error disconnecting from WiFi:', error);
-        toast.add({
-          id: 'wifi-disconnect-error',
-          title: 'Failed to disconnect from WiFi',
-          description: error.data?.error || String(error) || genericErrorMessage,
-          icon: 'i-bi-alert',
-          color: 'error',
-          duration: 10000
-        });
+      .catch(async error => {
+        await handleHTTPError(error, 'Couldn\'t disconnect from WiFi network');
         return false;
       });
   }
