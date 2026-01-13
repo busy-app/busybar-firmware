@@ -55,6 +55,7 @@ typedef struct {
 } BleSettings;
 
 void ble_settings_send_custom_event(BleSettings* instance, uint32_t event);
+bool ble_settings_is_device_paired(Ble* ble);
 
 #ifdef __cplusplus
 }

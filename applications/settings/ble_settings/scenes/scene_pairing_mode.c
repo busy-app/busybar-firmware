@@ -23,14 +23,6 @@ static void scene_pairing_ble_pairing_done_callback(const void* message, void* c
     ble_settings_send_custom_event(instance, SceneEventBlePairingEvent);
 }
 
-///TODO: move this to ble_settings.c and make it available to other scenes
-static bool ble_settings_is_device_paired(Ble* ble) {
-    BleStatus status = {0};
-    ble_get_status(ble, &status);
-    FURI_LOG_I("BleSettings", "Pair status: %d", status.pairing);
-    return status.pairing == BlePairingStatePaired;
-}
-
 static void scene_pairing_mode_on_enter(void* context) {
     furi_assert(context);
 

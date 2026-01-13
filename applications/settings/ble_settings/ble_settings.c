@@ -53,6 +53,13 @@ static bool ble_settings_gui_input_callback(const InputEvent* event, void* conte
     return consumed;
 }
 
+bool ble_settings_is_device_paired(Ble* ble) {
+    BleStatus status = {0};
+    ble_get_status(ble, &status);
+    FURI_LOG_I("BleSettings", "Pair status: %d", status.pairing);
+    return status.pairing == BlePairingStatePaired;
+}
+
 static BleSettings* ble_settings_alloc() {
     BleSettings* instance = malloc(sizeof(BleSettings));
     instance->ble = furi_record_open(RECORD_BLE);
@@ -103,11 +110,7 @@ static BleSettings* ble_settings_alloc() {
         ble_settings_event_queue_callback,
         instance);
 
-    BleStatus status = {0};
-    ///TODO: use ble_settings_is_device_paired instead
-    bool result = ble_get_status(instance->ble, &status);
-    furi_check(result);
-    const bool not_paired = status.pairing == BlePairingStateNotPaired;
+    const bool not_paired = !ble_settings_is_device_paired(instance->ble);
     scene_manager_next_scene(
         instance->scene_manager, not_paired ? SceneIdPairingMode : SceneIdForgetDevice);
     return instance;
