@@ -14,6 +14,11 @@ typedef struct {
     FlexLayout* front_flex;
     Image* front_mark;
     Label* front_label;
+
+    FlexLayout* back_flex;
+    Image* back_mark;
+    Label* back_label;
+
     FuriTimer* timer;
 } BleSettingsConnectedSceneData;
 
@@ -30,6 +35,9 @@ static void scene_connected_on_enter(void* context) {
         scene_manager_get_scene_data(instance->scene_manager, SceneIdConnected);
 
     with_gui(instance->gui, {
+        const char* label_text = "Connected";
+
+        //Front screen
         data->front_flex = flex_layout_alloc(instance->front_scene_window, FlexLayoutTypeRow);
         flex_layout_set_spacing(data->front_flex, 2);
         widget_set_height_content(flex_layout_get_base(data->front_flex));
@@ -40,8 +48,22 @@ static void scene_connected_on_enter(void* context) {
         widget_set_height_content(image_get_base(data->front_mark));
 
         data->front_label = label_alloc(flex_layout_get_base(data->front_flex));
-        label_set_text(data->front_label, "Connected");
+        label_set_text(data->front_label, label_text);
         widget_set_height_content(label_get_base(data->front_label));
+
+        //Back screen
+        data->back_flex = flex_layout_alloc(instance->back_scene_window, FlexLayoutTypeColumn);
+        flex_layout_set_align(
+            data->back_flex, FlexLayoutAlignCenter, FlexLayoutAlignCenter, FlexLayoutAlignCenter);
+
+        data->back_mark = image_alloc(flex_layout_get_base(data->back_flex));
+        image_set_source(data->back_mark, SETTINGS_IMG_PATH("checkmark_back_12x10.bin"));
+        widget_set_width_content(image_get_base(data->back_mark));
+
+        data->back_label = label_alloc(flex_layout_get_base(data->back_flex));
+        label_set_text(data->back_label, label_text);
+        widget_set_width_content(label_get_base(data->back_label));
+        widget_set_margin(label_get_base(data->back_label), 0, 0, 8, 0);
     });
 
     data->timer = furi_timer_alloc(scene_timer_callback, FuriTimerTypeOnce, context);
