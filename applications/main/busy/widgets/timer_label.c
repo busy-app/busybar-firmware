@@ -17,11 +17,11 @@
 #define COUNTDOWN_START_S       (BLINK_START_S + 1)
 #define COUNTDOWN_TRANSITION_MS (1000)
 
-#define BG_TRANSITION_MS (833)
+#define BG_TRANSITION_MS   (667)
+#define TEXT_TRANSITION_MS (333)
 
-#define TEXT_TRANSITION_HIDE_MS (250)
-#define TEXT_TRANSITION_SHOW_MS (417)
-#define TEXT_DELAY_SHOW_MS      (333)
+#define TEXT_DELAY_SHOW_MS (250)
+#define TEXT_DELAY_HIDE_MS (0)
 
 #define MAIN_WIDTH_PX    (40)
 #define BG_GRAD_WIDTH_PX (10)
@@ -166,12 +166,14 @@ static void timer_label_animate_bg_gradient(TimerLabel* instance, int32_t stop_v
     lv_anim_init(&anim);
     lv_anim_set_duration(&anim, BG_TRANSITION_MS);
     lv_anim_set_values(&anim, start_value, stop_value);
+
     lv_anim_set_bezier3_param(
         &anim,
-        LV_BEZIER_VAL_FLOAT(0.3F),
-        LV_BEZIER_VAL_FLOAT(0.0F),
-        LV_BEZIER_VAL_FLOAT(0.7F),
+        LV_BEZIER_VAL_FLOAT(0.1F),
+        LV_BEZIER_VAL_FLOAT(0.5F),
+        LV_BEZIER_VAL_FLOAT(0.35F),
         LV_BEZIER_VAL_FLOAT(1.0F));
+
     lv_anim_set_path_cb(&anim, lv_anim_path_custom_bezier3);
     lv_anim_set_exec_cb(&anim, timer_label_lvgl_anim_bg_gradient_callback);
 
@@ -184,14 +186,8 @@ static void timer_label_animate_text(TimerLabel* instance, uint8_t stop_value) {
 
     lv_anim_t anim;
     lv_anim_init(&anim);
-
-    if(stop_value != 0) {
-        lv_anim_set_delay(&anim, TEXT_DELAY_SHOW_MS);
-        lv_anim_set_duration(&anim, TEXT_TRANSITION_SHOW_MS);
-    } else {
-        lv_anim_set_duration(&anim, TEXT_TRANSITION_SHOW_MS);
-    }
-
+    lv_anim_set_delay(&anim, stop_value ? TEXT_DELAY_SHOW_MS : TEXT_DELAY_HIDE_MS);
+    lv_anim_set_duration(&anim, TEXT_TRANSITION_MS);
     lv_anim_set_values(&anim, start_value, stop_value);
     lv_anim_set_exec_cb(&anim, timer_label_lvgl_anim_text_callback);
 
