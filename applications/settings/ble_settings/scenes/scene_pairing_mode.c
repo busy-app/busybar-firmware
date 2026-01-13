@@ -6,10 +6,10 @@
 #include <gui/modules/label.h>
 
 #include <ble/ble.h>
-#include <device_name/device_name.h>
 
 typedef enum {
     SceneEventBlePairingEvent = AppEventSceneEventsStart,
+    SceneEventDeviceNameChangedEvent,
 } SceneEvent;
 
 typedef struct {
@@ -22,6 +22,8 @@ typedef struct {
     Label* back_label;
     Label* name_label;
     FuriPubSubSubscription* ble_pubsub;
+    FuriPubSubSubscription* device_name_pubsub;
+    FuriString* name_label_text;
 } BleSettingsPairingSceneData;
 
 static void scene_pairing_ble_pairing_done_callback(const void* message, void* context) {
@@ -30,10 +32,17 @@ static void scene_pairing_ble_pairing_done_callback(const void* message, void* c
     ble_settings_send_custom_event(instance, SceneEventBlePairingEvent);
 }
 
-static void scene_pairing_get_device_name(FuriString* output) {
-    DeviceName* device_name = furi_record_open(RECORD_DEVICE_NAME);
-    device_name_get(device_name, output);
-    furi_record_close(RECORD_DEVICE_NAME);
+static void scene_pairing_device_name_change_callback(const void* message, void* context) {
+    UNUSED(message);
+    BleSettings* instance = context;
+    ble_settings_send_custom_event(instance, SceneEventDeviceNameChangedEvent);
+}
+
+static void scene_pairing_format_device_name(DeviceName* device_name, FuriString* name_text) {
+    FuriString* name = furi_string_alloc();
+    device_name_get(device_name, name);
+    furi_string_printf(name_text, "Device name: %s", furi_string_get_cstr(name));
+    furi_string_free(name);
 }
 
 static void scene_pairing_mode_on_enter(void* context) {
@@ -46,14 +55,16 @@ static void scene_pairing_mode_on_enter(void* context) {
     data->ble_pubsub = furi_pubsub_subscribe(
         ble_get_pubsub(instance->ble), scene_pairing_ble_pairing_done_callback, context);
 
+    data->device_name_pubsub = furi_pubsub_subscribe(
+        device_name_get_pubsub(instance->device_name),
+        scene_pairing_device_name_change_callback,
+        context);
+
+    data->name_label_text = furi_string_alloc();
+    scene_pairing_format_device_name(instance->device_name, data->name_label_text);
+
     ///TODO: Rework this to enable BLE on start according to previous state, and move it out of here
     ble_start(instance->ble);
-
-    FuriString* name = furi_string_alloc();
-    scene_pairing_get_device_name(name);
-    FuriString* name_label_text =
-        furi_string_alloc_printf("Device name: %s", furi_string_get_cstr(name));
-    furi_string_free(name);
 
     with_gui(instance->gui, {
         const char* pairing_text = "Pairing mode...";
@@ -88,13 +99,12 @@ static void scene_pairing_mode_on_enter(void* context) {
         widget_set_margin(label_get_base(data->back_label), 0, 0, 0, 2);
 
         data->name_label = label_alloc(flex_layout_get_base(data->back_flex));
-        label_set_text(data->name_label, furi_string_get_cstr(name_label_text));
+        label_set_text(data->name_label, furi_string_get_cstr(data->name_label_text));
         widget_set_width_content(label_get_base(data->name_label));
         Color color = COLOR_MAKE_HEX(0x444444);
         label_set_text_color(data->name_label, color);
     });
 
-    furi_string_free(name_label_text);
     Color color = COLOR_MAKE_RGB(0, 0, 0xFF);
     status_lights_set_brightness(instance->status_lights, STATUS_LIGHTS_BRIGHTNESS_MAX);
     status_lights_run_preset(instance->status_lights, StatusLightsPresetFade, color);
@@ -108,6 +118,8 @@ static void scene_pairing_mode_on_exit(void* context) {
         scene_manager_get_scene_data(instance->scene_manager, SceneIdPairingMode);
 
     furi_pubsub_unsubscribe(ble_get_pubsub(instance->ble), data->ble_pubsub);
+    furi_pubsub_unsubscribe(
+        device_name_get_pubsub(instance->device_name), data->device_name_pubsub);
 
     with_gui(instance->gui, {
         anim_image_free(data->front_anim);
@@ -120,6 +132,7 @@ static void scene_pairing_mode_on_exit(void* context) {
         flex_layout_free(data->back_flex);
     });
 
+    furi_string_free(data->name_label_text);
     status_lights_run_preset(instance->status_lights, StatusLightsPresetOff, (Color){});
 }
 
@@ -130,9 +143,18 @@ static bool scene_pairing_mode_on_event(const SceneManagerEvent* event, void* co
 
     bool consumed = false;
 
-    if(event->type == SceneManagerEventTypeCustom && (event->event == SceneEventBlePairingEvent)) {
-        if(ble_settings_is_device_paired(instance->ble))
-            scene_manager_next_scene(instance->scene_manager, SceneIdConnected);
+    if(event->type == SceneManagerEventTypeCustom) {
+        if(event->event == SceneEventBlePairingEvent) {
+            if(ble_settings_is_device_paired(instance->ble))
+                scene_manager_next_scene(instance->scene_manager, SceneIdConnected);
+        } else if(event->event == SceneEventDeviceNameChangedEvent) {
+            BleSettingsPairingSceneData* data =
+                scene_manager_get_scene_data(instance->scene_manager, SceneIdPairingMode);
+            scene_pairing_format_device_name(instance->device_name, data->name_label_text);
+            with_gui(instance->gui, {
+                label_set_text(data->name_label, furi_string_get_cstr(data->name_label_text));
+            });
+        }
     } else if(event->type == SceneManagerEventTypeBack) {
         consumed =
             desktop_replace_current_app(instance->desktop, MAIN_SETTINGS_APP, THIS_SETTINGS_APP);
