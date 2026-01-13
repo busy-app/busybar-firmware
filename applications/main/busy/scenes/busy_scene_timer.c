@@ -119,7 +119,7 @@ static void busy_scene_timer_update_tick(BusyApp* instance) {
         if(busy_scene_timer_has_label_tweaks(data)) {
             const uint32_t dt_s = time_elapsed_s - data->prev_label_show_time;
 
-            if(dt_s == TIMER_HIDDEN_TIME_S) {
+            if(dt_s == TIMER_HIDDEN_TIME_S || time_remain_s <= COUNTDOWN_THRESHOLD_S) {
                 timer_label_show(data->timer_label);
             } else if(dt_s == TIMER_HIDDEN_TIME_S + TIMER_SHOWN_TIME_S || dt_s == 0) {
                 timer_label_hide(data->timer_label);
@@ -128,9 +128,9 @@ static void busy_scene_timer_update_tick(BusyApp* instance) {
         }
     });
 
-    if(time->remain_s == 0) {
+    if(time_remain_s == 0) {
         audio_play_file(instance->audio, BUSY_SOUND_PATH("countdown_finish.snd"));
-    } else if(time->remain_s <= COUNTDOWN_THRESHOLD_S) {
+    } else if(time_remain_s <= COUNTDOWN_THRESHOLD_S) {
         audio_play_file(instance->audio, BUSY_SOUND_PATH("countdown_tick.snd"));
     }
 }
