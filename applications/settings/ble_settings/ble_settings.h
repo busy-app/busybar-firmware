@@ -7,6 +7,7 @@
 #include <furi.h>
 
 #include <ble/ble.h>
+#include <device_name/device_name.h>
 #include <desktop/desktop.h>
 #include <gui/gui.h>
 #include <front_display/front_display.h>
@@ -39,6 +40,7 @@ typedef struct {
     FuriMessageQueue* input_queue;
     FuriMessageQueue* event_queue;
     SceneManager* scene_manager;
+    DeviceName* device_name;
 
     StatusLights* status_lights;
     Desktop* desktop;

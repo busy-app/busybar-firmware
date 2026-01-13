@@ -63,6 +63,7 @@ bool ble_settings_is_device_paired(Ble* ble) {
 static BleSettings* ble_settings_alloc() {
     BleSettings* instance = malloc(sizeof(BleSettings));
     instance->ble = furi_record_open(RECORD_BLE);
+    instance->device_name = furi_record_open(RECORD_DEVICE_NAME);
     instance->event_loop = furi_event_loop_alloc();
     instance->input_queue = furi_message_queue_alloc(4, sizeof(InputEvent));
     instance->event_queue = furi_message_queue_alloc(4, sizeof(uint32_t));
@@ -134,6 +135,7 @@ static void ble_settings_free(BleSettings* instance) {
     furi_record_close(RECORD_FRONT_DISPLAY);
     furi_record_close(RECORD_BACK_DISPLAY);
     furi_record_close(RECORD_STATUS_LIGHTS);
+    furi_record_close(RECORD_DEVICE_NAME);
     furi_record_close(RECORD_BLE);
 
     furi_event_loop_unsubscribe(instance->event_loop, instance->input_queue);
