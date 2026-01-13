@@ -2,7 +2,7 @@
 #include "../helpers/rps.h"
 
 #include <storage/storage.h>
-#include <cli_f20/cli_command_sl_cli.h>
+#include <cli_u5/cli_command_sl_cli.h>
 
 #include <containers/pipe_util.h>
 #include <formatters/sl_rps/sl_rps.h>

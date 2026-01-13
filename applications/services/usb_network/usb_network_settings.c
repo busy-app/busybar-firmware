@@ -26,7 +26,7 @@ UsbNetworkAddress usb_network_settings_get_address(void) {
 }
 
 const uint8_t* usb_network_settings_get_mac_address(void) {
-    return furi_hal_version_get_ble_mac();
+    return furi_hal_version_get_usb_mac();
 }
 
 const char* usb_network_settings_get_hostname(void) {
