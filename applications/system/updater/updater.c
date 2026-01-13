@@ -1,6 +1,6 @@
 #include "updater.h"
 #include "updater_paths.h"
-#include "updater_settings.h"
+#include "settings/settings.h"
 #include "update_checker/update_checker.h"
 #include "session/session_config.h"
 
@@ -276,8 +276,8 @@ static UpdaterStatus do_check_for_update(Updater* instance, UpdaterMessage* mess
 
     bool is_check_start_successful = update_checker_run(
         instance->update_checker,
-        instance->settings.check_url,
-        instance->settings.check_channel_id);
+        furi_string_get_cstr(instance->settings.check_url),
+        furi_string_get_cstr(instance->settings.check_channel_id));
 
     if(is_check_start_successful) {
         UpdaterCheckState* check_state = furi_state_acquire(instance->check_state);
@@ -915,7 +915,7 @@ UpdaterStatus updater_check_for_update(Updater* instance) {
 void updater_pause_autoupdates(Updater* instance) {
     furi_check(instance);
 
-    furi_semaphore_acquire(instance->autoupdate_semaphore, 0);
+    furi_check(furi_semaphore_acquire(instance->autoupdate_semaphore, 0) == FuriStatusOk);
 }
 
 void updater_resume_autoupdates(Updater* instance) {
@@ -944,6 +944,8 @@ static Updater* updater_alloc(void) {
     instance->message_queue =
         furi_message_queue_alloc(MESSAGE_QUEUE_ITEMS_COUNT, sizeof(UpdaterMessage));
 
+    instance->settings.check_url = furi_string_alloc();
+    instance->settings.check_channel_id = furi_string_alloc();
     updater_settings_load(&instance->settings);
 
     instance->update_lock = furi_semaphore_alloc(1, 1);
