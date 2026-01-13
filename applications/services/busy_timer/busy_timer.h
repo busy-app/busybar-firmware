@@ -42,7 +42,7 @@ typedef struct {
 } BusyTimerTime;
 
 typedef struct {
-    uint32_t done_count;
+    uint32_t current_idx;
     uint32_t total_count;
 } BusyTimerCycles;
 

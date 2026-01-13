@@ -18,8 +18,8 @@
 #include "helpers/run_later.h"
 #include "scenes/busy_scenes.h"
 
-#include "widgets/timer_bar.h"
 #include "widgets/timer_card.h"
+#include "widgets/timer_label.h"
 #include "widgets/timer_indicator.h"
 #include "widgets/transition_overlay.h"
 
@@ -46,6 +46,7 @@ typedef enum {
     BusyCustomEventStartReleased,
     BusyCustomEventStartShortPressed,
     BusyCustomEventReturnToStart,
+    BusyCustomEventAnimationCompleted,
     BusyCustomEventMax,
 } BusyCustomEvent;
 
@@ -58,6 +59,7 @@ typedef enum {
     BusyTransitionTypeRest,
     BusyTransitionTypeWorkDone,
     BusyTransitionTypeRestDone,
+    BusyTransitionTypeEnding,
     BusyTransitionTypeMax,
 } BusyTransitionType;
 
@@ -69,10 +71,17 @@ typedef enum {
 } BusyStatusLightsType;
 
 typedef enum {
-    BusyTimerBarTypeWork,
-    BusyTimerBarTypeRest,
-    BusyTimerBarTypeMax,
-} BusyTimerBarType;
+    BusyTimerIndicatorTypeWork,
+    BusyTimerIndicatorTypeRest,
+    BusyTimerIndicatorTypeWorkBig,
+    BusyTimerIndicatorTypeRestBig,
+    BusyTimerIndicatorTypeMax,
+} BusyTimerIndicatorType;
+
+typedef enum {
+    BusyTimerIndicatorTransitionTypeInfToSimple,
+    BusyTimerIndicatorTransitionTypeMax,
+} BusyTimerIndicatorTransitionType;
 
 typedef enum {
     BusyApiMessageTypeShowTimer,

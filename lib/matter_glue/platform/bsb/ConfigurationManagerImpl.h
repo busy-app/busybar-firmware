@@ -63,6 +63,8 @@ private:
     // NOTE: Other public interface methods are implemented by GenericConfigurationManagerImpl<>.
 
     // ===== Members that implement the GenericConfigurationManagerImpl protected interface.
+    CHIP_ERROR GetSoftwareVersionString(char* buf, size_t bufSize) override;
+    CHIP_ERROR GetSoftwareVersion(uint32_t& softwareVer) override;
     CHIP_ERROR ReadConfigValue(Key key, bool& val) override;
     CHIP_ERROR ReadConfigValue(Key key, uint32_t& val) override;
     CHIP_ERROR ReadConfigValue(Key key, uint64_t& val) override;

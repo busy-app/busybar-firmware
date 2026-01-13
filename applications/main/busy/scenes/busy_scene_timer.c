@@ -1,29 +1,23 @@
 #include "../busy_i.h"
 #include "../busy_presets.h"
 
-#include <gui/modules/image.h>
-#include <gui/modules/anim_image.h>
 #include <gui/modules/flex_layout.h>
 
 #include "../widgets/pause_overlay.h"
-#include "../widgets/timer_bar.h"
 #include "../widgets/timer_indicator.h"
 #include "../widgets/timer_label.h"
 
 #define COUNTDOWN_THRESHOLD_S (3)
 
-#define PROGRESS_TRANSITION_MS (1000)
-
 typedef struct {
     FlexLayout* front_flex;
     TimerIndicator* timer_indicator;
     TimerLabel* timer_label;
-    TimerBar* timer_bar;
     PauseOverlay* pause_overlay;
-    RunLater* run_later;
     FuriPubSub* timer_pubsub;
     FuriPubSubSubscription* timer_sub;
     BusyTimerMode timer_mode;
+    BusyTimerMode prev_timer_mode;
     BusyTimerTime timer_time;
     BusyTimerState timer_state;
     bool is_paused;
@@ -80,6 +74,7 @@ static void busy_scene_timer_pubsub_callback(const void* msg, void* context) {
         busy_send_custom_event(instance, BusyCustomEventTimerTick);
 
     } else if(event->type == BusyTimerEventTypeModeChanged) {
+        data->prev_timer_mode = data->timer_mode;
         data->timer_mode = event->mode;
         busy_send_custom_event(instance, BusyCustomEventTimerModeChanged);
 
@@ -97,28 +92,6 @@ static void busy_scene_timer_pubsub_callback(const void* msg, void* context) {
     }
 }
 
-static void busy_scene_timer_run_later_callback(void* context) {
-    furi_assert(context);
-    BusyApp* instance = context;
-
-    const BusySceneTimer* data =
-        scene_manager_get_scene_data(instance->scene_manager, BusyAppSceneIdTimer);
-
-    if(data->is_force_ended) {
-        busy_prepare_transition(instance, BusyTransitionTypeSkip);
-    } else if(data->timer_state == BusyTimerStateRest) {
-        busy_prepare_transition(instance, BusyTransitionTypeRestDone);
-    } else {
-        busy_prepare_transition(instance, BusyTransitionTypeWorkDone);
-    }
-
-    if(data->timer_mode == BusyTimerModeInterval) {
-        scene_manager_next_scene(instance->scene_manager, BusyAppSceneIdProgress);
-    } else {
-        scene_manager_next_scene(instance->scene_manager, BusyAppSceneIdNext);
-    }
-}
-
 static void busy_scene_timer_update_tick(BusyApp* instance) {
     const BusySceneTimer* data =
         scene_manager_get_scene_data(instance->scene_manager, BusyAppSceneIdTimer);
@@ -127,10 +100,7 @@ static void busy_scene_timer_update_tick(BusyApp* instance) {
     const float progress = (float)time->elapsed_s / (time->elapsed_s + time->remain_s);
 
     with_gui(instance->gui, {
-        if(widget_is_visible(timer_bar_get_base(data->timer_bar))) {
-            timer_bar_set_value(data->timer_bar, progress);
-        }
-
+        timer_indicator_set_progress(data->timer_indicator, progress);
         timer_label_set_time(data->timer_label, data->timer_time.remain_s);
         timer_card_set_time(instance->timer_card, data->timer_time.remain_s);
     });
@@ -167,21 +137,15 @@ static void busy_scene_timer_update_timer_mode(BusyApp* instance) {
 
     with_gui(instance->gui, {
         if(data->timer_mode == BusyTimerModeInfinite) {
-            widget_set_pos(flex_layout_get_base(data->front_flex), 1, 1);
             widget_set_visible(timer_label_get_base(data->timer_label), false);
-            widget_set_visible(timer_bar_get_base(data->timer_bar), false);
             timer_card_show_time(instance->timer_card, false);
 
         } else if(data->timer_mode == BusyTimerModeSimple) {
-            widget_set_pos(flex_layout_get_base(data->front_flex), 0, 1);
             widget_set_visible(timer_label_get_base(data->timer_label), true);
-            widget_set_visible(timer_bar_get_base(data->timer_bar), true);
             timer_card_show_time(instance->timer_card, true);
 
         } else if(data->timer_mode == BusyTimerModeInterval) {
-            widget_set_pos(flex_layout_get_base(data->front_flex), 0, 0);
             widget_set_visible(timer_label_get_base(data->timer_label), true);
-            widget_set_visible(timer_bar_get_base(data->timer_bar), true);
             timer_card_show_time(instance->timer_card, true);
         }
     });
@@ -191,26 +155,49 @@ static void busy_scene_timer_update_timer_state(BusyApp* instance) {
     const BusySceneTimer* data =
         scene_manager_get_scene_data(instance->scene_manager, BusyAppSceneIdTimer);
 
-    with_gui(instance->gui, {
-        if(data->timer_state == BusyTimerStateWork) {
-            if(data->timer_mode == BusyTimerModeInfinite) {
-                timer_indicator_set_state(data->timer_indicator, TimerIndicatorStateWorkBig);
+    const TimerIndicatorPreset* timer_indicator_preset = NULL;
+    const TimerIndicatorTransition* timer_indicator_transition = NULL;
+    const TimerLabelPreset* timer_label_preset = NULL;
 
-            } else if(data->timer_mode == BusyTimerModeSimple) {
-                timer_indicator_set_state(data->timer_indicator, TimerIndicatorStateWork);
-
-            } else if(data->timer_mode == BusyTimerModeInterval) {
-                timer_indicator_set_state(data->timer_indicator, TimerIndicatorStateWork);
-                timer_bar_set_preset(data->timer_bar, &busy_progress_bar[BusyTimerBarTypeWork]);
+    if(data->timer_state == BusyTimerStateWork) {
+        if(data->timer_mode == BusyTimerModeInfinite) {
+            timer_indicator_preset = &busy_timer_indicator_presets[BusyTimerIndicatorTypeWorkBig];
+        } else if(data->timer_mode == BusyTimerModeSimple) {
+            timer_indicator_preset = &busy_timer_indicator_presets[BusyTimerIndicatorTypeWork];
+            if(data->prev_timer_mode == BusyTimerModeInfinite) {
+                // Special case: transitioning from Infinite to Simple
+                timer_indicator_transition =
+                    &busy_timer_indicator_transitions[BusyTimerIndicatorTransitionTypeInfToSimple];
             }
-
-        } else if(data->timer_state == BusyTimerStateRest) {
-            furi_assert(data->timer_mode == BusyTimerModeInterval);
-
-            timer_indicator_set_state(data->timer_indicator, TimerIndicatorStateRest);
-            timer_bar_set_preset(data->timer_bar, &busy_progress_bar[BusyTimerBarTypeRest]);
+        } else if(data->timer_mode == BusyTimerModeInterval) {
+            timer_indicator_preset = &busy_timer_indicator_presets[BusyTimerIndicatorTypeWork];
+            if(data->prev_timer_mode == BusyTimerModeInfinite) {
+                // Special case: transitioning from Infinite to Interval
+                timer_indicator_transition =
+                    &busy_timer_indicator_transitions[BusyTimerIndicatorTransitionTypeInfToSimple];
+            }
         }
-    });
+
+        timer_label_preset = &busy_timer_label_presets[BusyTimerLabelTypeWork];
+
+    } else if(data->timer_state == BusyTimerStateRest) {
+        furi_assert(data->timer_mode == BusyTimerModeInterval);
+        timer_indicator_preset = &busy_timer_indicator_presets[BusyTimerIndicatorTypeRest];
+        timer_label_preset = &busy_timer_label_presets[BusyTimerLabelTypeRest];
+    }
+
+    if(timer_indicator_preset) {
+        with_gui(instance->gui, {
+            timer_indicator_set_preset(
+                data->timer_indicator, timer_indicator_preset, timer_indicator_transition);
+        });
+    }
+
+    if(timer_label_preset) {
+        with_gui(instance->gui, {
+            timer_label_set_preset(data->timer_label, timer_label_preset);
+        });
+    }
 
     busy_scene_timer_update_lights(instance);
     busy_scene_timer_update_matter(instance);
@@ -223,12 +210,7 @@ static void busy_scene_timer_handle_pause(BusyApp* instance) {
     with_gui(instance->gui, {
         pause_overlay_show(data->pause_overlay, data->is_paused);
         timer_card_show_header(instance->timer_card, !data->is_paused);
-
-        if(data->is_paused) {
-            anim_image_stop(timer_indicator_get_anim_image(data->timer_indicator));
-        } else {
-            anim_image_start(timer_indicator_get_anim_image(data->timer_indicator));
-        }
+        timer_indicator_enable_animations(data->timer_indicator, !data->is_paused);
     });
 
     busy_scene_timer_update_lights(instance);
@@ -269,22 +251,35 @@ static void busy_scene_timer_handle_return_to_start(BusyApp* instance) {
     furi_check(busy_return_to_start_scene(instance));
 }
 
-static void busy_scene_timer_go_to_progress_scene(BusyApp* instance) {
+static void busy_scene_timer_handle_interval_ended(BusyApp* instance) {
     BusySceneTimer* data =
         scene_manager_get_scene_data(instance->scene_manager, BusyAppSceneIdTimer);
 
+    BusyTransitionType transition_type;
+
     if(data->is_force_ended) {
-        busy_scene_timer_run_later_callback(instance);
+        transition_type = BusyTransitionTypeSkip;
+    } else if(data->timer_state == BusyTimerStateRest) {
+        transition_type = BusyTransitionTypeRestDone;
+    } else {
+        transition_type = BusyTransitionTypeWorkDone;
+    }
+
+    BusyAppSceneId next_scene_id;
+
+    if(data->timer_mode == BusyTimerModeInterval) {
+        if(data->timer_state == BusyTimerStateIdle) {
+            next_scene_id = BusyAppSceneIdEnding;
+        } else {
+            next_scene_id = BusyAppSceneIdProgress;
+        }
 
     } else {
-        furi_assert(data->run_later == NULL);
-
-        data->run_later = run_later(
-            instance->event_loop,
-            busy_scene_timer_run_later_callback,
-            instance,
-            PROGRESS_TRANSITION_MS);
+        next_scene_id = BusyAppSceneIdFinish;
     }
+
+    busy_prepare_transition(instance, transition_type);
+    scene_manager_next_scene(instance->scene_manager, next_scene_id);
 }
 
 static void busy_scene_timer_on_enter(void* context) {
@@ -299,15 +294,13 @@ static void busy_scene_timer_on_enter(void* context) {
         gui_layer_add_input_callback(layer, busy_scene_timer_input_callback, instance);
 
         data->front_flex = flex_layout_alloc(instance->front_window, FlexLayoutTypeRow);
+        widget_set_pos_x(flex_layout_get_base(data->front_flex), 1);
         flex_layout_set_spacing(data->front_flex, 2);
 
         data->timer_indicator = timer_indicator_alloc(flex_layout_get_base(data->front_flex));
-        timer_indicator_set_anim_sources(data->timer_indicator, &busy_indicator_anim_sources);
 
         data->timer_label = timer_label_alloc(flex_layout_get_base(data->front_flex));
-
-        data->timer_bar = timer_bar_alloc(instance->front_window);
-        widget_set_pos(timer_bar_get_base(data->timer_bar), 1, 15);
+        widget_set_margin(timer_label_get_base(data->timer_label), 0, 0, 1, 0);
 
         data->pause_overlay = pause_overlay_alloc(instance->front_window);
 
@@ -318,6 +311,9 @@ static void busy_scene_timer_on_enter(void* context) {
     data->timer_pubsub = busy_timer_get_pubsub(instance->busy_timer);
     data->timer_sub =
         furi_pubsub_subscribe(data->timer_pubsub, busy_scene_timer_pubsub_callback, instance);
+
+    data->timer_mode = BusyTimerModeMax;
+    data->prev_timer_mode = BusyTimerModeMax;
 
     if(!instance->show_timer_requested) {
         busy_timer_start(instance->busy_timer);
@@ -340,11 +336,6 @@ static void busy_scene_timer_on_exit(void* context) {
 
     furi_pubsub_unsubscribe(data->timer_pubsub, data->timer_sub);
 
-    if(data->run_later) {
-        run_later_cancel(data->run_later);
-        data->run_later = NULL;
-    }
-
     data->is_force_ended = false;
     data->is_paused = false;
 
@@ -356,7 +347,6 @@ static void busy_scene_timer_on_exit(void* context) {
         timer_card_show_time(instance->timer_card, false);
 
         flex_layout_free(data->front_flex);
-        timer_bar_free(data->timer_bar);
         pause_overlay_free(data->pause_overlay);
     });
 }
@@ -378,7 +368,7 @@ static bool busy_scene_timer_on_event(const SceneManagerEvent* event, void* cont
             busy_scene_timer_update_timer_state(instance);
 
         } else if(event->event == BusyCustomEventTimerIntervalEnded) {
-            busy_scene_timer_go_to_progress_scene(instance);
+            busy_scene_timer_handle_interval_ended(instance);
 
         } else if(event->event == BusyCustomEventTimerPaused) {
             busy_scene_timer_handle_pause(instance);

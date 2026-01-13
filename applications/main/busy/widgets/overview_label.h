@@ -1,6 +1,6 @@
 /**
  * @file overview_label.h
- * @brief
+ * @brief A widget that provides a timer session overview.
  *
  * Can be used only on the front display.
  */

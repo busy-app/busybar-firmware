@@ -16,7 +16,6 @@
 #include <busy/helpers/run_later.h>
 #include "scenes/custom_scenes.h"
 
-#include <busy/widgets/timer_bar.h>
 #include <busy/widgets/timer_card.h>
 #include <busy/widgets/timer_indicator.h>
 #include <busy/widgets/transition_overlay.h>
@@ -36,6 +35,11 @@ typedef enum {
     CustomStatusLightsTypeWork,
     CustomStatusLightsTypeMax,
 } CustomStatusLightsType;
+
+typedef enum {
+    CustomTimerIndicatorTypeKeepOut,
+    CustomTimerIndicatorTypeMax,
+} CustomTimerIndicatorType;
 
 typedef struct {
     FuriEventLoop* event_loop;
