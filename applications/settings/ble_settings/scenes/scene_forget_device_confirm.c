@@ -14,6 +14,10 @@ typedef enum {
 
 typedef struct {
     SplitWidget* split;
+
+    FlexLayout* back_flex;
+    Label* back_label;
+    Submenu* back_submenu;
 } BleSettingsForgetConfirmSceneData;
 
 static void scene_main_menu_item_callback(uint32_t index, void* context) {
@@ -43,6 +47,16 @@ static void scene_forget_device_confirm_on_enter(void* context) {
             SceneEventRemovePairingCancel,
             scene_main_menu_item_callback,
             instance);
+
+        data->back_flex = flex_layout_alloc(instance->back_scene_window, FlexLayoutTypeColumn);
+        data->back_label = label_alloc(flex_layout_get_base(data->back_flex));
+        label_set_text(data->back_label, "Forget device?");
+
+        data->back_submenu = submenu_alloc(flex_layout_get_base(data->back_flex));
+        submenu_add_item(
+            data->back_submenu, "Forget", SceneEventRemovePairingConfirm, NULL, instance);
+        submenu_add_item(
+            data->back_submenu, "Cancel", SceneEventRemovePairingCancel, NULL, instance);
     });
 }
 
@@ -50,7 +64,13 @@ static void scene_forget_device_confirm_on_exit(void* context) {
     BleSettings* instance = context;
     BleSettingsForgetConfirmSceneData* data =
         scene_manager_get_scene_data(instance->scene_manager, SceneIdForgetDeviceConfirm);
-    with_gui(instance->gui, { split_widget_free(data->split); });
+    with_gui(instance->gui, {
+        split_widget_free(data->split);
+
+        label_free(data->back_label);
+        submenu_free(data->back_submenu);
+        flex_layout_free(data->back_flex);
+    });
 }
 
 static bool scene_forget_device_confirm_on_event(const SceneManagerEvent* event, void* context) {
