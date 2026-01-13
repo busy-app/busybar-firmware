@@ -11,7 +11,7 @@ typedef enum {
 } SceneEvent;
 
 typedef struct {
-    FlexLayout* flex;
+    FlexLayout* front_flex;
     Image* front_mark;
     Label* front_label;
     FuriTimer* timer;
@@ -30,16 +30,16 @@ static void scene_connected_on_enter(void* context) {
         scene_manager_get_scene_data(instance->scene_manager, SceneIdConnected);
 
     with_gui(instance->gui, {
-        data->flex = flex_layout_alloc(instance->front_scene_window, FlexLayoutTypeRow);
-        flex_layout_set_spacing(data->flex, 2);
-        widget_set_height_content(flex_layout_get_base(data->flex));
-        widget_set_align(flex_layout_get_base(data->flex), AlignLeftMid);
+        data->front_flex = flex_layout_alloc(instance->front_scene_window, FlexLayoutTypeRow);
+        flex_layout_set_spacing(data->front_flex, 2);
+        widget_set_height_content(flex_layout_get_base(data->front_flex));
+        widget_set_align(flex_layout_get_base(data->front_flex), AlignLeftMid);
 
-        data->front_mark = image_alloc(flex_layout_get_base(data->flex));
+        data->front_mark = image_alloc(flex_layout_get_base(data->front_flex));
         image_set_source(data->front_mark, SETTINGS_IMG_PATH("checkmark_front_8x6.bin"));
         widget_set_height_content(image_get_base(data->front_mark));
 
-        data->front_label = label_alloc(flex_layout_get_base(data->flex));
+        data->front_label = label_alloc(flex_layout_get_base(data->front_flex));
         label_set_text(data->front_label, "Connected");
         widget_set_height_content(label_get_base(data->front_label));
     });
@@ -59,7 +59,7 @@ static void scene_connected_on_exit(void* context) {
     with_gui(instance->gui, {
         image_free(data->front_mark);
         label_free(data->front_label);
-        flex_layout_free(data->flex);
+        flex_layout_free(data->front_flex);
     });
     furi_timer_free(data->timer);
 }
