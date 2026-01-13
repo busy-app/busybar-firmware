@@ -10,6 +10,8 @@
 #define TIMER_HIDDEN_TIME_S (15)
 #define TIMER_SHOWN_TIME_S  (5)
 
+#define TIMER_SHOWN_OFFSET_S (3)
+
 typedef struct {
     TimerIndicator* timer_indicator;
     TimerLabel* timer_label;
@@ -285,6 +287,20 @@ static void busy_scene_timer_handle_skip(BusyApp* instance) {
     }
 }
 
+static void busy_scene_timer_handle_increment_decrement(BusyApp* instance, int32_t value) {
+    BusySceneTimer* data =
+        scene_manager_get_scene_data(instance->scene_manager, BusyAppSceneIdTimer);
+
+    if(busy_scene_timer_has_label_tweaks(data)) {
+        with_gui(instance->gui, { timer_label_show(data->timer_label); });
+    }
+
+    busy_timer_add_time(instance->busy_timer, value);
+
+    const uint32_t time_elapsed_s = data->timer_time.elapsed_s;
+    data->prev_label_show_time = time_elapsed_s + TIMER_SHOWN_OFFSET_S;
+}
+
 static void busy_scene_timer_handle_back(BusyApp* instance) {
     const BusySceneTimer* data =
         scene_manager_get_scene_data(instance->scene_manager, BusyAppSceneIdTimer);
@@ -463,10 +479,10 @@ static bool busy_scene_timer_on_event(const SceneManagerEvent* event, void* cont
             busy_scene_timer_handle_skip(instance);
 
         } else if(event->event == BusyCustomEventTimeIncrement) {
-            busy_timer_add_time(instance->busy_timer, BUSY_TIMER_TIME_INCREMENT_MN);
+            busy_scene_timer_handle_increment_decrement(instance, BUSY_TIMER_TIME_INCREMENT_MN);
 
         } else if(event->event == BusyCustomEventTimeDecrement) {
-            busy_timer_add_time(instance->busy_timer, -BUSY_TIMER_TIME_INCREMENT_MN);
+            busy_scene_timer_handle_increment_decrement(instance, -BUSY_TIMER_TIME_INCREMENT_MN);
 
         } else if(event->event == BusyCustomEventReturnToStart) {
             busy_scene_timer_handle_return_to_start(instance);

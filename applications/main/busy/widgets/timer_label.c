@@ -39,6 +39,8 @@ struct TimerLabel {
 
     lv_color_t countdown_base_color;
     lv_color_t countdown_blink_color;
+
+    bool is_hidden;
 };
 
 const lv_obj_class_t timer_label_lvgl_class;
@@ -272,15 +274,23 @@ void timer_label_enable_background(TimerLabel* instance, bool enable) {
 void timer_label_show(TimerLabel* instance) {
     furi_check(instance);
 
-    timer_label_animate_bg_gradient(instance, 0);
-    timer_label_animate_text(instance, LV_OPA_COVER);
+    if(instance->is_hidden) {
+        timer_label_animate_bg_gradient(instance, 0);
+        timer_label_animate_text(instance, LV_OPA_COVER);
+
+        instance->is_hidden = false;
+    }
 }
 
 void timer_label_hide(TimerLabel* instance) {
     furi_check(instance);
 
-    timer_label_animate_bg_gradient(instance, MAIN_WIDTH_PX);
-    timer_label_animate_text(instance, LV_OPA_TRANSP);
+    if(!instance->is_hidden) {
+        timer_label_animate_bg_gradient(instance, MAIN_WIDTH_PX);
+        timer_label_animate_text(instance, LV_OPA_TRANSP);
+
+        instance->is_hidden = true;
+    }
 }
 
 // LVGL class descriptor
