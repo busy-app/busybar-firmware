@@ -21,7 +21,7 @@ typedef struct {
     Image* back_image;
     Label* back_label;
     Label* name_label;
-    FuriPubSubSubscription* pubsub_subscription;
+    FuriPubSubSubscription* ble_pubsub;
 } BleSettingsPairingSceneData;
 
 static void scene_pairing_ble_pairing_done_callback(const void* message, void* context) {
@@ -43,7 +43,7 @@ static void scene_pairing_mode_on_enter(void* context) {
     BleSettingsPairingSceneData* data =
         scene_manager_get_scene_data(instance->scene_manager, SceneIdPairingMode);
 
-    data->pubsub_subscription = furi_pubsub_subscribe(
+    data->ble_pubsub = furi_pubsub_subscribe(
         ble_get_pubsub(instance->ble), scene_pairing_ble_pairing_done_callback, context);
 
     ///TODO: Rework this to enable BLE on start according to previous state, and move it out of here
@@ -107,7 +107,7 @@ static void scene_pairing_mode_on_exit(void* context) {
     BleSettingsPairingSceneData* data =
         scene_manager_get_scene_data(instance->scene_manager, SceneIdPairingMode);
 
-    furi_pubsub_unsubscribe(ble_get_pubsub(instance->ble), data->pubsub_subscription);
+    furi_pubsub_unsubscribe(ble_get_pubsub(instance->ble), data->ble_pubsub);
 
     with_gui(instance->gui, {
         anim_image_free(data->front_anim);
