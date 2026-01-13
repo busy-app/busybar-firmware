@@ -49,7 +49,6 @@ typedef struct {
     FirmwareUpdateInfo fw_info;
 
     bool update_in_progress;
-
 } SettingsSceneFwUpdate;
 
 static void scene_main_scene_update(FwUpdate* instance) {
@@ -225,11 +224,10 @@ static void updater_check_state_callback(const void* state_item, void* context) 
             furi_string_set(data->fw_status, "No new version");
             break;
         case UpdaterCheckResultAvailable: {
-            furi_string_set(data->fw_info.new_fw_version, state->version);
-
             updater_get_check_info(
                 data->updater,
                 &(UpdateCheckInfo){
+                    .version = data->fw_info.new_fw_version,
                     .url = data->fw_info.fw_url,
                     .id = NULL,
                     .sha256 = data->fw_info.fw_sha256,

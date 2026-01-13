@@ -13,6 +13,7 @@
 #define TAG "HttpApiUpdate"
 
 #define MAX_UPLOAD_FILE_SIZE (100 * 1024 * 1024)
+#define MAX_VERSION_LENGTH   64
 
 #define UPDATE_JSON_KEY_INSTALL           "install"
 #define UPDATE_JSON_KEY_CHECK             "check"
@@ -410,7 +411,7 @@ static bool api_update_changelog_callback(
     const char* error_text;
     bool is_error = true;
     do {
-        char version[UPDATER_CHECK_STATE_VERSION_MAX_LENGTH];
+        char version[MAX_VERSION_LENGTH];
         int version_length = mg_http_get_var(&msg->query, "version", version, sizeof(version));
         if(version_length <= 0) {
             error_text = "Version parameter missing";
@@ -425,6 +426,7 @@ static bool api_update_changelog_callback(
         furi_state_get(updater_get_check_state(updater), &check_state);
 
         FuriString* check_changelog = furi_string_alloc();
+        FuriString* check_version = furi_string_alloc();
         do {
             if(check_state.result != UpdaterCheckResultAvailable) {
                 error_text = "Update not available";
@@ -434,13 +436,14 @@ static bool api_update_changelog_callback(
             updater_get_check_info(
                 updater,
                 &(UpdateCheckInfo){
+                    .version = check_version,
                     .url = NULL,
                     .id = NULL,
                     .sha256 = NULL,
                     .changelog = check_changelog,
                 });
 
-            if(strncmp(check_state.version, version, sizeof(version)) != 0) {
+            if(strncmp(furi_string_get_cstr(check_version), version, sizeof(version)) != 0) {
                 error_text = "Version mismatch";
                 break;
             }
@@ -455,6 +458,7 @@ static bool api_update_changelog_callback(
             is_error = false;
         } while(false);
 
+        furi_string_free(check_version);
         furi_string_free(check_changelog);
         furi_record_close(RECORD_UPDATER);
     } while(false);
@@ -479,7 +483,7 @@ static bool api_update_install_callback(
     const char* error_text;
     bool is_success = false;
     do {
-        char version[UPDATER_CHECK_STATE_VERSION_MAX_LENGTH];
+        char version[MAX_VERSION_LENGTH];
         int version_length = mg_http_get_var(&msg->query, "version", version, sizeof(version));
         if(version_length <= 0) {
             error_code = 400;
@@ -494,6 +498,7 @@ static bool api_update_install_callback(
         UpdaterCheckState check_state;
         furi_state_get(update_check_state, &check_state);
 
+        FuriString* check_version = furi_string_alloc();
         FuriString* check_url = furi_string_alloc();
         FuriString* check_sha256 = furi_string_alloc();
         do {
@@ -506,13 +511,14 @@ static bool api_update_install_callback(
             updater_get_check_info(
                 updater,
                 &(UpdateCheckInfo){
+                    .version = check_version,
                     .url = check_url,
                     .id = NULL,
                     .sha256 = check_sha256,
                     .changelog = NULL,
                 });
 
-            if(strncmp(check_state.version, version, sizeof(version)) != 0) {
+            if(strncmp(furi_string_get_cstr(check_version), version, sizeof(version)) != 0) {
                 error_code = 400;
                 error_text = "Version mismatch";
                 break;
@@ -543,6 +549,7 @@ static bool api_update_install_callback(
             is_success = true;
         } while(false);
 
+        furi_string_free(check_version);
         furi_string_free(check_url);
         furi_string_free(check_sha256);
         furi_record_close(RECORD_UPDATER);
@@ -579,6 +586,17 @@ static bool api_update_status_callback(
 
     UpdaterCheckState check_state;
     furi_state_get(updater_get_check_state(updater), &check_state);
+
+    FuriString* check_version = furi_string_alloc();
+    updater_get_check_info(
+        updater,
+        &(UpdateCheckInfo){
+            .version = check_version,
+            .url = NULL,
+            .id = NULL,
+            .sha256 = NULL,
+            .changelog = NULL,
+        });
 
     cJSON* response = cJSON_CreateObject();
 
@@ -618,7 +636,8 @@ static bool api_update_status_callback(
 
     cJSON* check = cJSON_AddObjectToObject(response, UPDATE_JSON_KEY_CHECK);
 
-    cJSON_AddStringToObject(check, UPDATE_JSON_KEY_AVAILABLE_VERSION, check_state.version);
+    cJSON_AddStringToObject(
+        check, UPDATE_JSON_KEY_AVAILABLE_VERSION, furi_string_get_cstr(check_version));
 
     cJSON_AddStringToObject(
         check,
@@ -640,6 +659,8 @@ static bool api_update_status_callback(
     MG_REPLY_OK_BODY(conn, "%s\n", json_str);
     cJSON_free(json_str);
     cJSON_Delete(response);
+
+    furi_string_free(check_version);
 
     return true;
 }

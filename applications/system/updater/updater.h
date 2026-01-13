@@ -14,7 +14,6 @@ extern "C" {
 #define RECORD_UPDATER "updater"
 
 #define UPDATER_UPDATE_STATE_DETAIL_MAX_LENGTH 128
-#define UPDATER_CHECK_STATE_VERSION_MAX_LENGTH 64
 
 typedef struct Updater Updater;
 
@@ -106,10 +105,10 @@ typedef enum {
 typedef struct {
     UpdaterCheckResult result; /**< Current check result */
     UpdaterCheckEvent event; /**< Current check event type */
-    char version[UPDATER_CHECK_STATE_VERSION_MAX_LENGTH];
 } UpdaterCheckState;
 
 typedef struct {
+    FuriString* version; /**< Update version */
     FuriString* url; /**< Download URL for the update bundle */
     FuriString* id; /**< Unique update identifier */
     FuriString* sha256; /**< SHA256 checksum of the update bundle */

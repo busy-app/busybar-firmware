@@ -47,6 +47,8 @@ struct Updater {
     UpdateChecker* update_checker;
     FuriState* check_state;
     FuriEventLoopTimer* check_timer;
+    FuriMutex* check_info_mutex;
+    FuriString* check_version;
     FuriString* check_url;
     FuriString* check_id;
     FuriString* check_sha256;
@@ -74,7 +76,6 @@ typedef enum {
     MessageTypeInstallationPrepare,
     MessageTypeInstallationApply,
     MessageTypeCheckForUpdate,
-    MessageTypeGetCheckInfo,
 
     MessageTypesCount
 } MessageType;
@@ -176,15 +177,13 @@ static void check_done_callback(bool is_success, UpdaterCheckerInfo* update_info
 
     if(is_success) {
         if(furi_string_cmp_str(update_info->version, updater_get_active_version())) {
+            furi_mutex_acquire(instance->check_info_mutex, FuriWaitForever);
+            furi_string_set(instance->check_version, update_info->version);
             furi_string_set(instance->check_url, update_info->url);
             furi_string_set(instance->check_id, update_info->id);
             furi_string_set(instance->check_sha256, update_info->sha256);
             furi_string_set(instance->check_changelog, update_info->changelog);
-
-            strncpy(
-                check_state->version,
-                furi_string_get_cstr(update_info->version),
-                sizeof(check_state->version));
+            furi_mutex_release(instance->check_info_mutex);
 
             check_state->result = UpdaterCheckResultAvailable;
         } else {
@@ -212,7 +211,7 @@ static void autoupdate_timer_callback(void* context) {
 
     do {
         if(furi_semaphore_get_space(instance->autoupdate_semaphore) > 0) {
-            FURI_LOG_D(TAG, "Autoupdate: skipped, timer tick pending");
+            FURI_LOG_D(TAG, "Autoupdate: skipped, on pause");
             break;
         }
 
@@ -287,28 +286,6 @@ static UpdaterStatus do_check_for_update(Updater* instance, UpdaterMessage* mess
     }
 
     return (is_check_start_successful) ? UpdaterStatusOk : UpdaterStatusBusy;
-}
-
-static UpdaterStatus do_get_check_info(Updater* instance, UpdaterMessage* message) {
-    UpdateCheckInfo* info = message->as_get_check_info.info;
-
-    if(info->url) {
-        furi_string_set(info->url, instance->check_url);
-    }
-
-    if(info->id) {
-        furi_string_set(info->id, instance->check_id);
-    }
-
-    if(info->sha256) {
-        furi_string_set(info->sha256, instance->check_sha256);
-    }
-
-    if(info->changelog) {
-        furi_string_set(info->changelog, instance->check_changelog);
-    }
-
-    return UpdaterStatusOk;
 }
 
 static UpdaterStatus do_session_start(Updater* instance, UpdaterMessage* message) {
@@ -716,15 +693,29 @@ void updater_get_check_info(Updater* instance, UpdateCheckInfo* info) {
     furi_check(instance);
     furi_check(info);
 
-    UpdaterMessage message = {
-        .as_get_check_info =
-            {
-                .info = info,
-            },
-        .type = MessageTypeGetCheckInfo,
-    };
+    furi_mutex_acquire(instance->check_info_mutex, FuriWaitForever);
 
-    invoke_sync(instance, &message);
+    if(info->version) {
+        furi_string_set(info->version, instance->check_version);
+    }
+
+    if(info->url) {
+        furi_string_set(info->url, instance->check_url);
+    }
+
+    if(info->id) {
+        furi_string_set(info->id, instance->check_id);
+    }
+
+    if(info->sha256) {
+        furi_string_set(info->sha256, instance->check_sha256);
+    }
+
+    if(info->changelog) {
+        furi_string_set(info->changelog, instance->check_changelog);
+    }
+
+    furi_mutex_release(instance->check_info_mutex);
 }
 
 UpdaterStatus updater_get_allowance_status(Updater* instance) {
@@ -965,6 +956,8 @@ static Updater* updater_alloc(void) {
     instance->check_state = furi_state_alloc(sizeof(UpdaterCheckState));
     instance->check_timer = furi_event_loop_timer_alloc(
         instance->event_loop, check_timer_callback, FuriEventLoopTimerTypeOnce, instance);
+    instance->check_info_mutex = furi_mutex_alloc(FuriMutexTypeNormal);
+    instance->check_version = furi_string_alloc();
     instance->check_url = furi_string_alloc();
     instance->check_id = furi_string_alloc();
     instance->check_sha256 = furi_string_alloc();
@@ -1000,7 +993,6 @@ static Updater* updater_alloc(void) {
         &(const UpdaterCheckState){
             .result = UpdaterCheckResultNone,
             .event = UpdaterCheckEventNone,
-            .version = "",
         });
 
     update_checker_set_done_callback(instance->update_checker, check_done_callback, instance);
@@ -1090,11 +1082,6 @@ static const MessageHandler message_handlers[] = {
     [MessageTypeCheckForUpdate] =
         {
             .callback = do_check_for_update,
-            .action = UpdaterUpdateActionNone,
-        },
-    [MessageTypeGetCheckInfo] =
-        {
-            .callback = do_get_check_info,
             .action = UpdaterUpdateActionNone,
         },
 };
