@@ -253,8 +253,14 @@ static void busy_scene_timer_update_timer_state(BusyApp* instance) {
 
         if(timer_label_preset) {
             timer_label_set_preset(data->timer_label, timer_label_preset);
-            timer_label_enable_background(
-                data->timer_label, busy_scene_timer_has_label_tweaks(data));
+
+            if(busy_scene_timer_has_label_tweaks(data)) {
+                timer_label_enable_background(data->timer_label, true);
+                timer_label_hide(data->timer_label);
+            } else {
+                timer_label_enable_background(data->timer_label, false);
+                timer_label_show(data->timer_label);
+            }
         }
     });
 
