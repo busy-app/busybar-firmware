@@ -12,10 +12,16 @@
 extern "C" {
 #endif
 
-typedef void (*ThemePickerCallback)(uint32_t index, void* context);
-
 /** ThemePicker opaque structure. */
 typedef struct ThemePicker ThemePicker;
+
+/**
+ * @brief ThemePickerCallback function type.
+ *
+ * @param[in] index numeric index of the currently selected theme
+ * @param[in,out] context pointer to the user-specific object
+ */
+typedef void (*ThemePickerCallback)(uint32_t index, void* context);
 
 /**
  * @brief Create a new ThemePicker instance.
@@ -43,10 +49,31 @@ void theme_picker_free(ThemePicker* instance);
  */
 Widget* theme_picker_get_base(ThemePicker* instance);
 
-void theme_picker_set_model(ThemePicker* instance, const ThemePickerModel* model);
-
+/**
+ * @brief Set the function to be called upon theme selection.
+ *
+ * @param[in,out] instance pointer to the ThemePicker instance to be modified
+ * @param[in] callback pointer to the function to be called upon theme selection
+ * @param[in,out] context pointer to a user-specified object (will be passed to the callback)
+ */
 void theme_picker_set_callback(ThemePicker* instance, ThemePickerCallback callback, void* context);
 
+/**
+ * @brief Set the model to show in this ThemePicker instance.
+ *
+ * @param[in,out] instance pointer to the ThemePicker instance to be modified
+ * @param[in] model pointer to a ThemePickerModel instance to be shown
+ */
+void theme_picker_set_model(ThemePicker* instance, const ThemePickerModel* model);
+
+/**
+ * @brief Set the currently selected item index.
+ *
+ * @pre theme_picker_set_model() MUST be called before calling this function.
+ *
+ * @param[in,out] instance pointer to the ThemePicker instance to be modified
+ * @param[in] index numeric index of the desired item
+ */
 void theme_picker_set_current_item(ThemePicker* instance, uint32_t index);
 
 #ifdef __cplusplus
