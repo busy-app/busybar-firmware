@@ -368,6 +368,8 @@ static void busy_scene_timer_apply_theme(BusyApp* instance) {
     const bool is_custom_theme = !busy_theme_is_default(instance->theme);
 
     if(is_custom_theme) {
+        memset(&data->custom_preset, 0, sizeof(TimerIndicatorPreset));
+
         BusyThemeInfo info;
         busy_theme_get_info(instance->theme, &info);
 
