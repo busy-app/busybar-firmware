@@ -1,0 +1,62 @@
+Import("U5_ENV", "SIL_ENV", "DIST_ENV")
+import os
+
+dist_env = DIST_ENV
+u5_env = U5_ENV
+sil_env = SIL_ENV
+
+# Get ELF paths and serial options from command line
+u5_elf = GetOption("u5_elf") or None
+si917_elf = GetOption("si917_elf") or None
+u5_serial = GetOption("u5_serial") or None
+si917_serial = GetOption("si917_serial") or None
+
+# Convert relative paths to absolute (relative to project root)
+# GetLaunchDir() returns the directory where fbt was invoked from
+launch_dir = GetLaunchDir()
+if u5_elf and not os.path.isabs(u5_elf):
+    u5_elf = os.path.normpath(os.path.join(launch_dir, u5_elf))
+if si917_elf and not os.path.isabs(si917_elf):
+    si917_elf = os.path.normpath(os.path.join(launch_dir, si917_elf))
+
+# Build command arguments
+# Note: #/path refers to SCons root (fbt_layers/fbtng), while ${PROJECT_ROOT} is the actual project root
+debug_root = dist_env.Dir("#/scripts/debug").srcnode().abspath
+platforms_root = dist_env.Dir("${PROJECT_ROOT}/scripts/debug/platforms").srcnode().abspath
+
+cmd_args = [
+    "${PYTHON3}",
+    dist_env.Real("#/scripts/all_traces.py"),
+    "--root",
+    debug_root,
+    "--platforms-root",
+    platforms_root,
+]
+
+# U5 ELF - use provided path or default to built firmware
+if u5_elf:
+    cmd_args.extend(["--u5-elf", u5_elf])
+    source_node = None
+else:
+    cmd_args.extend(["--u5-elf", "${SOURCE}"])
+    source_node = u5_env["FW_ENV"]["FW_ELF"]
+
+# U5 debug adapter serial - use provided or fall back to DEBUG_INTERFACE_SERIAL
+cmd_args.extend(["--u5-serial", u5_serial or "${DEBUG_INTERFACE_SERIAL}"])
+
+# 917 ELF - optional
+if si917_elf:
+    cmd_args.extend(["--917-elf", si917_elf])
+    # 917 debug adapter serial - use provided or fall back to DEBUG_INTERFACE_SERIAL
+    cmd_args.extend(["--917-serial", si917_serial or "${DEBUG_INTERFACE_SERIAL}"])
+
+# Create phony target
+all_traces_target = dist_env.PhonyTarget(
+    "all_traces",
+    [[*cmd_args]],
+    source=source_node,
+)
+
+# Add dependency on built firmware if not using custom ELF
+if not u5_elf:
+    dist_env.Depends(all_traces_target, u5_env["FW_ENV"]["FW_ELF"])

@@ -15,6 +15,7 @@ commandline_vars.AddVariables(
 def ConfigureBsbDistTargets(env, u5_env, sil_env):
     for dist_module in [
         "update",
+        "all_traces",
     ]:
         dist_script = env.GetComponent(f"bsbdist_{dist_module}")
         env.SConscript(
