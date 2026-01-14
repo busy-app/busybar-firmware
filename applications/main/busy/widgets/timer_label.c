@@ -267,23 +267,35 @@ void timer_label_enable_background(TimerLabel* instance, bool enable) {
     widget_set_visible((Widget*)instance->bg_gradient, enable);
 }
 
-void timer_label_show(TimerLabel* instance) {
+void timer_label_show(TimerLabel* instance, bool enable_animation) {
     furi_check(instance);
 
     if(instance->is_hidden) {
-        timer_label_animate_bg_gradient(instance, 0);
-        timer_label_animate_text(instance, LV_OPA_COVER);
+        if(enable_animation) {
+            timer_label_animate_bg_gradient(instance, 0);
+            timer_label_animate_text(instance, LV_OPA_COVER);
+
+        } else {
+            lv_obj_set_x(instance->bg_gradient, 0);
+            lv_obj_set_style_opa(instance->main_layout, LV_OPA_COVER, LV_PART_MAIN);
+        }
 
         instance->is_hidden = false;
     }
 }
 
-void timer_label_hide(TimerLabel* instance) {
+void timer_label_hide(TimerLabel* instance, bool enable_animation) {
     furi_check(instance);
 
     if(!instance->is_hidden) {
-        timer_label_animate_bg_gradient(instance, MAIN_WIDTH_PX);
-        timer_label_animate_text(instance, LV_OPA_TRANSP);
+        if(enable_animation) {
+            timer_label_animate_bg_gradient(instance, MAIN_WIDTH_PX);
+            timer_label_animate_text(instance, LV_OPA_TRANSP);
+
+        } else {
+            lv_obj_set_x(instance->bg_gradient, MAIN_WIDTH_PX);
+            lv_obj_set_style_opa(instance->main_layout, LV_OPA_TRANSP, LV_PART_MAIN);
+        }
 
         instance->is_hidden = true;
     }

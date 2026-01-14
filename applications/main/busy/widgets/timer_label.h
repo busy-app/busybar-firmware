@@ -67,9 +67,9 @@ void timer_label_set_preset(TimerLabel* instance, const TimerLabelPreset* preset
 
 void timer_label_enable_background(TimerLabel* instance, bool enable);
 
-void timer_label_show(TimerLabel* instance);
+void timer_label_show(TimerLabel* instance, bool enable_animation);
 
-void timer_label_hide(TimerLabel* instance);
+void timer_label_hide(TimerLabel* instance, bool enable_animation);
 
 #ifdef __cplusplus
 }

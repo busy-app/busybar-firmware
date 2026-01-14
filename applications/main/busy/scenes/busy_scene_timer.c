@@ -120,9 +120,9 @@ static void busy_scene_timer_update_tick(BusyApp* instance) {
             const uint32_t dt_s = time_elapsed_s - data->prev_label_show_time;
 
             if(dt_s == TIMER_HIDDEN_TIME_S || time_remain_s <= COUNTDOWN_THRESHOLD_S) {
-                timer_label_show(data->timer_label);
+                timer_label_show(data->timer_label, true);
             } else if(dt_s == TIMER_HIDDEN_TIME_S + TIMER_SHOWN_TIME_S || dt_s == 0) {
-                timer_label_hide(data->timer_label);
+                timer_label_hide(data->timer_label, true);
                 data->prev_label_show_time = time_elapsed_s;
             }
         }
@@ -256,10 +256,10 @@ static void busy_scene_timer_update_timer_state(BusyApp* instance) {
 
             if(busy_scene_timer_has_label_tweaks(data)) {
                 timer_label_enable_background(data->timer_label, true);
-                timer_label_hide(data->timer_label);
+                timer_label_hide(data->timer_label, false);
             } else {
                 timer_label_enable_background(data->timer_label, false);
-                timer_label_show(data->timer_label);
+                timer_label_show(data->timer_label, false);
             }
         }
     });
@@ -298,7 +298,7 @@ static void busy_scene_timer_handle_increment_decrement(BusyApp* instance, int32
         scene_manager_get_scene_data(instance->scene_manager, BusyAppSceneIdTimer);
 
     if(busy_scene_timer_has_label_tweaks(data)) {
-        with_gui(instance->gui, { timer_label_show(data->timer_label); });
+        with_gui(instance->gui, { timer_label_show(data->timer_label, true); });
     }
 
     busy_timer_add_time(instance->busy_timer, value);
