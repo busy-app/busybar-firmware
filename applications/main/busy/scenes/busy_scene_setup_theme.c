@@ -12,6 +12,33 @@ typedef struct {
     ThemePicker* back_picker;
 } BusySceneSetupTheme;
 
+static bool busy_scene_setup_theme_input_callback(const InputEvent* event, void* context) {
+    furi_assert(event);
+    furi_assert(context);
+
+    BusyApp* instance = context;
+
+    bool consumed = false;
+    BusyCustomEvent custom_event;
+
+    if(event->type == InputTypeShort) {
+        if(event->key == InputKeyOk) {
+            custom_event = BusyCustomEventOkShortPressed;
+            consumed = true;
+
+        } else if(event->key == InputKeyStart) {
+            custom_event = BusyCustomEventStartShortPressed;
+            consumed = true;
+        }
+    }
+
+    if(consumed) {
+        busy_send_custom_event(instance, custom_event);
+    }
+
+    return consumed;
+}
+
 static void busy_scene_setup_theme_picker_callback(uint32_t index, void* context) {
     furi_assert(context);
 
@@ -58,6 +85,11 @@ static void busy_scene_setup_theme_handle_theme_changed(BusyApp* instance, uint3
         settings->theme_name, busy_theme_get_name(selected_theme), sizeof(settings->theme_name));
 }
 
+static void busy_scene_setup_theme_handle_theme_accepted(BusyApp* instance) {
+    busy_pop_location(instance);
+    scene_manager_previous_scene(instance->scene_manager);
+}
+
 static void busy_scene_setup_theme_on_enter(void* context) {
     furi_assert(context);
 
@@ -77,6 +109,9 @@ static void busy_scene_setup_theme_on_enter(void* context) {
         theme_picker_model_get_item_index(data->picker_model, instance->theme);
 
     with_gui(instance->gui, {
+        GuiLayer* layer = gui_get_layer(instance->gui, GuiLayerIdMain);
+        gui_layer_add_input_callback(layer, busy_scene_setup_theme_input_callback, instance);
+
         data->front_picker = theme_picker_alloc(instance->front_window);
         theme_picker_set_model(data->front_picker, data->picker_model);
         widget_set_align(theme_picker_get_base(data->front_picker), AlignCenter);
@@ -106,6 +141,9 @@ static void busy_scene_setup_theme_on_exit(void* context) {
     busy_settings_save(&instance->settings);
 
     with_gui(instance->gui, {
+        GuiLayer* layer = gui_get_layer(instance->gui, GuiLayerIdMain);
+        gui_layer_remove_input_callback(layer, busy_scene_setup_theme_input_callback);
+
         theme_picker_free(data->front_picker);
         theme_picker_free(data->back_picker);
         theme_picker_model_free(data->picker_model);
@@ -123,6 +161,12 @@ static bool busy_scene_setup_theme_on_event(const SceneManagerEvent* event, void
     if(event->type == SceneManagerEventTypeCustom) {
         if(event->event < BusyCustomEventIndexMax) {
             busy_scene_setup_theme_handle_theme_changed(instance, event->event);
+
+        } else if(event->event == BusyCustomEventStartShortPressed) {
+            busy_scene_setup_theme_handle_theme_accepted(instance);
+
+        } else if(event->event == BusyCustomEventOkShortPressed) {
+            busy_scene_setup_theme_handle_theme_accepted(instance);
         }
 
         consumed = true;

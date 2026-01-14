@@ -48,6 +48,7 @@ typedef enum {
     BusyCustomEventStartPressed,
     BusyCustomEventStartReleased,
     BusyCustomEventStartShortPressed,
+    BusyCustomEventOkShortPressed,
     BusyCustomEventReturnToStart,
     BusyCustomEventAnimationCompleted,
     BusyCustomEventMax,
