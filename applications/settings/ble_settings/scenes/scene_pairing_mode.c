@@ -7,9 +7,17 @@
 
 #include <ble/ble.h>
 
+#define NAME_LABEL_ANIMATION_DURATION_MS (3000)
+#define NAME_LABEL_TEXT_COLOR            ((Color)COLOR_MAKE_HEX(0x444444))
+#define STATUS_LIGHTS_COLOR              ((Color)COLOR_MAKE_RGB(0, 0, 0xFF))
+
+#define DEVICE_NAME_UPDATE_LAYOUT_DELAY_MS (50)
+
 typedef enum {
     SceneEventBlePairingEvent = AppEventSceneEventsStart,
     SceneEventDeviceNameChangedEvent,
+    SceneEventUpdateBackLayoutEvent,
+
 } SceneEvent;
 
 typedef struct {
@@ -20,7 +28,11 @@ typedef struct {
     FlexLayout* back_flex;
     Image* back_image;
     Label* back_label;
+
+    FlexLayout* name_flex;
+    Label* title_label;
     Label* name_label;
+
     FuriPubSubSubscription* ble_pubsub;
     FuriPubSubSubscription* device_name_pubsub;
     FuriString* name_label_text;
@@ -36,13 +48,6 @@ static void scene_pairing_device_name_change_callback(const void* message, void*
     UNUSED(message);
     BleSettings* instance = context;
     ble_settings_send_custom_event(instance, SceneEventDeviceNameChangedEvent);
-}
-
-static void scene_pairing_format_device_name(DeviceName* device_name, FuriString* name_text) {
-    FuriString* name = furi_string_alloc();
-    device_name_get(device_name, name);
-    furi_string_printf(name_text, "Device name: %s", furi_string_get_cstr(name));
-    furi_string_free(name);
 }
 
 static void scene_pairing_mode_on_enter(void* context) {
@@ -61,7 +66,7 @@ static void scene_pairing_mode_on_enter(void* context) {
         context);
 
     data->name_label_text = furi_string_alloc();
-    scene_pairing_format_device_name(instance->device_name, data->name_label_text);
+    device_name_get(instance->device_name, data->name_label_text);
 
     ///TODO: Rework this to enable BLE on start according to previous state, and move it out of here
     ble_start(instance->ble);
@@ -98,16 +103,29 @@ static void scene_pairing_mode_on_enter(void* context) {
         label_set_text(data->back_label, pairing_text);
         widget_set_margin(label_get_base(data->back_label), 0, 0, 0, 2);
 
-        data->name_label = label_alloc(flex_layout_get_base(data->back_flex));
+        data->name_flex =
+            flex_layout_alloc(flex_layout_get_base(data->back_flex), FlexLayoutTypeRow);
+        widget_set_size_content(flex_layout_get_base(data->name_flex));
+
+        data->title_label = label_alloc(flex_layout_get_base(data->name_flex));
+        label_set_text(data->title_label, "Device name: ");
+        widget_set_size_content(label_get_base(data->title_label));
+
+        data->name_label = label_alloc(flex_layout_get_base(data->name_flex));
+        widget_set_size_content(label_get_base(data->name_label));
+
         label_set_text(data->name_label, furi_string_get_cstr(data->name_label_text));
-        widget_set_width_content(label_get_base(data->name_label));
-        Color color = COLOR_MAKE_HEX(0x444444);
-        label_set_text_color(data->name_label, color);
+        label_set_long_content_mode(
+            data->name_label, LabelLongContentModeScroll, NAME_LABEL_ANIMATION_DURATION_MS);
+
+        label_set_text_color(data->title_label, NAME_LABEL_TEXT_COLOR);
+        label_set_text_color(data->name_label, NAME_LABEL_TEXT_COLOR);
     });
 
-    Color color = COLOR_MAKE_RGB(0, 0, 0xFF);
     status_lights_set_brightness(instance->status_lights, STATUS_LIGHTS_BRIGHTNESS_MAX);
-    status_lights_run_preset(instance->status_lights, StatusLightsPresetFade, color);
+    status_lights_run_preset(instance->status_lights, StatusLightsPresetFade, STATUS_LIGHTS_COLOR);
+
+    ble_settings_send_custom_event(instance, SceneEventDeviceNameChangedEvent);
 }
 
 static void scene_pairing_mode_on_exit(void* context) {
@@ -128,7 +146,11 @@ static void scene_pairing_mode_on_exit(void* context) {
 
         image_free(data->back_image);
         label_free(data->back_label);
+
         label_free(data->name_label);
+        label_free(data->title_label);
+        flex_layout_free(data->name_flex);
+
         flex_layout_free(data->back_flex);
     });
 
@@ -150,9 +172,25 @@ static bool scene_pairing_mode_on_event(const SceneManagerEvent* event, void* co
         } else if(event->event == SceneEventDeviceNameChangedEvent) {
             BleSettingsPairingSceneData* data =
                 scene_manager_get_scene_data(instance->scene_manager, SceneIdPairingMode);
-            scene_pairing_format_device_name(instance->device_name, data->name_label_text);
+            device_name_get(instance->device_name, data->name_label_text);
             with_gui(instance->gui, {
                 label_set_text(data->name_label, furi_string_get_cstr(data->name_label_text));
+            });
+            furi_delay_ms(DEVICE_NAME_UPDATE_LAYOUT_DELAY_MS);
+            ble_settings_send_custom_event(instance, SceneEventUpdateBackLayoutEvent);
+        } else if(event->event == SceneEventUpdateBackLayoutEvent) {
+            BleSettingsPairingSceneData* data =
+                scene_manager_get_scene_data(instance->scene_manager, SceneIdPairingMode);
+            with_gui(instance->gui, {
+                int32_t scene_win_w = widget_get_width(instance->back_scene_window);
+                int32_t name_flex_w = widget_get_width(flex_layout_get_base(data->name_flex));
+
+                if(name_flex_w > scene_win_w) {
+                    int32_t title_w = widget_get_width(label_get_base(data->title_label));
+                    widget_set_width(label_get_base(data->name_label), scene_win_w - title_w);
+                } else {
+                    widget_set_size_content(label_get_base(data->name_label));
+                }
             });
         }
     } else if(event->type == SceneManagerEventTypeBack) {
