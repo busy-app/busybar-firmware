@@ -151,11 +151,12 @@ static BusyApp* busy_alloc(const char* arg) {
         flex_layout_set_child_widget_grow(
             instance->back_container, nav_bar_get_base(instance->nav_bar), 0);
 
+        instance->timer_card = timer_card_alloc(back_root);
+        widget_set_pos_y(timer_card_get_base(instance->timer_card), 2);
+
         // Create application window on Back display
         instance->back_window = widget_alloc(flex_layout_get_base(instance->back_container));
         flex_layout_set_child_widget_grow(instance->back_container, instance->back_window, 1);
-
-        instance->timer_card = timer_card_alloc(flex_layout_get_base(instance->back_container));
     });
 
     furi_event_loop_subscribe_message_queue(
