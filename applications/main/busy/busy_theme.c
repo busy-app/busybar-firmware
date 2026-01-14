@@ -124,8 +124,8 @@ void busy_theme_set_default(BusyTheme* instance) {
     furi_assert(instance);
 
     furi_string_set(instance->name, DEFAULT_NAME);
-    furi_string_set(instance->bg_path, BUSY_IMG_PATH("theme_preview_72x16.bin"));
-    instance->bg_type = BusyThemeFileTypeImage;
+    furi_string_set(instance->bg_path, BUSY_ANIM_PATH("indicator_busy_72x16.anim"));
+    instance->bg_type = BusyThemeFileTypeAnimImage;
 }
 
 bool busy_theme_read(BusyTheme* instance, const char* name) {
