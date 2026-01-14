@@ -39,6 +39,11 @@ typedef struct {
     lv_style_t var_item;
     lv_style_t var_item_editor;
 
+    lv_style_t dialog;
+    lv_style_t dialog_text;
+    lv_style_t dialog_cursor;
+    lv_style_t dialog_option;
+
     lv_style_t timer_card;
 
     lv_style_t title_card;
@@ -143,6 +148,28 @@ static void style_init(my_theme_t* theme) {
     lv_style_set_margin_hor(&theme->styles.var_item_editor, -MENU_ITEM_PAD_HOR);
     lv_style_set_margin_top(&theme->styles.var_item_editor, -MENU_ITEM_PAD_VER);
     lv_style_set_margin_bottom(&theme->styles.var_item_editor, -(MENU_ITEM_PAD_VER - 1));
+
+    lv_style_init(&theme->styles.dialog);
+    lv_style_set_flex_flow(&theme->styles.dialog, LV_FLEX_FLOW_COLUMN);
+    lv_style_set_flex_main_place(&theme->styles.dialog, LV_FLEX_ALIGN_START);
+    lv_style_set_flex_cross_place(&theme->styles.dialog, LV_FLEX_ALIGN_START);
+    lv_style_set_flex_track_place(&theme->styles.dialog, LV_FLEX_ALIGN_START);
+    lv_style_set_layout(&theme->styles.dialog, LV_LAYOUT_FLEX);
+    lv_style_set_pad_left(&theme->styles.dialog, MENU_PAD_ALL);
+    lv_style_set_pad_top(&theme->styles.dialog, MENU_PAD_ALL);
+    lv_style_set_pad_row(&theme->styles.dialog, MENU_PAD_ALL);
+    lv_style_set_pad_right(&theme->styles.dialog, MENU_PAD_ALL);
+
+    lv_style_init(&theme->styles.dialog_text);
+    lv_style_set_width(&theme->styles.dialog_text, LV_PCT(100));
+    lv_style_set_text_color(&theme->styles.dialog_text, COLOR_FG_FOCUSED);
+
+    lv_style_init(&theme->styles.dialog_option);
+    lv_style_set_width(&theme->styles.dialog_option, LV_PCT(100));
+
+    lv_style_init(&theme->styles.dialog_cursor);
+    lv_style_set_width(&theme->styles.dialog_cursor, LV_SIZE_CONTENT);
+    lv_style_set_margin_right(&theme->styles.dialog_cursor, 0);
 
     lv_style_init(&theme->styles.timer_card);
     lv_style_set_bg_opa(&theme->styles.timer_card, LV_OPA_COVER);
@@ -287,6 +314,25 @@ static void theme_apply_callback(lv_theme_t* th, lv_obj_t* obj) {
         lv_obj_add_style(obj, &theme->styles.normal, LV_PART_MAIN | LV_STATE_DISABLED);
         lv_obj_add_style(obj, &theme->styles.menu_arrow, LV_PART_MAIN);
         lv_obj_add_style(obj, &theme->styles.menu_arrow, LV_PART_MAIN | LV_STATE_DISABLED);
+
+    } else if(lv_obj_check_type(obj, &dialog_lvgl_class)) {
+        lv_obj_add_style(obj, &theme->styles.dialog, LV_PART_MAIN);
+
+    } else if(lv_obj_check_type(obj, &dialog_text_lvgl_class)) {
+        lv_label_set_long_mode(obj, LV_LABEL_LONG_MODE_SCROLL);
+        lv_obj_add_style(obj, &theme->styles.normal, LV_PART_MAIN);
+        lv_obj_add_style(obj, &theme->styles.dialog_text, LV_PART_MAIN);
+
+    } else if(lv_obj_check_type(obj, &dialog_option_lvgl_class)) {
+        lv_obj_add_style(obj, &theme->styles.normal, LV_PART_MAIN);
+        lv_obj_add_style(obj, &theme->styles.inverted, LV_PART_MAIN | LV_STATE_FOCUSED);
+        lv_obj_add_style(obj, &theme->styles.submenu_item, LV_PART_MAIN);
+        lv_obj_add_style(obj, &theme->styles.dialog_option, LV_PART_MAIN);
+
+    } else if(lv_obj_check_type(obj, &dialog_cursor_lvgl_class)) {
+        lv_obj_add_style(obj, &theme->styles.submenu_cursor, LV_PART_MAIN);
+        lv_obj_add_style(obj, &theme->styles.inverted, LV_PART_MAIN | LV_STATE_FOCUSED);
+        lv_obj_add_style(obj, &theme->styles.dialog_cursor, LV_PART_MAIN | LV_STATE_FOCUSED);
 
     } else if(lv_obj_check_type(obj, &progress_bar_lvgl_class)) {
         lv_obj_add_style(obj, &theme->styles.progress_bar, LV_PART_MAIN);

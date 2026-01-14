@@ -83,7 +83,7 @@ static void wifi_process_request(Wifi* instance) {
             WifiConnectRequest* connect_request = &request->connect_request;
             connect_request->credentials = *credentials;
 
-            wifi_state_transition(instance, WifiStateConnecting);
+            wifi_state_transition(instance, WifiStateConnecting, credentials);
 
             FURI_LOG_I(TAG, "Connecting to \"%s\"", credentials->ssid);
 
