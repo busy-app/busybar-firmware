@@ -1,11 +1,7 @@
 #include "../ble_settings.h"
 #include <settings_helpers/gui_params.h>
 
-#include <gui/modules/var_item_list.h>
-#include <gui/modules/submenu.h>
-#include <gui/modules/label.h>
-
-#include "../widgets/split_select_widget.h"
+#include <gui/modules/dialog.h>
 
 typedef enum {
     SceneEventRemovePairingConfirm = AppEventSceneEventsStart,
@@ -13,15 +9,14 @@ typedef enum {
 } BleSettingsForgetDeviceConfirmSceneEvent;
 
 typedef struct {
-    SplitWidget* split;
-
-    FlexLayout* back_flex;
-    Label* back_label;
-    Submenu* back_submenu;
+    Dialog* front_dialog;
+    Dialog* back_dialog;
 } BleSettingsForgetConfirmSceneData;
 
-static void scene_main_menu_item_callback(uint32_t index, void* context) {
-    ble_settings_send_custom_event(context, index);
+static void scene_forget_device_dialog_callback(uint8_t result, void* context) {
+    BleSettings* instance = context;
+    ble_settings_send_custom_event(
+        instance, (result == 0) ? SceneEventRemovePairingConfirm : SceneEventRemovePairingCancel);
 }
 
 static void scene_forget_device_confirm_on_enter(void* context) {
@@ -32,31 +27,20 @@ static void scene_forget_device_confirm_on_enter(void* context) {
         scene_manager_get_scene_data(instance->scene_manager, SceneIdForgetDeviceConfirm);
 
     with_gui(instance->gui, {
-        data->split = split_widget_alloc(instance->front_scene_window, "Forget device?");
+        data->front_dialog = dialog_alloc(instance->front_scene_window);
+        data->back_dialog = dialog_alloc(instance->back_scene_window);
 
-        split_widget_add_button(
-            data->split,
-            "Forget",
-            SceneEventRemovePairingConfirm,
-            scene_main_menu_item_callback,
-            instance);
+        dialog_set_text(data->front_dialog, "Forget device?");
+        dialog_set_text(data->back_dialog, "Forget device?");
 
-        split_widget_add_button(
-            data->split,
-            "Cancel",
-            SceneEventRemovePairingCancel,
-            scene_main_menu_item_callback,
-            instance);
+        Color color_forget = COLOR_MAKE_RGB(0xED, 0x00, 0x18);
+        Color color_cancel = COLOR_MAKE_RGB(0xFF, 0xFF, 0xFF);
+        dialog_set_option_colors(data->front_dialog, color_forget, color_cancel);
 
-        data->back_flex = flex_layout_alloc(instance->back_scene_window, FlexLayoutTypeColumn);
-        data->back_label = label_alloc(flex_layout_get_base(data->back_flex));
-        label_set_text(data->back_label, "Forget device?");
+        dialog_set_options(data->front_dialog, "Forget", "Cancel");
+        dialog_set_options(data->back_dialog, "Forget", "Cancel");
 
-        data->back_submenu = submenu_alloc(flex_layout_get_base(data->back_flex));
-        submenu_add_item(
-            data->back_submenu, "Forget", SceneEventRemovePairingConfirm, NULL, instance);
-        submenu_add_item(
-            data->back_submenu, "Cancel", SceneEventRemovePairingCancel, NULL, instance);
+        dialog_set_calback(data->front_dialog, scene_forget_device_dialog_callback, instance);
     });
 }
 
@@ -65,11 +49,8 @@ static void scene_forget_device_confirm_on_exit(void* context) {
     BleSettingsForgetConfirmSceneData* data =
         scene_manager_get_scene_data(instance->scene_manager, SceneIdForgetDeviceConfirm);
     with_gui(instance->gui, {
-        split_widget_free(data->split);
-
-        label_free(data->back_label);
-        submenu_free(data->back_submenu);
-        flex_layout_free(data->back_flex);
+        dialog_free(data->front_dialog);
+        dialog_free(data->back_dialog);
     });
 }
 
