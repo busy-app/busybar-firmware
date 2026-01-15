@@ -428,7 +428,7 @@ int32_t desktop_srv(void* arg) {
 
 static const DesktopDefaultApp desktop_default_apps[] = {
     [InputSwitchPositionBusy] = {"busy", NULL},
-    [InputSwitchPositionStatus] = {"custom", NULL},
+    [InputSwitchPositionStatus] = {"busy", NULL},
     [InputSwitchPositionOff] = {"soft_off", NULL},
     [InputSwitchPositionApps] = {"apps_menu", NULL},
     [InputSwitchPositionSettings] = {"settings_menu", NULL},

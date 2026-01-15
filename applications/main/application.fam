@@ -5,7 +5,6 @@ App(
     provides=[
         "canvas",
         "busy",
-        "custom",
         "soft_off",
         "power_on",
         "clock",
