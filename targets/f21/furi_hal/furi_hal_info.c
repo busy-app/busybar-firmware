@@ -1,20 +1,18 @@
+#include <furi.h>
+
+#include <furi_hal_version.h>
 #include <furi_hal_info.h>
 
 #include <version/version.h>
-#include <furi_hal_version.h>
-#include <stm32u5xx_ll_utils.h>
-#include <furi.h>
+#include <toolbox/hex.h>
 
 FURI_WEAK void furi_hal_info_get_api_version(uint16_t* major, uint16_t* minor) {
     *major = 0;
     *minor = 0;
 }
 
-static void format_bytes_hex(FuriString* str, const uint8_t* data, size_t len) {
-    furi_string_reset(str);
-    for(size_t i = 0; i < len; i++) {
-        furi_string_cat_printf(str, "%02x", data[i]);
-    }
+static inline void format_bytes_hex(FuriString* str, const uint8_t* data, size_t len) {
+    hex_bytes_to_string(data, len, str);
 }
 
 static void format_mac(FuriString* str, const uint8_t* mac) {
@@ -178,8 +176,7 @@ void furi_hal_info_get(PropertyValueCallback out, char sep, void* context) {
         }
 
         // Hardware UID
-        furi_string_printf(
-            temp_str, "%08lx%08lx%08lx", LL_GetUID_Word2(), LL_GetUID_Word1(), LL_GetUID_Word0());
+        format_bytes_hex(temp_str, furi_hal_version_uid(), furi_hal_version_uid_size());
         property_out_str(&property_context, "hardware", "uid", furi_string_get_cstr(temp_str));
 
         // OTP1 - Hardware/Production info
