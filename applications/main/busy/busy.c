@@ -147,7 +147,7 @@ static BusyApp* busy_alloc(const char* arg) {
         instance->nav_bar = nav_bar_alloc(flex_layout_get_base(instance->back_container));
         widget_set_height(nav_bar_get_base(instance->nav_bar), BUSY_NAV_BAR_HEIGHT);
         widget_set_padding(nav_bar_get_base(instance->nav_bar), 2, 2, 0, 0);
-        nav_bar_set_header_image(instance->nav_bar, BUSY_IMG_PATH("header_busy_39x16.bin"));
+        nav_bar_set_header_image(instance->nav_bar, BUSY_IMG_PATH("header_busy_41x16.bin"));
         flex_layout_set_child_widget_grow(
             instance->back_container, nav_bar_get_base(instance->nav_bar), 0);
 
