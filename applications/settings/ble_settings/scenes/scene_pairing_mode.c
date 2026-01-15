@@ -16,7 +16,7 @@
 typedef enum {
     SceneEventBlePairingEvent = AppEventSceneEventsStart,
     SceneEventDeviceNameChangedEvent,
-    SceneEventUpdateBackLayoutEvent,
+    SceneEventUpdateLayoutEvent,
 
 } SceneEvent;
 
@@ -177,8 +177,8 @@ static bool scene_pairing_mode_on_event(const SceneManagerEvent* event, void* co
                 label_set_text(data->name_label, furi_string_get_cstr(data->name_label_text));
             });
             furi_delay_ms(DEVICE_NAME_UPDATE_LAYOUT_DELAY_MS);
-            ble_settings_send_custom_event(instance, SceneEventUpdateBackLayoutEvent);
-        } else if(event->event == SceneEventUpdateBackLayoutEvent) {
+            ble_settings_send_custom_event(instance, SceneEventUpdateLayoutEvent);
+        } else if(event->event == SceneEventUpdateLayoutEvent) {
             BleSettingsPairingSceneData* data =
                 scene_manager_get_scene_data(instance->scene_manager, SceneIdPairingMode);
             with_gui(instance->gui, {
