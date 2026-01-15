@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 
 import struct
-import json5
+import json
 from io import BufferedWriter
 from pathlib import Path
 from tempfile import TemporaryDirectory
@@ -36,7 +36,7 @@ class Header:
     def to_bytes(self) -> bytes:
         return struct.pack(
             self.FORMAT,
-            b"BSBanim0",
+            b"bicycle0",
 
             self.flags,
             self.width,
@@ -94,7 +94,7 @@ class FileFrame:
     def pack(frame: bytes, mode: str) -> bytes:
         packed = bytearray()
 
-        if mode == "bgr888":
+        if mode == "rgb888":
             for i in range(0, len(frame), 3):
                 packed.extend([frame[i + 2], frame[i + 1], frame[i]])
         
@@ -112,7 +112,7 @@ class FileFrame:
     @staticmethod
     def encode(frame: bytes, mode: str) -> Self:
         raw = frame
-        blk_size = 3 if mode == "bgr888" else 1
+        blk_size = 3 if mode == "rgb888" else 1
         rle_encoded = rle.compress(frame, blk_size)
 
         if len(rle_encoded) < len(raw):
@@ -171,7 +171,7 @@ class BSBAnimConverter:
                 start=section["start"],
                 end=section["end"],
                 name=section["name"],
-                # to be filled later
+                # precomputed start info to be filled later
                 frame_offs=0,
                 duration_override=0,
             )
@@ -194,7 +194,7 @@ class BSBAnimConverter:
         # 4. assemble header and write data
         assert size
         width, height = size
-        color_fmt_map = {"bgr888": 0, "gray4": 1}
+        color_fmt_map = {"rgb888": 0, "gray4": 1}
         header = Header(
             flags=0,
             width=width,
@@ -222,7 +222,7 @@ class BSBAnimConverter:
         )
 
     def convert_dir(self, input: Path, output: Path) -> ConversionInfo:
-        meta: dict = json5.loads((input / "meta.json").read_text())
+        meta: dict = json.loads((input / "meta.json").read_text())
 
         frames = list(input.glob("*.png"))
         frames.sort(key=lambda x: number_in_str(x.stem))
@@ -235,8 +235,8 @@ class BSBAnimConverter:
             raise ConversionError(f"Invalid meta.json: must have 'fps'")
         if "color" not in meta:
             raise ConversionError(f"Invalid meta.json: must have 'color'")
-        if meta["color"] not in ["bgr888", "gray4"]:
-            raise ConversionError(f"Invalid meta.json: 'color' must be one of: 'bgr888', 'gray4'")
+        if meta["color"] not in ["rgb888", "gray4"]:
+            raise ConversionError(f"Invalid meta.json: 'color' must be one of: 'rgb888', 'gray4'")
         if "sections" not in meta:
             raise ConversionError(f"Invalid meta.json: must have 'sections'")
         if not meta["sections"]:

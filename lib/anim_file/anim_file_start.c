@@ -4,6 +4,16 @@
 
 #include "anim_file_i.h"
 
+static void anim_file_set_requested_range(AnimFile* anim, const AnimFileRange* requested) {
+    furi_assert(anim);
+    furi_assert(requested);
+
+    anim->pending_range = *requested;
+    anim->is_pending_range = true;
+
+    anim_file_set_new_active(anim);
+}
+
 bool anim_file_compute_start(
     AnimFile* anim,
     AnimFilePlayFlag flags,
@@ -39,14 +49,14 @@ bool anim_file_compute_start(
         disp_frame_idx += frame_hdr.duration;
     }
 
-    anim->pending_range = (AnimFileRange){
+    const AnimFileRange range = {
         .start = start_frame,
         .end = end_frame,
         .flags = flags,
         .start_offset = frame_offset,
         .start_duration_override = frame_hdr.duration - (start_frame - disp_frame_idx),
     };
-    anim->is_pending_range = true;
+    anim_file_set_requested_range(anim, &range);
 
     return true;
 }
@@ -57,12 +67,12 @@ void anim_file_set_precomputed_start(
     const AnimFileSection* section) {
     furi_assert(section);
 
-    anim->pending_range = (AnimFileRange){
+    const AnimFileRange range = {
         .start = section->start,
         .end = section->end,
         .flags = flags,
         .start_offset = section->frame_offs,
         .start_duration_override = section->duration_override,
     };
-    anim->is_pending_range = true;
+    anim_file_set_requested_range(anim, &range);
 }

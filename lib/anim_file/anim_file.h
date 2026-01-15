@@ -21,7 +21,7 @@ typedef struct AnimFile AnimFile;
  * 
  * @returns Allocated and loaded `AnimFile`, or `NULL` on error.
  */
-AnimFile* anim_file_alloc(Storage* storage, const char* path);
+AnimFile* FURI_WARN_UNUSED anim_file_alloc(Storage* storage, const char* path);
 
 /**
  * @brief Unloads an `AnimFile`
@@ -61,17 +61,27 @@ typedef enum {
 } AnimFileFrameFlag;
 
 /**
+ * @brief Complete information about the just-shown frame.
+ */
+typedef struct {
+    AnimFileFrameFlag
+        flags; //<! If contains `AnimFileFrameFlagError`, all other fields in this struct are invalid.
+    size_t index;
+} AnimFileFrameInfo;
+
+/**
  * @brief Draws the next frame of the animation onto a canvas buffer
- * @note This function should be called with a period specified by `info.fps`
+ * @note This function is advised to be called with a rate specified by
+ *       `anim_file_info(anim).fps`
  * 
  * @param[in] anim `AnimFile` instance
- * @param[out] buffer BGR888 buffer of size `info.width * info.height * 3`. The
+ * @param[out] buffer RGB888 buffer of size `info.width * info.height * 3`. The
  *                    contents of the provided buffer must not change in between
  *                    calls to this function.
  * 
- * @returns Flags related to the just-shown frame
+ * @returns Information about the just-shown frame
  */
-AnimFileFrameFlag anim_file_frame(AnimFile* anim, void* buffer);
+AnimFileFrameInfo anim_file_frame(AnimFile* anim, void* buffer);
 
 /**
  * @brief Flags for the `anim_file_set_section_*` family
@@ -95,7 +105,8 @@ typedef enum {
  * 
  * @returns Whether the operation was successful.
  */
-bool anim_file_set_section_manual(AnimFile* anim, AnimFilePlayFlag flags, size_t start, size_t end);
+bool FURI_WARN_UNUSED
+    anim_file_set_section_manual(AnimFile* anim, AnimFilePlayFlag flags, size_t start, size_t end);
 
 /**
  * @brief Sets the current section to be played back, using a section index
@@ -106,7 +117,8 @@ bool anim_file_set_section_manual(AnimFile* anim, AnimFilePlayFlag flags, size_t
  * 
  * @returns Whether the operation was successful.
  */
-bool anim_file_set_section_indexed(AnimFile* anim, AnimFilePlayFlag flags, size_t index);
+bool FURI_WARN_UNUSED
+    anim_file_set_section_indexed(AnimFile* anim, AnimFilePlayFlag flags, size_t index);
 
 /**
  * @brief The index that when provided to `anim_file_set_section_indexed`
@@ -123,7 +135,8 @@ bool anim_file_set_section_indexed(AnimFile* anim, AnimFilePlayFlag flags, size_
  * 
  * @returns Whether the operation was successful.
  */
-bool anim_file_set_section_named(AnimFile* anim, AnimFilePlayFlag flags, const char* name);
+bool FURI_WARN_UNUSED
+    anim_file_set_section_named(AnimFile* anim, AnimFilePlayFlag flags, const char* name);
 
 /**
  * @brief The name that when provided to `anim_file_set_section_named`

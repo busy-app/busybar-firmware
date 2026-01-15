@@ -1,10 +1,10 @@
 /**
- * @brief Public API for `AnimImage`
+ * @brief Public API for `AnimFile`
  */
 
 #include "anim_file_i.h"
 
-AnimFile* anim_file_alloc(Storage* storage, const char* path) {
+AnimFile* FURI_WARN_UNUSED anim_file_alloc(Storage* storage, const char* path) {
     furi_check(storage);
     furi_check(path);
 
@@ -86,26 +86,44 @@ AnimFileInfo anim_file_info(const AnimFile* anim) {
     return anim->meta.info;
 }
 
-AnimFileFrameFlag anim_file_frame(AnimFile* anim, void* buffer) {
+AnimFileFrameInfo anim_file_frame(AnimFile* anim, void* buffer) {
     furi_check(anim);
     furi_check(buffer);
 
-    if(!anim_file_load_current_frame(anim)) return AnimFileFrameFlagError;
+    AnimFileFrameInfo info;
 
-    if(!anim->playback.did_display_frame) {
-        if(!anim_file_decode_frame(anim, buffer)) return AnimFileFrameFlagError;
-    }
+    do {
+        if(!anim_file_load_current_frame(anim)) {
+            info.flags = AnimFileFrameFlagError;
+            break;
+        }
 
-    return anim_file_frame_flags(anim);
+        if(!anim->playback.did_display_frame) {
+            if(!anim_file_decode_frame(anim, buffer)) {
+                info.flags = AnimFileFrameFlagError;
+                break;
+            }
+            anim->playback.did_display_frame = true;
+        }
+
+        info.flags = anim_file_frame_flags(anim) | anim->playback.forced_flags;
+        info.index = anim->playback.disp_frame_idx;
+
+        anim->playback.forced_flags = 0;
+    } while(0);
+
+    return info;
 }
 
-bool anim_file_set_section_manual(AnimFile* anim, AnimFilePlayFlag flags, size_t start, size_t end) {
+bool FURI_WARN_UNUSED
+    anim_file_set_section_manual(AnimFile* anim, AnimFilePlayFlag flags, size_t start, size_t end) {
     furi_check(anim);
     if(!anim_file_compute_start(anim, flags, start, end)) return false;
     return true;
 }
 
-bool anim_file_set_section_indexed(AnimFile* anim, AnimFilePlayFlag flags, size_t index) {
+bool FURI_WARN_UNUSED
+    anim_file_set_section_indexed(AnimFile* anim, AnimFilePlayFlag flags, size_t index) {
     furi_check(anim);
 
     const AnimFileHeader* header = &anim->meta.header;
@@ -126,7 +144,8 @@ bool anim_file_set_section_indexed(AnimFile* anim, AnimFilePlayFlag flags, size_
     return false;
 }
 
-bool anim_file_set_section_named(AnimFile* anim, AnimFilePlayFlag flags, const char* name) {
+bool FURI_WARN_UNUSED
+    anim_file_set_section_named(AnimFile* anim, AnimFilePlayFlag flags, const char* name) {
     furi_check(anim);
     furi_check(name);
 

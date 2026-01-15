@@ -63,7 +63,9 @@ typedef struct {
     size_t disp_frame_idx;
     size_t remaining_duration;
 
+    bool did_load_frame;
     bool did_display_frame;
+    AnimFileFlag forced_flags;
 } AnimFilePlayback;
 
 struct AnimFile {
@@ -121,6 +123,8 @@ void anim_file_set_precomputed_start(
 size_t anim_file_packed_length(const AnimFileHeader* file_hdr);
 
 AnimFileFrameFlag anim_file_frame_flags(const AnimFile* anim);
+
+bool anim_file_set_new_active(AnimFile* anim);
 
 bool anim_file_load_current_frame(AnimFile* anim);
 

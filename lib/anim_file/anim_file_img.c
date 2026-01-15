@@ -9,7 +9,7 @@
 size_t anim_file_packed_length(const AnimFileHeader* file_hdr) {
     furi_assert(file_hdr);
 
-    if(file_hdr->color_format == AnimFileColorFormatBgr888) {
+    if(file_hdr->color_format == AnimFileColorFormatRgb888) {
         return file_hdr->width * file_hdr->height * 3;
     } else if(file_hdr->color_format == AnimFileColorFormatGray4) {
         return file_hdr->width * file_hdr->height / 2;
@@ -52,19 +52,15 @@ AnimFileFrameFlag anim_file_frame_flags(const AnimFile* anim) {
     return flags;
 }
 
-bool anim_file_load_current_frame(AnimFile* anim) {
+bool anim_file_set_new_active(AnimFile* anim) {
     furi_assert(anim);
 
     AnimFileRange* active = &anim->active_range;
     AnimFileRange* pending = &anim->pending_range;
     AnimFilePlayback* playback = &anim->playback;
-    AnimFileFrameHeader* frame_hdr = &playback->frame_hdr;
-
     AnimFileFrameFlag flags = anim_file_frame_flags(anim);
-    bool read_next_frame = false;
 
     if(flags & (AnimFileFrameFlagSwitchToRequested | AnimFileFrameFlagLooping)) {
-        // load frame from start of range
         if(flags & AnimFileFrameFlagLooping) {
             *pending = *active;
         } else {
@@ -73,55 +69,76 @@ bool anim_file_load_current_frame(AnimFile* anim) {
         *active = *pending;
         playback->disp_frame_idx = active->start;
         playback->file_offset = active->start_offset;
-        read_next_frame = true;
+        playback->remaining_duration = active->start_duration_override;
+        playback->did_load_frame = false;
+        playback->forced_flags |= AnimFileFrameFlagSwitchToRequested;
 
-    } else if(!(flags & AnimFileFrameFlagFinished)) {
-        // load next frame in range
+        return true;
+    }
+
+    return false;
+}
+
+bool anim_file_load_current_frame(AnimFile* anim) {
+    furi_assert(anim);
+
+    AnimFilePlayback* playback = &anim->playback;
+    AnimFileFrameFlag flags = anim_file_frame_flags(anim);
+
+    if(!anim_file_set_new_active(anim) && !(flags & AnimFileFrameFlagFinished)) {
         playback->disp_frame_idx++;
-        if(--playback->remaining_duration == 0) {
-            playback->file_offset += sizeof(*frame_hdr) + frame_hdr->encoded_length;
-            read_next_frame = true;
-        }
+        if(--playback->remaining_duration == 0) playback->did_load_frame = false;
     }
 
-    if(read_next_frame) {
-        if(!storage_file_seek(anim->file, playback->file_offset, true)) {
-            ANIM_FILE_ERR("Failed to seek frame header");
-            return false;
-        }
+    if(playback->did_load_frame) return true;
 
-        size_t to_read = sizeof(*frame_hdr);
-        if(storage_file_read(anim->file, frame_hdr, to_read) != to_read) {
-            ANIM_FILE_ERR("Failed to read frame header");
-            return false;
-        }
-
-        uint8_t* frame_buffer;
-        if(frame_hdr->encoding != AnimFileFrameEncodingRaw) {
-            frame_buffer = playback->encoded_buffer;
-            if(!frame_buffer) {
-                ANIM_FILE_ERR("Invalid file header: max_encoded_length = 0 with an encoded frame");
-                return false;
-            }
-            if(frame_hdr->encoded_length > anim->meta.header.max_encoded_length) {
-                ANIM_FILE_ERR("Invalid file header: frame.encoded_length > max_encoded_length");
-                return false;
-            }
-        } else {
-            frame_buffer = playback->packed_buffer;
-        }
-
-        to_read = frame_hdr->encoded_length;
-        if(storage_file_read(anim->file, frame_buffer, frame_hdr->encoded_length) != to_read) {
-            ANIM_FILE_ERR("Invalid frame encoded_length");
-            return false;
-        }
-
-        playback->did_display_frame = false;
-        playback->remaining_duration = (flags & AnimFileFrameFlagSwitchToRequested) ?
-                                           active->start_duration_override :
-                                           frame_hdr->duration;
+    if(!storage_file_seek(anim->file, playback->file_offset, true)) {
+        ANIM_FILE_ERR("Failed to seek frame header");
+        return false;
     }
+
+    AnimFileFrameHeader* frame_hdr = &playback->frame_hdr;
+    size_t to_read = sizeof(*frame_hdr);
+    if(storage_file_read(anim->file, frame_hdr, to_read) != to_read) {
+        ANIM_FILE_ERR("Failed to read frame header");
+        return false;
+    }
+
+    uint8_t* frame_buffer;
+    if(frame_hdr->encoding != AnimFileFrameEncodingRaw) {
+        frame_buffer = playback->encoded_buffer;
+        if(!frame_buffer) {
+            ANIM_FILE_ERR("Invalid file header: max_encoded_length = 0 with an encoded frame");
+            return false;
+        }
+        if(frame_hdr->encoded_length > anim->meta.header.max_encoded_length) {
+            ANIM_FILE_ERR("Invalid file header: frame.encoded_length > max_encoded_length");
+            return false;
+        }
+        if(!frame_hdr->duration) {
+            ANIM_FILE_ERR("Invalid frame header: duration = 0");
+            return false;
+        }
+    } else {
+        frame_buffer = playback->packed_buffer;
+    }
+
+    to_read = frame_hdr->encoded_length;
+    if(storage_file_read(anim->file, frame_buffer, frame_hdr->encoded_length) != to_read) {
+        ANIM_FILE_ERR("Invalid frame encoded_length");
+        return false;
+    }
+
+    AnimFileRange* active = &anim->active_range;
+    playback->did_display_frame = false;
+
+    flags |= playback->forced_flags;
+    playback->remaining_duration = (flags & AnimFileFrameFlagSwitchToRequested) ?
+                                       active->start_duration_override :
+                                       frame_hdr->duration;
+
+    playback->file_offset += sizeof(*frame_hdr) + frame_hdr->encoded_length;
+    playback->did_load_frame = true;
 
     return true;
 }
@@ -140,7 +157,7 @@ bool anim_file_decode_frame(AnimFile* anim, uint8_t* buffer) {
     size_t packed_len = anim_file_packed_length(file_hdr);
     size_t blk_size = 0;
 
-    if(color_fmt == AnimFileColorFormatBgr888) {
+    if(color_fmt == AnimFileColorFormatRgb888) {
         blk_size = 3;
     } else if(color_fmt == AnimFileColorFormatGray4) {
         blk_size = 1;
@@ -168,7 +185,7 @@ bool anim_file_decode_frame(AnimFile* anim, uint8_t* buffer) {
         }
     }
 
-    if(color_fmt == AnimFileColorFormatBgr888) {
+    if(color_fmt == AnimFileColorFormatRgb888) {
         memcpy(buffer, packed_buf, packed_len);
 
     } else if(color_fmt == AnimFileColorFormatGray4) {

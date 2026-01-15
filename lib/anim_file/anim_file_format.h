@@ -7,9 +7,9 @@
  *     consecutive display frames.
  *   - Section: User-selectable named range of display frame indices.
  *   - Chunk: part of the file. There's a Sections chunk and a Frames chunk.
- *   - Color buffer: Plain Bgr888 buffer that LVGL accepts directly.
- *   - Packed buffer: Either Bgr888 or Gray4 buffer. Gray4 has to be unpacked
- *     into a Color buffer, Bgr888 can be used directly.
+ *   - Color buffer: Plain Rgb888 buffer that LVGL accepts directly.
+ *   - Packed buffer: Either Rgb888 or Gray4 buffer. Gray4 has to be unpacked
+ *     into a Color buffer, Rgb888 can be used directly.
  *   - Encoded buffer: Either RLE-encoded or plain packed buffer. RLE has to be
  *     decoded into a Packed buffer.
  * 
@@ -59,7 +59,7 @@ extern "C" {
  * @brief Color format. Applies to the entire animation.
  */
 typedef enum FURI_PACKED {
-    AnimFileColorFormatBgr888, //<! Each pixel is (in order) blue, then green, then red
+    AnimFileColorFormatRgb888, //<! Each pixel is (in order) red, then green, the blue
     AnimFileColorFormatGray4, //<! 2 px in byte: hi nibble = earlier pixel, lo nibble = later pixel
     AnimFileColorFormatMAX,
 } AnimFileColorFormat;
@@ -92,7 +92,8 @@ typedef struct FURI_PACKED {
     uint32_t frames_chunk_length;
 } AnimFileHeader;
 
-#define ANIM_FILE_HEADER_SIGNATURE "BSBanim0" // BUSY Status Bar animation version 0
+// Busybar Image Container speciallY Crafted for file Length Eradication, ver. 0
+#define ANIM_FILE_HEADER_SIGNATURE "bicycle0"
 
 /**
  * @brief Descriptor of one Section
@@ -106,12 +107,19 @@ typedef struct FURI_PACKED {
     char name[]; //<! NUL-terminated
 } AnimFileSection;
 
+/*
+ * Together, `frame_offs` and `duration_override` are called Start Info because they facilitate a
+ * fast start without traversing all frames up to the frame of interest. If those values have been
+ * calculated by `seq2anim.py` and written to the file in `AnimFileSection` struct, they're called
+ * Precomputed Start Info.
+ */
+
 /**
  * @brief Encoding mode of one File Frame
  */
 typedef enum FURI_PACKED {
     AnimFileFrameEncodingRaw, //<! Plain pixels encoded according to `AnimFileColorFormat`
-    AnimFileFrameEncodingRle, //<! Run-length encoding of `Raw` data implemented by `toolbox/rle_encode`. `blk_size` parameter is 3 for `AnimFileColorFormatBgr888`, and 1 for `AnimFileColorFormatGray4`.
+    AnimFileFrameEncodingRle, //<! Run-length encoding of `Raw` data implemented by `toolbox/rle_encode`. `blk_size` parameter is 3 for `AnimFileColorFormatRgb888`, and 1 for `AnimFileColorFormatGray4`.
     AnimFileFrameEncodingMAX,
 } AnimFileFrameEncoding;
 static_assert(sizeof(AnimFileFrameEncoding) == sizeof(uint8_t));
