@@ -29,6 +29,10 @@
 
 #include "SilabsConfig.h"
 
+#include <version/version.h>
+
+#define MATTER_SOFTWARE_VER_NUM 2ul
+
 namespace chip {
 namespace DeviceLayer {
 
@@ -128,6 +132,21 @@ CHIP_ERROR ConfigurationManagerImpl::WritePersistedStorageValue(
 
 exit:
     return err;
+}
+
+CHIP_ERROR ConfigurationManagerImpl::GetSoftwareVersionString(char* buf, size_t bufSize) {
+    const Version* version = version_get();
+    const char* version_str = version_get_version(version);
+
+    if(strlen(version_str) + 1 > bufSize) return CHIP_ERROR_BUFFER_TOO_SMALL;
+
+    strcpy(buf, version_str);
+    return CHIP_NO_ERROR;
+}
+
+CHIP_ERROR ConfigurationManagerImpl::GetSoftwareVersion(uint32_t& softwareVer) {
+    softwareVer = MATTER_SOFTWARE_VER_NUM;
+    return CHIP_NO_ERROR;
 }
 
 CHIP_ERROR ConfigurationManagerImpl::ReadConfigValue(Key key, bool& val) {

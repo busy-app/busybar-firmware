@@ -1,5 +1,6 @@
 #include <furi_hal.h>
 #include <furi_hal_nvm.h>
+#include <furi_hal_version.h>
 
 #define TAG "FuriHal"
 
@@ -14,6 +15,7 @@ void furi_hal_init_early(void) {
     furi_hal_i2c_init_early();
     furi_hal_rtc_init_early();
     furi_hal_nvm_init_early();
+    furi_hal_version_init();
 }
 
 void furi_hal_deinit_early(void) {
